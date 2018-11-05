@@ -1,0 +1,28 @@
+{
+  "name": "lanette",
+  "version": "0.0.1",
+  "description": "A bot for Pokemon Showdown",
+  "main": "app.js",
+  "scripts": {
+    "test": "tslint -c tslint.json 'src/**/*.ts' && tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sirDonovan/Lanette.git"
+  },
+  "author": "Quinton Lee",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sirDonovan/Lanette/issues"
+  },
+  "homepage": "https://github.com/sirDonovan/Lanette#readme",
+  "dependencies": {
+    "@types/node": "10.12.2",
+    "@types/websocket": "0.0.40",
+    "typescript": "3.1.6",
+    "websocket": "1.0.28"
+  },
+  "devDependencies": {
+    "tslint": "5.11.0"
+  }
+}
