@@ -4,7 +4,8 @@
   "description": "A bot for Pokemon Showdown",
   "main": "app.js",
   "scripts": {
-    "test": "tslint -c tslint.json 'src/**/*.ts' && tsc"
+    "test": "tslint -c tslint.json 'src/**/*.ts' && tsc",
+    "tsc": "tsc"
   },
   "repository": {
     "type": "git",

@@ -8,4 +8,4 @@ declare namespace NodeJS {
 		Users: import('./users').Users;
 	}
 }
-// tsline:enable
+// tslint:enable

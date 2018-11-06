@@ -42,7 +42,7 @@ deleteFolderRecursive(builtFolder);
 (async () => {
 	console.log("Running tsc...");
 	const exec = util.promisify(child_process.exec);
-	const build = await exec('tsc', {stdio: 'inherit'}).catch(e => console.log(e));
+	const build = await exec('npm run tsc', {stdio: 'inherit'}).catch(e => console.log(e));
 	if (!build || build.Error) {
 		process.exit(1);
 	}
