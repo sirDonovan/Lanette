@@ -41,6 +41,36 @@ export interface IClientMessageTypes {
 	 * Groups list
 	 */
 	customgroups: {
-		groups: Pick<IServerGroup, Exclude<keyof IServerGroup, "ranking">>[];
+		groups: Pick<IServerGroup, Exclude<keyof IServerGroup, "ranking">>[],
 	};
+
+	/**
+	 * Rank+username
+	 */
+	join: {
+		rank: string,
+		username: string,
+	};
+	j: IClientMessageTypes['join'];
+	J: IClientMessageTypes['join'];
+
+	/**
+	 * Username
+	 */
+	leave: {
+		username: string,
+	};
+	l: IClientMessageTypes['leave'];
+	L: IClientMessageTypes['leave'];
+
+	/**
+	 * Rank+username|Old userid
+	 */
+	name: {
+		rank: string,
+		username: string,
+		oldId: string,
+	};
+	n: IClientMessageTypes['name'];
+	N: IClientMessageTypes['name'];
 }

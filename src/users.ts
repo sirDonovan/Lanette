@@ -32,4 +32,20 @@ export class Users {
 		if (!(id in this.users)) this.users[id] = new User(name, id);
 		return this.users[id];
 	}
+
+	remove(user: User) {
+		delete this.users[user.id];
+	}
+
+	rename(name: string, oldId: string): User {
+		if (!(oldId in this.users)) return this.add(name);
+		const user = this.users[oldId];
+		this.remove(user);
+		const id = Tools.toId(name);
+		if (id in this.users) return this.users[id];
+		user.name = name;
+		user.id = id;
+		this.users[id] = user;
+		return user;
+	}
 }

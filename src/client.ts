@@ -186,6 +186,38 @@ export class Client {
 				this.serverGroups[messageArguments.groups[i].symbol] = Object.assign({ranking}, messageArguments.groups[i]);
 				ranking--;
 			}
+			break;
+		}
+
+		case 'join':
+		case 'j':
+		case 'J': {
+			const messageArguments: IClientMessageTypes['join'] = {rank: messageParts[0].charAt(0), username: messageParts[0].substr(1)};
+			const user = Users.add(messageArguments.username);
+			room.users.add(user);
+			user.rooms.set(room, messageArguments.rank);
+			break;
+		}
+
+		case 'leave':
+		case 'l':
+		case 'L': {
+			const messageArguments: IClientMessageTypes['leave'] = {username: messageParts[0]};
+			const user = Users.add(messageArguments.username);
+			room.users.delete(user);
+			user.rooms.delete(room);
+			if (!user.rooms.size) Users.remove(user);
+			break;
+		}
+
+		case 'name':
+		case 'n':
+		case 'N': {
+			const messageArguments: IClientMessageTypes['name'] = {rank: messageParts[0].charAt(0), username: messageParts[0].substr(1), oldId: messageParts[1]};
+			const user = Users.rename(messageArguments.username, messageArguments.oldId);
+			room.users.add(user);
+			user.rooms.set(room, messageArguments.rank);
+			break;
 		}
 		}
 	}
