@@ -15,6 +15,13 @@
 		],
 		"lib": [
 		    "esnext"
+		],
+		"plugins": [
+			{
+				"name": "typescript-tslint-plugin",
+				"ignoreDefinitionFiles": false,
+				"suppressWhileTypeErrorsPresent": true
+			}
 		]
 	},
 	"include": [
