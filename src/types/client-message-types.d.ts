@@ -7,12 +7,12 @@ export interface IServerGroup {
 
 export interface IClientMessageTypes {
 	/**
-	 * Challenge key ID|Challenge
+	 * Challenge key ID|challenge
 	 */
 	challstr: string;
 
 	/**
-	 * Username|Login result
+	 * Username|login result
 	 */
 	updateuser: {
 		/** Config.username or Guest### if not logged in */
@@ -65,7 +65,7 @@ export interface IClientMessageTypes {
 	L: IClientMessageTypes['leave'];
 
 	/**
-	 * Rank+username|Old userid
+	 * Rank+username|old userid
 	 */
 	name: {
 		rank: string,
@@ -75,16 +75,36 @@ export interface IClientMessageTypes {
 	n: IClientMessageTypes['name'];
 	N: IClientMessageTypes['name'];
 
+	/**
+	 * Rank+username|message
+	 */
 	chat: {
+		/** Defaults to current time */
 		timestamp: number,
 		rank: string,
 		username: string,
 		message: string,
 	};
 	c: IClientMessageTypes['chat'];
+
+	/**
+	 * Timestamp|rank+username|message
+	 */
 	'c:': IClientMessageTypes['chat'];
 
+	/**
+	 * Server timestamp
+	 */
 	':': {
 		timestamp: number,
+	};
+
+	/**
+	 * Rank+username|message
+	 */
+	pm: {
+		rank: string,
+		username: string,
+		message: string,
 	};
 }

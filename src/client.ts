@@ -12,14 +12,14 @@ export class Client {
 	challstr = '';
 	client = new websocket.client();
 	connection = null as websocket.connection | null;
-	connectionTimeout = null as NodeJS.Timer | null;
 	connectionAttempts = 0;
+	connectionTimeout = null as NodeJS.Timer | null;
 	reconnectTime = Config.reconnectTime || 60 * 1000;
 	sendQueue = [] as string[];
 	sendTimeout = null as NodeJS.Timer | null;
 	server = Config.server || 'play.pokemonshowdown.com';
-	serverId = 'showdown';
 	serverGroups = {} as Dict<IServerGroup>;
+	serverId = 'showdown';
 	serverTimeOffset = 0;
 
 	constructor() {
@@ -248,6 +248,14 @@ export class Client {
 			const messageArguments: IClientMessageTypes[':'] = {timestamp: parseInt(messageParts[0])};
 			this.serverTimeOffset = Math.floor(Date.now() / 1000) - messageArguments.timestamp;
 			break;
+		}
+
+		case 'pm': {
+			const messageArguments: IClientMessageTypes['pm'] = {rank: messageParts[0].charAt(0), username: messageParts[0].substr(1), message: messageParts.slice(1).join("|")};
+			const user = Users.add(messageArguments.username);
+			if (user !== Users.self) {
+				CommandParser.parse(user, user, messageArguments.message);
+			}
 		}
 		}
 

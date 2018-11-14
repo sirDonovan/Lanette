@@ -3,15 +3,15 @@ import { User } from "./users";
 
 export class Command {
 	originalCommand: string;
-	target: string;
 	room: Room | User;
+	target: string;
 	user: User;
 
-	constructor(originalCommand: string, target: string, user: User, room: Room | User) {
+	constructor(originalCommand: string, target: string, room: Room | User, user: User) {
 		this.originalCommand = originalCommand;
 		this.target = target;
-		this.user = user;
 		this.room = room;
+		this.user = user;
 	}
 
 	say(message: string) {
@@ -30,7 +30,7 @@ export class Command {
 }
 
 export class CommandParser {
-	parse(room: Room, user: User, message: string) {
+	parse(room: Room | User, user: User, message: string) {
 		if (message.charAt(0) !== Config.commandCharacter) return;
 		message = message.substr(1);
 		let command: string;
@@ -46,6 +46,6 @@ export class CommandParser {
 		command = Tools.toId(command);
 		if (!(command in Commands)) return;
 
-		(new Command(command, target, user, room)).run();
+		(new Command(command, target, room, user)).run();
 	}
 }
