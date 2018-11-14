@@ -135,7 +135,7 @@ export class Client {
 		}
 	}
 
-	parseMessage(room: Room, message: string) {
+	parseMessage(room: Room, message: string): boolean {
 		message = message.substr(1);
 		const pipeIndex = message.indexOf("|");
 		const messageType = message.substr(0, pipeIndex) as keyof IClientMessageTypes;
@@ -150,20 +150,20 @@ export class Client {
 
 		case 'updateuser': {
 			const messageArguments: IClientMessageTypes['updateuser'] = {username: messageParts[0], loginStatus: messageParts[1]};
-			if (messageArguments.username !== Config.username) return;
-
-			if (messageArguments.loginStatus !== '1') {
-				console.log('Failed to log in');
-				process.exit();
-			}
-
-			console.log('Successfully logged in');
-			if (Config.rooms) {
-				for (let i = 0, len = Config.rooms.length; i < len; i++) {
-					this.send('|/join ' + Config.rooms[i]);
+			if (messageArguments.username === Config.username) {
+				if (messageArguments.loginStatus !== '1') {
+					console.log('Failed to log in');
+					process.exit();
 				}
+
+				console.log('Successfully logged in');
+				if (Config.rooms) {
+					for (let i = 0, len = Config.rooms.length; i < len; i++) {
+						this.send('|/join ' + Config.rooms[i]);
+					}
+				}
+				if (Config.avatar) this.send('|/avatar ' + Config.avatar);
 			}
-			if (Config.avatar) this.send('|/avatar ' + Config.avatar);
 			break;
 		}
 
@@ -174,13 +174,14 @@ export class Client {
 
 		case 'users': {
 			const messageArguments: IClientMessageTypes['users'] = {userlist: messageParts[0]};
-			if (messageArguments.userlist === '0') return;
-			const users = messageArguments.userlist.split(",");
-			for (let i = 1; i < users.length; i++) {
-				const rank = users[i].charAt(0);
-				const user = Users.add(users[i].substr(1));
-				room.users.add(user);
-				user.rooms.set(room, rank);
+			if (messageArguments.userlist !== '0') {
+				const users = messageArguments.userlist.split(",");
+				for (let i = 1; i < users.length; i++) {
+					const rank = users[i].charAt(0);
+					const user = Users.add(users[i].substr(1));
+					room.users.add(user);
+					user.rooms.set(room, rank);
+				}
 			}
 			break;
 		}
@@ -237,7 +238,9 @@ export class Client {
 				messageArguments = {timestamp: Date.now(), rank: messageParts[0].charAt(0), username: messageParts[0].substr(1), message: messageParts.slice(1).join("|")};
 			}
 			const user = Users.add(messageArguments.username);
-			CommandParser.parse(room, user, messageArguments.message);
+			if (user !== Users.self) {
+				CommandParser.parse(room, user, messageArguments.message);
+			}
 			break;
 		}
 
@@ -247,6 +250,8 @@ export class Client {
 			break;
 		}
 		}
+
+		return true;
 	}
 
 	send(message: string) {
