@@ -55,9 +55,10 @@ export interface IClientMessageTypes {
 	J: IClientMessageTypes['join'];
 
 	/**
-	 * Username
+	 * Rank+username
 	 */
 	leave: {
+		rank: string,
 		username: string,
 	};
 	l: IClientMessageTypes['leave'];

@@ -202,7 +202,7 @@ export class Client {
 		case 'leave':
 		case 'l':
 		case 'L': {
-			const messageArguments: IClientMessageTypes['leave'] = {username: messageParts[0]};
+			const messageArguments: IClientMessageTypes['leave'] = {rank: messageParts[0].charAt(0), username: messageParts[0].substr(1)};
 			const user = Users.add(messageArguments.username);
 			room.users.delete(user);
 			user.rooms.delete(room);
