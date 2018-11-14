@@ -3,6 +3,7 @@ import { User } from "./users";
 
 export class Command {
 	originalCommand: string;
+	pm: boolean;
 	room: Room | User;
 	target: string;
 	user: User;
@@ -12,6 +13,8 @@ export class Command {
 		this.target = target;
 		this.room = room;
 		this.user = user;
+
+		this.pm = room === user;
 	}
 
 	say(message: string) {
@@ -23,6 +26,11 @@ export class Command {
 		if (newCommand) {
 			command = Tools.toId(newCommand);
 			if (!(command in Commands)) throw new Error(this.originalCommand + " ran non-existent command '" + newCommand + '"');
+		}
+		if (this.pm) {
+			if (Commands[command].chatOnly) return;
+		} else {
+			if (Commands[command].pmOnly) return;
 		}
 		const target = newTarget || this.target;
 		Commands[command].command.call(this, target, this.room, this.user, command);

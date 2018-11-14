@@ -5,6 +5,8 @@ import { User } from "./users";
 interface ICommandDefinition {
 	command: (this: Command, target: string, room: Room, user: User, alias: string) => void;
 	aliases?: string[];
+	chatOnly?: boolean;
+	pmOnly?: boolean;
 }
 
 const baseCommands: Dict<ICommandDefinition> = {
@@ -26,6 +28,7 @@ const baseCommands: Dict<ICommandDefinition> = {
 const commands: Dict<Pick<ICommandDefinition, Exclude<keyof ICommandDefinition, "aliases">>> = {};
 for (const i in baseCommands) {
 	const command = baseCommands[i];
+	if (command.chatOnly && command.pmOnly) throw new Error(i + " cannot be both a chat-only and a pm-only command");
 	if (command.aliases) {
 		const aliases = command.aliases.slice();
 		delete command.aliases;
