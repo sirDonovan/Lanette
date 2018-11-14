@@ -20,6 +20,7 @@ export class Client {
 	server = Config.server || 'play.pokemonshowdown.com';
 	serverId = 'showdown';
 	serverGroups = {} as Dict<IServerGroup>;
+	serverTimeOffset = 0;
 
 	constructor() {
 		this.client.on('connect', connection => {
@@ -120,6 +121,12 @@ export class Client {
 				for (let j = i + 1; j < lines.length; j++) {
 					if (lines[j].startsWith('|users|')) {
 						this.parseMessage(room, lines[j]);
+						for (let k = j + 1; k < lines.length; k++) {
+							if (lines[k].startsWith('|:|')) {
+								this.parseMessage(room, lines[k]);
+								break;
+							}
+						}
 						break;
 					}
 				}
@@ -217,6 +224,24 @@ export class Client {
 			const user = Users.rename(messageArguments.username, messageArguments.oldId);
 			room.users.add(user);
 			user.rooms.set(room, messageArguments.rank);
+			break;
+		}
+
+		case 'chat':
+		case 'c':
+		case 'c:': {
+			let messageArguments: IClientMessageTypes['chat'];
+			if (messageType === 'c:') {
+				messageArguments = {timestamp: (parseInt(messageParts[0]) + this.serverTimeOffset) * 1000, rank: messageParts[1].charAt(0), username: messageParts[1].substr(1), message: messageParts.slice(2).join("|")};
+			} else {
+				messageArguments = {timestamp: Date.now(), rank: messageParts[0].charAt(0), username: messageParts[0].substr(1), message: messageParts.slice(1).join("|")};
+			}
+			break;
+		}
+
+		case ':': {
+			const messageArguments: IClientMessageTypes[':'] = {timestamp: parseInt(messageParts[0])};
+			this.serverTimeOffset = Math.floor(Date.now() / 1000) - messageArguments.timestamp;
 			break;
 		}
 		}

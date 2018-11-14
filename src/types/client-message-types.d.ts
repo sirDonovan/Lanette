@@ -74,4 +74,17 @@ export interface IClientMessageTypes {
 	};
 	n: IClientMessageTypes['name'];
 	N: IClientMessageTypes['name'];
+
+	chat: {
+		timestamp: number,
+		rank: string,
+		username: string,
+		message: string,
+	};
+	c: IClientMessageTypes['chat'];
+	'c:': IClientMessageTypes['chat'];
+
+	':': {
+		timestamp: number,
+	};
 }
