@@ -236,6 +236,8 @@ export class Client {
 			} else {
 				messageArguments = {timestamp: Date.now(), rank: messageParts[0].charAt(0), username: messageParts[0].substr(1), message: messageParts.slice(1).join("|")};
 			}
+			const user = Users.add(messageArguments.username);
+			CommandParser.parse(room, user, messageArguments.message);
 			break;
 		}
 

@@ -31,3 +31,13 @@ export let rooms: string[] = [];
  * The avatar code to use after logging in
  */
 export let avatar = '';
+
+/**
+ * The character used to denote commands in chat messages
+ */
+export let commandCharacter = '.';
+
+/**
+ * Userids of those who should have access to the eval command
+ */
+export let developers: string[] = [];

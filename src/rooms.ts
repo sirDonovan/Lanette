@@ -4,9 +4,15 @@ export class Room {
 	users = new Set<User>();
 
 	id: string;
+	sendId: string;
 
 	constructor(id: string) {
 		this.id = id;
+		this.sendId = id === 'lobby' ? '' : id;
+	}
+
+	say(message: string) {
+		Client.send(this.sendId + "|" + message);
 	}
 }
 

@@ -16,6 +16,14 @@ export class User {
 		if (!this.rooms.has(room) || !(targetRank in Client.serverGroups)) return false;
 		return Client.serverGroups[this.rooms.get(room)!].ranking >= Client.serverGroups[targetRank].ranking;
 	}
+
+	isDeveloper(): boolean {
+		return Config.developers.includes(this.id);
+	}
+
+	say(message: string) {
+		Client.send("|/pm " + this.name + ", " + message);
+	}
 }
 
 export class Users {
