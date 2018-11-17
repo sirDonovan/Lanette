@@ -1,6 +1,15 @@
 import { Room } from "./rooms";
 import { User } from "./users";
 
+export interface ICommandDefinition {
+	command: (this: Command, target: string, room: Room, user: User, alias: string) => void;
+	aliases?: string[];
+	chatOnly?: boolean;
+	pmOnly?: boolean;
+}
+
+export type CommandsDict = Dict<Pick<ICommandDefinition, Exclude<keyof ICommandDefinition, "aliases">>>;
+
 export class Command {
 	originalCommand: string;
 	pm: boolean;
@@ -38,6 +47,21 @@ export class Command {
 }
 
 export class CommandParser {
+	loadCommands(commands: Dict<ICommandDefinition>) {
+		for (const i in commands) {
+			const command = commands[i];
+			if (command.chatOnly && command.pmOnly) throw new Error(i + " cannot be both a chat-only and a pm-only command");
+			if (command.aliases) {
+				const aliases = command.aliases.slice();
+				delete command.aliases;
+				for (let i = 0; i < aliases.length; i++) {
+					Commands[Tools.toId(aliases[i])] = command;
+				}
+			}
+			Commands[i] = command;
+		}
+	}
+
 	parse(room: Room | User, user: User, message: string) {
 		if (message.charAt(0) !== Config.commandCharacter) return;
 		message = message.substr(1);

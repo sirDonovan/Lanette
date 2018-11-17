@@ -1,15 +1,6 @@
-import { Command } from "./command-parser";
-import { Room } from "./rooms";
-import { User } from "./users";
+import { ICommandDefinition } from "./command-parser";
 
-interface ICommandDefinition {
-	command: (this: Command, target: string, room: Room, user: User, alias: string) => void;
-	aliases?: string[];
-	chatOnly?: boolean;
-	pmOnly?: boolean;
-}
-
-const baseCommands: Dict<ICommandDefinition> = {
+const commands: Dict<ICommandDefinition> = {
 	eval: {
 		command(target, room, user) {
 			if (!user.isDeveloper()) return;
@@ -24,19 +15,5 @@ const baseCommands: Dict<ICommandDefinition> = {
 		aliases: ['js'],
 	},
 };
-
-const commands: Dict<Pick<ICommandDefinition, Exclude<keyof ICommandDefinition, "aliases">>> = {};
-for (const i in baseCommands) {
-	const command = baseCommands[i];
-	if (command.chatOnly && command.pmOnly) throw new Error(i + " cannot be both a chat-only and a pm-only command");
-	if (command.aliases) {
-		const aliases = command.aliases.slice();
-		delete command.aliases;
-		for (let i = 0; i < aliases.length; i++) {
-			commands[Tools.toId(aliases[i])] = command;
-		}
-	}
-	commands[i] = command;
-}
 
 export = commands;
