@@ -14,6 +14,9 @@ global.CommandParser = new commandParser.CommandParser();
 import commands = require('./commands');
 global.Commands = {};
 
+import * as games from './games';
+global.Games = new games.Games();
+
 import * as rooms from './rooms';
 global.Rooms = new rooms.Rooms();
 
