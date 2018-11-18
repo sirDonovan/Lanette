@@ -1,14 +1,14 @@
 import { Room } from "./rooms";
 import { User } from "./users";
 
-export interface ICommandDefinition {
-	command: (this: Command, target: string, room: Room, user: User, alias: string) => void;
+export interface ICommandDefinition<T = undefined> {
+	command: (this: T extends undefined ? Command : T, target: string, room: Room, user: User, alias: string) => void;
 	aliases?: string[];
 	chatOnly?: boolean;
 	pmOnly?: boolean;
 }
 
-export type CommandsDict = Dict<Pick<ICommandDefinition, Exclude<keyof ICommandDefinition, "aliases">>>;
+export type CommandsDict<T = undefined> = Dict<Pick<ICommandDefinition<T>, Exclude<keyof ICommandDefinition<T>, "aliases">>>;
 
 export class Command {
 	originalCommand: string;
@@ -47,7 +47,8 @@ export class Command {
 }
 
 export class CommandParser {
-	loadCommands(commands: Dict<ICommandDefinition>) {
+	loadCommands<T = undefined>(commands: Dict<ICommandDefinition<T>>): CommandsDict<T> {
+		const dict: CommandsDict<T> = {};
 		for (const i in commands) {
 			const command = commands[i];
 			if (command.chatOnly && command.pmOnly) throw new Error(i + " cannot be both a chat-only and a pm-only command");
@@ -55,11 +56,13 @@ export class CommandParser {
 				const aliases = command.aliases.slice();
 				delete command.aliases;
 				for (let i = 0; i < aliases.length; i++) {
-					Commands[Tools.toId(aliases[i])] = command;
+					dict[Tools.toId(aliases[i])] = command;
 				}
 			}
-			Commands[i] = command;
+			dict[i] = command;
 		}
+
+		return dict;
 	}
 
 	parse(room: Room | User, user: User, message: string) {

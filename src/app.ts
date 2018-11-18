@@ -12,7 +12,7 @@ import * as commandParser from './command-parser';
 global.CommandParser = new commandParser.CommandParser();
 
 import commands = require('./commands');
-global.Commands = {};
+global.Commands = Object.assign(Object.create(null), CommandParser.loadCommands(commands));
 
 import * as games from './games';
 global.Games = new games.Games();
@@ -23,5 +23,4 @@ global.Rooms = new rooms.Rooms();
 import * as users from './users';
 global.Users = new users.Users();
 
-CommandParser.loadCommands(commands);
 Client.connect();
