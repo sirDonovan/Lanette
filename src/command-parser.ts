@@ -5,6 +5,7 @@ export interface ICommandDefinition<T = undefined> {
 	command: (this: T extends undefined ? Command : T, target: string, room: Room, user: User, alias: string) => void;
 	aliases?: string[];
 	chatOnly?: boolean;
+	pmGameCommand?: boolean;
 	pmOnly?: boolean;
 }
 
@@ -59,7 +60,7 @@ export class CommandParser {
 					dict[Tools.toId(aliases[i])] = command;
 				}
 			}
-			dict[i] = command;
+			dict[Tools.toId(i)] = command;
 		}
 
 		return dict;

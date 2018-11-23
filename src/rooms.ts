@@ -1,6 +1,8 @@
+import { Game } from "./room-game";
 import { User } from "./users";
 
 export class Room {
+	game = null as Game | null;
 	users = new Set<User>();
 
 	id: string;

@@ -1,3 +1,4 @@
+import { IGameFile, IGameFormat } from "./games";
 import { Room } from "./rooms";
 import { User } from "./users";
 
@@ -13,6 +14,12 @@ export class Player {
 
 export class Game {
 	players = {} as Dict<Player>;
+	commands = {} as NonNullable<IGameFile["commands"]>;
+
+	class!: IGameFile["class"];
+	description!: IGameFile["description"];
+	id!: IGameFormat["id"];
+	name!: IGameFile["name"];
 
 	room: Room;
 
