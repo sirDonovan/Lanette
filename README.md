@@ -1,4 +1,4 @@
-# Lanette
+# Lanette (alpha)
 [![Build Status](https://api.travis-ci.com/sirDonovan/Lanette.svg?branch=master)](https://travis-ci.com/sirDonovan/Lanette)
 
 A bot for [Pokemon Showdown][1] written in [TypeScript][2].
@@ -45,7 +45,7 @@ From this point on, you can start the bot by running the following command:
 
 ## Development
 
-  Issues and pull requests are welcomed! When submitting a pull request, be sure that you have installed development dependencies and ran `npm test` to check for errors in your code.
+  Issues and pull requests will be welcomed once Lanette enters the beta phase! When submitting a pull request, be sure that you have installed development dependencies and ran `npm test` to check for errors in your code.
 
   If possible, it is best to use [Visual Studio Code][6] as your text editor when working on Lanette.
 
