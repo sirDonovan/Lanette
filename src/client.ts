@@ -251,7 +251,7 @@ export class Client {
 		}
 
 		case 'pm': {
-			const messageArguments: IClientMessageTypes['pm'] = {rank: messageParts[0].charAt(0), username: messageParts[0].substr(1), message: messageParts.slice(1).join("|")};
+			const messageArguments: IClientMessageTypes['pm'] = {rank: messageParts[0].charAt(0), username: messageParts[0].substr(1), message: messageParts.slice(2).join("|")};
 			const user = Users.add(messageArguments.username);
 			if (user !== Users.self) {
 				CommandParser.parse(user, user, messageArguments.message);
