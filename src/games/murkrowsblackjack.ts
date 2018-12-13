@@ -94,6 +94,7 @@ class MurkrowsBlackjack extends PlayingCardGame {
 	}
 
 	onNextRound() {
+		this.canHit = false;
 		let playersLeft: number;
 		if (this.round === 1) {
 			playersLeft = this.getRemainingPlayerCount();
@@ -121,7 +122,7 @@ class MurkrowsBlackjack extends PlayingCardGame {
 		this.roundActions.clear();
 		const text = "``[Game " + this.blackjackGame + "]`` **Round " + this.round + "**! | Remaining players: " + this.getPlayerNames();
 		this.on(text, () => {
-			if (this.round === 1) this.canHit = true;
+			this.canHit = true;
 			this.timeout = setTimeout(() => this.nextRound(), 15 * 1000);
 		});
 		this.say(text);
@@ -191,6 +192,7 @@ const commands: Dict<ICommandDefinition<MurkrowsBlackjack>> = {
 			if (!this.canHit || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) return;
 			const player = this.players[user.id];
 			if (this.roundActions.has(player)) return;
+			this.roundActions.add(player);
 			const userCards = this.playerCards.get(player)!;
 			const card = this.getCard();
 			userCards.push(card);
@@ -207,11 +209,6 @@ const commands: Dict<ICommandDefinition<MurkrowsBlackjack>> = {
 				ace = aceCards.shift();
 			}
 			if (total > 21) this.players[user.id].frozen = true;
-			if (user === Users.self) {
-				this.dealersHand = total;
-				return;
-			}
-			this.roundActions.add(player);
 			this.playerTotals.set(player, total);
 			this.dealCards(player, [card]);
 			// if (total >= 29) Games.unlockAchievement(this.room, user, "Overkill", this);
