@@ -41,3 +41,8 @@ export let commandCharacter = '.';
  * Userids of those who should have access to the eval command
  */
 export let developers: string[] = [];
+
+/**
+ * A list of rooms (roomids) where scripted games are allowed to be played
+ */
+export let allowScriptedGames: string[] = [];

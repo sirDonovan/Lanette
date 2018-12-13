@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { ICommandDefinition } from './command-parser';
-import { Game } from "./room-game";
+import { commands, Game } from "./room-game";
 import { Room } from "./rooms";
 
 interface IGameClass<T> {
@@ -14,7 +14,7 @@ export interface IGameFile<T extends Game = Game> {
 	name: string;
 
 	aliases?: string[];
-	commands?: Dict<ICommandDefinition<Game>>;
+	commands?: Dict<ICommandDefinition<T>>;
 }
 
 export interface IGameFormat extends IGameFile {
@@ -23,9 +23,15 @@ export interface IGameFormat extends IGameFile {
 
 export class Games {
 	aliasesCache = {} as Dict<string>;
-	commandNames = [] as string[];
+	commandNames = Object.keys(commands);
+	commands = commands;
 	formatsCache = {} as Dict<IGameFormat>;
 	loadedFormats = false;
+
+	get aliases(): Dict<string> {
+		if (!this.loadedFormats) this.loadFormats();
+		return this.aliasesCache;
+	}
 
 	get formats(): Dict<IGameFormat> {
 		if (!this.loadedFormats) this.loadFormats();
@@ -34,6 +40,7 @@ export class Games {
 
 	loadFormats() {
 		this.aliasesCache = {};
+		this.commandNames = Object.keys(commands);
 		this.formatsCache = {};
 
 		const gamesDirectory = path.join(__dirname, '/games');
@@ -73,17 +80,17 @@ export class Games {
 			const commandName = this.commandNames[i];
 			Commands[commandName] = {
 				command(target, room, user, command) {
-					if (this.pm) {
-						if (room.game) {
-							if (commandName in room.game.commands) room.game.commands[commandName].command.call(room.game, target, room, user, command);
-						} else {
-							user.rooms.forEach((value, room) => {
-								if (room.game && commandName in room.game.commands && room.game.commands[commandName].pmGameCommand) room.game.commands[commandName].command.call(room.game, target, user, user, command);
-							});
-						}
+					if (this.isPm(room)) {
+						user.rooms.forEach((value, room) => {
+							if (room.game && commandName in room.game.commands && (room.game.commands[commandName].pmOnly || room.game.commands[commandName].pmGameCommand)) {
+								room.game.commands[commandName].command.call(room.game, target, user, user, command);
+							}
+						});
 					} else {
 						if (room.game) {
-							if (commandName in room.game.commands) room.game.commands[commandName].command.call(room.game, target, room, user, command);
+							if (commandName in room.game.commands && !room.game.commands[commandName].pmOnly) {
+								room.game.commands[commandName].command.call(room.game, target, room, user, command);
+							}
 						}
 					}
 				},
@@ -93,8 +100,15 @@ export class Games {
 
 	getFormat(target: string): IGameFormat | false {
 		const id = Tools.toId(target);
-		if (id in this.aliasesCache) return this.getFormat(this.aliasesCache[id]);
-		if (!(id in this.formatsCache)) return false;
-		return this.formatsCache[id];
+		if (id in this.aliases) return this.getFormat(this.aliases[id]);
+		if (!(id in this.formats)) return false;
+		return this.formats[id];
+	}
+
+	createGame(room: Room, format: IGameFormat) {
+		const game = new format.class(room);
+		game.initialize(format);
+
+		room.game = game;
 	}
 }

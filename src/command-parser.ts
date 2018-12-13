@@ -2,9 +2,10 @@ import { Room } from "./rooms";
 import { User } from "./users";
 
 export interface ICommandDefinition<T = undefined> {
-	command: (this: T extends undefined ? Command : T, target: string, room: Room, user: User, alias: string) => void;
+	command: (this: T extends undefined ? Command : T, target: string, room: Room | User, user: User, alias: string) => void;
 	aliases?: string[];
 	chatOnly?: boolean;
+	globalGameCommand?: boolean;
 	pmGameCommand?: boolean;
 	pmOnly?: boolean;
 }
@@ -45,6 +46,10 @@ export class Command {
 		const target = newTarget || this.target;
 		Commands[command].command.call(this, target, this.room, this.user, command);
 	}
+
+	isPm(room: Room | User): room is User {
+		return this.pm;
+	}
 }
 
 export class CommandParser {
@@ -53,6 +58,7 @@ export class CommandParser {
 		for (const i in commands) {
 			const command = commands[i];
 			if (command.chatOnly && command.pmOnly) throw new Error(i + " cannot be both a chat-only and a pm-only command");
+			if (command.chatOnly && command.pmGameCommand) throw new Error(i + " cannot be both a chat-only and a pm game command");
 			if (command.aliases) {
 				const aliases = command.aliases.slice();
 				delete command.aliases;

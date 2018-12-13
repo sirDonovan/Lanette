@@ -238,7 +238,13 @@ export class Client {
 				messageArguments = {timestamp: Date.now(), rank: messageParts[0].charAt(0), username: messageParts[0].substr(1), message: messageParts.slice(1).join("|")};
 			}
 			const user = Users.add(messageArguments.username);
-			if (user !== Users.self) {
+			if (user === Users.self) {
+				const id = Tools.toId(messageArguments.message);
+				if (id in room.messageListeners) {
+					room.messageListeners[id]();
+					delete room.messageListeners[id];
+				}
+			} else {
 				CommandParser.parse(room, user, messageArguments.message);
 			}
 			break;

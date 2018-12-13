@@ -41,6 +41,10 @@ export class Users {
 		return this.users[id];
 	}
 
+	get(name: string): User | undefined {
+		return this.users[Tools.toId(name)];
+	}
+
 	remove(user: User) {
 		delete this.users[user.id];
 	}

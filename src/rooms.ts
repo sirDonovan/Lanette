@@ -1,8 +1,9 @@
-import { Game } from "./room-game";
+import { Game, Player } from "./room-game";
 import { User } from "./users";
 
 export class Room {
 	game = null as Game | null;
+	messageListeners = {} as Dict<() => void>;
 	users = new Set<User>();
 
 	id: string;
@@ -16,6 +17,18 @@ export class Room {
 	say(message: string) {
 		Client.send(this.sendId + "|" + message);
 	}
+
+	pmHtml(user: User | Player, html: string) {
+		this.say("/pminfobox " + user.id + "," + html);
+	}
+
+	pmUhtml(user: User | Player, id: string, html: string) {
+		this.say("/pmuhtml " + user.id + "," + id + "," + html);
+	}
+
+	on(message: string, listener: () => void) {
+		this.messageListeners[Tools.toId(message)] = listener;
+	}
 }
 
 export class Rooms {
@@ -23,6 +36,10 @@ export class Rooms {
 
 	add(id: string): Room {
 		if (!(id in this.rooms)) this.rooms[id] = new Room(id);
+		return this.rooms[id];
+	}
+
+	get(id: string): Room | undefined {
 		return this.rooms[id];
 	}
 }
