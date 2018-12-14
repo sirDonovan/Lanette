@@ -130,6 +130,7 @@ class MurkrowsBlackjack extends PlayingCardGame {
 
 	endBlackjackGame() {
 		if (this.timeout) clearTimeout(this.timeout);
+		this.canHit = false;
 		const blackjacks: Player[] = [];
 		const gameWinners: string[] = [];
 		for (const i in this.players) {
