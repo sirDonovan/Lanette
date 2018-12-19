@@ -1,3 +1,5 @@
+import https = require('https');
+
 export class Tools {
 	random(limit?: number) {
 		if (!limit) limit = 2;
@@ -52,5 +54,20 @@ export class Tools {
 			}
 		}
 		return input.toLowerCase().replace(/[^a-z0-9]/g, '');
+	}
+
+	async fetchUrl(url: string): Promise<string> {
+		return new Promise((resolve, reject) => {
+			let data = '';
+			const request = https.get(url, res => {
+				res.setEncoding('utf8');
+				res.on('data', chunk => data += chunk);
+				res.on('end', () => {
+					resolve(data);
+				});
+			});
+
+			request.on('error', () => reject());
+		});
 	}
 }

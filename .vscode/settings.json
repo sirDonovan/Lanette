@@ -1,3 +1,9 @@
 {
-	"typescript.tsdk": "node_modules\\typescript\\lib"
+	"typescript.tsdk": "node_modules/typescript/lib",
+	"search.exclude": {
+		"**/built": true,
+		"**/node_modules": true,
+		"**/Pokemon-Showdown": true,
+		"**/design.txt": true,
+	}
 }

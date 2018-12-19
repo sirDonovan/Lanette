@@ -63,4 +63,5 @@ typings/
 # Lanette files
 built/
 design.txt
+Pokemon-Showdown/
 src/config.ts
