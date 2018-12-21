@@ -10,6 +10,7 @@ const commands: Dict<ICommandDefinition> = {
 				this.say(result);
 			} catch (e) {
 				this.say(e.message);
+				console.log(e.stack);
 			}
 		},
 		aliases: ['js'],

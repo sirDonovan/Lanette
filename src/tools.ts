@@ -2,8 +2,6 @@ import fs = require('fs');
 import https = require('https');
 import path = require('path');
 
-const dataDir = path.resolve(__dirname, './../data');
-
 export class Tools {
 	random(limit?: number) {
 		if (!limit) limit = 2;
@@ -49,7 +47,8 @@ export class Tools {
 		return array;
 	}
 
-	toId(input: string | number | {id: string}): string {
+	toId(input: string | number | {id: string} | undefined): string {
+		if (!input) return '';
 		if (typeof input !== 'string') {
 			if (typeof input === 'number') {
 				input = '' + input;
@@ -85,13 +84,5 @@ export class Tools {
 
 			request.on('error', () => reject());
 		});
-	}
-
-	async fetchClientData() {
-		const files = ['pokedex-mini.js'];
-		for (let i = 0; i < files.length; i++) {
-			const file = await this.fetchUrl('https://play.pokemonshowdown.com/data/' + files[i]);
-			if (file) fs.writeFileSync(dataDir + "/" + files[i], file);
-		}
 	}
 }

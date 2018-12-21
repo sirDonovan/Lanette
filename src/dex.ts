@@ -1,10 +1,13 @@
 import fs = require('fs');
 import path = require('path');
-import { IAbilityData, IItemData, ILearnset, IMoveData, INature, ITemplateData, ITemplateFormatsData, ITypeChart } from './types/in-game-data-types';
+import { IAbilityData, IFormat, IFormatData, IItemData, ILearnset, IMoveData, INature, ITemplateData, ITemplateFormatsData, ITypeChart } from './types/in-game-data-types';
 
-const dataDir = path.resolve(__dirname, './../Pokemon-Showdown/data');
-const modsDir = path.resolve(__dirname, './../Pokemon-Showdown/mods');
+const PokemonShowdown =  path.resolve(__dirname, './../Pokemon-Showdown');
+const dataDir = path.join(PokemonShowdown, 'data');
+const modsDir = path.join(PokemonShowdown, 'mods');
 const lanetteDataDir = path.resolve(__dirname, './../data');
+
+const currentGen = 'gen7';
 
 const dataFiles: Dict<string> = {
 	'Pokedex': 'pokedex',
@@ -24,6 +27,7 @@ const dataTypes = ['Pokedex', 'FormatsData', 'Learnsets', 'Movedex', 'Statuses',
 const lanetteDataFiles: Dict<string> = {
 	'Badges': 'badges',
 	'Characters': 'characters',
+	'FormatLinks': 'format-links',
 	'PokemonSprites': 'pokedex-mini',
 	'TrainerClasses': 'trainer-classes',
 };
@@ -62,6 +66,7 @@ interface IDataTable {
 	readonly aliases: Dict<string>;
 	readonly badges: string[];
 	readonly characters: string[];
+	readonly formats: Dict<IFormatData>;
 	readonly formatsData: Dict<ITemplateFormatsData>;
 	readonly gifData: Dict<{back?: {h: number, w: number}, front?: {h: number, w: number}}>;
 	readonly items: Dict<IItemData>;
@@ -88,7 +93,10 @@ export class Dex {
 	isBase: boolean;
 
 	constructor(mod: string) {
-		if (mod === 'base') dexes['base'] = this;
+		if (mod === 'base') {
+			dexes['base'] = this;
+			dexes[currentGen] = this;
+		}
 		this.currentMod = mod;
 		this.isBase = mod === 'base';
 		this.dataDir = this.isBase ? dataDir : modsDir + "/" + mod;
@@ -98,6 +106,7 @@ export class Dex {
 			gifData: {},
 			badges: [],
 			characters: [],
+			formats: {},
 			formatsData: {},
 			items: {},
 			learnsets: {},
@@ -142,13 +151,120 @@ export class Dex {
 		return {};
 	}
 
+	includeFormats() {
+		let formatsList: IFormatData[] = [];
+		try {
+			const dataObject = require(path.join(PokemonShowdown, 'config/formats.js'));
+			formatsList = dataObject.Formats;
+		} catch (e) {
+			if (e.code !== 'MODULE_NOT_FOUND' && e.code !== 'ENOENT') {
+				throw e;
+			}
+		}
+
+		let section = '';
+		let column = 1;
+		for (let i = 0; i < formatsList.length; i++) {
+			const format = formatsList[i];
+			const id = Tools.toId(format.name);
+			if (format.section) section = format.section;
+			if (format.column) column = format.column;
+			if (!format.name && format.section) continue;
+			if (!id) throw new RangeError(`Format #${i + 1} must have a name with alphanumeric characters, not '${format.name}'`);
+			if (!format.section) format.section = section;
+			if (!format.column) format.column = column;
+			if (format.challengeShow === undefined) format.challengeShow = true;
+			if (format.searchShow === undefined) format.searchShow = true;
+			if (format.tournamentShow === undefined) format.tournamentShow = true;
+			if (format.mod === undefined) format.mod = currentGen;
+		}
+
+		let formats: Dict<IFormat> = {};
+		try {
+			const dataObject = require(lanetteDataDir + '/format-links.js');
+			formats = dataObject.BattleFormatLinks;
+		} catch (e) {
+			if (e.code !== 'MODULE_NOT_FOUND' && e.code !== 'ENOENT') {
+				throw e;
+			}
+		}
+
+		for (let i = 0; i < formatsList.length; i++) {
+			const format = formatsList[i] as IFormat;
+			const id = Tools.toId(format.name);
+			if (!id) continue;
+			format.id = id;
+			let viability = '';
+			let info = '';
+			let np = '';
+			if (format.threads) {
+				const threads = format.threads.slice();
+				for (let i = 0, len = threads.length; i < len; i++) {
+					const line = threads[i].trim();
+					if (line.startsWith('&bullet;')) {
+						const text = line.split('</a>')[0].split('">')[1];
+						if (!text) continue;
+						if (text.includes('Viability Ranking')) {
+							const link = line.split('<a href="');
+							if (link[1]) {
+								viability = link[1].split('/">')[0].split('/').pop()!;
+							}
+						} else if (text.startsWith("np:") || text.includes(format.name + " Stage")) {
+							const link = line.split('<a href="');
+							if (link[1]) {
+								np = link[1].split('/">')[0].split('/').pop()!;
+							}
+						} else if (Tools.toId(text) === id) {
+							const link = line.split('<a href="');
+							if (link[1]) {
+								info = link[1].split('/">')[0].split('/').pop()!;
+							}
+						}
+					}
+				}
+			}
+			if (id in formats) {
+				Object.assign(formats[id], format);
+				if (viability) formats[id]['viability-official'] = viability;
+				if (info) formats[id]['info-official'] = info;
+				if (np) formats[id]['np-official'] = np;
+			} else {
+				if (viability) format.viability = viability;
+				if (info) format.info = info;
+				if (np) format.np = np;
+				formats[id] = format;
+			}
+		}
+
+		for (const id in formats) {
+			const format = formats[id];
+			const links: ('info' | 'np' | 'viability')[] = ['info', 'np', 'viability'];
+			for (let i = 0; i < links.length; i++) {
+				const link = format[links[i]];
+				let num = 0;
+				if (link) num = parseInt(link.split("/")[0]);
+				if (isNaN(num)) continue;
+				// @ts-ignore
+				if (format[links[i] + '-official']) {
+					// @ts-ignore
+					const officialNum = parseInt(format[links[i] + '-official']);
+					if (!isNaN(officialNum) && officialNum > num) num = officialNum;
+				}
+				format[links[i]] = 'http://www.smogon.com/forums/threads/' + num;
+			}
+		}
+
+		// @ts-ignore
+		Object.assign(this.dataCache.Formats, formats);
+		Object.assign(this.dataCache.formats, formats);
+	}
+
 	loadData(): IDataTable {
 		if (this.loadedData) return this.dataCache;
 		dexes['base'].includeMods();
 
 		const basePath = this.dataDir + '/';
 		const lanetteBasePath = lanetteDataDir + '/';
-
 		const BattleScripts = this.loadDataFile(basePath, dataFiles, 'Scripts');
 
 		this.parentMod = this.isBase ? '' : (BattleScripts.inherit || 'base');
@@ -176,12 +292,12 @@ export class Dex {
 			const BattleData = this.loadDataFile(lanetteBasePath, lanetteDataFiles, dataType);
 			if (!BattleData || typeof BattleData !== 'object') throw new TypeError("Exported property `Battle" + dataType + "`from `" + this.dataDir + '/' + dataFiles[dataType] + "` must be an object except `null`.");
 			// @ts-ignore
-			if (BattleData !== this.dataCache[dataType]) this.dataCache[dataType] = Object.assign(BattleData, this.dataCache[dataType]);
+			this.dataCache[dataType] = Object.assign(BattleData, this.dataCache[dataType]);
 		}
 
 		if (!parentDex) {
 			// Formats are inherited by mods
-			// this.includeFormats();
+			this.includeFormats();
 		} else {
 			for (let i = 0, len = dataTypes.length; i < len; i++) {
 				const dataType = dataTypes[i];
@@ -225,6 +341,8 @@ export class Dex {
 			let dataType = allDataTypes[i];
 			if (dataType === 'FormatsData') {
 				dataType = 'formatsData';
+			} else if (dataType === 'FormatLinks') {
+				dataType = 'formatLinks';
 			} else if (dataType === 'Movedex') {
 				dataType = 'moves';
 			} else if (dataType === 'PokemonSprites') {
@@ -252,5 +370,13 @@ export class Dex {
 		if (BattleScripts.init) BattleScripts.init.call(this);
 
 		return this.dataCache;
+	}
+
+	async fetchClientData() {
+		const files = ['pokedex-mini.js'];
+		for (let i = 0; i < files.length; i++) {
+			const file = await Tools.fetchUrl('https://play.pokemonshowdown.com/data/' + files[i]);
+			if (file) fs.writeFileSync(lanetteDataDir + "/" + files[i], file);
+		}
 	}
 }
