@@ -1,4 +1,8 @@
+import fs = require('fs');
 import https = require('https');
+import path = require('path');
+
+const dataDir = path.resolve(__dirname, './../data');
 
 export class Tools {
 	random(limit?: number) {
@@ -56,6 +60,18 @@ export class Tools {
 		return input.toLowerCase().replace(/[^a-z0-9]/g, '');
 	}
 
+	deepClone<T>(obj: T): T {
+		if (obj === null || typeof obj !== 'object') return obj;
+		// @ts-ignore
+		if (Array.isArray(obj)) return obj.map(prop => this.deepClone(prop));
+		const clone = Object.create(Object.getPrototypeOf(obj));
+		for (const key of Object.keys(obj)) {
+			// @ts-ignore
+			clone[key] = this.deepClone(obj[key]);
+		}
+		return clone;
+	}
+
 	async fetchUrl(url: string): Promise<string> {
 		return new Promise((resolve, reject) => {
 			let data = '';
@@ -69,5 +85,13 @@ export class Tools {
 
 			request.on('error', () => reject());
 		});
+	}
+
+	async fetchClientData() {
+		const files = ['pokedex-mini.js'];
+		for (let i = 0; i < files.length; i++) {
+			const file = await this.fetchUrl('https://play.pokemonshowdown.com/data/' + files[i]);
+			if (file) fs.writeFileSync(dataDir + "/" + files[i], file);
+		}
 	}
 }
