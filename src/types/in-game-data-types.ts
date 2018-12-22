@@ -374,18 +374,6 @@ export interface ILearnset {
 	learnset: Dict<string[]>;
 }
 
-export interface ITypeChart {
-	damageTaken: Dict<number>;
-	HPivs?: Dict<number>;
-	HPdvs?: Dict<number>;
-}
-
-export interface INature {
-	name: string;
-	plus?: string;
-	minus?: string;
-}
-
 type GenderName = 'M' | 'F' | 'N' | '';
 
 interface IStatsTable {
@@ -436,6 +424,19 @@ export interface ITemplateFormatsData {
 	unreleasedHidden?: boolean;
 }
 
+export interface IPokemonComputed {
+	isPrimal: boolean;
+	battleOnly?: boolean;
+	id: string;
+	isMega: boolean;
+	name: string;
+	nfe: boolean;
+	speciesId: string;
+	spriteId: string;
+}
+
+export interface IPokemon extends ITemplateData, Partial<ILearnset>, ITemplateFormatsData, IPokemonComputed {}
+
 export interface IFormatData extends IEventMethods {
 	effectType: 'Format';
 	name: string;
@@ -485,7 +486,7 @@ export interface IFormatData extends IEventMethods {
 	column?: number;
 }
 
-export interface IFormat extends IFormatData {
+export interface IFormatComputed {
 	id: string;
 	info?: string;
 	'info-official'?: string;
@@ -494,4 +495,18 @@ export interface IFormat extends IFormatData {
 	tournamentPlayable: boolean;
 	viability?: string;
 	'viability-official'?: string;
+}
+
+export interface IFormat extends IFormatData, IFormatComputed {}
+
+export interface ITypeChart {
+	damageTaken: Dict<number>;
+	HPivs?: Dict<number>;
+	HPdvs?: Dict<number>;
+}
+
+export interface INature {
+	name: string;
+	plus?: string;
+	minus?: string;
 }

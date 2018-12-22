@@ -1,6 +1,6 @@
 import fs = require('fs');
 import path = require('path');
-import { IAbility, IAbilityComputed, IAbilityData, IFormat, IFormatData, IItem, IItemComputed, IItemData, ILearnset, IMoveData, INature, ITemplateData, ITemplateFormatsData, ITypeChart } from './types/in-game-data-types';
+import { IAbility, IAbilityComputed, IAbilityData, IFormat, IFormatComputed, IFormatData, IItem, IItemComputed, IItemData, ILearnset, IMoveData, INature, IPokemon, IPokemonComputed, ITemplateData, ITemplateFormatsData, ITypeChart } from './types/in-game-data-types';
 
 const PokemonShowdown =  path.resolve(__dirname, './../Pokemon-Showdown');
 const dataDir = path.join(PokemonShowdown, 'data');
@@ -61,21 +61,21 @@ const natures: Dict<INature> = {
 };
 
 interface IDataTable {
-	readonly abilities: Dict<IAbilityData>;
-	readonly aliases: Dict<string>;
+	readonly abilities: Dict<IAbilityData | undefined>;
+	readonly aliases: Dict<string | undefined>;
 	readonly badges: string[];
 	readonly characters: string[];
-	readonly formats: Dict<IFormat>;
-	readonly formatsData: Dict<ITemplateFormatsData>;
-	readonly gifData: Dict<{back?: {h: number, w: number}, front?: {h: number, w: number}}>;
-	readonly items: Dict<IItemData>;
-	readonly learnsets: Dict<ILearnset>;
-	readonly moves: Dict<IMoveData>;
-	readonly natures: Dict<INature>;
-	readonly pokedex: Dict<ITemplateData>;
+	readonly formats: Dict<IFormat | undefined>;
+	readonly formatsData: Dict<ITemplateFormatsData | undefined>;
+	readonly gifData: Dict<{back?: {h: number, w: number}, front?: {h: number, w: number}} | undefined>;
+	readonly items: Dict<IItemData | undefined>;
+	readonly learnsets: Dict<ILearnset | undefined>;
+	readonly moves: Dict<IMoveData | undefined>;
+	readonly natures: Dict<INature | undefined>;
+	readonly pokedex: Dict<ITemplateData | undefined>;
 	readonly trainerClasses: string[];
-	readonly typeChart: Dict<ITypeChart>;
-	readonly types: Dict<string>;
+	readonly typeChart: Dict<ITypeChart | undefined>;
+	readonly types: Dict<string | undefined>;
 }
 
 const dexes: Dict<Dex> = {};
@@ -87,6 +87,7 @@ export class Dex {
 	loadedData = false;
 	loadedMods = false;
 	parentMod = '';
+	pokemonCache = new Map<string, IPokemon>();
 
 	currentMod: string;
 	dataCache: IDataTable;
@@ -195,15 +196,15 @@ export class Dex {
 			const formatData = formatsList[i];
 			const id = Tools.toId(formatData.name);
 			if (!id) continue;
-			const format: IFormat = Object.assign({
+			const formatComputed: IFormatComputed = {
 				id,
 				tournamentPlayable: !!(formatData.searchShow || formatData.challengeShow || formatData.tournamentShow),
-			}, formatData);
+			};
 			let viability = '';
 			let info = '';
 			let np = '';
-			if (format.threads) {
-				const threads = format.threads.slice();
+			if (formatData.threads) {
+				const threads = formatData.threads.slice();
 				for (let i = 0, len = threads.length; i < len; i++) {
 					const line = threads[i].trim();
 					if (line.startsWith('&bullet;')) {
@@ -214,7 +215,7 @@ export class Dex {
 							if (link[1]) {
 								viability = link[1].split('/">')[0].split('/').pop()!;
 							}
-						} else if (text.startsWith("np:") || text.includes(format.name + " Stage")) {
+						} else if (text.startsWith("np:") || text.includes(formatData.name + " Stage")) {
 							const link = line.split('<a href="');
 							if (link[1]) {
 								np = link[1].split('/">')[0].split('/').pop()!;
@@ -229,15 +230,15 @@ export class Dex {
 				}
 			}
 			if (id in formats) {
-				Object.assign(formats[id], format);
-				if (viability) formats[id]['viability-official'] = viability;
-				if (info) formats[id]['info-official'] = info;
-				if (np) formats[id]['np-official'] = np;
+				if (viability) formatComputed['viability-official'] = viability;
+				if (info) formatComputed['info-official'] = info;
+				if (np) formatComputed['np-official'] = np;
+				Object.assign(formats[id], formatData, formatComputed);
 			} else {
-				if (viability) format.viability = viability;
-				if (info) format.info = info;
-				if (np) format.np = np;
-				formats[id] = format;
+				if (viability) formatComputed.viability = viability;
+				if (info) formatComputed.info = info;
+				if (np) formatComputed.np = np;
+				formats[id] = Object.assign(formatData, formatComputed);
 			}
 		}
 
@@ -388,11 +389,12 @@ export class Dex {
 	getAbility(name: string): IAbility | null {
 		let id = Tools.toId(name);
 		if (!id) return null;
-		if (id in this.data.aliases) id = this.data.aliases[id];
+		if (id in this.data.aliases) id = this.data.aliases[id]!;
 		if (!(id in this.data.abilities)) return null;
+
 		const cached = this.abilityCache.get(id);
 		if (cached) return cached;
-		const abilityData = this.data.abilities[id];
+		const abilityData = this.data.abilities[id]!;
 		let gen = 0;
 		if (abilityData.num >= 192) {
 			gen = 7;
@@ -424,13 +426,14 @@ export class Dex {
 	getItem(name: string): IItem | null {
 		let id = Tools.toId(name);
 		if (!id) return null;
-		if (id in this.data.aliases) id = this.data.aliases[id];
+		if (id in this.data.aliases) id = this.data.aliases[id]!;
 		if (!(id in this.data.items)) return null;
+
 		const cached = this.itemCache.get(id);
 		if (cached) return cached;
-		const itemData = this.data.items[id];
-		let gen = 0;
-		if (!itemData.gen) {
+		const itemData = this.data.items[id]!;
+		let gen = itemData.gen || 0;
+		if (!gen) {
 			if (itemData.num >= 689) {
 				gen = 7;
 			} else if (itemData.num >= 577) {
@@ -469,10 +472,92 @@ export class Dex {
 		return item;
 	}
 
+	getPokemon(name: string): IPokemon | null {
+		let id = Tools.toId(name);
+		if (!id) return null;
+		if (id in this.data.aliases) id = this.data.aliases[id]!;
+		if (!(id in this.data.pokedex)) return null;
+
+		const cached = this.pokemonCache.get(id);
+		if (cached) return cached;
+		const templateData = this.data.pokedex[id]!;
+		const templateFormatsData = this.data.formatsData[id] || {};
+
+		if (!templateData.baseSpecies) templateData.baseSpecies = templateData.species;
+		if (!templateData.eggGroups) templateData.eggGroups = [];
+		if (!templateData.evos) templateData.evos = [];
+		if (!templateData.forme) templateData.forme = '';
+		if (!templateData.genderRatio) {
+			if (templateData.gender === 'M') {
+				templateData.genderRatio = {M: 1, F: 0};
+			} else if (templateData.gender === 'F') {
+				templateData.genderRatio = {M: 0, F: 1};
+			} else if (templateData.gender === 'N') {
+				templateData.genderRatio = {M: 0, F: 0};
+			} else {
+				templateData.genderRatio = {M: 0.5, F: 0.5};
+			}
+		}
+		if (!templateFormatsData.requiredItems && templateFormatsData.requiredItem) templateFormatsData.requiredItems = [templateFormatsData.requiredItem];
+		let battleOnly = templateFormatsData.battleOnly;
+		let isMega = false;
+		let isPrimal = false;
+		if (!templateFormatsData.gen) {
+			if (templateData.num >= 722 || templateData.forme.startsWith('Alola')) {
+				templateFormatsData.gen = 7;
+			} else if (templateData.forme && ['Mega', 'Mega-X', 'Mega-Y'].includes(templateData.forme)) {
+				templateFormatsData.gen = 6;
+				isMega = true;
+				battleOnly = true;
+			} else if (templateData.forme === 'Primal') {
+				templateFormatsData.gen = 6;
+				isPrimal = true;
+				battleOnly = true;
+			} else if (templateData.num >= 650) {
+				templateFormatsData.gen = 6;
+			} else if (templateData.num >= 494) {
+				templateFormatsData.gen = 5;
+			} else if (templateData.num >= 387) {
+				templateFormatsData.gen = 4;
+			} else if (templateData.num >= 252) {
+				templateFormatsData.gen = 3;
+			} else if (templateData.num >= 152) {
+				templateFormatsData.gen = 2;
+			} else if (templateData.num >= 1) {
+				templateFormatsData.gen = 1;
+			}
+		}
+
+		const speciesId = Tools.toId(templateData.species);
+		const pokemonComputed: IPokemonComputed = {
+			battleOnly,
+			id: speciesId,
+			isMega,
+			isPrimal,
+			name: templateData.species,
+			nfe: !!templateData.evos.length,
+			speciesId,
+			spriteId: Tools.toId(templateData.baseSpecies) + (templateData.baseSpecies !== templateData.species ? '-' + Tools.toId(templateData.forme) : ''),
+		};
+		const pokemon: IPokemon = Object.assign(templateData, templateFormatsData, this.data.learnsets[id] || {}, pokemonComputed);
+		this.pokemonCache.set(id, pokemon);
+		return pokemon;
+	}
+
+	getTemplate(name: string): IPokemon | null {
+		return this.getPokemon(name);
+	}
+
+	getExistingPokemon(name: string): IPokemon {
+		const pokemon = this.getPokemon(name);
+		if (!pokemon) throw new Error("No pokemon returned for '" + name + "'");
+		return pokemon;
+	}
+
 	getFormat(name: string): IFormat | null {
 		let id = Tools.toId(name);
 		if (!id) return null;
-		if (id in this.data.aliases) id = this.data.aliases[id];
+		if (id in this.data.aliases) id = this.data.aliases[id]!;
 		if (!(id in this.data.formats)) return null;
 		return Object.assign({}, this.data.formats[id]);
 	}
