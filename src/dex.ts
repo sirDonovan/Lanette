@@ -1,12 +1,11 @@
 import fs = require('fs');
 import path = require('path');
-import { IAbilityData, IFormat, IFormatData, IItemData, ILearnset, IMoveData, INature, ITemplateData, ITemplateFormatsData, ITypeChart } from './types/in-game-data-types';
+import { IAbility, IAbilityComputed, IAbilityData, IFormat, IFormatData, IItem, IItemComputed, IItemData, ILearnset, IMoveData, INature, ITemplateData, ITemplateFormatsData, ITypeChart } from './types/in-game-data-types';
 
 const PokemonShowdown =  path.resolve(__dirname, './../Pokemon-Showdown');
 const dataDir = path.join(PokemonShowdown, 'data');
 const modsDir = path.join(PokemonShowdown, 'mods');
 const lanetteDataDir = path.resolve(__dirname, './../data');
-
 const currentGen = 'gen7';
 
 const dataFiles: Dict<string> = {
@@ -66,7 +65,7 @@ interface IDataTable {
 	readonly aliases: Dict<string>;
 	readonly badges: string[];
 	readonly characters: string[];
-	readonly formats: Dict<IFormatData>;
+	readonly formats: Dict<IFormat>;
 	readonly formatsData: Dict<ITemplateFormatsData>;
 	readonly gifData: Dict<{back?: {h: number, w: number}, front?: {h: number, w: number}}>;
 	readonly items: Dict<IItemData>;
@@ -82,7 +81,9 @@ interface IDataTable {
 const dexes: Dict<Dex> = {};
 
 export class Dex {
+	abilityCache = new Map<string, IAbility>();
 	gen = 0;
+	itemCache = new Map<string, IItem>();
 	loadedData = false;
 	loadedMods = false;
 	parentMod = '';
@@ -93,13 +94,14 @@ export class Dex {
 	isBase: boolean;
 
 	constructor(mod: string) {
-		if (mod === 'base') {
+		const isBase = mod === 'base';
+		if (isBase) {
 			dexes['base'] = this;
 			dexes[currentGen] = this;
 		}
 		this.currentMod = mod;
-		this.isBase = mod === 'base';
-		this.dataDir = this.isBase ? dataDir : modsDir + "/" + mod;
+		this.isBase = isBase;
+		this.dataDir = isBase ? dataDir : modsDir + "/" + mod;
 		this.dataCache = {
 			abilities: {},
 			aliases: {},
@@ -190,10 +192,13 @@ export class Dex {
 		}
 
 		for (let i = 0; i < formatsList.length; i++) {
-			const format = formatsList[i] as IFormat;
-			const id = Tools.toId(format.name);
+			const formatData = formatsList[i];
+			const id = Tools.toId(formatData.name);
 			if (!id) continue;
-			format.id = id;
+			const format: IFormat = Object.assign({
+				id,
+				tournamentPlayable: !!(formatData.searchShow || formatData.challengeShow || formatData.tournamentShow),
+			}, formatData);
 			let viability = '';
 			let info = '';
 			let np = '';
@@ -378,5 +383,97 @@ export class Dex {
 			const file = await Tools.fetchUrl('https://play.pokemonshowdown.com/data/' + files[i]);
 			if (file) fs.writeFileSync(lanetteDataDir + "/" + files[i], file);
 		}
+	}
+
+	getAbility(name: string): IAbility | null {
+		let id = Tools.toId(name);
+		if (!id) return null;
+		if (id in this.data.aliases) id = this.data.aliases[id];
+		if (!(id in this.data.abilities)) return null;
+		const cached = this.abilityCache.get(id);
+		if (cached) return cached;
+		const abilityData = this.data.abilities[id];
+		let gen = 0;
+		if (abilityData.num >= 192) {
+			gen = 7;
+		} else if (abilityData.num >= 165) {
+			gen = 6;
+		} else if (abilityData.num >= 124) {
+			gen = 5;
+		} else if (abilityData.num >= 77) {
+			gen = 4;
+		} else if (abilityData.num >= 1) {
+			gen = 3;
+		}
+
+		const abilityComputed: IAbilityComputed = {
+			gen,
+			id: Tools.toId(abilityData.name),
+		};
+		const ability: IAbility = Object.assign(abilityData, abilityComputed);
+		this.abilityCache.set(id, ability);
+		return ability;
+	}
+
+	getExistingAbility(name: string): IAbility {
+		const ability = this.getAbility(name);
+		if (!ability) throw new Error("No ability returned for '" + name + "'");
+		return ability;
+	}
+
+	getItem(name: string): IItem | null {
+		let id = Tools.toId(name);
+		if (!id) return null;
+		if (id in this.data.aliases) id = this.data.aliases[id];
+		if (!(id in this.data.items)) return null;
+		const cached = this.itemCache.get(id);
+		if (cached) return cached;
+		const itemData = this.data.items[id];
+		let gen = 0;
+		if (!itemData.gen) {
+			if (itemData.num >= 689) {
+				gen = 7;
+			} else if (itemData.num >= 577) {
+				gen = 6;
+			} else if (itemData.num >= 537) {
+				gen = 5;
+			} else if (itemData.num >= 377) {
+				gen = 4;
+			} else {
+				gen = 3;
+			}
+			// Due to difference in gen 2 item numbering, gen 2 items must be
+			// specified manually
+		}
+
+		let fling;
+		if (itemData.isBerry) fling = {basePower: 10};
+		if (itemData.id.endsWith('plate')) fling = {basePower: 90};
+		if (itemData.onDrive) fling = {basePower: 70};
+		if (itemData.megaStone) fling = {basePower: 80};
+		if (itemData.onMemory) fling = {basePower: 50};
+
+		const itemComputed: IItemComputed = {
+			gen,
+			id: Tools.toId(itemData.name),
+			fling,
+		};
+		const item: IItem = Object.assign(itemData, itemComputed);
+		this.itemCache.set(id, item);
+		return item;
+	}
+
+	getExistingItem(name: string): IItem {
+		const item = this.getItem(name);
+		if (!item) throw new Error("No item returned for '" + name + "'");
+		return item;
+	}
+
+	getFormat(name: string): IFormat | null {
+		let id = Tools.toId(name);
+		if (!id) return null;
+		if (id in this.data.aliases) id = this.data.aliases[id];
+		if (!(id in this.data.formats)) return null;
+		return Object.assign({}, this.data.formats[id]);
 	}
 }

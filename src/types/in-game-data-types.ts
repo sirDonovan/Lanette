@@ -222,10 +222,18 @@ interface IEffectData extends IEventMethods {
 }
 
 export interface IAbilityData extends IEffectData {
+	effectType: 'Ability';
 	rating: number;
 	isUnbreakable?: boolean;
 	suppressWeather?: boolean;
 }
+
+export interface IAbilityComputed {
+	gen: number;
+	id: string;
+}
+
+export interface IAbility extends IAbilityData, IAbilityComputed {}
 
 interface IFlingData {
 	basePower: number;
@@ -234,6 +242,7 @@ interface IFlingData {
 }
 
 export interface IItemData extends IEffectData {
+	effectType: 'Item';
 	gen: number;
 	fling?: IFlingData;
 	forcedForme?: string;
@@ -254,7 +263,16 @@ export interface IItemData extends IEffectData {
 	zMoveUser?: string[];
 }
 
+export interface IItemComputed {
+	gen: number;
+	id: string;
+	fling?: IFlingData;
+}
+
+export interface IItem extends IItemData, IItemComputed {}
+
 export interface IMoveData extends IEffectData {
+	effectType: 'Move';
 	accuracy: true | number;
 	basePower: number;
 	category: 'Physical' | 'Special' | 'Status';
@@ -327,6 +345,7 @@ export interface IMoveData extends IEffectData {
 type TemplateAbility = {0: string, 1?: string, H?: string, S?: string};
 
 export interface ITemplateData {
+	effectType: 'Pokemon';
 	abilities: TemplateAbility;
 	baseStats: StatsTable;
 	color: string;
@@ -418,6 +437,7 @@ export interface ITemplateFormatsData {
 }
 
 export interface IFormatData extends IEventMethods {
+	effectType: 'Format';
 	name: string;
 	banlist?: string[];
 	cannotMega?: string[];
@@ -426,7 +446,6 @@ export interface IFormatData extends IEventMethods {
 	debug?: boolean;
 	defaultLevel?: number;
 	desc?: string;
-	effectType?: string;
 	forcedLevel?: number;
 	gameType?: 'singles' | 'doubles' | 'triples' | 'rotation';
 	maxForcedLevel?: number;
@@ -472,6 +491,7 @@ export interface IFormat extends IFormatData {
 	'info-official'?: string;
 	np?: string;
 	'np-official'?: string;
+	tournamentPlayable: boolean;
 	viability?: string;
 	'viability-official'?: string;
 }
