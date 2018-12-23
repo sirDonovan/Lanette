@@ -59,6 +59,7 @@ interface IPokemonComputed {
 	battleOnly?: boolean;
 	evos: string[];
 	forme: string;
+	gen: number;
 	genderRatio: NonNullable<ITemplateData["genderRatio"]>;
 	id: string;
 	isMega: boolean;
@@ -73,6 +74,7 @@ export interface IPokemon extends ITemplateData, Partial<ILearnset>, ITemplateFo
 	baseSpecies: string;
 	evos: string[];
 	forme: string;
+	gen: number;
 	genderRatio: NonNullable<ITemplateData["genderRatio"]>;
 }
 
@@ -677,29 +679,30 @@ export class Dex {
 		let battleOnly = templateFormatsData.battleOnly;
 		let isMega = false;
 		let isPrimal = false;
-		if (!templateFormatsData.gen) {
+		let gen = templateFormatsData.gen || 0;
+		if (!gen) {
 			if (templateData.num >= 722 || (templateData.forme && templateData.forme.startsWith('Alola'))) {
-				templateFormatsData.gen = 7;
+				gen = 7;
 			} else if (templateData.forme && ['Mega', 'Mega-X', 'Mega-Y'].includes(templateData.forme)) {
-				templateFormatsData.gen = 6;
+				gen = 6;
 				isMega = true;
 				battleOnly = true;
 			} else if (templateData.forme === 'Primal') {
-				templateFormatsData.gen = 6;
+				gen = 6;
 				isPrimal = true;
 				battleOnly = true;
 			} else if (templateData.num >= 650) {
-				templateFormatsData.gen = 6;
+				gen = 6;
 			} else if (templateData.num >= 494) {
-				templateFormatsData.gen = 5;
+				gen = 5;
 			} else if (templateData.num >= 387) {
-				templateFormatsData.gen = 4;
+				gen = 4;
 			} else if (templateData.num >= 252) {
-				templateFormatsData.gen = 3;
+				gen = 3;
 			} else if (templateData.num >= 152) {
-				templateFormatsData.gen = 2;
+				gen = 2;
 			} else if (templateData.num >= 1) {
-				templateFormatsData.gen = 1;
+				gen = 1;
 			}
 		}
 
@@ -709,6 +712,7 @@ export class Dex {
 		const pokemonComputed: IPokemonComputed = {
 			baseSpecies,
 			battleOnly,
+			gen,
 			genderRatio: templateData.genderRatio || (templateData.gender === 'M' ? {M: 1, F: 0} :
 				templateData.gender === 'F' ? {M: 0, F: 1} :
 				templateData.gender === 'N' ? {M: 0, F: 0} :
