@@ -1,3 +1,7 @@
+import fs = require('fs');
+import https = require('https');
+import path = require('path');
+
 export class Tools {
 	random(limit?: number) {
 		if (!limit) limit = 2;
@@ -43,7 +47,8 @@ export class Tools {
 		return array;
 	}
 
-	toId(input: string | number | {id: string}): string {
+	toId(input: string | number | {id: string} | undefined): string {
+		if (!input) return '';
 		if (typeof input !== 'string') {
 			if (typeof input === 'number') {
 				input = '' + input;
@@ -52,5 +57,32 @@ export class Tools {
 			}
 		}
 		return input.toLowerCase().replace(/[^a-z0-9]/g, '');
+	}
+
+	deepClone<T>(obj: T): T {
+		if (obj === null || typeof obj !== 'object') return obj;
+		// @ts-ignore
+		if (Array.isArray(obj)) return obj.map(prop => this.deepClone(prop));
+		const clone = Object.create(Object.getPrototypeOf(obj));
+		for (const key of Object.keys(obj)) {
+			// @ts-ignore
+			clone[key] = this.deepClone(obj[key]);
+		}
+		return clone;
+	}
+
+	async fetchUrl(url: string): Promise<string> {
+		return new Promise((resolve, reject) => {
+			let data = '';
+			const request = https.get(url, res => {
+				res.setEncoding('utf8');
+				res.on('data', chunk => data += chunk);
+				res.on('end', () => {
+					resolve(data);
+				});
+			});
+
+			request.on('error', () => reject());
+		});
 	}
 }

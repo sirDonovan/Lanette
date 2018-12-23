@@ -60,6 +60,7 @@ export class Client {
 	onConnect() {
 		if (this.connectionTimeout) clearTimeout(this.connectionTimeout);
 		console.log('Successfully connected to server ' + this.serverId);
+		Dex.fetchClientData();
 	}
 
 	connect() {

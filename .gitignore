@@ -62,5 +62,7 @@ typings/
 
 # Lanette files
 built/
+data/pokedex-mini.js
 design.txt
+Pokemon-Showdown/
 src/config.ts
