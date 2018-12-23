@@ -228,14 +228,7 @@ export interface IAbilityData extends IEffectData {
 	suppressWeather?: boolean;
 }
 
-export interface IAbilityComputed {
-	gen: number;
-	id: string;
-}
-
-export interface IAbility extends IAbilityData, IAbilityComputed {}
-
-interface IFlingData {
+export interface IFlingData {
 	basePower: number;
 	status?: string;
 	volatileStatus?: string;
@@ -263,20 +256,57 @@ export interface IItemData extends IEffectData {
 	zMoveUser?: string[];
 }
 
-export interface IItemComputed {
-	gen: number;
-	id: string;
-	fling?: IFlingData;
+export interface IMoveFlags {
+	/** Ignores a target's substitute. */
+	authentic?: 1;
+	/** Power is multiplied by 1.5 when used by a Pokemon with the Ability Strong Jaw. */
+	bite?: 1;
+	/** Has no effect on Pokemon with the Ability Bulletproof. */
+	bullet?: 1;
+	/** The user is unable to make a move between turns. */
+	charge?: 1;
+	/** Makes contact. */
+	contact?: 1;
+	/** When used by a Pokemon, other Pokemon with the Ability Dancer can attempt to execute the same move. */
+	dance?: 1;
+	/** Thaws the user if executed successfully while the user is frozen. */
+	defrost?: 1;
+	/** Can target a Pokemon positioned anywhere in a Triple Battle. */
+	distance?: 1;
+	/** Prevented from being executed or selected during Gravity's effect. */
+	gravity?: 1;
+	/** Prevented from being executed or selected during Heal Block's effect. */
+	heal?: 1;
+	/** Can be copied by Mirror Move. */
+	mirror?: 1;
+	/** Unknown effect. */
+	mystery?: 1;
+	/** Prevented from being executed or selected in a Sky Battle. */
+	nonsky?: 1;
+	/** Has no effect on Grass */
+	powder?: 1;
+	/** Blocked by Detect, Protect, Spiky Shield, and if not a Status move, King's Shield. */
+	protect?: 1;
+	/** Power is multiplied by 1.5 when used by a Pokemon with the Ability Mega Launcher. */
+	pulse?: 1;
+	/** Power is multiplied by 1.2 when used by a Pokemon with the Ability Iron Fist. */
+	punch?: 1;
+	/** If this move is successful, the user must recharge on the following turn and cannot make a move. */
+	recharge?: 1;
+	/** Bounced back to the original user by Magic Coat or the Ability Magic Bounce. */
+	reflectable?: 1;
+	/** Can be stolen from the original user and instead used by another Pokemon using Snatch. */
+	snatch?: 1;
+	/** Has no effect on Pokemon with the Ability Soundproof. */
+	sound?: 1;
 }
-
-export interface IItem extends IItemData, IItemComputed {}
 
 export interface IMoveData extends IEffectData {
 	effectType: 'Move';
 	accuracy: true | number;
 	basePower: number;
 	category: 'Physical' | 'Special' | 'Status';
-	flags: Dict<any>;
+	flags: IMoveFlags;
 	pp: number;
 	priority: number;
 	target: string;
@@ -424,19 +454,6 @@ export interface ITemplateFormatsData {
 	unreleasedHidden?: boolean;
 }
 
-export interface IPokemonComputed {
-	isPrimal: boolean;
-	battleOnly?: boolean;
-	id: string;
-	isMega: boolean;
-	name: string;
-	nfe: boolean;
-	speciesId: string;
-	spriteId: string;
-}
-
-export interface IPokemon extends ITemplateData, Partial<ILearnset>, ITemplateFormatsData, IPokemonComputed {}
-
 export interface IFormatData extends IEventMethods {
 	effectType: 'Format';
 	name: string;
@@ -485,19 +502,6 @@ export interface IFormatData extends IEventMethods {
 	section?: string;
 	column?: number;
 }
-
-export interface IFormatComputed {
-	id: string;
-	info?: string;
-	'info-official'?: string;
-	np?: string;
-	'np-official'?: string;
-	tournamentPlayable: boolean;
-	viability?: string;
-	'viability-official'?: string;
-}
-
-export interface IFormat extends IFormatData, IFormatComputed {}
 
 export interface ITypeChart {
 	damageTaken: Dict<number>;

@@ -1,6 +1,156 @@
 import fs = require('fs');
 import path = require('path');
-import { IAbility, IAbilityComputed, IAbilityData, IFormat, IFormatComputed, IFormatData, IItem, IItemComputed, IItemData, ILearnset, IMoveData, INature, IPokemon, IPokemonComputed, ITemplateData, ITemplateFormatsData, ITypeChart } from './types/in-game-data-types';
+import { IAbilityData, IFlingData, IFormatData, IItemData, ILearnset, IMoveData, IMoveFlags, INature, ITemplateData, ITemplateFormatsData, ITypeChart } from './types/in-game-data-types';
+
+interface IAbilityComputed {
+	gen: number;
+	id: string;
+}
+
+export interface IAbility extends IAbilityData, IAbilityComputed {}
+
+interface IFormatComputed {
+	banlist: NonNullable<IFormatData["banlist"]>;
+	customRules: string[] | null;
+	defaultLevel: number;
+	id: string;
+	info?: string;
+	'info-official'?: string;
+	maxLevel: number;
+	np?: string;
+	'np-official'?: string;
+	ruleset: NonNullable<IFormatData["ruleset"]>;
+	ruleTable: RuleTable | null;
+	tournamentPlayable: boolean;
+	unbanlist: NonNullable<IFormatData["unbanlist"]>;
+	viability?: string;
+	'viability-official'?: string;
+}
+
+export interface IFormat extends IFormatData, IFormatComputed {
+	banlist: NonNullable<IFormatData["banlist"]>;
+	defaultLevel: number;
+	maxLevel: number;
+	ruleset: NonNullable<IFormatData["ruleset"]>;
+	unbanlist: NonNullable<IFormatData["unbanlist"]>;
+}
+
+interface IItemComputed {
+	fling?: IFlingData;
+	gen: number;
+	id: string;
+}
+
+export interface IItem extends IItemData, IItemComputed {}
+
+interface IMoveComputed {
+	baseMoveType: string;
+	gen: number;
+	ignoreImmunity: IMoveData["ignoreImmunity"];
+}
+
+export interface IMove extends IMoveData, IMoveComputed {
+	baseMoveType: string;
+	ignoreImmunity: IMoveData["ignoreImmunity"];
+}
+
+interface IPokemonComputed {
+	baseSpecies: string;
+	battleOnly?: boolean;
+	evos: string[];
+	forme: string;
+	genderRatio: NonNullable<ITemplateData["genderRatio"]>;
+	id: string;
+	isMega: boolean;
+	isPrimal: boolean;
+	name: string;
+	nfe: boolean;
+	speciesId: string;
+	spriteId: string;
+}
+
+export interface IPokemon extends ITemplateData, Partial<ILearnset>, ITemplateFormatsData, IPokemonComputed {
+	baseSpecies: string;
+	evos: string[];
+	forme: string;
+	genderRatio: NonNullable<ITemplateData["genderRatio"]>;
+}
+
+/**
+ * A RuleTable keeps track of the rules that a format has. The key can be:
+ * - '[ruleid]' the ID of a rule in effect
+ * - '-[thing]' or '-[category]:[thing]' ban a thing
+ * - '+[thing]' or '+[category]:[thing]' allow a thing (override a ban)
+ * [category] is one of: item, move, ability, species, basespecies
+ */
+export class RuleTable extends Map<string, string> {
+	/** rule, source, limit, bans */
+	complexBans = [] as [string, string, number, string[]][];
+	/** rule, source, limit, bans */
+	complexTeamBans = [] as [string, string, number, string[]][];
+	checkLearnset = null as [(...args: any) => void, string] | null;
+
+	check(thing: string, setHas?: Dict<true>): string {
+		if (setHas) setHas[thing] = true;
+		return this.getReason('-' + thing);
+	}
+
+	getReason(key: string): string {
+		const source = this.get(key);
+		if (source === undefined) return '';
+		return source ? `banned by ${source}` : `banned`;
+	}
+
+	getComplexBanIndex(complexBans: [string, string, number, string[]][], rule: string): number {
+		const ruleId = Tools.toId(rule);
+		let complexBanIndex = -1;
+		for (let i = 0; i < complexBans.length; i++) {
+			if (Tools.toId(complexBans[i][0]) === ruleId) {
+				complexBanIndex = i;
+				break;
+			}
+		}
+		return complexBanIndex;
+	}
+
+	addComplexBan(rule: string, source: string, limit: number, bans: string[]) {
+		const complexBanIndex = this.getComplexBanIndex(this.complexBans, rule);
+		if (complexBanIndex !== -1) {
+			if (this.complexBans[complexBanIndex][2] === Infinity) return;
+			this.complexBans[complexBanIndex] = [rule, source, limit, bans];
+		} else {
+			this.complexBans.push([rule, source, limit, bans]);
+		}
+	}
+
+	addComplexTeamBan(rule: string, source: string, limit: number, bans: string[]) {
+		const complexBanTeamIndex = this.getComplexBanIndex(this.complexTeamBans, rule);
+		if (complexBanTeamIndex !== -1) {
+			if (this.complexTeamBans[complexBanTeamIndex][2] === Infinity) return;
+			this.complexTeamBans[complexBanTeamIndex] = [rule, source, limit, bans];
+		} else {
+			this.complexTeamBans.push([rule, source, limit, bans]);
+		}
+	}
+}
+
+interface IDataTable {
+	readonly abilities: Dict<IAbilityData | undefined>;
+	readonly aliases: Dict<string | undefined>;
+	readonly badges: string[];
+	readonly characters: string[];
+	readonly formats: Dict<IFormat | undefined>;
+	readonly formatsData: Dict<ITemplateFormatsData | undefined>;
+	readonly gifData: Dict<{back?: {h: number, w: number}, front?: {h: number, w: number}} | undefined>;
+	readonly items: Dict<IItemData | undefined>;
+	readonly learnsets: Dict<ILearnset | undefined>;
+	readonly moves: Dict<IMoveData | undefined>;
+	readonly natures: Dict<INature | undefined>;
+	readonly pokedex: Dict<ITemplateData | undefined>;
+	readonly trainerClasses: string[];
+	readonly typeChart: Dict<ITypeChart | undefined>;
+	readonly types: Dict<string | undefined>;
+}
 
 const PokemonShowdown =  path.resolve(__dirname, './../Pokemon-Showdown');
 const dataDir = path.join(PokemonShowdown, 'data');
@@ -60,24 +210,6 @@ const natures: Dict<INature> = {
 	timid: {name: "Timid", plus: 'spe', minus: 'atk'},
 };
 
-interface IDataTable {
-	readonly abilities: Dict<IAbilityData | undefined>;
-	readonly aliases: Dict<string | undefined>;
-	readonly badges: string[];
-	readonly characters: string[];
-	readonly formats: Dict<IFormat | undefined>;
-	readonly formatsData: Dict<ITemplateFormatsData | undefined>;
-	readonly gifData: Dict<{back?: {h: number, w: number}, front?: {h: number, w: number}} | undefined>;
-	readonly items: Dict<IItemData | undefined>;
-	readonly learnsets: Dict<ILearnset | undefined>;
-	readonly moves: Dict<IMoveData | undefined>;
-	readonly natures: Dict<INature | undefined>;
-	readonly pokedex: Dict<ITemplateData | undefined>;
-	readonly trainerClasses: string[];
-	readonly typeChart: Dict<ITypeChart | undefined>;
-	readonly types: Dict<string | undefined>;
-}
-
 const dexes: Dict<Dex> = {};
 
 export class Dex {
@@ -86,6 +218,7 @@ export class Dex {
 	itemCache = new Map<string, IItem>();
 	loadedData = false;
 	loadedMods = false;
+	moveCache = new Map<string, IMove>();
 	parentMod = '';
 	pokemonCache = new Map<string, IPokemon>();
 
@@ -196,9 +329,18 @@ export class Dex {
 			const formatData = formatsList[i];
 			const id = Tools.toId(formatData.name);
 			if (!id) continue;
+			const maxLevel = formatData.maxLevel || 100;
+			if (!formatData.defaultLevel) formatData.defaultLevel = formatData.maxLevel;
 			const formatComputed: IFormatComputed = {
+				banlist: formatData.banlist || [],
+				customRules: null,
+				defaultLevel: formatData.defaultLevel || maxLevel,
 				id,
+				maxLevel,
+				ruleset: formatData.ruleset || [],
+				ruleTable: null,
 				tournamentPlayable: !!(formatData.searchShow || formatData.challengeShow || formatData.tournamentShow),
+				unbanlist: formatData.unbanlist || [],
 			};
 			let viability = '';
 			let info = '';
@@ -389,8 +531,8 @@ export class Dex {
 	getAbility(name: string): IAbility | null {
 		let id = Tools.toId(name);
 		if (!id) return null;
-		if (id in this.data.aliases) id = this.data.aliases[id]!;
-		if (!(id in this.data.abilities)) return null;
+		if (this.data.aliases.hasOwnProperty(id)) id = this.data.aliases[id]!;
+		if (!this.data.abilities.hasOwnProperty(id)) return null;
 
 		const cached = this.abilityCache.get(id);
 		if (cached) return cached;
@@ -426,8 +568,8 @@ export class Dex {
 	getItem(name: string): IItem | null {
 		let id = Tools.toId(name);
 		if (!id) return null;
-		if (id in this.data.aliases) id = this.data.aliases[id]!;
-		if (!(id in this.data.items)) return null;
+		if (this.data.aliases.hasOwnProperty(id)) id = this.data.aliases[id]!;
+		if (!this.data.items.hasOwnProperty(id)) return null;
 
 		const cached = this.itemCache.get(id);
 		if (cached) return cached;
@@ -472,38 +614,71 @@ export class Dex {
 		return item;
 	}
 
+	getMove(name: string): IMove | null {
+		let id = Tools.toId(name);
+		if (!id) return null;
+		if (this.data.aliases.hasOwnProperty(id)) id = this.data.aliases[id]!;
+		if (!this.data.moves.hasOwnProperty(id)) return null;
+
+		const cached = this.moveCache.get(id);
+		if (cached) return cached;
+		const moveData = this.data.moves[id]!;
+		// Hidden Power
+		if (!moveData.id) moveData.id = Tools.toId(moveData.name);
+		if (!moveData.flags) moveData.flags = {};
+		moveData.critRatio = Number(moveData.critRatio) || 1;
+		moveData.priority = Number(moveData.priority) || 0;
+		let gen = 0;
+		if (moveData.num >= 622) {
+			gen = 7;
+		} else if (moveData.num >= 560) {
+			gen = 6;
+		} else if (moveData.num >= 468) {
+			gen = 5;
+		} else if (moveData.num >= 355) {
+			gen = 4;
+		} else if (moveData.num >= 252) {
+			gen = 3;
+		} else if (moveData.num >= 166) {
+			gen = 2;
+		} else if (moveData.num >= 1) {
+			gen = 1;
+		}
+
+		const moveComputed: IMoveComputed = {
+			baseMoveType: moveData.baseMoveType || moveData.type,
+			gen,
+			ignoreImmunity: moveData.ignoreImmunity !== undefined ? moveData.ignoreImmunity : moveData.category === 'Status',
+		};
+		const move: IMove = Object.assign(moveData, moveComputed);
+		this.moveCache.set(id, move);
+		return move;
+	}
+
+	getExistingMove(name: string): IMove {
+		const move = this.getMove(name);
+		if (!move) throw new Error("No move returned for '" + name + "'");
+		return move;
+	}
+
 	getPokemon(name: string): IPokemon | null {
 		let id = Tools.toId(name);
 		if (!id) return null;
-		if (id in this.data.aliases) id = this.data.aliases[id]!;
-		if (!(id in this.data.pokedex)) return null;
+		if (this.data.aliases.hasOwnProperty(id)) id = this.data.aliases[id]!;
+		if (!this.data.pokedex.hasOwnProperty(id)) return null;
 
 		const cached = this.pokemonCache.get(id);
 		if (cached) return cached;
 		const templateData = this.data.pokedex[id]!;
 		const templateFormatsData = this.data.formatsData[id] || {};
 
-		if (!templateData.baseSpecies) templateData.baseSpecies = templateData.species;
 		if (!templateData.eggGroups) templateData.eggGroups = [];
-		if (!templateData.evos) templateData.evos = [];
-		if (!templateData.forme) templateData.forme = '';
-		if (!templateData.genderRatio) {
-			if (templateData.gender === 'M') {
-				templateData.genderRatio = {M: 1, F: 0};
-			} else if (templateData.gender === 'F') {
-				templateData.genderRatio = {M: 0, F: 1};
-			} else if (templateData.gender === 'N') {
-				templateData.genderRatio = {M: 0, F: 0};
-			} else {
-				templateData.genderRatio = {M: 0.5, F: 0.5};
-			}
-		}
 		if (!templateFormatsData.requiredItems && templateFormatsData.requiredItem) templateFormatsData.requiredItems = [templateFormatsData.requiredItem];
 		let battleOnly = templateFormatsData.battleOnly;
 		let isMega = false;
 		let isPrimal = false;
 		if (!templateFormatsData.gen) {
-			if (templateData.num >= 722 || templateData.forme.startsWith('Alola')) {
+			if (templateData.num >= 722 || (templateData.forme && templateData.forme.startsWith('Alola'))) {
 				templateFormatsData.gen = 7;
 			} else if (templateData.forme && ['Mega', 'Mega-X', 'Mega-Y'].includes(templateData.forme)) {
 				templateFormatsData.gen = 6;
@@ -528,16 +703,25 @@ export class Dex {
 			}
 		}
 
+		const baseSpecies = templateData.baseSpecies || templateData.species;
+		const evos = templateData.evos || [];
 		const speciesId = Tools.toId(templateData.species);
 		const pokemonComputed: IPokemonComputed = {
+			baseSpecies,
 			battleOnly,
+			genderRatio: templateData.genderRatio || (templateData.gender === 'M' ? {M: 1, F: 0} :
+				templateData.gender === 'F' ? {M: 0, F: 1} :
+				templateData.gender === 'N' ? {M: 0, F: 0} :
+				{M: 0.5, F: 0.5}),
+			evos,
+			forme: templateData.forme || '',
 			id: speciesId,
 			isMega,
 			isPrimal,
 			name: templateData.species,
-			nfe: !!templateData.evos.length,
+			nfe: !!evos.length,
 			speciesId,
-			spriteId: Tools.toId(templateData.baseSpecies) + (templateData.baseSpecies !== templateData.species ? '-' + Tools.toId(templateData.forme) : ''),
+			spriteId: Tools.toId(baseSpecies) + (baseSpecies !== templateData.species ? '-' + Tools.toId(templateData.forme) : ''),
 		};
 		const pokemon: IPokemon = Object.assign(templateData, templateFormatsData, this.data.learnsets[id] || {}, pokemonComputed);
 		this.pokemonCache.set(id, pokemon);
@@ -557,8 +741,190 @@ export class Dex {
 	getFormat(name: string): IFormat | null {
 		let id = Tools.toId(name);
 		if (!id) return null;
-		if (id in this.data.aliases) id = this.data.aliases[id]!;
-		if (!(id in this.data.formats)) return null;
+		if (this.data.aliases.hasOwnProperty(id)) id = this.data.aliases[id]!;
+		if (!this.data.formats.hasOwnProperty(id)) return null;
+		// data computed in includeFormats();
 		return Object.assign({}, this.data.formats[id]);
+	}
+
+	getExistingFormat(name: string): IFormat {
+		const format = this.getFormat(name);
+		if (!format) throw new Error("No format returned for '" + name + "'");
+		return format;
+	}
+
+	getRuleTable(format: IFormat, depth = 0): RuleTable {
+		if (format.ruleTable) return format.ruleTable;
+
+		const ruleTable = new RuleTable();
+		const ruleset = format.ruleset.slice();
+		for (const ban of format.banlist) {
+			ruleset.push('-' + ban);
+		}
+		for (const ban of format.unbanlist) {
+			ruleset.push('+' + ban);
+		}
+		if (format.customRules) {
+			for (const rule of format.customRules) {
+				if (rule.startsWith('!')) {
+					ruleset.unshift(rule);
+				} else {
+					ruleset.push(rule);
+				}
+			}
+		}
+		if (format.checkLearnset) {
+			ruleTable.checkLearnset = [format.checkLearnset, format.name];
+		}
+
+		for (const rule of ruleset) {
+			const ruleSpec = this.validateRule(rule, format);
+			if (typeof ruleSpec !== 'string') {
+				if (ruleSpec[0] === 'complexTeamBan') {
+					const complexTeamBan = ruleSpec.slice(1) as [string, string, number, string[]];
+					ruleTable.addComplexTeamBan(complexTeamBan[0], complexTeamBan[1], complexTeamBan[2], complexTeamBan[3]);
+				} else if (ruleSpec[0] === 'complexBan') {
+					const complexBan = ruleSpec.slice(1) as [string, string, number, string[]];
+					ruleTable.addComplexBan(complexBan[0], complexBan[1], complexBan[2], complexBan[3]);
+				} else {
+					throw new Error(`Unrecognized rule spec ${ruleSpec}`);
+				}
+				continue;
+			}
+			if ("!+-".includes(ruleSpec.charAt(0))) {
+				if (ruleSpec.charAt(0) === '+' && ruleTable.has('-' + ruleSpec.slice(1))) {
+					ruleTable.delete('-' + ruleSpec.slice(1));
+				}
+				ruleTable.set(ruleSpec, '');
+				continue;
+			}
+			const subformat = this.getFormat(ruleSpec);
+			if (!subformat) continue;
+			if (ruleTable.has('!' + subformat.id)) continue;
+			ruleTable.set(subformat.id, '');
+			if (depth > 16) {
+				throw new Error(`Excessive ruleTable recursion in ${format.name}: ${ruleSpec} of ${format.ruleset}`);
+			}
+			const subRuleTable = this.getRuleTable(subformat, depth + 1);
+			for (const [k, v] of subRuleTable) {
+				if (!ruleTable.has('!' + k)) ruleTable.set(k, v || subformat.name);
+			}
+			for (const [rule, source, limit, bans] of subRuleTable.complexBans) {
+				ruleTable.addComplexBan(rule, source || subformat.name, limit, bans);
+			}
+			for (const [rule, source, limit, bans] of subRuleTable.complexTeamBans) {
+				ruleTable.addComplexTeamBan(rule, source || subformat.name, limit, bans);
+			}
+			if (subRuleTable.checkLearnset) {
+				if (ruleTable.checkLearnset) {
+					throw new Error(`"${format.name}" has conflicting move validation rules from "${ruleTable.checkLearnset[1]}" and "${subRuleTable.checkLearnset[1]}"`);
+				}
+				ruleTable.checkLearnset = subRuleTable.checkLearnset;
+			}
+		}
+
+		format.ruleTable = ruleTable;
+		return ruleTable;
+	}
+
+	validateRule(rule: string, format?: IFormat) {
+		switch (rule.charAt(0)) {
+		case '-':
+		case '+':
+			if (format && format.team) throw new Error(`We don't currently support bans in generated teams`);
+			if (rule.slice(1).includes('>') || rule.slice(1).includes('+')) {
+				let buf = rule.slice(1);
+				const gtIndex = buf.lastIndexOf('>');
+				let limit = rule.charAt(0) === '+' ? Infinity : 0;
+				if (gtIndex >= 0 && /^[0-9]+$/.test(buf.slice(gtIndex + 1).trim())) {
+					if (limit === 0) limit = parseInt(buf.slice(gtIndex + 1));
+					buf = buf.slice(0, gtIndex);
+				}
+				let checkTeam = buf.includes('++');
+				const banNames = buf.split(checkTeam ? '++' : '+').map(v => v.trim());
+				if (banNames.length === 1 && limit > 0) checkTeam = true;
+				const innerRule = banNames.join(checkTeam ? ' ++ ' : ' + ');
+				const bans = banNames.map(v => this.validateBanRule(v));
+
+				if (checkTeam) {
+					return ['complexTeamBan', innerRule, '', limit, bans];
+				}
+				if (bans.length > 1 || limit > 0) {
+					return ['complexBan', innerRule, '', limit, bans];
+				}
+				throw new Error(`Confusing rule ${rule}`);
+			}
+			return rule.charAt(0) + this.validateBanRule(rule.slice(1));
+		default:
+			const id = Tools.toId(rule);
+			if (!this.data.formats.hasOwnProperty(id)) {
+				throw new Error(`Unrecognized rule "${rule}"`);
+			}
+			if (rule.charAt(0) === '!') return '!' + id;
+			return id;
+		}
+	}
+
+	validateBanRule(rule: string) {
+		let id = Tools.toId(rule);
+		if (id === 'unreleased') return 'unreleased';
+		if (id === 'illegal') return 'illegal';
+		const matches = [];
+		let matchTypes = ['pokemon', 'move', 'ability', 'item', 'pokemontag'];
+		for (const matchType of matchTypes) {
+			if (rule.slice(0, 1 + matchType.length) === matchType + ':') {
+				matchTypes = [matchType];
+				id = id.slice(matchType.length);
+				break;
+			}
+		}
+		const ruleid = id;
+		if (this.data.aliases.hasOwnProperty(id)) id = Tools.toId(this.data.aliases[id]);
+		for (const matchType of matchTypes) {
+			let table;
+			switch (matchType) {
+			case 'pokemon': table = this.data.pokedex; break;
+			case 'move': table = this.data.moves; break;
+			case 'item': table = this.data.items; break;
+			case 'ability': table = this.data.abilities; break;
+			case 'pokemontag':
+				// valid pokemontags
+				const validTags = [
+					// singles tiers
+					'uber', 'ou', 'uubl', 'uu', 'rubl', 'ru', 'nubl', 'nu', 'publ', 'pu', 'zu', 'nfe', 'lcuber', 'lc', 'cap', 'caplc', 'capnfe',
+					// doubles tiers
+					'duber', 'dou', 'dbl', 'duu',
+					// custom tags
+					'mega',
+				];
+				if (validTags.includes(ruleid)) matches.push('pokemontag:' + ruleid);
+				continue;
+			default:
+				throw new Error(`Unrecognized match type.`);
+			}
+			if (table.hasOwnProperty(id)) {
+				if (matchType === 'pokemon') {
+					const template = table[id];
+					// @ts-ignore
+					if (template.otherFormes) {
+						matches.push('basepokemon:' + id);
+						continue;
+					}
+				}
+				matches.push(matchType + ':' + id);
+			} else if (matchType === 'pokemon' && id.slice(-4) === 'base') {
+				id = id.slice(0, -4);
+				if (table.hasOwnProperty(id)) {
+					matches.push('pokemon:' + id);
+				}
+			}
+		}
+		if (matches.length > 1) {
+			throw new Error(`More than one thing matches "${rule}"; please use something like "-item:metronome" to disambiguate`);
+		}
+		if (matches.length < 1) {
+			throw new Error(`Nothing matches "${rule}"`);
+		}
+		return matches[0];
 	}
 }
