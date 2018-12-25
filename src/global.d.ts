@@ -5,6 +5,7 @@ import { Dex} from './dex';
 import { Games } from './games';
 import { Rooms } from './rooms';
 import { Tools } from './tools';
+import { Tournaments } from './tournaments';
 import { Users } from './users';
 
 declare global {
@@ -16,5 +17,6 @@ declare global {
 	const Games: Games;
 	const Rooms: Rooms;
 	const Tools: Tools;
+	const Tournaments: Tournaments;
 	const Users: Users;
 }
