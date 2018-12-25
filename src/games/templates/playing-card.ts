@@ -1,5 +1,6 @@
 import { ICommandDefinition } from '../../command-parser';
-import {Game, Player} from '../../room-game';
+import { Player } from '../../room-activity';
+import {Game} from '../../room-game';
 import {Room} from '../../rooms';
 
 export type IPlayingCardSuits = 'clubs' | 'diamonds' | 'hearts' | 'spades';

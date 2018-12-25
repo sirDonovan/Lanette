@@ -1,4 +1,5 @@
-import { Game, Player } from "./room-game";
+import { Player } from "./room-activity";
+import { Game } from "./room-game";
 import { User } from "./users";
 
 export class Room {

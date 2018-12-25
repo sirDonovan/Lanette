@@ -35,6 +35,7 @@ export class Users {
 		this.self = this.add(Config.username);
 	}
 
+	/** Should only be used when interacting with a potentially new user (in Client) */
 	add(name: string): User {
 		const id = Tools.toId(name);
 		if (!(id in this.users)) this.users[id] = new User(name, id);
