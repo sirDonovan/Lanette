@@ -1,3 +1,6 @@
+import { IFormat } from "../dex";
+import { ITournamentEndJSON, ITournamentUpdateJSON } from "../room-tournament";
+
 export interface IServerGroup {
 	name: string | null;
 	ranking: number;
@@ -107,4 +110,61 @@ export interface IClientMessageTypes {
 		username: string,
 		message: string,
 	};
+
+	/**
+	 * Message type|(Rest)
+	 */
+	tournament: {
+		type: keyof ITournamentMessageTypes,
+	};
+}
+
+export interface ITournamentMessageTypes {
+	/**
+	 * Format|Generator|Player cap
+	 */
+	create: {
+		format: IFormat,
+		generator: string,
+		playerCap: number,
+	};
+
+	/**
+	 * Update JSON
+	 */
+	update: {
+		json: ITournamentUpdateJSON,
+	};
+
+	updateEnd: {};
+
+	/**
+	 * End JSON
+	 */
+	end: {
+		json: ITournamentEndJSON,
+	};
+
+	forceend: {};
+
+	start: {};
+
+	/**
+	 * Username
+	 */
+	join: {
+		username: string;
+	};
+
+	/**
+	 * Username
+	 */
+	leave: {
+		username: string;
+	};
+
+	/**
+	 * Username
+	 */
+	disqualify: ITournamentMessageTypes['leave'];
 }

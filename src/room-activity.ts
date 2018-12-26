@@ -81,13 +81,6 @@ export abstract class Activity {
 		this.deallocate();
 	}
 
-	forceEnd(user: User) {
-		if (this.timeout) clearTimeout(this.timeout);
-		this.say("The " + this.name + " " + this.activityType + " was forcibly ended.");
-		if (this.onForceEnd) this.onForceEnd(user);
-		this.deallocate();
-	}
-
 	say(message: string) {
 		this.room.say(message);
 	}
@@ -145,11 +138,12 @@ export abstract class Activity {
 	}
 
 	abstract deallocate(): void;
+	abstract forceEnd(user?: User): void;
 
 	/** Return `false` to prevent a user from being added (must destroy player) */
 	onAddPlayer?(player: Player): boolean;
 	onEnd?(): void;
-	onForceEnd?(user: User): void;
+	onForceEnd?(user?: User): void;
 	onRemovePlayer?(player: Player): void;
 	onStart?(): void;
 

@@ -1,10 +1,12 @@
 import { Player } from "./room-activity";
 import { Game } from "./room-game";
+import { Tournament } from "./room-tournament";
 import { User } from "./users";
 
 export class Room {
 	game = null as Game | null;
 	messageListeners = {} as Dict<() => void>;
+	tournament = null as Tournament | null;
 	users = new Set<User>();
 
 	id: string;

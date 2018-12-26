@@ -349,7 +349,7 @@ export class Dex {
 			let np = '';
 			if (formatData.threads) {
 				const threads = formatData.threads.slice();
-				for (let i = 0, len = threads.length; i < len; i++) {
+				for (let i = 0; i < threads.length; i++) {
 					const line = threads[i].trim();
 					if (line.startsWith('&bullet;')) {
 						const text = line.split('</a>')[0].split('">')[1];
@@ -449,7 +449,7 @@ export class Dex {
 			// Formats are inherited by mods
 			this.includeFormats();
 		} else {
-			for (let i = 0, len = dataTypes.length; i < len; i++) {
+			for (let i = 0; i < dataTypes.length; i++) {
 				const dataType = dataTypes[i];
 				// @ts-ignore
 				const parentTypedData = parentDex.data[dataType];
@@ -487,7 +487,7 @@ export class Dex {
 
 		const allDataTypes = dataTypesToLoad.concat(lanetteDataTypes);
 		// alias data types
-		for (let i = 0, len = allDataTypes.length; i < len; i++) {
+		for (let i = 0; i < allDataTypes.length; i++) {
 			let dataType = allDataTypes[i];
 			if (dataType === 'FormatsData') {
 				dataType = 'formatsData';

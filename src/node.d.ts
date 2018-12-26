@@ -9,6 +9,7 @@ declare namespace NodeJS {
 		Games: import('./games').Games;
 		Rooms: import('./rooms').Rooms;
 		Tools: import('./tools').Tools;
+		Tournaments: import('./tournaments').Tournaments;
 		Users: import('./users').Users;
 	}
 }
