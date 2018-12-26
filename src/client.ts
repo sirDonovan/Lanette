@@ -3,7 +3,7 @@ import querystring = require('querystring');
 import url = require('url');
 import websocket = require('websocket');
 import { Room } from './rooms';
-import { IClientMessageTypes, IServerGroup } from './types/client-message-types';
+import { IClientMessageTypes, IServerGroup, ITournamentMessageTypes } from './types/client-message-types';
 
 const RELOGIN_SECONDS = 60;
 const SEND_THROTTLE = 800;
@@ -136,13 +136,79 @@ export class Client {
 		}
 	}
 
-	parseMessage(room: Room, message: string): boolean {
+	parseMessage(room: Room, message: string): true {
 		message = message.substr(1);
 		const pipeIndex = message.indexOf("|");
 		const messageType = message.substr(0, pipeIndex) as keyof IClientMessageTypes;
 		message = message.substr(pipeIndex + 1);
 		const messageParts = message.split("|");
 		switch (messageType) {
+		case 'tournament': {
+			const type = messageParts[0] as keyof ITournamentMessageTypes;
+			messageParts.shift();
+			switch (type) {
+				case 'create': {
+					const messageArguments: ITournamentMessageTypes['create'] = {format: Dex.getExistingFormat(messageParts[0]), generator: messageParts[1], playerCap: parseInt(messageParts[2])};
+					if (Tournaments.tournamentTimers[room.id]) clearTimeout(Tournaments.tournamentTimers[room.id]);
+					room.tournament = Tournaments.createTournament(room, messageArguments.format, messageArguments.generator, messageArguments.playerCap);
+					break;
+				}
+
+				case 'end': {
+					const messageArguments: ITournamentMessageTypes['end'] = {json: JSON.parse(messageParts.join("|"))};
+					if (!room.tournament) Tournaments.createTournamentFromJSON(room, messageArguments.json);
+					if (room.tournament) {
+						Object.assign(room.tournament.updates, messageArguments.json);
+						room.tournament.update();
+						room.tournament.end();
+					}
+					break;
+				}
+
+				case 'update': {
+					const messageArguments: ITournamentMessageTypes['update'] = {json: JSON.parse(messageParts.join("|"))};
+					if (!room.tournament) Tournaments.createTournamentFromJSON(room, messageArguments.json);
+					if (room.tournament) {
+						Object.assign(room.tournament.updates, messageArguments.json);
+					}
+					break;
+				}
+
+				case 'updateEnd': {
+					if (room.tournament) room.tournament.update();
+					break;
+				}
+
+				case 'forceend': {
+					if (room.tournament) room.tournament.forceEnd();
+					break;
+				}
+
+				case 'start': {
+					if (room.tournament) room.tournament.start();
+					break;
+				}
+
+				case 'join': {
+					if (room.tournament) {
+						const messageArguments: ITournamentMessageTypes['join'] = {username: messageParts[0]};
+						room.tournament.addPlayer(messageArguments.username);
+					}
+					break;
+				}
+
+				case 'leave':
+				case 'disqualify': {
+					if (room.tournament) {
+						const messageArguments: ITournamentMessageTypes['leave'] = {username: messageParts[0]};
+						room.tournament.removePlayer(messageArguments.username);
+					}
+					break;
+				}
+			}
+			break;
+		}
+
 		case 'challstr': {
 			this.challstr = message;
 			if (Config.username) this.login();
@@ -159,7 +225,7 @@ export class Client {
 
 				console.log('Successfully logged in');
 				if (Config.rooms) {
-					for (let i = 0, len = Config.rooms.length; i < len; i++) {
+					for (let i = 0; i < Config.rooms.length; i++) {
 						this.send('|/join ' + Config.rooms[i]);
 					}
 				}

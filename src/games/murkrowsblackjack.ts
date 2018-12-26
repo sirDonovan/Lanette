@@ -64,7 +64,7 @@ class MurkrowsBlackjack extends PlayingCardGame {
 			cards.push(card);
 			let total = 0;
 			const aceCards = [];
-			for (let i = 0, cardLen = cards.length; i < cardLen; i++) {
+			for (let i = 0; i < cards.length; i++) {
 				total += cards[i].value;
 				if (cards[i].value === 11) aceCards.push(cards[i]);
 			}
@@ -199,7 +199,7 @@ const commands: Dict<ICommandDefinition<MurkrowsBlackjack>> = {
 			userCards.push(card);
 			let total = 0;
 			const aceCards = [];
-			for (let i = 0, len = userCards.length; i < len; i++) {
+			for (let i = 0; i < userCards.length; i++) {
 				total += userCards[i].value;
 				if (userCards[i].value === 11) aceCards.push(userCards[i]);
 			}

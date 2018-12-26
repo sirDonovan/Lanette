@@ -8,10 +8,46 @@ interface IBracketNode {
 	result: string;
 }
 
-interface ITournamentInfo {
+interface IBracketData {
+	type: string;
+	rootNode?: IBracketNode;
+	tableHeaders?: {cols: any[], rows: any[]};
+}
+
+export interface ITournamentUpdateJSON {
+	/** An object representing the current state of the bracket */
+	bracketData: IBracketData;
+	/** A list of opponents that can currently challenge you */
+	challengeBys: string[];
+	/** The name of the opponent that has challenged you */
+	challenged: string;
+	/** A list of opponents that you can currently challenge */
+	challenges: string[];
+	/** The name of the opponent that you are challenging */
+	challenging: string;
+	/** The tournament's custom name or the format being used */
 	format: string;
-	bracketData: {type: string, rootNode?: IBracketNode, tableHeaders?: {cols: any[], rows: any[]}};
-	results: string[][];
+	/** The type of bracket being used by the tournament */
+	generator: string;
+	/** Whether or not you have joined the tournament */
+	isJoined: boolean;
+	/** Whether or not the tournament has started */
+	isStarted: boolean;
+	/** The player cap that was set or 0 if it was removed */
+	playerCap: number;
+	/** The format being used; sent if a custom name was set */
+	teambuilderFormat: string;
+}
+
+export interface ITournamentEndJSON {
+	/** An object representing the final state of the bracket */
+	bracketData: IBracketData;
+	/** The tournament's custom name or the format that was used */
+	format: string;
+	/** The type of bracket that was used by the tournament */
+	generator: string;
+	/** The name(s) of the winner(s) of the tournament */
+	results: string[];
 }
 
 const generators: Dict<number> = {
@@ -26,18 +62,31 @@ const generators: Dict<number> = {
 export class Tournament extends Activity {
 	createTime = Date.now();
 	generator = 1;
-	info = {bracketData: {type: ''}, results: [], format: ''} as ITournamentInfo;
+	info: ITournamentUpdateJSON = {
+		bracketData: {type: ''},
+		challengeBys: [],
+		challenged: '',
+		challenges: [],
+		challenging: '',
+		format: '',
+		generator: '',
+		isJoined: false,
+		isStarted: false,
+		playerCap: 0,
+		teambuilderFormat: '',
+	};
 	isRoundRobin = false;
 	maxRounds = 6;
-	playerCap = Tournaments.defaultCap;
 	startTime = 0;
 	totalPlayers = 0;
-	updates = {} as Dict<any>;
+	updates: Partial<ITournamentUpdateJSON> = {};
 
 	format!: IFormat;
+	playerCap!: number;
 
-	initialize(format: IFormat, generator: string) {
+	initialize(format: IFormat, generator: string, playerCap: number) {
 		this.format = format;
+		this.playerCap = playerCap;
 		this.name = format.name;
 		const generatorName = generator.split(" ")[0];
 		if (generatorName in generators) {
@@ -51,6 +100,11 @@ export class Tournament extends Activity {
 
 	deallocate() {
 		this.room.tournament = null;
+	}
+
+	forceEnd() {
+		if (this.timeout) clearTimeout(this.timeout);
+		this.deallocate();
 	}
 
 	onStart() {
@@ -117,7 +171,7 @@ export class Tournament extends Activity {
 			}
 		} else if (data.type === 'table') {
 			if (data.tableHeaders && data.tableHeaders.cols) {
-				for (let i = 0, len = data.tableHeaders.cols.length; i < len; i++) {
+				for (let i = 0; i < data.tableHeaders.cols.length; i++) {
 					const player = Tools.toId(data.tableHeaders.cols[i]);
 					if (!players[player]) players[player] = data.tableHeaders.cols[i];
 				}

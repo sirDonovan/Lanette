@@ -1,6 +1,7 @@
 import { ICommandDefinition } from "./command-parser";
 import { IGameFormat } from "./games";
 import { Activity, Player } from "./room-activity";
+import { User } from "./users";
 
 const baseCommands: Dict<ICommandDefinition<Game>> = {
 	summary: {
@@ -44,6 +45,13 @@ export class Game extends Activity {
 
 	deallocate() {
 		this.room.game = null;
+	}
+
+	forceEnd(user: User) {
+		if (this.timeout) clearTimeout(this.timeout);
+		this.say("The " + this.name + " " + this.activityType + " was forcibly ended.");
+		if (this.onForceEnd) this.onForceEnd(user);
+		this.deallocate();
 	}
 
 	nextRound() {
