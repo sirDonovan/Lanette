@@ -1,4 +1,5 @@
 import { ICommandDefinition } from "./command-parser";
+import { Room } from "./rooms";
 
 const commands: Dict<ICommandDefinition> = {
 	eval: {
@@ -57,6 +58,37 @@ const commands: Dict<ICommandDefinition> = {
 			if (room.game) room.game.removePlayer(user);
 		},
 		aliases: ['lg'],
+	},
+	game: {
+		command(target, room, user) {
+			let gameRoom: Room;
+			if (this.isPm(room)) {
+				if (!target) target = 'gamecorner';
+				const targetRoom = Rooms.get(Tools.toId(target));
+				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+				if (!this.canPmHtml(targetRoom)) return;
+				gameRoom = targetRoom;
+			} else {
+				if (!user.hasRank(room, '+')) return;
+				gameRoom = room;
+			}
+			if (!gameRoom.game) return this.say("There is no scripted game running.");
+			const game = gameRoom.game;
+			let html = "<b>Game</b>: " + game.name + "<br />";
+			if (game.started) {
+				html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - game.startTime) + "<br />";
+				const remainingPlayers = game.getRemainingPlayerCount();
+				if (remainingPlayers !== game.playerCount) {
+					html += "<b>Remaining players</b>: " + remainingPlayers + "/" + game.playerCount;
+				} else {
+					html += "<b>Players</b>: " + remainingPlayers;
+				}
+			} else {
+				html += "<b>Signups duration</b>: " + Tools.toDurationString(Date.now() - game.createTime) + "<br />";
+				html += "<b>" + game.playerCount + "</b> players have joined";
+			}
+			this.sayHtml(html, gameRoom);
+		},
 	},
 };
 

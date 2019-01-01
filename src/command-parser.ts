@@ -32,6 +32,14 @@ export class Command {
 		this.room.say(message);
 	}
 
+	sayHtml(html: string, pmHtmlRoom: Room) {
+		if (this.isPm(this.room)) {
+			pmHtmlRoom.pmHtml(this.user, html);
+		} else {
+			this.room.sayHtml(html);
+		}
+	}
+
 	run(newCommand?: string, newTarget?: string) {
 		let command = this.originalCommand;
 		if (newCommand) {
@@ -49,6 +57,14 @@ export class Command {
 
 	isPm(room: Room | User): room is User {
 		return this.pm;
+	}
+
+	canPmHtml(room: Room): boolean {
+		if (!this.user.rooms.has(room)) {
+			this.say("You must be in the room to use this command.");
+			return false;
+		}
+		return true;
 	}
 }
 

@@ -6,11 +6,14 @@ import { User } from "./users";
 const baseCommands: Dict<ICommandDefinition<Game>> = {
 	summary: {
 		command(target, room, user) {
-			if (!this.started || !(user.id in this.players)) return;
+			if (!(user.id in this.players)) return;
+			const player = this.players[user.id];
 			if (this.getPlayerSummary) {
 				this.getPlayerSummary(this.players[user.id]);
 			} else {
-				// TODO: generic summary (points/lives/etc)
+				let summary = '';
+				if (this.points) summary += "Your points: " + (this.points.get(player) || 0) + "<br />";
+				if (summary) player.sayHtml(summary);
 			}
 		},
 		globalGameCommand: true,
@@ -31,6 +34,8 @@ export class Game extends Activity {
 	parentGame = null as Game | null;
 	round = 0;
 	winners = new Map<Player, number>();
+
+	points?: Map<Player, number>;
 
 	initialize(format: IGameFormat) {
 		this.name = format.name;

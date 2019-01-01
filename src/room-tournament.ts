@@ -60,6 +60,7 @@ const generators: Dict<number> = {
 };
 
 export class Tournament extends Activity {
+	activityType = 'tournament';
 	createTime = Date.now();
 	generator = 1;
 	info: ITournamentUpdateJSON = {

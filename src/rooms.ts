@@ -21,6 +21,10 @@ export class Room {
 		Client.send(this.sendId + "|" + message);
 	}
 
+	sayHtml(html: string) {
+		this.say("/addhtmlbox " + html);
+	}
+
 	pmHtml(user: User | Player, html: string) {
 		this.say("/pminfobox " + user.id + "," + html);
 	}

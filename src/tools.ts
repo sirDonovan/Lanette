@@ -59,6 +59,26 @@ export class Tools {
 		return input.toLowerCase().replace(/[^a-z0-9]/g, '');
 	}
 
+	toDurationString(input: number, options?: {precision?: number, hhmmss?: boolean}): string {
+		const date = new Date(+input);
+		const parts = [date.getUTCFullYear() - 1970, date.getUTCMonth(), date.getUTCDate() - 1, date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()];
+		const roundingBoundaries = [6, 15, 12, 30, 30];
+		const unitNames = ["second", "minute", "hour", "day", "month", "year"];
+		const positiveIndex = parts.findIndex(elem => elem > 0);
+		const precision = (options && options.precision ? options.precision : parts.length);
+		if (options && options.hhmmss) {
+			const joined = parts.slice(positiveIndex).map(value => value < 10 ? "0" + value : "" + value).join(":");
+			return joined.length === 2 ? "00:" + joined : joined;
+		}
+		// round least significant displayed unit
+		if (positiveIndex + precision < parts.length && precision > 0 && positiveIndex >= 0) {
+			if (parts[positiveIndex + precision] >= roundingBoundaries[positiveIndex + precision - 1]) {
+				parts[positiveIndex + precision - 1]++;
+			}
+		}
+		return parts.slice(positiveIndex).reverse().map((value, index) => value ? value + " " + unitNames[index] + (value > 1 ? "s" : "") : "").reverse().slice(0, precision).join(" ").trim();
+	}
+
 	deepClone<T>(obj: T): T {
 		if (obj === null || typeof obj !== 'object') return obj;
 		// @ts-ignore

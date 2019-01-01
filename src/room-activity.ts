@@ -40,9 +40,11 @@ export class Player {
 
 export abstract class Activity {
 	activityType = '';
+	createTime = Date.now();
 	playerCount = 0;
 	players = {} as Dict<Player>;
 	started = false;
+	startTime = 0;
 	timeout = null as NodeJS.Timeout | null;
 
 	// set in initialize()
@@ -72,6 +74,7 @@ export abstract class Activity {
 
 	start() {
 		this.started = true;
+		this.startTime = Date.now();
 		if (this.onStart) this.onStart();
 	}
 
@@ -86,7 +89,7 @@ export abstract class Activity {
 	}
 
 	sayHtml(html: string) {
-		this.room.say("/addhtmlbox " + html);
+		this.room.sayHtml(html);
 	}
 
 	sayUhtml(html: string, id?: string) {
