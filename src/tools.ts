@@ -3,6 +3,8 @@ import https = require('https');
 import path = require('path');
 import { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './dex';
 
+const NUMBER_REGEX = /^[ .0-9]*$/g;
+
 export class Tools {
 	random(limit?: number) {
 		if (!limit) limit = 2;
@@ -78,6 +80,14 @@ export class Tools {
 			}
 		}
 		return parts.slice(positiveIndex).reverse().map((value, index) => value ? value + " " + unitNames[index] + (value > 1 ? "s" : "") : "").reverse().slice(0, precision).join(" ").trim();
+	}
+
+	isNumber(text: string): boolean {
+		text = text.trim();
+		if (text.charAt(0) === '-') text = text.substr(1);
+		const match = text.match(NUMBER_REGEX);
+		if (match && match.length) return true;
+		return false;
 	}
 
 	deepClone<T>(obj: T): T extends IAbility ? IAbilityCopy : T extends IItem ? IItemCopy : T extends IMove ? IMoveCopy : T extends IPokemon ? IPokemonCopy : T {
