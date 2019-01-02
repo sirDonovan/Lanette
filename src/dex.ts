@@ -7,7 +7,8 @@ interface IAbilityComputed {
 	id: string;
 }
 
-export interface IAbility extends IAbilityData, IAbilityComputed {}
+export interface IAbilityCopy extends IAbilityData, IAbilityComputed {}
+export interface IAbility extends DeepReadonly<IAbilityCopy> {}
 
 interface IFormatComputed {
 	banlist: NonNullable<IFormatData["banlist"]>;
@@ -41,7 +42,8 @@ interface IItemComputed {
 	id: string;
 }
 
-export interface IItem extends IItemData, IItemComputed {}
+export interface IItemCopy extends IItemData, IItemComputed {}
+export interface IItem extends DeepReadonly<IItemCopy> {}
 
 interface IMoveComputed {
 	baseMoveType: string;
@@ -49,10 +51,11 @@ interface IMoveComputed {
 	ignoreImmunity: IMoveData["ignoreImmunity"];
 }
 
-export interface IMove extends IMoveData, IMoveComputed {
+export interface IMoveCopy extends IMoveData, IMoveComputed {
 	baseMoveType: string;
 	ignoreImmunity: IMoveData["ignoreImmunity"];
 }
+export interface IMove extends DeepReadonly<IMoveCopy> {}
 
 interface IPokemonComputed {
 	baseSpecies: string;
@@ -70,13 +73,14 @@ interface IPokemonComputed {
 	spriteId: string;
 }
 
-export interface IPokemon extends ITemplateData, Partial<ILearnset>, ITemplateFormatsData, IPokemonComputed {
+export interface IPokemonCopy extends ITemplateData, Partial<ILearnset>, ITemplateFormatsData, IPokemonComputed {
 	baseSpecies: string;
 	evos: string[];
 	forme: string;
 	gen: number;
 	genderRatio: NonNullable<ITemplateData["genderRatio"]>;
 }
+export interface IPokemon extends DeepReadonly<IPokemonCopy> {}
 
 /**
  * A RuleTable keeps track of the rules that a format has. The key can be:
@@ -567,6 +571,11 @@ export class Dex {
 		return ability;
 	}
 
+	getAbilityCopy(name: string): IAbilityCopy {
+		const ability = this.getExistingAbility(name);
+		return Tools.deepClone(ability);
+	}
+
 	getItem(name: string): IItem | null {
 		let id = Tools.toId(name);
 		if (!id) return null;
@@ -616,6 +625,11 @@ export class Dex {
 		return item;
 	}
 
+	getItemCopy(name: string): IItemCopy {
+		const item = this.getExistingItem(name);
+		return Tools.deepClone(item);
+	}
+
 	getMove(name: string): IMove | null {
 		let id = Tools.toId(name);
 		if (!id) return null;
@@ -661,6 +675,11 @@ export class Dex {
 		const move = this.getMove(name);
 		if (!move) throw new Error("No move returned for '" + name + "'");
 		return move;
+	}
+
+	getMoveCopy(name: string): IMoveCopy {
+		const move = this.getExistingMove(name);
+		return Tools.deepClone(move);
 	}
 
 	getPokemon(name: string): IPokemon | null {
@@ -740,6 +759,11 @@ export class Dex {
 		const pokemon = this.getPokemon(name);
 		if (!pokemon) throw new Error("No pokemon returned for '" + name + "'");
 		return pokemon;
+	}
+
+	getPokemonCopy(name: string): IPokemonCopy {
+		const pokemon = this.getExistingPokemon(name);
+		return Tools.deepClone(pokemon);
 	}
 
 	getFormat(name: string): IFormat | null {

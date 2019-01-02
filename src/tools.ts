@@ -1,6 +1,7 @@
 import fs = require('fs');
 import https = require('https');
 import path = require('path');
+import { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './dex';
 
 export class Tools {
 	random(limit?: number) {
@@ -79,7 +80,8 @@ export class Tools {
 		return parts.slice(positiveIndex).reverse().map((value, index) => value ? value + " " + unitNames[index] + (value > 1 ? "s" : "") : "").reverse().slice(0, precision).join(" ").trim();
 	}
 
-	deepClone<T>(obj: T): T {
+	deepClone<T>(obj: T): T extends IAbility ? IAbilityCopy : T extends IItem ? IItemCopy : T extends IMove ? IMoveCopy : T extends IPokemon ? IPokemonCopy : T {
+		// @ts-ignore
 		if (obj === null || typeof obj !== 'object') return obj;
 		// @ts-ignore
 		if (Array.isArray(obj)) return obj.map(prop => this.deepClone(prop));
