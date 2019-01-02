@@ -1,6 +1,8 @@
 import { Room } from "./rooms";
 import { User } from "./users";
 
+const SIGNUPS_HTML_DELAY = 2 * 1000;
+
 export class Player {
 	/** The player either left or got eliminated during gameplay; can no longer perform any actions */
 	eliminated = null as boolean | null;
@@ -33,8 +35,15 @@ export class Player {
 	}
 
 	sayUhtml(html: string, id?: string) {
-		if (!id) id = this.activity.id;
-		this.activity.room.pmUhtml(this, id, html);
+		let uhtmlId = this.activity.id;
+		if (id) uhtmlId += id;
+		this.activity.room.pmUhtml(this, uhtmlId, html);
+	}
+
+	sayUhtmlChange(html: string, id?: string) {
+		let uhtmlId = this.activity.id;
+		if (id) uhtmlId += id;
+		this.activity.room.pmUhtmlChange(this, uhtmlId, html);
 	}
 }
 
@@ -43,6 +52,8 @@ export abstract class Activity {
 	createTime = Date.now();
 	playerCount = 0;
 	players = {} as Dict<Player>;
+	showSignupsHtml = false;
+	signupsHtmlTimeout: NodeJS.Timer | null = null;
 	started = false;
 	startTime = 0;
 	timeout = null as NodeJS.Timeout | null;
@@ -62,6 +73,12 @@ export abstract class Activity {
 		if (!player) return;
 		if (this.onAddPlayer && !this.onAddPlayer(player)) return;
 		player.say("Thanks for joining the " + this.name + " " + this.activityType + "!");
+		if (this.getSignupsHtml && this.showSignupsHtml && !this.started && !this.signupsHtmlTimeout) {
+			this.sayUhtmlChange(this.getSignupsHtml(), "signups");
+			this.signupsHtmlTimeout = setTimeout(() => {
+				this.signupsHtmlTimeout = null;
+			}, SIGNUPS_HTML_DELAY);
+		}
 		return player;
 	}
 
@@ -70,11 +87,18 @@ export abstract class Activity {
 		if (!player) return;
 		if (this.onRemovePlayer) this.onRemovePlayer(player);
 		player.say("You have left the " + this.name + " " + this.activityType + ".");
+		if (this.getSignupsHtml && this.showSignupsHtml && !this.started && !this.signupsHtmlTimeout) {
+			this.sayUhtmlChange(this.getSignupsHtml(), "signups");
+			this.signupsHtmlTimeout = setTimeout(() => {
+				this.signupsHtmlTimeout = null;
+			}, SIGNUPS_HTML_DELAY);
+		}
 	}
 
 	start() {
 		this.started = true;
 		this.startTime = Date.now();
+		if (this.getSignupsHtml && this.showSignupsHtml) this.sayUhtmlChange(this.getSignupsHtml(), "signups");
 		if (this.onStart) this.onStart();
 	}
 
@@ -93,8 +117,15 @@ export abstract class Activity {
 	}
 
 	sayUhtml(html: string, id?: string) {
-		if (!id) id = this.id;
-		this.room.say("/adduhtml " + id + "," + html);
+		let uhtmlId = this.id;
+		if (id) uhtmlId += '-' + id;
+		this.room.sayUhtml(uhtmlId, html);
+	}
+
+	sayUhtmlChange(html: string, id?: string) {
+		let uhtmlId = this.id;
+		if (id) uhtmlId += '-' + id;
+		this.room.sayUhtmlChange(uhtmlId, html);
 	}
 
 	on(message: string, listener: () => any) {
@@ -143,6 +174,7 @@ export abstract class Activity {
 	abstract deallocate(): void;
 	abstract forceEnd(user?: User): void;
 
+	getSignupsHtml?(): string;
 	/** Return `false` to prevent a user from being added (must destroy player) */
 	onAddPlayer?(player: Player): boolean;
 	onEnd?(): void;

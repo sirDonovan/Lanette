@@ -57,6 +57,7 @@ export class Game extends Activity {
 	isMiniGame?: boolean;
 	mascot?: IPokemonCopy;
 	points?: Map<Player, number>;
+	shinyMascot?: boolean;
 
 	initialize(format: IGameFormat) {
 		this.format = format;
@@ -72,6 +73,12 @@ export class Game extends Activity {
 		}
 
 		this.setOptions();
+
+		// TODO: check internal/userhosted/custom signups
+		this.showSignupsHtml = true;
+		this.sayUhtml(this.getSignupsHtml(), "signups");
+	}
+
 	setOptions() {
 		if (this.defaultOptions) {
 			for (let i = 0; i < this.defaultOptions.length; i++) {
@@ -137,6 +144,47 @@ export class Game extends Activity {
 		if (this.timeout) clearTimeout(this.timeout);
 		if (this.onEnd) this.onEnd();
 		this.deallocate();
+	}
+
+	getSignupsHtml(): string {
+		let html = "<div class='infobox'><center>";
+		if (this.mascot) {
+			if (this.shinyMascot === undefined) {
+				if (this.rollForShinyPokemon()) {
+					this.mascot.shiny = true;
+					this.shinyMascot = true;
+				} else {
+					this.shinyMascot = false;
+				}
+			}
+			const gif = Dex.getPokemonGif(this.mascot);
+			if (gif) html += gif + "&nbsp;&nbsp;&nbsp;";
+		}
+		html += "<b><font size='3'>" + this.name + "</font></b><br />" + this.format.description;
+		let commandDescriptions: string[] = [];
+		if (this.getPlayerSummary) commandDescriptions.push(Config.commandCharacter + "summary");
+		if (this.format.commandDescriptions) commandDescriptions = commandDescriptions.concat(this.format.commandDescriptions);
+		if (commandDescriptions.length) {
+			html += "<br /><b>Command" + (commandDescriptions.length > 1 ? "s" : "") + "</b>: " + commandDescriptions.map(x => "<code>" + x + "</code>").join(", ");
+		}
+		if (this.options.freejoin) {
+			html += "<br /><br /><b>This game is free-join!</b>";
+		} else {
+			html += "<br /><br /><b>Players (" + this.playerCount + ")</b>: " + this.getPlayerNames();
+			if (this.started) {
+				html += "<br /><br /><b>The game has started!</b>";
+			} else {
+				html += "<br /><button class='button' name='send' value='/pm " + Users.self.name + ", .joingame " + this.room.id + "'>Join</button>";
+			}
+		}
+		html += "</center></div>";
+		return html;
+	}
+
+	rollForShinyPokemon(extraChance?: number): boolean {
+		let chance = 150;
+		if (extraChance) chance -= extraChance;
+		return !Tools.random(chance);
 	}
 
 	getPlayerSummary?(player: Player): void;

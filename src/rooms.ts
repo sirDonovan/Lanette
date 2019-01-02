@@ -25,12 +25,24 @@ export class Room {
 		this.say("/addhtmlbox " + html);
 	}
 
+	sayUhtml(uhtmlId: string, html: string) {
+		this.say("/adduhtml " + uhtmlId + ", " + html);
+	}
+
+	sayUhtmlChange(uhtmlId: string, html: string) {
+		this.say("/changeuhtml " + uhtmlId + ", " + html);
+	}
+
 	pmHtml(user: User | Player, html: string) {
 		this.say("/pminfobox " + user.id + "," + html);
 	}
 
 	pmUhtml(user: User | Player, id: string, html: string) {
 		this.say("/pmuhtml " + user.id + "," + id + "," + html);
+	}
+
+	pmUhtmlChange(user: User | Player, id: string, html: string) {
+		this.say("/pmuhtmlchange " + user.id + "," + id + "," + html);
 	}
 
 	on(message: string, listener: () => void) {
