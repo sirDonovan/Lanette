@@ -6,15 +6,15 @@ import { commands as templateCommands, game as PlayingCardGame, IPlayingCard } f
 
 class MurkrowsBlackjack extends PlayingCardGame {
 	roundActions = new Set<Player>();
-	roundLimit = 20;
+	roundLimit: number = 20;
 	wagers = new Map<Player, number>();
-	wagerTime = false;
-	wagerLimit = 300;
-	canHit = false;
-	dealersHand = 0;
-	blackjackGame = 0;
-	maxBlackjackGames = 5;
-	maxHandTotal = 21;
+	wagerTime: boolean = false;
+	wagerLimit: number = 300;
+	canHit: boolean = false;
+	dealersHand: number = 0;
+	blackjackGame: number = 0;
+	maxBlackjackGames: number = 5;
+	maxHandTotal: number = 21;
 	blackJackpots = new Map<Player, number>();
 	faceCardValues = {
 		J: 10,

@@ -49,14 +49,14 @@ export class Player {
 }
 
 export abstract class Activity {
-	activityType = '';
-	createTime = Date.now();
-	playerCount = 0;
+	activityType: string = '';
+	createTime: number = Date.now();
+	playerCount: number = 0;
 	players: Dict<Player> = {};
-	showSignupsHtml = false;
+	showSignupsHtml: boolean = false;
 	signupsHtmlTimeout: NodeJS.Timer | null = null;
-	started = false;
-	startTime = 0;
+	started: boolean = false;
+	startTime: number = 0;
 	timeout: NodeJS.Timeout | null = null;
 
 	// set in initialize()

@@ -92,10 +92,10 @@ export interface IPokemon extends DeepReadonly<IPokemonCopy> {}
  */
 export class RuleTable extends Map<string, string> {
 	/** rule, source, limit, bans */
-	complexBans = [] as [string, string, number, string[]][];
+	complexBans: [string, string, number, string[]][] = [];
 	/** rule, source, limit, bans */
-	complexTeamBans = [] as [string, string, number, string[]][];
-	checkLearnset = null as [(...args: any) => void, string] | null;
+	complexTeamBans: [string, string, number, string[]][] = [];
+	checkLearnset: [(...args: any) => void, string] | null = null;
 
 	check(thing: string, setHas?: Dict<true>): string {
 		if (setHas) setHas[thing] = true;
@@ -224,12 +224,12 @@ const dexes: Dict<Dex> = {};
 
 export class Dex {
 	abilityCache = new Map<string, IAbility>();
-	gen = 0;
+	gen: number = 0;
 	itemCache = new Map<string, IItem>();
-	loadedData = false;
-	loadedMods = false;
+	loadedData: boolean = false;
+	loadedMods: boolean = false;
 	moveCache = new Map<string, IMove>();
-	parentMod = '';
+	parentMod: string = '';
 	pokemonCache = new Map<string, IPokemon>();
 
 	currentMod: string;

@@ -3,8 +3,8 @@ import { Tournament } from "./room-tournament";
 import { Room } from "./rooms";
 
 export class Tournaments {
-	defaultCap = 64;
-	maxCap = 128;
+	defaultCap: number = 64;
+	maxCap: number = 128;
 	tournamentTimers: Dict<NodeJS.Timer> = {};
 
 	createTournament(room: Room, format: IFormat, generator: string, playerCap: number): Tournament {

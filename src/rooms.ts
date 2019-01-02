@@ -4,9 +4,9 @@ import { Tournament } from "./room-tournament";
 import { User } from "./users";
 
 export class Room {
-	game = null as Game | null;
-	messageListeners = {} as Dict<() => void>;
-	tournament = null as Tournament | null;
+	game: Game | null = null;
+	messageListeners: Dict<() => void> = {};
+	tournament: Tournament | null = null;
 	users = new Set<User>();
 
 	id: string;

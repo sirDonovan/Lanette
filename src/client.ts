@@ -9,18 +9,18 @@ const RELOGIN_SECONDS = 60;
 const SEND_THROTTLE = 800;
 
 export class Client {
-	challstr = '';
-	client = new websocket.client();
-	connection = null as websocket.connection | null;
-	connectionAttempts = 0;
-	connectionTimeout = null as NodeJS.Timer | null;
-	reconnectTime = Config.reconnectTime || 60 * 1000;
-	sendQueue = [] as string[];
-	sendTimeout = null as NodeJS.Timer | null;
-	server = Config.server || 'play.pokemonshowdown.com';
-	serverGroups = {} as Dict<IServerGroup>;
-	serverId = 'showdown';
-	serverTimeOffset = 0;
+	challstr: string = '';
+	client: websocket.client = new websocket.client();
+	connection: websocket.connection | null = null;
+	connectionAttempts: number = 0;
+	connectionTimeout: NodeJS.Timer | null = null;
+	reconnectTime: number = Config.reconnectTime || 60 * 1000;
+	sendQueue: string[] = [];
+	sendTimeout: NodeJS.Timer | null = null;
+	server: string = Config.server || 'play.pokemonshowdown.com';
+	serverGroups: Dict<IServerGroup> = {};
+	serverId: string = 'showdown';
+	serverTimeOffset: number = 0;
 
 	constructor() {
 		this.client.on('connect', connection => {

@@ -60,9 +60,9 @@ const generators: Dict<number> = {
 };
 
 export class Tournament extends Activity {
-	activityType = 'tournament';
-	createTime = Date.now();
-	generator = 1;
+	activityType: string = 'tournament';
+	createTime: number = Date.now();
+	generator: number = 1;
 	info: ITournamentUpdateJSON = {
 		bracketData: {type: ''},
 		challengeBys: [],
@@ -76,10 +76,10 @@ export class Tournament extends Activity {
 		playerCap: 0,
 		teambuilderFormat: '',
 	};
-	isRoundRobin = false;
-	maxRounds = 6;
-	startTime = 0;
-	totalPlayers = 0;
+	isRoundRobin: boolean = false;
+	maxRounds: number = 6;
+	startTime: number = 0;
+	totalPlayers: number = 0;
 	updates: Partial<ITournamentUpdateJSON> = {};
 
 	format!: IFormat;

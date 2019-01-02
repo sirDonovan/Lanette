@@ -31,11 +31,11 @@ export interface IGameFormatComputed {
 export interface IGameFormat extends IGameFileComputed, IGameFormatComputed {}
 
 export class Games {
-	aliasesCache = {} as Dict<string>;
-	commandNames = Object.keys(commands);
+	aliasesCache: Dict<string> = {};
+	commandNames: string[] = Object.keys(commands);
 	commands = commands;
-	formatsCache = {} as Dict<IGameFileComputed>;
-	loadedFormats = false;
+	formatsCache: Dict<IGameFileComputed> = {};
+	loadedFormats: boolean = false;
 
 	get aliases(): Dict<string> {
 		if (!this.loadedFormats) this.loadFormats();

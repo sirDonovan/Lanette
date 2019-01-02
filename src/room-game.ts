@@ -40,14 +40,14 @@ for (const i in commands) {
 }
 
 export class Game extends Activity {
-	activityType = 'game';
+	activityType: string = 'game';
 	commands = Object.assign(Object.create(null), globalGameCommands);
 	customizableOptions: Dict<{min: number, base: number, max: number}> = Object.create(null);
-	nameBeforeOptions = '';
+	nameBeforeOptions: string = '';
 	options: Dict<number> = Object.create(null);
 	parentGame: Game | null = null;
-	round = 0;
-	signupsTime = 0;
+	round: number = 0;
+	signupsTime: number = 0;
 	winners = new Map<Player, number>();
 
 	// set immediately in initialize()

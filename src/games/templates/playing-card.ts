@@ -17,9 +17,9 @@ const suitCodes = {
 };
 
 class PlayingCardGame extends Game {
-	playerCards: Map<Player, IPlayingCard[]> = new Map();
-	wagers: Map<Player, number> | null = new Map();
-	playerTotals: Map<Player, number> = new Map();
+	playerCards = new Map<Player, IPlayingCard[]>();
+	wagers: Map<Player, number> | null = null;
+	playerTotals = new Map<Player, number>();
 	deck: IPlayingCard[] = [];
 	faceCardValues: {J: number, Q: number, K: number, A: number} = {
 		J: 11,

@@ -27,7 +27,7 @@ export class User {
 }
 
 export class Users {
-	users = {} as Dict<User>;
+	users: Dict<User> = {};
 
 	self: User;
 
