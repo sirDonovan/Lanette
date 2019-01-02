@@ -5,9 +5,7 @@ import { commands, Game } from "./room-game";
 import { Room } from "./rooms";
 import { User } from './users';
 
-interface IGameClass<T> {
-	new(room: Room): T;
-}
+type IGameClass<T> = new(room: Room) => T;
 
 export interface IGameFile<T extends Game = Game> {
 	class: IGameClass<T>;
