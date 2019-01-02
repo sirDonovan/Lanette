@@ -69,6 +69,7 @@ interface IPokemonComputed {
 	isPrimal: boolean;
 	name: string;
 	nfe: boolean;
+	shiny: boolean;
 	speciesId: string;
 	spriteId: string;
 }
@@ -158,6 +159,8 @@ interface IDataTable {
 	readonly types: Dict<string | undefined>;
 }
 
+// tslint:disable-next-line no-var-requires
+const alternateIconNumbers: {right: Dict<number>, left: Dict<number>} = require('./../data/alternate-icon-numbers.js');
 const PokemonShowdown =  path.resolve(__dirname, './../Pokemon-Showdown');
 const dataDir = path.join(PokemonShowdown, 'data');
 const modsDir = path.join(PokemonShowdown, 'mods');
@@ -743,6 +746,7 @@ export class Dex {
 			isPrimal,
 			name: templateData.species,
 			nfe: !!evos.length,
+			shiny: false,
 			speciesId,
 			spriteId: Tools.toId(baseSpecies) + (baseSpecies !== templateData.species ? '-' + Tools.toId(templateData.forme) : ''),
 		};
@@ -954,5 +958,46 @@ export class Dex {
 			throw new Error(`Nothing matches "${rule}"`);
 		}
 		return matches[0];
+	}
+
+	getPokemonGif(species: IPokemon | string, width?: number, height?: number): string {
+		const pokemon = typeof species === 'string' ? this.getPokemon(species) : species;
+		if (!pokemon) return '';
+		let prefix = "//play.pokemonshowdown.com/sprites/xyani/";
+		if (pokemon.shiny) prefix = "//play.pokemonshowdown.com/sprites/xyani-shiny/";
+		let gif = '<img src="' + prefix + pokemon.spriteId + '.gif" ';
+		if (width && height) {
+			gif += 'width="' + width + '" height="' + height + '"';
+		} else if (this.data.gifData.hasOwnProperty(pokemon.speciesId) && this.data.gifData[pokemon.speciesId]!.front) {
+			const data = this.data.gifData[pokemon.speciesId]!.front!;
+			gif += 'width="' + data.w + '" height="' + data.h + '"';
+		}
+		gif += ' />';
+		return gif;
+	}
+
+	getPokemonIcon(species: string | IPokemon, facingLeft?: boolean): string {
+		const pokemon = typeof species === 'string' ? this.getPokemon(species) : species;
+		if (!pokemon) return '';
+		let num = pokemon.num;
+		if (num < 0) {
+			num = 0;
+		} else if (num > 809) {
+			num = 0;
+		}
+
+		if (facingLeft) {
+			if (alternateIconNumbers.left[pokemon.id]) num = alternateIconNumbers.left[pokemon.id];
+		} else if (pokemon.gender === 'F') {
+			if (pokemon.id === 'unfezant' || pokemon.id === 'frillish' || pokemon.id === 'jellicent' || pokemon.id === 'meowstic' || pokemon.id === 'pyroar') {
+				num = alternateIconNumbers.right[pokemon.id + 'f'];
+			}
+		} else {
+			if (alternateIconNumbers.right[pokemon.id]) num = alternateIconNumbers.right[pokemon.id];
+		}
+
+		const top = Math.floor(num / 12) * 30;
+		const left = (num % 12) * 40;
+		return '<span style="display: inline-block;width: 40px;height: 30px;background:transparent url(https://play.pokemonshowdown.com/sprites/smicons-sheet.png?a5) no-repeat scroll -' + left + 'px -' + top + 'px"></span>';
 	}
 }
