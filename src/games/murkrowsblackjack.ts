@@ -238,4 +238,5 @@ export const game: IGameFile<MurkrowsBlackjack> = {
 	name: "Murkrow's Blackjack",
 	aliases: ["blackjack", "murkrows", "bj"],
 	commands: Object.assign({}, templateCommands, commands),
+	commandDescriptions: [Config.commandCharacter + "hit", Config.commandCharacter + "stay"],
 };

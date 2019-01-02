@@ -74,7 +74,7 @@ const commands: Dict<ICommandDefinition> = {
 			}
 			if (!gameRoom.game) return this.say("There is no scripted game running.");
 			const game = gameRoom.game;
-			let html = "<b>Game</b>: " + game.name + "<br />";
+			let html = (game.mascot ? Dex.getPokemonIcon(game.mascot) : "") + " <b>" + game.name + "</b><br />";
 			if (game.started) {
 				html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - game.startTime) + "<br />";
 				const remainingPlayers = game.getRemainingPlayerCount();

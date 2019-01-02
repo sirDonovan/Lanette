@@ -15,6 +15,8 @@ export interface IGameFile<T extends Game = Game> {
 
 	aliases?: string[];
 	commands?: Dict<ICommandDefinition<T>>;
+	mascot?: string;
+	mascots?: string[];
 }
 
 export interface IGameFormat extends IGameFile {
