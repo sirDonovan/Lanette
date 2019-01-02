@@ -159,13 +159,14 @@ interface IDataTable {
 	readonly types: Dict<string | undefined>;
 }
 
-// tslint:disable-next-line no-var-requires
-const alternateIconNumbers: {right: Dict<number>, left: Dict<number>} = require('./../data/alternate-icon-numbers.js');
 const PokemonShowdown =  path.resolve(__dirname, './../Pokemon-Showdown');
 const dataDir = path.join(PokemonShowdown, 'data');
 const modsDir = path.join(PokemonShowdown, 'mods');
 const lanetteDataDir = path.resolve(__dirname, './../data');
 const currentGen = 'gen7';
+
+// tslint:disable-next-line no-var-requires
+const alternateIconNumbers: {right: Dict<number>, left: Dict<number>} = require(lanetteDataDir + '/alternate-icon-numbers.js');
 
 const dataFiles: Dict<string> = {
 	'Pokedex': 'pokedex',

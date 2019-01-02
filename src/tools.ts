@@ -1,6 +1,4 @@
-import fs = require('fs');
 import https = require('https');
-import path = require('path');
 import { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './dex';
 
 const NUMBER_REGEX = /^[ .0-9]*$/g;

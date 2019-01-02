@@ -15,6 +15,7 @@ export interface IGameFile<T extends Game = Game> {
 	aliases?: string[];
 	commands?: Dict<ICommandDefinition<T>>;
 	commandDescriptions?: string[];
+	freejoin?: boolean;
 	mascot?: string;
 	mascots?: string[];
 }
@@ -165,10 +166,10 @@ export class Games {
 		return Object.assign({}, formatData, formatComputed);
 	}
 
-	createGame(room: Room, format: IGameFormat) {
-		const game = new format.class(room);
-		game.initialize(format);
+	createGame(room: Room, format: IGameFormat): Game {
+		room.game = new format.class(room);
+		room.game.initialize(format);
 
-		room.game = game;
+		return room.game;
 	}
 }

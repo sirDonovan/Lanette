@@ -23,7 +23,8 @@ const commands: Dict<ICommandDefinition> = {
 			if (Users.self.rooms.get(room) !== '*') return this.say(Users.self.name + " requires Bot rank (*) to host scripted games.");
 			const format = Games.getFormat(target);
 			if (!format) return this.say("'" + target + "' is not a valid game format.");
-			Games.createGame(room, format);
+			const game = Games.createGame(room, format);
+			game.signups();
 		},
 		aliases: ['cg'],
 	},
@@ -84,8 +85,8 @@ const commands: Dict<ICommandDefinition> = {
 					html += "<b>Players</b>: " + remainingPlayers;
 				}
 			} else {
-				html += "<b>Signups duration</b>: " + Tools.toDurationString(Date.now() - game.createTime) + "<br />";
-				html += "<b>" + game.playerCount + "</b> players have joined";
+				html += "<b>Signups duration</b>: " + Tools.toDurationString(Date.now() - game.signupsTime) + "<br />";
+				html += "<b>" + game.playerCount + "</b> player" + (game.playerCount === 1 ? " has" : "s have") + " joined";
 			}
 			this.sayHtml(html, gameRoom);
 		},

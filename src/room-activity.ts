@@ -4,11 +4,12 @@ import { User } from "./users";
 const SIGNUPS_HTML_DELAY = 2 * 1000;
 
 export class Player {
+	active: boolean | null = null;
 	/** The player either left or got eliminated during gameplay; can no longer perform any actions */
-	eliminated = null as boolean | null;
+	eliminated: boolean | null = null;
 	/** The player can temporarily not perform any actions */
-	frozen = null as boolean | null;
-	losses = null as number | null;
+	frozen: boolean | null = null;
+	losses: number | null = null;
 
 	id: string;
 	activity: Activity;
@@ -51,12 +52,12 @@ export abstract class Activity {
 	activityType = '';
 	createTime = Date.now();
 	playerCount = 0;
-	players = {} as Dict<Player>;
+	players: Dict<Player> = {};
 	showSignupsHtml = false;
 	signupsHtmlTimeout: NodeJS.Timer | null = null;
 	started = false;
 	startTime = 0;
-	timeout = null as NodeJS.Timeout | null;
+	timeout: NodeJS.Timeout | null = null;
 
 	// set in initialize()
 	id!: string;
@@ -66,6 +67,28 @@ export abstract class Activity {
 
 	constructor(room: Room) {
 		this.room = room;
+	}
+
+	createPlayer(user: User | string): Player | void {
+		const id = Tools.toId(user);
+		if (id in this.players) return;
+		const player = new Player(user, this);
+		this.players[id] = player;
+		this.playerCount++;
+		return player;
+	}
+
+	destroyPlayer(user: User | string): Player | void {
+		const id = Tools.toId(user);
+		if (!(id in this.players)) return;
+		const player = this.players[id];
+		if (this.started) {
+			this.players[id].eliminated = true;
+		} else {
+			delete this.players[id];
+			this.playerCount--;
+		}
+		return player;
 	}
 
 	addPlayer(user: User | string): Player | void {
@@ -181,26 +204,4 @@ export abstract class Activity {
 	onForceEnd?(user?: User): void;
 	onRemovePlayer?(player: Player): void;
 	onStart?(): void;
-
-	private createPlayer(user: User | string): Player | void {
-		const id = Tools.toId(user);
-		if (id in this.players) return;
-		const player = new Player(user, this);
-		this.players[id] = player;
-		this.playerCount++;
-		return player;
-	}
-
-	private destroyPlayer(user: User | string): Player | void {
-		const id = Tools.toId(user);
-		if (id in this.players) return;
-		const player = this.players[id];
-		if (this.started) {
-			this.players[id].eliminated = true;
-		} else {
-			delete this.players[id];
-			this.playerCount--;
-		}
-		return player;
-	}
 }

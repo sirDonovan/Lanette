@@ -1,7 +1,6 @@
 import { ICommandDefinition } from '../../command-parser';
 import { Player } from '../../room-activity';
-import {Game} from '../../room-game';
-import {Room} from '../../rooms';
+import { Game } from '../../room-game';
 
 export type IPlayingCardSuits = 'clubs' | 'diamonds' | 'hearts' | 'spades';
 export interface IPlayingCard {
@@ -18,31 +17,19 @@ const suitCodes = {
 };
 
 class PlayingCardGame extends Game {
-	playerCards: Map<Player, IPlayingCard[]>;
-	wagers: Map<Player, number> | null;
-	playerTotals: Map<Player, number>;
-	deck: IPlayingCard[];
-	faceCardValues: {J: number, Q: number, K: number, A: number};
-	maxHandTotal: number;
-	startingHandAmount: number;
-	cardHtmlDelimiter: string;
-
-	constructor(room: Room) {
-		super(room);
-		this.playerCards = new Map();
-		this.wagers = null;
-		this.playerTotals = new Map();
-		this.deck = [];
-		this.faceCardValues = {
-			J: 11,
-			Q: 12,
-			K: 13,
-			A: 14,
-		};
-		this.startingHandAmount = 2;
-		this.maxHandTotal = 0;
-		this.cardHtmlDelimiter = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-	}
+	playerCards: Map<Player, IPlayingCard[]> = new Map();
+	wagers: Map<Player, number> | null = new Map();
+	playerTotals: Map<Player, number> = new Map();
+	deck: IPlayingCard[] = [];
+	faceCardValues: {J: number, Q: number, K: number, A: number} = {
+		J: 11,
+		Q: 12,
+		K: 13,
+		A: 14,
+	};
+	maxHandTotal: number = 0;
+	startingHandAmount: number = 2;
+	cardHtmlDelimiter: string = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 
 	createDeck() {
 		const deck: IPlayingCard[] = [];

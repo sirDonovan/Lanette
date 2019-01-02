@@ -4,7 +4,7 @@ import { IGameFormat } from "./games";
 import { Activity, Player } from "./room-activity";
 import { User } from "./users";
 
-type DefaultGameOptions = 'points' | 'teams' | 'cards' | 'freejoin';
+export type DefaultGameOptions = 'points' | 'teams' | 'cards' | 'freejoin';
 
 // base of 0 defaults option to 'off'
 const defaultOptionValues: Dict<{min?: number, base?: number, max?: number}> = {
@@ -47,6 +47,7 @@ export class Game extends Activity {
 	options: Dict<number> = Object.create(null);
 	parentGame: Game | null = null;
 	round = 0;
+	signupsTime = 0;
 	winners = new Map<Player, number>();
 
 	// set immediately in initialize()
@@ -58,6 +59,7 @@ export class Game extends Activity {
 	mascot?: IPokemonCopy;
 	points?: Map<Player, number>;
 	shinyMascot?: boolean;
+	variation?: string;
 
 	initialize(format: IGameFormat) {
 		this.format = format;
@@ -73,10 +75,7 @@ export class Game extends Activity {
 		}
 
 		this.setOptions();
-
-		// TODO: check internal/userhosted/custom signups
-		this.showSignupsHtml = true;
-		this.sayUhtml(this.getSignupsHtml(), "signups");
+		if (format.freejoin) this.options.freejoin = 1;
 	}
 
 	setOptions() {
@@ -134,6 +133,18 @@ export class Game extends Activity {
 		this.deallocate();
 	}
 
+	signups() {
+		// TODO: check internal/userhosted/custom signups
+		this.showSignupsHtml = true;
+		this.sayUhtml(this.getSignupsHtml(), "signups");
+		this.signupsTime = Date.now();
+		if (this.onSignups) this.onSignups();
+		if (this.options.freejoin) {
+			this.started = true;
+			this.startTime = Date.now();
+		}
+	}
+
 	nextRound() {
 		if (this.timeout) clearTimeout(this.timeout);
 		this.round++;
@@ -189,4 +200,5 @@ export class Game extends Activity {
 
 	getPlayerSummary?(player: Player): void;
 	onNextRound?(): void;
+	onSignups?(): void;
 }
