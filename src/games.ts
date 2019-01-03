@@ -127,8 +127,11 @@ export class Games {
 		const targets = target.split(",");
 		const id = Tools.toId(targets[0]);
 		targets.shift();
-		if (id in this.aliases) return this.getFormat(this.aliases[id] + (targets.length ? "," + targets.join(",") : ""));
-		if (!(id in this.formats)) return false;
+		if (id in this.aliases) return this.getFormat(this.aliases[id] + (targets.length ? "," + targets.join(",") : ""), user);
+		if (!(id in this.formats)) {
+			if (user) user.say("'" + target + "' is not a valid game format.");
+			return false;
+		}
 		const formatData = this.formats[id];
 		const inputOptions: Dict<number> = {};
 		let variant: IGameVariant | undefined;
@@ -144,6 +147,10 @@ export class Games {
 					}
 				}
 				if (matchingVariant) {
+					if (variant) {
+						if (user) user.say("You can only specify 1 game variant.");
+						return false;
+					}
 					variant = matchingVariant;
 					continue;
 				}
