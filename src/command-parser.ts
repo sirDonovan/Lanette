@@ -5,6 +5,7 @@ export interface ICommandDefinition<T = undefined> {
 	command: (this: T extends undefined ? Command : T, target: string, room: Room | User, user: User, alias: string) => void;
 	aliases?: string[];
 	chatOnly?: boolean;
+	developerOnly?: boolean;
 	globalGameCommand?: boolean;
 	pmGameCommand?: boolean;
 	pmOnly?: boolean;
@@ -46,6 +47,7 @@ export class Command {
 			command = Tools.toId(newCommand);
 			if (!(command in Commands)) throw new Error(this.originalCommand + " ran non-existent command '" + newCommand + '"');
 		}
+		if (Commands[command].developerOnly && !this.user.isDeveloper()) return;
 		if (this.pm) {
 			if (Commands[command].chatOnly) return;
 		} else {

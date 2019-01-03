@@ -4,7 +4,6 @@ import { Room } from "./rooms";
 const commands: Dict<ICommandDefinition> = {
 	eval: {
 		command(target, room, user) {
-			if (!user.isDeveloper()) return;
 			try {
 				// tslint:disable-next-line no-eval
 				const result = eval(target);
@@ -15,6 +14,7 @@ const commands: Dict<ICommandDefinition> = {
 			}
 		},
 		aliases: ['js'],
+		developerOnly: true,
 	},
 	creategame: {
 		command(target, room, user) {
