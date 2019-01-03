@@ -47,7 +47,7 @@ export class Room {
 	}
 
 	on(message: string, listener: () => void) {
-		this.messageListeners[Tools.toId(message)] = listener;
+		this.messageListeners[Tools.toId(Tools.prepareMessage(message))] = listener;
 	}
 }
 
