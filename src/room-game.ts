@@ -43,7 +43,7 @@ export class Game extends Activity {
 	activityType: string = 'game';
 	commands = Object.assign(Object.create(null), globalGameCommands);
 	customizableOptions: Dict<{min: number, base: number, max: number}> = Object.create(null);
-	nameBeforeOptions: string = '';
+	nameWithOptions: string = '';
 	options: Dict<number> = Object.create(null);
 	parentGame: Game | null = null;
 	round: number = 0;
@@ -112,15 +112,11 @@ export class Game extends Activity {
 			}
 			this.options[i] = this.inputOptions[i];
 		}
-		if (!this.nameBeforeOptions) {
-			this.nameBeforeOptions = this.name;
-		} else {
-			this.name = this.nameBeforeOptions;
-		}
-		if (this.inputOptions.points) this.name += " (first to " + this.options.points + ")";
-		if (this.inputOptions.teams) this.name = this.options.teams + ' ' + this.name;
-		if (this.inputOptions.cards) this.name = this.inputOptions.cards + "-card " + this.name;
-		if (this.inputOptions.gen) this.name = 'Gen ' + this.options.gen + " " + this.name;
+		this.nameWithOptions = this.name;
+		if (this.inputOptions.points) this.nameWithOptions += " (first to " + this.options.points + ")";
+		if (this.inputOptions.teams) this.nameWithOptions = this.options.teams + ' ' + this.nameWithOptions;
+		if (this.inputOptions.cards) this.nameWithOptions = this.inputOptions.cards + "-card " + this.nameWithOptions;
+		if (this.inputOptions.gen) this.nameWithOptions = 'Gen ' + this.options.gen + " " + this.nameWithOptions;
 	}
 
 	deallocate() {
@@ -172,7 +168,7 @@ export class Game extends Activity {
 			const gif = Dex.getPokemonGif(this.mascot);
 			if (gif) html += gif + "&nbsp;&nbsp;&nbsp;";
 		}
-		html += "<b><font size='3'>" + this.name + "</font></b><br />" + this.format.description;
+		html += "<b><font size='3'>" + this.nameWithOptions + "</font></b><br />" + this.format.description;
 		let commandDescriptions: string[] = [];
 		if (this.getPlayerSummary) commandDescriptions.push(Config.commandCharacter + "summary");
 		if (this.format.commandDescriptions) commandDescriptions = commandDescriptions.concat(this.format.commandDescriptions);
