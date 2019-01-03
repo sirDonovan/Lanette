@@ -22,8 +22,12 @@ const commands: Dict<ICommandDefinition> = {
 						}
 					}
 					if (!globalModule) {
-						if (!result.toString()) return;
-						result = result.toString();
+						if (result.effectType && typeof result.effectType === 'string') {
+							result = '[' + result.effectType.toLowerCase() + ' ' + result.name + ']';
+						} else {
+							if (!result.toString()) return;
+							result = result.toString();
+						}
 					}
 				}
 				this.say(result);

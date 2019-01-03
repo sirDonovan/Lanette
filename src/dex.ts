@@ -3,6 +3,7 @@ import path = require('path');
 import { IAbilityData, IFlingData, IFormatData, IItemData, ILearnset, IMoveData, IMoveFlags, INature, ITemplateData, ITemplateFormatsData, ITypeChart } from './types/in-game-data-types';
 
 interface IAbilityComputed {
+	effectType: "Ability";
 	gen: number;
 	id: string;
 }
@@ -14,6 +15,7 @@ interface IFormatComputed {
 	banlist: NonNullable<IFormatData["banlist"]>;
 	customRules: string[] | null;
 	defaultLevel: number;
+	effectType: "Format";
 	id: string;
 	info?: string;
 	'info-official'?: string;
@@ -37,6 +39,7 @@ export interface IFormat extends IFormatData, IFormatComputed {
 }
 
 interface IItemComputed {
+	effectType: "Item";
 	fling?: IFlingData;
 	gen: number;
 	id: string;
@@ -47,6 +50,7 @@ export interface IItem extends DeepReadonly<IItemCopy> {}
 
 interface IMoveComputed {
 	baseMoveType: string;
+	effectType: "Move";
 	gen: number;
 	ignoreImmunity: IMoveData["ignoreImmunity"];
 }
@@ -60,6 +64,7 @@ export interface IMove extends DeepReadonly<IMoveCopy> {}
 interface IPokemonComputed {
 	baseSpecies: string;
 	battleOnly?: boolean;
+	effectType: "Pokemon";
 	evos: string[];
 	forme: string;
 	gen: number;
@@ -345,6 +350,7 @@ export class Dex {
 				banlist: formatData.banlist || [],
 				customRules: null,
 				defaultLevel: formatData.defaultLevel || maxLevel,
+				effectType: formatData.effectType || "Format",
 				id,
 				maxLevel,
 				ruleset: formatData.ruleset || [],
@@ -561,6 +567,7 @@ export class Dex {
 		}
 
 		const abilityComputed: IAbilityComputed = {
+			effectType: "Ability",
 			gen,
 			id: Tools.toId(abilityData.name),
 		};
@@ -614,6 +621,7 @@ export class Dex {
 		if (itemData.onMemory) fling = {basePower: 50};
 
 		const itemComputed: IItemComputed = {
+			effectType: "Item",
 			gen,
 			id: Tools.toId(itemData.name),
 			fling,
@@ -667,6 +675,7 @@ export class Dex {
 
 		const moveComputed: IMoveComputed = {
 			baseMoveType: moveData.baseMoveType || moveData.type,
+			effectType: "Move",
 			gen,
 			ignoreImmunity: moveData.ignoreImmunity !== undefined ? moveData.ignoreImmunity : moveData.category === 'Status',
 		};
@@ -735,6 +744,7 @@ export class Dex {
 		const pokemonComputed: IPokemonComputed = {
 			baseSpecies,
 			battleOnly,
+			effectType: "Pokemon",
 			gen,
 			genderRatio: templateData.genderRatio || (templateData.gender === 'M' ? {M: 1, F: 0} :
 				templateData.gender === 'F' ? {M: 0, F: 1} :
