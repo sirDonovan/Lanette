@@ -36,7 +36,7 @@ exports.BattleFormatLinks = {
 	// Gen 6
 	'gen6anythinggoes': {name: '[Gen 6] Anything Goes', info: 'http://www.smogon.com/dex/xy/formats/ag', viability: '3548945/#post-6412092', teams: '3548945/#post-6412093'},
 	'gen6ubers': {name: '[Gen 6] Ubers', info: 'http://www.smogon.com/dex/xy/formats/uber', viability: '3535106', teams: '3580622'},
-	'gen6ou': {name: '[Gen 6] OU', info: 'http://www.smogon.com/dex/xy/formats/ou', viability: '3596900', teams: '3571343'},
+	'gen6ou': {name: '[Gen 6] OU', info: 'http://www.smogon.com/dex/xy/formats/ou', viability: '3596900', teams: 'https://pastebin.com/PHqxAkMc'},
 	'gen6ounomega': {name: '[Gen 6] OU (no Mega)', info: '3532505', viability: '3536150', teams: '3521695'},
 	'gen6uu': {name: '[Gen 6] UU', info: 'http://www.smogon.com/dex/xy/formats/uu', viability: '3580117', teams: '3562531'},
 	'gen6ru': {name: '[Gen 6] RU', info: 'http://www.smogon.com/dex/xy/formats/ru', viability: '3574583', teams: '3551316'},
@@ -56,7 +56,7 @@ exports.BattleFormatLinks = {
 
 	// Gen 5
 	'gen5ubers': {name: '[Gen 5] Ubers', info: 'http://www.smogon.com/dex/bw/tags/uber', viability: '3507551', teams: '3580622/#post-6963705'},
-	'gen5ou': {name: '[Gen 5] OU', info: 'http://www.smogon.com/dex/bw/tags/ou', viability: '3599678', teams: '3519877'},
+	'gen5ou': {name: '[Gen 5] OU', info: 'http://www.smogon.com/dex/bw/tags/ou', viability: '3599678', teams: 'https://pastebin.com/qYNqqwEx'},
 	'gen5uu': {name: '[Gen 5] UU', info: 'http://www.smogon.com/dex/bw/tags/uu', teams: '3576780/#post-6891697'},
 	'gen5ru': {name: '[Gen 5] RU', info: 'http://www.smogon.com/dex/bw/tags/ru', viability: '3473124'},
 	'gen5nu': {name: '[Gen 5] NU', info: 'http://www.smogon.com/dex/bw/tags/nu', viability: '3484121'},
@@ -67,20 +67,20 @@ exports.BattleFormatLinks = {
 
 	// Gen 4
 	'gen4ubers': {name: '[Gen 4] Ubers', genGuide: 'short-dpp-guide.3531283', info: 'http://www.smogon.com/dex/dp/formats/uber', teams: '3580622/#post-6963708'},
-	'gen4ou': {name: '[Gen 4] OU', genGuide: 'short-dpp-guide.3531283', info: 'http://www.smogon.com/dex/dp/formats/ou', viability: '3514029', teams: '3549991/#post-6431088'},
+	'gen4ou': {name: '[Gen 4] OU', genGuide: 'short-dpp-guide.3531283', info: 'http://www.smogon.com/dex/dp/formats/ou', viability: '3514029', teams: 'https://pastebin.com/L73Q1mRV'},
 	'gen4uu': {name: '[Gen 4] UU', genGuide: 'short-dpp-guide.3531283', info: 'http://www.smogon.com/dex/dp/formats/uu', teams: '3576780/#post-6891701'},
 	'gen4pu': {name: '[Gen 4] PU', teams: '3597643/#post-7260264'},
 	'gen4lc': {name: '[Gen 4] LC', genGuide: 'short-dpp-guide.3531283', info: 'http://www.smogon.com/dex/dp/formats/lc', teams: '3554452/#post-6499972'},
 
 	// Gens 1-3
-	'gen1ou': {name: '[Gen 1] OU', genGuide: 'http://www.smogon.com/articles/understanding-rby-mechanics', info: 'http://www.smogon.com/rb', viability: '3486845', teams: '3549991/#post-6431045'},
+	'gen1ou': {name: '[Gen 1] OU', genGuide: 'http://www.smogon.com/articles/understanding-rby-mechanics', info: 'http://www.smogon.com/rb', viability: '3486845', teams: 'https://pastebin.com/VhLmRdCn'},
 	'gen1randombattle': {name: '[Gen 1] Random Battle', genGuide: 'http://www.smogon.com/articles/understanding-rby-mechanics'},
 	'gen1outradeback': {name: '[Gen 1] OU (tradeback)', genGuide: 'http://www.smogon.com/articles/understanding-rby-mechanics', viability: '3486845'},
 	'gen1stadium': {name: '[Gen 1] Stadium', genGuide: 'http://www.smogon.com/articles/understanding-rby-mechanics'},
 	'gen1challengecup': {name: '[Gen 1] Challenge Cup', genGuide: 'http://www.smogon.com/articles/understanding-rby-mechanics'},
-	'gen2ou': {name: '[Gen 2] OU', genGuide: 'http://www.smogon.com/smog/issue28/gsc', info: 'http://www.smogon.com/gs', viability: '3503082', teams: '3549991/#post-6431086'},
+	'gen2ou': {name: '[Gen 2] OU', genGuide: 'http://www.smogon.com/smog/issue28/gsc', info: 'http://www.smogon.com/gs', viability: '3503082', teams: 'https://pastebin.com/G7upmUPW'},
 	'gen2randombattle': {name: '[Gen 2] Random Battle', genGuide: 'http://www.smogon.com/smog/issue28/gsc'},
-	'gen3ou': {name: '[Gen 3] OU', genGuide: 'http://www.smogon.com/smog/issue10/adv', info: 'http://www.smogon.com/rs', viability: '3503019', teams: '3469111'},
+	'gen3ou': {name: '[Gen 3] OU', genGuide: 'http://www.smogon.com/smog/issue10/adv', info: 'http://www.smogon.com/rs', viability: '3503019', teams: 'https://pastebin.com/2WEAeE5s'},
 	'gen3ubers': {name: '[Gen 3] Ubers', genGuide: 'http://www.smogon.com/smog/issue10/adv', teams: '3580622/#post-6963708', viability: '3536426'},
 
 	// Gen 6 Other Metagames
