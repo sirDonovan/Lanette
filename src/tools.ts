@@ -107,6 +107,21 @@ export class Tools {
 		return clone;
 	}
 
+	uncacheTree(root: string) {
+		let uncache = [require.resolve(root)];
+		do {
+			const newuncache: string[] = [];
+			for (const target of uncache) {
+				if (require.cache[target]) {
+					// @ts-ignore
+					newuncache.push.apply(newuncache, require.cache[target].children.filter(cachedModule => !cachedModule.id.endsWith('.node')).map(cachedModule => cachedModule.id));
+					delete require.cache[target];
+				}
+			}
+			uncache = newuncache;
+		} while (uncache.length > 0);
+	}
+
 	async fetchUrl(url: string): Promise<string> {
 		return new Promise((resolve, reject) => {
 			let data = '';

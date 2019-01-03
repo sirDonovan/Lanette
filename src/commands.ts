@@ -16,6 +16,22 @@ const commands: Dict<ICommandDefinition> = {
 		aliases: ['js'],
 		developerOnly: true,
 	},
+	reload: {
+		command(target, room, user) {
+			const id = Tools.toId(target);
+			if (id === 'commands') {
+				Tools.uncacheTree('./../build.js');
+				Tools.uncacheTree(__filename);
+				this.say("Running tsc...");
+				require('./../build.js')(() => {
+					global.Commands = Object.assign(Object.create(null), CommandParser.loadCommands(require('./commands')));
+					this.say("Successfully reloaded commands.");
+				}, () => this.say("Failed to reload commands."));
+			}
+		},
+		aliases: ['hotpatch'],
+		developerOnly: true,
+	},
 	creategame: {
 		command(target, room, user) {
 			if (this.isPm(room) || !user.hasRank(room, '+') || room.game) return;
