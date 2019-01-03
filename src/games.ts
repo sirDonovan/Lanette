@@ -5,7 +5,10 @@ import { commands, Game } from "./room-game";
 import { Room } from "./rooms";
 import { User } from './users';
 
-type IGameClass<T> = new(room: Room) => T;
+interface IGameClass<T> {
+	new(room: Room): T;
+	loadData?(room: Room): void;
+}
 
 export interface IGameFile<T extends Game = Game> {
 	class: IGameClass<T>;
@@ -167,6 +170,7 @@ export class Games {
 	}
 
 	createGame(room: Room, format: IGameFormat): Game {
+		if (format.class.loadData) format.class.loadData(room);
 		room.game = new format.class(room);
 		room.game.initialize(format);
 

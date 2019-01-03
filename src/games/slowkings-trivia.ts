@@ -8,35 +8,43 @@ const data: Dict<Dict<string[]>> = {
 	"Pokemon Items": {},
 	"Pokemon Abilities": {},
 };
-
-for (const i in Dex.data.moves) {
-	const move = Dex.getExistingMove(i);
-	if (!move.name) continue;
-	const desc = move.desc || move.shortDesc;
-	if (!desc) continue;
-	if (!(desc in data["Pokemon Moves"])) data["Pokemon Moves"][desc] = [];
-	data["Pokemon Moves"][desc].push(move.name);
-}
-
-for (const i in Dex.data.items) {
-	const item = Dex.getExistingItem(i);
-	if (!item.name) continue;
-	const desc = item.desc || item.shortDesc;
-	if (!desc) continue;
-	if (!(desc in data["Pokemon Items"])) data["Pokemon Items"][desc] = [];
-	data["Pokemon Items"][desc].push(item.name);
-}
-
-for (const i in Dex.data.abilities) {
-	const ability = Dex.getExistingAbility(i);
-	if (!ability.name) continue;
-	const desc = ability.desc || ability.shortDesc;
-	if (!desc) continue;
-	if (!(desc in data["Pokemon Abilities"])) data["Pokemon Abilities"][desc] = [];
-	data["Pokemon Abilities"][desc].push(ability.name);
-}
+let loadedData = false;
 
 class SlowkingsTrivia extends GuessingGame {
+	static loadData(room: Room) {
+		if (loadedData) return;
+		room.say("Loading game-specific data...");
+
+		for (const i in Dex.data.moves) {
+			const move = Dex.getExistingMove(i);
+			if (!move.name) continue;
+			const desc = move.desc || move.shortDesc;
+			if (!desc) continue;
+			if (!(desc in data["Pokemon Moves"])) data["Pokemon Moves"][desc] = [];
+			data["Pokemon Moves"][desc].push(move.name);
+		}
+
+		for (const i in Dex.data.items) {
+			const item = Dex.getExistingItem(i);
+			if (!item.name) continue;
+			const desc = item.desc || item.shortDesc;
+			if (!desc) continue;
+			if (!(desc in data["Pokemon Items"])) data["Pokemon Items"][desc] = [];
+			data["Pokemon Items"][desc].push(item.name);
+		}
+
+		for (const i in Dex.data.abilities) {
+			const ability = Dex.getExistingAbility(i);
+			if (!ability.name) continue;
+			const desc = ability.desc || ability.shortDesc;
+			if (!desc) continue;
+			if (!(desc in data["Pokemon Abilities"])) data["Pokemon Abilities"][desc] = [];
+			data["Pokemon Abilities"][desc].push(ability.name);
+		}
+
+		loadedData = true;
+	}
+
 	categories: string[] = Object.keys(data);
 	defaultOptions: DefaultGameOptions[] = ['points'];
 	questions: Dict<string[]> = {};
