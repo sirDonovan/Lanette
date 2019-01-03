@@ -17,32 +17,33 @@ export class Room {
 		this.sendId = id === 'lobby' ? '' : id;
 	}
 
-	say(message: string) {
+	say(message: string, dontPrepare?: boolean) {
+		if (!dontPrepare) message = Tools.prepareMessage(message);
 		Client.send(this.sendId + "|" + message);
 	}
 
 	sayHtml(html: string) {
-		this.say("/addhtmlbox " + html);
+		this.say("/addhtmlbox " + html, true);
 	}
 
 	sayUhtml(uhtmlId: string, html: string) {
-		this.say("/adduhtml " + uhtmlId + ", " + html);
+		this.say("/adduhtml " + uhtmlId + ", " + html, true);
 	}
 
 	sayUhtmlChange(uhtmlId: string, html: string) {
-		this.say("/changeuhtml " + uhtmlId + ", " + html);
+		this.say("/changeuhtml " + uhtmlId + ", " + html, true);
 	}
 
 	pmHtml(user: User | Player, html: string) {
-		this.say("/pminfobox " + user.id + "," + html);
+		this.say("/pminfobox " + user.id + "," + html, true);
 	}
 
 	pmUhtml(user: User | Player, id: string, html: string) {
-		this.say("/pmuhtml " + user.id + "," + id + "," + html);
+		this.say("/pmuhtml " + user.id + "," + id + "," + html, true);
 	}
 
 	pmUhtmlChange(user: User | Player, id: string, html: string) {
-		this.say("/pmuhtmlchange " + user.id + "," + id + "," + html);
+		this.say("/pmuhtmlchange " + user.id + "," + id + "," + html, true);
 	}
 
 	on(message: string, listener: () => void) {

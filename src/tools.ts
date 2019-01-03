@@ -1,6 +1,7 @@
 import https = require('https');
 import { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './dex';
 
+const MAX_MESSAGE_LENGTH = 300;
 const NUMBER_REGEX = /^[ .0-9]*$/g;
 
 export class Tools {
@@ -58,6 +59,11 @@ export class Tools {
 			}
 		}
 		return input.toLowerCase().replace(/[^a-z0-9]/g, '');
+	}
+
+	prepareMessage(message: string): string {
+		if (message.length > MAX_MESSAGE_LENGTH) message = message.substr(0, MAX_MESSAGE_LENGTH - 3) + "...";
+		return message;
 	}
 
 	toDurationString(input: number, options?: {precision?: number, hhmmss?: boolean}): string {
