@@ -18,16 +18,52 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	reload: {
 		command(target, room, user) {
-			const id = Tools.toId(target);
-			if (id === 'commands') {
-				Tools.uncacheTree('./../build.js');
-				Tools.uncacheTree(__filename);
-				this.say("Running tsc...");
-				require('./../build.js')(() => {
-					global.Commands = Object.assign(Object.create(null), CommandParser.loadCommands(require('./commands')));
-					this.say("Successfully reloaded commands.");
-				}, () => this.say("Failed to reload commands."));
+			type ReloadableModules = 'tools' | 'commandparser' | 'commands' | 'config' | 'dex' | 'games' | 'tournaments';
+			const modules: ReloadableModules[] = [];
+			const targets = target.split(",");
+			for (let i = 0; i < targets.length; i++) {
+				const id = Tools.toId(targets[i]);
+				if (id === 'tools') {
+					modules.unshift(id);
+				} else if (id === 'commandparser' || id === 'commands' || id === 'config' || id === 'dex' || id === 'games' || id === 'tournaments') {
+					modules.push(id);
+				} else {
+					return this.say("Unknown module '" + targets[i].trim() + "'.");
+				}
 			}
+
+			if (!modules.length) return;
+
+			Tools.uncacheTree('./../build.js');
+			this.say("Running tsc...");
+			require('./../build.js')(() => {
+				for (let i = 0; i < modules.length; i++) {
+					if (modules[i] === 'tools') {
+						Tools.uncacheTree('./tools');
+						global.Tools = new (require('./tools').Tools)();
+					} else if (modules[i] === 'commandparser') {
+						Tools.uncacheTree('./command-parser');
+						global.CommandParser = new (require('./command-parser').CommandParser)();
+					} else if (modules[i] === 'commands') {
+						Tools.uncacheTree('./commands');
+						global.Commands = Object.assign(Object.create(null), CommandParser.loadCommands(require('./commands')));
+						if (Games.loadedFormats) Games.loadFormatCommands();
+					} else if (modules[i] === 'config') {
+						Tools.uncacheTree('./config');
+						global.Config = require('./config');
+					} else if (modules[i] === 'dex') {
+						Tools.uncacheTree('./dex');
+						global.Dex = new (require('./dex').Dex)('base');
+					} else if (modules[i] === 'games') {
+						Tools.uncacheTree('./games');
+						global.Games = new (require('./games').Games)();
+					} else if (modules[i] === 'tournaments') {
+						Tools.uncacheTree('./tournaments');
+						global.Tournaments = new (require('./tournaments').Tournaments)();
+					}
+				}
+				this.say("Successfully reloaded: " + modules.join(", "));
+			}, () => this.say("Failed to build files."));
 		},
 		aliases: ['hotpatch'],
 		developerOnly: true,
