@@ -59,7 +59,7 @@ export class Game extends Activity {
 	mascot?: IPokemonCopy;
 	points?: Map<Player, number>;
 	shinyMascot?: boolean;
-	variation?: string;
+	variant?: string;
 
 	initialize(format: IGameFormat) {
 		this.format = format;
@@ -73,6 +73,7 @@ export class Game extends Activity {
 		} else if (format.mascots) {
 			this.mascot = Dex.getPokemonCopy(Tools.sampleOne(format.mascots));
 		}
+		if (format.variant) Object.assign(this, format.variant);
 
 		this.setOptions();
 		if (format.freejoin) this.options.freejoin = 1;

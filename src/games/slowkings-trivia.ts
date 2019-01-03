@@ -4,9 +4,9 @@ import { Room } from "../rooms";
 import { commandDescriptions, commands as templateCommands, game as GuessingGame } from './templates/guessing';
 
 const data: Dict<Dict<string[]>> = {
-	"Pokemon Moves": {},
-	"Pokemon Items": {},
 	"Pokemon Abilities": {},
+	"Pokemon Items": {},
+	"Pokemon Moves": {},
 };
 let loadedData = false;
 
@@ -15,13 +15,13 @@ class SlowkingsTrivia extends GuessingGame {
 		if (loadedData) return;
 		room.say("Loading game-specific data...");
 
-		for (const i in Dex.data.moves) {
-			const move = Dex.getExistingMove(i);
-			if (!move.name) continue;
-			const desc = move.desc || move.shortDesc;
+		for (const i in Dex.data.abilities) {
+			const ability = Dex.getExistingAbility(i);
+			if (!ability.name) continue;
+			const desc = ability.desc || ability.shortDesc;
 			if (!desc) continue;
-			if (!(desc in data["Pokemon Moves"])) data["Pokemon Moves"][desc] = [];
-			data["Pokemon Moves"][desc].push(move.name);
+			if (!(desc in data["Pokemon Abilities"])) data["Pokemon Abilities"][desc] = [];
+			data["Pokemon Abilities"][desc].push(ability.name);
 		}
 
 		for (const i in Dex.data.items) {
@@ -33,13 +33,13 @@ class SlowkingsTrivia extends GuessingGame {
 			data["Pokemon Items"][desc].push(item.name);
 		}
 
-		for (const i in Dex.data.abilities) {
-			const ability = Dex.getExistingAbility(i);
-			if (!ability.name) continue;
-			const desc = ability.desc || ability.shortDesc;
+		for (const i in Dex.data.moves) {
+			const move = Dex.getExistingMove(i);
+			if (!move.name) continue;
+			const desc = move.desc || move.shortDesc;
 			if (!desc) continue;
-			if (!(desc in data["Pokemon Abilities"])) data["Pokemon Abilities"][desc] = [];
-			data["Pokemon Abilities"][desc].push(ability.name);
+			if (!(desc in data["Pokemon Moves"])) data["Pokemon Moves"][desc] = [];
+			data["Pokemon Moves"][desc].push(move.name);
 		}
 
 		loadedData = true;
@@ -66,7 +66,7 @@ class SlowkingsTrivia extends GuessingGame {
 	}
 
 	setAnswers() {
-		const category = this.roundCategory || this.variation || Tools.sampleOne(this.categories);
+		const category = this.roundCategory || this.variant || Tools.sampleOne(this.categories);
 		const question = Tools.sampleOne(this.questions[category]);
 		this.answers = data[category][question];
 		this.hint = "**" + category + "**: " + question;
@@ -94,12 +94,26 @@ class SlowkingsTrivia extends GuessingGame {
 }
 
 export const game: IGameFile<SlowkingsTrivia> = {
+	aliases: ['slowkings', 'trivia', 'triv'],
 	class: SlowkingsTrivia,
+	commandDescriptions,
+	commands: Object.assign({}, templateCommands),
+	description: "Players use the given descriptions (Pokemon related) to guess the answers!",
+	freejoin: true,
 	name: "Slowking's Trivia",
 	mascot: "Slowking",
-	description: "Players use the given descriptions (Pokemon related) to guess the answers!",
-	commands: Object.assign({}, templateCommands),
-	commandDescriptions,
-	freejoin: true,
-	aliases: ['slowkings', 'trivia', 'triv'],
+	variants: [
+		{
+			name: "Slowking's Ability Trivia",
+			variant: "Pokemon Abilities",
+		},
+		{
+			name: "Slowking's Item Trivia",
+			variant: "Pokemon Items",
+		},
+		{
+			name: "Slowking's Move Trivia",
+			variant: "Pokemon Moves",
+		},
+	],
 };

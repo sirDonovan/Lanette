@@ -21,6 +21,14 @@ export interface IGameFile<T extends Game = Game> {
 	freejoin?: boolean;
 	mascot?: string;
 	mascots?: string[];
+	variants?: IGameVariant[];
+}
+
+interface IGameVariant {
+	name: string;
+	variant: string;
+
+	description?: string;
 }
 
 export interface IGameFileComputed extends IGameFile {
@@ -29,6 +37,8 @@ export interface IGameFileComputed extends IGameFile {
 
 export interface IGameFormatComputed {
 	inputOptions: Dict<number>;
+
+	variant?: IGameVariant;
 }
 
 export interface IGameFormat extends IGameFileComputed, IGameFormatComputed {}
@@ -121,8 +131,23 @@ export class Games {
 		if (!(id in this.formats)) return false;
 		const formatData = this.formats[id];
 		const inputOptions: Dict<number> = {};
+		let variant: IGameVariant | undefined;
 		for (let i = 0, len = targets.length; i < len; i++) {
-			if (!Tools.toId(targets[i])) continue;
+			const targetId = Tools.toId(targets[i]);
+			if (!targetId) continue;
+			if (formatData.variants) {
+				let matchingVariant: IGameVariant | undefined;
+				for (let i = 0; i < formatData.variants.length; i++) {
+					if (Tools.toId(formatData.variants[i].variant) === targetId) {
+						matchingVariant = formatData.variants[i];
+						break;
+					}
+				}
+				if (matchingVariant) {
+					variant = matchingVariant;
+					continue;
+				}
+			}
 			const option = targets[i].trim();
 			let name = '';
 			let optionNumber = 0;
@@ -131,8 +156,8 @@ export class Games {
 				name = Tools.toId(parts[0]);
 				optionNumber = parseInt(parts[1].trim());
 			} else {
-				const id = Tools.toId(option);
-				if (id === 'freejoin' || id === 'fj') {
+				const optionId = Tools.toId(option);
+				if (optionId === 'freejoin' || optionId === 'fj') {
 					name = 'freejoin';
 					optionNumber = 1;
 				} else {
@@ -165,6 +190,7 @@ export class Games {
 		}
 		const formatComputed: IGameFormatComputed = {
 			inputOptions,
+			variant,
 		};
 		return Object.assign({}, formatData, formatComputed);
 	}
