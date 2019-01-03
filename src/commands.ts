@@ -6,7 +6,26 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			try {
 				// tslint:disable-next-line no-eval
-				const result = eval(target);
+				let result = eval(target);
+				if (result === undefined) {
+					result = 'undefined';
+				} else if (result === null) {
+					result = 'null';
+				} else if (typeof result !== 'string') {
+					let globalModule = false;
+					for (const i in global) {
+						// @ts-ignore
+						if (result === global[i]) {
+							result = '[global ' + i + ']';
+							globalModule = true;
+							break;
+						}
+					}
+					if (!globalModule) {
+						if (!result.toString()) return;
+						result = result.toString();
+					}
+				}
 				this.say(result);
 			} catch (e) {
 				this.say(e.message);
