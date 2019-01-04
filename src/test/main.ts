@@ -2,6 +2,16 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Writable } from 'stream';
 
+const rootFolder = path.resolve(__dirname, './../../');
+const modulesDir = path.join(__dirname, 'modules');
+const moduleTests = fs.readdirSync(modulesDir);
+const configFile = path.join(rootFolder, 'built/config.js');
+
+// create default config if running on Travis CI
+if (!fs.existsSync(configFile)) {
+	fs.writeFileSync(configFile, fs.readFileSync(path.join(rootFolder, 'built/config-example.js')));
+}
+
 // tslint:disable-next-line no-empty
 const noOp = () => {};
 const methodsToNoOp = ['appendFile', 'chmod', 'rename', 'rmdir', 'symlink', 'unlink', 'watchFile', 'writeFile'];
@@ -17,10 +27,8 @@ Object.assign(fs, {createWriteStream() {
 }});
 
 // tslint:disable-next-line no-var-requires
-require("./../app.js");
+require(path.join(rootFolder, 'built/app.js'));
 
-const modulesDir = path.join(__dirname, 'modules');
-const moduleTests = fs.readdirSync(modulesDir);
 for (let i = 0; i < moduleTests.length; i++) {
 	// tslint:disable-next-line no-var-requires
 	require(path.join(modulesDir, moduleTests[i]));

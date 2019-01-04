@@ -17,4 +17,7 @@ if (!fs.existsSync('src/config.ts')) {
 	fs.writeFileSync('./src/config.ts', fs.readFileSync('./src/config-example.ts'));
 }
 
-require('./build.js')(() => require(path.join(__dirname, 'built/app.js')), () => process.exit(1));
+require('./build.js')(() => {
+	require(path.join(__dirname, 'built/app.js'));
+	Client.connect();
+}, () => process.exit(1));
