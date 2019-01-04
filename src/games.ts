@@ -19,6 +19,8 @@ export interface IGameFile<T extends Game = Game> {
 	commands?: Dict<ICommandDefinition<T>>;
 	commandDescriptions?: string[];
 	freejoin?: boolean;
+	/** Legacy names, such as from before game mascots were introduced; used for aliases */
+	formerNames?: string[];
 	mascot?: string;
 	mascots?: string[];
 	variants?: IGameVariant[];
@@ -29,13 +31,15 @@ interface IGameVariant {
 	variant: string;
 
 	description?: string;
+	variantAliases?: string[];
 }
 
-export interface IGameFileComputed extends IGameFile {
+interface IGameFileComputed extends IGameFile {
 	id: string;
 }
 
-export interface IGameFormatComputed {
+interface IGameFormatComputed {
+	effectType: 'GameFormat';
 	inputOptions: Dict<number>;
 
 	variant?: IGameVariant;
@@ -76,12 +80,24 @@ export class Games {
 
 		for (const i in this.formatsCache) {
 			const format = this.formatsCache[i];
+			const idsToAlias: string[] = [format.id];
+			if (format.formerNames) {
+				for (let i = 0; i < format.formerNames.length; i++) {
+					const id = Tools.toId(format.formerNames[i]);
+					if (id in this.formatsCache) throw new Error(this.formatsCache[id].name + " is the former name of another game");
+					if (id in this.aliasesCache) throw new Error(this.aliasesCache[id] + "'s alias '" + id + "' is the former name of another game");
+					this.aliasesCache[id] = format.name;
+					idsToAlias.push(id);
+				}
+			}
+
 			if (format.aliases) {
 				for (let i = 0; i < format.aliases.length; i++) {
 					const alias = Tools.toId(format.aliases[i]);
 					if (alias in this.formatsCache) throw new Error(format.name + "'s alias '" + alias + "' is the name of another game");
 					if (alias in this.aliasesCache) throw new Error(format.name + "'s alias '" + alias + "' is already used by " + this.aliasesCache[alias]);
 					this.aliasesCache[alias] = format.name;
+					idsToAlias.push(alias);
 				}
 			}
 
@@ -89,6 +105,26 @@ export class Games {
 				format.commands = CommandParser.loadCommands(format.commands);
 				for (const i in format.commands) {
 					if (!this.commandNames.includes(i)) this.commandNames.push(i);
+				}
+			}
+
+			if (format.variants) {
+				for (let i = 0; i < format.variants.length; i++) {
+					const id = Tools.toId(format.variants[i].name);
+					if (id in this.formatsCache) throw new Error("Variant " + format.variants[i].name + " is the name of another game");
+					if (!(id in this.aliasesCache)) this.aliasesCache[id] = format.name + "," + format.variants[i].variant;
+					let variantIds: string[] = [Tools.toId(format.variants[i].variant)];
+					if (format.variants[i].variantAliases) {
+						format.variants[i].variantAliases!.map(x => Tools.toId(x));
+						variantIds = variantIds.concat(format.variants[i].variantAliases!);
+					}
+
+					for (let j = 0; j < idsToAlias.length; j++) {
+						for (let k = 0; k < variantIds.length; k++) {
+							const alias = variantIds[k] + idsToAlias[j];
+							if (!(alias in this.aliasesCache)) this.aliasesCache[alias] = format.name + "," + format.variants[i].variant;
+						}
+					}
 				}
 			}
 		}
@@ -141,7 +177,7 @@ export class Games {
 			if (formatData.variants) {
 				let matchingVariant: IGameVariant | undefined;
 				for (let i = 0; i < formatData.variants.length; i++) {
-					if (Tools.toId(formatData.variants[i].variant) === targetId) {
+					if (Tools.toId(formatData.variants[i].variant) === targetId || (formatData.variants[i].variantAliases && formatData.variants[i].variantAliases!.includes(targetId))) {
 						matchingVariant = formatData.variants[i];
 						break;
 					}
@@ -196,6 +232,7 @@ export class Games {
 			inputOptions[name] = optionNumber;
 		}
 		const formatComputed: IGameFormatComputed = {
+			effectType: "GameFormat",
 			inputOptions,
 			variant,
 		};

@@ -94,26 +94,30 @@ class SlowkingsTrivia extends GuessingGame {
 }
 
 export const game: IGameFile<SlowkingsTrivia> = {
-	aliases: ['slowkings', 'trivia', 'triv'],
+	aliases: ['slowkings', 'triv'],
 	class: SlowkingsTrivia,
 	commandDescriptions,
 	commands: Object.assign({}, templateCommands),
 	description: "Players use the given descriptions (Pokemon related) to guess the answers!",
 	freejoin: true,
+	formerNames: ["Trivia"],
 	name: "Slowking's Trivia",
 	mascot: "Slowking",
 	variants: [
 		{
 			name: "Slowking's Ability Trivia",
 			variant: "Pokemon Abilities",
+			variantAliases: ['ability', 'abilities'],
 		},
 		{
 			name: "Slowking's Item Trivia",
 			variant: "Pokemon Items",
+			variantAliases: ['item', 'items'],
 		},
 		{
 			name: "Slowking's Move Trivia",
 			variant: "Pokemon Moves",
+			variantAliases: ['move', 'moves'],
 		},
 	],
 };
