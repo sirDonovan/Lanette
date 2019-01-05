@@ -45,6 +45,8 @@ export class Game extends Activity {
 	activityType: string = 'game';
 	commands = Object.assign(Object.create(null), globalGameCommands);
 	customizableOptions: Dict<{min: number, base: number, max: number}> = Object.create(null);
+	namePrefixes: string[] = [];
+	nameSuffixes: string[] = [];
 	nameWithOptions: string = '';
 	options: Dict<number> = Object.create(null);
 	parentGame: Game | null = null;
@@ -53,6 +55,7 @@ export class Game extends Activity {
 	winners = new Map<Player, number>();
 
 	// set immediately in initialize()
+	description!: string;
 	format!: IGameFormat;
 	inputOptions!: Dict<number>;
 
@@ -68,17 +71,29 @@ export class Game extends Activity {
 		this.inputOptions = this.format.inputOptions;
 		this.name = format.name;
 		this.id = format.id;
+		this.description = format.description;
 
 		if (format.commands) Object.assign(this.commands, format.commands);
+		if (format.freejoin) {
+			this.customizableOptions.freejoin = {
+				min: 1,
+				base: 1,
+				max: 1,
+			};
+		}
 		if (format.mascot) {
 			this.mascot = Dex.getPokemonCopy(format.mascot);
 		} else if (format.mascots) {
 			this.mascot = Dex.getPokemonCopy(Tools.sampleOne(format.mascots));
 		}
 		if (format.variant) Object.assign(this, format.variant);
+		if (format.mode) format.mode.initialize(this);
 
 		this.setOptions();
-		if (format.freejoin) this.options.freejoin = 1;
+
+		if (this.namePrefixes.length) this.nameWithOptions = this.namePrefixes.join(" ") + " ";
+		this.nameWithOptions += this.name;
+		if (this.nameSuffixes.length) this.nameWithOptions += " " + this.nameSuffixes.join(" ");
 	}
 
 	setOptions() {
@@ -114,11 +129,11 @@ export class Game extends Activity {
 			}
 			this.options[i] = this.inputOptions[i];
 		}
-		this.nameWithOptions = this.name;
-		if (this.inputOptions.points) this.nameWithOptions += " (first to " + this.options.points + ")";
-		if (this.inputOptions.teams) this.nameWithOptions = this.options.teams + ' ' + this.nameWithOptions;
-		if (this.inputOptions.cards) this.nameWithOptions = this.inputOptions.cards + "-card " + this.nameWithOptions;
-		if (this.inputOptions.gen) this.nameWithOptions = 'Gen ' + this.options.gen + " " + this.nameWithOptions;
+
+		if (this.inputOptions.points) this.nameSuffixes.push(" (first to " + this.options.points + ")");
+		if (this.inputOptions.teams) this.namePrefixes.unshift('' + this.options.teams);
+		if (this.inputOptions.cards) this.namePrefixes.unshift(this.inputOptions.cards + "-card");
+		if (this.inputOptions.gen) this.namePrefixes.unshift('Gen ' + this.options.gen);
 	}
 
 	deallocate() {
@@ -197,7 +212,7 @@ export class Game extends Activity {
 			const gif = Dex.getPokemonGif(this.mascot);
 			if (gif) html += gif + "&nbsp;&nbsp;&nbsp;";
 		}
-		html += "<b><font size='3'>" + this.nameWithOptions + "</font></b><br />" + this.format.description;
+		html += "<b><font size='3'>" + this.nameWithOptions + "</font></b><br />" + this.description;
 		let commandDescriptions: string[] = [];
 		if (this.getPlayerSummary) commandDescriptions.push(Config.commandCharacter + "summary");
 		if (this.format.commandDescriptions) commandDescriptions = commandDescriptions.concat(this.format.commandDescriptions);
@@ -222,6 +237,15 @@ export class Game extends Activity {
 		let chance = 150;
 		if (extraChance) chance -= extraChance;
 		return !Tools.random(chance);
+	}
+
+	shufflePlayers(players?: Dict<Player>): Player[] {
+		if (!players) players = this.players;
+		const list = [];
+		for (const i in players) {
+			list.push(players[i]);
+		}
+		return Tools.shuffle(list);
 	}
 
 	getPlayerSummary?(player: Player): void;

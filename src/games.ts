@@ -23,6 +23,7 @@ export interface IGameFile<T extends Game = Game> {
 	formerNames?: string[];
 	mascot?: string;
 	mascots?: string[];
+	modes?: string[];
 	variants?: IGameVariant[];
 }
 
@@ -42,7 +43,22 @@ interface IGameFormatComputed {
 	effectType: 'GameFormat';
 	inputOptions: Dict<number>;
 
+	mode?: IGameMode;
 	variant?: IGameVariant;
+}
+
+export interface IGameModeFile<T = Game, U extends Game = Game> {
+	description: string;
+	initialize: (game: Game) => void;
+	name: string;
+	naming: 'prefix' | 'suffix';
+
+	aliases?: string[];
+	commands?: Dict<ICommandDefinition<T & U>>;
+}
+
+interface IGameMode extends IGameModeFile {
+	id: string;
 }
 
 export interface IGameFormat extends IGameFileComputed, IGameFormatComputed {}
@@ -53,6 +69,7 @@ export class Games {
 	commands = commands;
 	formatsCache: Dict<IGameFileComputed> = {};
 	loadedFormats: boolean = false;
+	modesCache: Dict<IGameMode> = {};
 
 	get aliases(): Dict<string> {
 		if (!this.loadedFormats) this.loadFormats();
@@ -62,6 +79,11 @@ export class Games {
 	get formats(): Dict<IGameFileComputed> {
 		if (!this.loadedFormats) this.loadFormats();
 		return this.formatsCache;
+	}
+
+	get modes(): Dict<IGameMode> {
+		if (!this.loadedFormats) this.loadFormats();
+		return this.modesCache;
 	}
 
 	loadFormats() {
@@ -76,6 +98,15 @@ export class Games {
 			const file = require(gamesDirectory + '/' + gameFiles[i]).game as IGameFile;
 			const id = Tools.toId(file.name);
 			this.formatsCache[id] = Object.assign({id}, file);
+		}
+
+		const modesDirectory = path.join(gamesDirectory, "modes");
+		const modeFiles = fs.readdirSync(modesDirectory);
+		for (let i = 0; i < modeFiles.length; i++) {
+			if (!modeFiles[i].endsWith('.js')) continue;
+			const file = require(modesDirectory + '/' + modeFiles[i]).mode as IGameModeFile;
+			const id = Tools.toId(file.name);
+			this.modesCache[id] = Object.assign({id}, file);
 		}
 
 		for (const i in this.formatsCache) {
@@ -112,10 +143,11 @@ export class Games {
 				for (let i = 0; i < format.variants.length; i++) {
 					const id = Tools.toId(format.variants[i].name);
 					if (id in this.formatsCache) throw new Error("Variant " + format.variants[i].name + " is the name of another game");
+					if (id in this.modesCache) throw new Error("Variant " + format.variants[i].name + " is the name of a game mode");
 					if (!(id in this.aliasesCache)) this.aliasesCache[id] = format.name + "," + format.variants[i].variant;
 					let variantIds: string[] = [Tools.toId(format.variants[i].variant)];
 					if (format.variants[i].variantAliases) {
-						format.variants[i].variantAliases!.map(x => Tools.toId(x));
+						format.variants[i].variantAliases = format.variants[i].variantAliases!.map(x => Tools.toId(x));
 						variantIds = variantIds.concat(format.variants[i].variantAliases!);
 					}
 
@@ -125,6 +157,23 @@ export class Games {
 							if (!(alias in this.aliasesCache)) this.aliasesCache[alias] = format.name + "," + format.variants[i].variant;
 						}
 					}
+				}
+			}
+
+			if (format.modes) {
+				for (let i = 0; i < format.modes.length; i++) {
+					const id = Tools.toId(format.modes[i]);
+					if (!(id in this.modesCache)) throw new Error("'" + format.modes[i] + "' is not a valid mode");
+					format.modes[i] = id;
+				}
+			}
+		}
+
+		for (const i in this.modesCache) {
+			const mode = this.modesCache[i];
+			if (mode.commands) {
+				for (const i in mode.commands) {
+					if (!this.commandNames.includes(i)) this.commandNames.push(i);
 				}
 			}
 		}
@@ -170,10 +219,19 @@ export class Games {
 		}
 		const formatData = this.formats[id];
 		const inputOptions: Dict<number> = {};
+		let mode: IGameMode | undefined;
 		let variant: IGameVariant | undefined;
 		for (let i = 0, len = targets.length; i < len; i++) {
 			const targetId = Tools.toId(targets[i]);
 			if (!targetId) continue;
+			if (formatData.modes && formatData.modes.includes(targetId)) {
+				if (mode) {
+					if (user) user.say("You can only specify 1 game mode.");
+					return false;
+				}
+				mode = this.modes[targetId];
+				continue;
+			}
 			if (formatData.variants) {
 				let matchingVariant: IGameVariant | undefined;
 				for (let i = 0; i < formatData.variants.length; i++) {
@@ -234,6 +292,7 @@ export class Games {
 		const formatComputed: IGameFormatComputed = {
 			effectType: "GameFormat",
 			inputOptions,
+			mode,
 			variant,
 		};
 		return Object.assign({}, formatData, formatComputed);

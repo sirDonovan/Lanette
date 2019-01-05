@@ -103,6 +103,7 @@ export const game: IGameFile<SlowkingsTrivia> = {
 	formerNames: ["Trivia"],
 	name: "Slowking's Trivia",
 	mascot: "Slowking",
+	modes: ["survival"],
 	variants: [
 		{
 			name: "Slowking's Ability Trivia",
