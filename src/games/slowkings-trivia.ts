@@ -1,7 +1,7 @@
 import { IGameFile } from "../games";
 import { DefaultGameOptions } from "../room-game";
 import { Room } from "../rooms";
-import { commandDescriptions, commands as templateCommands, game as GuessingGame } from './templates/guessing';
+import { commandDescriptions, commands as templateCommands, Guessing, GuessingAbstract } from './templates/guessing';
 
 const data: Dict<Dict<string[]>> = {
 	"Pokemon Abilities": {},
@@ -10,7 +10,7 @@ const data: Dict<Dict<string[]>> = {
 };
 let loadedData = false;
 
-class SlowkingsTrivia extends GuessingGame {
+class SlowkingsTrivia extends Guessing implements GuessingAbstract {
 	static loadData(room: Room) {
 		if (loadedData) return;
 		room.say("Loading game-specific data...");

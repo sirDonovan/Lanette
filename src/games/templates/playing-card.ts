@@ -16,7 +16,7 @@ const suitCodes = {
 	'spades': '&spades;',
 };
 
-class PlayingCardGame extends Game {
+export class PlayingCard extends Game {
 	playerCards = new Map<Player, IPlayingCard[]>();
 	wagers: Map<Player, number> | null = null;
 	playerTotals = new Map<Player, number>();
@@ -150,10 +150,9 @@ class PlayingCardGame extends Game {
 	getHandInfoHtml?(player: Player): string;
 }
 
-export let commands: Dict<ICommandDefinition<PlayingCardGame>> = {
+export let commands: Dict<ICommandDefinition<PlayingCard>> = {
 	cards: Games.commands.summary,
 	hand: Games.commands.summary,
 };
 
-export let game = PlayingCardGame;
 export let disabled = false;

@@ -2,9 +2,9 @@ import { ICommandDefinition } from "../command-parser";
 import { IGameFile } from "../games";
 import { Player } from '../room-activity';
 import { Room } from "../rooms";
-import { commands as templateCommands, game as PlayingCardGame, IPlayingCard } from './templates/playing-card';
+import { commands as templateCommands, IPlayingCard, PlayingCard } from './templates/playing-card';
 
-class MurkrowsBlackjack extends PlayingCardGame {
+class MurkrowsBlackjack extends PlayingCard {
 	roundActions = new Set<Player>();
 	roundLimit: number = 20;
 	wagers = new Map<Player, number>();
