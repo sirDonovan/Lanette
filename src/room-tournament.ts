@@ -199,7 +199,7 @@ export class Tournament extends Activity {
 		}
 
 		for (const i in players) {
-			const player = this.addPlayer(players[i]);
+			const player = this.createPlayer(players[i]);
 			if (!player || player.eliminated) continue;
 			if (losses[i] && (!player.losses || player.losses < losses[i])) {
 				player.losses = losses[i];

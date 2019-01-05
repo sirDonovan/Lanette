@@ -1,8 +1,6 @@
 import { Room } from "./rooms";
 import { User } from "./users";
 
-const SIGNUPS_HTML_DELAY = 2 * 1000;
-
 export class Player {
 	active: boolean | null = null;
 	/** The player either left or got eliminated during gameplay; can no longer perform any actions */
@@ -91,33 +89,6 @@ export abstract class Activity {
 		return player;
 	}
 
-	addPlayer(user: User | string): Player | void {
-		const player = this.createPlayer(user);
-		if (!player) return;
-		if (this.onAddPlayer && !this.onAddPlayer(player)) return;
-		player.say("Thanks for joining the " + this.name + " " + this.activityType + "!");
-		if (this.getSignupsHtml && this.showSignupsHtml && !this.started && !this.signupsHtmlTimeout) {
-			this.sayUhtmlChange(this.getSignupsHtml(), "signups");
-			this.signupsHtmlTimeout = setTimeout(() => {
-				this.signupsHtmlTimeout = null;
-			}, SIGNUPS_HTML_DELAY);
-		}
-		return player;
-	}
-
-	removePlayer(user: User | string) {
-		const player = this.destroyPlayer(user);
-		if (!player) return;
-		if (this.onRemovePlayer) this.onRemovePlayer(player);
-		player.say("You have left the " + this.name + " " + this.activityType + ".");
-		if (this.getSignupsHtml && this.showSignupsHtml && !this.started && !this.signupsHtmlTimeout) {
-			this.sayUhtmlChange(this.getSignupsHtml(), "signups");
-			this.signupsHtmlTimeout = setTimeout(() => {
-				this.signupsHtmlTimeout = null;
-			}, SIGNUPS_HTML_DELAY);
-		}
-	}
-
 	start() {
 		this.started = true;
 		this.startTime = Date.now();
@@ -198,10 +169,7 @@ export abstract class Activity {
 	abstract forceEnd(user?: User): void;
 
 	getSignupsHtml?(): string;
-	/** Return `false` to prevent a user from being added (must destroy player) */
-	onAddPlayer?(player: Player): boolean;
 	onEnd?(): void;
 	onForceEnd?(user?: User): void;
-	onRemovePlayer?(player: Player): void;
 	onStart?(): void;
 }

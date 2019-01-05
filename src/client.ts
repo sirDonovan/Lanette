@@ -192,7 +192,7 @@ export class Client {
 				case 'join': {
 					if (room.tournament) {
 						const messageArguments: ITournamentMessageTypes['join'] = {username: messageParts[0]};
-						room.tournament.addPlayer(messageArguments.username);
+						room.tournament.createPlayer(messageArguments.username);
 					}
 					break;
 				}
@@ -201,7 +201,7 @@ export class Client {
 				case 'disqualify': {
 					if (room.tournament) {
 						const messageArguments: ITournamentMessageTypes['leave'] = {username: messageParts[0]};
-						room.tournament.removePlayer(messageArguments.username);
+						room.tournament.destroyPlayer(messageArguments.username);
 					}
 					break;
 				}

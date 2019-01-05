@@ -6,6 +6,8 @@ import { User } from "./users";
 
 export type DefaultGameOptions = 'points' | 'teams' | 'cards' | 'freejoin';
 
+const SIGNUPS_HTML_DELAY = 2 * 1000;
+
 // base of 0 defaults option to 'off'
 const defaultOptionValues: Dict<{min?: number, base?: number, max?: number}> = {
 	points: {min: 3, base: 5, max: 10},
@@ -154,6 +156,33 @@ export class Game extends Activity {
 		this.deallocate();
 	}
 
+	addPlayer(user: User | string): Player | void {
+		const player = this.createPlayer(user);
+		if (!player) return;
+		if (this.onAddPlayer && !this.onAddPlayer(player)) return;
+		player.say("Thanks for joining the " + this.name + " " + this.activityType + "!");
+		if (this.getSignupsHtml && this.showSignupsHtml && !this.started && !this.signupsHtmlTimeout) {
+			this.sayUhtmlChange(this.getSignupsHtml(), "signups");
+			this.signupsHtmlTimeout = setTimeout(() => {
+				this.signupsHtmlTimeout = null;
+			}, SIGNUPS_HTML_DELAY);
+		}
+		return player;
+	}
+
+	removePlayer(user: User | string) {
+		const player = this.destroyPlayer(user);
+		if (!player) return;
+		if (this.onRemovePlayer) this.onRemovePlayer(player);
+		player.say("You have left the " + this.name + " " + this.activityType + ".");
+		if (this.getSignupsHtml && this.showSignupsHtml && !this.started && !this.signupsHtmlTimeout) {
+			this.sayUhtmlChange(this.getSignupsHtml(), "signups");
+			this.signupsHtmlTimeout = setTimeout(() => {
+				this.signupsHtmlTimeout = null;
+			}, SIGNUPS_HTML_DELAY);
+		}
+	}
+
 	getSignupsHtml(): string {
 		let html = "<div class='infobox'><center>";
 		if (this.mascot) {
@@ -196,6 +225,9 @@ export class Game extends Activity {
 	}
 
 	getPlayerSummary?(player: Player): void;
+	/** Return `false` to prevent a user from being added (must destroy player) */
+	onAddPlayer?(player: Player): boolean;
 	onNextRound?(): void;
+	onRemovePlayer?(player: Player): void;
 	onSignups?(): void;
 }
