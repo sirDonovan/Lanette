@@ -69,7 +69,7 @@ export class Games {
 		this.commandNames = Object.keys(commands);
 		this.formatsCache = {};
 
-		const gamesDirectory = path.join(__dirname, '/games');
+		const gamesDirectory = path.join(__dirname, 'games');
 		const gameFiles = fs.readdirSync(gamesDirectory);
 		for (let i = 0; i < gameFiles.length; i++) {
 			if (!gameFiles[i].endsWith('.js')) continue;

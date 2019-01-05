@@ -5,7 +5,7 @@ const util = require('util');
 
 const builtFolder = path.join(__dirname, "built");
 
-module.exports = (resolve, reject) => {
+module.exports = async (resolve, reject) => {
 	// Modified from https://stackoverflow.com/a/32197381
 	function deleteFolderRecursive(folder) {
 		folder = folder.trim();
