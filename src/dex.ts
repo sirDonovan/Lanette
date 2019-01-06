@@ -164,14 +164,14 @@ interface IDataTable {
 	readonly types: Dict<string | undefined>;
 }
 
-const PokemonShowdown =  path.resolve(__dirname, './../Pokemon-Showdown');
+const PokemonShowdown = path.resolve(__dirname, '.', '..', 'Pokemon-Showdown');
 const dataDir = path.join(PokemonShowdown, 'data');
 const modsDir = path.join(PokemonShowdown, 'mods');
-const lanetteDataDir = path.resolve(__dirname, './../data');
+const lanetteDataDir = path.resolve(__dirname, '.', '..', 'data');
 const currentGen = 'gen7';
 
 // tslint:disable-next-line no-var-requires
-const alternateIconNumbers: {right: Dict<number>, left: Dict<number>} = require(lanetteDataDir + '/alternate-icon-numbers.js');
+const alternateIconNumbers: {right: Dict<number>, left: Dict<number>} = require(path.join(lanetteDataDir, 'alternate-icon-numbers.js'));
 
 const dataFiles: Dict<string> = {
 	'Pokedex': 'pokedex',
@@ -250,7 +250,7 @@ export class Dex {
 		}
 		this.currentMod = mod;
 		this.isBase = isBase;
-		this.dataDir = isBase ? dataDir : modsDir + "/" + mod;
+		this.dataDir = isBase ? dataDir : path.join(modsDir, mod);
 		this.dataCache = {
 			abilities: {},
 			aliases: {},
@@ -271,7 +271,8 @@ export class Dex {
 	}
 
 	get data(): IDataTable {
-		return this.loadData();
+		if (!this.loadedData) this.loadData();
+		return this.dataCache;
 	}
 
 	includeMods(): Dex {
@@ -288,7 +289,7 @@ export class Dex {
 
 	loadDataFile(basePath: string, dataFiles: Dict<string>, dataType: string): Dict<any> {
 		try {
-			const filePath = basePath + dataFiles[dataType];
+			const filePath = path.join(basePath, dataFiles[dataType]);
 			const dataObject = require(filePath);
 			const key = `Battle${dataType}`;
 			if (!dataObject || typeof dataObject !== 'object') return new TypeError(`${filePath}, if it exists, must export a non-null object`);
@@ -305,7 +306,7 @@ export class Dex {
 	includeFormats() {
 		let formatsList: IFormatData[] = [];
 		try {
-			const dataObject = require(path.join(PokemonShowdown, 'config/formats.js'));
+			const dataObject = require(path.join(PokemonShowdown, 'config', 'formats.js'));
 			formatsList = dataObject.Formats;
 		} catch (e) {
 			if (e.code !== 'MODULE_NOT_FOUND' && e.code !== 'ENOENT') {
@@ -332,7 +333,7 @@ export class Dex {
 
 		let formats: Dict<IFormat> = {};
 		try {
-			const dataObject = require(lanetteDataDir + '/format-links.js');
+			const dataObject = require(path.join(lanetteDataDir, 'format-links.js'));
 			formats = dataObject.BattleFormatLinks;
 		} catch (e) {
 			if (e.code !== 'MODULE_NOT_FOUND' && e.code !== 'ENOENT') {
@@ -423,13 +424,12 @@ export class Dex {
 		Object.assign(this.dataCache.formats, formats);
 	}
 
-	loadData(): IDataTable {
-		if (this.loadedData) return this.dataCache;
+	loadData() {
+		if (this.loadedData) return;
+
 		dexes['base'].includeMods();
 
-		const basePath = this.dataDir + '/';
-		const lanetteBasePath = lanetteDataDir + '/';
-		const BattleScripts = this.loadDataFile(basePath, dataFiles, 'Scripts');
+		const BattleScripts = this.loadDataFile(this.dataDir, dataFiles, 'Scripts');
 
 		this.parentMod = this.isBase ? '' : (BattleScripts.inherit || 'base');
 
@@ -446,14 +446,14 @@ export class Dex {
 				this.dataCache[dataType] = natures;
 				continue;
 			}
-			const BattleData = this.loadDataFile(basePath, dataFiles, dataType);
+			const BattleData = this.loadDataFile(this.dataDir, dataFiles, dataType);
 			if (!BattleData || typeof BattleData !== 'object') throw new TypeError("Exported property `Battle" + dataType + "`from `" + this.dataDir + '/' + dataFiles[dataType] + "` must be an object except `null`.");
 			// @ts-ignore
 			if (BattleData !== this.dataCache[dataType]) this.dataCache[dataType] = Object.assign(BattleData, this.dataCache[dataType]);
 		}
 
 		for (const dataType of lanetteDataTypes) {
-			const BattleData = this.loadDataFile(lanetteBasePath, lanetteDataFiles, dataType);
+			const BattleData = this.loadDataFile(lanetteDataDir, lanetteDataFiles, dataType);
 			if (!BattleData || typeof BattleData !== 'object') throw new TypeError("Exported property `Battle" + dataType + "`from `" + this.dataDir + '/' + dataFiles[dataType] + "` must be an object except `null`.");
 			// @ts-ignore
 			this.dataCache[dataType] = Object.assign(BattleData, this.dataCache[dataType]);
@@ -540,7 +540,7 @@ export class Dex {
 		const files = ['pokedex-mini.js'];
 		for (let i = 0; i < files.length; i++) {
 			const file = await Tools.fetchUrl('https://play.pokemonshowdown.com/data/' + files[i]);
-			if (file) fs.writeFileSync(lanetteDataDir + "/" + files[i], file);
+			if (file) fs.writeFileSync(path.join(lanetteDataDir, files[i]), file);
 		}
 	}
 
