@@ -1,6 +1,7 @@
 import fs = require('fs');
 import path = require('path');
 import { ICommandDefinition } from './command-parser';
+import { UserHosted } from './games/templates/user-hosted';
 import { commands, Game } from "./room-game";
 import { Room } from "./rooms";
 import { User } from './users';
@@ -24,6 +25,7 @@ export interface IGameFile<T extends Game = Game> {
 	mascot?: string;
 	mascots?: string[];
 	modes?: string[];
+	scriptedOnly?: boolean;
 	variants?: IGameVariant[];
 }
 
@@ -34,6 +36,35 @@ interface IGameVariant {
 	description?: string;
 	variantAliases?: string[];
 }
+
+export interface IUserHostedFile<T extends UserHosted = UserHosted> {
+	class: IGameClass<T>;
+	formats: IUserHosted[];
+}
+
+interface IUserHosted {
+	description: string;
+	name: string;
+
+	aliases?: string[];
+	approvedHostOnly?: boolean;
+	formerNames?: string[];
+	freejoin?: boolean;
+	mascot?: string;
+	mascots?: string[];
+}
+
+interface IUserHostedComputed<T extends UserHosted = UserHosted> extends IUserHosted {
+	class: IGameClass<T>;
+	id: string;
+}
+
+interface IUserHostedFormatComputed {
+	effectType: 'UserHostedFormat';
+	inputOptions: Dict<number>;
+}
+
+export interface IUserHostedFormat extends IUserHostedComputed, IUserHostedFormatComputed {}
 
 interface IGameFileComputed extends IGameFile {
 	id: string;
@@ -63,6 +94,10 @@ interface IGameMode extends IGameModeFile {
 
 export interface IGameFormat extends IGameFileComputed, IGameFormatComputed {}
 
+const gamesDirectory = path.join(__dirname, 'games');
+// tslint:disable-next-line no-var-requires
+const userHosted = require(path.join(gamesDirectory, "templates", "user-hosted.js")).game as IUserHostedFile;
+
 export class Games {
 	aliasesCache: Dict<string> = {};
 	commandNames: string[] = Object.keys(commands);
@@ -70,6 +105,8 @@ export class Games {
 	formatsCache: Dict<IGameFileComputed> = {};
 	loadedFormats: boolean = false;
 	modesCache: Dict<IGameMode> = {};
+	userHostedAliasesCache: Dict<string> = {};
+	userHostedFormatsCache: Dict<IUserHostedComputed> = {};
 
 	get aliases(): Dict<string> {
 		if (!this.loadedFormats) this.loadFormats();
@@ -86,17 +123,25 @@ export class Games {
 		return this.modesCache;
 	}
 
-	loadFormats() {
-		this.aliasesCache = {};
-		this.commandNames = Object.keys(commands);
-		this.formatsCache = {};
+	get userHostedAliases(): Dict<string> {
+		if (!this.loadedFormats) this.loadFormats();
+		return this.userHostedAliasesCache;
+	}
 
-		const gamesDirectory = path.join(__dirname, 'games');
+	get userHostedFormats(): Dict<IUserHostedComputed> {
+		if (!this.loadedFormats) this.loadFormats();
+		return this.userHostedFormatsCache;
+	}
+
+	loadFormats() {
+		if (this.loadedFormats) return;
+
 		const gameFiles = fs.readdirSync(gamesDirectory);
 		for (let i = 0; i < gameFiles.length; i++) {
 			if (!gameFiles[i].endsWith('.js')) continue;
 			const file = require(gamesDirectory + '/' + gameFiles[i]).game as IGameFile;
 			const id = Tools.toId(file.name);
+			if (id in this.formatsCache) throw new Error("'" + id + "' is the name of another game");
 			this.formatsCache[id] = Object.assign({id}, file);
 		}
 
@@ -106,7 +151,38 @@ export class Games {
 			if (!modeFiles[i].endsWith('.js')) continue;
 			const file = require(modesDirectory + '/' + modeFiles[i]).mode as IGameModeFile;
 			const id = Tools.toId(file.name);
+			if (id in this.modesCache) throw new Error("'" + id + "' is the name of another game mode");
 			this.modesCache[id] = Object.assign({id}, file);
+		}
+
+		for (let i = 0; i < userHosted.formats.length; i++) {
+			const format = userHosted.formats[i];
+			const id = Tools.toId(format.name);
+
+			if (id in this.userHostedFormatsCache) throw new Error("'" + id + "' is the name of another user-hosted game");
+
+			if (format.formerNames) {
+				for (let i = 0; i < format.formerNames.length; i++) {
+					const id = Tools.toId(format.formerNames[i]);
+					if (id in this.userHostedFormatsCache) throw new Error(this.userHostedFormatsCache[id].name + " is the former name of another game");
+					if (id in this.userHostedAliasesCache) throw new Error(this.userHostedAliasesCache[id] + "'s alias '" + id + "' is the former name of another game");
+					this.userHostedAliasesCache[id] = format.name;
+				}
+			}
+
+			if (format.aliases) {
+				for (let i = 0; i < format.aliases.length; i++) {
+					const alias = Tools.toId(format.aliases[i]);
+					if (alias in this.userHostedFormatsCache) throw new Error(format.name + "'s alias '" + alias + "' is the name of another user-hosted game");
+					if (alias in this.userHostedAliasesCache) throw new Error(format.name + "'s alias '" + alias + "' is already used by " + this.userHostedAliasesCache[alias]);
+					this.userHostedAliasesCache[alias] = format.name;
+				}
+			}
+
+			this.userHostedFormatsCache[id] = Object.assign({}, format, {
+				class: userHosted.class,
+				id,
+			});
 		}
 
 		for (const i in this.formatsCache) {
@@ -298,11 +374,58 @@ export class Games {
 		return Object.assign({}, formatData, formatComputed);
 	}
 
+	/**
+	 * Returns a copy of the format
+	 */
+	getUserHostedFormat(target: string, user?: User): IUserHostedFormat | false {
+		const targets = target.split(",");
+		const id = Tools.toId(targets[0]);
+		targets.shift();
+		if (id in this.userHostedAliases) return this.getUserHostedFormat(this.userHostedAliases[id] + (targets.length ? "," + targets.join(",") : ""), user);
+		let formatData: IUserHostedComputed | undefined;
+		if (id in this.userHostedFormats) {
+			formatData = this.userHostedFormats[id];
+		} else {
+			const scriptedFormat = this.getFormat(id + (targets.length ? "," + targets.join(",") : ""));
+			if (scriptedFormat) {
+				if (scriptedFormat.scriptedOnly) {
+					if (user) user.say(scriptedFormat.name + " is not a valid user-hosted format.");
+					return false;
+				} else {
+					formatData = Object.assign({}, scriptedFormat, {
+						class: userHosted.class,
+						commands: null,
+						commandDescriptions: null,
+						mode: null,
+					});
+				}
+			}
+		}
+		if (!formatData) {
+			if (user) user.say("'" + target.trim() + "' is not a valid user-hosted format.");
+			return false;
+		}
+
+		const formatComputed: IUserHostedFormatComputed = {
+			effectType: "UserHostedFormat",
+			inputOptions: {},
+		};
+		return Object.assign({}, formatData, formatComputed);
+	}
+
 	createGame(room: Room, format: IGameFormat): Game {
 		if (format.class.loadData) format.class.loadData(room);
 		room.game = new format.class(room);
 		room.game.initialize(format);
 
 		return room.game;
+	}
+
+	createUserHostedGame(room: Room, format: IUserHostedFormat, host: User): UserHosted {
+		room.userHostedGame = new format.class(room);
+		room.userHostedGame.setHost(host);
+		room.userHostedGame.initialize((format as unknown) as IGameFormat);
+
+		return room.userHostedGame;
 	}
 }

@@ -241,4 +241,5 @@ export const game: IGameFile<MurkrowsBlackjack> = {
 	formerNames: ["Blackjack"],
 	name: "Murkrow's Blackjack",
 	mascot: "Murkrow",
+	scriptedOnly: true,
 };

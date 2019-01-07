@@ -93,7 +93,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	creategame: {
 		command(target, room, user) {
-			if (this.isPm(room) || !user.hasRank(room, '+') || room.game) return;
+			if (this.isPm(room) || !user.hasRank(room, '+') || room.game || room.userHostedGame) return;
 			if (!Config.allowScriptedGames.includes(room.id)) return this.say("Scripted games are not enabled for this room.");
 			if (Users.self.rooms.get(room) !== '*') return this.say(Users.self.name + " requires Bot rank (*) to host scripted games.");
 			const format = Games.getFormat(target, user);
@@ -105,15 +105,25 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	startgame: {
 		command(target, room, user) {
-			if (this.isPm(room) || !user.hasRank(room, '+') || !room.game || room.game.started) return;
-			room.game.start();
+			if (this.isPm(room) || !user.hasRank(room, '+')) return;
+			if (room.game) {
+				if (room.game.started) return;
+				room.game.start();
+			} else if (room.userHostedGame) {
+				if (user.id !== room.userHostedGame.hostId) return;
+				room.userHostedGame.start();
+			}
 		},
 		aliases: ['sg'],
 	},
 	endgame: {
 		command(target, room, user) {
-			if (this.isPm(room) || !user.hasRank(room, '+') || !room.game) return;
-			room.game.forceEnd(user);
+			if (this.isPm(room) || !user.hasRank(room, '+')) return;
+			if (room.game) {
+				room.game.forceEnd(user);
+			} else if (room.userHostedGame) {
+				room.userHostedGame.forceEnd(user);
+			}
 		},
 	},
 	joingame: {
@@ -121,9 +131,18 @@ const commands: Dict<ICommandDefinition> = {
 			if (this.isPm(room)) {
 				if (!target) return;
 				const chatRoom = Rooms.get(target);
-				if (chatRoom && chatRoom.game) chatRoom.game.addPlayer(user);
+				if (!chatRoom) return;
+				if (chatRoom.game) {
+					chatRoom.game.addPlayer(user);
+				} else if (chatRoom.userHostedGame) {
+					chatRoom.userHostedGame.addPlayer(user);
+				}
 			} else {
-				if (room.game) room.game.addPlayer(user);
+				if (room.game) {
+					room.game.addPlayer(user);
+				} else if (room.userHostedGame) {
+					room.userHostedGame.addPlayer(user);
+				}
 			}
 		},
 		aliases: ['jg'],
@@ -131,7 +150,11 @@ const commands: Dict<ICommandDefinition> = {
 	leavegame: {
 		command(target, room, user) {
 			if (this.isPm(room)) return;
-			if (room.game) room.game.removePlayer(user);
+			if (room.game) {
+				room.game.removePlayer(user);
+			} else if (room.userHostedGame) {
+				room.userHostedGame.removePlayer(user);
+			}
 		},
 		aliases: ['lg'],
 	},
@@ -148,22 +171,52 @@ const commands: Dict<ICommandDefinition> = {
 				if (!user.hasRank(room, '+')) return;
 				gameRoom = room;
 			}
-			if (!gameRoom.game) return this.say("There is no scripted game running.");
-			const game = gameRoom.game;
-			let html = (game.mascot ? Dex.getPokemonIcon(game.mascot) : "") + " <b>" + game.nameWithOptions + "</b><br />";
-			if (game.started) {
-				html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - game.startTime) + "<br />";
-				const remainingPlayers = game.getRemainingPlayerCount();
-				if (remainingPlayers !== game.playerCount) {
-					html += "<b>Remaining players</b>: " + remainingPlayers + "/" + game.playerCount;
+			if (gameRoom.game) {
+				const game = gameRoom.game;
+				let html = (game.mascot ? Dex.getPokemonIcon(game.mascot) : "") + " <b>" + game.nameWithOptions + "</b><br />";
+				if (game.started) {
+					html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - game.startTime) + "<br />";
+					const remainingPlayers = game.getRemainingPlayerCount();
+					if (remainingPlayers !== game.playerCount) {
+						html += "<b>Remaining players</b>: " + remainingPlayers + "/" + game.playerCount;
+					} else {
+						html += "<b>Players</b>: " + remainingPlayers;
+					}
 				} else {
-					html += "<b>Players</b>: " + remainingPlayers;
+					html += "<b>Signups duration</b>: " + Tools.toDurationString(Date.now() - game.signupsTime) + "<br />";
+					html += "<b>" + game.playerCount + "</b> player" + (game.playerCount === 1 ? " has" : "s have") + " joined";
 				}
+				this.sayHtml(html, gameRoom);
+			} else if (gameRoom.userHostedGame) {
+				const game = gameRoom.userHostedGame;
+				let html = (game.mascot ? Dex.getPokemonIcon(game.mascot) : "") + " <b>" + game.nameWithOptions + "</b><br />";
+				html += "<b>Remaining time</b>: " + Tools.toDurationString(game.endTime - Date.now()) + "<br />";
+				if (game.started) {
+					html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - game.startTime) + "<br />";
+					html += "<b>Players</b>: " + game.getRemainingPlayerCount();
+				} else {
+					html += "<b>Signups duration</b>: " + Tools.toDurationString(Date.now() - game.signupsTime) + "<br />";
+					html += "<b>" + game.playerCount + "</b> player" + (game.playerCount === 1 ? " has" : "s have") + " joined";
+				}
+				this.sayHtml(html, gameRoom);
 			} else {
-				html += "<b>Signups duration</b>: " + Tools.toDurationString(Date.now() - game.signupsTime) + "<br />";
-				html += "<b>" + game.playerCount + "</b> player" + (game.playerCount === 1 ? " has" : "s have") + " joined";
+				this.say("There is no scripted game running.");
 			}
-			this.sayHtml(html, gameRoom);
+		},
+	},
+	host: {
+		command(target, room, user) {
+			if (this.isPm(room) || !user.hasRank(room, '+') || room.game) return;
+			if (!Config.allowScriptedGames.includes(room.id)) return this.say("Scripted games are not enabled for this room.");
+			if (Users.self.rooms.get(room) !== '*') return this.say(Users.self.name + " requires Bot rank (*) to start user-hosted games.");
+			const targets = target.split(",");
+			const host = Users.get(targets[0]);
+			if (!host || !host.rooms.has(room)) return this.say("Please specify a user currently in this room.");
+			targets.shift();
+			const format = Games.getUserHostedFormat(targets.join(","), user);
+			if (!format) return;
+			const game = Games.createUserHostedGame(room, format, host);
+			game.signups();
 		},
 	},
 };

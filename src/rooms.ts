@@ -1,3 +1,4 @@
+import { UserHosted } from "./games/templates/user-hosted";
 import { Player } from "./room-activity";
 import { Game } from "./room-game";
 import { Tournament } from "./room-tournament";
@@ -7,6 +8,7 @@ export class Room {
 	game: Game | null = null;
 	messageListeners: Dict<() => void> = {};
 	tournament: Tournament | null = null;
+	userHostedGame: UserHosted | null = null;
 	users = new Set<User>();
 
 	id: string;

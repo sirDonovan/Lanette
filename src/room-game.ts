@@ -94,6 +94,8 @@ export class Game extends Activity {
 		if (this.namePrefixes.length) this.nameWithOptions = this.namePrefixes.join(" ") + " ";
 		this.nameWithOptions += this.name;
 		if (this.nameSuffixes.length) this.nameWithOptions += " " + this.nameSuffixes.join(" ");
+
+		if (this.onInitialize) this.onInitialize();
 	}
 
 	setOptions() {
@@ -251,6 +253,7 @@ export class Game extends Activity {
 	getPlayerSummary?(player: Player): void;
 	/** Return `false` to prevent a user from being added (must destroy player) */
 	onAddPlayer?(player: Player): boolean;
+	onInitialize?(): void;
 	onNextRound?(): void;
 	onRemovePlayer?(player: Player): void;
 	onSignups?(): void;
