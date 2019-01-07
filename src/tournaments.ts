@@ -1,6 +1,6 @@
-import { IFormat } from "./dex";
 import { Tournament } from "./room-tournament";
 import { Room } from "./rooms";
+import { IFormat } from "./types/in-game-data-types";
 
 export class Tournaments {
 	defaultCap: number = 64;

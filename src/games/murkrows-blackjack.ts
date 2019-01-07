@@ -1,7 +1,7 @@
 import { ICommandDefinition } from "../command-parser";
-import { IGameFile } from "../games";
 import { Player } from '../room-activity';
 import { Room } from "../rooms";
+import { IGameFile } from "../types/games";
 import { commands as templateCommands, IPlayingCard, PlayingCard } from './templates/playing-card';
 
 class MurkrowsBlackjack extends PlayingCard {

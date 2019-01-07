@@ -1,6 +1,6 @@
-import { IGameFile } from "../games";
 import { DefaultGameOptions } from "../room-game";
 import { Room } from "../rooms";
+import { IGameFile } from "../types/games";
 import { commandDescriptions, commands as templateCommands, Guessing, GuessingAbstract } from './templates/guessing';
 
 const data: Dict<Dict<string[]>> = {

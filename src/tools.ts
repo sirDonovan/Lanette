@@ -1,5 +1,5 @@
 import https = require('https');
-import { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './dex';
+import { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/in-game-data-types';
 
 const MAX_MESSAGE_LENGTH = 300;
 const NUMBER_REGEX = /^[ .0-9]*$/g;

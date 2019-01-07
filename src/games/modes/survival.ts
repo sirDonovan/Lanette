@@ -1,7 +1,7 @@
 import { ICommandDefinition } from "../../command-parser";
-import { IGameModeFile } from "../../games";
 import { Player } from "../../room-activity";
 import { Game } from "../../room-game";
+import { IGameModeFile } from "../../types/games";
 import { Guessing, GuessingAbstract } from "../templates/guessing";
 
 const name = 'Survival';

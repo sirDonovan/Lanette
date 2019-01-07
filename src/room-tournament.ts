@@ -1,5 +1,5 @@
-import { IFormat } from "./dex";
 import { Activity } from "./room-activity";
+import { IFormat } from "./types/in-game-data-types";
 
 interface IBracketNode {
 	team: string;

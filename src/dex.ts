@@ -1,168 +1,6 @@
 import fs = require('fs');
 import path = require('path');
-import { IAbilityData, IFlingData, IFormatData, IItemData, ILearnset, IMoveData, IMoveFlags, INature, ITemplateData, ITemplateFormatsData, ITypeChart } from './types/in-game-data-types';
-
-interface IAbilityComputed {
-	effectType: "Ability";
-	gen: number;
-	id: string;
-}
-
-export interface IAbilityCopy extends IAbilityData, IAbilityComputed {}
-export interface IAbility extends DeepReadonly<IAbilityCopy> {}
-
-interface IFormatComputed {
-	banlist: NonNullable<IFormatData["banlist"]>;
-	customRules: string[] | null;
-	defaultLevel: number;
-	effectType: "Format";
-	id: string;
-	info?: string;
-	'info-official'?: string;
-	maxLevel: number;
-	np?: string;
-	'np-official'?: string;
-	ruleset: NonNullable<IFormatData["ruleset"]>;
-	ruleTable: RuleTable | null;
-	tournamentPlayable: boolean;
-	unbanlist: NonNullable<IFormatData["unbanlist"]>;
-	viability?: string;
-	'viability-official'?: string;
-}
-
-export interface IFormat extends IFormatData, IFormatComputed {
-	banlist: NonNullable<IFormatData["banlist"]>;
-	defaultLevel: number;
-	maxLevel: number;
-	ruleset: NonNullable<IFormatData["ruleset"]>;
-	unbanlist: NonNullable<IFormatData["unbanlist"]>;
-}
-
-interface IItemComputed {
-	effectType: "Item";
-	fling?: IFlingData;
-	gen: number;
-	id: string;
-}
-
-export interface IItemCopy extends IItemData, IItemComputed {}
-export interface IItem extends DeepReadonly<IItemCopy> {}
-
-interface IMoveComputed {
-	baseMoveType: string;
-	effectType: "Move";
-	gen: number;
-	ignoreImmunity: IMoveData["ignoreImmunity"];
-}
-
-export interface IMoveCopy extends IMoveData, IMoveComputed {
-	baseMoveType: string;
-	ignoreImmunity: IMoveData["ignoreImmunity"];
-}
-export interface IMove extends DeepReadonly<IMoveCopy> {}
-
-interface IPokemonComputed {
-	baseSpecies: string;
-	battleOnly?: boolean;
-	effectType: "Pokemon";
-	evos: string[];
-	forme: string;
-	gen: number;
-	genderRatio: NonNullable<ITemplateData["genderRatio"]>;
-	id: string;
-	isMega: boolean;
-	isPrimal: boolean;
-	name: string;
-	nfe: boolean;
-	shiny: boolean;
-	speciesId: string;
-	spriteId: string;
-}
-
-export interface IPokemonCopy extends ITemplateData, Partial<ILearnset>, ITemplateFormatsData, IPokemonComputed {
-	baseSpecies: string;
-	evos: string[];
-	forme: string;
-	gen: number;
-	genderRatio: NonNullable<ITemplateData["genderRatio"]>;
-}
-export interface IPokemon extends DeepReadonly<IPokemonCopy> {}
-
-/**
- * A RuleTable keeps track of the rules that a format has. The key can be:
- * - '[ruleid]' the ID of a rule in effect
- * - '-[thing]' or '-[category]:[thing]' ban a thing
- * - '+[thing]' or '+[category]:[thing]' allow a thing (override a ban)
- * [category] is one of: item, move, ability, species, basespecies
- */
-export class RuleTable extends Map<string, string> {
-	/** rule, source, limit, bans */
-	complexBans: [string, string, number, string[]][] = [];
-	/** rule, source, limit, bans */
-	complexTeamBans: [string, string, number, string[]][] = [];
-	checkLearnset: [(...args: any) => void, string] | null = null;
-
-	check(thing: string, setHas?: Dict<true>): string {
-		if (setHas) setHas[thing] = true;
-		return this.getReason('-' + thing);
-	}
-
-	getReason(key: string): string {
-		const source = this.get(key);
-		if (source === undefined) return '';
-		return source ? `banned by ${source}` : `banned`;
-	}
-
-	getComplexBanIndex(complexBans: [string, string, number, string[]][], rule: string): number {
-		const ruleId = Tools.toId(rule);
-		let complexBanIndex = -1;
-		for (let i = 0; i < complexBans.length; i++) {
-			if (Tools.toId(complexBans[i][0]) === ruleId) {
-				complexBanIndex = i;
-				break;
-			}
-		}
-		return complexBanIndex;
-	}
-
-	addComplexBan(rule: string, source: string, limit: number, bans: string[]) {
-		const complexBanIndex = this.getComplexBanIndex(this.complexBans, rule);
-		if (complexBanIndex !== -1) {
-			if (this.complexBans[complexBanIndex][2] === Infinity) return;
-			this.complexBans[complexBanIndex] = [rule, source, limit, bans];
-		} else {
-			this.complexBans.push([rule, source, limit, bans]);
-		}
-	}
-
-	addComplexTeamBan(rule: string, source: string, limit: number, bans: string[]) {
-		const complexBanTeamIndex = this.getComplexBanIndex(this.complexTeamBans, rule);
-		if (complexBanTeamIndex !== -1) {
-			if (this.complexTeamBans[complexBanTeamIndex][2] === Infinity) return;
-			this.complexTeamBans[complexBanTeamIndex] = [rule, source, limit, bans];
-		} else {
-			this.complexTeamBans.push([rule, source, limit, bans]);
-		}
-	}
-}
-
-interface IDataTable {
-	readonly abilities: Dict<IAbilityData | undefined>;
-	readonly aliases: Dict<string | undefined>;
-	readonly badges: string[];
-	readonly characters: string[];
-	readonly formats: Dict<IFormat | undefined>;
-	readonly formatsData: Dict<ITemplateFormatsData | undefined>;
-	readonly gifData: Dict<{back?: {h: number, w: number}, front?: {h: number, w: number}} | undefined>;
-	readonly items: Dict<IItemData | undefined>;
-	readonly learnsets: Dict<ILearnset | undefined>;
-	readonly moves: Dict<IMoveData | undefined>;
-	readonly natures: Dict<INature | undefined>;
-	readonly pokedex: Dict<ITemplateData | undefined>;
-	readonly trainerClasses: string[];
-	readonly typeChart: Dict<ITypeChart | undefined>;
-	readonly types: Dict<string | undefined>;
-}
+import { IAbility, IAbilityComputed, IAbilityCopy, IDataTable, IFormat, IFormatComputed, IFormatData, IItem, IItemComputed, IItemCopy, IMove, IMoveComputed, IMoveCopy, INature, IPokemon, IPokemonComputed, IPokemonCopy } from './types/in-game-data-types';
 
 const PokemonShowdown = path.resolve(__dirname, '.', '..', 'Pokemon-Showdown');
 const dataDir = path.join(PokemonShowdown, 'data');
@@ -226,6 +64,64 @@ const natures: Dict<INature> = {
 };
 
 const dexes: Dict<Dex> = {};
+
+/**
+ * A RuleTable keeps track of the rules that a format has. The key can be:
+ * - '[ruleid]' the ID of a rule in effect
+ * - '-[thing]' or '-[category]:[thing]' ban a thing
+ * - '+[thing]' or '+[category]:[thing]' allow a thing (override a ban)
+ * [category] is one of: item, move, ability, species, basespecies
+ */
+export class RuleTable extends Map<string, string> {
+	/** rule, source, limit, bans */
+	complexBans: [string, string, number, string[]][] = [];
+	/** rule, source, limit, bans */
+	complexTeamBans: [string, string, number, string[]][] = [];
+	checkLearnset: [(...args: any) => void, string] | null = null;
+
+	check(thing: string, setHas?: Dict<true>): string {
+		if (setHas) setHas[thing] = true;
+		return this.getReason('-' + thing);
+	}
+
+	getReason(key: string): string {
+		const source = this.get(key);
+		if (source === undefined) return '';
+		return source ? `banned by ${source}` : `banned`;
+	}
+
+	getComplexBanIndex(complexBans: [string, string, number, string[]][], rule: string): number {
+		const ruleId = Tools.toId(rule);
+		let complexBanIndex = -1;
+		for (let i = 0; i < complexBans.length; i++) {
+			if (Tools.toId(complexBans[i][0]) === ruleId) {
+				complexBanIndex = i;
+				break;
+			}
+		}
+		return complexBanIndex;
+	}
+
+	addComplexBan(rule: string, source: string, limit: number, bans: string[]) {
+		const complexBanIndex = this.getComplexBanIndex(this.complexBans, rule);
+		if (complexBanIndex !== -1) {
+			if (this.complexBans[complexBanIndex][2] === Infinity) return;
+			this.complexBans[complexBanIndex] = [rule, source, limit, bans];
+		} else {
+			this.complexBans.push([rule, source, limit, bans]);
+		}
+	}
+
+	addComplexTeamBan(rule: string, source: string, limit: number, bans: string[]) {
+		const complexBanTeamIndex = this.getComplexBanIndex(this.complexTeamBans, rule);
+		if (complexBanTeamIndex !== -1) {
+			if (this.complexTeamBans[complexBanTeamIndex][2] === Infinity) return;
+			this.complexTeamBans[complexBanTeamIndex] = [rule, source, limit, bans];
+		} else {
+			this.complexTeamBans.push([rule, source, limit, bans]);
+		}
+	}
+}
 
 export class Dex {
 	abilityCache = new Map<string, IAbility>();

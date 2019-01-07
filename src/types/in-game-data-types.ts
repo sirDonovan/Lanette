@@ -1,3 +1,5 @@
+import { RuleTable } from "../dex";
+
 /**
  * Some types imported from:
  * Pokemon Showdown - https://github.com/Zarel/Pokemon-Showdown
@@ -228,6 +230,91 @@ export interface IAbilityData extends IEffectData {
 	suppressWeather?: boolean;
 }
 
+export interface IAbilityComputed {
+	effectType: "Ability";
+	gen: number;
+	id: string;
+}
+
+export interface IAbilityCopy extends IAbilityData, IAbilityComputed {}
+export interface IAbility extends DeepReadonly<IAbilityCopy> {}
+
+export interface IFormatData extends IEventMethods {
+	effectType: 'Format';
+	name: string;
+	banlist?: string[];
+	cannotMega?: string[];
+	canUseRandomTeam?: boolean;
+	challengeShow?: boolean;
+	debug?: boolean;
+	defaultLevel?: number;
+	desc?: string;
+	forcedLevel?: number;
+	gameType?: 'singles' | 'doubles' | 'triples' | 'rotation';
+	maxForcedLevel?: number;
+	maxLevel?: number;
+	mod?: string;
+	noChangeAbility?: boolean;
+	noChangeForme?: boolean;
+	onBasePowerPriority?: number;
+	onModifyMovePriority?: number;
+	onStartPriority?: number;
+	onSwitchInPriority?: number;
+	rated?: boolean;
+	requirePentagon?: boolean;
+	requirePlus?: boolean;
+	restrictedAbilities?: string[];
+	restrictedMoves?: string[];
+	restrictedStones?: string[];
+	ruleset?: string[];
+	searchShow?: boolean;
+	team?: string;
+	teamLength?: {validate?: [number, number], battle?: number};
+	threads?: string[];
+	timer?: {starting?: number, perTurn?: number, maxPerTurn?: number, maxFirstTurn?: number, timeoutAutoChoose?: boolean, accelerate?: boolean};
+	tournamentShow?: boolean;
+	unbanlist?: string[];
+	checkLearnset?: (this: any, move: any, template: any, lsetData: any, set: any) => {type: string, [k: string]: any} | null;
+	onAfterMega?: (this: any, pokemon: any) => void;
+	onBegin?: (this: any) => void;
+	onChangeSet?: (this: any, set: any, format: any, setHas?: any, teamHas?: any) => string[] | void;
+	onModifyTemplate?: (this: any, template: any, target: any, source: any) => any | void;
+	onTeamPreview?: (this: any) => void;
+	onValidateSet?: (this: any, set: any, format: any, setHas: any, teamHas: any) => string[] | void;
+	onValidateTeam?: (this: any, team: any[], format: any, teamHas: any) => string[] | void;
+	validateSet?: (this: any, set: any, teamHas: any) => string[] | void;
+	validateTeam?: (this: any, team: any[], removeNicknames: boolean) => string[] | void;
+	section?: string;
+	column?: number;
+}
+
+export interface IFormatComputed {
+	banlist: NonNullable<IFormatData["banlist"]>;
+	customRules: string[] | null;
+	defaultLevel: number;
+	effectType: "Format";
+	id: string;
+	info?: string;
+	'info-official'?: string;
+	maxLevel: number;
+	np?: string;
+	'np-official'?: string;
+	ruleset: NonNullable<IFormatData["ruleset"]>;
+	ruleTable: RuleTable | null;
+	tournamentPlayable: boolean;
+	unbanlist: NonNullable<IFormatData["unbanlist"]>;
+	viability?: string;
+	'viability-official'?: string;
+}
+
+export interface IFormat extends IFormatData, IFormatComputed {
+	banlist: NonNullable<IFormatData["banlist"]>;
+	defaultLevel: number;
+	maxLevel: number;
+	ruleset: NonNullable<IFormatData["ruleset"]>;
+	unbanlist: NonNullable<IFormatData["unbanlist"]>;
+}
+
 export interface IFlingData {
 	basePower: number;
 	status?: string;
@@ -255,6 +342,16 @@ export interface IItemData extends IEffectData {
 	zMoveType?: string;
 	zMoveUser?: string[];
 }
+
+export interface IItemComputed {
+	effectType: "Item";
+	fling?: IFlingData;
+	gen: number;
+	id: string;
+}
+
+export interface IItemCopy extends IItemData, IItemComputed {}
+export interface IItem extends DeepReadonly<IItemCopy> {}
 
 export interface IMoveFlags {
 	/** Ignores a target's substitute. */
@@ -371,6 +468,19 @@ export interface IMoveData extends IEffectData {
 	zMoveBoost?: SparseBoostsTable;
 }
 
+export interface IMoveComputed {
+	baseMoveType: string;
+	effectType: "Move";
+	gen: number;
+	ignoreImmunity: IMoveData["ignoreImmunity"];
+}
+
+export interface IMoveCopy extends IMoveData, IMoveComputed {
+	baseMoveType: string;
+	ignoreImmunity: IMoveData["ignoreImmunity"];
+}
+export interface IMove extends DeepReadonly<IMoveCopy> {}
+
 // tslint:disable-next-line interface-over-type-literal
 type TemplateAbility = {0: string, 1?: string, H?: string, S?: string};
 
@@ -454,54 +564,32 @@ export interface ITemplateFormatsData {
 	unreleasedHidden?: boolean;
 }
 
-export interface IFormatData extends IEventMethods {
-	effectType: 'Format';
+export interface IPokemonComputed {
+	baseSpecies: string;
+	battleOnly?: boolean;
+	effectType: "Pokemon";
+	evos: string[];
+	forme: string;
+	gen: number;
+	genderRatio: NonNullable<ITemplateData["genderRatio"]>;
+	id: string;
+	isMega: boolean;
+	isPrimal: boolean;
 	name: string;
-	banlist?: string[];
-	cannotMega?: string[];
-	canUseRandomTeam?: boolean;
-	challengeShow?: boolean;
-	debug?: boolean;
-	defaultLevel?: number;
-	desc?: string;
-	forcedLevel?: number;
-	gameType?: 'singles' | 'doubles' | 'triples' | 'rotation';
-	maxForcedLevel?: number;
-	maxLevel?: number;
-	mod?: string;
-	noChangeAbility?: boolean;
-	noChangeForme?: boolean;
-	onBasePowerPriority?: number;
-	onModifyMovePriority?: number;
-	onStartPriority?: number;
-	onSwitchInPriority?: number;
-	rated?: boolean;
-	requirePentagon?: boolean;
-	requirePlus?: boolean;
-	restrictedAbilities?: string[];
-	restrictedMoves?: string[];
-	restrictedStones?: string[];
-	ruleset?: string[];
-	searchShow?: boolean;
-	team?: string;
-	teamLength?: {validate?: [number, number], battle?: number};
-	threads?: string[];
-	timer?: {starting?: number, perTurn?: number, maxPerTurn?: number, maxFirstTurn?: number, timeoutAutoChoose?: boolean, accelerate?: boolean};
-	tournamentShow?: boolean;
-	unbanlist?: string[];
-	checkLearnset?: (this: any, move: any, template: any, lsetData: any, set: any) => {type: string, [k: string]: any} | null;
-	onAfterMega?: (this: any, pokemon: any) => void;
-	onBegin?: (this: any) => void;
-	onChangeSet?: (this: any, set: any, format: any, setHas?: any, teamHas?: any) => string[] | void;
-	onModifyTemplate?: (this: any, template: any, target: any, source: any) => any | void;
-	onTeamPreview?: (this: any) => void;
-	onValidateSet?: (this: any, set: any, format: any, setHas: any, teamHas: any) => string[] | void;
-	onValidateTeam?: (this: any, team: any[], format: any, teamHas: any) => string[] | void;
-	validateSet?: (this: any, set: any, teamHas: any) => string[] | void;
-	validateTeam?: (this: any, team: any[], removeNicknames: boolean) => string[] | void;
-	section?: string;
-	column?: number;
+	nfe: boolean;
+	shiny: boolean;
+	speciesId: string;
+	spriteId: string;
 }
+
+export interface IPokemonCopy extends ITemplateData, Partial<ILearnset>, ITemplateFormatsData, IPokemonComputed {
+	baseSpecies: string;
+	evos: string[];
+	forme: string;
+	gen: number;
+	genderRatio: NonNullable<ITemplateData["genderRatio"]>;
+}
+export interface IPokemon extends DeepReadonly<IPokemonCopy> {}
 
 export interface ITypeChart {
 	damageTaken: Dict<number>;
@@ -513,4 +601,22 @@ export interface INature {
 	name: string;
 	plus?: string;
 	minus?: string;
+}
+
+export interface IDataTable {
+	readonly abilities: Dict<IAbilityData | undefined>;
+	readonly aliases: Dict<string | undefined>;
+	readonly badges: string[];
+	readonly characters: string[];
+	readonly formats: Dict<IFormat | undefined>;
+	readonly formatsData: Dict<ITemplateFormatsData | undefined>;
+	readonly gifData: Dict<{back?: {h: number, w: number}, front?: {h: number, w: number}} | undefined>;
+	readonly items: Dict<IItemData | undefined>;
+	readonly learnsets: Dict<ILearnset | undefined>;
+	readonly moves: Dict<IMoveData | undefined>;
+	readonly natures: Dict<INature | undefined>;
+	readonly pokedex: Dict<ITemplateData | undefined>;
+	readonly trainerClasses: string[];
+	readonly typeChart: Dict<ITypeChart | undefined>;
+	readonly types: Dict<string | undefined>;
 }

@@ -1,7 +1,7 @@
 import { ICommandDefinition } from "./command-parser";
-import { IPokemonCopy } from "./dex";
-import { IGameFormat } from "./games";
 import { Activity, Player } from "./room-activity";
+import { IGameFormat } from "./types/games";
+import { IPokemonCopy } from "./types/in-game-data-types";
 import { User } from "./users";
 
 export type DefaultGameOptions = 'points' | 'teams' | 'cards' | 'freejoin';

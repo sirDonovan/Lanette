@@ -1,6 +1,6 @@
-import { IUserHostedFile } from "../../games";
 import { Player } from "../../room-activity";
 import { Game } from "../../room-game";
+import { IUserHostedFile } from "../../types/games";
 import { User } from "../../users";
 
 const timeLimit = 25 * 60 * 1000;
