@@ -8,6 +8,7 @@ declare namespace NodeJS {
 		Dex: import('./dex').Dex;
 		Games: import('./games').Games;
 		Rooms: import('./rooms').Rooms;
+		Storage: import('./storage').Storage;
 		Tools: import('./tools').Tools;
 		Tournaments: import('./tournaments').Tournaments;
 		Users: import('./users').Users;
