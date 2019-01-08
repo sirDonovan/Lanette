@@ -1,17 +1,20 @@
-import * as fs from 'fs';
+import fs = require('fs');
+import path = require('path');
+import { IDatabase } from './types/storage';
 
-const BACKUP_INTERVAL = 60 * 60 * 1000 as number;
+const databasesDir = path.resolve(__dirname, '.', '..', 'databases');
 
 export class Storage {
-	databases = {} as Dict<any>;
-	globalDatabase = {} as Dict<any>;
-	backupInterval = null as NodeJS.Timer | null;
+	databaseCache: Dict<IDatabase> = {};
+	loadedDatabases: boolean = false;
+	globalDatabase: IDatabase = {};
 
-	constructor() {
-		this.backupInterval = setInterval(() => this.exportDatabases(), BACKUP_INTERVAL);
+	get databases(): Dict<IDatabase> {
+		if (!this.loadedDatabases) this.importDatabases();
+		return this.databaseCache;
 	}
 
-	getDatabase(roomid: string) {
+	getDatabase(roomid: string): IDatabase {
 		if (!(roomid in this.databases)) this.databases[roomid] = {};
 		return this.databases[roomid];
 	}
@@ -19,31 +22,34 @@ export class Storage {
 	importDatabase(roomid: string) {
 		let file = '{}';
 		try {
-			file = fs.readFileSync('./src/databases/' + roomid + '.json').toString();
+			file = fs.readFileSync(path.join(databasesDir, roomid + '.json')).toString();
 		} catch (e) {
 			if (e.code !== 'ENOENT') throw e;
-			// fs.writeFileSync('./src/databases/' + roomid + '.json', '{}');
 		}
-		this.databases[roomid] = JSON.parse(file);
+		this.databaseCache[roomid] = JSON.parse(file);
 	}
 
 	exportDatabase(roomid: string) {
-		if (!(roomid in this.databases)) return;
-		fs.writeFileSync('./src/databases/' + roomid + '.json', JSON.stringify(this.databases[roomid]));
+		if (!(roomid in this.databaseCache)) return;
+		fs.writeFileSync(path.join(databasesDir, roomid + '.json'), JSON.stringify(this.databaseCache[roomid]));
 	}
 
 	importDatabases() {
-		const databases = fs.readdirSync('./src/databases');
+		if (this.loadedDatabases) return;
+
+		const databases = fs.readdirSync(databasesDir);
 		for (let i = 0; i < databases.length; i++) {
 			const file = databases[i];
 			if (!file.endsWith('.json')) continue;
 			this.importDatabase(file.substr(0, file.indexOf('.json')));
 		}
+
+		this.loadedDatabases = true;
 	}
 
 	exportDatabases() {
-		for (const roomid in this.databases) {
-			this.exportDatabase(roomid);
+		for (const i in this.databaseCache) {
+			this.exportDatabase(i);
 		}
 	}
 }
