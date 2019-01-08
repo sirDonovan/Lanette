@@ -6,8 +6,8 @@ const databasesDir = path.resolve(__dirname, '.', '..', 'databases');
 
 export class Storage {
 	databaseCache: Dict<IDatabase> = {};
-	loadedDatabases: boolean = false;
 	globalDatabase: IDatabase = {};
+	loadedDatabases: boolean = false;
 
 	get databases(): Dict<IDatabase> {
 		if (!this.loadedDatabases) this.importDatabases();
@@ -20,13 +20,12 @@ export class Storage {
 	}
 
 	importDatabase(roomid: string) {
-		let file = '{}';
 		try {
-			file = fs.readFileSync(path.join(databasesDir, roomid + '.json')).toString();
+			const file = fs.readFileSync(path.join(databasesDir, roomid + '.json')).toString();
+			this.databaseCache[roomid] = JSON.parse(file);
 		} catch (e) {
 			if (e.code !== 'ENOENT') throw e;
 		}
-		this.databaseCache[roomid] = JSON.parse(file);
 	}
 
 	exportDatabase(roomid: string) {
