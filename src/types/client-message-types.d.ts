@@ -8,6 +8,8 @@ export interface IServerGroup {
 	type: "leadership" | "staff" | "normal" | "punishment";
 }
 
+export type ServerGroupData = Pick<IServerGroup, Exclude<keyof IServerGroup, "ranking">>;
+
 export interface IClientMessageTypes {
 	/**
 	 * Challenge key ID|challenge
@@ -44,7 +46,7 @@ export interface IClientMessageTypes {
 	 * Groups list
 	 */
 	customgroups: {
-		groups: Pick<IServerGroup, Exclude<keyof IServerGroup, "ranking">>[],
+		groups: ServerGroupData[],
 	};
 
 	/**

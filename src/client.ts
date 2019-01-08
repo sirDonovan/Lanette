@@ -3,10 +3,72 @@ import querystring = require('querystring');
 import url = require('url');
 import websocket = require('websocket');
 import { Room } from './rooms';
-import { IClientMessageTypes, IServerGroup, ITournamentMessageTypes } from './types/client-message-types';
+import { IClientMessageTypes, IServerGroup, ITournamentMessageTypes, ServerGroupData } from './types/client-message-types';
 
 const RELOGIN_SECONDS = 60;
 const SEND_THROTTLE = 800;
+const DEFAULT_SERVER_GROUPS: ServerGroupData[] = [
+	{
+		"symbol": "~",
+		"name": "Administrator",
+		"type": "leadership",
+	},
+	{
+		"symbol": "&",
+		"name": "Leader",
+		"type": "leadership",
+	},
+	{
+		"symbol": "#",
+		"name": "Room Owner",
+		"type": "leadership",
+	},
+	{
+		"symbol": "★",
+		"name": "Host",
+		"type": "leadership",
+	},
+	{
+		"symbol": "@",
+		"name": "Moderator",
+		"type": "staff",
+	},
+	{
+		"symbol": "%",
+		"name": "Driver",
+		"type": "staff",
+	},
+	{
+		"symbol": "☆",
+		"name": "Player",
+		"type": "normal",
+	},
+	{
+		"symbol": "*",
+		"name": "Bot",
+		"type": "normal",
+	},
+	{
+		"symbol": "+",
+		"name": "Voice",
+		"type": "normal",
+	},
+	{
+		"symbol": " ",
+		"name": null,
+		"type": "normal",
+	},
+	{
+		"symbol": "‽",
+		"name": "Locked",
+		"type": "punishment",
+	},
+	{
+		"symbol": "!",
+		"name": "Muted",
+		"type": "punishment",
+	},
+];
 
 export class Client {
 	challstr: string = '';
@@ -33,6 +95,8 @@ export class Client {
 			this.onConnect();
 		});
 		this.client.on('connectFailed', error => this.onConnectFail(error));
+
+		this.parseServerGroups(DEFAULT_SERVER_GROUPS);
 	}
 
 	onConnectFail(error?: Error) {
@@ -255,12 +319,7 @@ export class Client {
 
 		case 'customgroups': {
 			const messageArguments: IClientMessageTypes['customgroups'] = {groups: JSON.parse(messageParts[0])};
-			this.serverGroups = {};
-			let ranking = messageArguments.groups.length;
-			for (let i = 0; i < messageArguments.groups.length; i++) {
-				this.serverGroups[messageArguments.groups[i].symbol] = Object.assign({ranking}, messageArguments.groups[i]);
-				ranking--;
-			}
+			this.parseServerGroups(messageArguments.groups);
 			break;
 		}
 
@@ -333,6 +392,15 @@ export class Client {
 		}
 
 		return true;
+	}
+
+	parseServerGroups(groups: ServerGroupData[]) {
+		this.serverGroups = {};
+		let ranking = groups.length;
+		for (let i = 0; i < groups.length; i++) {
+			this.serverGroups[groups[i].symbol] = Object.assign({ranking}, groups[i]);
+			ranking--;
+		}
 	}
 
 	send(message: string) {
