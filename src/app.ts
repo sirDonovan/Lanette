@@ -23,8 +23,20 @@ global.Games = new games.Games();
 import * as rooms from './rooms';
 global.Rooms = new rooms.Rooms();
 
+<<<<<<< HEAD
 import * as tournaments from './tournaments';
 global.Tournaments = new tournaments.Tournaments();
 
 import * as users from './users';
 global.Users = new users.Users();
+=======
+import * as storage from './storage';
+global.Storage = new storage.Storage();
+
+import * as users from './users';
+global.Users = new users.Users();
+
+Storage.importDatabases();
+Storage.globalDatabase = Storage.getDatabase('global');
+Client.connect();
+>>>>>>> Add Storage
