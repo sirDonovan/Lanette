@@ -228,7 +228,7 @@ export class Game extends Activity {
 			if (this.started) {
 				html += "<br /><br /><b>The game has started!</b>";
 			} else {
-				html += "<br /><button class='button' name='send' value='/pm " + Users.self.name + ", .joingame " + this.room.id + "'>Join</button>";
+				html += "<br /><button class='button' name='send' value='/pm " + Users.self.name + ", " + Config.commandCharacter + "joingame " + this.room.id + "'>Join</button>";
 			}
 		}
 		html += "</center></div>";
