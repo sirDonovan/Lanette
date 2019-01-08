@@ -240,7 +240,7 @@ export interface IAbilityCopy extends IAbilityData, IAbilityComputed {}
 export interface IAbility extends DeepReadonly<IAbilityCopy> {}
 
 export interface IFormatData extends IEventMethods {
-	effectType: 'Format';
+	effectType: "Format" | "Ruleset" | "Rule" | "ValidatorRule";
 	name: string;
 	banlist?: string[];
 	cannotMega?: string[];
@@ -292,7 +292,7 @@ export interface IFormatComputed {
 	banlist: NonNullable<IFormatData["banlist"]>;
 	customRules: string[] | null;
 	defaultLevel: number;
-	effectType: "Format";
+	effectType: "Format" | "Ruleset" | "Rule" | "ValidatorRule";
 	id: string;
 	info?: string;
 	'info-official'?: string;

@@ -2,6 +2,8 @@ import https = require('https');
 import { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/in-game-data-types';
 
 const MAX_MESSAGE_LENGTH = 300;
+const ALPHA_NUMERIC_REGEX = /[^a-zA-Z0-9 ]/g;
+const ID_REGEX = /[^a-z0-9]/g;
 const NUMBER_REGEX = /^[ .0-9]*$/g;
 
 export class Tools {
@@ -50,7 +52,7 @@ export class Tools {
 	}
 
 	toId(input: string | number | {id: string} | undefined): string {
-		if (!input) return '';
+		if (input === undefined) return '';
 		if (typeof input !== 'string') {
 			if (typeof input === 'number') {
 				input = '' + input;
@@ -58,7 +60,13 @@ export class Tools {
 				input = input.id;
 			}
 		}
-		return input.toLowerCase().replace(/[^a-z0-9]/g, '');
+		return input.toLowerCase().replace(ID_REGEX, '');
+	}
+
+	toAlphaNumeric(input: string | number | undefined): string {
+		if (input === undefined) return '';
+		if (typeof input === 'number') input = '' + input;
+		return input.replace(ALPHA_NUMERIC_REGEX, '').trim();
 	}
 
 	prepareMessage(message: string): string {

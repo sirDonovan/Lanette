@@ -1,7 +1,12 @@
 import { ICommandDefinition } from "./command-parser";
 import { Room } from "./rooms";
+import { IGameFormat } from "./types/games";
+import { IFormat } from "./types/in-game-data-types";
 
 const commands: Dict<ICommandDefinition> = {
+	/**
+	 * Developer
+	 */
 	eval: {
 		command(target, room, user) {
 			try {
@@ -91,6 +96,10 @@ const commands: Dict<ICommandDefinition> = {
 		aliases: ['hotpatch'],
 		developerOnly: true,
 	},
+
+	/**
+	 * Games
+	 */
 	creategame: {
 		command(target, room, user) {
 			if (this.isPm(room) || !user.hasRank(room, '+') || room.game || room.userHostedGame) return;
@@ -162,7 +171,6 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			let gameRoom: Room;
 			if (this.isPm(room)) {
-				if (!target) target = 'gamecorner';
 				const targetRoom = Rooms.get(Tools.toId(target));
 				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
 				if (!this.canPmHtml(targetRoom)) return;
@@ -218,6 +226,117 @@ const commands: Dict<ICommandDefinition> = {
 			const game = Games.createUserHostedGame(room, format, host);
 			game.signups();
 		},
+	},
+
+	/**
+	 * Storage
+	 */
+	leaderboard: {
+		command(target, room, user) {
+			const targets: string[] = target ? target.split(",") : [];
+			let leaderboardRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.get(Tools.toId(targets[0]));
+				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+				leaderboardRoom = targetRoom;
+			} else {
+				if (!user.hasRank(room, '+')) return;
+				leaderboardRoom = room;
+			}
+			const database = Storage.getDatabase(leaderboardRoom.id);
+			if (!database.leaderboard) return this.say("There is no leaderboard for the " + leaderboardRoom.id + " room.");
+			const users = Object.keys(database.leaderboard);
+			if (!users.length) return this.say("The " + leaderboardRoom.id + " leaderboard is empty.");
+			let startPosition = 0;
+			let source: IFormat | IGameFormat | undefined;
+			let annual = false;
+			for (let i = 0; i < targets.length; i++) {
+				const id = Tools.toId(targets[i]);
+				if (Tools.isNumber(id)) {
+					if (startPosition) return this.say("You can only specify 1 position on the leaderboard.");
+					startPosition = parseInt(id);
+				} else if (id === 'annual' || id === 'alltime') {
+					annual = true;
+				} else {
+					const format = Dex.getFormat(targets[i]);
+					if (format && format.effectType === 'Format') {
+						if (source) return this.say("You can only specify 1 point source.");
+						source = format;
+					} else {
+						const gameFormat = Games.getFormat(targets[i]);
+						if (gameFormat) {
+							if (source) return this.say("You can only specify 1 point source.");
+							source = gameFormat;
+						}
+					}
+				}
+			}
+
+			if (startPosition) {
+				if (startPosition > users.length) startPosition = users.length;
+				startPosition -= 10;
+				if (startPosition < 0) startPosition = 0;
+			}
+
+			const pointsCache: Dict<number> = {};
+
+			if (annual && source) {
+				users.sort((a, b) => {
+					let aPoints = 0;
+					let bPoints = 0;
+					if (database.leaderboard![a].sources[source!.id]) aPoints += database.leaderboard![a].sources[source!.id];
+					if (database.leaderboard![b].sources[source!.id]) bPoints += database.leaderboard![b].sources[source!.id];
+					if (database.leaderboard![a].annualSources[source!.id]) aPoints += database.leaderboard![a].annualSources[source!.id];
+					if (database.leaderboard![b].annualSources[source!.id]) bPoints += database.leaderboard![b].annualSources[source!.id];
+					if (!(a in pointsCache)) pointsCache[a] = aPoints;
+					if (!(b in pointsCache)) pointsCache[b] = bPoints;
+					return bPoints - aPoints;
+				});
+			} else if (annual) {
+				users.sort((a, b) => {
+					const aPoints = database.leaderboard![a].annual + database.leaderboard![a].current;
+					const bPoints = database.leaderboard![b].annual + database.leaderboard![b].current;
+					if (!(a in pointsCache)) pointsCache[a] = aPoints;
+					if (!(b in pointsCache)) pointsCache[b] = bPoints;
+					return bPoints - aPoints;
+				});
+			} else if (source) {
+				users.sort((a, b) => {
+					let aPoints = 0;
+					let bPoints = 0;
+					if (database.leaderboard![a].sources[source!.id]) aPoints += database.leaderboard![a].sources[source!.id];
+					if (database.leaderboard![b].sources[source!.id]) bPoints += database.leaderboard![b].sources[source!.id];
+					if (!(a in pointsCache)) pointsCache[a] = aPoints;
+					if (!(b in pointsCache)) pointsCache[b] = bPoints;
+					return bPoints - aPoints;
+				});
+			} else {
+				users.sort((a, b) => database.leaderboard![b].current - database.leaderboard![a].current);
+			}
+
+			const output: string[] = [];
+			let positions = 0;
+			for (let i = startPosition; i < users.length; i++) {
+				if (!users[i]) break;
+				const points = pointsCache[users[i]] || database.leaderboard[users[i]].current;
+				const position = '' + (i + 1);
+				if (position.endsWith('1') && !position.endsWith('11')) {
+					output.push(position + "st: __" + database.leaderboard[users[i]].name + "__ (" + points + ")");
+				} else if (position.endsWith('2') && !position.endsWith('12')) {
+					output.push(position + "nd: __" + database.leaderboard[users[i]].name + "__ (" + points + ")");
+				} else if (position.endsWith('3') && !position.endsWith('13')) {
+					output.push(position + "rd: __" + database.leaderboard[users[i]].name + "__ (" + points + ")");
+				} else {
+					output.push(position + "th: __" + database.leaderboard[users[i]].name + "__ (" + points + ")");
+				}
+				positions++;
+				if (positions >= 10) break;
+			}
+			let endPosition = startPosition + 10;
+			if (endPosition > users.length) endPosition = users.length;
+			this.say("``" + (annual ? "Annual " : "") + (source ? source.name + " " : "") + "Top " + endPosition + " of " + users.length + "``: " + output.join(", "));
+		},
+		aliases: ['lb', 'top'],
 	},
 };
 
