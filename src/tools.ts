@@ -5,6 +5,7 @@ const MAX_MESSAGE_LENGTH = 300;
 const ALPHA_NUMERIC_REGEX = /[^a-zA-Z0-9 ]/g;
 const ID_REGEX = /[^a-z0-9]/g;
 const NUMBER_REGEX = /^[ .0-9]*$/g;
+const SPACE_REGEX = /[ ]*/g;
 
 export class Tools {
 	random(limit?: number) {
@@ -61,6 +62,12 @@ export class Tools {
 			}
 		}
 		return input.toLowerCase().replace(ID_REGEX, '');
+	}
+
+	toRoomId(name: string): string {
+		const id = name.trim().toLowerCase();
+		if (id.startsWith('groupchat-')) return id.replace(SPACE_REGEX, '');
+		return this.toId(name);
 	}
 
 	toAlphaNumeric(input: string | number | undefined): string {
