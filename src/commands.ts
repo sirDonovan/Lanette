@@ -243,7 +243,7 @@ const commands: Dict<ICommandDefinition> = {
 				if (!user.hasRank(room, '+')) return;
 				leaderboardRoom = room;
 			}
-			const database = Storage.getDatabase(leaderboardRoom.id);
+			const database = Storage.getDatabase(leaderboardRoom);
 			if (!database.leaderboard) return this.say("There is no leaderboard for the " + leaderboardRoom.id + " room.");
 			const users = Object.keys(database.leaderboard);
 			if (!users.length) return this.say("The " + leaderboardRoom.id + " leaderboard is empty.");
@@ -325,6 +325,90 @@ const commands: Dict<ICommandDefinition> = {
 			this.say("``" + (annual ? "Annual " : "") + (source ? source.name + " " : "") + "Top " + endPosition + " of " + users.length + "``: " + output.join(", "));
 		},
 		aliases: ['lb', 'top'],
+	},
+	rank: {
+		command(target, room, user, cmd) {
+			if (!this.isPm(room)) return;
+			const targets: string[] = target ? target.split(',') : [];
+			const targetRoom = Rooms.get(Tools.toId(targets[0]));
+			if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+			const database = Storage.getDatabase(targetRoom);
+			if (!database.leaderboard) return this.say("There is no leaderboard for the " + targetRoom.id + " room.");
+			const users = Object.keys(database.leaderboard);
+			if (!users.length) return this.say("The " + targetRoom.id + " leaderboard is empty.");
+			let targetUser = '';
+			let position = 0;
+			let source: IFormat | IGameFormat | undefined;
+			for (let i = 1; i < targets.length; i++) {
+				const id = Tools.toId(targets[i]);
+				if (Tools.isNumber(id)) {
+					if (position) return this.say("You can only specify 1 position on the leaderboard.");
+					position = parseInt(id);
+				} else {
+					const format = Dex.getFormat(targets[i]);
+					if (format && format.effectType === 'Format') {
+						if (source) return this.say("You can only specify 1 point source.");
+						source = format;
+					} else {
+						const gameFormat = Games.getFormat(targets[i]);
+						if (gameFormat) {
+							if (source) return this.say("You can only specify 1 point source.");
+							source = gameFormat;
+						} else {
+							targetUser = id;
+						}
+					}
+				}
+			}
+
+			if (targetUser && position) return this.say("You can't specify both a username and a position.");
+
+			const bits = Config.allowScriptedGames.includes(targetRoom.id);
+			const currentPointsCache: Dict<number> = {};
+			const annualPointsCache: Dict<number> = {};
+			if (source) {
+				for (let i = 0; i < users.length; i++) {
+					let annualPoints = 0;
+					if (database.leaderboard[users[i]].sources[source.id]) annualPoints += database.leaderboard[users[i]].sources[source.id];
+					if (database.leaderboard[users[i]].annualSources[source.id]) annualPoints += database.leaderboard[users[i]].annualSources[source.id];
+					annualPointsCache[users[i]] = annualPoints;
+					currentPointsCache[users[i]] = database.leaderboard[users[i]].sources[source.id] || 0;
+				}
+			} else {
+				for (let i = 0; i < users.length; i++) {
+					annualPointsCache[users[i]] = database.leaderboard[users[i]].annual + database.leaderboard[users[i]].current;
+					currentPointsCache[users[i]] = database.leaderboard[users[i]].current;
+				}
+			}
+			const current = users.slice().sort((a, b) => currentPointsCache[b] - currentPointsCache[a]);
+			const annual = users.slice().sort((a, b) => annualPointsCache[b] - annualPointsCache[a]);
+
+			const results: string[] = [];
+			if (position) {
+				const index = position - 1;
+				if (current.length <= position) {
+					results.push("#" + position + " on the " + targetRoom.id + " " + (source ? source.name + " " : "") + "leaderboard is " + database.leaderboard[current[index]].name + " with " + (currentPointsCache[current[index]] || database.leaderboard[current[index]].current) + " " + (bits ? "bits" : "points") + ".");
+				}
+				if (annual.length <= position) {
+					results.push("#" + position + " on the annual " + targetRoom.id + " " + (source ? source.name + " " : "") + "leaderboard is " + database.leaderboard[annual[index]].name + " with " + annualPointsCache[annual[index]] + " " + (bits ? "bits" : "points") + ".");
+				}
+				if (!results.length) return this.say("No one is #" + position + " on the " + targetRoom.id + " " + (source ? source.name + " " : "") + "leaderboard.");
+			} else {
+				if (!targetUser) targetUser = user.id;
+				const self = targetUser === user.id;
+				const currentIndex = current.indexOf(targetUser);
+				const annualIndex = annual.indexOf(targetUser);
+				if (currentIndex !== -1) {
+					results.push((self ? "You are" : database.leaderboard[targetUser].name + " is") + " #" + (currentIndex + 1) + " on the " + targetRoom.id + " " + (source ? source.name + " " : "") + "leaderboard with " + (currentPointsCache[targetUser] || database.leaderboard[targetUser].current) + " " + (bits ? "bits" : "points") + ".");
+				}
+				if (annualIndex !== -1) {
+					results.push((self ? "You are" : database.leaderboard[targetUser].name + " is") + " #" + (annualIndex + 1) + " on the annual " + targetRoom.id + " " + (source ? source.name + " " : "") + "leaderboard with " + annualPointsCache[targetUser] + " " + (bits ? "bits" : "points") + ".");
+				}
+				if (!results.length) return this.say((self ? "You are" : database.leaderboard[targetUser].name + " is") + " not on the " + targetRoom.id + " " + (source ? source.name + " " : "") + "leaderboard.");
+			}
+			this.say(results.join(" "));
+		},
+		aliases: ['points', 'bits'],
 	},
 };
 

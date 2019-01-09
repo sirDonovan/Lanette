@@ -14,9 +14,9 @@ export class Storage {
 		return this.databaseCache;
 	}
 
-	getDatabase(roomid: string): IDatabase {
-		if (!(roomid in this.databases)) this.databases[roomid] = {};
-		return this.databases[roomid];
+	getDatabase(room: Room): IDatabase {
+		if (!(room.id in this.databases)) this.databases[room.id] = {};
+		return this.databases[room.id];
 	}
 
 	importDatabase(roomid: string) {
@@ -55,7 +55,7 @@ export class Storage {
 	addPoints(room: Room, name: string, amount: number, source: string): void {
 		if (!amount) return;
 		if (amount < 0) return this.removePoints(room, name, amount * -1, source);
-		const database = this.getDatabase(room.id);
+		const database = this.getDatabase(room);
 		if (!database.leaderboard) database.leaderboard = {};
 		name = Tools.toAlphaNumeric(name);
 		const id = Tools.toId(name);
@@ -81,7 +81,7 @@ export class Storage {
 	removePoints(room: Room, name: string, amount: number, source: string): void {
 		if (!amount) return;
 		if (amount < 0) return this.addPoints(room, name, amount * -1, source);
-		const database = this.getDatabase(room.id);
+		const database = this.getDatabase(room);
 		if (!database.leaderboard) return;
 		name = Tools.toAlphaNumeric(name);
 		const id = Tools.toId(name);
