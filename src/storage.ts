@@ -7,7 +7,6 @@ const databasesDir = path.resolve(__dirname, '.', '..', 'databases');
 
 export class Storage {
 	databaseCache: Dict<IDatabase> = {};
-	globalDatabase: IDatabase = {};
 	loadedDatabases: boolean = false;
 
 	get databases(): Dict<IDatabase> {
@@ -30,7 +29,7 @@ export class Storage {
 	}
 
 	exportDatabase(roomid: string) {
-		if (!(roomid in this.databaseCache)) return;
+		if (!(roomid in this.databaseCache) || roomid.startsWith('groupchat-')) return;
 		fs.writeFileSync(path.join(databasesDir, roomid + '.json'), JSON.stringify(this.databaseCache[roomid]));
 	}
 
