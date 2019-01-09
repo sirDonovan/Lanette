@@ -1,33 +1,28 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from '../room-activity';
-import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { commands as templateCommands, IPlayingCard, PlayingCard } from './templates/playing-card';
 
 class MurkrowsBlackjack extends PlayingCard {
-	roundActions = new Set<Player>();
-	roundLimit: number = 20;
-	wagers = new Map<Player, number>();
-	wagerTime: boolean = false;
-	wagerLimit: number = 300;
-	canHit: boolean = false;
-	dealersHand: number = 0;
 	blackjackGame: number = 0;
-	maxBlackjackGames: number = 5;
-	maxHandTotal: number = 21;
 	blackJackpots = new Map<Player, number>();
+	canHit: boolean = false;
+	canWager: boolean = true;
+	dealersHand: number = 0;
 	faceCardValues = {
 		J: 10,
 		Q: 10,
 		K: 10,
 		A: 11,
 	};
+	maxBlackjackGames: number = 5;
+	maxHandTotal: number = 21;
+	roundActions = new Set<Player>();
+	roundLimit: number = 20;
+	wagerLimit: number = 300;
+	wagers = new Map<Player, number>();
 
 	dealersTopCard!: IPlayingCard;
-
-	constructor(room: Room) {
-		super(room);
-	}
 
 	getHandInfoHtml(player: Player) {
 		let info = '';
@@ -43,7 +38,12 @@ class MurkrowsBlackjack extends PlayingCard {
 	}
 
 	onStart() {
+		this.canWager = false;
 		this.nextBlackJackGame();
+	}
+
+	onSignups() {
+		this.say("Place your wager for each game now with ``" + Config.commandCharacter + "wager amount``!");
 	}
 
 	startBlackjackGame() {
@@ -54,7 +54,6 @@ class MurkrowsBlackjack extends PlayingCard {
 			this.playerCards.clear();
 			this.playerTotals.clear();
 		}
-		this.wagerTime = false;
 		const cards = this.getCards(2);
 		if (cards[0].name === 'A' && cards[1].name === 'A') cards[0].value = 1;
 		this.dealersTopCard = cards[0];
@@ -168,16 +167,16 @@ class MurkrowsBlackjack extends PlayingCard {
 			this.say("**Winner" + (this.winners.size > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners));
 			this.winners.forEach((wins, user) => {
 				const wager = this.wagers.get(user);
-				let earnings = (wager ? (wager * 2) : 100);
-				earnings *= wins;
-				if (earnings > 1000) {
-					earnings = 1000;
-				} else if (earnings < 100) {
-					earnings = 100;
+				let bits = (wager ? (wager * 2) : 100);
+				bits *= wins;
+				if (bits > this.maxBits) {
+					bits = this.maxBits;
+				} else if (bits < 100) {
+					bits = 100;
 				}
 				const blackJackpots = this.blackJackpots.get(user);
-				if (blackJackpots) earnings += blackJackpots;
-				// this.addBits(earnings, user);
+				if (blackJackpots) bits += blackJackpots;
+				this.addBits(user, bits);
 			});
 		} else if (this.dealersHand > 21) {
 			this.say("No winners this " + (this.parentGame ? "round" : "game") + "!");
@@ -229,6 +228,24 @@ const commands: Dict<ICommandDefinition<MurkrowsBlackjack>> = {
 			this.roundActions.add(player);
 		},
 		pmGameCommand: true,
+	},
+	wager: {
+		command(target, room, user) {
+			if (!(user.id in this.players)) return;
+			if (!this.canWager) return user.say("You must place your wager before the game starts.");
+			const player = this.players[user.id];
+			const database = Storage.getDatabase(this.room);
+			if (!database.leaderboard || !(user.id in database.leaderboard)) return;
+			const bits = database.leaderboard[user.id].current;
+			if (!bits) return user.say("You don't have any bits to wager!");
+			let wager = parseInt(target.trim().split(" ")[0]);
+			if (wager <= 0 || isNaN(wager)) return;
+			if (this.wagerLimit && wager > this.wagerLimit) wager = this.wagerLimit;
+			if (wager > bits) return user.say("You can't wager more bits than you currently have!");
+			wager = Math.floor(wager);
+			this.wagers.set(player, wager);
+			user.say("Your wager for " + wager + " bits has been placed!");
+		},
 	},
 };
 

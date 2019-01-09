@@ -112,7 +112,7 @@ export const commands: Dict<ICommandDefinition<Guessing>> = {
 					}
 					*/
 					this.winners.set(player, 1);
-					// this.convertPointsToBits();
+					this.convertPointsToBits();
 					this.end();
 					return;
 				} else {

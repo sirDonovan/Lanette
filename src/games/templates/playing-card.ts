@@ -90,7 +90,7 @@ export class PlayingCard extends Game {
 		if (!cards) {
 			if (this.wagers) {
 				const wager = this.wagers.get(player);
-				// if (wager) Storage.subtractPoints(player.name, wager, this.room.id);
+				if (wager) Storage.removePoints(this.room, player.name, wager, this.id);
 			}
 			cards = this.getCards(this.startingHandAmount);
 			let total = 0;
