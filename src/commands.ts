@@ -250,7 +250,7 @@ const commands: Dict<ICommandDefinition> = {
 			let startPosition = 0;
 			let source: IFormat | IGameFormat | undefined;
 			let annual = false;
-			for (let i = 0; i < targets.length; i++) {
+			for (let i = 1; i < targets.length; i++) {
 				const id = Tools.toId(targets[i]);
 				if (Tools.isNumber(id)) {
 					if (startPosition) return this.say("You can only specify 1 position on the leaderboard.");
@@ -281,38 +281,26 @@ const commands: Dict<ICommandDefinition> = {
 			const pointsCache: Dict<number> = {};
 
 			if (annual && source) {
-				users.sort((a, b) => {
-					let aPoints = 0;
-					let bPoints = 0;
-					if (database.leaderboard![a].sources[source!.id]) aPoints += database.leaderboard![a].sources[source!.id];
-					if (database.leaderboard![b].sources[source!.id]) bPoints += database.leaderboard![b].sources[source!.id];
-					if (database.leaderboard![a].annualSources[source!.id]) aPoints += database.leaderboard![a].annualSources[source!.id];
-					if (database.leaderboard![b].annualSources[source!.id]) bPoints += database.leaderboard![b].annualSources[source!.id];
-					if (!(a in pointsCache)) pointsCache[a] = aPoints;
-					if (!(b in pointsCache)) pointsCache[b] = bPoints;
-					return bPoints - aPoints;
-				});
+				for (let i = 0; i < users.length; i++) {
+					let points = 0;
+					if (database.leaderboard[users[i]].sources[source.id]) points += database.leaderboard[users[i]].sources[source.id];
+					if (database.leaderboard[users[i]].annualSources[source.id]) points += database.leaderboard[users[i]].annualSources[source.id];
+					pointsCache[users[i]] = points;
+				}
 			} else if (annual) {
-				users.sort((a, b) => {
-					const aPoints = database.leaderboard![a].annual + database.leaderboard![a].current;
-					const bPoints = database.leaderboard![b].annual + database.leaderboard![b].current;
-					if (!(a in pointsCache)) pointsCache[a] = aPoints;
-					if (!(b in pointsCache)) pointsCache[b] = bPoints;
-					return bPoints - aPoints;
-				});
+				for (let i = 0; i < users.length; i++) {
+					pointsCache[users[i]] = database.leaderboard[users[i]].annual + database.leaderboard[users[i]].current;
+				}
 			} else if (source) {
-				users.sort((a, b) => {
-					let aPoints = 0;
-					let bPoints = 0;
-					if (database.leaderboard![a].sources[source!.id]) aPoints += database.leaderboard![a].sources[source!.id];
-					if (database.leaderboard![b].sources[source!.id]) bPoints += database.leaderboard![b].sources[source!.id];
-					if (!(a in pointsCache)) pointsCache[a] = aPoints;
-					if (!(b in pointsCache)) pointsCache[b] = bPoints;
-					return bPoints - aPoints;
-				});
+				for (let i = 0; i < users.length; i++) {
+					pointsCache[users[i]] = database.leaderboard[users[i]].sources[source.id] || 0;
+				}
 			} else {
-				users.sort((a, b) => database.leaderboard![b].current - database.leaderboard![a].current);
+				for (let i = 0; i < users.length; i++) {
+					pointsCache[users[i]] = database.leaderboard[users[i]].current;
+				}
 			}
+			users.sort((a, b) => pointsCache[b] - pointsCache[a]);
 
 			const output: string[] = [];
 			let positions = 0;
