@@ -34,13 +34,13 @@ export class Player {
 	}
 
 	sayUhtml(html: string, id?: string) {
-		let uhtmlId = this.activity.id;
+		let uhtmlId = this.activity.uhtmlId || this.activity.id;
 		if (id) uhtmlId += id;
 		this.activity.room.pmUhtml(this, uhtmlId, html);
 	}
 
 	sayUhtmlChange(html: string, id?: string) {
-		let uhtmlId = this.activity.id;
+		let uhtmlId = this.activity.uhtmlId || this.activity.id;
 		if (id) uhtmlId += id;
 		this.activity.room.pmUhtmlChange(this, uhtmlId, html);
 	}
@@ -60,6 +60,8 @@ export abstract class Activity {
 	// set in initialize()
 	id!: string;
 	name!: string;
+
+	uhtmlId?: string;
 
 	room: Room;
 
@@ -111,13 +113,13 @@ export abstract class Activity {
 	}
 
 	sayUhtml(html: string, id?: string) {
-		let uhtmlId = this.id;
+		let uhtmlId = this.uhtmlId || this.id;
 		if (id) uhtmlId += '-' + id;
 		this.room.sayUhtml(uhtmlId, html);
 	}
 
 	sayUhtmlChange(html: string, id?: string) {
-		let uhtmlId = this.id;
+		let uhtmlId = this.uhtmlId || this.id;
 		if (id) uhtmlId += '-' + id;
 		this.room.sayUhtmlChange(uhtmlId, html);
 	}

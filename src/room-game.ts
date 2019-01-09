@@ -54,6 +54,7 @@ export class Game extends Activity {
 	parentGame: Game | null = null;
 	round: number = 0;
 	signupsTime: number = 0;
+	userHosted: boolean = false;
 	winnerPointsToBits: number = 50;
 	winners = new Map<Player, number>();
 
@@ -75,6 +76,7 @@ export class Game extends Activity {
 		this.inputOptions = this.format.inputOptions;
 		this.name = format.name;
 		this.id = format.id;
+		this.uhtmlId = 'scripted-' + format.id;
 		this.description = format.description;
 
 		if (format.commands) Object.assign(this.commands, format.commands);
@@ -208,6 +210,7 @@ export class Game extends Activity {
 
 	getSignupsHtml(): string {
 		let html = "<div class='infobox'><center>";
+		let gifHtml = '';
 		if (this.mascot) {
 			if (this.shinyMascot === undefined) {
 				if (this.rollForShinyPokemon()) {
@@ -218,9 +221,17 @@ export class Game extends Activity {
 				}
 			}
 			const gif = Dex.getPokemonGif(this.mascot);
-			if (gif) html += gif + "&nbsp;&nbsp;&nbsp;";
+			if (gif) gifHtml = gif;
 		}
-		html += "<b><font size='3'>" + this.nameWithOptions + "</font></b><br />" + this.description;
+		const nameHtml = "<b><font size='3'>" + this.nameWithOptions + "</font></b>";
+		if (this.userHosted) {
+			html += nameHtml;
+			html += "&nbsp;&nbsp;&nbsp;" + gifHtml;
+		} else {
+			html += gifHtml + "&nbsp;&nbsp;&nbsp;";
+			html += nameHtml;
+		}
+		html += "<br />" + this.description;
 		let commandDescriptions: string[] = [];
 		if (this.getPlayerSummary) commandDescriptions.push(Config.commandCharacter + "summary");
 		if (this.format.commandDescriptions) commandDescriptions = commandDescriptions.concat(this.format.commandDescriptions);

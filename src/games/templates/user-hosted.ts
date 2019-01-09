@@ -10,10 +10,12 @@ export class UserHosted extends Game {
 	hostId: string = '';
 	hostName: string = '';
 	points = new Map<Player, number>();
+	userHosted = true;
 
 	onInitialize() {
 		this.endTime = Date.now() + timeLimit;
 		this.nameWithOptions = this.hostName + "'s " + this.nameWithOptions;
+		this.uhtmlId = 'userhosted-' + this.id;
 	}
 
 	setHost(host: User) {

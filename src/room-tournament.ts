@@ -89,6 +89,8 @@ export class Tournament extends Activity {
 		this.format = format;
 		this.playerCap = playerCap;
 		this.name = format.name;
+		this.id = format.id;
+
 		const generatorName = generator.split(" ")[0];
 		if (generatorName in generators) {
 			this.generator = generators[generatorName];
