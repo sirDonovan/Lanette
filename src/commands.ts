@@ -188,7 +188,7 @@ const commands: Dict<ICommandDefinition> = {
 			}
 			if (gameRoom.game) {
 				const game = gameRoom.game;
-				let html = (game.mascot ? Dex.getPokemonIcon(game.mascot) : "") + " <b>" + game.nameWithOptions + "</b><br />";
+				let html = (game.mascot ? Dex.getPokemonIcon(game.mascot) : "") + "<b>" + game.nameWithOptions + "</b><br />";
 				if (game.started) {
 					html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - game.startTime) + "<br />";
 					const remainingPlayers = game.getRemainingPlayerCount();
@@ -204,7 +204,7 @@ const commands: Dict<ICommandDefinition> = {
 				this.sayHtml(html, gameRoom);
 			} else if (gameRoom.userHostedGame) {
 				const game = gameRoom.userHostedGame;
-				let html = (game.mascot ? Dex.getPokemonIcon(game.mascot) : "") + " <b>" + game.nameWithOptions + "</b><br />";
+				let html = "<b>" + game.nameWithOptions + "</b>" + (game.mascot ?  Dex.getPokemonIcon(game.mascot) : "") + "<br />";
 				html += "<b>Remaining time</b>: " + Tools.toDurationString(game.endTime - Date.now()) + "<br />";
 				if (game.started) {
 					html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - game.startTime) + "<br />";
