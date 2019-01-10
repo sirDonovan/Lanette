@@ -46,14 +46,14 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	reload: {
 		command(target, room, user) {
-			type ReloadableModules = 'tools' | 'commandparser' | 'commands' | 'config' | 'dex' | 'games' | 'tournaments';
+			type ReloadableModules = 'tools' | 'commandparser' | 'commands' | 'config' | 'dex' | 'games' | 'storage' | 'tournaments';
 			const modules: ReloadableModules[] = [];
 			const targets = target.split(",");
 			for (let i = 0; i < targets.length; i++) {
 				const id = Tools.toId(targets[i]);
 				if (id === 'tools') {
 					modules.unshift(id);
-				} else if (id === 'commandparser' || id === 'commands' || id === 'config' || id === 'dex' || id === 'games' || id === 'tournaments') {
+				} else if (id === 'commandparser' || id === 'commands' || id === 'config' || id === 'dex' || id === 'games' || id === 'storage' || id === 'tournaments') {
 					modules.push(id);
 				} else {
 					return this.say("Unknown module '" + targets[i].trim() + "'.");
@@ -85,6 +85,13 @@ const commands: Dict<ICommandDefinition> = {
 					} else if (modules[i] === 'games') {
 						Tools.uncacheTree('./games');
 						global.Games = new (require('./games').Games)();
+					} else if (modules[i] === 'storage') {
+						const databaseCache = Storage.databaseCache;
+						const loadedDatabases = Storage.loadedDatabases;
+						Tools.uncacheTree('./storage');
+						global.Storage = new (require('./storage').Storage)();
+						Storage.databaseCache = databaseCache;
+						Storage.loadedDatabases = loadedDatabases;
 					} else if (modules[i] === 'tournaments') {
 						Tools.uncacheTree('./tournaments');
 						global.Tournaments = new (require('./tournaments').Tournaments)();
