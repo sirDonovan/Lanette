@@ -145,7 +145,16 @@ export class Game extends Activity {
 	}
 
 	deallocate() {
-		this.room.game = null;
+		if (this.userHosted) {
+			this.room.userHostedGame = null;
+		} else {
+			this.room.game = null;
+		}
+
+		if (this.parentGame) {
+			this.room.game = this.parentGame;
+			if (this.parentGame.onChildEnd) this.parentGame.onChildEnd(this.winners);
+		}
 	}
 
 	forceEnd(user: User) {
@@ -303,6 +312,7 @@ export class Game extends Activity {
 	getPlayerSummary?(player: Player): void;
 	/** Return `false` to prevent a user from being added (must destroy player) */
 	onAddPlayer?(player: Player): boolean;
+	onChildEnd?(winners: Map<Player, number>): void;
 	onInitialize?(): void;
 	onNextRound?(): void;
 	onRemovePlayer?(player: Player): void;
