@@ -204,7 +204,7 @@ const commands: Dict<ICommandDefinition> = {
 				this.sayHtml(html, gameRoom);
 			} else if (gameRoom.userHostedGame) {
 				const game = gameRoom.userHostedGame;
-				let html = "<b>" + game.nameWithOptions + "</b>" + (game.mascot ?  Dex.getPokemonIcon(game.mascot) : "") + "<br />";
+				let html = (game.mascot ? Dex.getPokemonIcon(game.mascot, true) : "") + "<b>" + game.nameWithOptions + "</b><br />";
 				html += "<b>Remaining time</b>: " + Tools.toDurationString(game.endTime - Date.now()) + "<br />";
 				if (game.started) {
 					html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - game.startTime) + "<br />";

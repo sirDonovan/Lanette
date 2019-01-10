@@ -220,7 +220,6 @@ export class Game extends Activity {
 
 	getSignupsHtml(): string {
 		let html = "<div class='infobox'><center>";
-		let gifHtml = '';
 		if (this.mascot) {
 			if (this.shinyMascot === undefined) {
 				if (this.rollForShinyPokemon()) {
@@ -230,17 +229,10 @@ export class Game extends Activity {
 					this.shinyMascot = false;
 				}
 			}
-			const gif = Dex.getPokemonGif(this.mascot);
-			if (gif) gifHtml = gif;
+			const gif = Dex.getPokemonGif(this.mascot, this.userHosted ? 'back' : 'front');
+			if (gif) html += gif + "&nbsp;&nbsp;&nbsp;";
 		}
-		const nameHtml = "<b><font size='3'>" + this.nameWithOptions + "</font></b>";
-		if (this.userHosted) {
-			html += nameHtml;
-			html += "&nbsp;&nbsp;&nbsp;" + gifHtml;
-		} else {
-			html += gifHtml + "&nbsp;&nbsp;&nbsp;";
-			html += nameHtml;
-		}
+		html += "<b><font size='3'>" + this.nameWithOptions + "</font></b>";
 		html += "<br />" + this.description;
 		let commandDescriptions: string[] = [];
 		if (this.getPlayerSummary) commandDescriptions.push(Config.commandCharacter + "summary");
