@@ -23,6 +23,10 @@ export class UserHosted extends Game {
 		this.hostName = host.name;
 	}
 
+	onDeallocate() {
+		if (this.timeout) clearTimeout(this.timeout);
+	}
+
 	onSignups() {
 		const firstWarning = 5 * 60 * 1000;
 		const secondWarning = 30 * 1000;

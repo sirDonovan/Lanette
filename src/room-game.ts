@@ -145,6 +145,7 @@ export class Game extends Activity {
 	}
 
 	deallocate() {
+		if (this.onDeallocate) this.onDeallocate();
 		if (this.userHosted) {
 			this.room.userHostedGame = null;
 		} else {
@@ -313,6 +314,7 @@ export class Game extends Activity {
 	/** Return `false` to prevent a user from being added (must destroy player) */
 	onAddPlayer?(player: Player): boolean;
 	onChildEnd?(winners: Map<Player, number>): void;
+	onDeallocate?(): void;
 	onInitialize?(): void;
 	onNextRound?(): void;
 	onRemovePlayer?(player: Player): void;
