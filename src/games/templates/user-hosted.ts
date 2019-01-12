@@ -9,7 +9,9 @@ export class UserHosted extends Game {
 	endTime: number = 0;
 	hostId: string = '';
 	hostName: string = '';
+	hostTimeout: NodeJS.Timer | null = null;
 	points = new Map<Player, number>();
+	scoreCap: number = 0;
 	userHosted = true;
 
 	onInitialize() {
@@ -24,17 +26,17 @@ export class UserHosted extends Game {
 	}
 
 	onDeallocate() {
-		if (this.timeout) clearTimeout(this.timeout);
+		if (this.hostTimeout) clearTimeout(this.hostTimeout);
 	}
 
 	onSignups() {
 		const firstWarning = 5 * 60 * 1000;
 		const secondWarning = 30 * 1000;
-		this.timeout = setTimeout(() => {
+		this.hostTimeout = setTimeout(() => {
 			this.say(this.hostName + " you have " + Tools.toDurationString(firstWarning) + " left! Please start to finish up your game.");
-			this.timeout = setTimeout(() => {
+			this.hostTimeout = setTimeout(() => {
 				this.say(this.hostName + " you have " + Tools.toDurationString(secondWarning) + " left! Please declare the winner(s) with .win.");
-				this.timeout = setTimeout(() => {
+				this.hostTimeout = setTimeout(() => {
 					this.say(this.hostName + " your time is up!");
 					this.end();
 				}, secondWarning);

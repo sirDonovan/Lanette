@@ -1,11 +1,13 @@
 import { ICommandDefinition } from "./command-parser";
+import { Player } from "./room-activity";
 import { Room } from "./rooms";
 import { IGameFormat } from "./types/games";
 import { IFormat } from "./types/in-game-data-types";
+import { User } from "./users";
 
 const commands: Dict<ICommandDefinition> = {
 	/**
-	 * Developer
+	 * Developer commands
 	 */
 	eval: {
 		command(target, room, user) {
@@ -105,7 +107,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 
 	/**
-	 * Games
+	 * Game commands
 	 */
 	creategame: {
 		command(target, room, user) {
@@ -234,9 +236,124 @@ const commands: Dict<ICommandDefinition> = {
 			game.signups();
 		},
 	},
+	addpoints: {
+		command(target, room, user, cmd) {
+			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
+			const users: User[] = [];
+			let points = 1;
+			const targets = target.split(",");
+			for (let i = 0, len = targets.length; i < len; i++) {
+				const target = Tools.toId(targets[i]);
+				if (!target) continue;
+				let user = Users.get(target);
+				if (Tools.isNumber(target)) {
+					points = Math.round(parseInt(target));
+					if (points < 1) points = 1;
+				} else {
+					user = Users.get(targets[i]);
+					if (user) users.push(user);
+				}
+			}
+			if (!users.length) return this.say("Please specify at least one user.");
+			if (cmd === 'removepoints' || cmd === 'removepoint' || cmd === 'rpt') points *= -1;
+			let reachedCap = 0;
+			for (let i = 0; i < users.length; i++) {
+				const player = room.userHostedGame.players[users[i].id] || room.userHostedGame.createPlayer(users[i]);
+				if (player.eliminated) player.eliminated = false;
+				let total = room.userHostedGame.points.get(player) || 0;
+				total += points;
+				room.userHostedGame.points.set(player, total);
+				if (room.userHostedGame.scoreCap && total >= room.userHostedGame.scoreCap) reachedCap++;
+			}
+			if (reachedCap) user.say((reachedCap === 1 ? "A user has" : reachedCap + " users have") + " reached the score cap in your game!");
+		},
+		aliases: ['addpoints', 'removepoint', 'removepoints', 'apt', 'rpt'],
+	},
+	scorecap: {
+		command(target, room, user) {
+			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
+			const id = Tools.toId(target);
+			if (!id) {
+				if (room.userHostedGame.scoreCap) return this.say("The score cap is set to " + room.userHostedGame.scoreCap + ".");
+				return this.say("There is no score cap set.");
+			}
+			const cap = parseInt(id);
+			if (isNaN(cap)) return this.say("Please specify a valid number.");
+			room.userHostedGame.scoreCap = cap;
+			this.say("The score cap has been set to " + cap + ".");
+		},
+	},
+	winner: {
+		command(target, room, user, cmd) {
+			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
+			const targets = target.split(",");
+			let players: Player[] = [];
+			let bits = 100;
+			let multiplier: number | null = null;
+			let placesToWin = 1;
+			if (cmd === 'autowin') {
+				const possiblePlaces = parseInt(target);
+				if (!isNaN(possiblePlaces)) {
+					if (possiblePlaces < 1 || possiblePlaces > 3) return this.say("You can only auto-win the top 1-3 places.");
+					placesToWin = possiblePlaces;
+				}
+
+				const usersByPoints: Dict<Player[]> = {};
+				for (const i in room.userHostedGame.players) {
+					const player = room.userHostedGame.players[i];
+					if (player.eliminated || !room.userHostedGame.points.has(player)) continue;
+					const points = '' + room.userHostedGame.points.get(player);
+					if (!(points in usersByPoints)) usersByPoints[points] = [];
+					usersByPoints[points].push(player);
+				}
+
+				const sortedPoints = Object.keys(usersByPoints).sort((a, b) => parseInt(b) - parseInt(a));
+				for (let i = 0; i < placesToWin; i++) {
+					if (!sortedPoints[i]) break;
+					players = players.concat(usersByPoints[sortedPoints[i]]);
+				}
+
+				if (!players.length) return this.say("No one has any points in this game.");
+			} else {
+				for (let i = 0, len = targets.length; i < len; i++) {
+					const id = Tools.toId(targets[i]);
+					if (!id) continue;
+					if (Tools.isNumber(id)) {
+						multiplier = parseFloat(targets[i].trim());
+					} else {
+						if (id in room.userHostedGame.players) {
+							if (!players.includes(room.userHostedGame.players[id])) players.push(room.userHostedGame.players[id]);
+						}
+					}
+				}
+
+				if (!players.length) return this.say("Please specify at least 1 user who is in the room.");
+			}
+
+			if (multiplier) {
+				if (multiplier > 3) {
+					multiplier = 3;
+				} else if (multiplier < 1) {
+					multiplier = 1;
+				}
+			} else {
+				multiplier = 2.5;
+			}
+
+			bits = Math.ceil(bits * multiplier);
+
+			for (let i = 0; i < players.length; i++) {
+				Storage.addPoints(room, players[i].name, bits, 'userhosted');
+				players[i].say("You were awarded " + bits + "bits! To see your total amount, use the command ``" + Config.commandCharacter + "bits``");
+			}
+			this.say("The winner" + (players.length === 1 ? " is" : "s are") + " " + players.map(x => x.name).join(", ") + "! Thanks for hosting.");
+			room.userHostedGame.end();
+		},
+		aliases: ['autowin', 'win'],
+	},
 
 	/**
-	 * Storage
+	 * Storage commands
 	 */
 	leaderboard: {
 		command(target, room, user) {

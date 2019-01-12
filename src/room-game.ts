@@ -160,16 +160,17 @@ export class Game extends Activity {
 
 	forceEnd(user: User) {
 		if (this.timeout) clearTimeout(this.timeout);
-		this.say("The " + this.name + " " + this.activityType + " was forcibly ended.");
+		this.say((!this.userHosted ? "The " : "") + this.nameWithOptions + " " + this.activityType + " was forcibly ended.");
 		if (this.onForceEnd) this.onForceEnd(user);
 		this.deallocate();
 	}
 
 	signups() {
-		// TODO: check internal/userhosted/custom signups
+		// TODO: check internal/custom signups
 		this.showSignupsHtml = true;
 		this.sayUhtml(this.getSignupsHtml(), "signups");
 		this.signupsTime = Date.now();
+		if (!this.userHosted && this.shinyMascot) this.say(this.mascot!.name + " is shiny so bits will be doubled!");
 		if (this.onSignups) this.onSignups();
 		if (this.options.freejoin) {
 			this.started = true;
