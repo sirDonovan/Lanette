@@ -32,6 +32,7 @@ exports.BattleFormatLinks = {
 	'gen7middlecup': {name: '[Gen 7] Middle Cup', teams: '3588047/#post-7106554'},
 	'gen7zu': {name: '[Gen 7] ZU', teams: '3629669/#post-7705486'},
 	'gen72v2doubles': {name: '[Gen 7] 2v2 Doubles', teams: '3606989/#post-7397203'},
+	'gen7partnersincrime': {name: '[Gen 7] Partners in Crime', info: '3618488', teams: '3618488/#post-7553309'},
 
 	// Gen 6
 	'gen6anythinggoes': {name: '[Gen 6] Anything Goes', info: 'http://www.smogon.com/dex/xy/formats/ag', viability: '3548945/#post-6412092', teams: '3548945/#post-6412093'},
