@@ -443,7 +443,7 @@ export class Dex {
 	getAbility(name: string): IAbility | null {
 		let id = Tools.toId(name);
 		if (!id) return null;
-		if (this.data.aliases.hasOwnProperty(id)) id = this.data.aliases[id]!;
+		if (this.data.aliases.hasOwnProperty(id)) id = Tools.toId(this.data.aliases[id]);
 		if (!this.data.abilities.hasOwnProperty(id)) return null;
 
 		const cached = this.abilityCache.get(id);
@@ -486,7 +486,7 @@ export class Dex {
 	getItem(name: string): IItem | null {
 		let id = Tools.toId(name);
 		if (!id) return null;
-		if (this.data.aliases.hasOwnProperty(id)) id = this.data.aliases[id]!;
+		if (this.data.aliases.hasOwnProperty(id)) id = Tools.toId(this.data.aliases[id]);
 		if (!this.data.items.hasOwnProperty(id)) return null;
 
 		const cached = this.itemCache.get(id);
@@ -541,7 +541,7 @@ export class Dex {
 	getMove(name: string): IMove | null {
 		let id = Tools.toId(name);
 		if (!id) return null;
-		if (this.data.aliases.hasOwnProperty(id)) id = this.data.aliases[id]!;
+		if (this.data.aliases.hasOwnProperty(id)) id = Tools.toId(this.data.aliases[id]);
 		if (!this.data.moves.hasOwnProperty(id)) return null;
 
 		const cached = this.moveCache.get(id);
@@ -594,7 +594,7 @@ export class Dex {
 	getPokemon(name: string): IPokemon | null {
 		let id = Tools.toId(name);
 		if (!id) return null;
-		if (this.data.aliases.hasOwnProperty(id)) id = this.data.aliases[id]!;
+		if (this.data.aliases.hasOwnProperty(id)) id = Tools.toId(this.data.aliases[id]);
 		if (!this.data.pokedex.hasOwnProperty(id)) return null;
 
 		const cached = this.pokemonCache.get(id);
@@ -680,7 +680,7 @@ export class Dex {
 	getFormat(name: string): IFormat | null {
 		let id = Tools.toId(name);
 		if (!id) return null;
-		if (this.data.aliases.hasOwnProperty(id)) id = this.data.aliases[id]!;
+		if (this.data.aliases.hasOwnProperty(id)) id = Tools.toId(this.data.aliases[id]);
 		if (!this.data.formats.hasOwnProperty(id)) return null;
 		// data computed in includeFormats();
 		return Object.assign({}, this.data.formats[id]);
