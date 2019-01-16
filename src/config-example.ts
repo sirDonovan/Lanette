@@ -46,3 +46,8 @@ export let developers: string[] = [];
  * A list of rooms (roomids) where scripted games are allowed to be played
  */
 export let allowScriptedGames: string[] = [];
+
+/**
+ * A list of rooms (roomids) where messages will not be logged
+ */
+export let disallowChatLogging: string[] = [];

@@ -67,4 +67,5 @@ databases/*
 !databases/README.md
 design.txt
 Pokemon-Showdown/
+roomlogs/
 src/config.ts

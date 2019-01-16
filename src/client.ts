@@ -330,6 +330,9 @@ export class Client {
 			const user = Users.add(messageArguments.username);
 			room.users.add(user);
 			user.rooms.set(room, messageArguments.rank);
+			if (room.logChatMessages) {
+				Storage.logChatMessage(room, Date.now(), 'J', messageArguments.rank + user.name);
+			}
 			break;
 		}
 
@@ -341,6 +344,9 @@ export class Client {
 			room.users.delete(user);
 			user.rooms.delete(room);
 			if (!user.rooms.size) Users.remove(user);
+			if (room.logChatMessages) {
+				Storage.logChatMessage(room, Date.now(), 'L', messageArguments.rank + user.name);
+			}
 			break;
 		}
 
@@ -372,6 +378,9 @@ export class Client {
 				}
 			} else {
 				CommandParser.parse(room, user, messageArguments.message);
+			}
+			if (room.logChatMessages) {
+				Storage.logChatMessage(room, messageArguments.timestamp, 'c', messageArguments.rank + user.name + '|' + messageArguments.message);
 			}
 			break;
 		}

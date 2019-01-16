@@ -12,10 +12,12 @@ export class Room {
 	users = new Set<User>();
 
 	id: string;
+	logChatMessages: boolean;
 	sendId: string;
 
 	constructor(id: string) {
 		this.id = id;
+		this.logChatMessages = !id.startsWith('battle-') && !id.startsWith('groupchat-') && !Config.disallowChatLogging.includes(id);
 		this.sendId = id === 'lobby' ? '' : id;
 	}
 

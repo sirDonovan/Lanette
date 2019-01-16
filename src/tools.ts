@@ -81,6 +81,22 @@ export class Tools {
 		return message;
 	}
 
+	/**
+	 * Returns a timestamp in the form {yyyy}-{MM}-{dd} {hh}:{mm}:{ss}.
+	 *
+	 * options.human = true will reports hours human-readable
+	 */
+	toTimestampString(date: Date, options?: Dict<any>): string {
+		const human = options && options.human;
+		let parts: any[] = [date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()];
+		if (human) {
+			parts.push(parts[3] >= 12 ? 'pm' : 'am');
+			parts[3] = parts[3] % 12 || 12;
+		}
+		parts = parts.map(val => val < 10 ? '0' + val : '' + val);
+		return parts.slice(0, 3).join("-") + " " + parts.slice(3, human ? 5 : 6).join(":") + (human ? "" + parts[6] : "");
+	}
+
 	toDurationString(input: number, options?: {precision?: number, hhmmss?: boolean}): string {
 		const date = new Date(+input);
 		const parts = [date.getUTCFullYear() - 1970, date.getUTCMonth(), date.getUTCDate() - 1, date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()];

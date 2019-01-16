@@ -8,6 +8,8 @@ const databasesDir = path.resolve(__dirname, '.', '..', 'databases');
 export class Storage {
 	databaseCache: Dict<IDatabase> = {};
 	loadedDatabases: boolean = false;
+	chatLogFilePathCache: Dict<string> = {};
+	chatLogRolloverTimes: Dict<number> = {};
 
 	get databases(): Dict<IDatabase> {
 		if (!this.loadedDatabases) this.importDatabases();
@@ -29,7 +31,7 @@ export class Storage {
 	}
 
 	exportDatabase(roomid: string) {
-		if (!(roomid in this.databaseCache) || roomid.startsWith('groupchat-')) return;
+		if (!(roomid in this.databaseCache) || roomid.startsWith('battle-') || roomid.startsWith('groupchat-')) return;
 		fs.writeFileSync(path.join(databasesDir, roomid + '.json'), JSON.stringify(this.databaseCache[roomid]));
 	}
 
@@ -95,5 +97,25 @@ export class Storage {
 			database.leaderboard[id].sources[source] -= amount;
 			if (database.leaderboard[id].sources[source] <= 0) delete database.leaderboard[id].sources[source];
 		}
+	}
+
+	logChatMessage(room: Room, time: number, messageType: string, message: string) {
+		const date = new Date(time);
+		if (!this.chatLogRolloverTimes[room.id] || time >= this.chatLogRolloverTimes[room.id]) {
+			const midnight = new Date();
+			midnight.setHours(24, 0, 0, 0);
+			this.chatLogRolloverTimes[room.id] = midnight.getTime();
+			const year = date.getFullYear();
+			const month = date.getMonth() + 1;
+			const day = date.getDate();
+			const directory = path.resolve(__dirname, '.', '..', 'roomlogs', room.id, '' + year);
+			try {
+				fs.mkdirSync(directory, {recursive: true});
+			// tslint:disable-next-line no-empty
+			} catch {}
+			const filename = year + '-' + (month < 10 ? '0' : '') + month + '-' + (day < 10 ? '0' : '') + day + '.txt';
+			this.chatLogFilePathCache[room.id] = path.join(directory, filename);
+		}
+		fs.appendFileSync(this.chatLogFilePathCache[room.id], Tools.toTimestampString(date).split(" ")[1] + ' |' + messageType + '|' + message + "\n");
 	}
 }
