@@ -483,6 +483,20 @@ export class Dex {
 		return Tools.deepClone(ability);
 	}
 
+	/** Returns a list of standard abilities
+	 *
+	 * filterAbility: Return `true` to filter `ability` out of the list
+	 */
+	getAbilitiesList(filterAbility?: (ability: IAbility) => boolean): IAbility[] {
+		const abilities: IAbility[] = [];
+		for (const i in this.data.abilities) {
+			const ability = this.getExistingAbility(i);
+			if (ability.isNonstandard || (filterAbility && filterAbility(ability))) continue;
+			abilities.push(ability);
+		}
+		return abilities;
+	}
+
 	getItem(name: string): IItem | null {
 		let id = Tools.toId(name);
 		if (!id) return null;
@@ -538,6 +552,20 @@ export class Dex {
 		return Tools.deepClone(item);
 	}
 
+	/** Returns a list of standard items
+	 *
+	 * filterItem: Return `true` to filter `item` out of the list
+	 */
+	getItemsList(filterItem?: (item: IItem) => boolean): IItem[] {
+		const items: IItem[] = [];
+		for (const i in this.data.items) {
+			const item = this.getExistingItem(i);
+			if (item.isNonstandard || (filterItem && filterItem(item))) continue;
+			items.push(item);
+		}
+		return items;
+	}
+
 	getMove(name: string): IMove | null {
 		let id = Tools.toId(name);
 		if (!id) return null;
@@ -589,6 +617,20 @@ export class Dex {
 	getMoveCopy(name: string): IMoveCopy {
 		const move = this.getExistingMove(name);
 		return Tools.deepClone(move);
+	}
+
+	/** Returns a list of standard moves
+	 *
+	 * filterMove: Return `true` to filter `move` out of the list
+	 */
+	getMovesList(filterMove?: (move: IMove) => boolean): IMove[] {
+		const moves: IMove[] = [];
+		for (const i in this.data.moves) {
+			const move = this.getExistingMove(i);
+			if (move.isNonstandard || (filterMove && filterMove(move))) continue;
+			moves.push(move);
+		}
+		return moves;
 	}
 
 	getPokemon(name: string): IPokemon | null {
@@ -675,6 +717,20 @@ export class Dex {
 	getPokemonCopy(name: string): IPokemonCopy {
 		const pokemon = this.getExistingPokemon(name);
 		return Tools.deepClone(pokemon);
+	}
+
+	/** Returns a list of standard Pokemon
+	 *
+	 * filterPokemon: Return `true` to filter `pokemon` out of the list
+	 */
+	getPokemonList(filterPokemon?: (pokemon: IPokemon) => boolean): IPokemon[] {
+		const pokedex: IPokemon[] = [];
+		for (const i in this.data.pokedex) {
+			const pokemon = this.getExistingPokemon(i);
+			if (pokemon.isNonstandard || (filterPokemon && filterPokemon(pokemon))) continue;
+			pokedex.push(pokemon);
+		}
+		return pokedex;
 	}
 
 	getFormat(name: string): IFormat | null {

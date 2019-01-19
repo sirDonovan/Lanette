@@ -15,27 +15,27 @@ class SlowkingsTrivia extends Guessing implements GuessingAbstract {
 		if (loadedData) return;
 		room.say("Loading game-specific data...");
 
-		for (const i in Dex.data.abilities) {
-			const ability = Dex.getExistingAbility(i);
-			if (!ability.name) continue;
+		const abilities = Dex.getAbilitiesList();
+		for (let i = 0; i < abilities.length; i++) {
+			const ability = abilities[i];
 			const desc = ability.desc || ability.shortDesc;
 			if (!desc) continue;
 			if (!(desc in data["Pokemon Abilities"])) data["Pokemon Abilities"][desc] = [];
 			data["Pokemon Abilities"][desc].push(ability.name);
 		}
 
-		for (const i in Dex.data.items) {
-			const item = Dex.getExistingItem(i);
-			if (!item.name) continue;
+		const items = Dex.getItemsList();
+		for (let i = 0; i < items.length; i++) {
+			const item = items[i];
 			const desc = item.desc || item.shortDesc;
 			if (!desc) continue;
 			if (!(desc in data["Pokemon Items"])) data["Pokemon Items"][desc] = [];
 			data["Pokemon Items"][desc].push(item.name);
 		}
 
-		for (const i in Dex.data.moves) {
-			const move = Dex.getExistingMove(i);
-			if (!move.name) continue;
+		const moves = Dex.getMovesList();
+		for (let i = 0; i < moves.length; i++) {
+			const move = moves[i];
 			const desc = move.desc || move.shortDesc;
 			if (!desc) continue;
 			if (!(desc in data["Pokemon Moves"])) data["Pokemon Moves"][desc] = [];
