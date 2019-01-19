@@ -193,7 +193,10 @@ export class Game extends Activity {
 	addPlayer(user: User | string): Player | void {
 		const player = this.createPlayer(user);
 		if (!player) return;
-		if (this.onAddPlayer && !this.onAddPlayer(player)) return;
+		if (this.onAddPlayer && !this.onAddPlayer(player)) {
+			this.removePlayer(user);
+			return;
+		}
 		const bits = this.addBits(player, 10, true);
 		player.say("Thanks for joining the " + this.name + " " + this.activityType + "!" + (bits ? " Have some free bits!" : ""));
 		if (this.getSignupsHtml && this.showSignupsHtml && !this.started && !this.signupsHtmlTimeout) {
@@ -304,7 +307,7 @@ export class Game extends Activity {
 	}
 
 	getPlayerSummary?(player: Player): void;
-	/** Return `false` to prevent a user from being added (must destroy player) */
+	/** Return `false` to prevent a user from being added to the game */
 	onAddPlayer?(player: Player): boolean;
 	onChildEnd?(winners: Map<Player, number>): void;
 	onDeallocate?(): void;
