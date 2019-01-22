@@ -193,6 +193,10 @@ export class Game extends Activity {
 	}
 
 	addPlayer(user: User | string): Player | void {
+		if (this.options.freejoin || this.isMiniGame) {
+			if (typeof user !== 'string') user.say("This game doesn't require you to join.");
+			return;
+		}
 		const player = this.createPlayer(user);
 		if (!player) return;
 		if (this.onAddPlayer && !this.onAddPlayer(player)) {
@@ -211,6 +215,7 @@ export class Game extends Activity {
 	}
 
 	removePlayer(user: User | string) {
+		if (this.options.freejoin || this.isMiniGame) return;
 		const player = this.destroyPlayer(user);
 		if (!player) return;
 		if (this.onRemovePlayer) this.onRemovePlayer(player);
