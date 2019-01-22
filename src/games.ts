@@ -16,6 +16,7 @@ export class Games {
 	commands = commands;
 	formatsCache: Dict<IGameFileComputed> = {};
 	loadedFormats: boolean = false;
+	minigameCommandNames: Dict<string> = {};
 	modesCache: Dict<IGameMode> = {};
 	userHostedAliasesCache: Dict<string> = {};
 	userHostedFormatsCache: Dict<IUserHostedComputed> = {};
@@ -127,6 +128,12 @@ export class Games {
 				}
 			}
 
+			if (format.minigameCommand) {
+				const minigameCommand = Tools.toId(format.minigameCommand);
+				if (this.minigameCommandNames.hasOwnProperty(minigameCommand)) throw new Error(format.name + "'s minigame command '" + minigameCommand + "' is already used by " + this.minigameCommandNames[minigameCommand]);
+				this.minigameCommandNames[minigameCommand] = format.name;
+			}
+
 			if (format.variants) {
 				for (let i = 0; i < format.variants.length; i++) {
 					const id = Tools.toId(format.variants[i].name);
@@ -166,6 +173,10 @@ export class Games {
 			}
 		}
 
+		for (const i in this.minigameCommandNames) {
+			if (this.commandNames.includes(i)) throw new Error("Minigame command '" + i + "' is a regular command for another game");
+		}
+
 		this.loadedFormats = true;
 		this.loadFormatCommands();
 	}
@@ -188,6 +199,23 @@ export class Games {
 							}
 						}
 					}
+				},
+			};
+		}
+
+		for (const i in this.minigameCommandNames) {
+			const formatName = this.minigameCommandNames[i];
+			Commands[i] = {
+				command(target, room, user, command) {
+					if (this.isPm(room) || !global.Games.canCreateGame(room, user)) return;
+					const format = global.Games.getFormat(formatName + (target ? "," + target : ""), user);
+					if (!format) return;
+					delete format.inputOptions.points;
+					const game = global.Games.createGame(room, format);
+					game.isMiniGame = true;
+					if (game.options.points) game.options.points = 1;
+					if (format.minigameDescription) this.say("**" + format.name + "**: " + format.minigameDescription);
+					game.signups();
 				},
 			};
 		}
@@ -323,6 +351,19 @@ export class Games {
 			inputOptions: {},
 		};
 		return Object.assign({}, formatData, formatComputed);
+	}
+
+	canCreateGame(room: Room, user: User): boolean {
+		if (!user.hasRank(room, '+') || room.game || room.userHostedGame) return false;
+		if (!Config.allowScriptedGames.includes(room.id)) {
+			room.say("Scripted games are not enabled for this room.");
+			return false;
+		}
+		if (Users.self.rooms.get(room) !== '*') {
+			room.say(Users.self.name + " requires Bot rank (*) to host scripted games.");
+			return false;
+		}
+		return true;
 	}
 
 	createGame(room: Room, format: IGameFormat): Game {

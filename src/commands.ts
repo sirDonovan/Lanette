@@ -111,9 +111,7 @@ const commands: Dict<ICommandDefinition> = {
 	 */
 	creategame: {
 		command(target, room, user) {
-			if (this.isPm(room) || !user.hasRank(room, '+') || room.game || room.userHostedGame) return;
-			if (!Config.allowScriptedGames.includes(room.id)) return this.say("Scripted games are not enabled for this room.");
-			if (Users.self.rooms.get(room) !== '*') return this.say(Users.self.name + " requires Bot rank (*) to host scripted games.");
+			if (this.isPm(room) || !Games.canCreateGame(room, user)) return;
 			const format = Games.getFormat(target, user);
 			if (!format) return;
 			const game = Games.createGame(room, format);

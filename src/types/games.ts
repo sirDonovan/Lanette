@@ -21,6 +21,8 @@ export interface IGameFile<T extends Game = Game> {
 	formerNames?: string[];
 	mascot?: string;
 	mascots?: string[];
+	minigameCommand?: string;
+	minigameDescription?: string;
 	modes?: string[];
 	scriptedOnly?: boolean;
 	variants?: IGameVariant[];

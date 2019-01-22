@@ -58,7 +58,7 @@ class SlowkingsTrivia extends Guessing implements GuessingAbstract {
 	}
 
 	onSignups() {
-		if (this.options.points === 1) {
+		if (this.isMiniGame) {
 			this.nextRound();
 		} else {
 			if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
@@ -81,7 +81,7 @@ class SlowkingsTrivia extends Guessing implements GuessingAbstract {
 				if (this.answers.length) {
 					this.say("Time's up! " + this.getAnswers());
 					this.answers = [];
-					if (this.options.points === 1) {
+					if (this.isMiniGame) {
 						this.end();
 						return;
 					}
@@ -103,6 +103,8 @@ export const game: IGameFile<SlowkingsTrivia> = {
 	formerNames: ["Trivia"],
 	name: "Slowking's Trivia",
 	mascot: "Slowking",
+	minigameCommand: 'trivium',
+	minigameDescription: "Use ``.g`` to guess an answer based on the description!",
 	modes: ["survival"],
 	variants: [
 		{

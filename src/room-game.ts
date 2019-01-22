@@ -126,7 +126,7 @@ export class Game extends Activity {
 			this.options[i] = this.customizableOptions[i].base;
 		}
 		for (const i in this.inputOptions) {
-			if (!(i in this.customizableOptions) || (i === 'points' && this.isMiniGame) || this.inputOptions[i] === this.options[i]) {
+			if (!(i in this.customizableOptions) || this.inputOptions[i] === this.options[i]) {
 				delete this.inputOptions[i];
 				continue;
 			}
@@ -167,8 +167,10 @@ export class Game extends Activity {
 
 	signups() {
 		// TODO: check internal/custom signups
-		this.showSignupsHtml = true;
-		this.sayUhtml(this.getSignupsHtml(), "signups");
+		if (!this.isMiniGame) {
+			this.showSignupsHtml = true;
+			this.sayUhtml(this.getSignupsHtml(), "signups");
+		}
 		this.signupsTime = Date.now();
 		if (!this.userHosted && this.shinyMascot) this.say(this.mascot!.name + " is shiny so bits will be doubled!");
 		if (this.onSignups) this.onSignups();
