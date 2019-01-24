@@ -31,6 +31,8 @@ const commands: Dict<ICommandDefinition> = {
 					if (!globalModule) {
 						if (result.effectType && typeof result.effectType === 'string') {
 							result = '[' + result.effectType.toLowerCase() + ' ' + result.name + ']';
+						} else if (result.activityType && typeof result.activityType === 'string') {
+							result = '[' + result.activityType + ' ' + result.name + ']';
 						} else {
 							if (!result.toString()) return;
 							result = result.toString();
