@@ -1,11 +1,15 @@
+import { Game } from "./room-game";
 import { Room } from "./rooms";
 
 export class User {
+	game: Game | null = null;
 	/** Map<Room, rank> */
 	rooms = new Map<Room, string>();
 
 	id: string;
 	name: string;
+
+	messageListeners?: Dict<() => void>;
 
 	constructor(name: string, id: string) {
 		this.name = name;
@@ -23,6 +27,11 @@ export class User {
 
 	say(message: string) {
 		Client.send("|/pm " + this.name + ", " + Tools.prepareMessage(message));
+	}
+
+	on(message: string, listener: () => void) {
+		if (!this.messageListeners) this.messageListeners = {};
+		this.messageListeners[Tools.toId(Tools.prepareMessage(message))] = listener;
 	}
 }
 

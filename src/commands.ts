@@ -134,11 +134,17 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	endgame: {
 		command(target, room, user) {
-			if (this.isPm(room) || !user.hasRank(room, '+')) return;
-			if (room.game) {
-				room.game.forceEnd(user);
-			} else if (room.userHostedGame) {
-				room.userHostedGame.forceEnd(user);
+			if (this.isPm(room)) {
+				if (room.game) {
+					room.game.forceEnd(user);
+				}
+			} else {
+				if (!user.hasRank(room, '+')) return;
+				if (room.game) {
+					room.game.forceEnd(user);
+				} else if (room.userHostedGame) {
+					room.userHostedGame.forceEnd(user);
+				}
 			}
 		},
 	},

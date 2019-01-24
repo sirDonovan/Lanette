@@ -1,5 +1,6 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from '../room-activity';
+import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { commands as templateCommands, IPlayingCard, PlayingCard } from './templates/playing-card';
 
@@ -234,7 +235,7 @@ const commands: Dict<ICommandDefinition<MurkrowsBlackjack>> = {
 			if (!(user.id in this.players)) return;
 			if (!this.canWager) return user.say("You must place your wager before the game starts.");
 			const player = this.players[user.id];
-			const database = Storage.getDatabase(this.room);
+			const database = Storage.getDatabase(this.room as Room);
 			if (!database.leaderboard || !(user.id in database.leaderboard)) return;
 			const bits = database.leaderboard[user.id].current;
 			if (!bits) return user.say("You don't have any bits to wager!");

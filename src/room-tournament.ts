@@ -1,4 +1,5 @@
 import { Activity } from "./room-activity";
+import { Room } from "./rooms";
 import { IFormat } from "./types/in-game-data-types";
 
 interface IBracketNode {
@@ -84,6 +85,7 @@ export class Tournament extends Activity {
 
 	format!: IFormat;
 	playerCap!: number;
+	room!: Room;
 
 	initialize(format: IFormat, generator: string, playerCap: number) {
 		this.format = format;

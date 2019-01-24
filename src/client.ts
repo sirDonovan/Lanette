@@ -392,9 +392,18 @@ export class Client {
 		}
 
 		case 'pm': {
-			const messageArguments: IClientMessageTypes['pm'] = {rank: messageParts[0].charAt(0), username: messageParts[0].substr(1), message: messageParts.slice(2).join("|")};
+			const messageArguments: IClientMessageTypes['pm'] = {rank: messageParts[0].charAt(0), username: messageParts[0].substr(1), recipient: messageParts[1].substr(1), message: messageParts.slice(2).join("|")};
 			const user = Users.add(messageArguments.username);
-			if (user !== Users.self) {
+			if (user === Users.self) {
+				const recipient = Users.add(messageArguments.recipient);
+				if (recipient.messageListeners) {
+					const id = Tools.toId(messageArguments.message);
+					if (id in recipient.messageListeners) {
+						recipient.messageListeners[id]();
+						delete recipient.messageListeners[id];
+					}
+				}
+			} else {
 				CommandParser.parse(user, user, messageArguments.message);
 			}
 		}

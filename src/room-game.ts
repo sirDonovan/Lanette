@@ -1,5 +1,6 @@
 import { ICommandDefinition } from "./command-parser";
 import { Activity, Player } from "./room-activity";
+import { Room } from "./rooms";
 import { IGameFormat } from "./types/games";
 import { IPokemonCopy } from "./types/in-game-data-types";
 import { User } from "./users";
@@ -63,13 +64,17 @@ export class Game extends Activity {
 	format!: IGameFormat;
 	inputOptions!: Dict<number>;
 
-	allowChildGameBits?: boolean | null;
+	allowChildGameBits?: boolean;
 	defaultOptions?: DefaultGameOptions[];
 	isMiniGame?: boolean;
 	mascot?: IPokemonCopy;
 	points?: Map<Player, number>;
 	shinyMascot?: boolean;
 	variant?: string;
+
+	isUserHosted(room: Room | User): room is Room {
+		return this.userHosted;
+	}
 
 	initialize(format: IGameFormat) {
 		this.format = format;
@@ -146,7 +151,7 @@ export class Game extends Activity {
 
 	deallocate() {
 		if (this.onDeallocate) this.onDeallocate();
-		if (this.userHosted) {
+		if (this.isUserHosted(this.room)) {
 			this.room.userHostedGame = null;
 		} else {
 			this.room.game = null;
@@ -266,7 +271,7 @@ export class Game extends Activity {
 	}
 
 	addBits(user: User | Player, bits: number, noPm?: boolean): boolean {
-		if (this.parentGame && !this.parentGame.allowChildGameBits) return false;
+		if (this.isPm(this.room) || (this.parentGame && !this.parentGame.allowChildGameBits)) return false;
 		if (this.shinyMascot) bits *= 2;
 		Storage.addPoints(this.room, user.name, bits, this.format.id);
 		if (!noPm) user.say("You were awarded " + bits + " bits! To see your total amount, use the command ``" + Config.commandCharacter + "bits " + this.room.id + "``.");
@@ -274,7 +279,7 @@ export class Game extends Activity {
 	}
 
 	removeBits(user: User | Player, bits: number, noPm?: boolean): boolean {
-		if (this.parentGame && !this.parentGame.allowChildGameBits) return false;
+		if (this.isPm(this.room) || (this.parentGame && !this.parentGame.allowChildGameBits)) return false;
 		if (this.shinyMascot) bits *= 2;
 		Storage.removePoints(this.room, user.name, bits, this.format.id);
 		if (!noPm) user.say("You lost " + bits + " bits! To see your remaining amount, use the command ``" + Config.commandCharacter + "bits " + this.room.id + "``.");

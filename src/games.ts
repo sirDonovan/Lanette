@@ -207,11 +207,19 @@ export class Games {
 			const formatName = this.minigameCommandNames[i];
 			Commands[i] = {
 				command(target, room, user, command) {
-					if (this.isPm(room) || !global.Games.canCreateGame(room, user)) return;
+					let pmRoom: Room | undefined;
+					if (this.isPm(room)) {
+						user.rooms.forEach((rank, room) => {
+							if (!pmRoom && Config.allowScriptedGames.includes(room.id) && Users.self.rooms.get(room) === '*') pmRoom = room;
+						});
+						if (!pmRoom) return this.say("You must be in a room that has enabled scripted games and where " + Users.self.name + " has Bot rank (*).");
+					} else {
+						if (!global.Games.canCreateGame(room, user)) return;
+					}
 					const format = global.Games.getFormat(formatName + (target ? "," + target : ""), user);
 					if (!format) return;
 					delete format.inputOptions.points;
-					const game = global.Games.createGame(room, format);
+					const game = global.Games.createGame(room, format, pmRoom);
 					game.isMiniGame = true;
 					if (game.options.points) game.options.points = 1;
 					if (format.minigameDescription) this.say("**" + format.name + "**: " + format.minigameDescription);
@@ -366,9 +374,9 @@ export class Games {
 		return true;
 	}
 
-	createGame(room: Room, format: IGameFormat): Game {
+	createGame(room: Room | User, format: IGameFormat, pmRoom?: Room): Game {
 		if (format.class.loadData) format.class.loadData(room);
-		room.game = new format.class(room);
+		room.game = new format.class(room, pmRoom);
 		room.game.initialize(format);
 
 		return room.game;

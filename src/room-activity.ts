@@ -30,19 +30,19 @@ export class Player {
 	}
 
 	sayHtml(html: string) {
-		this.activity.room.pmHtml(this, html);
+		this.activity.pmRoom.pmHtml(this, html);
 	}
 
 	sayUhtml(html: string, id?: string) {
 		let uhtmlId = this.activity.uhtmlId || this.activity.id;
 		if (id) uhtmlId += id;
-		this.activity.room.pmUhtml(this, uhtmlId, html);
+		this.activity.pmRoom.pmUhtml(this, uhtmlId, html);
 	}
 
 	sayUhtmlChange(html: string, id?: string) {
 		let uhtmlId = this.activity.uhtmlId || this.activity.id;
 		if (id) uhtmlId += id;
-		this.activity.room.pmUhtmlChange(this, uhtmlId, html);
+		this.activity.pmRoom.pmUhtmlChange(this, uhtmlId, html);
 	}
 }
 
@@ -63,10 +63,18 @@ export abstract class Activity {
 
 	uhtmlId?: string;
 
-	room: Room;
+	room: Room | User;
+	pm: boolean;
+	pmRoom: Room;
 
-	constructor(room: Room) {
+	constructor(room: Room | User, pmRoom?: Room) {
 		this.room = room;
+		this.pm = pmRoom && room !== pmRoom ? true : false;
+		this.pmRoom = this.isPm(room) ? pmRoom! : room;
+	}
+
+	isPm(room: Room | User): room is User {
+		return this.pm;
 	}
 
 	createPlayer(user: User | string): Player | void {
@@ -109,18 +117,21 @@ export abstract class Activity {
 	}
 
 	sayHtml(html: string) {
+		if (this.isPm(this.room)) return this.pmRoom.pmHtml(this.room, html);
 		this.room.sayHtml(html);
 	}
 
 	sayUhtml(html: string, id?: string) {
 		let uhtmlId = this.uhtmlId || this.id;
 		if (id) uhtmlId += '-' + id;
+		if (this.isPm(this.room)) return this.pmRoom.pmUhtml(this.room, uhtmlId, html);
 		this.room.sayUhtml(uhtmlId, html);
 	}
 
 	sayUhtmlChange(html: string, id?: string) {
 		let uhtmlId = this.uhtmlId || this.id;
 		if (id) uhtmlId += '-' + id;
+		if (this.isPm(this.room)) return this.pmRoom.pmUhtmlChange(this.room, uhtmlId, html);
 		this.room.sayUhtmlChange(uhtmlId, html);
 	}
 

@@ -1,6 +1,7 @@
 import { ICommandDefinition } from '../../command-parser';
 import { Player } from '../../room-activity';
 import { Game } from '../../room-game';
+import { Room } from '../../rooms';
 
 export type IPlayingCardSuits = 'clubs' | 'diamonds' | 'hearts' | 'spades';
 export interface IPlayingCard {
@@ -90,7 +91,7 @@ export class PlayingCard extends Game {
 		if (!cards) {
 			if (this.wagers) {
 				const wager = this.wagers.get(player);
-				if (wager) Storage.removePoints(this.room, player.name, wager, this.id);
+				if (wager) Storage.removePoints(this.room as Room, player.name, wager, this.id);
 			}
 			cards = this.getCards(this.startingHandAmount);
 			let total = 0;

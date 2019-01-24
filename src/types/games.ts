@@ -2,10 +2,11 @@ import { ICommandDefinition } from "../command-parser";
 import { UserHosted } from "../games/templates/user-hosted";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
+import { User } from "../users";
 
 interface IGameClass<T> {
-	new(room: Room): T;
-	loadData?(room: Room): void;
+	new(room: Room | User, pmRoom?: Room): T;
+	loadData?(room: Room | User): void;
 }
 
 export interface IGameFile<T extends Game = Game> {

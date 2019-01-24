@@ -110,6 +110,7 @@ export interface IClientMessageTypes {
 	pm: {
 		rank: string,
 		username: string,
+		recipient: string,
 		message: string,
 	};
 

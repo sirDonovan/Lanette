@@ -8,6 +8,8 @@ const data: Dict<Dict<string[]>> = {
 	"Pokemon Items": {},
 	"Pokemon Moves": {},
 };
+const categories = Object.keys(data);
+const questions: Dict<string[]> = {};
 let loadedData = false;
 
 class SlowkingsTrivia extends Guessing implements GuessingAbstract {
@@ -42,20 +44,14 @@ class SlowkingsTrivia extends Guessing implements GuessingAbstract {
 			data["Pokemon Moves"][desc].push(move.name);
 		}
 
+		for (let i = 0; i < categories.length; i++) {
+			questions[categories[i]] = Object.keys(data[categories[i]]);
+		}
+
 		loadedData = true;
 	}
 
-	categories: string[] = Object.keys(data);
 	defaultOptions: DefaultGameOptions[] = ['points'];
-	questions: Dict<string[]> = {};
-
-	constructor(room: Room) {
-		super(room);
-
-		for (let i = 0; i < this.categories.length; i++) {
-			this.questions[this.categories[i]] = Object.keys(data[this.categories[i]]);
-		}
-	}
 
 	onSignups() {
 		if (this.isMiniGame) {
@@ -66,8 +62,8 @@ class SlowkingsTrivia extends Guessing implements GuessingAbstract {
 	}
 
 	setAnswers() {
-		const category = this.roundCategory || this.variant || Tools.sampleOne(this.categories);
-		const question = Tools.sampleOne(this.questions[category]);
+		const category = this.roundCategory || this.variant || Tools.sampleOne(categories);
+		const question = Tools.sampleOne(questions[category]);
 		this.answers = data[category][question];
 		this.hint = "**" + category + "**: " + question;
 	}
