@@ -22,7 +22,7 @@ export class User {
 	}
 
 	say(message: string) {
-		Client.send("|/pm " + this.name + ", " + message);
+		Client.send("|/pm " + this.name + ", " + Tools.prepareMessage(message));
 	}
 }
 
