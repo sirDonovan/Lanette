@@ -1,6 +1,6 @@
 import fs = require('fs');
 import path = require('path');
-import { IAbility, IAbilityComputed, IAbilityCopy, IDataTable, IFormat, IFormatComputed, IFormatData, IItem, IItemComputed, IItemCopy, IMove, IMoveComputed, IMoveCopy, INature, IPokemon, IPokemonComputed, IPokemonCopy } from './types/in-game-data-types';
+import { IAbility, IAbilityComputed, IAbilityCopy, IDataTable, IFormat, IFormatComputed, IFormatData, IFormatLinks, IItem, IItemComputed, IItemCopy, IMove, IMoveComputed, IMoveCopy, INature, IPokemon, IPokemonComputed, IPokemonCopy } from './types/in-game-data-types';
 
 const PokemonShowdown = path.resolve(__dirname, '.', '..', 'Pokemon-Showdown');
 const dataDir = path.join(PokemonShowdown, 'data');
@@ -227,7 +227,7 @@ export class Dex {
 			if (format.mod === undefined) format.mod = currentGen;
 		}
 
-		let formats: Dict<IFormat> = {};
+		let formats: Dict<IFormatData & IFormatLinks> = {};
 		try {
 			const dataObject = require(path.join(lanetteDataDir, 'format-links.js'));
 			formats = dataObject.BattleFormatLinks;
@@ -241,20 +241,6 @@ export class Dex {
 			const formatData = formatsList[i];
 			const id = Tools.toId(formatData.name);
 			if (!id) continue;
-			const maxLevel = formatData.maxLevel || 100;
-			if (!formatData.defaultLevel) formatData.defaultLevel = formatData.maxLevel;
-			const formatComputed: IFormatComputed = {
-				banlist: formatData.banlist || [],
-				customRules: null,
-				defaultLevel: formatData.defaultLevel || maxLevel,
-				effectType: formatData.effectType || "Format",
-				id,
-				maxLevel,
-				ruleset: formatData.ruleset || [],
-				ruleTable: null,
-				tournamentPlayable: !!(formatData.searchShow || formatData.challengeShow || formatData.tournamentShow),
-				unbanlist: formatData.unbanlist || [],
-			};
 			let viability = '';
 			let info = '';
 			let np = '';
@@ -285,15 +271,17 @@ export class Dex {
 				}
 			}
 			if (id in formats) {
-				if (viability) formatComputed['viability-official'] = viability;
-				if (info) formatComputed['info-official'] = info;
-				if (np) formatComputed['np-official'] = np;
-				Object.assign(formats[id], formatData, formatComputed);
+				Object.assign(formats[id], formatData, {
+					'info-official': info,
+					'np-official': np,
+					'viability-official': viability,
+				});
 			} else {
-				if (viability) formatComputed.viability = viability;
-				if (info) formatComputed.info = info;
-				if (np) formatComputed.np = np;
-				formats[id] = Object.assign(formatData, formatComputed);
+				formats[id] = Object.assign(formatData, {
+					info,
+					np,
+					viability,
+				});
 			}
 		}
 
@@ -738,8 +726,22 @@ export class Dex {
 		if (!id) return null;
 		if (this.data.aliases.hasOwnProperty(id)) id = Tools.toId(this.data.aliases[id]);
 		if (!this.data.formats.hasOwnProperty(id)) return null;
-		// data computed in includeFormats();
-		return Object.assign({}, this.data.formats[id]);
+
+		const formatData = this.data.formats[id]!;
+		const maxLevel = formatData.maxLevel || 100;
+		const formatComputed: IFormatComputed = {
+			customRules: null,
+			banlist: formatData.banlist || [],
+			defaultLevel: formatData.defaultLevel || maxLevel,
+			effectType: formatData.effectType || "Format",
+			id,
+			maxLevel,
+			ruleset: formatData.ruleset || [],
+			ruleTable: null,
+			tournamentPlayable: !!(formatData.searchShow || formatData.challengeShow || formatData.tournamentShow),
+			unbanlist: formatData.unbanlist || [],
+		};
+		return Object.assign({}, formatData, formatComputed);
 	}
 
 	getExistingFormat(name: string): IFormat {

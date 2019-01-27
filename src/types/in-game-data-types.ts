@@ -288,26 +288,29 @@ export interface IFormatData extends IEventMethods {
 	column?: number;
 }
 
+export interface IFormatLinks {
+	info?: string;
+	'info-official'?: string;
+	np?: string;
+	'np-official'?: string;
+	viability?: string;
+	'viability-official'?: string;
+}
+
 export interface IFormatComputed {
 	banlist: NonNullable<IFormatData["banlist"]>;
 	customRules: string[] | null;
 	defaultLevel: number;
 	effectType: "Format" | "Ruleset" | "Rule" | "ValidatorRule";
 	id: string;
-	info?: string;
-	'info-official'?: string;
 	maxLevel: number;
-	np?: string;
-	'np-official'?: string;
 	ruleset: NonNullable<IFormatData["ruleset"]>;
 	ruleTable: RuleTable | null;
 	tournamentPlayable: boolean;
 	unbanlist: NonNullable<IFormatData["unbanlist"]>;
-	viability?: string;
-	'viability-official'?: string;
 }
 
-export interface IFormat extends IFormatData, IFormatComputed {
+export interface IFormat extends IFormatData, IFormatLinks, IFormatComputed {
 	banlist: NonNullable<IFormatData["banlist"]>;
 	defaultLevel: number;
 	maxLevel: number;
@@ -608,7 +611,7 @@ export interface IDataTable {
 	readonly aliases: Dict<string | undefined>;
 	readonly badges: string[];
 	readonly characters: string[];
-	readonly formats: Dict<IFormat | undefined>;
+	readonly formats: Dict<(IFormatData & IFormatLinks) | undefined>;
 	readonly formatsData: Dict<ITemplateFormatsData | undefined>;
 	readonly gifData: Dict<{back?: {h: number, w: number}, front?: {h: number, w: number}} | undefined>;
 	readonly items: Dict<IItemData | undefined>;
