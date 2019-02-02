@@ -1,11 +1,25 @@
 import { Tournament } from "./room-tournament";
 import { Room } from "./rooms";
 import { IFormat } from "./types/in-game-data-types";
+import { User } from "./users";
 
 export class Tournaments {
 	defaultCap: number = 64;
 	maxCap: number = 128;
 	tournamentTimers: Dict<NodeJS.Timer> = {};
+
+	canCreateTournaments(room: Room, user: User): boolean {
+		if (!user.hasRank(room, '%')) return false;
+		if (!Config.allowTournaments.includes(room.id)) {
+			room.say("Tournament features are not enabled for this room.");
+			return false;
+		}
+		if (Users.self.rooms.get(room) !== '*') {
+			room.say(Users.self.name + " requires Bot rank (*) to use tournament features.");
+			return false;
+		}
+		return true;
+	}
 
 	createTournament(room: Room, format: IFormat, generator: string, playerCap: number): Tournament {
 		const tournament = new Tournament(room);

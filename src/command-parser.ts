@@ -33,6 +33,11 @@ export class Command {
 		this.room.say(message);
 	}
 
+	sayCommand(message: string) {
+		if (this.isPm(this.room)) throw new Error(this.originalCommand + " attempted to use a command in a PM");
+		this.room.sayCommand(message);
+	}
+
 	sayHtml(html: string, pmHtmlRoom: Room) {
 		if (this.isPm(this.room)) {
 			pmHtmlRoom.pmHtml(this.user, html);

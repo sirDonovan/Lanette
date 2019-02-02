@@ -333,6 +333,57 @@ const commands: Dict<ICommandDefinition> = {
 	},
 
 	/**
+	 * Tournament commands
+	 */
+
+	tournament: {
+		command(target, room, user) {
+			const targets: string[] = target ? target.split(",") : [];
+			let tournamentRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.get(Tools.toId(targets[0]));
+				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+				if (!Config.allowTournaments.includes(targetRoom.id)) return this.say("Tournament features are not enabled for " + targetRoom.id + ".");
+				if (!this.canPmHtml(targetRoom)) return;
+				tournamentRoom = targetRoom;
+			} else {
+				if (target) return this.run('createtournament');
+				if (!user.hasRank(room, '+')) return;
+				if (!Config.allowTournaments.includes(room.id)) return this.say("Tournament features are not enabled for this room.");
+				tournamentRoom = room;
+			}
+
+			if (!tournamentRoom.tournament) return this.say("A tournament is not in progress in this room.");
+			const tournament = tournamentRoom.tournament;
+			let html = "<b>" + tournament.name + " " + (tournament.isRoundRobin ? "Round Robin " : "") + "tournament</b><br />";
+			if (tournament.started) {
+				html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - tournament.startTime) + "<br />";
+				const remainingPlayers = tournament.getRemainingPlayerCount();
+				if (remainingPlayers !== tournament.totalPlayers) {
+					html += "<b>Remaining players</b>: " + remainingPlayers + "/" + tournament.totalPlayers;
+				} else {
+					html += "<b>Players</b>: " + remainingPlayers;
+				}
+			} else {
+				html += "<b>Signups duration</b>: " + Tools.toDurationString(Date.now() - tournament.createTime) + "<br />";
+				html += "<b>" + tournament.playerCount + "</b> player" + (tournament.playerCount === 1 ? " has" : "s have") + " joined";
+			}
+			this.sayHtml(html, tournamentRoom);
+		},
+		aliases: ['tour'],
+	},
+	createtournament: {
+		command(target, room, user) {
+			if (this.isPm(room) || !Tournaments.canCreateTournaments(room, user)) return;
+			if (room.tournament) return this.say("There is already a tournament in progress in this room.");
+			const format = Dex.getFormat(target);
+			if (!format || !format.tournamentPlayable) return this.say("'" + target + "' is not a valid tournament format.");
+			this.sayCommand("/tour new " + format.name + ", elimination, " + Tournaments.defaultCap);
+		},
+		aliases: ['createtour', 'ct'],
+	},
+
+	/**
 	 * Storage commands
 	 */
 	leaderboard: {

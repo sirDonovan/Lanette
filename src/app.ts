@@ -9,6 +9,7 @@ Config.rooms = Config.rooms.map(x => Tools.toRoomId(x));
 Config.developers = Config.developers.map(x => Tools.toId(x));
 Config.allowScriptedGames = Config.allowScriptedGames.map(x => Tools.toRoomId(x));
 Config.disallowChatLogging = Config.disallowChatLogging.map(x => Tools.toRoomId(x));
+Config.allowTournaments = Config.allowTournaments.map(x => Tools.toRoomId(x));
 
 import * as client from './client';
 global.Client = new client.Client();

@@ -26,6 +26,10 @@ export class Room {
 		Client.send(this.sendId + "|" + message);
 	}
 
+	sayCommand(command: string) {
+		this.say(command, true);
+	}
+
 	sayHtml(html: string) {
 		this.say("/addhtmlbox " + html, true);
 	}
