@@ -76,7 +76,30 @@ export class Tools {
 		return input.replace(ALPHA_NUMERIC_REGEX, '').trim();
 	}
 
+	toString(input: string | number | undefined | null | {activityType?: string, effectType?: string, name?: string, toString?(): string}): string {
+		if (input === undefined) return 'undefined';
+		if (input === null) return 'null';
+		if (typeof input === 'number') return '' + input;
+		if (typeof input === 'string') return input;
+		for (const i in global) {
+			// @ts-ignore
+			if (input === global[i]) return '[global ' + i + ']';
+		}
+		if (input.effectType && typeof input.effectType === 'string') {
+			return '[' + input.effectType.toLowerCase() + ' ' + input.name + ']';
+		} else if (input.activityType && typeof input.activityType === 'string') {
+			return '[' + input.activityType + ' ' + input.name + ']';
+		} else {
+			if (input.toString) {
+				return input.toString();
+			} else {
+				return '[object UnknownType]';
+			}
+		}
+	}
+
 	prepareMessage(message: string): string {
+		message = this.toString(message);
 		if (message.length > MAX_MESSAGE_LENGTH) message = message.substr(0, MAX_MESSAGE_LENGTH - 3) + "...";
 		return message;
 	}

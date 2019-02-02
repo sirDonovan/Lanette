@@ -13,33 +13,7 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			try {
 				// tslint:disable-next-line no-eval
-				let result = eval(target);
-				if (result === undefined) {
-					result = 'undefined';
-				} else if (result === null) {
-					result = 'null';
-				} else if (typeof result !== 'string') {
-					let globalModule = false;
-					for (const i in global) {
-						// @ts-ignore
-						if (result === global[i]) {
-							result = '[global ' + i + ']';
-							globalModule = true;
-							break;
-						}
-					}
-					if (!globalModule) {
-						if (result.effectType && typeof result.effectType === 'string') {
-							result = '[' + result.effectType.toLowerCase() + ' ' + result.name + ']';
-						} else if (result.activityType && typeof result.activityType === 'string') {
-							result = '[' + result.activityType + ' ' + result.name + ']';
-						} else {
-							if (!result.toString()) return;
-							result = result.toString();
-						}
-					}
-				}
-				this.say(result);
+				this.say(eval(target));
 			} catch (e) {
 				this.say(e.message);
 				console.log(e.stack);
