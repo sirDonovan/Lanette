@@ -308,6 +308,7 @@ export interface IFormatComputed {
 	ruleTable: RuleTable | null;
 	tournamentPlayable: boolean;
 	unbanlist: NonNullable<IFormatData["unbanlist"]>;
+	unranked: boolean;
 }
 
 export interface IFormat extends IFormatData, IFormatLinks, IFormatComputed {

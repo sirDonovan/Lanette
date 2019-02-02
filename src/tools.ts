@@ -98,6 +98,21 @@ export class Tools {
 		}
 	}
 
+	joinList(list: string[], preFormatting?: string, postFormatting?: string): string {
+		let len = list.length;
+		if (!len) return '';
+		if (!preFormatting) preFormatting = '';
+		if (!postFormatting) postFormatting = preFormatting;
+		if (len === 1) {
+			return preFormatting + list[0] + postFormatting;
+		} else if (len === 2) {
+			return preFormatting + list[0] + postFormatting + " and " + preFormatting + list[1] + postFormatting;
+		} else {
+			len--;
+			return preFormatting + list.slice(0, len).join(postFormatting + ", " + preFormatting) + postFormatting + ", and " + preFormatting + list[len] + postFormatting;
+		}
+	}
+
 	prepareMessage(message: string): string {
 		message = this.toString(message);
 		if (message.length > MAX_MESSAGE_LENGTH) message = message.substr(0, MAX_MESSAGE_LENGTH - 3) + "...";

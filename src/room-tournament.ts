@@ -48,7 +48,7 @@ export interface ITournamentEndJSON {
 	/** The type of bracket that was used by the tournament */
 	generator: string;
 	/** The name(s) of the winner(s) of the tournament */
-	results: string[];
+	results: string[][];
 }
 
 const generators: Dict<number> = {
@@ -64,7 +64,7 @@ export class Tournament extends Activity {
 	activityType: string = 'tournament';
 	createTime: number = Date.now();
 	generator: number = 1;
-	info: ITournamentUpdateJSON = {
+	info: ITournamentUpdateJSON & ITournamentEndJSON = {
 		bracketData: {type: ''},
 		challengeBys: [],
 		challenged: '',
@@ -75,6 +75,7 @@ export class Tournament extends Activity {
 		isJoined: false,
 		isStarted: false,
 		playerCap: 0,
+		results: [],
 		teambuilderFormat: '',
 	};
 	isRoundRobin: boolean = false;
@@ -105,6 +106,108 @@ export class Tournament extends Activity {
 
 	deallocate() {
 		this.room.tournament = null;
+	}
+
+	onEnd() {
+		let winners: string[] = [];
+		let runnersUp: string[] = [];
+		let semiFinalists: string[] = [];
+		if (this.info.bracketData.type === 'tree') {
+			if (this.info.bracketData.rootNode && this.generator === 1) {
+				const data = this.info.bracketData.rootNode;
+				const winner = data.team;
+				winners.push(winner);
+				let runnerUp = '';
+				if (data.children[0].team === winner) {
+					runnerUp = data.children[1].team;
+				} else {
+					runnerUp = data.children[0].team;
+				}
+				runnersUp.push(runnerUp);
+
+				if (data.children[0].children.length) {
+					if (data.children[0].children[0].team === runnerUp || data.children[0].children[0].team === winner) {
+						semiFinalists.push(data.children[0].children[1].team);
+					} else {
+						semiFinalists.push(data.children[0].children[0].team);
+					}
+				}
+				if (data.children[1].children.length) {
+					if (data.children[1].children[0].team === runnerUp || data.children[1].children[0].team === winner) {
+						semiFinalists.push(data.children[1].children[1].team);
+					} else {
+						semiFinalists.push(data.children[1].children[0].team);
+					}
+				}
+			}
+		} else {
+			if (this.info.results[0]) winners = this.info.results[0];
+			if (this.info.results[1]) runnersUp = this.info.results[1];
+			if (this.info.results[2]) semiFinalists = this.info.results[2];
+		}
+		const singleElimination = !this.isRoundRobin && this.generator === 1;
+		if (!winners.length || !runnersUp.length || (singleElimination && semiFinalists.length < 2)) return;
+		if (((this.format.customRules && Config.rankedCustomTournaments.includes(this.room.id)) || (!this.format.customRules && Config.rankedTournaments.includes(this.room.id))) &&
+			!(this.format.unranked && !Config.ignoreDefaultUnrankedTournaments.includes(this.room.id))) {
+			const text = ["runner" + (runnersUp.length > 1 ? "s" : "") + "-up " + Tools.joinList(runnersUp, '**'), "winner" + (winners.length > 1 ? "s" : "") + " " + Tools.joinList(winners, '**')];
+			if (semiFinalists.length) text.unshift("semi-finalist" + (semiFinalists.length > 1 ? "s" : "") + " " + Tools.joinList(semiFinalists, '**'));
+			this.room.say('/wall Congratulations to ' + Tools.joinList(text));
+			return true;
+		}
+
+		let multiplier = 1;
+		if (!this.format.teamLength || !this.format.teamLength.battle || this.format.teamLength.battle > 2) {
+			if (this.totalPlayers >= 32) {
+				multiplier += ((Math.floor(this.totalPlayers / 32)) * 0.5);
+			}
+		}
+
+		let pointsName = 'points';
+		let semiFinalistPoints: number;
+		let runnerUpPoints: number;
+		let winnerPoints: number;
+		if (Config.allowScriptedGames.includes(this.room.id)) {
+			pointsName = "bits";
+			semiFinalistPoints = Math.round((100 * multiplier));
+			runnerUpPoints = Math.round((200 * multiplier));
+			winnerPoints = Math.round((300 * multiplier));
+		} else {
+			semiFinalistPoints = Math.round((1 * multiplier));
+			runnerUpPoints = Math.round((2 * multiplier));
+			winnerPoints = Math.round((3 * multiplier));
+		}
+
+		const pointsHtml = ["runner" + (runnersUp.length > 1 ? "s" : "") + "-up " + Tools.joinList(runnersUp, '<b>', '</b>'), "winner" + (winners.length > 1 ? "s" : "") + " " + Tools.joinList(winners, '<b>', '</b>')];
+		if (semiFinalists.length) pointsHtml.unshift("semi-finalist" + (semiFinalists.length > 1 ? "s" : "") + " " + Tools.joinList(semiFinalists, '<b>', '</b>'));
+
+		const playerStatsHtml = '';
+		// if (showPlayerStats) playerStatsHtml = Tournaments.getPlayerStatsHtml(this.room, this.format);
+
+		this.room.sayHtml("<div class='infobox-limited'>Congratulations to " + Tools.joinList(pointsHtml) + (playerStatsHtml ? "<br><br>" + playerStatsHtml : "") + "</div>");
+
+		const winnerPm = 'You were awarded **' + winnerPoints + ' ' + pointsName + '** for being ' + (winners.length > 1 ? 'a' : 'the') + ' tournament winner! To see your total amount, use this command: ``.rank ' + this.room.id + '``';
+		for (let i = 0, len = winners.length; i < len; i++) {
+			Storage.addPoints(this.room, winners[i], winnerPoints, this.format.id);
+			// Client.outgoingPms[Tools.toId(winners[i])] = winnerPm;
+			const user = Users.get(winners[i]);
+			if (user) user.say(winnerPm);
+		}
+
+		const runnerUpPm = 'You were awarded **' + runnerUpPoints + ' ' + pointsName + '** for being a runner-up in the tournament! To see your total amount, use this command: ``.rank ' + this.room.id + '``';
+		for (let i = 0, len = runnersUp.length; i < len; i++) {
+			Storage.addPoints(this.room, runnersUp[i], runnerUpPoints, this.format.id);
+			// Client.outgoingPms[Tools.toId(runnersUp[i])] = runnerUpPm;
+			const user = Users.get(runnersUp[i]);
+			if (user) user.say(runnerUpPm);
+		}
+
+		const semiFinalistPm = 'You were awarded **' + semiFinalistPoints + ' ' + pointsName + '** for being a semi-finalist in the tournament! To see your total amount, use this command: ``.rank ' + this.room.id + '``';
+		for (let i = 0, len = semiFinalists.length; i < len; i++) {
+			Storage.addPoints(this.room, semiFinalists[i], semiFinalistPoints, this.format.id);
+			// Client.outgoingPms[Tools.toId(semiFinalists[i])] = semiFinalistPm;
+			const user = Users.get(semiFinalists[i]);
+			if (user) user.say(semiFinalistPm);
+		}
 	}
 
 	forceEnd() {

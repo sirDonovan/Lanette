@@ -10,6 +10,9 @@ Config.developers = Config.developers.map(x => Tools.toId(x));
 Config.allowScriptedGames = Config.allowScriptedGames.map(x => Tools.toRoomId(x));
 Config.disallowChatLogging = Config.disallowChatLogging.map(x => Tools.toRoomId(x));
 Config.allowTournaments = Config.allowTournaments.map(x => Tools.toRoomId(x));
+Config.rankedTournaments = Config.rankedTournaments.map(x => Tools.toRoomId(x));
+Config.rankedCustomTournaments = Config.rankedCustomTournaments.map(x => Tools.toRoomId(x));
+Config.ignoreDefaultUnrankedTournaments = Config.ignoreDefaultUnrankedTournaments.map(x => Tools.toRoomId(x));
 
 import * as client from './client';
 global.Client = new client.Client();
