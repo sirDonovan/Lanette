@@ -71,8 +71,16 @@ const commands: Dict<ICommandDefinition> = {
 						Storage.databaseCache = databaseCache;
 						Storage.loadedDatabases = loadedDatabases;
 					} else if (modules[i] === 'tournaments') {
+						const scheduledTournaments = Tournaments.scheduledTournaments;
+						const tournamentTimers = Tournaments.tournamentTimers;
 						Tools.uncacheTree('./tournaments');
 						global.Tournaments = new (require('./tournaments').Tournaments)();
+						Tournaments.scheduledTournaments = scheduledTournaments;
+						Tournaments.tournamentTimers = tournamentTimers;
+						const now = Date.now();
+						Users.self.rooms.forEach((rank, room) => {
+							if (room.id in Tournaments.schedules && (!(room.id in Tournaments.scheduledTournaments) || now < Tournaments.scheduledTournaments[room.id].time)) Tournaments.setScheduledTournament(room);
+						});
 					}
 				}
 				this.say("Successfully reloaded: " + modules.join(", "));
@@ -381,6 +389,45 @@ const commands: Dict<ICommandDefinition> = {
 			this.sayCommand("/tour new " + format.name + ", elimination, " + Tournaments.defaultCap);
 		},
 		aliases: ['createtour', 'ct'],
+	},
+	scheduledtournament: {
+		command(target, room, user) {
+			const targets: string[] = target ? target.split(",") : [];
+			let tournamentRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.get(Tools.toId(targets[0]));
+				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+				if (!Config.allowTournaments.includes(targetRoom.id)) return this.say("Tournament features are not enabled for " + targetRoom.id + ".");
+				if (!this.canPmHtml(targetRoom)) return;
+				if (!(targetRoom.id in Tournaments.schedules)) return this.say("There is no tournament schedule for " + targetRoom.id + ".");
+				tournamentRoom = targetRoom;
+			} else {
+				if (!user.hasRank(room, '+')) return;
+				if (!Config.allowTournaments.includes(room.id)) return this.say("Tournament features are not enabled for this room.");
+				if (!(room.id in Tournaments.schedules)) return this.say("There is no tournament schedule for this room.");
+				tournamentRoom = room;
+			}
+
+			const scheduledTournament = Tournaments.scheduledTournaments[tournamentRoom.id];
+			const now = Date.now();
+			let html = "<b>Next" + (this.pm ? " " + tournamentRoom.id : "") + " scheduled tournament</b> ";
+			if (now > scheduledTournament.time) {
+				html += ": delayed<br />";
+			} else {
+				html += "starting in: " + Tools.toDurationString(scheduledTournament.time - now) + "<br />";
+			}
+			html += "<b>Format</b>: " + scheduledTournament.format.name;
+			if (scheduledTournament.format.customRules) {
+				html += "<br /><b>Custom rules:</b><br />";
+				if (!scheduledTournament.format.separatedCustomRules) scheduledTournament.format.separatedCustomRules = Dex.separateCustomRules(scheduledTournament.format.customRules);
+				if (scheduledTournament.format.separatedCustomRules.bans.length) html += "&nbsp;&nbsp;&nbsp;&nbsp;Bans: " + scheduledTournament.format.separatedCustomRules.bans.join(", ");
+				if (scheduledTournament.format.separatedCustomRules.unbans.length) html += "&nbsp;&nbsp;&nbsp;&nbsp;Unbans: " + scheduledTournament.format.separatedCustomRules.unbans.join(", ");
+				if (scheduledTournament.format.separatedCustomRules.addedrules.length) html += "&nbsp;&nbsp;&nbsp;&nbsp;Added rules: " + scheduledTournament.format.separatedCustomRules.addedrules.join(", ");
+				if (scheduledTournament.format.separatedCustomRules.removedrules.length) html += "&nbsp;&nbsp;&nbsp;&nbsp;Removed rules: " + scheduledTournament.format.separatedCustomRules.removedrules.join(", ");
+			}
+			this.sayHtml(html, tournamentRoom);
+		},
+		aliases: ['scheduledtour', 'officialtournament', 'officialtour', 'official'],
 	},
 
 	/**

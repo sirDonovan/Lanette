@@ -80,6 +80,7 @@ export class Tournament extends Activity {
 	};
 	isRoundRobin: boolean = false;
 	maxRounds: number = 6;
+	scheduled: boolean = false;
 	startTime: number = 0;
 	totalPlayers: number = 0;
 	updates: Partial<ITournamentUpdateJSON> = {};
@@ -161,6 +162,7 @@ export class Tournament extends Activity {
 				multiplier += ((Math.floor(this.totalPlayers / 32)) * 0.5);
 			}
 		}
+		if (this.scheduled) multiplier *= 2.5;
 
 		let pointsName = 'points';
 		let semiFinalistPoints: number;

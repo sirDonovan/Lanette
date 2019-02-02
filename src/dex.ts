@@ -63,6 +63,26 @@ const natures: Dict<INature> = {
 	timid: {name: "Timid", plus: 'spe', minus: 'atk'},
 };
 
+const tagNames: Dict<string> = {
+	'mega': 'Mega',
+	'uber': 'Uber',
+	'ou': 'OU',
+	'uubl': 'UUBL',
+	'uu': 'UU',
+	'rubl': 'RUBL',
+	'ru': 'RU',
+	'nubl': 'NUBL',
+	'nu': 'NU',
+	'publ': 'PUBL',
+	'pu': 'PU',
+	'nfe': 'NFE',
+	'lcuber': 'LC Uber',
+	'lc': 'LC',
+	'cap': 'Cap',
+	'caplc': 'Cap LC',
+	'capnfe': 'Cap NFE',
+};
+
 const dexes: Dict<Dex> = {};
 
 /**
@@ -760,6 +780,7 @@ export class Dex {
 			ruleset: formatData.ruleset || [],
 			ruleTable: null,
 			tournamentPlayable: !!(formatData.searchShow || formatData.challengeShow || formatData.tournamentShow),
+			separatedCustomRules: null,
 			unbanlist: formatData.unbanlist || [],
 			unranked: formatData.rated === false || id.includes('challengecup') || id.includes('hackmonscup') || (formatData.team && (id.includes('1v1') || id.includes('monotype'))) ||
 				formatData.mod === 'seasonal' || formatData.mod === 'ssb',
@@ -967,6 +988,67 @@ export class Dex {
 			throw new Error(`Nothing matches "${rule}"`);
 		}
 		return matches[0];
+	}
+
+	getValidatedRuleName(rule: string): string {
+		if (rule === 'unreleased') return 'Unreleased';
+		if (rule === 'illegal') return 'Illegal';
+		const type = rule.charAt(0);
+		let ruleName: string;
+		if (type === '+' || type === '-' || type === '!') {
+			ruleName = rule.substr(1);
+		} else {
+			ruleName = rule;
+		}
+		const index = ruleName.indexOf(':');
+		const tag = ruleName.substr(0, index);
+		ruleName = ruleName.substr(index + 1);
+		if (tag === 'ability') {
+			ruleName = this.getExistingAbility(ruleName).name;
+		} else if (tag === 'item') {
+			ruleName = this.getExistingItem(ruleName).name;
+		} else if (tag === 'move') {
+			ruleName = this.getExistingMove(ruleName).name;
+		} else if (tag === 'pokemon' || tag === 'basepokemon') {
+			ruleName = this.getExistingPokemon(ruleName).species;
+		} else if (tag === 'pokemontag') {
+			ruleName = tagNames[ruleName];
+		}
+
+		return ruleName;
+	}
+
+	separateCustomRules(customRules: string[]): ISeparatedCustomRules {
+		const bans: string[] = [];
+		const unbans: string[] = [];
+		const addedrules: string[] = [];
+		const removedrules: string[] = [];
+		for (let i = 0; i < customRules.length; i++) {
+			const rule = this.validateRule(customRules[i]);
+			if (typeof rule === 'string') {
+				const type = rule.charAt(0);
+				const ruleName = this.getValidatedRuleName(rule);
+
+				if (type === '+') {
+					unbans.push(ruleName);
+				} else if (type === '-') {
+					bans.push(ruleName);
+				} else if (type === '!') {
+					removedrules.push(ruleName);
+				} else {
+					addedrules.push(ruleName);
+				}
+			} else {
+				const complexBans = (rule[3] as string[]).map(x => this.getValidatedRuleName(x));
+				if (rule[0] === 'complexTeamBan') {
+					bans.push(complexBans.join(' ++ '));
+				} else {
+					bans.push(complexBans.join(' + '));
+				}
+			}
+		}
+
+		return {bans, unbans, addedrules, removedrules};
 	}
 
 	getPokemonGif(species: IPokemon | string, direction?: 'front' | 'back', width?: number, height?: number): string {

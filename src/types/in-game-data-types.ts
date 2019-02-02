@@ -297,6 +297,13 @@ export interface IFormatLinks {
 	'viability-official'?: string;
 }
 
+export interface ISeparatedCustomRules {
+	bans: string[];
+	unbans: string[];
+	addedrules: string[];
+	removedrules: string[];
+}
+
 export interface IFormatComputed {
 	banlist: NonNullable<IFormatData["banlist"]>;
 	customRules: string[] | null;
@@ -307,6 +314,7 @@ export interface IFormatComputed {
 	ruleset: NonNullable<IFormatData["ruleset"]>;
 	ruleTable: RuleTable | null;
 	tournamentPlayable: boolean;
+	separatedCustomRules: ISeparatedCustomRules | null;
 	unbanlist: NonNullable<IFormatData["unbanlist"]>;
 	unranked: boolean;
 }
