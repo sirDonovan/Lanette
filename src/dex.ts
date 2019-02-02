@@ -1,6 +1,6 @@
 import fs = require('fs');
 import path = require('path');
-import { IAbility, IAbilityComputed, IAbilityCopy, IDataTable, IFormat, IFormatComputed, IFormatData, IFormatLinks, IItem, IItemComputed, IItemCopy, IMove, IMoveComputed, IMoveCopy, INature, IPokemon, IPokemonComputed, IPokemonCopy } from './types/in-game-data-types';
+import { IAbility, IAbilityComputed, IAbilityCopy, IDataTable, IFormat, IFormatComputed, IFormatData, IFormatLinks, IItem, IItemComputed, IItemCopy, IMove, IMoveComputed, IMoveCopy, INature, IPokemon, IPokemonComputed, IPokemonCopy, ISeparatedCustomRules } from './types/in-game-data-types';
 
 const PokemonShowdown = path.resolve(__dirname, '.', '..', 'Pokemon-Showdown');
 const dataDir = path.join(PokemonShowdown, 'data');
@@ -721,9 +721,30 @@ export class Dex {
 		return pokedex;
 	}
 
-	getFormat(name: string): IFormat | null {
+	getFormat(name: string, isTrusted?: boolean): IFormat | null {
 		let id = Tools.toId(name);
 		if (!id) return null;
+
+		let supplementaryAttributes: {customRules?: string[], searchShow?: boolean} = {};
+		if (name.includes('@@@')) {
+			if (!isTrusted) {
+				try {
+					name = this.validateFormat(name);
+					isTrusted = true;
+				// tslint:disable-next-line
+				} catch (e) {}
+			}
+			const [newName, customRulesString] = name.split('@@@', 2);
+			name = newName;
+			id = Tools.toId(name);
+			if (isTrusted && customRulesString) {
+				supplementaryAttributes = {
+					customRules: customRulesString.split(','),
+					searchShow: false,
+				};
+			}
+		}
+
 		if (this.data.aliases.hasOwnProperty(id)) id = Tools.toId(this.data.aliases[id]);
 		if (!this.data.formats.hasOwnProperty(id)) return null;
 
@@ -741,13 +762,34 @@ export class Dex {
 			tournamentPlayable: !!(formatData.searchShow || formatData.challengeShow || formatData.tournamentShow),
 			unbanlist: formatData.unbanlist || [],
 		};
-		return Object.assign({}, formatData, formatComputed);
+		return Object.assign({}, formatData, formatComputed, supplementaryAttributes);
 	}
 
-	getExistingFormat(name: string): IFormat {
-		const format = this.getFormat(name);
+	getExistingFormat(name: string, isTrusted?: boolean): IFormat {
+		const format = this.getFormat(name, isTrusted);
 		if (!format) throw new Error("No format returned for '" + name + "'");
 		return format;
+	}
+
+	/**
+	 * Returns a sanitized format ID if valid, or throws if invalid
+	 */
+	validateFormat(name: string) {
+		const [formatName, customRulesString] = name.split('@@@', 2);
+		const format = this.getFormat(formatName);
+		if (!format) throw new Error(`Unrecognized format "${formatName}"`);
+		if (!customRulesString) return format.id;
+		const ruleTable = this.getRuleTable(format);
+		const customRules = customRulesString.split(',').map(rule => {
+			const ruleSpec = this.validateRule(rule);
+			if (typeof ruleSpec === 'string' && ruleTable.has(ruleSpec)) return null;
+			return rule.replace(/[\r\n|]*/g, '').trim();
+		}).filter(rule => rule);
+		if (!customRules.length) throw new Error(`The format already has your custom rules`);
+		const validatedFormatid = format.id + '@@@' + customRules.join(',');
+		const moddedFormat = this.getFormat(validatedFormatid, true)!;
+		this.getRuleTable(moddedFormat);
+		return validatedFormatid;
 	}
 
 	getRuleTable(format: IFormat, depth = 0): RuleTable {
