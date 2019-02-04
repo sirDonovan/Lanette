@@ -4,7 +4,7 @@ import { IAbility, IAbilityComputed, IAbilityCopy, IDataTable, IFormat, IFormatC
 
 const PokemonShowdown = path.resolve(__dirname, '.', '..', 'Pokemon-Showdown');
 const dataDir = path.join(PokemonShowdown, 'data');
-const modsDir = path.join(PokemonShowdown, 'mods');
+const modsDir = path.join(dataDir, 'mods');
 const lanetteDataDir = path.resolve(__dirname, '.', '..', 'data');
 const currentGen = 'gen7';
 
