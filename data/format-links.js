@@ -24,7 +24,7 @@ exports.BattleFormatLinks = {
 	'gen7almostanyability': {name: '[Gen 7] Almost Any Ability', teams: '3587901/#post-7103429', viability: '3595753'},
 	'gen7doublesuu': {name: '[Gen 7] Doubles UU', teams: '3598014'},
 	'gen7sketchmons': {name: '[Gen 7] Sketchmons', teams: '3587743/#post-7099675', viability: '3606633/#post-7392050'},
-	'gen71v1': {name: '[Gen 7] 1v1', info: '3587523', teams: '3587523/#post-7094792', viability: '3592842/#post-7188257'},
+	'gen71v1': {name: '[Gen 7] 1v1', info: '3646757', teams: '3646826', viability: '3646758'},
 	'gen7godlygift': {name: '[Gen 7] Godly Gift', teams: '3597618/#post-7259719', viability: '3597618/#post-7259721'},
 	'gen7balancedhackmons': {name: '[Gen 7] Balanced Hackmons', teams: '3587475/#post-7094085'},
 	'gen7stabmons': {name: '[Gen 7] STABmons', teams: '3587949', viability: '3587949/#post-7104490'},
