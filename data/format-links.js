@@ -1,5 +1,6 @@
 exports.BattleFormatLinks = {
 	// Gen 7
+	'gen7letsgoou': {name: '[Gen 7 Let\'s Go] OU', info: '3644015', teams: '3645829', viability: '3645828'},
 	'gen7anythinggoes': {name: '[Gen 7] Anything Goes', info: 'http://www.smogon.com/dex/sm/formats/ag/', teams: '3587441/#post-7092993', viability: '3591711/#post-7171201'},
 	'gen7ubers': {name: '[Gen 7] Ubers', teams: '3599816', viability: '3623296', roleCompendium: '3589086'},
 	'gen7ou': {name: '[Gen 7] OU', info: 'http://www.smogon.com/dex/sm/formats/ou/', teams: '3638845', viability: '3621329', roleCompendium: '3591882'},
