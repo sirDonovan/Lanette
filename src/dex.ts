@@ -9,6 +9,7 @@ export const modsDir = path.join(dataDir, 'mods');
 export const formatsPath = path.join(PokemonShowdown, 'config', 'formats.js');
 const lanetteDataDir = path.join(rootFolder, 'data');
 const currentGen = 'gen7';
+const omotmSection = 'OM of the Month';
 
 // tslint:disable-next-line no-var-requires
 const alternateIconNumbers: {right: Dict<number>, left: Dict<number>} = require(path.join(lanetteDataDir, 'alternate-icon-numbers.js'));
@@ -86,6 +87,7 @@ const tagNames: Dict<string> = {
 };
 
 const dexes: Dict<Dex> = {};
+const omotms: string[] = [];
 
 /**
  * A RuleTable keeps track of the rules that a format has. The key can be:
@@ -247,6 +249,8 @@ export class Dex {
 			if (format.searchShow === undefined) format.searchShow = true;
 			if (format.tournamentShow === undefined) format.tournamentShow = true;
 			if (format.mod === undefined) format.mod = currentGen;
+
+			if (format.section === omotmSection) omotms.push(id);
 		}
 
 		let formats: Dict<IFormatData & IFormatLinks> = {};
@@ -767,7 +771,17 @@ export class Dex {
 			}
 		}
 
-		if (this.data.aliases.hasOwnProperty(id)) id = Tools.toId(this.data.aliases[id]);
+		if (this.data.aliases.hasOwnProperty(id)) {
+			id = Tools.toId(this.data.aliases[id]);
+		} else if (id.startsWith('omotm')) {
+			let index: number;
+			if (id === 'omotm') {
+				index = 1;
+			} else {
+				index = parseInt(id.substr(5));
+			}
+			if (!isNaN(index) && index <= omotms.length) id = omotms[index - 1];
+		}
 		if (!this.data.formats.hasOwnProperty(id)) return null;
 
 		const formatData = this.data.formats[id]!;
