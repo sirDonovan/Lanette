@@ -2,16 +2,17 @@ import fs = require('fs');
 import path = require('path');
 import { IAbility, IAbilityComputed, IAbilityCopy, IDataTable, IFormat, IFormatComputed, IFormatData, IFormatLinks, IItem, IItemComputed, IItemCopy, IMove, IMoveComputed, IMoveCopy, INature, IPokemon, IPokemonComputed, IPokemonCopy, ISeparatedCustomRules } from './types/in-game-data-types';
 
-const PokemonShowdown = path.resolve(__dirname, '.', '..', 'Pokemon-Showdown');
-const dataDir = path.join(PokemonShowdown, 'data');
-const modsDir = path.join(dataDir, 'mods');
+export const PokemonShowdown = path.resolve(__dirname, '.', '..', 'Pokemon-Showdown');
+export const dataDir = path.join(PokemonShowdown, 'data');
+export const modsDir = path.join(dataDir, 'mods');
+export const formatsPath = path.join(PokemonShowdown, 'config', 'formats.js');
 const lanetteDataDir = path.resolve(__dirname, '.', '..', 'data');
 const currentGen = 'gen7';
 
 // tslint:disable-next-line no-var-requires
 const alternateIconNumbers: {right: Dict<number>, left: Dict<number>} = require(path.join(lanetteDataDir, 'alternate-icon-numbers.js'));
 
-const dataFiles: Dict<string> = {
+export const dataFiles: Dict<string> = {
 	'Pokedex': 'pokedex',
 	'Movedex': 'moves',
 	'Statuses': 'statuses',
@@ -222,7 +223,7 @@ export class Dex {
 	includeFormats() {
 		let formatsList: IFormatData[] = [];
 		try {
-			const dataObject = require(path.join(PokemonShowdown, 'config', 'formats.js'));
+			const dataObject = require(formatsPath);
 			formatsList = dataObject.Formats;
 		} catch (e) {
 			if (e.code !== 'MODULE_NOT_FOUND' && e.code !== 'ENOENT') {

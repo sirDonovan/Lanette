@@ -29,6 +29,9 @@ Object.assign(fs, {createWriteStream() {
 // tslint:disable-next-line no-var-requires
 require(path.join(rootFolder, 'built/app.js'));
 
+// tslint:disable-next-line no-var-requires
+require("./pokemon-showdown");
+
 for (let i = 0; i < moduleTests.length; i++) {
 	// tslint:disable-next-line no-var-requires
 	require(path.join(modulesDir, moduleTests[i]));
