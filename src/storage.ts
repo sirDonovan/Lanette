@@ -3,7 +3,8 @@ import path = require('path');
 import { Room } from './rooms';
 import { IDatabase } from './types/storage';
 
-const databasesDir = path.resolve(__dirname, '.', '..', 'databases');
+const rootFolder = path.resolve(__dirname, '.', '..');
+const databasesDir = path.join(rootFolder, 'databases');
 
 export class Storage {
 	databaseCache: Dict<IDatabase> = {};
@@ -108,7 +109,7 @@ export class Storage {
 			const year = date.getFullYear();
 			const month = date.getMonth() + 1;
 			const day = date.getDate();
-			const directory = path.resolve(__dirname, '.', '..', 'roomlogs', room.id, '' + year);
+			const directory = path.join(rootFolder, 'roomlogs', room.id, '' + year);
 			try {
 				fs.mkdirSync(directory, {recursive: true});
 			// tslint:disable-next-line no-empty

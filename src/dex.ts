@@ -2,11 +2,12 @@ import fs = require('fs');
 import path = require('path');
 import { IAbility, IAbilityComputed, IAbilityCopy, IDataTable, IFormat, IFormatComputed, IFormatData, IFormatLinks, IItem, IItemComputed, IItemCopy, IMove, IMoveComputed, IMoveCopy, INature, IPokemon, IPokemonComputed, IPokemonCopy, ISeparatedCustomRules } from './types/in-game-data-types';
 
-export const PokemonShowdown = path.resolve(__dirname, '.', '..', 'Pokemon-Showdown');
+const rootFolder = path.resolve(__dirname, '.', '..');
+export const PokemonShowdown = path.join(rootFolder, 'Pokemon-Showdown');
 export const dataDir = path.join(PokemonShowdown, 'data');
 export const modsDir = path.join(dataDir, 'mods');
 export const formatsPath = path.join(PokemonShowdown, 'config', 'formats.js');
-const lanetteDataDir = path.resolve(__dirname, '.', '..', 'data');
+const lanetteDataDir = path.join(rootFolder, 'data');
 const currentGen = 'gen7';
 
 // tslint:disable-next-line no-var-requires
