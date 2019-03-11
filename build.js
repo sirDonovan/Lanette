@@ -38,21 +38,20 @@ module.exports = async (resolve, reject) => {
 		if (!fs.existsSync(PokemonShowdown)) {
 			console.log("Setting up Pokemon-Showdown folder...");
 			await exec('git clone https://github.com/Zarel/Pokemon-Showdown.git');
-		} else {
-			process.chdir(PokemonShowdown);
-			const revParse = await exec('git rev-parse master', {stdio: 'inherit'}).catch(e => console.log(e));
-			if (revParse && !revParse.Error) {
-				const sha = revParse.stdout.replace("\n", "");
-				const lkg = fs.readFileSync(path.join(__dirname, "pokemon-showdown-lkg.txt")).toString();
-				if (sha !== lkg) {
-					console.log("Updating Pokemon-Showdown files...");
-					await exec('git reset --hard ' + lkg);
-				}
+		}
+		process.chdir(PokemonShowdown);
+		const revParse = await exec('git rev-parse master', {stdio: 'inherit'}).catch(e => console.log(e));
+		if (revParse && !revParse.Error) {
+			const sha = revParse.stdout.replace("\n", "");
+			const lkg = fs.readFileSync(path.join(__dirname, "pokemon-showdown-lkg.txt")).toString();
+			if (sha !== lkg) {
+				console.log("Setting Pokemon-Showdown to LKG...");
+				await exec('git reset --hard ' + lkg);
 			}
-			process.chdir(__dirname);
 		}
 
 		console.log("Running tsc...");
+		process.chdir(__dirname);
 		const build = await exec('npm run tsc', {stdio: 'inherit'}).catch(e => console.log(e));
 		if (!build || build.Error) {
 			reject();
