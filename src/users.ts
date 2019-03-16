@@ -68,6 +68,10 @@ export class Users {
 		user.name = name;
 		user.id = id;
 		this.users[id] = user;
+		user.rooms.forEach((value, room) => {
+			if (room.game) room.game.renamePlayer(user, oldId);
+			if (room.tournament) room.tournament.renamePlayer(user, oldId);
+		});
 		return user;
 	}
 }

@@ -86,6 +86,17 @@ export abstract class Activity {
 		return player;
 	}
 
+	renamePlayer(user: User, oldId: string) {
+		if (!(oldId in this.players) || (user.id in this.players && this.players[user.id].id !== user.id)) return;
+		const player = this.players[oldId];
+		player.name = user.name;
+		if (player.id === user.id) return;
+		player.id = user.id;
+		delete this.players[oldId];
+		this.players[player.id] = player;
+		if (this.onRenamePlayer) this.onRenamePlayer(player, oldId);
+	}
+
 	destroyPlayer(user: User | string): Player | void {
 		const id = Tools.toId(user);
 		if (!(id in this.players)) return;
@@ -184,5 +195,6 @@ export abstract class Activity {
 	getSignupsHtml?(): string;
 	onEnd?(): void;
 	onForceEnd?(user?: User): void;
+	onRenamePlayer?(player: Player, oldId: string): void;
 	onStart?(): void;
 }
