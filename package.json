@@ -21,7 +21,7 @@
     "@types/mocha": "5.2.6",
     "@types/node": "10.12.27",
     "@types/websocket": "0.0.40",
-    "typescript": "3.4.0-rc",
+    "typescript": "3.4.1",
     "websocket": "1.0.28"
   },
   "devDependencies": {
