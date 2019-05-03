@@ -71,11 +71,14 @@ const DEFAULT_SERVER_GROUPS: ServerGroupData[] = [
 ];
 
 export class Client {
+	botRank: string = '*';
 	challstr: string = '';
 	client: websocket.client = new websocket.client();
 	connection: websocket.connection | null = null;
 	connectionAttempts: number = 0;
 	connectionTimeout: NodeJS.Timer | null = null;
+	globalStaffGroups: string[] = [];
+	loggedIn: boolean = false;
 	reconnectTime: number = Config.reconnectTime || 60 * 1000;
 	sendQueue: string[] = [];
 	sendTimeout: NodeJS.Timer | null = null;
@@ -290,19 +293,37 @@ export class Client {
 
 		case 'updateuser': {
 			const messageArguments: IClientMessageTypes['updateuser'] = {username: messageParts[0], loginStatus: messageParts[1]};
-			if (messageArguments.username === Config.username) {
+			if (Tools.toId(messageArguments.username) === Users.self.id) {
 				if (messageArguments.loginStatus !== '1') {
 					console.log('Failed to log in');
 					process.exit();
 				}
 
-				console.log('Successfully logged in');
-				if (Config.rooms) {
-					for (let i = 0; i < Config.rooms.length; i++) {
-						this.send('|/join ' + Config.rooms[i]);
+				if (!this.loggedIn) {
+					console.log('Successfully logged in');
+					this.loggedIn = true;
+					this.send('|/blockchallenges');
+					this.send('|/cmd userdetails ' + Users.self.id);
+					if (Config.rooms) {
+						for (let i = 0; i < Config.rooms.length; i++) {
+							this.send('|/join ' + Config.rooms[i]);
+						}
+					}
+					if (Config.avatar) this.send('|/avatar ' + Config.avatar);
+				}
+			}
+			break;
+		}
+
+		case 'queryresponse': {
+			if (messageParts[0] === 'userdetails') {
+				const messageArguments: IClientMessageTypes['queryresponse'] = {type: messageParts[0] as 'userdetails', response: messageParts.slice(1).join('|')};
+				if (messageArguments.response && messageArguments.response !== 'null') {
+					const response = JSON.parse(messageArguments.response);
+					if (response.userid === Users.self.id) {
+						Users.self.group = response.group;
 					}
 				}
-				if (Config.avatar) this.send('|/avatar ' + Config.avatar);
 			}
 			break;
 		}
@@ -429,12 +450,17 @@ export class Client {
 	}
 
 	parseServerGroups(groups: ServerGroupData[]) {
+		this.globalStaffGroups = [];
 		this.serverGroups = {};
 		let ranking = groups.length;
 		for (let i = 0; i < groups.length; i++) {
 			this.serverGroups[groups[i].symbol] = Object.assign({ranking}, groups[i]);
+			if (groups[i].name === 'Bot') this.botRank = groups[i].symbol;
+			if (groups[i].type === 'leadership' || groups[i].type === 'staff') this.globalStaffGroups.push(groups[i].symbol);
 			ranking--;
 		}
+
+		if (!this.globalStaffGroups.includes(this.botRank)) this.globalStaffGroups.push(this.botRank);
 	}
 
 	send(message: string) {

@@ -3,6 +3,7 @@ import { Room } from "./rooms";
 
 export class User {
 	game: Game | null = null;
+	group: string = '';
 	/** Map<Room, rank> */
 	rooms = new Map<Room, string>();
 

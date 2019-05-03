@@ -28,6 +28,15 @@ export interface IClientMessageTypes {
 	};
 
 	/**
+	 * Query type|response
+	 */
+	queryresponse: {
+		type: 'userdetails',
+		/** JSON string */
+		response: string,
+	};
+
+	/**
 	 * Room type
 	 */
 	init: {
