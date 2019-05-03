@@ -2,7 +2,7 @@ import https = require('https');
 import querystring = require('querystring');
 import url = require('url');
 import websocket = require('websocket');
-import { Room } from './rooms';
+import { Room, RoomType } from './rooms';
 import { IClientMessageTypes, IServerGroup, ITournamentMessageTypes, ServerGroupData } from './types/client-message-types';
 
 const RELOGIN_SECONDS = 60;
@@ -308,9 +308,13 @@ export class Client {
 		}
 
 		case 'init': {
+			const messageArguments: IClientMessageTypes['init'] = {type: messageParts[0] as RoomType};
 			console.log("Joined room: " + room.id);
-			if (room.id in Tournaments.schedules) {
-				Tournaments.setScheduledTournament(room);
+			room.init(messageArguments.type);
+			if (room.type === 'chat') {
+				if (room.id in Tournaments.schedules) {
+					Tournaments.setScheduledTournament(room);
+				}
 			}
 			break;
 		}

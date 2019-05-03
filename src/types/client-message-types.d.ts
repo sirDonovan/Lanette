@@ -1,4 +1,5 @@
 import { ITournamentEndJSON, ITournamentUpdateJSON } from "../room-tournament";
+import { RoomType } from "../rooms";
 import { IFormat } from "../types/in-game-data-types";
 
 export interface IServerGroup {
@@ -30,8 +31,8 @@ export interface IClientMessageTypes {
 	 * Room type
 	 */
 	init: {
-		/** Chat or battle */
-		type: string,
+		/** Chat, battle, or HTML */
+		type: RoomType,
 	};
 
 	/**

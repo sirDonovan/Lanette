@@ -4,6 +4,8 @@ import { Game } from "./room-game";
 import { Tournament } from "./room-tournament";
 import { User } from "./users";
 
+export type RoomType = 'battle' | 'chat' | 'html';
+
 export class Room {
 	game: Game | null = null;
 	messageListeners: Dict<() => void> = {};
@@ -14,11 +16,16 @@ export class Room {
 	id: string;
 	logChatMessages: boolean;
 	sendId: string;
+	type!: RoomType;
 
 	constructor(id: string) {
 		this.id = id;
 		this.logChatMessages = !id.startsWith('battle-') && !id.startsWith('groupchat-') && !Config.disallowChatLogging.includes(id);
 		this.sendId = id === 'lobby' ? '' : id;
+	}
+
+	init(type: RoomType) {
+		this.type = type;
 	}
 
 	say(message: string, dontPrepare?: boolean) {
