@@ -130,6 +130,14 @@ export interface IClientMessageTypes {
 	tournament: {
 		type: keyof ITournamentMessageTypes,
 	};
+
+	raw: {
+		message: string,
+	};
+
+	pagehtml: {
+		html: string,
+	};
 }
 
 export interface ITournamentMessageTypes {

@@ -77,6 +77,8 @@ export class Client {
 	connection: websocket.connection | null = null;
 	connectionAttempts: number = 0;
 	connectionTimeout: NodeJS.Timer | null = null;
+	filterPhrases: string[] = [];
+	filterRegularExpressions: RegExp[] = [];
 	globalStaffGroups: string[] = [];
 	loggedIn: boolean = false;
 	reconnectTime: number = Config.reconnectTime || 60 * 1000;
@@ -84,6 +86,7 @@ export class Client {
 	sendTimeout: NodeJS.Timer | null = null;
 	server: string = Config.server || 'play.pokemonshowdown.com';
 	serverGroups: Dict<IServerGroup> = {};
+	serverHasFilters: boolean = false;
 	serverId: string = 'showdown';
 	serverTimeOffset: number = 0;
 
@@ -186,16 +189,24 @@ export class Client {
 		for (let i = 0; i < lines.length; i++) {
 			this.parseMessage(room, lines[i]);
 			if (lines[i].startsWith('|init|')) {
+				const page = room.type === 'html';
 				for (let j = i + 1; j < lines.length; j++) {
-					if (lines[j].startsWith('|users|')) {
-						this.parseMessage(room, lines[j]);
-						for (let k = j + 1; k < lines.length; k++) {
-							if (lines[k].startsWith('|:|')) {
-								this.parseMessage(room, lines[k]);
-								break;
-							}
+					if (page) {
+						if (lines[j].startsWith('|pagehtml|')) {
+							this.parseMessage(room, lines[j]);
+							break;
 						}
-						break;
+					} else {
+						if (lines[j].startsWith('|users|')) {
+							this.parseMessage(room, lines[j]);
+							for (let k = j + 1; k < lines.length; k++) {
+								if (lines[k].startsWith('|:|')) {
+									this.parseMessage(room, lines[k]);
+									break;
+								}
+							}
+							break;
+						}
 					}
 				}
 				return;
@@ -203,11 +214,18 @@ export class Client {
 		}
 	}
 
-	parseMessage(room: Room, message: string): true {
-		message = message.substr(1);
-		const pipeIndex = message.indexOf("|");
-		const messageType = message.substr(0, pipeIndex) as keyof IClientMessageTypes;
-		message = message.substr(pipeIndex + 1);
+	parseMessage(room: Room, rawMessage: string): true {
+		let message: string;
+		let messageType: keyof IClientMessageTypes;
+		if (rawMessage.charAt(0) !== "|") {
+			message = rawMessage;
+			messageType = 'raw';
+		} else {
+			message = rawMessage.substr(1);
+			const pipeIndex = message.indexOf("|");
+			messageType = message.substr(0, pipeIndex) as keyof IClientMessageTypes;
+			message = message.substr(pipeIndex + 1);
+		}
 		const messageParts = message.split("|");
 		switch (messageType) {
 		case 'tournament': {
@@ -322,6 +340,10 @@ export class Client {
 					const response = JSON.parse(messageArguments.response);
 					if (response.userid === Users.self.id) {
 						Users.self.group = response.group;
+						if (this.globalStaffGroups.includes(Users.self.group)) {
+							const staff = Rooms.get('staff');
+							if (staff) staff.say('/filters view');
+						}
 					}
 				}
 			}
@@ -333,6 +355,7 @@ export class Client {
 			console.log("Joined room: " + room.id);
 			room.init(messageArguments.type);
 			if (room.type === 'chat') {
+				room.say('/banword list');
 				if (room.id in Tournaments.schedules) {
 					Tournaments.setScheduledTournament(room);
 				}
@@ -444,6 +467,57 @@ export class Client {
 				CommandParser.parse(user, user, messageArguments.message);
 			}
 		}
+
+		case 'raw': {
+			const messageArguments: IClientMessageTypes['raw'] = {message: rawMessage};
+			if (messageArguments.message.startsWith('Banned phrases in room ')) {
+				const subMessage = messageArguments.message.split('Banned phrases in room ')[1];
+				const colonIndex = subMessage.indexOf(':');
+				const roomId = subMessage.substr(0, colonIndex);
+				const room = Rooms.get(roomId);
+				if (room) room.bannedWords = subMessage.substr(colonIndex + 2).split(', ');
+			}
+			break;
+		}
+
+		case 'pagehtml': {
+			if (room.id === 'view-filters') {
+				this.filterPhrases = [];
+				this.filterRegularExpressions = [];
+				const messageArguments: IClientMessageTypes['pagehtml'] = {html: messageParts.join("|")};
+				if (messageArguments.html.includes('<table>')) {
+					const table = messageArguments.html.split('<table>')[1].split('</table>')[0];
+					const rows = table.split("<tr>");
+					let currentHeader = '';
+
+					for (let i = 0; i < rows.length; i++) {
+						if (!rows[i]) continue;
+						if (rows[i].startsWith('<th colspan="2"><h3>')) {
+							currentHeader = rows[i].split('<th colspan="2"><h3>')[1].split(' <span')[0];
+						} else if (rows[i].startsWith('<td><abbr title="">') && currentHeader !== 'Whitelisted names') {
+							const phrase = rows[i].split('<td><abbr title="">')[1].split('</abbr>')[0];
+							// regular expression
+							if (phrase.startsWith('<code>/')) {
+								const regularExpressionString = phrase.split('<code>/')[1].split('</code>')[0];
+								const slashIndex = regularExpressionString.indexOf('/');
+								let regularExpression;
+								try {
+									regularExpression = new RegExp(regularExpressionString.substr(0, slashIndex), regularExpressionString.substr(slashIndex + 1));
+								} catch (e) {
+									console.log(e);
+								}
+								if (regularExpression) this.filterRegularExpressions.push(regularExpression);
+							} else {
+								this.filterPhrases.push(phrase);
+							}
+						}
+					}
+
+					this.serverHasFilters = this.filterPhrases.length || this.filterRegularExpressions.length ? true : false;
+				}
+			}
+			break;
+		}
 		}
 
 		return true;
@@ -461,6 +535,27 @@ export class Client {
 		}
 
 		if (!this.globalStaffGroups.includes(this.botRank)) this.globalStaffGroups.push(this.botRank);
+	}
+
+	willBeFiltered(message: string, room?: Room): boolean {
+		const lowerCase = message.toLowerCase();
+		if (this.serverHasFilters) {
+			for (let i = 0; i < this.filterPhrases.length; i++) {
+				if (lowerCase.includes(this.filterPhrases[i])) return true;
+			}
+
+			for (let i = 0; i < this.filterRegularExpressions.length; i++) {
+				if (this.filterRegularExpressions[i].test(message)) return true;
+			}
+		}
+
+		if (room) {
+			for (let i = 0; i < room.bannedWords.length; i++) {
+				if (lowerCase.includes(room.bannedWords[i])) return true;
+			}
+		}
+
+		return false;
 	}
 
 	send(message: string) {

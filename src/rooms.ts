@@ -7,6 +7,7 @@ import { User } from "./users";
 export type RoomType = 'battle' | 'chat' | 'html';
 
 export class Room {
+	bannedWords: string[] = [];
 	game: Game | null = null;
 	messageListeners: Dict<() => void> = {};
 	tournament: Tournament | null = null;
@@ -30,6 +31,7 @@ export class Room {
 
 	say(message: string, dontPrepare?: boolean) {
 		if (!dontPrepare) message = Tools.prepareMessage(message);
+		if (Client.willBeFiltered(message, this)) return;
 		Client.send(this.sendId + "|" + message);
 	}
 
