@@ -156,12 +156,20 @@ export class Tools {
 		return parts.slice(positiveIndex).reverse().map((value, index) => value ? value + " " + unitNames[index] + (value > 1 ? "s" : "") : "").reverse().slice(0, precision).join(" ").trim();
 	}
 
+	getLastDayOfMonth(date: Date): number {
+		const month = date.getMonth() + 1;
+		if (month === 2) {
+			if (date.getFullYear() % 4 === 0) return 29;
+			return 28;
+		}
+		if ([4, 6, 9, 11].includes(month)) return 30;
+		return 31;
+	}
+
 	isNumber(text: string): boolean {
 		text = text.trim();
 		if (text.charAt(0) === '-') text = text.substr(1);
-		const match = text.match(NUMBER_REGEX);
-		if (match && match.length) return true;
-		return false;
+		return NUMBER_REGEX.test(text);
 	}
 
 	deepClone<T>(obj: T): T extends IAbility ? IAbilityCopy : T extends IItem ? IItemCopy : T extends IMove ? IMoveCopy : T extends IPokemon ? IPokemonCopy : T {

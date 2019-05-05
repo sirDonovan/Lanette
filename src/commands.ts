@@ -429,6 +429,27 @@ const commands: Dict<ICommandDefinition> = {
 		},
 		aliases: ['scheduledtour', 'officialtournament', 'officialtour', 'official'],
 	},
+	gettournamentschedule: {
+		command(target, room, user) {
+			const targets: string[] = target ? target.split(",") : [];
+			let tournamentRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.get(Tools.toId(targets[0]));
+				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+				if (!user.hasRank(targetRoom, '@')) return;
+				if (!Config.allowTournaments.includes(targetRoom.id)) return this.say("Tournament features are not enabled for " + targetRoom.id + ".");
+				tournamentRoom = targetRoom;
+			} else {
+				if (!user.hasRank(room, '@')) return;
+				if (!Config.allowTournaments.includes(room.id)) return this.say("Tournament features are not enabled for this room.");
+				tournamentRoom = room;
+			}
+			const schedule = Tournaments.getTournamentScheduleHtml(tournamentRoom);
+			if (!schedule) return this.say("No tournament schedule found for " + tournamentRoom.id);
+			this.sayCommand("!code " + schedule);
+		},
+		aliases: ['gettourschedule'],
+	},
 
 	/**
 	 * Storage commands
