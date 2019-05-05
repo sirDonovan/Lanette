@@ -351,7 +351,7 @@ const commands: Dict<ICommandDefinition> = {
 			if (this.isPm(room)) {
 				const targetRoom = Rooms.get(Tools.toId(targets[0]));
 				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
-				if (!Config.allowTournaments.includes(targetRoom.id)) return this.say("Tournament features are not enabled for " + targetRoom.id + ".");
+				if (!Config.allowTournaments.includes(targetRoom.id)) return this.say("Tournament features are not enabled for " + targetRoom.title + ".");
 				if (!this.canPmHtml(targetRoom)) return;
 				tournamentRoom = targetRoom;
 			} else {
@@ -397,9 +397,9 @@ const commands: Dict<ICommandDefinition> = {
 			if (this.isPm(room)) {
 				const targetRoom = Rooms.get(Tools.toId(targets[0]));
 				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
-				if (!Config.allowTournaments.includes(targetRoom.id)) return this.say("Tournament features are not enabled for " + targetRoom.id + ".");
+				if (!Config.allowTournaments.includes(targetRoom.id)) return this.say("Tournament features are not enabled for " + targetRoom.title + ".");
 				if (!this.canPmHtml(targetRoom)) return;
-				if (!(targetRoom.id in Tournaments.schedules)) return this.say("There is no tournament schedule for " + targetRoom.id + ".");
+				if (!(targetRoom.id in Tournaments.schedules)) return this.say("There is no tournament schedule for " + targetRoom.title + ".");
 				tournamentRoom = targetRoom;
 			} else {
 				if (!user.hasRank(room, '+')) return;
@@ -437,7 +437,7 @@ const commands: Dict<ICommandDefinition> = {
 				const targetRoom = Rooms.get(Tools.toId(targets[0]));
 				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
 				if (!user.hasRank(targetRoom, '@')) return;
-				if (!Config.allowTournaments.includes(targetRoom.id)) return this.say("Tournament features are not enabled for " + targetRoom.id + ".");
+				if (!Config.allowTournaments.includes(targetRoom.id)) return this.say("Tournament features are not enabled for " + targetRoom.title + ".");
 				tournamentRoom = targetRoom;
 			} else {
 				if (!user.hasRank(room, '@')) return;
@@ -467,9 +467,9 @@ const commands: Dict<ICommandDefinition> = {
 				leaderboardRoom = room;
 			}
 			const database = Storage.getDatabase(leaderboardRoom);
-			if (!database.leaderboard) return this.say("There is no leaderboard for the " + leaderboardRoom.id + " room.");
+			if (!database.leaderboard) return this.say("There is no leaderboard for the " + leaderboardRoom.title + " room.");
 			const users = Object.keys(database.leaderboard);
-			if (!users.length) return this.say("The " + leaderboardRoom.id + " leaderboard is empty.");
+			if (!users.length) return this.say("The " + leaderboardRoom.title + " leaderboard is empty.");
 			let startPosition = 0;
 			let source: IFormat | IGameFormat | undefined;
 			let annual = false;
@@ -556,9 +556,9 @@ const commands: Dict<ICommandDefinition> = {
 			const targetRoom = Rooms.get(Tools.toId(targets[0]));
 			if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
 			const database = Storage.getDatabase(targetRoom);
-			if (!database.leaderboard) return this.say("There is no leaderboard for the " + targetRoom.id + " room.");
+			if (!database.leaderboard) return this.say("There is no leaderboard for the " + targetRoom.title + " room.");
 			const users = Object.keys(database.leaderboard);
-			if (!users.length) return this.say("The " + targetRoom.id + " leaderboard is empty.");
+			if (!users.length) return this.say("The " + targetRoom.title + " leaderboard is empty.");
 			let targetUser = '';
 			let position = 0;
 			let source: IFormat | IGameFormat | undefined;
@@ -610,24 +610,24 @@ const commands: Dict<ICommandDefinition> = {
 			if (position) {
 				const index = position - 1;
 				if (current.length <= position) {
-					results.push("#" + position + " on the " + targetRoom.id + " " + (source ? source.name + " " : "") + "leaderboard is " + database.leaderboard[current[index]].name + " with " + (currentPointsCache[current[index]] || database.leaderboard[current[index]].current) + " " + (bits ? "bits" : "points") + ".");
+					results.push("#" + position + " on the " + targetRoom.title + " " + (source ? source.name + " " : "") + "leaderboard is " + database.leaderboard[current[index]].name + " with " + (currentPointsCache[current[index]] || database.leaderboard[current[index]].current) + " " + (bits ? "bits" : "points") + ".");
 				}
 				if (annual.length <= position) {
-					results.push("#" + position + " on the annual " + targetRoom.id + " " + (source ? source.name + " " : "") + "leaderboard is " + database.leaderboard[annual[index]].name + " with " + annualPointsCache[annual[index]] + " " + (bits ? "bits" : "points") + ".");
+					results.push("#" + position + " on the annual " + targetRoom.title + " " + (source ? source.name + " " : "") + "leaderboard is " + database.leaderboard[annual[index]].name + " with " + annualPointsCache[annual[index]] + " " + (bits ? "bits" : "points") + ".");
 				}
-				if (!results.length) return this.say("No one is #" + position + " on the " + targetRoom.id + " " + (source ? source.name + " " : "") + "leaderboard.");
+				if (!results.length) return this.say("No one is #" + position + " on the " + targetRoom.title + " " + (source ? source.name + " " : "") + "leaderboard.");
 			} else {
 				if (!targetUser) targetUser = user.id;
 				const self = targetUser === user.id;
 				const currentIndex = current.indexOf(targetUser);
 				const annualIndex = annual.indexOf(targetUser);
 				if (currentIndex !== -1) {
-					results.push((self ? "You are" : database.leaderboard[targetUser].name + " is") + " #" + (currentIndex + 1) + " on the " + targetRoom.id + " " + (source ? source.name + " " : "") + "leaderboard with " + (currentPointsCache[targetUser] || database.leaderboard[targetUser].current) + " " + (bits ? "bits" : "points") + ".");
+					results.push((self ? "You are" : database.leaderboard[targetUser].name + " is") + " #" + (currentIndex + 1) + " on the " + targetRoom.title + " " + (source ? source.name + " " : "") + "leaderboard with " + (currentPointsCache[targetUser] || database.leaderboard[targetUser].current) + " " + (bits ? "bits" : "points") + ".");
 				}
 				if (annualIndex !== -1) {
-					results.push((self ? "You are" : database.leaderboard[targetUser].name + " is") + " #" + (annualIndex + 1) + " on the annual " + targetRoom.id + " " + (source ? source.name + " " : "") + "leaderboard with " + annualPointsCache[targetUser] + " " + (bits ? "bits" : "points") + ".");
+					results.push((self ? "You are" : database.leaderboard[targetUser].name + " is") + " #" + (annualIndex + 1) + " on the annual " + targetRoom.title + " " + (source ? source.name + " " : "") + "leaderboard with " + annualPointsCache[targetUser] + " " + (bits ? "bits" : "points") + ".");
 				}
-				if (!results.length) return this.say((self ? "You are" : database.leaderboard[targetUser].name + " is") + " not on the " + targetRoom.id + " " + (source ? source.name + " " : "") + "leaderboard.");
+				if (!results.length) return this.say((self ? "You are" : database.leaderboard[targetUser].name + " is") + " not on the " + targetRoom.title + " " + (source ? source.name + " " : "") + "leaderboard.");
 			}
 			this.say(results.join(" "));
 		},

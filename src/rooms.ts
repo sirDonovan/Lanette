@@ -2,6 +2,7 @@ import { UserHosted } from "./games/templates/user-hosted";
 import { Player } from "./room-activity";
 import { Game } from "./room-game";
 import { Tournament } from "./room-tournament";
+import { IRoomInfoResponse } from "./types/client-message-types";
 import { User } from "./users";
 
 export type RoomType = 'battle' | 'chat' | 'html';
@@ -17,16 +18,22 @@ export class Room {
 	id: string;
 	logChatMessages: boolean;
 	sendId: string;
+	title: string;
 	type!: RoomType;
 
 	constructor(id: string) {
 		this.id = id;
 		this.logChatMessages = !id.startsWith('battle-') && !id.startsWith('groupchat-') && !Config.disallowChatLogging.includes(id);
 		this.sendId = id === 'lobby' ? '' : id;
+		this.title = id;
 	}
 
 	init(type: RoomType) {
 		this.type = type;
+	}
+
+	onRoomInfoResponse(response: IRoomInfoResponse) {
+		this.title = response.title;
 	}
 
 	say(message: string, dontPrepare?: boolean) {

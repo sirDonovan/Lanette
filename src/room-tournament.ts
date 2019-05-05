@@ -187,7 +187,7 @@ export class Tournament extends Activity {
 
 		this.room.sayHtml("<div class='infobox-limited'>Congratulations to " + Tools.joinList(pointsHtml) + (playerStatsHtml ? "<br><br>" + playerStatsHtml : "") + "</div>");
 
-		const winnerPm = 'You were awarded **' + winnerPoints + ' ' + pointsName + '** for being ' + (winners.length > 1 ? 'a' : 'the') + ' tournament winner! To see your total amount, use this command: ``.rank ' + this.room.id + '``';
+		const winnerPm = 'You were awarded **' + winnerPoints + ' ' + pointsName + '** for being ' + (winners.length > 1 ? 'a' : 'the') + ' tournament winner! To see your total amount, use this command: ``.rank ' + this.room.title + '``';
 		for (let i = 0, len = winners.length; i < len; i++) {
 			Storage.addPoints(this.room, winners[i], winnerPoints, this.format.id);
 			// Client.outgoingPms[Tools.toId(winners[i])] = winnerPm;
@@ -195,7 +195,7 @@ export class Tournament extends Activity {
 			if (user) user.say(winnerPm);
 		}
 
-		const runnerUpPm = 'You were awarded **' + runnerUpPoints + ' ' + pointsName + '** for being a runner-up in the tournament! To see your total amount, use this command: ``.rank ' + this.room.id + '``';
+		const runnerUpPm = 'You were awarded **' + runnerUpPoints + ' ' + pointsName + '** for being a runner-up in the tournament! To see your total amount, use this command: ``.rank ' + this.room.title + '``';
 		for (let i = 0, len = runnersUp.length; i < len; i++) {
 			Storage.addPoints(this.room, runnersUp[i], runnerUpPoints, this.format.id);
 			// Client.outgoingPms[Tools.toId(runnersUp[i])] = runnerUpPm;
@@ -203,7 +203,7 @@ export class Tournament extends Activity {
 			if (user) user.say(runnerUpPm);
 		}
 
-		const semiFinalistPm = 'You were awarded **' + semiFinalistPoints + ' ' + pointsName + '** for being a semi-finalist in the tournament! To see your total amount, use this command: ``.rank ' + this.room.id + '``';
+		const semiFinalistPm = 'You were awarded **' + semiFinalistPoints + ' ' + pointsName + '** for being a semi-finalist in the tournament! To see your total amount, use this command: ``.rank ' + this.room.title + '``';
 		for (let i = 0, len = semiFinalists.length; i < len; i++) {
 			Storage.addPoints(this.room, semiFinalists[i], semiFinalistPoints, this.format.id);
 			// Client.outgoingPms[Tools.toId(semiFinalists[i])] = semiFinalistPm;

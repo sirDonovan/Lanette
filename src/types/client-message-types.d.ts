@@ -11,6 +11,17 @@ export interface IServerGroup {
 
 export type ServerGroupData = Pick<IServerGroup, Exclude<keyof IServerGroup, "ranking">>;
 
+export interface IRoomInfoResponse {
+	id: string;
+	title: string;
+	type: string;
+	visibility: string;
+	modchat: string | false;
+	modjoin: string | boolean;
+	auth: Dict<string[]>;
+	users: string[];
+}
+
 export interface IClientMessageTypes {
 	/**
 	 * Challenge key ID|challenge
@@ -31,7 +42,7 @@ export interface IClientMessageTypes {
 	 * Query type|response
 	 */
 	queryresponse: {
-		type: 'userdetails',
+		type: 'roominfo' | 'userdetails',
 		/** JSON string */
 		response: string,
 	};
@@ -131,10 +142,16 @@ export interface IClientMessageTypes {
 		type: keyof ITournamentMessageTypes,
 	};
 
+	/**
+	 * Raw message
+	 */
 	raw: {
 		message: string,
 	};
 
+	/**
+	 * Page HTML
+	 */
 	pagehtml: {
 		html: string,
 	};

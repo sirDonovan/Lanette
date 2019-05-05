@@ -3,7 +3,7 @@ import querystring = require('querystring');
 import url = require('url');
 import websocket = require('websocket');
 import { Room, RoomType } from './rooms';
-import { IClientMessageTypes, IServerGroup, ITournamentMessageTypes, ServerGroupData } from './types/client-message-types';
+import { IClientMessageTypes, IRoomInfoResponse, IServerGroup, ITournamentMessageTypes, ServerGroupData } from './types/client-message-types';
 
 const RELOGIN_SECONDS = 60;
 const SEND_THROTTLE = 800;
@@ -334,8 +334,14 @@ export class Client {
 		}
 
 		case 'queryresponse': {
-			if (messageParts[0] === 'userdetails') {
-				const messageArguments: IClientMessageTypes['queryresponse'] = {type: messageParts[0] as 'userdetails', response: messageParts.slice(1).join('|')};
+			const messageArguments: IClientMessageTypes['queryresponse'] = {type: messageParts[0] as 'roominfo' | 'userdetails', response: messageParts.slice(1).join('|')};
+			if (messageParts[0] === 'roominfo') {
+				if (messageArguments.response && messageArguments.response !== 'null') {
+					const response = JSON.parse(messageArguments.response) as IRoomInfoResponse;
+					const room = Rooms.get(response.id);
+					if (room) room.onRoomInfoResponse(response);
+				}
+			} else if (messageParts[0] === 'userdetails') {
 				if (messageArguments.response && messageArguments.response !== 'null') {
 					const response = JSON.parse(messageArguments.response);
 					if (response.userid === Users.self.id) {
@@ -355,6 +361,7 @@ export class Client {
 			console.log("Joined room: " + room.id);
 			room.init(messageArguments.type);
 			if (room.type === 'chat') {
+				room.say('/cmd roominfo ' + room.id);
 				room.say('/banword list');
 				if (room.id in Tournaments.schedules) {
 					Tournaments.setScheduledTournament(room);
