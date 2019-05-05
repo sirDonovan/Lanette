@@ -1,5 +1,6 @@
 import fs = require('fs');
 import path = require('path');
+import { Room } from './rooms';
 import { IAbility, IAbilityComputed, IAbilityCopy, IDataTable, IFormat, IFormatComputed, IFormatData, IFormatLinks, IItem, IItemComputed, IItemCopy, IMove, IMoveComputed, IMoveCopy, INature, IPokemon, IPokemonComputed, IPokemonCopy, ISeparatedCustomRules } from './types/in-game-data-types';
 
 const rootFolder = path.resolve(__dirname, '.', '..');
@@ -84,6 +85,16 @@ const tagNames: Dict<string> = {
 	'cap': 'Cap',
 	'caplc': 'Cap LC',
 	'capnfe': 'Cap NFE',
+};
+
+const clauseNicknames: Dict<string> = {
+	'Same Type Clause': 'Monotype',
+	'STABmons Move Legality': 'STABmons',
+	'Inverse Mod': 'Inverse',
+	'Allow One Sketch': 'Sketchmons',
+	'Allow CAP': 'CAP',
+	'Allow Tradeback': 'Tradeback',
+	'Ignore Illegal Abilities': 'Almost Any Ability',
 };
 
 const dexes: Dict<Dex> = {};
@@ -1029,6 +1040,9 @@ export class Dex {
 			ruleName = this.getExistingPokemon(ruleName).species;
 		} else if (tag === 'pokemontag') {
 			ruleName = tagNames[ruleName];
+		} else {
+			const format = this.getFormat(ruleName);
+			if (format) ruleName = format.name;
 		}
 
 		return ruleName;
@@ -1065,6 +1079,53 @@ export class Dex {
 		}
 
 		return {bans, unbans, addedrules, removedrules};
+	}
+
+	getCustomFormatName(room: Room, format: IFormat, showAll?: boolean): string {
+		if (!format.customRules || !format.customRules.length) return format.name;
+		if (!format.separatedCustomRules) format.separatedCustomRules = this.separateCustomRules(format.customRules);
+		const defaultCustomRules: Partial<ISeparatedCustomRules> = Tournaments.defaultCustomRules[room.id] || {};
+		const bansLength = format.separatedCustomRules.bans.length;
+		const unbansLength = format.separatedCustomRules.unbans.length;
+		const addedRulesLength = format.separatedCustomRules.addedrules.length;
+		const removedRulesLength = format.separatedCustomRules.removedrules.length;
+
+		const prefixesAdded: string[] = [];
+		let prefixesRemoved: string[] = [];
+		let suffixes: string[] = [];
+
+		if (showAll || (bansLength <= 2 && unbansLength <= 2 && addedRulesLength <= 2 && removedRulesLength <= 2)) {
+			if (bansLength && (!defaultCustomRules.bans || format.separatedCustomRules.bans.join(",") !== defaultCustomRules.bans.join(","))) {
+				prefixesRemoved = prefixesRemoved.concat(format.separatedCustomRules.bans);
+			}
+			if (unbansLength && (!defaultCustomRules.unbans || format.separatedCustomRules.unbans.join(",") !== defaultCustomRules.unbans.join(","))) {
+				suffixes = suffixes.concat(format.separatedCustomRules.unbans);
+			}
+			if (addedRulesLength && (!defaultCustomRules.addedrules || format.separatedCustomRules.addedrules.join(",") !== defaultCustomRules.addedrules.join(","))) {
+				for (let i = 0; i < format.separatedCustomRules.addedrules.length; i++) {
+					let addedRule = format.separatedCustomRules.addedrules[i];
+					const subFormat = this.getFormat(format.separatedCustomRules.addedrules[i]);
+					if (subFormat && subFormat.effectType === 'Format' && subFormat.name.startsWith('[Gen')) {
+						addedRule = subFormat.name.substr(subFormat.name.indexOf(']') + 2);
+					} else if (addedRule in clauseNicknames) {
+						addedRule = clauseNicknames[addedRule];
+					}
+					prefixesAdded.push(addedRule);
+				}
+			}
+			if (removedRulesLength && (!defaultCustomRules.removedrules || format.separatedCustomRules.removedrules.join(",") !== defaultCustomRules.removedrules.join(","))) {
+				prefixesRemoved = prefixesRemoved.concat(format.separatedCustomRules.removedrules.map(x => clauseNicknames[x] || x));
+			}
+
+			let name = '';
+			if (prefixesRemoved.length) name += "(No " + Tools.joinList(prefixesRemoved, null, null, "or") + ") ";
+			if (prefixesAdded.length) name += prefixesAdded.join("-") + " ";
+			name += format.name;
+			if (suffixes.length) name += " (Plus " + Tools.joinList(suffixes) + ")";
+			return name;
+		} else {
+			return format.name;
+		}
 	}
 
 	getPokemonGif(species: IPokemon | string, direction?: 'front' | 'back', width?: number, height?: number): string {

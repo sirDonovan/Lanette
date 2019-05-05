@@ -98,18 +98,19 @@ export class Tools {
 		}
 	}
 
-	joinList(list: string[], preFormatting?: string, postFormatting?: string): string {
+	joinList(list: string[], preFormatting?: string | null, postFormatting?: string | null, conjunction?: string): string {
 		let len = list.length;
-		if (!len) return '';
-		if (!preFormatting) preFormatting = '';
+		if (!len) return "";
+		if (!preFormatting) preFormatting = "";
 		if (!postFormatting) postFormatting = preFormatting;
+		if (!conjunction) conjunction = "and";
 		if (len === 1) {
 			return preFormatting + list[0] + postFormatting;
 		} else if (len === 2) {
-			return preFormatting + list[0] + postFormatting + " and " + preFormatting + list[1] + postFormatting;
+			return preFormatting + list[0] + postFormatting + " " + conjunction + " " + preFormatting + list[1] + postFormatting;
 		} else {
 			len--;
-			return preFormatting + list.slice(0, len).join(postFormatting + ", " + preFormatting) + postFormatting + ", and " + preFormatting + list[len] + postFormatting;
+			return preFormatting + list.slice(0, len).join(postFormatting + ", " + preFormatting) + postFormatting + ", " + conjunction + " " + preFormatting + list[len] + postFormatting;
 		}
 	}
 
