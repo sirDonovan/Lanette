@@ -471,11 +471,14 @@ export class Client {
 		case 'raw': {
 			const messageArguments: IClientMessageTypes['raw'] = {message: rawMessage};
 			if (messageArguments.message.startsWith('Banned phrases in room ')) {
-				const subMessage = messageArguments.message.split('Banned phrases in room ')[1];
+				let subMessage = messageArguments.message.split('Banned phrases in room ')[1];
 				const colonIndex = subMessage.indexOf(':');
 				const roomId = subMessage.substr(0, colonIndex);
-				const room = Rooms.get(roomId);
-				if (room) room.bannedWords = subMessage.substr(colonIndex + 2).split(', ');
+				subMessage = subMessage.substr(colonIndex + 2);
+				if (subMessage) {
+					const room = Rooms.get(roomId);
+					if (room) room.bannedWords = subMessage.split(', ');
+				}
 			}
 			break;
 		}
