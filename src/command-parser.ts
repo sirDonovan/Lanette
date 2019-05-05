@@ -34,7 +34,6 @@ export class Command {
 	}
 
 	sayCommand(message: string) {
-		if (this.isPm(this.room)) throw new Error(this.originalCommand + " attempted to use a command in a PM");
 		this.room.sayCommand(message);
 	}
 

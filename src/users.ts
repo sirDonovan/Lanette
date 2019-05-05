@@ -26,8 +26,14 @@ export class User {
 		return Config.developers.includes(this.id);
 	}
 
-	say(message: string) {
-		Client.send("|/pm " + this.name + ", " + Tools.prepareMessage(message));
+	say(message: string, dontPrepare?: boolean) {
+		if (!dontPrepare) message = Tools.prepareMessage(message);
+		if (Client.willBeFiltered(message)) return;
+		Client.send("|/pm " + this.name + ", " + message);
+	}
+
+	sayCommand(command: string) {
+		this.say(command, true);
 	}
 
 	on(message: string, listener: () => void) {
