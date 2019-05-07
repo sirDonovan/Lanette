@@ -490,6 +490,16 @@ export class Client {
 			break;
 		}
 
+		case 'raw': {
+			const messageArguments: IClientMessageTypes['raw'] = {html: messageParts.join("|")};
+			if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
+				room.modchat = messageArguments.html.split('<div class="broadcast-red"><strong>Moderated chat was set to ')[1].split('!</strong>')[0];
+			} else if (messageArguments.html.startsWith('<div class="broadcast-blue"><strong>Moderated chat was disabled!</strong>')) {
+				room.modchat = 'off';
+			}
+			break;
+		}
+
 		case 'pagehtml': {
 			if (room.id === 'view-filters') {
 				this.filterPhrases = [];

@@ -11,6 +11,7 @@ export class Room {
 	bannedWords: string[] = [];
 	game: Game | null = null;
 	messageListeners: Dict<() => void> = {};
+	modchat: string = 'off';
 	tournament: Tournament | null = null;
 	userHostedGame: UserHosted | null = null;
 	users = new Set<User>();
@@ -33,6 +34,7 @@ export class Room {
 	}
 
 	onRoomInfoResponse(response: IRoomInfoResponse) {
+		this.modchat = response.modchat === false ? 'off' : response.modchat;
 		this.title = response.title;
 	}
 
