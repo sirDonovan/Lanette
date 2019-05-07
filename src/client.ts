@@ -219,7 +219,7 @@ export class Client {
 		let messageType: keyof IClientMessageTypes;
 		if (rawMessage.charAt(0) !== "|") {
 			message = rawMessage;
-			messageType = 'raw';
+			messageType = '';
 		} else {
 			message = rawMessage.substr(1);
 			const pipeIndex = message.indexOf("|");
@@ -475,8 +475,8 @@ export class Client {
 			}
 		}
 
-		case 'raw': {
-			const messageArguments: IClientMessageTypes['raw'] = {message: rawMessage};
+		case '': {
+			const messageArguments: IClientMessageTypes[''] = {message: rawMessage};
 			if (messageArguments.message.startsWith('Banned phrases in room ')) {
 				let subMessage = messageArguments.message.split('Banned phrases in room ')[1];
 				const colonIndex = subMessage.indexOf(':');

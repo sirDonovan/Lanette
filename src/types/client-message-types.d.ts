@@ -145,8 +145,15 @@ export interface IClientMessageTypes {
 	/**
 	 * Raw message
 	 */
-	raw: {
+	'': {
 		message: string,
+	};
+
+	/**
+	 * Raw HTML
+	 */
+	raw: {
+		html: string,
 	};
 
 	/**
