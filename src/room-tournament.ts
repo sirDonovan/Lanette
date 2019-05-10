@@ -4,7 +4,7 @@ import { IFormat } from "./types/in-game-data-types";
 
 interface IBracketNode {
 	team: string;
-	children: IBracketNode[];
+	children?: IBracketNode[];
 	state: string;
 	result: string;
 }
@@ -114,8 +114,8 @@ export class Tournament extends Activity {
 		let runnersUp: string[] = [];
 		let semiFinalists: string[] = [];
 		if (this.info.bracketData.type === 'tree') {
-			if (this.info.bracketData.rootNode && this.generator === 1) {
-				const data = this.info.bracketData.rootNode;
+			const data = this.info.bracketData.rootNode;
+			if (data && data.children && this.generator === 1) {
 				const winner = data.team;
 				winners.push(winner);
 				let runnerUp = '';
@@ -126,14 +126,14 @@ export class Tournament extends Activity {
 				}
 				runnersUp.push(runnerUp);
 
-				if (data.children[0].children.length) {
+				if (data.children[0].children && data.children[0].children.length) {
 					if (data.children[0].children[0].team === runnerUp || data.children[0].children[0].team === winner) {
 						semiFinalists.push(data.children[0].children[1].team);
 					} else {
 						semiFinalists.push(data.children[0].children[0].team);
 					}
 				}
-				if (data.children[1].children.length) {
+				if (data.children[1].children && data.children[1].children.length) {
 					if (data.children[1].children[0].team === runnerUp || data.children[1].children[0].team === winner) {
 						semiFinalists.push(data.children[1].children[1].team);
 					} else {
@@ -255,6 +255,7 @@ export class Tournament extends Activity {
 				while (queue.length > 0) {
 					const node = queue.shift();
 					if (!node) break;
+					if (!node.children) continue;
 
 					if (node.children[0] && node.children[0].team) {
 						const userA = Tools.toId(node.children[0].team);
