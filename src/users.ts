@@ -2,10 +2,12 @@ import { Game } from "./room-game";
 import { Room } from "./rooms";
 
 export class User {
+	away: boolean | null = null;
 	game: Game | null = null;
-	group: string = '';
+	group: string | null = null;
 	/** Map<Room, rank> */
 	rooms = new Map<Room, string>();
+	status: string | null = null;
 
 	id: string;
 	name: string;

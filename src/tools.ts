@@ -98,6 +98,22 @@ export class Tools {
 		}
 	}
 
+	parseUsernameText(usernameText: string): {away: boolean, status: string, username: string} {
+		let away = false;
+		let status = '';
+		let username = '';
+		const atIndex = usernameText.indexOf('@');
+		if (atIndex !== -1) {
+			username = usernameText.substr(0, atIndex);
+			status = usernameText.substr(atIndex + 1);
+			away = status.charAt(0) === '!';
+		} else {
+			username = usernameText;
+		}
+
+		return {away, status, username};
+	}
+
 	joinList(list: string[], preFormatting?: string | null, postFormatting?: string | null, conjunction?: string): string {
 		let len = list.length;
 		if (!len) return "";

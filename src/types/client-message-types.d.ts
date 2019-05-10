@@ -11,6 +11,12 @@ export interface IServerGroup {
 
 export type ServerGroupData = Pick<IServerGroup, Exclude<keyof IServerGroup, "ranking">>;
 
+export interface IUserDetailsResponse {
+	avatar: string;
+	group: string;
+	userid: string;
+}
+
 export interface IRoomInfoResponse {
 	id: string;
 	title: string;
@@ -32,8 +38,8 @@ export interface IClientMessageTypes {
 	 * Username|login result
 	 */
 	updateuser: {
-		/** Config.username or Guest### if not logged in */
-		username: string,
+		/** username[@status] */
+		usernameText: string,
 		/** '1' if logged in */
 		loginStatus: string,
 	};
@@ -59,7 +65,7 @@ export interface IClientMessageTypes {
 	 * User list
 	 */
 	users: {
-		/** usercount,[rank]user1,[rank]user2, etc. */
+		/** usercount,[rank]username[@status],[rank]username[@status], etc. */
 		userlist: string,
 	};
 
@@ -71,31 +77,31 @@ export interface IClientMessageTypes {
 	};
 
 	/**
-	 * Rank+username
+	 * Rank+username[@status]
 	 */
 	join: {
 		rank: string,
-		username: string,
+		usernameText: string,
 	};
 	j: IClientMessageTypes['join'];
 	J: IClientMessageTypes['join'];
 
 	/**
-	 * Rank+username
+	 * Rank+username[@status]
 	 */
 	leave: {
 		rank: string,
-		username: string,
+		usernameText: string,
 	};
 	l: IClientMessageTypes['leave'];
 	L: IClientMessageTypes['leave'];
 
 	/**
-	 * Rank+username|old userid
+	 * Rank+username[@status]|old userid
 	 */
 	name: {
 		rank: string,
-		username: string,
+		usernameText: string,
 		oldId: string,
 	};
 	n: IClientMessageTypes['name'];

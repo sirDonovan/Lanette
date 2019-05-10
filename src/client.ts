@@ -3,7 +3,7 @@ import querystring = require('querystring');
 import url = require('url');
 import websocket = require('websocket');
 import { Room, RoomType } from './rooms';
-import { IClientMessageTypes, IRoomInfoResponse, IServerGroup, ITournamentMessageTypes, ServerGroupData } from './types/client-message-types';
+import { IClientMessageTypes, IRoomInfoResponse, IServerGroup, ITournamentMessageTypes, IUserDetailsResponse, ServerGroupData } from './types/client-message-types';
 
 const RELOGIN_SECONDS = 60;
 const SEND_THROTTLE = 800;
@@ -310,14 +310,22 @@ export class Client {
 		}
 
 		case 'updateuser': {
-			const messageArguments: IClientMessageTypes['updateuser'] = {username: messageParts[0], loginStatus: messageParts[1]};
-			if (Tools.toId(messageArguments.username) === Users.self.id) {
-				if (messageArguments.loginStatus !== '1') {
-					console.log('Failed to log in');
-					process.exit();
-				}
+			const messageArguments: IClientMessageTypes['updateuser'] = {usernameText: messageParts[0], loginStatus: messageParts[1]};
+			const {away, status, username} = Tools.parseUsernameText(messageArguments.usernameText);
 
-				if (!this.loggedIn) {
+			if (Tools.toId(username) === Users.self.id) {
+				if (this.loggedIn) {
+					if (status || Users.self.status) Users.self.status = status;
+					if (away) {
+						Users.self.away = true;
+					} else if (Users.self.away) {
+						Users.self.away = false;
+					}
+				} else {
+					if (messageArguments.loginStatus !== '1') {
+						console.log('Failed to log in');
+						process.exit();
+					}
 					console.log('Successfully logged in');
 					this.loggedIn = true;
 					this.send('|/blockchallenges');
@@ -343,7 +351,7 @@ export class Client {
 				}
 			} else if (messageParts[0] === 'userdetails') {
 				if (messageArguments.response && messageArguments.response !== 'null') {
-					const response = JSON.parse(messageArguments.response);
+					const response = JSON.parse(messageArguments.response) as IUserDetailsResponse;
 					if (response.userid === Users.self.id) {
 						Users.self.group = response.group;
 						if (this.globalStaffGroups.includes(Users.self.group)) {
@@ -376,8 +384,15 @@ export class Client {
 				const users = messageArguments.userlist.split(",");
 				for (let i = 1; i < users.length; i++) {
 					const rank = users[i].charAt(0);
-					const user = Users.add(users[i].substr(1));
+					const {away, status, username} = Tools.parseUsernameText(users[i].substr(1));
+					const user = Users.add(username);
 					room.users.add(user);
+					if (status || user.status) user.status = status;
+					if (away) {
+						user.away = true;
+					} else if (user.away) {
+						user.away = false;
+					}
 					user.rooms.set(room, rank);
 				}
 			}
@@ -393,9 +408,16 @@ export class Client {
 		case 'join':
 		case 'j':
 		case 'J': {
-			const messageArguments: IClientMessageTypes['join'] = {rank: messageParts[0].charAt(0), username: messageParts[0].substr(1)};
-			const user = Users.add(messageArguments.username);
+			const messageArguments: IClientMessageTypes['join'] = {rank: messageParts[0].charAt(0), usernameText: messageParts[0].substr(1)};
+			const {away, status, username} = Tools.parseUsernameText(messageArguments.usernameText);
+			const user = Users.add(username);
 			room.users.add(user);
+			if (status || user.status) user.status = status;
+			if (away) {
+				user.away = true;
+			} else if (user.away) {
+				user.away = false;
+			}
 			user.rooms.set(room, messageArguments.rank);
 			if (room.logChatMessages) {
 				Storage.logChatMessage(room, Date.now(), 'J', messageArguments.rank + user.name);
@@ -406,11 +428,21 @@ export class Client {
 		case 'leave':
 		case 'l':
 		case 'L': {
-			const messageArguments: IClientMessageTypes['leave'] = {rank: messageParts[0].charAt(0), username: messageParts[0].substr(1)};
-			const user = Users.add(messageArguments.username);
+			const messageArguments: IClientMessageTypes['leave'] = {rank: messageParts[0].charAt(0), usernameText: messageParts[0].substr(1)};
+			const {away, status, username} = Tools.parseUsernameText(messageArguments.usernameText);
+			const user = Users.add(username);
 			room.users.delete(user);
 			user.rooms.delete(room);
-			if (!user.rooms.size) Users.remove(user);
+			if (!user.rooms.size) {
+				Users.remove(user);
+			} else {
+				if (status || user.status) user.status = status;
+				if (away) {
+					user.away = true;
+				} else if (user.away) {
+					user.away = false;
+				}
+			}
 			if (room.logChatMessages) {
 				Storage.logChatMessage(room, Date.now(), 'L', messageArguments.rank + user.name);
 			}
@@ -420,9 +452,16 @@ export class Client {
 		case 'name':
 		case 'n':
 		case 'N': {
-			const messageArguments: IClientMessageTypes['name'] = {rank: messageParts[0].charAt(0), username: messageParts[0].substr(1), oldId: messageParts[1]};
-			const user = Users.rename(messageArguments.username, messageArguments.oldId);
+			const messageArguments: IClientMessageTypes['name'] = {rank: messageParts[0].charAt(0), usernameText: messageParts[0].substr(1), oldId: messageParts[1]};
+			const {away, status, username} = Tools.parseUsernameText(messageArguments.usernameText);
+			const user = Users.rename(username, messageArguments.oldId);
 			room.users.add(user);
+			if (status || user.status) user.status = status;
+			if (away) {
+				user.away = true;
+			} else if (user.away) {
+				user.away = false;
+			}
 			user.rooms.set(room, messageArguments.rank);
 			break;
 		}
