@@ -233,7 +233,11 @@ export class Client {
 			messageParts.shift();
 			switch (type) {
 				case 'create': {
-					const messageArguments: ITournamentMessageTypes['create'] = {format: Dex.getExistingFormat(messageParts[0]), generator: messageParts[1], playerCap: parseInt(messageParts[2])};
+					const messageArguments: ITournamentMessageTypes['create'] = {
+						format: Dex.getExistingFormat(messageParts[0]),
+						generator: messageParts[1],
+						playerCap: parseInt(messageParts[2]),
+					};
 					if (Tournaments.tournamentTimers[room.id]) clearTimeout(Tournaments.tournamentTimers[room.id]);
 					room.tournament = Tournaments.createTournament(room, messageArguments.format, messageArguments.generator, messageArguments.playerCap);
 					if (room.id in Tournaments.createListeners && messageArguments.format.id === Tournaments.createListeners[room.id].format.id) {
@@ -249,7 +253,9 @@ export class Client {
 				}
 
 				case 'end': {
-					const messageArguments: ITournamentMessageTypes['end'] = {json: JSON.parse(messageParts.join("|"))};
+					const messageArguments: ITournamentMessageTypes['end'] = {
+						json: JSON.parse(messageParts.join("|")),
+					};
 					if (!room.tournament) Tournaments.createTournamentFromJSON(room, messageArguments.json);
 					if (room.tournament) {
 						Object.assign(room.tournament.updates, messageArguments.json);
@@ -260,7 +266,9 @@ export class Client {
 				}
 
 				case 'update': {
-					const messageArguments: ITournamentMessageTypes['update'] = {json: JSON.parse(messageParts.join("|"))};
+					const messageArguments: ITournamentMessageTypes['update'] = {
+						json: JSON.parse(messageParts.join("|")),
+					};
 					if (!room.tournament) Tournaments.createTournamentFromJSON(room, messageArguments.json);
 					if (room.tournament) {
 						Object.assign(room.tournament.updates, messageArguments.json);
@@ -285,7 +293,9 @@ export class Client {
 
 				case 'join': {
 					if (room.tournament) {
-						const messageArguments: ITournamentMessageTypes['join'] = {username: messageParts[0]};
+						const messageArguments: ITournamentMessageTypes['join'] = {
+							username: messageParts[0],
+						};
 						room.tournament.createPlayer(messageArguments.username);
 					}
 					break;
@@ -294,7 +304,9 @@ export class Client {
 				case 'leave':
 				case 'disqualify': {
 					if (room.tournament) {
-						const messageArguments: ITournamentMessageTypes['leave'] = {username: messageParts[0]};
+						const messageArguments: ITournamentMessageTypes['leave'] = {
+							username: messageParts[0],
+						};
 						room.tournament.destroyPlayer(messageArguments.username);
 					}
 					break;
@@ -310,7 +322,10 @@ export class Client {
 		}
 
 		case 'updateuser': {
-			const messageArguments: IClientMessageTypes['updateuser'] = {usernameText: messageParts[0], loginStatus: messageParts[1]};
+			const messageArguments: IClientMessageTypes['updateuser'] = {
+				usernameText: messageParts[0],
+				loginStatus: messageParts[1],
+			};
 			const {away, status, username} = Tools.parseUsernameText(messageArguments.usernameText);
 
 			if (Tools.toId(username) === Users.self.id) {
@@ -342,7 +357,10 @@ export class Client {
 		}
 
 		case 'queryresponse': {
-			const messageArguments: IClientMessageTypes['queryresponse'] = {type: messageParts[0] as 'roominfo' | 'userdetails', response: messageParts.slice(1).join('|')};
+			const messageArguments: IClientMessageTypes['queryresponse'] = {
+				type: messageParts[0] as 'roominfo' | 'userdetails',
+				response: messageParts.slice(1).join('|'),
+			};
 			if (messageParts[0] === 'roominfo') {
 				if (messageArguments.response && messageArguments.response !== 'null') {
 					const response = JSON.parse(messageArguments.response) as IRoomInfoResponse;
@@ -365,7 +383,9 @@ export class Client {
 		}
 
 		case 'init': {
-			const messageArguments: IClientMessageTypes['init'] = {type: messageParts[0] as RoomType};
+			const messageArguments: IClientMessageTypes['init'] = {
+				type: messageParts[0] as RoomType,
+			};
 			console.log("Joined room: " + room.id);
 			room.init(messageArguments.type);
 			if (room.type === 'chat') {
@@ -379,7 +399,9 @@ export class Client {
 		}
 
 		case 'users': {
-			const messageArguments: IClientMessageTypes['users'] = {userlist: messageParts[0]};
+			const messageArguments: IClientMessageTypes['users'] = {
+				userlist: messageParts[0],
+			};
 			if (messageArguments.userlist !== '0') {
 				const users = messageArguments.userlist.split(",");
 				for (let i = 1; i < users.length; i++) {
@@ -400,7 +422,9 @@ export class Client {
 		}
 
 		case 'customgroups': {
-			const messageArguments: IClientMessageTypes['customgroups'] = {groups: JSON.parse(messageParts[0])};
+			const messageArguments: IClientMessageTypes['customgroups'] = {
+				groups: JSON.parse(messageParts[0]),
+			};
 			this.parseServerGroups(messageArguments.groups);
 			break;
 		}
@@ -408,7 +432,10 @@ export class Client {
 		case 'join':
 		case 'j':
 		case 'J': {
-			const messageArguments: IClientMessageTypes['join'] = {rank: messageParts[0].charAt(0), usernameText: messageParts[0].substr(1)};
+			const messageArguments: IClientMessageTypes['join'] = {
+				rank: messageParts[0].charAt(0),
+				usernameText: messageParts[0].substr(1),
+			};
 			const {away, status, username} = Tools.parseUsernameText(messageArguments.usernameText);
 			const user = Users.add(username);
 			room.users.add(user);
@@ -428,7 +455,10 @@ export class Client {
 		case 'leave':
 		case 'l':
 		case 'L': {
-			const messageArguments: IClientMessageTypes['leave'] = {rank: messageParts[0].charAt(0), usernameText: messageParts[0].substr(1)};
+			const messageArguments: IClientMessageTypes['leave'] = {
+				rank: messageParts[0].charAt(0),
+				usernameText: messageParts[0].substr(1),
+			};
 			const {away, status, username} = Tools.parseUsernameText(messageArguments.usernameText);
 			const user = Users.add(username);
 			room.users.delete(user);
@@ -452,7 +482,11 @@ export class Client {
 		case 'name':
 		case 'n':
 		case 'N': {
-			const messageArguments: IClientMessageTypes['name'] = {rank: messageParts[0].charAt(0), usernameText: messageParts[0].substr(1), oldId: messageParts[1]};
+			const messageArguments: IClientMessageTypes['name'] = {
+				rank: messageParts[0].charAt(0),
+				usernameText: messageParts[0].substr(1),
+				oldId: messageParts[1],
+			};
 			const {away, status, username} = Tools.parseUsernameText(messageArguments.usernameText);
 			const user = Users.rename(username, messageArguments.oldId);
 			room.users.add(user);
@@ -471,9 +505,19 @@ export class Client {
 		case 'c:': {
 			let messageArguments: IClientMessageTypes['chat'];
 			if (messageType === 'c:') {
-				messageArguments = {timestamp: (parseInt(messageParts[0]) + this.serverTimeOffset) * 1000, rank: messageParts[1].charAt(0), username: messageParts[1].substr(1), message: messageParts.slice(2).join("|")};
+				messageArguments = {
+					timestamp: (parseInt(messageParts[0]) + this.serverTimeOffset) * 1000,
+					rank: messageParts[1].charAt(0),
+					username: messageParts[1].substr(1),
+					message: messageParts.slice(2).join("|"),
+				};
 			} else {
-				messageArguments = {timestamp: Date.now(), rank: messageParts[0].charAt(0), username: messageParts[0].substr(1), message: messageParts.slice(1).join("|")};
+				messageArguments = {
+					timestamp: Date.now(),
+					rank: messageParts[0].charAt(0),
+					username: messageParts[0].substr(1),
+					message: messageParts.slice(1).join("|"),
+				};
 			}
 			const user = Users.add(messageArguments.username);
 			if (user === Users.self) {
@@ -492,13 +536,20 @@ export class Client {
 		}
 
 		case ':': {
-			const messageArguments: IClientMessageTypes[':'] = {timestamp: parseInt(messageParts[0])};
+			const messageArguments: IClientMessageTypes[':'] = {
+				timestamp: parseInt(messageParts[0]),
+			};
 			this.serverTimeOffset = Math.floor(Date.now() / 1000) - messageArguments.timestamp;
 			break;
 		}
 
 		case 'pm': {
-			const messageArguments: IClientMessageTypes['pm'] = {rank: messageParts[0].charAt(0), username: messageParts[0].substr(1), recipient: messageParts[1].substr(1), message: messageParts.slice(2).join("|")};
+			const messageArguments: IClientMessageTypes['pm'] = {
+				rank: messageParts[0].charAt(0),
+				username: messageParts[0].substr(1),
+				recipient: messageParts[1].substr(1),
+				message: messageParts.slice(2).join("|"),
+			};
 			const user = Users.add(messageArguments.username);
 			if (user === Users.self) {
 				const recipient = Users.add(messageArguments.recipient);
@@ -515,7 +566,9 @@ export class Client {
 		}
 
 		case '': {
-			const messageArguments: IClientMessageTypes[''] = {message: rawMessage};
+			const messageArguments: IClientMessageTypes[''] = {
+				message: rawMessage,
+			};
 			if (messageArguments.message.startsWith('Banned phrases in room ')) {
 				let subMessage = messageArguments.message.split('Banned phrases in room ')[1];
 				const colonIndex = subMessage.indexOf(':');
@@ -530,7 +583,9 @@ export class Client {
 		}
 
 		case 'raw': {
-			const messageArguments: IClientMessageTypes['raw'] = {html: messageParts.join("|")};
+			const messageArguments: IClientMessageTypes['raw'] = {
+				html: messageParts.join("|"),
+			};
 			if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
 				room.modchat = messageArguments.html.split('<div class="broadcast-red"><strong>Moderated chat was set to ')[1].split('!</strong>')[0];
 			} else if (messageArguments.html.startsWith('<div class="broadcast-blue"><strong>Moderated chat was disabled!</strong>')) {
@@ -543,7 +598,9 @@ export class Client {
 			if (room.id === 'view-filters') {
 				this.filterPhrases = [];
 				this.filterRegularExpressions = [];
-				const messageArguments: IClientMessageTypes['pagehtml'] = {html: messageParts.join("|")};
+				const messageArguments: IClientMessageTypes['pagehtml'] = {
+					html: messageParts.join("|"),
+				};
 				if (messageArguments.html.includes('<table>')) {
 					const table = messageArguments.html.split('<table>')[1].split('</table>')[0];
 					const rows = table.split("<tr>");
