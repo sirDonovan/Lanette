@@ -1,18 +1,24 @@
-import { Activity } from "./room-activity";
+import { Activity, Player } from "./room-activity";
 import { Room } from "./rooms";
 import { IFormat } from "./types/in-game-data-types";
 
 interface IBracketNode {
+	result: string;
+	state: 'available' | 'challenging' | 'inprogress' | 'finished' | 'unavailable';
 	team: string;
 	children?: IBracketNode[];
-	state: string;
-	result: string;
 }
 
 interface IBracketData {
 	type: string;
 	rootNode?: IBracketNode;
 	tableHeaders?: {cols: any[], rows: any[]};
+}
+
+interface IBattleData {
+	playerA: Player;
+	playerB: Player;
+	roomid: string;
 }
 
 export interface ITournamentUpdateJSON {
@@ -62,7 +68,10 @@ const generators: Dict<number> = {
 
 export class Tournament extends Activity {
 	activityType: string = 'tournament';
+	battleData: IBattleData[] = [];
+	battleRooms: string[] = [];
 	createTime: number = Date.now();
+	currentBattles: IBattleData[] = [];
 	generator: number = 1;
 	info: ITournamentUpdateJSON & ITournamentEndJSON = {
 		bracketData: {type: ''},
@@ -217,20 +226,6 @@ export class Tournament extends Activity {
 		this.deallocate();
 	}
 
-	onStart() {
-		this.startTime = Date.now();
-		let maxRounds = 0;
-		let rounds = Math.ceil((Math.log(this.playerCount) / Math.log(2)));
-		let generator = this.generator;
-		while (generator > 0) {
-			maxRounds += rounds;
-			rounds--;
-			generator--;
-		}
-		this.maxRounds = maxRounds;
-		this.totalPlayers = this.playerCount;
-	}
-
 	update() {
 		Object.assign(this.info, this.updates);
 		if (this.updates.bracketData && this.started) this.updateBracket();
@@ -253,8 +248,8 @@ export class Tournament extends Activity {
 			if (data.rootNode) {
 				const queue = [data.rootNode];
 				while (queue.length > 0) {
-					const node = queue.shift();
-					if (!node) break;
+					const node = queue[0];
+					queue.shift();
 					if (!node.children) continue;
 
 					if (node.children[0] && node.children[0].team) {
@@ -276,7 +271,7 @@ export class Tournament extends Activity {
 					}
 
 					node.children.forEach(child => {
-						queue.push(child);
+						if (child) queue.push(child);
 					});
 				}
 			}
@@ -288,7 +283,8 @@ export class Tournament extends Activity {
 				}
 			}
 		}
-		if (!this.playerCount) {
+
+		if (!this.totalPlayers) {
 			const len = Object.keys(players).length;
 			let maxRounds = 0;
 			let rounds = Math.ceil((Math.log(len) / Math.log(2)));
@@ -300,7 +296,6 @@ export class Tournament extends Activity {
 			}
 			this.maxRounds = maxRounds;
 			this.totalPlayers = len;
-			this.playerCount = len;
 		}
 
 		// clear users who are now guests (currently can't be tracked)
@@ -311,12 +306,38 @@ export class Tournament extends Activity {
 		for (const i in players) {
 			const player = this.createPlayer(players[i]);
 			if (!player || player.eliminated) continue;
-			if (losses[i] && (!player.losses || player.losses < losses[i])) {
+			if (losses[i] && losses[i] !== player.losses) {
 				player.losses = losses[i];
 				if (player.losses >= this.generator) {
 					player.eliminated = true;
-					continue;
 				}
+			}
+		}
+	}
+
+	onBattleStart(usernameA: string, usernameB: string, roomid: string) {
+		const idA = Tools.toId(usernameA);
+		const idB = Tools.toId(usernameB);
+		if (!(idA in this.players) || !(idB in this.players)) throw new Error("Player not found for " + usernameA + " vs. " + usernameB + " in " + roomid);
+		const battleData: IBattleData = {
+			playerA: this.players[idA],
+			playerB: this.players[idB],
+			roomid,
+		};
+		this.battleData.push(battleData);
+		this.currentBattles.push(battleData);
+
+		this.battleRooms.push(roomid);
+	}
+
+	onBattleEnd(usernameA: string, usernameB: string, score: [string, string], roomid: string) {
+		const idA = Tools.toId(usernameA);
+		const idB = Tools.toId(usernameB);
+		if (!(idA in this.players) || !(idB in this.players)) throw new Error("Player not found for " + usernameA + " vs. " + usernameB + " in " + roomid);
+		for (let i = 0; i < this.currentBattles.length; i++) {
+			if (this.currentBattles[i].playerA === this.players[idA] && this.currentBattles[i].playerB === this.players[idB] && this.currentBattles[i].roomid === roomid) {
+				this.currentBattles.splice(i, 1);
+				break;
 			}
 		}
 	}

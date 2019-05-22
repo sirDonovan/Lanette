@@ -311,6 +311,33 @@ export class Client {
 					}
 					break;
 				}
+
+				case 'battlestart': {
+					if (room.tournament) {
+						const messageArguments: ITournamentMessageTypes['battlestart'] = {
+							usernameA: messageParts[0],
+							usernameB: messageParts[1],
+							roomid: messageParts[2],
+						};
+						room.tournament.onBattleStart(messageArguments.usernameA, messageArguments.usernameB, messageArguments.roomid);
+					}
+					break;
+				}
+
+				case 'battleend': {
+					if (room.tournament) {
+						const messageArguments: ITournamentMessageTypes['battleend'] = {
+							usernameA: messageParts[0],
+							usernameB: messageParts[1],
+							result: messageParts[2] as 'win' | 'loss' | 'draw',
+							score: messageParts[3].split(',') as [string, string],
+							recorded: messageParts[4] as 'success' | 'fail',
+							roomid: messageParts[5],
+						};
+						room.tournament.onBattleEnd(messageArguments.usernameA, messageArguments.usernameB, messageArguments.score, messageArguments.roomid);
+					}
+					break;
+				}
 			}
 			break;
 		}

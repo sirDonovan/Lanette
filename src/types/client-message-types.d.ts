@@ -218,4 +218,25 @@ export interface ITournamentMessageTypes {
 	 * Username
 	 */
 	disqualify: ITournamentMessageTypes['leave'];
+
+	/**
+	 * UsernameA|UsernameB|Roomid
+	 */
+	battlestart: {
+		usernameA: string;
+		usernameB: string;
+		roomid: string;
+	};
+
+	/**
+	 * UsernameA|UsernameB|Result|Score|Recorded|Roomid
+	 */
+	battleend: {
+		usernameA: string;
+		usernameB: string;
+		result: 'win' | 'loss' | 'draw';
+		score: [string, string];
+		recorded: 'success' | 'fail';
+		roomid: string;
+	};
 }
