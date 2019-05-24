@@ -77,8 +77,8 @@ export class Client {
 	connection: websocket.connection | null = null;
 	connectionAttempts: number = 0;
 	connectionTimeout: NodeJS.Timer | null = null;
-	filterPhrases: string[] = [];
-	filterRegularExpressions: RegExp[] = [];
+	filterPhrases: string[] | null = null;
+	filterRegularExpressions: RegExp[] | null = null;
 	globalStaffGroups: string[] = [];
 	loggedIn: boolean = false;
 	reconnectTime: number = Config.reconnectTime || 60 * 1000;
@@ -86,7 +86,6 @@ export class Client {
 	sendTimeout: NodeJS.Timer | null = null;
 	server: string = Config.server || 'play.pokemonshowdown.com';
 	serverGroups: Dict<IServerGroup> = {};
-	serverHasFilters: boolean = false;
 	serverId: string = 'showdown';
 	serverTimeOffset: number = 0;
 
@@ -623,8 +622,8 @@ export class Client {
 
 		case 'pagehtml': {
 			if (room.id === 'view-filters') {
-				this.filterPhrases = [];
-				this.filterRegularExpressions = [];
+				let filterPhrases: string[] | null = null;
+				let filterRegularExpressions: RegExp[] | null = null;
 				const messageArguments: IClientMessageTypes['pagehtml'] = {
 					html: messageParts.join("|"),
 				};
@@ -649,15 +648,19 @@ export class Client {
 								} catch (e) {
 									console.log(e);
 								}
-								if (regularExpression) this.filterRegularExpressions.push(regularExpression);
+								if (regularExpression) {
+									if (!filterRegularExpressions) filterRegularExpressions = [];
+									filterRegularExpressions.push(regularExpression);
+								}
 							} else {
-								this.filterPhrases.push(phrase);
+								if (!filterPhrases) filterPhrases = [];
+								filterPhrases.push(phrase);
 							}
 						}
 					}
-
-					this.serverHasFilters = this.filterPhrases.length || this.filterRegularExpressions.length ? true : false;
 				}
+				this.filterPhrases = filterPhrases;
+				this.filterRegularExpressions = filterRegularExpressions;
 			}
 			break;
 		}
@@ -682,17 +685,19 @@ export class Client {
 
 	willBeFiltered(message: string, room?: Room): boolean {
 		const lowerCase = message.toLowerCase();
-		if (this.serverHasFilters) {
+		if (this.filterPhrases) {
 			for (let i = 0; i < this.filterPhrases.length; i++) {
 				if (lowerCase.includes(this.filterPhrases[i])) return true;
 			}
+		}
 
+		if (this.filterRegularExpressions) {
 			for (let i = 0; i < this.filterRegularExpressions.length; i++) {
 				if (this.filterRegularExpressions[i].test(message)) return true;
 			}
 		}
 
-		if (room) {
+		if (room && room.bannedWords) {
 			for (let i = 0; i < room.bannedWords.length; i++) {
 				if (lowerCase.includes(room.bannedWords[i])) return true;
 			}

@@ -8,7 +8,7 @@ import { User } from "./users";
 export type RoomType = 'battle' | 'chat' | 'html';
 
 export class Room {
-	bannedWords: string[] = [];
+	bannedWords: string[] | null = null;
 	game: Game | null = null;
 	messageListeners: Dict<() => void> = {};
 	modchat: string = 'off';
