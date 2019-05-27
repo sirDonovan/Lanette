@@ -4,6 +4,7 @@ import url = require('url');
 import websocket = require('websocket');
 import { Room, RoomType } from './rooms';
 import { IClientMessageTypes, IRoomInfoResponse, IServerGroup, ITournamentMessageTypes, IUserDetailsResponse, ServerGroupData } from './types/client-message-types';
+import { User } from './users';
 
 const RELOGIN_SECONDS = 60;
 const SEND_THROTTLE = 800;
@@ -553,7 +554,7 @@ export class Client {
 					delete room.messageListeners[id];
 				}
 			} else {
-				CommandParser.parse(room, user, messageArguments.message);
+				this.parseChatMessage(room, user, messageArguments.message);
 			}
 			if (room.logChatMessages) {
 				Storage.logChatMessage(room, messageArguments.timestamp, 'c', messageArguments.rank + user.name + '|' + messageArguments.message);
@@ -665,6 +666,26 @@ export class Client {
 			break;
 		}
 		}
+
+		return true;
+	}
+
+	parseChatMessage(room: Room, user: User, message: string) {
+		const isCommand = CommandParser.parse(room, user, message);
+
+		// unlink tournament battle replays
+		if (room.tournament && !room.tournament.format.team && !Config.allowTournamentBattleLinks.includes(room.id) && message.includes("replay.pokemonshowdown.com/")) {
+			let battle = message.split("replay.pokemonshowdown.com/")[1];
+			if (battle) {
+				battle = 'battle-' + battle.split(" ")[0].trim();
+				if (room.tournament.battleRooms.includes(battle)) {
+					room.sayCommand("/warn " + user.name + ", Please do not link replays to tournament battles");
+				}
+			}
+		}
+
+		// per-game parsing
+		if (room.game && room.game.parseChatMessage) room.game.parseChatMessage(user, message, isCommand);
 
 		return true;
 	}

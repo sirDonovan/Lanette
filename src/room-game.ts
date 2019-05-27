@@ -327,4 +327,5 @@ export class Game extends Activity {
 	onNextRound?(): void;
 	onRemovePlayer?(player: Player): void;
 	onSignups?(): void;
+	parseChatMessage?(user: User, message: string, isCommand: boolean): void;
 }

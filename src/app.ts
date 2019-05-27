@@ -13,6 +13,7 @@ Config.allowTournaments = Config.allowTournaments.map(x => Tools.toRoomId(x));
 Config.rankedTournaments = Config.rankedTournaments.map(x => Tools.toRoomId(x));
 Config.rankedCustomTournaments = Config.rankedCustomTournaments.map(x => Tools.toRoomId(x));
 Config.ignoreDefaultUnrankedTournaments = Config.ignoreDefaultUnrankedTournaments.map(x => Tools.toRoomId(x));
+Config.allowTournamentBattleLinks = Config.allowTournamentBattleLinks.map(x => Tools.toRoomId(x));
 
 import * as client from './client';
 global.Client = new client.Client();

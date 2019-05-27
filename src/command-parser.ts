@@ -94,8 +94,9 @@ export class CommandParser {
 		return dict;
 	}
 
-	parse(room: Room | User, user: User, message: string) {
-		if (message.charAt(0) !== Config.commandCharacter) return;
+	/** Returns true if the message contains a command */
+	parse(room: Room | User, user: User, message: string): boolean {
+		if (message.charAt(0) !== Config.commandCharacter) return false;
 		message = message.substr(1);
 		let command: string;
 		let target: string;
@@ -108,8 +109,9 @@ export class CommandParser {
 			target = message.substr(spaceIndex + 1).trim();
 		}
 		command = Tools.toId(command);
-		if (!(command in Commands)) return;
+		if (!(command in Commands)) return false;
 
 		(new Command(command, target, room, user)).run();
+		return true;
 	}
 }
