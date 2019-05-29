@@ -17,6 +17,11 @@ export class Storage {
 		return this.databaseCache;
 	}
 
+	onReload(previous: Storage) {
+		this.databaseCache = previous.databaseCache;
+		this.loadedDatabases = previous.loadedDatabases;
+	}
+
 	getDatabase(room: Room): IDatabase {
 		if (!(room.id in this.databases)) this.databases[room.id] = {};
 		return this.databases[room.id];

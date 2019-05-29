@@ -94,15 +94,31 @@ export class Client {
 		this.client.on('connect', connection => {
 			this.connection = connection;
 
-			this.connection.on('message', message => this.onMessage(message));
-			this.connection.on('error', error => this.onConnectionError(error));
-			this.connection.on('close', (code, description) => this.onConnectionClose(code, description));
+			this.connection.on('message', message => global.Client.onMessage(message));
+			this.connection.on('error', error => global.Client.onConnectionError(error));
+			this.connection.on('close', (code, description) => global.Client.onConnectionClose(code, description));
 
 			this.onConnect();
 		});
-		this.client.on('connectFailed', error => this.onConnectFail(error));
+		this.client.on('connectFailed', error => global.Client.onConnectFail(error));
 
 		this.parseServerGroups(DEFAULT_SERVER_GROUPS);
+	}
+
+	onReload(previous: Client) {
+		this.challstr = previous.challstr;
+		this.client = previous.client;
+		this.connection = previous.connection;
+		this.filterPhrases = previous.filterPhrases;
+		this.filterRegularExpressions = previous.filterRegularExpressions;
+		this.globalStaffGroups = previous.globalStaffGroups;
+		this.loggedIn = previous.loggedIn;
+		this.sendQueue = previous.sendQueue;
+		this.sendTimeout = previous.sendTimeout;
+		this.server = previous.server;
+		this.serverGroups = previous.serverGroups;
+		this.serverId = previous.serverId;
+		this.serverTimeOffset = previous.serverTimeOffset;
 	}
 
 	onConnectFail(error?: Error) {
@@ -187,6 +203,7 @@ export class Client {
 			lines.shift();
 		}
 		for (let i = 0; i < lines.length; i++) {
+			if (!lines[i]) continue;
 			this.parseMessage(room, lines[i]);
 			if (lines[i].startsWith('|init|')) {
 				const page = room.type === 'html';
@@ -686,8 +703,6 @@ export class Client {
 
 		// per-game parsing
 		if (room.game && room.game.parseChatMessage) room.game.parseChatMessage(user, message, isCommand);
-
-		return true;
 	}
 
 	parseServerGroups(groups: ServerGroupData[]) {

@@ -81,6 +81,7 @@ export class Tools {
 		if (input === null) return 'null';
 		if (typeof input === 'number') return '' + input;
 		if (typeof input === 'string') return input;
+		if (Array.isArray(input)) return '[' + input.map(x => this.toString(x)).join(', ') + ']';
 		for (const i in global) {
 			// @ts-ignore
 			if (input === global[i]) return '[global ' + i + ']';

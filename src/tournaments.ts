@@ -28,6 +28,16 @@ export class Tournaments {
 	scheduledTournaments: Dict<{format: IFormat, time: number}> = {};
 	tournamentTimers: Dict<NodeJS.Timer> = {};
 
+	onReload(previous: Tournaments) {
+		this.scheduledTournaments = previous.scheduledTournaments;
+		this.tournamentTimers = previous.tournamentTimers;
+
+		const now = Date.now();
+		Users.self.rooms.forEach((rank, room) => {
+			if (room.id in this.schedules && (!(room.id in this.scheduledTournaments) || now < this.scheduledTournaments[room.id].time)) this.setScheduledTournament(room);
+		});
+	}
+
 	canCreateTournaments(room: Room, user: User): boolean {
 		if (!user.hasRank(room, '%')) return false;
 		if (!Config.allowTournaments.includes(room.id)) {

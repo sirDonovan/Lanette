@@ -24,14 +24,14 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	reload: {
 		command(target, room, user) {
-			type ReloadableModules = 'tools' | 'commandparser' | 'commands' | 'config' | 'dex' | 'games' | 'storage' | 'tournaments';
+			type ReloadableModules = 'client' | 'commandparser' | 'commands' | 'config' | 'dex' | 'games' | 'storage' | 'tools' | 'tournaments';
 			const modules: ReloadableModules[] = [];
 			const targets = target.split(",");
 			for (let i = 0; i < targets.length; i++) {
 				const id = Tools.toId(targets[i]);
 				if (id === 'tools') {
 					modules.unshift(id);
-				} else if (id === 'commandparser' || id === 'commands' || id === 'config' || id === 'dex' || id === 'games' || id === 'storage' || id === 'tournaments') {
+				} else if (id === 'client' || id === 'commandparser' || id === 'commands' || id === 'config' || id === 'dex' || id === 'games' || id === 'storage' || id === 'tournaments') {
 					modules.push(id);
 				} else {
 					return this.say("Unknown module '" + targets[i].trim() + "'.");
@@ -44,9 +44,11 @@ const commands: Dict<ICommandDefinition> = {
 			this.say("Running tsc...");
 			require('./../build.js')(() => {
 				for (let i = 0; i < modules.length; i++) {
-					if (modules[i] === 'tools') {
-						Tools.uncacheTree('./tools');
-						global.Tools = new (require('./tools').Tools)();
+					if (modules[i] === 'client') {
+						const oldClient = global.Client;
+						Tools.uncacheTree('./client');
+						global.Client = new (require('./client').Client)();
+						Client.onReload(oldClient);
 					} else if (modules[i] === 'commandparser') {
 						Tools.uncacheTree('./command-parser');
 						global.CommandParser = new (require('./command-parser').CommandParser)();
@@ -64,23 +66,18 @@ const commands: Dict<ICommandDefinition> = {
 						Tools.uncacheTree('./games');
 						global.Games = new (require('./games').Games)();
 					} else if (modules[i] === 'storage') {
-						const databaseCache = Storage.databaseCache;
-						const loadedDatabases = Storage.loadedDatabases;
+						const oldStorage = global.Storage;
 						Tools.uncacheTree('./storage');
 						global.Storage = new (require('./storage').Storage)();
-						Storage.databaseCache = databaseCache;
-						Storage.loadedDatabases = loadedDatabases;
+						Storage.onReload(oldStorage);
+					} else if (modules[i] === 'tools') {
+						Tools.uncacheTree('./tools');
+						global.Tools = new (require('./tools').Tools)();
 					} else if (modules[i] === 'tournaments') {
-						const scheduledTournaments = Tournaments.scheduledTournaments;
-						const tournamentTimers = Tournaments.tournamentTimers;
+						const oldTournaments = global.Tournaments;
 						Tools.uncacheTree('./tournaments');
 						global.Tournaments = new (require('./tournaments').Tournaments)();
-						Tournaments.scheduledTournaments = scheduledTournaments;
-						Tournaments.tournamentTimers = tournamentTimers;
-						const now = Date.now();
-						Users.self.rooms.forEach((rank, room) => {
-							if (room.id in Tournaments.schedules && (!(room.id in Tournaments.scheduledTournaments) || now < Tournaments.scheduledTournaments[room.id].time)) Tournaments.setScheduledTournament(room);
-						});
+						Tournaments.onReload(oldTournaments);
 					}
 				}
 				this.say("Successfully reloaded: " + modules.join(", "));
