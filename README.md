@@ -4,50 +4,44 @@
 A bot for [Pokemon Showdown](https://github.com/Zarel/Pokemon-Showdown) written in [TypeScript](https://www.typescriptlang.org/).
 
 ## Installation
-Lanette requires [Node.js](https://nodejs.org/) version 10.13.0 (latest LTS) or later and a command line (e.g. `Command Prompt` on Windows or `Terminal` on Mac OS/Linux) to run. Once you have compatible software, complete installation by following these steps:
+Lanette requires [Node.js](https://nodejs.org/) version 10.13.0 (latest LTS) or later and a command line (e.g. `Powershell` on Windows or `Terminal` on Mac OS/Linux) to run. Once you have compatible software, complete installation by following these steps:
 
-1. Obtain a copy of Lanette
+#### Obtain a copy of Lanette
+If you plan to make changes outside of the config file, you should create a fork. Make sure you are on the [main repository](https://github.com/sirDonovan/Lanette) and click "Fork" in the top right to create it. Then, either on your fork or the main repository if you don't plan to make changes, click the "Clone or download" button. In the popup, click either "Open in Desktop" if you're using the [GitHub Desktop program](https://desktop.github.com/) or run the following command if you're using [Git](https://git-scm.com/):
 
-  You can do this through the [GitHub client](https://desktop.github.com/) by clicking the "Clone or download" button on the home page of the repository and then clicking "Open in Desktop". You can also use the following [Git](https://git-scm.com/) command:
-  
-  `git clone https://github.com/sirDonovan/Lanette.git`
+`git clone [fork or main repository URL].git`
 
-2. Navigate to the root directory
+#### Navigate to the root directory
+The remaining steps will take place in the root directory of your Lanette files. Navigate there with the command:
 
-  The remaining steps will take place in the root directory of your Lanette files. Navigate there with the command:
+`cd DIRECTORY`
 
-  `cd DIRECTORY`
-  
-  Replace `DIRECTORY` with the filepath to your directory (e.g. `C:\Users\sirDonovan\Documents\GitHub\Lanette`).
+Replace `DIRECTORY` with the filepath to your cloned directory (e.g. `C:\Users\sirDonovan\Documents\GitHub\Lanette`).
 
-3. Install dependencies
+#### Install dependencies
+Run the following command to install required dependencies:
 
-  Run the following command to install required dependencies:
+`npm install --production`
 
-  `npm install --production`
+If you plan to contribute to development, run the command without the `--production` flag to also install dependencies used for testing.
 
-  If you plan to contribute to development, run the command without the `--production` flag to also install dependencies used for testing.
+#### Set up the config file
+Copy and paste the `config-example.ts` file in the `src` folder, rename it to `config.ts`, and open it in your text editor to enter your desired information.
 
-4. Set up the config file
-
-  Copy and paste the `config-example.ts` file in the `src` folder, rename it to `config.ts`, and open it in your text editor to enter your desired information.
-
+#### Start the bot
 From this point on, you can start the bot by running the following command:
 
-  `node app.js`
+`node app.js`
 
 ## Development
+Issues and pull requests will be welcomed once Lanette enters the beta phase! When submitting a pull request, be sure that you have installed development dependencies and ran `npm test` to check for errors in your code.
 
-  Issues and pull requests will be welcomed once Lanette enters the beta phase! When submitting a pull request, be sure that you have installed development dependencies and ran `npm test` to check for errors in your code.
-
-  If possible, it is best to use [Visual Studio Code](https://code.visualstudio.com/) as your text editor when working on Lanette.
+If possible, it is best to use [Visual Studio Code](https://code.visualstudio.com/) as your text editor when working on Lanette.
 
 #### Credits
-
-  * Quinton Lee ([@sirDonovan](https://github.com/sirDonovan)) - Lead developer
-  * [Contributors](https://github.com/sirDonovan/Lanette/graphs/contributors)
-  * [Pokemon Showdown](https://github.com/Zarel/Pokemon-Showdown)
+* Quinton Lee ([@sirDonovan](https://github.com/sirDonovan)) - Lead developer
+* [Contributors](https://github.com/sirDonovan/Lanette/graphs/contributors)
+* [Pokemon Showdown](https://github.com/Zarel/Pokemon-Showdown)
 
 ## License
-
-  Lanette is distributed under the terms of the [MIT License](https://github.com/sirDonovan/Lanette/blob/master/LICENSE).
+Lanette is distributed under the terms of the [MIT License](https://github.com/sirDonovan/Lanette/blob/master/LICENSE).
