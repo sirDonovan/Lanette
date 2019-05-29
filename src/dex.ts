@@ -1048,6 +1048,24 @@ export class Dex {
 		return ruleName;
 	}
 
+	combineCustomRules(separatedCustomRules: ISeparatedCustomRules): string[] {
+		const customRules: string[] = [];
+		for (let i = 0; i < separatedCustomRules.bans.length; i++) {
+			customRules.push('-' + separatedCustomRules.bans[i]);
+		}
+		for (let i = 0; i < separatedCustomRules.unbans.length; i++) {
+			customRules.push('+' + separatedCustomRules.unbans[i]);
+		}
+		for (let i = 0; i < separatedCustomRules.addedrules.length; i++) {
+			customRules.push(separatedCustomRules.addedrules[i]);
+		}
+		for (let i = 0; i < separatedCustomRules.removedrules.length; i++) {
+			customRules.push('!' + separatedCustomRules.removedrules[i]);
+		}
+
+		return customRules;
+	}
+
 	separateCustomRules(customRules: string[]): ISeparatedCustomRules {
 		const bans: string[] = [];
 		const unbans: string[] = [];

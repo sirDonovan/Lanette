@@ -88,7 +88,8 @@ export class Tournament extends Activity {
 		teambuilderFormat: '',
 	};
 	isRoundRobin: boolean = false;
-	maxRounds: number = 6;
+	manuallyNamed: boolean = false;
+	originalFormat: string = '';
 	scheduled: boolean = false;
 	startTime: number = 0;
 	totalPlayers: number = 0;
@@ -98,10 +99,11 @@ export class Tournament extends Activity {
 	playerCap!: number;
 	room!: Room;
 
-	initialize(format: IFormat, generator: string, playerCap: number) {
+	initialize(format: IFormat, generator: string, playerCap: number, name?: string) {
 		this.format = format;
 		this.playerCap = playerCap;
-		this.name = format.name;
+		this.name = name || format.name;
+		this.originalFormat = format.name;
 		this.id = format.id;
 
 		this.setGenerator(generator);
@@ -116,6 +118,18 @@ export class Tournament extends Activity {
 			if (!isNaN(generatorNumber)) this.generator = generatorNumber;
 		}
 		this.isRoundRobin = Tools.toId(generator).includes('roundrobin');
+	}
+
+	setCustomFormatName() {
+		const previousName = this.name;
+		const customFormatName = Dex.getCustomFormatName(this.room, this.format);
+		if (this.format.customRules && (customFormatName === this.format.name || customFormatName.length > 100)) {
+			this.name = this.format.name + " (custom rules)";
+		} else {
+			this.name = customFormatName;
+		}
+
+		if (this.name !== previousName) this.room.sayCommand("/tour name " + this.name);
 	}
 
 	deallocate() {
@@ -238,8 +252,10 @@ export class Tournament extends Activity {
 			const format = Dex.getFormat(this.updates.format);
 			if (format) {
 				this.name = format.name;
+				if (format.name === this.originalFormat) this.manuallyNamed = false;
 			} else {
 				this.name = this.updates.format;
+				this.manuallyNamed = true;
 			}
 		}
 		this.updates = {};
@@ -289,19 +305,7 @@ export class Tournament extends Activity {
 			}
 		}
 
-		if (!this.totalPlayers) {
-			const len = Object.keys(players).length;
-			let maxRounds = 0;
-			let rounds = Math.ceil((Math.log(len) / Math.log(2)));
-			let generator = this.generator;
-			while (generator > 0) {
-				maxRounds += rounds;
-				rounds--;
-				generator--;
-			}
-			this.maxRounds = maxRounds;
-			this.totalPlayers = len;
-		}
+		if (!this.totalPlayers) this.totalPlayers = Object.keys(players).length;
 
 		// clear users who are now guests (currently can't be tracked)
 		for (const i in this.players) {

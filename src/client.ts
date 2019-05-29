@@ -4,6 +4,7 @@ import url = require('url');
 import websocket = require('websocket');
 import { Room, RoomType } from './rooms';
 import { IClientMessageTypes, IRoomInfoResponse, IServerGroup, ITournamentMessageTypes, IUserDetailsResponse, ServerGroupData } from './types/client-message-types';
+import { ISeparatedCustomRules } from './types/in-game-data-types';
 import { User } from './users';
 
 const RELOGIN_SECONDS = 60;
@@ -634,6 +635,33 @@ export class Client {
 				room.modchat = messageArguments.html.split('<div class="broadcast-red"><strong>Moderated chat was set to ')[1].split('!</strong>')[0];
 			} else if (messageArguments.html.startsWith('<div class="broadcast-blue"><strong>Moderated chat was disabled!</strong>')) {
 				room.modchat = 'off';
+			} else if (messageArguments.html.startsWith("<div class='infobox infobox-limited'>This tournament includes:<br />")) {
+				if (room.tournament) {
+					const separatedCustomRules: ISeparatedCustomRules = {bans: [], unbans: [], addedrules: [], removedrules: []};
+					const lines = messageArguments.html.substr(0, messageArguments.html.length - 6).split("<div class='infobox infobox-limited'>This tournament includes:<br />")[1].split('<br />');
+					let currentCategory: 'bans' | 'unbans' | 'addedrules' | 'removedrules' = 'bans';
+					for (let i = 0; i < lines.length; i++) {
+						let line = lines[i].trim();
+						if (line.startsWith('<b>')) {
+							const category = Tools.toId(line.split('<b>')[1].split('</b>')[0]);
+							if (category === 'bans' || category === 'unbans' || category === 'addedrules' || category === 'removedrules') {
+								currentCategory = category;
+							}
+						}
+						if (line.includes('</b> - ')) line = line.split('</b> - ')[1];
+						separatedCustomRules[currentCategory] = line.split(",").map(x => x.trim());
+					}
+
+					room.tournament.format.customRules = Dex.combineCustomRules(separatedCustomRules);
+					room.tournament.format.separatedCustomRules = separatedCustomRules;
+					if (!room.tournament.manuallyNamed) room.tournament.setCustomFormatName();
+				}
+			} else if (messageArguments.html === "<b>The tournament's custom rules were cleared.</b>") {
+				if (room.tournament) {
+					room.tournament.format.customRules = null;
+					room.tournament.format.separatedCustomRules = null;
+					if (!room.tournament.manuallyNamed) room.tournament.setCustomFormatName();
+				}
 			}
 			break;
 		}
