@@ -19,14 +19,14 @@
   "homepage": "https://github.com/sirDonovan/Lanette#readme",
   "dependencies": {
     "@types/mocha": "5.2.6",
-    "@types/node": "10.14.6",
+    "@types/node": "10.14.7",
     "@types/websocket": "0.0.40",
-    "typescript": "3.4.5",
+    "typescript": "3.5.1",
     "websocket": "1.0.28"
   },
   "devDependencies": {
     "mocha": "6.1.4",
     "tslint": "5.16.0",
-    "typescript-tslint-plugin": "0.3.1"
+    "typescript-tslint-plugin": "0.4.0"
   }
 }
