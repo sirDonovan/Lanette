@@ -1,9 +1,9 @@
 import fs = require('fs');
 import path = require('path');
 import { Room } from './rooms';
+import { rootFolder } from './tools';
 import { IDatabase } from './types/storage';
 
-const rootFolder = path.resolve(__dirname, '.', '..');
 const databasesDir = path.join(rootFolder, 'databases');
 
 export class Storage {

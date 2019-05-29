@@ -1,4 +1,5 @@
 import https = require('https');
+import path = require('path');
 import { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/in-game-data-types';
 
 const MAX_MESSAGE_LENGTH = 300;
@@ -6,6 +7,8 @@ const ALPHA_NUMERIC_REGEX = /[^a-zA-Z0-9 ]/g;
 const ID_REGEX = /[^a-z0-9]/g;
 const NUMBER_REGEX = /^[ .0-9]*$/g;
 const SPACE_REGEX = /[ ]*/g;
+
+export const rootFolder = path.resolve(__dirname, '..');
 
 export class Tools {
 	random(limit?: number) {

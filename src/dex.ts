@@ -1,9 +1,9 @@
 import fs = require('fs');
 import path = require('path');
 import { Room } from './rooms';
+import { rootFolder } from './tools';
 import { IAbility, IAbilityComputed, IAbilityCopy, IDataTable, IFormat, IFormatComputed, IFormatData, IFormatLinks, IItem, IItemComputed, IItemCopy, IMove, IMoveComputed, IMoveCopy, INature, IPokemon, IPokemonComputed, IPokemonCopy, ISeparatedCustomRules } from './types/in-game-data-types';
 
-const rootFolder = path.resolve(__dirname, '.', '..');
 export const PokemonShowdown = path.join(rootFolder, 'Pokemon-Showdown');
 export const dataDir = path.join(PokemonShowdown, 'data');
 export const modsDir = path.join(dataDir, 'mods');
