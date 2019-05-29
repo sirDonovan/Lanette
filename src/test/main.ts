@@ -2,14 +2,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Writable } from 'stream';
 
-const rootFolder = path.resolve(__dirname, './../../');
+const rootFolder = path.resolve(__dirname, '..', '..');
 const modulesDir = path.join(__dirname, 'modules');
 const moduleTests = fs.readdirSync(modulesDir);
-const configFile = path.join(rootFolder, 'built/config.js');
+const configFile = path.join(rootFolder, 'built', 'config.js');
 
 // create default config if running on Travis CI
 if (!fs.existsSync(configFile)) {
-	fs.writeFileSync(configFile, fs.readFileSync(path.join(rootFolder, 'built/config-example.js')));
+	fs.writeFileSync(configFile, fs.readFileSync(path.join(rootFolder, 'built', 'config-example.js')));
 }
 
 // tslint:disable-next-line no-empty
@@ -27,10 +27,10 @@ Object.assign(fs, {createWriteStream() {
 }});
 
 // tslint:disable-next-line no-var-requires
-require(path.join(rootFolder, 'built/app.js'));
+require(path.join(rootFolder, 'built', 'app.js'));
 
 // tslint:disable-next-line no-var-requires
-require("./pokemon-showdown");
+require(path.join(__dirname, 'pokemon-showdown'));
 
 for (let i = 0; i < moduleTests.length; i++) {
 	// tslint:disable-next-line no-var-requires
