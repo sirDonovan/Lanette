@@ -2,6 +2,7 @@
     "compilerOptions": {
 		"target": "esnext",
 		"strict": true,
+		"incremental": true,
 		"outDir": "built",
 		"noEmitOnError": true,
 		"module": "commonjs",
