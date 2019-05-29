@@ -267,6 +267,13 @@ export class Client {
 						if (room.tournament.format.customRules) room.sayCommand("/tour rules " + room.tournament.format.customRules.join(","));
 						delete Tournaments.createListeners[room.id];
 					}
+					if (room.id in Config.tournamentRoomAdvertisements) {
+						if (room.tournament.format.customRules) room.tournament.setCustomFormatName();
+						for (let i = 0; i < Config.tournamentRoomAdvertisements[room.id].length; i++) {
+							const advertisementRoom = Rooms.get(Config.tournamentRoomAdvertisements[room.id][i]);
+							if (advertisementRoom) advertisementRoom.sayHtml('<a href="/' + room.id + '" class="ilink"><strong>' + room.tournament.name + '</strong> tournament created in <strong>' + room.title + '</strong>.</a>');
+						}
+					}
 					break;
 				}
 

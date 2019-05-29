@@ -14,6 +14,11 @@ Config.rankedTournaments = Config.rankedTournaments.map(x => Tools.toRoomId(x));
 Config.rankedCustomTournaments = Config.rankedCustomTournaments.map(x => Tools.toRoomId(x));
 Config.ignoreDefaultUnrankedTournaments = Config.ignoreDefaultUnrankedTournaments.map(x => Tools.toRoomId(x));
 Config.allowTournamentBattleLinks = Config.allowTournamentBattleLinks.map(x => Tools.toRoomId(x));
+for (const i in Config.tournamentRoomAdvertisements) {
+	const id = Tools.toRoomId(i);
+	Config.tournamentRoomAdvertisements[id] = Config.tournamentRoomAdvertisements[i].map(x => Tools.toRoomId(x));
+	if (id !== i) delete Config.tournamentRoomAdvertisements[i];
+}
 
 import * as client from './client';
 global.Client = new client.Client();
