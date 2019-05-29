@@ -10,4 +10,6 @@ if (!fs.existsSync(configFile)) {
 require(path.join(__dirname, 'build.js'))(() => {
 	require(path.join(__dirname, 'built', 'app.js'));
 	Client.connect();
-}, () => process.exit(1));
+}, () => {
+	process.exit(1);
+});

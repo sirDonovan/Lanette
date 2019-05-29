@@ -1,6 +1,8 @@
+import path = require('path');
 import { ICommandDefinition } from "./command-parser";
 import { Player } from "./room-activity";
 import { Room } from "./rooms";
+import { rootFolder } from './tools';
 import { IGameFormat } from "./types/games";
 import { IFormat } from "./types/in-game-data-types";
 import { User } from "./users";
@@ -40,9 +42,8 @@ const commands: Dict<ICommandDefinition> = {
 
 			if (!modules.length) return;
 
-			Tools.uncacheTree('./../build.js');
 			this.say("Running tsc...");
-			require('./../build.js')(() => {
+			require(path.join(rootFolder, 'build.js'))(() => {
 				for (let i = 0; i < modules.length; i++) {
 					if (modules[i] === 'client') {
 						const oldClient = global.Client;
@@ -81,7 +82,9 @@ const commands: Dict<ICommandDefinition> = {
 					}
 				}
 				this.say("Successfully reloaded: " + modules.join(", "));
-			}, () => this.say("Failed to build files."));
+			}, () => {
+				this.say("Failed to build files.");
+			});
 		},
 		aliases: ['hotpatch'],
 		developerOnly: true,
