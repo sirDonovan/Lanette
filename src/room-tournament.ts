@@ -104,6 +104,10 @@ export class Tournament extends Activity {
 		this.name = format.name;
 		this.id = format.id;
 
+		this.setGenerator(generator);
+	}
+
+	setGenerator(generator: string) {
 		const generatorName = generator.split(" ")[0];
 		if (generatorName in generators) {
 			this.generator = generators[generatorName];
@@ -228,6 +232,7 @@ export class Tournament extends Activity {
 
 	update() {
 		Object.assign(this.info, this.updates);
+		if (this.updates.generator) this.setGenerator(this.updates.generator);
 		if (this.updates.bracketData && this.started) this.updateBracket();
 		if (this.updates.format) {
 			const format = Dex.getFormat(this.updates.format);
