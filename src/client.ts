@@ -378,6 +378,15 @@ export class Client {
 				usernameText: messageParts[0],
 				loginStatus: messageParts[1],
 			};
+			let rank: string = '';
+			const firstCharacter = messageArguments.usernameText.charAt(0);
+			for (const i in this.serverGroups) {
+				if (this.serverGroups[i].symbol === firstCharacter) {
+					rank = firstCharacter;
+					messageArguments.usernameText = messageArguments.usernameText.substr(1);
+					break;
+				}
+			}
 			const {away, status, username} = Tools.parseUsernameText(messageArguments.usernameText);
 
 			if (Tools.toId(username) === Users.self.id) {
@@ -396,7 +405,11 @@ export class Client {
 					console.log('Successfully logged in');
 					this.loggedIn = true;
 					this.send('|/blockchallenges');
-					this.send('|/cmd userdetails ' + Users.self.id);
+					if (rank) {
+						Users.self.group = rank;
+					} else {
+						this.send('|/cmd userdetails ' + Users.self.id);
+					}
 					if (Config.rooms) {
 						for (let i = 0; i < Config.rooms.length; i++) {
 							this.send('|/join ' + Config.rooms[i]);
@@ -422,13 +435,7 @@ export class Client {
 			} else if (messageParts[0] === 'userdetails') {
 				if (messageArguments.response && messageArguments.response !== 'null') {
 					const response = JSON.parse(messageArguments.response) as IUserDetailsResponse;
-					if (response.userid === Users.self.id) {
-						Users.self.group = response.group;
-						if (this.globalStaffGroups.includes(Users.self.group)) {
-							const staff = Rooms.get('staff');
-							if (staff) staff.say('/filters view');
-						}
-					}
+					if (response.userid === Users.self.id) Users.self.group = response.group;
 				}
 			}
 			break;
@@ -441,6 +448,7 @@ export class Client {
 			console.log("Joined room: " + room.id);
 			room.init(messageArguments.type);
 			if (room.type === 'chat') {
+				if (room.id === 'staff') room.say('/filters view');
 				room.say('/cmd roominfo ' + room.id);
 				room.say('/banword list');
 				if (room.id in Tournaments.schedules) {
