@@ -72,6 +72,8 @@ const DEFAULT_SERVER_GROUPS: ServerGroupData[] = [
 	},
 ];
 
+let lockedSymbol: string = '';
+
 export class Client {
 	botRank: string = '*';
 	challstr: string = '';
@@ -620,7 +622,7 @@ export class Client {
 						delete recipient.messageListeners[id];
 					}
 				}
-			} else {
+			} else if (messageArguments.rank !== lockedSymbol) {
 				CommandParser.parse(user, user, messageArguments.message);
 			}
 		}
@@ -755,7 +757,11 @@ export class Client {
 		for (let i = 0; i < groups.length; i++) {
 			this.serverGroups[groups[i].symbol] = Object.assign({ranking}, groups[i]);
 			if (groups[i].name === 'Bot') this.botRank = groups[i].symbol;
-			if (groups[i].type === 'leadership' || groups[i].type === 'staff') this.globalStaffGroups.push(groups[i].symbol);
+			if (groups[i].type === 'leadership' || groups[i].type === 'staff') {
+				this.globalStaffGroups.push(groups[i].symbol);
+			} else if (groups[i].type === 'punishment' && groups[i].name === 'Locked') {
+				lockedSymbol = groups[i].symbol;
+			}
 			ranking--;
 		}
 
