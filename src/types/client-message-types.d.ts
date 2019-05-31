@@ -61,6 +61,8 @@ export interface IClientMessageTypes {
 		type: RoomType,
 	};
 
+	deinit: null;
+
 	/**
 	 * User list
 	 */

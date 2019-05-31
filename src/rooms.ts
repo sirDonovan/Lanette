@@ -33,6 +33,17 @@ export class Room {
 		this.type = type;
 	}
 
+	deInit() {
+		if (this.game) this.game.deallocate();
+		if (this.tournament) this.tournament.deallocate();
+		if (this.userHostedGame) this.userHostedGame.deallocate();
+
+		this.users.forEach(user => {
+			user.rooms.delete(this);
+			if (!user.rooms.size) Users.remove(user);
+		});
+	}
+
 	onRoomInfoResponse(response: IRoomInfoResponse) {
 		this.modchat = response.modchat === false ? 'off' : response.modchat;
 		this.title = response.title;
@@ -87,5 +98,10 @@ export class Rooms {
 
 	get(id: string): Room | undefined {
 		return this.rooms[id];
+	}
+
+	remove(room: Room) {
+		room.deInit();
+		delete this.rooms[room.id];
 	}
 }

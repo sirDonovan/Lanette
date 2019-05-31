@@ -460,6 +460,11 @@ export class Client {
 			break;
 		}
 
+		case 'deinit': {
+			Rooms.remove(room);
+			break;
+		}
+
 		case 'users': {
 			const messageArguments: IClientMessageTypes['users'] = {
 				userlist: messageParts[0],
