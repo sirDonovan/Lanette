@@ -45,9 +45,9 @@ export class User {
 }
 
 export class Users {
-	users: Dict<User> = {};
-
 	self: User;
+
+	private users: Dict<User> = {};
 
 	constructor() {
 		this.self = this.add(Config.username);
@@ -65,7 +65,13 @@ export class Users {
 	}
 
 	remove(user: User) {
-		delete this.users[user.id];
+		if (user !== this.self) delete this.users[user.id];
+	}
+
+	removeAll() {
+		for (const i in this.users) {
+			this.remove(this.users[i]);
+		}
 	}
 
 	rename(name: string, oldId: string): User {

@@ -89,7 +89,7 @@ export class Room {
 }
 
 export class Rooms {
-	rooms = {} as Dict<Room>;
+	private rooms: Dict<Room> = {};
 
 	add(id: string): Room {
 		if (!(id in this.rooms)) this.rooms[id] = new Room(id);
@@ -103,5 +103,11 @@ export class Rooms {
 	remove(room: Room) {
 		room.deInit();
 		delete this.rooms[room.id];
+	}
+
+	removeAll() {
+		for (const i in this.rooms) {
+			this.remove(this.rooms[i]);
+		}
 	}
 }

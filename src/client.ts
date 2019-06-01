@@ -186,13 +186,8 @@ export class Client {
 	}
 
 	reconnect() {
-		for (const i in Users.users) {
-			if (Users.users[i] === Users.self) continue;
-			delete Users.users[i];
-		}
-		for (const i in Rooms.rooms) {
-			delete Rooms.rooms[i];
-		}
+		Rooms.removeAll();
+		Users.removeAll();
 
 		this.connect();
 	}
