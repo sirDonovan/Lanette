@@ -6,22 +6,22 @@ import { commands as templateCommands, IPlayingCard, PlayingCard } from './templ
 
 class MurkrowsBlackjack extends PlayingCard {
 	blackjackGame: number = 0;
-	blackJackpots = new Map<Player, number>();
+	readonly blackJackpots = new Map<Player, number>();
 	canHit: boolean = false;
 	canWager: boolean = true;
 	dealersHand: number = 0;
-	faceCardValues = {
+	readonly faceCardValues = {
 		J: 10,
 		Q: 10,
 		K: 10,
 		A: 11,
 	};
-	maxBlackjackGames: number = 5;
-	maxHandTotal: number = 21;
-	roundActions = new Set<Player>();
-	roundLimit: number = 20;
-	wagerLimit: number = 300;
-	wagers = new Map<Player, number>();
+	readonly maxBlackjackGames: number = 5;
+	readonly maxHandTotal: number = 21;
+	readonly roundActions = new Set<Player>();
+	readonly roundLimit: number = 20;
+	readonly wagerLimit: number = 300;
+	readonly wagers = new Map<Player, number>();
 
 	dealersTopCard!: IPlayingCard;
 

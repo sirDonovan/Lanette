@@ -11,15 +11,15 @@ const gamesDirectory = path.join(__dirname, 'games');
 const userHosted = require(path.join(gamesDirectory, "templates", "user-hosted.js")).game as IUserHostedFile;
 
 export class Games {
-	aliasesCache: Dict<string> = {};
+	readonly aliasesCache: Dict<string> = {};
 	commandNames: string[] = Object.keys(commands);
-	commands = commands;
-	formatsCache: Dict<IGameFileComputed> = {};
+	readonly commands = commands;
+	readonly formatsCache: Dict<IGameFileComputed> = {};
 	loadedFormats: boolean = false;
 	minigameCommandNames: Dict<string> = {};
-	modesCache: Dict<IGameMode> = {};
-	userHostedAliasesCache: Dict<string> = {};
-	userHostedFormatsCache: Dict<IUserHostedComputed> = {};
+	readonly modesCache: Dict<IGameMode> = {};
+	readonly userHostedAliasesCache: Dict<string> = {};
+	readonly userHostedFormatsCache: Dict<IUserHostedComputed> = {};
 
 	get aliases(): Dict<string> {
 		if (!this.loadedFormats) this.loadFormats();

@@ -10,86 +10,86 @@ interface IGameClass<T> {
 }
 
 export interface IGameFile<T extends Game = Game> {
-	class: IGameClass<T>;
-	description: string;
-	name: string;
+	readonly class: IGameClass<T>;
+	readonly description: string;
+	readonly name: string;
 
 	aliases?: string[];
 	commands?: Dict<ICommandDefinition<T>>;
-	commandDescriptions?: string[];
-	freejoin?: boolean;
+	readonly commandDescriptions?: string[];
+	readonly freejoin?: boolean;
 	/** Legacy names, such as from before game mascots were introduced; used for aliases */
 	formerNames?: string[];
-	mascot?: string;
-	mascots?: string[];
+	readonly mascot?: string;
+	readonly mascots?: string[];
 	minigameCommand?: string;
-	minigameDescription?: string;
-	modes?: string[];
-	scriptedOnly?: boolean;
-	variants?: IGameVariant[];
+	readonly minigameDescription?: string;
+	readonly modes?: string[];
+	readonly scriptedOnly?: boolean;
+	readonly variants?: IGameVariant[];
 }
 
 export interface IGameVariant {
-	name: string;
-	variant: string;
+	readonly name: string;
+	readonly variant: string;
 
-	description?: string;
+	readonly description?: string;
 	variantAliases?: string[];
 }
 
 export interface IUserHostedFile<T extends UserHosted = UserHosted> {
-	class: IGameClass<T>;
-	formats: IUserHosted[];
+	readonly class: IGameClass<T>;
+	readonly formats: IUserHosted[];
 }
 
 interface IUserHosted {
-	description: string;
-	name: string;
+	readonly description: string;
+	readonly name: string;
 
 	aliases?: string[];
-	approvedHostOnly?: boolean;
-	formerNames?: string[];
-	freejoin?: boolean;
-	mascot?: string;
-	mascots?: string[];
+	readonly approvedHostOnly?: boolean;
+	readonly formerNames?: string[];
+	readonly freejoin?: boolean;
+	readonly mascot?: string;
+	readonly mascots?: string[];
 }
 
 export interface IUserHostedComputed<T extends UserHosted = UserHosted> extends IUserHosted {
-	class: IGameClass<T>;
-	id: string;
+	readonly class: IGameClass<T>;
+	readonly id: string;
 }
 
 export interface IUserHostedFormatComputed {
-	effectType: 'UserHostedFormat';
+	readonly effectType: 'UserHostedFormat';
 	inputOptions: Dict<number>;
 }
 
 export interface IUserHostedFormat extends IUserHostedComputed, IUserHostedFormatComputed {}
 
 export interface IGameFileComputed extends IGameFile {
-	id: string;
+	readonly id: string;
 }
 
 export interface IGameFormatComputed {
-	effectType: 'GameFormat';
+	readonly effectType: 'GameFormat';
 	inputOptions: Dict<number>;
 
-	mode?: IGameMode;
-	variant?: IGameVariant;
+	readonly mode?: IGameMode;
+	readonly variant?: IGameVariant;
 }
 
 export interface IGameModeFile<T = Game, U extends Game = Game> {
-	description: string;
+	readonly description: string;
 	initialize: (game: Game) => void;
-	name: string;
-	naming: 'prefix' | 'suffix';
+	readonly name: string;
+	readonly naming: 'prefix' | 'suffix';
 
 	aliases?: string[];
-	commands?: Dict<ICommandDefinition<T & U>>;
+	readonly commands?: Dict<ICommandDefinition<T & U>>;
 }
 
 export interface IGameMode extends IGameModeFile {
-	id: string;
+	readonly id: string;
 }
 
 export interface IGameFormat extends IGameFileComputed, IGameFormatComputed {}

@@ -6,10 +6,10 @@ export class Guessing extends Game {
 	answers: string[] = [];
 	canGuess: boolean = false;
 	hint: string = '';
-	points: Map<Player, number> = new Map();
+	readonly points: Map<Player, number> = new Map();
 
 	roundCategory?: string;
-	roundGuesses?: Map<Player, boolean>;
+	readonly roundGuesses?: Map<Player, boolean>;
 
 	checkAnswer(guess: string): string {
 		guess = Tools.toId(guess);

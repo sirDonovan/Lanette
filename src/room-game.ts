@@ -43,21 +43,21 @@ for (const i in commands) {
 }
 
 export class Game extends Activity {
-	activityType: string = 'game';
-	commands = Object.assign(Object.create(null), globalGameCommands);
-	customizableOptions: Dict<{min: number, base: number, max: number}> = Object.create(null);
-	loserPointsToBits: number = 10;
-	maxBits: number = 1000;
+	readonly activityType: string = 'game';
+	readonly commands = Object.assign(Object.create(null), globalGameCommands);
+	readonly customizableOptions: Dict<{min: number, base: number, max: number}> = Object.create(null);
+	readonly loserPointsToBits: number = 10;
+	readonly maxBits: number = 1000;
 	namePrefixes: string[] = [];
 	nameSuffixes: string[] = [];
 	nameWithOptions: string = '';
-	options: Dict<number> = Object.create(null);
+	readonly options: Dict<number> = Object.create(null);
 	parentGame: Game | null = null;
 	round: number = 0;
 	signupsTime: number = 0;
-	userHosted: boolean = false;
-	winnerPointsToBits: number = 50;
-	winners = new Map<Player, number>();
+	readonly userHosted: boolean = false;
+	readonly winnerPointsToBits: number = 50;
+	readonly winners = new Map<Player, number>();
 
 	// set immediately in initialize()
 	description!: string;
@@ -65,12 +65,12 @@ export class Game extends Activity {
 	inputOptions!: Dict<number>;
 
 	allowChildGameBits?: boolean;
-	defaultOptions?: DefaultGameOptions[];
+	readonly defaultOptions?: DefaultGameOptions[];
 	isMiniGame?: boolean;
 	mascot?: IPokemonCopy;
-	points?: Map<Player, number>;
+	readonly points?: Map<Player, number>;
 	shinyMascot?: boolean;
-	variant?: string;
+	readonly variant?: string;
 
 	isUserHosted(room: Room | User): room is Room {
 		return this.userHosted;

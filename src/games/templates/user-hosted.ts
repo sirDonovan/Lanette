@@ -10,7 +10,7 @@ export class UserHosted extends Game {
 	hostId: string = '';
 	hostName: string = '';
 	hostTimeout: NodeJS.Timer | null = null;
-	points = new Map<Player, number>();
+	readonly points = new Map<Player, number>();
 	scoreCap: number = 0;
 	userHosted = true;
 

@@ -11,12 +11,12 @@ type SurvivalThis = Guessing & GuessingAbstract & Survival;
 
 class Survival {
 	currentPlayer: Player | null = null;
-	maxPlayers: number = 20;
+	readonly maxPlayers: number = 20;
 	playerList: Player[] = [];
-	playerRounds = new Map<Player, number>();
+	readonly playerRounds = new Map<Player, number>();
 	survivalRound: number = 0;
 
-	description: string;
+	readonly description: string;
 	roundTime: number;
 
 	constructor(game: Game) {
