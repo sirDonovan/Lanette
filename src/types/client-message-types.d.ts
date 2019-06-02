@@ -41,16 +41,16 @@ export interface IClientMessageTypes {
 		/** username[@status] */
 		usernameText: string,
 		/** '1' if logged in */
-		loginStatus: string,
+		readonly loginStatus: string,
 	};
 
 	/**
 	 * Query type|response
 	 */
 	queryresponse: {
-		type: 'roominfo' | 'userdetails',
+		readonly type: 'roominfo' | 'userdetails',
 		/** JSON string */
-		response: string,
+		readonly response: string,
 	};
 
 	/**
@@ -58,32 +58,32 @@ export interface IClientMessageTypes {
 	 */
 	init: {
 		/** Chat, battle, or HTML */
-		type: RoomType,
+		readonly type: RoomType,
 	};
 
-	deinit: null;
+	deinit: {};
 
 	/**
 	 * User list
 	 */
 	users: {
 		/** usercount,[rank]username[@status],[rank]username[@status], etc. */
-		userlist: string,
+		readonly userlist: string,
 	};
 
 	/**
 	 * Groups list
 	 */
 	customgroups: {
-		groups: ServerGroupData[],
+		readonly groups: ServerGroupData[],
 	};
 
 	/**
 	 * Rank+username[@status]
 	 */
 	join: {
-		rank: string,
-		usernameText: string,
+		readonly rank: string,
+		readonly usernameText: string,
 	};
 	j: IClientMessageTypes['join'];
 	J: IClientMessageTypes['join'];
@@ -92,8 +92,8 @@ export interface IClientMessageTypes {
 	 * Rank+username[@status]
 	 */
 	leave: {
-		rank: string,
-		usernameText: string,
+		readonly rank: string,
+		readonly usernameText: string,
 	};
 	l: IClientMessageTypes['leave'];
 	L: IClientMessageTypes['leave'];
@@ -102,9 +102,9 @@ export interface IClientMessageTypes {
 	 * Rank+username[@status]|old userid
 	 */
 	name: {
-		rank: string,
-		usernameText: string,
-		oldId: string,
+		readonly rank: string,
+		readonly usernameText: string,
+		readonly oldId: string,
 	};
 	n: IClientMessageTypes['name'];
 	N: IClientMessageTypes['name'];
@@ -114,10 +114,10 @@ export interface IClientMessageTypes {
 	 */
 	chat: {
 		/** Defaults to current time */
-		timestamp: number,
-		rank: string,
-		username: string,
-		message: string,
+		readonly timestamp: number,
+		readonly rank: string,
+		readonly username: string,
+		readonly message: string,
 	};
 	c: IClientMessageTypes['chat'];
 
@@ -130,45 +130,45 @@ export interface IClientMessageTypes {
 	 * Server timestamp
 	 */
 	':': {
-		timestamp: number,
+		readonly timestamp: number,
 	};
 
 	/**
 	 * Rank+username|message
 	 */
 	pm: {
-		rank: string,
-		username: string,
-		recipient: string,
-		message: string,
+		readonly rank: string,
+		readonly username: string,
+		readonly recipient: string,
+		readonly message: string,
 	};
 
 	/**
 	 * Message type|(Rest)
 	 */
 	tournament: {
-		type: keyof ITournamentMessageTypes,
+		readonly type: keyof ITournamentMessageTypes,
 	};
 
 	/**
 	 * Raw message
 	 */
 	'': {
-		message: string,
+		readonly message: string,
 	};
 
 	/**
 	 * Raw HTML
 	 */
 	raw: {
-		html: string,
+		readonly html: string,
 	};
 
 	/**
 	 * Page HTML
 	 */
 	pagehtml: {
-		html: string,
+		readonly html: string,
 	};
 }
 
@@ -177,16 +177,16 @@ export interface ITournamentMessageTypes {
 	 * Format|Generator|Player cap
 	 */
 	create: {
-		format: IFormat,
-		generator: string,
-		playerCap: number,
+		readonly format: IFormat,
+		readonly generator: string,
+		readonly playerCap: number,
 	};
 
 	/**
 	 * Update JSON
 	 */
 	update: {
-		json: ITournamentUpdateJSON,
+		readonly json: ITournamentUpdateJSON,
 	};
 
 	updateEnd: {};
@@ -195,7 +195,7 @@ export interface ITournamentMessageTypes {
 	 * End JSON
 	 */
 	end: {
-		json: ITournamentEndJSON,
+		readonly json: ITournamentEndJSON,
 	};
 
 	forceend: {};
@@ -206,14 +206,14 @@ export interface ITournamentMessageTypes {
 	 * Username
 	 */
 	join: {
-		username: string;
+		readonly username: string;
 	};
 
 	/**
 	 * Username
 	 */
 	leave: {
-		username: string;
+		readonly username: string;
 	};
 
 	/**
@@ -225,20 +225,20 @@ export interface ITournamentMessageTypes {
 	 * UsernameA|UsernameB|Roomid
 	 */
 	battlestart: {
-		usernameA: string;
-		usernameB: string;
-		roomid: string;
+		readonly usernameA: string;
+		readonly usernameB: string;
+		readonly roomid: string;
 	};
 
 	/**
 	 * UsernameA|UsernameB|Result|Score|Recorded|Roomid
 	 */
 	battleend: {
-		usernameA: string;
-		usernameB: string;
-		result: 'win' | 'loss' | 'draw';
-		score: [string, string];
-		recorded: 'success' | 'fail';
-		roomid: string;
+		readonly usernameA: string;
+		readonly usernameB: string;
+		readonly result: 'win' | 'loss' | 'draw';
+		readonly score: [string, string];
+		readonly recorded: 'success' | 'fail';
+		readonly roomid: string;
 	};
 }
