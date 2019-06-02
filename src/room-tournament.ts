@@ -3,22 +3,22 @@ import { Room } from "./rooms";
 import { IFormat } from "./types/in-game-data-types";
 
 interface IBracketNode {
-	result: string;
-	state: 'available' | 'challenging' | 'inprogress' | 'finished' | 'unavailable';
-	team: string;
-	children?: IBracketNode[];
+	readonly result: string;
+	readonly state: 'available' | 'challenging' | 'inprogress' | 'finished' | 'unavailable';
+	readonly team: string;
+	readonly children?: IBracketNode[];
 }
 
 interface IBracketData {
-	type: string;
-	rootNode?: IBracketNode;
-	tableHeaders?: {cols: any[], rows: any[]};
+	readonly type: string;
+	readonly rootNode?: IBracketNode;
+	readonly tableHeaders?: {cols: any[], rows: any[]};
 }
 
 interface IBattleData {
-	playerA: Player;
-	playerB: Player;
-	roomid: string;
+	readonly playerA: Player;
+	readonly playerB: Player;
+	readonly roomid: string;
 }
 
 export interface ITournamentUpdateJSON {
@@ -67,13 +67,13 @@ const generators: Dict<number> = {
 };
 
 export class Tournament extends Activity {
-	activityType: string = 'tournament';
-	battleData: IBattleData[] = [];
-	battleRooms: string[] = [];
-	createTime: number = Date.now();
-	currentBattles: IBattleData[] = [];
+	readonly activityType: string = 'tournament';
+	readonly battleData: IBattleData[] = [];
+	readonly battleRooms: string[] = [];
+	readonly createTime: number = Date.now();
+	readonly currentBattles: IBattleData[] = [];
 	generator: number = 1;
-	info: ITournamentUpdateJSON & ITournamentEndJSON = {
+	readonly info: ITournamentUpdateJSON & ITournamentEndJSON = {
 		bracketData: {type: ''},
 		challengeBys: [],
 		challenged: '',
@@ -97,7 +97,7 @@ export class Tournament extends Activity {
 
 	format!: IFormat;
 	playerCap!: number;
-	room!: Room;
+	readonly room!: Room;
 
 	initialize(format: IFormat, generator: string, playerCap: number, name?: string) {
 		this.format = format;

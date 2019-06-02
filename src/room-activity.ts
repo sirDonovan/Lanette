@@ -10,7 +10,7 @@ export class Player {
 	losses: number | null = null;
 
 	id: string;
-	activity: Activity;
+	readonly activity: Activity;
 	name: string;
 
 	constructor(user: User | string, activity: Activity) {
@@ -47,10 +47,10 @@ export class Player {
 }
 
 export abstract class Activity {
-	activityType: string = '';
-	createTime: number = Date.now();
+	readonly activityType: string = '';
+	readonly createTime: number = Date.now();
 	playerCount: number = 0;
-	players: Dict<Player> = {};
+	readonly players: Dict<Player> = {};
 	showSignupsHtml: boolean = false;
 	signupsHtmlTimeout: NodeJS.Timer | null = null;
 	started: boolean = false;
@@ -63,9 +63,9 @@ export abstract class Activity {
 
 	uhtmlId?: string;
 
-	room: Room | User;
-	pm: boolean;
-	pmRoom: Room;
+	readonly room: Room | User;
+	readonly pm: boolean;
+	readonly pmRoom: Room;
 
 	constructor(room: Room | User, pmRoom?: Room) {
 		this.room = room;

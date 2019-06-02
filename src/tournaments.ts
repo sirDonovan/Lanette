@@ -13,9 +13,9 @@ for (const i in schedules) {
 }
 
 export class Tournaments {
-	createListeners: Dict<{format: IFormat, scheduled: boolean}> = {};
-	defaultCap: number = 64;
-	defaultCustomRules: Dict<Partial<ISeparatedCustomRules>> = {
+	readonly createListeners: Dict<{format: IFormat, scheduled: boolean}> = {};
+	readonly defaultCap: number = 64;
+	readonly defaultCustomRules: Dict<Partial<ISeparatedCustomRules>> = {
 		tournaments: {
 			bans: ['Leppa Berry'],
 		},
@@ -23,8 +23,8 @@ export class Tournaments {
 			bans: ['Leppa Berry'],
 		},
 	};
-	maxCap: number = 128;
-	schedules: typeof schedules = schedules;
+	readonly maxCap: number = 128;
+	readonly schedules: typeof schedules = schedules;
 	scheduledTournaments: Dict<{format: IFormat, time: number}> = {};
 	tournamentTimers: Dict<NodeJS.Timer> = {};
 
