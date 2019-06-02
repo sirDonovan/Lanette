@@ -10,15 +10,15 @@ export type RoomType = 'battle' | 'chat' | 'html';
 export class Room {
 	bannedWords: string[] | null = null;
 	game: Game | null = null;
-	messageListeners: Dict<() => void> = {};
+	readonly messageListeners: Dict<() => void> = {};
 	modchat: string = 'off';
 	tournament: Tournament | null = null;
 	userHostedGame: UserHosted | null = null;
-	users = new Set<User>();
+	readonly users = new Set<User>();
 
-	id: string;
+	readonly id: string;
 	logChatMessages: boolean;
-	sendId: string;
+	readonly sendId: string;
 	title: string;
 	type!: RoomType;
 

@@ -109,9 +109,9 @@ const omotms: string[] = [];
  */
 export class RuleTable extends Map<string, string> {
 	/** rule, source, limit, bans */
-	complexBans: [string, string, number, string[]][] = [];
+	readonly complexBans: [string, string, number, string[]][] = [];
 	/** rule, source, limit, bans */
-	complexTeamBans: [string, string, number, string[]][] = [];
+	readonly complexTeamBans: [string, string, number, string[]][] = [];
 	checkLearnset: [(...args: any) => void, string] | null = null;
 
 	check(thing: string, setHas?: Dict<true>): string {
@@ -159,19 +159,19 @@ export class RuleTable extends Map<string, string> {
 }
 
 export class Dex {
-	abilityCache = new Map<string, IAbility>();
+	readonly abilityCache = new Map<string, IAbility>();
 	gen: number = 0;
-	itemCache = new Map<string, IItem>();
+	readonly itemCache = new Map<string, IItem>();
 	loadedData: boolean = false;
 	loadedMods: boolean = false;
-	moveCache = new Map<string, IMove>();
+	readonly moveCache = new Map<string, IMove>();
 	parentMod: string = '';
-	pokemonCache = new Map<string, IPokemon>();
+	readonly pokemonCache = new Map<string, IPokemon>();
 
-	currentMod: string;
-	dataCache: IDataTable;
-	dataDir: string;
-	isBase: boolean;
+	readonly currentMod: string;
+	readonly dataCache: IDataTable;
+	readonly dataDir: string;
+	readonly isBase: boolean;
 
 	constructor(mod: string) {
 		const isBase = mod === 'base';

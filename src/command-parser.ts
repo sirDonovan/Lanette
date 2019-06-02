@@ -4,21 +4,21 @@ import { User } from "./users";
 export interface ICommandDefinition<T = undefined> {
 	command: (this: T extends undefined ? Command : T, target: string, room: Room | User, user: User, alias: string) => void;
 	aliases?: string[];
-	chatOnly?: boolean;
-	developerOnly?: boolean;
-	globalGameCommand?: boolean;
-	pmGameCommand?: boolean;
-	pmOnly?: boolean;
+	readonly chatOnly?: boolean;
+	readonly developerOnly?: boolean;
+	readonly globalGameCommand?: boolean;
+	readonly pmGameCommand?: boolean;
+	readonly pmOnly?: boolean;
 }
 
 export type CommandsDict<T = undefined> = Dict<Pick<ICommandDefinition<T>, Exclude<keyof ICommandDefinition<T>, "aliases">>>;
 
 export class Command {
-	originalCommand: string;
-	pm: boolean;
-	room: Room | User;
-	target: string;
-	user: User;
+	readonly originalCommand: string;
+	readonly pm: boolean;
+	readonly room: Room | User;
+	readonly target: string;
+	readonly user: User;
 
 	constructor(originalCommand: string, target: string, room: Room | User, user: User) {
 		this.originalCommand = originalCommand;
