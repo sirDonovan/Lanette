@@ -57,7 +57,7 @@ export class Command {
 		} else {
 			if (Commands[command].pmOnly) return;
 		}
-		const target = newTarget || this.target;
+		const target = newTarget !== undefined ? newTarget : this.target;
 		Commands[command].command.call(this, target, this.room, this.user, command);
 	}
 
