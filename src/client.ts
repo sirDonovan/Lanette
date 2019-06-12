@@ -248,27 +248,29 @@ export class Client {
 			messageParts.shift();
 			switch (type) {
 				case 'create': {
-					const messageArguments: ITournamentMessageTypes['create'] = {
-						format: Dex.getExistingFormat(messageParts[0]),
-						generator: messageParts[1],
-						playerCap: parseInt(messageParts[2]),
-					};
-					if (Tournaments.tournamentTimers[room.id]) clearTimeout(Tournaments.tournamentTimers[room.id]);
-					room.tournament = Tournaments.createTournament(room, messageArguments.format, messageArguments.generator, messageArguments.playerCap);
-					if (room.id in Tournaments.createListeners && messageArguments.format.id === Tournaments.createListeners[room.id].format.id) {
-						if (Tournaments.createListeners[room.id].scheduled) {
-							room.tournament.scheduled = true;
-							Tournaments.setScheduledTournament(room);
+					if (Config.allowTournaments.includes(room.id)) {
+						const messageArguments: ITournamentMessageTypes['create'] = {
+							format: Dex.getExistingFormat(messageParts[0]),
+							generator: messageParts[1],
+							playerCap: parseInt(messageParts[2]),
+						};
+						if (Tournaments.tournamentTimers[room.id]) clearTimeout(Tournaments.tournamentTimers[room.id]);
+						room.tournament = Tournaments.createTournament(room, messageArguments.format, messageArguments.generator, messageArguments.playerCap);
+						if (room.id in Tournaments.createListeners && messageArguments.format.id === Tournaments.createListeners[room.id].format.id) {
+							if (Tournaments.createListeners[room.id].scheduled) {
+								room.tournament.scheduled = true;
+								Tournaments.setScheduledTournament(room);
+							}
+							room.tournament.format = Tournaments.createListeners[room.id].format;
+							if (room.tournament.format.customRules) room.sayCommand("/tour rules " + room.tournament.format.customRules.join(","));
+							delete Tournaments.createListeners[room.id];
 						}
-						room.tournament.format = Tournaments.createListeners[room.id].format;
-						if (room.tournament.format.customRules) room.sayCommand("/tour rules " + room.tournament.format.customRules.join(","));
-						delete Tournaments.createListeners[room.id];
-					}
-					if (room.id in Config.tournamentRoomAdvertisements) {
-						if (room.tournament.format.customRules) room.tournament.setCustomFormatName();
-						for (let i = 0; i < Config.tournamentRoomAdvertisements[room.id].length; i++) {
-							const advertisementRoom = Rooms.get(Config.tournamentRoomAdvertisements[room.id][i]);
-							if (advertisementRoom) advertisementRoom.sayHtml('<a href="/' + room.id + '" class="ilink"><strong>' + room.tournament.name + '</strong> tournament created in <strong>' + room.title + '</strong>.</a>');
+						if (room.id in Config.tournamentRoomAdvertisements) {
+							if (room.tournament.format.customRules) room.tournament.setCustomFormatName();
+							for (let i = 0; i < Config.tournamentRoomAdvertisements[room.id].length; i++) {
+								const advertisementRoom = Rooms.get(Config.tournamentRoomAdvertisements[room.id][i]);
+								if (advertisementRoom) advertisementRoom.sayHtml('<a href="/' + room.id + '" class="ilink"><strong>' + room.tournament.name + '</strong> tournament created in <strong>' + room.title + '</strong>.</a>');
+							}
 						}
 					}
 					break;
