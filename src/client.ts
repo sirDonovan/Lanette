@@ -85,6 +85,7 @@ export class Client {
 	filterRegularExpressions: RegExp[] | null = null;
 	globalStaffGroups: string[] = [];
 	loggedIn: boolean = false;
+	loginTimeout: NodeJS.Timer | null = null;
 	reconnectTime: number = Config.reconnectTime || 60 * 1000;
 	sendQueue: string[] = [];
 	sendTimeout: NodeJS.Timer | null = null;
@@ -141,6 +142,7 @@ export class Client {
 
 	onConnectionClose(code: number, description: string) {
 		if (this.connectionTimeout) clearTimeout(this.connectionTimeout);
+		if (this.loginTimeout) clearTimeout(this.loginTimeout);
 		console.log('Connection closed: ' + description + ' (' + code + ')');
 		console.log('Reconnecting in ' + (this.reconnectTime /  1000) + ' seconds');
 		this.connectionTimeout = setTimeout(() => this.reconnect(), this.reconnectTime);
@@ -189,6 +191,7 @@ export class Client {
 		Rooms.removeAll();
 		Users.removeAll();
 
+		this.connectionAttempts = 0;
 		this.connect();
 	}
 
@@ -863,11 +866,11 @@ export class Client {
 					process.exit();
 				} else if (data.startsWith('<!DOCTYPE html>')) {
 					console.log('Failed to log in: connection timed out. Trying again in ' + RELOGIN_SECONDS + ' seconds');
-					setTimeout(() => this.login(), RELOGIN_SECONDS * 1000);
+					this.loginTimeout = setTimeout(() => this.login(), RELOGIN_SECONDS * 1000);
 					return;
 				} else if (data.includes('heavy load')) {
 					console.log('Failed to log in: the login server is under heavy load. Trying again in ' + (RELOGIN_SECONDS * 5) + ' seconds');
-					setTimeout(() => this.login(), RELOGIN_SECONDS * 5 * 1000);
+					this.loginTimeout = setTimeout(() => this.login(), RELOGIN_SECONDS * 5 * 1000);
 					return;
 				} else {
 					if (Config.password) {
@@ -884,7 +887,12 @@ export class Client {
 			});
 		});
 
-		request.on('error', error => console.log('Login error: ' + error.stack));
+		request.on('error', error => {
+			console.log('Login error: ' + error.stack);
+			console.log('Trying again in ' + RELOGIN_SECONDS + ' seconds');
+			if (this.loginTimeout) clearTimeout(this.loginTimeout);
+			this.loginTimeout = setTimeout(() => this.login(), RELOGIN_SECONDS * 1000);
+		});
 
 		if (postData) request.write(postData);
 		request.end();
