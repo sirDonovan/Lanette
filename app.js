@@ -9,6 +9,11 @@ if (!fs.existsSync(configFile)) {
 
 require(path.join(__dirname, 'build.js'))(() => {
 	require(path.join(__dirname, 'built', 'app.js'));
+
+	process.on('uncaughtException', error => {
+		console.log(error);
+	});
+
 	Client.connect();
 }, () => {
 	process.exit(1);
