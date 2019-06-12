@@ -58,10 +58,11 @@ export class Tournaments {
 		return tournament;
 	}
 
-	createTournamentFromJSON(room: Room, update: {format: string, teambuilderFormat?: string, generator: string, playerCap?: number}) {
 		if (!update.format && !update.teambuilderFormat) return;
+	createTournamentFromJSON(room: Room, update: {format: string, teambuilderFormat?: string, generator: string, isStarted?: boolean, playerCap?: number}) {
 		const format = update.teambuilderFormat ? Dex.getExistingFormat(update.teambuilderFormat) : Dex.getExistingFormat(update.format);
 		room.tournament = this.createTournament(room, format, update.generator, update.playerCap || 0, update.teambuilderFormat ? update.format : undefined);
+		if (update.isStarted) room.tournament.started = true;
 	}
 
 	setScheduledTournament(room: Room) {
