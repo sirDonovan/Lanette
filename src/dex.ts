@@ -1146,6 +1146,16 @@ export class Dex {
 		}
 	}
 
+	getCustomRulesHtml(format: IFormat): string {
+		if (!format.separatedCustomRules) format.separatedCustomRules = this.separateCustomRules(format.customRules!);
+		const html: string[] = [];
+		if (format.separatedCustomRules.bans.length) html.push("&nbsp;&nbsp;&nbsp;&nbsp;<b>Bans</b>: " + format.separatedCustomRules.bans.join(", "));
+		if (format.separatedCustomRules.unbans.length) html.push("&nbsp;&nbsp;&nbsp;&nbsp;<b>Unbans</b>: " + format.separatedCustomRules.unbans.join(", "));
+		if (format.separatedCustomRules.addedrules.length) html.push("&nbsp;&nbsp;&nbsp;&nbsp;<b>Added rules</b>: " + format.separatedCustomRules.addedrules.join(", "));
+		if (format.separatedCustomRules.removedrules.length) html.push("&nbsp;&nbsp;&nbsp;&nbsp;<b>Removed rules</b>: " + format.separatedCustomRules.removedrules.join(", "));
+		return html.join("<br />");
+	}
+
 	getPokemonGif(species: IPokemon | string, direction?: 'front' | 'back', width?: number, height?: number): string {
 		const pokemon = typeof species === 'string' ? this.getPokemon(species) : species;
 		if (!pokemon) return '';

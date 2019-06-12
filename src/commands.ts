@@ -386,7 +386,7 @@ const commands: Dict<ICommandDefinition> = {
 			if (room.tournament) return this.say("There is already a tournament in progress in this room.");
 			const format = Dex.getFormat(target);
 			if (!format || !format.tournamentPlayable) return this.say("'" + target + "' is not a valid tournament format.");
-			this.sayCommand("/tour new " + format.name + ", elimination, " + Tournaments.defaultCap);
+			this.sayCommand("/tour new " + format.name + ", elimination, " + Tournaments.defaultPlayerCap);
 		},
 		aliases: ['createtour', 'ct'],
 	},
@@ -410,21 +410,14 @@ const commands: Dict<ICommandDefinition> = {
 
 			const scheduledTournament = Tournaments.scheduledTournaments[tournamentRoom.id];
 			const now = Date.now();
-			let html = "<b>Next" + (this.pm ? " " + tournamentRoom.id : "") + " scheduled tournament</b> ";
+			let html = "<b>Next" + (this.pm ? " " + tournamentRoom.title : "") + " scheduled tournament</b>: " + scheduledTournament.format.name + "<br />";
 			if (now > scheduledTournament.time) {
-				html += ": delayed<br />";
+				html += "<b>Delayed</b><br />";
 			} else {
-				html += "starting in: " + Tools.toDurationString(scheduledTournament.time - now) + "<br />";
+				html += "<b>Starting in</b>: " + Tools.toDurationString(scheduledTournament.time - now) + "<br />";
 			}
-			html += "<b>Format</b>: " + scheduledTournament.format.name;
-			if (scheduledTournament.format.customRules) {
-				html += "<br /><b>Custom rules:</b><br />";
-				if (!scheduledTournament.format.separatedCustomRules) scheduledTournament.format.separatedCustomRules = Dex.separateCustomRules(scheduledTournament.format.customRules);
-				if (scheduledTournament.format.separatedCustomRules.bans.length) html += "&nbsp;&nbsp;&nbsp;&nbsp;Bans: " + scheduledTournament.format.separatedCustomRules.bans.join(", ");
-				if (scheduledTournament.format.separatedCustomRules.unbans.length) html += "&nbsp;&nbsp;&nbsp;&nbsp;Unbans: " + scheduledTournament.format.separatedCustomRules.unbans.join(", ");
-				if (scheduledTournament.format.separatedCustomRules.addedrules.length) html += "&nbsp;&nbsp;&nbsp;&nbsp;Added rules: " + scheduledTournament.format.separatedCustomRules.addedrules.join(", ");
-				if (scheduledTournament.format.separatedCustomRules.removedrules.length) html += "&nbsp;&nbsp;&nbsp;&nbsp;Removed rules: " + scheduledTournament.format.separatedCustomRules.removedrules.join(", ");
-			}
+
+			if (scheduledTournament.format.customRules) html += "<br /><b>Custom rules:</b><br />" + Dex.getCustomRulesHtml(scheduledTournament.format);
 			this.sayHtml(html, tournamentRoom);
 		},
 		aliases: ['scheduledtour', 'officialtournament', 'officialtour', 'official'],
@@ -445,10 +438,103 @@ const commands: Dict<ICommandDefinition> = {
 				tournamentRoom = room;
 			}
 			const schedule = Tournaments.getTournamentScheduleHtml(tournamentRoom);
-			if (!schedule) return this.say("No tournament schedule found for " + tournamentRoom.id);
+			if (!schedule) return this.say("No tournament schedule found for " + tournamentRoom.title + ".");
 			this.sayCommand("!code " + schedule);
 		},
 		aliases: ['gettourschedule'],
+	},
+	queuetournament: {
+		command(target, room, user, cmd) {
+			if (this.isPm(room) || !Tournaments.canCreateTournaments(room, user)) return;
+			const database = Storage.getDatabase(room);
+			if (database.queuedTournament && !cmd.startsWith('force')) return this.say(Dex.getExistingFormat(database.queuedTournament.formatid, true).name + " is already queued for " + room.title + ".");
+			const targets: string[] = target ? target.split(target.indexOf('@@@') !== -1 ? "|" : ",") : [];
+			const id = Tools.toId(targets[0]);
+			let scheduled = false;
+			let format: IFormat | null = null;
+			if (id === 'scheduled' || id === 'official') {
+				if (!(room.id in Tournaments.schedules)) return this.say("There is no tournament schedule for this room.");
+				scheduled = true;
+				format = Tournaments.scheduledTournaments[room.id].format;
+			} else {
+				if (room.id in Tournaments.scheduledTournaments && Date.now() > Tournaments.scheduledTournaments[room.id].time) return this.say("The scheduled tournament is delayed so you must wait until after it starts.");
+				format = Dex.getFormat(targets[0]);
+			}
+			if (!format) return this.say("'" + targets[0].trim() + "' is not a valid format.");
+			if (!format.tournamentPlayable) return this.say(format.name + " cannot be played in tournaments.");
+			let playerCap: number;
+			if (scheduled) {
+				playerCap = Tournaments.maxPlayerCap;
+			} else if (targets.length > 1) {
+				playerCap = parseInt(targets[1]);
+				if (isNaN(playerCap) || playerCap < 2) return this.say("You must specify a valid number for the player cap.");
+				if (playerCap > Tournaments.maxPlayerCap) return this.say("You must specify a player cap less than " + Tournaments.maxPlayerCap + ".");
+			} else {
+				playerCap = Tournaments.defaultPlayerCap;
+			}
+
+			let time: number = 0;
+			if (scheduled) {
+				time = Tournaments.scheduledTournaments[room.id].time;
+			} else if (!room.tournament) {
+				const now = Date.now();
+				if (database.lastTournamentTime) {
+					if (database.lastTournamentTime + Tournaments.queuedTournamentTime < now) {
+						time = now + Tournaments.delayedScheduledTournamentTime;
+					} else {
+						time = database.lastTournamentTime + Tournaments.queuedTournamentTime;
+					}
+				} else {
+					database.lastTournamentTime = now;
+					time = now + Tournaments.queuedTournamentTime;
+				}
+			}
+
+			database.queuedTournament = {formatid: format.name + (format.customRules ? '@@@' + format.customRules.join(',') : ''), playerCap, scheduled, time};
+			if (scheduled) {
+				Tournaments.setScheduledTournamentTimer(room);
+			} else if (time) {
+				Tournaments.setTournamentTimer(room, time, format, playerCap);
+			}
+			this.run('queuedtournament', '');
+		},
+		aliases: ['forcequeuetournament', 'forcenexttournament', 'forcenexttour'],
+	},
+	queuedtournament: {
+		command(target, room, user) {
+			let tournamentRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.get(Tools.toId(target));
+				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+				if (!Config.allowTournaments.includes(targetRoom.id)) return this.say("Tournament features are not enabled for " + targetRoom.title + ".");
+				if (!this.canPmHtml(targetRoom)) return;
+				tournamentRoom = targetRoom;
+			} else {
+				if (!user.hasRank(room, '+')) return;
+				if (!Config.allowTournaments.includes(room.id)) return this.say("Tournament features are not enabled for this room.");
+				if (target) return this.run('queuetournament');
+				tournamentRoom = room;
+			}
+
+			const database = Storage.getDatabase(tournamentRoom);
+			if (!database.queuedTournament) return this.say("There is no tournament queued for " + (this.pm ? tournamentRoom.title : "this room") + ".");
+			const format = Dex.getExistingFormat(database.queuedTournament.formatid, true);
+			let html = "<b>Queued" + (this.pm ? " " + tournamentRoom.title : "") + " tournament</b>: " + format.name + (database.queuedTournament.scheduled ? " <i>(scheduled)</i>" : "") + "<br />";
+			if (database.queuedTournament.time) {
+				const now = Date.now();
+				if (now > database.queuedTournament.time) {
+					html += "<b>Delayed</b><br />";
+				} else {
+					html += "<b>Starting in</b>: " + Tools.toDurationString(database.queuedTournament.time - now) + "<br />";
+				}
+			} else if (tournamentRoom.tournament) {
+				html += "<b>Starting in</b>: " + Tools.toDurationString(Tournaments.queuedTournamentTime) + " after the " + tournamentRoom.tournament.name + " tournament ends<br />";
+			}
+
+			if (format.customRules) html += "<br /><b>Custom rules:</b><br />" + Dex.getCustomRulesHtml(format);
+			this.sayHtml(html, tournamentRoom);
+		},
+		aliases: ['queuedtour', 'nexttournament', 'nexttour'],
 	},
 
 	/**
@@ -550,7 +636,7 @@ const commands: Dict<ICommandDefinition> = {
 		aliases: ['lb', 'top'],
 	},
 	rank: {
-		command(target, room, user, cmd) {
+		command(target, room, user) {
 			if (!this.isPm(room)) return;
 			const targets: string[] = target ? target.split(',') : [];
 			const targetRoom = Rooms.get(Tools.toId(targets[0]));

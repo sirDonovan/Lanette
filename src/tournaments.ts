@@ -13,8 +13,8 @@ for (const i in schedules) {
 }
 
 export class Tournaments {
-	readonly createListeners: Dict<{format: IFormat, scheduled: boolean}> = {};
-	readonly defaultCap: number = 64;
+	createListeners: Dict<{format: IFormat, scheduled: boolean}> = {};
+	readonly defaultPlayerCap: number = 64;
 	readonly defaultCustomRules: Dict<Partial<ISeparatedCustomRules>> = {
 		tournaments: {
 			bans: ['Leppa Berry'],
@@ -23,12 +23,15 @@ export class Tournaments {
 			bans: ['Leppa Berry'],
 		},
 	};
-	readonly maxCap: number = 128;
+	readonly delayedScheduledTournamentTime: number = 15 * 1000;
+	readonly maxPlayerCap: number = 128;
+	queuedTournamentTime: number = 5 * 60 * 1000;
 	readonly schedules: typeof schedules = schedules;
 	scheduledTournaments: Dict<{format: IFormat, time: number}> = {};
 	tournamentTimers: Dict<NodeJS.Timer> = {};
 
 	onReload(previous: Tournaments) {
+		this.createListeners = previous.createListeners;
 		this.scheduledTournaments = previous.scheduledTournaments;
 		this.tournamentTimers = previous.tournamentTimers;
 
@@ -97,16 +100,22 @@ export class Tournaments {
 		}
 		const format = Dex.getExistingFormat(schedule.months[month][day], true);
 		this.scheduledTournaments[room.id] = {format, time: nextScheduledTime};
-		this.setTournamentTimer(room, nextScheduledTime - now, format, this.maxCap, true);
+		this.setScheduledTournamentTimer(room);
 	}
 
-	setTournamentTimer(room: Room, time: number, format: IFormat, cap: number, scheduled?: boolean) {
+	setScheduledTournamentTimer(room: Room) {
+		this.setTournamentTimer(room, this.scheduledTournaments[room.id].time, this.scheduledTournaments[room.id].format, this.maxPlayerCap, true);
+	}
+
+	setTournamentTimer(room: Room, startTime: number, format: IFormat, cap: number, scheduled?: boolean) {
+		let timer = startTime - Date.now();
+		if (timer < 0) timer = this.delayedScheduledTournamentTime;
 		if (room.id in this.tournamentTimers) clearTimeout(this.tournamentTimers[room.id]);
 		this.tournamentTimers[room.id] = setTimeout(() => {
 			this.createListeners[room.id] = {format, scheduled: scheduled || false};
 			room.sayCommand("/tour new " + format.id + ", elimination, " + cap);
 			delete this.tournamentTimers[room.id];
-		}, time);
+		}, timer);
 	}
 
 	getTournamentScheduleHtml(room: Room): string {

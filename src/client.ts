@@ -263,6 +263,8 @@ export class Client {
 							}
 							room.tournament.format = Tournaments.createListeners[room.id].format;
 							if (room.tournament.format.customRules) room.sayCommand("/tour rules " + room.tournament.format.customRules.join(","));
+							const database = Storage.getDatabase(room);
+							if (database.queuedTournament && room.tournament.format.id === Dex.getExistingFormat(database.queuedTournament.formatid, true).id) delete database.queuedTournament;
 							delete Tournaments.createListeners[room.id];
 						}
 						if (room.id in Config.tournamentRoomAdvertisements) {
@@ -285,6 +287,14 @@ export class Client {
 						Object.assign(room.tournament.updates, messageArguments.json);
 						room.tournament.update();
 						room.tournament.end();
+					}
+					const database = Storage.getDatabase(room);
+					const now = Date.now();
+					database.lastTournamentTime = now;
+					if ((room.id in Tournaments.scheduledTournaments && Tournaments.scheduledTournaments[room.id].time < now) || !database.queuedTournament) {
+						Tournaments.setScheduledTournamentTimer(room);
+					} else {
+						Tournaments.setTournamentTimer(room, now + Tournaments.queuedTournamentTime, Dex.getExistingFormat(database.queuedTournament.formatid, true), database.queuedTournament.playerCap);
 					}
 					break;
 				}

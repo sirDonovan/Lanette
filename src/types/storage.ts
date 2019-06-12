@@ -7,5 +7,7 @@ interface ILeaderboardEntry {
 }
 
 export interface IDatabase {
+	lastTournamentTime?: number;
 	leaderboard?: Dict<ILeaderboardEntry>;
+	queuedTournament?: {formatid: string, playerCap: number, scheduled: boolean, time: number};
 }
