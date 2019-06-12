@@ -719,6 +719,20 @@ const commands: Dict<ICommandDefinition> = {
 		},
 		aliases: ['points', 'bits'],
 	},
+	transferdata: {
+		command(target, room, user) {
+			if (!this.isPm(room)) return;
+			const targets: string[] = target ? target.split(",") : [];
+			const targetRoom = Rooms.get(Tools.toId(targets[0]));
+			if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+			if (!user.isDeveloper() && user.rooms.get(targetRoom) !== '#') return;
+			const source = targets[1].trim();
+			const destination = targets[2].trim();
+			if (!Storage.transferData(targetRoom.id, source, destination)) return;
+			this.say("Data from " + source + " in " + targetRoom.title + " has been successfully transferred to " + destination + ".");
+			targetRoom.sayCommand("/modnote " + user.name + " transferred data from " + source + " to " + destination + ".");
+		},
+	},
 };
 
 export = commands;

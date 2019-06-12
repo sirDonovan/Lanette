@@ -60,6 +60,16 @@ export class Storage {
 		}
 	}
 
+	createLeaderboardEntry(database: IDatabase, name: string, id: string) {
+		database.leaderboard![id] = {
+			annual: 0,
+			annualSources: {},
+			current: 0,
+			name,
+			sources: {},
+		};
+	}
+
 	addPoints(room: Room, name: string, amount: number, source: string): void {
 		if (!amount) return;
 		if (amount < 0) return this.removePoints(room, name, amount * -1, source);
@@ -71,13 +81,7 @@ export class Storage {
 		source = Tools.toId(source);
 		if (!source) return;
 		if (!(id in database.leaderboard)) {
-			database.leaderboard[id] = {
-				annual: 0,
-				annualSources: {},
-				current: 0,
-				name,
-				sources: {},
-			};
+			this.createLeaderboardEntry(database, name, id);
 		} else {
 			database.leaderboard[id].name = name;
 		}
@@ -103,6 +107,36 @@ export class Storage {
 			database.leaderboard[id].sources[source] -= amount;
 			if (database.leaderboard[id].sources[source] <= 0) delete database.leaderboard[id].sources[source];
 		}
+	}
+
+	transferData(roomId: string, source: string, destination: string): boolean {
+		if (!(roomId in this.databases)) return false;
+		const sourceId = Tools.toId(source);
+		const destinationId = Tools.toId(destination);
+		if (!sourceId || !destinationId || sourceId === destinationId) return false;
+		const database = this.databases[roomId];
+		if (database.leaderboard && sourceId in database.leaderboard) {
+			if (!(destinationId in database.leaderboard)) this.createLeaderboardEntry(database, destination, destinationId);
+			for (const source in database.leaderboard[sourceId].sources) {
+				if (source in database.leaderboard[destinationId].sources) {
+					database.leaderboard[destinationId].sources[source] += database.leaderboard[sourceId].sources[source];
+				} else {
+					database.leaderboard[destinationId].sources[source] = database.leaderboard[sourceId].sources[source];
+				}
+			}
+			for (const source in database.leaderboard[sourceId].annualSources) {
+				if (source in database.leaderboard[destinationId].annualSources) {
+					database.leaderboard[destinationId].annualSources[source] += database.leaderboard[sourceId].annualSources[source];
+				} else {
+					database.leaderboard[destinationId].annualSources[source] = database.leaderboard[sourceId].annualSources[source];
+				}
+			}
+			database.leaderboard[destinationId].current += database.leaderboard[sourceId].current;
+			database.leaderboard[destinationId].annual += database.leaderboard[sourceId].annual;
+		}
+
+		if (roomId + 'hosting' in this.databases) this.transferData(roomId + 'hosting', source, destination);
+		return true;
 	}
 
 	logChatMessage(room: Room, time: number, messageType: string, message: string) {
