@@ -61,6 +61,8 @@ typings/
 .next
 
 # Lanette files
+archived-databases/*
+!archived-databases/README.md
 built/
 data/pokedex-mini.js
 databases/*

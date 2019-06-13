@@ -1,10 +1,13 @@
 {
 	"typescript.tsdk": "node_modules/typescript/lib",
 	"search.exclude": {
+		"**/archived-databases": true,
 		"**/built": true,
 		"**/data": true,
+		"**/databases": true,
 		"**/node_modules": true,
 		"**/Pokemon-Showdown": true,
+		"**/roomlogs": true,
 		"**/design.txt": true,
 	}
 }

@@ -4,6 +4,7 @@ import { Room } from './rooms';
 import { rootFolder } from './tools';
 import { IDatabase } from './types/storage';
 
+const archivedDatabasesDir = path.join(rootFolder, 'archived-databases');
 const databasesDir = path.join(rootFolder, 'databases');
 
 export class Storage {
@@ -37,8 +38,18 @@ export class Storage {
 	}
 
 	exportDatabase(roomid: string) {
-		if (!(roomid in this.databaseCache) || roomid.startsWith('battle-') || roomid.startsWith('groupchat-')) return;
-		fs.writeFileSync(path.join(databasesDir, roomid + '.json'), JSON.stringify(this.databaseCache[roomid]));
+		if (!(roomid in this.databases) || roomid.startsWith('battle-') || roomid.startsWith('groupchat-')) return;
+		fs.writeFileSync(path.join(databasesDir, roomid + '.json'), JSON.stringify(this.databases[roomid]));
+	}
+
+	archiveDatabase(roomid: string) {
+		if (!(roomid in this.databases) || roomid.startsWith('battle-') || roomid.startsWith('groupchat-')) return;
+		const date = new Date();
+		const year = date.getFullYear();
+		const month = date.getMonth() + 1;
+		const day = date.getDate();
+		const filename = roomid + '-' + year + '-' + (month < 10 ? '0' : '') + month + '-' + (day < 10 ? '0' : '') + day + '-at-' + Tools.toTimestampString(date).split(' ')[1].split(':').join('-');
+		fs.writeFileSync(path.join(archivedDatabasesDir, filename + '.json'), JSON.stringify(this.databases[roomid]));
 	}
 
 	importDatabases() {
@@ -55,9 +66,43 @@ export class Storage {
 	}
 
 	exportDatabases() {
-		for (const i in this.databaseCache) {
+		for (const i in this.databases) {
 			this.exportDatabase(i);
 		}
+	}
+
+	clearLeaderboard(roomid: string): boolean {
+		if (!(roomid in this.databases) || !this.databases[roomid].leaderboard) return false;
+		this.archiveDatabase(roomid);
+		const date = new Date();
+		const month = date.getMonth() + 1;
+		const day = date.getDate();
+		const clearAnnual = (month === 12 && day === 31) || (month === 1 && day === 1);
+		for (const i in this.databases[roomid].leaderboard) {
+			const user = this.databases[roomid].leaderboard![i];
+			if (clearAnnual) {
+				user.annual = 0;
+			} else {
+				user.annual += user.current;
+			}
+			user.current = 0;
+
+			if (clearAnnual) {
+				user.annualSources = {};
+			} else {
+				for (const source in user.sources) {
+					if (source in user.annualSources) {
+						user.annualSources[source] += user.sources[source];
+					} else {
+						user.annualSources[source] = user.sources[source];
+					}
+				}
+			}
+			user.sources = {};
+		}
+		if (roomid + 'hosting' in this.databases) this.clearLeaderboard(roomid + 'hosting');
+		this.exportDatabase(roomid);
+		return true;
 	}
 
 	createLeaderboardEntry(database: IDatabase, name: string, id: string) {
@@ -109,12 +154,12 @@ export class Storage {
 		}
 	}
 
-	transferData(roomId: string, source: string, destination: string): boolean {
-		if (!(roomId in this.databases)) return false;
+	transferData(roomid: string, source: string, destination: string): boolean {
+		if (!(roomid in this.databases)) return false;
 		const sourceId = Tools.toId(source);
 		const destinationId = Tools.toId(destination);
 		if (!sourceId || !destinationId || sourceId === destinationId) return false;
-		const database = this.databases[roomId];
+		const database = this.databases[roomid];
 		if (database.leaderboard && sourceId in database.leaderboard) {
 			if (!(destinationId in database.leaderboard)) this.createLeaderboardEntry(database, destination, destinationId);
 			for (const source in database.leaderboard[sourceId].sources) {
@@ -135,7 +180,7 @@ export class Storage {
 			database.leaderboard[destinationId].annual += database.leaderboard[sourceId].annual;
 		}
 
-		if (roomId + 'hosting' in this.databases) this.transferData(roomId + 'hosting', source, destination);
+		if (roomid + 'hosting' in this.databases) this.transferData(roomid + 'hosting', source, destination);
 		return true;
 	}
 

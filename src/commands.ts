@@ -719,6 +719,14 @@ const commands: Dict<ICommandDefinition> = {
 		},
 		aliases: ['points', 'bits'],
 	},
+	clearleaderboard: {
+		command(target, room, user) {
+			if (this.isPm(room) || !user.hasRank(room, 'roomowner')) return;
+			if (!Storage.clearLeaderboard(room.id)) return;
+			this.say("The leaderboard was cleared.");
+		},
+		aliases: ['resetleaderboard'],
+	},
 	transferdata: {
 		command(target, room, user) {
 			if (!this.isPm(room)) return;
