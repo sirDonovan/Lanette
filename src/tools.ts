@@ -189,7 +189,7 @@ export class Tools {
 	isNumber(text: string): boolean {
 		text = text.trim();
 		if (text.charAt(0) === '-') text = text.substr(1);
-		return NUMBER_REGEX.test(text);
+		return !!text.match(NUMBER_REGEX);
 	}
 
 	deepClone<T>(obj: T): T extends IAbility ? IAbilityCopy : T extends IItem ? IItemCopy : T extends IMove ? IMoveCopy : T extends IPokemon ? IPokemonCopy : T {

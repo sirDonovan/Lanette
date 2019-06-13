@@ -798,7 +798,7 @@ export class Client {
 
 		if (this.filterRegularExpressions) {
 			for (let i = 0; i < this.filterRegularExpressions.length; i++) {
-				if (this.filterRegularExpressions[i].test(message)) return true;
+				if (!!message.match(this.filterRegularExpressions[i])) return true;
 			}
 		}
 
