@@ -365,7 +365,7 @@ export class Games {
 	}
 
 	canCreateGame(room: Room, user: User): boolean {
-		if (!user.hasRank(room, '+') || room.game || room.userHostedGame) return false;
+		if (!user.hasRank(room, 'voice') || room.game || room.userHostedGame) return false;
 		if (!Config.allowScriptedGames.includes(room.id)) {
 			room.say("Scripted games are not enabled for this room.");
 			return false;

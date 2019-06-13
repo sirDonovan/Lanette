@@ -42,7 +42,7 @@ export class Tournaments {
 	}
 
 	canCreateTournaments(room: Room, user: User): boolean {
-		if (!user.hasRank(room, '%')) return false;
+		if (!user.hasRank(room, 'driver')) return false;
 		if (!Config.allowTournaments.includes(room.id)) {
 			room.say("Tournament features are not enabled for this room.");
 			return false;

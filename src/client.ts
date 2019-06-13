@@ -72,8 +72,6 @@ const DEFAULT_SERVER_GROUPS: ServerGroupData[] = [
 	},
 ];
 
-let lockedSymbol: string = '';
-
 export class Client {
 	botRank: string = '*';
 	challstr: string = '';
@@ -84,6 +82,7 @@ export class Client {
 	filterPhrases: string[] | null = null;
 	filterRegularExpressions: RegExp[] | null = null;
 	globalStaffGroups: string[] = [];
+	groupSymbols: Dict<string> = {};
 	loggedIn: boolean = false;
 	loginTimeout: NodeJS.Timer | null = null;
 	reconnectTime: number = Config.reconnectTime || 60 * 1000;
@@ -116,6 +115,7 @@ export class Client {
 		this.filterPhrases = previous.filterPhrases;
 		this.filterRegularExpressions = previous.filterRegularExpressions;
 		this.globalStaffGroups = previous.globalStaffGroups;
+		this.groupSymbols = previous.groupSymbols;
 		this.loggedIn = previous.loggedIn;
 		this.sendQueue = previous.sendQueue;
 		this.sendTimeout = previous.sendTimeout;
@@ -637,7 +637,7 @@ export class Client {
 						delete recipient.messageListeners[id];
 					}
 				}
-			} else if (messageArguments.rank !== lockedSymbol) {
+			} else if (messageArguments.rank !== this.groupSymbols.locked) {
 				CommandParser.parse(user, user, messageArguments.message);
 			}
 		}
@@ -773,9 +773,14 @@ export class Client {
 			this.serverGroups[groups[i].symbol] = Object.assign({ranking}, groups[i]);
 			if (groups[i].name === 'Bot') this.botRank = groups[i].symbol;
 			if (groups[i].type === 'leadership' || groups[i].type === 'staff') {
+				if (groups[i].name === 'Room Owner' || groups[i].name === 'Moderator' || groups[i].name === 'Driver') {
+					this.groupSymbols[Tools.toId(groups[i].name!)] = groups[i].symbol;
+				}
 				this.globalStaffGroups.push(groups[i].symbol);
+			} else if (groups[i].type === 'normal' && groups[i].name === 'Voice') {
+				this.groupSymbols.voice = groups[i].symbol;
 			} else if (groups[i].type === 'punishment' && groups[i].name === 'Locked') {
-				lockedSymbol = groups[i].symbol;
+				this.groupSymbols.locked = groups[i].symbol;
 			}
 			ranking--;
 		}
