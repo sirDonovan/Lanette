@@ -554,8 +554,7 @@ const commands: Dict<ICommandDefinition> = {
 			}
 			const database = Storage.getDatabase(leaderboardRoom);
 			if (!database.leaderboard) return this.say("There is no leaderboard for the " + leaderboardRoom.title + " room.");
-			const users = Object.keys(database.leaderboard);
-			if (!users.length) return this.say("The " + leaderboardRoom.title + " leaderboard is empty.");
+			let users = Object.keys(database.leaderboard);
 			let startPosition = 0;
 			let source: IFormat | IGameFormat | undefined;
 			let annual = false;
@@ -609,7 +608,9 @@ const commands: Dict<ICommandDefinition> = {
 					pointsCache[users[i]] = database.leaderboard[users[i]].current;
 				}
 			}
-			users.sort((a, b) => pointsCache[b] - pointsCache[a]);
+
+			users = users.filter(x => pointsCache[x] !== 0).sort((a, b) => pointsCache[b] - pointsCache[a]);
+			if (!users.length) return this.say("The " + leaderboardRoom.title + " leaderboard is empty.");
 
 			const output: string[] = [];
 			let positions = 0;
@@ -689,16 +690,16 @@ const commands: Dict<ICommandDefinition> = {
 					currentPointsCache[users[i]] = database.leaderboard[users[i]].current;
 				}
 			}
-			const current = users.slice().sort((a, b) => currentPointsCache[b] - currentPointsCache[a]);
-			const annual = users.slice().sort((a, b) => annualPointsCache[b] - annualPointsCache[a]);
+			const current = users.filter(x => currentPointsCache[x] !== 0).sort((a, b) => currentPointsCache[b] - currentPointsCache[a]);
+			const annual = users.filter(x => annualPointsCache[x] !== 0).sort((a, b) => annualPointsCache[b] - annualPointsCache[a]);
 
 			const results: string[] = [];
 			if (position) {
 				const index = position - 1;
-				if (current.length <= position) {
+				if (current[index]) {
 					results.push("#" + position + " on the " + targetRoom.title + " " + (source ? source.name + " " : "") + "leaderboard is " + database.leaderboard[current[index]].name + " with " + (currentPointsCache[current[index]] || database.leaderboard[current[index]].current) + " " + (bits ? "bits" : "points") + ".");
 				}
-				if (annual.length <= position) {
+				if (annual[index]) {
 					results.push("#" + position + " on the annual " + targetRoom.title + " " + (source ? source.name + " " : "") + "leaderboard is " + database.leaderboard[annual[index]].name + " with " + annualPointsCache[annual[index]] + " " + (bits ? "bits" : "points") + ".");
 				}
 				if (!results.length) return this.say("No one is #" + position + " on the " + targetRoom.title + " " + (source ? source.name + " " : "") + "leaderboard.");
@@ -713,7 +714,7 @@ const commands: Dict<ICommandDefinition> = {
 				if (annualIndex !== -1) {
 					results.push((self ? "You are" : database.leaderboard[targetUser].name + " is") + " #" + (annualIndex + 1) + " on the annual " + targetRoom.title + " " + (source ? source.name + " " : "") + "leaderboard with " + annualPointsCache[targetUser] + " " + (bits ? "bits" : "points") + ".");
 				}
-				if (!results.length) return this.say((self ? "You are" : database.leaderboard[targetUser].name + " is") + " not on the " + targetRoom.title + " " + (source ? source.name + " " : "") + "leaderboard.");
+				if (!results.length) return this.say((self ? "You are" : database.leaderboard[targetUser] ? database.leaderboard[targetUser].name : targetUser + " is") + " not on the " + targetRoom.title + " " + (source ? source.name + " " : "") + "leaderboard.");
 			}
 			this.say(results.join(" "));
 		},
