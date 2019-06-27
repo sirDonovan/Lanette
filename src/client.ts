@@ -627,17 +627,43 @@ export class Client {
 				recipient: messageParts[1].substr(1),
 				message: messageParts.slice(2).join("|"),
 			};
+			const isHtml = messageArguments.message.startsWith("/raw") || messageArguments.message.startsWith("/html");
+			const isUthml = !isHtml && messageArguments.message.startsWith("/uthml");
 			const user = Users.add(messageArguments.username);
 			if (user === Users.self) {
 				const recipient = Users.add(messageArguments.recipient);
-				if (recipient.messageListeners) {
-					const id = Tools.toId(messageArguments.message);
-					if (id in recipient.messageListeners) {
-						recipient.messageListeners[id]();
-						delete recipient.messageListeners[id];
+				if (isUthml) {
+					if (recipient.uhtmlMessageListeners) {
+						const uhtml = messageArguments.message.substr(messageArguments.message.indexOf(" ") + 1);
+						const pipeIndex = uhtml.indexOf("|");
+						const id = Tools.toId(uhtml.substr(0, pipeIndex));
+						const html = uhtml.substr(pipeIndex + 1);
+						if (id in recipient.uhtmlMessageListeners) {
+							const htmlId = Tools.toId(html);
+							if (htmlId in recipient.uhtmlMessageListeners[id]) {
+								recipient.uhtmlMessageListeners[id][htmlId]();
+								delete recipient.uhtmlMessageListeners[id][htmlId];
+							}
+						}
+					}
+				} else if (isHtml) {
+					if (recipient.htmlMessageListeners) {
+						const htmlId = Tools.toId(messageArguments.message.substr(messageArguments.message.indexOf(" ") + 1));
+						if (htmlId in recipient.htmlMessageListeners) {
+							recipient.htmlMessageListeners[htmlId]();
+							delete recipient.htmlMessageListeners[htmlId];
+						}
+					}
+				} else {
+					if (recipient.messageListeners) {
+						const id = Tools.toId(messageArguments.message);
+						if (id in recipient.messageListeners) {
+							recipient.messageListeners[id]();
+							delete recipient.messageListeners[id];
+						}
 					}
 				}
-			} else if (messageArguments.rank !== this.groupSymbols.locked) {
+			} else if (!isHtml && !isUthml && messageArguments.rank !== this.groupSymbols.locked) {
 				CommandParser.parse(user, user, messageArguments.message);
 			}
 		}
@@ -659,10 +685,17 @@ export class Client {
 			break;
 		}
 
-		case 'raw': {
-			const messageArguments: IClientMessageTypes['raw'] = {
+		case 'raw':
+		case 'html': {
+			const messageArguments: IClientMessageTypes['html'] = {
 				html: messageParts.join("|"),
 			};
+			const htmlId = Tools.toId(messageArguments.html);
+			if (htmlId in room.htmlMessageListeners) {
+				room.htmlMessageListeners[htmlId]();
+				delete room.htmlMessageListeners[htmlId];
+			}
+
 			if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
 				room.modchat = messageArguments.html.split('<div class="broadcast-red"><strong>Moderated chat was set to ')[1].split('!</strong>')[0];
 			} else if (messageArguments.html.startsWith('<div class="broadcast-blue"><strong>Moderated chat was disabled!</strong>')) {
@@ -739,6 +772,23 @@ export class Client {
 				}
 				this.filterPhrases = filterPhrases;
 				this.filterRegularExpressions = filterRegularExpressions;
+			}
+			break;
+		}
+
+		case 'uhtmlchange':
+		case 'uhtml': {
+			const messageArguments: IClientMessageTypes['uhtml'] = {
+				name: messageParts[0],
+				html: messageParts.slice(1).join("|"),
+			};
+			const id = Tools.toId(messageArguments.name);
+			if (id in room.uhtmlMessageListeners) {
+				const htmlId = Tools.toId(messageArguments.html);
+				if (htmlId in room.uhtmlMessageListeners[id]) {
+					room.uhtmlMessageListeners[id][htmlId]();
+					delete room.uhtmlMessageListeners[id][htmlId];
+				}
 			}
 			break;
 		}

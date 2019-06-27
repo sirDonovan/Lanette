@@ -12,7 +12,9 @@ export class User {
 	id: string;
 	name: string;
 
+	htmlMessageListeners?: Dict<() => void>;
 	messageListeners?: Dict<() => void>;
+	uhtmlMessageListeners?: Dict<Dict<() => void>>;
 
 	constructor(name: string, id: string) {
 		this.name = name;
@@ -41,6 +43,18 @@ export class User {
 	on(message: string, listener: () => void) {
 		if (!this.messageListeners) this.messageListeners = {};
 		this.messageListeners[Tools.toId(Tools.prepareMessage(message))] = listener;
+	}
+
+	onHtml(html: string, listener: () => void) {
+		if (!this.htmlMessageListeners) this.htmlMessageListeners = {};
+		this.htmlMessageListeners[Tools.toId(html)] = listener;
+	}
+
+	onUhtml(name: string, html: string, listener: () => void) {
+		const id = Tools.toId(name);
+		if (!this.uhtmlMessageListeners) this.uhtmlMessageListeners = {};
+		if (!this.uhtmlMessageListeners[id]) this.uhtmlMessageListeners[id] = {};
+		this.uhtmlMessageListeners[id][Tools.toId(html)] = listener;
 	}
 }
 

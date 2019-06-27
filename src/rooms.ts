@@ -10,10 +10,12 @@ export type RoomType = 'battle' | 'chat' | 'html';
 export class Room {
 	bannedWords: string[] | null = null;
 	game: Game | null = null;
+	readonly htmlMessageListeners: Dict<() => void> = {};
 	readonly messageListeners: Dict<() => void> = {};
 	modchat: string = 'off';
 	tournament: Tournament | null = null;
 	userHostedGame: UserHosted | null = null;
+	readonly uhtmlMessageListeners: Dict<Dict<() => void>> = {};
 	readonly users = new Set<User>();
 
 	readonly id: string;
@@ -85,6 +87,16 @@ export class Room {
 
 	on(message: string, listener: () => void) {
 		this.messageListeners[Tools.toId(Tools.prepareMessage(message))] = listener;
+	}
+
+	onHtml(html: string, listener: () => void) {
+		this.htmlMessageListeners[Tools.toId(html)] = listener;
+	}
+
+	onUhtml(name: string, html: string, listener: () => void) {
+		const id = Tools.toId(name);
+		if (!this.uhtmlMessageListeners[id]) this.uhtmlMessageListeners[id] = {};
+		this.uhtmlMessageListeners[id][Tools.toId(html)] = listener;
 	}
 }
 

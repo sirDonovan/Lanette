@@ -150,6 +150,16 @@ export abstract class Activity {
 		this.room.on(message, listener);
 	}
 
+	onHtml(html: string, listener: () => any) {
+		this.room.onHtml(html, listener);
+	}
+
+	onUhtml(html: string, listener: () => any, id?: string) {
+		let uhtmlId = this.uhtmlId || this.id;
+		if (id) uhtmlId += '-' + id;
+		this.room.onUhtml(uhtmlId, html, listener);
+	}
+
 	getRemainingPlayers(): Dict<Player> {
 		const remainingPlayers: Dict<Player> = {};
 		for (const i in this.players) {

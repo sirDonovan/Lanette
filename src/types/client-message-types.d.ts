@@ -151,18 +151,19 @@ export interface IClientMessageTypes {
 	};
 
 	/**
-	 * Raw message
+	 * Plaintext message
 	 */
 	'': {
 		readonly message: string,
 	};
 
 	/**
-	 * Raw HTML
+	 * HTML message
 	 */
-	raw: {
+	html: {
 		readonly html: string,
 	};
+	raw: IClientMessageTypes['html'];
 
 	/**
 	 * Page HTML
@@ -170,6 +171,15 @@ export interface IClientMessageTypes {
 	pagehtml: {
 		readonly html: string,
 	};
+
+	/**
+	 * Name|HTML message
+	 */
+	uhtml: {
+		readonly name: string,
+		readonly html: string,
+	};
+	uhtmlchange: IClientMessageTypes['uhtml'];
 }
 
 export interface ITournamentMessageTypes {
