@@ -52,7 +52,7 @@ class Survival {
 				return;
 			}
 			this.survivalRound++;
-			this.say("/wall Round " + this.survivalRound + (this.survivalRound > 1 ? " | Remaining players: " + this.getPlayerNames() : ""));
+			this.sayUhtml(this.getRoundHtml(this.getPlayerNames, "Round " + this.survivalRound), this.uhtmlBaseName + '-round-html');
 			this.playerList = this.shufflePlayers();
 			if (this.roundTime > 1000) this.roundTime -= 500;
 		}
@@ -100,11 +100,11 @@ class Survival {
 			if (player.eliminated) {
 				const round = this.playerRounds.get(player);
 				if (!round) continue;
-				// this.addBits(round * 10, player);
+				this.addBits(player, round * 10);
 				continue;
 			}
 			this.winners.set(player, 1);
-			// this.addBits(500, player);
+			this.addBits(player, 500);
 		}
 	}
 }

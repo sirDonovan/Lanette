@@ -5,7 +5,7 @@ import { IGameFile } from "../types/games";
 import { commands as templateCommands, IPlayingCard, PlayingCard } from './templates/playing-card';
 
 class MurkrowsBlackjack extends PlayingCard {
-	blackjackGame: number = 0;
+	subGameNumber: number = 0;
 	readonly blackJackpots = new Map<Player, number>();
 	canHit: boolean = false;
 	canWager: boolean = true;
@@ -49,9 +49,9 @@ class MurkrowsBlackjack extends PlayingCard {
 
 	startBlackjackGame() {
 		if (this.timeout) clearTimeout(this.timeout);
-		this.blackjackGame++;
+		this.subGameNumber++;
 		this.round = 0;
-		if (this.blackjackGame > 1) {
+		if (this.subGameNumber > 1) {
 			this.playerCards.clear();
 			this.playerTotals.clear();
 		}
@@ -76,7 +76,7 @@ class MurkrowsBlackjack extends PlayingCard {
 			}
 			this.dealersHand = total;
 		}
-		this.say("Dealing " + (this.blackjackGame > 1 ? "new " : "") + "cards in PMs!");
+		this.say("Dealing " + (this.subGameNumber > 1 ? "new " : "") + "cards in PMs!");
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			this.dealCards(this.players[i]);
@@ -89,7 +89,7 @@ class MurkrowsBlackjack extends PlayingCard {
 		for (const i in this.players) {
 			this.players[i].frozen = false;
 		}
-		if (!this.getRemainingPlayerCount() || this.blackjackGame >= this.maxBlackjackGames) return this.end();
+		if (!this.getRemainingPlayerCount() || this.subGameNumber >= this.maxBlackjackGames) return this.end();
 		this.startBlackjackGame();
 	}
 
@@ -120,12 +120,13 @@ class MurkrowsBlackjack extends PlayingCard {
 			return;
 		}
 		this.roundActions.clear();
-		const text = "``[Game " + this.blackjackGame + "]`` **Round " + this.round + "**! | Remaining players: " + this.getPlayerNames();
-		this.on(text, () => {
+		const html = this.getRoundHtml(this.getPlayerWins);
+		const uhtmlName = this.uhtmlBaseName + '-round-html';
+		this.onUhtml(html, uhtmlName, () => {
 			this.canHit = true;
 			this.timeout = setTimeout(() => this.nextRound(), 15 * 1000);
 		});
-		this.say(text);
+		this.sayUhtml(html, uhtmlName);
 	}
 
 	endBlackjackGame() {
@@ -153,11 +154,11 @@ class MurkrowsBlackjack extends PlayingCard {
 					this.blackJackpots.set(blackjacks[i], previousBlackJackpots + blackJackpot);
 				}
 			}
-			this.say("**Game " + this.blackjackGame + " winner" + (gameWinners.length > 1 ? "s" : "") + "**: " + gameWinners.join(", ") + (blackjacks.length ? " | **BlackJackpot winner" + (blackjacks.length > 1 ? "s" : "") + "**: " + this.getPlayerNames(blackjacks) : ""));
+			this.say("**Game " + this.subGameNumber + " winner" + (gameWinners.length > 1 ? "s" : "") + "**: " + gameWinners.join(", ") + (blackjacks.length ? " | **BlackJackpot winner" + (blackjacks.length > 1 ? "s" : "") + "**: " + this.getPlayerNames(blackjacks).join(", ") : ""));
 		} else if (this.dealersHand > 21) {
-			this.say("No one wins Game " + this.blackjackGame + "!");
+			this.say("No one wins Game " + this.subGameNumber + "!");
 		} else {
-			this.say("Murkrow wins Game " + this.blackjackGame + "!");
+			this.say("Murkrow wins Game " + this.subGameNumber + "!");
 		}
 
 		this.timeout = setTimeout(() => this.nextBlackJackGame(), 5 * 1000);

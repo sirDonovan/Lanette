@@ -71,6 +71,7 @@ export class Game extends Activity {
 	mascot?: IPokemonCopy;
 	readonly points?: Map<Player, number>;
 	shinyMascot?: boolean;
+	subGameNumber?: number;
 	readonly variant?: string;
 
 	isUserHosted(room: Room | User): room is Room {
@@ -190,6 +191,22 @@ export class Game extends Activity {
 		if (this.timeout) clearTimeout(this.timeout);
 		this.round++;
 		if (this.onNextRound) this.onNextRound();
+	}
+
+	getRoundHtml(getAttributes: (players: Dict<Player>) => string[], roundText?: string): string {
+		let html = '<div class="infobox">';
+		if (this.mascot) {
+			html += Dex.getPokemonIcon(this.mascot);
+		}
+		html += this.name;
+		if (this.subGameNumber) html += " - Game " + this.subGameNumber;
+		html += " - " + (roundText || "Round " + this.round);
+
+		const remainingPlayers = this.getRemainingPlayers();
+		html += "<br />" + (!this.options.freejoin ? "Remaining players" : "Players") + " (" + this.getRemainingPlayerCount(remainingPlayers) + "): " + getAttributes.call(this, remainingPlayers).join(", ");
+		html += "</div>";
+
+		return html;
 	}
 
 	end() {
