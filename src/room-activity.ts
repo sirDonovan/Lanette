@@ -155,7 +155,7 @@ export abstract class Activity {
 		return Object.keys(this.getRemainingPlayers()).length;
 	}
 
-	getPlayerNames(players?: Dict<Player> | Player[] | Map<Player, any>): string {
+	getPlayerAttributes(attribute: (player: Player) => string, players?: Dict<Player> | Player[] | Map<Player, any>): string[] {
 		if (!players) {
 			if (this.started) {
 				players = this.getRemainingPlayers();
@@ -163,21 +163,27 @@ export abstract class Activity {
 				players = this.players;
 			}
 		}
-		const names: string[] = [];
+
+		const list: string[] = [];
 		if (Array.isArray(players)) {
 			for (let i = 0; i < players.length; i++) {
-				names.push(players[i].name);
+				list.push(attribute(players[i]));
 			}
 		} else if (players instanceof Map) {
 			players.forEach((value, player) => {
-				names.push(player.name);
+				list.push(attribute(player));
 			});
 		} else {
 			for (const i in players) {
-				names.push(players[i].name);
+				list.push(attribute(players[i]));
 			}
 		}
-		return names.join(", ");
+
+		return list;
+	}
+
+	getPlayerNames(players?: Dict<Player> | Player[] | Map<Player, any>): string[] {
+		return this.getPlayerAttributes(player => player.name, players);
 	}
 
 	abstract deallocate(): void;
