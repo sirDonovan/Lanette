@@ -13,9 +13,11 @@ export class Room {
 	readonly htmlMessageListeners: Dict<() => void> = {};
 	readonly messageListeners: Dict<() => void> = {};
 	modchat: string = 'off';
+	pmUhtmlNames: Dict<string[]> = {};
 	tournament: Tournament | null = null;
 	userHostedGame: UserHosted | null = null;
 	readonly uhtmlMessageListeners: Dict<Dict<() => void>> = {};
+	uhtmlNames: string[] = [];
 	readonly users = new Set<User>();
 
 	readonly id: string;
@@ -65,24 +67,32 @@ export class Room {
 		this.say("/addhtmlbox " + html, true);
 	}
 
-	sayUhtml(uhtmlId: string, html: string) {
-		this.say("/adduhtml " + uhtmlId + ", " + html, true);
+	sayUhtml(uhtmlName: string, html: string) {
+		if (this.uhtmlNames.includes(uhtmlName)) return this.sayUhtmlChange(uhtmlName, html);
+		this.uhtmlNames.push(uhtmlName);
+		this.say("/adduhtml " + uhtmlName + ", " + html, true);
 	}
 
-	sayUhtmlChange(uhtmlId: string, html: string) {
-		this.say("/changeuhtml " + uhtmlId + ", " + html, true);
+	sayUhtmlChange(uhtmlName: string, html: string) {
+		this.say("/changeuhtml " + uhtmlName + ", " + html, true);
 	}
 
 	pmHtml(user: User | Player, html: string) {
 		this.say("/pminfobox " + user.id + "," + html, true);
 	}
 
-	pmUhtml(user: User | Player, id: string, html: string) {
-		this.say("/pmuhtml " + user.id + "," + id + "," + html, true);
+	pmUhtml(user: User | Player, uhtmlName: string, html: string) {
+		if (user.id in this.pmUhtmlNames) {
+			if (this.pmUhtmlNames[user.id].includes(uhtmlName)) return this.pmUhtmlChange(user, uhtmlName, html);
+		} else {
+			this.pmUhtmlNames[user.id] = [];
+		}
+		this.pmUhtmlNames[user.id].push(uhtmlName);
+		this.say("/pmuhtml " + user.id + "," + uhtmlName + "," + html, true);
 	}
 
-	pmUhtmlChange(user: User | Player, id: string, html: string) {
-		this.say("/pmuhtmlchange " + user.id + "," + id + "," + html, true);
+	pmUhtmlChange(user: User | Player, uhtmlName: string, html: string) {
+		this.say("/pmuhtmlchange " + user.id + "," + uhtmlName + "," + html, true);
 	}
 
 	on(message: string, listener: () => void) {
