@@ -87,7 +87,7 @@ export abstract class Activity {
 	}
 
 	renamePlayer(user: User, oldId: string) {
-		if (!(oldId in this.players) || (user.id in this.players && this.players[user.id].id !== user.id)) return;
+		if (!(oldId in this.players) || (user.id in this.players && oldId !== user.id)) return;
 		const player = this.players[oldId];
 		player.name = user.name;
 		if (player.id === user.id) return;
