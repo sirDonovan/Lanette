@@ -1,5 +1,7 @@
+import fs = require('fs');
 import https = require('https');
 import path = require('path');
+import { URL } from 'url';
 import { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/in-game-data-types';
 
 const MAX_MESSAGE_LENGTH = 300;
@@ -233,5 +235,21 @@ export class Tools {
 
 			request.on('error', () => reject());
 		});
+	}
+
+	async safeWriteFile(filepath: string, data: string, callback?: () => void) {
+		const tempFilepath = '.~' + filepath;
+		// tslint:disable-next-line no-empty
+		await fs.writeFile(tempFilepath, data, () => {});
+		// tslint:disable-next-line no-empty
+		await fs.rename(tempFilepath, filepath, () => {});
+		if (callback) callback();
+	}
+
+	safeWriteFileSync(filepath: string, data: string, callback?: () => void) {
+		const tempFilepath = '.~' + filepath;
+		fs.writeFileSync(tempFilepath, data);
+		fs.renameSync(tempFilepath, filepath);
+		if (callback) callback();
 	}
 }

@@ -39,7 +39,7 @@ export class Storage {
 
 	exportDatabase(roomid: string) {
 		if (!(roomid in this.databases) || roomid.startsWith('battle-') || roomid.startsWith('groupchat-')) return;
-		fs.writeFileSync(path.join(databasesDir, roomid + '.json'), JSON.stringify(this.databases[roomid]));
+		Tools.safeWriteFileSync(path.join(databasesDir, roomid + '.json'), JSON.stringify(this.databases[roomid]));
 	}
 
 	archiveDatabase(roomid: string) {
@@ -49,7 +49,7 @@ export class Storage {
 		const month = date.getMonth() + 1;
 		const day = date.getDate();
 		const filename = roomid + '-' + year + '-' + (month < 10 ? '0' : '') + month + '-' + (day < 10 ? '0' : '') + day + '-at-' + Tools.toTimestampString(date).split(' ')[1].split(':').join('-');
-		fs.writeFileSync(path.join(archivedDatabasesDir, filename + '.json'), JSON.stringify(this.databases[roomid]));
+		Tools.safeWriteFileSync(path.join(archivedDatabasesDir, filename + '.json'), JSON.stringify(this.databases[roomid]));
 	}
 
 	importDatabases() {
