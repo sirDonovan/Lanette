@@ -55,6 +55,7 @@ export class Game extends Activity {
 	parentGame: Game | null = null;
 	round: number = 0;
 	signupsTime: number = 0;
+	startingPoints: number = 0;
 	readonly userHosted: boolean = false;
 	readonly winnerPointsToBits: number = 50;
 	readonly winners = new Map<Player, number>();
@@ -259,7 +260,7 @@ export class Game extends Activity {
 		if (this.options.freejoin) {
 			html += "<br /><br /><b>This game is free-join!</b>";
 		} else {
-			html += "<br /><br /><b>Players (" + this.playerCount + ")</b>: " + this.getPlayerNames();
+			html += "<br /><br /><b>Players (" + this.playerCount + ")</b>: " + this.getPlayerNames().join(", ");
 			if (this.started) {
 				html += "<br /><br /><b>The game has started!</b>";
 			} else {
@@ -316,6 +317,20 @@ export class Game extends Activity {
 			list.push(players[i]);
 		}
 		return Tools.shuffle(list);
+	}
+
+	getPlayerPoints(players?: Dict<Player> | Player[] | Map<Player, any>): string[] {
+		return this.getPlayerAttributes(player => {
+			const points = this.points!.get(player) || this.startingPoints;
+			return player.name + " (" + points + ")";
+		}, players);
+	}
+
+	getPlayerWins(players?: Dict<Player> | Player[] | Map<Player, any>): string[] {
+		return this.getPlayerAttributes(player => {
+			const wins = this.winners.get(player);
+			return player.name + (wins ? " (" + wins + ")" : "");
+		}, players);
 	}
 
 	getPlayerSummary?(player: Player): void;

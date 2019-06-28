@@ -165,7 +165,7 @@ class MurkrowsBlackjack extends PlayingCard {
 
 	onEnd() {
 		if (this.winners.size) {
-			this.say("**Winner" + (this.winners.size > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners));
+			this.say("**Winner" + (this.winners.size > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners).join(", "));
 			this.winners.forEach((wins, user) => {
 				const wager = this.wagers.get(user);
 				let bits = (wager ? (wager * 2) : 100);
