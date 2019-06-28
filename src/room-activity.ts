@@ -33,16 +33,8 @@ export class Player {
 		this.activity.pmRoom.pmHtml(this, html);
 	}
 
-	sayUhtml(html: string, id?: string) {
-		let uhtmlId = this.activity.uhtmlId || this.activity.id;
-		if (id) uhtmlId += id;
-		this.activity.pmRoom.pmUhtml(this, uhtmlId, html);
-	}
-
-	sayUhtmlChange(html: string, id?: string) {
-		let uhtmlId = this.activity.uhtmlId || this.activity.id;
-		if (id) uhtmlId += id;
-		this.activity.pmRoom.pmUhtmlChange(this, uhtmlId, html);
+	sayUhtml(html: string, name?: string) {
+		this.activity.pmRoom.pmUhtml(this, name || this.activity.uhtmlBaseName, html);
 	}
 }
 
@@ -60,8 +52,7 @@ export abstract class Activity {
 	// set in initialize()
 	id!: string;
 	name!: string;
-
-	uhtmlId?: string;
+	uhtmlBaseName!: string;
 
 	readonly room: Room | User;
 	readonly pm: boolean;
@@ -113,7 +104,7 @@ export abstract class Activity {
 	start() {
 		this.started = true;
 		this.startTime = Date.now();
-		if (this.getSignupsHtml && this.showSignupsHtml) this.sayUhtmlChange(this.getSignupsHtml(), "signups");
+		if (this.getSignupsHtml && this.showSignupsHtml) this.sayUhtml(this.getSignupsHtml(), this.uhtmlBaseName + "-signups");
 		if (this.onStart) this.onStart();
 	}
 
@@ -132,18 +123,10 @@ export abstract class Activity {
 		this.room.sayHtml(html);
 	}
 
-	sayUhtml(html: string, id?: string) {
-		let uhtmlId = this.uhtmlId || this.id;
-		if (id) uhtmlId += '-' + id;
-		if (this.isPm(this.room)) return this.pmRoom.pmUhtml(this.room, uhtmlId, html);
-		this.room.sayUhtml(uhtmlId, html);
-	}
-
-	sayUhtmlChange(html: string, id?: string) {
-		let uhtmlId = this.uhtmlId || this.id;
-		if (id) uhtmlId += '-' + id;
-		if (this.isPm(this.room)) return this.pmRoom.pmUhtmlChange(this.room, uhtmlId, html);
-		this.room.sayUhtmlChange(uhtmlId, html);
+	sayUhtml(html: string, name?: string) {
+		const uhtmlName = name || this.uhtmlBaseName;
+		if (this.isPm(this.room)) return this.pmRoom.pmUhtml(this.room, uhtmlName, html);
+		this.room.sayUhtml(uhtmlName, html);
 	}
 
 	on(message: string, listener: () => any) {
@@ -154,10 +137,8 @@ export abstract class Activity {
 		this.room.onHtml(html, listener);
 	}
 
-	onUhtml(html: string, listener: () => any, id?: string) {
-		let uhtmlId = this.uhtmlId || this.id;
-		if (id) uhtmlId += '-' + id;
-		this.room.onUhtml(uhtmlId, html, listener);
+	onUhtml(html: string, name: string, listener: () => any) {
+		this.room.onUhtml(name, html, listener);
 	}
 
 	getRemainingPlayers(): Dict<Player> {

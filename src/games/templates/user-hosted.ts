@@ -17,7 +17,7 @@ export class UserHosted extends Game {
 	onInitialize() {
 		this.endTime = Date.now() + timeLimit;
 		this.nameWithOptions = this.hostName + "'s " + this.nameWithOptions;
-		this.uhtmlId = 'userhosted-' + this.id;
+		this.uhtmlBaseName = 'userhosted-' + this.id;
 	}
 
 	setHost(host: User) {

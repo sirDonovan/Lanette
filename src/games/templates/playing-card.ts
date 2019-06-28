@@ -138,7 +138,7 @@ export class PlayingCard extends Game {
 		}
 
 		html += '</center></div>';
-		player.sayUhtml(html, "hand");
+		player.sayUhtml(html, this.uhtmlBaseName + "-hand");
 	}
 
 	getPlayerSummary(player: Player) {

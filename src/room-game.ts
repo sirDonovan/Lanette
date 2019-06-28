@@ -81,7 +81,7 @@ export class Game extends Activity {
 		this.inputOptions = this.format.inputOptions;
 		this.name = format.name;
 		this.id = format.id;
-		this.uhtmlId = 'scripted-' + format.id;
+		this.uhtmlBaseName = 'scripted-' + format.id;
 		this.description = format.description;
 
 		if (format.commands) Object.assign(this.commands, format.commands);
@@ -174,7 +174,7 @@ export class Game extends Activity {
 		// TODO: check internal/custom signups
 		if (!this.isMiniGame) {
 			this.showSignupsHtml = true;
-			this.sayUhtml(this.getSignupsHtml(), "signups");
+			this.sayUhtml(this.getSignupsHtml(), this.uhtmlBaseName + "-signups");
 		}
 		this.signupsTime = Date.now();
 		if (!this.userHosted && this.shinyMascot) this.say(this.mascot!.name + " is shiny so bits will be doubled!");
@@ -211,7 +211,7 @@ export class Game extends Activity {
 		const bits = this.addBits(player, 10, true);
 		player.say("Thanks for joining the " + this.name + " " + this.activityType + "!" + (bits ? " Have some free bits!" : ""));
 		if (this.getSignupsHtml && this.showSignupsHtml && !this.started && !this.signupsHtmlTimeout) {
-			this.sayUhtmlChange(this.getSignupsHtml(), "signups");
+			this.sayUhtml(this.getSignupsHtml(), this.uhtmlBaseName + "-signups");
 			this.signupsHtmlTimeout = setTimeout(() => {
 				this.signupsHtmlTimeout = null;
 			}, SIGNUPS_HTML_DELAY);
@@ -227,7 +227,7 @@ export class Game extends Activity {
 		this.removeBits(player, 10, true);
 		player.say("You have left the " + this.name + " " + this.activityType + ".");
 		if (this.getSignupsHtml && this.showSignupsHtml && !this.started && !this.signupsHtmlTimeout) {
-			this.sayUhtmlChange(this.getSignupsHtml(), "signups");
+			this.sayUhtml(this.getSignupsHtml(), this.uhtmlBaseName + "-signups");
 			this.signupsHtmlTimeout = setTimeout(() => {
 				this.signupsHtmlTimeout = null;
 			}, SIGNUPS_HTML_DELAY);
