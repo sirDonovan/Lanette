@@ -559,7 +559,7 @@ const commands: Dict<ICommandDefinition> = {
 			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
 			this.say('Approved and user-created formats: http://pstournaments.weebly.com/formats.html');
 		},
-		aliases: ['userformats'],
+		aliases: ['userhostedformats', 'userformats'],
 	},
 
 	/**

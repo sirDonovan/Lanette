@@ -1,4 +1,15 @@
 exports.BattleFormatLinks = {
+	// User-hosted
+	'catchandevolve': {name: 'Catch and Evolve', aliases: ['c&e', 'catch&evolve', 'cne'], generator: 'https://xfix.github.io/ce/', info: 'http://pstournaments.weebly.com/campe.html', userHosted: true},
+	'tradeandevolve': {name: 'Trade and Evolve', aliases: ['t&e', 'trade&evolve', 'tne'], generator: 'https://xfix.github.io/ce/', info: 'http://pstournaments.weebly.com/te.html', userHosted: true},
+	'survival': {name: 'Survival', aliases: ['survivor'], info: 'http://pastebin.com/uzmLnYDQ', userHosted: true},
+	'hungergames': {name: 'Hunger Games', aliases: ['hg', 'hungergame'], info: 'https://docs.google.com/document/d/1paKwcmmB4upEnnblZadNrDLK4IzyIxeoUSQV8QYgfwc/edit?usp=sharing', desc: 'Players will pair up, choose from the given Pokemon in their district, and try to survive until the end of the tournament. If you defeat another pair, you can choose to swap districts.', userHosted: true},
+	'clashofthegymleaders': {name: 'Clash of the Gym Leaders', aliases: ['clash', 'clashoftheleaders'], info: 'http://pstournaments.weebly.com/clash-of-the-gym-leaders.html', userHosted: true},
+	'samesix': {name: 'Same Six', desc: 'Every player is given the same randomly generated team. Moves, IVs, EVs, natures, etc. can be customized.', userHosted: true},
+	'cloakanddagger': {name: 'Cloak and Dagger', aliases: ['cloak&dagger'], desc: 'Every player is given the same randomly generated Pokemon and adds 5 other Pokemon of their choosing to form a team. Each battle, the first player to have the generated Pokemon faint loses!', userHosted: true},
+	'auction': {name: 'Auction', desc: 'Players will get a budget of 10,000 Pokédollars to spend on Pokémon. The Pokémon to be bid on will be decided by the host beforehand.', userHosted: true},
+	'pokedraft': {name: 'PokéDraft', aliases: ['pokdraft'], info: 'https://docs.google.com/document/d/1NOXcTmdbI42NG3NO8d-7863tBbOSFzXmB1g_zmhXnXc/edit?usp=sharing', desc: 'Players will take turns selecting Pokemon to use in a snake draft. The Pokémon to choose from will be decided by the host beforehand.', userHosted: true},
+
 	// Gen 7
 	'gen7letsgoou': {name: '[Gen 7 Let\'s Go] OU', info: '3644015', teams: '3645829', viability: '3645828'},
 	'gen7anythinggoes': {name: '[Gen 7] Anything Goes', info: 'http://www.smogon.com/dex/sm/formats/ag/', teams: '3587441/#post-7092993', viability: '3591711/#post-7171201'},
