@@ -27,7 +27,7 @@ export class User {
 	}
 
 	isDeveloper(): boolean {
-		return Config.developers.includes(this.id);
+		return Config.developers && Config.developers.includes(this.id) ? true : false;
 	}
 
 	say(message: string, dontPrepare?: boolean) {
@@ -64,7 +64,7 @@ export class Users {
 	private users: Dict<User> = {};
 
 	constructor() {
-		this.self = this.add(Config.username);
+		this.self = this.add(Config.username || "");
 	}
 
 	/** Should only be used when interacting with a potentially new user (in Client) */

@@ -251,7 +251,7 @@ export class Client {
 			messageParts.shift();
 			switch (type) {
 				case 'create': {
-					if (Config.allowTournaments.includes(room.id)) {
+					if (Config.allowTournaments && Config.allowTournaments.includes(room.id)) {
 						const messageArguments: ITournamentMessageTypes['create'] = {
 							format: Dex.getExistingFormat(messageParts[0]),
 							generator: messageParts[1],
@@ -270,7 +270,7 @@ export class Client {
 							if (database.queuedTournament && room.tournament.format.id === Dex.getExistingFormat(database.queuedTournament.formatid, true).id) delete database.queuedTournament;
 							delete Tournaments.createListeners[room.id];
 						}
-						if (room.id in Config.tournamentRoomAdvertisements) {
+						if (Config.tournamentRoomAdvertisements && room.id in Config.tournamentRoomAdvertisements) {
 							if (room.tournament.format.customRules) room.tournament.setCustomFormatName();
 							for (let i = 0; i < Config.tournamentRoomAdvertisements[room.id].length; i++) {
 								const advertisementRoom = Rooms.get(Config.tournamentRoomAdvertisements[room.id][i]);
@@ -801,7 +801,7 @@ export class Client {
 		const isCommand = CommandParser.parse(room, user, message);
 
 		// unlink tournament battle replays
-		if (room.tournament && !room.tournament.format.team && !Config.allowTournamentBattleLinks.includes(room.id) && message.includes("replay.pokemonshowdown.com/")) {
+		if (room.tournament && !room.tournament.format.team && !(Config.allowTournamentBattleLinks && Config.allowTournamentBattleLinks.includes(room.id)) && message.includes("replay.pokemonshowdown.com/")) {
 			let battle = message.split("replay.pokemonshowdown.com/")[1];
 			if (battle) {
 				battle = 'battle-' + battle.split(" ")[0].trim();

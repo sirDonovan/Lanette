@@ -5,15 +5,15 @@ global.Tools = new tools.Tools();
 import * as config from './config';
 global.Config = config;
 
-Config.rooms = Config.rooms.map(x => Tools.toRoomId(x));
-Config.developers = Config.developers.map(x => Tools.toId(x));
-Config.allowScriptedGames = Config.allowScriptedGames.map(x => Tools.toRoomId(x));
-Config.disallowChatLogging = Config.disallowChatLogging.map(x => Tools.toRoomId(x));
-Config.allowTournaments = Config.allowTournaments.map(x => Tools.toRoomId(x));
-Config.rankedTournaments = Config.rankedTournaments.map(x => Tools.toRoomId(x));
-Config.rankedCustomTournaments = Config.rankedCustomTournaments.map(x => Tools.toRoomId(x));
-Config.ignoreDefaultUnrankedTournaments = Config.ignoreDefaultUnrankedTournaments.map(x => Tools.toRoomId(x));
-Config.allowTournamentBattleLinks = Config.allowTournamentBattleLinks.map(x => Tools.toRoomId(x));
+if (Config.rooms) Config.rooms = Config.rooms.map(x => Tools.toRoomId(x));
+if (Config.developers) Config.developers = Config.developers.map(x => Tools.toId(x));
+if (Config.allowScriptedGames) Config.allowScriptedGames = Config.allowScriptedGames.map(x => Tools.toRoomId(x));
+if (Config.disallowChatLogging) Config.disallowChatLogging = Config.disallowChatLogging.map(x => Tools.toRoomId(x));
+if (Config.allowTournaments) Config.allowTournaments = Config.allowTournaments.map(x => Tools.toRoomId(x));
+if (Config.rankedTournaments) Config.rankedTournaments = Config.rankedTournaments.map(x => Tools.toRoomId(x));
+if (Config.rankedCustomTournaments) Config.rankedCustomTournaments = Config.rankedCustomTournaments.map(x => Tools.toRoomId(x));
+if (Config.ignoreDefaultUnrankedTournaments) Config.ignoreDefaultUnrankedTournaments = Config.ignoreDefaultUnrankedTournaments.map(x => Tools.toRoomId(x));
+if (Config.allowTournamentBattleLinks) Config.allowTournamentBattleLinks = Config.allowTournamentBattleLinks.map(x => Tools.toRoomId(x));
 for (const i in Config.tournamentRoomAdvertisements) {
 	const id = Tools.toRoomId(i);
 	Config.tournamentRoomAdvertisements[id] = Config.tournamentRoomAdvertisements[i].map(x => Tools.toRoomId(x));

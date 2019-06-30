@@ -28,7 +28,7 @@ export class Room {
 
 	constructor(id: string) {
 		this.id = id;
-		this.logChatMessages = !id.startsWith('battle-') && !id.startsWith('groupchat-') && !Config.disallowChatLogging.includes(id);
+		this.logChatMessages = !id.startsWith('battle-') && !id.startsWith('groupchat-') && !(Config.disallowChatLogging && Config.disallowChatLogging.includes(id));
 		this.sendId = id === 'lobby' ? '' : id;
 		this.title = id;
 	}

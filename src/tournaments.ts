@@ -43,7 +43,7 @@ export class Tournaments {
 
 	canCreateTournaments(room: Room, user: User): boolean {
 		if (!user.hasRank(room, 'driver')) return false;
-		if (!Config.allowTournaments.includes(room.id)) {
+		if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
 			room.say("Tournament features are not enabled for this room.");
 			return false;
 		}
@@ -62,7 +62,7 @@ export class Tournaments {
 	}
 
 	createTournamentFromJSON(room: Room, update: {format: string, teambuilderFormat?: string, generator: string, isStarted?: boolean, playerCap?: number}) {
-		if (!Config.allowTournaments.includes(room.id) || (!update.format && !update.teambuilderFormat)) return;
+		if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id) || (!update.format && !update.teambuilderFormat)) return;
 		const format = update.teambuilderFormat ? Dex.getExistingFormat(update.teambuilderFormat) : Dex.getExistingFormat(update.format);
 		room.tournament = this.createTournament(room, format, update.generator, update.playerCap || 0, update.teambuilderFormat ? update.format : undefined);
 		if (update.isStarted) room.tournament.started = true;

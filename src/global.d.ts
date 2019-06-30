@@ -13,7 +13,7 @@ declare global {
 	const Client: Client;
 	const CommandParser: CommandParser;
 	const Commands: CommandsDict;
-	const Config: typeof config;
+	const Config: Partial<typeof config>;
 	const Dex: Dex;
 	const Games: Games;
 	const Rooms: Rooms;
