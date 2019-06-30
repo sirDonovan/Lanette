@@ -38,6 +38,11 @@ export let avatar = '';
 export let commandCharacter = '.';
 
 /**
+ * Whether or not users can send messages to other offline users
+ */
+export let allowMail: boolean = true;
+
+/**
  * Userids of those who should have access to the eval command
  */
 export let developers: string[] = [];

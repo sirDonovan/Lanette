@@ -1,11 +1,16 @@
 import fs = require('fs');
 import path = require('path');
 import { Room } from './rooms';
-import { rootFolder } from './tools';
+import { maxMessageLength, rootFolder } from './tools';
 import { IDatabase } from './types/storage';
+import { User } from './users';
+
+const MAX_QUEUED_OFFLINE_MESSAGES = 3;
+const OFFLINE_MESSAGE_EXPIRATION = 30 * 24 * 60 * 60 * 1000;
 
 const archivedDatabasesDir = path.join(rootFolder, 'archived-databases');
 const databasesDir = path.join(rootFolder, 'databases');
+export const baseOfflineMessageLength = '[28 Jun 2019, 00:00:00 GMT-0500] **** said: '.length;
 
 export class Storage {
 	databaseCache: Dict<IDatabase> = {};
@@ -202,5 +207,69 @@ export class Storage {
 			this.chatLogFilePathCache[room.id] = path.join(directory, filename);
 		}
 		fs.appendFileSync(this.chatLogFilePathCache[room.id], Tools.toTimestampString(date).split(" ")[1] + ' |' + messageType + '|' + message + "\n");
+	}
+
+	getMaxOfflineMessageLength(sender: User, message: string): number {
+		return maxMessageLength - (baseOfflineMessageLength + sender.name.length);
+	}
+
+	storeOfflineMessage(sender: string, recipientId: string, message: string): boolean {
+		const database = this.getDatabase(Rooms.globalRoom);
+		if (!database.offlineMessages) database.offlineMessages = {};
+		if (recipientId in database.offlineMessages) {
+			const senderId = Tools.toId(sender);
+			let queuedMessages = 0;
+			for (let i = 0; i < database.offlineMessages[recipientId].length; i++) {
+				if (Tools.toId(database.offlineMessages[recipientId][i].sender) === senderId) queuedMessages++;
+			}
+			if (queuedMessages > MAX_QUEUED_OFFLINE_MESSAGES) return false;
+		} else {
+			database.offlineMessages[recipientId] = [];
+		}
+
+		database.offlineMessages[recipientId].push({
+			message,
+			sender,
+			readTime: 0,
+			sentTime: Date.now(),
+		});
+		return true;
+	}
+
+	retrieveOfflineMessages(user: User, retrieveRead?: boolean): boolean {
+		const database = this.getDatabase(Rooms.globalRoom);
+		if (!database.offlineMessages || !(user.id in database.offlineMessages)) return false;
+		const now = Date.now();
+		const expiredTime = now - OFFLINE_MESSAGE_EXPIRATION;
+		let hasExpiredMessages = false;
+		for (let i = 0; i < database.offlineMessages[user.id].length; i++) {
+			const message = database.offlineMessages[user.id][i];
+			if (message.readTime) {
+				if (message.readTime <= expiredTime) {
+					message.expired = true;
+					if (!hasExpiredMessages) hasExpiredMessages = true;
+				}
+				if (!retrieveRead) continue;
+			}
+			const date = new Date(message.sentTime);
+			let dateString = date.toUTCString();
+			dateString = dateString.substr(dateString.indexOf(',') + 1);
+			dateString = dateString.substr(0, dateString.indexOf(':') - 3);
+			let timeString = date.toTimeString();
+			timeString = timeString.substr(0, timeString.indexOf('('));
+			user.say("[" + dateString.trim() + ", " + timeString.trim() + "] " + "**" + message.sender + "** said: " + message.message);
+			message.readTime = now;
+		}
+
+		if (hasExpiredMessages) database.offlineMessages[user.id] = database.offlineMessages[user.id].filter(x => !x.expired);
+
+		return true;
+	}
+
+	clearOfflineMessages(user: User): boolean {
+		const database = this.getDatabase(Rooms.globalRoom);
+		if (!database.offlineMessages || !(user.id in database.offlineMessages)) return false;
+		delete database.offlineMessages[user.id];
+		return true;
 	}
 }

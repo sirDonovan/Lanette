@@ -2,7 +2,7 @@ import path = require('path');
 import { ICommandDefinition } from "./command-parser";
 import { Player } from "./room-activity";
 import { Room } from "./rooms";
-import { rootFolder } from './tools';
+import { maxUsernameLength, rootFolder } from './tools';
 import { IGameFormat } from "./types/games";
 import { IFormat } from "./types/in-game-data-types";
 import { User } from "./users";
@@ -230,7 +230,7 @@ const commands: Dict<ICommandDefinition> = {
 			const users: User[] = [];
 			let points = 1;
 			const targets = target.split(",");
-			for (let i = 0, len = targets.length; i < len; i++) {
+			for (let i = 0; i < targets.length; i++) {
 				const target = Tools.toId(targets[i]);
 				if (!target) continue;
 				let user = Users.get(target);
@@ -303,7 +303,7 @@ const commands: Dict<ICommandDefinition> = {
 
 				if (!players.length) return this.say("No one has any points in this game.");
 			} else {
-				for (let i = 0, len = targets.length; i < len; i++) {
+				for (let i = 0; i < targets.length; i++) {
 					const id = Tools.toId(targets[i]);
 					if (!id) continue;
 					if (Tools.isNumber(id)) {
@@ -540,6 +540,40 @@ const commands: Dict<ICommandDefinition> = {
 	/**
 	 * Storage commands
 	 */
+	offlinemessage: {
+		command(target, room, user) {
+			if (!this.isPm(room)) return;
+			if (!Config.allowMail) return this.say("Offline messages are not enabled.");
+			const targets = target.split(',');
+			if (targets.length < 2) return this.say("You must specify a user and a message to send.");
+			if (Users.get(targets[0])) return this.say("You can only send messages to offline users.");
+			const recipient = targets[0].trim();
+			const recipientId = Tools.toId(recipient);
+			if (recipientId === user.id || recipientId.startsWith('guest') || recipientId === 'constructor' || !Tools.isUsernameLength(recipient)) return this.say("You must specify a valid username (between 1 and " + maxUsernameLength + " characters).");
+			const message = targets.slice(1).join(',').trim();
+			if (!message.length) return this.say("You must specify a message to send.");
+			const maxMessageLength = Storage.getMaxOfflineMessageLength(user, message);
+			if (message.length > maxMessageLength) return this.say("Your message cannot exceed " + maxMessageLength + " characters.");
+			if (!Storage.storeOfflineMessage(user.name, recipientId, message)) return this.say("Sorry, you have too many messages queued for " + recipient + ".");
+			this.say("Your message has been sent to " + recipient + "!");
+		},
+		aliases: ['mail', 'offlinepm'],
+	},
+	offlinemessages: {
+		command(target, room, user) {
+			if (!this.isPm(room)) return;
+			if (!Storage.retrieveOfflineMessages(user, true)) return this.say("You don't have any offline messages stored.");
+		},
+		aliases: ['readofflinemessages', 'checkofflinemessages', 'readmail', 'checkmail'],
+	},
+	clearofflinemessages: {
+		command(target, room, user) {
+			if (!this.isPm(room)) return;
+			if (!Storage.clearOfflineMessages(user)) return this.say("You don't have any offline messages stored.");
+			this.say("Your offline messages were cleared.");
+		},
+		aliases: ['deleteofflinemessages', 'clearmail', 'deletemail'],
+	},
 	leaderboard: {
 		command(target, room, user) {
 			const targets: string[] = target ? target.split(",") : [];

@@ -111,6 +111,7 @@ export class Room {
 }
 
 export class Rooms {
+	readonly globalRoom: Room = new Room('global');
 	private rooms: Dict<Room> = {};
 
 	add(id: string): Room {

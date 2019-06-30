@@ -523,6 +523,7 @@ export class Client {
 				user.away = false;
 			}
 			user.rooms.set(room, messageArguments.rank);
+			if (Config.allowMail) Storage.retrieveOfflineMessages(user);
 			if (room.logChatMessages) {
 				Storage.logChatMessage(room, Date.now(), 'J', messageArguments.rank + user.name);
 			}

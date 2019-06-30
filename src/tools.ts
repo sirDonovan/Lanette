@@ -1,15 +1,15 @@
 import fs = require('fs');
 import https = require('https');
 import path = require('path');
-import { URL } from 'url';
 import { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/in-game-data-types';
 
-const MAX_MESSAGE_LENGTH = 300;
 const ALPHA_NUMERIC_REGEX = /[^a-zA-Z0-9 ]/g;
 const ID_REGEX = /[^a-z0-9]/g;
 const NUMBER_REGEX = /^[ .0-9]*$/g;
 const SPACE_REGEX = /[ ]*/g;
 
+export const maxMessageLength = 300;
+export const maxUsernameLength = 18;
 export const rootFolder = path.resolve(__dirname, '..');
 
 export class Tools {
@@ -138,7 +138,7 @@ export class Tools {
 
 	prepareMessage(message: string): string {
 		message = this.toString(message);
-		if (message.length > MAX_MESSAGE_LENGTH) message = message.substr(0, MAX_MESSAGE_LENGTH - 3) + "...";
+		if (message.length > maxMessageLength) message = message.substr(0, maxMessageLength - 3) + "...";
 		return message;
 	}
 
@@ -192,6 +192,11 @@ export class Tools {
 		text = text.trim();
 		if (text.charAt(0) === '-') text = text.substr(1);
 		return !!text.match(NUMBER_REGEX);
+	}
+
+	isUsernameLength(name: string): boolean {
+		const id = this.toId(name);
+		return id && id.length <= maxUsernameLength ? true : false;
 	}
 
 	deepClone<T>(obj: T): T extends IAbility ? IAbilityCopy : T extends IItem ? IItemCopy : T extends IMove ? IMoveCopy : T extends IPokemon ? IPokemonCopy : T {
