@@ -21,7 +21,7 @@ export class User {
 		this.id = id;
 	}
 
-	hasRank(room: Room, targetRank: 'voice' | 'driver' | 'moderator' | 'roomowner' | 'locked'): boolean {
+	hasRank(room: Room, targetRank: 'voice' | 'bot' | 'driver' | 'moderator' | 'roomowner' | 'locked'): boolean {
 		if (!this.rooms.has(room) || !(targetRank in Client.groupSymbols)) return false;
 		return Client.serverGroups[this.rooms.get(room)!].ranking >= Client.serverGroups[Client.groupSymbols[targetRank]].ranking;
 	}

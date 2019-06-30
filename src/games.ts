@@ -213,7 +213,7 @@ export class Games {
 					let pmRoom: Room | undefined;
 					if (this.isPm(room)) {
 						user.rooms.forEach((rank, room) => {
-							if (!pmRoom && Config.allowScriptedGames && Config.allowScriptedGames.includes(room.id) && Users.self.rooms.get(room) === '*') pmRoom = room;
+							if (!pmRoom && Config.allowScriptedGames && Config.allowScriptedGames.includes(room.id) && Users.self.hasRank(room, 'bot')) pmRoom = room;
 						});
 						if (!pmRoom) return this.say("You must be in a room that has enabled scripted games and where " + Users.self.name + " has Bot rank (*).");
 					} else {
@@ -248,7 +248,7 @@ export class Games {
 		const inputOptions: Dict<number> = {};
 		let mode: IGameMode | undefined;
 		let variant: IGameVariant | undefined;
-		for (let i = 0, len = targets.length; i < len; i++) {
+		for (let i = 0; i < targets.length; i++) {
 			const targetId = Tools.toId(targets[i]);
 			if (!targetId) continue;
 			if (formatData.modes && formatData.modes.includes(targetId)) {
@@ -370,7 +370,7 @@ export class Games {
 			room.say("Scripted games are not enabled for this room.");
 			return false;
 		}
-		if (Users.self.rooms.get(room) !== '*') {
+		if (!Users.self.hasRank(room, 'bot')) {
 			room.say(Users.self.name + " requires Bot rank (*) to host scripted games.");
 			return false;
 		}

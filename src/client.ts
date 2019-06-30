@@ -73,7 +73,6 @@ const DEFAULT_SERVER_GROUPS: ServerGroupData[] = [
 ];
 
 export class Client {
-	botRank: string = '*';
 	challstr: string = '';
 	client: websocket.client = new websocket.client();
 	connection: websocket.connection | null = null;
@@ -81,7 +80,6 @@ export class Client {
 	connectionTimeout: NodeJS.Timer | null = null;
 	filterPhrases: string[] | null = null;
 	filterRegularExpressions: RegExp[] | null = null;
-	globalStaffGroups: string[] = [];
 	groupSymbols: Dict<string> = {};
 	loggedIn: boolean = false;
 	loginTimeout: NodeJS.Timer | null = null;
@@ -114,7 +112,6 @@ export class Client {
 		this.connection = previous.connection;
 		this.filterPhrases = previous.filterPhrases;
 		this.filterRegularExpressions = previous.filterRegularExpressions;
-		this.globalStaffGroups = previous.globalStaffGroups;
 		this.groupSymbols = previous.groupSymbols;
 		this.loggedIn = previous.loggedIn;
 		this.sendQueue = previous.sendQueue;
@@ -817,17 +814,15 @@ export class Client {
 	}
 
 	parseServerGroups(groups: ServerGroupData[]) {
-		this.globalStaffGroups = [];
 		this.serverGroups = {};
 		let ranking = groups.length;
 		for (let i = 0; i < groups.length; i++) {
 			this.serverGroups[groups[i].symbol] = Object.assign({ranking}, groups[i]);
-			if (groups[i].name === 'Bot') this.botRank = groups[i].symbol;
+			if (groups[i].name === 'Bot') this.groupSymbols.bot = groups[i].symbol;
 			if (groups[i].type === 'leadership' || groups[i].type === 'staff') {
 				if (groups[i].name === 'Room Owner' || groups[i].name === 'Moderator' || groups[i].name === 'Driver') {
 					this.groupSymbols[Tools.toId(groups[i].name!)] = groups[i].symbol;
 				}
-				this.globalStaffGroups.push(groups[i].symbol);
 			} else if (groups[i].type === 'normal' && groups[i].name === 'Voice') {
 				this.groupSymbols.voice = groups[i].symbol;
 			} else if (groups[i].type === 'punishment' && groups[i].name === 'Locked') {
@@ -835,8 +830,6 @@ export class Client {
 			}
 			ranking--;
 		}
-
-		if (!this.globalStaffGroups.includes(this.botRank)) this.globalStaffGroups.push(this.botRank);
 	}
 
 	willBeFiltered(message: string, room?: Room): boolean {

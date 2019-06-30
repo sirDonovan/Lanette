@@ -47,7 +47,7 @@ export class Tournaments {
 			room.say("Tournament features are not enabled for this room.");
 			return false;
 		}
-		if (Users.self.rooms.get(room) !== '*') {
+		if (!Users.self.hasRank(room, 'bot')) {
 			room.say(Users.self.name + " requires Bot rank (*) to use tournament features.");
 			return false;
 		}
