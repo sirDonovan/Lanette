@@ -1,6 +1,7 @@
 {
 	"typescript.tsdk": "node_modules/typescript/lib",
 	"search.exclude": {
+		"**/.vscode": true,
 		"**/archived-databases": true,
 		"**/built": true,
 		"**/data": true,
@@ -9,5 +10,13 @@
 		"**/Pokemon-Showdown": true,
 		"**/roomlogs": true,
 		"**/design.txt": true,
+		".editorconfig": true,
+		".gitignore": true,
+		".travis.yml": true,
+		"package-lock.json": true,
+		"package.json": true,
+		"README.md": true,
+		"tsconfig.json": true,
+		"tslint.json": true
 	}
 }
