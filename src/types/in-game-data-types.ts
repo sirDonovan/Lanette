@@ -289,10 +289,13 @@ export interface IFormatData extends IEventMethods {
 }
 
 export interface IFormatLinks {
+	desc?: string;
 	info?: string;
 	'info-official'?: string;
 	np?: string;
 	'np-official'?: string;
+	roleCompendium?: string;
+	teams?: string;
 	viability?: string;
 	'viability-official'?: string;
 }

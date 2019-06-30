@@ -262,13 +262,29 @@ export class Client {
 								Tournaments.setScheduledTournament(room);
 							}
 							room.tournament.format = Tournaments.createListeners[room.id].format;
-							if (room.tournament.format.customRules) room.sayCommand("/tour rules " + room.tournament.format.customRules.join(","));
+							if (room.tournament.format.customRules) {
+								room.tournament.setCustomFormatName();
+								room.sayCommand("/tour rules " + room.tournament.format.customRules.join(","));
+							}
 							const database = Storage.getDatabase(room);
 							if (database.queuedTournament && room.tournament.format.id === Dex.getExistingFormat(database.queuedTournament.formatid, true).id) delete database.queuedTournament;
 							delete Tournaments.createListeners[room.id];
 						}
+						if (Config.displayTournamentFormatInfo && Config.displayTournamentFormatInfo.includes(room.id)) {
+							const formatInfo = Dex.getFormatInfoDisplay(room.tournament.format);
+							if (formatInfo) {
+								let divClass = '';
+								if (room.tournament.format.team) {
+									divClass = 'green';
+								} else if (room.tournament.format.gameType === 'singles') {
+									divClass = 'blue';
+								} else {
+									divClass = 'red';
+								}
+								room.sayHtml("<div class='broadcast-" + divClass + "'><b>" + room.tournament.name + "</b>:</div>" + formatInfo);
+							}
+						}
 						if (Config.tournamentRoomAdvertisements && room.id in Config.tournamentRoomAdvertisements) {
-							if (room.tournament.format.customRules) room.tournament.setCustomFormatName();
 							for (let i = 0; i < Config.tournamentRoomAdvertisements[room.id].length; i++) {
 								const advertisementRoom = Rooms.get(Config.tournamentRoomAdvertisements[room.id][i]);
 								if (advertisementRoom) advertisementRoom.sayHtml('<a href="/' + room.id + '" class="ilink"><strong>' + room.tournament.name + '</strong> tournament created in <strong>' + room.title + '</strong>.</a>');

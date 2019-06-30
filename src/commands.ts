@@ -343,7 +343,6 @@ const commands: Dict<ICommandDefinition> = {
 	/**
 	 * Tournament commands
 	 */
-
 	tournament: {
 		command(target, room, user) {
 			const targets: string[] = target ? target.split(",") : [];
@@ -535,6 +534,32 @@ const commands: Dict<ICommandDefinition> = {
 			this.sayHtml(html, tournamentRoom);
 		},
 		aliases: ['queuedtour', 'nexttournament', 'nexttour'],
+	},
+	format: {
+		command(target, room, user) {
+			let pmRoom: Room;
+			if (this.isPm(room)) {
+				user.rooms.forEach((value, room) => {
+					if (!pmRoom && Users.self.hasRank(room, 'bot')) pmRoom = room;
+				});
+			} else {
+				if (!user.hasRank(room, 'voice')) return;
+				pmRoom = room;
+			}
+			const format = Dex.getFormat(target);
+			if (!format) return this.say("'" + target.trim() + "' is not a valid format.");
+			const html = Dex.getFormatInfoDisplay(format);
+			if (!html.length) return this.say("No info found for " + format.name + ".");
+			this.sayHtml("<b>" + format.name + "</b>" + html, pmRoom!);
+		},
+		aliases: ['om', 'tier'],
+	},
+	usercreatedformats: {
+		command(target, room, user) {
+			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
+			this.say('Approved and user-created formats: http://pstournaments.weebly.com/formats.html');
+		},
+		aliases: ['userformats'],
 	},
 
 	/**

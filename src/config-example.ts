@@ -73,8 +73,13 @@ export let rankedCustomTournaments: string[] = [];
 export let useDefaultUnrankedTournaments: string[] = [];
 
 /**
+ * A list of rooms (roomids) where information and links about tournament formats will be displayed
  */
+export let displayTournamentFormatInfo: string[] = [];
+
+/**
  * A list of rooms (roomids) where links to non-random tournament battles are not allowed to be posted
+ */
 export let disallowTournamentBattleLinks: string[] = [];
 
 /**

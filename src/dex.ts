@@ -324,11 +324,11 @@ export class Dex {
 
 		for (const id in formats) {
 			const format = formats[id];
-			const links: ('info' | 'np' | 'viability')[] = ['info', 'np', 'viability'];
+			const links: ('info' | 'np' | 'roleCompendium' | 'teams' | 'viability')[] = ['info', 'np', 'roleCompendium', 'teams', 'viability'];
 			for (let i = 0; i < links.length; i++) {
 				const link = format[links[i]];
-				let num = 0;
-				if (link) num = parseInt(link.split("/")[0]);
+				if (!link) continue;
+				let num = parseInt(link.split("/")[0]);
 				if (isNaN(num)) continue;
 				// @ts-ignore
 				if (format[links[i] + '-official']) {
@@ -445,6 +445,17 @@ export class Dex {
 
 		for (const i in this.dataCache.typeChart) {
 			this.dataCache.types[Tools.toId(i)] = i;
+		}
+
+		for (const i in this.dataCache.formats) {
+			const formatid = i;
+			const format = this.dataCache.formats[i];
+			if (format && format.aliases) {
+				for (let i = 0; i < format.aliases.length; i++) {
+					const alias = Tools.toId(format.aliases[i]);
+					if (!this.dataCache.aliases.hasOwnProperty(alias)) this.dataCache.aliases[alias] = formatid;
+				}
+			}
 		}
 
 		this.gen = BattleScripts.gen || 7;
@@ -819,6 +830,34 @@ export class Dex {
 		const format = this.getFormat(name, isTrusted);
 		if (!format) throw new Error("No format returned for '" + name + "'");
 		return format;
+	}
+
+	getFormatInfoDisplay(format: IFormat): string {
+		let html = '';
+		if (format.desc) {
+			html += '<br>&nbsp; - ' + format.desc;
+			if (format.info && !format.team) {
+				html += ' More info ';
+				if (format.userHosted) {
+					html += 'on the <a href="' + format.info + '">official page</a>';
+				} else if (format.info.startsWith('https://www.smogon.com/dex/')) {
+					html += 'on the  <a href="' + format.info + '">dex page</a>';
+				} else {
+					html += 'in the  <a href="' + format.info + '">discussion thread</a>';
+				}
+			}
+		} else if (format.info) {
+			if (format.userHosted) {
+				html += '<br>&nbsp; - Description and more info on the <a href="' + format.info + '">official page</a>.';
+				if (format.generator) html += '<br>&nbsp; - Use our <a href="' + format.generator + '">random generator</a> to ease the hosting process.';
+			} else {
+				html += '<br>&nbsp; - Description and more info ' + (format.info.startsWith('https://www.smogon.com/dex/') ? 'on the  <a href="' + format.info + '">dex page' : 'in the  <a href="' + format.info + '">discussion thread') + '</a>.';
+			}
+		}
+		if (format.teams) html += '<br>&nbsp; - Need to borrow a team? Check out the <a href="' + format.teams + '">sample teams thread</a>.';
+		if (format.viability) html += '<br>&nbsp; - See how viable each Pokemon is in the <a href="' + format.viability + '">viability rankings thread</a>.';
+		if (format.roleCompendium) html += '<br>&nbsp; - Check the common role that each Pokemon plays in the <a href="' + format.roleCompendium + '">role compendium thread</a>.';
+		return html;
 	}
 
 	/**
