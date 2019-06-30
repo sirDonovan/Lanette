@@ -802,7 +802,7 @@ export class Client {
 		const isCommand = CommandParser.parse(room, user, message);
 
 		// unlink tournament battle replays
-		if (room.tournament && !room.tournament.format.team && !(Config.allowTournamentBattleLinks && Config.allowTournamentBattleLinks.includes(room.id)) && message.includes("replay.pokemonshowdown.com/")) {
+		if (room.tournament && !room.tournament.format.team && Config.disallowTournamentBattleLinks && Config.disallowTournamentBattleLinks.includes(room.id) && message.includes("replay.pokemonshowdown.com/")) {
 			let battle = message.split("replay.pokemonshowdown.com/")[1];
 			if (battle) {
 				battle = 'battle-' + battle.split(" ")[0].trim();

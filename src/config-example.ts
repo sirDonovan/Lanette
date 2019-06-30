@@ -68,14 +68,14 @@ export let rankedTournaments: string[] = [];
 export let rankedCustomTournaments: string[] = [];
 
 /**
- * A list of rooms (roomids) where tournaments in default 'uncompetitive' formats will still award leaderboard points
+ * A list of rooms (roomids) where tournaments in default 'uncompetitive' formats will not leaderboard points
  */
-export let ignoreDefaultUnrankedTournaments: string[] = [];
+export let useDefaultUnrankedTournaments: string[] = [];
 
 /**
- * A list of rooms (roomids) where links to non-random tournament battles are allowed to be posted
  */
-export let allowTournamentBattleLinks: string[] = [];
+ * A list of rooms (roomids) where links to non-random tournament battles are not allowed to be posted
+export let disallowTournamentBattleLinks: string[] = [];
 
 /**
  * For each room in the object, a list of rooms (roomids) where created tournaments will be advertised

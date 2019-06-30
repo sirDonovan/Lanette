@@ -12,8 +12,8 @@ if (Config.disallowChatLogging) Config.disallowChatLogging = Config.disallowChat
 if (Config.allowTournaments) Config.allowTournaments = Config.allowTournaments.map(x => Tools.toRoomId(x));
 if (Config.rankedTournaments) Config.rankedTournaments = Config.rankedTournaments.map(x => Tools.toRoomId(x));
 if (Config.rankedCustomTournaments) Config.rankedCustomTournaments = Config.rankedCustomTournaments.map(x => Tools.toRoomId(x));
-if (Config.ignoreDefaultUnrankedTournaments) Config.ignoreDefaultUnrankedTournaments = Config.ignoreDefaultUnrankedTournaments.map(x => Tools.toRoomId(x));
-if (Config.allowTournamentBattleLinks) Config.allowTournamentBattleLinks = Config.allowTournamentBattleLinks.map(x => Tools.toRoomId(x));
+if (Config.useDefaultUnrankedTournaments) Config.useDefaultUnrankedTournaments = Config.useDefaultUnrankedTournaments.map(x => Tools.toRoomId(x));
+if (Config.disallowTournamentBattleLinks) Config.disallowTournamentBattleLinks = Config.disallowTournamentBattleLinks.map(x => Tools.toRoomId(x));
 for (const i in Config.tournamentRoomAdvertisements) {
 	const id = Tools.toRoomId(i);
 	Config.tournamentRoomAdvertisements[id] = Config.tournamentRoomAdvertisements[i].map(x => Tools.toRoomId(x));
