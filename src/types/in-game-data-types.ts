@@ -626,6 +626,8 @@ export interface IDataTable {
 	readonly aliases: Dict<string | undefined>;
 	readonly badges: string[];
 	readonly characters: string[];
+	readonly colors: Dict<string>;
+	readonly eggGroups: Dict<string>;
 	readonly formats: Dict<(IFormatData & IFormatLinks) | undefined>;
 	readonly formatsData: Dict<ITemplateFormatsData | undefined>;
 	readonly gifData: Dict<{back?: {h: number, w: number}, front?: {h: number, w: number}} | undefined>;
@@ -636,5 +638,5 @@ export interface IDataTable {
 	readonly pokedex: Dict<ITemplateData | undefined>;
 	readonly trainerClasses: string[];
 	readonly typeChart: Dict<ITypeChart | undefined>;
-	readonly types: Dict<string | undefined>;
+	readonly types: Dict<string>;
 }

@@ -47,7 +47,7 @@ export abstract class Activity {
 	signupsHtmlTimeout: NodeJS.Timer | null = null;
 	started: boolean = false;
 	startTime: number | null = null;
-	timeout: NodeJS.Timeout | null = null;
+	timeout: NodeJS.Timer | null = null;
 
 	// set in initialize()
 	id!: string;

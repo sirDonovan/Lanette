@@ -4,6 +4,12 @@ import { Room } from './rooms';
 import { rootFolder } from './tools';
 import { IAbility, IAbilityComputed, IAbilityCopy, IDataTable, IFormat, IFormatComputed, IFormatData, IFormatLinks, IItem, IItemComputed, IItemCopy, IMove, IMoveComputed, IMoveCopy, INature, IPokemon, IPokemonComputed, IPokemonCopy, ISeparatedCustomRules } from './types/in-game-data-types';
 
+interface IDataSearchResult {
+	name: string;
+	searchType: string;
+	isInexact?: boolean;
+}
+
 export const PokemonShowdown = path.join(rootFolder, 'Pokemon-Showdown');
 export const dataDir = path.join(PokemonShowdown, 'data');
 export const modsDir = path.join(dataDir, 'mods');
@@ -29,6 +35,8 @@ export const dataFiles: Dict<string> = {
 	'Formats': 'rulesets',
 };
 const dataTypes = ['Pokedex', 'FormatsData', 'Learnsets', 'Movedex', 'Statuses', 'TypeChart', 'Scripts', 'Items', 'Abilities', 'Formats'];
+const dataSearchFunctions: Dict<string> = {pokedex: 'getPokemon', moves: 'getMove', abilities: 'getAbility', items: 'getItem', natures: 'getNature'};
+const dataSearchTypes: Dict<string> = {pokedex: 'pokemon', moves: 'move', abilities: 'ability', items: 'item', natures: 'nature'};
 
 const lanetteDataFiles: Dict<string> = {
 	'Badges': 'badges',
@@ -67,7 +75,7 @@ const natures: Dict<INature> = {
 	timid: {name: "Timid", plus: 'spe', minus: 'atk'},
 };
 
-const tagNames: Dict<string> = {
+export const tagNames: Dict<string> = {
 	'mega': 'Mega',
 	'uber': 'Uber',
 	'ou': 'OU',
@@ -185,11 +193,13 @@ export class Dex {
 		this.dataCache = {
 			abilities: {},
 			aliases: {},
-			gifData: {},
 			badges: [],
 			characters: [],
+			colors: {},
+			eggGroups: {},
 			formats: {},
 			formatsData: {},
+			gifData: {},
 			items: {},
 			learnsets: {},
 			moves: {},
@@ -464,6 +474,24 @@ export class Dex {
 
 		// Execute initialization script.
 		if (BattleScripts.init) BattleScripts.init.call(this);
+
+		for (const i in this.data.pokedex) {
+			const pokemon = this.getExistingPokemon(i);
+			if (pokemon.color) {
+				const id = Tools.toId(pokemon.color);
+				if (!(id in this.dataCache.colors)) this.dataCache.colors[id] = pokemon.color;
+			}
+			if (pokemon.tier) {
+				const id = Tools.toId(pokemon.tier);
+				if (!(id in tagNames)) tagNames[id] = pokemon.tier;
+			}
+			if (pokemon.eggGroups) {
+				for (let i = 0; i < pokemon.eggGroups.length; i++) {
+					const id = Tools.toId(pokemon.eggGroups[i]);
+					if (!(id in this.dataCache.eggGroups)) this.dataCache.eggGroups[id] = pokemon.eggGroups[i];
+				}
+			}
+		}
 
 		return this.dataCache;
 	}
@@ -1248,5 +1276,59 @@ export class Dex {
 		const left = (num % 12) * 40;
 		const facingLeftStyle = facingLeft ? "transform:scaleX(-1);webkit-transform:scaleX(-1);" : "";
 		return '<span style="display: inline-block;width: 40px;height: 30px;background:transparent url(https://play.pokemonshowdown.com/sprites/smicons-sheet.png?a5) no-repeat scroll -' + left + 'px -' + top + 'px;' + facingLeftStyle + '"></span>';
+	}
+
+	dataSearch(target: string, searchIn?: string[] | null, isInexact?: boolean): IDataSearchResult[] | false {
+		if (!target) return false;
+		if (!searchIn) searchIn = ['pokedex', 'moves', 'abilities', 'items', 'natures'];
+		let searchResults: IDataSearchResult[] | false = [];
+		for (let i = 0; i < searchIn.length; i++) {
+			// @ts-ignore
+			const res = this[dataSearchFunctions[searchIn[i]]](target);
+			if (res && res.gen <= this.gen) {
+				searchResults.push({
+					isInexact,
+					searchType: dataSearchTypes[searchIn[i]],
+					name: res.name,
+				});
+			}
+		}
+
+		if (searchResults.length) return searchResults;
+
+		// prevent an infinite loop
+		if (isInexact) return false;
+
+		const cmpTarget = Tools.toId(target);
+		let maxLd = 3;
+		if (cmpTarget.length <= 1) {
+			return false;
+		} else if (cmpTarget.length <= 4) {
+			maxLd = 1;
+		} else if (cmpTarget.length <= 6) {
+			maxLd = 2;
+		}
+		searchResults = false;
+		for (let i = 0; i <= searchIn.length; i++) {
+			// @ts-ignore
+			const searchObj = this.data[searchIn[i] || 'aliases'];
+			if (!searchObj) {
+				continue;
+			}
+
+			for (const j in searchObj) {
+				const ld = Tools.levenshtein(cmpTarget, j, maxLd);
+				if (ld <= maxLd) {
+					const word = searchObj[j].name || searchObj[j].species || j;
+					const results = this.dataSearch(word, searchIn, word);
+					if (results) {
+						searchResults = results;
+						maxLd = ld;
+					}
+				}
+			}
+		}
+
+		return searchResults;
 	}
 }

@@ -1,5 +1,6 @@
 import path = require('path');
 import { ICommandDefinition } from "./command-parser";
+import { tagNames } from './dex';
 import { Player } from "./room-activity";
 import { Room } from "./rooms";
 import { maxUsernameLength, rootFolder } from './tools';
@@ -702,6 +703,133 @@ const commands: Dict<ICommandDefinition> = {
 			room.userHostedGame.end();
 		},
 		aliases: ['autowin', 'win'],
+	},
+	dt: {
+		command(target, room, user) {
+			if (!target || this.isPm(room) || !Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id))) return;
+			const results = Dex.dataSearch(target, null, true);
+			if (!results || !results.length) return this.say("No Pokemon, item, move, or ability named '" + target.trim() + "' was found.");
+			this.say('!dt ' + results[0].name);
+		},
+	},
+	randompokemon: {
+		command(target, room, user) {
+			if (this.isPm(room) || !Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id))) return;
+			if (!target) {
+				const species = Dex.getExistingPokemon(Tools.sampleOne(Object.keys(Dex.data.pokedex))).species;
+				if (this.pm) {
+					this.say('Randomly generated Pokemon: **' + species + '**');
+				} else {
+					this.say('!dt ' + species);
+				}
+				return;
+			}
+			const targets = target.split(",");
+			const types: string[] = [];
+			let gen: number | undefined;
+			let tier: string | undefined;
+			let color: string | undefined;
+			let ability: string | undefined;
+			let eggGroup: string | undefined;
+			for (let i = 0; i < targets.length; i++) {
+				let id = Tools.toId(targets[i]);
+				const targetAbility = Dex.getAbility(id);
+				if (targetAbility) ability = targetAbility.name;
+				if (id in tagNames) {
+					tier = tagNames[id];
+				} else if (id in Dex.data.colors) {
+					color = Dex.data.colors[id];
+				} else if (id in Dex.data.eggGroups) {
+					eggGroup = Dex.data.eggGroups[id];
+				} else if (id in Dex.data.types) {
+					types.push(Dex.data.types[id]);
+					if (types.length > 2) return this.say("A Pokemon can only have 2 types.");
+				} else {
+					if (id.startsWith('gen')) id = id.substr(3);
+					if (Tools.isNumber(id)) gen = parseInt(id);
+				}
+			}
+			const pokedex: string[] = [];
+			const checkTypes = types.length;
+			for (const i in Dex.data.pokedex) {
+				const pokemon = Dex.getExistingPokemon(i);
+				if (gen && pokemon.gen !== gen) continue;
+				if (tier && pokemon.tier !== tier) continue;
+				if (checkTypes) {
+					if (!pokemon.types.includes(types[0])) continue;
+					if (types[1] && !pokemon.types.includes(types[1])) continue;
+				}
+				if (ability) {
+					let hasAbility = false;
+					for (const i in pokemon.abilities) {
+						// @ts-ignore
+						if (pokemon.abilities[i] === ability) {
+							hasAbility = true;
+							break;
+						}
+					}
+					if (!hasAbility) continue;
+				}
+				if (color && pokemon.color !== color) continue;
+				if (eggGroup && !pokemon.eggGroups.includes(eggGroup)) continue;
+				pokedex.push(pokemon.species);
+			}
+			if (!pokedex.length) return this.say("No matching Pokemon found.");
+			const pokemon = Tools.sampleOne(pokedex);
+			if (this.pm) {
+				this.say('Randomly generated Pokemon: **' + pokemon + '**');
+			} else {
+				this.say('!dt ' + pokemon);
+			}
+		},
+		aliases: ['rpoke', 'rpokemon', 'randpoke'],
+	},
+	randommove: {
+		command(target, room, user) {
+			if (this.isPm(room) || !Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id))) return;
+			const move = Dex.getExistingMove(Tools.sampleOne(Object.keys(Dex.data.moves))).name;
+			if (this.pm) {
+				this.say('Randomly generated move: **' + move + '**');
+			} else {
+				this.say('!dt ' + move);
+			}
+		},
+		aliases: ['rmove', 'randmove'],
+	},
+	randomitem: {
+		command(target, room, user) {
+			if (this.isPm(room) || !Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id))) return;
+			const item = Dex.getExistingItem(Tools.sampleOne(Object.keys(Dex.data.items))).name;
+			if (this.pm) {
+				this.say('Randomly generated item: **' + item + '**');
+			} else {
+				this.say('!dt ' + item);
+			}
+		},
+		aliases: ['ritem', 'randitem'],
+	},
+	randomability: {
+		command(target, room, user) {
+			if (this.isPm(room) || !Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id))) return;
+			const abilities = Object.keys(Dex.data.abilities);
+			let ability = Dex.getExistingAbility(Tools.sampleOne(abilities));
+			while (ability.id === 'noability') {
+				ability = Dex.getExistingAbility(Tools.sampleOne(abilities));
+			}
+			if (this.pm) {
+				this.say('Randomly generated ability: **' + ability.name + '**');
+			} else {
+				this.say('!dt ' + ability.name);
+			}
+		},
+		aliases: ['rability', 'randability'],
+	},
+	randomcharacter: {
+		command(target, room, user) {
+			if (this.isPm(room) || !Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id))) return;
+			this.say('Randomly generated character: **' + Tools.sampleOne(Dex.data.characters).trim() + '**');
+		},
+		aliases: ['rchar', 'rcharacter', 'randchar', 'randcharacters'],
 	},
 
 	/**

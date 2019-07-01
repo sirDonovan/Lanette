@@ -50,6 +50,9 @@ for (const i in Config.maxQueuedUserHostedGames) {
 	}
 }
 
+import * as dex from './dex';
+global.Dex = new dex.Dex('base');
+
 import * as client from './client';
 global.Client = new client.Client();
 
@@ -58,9 +61,6 @@ global.CommandParser = new commandParser.CommandParser();
 
 import commands = require('./commands');
 global.Commands = Object.assign(Object.create(null), CommandParser.loadCommands(commands));
-
-import * as dex from './dex';
-global.Dex = new dex.Dex('base');
 
 import * as games from './games';
 global.Games = new games.Games();

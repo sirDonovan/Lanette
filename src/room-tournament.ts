@@ -91,7 +91,7 @@ export class Tournament extends Activity {
 	manuallyNamed: boolean = false;
 	originalFormat: string = '';
 	scheduled: boolean = false;
-	startTimer: NodeJS.Timeout | null = null;
+	startTimer: NodeJS.Timer | null = null;
 	totalPlayers: number = 0;
 	updates: Partial<ITournamentUpdateJSON> = {};
 
