@@ -270,6 +270,8 @@ export class Client {
 							if (database.queuedTournament && room.tournament.format.id === Dex.getExistingFormat(database.queuedTournament.formatid, true).id) delete database.queuedTournament;
 							delete Tournaments.createListeners[room.id];
 						}
+						if (room.tournament.playerCap) room.sayCommand("/tour autostart on");
+						if (Config.tournamentAutoDQTimers && room.id in Config.tournamentAutoDQTimers) room.sayCommand("/tour autodq " + Config.tournamentAutoDQTimers[room.id]);
 						if (Config.displayTournamentFormatInfo && Config.displayTournamentFormatInfo.includes(room.id)) {
 							const formatInfo = Dex.getFormatInfoDisplay(room.tournament.format);
 							if (formatInfo) {

@@ -85,6 +85,11 @@ export let disallowTournamentBattleLinks: string[] = [];
 export let tournamentRoomAdvertisements: Dict<string[]> = {};
 
 /**
+ * The number of minutes to set for the auto DQ timer in tournaments
+ */
+export let tournamentAutoDQTimers: Dict<number> = {};
+
+/**
  * A list of rooms (roomids) where scripted games are allowed to be played
  */
 export let allowScriptedGames: string[] = [];
