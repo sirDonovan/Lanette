@@ -176,9 +176,9 @@ export class Tournament extends Activity {
 		}
 		const singleElimination = !this.isRoundRobin && this.generator === 1;
 		if (!winners.length || !runnersUp.length || (singleElimination && semiFinalists.length < 2)) return;
-		if (((this.format.customRules && Config.rankedCustomTournaments && Config.rankedCustomTournaments.includes(this.room.id)) ||
-			(!this.format.customRules && Config.rankedTournaments && Config.rankedTournaments.includes(this.room.id))) &&
-			!(this.format.unranked && Config.useDefaultUnrankedTournaments && Config.useDefaultUnrankedTournaments.includes(this.room.id))) {
+		if ((this.format.customRules && (!Config.rankedCustomTournaments || !Config.rankedCustomTournaments.includes(this.room.id))) ||
+			(!this.format.customRules && (!Config.rankedTournaments || !Config.rankedTournaments.includes(this.room.id))) ||
+			(this.format.unranked && Config.useDefaultUnrankedTournaments && Config.useDefaultUnrankedTournaments.includes(this.room.id))) {
 			const text = ["runner" + (runnersUp.length > 1 ? "s" : "") + "-up " + Tools.joinList(runnersUp, '**'), "winner" + (winners.length > 1 ? "s" : "") + " " + Tools.joinList(winners, '**')];
 			if (semiFinalists.length) text.unshift("semi-finalist" + (semiFinalists.length > 1 ? "s" : "") + " " + Tools.joinList(semiFinalists, '**'));
 			this.room.say('/wall Congratulations to ' + Tools.joinList(text));
