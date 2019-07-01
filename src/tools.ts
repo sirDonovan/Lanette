@@ -243,7 +243,7 @@ export class Tools {
 	}
 
 	async safeWriteFile(filepath: string, data: string, callback?: () => void) {
-		const tempFilepath = '.~' + filepath;
+		const tempFilepath = filepath + '.temp';
 		// tslint:disable-next-line no-empty
 		await fs.writeFile(tempFilepath, data, () => {});
 		// tslint:disable-next-line no-empty
@@ -252,7 +252,7 @@ export class Tools {
 	}
 
 	safeWriteFileSync(filepath: string, data: string, callback?: () => void) {
-		const tempFilepath = '.~' + filepath;
+		const tempFilepath = filepath + '.temp';
 		fs.writeFileSync(tempFilepath, data);
 		fs.renameSync(tempFilepath, filepath);
 		if (callback) callback();
