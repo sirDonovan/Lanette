@@ -14,6 +14,8 @@ export interface ICommandDefinition<T = undefined> {
 export type CommandsDict<T = undefined> = Dict<Pick<ICommandDefinition<T>, Exclude<keyof ICommandDefinition<T>, "aliases">>>;
 
 export class Command {
+	runningMultipleTargets: boolean | null = null;
+
 	readonly originalCommand: string;
 	readonly pm: boolean;
 	readonly room: Room | User;
@@ -59,6 +61,17 @@ export class Command {
 		}
 		const target = newTarget !== undefined ? newTarget : this.target;
 		Commands[command].command.call(this, target, this.room, this.user, command);
+	}
+
+	runMultipleTargets(delimiter: string) {
+		if (!delimiter) return;
+		const parts = this.target.split(delimiter);
+		const lastMultipleTarget = parts.length - 1;
+		this.runningMultipleTargets = true;
+		for (let i = 0; i < parts.length; i++) {
+			if (i === lastMultipleTarget) this.runningMultipleTargets = false;
+			this.run(this.originalCommand, parts[i].trim());
+		}
 	}
 
 	isPm(room: Room | User): room is User {
