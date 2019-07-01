@@ -180,7 +180,7 @@ const commands: Dict<ICommandDefinition> = {
 				const game = gameRoom.game;
 				let html = (game.mascot ? Dex.getPokemonIcon(game.mascot) : "") + "<b>" + game.nameWithOptions + "</b><br />";
 				if (game.started) {
-					html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - game.startTime) + "<br />";
+					if (game.startTime) html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - game.startTime) + "<br />";
 					const remainingPlayers = game.getRemainingPlayerCount();
 					if (remainingPlayers !== game.playerCount) {
 						html += "<b>Remaining players</b>: " + remainingPlayers + "/" + game.playerCount;
@@ -197,7 +197,7 @@ const commands: Dict<ICommandDefinition> = {
 				let html = (game.mascot ? Dex.getPokemonIcon(game.mascot, true) : "") + "<b>" + game.nameWithOptions + "</b><br />";
 				html += "<b>Remaining time</b>: " + Tools.toDurationString(game.endTime - Date.now()) + "<br />";
 				if (game.started) {
-					html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - game.startTime) + "<br />";
+					if (game.startTime) html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - game.startTime) + "<br />";
 					html += "<b>Players</b>: " + game.getRemainingPlayerCount();
 				} else {
 					html += "<b>Signups duration</b>: " + Tools.toDurationString(Date.now() - game.signupsTime) + "<br />";
@@ -702,7 +702,7 @@ const commands: Dict<ICommandDefinition> = {
 			const tournament = tournamentRoom.tournament;
 			let html = "<b>" + tournament.name + " " + (tournament.isRoundRobin ? "Round Robin " : "") + "tournament</b><br />";
 			if (tournament.started) {
-				html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - tournament.startTime) + "<br />";
+				if (tournament.startTime) html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - tournament.startTime) + "<br />";
 				const remainingPlayers = tournament.getRemainingPlayerCount();
 				if (remainingPlayers !== tournament.totalPlayers) {
 					html += "<b>Remaining players</b>: " + remainingPlayers + "/" + tournament.totalPlayers;

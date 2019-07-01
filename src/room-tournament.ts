@@ -91,7 +91,6 @@ export class Tournament extends Activity {
 	manuallyNamed: boolean = false;
 	originalFormat: string = '';
 	scheduled: boolean = false;
-	startTime: number = 0;
 	totalPlayers: number = 0;
 	updates: Partial<ITournamentUpdateJSON> = {};
 

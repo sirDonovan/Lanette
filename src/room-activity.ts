@@ -46,7 +46,7 @@ export abstract class Activity {
 	showSignupsHtml: boolean = false;
 	signupsHtmlTimeout: NodeJS.Timer | null = null;
 	started: boolean = false;
-	startTime: number = 0;
+	startTime: number | null = null;
 	timeout: NodeJS.Timeout | null = null;
 
 	// set in initialize()
