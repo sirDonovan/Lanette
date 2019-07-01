@@ -385,7 +385,7 @@ export class Games {
 		return room.game;
 	}
 
-	createUserHostedGame(room: Room, format: IUserHostedFormat, host: User): UserHosted {
+	createUserHostedGame(room: Room, format: IUserHostedFormat, host: User | string): UserHosted {
 		room.userHostedGame = new format.class(room);
 		room.userHostedGame.setHost(host);
 		room.userHostedGame.initialize((format as unknown) as IGameFormat);

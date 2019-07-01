@@ -69,6 +69,7 @@ export class Game extends Activity {
 	readonly defaultOptions?: DefaultGameOptions[];
 	isMiniGame?: boolean;
 	mascot?: IPokemonCopy;
+	playerCap?: number;
 	readonly points?: Map<Player, number>;
 	shinyMascot?: boolean;
 	subGameNumber?: number;
@@ -226,7 +227,7 @@ export class Game extends Activity {
 			this.removePlayer(user);
 			return;
 		}
-		const bits = this.addBits(player, 10, true);
+		const bits = this.userHosted ? 0 : this.addBits(player, 10, true);
 		player.say("Thanks for joining the " + this.name + " " + this.activityType + "!" + (bits ? " Have some free bits!" : ""));
 		if (this.getSignupsHtml && this.showSignupsHtml && !this.started && !this.signupsHtmlTimeout) {
 			this.sayUhtml(this.getSignupsHtml(), this.uhtmlBaseName + "-signups");
@@ -234,6 +235,7 @@ export class Game extends Activity {
 				this.signupsHtmlTimeout = null;
 			}, SIGNUPS_HTML_DELAY);
 		}
+		if (!this.started && this.playerCap && this.playerCount >= this.playerCap) this.start();
 		return player;
 	}
 
@@ -339,7 +341,7 @@ export class Game extends Activity {
 	getPlayerPoints(players?: Dict<Player> | Player[] | Map<Player, any>): string[] {
 		return this.getPlayerAttributes(player => {
 			const points = this.points!.get(player) || this.startingPoints;
-			return player.name + " (" + points + ")";
+			return player.name + (points ? " (" + points + ")" : "");
 		}, players);
 	}
 

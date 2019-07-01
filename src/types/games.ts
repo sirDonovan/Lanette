@@ -4,6 +4,8 @@ import { Game } from "../room-game";
 import { Room } from "../rooms";
 import { User } from "../users";
 
+export type GameDifficulty = 'easy' | 'medium' | 'hard';
+
 interface IGameClass<T> {
 	new(room: Room | User, pmRoom?: Room): T;
 	loadData?(room: Room | User): void;

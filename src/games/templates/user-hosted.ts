@@ -11,7 +11,10 @@ export class UserHosted extends Game {
 	hostName: string = '';
 	hostTimeout: NodeJS.Timer | null = null;
 	readonly points = new Map<Player, number>();
+	savedWinners: Player[] | null = null;
 	scoreCap: number = 0;
+	storedMessage: string | null = null;
+	twist: string | null = null;
 	userHosted = true;
 
 	onInitialize() {
@@ -20,9 +23,14 @@ export class UserHosted extends Game {
 		this.uhtmlBaseName = 'userhosted-' + this.id;
 	}
 
-	setHost(host: User) {
-		this.hostId = host.id;
-		this.hostName = host.name;
+	setHost(host: User | string) {
+		if (typeof host === 'string') {
+			this.hostId = Tools.toId(host);
+			this.hostName = host;
+		} else {
+			this.hostId = host.id;
+			this.hostName = host.name;
+		}
 	}
 
 	onDeallocate() {

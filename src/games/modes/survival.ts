@@ -127,7 +127,7 @@ commands.g = {command: commands.guess.command};
 const initialize = (game: Game) => {
 	const mode = new Survival(game);
 	const propertiesToOverride = Object.getOwnPropertyNames(mode).concat(Object.getOwnPropertyNames(Survival.prototype));
-	for (let i = 0, len = propertiesToOverride.length; i < len; i++) {
+	for (let i = 0; i < propertiesToOverride.length; i++) {
 		// @ts-ignore
 		game[propertiesToOverride[i]] = mode[propertiesToOverride[i]];
 	}

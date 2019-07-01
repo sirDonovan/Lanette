@@ -1,3 +1,5 @@
+import { GameDifficulty } from "./types/games";
+
 /**
  * The username used for logging in to PS
  */
@@ -48,11 +50,6 @@ export let allowMail: boolean = true;
 export let developers: string[] = [];
 
 /**
- * A list of rooms (roomids) where scripted games are allowed to be played
- */
-export let allowScriptedGames: string[] = [];
-
-/**
  * A list of rooms (roomids) where tournament features are allowed to be used
  */
 export let allowTournaments: string[] = [];
@@ -86,6 +83,36 @@ export let disallowTournamentBattleLinks: string[] = [];
  * For each room in the object, a list of rooms (roomids) where created tournaments will be advertised
  */
 export let tournamentRoomAdvertisements: Dict<string[]> = {};
+
+/**
+ * A list of rooms (roomids) where scripted games are allowed to be played
+ */
+export let allowScriptedGames: string[] = [];
+
+/**
+ * Difficulties for players in scripted games
+ */
+export let scriptedGameDifficulties: Dict<GameDifficulty> = {};
+
+/**
+ * Difficulties for players in user-hosted games
+ */
+export let userHostedGamePlayerDifficulties: Dict<GameDifficulty> = {};
+
+/**
+ * Difficulties for hosts in user-hosted games
+ */
+export let userHostedGameHostDifficulties: Dict<GameDifficulty> = {};
+
+/**
+ * The maximum number of players that can win a user-hosted game in each specified room
+ */
+export let maxUserHostedGameWinners: Dict<number> = {};
+
+/**
+ * The maximum number of users that can be queued to host a game
+ */
+export let maxQueuedUserHostedGames: Dict<number> = {};
 
 /**
  * A list of rooms (roomids) where messages will not be logged

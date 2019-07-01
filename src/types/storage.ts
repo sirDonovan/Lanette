@@ -14,9 +14,16 @@ interface IOfflineMessage {
 	expired?: boolean;
 }
 
+interface IQueuedUserHostedGame {
+	format: string;
+	id: string;
+	name: string;
+}
+
 export interface IDatabase {
 	lastTournamentTime?: number;
 	leaderboard?: Dict<ILeaderboardEntry>;
 	offlineMessages?: Dict<IOfflineMessage[]>;
 	queuedTournament?: {formatid: string, playerCap: number, scheduled: boolean, time: number};
+	userHostedGameQueue?: IQueuedUserHostedGame[];
 }

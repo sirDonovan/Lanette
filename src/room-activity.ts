@@ -42,7 +42,7 @@ export abstract class Activity {
 	readonly activityType: string = '';
 	readonly createTime: number = Date.now();
 	playerCount: number = 0;
-	readonly players: Dict<Player> = {};
+	players: Dict<Player> = {};
 	showSignupsHtml: boolean = false;
 	signupsHtmlTimeout: NodeJS.Timer | null = null;
 	started: boolean = false;

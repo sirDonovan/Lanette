@@ -20,6 +20,20 @@ for (const i in Config.tournamentRoomAdvertisements) {
 	Config.tournamentRoomAdvertisements[id] = Config.tournamentRoomAdvertisements[i].map(x => Tools.toRoomId(x));
 	if (id !== i) delete Config.tournamentRoomAdvertisements[i];
 }
+for (const i in Config.maxUserHostedGameWinners) {
+	const id = Tools.toRoomId(i);
+	if (id !== i) {
+		Config.maxUserHostedGameWinners[id] = Config.maxUserHostedGameWinners[i];
+		delete Config.maxUserHostedGameWinners[i];
+	}
+}
+for (const i in Config.maxQueuedUserHostedGames) {
+	const id = Tools.toRoomId(i);
+	if (id !== i) {
+		Config.maxQueuedUserHostedGames[id] = Config.maxQueuedUserHostedGames[i];
+		delete Config.maxQueuedUserHostedGames[i];
+	}
+}
 
 import * as client from './client';
 global.Client = new client.Client();
