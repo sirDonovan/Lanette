@@ -159,7 +159,7 @@ const commands: Dict<ICommandDefinition> = {
 			if (room.game) {
 				room.game.removePlayer(user);
 			} else if (room.userHostedGame) {
-				room.userHostedGame.removePlayer(user);
+				room.userHostedGame.destroyPlayer(user);
 			}
 		},
 		aliases: ['lg'],
@@ -338,7 +338,7 @@ const commands: Dict<ICommandDefinition> = {
 				if (room.userHostedGame.players[users[i].id]) {
 					room.userHostedGame.players[users[i].id].eliminated = false;
 				} else {
-					room.userHostedGame.addPlayer(users[i]);
+					room.userHostedGame.createPlayer(users[i]);
 				}
 			}
 			this.say("Added " + Tools.joinList(users.map(x => x.name)) + " to the player list.");
@@ -389,7 +389,9 @@ const commands: Dict<ICommandDefinition> = {
 			}
 			const game = gameRoom.game || gameRoom.userHostedGame;
 			if (!game) return;
-			this.say("Players (" + game.getRemainingPlayerCount() + "): " + game.getPlayerPoints().join(", "));
+			const remainingPlayers = game.getRemainingPlayerCount();
+			if (!remainingPlayers) return this.say("Players: none");
+			this.say("Players (" + remainingPlayers + "): " + game.getPlayerPoints().join(", "));
 		},
 		aliases: ['players', 'pl'],
 	},
@@ -497,7 +499,7 @@ const commands: Dict<ICommandDefinition> = {
 			} else {
 				room.userHostedGame.points.set(room.userHostedGame.players[from.id], fromPoints);
 			}
-			room.userHostedGame.addPlayer(to);
+			room.userHostedGame.createPlayer(to);
 			let toPoints = room.userHostedGame.points.get(room.userHostedGame.players[to.id]) || 0;
 			toPoints += amount;
 			room.userHostedGame.points.set(room.userHostedGame.players[to.id], toPoints);
@@ -668,7 +670,7 @@ const commands: Dict<ICommandDefinition> = {
 
 			for (let i = 0; i < players.length; i++) {
 				Storage.addPoints(room, players[i].name, bits!, 'userhosted');
-				players[i].say("You were awarded " + bits! + "bits! To see your total amount, use this command: ``" + Config.commandCharacter + "rank " + room.title + "``");
+				players[i].say("You were awarded " + bits! + " bits! To see your total amount, use this command: ``" + Config.commandCharacter + "rank " + room.title + "``");
 			}
 			this.say("The winner" + (players.length === 1 ? " is" : "s are") + " " + players.map(x => x.name).join(", ") + "! Thanks for hosting.");
 			room.userHostedGame.end();
@@ -974,7 +976,7 @@ const commands: Dict<ICommandDefinition> = {
 				const user = Users.get(users[i]);
 				if (user) users[i] = user.name;
 				Storage.addPoints(room, users[i], bits, 'manual');
-				if (user && user.rooms.has(room)) user.say("You were awarded " + bits + "bits! To see your total amount, use this command: ``" + Config.commandCharacter + "rank " + room.title + "``");
+				if (user && user.rooms.has(room)) user.say("You were awarded " + bits + " bits! To see your total amount, use this command: ``" + Config.commandCharacter + "rank " + room.title + "``");
 			}
 
 			const userList = Tools.joinList(users);
