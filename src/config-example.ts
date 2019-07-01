@@ -90,6 +90,11 @@ export let tournamentRoomAdvertisements: Dict<string[]> = {};
 export let tournamentAutoDQTimers: Dict<number> = {};
 
 /**
+ * The number of minutes to leave signups open before starting tournaments
+ */
+export let tournamentStartTimers: Dict<number> = {};
+
+/**
  * A list of rooms (roomids) where scripted games are allowed to be played
  */
 export let allowScriptedGames: string[] = [];

@@ -272,6 +272,11 @@ export class Client {
 						}
 						if (room.tournament.playerCap) room.sayCommand("/tour autostart on");
 						if (Config.tournamentAutoDQTimers && room.id in Config.tournamentAutoDQTimers) room.sayCommand("/tour autodq " + Config.tournamentAutoDQTimers[room.id]);
+						if (Config.tournamentStartTimers && room.id in Config.tournamentStartTimers) {
+							let minutes = Config.tournamentStartTimers[room.id];
+							if (room.tournament.scheduled) minutes *= 2;
+							room.tournament.startTimer = setTimeout(() => room.say("/tour start"), minutes * 60 * 1000);
+						}
 						if (Config.displayTournamentFormatInfo && Config.displayTournamentFormatInfo.includes(room.id)) {
 							const formatInfo = Dex.getFormatInfoDisplay(room.tournament.format);
 							if (formatInfo) {
@@ -339,7 +344,10 @@ export class Client {
 				}
 
 				case 'start': {
-					if (room.tournament) room.tournament.start();
+					if (room.tournament) {
+						if (room.tournament.startTimer) clearTimeout(room.tournament.startTimer);
+						room.tournament.start();
+					}
 					break;
 				}
 
