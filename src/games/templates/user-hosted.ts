@@ -7,6 +7,7 @@ const timeLimit = 25 * 60 * 1000;
 
 export class UserHosted extends Game {
 	endTime: number = 0;
+	gameTimer: NodeJS.Timer | null = null;
 	hostId: string = '';
 	hostName: string = '';
 	hostTimeout: NodeJS.Timer | null = null;
@@ -34,6 +35,7 @@ export class UserHosted extends Game {
 	}
 
 	onDeallocate() {
+		if (this.gameTimer) clearTimeout(this.gameTimer);
 		if (this.hostTimeout) clearTimeout(this.hostTimeout);
 	}
 

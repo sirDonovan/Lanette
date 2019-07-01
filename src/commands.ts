@@ -313,6 +313,32 @@ const commands: Dict<ICommandDefinition> = {
 		},
 		aliases: ['unhost'],
 	},
+	gametimer: {
+		command(target, room, user) {
+			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
+			const id = Tools.toId(target);
+			if (id === 'off' || id === 'end') {
+				if (!room.userHostedGame.gameTimer) return this.say("There is no game timer running.");
+				clearTimeout(room.userHostedGame.gameTimer);
+				room.userHostedGame.gameTimer = null;
+				return this.say("The game timer has been turned off.");
+			}
+			let time: number;
+			if (id.length === 1) {
+				time = parseInt(id) * 60;
+			} else {
+				time = parseInt(id);
+			}
+			if (isNaN(time) || time > 600 || time < 15) return this.say("Please enter an amount of time between 15 seconds and 10 minutes.");
+			time *= 1000;
+			room.userHostedGame.gameTimer = setTimeout(() => {
+				room.say("Time's up!");
+				room.userHostedGame!.gameTimer = null;
+			}, time);
+			this.say("Game timer set for: " + Tools.toDurationString(time) + ".");
+		},
+		aliases: ['gtimer'],
+	},
 	playercap: {
 		command(target, room, user) {
 			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
