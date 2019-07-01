@@ -75,6 +75,11 @@ export let useDefaultUnrankedTournaments: string[] = [];
 export let displayTournamentFormatInfo: string[] = [];
 
 /**
+ * A list of rooms (roomids) where scouting in non-random tournaments will not be allowed
+ */
+export let disallowTournamentScouting: string[] = [];
+
+/**
  * A list of rooms (roomids) where links to non-random tournament battles are not allowed to be posted
  */
 export let disallowTournamentBattleLinks: string[] = [];

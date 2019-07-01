@@ -14,6 +14,7 @@ if (Config.rankedTournaments) Config.rankedTournaments = Config.rankedTournament
 if (Config.rankedCustomTournaments) Config.rankedCustomTournaments = Config.rankedCustomTournaments.map(x => Tools.toRoomId(x));
 if (Config.useDefaultUnrankedTournaments) Config.useDefaultUnrankedTournaments = Config.useDefaultUnrankedTournaments.map(x => Tools.toRoomId(x));
 if (Config.displayTournamentFormatInfo) Config.displayTournamentFormatInfo = Config.displayTournamentFormatInfo.map(x => Tools.toRoomId(x));
+if (Config.disallowTournamentScouting) Config.disallowTournamentScouting = Config.disallowTournamentScouting.map(x => Tools.toRoomId(x));
 if (Config.disallowTournamentBattleLinks) Config.disallowTournamentBattleLinks = Config.disallowTournamentBattleLinks.map(x => Tools.toRoomId(x));
 for (const i in Config.tournamentAutoDQTimers) {
 	const id = Tools.toRoomId(i);

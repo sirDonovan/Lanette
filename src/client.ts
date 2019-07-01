@@ -272,6 +272,7 @@ export class Client {
 						}
 						if (room.tournament.playerCap) room.sayCommand("/tour autostart on");
 						if (Config.tournamentAutoDQTimers && room.id in Config.tournamentAutoDQTimers) room.sayCommand("/tour autodq " + Config.tournamentAutoDQTimers[room.id]);
+						if (!room.tournament.format.team && Config.disallowTournamentScouting && Config.disallowTournamentScouting.includes(room.id)) room.sayCommand("/tour scouting disallow");
 						if (Config.tournamentStartTimers && room.id in Config.tournamentStartTimers) {
 							let minutes = Config.tournamentStartTimers[room.id];
 							if (room.tournament.scheduled) minutes *= 2;
