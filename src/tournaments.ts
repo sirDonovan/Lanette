@@ -14,7 +14,6 @@ for (const i in schedules) {
 
 export class Tournaments {
 	createListeners: Dict<{format: IFormat, scheduled: boolean}> = {};
-	readonly defaultPlayerCap: number = 64;
 	readonly defaultCustomRules: Dict<Partial<ISeparatedCustomRules>> = {
 		tournaments: {
 			bans: ['Leppa Berry'],

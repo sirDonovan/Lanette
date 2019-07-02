@@ -895,7 +895,11 @@ const commands: Dict<ICommandDefinition> = {
 			if (room.tournament) return this.say("There is already a tournament in progress in this room.");
 			const format = Dex.getFormat(target);
 			if (!format || !format.tournamentPlayable) return this.say("'" + target + "' is not a valid tournament format.");
-			this.sayCommand("/tour new " + format.name + ", elimination, " + Tournaments.defaultPlayerCap);
+			let playerCap: number = 0;
+			if (Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
+				playerCap = Config.defaultTournamentPlayerCaps[room.id];
+			}
+			this.sayCommand("/tour new " + format.name + ", elimination, " + playerCap);
 		},
 		aliases: ['createtour', 'ct'],
 	},
@@ -971,15 +975,15 @@ const commands: Dict<ICommandDefinition> = {
 			}
 			if (!format) return this.say("'" + targets[0].trim() + "' is not a valid format.");
 			if (!format.tournamentPlayable) return this.say(format.name + " cannot be played in tournaments.");
-			let playerCap: number;
+			let playerCap: number = 0;
 			if (scheduled) {
 				playerCap = Tournaments.maxPlayerCap;
 			} else if (targets.length > 1) {
 				playerCap = parseInt(targets[1]);
 				if (isNaN(playerCap) || playerCap < 2) return this.say("You must specify a valid number for the player cap.");
 				if (playerCap > Tournaments.maxPlayerCap) return this.say("You must specify a player cap less than " + Tournaments.maxPlayerCap + ".");
-			} else {
-				playerCap = Tournaments.defaultPlayerCap;
+			} else if (Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
+				playerCap = Config.defaultTournamentPlayerCaps[room.id];
 			}
 
 			let time: number = 0;

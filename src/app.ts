@@ -30,6 +30,13 @@ for (const i in Config.tournamentStartTimers) {
 		delete Config.tournamentStartTimers[i];
 	}
 }
+for (const i in Config.defaultTournamentPlayerCaps) {
+	const id = Tools.toRoomId(i);
+	if (id !== i) {
+		Config.defaultTournamentPlayerCaps[id] = Config.defaultTournamentPlayerCaps[i];
+		delete Config.defaultTournamentPlayerCaps[i];
+	}
+}
 for (const i in Config.tournamentRoomAdvertisements) {
 	const id = Tools.toRoomId(i);
 	Config.tournamentRoomAdvertisements[id] = Config.tournamentRoomAdvertisements[i].map(x => Tools.toRoomId(x));

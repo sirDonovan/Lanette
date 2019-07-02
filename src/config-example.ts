@@ -70,6 +70,11 @@ export let rankedCustomTournaments: string[] = [];
 export let useDefaultUnrankedTournaments: string[] = [];
 
 /**
+ * The default player caps to use when creating tournaments
+ */
+export let defaultTournamentPlayerCaps: Dict<number> = {};
+
+/**
  * A list of rooms (roomids) where information and links about tournament formats will be displayed
  */
 export let displayTournamentFormatInfo: string[] = [];
