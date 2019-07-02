@@ -314,6 +314,19 @@ const commands: Dict<ICommandDefinition> = {
 		},
 		aliases: ['unhost'],
 	},
+	randompick: {
+		command(target, room, user) {
+			if (!this.isPm(room) && !user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id)) return;
+			const choices: string[] = [];
+			const targets = target.split(',');
+			for (let i = 0; i < targets.length; i++) {
+				if (Tools.toId(targets[i])) choices.push(targets[i].trim());
+			}
+			if (choices.length < 2) return this.say("You must specify at least 2 choices.");
+			this.say("**Random pick:** " + Tools.sampleOne(choices));
+		},
+		aliases: ['rpick'],
+	},
 	gametimer: {
 		command(target, room, user) {
 			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
