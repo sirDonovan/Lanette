@@ -4,6 +4,7 @@ import { Game } from "../room-game";
 import { Room } from "../rooms";
 import { User } from "../users";
 
+type BattleFrontierCategory = "Knowledge" | "Puzzle" | "Identification" | "Speed" | "Reaction" | "Skill" | "Luck" | "TBD";
 export type GameDifficulty = 'easy' | 'medium' | 'hard';
 
 interface IGameClass<T> {
@@ -12,6 +13,7 @@ interface IGameClass<T> {
 }
 
 export interface IGameFile<T extends Game = Game> {
+	readonly battleFrontierCategory: BattleFrontierCategory;
 	readonly class: IGameClass<T>;
 	readonly description: string;
 	readonly name: string;

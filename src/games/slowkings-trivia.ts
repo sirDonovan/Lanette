@@ -91,12 +91,13 @@ class SlowkingsTrivia extends Guessing implements GuessingAbstract {
 
 export const game: IGameFile<SlowkingsTrivia> = {
 	aliases: ['slowkings', 'triv'],
+	battleFrontierCategory: 'Knowledge',
 	class: SlowkingsTrivia,
 	commandDescriptions,
 	commands: Object.assign({}, templateCommands),
 	description: "Players use the given descriptions (Pokemon related) to guess the answers!",
-	freejoin: true,
 	formerNames: ["Trivia"],
+	freejoin: true,
 	name: "Slowking's Trivia",
 	mascot: "Slowking",
 	minigameCommand: 'trivium',
