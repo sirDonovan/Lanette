@@ -677,29 +677,47 @@ const commands: Dict<ICommandDefinition> = {
 			if (savedWinners) players = players.concat(savedWinners);
 			if (!players.length) return this.say(autoWin ? "No one has any points in this game." : "Please specify at least 1 player.");
 
-			let difficulty: GameDifficulty;
+			let playerDifficulty: GameDifficulty;
 			if (Config.userHostedGamePlayerDifficulties && room.userHostedGame.format.id in Config.userHostedGamePlayerDifficulties) {
-				difficulty = Config.userHostedGamePlayerDifficulties[room.userHostedGame.format.id];
+				playerDifficulty = Config.userHostedGamePlayerDifficulties[room.userHostedGame.format.id];
 			} else if (Config.scriptedGameDifficulties && room.userHostedGame.format.id in Config.scriptedGameDifficulties) {
-				difficulty = Config.scriptedGameDifficulties[room.userHostedGame.format.id];
+				playerDifficulty = Config.scriptedGameDifficulties[room.userHostedGame.format.id];
 			} else {
-				difficulty = 'medium';
+				playerDifficulty = 'medium';
 			}
 
-			let bits: number;
-			if (difficulty === 'easy') {
-				bits = 300;
-			} else if (difficulty === 'medium') {
-				bits = 400;
-			} else if (difficulty === 'hard') {
-				bits = 500;
+			let playerBits: number;
+			if (playerDifficulty === 'easy') {
+				playerBits = 300;
+			} else if (playerDifficulty === 'medium') {
+				playerBits = 400;
+			} else if (playerDifficulty === 'hard') {
+				playerBits = 500;
 			}
 
 			for (let i = 0; i < players.length; i++) {
-				Storage.addPoints(room, players[i].name, bits!, 'userhosted');
-				players[i].say("You were awarded " + bits! + " bits! To see your total amount, use this command: ``" + Config.commandCharacter + "rank " + room.title + "``");
+				Storage.addPoints(room, players[i].name, playerBits!, 'userhosted');
+				players[i].say("You were awarded " + playerBits! + " bits! To see your total amount, use this command: ``" + Config.commandCharacter + "rank " + room.title + "``");
 			}
-			this.say("The winner" + (players.length === 1 ? " is" : "s are") + " " + players.map(x => x.name).join(", ") + "! Thanks for hosting.");
+			this.say("The winner" + (players.length === 1 ? " is" : "s are") + " " + players.map(x => x.name).join(", ") + "!");
+
+			let hostDifficulty: GameDifficulty;
+			if (Config.userHostedGameHostDifficulties && room.userHostedGame.format.id in Config.userHostedGameHostDifficulties) {
+				hostDifficulty = Config.userHostedGameHostDifficulties[room.userHostedGame.format.id];
+			} else {
+				hostDifficulty = 'medium';
+			}
+
+			let hostBits: number;
+			if (hostDifficulty === 'easy') {
+				hostBits = 300;
+			} else if (hostDifficulty === 'medium') {
+				hostBits = 400;
+			} else if (hostDifficulty === 'hard') {
+				hostBits = 500;
+			}
+			Storage.addPoints(room, user.name, hostBits!, 'userhosted');
+			user.say("You were awarded " + hostBits! + " bits! To see your total amount, use this command: ``" + Config.commandCharacter + "rank " + room.title + "``. Thanks for your efforts, we hope you host again soon!");
 			room.userHostedGame.end();
 		},
 		aliases: ['autowin', 'win'],
