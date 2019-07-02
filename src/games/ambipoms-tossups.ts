@@ -12,7 +12,6 @@ const data: Dict<string[]> = {
 	"Pokemon Moves": [],
 };
 const categories = Object.keys(data);
-const questions: Dict<string[]> = {};
 let loadedData = false;
 
 class AmbipomsTossups extends Guessing implements GuessingAbstract {
@@ -24,10 +23,6 @@ class AmbipomsTossups extends Guessing implements GuessingAbstract {
 		data["Pokemon Abilities"] = Dex.getAbilitiesList().map(x => x.name);
 		data["Pokemon Items"] = Dex.getItemsList().map(x => x.name);
 		data["Pokemon Moves"] = Dex.getMovesList().map(x => x.name);
-
-		for (let i = 0; i < categories.length; i++) {
-			questions[categories[i]] = Object.keys(data[categories[i]]);
-		}
 
 		loadedData = true;
 	}
@@ -122,4 +117,25 @@ export const game: IGameFile<AmbipomsTossups> = {
 	mascot: "Ambipom",
 	minigameCommand: 'tossup',
 	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess an answer as blanks are filled in (only one guess allowed) !",
+	variants: [
+		{
+			name: "Ambipom's Pokemon Tossups",
+			variant: "Pokemon",
+		},
+		{
+			name: "Ambipom's Ability Tossups",
+			variant: "Pokemon Abilities",
+			variantAliases: ['ability', 'abilities'],
+		},
+		{
+			name: "Ambipom's Item Tossups",
+			variant: "Pokemon Items",
+			variantAliases: ['item', 'items'],
+		},
+		{
+			name: "Ambipom's Move Tossups",
+			variant: "Pokemon Moves",
+			variantAliases: ['move', 'moves'],
+		},
+	],
 };

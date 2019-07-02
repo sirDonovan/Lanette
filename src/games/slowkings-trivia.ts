@@ -65,7 +65,7 @@ class SlowkingsTrivia extends Guessing implements GuessingAbstract {
 		const category = this.roundCategory || this.variant || Tools.sampleOne(categories);
 		const question = Tools.sampleOne(questions[category]);
 		this.answers = data[category][question];
-		this.hint = "**" + category + "**: " + question;
+		this.hint = "[**" + category + "**] " + question;
 	}
 
 	onNextRound() {
