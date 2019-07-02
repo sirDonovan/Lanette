@@ -358,7 +358,7 @@ const commands: Dict<ICommandDefinition> = {
 			} else {
 				time = parseInt(id);
 			}
-			if (isNaN(time) || time > 600 || time < 15) return this.say("Please enter an amount of time between 15 seconds and 10 minutes.");
+			if (isNaN(time) || time > 600 || time < 5) return this.say("Please enter an amount of time between 5 seconds and 10 minutes.");
 			time *= 1000;
 			room.userHostedGame.gameTimer = setTimeout(() => {
 				room.say("Time's up!");
