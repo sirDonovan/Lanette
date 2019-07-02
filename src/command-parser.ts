@@ -91,7 +91,7 @@ export class CommandParser {
 	loadCommands<T = undefined>(commands: Dict<ICommandDefinition<T>>): CommandsDict<T> {
 		const dict: CommandsDict<T> = {};
 		for (const i in commands) {
-			const command = commands[i];
+			const command = Object.assign({}, commands[i]);
 			if (command.chatOnly && command.pmOnly) throw new Error(i + " cannot be both a chat-only and a pm-only command");
 			if (command.chatOnly && command.pmGameCommand) throw new Error(i + " cannot be both a chat-only and a pm game command");
 			if (command.aliases) {
