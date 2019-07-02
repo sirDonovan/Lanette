@@ -160,7 +160,9 @@ const commands: Dict<ICommandDefinition> = {
 			if (room.game) {
 				room.game.removePlayer(user);
 			} else if (room.userHostedGame) {
+				if (!(user.id in room.userHostedGame.players) || room.userHostedGame.players[user.id].eliminated) return;
 				room.userHostedGame.destroyPlayer(user);
+				user.say("You have left the " + room.userHostedGame.name + " " + room.userHostedGame.activityType + ".");
 			}
 		},
 		aliases: ['lg'],
@@ -1164,15 +1166,19 @@ const commands: Dict<ICommandDefinition> = {
 			for (let i = 0; i < users.length; i++) {
 				const user = Users.get(users[i]);
 				if (user) users[i] = user.name;
-				Storage.addPoints(room, users[i], bits, 'manual');
-				if (user && user.rooms.has(room)) user.say("You were awarded " + bits + " bits! To see your total amount, use this command: ``" + Config.commandCharacter + "rank " + room.title + "``");
+				if (removeBits) {
+					Storage.removePoints(room, users[i], bits, 'manual');
+				} else {
+					Storage.addPoints(room, users[i], bits, 'manual');
+					if (user && user.rooms.has(room)) user.say("You were awarded " + bits + " bits! To see your total amount, use this command: ``" + Config.commandCharacter + "rank " + room.title + "``");
+				}
 			}
 
 			const userList = Tools.joinList(users);
 			if (removeBits) {
-				this.say("Removed " + bits + " from " + userList + ".");
+				this.say("Removed " + bits + " bits from " + userList + ".");
 			} else {
-				this.say("Added " + bits + " for " + userList + ".");
+				this.say("Added " + bits + " bits for " + userList + ".");
 			}
 		},
 		aliases: ['abits', 'removebits', 'rbits'],
