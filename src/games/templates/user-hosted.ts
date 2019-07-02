@@ -59,22 +59,8 @@ export const game: IUserHostedFile<UserHosted> = {
 	class: UserHosted,
 	formats: [
 		{
-			name: "Abra's Ability Switch",
-			mascot: "Abra",
-			aliases: ['AAS', 'abras'],
-			description: "Players switch to Pokemon that have the chosen abilities for Abra to Role Play!",
-			freejoin: true,
-		},
-		{
 			name: "Acrotopia",
 			description: "Each round, players earn points by coming up with creative interpretations of an acronym chosen by the host",
-			freejoin: true,
-		},
-		{
-			name: "Ambipom's Tossups",
-			mascot: "Ambipom",
-			aliases: ['Tossups', 'Ambipoms'],
-			description: "Similar to Hangman, the host starts with a series of blank spaces which represent the word. Instead of players guessing letters, the host will start to fill in blank spaces with letters. Players have to be the first to guess the complete words to gain points.",
 			freejoin: true,
 		},
 		{
@@ -330,13 +316,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			mascot: "Metagross",
 			aliases: ['mmm', 'metagrosssmindmash'],
 			description: "Players answer riddles within the time limit to survive each round!",
-			freejoin: true,
-		},
-		{
-			name: "Metang's Anagrams",
-			mascot: "Metang",
-			aliases: ['Anagrams', 'Metangs', 'anags'],
-			description: "Players unscramble letters to reveal the answers!",
 			freejoin: true,
 		},
 		{
