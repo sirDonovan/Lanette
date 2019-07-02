@@ -2,6 +2,14 @@
  * Hours are in the same timezone as wherever Lanette is running
  */
 const schedules: Dict<{months: Dict<Dict<string>>, times: [number, number][]}> = {
+	'nfe': {
+		months: {
+			'7': {
+				'daily': 'gen7nu@@@-NU,-PU,-PUBL,-Type: Null,-Vigoroth,-Drought,+Clefairy,+Ferroseed,+Haunter,+Roselia,+Tangela',
+			},
+		},
+		times: [[10, 0], [15, 0], [20, 0]],
+	},
 	'tournaments': {
 		months: {
 			'7': {
