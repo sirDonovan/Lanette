@@ -1,3 +1,4 @@
+import child_process = require('child_process');
 import path = require('path');
 import { ICommandDefinition } from "./command-parser";
 import { tagNames } from './dex';
@@ -23,6 +24,18 @@ const commands: Dict<ICommandDefinition> = {
 			}
 		},
 		aliases: ['js'],
+		developerOnly: true,
+	},
+	gitpull: {
+		command(target, room, user) {
+			child_process.exec('git pull', {}, err => {
+				if (err) {
+					this.say("An error occurred while running ``git pull``: " + err.message);
+				} else {
+					this.say("Successfully ran ``git pull``.");
+				}
+			});
+		},
 		developerOnly: true,
 	},
 	reload: {
