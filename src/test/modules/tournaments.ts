@@ -6,6 +6,10 @@ describe("Tournaments", () => {
 		for (const room in Tournaments.schedules) {
 			const schedule = Tournaments.schedules[room];
 			for (const month in schedule.months) {
+				if (schedule.months[month]['daily']) {
+					assert(Dex.validateFormat(schedule.months[month]['daily']));
+					continue;
+				}
 				let validated = 0;
 				const errors: string[] = [];
 				let totalDays = 0;

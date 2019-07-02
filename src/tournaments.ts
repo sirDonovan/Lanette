@@ -97,7 +97,7 @@ export class Tournaments {
 			date.setHours(schedule.times[0][0] + 24, schedule.times[0][1], 0, 0);
 			nextScheduledTime = date.getTime();
 		}
-		const format = Dex.getExistingFormat(schedule.months[month][day], true);
+		const format = Dex.getExistingFormat(schedule.months[month]['daily'] || schedule.months[month][day], true);
 		this.scheduledTournaments[room.id] = {format, time: nextScheduledTime};
 		this.setScheduledTournamentTimer(room);
 	}
@@ -133,7 +133,7 @@ export class Tournaments {
 			html += "<td>&nbsp;</td>";
 		}
 		for (let i = 1; i < lastDay; i++) {
-			html += "<td style='padding: 4px'><b>" + i + "</b> - " + Dex.getCustomFormatName(room, Dex.getExistingFormat(schedule.months[month][i]), true) + "</td>";
+			html += "<td style='padding: 4px'><b>" + i + "</b> - " + Dex.getCustomFormatName(room, Dex.getExistingFormat(schedule.months[month]['daily'] || schedule.months[month][i]), true) + "</td>";
 			currentDay++;
 			if (currentDay === 7) {
 				html += "</tr><tr>";
