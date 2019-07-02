@@ -100,12 +100,14 @@ export class Room {
 	}
 
 	onHtml(html: string, listener: () => void) {
+		if (Users.self.group !== Client.groupSymbols.bot) html += '<div style="float:right;color:#888;font-size:8pt">[' + Users.self.name + ']</div><div style="clear:both"></div>';
 		this.htmlMessageListeners[Tools.toId(html)] = listener;
 	}
 
 	onUhtml(name: string, html: string, listener: () => void) {
 		const id = Tools.toId(name);
 		if (!this.uhtmlMessageListeners[id]) this.uhtmlMessageListeners[id] = {};
+		if (Users.self.group !== Client.groupSymbols.bot) html += '<div style="float:right;color:#888;font-size:8pt">[' + Users.self.name + ']</div><div style="clear:both"></div>';
 		this.uhtmlMessageListeners[id][Tools.toId(html)] = listener;
 	}
 }

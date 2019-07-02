@@ -47,6 +47,7 @@ export class User {
 
 	onHtml(html: string, listener: () => void) {
 		if (!this.htmlMessageListeners) this.htmlMessageListeners = {};
+		if (global.Users.self.group !== Client.groupSymbols.bot) html += '<div style="float:right;color:#888;font-size:8pt">[' + global.Users.self.name + ']</div><div style="clear:both"></div>';
 		this.htmlMessageListeners[Tools.toId(html)] = listener;
 	}
 
@@ -54,6 +55,7 @@ export class User {
 		const id = Tools.toId(name);
 		if (!this.uhtmlMessageListeners) this.uhtmlMessageListeners = {};
 		if (!this.uhtmlMessageListeners[id]) this.uhtmlMessageListeners[id] = {};
+		if (global.Users.self.group !== Client.groupSymbols.bot) html += '<div style="float:right;color:#888;font-size:8pt">[' + global.Users.self.name + ']</div><div style="clear:both"></div>';
 		this.uhtmlMessageListeners[id][Tools.toId(html)] = listener;
 	}
 }
