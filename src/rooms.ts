@@ -13,11 +13,9 @@ export class Room {
 	readonly htmlMessageListeners: Dict<() => void> = {};
 	readonly messageListeners: Dict<() => void> = {};
 	modchat: string = 'off';
-	pmUhtmlNames: Dict<string[]> = {};
 	tournament: Tournament | null = null;
 	userHostedGame: UserHosted | null = null;
 	readonly uhtmlMessageListeners: Dict<Dict<() => void>> = {};
-	uhtmlNames: string[] = [];
 	readonly users = new Set<User>();
 
 	readonly id: string;
@@ -68,8 +66,6 @@ export class Room {
 	}
 
 	sayUhtml(uhtmlName: string, html: string) {
-		if (this.uhtmlNames.includes(uhtmlName)) return this.sayUhtmlChange(uhtmlName, html);
-		this.uhtmlNames.push(uhtmlName);
 		this.say("/adduhtml " + uhtmlName + ", " + html, true);
 	}
 
@@ -82,12 +78,6 @@ export class Room {
 	}
 
 	pmUhtml(user: User | Player, uhtmlName: string, html: string) {
-		if (user.id in this.pmUhtmlNames) {
-			if (this.pmUhtmlNames[user.id].includes(uhtmlName)) return this.pmUhtmlChange(user, uhtmlName, html);
-		} else {
-			this.pmUhtmlNames[user.id] = [];
-		}
-		this.pmUhtmlNames[user.id].push(uhtmlName);
 		this.say("/pmuhtml " + user.id + "," + uhtmlName + "," + html, true);
 	}
 

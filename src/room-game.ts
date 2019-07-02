@@ -230,7 +230,7 @@ export class Game extends Activity {
 		const bits = this.userHosted ? 0 : this.addBits(player, 10, true);
 		player.say("Thanks for joining the " + this.name + " " + this.activityType + "!" + (bits ? " Have some free bits!" : ""));
 		if (this.getSignupsHtml && this.showSignupsHtml && !this.started && !this.signupsHtmlTimeout) {
-			this.sayUhtml(this.getSignupsHtml(), this.uhtmlBaseName + "-signups");
+			this.sayUhtmlChange(this.getSignupsHtml(), this.uhtmlBaseName + "-signups");
 			this.signupsHtmlTimeout = setTimeout(() => {
 				this.signupsHtmlTimeout = null;
 			}, SIGNUPS_HTML_DELAY);
@@ -247,7 +247,7 @@ export class Game extends Activity {
 		this.removeBits(player, 10, true);
 		player.say("You have left the " + this.name + " " + this.activityType + ".");
 		if (this.getSignupsHtml && this.showSignupsHtml && !this.started && !this.signupsHtmlTimeout) {
-			this.sayUhtml(this.getSignupsHtml(), this.uhtmlBaseName + "-signups");
+			this.sayUhtmlChange(this.getSignupsHtml(), this.uhtmlBaseName + "-signups");
 			this.signupsHtmlTimeout = setTimeout(() => {
 				this.signupsHtmlTimeout = null;
 			}, SIGNUPS_HTML_DELAY);

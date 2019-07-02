@@ -36,6 +36,10 @@ export class Player {
 	sayUhtml(html: string, name?: string) {
 		this.activity.pmRoom.pmUhtml(this, name || this.activity.uhtmlBaseName, html);
 	}
+
+	sayUhtmlChange(html: string, name?: string) {
+		this.activity.pmRoom.pmUhtmlChange(this, name || this.activity.uhtmlBaseName, html);
+	}
 }
 
 export abstract class Activity {
@@ -104,7 +108,7 @@ export abstract class Activity {
 	start() {
 		this.started = true;
 		this.startTime = Date.now();
-		if (this.getSignupsHtml && this.showSignupsHtml) this.sayUhtml(this.getSignupsHtml(), this.uhtmlBaseName + "-signups");
+		if (this.getSignupsHtml && this.showSignupsHtml) this.sayUhtmlChange(this.getSignupsHtml(), this.uhtmlBaseName + "-signups");
 		if (this.onStart) this.onStart();
 	}
 
@@ -127,6 +131,12 @@ export abstract class Activity {
 		const uhtmlName = name || this.uhtmlBaseName;
 		if (this.isPm(this.room)) return this.pmRoom.pmUhtml(this.room, uhtmlName, html);
 		this.room.sayUhtml(uhtmlName, html);
+	}
+
+	sayUhtmlChange(html: string, name?: string) {
+		const uhtmlName = name || this.uhtmlBaseName;
+		if (this.isPm(this.room)) return this.pmRoom.pmUhtmlChange(this.room, uhtmlName, html);
+		this.room.sayUhtmlChange(uhtmlName, html);
 	}
 
 	on(message: string, listener: () => any) {
