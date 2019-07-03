@@ -1005,7 +1005,7 @@ const commands: Dict<ICommandDefinition> = {
 			if (!format.tournamentPlayable) return this.say(format.name + " cannot be played in tournaments.");
 			let playerCap: number = 0;
 			if (scheduled) {
-				playerCap = Tournaments.maxPlayerCap;
+				if (Config.scheduledTournamentsMaxPlayerCap && Config.scheduledTournamentsMaxPlayerCap.includes(room.id)) playerCap = Tournaments.maxPlayerCap;
 			} else if (targets.length > 1) {
 				playerCap = parseInt(targets[1]);
 				if (isNaN(playerCap) || playerCap < 2) return this.say("You must specify a valid number for the player cap.");
