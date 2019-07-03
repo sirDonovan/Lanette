@@ -147,7 +147,7 @@ export class Client {
 
 	onConnect() {
 		if (this.connectionTimeout) clearTimeout(this.connectionTimeout);
-		console.log('Successfully connected to server ' + this.serverId);
+		console.log('Successfully connected');
 		Dex.fetchClientData();
 	}
 
@@ -158,6 +158,7 @@ export class Client {
 			method: 'GET',
 		};
 
+		console.log("Attempting to connect to the server " + this.server + "...");
 		https.get(options, response => {
 			response.setEncoding('utf8');
 			let data = '';
@@ -168,7 +169,8 @@ export class Client {
 				const configData = data.split('var config = ')[1];
 				if (configData) {
 					let config = JSON.parse(configData.split(';')[0]);
-					if (typeof config === 'string') config = JSON.parse(config); // encoded twice by the server
+					// the config is potentially encoded twice by the server
+					if (typeof config === 'string') config = JSON.parse(config);
 					if (config.host) {
 						if (config.id) this.serverId = config.id;
 						this.client.connect('ws://' + (config.host === 'showdown' ? 'sim.smogon.com' : config.host) + ':' + (config.port || 8000) + '/showdown/websocket');
@@ -189,16 +191,19 @@ export class Client {
 		Users.removeAll();
 
 		this.connectionAttempts = 0;
+		this.loggedIn = false;
 		this.connect();
 	}
 
 	onMessage(websocketMessage: websocket.IMessage) {
 		if (websocketMessage.type !== 'utf8' || !websocketMessage.utf8Data) return;
 		const lines = websocketMessage.utf8Data.split("\n");
-		let room = Rooms.add('lobby');
+		let room: Room;
 		if (lines[0].charAt(0) === '>') {
 			room = Rooms.add(lines[0].substr(1));
 			lines.shift();
+		} else {
+			room = Rooms.add('lobby');
 		}
 		for (let i = 0; i < lines.length; i++) {
 			if (!lines[i]) continue;

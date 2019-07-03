@@ -116,6 +116,7 @@ export class Rooms {
 	}
 
 	remove(room: Room) {
+		if (room === this.globalRoom) return;
 		room.deInit();
 		delete this.rooms[room.id];
 	}
