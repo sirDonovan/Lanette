@@ -77,7 +77,7 @@ class EkansEdges extends Guessing implements GuessingAbstract {
 		while (edge === this.lastEdge) {
 			edge = Tools.sampleOne(dataKeys[category]);
 		}
-		this.answers = [edge];
+		this.answers = data[category][edge];
 		this.hint = "[**" + category + "**] " + edge;
 	}
 
