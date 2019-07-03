@@ -832,7 +832,11 @@ export class Dex {
 			}
 			if (!isNaN(index) && index <= omotms.length) id = omotms[index - 1];
 		}
-		if (!this.data.formats.hasOwnProperty(id)) return null;
+		if (!this.data.formats.hasOwnProperty(id)) {
+			const currentGenId = currentGen + id;
+			if (this.data.formats.hasOwnProperty(currentGenId)) return this.getFormat(currentGenId, isTrusted);
+			return null;
+		}
 
 		const formatData = this.data.formats[id]!;
 		const maxLevel = formatData.maxLevel || 100;
