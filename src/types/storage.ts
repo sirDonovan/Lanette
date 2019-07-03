@@ -24,6 +24,7 @@ export interface IDatabase {
 	lastTournamentTime?: number;
 	leaderboard?: Dict<ILeaderboardEntry>;
 	offlineMessages?: Dict<IOfflineMessage[]>;
+	pastTournaments?: string[];
 	queuedTournament?: {formatid: string, playerCap: number, scheduled: boolean, time: number};
 	userHostedGameQueue?: IQueuedUserHostedGame[];
 }

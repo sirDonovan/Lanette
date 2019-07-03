@@ -1077,6 +1077,26 @@ const commands: Dict<ICommandDefinition> = {
 		},
 		aliases: ['queuedtour', 'nexttournament', 'nexttour'],
 	},
+	pasttournaments: {
+		command(target, room, user) {
+			let tournamentRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.get(Tools.toId(target));
+				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.say("Tournament features are not enabled for " + targetRoom.title + ".");
+				tournamentRoom = targetRoom;
+			} else {
+				if (!user.hasRank(room, 'voice')) return;
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.say("Tournament features are not enabled for this room.");
+				tournamentRoom = room;
+			}
+
+			const database = Storage.getDatabase(tournamentRoom);
+			if (!database.pastTournaments) return this.say("The past tournament list is empty.");
+			this.say("**Past tournaments** (most recent first): " + Tools.joinList(database.pastTournaments) + ".");
+		},
+		aliases: ['pasttours', 'recenttournaments', 'recenttours'],
+	},
 	format: {
 		command(target, room, user) {
 			let pmRoom: Room;

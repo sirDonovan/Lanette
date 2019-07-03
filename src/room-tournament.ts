@@ -138,6 +138,12 @@ export class Tournament extends Activity {
 	}
 
 	onEnd() {
+		const database = Storage.getDatabase(this.room);
+		if (!database.pastTournaments) database.pastTournaments = [];
+		database.pastTournaments.unshift(this.format.name);
+		while (database.pastTournaments.length > 8) {
+			database.pastTournaments.pop();
+		}
 		let winners: string[] = [];
 		let runnersUp: string[] = [];
 		let semiFinalists: string[] = [];
