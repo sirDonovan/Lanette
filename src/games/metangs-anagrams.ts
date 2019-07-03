@@ -91,10 +91,6 @@ export const game: IGameFile<MetangsAnagrams> = {
 	modes: ["survival"],
 	variants: [
 		{
-			name: "Metangs's Pokemon Anagrams",
-			variant: "Pokemon",
-		},
-		{
 			name: "Metangs's Ability Anagrams",
 			variant: "Pokemon Abilities",
 			variantAliases: ['ability', 'abilities'],
@@ -108,6 +104,10 @@ export const game: IGameFile<MetangsAnagrams> = {
 			name: "Metangs's Move Anagrams",
 			variant: "Pokemon Moves",
 			variantAliases: ['move', 'moves'],
+		},
+		{
+			name: "Metangs's Pokemon Anagrams",
+			variant: "Pokemon",
 		},
 	],
 };

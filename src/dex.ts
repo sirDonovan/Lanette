@@ -555,7 +555,7 @@ export class Dex {
 		const abilities: IAbility[] = [];
 		for (const i in this.data.abilities) {
 			const ability = this.getExistingAbility(i);
-			if (ability.isNonstandard || (filterAbility && filterAbility(ability))) continue;
+			if (!ability.name || ability.isNonstandard || (filterAbility && filterAbility(ability))) continue;
 			abilities.push(ability);
 		}
 		return abilities;
@@ -624,7 +624,7 @@ export class Dex {
 		const items: IItem[] = [];
 		for (const i in this.data.items) {
 			const item = this.getExistingItem(i);
-			if (item.isNonstandard || (filterItem && filterItem(item))) continue;
+			if (!item.name || item.isNonstandard || (filterItem && filterItem(item))) continue;
 			items.push(item);
 		}
 		return items;
@@ -691,7 +691,7 @@ export class Dex {
 		const moves: IMove[] = [];
 		for (const i in this.data.moves) {
 			const move = this.getExistingMove(i);
-			if (move.isNonstandard || (filterMove && filterMove(move))) continue;
+			if (!move.name || move.isNonstandard || (filterMove && filterMove(move))) continue;
 			moves.push(move);
 		}
 		return moves;
@@ -791,7 +791,7 @@ export class Dex {
 		const pokedex: IPokemon[] = [];
 		for (const i in this.data.pokedex) {
 			const pokemon = this.getExistingPokemon(i);
-			if (pokemon.isNonstandard || (filterPokemon && filterPokemon(pokemon))) continue;
+			if (!pokemon.species || pokemon.isNonstandard || (filterPokemon && filterPokemon(pokemon))) continue;
 			pokedex.push(pokemon);
 		}
 		return pokedex;
