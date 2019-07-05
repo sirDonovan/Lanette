@@ -540,7 +540,7 @@ export class Client {
 		case 'J': {
 			const messageArguments: IClientMessageTypes['join'] = {
 				rank: messageParts[0].charAt(0),
-				usernameText: messageParts[0].substr(1),
+				usernameText: messageParts[0].substr(1).split('@')[0],
 			};
 			const {away, status, username} = Tools.parseUsernameText(messageArguments.usernameText);
 			const user = Users.add(username);
@@ -564,7 +564,7 @@ export class Client {
 		case 'L': {
 			const messageArguments: IClientMessageTypes['leave'] = {
 				rank: messageParts[0].charAt(0),
-				usernameText: messageParts[0].substr(1),
+				usernameText: messageParts[0].substr(1).split('@')[0],
 			};
 			const {away, status, username} = Tools.parseUsernameText(messageArguments.usernameText);
 			const user = Users.add(username);
@@ -591,7 +591,7 @@ export class Client {
 		case 'N': {
 			const messageArguments: IClientMessageTypes['name'] = {
 				rank: messageParts[0].charAt(0),
-				usernameText: messageParts[0].substr(1),
+				usernameText: messageParts[0].substr(1).split('@')[0],
 				oldId: messageParts[1],
 			};
 			const {away, status, username} = Tools.parseUsernameText(messageArguments.usernameText);
