@@ -512,7 +512,7 @@ export class Client {
 				const users = messageArguments.userlist.split(",");
 				for (let i = 1; i < users.length; i++) {
 					const rank = users[i].charAt(0);
-					const {away, status, username} = Tools.parseUsernameText(users[i].substr(1));
+					const {away, status, username} = Tools.parseUsernameText(users[i].substr(1).split('@')[0]);
 					const user = Users.add(username);
 					room.users.add(user);
 					if (status || user.status) user.status = status;
