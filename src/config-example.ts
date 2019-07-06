@@ -30,6 +30,11 @@ export let reconnectTime = 60 * 1000;
 export let rooms: string[] = [];
 
 /**
+ * Room aliases that can be used with user input
+ */
+export let roomAliases: Dict<string> = {};
+
+/**
  * The avatar code to use after logging in
  */
 export let avatar = '';

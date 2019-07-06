@@ -158,7 +158,7 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			if (this.isPm(room)) {
 				if (!target) return;
-				const chatRoom = Rooms.get(target);
+				const chatRoom = Rooms.search(Tools.toRoomId(target));
 				if (!chatRoom) return;
 				if (chatRoom.game) {
 					chatRoom.game.addPlayer(user);
@@ -192,7 +192,7 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			let gameRoom: Room;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.get(Tools.toId(target));
+				const targetRoom = Rooms.search(Tools.toRoomId(target));
 				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
 				if (!this.canPmHtml(targetRoom)) return;
 				gameRoom = targetRoom;
@@ -291,7 +291,7 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			let gameRoom: Room;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.get(Tools.toId(target));
+				const targetRoom = Rooms.search(Tools.toId(target));
 				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
 				gameRoom = targetRoom;
 			} else {
@@ -443,7 +443,7 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			let gameRoom: Room;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.get(Tools.toId(target));
+				const targetRoom = Rooms.search(Tools.toId(target));
 				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s room.");
 				gameRoom = targetRoom;
 			} else {
@@ -609,7 +609,7 @@ const commands: Dict<ICommandDefinition> = {
 			let gameRoom: Room;
 			let isPm = false;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.get(Tools.toId(target));
+				const targetRoom = Rooms.search(Tools.toId(target));
 				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
 				gameRoom = targetRoom;
 				isPm = true;
@@ -894,7 +894,7 @@ const commands: Dict<ICommandDefinition> = {
 			const targets: string[] = target ? target.split(",") : [];
 			let tournamentRoom: Room;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.get(Tools.toId(targets[0]));
+				const targetRoom = Rooms.search(Tools.toId(targets[0]));
 				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.say("Tournament features are not enabled for " + targetRoom.title + ".");
 				if (!this.canPmHtml(targetRoom)) return;
@@ -944,7 +944,7 @@ const commands: Dict<ICommandDefinition> = {
 			const targets: string[] = target ? target.split(",") : [];
 			let tournamentRoom: Room;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.get(Tools.toId(targets[0]));
+				const targetRoom = Rooms.search(Tools.toId(targets[0]));
 				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.say("Tournament features are not enabled for " + targetRoom.title + ".");
 				if (!this.canPmHtml(targetRoom)) return;
@@ -976,7 +976,7 @@ const commands: Dict<ICommandDefinition> = {
 			const targets: string[] = target ? target.split(",") : [];
 			let tournamentRoom: Room;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.get(Tools.toId(targets[0]));
+				const targetRoom = Rooms.search(Tools.toId(targets[0]));
 				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
 				if (!user.hasRank(targetRoom, 'moderator')) return;
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.say("Tournament features are not enabled for " + targetRoom.title + ".");
@@ -1053,7 +1053,7 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			let tournamentRoom: Room;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.get(Tools.toId(target));
+				const targetRoom = Rooms.search(Tools.toId(target));
 				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.say("Tournament features are not enabled for " + targetRoom.title + ".");
 				if (!this.canPmHtml(targetRoom)) return;
@@ -1089,7 +1089,7 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			let tournamentRoom: Room;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.get(Tools.toId(target));
+				const targetRoom = Rooms.search(Tools.toId(target));
 				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.say("Tournament features are not enabled for " + targetRoom.title + ".");
 				tournamentRoom = targetRoom;
@@ -1229,7 +1229,7 @@ const commands: Dict<ICommandDefinition> = {
 			const targets: string[] = target ? target.split(",") : [];
 			let leaderboardRoom: Room;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.get(Tools.toId(targets[0]));
+				const targetRoom = Rooms.search(Tools.toId(targets[0]));
 				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
 				leaderboardRoom = targetRoom;
 			} else {
@@ -1324,7 +1324,7 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			if (!this.isPm(room)) return;
 			const targets: string[] = target ? target.split(',') : [];
-			const targetRoom = Rooms.get(Tools.toId(targets[0]));
+			const targetRoom = Rooms.search(Tools.toId(targets[0]));
 			if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
 			const database = Storage.getDatabase(targetRoom);
 			if (!database.leaderboard) return this.say("There is no leaderboard for the " + targetRoom.title + " room.");
@@ -1416,7 +1416,7 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			if (!this.isPm(room)) return;
 			const targets: string[] = target ? target.split(",") : [];
-			const targetRoom = Rooms.get(Tools.toId(targets[0]));
+			const targetRoom = Rooms.search(Tools.toId(targets[0]));
 			if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
 			if (!user.isDeveloper() && !user.hasRank(targetRoom, 'roomowner')) return;
 			const source = targets[1].trim();

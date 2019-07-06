@@ -111,8 +111,10 @@ export class Rooms {
 		return this.rooms[id];
 	}
 
-	get(id: string): Room | undefined {
-		return this.rooms[id];
+	search(input: string): Room | undefined {
+		let id = Tools.toRoomId(input);
+		if (Config.roomAliases && !(id in this.rooms) && Config.roomAliases[id]) id = Config.roomAliases[id];
+		return this.get(id);
 	}
 
 	remove(room: Room) {
@@ -125,5 +127,9 @@ export class Rooms {
 		for (const i in this.rooms) {
 			this.remove(this.rooms[i]);
 		}
+	}
+
+	private get(id: string): Room | undefined {
+		return this.rooms[id];
 	}
 }

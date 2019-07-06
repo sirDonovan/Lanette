@@ -17,6 +17,11 @@ if (Config.scheduledTournamentsMaxPlayerCap) Config.scheduledTournamentsMaxPlaye
 if (Config.displayTournamentFormatInfo) Config.displayTournamentFormatInfo = Config.displayTournamentFormatInfo.map(x => Tools.toRoomId(x));
 if (Config.disallowTournamentScouting) Config.disallowTournamentScouting = Config.disallowTournamentScouting.map(x => Tools.toRoomId(x));
 if (Config.disallowTournamentBattleLinks) Config.disallowTournamentBattleLinks = Config.disallowTournamentBattleLinks.map(x => Tools.toRoomId(x));
+for (const i in Config.roomAliases) {
+	const id = Tools.toRoomId(i);
+	Config.roomAliases[id] = Tools.toRoomId(Config.roomAliases[i]);
+	if (id !== i) delete Config.roomAliases[i];
+}
 for (const i in Config.tournamentAutoDQTimers) {
 	const id = Tools.toRoomId(i);
 	if (id !== i) {

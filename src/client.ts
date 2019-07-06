@@ -299,7 +299,7 @@ export class Client {
 						}
 						if (Config.tournamentRoomAdvertisements && room.id in Config.tournamentRoomAdvertisements) {
 							for (let i = 0; i < Config.tournamentRoomAdvertisements[room.id].length; i++) {
-								const advertisementRoom = Rooms.get(Config.tournamentRoomAdvertisements[room.id][i]);
+								const advertisementRoom = Rooms.search(Config.tournamentRoomAdvertisements[room.id][i]);
 								if (advertisementRoom) advertisementRoom.sayHtml('<a href="/' + room.id + '" class="ilink"><strong>' + room.tournament.name + '</strong> tournament created in <strong>' + room.title + '</strong>.</a>');
 							}
 						}
@@ -470,7 +470,7 @@ export class Client {
 			if (messageParts[0] === 'roominfo') {
 				if (messageArguments.response && messageArguments.response !== 'null') {
 					const response = JSON.parse(messageArguments.response) as IRoomInfoResponse;
-					const room = Rooms.get(response.id);
+					const room = Rooms.search(response.id);
 					if (room) room.onRoomInfoResponse(response);
 				}
 			} else if (messageParts[0] === 'userdetails') {
@@ -708,7 +708,7 @@ export class Client {
 				const roomId = subMessage.substr(0, colonIndex);
 				subMessage = subMessage.substr(colonIndex + 2);
 				if (subMessage) {
-					const room = Rooms.get(roomId);
+					const room = Rooms.search(roomId);
 					if (room) room.bannedWords = subMessage.split(', ');
 				}
 			}
