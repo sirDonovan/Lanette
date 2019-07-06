@@ -213,6 +213,18 @@ export class Game extends Activity {
 	end() {
 		if (this.timeout) clearTimeout(this.timeout);
 		if (this.onEnd) this.onEnd();
+
+		if (!this.isMiniGame && !this.parentGame) {
+			const now = Date.now();
+			Games.lastGames[this.room.id] = now;
+			if (this.isUserHosted) {
+				Games.lastUserHostedGames[this.room.id] = now;
+			} else {
+				Games.lastScriptedGames[this.room.id] = now;
+			}
+
+			if (Config.gameCooldownTimers && this.room.id in Config.gameCooldownTimers) this.say("Game cooldown of " + Config.gameCooldownTimers[this.room.id] + " minutes has started!");
+		}
 		this.deallocate();
 	}
 

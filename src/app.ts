@@ -49,6 +49,13 @@ for (const i in Config.tournamentRoomAdvertisements) {
 	Config.tournamentRoomAdvertisements[id] = Config.tournamentRoomAdvertisements[i].map(x => Tools.toRoomId(x));
 	if (id !== i) delete Config.tournamentRoomAdvertisements[i];
 }
+for (const i in Config.gameCooldownTimers) {
+	const id = Tools.toRoomId(i);
+	if (id !== i) {
+		Config.gameCooldownTimers[id] = Config.gameCooldownTimers[i];
+		delete Config.gameCooldownTimers[i];
+	}
+}
 for (const i in Config.maxUserHostedGameWinners) {
 	const id = Tools.toRoomId(i);
 	if (id !== i) {

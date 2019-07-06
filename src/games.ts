@@ -12,11 +12,14 @@ const userHosted = require(path.join(gamesDirectory, "templates", "user-hosted.j
 
 export class Games {
 	readonly aliasesCache: Dict<string> = {};
-	commandNames: string[] = Object.keys(commands);
+	readonly commandNames: string[] = Object.keys(commands);
 	readonly commands = commands;
 	readonly formatsCache: Dict<IGameFileComputed> = {};
+	lastGames: Dict<number> = {};
+	lastScriptedGames: Dict<number> = {};
+	lastUserHostedGames: Dict<number> = {};
 	loadedFormats: boolean = false;
-	minigameCommandNames: Dict<string> = {};
+	readonly minigameCommandNames: Dict<string> = {};
 	readonly modesCache: Dict<IGameMode> = {};
 	readonly userHostedAliasesCache: Dict<string> = {};
 	readonly userHostedFormatsCache: Dict<IUserHostedComputed> = {};
@@ -44,6 +47,12 @@ export class Games {
 	get userHostedFormats(): Dict<IUserHostedComputed> {
 		if (!this.loadedFormats) this.loadFormats();
 		return this.userHostedFormatsCache;
+	}
+
+	onReload(previous: Games) {
+		this.lastGames = previous.lastGames;
+		this.lastScriptedGames = previous.lastScriptedGames;
+		this.lastUserHostedGames = previous.lastUserHostedGames;
 	}
 
 	loadFormats() {
@@ -218,7 +227,7 @@ export class Games {
 						});
 						if (!pmRoom) return this.say("You must be in a room that has enabled scripted games and where " + Users.self.name + " has Bot rank (*).");
 					} else {
-						if (!global.Games.canCreateScriptedGame(room, user)) return;
+						if (room.game || room.userHostedGame || !global.Games.canCreateScriptedGame(room, user)) return;
 					}
 					const format = global.Games.getFormat(formatName + (target ? "," + target : ""), user);
 					if (!format) return;
@@ -365,16 +374,61 @@ export class Games {
 		return Object.assign({}, formatData, formatComputed);
 	}
 
-	canCreateScriptedGame(room: Room, user: User): boolean {
-		if (!user.hasRank(room, 'voice') || room.game || room.userHostedGame) return false;
+	getRemainingGameCooldown(room: Room, isMinigame?: boolean): number {
+		if (Config.gameCooldownTimers && room.id in Config.gameCooldownTimers && room.id in this.lastGames) {
+			const now = Date.now();
+			let cooldown = Config.gameCooldownTimers[room.id] * 60 * 1000;
+			if (isMinigame) cooldown /= 2;
+			return cooldown - (now - this.lastGames[room.id]);
+		}
+		return 0;
+	}
+
+	canCreateScriptedGame(room: Room, user: User, isMinigame?: boolean): boolean {
+		if (!user.hasRank(room, 'voice')) return false;
 		if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) {
 			room.say("Scripted games are not enabled for this room.");
 			return false;
 		}
+
 		if (!Users.self.hasRank(room, 'bot')) {
 			room.say(Users.self.name + " requires Bot rank (*) to host scripted games.");
 			return false;
 		}
+
+		const remainingGameCooldown = this.getRemainingGameCooldown(room, isMinigame);
+		if (remainingGameCooldown > 0) {
+			room.say("There are still " + Tools.toDurationString(remainingGameCooldown) + " of the game cooldown remaining.");
+			return false;
+		}
+
+		return true;
+	}
+
+	canCreateUserHostedGame(room: Room, user: User): boolean {
+		if (!user.hasRank(room, 'voice')) return false;
+		if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id)) {
+			room.say("User-hosted games are not enabled for this room.");
+			return false;
+		}
+
+		if (!Users.self.hasRank(room, 'bot')) {
+			room.say(Users.self.name + " requires Bot rank (*) to start user-hosted games.");
+			return false;
+		}
+
+		const remainingGameCooldown = this.getRemainingGameCooldown(room);
+		if (remainingGameCooldown > 0) {
+			room.say("There are still " + Tools.toDurationString(remainingGameCooldown) + " of the game cooldown remaining.");
+			return false;
+		}
+
+		if (Config.disallowRepeatUserHostedGames && Config.disallowRepeatUserHostedGames.includes(room.id) && this.lastUserHostedGames[room.id] &&
+			(!this.lastScriptedGames[room.id] || this.lastUserHostedGames[room.id] > this.lastScriptedGames[room.id])) {
+			room.say("At least 1 scripted game needs to be played before the next user-hosted game can start.");
+			return false;
+		}
+
 		return true;
 	}
 

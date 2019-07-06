@@ -117,7 +117,7 @@ const commands: Dict<ICommandDefinition> = {
 	 */
 	creategame: {
 		command(target, room, user) {
-			if (this.isPm(room) || !Games.canCreateScriptedGame(room, user)) return;
+			if (this.isPm(room) || room.game || room.userHostedGame || !Games.canCreateScriptedGame(room, user)) return;
 			const format = Games.getFormat(target, user);
 			if (!format) return;
 			const game = Games.createGame(room, format);
@@ -235,9 +235,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	host: {
 		command(target, room, user) {
-			if (this.isPm(room) || !user.hasRank(room, 'voice')) return;
-			if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id)) return this.say("User-hosted games are not enabled for this room.");
-			if (!Users.self.hasRank(room, 'bot')) return this.say(Users.self.name + " requires Bot rank (*) to start user-hosted games.");
+			if (this.isPm(room) || !user.hasRank(room, 'voice') || !Games.canCreateUserHostedGame(room, user)) return;
 			const targets = target.split(",");
 			const host = Users.get(targets[0]);
 			if (!host || !host.rooms.has(room)) return this.say("Please specify a user currently in this room.");
@@ -275,12 +273,12 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	nexthost: {
 		command(target, room, user) {
-			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
+			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame || !Games.canCreateUserHostedGame(room, user)) return;
 			const database = Storage.getDatabase(room);
 			if (!database.userHostedGameQueue || !database.userHostedGameQueue.length) return this.say("The host queue is empty.");
 			const nextHost = database.userHostedGameQueue[0];
 			const format = Games.getUserHostedFormat(nextHost.format, user);
-			if (!format) return;
+			if (!format) return this.say("'" + nextHost.format + "' is no longer a valid user-hosted format.");
 			database.userHostedGameQueue.shift();
 			const game = Games.createUserHostedGame(room, format, nextHost.name);
 			game.signups();

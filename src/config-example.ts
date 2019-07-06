@@ -125,6 +125,16 @@ export let allowScriptedGames: string[] = [];
 export let allowUserHostedGames: string[] = [];
 
 /**
+ * A list of rooms (roomids) where games cannot be hosted back-to-back
+ */
+export let disallowRepeatUserHostedGames: string[] = [];
+
+/**
+ * The number of minutes that must pass before starting consecutive scripted or user-hosted games
+ */
+export let gameCooldownTimers: Dict<number> = {};
+
+/**
  * Difficulties for players in scripted games
  */
 export let scriptedGameDifficulties: Dict<GameDifficulty> = {};
