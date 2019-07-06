@@ -217,7 +217,7 @@ export class Game extends Activity {
 		if (!this.isMiniGame && !this.parentGame) {
 			const now = Date.now();
 			Games.lastGames[this.room.id] = now;
-			if (this.isUserHosted) {
+			if (this.userHosted) {
 				Games.lastUserHostedGames[this.room.id] = now;
 			} else {
 				Games.lastScriptedGames[this.room.id] = now;

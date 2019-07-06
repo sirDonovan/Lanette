@@ -423,8 +423,8 @@ export class Games {
 			return false;
 		}
 
-		if (Config.disallowRepeatUserHostedGames && Config.disallowRepeatUserHostedGames.includes(room.id) && this.lastUserHostedGames[room.id] &&
-			(!this.lastScriptedGames[room.id] || this.lastUserHostedGames[room.id] > this.lastScriptedGames[room.id])) {
+		if (Config.disallowRepeatUserHostedGames && Config.disallowRepeatUserHostedGames.includes(room.id) && room.id in this.lastUserHostedGames &&
+			(!(room.id in this.lastScriptedGames) || this.lastUserHostedGames[room.id] > this.lastScriptedGames[room.id])) {
 			room.say("At least 1 scripted game needs to be played before the next user-hosted game can start.");
 			return false;
 		}
