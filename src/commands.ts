@@ -127,12 +127,12 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	startgame: {
 		command(target, room, user) {
-			if (this.isPm(room) || !user.hasRank(room, 'voice')) return;
+			if (this.isPm(room)) return;
 			if (room.game) {
-				if (room.game.started) return;
+				if (!user.hasRank(room, 'voice') || room.game.started) return;
 				room.game.start();
 			} else if (room.userHostedGame) {
-				if (user.id !== room.userHostedGame.hostId) return;
+				if (user.id !== room.userHostedGame.hostId || room.userHostedGame.started) return;
 				room.userHostedGame.start();
 			}
 		},
@@ -454,7 +454,7 @@ const commands: Dict<ICommandDefinition> = {
 			if (!game) return;
 			const remainingPlayers = game.getRemainingPlayerCount();
 			if (!remainingPlayers) return this.say("Players: none");
-			this.say("Players (" + remainingPlayers + "): " + game.getPlayerPoints().join(", "));
+			this.say("**Players (" + remainingPlayers + ")**: " + game.getPlayerPoints().join(", "));
 		},
 		aliases: ['players', 'pl'],
 	},
@@ -473,6 +473,7 @@ const commands: Dict<ICommandDefinition> = {
 	addpoints: {
 		command(target, room, user, cmd) {
 			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
+			if (!room.userHostedGame.started) return this.say("You must first start the game with ``" + Config.commandCharacter + "startgame``.");
 			if (target.includes("|")) {
 				this.runMultipleTargets("|");
 				return;
@@ -516,6 +517,7 @@ const commands: Dict<ICommandDefinition> = {
 	addpointall: {
 		command(target, room, user, cmd) {
 			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
+			if (!room.userHostedGame.started) return this.say("You must first start the game with ``" + Config.commandCharacter + "startgame``.");
 			if (target && !Tools.isNumber(target)) return this.say("You must specify a valid number of points.");
 			this.runningMultipleTargets = true;
 			const newCmd = cmd === 'aptall' || cmd === 'addpointall' ? 'addpoint' : 'removepoint';
@@ -731,6 +733,8 @@ const commands: Dict<ICommandDefinition> = {
 				playerBits = 500;
 			}
 
+			if (room.userHostedGame.shinyMascot) playerBits! *= 2;
+
 			for (let i = 0; i < players.length; i++) {
 				Storage.addPoints(room, players[i].name, playerBits!, 'userhosted');
 				players[i].say("You were awarded " + playerBits! + " bits! To see your total amount, use this command: ``" + Config.commandCharacter + "rank " + room.title + "``");
@@ -752,6 +756,7 @@ const commands: Dict<ICommandDefinition> = {
 			} else if (hostDifficulty === 'hard') {
 				hostBits = 500;
 			}
+			if (room.userHostedGame.shinyMascot) hostBits! *= 2;
 			Storage.addPoints(room, user.name, hostBits!, 'userhosted');
 			user.say("You were awarded " + hostBits! + " bits! To see your total amount, use this command: ``" + Config.commandCharacter + "rank " + room.title + "``. Thanks for your efforts, we hope you host again soon!");
 			room.userHostedGame.end();
