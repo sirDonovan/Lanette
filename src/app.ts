@@ -8,6 +8,7 @@ global.Config = config;
 if (Config.rooms) Config.rooms = Config.rooms.map(x => Tools.toRoomId(x));
 if (Config.developers) Config.developers = Config.developers.map(x => Tools.toId(x));
 if (Config.allowScriptedGames) Config.allowScriptedGames = Config.allowScriptedGames.map(x => Tools.toRoomId(x));
+if (Config.allowUserHostedGames) Config.allowUserHostedGames = Config.allowUserHostedGames.map(x => Tools.toRoomId(x));
 if (Config.disallowChatLogging) Config.disallowChatLogging = Config.disallowChatLogging.map(x => Tools.toRoomId(x));
 if (Config.allowTournaments) Config.allowTournaments = Config.allowTournaments.map(x => Tools.toRoomId(x));
 if (Config.rankedTournaments) Config.rankedTournaments = Config.rankedTournaments.map(x => Tools.toRoomId(x));

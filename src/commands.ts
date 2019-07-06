@@ -117,7 +117,7 @@ const commands: Dict<ICommandDefinition> = {
 	 */
 	creategame: {
 		command(target, room, user) {
-			if (this.isPm(room) || !Games.canCreateGame(room, user)) return;
+			if (this.isPm(room) || !Games.canCreateScriptedGame(room, user)) return;
 			const format = Games.getFormat(target, user);
 			if (!format) return;
 			const game = Games.createGame(room, format);
@@ -236,7 +236,7 @@ const commands: Dict<ICommandDefinition> = {
 	host: {
 		command(target, room, user) {
 			if (this.isPm(room) || !user.hasRank(room, 'voice')) return;
-			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) return this.say("Scripted games are not enabled for this room.");
+			if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id)) return this.say("User-hosted games are not enabled for this room.");
 			if (!Users.self.hasRank(room, 'bot')) return this.say(Users.self.name + " requires Bot rank (*) to start user-hosted games.");
 			const targets = target.split(",");
 			const host = Users.get(targets[0]);
@@ -1171,7 +1171,8 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	addbits: {
 		command(target, room, user, cmd) {
-			if (this.isPm(room) || !Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id) || !user.hasRank(room, 'voice')) return;
+			if (this.isPm(room) || ((!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) && (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id))) ||
+				!user.hasRank(room, 'voice')) return;
 			if (target.includes("|")) {
 				this.runMultipleTargets("|");
 				return;
@@ -1357,7 +1358,7 @@ const commands: Dict<ICommandDefinition> = {
 
 			if (targetUser && position) return this.say("You can't specify both a username and a position.");
 
-			const bits = Config.allowScriptedGames && Config.allowScriptedGames.includes(targetRoom.id);
+			const bits = (Config.allowScriptedGames && Config.allowScriptedGames.includes(targetRoom.id)) || (Config.allowUserHostedGames && Config.allowUserHostedGames.includes(targetRoom.id));
 			const currentPointsCache: Dict<number> = {};
 			const annualPointsCache: Dict<number> = {};
 			if (source) {

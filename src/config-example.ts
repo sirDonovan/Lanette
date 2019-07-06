@@ -120,6 +120,11 @@ export let tournamentStartTimers: Dict<number> = {};
 export let allowScriptedGames: string[] = [];
 
 /**
+ * A list of rooms (roomids) where games are allowed to be hosted
+ */
+export let allowUserHostedGames: string[] = [];
+
+/**
  * Difficulties for players in scripted games
  */
 export let scriptedGameDifficulties: Dict<GameDifficulty> = {};
