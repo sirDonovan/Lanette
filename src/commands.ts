@@ -62,36 +62,44 @@ const commands: Dict<ICommandDefinition> = {
 					if (modules[i] === 'client') {
 						const oldClient = global.Client;
 						Tools.uncacheTree('./client');
-						global.Client = new (require('./client').Client)();
+						const client: typeof import('./client') = require('./client');
+						global.Client = new client.Client();
 						Client.onReload(oldClient);
 					} else if (modules[i] === 'commandparser') {
 						Tools.uncacheTree('./command-parser');
-						global.CommandParser = new (require('./command-parser').CommandParser)();
+						const commandParser: typeof import('./command-parser') = require('./command-parser');
+						global.CommandParser = new commandParser.CommandParser();
 					} else if (modules[i] === 'commands') {
 						Tools.uncacheTree('./commands');
 						global.Commands = Object.assign(Object.create(null), CommandParser.loadCommands(require('./commands')));
 						if (Games.loadedFormats) Games.loadFormatCommands();
 					} else if (modules[i] === 'config') {
 						Tools.uncacheTree('./config');
-						global.Config = require('./config');
+						const config: typeof import('./config') = require('./config');
+						global.Config = config;
 					} else if (modules[i] === 'dex') {
 						Tools.uncacheTree('./dex');
-						global.Dex = new (require('./dex').Dex)('base');
+						const dex: typeof import('./dex') = require('./dex');
+						global.Dex = new dex.Dex('base');
 					} else if (modules[i] === 'games') {
 						Tools.uncacheTree('./games');
-						global.Games = new (require('./games').Games)();
+						const games: typeof import('./games') = require('./games');
+						global.Games = new games.Games();
 					} else if (modules[i] === 'storage') {
 						const oldStorage = global.Storage;
 						Tools.uncacheTree('./storage');
-						global.Storage = new (require('./storage').Storage)();
+						const storage: typeof import('./storage') = require('./storage');
+						global.Storage = new storage.Storage();
 						Storage.onReload(oldStorage);
 					} else if (modules[i] === 'tools') {
 						Tools.uncacheTree('./tools');
-						global.Tools = new (require('./tools').Tools)();
+						const tools: typeof import('./tools') = require('./tools');
+						global.Tools = new tools.Tools();
 					} else if (modules[i] === 'tournaments') {
 						const oldTournaments = global.Tournaments;
 						Tools.uncacheTree('./tournaments');
-						global.Tournaments = new (require('./tournaments').Tournaments)();
+						const tournaments: typeof import('./tournaments') = require('./tournaments');
+						global.Tournaments = new tournaments.Tournaments();
 						Tournaments.onReload(oldTournaments);
 					}
 				}
