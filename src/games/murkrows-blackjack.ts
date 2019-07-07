@@ -20,7 +20,7 @@ class MurkrowsBlackjack extends PlayingCard {
 	readonly maxHandTotal: number = 21;
 	readonly roundActions = new Set<Player>();
 	readonly roundLimit: number = 20;
-	readonly wagerLimit: number = 300;
+	readonly wagerLimit: number = Math.floor((this.maxBits / this.maxBlackjackGames) / 2);
 	readonly wagers = new Map<Player, number>();
 
 	dealersTopCard!: IPlayingCard;
