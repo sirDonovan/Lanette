@@ -118,6 +118,11 @@ const commands: Dict<ICommandDefinition> = {
 	creategame: {
 		command(target, room, user) {
 			if (this.isPm(room) || room.game || room.userHostedGame || !Games.canCreateScriptedGame(room, user)) return;
+			const remainingGameCooldown = Games.getRemainingGameCooldown(room);
+			if (remainingGameCooldown > 0) {
+				this.say("There are still " + Tools.toDurationString(remainingGameCooldown) + " of the game cooldown remaining.");
+				return;
+			}
 			const format = Games.getFormat(target, user);
 			if (!format) return;
 			const game = Games.createGame(room, format);
@@ -242,7 +247,9 @@ const commands: Dict<ICommandDefinition> = {
 			targets.shift();
 			const format = Games.getUserHostedFormat(targets.join(","), user);
 			if (!format) return;
-			if (room.game || room.userHostedGame) {
+			const remainingGameCooldown = Games.getRemainingGameCooldown(room);
+			const inCooldown = remainingGameCooldown > 0;
+			if (room.game || room.userHostedGame || inCooldown) {
 				const database = Storage.getDatabase(room);
 				if (database.userHostedGameQueue) {
 					for (let i = 0; i < database.userHostedGameQueue.length; i++) {
@@ -263,7 +270,7 @@ const commands: Dict<ICommandDefinition> = {
 					id: host.id,
 					name: host.name,
 				});
-				this.say(host.name + " was added to the host queue.");
+				this.say((inCooldown ? "There are still " + Tools.toDurationString(remainingGameCooldown) + " of the game cooldown remaining so " : "") + host.name + " was added to the host queue.");
 				Storage.exportDatabase(room.id);
 				return;
 			}
@@ -276,6 +283,11 @@ const commands: Dict<ICommandDefinition> = {
 			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame || !Games.canCreateUserHostedGame(room, user)) return;
 			const database = Storage.getDatabase(room);
 			if (!database.userHostedGameQueue || !database.userHostedGameQueue.length) return this.say("The host queue is empty.");
+			const remainingGameCooldown = Games.getRemainingGameCooldown(room);
+			if (remainingGameCooldown > 0) {
+				this.say("There are still " + Tools.toDurationString(remainingGameCooldown) + " of the game cooldown remaining.");
+				return;
+			}
 			const nextHost = database.userHostedGameQueue[0];
 			const format = Games.getUserHostedFormat(nextHost.format, user);
 			if (!format) return this.say("'" + nextHost.format + "' is no longer a valid user-hosted format.");

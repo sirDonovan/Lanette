@@ -228,6 +228,11 @@ export class Games {
 						if (!pmRoom) return this.say("You must be in a room that has enabled scripted games and where " + Users.self.name + " has Bot rank (*).");
 					} else {
 						if (room.game || room.userHostedGame || !global.Games.canCreateScriptedGame(room, user)) return;
+						const remainingGameCooldown = global.Games.getRemainingGameCooldown(room, true);
+						if (remainingGameCooldown > 0) {
+							this.say("There are still " + Tools.toDurationString(remainingGameCooldown) + " of the minigame cooldown remaining.");
+							return;
+						}
 					}
 					const format = global.Games.getFormat(formatName + (target ? "," + target : ""), user);
 					if (!format) return;
@@ -384,7 +389,7 @@ export class Games {
 		return 0;
 	}
 
-	canCreateScriptedGame(room: Room, user: User, isMinigame?: boolean): boolean {
+	canCreateScriptedGame(room: Room, user: User): boolean {
 		if (!user.hasRank(room, 'voice')) return false;
 		if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) {
 			room.say("Scripted games are not enabled for this room.");
@@ -393,12 +398,6 @@ export class Games {
 
 		if (!Users.self.hasRank(room, 'bot')) {
 			room.say(Users.self.name + " requires Bot rank (*) to host scripted games.");
-			return false;
-		}
-
-		const remainingGameCooldown = this.getRemainingGameCooldown(room, isMinigame);
-		if (remainingGameCooldown > 0) {
-			room.say("There are still " + Tools.toDurationString(remainingGameCooldown) + " of the game cooldown remaining.");
 			return false;
 		}
 
@@ -414,12 +413,6 @@ export class Games {
 
 		if (!Users.self.hasRank(room, 'bot')) {
 			room.say(Users.self.name + " requires Bot rank (*) to start user-hosted games.");
-			return false;
-		}
-
-		const remainingGameCooldown = this.getRemainingGameCooldown(room);
-		if (remainingGameCooldown > 0) {
-			room.say("There are still " + Tools.toDurationString(remainingGameCooldown) + " of the game cooldown remaining.");
 			return false;
 		}
 

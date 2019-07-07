@@ -223,7 +223,9 @@ export class Game extends Activity {
 				Games.lastScriptedGames[this.room.id] = now;
 			}
 
-			if (Config.gameCooldownTimers && this.room.id in Config.gameCooldownTimers) this.say("Game cooldown of " + Config.gameCooldownTimers[this.room.id] + " minutes has started!");
+			if (Config.gameCooldownTimers && this.room.id in Config.gameCooldownTimers) {
+				this.say("Game cooldown of " + Config.gameCooldownTimers[this.room.id] + " minutes has started! Minigames can be played in " + (Config.gameCooldownTimers[this.room.id] / 2) + " minutes.");
+			}
 		}
 		this.deallocate();
 	}
