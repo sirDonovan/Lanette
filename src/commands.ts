@@ -249,7 +249,8 @@ const commands: Dict<ICommandDefinition> = {
 			if (!format) return;
 			const remainingGameCooldown = Games.getRemainingGameCooldown(room);
 			const inCooldown = remainingGameCooldown > 0;
-			if (room.game || room.userHostedGame || inCooldown) {
+			const requiresScriptedGame = Games.requiresScriptedGame(room);
+			if (room.game || room.userHostedGame || inCooldown || requiresScriptedGame) {
 				const database = Storage.getDatabase(room);
 				if (database.userHostedGameQueue) {
 					for (let i = 0; i < database.userHostedGameQueue.length; i++) {
@@ -270,7 +271,13 @@ const commands: Dict<ICommandDefinition> = {
 					id: host.id,
 					name: host.name,
 				});
-				this.say((inCooldown ? "There are still " + Tools.toDurationString(remainingGameCooldown) + " of the game cooldown remaining so " : "") + host.name + " was added to the host queue.");
+				let reason = '';
+				if (inCooldown) {
+					reason = "There are still " + Tools.toDurationString(remainingGameCooldown) + " of the game cooldown remaining";
+				} else if (requiresScriptedGame) {
+					reason = "At least 1 scripted game needs to be played before the next user-hosted game can start";
+				}
+				this.say((reason ? reason + " so " : "") + host.name + " was added to the host queue.");
 				Storage.exportDatabase(room.id);
 				return;
 			}
@@ -281,6 +288,10 @@ const commands: Dict<ICommandDefinition> = {
 	nexthost: {
 		command(target, room, user) {
 			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame || !Games.canCreateUserHostedGame(room, user)) return;
+			if (Games.requiresScriptedGame(room)) {
+				this.say("At least 1 scripted game needs to be played before the next user-hosted game can start.");
+				return;
+			}
 			const database = Storage.getDatabase(room);
 			if (!database.userHostedGameQueue || !database.userHostedGameQueue.length) return this.say("The host queue is empty.");
 			const remainingGameCooldown = Games.getRemainingGameCooldown(room);

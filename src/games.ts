@@ -389,6 +389,14 @@ export class Games {
 		return 0;
 	}
 
+	requiresScriptedGame(room: Room): boolean {
+		if (Config.disallowRepeatUserHostedGames && Config.disallowRepeatUserHostedGames.includes(room.id) && room.id in this.lastUserHostedGames &&
+			(!(room.id in this.lastScriptedGames) || this.lastUserHostedGames[room.id] > this.lastScriptedGames[room.id])) {
+			return true;
+		}
+		return false;
+	}
+
 	canCreateScriptedGame(room: Room, user: User): boolean {
 		if (!user.hasRank(room, 'voice')) return false;
 		if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) {
@@ -413,12 +421,6 @@ export class Games {
 
 		if (!Users.self.hasRank(room, 'bot')) {
 			room.say(Users.self.name + " requires Bot rank (*) to start user-hosted games.");
-			return false;
-		}
-
-		if (Config.disallowRepeatUserHostedGames && Config.disallowRepeatUserHostedGames.includes(room.id) && room.id in this.lastUserHostedGames &&
-			(!(room.id in this.lastScriptedGames) || this.lastUserHostedGames[room.id] > this.lastScriptedGames[room.id])) {
-			room.say("At least 1 scripted game needs to be played before the next user-hosted game can start.");
 			return false;
 		}
 
