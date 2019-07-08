@@ -324,10 +324,10 @@ const commands: Dict<ICommandDefinition> = {
 	dehost: {
 		command(target, room, user) {
 			if (this.isPm(room) || !user.hasRank(room, 'voice')) return;
-			const database = Storage.getDatabase(room);
-			if (!database.userHostedGameQueue || !database.userHostedGameQueue.length) return this.say("The hostqueue is empty.");
 			const id = Tools.toId(target);
 			if (room.userHostedGame && room.userHostedGame.hostId === id) return this.run('endgame');
+			const database = Storage.getDatabase(room);
+			if (!database.userHostedGameQueue || !database.userHostedGameQueue.length) return this.say("The hostqueue is empty.");
 			let position = -1;
 			for (let i = 0; i < database.userHostedGameQueue.length; i++) {
 				if (database.userHostedGameQueue[i].id === id) {
