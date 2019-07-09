@@ -202,7 +202,7 @@ const commands: Dict<ICommandDefinition> = {
 				if (!this.canPmHtml(targetRoom)) return;
 				gameRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'voice')) return;
+				if (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id)) return;
 				gameRoom = room;
 			}
 			if (gameRoom.game) {
