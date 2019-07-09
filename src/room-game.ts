@@ -239,12 +239,8 @@ export class Game extends Activity {
 		}
 		const player = this.createPlayer(user);
 		if (!player) return;
-		let lateJoin = false;
-		if (this.started) {
-			if (!this.canLateJoin || (this.playerCap && this.playerCount >= this.playerCap)) return;
-			lateJoin = true;
-		}
-		if (this.onAddPlayer && !this.onAddPlayer(player, lateJoin)) {
+		if ((this.started && (!this.canLateJoin || (this.playerCap && this.playerCount >= this.playerCap) || (this.onAddPlayer && !this.onAddPlayer(player, true)))) ||
+			(!this.started && this.onAddPlayer && !this.onAddPlayer(player))) {
 			this.removePlayer(user);
 			return;
 		}
@@ -377,7 +373,7 @@ export class Game extends Activity {
 
 	getPlayerSummary?(player: Player): void;
 	/** Return `false` to prevent a user from being added to the game */
-	onAddPlayer?(player: Player, lateJoin: boolean): boolean | void;
+	onAddPlayer?(player: Player, lateJoin?: boolean): boolean | void;
 	onChildEnd?(winners: Map<Player, number>): void;
 	onDeallocate?(): void;
 	onInitialize?(): void;
