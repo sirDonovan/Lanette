@@ -240,7 +240,7 @@ export class Game extends Activity {
 		if (!player) return;
 		let lateJoin = false;
 		if (this.started) {
-			if (!this.canLateJoin) return;
+			if (!this.canLateJoin || (this.playerCap && this.playerCount >= this.playerCap)) return;
 			lateJoin = true;
 		}
 		if (this.onAddPlayer && !this.onAddPlayer(player, lateJoin)) {
