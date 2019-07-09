@@ -1257,7 +1257,7 @@ export class Dex {
 					addedrules.push(ruleName);
 				}
 			} else {
-				const complexBans = (rule[3] as string[]).map(x => this.getValidatedRuleName(x));
+				const complexBans = (rule[4] as string[]).map(x => this.getValidatedRuleName(x));
 				if (rule[0] === 'complexTeamBan') {
 					bans.push(complexBans.join(' ++ '));
 				} else {
