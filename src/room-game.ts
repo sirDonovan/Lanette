@@ -241,7 +241,7 @@ export class Game extends Activity {
 		if (!player) return;
 		if ((this.started && (!this.canLateJoin || (this.playerCap && this.playerCount >= this.playerCap) || (this.onAddPlayer && !this.onAddPlayer(player, true)))) ||
 			(!this.started && this.onAddPlayer && !this.onAddPlayer(player))) {
-			this.removePlayer(user);
+			this.removePlayer(user, this.started);
 			return;
 		}
 		const bits = this.userHosted ? 0 : this.addBits(player, 10, true);
@@ -257,13 +257,15 @@ export class Game extends Activity {
 		return player;
 	}
 
-	removePlayer(user: User | string) {
+	removePlayer(user: User | string, attemptedLateJoin?: boolean) {
 		if (this.options.freejoin || this.isMiniGame) return;
 		const player = this.destroyPlayer(user);
 		if (!player) return;
-		if (this.onRemovePlayer) this.onRemovePlayer(player);
-		this.removeBits(player, 10, true);
-		player.say("You have left the " + this.name + " " + this.activityType + ".");
+		if (!attemptedLateJoin) {
+			if (this.onRemovePlayer) this.onRemovePlayer(player);
+			this.removeBits(player, 10, true);
+			player.say("You have left the " + this.name + " " + this.activityType + ".");
+		}
 		if (this.showSignupsHtml && !this.started) {
 			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
 			this.signupsHtmlTimeout = setTimeout(() => {
