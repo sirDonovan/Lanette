@@ -1,6 +1,8 @@
 import { Room } from "./rooms";
 import { User } from "./users";
 
+export type PlayerList = Dict<Player> | Player[] | Map<Player, any>;
+
 export class Player {
 	active: boolean | null = null;
 	/** The player either left or got eliminated during gameplay; can no longer perform any actions */
@@ -165,48 +167,56 @@ export abstract class Activity {
 		this.room.onUhtml(name, html, listener);
 	}
 
-	getRemainingPlayers(): Dict<Player> {
-		const remainingPlayers: Dict<Player> = {};
-		for (const i in this.players) {
-			if (this.players[i].eliminated || this.players[i].frozen) continue;
-			remainingPlayers[i] = this.players[i];
-		}
-		return remainingPlayers;
-	}
-
-	getRemainingPlayerCount(remainingPlayers?: Dict<Player>): number {
-		if (remainingPlayers) return Object.keys(remainingPlayers).length;
-		return Object.keys(this.getRemainingPlayers()).length;
-	}
-
-	getPlayerAttributes(attribute: (player: Player) => string, players?: Dict<Player> | Player[] | Map<Player, any>): string[] {
+	getPlayerList(players?: PlayerList, fromGetRemainingPlayers?: boolean): Player[] {
+		if (Array.isArray(players)) return players;
 		if (!players) {
-			if (this.started) {
+			if (this.started && !fromGetRemainingPlayers) {
 				players = this.getRemainingPlayers();
 			} else {
 				players = this.players;
 			}
 		}
 
-		const list: string[] = [];
-		if (Array.isArray(players)) {
-			for (let i = 0; i < players.length; i++) {
-				list.push(attribute(players[i]));
-			}
-		} else if (players instanceof Map) {
+		const playerList: Player[] = [];
+		if (players instanceof Map) {
 			players.forEach((value, player) => {
-				list.push(attribute(player));
+				playerList.push(player);
 			});
 		} else {
 			for (const i in players) {
-				list.push(attribute(players[i]));
+				playerList.push(players[i]);
 			}
 		}
 
-		return list;
+		return playerList;
 	}
 
-	getPlayerNames(players?: Dict<Player> | Player[] | Map<Player, any>): string[] {
+	getRemainingPlayers(players?: PlayerList): Dict<Player> {
+		const playerList = this.getPlayerList(players, true);
+		const remainingPlayers: Dict<Player> = {};
+		for (let i = 0; i < playerList.length; i++) {
+			if (playerList[i].eliminated || playerList[i].frozen) continue;
+			remainingPlayers[playerList[i].id] = playerList[i];
+		}
+
+		return remainingPlayers;
+	}
+
+	getRemainingPlayerCount(players?: PlayerList): number {
+		return Object.keys(this.getRemainingPlayers(players)).length;
+	}
+
+	getPlayerAttributes(attribute: (player: Player) => string, players?: PlayerList): string[] {
+		const playerList = this.getPlayerList(players);
+		const playerAttributes: string[] = [];
+		for (let i = 0; i < playerList.length; i++) {
+			playerAttributes.push(attribute(playerList[i]));
+		}
+
+		return playerAttributes;
+	}
+
+	getPlayerNames(players?: PlayerList): string[] {
 		return this.getPlayerAttributes(player => player.name, players);
 	}
 

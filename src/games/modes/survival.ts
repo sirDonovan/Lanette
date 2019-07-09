@@ -52,7 +52,7 @@ class Survival {
 				return;
 			}
 			this.survivalRound++;
-			this.sayUhtml(this.getRoundHtml(this.getPlayerNames, "Round " + this.survivalRound), this.uhtmlBaseName + '-round-html');
+			this.sayUhtml(this.getRoundHtml(this.getPlayerNames, null, "Round " + this.survivalRound), this.uhtmlBaseName + '-round-html');
 			this.playerList = this.shufflePlayers();
 			if (this.roundTime > 1000) this.roundTime -= 500;
 		}

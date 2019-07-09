@@ -1,5 +1,5 @@
 import { ICommandDefinition } from "./command-parser";
-import { Activity, Player } from "./room-activity";
+import { Activity, Player, PlayerList} from "./room-activity";
 import { Room } from "./rooms";
 import { IGameFormat } from "./types/games";
 import { IPokemonCopy } from "./types/in-game-data-types";
@@ -195,7 +195,7 @@ export class Game extends Activity {
 		if (this.onNextRound) this.onNextRound();
 	}
 
-	getRoundHtml(getAttributes: (players: Dict<Player>) => string[], roundText?: string): string {
+	getRoundHtml(getAttributes: (players: PlayerList) => string[], players?: PlayerList | null, roundText?: string): string {
 		let html = '<div class="infobox">';
 		if (this.mascot) {
 			html += Dex.getPokemonIcon(this.mascot);
@@ -204,8 +204,8 @@ export class Game extends Activity {
 		if (this.subGameNumber) html += " - Game " + this.subGameNumber;
 		html += " - " + (roundText || "Round " + this.round);
 
-		const remainingPlayers = this.getRemainingPlayers();
-		html += "<br />" + (!this.options.freejoin ? "Remaining players" : "Players") + " (" + this.getRemainingPlayerCount(remainingPlayers) + "): " + getAttributes.call(this, remainingPlayers).join(", ");
+		if (!players) players = this.getRemainingPlayers();
+		html += "<br />" + (!this.options.freejoin ? "Remaining players" : "Players") + " (" + this.getRemainingPlayerCount(players) + "): " + getAttributes.call(this, players).join(", ");
 		html += "</div>";
 
 		return html;
@@ -360,14 +360,14 @@ export class Game extends Activity {
 		return Tools.shuffle(list);
 	}
 
-	getPlayerPoints(players?: Dict<Player> | Player[] | Map<Player, any>): string[] {
+	getPlayerPoints(players?: PlayerList): string[] {
 		return this.getPlayerAttributes(player => {
 			const points = this.points!.get(player) || this.startingPoints;
 			return player.name + (points ? " (" + points + ")" : "");
 		}, players);
 	}
 
-	getPlayerWins(players?: Dict<Player> | Player[] | Map<Player, any>): string[] {
+	getPlayerWins(players?: PlayerList): string[] {
 		return this.getPlayerAttributes(player => {
 			const wins = this.winners.get(player);
 			return player.name + (wins ? " (" + wins + ")" : "");
