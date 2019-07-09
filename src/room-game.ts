@@ -171,6 +171,7 @@ export class Game extends Activity {
 		if (this.timeout) clearTimeout(this.timeout);
 		this.say((!this.userHosted ? "The " : "") + this.nameWithOptions + " " + this.activityType + " was forcibly ended.");
 		if (this.onForceEnd) this.onForceEnd(user);
+		this.ended = true;
 		this.deallocate();
 	}
 

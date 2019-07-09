@@ -58,6 +58,7 @@ export class Player {
 export abstract class Activity {
 	readonly activityType: string = '';
 	readonly createTime: number = Date.now();
+	ended: boolean = false;
 	playerCount: number = 0;
 	players: Dict<Player> = {};
 	showSignupsHtml: boolean = false;
@@ -131,6 +132,7 @@ export abstract class Activity {
 	end() {
 		if (this.timeout) clearTimeout(this.timeout);
 		if (this.onEnd) this.onEnd();
+		this.ended = true;
 		this.deallocate();
 	}
 
@@ -156,14 +158,17 @@ export abstract class Activity {
 	}
 
 	on(message: string, listener: () => any) {
+		if (this.ended) return;
 		this.room.on(message, listener);
 	}
 
 	onHtml(html: string, listener: () => any) {
+		if (this.ended) return;
 		this.room.onHtml(html, listener);
 	}
 
 	onUhtml(html: string, name: string, listener: () => any) {
+		if (this.ended) return;
 		this.room.onUhtml(name, html, listener);
 	}
 
