@@ -44,6 +44,7 @@ for (const i in commands) {
 
 export class Game extends Activity {
 	readonly activityType: string = 'game';
+	canLateJoin: boolean = false;
 	readonly commands = Object.assign(Object.create(null), globalGameCommands);
 	readonly customizableOptions: Dict<{min: number, base: number, max: number}> = Object.create(null);
 	readonly loserPointsToBits: number = 10;
@@ -237,7 +238,12 @@ export class Game extends Activity {
 		}
 		const player = this.createPlayer(user);
 		if (!player) return;
-		if (this.onAddPlayer && !this.onAddPlayer(player)) {
+		let lateJoin = false;
+		if (this.started) {
+			if (!this.canLateJoin) return;
+			lateJoin = true;
+		}
+		if (this.onAddPlayer && !this.onAddPlayer(player, lateJoin)) {
 			this.removePlayer(user);
 			return;
 		}
@@ -368,7 +374,7 @@ export class Game extends Activity {
 
 	getPlayerSummary?(player: Player): void;
 	/** Return `false` to prevent a user from being added to the game */
-	onAddPlayer?(player: Player): boolean;
+	onAddPlayer?(player: Player, lateJoin: boolean): boolean | void;
 	onChildEnd?(winners: Map<Player, number>): void;
 	onDeallocate?(): void;
 	onInitialize?(): void;
