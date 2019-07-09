@@ -108,7 +108,10 @@ export abstract class Activity {
 	start() {
 		this.started = true;
 		this.startTime = Date.now();
-		if (this.getSignupsHtml && this.showSignupsHtml) this.sayUhtmlChange(this.getSignupsHtml(), this.uhtmlBaseName + "-signups");
+		if (this.getSignupsHtml && this.showSignupsHtml) {
+			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
+			this.sayUhtmlChange(this.getSignupsHtml(), this.uhtmlBaseName + "-signups");
+		}
 		if (this.onStart) this.onStart();
 	}
 

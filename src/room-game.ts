@@ -249,9 +249,10 @@ export class Game extends Activity {
 		}
 		const bits = this.userHosted ? 0 : this.addBits(player, 10, true);
 		player.say("Thanks for joining the " + this.name + " " + this.activityType + "!" + (bits ? " Have some free bits!" : ""));
-		if (this.getSignupsHtml && this.showSignupsHtml && !this.started && !this.signupsHtmlTimeout) {
-			this.sayUhtmlChange(this.getSignupsHtml(), this.uhtmlBaseName + "-signups");
+		if (this.showSignupsHtml && !this.started) {
+			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
 			this.signupsHtmlTimeout = setTimeout(() => {
+				this.sayUhtmlChange(this.getSignupsHtml(), this.uhtmlBaseName + "-signups");
 				this.signupsHtmlTimeout = null;
 			}, SIGNUPS_HTML_DELAY);
 		}
@@ -266,9 +267,10 @@ export class Game extends Activity {
 		if (this.onRemovePlayer) this.onRemovePlayer(player);
 		this.removeBits(player, 10, true);
 		player.say("You have left the " + this.name + " " + this.activityType + ".");
-		if (this.getSignupsHtml && this.showSignupsHtml && !this.started && !this.signupsHtmlTimeout) {
-			this.sayUhtmlChange(this.getSignupsHtml(), this.uhtmlBaseName + "-signups");
+		if (this.showSignupsHtml && !this.started) {
+			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
 			this.signupsHtmlTimeout = setTimeout(() => {
+				this.sayUhtmlChange(this.getSignupsHtml(), this.uhtmlBaseName + "-signups");
 				this.signupsHtmlTimeout = null;
 			}, SIGNUPS_HTML_DELAY);
 		}
