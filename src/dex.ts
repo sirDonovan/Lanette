@@ -801,6 +801,99 @@ export class Dex {
 		return pokedex;
 	}
 
+	/** Returns a list of standard, copied Pokemon
+	 *
+	 * filterPokemon: Return `true` to filter `pokemon` out of the list
+	 */
+	getPokemonCopyList(filterPokemon?: (pokemon: IPokemon) => boolean): IPokemonCopy[] {
+		const pokedex = this.getPokemonList(filterPokemon);
+		const copiedPokedex: IPokemonCopy[] = [];
+		for (let i = 0; i < pokedex.length; i++) {
+			copiedPokedex.push(this.getPokemonCopy(pokedex[i].species));
+		}
+		return copiedPokedex;
+	}
+
+	/**
+	 * Returns true if target is immune to source
+	 */
+	isImmune(source: IMove | string, target: IPokemon | string | string[]): boolean {
+		const sourceType = (typeof source === 'string' ? source : source.type);
+		let targetType: string | readonly string[];
+		if (typeof target === 'string') {
+			const pokemon = this.getPokemon(target);
+			if (pokemon) {
+				targetType = pokemon.types;
+			} else {
+				targetType = target;
+			}
+		} else if (target instanceof Array) {
+			targetType = target;
+		} else {
+			targetType = target.types;
+		}
+		if (targetType instanceof Array) {
+			for (let i = 0; i < targetType.length; i++) {
+				if (this.isImmune(sourceType, targetType[i])) return true;
+			}
+			return false;
+		} else {
+			targetType = targetType as string;
+			const typeData = this.data.typeChart[targetType];
+			if (typeData && typeData.damageTaken[sourceType] === 3) return true;
+		}
+		return false;
+	}
+
+	/**
+	 * >=1: super-effective; <=1: not very effective
+	 */
+	getEffectiveness(source: IMove | string, target: IPokemon | string | string[]): number {
+		const sourceType = (typeof source === 'string' ? source : source.type);
+		let targetType;
+		if (typeof target === 'string') {
+			const pokemon = this.getPokemon(target);
+			if (pokemon) {
+				targetType = pokemon.types;
+			} else {
+				targetType = target;
+			}
+		} else if (target instanceof Array) {
+			targetType = target;
+		} else {
+			targetType = target.types;
+		}
+		if (targetType instanceof Array) {
+			let totalTypeMod = 0;
+			for (let i = 0, len = targetType.length; i < len; i++) {
+				totalTypeMod += this.getEffectiveness(sourceType, targetType[i]);
+			}
+			return totalTypeMod;
+		} else {
+			targetType = targetType as string;
+			const typeData = this.data.typeChart[targetType];
+			if (!typeData) return 0;
+			switch (typeData.damageTaken[sourceType]) {
+			case 1: return 1; // super-effective
+			case 2: return -1; // resist
+			// in case of weird situations like Gravity, immunity is
+			// handled elsewhere
+			default: return 0;
+			}
+		}
+	}
+
+	getWeaknesses(pokemon: IPokemon): string[] {
+		const weaknesses = [];
+		const types = Object.keys(this.data.typeChart);
+		for (let i = 0, len = types.length; i < len; i++) {
+			const isImmune = this.isImmune(types[i], pokemon);
+			const effectiveness = this.getEffectiveness(types[i], pokemon);
+			if (!isImmune && effectiveness >= 1) weaknesses.push(types[i]);
+		}
+		return weaknesses;
+	}
+
 	getFormat(name: string, isTrusted?: boolean): IFormat | null {
 		let id = Tools.toId(name);
 		if (!id) return null;
@@ -1233,9 +1326,13 @@ export class Dex {
 		return html.join("<br />");
 	}
 
-	getPokemonGif(species: IPokemon | string, direction?: 'front' | 'back', width?: number, height?: number): string {
-		const pokemon = typeof species === 'string' ? this.getPokemon(species) : species;
-		if (!pokemon) return '';
+	hasGifData(pokemon: IPokemon, direction?: 'front' | 'back'): boolean {
+		if (!direction) direction = 'front';
+		if (this.data.gifData.hasOwnProperty(pokemon.speciesId) && this.data.gifData[pokemon.speciesId]![direction]) return true;
+		return false;
+	}
+
+	getPokemonGif(pokemon: IPokemon, direction?: 'front' | 'back', width?: number, height?: number): string {
 		if (!direction) direction = 'front';
 		let prefix = '';
 		if (direction === 'front') {
@@ -1262,9 +1359,7 @@ export class Dex {
 		return gif;
 	}
 
-	getPokemonIcon(species: string | IPokemon, facingLeft?: boolean): string {
-		const pokemon = typeof species === 'string' ? this.getPokemon(species) : species;
-		if (!pokemon) return '';
+	getPokemonIcon(pokemon: IPokemon, facingLeft?: boolean): string {
 		let num = pokemon.num;
 		if (num < 0) {
 			num = 0;
