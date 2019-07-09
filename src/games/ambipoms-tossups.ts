@@ -3,7 +3,7 @@ import { DefaultGameOptions } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { IPokemon } from "../types/in-game-data-types";
-import { commandDescriptions, commands as templateCommands, Guessing, GuessingAbstract } from './templates/guessing';
+import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
 
 const data: Dict<string[]> = {
 	"Pokemon": [],
@@ -14,7 +14,7 @@ const data: Dict<string[]> = {
 const categories = Object.keys(data);
 let loadedData = false;
 
-class AmbipomsTossups extends Guessing implements GuessingAbstract {
+class AmbipomsTossups extends Guessing {
 	static loadData(room: Room) {
 		if (loadedData) return;
 		room.say("Loading game-specific data...");

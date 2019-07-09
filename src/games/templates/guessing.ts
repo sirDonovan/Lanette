@@ -2,7 +2,7 @@ import { ICommandDefinition } from '../../command-parser';
 import { Player } from '../../room-activity';
 import { Game } from '../../room-game';
 
-export class Guessing extends Game {
+export abstract class Guessing extends Game {
 	answers: string[] = [];
 	canGuess: boolean = false;
 	hint: string = '';
@@ -10,6 +10,8 @@ export class Guessing extends Game {
 
 	roundCategory?: string;
 	readonly roundGuesses?: Map<Player, boolean>;
+
+	abstract setAnswers(): void;
 
 	checkAnswer(guess: string): string {
 		guess = Tools.toId(guess);
@@ -44,10 +46,6 @@ export class Guessing extends Game {
 	filterGuess?(guess: string): boolean;
 	getPointsPerAnswer?(answer: string): number;
 	onGuess?(guess: string, player?: Player): void;
-}
-
-export abstract class GuessingAbstract {
-	abstract setAnswers(): void;
 }
 
 export const commands: Dict<ICommandDefinition<Guessing>> = {

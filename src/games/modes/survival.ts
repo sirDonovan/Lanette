@@ -2,12 +2,12 @@ import { ICommandDefinition } from "../../command-parser";
 import { Player } from "../../room-activity";
 import { Game } from "../../room-game";
 import { IGameModeFile } from "../../types/games";
-import { Guessing, GuessingAbstract } from "../templates/guessing";
+import { Guessing } from "../templates/guessing";
 
 const name = 'Survival';
 const description = 'Answer within the time limit to survive each round!';
 
-type SurvivalThis = Guessing & GuessingAbstract & Survival;
+type SurvivalThis = Guessing & Survival;
 
 class Survival {
 	currentPlayer: Player | null = null;
@@ -88,9 +88,9 @@ class Survival {
 	}
 
 	onEnd(this: SurvivalThis) {
-		const len = this.getRemainingPlayerCount();
-		if (len) {
-			this.say("**Winner" + (len > 1 ? "s" : "") + "**: " + this.getPlayerNames().join(", "));
+		const remainingPlayers = this.getRemainingPlayerCount();
+		if (remainingPlayers) {
+			this.say("**Winner" + (remainingPlayers > 1 ? "s" : "") + "**: " + this.getPlayerNames().join(", "));
 		} else {
 			this.say("No winners this game!");
 		}

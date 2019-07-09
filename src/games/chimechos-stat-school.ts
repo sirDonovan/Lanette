@@ -1,13 +1,13 @@
 import { DefaultGameOptions } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { commandDescriptions, commands as templateCommands, Guessing, GuessingAbstract } from './templates/guessing';
+import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
 
 const data: Dict<string[]> = {};
 let dataKeys: string[] = [];
 let loadedData = false;
 
-class ChimechosStatSchool extends Guessing implements GuessingAbstract {
+class ChimechosStatSchool extends Guessing {
 	static loadData(room: Room) {
 		if (loadedData) return;
 		room.say("Loading game-specific data...");
