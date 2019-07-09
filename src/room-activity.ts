@@ -40,6 +40,17 @@ export class Player {
 	sayUhtmlChange(html: string, name?: string) {
 		this.activity.pmRoom.pmUhtmlChange(this, name || this.activity.uhtmlBaseName, html);
 	}
+
+	useCommand(command: string, target?: string) {
+		let expiredUser = false;
+		let user = Users.get(this.name);
+		if (!user) {
+			expiredUser = true;
+			user = Users.add(this.name);
+		}
+		CommandParser.parse(this.activity.room, user, Config.commandCharacter + command + (target !== undefined ? " " + target : ""));
+		if (expiredUser) Users.remove(user);
+	}
 }
 
 export abstract class Activity {
