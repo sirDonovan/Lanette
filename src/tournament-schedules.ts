@@ -71,7 +71,7 @@ const schedules: Dict<{months: Dict<Dict<string>>, times: [number, number][]}> =
 				'18': 'gen7stabmons',
 				'19': 'gen7battlefactory@@@Inverse Mod',
 				'20': 'gen7randomdoublesbattle',
-				'21': 'gen7ubers@@@-Groudon + Red Orb',
+				'21': 'gen7ubers@@@Groudon + Red Orb',
 				'22': 'gen6ou',
 				'23': 'gen7pu@@@+PUBL,+Torterra,+Ferroseed,+Seismitoad',
 				'24': 'gen7monotype',
