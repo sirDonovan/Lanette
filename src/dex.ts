@@ -105,6 +105,10 @@ const clauseNicknames: Dict<string> = {
 	'Ignore Illegal Abilities': 'Almost Any Ability',
 };
 
+const customRuleFormats: Dict<string> = {
+	'gen7nfe': 'gen7nu@@@-NU,-PU,-PUBL,-Type: Null,-Vigoroth,-Drought,+Clefairy,+Ferroseed,+Haunter,+Roselia,+Tangela',
+};
+
 const dexes: Dict<Dex> = {};
 const omotms: string[] = [];
 
@@ -835,6 +839,8 @@ export class Dex {
 		if (!this.data.formats.hasOwnProperty(id)) {
 			const currentGenId = currentGen + id;
 			if (this.data.formats.hasOwnProperty(currentGenId)) return this.getFormat(currentGenId, isTrusted);
+			if (customRuleFormats.hasOwnProperty(id)) return this.getFormat(customRuleFormats[id], true);
+			if (customRuleFormats.hasOwnProperty(currentGenId)) return this.getFormat(customRuleFormats[currentGenId], true);
 			return null;
 		}
 

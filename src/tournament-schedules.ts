@@ -5,7 +5,7 @@ const schedules: Dict<{months: Dict<Dict<string>>, times: [number, number][]}> =
 	'nfe': {
 		months: {
 			'7': {
-				'daily': 'gen7nu@@@-NU,-PU,-PUBL,-Type: Null,-Vigoroth,-Drought,+Clefairy,+Ferroseed,+Haunter,+Roselia,+Tangela',
+				'daily': 'gen7nfe',
 			},
 		},
 		times: [[10, 0], [15, 0], [20, 0]],
