@@ -412,7 +412,7 @@ const commands: Dict<ICommandDefinition> = {
 			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
 			const users = [];
 			const targets = target.split(",");
-			for (let i = 0, len = targets.length; i < len; i++) {
+			for (let i = 0; i < targets.length; i++) {
 				const user = Users.get(targets[i].trim());
 				if (!user) continue;
 				if (!room.userHostedGame.players[user.id] || (room.userHostedGame.players[user.id] && room.userHostedGame.players[user.id].eliminated)) users.push(user);
@@ -434,7 +434,7 @@ const commands: Dict<ICommandDefinition> = {
 			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
 			const users: string[] = [];
 			const targets = target.split(",");
-			for (let i = 0, len = targets.length; i < len; i++) {
+			for (let i = 0; i < targets.length; i++) {
 				const id = Tools.toId(targets[i]);
 				if (id && room.userHostedGame.players[id] && !room.userHostedGame.players[id].eliminated) users.push(room.userHostedGame.players[id].name);
 			}
@@ -452,7 +452,7 @@ const commands: Dict<ICommandDefinition> = {
 			const temp: {[k: string]: Player} = {};
 			const players = room.userHostedGame.shufflePlayers();
 			if (!players.length) return this.say("The player list is empty.");
-			for (let i = 0, len = players.length; i < len; i++) {
+			for (let i = 0; i < players.length; i++) {
 				temp[players[i].id] = players[i];
 			}
 			room.userHostedGame.players = temp;
@@ -474,8 +474,8 @@ const commands: Dict<ICommandDefinition> = {
 			const game = gameRoom.game || gameRoom.userHostedGame;
 			if (!game) return;
 			const remainingPlayers = game.getRemainingPlayerCount();
-			if (!remainingPlayers) return this.say("Players: none");
-			this.say("**Players (" + remainingPlayers + ")**: " + game.getPlayerPoints().join(", "));
+			if (!remainingPlayers) return this.say("**Players**: none");
+			this.say("**Players (" + remainingPlayers + ")**: " + (game.points ? game.getPlayerPoints() : game.getPlayerNames()).join(", "));
 		},
 		aliases: ['players', 'pl'],
 	},
