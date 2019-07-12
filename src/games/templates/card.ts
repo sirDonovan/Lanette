@@ -306,11 +306,11 @@ export abstract class Card extends Game {
 		return player;
 	}
 
-	getPlayerCards(players?: Dict<Player> | Player[] | Map<Player, any>): string[] {
+	getPlayerCards(players?: Dict<Player> | Player[] | Map<Player, any>): string {
 		return this.getPlayerAttributes(player => {
 			const cards = this.playerCards.get(player);
 			return player.name + (cards ? " (" + cards.length + ")" : "");
-		}, players);
+		}, players).join(', ');
 	}
 
 	getPlayableCards(player: Player): string[] {

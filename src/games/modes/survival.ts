@@ -90,7 +90,7 @@ class Survival {
 	onEnd(this: SurvivalThis) {
 		const remainingPlayers = this.getRemainingPlayerCount();
 		if (remainingPlayers) {
-			this.say("**Winner" + (remainingPlayers > 1 ? "s" : "") + "**: " + this.getPlayerNames().join(", "));
+			this.say("**Winner" + (remainingPlayers > 1 ? "s" : "") + "**: " + this.getPlayerNames());
 		} else {
 			this.say("No winners this game!");
 		}

@@ -201,7 +201,7 @@ export class Game extends Activity {
 		if (this.onNextRound) this.onNextRound();
 	}
 
-	getRoundHtml(getAttributes: (players: PlayerList) => string[], players?: PlayerList | null, roundText?: string): string {
+	getRoundHtml(getAttributes: (players: PlayerList) => string, players?: PlayerList | null, roundText?: string): string {
 		let html = '<div class="infobox">';
 		if (this.mascot) {
 			html += Dex.getPokemonIcon(this.mascot);
@@ -211,7 +211,7 @@ export class Game extends Activity {
 		html += " - " + (roundText || "Round " + this.round);
 
 		if (!players) players = this.getRemainingPlayers();
-		html += "<br />" + (!this.options.freejoin ? "Remaining players" : "Players") + " (" + this.getRemainingPlayerCount(players) + "): " + getAttributes.call(this, players).join(", ");
+		html += "<br />" + (!this.options.freejoin ? "Remaining players" : "Players") + " (" + this.getRemainingPlayerCount(players) + "): " + getAttributes.call(this, players);
 		html += "</div>";
 
 		return html;
@@ -305,7 +305,7 @@ export class Game extends Activity {
 		if (this.options.freejoin) {
 			html += "<br /><br /><b>This game is free-join!</b>";
 		} else {
-			html += "<br /><br /><b>Players (" + this.playerCount + ")</b>: " + this.getPlayerNames().join(", ");
+			html += "<br /><br /><b>Players (" + this.playerCount + ")</b>: " + this.getPlayerNames();
 			if (this.started) {
 				html += "<br /><br /><b>The game has started!</b>";
 			} else {
@@ -359,25 +359,25 @@ export class Game extends Activity {
 		return Tools.shuffle(this.getPlayerList(players));
 	}
 
-	getPlayerLives(players?: PlayerList): string[] {
+	getPlayerLives(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => {
 			const wins = this.lives!.get(player);
 			return player.name + (wins ? " (" + wins + ")" : "");
-		}, players);
+		}, players).join(', ');
 	}
 
-	getPlayerPoints(players?: PlayerList): string[] {
+	getPlayerPoints(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => {
 			const points = this.points!.get(player) || this.startingPoints;
 			return player.name + (points ? " (" + points + ")" : "");
-		}, players);
+		}, players).join(', ');
 	}
 
-	getPlayerWins(players?: PlayerList): string[] {
+	getPlayerWins(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => {
 			const wins = this.winners.get(player);
 			return player.name + (wins ? " (" + wins + ")" : "");
-		}, players);
+		}, players).join(', ');
 	}
 
 	getPlayerSummary?(player: Player): void;

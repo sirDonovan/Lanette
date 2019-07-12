@@ -154,7 +154,7 @@ class MurkrowsBlackjack extends PlayingCard {
 					this.blackJackpots.set(blackjacks[i], previousBlackJackpots + blackJackpot);
 				}
 			}
-			this.say("**Game " + this.subGameNumber + " winner" + (gameWinners.length > 1 ? "s" : "") + "**: " + gameWinners.join(", ") + (blackjacks.length ? " | **BlackJackpot winner" + (blackjacks.length > 1 ? "s" : "") + "**: " + this.getPlayerNames(blackjacks).join(", ") : ""));
+			this.say("**Game " + this.subGameNumber + " winner" + (gameWinners.length > 1 ? "s" : "") + "**: " + gameWinners.join(", ") + (blackjacks.length ? " | **BlackJackpot winner" + (blackjacks.length > 1 ? "s" : "") + "**: " + this.getPlayerNames(blackjacks) : ""));
 		} else if (this.dealersHand > 21) {
 			this.say("No one wins Game " + this.subGameNumber + "!");
 		} else {
@@ -166,7 +166,7 @@ class MurkrowsBlackjack extends PlayingCard {
 
 	onEnd() {
 		if (this.winners.size) {
-			this.say("**Winner" + (this.winners.size > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners).join(", "));
+			this.say("**Winner" + (this.winners.size > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners));
 			this.winners.forEach((wins, user) => {
 				const wager = this.wagers.get(user);
 				let bits = (wager ? (wager * 2) : 100);

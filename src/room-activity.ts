@@ -225,8 +225,8 @@ export abstract class Activity {
 		return playerAttributes;
 	}
 
-	getPlayerNames(players?: PlayerList): string[] {
-		return this.getPlayerAttributes(player => player.name, players);
+	getPlayerNames(players?: PlayerList): string {
+		return this.getPlayerAttributes(player => player.name, players).join(', ');
 	}
 
 	abstract deallocate(): void;

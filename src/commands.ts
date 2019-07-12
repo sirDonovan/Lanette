@@ -479,7 +479,7 @@ const commands: Dict<ICommandDefinition> = {
 			if (!game) return;
 			const remainingPlayers = game.getRemainingPlayerCount();
 			if (!remainingPlayers) return this.say("**Players**: none");
-			this.say("**Players (" + remainingPlayers + ")**: " + (game.points ? game.getPlayerPoints() : game.getPlayerNames()).join(", "));
+			this.say("**Players (" + remainingPlayers + ")**: " + (game.points ? game.getPlayerPoints() : game.getPlayerNames()));
 		},
 		aliases: ['players', 'pl'],
 	},
