@@ -90,7 +90,9 @@ export class Room {
 	}
 
 	onHtml(html: string, listener: () => void) {
+		html = '<div class="infobox">' + html;
 		if (Users.self.group !== Client.groupSymbols.bot) html += '<div style="float:right;color:#888;font-size:8pt">[' + Users.self.name + ']</div><div style="clear:both"></div>';
+		html += '</div>';
 		this.htmlMessageListeners[Tools.toId(html)] = listener;
 	}
 
