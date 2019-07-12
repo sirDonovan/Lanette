@@ -67,6 +67,7 @@ export class Game extends Activity {
 	inputOptions!: Dict<number>;
 
 	allowChildGameBits?: boolean;
+	commandDescriptions?: string[];
 	readonly defaultOptions?: DefaultGameOptions[];
 	isMiniGame?: boolean;
 	readonly lives?: Map<Player, number>;
@@ -92,6 +93,7 @@ export class Game extends Activity {
 		if (this.maxPlayers) this.playerCap = this.maxPlayers;
 
 		if (format.commands) Object.assign(this.commands, format.commands);
+		if (format.commandDescriptions) this.commandDescriptions = format.commandDescriptions;
 		if (format.freejoin) {
 			this.customizableOptions.freejoin = {
 				min: 1,
@@ -260,11 +262,11 @@ export class Game extends Activity {
 		return player;
 	}
 
-	removePlayer(user: User | string, attemptedLateJoin?: boolean) {
+	removePlayer(user: User | string, silent?: boolean) {
 		if (this.options.freejoin || this.isMiniGame) return;
 		const player = this.destroyPlayer(user);
 		if (!player) return;
-		if (!attemptedLateJoin) {
+		if (!silent) {
 			if (this.onRemovePlayer) this.onRemovePlayer(player);
 			this.removeBits(player, 10, true);
 			player.say("You have left the " + this.name + " " + this.activityType + ".");
@@ -296,7 +298,7 @@ export class Game extends Activity {
 		html += "<br />" + this.description;
 		let commandDescriptions: string[] = [];
 		if (this.getPlayerSummary) commandDescriptions.push(Config.commandCharacter + "summary");
-		if (this.format.commandDescriptions) commandDescriptions = commandDescriptions.concat(this.format.commandDescriptions);
+		if (this.commandDescriptions) commandDescriptions = commandDescriptions.concat(this.commandDescriptions);
 		if (commandDescriptions.length) {
 			html += "<br /><b>Command" + (commandDescriptions.length > 1 ? "s" : "") + "</b>: " + commandDescriptions.map(x => "<code>" + x + "</code>").join(", ");
 		}
