@@ -69,6 +69,7 @@ export class Game extends Activity {
 	allowChildGameBits?: boolean;
 	readonly defaultOptions?: DefaultGameOptions[];
 	isMiniGame?: boolean;
+	readonly lives?: Map<Player, number>;
 	mascot?: IPokemonCopy;
 	maxPlayers?: number;
 	playerCap?: number;
@@ -359,6 +360,13 @@ export class Game extends Activity {
 			list.push(players[i]);
 		}
 		return Tools.shuffle(list);
+	}
+
+	getPlayerLives(players?: PlayerList): string[] {
+		return this.getPlayerAttributes(player => {
+			const wins = this.lives!.get(player);
+			return player.name + (wins ? " (" + wins + ")" : "");
+		}, players);
 	}
 
 	getPlayerPoints(players?: PlayerList): string[] {
