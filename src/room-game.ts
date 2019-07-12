@@ -355,13 +355,8 @@ export class Game extends Activity {
 		return !Tools.random(chance);
 	}
 
-	shufflePlayers(players?: Dict<Player>): Player[] {
-		if (!players) players = this.players;
-		const list = [];
-		for (const i in players) {
-			list.push(players[i]);
-		}
-		return Tools.shuffle(list);
+	shufflePlayers(players?: PlayerList): Player[] {
+		return Tools.shuffle(this.getPlayerList(players));
 	}
 
 	getPlayerLives(players?: PlayerList): string[] {
