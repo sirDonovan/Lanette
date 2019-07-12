@@ -214,13 +214,17 @@ export class Tournament extends Activity {
 			winnerPoints = Math.round((3 * multiplier));
 		}
 
-		const pointsHtml = ["runner" + (runnersUp.length > 1 ? "s" : "") + "-up " + Tools.joinList(runnersUp, '<b>', '</b>'), "winner" + (winners.length > 1 ? "s" : "") + " " + Tools.joinList(winners, '<b>', '</b>')];
-		if (semiFinalists.length) pointsHtml.unshift("semi-finalist" + (semiFinalists.length > 1 ? "s" : "") + " " + Tools.joinList(semiFinalists, '<b>', '</b>'));
+		const pointsHtml: string[] = [];
+		pointsHtml.push("runner" + (runnersUp.length > 1 ? "s" : "") + "-up " + Tools.joinList(runnersUp, '<b>', '</b>') + " for earning " + runnerUpPoints + " points");
+		pointsHtml.push("winner" + (winners.length > 1 ? "s" : "") + " " + Tools.joinList(winners, '<b>', '</b>') + " for earning " + winnerPoints + " points");
+		if (semiFinalists.length) {
+			pointsHtml.unshift("semi-finalist" + (semiFinalists.length > 1 ? "s" : "") + " " + Tools.joinList(semiFinalists, '<b>', '</b>') + " for earning " + semiFinalistPoints + " point" + (semiFinalistPoints > 1 ? "s" : ""));
+		}
 
 		const playerStatsHtml = '';
 		// if (showPlayerStats) playerStatsHtml = Tournaments.getPlayerStatsHtml(this.room, this.format);
 
-		this.room.sayHtml("<div class='infobox-limited'>Congratulations to " + Tools.joinList(pointsHtml) + (playerStatsHtml ? "<br><br>" + playerStatsHtml : "") + "</div>");
+		this.room.sayHtml("<div class='infobox-limited'>Congratulations to " + Tools.joinList(pointsHtml) + "!" + (playerStatsHtml ? "<br><br>" + playerStatsHtml : "") + "</div>");
 
 		const winnerPm = 'You were awarded **' + winnerPoints + ' ' + pointsName + '** for being ' + (winners.length > 1 ? 'a' : 'the') + ' tournament winner! To see your total amount, use this command: ``.rank ' + this.room.title + '``';
 		for (let i = 0; i < winners.length; i++) {
@@ -230,7 +234,7 @@ export class Tournament extends Activity {
 			if (user) user.say(winnerPm);
 		}
 
-		const runnerUpPm = 'You were awarded **' + runnerUpPoints + ' ' + pointsName + '** for being a runner-up in the tournament! To see your total amount, use this command: ``.rank ' + this.room.title + '``';
+		const runnerUpPm = 'You were awarded **' + runnerUpPoints + ' ' + pointsName + '** for being ' + (runnersUp.length > 1 ? 'a' : 'the') + ' runner-up in the tournament! To see your total amount, use this command: ``.rank ' + this.room.title + '``';
 		for (let i = 0; i < runnersUp.length; i++) {
 			Storage.addPoints(this.room, runnersUp[i], runnerUpPoints, this.format.id);
 			// Client.outgoingPms[Tools.toId(runnersUp[i])] = runnerUpPm;
@@ -238,7 +242,7 @@ export class Tournament extends Activity {
 			if (user) user.say(runnerUpPm);
 		}
 
-		const semiFinalistPm = 'You were awarded **' + semiFinalistPoints + ' ' + pointsName + '** for being a semi-finalist in the tournament! To see your total amount, use this command: ``.rank ' + this.room.title + '``';
+		const semiFinalistPm = 'You were awarded **' + semiFinalistPoints + ' ' + pointsName + '** for being ' + (semiFinalists.length > 1 ? 'a' : 'the') + ' semi-finalist in the tournament! To see your total amount, use this command: ``.rank ' + this.room.title + '``';
 		for (let i = 0; i < semiFinalists.length; i++) {
 			Storage.addPoints(this.room, semiFinalists[i], semiFinalistPoints, this.format.id);
 			// Client.outgoingPms[Tools.toId(semiFinalists[i])] = semiFinalistPm;
