@@ -29,8 +29,8 @@ class AxewsBattleCards extends CardMatching {
 		'allyswitch': 'Ally Switch', 'conversion': 'Conversion', 'conversion2': 'Conversion2', 'transform': 'Transform', 'recycle': 'Recycle',
 		'teeterdance': 'Teeter Dance', 'topsyturvy': 'Topsy-Turvy'};
 	finitePlayerCards = false;
+	maxPlayers = 20;
 	playableCardDescription = "You must play a card that is super-effective against the top card";
-	playerCap = 20;
 	roundDrawAmount: number = 1;
 	showPlayerCards = false;
 	usesColors = false;
@@ -58,7 +58,7 @@ class AxewsBattleCards extends CardMatching {
 		if (!this.deckPool.length) this.createDeckPool();
 		const pokedex = Tools.shuffle(this.deckPool);
 		const deck: CardType[] = [];
-		const minimumDeck = ((this.playerCap + 1) * this.options.cards);
+		const minimumDeck = ((this.maxPlayers + 1) * this.options.cards);
 		for (let i = 0; i < pokedex.length; i++) {
 			const pokemon = pokedex[i];
 			const weaknesses = Dex.getWeaknesses(pokemon).join(",");

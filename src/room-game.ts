@@ -70,6 +70,7 @@ export class Game extends Activity {
 	readonly defaultOptions?: DefaultGameOptions[];
 	isMiniGame?: boolean;
 	mascot?: IPokemonCopy;
+	maxPlayers?: number;
 	playerCap?: number;
 	readonly points?: Map<Player, number>;
 	shinyMascot?: boolean;
@@ -87,6 +88,7 @@ export class Game extends Activity {
 		this.id = format.id;
 		this.uhtmlBaseName = 'scripted-' + format.id;
 		this.description = format.description;
+		if (this.maxPlayers) this.playerCap = this.maxPlayers;
 
 		if (format.commands) Object.assign(this.commands, format.commands);
 		if (format.freejoin) {

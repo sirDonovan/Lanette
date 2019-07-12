@@ -72,9 +72,9 @@ export abstract class Card extends Game {
 	inactivePlayerCounts = new Map<Player, number>();
 	inactivePlayerLimit: number = 0;
 	maxCardRounds: number = 0;
+	maxPlayers: number = 20;
 	minimumPlayedCards: number = 1;
 	playableCardDescription: string = '';
-	playerCap: number = 20;
 	playerCards = new Map<Player, CardType[]>();
 	playerList: Player[] = [];
 	playerOrder: Player[] = [];

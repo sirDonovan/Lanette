@@ -8,7 +8,7 @@ export abstract class CardMatching extends Card {
 	inactivePlayerLimit: number = 3;
 	lastPlayer: Player | null = null;
 	maxCardRounds: number = 30;
-	playerCap: number = 15;
+	maxPlayers: number = 15;
 	showPlayerCards: boolean = true;
 	usesColors: boolean = true;
 
@@ -28,7 +28,7 @@ export abstract class CardMatching extends Card {
 		if (!this.deckPool.length) this.createDeckPool();
 		const pokedex = Tools.shuffle(this.deckPool);
 		const deck: IPokemonCard[] = [];
-		const minimumDeck = ((this.playerCap + 1) * this.options.cards);
+		const minimumDeck = ((this.maxPlayers + 1) * this.options.cards);
 		for (let i = 0; i < pokedex.length; i++) {
 			const pokemon = pokedex[i];
 			const multiType = pokemon.types.length > 1;
