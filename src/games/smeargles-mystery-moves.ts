@@ -1,0 +1,92 @@
+import { Player } from "../room-activity";
+import { DefaultGameOptions } from "../room-game";
+import { Room } from "../rooms";
+import { IGameFile } from "../types/games";
+import { commands, Guessing } from "./templates/guessing";
+
+const name = "Smeargle's Mystery Moves";
+const moves: string[] = [];
+let loadedData = false;
+
+class SmearglesMysteryMoves extends Guessing {
+	static loadData(room: Room) {
+		if (loadedData) return;
+		room.say("Loading data for " + name + "...");
+
+		const movesList = Dex.getMovesList();
+		for (let i = 0; i < movesList.length; i++) {
+			moves.push(movesList[i].name);
+		}
+
+		loadedData = true;
+	}
+
+	answers: string[] = [];
+	canGuess: boolean = false;
+	defaultOptions: DefaultGameOptions[] = ['points'];
+	hints: string[] = [];
+	hintsIndex: number = 0;
+	lastMove: string = '';
+	points = new Map<Player, number>();
+
+	onSignups() {
+		if (this.options.freejoin) {
+			this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
+		}
+	}
+
+	setAnswers() {
+		this.hintsIndex = 0;
+		let name = Tools.sampleOne(moves);
+		while (this.lastMove === name) {
+			name = Tools.sampleOne(moves);
+		}
+		this.lastMove = name;
+		const move = Dex.getExistingMove(name);
+		const hints: string[] = [];
+		hints.push("**Type**: " + move.type);
+		hints.push("**Base PP**: " + move.pp);
+		hints.push("**Category**: " + move.category);
+		hints.push("**Accuracy**: " + (move.accuracy === true ? "does not check" : move.accuracy + "%"));
+		if (move.category !== 'Status') hints.push("**Base power**: " + move.basePower);
+		hints.push("**Description**: " + move.shortDesc);
+		this.hints = Tools.shuffle(hints);
+		this.answers = [move.name];
+	}
+
+	onNextRound() {
+		if (!this.answers.length) {
+			this.canGuess = false;
+			this.setAnswers();
+		}
+		if (!this.hints[this.hintsIndex]) {
+			const text = "All hints have been revealed! " + this.getAnswers();
+			this.answers = [];
+			this.on(text, () => {
+				this.timeout = setTimeout(() => this.nextRound(), 5000);
+			});
+			this.say(text);
+			return;
+		}
+		const text = "``[hint " + (this.hintsIndex + 1) + "]`` " + this.hints[this.hintsIndex];
+		this.hintsIndex++;
+		this.on(text, () => {
+			if (!this.canGuess) this.canGuess = true;
+			this.timeout = setTimeout(() => this.nextRound(), 10000);
+		});
+		this.say(text);
+	}
+}
+
+export const game: IGameFile<SmearglesMysteryMoves> = {
+	aliases: ["smeargles", "mysterymoves", "wtm"],
+	battleFrontierCategory: 'Puzzle',
+	commandDescriptions: [Config.commandCharacter + "g [move]"],
+	commands,
+	class: SmearglesMysteryMoves,
+	description: "Players guess moves based on the given hints!",
+	formerNames: ["What's That Move"],
+	freejoin: true,
+	name,
+	mascot: "Smeargle",
+};
