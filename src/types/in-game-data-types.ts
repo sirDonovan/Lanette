@@ -155,6 +155,11 @@ interface IEventMethods {
 	onModifyDamagePhase2?: IEventMethods["onAnyModifyDamagePhase1"];
 }
 
+interface ISecondaryEffect {
+	status?: string;
+	volatileStatus?: string;
+}
+
 interface IEffectData extends IEventMethods {
 	id: string;
 	name: string;
@@ -218,6 +223,7 @@ interface IEffectData extends IEventMethods {
 	onTryPrimaryHitPriority?: number;
 	onTypePriority?: number;
 	recoil?: [number, number];
+	secondary?: ISecondaryEffect | null;
 	shortDesc?: string;
 	status?: string;
 	weather?: string;

@@ -18,7 +18,7 @@ export class Tools {
 		return Math.floor(Math.random() * limit);
 	}
 
-	sampleMany<T>(array: T[], amount: string | number): T[] {
+	sampleMany<T>(array: readonly T[], amount: string | number): T[] {
 		const len = array.length;
 		if (!len) throw new Error("Tools.sampleMany() does not accept empty arrays");
 		if (len === 1) return array.slice();
@@ -28,18 +28,18 @@ export class Tools {
 		return this.shuffle(array).splice(0, amount);
 	}
 
-	sampleOne<T>(array: T[]): T {
+	sampleOne<T>(array: readonly T[]): T {
 		const len = array.length;
 		if (!len) throw new Error("Tools.sampleOne() does not accept empty arrays");
 		if (len === 1) return array.slice()[0];
 		return this.shuffle(array)[0];
 	}
 
-	shuffle<T>(array: T[]): T[] {
-		array = array.slice();
+	shuffle<T>(array: readonly T[]): T[] {
+		const shuffled = array.slice();
 
 		// Fisher-Yates shuffle algorithm
-		let currentIndex = array.length;
+		let currentIndex = shuffled.length;
 		let randomIndex = 0;
 		let temporaryValue;
 
@@ -50,11 +50,11 @@ export class Tools {
 			currentIndex -= 1;
 
 			// And swap it with the current element.
-			temporaryValue = array[currentIndex];
-			array[currentIndex] = array[randomIndex];
-			array[randomIndex] = temporaryValue;
+			temporaryValue = shuffled[currentIndex];
+			shuffled[currentIndex] = shuffled[randomIndex];
+			shuffled[randomIndex] = temporaryValue;
 		}
-		return array;
+		return shuffled;
 	}
 
 	toId(input: string | number | {id: string} | undefined): string {

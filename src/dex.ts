@@ -865,7 +865,7 @@ export class Dex {
 		}
 		if (targetType instanceof Array) {
 			let totalTypeMod = 0;
-			for (let i = 0, len = targetType.length; i < len; i++) {
+			for (let i = 0; i < targetType.length; i++) {
 				totalTypeMod += this.getEffectiveness(sourceType, targetType[i]);
 			}
 			return totalTypeMod;
@@ -886,7 +886,7 @@ export class Dex {
 	getWeaknesses(pokemon: IPokemon): string[] {
 		const weaknesses = [];
 		const types = Object.keys(this.data.typeChart);
-		for (let i = 0, len = types.length; i < len; i++) {
+		for (let i = 0; i < types.length; i++) {
 			const isImmune = this.isImmune(types[i], pokemon);
 			const effectiveness = this.getEffectiveness(types[i], pokemon);
 			if (!isImmune && effectiveness >= 1) weaknesses.push(types[i]);
