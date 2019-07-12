@@ -92,6 +92,7 @@ module.exports = async (resolve, reject) => {
 			const lkg = fs.readFileSync(path.join(__dirname, "pokemon-showdown-lkg.txt")).toString();
 			if (sha !== lkg) {
 				console.log("Setting Pokemon-Showdown to LKG...");
+				await exec('git pull');
 				await exec('git reset --hard ' + lkg);
 			}
 		}
