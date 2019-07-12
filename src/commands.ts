@@ -247,11 +247,12 @@ const commands: Dict<ICommandDefinition> = {
 			targets.shift();
 			const format = Games.getUserHostedFormat(targets.join(","), user);
 			if (!format) return;
+			const database = Storage.getDatabase(room);
+			const otherUsersQueued = database.userHostedGameQueue && database.userHostedGameQueue.length;
 			const remainingGameCooldown = Games.getRemainingGameCooldown(room);
 			const inCooldown = remainingGameCooldown > 0;
 			const requiresScriptedGame = Games.requiresScriptedGame(room);
-			if (room.game || room.userHostedGame || inCooldown || requiresScriptedGame) {
-				const database = Storage.getDatabase(room);
+			if (room.game || room.userHostedGame || otherUsersQueued || inCooldown || requiresScriptedGame) {
 				if (database.userHostedGameQueue) {
 					for (let i = 0; i < database.userHostedGameQueue.length; i++) {
 						if (Tools.toId(database.userHostedGameQueue[i].name) === host.id) {
@@ -266,18 +267,21 @@ const commands: Dict<ICommandDefinition> = {
 				if (Config.maxQueuedUserHostedGames && room.id in Config.maxQueuedUserHostedGames && database.userHostedGameQueue.length >= Config.maxQueuedUserHostedGames[room.id]) {
 					return this.say("The host queue is full.");
 				}
-				database.userHostedGameQueue.push({
-					format: format.name,
-					id: host.id,
-					name: host.name,
-				});
+
 				let reason = '';
-				if (inCooldown) {
+				if (otherUsersQueued) {
+					reason = (database.userHostedGameQueue.length === 1 ? "Another host is" : database.userHostedGameQueue.length + " other hosts are") + " currently queued";
+				} else if (inCooldown) {
 					reason = "There are still " + Tools.toDurationString(remainingGameCooldown) + " of the game cooldown remaining";
 				} else if (requiresScriptedGame) {
 					reason = "At least 1 scripted game needs to be played before the next user-hosted game can start";
 				}
 				this.say((reason ? reason + " so " : "") + host.name + " was added to the host queue.");
+				database.userHostedGameQueue.push({
+					format: format.name,
+					id: host.id,
+					name: host.name,
+				});
 				Storage.exportDatabase(room.id);
 				return;
 			}
