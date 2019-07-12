@@ -320,7 +320,7 @@ export class Client {
 					const database = Storage.getDatabase(room);
 					const now = Date.now();
 					database.lastTournamentTime = now;
-					if ((room.id in Tournaments.scheduledTournaments && Tournaments.scheduledTournaments[room.id].time < now) || !database.queuedTournament) {
+					if ((room.id in Tournaments.scheduledTournaments && Tournaments.scheduledTournaments[room.id].time <= now) || !database.queuedTournament) {
 						Tournaments.setScheduledTournamentTimer(room);
 					} else {
 						Tournaments.setTournamentTimer(room, now + Tournaments.queuedTournamentTime, Dex.getExistingFormat(database.queuedTournament.formatid, true), database.queuedTournament.playerCap);
