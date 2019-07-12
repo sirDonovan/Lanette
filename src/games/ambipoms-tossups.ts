@@ -5,6 +5,7 @@ import { IGameFile } from "../types/games";
 import { IPokemon } from "../types/in-game-data-types";
 import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
 
+const name = "Ambipom's Tossups";
 const data: Dict<string[]> = {
 	"Pokemon": [],
 	"Pokemon Abilities": [],
@@ -17,7 +18,7 @@ let loadedData = false;
 class AmbipomsTossups extends Guessing {
 	static loadData(room: Room) {
 		if (loadedData) return;
-		room.say("Loading game-specific data...");
+		room.say("Loading data for " + name + "...");
 
 		data["Pokemon"] = Dex.getPokemonList().map(x => x.species);
 		data["Pokemon Abilities"] = Dex.getAbilitiesList().map(x => x.name);
@@ -113,7 +114,7 @@ export const game: IGameFile<AmbipomsTossups> = {
 	description: "Similar to Hangman, the host starts with a series of blank spaces which represent the word. Instead of players guessing letters, the host will start to fill in blank spaces with letters. Players have to be the first to guess the complete words to gain points.",
 	formerNames: ["Tossups"],
 	freejoin: true,
-	name: "Ambipom's Tossups",
+	name,
 	mascot: "Ambipom",
 	minigameCommand: 'tossup',
 	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess an answer as blanks are filled in (only one guess allowed) !",

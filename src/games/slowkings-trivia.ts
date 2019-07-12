@@ -3,6 +3,7 @@ import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
 
+const name = "Slowking's Trivia";
 const data: Dict<Dict<string[]>> = {
 	"Pokemon Abilities": {},
 	"Pokemon Items": {},
@@ -15,7 +16,7 @@ let loadedData = false;
 class SlowkingsTrivia extends Guessing {
 	static loadData(room: Room) {
 		if (loadedData) return;
-		room.say("Loading game-specific data...");
+		room.say("Loading data for " + name + "...");
 
 		const abilities = Dex.getAbilitiesList();
 		for (let i = 0; i < abilities.length; i++) {
@@ -98,7 +99,7 @@ export const game: IGameFile<SlowkingsTrivia> = {
 	description: "Players use the given descriptions (Pokemon related) to guess the answers!",
 	formerNames: ["Trivia"],
 	freejoin: true,
-	name: "Slowking's Trivia",
+	name,
 	mascot: "Slowking",
 	minigameCommand: 'trivium',
 	minigameDescription: "Use ``.g`` to guess an answer based on the description!",

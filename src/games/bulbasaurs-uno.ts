@@ -5,13 +5,14 @@ import { IGameFile } from "../types/games";
 import { IPokemonCard } from "./templates/card";
 import { CardMatching, commands as templateCommands } from "./templates/card-matching";
 
+const name = "Bulbasaur's Uno";
 const types: Dict<string> = {};
 let loadedData = false;
 
 class BulbasaursUno extends CardMatching {
 	static loadData(room: Room) {
 		if (loadedData) return;
-		room.say("Loading game-specific data...");
+		room.say("Loading data for " + name + "...");
 		const typeKeys = Object.keys(Dex.data.typeChart);
 		for (let i = 0; i < typeKeys.length; i++) {
 			const type = Tools.toId(typeKeys[i]);
@@ -244,7 +245,7 @@ export const game: IGameFile<BulbasaursUno> = {
 	class: BulbasaursUno,
 	description: "Each round, players can play a card that matches the type or color of the top card or draw a new card. <a href='http://psgc.weebly.com/pokeuno.html'>Action card descriptions</a>",
 	formerNames: ["Pokeuno"],
-	name: "Bulbasaur's Uno",
+	name,
 	mascot: "Bulbasaur",
 	scriptedOnly: true,
 };

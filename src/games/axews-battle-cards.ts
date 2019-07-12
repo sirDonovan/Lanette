@@ -5,13 +5,14 @@ import { IPokemon } from "../types/in-game-data-types";
 import { CardType, IMoveCard, IPokemonCard } from "./templates/card";
 import { CardMatching, commands as templateCommands} from "./templates/card-matching";
 
+const name = "Axew's Battle Cards";
 const types: Dict<string> = {};
 let loadedData = false;
 
 class AxewsBattleCards extends CardMatching {
 	static loadData(room: Room) {
 		if (loadedData) return;
-		room.say("Loading game-specific data...");
+		room.say("Loading data for " + name + "...");
 		const typeKeys = Object.keys(Dex.data.typeChart);
 		for (let i = 0; i < typeKeys.length; i++) {
 			const type = Tools.toId(typeKeys[i]);
@@ -483,7 +484,7 @@ export const game: IGameFile<AxewsBattleCards> = {
 	commands: Object.assign({}, templateCommands),
 	class: AxewsBattleCards,
 	description: "Each round, players can play a card that's super-effective against the top card. <a href='http://psgc.weebly.com/axewsbattlecards.html'>Action card descriptions</a>",
-	name: "Axew's Battle Cards",
+	name,
 	mascot: "Axew",
 	scriptedOnly: true,
 };

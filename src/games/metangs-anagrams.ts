@@ -3,6 +3,7 @@ import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
 
+const name = "Metangs's Anagrams";
 const data: Dict<string[]> = {
 	"Characters": [],
 	"Pokemon": [],
@@ -16,7 +17,7 @@ let loadedData = false;
 class MetangsAnagrams extends Guessing {
 	static loadData(room: Room) {
 		if (loadedData) return;
-		room.say("Loading game-specific data...");
+		room.say("Loading data for " + name + "...");
 
 		data["Characters"] = Dex.data.characters.slice();
 		data["Pokemon"] = Dex.getPokemonList().map(x => x.species);
@@ -84,7 +85,7 @@ export const game: IGameFile<MetangsAnagrams> = {
 	description: "Players unscramble letters to reveal the answers!",
 	formerNames: ["Anagrams"],
 	freejoin: true,
-	name: "Metangs's Anagrams",
+	name,
 	mascot: "Metang",
 	minigameCommand: 'anagram',
 	minigameDescription: "Use ``.g`` to guess the answer after unscrambling the letters!",

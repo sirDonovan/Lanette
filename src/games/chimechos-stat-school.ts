@@ -3,6 +3,7 @@ import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
 
+const name = "Chimecho's Stat School";
 const data: Dict<string[]> = {};
 let dataKeys: string[] = [];
 let loadedData = false;
@@ -10,7 +11,7 @@ let loadedData = false;
 class ChimechosStatSchool extends Guessing {
 	static loadData(room: Room) {
 		if (loadedData) return;
-		room.say("Loading game-specific data...");
+		room.say("Loading data for " + name + "...");
 
 		const pokemon = Dex.getPokemonList();
 		for (let i = 0; i < pokemon.length; i++) {
@@ -60,7 +61,7 @@ export const game: IGameFile<ChimechosStatSchool> = {
 	commands: Object.assign({}, templateCommands),
 	description: "Players guess Pokémon with the given base stat distributions!",
 	freejoin: true,
-	name: "Chimecho's Stat School",
+	name,
 	mascot: "Chimecho",
 	modes: ["survival"],
 };

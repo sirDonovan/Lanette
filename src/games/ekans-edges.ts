@@ -3,6 +3,7 @@ import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
 
+const name = "Ekans' Edges";
 const data: Dict<Dict<string[]>> = {
 	"Characters": {},
 	"Pokemon": {},
@@ -17,7 +18,7 @@ let loadedData = false;
 class EkansEdges extends Guessing {
 	static loadData(room: Room) {
 		if (loadedData) return;
-		room.say("Loading game-specific data...");
+		room.say("Loading data for " + name + "...");
 
 		for (let i = 0; i < Dex.data.characters.length; i++) {
 			const edge = Dex.data.characters[i].charAt(0) + " - " + Dex.data.characters[i].substr(-1);
@@ -111,7 +112,7 @@ export const game: IGameFile<EkansEdges> = {
 	description: "Players guess answers that have the given starting and ending letters!",
 	formerNames: ["Edges"],
 	freejoin: true,
-	name: "Ekans' Edges",
+	name,
 	mascot: "Ekans",
 	minigameCommand: 'edge',
 	minigameDescription: "Use ``.g`` to guess an answer with the given starting and ending letters!",
