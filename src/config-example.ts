@@ -115,6 +115,11 @@ export let tournamentAutoDQTimers: Dict<number> = {};
 export let tournamentStartTimers: Dict<number> = {};
 
 /**
+ * For each room in the object, the number of minutes to wait before setting a timer for a random tournament
+ */
+export let randomTournamentTimers: Dict<number> = {};
+
+/**
  * A list of rooms (roomids) where scripted games are allowed to be played
  */
 export let allowScriptedGames: string[] = [];

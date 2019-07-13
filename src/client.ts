@@ -320,10 +320,13 @@ export class Client {
 					const database = Storage.getDatabase(room);
 					const now = Date.now();
 					database.lastTournamentTime = now;
-					if ((room.id in Tournaments.scheduledTournaments && Tournaments.scheduledTournaments[room.id].time <= now) || !database.queuedTournament) {
+					const setRandomTournament = !database.queuedTournament && Config.randomTournamentTimers && room.id in Config.randomTournamentTimers;
+					if ((room.id in Tournaments.scheduledTournaments && Tournaments.scheduledTournaments[room.id].time <= now) || !setRandomTournament) {
 						Tournaments.setScheduledTournamentTimer(room);
-					} else {
+					} else if (database.queuedTournament) {
 						Tournaments.setTournamentTimer(room, now + Tournaments.queuedTournamentTime, Dex.getExistingFormat(database.queuedTournament.formatid, true), database.queuedTournament.playerCap);
+					} else {
+						Tournaments.setRandomTournamentTimer(room);
 					}
 					break;
 				}

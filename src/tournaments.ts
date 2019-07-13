@@ -12,6 +12,8 @@ for (const i in schedules) {
 	}
 }
 
+const SCHEDULED_TOURNAMENT_BUFFER_TIME = 90 * 60 * 1000;
+
 export class Tournaments {
 	createListeners: Dict<{format: IFormat, scheduled: boolean}> = {};
 	readonly defaultCustomRules: Dict<Partial<ISeparatedCustomRules>> = {
@@ -104,6 +106,38 @@ export class Tournaments {
 
 	setScheduledTournamentTimer(room: Room) {
 		this.setTournamentTimer(room, this.scheduledTournaments[room.id].time, this.scheduledTournaments[room.id].format, this.maxPlayerCap, true);
+	}
+
+	setRandomTournamentTimer(room: Room) {
+		let scheduledFormat: IFormat | null = null;
+		if (room.id in this.scheduledTournaments) {
+			if (this.scheduledTournaments[room.id].time - Date.now() < SCHEDULED_TOURNAMENT_BUFFER_TIME) return;
+			scheduledFormat = this.scheduledTournaments[room.id].format;
+		}
+		const database = Storage.getDatabase(room);
+		const pastTournamentIds: string[] = [];
+		if (database.pastTournaments) {
+			for (let i = 0; i < database.pastTournaments.length; i++) {
+				const format = Dex.getFormat(database.pastTournaments[i]);
+				if (format) pastTournamentIds.push(format.id);
+			}
+		}
+
+		const formats: IFormat[] = [];
+		for (const i in Dex.data.formats) {
+			const format = Dex.getExistingFormat(i);
+			if (!format.tournamentPlayable || format.unranked || format.mod || (scheduledFormat && scheduledFormat.id === format.id) || pastTournamentIds.includes(format.id)) continue;
+			formats.push(format);
+		}
+
+		if (!formats.length) return;
+
+		let playerCap: number = 0;
+		if (Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
+			playerCap = Config.defaultTournamentPlayerCaps[room.id];
+		}
+
+		this.setTournamentTimer(room, 0, Tools.sampleOne(formats), playerCap);
 	}
 
 	setTournamentTimer(room: Room, startTime: number, format: IFormat, cap: number, scheduled?: boolean) {
