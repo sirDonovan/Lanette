@@ -75,7 +75,8 @@ const commands: Dict<ICommandDefinition> = {
 						if (Games.loadedFormats) Games.loadFormatCommands();
 					} else if (modules[i] === 'config') {
 						Tools.uncacheTree('./config');
-						const config: typeof import('./config-example') = require('./config');
+						Tools.uncacheTree('./config-loader');
+						const config: typeof import('./config-example') = require('./config-loader').load(require('./config'));
 						global.Config = config;
 					} else if (modules[i] === 'dex') {
 						Tools.uncacheTree('./dex');
