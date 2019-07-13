@@ -325,8 +325,8 @@ export class Tournament extends Activity {
 		}
 
 		for (const i in players) {
-			const player = this.createPlayer(players[i]);
-			if (!player || player.eliminated) continue;
+			const player = this.createPlayer(players[i]) || this.players[i];
+			if (player.eliminated) continue;
 			if (losses[i] && losses[i] !== player.losses) {
 				player.losses = losses[i];
 				if (player.losses >= this.generator) {
