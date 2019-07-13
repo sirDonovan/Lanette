@@ -321,11 +321,11 @@ export class Client {
 					const now = Date.now();
 					database.lastTournamentTime = now;
 					const setRandomTournament = !database.queuedTournament && Config.randomTournamentTimers && room.id in Config.randomTournamentTimers;
-					if ((room.id in Tournaments.scheduledTournaments && Tournaments.scheduledTournaments[room.id].time <= now) || !setRandomTournament) {
+					if (room.id in Tournaments.scheduledTournaments && (Tournaments.scheduledTournaments[room.id].time <= now || !setRandomTournament)) {
 						Tournaments.setScheduledTournamentTimer(room);
 					} else if (database.queuedTournament) {
 						Tournaments.setTournamentTimer(room, now + Tournaments.queuedTournamentTime, Dex.getExistingFormat(database.queuedTournament.formatid, true), database.queuedTournament.playerCap);
-					} else {
+					} else if (setRandomTournament) {
 						Tournaments.setRandomTournamentTimer(room);
 					}
 					break;
