@@ -108,36 +108,41 @@ export class Tournaments {
 		this.setTournamentTimer(room, this.scheduledTournaments[room.id].time, this.scheduledTournaments[room.id].format, this.maxPlayerCap, true);
 	}
 
-	setRandomTournamentTimer(room: Room) {
-		let scheduledFormat: IFormat | null = null;
-		if (room.id in this.scheduledTournaments) {
-			if (this.scheduledTournaments[room.id].time - Date.now() < SCHEDULED_TOURNAMENT_BUFFER_TIME) return;
-			scheduledFormat = this.scheduledTournaments[room.id].format;
-		}
-		const database = Storage.getDatabase(room);
-		const pastTournamentIds: string[] = [];
-		if (database.pastTournaments) {
-			for (let i = 0; i < database.pastTournaments.length; i++) {
-				const format = Dex.getFormat(database.pastTournaments[i]);
-				if (format) pastTournamentIds.push(format.id);
+	canSetRandomTournament(room: Room): boolean {
+		if (!(room.id in this.scheduledTournaments)) return true;
+		return this.scheduledTournaments[room.id].time - Date.now() > SCHEDULED_TOURNAMENT_BUFFER_TIME;
+	}
+
+	setRandomTournamentTimer(room: Room, timer: number) {
+		if (room.id in this.tournamentTimers) clearTimeout(this.tournamentTimers[room.id]);
+		this.tournamentTimers[room.id] = setTimeout(() => {
+			let scheduledFormat: IFormat | null = null;
+			if (room.id in this.scheduledTournaments) scheduledFormat = this.scheduledTournaments[room.id].format;
+			const database = Storage.getDatabase(room);
+			const pastTournamentIds: string[] = [];
+			if (database.pastTournaments) {
+				for (let i = 0; i < database.pastTournaments.length; i++) {
+					const format = Dex.getFormat(database.pastTournaments[i]);
+					if (format) pastTournamentIds.push(format.id);
+				}
 			}
-		}
 
-		const formats: IFormat[] = [];
-		for (const i in Dex.data.formats) {
-			const format = Dex.getExistingFormat(i);
-			if (!format.tournamentPlayable || format.unranked || format.mod || (scheduledFormat && scheduledFormat.id === format.id) || pastTournamentIds.includes(format.id)) continue;
-			formats.push(format);
-		}
+			const formats: IFormat[] = [];
+			for (const i in Dex.data.formats) {
+				const format = Dex.getExistingFormat(i);
+				if (!format.tournamentPlayable || format.unranked || format.mod || (scheduledFormat && scheduledFormat.id === format.id) || pastTournamentIds.includes(format.id)) continue;
+				formats.push(format);
+			}
 
-		if (!formats.length) return;
+			if (!formats.length) return;
 
-		let playerCap: number = 0;
-		if (Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
-			playerCap = Config.defaultTournamentPlayerCaps[room.id];
-		}
+			let playerCap: number = 0;
+			if (Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
+				playerCap = Config.defaultTournamentPlayerCaps[room.id];
+			}
 
-		this.setTournamentTimer(room, 0, Tools.sampleOne(formats), playerCap);
+			this.setTournamentTimer(room, 0, Tools.sampleOne(formats), playerCap);
+		}, timer);
 	}
 
 	setTournamentTimer(room: Room, startTime: number, format: IFormat, cap: number, scheduled?: boolean) {

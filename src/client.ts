@@ -320,13 +320,17 @@ export class Client {
 					const database = Storage.getDatabase(room);
 					const now = Date.now();
 					database.lastTournamentTime = now;
-					const setRandomTournament = !database.queuedTournament && Config.randomTournamentTimers && room.id in Config.randomTournamentTimers;
-					if (room.id in Tournaments.scheduledTournaments && (Tournaments.scheduledTournaments[room.id].time <= now || !setRandomTournament)) {
+					const hasSchedule = room.id in Tournaments.scheduledTournaments;
+					if (hasSchedule && Tournaments.scheduledTournaments[room.id].time <= now) {
 						Tournaments.setScheduledTournamentTimer(room);
 					} else if (database.queuedTournament) {
 						Tournaments.setTournamentTimer(room, now + Tournaments.queuedTournamentTime, Dex.getExistingFormat(database.queuedTournament.formatid, true), database.queuedTournament.playerCap);
-					} else if (setRandomTournament) {
-						Tournaments.setRandomTournamentTimer(room);
+					} else {
+						if (Config.randomTournamentTimers && room.id in Config.randomTournamentTimers && Tournaments.canSetRandomTournament(room)) {
+							Tournaments.setRandomTournamentTimer(room, Config.randomTournamentTimers![room.id]);
+						} else if (hasSchedule) {
+							Tournaments.setScheduledTournamentTimer(room);
+						}
 					}
 					break;
 				}
