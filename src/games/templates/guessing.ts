@@ -51,7 +51,7 @@ export abstract class Guessing extends Game {
 export const commands: Dict<ICommandDefinition<Guessing>> = {
 	guess: {
 		command(target, room, user) {
-			if (!this.started || !this.canGuess || (this.players[user.id] && this.players[user.id].eliminated) ||
+			if (!this.started || !this.canGuess || !this.answers.length || (this.players[user.id] && this.players[user.id].eliminated) ||
 				(this.parentGame && (!this.players[user.id] || this.players[user.id].eliminated))) return;
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (!player.active) player.active = true;
