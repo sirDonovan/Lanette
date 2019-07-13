@@ -338,6 +338,7 @@ export class Game extends Activity {
 		if (!winnerBits) winnerBits = this.winnerPointsToBits;
 		if (!loserBits) loserBits = this.loserPointsToBits;
 		this.points.forEach((points, player) => {
+			if (points <= 0) return;
 			let winnings = 0;
 			if (this.winners.has(player)) {
 				winnings = Math.floor(winnerBits! * points);
