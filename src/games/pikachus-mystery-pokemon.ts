@@ -92,6 +92,7 @@ class PikachusMysteryPokemon extends Guessing {
 		const text = "``[hint " + (this.hintsIndex + 1) + "]`` " + this.hints[this.hintsIndex];
 		this.hintsIndex++;
 		this.on(text, () => {
+			if (!this.answers.length) return;
 			if (!this.canGuess) this.canGuess = true;
 			this.timeout = setTimeout(() => this.nextRound(), 10000);
 		});
