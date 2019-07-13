@@ -349,6 +349,8 @@ export class Tournament extends Activity {
 		this.currentBattles.push(battleData);
 
 		this.battleRooms.push(roomid);
+
+		if (this.generator === 1 && this.getRemainingPlayerCount() === 2) this.say("/wall Final battle of the " + this.name + " " + this.activityType + ": <<" + roomid + ">>!");
 	}
 
 	onBattleEnd(usernameA: string, usernameB: string, score: [string, string], roomid: string) {
