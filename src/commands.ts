@@ -270,12 +270,14 @@ const commands: Dict<ICommandDefinition> = {
 				}
 
 				let reason = '';
-				if (otherUsersQueued) {
-					reason = (database.userHostedGameQueue.length === 1 ? "Another host is" : database.userHostedGameQueue.length + " other hosts are") + " currently queued";
-				} else if (inCooldown) {
-					reason = "There are still " + Tools.toDurationString(remainingGameCooldown) + " of the game cooldown remaining";
-				} else if (requiresScriptedGame) {
-					reason = "At least 1 scripted game needs to be played before the next user-hosted game can start";
+				if (!room.game && !room.userHostedGame) {
+					if (otherUsersQueued) {
+						reason = (database.userHostedGameQueue.length === 1 ? "Another host is" : database.userHostedGameQueue.length + " other hosts are") + " currently queued";
+					} else if (inCooldown) {
+						reason = "There are still " + Tools.toDurationString(remainingGameCooldown) + " of the game cooldown remaining";
+					} else if (requiresScriptedGame) {
+						reason = "At least 1 scripted game needs to be played before the next user-hosted game can start";
+					}
 				}
 				this.say((reason ? reason + " so " : "") + host.name + " was added to the host queue.");
 				database.userHostedGameQueue.push({
