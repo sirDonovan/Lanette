@@ -278,10 +278,11 @@ export class Client {
 						if (room.tournament.playerCap) room.sayCommand("/tour autostart on");
 						if (Config.tournamentAutoDQTimers && room.id in Config.tournamentAutoDQTimers) room.sayCommand("/tour autodq " + Config.tournamentAutoDQTimers[room.id]);
 						if (!room.tournament.format.team && Config.disallowTournamentScouting && Config.disallowTournamentScouting.includes(room.id)) room.sayCommand("/tour scouting disallow");
+						let startMinutes = 5;
 						if (Config.tournamentStartTimers && room.id in Config.tournamentStartTimers) {
-							let minutes = Config.tournamentStartTimers[room.id];
-							if (room.tournament.scheduled) minutes *= 2;
-							room.tournament.startTimer = setTimeout(() => room.say("/tour start"), minutes * 60 * 1000);
+							startMinutes = Config.tournamentStartTimers[room.id];
+							if (room.tournament.scheduled) startMinutes *= 2;
+							room.tournament.startTimer = setTimeout(() => room.sayCommand("/tour start"), startMinutes * 60 * 1000);
 						}
 						if (Config.displayTournamentFormatInfo && Config.displayTournamentFormatInfo.includes(room.id)) {
 							const formatInfo = Dex.getFormatInfoDisplay(room.tournament.format);
@@ -502,9 +503,9 @@ export class Client {
 			console.log("Joined room: " + room.id);
 			room.init(messageArguments.type);
 			if (room.type === 'chat') {
-				if (room.id === 'staff') room.say('/filters view');
-				room.say('/cmd roominfo ' + room.id);
-				room.say('/banword list');
+				if (room.id === 'staff') room.sayCommand('/filters view');
+				room.sayCommand('/cmd roominfo ' + room.id);
+				room.sayCommand('/banword list');
 				if (room.id in Tournaments.schedules) {
 					Tournaments.setScheduledTournament(room);
 				}

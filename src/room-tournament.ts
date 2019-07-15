@@ -130,7 +130,7 @@ export class Tournament extends Activity {
 			this.name = customFormatName;
 		}
 
-		if (this.name !== previousName) this.room.sayCommand("/tour name " + this.name);
+		if (this.name !== previousName) this.sayCommand("/tour name " + this.name);
 	}
 
 	deallocate() {
@@ -187,7 +187,7 @@ export class Tournament extends Activity {
 			(this.format.unranked && Config.useDefaultUnrankedTournaments && Config.useDefaultUnrankedTournaments.includes(this.room.id))) {
 			const text = ["runner" + (runnersUp.length > 1 ? "s" : "") + "-up " + Tools.joinList(runnersUp, '**'), "winner" + (winners.length > 1 ? "s" : "") + " " + Tools.joinList(winners, '**')];
 			if (semiFinalists.length) text.unshift("semi-finalist" + (semiFinalists.length > 1 ? "s" : "") + " " + Tools.joinList(semiFinalists, '**'));
-			this.room.say('/wall Congratulations to ' + Tools.joinList(text));
+			this.sayCommand('/wall Congratulations to ' + Tools.joinList(text));
 			return true;
 		}
 
@@ -224,7 +224,7 @@ export class Tournament extends Activity {
 		const playerStatsHtml = '';
 		// if (showPlayerStats) playerStatsHtml = Tournaments.getPlayerStatsHtml(this.room, this.format);
 
-		this.room.sayHtml("<div class='infobox-limited'>Congratulations to " + Tools.joinList(pointsHtml) + "!" + (playerStatsHtml ? "<br><br>" + playerStatsHtml : "") + "</div>");
+		this.sayHtml("<div class='infobox-limited'>Congratulations to " + Tools.joinList(pointsHtml) + "!" + (playerStatsHtml ? "<br><br>" + playerStatsHtml : "") + "</div>");
 
 		const winnerPm = 'You were awarded **' + winnerPoints + ' ' + pointsName + '** for being ' + (winners.length > 1 ? 'a' : 'the') + ' tournament winner! To see your total amount, use this command: ``.rank ' + this.room.title + '``';
 		for (let i = 0; i < winners.length; i++) {
@@ -350,7 +350,7 @@ export class Tournament extends Activity {
 
 		this.battleRooms.push(roomid);
 
-		if (this.generator === 1 && this.getRemainingPlayerCount() === 2) this.say("/wall Final battle of the " + this.name + " " + this.activityType + ": <<" + roomid + ">>!");
+		if (this.generator === 1 && this.getRemainingPlayerCount() === 2) this.sayCommand("/wall Final battle of the " + this.name + " " + this.activityType + ": <<" + roomid + ">>!");
 	}
 
 	onBattleEnd(usernameA: string, usernameB: string, score: [string, string], roomid: string) {

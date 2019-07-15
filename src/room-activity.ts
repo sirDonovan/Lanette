@@ -140,6 +140,10 @@ export abstract class Activity {
 		this.room.say(message);
 	}
 
+	sayCommand(command: string) {
+		this.room.sayCommand(command);
+	}
+
 	sayHtml(html: string) {
 		if (this.isPm(this.room)) return this.pmRoom.pmHtml(this.room, html);
 		this.room.sayHtml(html);
