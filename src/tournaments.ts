@@ -26,6 +26,7 @@ export class Tournaments {
 	};
 	readonly delayedScheduledTournamentTime: number = 15 * 1000;
 	readonly maxPlayerCap: number = 128;
+	readonly minPlayerCap: number = 4;
 	queuedTournamentTime: number = 5 * 60 * 1000;
 	readonly schedules: typeof schedules = schedules;
 	scheduledTournaments: Dict<{format: IFormat, time: number}> = {};

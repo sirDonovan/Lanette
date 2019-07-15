@@ -3,6 +3,7 @@ import path = require('path');
 import { ICommandDefinition } from "./command-parser";
 import { tagNames } from './dex';
 import { Player } from "./room-activity";
+import { Game } from './room-game';
 import { Room } from "./rooms";
 import { maxUsernameLength, rootFolder } from './tools';
 import { GameDifficulty, IGameFormat } from "./types/games";
@@ -404,15 +405,25 @@ const commands: Dict<ICommandDefinition> = {
 		},
 		aliases: ['gtimer'],
 	},
-	playercap: {
+	gamecap: {
 		command(target, room, user) {
-			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
-			const cap = parseInt(target.trim());
-			if (isNaN(cap)) return this.say("Please specify a valid player cap.");
-			if (room.userHostedGame.playerCount >= cap) return this.run('startgame');
-			room.userHostedGame.playerCap = cap;
-			this.say("The player cap has been set to " + cap + ".");
+			if (this.isPm(room)) return;
+			let game: Game | undefined;
+			const cap = parseInt(target);
+			if (room.game) {
+				if (!user.hasRank(room, 'voice')) return;
+				game = room.game;
+			} else if (room.userHostedGame) {
+				if (room.userHostedGame.hostId !== user.id) return;
+				game = room.userHostedGame;
+			}
+			if (!game) return;
+			if (isNaN(cap)) return this.say("You must specify a valid player cap.");
+			if (game.playerCount >= cap) return this.run('startgame');
+			game.playerCap = cap;
+			this.say("The game's player cap has been set to **" + cap + "**.");
 		},
+		aliases: ['gcap'],
 	},
 	addplayer: {
 		command(target, room, user, cmd) {
@@ -1000,6 +1011,18 @@ const commands: Dict<ICommandDefinition> = {
 			this.sayCommand("/tour new " + format.name + ", elimination, " + playerCap);
 		},
 		aliases: ['createtour', 'ct'],
+	},
+	tournamentcap: {
+		command(target, room, user) {
+			if (this.isPm(room) || !room.tournament || room.tournament.started || !user.hasRank(room, 'driver')) return;
+			const cap = parseInt(target);
+			if (isNaN(cap)) return this.say("You must specify a valid player cap.");
+			if (cap < Tournaments.minPlayerCap || cap > Tournaments.maxPlayerCap) return this.say("The tournament's player cap must be between " + Tournaments.minPlayerCap + " and " + Tournaments.maxPlayerCap + ".");
+			this.sayCommand("/tour cap " + cap);
+			if (!room.tournament.playerCap) this.sayCommand("/tour autostart on");
+			this.say("The tournament's player cap is now **" + cap + "**.");
+		},
+		aliases: ['tcap'],
 	},
 	scheduledtournament: {
 		command(target, room, user) {
