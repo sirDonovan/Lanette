@@ -53,6 +53,7 @@ export function load(config: typeof Config): typeof Config {
 	if (config.disallowTournamentScouting) config.disallowTournamentScouting = arrayToRoomIds(config.disallowTournamentScouting);
 	if (config.disallowTournamentBattleLinks) config.disallowTournamentBattleLinks = arrayToRoomIds(config.disallowTournamentBattleLinks);
 	if (config.tournamentAutoDQTimers) config.tournamentAutoDQTimers = objectKeysToRoomId(config.tournamentAutoDQTimers);
+	if (config.adjustTournamentCaps) config.adjustTournamentCaps = arrayToRoomIds(config.adjustTournamentCaps);
 	if (config.tournamentStartTimers) config.tournamentStartTimers = objectKeysToRoomId(config.tournamentStartTimers);
 	if (config.defaultTournamentPlayerCaps) config.defaultTournamentPlayerCaps = objectKeysToRoomId(config.defaultTournamentPlayerCaps);
 	if (config.tournamentRoomAdvertisements) config.tournamentRoomAdvertisements = stringArrayObjectToRoomIds(config.tournamentRoomAdvertisements);

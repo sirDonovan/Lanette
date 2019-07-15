@@ -110,6 +110,11 @@ export let tournamentRoomAdvertisements: Dict<string[]> = {};
 export let tournamentAutoDQTimers: Dict<number> = {};
 
 /**
+ * A list of rooms (roomids) where tournament caps will be adjusted when signups are halfway over
+ */
+export let adjustTournamentCaps: string[] = [];
+
+/**
  * The number of minutes to leave signups open before starting tournaments
  */
 export let tournamentStartTimers: Dict<number> = {};

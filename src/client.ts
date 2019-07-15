@@ -284,6 +284,9 @@ export class Client {
 							if (room.tournament.scheduled) startMinutes *= 2;
 							room.tournament.startTimer = setTimeout(() => room.sayCommand("/tour start"), startMinutes * 60 * 1000);
 						}
+						if (Config.adjustTournamentCaps && Config.adjustTournamentCaps.includes(room.id)) {
+							room.tournament.adjustCapTimer = setTimeout(() => room.tournament!.adjustCap(), (startMinutes / 2) * 60 * 1000);
+						}
 						if (Config.displayTournamentFormatInfo && Config.displayTournamentFormatInfo.includes(room.id)) {
 							const formatInfo = Dex.getFormatInfoDisplay(room.tournament.format);
 							if (formatInfo) {

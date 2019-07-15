@@ -68,6 +68,7 @@ const generators: Dict<number> = {
 
 export class Tournament extends Activity {
 	readonly activityType: string = 'tournament';
+	adjustCapTimer: NodeJS.Timer | null = null;
 	readonly battleData: IBattleData[] = [];
 	readonly battleRooms: string[] = [];
 	readonly createTime: number = Date.now();
@@ -133,7 +134,25 @@ export class Tournament extends Activity {
 		if (this.name !== previousName) this.sayCommand("/tour name " + this.name);
 	}
 
+	adjustCap() {
+		if (this.playerCount % 16 === 0) {
+			this.sayCommand("/tour start");
+			return;
+		}
+		let newCap = this.playerCount + 1;
+		while (newCap % 16 !== 0) {
+			newCap += 1;
+		}
+		CommandParser.parse(this.room, Users.self, Config.commandCharacter + "tournamentcap " + newCap);
+	}
+
+	onStart() {
+		if (this.startTimer) clearTimeout(this.startTimer);
+	}
+
 	deallocate() {
+		if (this.adjustCapTimer) clearTimeout(this.adjustCapTimer);
+		if (this.startTimer) clearTimeout(this.startTimer);
 		this.room.tournament = null;
 	}
 
