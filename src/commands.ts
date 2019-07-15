@@ -911,6 +911,35 @@ const commands: Dict<ICommandDefinition> = {
 		},
 		aliases: ['rability', 'randability'],
 	},
+	randomtype: {
+		command(target, room, user) {
+			if (this.isPm(room) || !Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id))) return;
+			const types = Object.keys(Dex.data.typeChart);
+			let type = Tools.sampleOne(types);
+			if (Tools.random(2)) {
+				types.splice(types.indexOf(type), 1);
+				type += "/" + Tools.sampleOne(types);
+			}
+			this.say('Randomly generated type: **' + type + '**');
+		},
+		aliases: ['rtype', 'randtype'],
+	},
+	randomexistingtype: {
+		command(target, room, user) {
+			if (this.isPm(room) || !Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id))) return;
+			let type = '';
+			const pokedex = Tools.shuffle(Object.keys(Dex.data.pokedex));
+			for (let i = 0; i < pokedex.length; i++) {
+				const pokemon = Dex.getExistingPokemon(pokedex[i]);
+				if (!pokemon.isNonstandard && !pokemon.forme) {
+					type = pokemon.types.join('/');
+					break;
+				}
+			}
+			this.say('Randomly generated existing type: **' + type + '**');
+		},
+		aliases: ['rextype', 'randextype', 'rexistingtype', 'randexistingtype'],
+	},
 	randomcharacter: {
 		command(target, room, user) {
 			if (this.isPm(room) || !Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id))) return;
