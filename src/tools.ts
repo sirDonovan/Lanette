@@ -159,7 +159,7 @@ export class Tools {
 	}
 
 	toDurationString(input: number, options?: {precision?: number, hhmmss?: boolean}): string {
-		const date = new Date(+input);
+		const date = new Date(input);
 		const parts = [date.getUTCFullYear() - 1970, date.getUTCMonth(), date.getUTCDate() - 1, date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()];
 		const roundingBoundaries = [6, 15, 12, 30, 30];
 		const unitNames = ["second", "minute", "hour", "day", "month", "year"];

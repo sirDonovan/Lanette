@@ -120,7 +120,7 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			if (this.isPm(room) || room.game || room.userHostedGame || !Games.canCreateScriptedGame(room, user)) return;
 			const remainingGameCooldown = Games.getRemainingGameCooldown(room);
-			if (remainingGameCooldown > 0) {
+			if (remainingGameCooldown > 1000) {
 				this.say("There are still " + Tools.toDurationString(remainingGameCooldown) + " of the game cooldown remaining.");
 				return;
 			}
@@ -251,7 +251,7 @@ const commands: Dict<ICommandDefinition> = {
 			const database = Storage.getDatabase(room);
 			const otherUsersQueued = database.userHostedGameQueue && database.userHostedGameQueue.length;
 			const remainingGameCooldown = Games.getRemainingGameCooldown(room);
-			const inCooldown = remainingGameCooldown > 0;
+			const inCooldown = remainingGameCooldown > 1000;
 			const requiresScriptedGame = Games.requiresScriptedGame(room);
 			if (room.game || room.userHostedGame || otherUsersQueued || inCooldown || requiresScriptedGame) {
 				if (database.userHostedGameQueue) {
@@ -302,7 +302,7 @@ const commands: Dict<ICommandDefinition> = {
 			const database = Storage.getDatabase(room);
 			if (!database.userHostedGameQueue || !database.userHostedGameQueue.length) return this.say("The host queue is empty.");
 			const remainingGameCooldown = Games.getRemainingGameCooldown(room);
-			if (remainingGameCooldown > 0) {
+			if (remainingGameCooldown > 1000) {
 				this.say("There are still " + Tools.toDurationString(remainingGameCooldown) + " of the game cooldown remaining.");
 				return;
 			}
