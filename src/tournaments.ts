@@ -56,6 +56,10 @@ export class Tournaments {
 	}
 
 	createTournament(room: Room, format: IFormat, generator: string, playerCap: number, name?: string): Tournament {
+		if (room.id in this.tournamentTimers) {
+			clearTimeout(this.tournamentTimers[room.id]);
+			delete this.tournamentTimers[room.id];
+		}
 		const tournament = new Tournament(room);
 		tournament.initialize(format, generator, playerCap, name);
 
