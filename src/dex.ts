@@ -106,7 +106,7 @@ const clauseNicknames: Dict<string> = {
 };
 
 const customRuleFormats: Dict<string> = {
-	'gen7nfe': 'gen7nu@@@-NU,-PU,-PUBL,-Type: Null,-Vigoroth,-Drought,+Clefairy,+Ferroseed,+Haunter,+Roselia,+Tangela',
+	'gen7nfe': 'gen7nu@@@-NU,-PU,-PUBL,-ZU,-Vigoroth,-Drought,+Clefairy,+Ferroseed,+Haunter,+Roselia,+Tangela',
 };
 
 const dexes: Dict<Dex> = {};
