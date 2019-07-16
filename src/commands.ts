@@ -1492,7 +1492,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	clearleaderboard: {
 		command(target, room, user) {
-			if (this.isPm(room) || !user.hasRank(room, 'roomowner')) return;
+			if (this.isPm(room) || (!user.hasRank(room, 'roomowner') && !user.isDeveloper())) return;
 			if (!Storage.clearLeaderboard(room.id)) return;
 			this.say("The leaderboard was cleared.");
 		},
