@@ -81,11 +81,11 @@ export class Tools {
 		return input.replace(ALPHA_NUMERIC_REGEX, '').trim();
 	}
 
-	toString(input: string | number | undefined | null | {activityType?: string, effectType?: string, name?: string, toString?(): string}): string {
+	toString(input: string | number | boolean | undefined | null | {activityType?: string, effectType?: string, name?: string, toString?(): string}): string {
 		if (input === undefined) return 'undefined';
 		if (input === null) return 'null';
-		if (typeof input === 'number') return '' + input;
 		if (typeof input === 'string') return input;
+		if (typeof input === 'number' || typeof input === 'boolean') return '' + input;
 		if (Array.isArray(input)) return '[' + input.map(x => this.toString(x)).join(', ') + ']';
 		for (const i in global) {
 			// @ts-ignore
