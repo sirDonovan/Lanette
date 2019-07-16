@@ -267,9 +267,9 @@ export class Game extends Activity {
 	}
 
 	removePlayer(user: User | string, silent?: boolean) {
-		if (this.options.freejoin || this.isMiniGame) return;
+		if (this.isMiniGame) return;
 		const player = this.destroyPlayer(user);
-		if (!player) return;
+		if (this.options.freejoin || !player) return;
 		if (!silent) {
 			if (this.onRemovePlayer) this.onRemovePlayer(player);
 			this.removeBits(player, 10, true);
