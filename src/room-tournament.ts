@@ -143,6 +143,8 @@ export class Tournament extends Activity {
 		while (newCap % 8 !== 0) {
 			newCap += 1;
 		}
+
+		if (this.playerCap && newCap >= this.playerCap) return;
 		CommandParser.parse(this.room, Users.self, Config.commandCharacter + "tournamentcap " + newCap);
 	}
 
