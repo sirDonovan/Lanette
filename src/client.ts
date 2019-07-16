@@ -864,6 +864,21 @@ export class Client {
 
 	parseServerGroups(groups: ServerGroupData[]) {
 		this.serverGroups = {};
+		// Bot is below Driver on the user list but above Moderator in terms of permissions
+		let botIndex = -1;
+		let moderatorIndex = -1;
+		for (let i = 0; i < groups.length; i++) {
+			if (groups[i].name === 'Bot') {
+				botIndex = i;
+			} else if ((groups[i].type === 'leadership' || groups[i].type === 'staff') && groups[i].name === 'Moderator') {
+				moderatorIndex = i;
+			}
+		}
+		if (botIndex !== -1 && moderatorIndex !== -1) {
+			const bot = groups.splice(botIndex, 1);
+			groups.splice(moderatorIndex, 0, bot[0]);
+		}
+
 		let ranking = groups.length;
 		for (let i = 0; i < groups.length; i++) {
 			this.serverGroups[groups[i].symbol] = Object.assign({ranking}, groups[i]);
