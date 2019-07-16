@@ -135,12 +135,12 @@ export class Tournament extends Activity {
 	}
 
 	adjustCap() {
-		if (this.playerCount % 16 === 0) {
+		if (this.playerCount % 8 === 0) {
 			this.sayCommand("/tour start");
 			return;
 		}
 		let newCap = this.playerCount + 1;
-		while (newCap % 16 !== 0) {
+		while (newCap % 8 !== 0) {
 			newCap += 1;
 		}
 		CommandParser.parse(this.room, Users.self, Config.commandCharacter + "tournamentcap " + newCap);
