@@ -31,6 +31,10 @@ function stringArrayObjectToRoomIds(object: Dict<string[]>): Dict<string[]> {
 }
 
 export function load(config: typeof Config): typeof Config {
+	if (global.tempConfig && config.tempConfig) {
+		Object.assign(config, config.tempConfig);
+	}
+
 	if (config.developers) config.developers = config.developers.map(x => Tools.toId(x));
 
 	if (config.rooms) config.rooms = config.rooms.map(x => Tools.toRoomId(x));

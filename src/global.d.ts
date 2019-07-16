@@ -18,6 +18,7 @@ declare global {
 	const Games: Games;
 	const Rooms: Rooms;
 	const Storage: Storage;
+	const tempConfig: boolean;
 	const Tools: Tools;
 	const Tournaments: Tournaments;
 	const Users: Users;

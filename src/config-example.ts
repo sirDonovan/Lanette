@@ -1,6 +1,11 @@
 import { GameDifficulty } from "./types/games";
 
 /**
+ * Values in the object will override the values set throughout the config when starting Lanette with `tempConfig.js`
+ */
+export let tempConfig: typeof Config = {};
+
+/**
  * The username used for logging in to PS
  */
 export let username = '';
