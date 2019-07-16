@@ -44,6 +44,7 @@ for (const i in commands) {
 
 export class Game extends Activity {
 	readonly activityType: string = 'game';
+	awardedBits: boolean = false;
 	canLateJoin: boolean = false;
 	readonly commands = Object.assign(Object.create(null), globalGameCommands);
 	readonly customizableOptions: Dict<{min: number, base: number, max: number}> = Object.create(null);
@@ -234,6 +235,9 @@ export class Game extends Activity {
 				this.say("Game cooldown of " + Config.gameCooldownTimers[this.room.id] + " minutes has started! Minigames can be played in " + (Config.gameCooldownTimers[this.room.id] / 2) + " minutes.");
 			}
 		}
+
+		if (this.awardedBits) Storage.exportDatabase(this.room.id);
+
 		this.deallocate();
 	}
 
@@ -321,6 +325,7 @@ export class Game extends Activity {
 		if (this.shinyMascot) bits *= 2;
 		Storage.addPoints(this.room, user.name, bits, this.format.id);
 		if (!noPm) user.say("You were awarded " + bits + " bits! To see your total amount, use the command ``" + Config.commandCharacter + "bits " + this.room.title + "``.");
+		if (!this.awardedBits) this.awardedBits = true;
 		return true;
 	}
 
