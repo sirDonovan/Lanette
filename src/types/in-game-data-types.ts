@@ -246,12 +246,17 @@ export interface IAbilityCopy extends IAbilityData, IAbilityComputed {}
 export interface IAbility extends DeepReadonly<IAbilityCopy> {}
 
 export interface IFormatData extends IEventMethods {
+	challengeShow: boolean;
+	column: number;
 	effectType: "Format" | "Ruleset" | "Rule" | "ValidatorRule";
 	name: string;
+	mod: string;
+	searchShow: boolean;
+	section: string;
+	tournamentShow: boolean;
 	banlist?: string[];
 	cannotMega?: string[];
 	canUseRandomTeam?: boolean;
-	challengeShow?: boolean;
 	debug?: boolean;
 	defaultLevel?: number;
 	desc?: string;
@@ -259,7 +264,6 @@ export interface IFormatData extends IEventMethods {
 	gameType?: 'singles' | 'doubles' | 'triples' | 'rotation';
 	maxForcedLevel?: number;
 	maxLevel?: number;
-	mod?: string;
 	noChangeAbility?: boolean;
 	noChangeForme?: boolean;
 	onBasePowerPriority?: number;
@@ -273,12 +277,10 @@ export interface IFormatData extends IEventMethods {
 	restrictedMoves?: string[];
 	restrictedStones?: string[];
 	ruleset?: string[];
-	searchShow?: boolean;
 	team?: string;
 	teamLength?: {validate?: [number, number], battle?: number};
 	threads?: string[];
 	timer?: {starting?: number, perTurn?: number, maxPerTurn?: number, maxFirstTurn?: number, timeoutAutoChoose?: boolean, accelerate?: boolean};
-	tournamentShow?: boolean;
 	unbanlist?: string[];
 	checkLearnset?: (this: any, move: any, template: any, lsetData: any, set: any) => {type: string, [k: string]: any} | null;
 	onAfterMega?: (this: any, pokemon: any) => void;
@@ -290,8 +292,6 @@ export interface IFormatData extends IEventMethods {
 	onValidateTeam?: (this: any, team: any[], format: any, teamHas: any) => string[] | void;
 	validateSet?: (this: any, set: any, teamHas: any) => string[] | void;
 	validateTeam?: (this: any, team: any[], removeNicknames: boolean) => string[] | void;
-	section?: string;
-	column?: number;
 }
 
 export interface IFormatLinks {

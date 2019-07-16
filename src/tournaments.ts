@@ -133,9 +133,10 @@ export class Tournaments {
 			}
 
 			const formats: IFormat[] = [];
+			const currentGen = Dex.gen + 'gen';
 			for (const i in Dex.data.formats) {
 				const format = Dex.getExistingFormat(i);
-				if (!format.tournamentPlayable || format.unranked || format.mod || (scheduledFormat && scheduledFormat.id === format.id) || pastTournamentIds.includes(format.id)) continue;
+				if (!format.tournamentPlayable || format.unranked || format.mod !== currentGen || (scheduledFormat && scheduledFormat.id === format.id) || pastTournamentIds.includes(format.id)) continue;
 				formats.push(format);
 			}
 

@@ -15,7 +15,8 @@ export const dataDir = path.join(PokemonShowdown, 'data');
 export const modsDir = path.join(dataDir, 'mods');
 export const formatsPath = path.join(PokemonShowdown, 'config', 'formats.js');
 const lanetteDataDir = path.join(rootFolder, 'data');
-const currentGen = 'gen7';
+const currentGen = 7;
+const currentGenString = 'gen7';
 const omotmSection = 'OM of the Month';
 
 // tslint:disable-next-line no-var-requires
@@ -189,7 +190,7 @@ export class Dex {
 		const isBase = mod === 'base';
 		if (isBase) {
 			dexes['base'] = this;
-			dexes[currentGen] = this;
+			dexes[currentGenString] = this;
 		}
 		this.currentMod = mod;
 		this.isBase = isBase;
@@ -273,7 +274,7 @@ export class Dex {
 			if (format.challengeShow === undefined) format.challengeShow = true;
 			if (format.searchShow === undefined) format.searchShow = true;
 			if (format.tournamentShow === undefined) format.tournamentShow = true;
-			if (format.mod === undefined) format.mod = currentGen;
+			if (format.mod === undefined) format.mod = currentGenString;
 
 			if (format.section === omotmSection) omotms.push(id);
 		}
@@ -472,7 +473,7 @@ export class Dex {
 			}
 		}
 
-		this.gen = BattleScripts.gen || 7;
+		this.gen = BattleScripts.gen || currentGen;
 
 		this.loadedData = true;
 
@@ -930,7 +931,7 @@ export class Dex {
 			if (!isNaN(index) && index <= omotms.length) id = omotms[index - 1];
 		}
 		if (!this.data.formats.hasOwnProperty(id)) {
-			const currentGenId = currentGen + id;
+			const currentGenId = currentGenString + id;
 			if (this.data.formats.hasOwnProperty(currentGenId)) return this.getFormat(currentGenId, isTrusted);
 			if (customRuleFormats.hasOwnProperty(id)) return this.getFormat(customRuleFormats[id], true);
 			if (customRuleFormats.hasOwnProperty(currentGenId)) return this.getFormat(customRuleFormats[currentGenId], true);
