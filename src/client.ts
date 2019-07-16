@@ -158,6 +158,8 @@ export class Client {
 			method: 'GET',
 		};
 
+		this.connectionTimeout = setTimeout(() => this.onConnectFail(), 30 * 1000);
+
 		console.log("Attempting to connect to the server " + this.server + "...");
 		https.get(options, response => {
 			response.setEncoding('utf8');
@@ -182,8 +184,6 @@ export class Client {
 		}).on('error', error => {
 			console.log('Error: ' + error.message);
 		});
-
-		this.connectionTimeout = setTimeout(() => this.onConnectFail(), 30 * 1000);
 	}
 
 	reconnect() {
