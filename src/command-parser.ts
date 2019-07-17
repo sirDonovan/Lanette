@@ -107,6 +107,10 @@ export class CommandParser {
 		return dict;
 	}
 
+	loadBaseCommands<T = undefined>(commands: Dict<ICommandDefinition<T>>): CommandsDict<T> {
+		return Object.assign(Object.create(null), this.loadCommands(commands));
+	}
+
 	/** Returns true if the message contains a command */
 	parse(room: Room | User, user: User, message: string): boolean {
 		if (message.charAt(0) !== Config.commandCharacter) return false;

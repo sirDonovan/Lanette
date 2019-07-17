@@ -7,7 +7,7 @@ import * as ConfigLoader from './config-loader';
 global.Config = ConfigLoader.load(config);
 
 import * as dex from './dex';
-global.Dex = new dex.Dex('base');
+global.Dex = new dex.Dex();
 
 import * as client from './client';
 global.Client = new client.Client();
@@ -16,7 +16,7 @@ import * as commandParser from './command-parser';
 global.CommandParser = new commandParser.CommandParser();
 
 import commands = require('./commands');
-global.Commands = Object.assign(Object.create(null), CommandParser.loadCommands(commands));
+global.Commands = CommandParser.loadBaseCommands(commands);
 
 import * as games from './games';
 global.Games = new games.Games();

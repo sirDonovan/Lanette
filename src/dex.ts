@@ -186,7 +186,8 @@ export class Dex {
 	readonly dataDir: string;
 	readonly isBase: boolean;
 
-	constructor(mod: string) {
+	constructor(mod?: string) {
+		if (!mod) mod = 'base';
 		const isBase = mod === 'base';
 		if (isBase) {
 			dexes['base'] = this;

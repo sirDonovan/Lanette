@@ -10,6 +10,9 @@ import { GameDifficulty, IGameFormat } from "./types/games";
 import { IFormat } from "./types/in-game-data-types";
 import { User } from "./users";
 
+type ReloadableModule = 'client' | 'commandparser' | 'commands' | 'config' | 'dex' | 'games' | 'storage' | 'tools' | 'tournaments';
+const moduleOrder: ReloadableModule[] = ['tools', 'config', 'dex', 'client', 'commandparser', 'commands', 'games', 'storage', 'tournaments'];
+
 const commands: Dict<ICommandDefinition> = {
 	/**
 	 * Developer commands
@@ -41,21 +44,23 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	reload: {
 		command(target, room, user) {
-			type ReloadableModules = 'client' | 'commandparser' | 'commands' | 'config' | 'dex' | 'games' | 'storage' | 'tools' | 'tournaments';
-			const modules: ReloadableModules[] = [];
+			if (!target) return;
+			const hasModules: boolean[] = moduleOrder.slice().map(x => false);
 			const targets = target.split(",");
 			for (let i = 0; i < targets.length; i++) {
-				const id = Tools.toId(targets[i]);
-				if (id === 'tools') {
-					modules.unshift(id);
-				} else if (id === 'client' || id === 'commandparser' || id === 'commands' || id === 'config' || id === 'dex' || id === 'games' || id === 'storage' || id === 'tournaments') {
-					modules.push(id);
+				const id = Tools.toId(targets[i]) as ReloadableModule;
+				const moduleIndex = moduleOrder.indexOf(id);
+				if (moduleIndex !== -1) {
+					hasModules[moduleIndex] = true;
 				} else {
-					return this.say("Unknown module '" + targets[i].trim() + "'.");
+					return this.say("'" + targets[i].trim() + "' is not a module or cannot be reloaded.");
 				}
 			}
 
-			if (!modules.length) return;
+			const modules: ReloadableModule[] = [];
+			for (let i = 0; i < hasModules.length; i++) {
+				if (hasModules[i]) modules.push(moduleOrder[i]);
+			}
 
 			this.say("Running tsc...");
 			require(path.join(rootFolder, 'build.js'))(() => {
@@ -72,7 +77,7 @@ const commands: Dict<ICommandDefinition> = {
 						global.CommandParser = new commandParser.CommandParser();
 					} else if (modules[i] === 'commands') {
 						Tools.uncacheTree('./commands');
-						global.Commands = Object.assign(Object.create(null), CommandParser.loadCommands(require('./commands')));
+						global.Commands = CommandParser.loadBaseCommands(require('./commands'));
 						if (Games.loadedFormats) Games.loadFormatCommands();
 					} else if (modules[i] === 'config') {
 						Tools.uncacheTree('./config');
@@ -82,7 +87,7 @@ const commands: Dict<ICommandDefinition> = {
 					} else if (modules[i] === 'dex') {
 						Tools.uncacheTree('./dex');
 						const dex: typeof import('./dex') = require('./dex');
-						global.Dex = new dex.Dex('base');
+						global.Dex = new dex.Dex();
 					} else if (modules[i] === 'games') {
 						Tools.uncacheTree('./games');
 						const games: typeof import('./games') = require('./games');
