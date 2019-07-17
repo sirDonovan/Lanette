@@ -188,7 +188,7 @@ export class Game extends Activity {
 			this.sayUhtml(this.getSignupsHtml(), this.uhtmlBaseName + "-signups");
 		}
 		this.signupsTime = Date.now();
-		if (!this.userHosted && this.shinyMascot) this.say(this.mascot!.name + " is shiny so bits will be doubled!");
+		if (this.shinyMascot) this.say(this.mascot!.name + " is shiny so bits will be doubled!");
 		if (this.onSignups) this.onSignups();
 		if (this.options.freejoin) {
 			this.started = true;
