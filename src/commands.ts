@@ -1023,6 +1023,7 @@ const commands: Dict<ICommandDefinition> = {
 			const cap = parseInt(target);
 			if (isNaN(cap)) return this.say("You must specify a valid player cap.");
 			if (cap < Tournaments.minPlayerCap || cap > Tournaments.maxPlayerCap) return this.say("The tournament's player cap must be between " + Tournaments.minPlayerCap + " and " + Tournaments.maxPlayerCap + ".");
+			if (room.tournament.adjustCapTimer) clearTimeout(room.tournament.adjustCapTimer);
 			this.sayCommand("/tour cap " + cap);
 			if (!room.tournament.playerCap) this.sayCommand("/tour autostart on");
 			this.say("The tournament's player cap is now **" + cap + "**.");
