@@ -340,6 +340,12 @@ export class Games {
 		return Object.assign({}, formatData, formatComputed);
 	}
 
+	getExistingFormat(target: string): IGameFormat {
+		const format = this.getFormat(target);
+		if (!format) throw new Error("No format returned for '" + target + "'");
+		return format;
+	}
+
 	/**
 	 * Returns a copy of the format
 	 */
@@ -377,6 +383,12 @@ export class Games {
 			inputOptions: {},
 		};
 		return Object.assign({}, formatData, formatComputed);
+	}
+
+	getExistingUserHostedFormat(target: string): IUserHostedFormat {
+		const format = this.getUserHostedFormat(target);
+		if (!format) throw new Error("No user-hosted format returned for '" + target + "'");
+		return format;
 	}
 
 	getRemainingGameCooldown(room: Room, isMinigame?: boolean): number {

@@ -380,7 +380,7 @@ export const game: IUserHostedFile<UserHosted> = {
 		},
 		{
 			name: "Poliwrath's Portmanteaus",
-			mascot: "Poliwraths",
+			mascot: "Poliwrath",
 			aliases: ['Portmanteaus', 'Ports', 'Poliwraths'],
 			description: "Players think of portmanteaus that share 2-4 letters and fit the given parameters!",
 			freejoin: true,
