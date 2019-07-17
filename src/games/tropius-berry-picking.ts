@@ -72,8 +72,8 @@ const effectDescriptions: Dict<string> = {
 	'confusion': 'confused',
 };
 
-const stats: string[] = ['HP', 'Attack', 'Defense', 'Special Attack', 'Special Defense', 'Speed'];
-const evs: string[] = ['Attack', 'Defense', 'Special Attack', 'Special Defense', 'Speed'];
+const stats: string[] = ['Attack', 'Defense', 'Special Attack', 'Special Defense', 'Speed'];
+const evs: string[] = ['HP', 'Attack', 'Defense', 'Special Attack', 'Special Defense', 'Speed'];
 
 class TropiusBerryPicking extends Game {
 	static loadData(room: Room) {
