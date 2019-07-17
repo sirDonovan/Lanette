@@ -1088,7 +1088,8 @@ const commands: Dict<ICommandDefinition> = {
 			if (this.isPm(room) || !Tournaments.canCreateTournaments(room, user)) return;
 			const database = Storage.getDatabase(room);
 			if (database.queuedTournament && !cmd.startsWith('force')) return this.say(Dex.getExistingFormat(database.queuedTournament.formatid, true).name + " is already queued for " + room.title + ".");
-			const targets: string[] = target ? target.split(target.indexOf('@@@') !== -1 ? "|" : ",") : [];
+			if (target.includes('@@@')) return this.say("You must specify custom rules separately (``" + Config.commandCharacter + cmd + " format, cap, custom rules``).");
+			const targets: string[] = target ? target.split(",") : [];
 			const id = Tools.toId(targets[0]);
 			let scheduled = false;
 			let format: IFormat | null = null;
@@ -1107,10 +1108,32 @@ const commands: Dict<ICommandDefinition> = {
 				if (Config.scheduledTournamentsMaxPlayerCap && Config.scheduledTournamentsMaxPlayerCap.includes(room.id)) playerCap = Tournaments.maxPlayerCap;
 			} else if (targets.length > 1) {
 				playerCap = parseInt(targets[1]);
-				if (isNaN(playerCap) || playerCap < 2) return this.say("You must specify a valid number for the player cap.");
-				if (playerCap > Tournaments.maxPlayerCap) return this.say("You must specify a player cap less than " + Tournaments.maxPlayerCap + ".");
-			} else if (Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
+				if (isNaN(playerCap)) return this.say("You must specify a valid number for the player cap.");
+				if (playerCap && (playerCap < Tournaments.minPlayerCap || playerCap > Tournaments.maxPlayerCap)) {
+					return this.say("You must specify a player cap between " + Tournaments.minPlayerCap + " and " + Tournaments.maxPlayerCap + ".");
+				}
+			}
+			if (!playerCap && Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
 				playerCap = Config.defaultTournamentPlayerCaps[room.id];
+			}
+
+			if (targets.length > 2) {
+				if (scheduled) {
+					if (format.customRules) return this.say("You cannot alter the custom rules of scheduled tournaments.");
+					return this.say("You cannot add custom rules to scheduled tournaments.");
+				}
+				if (format.team) return this.say("You currently cannot specify custom rules for formats with generated teams.");
+				const customRules: string[] = [];
+				for (let i = 2; i < targets.length; i++) {
+					const rule = targets[i].trim();
+					try {
+						Dex.validateRule(rule, format);
+					} catch (e) {
+						return this.say(e.message);
+					}
+					customRules.push(rule);
+				}
+				format = Dex.getExistingFormat(format.name + "@@@" + customRules.join(','), true);
 			}
 
 			let time: number = 0;
