@@ -1158,10 +1158,10 @@ const commands: Dict<ICommandDefinition> = {
 					if (format.customRules) return this.say("You cannot alter the custom rules of scheduled tournaments.");
 					return this.say("You cannot add custom rules to scheduled tournaments.");
 				}
-				if (format.team) return this.say("You currently cannot specify custom rules for formats with generated teams.");
 				const customRules: string[] = [];
 				for (let i = 2; i < targets.length; i++) {
 					const rule = targets[i].trim();
+					if (format.team && (rule.charAt(0) === '+' || rule.charAt(0) === '-')) return this.say("You currently cannot specify bans or unbans for formats with generated teams.");
 					try {
 						Dex.validateRule(rule, format);
 					} catch (e) {
