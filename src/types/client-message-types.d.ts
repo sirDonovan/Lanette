@@ -30,6 +30,10 @@ export interface IRoomInfoResponse {
 
 export interface IClientMessageTypes {
 	/**
+	 * Global messages
+	 */
+
+	/**
 	 * Challenge key ID|challenge
 	 */
 	challstr: string;
@@ -64,18 +68,22 @@ export interface IClientMessageTypes {
 	deinit: {};
 
 	/**
+	 * Groups list
+	 */
+	customgroups: {
+		readonly groups: ServerGroupData[],
+	};
+
+	/**
+	 * Chat messages
+	 */
+
+	/**
 	 * User list
 	 */
 	users: {
 		/** usercount,[rank]username[@status],[rank]username[@status], etc. */
 		readonly userlist: string,
-	};
-
-	/**
-	 * Groups list
-	 */
-	customgroups: {
-		readonly groups: ServerGroupData[],
 	};
 
 	/**
@@ -144,13 +152,6 @@ export interface IClientMessageTypes {
 	};
 
 	/**
-	 * Message type|(Rest)
-	 */
-	tournament: {
-		readonly type: keyof ITournamentMessageTypes,
-	};
-
-	/**
 	 * Plaintext message
 	 */
 	'': {
@@ -180,6 +181,17 @@ export interface IClientMessageTypes {
 		readonly html: string,
 	};
 	uhtmlchange: IClientMessageTypes['uhtml'];
+
+	/**
+	 * Chatroom messages
+	 */
+
+	/**
+	 * Message type|(Rest)
+	 */
+	tournament: {
+		readonly type: keyof ITournamentMessageTypes,
+	};
 }
 
 export interface ITournamentMessageTypes {

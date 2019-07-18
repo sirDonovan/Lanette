@@ -248,183 +248,9 @@ export class Client {
 		}
 		const messageParts = message.split("|");
 		switch (messageType) {
-		case 'tournament': {
-			const type = messageParts[0] as keyof ITournamentMessageTypes;
-			messageParts.shift();
-			switch (type) {
-				case 'create': {
-					if (Config.allowTournaments && Config.allowTournaments.includes(room.id)) {
-						const messageArguments: ITournamentMessageTypes['create'] = {
-							format: Dex.getExistingFormat(messageParts[0]),
-							generator: messageParts[1],
-							playerCap: parseInt(messageParts[2]),
-						};
-						if (Tournaments.tournamentTimers[room.id]) clearTimeout(Tournaments.tournamentTimers[room.id]);
-						room.tournament = Tournaments.createTournament(room, messageArguments.format, messageArguments.generator, messageArguments.playerCap);
-						if (room.id in Tournaments.createListeners && messageArguments.format.id === Tournaments.createListeners[room.id].format.id) {
-							if (Tournaments.createListeners[room.id].scheduled) {
-								room.tournament.scheduled = true;
-								Tournaments.setScheduledTournament(room);
-							}
-							room.tournament.format = Tournaments.createListeners[room.id].format;
-							if (room.tournament.format.customRules) {
-								room.tournament.setCustomFormatName();
-								room.sayCommand("/tour rules " + room.tournament.format.customRules.join(","));
-							}
-							const database = Storage.getDatabase(room);
-							if (database.queuedTournament && room.tournament.format.id === Dex.getExistingFormat(database.queuedTournament.formatid, true).id) delete database.queuedTournament;
-							delete Tournaments.createListeners[room.id];
-						}
-						if (room.tournament.playerCap) room.sayCommand("/tour autostart on");
-						if (Config.tournamentAutoDQTimers && room.id in Config.tournamentAutoDQTimers) room.sayCommand("/tour autodq " + Config.tournamentAutoDQTimers[room.id]);
-						if (!room.tournament.format.team && Config.disallowTournamentScouting && Config.disallowTournamentScouting.includes(room.id)) room.sayCommand("/tour scouting disallow");
-						let startMinutes = 5;
-						if (Config.tournamentStartTimers && room.id in Config.tournamentStartTimers) {
-							startMinutes = Config.tournamentStartTimers[room.id];
-							if (room.tournament.scheduled) startMinutes *= 2;
-							room.tournament.startTimer = setTimeout(() => room.sayCommand("/tour start"), startMinutes * 60 * 1000);
-						}
-						if (Config.adjustTournamentCaps && Config.adjustTournamentCaps.includes(room.id)) {
-							room.tournament.adjustCapTimer = setTimeout(() => room.tournament!.adjustCap(), (startMinutes / 2) * 60 * 1000);
-						}
-						if (Config.displayTournamentFormatInfo && Config.displayTournamentFormatInfo.includes(room.id)) {
-							const formatInfo = Dex.getFormatInfoDisplay(room.tournament.format);
-							if (formatInfo) {
-								let divClass = '';
-								if (room.tournament.format.team) {
-									divClass = 'green';
-								} else if (room.tournament.format.gameType === 'singles') {
-									divClass = 'blue';
-								} else {
-									divClass = 'red';
-								}
-								room.sayHtml("<div class='broadcast-" + divClass + "'><b>" + room.tournament.name + "</b>:</div>" + formatInfo);
-							}
-						}
-						if (Config.tournamentRoomAdvertisements && room.id in Config.tournamentRoomAdvertisements) {
-							for (let i = 0; i < Config.tournamentRoomAdvertisements[room.id].length; i++) {
-								const advertisementRoom = Rooms.search(Config.tournamentRoomAdvertisements[room.id][i]);
-								if (advertisementRoom) advertisementRoom.sayHtml('<a href="/' + room.id + '" class="ilink"><strong>' + room.tournament.name + '</strong> tournament created in <strong>' + room.title + '</strong>.</a>');
-							}
-						}
-					}
-					break;
-				}
-
-				case 'end': {
-					const messageArguments: ITournamentMessageTypes['end'] = {
-						json: JSON.parse(messageParts.join("|")),
-					};
-					if (!room.tournament) Tournaments.createTournamentFromJSON(room, messageArguments.json);
-					if (room.tournament) {
-						Object.assign(room.tournament.updates, messageArguments.json);
-						room.tournament.update();
-						room.tournament.end();
-					}
-					const database = Storage.getDatabase(room);
-					const now = Date.now();
-					database.lastTournamentTime = now;
-					const hasSchedule = room.id in Tournaments.scheduledTournaments;
-					if (hasSchedule && Tournaments.scheduledTournaments[room.id].time <= now) {
-						Tournaments.setScheduledTournamentTimer(room);
-					} else if (database.queuedTournament) {
-						let timer: number;
-						if (database.queuedTournament.time) {
-							timer = database.queuedTournament.time - now;
-						} else {
-							timer = now + Tournaments.queuedTournamentTime;
-						}
-						Tournaments.setTournamentTimer(room, timer, Dex.getExistingFormat(database.queuedTournament.formatid, true), database.queuedTournament.playerCap);
-					} else {
-						if (Config.randomTournamentTimers && room.id in Config.randomTournamentTimers && Tournaments.canSetRandomTournament(room)) {
-							Tournaments.setRandomTournamentTimer(room, Config.randomTournamentTimers![room.id]);
-						} else if (hasSchedule) {
-							Tournaments.setScheduledTournamentTimer(room);
-						}
-					}
-					break;
-				}
-
-				case 'update': {
-					const messageArguments: ITournamentMessageTypes['update'] = {
-						json: JSON.parse(messageParts.join("|")),
-					};
-					if (!room.tournament) Tournaments.createTournamentFromJSON(room, messageArguments.json);
-					if (room.tournament) {
-						Object.assign(room.tournament.updates, messageArguments.json);
-					}
-					break;
-				}
-
-				case 'updateEnd': {
-					if (room.tournament) room.tournament.update();
-					break;
-				}
-
-				case 'forceend': {
-					if (room.tournament) room.tournament.forceEnd();
-					break;
-				}
-
-				case 'start': {
-					if (room.tournament) {
-						if (room.tournament.startTimer) clearTimeout(room.tournament.startTimer);
-						room.tournament.start();
-					}
-					break;
-				}
-
-				case 'join': {
-					if (room.tournament) {
-						const messageArguments: ITournamentMessageTypes['join'] = {
-							username: messageParts[0],
-						};
-						room.tournament.createPlayer(messageArguments.username);
-					}
-					break;
-				}
-
-				case 'leave':
-				case 'disqualify': {
-					if (room.tournament) {
-						const messageArguments: ITournamentMessageTypes['leave'] = {
-							username: messageParts[0],
-						};
-						room.tournament.destroyPlayer(messageArguments.username);
-					}
-					break;
-				}
-
-				case 'battlestart': {
-					if (room.tournament) {
-						const messageArguments: ITournamentMessageTypes['battlestart'] = {
-							usernameA: messageParts[0],
-							usernameB: messageParts[1],
-							roomid: messageParts[2],
-						};
-						room.tournament.onBattleStart(messageArguments.usernameA, messageArguments.usernameB, messageArguments.roomid);
-					}
-					break;
-				}
-
-				case 'battleend': {
-					if (room.tournament) {
-						const messageArguments: ITournamentMessageTypes['battleend'] = {
-							usernameA: messageParts[0],
-							usernameB: messageParts[1],
-							result: messageParts[2] as 'win' | 'loss' | 'draw',
-							score: messageParts[3].split(',') as [string, string],
-							recorded: messageParts[4] as 'success' | 'fail',
-							roomid: messageParts[5],
-						};
-						room.tournament.onBattleEnd(messageArguments.usernameA, messageArguments.usernameB, messageArguments.score, messageArguments.roomid);
-					}
-					break;
-				}
-			}
-			break;
-		}
-
+		/**
+		 * Global messages
+		 */
 		case 'challstr': {
 			this.challstr = message;
 			if (Config.username) this.login();
@@ -521,6 +347,17 @@ export class Client {
 			break;
 		}
 
+		case 'customgroups': {
+			const messageArguments: IClientMessageTypes['customgroups'] = {
+				groups: JSON.parse(messageParts[0]),
+			};
+			this.parseServerGroups(messageArguments.groups);
+			break;
+		}
+
+		/**
+		 * Chat messages
+		 */
 		case 'users': {
 			const messageArguments: IClientMessageTypes['users'] = {
 				userlist: messageParts[0],
@@ -541,14 +378,6 @@ export class Client {
 					user.rooms.set(room, rank);
 				}
 			}
-			break;
-		}
-
-		case 'customgroups': {
-			const messageArguments: IClientMessageTypes['customgroups'] = {
-				groups: JSON.parse(messageParts[0]),
-			};
-			this.parseServerGroups(messageArguments.groups);
 			break;
 		}
 
@@ -839,6 +668,187 @@ export class Client {
 			}
 			break;
 		}
+
+		/**
+		 * Chatroom messages
+		 */
+		case 'tournament': {
+			const type = messageParts[0] as keyof ITournamentMessageTypes;
+			messageParts.shift();
+			switch (type) {
+				case 'create': {
+					if (Config.allowTournaments && Config.allowTournaments.includes(room.id)) {
+						const messageArguments: ITournamentMessageTypes['create'] = {
+							format: Dex.getExistingFormat(messageParts[0]),
+							generator: messageParts[1],
+							playerCap: parseInt(messageParts[2]),
+						};
+						if (Tournaments.tournamentTimers[room.id]) clearTimeout(Tournaments.tournamentTimers[room.id]);
+						room.tournament = Tournaments.createTournament(room, messageArguments.format, messageArguments.generator, messageArguments.playerCap);
+						if (room.id in Tournaments.createListeners && messageArguments.format.id === Tournaments.createListeners[room.id].format.id) {
+							if (Tournaments.createListeners[room.id].scheduled) {
+								room.tournament.scheduled = true;
+								Tournaments.setScheduledTournament(room);
+							}
+							room.tournament.format = Tournaments.createListeners[room.id].format;
+							if (room.tournament.format.customRules) {
+								room.tournament.setCustomFormatName();
+								room.sayCommand("/tour rules " + room.tournament.format.customRules.join(","));
+							}
+							const database = Storage.getDatabase(room);
+							if (database.queuedTournament && room.tournament.format.id === Dex.getExistingFormat(database.queuedTournament.formatid, true).id) delete database.queuedTournament;
+							delete Tournaments.createListeners[room.id];
+						}
+						if (room.tournament.playerCap) room.sayCommand("/tour autostart on");
+						if (Config.tournamentAutoDQTimers && room.id in Config.tournamentAutoDQTimers) room.sayCommand("/tour autodq " + Config.tournamentAutoDQTimers[room.id]);
+						if (!room.tournament.format.team && Config.disallowTournamentScouting && Config.disallowTournamentScouting.includes(room.id)) room.sayCommand("/tour scouting disallow");
+						let startMinutes = 5;
+						if (Config.tournamentStartTimers && room.id in Config.tournamentStartTimers) {
+							startMinutes = Config.tournamentStartTimers[room.id];
+							if (room.tournament.scheduled) startMinutes *= 2;
+							room.tournament.startTimer = setTimeout(() => room.sayCommand("/tour start"), startMinutes * 60 * 1000);
+						}
+						if (Config.adjustTournamentCaps && Config.adjustTournamentCaps.includes(room.id)) {
+							room.tournament.adjustCapTimer = setTimeout(() => room.tournament!.adjustCap(), (startMinutes / 2) * 60 * 1000);
+						}
+						if (Config.displayTournamentFormatInfo && Config.displayTournamentFormatInfo.includes(room.id)) {
+							const formatInfo = Dex.getFormatInfoDisplay(room.tournament.format);
+							if (formatInfo) {
+								let divClass = '';
+								if (room.tournament.format.team) {
+									divClass = 'green';
+								} else if (room.tournament.format.gameType === 'singles') {
+									divClass = 'blue';
+								} else {
+									divClass = 'red';
+								}
+								room.sayHtml("<div class='broadcast-" + divClass + "'><b>" + room.tournament.name + "</b>:</div>" + formatInfo);
+							}
+						}
+						if (Config.tournamentRoomAdvertisements && room.id in Config.tournamentRoomAdvertisements) {
+							for (let i = 0; i < Config.tournamentRoomAdvertisements[room.id].length; i++) {
+								const advertisementRoom = Rooms.search(Config.tournamentRoomAdvertisements[room.id][i]);
+								if (advertisementRoom) advertisementRoom.sayHtml('<a href="/' + room.id + '" class="ilink"><strong>' + room.tournament.name + '</strong> tournament created in <strong>' + room.title + '</strong>.</a>');
+							}
+						}
+					}
+					break;
+				}
+
+				case 'end': {
+					const messageArguments: ITournamentMessageTypes['end'] = {
+						json: JSON.parse(messageParts.join("|")),
+					};
+					if (!room.tournament) Tournaments.createTournamentFromJSON(room, messageArguments.json);
+					if (room.tournament) {
+						Object.assign(room.tournament.updates, messageArguments.json);
+						room.tournament.update();
+						room.tournament.end();
+					}
+					const database = Storage.getDatabase(room);
+					const now = Date.now();
+					database.lastTournamentTime = now;
+					const hasSchedule = room.id in Tournaments.scheduledTournaments;
+					if (hasSchedule && Tournaments.scheduledTournaments[room.id].time <= now) {
+						Tournaments.setScheduledTournamentTimer(room);
+					} else if (database.queuedTournament) {
+						let timer: number;
+						if (database.queuedTournament.time) {
+							timer = database.queuedTournament.time - now;
+						} else {
+							timer = now + Tournaments.queuedTournamentTime;
+						}
+						Tournaments.setTournamentTimer(room, timer, Dex.getExistingFormat(database.queuedTournament.formatid, true), database.queuedTournament.playerCap);
+					} else {
+						if (Config.randomTournamentTimers && room.id in Config.randomTournamentTimers && Tournaments.canSetRandomTournament(room)) {
+							Tournaments.setRandomTournamentTimer(room, Config.randomTournamentTimers![room.id]);
+						} else if (hasSchedule) {
+							Tournaments.setScheduledTournamentTimer(room);
+						}
+					}
+					break;
+				}
+
+				case 'update': {
+					const messageArguments: ITournamentMessageTypes['update'] = {
+						json: JSON.parse(messageParts.join("|")),
+					};
+					if (!room.tournament) Tournaments.createTournamentFromJSON(room, messageArguments.json);
+					if (room.tournament) {
+						Object.assign(room.tournament.updates, messageArguments.json);
+					}
+					break;
+				}
+
+				case 'updateEnd': {
+					if (room.tournament) room.tournament.update();
+					break;
+				}
+
+				case 'forceend': {
+					if (room.tournament) room.tournament.forceEnd();
+					break;
+				}
+
+				case 'start': {
+					if (room.tournament) {
+						if (room.tournament.startTimer) clearTimeout(room.tournament.startTimer);
+						room.tournament.start();
+					}
+					break;
+				}
+
+				case 'join': {
+					if (room.tournament) {
+						const messageArguments: ITournamentMessageTypes['join'] = {
+							username: messageParts[0],
+						};
+						room.tournament.createPlayer(messageArguments.username);
+					}
+					break;
+				}
+
+				case 'leave':
+				case 'disqualify': {
+					if (room.tournament) {
+						const messageArguments: ITournamentMessageTypes['leave'] = {
+							username: messageParts[0],
+						};
+						room.tournament.destroyPlayer(messageArguments.username);
+					}
+					break;
+				}
+
+				case 'battlestart': {
+					if (room.tournament) {
+						const messageArguments: ITournamentMessageTypes['battlestart'] = {
+							usernameA: messageParts[0],
+							usernameB: messageParts[1],
+							roomid: messageParts[2],
+						};
+						room.tournament.onBattleStart(messageArguments.usernameA, messageArguments.usernameB, messageArguments.roomid);
+					}
+					break;
+				}
+
+				case 'battleend': {
+					if (room.tournament) {
+						const messageArguments: ITournamentMessageTypes['battleend'] = {
+							usernameA: messageParts[0],
+							usernameB: messageParts[1],
+							result: messageParts[2] as 'win' | 'loss' | 'draw',
+							score: messageParts[3].split(',') as [string, string],
+							recorded: messageParts[4] as 'success' | 'fail',
+							roomid: messageParts[5],
+						};
+						room.tournament.onBattleEnd(messageArguments.usernameA, messageArguments.usernameB, messageArguments.score, messageArguments.roomid);
+					}
+					break;
+				}
+			}
+			break;
+		}
+
 		}
 
 		return true;
