@@ -68,7 +68,7 @@ export const game: IGameFile<MetangsAnagrams> = {
 	name,
 	mascot: "Metang",
 	minigameCommand: 'anagram',
-	minigameDescription: "Use ``.g`` to guess the answer after unscrambling the letters!",
+	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess the answer after unscrambling the letters!",
 	modes: ["survival"],
 	variants: [
 		{

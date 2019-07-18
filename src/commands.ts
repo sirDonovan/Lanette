@@ -635,7 +635,7 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user, cmd) {
 			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
 			if (cmd === 'stored' || !target) {
-				if (!room.userHostedGame.storedMessage) return this.say("You must store a message first with ``.store``.");
+				if (!room.userHostedGame.storedMessage) return this.say("You must store a message first with ``" + Config.commandCharacter + "store``.");
 				if (room.userHostedGame.storedMessage.charAt(0) === Config.commandCharacter) {
 					const parts = room.userHostedGame.storedMessage.split(" ");
 					this.run(parts[0].substr(1), parts.slice(1).join(" "));
@@ -647,7 +647,7 @@ const commands: Dict<ICommandDefinition> = {
 			target = target.trim();
 			if (target.charAt(0) === '/' || (target.charAt(0) === '!' && target.trim().split(" ")[0] !== '!pick')) return this.say("You cannot store a command.");
 			room.userHostedGame.storedMessage = target;
-			this.say("Your message has been stored. You can now repeat it with ``.stored``.");
+			this.say("Your message has been stored. You can now repeat it with ``" + Config.commandCharacter + "stored``.");
 		},
 		aliases: ['stored'],
 	},
@@ -671,7 +671,7 @@ const commands: Dict<ICommandDefinition> = {
 			}
 			if (isPm) return;
 			gameRoom.userHostedGame.twist = target.trim();
-			this.say("Your twist has been stored. You can repeat it with ``.twist``.");
+			this.say("Your twist has been stored. You can repeat it with ``" + Config.commandCharacter + "twist``.");
 		},
 	},
 	savewinner: {
@@ -683,7 +683,7 @@ const commands: Dict<ICommandDefinition> = {
 			if (Config.maxUserHostedGameWinners && room.id in Config.maxUserHostedGameWinners) {
 				const totalStored = room.userHostedGame.savedWinners.length + targets.length;
 				if (totalStored > Config.maxUserHostedGameWinners[room.id]) return this.say("You cannot store more than " + Config.maxUserHostedGameWinners[room.id] + " winners.");
-				if (totalStored === Config.maxUserHostedGameWinners[room.id]) return this.say("You will reach the maximum amount of winners. Please use ``.win``.");
+				if (totalStored === Config.maxUserHostedGameWinners[room.id]) return this.say("You will reach the maximum amount of winners. Please use ``" + Config.commandCharacter + "win``.");
 			}
 			const stored = [];
 			for (let i = 0; i < targets.length; i++) {

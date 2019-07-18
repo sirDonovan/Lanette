@@ -95,7 +95,7 @@ class BulbasaursUno extends CardMatching {
 			drawCards = 0;
 		} else if (card.action === 'Wild (type)') {
 			if (!targets[1]) {
-				this.say("Please include your choice of type (``.play " + card.species + ", __type__``).");
+				this.say("Please include your choice of type (``" + Config.commandCharacter + "play " + card.species + ", __type__``).");
 				return false;
 			}
 			const type = Tools.toId(targets[1]);
@@ -106,7 +106,7 @@ class BulbasaursUno extends CardMatching {
 			this.topCard.types = [types[type]];
 		} else if (card.action === 'Wild (color)') {
 			if (!targets[1]) {
-				this.say("Please include your choice of color (``.play " + card.species + ", __color__``).");
+				this.say("Please include your choice of color (``" + Config.commandCharacter + "play " + card.species + ", __color__``).");
 				return false;
 			}
 			const color = Tools.toId(targets[1]);

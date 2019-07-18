@@ -95,7 +95,7 @@ export const game: IGameFile<EkansEdges> = {
 	name,
 	mascot: "Ekans",
 	minigameCommand: 'edge',
-	minigameDescription: "Use ``.g`` to guess an answer with the given starting and ending letters!",
+	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess an answer with the given starting and ending letters!",
 	modes: ["survival"],
 	variants: [
 		{

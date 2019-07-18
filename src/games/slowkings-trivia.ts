@@ -82,7 +82,7 @@ export const game: IGameFile<SlowkingsTrivia> = {
 	name,
 	mascot: "Slowking",
 	minigameCommand: 'trivium',
-	minigameDescription: "Use ``.g`` to guess an answer based on the description!",
+	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess an answer based on the description!",
 	modes: ["survival"],
 	variants: [
 		{
