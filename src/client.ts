@@ -210,13 +210,14 @@ export class Client {
 			this.parseMessage(room, lines[i]);
 			if (lines[i].startsWith('|init|')) {
 				const page = room.type === 'html';
+				const chat = !page && room.type === 'chat';
 				for (let j = i + 1; j < lines.length; j++) {
 					if (page) {
 						if (lines[j].startsWith('|pagehtml|')) {
 							this.parseMessage(room, lines[j]);
 							break;
 						}
-					} else {
+					} else if (chat) {
 						if (lines[j].startsWith('|users|')) {
 							this.parseMessage(room, lines[j]);
 							for (let k = j + 1; k < lines.length; k++) {
@@ -229,7 +230,7 @@ export class Client {
 						}
 					}
 				}
-				return;
+				if (page || chat) return;
 			}
 		}
 	}
@@ -849,6 +850,49 @@ export class Client {
 			break;
 		}
 
+		/**
+		 * Battle messages
+		 */
+		case 'player': {
+			const messageArguments: IClientMessageTypes['player'] = {
+				slot: messageParts[0],
+				username: messageParts[1],
+			};
+			if (room.tournament) {
+				const player = room.tournament.players[Tools.toId(messageArguments.username)];
+				if (player) {
+					if (!(room.id in room.tournament.battleData)) {
+						room.tournament.battleData[room.id] = {
+							remainingPokemon: {},
+							slots: new Map(),
+						};
+					}
+					room.tournament.battleData[room.id].slots.set(player, messageArguments.slot);
+				}
+			}
+			break;
+		}
+
+		case 'teamsize': {
+			const messageArguments: IClientMessageTypes['teamsize'] = {
+				slot: messageParts[0],
+				size: parseInt(messageParts[1]),
+			};
+			if (room.tournament) {
+				room.tournament.battleData[room.id].remainingPokemon[messageArguments.slot] = messageArguments.size;
+			}
+			break;
+		}
+
+		case 'faint': {
+			const messageArguments: IClientMessageTypes['faint'] = {
+				details: messageParts[0],
+			};
+			if (room.tournament) {
+				room.tournament.battleData[room.id].remainingPokemon[messageArguments.details.substr(0, 2)]--;
+			}
+			break;
+		}
 		}
 
 		return true;

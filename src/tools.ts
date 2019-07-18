@@ -71,7 +71,7 @@ export class Tools {
 
 	toRoomId(name: string): string {
 		const id = name.trim().toLowerCase();
-		if (id.startsWith('groupchat-')) return id.replace(SPACE_REGEX, '');
+		if (id.startsWith('battle-') || id.startsWith('groupchat-')) return id.replace(SPACE_REGEX, '');
 		return this.toId(name);
 	}
 

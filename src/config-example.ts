@@ -125,6 +125,11 @@ export let adjustTournamentCaps: string[] = [];
 export let tournamentStartTimers: Dict<number> = {};
 
 /**
+ * A list of rooms (roomids) where scores of tournament battles will be tracked
+ */
+export let trackTournamentBattleScores: string[] = [];
+
+/**
  * For each room in the object, the number of minutes to wait before setting a timer for a random tournament
  */
 export let randomTournamentTimers: Dict<number> = {};

@@ -192,6 +192,33 @@ export interface IClientMessageTypes {
 	tournament: {
 		readonly type: keyof ITournamentMessageTypes,
 	};
+
+	/**
+	 * Battle messages
+	 */
+
+	/**
+	 * Slot|username
+	 */
+	player: {
+		slot: string,
+		username: string,
+	};
+
+	/**
+	 * Slot|size
+	 */
+	teamsize: {
+		slot: string,
+		size: number,
+	};
+
+	/**
+	 * Slot+name
+	 */
+	faint: {
+		details: string,
+	};
 }
 
 export interface ITournamentMessageTypes {

@@ -4,6 +4,7 @@ import { ICommandDefinition } from "./command-parser";
 import { tagNames } from './dex';
 import { Player } from "./room-activity";
 import { Game } from './room-game';
+import { IBattleData } from './room-tournament';
 import { Room } from "./rooms";
 import { maxUsernameLength, rootFolder } from './tools';
 import { GameDifficulty, IGameFormat } from "./types/games";
@@ -1029,6 +1030,41 @@ const commands: Dict<ICommandDefinition> = {
 			this.say("The tournament's player cap is now **" + cap + "**.");
 		},
 		aliases: ['tcap'],
+	},
+	tournamentbattlescore: {
+		command(target, room, user) {
+			const targets: string[] = target ? target.split(",") : [];
+			let tournamentRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(Tools.toId(targets[0]));
+				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+				targets.shift();
+				tournamentRoom = targetRoom;
+			} else {
+				if (!user.hasRank(room, 'voice')) return;
+				tournamentRoom = room;
+			}
+
+			if (!tournamentRoom.tournament) return this.say("A tournament is not in progress in this room.");
+			if (tournamentRoom.tournament.generator !== 1) return this.say("This command is currently only usable in Single Elimination tournaments.");
+			const id = Tools.toId(targets[0]);
+			if (!(id in tournamentRoom.tournament.players)) return this.say("'" + targets[0] + "' is not a player in the " + tournamentRoom.title + " tournament.");
+			const targetPlayer = tournamentRoom.tournament.players[id];
+			if (targetPlayer.eliminated) return this.say(targetPlayer.name + " has already been eliminated from the " + tournamentRoom.title + " tournament.");
+
+			let currentBattle: IBattleData | undefined;
+			for (let i = 0; i < tournamentRoom.tournament.currentBattles.length; i++) {
+				if (tournamentRoom.tournament.currentBattles[i].playerA === targetPlayer || tournamentRoom.tournament.currentBattles[i].playerB === targetPlayer) {
+					currentBattle = tournamentRoom.tournament.battleData[tournamentRoom.tournament.currentBattles[i].roomid];
+					break;
+				}
+			}
+
+			if (!currentBattle) return this.say(targetPlayer.name + " is not currently in a tournament battle.");
+			const slots = Tools.shuffle(Object.keys(currentBattle.remainingPokemon));
+			this.say("The score of " + targetPlayer.name + "'s current battle is " + (slots.length < 2 ? "not yet available" : currentBattle.remainingPokemon[slots[0]] + " - " + currentBattle.remainingPokemon[slots[1]]) + ".");
+		},
+		aliases: ['tbscore', 'tbattlescore'],
 	},
 	scheduledtournament: {
 		command(target, room, user) {

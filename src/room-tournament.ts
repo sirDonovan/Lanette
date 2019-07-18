@@ -15,7 +15,7 @@ interface IBracketData {
 	readonly tableHeaders?: {cols: any[], rows: any[]};
 }
 
-interface IBattleData {
+interface ICurrentBattle {
 	readonly playerA: Player;
 	readonly playerB: Player;
 	readonly roomid: string;
@@ -57,6 +57,11 @@ export interface ITournamentEndJSON {
 	results: string[][];
 }
 
+export interface IBattleData {
+	remainingPokemon: Dict<number>;
+	slots: Map<Player, string>;
+}
+
 const generators: Dict<number> = {
 	"Single": 1,
 	"Double": 2,
@@ -69,10 +74,10 @@ const generators: Dict<number> = {
 export class Tournament extends Activity {
 	readonly activityType: string = 'tournament';
 	adjustCapTimer: NodeJS.Timer | null = null;
-	readonly battleData: IBattleData[] = [];
+	readonly battleData: Dict<IBattleData> = {};
 	readonly battleRooms: string[] = [];
 	readonly createTime: number = Date.now();
-	readonly currentBattles: IBattleData[] = [];
+	readonly currentBattles: ICurrentBattle[] = [];
 	generator: number = 1;
 	readonly info: ITournamentUpdateJSON & ITournamentEndJSON = {
 		bracketData: {type: ''},
@@ -96,9 +101,18 @@ export class Tournament extends Activity {
 	totalPlayers: number = 0;
 	updates: Partial<ITournamentUpdateJSON> = {};
 
+	readonly joinBattles: boolean;
+
+	// set in initialize()
 	format!: IFormat;
 	playerCap!: number;
 	readonly room!: Room;
+
+	constructor(room: Room, pmRoom?: Room) {
+		super(room, pmRoom);
+
+		this.joinBattles = Config.trackTournamentBattleScores && Config.trackTournamentBattleScores.includes(room.id) ? true : false;
+	}
 
 	initialize(format: IFormat, generator: string, playerCap: number, name?: string) {
 		this.format = format;
@@ -362,17 +376,20 @@ export class Tournament extends Activity {
 		const idA = Tools.toId(usernameA);
 		const idB = Tools.toId(usernameB);
 		if (!(idA in this.players) || !(idB in this.players)) throw new Error("Player not found for " + usernameA + " vs. " + usernameB + " in " + roomid);
-		const battleData: IBattleData = {
+		this.currentBattles.push({
 			playerA: this.players[idA],
 			playerB: this.players[idB],
 			roomid,
-		};
-		this.battleData.push(battleData);
-		this.currentBattles.push(battleData);
+		});
 
 		this.battleRooms.push(roomid);
 
 		if (this.generator === 1 && this.getRemainingPlayerCount() === 2) this.sayCommand("/wall Final battle of the " + this.name + " " + this.activityType + ": <<" + roomid + ">>!");
+		if (this.joinBattles) {
+			const battleRoom = Rooms.add(roomid);
+			battleRoom.tournament = this;
+			this.sayCommand("/join " + roomid);
+		}
 	}
 
 	onBattleEnd(usernameA: string, usernameB: string, score: [string, string], roomid: string) {
@@ -384,6 +401,11 @@ export class Tournament extends Activity {
 				this.currentBattles.splice(i, 1);
 				break;
 			}
+		}
+
+		if (this.joinBattles) {
+			const room = Rooms.search(roomid);
+			if (room) room.say("/leave");
 		}
 	}
 }
