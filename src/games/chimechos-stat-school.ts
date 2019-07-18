@@ -35,22 +35,6 @@ class ChimechosStatSchool extends Guessing {
 		this.answers = data[stats];
 		this.hint = "**Base stats**: " + stats;
 	}
-
-	onNextRound() {
-		this.canGuess = false;
-		this.setAnswers();
-		this.on(this.hint, () => {
-			this.canGuess = true;
-			this.timeout = setTimeout(() => {
-				if (this.answers.length) {
-					this.say("Time's up! " + this.getAnswers());
-					this.answers = [];
-				}
-				this.nextRound();
-			}, 10 * 1000);
-		});
-		this.say(this.hint);
-	}
 }
 
 export const game: IGameFile<ChimechosStatSchool> = {
