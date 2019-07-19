@@ -1,4 +1,4 @@
-import { DefaultGameOptions } from "../room-game";
+import { DefaultGameOption } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
@@ -24,7 +24,7 @@ class ChimechosStatSchool extends Guessing {
 		loadedData = true;
 	}
 
-	defaultOptions: DefaultGameOptions[] = ['points'];
+	defaultOptions: DefaultGameOption[] = ['points'];
 
 	onSignups() {
 		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);

@@ -1,6 +1,6 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
-import { DefaultGameOptions, Game } from "../room-game";
+import { DefaultGameOption, Game } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 
@@ -90,7 +90,7 @@ class TropiusBerryPicking extends Game {
 
 	canEat: boolean = false;
 	canLateJoin: boolean = true;
-	defaultOptions: DefaultGameOptions[] = ['freejoin', 'points'];
+	defaultOptions: DefaultGameOption[] = ['freejoin', 'points'];
 	// firstEat: Player | null;
 	lastMove: string = '';
 	points = new Map<Player, number>();

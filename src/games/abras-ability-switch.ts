@@ -1,11 +1,11 @@
 import { ICommandDefinition } from "../command-parser";
-import { DefaultGameOptions } from "../room-game";
+import { DefaultGameOption } from "../room-game";
 import { IGameFile } from "../types/games";
 import { IPokemon } from "../types/in-game-data-types";
 import { commands as templateCommands, Guessing } from './templates/guessing';
 
 class AbrasAbilitySwitch extends Guessing {
-	defaultOptions: DefaultGameOptions[] = ['points'];
+	defaultOptions: DefaultGameOption[] = ['points'];
 	lastAbility: string = '';
 	lastPokemon: string = '';
 	pokedex: IPokemon[] = Dex.getPokemonList();

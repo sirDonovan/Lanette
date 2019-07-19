@@ -1,9 +1,9 @@
-import { DefaultGameOptions } from "../room-game";
+import { DefaultGameOption } from "../room-game";
 import { IGameFile } from "../types/games";
 import { Chain, commands } from "./templates/chain";
 
 class UnownsPokemonChain extends Chain {
-	defaultOptions: DefaultGameOptions[] = ['freejoin', 'points'];
+	defaultOptions: DefaultGameOption[] = ['freejoin', 'points'];
 }
 
 export const game: IGameFile<UnownsPokemonChain> = {

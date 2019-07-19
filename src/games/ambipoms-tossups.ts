@@ -1,5 +1,5 @@
 import { Player } from "../room-activity";
-import { DefaultGameOptions } from "../room-game";
+import { DefaultGameOption } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { IPokemon } from "../types/in-game-data-types";
@@ -28,7 +28,7 @@ class AmbipomsTossups extends Guessing {
 		loadedData = true;
 	}
 
-	defaultOptions: DefaultGameOptions[] = ['points'];
+	defaultOptions: DefaultGameOption[] = ['points'];
 	hints: string[] = [];
 	lastAnswer: string = '';
 	letterCount: number = 0;

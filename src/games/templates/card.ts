@@ -1,6 +1,6 @@
 import { ICommandDefinition } from '../../command-parser';
 import { Player } from '../../room-activity';
-import { DefaultGameOptions, Game } from '../../room-game';
+import { DefaultGameOption, Game } from '../../room-game';
 import { IMoveCopy, IPokemon, IPokemonCopy } from '../../types/in-game-data-types';
 
 export interface IMoveCard extends IMoveCopy {
@@ -64,7 +64,7 @@ export abstract class Card extends Game {
 	currentPlayer: Player | null = null;
 	deck: CardType[] = [];
 	deckPool: CardType[] = [];
-	defaultOptions: DefaultGameOptions[] = ['cards'];
+	defaultOptions: DefaultGameOption[] = ['cards'];
 	detailCategories: string[] = [];
 	detailLabelWidth: number = 75;
 	drawAmount: number = 1;

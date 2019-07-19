@@ -5,7 +5,7 @@ import { IGameFormat } from "./types/games";
 import { IPokemonCopy } from "./types/in-game-data-types";
 import { User } from "./users";
 
-export type DefaultGameOptions = 'points' | 'teams' | 'cards' | 'freejoin';
+export type DefaultGameOption = 'points' | 'teams' | 'cards' | 'freejoin';
 
 const SIGNUPS_HTML_DELAY = 2 * 1000;
 
@@ -69,7 +69,7 @@ export class Game extends Activity {
 
 	allowChildGameBits?: boolean;
 	commandDescriptions?: string[];
-	readonly defaultOptions?: DefaultGameOptions[];
+	readonly defaultOptions?: DefaultGameOption[];
 	isMiniGame?: boolean;
 	readonly lives?: Map<Player, number>;
 	mascot?: IPokemonCopy;

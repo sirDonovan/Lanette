@@ -1,5 +1,5 @@
 import { Player } from "../room-activity";
-import { DefaultGameOptions } from "../room-game";
+import { DefaultGameOption } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { commands, Guessing } from "./templates/guessing";
@@ -23,7 +23,7 @@ class PikachusMysteryPokemon extends Guessing {
 
 	answers: string[] = [];
 	canGuess: boolean = false;
-	defaultOptions: DefaultGameOptions[] = ['points'];
+	defaultOptions: DefaultGameOption[] = ['points'];
 	hints: string[] = [];
 	hintsIndex: number = 0;
 	lastSpecies: string = '';
