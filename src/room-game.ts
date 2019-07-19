@@ -57,7 +57,6 @@ export class Game extends Activity {
 	parentGame: Game | null = null;
 	round: number = 0;
 	signupsTime: number = 0;
-	startingPoints: number = 0;
 	readonly userHosted: boolean = false;
 	readonly winnerPointsToBits: number = 50;
 	readonly winners = new Map<Player, number>();
@@ -77,6 +76,8 @@ export class Game extends Activity {
 	playerCap?: number;
 	readonly points?: Map<Player, number>;
 	shinyMascot?: boolean;
+	startingLives?: number;
+	startingPoints?: number;
 	subGameNumber?: number;
 	readonly variant?: string;
 
@@ -212,7 +213,8 @@ export class Game extends Activity {
 		html += " - " + (roundText || "Round " + this.round);
 
 		if (!players) players = this.getRemainingPlayers();
-		html += "<br />" + (!this.options.freejoin ? "Remaining players" : "Players") + " (" + this.getRemainingPlayerCount(players) + "): " + getAttributes.call(this, players);
+		const remainingPlayerCount = this.getRemainingPlayerCount(players);
+		if (remainingPlayerCount > 0) html += "<br />" + (!this.options.freejoin ? "Remaining players" : "Players") + " (" + remainingPlayerCount + "): " + getAttributes.call(this, players);
 		html += "</div>";
 
 		return html;
@@ -367,7 +369,7 @@ export class Game extends Activity {
 
 	getPlayerLives(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => {
-			const wins = this.lives!.get(player);
+			const wins = this.lives!.get(player) || this.startingLives;
 			return player.name + (wins ? " (" + wins + ")" : "");
 		}, players).join(', ');
 	}
