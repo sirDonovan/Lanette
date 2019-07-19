@@ -6,11 +6,16 @@ import { IPokemonCopy } from "./types/in-game-data-types";
 import { User } from "./users";
 
 export type DefaultGameOption = 'points' | 'teams' | 'cards' | 'freejoin';
+export interface IGameOptionValues {
+	min: number;
+	base: number;
+	max: number;
+}
 
 const SIGNUPS_HTML_DELAY = 2 * 1000;
 
 // base of 0 defaults option to 'off'
-const defaultOptionValues: Dict<{min?: number, base?: number, max?: number}> = {
+const defaultOptionValues: Dict<IGameOptionValues> = {
 	points: {min: 3, base: 5, max: 10},
 	teams: {min: 2, base: 2, max: 4},
 	cards: {min: 4, base: 5, max: 6},
@@ -47,7 +52,7 @@ export class Game extends Activity {
 	awardedBits: boolean = false;
 	canLateJoin: boolean = false;
 	readonly commands = Object.assign(Object.create(null), globalGameCommands);
-	readonly customizableOptions: Dict<{min: number, base: number, max: number}> = Object.create(null);
+	readonly customizableOptions: Dict<IGameOptionValues> = Object.create(null);
 	readonly loserPointsToBits: number = 10;
 	readonly maxBits: number = 1000;
 	namePrefixes: string[] = [];
