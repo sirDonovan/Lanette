@@ -753,13 +753,13 @@ export class Client {
 					if (hasSchedule && Tournaments.scheduledTournaments[room.id].time <= now) {
 						Tournaments.setScheduledTournamentTimer(room);
 					} else if (database.queuedTournament) {
-						let timer: number;
+						let startTime: number;
 						if (database.queuedTournament.time) {
-							timer = database.queuedTournament.time - now;
+							startTime = database.queuedTournament.time;
 						} else {
-							timer = now + Tournaments.queuedTournamentTime;
+							startTime = now + Tournaments.queuedTournamentTime;
 						}
-						Tournaments.setTournamentTimer(room, timer, Dex.getExistingFormat(database.queuedTournament.formatid, true), database.queuedTournament.playerCap);
+						Tournaments.setTournamentTimer(room, startTime, Dex.getExistingFormat(database.queuedTournament.formatid, true), database.queuedTournament.playerCap);
 					} else {
 						if (Config.randomTournamentTimers && room.id in Config.randomTournamentTimers && Tournaments.canSetRandomTournament(room)) {
 							Tournaments.setRandomTournamentTimer(room, Config.randomTournamentTimers![room.id]);
