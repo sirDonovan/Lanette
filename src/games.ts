@@ -19,7 +19,7 @@ export class Games {
 	lastScriptedGames: Dict<number> = {};
 	lastUserHostedGames: Dict<number> = {};
 	loadedFormats: boolean = false;
-	readonly minigameCommandNames: Dict<string> = {};
+	readonly minigameCommandNames: Dict<{aliases: string[], format: string}> = {};
 	readonly modesCache: Dict<IGameMode> = {};
 	readonly userHostedAliasesCache: Dict<string> = {};
 	readonly userHostedFormatsCache: Dict<IUserHostedComputed> = {};
@@ -140,7 +140,7 @@ export class Games {
 			if (format.minigameCommand) {
 				const minigameCommand = Tools.toId(format.minigameCommand);
 				if (this.minigameCommandNames.hasOwnProperty(minigameCommand)) throw new Error(format.name + "'s minigame command '" + minigameCommand + "' is already used by " + this.minigameCommandNames[minigameCommand]);
-				this.minigameCommandNames[minigameCommand] = format.name;
+				this.minigameCommandNames[minigameCommand] = {aliases: format.minigameCommandAliases ? format.minigameCommandAliases.map(x => Tools.toId(x)) : [], format: format.name};
 			}
 
 			if (format.variants) {
@@ -182,8 +182,12 @@ export class Games {
 			}
 		}
 
-		for (const i in this.minigameCommandNames) {
-			if (this.commandNames.includes(i)) throw new Error("Minigame command '" + i + "' is a regular command for another game");
+		for (const name in this.minigameCommandNames) {
+			if (this.commandNames.includes(name)) throw new Error("Minigame command '" + name + "' is a regular command for another game");
+			for (let i = 0; i < this.minigameCommandNames[name].aliases.length; i++) {
+				const alias = this.minigameCommandNames[name].aliases[i];
+				if (this.commandNames.includes(alias)) throw new Error("Minigame command alias '" + alias + "' (" + name + ") is a regular command for another game");
+			}
 		}
 
 		this.loadedFormats = true;
@@ -215,9 +219,9 @@ export class Games {
 			};
 		}
 
-		for (const i in this.minigameCommandNames) {
-			const formatName = this.minigameCommandNames[i];
-			Commands[i] = {
+		for (const name in this.minigameCommandNames) {
+			const formatName = this.minigameCommandNames[name].format;
+			Commands[name] = {
 				command(target, room, user, command) {
 					let pmRoom: Room | undefined;
 					if (this.isPm(room)) {
@@ -244,6 +248,9 @@ export class Games {
 					game.signups();
 				},
 			};
+			for (let i = 0; i < this.minigameCommandNames[name].aliases.length; i++) {
+				Commands[this.minigameCommandNames[name].aliases[i]] = Commands[name];
+			}
 		}
 	}
 

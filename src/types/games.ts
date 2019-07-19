@@ -27,6 +27,7 @@ export interface IGameFile<T extends Game = Game> {
 	readonly mascot?: string;
 	readonly mascots?: string[];
 	minigameCommand?: string;
+	minigameCommandAliases?: string[];
 	readonly minigameDescription?: string;
 	readonly modes?: string[];
 	readonly scriptedOnly?: boolean;
