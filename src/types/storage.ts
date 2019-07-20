@@ -1,3 +1,8 @@
+interface IEventLink {
+	description: string;
+	link: string;
+}
+
 interface ILeaderboardEntry {
 	annual: number;
 	annualSources: Dict<number>;
@@ -21,6 +26,7 @@ interface IQueuedUserHostedGame {
 }
 
 export interface IDatabase {
+	eventLinks?: Dict<IEventLink>;
 	lastTournamentTime?: number;
 	leaderboard?: Dict<ILeaderboardEntry>;
 	offlineMessages?: Dict<IOfflineMessage[]>;
