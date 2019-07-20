@@ -31,6 +31,7 @@ exports.BattleFormatLinks = {
 	'gen7battlefactory': {name: '[Gen 7] Battle Factory', desc: 'Randomized teams of level-balanced Pokémon with sets that are generated to be competitively viable. Each battle is set in a different tier.'},
 	'gen7vgc2017': {name: '[Gen 7] VGC 2017', info: 'http://www.smogon.com/dex/sm/formats/vgc17/', teams: '3590391', desc: "The Video Game Championship (2017 rules) - Nintendo's official doubles format where you bring 6 pokemon and pick 4 to use."},
 	'gen7vgc2018': {name: '[Gen 7] VGC 2018', viability: '3622041', teams: '3628885', desc: "The Video Game Championship (2018 rules) - Nintendo's official doubles format where you bring 6 pokemon and pick 4 to use."},
+	'gen7vgc2019ultraseries': {name: '[Gen 7] VGC 2019 Ultra Series', viability: '3648031'},
 	'gen7cap': {name: '[Gen 7] Cap', teams: '3593752', viability: '3597893'},
 	'gen7mixandmega': {name: '[Gen 7] Mix and Mega', teams: '3587740/#post-7099555', viability: '3591580/#post-7168836'},
 	'gen7almostanyability': {name: '[Gen 7] Almost Any Ability', teams: '3587901/#post-7103429', viability: '3595753'},
@@ -80,7 +81,7 @@ exports.BattleFormatLinks = {
 
 	// Gen 4
 	'gen4ubers': {name: '[Gen 4] Ubers', genGuide: 'short-dpp-guide.3531283', info: 'http://www.smogon.com/dex/dp/formats/uber', teams: '3580622/#post-6963708'},
-	'gen4ou': {name: '[Gen 4] OU', genGuide: 'short-dpp-guide.3531283', info: 'http://www.smogon.com/dex/dp/formats/ou', viability: '3514029', teams: 'https://pastebin.com/L73Q1mRV'},
+	'gen4ou': {name: '[Gen 4] OU', genGuide: 'short-dpp-guide.3531283', info: 'http://www.smogon.com/dex/dp/formats/ou', viability: '3652538/#post-8186495', teams: 'https://pastebin.com/L73Q1mRV'},
 	'gen4uu': {name: '[Gen 4] UU', genGuide: 'short-dpp-guide.3531283', info: 'http://www.smogon.com/dex/dp/formats/uu', teams: '3576780/#post-6891701'},
 	'gen4pu': {name: '[Gen 4] PU', teams: '3597643/#post-7260264'},
 	'gen4lc': {name: '[Gen 4] LC', genGuide: 'short-dpp-guide.3531283', info: 'http://www.smogon.com/dex/dp/formats/lc', teams: '3554452/#post-6499972'},
