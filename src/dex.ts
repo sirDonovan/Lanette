@@ -41,6 +41,7 @@ const dataSearchTypes: Dict<string> = {pokedex: 'pokemon', moves: 'move', abilit
 
 const lanetteDataFiles: Dict<string> = {
 	'Badges': 'badges',
+	'Categories': 'categories',
 	'Characters': 'characters',
 	'FormatLinks': 'format-links',
 	'PokemonSprites': 'pokedex-mini',
@@ -200,6 +201,7 @@ export class Dex {
 			abilities: {},
 			aliases: {},
 			badges: [],
+			categories: {},
 			characters: [],
 			colors: {},
 			eggGroups: {},
@@ -752,6 +754,7 @@ export class Dex {
 		const pokemonComputed: IPokemonComputed = {
 			baseSpecies,
 			battleOnly,
+			category: this.data.categories[speciesId] || '',
 			effectType: "Pokemon",
 			gen,
 			genderRatio: templateData.genderRatio || (templateData.gender === 'M' ? {M: 1, F: 0} :

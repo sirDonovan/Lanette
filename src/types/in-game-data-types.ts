@@ -591,6 +591,7 @@ export interface ITemplateFormatsData {
 export interface IPokemonComputed {
 	baseSpecies: string;
 	battleOnly?: boolean;
+	category: string;
 	effectType: "Pokemon";
 	evos: string[];
 	forme: string;
@@ -633,6 +634,7 @@ export interface IDataTable {
 	readonly abilities: Dict<IAbilityData | undefined>;
 	readonly aliases: Dict<string | undefined>;
 	readonly badges: string[];
+	readonly categories: Dict<string | undefined>;
 	readonly characters: string[];
 	readonly colors: Dict<string>;
 	readonly eggGroups: Dict<string>;
