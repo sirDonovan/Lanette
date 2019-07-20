@@ -604,6 +604,7 @@ export interface IPokemonComputed {
 	shiny: boolean;
 	speciesId: string;
 	spriteId: string;
+	tier: string;
 }
 
 export interface IPokemonCopy extends ITemplateData, Partial<ILearnset>, ITemplateFormatsData, IPokemonComputed {
@@ -612,6 +613,7 @@ export interface IPokemonCopy extends ITemplateData, Partial<ILearnset>, ITempla
 	forme: string;
 	gen: number;
 	genderRatio: NonNullable<ITemplateData["genderRatio"]>;
+	tier: string;
 }
 export interface IPokemon extends DeepReadonly<IPokemonCopy> {}
 

@@ -768,6 +768,7 @@ export class Dex {
 			shiny: false,
 			speciesId,
 			spriteId: Tools.toId(baseSpecies) + (baseSpecies !== templateData.species ? '-' + Tools.toId(templateData.forme) : ''),
+			tier: templateFormatsData.tier || 'Illegal',
 		};
 		const pokemon: IPokemon = Object.assign(templateData, templateFormatsData, this.data.learnsets[id] || {}, pokemonComputed);
 		this.pokemonCache.set(id, pokemon);
