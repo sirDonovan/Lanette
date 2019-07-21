@@ -199,7 +199,6 @@ const commands: Dict<ICommandDefinition> = {
 				user.say("You have left the " + room.userHostedGame.name + " " + room.userHostedGame.activityType + ".");
 			}
 		},
-		aliases: ['lg'],
 	},
 	game: {
 		command(target, room, user) {
