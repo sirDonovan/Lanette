@@ -143,6 +143,78 @@ const commands: Dict<ICommandDefinition> = {
 		},
 		aliases: ['vranking'],
 	},
+	format: {
+		command(target, room, user) {
+			let pmRoom: Room;
+			if (this.isPm(room)) {
+				user.rooms.forEach((value, room) => {
+					if (!pmRoom && Users.self.hasRank(room, 'bot')) pmRoom = room;
+				});
+			} else {
+				if (!user.hasRank(room, 'voice')) return;
+				pmRoom = room;
+			}
+			const format = Dex.getFormat(target);
+			if (!format) return this.say("'" + target.trim() + "' is not a valid format.");
+			const html = Dex.getFormatInfoDisplay(format);
+			if (!html.length) return this.say("No info found for " + format.name + ".");
+			this.sayHtml("<b>" + format.name + "</b>" + html, pmRoom!);
+		},
+		aliases: ['om', 'tier'],
+	},
+	eventlink: {
+		command(target, room, user) {
+			const targets = target.split(',');
+			let eventRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+				if (!this.canPmHtml(targetRoom)) return this.say(Users.self.name + " requires Bot rank (*) in " + targetRoom.title + " for this command to work in PMs.");
+				eventRoom = targetRoom;
+				targets.shift();
+			} else {
+				if (!user.hasRank(room, 'voice')) return;
+				eventRoom = room;
+			}
+
+			const database = Storage.getDatabase(eventRoom);
+			if (!database.eventLinks) return this.say(eventRoom.title + " does not currently have any event links stored.");
+			const event = Tools.toId(targets[0]);
+			if (!(event in database.eventLinks)) return this.say("'" + targets[0] + "' is not one of " + eventRoom.title + "'s event links.");
+			this.sayHtml("<a href='" + database.eventLinks[event].link + "'><b>" + database.eventLinks[event].description + "</b></a>", eventRoom);
+		},
+		aliases: ['elink'],
+	},
+	seteventlink: {
+		command(target, room, user) {
+			if (this.isPm(room) || !user.hasRank(room, 'driver')) return;
+			const targets = target.split(',');
+			const event = Tools.toId(targets[0]);
+			if (!event) return this.say("You must specify an event.");
+			const link = targets[1].trim();
+			if (!link.startsWith('http://') && !link.startsWith('https://')) return this.say("You must specify a valid link.");
+			const description = targets.slice(2).join(',').trim();
+			if (!description) return this.say("You must include a description for the link.");
+			const database = Storage.getDatabase(room);
+			if (!database.eventLinks) database.eventLinks = {};
+			database.eventLinks[event] = {description, link};
+			this.say("The event link and description for " + targets[0].trim() + " has been updated.");
+		},
+		aliases: ['setelink'],
+	},
+	removeeventlink: {
+		command(target, room, user) {
+			if (this.isPm(room) || !user.hasRank(room, 'driver')) return;
+			const database = Storage.getDatabase(room);
+			if (!database.eventLinks) return this.say(room.title + " does not currently have any event links stored.");
+			const event = Tools.toId(target);
+			if (!event || !(event in database.eventLinks)) return this.say("You must specify a valid event.");
+			delete database.eventLinks[event];
+			this.say("The event link for " + target.trim() + " has been removed.");
+		},
+		aliases: ['removeelink'],
+	},
+
 	/**
 	 * Game commands
 	 */
@@ -1277,83 +1349,12 @@ const commands: Dict<ICommandDefinition> = {
 		},
 		aliases: ['pasttours', 'recenttournaments', 'recenttours'],
 	},
-	format: {
-		command(target, room, user) {
-			let pmRoom: Room;
-			if (this.isPm(room)) {
-				user.rooms.forEach((value, room) => {
-					if (!pmRoom && Users.self.hasRank(room, 'bot')) pmRoom = room;
-				});
-			} else {
-				if (!user.hasRank(room, 'voice')) return;
-				pmRoom = room;
-			}
-			const format = Dex.getFormat(target);
-			if (!format) return this.say("'" + target.trim() + "' is not a valid format.");
-			const html = Dex.getFormatInfoDisplay(format);
-			if (!html.length) return this.say("No info found for " + format.name + ".");
-			this.sayHtml("<b>" + format.name + "</b>" + html, pmRoom!);
-		},
-		aliases: ['om', 'tier'],
-	},
 	usercreatedformats: {
 		command(target, room, user) {
 			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
 			this.say('Approved and user-created formats: http://pstournaments.weebly.com/formats.html');
 		},
 		aliases: ['userhostedformats', 'userformats'],
-	},
-	eventlink: {
-		command(target, room, user) {
-			const targets = target.split(',');
-			let eventRoom: Room;
-			if (this.isPm(room)) {
-				const targetRoom = Rooms.search(targets[0]);
-				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
-				if (!this.canPmHtml(targetRoom)) return this.say(Users.self.name + " requires Bot rank (*) in " + targetRoom.title + " for this command to work in PMs.");
-				eventRoom = targetRoom;
-				targets.shift();
-			} else {
-				if (!user.hasRank(room, 'voice')) return;
-				eventRoom = room;
-			}
-
-			const database = Storage.getDatabase(eventRoom);
-			if (!database.eventLinks) return this.say(eventRoom.title + " does not currently have any event links stored.");
-			const event = Tools.toId(targets[0]);
-			if (!(event in database.eventLinks)) return this.say("'" + targets[0] + "' is not one of " + eventRoom.title + "'s event links.");
-			this.sayHtml("<a href='" + database.eventLinks[event].link + "'><b>" + database.eventLinks[event].description + "</b></a>", eventRoom);
-		},
-		aliases: ['elink'],
-	},
-	seteventlink: {
-		command(target, room, user) {
-			if (this.isPm(room) || !user.hasRank(room, 'driver')) return;
-			const targets = target.split(',');
-			const event = Tools.toId(targets[0]);
-			if (!event) return this.say("You must specify an event.");
-			const link = targets[1].trim();
-			if (!link.startsWith('http://') && !link.startsWith('https://')) return this.say("You must specify a valid link.");
-			const description = targets.slice(2).join(',').trim();
-			if (!description) return this.say("You must include a description for the link.");
-			const database = Storage.getDatabase(room);
-			if (!database.eventLinks) database.eventLinks = {};
-			database.eventLinks[event] = {description, link};
-			this.say("The event link and description for " + targets[0].trim() + " has been updated.");
-		},
-		aliases: ['setelink'],
-	},
-	removeeventlink: {
-		command(target, room, user) {
-			if (this.isPm(room) || !user.hasRank(room, 'driver')) return;
-			const database = Storage.getDatabase(room);
-			if (!database.eventLinks) return this.say(room.title + " does not currently have any event links stored.");
-			const event = Tools.toId(target);
-			if (!event || !(event in database.eventLinks)) return this.say("You must specify a valid event.");
-			delete database.eventLinks[event];
-			this.say("The event link for " + target.trim() + " has been removed.");
-		},
-		aliases: ['removeelink'],
 	},
 
 	/**
