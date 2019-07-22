@@ -113,12 +113,6 @@ export class Rooms {
 		return this.rooms[id];
 	}
 
-	search(input: string): Room | undefined {
-		let id = Tools.toRoomId(input);
-		if (Config.roomAliases && !(id in this.rooms) && Config.roomAliases[id]) id = Config.roomAliases[id];
-		return this.get(id);
-	}
-
 	remove(room: Room) {
 		if (room === this.globalRoom) return;
 		room.deInit();
@@ -131,7 +125,13 @@ export class Rooms {
 		}
 	}
 
-	private get(id: string): Room | undefined {
+	get(id: string): Room | undefined {
 		return this.rooms[id];
+	}
+
+	search(input: string): Room | undefined {
+		let id = Tools.toRoomId(input);
+		if (Config.roomAliases && !(id in this.rooms) && Config.roomAliases[id]) id = Config.roomAliases[id];
+		return this.get(id);
 	}
 }

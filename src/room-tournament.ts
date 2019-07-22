@@ -404,7 +404,7 @@ export class Tournament extends Activity {
 		}
 
 		if (this.joinBattles) {
-			const room = Rooms.search(roomid);
+			const room = Rooms.get(roomid);
 			if (room) room.say("/leave");
 		}
 	}
