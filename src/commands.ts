@@ -121,6 +121,29 @@ const commands: Dict<ICommandDefinition> = {
 	},
 
 	/**
+	 * Informational commands
+	 */
+	sampleteams: {
+		command(target, room, user) {
+			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
+			const format = Dex.getFormat(target);
+			if (!format) return this.say("'" + target.trim() + "' is not a valid format.");
+			if (!format.teams) return this.say("No sample teams link found for " + format.name + ".");
+			this.say("**" + format.name + " sample teams**: " + format.teams);
+		},
+		aliases: ['steams'],
+	},
+	viabilityranking: {
+		command(target, room, user) {
+			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
+			const format = Dex.getFormat(target);
+			if (!format) return this.say("'" + target.trim() + "' is not a valid format.");
+			if (!format.viability) return this.say("No viability ranking link found for " + format.name + ".");
+			this.say("**" + format.name + " viability ranking**: " + format.viability);
+		},
+		aliases: ['vranking'],
+	},
+	/**
 	 * Game commands
 	 */
 	creategame: {
