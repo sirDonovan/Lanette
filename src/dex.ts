@@ -751,6 +751,9 @@ export class Dex {
 		const baseSpecies = templateData.baseSpecies || templateData.species;
 		const evos = templateData.evos || [];
 		const speciesId = Tools.toId(templateData.species);
+		let tier = templateFormatsData.tier || 'Illegal';
+		if (tier === '(PU)') tier = 'ZU';
+
 		const pokemonComputed: IPokemonComputed = {
 			baseSpecies,
 			battleOnly,
@@ -771,7 +774,7 @@ export class Dex {
 			shiny: false,
 			speciesId,
 			spriteId: Tools.toId(baseSpecies) + (baseSpecies !== templateData.species ? '-' + Tools.toId(templateData.forme) : ''),
-			tier: templateFormatsData.tier || 'Illegal',
+			tier,
 		};
 		const pokemon: IPokemon = Object.assign(templateData, templateFormatsData, this.data.learnsets[id] || {}, pokemonComputed);
 		this.pokemonCache.set(id, pokemon);
