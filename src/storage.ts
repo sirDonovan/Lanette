@@ -2,7 +2,7 @@ import fs = require('fs');
 import path = require('path');
 import { Room } from './rooms';
 import { maxMessageLength, rootFolder } from './tools';
-import { IDatabase } from './types/storage';
+import { IDatabase, IGlobalDatabase } from './types/storage';
 import { User } from './users';
 
 const MAX_QUEUED_OFFLINE_MESSAGES = 3;
@@ -34,9 +34,9 @@ export class Storage {
 		return this.databases[room.id];
 	}
 
-	getGlobalDatabase(): IDatabase {
+	getGlobalDatabase(): IGlobalDatabase {
 		if (!(globalDatabaseId in this.databases)) this.databases[globalDatabaseId] = {};
-		return this.databases[globalDatabaseId];
+		return this.databases[globalDatabaseId] as IGlobalDatabase;
 	}
 
 	getHostingDatabase(room: Room): IDatabase {
@@ -74,12 +74,11 @@ export class Storage {
 			this.databases[id] = JSON.parse(file);
 		}
 
-		if (globalDatabaseId in this.databases) {
-			if (this.databases[globalDatabaseId].lastSeen) {
-				const now = Date.now();
-				for (const i in this.databases[globalDatabaseId].lastSeen) {
-					if (now - this.databases[globalDatabaseId].lastSeen![i] > LAST_SEEN_EXPIRATION) delete this.databases[globalDatabaseId].lastSeen![i];
-				}
+		const globalDatabase = this.getGlobalDatabase();
+		if (globalDatabase.lastSeen) {
+			const now = Date.now();
+			for (const i in globalDatabase.lastSeen) {
+				if (now - globalDatabase.lastSeen[i] > LAST_SEEN_EXPIRATION) delete globalDatabase.lastSeen[i];
 			}
 		}
 
