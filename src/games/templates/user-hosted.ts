@@ -75,26 +75,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			description: "Players try to choose the meals for maximum points, but meals picked by multiple people are shared!",
 		},
 		{
-			name: "Catch That Pokemon",
-			aliases: ['CTP'],
-			description: "Players try to catch Pokemon each round before others (avoid Voltorb and Electrode)! Points are determined by base stats.",
-			freejoin: true,
-		},
-		{
-			name: "Chandelure's Candles",
-			mascot: "Chandelure",
-			aliases: ['Candles', 'Chandelures'],
-			description: "Players try to blow out their opponents' candles for bits each round! If your candle is exposed, hide from others before they blow it out.",
-			freejoin: true,
-		},
-		{
-			name: "Chimecho's Stat School",
-			mascot: "Chimecho",
-			aliases: ['CSS', 'Chimechos'],
-			description: "Players guess Pokémon with the given base stat distributions.",
-			freejoin: true,
-		},
-		{
 			name: "Commonyms",
 			description: "Players must find the word that applies to all of the words in the puzzle Ex: sky, jay, sad | Answer: blue",
 			freejoin: true,
@@ -129,13 +109,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			freejoin: true,
 		},
 		{
-			name: "Ekans' Edges",
-			mascot: "Ekans",
-			aliases: ['Edges', 'Ekans'],
-			description: "Players guess answers with the given starting and ending letters.",
-			freejoin: true,
-		},
-		{
 			name: "Empoleon's Empires",
 			mascot: "Empoleon",
 			aliases: ['Empires', 'Empoleons'],
@@ -144,13 +117,6 @@ export const game: IUserHostedFile<UserHosted> = {
 		{
 			name: "Excluded",
 			description: "Players try to guess pokemon that aren't excluded by the parameter..",
-		},
-		{
-			name: "Feebas' Chain Fishing",
-			mascot: "Feebas",
-			aliases: ['FCF', 'Feebas', 'Chain Fishing', 'CF'],
-			description: "Players await the [ ! ] signal to reel in Pokemon!",
-			freejoin: true,
 		},
 		{
 			name: "Fraxure's Battle Chain",
@@ -168,13 +134,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			description: "Each player adds a letter to a string of letters while trying not to form an English word on their turn. If a word is formed, that player is eliminated. Players may challenge the previous player for elimination if there is no word that can be formed from the existing string.",
 		},
 		{
-			name: "Golem's Galvanic Mine",
-			mascot: "Golem",
-			aliases: ['GGM', 'Golems'],
-			description: "Players try to be the fastest miner by mining the Z and Mega stones with the highest values! Stones and their values are randomized each round.",
-			freejoin: true,
-		},
-		{
 			name: "Greninja's Typings",
 			mascot: "Greninja",
 			aliases: ['Typings', 'Greninjas'],
@@ -185,13 +144,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			name: "Guess That Auth",
 			description: "Players guess users that have matching global and room auth as the lists presented by the host.",
 			aliases: ['gta'],
-			freejoin: true,
-		},
-		{
-			name: "Hitmonchan's Hangman",
-			mascot: "Hitmonchan",
-			aliases: ['Hangman', 'Hitmonchans'],
-			description: "Players guess letters to fill in the blanks and reveal the answers!",
 			freejoin: true,
 		},
 		{
@@ -246,12 +198,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			freejoin: true,
 		},
 		{
-			name: "Lost Letters",
-			aliases: ['LL'],
-			description: "Players guess the missing vowels to find the answers!",
-			freejoin: true,
-		},
-		{
 			name: "Lugia's Obstructive Letters",
 			mascot: "Lugia",
 			aliases: ['LOL', 'Lugias'],
@@ -300,12 +246,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			freejoin: true,
 		},
 		{
-			name: "Mass Effect",
-			aliases: ['ME'],
-			description: "Each round, players find a Pokemon whose type effectiveness matches the given parameters.",
-			freejoin: true,
-		},
-		{
 			name: "Mega Mania",
 			description: "Each round players make mega evolutions for a Pokemon given by the host. Entries are judged on creativity and viability made through typing, stats, and abilities.",
 			freejoin: true,
@@ -326,18 +266,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			name: "Nickgames",
 			description: "Each round the host will announce a Pokemon and players must create the most funny, clever, cute, creative, or fitting nickname for it using the standard formatting --[nickname]--.",
 			freejoin: true,
-		},
-		{
-			name: "Ninjask's Corners",
-			mascot: "Ninjask",
-			aliases: ['Corners', 'Ninjasks'],
-			description: "Players try to travel to specified corners before time runs out!",
-		},
-		{
-			name: "Octillery's Ambush",
-			mascot: "Octillery",
-			aliases: ['Ambush', 'Octillerys'],
-			description: "Players await the FIRE signal to eliminate their opponents with their Remoraid!",
 		},
 		{
 			name: "Pachirisu's Picking Process",
@@ -457,13 +385,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			freejoin: true,
 		},
 		{
-			name: "Serperior's Lengthy Chains",
-			mascot: "Serperior",
-			aliases: ['SLC', 'Serperiors'],
-			description: "Player's form chains of Pokemon that follow the given parameter! A chain is a sequence of pokemon that share 1 letter (such as PikachUxie)!",
-			freejoin: true,
-		},
-		{
 			name: "Similarities",
 			description: "Each round, the host names three objects (Pokémon related or not) and players must guess what the similarity between the three is.",
 			freejoin: true,
@@ -490,13 +411,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			description: "Each player is sent the location for the game and a unique job. If a player is chosen to be the spy, only they will know and they will not receive the location. By asking questions in turns, the spy tries to guess the location and the other players try to discover the spy.",
 		},
 		{
-			name: "Sudowoodo's Species Scramble",
-			mascot: "Sudowoodo",
-			aliases: ['SSS', 'Sudowoodos'],
-			description: "Players guess Pokemon based on species hints!",
-			freejoin: true,
-		},
-		{
 			name: "Tapus' Terrains",
 			mascots: ['Tapu Bulu', 'Tapu Koko', 'Tapu Fini', 'Tapu Lele'],
 			aliases: ['Terrain Race', 'Tapus'],
@@ -520,30 +434,9 @@ export const game: IUserHostedFile<UserHosted> = {
 			freejoin: true,
 		},
 		{
-			name: "Tropius' Berry Picking",
-			mascot: "Tropius",
-			aliases: ['Berry Picking', 'Tropius'],
-			description: "Players help Tropius pick berries and fight off wild Pokemon! Use status and super-effective berries based on their moves.",
-			freejoin: true,
-		},
-		{
-			name: "Trubbish's Trash",
-			mascot: "Trubbish",
-			aliases: ['TT', 'Trubbishs'],
-			description: "Players help Trubbish trash the weakest moves each round!",
-			freejoin: true,
-		},
-		{
 			name: "Two Truths and a Lie",
 			description: "Each round, the host presents the players with three statements. Players have to correctly identify the lie to score points.",
 			aliases: ['ttal', 'ttaal'],
-			freejoin: true,
-		},
-		{
-			name: "Unown's Pokemon Chain",
-			mascot: "Unown",
-			aliases: ['UPC', 'Unowns'],
-			description: "Players answer each round with a Pokemon that starts with the last letter of the previous Pokemon (no formes and no repeats in a round)!",
 			freejoin: true,
 		},
 		{
@@ -557,18 +450,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			mascot: "Weavile",
 			description: "Each round, one player PMs the host a move while the other players PM the host a Pokemon. If a player's Pokemon resists the move or is immune to it, they win points. However, the more picked Pokemon the move hits super effectively, the more points the user gets",
 			aliases: ['WWB'],
-		},
-		{
-			name: "What's That Move",
-			aliases: ['WTM'],
-			description: "Players guess moves based on the given hints!",
-			freejoin: true,
-		},
-		{
-			name: "Who's That Pokemon",
-			aliases: ['WTP'],
-			description: "Players guess Pokemon based on the given hints!",
-			freejoin: true,
 		},
 		{
 			name: "Wishiwashi's Stat Fishing",

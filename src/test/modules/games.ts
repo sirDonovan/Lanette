@@ -23,4 +23,10 @@ describe("Games", () => {
 			testMascots(format);
 		}
 	});
+
+	it('should only be defined in one location (scripted vs. user-hosted)', () => {
+		for (const i in Games.userHostedFormats) {
+			assert(!Games.getFormat(i), Games.getExistingUserHostedFormat(i).name);
+		}
+	});
 });
