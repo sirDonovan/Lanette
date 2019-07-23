@@ -71,11 +71,11 @@ export class Storage {
 			this.databases[id] = JSON.parse(file);
 		}
 
-		if ('global' in this.databases) {
-			if (this.databases['global'].lastSeen) {
+		if (globalDatabaseId in this.databases) {
+			if (this.databases[globalDatabaseId].lastSeen) {
 				const now = Date.now();
-				for (const i in this.databases['global'].lastSeen) {
-					if (now - this.databases['global'].lastSeen[i] > LAST_SEEN_EXPIRATION) delete this.databases['global'].lastSeen[i];
+				for (const i in this.databases[globalDatabaseId].lastSeen) {
+					if (now - this.databases[globalDatabaseId].lastSeen![i] > LAST_SEEN_EXPIRATION) delete this.databases[globalDatabaseId].lastSeen![i];
 				}
 			}
 		}
