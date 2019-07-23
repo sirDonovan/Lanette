@@ -23,6 +23,9 @@ export class Storage {
 	loadedDatabases: boolean = false;
 
 	onReload(previous: Storage) {
+		this.chatLogFilePathCache = previous.chatLogFilePathCache;
+		this.chatLogRolloverTimes = previous.chatLogRolloverTimes;
+		this.databases = previous.databases;
 		this.loadedDatabases = previous.loadedDatabases;
 	}
 
