@@ -5,9 +5,9 @@ import { IGameFile } from "../types/games";
 import { commands as templateCommands, IPlayingCard, PlayingCard } from './templates/playing-card';
 
 class MurkrowsBlackjack extends PlayingCard {
-	subGameNumber: number = 0;
 	readonly blackJackpots = new Map<Player, number>();
 	canHit: boolean = false;
+	canLateJoin: boolean = true;
 	canWager: boolean = true;
 	dealersHand: number = 0;
 	readonly faceCardValues = {
@@ -20,10 +20,16 @@ class MurkrowsBlackjack extends PlayingCard {
 	readonly maxHandTotal: number = 21;
 	readonly roundActions = new Set<Player>();
 	readonly roundLimit: number = 20;
+	subGameNumber: number = 0;
 	readonly wagerLimit: number = Math.floor((this.maxBits / this.maxBlackjackGames) / 2);
 	readonly wagers = new Map<Player, number>();
 
 	dealersTopCard!: IPlayingCard;
+
+	onAddPlayer(player: Player, lateJoin?: boolean) {
+		if (lateJoin)  this.dealCards(player);
+		return true;
+	}
 
 	getHandInfoHtml(player: Player) {
 		let info = '';
@@ -39,7 +45,6 @@ class MurkrowsBlackjack extends PlayingCard {
 	}
 
 	onStart() {
-		this.canWager = false;
 		this.nextBlackJackGame();
 	}
 
@@ -49,6 +54,7 @@ class MurkrowsBlackjack extends PlayingCard {
 
 	startBlackjackGame() {
 		if (this.timeout) clearTimeout(this.timeout);
+		this.canWager = false;
 		this.subGameNumber++;
 		this.round = 0;
 		if (this.subGameNumber > 1) {
@@ -99,6 +105,7 @@ class MurkrowsBlackjack extends PlayingCard {
 		if (this.round === 1) {
 			playersLeft = this.getRemainingPlayerCount();
 		} else {
+			if (this.canLateJoin) this.canLateJoin = false;
 			playersLeft = 0;
 			const autoFreeze = this.round > 3;
 			for (const i in this.getRemainingPlayers()) {
@@ -161,6 +168,8 @@ class MurkrowsBlackjack extends PlayingCard {
 			this.say("Murkrow wins Game " + this.subGameNumber + "!");
 		}
 
+		this.canLateJoin = true;
+		this.canWager = true;
 		this.timeout = setTimeout(() => this.nextBlackJackGame(), 5 * 1000);
 	}
 

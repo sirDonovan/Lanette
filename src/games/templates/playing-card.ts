@@ -17,7 +17,7 @@ const suitCodes = {
 	'spades': '&spades;',
 };
 
-export class PlayingCard extends Game {
+export abstract class PlayingCard extends Game {
 	readonly playerCards = new Map<Player, IPlayingCard[]>();
 	readonly wagers: Map<Player, number> | null = null;
 	readonly playerTotals = new Map<Player, number>();
