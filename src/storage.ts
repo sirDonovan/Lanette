@@ -8,23 +8,19 @@ import { User } from './users';
 const MAX_QUEUED_OFFLINE_MESSAGES = 3;
 const OFFLINE_MESSAGE_EXPIRATION = 30 * 24 * 60 * 60 * 1000;
 
+const globalDatabaseId = 'globalDB';
+const hostingDatabaseSuffix = '-hostingDB';
 const archivedDatabasesDir = path.join(rootFolder, 'archived-databases');
 const databasesDir = path.join(rootFolder, 'databases');
 export const baseOfflineMessageLength = '[28 Jun 2019, 00:00:00 GMT-0500] **** said: '.length;
 
 export class Storage {
-	databaseCache: Dict<IDatabase> = {};
-	loadedDatabases: boolean = false;
 	chatLogFilePathCache: Dict<string> = {};
 	chatLogRolloverTimes: Dict<number> = {};
-
-	get databases(): Dict<IDatabase> {
-		if (!this.loadedDatabases) this.importDatabases();
-		return this.databaseCache;
-	}
+	databases: Dict<IDatabase> = {};
+	loadedDatabases: boolean = false;
 
 	onReload(previous: Storage) {
-		this.databaseCache = previous.databaseCache;
 		this.loadedDatabases = previous.loadedDatabases;
 	}
 
@@ -33,18 +29,21 @@ export class Storage {
 		return this.databases[room.id];
 	}
 
-	importDatabase(roomid: string) {
-		try {
-			const file = fs.readFileSync(path.join(databasesDir, roomid + '.json')).toString();
-			this.databaseCache[roomid] = JSON.parse(file);
-		} catch (e) {
-			if (e.code !== 'ENOENT') throw e;
-		}
+	getGlobalDatabase(): IDatabase {
+		if (!(globalDatabaseId in this.databases)) this.databases[globalDatabaseId] = {};
+		return this.databases[globalDatabaseId];
+	}
+
+	getHostingDatabase(room: Room): IDatabase {
+		const id = room.id + hostingDatabaseSuffix;
+		if (!(id in this.databases)) this.databases[id] = {};
+		return this.databases[id];
 	}
 
 	exportDatabase(roomid: string) {
 		if (!(roomid in this.databases) || roomid.startsWith('battle-') || roomid.startsWith('groupchat-')) return;
-		Tools.safeWriteFileSync(path.join(databasesDir, roomid + '.json'), JSON.stringify(this.databases[roomid]));
+		const contents = JSON.stringify(this.databases[roomid]);
+		Tools.safeWriteFileSync(path.join(databasesDir, roomid + '.json'), contents);
 	}
 
 	archiveDatabase(roomid: string) {
@@ -54,7 +53,8 @@ export class Storage {
 		const month = date.getMonth() + 1;
 		const day = date.getDate();
 		const filename = roomid + '-' + year + '-' + (month < 10 ? '0' : '') + month + '-' + (day < 10 ? '0' : '') + day + '-at-' + Tools.toTimestampString(date).split(' ')[1].split(':').join('-');
-		Tools.safeWriteFileSync(path.join(archivedDatabasesDir, filename + '.json'), JSON.stringify(this.databases[roomid]));
+		const contents = JSON.stringify(this.databases[roomid]);
+		Tools.safeWriteFileSync(path.join(archivedDatabasesDir, filename + '.json'), contents);
 	}
 
 	importDatabases() {
@@ -62,9 +62,11 @@ export class Storage {
 
 		const databases = fs.readdirSync(databasesDir);
 		for (let i = 0; i < databases.length; i++) {
-			const file = databases[i];
-			if (!file.endsWith('.json')) continue;
-			this.importDatabase(file.substr(0, file.indexOf('.json')));
+			const fileName = databases[i];
+			if (!fileName.endsWith('.json')) continue;
+			const id = fileName.substr(0, fileName.indexOf('.json'));
+			const file = fs.readFileSync(path.join(databasesDir, fileName)).toString();
+			this.databases[id] = JSON.parse(file);
 		}
 
 		this.loadedDatabases = true;
@@ -105,7 +107,7 @@ export class Storage {
 			}
 			user.sources = {};
 		}
-		if (roomid + 'hosting' in this.databases) this.clearLeaderboard(roomid + 'hosting');
+		if (roomid + hostingDatabaseSuffix in this.databases) this.clearLeaderboard(roomid + hostingDatabaseSuffix);
 		this.exportDatabase(roomid);
 		return true;
 	}
@@ -185,7 +187,7 @@ export class Storage {
 			database.leaderboard[destinationId].annual += database.leaderboard[sourceId].annual;
 		}
 
-		if (roomid + 'hosting' in this.databases) this.transferData(roomid + 'hosting', source, destination);
+		if (roomid + hostingDatabaseSuffix in this.databases) this.transferData(roomid + hostingDatabaseSuffix, source, destination);
 		return true;
 	}
 
@@ -214,7 +216,7 @@ export class Storage {
 	}
 
 	storeOfflineMessage(sender: string, recipientId: string, message: string): boolean {
-		const database = this.getDatabase(Rooms.globalRoom);
+		const database = this.getGlobalDatabase();
 		if (!database.offlineMessages) database.offlineMessages = {};
 		if (recipientId in database.offlineMessages) {
 			const senderId = Tools.toId(sender);
@@ -237,7 +239,7 @@ export class Storage {
 	}
 
 	retrieveOfflineMessages(user: User, retrieveRead?: boolean): boolean {
-		const database = this.getDatabase(Rooms.globalRoom);
+		const database = this.getGlobalDatabase();
 		if (!database.offlineMessages || !(user.id in database.offlineMessages)) return false;
 		const now = Date.now();
 		const expiredTime = now - OFFLINE_MESSAGE_EXPIRATION;
@@ -267,7 +269,7 @@ export class Storage {
 	}
 
 	clearOfflineMessages(user: User): boolean {
-		const database = this.getDatabase(Rooms.globalRoom);
+		const database = this.getGlobalDatabase();
 		if (!database.offlineMessages || !(user.id in database.offlineMessages)) return false;
 		delete database.offlineMessages[user.id];
 		return true;

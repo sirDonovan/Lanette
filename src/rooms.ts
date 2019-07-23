@@ -105,7 +105,6 @@ export class Room {
 }
 
 export class Rooms {
-	readonly globalRoom: Room = new Room('global');
 	private rooms: Dict<Room> = {};
 
 	add(id: string): Room {
@@ -114,7 +113,6 @@ export class Rooms {
 	}
 
 	remove(room: Room) {
-		if (room === this.globalRoom) return;
 		room.deInit();
 		delete this.rooms[room.id];
 	}
