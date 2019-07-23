@@ -107,7 +107,7 @@ class AmbipomsTossups extends Guessing {
 }
 
 export const game: IGameFile<AmbipomsTossups> = {
-	aliases: ['ambipoms'],
+	aliases: ['ambipoms', 'at'],
 	battleFrontierCategory: 'Identification',
 	class: AmbipomsTossups,
 	commandDescriptions,

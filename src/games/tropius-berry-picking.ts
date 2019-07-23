@@ -269,7 +269,7 @@ const commands: Dict<ICommandDefinition<TropiusBerryPicking>> = {
 };
 
 export const game: IGameFile<TropiusBerryPicking> = {
-	aliases: ["tropius", "berrypicking", "berries"],
+	aliases: ["tropius", "berrypicking", "berries", "tbp"],
 	battleFrontierCategory: 'Knowledge',
 	commandDescriptions: [Config.commandCharacter + "eat [berry]"],
 	commands,

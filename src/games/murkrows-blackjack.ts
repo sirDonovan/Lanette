@@ -252,7 +252,7 @@ const commands: Dict<ICommandDefinition<MurkrowsBlackjack>> = {
 };
 
 export const game: IGameFile<MurkrowsBlackjack> = {
-	aliases: ["murkrows", "bj"],
+	aliases: ["murkrows", "bj", "mb"],
 	battleFrontierCategory: 'Luck',
 	commandDescriptions: [Config.commandCharacter + "hit", Config.commandCharacter + "stay"],
 	commands: Object.assign({}, templateCommands, commands),

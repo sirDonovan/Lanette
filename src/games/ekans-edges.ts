@@ -84,7 +84,7 @@ class EkansEdges extends Guessing {
 }
 
 export const game: IGameFile<EkansEdges> = {
-	aliases: ['ekans'],
+	aliases: ['ekans', 'ee'],
 	battleFrontierCategory: 'Identification',
 	class: EkansEdges,
 	commandDescriptions,

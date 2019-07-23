@@ -57,7 +57,7 @@ class MetangsAnagrams extends Guessing {
 }
 
 export const game: IGameFile<MetangsAnagrams> = {
-	aliases: ['metangs', 'anags'],
+	aliases: ['metangs', 'anags', 'ma'],
 	battleFrontierCategory: 'Identification',
 	class: MetangsAnagrams,
 	commandDescriptions,

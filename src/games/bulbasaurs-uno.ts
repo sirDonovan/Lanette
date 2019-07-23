@@ -238,7 +238,7 @@ const commands: Dict<ICommandDefinition<BulbasaursUno>> = {
 };
 
 export const game: IGameFile<BulbasaursUno> = {
-	aliases: ["bulbasaurs", "uno", "buno"],
+	aliases: ["bulbasaurs", "uno", "bu"],
 	battleFrontierCategory: 'Luck',
 	commandDescriptions: [Config.commandCharacter + "play [Pokemon]", Config.commandCharacter + "draw"],
 	commands: Object.assign({}, templateCommands, commands),
