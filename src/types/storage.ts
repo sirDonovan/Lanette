@@ -27,6 +27,7 @@ interface IQueuedUserHostedGame {
 
 export interface IDatabase {
 	eventLinks?: Dict<IEventLink>;
+	lastSeen?: Dict<number>;
 	lastTournamentTime?: number;
 	leaderboard?: Dict<ILeaderboardEntry>;
 	offlineMessages?: Dict<IOfflineMessage[]>;

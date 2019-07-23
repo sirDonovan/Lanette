@@ -1394,6 +1394,19 @@ const commands: Dict<ICommandDefinition> = {
 		},
 		aliases: ['deleteofflinemessages', 'clearmail', 'deletemail'],
 	},
+	lastseen: {
+		command(target, room, user) {
+			if (!this.isPm(room)) return;
+			const targetUser = Users.get(target);
+			if (targetUser) return this.say(targetUser.name + " is currently online.");
+			const id = Tools.toId(target);
+			if (id.startsWith('guest') || id === 'constructor' || !Tools.isUsernameLength(id)) return this.say("You must specify a valid username (between 1 and " + maxUsernameLength + " characters).");
+			const database = Storage.getGlobalDatabase();
+			if (!database.lastSeen || !(id in database.lastSeen)) return this.say(target.trim() + " has not visited any of " + Users.self.name + "'s rooms in the past " + Storage.lastSeenExpirationDuration + ".");
+			return this.say(target.trim() + " last visited one of " + Users.self.name + "'s rooms **" + Tools.toDurationString(Date.now() - database.lastSeen[id]) + "** ago.");
+		},
+		aliases: ['seen'],
+	},
 	addbits: {
 		command(target, room, user, cmd) {
 			if (this.isPm(room) || ((!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) && (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id))) ||

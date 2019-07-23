@@ -6,6 +6,7 @@ import { IDatabase } from './types/storage';
 import { User } from './users';
 
 const MAX_QUEUED_OFFLINE_MESSAGES = 3;
+const LAST_SEEN_EXPIRATION = 30 * 24 * 60 * 60 * 1000;
 const OFFLINE_MESSAGE_EXPIRATION = 30 * 24 * 60 * 60 * 1000;
 
 const globalDatabaseId = 'globalDB';
@@ -18,6 +19,7 @@ export class Storage {
 	chatLogFilePathCache: Dict<string> = {};
 	chatLogRolloverTimes: Dict<number> = {};
 	databases: Dict<IDatabase> = {};
+	lastSeenExpirationDuration = Tools.toDurationString(LAST_SEEN_EXPIRATION);
 	loadedDatabases: boolean = false;
 
 	onReload(previous: Storage) {
@@ -67,6 +69,15 @@ export class Storage {
 			const id = fileName.substr(0, fileName.indexOf('.json'));
 			const file = fs.readFileSync(path.join(databasesDir, fileName)).toString();
 			this.databases[id] = JSON.parse(file);
+		}
+
+		if ('global' in this.databases) {
+			if (this.databases['global'].lastSeen) {
+				const now = Date.now();
+				for (const i in this.databases['global'].lastSeen) {
+					if (now - this.databases['global'].lastSeen[i] > LAST_SEEN_EXPIRATION) delete this.databases['global'].lastSeen[i];
+				}
+			}
 		}
 
 		this.loadedDatabases = true;
@@ -273,5 +284,11 @@ export class Storage {
 		if (!database.offlineMessages || !(user.id in database.offlineMessages)) return false;
 		delete database.offlineMessages[user.id];
 		return true;
+	}
+
+	updateLastSeen(user: User, time: number) {
+		const database = this.getGlobalDatabase();
+		if (!database.lastSeen) database.lastSeen = {};
+		database.lastSeen[user.id] = time;
 	}
 }

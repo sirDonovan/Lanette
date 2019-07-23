@@ -399,9 +399,11 @@ export class Client {
 				user.away = false;
 			}
 			user.rooms.set(room, messageArguments.rank);
+			const now = Date.now();
+			Storage.updateLastSeen(user, now);
 			if (Config.allowMail && messageArguments.rank !== this.groupSymbols.locked) Storage.retrieveOfflineMessages(user);
 			if (room.logChatMessages) {
-				Storage.logChatMessage(room, Date.now(), 'J', messageArguments.rank + user.name);
+				Storage.logChatMessage(room, now, 'J', messageArguments.rank + user.name);
 			}
 			break;
 		}
@@ -427,8 +429,10 @@ export class Client {
 					user.away = false;
 				}
 			}
+			const now = Date.now();
+			Storage.updateLastSeen(user, now);
 			if (room.logChatMessages) {
-				Storage.logChatMessage(room, Date.now(), 'L', messageArguments.rank + user.name);
+				Storage.logChatMessage(room, now, 'L', messageArguments.rank + user.name);
 			}
 			break;
 		}
@@ -451,6 +455,7 @@ export class Client {
 				user.away = false;
 			}
 			user.rooms.set(room, messageArguments.rank);
+			Storage.updateLastSeen(user, Date.now());
 			break;
 		}
 
@@ -483,6 +488,7 @@ export class Client {
 			} else {
 				this.parseChatMessage(room, user, messageArguments.message);
 			}
+			Storage.updateLastSeen(user, messageArguments.timestamp);
 			if (room.logChatMessages) {
 				Storage.logChatMessage(room, messageArguments.timestamp, 'c', messageArguments.rank + user.name + '|' + messageArguments.message);
 			}
