@@ -340,6 +340,61 @@ const commands: Dict<ICommandDefinition> = {
 			}
 		},
 	},
+	lastgame: {
+		command(target, room, user) {
+			const targets = target.split(',');
+			let gameRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(Tools.toId(targets[0]));
+				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+				targets.shift();
+				if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(targetRoom.id)) return this.say("Scripted games are not enabled for " + targetRoom.title + ".");
+				gameRoom = targetRoom;
+			} else {
+				if (!user.hasRank(room, 'voice')) return;
+				if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) return this.say("Scripted games are not enabled for this room.");
+				gameRoom = room;
+			}
+
+			const database = Storage.getDatabase(gameRoom);
+			if (!targets[0]) {
+				if (!database.lastGameTime) return this.say("No scripted games have been played in " + gameRoom.title + ".");
+				return this.say("The last scripted game in " + gameRoom.title + " ended **" + Tools.toDurationString(Date.now() - database.lastGameTime) + "** ago.");
+			}
+			const format = Games.getFormat(targets[0]);
+			if (!format) return this.say("'" + targets[0].trim() + "' is not a valid game format.");
+			if (!database.lastGameFormatTimes || !(format.id in database.lastGameFormatTimes)) return this.say(format.name + " has not been played in " + gameRoom.title + ".");
+			this.say("The last game of " + format.name + " in " + gameRoom.title + " ended **" + Tools.toDurationString(Date.now() - database.lastGameFormatTimes[format.id]) + "** ago.");
+		},
+	},
+	lastuserhostedgame: {
+		command(target, room, user) {
+			const targets = target.split(',');
+			let gameRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(Tools.toId(targets[0]));
+				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+				targets.shift();
+				if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(targetRoom.id)) return this.say("User-hosted games are not enabled for " + targetRoom.title + ".");
+				gameRoom = targetRoom;
+			} else {
+				if (!user.hasRank(room, 'voice')) return;
+				if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id)) return this.say("User-hosted games are not enabled for this room.");
+				gameRoom = room;
+			}
+
+			const database = Storage.getDatabase(gameRoom);
+			if (!targets[0]) {
+				if (!database.lastUserHostedGameTime) return this.say("No user-hosted games have been played in " + gameRoom.title + ".");
+				return this.say("The last user-hosted game in " + gameRoom.title + " ended **" + Tools.toDurationString(Date.now() - database.lastUserHostedGameTime) + "** ago.");
+			}
+			const format = Games.getUserHostedFormat(targets[0]);
+			if (!format) return this.say("'" + targets[0].trim() + "' is not a valid user-hosted game format.");
+			if (!database.lastUserHostedGameFormatTimes || !(format.id in database.lastUserHostedGameFormatTimes)) return this.say(format.name + " has not been hosted in " + gameRoom.title + ".");
+			this.say("The last user-hosted game of " + format.name + " in " + gameRoom.title + " ended **" + Tools.toDurationString(Date.now() - database.lastUserHostedGameFormatTimes[format.id]) + "** ago.");
+		},
+		aliases: ['lastuserhost', 'lasthost'],
+	},
 	host: {
 		command(target, room, user) {
 			if (this.isPm(room) || !user.hasRank(room, 'voice') || !Games.canCreateUserHostedGame(room, user)) return;

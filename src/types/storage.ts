@@ -19,8 +19,12 @@ interface IQueuedUserHostedGame {
 
 export interface IDatabase {
 	eventLinks?: Dict<IEventLink>;
+	lastGameFormatTimes?: Dict<number>;
+	lastGameTime?: number;
 	lastTournamentFormatTimes?: Dict<number>;
 	lastTournamentTime?: number;
+	lastUserHostedGameFormatTimes?: Dict<number>;
+	lastUserHostedGameTime?: number;
 	leaderboard?: Dict<ILeaderboardEntry>;
 	pastTournaments?: string[];
 	queuedTournament?: {formatid: string, playerCap: number, scheduled: boolean, time: number};

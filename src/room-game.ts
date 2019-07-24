@@ -229,8 +229,21 @@ export class Game extends Activity {
 		if (this.timeout) clearTimeout(this.timeout);
 		if (this.onEnd) this.onEnd();
 
-		if (!this.isMiniGame && !this.parentGame) {
+		let usedDatabase = false;
+		if (!this.isPm(this.room) && !this.isMiniGame && !this.parentGame) {
+			usedDatabase = true;
 			const now = Date.now();
+			const database = Storage.getDatabase(this.room);
+			if (this.userHosted) {
+				if (!database.lastUserHostedGameFormatTimes) database.lastUserHostedGameFormatTimes = {};
+				database.lastUserHostedGameFormatTimes[this.format.id] = now;
+				database.lastUserHostedGameTime = now;
+			} else {
+				if (!database.lastGameFormatTimes) database.lastGameFormatTimes = {};
+				database.lastGameFormatTimes[this.format.id] = now;
+				database.lastGameTime = now;
+			}
+
 			Games.lastGames[this.room.id] = now;
 			if (this.userHosted) {
 				Games.lastUserHostedGames[this.room.id] = now;
@@ -243,7 +256,7 @@ export class Game extends Activity {
 			}
 		}
 
-		if (this.awardedBits) Storage.exportDatabase(this.room.id);
+		if (this.awardedBits || usedDatabase) Storage.exportDatabase(this.room.id);
 
 		this.deallocate();
 	}
