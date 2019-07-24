@@ -17,7 +17,7 @@ export class User {
 	uhtmlMessageListeners?: Dict<Dict<() => void>>;
 
 	constructor(name: string, id: string) {
-		this.name = name;
+		this.name = Tools.stripHtmlCharacters(name);
 		this.id = id;
 	}
 

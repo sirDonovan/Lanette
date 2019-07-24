@@ -7,6 +7,7 @@ const ALPHA_NUMERIC_REGEX = /[^a-zA-Z0-9 ]/g;
 const ID_REGEX = /[^a-z0-9]/g;
 const NUMBER_REGEX = /^[ .0-9]*$/g;
 const SPACE_REGEX = /[ ]*/g;
+const HTML_CHARACTER_REGEX = /[<>/]/g;
 
 export const maxMessageLength = 300;
 export const maxUsernameLength = 18;
@@ -102,6 +103,10 @@ export class Tools {
 				return '[object UnknownType]';
 			}
 		}
+	}
+
+	stripHtmlCharacters(input: string): string {
+		return input.replace(HTML_CHARACTER_REGEX, '');
 	}
 
 	parseUsernameText(usernameText: string): {away: boolean, status: string, username: string} {
