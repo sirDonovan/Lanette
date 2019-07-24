@@ -234,7 +234,8 @@ export class Games {
 						if (room.game || room.userHostedGame || !global.Games.canCreateScriptedGame(room, user)) return;
 						const remainingGameCooldown = global.Games.getRemainingGameCooldown(room, true);
 						if (remainingGameCooldown > 1000) {
-							this.say("There are still " + Tools.toDurationString(remainingGameCooldown) + " of the minigame cooldown remaining.");
+							const durationString = Tools.toDurationString(remainingGameCooldown);
+							this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the minigame cooldown remaining.");
 							return;
 						}
 					}

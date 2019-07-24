@@ -180,7 +180,7 @@ export class Tools {
 				parts[positiveIndex + precision - 1]++;
 			}
 		}
-		return parts.slice(positiveIndex).reverse().map((value, index) => value ? value + " " + unitNames[index] + (value > 1 ? "s" : "") : "").reverse().slice(0, precision).join(" ").trim();
+		return this.joinList(parts.slice(positiveIndex).reverse().map((value, index) => value ? value + " " + unitNames[index] + (value > 1 ? "s" : "") : "").reverse().slice(0, precision));
 	}
 
 	getLastDayOfMonth(date: Date): number {
