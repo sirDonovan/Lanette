@@ -26,11 +26,6 @@ class MurkrowsBlackjack extends PlayingCard {
 
 	dealersTopCard!: IPlayingCard;
 
-	onAddPlayer(player: Player, lateJoin?: boolean) {
-		if (lateJoin)  this.dealCards(player);
-		return true;
-	}
-
 	getHandInfoHtml(player: Player) {
 		let info = '';
 		const total = this.playerTotals.get(player)!;
@@ -82,6 +77,7 @@ class MurkrowsBlackjack extends PlayingCard {
 			}
 			this.dealersHand = total;
 		}
+		this.canLateJoin = false;
 		this.say("Dealing " + (this.subGameNumber > 1 ? "new " : "") + "cards in PMs!");
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
@@ -105,7 +101,6 @@ class MurkrowsBlackjack extends PlayingCard {
 		if (this.round === 1) {
 			playersLeft = this.getRemainingPlayerCount();
 		} else {
-			if (this.canLateJoin) this.canLateJoin = false;
 			playersLeft = 0;
 			const autoFreeze = this.round > 3;
 			for (const i in this.getRemainingPlayers()) {
@@ -119,11 +114,18 @@ class MurkrowsBlackjack extends PlayingCard {
 			}
 		}
 		if (!playersLeft || this.round > this.roundLimit) {
-			this.say("All players have finished their turns!");
-			this.timeout = setTimeout(() => {
-				this.say("Murkrow " + (this.dealersHand < 22 ? "has " : "bust with ") + this.dealersHand + "!");
-				this.timeout = setTimeout(() => this.endBlackjackGame(), 5 * 1000);
-			}, 5000);
+			const text = "All players have finished their turns!";
+			this.on(text, () => {
+				this.canLateJoin = true;
+				this.timeout = setTimeout(() => {
+					const text = "Murkrow " + (this.dealersHand < 22 ? "has " : "bust with ") + this.dealersHand + "!";
+					this.on(text, () => {
+						this.timeout = setTimeout(() => this.endBlackjackGame(), 5 * 1000);
+					});
+					this.say(text);
+				}, 5000);
+			});
+			this.say(text);
 			return;
 		}
 		this.roundActions.clear();
@@ -144,7 +146,9 @@ class MurkrowsBlackjack extends PlayingCard {
 		for (const i in this.players) {
 			const player = this.players[i];
 			if (player.eliminated) continue;
-			const total = this.playerTotals.get(player) || 0;
+			const total = this.playerTotals.get(player);
+			// late-joins
+			if (!total) continue;
 			if (total > 21) continue;
 			if (total === 21) blackjacks.push(player);
 			if (this.dealersHand > 21 || total >= this.dealersHand) {
@@ -153,6 +157,8 @@ class MurkrowsBlackjack extends PlayingCard {
 				gameWinners.push(player.name);
 			}
 		}
+
+		let text = '';
 		if (gameWinners.length) {
 			if (blackjacks.length) {
 				const blackJackpot = Math.floor(300 / blackjacks.length);
@@ -161,16 +167,17 @@ class MurkrowsBlackjack extends PlayingCard {
 					this.blackJackpots.set(blackjacks[i], previousBlackJackpots + blackJackpot);
 				}
 			}
-			this.say("**Game " + this.subGameNumber + " winner" + (gameWinners.length > 1 ? "s" : "") + "**: " + gameWinners.join(", ") + (blackjacks.length ? " | **BlackJackpot winner" + (blackjacks.length > 1 ? "s" : "") + "**: " + this.getPlayerNames(blackjacks) : ""));
+			text = "**Game " + this.subGameNumber + " winner" + (gameWinners.length > 1 ? "s" : "") + "**: " + gameWinners.join(", ") + (blackjacks.length ? " | **BlackJackpot winner" + (blackjacks.length > 1 ? "s" : "") + "**: " + this.getPlayerNames(blackjacks) : "");
 		} else if (this.dealersHand > 21) {
-			this.say("No one wins Game " + this.subGameNumber + "!");
+			text = "No one wins Game " + this.subGameNumber + "!";
 		} else {
-			this.say("Murkrow wins Game " + this.subGameNumber + "!");
+			text = "Murkrow wins Game " + this.subGameNumber + "!";
 		}
 
-		this.canLateJoin = true;
-		this.canWager = true;
-		this.timeout = setTimeout(() => this.nextBlackJackGame(), 5 * 1000);
+		this.on(text, () => {
+			this.timeout = setTimeout(() => this.nextBlackJackGame(), 5 * 1000);
+		});
+		this.say(text);
 	}
 
 	onEnd() {
