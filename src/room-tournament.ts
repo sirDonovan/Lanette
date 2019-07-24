@@ -179,6 +179,10 @@ export class Tournament extends Activity {
 		while (database.pastTournaments.length > 8) {
 			database.pastTournaments.pop();
 		}
+
+		if (!database.lastTournamentFormatTimes) database.lastTournamentFormatTimes = {};
+		database.lastTournamentFormatTimes[this.format.id] = Date.now();
+
 		let winners: string[] = [];
 		let runnersUp: string[] = [];
 		let semiFinalists: string[] = [];

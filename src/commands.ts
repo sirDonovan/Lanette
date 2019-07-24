@@ -1349,6 +1349,34 @@ const commands: Dict<ICommandDefinition> = {
 		},
 		aliases: ['pasttours', 'recenttournaments', 'recenttours'],
 	},
+	lasttournament: {
+		command(target, room, user) {
+			const targets = target.split(',');
+			let tournamentRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(Tools.toId(targets[0]));
+				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+				targets.shift();
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.say("Tournament features are not enabled for " + targetRoom.title + ".");
+				tournamentRoom = targetRoom;
+			} else {
+				if (!user.hasRank(room, 'voice')) return;
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.say("Tournament features are not enabled for this room.");
+				tournamentRoom = room;
+			}
+
+			const database = Storage.getDatabase(tournamentRoom);
+			if (!targets[0]) {
+				if (!database.lastTournamentTime) return this.say("No tournaments have been played in " + tournamentRoom.title + ".");
+				return this.say("The last tournament in " + tournamentRoom.title + " ended **" + Tools.toDurationString(Date.now() - database.lastTournamentTime) + "** ago.");
+			}
+			const format = Dex.getFormat(targets[0]);
+			if (!format) return this.say("'" + targets[0].trim() + "' is not a valid format.");
+			if (!database.lastTournamentFormatTimes || !(format.id in database.lastTournamentFormatTimes)) return this.say(format.name + " has not been played in " + tournamentRoom.title + ".");
+			this.say("The last " + format.name + " tournament in " + tournamentRoom.title + " ended **" + Tools.toDurationString(Date.now() - database.lastTournamentFormatTimes[format.id]) + "** ago.");
+		},
+		aliases: ['lasttour'],
+	},
 	usercreatedformats: {
 		command(target, room, user) {
 			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
