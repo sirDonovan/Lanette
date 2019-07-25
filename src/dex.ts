@@ -16,7 +16,7 @@ export const modsDir = path.join(dataDir, 'mods');
 export const formatsPath = path.join(PokemonShowdown, 'config', 'formats.js');
 const lanetteDataDir = path.join(rootFolder, 'data');
 const currentGen = 7;
-const currentGenString = 'gen7';
+export const currentGenString = 'gen' + currentGen;
 const omotmSection = 'OM of the Month';
 
 // tslint:disable-next-line no-var-requires

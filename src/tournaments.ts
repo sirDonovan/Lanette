@@ -1,8 +1,8 @@
+import { currentGenString } from "./dex";
 import { Tournament } from "./room-tournament";
 import { Room } from "./rooms";
 import * as schedules from './tournament-schedules';
 import { IFormat, ISeparatedCustomRules } from "./types/in-game-data-types";
-import { User } from "./users";
 
 for (const i in schedules) {
 	const id = Tools.toRoomId(i);
@@ -120,10 +120,9 @@ export class Tournaments {
 			}
 
 			const formats: IFormat[] = [];
-			const currentGen = Dex.gen + 'gen';
 			for (const i in Dex.data.formats) {
 				const format = Dex.getExistingFormat(i);
-				if (!format.tournamentPlayable || format.unranked || format.mod !== currentGen || (scheduledFormat && scheduledFormat.id === format.id) || pastTournamentIds.includes(format.id)) continue;
+				if (!format.tournamentPlayable || format.unranked || format.mod !== currentGenString || (scheduledFormat && scheduledFormat.id === format.id) || pastTournamentIds.includes(format.id)) continue;
 				formats.push(format);
 			}
 
