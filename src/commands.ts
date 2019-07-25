@@ -937,25 +937,6 @@ const commands: Dict<ICommandDefinition> = {
 				players[i].say("You were awarded " + playerBits! + " bits! To see your total amount, use this command: ``" + Config.commandCharacter + "rank " + room.title + "``");
 			}
 			this.say("The winner" + (players.length === 1 ? " is" : "s are") + " " + players.map(x => x.name).join(", ") + "!");
-
-			let hostDifficulty: GameDifficulty;
-			if (Config.userHostedGameHostDifficulties && room.userHostedGame.format.id in Config.userHostedGameHostDifficulties) {
-				hostDifficulty = Config.userHostedGameHostDifficulties[room.userHostedGame.format.id];
-			} else {
-				hostDifficulty = 'medium';
-			}
-
-			let hostBits: number;
-			if (hostDifficulty === 'easy') {
-				hostBits = 300;
-			} else if (hostDifficulty === 'medium') {
-				hostBits = 400;
-			} else if (hostDifficulty === 'hard') {
-				hostBits = 500;
-			}
-			if (room.userHostedGame.shinyMascot) hostBits! *= 2;
-			Storage.addPoints(room, user.name, hostBits!, 'userhosted');
-			user.say("You were awarded " + hostBits! + " bits! To see your total amount, use this command: ``" + Config.commandCharacter + "rank " + room.title + "``. Thanks for your efforts, we hope you host again soon!");
 			room.userHostedGame.end();
 		},
 		aliases: ['autowin', 'win'],

@@ -1,6 +1,7 @@
 import { Player } from "../../room-activity";
 import { Game } from "../../room-game";
-import { IUserHostedFile } from "../../types/games";
+import { Room } from "../../rooms";
+import { GameDifficulty, IUserHostedFile } from "../../types/games";
 import { User } from "../../users";
 
 const timeLimit = 25 * 60 * 1000;
@@ -52,6 +53,28 @@ export class UserHosted extends Game {
 				}, secondWarning);
 			}, firstWarning - secondWarning);
 		}, timeLimit - firstWarning);
+	}
+
+	onEnd() {
+		let hostDifficulty: GameDifficulty;
+		if (Config.userHostedGameHostDifficulties && this.format.id in Config.userHostedGameHostDifficulties) {
+			hostDifficulty = Config.userHostedGameHostDifficulties[this.format.id];
+		} else {
+			hostDifficulty = 'medium';
+		}
+
+		let hostBits: number;
+		if (hostDifficulty === 'easy') {
+			hostBits = 300;
+		} else if (hostDifficulty === 'medium') {
+			hostBits = 400;
+		} else if (hostDifficulty === 'hard') {
+			hostBits = 500;
+		}
+		if (this.shinyMascot) hostBits! *= 2;
+		Storage.addPoints(this.room as Room, this.hostName, hostBits!, 'userhosted');
+		const user = Users.get(this.hostName);
+		if (user) user.say("You were awarded " + hostBits! + " bits! To see your total amount, use this command: ``" + Config.commandCharacter + "rank " + (this.room as Room).title + "``. Thanks for your efforts, we hope you host again soon!");
 	}
 }
 
