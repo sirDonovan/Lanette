@@ -43,19 +43,6 @@ export class Tournaments {
 		});
 	}
 
-	canCreateTournaments(room: Room, user: User): boolean {
-		if (!user.hasRank(room, 'driver')) return false;
-		if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
-			room.say("Tournament features are not enabled for this room.");
-			return false;
-		}
-		if (!Users.self.hasRank(room, 'bot')) {
-			room.say(Users.self.name + " requires Bot rank (*) to use tournament features.");
-			return false;
-		}
-		return true;
-	}
-
 	createTournament(room: Room, format: IFormat, generator: string, playerCap: number, name?: string): Tournament {
 		if (room.id in this.tournamentTimers) {
 			clearTimeout(this.tournamentTimers[room.id]);

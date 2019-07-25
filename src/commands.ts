@@ -127,7 +127,7 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
 			const format = Dex.getFormat(target);
-			if (!format) return this.say("'" + target.trim() + "' is not a valid format.");
+			if (!format) return this.sayError(['invalidFormat', target]);
 			if (!format.teams) return this.say("No sample teams link found for " + format.name + ".");
 			this.say("**" + format.name + " sample teams**: " + format.teams);
 		},
@@ -137,7 +137,7 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
 			const format = Dex.getFormat(target);
-			if (!format) return this.say("'" + target.trim() + "' is not a valid format.");
+			if (!format) return this.sayError(['invalidFormat', target]);
 			if (!format.viability) return this.say("No viability ranking link found for " + format.name + ".");
 			this.say("**" + format.name + " viability ranking**: " + format.viability);
 		},
@@ -155,7 +155,7 @@ const commands: Dict<ICommandDefinition> = {
 				pmRoom = room;
 			}
 			const format = Dex.getFormat(target);
-			if (!format) return this.say("'" + target.trim() + "' is not a valid format.");
+			if (!format) return this.sayError(['invalidFormat', target]);
 			const html = Dex.getFormatInfoDisplay(format);
 			if (!html.length) return this.say("No info found for " + format.name + ".");
 			this.sayHtml("<b>" + format.name + "</b>" + html, pmRoom!);
@@ -168,10 +168,10 @@ const commands: Dict<ICommandDefinition> = {
 			let eventRoom: Room;
 			if (this.isPm(room)) {
 				const targetRoom = Rooms.search(targets[0]);
-				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
-				if (!this.canPmHtml(targetRoom)) return this.say(Users.self.name + " requires Bot rank (*) in " + targetRoom.title + " for this command to work in PMs.");
-				eventRoom = targetRoom;
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 				targets.shift();
+				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
+				eventRoom = targetRoom;
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
 				eventRoom = room;
@@ -220,7 +220,9 @@ const commands: Dict<ICommandDefinition> = {
 	 */
 	creategame: {
 		command(target, room, user) {
-			if (this.isPm(room) || room.game || room.userHostedGame || !Games.canCreateScriptedGame(room, user)) return;
+			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
+			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) return this.sayError(['disabledGameFeatures', room.title]);
+			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
 			const remainingGameCooldown = Games.getRemainingGameCooldown(room);
 			if (remainingGameCooldown > 1000) {
 				const durationString = Tools.toDurationString(remainingGameCooldown);
@@ -228,7 +230,7 @@ const commands: Dict<ICommandDefinition> = {
 				return;
 			}
 			const format = Games.getFormat(target, user);
-			if (!format) return;
+			if (Array.isArray(format)) return this.sayError(format);
 			const game = Games.createGame(room, format);
 			game.signups();
 		},
@@ -301,8 +303,8 @@ const commands: Dict<ICommandDefinition> = {
 			let gameRoom: Room;
 			if (this.isPm(room)) {
 				const targetRoom = Rooms.search(Tools.toRoomId(target));
-				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
-				if (!this.canPmHtml(targetRoom)) return this.say(Users.self.name + " requires Bot rank (*) in " + targetRoom.title + " for this command to work in PMs.");
+				if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
+				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
 				gameRoom = targetRoom;
 			} else {
 				if (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id)) return;
@@ -346,14 +348,14 @@ const commands: Dict<ICommandDefinition> = {
 			const targets = target.split(',');
 			let gameRoom: Room;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.search(Tools.toId(targets[0]));
-				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 				targets.shift();
-				if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(targetRoom.id)) return this.say("Scripted games are not enabled for " + targetRoom.title + ".");
+				if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(targetRoom.id)) return this.sayError(['disabledGameFeatures', targetRoom.title]);
 				gameRoom = targetRoom;
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
-				if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) return this.say("Scripted games are not enabled for this room.");
+				if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) return this.sayError(['disabledGameFeatures', room.title]);
 				gameRoom = room;
 			}
 
@@ -363,7 +365,7 @@ const commands: Dict<ICommandDefinition> = {
 				return this.say("The last scripted game in " + gameRoom.title + " ended **" + Tools.toDurationString(Date.now() - database.lastGameTime) + "** ago.");
 			}
 			const format = Games.getFormat(targets[0]);
-			if (!format) return this.say("'" + targets[0].trim() + "' is not a valid game format.");
+			if (Array.isArray(format)) return this.sayError(format);
 			if (!database.lastGameFormatTimes || !(format.id in database.lastGameFormatTimes)) return this.say(format.name + " has not been played in " + gameRoom.title + ".");
 			this.say("The last game of " + format.name + " in " + gameRoom.title + " ended **" + Tools.toDurationString(Date.now() - database.lastGameFormatTimes[format.id]) + "** ago.");
 		},
@@ -373,14 +375,14 @@ const commands: Dict<ICommandDefinition> = {
 			const targets = target.split(',');
 			let gameRoom: Room;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.search(Tools.toId(targets[0]));
-				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 				targets.shift();
-				if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(targetRoom.id)) return this.say("User-hosted games are not enabled for " + targetRoom.title + ".");
+				if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(targetRoom.id)) return this.sayError(['disabledUserHostedGameFeatures', targetRoom.title]);
 				gameRoom = targetRoom;
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
-				if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id)) return this.say("User-hosted games are not enabled for this room.");
+				if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id)) return this.sayError(['disabledUserHostedGameFeatures', room.title]);
 				gameRoom = room;
 			}
 
@@ -390,7 +392,7 @@ const commands: Dict<ICommandDefinition> = {
 				return this.say("The last user-hosted game in " + gameRoom.title + " ended **" + Tools.toDurationString(Date.now() - database.lastUserHostedGameTime) + "** ago.");
 			}
 			const format = Games.getUserHostedFormat(targets[0]);
-			if (!format) return this.say("'" + targets[0].trim() + "' is not a valid user-hosted game format.");
+			if (Array.isArray(format)) return this.sayError(format);
 			if (!database.lastUserHostedGameFormatTimes || !(format.id in database.lastUserHostedGameFormatTimes)) return this.say(format.name + " has not been hosted in " + gameRoom.title + ".");
 			this.say("The last user-hosted game of " + format.name + " in " + gameRoom.title + " ended **" + Tools.toDurationString(Date.now() - database.lastUserHostedGameFormatTimes[format.id]) + "** ago.");
 		},
@@ -398,13 +400,15 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	host: {
 		command(target, room, user) {
-			if (this.isPm(room) || !user.hasRank(room, 'voice') || !Games.canCreateUserHostedGame(room, user)) return;
+			if (this.isPm(room) || !user.hasRank(room, 'voice')) return;
+			if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id)) return this.sayError(['disabledUserHostedGameFeatures', room.title]);
+			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'user-hosted game']);
 			const targets = target.split(",");
 			const host = Users.get(targets[0]);
 			if (!host || !host.rooms.has(room)) return this.say("Please specify a user currently in this room.");
 			targets.shift();
 			const format = Games.getUserHostedFormat(targets.join(","), user);
-			if (!format) return;
+			if (Array.isArray(format)) return this.sayError(format);
 			const database = Storage.getDatabase(room);
 			const otherUsersQueued = database.userHostedGameQueue && database.userHostedGameQueue.length;
 			const remainingGameCooldown = Games.getRemainingGameCooldown(room);
@@ -452,13 +456,15 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	nexthost: {
 		command(target, room, user) {
-			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame || !Games.canCreateUserHostedGame(room, user)) return;
+			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
+			if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id)) return this.sayError(['disabledUserHostedGameFeatures', room.title]);
+			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'user-hosted game']);
 			if (Games.requiresScriptedGame(room)) {
 				this.say("At least 1 scripted game needs to be played before the next user-hosted game can start.");
 				return;
 			}
 			const database = Storage.getDatabase(room);
-			if (!database.userHostedGameQueue || !database.userHostedGameQueue.length) return this.say("The host queue is empty.");
+			if (!database.userHostedGameQueue || !database.userHostedGameQueue.length) return this.sayError(['emptyUserHostedGameQueue']);
 			const remainingGameCooldown = Games.getRemainingGameCooldown(room);
 			if (remainingGameCooldown > 1000) {
 				const durationString = Tools.toDurationString(remainingGameCooldown);
@@ -467,7 +473,7 @@ const commands: Dict<ICommandDefinition> = {
 			}
 			const nextHost = database.userHostedGameQueue[0];
 			const format = Games.getUserHostedFormat(nextHost.format, user);
-			if (!format) return this.say("'" + nextHost.format + "' is no longer a valid user-hosted format.");
+			if (Array.isArray(format)) return this.sayError(format);
 			database.userHostedGameQueue.shift();
 			const game = Games.createUserHostedGame(room, format, nextHost.name);
 			game.signups();
@@ -478,15 +484,15 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			let gameRoom: Room;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.search(Tools.toId(target));
-				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+				const targetRoom = Rooms.search(target);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
 				gameRoom = targetRoom;
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
 				gameRoom = room;
 			}
 			const database = Storage.getDatabase(gameRoom);
-			if (!database.userHostedGameQueue || !database.userHostedGameQueue.length) return this.say("The host queue is empty.");
+			if (!database.userHostedGameQueue || !database.userHostedGameQueue.length) return this.sayError(['emptyUserHostedGameQueue']);
 			const html = [];
 			for (let i = 0; i < database.userHostedGameQueue.length; i++) {
 				let name = database.userHostedGameQueue[i].name;
@@ -504,7 +510,7 @@ const commands: Dict<ICommandDefinition> = {
 			const id = Tools.toId(target);
 			if (room.userHostedGame && room.userHostedGame.hostId === id) return this.run('endgame');
 			const database = Storage.getDatabase(room);
-			if (!database.userHostedGameQueue || !database.userHostedGameQueue.length) return this.say("The hostqueue is empty.");
+			if (!database.userHostedGameQueue || !database.userHostedGameQueue.length) return this.sayError(['emptyUserHostedGameQueue']);
 			let position = -1;
 			for (let i = 0; i < database.userHostedGameQueue.length; i++) {
 				if (database.userHostedGameQueue[i].id === id) {
@@ -640,8 +646,8 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			let gameRoom: Room;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.search(Tools.toId(target));
-				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s room.");
+				const targetRoom = Rooms.search(target);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
 				gameRoom = targetRoom;
 			} else {
 				if (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id)) return;
@@ -808,8 +814,8 @@ const commands: Dict<ICommandDefinition> = {
 			let gameRoom: Room;
 			let isPm = false;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.search(Tools.toId(target));
-				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+				const targetRoom = Rooms.search(target);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
 				gameRoom = targetRoom;
 				isPm = true;
 			} else {
@@ -1103,18 +1109,17 @@ const commands: Dict<ICommandDefinition> = {
 	 */
 	tournament: {
 		command(target, room, user) {
-			const targets: string[] = target ? target.split(",") : [];
 			let tournamentRoom: Room;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.search(Tools.toId(targets[0]));
-				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
-				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.say("Tournament features are not enabled for " + targetRoom.title + ".");
-				if (!this.canPmHtml(targetRoom)) return this.say(Users.self.name + " requires Bot rank (*) in " + targetRoom.title + " for this command to work in PMs.");
+				const targetRoom = Rooms.search(target);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.sayError(['disabledTournamentFeatures', targetRoom.title]);
+				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
 				tournamentRoom = targetRoom;
 			} else {
 				if (target) return this.run('createtournament');
 				if (!user.hasRank(room, 'voice')) return;
-				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.say("Tournament features are not enabled for this room.");
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.sayError(['disabledTournamentFeatures', room.title]);
 				tournamentRoom = room;
 			}
 
@@ -1139,10 +1144,12 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	createtournament: {
 		command(target, room, user) {
-			if (this.isPm(room) || !Tournaments.canCreateTournaments(room, user)) return;
+			if (this.isPm(room) || !user.hasRank(room, 'driver')) return;
+			if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.sayError(['disabledTournamentFeatures', room.title]);
+			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'tournament']);
 			if (room.tournament) return this.say("There is already a tournament in progress in this room.");
 			const format = Dex.getFormat(target);
-			if (!format || !format.tournamentPlayable) return this.say("'" + target + "' is not a valid tournament format.");
+			if (!format || !format.tournamentPlayable) return this.sayError(['invalidTournamentFormat', format ? format.name : target]);
 			let playerCap: number = 0;
 			if (Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
 				playerCap = Config.defaultTournamentPlayerCaps[room.id];
@@ -1166,11 +1173,11 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	tournamentbattlescore: {
 		command(target, room, user) {
-			const targets: string[] = target ? target.split(",") : [];
+			const targets = target.split(",");
 			let tournamentRoom: Room;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.search(Tools.toId(targets[0]));
-				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 				targets.shift();
 				tournamentRoom = targetRoom;
 			} else {
@@ -1201,18 +1208,19 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	scheduledtournament: {
 		command(target, room, user) {
-			const targets: string[] = target ? target.split(",") : [];
+			const targets = target.split(',');
 			let tournamentRoom: Room;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.search(Tools.toId(targets[0]));
-				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
-				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.say("Tournament features are not enabled for " + targetRoom.title + ".");
-				if (!this.canPmHtml(targetRoom)) return this.say(Users.self.name + " requires Bot rank (*) in " + targetRoom.title + " for this command to work in PMs.");
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				targets.shift();
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.sayError(['disabledTournamentFeatures', targetRoom.title]);
+				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
 				if (!(targetRoom.id in Tournaments.schedules)) return this.say("There is no tournament schedule for " + targetRoom.title + ".");
 				tournamentRoom = targetRoom;
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
-				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.say("Tournament features are not enabled for this room.");
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.sayError(['disabledTournamentFeatures', room.title]);
 				if (!(room.id in Tournaments.schedules)) return this.say("There is no tournament schedule for this room.");
 				tournamentRoom = room;
 			}
@@ -1233,17 +1241,18 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	gettournamentschedule: {
 		command(target, room, user) {
-			const targets: string[] = target ? target.split(",") : [];
+			const targets = target.split(',');
 			let tournamentRoom: Room;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.search(Tools.toId(targets[0]));
-				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				targets.shift();
 				if (!user.hasRank(targetRoom, 'moderator')) return;
-				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.say("Tournament features are not enabled for " + targetRoom.title + ".");
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.sayError(['disabledTournamentFeatures', targetRoom.title]);
 				tournamentRoom = targetRoom;
 			} else {
 				if (!user.hasRank(room, 'moderator')) return;
-				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.say("Tournament features are not enabled for this room.");
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.sayError(['disabledTournamentFeatures', room.title]);
 				tournamentRoom = room;
 			}
 			const schedule = Tournaments.getTournamentScheduleHtml(tournamentRoom);
@@ -1254,11 +1263,13 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	queuetournament: {
 		command(target, room, user, cmd) {
-			if (this.isPm(room) || !Tournaments.canCreateTournaments(room, user)) return;
+			if (this.isPm(room) || !user.hasRank(room, 'driver')) return;
+			if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.sayError(['disabledTournamentFeatures', room.title]);
+			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'tournament']);
 			const database = Storage.getDatabase(room);
 			if (database.queuedTournament && !cmd.startsWith('force')) return this.say(Dex.getExistingFormat(database.queuedTournament.formatid, true).name + " is already queued for " + room.title + ".");
 			if (target.includes('@@@')) return this.say("You must specify custom rules separately (``" + Config.commandCharacter + cmd + " format, cap, custom rules``).");
-			const targets: string[] = target ? target.split(",") : [];
+			const targets = target.split(',');
 			const id = Tools.toId(targets[0]);
 			let scheduled = false;
 			let format: IFormat | null = null;
@@ -1270,8 +1281,7 @@ const commands: Dict<ICommandDefinition> = {
 				if (room.id in Tournaments.scheduledTournaments && Date.now() > Tournaments.scheduledTournaments[room.id].time) return this.say("The scheduled tournament is delayed so you must wait until after it starts.");
 				format = Dex.getFormat(targets[0]);
 			}
-			if (!format) return this.say("'" + targets[0].trim() + "' is not a valid format.");
-			if (!format.tournamentPlayable) return this.say(format.name + " cannot be played in tournaments.");
+			if (!format || !format.tournamentPlayable) return this.sayError(['invalidTournamentFormat', format ? format.name : target]);
 			let playerCap: number = 0;
 			if (scheduled) {
 				if (Config.scheduledTournamentsMaxPlayerCap && Config.scheduledTournamentsMaxPlayerCap.includes(room.id)) playerCap = Tournaments.maxPlayerCap;
@@ -1336,14 +1346,14 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			let tournamentRoom: Room;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.search(Tools.toId(target));
-				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
-				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.say("Tournament features are not enabled for " + targetRoom.title + ".");
-				if (!this.canPmHtml(targetRoom)) return this.say(Users.self.name + " requires Bot rank (*) in " + targetRoom.title + " for this command to work in PMs.");
+				const targetRoom = Rooms.search(target);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.sayError(['disabledTournamentFeatures', targetRoom.title]);
+				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
 				tournamentRoom = targetRoom;
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
-				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.say("Tournament features are not enabled for this room.");
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.sayError(['disabledTournamentFeatures', room.title]);
 				if (target) return this.run('queuetournament');
 				tournamentRoom = room;
 			}
@@ -1372,13 +1382,13 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			let tournamentRoom: Room;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.search(Tools.toId(target));
-				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
-				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.say("Tournament features are not enabled for " + targetRoom.title + ".");
+				const targetRoom = Rooms.search(target);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.sayError(['disabledTournamentFeatures', targetRoom.title]);
 				tournamentRoom = targetRoom;
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
-				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.say("Tournament features are not enabled for this room.");
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.sayError(['disabledTournamentFeatures', room.title]);
 				tournamentRoom = room;
 			}
 
@@ -1393,14 +1403,14 @@ const commands: Dict<ICommandDefinition> = {
 			const targets = target.split(',');
 			let tournamentRoom: Room;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.search(Tools.toId(targets[0]));
-				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 				targets.shift();
-				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.say("Tournament features are not enabled for " + targetRoom.title + ".");
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.sayError(['disabledTournamentFeatures', targetRoom.title]);
 				tournamentRoom = targetRoom;
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
-				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.say("Tournament features are not enabled for this room.");
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.sayError(['disabledTournamentFeatures', room.title]);
 				tournamentRoom = room;
 			}
 
@@ -1410,7 +1420,7 @@ const commands: Dict<ICommandDefinition> = {
 				return this.say("The last tournament in " + tournamentRoom.title + " ended **" + Tools.toDurationString(Date.now() - database.lastTournamentTime) + "** ago.");
 			}
 			const format = Dex.getFormat(targets[0]);
-			if (!format) return this.say("'" + targets[0].trim() + "' is not a valid format.");
+			if (!format) return this.sayError(['invalidFormat', target]);
 			if (!database.lastTournamentFormatTimes || !(format.id in database.lastTournamentFormatTimes)) return this.say(format.name + " has not been played in " + tournamentRoom.title + ".");
 			this.say("The last " + format.name + " tournament in " + tournamentRoom.title + " ended **" + Tools.toDurationString(Date.now() - database.lastTournamentFormatTimes[format.id]) + "** ago.");
 		},
@@ -1535,8 +1545,8 @@ const commands: Dict<ICommandDefinition> = {
 			const targets = target.split(',');
 			let leaderboardRoom: Room;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.search(Tools.toId(targets[0]));
-				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 				targets.shift();
 				leaderboardRoom = targetRoom;
 			} else {
@@ -1563,7 +1573,7 @@ const commands: Dict<ICommandDefinition> = {
 						source = format;
 					} else {
 						const gameFormat = Games.getFormat(targets[i]);
-						if (gameFormat) {
+						if (!Array.isArray(gameFormat)) {
 							if (source) return this.say("You can only specify 1 point source.");
 							source = gameFormat;
 						}
@@ -1630,9 +1640,10 @@ const commands: Dict<ICommandDefinition> = {
 	rank: {
 		command(target, room, user) {
 			if (!this.isPm(room)) return;
-			const targets: string[] = target ? target.split(',') : [];
-			const targetRoom = Rooms.search(Tools.toId(targets[0]));
-			if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+			const targets = target.split(',');
+			const targetRoom = Rooms.search(targets[0]);
+			if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+			targets.shift();
 			const database = Storage.getDatabase(targetRoom);
 			if (!database.leaderboard) return this.say("There is no leaderboard for the " + targetRoom.title + " room.");
 			const users = Object.keys(database.leaderboard);
@@ -1640,7 +1651,7 @@ const commands: Dict<ICommandDefinition> = {
 			let targetUser = '';
 			let position = 0;
 			let source: IFormat | IGameFormat | undefined;
-			for (let i = 1; i < targets.length; i++) {
+			for (let i = 0; i < targets.length; i++) {
 				const id = Tools.toId(targets[i]);
 				if (Tools.isNumber(id)) {
 					if (position) return this.say("You can only specify 1 position on the leaderboard.");
@@ -1652,7 +1663,7 @@ const commands: Dict<ICommandDefinition> = {
 						source = format;
 					} else {
 						const gameFormat = Games.getFormat(targets[i]);
-						if (gameFormat) {
+						if (!Array.isArray(gameFormat)) {
 							if (source) return this.say("You can only specify 1 point source.");
 							source = gameFormat;
 						} else {
@@ -1722,9 +1733,9 @@ const commands: Dict<ICommandDefinition> = {
 	transferdata: {
 		command(target, room, user) {
 			if (!this.isPm(room)) return;
-			const targets: string[] = target ? target.split(",") : [];
-			const targetRoom = Rooms.search(Tools.toId(targets[0]));
-			if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+			const targets = target.split(',');
+			const targetRoom = Rooms.search(targets[0]);
+			if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 			if (!user.isDeveloper() && !user.hasRank(targetRoom, 'roomowner')) return;
 			const source = targets[1].trim();
 			const destination = targets[2].trim();

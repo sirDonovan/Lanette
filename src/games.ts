@@ -1,5 +1,6 @@
 import fs = require('fs');
 import path = require('path');
+import { CommandErrorArray } from './command-parser';
 import { UserHosted } from './games/templates/user-hosted';
 import { commands, Game } from "./room-game";
 import { Room } from "./rooms";
@@ -231,7 +232,9 @@ export class Games {
 						});
 						if (!pmRoom) return this.say("You must be in a room that has enabled scripted games and where " + Users.self.name + " has Bot rank (*).");
 					} else {
-						if (room.game || room.userHostedGame || !global.Games.canCreateScriptedGame(room, user)) return;
+						if (!user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
+						if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) return this.sayError(['disabledGameFeatures', room.title]);
+						if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
 						const remainingGameCooldown = global.Games.getRemainingGameCooldown(room, true);
 						if (remainingGameCooldown > 1000) {
 							const durationString = Tools.toDurationString(remainingGameCooldown);
@@ -240,7 +243,7 @@ export class Games {
 						}
 					}
 					const format = global.Games.getFormat(formatName + (target ? "," + target : ""), user);
-					if (!format) return;
+					if (Array.isArray(format)) return this.sayError(format);
 					delete format.inputOptions.points;
 					const game = global.Games.createGame(room, format, pmRoom);
 					game.isMiniGame = true;
@@ -258,15 +261,13 @@ export class Games {
 	/**
 	 * Returns a copy of the format
 	 */
-	getFormat(target: string, user?: User): IGameFormat | false {
+	getFormat(target: string, user?: User): IGameFormat | CommandErrorArray {
 		const targets = target.split(",");
-		const id = Tools.toId(targets[0]);
+		const name = targets[0];
 		targets.shift();
+		const id = Tools.toId(name);
 		if (id in this.aliases) return this.getFormat(this.aliases[id] + (targets.length ? "," + targets.join(",") : ""), user);
-		if (!(id in this.formats)) {
-			if (user) user.say("'" + target + "' is not a valid game format.");
-			return false;
-		}
+		if (!(id in this.formats)) return ['invalidGameFormat', name];
 		const formatData = this.formats[id];
 		const inputOptions: Dict<number> = {};
 		let mode: IGameMode | undefined;
@@ -275,10 +276,7 @@ export class Games {
 			const targetId = Tools.toId(targets[i]);
 			if (!targetId) continue;
 			if (formatData.modes && formatData.modes.includes(targetId)) {
-				if (mode) {
-					if (user) user.say("You can only specify 1 game mode.");
-					return false;
-				}
+				if (mode) return ['tooManyGameModes'];
 				mode = this.modes[targetId];
 				continue;
 			}
@@ -291,10 +289,7 @@ export class Games {
 					}
 				}
 				if (matchingVariant) {
-					if (variant) {
-						if (user) user.say("You can only specify 1 game variant.");
-						return false;
-					}
+					if (variant) return ['tooManyGameVariants'];
 					variant = matchingVariant;
 					continue;
 				}
@@ -313,32 +308,31 @@ export class Games {
 					optionNumber = 1;
 				} else {
 					const firstSpaceIndex = option.indexOf(" ");
-					if (firstSpaceIndex === -1) continue;
-					const lastSpaceIndex = option.lastIndexOf(" ");
-					name = option.substr(0, firstSpaceIndex);
-					if (Tools.isNumber(name)) {
-						optionNumber = parseInt(name);
-						name = option.substr(firstSpaceIndex + 1);
-					} else {
-						if (lastSpaceIndex !== firstSpaceIndex) {
-							name = option.substr(0, lastSpaceIndex);
-							optionNumber = parseInt(option.substr(lastSpaceIndex + 1));
+					if (firstSpaceIndex !== -1) {
+						const lastSpaceIndex = option.lastIndexOf(" ");
+						name = option.substr(0, firstSpaceIndex);
+						if (Tools.isNumber(name)) {
+							optionNumber = parseInt(name);
+							name = option.substr(firstSpaceIndex + 1);
 						} else {
-							optionNumber = parseInt(option.substr(firstSpaceIndex + 1));
+							if (lastSpaceIndex !== firstSpaceIndex) {
+								name = option.substr(0, lastSpaceIndex);
+								optionNumber = parseInt(option.substr(lastSpaceIndex + 1));
+							} else {
+								optionNumber = parseInt(option.substr(firstSpaceIndex + 1));
+							}
 						}
+						name = Tools.toId(name);
 					}
-					name = Tools.toId(name);
 				}
 			}
 
-			if (!name || isNaN(optionNumber)) {
-				if (user) user.say("'" + option + "' is not a valid variation or option.");
-				return false;
-			}
+			if (!name || isNaN(optionNumber)) return ['invalidGameOption', option];
 
 			if (name === 'firstto') name = 'points';
 			inputOptions[name] = optionNumber;
 		}
+
 		const formatComputed: IGameFormatComputed = {
 			effectType: "GameFormat",
 			inputOptions,
@@ -350,41 +344,36 @@ export class Games {
 
 	getExistingFormat(target: string): IGameFormat {
 		const format = this.getFormat(target);
-		if (!format) throw new Error("No format returned for '" + target + "'");
+		if (Array.isArray(format)) throw new Error(format.join(": "));
 		return format;
 	}
 
 	/**
 	 * Returns a copy of the format
 	 */
-	getUserHostedFormat(target: string, user?: User): IUserHostedFormat | false {
+	getUserHostedFormat(target: string, user?: User): IUserHostedFormat | CommandErrorArray {
 		const targets = target.split(",");
-		const id = Tools.toId(targets[0]);
+		const name = targets[0];
 		targets.shift();
+		const id = Tools.toId(name);
 		if (id in this.userHostedAliases) return this.getUserHostedFormat(this.userHostedAliases[id] + (targets.length ? "," + targets.join(",") : ""), user);
 		let formatData: IUserHostedComputed | undefined;
 		if (id in this.userHostedFormats) {
 			formatData = this.userHostedFormats[id];
 		} else {
 			const scriptedFormat = this.getFormat(id + (targets.length ? "," + targets.join(",") : ""));
-			if (scriptedFormat) {
-				if (scriptedFormat.scriptedOnly) {
-					if (user) user.say(scriptedFormat.name + " is not a valid user-hosted format.");
-					return false;
-				} else {
-					formatData = Object.assign({}, scriptedFormat, {
-						class: userHosted.class,
-						commands: null,
-						commandDescriptions: null,
-						mode: null,
-					});
-				}
+			if (Array.isArray(scriptedFormat)) {
+				if (scriptedFormat[0] !== 'invalidGameFormat') return scriptedFormat;
+			} else if (!scriptedFormat.scriptedOnly) {
+				formatData = Object.assign({}, scriptedFormat, {
+					class: userHosted.class,
+					commands: null,
+					commandDescriptions: null,
+					mode: null,
+				});
 			}
 		}
-		if (!formatData) {
-			if (user) user.say("'" + target.trim() + "' is not a valid user-hosted format.");
-			return false;
-		}
+		if (!formatData) return ['invalidUserHostedGameFormat', name];
 
 		const formatComputed: IUserHostedFormatComputed = {
 			effectType: "UserHostedFormat",
@@ -395,7 +384,7 @@ export class Games {
 
 	getExistingUserHostedFormat(target: string): IUserHostedFormat {
 		const format = this.getUserHostedFormat(target);
-		if (!format) throw new Error("No user-hosted format returned for '" + target + "'");
+		if (Array.isArray(format)) throw new Error(format.join(": "));
 		return format;
 	}
 
@@ -415,36 +404,6 @@ export class Games {
 			return true;
 		}
 		return false;
-	}
-
-	canCreateScriptedGame(room: Room, user: User): boolean {
-		if (!user.hasRank(room, 'voice')) return false;
-		if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) {
-			room.say("Scripted games are not enabled for this room.");
-			return false;
-		}
-
-		if (!Users.self.hasRank(room, 'bot')) {
-			room.say(Users.self.name + " requires Bot rank (*) to host scripted games.");
-			return false;
-		}
-
-		return true;
-	}
-
-	canCreateUserHostedGame(room: Room, user: User): boolean {
-		if (!user.hasRank(room, 'voice')) return false;
-		if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id)) {
-			room.say("User-hosted games are not enabled for this room.");
-			return false;
-		}
-
-		if (!Users.self.hasRank(room, 'bot')) {
-			room.say(Users.self.name + " requires Bot rank (*) to start user-hosted games.");
-			return false;
-		}
-
-		return true;
 	}
 
 	createGame(room: Room | User, format: IGameFormat, pmRoom?: Room): Game {

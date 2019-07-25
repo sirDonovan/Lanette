@@ -13,6 +13,13 @@ export interface ICommandDefinition<T = undefined> {
 
 export type CommandsDict<T = undefined> = Dict<Pick<ICommandDefinition<T>, Exclude<keyof ICommandDefinition<T>, "aliases">>>;
 
+type CommandErrorOptionalTarget = 'invalidBotRoom' | 'invalidFormat' | 'invalidGameFormat' | 'invalidTournamentFormat' | 'invalidUserHostedGameFormat' | 'invalidGameOption' | 'tooManyGameModes' |
+	'tooManyGameVariants' | 'emptyUserHostedGameQueue';
+
+type CommandErrorRequiredTarget = 'noPmHtmlRoom' | 'missingBotRankForFeatures' | 'disabledTournamentFeatures' | 'disabledGameFeatures' | 'disabledUserHostedGameFeatures';
+
+export type CommandErrorArray = [CommandErrorOptionalTarget, string?] |  [CommandErrorRequiredTarget, string];
+
 export class Command {
 	runningMultipleTargets: boolean | null = null;
 
@@ -47,6 +54,43 @@ export class Command {
 		}
 	}
 
+	sayError(error: CommandErrorArray) {
+		if (error[0] === 'invalidBotRoom') {
+			if (error[1]) return this.say("'" + error[1].trim() + "' is not one of " + Users.self.name + "'s rooms.");
+			return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+		} else if (error[0] === 'invalidFormat') {
+			if (error[1]) return this.say("'" + error[1].trim() + "' is not a valid format.");
+			this.say("You must specify a valid format.");
+		} else if (error[0] === 'invalidGameFormat') {
+			if (error[1]) return this.say("'" + error[1].trim() + "' is not a valid game format.");
+			this.say("You must specify a valid game format.");
+		} else if (error[0] === 'invalidTournamentFormat') {
+			if (error[1]) return this.say("'" + error[1].trim() + "' is not a valid tournament format.");
+			this.say("You must specify a valid tournament format.");
+		} else if (error[0] === 'invalidUserHostedGameFormat') {
+			if (error[1]) return this.say("'" + error[1].trim() + "' is not a valid user-hosted game format.");
+			this.say("You must specify a valid user-hosted game format.");
+		} else if (error[0] === 'invalidGameOption') {
+			if (error[1]) return this.say("'" + error[1].trim() + "' is not a valid game variant or option.");
+		} else if (error[0] === 'tooManyGameModes') {
+			this.say("You must specify only 1 game mode.");
+		} else if (error[0] === 'tooManyGameVariants') {
+			this.say("You must specify only 1 game variant.");
+		} else if (error[0] === 'emptyUserHostedGameQueue') {
+			this.say("The host queue is empty.");
+		} else if (error[0] === 'noPmHtmlRoom') {
+			this.say("You must be in " + error[1].trim() + " to use this command in PMs.");
+		} else if (error[0] === 'missingBotRankForFeatures') {
+			this.say(Users.self.name + " requires Bot rank (*) to use " + error[1].trim() + " features.");
+		} else if (error[0] === 'disabledTournamentFeatures') {
+			this.say("Tournament features are not enabled for " + error[1].trim() + ".");
+		} else if (error[0] === 'disabledGameFeatures') {
+			this.say("Scripted game features are not enabled for " + error[1].trim() + ".");
+		} else if (error[0] === 'disabledUserHostedGameFeatures') {
+			this.say("User-hosted game features are not enabled for " + error[1].trim() + ".");
+		}
+	}
+
 	run(newCommand?: string, newTarget?: string) {
 		let command = this.originalCommand;
 		if (newCommand) {
@@ -76,14 +120,6 @@ export class Command {
 
 	isPm(room: Room | User): room is User {
 		return this.pm;
-	}
-
-	canPmHtml(room: Room): boolean {
-		if (!this.user.rooms.has(room)) {
-			this.say("You must be in the room to use this command.");
-			return false;
-		}
-		return true;
 	}
 }
 
