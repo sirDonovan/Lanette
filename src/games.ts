@@ -311,7 +311,7 @@ export class Games {
 					if (firstSpaceIndex !== -1) {
 						const lastSpaceIndex = option.lastIndexOf(" ");
 						name = option.substr(0, firstSpaceIndex);
-						if (Tools.isNumber(name)) {
+						if (Tools.isInteger(name)) {
 							optionNumber = parseInt(name);
 							name = option.substr(firstSpaceIndex + 1);
 						} else {

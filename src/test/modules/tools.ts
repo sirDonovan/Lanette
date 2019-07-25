@@ -8,6 +8,42 @@ const month = 30 * day;
 const year = 365 * day;
 
 describe("Tools", () => {
+	it('should return proper values from isInteger()', () => {
+		assert(Tools.isInteger('0'));
+		assert(Tools.isInteger('1'));
+		assert(Tools.isInteger('01'));
+		assert(Tools.isInteger('10'));
+		assert(Tools.isInteger('-1'));
+		assert(!Tools.isInteger('0.1'));
+		assert(!Tools.isInteger('-0.1'));
+		assert(!Tools.isInteger('a'));
+		assert(!Tools.isInteger('-a'));
+		assert(!Tools.isInteger('0a'));
+		assert(!Tools.isInteger('-0a'));
+		assert(!Tools.isInteger('a0'));
+		assert(!Tools.isInteger('-a0'));
+		assert(!Tools.isInteger(''));
+		assert(!Tools.isInteger(' '));
+		assert(!Tools.isInteger('-'));
+	});
+	it('should return proper values from isFloat()', () => {
+		assert(Tools.isFloat('0'));
+		assert(Tools.isFloat('1'));
+		assert(Tools.isFloat('01'));
+		assert(Tools.isFloat('10'));
+		assert(Tools.isFloat('-1'));
+		assert(Tools.isFloat('0.1'));
+		assert(Tools.isFloat('-0.1'));
+		assert(!Tools.isFloat('a'));
+		assert(!Tools.isFloat('-a'));
+		assert(!Tools.isFloat('0a'));
+		assert(!Tools.isFloat('-0a'));
+		assert(!Tools.isFloat('a0'));
+		assert(!Tools.isFloat('-a0'));
+		assert(!Tools.isFloat(''));
+		assert(!Tools.isFloat(' '));
+		assert(!Tools.isFloat('-'));
+	});
 	it('should return proper values from toDurationString()', () => {
 		assert(Tools.toDurationString(second), '1 second');
 		assert(Tools.toDurationString(2 * second), '2 seconds');

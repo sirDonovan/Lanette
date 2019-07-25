@@ -688,7 +688,7 @@ const commands: Dict<ICommandDefinition> = {
 				const target = Tools.toId(targets[i]);
 				if (!target) continue;
 				let user = Users.get(target);
-				if (Tools.isNumber(target)) {
+				if (Tools.isInteger(target)) {
 					points = Math.round(parseInt(target));
 					if (points < 1) points = 1;
 				} else {
@@ -721,7 +721,7 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user, cmd) {
 			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
 			if (!room.userHostedGame.started) return this.say("You must first start the game with ``" + Config.commandCharacter + "startgame``.");
-			if (target && !Tools.isNumber(target)) return this.say("You must specify a valid number of points.");
+			if (target && !Tools.isInteger(target)) return this.say("You must specify a valid number of points.");
 			this.runningMultipleTargets = true;
 			const newCmd = cmd === 'aptall' || cmd === 'addpointall' ? 'addpoint' : 'removepoint';
 			const pointsString = target ? ", " + target : "";
@@ -989,7 +989,7 @@ const commands: Dict<ICommandDefinition> = {
 					if (types.length > 2) return this.say("A Pokemon can only have 2 types.");
 				} else {
 					if (id.startsWith('gen')) id = id.substr(3);
-					if (Tools.isNumber(id)) gen = parseInt(id);
+					if (Tools.isInteger(id)) gen = parseInt(id);
 				}
 			}
 			const pokedex: string[] = [];
@@ -1499,8 +1499,8 @@ const commands: Dict<ICommandDefinition> = {
 			for (let i = 0; i < targets.length; i++) {
 				const id = Tools.toId(targets[i]);
 				if (!id) continue;
-				if (Tools.isNumber(id)) {
-					customBits = parseFloat(targets[i].trim());
+				if (Tools.isInteger(id)) {
+					customBits = parseInt(targets[i].trim());
 				} else {
 					users.push(targets[i]);
 				}
@@ -1561,7 +1561,7 @@ const commands: Dict<ICommandDefinition> = {
 			let annual = false;
 			for (let i = 0; i < targets.length; i++) {
 				const id = Tools.toId(targets[i]);
-				if (Tools.isNumber(id)) {
+				if (Tools.isInteger(id)) {
 					if (startPosition) return this.say("You can only specify 1 position on the leaderboard.");
 					startPosition = parseInt(id);
 				} else if (id === 'annual' || id === 'alltime') {
@@ -1653,7 +1653,7 @@ const commands: Dict<ICommandDefinition> = {
 			let source: IFormat | IGameFormat | undefined;
 			for (let i = 0; i < targets.length; i++) {
 				const id = Tools.toId(targets[i]);
-				if (Tools.isNumber(id)) {
+				if (Tools.isInteger(id)) {
 					if (position) return this.say("You can only specify 1 position on the leaderboard.");
 					position = parseInt(id);
 				} else {

@@ -5,7 +5,8 @@ import { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, I
 
 const ALPHA_NUMERIC_REGEX = /[^a-zA-Z0-9 ]/g;
 const ID_REGEX = /[^a-z0-9]/g;
-const NUMBER_REGEX = /^[ .0-9]*$/g;
+const INTEGER_REGEX = /^[0-9]*$/g;
+const FLOAT_REGEX = /^[.0-9]*$/g;
 const SPACE_REGEX = /[ ]*/g;
 const HTML_CHARACTER_REGEX = /[<>/'"]/g;
 
@@ -193,10 +194,18 @@ export class Tools {
 		return 31;
 	}
 
-	isNumber(text: string): boolean {
+	isInteger(text: string): boolean {
 		text = text.trim();
 		if (text.charAt(0) === '-') text = text.substr(1);
-		return !!text.match(NUMBER_REGEX);
+		if (text === '') return false;
+		return !!text.match(INTEGER_REGEX);
+	}
+
+	isFloat(text: string): boolean {
+		text = text.trim();
+		if (text.charAt(0) === '-') text = text.substr(1);
+		if (text === '') return false;
+		return !!text.match(FLOAT_REGEX);
 	}
 
 	isUsernameLength(name: string): boolean {
