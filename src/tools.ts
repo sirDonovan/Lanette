@@ -7,7 +7,7 @@ const ALPHA_NUMERIC_REGEX = /[^a-zA-Z0-9 ]/g;
 const ID_REGEX = /[^a-z0-9]/g;
 const NUMBER_REGEX = /^[ .0-9]*$/g;
 const SPACE_REGEX = /[ ]*/g;
-const HTML_CHARACTER_REGEX = /[<>/]/g;
+const HTML_CHARACTER_REGEX = /[<>/'"]/g;
 
 export const maxMessageLength = 300;
 export const maxUsernameLength = 18;
