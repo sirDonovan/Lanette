@@ -1532,11 +1532,12 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	leaderboard: {
 		command(target, room, user) {
-			const targets: string[] = target ? target.split(",") : [];
+			const targets = target.split(',');
 			let leaderboardRoom: Room;
 			if (this.isPm(room)) {
 				const targetRoom = Rooms.search(Tools.toId(targets[0]));
 				if (!targetRoom) return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+				targets.shift();
 				leaderboardRoom = targetRoom;
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
@@ -1548,7 +1549,7 @@ const commands: Dict<ICommandDefinition> = {
 			let startPosition = 0;
 			let source: IFormat | IGameFormat | undefined;
 			let annual = false;
-			for (let i = 1; i < targets.length; i++) {
+			for (let i = 0; i < targets.length; i++) {
 				const id = Tools.toId(targets[i]);
 				if (Tools.isNumber(id)) {
 					if (startPosition) return this.say("You can only specify 1 position on the leaderboard.");
