@@ -765,7 +765,7 @@ export class Client {
 						} else {
 							startTime = now + Tournaments.queuedTournamentTime;
 						}
-						Tournaments.setTournamentTimer(room, startTime, Dex.getExistingFormat(database.queuedTournament.formatid, true), database.queuedTournament.playerCap);
+						Tournaments.setTournamentTimer(room, startTime, Dex.getExistingFormat(database.queuedTournament.formatid, true), database.queuedTournament.playerCap, database.queuedTournament.scheduled);
 					} else {
 						if (Config.randomTournamentTimers && room.id in Config.randomTournamentTimers && Tournaments.canSetRandomTournament(room)) {
 							Tournaments.setRandomTournamentTimer(room, Config.randomTournamentTimers![room.id]);
