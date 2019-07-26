@@ -105,7 +105,7 @@ export class Tournaments {
 		return this.scheduledTournaments[room.id].time - Date.now() > SCHEDULED_TOURNAMENT_BUFFER_TIME;
 	}
 
-	setRandomTournamentTimer(room: Room, timer: number) {
+	setRandomTournamentTimer(room: Room, minutes: number) {
 		if (room.id in this.tournamentTimers) clearTimeout(this.tournamentTimers[room.id]);
 		this.tournamentTimers[room.id] = setTimeout(() => {
 			let scheduledFormat: IFormat | null = null;
@@ -134,7 +134,7 @@ export class Tournaments {
 			}
 
 			this.setTournamentTimer(room, 0, Tools.sampleOne(formats), playerCap);
-		}, timer);
+		}, minutes * 60 * 1000);
 	}
 
 	setTournamentTimer(room: Room, startTime: number, format: IFormat, cap: number, scheduled?: boolean) {
