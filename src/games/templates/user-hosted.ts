@@ -82,6 +82,12 @@ export const game: IUserHostedFile<UserHosted> = {
 	class: UserHosted,
 	formats: [
 		{
+			name: "Floette's Forum Game",
+			mascot: "Floette-eternal",
+			description: "A game from Game Corner's official forum.",
+			aliases: ['ffg'],
+		},
+		{
 			name: "Acrotopia",
 			description: "Each round, players earn points by coming up with creative interpretations of an acronym chosen by the host",
 			freejoin: true,
