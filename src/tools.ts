@@ -168,7 +168,7 @@ export class Tools {
 		const date = new Date(input);
 		const parts = [date.getUTCFullYear() - 1970, date.getUTCMonth(), date.getUTCDate() - 1, date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()];
 		const roundingBoundaries = [6, 15, 12, 30, 30];
-		const unitNames = ["second", "minute", "hour", "day", "month", "year"];
+		const unitNames = ["year", "month", "day", "hour", "minute", "second"];
 		const positiveIndex = parts.findIndex(elem => elem > 0);
 		const precision = (options && options.precision ? options.precision : parts.length);
 		if (options && options.hhmmss) {
@@ -181,7 +181,12 @@ export class Tools {
 				parts[positiveIndex + precision - 1]++;
 			}
 		}
-		return this.joinList(parts.slice(positiveIndex).reverse().map((value, index) => value ? value + " " + unitNames[index] + (value > 1 ? "s" : "") : "").reverse().slice(0, precision));
+
+		const durationString: string[] = [];
+		for (let i = positiveIndex; i < parts.length; i++) {
+			if (parts[i]) durationString.push(parts[i] + " " + unitNames[i] + (parts[i] > 1 ? "s" : ""));
+		}
+		return this.joinList(durationString);
 	}
 
 	getLastDayOfMonth(date: Date): number {
