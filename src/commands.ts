@@ -91,6 +91,7 @@ const commands: Dict<ICommandDefinition> = {
 						global.Dex = new dex.Dex();
 					} else if (modules[i] === 'games') {
 						Tools.uncacheTree('./games');
+						Tools.uncacheTree('./room-activity');
 						const games: typeof import('./games') = require('./games');
 						global.Games = new games.Games();
 					} else if (modules[i] === 'storage') {
@@ -106,6 +107,7 @@ const commands: Dict<ICommandDefinition> = {
 					} else if (modules[i] === 'tournaments') {
 						const oldTournaments = global.Tournaments;
 						Tools.uncacheTree('./tournaments');
+						Tools.uncacheTree('./room-activity');
 						const tournaments: typeof import('./tournaments') = require('./tournaments');
 						global.Tournaments = new tournaments.Tournaments();
 						Tournaments.onReload(oldTournaments);
