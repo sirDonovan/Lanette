@@ -1,8 +1,8 @@
 import fs = require('fs');
 import path = require('path');
-import { CommandErrorArray } from './command-parser';
+import { CommandErrorArray, ICommandDefinition } from './command-parser';
 import { UserHosted } from './games/templates/user-hosted';
-import { commands, Game } from "./room-game";
+import { Game } from "./room-game";
 import { Room } from "./rooms";
 import { IGameFile, IGameFileComputed, IGameFormat, IGameFormatComputed, IGameMode, IGameModeFile, IGameVariant, IUserHostedComputed, IUserHostedFile, IUserHostedFormat, IUserHostedFormatComputed } from './types/games';
 import { User } from './users';
@@ -11,10 +11,37 @@ const gamesDirectory = path.join(__dirname, 'games');
 // tslint:disable-next-line no-var-requires
 const userHosted = require(path.join(gamesDirectory, "templates", "user-hosted.js")).game as IUserHostedFile;
 
+const baseCommands: Dict<ICommandDefinition<Game>> = {
+	summary: {
+		command(target, room, user) {
+			if (!(user.id in this.players)) return;
+			const player = this.players[user.id];
+			if (this.getPlayerSummary) {
+				this.getPlayerSummary(this.players[user.id]);
+			} else {
+				let summary = '';
+				if (this.points) summary += "Your points: " + (this.points.get(player) || 0) + "<br />";
+				if (summary) player.sayHtml(summary);
+			}
+		},
+		globalGameCommand: true,
+		pmOnly: true,
+	},
+};
+
+const commands = CommandParser.loadCommands(baseCommands);
+const globalGameCommands: Dict<ICommandDefinition<Game>> = {};
+for (const i in commands) {
+	if (commands[i].globalGameCommand) globalGameCommands[i] = commands[i];
+}
+
 export class Games {
+	// exported constants
+	readonly commands: typeof commands = commands;
+	readonly globalGameCommands: typeof globalGameCommands = globalGameCommands;
+
 	readonly aliasesCache: Dict<string> = {};
 	readonly commandNames: string[] = Object.keys(commands);
-	readonly commands = commands;
 	readonly formatsCache: Dict<IGameFileComputed> = {};
 	lastGames: Dict<number> = {};
 	lastScriptedGames: Dict<number> = {};

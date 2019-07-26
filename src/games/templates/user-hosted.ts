@@ -17,7 +17,10 @@ export class UserHosted extends Game {
 	scoreCap: number = 0;
 	storedMessage: string | null = null;
 	twist: string | null = null;
-	userHosted = true;
+	isUserHosted = true;
+
+	// type hack for onDeallocate
+	room!: Room;
 
 	onInitialize() {
 		this.endTime = Date.now() + timeLimit;
@@ -38,6 +41,7 @@ export class UserHosted extends Game {
 	onDeallocate() {
 		if (this.gameTimer) clearTimeout(this.gameTimer);
 		if (this.hostTimeout) clearTimeout(this.hostTimeout);
+		this.room.userHostedGame = null;
 	}
 
 	onSignups() {

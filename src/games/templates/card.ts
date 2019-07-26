@@ -15,7 +15,7 @@ export interface IPokemonCard extends IPokemonCopy {
 
 export type CardType = IMoveCard | IPokemonCard;
 
-export let typeColorCodes: Dict<{'background-color': string, 'background': string, 'border-color': string}> = {
+const typeColorCodes: Dict<{'background-color': string, 'background': string, 'border-color': string}> = {
 	"White": {'background-color': '#eeeeee', 'background': 'linear-gradient(#eeeeee, #dddddd)', 'border-color': '#222222'},
 	"Black": {'background-color': '#222222', 'background': 'linear-gradient(#222222, #111111)', 'border-color': '#eeeeee'},
 	"Normal": {'background-color': '#8A8A59', 'background': 'linear-gradient(#A8A878,#8A8A59)', 'border-color': '#79794E'},
@@ -38,7 +38,7 @@ export let typeColorCodes: Dict<{'background-color': string, 'background': strin
 	"Dark": {'background-color': '#705848', 'background': 'linear-gradient(#705848,#513F34)', 'border-color': '#362A23'},
 };
 
-export let colorsToType: Dict<string> = {
+const colorsToType: Dict<string> = {
 	"Green": "Grass",
 	"Red": "Fighting",
 	"Black": "Dark",
@@ -52,6 +52,9 @@ export let colorsToType: Dict<string> = {
 };
 
 export abstract class Card extends Game {
+	// exported constants
+	typeColorCodes: typeof typeColorCodes = typeColorCodes;
+
 	actionCardAmount: number = 0;
 	actionCards: Dict<string> = {};
 	actionCardLabels: Dict<string> = {};

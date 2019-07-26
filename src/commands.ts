@@ -1,12 +1,10 @@
 import child_process = require('child_process');
 import path = require('path');
 import { ICommandDefinition } from "./command-parser";
-import { tagNames } from './dex';
 import { Player } from "./room-activity";
 import { Game } from './room-game';
 import { IBattleData } from './room-tournament';
 import { Room } from "./rooms";
-import { maxUsernameLength, rootFolder } from './tools';
 import { GameDifficulty, IGameFormat } from "./types/games";
 import { IFormat } from "./types/in-game-data-types";
 import { User } from "./users";
@@ -64,7 +62,7 @@ const commands: Dict<ICommandDefinition> = {
 			}
 
 			this.say("Running tsc...");
-			require(path.join(rootFolder, 'build.js'))(() => {
+			require(path.join(Tools.rootFolder, 'build.js'))(() => {
 				for (let i = 0; i < modules.length; i++) {
 					if (modules[i] === 'client') {
 						const oldClient = global.Client;
@@ -980,8 +978,8 @@ const commands: Dict<ICommandDefinition> = {
 				let id = Tools.toId(targets[i]);
 				const targetAbility = Dex.getAbility(id);
 				if (targetAbility) ability = targetAbility.name;
-				if (id in tagNames) {
-					tier = tagNames[id];
+				if (id in Dex.tagNames) {
+					tier = Dex.tagNames[id];
 				} else if (id in Dex.data.colors) {
 					color = Dex.data.colors[id];
 				} else if (id in Dex.data.eggGroups) {
@@ -1448,7 +1446,7 @@ const commands: Dict<ICommandDefinition> = {
 			if (Users.get(targets[0])) return this.say("You can only send messages to offline users.");
 			const recipient = targets[0].trim();
 			const recipientId = Tools.toId(recipient);
-			if (recipientId === user.id || recipientId.startsWith('guest') || recipientId === 'constructor' || !Tools.isUsernameLength(recipient)) return this.say("You must specify a valid username (between 1 and " + maxUsernameLength + " characters).");
+			if (recipientId === user.id || recipientId.startsWith('guest') || recipientId === 'constructor' || !Tools.isUsernameLength(recipient)) return this.say("You must specify a valid username (between 1 and " + Tools.maxUsernameLength + " characters).");
 			const message = targets.slice(1).join(',').trim();
 			if (!message.length) return this.say("You must specify a message to send.");
 			const maxMessageLength = Storage.getMaxOfflineMessageLength(user, message);
@@ -1479,7 +1477,7 @@ const commands: Dict<ICommandDefinition> = {
 			const targetUser = Users.get(target);
 			if (targetUser) return this.say(targetUser.name + " is currently online.");
 			const id = Tools.toId(target);
-			if (id.startsWith('guest') || id === 'constructor' || !Tools.isUsernameLength(id)) return this.say("You must specify a valid username (between 1 and " + maxUsernameLength + " characters).");
+			if (id.startsWith('guest') || id === 'constructor' || !Tools.isUsernameLength(id)) return this.say("You must specify a valid username (between 1 and " + Tools.maxUsernameLength + " characters).");
 			const database = Storage.getGlobalDatabase();
 			if (!database.lastSeen || !(id in database.lastSeen)) return this.say(target.trim() + " has not visited any of " + Users.self.name + "'s rooms in the past " + Storage.lastSeenExpirationDuration + ".");
 			return this.say(target.trim() + " last visited one of " + Users.self.name + "'s rooms **" + Tools.toDurationString(Date.now() - database.lastSeen[id]) + "** ago.");

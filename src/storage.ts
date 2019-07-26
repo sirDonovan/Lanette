@@ -1,7 +1,6 @@
 import fs = require('fs');
 import path = require('path');
 import { Room } from './rooms';
-import { maxMessageLength, rootFolder } from './tools';
 import { IDatabase, IGlobalDatabase } from './types/storage';
 import { User } from './users';
 
@@ -11,9 +10,9 @@ const OFFLINE_MESSAGE_EXPIRATION = 30 * 24 * 60 * 60 * 1000;
 
 const globalDatabaseId = 'globalDB';
 const hostingDatabaseSuffix = '-hostingDB';
-const archivedDatabasesDir = path.join(rootFolder, 'archived-databases');
-const databasesDir = path.join(rootFolder, 'databases');
-export const baseOfflineMessageLength = '[28 Jun 2019, 00:00:00 GMT-0500] **** said: '.length;
+const archivedDatabasesDir = path.join(Tools.rootFolder, 'archived-databases');
+const databasesDir = path.join(Tools.rootFolder, 'databases');
+const baseOfflineMessageLength = '[28 Jun 2019, 00:00:00 GMT-0500] **** said: '.length;
 
 export class Storage {
 	chatLogFilePathCache: Dict<string> = {};
@@ -213,7 +212,7 @@ export class Storage {
 			const year = date.getFullYear();
 			const month = date.getMonth() + 1;
 			const day = date.getDate();
-			const directory = path.join(rootFolder, 'roomlogs', room.id, '' + year);
+			const directory = path.join(Tools.rootFolder, 'roomlogs', room.id, '' + year);
 			try {
 				fs.mkdirSync(directory, {recursive: true});
 			// tslint:disable-next-line no-empty
@@ -225,7 +224,7 @@ export class Storage {
 	}
 
 	getMaxOfflineMessageLength(sender: User, message: string): number {
-		return maxMessageLength - (baseOfflineMessageLength + sender.name.length);
+		return Tools.maxMessageLength - (baseOfflineMessageLength + sender.name.length);
 	}
 
 	storeOfflineMessage(sender: string, recipientId: string, message: string): boolean {

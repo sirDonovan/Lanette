@@ -1,4 +1,3 @@
-import { currentGenString } from "./dex";
 import { Tournament } from "./room-tournament";
 import { Room } from "./rooms";
 import * as schedules from './tournament-schedules';
@@ -15,6 +14,9 @@ for (const i in schedules) {
 const SCHEDULED_TOURNAMENT_BUFFER_TIME = 90 * 60 * 1000;
 
 export class Tournaments {
+	// exported constants
+	readonly schedules: typeof schedules = schedules;
+
 	createListeners: Dict<{format: IFormat, scheduled: boolean}> = {};
 	readonly defaultCustomRules: Dict<Partial<ISeparatedCustomRules>> = {
 		tournaments: {
@@ -28,7 +30,6 @@ export class Tournaments {
 	readonly maxPlayerCap: number = 128;
 	readonly minPlayerCap: number = 4;
 	queuedTournamentTime: number = 5 * 60 * 1000;
-	readonly schedules: typeof schedules = schedules;
 	scheduledTournaments: Dict<{format: IFormat, time: number}> = {};
 	tournamentTimers: Dict<NodeJS.Timer> = {};
 
@@ -122,7 +123,7 @@ export class Tournaments {
 			const formats: IFormat[] = [];
 			for (const i in Dex.data.formats) {
 				const format = Dex.getExistingFormat(i);
-				if (!format.tournamentPlayable || format.unranked || format.mod !== currentGenString || (scheduledFormat && scheduledFormat.id === format.id) || pastTournamentIds.includes(format.id)) continue;
+				if (!format.tournamentPlayable || format.unranked || format.mod !== Dex.currentGenString || (scheduledFormat && scheduledFormat.id === format.id) || pastTournamentIds.includes(format.id)) continue;
 				formats.push(format);
 			}
 

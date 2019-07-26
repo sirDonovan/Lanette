@@ -1,7 +1,6 @@
 import fs = require('fs');
 import path = require('path');
 import { Room } from './rooms';
-import { rootFolder } from './tools';
 import { IAbility, IAbilityComputed, IAbilityCopy, IDataTable, IFormat, IFormatComputed, IFormatData, IFormatLinks, IItem, IItemComputed, IItemCopy, IMove, IMoveComputed, IMoveCopy, INature, IPokemon, IPokemonComputed, IPokemonCopy, ISeparatedCustomRules } from './types/in-game-data-types';
 
 interface IDataSearchResult {
@@ -10,19 +9,19 @@ interface IDataSearchResult {
 	isInexact?: boolean;
 }
 
-export const PokemonShowdown = path.join(rootFolder, 'Pokemon-Showdown');
-export const dataDir = path.join(PokemonShowdown, 'data');
-export const modsDir = path.join(dataDir, 'mods');
-export const formatsPath = path.join(PokemonShowdown, 'config', 'formats.js');
-const lanetteDataDir = path.join(rootFolder, 'data');
 const currentGen = 7;
-export const currentGenString = 'gen' + currentGen;
+const currentGenString = 'gen' + currentGen;
 const omotmSection = 'OM of the Month';
+const PokemonShowdown = path.join(Tools.rootFolder, 'Pokemon-Showdown');
+const dataDir = path.join(PokemonShowdown, 'data');
+const modsDir = path.join(dataDir, 'mods');
+const formatsPath = path.join(PokemonShowdown, 'config', 'formats.js');
+const lanetteDataDir = path.join(Tools.rootFolder, 'data');
 
 // tslint:disable-next-line no-var-requires
 const alternateIconNumbers: {right: Dict<number>, left: Dict<number>} = require(path.join(lanetteDataDir, 'alternate-icon-numbers.js'));
 
-export const dataFiles: Dict<string> = {
+const dataFiles: Dict<string> = {
 	'Pokedex': 'pokedex',
 	'Movedex': 'moves',
 	'Statuses': 'statuses',
@@ -77,7 +76,7 @@ const natures: Dict<INature> = {
 	timid: {name: "Timid", plus: 'spe', minus: 'atk'},
 };
 
-export const tagNames: Dict<string> = {
+const tagNames: Dict<string> = {
 	'mega': 'Mega',
 	'uber': 'Uber',
 	'ou': 'OU',
@@ -173,6 +172,15 @@ export class RuleTable extends Map<string, string> {
 }
 
 export class Dex {
+	// exported constants
+	readonly currentGenString: typeof currentGenString = currentGenString;
+	readonly dataDir: typeof dataDir = dataDir;
+	readonly dataFiles: typeof dataFiles = dataFiles;
+	readonly formatsPath: typeof formatsPath = formatsPath;
+	readonly modsDir: typeof modsDir = modsDir;
+	readonly PokemonShowdown: typeof PokemonShowdown = PokemonShowdown;
+	readonly tagNames: typeof tagNames = tagNames;
+
 	readonly abilityCache = new Map<string, IAbility>();
 	gen: number = 0;
 	readonly itemCache = new Map<string, IItem>();
@@ -184,7 +192,7 @@ export class Dex {
 
 	readonly currentMod: string;
 	readonly dataCache: IDataTable;
-	readonly dataDir: string;
+	readonly modDataDir: string;
 	readonly isBase: boolean;
 
 	constructor(mod?: string) {
@@ -196,7 +204,7 @@ export class Dex {
 		}
 		this.currentMod = mod;
 		this.isBase = isBase;
-		this.dataDir = isBase ? dataDir : path.join(modsDir, mod);
+		this.modDataDir = isBase ? dataDir : path.join(modsDir, mod);
 		this.dataCache = {
 			abilities: {},
 			aliases: {},
@@ -368,7 +376,7 @@ export class Dex {
 
 		dexes['base'].includeMods();
 
-		const BattleScripts = this.loadDataFile(this.dataDir, dataFiles, 'Scripts');
+		const BattleScripts = this.loadDataFile(this.modDataDir, dataFiles, 'Scripts');
 
 		this.parentMod = this.isBase ? '' : (BattleScripts.inherit || 'base');
 
@@ -385,15 +393,15 @@ export class Dex {
 				this.dataCache[dataType] = natures;
 				continue;
 			}
-			const BattleData = this.loadDataFile(this.dataDir, dataFiles, dataType);
-			if (!BattleData || typeof BattleData !== 'object') throw new TypeError("Exported property `Battle" + dataType + "`from `" + this.dataDir + '/' + dataFiles[dataType] + "` must be an object except `null`.");
+			const BattleData = this.loadDataFile(this.modDataDir, dataFiles, dataType);
+			if (!BattleData || typeof BattleData !== 'object') throw new TypeError("Exported property `Battle" + dataType + "`from `" + this.modDataDir + '/' + dataFiles[dataType] + "` must be an object except `null`.");
 			// @ts-ignore
 			if (BattleData !== this.dataCache[dataType]) this.dataCache[dataType] = Object.assign(BattleData, this.dataCache[dataType]);
 		}
 
 		for (const dataType of lanetteDataTypes) {
 			const BattleData = this.loadDataFile(lanetteDataDir, lanetteDataFiles, dataType);
-			if (!BattleData || typeof BattleData !== 'object') throw new TypeError("Exported property `Battle" + dataType + "`from `" + this.dataDir + '/' + dataFiles[dataType] + "` must be an object except `null`.");
+			if (!BattleData || typeof BattleData !== 'object') throw new TypeError("Exported property `Battle" + dataType + "`from `" + this.modDataDir + '/' + dataFiles[dataType] + "` must be an object except `null`.");
 			// @ts-ignore
 			this.dataCache[dataType] = Object.assign(BattleData, this.dataCache[dataType]);
 		}

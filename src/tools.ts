@@ -10,11 +10,16 @@ const FLOAT_REGEX = /^[.0-9]*$/g;
 const SPACE_REGEX = /[ ]*/g;
 const HTML_CHARACTER_REGEX = /[<>/'"]/g;
 
-export const maxMessageLength = 300;
-export const maxUsernameLength = 18;
-export const rootFolder = path.resolve(__dirname, '..');
+const maxMessageLength = 300;
+const maxUsernameLength = 18;
+const rootFolder = path.resolve(__dirname, '..');
 
 export class Tools {
+	// exported constants
+	readonly maxMessageLength: typeof maxMessageLength = maxMessageLength;
+	readonly maxUsernameLength: typeof maxUsernameLength = maxUsernameLength;
+	readonly rootFolder: typeof rootFolder = rootFolder;
+
 	random(limit?: number) {
 		if (!limit) limit = 2;
 		return Math.floor(Math.random() * limit);

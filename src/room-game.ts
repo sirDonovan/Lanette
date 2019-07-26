@@ -1,6 +1,4 @@
-import { ICommandDefinition } from "./command-parser";
 import { Activity, Player, PlayerList} from "./room-activity";
-import { Room } from "./rooms";
 import { IGameFormat } from "./types/games";
 import { IPokemonCopy } from "./types/in-game-data-types";
 import { User } from "./users";
@@ -22,36 +20,11 @@ const defaultOptionValues: Dict<IGameOptionValues> = {
 	freejoin: {min: 1, base: 0, max: 1},
 };
 
-const baseCommands: Dict<ICommandDefinition<Game>> = {
-	summary: {
-		command(target, room, user) {
-			if (!(user.id in this.players)) return;
-			const player = this.players[user.id];
-			if (this.getPlayerSummary) {
-				this.getPlayerSummary(this.players[user.id]);
-			} else {
-				let summary = '';
-				if (this.points) summary += "Your points: " + (this.points.get(player) || 0) + "<br />";
-				if (summary) player.sayHtml(summary);
-			}
-		},
-		globalGameCommand: true,
-		pmOnly: true,
-	},
-};
-
-export const commands = CommandParser.loadCommands(baseCommands);
-
-const globalGameCommands: Dict<ICommandDefinition<Game>> = {};
-for (const i in commands) {
-	if (commands[i].globalGameCommand) globalGameCommands[i] = commands[i];
-}
-
 export class Game extends Activity {
 	readonly activityType: string = 'game';
 	awardedBits: boolean = false;
 	canLateJoin: boolean = false;
-	readonly commands = Object.assign(Object.create(null), globalGameCommands);
+	readonly commands = Object.assign(Object.create(null), Games.globalGameCommands);
 	readonly customizableOptions: Dict<IGameOptionValues> = Object.create(null);
 	readonly loserPointsToBits: number = 10;
 	readonly maxBits: number = 1000;
@@ -62,7 +35,7 @@ export class Game extends Activity {
 	parentGame: Game | null = null;
 	round: number = 0;
 	signupsTime: number = 0;
-	readonly userHosted: boolean = false;
+	readonly isUserHosted: boolean = false;
 	readonly winnerPointsToBits: number = 50;
 	readonly winners = new Map<Player, number>();
 
@@ -85,10 +58,6 @@ export class Game extends Activity {
 	startingPoints?: number;
 	subGameNumber?: number;
 	readonly variant?: string;
-
-	isUserHosted(room: Room | User): room is Room {
-		return this.userHosted;
-	}
 
 	initialize(format: IGameFormat) {
 		this.format = format;
@@ -167,11 +136,7 @@ export class Game extends Activity {
 
 	deallocate() {
 		if (this.onDeallocate) this.onDeallocate();
-		if (this.isUserHosted(this.room)) {
-			this.room.userHostedGame = null;
-		} else {
-			this.room.game = null;
-		}
+		if (!this.isUserHosted) this.room.game = null;
 
 		if (this.parentGame) {
 			this.room.game = this.parentGame;
@@ -181,7 +146,7 @@ export class Game extends Activity {
 
 	forceEnd(user: User) {
 		if (this.timeout) clearTimeout(this.timeout);
-		this.say((!this.userHosted ? "The " : "") + this.nameWithOptions + " " + this.activityType + " was forcibly ended.");
+		this.say((!this.isUserHosted ? "The " : "") + this.nameWithOptions + " " + this.activityType + " was forcibly ended.");
 		if (this.onForceEnd) this.onForceEnd(user);
 		this.ended = true;
 		this.deallocate();
@@ -234,7 +199,7 @@ export class Game extends Activity {
 			usedDatabase = true;
 			const now = Date.now();
 			const database = Storage.getDatabase(this.room);
-			if (this.userHosted) {
+			if (this.isUserHosted) {
 				if (!database.lastUserHostedGameFormatTimes) database.lastUserHostedGameFormatTimes = {};
 				database.lastUserHostedGameFormatTimes[this.format.id] = now;
 				database.lastUserHostedGameTime = now;
@@ -245,7 +210,7 @@ export class Game extends Activity {
 			}
 
 			Games.lastGames[this.room.id] = now;
-			if (this.userHosted) {
+			if (this.isUserHosted) {
 				Games.lastUserHostedGames[this.room.id] = now;
 			} else {
 				Games.lastScriptedGames[this.room.id] = now;
@@ -273,7 +238,7 @@ export class Game extends Activity {
 			this.removePlayer(user, this.started);
 			return;
 		}
-		const bits = this.userHosted ? 0 : this.addBits(player, 10, true);
+		const bits = this.isUserHosted ? 0 : this.addBits(player, 10, true);
 		player.say("Thanks for joining the " + this.name + " " + this.activityType + "!" + (bits ? " Have some free bits!" : ""));
 		if (this.showSignupsHtml && !this.started) {
 			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
@@ -315,7 +280,7 @@ export class Game extends Activity {
 					this.shinyMascot = false;
 				}
 			}
-			const gif = Dex.getPokemonGif(this.mascot, this.userHosted ? 'back' : 'front');
+			const gif = Dex.getPokemonGif(this.mascot, this.isUserHosted ? 'back' : 'front');
 			if (gif) html += gif + "&nbsp;&nbsp;&nbsp;";
 		}
 		html += "<b><font size='3'>" + this.nameWithOptions + "</font></b>";
