@@ -28,6 +28,7 @@ export interface IDatabase {
 	leaderboard?: Dict<ILeaderboardEntry>;
 	pastTournaments?: string[];
 	queuedTournament?: {formatid: string, playerCap: number, scheduled: boolean, time: number};
+	thcWinners?: Dict<string>;
 	userHostedGameQueue?: IQueuedUserHostedGame[];
 }
 

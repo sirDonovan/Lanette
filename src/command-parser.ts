@@ -54,6 +54,22 @@ export class Command {
 		}
 	}
 
+	sayUhtml(uhtmlName: string, html: string, pmHtmlRoom: Room) {
+		if (this.isPm(this.room)) {
+			pmHtmlRoom.pmUhtml(this.user, uhtmlName, html);
+		} else {
+			this.room.sayUhtml(uhtmlName, html);
+		}
+	}
+
+	sayUhtmlChange(uhtmlName: string, html: string, pmHtmlRoom: Room) {
+		if (this.isPm(this.room)) {
+			pmHtmlRoom.pmUhtmlChange(this.user, uhtmlName, html);
+		} else {
+			this.room.sayUhtmlChange(uhtmlName, html);
+		}
+	}
+
 	sayError(error: CommandErrorArray) {
 		if (error[0] === 'invalidBotRoom') {
 			if (error[1]) return this.say("'" + error[1].trim() + "' is not one of " + Users.self.name + "'s rooms.");

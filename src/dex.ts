@@ -516,7 +516,11 @@ export class Dex {
 		const files = ['pokedex-mini.js'];
 		for (let i = 0; i < files.length; i++) {
 			const file = await Tools.fetchUrl('https://play.pokemonshowdown.com/data/' + files[i]);
-			if (file) await Tools.safeWriteFile(path.join(lanetteDataDir, files[i]), file);
+			if (typeof file !== 'string') {
+				console.log(file);
+			} else if (file) {
+				await Tools.safeWriteFile(path.join(lanetteDataDir, files[i]), file);
+			}
 		}
 	}
 

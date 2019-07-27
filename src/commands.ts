@@ -100,9 +100,11 @@ const commands: Dict<ICommandDefinition> = {
 						global.Storage = new storage.Storage();
 						Storage.onReload(oldStorage);
 					} else if (modules[i] === 'tools') {
+						const oldTools = global.Tools;
 						Tools.uncacheTree('./tools');
 						const tools: typeof import('./tools') = require('./tools');
 						global.Tools = new tools.Tools();
+						Tools.onReload(oldTools);
 					} else if (modules[i] === 'tournaments') {
 						const oldTournaments = global.Tournaments;
 						Tools.uncacheTree('./tournaments');
@@ -1433,6 +1435,119 @@ const commands: Dict<ICommandDefinition> = {
 			this.say('Approved and user-created formats: http://pstournaments.weebly.com/formats.html');
 		},
 		aliases: ['userhostedformats', 'userformats'],
+	},
+	gettournamentapproval: {
+		command(target, room, user) {
+			if (!this.isPm(room)) return;
+			const targets = target.split(',');
+			const targetRoom = Rooms.search(targets[0]);
+			if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+			const challongeLink = Tools.getChallongeUrl(targets[1]);
+			if (!challongeLink) return this.say("You must specify a valid Challonge link.");
+			const bracketUrl = Tools.extractChallongeBracketUrl(challongeLink);
+			if (targetRoom.approvedUserHostedTournaments && bracketUrl in targetRoom.approvedUserHostedTournaments) {
+				if (user.id !== targetRoom.approvedUserHostedTournaments[bracketUrl].hostId) return this.say("The specified link has already been approved for " + targetRoom.approvedUserHostedTournaments[bracketUrl].hostName + ".");
+				delete targetRoom.approvedUserHostedTournaments[bracketUrl];
+			}
+
+			if (targetRoom.newUserHostedTournaments) {
+				for (const link in targetRoom.newUserHostedTournaments) {
+					if (user.id === targetRoom.newUserHostedTournaments[link].hostId) return this.say("You are already on the waiting list for staff review.");
+				}
+			}
+			const database = Storage.getDatabase(targetRoom);
+			let authOrTHC = '';
+			if ((Config.userHostedTournamentRanks && targetRoom.id in Config.userHostedTournamentRanks && user.hasRank(targetRoom, Config.userHostedTournamentRanks[targetRoom.id].review)) ||
+				(database.thcWinners && user.id in database.thcWinners)) {
+				authOrTHC = user.name;
+			}
+			Tournaments.newUserHostedTournament(targetRoom, user, bracketUrl, authOrTHC);
+			if (authOrTHC) {
+				this.say("You're free to advertise without using this command!");
+			} else {
+				this.say("A staff member will review your tournament as soon as possible!");
+			}
+		},
+		aliases: ['gettourapproval'],
+	},
+	reviewuserhostedtour: {
+		command(target, room, user, cmd) {
+			if (!this.isPm(room)) return;
+			const targets = target.split(',');
+			const targetRoom = Rooms.search(targets[0]);
+			if (!targetRoom || !Config.userHostedTournamentRanks || !(targetRoom.id in Config.userHostedTournamentRanks) || !user.hasRank(targetRoom, Config.userHostedTournamentRanks[targetRoom.id].review)) return;
+			const link = targets[1].trim();
+			if (!targetRoom.newUserHostedTournaments || !(link in targetRoom.newUserHostedTournaments)) return;
+			if (targetRoom.newUserHostedTournaments[link].reviewer) {
+				let name = targetRoom.newUserHostedTournaments[link].reviewer;
+				const reviewer = Users.get(name);
+				if (reviewer) name = reviewer.name;
+				return this.say(name + " is already reviewing " + targetRoom.newUserHostedTournaments[link].hostName + "'s tournament.");
+			}
+			targetRoom.newUserHostedTournaments[link].reviewer = user.id;
+			targetRoom.newUserHostedTournaments[link].reviewTimer = setTimeout(() => {
+				if (targetRoom!.newUserHostedTournaments![link] && !targetRoom!.newUserHostedTournaments![link].approvalStatus &&
+					targetRoom!.newUserHostedTournaments![link].reviewer === user.id) {
+					targetRoom!.newUserHostedTournaments![link].reviewer = '';
+					Tournaments.showUserHostedTournamentApprovals(targetRoom!);
+				}
+			}, 10 * 60 * 1000);
+			Tournaments.showUserHostedTournamentApprovals(targetRoom);
+		},
+	},
+	approveuserhostedtour: {
+		command(target, room, user, cmd) {
+			if (!this.isPm(room)) return;
+			const targets = target.split(',');
+			const targetRoom = Rooms.search(targets[0]);
+			if (!targetRoom || !Config.userHostedTournamentRanks || !(targetRoom.id in Config.userHostedTournamentRanks) || !user.hasRank(targetRoom, Config.userHostedTournamentRanks[targetRoom.id].review)) return;
+			const link = targets[1].trim();
+			if (!targetRoom.newUserHostedTournaments || !(link in targetRoom.newUserHostedTournaments)) return;
+			if (!targetRoom.newUserHostedTournaments[link].reviewer) return this.say('You must first claim the tournament by clicking the "Review" button.');
+			if (targetRoom.newUserHostedTournaments[link].reviewer !== user.id) {
+				let name = targetRoom.newUserHostedTournaments[link].reviewer;
+				const reviewer = Users.get(name);
+				if (reviewer) name = reviewer.name;
+				return this.say(name + " is currently the reviewer of " + targetRoom.newUserHostedTournaments[link].hostName + "'s tournament so they must approve or reject it.");
+			}
+			if (cmd === 'approveuserhostedtour') {
+				targetRoom.newUserHostedTournaments[link].approvalStatus = "approved";
+				if (targetRoom.newUserHostedTournaments[link].reviewTimer) clearTimeout(targetRoom.newUserHostedTournaments[link].reviewTimer!);
+				if (!targetRoom.approvedUserHostedTournaments) targetRoom.approvedUserHostedTournaments = {};
+				targetRoom.approvedUserHostedTournaments[link] = targetRoom.newUserHostedTournaments[link];
+				delete targetRoom.newUserHostedTournaments[link];
+				this.say("You have approved " + targetRoom.approvedUserHostedTournaments[link].hostName + "'s tournament.");
+				const host = Users.get(targetRoom.approvedUserHostedTournaments[link].hostName);
+				if (host) host.say(user.name + " has approved your tournament! You may now advertise in " + targetRoom.title + ".");
+			} else {
+				if (targetRoom.newUserHostedTournaments[link].approvalStatus === 'changes-requested') return this.say("Changes have already been requested for " + targetRoom.newUserHostedTournaments[link].hostName + "'s tournament.");
+				targetRoom.newUserHostedTournaments[link].approvalStatus = 'changes-requested';
+				this.say("You have rejected " + targetRoom.newUserHostedTournaments[link].hostName + "'s tournament. Be sure to PM them the reason(s) so that they can make the necessary changes!");
+				const host = Users.get(targetRoom.newUserHostedTournaments[link].hostName);
+				if (host) host.say(user.name + " has requested changes for your tournament. Please wait for them to PM you before advertising.");
+			}
+			Tournaments.showUserHostedTournamentApprovals(targetRoom);
+		},
+		aliases: ['rejectuserhostedtour'],
+	},
+	removeuserhostedtour: {
+		command(target, room, user, cmd) {
+			if (!this.isPm(room)) return;
+			const targets = target.split(',');
+			const targetRoom = Rooms.search(targets[0]);
+			if (!targetRoom || !Config.userHostedTournamentRanks || !(targetRoom.id in Config.userHostedTournamentRanks) || !user.hasRank(targetRoom, Config.userHostedTournamentRanks[targetRoom.id].review)) return;
+			const link = targets[1].trim();
+			if (!targetRoom.newUserHostedTournaments || !(link in targetRoom.newUserHostedTournaments)) return;
+			if (user.id !== targetRoom.newUserHostedTournaments[link].reviewer) {
+				let name = targetRoom.newUserHostedTournaments[link].reviewer;
+				const reviewer = Users.get(name);
+				if (reviewer) name = reviewer.name;
+				return this.say(name + " is already reviewing " + targetRoom.newUserHostedTournaments[link].hostName + "'s tournament.");
+			}
+			this.say(targetRoom.newUserHostedTournaments[link].hostName + "'s tournament has been removed.");
+			delete targetRoom.newUserHostedTournaments[link];
+			Tournaments.showUserHostedTournamentApprovals(targetRoom);
+		},
 	},
 
 	/**

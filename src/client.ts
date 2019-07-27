@@ -7,6 +7,8 @@ import { IClientMessageTypes, IRoomInfoResponse, IServerGroup, ITournamentMessag
 import { ISeparatedCustomRules } from './types/in-game-data-types';
 import { User } from './users';
 
+export type GroupName = 'voice' | 'bot' | 'driver' | 'moderator' | 'roomowner' | 'locked';
+
 const RELOGIN_SECONDS = 60;
 const SEND_THROTTLE = 800;
 const DEFAULT_SERVER_GROUPS: ServerGroupData[] = [
@@ -912,6 +914,74 @@ export class Client {
 					room.sayCommand("/warn " + user.name + ", Please do not link replays to tournament battles");
 				}
 			}
+		}
+
+		// unlink unapproved Challonge tournaments
+		if (room.unlinkChallongeLinks && lowerCaseMessage.includes('challonge.com/')) {
+			const links: string[] = [];
+			const possibleLinks = message.split(" ");
+			for (let i = 0, len = possibleLinks.length; i < len; i++) {
+				const link = Tools.getChallongeUrl(possibleLinks[i]);
+				if (link) links.push(link);
+			}
+			// let hasOwnLink = false;
+			const database = Storage.getDatabase(room);
+			let rank: GroupName = 'voice';
+			if (Config.userHostedTournamentRanks && room.id in Config.userHostedTournamentRanks) rank = Config.userHostedTournamentRanks[room.id].review;
+			const authOrTHC = user.hasRank(room, rank) || (database.thcWinners && user.id in database.thcWinners);
+			outer:
+			for (let i = 0; i < links.length; i++) {
+				const link = links[i];
+				/*
+				if (database.hostingBlacklist && user.id in database.hostingBlacklist) {
+					room.sayCommand("/warn " + user.name + ", You are currently banned from hosting");
+					break;
+				}
+				*/
+				// hasOwnLink = true;
+				let approvedTournament = false;
+				if (room.approvedUserHostedTournaments) {
+					for (const bracketUrl in room.approvedUserHostedTournaments) {
+						if (bracketUrl === link || room.approvedUserHostedTournaments[bracketUrl].urls.includes(link)) {
+							approvedTournament = true;
+							if (!authOrTHC && room.approvedUserHostedTournaments[bracketUrl].hostId !== user.id) {
+								room.sayCommand("/warn " + user.name + ", Please do not post links to other hosts' tournaments");
+								break outer;
+							}
+							break;
+						}
+					}
+				}
+				if (!approvedTournament) {
+					if (authOrTHC) {
+						Tournaments.newUserHostedTournament(room, user, Tools.extractChallongeBracketUrl(link), user.name);
+					} else {
+						if (room.newUserHostedTournaments) {
+							for (const bracketUrl in room.newUserHostedTournaments) {
+								if (bracketUrl === link || room.newUserHostedTournaments[bracketUrl].urls.includes(link)) {
+									if (room.newUserHostedTournaments[bracketUrl].hostId !== user.id) {
+										room.sayCommand("/warn " + user.name + ", Please do not post links to other hosts' tournaments");
+									} else if (room.newUserHostedTournaments[bracketUrl].approvalStatus === 'changes-requested') {
+										let name = room.newUserHostedTournaments[bracketUrl].reviewer;
+										const reviewer = Users.get(name);
+										if (reviewer) name = reviewer.name;
+										room.sayCommand("/warn " + user.name + ", " + name + " has requested changes for your tournament and you must wait for them to be approved");
+									} else {
+										room.sayCommand("/warn " + user.name + ", You must wait for a staff member to approve your tournament");
+									}
+									break outer;
+								}
+							}
+						} else {
+							room.sayCommand("/warn " + user.name + ", Your tournament must be approved by a staff member");
+							user.say("If you would like to host your tournament, reply with this command: ``" + Config.commandCharacter + "gettourapproval " + room.id + ", " + link + "``");
+							break;
+						}
+					}
+				}
+			}
+
+			// if (hasOwnLink) Tournaments.setTournamentGameTimer(room);
 		}
 
 		// per-game parsing

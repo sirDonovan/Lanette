@@ -1,3 +1,4 @@
+import { GroupName } from "./client";
 import { GameDifficulty } from "./types/games";
 
 /**
@@ -133,6 +134,16 @@ export let trackTournamentBattleScores: string[] = [];
  * For each room in the object, the number of minutes to wait before setting a timer for a random tournament
  */
 export let randomTournamentTimers: Dict<number> = {};
+
+/**
+ * A list of rooms (roomids) where hosted tournaments go through the approval process
+ */
+export let allowUserHostedTournaments: string[] = [];
+
+/**
+ * For each room in the object and for each action in the room, the minimum rank required
+ */
+export let userHostedTournamentRanks: Dict<{review: GroupName}> = {};
 
 /**
  * A list of rooms (roomids) where scripted games are allowed to be played

@@ -1,7 +1,9 @@
+import { GroupName } from "./client";
 import { UserHosted } from "./games/templates/user-hosted";
 import { Player } from "./room-activity";
 import { Game } from "./room-game";
 import { Tournament } from "./room-tournament";
+import { IUserHostedTournament } from "./tournaments";
 import { IRoomInfoResponse } from "./types/client-message-types";
 import { User } from "./users";
 
@@ -16,6 +18,8 @@ export class Room {
 	tournament: Tournament | null = null;
 	userHostedGame: UserHosted | null = null;
 	readonly uhtmlMessageListeners: Dict<Dict<() => void>> = {};
+	newUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
+	approvedUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
 	readonly users = new Set<User>();
 
 	readonly id: string;
@@ -26,6 +30,8 @@ export class Room {
 	// set immediately in checkConfigSettings()
 	logChatMessages!: boolean;
 	unlinkTournamentReplays!: boolean;
+	unlinkChallongeLinks!: boolean;
+
 	constructor(id: string) {
 		this.id = id;
 		this.sendId = id === 'lobby' ? '' : id;
@@ -52,6 +58,7 @@ export class Room {
 	checkConfigSettings() {
 		this.logChatMessages = !this.id.startsWith('battle-') && !this.id.startsWith('groupchat-') && !(Config.disallowChatLogging && Config.disallowChatLogging.includes(this.id));
 		this.unlinkTournamentReplays = Config.disallowTournamentBattleLinks && Config.disallowTournamentBattleLinks.includes(this.id) ? true : false;
+		this.unlinkChallongeLinks = Config.allowUserHostedTournaments && Config.allowUserHostedTournaments.includes(this.id) ? true : false;
 	}
 
 	onRoomInfoResponse(response: IRoomInfoResponse) {
@@ -79,6 +86,22 @@ export class Room {
 
 	sayUhtmlChange(uhtmlName: string, html: string) {
 		this.say("/changeuhtml " + uhtmlName + ", " + html, true);
+	}
+
+	sayAuthUhtml(uhtmlName: string, html: string) {
+		this.say("/addrankuhtml +, " + uhtmlName + ", " + html, true);
+	}
+
+	sayAuthUhtmlChange(uhtmlName: string, html: string) {
+		this.say("/changerankuhtml +, " + uhtmlName + ", " + html, true);
+	}
+
+	sayModUhtml(uhtmlName: string, html: string, rank: GroupName) {
+		this.say("/addrankuhtml " + Client.groupSymbols[rank] + ", " + uhtmlName + ", " + html, true);
+	}
+
+	sayModUhtmlChange(uhtmlName: string, html: string, rank: GroupName) {
+		this.say("/changerankuhtml " + Client.groupSymbols[rank] + ", " + uhtmlName + ", " + html, true);
 	}
 
 	pmHtml(user: User | Player, html: string) {

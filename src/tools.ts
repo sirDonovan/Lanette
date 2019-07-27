@@ -13,12 +13,25 @@ const HTML_CHARACTER_REGEX = /[<>/'"]/g;
 const maxMessageLength = 300;
 const maxUsernameLength = 18;
 const rootFolder = path.resolve(__dirname, '..');
+const fetchUrlTimeoutTimers = {
+	'challonge': 5 * 1000,
+};
+
+type FetchUrlTimeoutKey = keyof typeof fetchUrlTimeoutTimers;
 
 export class Tools {
 	// exported constants
 	readonly maxMessageLength: typeof maxMessageLength = maxMessageLength;
 	readonly maxUsernameLength: typeof maxUsernameLength = maxUsernameLength;
 	readonly rootFolder: typeof rootFolder = rootFolder;
+
+	fetchUrlTimeouts: Dict<NodeJS.Timer> = {};
+	fetchUrlQueues: Dict<(() => any)[]> = {};
+
+	onReload(previous: Tools) {
+		this.fetchUrlTimeouts = previous.fetchUrlTimeouts;
+		this.fetchUrlQueues = previous.fetchUrlQueues;
+	}
 
 	random(limit?: number) {
 		if (!limit) limit = 2;
@@ -251,19 +264,70 @@ export class Tools {
 		} while (uncache.length > 0);
 	}
 
-	async fetchUrl(url: string): Promise<string> {
-		return new Promise((resolve, reject) => {
+	async fetchUrl(url: string, timeoutKey?: FetchUrlTimeoutKey): Promise<string | Error> {
+		return new Promise(resolve => {
 			let data = '';
 			const request = https.get(url, res => {
 				res.setEncoding('utf8');
 				res.on('data', chunk => data += chunk);
 				res.on('end', () => {
+					if (timeoutKey) this.prepareNextFetchUrl(timeoutKey);
 					resolve(data);
 				});
 			});
 
-			request.on('error', () => reject());
+			request.on('error', error => {
+				if (timeoutKey) this.prepareNextFetchUrl(timeoutKey);
+				resolve(error);
+			});
 		});
+	}
+
+	prepareNextFetchUrl(type: FetchUrlTimeoutKey) {
+		this.fetchUrlTimeouts[type] = setTimeout(() => {
+			delete this.fetchUrlTimeouts[type];
+			if (!(type in this.fetchUrlQueues)) return;
+			const queued = this.fetchUrlQueues[type].shift();
+			if (!queued) return;
+			queued();
+		}, fetchUrlTimeoutTimers[type]);
+	}
+
+	getChallongeUrl(input: string): string | undefined {
+		if (!input) return;
+		const index = input.indexOf('challonge.com/');
+		if (index === -1) return;
+		let challongeLink = input.substr(index).trim();
+		const spaceIndex = challongeLink.indexOf(' ');
+		if (spaceIndex !== -1) challongeLink = challongeLink.substr(0, spaceIndex);
+		if (challongeLink.length < 15) return;
+		const httpIndex = challongeLink.indexOf('http://');
+		if (httpIndex !== -1) {
+			challongeLink = 'https://' + challongeLink.substr(httpIndex + 1);
+		} else {
+			const httpsIndex = challongeLink.indexOf('https://');
+			if (httpsIndex === -1) challongeLink = 'https://' + challongeLink;
+		}
+		const boldIndex = challongeLink.lastIndexOf("**");
+		if (boldIndex !== -1) challongeLink = challongeLink.substr(0, boldIndex);
+		while (challongeLink.endsWith('.') || challongeLink.endsWith("'") || challongeLink.endsWith('"') || challongeLink.endsWith("\\")) {
+			challongeLink = challongeLink.substr(0, challongeLink.length - 1);
+		}
+		return challongeLink;
+	}
+
+	extractChallongeBracketUrl(link: string): string {
+		const signupsIndex = link.indexOf('/tournaments/signup/');
+		if (signupsIndex !== -1) {
+			return link.substr(0, signupsIndex - 1);
+		} else {
+			const lastSlashIndex = link.lastIndexOf('/');
+			if (lastSlashIndex > 21) {
+				return link.substr(0, lastSlashIndex);
+			} else {
+				return link;
+			}
+		}
 	}
 
 	async safeWriteFile(filepath: string, data: string, callback?: () => void) {

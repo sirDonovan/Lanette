@@ -63,6 +63,8 @@ export function load(config: typeof Config): typeof Config {
 	if (config.defaultTournamentPlayerCaps) config.defaultTournamentPlayerCaps = objectKeysToRoomId(config.defaultTournamentPlayerCaps);
 	if (config.tournamentRoomAdvertisements) config.tournamentRoomAdvertisements = stringArrayObjectToRoomIds(config.tournamentRoomAdvertisements);
 	if (config.randomTournamentTimers) config.randomTournamentTimers = objectKeysToRoomId(config.randomTournamentTimers);
+	if (config.allowUserHostedTournaments) config.allowUserHostedTournaments = arrayToRoomIds(config.allowUserHostedTournaments);
+	if (config.userHostedTournamentRanks) config.userHostedTournamentRanks = objectKeysToRoomId(config.userHostedTournamentRanks);
 
 	return config;
 }
