@@ -19,16 +19,19 @@ export class Room {
 	readonly users = new Set<User>();
 
 	readonly id: string;
-	logChatMessages: boolean;
 	readonly sendId: string;
 	title: string;
 	type!: RoomType;
 
+	// set immediately in checkConfigSettings()
+	logChatMessages!: boolean;
+	unlinkTournamentReplays!: boolean;
 	constructor(id: string) {
 		this.id = id;
-		this.logChatMessages = !id.startsWith('battle-') && !id.startsWith('groupchat-') && !(Config.disallowChatLogging && Config.disallowChatLogging.includes(id));
 		this.sendId = id === 'lobby' ? '' : id;
 		this.title = id;
+
+		this.checkConfigSettings();
 	}
 
 	init(type: RoomType) {
@@ -44,6 +47,11 @@ export class Room {
 			user.rooms.delete(this);
 			if (!user.rooms.size) Users.remove(user);
 		});
+	}
+
+	checkConfigSettings() {
+		this.logChatMessages = !this.id.startsWith('battle-') && !this.id.startsWith('groupchat-') && !(Config.disallowChatLogging && Config.disallowChatLogging.includes(this.id));
+		this.unlinkTournamentReplays = Config.disallowTournamentBattleLinks && Config.disallowTournamentBattleLinks.includes(this.id) ? true : false;
 	}
 
 	onRoomInfoResponse(response: IRoomInfoResponse) {
@@ -131,5 +139,11 @@ export class Rooms {
 		let id = Tools.toRoomId(input);
 		if (Config.roomAliases && !(id in this.rooms) && Config.roomAliases[id]) id = Config.roomAliases[id];
 		return this.get(id);
+	}
+
+	checkLoggingConfigs() {
+		for (const i in this.rooms) {
+			this.rooms[i].checkConfigSettings();
+		}
 	}
 }

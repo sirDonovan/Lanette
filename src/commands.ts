@@ -83,6 +83,7 @@ const commands: Dict<ICommandDefinition> = {
 						Tools.uncacheTree('./config-loader');
 						const config: typeof import('./config-example') = require('./config-loader').load(require('./config'));
 						global.Config = config;
+						Rooms.checkLoggingConfigs();
 					} else if (modules[i] === 'dex') {
 						Tools.uncacheTree('./dex');
 						const dex: typeof import('./dex') = require('./dex');

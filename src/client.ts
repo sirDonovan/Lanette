@@ -901,10 +901,11 @@ export class Client {
 
 	parseChatMessage(room: Room, user: User, message: string) {
 		const isCommand = CommandParser.parse(room, user, message);
+		const lowerCaseMessage = message.toLowerCase();
 
 		// unlink tournament battle replays
-		if (room.tournament && !room.tournament.format.team && Config.disallowTournamentBattleLinks && Config.disallowTournamentBattleLinks.includes(room.id) && message.includes("replay.pokemonshowdown.com/")) {
-			let battle = message.split("replay.pokemonshowdown.com/")[1];
+		if (room.unlinkTournamentReplays && !user.hasRank(room, 'voice') && room.tournament && !room.tournament.format.team && lowerCaseMessage.includes("replay.pokemonshowdown.com/")) {
+			let battle = lowerCaseMessage.split("replay.pokemonshowdown.com/")[1];
 			if (battle) {
 				battle = 'battle-' + battle.split(" ")[0].trim();
 				if (room.tournament.battleRooms.includes(battle)) {
