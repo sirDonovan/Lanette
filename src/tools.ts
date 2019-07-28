@@ -236,15 +236,19 @@ export class Tools {
 		return id && id.length <= maxUsernameLength ? true : false;
 	}
 
-	deepClone<T>(obj: T): T extends IAbility ? IAbilityCopy : T extends IItem ? IItemCopy : T extends IMove ? IMoveCopy : T extends IPokemon ? IPokemonCopy : T {
-		// @ts-ignore
+	deepClone<T>(obj: T): T {
 		if (obj === null || typeof obj !== 'object') return obj;
-		// @ts-ignore
-		if (Array.isArray(obj)) return obj.map(prop => this.deepClone(prop));
-		const clone = Object.create(Object.getPrototypeOf(obj));
-		for (const key of Object.keys(obj)) {
-			// @ts-ignore
-			clone[key] = this.deepClone(obj[key]);
+		if (Array.isArray(obj)) {
+			const clone = obj.slice() as T & any[];
+			for (let i = 0; i < obj.length; i++) {
+				clone[i] = this.deepClone(obj[i]);
+			}
+			return clone;
+		}
+		const clone: T = Object.create(Object.getPrototypeOf(obj));
+		const keys = Object.keys(obj) as (keyof T)[];
+		for (let i = 0; i < keys.length; i++) {
+			clone[keys[i]] = this.deepClone(obj[keys[i]]);
 		}
 		return clone;
 	}

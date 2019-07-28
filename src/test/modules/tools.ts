@@ -8,6 +8,34 @@ const month = 31 * day;
 const year = 365 * day;
 
 describe("Tools", () => {
+	it('should return proper values from deepClone()', () => {
+		const array = ['a'];
+		const arrayClone = Tools.deepClone(array);
+		assert(arrayClone.length === 1);
+		assert(array !== arrayClone);
+		arrayClone[0] = 'b';
+		assert(array[0] === 'a');
+
+		const object = {letter: 'a'};
+		const objectClone = Tools.deepClone(object);
+		assert(object !== objectClone);
+		objectClone.letter = 'b';
+		assert(object.letter === 'a');
+
+		const arrayObject = [{letter: 'a'}];
+		const arrayObjectClone = Tools.deepClone(arrayObject);
+		assert(arrayObjectClone.length === 1);
+		assert(arrayObject !== arrayObjectClone);
+		arrayObjectClone[0].letter = 'b';
+		assert(arrayObject[0].letter === 'a');
+
+		const objectArray = {letters: ['a']};
+		const objectArrayClone = Tools.deepClone(objectArray);
+		assert(objectArrayClone.letters.length === 1);
+		assert(objectArray !== objectArrayClone);
+		objectArrayClone.letters[0] = 'b';
+		assert(objectArray.letters[0] === 'a');
+	}),
 	it('should return proper values from isInteger()', () => {
 		assert(Tools.isInteger('0'));
 		assert(Tools.isInteger('1'));

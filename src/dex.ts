@@ -563,8 +563,7 @@ export class Dex {
 	}
 
 	getAbilityCopy(name: string): IAbilityCopy {
-		const ability = this.getExistingAbility(name);
-		return Tools.deepClone(ability);
+		return Tools.deepClone(this.getExistingAbility(name)) as IAbilityCopy;
 	}
 
 	/** Returns a list of standard abilities
@@ -632,8 +631,7 @@ export class Dex {
 	}
 
 	getItemCopy(name: string): IItemCopy {
-		const item = this.getExistingItem(name);
-		return Tools.deepClone(item);
+		return Tools.deepClone(this.getExistingItem(name)) as IItemCopy;
 	}
 
 	/** Returns a list of standard items
@@ -699,8 +697,7 @@ export class Dex {
 	}
 
 	getMoveCopy(name: string): IMoveCopy {
-		const move = this.getExistingMove(name);
-		return Tools.deepClone(move);
+		return Tools.deepClone(this.getExistingMove(name)) as IMoveCopy;
 	}
 
 	/** Returns a list of standard moves
@@ -804,8 +801,7 @@ export class Dex {
 	}
 
 	getPokemonCopy(name: string): IPokemonCopy {
-		const pokemon = this.getExistingPokemon(name);
-		return Tools.deepClone(pokemon);
+		return Tools.deepClone(this.getExistingPokemon(name)) as IPokemonCopy;
 	}
 
 	/** Returns a list of standard Pokemon
