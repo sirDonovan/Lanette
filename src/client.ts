@@ -332,9 +332,9 @@ export class Client {
 			const messageArguments: IClientMessageTypes['init'] = {
 				type: messageParts[0] as RoomType,
 			};
-			console.log("Joined room: " + room.id);
 			room.init(messageArguments.type);
 			if (room.type === 'chat') {
+				console.log("Joined room: " + room.id);
 				if (room.id === 'staff') room.sayCommand('/filters view');
 				room.sayCommand('/cmd roominfo ' + room.id);
 				room.sayCommand('/banword list');
