@@ -1,4 +1,4 @@
-import * as assert from 'assert';
+import assert = require('assert');
 
 const second = 1000;
 const minute = 60 * second;

@@ -1,6 +1,6 @@
-import * as assert from 'assert';
-import * as fs from 'fs';
-import * as path from 'path';
+import assert = require('assert');
+import fs = require('fs');
+import path = require('path');
 
 describe("Pokemon-Showdown compatibility - ", () => {
 	it('data files', () => {

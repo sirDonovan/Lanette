@@ -77,7 +77,7 @@ const commands: Dict<ICommandDefinition> = {
 					} else if (modules[i] === 'commands') {
 						Tools.uncacheTree('./commands');
 						global.Commands = CommandParser.loadBaseCommands(require('./commands'));
-						if (Games.loadedFormats) Games.loadFormatCommands();
+						if (!modules.includes('games')) Games.loadFormatCommands();
 					} else if (modules[i] === 'config') {
 						Tools.uncacheTree('./config');
 						Tools.uncacheTree('./config-loader');
@@ -93,6 +93,7 @@ const commands: Dict<ICommandDefinition> = {
 						Tools.uncacheTree('./room-activity');
 						const games: typeof import('./games') = require('./games');
 						global.Games = new games.Games();
+						Games.loadFormats();
 					} else if (modules[i] === 'storage') {
 						const oldStorage = global.Storage;
 						Tools.uncacheTree('./storage');

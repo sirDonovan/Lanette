@@ -1,6 +1,6 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import { Writable } from 'stream';
+import fs = require('fs');
+import path = require('path');
+import stream = require('stream');
 
 const rootFolder = path.resolve(__dirname, '..', '..');
 const modulesDir = path.join(__dirname, 'modules');
@@ -23,7 +23,7 @@ for (let i = 0; i < methodsToNoOp.length; i++) {
 }
 
 Object.assign(fs, {createWriteStream() {
-	return new Writable();
+	return new stream.Writable();
 }});
 
 // tslint:disable-next-line no-var-requires
@@ -34,7 +34,6 @@ require(path.join(__dirname, 'pokemon-showdown'));
 
 console.log("Loading data for tests...");
 Dex.loadData();
-Games.loadFormats();
 
 for (let i = 0; i < moduleTests.length; i++) {
 	// tslint:disable-next-line no-var-requires

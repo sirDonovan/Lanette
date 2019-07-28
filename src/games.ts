@@ -38,44 +38,20 @@ for (const i in commands) {
 export class Games {
 	// exported constants
 	readonly commands: typeof commands = commands;
+	readonly gamesDirectory: typeof gamesDirectory = gamesDirectory;
 	readonly globalGameCommands: typeof globalGameCommands = globalGameCommands;
+	readonly userHosted: typeof userHosted = userHosted;
 
-	readonly aliasesCache: Dict<string> = {};
+	readonly aliases: Dict<string> = {};
 	readonly commandNames: string[] = Object.keys(commands);
-	readonly formatsCache: Dict<IGameFileComputed> = {};
+	readonly formats: Dict<IGameFileComputed> = {};
 	lastGames: Dict<number> = {};
 	lastScriptedGames: Dict<number> = {};
 	lastUserHostedGames: Dict<number> = {};
-	loadedFormats: boolean = false;
 	readonly minigameCommandNames: Dict<{aliases: string[], format: string}> = {};
-	readonly modesCache: Dict<IGameMode> = {};
-	readonly userHostedAliasesCache: Dict<string> = {};
-	readonly userHostedFormatsCache: Dict<IUserHostedComputed> = {};
-
-	get aliases(): Dict<string> {
-		if (!this.loadedFormats) this.loadFormats();
-		return this.aliasesCache;
-	}
-
-	get formats(): Dict<IGameFileComputed> {
-		if (!this.loadedFormats) this.loadFormats();
-		return this.formatsCache;
-	}
-
-	get modes(): Dict<IGameMode> {
-		if (!this.loadedFormats) this.loadFormats();
-		return this.modesCache;
-	}
-
-	get userHostedAliases(): Dict<string> {
-		if (!this.loadedFormats) this.loadFormats();
-		return this.userHostedAliasesCache;
-	}
-
-	get userHostedFormats(): Dict<IUserHostedComputed> {
-		if (!this.loadedFormats) this.loadFormats();
-		return this.userHostedFormatsCache;
-	}
+	readonly modes: Dict<IGameMode> = {};
+	readonly userHostedAliases: Dict<string> = {};
+	readonly userHostedFormats: Dict<IUserHostedComputed> = {};
 
 	onReload(previous: Games) {
 		this.lastGames = previous.lastGames;
@@ -84,15 +60,12 @@ export class Games {
 	}
 
 	loadFormats() {
-		if (this.loadedFormats) return;
-
 		const gameFiles = fs.readdirSync(gamesDirectory);
 		for (let i = 0; i < gameFiles.length; i++) {
 			if (!gameFiles[i].endsWith('.js')) continue;
 			const file = require(gamesDirectory + '/' + gameFiles[i]).game as IGameFile;
 			const id = Tools.toId(file.name);
-			if (id in this.formatsCache) throw new Error("'" + id + "' is the name of another game");
-			this.formatsCache[id] = Object.assign({id}, file);
+			this.formats[id] = Object.assign({id}, file);
 		}
 
 		const modesDirectory = path.join(gamesDirectory, "modes");
@@ -101,49 +74,32 @@ export class Games {
 			if (!modeFiles[i].endsWith('.js')) continue;
 			const file = require(modesDirectory + '/' + modeFiles[i]).mode as IGameModeFile;
 			const id = Tools.toId(file.name);
-			if (id in this.modesCache) throw new Error("'" + id + "' is the name of another game mode");
-			this.modesCache[id] = Object.assign({id}, file);
+			this.modes[id] = Object.assign({id}, file);
 		}
 
 		for (let i = 0; i < userHosted.formats.length; i++) {
 			const format = userHosted.formats[i];
 			const id = Tools.toId(format.name);
 
-			if (id in this.userHostedFormatsCache) throw new Error("'" + id + "' is the name of another user-hosted game");
-
-			if (format.formerNames) {
-				for (let i = 0; i < format.formerNames.length; i++) {
-					const id = Tools.toId(format.formerNames[i]);
-					if (id in this.userHostedFormatsCache) throw new Error(this.userHostedFormatsCache[id].name + " is the former name of another game");
-					if (id in this.userHostedAliasesCache) throw new Error(this.userHostedAliasesCache[id] + "'s alias '" + id + "' is the former name of another game");
-					this.userHostedAliasesCache[id] = format.name;
-				}
-			}
-
 			if (format.aliases) {
 				for (let i = 0; i < format.aliases.length; i++) {
-					const alias = Tools.toId(format.aliases[i]);
-					if (alias in this.userHostedFormatsCache) throw new Error(format.name + "'s alias '" + alias + "' is the name of another user-hosted game");
-					if (alias in this.userHostedAliasesCache) throw new Error(format.name + "'s alias '" + alias + "' is already used by " + this.userHostedAliasesCache[alias]);
-					this.userHostedAliasesCache[alias] = format.name;
+					this.userHostedAliases[Tools.toId(format.aliases[i])] = format.name;
 				}
 			}
 
-			this.userHostedFormatsCache[id] = Object.assign({}, format, {
+			this.userHostedFormats[id] = Object.assign({}, format, {
 				class: userHosted.class,
 				id,
 			});
 		}
 
-		for (const i in this.formatsCache) {
-			const format = this.formatsCache[i];
+		for (const i in this.formats) {
+			const format = this.formats[i];
 			const idsToAlias: string[] = [format.id];
 			if (format.formerNames) {
 				for (let i = 0; i < format.formerNames.length; i++) {
 					const id = Tools.toId(format.formerNames[i]);
-					if (id in this.formatsCache) throw new Error(this.formatsCache[id].name + " is the former name of another game");
-					if (id in this.aliasesCache) throw new Error(this.aliasesCache[id] + "'s alias '" + id + "' is the former name of another game");
-					this.aliasesCache[id] = format.name;
+					this.aliases[id] = format.name;
 					idsToAlias.push(id);
 				}
 			}
@@ -151,9 +107,7 @@ export class Games {
 			if (format.aliases) {
 				for (let i = 0; i < format.aliases.length; i++) {
 					const alias = Tools.toId(format.aliases[i]);
-					if (alias in this.formatsCache) throw new Error(format.name + "'s alias '" + alias + "' is the name of another game");
-					if (alias in this.aliasesCache) throw new Error(format.name + "'s alias '" + alias + "' is already used by " + this.aliasesCache[alias]);
-					this.aliasesCache[alias] = format.name;
+					this.aliases[alias] = format.name;
 					idsToAlias.push(alias);
 				}
 			}
@@ -166,17 +120,13 @@ export class Games {
 			}
 
 			if (format.minigameCommand) {
-				const minigameCommand = Tools.toId(format.minigameCommand);
-				if (this.minigameCommandNames.hasOwnProperty(minigameCommand)) throw new Error(format.name + "'s minigame command '" + minigameCommand + "' is already used by " + this.minigameCommandNames[minigameCommand]);
-				this.minigameCommandNames[minigameCommand] = {aliases: format.minigameCommandAliases ? format.minigameCommandAliases.map(x => Tools.toId(x)) : [], format: format.name};
+				this.minigameCommandNames[Tools.toId(format.minigameCommand)] = {aliases: format.minigameCommandAliases ? format.minigameCommandAliases.map(x => Tools.toId(x)) : [], format: format.name};
 			}
 
 			if (format.variants) {
 				for (let i = 0; i < format.variants.length; i++) {
 					const id = Tools.toId(format.variants[i].name);
-					if (id in this.formatsCache) throw new Error("Variant " + format.variants[i].name + " is the name of another game");
-					if (id in this.modesCache) throw new Error("Variant " + format.variants[i].name + " is the name of a game mode");
-					if (!(id in this.aliasesCache)) this.aliasesCache[id] = format.name + "," + format.variants[i].variant;
+					if (!(id in this.aliases)) this.aliases[id] = format.name + "," + format.variants[i].variant;
 					let variantIds: string[] = [Tools.toId(format.variants[i].variant)];
 					if (format.variants[i].variantAliases) {
 						format.variants[i].variantAliases = format.variants[i].variantAliases!.map(x => Tools.toId(x));
@@ -186,7 +136,7 @@ export class Games {
 					for (let j = 0; j < idsToAlias.length; j++) {
 						for (let k = 0; k < variantIds.length; k++) {
 							const alias = variantIds[k] + idsToAlias[j];
-							if (!(alias in this.aliasesCache)) this.aliasesCache[alias] = format.name + "," + format.variants[i].variant;
+							if (!(alias in this.aliases)) this.aliases[alias] = format.name + "," + format.variants[i].variant;
 						}
 					}
 				}
@@ -194,15 +144,13 @@ export class Games {
 
 			if (format.modes) {
 				for (let i = 0; i < format.modes.length; i++) {
-					const id = Tools.toId(format.modes[i]);
-					if (!(id in this.modesCache)) throw new Error("'" + format.modes[i] + "' is not a valid mode");
-					format.modes[i] = id;
+					format.modes[i] = Tools.toId(format.modes[i]);
 				}
 			}
 		}
 
-		for (const i in this.modesCache) {
-			const mode = this.modesCache[i];
+		for (const i in this.modes) {
+			const mode = this.modes[i];
 			if (mode.commands) {
 				for (const i in mode.commands) {
 					if (!this.commandNames.includes(i)) this.commandNames.push(i);
@@ -210,15 +158,6 @@ export class Games {
 			}
 		}
 
-		for (const name in this.minigameCommandNames) {
-			if (this.commandNames.includes(name)) throw new Error("Minigame command '" + name + "' is a regular command for another game");
-			for (let i = 0; i < this.minigameCommandNames[name].aliases.length; i++) {
-				const alias = this.minigameCommandNames[name].aliases[i];
-				if (this.commandNames.includes(alias)) throw new Error("Minigame command alias '" + alias + "' (" + name + ") is a regular command for another game");
-			}
-		}
-
-		this.loadedFormats = true;
 		this.loadFormatCommands();
 	}
 

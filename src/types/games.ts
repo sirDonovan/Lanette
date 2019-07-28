@@ -54,7 +54,6 @@ interface IUserHosted {
 
 	aliases?: string[];
 	readonly approvedHostOnly?: boolean;
-	readonly formerNames?: string[];
 	readonly freejoin?: boolean;
 	readonly mascot?: string;
 	readonly mascots?: string[];
