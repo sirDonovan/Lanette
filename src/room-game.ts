@@ -1,4 +1,5 @@
-import { Activity, Player, PlayerList} from "./room-activity";
+import { ICommandDefinition } from "./command-parser";
+import { Activity, Player, PlayerList } from "./room-activity";
 import { IGameFormat } from "./types/games";
 import { IPokemonCopy } from "./types/in-game-data-types";
 import { User } from "./users";
@@ -24,7 +25,7 @@ export class Game extends Activity {
 	readonly activityType: string = 'game';
 	awardedBits: boolean = false;
 	canLateJoin: boolean = false;
-	readonly commands = Object.assign(Object.create(null), Games.globalGameCommands);
+	readonly commands: Dict<ICommandDefinition<Game>> = Object.assign(Object.create(null), Games.globalGameCommands);
 	readonly customizableOptions: Dict<IGameOptionValues> = Object.create(null);
 	readonly loserPointsToBits: number = 10;
 	readonly maxBits: number = 1000;

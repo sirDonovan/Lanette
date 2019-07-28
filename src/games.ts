@@ -168,7 +168,7 @@ export class Games {
 				command(target, room, user, command) {
 					if (this.isPm(room)) {
 						if (user.game && commandName in user.game.commands) {
-							user.game.commands[commandName].command.call(room.game, target, user, user, command);
+							user.game.commands[commandName].command.call(user.game, target, user, user, command);
 						}
 						user.rooms.forEach((value, room) => {
 							if (room.game && commandName in room.game.commands && (room.game.commands[commandName].pmOnly || room.game.commands[commandName].pmGameCommand)) {

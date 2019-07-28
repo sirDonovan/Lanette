@@ -56,18 +56,15 @@ class AbrasAbilitySwitch extends Guessing {
 	}
 }
 
-const commands: Dict<ICommandDefinition<AbrasAbilitySwitch>> = {
-	switch: {
-		command: templateCommands.guess.command,
-	},
-};
+const commands = Tools.deepClone(templateCommands);
+commands.guess.aliases!.push('switch');
 
 export const game: IGameFile<AbrasAbilitySwitch> = {
 	aliases: ['aas', 'abras'],
 	battleFrontierCategory: 'Knowledge',
 	class: AbrasAbilitySwitch,
 	commandDescriptions: [Config.commandCharacter + "switch [Pokemon]"],
-	commands: Object.assign({}, templateCommands, commands),
+	commands,
 	description: "Players switch to Pokemon that have the chosen abilities for Abra to Role Play!",
 	freejoin: true,
 	name: "Abra's Ability Switch",

@@ -126,13 +126,24 @@ commands.g = {command: commands.guess.command};
 
 const initialize = (game: Game) => {
 	const mode = new Survival(game);
-	const propertiesToOverride = Object.getOwnPropertyNames(mode).concat(Object.getOwnPropertyNames(Survival.prototype));
+	const propertiesToOverride = Object.getOwnPropertyNames(mode).concat(Object.getOwnPropertyNames(Survival.prototype)) as (keyof Survival)[];
 	for (let i = 0; i < propertiesToOverride.length; i++) {
 		// @ts-ignore
 		game[propertiesToOverride[i]] = mode[propertiesToOverride[i]];
 	}
-	for (const i in commands) {
-		game.commands[i] = commands[i];
+
+	for (const command in commands) {
+		if (command in game.commands) {
+			for (const i in game.commands) {
+				if (game.commands[i].command === game.commands[command].command) {
+					// @ts-ignore
+					game.commands[i] = commands[command];
+				}
+			}
+		} else {
+			// @ts-ignore
+			game.commands[command] = commands[command];
+		}
 	}
 };
 
