@@ -19,7 +19,7 @@
   "homepage": "https://github.com/sirDonovan/Lanette#readme",
   "dependencies": {
     "@types/mocha": "5.2.7",
-    "@types/node": "10.14.13",
+    "@types/node": "12.6.8",
     "@types/websocket": "0.0.40",
     "typescript": "3.6.0-beta",
     "websocket": "1.0.29"
