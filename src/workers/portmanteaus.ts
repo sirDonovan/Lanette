@@ -90,6 +90,7 @@ export function init(): worker_threads.Worker {
 	}
 
 	worker = new worker_threads.Worker(path.join(__dirname, 'threads', __filename.substr(__dirname.length + 1)), {workerData: data});
+	worker.setMaxListeners(Infinity);
 	worker.on('exit', code => {
 		if (code !== 0) {
 			console.log(new Error(`Worker stopped with exit code ${code}`));
