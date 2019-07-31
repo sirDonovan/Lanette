@@ -61,6 +61,7 @@ export abstract class Activity {
 	ended: boolean = false;
 	htmlMessageListeners: string[] = [];
 	messageListeners: string[] = [];
+	notifyRankSignups: boolean = false;
 	playerCount: number = 0;
 	players: Dict<Player> = {};
 	showSignupsHtml: boolean = false;
@@ -123,6 +124,7 @@ export abstract class Activity {
 	}
 
 	start() {
+		if (this.notifyRankSignups) this.sayCommand("/notifyoffrank all");
 		this.started = true;
 		this.startTime = Date.now();
 		if (this.getSignupsHtml && this.showSignupsHtml) {

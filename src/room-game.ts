@@ -1,5 +1,6 @@
 import { ICommandDefinition } from "./command-parser";
 import { Activity, Player, PlayerList } from "./room-activity";
+import { Room } from "./rooms";
 import { IGameFormat } from "./types/games";
 import { IPokemonCopy } from "./types/in-game-data-types";
 import { User } from "./users";
@@ -137,6 +138,7 @@ export class Game extends Activity {
 	}
 
 	deallocate() {
+		if (!this.started && this.notifyRankSignups) this.sayCommand("/notifyoffrank all");
 		if (!this.ended) this.ended = true;
 		this.cleanupMessageListeners();
 		if (this.onDeallocate) this.onDeallocate();
@@ -161,6 +163,10 @@ export class Game extends Activity {
 		if (!this.isMiniGame) {
 			this.showSignupsHtml = true;
 			this.sayUhtml(this.uhtmlBaseName + "-signups", this.getSignupsHtml());
+			if (!this.isUserHosted) {
+				this.notifyRankSignups = true;
+				this.sayCommand("/notifyrank all, " + (this.room as Room).title + " scripted game," + this.name + ",Hosting a scriptedgame of " + this.name);
+			}
 		}
 		this.signupsTime = Date.now();
 		if (this.shinyMascot) this.say(this.mascot!.name + " is shiny so bits will be doubled!");
