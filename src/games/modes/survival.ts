@@ -73,7 +73,7 @@ class Survival {
 					this.canGuess = true;
 					this.timeout = setTimeout(() => {
 						if (this.currentPlayer) {
-							this.say("Time's up! " + this.getAnswers());
+							this.say("Time's up! " + this.getAnswers(''));
 							this.currentPlayer.eliminated = true;
 							this.playerRounds.set(this.currentPlayer, this.survivalRound);
 							this.currentPlayer = null;
@@ -113,11 +113,12 @@ const commands: Dict<ICommandDefinition<Survival & Guessing>> = {
 	guess: {
 		command(target, room, user) {
 			if (!this.canGuess || this.players[user.id] !== this.currentPlayer) return;
-			if (this.checkAnswer && !this.checkAnswer(target)) return;
+			const answer = this.checkAnswer(target);
+			if (!answer) return;
 			if (this.timeout) clearTimeout(this.timeout);
 			this.currentPlayer = null;
 			if (this.getRemainingPlayerCount() === 1) return this.end();
-			this.say('**' + user.name + '** advances to the next round! ' + this.getAnswers());
+			this.say('**' + user.name + '** advances to the next round! ' + this.getAnswers(answer));
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 		},
 	},

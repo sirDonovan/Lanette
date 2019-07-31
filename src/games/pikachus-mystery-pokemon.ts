@@ -81,7 +81,7 @@ class PikachusMysteryPokemon extends Guessing {
 			this.setAnswers();
 		}
 		if (!this.hints[this.hintsIndex]) {
-			const text = "All hints have been revealed! " + this.getAnswers();
+			const text = "All hints have been revealed! " + this.getAnswers('');
 			this.answers = [];
 			this.on(text, () => {
 				this.timeout = setTimeout(() => this.nextRound(), 5000);

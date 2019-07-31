@@ -20,7 +20,7 @@ export abstract class Guessing extends Game {
 			this.canGuess = true;
 			this.timeout = setTimeout(() => {
 				if (this.answers.length) {
-					this.say("Time's up! " + this.getAnswers());
+					this.say("Time's up! " + this.getAnswers(''));
 					this.answers = [];
 					if (this.isMiniGame) {
 						this.end();
@@ -48,7 +48,7 @@ export abstract class Guessing extends Game {
 		return match;
 	}
 
-	getAnswers(finalAnswer?: boolean): string {
+	getAnswers(givenAnswer: string, finalAnswer?: boolean): string {
 		let len = this.answers.length;
 		let answers = "The" + (finalAnswer ? " final " : "") + " answer" + (len > 1 ? "s were" : " was") + " __";
 		if (len >= 3) {
@@ -93,14 +93,14 @@ export const commands: Dict<ICommandDefinition<Guessing>> = {
 			points += awardedPoints;
 			this.points.set(player, points);
 			if (this.isMiniGame) {
-				this.say((this.pm ? "You" : "**" + user.name + "**") + " guessed " + (this.answers.length > 1 ? 'an' : 'the') + " answer __(" + this.answers.join(", ") + ")__!");
+				this.say((this.pm ? "You are" : "**" + user.name + "** is") + " correct! " + this.getAnswers(answer));
 				this.end();
 				return;
 			} else {
 				// this.markFirstAction(player);
 				// if (this.id === 'zygardesorders' && this.revealedLetters === 1) Games.unlockAchievement(this.room, player, "Tall Order", this);
 				if (points >= this.options.points) {
-					let text = '**' + player.name + '** wins' + (this.parentGame ? '' : ' the game') + '! ' + this.getAnswers(true);
+					let text = '**' + player.name + '** wins' + (this.parentGame ? '' : ' the game') + '! ' + this.getAnswers(answer, true);
 					if (text.length > 300) {
 						text = '**' + player.name + '** wins' + (this.parentGame ? '' : ' the game') + '! A possible answer was __' + answer + '__.';
 					}
@@ -134,7 +134,7 @@ export const commands: Dict<ICommandDefinition<Guessing>> = {
 					this.end();
 					return;
 				} else {
-					let text = '**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '! ' + this.getAnswers();
+					let text = '**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '! ' + this.getAnswers(answer);
 					if (text.length > 300) {
 						text = '**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '! A possible answer was __' + answer + '__.';
 					}

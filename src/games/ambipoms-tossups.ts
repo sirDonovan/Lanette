@@ -83,7 +83,7 @@ class AmbipomsTossups extends Guessing {
 			if (!this.answers.length) return;
 			if (!this.canGuess) this.canGuess = true;
 			if (this.revealedLetters >= this.letterCount) {
-				const text = "All letters have been revealed! " + this.getAnswers();
+				const text = "All letters have been revealed! " + this.getAnswers('');
 				this.on(text, () => {
 					this.answers = [];
 					if (this.isMiniGame) {
