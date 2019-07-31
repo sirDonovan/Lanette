@@ -61,10 +61,10 @@ class ChandeluresCandles extends Game {
 		if (this.parentGame && this.parentGame.id === 'battlefrontier') time = Tools.sampleOne(this.roundTimes);
 		const html = this.getRoundHtml(this.getPlayerLives);
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
-		this.onUhtml(html, uhtmlName, () => {
+		this.onUhtml(uhtmlName, html, () => {
 			this.timeout = setTimeout(() => this.exposeCandle(), time);
 		});
-		this.sayUhtml(html, uhtmlName);
+		this.sayUhtml(uhtmlName, html);
 	}
 
 	onEnd() {

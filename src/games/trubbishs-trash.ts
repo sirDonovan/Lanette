@@ -121,10 +121,10 @@ class TrubbishsTrash extends Game {
 		}
 		const html = this.getRoundHtml(this.getPlayerPoints);
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
-		this.onUhtml(html, uhtmlName, () => {
+		this.onUhtml(uhtmlName, html, () => {
 			this.timeout = setTimeout(() => this.generateMoves(), this.revealTime);
 		});
-		this.sayUhtml(html, uhtmlName);
+		this.sayUhtml(uhtmlName, html);
 	}
 
 	onEnd() {

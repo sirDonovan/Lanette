@@ -124,7 +124,7 @@ export abstract class Activity {
 		this.startTime = Date.now();
 		if (this.getSignupsHtml && this.showSignupsHtml) {
 			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
-			this.sayUhtmlChange(this.getSignupsHtml(), this.uhtmlBaseName + "-signups");
+			this.sayUhtmlChange(this.uhtmlBaseName + "-signups", this.getSignupsHtml());
 		}
 		if (this.onStart) this.onStart();
 	}
@@ -149,16 +149,14 @@ export abstract class Activity {
 		this.room.sayHtml(html);
 	}
 
-	sayUhtml(html: string, name?: string) {
-		const uhtmlName = name || this.uhtmlBaseName;
-		if (this.isPm(this.room)) return this.pmRoom.pmUhtml(this.room, uhtmlName, html);
-		this.room.sayUhtml(uhtmlName, html);
+	sayUhtml(name: string, html: string) {
+		if (this.isPm(this.room)) return this.pmRoom.pmUhtml(this.room, name, html);
+		this.room.sayUhtml(name, html);
 	}
 
-	sayUhtmlChange(html: string, name?: string) {
-		const uhtmlName = name || this.uhtmlBaseName;
-		if (this.isPm(this.room)) return this.pmRoom.pmUhtmlChange(this.room, uhtmlName, html);
-		this.room.sayUhtmlChange(uhtmlName, html);
+	sayUhtmlChange(name: string, html: string) {
+		if (this.isPm(this.room)) return this.pmRoom.pmUhtmlChange(this.room, name, html);
+		this.room.sayUhtmlChange(name, html);
 	}
 
 	on(message: string, listener: () => any) {

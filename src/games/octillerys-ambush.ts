@@ -47,7 +47,7 @@ class OctillerysAmbush extends Game {
 		this.queue = [];
 		const html = this.getRoundHtml(this.getPlayerNames);
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
-		this.onUhtml(html, uhtmlName, () => {
+		this.onUhtml(uhtmlName, html, () => {
 			const time = Tools.sampleOne([8000, 9000, 10000]);
 			const text = "**FIRE**";
 			this.on(text, () => {
@@ -56,7 +56,7 @@ class OctillerysAmbush extends Game {
 			});
 			this.timeout = setTimeout(() => this.say(text), time);
 		});
-		this.sayUhtml(html, uhtmlName);
+		this.sayUhtml(uhtmlName, html);
 	}
 
 	onEnd() {

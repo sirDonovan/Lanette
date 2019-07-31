@@ -37,10 +37,10 @@ class GolemsGalvanicMine extends Game {
 		this.roundMines.clear();
 		const html = this.getRoundHtml(this.getPlayerPoints);
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
-		this.onUhtml(html, uhtmlName, () => {
+		this.onUhtml(uhtmlName, html, () => {
 			this.timeout = setTimeout(() => this.displayStones(), 5000);
 		});
-		this.sayUhtml(html, uhtmlName);
+		this.sayUhtml(uhtmlName, html);
 	}
 
 	displayStones() {
@@ -61,10 +61,10 @@ class GolemsGalvanicMine extends Game {
 		}
 		html += "</tr></table></center>";
 		const uhtmlName = this.uhtmlBaseName + '-stones';
-		this.onUhtml(html, uhtmlName, () => {
+		this.onUhtml(uhtmlName, html, () => {
 			this.timeout = setTimeout(() => this.tallyPoints(), this.roundTime);
 		});
-		this.sayUhtml(html, uhtmlName);
+		this.sayUhtml(uhtmlName, html);
 	}
 
 	tallyPoints() {

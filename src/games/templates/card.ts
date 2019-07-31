@@ -302,7 +302,7 @@ export abstract class Card extends Game {
 					return null;
 				}
 				const html = this.getRoundHtml(this.showPlayerCards ? this.getPlayerCards : this.getPlayerNames, this.getRemainingPlayers(this.playerOrder), "Round " + this.cardRound);
-				this.sayUhtml(html, this.uhtmlBaseName + '-round-html');
+				this.sayUhtml(this.uhtmlBaseName + '-round-html', html);
 			}
 			player = this.playerList.shift();
 		}

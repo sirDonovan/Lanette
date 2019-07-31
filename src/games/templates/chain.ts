@@ -210,10 +210,10 @@ export abstract class Chain extends Game {
 				this.setLink();
 				const html = this.getRoundHtml(this.getPlayerNames, null, "Round " + this.survivalRound);
 				const uhtmlName = this.uhtmlBaseName + '-round-html';
-				this.onUhtml(html, uhtmlName, () => {
+				this.onUhtml(uhtmlName, html, () => {
 					this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 				});
-				this.sayUhtml(html, uhtmlName);
+				this.sayUhtml(uhtmlName, html);
 				return;
 			}
 

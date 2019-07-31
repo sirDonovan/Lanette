@@ -158,7 +158,7 @@ export class Game extends Activity {
 		// TODO: check internal/custom signups
 		if (!this.isMiniGame) {
 			this.showSignupsHtml = true;
-			this.sayUhtml(this.getSignupsHtml(), this.uhtmlBaseName + "-signups");
+			this.sayUhtml(this.uhtmlBaseName + "-signups", this.getSignupsHtml());
 		}
 		this.signupsTime = Date.now();
 		if (this.shinyMascot) this.say(this.mascot!.name + " is shiny so bits will be doubled!");
@@ -245,7 +245,7 @@ export class Game extends Activity {
 		if (this.showSignupsHtml && !this.started) {
 			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
 			this.signupsHtmlTimeout = setTimeout(() => {
-				this.sayUhtmlChange(this.getSignupsHtml(), this.uhtmlBaseName + "-signups");
+				this.sayUhtmlChange(this.uhtmlBaseName + "-signups", this.getSignupsHtml());
 				this.signupsHtmlTimeout = null;
 			}, SIGNUPS_HTML_DELAY);
 		}
@@ -265,7 +265,7 @@ export class Game extends Activity {
 		if (this.showSignupsHtml && !this.started) {
 			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
 			this.signupsHtmlTimeout = setTimeout(() => {
-				this.sayUhtmlChange(this.getSignupsHtml(), this.uhtmlBaseName + "-signups");
+				this.sayUhtmlChange(this.uhtmlBaseName + "-signups", this.getSignupsHtml());
 				this.signupsHtmlTimeout = null;
 			}, SIGNUPS_HTML_DELAY);
 		}

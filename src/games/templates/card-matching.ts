@@ -89,10 +89,10 @@ export abstract class CardMatching extends Card {
 	showTopCard(firstPlayedShiny?: boolean) {
 		const html = '<center>' + this.getCardChatHtml(this.topCard) + '</center>';
 		if (firstPlayedShiny) {
-			this.sayUhtml("<div></div>");
+			this.sayUhtml(this.uhtmlBaseName, "<div></div>");
 			this.sayHtml(html);
 		} else {
-			this.sayUhtml(html);
+			this.sayUhtml(this.uhtmlBaseName, html);
 		}
 	}
 

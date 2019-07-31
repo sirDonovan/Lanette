@@ -201,10 +201,10 @@ class TropiusBerryPicking extends Game {
 		} else {
 			const html = this.getRoundHtml(this.getPlayerNames);
 			const uhtmlName = this.uhtmlBaseName + '-round-html';
-			this.onUhtml(html, uhtmlName, () => {
+			this.onUhtml(uhtmlName, html, () => {
 				this.timeout = setTimeout(() => this.say(smeargleText), 5000);
 			});
-			this.sayUhtml(html, uhtmlName);
+			this.sayUhtml(uhtmlName, html);
 		}
 	}
 

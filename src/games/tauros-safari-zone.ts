@@ -95,11 +95,11 @@ class TaurosSafariZone extends Game {
 		}
 		html += "<br />Wild <b>" + pokemon.map(x => x.species).join(", ") + "</b> appeared!</center></div>";
 		const uhtmlName = this.uhtmlBaseName + '-pokemon';
-		this.onUhtml(html, uhtmlName, () => {
+		this.onUhtml(uhtmlName, html, () => {
 			this.canCatch = true;
 			this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
 		});
-		this.sayUhtml(html, uhtmlName);
+		this.sayUhtml(uhtmlName, html);
 	}
 
 	onNextRound() {
@@ -147,10 +147,10 @@ class TaurosSafariZone extends Game {
 		}
 		const html = this.getRoundHtml(this.getPlayerPoints);
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
-		this.onUhtml(html, uhtmlName, () => {
+		this.onUhtml(uhtmlName, html, () => {
 			this.timeout = setTimeout(() => this.generatePokemon(), this.revealTime);
 		});
-		this.sayUhtml(html, uhtmlName);
+		this.sayUhtml(uhtmlName, html);
 	}
 
 	onEnd() {

@@ -60,7 +60,7 @@ class NinjasksCorners extends Game {
 		if (!this.options.freejoin && this.roundTime > this.minRoundTime) this.roundTime -= 250;
 		const html = this.getRoundHtml(this.options.freejoin ? this.getPlayerPoints : this.getPlayerNames);
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
-		this.onUhtml(html, uhtmlName, () => {
+		this.onUhtml(uhtmlName, html, () => {
 			this.timeout = setTimeout(() => {
 				const text = "The corner is **" + color + "**!";
 				this.on(text, () => {
@@ -70,7 +70,7 @@ class NinjasksCorners extends Game {
 				this.say(text);
 			}, Tools.sampleOne([4000, 5000, 6000]));
 		});
-		this.sayUhtml(html, uhtmlName);
+		this.sayUhtml(uhtmlName, html);
 	}
 
 	onEnd() {
