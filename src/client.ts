@@ -2,6 +2,7 @@ import https = require('https');
 import querystring = require('querystring');
 import url = require('url');
 import websocket = require('websocket');
+
 import { Room, RoomType } from './rooms';
 import { IClientMessageTypes, IRoomInfoResponse, IServerGroup, ITournamentMessageTypes, IUserDetailsResponse, ServerGroupData } from './types/client-message-types';
 import { ISeparatedCustomRules } from './types/in-game-data-types';
@@ -1043,6 +1044,18 @@ export class Client {
 		}
 
 		return false;
+	}
+
+	getListenerHtml(html: string): string {
+		html = '<div class="infobox">' + html;
+		if (Users.self.group !== this.groupSymbols.bot) html += '<div style="float:right;color:#888;font-size:8pt">[' + Users.self.name + ']</div><div style="clear:both"></div>';
+		html += '</div>';
+		return html;
+	}
+
+	getListenerUhtml(html: string): string {
+		if (Users.self.group !== this.groupSymbols.bot) html += '<div style="float:right;color:#888;font-size:8pt">[' + Users.self.name + ']</div><div style="clear:both"></div>';
+		return html;
 	}
 
 	send(message: string) {

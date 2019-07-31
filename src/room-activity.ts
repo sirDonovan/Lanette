@@ -174,6 +174,18 @@ export abstract class Activity {
 		this.room.onUhtml(name, html, listener);
 	}
 
+	off(message: string) {
+		this.room.off(message);
+	}
+
+	offHtml(html: string) {
+		this.room.offHtml(html);
+	}
+
+	offUhtml(name: string, html: string) {
+		this.room.offUhtml(name, html);
+	}
+
 	getPlayerList(players?: PlayerList, fromGetRemainingPlayers?: boolean): Player[] {
 		if (Array.isArray(players)) return players;
 		if (!players) {

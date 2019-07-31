@@ -134,6 +134,7 @@ export const commands: Dict<ICommandDefinition<Guessing>> = {
 					this.end();
 					return;
 				} else {
+					if (this.hint) this.off(this.hint);
 					let text = '**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '! ' + this.getAnswers(answer);
 					if (text.length > 300) {
 						text = '**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '! A possible answer was __' + answer + '__.';

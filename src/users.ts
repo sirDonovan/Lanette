@@ -48,18 +48,31 @@ export class User {
 
 	onHtml(html: string, listener: () => void) {
 		if (!this.htmlMessageListeners) this.htmlMessageListeners = {};
-		html = '<div class="infobox">' + html;
-		if (global.Users.self.group !== Client.groupSymbols.bot) html += '<div style="float:right;color:#888;font-size:8pt">[' + global.Users.self.name + ']</div><div style="clear:both"></div>';
-		html += '</div>';
-		this.htmlMessageListeners[Tools.toId(html)] = listener;
+		this.htmlMessageListeners[Tools.toId(Client.getListenerHtml(html))] = listener;
 	}
 
 	onUhtml(name: string, html: string, listener: () => void) {
 		const id = Tools.toId(name);
 		if (!this.uhtmlMessageListeners) this.uhtmlMessageListeners = {};
-		if (!this.uhtmlMessageListeners[id]) this.uhtmlMessageListeners[id] = {};
-		if (global.Users.self.group !== Client.groupSymbols.bot) html += '<div style="float:right;color:#888;font-size:8pt">[' + global.Users.self.name + ']</div><div style="clear:both"></div>';
-		this.uhtmlMessageListeners[id][Tools.toId(html)] = listener;
+		if (!(id in this.uhtmlMessageListeners)) this.uhtmlMessageListeners[id] = {};
+		this.uhtmlMessageListeners[id][Tools.toId(Client.getListenerUhtml(html))] = listener;
+	}
+
+	off(message: string) {
+		if (!this.messageListeners) return;
+		delete this.messageListeners[Tools.toId(Tools.prepareMessage(message))];
+	}
+
+	offHtml(html: string) {
+		if (!this.htmlMessageListeners) return;
+		delete this.htmlMessageListeners[Tools.toId(Client.getListenerHtml(html))];
+	}
+
+	offUhtml(name: string, html: string) {
+		if (!this.uhtmlMessageListeners) return;
+		const id = Tools.toId(name);
+		if (!(id in this.uhtmlMessageListeners)) return;
+		delete this.uhtmlMessageListeners[id][Tools.toId(Client.getListenerUhtml(html))];
 	}
 }
 

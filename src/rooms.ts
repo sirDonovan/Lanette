@@ -121,17 +121,27 @@ export class Room {
 	}
 
 	onHtml(html: string, listener: () => void) {
-		html = '<div class="infobox">' + html;
-		if (Users.self.group !== Client.groupSymbols.bot) html += '<div style="float:right;color:#888;font-size:8pt">[' + Users.self.name + ']</div><div style="clear:both"></div>';
-		html += '</div>';
-		this.htmlMessageListeners[Tools.toId(html)] = listener;
+		this.htmlMessageListeners[Tools.toId(Client.getListenerHtml(html))] = listener;
 	}
 
 	onUhtml(name: string, html: string, listener: () => void) {
 		const id = Tools.toId(name);
-		if (!this.uhtmlMessageListeners[id]) this.uhtmlMessageListeners[id] = {};
-		if (Users.self.group !== Client.groupSymbols.bot) html += '<div style="float:right;color:#888;font-size:8pt">[' + Users.self.name + ']</div><div style="clear:both"></div>';
-		this.uhtmlMessageListeners[id][Tools.toId(html)] = listener;
+		if (!(id in this.uhtmlMessageListeners)) this.uhtmlMessageListeners[id] = {};
+		this.uhtmlMessageListeners[id][Tools.toId(Client.getListenerUhtml(html))] = listener;
+	}
+
+	off(message: string) {
+		delete this.messageListeners[Tools.toId(Tools.prepareMessage(message))];
+	}
+
+	offHtml(html: string) {
+		delete this.htmlMessageListeners[Tools.toId(Client.getListenerHtml(html))];
+	}
+
+	offUhtml(name: string, html: string) {
+		const id = Tools.toId(name);
+		if (!(id in this.uhtmlMessageListeners)) return;
+		delete this.uhtmlMessageListeners[id][Tools.toId(Client.getListenerUhtml(html))];
 	}
 }
 
