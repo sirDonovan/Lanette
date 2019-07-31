@@ -59,6 +59,8 @@ export abstract class Activity {
 	readonly activityType: string = '';
 	readonly createTime: number = Date.now();
 	ended: boolean = false;
+	htmlMessageListeners: string[] = [];
+	messageListeners: string[] = [];
 	playerCount: number = 0;
 	players: Dict<Player> = {};
 	showSignupsHtml: boolean = false;
@@ -66,6 +68,7 @@ export abstract class Activity {
 	started: boolean = false;
 	startTime: number | null = null;
 	timeout: NodeJS.Timer | null = null;
+	uhtmlMessageListeners: Dict<string[]> = {};
 
 	// set in initialize()
 	id!: string;
@@ -161,16 +164,21 @@ export abstract class Activity {
 
 	on(message: string, listener: () => any) {
 		if (this.ended) return;
+		this.messageListeners.push(message);
 		this.room.on(message, listener);
 	}
 
 	onHtml(html: string, listener: () => any) {
 		if (this.ended) return;
+		this.htmlMessageListeners.push(html);
 		this.room.onHtml(html, listener);
 	}
 
-	onUhtml(html: string, name: string, listener: () => any) {
+	onUhtml(name: string, html: string, listener: () => any) {
 		if (this.ended) return;
+		const id = Tools.toId(name);
+		if (!(id in this.uhtmlMessageListeners)) this.uhtmlMessageListeners[id] = [];
+		this.uhtmlMessageListeners[id].push(html);
 		this.room.onUhtml(name, html, listener);
 	}
 
@@ -184,6 +192,22 @@ export abstract class Activity {
 
 	offUhtml(name: string, html: string) {
 		this.room.offUhtml(name, html);
+	}
+
+	cleanupMessageListeners() {
+		for (let i = 0; i < this.htmlMessageListeners.length; i++) {
+			this.offHtml(this.htmlMessageListeners[i]);
+		}
+
+		for (let i = 0; i < this.messageListeners.length; i++) {
+			this.off(this.messageListeners[i]);
+		}
+
+		for (const name in this.uhtmlMessageListeners) {
+			for (let i = 0; i < this.uhtmlMessageListeners[name].length; i++) {
+				this.offUhtml(name, this.uhtmlMessageListeners[name][i]);
+			}
+		}
 	}
 
 	getPlayerList(players?: PlayerList, fromGetRemainingPlayers?: boolean): Player[] {

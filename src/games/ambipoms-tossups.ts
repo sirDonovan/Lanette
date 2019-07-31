@@ -78,9 +78,9 @@ class AmbipomsTossups extends Guessing {
 			this.hints[index] = this.letters[index];
 			this.revealedLetters++;
 		}
-		const text = this.hints.join(" ");
-		this.on(text, () => {
-			if (!this.answers.length) return;
+		this.hint = this.hints.join(" ");
+		this.on(this.hint, () => {
+			if (this.ended) return;
 			if (!this.canGuess) this.canGuess = true;
 			if (this.revealedLetters >= this.letterCount) {
 				const text = "All letters have been revealed! " + this.getAnswers('');
@@ -97,7 +97,7 @@ class AmbipomsTossups extends Guessing {
 				this.timeout = setTimeout(() => this.nextRound(), 5000);
 			}
 		});
-		this.say(text);
+		this.say(this.hint);
 	}
 
 	filterGuess(guess: string) {

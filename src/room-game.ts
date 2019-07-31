@@ -137,6 +137,8 @@ export class Game extends Activity {
 	}
 
 	deallocate() {
+		if (!this.ended) this.ended = true;
+		this.cleanupMessageListeners();
 		if (this.onDeallocate) this.onDeallocate();
 		if (!this.isUserHosted) this.room.game = null;
 
