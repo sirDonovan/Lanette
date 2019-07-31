@@ -1,5 +1,6 @@
 import child_process = require('child_process');
 import path = require('path');
+
 import { ICommandDefinition } from "./command-parser";
 import { Player } from "./room-activity";
 import { Game } from './room-game';
@@ -48,6 +49,15 @@ const commands: Dict<ICommandDefinition> = {
 			const targets = target.split(",");
 			for (let i = 0; i < targets.length; i++) {
 				const id = Tools.toId(targets[i]) as ReloadableModule;
+				if (id === 'games') {
+					const workerGameRooms: Room[] = [];
+					Users.self.rooms.forEach((rank, room) => {
+						if (room.game && room.game.format.worker) workerGameRooms.push(room);
+					});
+					if (workerGameRooms.length) {
+						return this.say("You must wait for the game" + (workerGameRooms.length > 1 ? "s" : "") + " in " + Tools.joinList(workerGameRooms.map(x => x.title)) + " to finish first.");
+					}
+				}
 				const moduleIndex = moduleOrder.indexOf(id);
 				if (moduleIndex !== -1) {
 					hasModules[moduleIndex] = true;
@@ -89,6 +99,7 @@ const commands: Dict<ICommandDefinition> = {
 						const dex: typeof import('./dex') = require('./dex');
 						global.Dex = new dex.Dex();
 					} else if (modules[i] === 'games') {
+						Games.unrefWorkers();
 						Tools.uncacheTree('./games');
 						Tools.uncacheTree('./room-activity');
 						const games: typeof import('./games') = require('./games');

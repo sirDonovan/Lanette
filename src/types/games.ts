@@ -1,3 +1,4 @@
+import { Worker } from "worker_threads";
 import { ICommandDefinition } from "../command-parser";
 import { UserHosted } from "../games/templates/user-hosted";
 import { Game } from "../room-game";
@@ -10,6 +11,11 @@ export type GameDifficulty = 'easy' | 'medium' | 'hard';
 interface IGameClass<T> {
 	new(room: Room | User, pmRoom?: Room): T;
 	loadData?(room: Room | User): void;
+}
+
+export interface IGameWorker {
+	init: (data: any) => Worker;
+	unref: () => void;
 }
 
 export interface IGameFile<T extends Game = Game> {
@@ -32,6 +38,7 @@ export interface IGameFile<T extends Game = Game> {
 	readonly modes?: string[];
 	readonly scriptedOnly?: boolean;
 	readonly variants?: IGameVariant[];
+	readonly worker?: IGameWorker;
 }
 
 export interface IGameVariant {

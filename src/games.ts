@@ -1,10 +1,11 @@
 import fs = require('fs');
 import path = require('path');
+
 import { CommandErrorArray, ICommandDefinition } from './command-parser';
 import { UserHosted } from './games/templates/user-hosted';
 import { Game } from "./room-game";
 import { Room } from "./rooms";
-import { IGameFile, IGameFileComputed, IGameFormat, IGameFormatComputed, IGameMode, IGameModeFile, IGameVariant, IUserHostedComputed, IUserHostedFile, IUserHostedFormat, IUserHostedFormatComputed } from './types/games';
+import { IGameFile, IGameFileComputed, IGameFormat, IGameFormatComputed, IGameMode, IGameModeFile, IGameVariant, IGameWorker, IUserHostedComputed, IUserHostedFile, IUserHostedFormat, IUserHostedFormatComputed } from './types/games';
 import { User } from './users';
 
 const gamesDirectory = path.join(__dirname, 'games');
@@ -52,11 +53,18 @@ export class Games {
 	readonly modes: Dict<IGameMode> = {};
 	readonly userHostedAliases: Dict<string> = {};
 	readonly userHostedFormats: Dict<IUserHostedComputed> = {};
+	readonly workers: Dict<IGameWorker> = {};
 
 	onReload(previous: Games) {
 		this.lastGames = previous.lastGames;
 		this.lastScriptedGames = previous.lastScriptedGames;
 		this.lastUserHostedGames = previous.lastUserHostedGames;
+	}
+
+	unrefWorkers() {
+		for (const i in this.workers) {
+			this.workers[i].unref();
+		}
 	}
 
 	loadFormats() {
@@ -147,6 +155,8 @@ export class Games {
 					format.modes[i] = Tools.toId(format.modes[i]);
 				}
 			}
+
+			if (format.worker) this.workers[format.id] = format.worker;
 		}
 
 		for (const i in this.modes) {

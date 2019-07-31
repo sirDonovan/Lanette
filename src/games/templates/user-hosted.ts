@@ -340,13 +340,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			freejoin: true,
 		},
 		{
-			name: "Poliwrath's Portmanteaus",
-			mascot: "Poliwrath",
-			aliases: ['Portmanteaus', 'Ports', 'Poliwraths'],
-			description: "Players think of portmanteaus that share 2-4 letters and fit the given parameters!",
-			freejoin: true,
-		},
-		{
 			name: "Porygon's Movesearch Match",
 			mascot: "Porygon",
 			description: "Players guess Pokemon based on the given movesets!",

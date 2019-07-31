@@ -3,6 +3,7 @@ import fs = require('fs');
 import path = require('path');
 
 import { CommandErrorArray } from '../../command-parser';
+import { PoliwrathsPortmanteaus } from '../../games/poliwraths-portmanteaus';
 import { IGameFile, IGameFileComputed, IGameFormat, IGameMode, IGameModeFile, IUserHostedComputed, IUserHostedFormat } from '../../types/games';
 
 function testMascots(format: IGameFormat | IUserHostedFormat) {
@@ -16,6 +17,10 @@ function testMascots(format: IGameFormat | IUserHostedFormat) {
 }
 
 describe("Games", () => {
+	after(() => {
+		Games.unrefWorkers();
+	});
+
 	it('should not overwrite data from other games', () => {
 		const aliases: Dict<string> = {};
 		const commandNames: string[] = Object.keys(Games.commands);
@@ -193,5 +198,29 @@ describe("Games", () => {
 		assert(Array.isArray(nameUserHostedFormat));
 		assert(nameUserHostedFormat[0] === 'invalidUserHostedGameFormat');
 		assert(nameUserHostedFormat[1] === name);
+	});
+	it('should return proper values from Portmanteaus worker', async () => {
+		const room = Rooms.add('mocha');
+		const game = Games.createGame(room, Games.getExistingFormat('poliwrathsportmanteaus')) as PoliwrathsPortmanteaus;
+		for (let i = game.customizableOptions.ports.min; i <= game.customizableOptions.ports.max; i++) {
+			game.options.ports = i;
+			await game.onNextRound();
+			assert(game.answers.length);
+			assert(game.ports.length);
+			for (let i = 0; i < game.answers.length; i++) {
+				assert(game.answers[i] in game.answerParts);
+			}
+		}
+
+		game.customPortTypes = ['Pokemon', 'Item'];
+		game.customPortCategories = ['egggroup', 'type'];
+		game.customPortDetails = ['Flying', 'Plate'];
+		await game.onNextRound();
+		assert(game.answers.length);
+		assert(game.ports.length);
+		assert(game.answers.join(', ') === 'pidgeottoxic, togeticicle, talonflameadow');
+		for (let i = 0; i < game.answers.length; i++) {
+			assert(game.answers[i] in game.answerParts);
+		}
 	});
 });
