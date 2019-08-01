@@ -1,7 +1,7 @@
 /**
  * Hours are in the same timezone as wherever Lanette is running
  */
-const schedules: Dict<{months: Dict<Dict<string>>, times: [number, number][]}> = {
+const schedules: Dict<{months: Dict<Dict<string> | undefined>, times: [number, number][]}> = {
 	'nfe': {
 		months: {
 			'7': {

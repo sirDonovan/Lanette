@@ -6,8 +6,8 @@ describe("Tournaments", () => {
 		for (const room in Tournaments.schedules) {
 			const schedule = Tournaments.schedules[room];
 			for (const month in schedule.months) {
-				if (schedule.months[month]['daily']) {
-					assert(Dex.validateFormat(schedule.months[month]['daily']));
+				if (schedule.months[month]!['daily']) {
+					assert(Dex.validateFormat(schedule.months[month]!['daily']));
 					continue;
 				}
 				let validated = 0;
@@ -28,13 +28,13 @@ describe("Tournaments", () => {
 				for (let i = 1; i <= totalDays; i++) {
 					const day = '' + i;
 					try {
-						Dex.validateFormat(schedule.months[month][day]);
+						Dex.validateFormat(schedule.months[month]![day]);
 						validated++;
 					} catch (e) {
 						errors.push(e.message + " on " + month + "/" + day + " in " + room);
 					}
 				}
-				assert(validated === Object.keys(schedule.months[month]).length, "\n\t" + errors.join("\n\t"));
+				assert(validated === Object.keys(schedule.months[month]!).length, "\n\t" + errors.join("\n\t"));
 			}
 		}
 	});

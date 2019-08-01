@@ -108,7 +108,8 @@ export class Tournaments {
 			date.setHours(schedule.times[0][0] + 24, schedule.times[0][1], 0, 0);
 			nextScheduledTime = date.getTime();
 		}
-		const format = Dex.getExistingFormat(schedule.months[month]['daily'] || schedule.months[month][day], true);
+		if (!(month in schedule.months)) return;
+		const format = Dex.getExistingFormat(schedule.months[month]!['daily'] || schedule.months[month]![day], true);
 		this.scheduledTournaments[room.id] = {format, time: nextScheduledTime};
 		this.setScheduledTournamentTimer(room);
 	}
@@ -172,6 +173,7 @@ export class Tournaments {
 		const daysOfTheWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 		const date = new Date();
 		const month = date.getMonth() + 1;
+		if (!(month in schedule.months)) return "";
 		const currentDate = date.getDate();
 		if (currentDate > 1) date.setHours(-24 * (currentDate - 1), 0, 0, 0);
 		const firstDay = date.getDay();
@@ -182,7 +184,7 @@ export class Tournaments {
 			html += "<td>&nbsp;</td>";
 		}
 		for (let i = 1; i < lastDay; i++) {
-			html += "<td style='padding: 4px'><b>" + i + "</b> - " + Dex.getCustomFormatName(room, Dex.getExistingFormat(schedule.months[month]['daily'] || schedule.months[month][i]), true) + "</td>";
+			html += "<td style='padding: 4px'><b>" + i + "</b> - " + Dex.getCustomFormatName(room, Dex.getExistingFormat(schedule.months[month]!['daily'] || schedule.months[month]![i]), true) + "</td>";
 			currentDay++;
 			if (currentDay === 7) {
 				html += "</tr><tr>";
