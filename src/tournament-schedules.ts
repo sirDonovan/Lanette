@@ -4,6 +4,9 @@
 const schedules: Dict<{months: Dict<Dict<string>>, times: [number, number][]}> = {
 	'nfe': {
 		months: {
+			'7': {
+				'daily': 'gen7nfe',
+			},
 			'8': {
 				'daily': 'gen7nfe',
 			},
@@ -50,6 +53,9 @@ const schedules: Dict<{months: Dict<Dict<string>>, times: [number, number][]}> =
 	},
 	'toursplaza': {
 		months: {
+			'7': {
+				'31': 'gen7almostanyability@@@STABmons Move Legality',
+			},
 			'8': {
 				'1': 'gen7stabmons@@@Same Type Clause',
 				'2': 'gen7randombattle',
