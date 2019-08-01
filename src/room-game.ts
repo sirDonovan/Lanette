@@ -188,7 +188,7 @@ export class Game extends Activity {
 		if (this.mascot) {
 			html += Dex.getPokemonIcon(this.mascot);
 		}
-		html += this.name;
+		html += this.nameWithOptions;
 		if (this.subGameNumber) html += " - Game " + this.subGameNumber;
 		html += " - " + (roundText || "Round " + this.round);
 
