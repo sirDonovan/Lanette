@@ -131,6 +131,11 @@ export let tournamentStartTimers: Dict<number> = {};
 export let trackTournamentBattleScores: string[] = [];
 
 /**
+ * A list of rooms (roomids) where modjoin will be disallowed for tournament finals
+ */
+export let disallowModjoinedTournamentFinals: string[] = [];
+
+/**
  * For each room in the object, the number of minutes to wait before setting a timer for a random tournament
  */
 export let randomTournamentTimers: Dict<number> = {};
