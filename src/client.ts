@@ -921,7 +921,7 @@ export class Client {
 		if (room.unlinkChallongeLinks && lowerCaseMessage.includes('challonge.com/')) {
 			const links: string[] = [];
 			const possibleLinks = message.split(" ");
-			for (let i = 0, len = possibleLinks.length; i < len; i++) {
+			for (let i = 0; i < possibleLinks.length; i++) {
 				const link = Tools.getChallongeUrl(possibleLinks[i]);
 				if (link) links.push(link);
 			}

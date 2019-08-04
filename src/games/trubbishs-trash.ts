@@ -59,7 +59,7 @@ class TrubbishsTrash extends Game {
 	generateMoves() {
 		const moves = Tools.sampleMany(keys, 3);
 		// let basePowers = [];
-		for (let i = 0, len = moves.length; i < len; i++) {
+		for (let i = 0; i < moves.length; i++) {
 			const move = Dex.getExistingMove(moves[i]);
 			// basePowers.push({move: move.name, basePower: move.basePower});
 			const points = highestBasePower - move.basePower;

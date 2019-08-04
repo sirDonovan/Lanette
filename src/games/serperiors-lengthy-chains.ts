@@ -19,11 +19,11 @@ class SerperiorLengthyChains extends Game {
 			const pokemon = pokemonList[i];
 			const pokemonParameters: string[] = ["Generation " + pokemon.gen, pokemon.color];
 			if (pokemon.tier !== 'Illegal') pokemonParameters.push(pokemon.tier);
-			for (let j = 0, len = pokemon.eggGroups.length; j < len; j++) {
-				pokemonParameters.push(pokemon.eggGroups[j] + " Group");
+			for (let i = 0; i < pokemon.eggGroups.length; i++) {
+				pokemonParameters.push(pokemon.eggGroups[i] + " Group");
 			}
-			for (let j = 0, len = pokemon.types.length; j < len; j++) {
-				pokemonParameters.push(pokemon.types[j] + " Type");
+			for (let i = 0; i < pokemon.types.length; i++) {
+				pokemonParameters.push(pokemon.types[i] + " Type");
 			}
 			for (let i = 0; i < pokemonParameters.length; i++) {
 				const param = pokemonParameters[i];

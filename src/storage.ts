@@ -1,5 +1,6 @@
 import fs = require('fs');
 import path = require('path');
+
 import { Room } from './rooms';
 import { IDatabase, IGlobalDatabase } from './types/storage';
 import { User } from './users';
