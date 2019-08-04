@@ -117,7 +117,7 @@ export class Tools {
 			return '[' + input.activityType + ' ' + input.name + ']';
 		} else {
 			if (input.toString) {
-				return input.toString();
+				return JSON.stringify(input);
 			} else {
 				return '[object UnknownType]';
 			}
