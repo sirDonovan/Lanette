@@ -841,6 +841,15 @@ export class Dex {
 		return copiedPokedex;
 	}
 
+	getEvolutionLines(pokemon: IPokemon): string[][] {
+		const allEvolutionLines = this.getAllEvolutionLines(pokemon);
+		const evolutionLines: string[][] = [];
+		for (let i = 0; i < allEvolutionLines.length; i++) {
+			if (allEvolutionLines[i].includes(pokemon.species)) evolutionLines.push(allEvolutionLines[i]);
+		}
+		return evolutionLines;
+	}
+
 	/**
 	 * Returns true if target is immune to source
 	 */
@@ -1462,5 +1471,26 @@ export class Dex {
 		}
 
 		return searchResults;
+	}
+
+	private getAllEvolutionLines(pokemon: IPokemon, prevoList?: string[], evolutionLines?: string[][]): string[][] {
+		if (!prevoList || !evolutionLines) {
+			let firstStage = pokemon;
+			while (firstStage.prevo) {
+				firstStage = this.getExistingPokemon(firstStage.prevo);
+			}
+			return this.getAllEvolutionLines(firstStage, [], []);
+		}
+
+		prevoList = prevoList.slice();
+		prevoList.push(pokemon.species);
+		if (!pokemon.evos.length) {
+			evolutionLines.push(prevoList);
+		} else {
+			for (let i = 0; i < pokemon.evos.length; i++) {
+				this.getAllEvolutionLines(this.getExistingPokemon(pokemon.evos[i]), prevoList, evolutionLines);
+			}
+		}
+		return evolutionLines;
 	}
 }
