@@ -111,9 +111,9 @@ class Survival {
 
 const commands: Dict<ICommandDefinition<Survival & Guessing>> = {
 	guess: {
-		command(target, room, user) {
+		async command(target, room, user) {
 			if (!this.canGuess || this.players[user.id] !== this.currentPlayer) return;
-			const answer = this.checkAnswer(target);
+			const answer = await this.checkAnswer(target);
 			if (!answer) return;
 			if (this.timeout) clearTimeout(this.timeout);
 			this.currentPlayer = null;

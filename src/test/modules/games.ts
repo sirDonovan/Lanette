@@ -3,8 +3,10 @@ import fs = require('fs');
 import path = require('path');
 
 import { CommandErrorArray } from '../../command-parser';
+import { ParasParameters } from '../../games/paras-parameters';
 import { PoliwrathsPortmanteaus } from '../../games/poliwraths-portmanteaus';
 import { IGameFile, IGameFileComputed, IGameFormat, IGameMode, IGameModeFile, IUserHostedComputed, IUserHostedFormat } from '../../types/games';
+import * as ParametersWorker from '../../workers/parameters';
 
 function testMascots(format: IGameFormat | IUserHostedFormat) {
 	if (format.mascot) {
@@ -199,7 +201,8 @@ describe("Games", () => {
 		assert(nameUserHostedFormat[0] === 'invalidUserHostedGameFormat');
 		assert(nameUserHostedFormat[1] === name);
 	});
-	it('should return proper values from Portmanteaus worker', async () => {
+	it('should return proper values from Portmanteaus worker', async function() {
+		this.timeout(15000);
 		const room = Rooms.add('mocha');
 		const game = Games.createGame(room, Games.getExistingFormat('poliwrathsportmanteaus')) as PoliwrathsPortmanteaus;
 		for (let i = game.customizableOptions.ports.min; i <= game.customizableOptions.ports.max; i++) {
@@ -222,5 +225,57 @@ describe("Games", () => {
 		for (let i = 0; i < game.answers.length; i++) {
 			assert(game.answers[i] in game.answerParts);
 		}
+	});
+	it('should return proper values from Parameters worker', async function() {
+		this.timeout(15000);
+		ParametersWorker.init();
+		for (const gen in ParametersWorker.data.pokemon.gens) {
+			for (const type in ParametersWorker.data.pokemon.gens[gen].paramTypeDexes) {
+				const keys = Object.keys(ParametersWorker.data.pokemon.gens[gen].paramTypeDexes[type]);
+				for (let i = 0; i < keys.length; i++) {
+					const key = Tools.toId(keys[i]);
+					assert(key in ParametersWorker.data.pokemon.gens[gen].paramTypePools[type], key + ' in ' + type);
+				}
+			}
+		}
+
+		const room = Rooms.add('mocha');
+		const game = Games.createGame(room, Games.getExistingFormat('parasparameters')) as ParasParameters;
+		for (let i = game.customizableOptions.params.min; i <= game.customizableOptions.params.max; i++) {
+			game.inputOptions.params = i;
+			game.options.params = i;
+			await game.onNextRound();
+			assert(game.params.length);
+			assert(game.pokemon.length);
+		}
+		delete game.inputOptions.params;
+		delete game.options.params;
+
+		game.customParamTypes = ['move', 'egggroup'];
+		await game.onNextRound();
+		assert(game.params.length);
+		assert(game.pokemon.length);
+		assert(game.params[0].type === 'move');
+		assert(game.params[1].type === 'egggroup');
+		game.customParamTypes = null;
+
+		let intersection = await game.intersect(['rockclimb', 'steeltype']);
+		assert.strictEqual(intersection.pokemon.join(","), "durant,excadrill,ferroseed,ferrothorn,steelix");
+		intersection = await game.intersect(['poisontype', 'powerwhip']);
+		assert.strictEqual(intersection.pokemon.join(","), "bellsprout,bulbasaur,ivysaur,roselia,roserade,venusaur,victreebel,weepinbell");
+		intersection = await game.intersect(['gen1', 'psychic', 'psychictype']);
+		assert.strictEqual(intersection.pokemon.join(","), "abra,alakazam,drowzee,exeggcute,exeggutor,hypno,jynx,kadabra,mew,mewtwo,mrmime,slowbro,slowpoke,starmie");
+		intersection = await game.intersect(['firetype', 'thunder']);
+		assert.strictEqual(intersection.pokemon.join(","), "arceusfire,castformsunny,groudonprimal,hooh,marowakalola,marowakalolatotem,rotomheat,victini");
+		intersection = await game.intersect(['darktype', 'refresh']);
+		assert.strictEqual(intersection.pokemon.join(","), "arceusdark,carvanha,nuzleaf,sharpedo,shiftry,umbreon");
+		intersection = await game.intersect(['monstergroup', 'rockhead']);
+		assert.strictEqual(intersection.pokemon.join(","), "aggron,aron,cubone,lairon,marowak,marowakalola,rhydon,rhyhorn,tyrantrum");
+		// game.options.gen = 6;
+		// intersection = await game.intersect(['Weak to Rock Type', 'Earthquake']);
+		// assert.strictEqual(intersection.pokemon.join(","), "abomasnow,aerodactyl,altaria,arceusbug,arceusfire,arceusflying,arceusice,archen,archeops,armaldo,aurorus,avalugg,charizard,crustle,darmanitan,dragonite,dwebble,glalie,gyarados,hooh,lugia,magcargo,magmortar,mantine,mantyke,pineco,pinsir,rayquaza,regice,salamence,scolipede,sealeo,shuckle,spheal,torkoal,tropius,typhlosion,volcanion,walrein");
+		// intersection = await game.intersect(['Psycho Cut', 'Resists Fighting Type']);
+		// assert.strictEqual(intersection.pokemon.join(","), "alakazam,cresselia,drowzee,gallade,hypno,kadabra,medicham,meditite,mewtwo");
+		// delete game.options.gen;
 	});
 });

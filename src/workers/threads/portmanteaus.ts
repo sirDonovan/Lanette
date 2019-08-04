@@ -7,7 +7,7 @@ const Tools = new tools.Tools();
 const data = worker_threads.workerData as IPortmanteausWorkerData;
 const portTypes = Object.keys(data.pool);
 
-function findPort(options: IPortmanteauSearchOptions): IPortmanteauSearchResult {
+function search(options: IPortmanteauSearchOptions): IPortmanteauSearchResult {
 	const customPort = options.customPortTypes || options.customPortCategories || options.customPortDetails ? true : false;
 	let answerParts: Dict<{detail: string, part: string}[]> = {};
 	const ports: string[] = [];
@@ -100,7 +100,7 @@ function findPort(options: IPortmanteauSearchOptions): IPortmanteauSearchResult 
 		}
 	}
 
-	if (!answers) return findPort(options);
+	if (!answers) return search(options);
 
 	const formattedAnswerParts: Dict<string[]> = {};
 	for (const combination in answerParts) {
@@ -123,5 +123,10 @@ function findPort(options: IPortmanteauSearchOptions): IPortmanteauSearchResult 
 }
 
 worker_threads.parentPort!.on('message', message => {
-	worker_threads.parentPort!.postMessage(findPort(message));
+	const pipeIndex = message.indexOf('|');
+	const request = message.substr(0, pipeIndex);
+	if (request === 'search') {
+		const options = JSON.parse(message.substr(pipeIndex + 1));
+		worker_threads.parentPort!.postMessage(search(options));
+	}
 });

@@ -135,6 +135,7 @@ export class Game extends Activity {
 		if (this.inputOptions.cards) this.namePrefixes.unshift(this.inputOptions.cards + "-card");
 		if (this.inputOptions.gen) this.namePrefixes.unshift('Gen ' + this.options.gen);
 		if (this.inputOptions.ports) this.namePrefixes.unshift(this.inputOptions.ports + '-port');
+		if (this.inputOptions.params) this.namePrefixes.unshift(this.inputOptions.params + '-param');
 	}
 
 	deallocate() {

@@ -34,7 +34,7 @@ const data: IPortmanteausWorkerData = {
 	},
 };
 
-let worker: worker_threads.Worker;
+let worker: worker_threads.Worker | undefined;
 
 export function init(): worker_threads.Worker {
 	if (worker) return worker;
@@ -101,13 +101,13 @@ export function init(): worker_threads.Worker {
 }
 
 export function unref() {
-	worker.unref();
+	if (worker) worker.unref();
 }
 
-export async function findPort(options: IPortmanteauSearchOptions): Promise<IPortmanteauSearchResult> {
+export async function search(options: IPortmanteauSearchOptions): Promise<IPortmanteauSearchResult> {
 	return (new Promise((resolve, reject) => {
-		worker.once('message', resolve);
-		worker.once('error', resolve);
-		worker.postMessage(options);
+		worker!.once('message', resolve);
+		worker!.once('error', resolve);
+		worker!.postMessage('search|' + JSON.stringify(options));
 	}));
 }

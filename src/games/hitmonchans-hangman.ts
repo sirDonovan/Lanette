@@ -106,15 +106,17 @@ class HitmonchansHangman extends Guessing {
 	}
 
 	filterGuess(guess: string) {
+		guess = Tools.toId(guess);
 		if (this.guessedLetters.indexOf(guess) > -1 || this.solvedLetters.indexOf(guess) > -1 || guess.length > Tools.toId(this.answers[0]).length) return true;
 		return false;
 	}
 
 	onGuess(guess: string) {
+		guess = Tools.toId(guess);
 		if (!this.timeout) {
 			this.timeout = setTimeout(() => this.nextRound(), 4000);
 		}
-		for (let i = 0, len = this.letters.length; i < len; i++) {
+		for (let i = 0; i < this.letters.length; i++) {
 			if (Tools.toId(this.letters[i]) === guess) {
 				if (this.solvedLetters.indexOf(guess) === -1) this.solvedLetters.push(guess);
 				return;

@@ -101,7 +101,7 @@ class AmbipomsTossups extends Guessing {
 	}
 
 	filterGuess(guess: string) {
-		if (guess.length > this.answers[0].length) return true;
+		if (Tools.toId(guess).length > this.answers[0].length) return true;
 		return false;
 	}
 }

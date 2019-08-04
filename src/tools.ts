@@ -1,7 +1,7 @@
 import fs = require('fs');
 import https = require('https');
 import path = require('path');
-import { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/in-game-data-types';
+import { IParam } from './workers/parameters';
 
 const ALPHA_NUMERIC_REGEX = /[^a-zA-Z0-9 ]/g;
 const ID_REGEX = /[^a-z0-9]/g;
@@ -75,6 +75,32 @@ export class Tools {
 			shuffled[randomIndex] = temporaryValue;
 		}
 		return shuffled;
+	}
+
+	intersectArrays<T>(arrayA: T[], arrayB: T[]): T[] {
+		const temp: T[] = [];
+		const arrayALen = arrayA.length;
+		const arrayBLen = arrayB.length;
+		if (arrayALen < arrayBLen) {
+			for (let i = 0; i < arrayALen; i++) {
+				if (arrayB.includes(arrayA[i])) temp.push(arrayA[i]);
+			}
+		} else {
+			for (let i = 0; i < arrayBLen; i++) {
+				if (arrayA.includes(arrayB[i])) temp.push(arrayB[i]);
+			}
+		}
+
+		return temp;
+	}
+
+	intersectParams(params: IParam[], dexes: Dict<Dict<string[]>>): string[] {
+		let intersection: string[] = dexes[params[0].type][params[0].param].slice();
+		for (let i = 1; i < params.length; i++) {
+			intersection = this.intersectArrays(intersection, dexes[params[i].type][params[i].param]);
+			if (!intersection.length) break;
+		}
+		return intersection;
 	}
 
 	toId(input: string | number | {id: string} | undefined): string {

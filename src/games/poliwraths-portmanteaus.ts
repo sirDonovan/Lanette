@@ -40,8 +40,8 @@ export class PoliwrathsPortmanteaus extends Guessing {
 	}
 
 	async setAnswers() {
-		const numberOfPorts = this.customPortTypes ? this.customPortTypes.length : this.inputOptions.ports ? this.options.ports :  this.baseNumberOfPorts + Tools.random(3);
-		const result = await PortmanteausWorker.findPort({
+		const numberOfPorts = this.customPortTypes ? this.customPortTypes.length : this.inputOptions.ports ? this.options.ports : this.baseNumberOfPorts + Tools.random(3);
+		const result = await PortmanteausWorker.search({
 			customPortCategories: this.customPortCategories,
 			customPortDetails: this.customPortDetails,
 			customPortTypes: this.customPortTypes,
@@ -90,7 +90,7 @@ export class PoliwrathsPortmanteaus extends Guessing {
 		return "A possible portmanteau was __" + givenAnswer.charAt(0).toUpperCase() + givenAnswer.substr(1) + "__ (" + this.answerParts[givenAnswer].join(" + ") + ").";
 	}
 
-	checkAnswer(guess: string): string {
+	async checkAnswer(guess: string): Promise<string> {
 		let sanitizedGuess;
 		let guessParts;
 		if (guess.includes(',')) {
@@ -117,13 +117,13 @@ export class PoliwrathsPortmanteaus extends Guessing {
 		}
 		if (!sanitizedGuess) sanitizedGuess = Tools.toId(guess);
 		let match = '';
-		for (let i = 0, len = this.answers.length; i < len; i++) {
+		for (let i = 0; i < this.answers.length; i++) {
 			if (sanitizedGuess === this.answers[i]) {
 				match = this.answers[i];
 				break;
 			}
 		}
-		return match;
+		return Promise.resolve(match);
 	}
 }
 

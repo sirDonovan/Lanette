@@ -33,7 +33,7 @@ export abstract class Guessing extends Game {
 		this.say(this.hint);
 	}
 
-	checkAnswer(guess: string): string {
+	async checkAnswer(guess: string): Promise<string> {
 		guess = Tools.toId(guess);
 		let match = '';
 		const guessMega = (guess.substr(0, 4) === 'mega' ? guess.substr(4) + 'mega' : '');
@@ -45,7 +45,7 @@ export abstract class Guessing extends Game {
 				break;
 			}
 		}
-		return match;
+		return Promise.resolve(match);
 	}
 
 	getAnswers(givenAnswer: string, finalAnswer?: boolean): string {
@@ -70,21 +70,21 @@ export abstract class Guessing extends Game {
 
 export const commands: Dict<ICommandDefinition<Guessing>> = {
 	guess: {
-		command(target, room, user) {
+		async command(target, room, user) {
 			if (!this.started || !this.canGuess || !this.answers.length || (this.players[user.id] && this.players[user.id].eliminated) ||
 				(this.parentGame && (!this.players[user.id] || this.players[user.id].eliminated))) return;
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (!player.active) player.active = true;
-			const guess = Tools.toId(target);
-			if (!guess) return;
-			if (this.filterGuess && this.filterGuess(guess)) return;
+			if (!Tools.toId(target)) return;
+			if (this.filterGuess && this.filterGuess(target)) return;
 			if (this.roundGuesses) {
 				if (this.roundGuesses.has(player)) return;
 				this.roundGuesses.set(player, true);
 			}
-			const answer = this.checkAnswer(guess);
+			const answer = await this.checkAnswer(target);
+			if (this.ended || !this.answers.length) return;
 			if (!answer) {
-				if (this.onGuess) this.onGuess(guess);
+				if (this.onGuess) this.onGuess(target);
 				return;
 			}
 			if (this.timeout) clearTimeout(this.timeout);

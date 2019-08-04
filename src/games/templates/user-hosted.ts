@@ -316,13 +316,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			description: "Players try to pair the given Pokemon according to /dexsearch parameters! Valid parameter types include generation, color, type, and ability.",
 		},
 		{
-			name: "Paras' Parameters",
-			mascot: "Paras",
-			aliases: ['Parameters', 'Params', 'Paras'],
-			description: "Players search for possible /dexsearch parameters that result in the given Pokemon list!",
-			freejoin: true,
-		},
-		{
 			name: "Piplup's Letter Placements",
 			mascot: "Piplup",
 			aliases: ['PLP', 'Piplups'],
