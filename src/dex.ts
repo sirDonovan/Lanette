@@ -244,6 +244,17 @@ export class Dex {
 		return this;
 	}
 
+	modData(dataType: string, id: string) {
+		// @ts-ignore
+		if (this.isBase) return this.data[dataType][id];
+		// @ts-ignore
+		if (this.data[dataType][id] !== dexes[this.parentMod].data[dataType][id]) return this.data[dataType][id];
+		// @ts-ignore
+		this.data[dataType][id] = Tools.deepClone(this.data[dataType][id]);
+		// @ts-ignore
+		return this.data[dataType][id];
+	}
+
 	loadDataFile(basePath: string, dataFiles: Dict<string>, dataType: string): Dict<any> {
 		try {
 			const filePath = path.join(basePath, dataFiles[dataType]);
@@ -388,9 +399,9 @@ export class Dex {
 
 		const dataTypesToLoad = dataTypes.concat(['Aliases', 'Natures']);
 		for (const dataType of dataTypesToLoad) {
-			if (dataType === 'Natures' && this.isBase) {
+			if (dataType === 'Natures') {
 				// @ts-ignore
-				this.dataCache[dataType] = natures;
+				if (this.isBase) this.dataCache[dataType] = natures;
 				continue;
 			}
 			const BattleData = this.loadDataFile(this.modDataDir, dataFiles, dataType);
@@ -574,7 +585,7 @@ export class Dex {
 		const abilities: IAbility[] = [];
 		for (const i in this.data.abilities) {
 			const ability = this.getExistingAbility(i);
-			if (!ability.name || ability.isNonstandard || (filterAbility && filterAbility(ability))) continue;
+			if (!ability.name || ability.isNonstandard || ability.gen > this.gen || (filterAbility && filterAbility(ability))) continue;
 			abilities.push(ability);
 		}
 		return abilities;
@@ -642,7 +653,7 @@ export class Dex {
 		const items: IItem[] = [];
 		for (const i in this.data.items) {
 			const item = this.getExistingItem(i);
-			if (!item.name || item.isNonstandard || (filterItem && filterItem(item))) continue;
+			if (!item.name || item.isNonstandard || item.gen > this.gen || (filterItem && filterItem(item))) continue;
 			items.push(item);
 		}
 		return items;
@@ -708,7 +719,7 @@ export class Dex {
 		const moves: IMove[] = [];
 		for (const i in this.data.moves) {
 			const move = this.getExistingMove(i);
-			if (!move.name || move.isNonstandard || (filterMove && filterMove(move))) continue;
+			if (!move.name || move.isNonstandard || move.gen > this.gen || (filterMove && filterMove(move))) continue;
 			moves.push(move);
 		}
 		return moves;
@@ -781,7 +792,6 @@ export class Dex {
 			name: templateData.species,
 			nfe: !!evos.length,
 			shiny: false,
-			speciesId,
 			spriteId: Tools.toId(baseSpecies) + (baseSpecies !== templateData.species ? '-' + Tools.toId(templateData.forme) : ''),
 			tier,
 		};
@@ -812,7 +822,7 @@ export class Dex {
 		const pokedex: IPokemon[] = [];
 		for (const i in this.data.pokedex) {
 			const pokemon = this.getExistingPokemon(i);
-			if (!pokemon.species || pokemon.isNonstandard || (filterPokemon && filterPokemon(pokemon))) continue;
+			if (!pokemon.species || pokemon.isNonstandard || pokemon.gen > this.gen || (filterPokemon && filterPokemon(pokemon))) continue;
 			pokedex.push(pokemon);
 		}
 		return pokedex;
@@ -1345,7 +1355,7 @@ export class Dex {
 
 	hasGifData(pokemon: IPokemon, direction?: 'front' | 'back'): boolean {
 		if (!direction) direction = 'front';
-		if (this.data.gifData.hasOwnProperty(pokemon.speciesId) && this.data.gifData[pokemon.speciesId]![direction]) return true;
+		if (this.data.gifData.hasOwnProperty(pokemon.id) && this.data.gifData[pokemon.id]![direction]) return true;
 		return false;
 	}
 
@@ -1368,8 +1378,8 @@ export class Dex {
 		let gif = '<img src="' + prefix + pokemon.spriteId + '.gif" ';
 		if (width && height) {
 			gif += 'width="' + width + '" height="' + height + '"';
-		} else if (this.data.gifData.hasOwnProperty(pokemon.speciesId) && this.data.gifData[pokemon.speciesId]![direction]) {
-			const data = this.data.gifData[pokemon.speciesId]![direction]!;
+		} else if (this.data.gifData.hasOwnProperty(pokemon.id) && this.data.gifData[pokemon.id]![direction]) {
+			const data = this.data.gifData[pokemon.id]![direction]!;
 			gif += 'width="' + data.w + '" height="' + data.h + '"';
 		}
 		gif += ' />';

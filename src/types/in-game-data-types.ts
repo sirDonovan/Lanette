@@ -603,7 +603,6 @@ export interface IPokemonComputed {
 	name: string;
 	nfe: boolean;
 	shiny: boolean;
-	speciesId: string;
 	spriteId: string;
 	tier: string;
 }
