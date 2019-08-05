@@ -188,6 +188,7 @@ export class Storage {
 				} else {
 					database.leaderboard[destinationId].sources[source] = database.leaderboard[sourceId].sources[source];
 				}
+				delete database.leaderboard[sourceId].sources[source];
 			}
 			for (const source in database.leaderboard[sourceId].annualSources) {
 				if (source in database.leaderboard[destinationId].annualSources) {
@@ -195,9 +196,12 @@ export class Storage {
 				} else {
 					database.leaderboard[destinationId].annualSources[source] = database.leaderboard[sourceId].annualSources[source];
 				}
+				delete database.leaderboard[sourceId].annualSources[source];
 			}
 			database.leaderboard[destinationId].current += database.leaderboard[sourceId].current;
+			database.leaderboard[sourceId].current = 0;
 			database.leaderboard[destinationId].annual += database.leaderboard[sourceId].annual;
+			database.leaderboard[sourceId].annual = 0;
 		}
 
 		if (roomid + hostingDatabaseSuffix in this.databases) this.transferData(roomid + hostingDatabaseSuffix, source, destination);
