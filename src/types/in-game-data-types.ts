@@ -679,6 +679,11 @@ export interface INature {
 	minus?: string;
 }
 
+export interface IGifData {
+	back?: {h: number, w: number};
+	front?: {h: number, w: number};
+}
+
 export interface IDataTable {
 	readonly abilities: Dict<IAbilityData | undefined>;
 	readonly aliases: Dict<string | undefined>;
@@ -689,7 +694,8 @@ export interface IDataTable {
 	readonly eggGroups: Dict<string>;
 	readonly formats: Dict<(IFormatData & IFormatLinks) | undefined>;
 	readonly formatsData: Dict<ITemplateFormatsData | undefined>;
-	readonly gifData: Dict<{back?: {h: number, w: number}, front?: {h: number, w: number}} | undefined>;
+	readonly gifData: Dict<IGifData | undefined>;
+	readonly gifDataBW: Dict<IGifData | undefined>;
 	readonly items: Dict<IItemData | undefined>;
 	readonly learnsets: Dict<ILearnset | undefined>;
 	readonly moves: Dict<IMoveData | undefined>;

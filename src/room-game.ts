@@ -291,7 +291,7 @@ export class Game extends Activity {
 					this.shinyMascot = false;
 				}
 			}
-			const gif = Dex.getPokemonGif(this.mascot, this.isUserHosted ? 'back' : 'front');
+			const gif = Dex.getPokemonGif(this.mascot, "xy", this.isUserHosted ? 'back' : 'front');
 			if (gif) html += gif + "&nbsp;&nbsp;&nbsp;";
 		}
 		html += "<b><font size='3'>" + this.nameWithOptions + "</font></b>";

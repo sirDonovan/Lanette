@@ -2,7 +2,7 @@ import fs = require('fs');
 import path = require('path');
 
 import { Room } from './rooms';
-import { IAbility, IAbilityComputed, IAbilityCopy, IDataTable, IFormat, IFormatComputed, IFormatData, IFormatLinks, IItem, IItemComputed, IItemCopy, IMove, IMoveComputed, IMoveCopy, INature, IPokemon, IPokemonComputed, IPokemonCopy, IPokemonSources, ISeparatedCustomRules, PokemonSource } from './types/in-game-data-types';
+import { IAbility, IAbilityComputed, IAbilityCopy, IDataTable, IFormat, IFormatComputed, IFormatData, IFormatLinks, IGifData, IItem, IItemComputed, IItemCopy, IMove, IMoveComputed, IMoveCopy, INature, IPokemon, IPokemonComputed, IPokemonCopy, IPokemonSources, ISeparatedCustomRules, PokemonSource } from './types/in-game-data-types';
 
 interface IDataSearchResult {
 	name: string;
@@ -45,6 +45,7 @@ const lanetteDataFiles: Dict<string> = {
 	'Characters': 'characters',
 	'FormatLinks': 'format-links',
 	'PokemonSprites': 'pokedex-mini',
+	'PokemonSpritesBW': 'pokedex-mini-bw',
 	'TrainerClasses': 'trainer-classes',
 };
 const lanetteDataTypes = Object.keys(lanetteDataFiles);
@@ -217,6 +218,7 @@ export class Dex {
 			formats: {},
 			formatsData: {},
 			gifData: {},
+			gifDataBW: {},
 			items: {},
 			learnsets: {},
 			moves: {},
@@ -476,6 +478,8 @@ export class Dex {
 				dataType = 'moves';
 			} else if (dataType === 'PokemonSprites') {
 				dataType = 'gifData';
+			} else if (dataType === 'PokemonSpritesBW') {
+				dataType = 'gifDataBW';
 			} else if (dataType === 'TrainerClasses') {
 				dataType = 'trainerClasses';
 			} else if (dataType === 'TypeChart') {
@@ -531,7 +535,7 @@ export class Dex {
 	}
 
 	async fetchClientData() {
-		const files = ['pokedex-mini.js'];
+		const files = ['pokedex-mini.js', 'pokedex-mini-bw.js'];
 		for (let i = 0; i < files.length; i++) {
 			const file = await Tools.fetchUrl('https://play.pokemonshowdown.com/data/' + files[i]);
 			if (typeof file !== 'string') {
@@ -1369,36 +1373,51 @@ export class Dex {
 		return html.join("<br />");
 	}
 
-	hasGifData(pokemon: IPokemon, direction?: 'front' | 'back'): boolean {
+	hasGifData(pokemon: IPokemon, generation?: 'xy' | 'bw', direction?: 'front' | 'back'): boolean {
+		if (!generation) generation = 'xy';
 		if (!direction) direction = 'front';
-		if (this.data.gifData.hasOwnProperty(pokemon.id) && this.data.gifData[pokemon.id]![direction]) return true;
+		if (generation === 'bw') {
+			if (this.data.gifDataBW.hasOwnProperty(pokemon.id) && this.data.gifDataBW[pokemon.id]![direction]) return true;
+		} else {
+			if (this.data.gifData.hasOwnProperty(pokemon.id) && this.data.gifData[pokemon.id]![direction]) return true;
+		}
 		return false;
 	}
 
-	getPokemonGif(pokemon: IPokemon, direction?: 'front' | 'back', width?: number, height?: number): string {
+	getPokemonGif(pokemon: IPokemon, generation?: 'xy' | 'bw', direction?: 'front' | 'back', width?: number, height?: number): string {
+		if (!generation) generation = 'xy';
+		const bw = generation === 'bw';
+		if (bw && pokemon.gen > 5) return '';
+		let prefix = '//play.pokemonshowdown.com/sprites/' + generation + 'ani';
 		if (!direction) direction = 'front';
-		let prefix = '';
 		if (direction === 'front') {
 			if (pokemon.shiny) {
-				prefix = "//play.pokemonshowdown.com/sprites/xyani-shiny/";
-			} else {
-				prefix = "//play.pokemonshowdown.com/sprites/xyani/";
+				prefix += "-shiny";
 			}
 		} else {
 			if (pokemon.shiny) {
-				prefix = "//play.pokemonshowdown.com/sprites/xyani-back-shiny/";
+				prefix += "-back-shiny";
 			} else {
-				prefix = "//play.pokemonshowdown.com/sprites/xyani-back/";
+				prefix += "-back";
 			}
 		}
-		let gif = '<img src="' + prefix + pokemon.spriteId + '.gif" ';
-		if (width && height) {
-			gif += 'width="' + width + '" height="' + height + '"';
-		} else if (this.data.gifData.hasOwnProperty(pokemon.id) && this.data.gifData[pokemon.id]![direction]) {
-			const data = this.data.gifData[pokemon.id]![direction]!;
-			gif += 'width="' + data.w + '" height="' + data.h + '"';
+		let gif = '<img src="' + prefix + '/' + pokemon.spriteId + '.gif" ';
+		if (!width || !height) {
+			let gifData: IGifData | undefined;
+			if (bw) {
+				if (this.data.gifDataBW.hasOwnProperty(pokemon.id)) gifData = this.data.gifDataBW[pokemon.id]!;
+			} else {
+				if (this.data.gifData.hasOwnProperty(pokemon.id)) gifData = this.data.gifData[pokemon.id]!;
+			}
+			if (gifData && gifData[direction]) {
+				if (!width) width = gifData[direction]!.w;
+				if (!height) height = gifData[direction]!.h;
+			} else if (bw) {
+				if (!width) width = 96;
+				if (!height) height = 96;
+			}
 		}
-		gif += ' />';
+		gif += 'width="' + width + '" height="' + height + '" />';
 		return gif;
 	}
 
