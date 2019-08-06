@@ -200,13 +200,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			freejoin: true,
 		},
 		{
-			name: "Kyurem's Splits",
-			mascot: "Kyurem",
-			aliases: ['Splits', 'Kyurems'],
-			description: "The host gives certain letters and players attempt to give an answer that has all those letters in that order.",
-			freejoin: true,
-		},
-		{
 			name: "Letter Getter",
 			description: "In this game, players must complete the phrase with the given letters and (optional) numbers. Example: __26 L of the A__ would be __26 Letters of the Alphabet__.",
 			freejoin: true,
