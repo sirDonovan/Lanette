@@ -404,12 +404,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			description: "Each player is sent the location for the game and a unique job. If a player is chosen to be the spy, only they will know and they will not receive the location. By asking questions in turns, the spy tries to guess the location and the other players try to discover the spy.",
 		},
 		{
-			name: "Tapus' Terrains",
-			mascots: ['Tapu Bulu', 'Tapu Koko', 'Tapu Fini', 'Tapu Lele'],
-			aliases: ['Terrain Race', 'Tapus'],
-			description: "Players race through various terrains on Pokemon! Only jump on Pokemon of the appropriate type in each terrain!",
-		},
-		{
 			name: "The Chosen One",
 			description: "The host PMs a selected player three words. A timer is set and all players have a conversation in the chat, in which the selected player must use all three words. After the timer ends, all players PM the host who they think was The Chosen One.",
 			aliases: ['tco', 'chosenone'],
