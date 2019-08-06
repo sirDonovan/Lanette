@@ -119,13 +119,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			description: "Players have to do .count in the right order based on the given category (numbers, words or etc.). The first person to mess up the sequence loses a point, so be careful!",
 		},
 		{
-			name: "Dedenne’s Ability Blitz",
-			mascot: "Dedenne",
-			aliases: ['DAB', 'Dedennes'],
-			description: "Players try to type one of the shown abilities before anyone else within the three second timer! Abilities containing more letters award more points.",
-			freejoin: true,
-		},
-		{
 			name: "Delcatty's Hide and Seek",
 			mascot: "Delcatty",
 			aliases: ['DHS', 'Delcattys'],
