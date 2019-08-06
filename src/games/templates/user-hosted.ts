@@ -162,13 +162,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			description: "Each player adds a letter to a string of letters while trying not to form an English word on their turn. If a word is formed, that player is eliminated. Players may challenge the previous player for elimination if there is no word that can be formed from the existing string.",
 		},
 		{
-			name: "Greninja's Typings",
-			mascot: "Greninja",
-			aliases: ['Typings', 'Greninjas'],
-			description: "Players guess Pokemon that match the given typing!",
-			freejoin: true,
-		},
-		{
 			name: "Guess That Auth",
 			description: "Players guess users that have matching global and room auth as the lists presented by the host.",
 			aliases: ['gta'],
