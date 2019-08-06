@@ -200,13 +200,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			freejoin: true,
 		},
 		{
-			name: "Kirlia's Tracing Show",
-			mascot: "Kirlia",
-			aliases: ['KTS', 'Kirlias'],
-			description: "Players guess abilities that the chosen Pokemon have!",
-			freejoin: true,
-		},
-		{
 			name: "Kyurem's Splits",
 			mascot: "Kyurem",
 			aliases: ['Splits', 'Kyurems'],
