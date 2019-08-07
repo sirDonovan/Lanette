@@ -368,7 +368,7 @@ export const game: IUserHostedFile<UserHosted> = {
 			name: "Scizor's Clock Tower",
 			mascot: "Scizor",
 			aliases: ['Clock Tower', 'Scizors'],
-			description: "Evade the Scizor as it tries to capture the players by selecting their doors and capturing its prey by being faster than them in a series of minigames! More info: https://www.tapatalk.com/groups/psgamecorner/scizor-39-s-clock-tower-t803.html",
+			description: "Evade the Scizor as it tries to capture the players by selecting their doors and capturing its prey by being faster than them in a series of minigames! More info: https://www.tapatalk.com/groups/ps_game_corner/scizor-39-s-clock-tower-t803.html",
 		},
 		{
 			name: "Scyther's Message Slide",
