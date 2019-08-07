@@ -177,6 +177,34 @@ const commands: Dict<ICommandDefinition> = {
 		},
 		aliases: ['om', 'tier'],
 	},
+	randombattle: {
+		command(target, room, user) {
+			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return false;
+			const pokemon = Dex.getPokemon(target);
+			if (!pokemon) return this.say("'" + target.trim() + "' is not a valid Pokemon.");
+			if (!pokemon.randomBattleMoves) return this.say("No Random Battle data found for " + pokemon.species + ".");
+			const data: string[] = [];
+			for (let i = 0; i < pokemon.randomBattleMoves.length; i++) {
+				data.push(Dex.getExistingMove(pokemon.randomBattleMoves[i]).name);
+			}
+			this.say("**" + pokemon.species + " moves**: " + Tools.joinList(data.sort()) + ".");
+		},
+		aliases: ['randombattles', 'randbat', 'randbats'],
+	},
+	randomdoublesbattle: {
+		command(target, room, user) {
+			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return false;
+			const pokemon = Dex.getPokemon(target);
+			if (!pokemon) return this.say("'" + target.trim() + "' is not a valid Pokemon.");
+			if (!pokemon.randomDoubleBattleMoves) return this.say("No Random Doubles Battle data found for " + pokemon.species + ".");
+			const data: string[] = [];
+			for (let i = 0; i < pokemon.randomDoubleBattleMoves.length; i++) {
+				data.push(Dex.getExistingMove(pokemon.randomDoubleBattleMoves[i]).name);
+			}
+			this.say("**" + pokemon.species + " doubles moves**: " + Tools.joinList(data.sort()) + ".");
+		},
+		aliases: ['randomdoublesbattles', 'randombattledoubles', 'randombattlesdoubles', 'randdubs', 'randbatdubs', 'randbatsdubs'],
+	},
 	eventlink: {
 		command(target, room, user) {
 			const targets = target.split(',');
