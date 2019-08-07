@@ -73,19 +73,19 @@ export function init(): worker_threads.Worker {
 		const pokemon = pokedex[i];
 		if (pokemon.tier !== 'Illegal') {
 			if (!(pokemon.tier in data.pool['Pokemon']['tier'])) data.pool['Pokemon']['tier'][pokemon.tier] = [];
-			data.pool['Pokemon']['tier'][pokemon.tier].push(pokemon.species);
+			if (!(pokemon.forme && data.pool['Pokemon']['tier'][pokemon.tier].includes(pokemon.baseSpecies))) data.pool['Pokemon']['tier'][pokemon.tier].push(pokemon.species);
 		}
 		if (!(pokemon.color in data.pool['Pokemon']['color'])) data.pool['Pokemon']['color'][pokemon.color] = [];
-		data.pool['Pokemon']['color'][pokemon.color].push(pokemon.species);
+		if (!(pokemon.forme && data.pool['Pokemon']['color'][pokemon.color].includes(pokemon.baseSpecies))) data.pool['Pokemon']['color'][pokemon.color].push(pokemon.species);
 		if (!(pokemon.gen in data.pool['Pokemon']['gen'])) data.pool['Pokemon']['gen'][pokemon.gen] = [];
-		data.pool['Pokemon']['gen'][pokemon.gen].push(pokemon.species);
+		if (!(pokemon.forme && data.pool['Pokemon']['gen'][pokemon.gen].includes(pokemon.baseSpecies))) data.pool['Pokemon']['gen'][pokemon.gen].push(pokemon.species);
 		for (let i = 0; i < pokemon.types.length; i++) {
 			if (!(pokemon.types[i] in data.pool['Pokemon']['type'])) data.pool['Pokemon']['type'][pokemon.types[i]] = [];
-			data.pool['Pokemon']['type'][pokemon.types[i]].push(pokemon.species);
+			if (!(pokemon.forme && data.pool['Pokemon']['type'][pokemon.types[i]].includes(pokemon.baseSpecies))) data.pool['Pokemon']['type'][pokemon.types[i]].push(pokemon.species);
 		}
 		for (let i = 0; i < pokemon.eggGroups.length; i++) {
 			if (!(pokemon.eggGroups[i] in data.pool['Pokemon']['egggroup'])) data.pool['Pokemon']['egggroup'][pokemon.eggGroups[i]] = [];
-			data.pool['Pokemon']['egggroup'][pokemon.eggGroups[i]].push(pokemon.species);
+			if (!(pokemon.forme && data.pool['Pokemon']['egggroup'][pokemon.eggGroups[i]].includes(pokemon.baseSpecies))) data.pool['Pokemon']['egggroup'][pokemon.eggGroups[i]].push(pokemon.species);
 		}
 	}
 
