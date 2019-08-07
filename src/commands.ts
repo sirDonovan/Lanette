@@ -1186,6 +1186,24 @@ const commands: Dict<ICommandDefinition> = {
 		},
 		aliases: ['tcap'],
 	},
+	tournamentenablepoints: {
+		command(target, room, user, cmd) {
+			if (this.isPm(room) || !room.tournament || !user.hasRank(room, 'driver')) return;
+			if (!(Config.rankedTournaments && Config.rankedTournaments.includes(room.id) && !(Config.rankedCustomTournaments && Config.rankedCustomTournaments.includes(room.id)))) {
+				return this.say("A tournament leaderboard is not enabled for this room.");
+			}
+			if (cmd === 'tournamentenablepoints' || cmd === 'tourenablepoints') {
+				if (room.tournament.canAwardPoints() || room.tournament.manuallyEnabledPoints) return this.say("The " + room.tournament.name + " tournament will already award leaderboard points.");
+				room.tournament.manuallyEnabledPoints = true;
+				this.say("The " + room.tournament.name + " tournament will now award leaderboard points.");
+			} else {
+				if (!room.tournament.canAwardPoints() || !room.tournament.manuallyEnabledPoints) return this.say("The " + room.tournament.name + " tournament will already not award leaderboard points.");
+				room.tournament.manuallyEnabledPoints = false;
+				this.say("The " + room.tournament.name + " tournament will no longer award leaderboard points.");
+			}
+		},
+		aliases: ['tourenablepoints', 'tournamentdisablepoints', 'tourdisablepoints'],
+	},
 	tournamentbattlescore: {
 		command(target, room, user) {
 			const targets = target.split(",");
