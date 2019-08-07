@@ -243,6 +243,28 @@ export class Tools {
 		return 31;
 	}
 
+	/**
+	 * Returns 2 numbers for month/day or 3 for year/month/day
+	 */
+	toDateArray(input: string, pastDate?: boolean): number[] | null {
+		const parts = input.split('/');
+		const extracted: number[] = [];
+		let hasYear = false;
+		for (let i = 0; i < parts.length; i++) {
+			const partNumber = parseInt(parts[i]);
+			if (isNaN(partNumber)) return null;
+			if (partNumber > 31) {
+				if (hasYear) return null;
+				hasYear = true;
+				extracted.unshift(partNumber);
+			} else {
+				extracted.push(partNumber);
+			}
+		}
+		if (hasYear && extracted.length === 2) extracted.push(pastDate ? 1 : new Date().getDate());
+		return extracted;
+	}
+
 	isInteger(text: string): boolean {
 		text = text.trim();
 		if (text.charAt(0) === '-') text = text.substr(1);

@@ -1,4 +1,5 @@
 import child_process = require('child_process');
+import fs = require('fs');
 import path = require('path');
 
 import { ICommandDefinition } from "./command-parser";
@@ -49,7 +50,9 @@ const commands: Dict<ICommandDefinition> = {
 			const targets = target.split(",");
 			for (let i = 0; i < targets.length; i++) {
 				const id = Tools.toId(targets[i]) as ReloadableModule;
-				if (id === 'games') {
+				if (id === 'commandparser') {
+					if (CommandParser.logsWorker.requests.length) return this.say("You must wait for all logs requests to finish first.");
+				} else if (id === 'games') {
 					const workerGameRooms: Room[] = [];
 					Users.self.rooms.forEach((rank, room) => {
 						if (room.game && room.game.format.worker) workerGameRooms.push(room);
@@ -81,6 +84,7 @@ const commands: Dict<ICommandDefinition> = {
 						global.Client = new client.Client();
 						Client.onReload(oldClient);
 					} else if (modules[i] === 'commandparser') {
+						CommandParser.unrefWorkers();
 						Tools.uncacheTree('./command-parser');
 						const commandParser: typeof import('./command-parser') = require('./command-parser');
 						global.CommandParser = new commandParser.CommandParser();
@@ -1916,6 +1920,185 @@ const commands: Dict<ICommandDefinition> = {
 			if (!Storage.transferData(targetRoom.id, source, destination)) return;
 			this.say("Data from " + source + " in " + targetRoom.title + " has been successfully transferred to " + destination + ".");
 			targetRoom.sayCommand("/modnote " + user.name + " transferred data from " + source + " to " + destination + ".");
+		},
+	},
+	logs: {
+		async command(target, room, user) {
+			if (!this.isPm(room)) return;
+			const targets = target.split(",");
+			if (targets.length < 3) return this.say("You must specify at least a room, a user, and a start date or phrase.");
+			const targetRoom = Rooms.search(targets[0]);
+			if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+			if (!user.isDeveloper() && !user.hasRank(targetRoom, 'driver')) return;
+			if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
+			targets.shift();
+
+			let phrases: string[] | null = null;
+			const userParts = targets[0].split("|");
+			let userids: string[] | null = null;
+			let anyUser = false;
+			for (let i = 0; i < userParts.length; i++) {
+				if (userParts[i].trim() === '*') {
+					anyUser = true;
+					continue;
+				}
+				const id = Tools.toId(userParts[i]);
+				if (!id) continue;
+				if (!Tools.isUsernameLength(userParts[i])) return this.say("You have included an invalid username (" + userParts[0].trim() + ").");
+				if (!userids) userids = [];
+				userids.push(id);
+			}
+			targets.shift();
+
+			let autoStartYear = false;
+			let autoEndYear = false;
+			const date = new Date();
+			const currentYear = date.getFullYear();
+			const currentMonth = date.getMonth() + 1;
+			const currentDate = date.getDate();
+			let startDate: number[] = [];
+			let endDate: number[] = [];
+			for (let i = 0; i < targets.length; i++) {
+				if (!Tools.toId(targets[i])) continue;
+				const target = targets[i].trim();
+				if (target.includes("/") && (!startDate.length || !endDate.length)) {
+					// startDate-endDate
+					if (target.includes("-")) {
+						const parts = target.split("-");
+						const startExtracted = Tools.toDateArray(parts[0], true);
+						const endExtracted = Tools.toDateArray(parts[1]);
+						if (startExtracted && endExtracted) {
+							startDate = startExtracted;
+							endDate = endExtracted;
+							if (startDate.length === 2) {
+								startDate.unshift(currentYear);
+								autoStartYear = true;
+							}
+							if (endDate.length === 2) {
+								endDate.unshift(currentYear);
+								autoEndYear = true;
+							}
+						}
+					} else {
+						const startExtracted = Tools.toDateArray(target, true);
+						if (startExtracted) {
+							startDate = startExtracted;
+							if (startDate.length === 2) {
+								startDate.unshift(currentYear);
+								autoStartYear = true;
+							}
+						}
+					}
+				} else {
+					if (!phrases) phrases = [];
+					phrases.push(target.toLowerCase());
+				}
+			}
+
+			const roomDirectory = path.join(CommandParser.logsWorker.data.roomLogsDir, targetRoom.id);
+			let years: string[] = [];
+			try {
+				years = fs.readdirSync(roomDirectory);
+			} catch (e) {
+				return this.say("Chat logging is not enabled for " + targetRoom.id + ".");
+			}
+			const numberYears = years.map(x => parseInt(x));
+			const firstLoggedYear = numberYears.sort((a, b) => a - b)[0];
+			const days = fs.readdirSync(roomDirectory + "/" + firstLoggedYear);
+			const months: Dict<number[]> = {};
+			for (let i = 0; i < days.length; i++) {
+				if (!days[i].endsWith('.txt')) continue;
+				const parts = days[i].split(".")[0].split('-');
+				const month = parts[1];
+				if (!(month in months)) months[month] = [];
+				months[month].push(parseInt(parts[2]));
+			}
+			const numberMonths = Object.keys(months);
+			const firstLoggedMonthString = numberMonths.sort((a, b) => parseInt(a) - parseInt(b))[0];
+			const firstLoggedDay = months['' + firstLoggedMonthString].sort((a, b) => a - b)[0];
+			const firstLoggedMonth = parseInt(firstLoggedMonthString);
+			if (!startDate.length) {
+				startDate = [firstLoggedYear, firstLoggedMonth, firstLoggedDay];
+			} else {
+				if (startDate[0] > currentYear) return this.say("You cannot search past the current year.");
+				if (autoStartYear && startDate[0] === currentYear && startDate[1] > currentMonth) startDate[0]--;
+				if (startDate[0] === currentYear) {
+					if (startDate[1] > currentMonth) return this.say("You cannot search past the current month.");
+					if (startDate[1] === currentMonth) {
+						if (startDate[2] > currentDate) return this.say("You cannot search past the current day.");
+					}
+				}
+
+				if (startDate[0] < firstLoggedYear) return this.say("There are no chat logs from before " + firstLoggedYear + ".");
+				if (startDate[0] === firstLoggedYear) {
+					if (startDate[1] < firstLoggedMonth) return this.say("There are no chat logs from before " + firstLoggedMonth + "/" + firstLoggedYear + ".");
+					if (startDate[1] === firstLoggedMonth) {
+						if (startDate[2] < firstLoggedDay) return this.say("There are no chat logs from before " + firstLoggedMonth + "/" + firstLoggedDay + "/" + firstLoggedYear + ".");
+					}
+				}
+			}
+
+			if (!endDate.length) {
+				endDate = [currentYear, currentMonth, currentDate];
+			} else {
+				if (endDate[0] > currentYear) return this.say("You cannot search past the current year.");
+				if (autoEndYear && endDate[0] === currentYear && endDate[1] > currentMonth) endDate[0]--;
+				if (endDate[0] === currentYear) {
+					if (endDate[1] > currentMonth) return this.say("You cannot search past the current month.");
+					if (endDate[1] === currentMonth) {
+						if (endDate[2] > currentDate) return this.say("You cannot search past the current day.");
+					}
+				}
+
+				if (endDate[0] < firstLoggedYear) return this.say("There are no chat logs from before " + firstLoggedYear + ".");
+				if (endDate[0] === firstLoggedYear) {
+					if (endDate[1] < firstLoggedMonth) return this.say("There are no chat logs from before " + firstLoggedMonth + "/" + firstLoggedYear + ".");
+					if (endDate[1] === firstLoggedMonth) {
+						if (endDate[2] < firstLoggedDay) return this.say("There are no chat logs from before " + firstLoggedDay + "/" + firstLoggedMonth + "/" + firstLoggedYear + ".");
+					}
+				}
+			}
+
+			if (startDate[0] > endDate[0]) return this.say("You must enter the search dates in sequential order.");
+			if (startDate[0] === endDate[0]) {
+				if (startDate[1] > endDate[1]) return this.say("You must enter the search dates in sequential order.");
+				if (startDate[1] === endDate[1]) {
+					if (startDate[2] > endDate[2]) return this.say("You must enter the search dates in sequential order.");
+				}
+			}
+
+			if (!userids && !phrases) return this.say("You must include at least one user or phrase in your search.");
+			if (anyUser && userids) return this.say("You cannot search for both a specific user and any user.");
+			if (phrases) {
+				for (let i = 0; i < phrases.length; i++) {
+					if (phrases[i].length === 1) return this.say("You cannot search for a single character.");
+				}
+			}
+			if (CommandParser.logsWorker.requests.includes(user.id)) return this.say("You can only perform 1 search at a time.");
+
+			const displayStartDate = startDate.slice(1);
+			displayStartDate.push(startDate[0]);
+			const displayEndDate = endDate.slice(1);
+			displayEndDate.push(endDate[0]);
+			let text = "Retrieving chat logs from " + displayStartDate.join("/") + " to " + displayEndDate.join("/");
+			if (userids) {
+				text += " for the user '" + userids.join("|") + "'" + (phrases ? " containing the phrase '" + phrases.join("|") + "'" : "");
+			} else if (phrases) {
+				text += " containing the phrase '" + phrases.join("|") + "'";
+			}
+			text += "...";
+			this.say(text);
+			CommandParser.logsWorker.requests.push(user.id);
+			const result = await CommandParser.logsWorker.search({
+				endDate,
+				phrases,
+				roomid: targetRoom.id,
+				showCommands: (Config.allowScriptedGames && Config.allowScriptedGames.includes(targetRoom.id)) || (Config.allowUserHostedGames && Config.allowUserHostedGames.includes(targetRoom.id)) ? true : false,
+				startDate,
+				userids,
+			});
+			this.sayHtml("<details><summary>Found <b>" + result.totalLines + "</b> line" + (result.totalLines === 1 ? "" : "s") + ":</summary><br>" + result.lines.join("<br />") + "</details>", targetRoom);
+			CommandParser.logsWorker.requests.splice(CommandParser.logsWorker.requests.indexOf(user.id), 1);
 		},
 	},
 };

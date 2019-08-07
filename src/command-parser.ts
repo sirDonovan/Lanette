@@ -1,5 +1,6 @@
 import { Room } from "./rooms";
 import { User } from "./users";
+import * as LogsWorker from './workers/logs';
 
 export interface ICommandDefinition<T = undefined> {
 	command: (this: T extends undefined ? Command : T, target: string, room: Room | User, user: User, alias: string) => void;
@@ -140,6 +141,12 @@ export class Command {
 }
 
 export class CommandParser {
+	logsWorker: typeof LogsWorker = LogsWorker;
+
+	unrefWorkers() {
+		this.logsWorker.unref();
+	}
+
 	loadCommands<T = undefined>(commands: Dict<ICommandDefinition<T>>): CommandsDict<T> {
 		const dict: CommandsDict<T> = {};
 		for (const i in commands) {
