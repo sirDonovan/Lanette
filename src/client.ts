@@ -1038,9 +1038,8 @@ export class Client {
 		}
 
 		if (room && room.bannedWords) {
-			for (let i = 0; i < room.bannedWords.length; i++) {
-				if (lowerCase.includes(room.bannedWords[i])) return true;
-			}
+			if (!room.bannedWordsRegex) room.bannedWordsRegex = new RegExp('(?:\\b|(?!\\w))(?:' + room.bannedWords.join('|') + ')(?:\\b|\\B(?!\\w))', 'i');
+			if (!!message.match(room.bannedWordsRegex)) return true;
 		}
 
 		return false;

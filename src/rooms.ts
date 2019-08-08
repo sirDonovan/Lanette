@@ -11,6 +11,7 @@ export type RoomType = 'battle' | 'chat' | 'html';
 
 export class Room {
 	bannedWords: string[] | null = null;
+	bannedWordsRegex: RegExp | null = null;
 	game: Game | null = null;
 	readonly htmlMessageListeners: Dict<() => void> = {};
 	readonly messageListeners: Dict<() => void> = {};
