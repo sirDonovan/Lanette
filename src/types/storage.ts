@@ -1,6 +1,7 @@
-interface IEventLink {
-	description: string;
-	link: string;
+interface IEventInformation {
+	name: string;
+	link?: {description: string, url: string};
+	formatIds?: string[];
 }
 
 interface ILeaderboardEntry {
@@ -18,7 +19,7 @@ interface IQueuedUserHostedGame {
 }
 
 export interface IDatabase {
-	eventLinks?: Dict<IEventLink>;
+	eventInformation?: Dict<IEventInformation>;
 	lastGameFormatTimes?: Dict<number>;
 	lastGameTime?: number;
 	lastTournamentFormatTimes?: Dict<number>;

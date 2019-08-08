@@ -17,7 +17,8 @@ export type CommandsDict<T = undefined> = Dict<Pick<ICommandDefinition<T>, Exclu
 type CommandErrorOptionalTarget = 'invalidBotRoom' | 'invalidFormat' | 'invalidGameFormat' | 'invalidTournamentFormat' | 'invalidUserHostedGameFormat' | 'invalidGameOption' | 'tooManyGameModes' |
 	'tooManyGameVariants' | 'emptyUserHostedGameQueue';
 
-type CommandErrorRequiredTarget = 'noPmHtmlRoom' | 'missingBotRankForFeatures' | 'disabledTournamentFeatures' | 'disabledGameFeatures' | 'disabledUserHostedGameFeatures';
+type CommandErrorRequiredTarget = 'noPmHtmlRoom' | 'missingBotRankForFeatures' | 'disabledTournamentFeatures' | 'disabledGameFeatures' | 'disabledUserHostedGameFeatures' | 'noRoomEventInformation' |
+	'invalidRoomEvent';
 
 export type CommandErrorArray = [CommandErrorOptionalTarget, string?] |  [CommandErrorRequiredTarget, string];
 
@@ -105,6 +106,10 @@ export class Command {
 			this.say("Scripted game features are not enabled for " + error[1].trim() + ".");
 		} else if (error[0] === 'disabledUserHostedGameFeatures') {
 			this.say("User-hosted game features are not enabled for " + error[1].trim() + ".");
+		} else if (error[0] === 'noRoomEventInformation') {
+			this.say(error[1].trim() + " does not currently have any event information stored.");
+		} else if (error[0] === 'invalidRoomEvent') {
+			this.say("You must specify one of " + error[1].trim() + "'s events.");
 		}
 	}
 

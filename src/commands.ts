@@ -209,58 +209,6 @@ const commands: Dict<ICommandDefinition> = {
 		},
 		aliases: ['randomdoublesbattles', 'randombattledoubles', 'randombattlesdoubles', 'randdubs', 'randbatdubs', 'randbatsdubs'],
 	},
-	eventlink: {
-		command(target, room, user) {
-			const targets = target.split(',');
-			let eventRoom: Room;
-			if (this.isPm(room)) {
-				const targetRoom = Rooms.search(targets[0]);
-				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
-				targets.shift();
-				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
-				eventRoom = targetRoom;
-			} else {
-				if (!user.hasRank(room, 'voice')) return;
-				eventRoom = room;
-			}
-
-			const database = Storage.getDatabase(eventRoom);
-			if (!database.eventLinks) return this.say(eventRoom.title + " does not currently have any event links stored.");
-			const event = Tools.toId(targets[0]);
-			if (!(event in database.eventLinks)) return this.say("'" + targets[0] + "' is not one of " + eventRoom.title + "'s event links.");
-			this.sayHtml("<a href='" + database.eventLinks[event].link + "'><b>" + database.eventLinks[event].description + "</b></a>", eventRoom);
-		},
-		aliases: ['elink'],
-	},
-	seteventlink: {
-		command(target, room, user) {
-			if (this.isPm(room) || !user.hasRank(room, 'driver')) return;
-			const targets = target.split(',');
-			const event = Tools.toId(targets[0]);
-			if (!event) return this.say("You must specify an event.");
-			const link = targets[1].trim();
-			if (!link.startsWith('http://') && !link.startsWith('https://')) return this.say("You must specify a valid link.");
-			const description = targets.slice(2).join(',').trim();
-			if (!description) return this.say("You must include a description for the link.");
-			const database = Storage.getDatabase(room);
-			if (!database.eventLinks) database.eventLinks = {};
-			database.eventLinks[event] = {description, link};
-			this.say("The event link and description for " + targets[0].trim() + " has been updated.");
-		},
-		aliases: ['setelink'],
-	},
-	removeeventlink: {
-		command(target, room, user) {
-			if (this.isPm(room) || !user.hasRank(room, 'driver')) return;
-			const database = Storage.getDatabase(room);
-			if (!database.eventLinks) return this.say(room.title + " does not currently have any event links stored.");
-			const event = Tools.toId(target);
-			if (!event || !(event in database.eventLinks)) return this.say("You must specify a valid event.");
-			delete database.eventLinks[event];
-			this.say("The event link for " + target.trim() + " has been removed.");
-		},
-		aliases: ['removeelink'],
-	},
 
 	/**
 	 * Game commands
@@ -1920,6 +1868,165 @@ const commands: Dict<ICommandDefinition> = {
 			if (!Storage.transferData(targetRoom.id, source, destination)) return;
 			this.say("Data from " + source + " in " + targetRoom.title + " has been successfully transferred to " + destination + ".");
 			targetRoom.sayCommand("/modnote " + user.name + " transferred data from " + source + " to " + destination + ".");
+		},
+	},
+	eventlink: {
+		command(target, room, user) {
+			const targets = target.split(',');
+			let eventRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				targets.shift();
+				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
+				eventRoom = targetRoom;
+			} else {
+				if (!user.hasRank(room, 'voice')) return;
+				eventRoom = room;
+			}
+
+			const database = Storage.getDatabase(eventRoom);
+			if (!database.eventInformation) return this.sayError(['noRoomEventInformation', eventRoom.title]);
+			const event = Tools.toId(targets[0]);
+			if (!(event in database.eventInformation)) return this.sayError(['invalidRoomEvent', eventRoom.title]);
+			if (!database.eventInformation[event].link) return this.say(database.eventInformation[event].name + " does not have a link stored.");
+			this.sayHtml("<b>" + database.eventInformation[event].name + "</b>: <a href='" + database.eventInformation[event].link!.url + "'>" + database.eventInformation[event].link!.description + "</a>", eventRoom);
+		},
+		aliases: ['elink'],
+	},
+	seteventlink: {
+		command(target, room, user) {
+			if (this.isPm(room) || !user.hasRank(room, 'driver')) return;
+			const targets = target.split(',');
+			const event = Tools.toId(targets[0]);
+			if (!event) return this.say("You must specify an event.");
+			const url = targets[1].trim();
+			if (!url.startsWith('http://') && !url.startsWith('https://')) return this.say("You must specify a valid link.");
+			const description = targets.slice(2).join(',').trim();
+			if (!description) return this.say("You must include a description for the link.");
+			let name = targets[0].trim();
+			const database = Storage.getDatabase(room);
+			if (!database.eventInformation) database.eventInformation = {};
+			if (!(event in database.eventInformation)) {
+				database.eventInformation[event] = {name};
+			} else {
+				name = database.eventInformation[event].name;
+			}
+			database.eventInformation[event].link = {description, url};
+			this.say("The event link and description for " + name + " has been stored.");
+		},
+		aliases: ['setelink'],
+	},
+	removeeventlink: {
+		command(target, room, user) {
+			if (this.isPm(room) || !user.hasRank(room, 'driver')) return;
+			const database = Storage.getDatabase(room);
+			if (!database.eventInformation) return this.sayError(['noRoomEventInformation', room.title]);
+			const event = Tools.toId(target);
+			if (!event) return this.say("You must specify an event.");
+			if (!(event in database.eventInformation)) return this.sayError(['invalidRoomEvent', room.title]);
+			if (!database.eventInformation[event].link) return this.say(database.eventInformation[event].name + " does not have a link stored.");
+			delete database.eventInformation[event].link;
+			this.say("The link for " + database.eventInformation[event].name + " has been removed.");
+		},
+		aliases: ['removeelink'],
+	},
+	eventformats: {
+		command(target, room, user) {
+			const targets = target.split(',');
+			let eventRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				targets.shift();
+				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
+				eventRoom = targetRoom;
+			} else {
+				if (!user.hasRank(room, 'voice')) return;
+				eventRoom = room;
+			}
+			const database = Storage.getDatabase(eventRoom);
+			if (!database.eventInformation) return this.sayError(['noRoomEventInformation', eventRoom.title]);
+			const event = Tools.toId(targets[0]);
+			if (!event || !(event in database.eventInformation)) return this.say("You must specify a valid event.");
+			if (!database.eventInformation[event].formatIds) return this.say(database.eventInformation[event].name + " does not have any formats stored.");
+			const multipleFormats = database.eventInformation[event].formatIds!.length > 1;
+			if (targets.length > 1) {
+				if (!Tools.isUsernameLength(targets[1])) return this.say("You must specify a user.");
+				const targetUser = Tools.toId(targets[1]);
+				if (!database.leaderboard) return this.say("There is no leaderboard for the " + eventRoom.title + " room.");
+				if (!(targetUser in database.leaderboard)) return this.say(targets[1].trim() + " does not have any event points.");
+				let eventPoints = 0;
+				for (const source in database.leaderboard[targetUser].sources) {
+					if (database.eventInformation[event].formatIds!.includes(source)) eventPoints += database.leaderboard[targetUser].sources[source];
+				}
+				this.say(database.leaderboard[targetUser].name + " has " + eventPoints + " points in" + (!multipleFormats ? " the" : "") + " " + database.eventInformation[event].name + " format" + (multipleFormats ? "s" : "") + ".");
+			} else {
+				const formatNames: string[] = [];
+				for (let i = 0; i < database.eventInformation[event].formatIds!.length; i++) {
+					const format = Dex.getFormat(database.eventInformation[event].formatIds![i]);
+					formatNames.push(format ? format.name : database.eventInformation[event].formatIds![i]);
+				}
+				this.say("The format" + (multipleFormats ? "s" : "") + " for " + database.eventInformation[event].name + " " + (multipleFormats ? "are " : "is ") + Tools.joinList(formatNames) + ".");
+			}
+		},
+		aliases: ['eformats'],
+	},
+	seteventformats: {
+		command(target, room, user) {
+			if (this.isPm(room) || !user.hasRank(room, 'driver')) return;
+			if (!Config.rankedTournaments || !Config.rankedTournaments.includes(room.id)) return this.sayError(['disabledTournamentFeatures', room.title]);
+			const targets = target.split(',');
+			const event = Tools.toId(targets[0]);
+			if (!event) return this.say("You must specify an event.");
+			if (targets.length === 1) return this.say("You must specify at least 1 format.");
+			const formatIds: string[] = [];
+			for (let i = 1; i < targets.length; i++) {
+				const format = Dex.getFormat(targets[i]);
+				if (!format) return this.sayError(['invalidFormat', targets[i]]);
+				formatIds.push(format.id);
+			}
+			let name = targets[0].trim();
+			const database = Storage.getDatabase(room);
+			if (!database.eventInformation) database.eventInformation = {};
+			if (!(event in database.eventInformation)) {
+				database.eventInformation[event] = {name};
+			} else {
+				name = database.eventInformation[event].name;
+			}
+			database.eventInformation[event].formatIds = formatIds;
+			const multipleFormats = formatIds.length > 1;
+			this.say("The event format" + (multipleFormats ? "s" : "") + " for " + name + " " + (multipleFormats ? "have" : "has") + " been stored.");
+		},
+		aliases: ['seteformats'],
+	},
+	removeeventformats: {
+		command(target, room, user) {
+			if (this.isPm(room) || !user.hasRank(room, 'driver')) return;
+			const targets = target.split(',');
+			const event = Tools.toId(targets[0]);
+			if (!event) return this.say("You must specify an event.");
+			const database = Storage.getDatabase(room);
+			if (!database.eventInformation) return this.sayError(['noRoomEventInformation', room.title]);
+			if (!(event in database.eventInformation)) return this.sayError(['invalidRoomEvent', room.title]);
+			if (!database.eventInformation[event].formatIds) return this.say(database.eventInformation[event].name + " does not have any formats stored.");
+			delete database.eventInformation[event].formatIds;
+			this.say("The formats for " + database.eventInformation[event].name + " have been removed.");
+		},
+		aliases: ['removeeformats'],
+	},
+	removeevent: {
+		command(target, room, user) {
+			if (this.isPm(room) || !user.hasRank(room, 'driver')) return;
+			const targets = target.split(',');
+			const event = Tools.toId(targets[0]);
+			if (!event) return this.say("You must specify an event.");
+			const database = Storage.getDatabase(room);
+			if (!database.eventInformation) return this.sayError(['noRoomEventInformation', room.title]);
+			if (!(event in database.eventInformation)) return this.sayError(['invalidRoomEvent', room.title]);
+			const name = database.eventInformation[event].name;
+			delete database.eventInformation[event];
+			this.say("The " + name + " event has been removed.");
 		},
 	},
 	logs: {
