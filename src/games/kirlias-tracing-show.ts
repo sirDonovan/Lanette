@@ -59,7 +59,7 @@ export const game: IGameFile<KirliasTracingShow> = {
 	battleFrontierCategory: 'Knowledge',
 	class: KirliasTracingShow,
 	commandDescriptions: [Config.commandCharacter + "trace [ability]"],
-	commands: Object.assign({}, templateCommands),
+	commands,
 	description: "Players guess abilities that the chosen Pokemon have!",
 	freejoin: true,
 	name,
