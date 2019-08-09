@@ -101,6 +101,11 @@ export let displayTournamentFormatInfo: string[] = [];
 export let disallowTournamentScouting: string[] = [];
 
 /**
+ * A list of rooms (roomids) where modjoin in tournament battles will not be allowed
+ */
+export let disallowTournamentModjoin: string[] = [];
+
+/**
  * A list of rooms (roomids) where links to non-random tournament battles are not allowed to be posted
  */
 export let disallowTournamentBattleLinks: string[] = [];
@@ -129,11 +134,6 @@ export let tournamentStartTimers: Dict<number> = {};
  * A list of rooms (roomids) where scores of tournament battles will be tracked
  */
 export let trackTournamentBattleScores: string[] = [];
-
-/**
- * A list of rooms (roomids) where modjoin will be disallowed for tournament finals
- */
-export let disallowModjoinedTournamentFinals: string[] = [];
 
 /**
  * For each room in the object, the number of minutes to wait before setting a timer for a random tournament

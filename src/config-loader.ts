@@ -55,6 +55,7 @@ export function load(config: typeof Config): typeof Config {
 	if (config.scheduledTournamentsMaxPlayerCap) config.scheduledTournamentsMaxPlayerCap = arrayToRoomIds(config.scheduledTournamentsMaxPlayerCap);
 	if (config.displayTournamentFormatInfo) config.displayTournamentFormatInfo = arrayToRoomIds(config.displayTournamentFormatInfo);
 	if (config.disallowTournamentScouting) config.disallowTournamentScouting = arrayToRoomIds(config.disallowTournamentScouting);
+	if (config.disallowTournamentModjoin) config.disallowTournamentModjoin = arrayToRoomIds(config.disallowTournamentModjoin);
 	if (config.disallowTournamentBattleLinks) config.disallowTournamentBattleLinks = arrayToRoomIds(config.disallowTournamentBattleLinks);
 	if (config.tournamentAutoDQTimers) config.tournamentAutoDQTimers = objectKeysToRoomId(config.tournamentAutoDQTimers);
 	if (config.adjustTournamentCaps) config.adjustTournamentCaps = arrayToRoomIds(config.adjustTournamentCaps);
@@ -62,7 +63,6 @@ export function load(config: typeof Config): typeof Config {
 	if (config.tournamentStartTimers) config.tournamentStartTimers = objectKeysToRoomId(config.tournamentStartTimers);
 	if (config.defaultTournamentPlayerCaps) config.defaultTournamentPlayerCaps = objectKeysToRoomId(config.defaultTournamentPlayerCaps);
 	if (config.tournamentRoomAdvertisements) config.tournamentRoomAdvertisements = stringArrayObjectToRoomIds(config.tournamentRoomAdvertisements);
-	if (config.disallowModjoinedTournamentFinals) config.disallowModjoinedTournamentFinals = arrayToRoomIds(config.disallowModjoinedTournamentFinals);
 	if (config.randomTournamentTimers) config.randomTournamentTimers = objectKeysToRoomId(config.randomTournamentTimers);
 	if (config.allowUserHostedTournaments) config.allowUserHostedTournaments = arrayToRoomIds(config.allowUserHostedTournaments);
 	if (config.userHostedTournamentRanks) config.userHostedTournamentRanks = objectKeysToRoomId(config.userHostedTournamentRanks);

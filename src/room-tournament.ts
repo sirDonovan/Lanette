@@ -396,7 +396,6 @@ export class Tournament extends Activity {
 		this.battleRooms.push(roomid);
 
 		if (this.generator === 1 && this.getRemainingPlayerCount() === 2) {
-			if (Config.disallowModjoinedTournamentFinals && Config.disallowModjoinedTournamentFinals.includes(this.room.id)) this.sayCommand("/tour modjoin disallow");
 			this.sayCommand("/wall Final battle of the " + this.name + " " + this.activityType + ": <<" + roomid + ">>!");
 		}
 		if (this.joinBattles) {

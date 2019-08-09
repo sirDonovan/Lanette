@@ -695,6 +695,7 @@ export class Client {
 						};
 						if (Tournaments.tournamentTimers[room.id]) clearTimeout(Tournaments.tournamentTimers[room.id]);
 						room.tournament = Tournaments.createTournament(room, messageArguments.format, messageArguments.generator, messageArguments.playerCap);
+
 						if (room.id in Tournaments.createListeners && messageArguments.format.id === Tournaments.createListeners[room.id].format.id) {
 							if (Tournaments.createListeners[room.id].scheduled) {
 								room.tournament.scheduled = true;
@@ -709,9 +710,11 @@ export class Client {
 							if (database.queuedTournament && room.tournament.format.id === Dex.getExistingFormat(database.queuedTournament.formatid, true).id) delete database.queuedTournament;
 							delete Tournaments.createListeners[room.id];
 						}
+
 						if (room.tournament.playerCap) room.sayCommand("/tour autostart on");
 						if (Config.tournamentAutoDQTimers && room.id in Config.tournamentAutoDQTimers) room.sayCommand("/tour autodq " + Config.tournamentAutoDQTimers[room.id]);
 						if (!room.tournament.format.team && Config.disallowTournamentScouting && Config.disallowTournamentScouting.includes(room.id)) room.sayCommand("/tour scouting disallow");
+						if (Config.disallowTournamentModjoin && Config.disallowTournamentModjoin.includes(room.id)) room.sayCommand("/tour modjoin disallow");
 						let startMinutes = 5;
 						if (Config.tournamentStartTimers && room.id in Config.tournamentStartTimers) {
 							startMinutes = Config.tournamentStartTimers[room.id];
