@@ -5,6 +5,13 @@ describe("Dex", () => {
 		assert(Dex.getFormat('omotm'));
 		assert(Dex.getFormat('omotm2'));
 	});
+	it('should compute Pokemon tiers properly', () => {
+		assert(Dex.getExistingPokemon('Arceus').tier === 'Uber');
+		assert(Dex.getExistingPokemon('Arceus-Bug').tier === 'Uber');
+		assert(Dex.getExistingPokemon('Lurantis').tier === 'PU');
+		assert(Dex.getExistingPokemon('Lurantis-Totem').tier === 'PU');
+		assert(Dex.getDex('gen1').getExistingPokemon('Togetic').tier === 'Illegal');
+	});
 	it('should return proper values from getEvolutionLines()', () => {
 		const pokemon = ['Charmander', 'Charmeleon', 'Charizard'];
 		for (let i = 0; i < pokemon.length; i++) {

@@ -782,8 +782,31 @@ export class Dex {
 		const baseSpecies = templateData.baseSpecies || templateData.species;
 		const evos = templateData.evos || [];
 		const speciesId = Tools.toId(templateData.species);
-		let tier = templateFormatsData.tier || 'Illegal';
-		if (tier === '(PU)') tier = 'ZU';
+		let tier: string | undefined;
+		let doublesTier: string | undefined;
+		if (gen > this.gen) {
+			tier = 'Illegal';
+			doublesTier = 'Illegal';
+		} else {
+			tier = templateFormatsData.tier;
+			doublesTier = templateFormatsData.doublesTier;
+			if (!tier && !doublesTier && baseSpecies !== templateData.species) {
+				let baseSpeciesId: string;
+				if (speciesId.endsWith('totem')) {
+					baseSpeciesId = speciesId.slice(0, -5);
+				} else {
+					baseSpeciesId = Tools.toId(baseSpecies);
+				}
+				tier = this.data.formatsData[baseSpeciesId]!.tier;
+				doublesTier = this.data.formatsData[baseSpeciesId]!.doublesTier;
+			}
+			if (!tier) {
+				tier = 'Illegal';
+			} else if (tier === '(PU)') {
+				tier = 'ZU';
+			}
+			if (!doublesTier) doublesTier = tier;
+		}
 
 		const pokemonComputed: IPokemonComputed = {
 			baseSpecies,
