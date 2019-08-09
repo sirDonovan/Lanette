@@ -652,6 +652,7 @@ export interface IPokemonComputed {
 	isPrimal: boolean;
 	name: string;
 	nfe: boolean;
+	pseudoLC: boolean;
 	shiny: boolean;
 	spriteId: string;
 	tier: string;

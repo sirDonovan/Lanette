@@ -21,7 +21,7 @@ export interface IPortmanteauSearchResult {
 	ports: string[];
 }
 
-const data: IPortmanteausWorkerData = {
+export const data: IPortmanteausWorkerData = {
 	pool: {
 		"Pokemon": {},
 		"Item": {},
@@ -72,8 +72,14 @@ export function init(): worker_threads.Worker {
 	for (let i = 0; i < pokedex.length; i++) {
 		const pokemon = pokedex[i];
 		if (pokemon.tier !== 'Illegal') {
-			if (!(pokemon.tier in data.pool['Pokemon']['tier'])) data.pool['Pokemon']['tier'][pokemon.tier] = [];
-			if (!(pokemon.forme && data.pool['Pokemon']['tier'][pokemon.tier].includes(pokemon.baseSpecies))) data.pool['Pokemon']['tier'][pokemon.tier].push(pokemon.species);
+			if (pokemon.tier.charAt(0) !== '(') {
+				if (!(pokemon.tier in data.pool['Pokemon']['tier'])) data.pool['Pokemon']['tier'][pokemon.tier] = [];
+				if (!(pokemon.forme && data.pool['Pokemon']['tier'][pokemon.tier].includes(pokemon.baseSpecies))) data.pool['Pokemon']['tier'][pokemon.tier].push(pokemon.species);
+			}
+			if (pokemon.pseudoLC) {
+				if (!('LC' in data.pool['Pokemon']['tier'])) data.pool['Pokemon']['tier']['LC'] = [];
+				if (!(pokemon.forme && data.pool['Pokemon']['tier']['LC'].includes(pokemon.baseSpecies))) data.pool['Pokemon']['tier']['LC'].push(pokemon.species);
+			}
 		}
 		if (!(pokemon.color in data.pool['Pokemon']['color'])) data.pool['Pokemon']['color'][pokemon.color] = [];
 		if (!(pokemon.forme && data.pool['Pokemon']['color'][pokemon.color].includes(pokemon.baseSpecies))) data.pool['Pokemon']['color'][pokemon.color].push(pokemon.species);

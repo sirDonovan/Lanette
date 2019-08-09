@@ -7,6 +7,7 @@ import { ParasParameters } from '../../games/paras-parameters';
 import { PoliwrathsPortmanteaus } from '../../games/poliwraths-portmanteaus';
 import { IGameFile, IGameFileComputed, IGameFormat, IGameMode, IGameModeFile, IUserHostedComputed, IUserHostedFormat } from '../../types/games';
 import * as ParametersWorker from '../../workers/parameters';
+import * as PortmanteausWorker from '../../workers/portmanteaus';
 
 function testMascots(format: IGameFormat | IUserHostedFormat) {
 	if (format.mascot) {
@@ -203,6 +204,12 @@ describe("Games", () => {
 	});
 	it('should return proper values from Portmanteaus worker', async function() {
 		this.timeout(15000);
+		PortmanteausWorker.init();
+		const tiers = Object.keys(PortmanteausWorker.data.pool['Pokemon']['tier']);
+		assert(tiers.length);
+		for (let i = 0; i < tiers.length; i++) {
+			assert(tiers[i].charAt(0) !== '(');
+		}
 		const room = Rooms.add('mocha');
 		const game = Games.createGame(room, Games.getExistingFormat('poliwrathsportmanteaus')) as PoliwrathsPortmanteaus;
 		for (let i = game.customizableOptions.ports.min; i <= game.customizableOptions.ports.max; i++) {
@@ -232,9 +239,11 @@ describe("Games", () => {
 		for (const gen in ParametersWorker.data.pokemon.gens) {
 			for (const type in ParametersWorker.data.pokemon.gens[gen].paramTypeDexes) {
 				const keys = Object.keys(ParametersWorker.data.pokemon.gens[gen].paramTypeDexes[type]);
+				const checkTier = type === 'tier';
 				for (let i = 0; i < keys.length; i++) {
 					const key = Tools.toId(keys[i]);
 					assert(key in ParametersWorker.data.pokemon.gens[gen].paramTypePools[type], key + ' in ' + type);
+					if (checkTier) assert(keys[i].charAt(0) !== '(');
 				}
 			}
 		}

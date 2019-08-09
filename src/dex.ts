@@ -808,6 +808,36 @@ export class Dex {
 			if (!doublesTier) doublesTier = tier;
 		}
 
+		let pseudoLC = false;
+		// LC handling, checks for LC Pokemon in higher tiers that need to be handled separately,
+		// as well as event-only Pokemon that are not eligible for LC despite being the first stage
+		if (tier !== 'LC' && !templateData.prevo) {
+			const lcFormat = this.getFormat('lc');
+			if (!lcFormat || (!lcFormat.banlist.includes(templateData.species) && !lcFormat.banlist.includes(templateData.species + "-Base"))) {
+				let invalidEvent = true;
+				if (templateFormatsData.eventPokemon && templateFormatsData.eventOnly) {
+					for (const event of templateFormatsData.eventPokemon) {
+						if (event.level && event.level <= 5)  {
+							invalidEvent = false;
+							break;
+						}
+					}
+				}
+				let nfe = false;
+				if (!invalidEvent && templateData.evos) {
+					for (let i = 0; i < templateData.evos.length; i++) {
+						const evolution = this.getPokemon(templateData.evos[i]);
+						if (evolution && evolution.gen <= this.gen) {
+							nfe = true;
+							break;
+						}
+					}
+				}
+
+				if (!invalidEvent && nfe) pseudoLC = true;
+			}
+		}
+
 		const pokemonComputed: IPokemonComputed = {
 			baseSpecies,
 			battleOnly,
@@ -825,6 +855,7 @@ export class Dex {
 			isPrimal,
 			name: templateData.species,
 			nfe: !!evos.length,
+			pseudoLC,
 			shiny: false,
 			spriteId: Tools.toId(baseSpecies) + (baseSpecies !== templateData.species ? '-' + Tools.toId(templateData.forme) : ''),
 			tier,

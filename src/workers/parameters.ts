@@ -151,37 +151,17 @@ export function init(): worker_threads.Worker {
 			}
 
 			if (pokemon.tier !== 'Illegal') {
-				const tierId = Tools.toId(pokemon.tier);
-				if (!(tierId in tiers)) tiers[tierId] = {type: 'tier', param: pokemon.tier};
-				if (!(pokemon.tier in tierDex)) tierDex[pokemon.tier] = [];
-				tierDex[pokemon.tier].push(pokemon.species);
+				if (pokemon.tier.charAt(0) !== '(') {
+					const tierId = Tools.toId(pokemon.tier);
+					if (!(tierId in tiers)) tiers[tierId] = {type: 'tier', param: pokemon.tier};
+					if (!(pokemon.tier in tierDex)) tierDex[pokemon.tier] = [];
+					tierDex[pokemon.tier].push(pokemon.species);
+				}
 
-				// LC handling, checks for LC Pokemon in higher tiers that need to be handled separately,
-				// as well as event-only Pokemon that are not eligible for LC despite being the first stage
-				if (pokemon.tier !== 'LC' && !pokemon.prevo && (!lcFormat || (!lcFormat.banlist.includes(pokemon.species) && !lcFormat.banlist.includes(pokemon.species + "-Base")))) {
-					let invalidEvent = true;
-					if (pokemon.eventPokemon && pokemon.eventOnly) {
-						for (const event of pokemon.eventPokemon) {
-							if (event.level && event.level <= 5)  {
-								invalidEvent = false;
-								break;
-							}
-						}
-					}
-					let nfe = false;
-					for (let i = 0; i < pokemon.evos.length; i++) {
-						const evolution = dex.getPokemon(pokemon.evos[i]);
-						if (evolution && evolution.gen <= dex.gen) {
-							nfe = true;
-							break;
-						}
-					}
-
-					if (!invalidEvent && nfe) {
-						if (!tiers['lc']) tiers['lc'] = {type: 'tier', param: 'LC'};
-						if (!('LC' in tierDex)) tierDex['LC'] = [];
-						tierDex['LC'].push(pokemon.species);
-					}
+				if (pokemon.pseudoLC) {
+					if (!tiers['lc']) tiers['lc'] = {type: 'tier', param: 'LC'};
+					if (!('LC' in tierDex)) tierDex['LC'] = [];
+					tierDex['LC'].push(pokemon.species);
 				}
 			}
 
@@ -216,9 +196,6 @@ export function init(): worker_threads.Worker {
 		}
 
 		tiers['ubers'] = tiers['uber'];
-		for (const i in tiers) {
-			if (i.charAt(0) === '(') delete tiers[i];
-		}
 
 		const format = dex.getExistingFormat(genString + 'ou');
 		const movesList = dex.getMovesList();
