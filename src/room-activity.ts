@@ -110,11 +110,11 @@ export abstract class Activity {
 		if (this.onRenamePlayer) this.onRenamePlayer(player, oldId);
 	}
 
-	destroyPlayer(user: User | string): Player | void {
+	destroyPlayer(user: User | string, forceDelete?: boolean): Player | void {
 		const id = Tools.toId(user);
 		if (!(id in this.players)) return;
 		const player = this.players[id];
-		if (this.started) {
+		if (this.started && !forceDelete) {
 			this.players[id].eliminated = true;
 		} else {
 			delete this.players[id];
