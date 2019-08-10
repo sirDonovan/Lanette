@@ -66,7 +66,7 @@ const schedules: Dict<{months: Dict<Dict<string> | undefined>, times: [number, n
 				'7': 'gen7battlefactory',
 				'8': 'gen7tiershift',
 				'9': 'gen7uu',
-				'10': 'gen7stabmons@@@-UUBL,-UU,-RUBL,-RU,-NUBL,-NU',
+				'10': 'gen7stabmons@@@-OU,-UUBL,-UU,-RUBL,-RU,-NUBL,-NU',
 				'11': 'gen7caplc',
 				'12': 'gen7nu@@@Same Type Clause',
 				'13': 'gen71v1',
