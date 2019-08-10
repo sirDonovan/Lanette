@@ -247,8 +247,13 @@ export class Client {
 		} else {
 			message = rawMessage.substr(1);
 			const pipeIndex = message.indexOf("|");
-			messageType = message.substr(0, pipeIndex) as keyof IClientMessageTypes;
-			message = message.substr(pipeIndex + 1);
+			if (pipeIndex !== -1) {
+				messageType = message.substr(0, pipeIndex) as keyof IClientMessageTypes;
+				message = message.substr(pipeIndex + 1);
+			} else {
+				messageType = message as keyof IClientMessageTypes;
+				message = '';
+			}
 		}
 		const messageParts = message.split("|");
 		switch (messageType) {
