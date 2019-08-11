@@ -46,9 +46,9 @@ export class Room {
 	}
 
 	deInit() {
-		if (this.game) this.game.deallocate();
-		if (this.tournament) this.tournament.deallocate();
-		if (this.userHostedGame) this.userHostedGame.deallocate();
+		if (this.game && this.game.room === this) this.game.deallocate();
+		if (this.tournament && this.tournament.room === this) this.tournament.deallocate();
+		if (this.userHostedGame && this.userHostedGame.room === this) this.userHostedGame.deallocate();
 
 		this.users.forEach(user => {
 			user.rooms.delete(this);
