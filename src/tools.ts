@@ -368,20 +368,6 @@ export class Tools {
 		return challongeLink;
 	}
 
-	extractChallongeBracketUrl(link: string): string {
-		const signupsIndex = link.indexOf('/tournaments/signup/');
-		if (signupsIndex !== -1) {
-			return link.substr(0, signupsIndex - 1);
-		} else {
-			const lastSlashIndex = link.lastIndexOf('/');
-			if (lastSlashIndex > 21) {
-				return link.substr(0, lastSlashIndex);
-			} else {
-				return link;
-			}
-		}
-	}
-
 	async safeWriteFile(filepath: string, data: string, callback?: () => void) {
 		const tempFilepath = filepath + '.temp';
 		// tslint:disable-next-line no-empty

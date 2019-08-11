@@ -883,10 +883,10 @@ export class Client {
 				// hasOwnLink = true;
 				let approvedTournament = false;
 				if (room.approvedUserHostedTournaments) {
-					for (const bracketUrl in room.approvedUserHostedTournaments) {
-						if (bracketUrl === link || room.approvedUserHostedTournaments[bracketUrl].urls.includes(link)) {
+					for (const i in room.approvedUserHostedTournaments) {
+						if (room.approvedUserHostedTournaments[i].urls.includes(link)) {
 							approvedTournament = true;
-							if (!authOrTHC && room.approvedUserHostedTournaments[bracketUrl].hostId !== user.id) {
+							if (!authOrTHC && room.approvedUserHostedTournaments[i].hostId !== user.id) {
 								room.sayCommand("/warn " + user.name + ", Please do not post links to other hosts' tournaments");
 								break outer;
 							}
@@ -896,15 +896,15 @@ export class Client {
 				}
 				if (!approvedTournament) {
 					if (authOrTHC) {
-						Tournaments.newUserHostedTournament(room, user, Tools.extractChallongeBracketUrl(link), user.name);
+						Tournaments.checkChallongeUrl(room, user, link, user.name);
 					} else {
 						if (room.newUserHostedTournaments) {
-							for (const bracketUrl in room.newUserHostedTournaments) {
-								if (bracketUrl === link || room.newUserHostedTournaments[bracketUrl].urls.includes(link)) {
-									if (room.newUserHostedTournaments[bracketUrl].hostId !== user.id) {
+							for (const i in room.newUserHostedTournaments) {
+								if (room.newUserHostedTournaments[i].urls.includes(link)) {
+									if (room.newUserHostedTournaments[i].hostId !== user.id) {
 										room.sayCommand("/warn " + user.name + ", Please do not post links to other hosts' tournaments");
-									} else if (room.newUserHostedTournaments[bracketUrl].approvalStatus === 'changes-requested') {
-										let name = room.newUserHostedTournaments[bracketUrl].reviewer;
+									} else if (room.newUserHostedTournaments[i].approvalStatus === 'changes-requested') {
+										let name = room.newUserHostedTournaments[i].reviewer;
 										const reviewer = Users.get(name);
 										if (reviewer) name = reviewer.name;
 										room.sayCommand("/warn " + user.name + ", " + name + " has requested changes for your tournament and you must wait for them to be approved");

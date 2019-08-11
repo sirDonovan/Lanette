@@ -1454,15 +1454,19 @@ const commands: Dict<ICommandDefinition> = {
 			if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 			const challongeLink = Tools.getChallongeUrl(targets[1]);
 			if (!challongeLink) return this.say("You must specify a valid Challonge link.");
-			const bracketUrl = Tools.extractChallongeBracketUrl(challongeLink);
-			if (targetRoom.approvedUserHostedTournaments && bracketUrl in targetRoom.approvedUserHostedTournaments) {
-				if (user.id !== targetRoom.approvedUserHostedTournaments[bracketUrl].hostId) return this.say("The specified link has already been approved for " + targetRoom.approvedUserHostedTournaments[bracketUrl].hostName + ".");
-				delete targetRoom.approvedUserHostedTournaments[bracketUrl];
+			if (targetRoom.approvedUserHostedTournaments) {
+				for (const i in targetRoom.approvedUserHostedTournaments) {
+					if (targetRoom.approvedUserHostedTournaments[i].urls.includes(challongeLink)) {
+						if (user.id !== targetRoom.approvedUserHostedTournaments[i].hostId) return this.say("The specified link has already been approved for " + targetRoom.approvedUserHostedTournaments[i].hostName + ".");
+						delete targetRoom.approvedUserHostedTournaments[i];
+						break;
+					}
+				}
 			}
 
 			if (targetRoom.newUserHostedTournaments) {
-				for (const link in targetRoom.newUserHostedTournaments) {
-					if (user.id === targetRoom.newUserHostedTournaments[link].hostId) return this.say("You are already on the waiting list for staff review.");
+				for (const i in targetRoom.newUserHostedTournaments) {
+					if (user.id === targetRoom.newUserHostedTournaments[i].hostId) return this.say("You are already on the waiting list for staff review.");
 				}
 			}
 			const database = Storage.getDatabase(targetRoom);
@@ -1471,7 +1475,7 @@ const commands: Dict<ICommandDefinition> = {
 				(database.thcWinners && user.id in database.thcWinners)) {
 				authOrTHC = user.name;
 			}
-			Tournaments.newUserHostedTournament(targetRoom, user, bracketUrl, authOrTHC);
+			Tournaments.checkChallongeUrl(targetRoom, user, challongeLink, authOrTHC);
 			if (authOrTHC) {
 				this.say("You're free to advertise without using this command!");
 			} else {
