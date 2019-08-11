@@ -13,6 +13,7 @@ interface IBracketData {
 	readonly type: string;
 	readonly rootNode?: IBracketNode;
 	readonly tableHeaders?: {cols: any[], rows: any[]};
+	readonly users?: string[];
 }
 
 interface ICurrentBattle {
@@ -303,10 +304,24 @@ export class Tournament extends Activity {
 		this.deallocate();
 	}
 
-	update() {
+	update(json: Partial<ITournamentUpdateJSON & ITournamentEndJSON>) {
+		Object.assign(this.updates, json);
+	}
+
+	updateEnd() {
 		Object.assign(this.info, this.updates);
 		if (this.updates.generator) this.setGenerator(this.updates.generator);
-		if (this.updates.bracketData && this.started) this.updateBracket();
+		if (this.updates.bracketData) {
+			if (this.info.isStarted) {
+				this.updateBracket();
+			} else {
+				if (this.updates.bracketData.users) {
+					for (let i = 0; i < this.updates.bracketData.users.length; i++) {
+						this.createPlayer(this.updates.bracketData.users[i]);
+					}
+				}
+			}
+		}
 		if (this.updates.format) {
 			const format = Dex.getFormat(this.updates.format);
 			if (format) {
@@ -317,6 +332,7 @@ export class Tournament extends Activity {
 				this.manuallyNamed = true;
 			}
 		}
+
 		this.updates = {};
 	}
 
