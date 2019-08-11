@@ -337,46 +337,43 @@ export class Tournament extends Activity {
 	}
 
 	updateBracket() {
-		const data = this.info.bracketData;
 		const players: Dict<string> = {};
 		const losses: Dict<number> = {};
-		if (data.type === 'tree') {
-			if (data.rootNode) {
-				const queue = [data.rootNode];
-				while (queue.length > 0) {
-					const node = queue[0];
-					queue.shift();
-					if (!node.children) continue;
+		if (this.info.bracketData.type === 'tree') {
+			if (!this.info.bracketData.rootNode) return;
+			const queue = [this.info.bracketData.rootNode];
+			while (queue.length > 0) {
+				const node = queue[0];
+				queue.shift();
+				if (!node.children) continue;
 
-					if (node.children[0] && node.children[0].team) {
-						const userA = Tools.toId(node.children[0].team);
-						if (!players[userA]) players[userA] = node.children[0].team;
-						if (node.children[1] && node.children[1].team) {
-							const userB = Tools.toId(node.children[1].team);
-							if (!players[userB]) players[userB] = node.children[1].team;
-							if (node.state === 'finished') {
-								if (node.result === 'win') {
-									if (!losses[userB]) losses[userB] = 0;
-									losses[userB]++;
-								} else if (node.result === 'loss') {
-									if (!losses[userA]) losses[userA] = 0;
-									losses[userA]++;
-								}
+				if (node.children[0] && node.children[0].team) {
+					const userA = Tools.toId(node.children[0].team);
+					if (!players[userA]) players[userA] = node.children[0].team;
+					if (node.children[1] && node.children[1].team) {
+						const userB = Tools.toId(node.children[1].team);
+						if (!players[userB]) players[userB] = node.children[1].team;
+						if (node.state === 'finished') {
+							if (node.result === 'win') {
+								if (!losses[userB]) losses[userB] = 0;
+								losses[userB]++;
+							} else if (node.result === 'loss') {
+								if (!losses[userA]) losses[userA] = 0;
+								losses[userA]++;
 							}
 						}
 					}
+				}
 
-					node.children.forEach(child => {
-						if (child) queue.push(child);
-					});
-				}
+				node.children.forEach(child => {
+					if (child) queue.push(child);
+				});
 			}
-		} else if (data.type === 'table') {
-			if (data.tableHeaders && data.tableHeaders.cols) {
-				for (let i = 0; i < data.tableHeaders.cols.length; i++) {
-					const player = Tools.toId(data.tableHeaders.cols[i]);
-					if (!players[player]) players[player] = data.tableHeaders.cols[i];
-				}
+		} else if (this.info.bracketData.type === 'table') {
+			if (!this.info.bracketData.tableHeaders || !this.info.bracketData.tableHeaders.cols) return;
+			for (let i = 0; i < this.info.bracketData.tableHeaders.cols.length; i++) {
+				const player = Tools.toId(this.info.bracketData.tableHeaders.cols[i]);
+				if (!players[player]) players[player] = this.info.bracketData.tableHeaders.cols[i];
 			}
 		}
 
