@@ -12,6 +12,7 @@ export type GroupName = 'voice' | 'bot' | 'driver' | 'moderator' | 'roomowner' |
 
 const RELOGIN_SECONDS = 60;
 const SEND_THROTTLE = 800;
+const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const DEFAULT_SERVER_GROUPS: ServerGroupData[] = [
 	{
 		"symbol": "~",
@@ -76,6 +77,7 @@ const DEFAULT_SERVER_GROUPS: ServerGroupData[] = [
 ];
 
 export class Client {
+	botGreetingCooldowns: Dict<number> = {};
 	challstr: string = '';
 	client: websocket.client = new websocket.client();
 	connection: websocket.connection | null = null;
@@ -110,6 +112,7 @@ export class Client {
 	}
 
 	onReload(previous: Client) {
+		this.botGreetingCooldowns = previous.botGreetingCooldowns;
 		this.challstr = previous.challstr;
 		this.client = previous.client;
 		this.connection = previous.connection;
@@ -410,6 +413,9 @@ export class Client {
 			const now = Date.now();
 			Storage.updateLastSeen(user, now);
 			if (Config.allowMail && messageArguments.rank !== this.groupSymbols.locked) Storage.retrieveOfflineMessages(user);
+			if (!(user.id in this.botGreetingCooldowns) || now - this.botGreetingCooldowns[user.id] >= BOT_GREETING_COOLDOWN) {
+				if (Storage.checkBotGreeting(room, user, now)) this.botGreetingCooldowns[user.id] = now;
+			}
 			if (room.logChatMessages) {
 				Storage.logChatMessage(room, now, 'J', messageArguments.rank + user.name);
 			}

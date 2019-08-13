@@ -292,6 +292,17 @@ export class Storage {
 		return true;
 	}
 
+	checkBotGreeting(room: Room, user: User, timestamp: number): boolean {
+		const database = this.getDatabase(room);
+		if (!database.botGreetings || !(user.id in database.botGreetings)) return false;
+		if (database.botGreetings[user.id].expiration && timestamp >= database.botGreetings[user.id].expiration!) {
+			delete database.botGreetings[user.id];
+			return false;
+		}
+		room.say(database.botGreetings[user.id].greeting);
+		return true;
+	}
+
 	updateLastSeen(user: User, time: number) {
 		const database = this.getGlobalDatabase();
 		if (!database.lastSeen) database.lastSeen = {};

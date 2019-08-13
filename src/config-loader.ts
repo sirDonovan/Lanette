@@ -43,10 +43,11 @@ export function load(config: typeof Config): typeof Config {
 
 	if (config.allowScriptedGames) config.allowScriptedGames = arrayToRoomIds(config.allowScriptedGames);
 	if (config.allowUserHostedGames) config.allowUserHostedGames = arrayToRoomIds(config.allowUserHostedGames);
-	if (config.gameCooldownTimers) config.gameCooldownTimers = objectKeysToRoomId(config.gameCooldownTimers);
-	if (config.maxUserHostedGameWinners) config.maxUserHostedGameWinners = objectKeysToRoomId(config.maxUserHostedGameWinners);
+	if (config.gameCooldownTimers) objectKeysToRoomId(config.gameCooldownTimers);
+	if (config.maxUserHostedGameWinners) objectKeysToRoomId(config.maxUserHostedGameWinners);
 	if (config.maxUserHostedGameWinners) objectKeysToRoomId(config.maxUserHostedGameWinners);
 	if (config.maxQueuedUserHostedGames) objectKeysToRoomId(config.maxQueuedUserHostedGames);
+	if (config.awardedBotGreetingDurations) objectKeysToRoomId(config.awardedBotGreetingDurations);
 
 	if (config.allowTournaments) config.allowTournaments = arrayToRoomIds(config.allowTournaments);
 	if (config.rankedTournaments) config.rankedTournaments = arrayToRoomIds(config.rankedTournaments);
@@ -57,15 +58,15 @@ export function load(config: typeof Config): typeof Config {
 	if (config.disallowTournamentScouting) config.disallowTournamentScouting = arrayToRoomIds(config.disallowTournamentScouting);
 	if (config.disallowTournamentModjoin) config.disallowTournamentModjoin = arrayToRoomIds(config.disallowTournamentModjoin);
 	if (config.disallowTournamentBattleLinks) config.disallowTournamentBattleLinks = arrayToRoomIds(config.disallowTournamentBattleLinks);
-	if (config.tournamentAutoDQTimers) config.tournamentAutoDQTimers = objectKeysToRoomId(config.tournamentAutoDQTimers);
+	if (config.tournamentAutoDQTimers) objectKeysToRoomId(config.tournamentAutoDQTimers);
 	if (config.adjustTournamentCaps) config.adjustTournamentCaps = arrayToRoomIds(config.adjustTournamentCaps);
 	if (config.trackTournamentBattleScores) config.trackTournamentBattleScores = arrayToRoomIds(config.trackTournamentBattleScores);
-	if (config.tournamentStartTimers) config.tournamentStartTimers = objectKeysToRoomId(config.tournamentStartTimers);
-	if (config.defaultTournamentPlayerCaps) config.defaultTournamentPlayerCaps = objectKeysToRoomId(config.defaultTournamentPlayerCaps);
+	if (config.tournamentStartTimers) objectKeysToRoomId(config.tournamentStartTimers);
+	if (config.defaultTournamentPlayerCaps) objectKeysToRoomId(config.defaultTournamentPlayerCaps);
 	if (config.tournamentRoomAdvertisements) config.tournamentRoomAdvertisements = stringArrayObjectToRoomIds(config.tournamentRoomAdvertisements);
-	if (config.randomTournamentTimers) config.randomTournamentTimers = objectKeysToRoomId(config.randomTournamentTimers);
+	if (config.randomTournamentTimers) objectKeysToRoomId(config.randomTournamentTimers);
 	if (config.allowUserHostedTournaments) config.allowUserHostedTournaments = arrayToRoomIds(config.allowUserHostedTournaments);
-	if (config.userHostedTournamentRanks) config.userHostedTournamentRanks = objectKeysToRoomId(config.userHostedTournamentRanks);
+	if (config.userHostedTournamentRanks) objectKeysToRoomId(config.userHostedTournamentRanks);
 
 	return config;
 }

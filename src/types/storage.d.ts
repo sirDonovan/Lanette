@@ -18,7 +18,13 @@ interface IQueuedUserHostedGame {
 	name: string;
 }
 
+interface IBotGreeting {
+	greeting: string;
+	expiration?: number;
+}
+
 export interface IDatabase {
+	botGreetings?: Dict<IBotGreeting>;
 	eventInformation?: Dict<IEventInformation>;
 	lastGameFormatTimes?: Dict<number>;
 	lastGameTime?: number;

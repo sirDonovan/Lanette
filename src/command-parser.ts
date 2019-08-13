@@ -20,7 +20,9 @@ type CommandErrorOptionalTarget = 'invalidBotRoom' | 'invalidFormat' | 'invalidG
 type CommandErrorRequiredTarget = 'noPmHtmlRoom' | 'missingBotRankForFeatures' | 'disabledTournamentFeatures' | 'disabledGameFeatures' | 'disabledUserHostedGameFeatures' | 'noRoomEventInformation' |
 	'invalidRoomEvent';
 
-export type CommandErrorArray = [CommandErrorOptionalTarget, string?] |  [CommandErrorRequiredTarget, string];
+type CommandErrorNoTarget = 'invalidUsernameLength';
+
+export type CommandErrorArray = [CommandErrorOptionalTarget, string?] | [CommandErrorRequiredTarget, string] | [CommandErrorNoTarget];
 
 export class Command {
 	runningMultipleTargets: boolean | null = null;
@@ -75,7 +77,7 @@ export class Command {
 	sayError(error: CommandErrorArray) {
 		if (error[0] === 'invalidBotRoom') {
 			if (error[1]) return this.say("'" + error[1].trim() + "' is not one of " + Users.self.name + "'s rooms.");
-			return this.say("You must specify one of " + Users.self.name + "'s rooms.");
+			this.say("You must specify one of " + Users.self.name + "'s rooms.");
 		} else if (error[0] === 'invalidFormat') {
 			if (error[1]) return this.say("'" + error[1].trim() + "' is not a valid format.");
 			this.say("You must specify a valid format.");
@@ -110,6 +112,8 @@ export class Command {
 			this.say(error[1].trim() + " does not currently have any event information stored.");
 		} else if (error[0] === 'invalidRoomEvent') {
 			this.say("You must specify one of " + error[1].trim() + "'s events.");
+		} else if (error[0] === 'invalidUsernameLength') {
+			this.say("You must specify a valid username (between 1 and " + Tools.maxUsernameLength + " characters).");
 		}
 	}
 

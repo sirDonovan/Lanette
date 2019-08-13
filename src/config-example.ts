@@ -204,3 +204,8 @@ export let disallowChatLogging: string[] = [];
  * A link to the server's log viewer
  */
 export let serverLogsViewer: string = '';
+
+/**
+ * For each room in the object, the length of time in which an awarded bot greeting will last
+ */
+export let awardedBotGreetingDurations: Dict<number> = {};

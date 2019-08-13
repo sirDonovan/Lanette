@@ -14,6 +14,8 @@ import { User } from "./users";
 type ReloadableModule = 'client' | 'commandparser' | 'commands' | 'config' | 'dex' | 'games' | 'storage' | 'tools' | 'tournaments';
 const moduleOrder: ReloadableModule[] = ['tools', 'config', 'dex', 'client', 'commandparser', 'commands', 'games', 'storage', 'tournaments'];
 
+const AWARDED_BOT_GREETING_DURATION = 60 * 24 * 60 * 60 * 1000;
+
 const commands: Dict<ICommandDefinition> = {
 	/**
 	 * Developer commands
@@ -1576,7 +1578,9 @@ const commands: Dict<ICommandDefinition> = {
 			if (Users.get(targets[0])) return this.say("You can only send messages to offline users.");
 			const recipient = targets[0].trim();
 			const recipientId = Tools.toId(recipient);
-			if (recipientId === user.id || recipientId.startsWith('guest') || recipientId === 'constructor' || !Tools.isUsernameLength(recipient)) return this.say("You must specify a valid username (between 1 and " + Tools.maxUsernameLength + " characters).");
+			if (recipientId === 'constructor') return;
+			if (!Tools.isUsernameLength(recipient)) return this.sayError(['invalidUsernameLength']);
+			if (recipientId === user.id || recipientId.startsWith('guest')) return this.say("You must specify a user other than yourself or a guest.");
 			const message = targets.slice(1).join(',').trim();
 			if (!message.length) return this.say("You must specify a message to send.");
 			const maxMessageLength = Storage.getMaxOfflineMessageLength(user, message);
@@ -1607,7 +1611,9 @@ const commands: Dict<ICommandDefinition> = {
 			const targetUser = Users.get(target);
 			if (targetUser) return this.say(targetUser.name + " is currently online.");
 			const id = Tools.toId(target);
-			if (id.startsWith('guest') || id === 'constructor' || !Tools.isUsernameLength(id)) return this.say("You must specify a valid username (between 1 and " + Tools.maxUsernameLength + " characters).");
+			if (id === 'constructor') return;
+			if (!Tools.isUsernameLength(id)) return this.sayError(['invalidUsernameLength']);
+			if (id.startsWith('guest')) return this.say("Guest users cannot be tracked.");
 			const database = Storage.getGlobalDatabase();
 			if (!database.lastSeen || !(id in database.lastSeen)) return this.say(target.trim() + " has not visited any of " + Users.self.name + "'s rooms in the past " + Storage.lastSeenExpirationDuration + ".");
 			return this.say(target.trim() + " last visited one of " + Users.self.name + "'s rooms **" + Tools.toDurationString(Date.now() - database.lastSeen[id]) + "** ago.");
@@ -2031,6 +2037,48 @@ const commands: Dict<ICommandDefinition> = {
 			const name = database.eventInformation[event].name;
 			delete database.eventInformation[event];
 			this.say("The " + name + " event has been removed.");
+		},
+	},
+	setgreeting: {
+		command(target, room, user, cmd) {
+			if (!this.isPm(room) || !user.isDeveloper()) return;
+			const targets = target.split(',');
+			const targetRoom = Rooms.search(targets[0]);
+			if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+			if (!Tools.isUsernameLength(targets[1])) return this.sayError(['invalidUsernameLength']);
+			const greeting = targets.slice(2).join(',').trim();
+			if (!greeting) return this.say("You must specify a greeting.");
+			if ((greeting.charAt(0) === '/' && !greeting.startsWith('/me ') && !greeting.startsWith('/mee ')) || greeting.charAt(0) === '!') return this.say("Greetings cannot be PS! commands.");
+			const database = Storage.getDatabase(targetRoom);
+			if (!database.botGreetings) database.botGreetings = {};
+			const id = Tools.toId(targets[1]);
+			let duration = 0;
+			if (cmd === 'awardgreeting') {
+				if (Config.awardedBotGreetingDurations && targetRoom.id in Config.awardedBotGreetingDurations) {
+					duration = Config.awardedBotGreetingDurations[targetRoom.id];
+				} else {
+					duration = AWARDED_BOT_GREETING_DURATION;
+				}
+			}
+			database.botGreetings[id] = {greeting};
+			if (duration) database.botGreetings[id].expiration = Date.now() + duration;
+			this.say(targets[1].trim() + "'s greeting in " + targetRoom.title + (duration ? " (expiring in " + Tools.toDurationString(duration) + ")" : "") + " has been stored.");
+		},
+		aliases: ['awardgreeting'],
+	},
+	removegreeting: {
+		command(target, room, user, cmd) {
+			if (!this.isPm(room) || !user.isDeveloper()) return;
+			const targets = target.split(',');
+			const targetRoom = Rooms.search(targets[0]);
+			if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+			const database = Storage.getDatabase(targetRoom);
+			if (!database.botGreetings) return this.say(targetRoom.title + " does not have any bot greetings stored.");
+			if (!Tools.isUsernameLength(targets[1])) return this.sayError(['invalidUsernameLength']);
+			const id = Tools.toId(targets[1]);
+			if (!(id in database.botGreetings)) return this.say(targets[1].trim() + " does not have a greeting stored for " + targetRoom.title + ".");
+			delete database.botGreetings[id];
+			this.say(targets[1].trim() + "'s greeting in " + targetRoom.title + " has been removed.");
 		},
 	},
 	logs: {
