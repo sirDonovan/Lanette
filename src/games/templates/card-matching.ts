@@ -15,6 +15,8 @@ export abstract class CardMatching extends Card {
 	// always truthy once the game starts
 	topCard!: IPokemonCard;
 
+	abstract arePlayableCards(cards: CardType[]): boolean;
+	abstract isPlayableCard(cardA: CardType, cardB?: CardType): boolean;
 	abstract onRemovePlayer(player: Player): void;
 	abstract playActionCard(card: CardType, player: Player, targets: string[], cards: CardType[]): CardType[] | boolean;
 
@@ -130,6 +132,14 @@ export abstract class CardMatching extends Card {
 
 	getCardPmDetails(card: IPokemonCard): string {
 		return this.getChatTypeLabel(card) + "<br />" + this.getChatColorLabel(card);
+	}
+
+	getCardsPmHtml(cards: IPokemonCard[], player: Player): string {
+		const html = [];
+		for (let i = 0; i < cards.length; i++) {
+			html.push('<div style="height:auto">' + this.getCardPmHtml(cards[i]) + '</div>');
+		}
+		return html.join("<br />");
 	}
 
 	onStart() {

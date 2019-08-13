@@ -93,11 +93,9 @@ export abstract class Card extends Game {
 	// always truthy once the game starts
 	topCard!: CardType;
 
-	abstract arePlayableCards(cards: CardType[]): boolean;
 	abstract createDeck(): void;
 	abstract getCardChatDetails(card: CardType): string;
-	abstract getCardPmHtml(card: CardType): string;
-	abstract isPlayableCard(cardA: CardType, cardB?: CardType): boolean;
+	abstract getCardsPmHtml(cards: CardType[], player: Player): string;
 	abstract onInitialize(): void;
 	abstract onNextRound(): void;
 	abstract onStart(): void;
@@ -195,14 +193,6 @@ export abstract class Card extends Game {
 		html += '<div class="infobox" style="display:inline-block;width:' + (width + 10) + 'px;"><div class="infobox" style="width:' + width + 'px">' + names.join(", ") + '</div>';
 		html += images.join("") + '<div class="infobox" style="width:' + width + 'px;">' + info + '</div></div>';
 		return html;
-	}
-
-	getCardsPmHtml(cards: CardType[], player: Player): string {
-		const html = [];
-		for (let i = 0; i < cards.length; i++) {
-			html.push('<div style="height:auto">' + this.getCardPmHtml(cards[i]) + '</div>');
-		}
-		return html.join("<br />");
 	}
 
 	drawCard(player: Player, amount?: number | null, cards?: CardType[] | null, dontShow?: boolean): CardType[] {
@@ -314,41 +304,6 @@ export abstract class Card extends Game {
 			const cards = this.playerCards.get(player);
 			return player.name + (cards ? " (" + cards.length + ")" : "");
 		}, players).join(', ');
-	}
-
-	getPlayableCards(player: Player): string[] {
-		const cards = this.playerCards.get(player)!;
-		if (cards.length < this.minimumPlayedCards) return [];
-
-		const playableCards: string[] = [];
-		if (this.minimumPlayedCards === 1) {
-			for (let i = 0; i < cards.length; i++) {
-				const card = cards[i];
-				if (card.action || this.isPlayableCard(card, this.topCard)) {
-					playableCards.push(card.name);
-				}
-			}
-		} else {
-			for (let i = 0; i < cards.length; i++) {
-				const card = cards[i];
-				if (card.action) {
-					playableCards.push(card.name);
-					continue;
-				}
-				for (let i = 0; i < cards.length; i++) {
-					const otherCard = cards[i];
-					if (card === otherCard || otherCard.action) continue;
-					if (this.arePlayableCards([this.topCard, card, otherCard])) {
-						playableCards.push(card.name + ", " + otherCard.name);
-					}
-				}
-			}
-		}
-		return playableCards;
-	}
-
-	hasPlayableCard(player: Player): boolean {
-		return !!this.getPlayableCards(player).length;
 	}
 
 	timeEnd() {
