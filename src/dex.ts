@@ -749,6 +749,49 @@ export class Dex {
 
 		if (!templateData.eggGroups) templateData.eggGroups = [];
 		if (!templateFormatsData.requiredItems && templateFormatsData.requiredItem) templateFormatsData.requiredItems = [templateFormatsData.requiredItem];
+		const baseSpecies = templateData.baseSpecies || templateData.species;
+		const isForme = baseSpecies !== templateData.species;
+		const allPossibleMoves: string[] = [];
+		if (this.data.learnsets.hasOwnProperty(id)) {
+			for (const i in this.data.learnsets[id]!.learnset) {
+				allPossibleMoves.push(i);
+			}
+		} else if (isForme) {
+			const basePokemon = this.getExistingPokemon(baseSpecies);
+			if (basePokemon.learnset) {
+				for (const i in basePokemon.learnset) {
+					allPossibleMoves.push(i);
+				}
+			}
+		}
+
+		if (templateData.species === 'Lycanroc-Dusk') {
+			const prevo = this.getExistingPokemon('Rockruff-Dusk');
+			if (prevo.learnset) {
+				for (const i in prevo.learnset) {
+					if (!allPossibleMoves.includes(i)) allPossibleMoves.push(i);
+				}
+			}
+		} else if (isForme && templateData.baseSpecies === 'Rotom') {
+			const basePokemon = this.getExistingPokemon('Rotom');
+			if (basePokemon.learnset) {
+				for (const i in basePokemon.learnset) {
+					if (!allPossibleMoves.includes(i)) allPossibleMoves.push(i);
+				}
+			}
+		} else if (templateData.prevo) {
+			let prevo = Tools.toId(templateData.prevo);
+			while (prevo && this.data.pokedex.hasOwnProperty(prevo)) {
+				const prevoTemplateData = this.data.pokedex[prevo]!;
+				if (this.data.learnsets.hasOwnProperty(prevo)) {
+					for (const i in this.data.learnsets[prevo]!.learnset) {
+						if (!allPossibleMoves.includes(i)) allPossibleMoves.push(i);
+					}
+				}
+				prevo = Tools.toId(prevoTemplateData.prevo);
+			}
+		}
+
 		let battleOnly = templateFormatsData.battleOnly;
 		let isMega = false;
 		let isPrimal = false;
@@ -779,7 +822,6 @@ export class Dex {
 			}
 		}
 
-		const baseSpecies = templateData.baseSpecies || templateData.species;
 		const evos = templateData.evos || [];
 		const speciesId = Tools.toId(templateData.species);
 		let tier: string | undefined;
@@ -839,6 +881,7 @@ export class Dex {
 		}
 
 		const pokemonComputed: IPokemonComputed = {
+			allPossibleMoves,
 			baseSpecies,
 			battleOnly,
 			category: this.data.categories[speciesId] || '',

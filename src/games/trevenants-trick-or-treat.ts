@@ -3,14 +3,13 @@ import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { IPokemon } from "../types/in-game-data-types";
 import { User } from "../users";
 
 const GRID_SIZE = 4;
 
 const name = "Trevenant's Trick-or-Treat";
-const data: {fullLearnsets: Dict<Dict<readonly string[]>>, pokedex: string[]} = {
-	fullLearnsets: {},
+const data: {allPossibleMoves: Dict<readonly string[]>, pokedex: string[]} = {
+	allPossibleMoves: {},
 	pokedex: [],
 };
 let loadedData = false;
@@ -23,30 +22,8 @@ class TrevenantsTrickOrTreat extends Game {
 		const pokedex = Dex.getPokemonList(x => !!x.forme || !Dex.hasGifData(x, 'bw'));
 		for (let i = 0; i < pokedex.length; i++) {
 			const pokemon = pokedex[i];
-			data.pokedex.push(pokemon.species);
-			const forme = pokemon.baseSpecies !== pokemon.species;
-			const learnset: Dict<readonly string[]> = {};
-			if (pokemon.learnset) {
-				Object.assign(learnset, pokemon.learnset);
-			} else if (forme) {
-				const baseSpecies = Dex.getExistingPokemon(pokemon.baseSpecies);
-				if (baseSpecies.learnset) Object.assign(learnset, baseSpecies.learnset);
-			}
-
-			if (pokemon.species === 'Lycanroc-Dusk') {
-				const prevo = Dex.getExistingPokemon('Rockruff-Dusk');
-				if (prevo.learnset) Object.assign(learnset, prevo.learnset);
-			} else if (forme && pokemon.baseSpecies === 'Rotom') {
-				const baseSpecies = Dex.getExistingPokemon('Rotom');
-				if (baseSpecies.learnset) Object.assign(learnset, baseSpecies.learnset);
-			} else if (pokemon.prevo) {
-				let evolution = pokemon;
-				while (evolution.prevo) {
-					evolution = Dex.getExistingPokemon(evolution.prevo);
-					if (evolution.learnset) Object.assign(learnset, evolution.learnset);
-				}
-			}
-			data.fullLearnsets[pokemon.id] = learnset;
+			data.pokedex.push(pokemon.id);
+			data.allPossibleMoves[pokemon.id] = pokemon.allPossibleMoves;
 		}
 
 		loadedData = true;
@@ -55,7 +32,7 @@ class TrevenantsTrickOrTreat extends Game {
 	pokemonList: string[];
 
 	points = new Map<Player, number>();
-	pokemonGrid = [] as string[][];
+	pokemonGrid: string[][] = [];
 	hasAnswered = new Set<Player>();
 	indicesToReplace = new Set();
 	timeout: NodeJS.Timer | null = null;
@@ -148,7 +125,7 @@ const commands: Dict<ICommandDefinition<TrevenantsTrickOrTreat>> = {
 			const points = this.points.get(player) || 0;
 			let earnedPoints = 0;
 			for (let i = 0; i < data.pokedex.length; i++) {
-				if (move.id in data.fullLearnsets[Tools.toId(data.pokedex[i])]) earnedPoints++;
+				if (data.allPossibleMoves[data.pokedex[i]].includes(move.id)) earnedPoints++;
 			}
 			const totalPoints = points + earnedPoints;
 			this.points.set(player, totalPoints);

@@ -1,11 +1,37 @@
 import assert = require('assert');
 
 describe("Dex", () => {
+	it('should compute all data types properly', () => {
+		for (const i in Dex.data.abilities) {
+			assert(Dex.getExistingAbility(i), i);
+		}
+		for (const i in Dex.data.formats) {
+			assert(Dex.getExistingFormat(i), i);
+		}
+		for (const i in Dex.data.items) {
+			assert(Dex.getExistingItem(i), i);
+		}
+		for (const i in Dex.data.moves) {
+			assert(Dex.getExistingMove(i), i);
+		}
+		for (const i in Dex.data.pokedex) {
+			assert(Dex.getExistingPokemon(i), i);
+		}
+	});
 	it('should support OMoTM# aliases', () => {
 		assert(Dex.getFormat('omotm'));
 		assert(Dex.getFormat('omotm2'));
 	});
-	it('should compute Pokemon tiers properly', () => {
+	it('should compute Pokemon properties properly', () => {
+		// allPossibleMoves
+		let pokemon = Dex.getExistingPokemon('Charizard');
+		assert(pokemon.allPossibleMoves.length > Object.keys(pokemon.learnset!).length, pokemon.species);
+		pokemon = Dex.getExistingPokemon('Lycanroc-Dusk');
+		assert(pokemon.allPossibleMoves.length > Object.keys(pokemon.learnset!).length, pokemon.species);
+		pokemon = Dex.getExistingPokemon('Rotom-Frost');
+		assert(pokemon.allPossibleMoves.length > Object.keys(pokemon.learnset!).length, pokemon.species);
+
+		// tiers
 		assert(Dex.getExistingPokemon('Arceus').tier === 'Uber');
 		assert(Dex.getExistingPokemon('Arceus-Bug').tier === 'Uber');
 		assert(Dex.getExistingPokemon('Lurantis').tier === 'PU');

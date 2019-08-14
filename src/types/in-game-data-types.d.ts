@@ -639,6 +639,7 @@ export interface ITemplateFormatsData {
 }
 
 export interface IPokemonComputed {
+	allPossibleMoves: string[];
 	baseSpecies: string;
 	battleOnly?: boolean;
 	category: string;
