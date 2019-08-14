@@ -736,6 +736,19 @@ export class Dex {
 		return moves;
 	}
 
+	/** Returns a list of standard, copied moves
+	 *
+	 * filterMove: Return `true` to filter `move` out of the list
+	 */
+	getMovesCopyList(filterMove?: (pokemon: IMove) => boolean): IMoveCopy[] {
+		const moves = this.getMovesList(filterMove);
+		const copiedMoves: IMoveCopy[] = [];
+		for (let i = 0; i < moves.length; i++) {
+			copiedMoves.push(this.getMoveCopy(moves[i].name));
+		}
+		return copiedMoves;
+	}
+
 	getPokemon(name: string): IPokemon | null {
 		let id = Tools.toId(name);
 		if (!id) return null;

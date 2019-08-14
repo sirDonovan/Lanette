@@ -5,6 +5,7 @@ import { IMoveCopy, IPokemon, IPokemonCopy } from '../../types/in-game-data-type
 
 export interface IMoveCard extends IMoveCopy {
 	action?: string;
+	availability?: number;
 	played?: boolean;
 }
 
