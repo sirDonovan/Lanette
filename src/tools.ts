@@ -28,9 +28,9 @@ export class Tools {
 	fetchUrlTimeouts: Dict<NodeJS.Timer> = {};
 	fetchUrlQueues: Dict<(() => any)[]> = {};
 
-	onReload(previous: Tools) {
-		this.fetchUrlTimeouts = previous.fetchUrlTimeouts;
-		this.fetchUrlQueues = previous.fetchUrlQueues;
+	onReload(previous: Partial<Tools>) {
+		if (previous.fetchUrlTimeouts) this.fetchUrlTimeouts = previous.fetchUrlTimeouts;
+		if (previous.fetchUrlQueues) this.fetchUrlQueues = previous.fetchUrlQueues;
 	}
 
 	random(limit?: number) {

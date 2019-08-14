@@ -55,10 +55,10 @@ export class Games {
 	readonly userHostedFormats: Dict<IUserHostedComputed> = {};
 	readonly workers: Dict<IGameWorker> = {};
 
-	onReload(previous: Games) {
-		this.lastGames = previous.lastGames;
-		this.lastScriptedGames = previous.lastScriptedGames;
-		this.lastUserHostedGames = previous.lastUserHostedGames;
+	onReload(previous: Partial<Games>) {
+		if (previous.lastGames) this.lastGames = previous.lastGames;
+		if (previous.lastScriptedGames) this.lastScriptedGames = previous.lastScriptedGames;
+		if (previous.lastUserHostedGames) this.lastUserHostedGames = previous.lastUserHostedGames;
 	}
 
 	unrefWorkers() {

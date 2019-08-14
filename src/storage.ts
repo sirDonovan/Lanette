@@ -22,11 +22,11 @@ export class Storage {
 	lastSeenExpirationDuration = Tools.toDurationString(LAST_SEEN_EXPIRATION);
 	loadedDatabases: boolean = false;
 
-	onReload(previous: Storage) {
-		this.chatLogFilePathCache = previous.chatLogFilePathCache;
-		this.chatLogRolloverTimes = previous.chatLogRolloverTimes;
-		this.databases = previous.databases;
-		this.loadedDatabases = previous.loadedDatabases;
+	onReload(previous: Partial<Storage>) {
+		if (previous.chatLogFilePathCache) this.chatLogFilePathCache = previous.chatLogFilePathCache;
+		if (previous.chatLogRolloverTimes) this.chatLogRolloverTimes = previous.chatLogRolloverTimes;
+		if (previous.databases) this.databases = previous.databases;
+		if (previous.loadedDatabases) this.loadedDatabases = previous.loadedDatabases;
 	}
 
 	getDatabase(room: Room): IDatabase {

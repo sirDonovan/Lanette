@@ -111,21 +111,21 @@ export class Client {
 		this.parseServerGroups(DEFAULT_SERVER_GROUPS);
 	}
 
-	onReload(previous: Client) {
-		this.botGreetingCooldowns = previous.botGreetingCooldowns;
-		this.challstr = previous.challstr;
-		this.client = previous.client;
-		this.connection = previous.connection;
-		this.filterPhrases = previous.filterPhrases;
-		this.filterRegularExpressions = previous.filterRegularExpressions;
-		this.groupSymbols = previous.groupSymbols;
-		this.loggedIn = previous.loggedIn;
-		this.sendQueue = previous.sendQueue;
-		this.sendTimeout = previous.sendTimeout;
-		this.server = previous.server;
-		this.serverGroups = previous.serverGroups;
-		this.serverId = previous.serverId;
-		this.serverTimeOffset = previous.serverTimeOffset;
+	onReload(previous: Partial<Client>) {
+		if (previous.botGreetingCooldowns) this.botGreetingCooldowns = previous.botGreetingCooldowns;
+		if (previous.challstr) this.challstr = previous.challstr;
+		if (previous.client) this.client = previous.client;
+		if (previous.connection) this.connection = previous.connection;
+		if (previous.filterPhrases) this.filterPhrases = previous.filterPhrases;
+		if (previous.filterRegularExpressions) this.filterRegularExpressions = previous.filterRegularExpressions;
+		if (previous.groupSymbols) this.groupSymbols = previous.groupSymbols;
+		if (previous.loggedIn) this.loggedIn = previous.loggedIn;
+		if (previous.sendQueue) this.sendQueue = previous.sendQueue;
+		if (previous.sendTimeout) this.sendTimeout = previous.sendTimeout;
+		if (previous.server) this.server = previous.server;
+		if (previous.serverGroups) this.serverGroups = previous.serverGroups;
+		if (previous.serverId) this.serverId = previous.serverId;
+		if (previous.serverTimeOffset) this.serverTimeOffset = previous.serverTimeOffset;
 	}
 
 	onConnectFail(error?: Error) {

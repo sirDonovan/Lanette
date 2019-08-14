@@ -48,11 +48,11 @@ export class Tournaments {
 	tournamentTimers: Dict<NodeJS.Timer> = {};
 	userHostedTournamentNotificationTimeouts: Dict<NodeJS.Timer> = {};
 
-	onReload(previous: Tournaments) {
-		this.createListeners = previous.createListeners;
-		this.scheduledTournaments = previous.scheduledTournaments;
-		this.tournamentTimers = previous.tournamentTimers;
-		this.userHostedTournamentNotificationTimeouts = previous.userHostedTournamentNotificationTimeouts;
+	onReload(previous: Partial<Tournaments>) {
+		if (previous.createListeners) this.createListeners = previous.createListeners;
+		if (previous.scheduledTournaments) this.scheduledTournaments = previous.scheduledTournaments;
+		if (previous.tournamentTimers) this.tournamentTimers = previous.tournamentTimers;
+		if (previous.userHostedTournamentNotificationTimeouts) this.userHostedTournamentNotificationTimeouts = previous.userHostedTournamentNotificationTimeouts;
 
 		const now = Date.now();
 		Users.self.rooms.forEach((rank, room) => {
