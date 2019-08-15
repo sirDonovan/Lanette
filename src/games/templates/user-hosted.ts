@@ -205,13 +205,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			freejoin: true,
 		},
 		{
-			name: "Lugia's Obstructive Letters",
-			mascot: "Lugia",
-			aliases: ['LOL', 'Lugias'],
-			description: "Players guess answers missing the given letters! Answers must be at least 6 letters long.",
-			freejoin: true,
-		},
-		{
 			name: "Luig-E's Challenge",
 			aliases: ['Luiges'],
 			description: "Each round the players decide to either attack, counter or rest to take down Luig-E. However, Luig-E picks a move and can attack too, so be careful with your picks!",

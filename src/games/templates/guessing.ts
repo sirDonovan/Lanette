@@ -7,6 +7,7 @@ export abstract class Guessing extends Game {
 	canGuess: boolean = false;
 	hint: string = '';
 	readonly points: Map<Player, number> = new Map();
+	roundTime: number = 10 * 1000;
 
 	roundCategory?: string;
 	readonly roundGuesses?: Map<Player, boolean>;
@@ -28,7 +29,7 @@ export abstract class Guessing extends Game {
 					}
 				}
 				this.nextRound();
-			}, 10 * 1000);
+			}, this.roundTime);
 		});
 		this.say(this.hint);
 	}
