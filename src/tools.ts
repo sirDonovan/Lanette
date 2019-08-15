@@ -1,6 +1,7 @@
 import fs = require('fs');
 import https = require('https');
 import path = require('path');
+import { PRNG } from './prng';
 import { IParam } from './workers/parameters';
 
 const ALPHA_NUMERIC_REGEX = /[^a-zA-Z0-9 ]/g;
@@ -33,29 +34,30 @@ export class Tools {
 		if (previous.fetchUrlQueues) this.fetchUrlQueues = previous.fetchUrlQueues;
 	}
 
-	random(limit?: number) {
+	random(limit?: number, prng?: PRNG): number {
 		if (!limit) limit = 2;
+		if (prng) return prng.next(limit);
 		return Math.floor(Math.random() * limit);
 	}
 
-	sampleMany<T>(array: readonly T[], amount: string | number): T[] {
+	sampleMany<T>(array: readonly T[], amount: string | number, prng?: PRNG): T[] {
 		const len = array.length;
 		if (!len) throw new Error("Tools.sampleMany() does not accept empty arrays");
 		if (len === 1) return array.slice();
 		if (typeof amount === 'string') amount = parseInt(amount);
 		if (!amount || isNaN(amount)) throw new Error("Invalid amount in Tools.sampleMany()");
 		if (amount > len) amount = len;
-		return this.shuffle(array).splice(0, amount);
+		return this.shuffle(array, prng).splice(0, amount);
 	}
 
-	sampleOne<T>(array: readonly T[]): T {
+	sampleOne<T>(array: readonly T[], prng?: PRNG): T {
 		const len = array.length;
 		if (!len) throw new Error("Tools.sampleOne() does not accept empty arrays");
 		if (len === 1) return array.slice()[0];
-		return this.shuffle(array)[0];
+		return this.shuffle(array, prng)[0];
 	}
 
-	shuffle<T>(array: readonly T[]): T[] {
+	shuffle<T>(array: readonly T[], prng?: PRNG): T[] {
 		const shuffled = array.slice();
 
 		// Fisher-Yates shuffle algorithm
@@ -66,7 +68,7 @@ export class Tools {
 		// While there remain elements to shuffle...
 		while (currentIndex !== 0) {
 			// Pick a remaining element...
-			randomIndex = Math.floor(Math.random() * currentIndex);
+			randomIndex = this.random(currentIndex, prng);
 			currentIndex -= 1;
 
 			// And swap it with the current element.
