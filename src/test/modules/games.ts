@@ -160,7 +160,8 @@ describe("Games", () => {
 		}
 	});
 
-	it('should load data properly', () => {
+	it('should load data properly', function() {
+		this.timeout(15000);
 		const room = Rooms.add('mocha');
 		for (const i in Games.formats) {
 			const game = Games.createGame(room, Games.getExistingFormat(i));
