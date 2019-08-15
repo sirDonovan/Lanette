@@ -287,13 +287,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			freejoin: true,
 		},
 		{
-			name: "Politoed's Port Chain",
-			mascot: "Politoed",
-			aliases: ['PPC', 'Politoeds'],
-			description: "Players answer each round with a Pokemon that starts with the last 2-4 letters or ends with the first 2-4 letters of the previous Pokemon (no repeats in a round)!",
-			freejoin: true,
-		},
-		{
 			name: "Porygon's Movesearch Match",
 			mascot: "Porygon",
 			description: "Players guess Pokemon based on the given movesets!",
