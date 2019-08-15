@@ -5,6 +5,7 @@ import path = require('path');
 import { CommandErrorArray } from '../../command-parser';
 import { ParasParameters } from '../../games/paras-parameters';
 import { PoliwrathsPortmanteaus } from '../../games/poliwraths-portmanteaus';
+import { PRNGSeed } from '../../prng';
 import { IGameFile, IGameFileComputed, IGameFormat, IGameMode, IGameModeFile, IUserHostedComputed, IUserHostedFormat } from '../../types/games';
 import * as ParametersWorker from '../../workers/parameters';
 import * as PortmanteausWorker from '../../workers/portmanteaus';
@@ -164,8 +165,17 @@ describe("Games", () => {
 		this.timeout(15000);
 		const room = Rooms.add('mocha');
 		for (const i in Games.formats) {
-			const game = Games.createGame(room, Games.getExistingFormat(i));
-			game.deallocate();
+			try {
+				// tslint:disable-next-line prefer-const
+				let initialSeed: PRNGSeed | undefined;
+				Games.createGame(room, Games.getExistingFormat(i), room, initialSeed);
+			} catch (e) {
+				if (room.game) {
+					console.log(Games.getExistingFormat(i).name + " (starting seed = " + room.game.prng.initialSeed + ") crashed with: " + e.message);
+				}
+				throw e;
+			}
+			if (room.game) room.game.deallocate();
 		}
 	});
 

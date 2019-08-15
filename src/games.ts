@@ -3,6 +3,7 @@ import path = require('path');
 
 import { CommandErrorArray, ICommandDefinition } from './command-parser';
 import { UserHosted } from './games/templates/user-hosted';
+import { PRNG, PRNGSeed } from './prng';
 import { Game } from "./room-game";
 import { Room } from "./rooms";
 import { IGameFile, IGameFileComputed, IGameFormat, IGameFormatComputed, IGameMode, IGameModeFile, IGameVariant, IGameWorker, IUserHostedComputed, IUserHostedFile, IUserHostedFormat, IUserHostedFormatComputed } from './types/games';
@@ -382,9 +383,10 @@ export class Games {
 		return false;
 	}
 
-	createGame(room: Room | User, format: IGameFormat, pmRoom?: Room): Game {
+	createGame(room: Room | User, format: IGameFormat, pmRoom?: Room, initialSeed?: PRNGSeed): Game {
 		if (format.class.loadData) format.class.loadData(room);
 		room.game = new format.class(room, pmRoom);
+		if (initialSeed) room.game.prng = new PRNG(initialSeed);
 		room.game.initialize(format);
 
 		return room.game;
