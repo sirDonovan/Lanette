@@ -135,7 +135,7 @@ class PanchamPairs extends Game {
 		const pool = this.variant === 'Moves' ? moves : pokedex;
 		let shuffled: string[] = [];
 		while (!newList.length) {
-			shuffled = Tools.shuffle(pool);
+			shuffled = this.shuffle(pool);
 			const base = shuffled.shift();
 			for (let i = 0, len = shuffled.length; i < len; i++) {
 				if (base && this.isPair(base, shuffled[i])) {
@@ -158,7 +158,7 @@ class PanchamPairs extends Game {
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
 			this.canPair = true;
-			this.currentList = Tools.shuffle(newList);
+			this.currentList = this.shuffle(newList);
 			this.listPossiblePairs();
 		});
 		this.sayUhtml(uhtmlName, html);

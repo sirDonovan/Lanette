@@ -15,9 +15,9 @@ class AbrasAbilitySwitch extends Guessing {
 	}
 
 	setAnswers() {
-		let pokemon = Tools.sampleOne(this.pokedex);
+		let pokemon = this.sampleOne(this.pokedex);
 		while (pokemon.species === this.lastPokemon) {
-			pokemon = Tools.sampleOne(this.pokedex);
+			pokemon = this.sampleOne(this.pokedex);
 		}
 		this.lastPokemon = pokemon.species;
 
@@ -26,7 +26,7 @@ class AbrasAbilitySwitch extends Guessing {
 			// @ts-ignore
 			abilities.push(pokemon.abilities[i]);
 		}
-		abilities = Tools.shuffle(abilities);
+		abilities = this.shuffle(abilities);
 
 		let ability = abilities[0];
 		abilities.shift();

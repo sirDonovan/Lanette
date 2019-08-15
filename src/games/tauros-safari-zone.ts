@@ -53,13 +53,13 @@ class TaurosSafariZone extends Game {
 	}
 
 	generatePokemon() {
-		const pokemon = Tools.sampleMany(pokedex, 3).map(x => Dex.getExistingPokemon(x));
+		const pokemon = this.sampleMany(pokedex, 3).map(x => Dex.getExistingPokemon(x));
 		let hasVoltorb = false;
 		let hasElectrode = false;
 		const baseStatTotals: {pokemon: string, bst: number}[] = [];
 		for (let i = 0; i < pokemon.length; i++) {
 			let currentPokemon = pokemon[i];
-			const chance = Tools.random(100);
+			const chance = this.random(100);
 			if (chance < 25 && !hasVoltorb && !hasElectrode) {
 				if (chance < 10 && !hasElectrode) {
 					hasElectrode = true;
@@ -74,7 +74,7 @@ class TaurosSafariZone extends Game {
 				}
 			} else {
 				if (currentPokemon.otherFormes && chance < 85) {
-					currentPokemon = Dex.getExistingPokemon(Tools.sampleOne(currentPokemon.otherFormes));
+					currentPokemon = Dex.getExistingPokemon(this.sampleOne(currentPokemon.otherFormes));
 					pokemon[i] = currentPokemon;
 				}
 				let bst = 0;

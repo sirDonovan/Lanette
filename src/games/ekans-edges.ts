@@ -73,10 +73,10 @@ class EkansEdges extends Guessing {
 	}
 
 	setAnswers() {
-		const category = this.roundCategory || this.variant || Tools.sampleOne(categories);
-		let edge = Tools.sampleOne(dataKeys[category]);
+		const category = this.roundCategory || this.variant || this.sampleOne(categories);
+		let edge = this.sampleOne(dataKeys[category]);
 		while (edge === this.lastEdge) {
-			edge = Tools.sampleOne(dataKeys[category]);
+			edge = this.sampleOne(dataKeys[category]);
 		}
 		this.answers = data[category][edge];
 		this.hint = "[**" + category + "**] " + edge;

@@ -150,7 +150,7 @@ export abstract class Chain extends Game {
 	}
 
 	setLink(input?: string) {
-		let id = Tools.toId(input) || Tools.sampleOne(this.keys);
+		let id = Tools.toId(input) || this.sampleOne(this.keys);
 		let link = this.pool[id];
 		let linkStarts = this.getLinkStarts(link);
 		let linkEnds = this.getLinkEnds(link);
@@ -167,7 +167,7 @@ export abstract class Chain extends Game {
 				if (!linkToSkip) linkToSkip = this.pool[id];
 			}
 			this.resetLinkCounts();
-			id = Tools.sampleOne(this.keys);
+			id = this.sampleOne(this.keys);
 			link = this.pool[id];
 			linkStarts = this.getLinkStarts(link);
 			linkEnds = this.getLinkEnds(link);

@@ -48,7 +48,7 @@ class OctillerysAmbush extends Game {
 		const html = this.getRoundHtml(this.getPlayerNames);
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
-			const time = Tools.sampleOne([8000, 9000, 10000]);
+			const time = this.sampleOne([8000, 9000, 10000]);
 			const text = "**FIRE**";
 			this.on(text, () => {
 				this.fireTime = true;

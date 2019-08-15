@@ -70,7 +70,7 @@ class SerperiorLengthyChains extends Game {
 	onNextRound() {
 		this.bestChain = [];
 		this.bestPlayer = null;
-		this.category = Tools.sampleOne(Object.keys(parameters));
+		this.category = this.sampleOne(Object.keys(parameters));
 		this.say("Make a chain of **" + this.category + "** Pokemon!");
 		this.timeout = setTimeout(() => this.checkBestChain(), 15 * 1000);
 	}

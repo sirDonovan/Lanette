@@ -82,7 +82,7 @@ class TapusTerrains extends Game {
 		}
 		let newTerrain = false;
 		if (!this.currentTerrain) {
-			this.currentTerrain = Tools.sampleOne(terrains);
+			this.currentTerrain = this.sampleOne(terrains);
 			newTerrain = true;
 			this.terrainRound++;
 			if (this.revealTime > 2000) this.revealTime -= 500;
@@ -92,10 +92,10 @@ class TapusTerrains extends Game {
 			}
 		}
 		let targetPokemon: IPokemon;
-		if (Tools.random(2)) {
-			targetPokemon = Dex.getExistingPokemon(Tools.sampleOne(pokemonByTerrain[this.currentTerrain]));
+		if (this.random(2)) {
+			targetPokemon = Dex.getExistingPokemon(this.sampleOne(pokemonByTerrain[this.currentTerrain]));
 		} else {
-			targetPokemon = Dex.getExistingPokemon(Tools.sampleOne(unusedPokemon));
+			targetPokemon = Dex.getExistingPokemon(this.sampleOne(unusedPokemon));
 		}
 		this.targetPokemon = targetPokemon;
 		this.roundJumps.clear();

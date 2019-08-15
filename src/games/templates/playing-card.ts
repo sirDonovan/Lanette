@@ -53,7 +53,7 @@ export abstract class PlayingCard extends Game {
 				deck.push(Object.assign({}, card, {suit: suits[i]}));
 			}
 		}
-		this.deck = Tools.shuffle(deck);
+		this.deck = this.shuffle(deck);
 		return this.deck;
 	}
 

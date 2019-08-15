@@ -1,5 +1,6 @@
 import worker_threads = require('worker_threads');
 
+import { PRNG, PRNGSeed } from '../../prng';
 import * as tools from '../../tools';
 import { IParam, IParameterIntersectOptions, IParameterSearchOptions, IParameterSearchResult, IParametersWorkerData } from '../parameters';
 
@@ -18,7 +19,7 @@ for (let i = 0; i < searchTypes.length; i++) {
 	}
 }
 
-function search(options: IParameterSearchOptions): IParameterSearchResult {
+function search(options: IParameterSearchOptions, prng: PRNG): IParameterSearchResult {
 	let paramTypes: string[] = [];
 	let pokemon: string[] = [];
 	let params: IParam[] = [];
@@ -34,9 +35,9 @@ function search(options: IParameterSearchOptions): IParameterSearchResult {
 		if (options.customParamTypes) {
 			paramTypes = options.customParamTypes;
 		} else {
-			paramTypes = Tools.sampleMany(data[options.searchType].gens[options.mod].paramTypes, options.numberOfParams);
+			paramTypes = Tools.sampleMany(data[options.searchType].gens[options.mod].paramTypes, options.numberOfParams, prng);
 			while (paramTypes.includes('resistance') && paramTypes.includes('weakness')) {
-				paramTypes = Tools.sampleMany(data[options.searchType].gens[options.mod].paramTypes, options.numberOfParams);
+				paramTypes = Tools.sampleMany(data[options.searchType].gens[options.mod].paramTypes, options.numberOfParams, prng);
 			}
 		}
 
@@ -63,7 +64,7 @@ function search(options: IParameterSearchOptions): IParameterSearchResult {
 		const possibleParamsLen = possibleParams.length;
 
 		for (let i = 0; i < possibleParamsLen; i++) {
-			possibleParams[i] = Tools.shuffle(possibleParams[i]);
+			possibleParams[i] = Tools.shuffle(possibleParams[i], prng);
 		}
 
 		paramLists = [];
@@ -121,9 +122,9 @@ function search(options: IParameterSearchOptions): IParameterSearchResult {
 		if (options.customParamTypes) break;
 	}
 
-	if (!validParams && options.customParamTypes) return {params: [], pokemon: []};
+	if (!validParams && options.customParamTypes) return {params: [], pokemon: [], prngSeed: prng.seed.slice() as PRNGSeed};
 
-	return {params, pokemon};
+	return {params, pokemon, prngSeed: prng.seed.slice() as PRNGSeed};
 }
 
 function intersect(options: IParameterIntersectOptions, params: IParam[]): string[] {
@@ -147,8 +148,9 @@ worker_threads.parentPort!.on('message', message => {
 	let pipeIndex = message.indexOf('|');
 	const request = message.substr(0, pipeIndex);
 	if (request === 'search') {
-		const options = JSON.parse(message.substr(pipeIndex + 1));
-		worker_threads.parentPort!.postMessage(search(options));
+		const options = JSON.parse(message.substr(pipeIndex + 1)) as IParameterSearchOptions;
+		const prng = new PRNG(options.prngSeed);
+		worker_threads.parentPort!.postMessage(search(options, prng));
 	} else if (request === 'intersect') {
 		message = message.substr(pipeIndex + 1);
 		pipeIndex = message.indexOf('|');

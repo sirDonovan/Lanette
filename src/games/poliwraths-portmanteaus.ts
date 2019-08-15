@@ -1,3 +1,4 @@
+import { PRNG, PRNGSeed } from "../prng";
 import { DefaultGameOption, IGameOptionValues } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
@@ -40,7 +41,7 @@ export class PoliwrathsPortmanteaus extends Guessing {
 	}
 
 	async setAnswers() {
-		const numberOfPorts = this.customPortTypes ? this.customPortTypes.length : this.inputOptions.ports ? this.options.ports : this.baseNumberOfPorts + Tools.random(3);
+		const numberOfPorts = this.customPortTypes ? this.customPortTypes.length : this.inputOptions.ports ? this.options.ports : this.baseNumberOfPorts + this.random(3);
 		const result = await PortmanteausWorker.search({
 			customPortCategories: this.customPortCategories,
 			customPortDetails: this.customPortDetails,
@@ -48,6 +49,7 @@ export class PoliwrathsPortmanteaus extends Guessing {
 			numberOfPorts,
 			minLetters: this.minLetters,
 			maxLetters: this.maxLetters,
+			prngSeed: this.prng.seed.slice() as PRNGSeed,
 		});
 
 		if (this.ended) return;
@@ -60,6 +62,7 @@ export class PoliwrathsPortmanteaus extends Guessing {
 			this.answerParts = result.answerParts;
 			this.ports = result.ports;
 			this.hint = "**" + result.ports.join(" ") + "**";
+			this.prng = new PRNG(result.prngSeed);
 		}
 	}
 

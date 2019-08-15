@@ -1,5 +1,6 @@
 import path = require('path');
 import worker_threads = require('worker_threads');
+import { PRNGSeed } from '../prng';
 
 export interface IPortmanteausWorkerData {
 	pool: Dict<Dict<Dict<string[]>>>;
@@ -10,6 +11,7 @@ export interface IPortmanteauSearchOptions {
 	maxLetters: number;
 	minLetters: number;
 	numberOfPorts: number;
+	prngSeed: PRNGSeed;
 	customPortCategories?: string[] | null;
 	customPortDetails?: string[] | null;
 	customPortTypes?: string[] | null;
@@ -19,6 +21,7 @@ export interface IPortmanteauSearchResult {
 	answers: string[];
 	answerParts: Dict<string[]>;
 	ports: string[];
+	prngSeed: PRNGSeed;
 }
 
 export const data: IPortmanteausWorkerData = {

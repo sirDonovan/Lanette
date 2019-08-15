@@ -33,7 +33,7 @@ class KirliasTracingShow extends Guessing {
 		let abilities: string[] = [];
 		while (!abilitiesText || abilitiesText === this.lastAbilities) {
 			while (!species || species === this.lastSpecies) {
-				species = Tools.sampleOne(keys);
+				species = this.sampleOne(keys);
 			}
 
 			const pokemon = Dex.getExistingPokemon(species);

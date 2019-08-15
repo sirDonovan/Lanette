@@ -1,5 +1,6 @@
 import worker_threads = require('worker_threads');
 
+import { PRNG, PRNGSeed } from '../../prng';
 import * as tools from '../../tools';
 import { IPortmanteauSearchOptions, IPortmanteauSearchResult, IPortmanteausWorkerData } from '../portmanteaus';
 
@@ -7,7 +8,7 @@ const Tools = new tools.Tools();
 const data = worker_threads.workerData as IPortmanteausWorkerData;
 const portTypes = Object.keys(data.pool);
 
-function search(options: IPortmanteauSearchOptions): IPortmanteauSearchResult {
+function search(options: IPortmanteauSearchOptions, prng: PRNG): IPortmanteauSearchResult {
 	const customPort = options.customPortTypes || options.customPortCategories || options.customPortDetails ? true : false;
 	let answerParts: Dict<{detail: string, part: string}[]> = {};
 	const ports: string[] = [];
@@ -23,20 +24,20 @@ function search(options: IPortmanteauSearchOptions): IPortmanteauSearchResult {
 			if (options.customPortTypes) {
 				type = options.customPortTypes[i];
 			} else {
-				type = Tools.sampleOne(portTypes);
+				type = Tools.sampleOne(portTypes, prng);
 			}
 			let category;
 			if (options.customPortCategories) {
 				category = options.customPortCategories[i];
 			} else {
-				category = Tools.sampleOne(data.portCategories[type]);
+				category = Tools.sampleOne(data.portCategories[type], prng);
 			}
 			const pool = data.pool[type][category];
 			let detail;
 			if (options.customPortDetails) {
 				detail = options.customPortDetails[i];
 			} else {
-				detail = Tools.sampleOne(Object.keys(pool));
+				detail = Tools.sampleOne(Object.keys(pool), prng);
 			}
 			let port = '[';
 			if (category === 'type') {
@@ -96,11 +97,11 @@ function search(options: IPortmanteauSearchOptions): IPortmanteauSearchResult {
 			}
 			break;
 		} else {
-			if (customPort) return {answers: [], ports: [], answerParts: {}};
+			if (customPort) return {answers: [], ports: [], answerParts: {}, prngSeed: prng.seed.slice() as PRNGSeed};
 		}
 	}
 
-	if (!answers) return search(options);
+	if (!answers) return search(options, prng);
 
 	const formattedAnswerParts: Dict<string[]> = {};
 	for (const combination in answerParts) {
@@ -119,14 +120,15 @@ function search(options: IPortmanteauSearchOptions): IPortmanteauSearchResult {
 			formattedAnswerParts[combination].push(part);
 		}
 	}
-	return {answers, ports, answerParts: formattedAnswerParts};
+	return {answers, ports, answerParts: formattedAnswerParts, prngSeed: prng.seed.slice() as PRNGSeed};
 }
 
 worker_threads.parentPort!.on('message', message => {
 	const pipeIndex = message.indexOf('|');
 	const request = message.substr(0, pipeIndex);
 	if (request === 'search') {
-		const options = JSON.parse(message.substr(pipeIndex + 1));
-		worker_threads.parentPort!.postMessage(search(options));
+		const options = JSON.parse(message.substr(pipeIndex + 1)) as IPortmanteauSearchOptions;
+		const prng = new PRNG(options.prngSeed);
+		worker_threads.parentPort!.postMessage(search(options, prng));
 	}
 });

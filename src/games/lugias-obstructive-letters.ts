@@ -61,13 +61,13 @@ class LugiasObstructiveLetters extends Guessing {
 		let category = "";
 		let unavailableLetters: string[] = [];
 		while (!answers.length || answers.length > 20) {
-			category = this.roundCategory || this.variant || Tools.sampleOne(categories);
-			const id = Tools.sampleOne(dataKeys[category]);
+			category = this.roundCategory || this.variant || this.sampleOne(categories);
+			const id = this.sampleOne(dataKeys[category]);
 			const availableLetters: string[] = [];
 			for (let i = 0; i < letters.length; i++) {
 				if (id.indexOf(letters[i]) === -1) availableLetters.push(letters[i]);
 			}
-			unavailableLetters = Tools.sampleMany(availableLetters, Math.floor(availableLetters.length / 2)).sort();
+			unavailableLetters = this.sampleMany(availableLetters, Math.floor(availableLetters.length / 2)).sort();
 			answers = [];
 			for (let i = 0; i < dataKeys[category].length; i++) {
 				const answer = dataKeys[category][i];

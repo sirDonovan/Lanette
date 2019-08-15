@@ -46,7 +46,7 @@ class FeebasChainFishing extends Game {
 			const divisor = Math.floor(this.getRemainingPlayerCount() / 3);
 			for (let i = 0; i < this.queue.length; i++) {
 				const player = this.queue[i];
-				const reel = Tools.sampleOne(currentRod.pokemon);
+				const reel = this.sampleOne(currentRod.pokemon);
 				let points = reel.points;
 				if (i === 0) {
 					// this.markFirstAction(player, 'firstReel');
@@ -70,7 +70,7 @@ class FeebasChainFishing extends Game {
 		}
 		this.roundReels.clear();
 		this.queue = [];
-		const time = Tools.sampleOne([8000, 9000, 10000]);
+		const time = this.sampleOne([8000, 9000, 10000]);
 		const html = this.getRoundHtml(this.getPlayerPoints);
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {

@@ -67,16 +67,16 @@ class KyuremsSplits extends Guessing {
 	}
 
 	setAnswers() {
-		const category = this.roundCategory || this.variant || Tools.sampleOne(categories);
+		const category = this.roundCategory || this.variant || this.sampleOne(categories);
 		let hint = '';
 		while (!this.answers.length || this.answers.length > 15 || Client.willBeFiltered(hint)) {
-			const answer = Tools.toId(Tools.sampleOne(data[category]));
+			const answer = Tools.toId(this.sampleOne(data[category]));
 			const validIndices: number[] = [];
 			for (let i = 1; i < answer.length; i++) {
 				validIndices.push(i);
 			}
 			const numberOfLetters = Math.min(5, Math.max(2, Math.floor(validIndices.length * (Math.random() * 0.4 + 0.3))));
-			const chosenIndices = Tools.sampleMany(validIndices, numberOfLetters);
+			const chosenIndices = this.sampleMany(validIndices, numberOfLetters);
 			hint = '';
 			for (let i = 0; i < chosenIndices.length; i++) {
 				hint += answer[chosenIndices[i]];

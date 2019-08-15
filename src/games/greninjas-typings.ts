@@ -30,10 +30,10 @@ class GreninjasTypings extends Guessing {
 
 	setAnswers() {
 		const noOrder = this.variant === 'noorder';
-		let typing = Dex.getExistingPokemon(Tools.sampleOne(keys)).types;
+		let typing = Dex.getExistingPokemon(this.sampleOne(keys)).types;
 		let typingString = typing.join(',');
 		while (typing.length === 1 || typingString === this.lastTyping || (noOrder && typing.slice().reverse().join(',') === this.lastTyping)) {
-			typing = Dex.getExistingPokemon(Tools.sampleOne(keys)).types;
+			typing = Dex.getExistingPokemon(this.sampleOne(keys)).types;
 			typingString = typing.join(',');
 		}
 		const reverseTypingString = noOrder ? typing.slice().reverse().join(',') : '';

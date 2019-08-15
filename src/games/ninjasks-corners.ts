@@ -50,9 +50,9 @@ class NinjasksCorners extends Game {
 			if (this.getRemainingPlayerCount() < 2 || this.round > this.roundLimit) return this.end();
 		}
 
-		let color = Tools.sampleOne(colors);
+		let color = this.sampleOne(colors);
 		while (color === this.lastColor) {
-			color = Tools.sampleOne(colors);
+			color = this.sampleOne(colors);
 		}
 		this.color = Tools.toId(color);
 		this.lastColor = color;
@@ -68,7 +68,7 @@ class NinjasksCorners extends Game {
 					this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
 				});
 				this.say(text);
-			}, Tools.sampleOne([4000, 5000, 6000]));
+			}, this.sampleOne([4000, 5000, 6000]));
 		});
 		this.sayUhtml(uhtmlName, html);
 	}

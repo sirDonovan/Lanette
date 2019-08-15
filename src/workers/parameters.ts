@@ -1,5 +1,6 @@
 import path = require('path');
 import worker_threads = require('worker_threads');
+import { PRNGSeed } from '../prng';
 
 export interface IParam {
 	type: string;
@@ -15,6 +16,7 @@ export interface IParameterSearchOptions {
 	numberOfParams: number;
 	minimumResults: number;
 	maximumResults: number;
+	prngSeed: PRNGSeed;
 	searchType: keyof typeof data;
 	filter?: string[];
 	customParamTypes?: string[] | null;
@@ -26,13 +28,14 @@ export interface IParameterIntersectOptions {
 }
 
 export interface IParameterSearchResult {
-	pokemon: string[];
 	params: IParam[];
+	pokemon: string[];
+	prngSeed: PRNGSeed;
 }
 
 export interface IParameterIntersectResult {
-	pokemon: string[];
 	params: IParam[];
+	pokemon: string[];
 }
 
 export const data: IParametersWorkerData = {

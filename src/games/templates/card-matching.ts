@@ -28,7 +28,7 @@ export abstract class CardMatching extends Card {
 		const colorCounts: Dict<number> = {};
 		const typeCounts: Dict<number> = {};
 		if (!this.deckPool.length) this.createDeckPool();
-		const pokedex = Tools.shuffle(this.deckPool);
+		const pokedex = this.shuffle(this.deckPool);
 		const deck: IPokemonCard[] = [];
 		const minimumDeck = ((this.maxPlayers + 1) * this.options.cards);
 		for (let i = 0; i < pokedex.length; i++) {
@@ -85,7 +85,7 @@ export abstract class CardMatching extends Card {
 				}
 			}
 		}
-		this.deck = Tools.shuffle(deck);
+		this.deck = this.shuffle(deck);
 	}
 
 	showTopCard(firstPlayedShiny?: boolean) {

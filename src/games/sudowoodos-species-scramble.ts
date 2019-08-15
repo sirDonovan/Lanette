@@ -33,7 +33,7 @@ class SudowoodosSpeciesScramble extends Guessing {
 	}
 
 	setAnswers() {
-		const category = Tools.sampleOne(categories);
+		const category = this.sampleOne(categories);
 		this.answers = data[category];
 		this.hint = "Sudowoodo imitated the **" + category + " Pokemon**!";
 	}

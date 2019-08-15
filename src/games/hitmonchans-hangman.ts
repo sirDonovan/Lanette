@@ -50,11 +50,11 @@ class HitmonchansHangman extends Guessing {
 	}
 
 	setAnswers() {
-		const category = this.roundCategory || this.variant || Tools.sampleOne(categories);
+		const category = this.roundCategory || this.variant || this.sampleOne(categories);
 		this.currentCategory = category;
-		let answer = Tools.sampleOne(data[category]);
+		let answer = this.sampleOne(data[category]);
 		while (answer === this.lastAnswer) {
-			answer = Tools.sampleOne(data[category]);
+			answer = this.sampleOne(data[category]);
 		}
 		this.lastAnswer = answer;
 		this.answers = [answer];

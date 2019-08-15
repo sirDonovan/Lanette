@@ -152,9 +152,9 @@ class TropiusBerryPicking extends Game {
 			this.roundBerries.clear();
 		}
 
-		let name = Tools.sampleOne(moves);
+		let name = this.sampleOne(moves);
 		while (this.lastMove === name) {
-			name = Tools.sampleOne(moves);
+			name = this.sampleOne(moves);
 		}
 		this.lastMove = name;
 		const move = Dex.getExistingMove(name);
@@ -169,12 +169,12 @@ class TropiusBerryPicking extends Game {
 					effectType = 'status';
 				}
 			}
-		} else if (!Tools.random(3)) {
-			if (!Tools.random(2)) {
-				effect = Tools.sampleOne(stats);
+		} else if (!this.random(3)) {
+			if (!this.random(2)) {
+				effect = this.sampleOne(stats);
 				effectType = 'stat';
 			} else {
-				effect = Tools.sampleOne(evs);
+				effect = this.sampleOne(evs);
 				effectType = 'ev';
 			}
 		}

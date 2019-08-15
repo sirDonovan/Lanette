@@ -123,7 +123,7 @@ class BulbasaursUno extends CardMatching {
 			showTopCard = false;
 		} else if (card.action === 'Shuffle') {
 			this.say("**The turn order was shuffled!**");
-			this.playerOrder = Tools.shuffle(this.playerOrder);
+			this.playerOrder = this.shuffle(this.playerOrder);
 			let index = this.playerOrder.indexOf(player) + 1;
 			if (index === this.playerOrder.length) index = 0;
 			this.playerList = this.playerOrder.slice(index);
@@ -176,7 +176,7 @@ class BulbasaursUno extends CardMatching {
 					this.say("You must play a card that matches color or a type with the top card.");
 					return false;
 				}
-				this.topCard = Tools.sampleOne(newTopCards);
+				this.topCard = this.sampleOne(newTopCards);
 				// if (this.topCard.shiny) Games.unlockAchievement(this.room, player, 'luck of the draw', this);
 				cards.splice(indexA, 1);
 				indexB = cards.indexOf(cardB);

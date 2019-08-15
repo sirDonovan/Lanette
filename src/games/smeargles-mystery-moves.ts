@@ -37,9 +37,9 @@ class SmearglesMysteryMoves extends Guessing {
 
 	setAnswers() {
 		this.hintsIndex = 0;
-		let name = Tools.sampleOne(moves);
+		let name = this.sampleOne(moves);
 		while (this.lastMove === name) {
-			name = Tools.sampleOne(moves);
+			name = this.sampleOne(moves);
 		}
 		this.lastMove = name;
 		const move = Dex.getExistingMove(name);
@@ -50,7 +50,7 @@ class SmearglesMysteryMoves extends Guessing {
 		hints.push("**Accuracy**: " + (move.accuracy === true ? "does not check" : move.accuracy + "%"));
 		if (move.category !== 'Status') hints.push("**Base power**: " + move.basePower);
 		hints.push("**Description**: " + move.shortDesc);
-		this.hints = Tools.shuffle(hints);
+		this.hints = this.shuffle(hints);
 		this.answers = [move.name];
 	}
 

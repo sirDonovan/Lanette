@@ -57,7 +57,7 @@ class TrubbishsTrash extends Game {
 	}
 
 	generateMoves() {
-		const moves = Tools.sampleMany(keys, 3);
+		const moves = this.sampleMany(keys, 3);
 		// let basePowers = [];
 		for (let i = 0; i < moves.length; i++) {
 			const move = Dex.getExistingMove(moves[i]);

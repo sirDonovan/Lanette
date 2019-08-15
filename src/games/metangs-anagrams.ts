@@ -40,17 +40,17 @@ class MetangsAnagrams extends Guessing {
 	}
 
 	setAnswers() {
-		const category = this.roundCategory || this.variant || Tools.sampleOne(categories);
-		let answer = Tools.sampleOne(data[category]);
+		const category = this.roundCategory || this.variant || this.sampleOne(categories);
+		let answer = this.sampleOne(data[category]);
 		while (answer === this.lastAnswer) {
-			answer = Tools.sampleOne(data[category]);
+			answer = this.sampleOne(data[category]);
 		}
 		this.answers = [answer];
 		const id = Tools.toId(answer);
 		const letters = id.split("");
-		let hint = Tools.shuffle(letters);
+		let hint = this.shuffle(letters);
 		while (hint.join("") === id) {
-			hint = Tools.shuffle(letters);
+			hint = this.shuffle(letters);
 		}
 		this.hint = '[**' + category + '**] __' + hint.join(", ") + '__.';
 	}

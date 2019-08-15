@@ -56,7 +56,7 @@ class AxewsBattleCards extends CardMatching {
 	createDeck() {
 		const weaknessCounts: Dict<number> = {};
 		if (!this.deckPool.length) this.createDeckPool();
-		const pokedex = Tools.shuffle(this.deckPool);
+		const pokedex = this.shuffle(this.deckPool);
 		const deck: CardType[] = [];
 		const minimumDeck = ((this.maxPlayers + 1) * this.options.cards);
 		for (let i = 0; i < pokedex.length; i++) {
@@ -99,7 +99,7 @@ class AxewsBattleCards extends CardMatching {
 			}
 		}
 
-		this.deck = Tools.shuffle(deck);
+		this.deck = this.shuffle(deck);
 	}
 
 	getTopCardText() {
@@ -172,21 +172,21 @@ class AxewsBattleCards extends CardMatching {
 					if (card.id === 'batonpass' || card.id === 'allyswitch') {
 						actionCards.push(card.name);
 					} else if (card.id === 'conversion') {
-						let type = Tools.sampleOne(Object.keys(Dex.data.typeChart));
+						let type = this.sampleOne(Object.keys(Dex.data.typeChart));
 						while (type === this.topCard.types[0] && this.topCard.types.length === 1) {
-							type = Tools.sampleOne(Object.keys(Dex.data.typeChart));
+							type = this.sampleOne(Object.keys(Dex.data.typeChart));
 						}
 						playableCards.push(card.name + ", " + type);
 					} else if (card.id === 'conversion2') {
-						let types = Tools.sampleMany(Object.keys(Dex.data.typeChart), 2);
+						let types = this.sampleMany(Object.keys(Dex.data.typeChart), 2);
 						while (types.sort().join(",") === this.topCard.types.slice().sort().join(",")) {
-							types = Tools.sampleMany(Object.keys(Dex.data.typeChart), 2);
+							types = this.sampleMany(Object.keys(Dex.data.typeChart), 2);
 						}
 						playableCards.push(card.name + ", " + types.join(", "));
 					} else if (card.id === 'transform') {
-						let pokemon = Tools.sampleOne(this.deckPool);
+						let pokemon = this.sampleOne(this.deckPool);
 						while (pokemon.species === this.topCard.species) {
-							pokemon = Tools.sampleOne(this.deckPool);
+							pokemon = this.sampleOne(this.deckPool);
 						}
 						playableCards.push(card.name + ", " + pokemon.species);
 					} else {
@@ -275,7 +275,7 @@ class AxewsBattleCards extends CardMatching {
 	autoPlay(player: Player, playableCards: string[]) {
 		let autoplay = '';
 		if (playableCards.includes('explosion')) playableCards.splice(playableCards.indexOf('explosion'), 1);
-		if (playableCards.length) autoplay = Tools.sampleOne(playableCards);
+		if (playableCards.length) autoplay = this.sampleOne(playableCards);
 		player.eliminated = true;
 		this.say(player.name + " didn't play a card" + (player.eliminated ? " and is eliminated" : "") + "!" + (autoplay ? " Auto-playing: " + autoplay : ""));
 		if (autoplay) {
@@ -422,7 +422,7 @@ class AxewsBattleCards extends CardMatching {
 			showTopCard = false;
 		} else if (card.id === 'teeterdance') {
 			this.say("**The turn order was shuffled!**");
-			this.playerOrder = Tools.shuffle(this.playerOrder);
+			this.playerOrder = this.shuffle(this.playerOrder);
 			let index = this.playerOrder.indexOf(player) + 1;
 			if (index === this.playerOrder.length) index = 0;
 			this.playerList = this.playerOrder.slice(index);

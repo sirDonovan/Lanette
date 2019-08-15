@@ -63,8 +63,8 @@ class SlowkingsTrivia extends Guessing {
 	}
 
 	setAnswers() {
-		const category = this.roundCategory || this.variant || Tools.sampleOne(categories);
-		const question = Tools.sampleOne(questions[category]);
+		const category = this.roundCategory || this.variant || this.sampleOne(categories);
+		const question = this.sampleOne(questions[category]);
 		this.answers = data[category][question];
 		this.hint = "[**" + category + "**] " + question;
 	}

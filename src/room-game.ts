@@ -1,4 +1,5 @@
 import { ICommandDefinition } from "./command-parser";
+import { PRNG } from "./prng";
 import { Activity, Player, PlayerList } from "./room-activity";
 import { Room } from "./rooms";
 import { IGameFormat } from "./types/games";
@@ -35,6 +36,7 @@ export class Game extends Activity {
 	nameWithOptions: string = '';
 	readonly options: Dict<number> = Object.create(null);
 	parentGame: Game | null = null;
+	prng: PRNG = new PRNG();
 	round: number = 0;
 	signupsTime: number = 0;
 	readonly isUserHosted: boolean = false;
@@ -60,6 +62,22 @@ export class Game extends Activity {
 	startingPoints?: number;
 	subGameNumber?: number;
 	readonly variant?: string;
+
+	random(m: number): number {
+		return Tools.random(m, this.prng);
+	}
+
+	sampleMany<T>(array: readonly T[], amount: number | string): T[] {
+		return Tools.sampleMany(array, amount, this.prng);
+	}
+
+	sampleOne<T>(array: readonly T[]): T {
+		return Tools.sampleOne(array, this.prng);
+	}
+
+	shuffle<T>(array: readonly T[]): T[] {
+		return Tools.shuffle(array, this.prng);
+	}
 
 	initialize(format: IGameFormat) {
 		this.format = format;

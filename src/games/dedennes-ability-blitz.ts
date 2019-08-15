@@ -42,7 +42,7 @@ class DedennesAbilityBlitz extends Game {
 	}
 
 	generateAbilities() {
-		const abilities = Tools.sampleMany(keys, 3);
+		const abilities = this.sampleMany(keys, 3);
 		for (let i = 0; i < abilities.length; i++) {
 			const ability = Tools.toId(abilities[i]);
 			this.roundAbilities.set(ability, {name: abilities[i], points: ability.length * 10});

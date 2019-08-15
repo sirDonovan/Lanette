@@ -74,12 +74,12 @@ class FeraligatrsLostLetters extends Guessing {
 		} else if (this.variant && !isInverse) {
 			category = this.variant;
 		} else {
-			category = Tools.sampleOne(this.categoryList);
+			category = this.sampleOne(this.categoryList);
 		}
 		let answer: string = '';
 		let hint: string = '';
 		while (!answer) {
-			let name = Tools.sampleOne(data[category]);
+			let name = this.sampleOne(data[category]);
 			if (!name || name.endsWith('-Mega')) continue;
 			name = name.trim();
 			hint = this.removeLetters(name.split(''), isInverse);

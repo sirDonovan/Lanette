@@ -37,9 +37,9 @@ class PikachusMysteryPokemon extends Guessing {
 
 	setAnswers() {
 		this.hintsIndex = 0;
-		let species = Tools.sampleOne(pokedex);
+		let species = this.sampleOne(pokedex);
 		while (this.lastSpecies === species) {
-			species = Tools.sampleOne(pokedex);
+			species = this.sampleOne(pokedex);
 		}
 		this.lastSpecies = species;
 		const pokemon = Dex.getExistingPokemon(species);
@@ -70,8 +70,8 @@ class PikachusMysteryPokemon extends Guessing {
 			// @ts-ignore
 			abilities.push(pokemon.abilities[i]);
 		}
-		hints.push("**Ability**: " + Tools.sampleOne(abilities));
-		this.hints = Tools.shuffle(hints);
+		hints.push("**Ability**: " + this.sampleOne(abilities));
+		this.hints = this.shuffle(hints);
 		this.answers = [pokemon.species];
 	}
 

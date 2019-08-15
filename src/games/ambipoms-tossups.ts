@@ -46,10 +46,10 @@ class AmbipomsTossups extends Guessing {
 	}
 
 	setAnswers() {
-		const category = this.roundCategory || this.variant || Tools.sampleOne(categories);
-		let answer = Tools.sampleOne(data[category]);
+		const category = this.roundCategory || this.variant || this.sampleOne(categories);
+		let answer = this.sampleOne(data[category]);
 		while (answer === this.lastAnswer) {
-			answer = Tools.sampleOne(data[category]);
+			answer = this.sampleOne(data[category]);
 		}
 		this.answers = [answer];
 		this.revealedLetters = 0;
@@ -71,9 +71,9 @@ class AmbipomsTossups extends Guessing {
 			this.setAnswers();
 		}
 		if (this.round > 1) {
-			let index = Tools.random(this.hints.length);
+			let index = this.random(this.hints.length);
 			while (this.hints[index] !== '_') {
-				index = Tools.random(this.hints.length);
+				index = this.random(this.hints.length);
 			}
 			this.hints[index] = this.letters[index];
 			this.revealedLetters++;

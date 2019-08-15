@@ -28,7 +28,7 @@ export abstract class CardHighLow extends Card {
 
 	createDeck() {
 		if (!this.deckPool.length) this.createDeckPool();
-		this.deck = Tools.shuffle(this.deckPool);
+		this.deck = this.shuffle(this.deckPool);
 	}
 
 	onSignups() {
@@ -162,8 +162,8 @@ export abstract class CardHighLow extends Card {
 			return;
 		}
 		if (remainingPlayers === 1) return this.end();
-		this.highOrLow = Tools.random(2) ? 'high' : 'low';
-		if (!this.categoryList.length) this.categoryList = Tools.shuffle(this.detailCategories);
+		this.highOrLow = this.random(2) ? 'high' : 'low';
+		if (!this.categoryList.length) this.categoryList = this.shuffle(this.detailCategories);
 		const category = this.categoryList[0];
 		this.categoryList.shift();
 		this.currentCategory = category;
@@ -176,7 +176,7 @@ export abstract class CardHighLow extends Card {
 				this.canPlay = true;
 				this.timeout = setTimeout(() => {
 					this.scoreRound();
-				}, Tools.sampleOne(this.roundTimes));
+				}, this.sampleOne(this.roundTimes));
 			});
 			this.say(text);
 			for (const i in this.players) {

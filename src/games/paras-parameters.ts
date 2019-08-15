@@ -1,3 +1,4 @@
+import { PRNG, PRNGSeed } from "../prng";
 import { DefaultGameOption, IGameOptionValues } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
@@ -59,7 +60,7 @@ export class ParasParameters extends Guessing {
 	}
 
 	async setAnswers() {
-		const numberOfParams = this.customParamTypes ? this.customParamTypes.length : this.inputOptions.params ? this.options.params : this.baseNumberOfParams + Tools.random(3);
+		const numberOfParams = this.customParamTypes ? this.customParamTypes.length : this.inputOptions.params ? this.options.params : this.baseNumberOfParams + this.random(3);
 		this.currentNumberOfParams = numberOfParams;
 		const result = await ParametersWorker.search({
 			customParamTypes: this.customParamTypes,
@@ -67,6 +68,7 @@ export class ParasParameters extends Guessing {
 			maximumResults: this.maximumResults,
 			mod: Dex.currentGenString,
 			numberOfParams,
+			prngSeed: this.prng.seed.slice() as PRNGSeed,
 			searchType: 'pokemon',
 		});
 
@@ -79,6 +81,7 @@ export class ParasParameters extends Guessing {
 			this.answers = [this.getParamNames(result.params)];
 			this.params = result.params;
 			this.pokemon = result.pokemon;
+			this.prng = new PRNG(result.prngSeed);
 		}
 	}
 

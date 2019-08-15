@@ -40,7 +40,7 @@ class TrevenantsTrickOrTreat extends Game {
 	constructor(room: Room | User) {
 		super(room);
 
-		this.pokemonList = Tools.shuffle(data.pokedex);
+		this.pokemonList = this.shuffle(data.pokedex);
 	}
 
 	generateNewMons() {
@@ -54,7 +54,7 @@ class TrevenantsTrickOrTreat extends Game {
 	}
 
 	getNextMon(): string {
-		if (!this.pokemonList.length) this.pokemonList = Tools.shuffle(data.pokedex);
+		if (!this.pokemonList.length) this.pokemonList = this.shuffle(data.pokedex);
 		return this.pokemonList.shift()!;
 	}
 

@@ -45,7 +45,7 @@ class GolemsGalvanicMine extends Game {
 
 	displayStones() {
 		// <center><table border="1"><tr style="text-align:center;line-height:5"><td style="width:125px">Flyinium Z-1</td><td style="width:125px">Charizardite Y-1</td><td style="width:125px">Galladite-6</td></tr><tr style="text-align:center;line-height:5"><td style="width:125px">Sharpedonite-2</td><td style="width:125px">Kommonium Z-4</td><td style="width:125px">Psychium Z-3</td></tr><tr style="text-align:center;line-height:5"><td style="width:125px">Gardevoirite-2</td><td style="width:125px">Sceptilite-1</td><td style="width:125px">Incinium Z-4</td></tr><tr style="text-align:center;line-height:5"></tr></table></center><div style="float:right;color:#888;font-size:8pt">[Lanette Bot]</div><div style="clear:both"></div>
-		const stones = Tools.sampleMany(allStones, 9);
+		const stones = this.sampleMany(allStones, 9);
 		const tr = '<tr style="text-align:center;line-height:5">';
 		let html = '<center><table border="1">' + tr;
 		let currentRowCount = 0;
@@ -54,7 +54,7 @@ class GolemsGalvanicMine extends Game {
 				html += '</tr>' + tr;
 				currentRowCount = 0;
 			}
-			const value = Tools.random(6) + 1;
+			const value = this.random(6) + 1;
 			this.roundStones[Tools.toId(stones[i])] = value;
 			html += '<td style="width:125px">' + stones[i] + '-' + value + '</td>';
 			currentRowCount++;
