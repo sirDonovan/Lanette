@@ -9,7 +9,6 @@ class MewsMoveCards extends CardHighLow {
 	maxPlayers: number = 15;
 	usesMoves: boolean = true;
 
-// TODO: implement move availability in Dex
 	createDeckPool() {
 		this.deckPool = [];
 
@@ -22,12 +21,14 @@ class MewsMoveCards extends CardHighLow {
 
 		for (let i = 0; i < moves.length; i++) {
 			const move = moves[i] as IMoveCard;
-			let availability = 0;
+			const availability: string[] = [];
 			for (let i = 0; i < pokedex.length; i++) {
-				if (pokedex[i].allPossibleMoves.includes(move.id)) availability++;
+				if (pokedex[i].allPossibleMoves.includes(move.id) && !(pokedex[i].baseSpecies !== pokedex[i].species && availability.includes(pokedex[i].baseSpecies))) {
+					availability.push(pokedex[i].species);
+				}
 			}
-			if (!availability) continue;
-			move.availability = availability;
+			if (!availability.length) continue;
+			move.availability = availability.length;
 			this.deckPool.push(move);
 		}
 	}
