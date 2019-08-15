@@ -275,12 +275,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			freejoin: true,
 		},
 		{
-			name: "Pancham's Pairs",
-			mascot: "Pancham",
-			aliases: ['Pairs', 'Panchams'],
-			description: "Players try to pair the given Pokemon according to /dexsearch parameters! Valid parameter types include generation, color, type, and ability.",
-		},
-		{
 			name: "Piplup's Letter Placements",
 			mascot: "Piplup",
 			aliases: ['PLP', 'Piplups'],
