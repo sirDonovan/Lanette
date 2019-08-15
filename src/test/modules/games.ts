@@ -160,6 +160,14 @@ describe("Games", () => {
 		}
 	});
 
+	it('should load data properly', () => {
+		const room = Rooms.add('mocha');
+		for (const i in Games.formats) {
+			const game = Games.createGame(room, Games.getExistingFormat(i));
+			game.deallocate();
+		}
+	});
+
 	it('should return proper error codes from getFormat() and getUserHostedFormat()', () => {
 		const formats = Object.keys(Games.formats);
 		assert(!Array.isArray(Games.getFormat(formats[0])));
@@ -202,6 +210,7 @@ describe("Games", () => {
 		assert(nameUserHostedFormat[0] === 'invalidUserHostedGameFormat');
 		assert(nameUserHostedFormat[1] === name);
 	});
+
 	it('should return proper values from Portmanteaus worker', async function() {
 		this.timeout(15000);
 		PortmanteausWorker.init();
@@ -233,6 +242,7 @@ describe("Games", () => {
 			assert(game.answers[i] in game.answerParts);
 		}
 	});
+
 	it('should return proper values from Parameters worker', async function() {
 		this.timeout(15000);
 		ParametersWorker.init();
