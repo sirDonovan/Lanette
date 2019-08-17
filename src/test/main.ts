@@ -6,10 +6,18 @@ const rootFolder = path.resolve(__dirname, '..', '..');
 const modulesDir = path.join(__dirname, 'modules');
 const moduleTests = fs.readdirSync(modulesDir);
 const configFile = path.join(rootFolder, 'built', 'config.js');
+const pokedexMiniFile = path.join(rootFolder, 'data', 'pokedex-mini.js');
+const pokedexMiniBWFile = path.join(rootFolder, 'data', 'pokedex-mini-bw.js');
 
-// create default config if running on Travis CI
+// create needed files if running on Travis CI
 if (!fs.existsSync(configFile)) {
 	fs.writeFileSync(configFile, fs.readFileSync(path.join(rootFolder, 'built', 'config-example.js')));
+}
+if (!fs.existsSync(pokedexMiniFile)) {
+	fs.writeFileSync(pokedexMiniFile, fs.readFileSync(path.join(rootFolder, 'data', 'pokedex-mini-base.js')));
+}
+if (!fs.existsSync(pokedexMiniBWFile)) {
+	fs.writeFileSync(pokedexMiniBWFile, fs.readFileSync(path.join(rootFolder, 'data', 'pokedex-mini-bw-base.js')));
 }
 
 // tslint:disable-next-line no-empty
