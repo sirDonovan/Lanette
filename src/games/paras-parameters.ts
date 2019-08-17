@@ -6,6 +6,7 @@ import * as ParametersWorker from './../workers/parameters';
 import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
 
 const name = "Paras' Parameters";
+const paramTypes = ['move', 'tier', 'color', 'type', 'resistance', 'weakness', 'egggroup', 'ability', 'gen'];
 let loadedData = false;
 
 export class ParasParameters extends Guessing {
@@ -68,6 +69,7 @@ export class ParasParameters extends Guessing {
 			maximumResults: this.maximumResults,
 			mod: Dex.currentGenString,
 			numberOfParams,
+			paramTypes,
 			prngSeed: this.prng.seed.slice() as PRNGSeed,
 			searchType: 'pokemon',
 		});
@@ -129,6 +131,7 @@ export class ParasParameters extends Guessing {
 	async intersect(params: string[]): Promise<ParametersWorker.IParameterIntersectResult> {
 		return ParametersWorker.intersect({
 			mod: Dex.currentGenString,
+			paramTypes,
 			searchType: 'pokemon',
 		}, params);
 	}

@@ -35,9 +35,9 @@ function search(options: IParameterSearchOptions, prng: PRNG): IParameterSearchR
 		if (options.customParamTypes) {
 			paramTypes = options.customParamTypes;
 		} else {
-			paramTypes = Tools.sampleMany(data[options.searchType].gens[options.mod].paramTypes, options.numberOfParams, prng);
+			paramTypes = Tools.sampleMany(options.paramTypes, options.numberOfParams, prng);
 			while (paramTypes.includes('resistance') && paramTypes.includes('weakness')) {
-				paramTypes = Tools.sampleMany(data[options.searchType].gens[options.mod].paramTypes, options.numberOfParams, prng);
+				paramTypes = Tools.sampleMany(options.paramTypes, options.numberOfParams, prng);
 			}
 		}
 

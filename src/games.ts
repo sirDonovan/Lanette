@@ -54,7 +54,7 @@ export class Games {
 	readonly modes: Dict<IGameMode> = {};
 	readonly userHostedAliases: Dict<string> = {};
 	readonly userHostedFormats: Dict<IUserHostedComputed> = {};
-	readonly workers: Dict<IGameWorker> = {};
+	readonly workers: IGameWorker[] = [];
 
 	onReload(previous: Partial<Games>) {
 		if (previous.lastGames) this.lastGames = previous.lastGames;
@@ -63,7 +63,7 @@ export class Games {
 	}
 
 	unrefWorkers() {
-		for (const i in this.workers) {
+		for (let i = 0; i < this.workers.length; i++) {
 			this.workers[i].unref();
 		}
 	}
@@ -157,7 +157,7 @@ export class Games {
 				}
 			}
 
-			if (format.worker) this.workers[format.id] = format.worker;
+			if (format.worker && !this.workers.includes(format.worker)) this.workers.push(format.worker);
 		}
 
 		for (const i in this.modes) {

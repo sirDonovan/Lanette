@@ -181,12 +181,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			freejoin: true,
 		},
 		{
-			name: "Inkay's Cups",
-			mascot: "Inkay",
-			aliases: ['Cups', 'Inkays'],
-			description: "Each round, grab a Pokemon that fits the given parameters (one per player)!",
-		},
-		{
 			name: "Jigglypuff's Dodgeball",
 			mascot: "Jigglypuff",
 			aliases: ['Dodgeball', 'Jigglypuffs'],

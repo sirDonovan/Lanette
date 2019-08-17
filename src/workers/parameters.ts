@@ -7,8 +7,16 @@ export interface IParam {
 	param: string;
 }
 
+export interface IParametersGenData {
+	evolutionLines: string[];
+	formes: Dict<string>;
+	paramTypePools: Dict<Dict<IParam>>;
+	paramTypeDexes: Dict<Dict<string[]>>;
+	otherFormes: Dict<string>;
+}
+
 export interface IParametersWorkerData {
-	pokemon: {gens: Dict<{evolutionLines: string[], formes: Dict<string>, paramTypes: string[], paramTypePools: Dict<Dict<IParam>>, paramTypeDexes: Dict<Dict<string[]>>, otherFormes: Dict<string>}>};
+	pokemon: {gens: Dict<IParametersGenData>};
 }
 
 export interface IParameterSearchOptions {
@@ -16,14 +24,16 @@ export interface IParameterSearchOptions {
 	numberOfParams: number;
 	minimumResults: number;
 	maximumResults: number;
+	paramTypes: string[];
 	prngSeed: PRNGSeed;
 	searchType: keyof typeof data;
-	filter?: string[];
 	customParamTypes?: string[] | null;
+	filter?: string[];
 }
 
 export interface IParameterIntersectOptions {
 	mod: string;
+	paramTypes: string[];
 	searchType: keyof typeof data;
 }
 
@@ -49,8 +59,6 @@ let worker: worker_threads.Worker | undefined;
 export function init(): worker_threads.Worker {
 	if (worker) return worker;
 
-	const lcFormat = Dex.getFormat('lc');
-
 	// only current gen until performance can be improved
 	for (let i = Dex.gen; i <= Dex.gen; i++) {
 		const gen = i;
@@ -62,6 +70,7 @@ export function init(): worker_threads.Worker {
 		const otherFormes: Dict<string> = {};
 		const learnsets: Dict<Dict<readonly string[]>> = {};
 
+		const letters: Dict<IParam> = {};
 		const colors: Dict<IParam> = {};
 		const gens: Dict<IParam> = {};
 		const types: Dict<IParam> = {};
@@ -72,6 +81,7 @@ export function init(): worker_threads.Worker {
 		const resistances: Dict<IParam> = {};
 		const weaknesses: Dict<IParam> = {};
 
+		const letterDex: Dict<string[]> = {};
 		const colorDex: Dict<string[]> = {};
 		const typeDex: Dict<string[]> = {};
 		const tierDex: Dict<string[]> = {};
@@ -104,6 +114,12 @@ export function init(): worker_threads.Worker {
 					evolutionLines.push(pokemonEvolutionLines[i].map(x => Tools.toId(x)).sort().join(","));
 				}
 			}
+
+			const letter = pokemon.species.charAt(0);
+			const letterId = Tools.toId(letter);
+			if (!(letterId in letters)) letters[letterId] = {type: 'letter', param: letter};
+			if (!(letter in letterDex)) letterDex[letter] = [];
+			letterDex[letter].push(pokemon.species);
 
 			const colorId = Tools.toId(pokemon.color);
 			if (!(colorId in colors)) colors[colorId] = {type: 'color', param: pokemon.color};
@@ -219,15 +235,9 @@ export function init(): worker_threads.Worker {
 			}
 		}
 
-		const paramTypes = ['move', 'tier', 'color', 'type', 'resistance', 'weakness'];
-		if (i >= 2) paramTypes.push('egggroup');
-		if (i >= 3) paramTypes.push('ability');
-		if (i === Dex.gen) paramTypes.push('gen');
-
 		data.pokemon.gens[genString] = {
 			evolutionLines,
 			formes,
-			paramTypes,
 			paramTypePools: {
 				'move': moves,
 				'ability': abilities,
@@ -238,6 +248,7 @@ export function init(): worker_threads.Worker {
 				'egggroup': eggGroups,
 				'resistance': resistances,
 				'weakness': weaknesses,
+				'letter': letters,
 			},
 			paramTypeDexes: {
 				'move': moveDex,
@@ -249,6 +260,7 @@ export function init(): worker_threads.Worker {
 				'egggroup': eggGroupDex,
 				'resistance': resistancesDex,
 				'weakness': weaknessesDex,
+				'letter': letterDex,
 			},
 			otherFormes,
 		};
@@ -283,9 +295,9 @@ export async function intersect(options: IParameterIntersectOptions, parts: stri
 	for (let i = 0; i < parts.length; i++) {
 		const part = Tools.toId(parts[i]);
 		let param: IParam | undefined;
-		for (const i in paramTypePools) {
-			if (part in paramTypePools[i]) {
-				param = paramTypePools[i][part];
+		for (let i = 0; i < options.paramTypes.length; i++) {
+			if (part in paramTypePools[options.paramTypes[i]]) {
+				param = paramTypePools[options.paramTypes[i]][part];
 				break;
 			}
 		}
