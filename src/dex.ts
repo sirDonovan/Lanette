@@ -184,7 +184,7 @@ export class Dex {
 	readonly tagNames: typeof tagNames = tagNames;
 
 	readonly abilityCache = new Map<string, IAbility>();
-	gen: number = 0;
+	gen: number = currentGen;
 	readonly itemCache = new Map<string, IItem>();
 	loadedData: boolean = false;
 	loadedMods: boolean = false;
@@ -506,7 +506,7 @@ export class Dex {
 			}
 		}
 
-		this.gen = BattleScripts.gen || currentGen;
+		if (BattleScripts.gen) this.gen = BattleScripts.gen;
 
 		this.loadedData = true;
 
