@@ -221,13 +221,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			freejoin: true,
 		},
 		{
-			name: "Mareanie's Marquees",
-			mascot: "Mareanie",
-			aliases: ['Marquees', 'Mareanies'],
-			description: "Players guess the answers as letters are cycled through 1 at a time!",
-			freejoin: true,
-		},
-		{
 			name: "Mascots",
 			description: "Each round the host will provide a song and players must find a Pokemon that best represents it using the standard formatting --[Pokemon]--.",
 			freejoin: true,
