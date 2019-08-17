@@ -221,13 +221,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			freejoin: true,
 		},
 		{
-			name: "Magneton's Mashups",
-			mascot: "Magneton",
-			aliases: ['mashups', 'Magnetons'],
-			description: "Players unscramble the combined names of two Pokemon!",
-			freejoin: true,
-		},
-		{
 			name: "Mareanie's Marquees",
 			mascot: "Mareanie",
 			aliases: ['Marquees', 'Mareanies'],
