@@ -974,7 +974,7 @@ export class Dex {
 	/**
 	 * Returns true if target is immune to source
 	 */
-	isImmune(source: IMove | string, target: IPokemon | string | string[]): boolean {
+	isImmune(source: IMove | string, target: IPokemon | string | readonly string[]): boolean {
 		const sourceType = (typeof source === 'string' ? source : source.type);
 		let targetType: string | readonly string[];
 		if (typeof target === 'string') {
@@ -984,12 +984,13 @@ export class Dex {
 			} else {
 				targetType = target;
 			}
-		} else if (target instanceof Array) {
+		} else if (Array.isArray(target)) {
 			targetType = target;
 		} else {
+			// @ts-ignore
 			targetType = target.types;
 		}
-		if (targetType instanceof Array) {
+		if (Array.isArray(targetType)) {
 			for (let i = 0; i < targetType.length; i++) {
 				if (this.isImmune(sourceType, targetType[i])) return true;
 			}
@@ -1005,7 +1006,7 @@ export class Dex {
 	/**
 	 * >=1: super-effective; <=1: not very effective
 	 */
-	getEffectiveness(source: IMove | string, target: IPokemon | string | string[]): number {
+	getEffectiveness(source: IMove | string, target: IPokemon | string | readonly string[]): number {
 		const sourceType = (typeof source === 'string' ? source : source.type);
 		let targetType;
 		if (typeof target === 'string') {
@@ -1015,12 +1016,13 @@ export class Dex {
 			} else {
 				targetType = target;
 			}
-		} else if (target instanceof Array) {
+		} else if (Array.isArray(target)) {
 			targetType = target;
 		} else {
+			// @ts-ignore
 			targetType = target.types;
 		}
-		if (targetType instanceof Array) {
+		if (Array.isArray(targetType)) {
 			let totalTypeMod = 0;
 			for (let i = 0; i < targetType.length; i++) {
 				totalTypeMod += this.getEffectiveness(sourceType, targetType[i]);

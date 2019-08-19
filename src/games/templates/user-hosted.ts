@@ -147,13 +147,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			description: "Players try to guess pokemon that aren't excluded by the parameter..",
 		},
 		{
-			name: "Fraxure's Battle Chain",
-			mascot: "Fraxure",
-			aliases: ['FBC', 'Fraxures'],
-			description: "Players answer each round with a Pokemon whose type is super effective against the previous Pokemon (no formes or repeats in a round)!",
-			freejoin: true,
-		},
-		{
 			name: "Gameathlon",
 			description: "A series of Game Corner games in one! Players try to win each mini-game to earn points.",
 		},
