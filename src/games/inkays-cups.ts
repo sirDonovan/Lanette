@@ -25,7 +25,7 @@ class InkaysCups extends Game {
 			for (const gen in ParametersWorker.data[searchType].gens) {
 				paramTypeKeys[searchType][gen] = {};
 				for (let i = 0; i < paramTypes.length; i++) {
-					Object.keys(ParametersWorker.data[searchType].gens[gen].paramTypeDexes[paramTypes[i]]);
+					paramTypeKeys[searchType][gen][paramTypes[i]] = Object.keys(ParametersWorker.data[searchType].gens[gen].paramTypeDexes[paramTypes[i]]);
 				}
 			}
 		}
