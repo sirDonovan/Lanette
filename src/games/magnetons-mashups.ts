@@ -37,7 +37,7 @@ class MagnetonsMashups extends Guessing {
 	}
 
 	setAnswers() {
-		const pokemon = this.sampleMany(data['Pokedex'], 2);
+		const pokemon = this.sampleMany(data['Pokemon'], 2);
 		let indexA = 0;
 		let indexB = 0;
 		let mashup = "";
