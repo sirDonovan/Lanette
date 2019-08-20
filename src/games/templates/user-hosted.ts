@@ -80,7 +80,7 @@ export class UserHosted extends Game {
 		if (this.shinyMascot) hostBits! *= 2;
 		Storage.addPoints(this.room as Room, this.hostName, hostBits!, 'userhosted');
 		const user = Users.get(this.hostName);
-		if (user) user.say("You were awarded " + hostBits! + " bits! To see your total amount, use this command: ``" + Config.commandCharacter + "rank " + (this.room as Room).title + "``. Thanks for your efforts, we hope you host again soon!");
+		if (user) user.say("You were awarded " + hostBits! + " bits! To see your total amount, use this command: ``" + Config.commandCharacter + "bits " + (this.room as Room).title + "``. Thanks for your efforts, we hope you host again soon!");
 	}
 }
 

@@ -966,7 +966,7 @@ const commands: Dict<ICommandDefinition> = {
 
 			for (let i = 0; i < players.length; i++) {
 				Storage.addPoints(room, players[i].name, playerBits!, 'userhosted');
-				players[i].say("You were awarded " + playerBits! + " bits! To see your total amount, use this command: ``" + Config.commandCharacter + "rank " + room.title + "``");
+				players[i].say("You were awarded " + playerBits! + " bits! To see your total amount, use this command: ``" + Config.commandCharacter + "bits " + room.title + "``");
 			}
 			this.say("The winner" + (players.length === 1 ? " is" : "s are") + " " + players.map(x => x.name).join(", ") + "!");
 			room.userHostedGame.end();
