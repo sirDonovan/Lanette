@@ -2,7 +2,6 @@ import { Player } from "../room-activity";
 import { DefaultGameOption } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { IPokemon } from "../types/in-game-data-types";
 import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
 
 const name = "Ambipom's Tossups";
@@ -33,7 +32,6 @@ class AmbipomsTossups extends Guessing {
 	lastAnswer: string = '';
 	letterCount: number = 0;
 	letters: string[] = [];
-	pokedex: IPokemon[] = Dex.getPokemonList();
 	revealedLetters: number = 0;
 	readonly roundGuesses = new Map<Player, boolean>();
 

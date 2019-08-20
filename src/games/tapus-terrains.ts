@@ -19,7 +19,7 @@ class TapusTerrains extends Game {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		const pokedex = Dex.getPokemonList(x => !Dex.hasGifData(x));
+		const pokedex = Dex.getPokemonList(x => Dex.hasGifData(x));
 		for (let i = 0; i < pokedex.length; i++) {
 			const pokemon = pokedex[i];
 			let used = false;

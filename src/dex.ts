@@ -590,13 +590,13 @@ export class Dex {
 
 	/** Returns a list of standard abilities
 	 *
-	 * filterAbility: Return `true` to filter `ability` out of the list
+	 * filterAbility: Return `false` to filter `ability` out of the list
 	 */
-	getAbilitiesList(filterAbility?: (ability: IAbility) => boolean): IAbility[] {
+	getAbilitiesList(filter?: (ability: IAbility) => boolean): IAbility[] {
 		const abilities: IAbility[] = [];
 		for (const i in this.data.abilities) {
 			const ability = this.getExistingAbility(i);
-			if (!ability.name || ability.isNonstandard || ability.gen > this.gen || (filterAbility && filterAbility(ability))) continue;
+			if (!ability.name || ability.isNonstandard || ability.gen > this.gen || (filter && !filter(ability))) continue;
 			abilities.push(ability);
 		}
 		return abilities;
@@ -658,13 +658,13 @@ export class Dex {
 
 	/** Returns a list of standard items
 	 *
-	 * filterItem: Return `true` to filter `item` out of the list
+	 * filterItem: Return `false` to filter `item` out of the list
 	 */
-	getItemsList(filterItem?: (item: IItem) => boolean): IItem[] {
+	getItemsList(filter?: (item: IItem) => boolean): IItem[] {
 		const items: IItem[] = [];
 		for (const i in this.data.items) {
 			const item = this.getExistingItem(i);
-			if (!item.name || item.isNonstandard || item.gen > this.gen || (filterItem && filterItem(item))) continue;
+			if (!item.name || item.isNonstandard || item.gen > this.gen || (filter && !filter(item))) continue;
 			items.push(item);
 		}
 		return items;
@@ -724,13 +724,13 @@ export class Dex {
 
 	/** Returns a list of standard moves
 	 *
-	 * filterMove: Return `true` to filter `move` out of the list
+	 * filterMove: Return `false` to filter `move` out of the list
 	 */
-	getMovesList(filterMove?: (move: IMove) => boolean): IMove[] {
+	getMovesList(filter?: (move: IMove) => boolean): IMove[] {
 		const moves: IMove[] = [];
 		for (const i in this.data.moves) {
 			const move = this.getExistingMove(i);
-			if (!move.name || move.isNonstandard || move.gen > this.gen || (filterMove && filterMove(move))) continue;
+			if (!move.name || move.isNonstandard || move.gen > this.gen || (filter && !filter(move))) continue;
 			moves.push(move);
 		}
 		return moves;
@@ -738,10 +738,10 @@ export class Dex {
 
 	/** Returns a list of standard, copied moves
 	 *
-	 * filterMove: Return `true` to filter `move` out of the list
+	 * filterMove: Return `false` to filter `move` out of the list
 	 */
-	getMovesCopyList(filterMove?: (pokemon: IMove) => boolean): IMoveCopy[] {
-		const moves = this.getMovesList(filterMove);
+	getMovesCopyList(filter?: (pokemon: IMove) => boolean): IMoveCopy[] {
+		const moves = this.getMovesList(filter);
 		const copiedMoves: IMoveCopy[] = [];
 		for (let i = 0; i < moves.length; i++) {
 			copiedMoves.push(this.getMoveCopy(moves[i].name));
@@ -937,13 +937,13 @@ export class Dex {
 
 	/** Returns a list of standard Pokemon
 	 *
-	 * filterPokemon: Return `true` to filter `pokemon` out of the list
+	 * filterPokemon: Return `false` to filter `pokemon` out of the list
 	 */
-	getPokemonList(filterPokemon?: (pokemon: IPokemon) => boolean): IPokemon[] {
+	getPokemonList(filter?: (pokemon: IPokemon) => boolean): IPokemon[] {
 		const pokedex: IPokemon[] = [];
 		for (const i in this.data.pokedex) {
 			const pokemon = this.getExistingPokemon(i);
-			if (!pokemon.species || pokemon.isNonstandard || pokemon.gen > this.gen || (filterPokemon && filterPokemon(pokemon))) continue;
+			if (!pokemon.species || pokemon.tier === 'Unreleased' || pokemon.tier === 'Illegal' || pokemon.tier.startsWith('CAP') || pokemon.gen > this.gen || (filter && !filter(pokemon))) continue;
 			pokedex.push(pokemon);
 		}
 		return pokedex;
@@ -951,10 +951,10 @@ export class Dex {
 
 	/** Returns a list of standard, copied Pokemon
 	 *
-	 * filterPokemon: Return `true` to filter `pokemon` out of the list
+	 * filterPokemon: Return `false` to filter `pokemon` out of the list
 	 */
-	getPokemonCopyList(filterPokemon?: (pokemon: IPokemon) => boolean): IPokemonCopy[] {
-		const pokedex = this.getPokemonList(filterPokemon);
+	getPokemonCopyList(filter?: (pokemon: IPokemon) => boolean): IPokemonCopy[] {
+		const pokedex = this.getPokemonList(filter);
 		const copiedPokedex: IPokemonCopy[] = [];
 		for (let i = 0; i < pokedex.length; i++) {
 			copiedPokedex.push(this.getPokemonCopy(pokedex[i].species));

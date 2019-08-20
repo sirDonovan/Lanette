@@ -53,7 +53,7 @@ class PanchamPairs extends Game {
 			};
 		}
 
-		const movesList = Dex.getMovesList(x => !x.basePower);
+		const movesList = Dex.getMovesList(x => !!x.basePower);
 		for (let i = 0; i < movesList.length; i++) {
 			const move = movesList[i];
 			moves.push(move.name);

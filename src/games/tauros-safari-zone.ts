@@ -18,7 +18,7 @@ class TaurosSafariZone extends Game {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		const pokemonList = Dex.getPokemonList(pokemon => !Dex.hasGifData(pokemon));
+		const pokemonList = Dex.getPokemonList(pokemon => Dex.hasGifData(pokemon));
 		for (let i = 0; i < pokemonList.length; i++) {
 			pokedex.push(pokemonList[i].species);
 		}

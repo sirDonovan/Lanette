@@ -108,8 +108,8 @@ export abstract class Card extends Game {
 	createDeckPool() {
 		this.deckPool = [];
 		const pokemonList = Dex.getPokemonCopyList(pokemon => {
-			if (pokemon.forme || pokemon.id in this.actionCards || !Dex.hasGifData(pokemon) || (this.filterPoolItem && this.filterPoolItem(pokemon))) return true;
-			return false;
+			if (pokemon.forme || pokemon.id in this.actionCards || !Dex.hasGifData(pokemon) || (this.filterPoolItem && this.filterPoolItem(pokemon))) return false;
+			return true;
 		});
 		for (let i = 0; i < pokemonList.length; i++) {
 			const pokemon = pokemonList[i];

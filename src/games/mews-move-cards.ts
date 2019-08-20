@@ -14,9 +14,9 @@ class MewsMoveCards extends CardHighLow {
 
 		const pokedex = Dex.getPokemonList();
 		const moves = Dex.getMovesCopyList(move => {
-			if (!move.basePower || !move.accuracy || !move.pp || isNaN(move.basePower) || move.basePower <= 0 || move.accuracy === true ||
-				isNaN(move.accuracy) || move.accuracy === 100 || isNaN(move.pp)) return true;
-			return false;
+			if (!move.basePower || !move.accuracy || !move.pp || isNaN(move.basePower) || move.basePower <= 0 || move.accuracy === true || isNaN(move.accuracy) || move.accuracy === 100 ||
+				isNaN(move.pp)) return false;
+			return true;
 		});
 
 		for (let i = 0; i < moves.length; i++) {
