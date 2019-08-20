@@ -3,7 +3,7 @@ import worker_threads = require('worker_threads');
 
 export interface ILogsWorkerData {
 	commandCharacter: string | undefined;
-	roomLogsDir: string;
+	roomLogsFolder: string;
 	serverLogsViewer: string | undefined;
 }
 
@@ -26,7 +26,7 @@ if (serverLogsViewer && !serverLogsViewer.endsWith('/')) serverLogsViewer += '/'
 
 export const data: ILogsWorkerData = {
 	commandCharacter: Config.commandCharacter,
-	roomLogsDir: path.join(Tools.rootFolder, 'roomlogs'),
+	roomLogsFolder: Tools.roomLogsFolder,
 	serverLogsViewer,
 };
 

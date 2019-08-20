@@ -24,6 +24,7 @@ export class Tools {
 	// exported constants
 	readonly maxMessageLength: typeof maxMessageLength = maxMessageLength;
 	readonly maxUsernameLength: typeof maxUsernameLength = maxUsernameLength;
+	readonly roomLogsFolder: string = path.join(rootFolder, 'roomlogs');
 	readonly rootFolder: typeof rootFolder = rootFolder;
 
 	fetchUrlTimeouts: Dict<NodeJS.Timer> = {};

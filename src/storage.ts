@@ -217,7 +217,7 @@ export class Storage {
 			const year = date.getFullYear();
 			const month = date.getMonth() + 1;
 			const day = date.getDate();
-			const directory = path.join(Tools.rootFolder, 'roomlogs', room.id, '' + year);
+			const directory = path.join(Tools.roomLogsFolder, room.id, '' + year);
 			try {
 				fs.mkdirSync(directory, {recursive: true});
 			// tslint:disable-next-line no-empty

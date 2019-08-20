@@ -2154,7 +2154,7 @@ const commands: Dict<ICommandDefinition> = {
 				}
 			}
 
-			const roomDirectory = path.join(CommandParser.logsWorker.data.roomLogsDir, targetRoom.id);
+			const roomDirectory = path.join(Tools.roomLogsFolder, targetRoom.id);
 			let years: string[] = [];
 			try {
 				years = fs.readdirSync(roomDirectory);

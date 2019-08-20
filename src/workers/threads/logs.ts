@@ -22,14 +22,14 @@ function search(options: ILogsSearchOptions): ILogsSearchResult {
 	const startYear = options.startDate[0];
 	const endYear = options.endDate[0];
 	const separatedLogs: Dict<Dict<Dict<{regular: number, commands: number}>>> = {};
-	const roomDirectory = path.join(data.roomLogsDir, options.roomid);
+	const roomDirectory = path.join(data.roomLogsFolder, options.roomid);
 	const userIds: Dict<string> = {};
 	for (let i = startYear; i <= endYear; i++) {
 		const year = '' + i;
 		const firstYear = i === startYear;
 		const lastYear = i === endYear;
 		const yearDirectory = path.join(roomDirectory, year);
-		const dayFiles = fs.readdirSync(yearDirectory);
+		const dayFiles = fs.readdirSync(yearDirectory).sort();
 		for (let i = 0; i < dayFiles.length; i++) {
 			if (!dayFiles[i].endsWith('.txt')) continue;
 			let date = dayFiles[i].substr(0, dayFiles[i].indexOf('.txt'));
