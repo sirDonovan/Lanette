@@ -1,50 +1,61 @@
-import { ICommandDefinition } from "../command-parser";
 import { DefaultGameOption } from "../room-game";
+import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { IPokemon } from "../types/in-game-data-types";
 import { commands as templateCommands, Guessing } from './templates/guessing';
 
+const name = "Abra's Ability Switch";
+const data: {abilities: Dict<string[]>, pokedex: string[]} = {
+	"abilities": {},
+	"pokedex": [],
+};
+let loadedData = false;
+
 class AbrasAbilitySwitch extends Guessing {
+	static loadData(room: Room) {
+		if (loadedData) return;
+		room.say("Loading data for " + name + "...");
+
+		const pokedex = Dex.getPokemonList();
+		for (let i = 0; i < pokedex.length; i++) {
+			const pokemon = pokedex[i];
+			const abilities: string[] = [];
+			for (const i in pokemon.abilities) {
+				// @ts-ignore
+				abilities.push(pokemon.abilities[i]);
+			}
+			data.abilities[pokemon.id] = abilities;
+			data.pokedex.push(pokedex[i].species);
+		}
+
+		loadedData  = true;
+	}
+
 	defaultOptions: DefaultGameOption[] = ['points'];
 	lastAbility: string = '';
 	lastPokemon: string = '';
-	pokedex: IPokemon[] = Dex.getPokemonList();
 
 	setAnswers() {
-		let pokemon = this.sampleOne(this.pokedex);
-		while (pokemon.species === this.lastPokemon) {
-			pokemon = this.sampleOne(this.pokedex);
+		let pokemon = this.sampleOne(data.pokedex);
+		while (pokemon === this.lastPokemon) {
+			pokemon = this.sampleOne(data.pokedex);
 		}
-		this.lastPokemon = pokemon.species;
+		this.lastPokemon = pokemon;
 
-		let abilities: string[] = [];
-		for (const i in pokemon.abilities) {
-			// @ts-ignore
-			abilities.push(pokemon.abilities[i]);
-		}
-		abilities = this.shuffle(abilities);
-
-		let ability = abilities[0];
-		abilities.shift();
+		const id = Tools.toId(pokemon);
+		let ability = this.sampleOne(data.abilities[id]);
 		while (ability === this.lastAbility) {
-			if (!abilities.length) {
+			if (data.abilities[id].length === 1) {
 				this.setAnswers();
 				return;
 			}
-			ability = abilities[0];
-			abilities.shift();
+			ability = this.sampleOne(data.abilities[id]);
 		}
 		this.lastAbility = ability;
 
 		const answers: string[] = [];
-		for (let i = 0; i < this.pokedex.length; i++) {
-			const pokemon = this.pokedex[i];
-			for (const i in pokemon.abilities) {
-				// @ts-ignore
-				if (pokemon.abilities[i] === ability) {
-					answers.push(pokemon.species);
-					break;
-				}
+		for (let i = 0; i < data.pokedex.length; i++) {
+			if (data.abilities[Tools.toId(data.pokedex[i])].includes(ability)) {
+				answers.push(data.pokedex[i]);
 			}
 		}
 		this.answers = answers;
@@ -63,7 +74,7 @@ export const game: IGameFile<AbrasAbilitySwitch> = {
 	commands,
 	description: "Players switch to Pokemon that have the chosen abilities for Abra to Role Play!",
 	freejoin: true,
-	name: "Abra's Ability Switch",
+	name,
 	mascot: "Abra",
 	modes: ["survival"],
 };
