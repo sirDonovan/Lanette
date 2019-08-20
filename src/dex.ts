@@ -1557,60 +1557,6 @@ export class Dex {
 		return '<span style="display: inline-block;width: 40px;height: 30px;background:transparent url(https://play.pokemonshowdown.com/sprites/smicons-sheet.png?a5) no-repeat scroll -' + left + 'px -' + top + 'px;' + facingLeftStyle + '"></span>';
 	}
 
-	dataSearch(target: string, searchIn?: string[] | null, isInexact?: boolean): IDataSearchResult[] | false {
-		if (!target) return false;
-		if (!searchIn) searchIn = ['pokedex', 'moves', 'abilities', 'items', 'natures'];
-		let searchResults: IDataSearchResult[] | false = [];
-		for (let i = 0; i < searchIn.length; i++) {
-			// @ts-ignore
-			const res = this[dataSearchFunctions[searchIn[i]]](target);
-			if (res && res.gen <= this.gen) {
-				searchResults.push({
-					isInexact,
-					searchType: dataSearchTypes[searchIn[i]],
-					name: res.name,
-				});
-			}
-		}
-
-		if (searchResults.length) return searchResults;
-
-		// prevent an infinite loop
-		if (isInexact) return false;
-
-		const cmpTarget = Tools.toId(target);
-		let maxLd = 3;
-		if (cmpTarget.length <= 1) {
-			return false;
-		} else if (cmpTarget.length <= 4) {
-			maxLd = 1;
-		} else if (cmpTarget.length <= 6) {
-			maxLd = 2;
-		}
-		searchResults = false;
-		for (let i = 0; i <= searchIn.length; i++) {
-			// @ts-ignore
-			const searchObj = this.data[searchIn[i] || 'aliases'];
-			if (!searchObj) {
-				continue;
-			}
-
-			for (const j in searchObj) {
-				const ld = Tools.levenshtein(cmpTarget, j, maxLd);
-				if (ld <= maxLd) {
-					const word = searchObj[j].name || searchObj[j].species || j;
-					const results = this.dataSearch(word, searchIn, word);
-					if (results) {
-						searchResults = results;
-						maxLd = ld;
-					}
-				}
-			}
-		}
-
-		return searchResults;
-	}
-
 	checkLearnset(move: IMove, species: IPokemon, lsetData: IPokemonSources = {sources: [], sourcesBefore: this.gen}, set: {format: IFormat, ability?: string, level?: number}): {type: string, [key: string]: any} | null {
 		const ruleTable = this.getRuleTable(set.format);
 		const alreadyChecked: {[k: string]: boolean} = {};
