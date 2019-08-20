@@ -40,14 +40,6 @@ class FeraligatrsLostLetters extends Guessing {
 		}
 	}
 
-	onSignups() {
-		if (this.isMiniGame) {
-			this.nextRound();
-		} else {
-			if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
-		}
-	}
-
 	removeLetters(letters: string[], isInverse: boolean): string {
 		const newLetters: string[] = [];
 		for (let i = 0; i < letters.length; i++) {

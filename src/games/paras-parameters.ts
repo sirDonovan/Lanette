@@ -32,14 +32,6 @@ export class ParasParameters extends Guessing {
 	pokemon: string[] = [];
 	roundTime: number = 5 * 60 * 1000;
 
-	onSignups() {
-		if (this.isMiniGame) {
-			this.nextRound();
-		} else {
-			if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
-		}
-	}
-
 	getParamNames(params: ParametersWorker.IParam[]): string {
 		const names = [];
 		for (let i = 0; i < params.length; i++) {

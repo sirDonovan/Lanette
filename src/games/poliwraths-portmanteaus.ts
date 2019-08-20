@@ -32,14 +32,6 @@ export class PoliwrathsPortmanteaus extends Guessing {
 	ports: string[] = [];
 	roundTime: number = 5 * 60 * 1000;
 
-	onSignups() {
-		if (this.isMiniGame) {
-			this.nextRound();
-		} else {
-			if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
-		}
-	}
-
 	async setAnswers() {
 		const numberOfPorts = this.customPortTypes ? this.customPortTypes.length : this.inputOptions.ports ? this.options.ports : this.baseNumberOfPorts + this.random(3);
 		const result = await PortmanteausWorker.search({

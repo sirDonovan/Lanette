@@ -54,14 +54,6 @@ class SlowkingsTrivia extends Guessing {
 
 	defaultOptions: DefaultGameOption[] = ['points'];
 
-	onSignups() {
-		if (this.isMiniGame) {
-			this.nextRound();
-		} else {
-			if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
-		}
-	}
-
 	setAnswers() {
 		const category = this.roundCategory || this.variant || this.sampleOne(categories);
 		const question = this.sampleOne(questions[category]);

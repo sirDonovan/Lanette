@@ -10,10 +10,6 @@ class AbrasAbilitySwitch extends Guessing {
 	lastPokemon: string = '';
 	pokedex: IPokemon[] = Dex.getPokemonList();
 
-	onSignups() {
-		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
-	}
-
 	setAnswers() {
 		let pokemon = this.sampleOne(this.pokedex);
 		while (pokemon.species === this.lastPokemon) {

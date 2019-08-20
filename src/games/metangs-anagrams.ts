@@ -31,14 +31,6 @@ class MetangsAnagrams extends Guessing {
 	defaultOptions: DefaultGameOption[] = ['points'];
 	lastAnswer: string = '';
 
-	onSignups() {
-		if (this.isMiniGame) {
-			this.nextRound();
-		} else {
-			if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
-		}
-	}
-
 	setAnswers() {
 		const category = this.roundCategory || this.variant || this.sampleOne(categories);
 		let answer = this.sampleOne(data[category]);

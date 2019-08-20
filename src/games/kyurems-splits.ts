@@ -48,14 +48,6 @@ class KyuremsSplits extends Guessing {
 
 	defaultOptions: DefaultGameOption[] = ['points'];
 
-	onSignups() {
-		if (this.isMiniGame) {
-			this.nextRound();
-		} else {
-			if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
-		}
-	}
-
 	isValid(answer: string, hint: string): boolean {
 		while (hint.length > 0) {
 			const index = answer.indexOf(hint[0]);
