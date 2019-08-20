@@ -540,6 +540,35 @@ const commands: Dict<ICommandDefinition> = {
 		},
 		aliases: ['rpick'],
 	},
+	timer: {
+		command(target, room, user) {
+			if (this.isPm(room)) return;
+			if (!user.hasRank(room, 'voice')) {
+				if (room.userHostedGame && room.userHostedGame.hostId === user.id) return this.run('gametimer');
+				return;
+			}
+			const id = Tools.toId(target);
+			if (id === 'off' || id === 'end') {
+				if (!room.timer) return this.say("There is no timer running.");
+				clearTimeout(room.timer);
+				room.timer = null;
+				return this.say("The timer has been turned off.");
+			}
+			let time: number;
+			if (id.length === 1) {
+				time = parseInt(id) * 60;
+			} else {
+				time = parseInt(id);
+			}
+			if (isNaN(time) || time > 1800 || time < 5) return this.say("Please enter an amount of time between 5 seconds and 30 minutes.");
+			time *= 1000;
+			room.timer = setTimeout(() => {
+				room.say(user.name + ": time's up!");
+				room.timer = null;
+			}, time);
+			this.say("Timer set for: " + Tools.toDurationString(time) + ".");
+		},
+	},
 	gametimer: {
 		command(target, room, user) {
 			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
@@ -943,6 +972,12 @@ const commands: Dict<ICommandDefinition> = {
 			room.userHostedGame.end();
 		},
 		aliases: ['autowin', 'win'],
+	},
+	roll: {
+		command(target, room, user) {
+			if (!target || this.isPm(room) || !Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id))) return;
+			this.say('!roll ' + target);
+		},
 	},
 	dt: {
 		command(target, room, user) {

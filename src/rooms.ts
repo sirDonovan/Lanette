@@ -10,17 +10,18 @@ import { User } from "./users";
 export type RoomType = 'battle' | 'chat' | 'html';
 
 export class Room {
+	approvedUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
 	bannedWords: string[] | null = null;
 	bannedWordsRegex: RegExp | null = null;
 	game: Game | null = null;
 	readonly htmlMessageListeners: Dict<() => void> = {};
 	readonly messageListeners: Dict<() => void> = {};
 	modchat: string = 'off';
-	tournament: Tournament | null = null;
-	userHostedGame: UserHosted | null = null;
-	readonly uhtmlMessageListeners: Dict<Dict<() => void>> = {};
 	newUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
-	approvedUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
+	timer: NodeJS.Timer | null = null;
+	tournament: Tournament | null = null;
+	readonly uhtmlMessageListeners: Dict<Dict<() => void>> = {};
+	userHostedGame: UserHosted | null = null;
 	readonly users = new Set<User>();
 
 	readonly id: string;
