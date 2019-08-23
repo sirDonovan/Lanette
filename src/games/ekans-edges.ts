@@ -4,15 +4,22 @@ import { IGameFile } from "../types/games";
 import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
 
 const name = "Ekans' Edges";
-const data: Dict<Dict<string[]>> = {
+const data: {'Characters': Dict<string[]>, 'Pokemon': Dict<string[]>, 'Pokemon Abilities': Dict<string[]>, 'Pokemon Items': Dict<string[]>, 'Pokemon Moves': Dict<string[]>} = {
 	"Characters": {},
 	"Pokemon": {},
 	"Pokemon Abilities": {},
 	"Pokemon Items": {},
 	"Pokemon Moves": {},
 };
-const categories: string[] = Object.keys(data);
-const dataKeys: Dict<string[]> = {};
+type DataKey = keyof typeof data;
+const categories = Object.keys(data) as DataKey[];
+const dataKeys: KeyedDict<typeof data, string[]> = {
+	"Characters": [],
+	"Pokemon": [],
+	"Pokemon Abilities": [],
+	"Pokemon Items": [],
+	"Pokemon Moves": [],
+};
 let loadedData = false;
 
 class EkansEdges extends Guessing {
@@ -54,8 +61,9 @@ class EkansEdges extends Guessing {
 			data["Pokemon Moves"][edge].push(moves[i].name);
 		}
 
-		for (const i in data) {
-			dataKeys[i] = Object.keys(data[i]);
+		const keys = Object.keys(data) as DataKey[];
+		for (let i = 0; i < keys.length; i++) {
+			dataKeys[keys[i]] = Object.keys(data[keys[i]]);
 		}
 
 		loadedData = true;
@@ -73,7 +81,7 @@ class EkansEdges extends Guessing {
 	}
 
 	setAnswers() {
-		const category = this.roundCategory || this.variant || this.sampleOne(categories);
+		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		let edge = this.sampleOne(dataKeys[category]);
 		while (edge === this.lastEdge) {
 			edge = this.sampleOne(dataKeys[category]);

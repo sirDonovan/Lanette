@@ -25,7 +25,7 @@ export class PoliwrathsPortmanteaus extends Guessing {
 	};
 	customPortCategories: string[] | null = null;
 	customPortDetails: string[] | null = null;
-	customPortTypes: string[] | null = null;
+	customPortTypes: PortmanteausWorker.PoolType[] | null = null;
 	defaultOptions: DefaultGameOption[] = ['points'];
 	minLetters: number = 2;
 	maxLetters: number = 4;

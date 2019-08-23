@@ -5,7 +5,10 @@ import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 
 const name = "Serperior's Lengthy Chains";
-const parameters: Dict<string[]> = {};
+const data: {parameters: Dict<string[]>, parameterKeys: string[]} = {
+	parameters: {},
+	parameterKeys: [],
+};
 
 let loadedData = false;
 
@@ -27,12 +30,12 @@ class SerperiorLengthyChains extends Game {
 			}
 			for (let i = 0; i < pokemonParameters.length; i++) {
 				const param = pokemonParameters[i];
-				if (!(param in parameters)) parameters[param] = [];
-				parameters[param].push(pokemon.id);
+				if (!(param in data.parameters)) data.parameters[param] = [];
+				data.parameters[param].push(pokemon.id);
 			}
 		}
 
-		const parametersKeys = Object.keys(parameters);
+		const parametersKeys = Object.keys(data.parameters);
 		const len = parametersKeys.length;
 		for (let i = 0; i < len; i++) {
 			for (let j = 0; j < len; j++) {
@@ -40,17 +43,21 @@ class SerperiorLengthyChains extends Game {
 				const paramA = parametersKeys[i];
 				const paramB = parametersKeys[j];
 				const combined = paramA + ", " + paramB;
-				parameters[combined] = [];
-				for (let k = 0; k < parameters[paramA].length; k++) {
-					if (parameters[paramB].includes(parameters[paramA][k])) {
-						parameters[combined].push(parameters[paramA][k]);
+				data.parameters[combined] = [];
+				for (let k = 0; k < data.parameters[paramA].length; k++) {
+					if (data.parameters[paramB].includes(data.parameters[paramA][k])) {
+						data.parameters[combined].push(data.parameters[paramA][k]);
 					}
 				}
 			}
 		}
 
-		for (const param in parameters) {
-			if (parameters[param].length < 16) delete parameters[param];
+		for (const param in data.parameters) {
+			if (data.parameters[param].length < 16) {
+				delete data.parameters[param];
+			} else {
+				data.parameterKeys.push(param);
+			}
 		}
 
 		loadedData = true;
@@ -70,7 +77,7 @@ class SerperiorLengthyChains extends Game {
 	onNextRound() {
 		this.bestChain = [];
 		this.bestPlayer = null;
-		this.category = this.sampleOne(Object.keys(parameters));
+		this.category = this.sampleOne(data.parameterKeys);
 		this.say("Make a chain of **" + this.category + "** Pokemon!");
 		this.timeout = setTimeout(() => this.checkBestChain(), 15 * 1000);
 	}
@@ -101,7 +108,7 @@ class SerperiorLengthyChains extends Game {
 		let chain = [];
 		for (let i = 0; i < guess.length; i++) {
 			const substr = guess.substr(0, i + 1);
-			if (parameters[this.category].indexOf(substr) !== -1) {
+			if (data.parameters[this.category].indexOf(substr) !== -1) {
 				const pokemon = Dex.getExistingPokemon(substr);
 				if (chainSoFar.includes(pokemon.species)) return chainSoFar;
 				const curChain = chainSoFar.slice();

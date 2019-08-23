@@ -3,15 +3,20 @@ import { IGameFile } from "../types/games";
 import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
 
 const name = "Lugia's Obstructive Letters";
-
-const data: Dict<Dict<string>> = {
+const data: {'Pokemon': Dict<string>, 'Pokemon Abilities': Dict<string>, 'Pokemon Items': Dict<string>, 'Pokemon Moves': Dict<string>} = {
 	"Pokemon": {},
 	"Pokemon Abilities": {},
 	"Pokemon Items": {},
 	"Pokemon Moves": {},
 };
-const categories: string[] = Object.keys(data);
-const dataKeys: Dict<string[]> = {};
+type DataKey = keyof typeof data;
+const categories = Object.keys(data) as DataKey[];
+const dataKeys: KeyedDict<typeof data, string[]> = {
+	"Pokemon": [],
+	"Pokemon Abilities": [],
+	"Pokemon Items": [],
+	"Pokemon Moves": [],
+};
 const letters = "abcdefghijklmnopqrstuvwxyz".split("");
 let loadedData = false;
 
@@ -40,8 +45,8 @@ class LugiasObstructiveLetters extends Guessing {
 			data["Pokemon Moves"][moves[i].id] = moves[i].name;
 		}
 
-		for (const i in data) {
-			dataKeys[i] = Object.keys(data[i]);
+		for (let i = 0; i < categories.length; i++) {
+			dataKeys[categories[i]] = Object.keys(data[categories[i]]);
 		}
 
 		loadedData = true;
@@ -58,10 +63,10 @@ class LugiasObstructiveLetters extends Guessing {
 
 	setAnswers() {
 		let answers: string[] = [];
-		let category = "";
+		let category: DataKey;
 		let unavailableLetters: string[] = [];
 		while (!answers.length || answers.length > 20) {
-			category = this.roundCategory || this.variant || this.sampleOne(categories);
+			category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 			const id = this.sampleOne(dataKeys[category]);
 			const availableLetters: string[] = [];
 			for (let i = 0; i < letters.length; i++) {
@@ -84,7 +89,7 @@ class LugiasObstructiveLetters extends Guessing {
 			}
 		}
 		this.answers = answers;
-		this.hint = "[**" + category + "**] " + unavailableLetters.map(letter => letter.toUpperCase()).join(", ");
+		this.hint = "[**" + category! + "**] " + unavailableLetters.map(letter => letter.toUpperCase()).join(", ");
 	}
 
 	getPointsPerAnswer(answer: string): number {

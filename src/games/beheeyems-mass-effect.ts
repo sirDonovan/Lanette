@@ -4,7 +4,9 @@ import { IGameFile } from "../types/games";
 import { commandDescriptions, commands as templateCommands, Guessing } from "./templates/guessing";
 
 const name = "Beheeyem's Mass Effect";
-const types: Dict<string[]> = {};
+const data: {types: Dict<string[]>} = {
+	types: {},
+};
 const effectivenessLists: Dict<string[]> = {};
 const effectivenessListsKeys: string[] = [];
 let loadedData = false;
@@ -18,11 +20,11 @@ class BeheeyemsMassEffect extends Guessing {
 		for (let i = 0; i < pokemonList.length; i++) {
 			const pokemon = pokemonList[i];
 			const typing = pokemon.types.slice().sort().join('/');
-			if (!types[typing]) types[typing] = [];
-			types[typing].push(pokemon.species);
+			if (!(typing in data.types)) data.types[typing] = [];
+			data.types[typing].push(pokemon.species);
 		}
 
-		for (const typing in types) {
+		for (const typing in data.types) {
 			const immunities: string[] = [];
 			const resistances: string[] = [];
 			const weaknesses: string[] = [];
@@ -52,8 +54,8 @@ class BeheeyemsMassEffect extends Guessing {
 				effectivenessLists[effectiveness] = [];
 				effectivenessListsKeys.push(effectiveness);
 			}
-			for (let i = 0; i < types[typing].length; i++) {
-				const pokemon = types[typing][i];
+			for (let i = 0; i < data.types[typing].length; i++) {
+				const pokemon = data.types[typing][i];
 				if (!effectivenessLists[effectiveness].includes(pokemon)) effectivenessLists[effectiveness].push(pokemon);
 			}
 		}

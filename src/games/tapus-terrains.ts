@@ -6,11 +6,23 @@ import { IGameFile } from "../types/games";
 import { IPokemon } from "../types/in-game-data-types";
 
 const name = "Tapus' Terrains";
-const typesForTerrains: Dict<string> = {'Water': 'Swampy', 'Fire': 'Molten', 'Ground': 'Sandy', 'Rock': 'Rocky'};
-const terrainsToType: Dict<string> = {'Swampy': 'Water', 'Molten': 'Fire', 'Sandy': 'Ground', 'Rocky': 'Rock'};
-const terrains = Object.keys(terrainsToType);
-const pokemonByTerrain: {[k: string]: string[]} = {};
-const unusedPokemon: string[] = [];
+const terrains = {
+	'Molten': 'Fire',
+	'Rocky': 'Rock',
+	'Sandy': 'Ground',
+	'Swampy': 'Water',
+};
+type TerrainKey = keyof typeof terrains;
+const terrainKeys = Object.keys(terrains) as TerrainKey[];
+const data: {pokemon: KeyedDict<typeof terrains, string[]>, unusedPokemon: string[]} = {
+	pokemon: {
+		'Molten': [],
+		'Rocky': [],
+		'Sandy': [],
+		'Swampy': [],
+	},
+	unusedPokemon: [],
+};
 
 let loadedData = false;
 
@@ -25,13 +37,15 @@ class TapusTerrains extends Game {
 			let used = false;
 			for (let i = 0; i < pokemon.types.length; i++) {
 				const type = pokemon.types[i];
-				if (!(type in typesForTerrains)) continue;
-				const terrain = typesForTerrains[type];
-				if (!(terrain in pokemonByTerrain)) pokemonByTerrain[terrain] = [];
-				pokemonByTerrain[terrain].push(pokemon.species);
-				if (!used) used = true;
+				for (let i = 0; i < terrainKeys.length; i++) {
+					if (type === terrains[terrainKeys[i]]) {
+						data.pokemon[terrainKeys[i]].push(pokemon.species);
+						if (!used) used = true;
+						break;
+					}
+				}
 			}
-			if (!used) unusedPokemon.push(pokemon.species);
+			if (!used) data.unusedPokemon.push(pokemon.species);
 		}
 
 		loadedData = true;
@@ -39,12 +53,12 @@ class TapusTerrains extends Game {
 
 	canJump: boolean = false;
 	canLateJoin: boolean = true;
-	currentTerrain: string = '';
+	currentTerrain: TerrainKey | null = null;
 	firstJump: Player | null = null;
 	queue: Player[] = [];
 	revealTime: number = 3.5 * 1000;
 	roundJumps = new Map<Player, boolean>();
-	targetPokemon: IPokemon | null = null;
+	targetPokemon: string | null = null;
 	terrainRound: number = 0;
 
 	onStart() {
@@ -53,22 +67,15 @@ class TapusTerrains extends Game {
 
 	onNextRound() {
 		this.canJump = false;
-		if (this.round > 1 && this.targetPokemon) {
-			let isTerrainPokemon = false;
-			for (let i = 0; i < this.targetPokemon.types.length; i++) {
-				if (this.targetPokemon.types[i] in typesForTerrains && typesForTerrains[this.targetPokemon.types[i]] === this.currentTerrain) {
-					isTerrainPokemon = true;
-					break;
-				}
-			}
-			if (!isTerrainPokemon) {
+		if (this.round > 1 && this.targetPokemon && this.currentTerrain) {
+			if (!data.pokemon[this.currentTerrain].includes(this.targetPokemon)) {
 				for (const i in this.players) {
 					const player = this.players[i];
 					if (player.eliminated) continue;
 					if (this.queue.includes(player) || this.roundJumps.has(player)) player.eliminated = true;
 				}
 			} else {
-				this.currentTerrain = '';
+				this.currentTerrain = null;
 				const len = this.queue.length;
 				if (len > 1 && (this.variant === "elimination" || (this.parentGame && this.parentGame.id === 'battlefrontier'))) this.players[this.queue[len - 1].id].eliminated = true;
 				for (const i in this.players) {
@@ -82,7 +89,7 @@ class TapusTerrains extends Game {
 		}
 		let newTerrain = false;
 		if (!this.currentTerrain) {
-			this.currentTerrain = this.sampleOne(terrains);
+			this.currentTerrain = this.sampleOne(terrainKeys);
 			newTerrain = true;
 			this.terrainRound++;
 			if (this.revealTime > 2000) this.revealTime -= 500;
@@ -91,21 +98,21 @@ class TapusTerrains extends Game {
 				return;
 			}
 		}
-		let targetPokemon: IPokemon;
+		let targetPokemon: string;
 		if (this.random(2)) {
-			targetPokemon = Dex.getExistingPokemon(this.sampleOne(pokemonByTerrain[this.currentTerrain]));
+			targetPokemon = this.sampleOne(data.pokemon[this.currentTerrain]);
 		} else {
-			targetPokemon = Dex.getExistingPokemon(this.sampleOne(unusedPokemon));
+			targetPokemon = this.sampleOne(data.unusedPokemon);
 		}
 		this.targetPokemon = targetPokemon;
 		this.roundJumps.clear();
 		this.queue = [];
-		const pokemonHtml = '<div class="infobox"><center>' + Dex.getPokemonGif(this.targetPokemon) + '<br />A wild <b>' + this.targetPokemon.species + '</b> appeared!</center></div>';
+		const pokemonHtml = '<div class="infobox"><center>' + Dex.getPokemonGif(Dex.getExistingPokemon(this.targetPokemon)) + '<br />A wild <b>' + this.targetPokemon + '</b> appeared!</center></div>';
 		if (newTerrain) {
 			const roundHtml = this.getRoundHtml(this.getPlayerNames, null, "Round " + this.terrainRound);
 			const uhtmlName = this.uhtmlBaseName + '-round';
 			this.onUhtml(uhtmlName, roundHtml, () => {
-				const terrainHtml = '<div class="infobox"><center><br />The terrain is <b>' + this.currentTerrain + '</b> (jump on a <b>' + terrainsToType[this.currentTerrain] + '</b> type)!<br />&nbsp;</center></div>';
+				const terrainHtml = '<div class="infobox"><center><br />The terrain is <b>' + this.currentTerrain + '</b> (jump on a <b>' + terrains[this.currentTerrain!] + '</b> type)!<br />&nbsp;</center></div>';
 				const uhtmlName = this.uhtmlBaseName + '-terrain';
 				this.onUhtml(uhtmlName, terrainHtml, () => {
 					// if (this.timeout) clearTimeout(this.timeout); // mocha tests

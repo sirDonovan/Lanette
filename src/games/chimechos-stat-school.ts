@@ -4,8 +4,10 @@ import { IGameFile } from "../types/games";
 import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
 
 const name = "Chimecho's Stat School";
-const data: Dict<string[]> = {};
-let dataKeys: string[] = [];
+const data: {stats: Dict<string[]>} = {
+	stats: {},
+};
+const statsKeys: string[] = [];
 let loadedData = false;
 
 class ChimechosStatSchool extends Guessing {
@@ -16,10 +18,12 @@ class ChimechosStatSchool extends Guessing {
 		const pokemon = Dex.getPokemonList();
 		for (let i = 0; i < pokemon.length; i++) {
 			const stats = Object.values(pokemon[i].baseStats).join(" / ");
-			if (!(stats in data)) data[stats] = [];
-			data[stats].push(pokemon[i].species);
+			if (!(stats in data.stats)) {
+				data.stats[stats] = [];
+				statsKeys.push(stats);
+			}
+			data.stats[stats].push(pokemon[i].species);
 		}
-		dataKeys = Object.keys(data);
 
 		loadedData = true;
 	}
@@ -31,8 +35,8 @@ class ChimechosStatSchool extends Guessing {
 	}
 
 	setAnswers() {
-		const stats = this.sampleOne(dataKeys);
-		this.answers = data[stats];
+		const stats = this.sampleOne(statsKeys);
+		this.answers = data.stats[stats];
 		this.hint = "**Base stats**: " + stats;
 	}
 }

@@ -4,13 +4,14 @@ import { IGameFile } from "../types/games";
 import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
 
 const name = "Mareanie's Marquees";
-const data: Dict<string[]> = {
+const data: {'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
 	"Pokemon": [],
 	"Pokemon Abilities": [],
 	"Pokemon Items": [],
 	"Pokemon Moves": [],
 };
-const categories = Object.keys(data);
+type DataKey = keyof typeof data;
+const categories = Object.keys(data) as DataKey[];
 let loadedData = false;
 
 class MareaniesMarquee extends Guessing {
@@ -36,7 +37,7 @@ class MareaniesMarquee extends Guessing {
 	currentCategory: string = '';
 
 	setAnswers() {
-		const category = this.roundCategory || this.variant || this.sampleOne(categories);
+		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		this.currentCategory = category;
 		let answer = '';
 		let willBeFiltered = false;

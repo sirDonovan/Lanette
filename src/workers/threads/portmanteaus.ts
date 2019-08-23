@@ -2,11 +2,11 @@ import worker_threads = require('worker_threads');
 
 import { PRNG, PRNGSeed } from '../../prng';
 import * as tools from '../../tools';
-import { IPortmanteauSearchOptions, IPortmanteauSearchResult, IPortmanteausWorkerData } from '../portmanteaus';
+import { IPortmanteauSearchOptions, IPortmanteauSearchResult, IPortmanteausWorkerData, PoolType } from '../portmanteaus';
 
 const Tools = new tools.Tools();
 const data = worker_threads.workerData as IPortmanteausWorkerData;
-const portTypes = Object.keys(data.pool);
+const portTypes = Object.keys(data.pool) as PoolType[];
 
 function search(options: IPortmanteauSearchOptions, prng: PRNG): IPortmanteauSearchResult {
 	const customPort = options.customPortTypes || options.customPortCategories || options.customPortDetails ? true : false;
@@ -20,7 +20,7 @@ function search(options: IPortmanteauSearchOptions, prng: PRNG): IPortmanteauSea
 		attempts++;
 		const portLists: {list: string[], port: string, detail: string}[] = [];
 		for (let i = 0; i < options.numberOfPorts; i++) {
-			let type;
+			let type: PoolType;
 			if (options.customPortTypes) {
 				type = options.customPortTypes[i];
 			} else {

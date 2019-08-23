@@ -5,13 +5,14 @@ import { IGameFile } from "../types/games";
 import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
 
 const name = "Ambipom's Tossups";
-const data: Dict<string[]> = {
+const data: {'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
 	"Pokemon": [],
 	"Pokemon Abilities": [],
 	"Pokemon Items": [],
 	"Pokemon Moves": [],
 };
-const categories = Object.keys(data);
+type DataKey = keyof typeof data;
+const categories = Object.keys(data) as DataKey[];
 let loadedData = false;
 
 class AmbipomsTossups extends Guessing {
@@ -36,7 +37,7 @@ class AmbipomsTossups extends Guessing {
 	readonly roundGuesses = new Map<Player, boolean>();
 
 	setAnswers() {
-		const category = this.roundCategory || this.variant || this.sampleOne(categories);
+		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		let answer = this.sampleOne(data[category]);
 		while (answer === this.lastAnswer) {
 			answer = this.sampleOne(data[category]);

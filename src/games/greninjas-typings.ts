@@ -4,7 +4,12 @@ import { IGameFile } from "../types/games";
 import { commands as templateCommands, Guessing } from './templates/guessing';
 
 const name = "Greninja's Typings";
-const keys: string[] = [];
+const data: {pokedex: string[], reverseTypes: Dict<string>, species: Dict<string>, types: Dict<string>} = {
+	pokedex: [],
+	reverseTypes: {},
+	species: {},
+	types: {},
+};
 let loadedData = false;
 
 class GreninjasTypings extends Guessing {
@@ -14,7 +19,10 @@ class GreninjasTypings extends Guessing {
 
 		const pokedex = Dex.getPokemonList(x => !x.species.startsWith('Arcues-') && !x.species.startsWith('Silvally-'));
 		for (let i = 0; i < pokedex.length; i++) {
-			keys.push(pokedex[i].species);
+			data.pokedex.push(pokedex[i].id);
+			data.species[pokedex[i].id] = pokedex[i].species;
+			data.reverseTypes[pokedex[i].id] = pokedex[i].types.slice().reverse().join('/');
+			data.types[pokedex[i].id] = pokedex[i].types.join('/');
 		}
 
 		loadedData = true;
@@ -30,23 +38,23 @@ class GreninjasTypings extends Guessing {
 
 	setAnswers() {
 		const noOrder = this.variant === 'noorder';
-		let typing = Dex.getExistingPokemon(this.sampleOne(keys)).types;
-		let typingString = typing.join(',');
-		while (typing.length === 1 || typingString === this.lastTyping || (noOrder && typing.slice().reverse().join(',') === this.lastTyping)) {
-			typing = Dex.getExistingPokemon(this.sampleOne(keys)).types;
-			typingString = typing.join(',');
+		let pokemon = this.sampleOne(data.pokedex);
+		let typing = data.types[pokemon];
+		let reverseTyping = data.reverseTypes[pokemon];
+		while (!typing.includes('/') || typing === this.lastTyping || (noOrder && reverseTyping === this.lastTyping)) {
+			pokemon = this.sampleOne(data.pokedex);
+			typing = data.types[pokemon];
+			reverseTyping = data.reverseTypes[pokemon];
 		}
-		const reverseTypingString = noOrder ? typing.slice().reverse().join(',') : '';
-		const pokemon: string[] = [];
-		for (let i = 0; i < keys.length; i++) {
-			const typing = Dex.getExistingPokemon(keys[i]).types.join(',');
-			if (typing === typingString || (reverseTypingString && typing === reverseTypingString)) {
-				pokemon.push(keys[i]);
+		const answers: string[] = [];
+		for (let i = 0; i < data.pokedex.length; i++) {
+			if (typing === data.types[data.pokedex[i]] || (noOrder && typing === data.reverseTypes[data.pokedex[i]])) {
+				answers.push(data.species[data.pokedex[i]]);
 			}
 		}
-		this.lastTyping = typingString;
-		this.answers = pokemon;
-		this.hint = "Randomly generated typing: **" + typing.join("/") + "**";
+		this.lastTyping = typing;
+		this.answers = answers;
+		this.hint = "Randomly generated typing: **" + typing + "**";
 	}
 }
 

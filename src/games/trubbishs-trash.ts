@@ -10,7 +10,10 @@ interface ITrashedMove {
 }
 
 const name = "Trubbish's Trash";
-const keys: string[] = [];
+const data: {movePoints: Dict<number>, moves: string[]} = {
+	movePoints: {},
+	moves: [],
+};
 let highestBasePower: number = 0;
 let loadedData = false;
 
@@ -19,6 +22,7 @@ class TrubbishsTrash extends Game {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
+		const basePowers: Dict<number> = {};
 		const movesList = Dex.getMovesList(move => !move.id.startsWith('hiddenpower'));
 		for (let i = 0; i < movesList.length; i++) {
 			const move = movesList[i];
@@ -26,7 +30,12 @@ class TrubbishsTrash extends Game {
 			if (typeof basePower !== 'number') basePower = parseInt(basePower);
 			if (isNaN(basePower) || basePower <= 0) continue;
 			if (basePower > highestBasePower) highestBasePower = basePower;
-			keys.push(move.id);
+			basePowers[move.id] = basePower;
+			data.moves.push(move.id);
+		}
+
+		for (let i = 0; i < data.moves.length; i++) {
+			data.movePoints[data.moves[i]] = highestBasePower - basePowers[data.moves[i]];
 		}
 
 		loadedData = true;
@@ -57,13 +66,12 @@ class TrubbishsTrash extends Game {
 	}
 
 	generateMoves() {
-		const moves = this.sampleMany(keys, 3);
+		const moves = this.sampleMany(data.moves, 3);
 		// let basePowers = [];
 		for (let i = 0; i < moves.length; i++) {
 			const move = Dex.getExistingMove(moves[i]);
-			// basePowers.push({move: move.name, basePower: move.basePower});
-			const points = highestBasePower - move.basePower;
-			this.roundMoves.set(move.id, {name: move.name, points});
+			// basePowers.push({move: move.name, basePower: data.movePoints[moves[i]]});
+			this.roundMoves.set(move.id, {name: move.name, points: data.movePoints[moves[i]]});
 			moves[i] = move.name;
 		}
 		// basePowers.sort(function (a, b) { return a.basePower - b.basePower; });

@@ -258,7 +258,9 @@ describe("Games", () => {
 		this.timeout(15000);
 		ParametersWorker.init();
 		for (const gen in ParametersWorker.data.pokemon.gens) {
-			for (const type in ParametersWorker.data.pokemon.gens[gen].paramTypeDexes) {
+			const types = Object.keys(ParametersWorker.data.pokemon.gens[gen].paramTypeDexes) as ParametersWorker.ParamType[];
+			for (let i = 0; i < types.length; i++) {
+				const type = types[i];
 				const keys = Object.keys(ParametersWorker.data.pokemon.gens[gen].paramTypeDexes[type]);
 				const checkTier = type === 'tier';
 				for (let i = 0; i < keys.length; i++) {

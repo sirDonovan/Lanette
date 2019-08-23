@@ -10,7 +10,9 @@ interface IRoundAbility {
 }
 
 const name = "Dedenne’s Ability Blitz";
-const keys: string[] = [];
+const data: {abilities: string[]} = {
+	abilities: [],
+};
 let loadedData = false;
 
 class DedennesAbilityBlitz extends Game {
@@ -20,7 +22,7 @@ class DedennesAbilityBlitz extends Game {
 
 		const abilities = Dex.getAbilitiesList();
 		for (let i = 0; i < abilities.length; i++) {
-			keys.push(abilities[i].name);
+			data.abilities.push(abilities[i].name);
 		}
 
 		loadedData = true;
@@ -42,7 +44,7 @@ class DedennesAbilityBlitz extends Game {
 	}
 
 	generateAbilities() {
-		const abilities = this.sampleMany(keys, 3);
+		const abilities = this.sampleMany(data.abilities, 3);
 		for (let i = 0; i < abilities.length; i++) {
 			const ability = Tools.toId(abilities[i]);
 			this.roundAbilities.set(ability, {name: abilities[i], points: ability.length * 10});

@@ -6,7 +6,7 @@ import * as ParametersWorker from './../workers/parameters';
 import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
 
 const name = "Paras' Parameters";
-const paramTypes = ['move', 'tier', 'color', 'type', 'resistance', 'weakness', 'egggroup', 'ability', 'gen'];
+const paramTypes: ParametersWorker.ParamType[] = ['move', 'tier', 'color', 'type', 'resistance', 'weakness', 'egggroup', 'ability', 'gen'];
 let loadedData = false;
 
 export class ParasParameters extends Guessing {
@@ -24,7 +24,7 @@ export class ParasParameters extends Guessing {
 	customizableOptions: Dict<IGameOptionValues> = {
 		params: {min: 2, base: 2, max: 4},
 	};
-	customParamTypes: string[] | null = null;
+	customParamTypes: ParametersWorker.ParamType[] | null = null;
 	defaultOptions: DefaultGameOption[] = ['points'];
 	minimumResults: number = 3;
 	maximumResults: number = 50;

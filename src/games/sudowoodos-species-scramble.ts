@@ -4,8 +4,10 @@ import { IGameFile } from "../types/games";
 import { commandDescriptions, commands as templateCommands, Guessing } from "./templates/guessing";
 
 const name = "Sudowoodo's Species Scramble";
-const data: Dict<string[]> = {};
-const categories: string[] = [];
+const data: {categories: Dict<string[]>} = {
+	categories: {},
+};
+const categoryKeys: string[] = [];
 let loadedData = false;
 
 class SudowoodosSpeciesScramble extends Guessing {
@@ -17,10 +19,10 @@ class SudowoodosSpeciesScramble extends Guessing {
 		for (let i = 0; i < pokemonList.length; i++) {
 			const pokemon = pokemonList[i];
 			if (!(pokemon.category in data)) {
-				data[pokemon.category] = [];
-				categories.push(pokemon.category);
+				data.categories[pokemon.category] = [];
+				categoryKeys.push(pokemon.category);
 			}
-			data[pokemon.category].push(pokemon.species);
+			data.categories[pokemon.category].push(pokemon.species);
 		}
 
 		loadedData = true;
@@ -33,8 +35,8 @@ class SudowoodosSpeciesScramble extends Guessing {
 	}
 
 	setAnswers() {
-		const category = this.sampleOne(categories);
-		this.answers = data[category];
+		const category = this.sampleOne(categoryKeys);
+		this.answers = data.categories[category];
 		this.hint = "Sudowoodo imitated the **" + category + " Pokemon**!";
 	}
 }

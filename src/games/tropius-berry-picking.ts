@@ -15,7 +15,9 @@ interface IRoundEffect {
 }
 
 const name = "Tropius' Berry Picking";
-const moves: string[] = [];
+const data: {moves: string[]} = {
+	moves: [],
+};
 let loadedData = false;
 
 const berries: Dict<IBerry> = {
@@ -82,7 +84,7 @@ class TropiusBerryPicking extends Game {
 
 		const movesList = Dex.getMovesList(move => move.category !== 'Status' && move.type in Dex.data.typeChart && !move.id.startsWith('hiddenpower'));
 		for (let i = 0; i < movesList.length; i++) {
-			moves.push(movesList[i].name);
+			data.moves.push(movesList[i].name);
 		}
 
 		loadedData = true;
@@ -152,9 +154,9 @@ class TropiusBerryPicking extends Game {
 			this.roundBerries.clear();
 		}
 
-		let name = this.sampleOne(moves);
+		let name = this.sampleOne(data.moves);
 		while (this.lastMove === name) {
-			name = this.sampleOne(moves);
+			name = this.sampleOne(data.moves);
 		}
 		this.lastMove = name;
 		const move = Dex.getExistingMove(name);

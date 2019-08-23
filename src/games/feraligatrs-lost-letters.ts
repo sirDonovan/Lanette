@@ -4,14 +4,15 @@ import { IGameFile } from "../types/games";
 import { commandDescriptions, commands as templateCommands, Guessing } from "./templates/guessing";
 
 const name = "Feraligatr's Lost Letters";
-const data: Dict<string[]> = {
+const data: {'Characters': string[], 'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
 	"Characters": [],
 	"Pokemon": [],
 	"Pokemon Abilities": [],
 	"Pokemon Items": [],
 	"Pokemon Moves": [],
 };
-const categories = Object.keys(data);
+type DataKey = keyof typeof data;
+const categories = Object.keys(data) as DataKey[];
 const vowels: string[] = ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'];
 let loadedData = false;
 
@@ -29,14 +30,14 @@ class FeraligatrsLostLetters extends Guessing {
 		loadedData = true;
 	}
 
-	categoryList: string[] = categories.slice();
+	categoryList: DataKey[] = categories.slice();
 	defaultOptions: DefaultGameOption[] = ['points'];
 	roundTime: number = 10 * 1000;
 
 	onCreate() {
 		if (this.variant === 'inverse') {
 			this.roundTime = 15 * 1000;
-			this.categoryList.splice(this.categoryList.indexOf('characters'), 1);
+			this.categoryList.splice(this.categoryList.indexOf('Characters'), 1);
 		}
 	}
 
@@ -60,11 +61,11 @@ class FeraligatrsLostLetters extends Guessing {
 
 	setAnswers() {
 		const isInverse = this.variant === 'inverse';
-		let category = '';
+		let category: DataKey;
 		if (this.roundCategory) {
-			category = this.roundCategory;
+			category = this.roundCategory as DataKey;
 		} else if (this.variant && !isInverse) {
-			category = this.variant;
+			category = this.variant as DataKey;
 		} else {
 			category = this.sampleOne(this.categoryList);
 		}

@@ -10,7 +10,10 @@ interface ICaughtPokemon {
 }
 
 const name = "Tauros' Safari Zone";
-const pokedex: string[] = [];
+const data: {baseStatTotals: Dict<number>, pokedex: string[]} = {
+	baseStatTotals: {},
+	pokedex: [],
+};
 let loadedData = false;
 
 class TaurosSafariZone extends Game {
@@ -20,7 +23,13 @@ class TaurosSafariZone extends Game {
 
 		const pokemonList = Dex.getPokemonList(pokemon => Dex.hasGifData(pokemon));
 		for (let i = 0; i < pokemonList.length; i++) {
-			pokedex.push(pokemonList[i].species);
+			data.pokedex.push(pokemonList[i].id);
+			let bst = 0;
+			for (const stat in pokemonList[i].baseStats) {
+				// @ts-ignore
+				bst += pokemonList[i].baseStats[stat];
+			}
+			data.baseStatTotals[pokemonList[i].id] = bst;
 		}
 
 		loadedData = true;
@@ -53,7 +62,7 @@ class TaurosSafariZone extends Game {
 	}
 
 	generatePokemon() {
-		const pokemon = this.sampleMany(pokedex, 3).map(x => Dex.getExistingPokemon(x));
+		const pokemon = this.sampleMany(data.pokedex, 3).map(x => Dex.getExistingPokemon(x));
 		let hasVoltorb = false;
 		let hasElectrode = false;
 		const baseStatTotals: {pokemon: string, bst: number}[] = [];
@@ -74,16 +83,14 @@ class TaurosSafariZone extends Game {
 				}
 			} else {
 				if (currentPokemon.otherFormes && chance < 85) {
-					currentPokemon = Dex.getExistingPokemon(this.sampleOne(currentPokemon.otherFormes));
-					pokemon[i] = currentPokemon;
+					const otherForme = Dex.getExistingPokemon(this.sampleOne(currentPokemon.otherFormes));
+					if (Dex.hasGifData(otherForme)) {
+						currentPokemon = otherForme;
+						pokemon[i] = otherForme;
+					}
 				}
-				let bst = 0;
-				for (const stat in currentPokemon.baseStats) {
-					// @ts-ignore
-					bst += currentPokemon.baseStats[stat];
-				}
-				baseStatTotals.push({pokemon: currentPokemon.species, bst});
-				const points = 100 + Math.round((bst / 12));
+				baseStatTotals.push({pokemon: currentPokemon.species, bst: data.baseStatTotals[pokemon[i].id]});
+				const points = 100 + Math.round((data.baseStatTotals[pokemon[i].id] / 12));
 				this.roundPokemon.set(Tools.toId(currentPokemon.species), {species: currentPokemon.species, points});
 			}
 		}

@@ -5,7 +5,9 @@ import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 
 const name = "Golem's Galvanic Mine";
-const allStones: string[] = [];
+const data: {stones: string[]} = {
+	stones: [],
+};
 let loadedData = false;
 
 class GolemsGalvanicMine extends Game {
@@ -16,7 +18,7 @@ class GolemsGalvanicMine extends Game {
 		const items = Dex.getItemsList();
 		for (let i = 0; i < items.length; i++) {
 			const item = items[i];
-			if (item.megaStone || item.zMove) allStones.push(item.name);
+			if (item.megaStone || item.zMove) data.stones.push(item.name);
 		}
 
 		loadedData = true;
@@ -44,8 +46,7 @@ class GolemsGalvanicMine extends Game {
 	}
 
 	displayStones() {
-		// <center><table border="1"><tr style="text-align:center;line-height:5"><td style="width:125px">Flyinium Z-1</td><td style="width:125px">Charizardite Y-1</td><td style="width:125px">Galladite-6</td></tr><tr style="text-align:center;line-height:5"><td style="width:125px">Sharpedonite-2</td><td style="width:125px">Kommonium Z-4</td><td style="width:125px">Psychium Z-3</td></tr><tr style="text-align:center;line-height:5"><td style="width:125px">Gardevoirite-2</td><td style="width:125px">Sceptilite-1</td><td style="width:125px">Incinium Z-4</td></tr><tr style="text-align:center;line-height:5"></tr></table></center><div style="float:right;color:#888;font-size:8pt">[Lanette Bot]</div><div style="clear:both"></div>
-		const stones = this.sampleMany(allStones, 9);
+		const stones = this.sampleMany(data.stones, 9);
 		const tr = '<tr style="text-align:center;line-height:5">';
 		let html = '<center><table border="1">' + tr;
 		let currentRowCount = 0;
@@ -118,7 +119,7 @@ const commands: Dict<ICommandDefinition<GolemsGalvanicMine>> = {
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (this.roundMines.has(player)) return;
 			const stone = Dex.getItem(target);
-			if (!stone || !allStones.includes(stone.name)) return user.say("'" + target + "' is not a valid Z or Mega stone.");
+			if (!stone || !data.stones.includes(stone.name)) return user.say("'" + target + "' is not a valid Z or Mega stone.");
 			if (!(stone.id in this.roundStones)) return;
 			this.roundMines.set(player, this.roundStones[stone.id]);
 			user.say("You successfully mined " + stone.name + "-" + this.roundStones[stone.id] + "!");

@@ -4,14 +4,15 @@ import { IGameFile } from "../types/games";
 import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
 
 const name = "Kyurem's Splits";
-const data: Dict<string[]> = {
+const data: {'Characters': string[], 'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
 	"Characters": [],
 	"Pokemon": [],
 	"Pokemon Abilities": [],
 	"Pokemon Items": [],
 	"Pokemon Moves": [],
 };
-const categories: string[] = Object.keys(data);
+type DataKey = keyof typeof data;
+const categories = Object.keys(data) as DataKey[];
 let loadedData = false;
 
 class KyuremsSplits extends Guessing {
@@ -59,7 +60,7 @@ class KyuremsSplits extends Guessing {
 	}
 
 	setAnswers() {
-		const category = this.roundCategory || this.variant || this.sampleOne(categories);
+		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		let hint = '';
 		while (!this.answers.length || this.answers.length > 15 || Client.willBeFiltered(hint)) {
 			const answer = Tools.toId(this.sampleOne(data[category]));

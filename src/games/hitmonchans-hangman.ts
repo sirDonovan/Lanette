@@ -5,14 +5,15 @@ import { IGameFile } from "../types/games";
 import { commandDescriptions, commands as templateCommands, Guessing } from "./templates/guessing";
 
 const name = "Hitmonchan's Hangman";
-const data: Dict<string[]> = {
+const data: {'Characters': string[], 'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
 	"Characters": [],
 	"Pokemon": [],
 	"Pokemon Abilities": [],
 	"Pokemon Items": [],
 	"Pokemon Moves": [],
 };
-const categories = Object.keys(data);
+type DataKey = keyof typeof data;
+const categories = Object.keys(data) as DataKey[];
 let loadedData = false;
 
 class HitmonchansHangman extends Guessing {
@@ -42,7 +43,7 @@ class HitmonchansHangman extends Guessing {
 	solvedLetters: string[] = [];
 
 	setAnswers() {
-		const category = this.roundCategory || this.variant || this.sampleOne(categories);
+		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		this.currentCategory = category;
 		let answer = this.sampleOne(data[category]);
 		while (answer === this.lastAnswer) {

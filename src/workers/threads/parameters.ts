@@ -2,25 +2,37 @@ import worker_threads = require('worker_threads');
 
 import { PRNG, PRNGSeed } from '../../prng';
 import * as tools from '../../tools';
-import { IParam, IParameterIntersectOptions, IParameterSearchOptions, IParameterSearchResult, IParametersWorkerData } from '../parameters';
+import { IParam, IParameterIntersectOptions, IParameterSearchOptions, IParameterSearchResult, IParametersWorkerData, IParamType, ParamType } from '../parameters';
 
 const Tools = new tools.Tools();
 const data = worker_threads.workerData as IParametersWorkerData;
-const paramTypeKeys: Dict<Dict<Dict<string[]>>> = {};
+const paramTypeKeys: Dict<Dict<KeyedDict<IParamType, string[]>>> = {};
 const searchTypes: (keyof typeof data)[] = ['pokemon'];
 for (let i = 0; i < searchTypes.length; i++) {
 	const searchType = searchTypes[i];
 	paramTypeKeys[searchType] = {};
 	for (const gen in data[searchType].gens) {
-		paramTypeKeys[searchType][gen] = {};
-		for (const i in data[searchType].gens[gen].paramTypeDexes) {
-			paramTypeKeys[searchType][gen][i] = Object.keys(data[searchType].gens[gen].paramTypeDexes[i]);
+		paramTypeKeys[searchType][gen] = {
+			ability: [],
+			color: [],
+			egggroup: [],
+			gen: [],
+			letter: [],
+			move: [],
+			resistance: [],
+			tier: [],
+			type: [],
+			weakness: [],
+		};
+		const keys = Object.keys(data[searchType].gens[gen].paramTypeDexes) as ParamType[];
+		for (let i = 0; i < keys.length; i++) {
+			paramTypeKeys[searchType][gen][keys[i]] = Object.keys(data[searchType].gens[gen].paramTypeDexes[keys[i]]);
 		}
 	}
 }
 
 function search(options: IParameterSearchOptions, prng: PRNG): IParameterSearchResult {
-	let paramTypes: string[] = [];
+	let paramTypes: ParamType[] = [];
 	let pokemon: string[] = [];
 	let params: IParam[] = [];
 	let possibleParams: string[][] = [];
@@ -41,7 +53,7 @@ function search(options: IParameterSearchOptions, prng: PRNG): IParameterSearchR
 			}
 		}
 
-		const possibleKeys: {[k: string]: string[]} = {};
+		const possibleKeys: Dict<string[]> = {};
 		for (let i = 0; i < paramTypes.length; i++) {
 			if (!possibleKeys[paramTypes[i]]) {
 				const keys = paramTypeKeys[options.searchType][options.mod][paramTypes[i]];

@@ -2,9 +2,16 @@ import path = require('path');
 import worker_threads = require('worker_threads');
 import { PRNGSeed } from '../prng';
 
+interface IPoolType {
+	Item: any;
+	Move: any;
+	Pokemon: any;
+}
+export type PoolType = keyof IPoolType;
+
 export interface IPortmanteausWorkerData {
-	pool: Dict<Dict<Dict<string[]>>>;
-	portCategories: Dict<string[]>;
+	pool: KeyedDict<IPoolType, Dict<Dict<string[]>>>;
+	portCategories: KeyedDict<IPoolType, string[]>;
 }
 
 export interface IPortmanteauSearchOptions {
@@ -14,7 +21,7 @@ export interface IPortmanteauSearchOptions {
 	prngSeed: PRNGSeed;
 	customPortCategories?: string[] | null;
 	customPortDetails?: string[] | null;
-	customPortTypes?: string[] | null;
+	customPortTypes?: PoolType[] | null;
 }
 
 export interface IPortmanteauSearchResult {
@@ -37,14 +44,17 @@ export const data: IPortmanteausWorkerData = {
 	},
 };
 
+const poolTypes = Object.keys(data.pool) as PoolType[];
+
 let worker: worker_threads.Worker | undefined;
 
 export function init(): worker_threads.Worker {
 	if (worker) return worker;
 
-	for (const category in data.portCategories) {
-		for (let i = 0; i < data.portCategories[category].length; i++) {
-			data.pool[category][data.portCategories[category][i]] = {};
+	for (let i = 0; i < poolTypes.length; i++) {
+		const type = poolTypes[i];
+		for (let i = 0; i < data.portCategories[type].length; i++) {
+			data.pool[type][data.portCategories[type][i]] = {};
 		}
 	}
 

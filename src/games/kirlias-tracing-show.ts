@@ -4,7 +4,10 @@ import { IGameFile } from "../types/games";
 import { commands as templateCommands, Guessing } from './templates/guessing';
 
 const name = "Kirlia's Tracing Show";
-const keys: string[] = [];
+const data: {abilities: Dict<string>, pokedex: string[]} = {
+	abilities: {},
+	pokedex: [],
+};
 let loadedData = false;
 
 class KirliasTracingShow extends Guessing {
@@ -14,40 +17,36 @@ class KirliasTracingShow extends Guessing {
 
 		const pokedex = Dex.getPokemonList();
 		for (let i = 0; i < pokedex.length; i++) {
-			keys.push(pokedex[i].species);
+			const abilities: string[] = [];
+			for (const ability in pokedex[i].abilities) {
+				// @ts-ignore
+				abilities.push(pokedex[i].abilities[ability]);
+			}
+			data.abilities[pokedex[i].id] = abilities.join(",");
+			data.pokedex.push(pokedex[i].id);
 		}
 		loadedData = true;
 	}
 
 	defaultOptions: DefaultGameOption[] = ['points'];
 	lastAbilities: string = '';
-	lastSpecies: string = '';
+	lastPokemon: string = '';
 
 	onSignups() {
 		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
 	setAnswers() {
-		let species = '';
-		let abilitiesText = '';
-		let abilities: string[] = [];
-		while (!abilitiesText || abilitiesText === this.lastAbilities) {
-			while (!species || species === this.lastSpecies) {
-				species = this.sampleOne(keys);
-			}
-
-			const pokemon = Dex.getExistingPokemon(species);
-			abilities = [];
-			for (const i in pokemon.abilities) {
-				// @ts-ignore
-				abilities.push(pokemon.abilities[i]);
-			}
-			abilitiesText = abilities.join(",");
+		let pokemon = this.sampleOne(data.pokedex);
+		let abilities = data.abilities[pokemon];
+		while (pokemon === this.lastPokemon || abilities === this.lastAbilities) {
+			pokemon = this.sampleOne(data.pokedex);
+			abilities = data.abilities[pokemon];
 		}
-		this.lastSpecies = species;
-		this.lastAbilities = abilitiesText;
-		this.answers = abilities;
-		this.hint = "Kirlia traced **" + species + "**!";
+		this.lastPokemon = pokemon;
+		this.lastAbilities = abilities;
+		this.answers = abilities.split(',');
+		this.hint = "Kirlia traced **" + Dex.getExistingPokemon(pokemon).species + "**!";
 	}
 }
 

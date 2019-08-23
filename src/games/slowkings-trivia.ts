@@ -4,13 +4,18 @@ import { IGameFile } from "../types/games";
 import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
 
 const name = "Slowking's Trivia";
-const data: Dict<Dict<string[]>> = {
+const data: {"Pokemon Abilities": Dict<string[]>, "Pokemon Items": Dict<string[]>, "Pokemon Moves": Dict<string[]>} = {
 	"Pokemon Abilities": {},
 	"Pokemon Items": {},
 	"Pokemon Moves": {},
 };
-const categories = Object.keys(data);
-const questions: Dict<string[]> = {};
+type DataKey = keyof typeof data;
+const categories = Object.keys(data) as DataKey[];
+const categoryKeys: KeyedDict<typeof data, string[]> = {
+	"Pokemon Abilities": [],
+	"Pokemon Items": [],
+	"Pokemon Moves": [],
+};
 let loadedData = false;
 
 class SlowkingsTrivia extends Guessing {
@@ -46,7 +51,7 @@ class SlowkingsTrivia extends Guessing {
 		}
 
 		for (let i = 0; i < categories.length; i++) {
-			questions[categories[i]] = Object.keys(data[categories[i]]);
+			categoryKeys[categories[i]] = Object.keys(data[categories[i]]);
 		}
 
 		loadedData = true;
@@ -55,8 +60,8 @@ class SlowkingsTrivia extends Guessing {
 	defaultOptions: DefaultGameOption[] = ['points'];
 
 	setAnswers() {
-		const category = this.roundCategory || this.variant || this.sampleOne(categories);
-		const question = this.sampleOne(questions[category]);
+		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
+		const question = this.sampleOne(categoryKeys[category]);
 		this.answers = data[category][question];
 		this.hint = "[**" + category + "**] " + question;
 	}

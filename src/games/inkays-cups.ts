@@ -6,8 +6,16 @@ import { IGameFile } from "../types/games";
 import * as ParametersWorker from './../workers/parameters';
 
 const name = "Inkay's Cups";
-const paramTypes = ['color', 'letter', 'tier', 'type'];
-const paramTypeKeys: Dict<Dict<Dict<string[]>>> = {};
+interface IParamType {
+	'color': any;
+	'letter': any;
+	'tier': any;
+	'type': any;
+}
+type ParamType = keyof IParamType;
+const paramTypes: ParamType[] = ['color', 'letter', 'tier', 'type'];
+const paramTypeKeys: Dict<Dict<KeyedDict<IParamType, string[]>>> = {};
+
 const searchTypes: (keyof typeof ParametersWorker.data)[] = ['pokemon'];
 
 let loadedData = false;
@@ -23,7 +31,12 @@ class InkaysCups extends Game {
 			const searchType = searchTypes[i];
 			paramTypeKeys[searchType] = {};
 			for (const gen in ParametersWorker.data[searchType].gens) {
-				paramTypeKeys[searchType][gen] = {};
+				paramTypeKeys[searchType][gen] = {
+					'color': [],
+					'letter': [],
+					'tier': [],
+					'type': [],
+				};
 				for (let i = 0; i < paramTypes.length; i++) {
 					paramTypeKeys[searchType][gen][paramTypes[i]] = Object.keys(ParametersWorker.data[searchType].gens[gen].paramTypeDexes[paramTypes[i]]);
 				}

@@ -5,7 +5,9 @@ import { IPokemon } from "../types/in-game-data-types";
 import { Chain, commands } from "./templates/chain";
 
 const name = "Fraxure's Battle Chain";
-const types: string[] = [];
+const data: {types: string[]} = {
+	types: [],
+};
 let loadedData = false;
 
 class FraxuresBattleChain extends Chain {
@@ -15,11 +17,11 @@ class FraxuresBattleChain extends Chain {
 
 		const typeKeys = Object.keys(Dex.data.typeChart);
 		for (let i = 0; i < typeKeys.length; i++) {
-			types.push(typeKeys[i]);
+			data.types.push(typeKeys[i]);
 			for (let j = 0; j < typeKeys.length; j++) {
 				if (i === j) continue;
 				const type = [typeKeys[i], typeKeys[j]].sort().join(',');
-				if (!types.includes(type)) types.push(type);
+				if (!data.types.includes(type)) data.types.push(type);
 			}
 		}
 
@@ -37,8 +39,8 @@ class FraxuresBattleChain extends Chain {
 		const type = link.types.slice().sort().join(",");
 		if (type in this.linkEndCache) return this.linkEndCache[type].slice();
 		const ends: string[] = [];
-		for (let i = 0; i < types.length; i++) {
-			const type = types[i].split(",");
+		for (let i = 0; i < data.types.length; i++) {
+			const type = data.types[i].split(",");
 			let superEffective = false;
 			for (let i = 0; i < type.length; i++) {
 				if (Dex.isImmune(type[i], link.types)) {
@@ -49,7 +51,7 @@ class FraxuresBattleChain extends Chain {
 					}
 				}
 			}
-			if (superEffective) ends.push(types[i]);
+			if (superEffective) ends.push(data.types[i]);
 		}
 
 		this.linkEndCache[type] = ends;

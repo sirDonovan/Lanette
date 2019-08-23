@@ -7,11 +7,25 @@ export interface IParam {
 	param: string;
 }
 
+export interface IParamType {
+	ability: any;
+	color: any;
+	egggroup: any;
+	gen: any;
+	letter: any;
+	move: any;
+	resistance: any;
+	tier: any;
+	type: any;
+	weakness: any;
+}
+export type ParamType = keyof IParamType;
+
 export interface IParametersGenData {
 	evolutionLines: string[];
 	formes: Dict<string>;
-	paramTypePools: Dict<Dict<IParam>>;
-	paramTypeDexes: Dict<Dict<string[]>>;
+	paramTypePools: KeyedDict<IParamType, Dict<IParam>>;
+	paramTypeDexes: KeyedDict<IParamType, Dict<string[]>>;
 	otherFormes: Dict<string>;
 }
 
@@ -24,16 +38,16 @@ export interface IParameterSearchOptions {
 	numberOfParams: number;
 	minimumResults: number;
 	maximumResults: number;
-	paramTypes: string[];
+	paramTypes: ParamType[];
 	prngSeed: PRNGSeed;
 	searchType: keyof typeof data;
-	customParamTypes?: string[] | null;
+	customParamTypes?: ParamType[] | null;
 	filter?: string[];
 }
 
 export interface IParameterIntersectOptions {
 	mod: string;
-	paramTypes: string[];
+	paramTypes: ParamType[];
 	searchType: keyof typeof data;
 }
 

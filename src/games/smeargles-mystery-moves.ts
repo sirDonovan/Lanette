@@ -5,7 +5,9 @@ import { IGameFile } from "../types/games";
 import { commands, Guessing } from "./templates/guessing";
 
 const name = "Smeargle's Mystery Moves";
-const moves: string[] = [];
+const data: {moves: string[]} = {
+	moves: [],
+};
 let loadedData = false;
 
 class SmearglesMysteryMoves extends Guessing {
@@ -15,7 +17,7 @@ class SmearglesMysteryMoves extends Guessing {
 
 		const movesList = Dex.getMovesList();
 		for (let i = 0; i < movesList.length; i++) {
-			moves.push(movesList[i].name);
+			data.moves.push(movesList[i].name);
 		}
 
 		loadedData = true;
@@ -37,9 +39,9 @@ class SmearglesMysteryMoves extends Guessing {
 
 	setAnswers() {
 		this.hintsIndex = 0;
-		let name = this.sampleOne(moves);
+		let name = this.sampleOne(data.moves);
 		while (this.lastMove === name) {
-			name = this.sampleOne(moves);
+			name = this.sampleOne(data.moves);
 		}
 		this.lastMove = name;
 		const move = Dex.getExistingMove(name);

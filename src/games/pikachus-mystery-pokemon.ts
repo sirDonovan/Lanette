@@ -5,7 +5,13 @@ import { IGameFile } from "../types/games";
 import { commands, Guessing } from "./templates/guessing";
 
 const name = "Pikachu's Mystery Pokemon";
-const pokedex: string[] = [];
+const data: {abilities: Dict<string[]>, eggGroups: Dict<string>, pokedex: string[], regions: Dict<string>, types: Dict<string>} = {
+	abilities: {},
+	eggGroups: {},
+	pokedex: [],
+	regions: {},
+	types: {},
+};
 let loadedData = false;
 
 class PikachusMysteryPokemon extends Guessing {
@@ -15,7 +21,36 @@ class PikachusMysteryPokemon extends Guessing {
 
 		const pokemonList = Dex.getPokemonList(pokemon => !pokemon.forme);
 		for (let i = 0; i < pokemonList.length; i++) {
-			pokedex.push(pokemonList[i].species);
+			const pokemon = pokemonList[i];
+			data.pokedex.push(pokemon.id);
+			data.eggGroups[pokemon.id] = pokemon.eggGroups.join(", ");
+			data.types[pokemon.id] = pokemon.types.join("/");
+
+			let region;
+			if (pokemon.gen === 1) {
+				region = 'Kanto';
+			} else if (pokemon.gen === 2) {
+				region = 'Johto';
+			} else if (pokemon.gen === 3) {
+				region = 'Hoenn';
+			} else if (pokemon.gen === 4) {
+				region = 'Sinnoh';
+			} else if (pokemon.gen === 5) {
+				region = 'Unova';
+			} else if (pokemon.gen === 6) {
+				region = 'Kalos';
+			} else if (pokemon.gen === 7) {
+				region = 'Alola';
+			}
+			if (region) data.regions[pokemon.id] = region;
+
+			const abilities: string[] = [];
+			for (const i in pokemon.abilities) {
+				if (i === 'H') continue;
+				// @ts-ignore
+				abilities.push(pokemon.abilities[i]);
+			}
+			data.abilities[pokemon.id] = abilities;
 		}
 
 		loadedData = true;
@@ -37,40 +72,18 @@ class PikachusMysteryPokemon extends Guessing {
 
 	setAnswers() {
 		this.hintsIndex = 0;
-		let species = this.sampleOne(pokedex);
+		let species = this.sampleOne(data.pokedex);
 		while (this.lastSpecies === species) {
-			species = this.sampleOne(pokedex);
+			species = this.sampleOne(data.pokedex);
 		}
 		this.lastSpecies = species;
 		const pokemon = Dex.getExistingPokemon(species);
 		const hints: string[] = [];
-		hints.push("**Type" + (pokemon.types.length > 1 ? "s" : "") + "**: " + pokemon.types.join("/"));
-		let region;
-		if (pokemon.gen === 1) {
-			region = 'Kanto';
-		} else if (pokemon.gen === 2) {
-			region = 'Johto';
-		} else if (pokemon.gen === 3) {
-			region = 'Hoenn';
-		} else if (pokemon.gen === 4) {
-			region = 'Sinnoh';
-		} else if (pokemon.gen === 5) {
-			region = 'Unova';
-		} else if (pokemon.gen === 6) {
-			region = 'Kalos';
-		} else if (pokemon.gen === 7) {
-			region = 'Alola';
-		}
-		if (region) hints.push("**Region**: " + region);
+		hints.push("**Type" + (data.types[species].includes('/') ? "s" : "") + "**: " + data.types[species]);
+		if (species in data.regions) hints.push("**Region**: " + data.regions[species]);
 		hints.push("**Color**: " + pokemon.color);
-		hints.push("**Egg group" + (pokemon.eggGroups.length > 1 ? "s" : "") + "**: " + pokemon.eggGroups.join(", "));
-		const abilities: string[] = [];
-		for (const i in pokemon.abilities) {
-			if (i === 'H') continue;
-			// @ts-ignore
-			abilities.push(pokemon.abilities[i]);
-		}
-		hints.push("**Ability**: " + this.sampleOne(abilities));
+		hints.push("**Egg group" + (data.eggGroups[species].includes(',') ? "s" : "") + "**: " + data.eggGroups[species]);
+		hints.push("**Ability**: " + this.sampleOne(data.abilities[species]));
 		this.hints = this.shuffle(hints);
 		this.answers = [pokemon.species];
 	}

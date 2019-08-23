@@ -4,7 +4,7 @@ import { IGameFile } from "../types/games";
 import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
 
 const name = "Magneton's Mashups";
-const data: Dict<string[]> = {
+const data: {'Pokemon': string[]} = {
 	'Pokemon': [],
 };
 let loadedData = false;
