@@ -975,19 +975,19 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	roll: {
 		command(target, room, user) {
-			if (!target || this.isPm(room) || !Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id))) return;
-			this.say('!roll ' + target);
+			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id)))) return;
+			this.say('!roll ' + (target || "2"));
 		},
 	},
 	dt: {
 		command(target, room, user) {
-			if (!target || this.isPm(room) || !Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id))) return;
+			if (!target || (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id))))) return;
 			this.say('!dt ' + target);
 		},
 	},
 	randompokemon: {
 		command(target, room, user) {
-			if (this.isPm(room) || !Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id))) return;
+			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id)))) return;
 			if (!target) {
 				const species = Dex.getExistingPokemon(Tools.sampleOne(Object.keys(Dex.data.pokedex))).species;
 				if (this.pm) {
@@ -1003,7 +1003,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	randommove: {
 		command(target, room, user) {
-			if (this.isPm(room) || !Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id))) return;
+			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id)))) return;
 			const move = Dex.getExistingMove(Tools.sampleOne(Object.keys(Dex.data.moves))).name;
 			if (this.pm) {
 				this.say('Randomly generated move: **' + move + '**');
@@ -1015,7 +1015,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	randomitem: {
 		command(target, room, user) {
-			if (this.isPm(room) || !Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id))) return;
+			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id)))) return;
 			const item = Dex.getExistingItem(Tools.sampleOne(Object.keys(Dex.data.items))).name;
 			if (this.pm) {
 				this.say('Randomly generated item: **' + item + '**');
@@ -1027,7 +1027,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	randomability: {
 		command(target, room, user) {
-			if (this.isPm(room) || !Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id))) return;
+			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id)))) return;
 			const abilities = Object.keys(Dex.data.abilities);
 			let ability = Dex.getExistingAbility(Tools.sampleOne(abilities));
 			while (ability.id === 'noability') {
@@ -1043,7 +1043,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	randomtype: {
 		command(target, room, user) {
-			if (this.isPm(room) || !Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id))) return;
+			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id)))) return;
 			const types = Object.keys(Dex.data.typeChart);
 			let type = Tools.sampleOne(types);
 			if (Tools.random(2)) {
@@ -1056,7 +1056,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	randomexistingtype: {
 		command(target, room, user) {
-			if (this.isPm(room) || !Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id))) return;
+			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id)))) return;
 			let type = '';
 			const pokedex = Tools.shuffle(Object.keys(Dex.data.pokedex));
 			for (let i = 0; i < pokedex.length; i++) {
@@ -1072,7 +1072,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	randomcharacter: {
 		command(target, room, user) {
-			if (this.isPm(room) || !Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id))) return;
+			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id)))) return;
 			this.say('Randomly generated character: **' + Tools.sampleOne(Dex.data.characters).trim() + '**');
 		},
 		aliases: ['rchar', 'rcharacter', 'randchar', 'randcharacters'],
