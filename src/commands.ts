@@ -997,7 +997,7 @@ const commands: Dict<ICommandDefinition> = {
 				}
 				return;
 			}
-			this.say("!poke " + target);
+			this.say("!randpoke " + target);
 		},
 		aliases: ['rpoke', 'rpokemon', 'randpoke'],
 	},
