@@ -18,7 +18,7 @@ class SudowoodosSpeciesScramble extends Guessing {
 		const pokemonList = Dex.getPokemonList(pokemon => !!pokemon.category);
 		for (let i = 0; i < pokemonList.length; i++) {
 			const pokemon = pokemonList[i];
-			if (!(pokemon.category in data)) {
+			if (!(pokemon.category in data.categories)) {
 				data.categories[pokemon.category] = [];
 				categoryKeys.push(pokemon.category);
 			}
