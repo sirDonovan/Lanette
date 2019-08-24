@@ -310,4 +310,22 @@ describe("Games", () => {
 		// assert.strictEqual(intersection.pokemon.join(","), "alakazam,cresselia,drowzee,gallade,hypno,kadabra,medicham,meditite,mewtwo");
 		// delete game.options.gen;
 	});
+
+	it('should pass individual tests', async function() {
+		this.timeout(60000);
+		const room = Rooms.add('mocha');
+		for (const i in Games.formats) {
+			const format = Games.getExistingFormat(i);
+			const game = Games.createGame(room, format);
+			if (game.timeout) clearTimeout(game.timeout);
+			if (format.tests) {
+				describe(format.name, () => {
+					after(() => {
+						game.deallocate();
+					});
+					format.tests!.call(this, game);
+				});
+			}
+		}
+	});
 });

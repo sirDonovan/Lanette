@@ -100,7 +100,7 @@ export class Game extends Activity {
 		if (format.mascot) {
 			this.mascot = Dex.getPokemonCopy(format.mascot);
 		} else if (format.mascots) {
-			this.mascot = Dex.getPokemonCopy(Tools.sampleOne(format.mascots));
+			this.mascot = Dex.getPokemonCopy(this.sampleOne(format.mascots));
 		}
 		if (format.variant) Object.assign(this, format.variant);
 		if (format.mode) format.mode.initialize(this);
@@ -371,11 +371,11 @@ export class Game extends Activity {
 	rollForShinyPokemon(extraChance?: number): boolean {
 		let chance = 150;
 		if (extraChance) chance -= extraChance;
-		return !Tools.random(chance);
+		return !this.random(chance);
 	}
 
 	shufflePlayers(players?: PlayerList): Player[] {
-		return Tools.shuffle(this.getPlayerList(players));
+		return this.shuffle(this.getPlayerList(players));
 	}
 
 	getPlayerLives(players?: PlayerList): string {
