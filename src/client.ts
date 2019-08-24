@@ -506,6 +506,12 @@ export class Client {
 			if (room.logChatMessages) {
 				Storage.logChatMessage(room, messageArguments.timestamp, 'c', messageArguments.rank + user.name + '|' + messageArguments.message);
 			}
+			if (messageArguments.message.startsWith('/log ') && messageArguments.message.includes(' used /hotpatch ')) {
+				const hotpatched = messageArguments.message.substr(messageArguments.message.indexOf('/hotpatch ') + 10).trim();
+				if (hotpatched === 'formats' || hotpatched === 'battles') {
+					Dex.updatePSLKG();
+				}
+			}
 			break;
 		}
 

@@ -1,14 +1,13 @@
+import child_process = require('child_process');
 import fs = require('fs');
 import path = require('path');
+import util = require('util');
 
 import { Room } from './rooms';
 import { IAbility, IAbilityComputed, IAbilityCopy, IDataTable, IFormat, IFormatComputed, IFormatData, IFormatLinks, IGifData, IItem, IItemComputed, IItemCopy, IMove, IMoveComputed, IMoveCopy, INature, IPokemon, IPokemonComputed, IPokemonCopy, IPokemonSources, ISeparatedCustomRules, PokemonSource } from './types/in-game-data-types';
+import { User } from './users';
 
-interface IDataSearchResult {
-	name: string;
-	searchType: string;
-	isInexact?: boolean;
-}
+const exec = util.promisify(child_process.exec);
 
 const currentGen = 7;
 const currentGenString = 'gen' + currentGen;
@@ -36,8 +35,6 @@ const dataFiles: Dict<string> = {
 	'Formats': 'rulesets',
 };
 const dataTypes = ['Pokedex', 'FormatsData', 'Learnsets', 'Movedex', 'Statuses', 'TypeChart', 'Scripts', 'Items', 'Abilities', 'Formats'];
-const dataSearchFunctions: Dict<string> = {pokedex: 'getPokemon', moves: 'getMove', abilities: 'getAbility', items: 'getItem', natures: 'getNature'};
-const dataSearchTypes: Dict<string> = {pokedex: 'pokemon', moves: 'move', abilities: 'ability', items: 'item', natures: 'nature'};
 
 const lanetteDataFiles: Dict<string> = {
 	'Badges': 'badges',
@@ -544,6 +541,13 @@ export class Dex {
 				await Tools.safeWriteFile(path.join(lanetteDataDir, files[i]), file);
 			}
 		}
+	}
+
+	async updatePSLKG(user?: User) {
+		await exec('node update-ps.js');
+
+		if (!user) user = Users.self;
+		CommandParser.parse(user, user, Config.commandCharacter + 'reload dex');
 	}
 
 	getAbility(name: string): IAbility | null {

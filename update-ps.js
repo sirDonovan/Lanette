@@ -20,7 +20,7 @@ async function revert(sha) {
 
 	console.log("Attempting to update Pokemon-Showdown files...");
 	process.chdir(PokemonShowdown);
-	const currentRevParse = await exec('git rev-parse master', {stdio: 'inherit'}).catch(e => console.log(e));
+	const currentRevParse = await exec('git rev-parse master').catch(e => console.log(e));
 	if (!currentRevParse || currentRevParse.Error) {
 		console.log("Error: could not retrieve current commit");
 		return;
@@ -35,7 +35,7 @@ async function revert(sha) {
 		console.log('Pokemon-Showdown is already up to date.');
 		return;
 	}
-	const newRevParse = await exec('git rev-parse master', {stdio: 'inherit'}).catch(e => console.log(e));
+	const newRevParse = await exec('git rev-parse master').catch(e => console.log(e));
 	if (!newRevParse || newRevParse.Error) {
 		console.log("Error: could not retrieve newest commit");
 		await revert(currentSHA);
@@ -47,7 +47,7 @@ async function revert(sha) {
 
 	console.log("Running tests to verify compatibility with Lanette...");
 	process.chdir(__dirname);
-	const npmTest = await exec('npm test', {stdio: 'inherit'}).catch(e => console.log(e));
+	const npmTest = await exec('npm test').catch(e => console.log(e));
 	if (!npmTest || npmTest.Error) {
 		await revert(currentSHA);
 		fs.writeFileSync(path.join(__dirname, "pokemon-showdown-lkg.txt"), currentSHA);

@@ -123,7 +123,7 @@ export class Command {
 			command = Tools.toId(newCommand);
 			if (!(command in Commands)) throw new Error(this.originalCommand + " ran non-existent command '" + newCommand + '"');
 		}
-		if (Commands[command].developerOnly && !this.user.isDeveloper()) return;
+		if (Commands[command].developerOnly && !this.user.isDeveloper() && this.user !== Users.self) return;
 		if (this.pm) {
 			if (Commands[command].chatOnly) return;
 		} else {
