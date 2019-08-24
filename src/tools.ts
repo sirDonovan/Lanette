@@ -371,19 +371,20 @@ export class Tools {
 		return challongeLink;
 	}
 
-	async safeWriteFile(filepath: string, data: string, callback?: () => void) {
+	safeWriteFile(filepath: string, data: string): Promise<void> {
 		const tempFilepath = filepath + '.temp';
-		// tslint:disable-next-line no-empty
-		await fs.writeFile(tempFilepath, data, () => {});
-		// tslint:disable-next-line no-empty
-		await fs.rename(tempFilepath, filepath, () => {});
-		if (callback) callback();
+		return new Promise(resolve => {
+			fs.writeFile(tempFilepath, data, () => {
+				fs.rename(tempFilepath, filepath, () => {
+					resolve();
+				});
+			});
+		});
 	}
 
-	safeWriteFileSync(filepath: string, data: string, callback?: () => void) {
+	safeWriteFileSync(filepath: string, data: string) {
 		const tempFilepath = filepath + '.temp';
 		fs.writeFileSync(tempFilepath, data);
 		fs.renameSync(tempFilepath, filepath);
-		if (callback) callback();
 	}
 }
