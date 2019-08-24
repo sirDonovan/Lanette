@@ -69,7 +69,7 @@ class InkaysCups extends Game {
 	}
 
 	async generateCups() {
-		const roundParamTypes = this.sampleMany(paramTypes, 2).sort();
+		const roundParamTypes = this.sampleMany(paramTypes, 2);
 		const lower = this.getRemainingPlayerCount();
 		const upper = lower * 3;
 		let attempts = 0;

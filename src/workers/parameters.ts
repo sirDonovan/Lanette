@@ -22,33 +22,33 @@ export interface IParamType {
 export type ParamType = keyof IParamType;
 
 export interface IParametersGenData {
-	evolutionLines: string[];
-	formes: Dict<string>;
-	paramTypePools: KeyedDict<IParamType, Dict<IParam>>;
-	paramTypeDexes: KeyedDict<IParamType, Dict<string[]>>;
-	otherFormes: Dict<string>;
+	readonly evolutionLines: string[];
+	readonly formes: Dict<string>;
+	readonly paramTypePools: KeyedDict<IParamType, Dict<IParam>>;
+	readonly paramTypeDexes: KeyedDict<IParamType, Dict<string[]>>;
+	readonly otherFormes: Dict<string>;
 }
 
 export interface IParametersWorkerData {
-	pokemon: {gens: Dict<IParametersGenData>};
+	readonly pokemon: {gens: Dict<IParametersGenData>};
 }
 
 export interface IParameterSearchOptions {
-	mod: string;
-	numberOfParams: number;
-	minimumResults: number;
-	maximumResults: number;
-	paramTypes: ParamType[];
-	prngSeed: PRNGSeed;
-	searchType: keyof typeof data;
-	customParamTypes?: ParamType[] | null;
-	filter?: string[];
+	readonly mod: string;
+	readonly numberOfParams: number;
+	readonly minimumResults: number;
+	readonly maximumResults: number;
+	readonly paramTypes: ParamType[];
+	readonly prngSeed: PRNGSeed;
+	readonly searchType: keyof typeof data;
+	readonly customParamTypes?: ParamType[] | null;
+	readonly filter?: string[];
 }
 
 export interface IParameterIntersectOptions {
-	mod: string;
-	paramTypes: ParamType[];
-	searchType: keyof typeof data;
+	readonly mod: string;
+	readonly paramTypes: ParamType[];
+	readonly searchType: keyof typeof data;
 }
 
 export interface IParameterSearchResult {
