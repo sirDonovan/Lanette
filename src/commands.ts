@@ -45,6 +45,13 @@ const commands: Dict<ICommandDefinition> = {
 		},
 		developerOnly: true,
 	},
+	updateps: {
+		command(target, room, user) {
+			this.say("Running ``update-ps``...");
+			Dex.updatePSLKG(user);
+		},
+		developerOnly: true,
+	},
 	reload: {
 		command(target, room, user) {
 			if (!target) return;
@@ -76,7 +83,7 @@ const commands: Dict<ICommandDefinition> = {
 				if (hasModules[i]) modules.push(moduleOrder[i]);
 			}
 
-			this.say("Running tsc...");
+			this.say("Running ``tsc``...");
 			require(path.join(Tools.rootFolder, 'build.js'))(() => {
 				for (let i = 0; i < modules.length; i++) {
 					if (modules[i] === 'client') {
