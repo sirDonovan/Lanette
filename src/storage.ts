@@ -22,11 +22,24 @@ export class Storage {
 	lastSeenExpirationDuration = Tools.toDurationString(LAST_SEEN_EXPIRATION);
 	loadedDatabases: boolean = false;
 
+	globalDatabaseExportInterval: NodeJS.Timer;
+
+	constructor() {
+		this.globalDatabaseExportInterval = this.setGlobalDatabaseExportInterval();
+	}
+
 	onReload(previous: Partial<Storage>) {
 		if (previous.chatLogFilePathCache) this.chatLogFilePathCache = previous.chatLogFilePathCache;
 		if (previous.chatLogRolloverTimes) this.chatLogRolloverTimes = previous.chatLogRolloverTimes;
 		if (previous.databases) this.databases = previous.databases;
 		if (previous.loadedDatabases) this.loadedDatabases = previous.loadedDatabases;
+
+		if (previous.globalDatabaseExportInterval) clearInterval(previous.globalDatabaseExportInterval);
+		this.globalDatabaseExportInterval = this.setGlobalDatabaseExportInterval();
+	}
+
+	setGlobalDatabaseExportInterval(): NodeJS.Timer {
+		return setInterval(() => this.exportDatabase(globalDatabaseId), 15 * 60 * 1000);
 	}
 
 	getDatabase(room: Room): IDatabase {

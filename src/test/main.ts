@@ -36,6 +36,7 @@ Object.assign(fs, {createWriteStream() {
 
 // tslint:disable-next-line no-var-requires
 require(path.join(rootFolder, 'built', 'app.js'));
+clearInterval(Storage.globalDatabaseExportInterval);
 
 // tslint:disable-next-line no-var-requires
 require(path.join(__dirname, 'pokemon-showdown'));
