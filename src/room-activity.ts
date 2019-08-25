@@ -145,8 +145,8 @@ export abstract class Activity {
 		this.room.say(message);
 	}
 
-	sayCommand(command: string) {
-		this.room.sayCommand(command);
+	sayCommand(command: string, dontCheckFilter?: boolean) {
+		this.room.sayCommand(command, dontCheckFilter);
 	}
 
 	sayHtml(html: string) {

@@ -68,14 +68,14 @@ export class Room {
 		this.title = response.title;
 	}
 
-	say(message: string, dontPrepare?: boolean) {
+	say(message: string, dontPrepare?: boolean, dontCheckFilter?: boolean) {
 		if (!dontPrepare) message = Tools.prepareMessage(message);
-		if (Client.willBeFiltered(message, this)) return;
+		if (!dontCheckFilter && Client.willBeFiltered(message, this)) return;
 		Client.send(this.sendId + "|" + message);
 	}
 
-	sayCommand(command: string) {
-		this.say(command, true);
+	sayCommand(command: string, dontCheckFilter?: boolean) {
+		this.say(command, true, dontCheckFilter);
 	}
 
 	sayHtml(html: string) {

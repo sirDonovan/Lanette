@@ -46,7 +46,7 @@ export class UserHosted extends Game {
 
 	onSignups() {
 		this.notifyRankSignups = true;
-		this.sayCommand("/notifyrank all, " + this.room.title + " user-hosted game," + this.name + "," + this.hostName + " is hosting a hostgame of " + this.name);
+		this.sayCommand("/notifyrank all, " + this.room.title + " user-hosted game," + this.name + "," + this.hostName + " is hosting a hostgame of " + this.name, true);
 		const firstWarning = 5 * 60 * 1000;
 		const secondWarning = 30 * 1000;
 		this.hostTimeout = setTimeout(() => {
