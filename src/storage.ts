@@ -252,7 +252,7 @@ export class Storage {
 			const senderId = Tools.toId(sender);
 			let queuedMessages = 0;
 			for (let i = 0; i < database.offlineMessages[recipientId].length; i++) {
-				if (Tools.toId(database.offlineMessages[recipientId][i].sender) === senderId) queuedMessages++;
+				if (!database.offlineMessages[recipientId][i].readTime && Tools.toId(database.offlineMessages[recipientId][i].sender) === senderId) queuedMessages++;
 			}
 			if (queuedMessages > MAX_QUEUED_OFFLINE_MESSAGES) return false;
 		} else {
