@@ -20,14 +20,19 @@ interface IMovePairData {
 
 const name = "Pancham's Pairs";
 
-const data: {pokemon: Dict<IPokemonPairData>, moves: Dict<IMovePairData>} = {
-	pokemon: {},
+const data: {moves: Dict<IMovePairData>, pokemon: Dict<IPokemonPairData>} = {
 	moves: {},
+	pokemon: {},
 };
-const pokedex: string[] = [];
-const moves: string[] = [];
-const pokemonCategories: (keyof IPokemonPairData)[] = ['type', 'color', 'ability', 'generation'];
-const moveCategories: (keyof IMovePairData)[] = ['type', 'pp', 'bp', 'generation'];
+const dataKeys: {'Pokemon': string[], moves: string[]} = {
+	'moves': [],
+	'Pokemon': [],
+};
+const categories: {'Pokemon': (keyof IPokemonPairData)[], moves: (keyof IMovePairData)[]} = {
+	'moves': ['type', 'pp', 'bp', 'generation'],
+	'Pokemon': ['type', 'color', 'ability', 'generation'],
+};
+type dataTypes = keyof typeof categories;
 
 let loadedData = false;
 
@@ -39,7 +44,7 @@ class PanchamPairs extends Game {
 		const pokemonList = Dex.getPokemonList();
 		for (let i = 0; i < pokemonList.length; i++) {
 			const pokemon = pokemonList[i];
-			pokedex.push(pokemon.species);
+			dataKeys['Pokemon'].push(pokemon.species);
 			const abilities: string[] = [];
 			for (const i in pokemon.abilities) {
 				// @ts-ignore
@@ -56,7 +61,7 @@ class PanchamPairs extends Game {
 		const movesList = Dex.getMovesList(x => !!x.basePower);
 		for (let i = 0; i < movesList.length; i++) {
 			const move = movesList[i];
-			moves.push(move.name);
+			dataKeys.moves.push(move.name);
 			data.moves[move.name] = {
 				"type": [move.type],
 				"pp": [move.pp],
@@ -69,6 +74,7 @@ class PanchamPairs extends Game {
 	}
 
 	canPair: boolean = false;
+	dataType: dataTypes = 'Pokemon';
 	currentList: string[] = [];
 	currentListString: string = '';
 	paired = new Set<Player>();
@@ -93,7 +99,7 @@ class PanchamPairs extends Game {
 			}
 		}
 		this.say("These players still haven't paired! " + players.join(", "));
-		this.currentListString = "**Current " + (this.variant || "Pokémon") + "**: " + this.currentList.join(", ");
+		this.currentListString = "**Current " + this.dataType + "**: " + this.currentList.join(", ");
 		this.on(this.currentListString, () => {
 			this.timeout = setTimeout(() => this.listPossiblePairs(), 15 * 1000);
 		});
@@ -108,7 +114,7 @@ class PanchamPairs extends Game {
 				const player = this.players[id];
 				if (player.eliminated) continue;
 				if (!this.paired.has(player)) {
-					player.say("You didn't pair any " + (this.variant === 'Moves' ? "moves" : "Pokémon") + " and have been eliminated!");
+					player.say("You didn't pair any " + this.dataType + " and have been eliminated!");
 					player.eliminated = true;
 					eliminated.push(player);
 				}
@@ -132,7 +138,7 @@ class PanchamPairs extends Game {
 		this.paired.clear();
 		this.currentList = [];
 		const newList: string[] = [];
-		const pool = this.variant === 'Moves' ? moves : pokedex;
+		const pool = dataKeys[this.dataType];
 		let shuffled: string[] = [];
 		while (!newList.length) {
 			shuffled = this.shuffle(pool);
@@ -171,7 +177,7 @@ class PanchamPairs extends Game {
 		let nameA = '';
 		let nameB = '';
 		let usedData: Dict<IMovePairData> | Dict<IPokemonPairData>;
-		if (this.variant === 'Moves') {
+		if (this.dataType === 'moves') {
 			usedData = data.moves;
 			const moveA = Dex.getMove(inputA);
 			const moveB = Dex.getMove(inputB);
@@ -185,9 +191,8 @@ class PanchamPairs extends Game {
 			if (pokemonB) nameB = pokemonB.species;
 		}
 		if (!nameA || !nameB || (inCurrent && (!this.currentList.includes(nameA) || !this.currentList.includes(nameB)))) return false;
-		const categories = this.variant === 'Moves' ? moveCategories : pokemonCategories;
 		// @ts-ignore
-		if (categories.indexOf(paramName) === -1) return false;
+		if (categories[this.dataType].indexOf(paramName) === -1) return false;
 		// @ts-ignore
 		for (let i = 0; i < usedData[nameA][paramName].length; i++) {
 			// @ts-ignore
@@ -199,9 +204,8 @@ class PanchamPairs extends Game {
 	}
 
 	isPair(inputA: string, inputB: string) {
-		const categories = this.variant === 'Moves' ? moveCategories : pokemonCategories;
-		for (let i = 0, len = categories.length; i < len; i++) {
-			if (this.isParamPair(inputA, inputB, categories[i], false)) return true;
+		for (let i = 0, len = categories[this.dataType].length; i < len; i++) {
+			if (this.isParamPair(inputA, inputB, categories[this.dataType][i], false)) return true;
 		}
 		return false;
 	}
@@ -261,6 +265,7 @@ export const game: IGameFile<PanchamPairs> = {
 	variants: [
 		{
 			name: "Pancham's Move Pairs",
+			dataType: 'moves',
 			description: "Players try to pair the given moves according to <code>/movesearch</code> parameters! Valid parameter types include type, base power, PP, and generation.",
 			variant: "Moves",
 			variantAliases: ['move', 'Pokemon Moves'],

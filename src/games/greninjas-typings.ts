@@ -31,24 +31,24 @@ class GreninjasTypings extends Guessing {
 	defaultOptions: DefaultGameOption[] = ['points'];
 	lastPokemon: string = '';
 	lastTyping: string = '';
+	noOrder: boolean = false;
 
 	onSignups() {
 		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
 	}
 
 	setAnswers() {
-		const noOrder = this.variant === 'noorder';
 		let pokemon = this.sampleOne(data.pokedex);
 		let typing = data.types[pokemon];
 		let reverseTyping = data.reverseTypes[pokemon];
-		while (!typing.includes('/') || typing === this.lastTyping || (noOrder && reverseTyping === this.lastTyping)) {
+		while (!typing.includes('/') || typing === this.lastTyping || (this.noOrder && reverseTyping === this.lastTyping)) {
 			pokemon = this.sampleOne(data.pokedex);
 			typing = data.types[pokemon];
 			reverseTyping = data.reverseTypes[pokemon];
 		}
 		const answers: string[] = [];
 		for (let i = 0; i < data.pokedex.length; i++) {
-			if (typing === data.types[data.pokedex[i]] || (noOrder && typing === data.reverseTypes[data.pokedex[i]])) {
+			if (typing === data.types[data.pokedex[i]] || (this.noOrder && typing === data.reverseTypes[data.pokedex[i]])) {
 				answers.push(data.species[data.pokedex[i]]);
 			}
 		}
@@ -74,6 +74,7 @@ export const game: IGameFile<GreninjasTypings> = {
 		{
 			name: "Greninja's No Order Typings",
 			description: "Players guess Pokemon that match the given typing (order not important)!",
+			noOrder: true,
 			variant: "noorder",
 		},
 	],

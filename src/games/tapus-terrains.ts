@@ -55,6 +55,7 @@ class TapusTerrains extends Game {
 	canLateJoin: boolean = true;
 	currentTerrain: TerrainKey | null = null;
 	firstJump: Player | null = null;
+	isElimination: boolean = false;
 	queue: Player[] = [];
 	revealTime: number = 3.5 * 1000;
 	roundJumps = new Map<Player, boolean>();
@@ -77,7 +78,7 @@ class TapusTerrains extends Game {
 			} else {
 				this.currentTerrain = null;
 				const len = this.queue.length;
-				if (len > 1 && (this.variant === "elimination" || (this.parentGame && this.parentGame.id === 'battlefrontier'))) this.players[this.queue[len - 1].id].eliminated = true;
+				if (len > 1 && (this.isElimination || (this.parentGame && this.parentGame.id === 'battlefrontier'))) this.players[this.queue[len - 1].id].eliminated = true;
 				for (const i in this.players) {
 					const player = this.players[i];
 					if (player.eliminated) continue;
@@ -187,6 +188,7 @@ export const game: IGameFile<TapusTerrains> = {
 	variants: [
 		{
 			name: "Tapus' Terrains Elimination",
+			isElimination: true,
 			variant: "elimination",
 		},
 	],

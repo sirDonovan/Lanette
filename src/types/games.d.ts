@@ -38,7 +38,7 @@ export interface IGameFile<T extends Game = Game> {
 	readonly modes?: string[];
 	readonly scriptedOnly?: boolean;
 	readonly tests?: (this: Mocha.Context, game: T) => void;
-	readonly variants?: IGameVariant[];
+	readonly variants?: (Partial<T> & IGameVariant)[];
 	readonly worker?: IGameWorker;
 }
 
