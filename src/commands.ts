@@ -556,10 +556,10 @@ const commands: Dict<ICommandDefinition> = {
 			}
 			const id = Tools.toId(target);
 			if (id === 'off' || id === 'end') {
-				if (!room.timer) return this.say("There is no timer running.");
-				clearTimeout(room.timer);
-				room.timer = null;
-				return this.say("The timer has been turned off.");
+				if (!room.timers || !(user.id in room.timers)) return this.say("You don't have a timer running.");
+				clearTimeout(room.timers[user.id]);
+				delete room.timers[user.id];
+				return this.say("Your timer has been turned off.");
 			}
 			let time: number;
 			if (id.length === 1) {
@@ -569,11 +569,12 @@ const commands: Dict<ICommandDefinition> = {
 			}
 			if (isNaN(time) || time > 1800 || time < 5) return this.say("Please enter an amount of time between 5 seconds and 30 minutes.");
 			time *= 1000;
-			room.timer = setTimeout(() => {
+			if (!room.timers) room.timers = {};
+			room.timers[user.id] = setTimeout(() => {
 				room.say(user.name + ": time's up!");
-				room.timer = null;
+				delete room.timers![user.id];
 			}, time);
-			this.say("Timer set for: " + Tools.toDurationString(time) + ".");
+			this.say("Your timer has been set for: " + Tools.toDurationString(time) + ".");
 		},
 	},
 	gametimer: {

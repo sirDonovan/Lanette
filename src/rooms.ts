@@ -18,7 +18,7 @@ export class Room {
 	readonly messageListeners: Dict<() => void> = {};
 	modchat: string = 'off';
 	newUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
-	timer: NodeJS.Timer | null = null;
+	timers: Dict<NodeJS.Timer> | null = null;
 	tournament: Tournament | null = null;
 	readonly uhtmlMessageListeners: Dict<Dict<() => void>> = {};
 	userHostedGame: UserHosted | null = null;
