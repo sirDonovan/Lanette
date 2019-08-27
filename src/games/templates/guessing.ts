@@ -6,6 +6,7 @@ export abstract class Guessing extends Game {
 	answers: string[] = [];
 	canGuess: boolean = false;
 	hint: string = '';
+	htmlHint: boolean | null = null;
 	readonly points: Map<Player, number> = new Map();
 	roundTime: number = 10 * 1000;
 
@@ -24,8 +25,8 @@ export abstract class Guessing extends Game {
 
 	async onNextRound() {
 		this.canGuess = false;
-		this.on(this.hint, () => {
 		await this.setAnswers();
+		const onHint = () => {
 			this.canGuess = true;
 			this.timeout = setTimeout(() => {
 				if (this.answers.length) {
@@ -38,8 +39,16 @@ export abstract class Guessing extends Game {
 				}
 				this.nextRound();
 			}, this.roundTime);
-		});
-		this.say(this.hint);
+		};
+
+		if (this.htmlHint) {
+			const uhtmlName = this.uhtmlBaseName + '-hint';
+			this.onUhtml(uhtmlName, this.hint, onHint);
+			this.sayUhtml(uhtmlName, this.hint);
+		} else {
+			this.on(this.hint, onHint);
+			this.say(this.hint);
+		}
 	}
 
 	async checkAnswer(guess: string): Promise<string> {

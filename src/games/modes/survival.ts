@@ -69,7 +69,7 @@ class Survival {
 		this.on(text, () => {
 			this.currentPlayer = currentPlayer!;
 			this.timeout = setTimeout(() => {
-				this.on(this.hint, () => {
+				const onHint = () => {
 					this.canGuess = true;
 					this.timeout = setTimeout(() => {
 						if (this.currentPlayer) {
@@ -80,8 +80,15 @@ class Survival {
 						}
 						this.nextRound();
 					}, this.roundTime);
-				});
-				this.say(this.hint);
+				};
+				if (this.htmlHint) {
+					const uhtmlName = this.uhtmlBaseName + '-hint';
+					this.onUhtml(uhtmlName, this.hint, onHint);
+					this.sayUhtml(uhtmlName, this.hint);
+				} else {
+					this.on(this.hint, onHint);
+					this.say(this.hint);
+				}
 			}, 5 * 1000);
 		});
 		this.say(text);

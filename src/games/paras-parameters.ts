@@ -26,6 +26,7 @@ export class ParasParameters extends Guessing {
 	};
 	customParamTypes: ParametersWorker.ParamType[] | null = null;
 	defaultOptions: DefaultGameOption[] = ['points'];
+	htmlHint = true;
 	minimumResults: number = 3;
 	maximumResults: number = 50;
 	params: ParametersWorker.IParam[] = [];
@@ -75,32 +76,9 @@ export class ParasParameters extends Guessing {
 			this.answers = [this.getParamNames(result.params)];
 			this.params = result.params;
 			this.pokemon = result.pokemon;
+			this.hint = this.getParamsHtml(this.params, this.pokemon);
 			this.prng = new PRNG(result.prngSeed);
 		}
-	}
-
-	async onNextRound() {
-		this.canGuess = false;
-		await this.setAnswers();
-		if (this.ended) return;
-
-		const uhtmlName = this.uhtmlBaseName + '-parameters';
-		const html = this.getParamsHtml(this.params, this.pokemon);
-		this.onUhtml(uhtmlName, html, () => {
-			this.canGuess = true;
-			this.timeout = setTimeout(() => {
-				if (this.answers.length) {
-					this.say("Time's up! " + this.getAnswers(''));
-					this.answers = [];
-					if (this.isMiniGame) {
-						this.end();
-						return;
-					}
-				}
-				this.nextRound();
-			}, this.roundTime);
-		});
-		this.sayUhtml(uhtmlName, html);
 	}
 
 	getParamsHtml(params: ParametersWorker.IParam[], pokemon: string[]) {
