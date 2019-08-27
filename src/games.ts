@@ -268,6 +268,10 @@ export class Games {
 				if (matchingVariant) {
 					if (variant) return ['tooManyGameVariants'];
 					variant = matchingVariant;
+					if (variant.mode) {
+						if (mode) return ['tooManyGameModes'];
+						mode = this.modes[Tools.toId(variant.mode)];
+					}
 					continue;
 				}
 			}

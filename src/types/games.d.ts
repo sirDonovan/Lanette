@@ -48,6 +48,7 @@ export interface IGameVariant {
 
 	readonly commandDescriptions?: string[];
 	readonly description?: string;
+	readonly mode?: string;
 	variantAliases?: string[];
 }
 

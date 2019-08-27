@@ -100,6 +100,7 @@ describe("Games", () => {
 
 			if (format.variants) {
 				for (let i = 0; i < format.variants.length; i++) {
+					if (format.variants[i].mode) assert(Tools.toId(format.variants[i].mode) in modes, "Variant " + format.variants[i].name + "'s mode '" + format.variants[i].mode + "' does not exist");
 					const id = Tools.toId(format.variants[i].name);
 					assert(!(id in formats), "Variant " + format.variants[i].name + " is the name of another game");
 					assert(!(id in modes), "Variant " + format.variants[i].name + " is the name of a game mode");
@@ -205,6 +206,23 @@ describe("Games", () => {
 				assert(variantsFormat[0] === 'tooManyGameVariants');
 				assert(variantsFormat[1] === undefined);
 				break;
+			}
+		}
+
+		for (let i = 0; i < formats.length; i++) {
+			const formatData = Games.formats[formats[i]];
+			if (formatData.modes && formatData.variants) {
+				let hasVariantMode = false;
+				for (let i = 0; i < formatData.variants.length; i++) {
+					if (formatData.variants[i].mode) {
+						const variantsModeFormat = Games.getFormat(formatData.id + "," + formatData.variants[i].variant + "," + formatData.variants[i].mode) as CommandErrorArray;
+						assert(Array.isArray(variantsModeFormat));
+						assert(variantsModeFormat[0] === 'tooManyGameModes');
+						assert(variantsModeFormat[1] === undefined);
+						hasVariantMode = true;
+					}
+				}
+				if (hasVariantMode) break;
 			}
 		}
 
