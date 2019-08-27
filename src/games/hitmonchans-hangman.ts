@@ -42,7 +42,7 @@ class HitmonchansHangman extends Guessing {
 	set: number = 0;
 	solvedLetters: string[] = [];
 
-	setAnswers() {
+	async setAnswers() {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		this.currentCategory = category;
 		let answer = this.sampleOne(data[category]);
@@ -63,11 +63,11 @@ class HitmonchansHangman extends Guessing {
 		}
 	}
 
-	onNextRound() {
+	async onNextRound() {
 		if (this.timeout) this.timeout = null;
 		if (!this.answers.length) {
-			this.setAnswers();
 			this.canGuess = false;
+			await this.setAnswers();
 		}
 		this.roundGuesses.clear();
 		let ended = false;

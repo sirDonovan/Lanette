@@ -34,7 +34,7 @@ class AbrasAbilitySwitch extends Guessing {
 	lastAbility: string = '';
 	lastPokemon: string = '';
 
-	setAnswers() {
+	async setAnswers() {
 		let pokemon = this.sampleOne(data.pokedex);
 		while (pokemon === this.lastPokemon) {
 			pokemon = this.sampleOne(data.pokedex);

@@ -72,7 +72,7 @@ class BeheeyemsMassEffect extends Guessing {
 		}
 	}
 
-	setAnswers() {
+	async setAnswers() {
 		let effectiveness = this.sampleOne(effectivenessListsKeys);
 		while (effectiveness === this.lastEffectiveness) {
 			effectiveness = this.sampleOne(effectivenessListsKeys);

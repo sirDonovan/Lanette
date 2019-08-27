@@ -43,7 +43,7 @@ class Survival {
 		this.nextRound();
 	}
 
-	onNextRound(this: SurvivalThis) {
+	async onNextRound(this: SurvivalThis) {
 		this.canGuess = false;
 		if (this.currentPlayer) this.currentPlayer.eliminated = true;
 		if (!this.playerList.length) {
@@ -64,7 +64,7 @@ class Survival {
 			this.onNextRound();
 			return;
 		}
-		this.setAnswers();
+		await this.setAnswers();
 		const text = "**" + currentPlayer.name + "** you're up!";
 		this.on(text, () => {
 			this.currentPlayer = currentPlayer!;

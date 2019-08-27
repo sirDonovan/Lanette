@@ -36,7 +36,7 @@ class AmbipomsTossups extends Guessing {
 	revealedLetters: number = 0;
 	readonly roundGuesses = new Map<Player, boolean>();
 
-	setAnswers() {
+	async setAnswers() {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		let answer = this.sampleOne(data[category]);
 		while (answer === this.lastAnswer) {
@@ -56,10 +56,10 @@ class AmbipomsTossups extends Guessing {
 		this.say("The category is **" + category + "**");
 	}
 
-	onNextRound() {
+	async onNextRound() {
 		if (!this.answers.length) {
 			this.canGuess = false;
-			this.setAnswers();
+			await this.setAnswers();
 		}
 		if (this.round > 1) {
 			let index = this.random(this.hints.length);

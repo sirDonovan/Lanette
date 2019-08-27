@@ -37,7 +37,7 @@ class GreninjasTypings extends Guessing {
 		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
 	}
 
-	setAnswers() {
+	async setAnswers() {
 		let pokemon = this.sampleOne(data.pokedex);
 		let typing = data.types[pokemon];
 		let reverseTyping = data.reverseTypes[pokemon];

@@ -59,7 +59,7 @@ class FeraligatrsLostLetters extends Guessing {
 		return newLetters.join('');
 	}
 
-	setAnswers() {
+	async setAnswers() {
 		const isInverse = this.variant === 'inverse';
 		let category: DataKey;
 		if (this.roundCategory) {

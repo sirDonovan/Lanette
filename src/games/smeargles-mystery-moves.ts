@@ -37,7 +37,7 @@ class SmearglesMysteryMoves extends Guessing {
 		}
 	}
 
-	setAnswers() {
+	async setAnswers() {
 		this.hintsIndex = 0;
 		let name = this.sampleOne(data.moves);
 		while (this.lastMove === name) {
@@ -56,10 +56,10 @@ class SmearglesMysteryMoves extends Guessing {
 		this.answers = [move.name];
 	}
 
-	onNextRound() {
+	async onNextRound() {
 		if (!this.answers.length) {
 			this.canGuess = false;
-			this.setAnswers();
+			await this.setAnswers();
 		}
 		if (!this.hints[this.hintsIndex]) {
 			const text = "All hints have been revealed! " + this.getAnswers('');

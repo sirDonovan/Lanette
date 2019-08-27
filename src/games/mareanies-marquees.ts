@@ -36,7 +36,7 @@ class MareaniesMarquee extends Guessing {
 	lettersToReveal: number = 4;
 	currentCategory: string = '';
 
-	setAnswers() {
+	async setAnswers() {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		this.currentCategory = category;
 		let answer = '';
@@ -107,9 +107,9 @@ class MareaniesMarquee extends Guessing {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onNextRound() {
+	async onNextRound() {
 		this.canGuess = false;
-		this.setAnswers();
+		await this.setAnswers();
 		this.sayHint();
 	}
 }

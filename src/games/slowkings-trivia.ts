@@ -59,7 +59,7 @@ class SlowkingsTrivia extends Guessing {
 
 	defaultOptions: DefaultGameOption[] = ['points'];
 
-	setAnswers() {
+	async setAnswers() {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		const question = this.sampleOne(categoryKeys[category]);
 		this.answers = data[category][question];

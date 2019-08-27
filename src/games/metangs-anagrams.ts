@@ -32,7 +32,7 @@ class MetangsAnagrams extends Guessing {
 	defaultOptions: DefaultGameOption[] = ['points'];
 	lastAnswer: string = '';
 
-	setAnswers() {
+	async setAnswers() {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		let answer = this.sampleOne(data[category]);
 		while (answer === this.lastAnswer) {

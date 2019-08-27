@@ -12,7 +12,7 @@ export abstract class Guessing extends Game {
 	roundCategory?: string;
 	readonly roundGuesses?: Map<Player, boolean>;
 
-	abstract setAnswers(): void;
+	abstract async setAnswers(): Promise<void>;
 
 	onSignups() {
 		if (this.isMiniGame) {
@@ -22,10 +22,10 @@ export abstract class Guessing extends Game {
 		}
 	}
 
-	onNextRound() {
+	async onNextRound() {
 		this.canGuess = false;
-		this.setAnswers();
 		this.on(this.hint, () => {
+		await this.setAnswers();
 			this.canGuess = true;
 			this.timeout = setTimeout(() => {
 				if (this.answers.length) {

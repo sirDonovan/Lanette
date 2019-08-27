@@ -36,7 +36,7 @@ class MagnetonsMashups extends Guessing {
 		return Promise.resolve(match);
 	}
 
-	setAnswers() {
+	async setAnswers() {
 		const pokemon = this.sampleMany(data['Pokemon'], 2);
 		let indexA = 0;
 		let indexB = 0;
@@ -70,7 +70,7 @@ class MagnetonsMashups extends Guessing {
 		}
 		mashup = Tools.toId(mashup);
 		if (Client.willBeFiltered(mashup, !this.isPm(this.room) ? this.room : undefined)) {
-			this.setAnswers();
+			await this.setAnswers();
 			return;
 		}
 		this.answers = [pokemon[0] + ' & ' + pokemon[1]];

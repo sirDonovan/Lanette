@@ -61,7 +61,7 @@ class LugiasObstructiveLetters extends Guessing {
 		this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
 	}
 
-	setAnswers() {
+	async setAnswers() {
 		let answers: string[] = [];
 		let category: DataKey;
 		let unavailableLetters: string[] = [];
