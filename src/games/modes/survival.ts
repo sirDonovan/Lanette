@@ -22,10 +22,13 @@ class Survival {
 	constructor(game: Game) {
 		if (game.id === 'abrasabilityswitch') {
 			this.roundTime = 7 * 1000;
+		} else if (game.id === 'parasparameters') {
+			this.roundTime = 15 * 1000;
+			delete game.customizableOptions.params;
 		} else {
 			this.roundTime = 9 * 1000;
 		}
-		game.nameSuffixes.unshift(name);
+		if (!game.name.includes(name)) game.nameSuffixes.unshift(name);
 		this.description = game.description + ' ' + description;
 
 		if (game.defaultOptions) {
@@ -54,7 +57,7 @@ class Survival {
 			this.survivalRound++;
 			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(this.getPlayerNames, null, "Round " + this.survivalRound));
 			this.playerList = this.shufflePlayers();
-			if (this.roundTime > 1000) this.roundTime -= 500;
+			if (this.survivalRound > 1 && this.roundTime > 1000) this.roundTime -= 500;
 		}
 		let currentPlayer = this.playerList.shift();
 		while (currentPlayer && currentPlayer.eliminated) {

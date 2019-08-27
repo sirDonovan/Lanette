@@ -6,7 +6,6 @@ import * as ParametersWorker from './../workers/parameters';
 import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
 
 const name = "Paras' Parameters";
-const paramTypes: ParametersWorker.ParamType[] = ['move', 'tier', 'color', 'type', 'resistance', 'weakness', 'egggroup', 'ability', 'gen'];
 let loadedData = false;
 
 export class ParasParameters extends Guessing {
@@ -30,6 +29,7 @@ export class ParasParameters extends Guessing {
 	minimumResults: number = 3;
 	maximumResults: number = 50;
 	params: ParametersWorker.IParam[] = [];
+	paramTypes: ParametersWorker.ParamType[] = ['move', 'tier', 'color', 'type', 'resistance', 'weakness', 'egggroup', 'ability', 'gen'];
 	pokemon: string[] = [];
 	roundTime: number = 5 * 60 * 1000;
 
@@ -54,7 +54,15 @@ export class ParasParameters extends Guessing {
 	}
 
 	async setAnswers() {
-		const numberOfParams = this.customParamTypes ? this.customParamTypes.length : this.inputOptions.params ? this.options.params : this.baseNumberOfParams + this.random(3);
+		let numberOfParams: number;
+		if (this.customParamTypes) {
+			numberOfParams = this.customParamTypes.length;
+		} else if (this.inputOptions.params) {
+			numberOfParams = this.options.params;
+		} else {
+			numberOfParams = this.baseNumberOfParams;
+			if (this.customizableOptions.params) numberOfParams += this.random(3);
+		}
 		this.currentNumberOfParams = numberOfParams;
 		const result = await ParametersWorker.search({
 			customParamTypes: this.customParamTypes,
@@ -62,7 +70,7 @@ export class ParasParameters extends Guessing {
 			maximumResults: this.maximumResults,
 			mod: Dex.currentGenString,
 			numberOfParams,
-			paramTypes,
+			paramTypes: this.paramTypes,
 			prngSeed: this.prng.seed.slice() as PRNGSeed,
 			searchType: 'pokemon',
 		});
@@ -101,7 +109,7 @@ export class ParasParameters extends Guessing {
 	async intersect(params: string[]): Promise<ParametersWorker.IParameterIntersectResult> {
 		return ParametersWorker.intersect({
 			mod: Dex.currentGenString,
-			paramTypes,
+			paramTypes: this.paramTypes,
 			searchType: 'pokemon',
 		}, params);
 	}
@@ -130,5 +138,13 @@ export const game: IGameFile<ParasParameters> = {
 	minigameCommand: 'parameter',
 	minigameCommandAliases: ['param'],
 	minigameDescription: "Use ``/ds`` to verify and then ``" + Config.commandCharacter + "g`` to guess ``/ds`` parameters that give the following Pokemon!",
+	variants: [
+		{
+			name: "Paras' Parameters Survival",
+			paramTypes: ['tier', 'color', 'type', 'resistance', 'weakness', 'egggroup', 'ability', 'gen'],
+			mode: 'survival',
+			variant: "survival",
+		},
+	],
 	worker: ParametersWorker,
 };
