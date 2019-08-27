@@ -141,7 +141,7 @@ export const game: IGameFile<ParasParameters> = {
 	variants: [
 		{
 			name: "Paras' Parameters Survival",
-			paramTypes: ['tier', 'color', 'type', 'resistance', 'weakness', 'egggroup', 'ability', 'gen'],
+			paramTypes: ['tier', 'color', 'type', 'egggroup', 'ability', 'gen'],
 			mode: 'survival',
 			variant: "survival",
 		},
