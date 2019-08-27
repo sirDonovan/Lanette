@@ -40,19 +40,20 @@ class MareaniesMarquee extends Guessing {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		this.currentCategory = category;
 		let answer = '';
+		let letters: string[] = [];
 		let willBeFiltered = false;
 		while (!answer || answer === this.lastAnswer || willBeFiltered) {
 			answer = this.sampleOne(data[category]);
-			for (let i = 0; i < answer.length; i++) {
-				let part = answer.substr(i, this.lettersToReveal);
-				if (part.length < this.lettersToReveal) part += answer.substr(0, this.lettersToReveal - part.length);
-				if (Client.willBeFiltered(part, !this.isPm(this.room) ? this.room : undefined)) {
+			letters = answer.replace(" ", "").split("");
+			for (let i = 0; i < letters.length; i++) {
+				let part = letters.slice(i, i + this.lettersToReveal);
+				if (part.length < this.lettersToReveal) part = part.concat(letters.slice(0, this.lettersToReveal - part.length));
+				if (Client.willBeFiltered(part.join(''), !this.isPm(this.room) ? this.room : undefined)) {
 					willBeFiltered = true;
 					break;
 				}
 			}
 		}
-		const letters = answer.replace(" ", "").split("");
 		this.answers = [answer];
 		this.letters = letters;
 		this.currentIndex = -1;
