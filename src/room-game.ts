@@ -1,5 +1,5 @@
 import { ICommandDefinition } from "./command-parser";
-import { PRNG } from "./prng";
+import { PRNG, PRNGSeed } from "./prng";
 import { Activity, Player, PlayerList } from "./room-activity";
 import { Room } from "./rooms";
 import { IGameFormat } from "./types/games";
@@ -43,6 +43,8 @@ export class Game extends Activity {
 	readonly winnerPointsToBits: number = 50;
 	readonly winners = new Map<Player, number>();
 
+	initialSeed: PRNGSeed;
+
 	// set immediately in initialize()
 	description!: string;
 	format!: IGameFormat;
@@ -62,6 +64,12 @@ export class Game extends Activity {
 	startingPoints?: number;
 	subGameNumber?: number;
 	readonly variant?: string;
+
+	constructor(room: Room | User, pmRoom?: Room) {
+		super(room, pmRoom);
+
+		this.initialSeed = this.prng.initialSeed.slice() as PRNGSeed;
+	}
 
 	random(m: number): number {
 		return Tools.random(m, this.prng);
