@@ -207,13 +207,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			freejoin: true,
 		},
 		{
-			name: "Magcargo's Weak Spot ",
-			mascot: "Magcargo",
-			aliases: ['weakspot', 'Magcargos'],
-			description: "Players guess the weakness(es) that the given Pokemon share!",
-			freejoin: true,
-		},
-		{
 			name: "Mascots",
 			description: "Each round the host will provide a song and players must find a Pokemon that best represents it using the standard formatting --[Pokemon]--.",
 			freejoin: true,

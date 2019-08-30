@@ -1008,7 +1008,7 @@ export class Dex {
 	}
 
 	/**
-	 * >=1: super-effective; <=1: not very effective
+	 * Returns >=1 if super-effective, <=1 if not very effective
 	 */
 	getEffectiveness(source: IMove | string, target: IPokemon | string | readonly string[]): number {
 		const sourceType = (typeof source === 'string' ? source : source.type);
