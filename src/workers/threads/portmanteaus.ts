@@ -2,13 +2,13 @@ import worker_threads = require('worker_threads');
 
 import { PRNG, PRNGSeed } from '../../prng';
 import * as tools from '../../tools';
-import { IPortmanteauSearchOptions, IPortmanteauSearchResult, IPortmanteausWorkerData, PoolType } from '../portmanteaus';
+import { IPortmanteauSearchRequest, IPortmanteauSearchResponse, IPortmanteauSearchResult, IPortmanteausWorkerData, PoolType } from '../portmanteaus';
 
 const Tools = new tools.Tools();
 const data = worker_threads.workerData as IPortmanteausWorkerData;
 const portTypes = Object.keys(data.pool) as PoolType[];
 
-function search(options: IPortmanteauSearchOptions, prng: PRNG): IPortmanteauSearchResult {
+function search(options: IPortmanteauSearchRequest, prng: PRNG): IPortmanteauSearchResult {
 	const customPort = options.customPortTypes || options.customPortCategories || options.customPortDetails ? true : false;
 	let answerParts: Dict<{detail: string, part: string}[]> = {};
 	const ports: string[] = [];
@@ -126,9 +126,12 @@ function search(options: IPortmanteauSearchOptions, prng: PRNG): IPortmanteauSea
 worker_threads.parentPort!.on('message', message => {
 	const pipeIndex = message.indexOf('|');
 	const request = message.substr(0, pipeIndex);
+	let result: IPortmanteauSearchResponse;
 	if (request === 'search') {
-		const options = JSON.parse(message.substr(pipeIndex + 1)) as IPortmanteauSearchOptions;
+		const options = JSON.parse(message.substr(pipeIndex + 1)) as IPortmanteauSearchRequest;
 		const prng = new PRNG(options.prngSeed);
-		worker_threads.parentPort!.postMessage(search(options, prng));
+		result = Object.assign(search(options, prng), {requestNumber: options.requestNumber});
 	}
+
+	worker_threads.parentPort!.postMessage(request + '|' + JSON.stringify(result!));
 });

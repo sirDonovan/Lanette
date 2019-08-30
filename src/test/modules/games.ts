@@ -262,11 +262,11 @@ describe("Games", () => {
 
 		game.customPortTypes = ['Pokemon', 'Item'];
 		game.customPortCategories = ['egggroup', 'type'];
-		game.customPortDetails = ['Flying', 'Plate'];
+		game.customPortDetails = ['Flying', 'Berry'];
 		await game.onNextRound();
 		assert(game.answers.length);
 		assert(game.ports.length);
-		assert(game.answers.join(', ') === 'pidgeottoxic, togeticicle, talonflameadow');
+		assert(game.answers.join(',') === 'spearowap,fearowap,togetice,murkrowap,pelippersim,swabluk,swablum,altariapapa,staraviapapa,staraptoran,honchkrowap,archenigma,archeopsncure,swannanab');
 		for (let i = 0; i < game.answers.length; i++) {
 			assert(game.answers[i] in game.answerParts);
 		}
