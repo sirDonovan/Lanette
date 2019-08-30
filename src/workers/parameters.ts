@@ -51,6 +51,14 @@ export interface IParameterIntersectOptions {
 	readonly searchType: keyof typeof data;
 }
 
+export interface IParameterSearchRequest extends IParameterSearchOptions {
+	requestNumber: number;
+}
+
+export interface IParameterIntersectRequest extends IParameterIntersectOptions {
+	requestNumber: number;
+}
+
 export interface IParameterSearchResult {
 	params: IParam[];
 	pokemon: string[];
@@ -62,12 +70,32 @@ export interface IParameterIntersectResult {
 	pokemon: string[];
 }
 
+export interface IParameterSearchResponse extends IParameterSearchResult {
+	requestNumber: number;
+}
+
+export interface IParameterIntersectResponse extends IParameterIntersectResult {
+	requestNumber: number;
+}
+
+interface IParameterSearchQueueItem {
+	resolve: (value?: IParameterSearchResult | PromiseLike<IParameterSearchResult> | undefined) => void;
+	requestNumber: number;
+}
+
+interface IParameterIntersectQueueItem {
+	resolve: (value?: IParameterIntersectResult | PromiseLike<IParameterIntersectResult> | undefined) => void;
+	requestNumber: number;
+}
+
 export const data: IParametersWorkerData = {
 	pokemon: {
 		gens: {},
 	},
 };
 
+let requestNumber = 0;
+const requestQueue: (IParameterIntersectQueueItem | IParameterSearchQueueItem)[] = [];
 let worker: worker_threads.Worker | undefined;
 
 export function init(): worker_threads.Worker {
@@ -281,7 +309,18 @@ export function init(): worker_threads.Worker {
 	}
 
 	worker = new worker_threads.Worker(path.join(__dirname, 'threads', __filename.substr(__dirname.length + 1)), {workerData: data});
-	worker.setMaxListeners(Infinity);
+	worker.on('message', (message: string) => {
+		const pipeIndex = message.indexOf('|');
+		const result: IParameterSearchResponse | IParameterIntersectResponse = JSON.parse(message.substr(pipeIndex + 1));
+		for (let i = 0; i < requestQueue.length; i++) {
+			if (requestQueue[i].requestNumber === result.requestNumber) {
+				// @ts-ignore
+				requestQueue.splice(i, 1)[0].resolve(result);
+				break;
+			}
+		}
+	});
+	worker.on('error', e => console.log(e));
 	worker.on('exit', code => {
 		if (code !== 0) {
 			console.log(new Error(`Worker stopped with exit code ${code}`));
@@ -295,15 +334,16 @@ export function unref() {
 	if (worker) worker.unref();
 }
 
-export async function search(options: IParameterSearchOptions): Promise<IParameterSearchResult> {
-	return (new Promise((resolve, reject) => {
-		worker!.once('message', resolve);
-		worker!.once('error', resolve);
-		worker!.postMessage('search|' + JSON.stringify(options));
+export function search(options: IParameterSearchOptions): Promise<IParameterSearchResult> {
+	return (new Promise(resolve => {
+		const request: IParameterSearchRequest = Object.assign({}, options, {requestNumber});
+		requestQueue.push({resolve, requestNumber});
+		requestNumber++;
+		worker!.postMessage('search|' + JSON.stringify(request));
 	}));
 }
 
-export async function intersect(options: IParameterIntersectOptions, parts: string[]): Promise<IParameterIntersectResult> {
+export function intersect(options: IParameterIntersectOptions, parts: string[]): Promise<IParameterIntersectResult> {
 	const paramTypePools = data[options.searchType].gens[options.mod].paramTypePools;
 	const params: IParam[] = [];
 	for (let i = 0; i < parts.length; i++) {
@@ -319,11 +359,10 @@ export async function intersect(options: IParameterIntersectOptions, parts: stri
 		params.push(param);
 	}
 
-	const pokemon: string[] = await new Promise(resolve => {
-		worker!.once('message', resolve);
-		worker!.once('error', resolve);
-		worker!.postMessage('intersect|' + JSON.stringify(options) + '|' + JSON.stringify(params));
-	});
-
-	return Promise.resolve({params, pokemon});
+	return (new Promise(resolve => {
+		const request: IParameterIntersectRequest = Object.assign({}, options, {requestNumber});
+		requestQueue.push({resolve, requestNumber});
+		requestNumber++;
+		worker!.postMessage('intersect|' + JSON.stringify(request) + '|' + JSON.stringify(params));
+	}));
 }

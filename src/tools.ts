@@ -80,7 +80,7 @@ export class Tools {
 		return shuffled;
 	}
 
-	intersectArrays<T>(arrayA: T[], arrayB: T[]): T[] {
+	intersectArrays<T>(arrayA: readonly T[], arrayB: readonly T[]): T[] {
 		const temp: T[] = [];
 		const arrayALen = arrayA.length;
 		const arrayBLen = arrayB.length;
@@ -97,7 +97,7 @@ export class Tools {
 		return temp;
 	}
 
-	intersectParams(params: IParam[], dexes: Dict<Dict<string[]>>): string[] {
+	intersectParams(params: IParam[], dexes: Dict<Dict<readonly string[]>>): string[] {
 		let intersection: string[] = dexes[params[0].type][params[0].param].slice();
 		for (let i = 1; i < params.length; i++) {
 			intersection = this.intersectArrays(intersection, dexes[params[i].type][params[i].param]);
