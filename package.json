@@ -21,13 +21,13 @@
     "@types/mocha": "5.2.7",
     "@types/node": "12.7.2",
     "@types/websocket": "0.0.40",
-    "typescript": "3.6.1-rc",
+    "typescript": "3.6.2",
     "websocket": "1.0.29"
   },
   "devDependencies": {
     "lodash": "4.17.14",
     "mocha": "6.2.0",
-    "tslint": "5.18.0",
+    "tslint": "5.19.0",
     "typescript-tslint-plugin": "0.5.4"
   }
 }
