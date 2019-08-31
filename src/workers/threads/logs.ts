@@ -3,12 +3,12 @@ import path = require('path');
 import worker_threads = require('worker_threads');
 
 import * as tools from '../../tools';
-import { ILogsSearchOptions, ILogsSearchResult, ILogsWorkerData } from '../logs';
+import { ILogsSearchRequest, ILogsSearchResponse, ILogsSearchResult, ILogsWorkerData } from '../logs';
 
 const Tools = new tools.Tools();
 const data = worker_threads.workerData as ILogsWorkerData;
 
-function search(options: ILogsSearchOptions): ILogsSearchResult {
+function search(options: ILogsSearchRequest): ILogsSearchResult {
 	const lines: string[] = [];
 	let totalLines = 0;
 	let targetUser = '';
@@ -133,8 +133,11 @@ function search(options: ILogsSearchOptions): ILogsSearchResult {
 worker_threads.parentPort!.on('message', message => {
 	const pipeIndex = message.indexOf('|');
 	const request = message.substr(0, pipeIndex);
+	let response: ILogsSearchResponse;
 	if (request === 'search') {
-		const options = JSON.parse(message.substr(pipeIndex + 1));
-		worker_threads.parentPort!.postMessage(search(options));
+		const options = JSON.parse(message.substr(pipeIndex + 1)) as ILogsSearchRequest;
+		response = Object.assign(search(options), {requestNumber: options.requestNumber});
 	}
+
+	worker_threads.parentPort!.postMessage(request + '|' + JSON.stringify(response!));
 });

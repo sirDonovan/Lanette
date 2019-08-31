@@ -16,9 +16,22 @@ export interface ILogsSearchOptions {
 	userids: string[] | null;
 }
 
+export interface ILogsSearchRequest extends ILogsSearchOptions {
+	requestNumber: number;
+}
+
 export interface ILogsSearchResult {
 	lines: string[];
 	totalLines: number;
+}
+
+export interface ILogsSearchResponse extends ILogsSearchResult {
+	requestNumber: number;
+}
+
+interface ILogsSearchQueueItem {
+	resolve: (value?: ILogsSearchResult | PromiseLike<ILogsSearchResult> | undefined) => void;
+	requestNumber: number;
 }
 
 let serverLogsViewer = Config.serverLogsViewer;
@@ -30,7 +43,9 @@ export const data: ILogsWorkerData = {
 	serverLogsViewer,
 };
 
-export const requests: string[] = [];
+let requestNumber = 0;
+const requestQueue: ILogsSearchQueueItem[] = [];
+export const requestsByUserid: string[] = [];
 
 let worker: worker_threads.Worker | undefined;
 
@@ -38,7 +53,17 @@ export function init(): worker_threads.Worker {
 	if (worker) return worker;
 
 	worker = new worker_threads.Worker(path.join(__dirname, 'threads', __filename.substr(__dirname.length + 1)), {workerData: data});
-	worker.setMaxListeners(Infinity);
+	worker.on('message', (message: string) => {
+		const pipeIndex = message.indexOf('|');
+		const result: ILogsSearchResponse = JSON.parse(message.substr(pipeIndex + 1));
+		for (let i = 0; i < requestQueue.length; i++) {
+			if (requestQueue[i].requestNumber === result.requestNumber) {
+				requestQueue.splice(i, 1)[0].resolve(result);
+				break;
+			}
+		}
+	});
+	worker.on('error', e => console.log(e));
 	worker.on('exit', code => {
 		if (code !== 0) {
 			console.log(new Error(`Worker stopped with exit code ${code}`));
@@ -55,8 +80,9 @@ export function unref() {
 export async function search(options: ILogsSearchOptions): Promise<ILogsSearchResult> {
 	if (!worker) init();
 	return (new Promise((resolve, reject) => {
-		worker!.once('message', resolve);
-		worker!.once('error', resolve);
-		worker!.postMessage('search|' + JSON.stringify(options));
+		const request: ILogsSearchRequest = Object.assign({}, options, {requestNumber});
+		requestQueue.push({resolve, requestNumber});
+		requestNumber++;
+		worker!.postMessage('search|' + JSON.stringify(request));
 	}));
 }
