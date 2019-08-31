@@ -126,12 +126,12 @@ function search(options: IPortmanteauSearchRequest, prng: PRNG): IPortmanteauSea
 worker_threads.parentPort!.on('message', message => {
 	const pipeIndex = message.indexOf('|');
 	const request = message.substr(0, pipeIndex);
-	let result: IPortmanteauSearchResponse;
+	let response: IPortmanteauSearchResponse;
 	if (request === 'search') {
 		const options = JSON.parse(message.substr(pipeIndex + 1)) as IPortmanteauSearchRequest;
 		const prng = new PRNG(options.prngSeed);
-		result = Object.assign(search(options, prng), {requestNumber: options.requestNumber});
+		response = Object.assign(search(options, prng), {requestNumber: options.requestNumber});
 	}
 
-	worker_threads.parentPort!.postMessage(request + '|' + JSON.stringify(result!));
+	worker_threads.parentPort!.postMessage(request + '|' + JSON.stringify(response!));
 });

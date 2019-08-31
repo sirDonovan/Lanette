@@ -198,5 +198,5 @@ export const game: IGameFile<InkaysCups> = {
 	description: "Players grab Pokemon that fit the given parameters each round (one per player)!",
 	name,
 	mascot: "Inkay",
-	worker: ParametersWorker,
+	workers: [ParametersWorker],
 };

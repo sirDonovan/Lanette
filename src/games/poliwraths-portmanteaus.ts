@@ -136,5 +136,5 @@ export const game: IGameFile<PoliwrathsPortmanteaus> = {
 	minigameCommand: 'portmanteau',
 	minigameCommandAliases: ['port'],
 	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess a portmanteau (sharing 2-4 letters) that fits the given parameters!",
-	worker: PortmanteausWorker,
+	workers: [PortmanteausWorker],
 };

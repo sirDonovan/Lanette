@@ -1,9 +1,9 @@
-import { Worker } from "worker_threads";
 import { ICommandDefinition } from "../command-parser";
 import { UserHosted } from "../games/templates/user-hosted";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
 import { User } from "../users";
+import { IWorker } from "./global-types";
 
 type BattleFrontierCategory = "Knowledge" | "Puzzle" | "Identification" | "Speed" | "Reaction" | "Skill" | "Luck" | "TBD";
 export type GameDifficulty = 'easy' | 'medium' | 'hard';
@@ -11,11 +11,6 @@ export type GameDifficulty = 'easy' | 'medium' | 'hard';
 interface IGameClass<T> {
 	new(room: Room | User, pmRoom?: Room): T;
 	loadData?(room: Room | User, extendedClass?: boolean): void;
-}
-
-export interface IGameWorker {
-	init: (data: any) => Worker;
-	unref: () => void;
 }
 
 export interface IGameFile<T extends Game = Game> {
@@ -39,7 +34,7 @@ export interface IGameFile<T extends Game = Game> {
 	readonly scriptedOnly?: boolean;
 	readonly tests?: (this: Mocha.Context, game: T) => void;
 	readonly variants?: (Partial<T> & IGameVariant)[];
-	readonly worker?: IGameWorker;
+	readonly workers?: IWorker[];
 }
 
 export interface IGameVariant {

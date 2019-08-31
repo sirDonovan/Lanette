@@ -6,7 +6,8 @@ import { UserHosted } from './games/templates/user-hosted';
 import { PRNG, PRNGSeed } from './prng';
 import { Game } from "./room-game";
 import { Room } from "./rooms";
-import { IGameFile, IGameFileComputed, IGameFormat, IGameFormatComputed, IGameMode, IGameModeFile, IGameVariant, IGameWorker, IUserHostedComputed, IUserHostedFile, IUserHostedFormat, IUserHostedFormatComputed } from './types/games';
+import { IGameFile, IGameFileComputed, IGameFormat, IGameFormatComputed, IGameMode, IGameModeFile, IGameVariant, IUserHostedComputed, IUserHostedFile, IUserHostedFormat, IUserHostedFormatComputed } from './types/games';
+import { IWorker } from './types/global-types';
 import { User } from './users';
 
 const gamesDirectory = path.join(__dirname, 'games');
@@ -52,9 +53,10 @@ export class Games {
 	lastUserHostedGames: Dict<number> = {};
 	readonly minigameCommandNames: Dict<{aliases: string[], format: string}> = {};
 	readonly modes: Dict<IGameMode> = {};
+	reloadInProgress: boolean = false;
 	readonly userHostedAliases: Dict<string> = {};
 	readonly userHostedFormats: Dict<IUserHostedComputed> = {};
-	readonly workers: IGameWorker[] = [];
+	readonly workers: IWorker[] = [];
 
 	onReload(previous: Partial<Games>) {
 		if (previous.lastGames) this.lastGames = previous.lastGames;
@@ -157,7 +159,11 @@ export class Games {
 				}
 			}
 
-			if (format.worker && !this.workers.includes(format.worker)) this.workers.push(format.worker);
+			if (format.workers) {
+				for (let i = 0; i < format.workers.length; i++) {
+					if (!this.workers.includes(format.workers[i])) this.workers.push(format.workers[i]);
+				}
+			}
 		}
 
 		for (const i in this.modes) {
@@ -221,6 +227,7 @@ export class Games {
 					}
 					const format = global.Games.getFormat(formatName + (target ? "," + target : ""), user);
 					if (Array.isArray(format)) return this.sayError(format);
+					if (global.Games.reloadInProgress) return this.sayError(['reloadInProgress']);
 					delete format.inputOptions.points;
 					const game = global.Games.createGame(room, format, pmRoom);
 					game.isMiniGame = true;

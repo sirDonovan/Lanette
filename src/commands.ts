@@ -16,6 +16,8 @@ const moduleOrder: ReloadableModule[] = ['tools', 'config', 'dex', 'client', 'co
 
 const AWARDED_BOT_GREETING_DURATION = 60 * 24 * 60 * 60 * 1000;
 
+let reloadInProgress = false;
+
 const commands: Dict<ICommandDefinition> = {
 	/**
 	 * Developer commands
@@ -60,11 +62,11 @@ const commands: Dict<ICommandDefinition> = {
 			for (let i = 0; i < targets.length; i++) {
 				const id = Tools.toId(targets[i]) as ReloadableModule;
 				if (id === 'commandparser') {
-					if (CommandParser.logsWorker.requests.length) return this.say("You must wait for all logs requests to finish first.");
+					if (CommandParser.logsWorker.requestsByUserid.length) return this.say("You must wait for all logs requests to finish first.");
 				} else if (id === 'games') {
 					const workerGameRooms: Room[] = [];
 					Users.self.rooms.forEach((rank, room) => {
-						if (room.game && room.game.format.worker) workerGameRooms.push(room);
+						if (room.game && room.game.format.workers) workerGameRooms.push(room);
 					});
 					if (workerGameRooms.length) {
 						return this.say("You must wait for the game" + (workerGameRooms.length > 1 ? "s" : "") + " in " + Tools.joinList(workerGameRooms.map(x => x.title)) + " to finish first.");
@@ -78,10 +80,16 @@ const commands: Dict<ICommandDefinition> = {
 				}
 			}
 
+			if (reloadInProgress) return this.say("You must wait for the current reload to finish.");
+			reloadInProgress = true;
+
 			const modules: ReloadableModule[] = [];
 			for (let i = 0; i < hasModules.length; i++) {
 				if (hasModules[i]) modules.push(moduleOrder[i]);
 			}
+
+			if (modules.includes('commandparser')) CommandParser.reloadInProgress = true;
+			if (modules.includes('games')) Games.reloadInProgress = true;
 
 			this.say("Running ``tsc``...");
 			require(path.join(Tools.rootFolder, 'build.js'))(() => {
@@ -140,8 +148,12 @@ const commands: Dict<ICommandDefinition> = {
 					}
 				}
 				this.say("Successfully reloaded: " + modules.join(", "));
+				reloadInProgress = false;
 			}, () => {
 				this.say("Failed to build files.");
+				reloadInProgress = false;
+				if (CommandParser.reloadInProgress) CommandParser.reloadInProgress = false;
+				if (Games.reloadInProgress) Games.reloadInProgress = false;
 			});
 		},
 		aliases: ['hotpatch'],
@@ -235,6 +247,7 @@ const commands: Dict<ICommandDefinition> = {
 			}
 			const format = Games.getFormat(target, user);
 			if (Array.isArray(format)) return this.sayError(format);
+			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
 			const game = Games.createGame(room, format);
 			game.signups();
 		},
@@ -413,6 +426,7 @@ const commands: Dict<ICommandDefinition> = {
 			targets.shift();
 			const format = Games.getUserHostedFormat(targets.join(","), user);
 			if (Array.isArray(format)) return this.sayError(format);
+			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
 			const database = Storage.getDatabase(room);
 			const otherUsersQueued = database.userHostedGameQueue && database.userHostedGameQueue.length;
 			const remainingGameCooldown = Games.getRemainingGameCooldown(room);
@@ -478,6 +492,7 @@ const commands: Dict<ICommandDefinition> = {
 			const nextHost = database.userHostedGameQueue[0];
 			const format = Games.getUserHostedFormat(nextHost.format, user);
 			if (Array.isArray(format)) return this.sayError(format);
+			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
 			database.userHostedGameQueue.shift();
 			const game = Games.createUserHostedGame(room, format, nextHost.name);
 			game.signups();
@@ -2218,7 +2233,8 @@ const commands: Dict<ICommandDefinition> = {
 					if (phrases[i].length === 1) return this.say("You cannot search for a single character.");
 				}
 			}
-			if (CommandParser.logsWorker.requests.includes(user.id)) return this.say("You can only perform 1 search at a time.");
+			if (CommandParser.reloadInProgress) return this.sayError(['reloadInProgress']);
+			if (CommandParser.logsWorker.requestsByUserid.includes(user.id)) return this.say("You can only perform 1 search at a time.");
 
 			const displayStartDate = startDate.slice(1);
 			displayStartDate.push(startDate[0]);
@@ -2232,7 +2248,7 @@ const commands: Dict<ICommandDefinition> = {
 			}
 			text += "...";
 			this.say(text);
-			CommandParser.logsWorker.requests.push(user.id);
+			CommandParser.logsWorker.requestsByUserid.push(user.id);
 			const result = await CommandParser.logsWorker.search({
 				endDate,
 				phrases,
@@ -2242,7 +2258,7 @@ const commands: Dict<ICommandDefinition> = {
 				userids,
 			});
 			this.sayHtml("<details><summary>Found <b>" + result.totalLines + "</b> line" + (result.totalLines === 1 ? "" : "s") + ":</summary><br>" + result.lines.join("<br />") + "</details>", targetRoom);
-			CommandParser.logsWorker.requests.splice(CommandParser.logsWorker.requests.indexOf(user.id), 1);
+			CommandParser.logsWorker.requestsByUserid.splice(CommandParser.logsWorker.requestsByUserid.indexOf(user.id), 1);
 		},
 	},
 };

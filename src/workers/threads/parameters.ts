@@ -164,18 +164,18 @@ function intersect(options: IParameterIntersectRequest, params: IParam[]): strin
 worker_threads.parentPort!.on('message', message => {
 	let pipeIndex = message.indexOf('|');
 	const request = message.substr(0, pipeIndex);
-	let result: IParameterSearchResponse | IParameterIntersectResponse;
+	let reponse: IParameterSearchResponse | IParameterIntersectResponse;
 	if (request === 'search') {
 		const options = JSON.parse(message.substr(pipeIndex + 1)) as IParameterSearchRequest;
 		const prng = new PRNG(options.prngSeed);
-		result = Object.assign(search(options, prng), {requestNumber: options.requestNumber});
+		reponse = Object.assign(search(options, prng), {requestNumber: options.requestNumber});
 	} else if (request === 'intersect') {
 		message = message.substr(pipeIndex + 1);
 		pipeIndex = message.indexOf('|');
 		const options = JSON.parse(message.substr(0, pipeIndex)) as IParameterIntersectRequest;
 		const params = JSON.parse(message.substr(pipeIndex + 1));
-		result = {params, pokemon: intersect(options, params), requestNumber: options.requestNumber};
+		reponse = {params, pokemon: intersect(options, params), requestNumber: options.requestNumber};
 	}
 
-	worker_threads.parentPort!.postMessage(request + '|' + JSON.stringify(result!));
+	worker_threads.parentPort!.postMessage(request + '|' + JSON.stringify(reponse!));
 });

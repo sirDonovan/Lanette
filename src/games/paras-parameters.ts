@@ -146,5 +146,5 @@ export const game: IGameFile<ParasParameters> = {
 			variant: "survival",
 		},
 	],
-	worker: ParametersWorker,
+	workers: [ParametersWorker],
 };

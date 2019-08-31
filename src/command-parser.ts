@@ -20,7 +20,7 @@ type CommandErrorOptionalTarget = 'invalidBotRoom' | 'invalidFormat' | 'invalidG
 type CommandErrorRequiredTarget = 'noPmHtmlRoom' | 'missingBotRankForFeatures' | 'disabledTournamentFeatures' | 'disabledGameFeatures' | 'disabledUserHostedGameFeatures' | 'noRoomEventInformation' |
 	'invalidRoomEvent';
 
-type CommandErrorNoTarget = 'invalidUsernameLength';
+type CommandErrorNoTarget = 'invalidUsernameLength' | 'reloadInProgress';
 
 export type CommandErrorArray = [CommandErrorOptionalTarget, string?] | [CommandErrorRequiredTarget, string] | [CommandErrorNoTarget];
 
@@ -114,6 +114,8 @@ export class Command {
 			this.say("You must specify one of " + error[1].trim() + "'s events.");
 		} else if (error[0] === 'invalidUsernameLength') {
 			this.say("You must specify a valid username (between 1 and " + Tools.maxUsernameLength + " characters).");
+		} else if (error[0] === 'reloadInProgress') {
+			this.say("You must wait for " + Users.self.name + " to finish updating.");
 		}
 	}
 
@@ -151,6 +153,7 @@ export class Command {
 
 export class CommandParser {
 	logsWorker: typeof LogsWorker = LogsWorker;
+	reloadInProgress: boolean = false;
 
 	unrefWorkers() {
 		this.logsWorker.unref();
