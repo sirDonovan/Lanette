@@ -15,11 +15,27 @@ export interface IUserHostedTournament {
 	urls: string[];
 }
 
-for (const i in schedules) {
-	const id = Tools.toRoomId(i);
-	if (id !== i) {
-		schedules[id] = schedules[i];
-		delete schedules[i];
+for (const room in schedules) {
+	for (const month in schedules[room].months) {
+		for (const day in schedules[room].months[month]) {
+			const formatid = schedules[room].months[month]![day];
+			if (formatid.includes(',') && !formatid.includes('@@@')) {
+				const parts = formatid.split(',');
+				const customRules: string[] = [];
+				let customFormatid = parts[0].trim();
+				for (let i = 1; i < parts.length; i++) {
+					const part = parts[i].trim();
+					if (part && part !== '0') customRules.push(part);
+				}
+				if (customRules.length) customFormatid += '@@@' + customRules.join(',');
+				schedules[room].months[month]![day] = customFormatid;
+			}
+		}
+	}
+	const id = Tools.toRoomId(room);
+	if (id !== room) {
+		schedules[id] = schedules[room];
+		delete schedules[room];
 	}
 }
 
