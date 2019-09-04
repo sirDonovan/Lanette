@@ -81,6 +81,9 @@ export class UserHosted extends Game {
 		Storage.addPoints(this.room as Room, this.hostName, hostBits!, 'userhosted');
 		const user = Users.get(this.hostName);
 		if (user) user.say("You were awarded " + hostBits! + " bits! To see your total amount, use this command: ``" + Config.commandCharacter + "bits " + (this.room as Room).title + "``. Thanks for your efforts, we hope you host again soon!");
+		const database = Storage.getDatabase(this.room);
+		if (!(this.room.id in Games.lastUserHostTimes)) Games.lastUserHostTimes[this.room.id] = {};
+		Games.lastUserHostTimes[this.room.id][this.hostId] = Date.now();
 	}
 }
 

@@ -51,6 +51,7 @@ export class Games {
 	lastGames: Dict<number> = {};
 	lastScriptedGames: Dict<number> = {};
 	lastUserHostedGames: Dict<number> = {};
+	lastUserHostTimes: Dict<Dict<number>> = {};
 	readonly minigameCommandNames: Dict<{aliases: string[], format: string}> = {};
 	readonly modes: Dict<IGameMode> = {};
 	reloadInProgress: boolean = false;
@@ -62,6 +63,7 @@ export class Games {
 		if (previous.lastGames) this.lastGames = previous.lastGames;
 		if (previous.lastScriptedGames) this.lastScriptedGames = previous.lastScriptedGames;
 		if (previous.lastUserHostedGames) this.lastUserHostedGames = previous.lastUserHostedGames;
+		if (previous.lastUserHostTimes) this.lastUserHostTimes = previous.lastUserHostTimes;
 	}
 
 	unrefWorkers() {

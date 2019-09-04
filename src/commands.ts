@@ -428,6 +428,13 @@ const commands: Dict<ICommandDefinition> = {
 			if (Array.isArray(format)) return this.sayError(format);
 			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
 			const database = Storage.getDatabase(room);
+			if (Config.userHostCooldownTimers && room.id in Config.userHostCooldownTimers && room.id in Games.lastUserHostTimes && host.id in Games.lastUserHostTimes[room.id]) {
+				const userHostCooldown = (Config.userHostCooldownTimers[room.id] * 60 * 1000) - (Date.now() - Games.lastUserHostTimes[room.id][host.id]);
+				if (userHostCooldown > 1000) {
+					const durationString = Tools.toDurationString(userHostCooldown);
+					return this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of " + host.name + "'s host cooldown remaining.");
+				}
+			}
 			const otherUsersQueued = database.userHostedGameQueue && database.userHostedGameQueue.length;
 			const remainingGameCooldown = Games.getRemainingGameCooldown(room);
 			const inCooldown = remainingGameCooldown > 1000;
@@ -522,6 +529,25 @@ const commands: Dict<ICommandDefinition> = {
 			this.sayHtml("<b>Host queue</b>:<br><br>" + html.join("<br>"), gameRoom);
 		},
 		aliases: ['hq'],
+	},
+	hosttime: {
+		command(target, room, user) {
+			if (!this.isPm(room)) return;
+			const targetRoom = Rooms.search(target);
+			if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
+			if (Config.userHostCooldownTimers && targetRoom.id in Config.userHostCooldownTimers && targetRoom.id in Games.lastUserHostTimes && user.id in Games.lastUserHostTimes[targetRoom.id]) {
+				const userHostCooldown = (Config.userHostCooldownTimers[targetRoom.id] * 60 * 1000) - (Date.now() - Games.lastUserHostTimes[targetRoom.id][user.id]);
+				if (userHostCooldown > 1000) {
+					const durationString = Tools.toDurationString(userHostCooldown);
+					this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of your host cooldown remaining.");
+				} else {
+					this.say("Your host cooldown has ended.");
+				}
+			} else {
+				this.say("You do not have a host cooldown.");
+			}
+		},
+		aliases: ['ht'],
 	},
 	dehost: {
 		command(target, room, user) {

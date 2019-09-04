@@ -196,6 +196,11 @@ export let maxUserHostedGameWinners: Dict<number> = {};
 export let maxQueuedUserHostedGames: Dict<number> = {};
 
 /**
+ * The number of minutes that must pass before a user can host another game
+ */
+export let userHostCooldownTimers: Dict<number> = {};
+
+/**
  * A list of rooms (roomids) where messages will not be logged
  */
 export let disallowChatLogging: string[] = [];
