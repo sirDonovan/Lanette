@@ -650,6 +650,7 @@ export interface IPokemonComputed {
 	gen: number;
 	genderRatio: NonNullable<ITemplateData["genderRatio"]>;
 	id: string;
+	isForme: boolean;
 	isMega: boolean;
 	isPrimal: boolean;
 	name: string;

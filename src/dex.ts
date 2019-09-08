@@ -911,6 +911,7 @@ export class Dex {
 			evos,
 			forme: templateData.forme || '',
 			id: speciesId,
+			isForme,
 			isMega,
 			isPrimal,
 			name: templateData.species,
