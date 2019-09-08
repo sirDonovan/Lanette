@@ -568,6 +568,7 @@ export interface IMoveData extends IEffectData {
 	zMovePower?: number;
 	zMoveEffect?: string;
 	zMoveBoost?: ISparseBoostsTable;
+	basePowerCallback?: (pokemon: any, target: any, move: any) => number | false | null;
 }
 
 export interface IMoveComputed {
