@@ -74,7 +74,7 @@ const schedules: Dict<{months: Dict<Dict<string> | undefined>, times: [number, n
 				'22': 'gen1OU,0, -Snorlax, -Chansey, -Zapdos, -Alakazam',
 				'23': 'gen51v1',
 				'24': 'gen2uu',
-				'25': 'gen7Battle Spot Special 16',
+				'25': 'gen7Battle Spot Special 17',
 				'26': 'gen7Camomons, Inverse Mod,0, -OU, -UU, -UUBL',
 				'27': 'gen7partnersincrime,0, Gen7Tiershift',
 				'28': 'gen7Mix and Mega,0, -OU, -UU, -uubl,-ru,-rubl',
