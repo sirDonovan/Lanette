@@ -203,13 +203,12 @@ class MismagiusFoulPlay extends Game {
 		const detectiveWin = this.criminalCount === 0;
 		for (let i = 0; i < this.detectives.length; i++) {
 			const player = this.detectives[i];
-			if (player.eliminated) continue;
 			const identifications = this.identifications.get(player);
 			let bits = 0;
 			if (detectiveWin) {
 				bits = 300;
 				if (identifications) bits += 100 * identifications;
-				this.winners.set(player, 1);
+				if (!player.eliminated) this.winners.set(player, 1);
 			} else {
 				if (identifications) bits += 50 * identifications;
 			}
@@ -218,14 +217,13 @@ class MismagiusFoulPlay extends Game {
 		let remainingCriminals = 0;
 		for (let i = 0; i < this.criminals.length; i++) {
 			const player = this.criminals[i];
-			if (player.eliminated) continue;
 			const kidnaps = this.kidnaps.get(player);
 			let bits = 0;
 			if (!detectiveWin) {
 				remainingCriminals++;
 				bits = 300;
 				if (kidnaps) bits += 150 * kidnaps;
-				this.winners.set(player, 1);
+				if (!player.eliminated) this.winners.set(player, 1);
 			} else {
 				if (kidnaps) bits += 75 * kidnaps;
 			}
