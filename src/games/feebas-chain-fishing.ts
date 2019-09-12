@@ -70,7 +70,6 @@ class FeebasChainFishing extends Game {
 		}
 		this.roundReels.clear();
 		this.queue = [];
-		const time = this.sampleOne([8000, 9000, 10000]);
 		const html = this.getRoundHtml(this.getPlayerPoints);
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
@@ -80,6 +79,7 @@ class FeebasChainFishing extends Game {
 				this.canReel = true;
 				this.timeout = setTimeout(() => this.nextRound(), 5000);
 			});
+			const time = this.sampleOne([8000, 9000, 10000]);
 			this.timeout = setTimeout(() => this.sayUhtml(uhtmlName, html), time);
 		});
 		this.sayUhtml(uhtmlName, html);
@@ -98,12 +98,9 @@ class FeebasChainFishing extends Game {
 			}
 			if (points === highestPoints) this.winners.set(player, 1);
 		}
-		const names = this.getPlayerNames(this.winners);
-		this.say("**Winner" + (this.winners.size > 1 ? "s" : "") + "**: " + names);
-		let earnings = 500;
-		if (earnings > 1000) earnings = 1000;
+		this.say("**Winner" + (this.winners.size > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners));
 		this.winners.forEach((value, user) => {
-			this.addBits(user, earnings);
+			this.addBits(user, 500);
 			// if (this.firstReel === user) Games.unlockAchievement(this.room, user, "Shiny Hunter", this);
 		});
 	}

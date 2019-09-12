@@ -43,14 +43,14 @@ class LandorusWar extends Game {
 		loadedData = true;
 	}
 
-	suspectedPlayers = new Map<Player, number>();
-	playerPokemon = new Map<Player, IPokemon>();
+	fakePokemon: string[] = [];
 	playerAliases = new Map<Player, string>();
 	playerAliasesList: string[] = [];
+	playerPokemon = new Map<Player, IPokemon>();
+	pokemonList: string[] = [];
 	roundMoves = new Set<Player>();
 	roundSuspects = new Set<Player>();
-	fakePokemon: string[] = [];
-	pokemonList: string[] = [];
+	suspectedPlayers = new Map<Player, number>();
 
 	onRemovePlayer(player: Player) {
 		const alias = this.playerAliases.get(player);

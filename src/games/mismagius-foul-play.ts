@@ -66,16 +66,16 @@ class MismagiusFoulPlay extends Game {
 	}
 
 	chosenPokemon = new Map<Player, string>();
-	criminals: Player[] = [];
-	kidnaps = new Map<Player, number>();
-	identifications = new Map<Player, number>();
 	criminalCount: number = 0;
-	detectives: Player[] = [];
-	detectiveCount: number = 0;
-	roundGuesses = new Map<Player, boolean>();
+	criminals: Player[] = [];
 	decoyPokemon: string[] = [];
-	previousParams: string[] = [];
+	detectiveCount: number = 0;
+	detectives: Player[] = [];
+	identifications = new Map<Player, number>();
+	kidnaps = new Map<Player, number>();
 	lastCategory: Category | null = null;
+	previousParams: string[] = [];
+	roundGuesses = new Map<Player, boolean>();
 
 	onRemovePlayer(player: Player) {
 		if (this.criminals.includes(player)) {

@@ -39,7 +39,6 @@ class HitmonchansHangman extends Guessing {
 	lastAnswer: string = '';
 	letters: string[] = [];
 	roundGuesses = new Map<Player, boolean>();
-	set: number = 0;
 	solvedLetters: string[] = [];
 
 	async setAnswers() {
@@ -83,13 +82,12 @@ class HitmonchansHangman extends Guessing {
 				this.end();
 			} else {
 				this.answers = [];
-				this.set++;
 				this.timeout = setTimeout(() => this.nextRound(), 5000);
 			}
 			return;
 		}
 		for (let i = 0; i < this.letters.length; i++) {
-			if (this.solvedLetters.indexOf(Tools.toId(this.letters[i])) > -1) this.hints[i] = this.letters[i];
+			if (this.solvedLetters.includes(Tools.toId(this.letters[i]))) this.hints[i] = this.letters[i];
 		}
 		const text = this.hints.join(" ") + " | **" + this.currentCategory + "** | " + this.guessedLetters.join(", ");
 		this.on(text, () => {
@@ -111,7 +109,7 @@ class HitmonchansHangman extends Guessing {
 		}
 		for (let i = 0; i < this.letters.length; i++) {
 			if (Tools.toId(this.letters[i]) === guess) {
-				if (this.solvedLetters.indexOf(guess) === -1) this.solvedLetters.push(guess);
+				if (!this.solvedLetters.includes(guess)) this.solvedLetters.push(guess);
 				return;
 			}
 		}
