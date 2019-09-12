@@ -31,14 +31,14 @@ export class User {
 		return Config.developers && Config.developers.includes(this.id) ? true : false;
 	}
 
-	say(message: string, dontPrepare?: boolean) {
+	say(message: string, dontPrepare?: boolean, dontCheckFilter?: boolean) {
 		if (!dontPrepare) message = Tools.prepareMessage(message);
-		if (Client.willBeFiltered(message)) return;
+		if (!dontCheckFilter && Client.willBeFiltered(message)) return;
 		Client.send("|/pm " + this.name + ", " + message);
 	}
 
-	sayCommand(command: string) {
-		this.say(command, true);
+	sayCommand(command: string, dontCheckFilter?: boolean) {
+		this.say(command, true, dontCheckFilter);
 	}
 
 	on(message: string, listener: () => void) {

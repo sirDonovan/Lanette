@@ -79,31 +79,31 @@ export class Room {
 	}
 
 	sayHtml(html: string) {
-		this.say("/addhtmlbox " + html, true);
+		this.say("/addhtmlbox " + html, true, true);
 	}
 
 	sayUhtml(uhtmlName: string, html: string) {
-		this.say("/adduhtml " + uhtmlName + ", " + html, true);
+		this.say("/adduhtml " + uhtmlName + ", " + html, true, true);
 	}
 
 	sayUhtmlChange(uhtmlName: string, html: string) {
-		this.say("/changeuhtml " + uhtmlName + ", " + html, true);
+		this.say("/changeuhtml " + uhtmlName + ", " + html, true, true);
 	}
 
 	sayAuthUhtml(uhtmlName: string, html: string) {
-		this.say("/addrankuhtml +, " + uhtmlName + ", " + html, true);
+		this.say("/addrankuhtml +, " + uhtmlName + ", " + html, true, true);
 	}
 
 	sayAuthUhtmlChange(uhtmlName: string, html: string) {
-		this.say("/changerankuhtml +, " + uhtmlName + ", " + html, true);
+		this.say("/changerankuhtml +, " + uhtmlName + ", " + html, true, true);
 	}
 
 	sayModUhtml(uhtmlName: string, html: string, rank: GroupName) {
-		this.say("/addrankuhtml " + Client.groupSymbols[rank] + ", " + uhtmlName + ", " + html, true);
+		this.say("/addrankuhtml " + Client.groupSymbols[rank] + ", " + uhtmlName + ", " + html, true, true);
 	}
 
 	sayModUhtmlChange(uhtmlName: string, html: string, rank: GroupName) {
-		this.say("/changerankuhtml " + Client.groupSymbols[rank] + ", " + uhtmlName + ", " + html, true);
+		this.say("/changerankuhtml " + Client.groupSymbols[rank] + ", " + uhtmlName + ", " + html, true, true);
 	}
 
 	pmHtml(user: User | Player, html: string) {
