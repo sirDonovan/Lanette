@@ -387,6 +387,10 @@ export class Game extends Activity {
 		return this.shuffle(this.getPlayerList(players));
 	}
 
+	getRandomPlayer(players?: PlayerList): Player {
+		return this.players[this.sampleOne(Object.keys(this.getRemainingPlayers(players)))];
+	}
+
 	getPlayerLives(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => {
 			const wins = this.lives!.get(player) || this.startingLives;
