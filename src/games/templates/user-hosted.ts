@@ -140,12 +140,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			freejoin: true,
 		},
 		{
-			name: "Empoleon's Empires",
-			mascot: "Empoleon",
-			aliases: ['Empires', 'Empoleons'],
-			description: "Each player PMs the host an alias that they will use for the game (fake aliases may be added by the host). Each round, a player guesses who owns an alias. If correct, the owner is eliminated. Otherwise, the player who is guessed goes. The last player standing wins!",
-		},
-		{
 			name: "Excluded",
 			description: "Players try to guess pokemon that aren't excluded by the parameter..",
 		},
@@ -168,13 +162,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			description: "This is a game of storytelling, decision-making, swift responses, and chance! The host will create a scenario in which players have to choose their paths and overcome obstacles to be the last one standing.",
 			aliases: ['hg'],
 			approvedHostOnly: true,
-		},
-		{
-			name: "Hypno's Hunches",
-			mascot: "Hypno",
-			aliases: ['Hunches', 'Hypnos'],
-			description: "A variation of hangman where the blanks aren't revealed!",
-			freejoin: true,
 		},
 		{
 			name: "Jigglypuff's Dodgeball",
@@ -241,13 +228,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			mascot: 'Pachirisu',
 			aliases: ['pachirisus'],
 			description: "'A random Pokemon is displayed by the host and the players have to either recommend or not recommend it. Then, the host will display another random Pokemon. If the 1st Pokemon wins type-wise, the players that recommended it win a point and vice-versa!",
-			freejoin: true,
-		},
-		{
-			name: "Piplup's Letter Placements",
-			mascot: "Piplup",
-			aliases: ['PLP', 'Piplups'],
-			description: "A category and 3 letters will be shown each round. Players must find something in that category that contains those letters side by side in the order given.",
 			freejoin: true,
 		},
 		{
@@ -386,27 +366,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			mascot: "Weavile",
 			description: "Each round, one player PMs the host a move while the other players PM the host a Pokemon. If a player's Pokemon resists the move or is immune to it, they win points. However, the more picked Pokemon the move hits super effectively, the more points the user gets",
 			aliases: ['WWB'],
-		},
-		{
-			name: "Wishiwashi's Stat Fishing",
-			mascot: "Wishiwashi",
-			aliases: ['Stat Fishing', 'Wishiwashis'],
-			description: "Players await the [ ! ] signal to reel in Pokemon and earn points based on their stats!",
-			freejoin: true,
-		},
-		{
-			name: "Wonder Guard Wipeout",
-			mascot: "Ditto",
-			aliases: ['WGW'],
-			description: "Players must use damaging moves that hit through the transforming Ditto's Wonder Guard (no repeats in a round)!",
-			freejoin: true,
-		},
-		{
-			name: "Zygarde's Orders",
-			mascot: "Zygarde",
-			aliases: ['Orders', 'Zygardes'],
-			description: "A variation of hangman in which the host starts with a single letter. Instead of players guessing letters, the host will start to add more letters. Players have to be the first to guess the complete words to gain points.",
-			freejoin: true,
 		},
 		{
 			name: "20 Questions",
