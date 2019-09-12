@@ -35,6 +35,7 @@ class AmbipomsTossups extends Guessing {
 	letters: string[] = [];
 	revealedLetters: number = 0;
 	readonly roundGuesses = new Map<Player, boolean>();
+	tossupRound: number = 0;
 
 	async setAnswers() {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
@@ -44,7 +45,7 @@ class AmbipomsTossups extends Guessing {
 		}
 		this.answers = [answer];
 		this.revealedLetters = 0;
-		this.round = 1;
+		this.tossupRound = 0;
 		this.roundGuesses.clear();
 		const letters = answer.split("");
 		this.letters = letters;
@@ -61,7 +62,8 @@ class AmbipomsTossups extends Guessing {
 			this.canGuess = false;
 			await this.setAnswers();
 		}
-		if (this.round > 1) {
+		this.tossupRound++;
+		if (this.tossupRound > 1) {
 			let index = this.random(this.hints.length);
 			while (this.hints[index] !== '_') {
 				index = this.random(this.hints.length);
@@ -103,13 +105,13 @@ export const game: IGameFile<AmbipomsTossups> = {
 	class: AmbipomsTossups,
 	commandDescriptions,
 	commands: Object.assign({}, templateCommands),
-	description: "Similar to Hangman, the host starts with a series of blank spaces which represent the word. Instead of players guessing letters, the host will start to fill in blank spaces with letters. Players have to be the first to guess the complete words to gain points.",
+	description: "Players guess answers as blanks are filled in one by one (one guess per round)!",
 	formerNames: ["Tossups"],
 	freejoin: true,
 	name,
 	mascot: "Ambipom",
 	minigameCommand: 'tossup',
-	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess an answer as blanks are filled in (only one guess allowed) !",
+	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess an answer as blanks are filled in (one chance to guess correctly)!",
 	variants: [
 		{
 			name: "Ambipom's Pokemon Tossups",

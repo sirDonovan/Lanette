@@ -6,6 +6,7 @@ import { commands as templateCommands, IPlayingCard, PlayingCard } from './templ
 
 class MurkrowsBlackjack extends PlayingCard {
 	readonly blackJackpots = new Map<Player, number>();
+	blackjackRound: number = 0;
 	canHit: boolean = false;
 	canLateJoin: boolean = true;
 	canWager: boolean = true;
@@ -51,7 +52,7 @@ class MurkrowsBlackjack extends PlayingCard {
 		if (this.timeout) clearTimeout(this.timeout);
 		this.canWager = false;
 		this.subGameNumber++;
-		this.round = 0;
+		this.blackjackRound = 0;
 		if (this.subGameNumber > 1) {
 			this.playerCards.clear();
 			this.playerTotals.clear();
@@ -98,11 +99,12 @@ class MurkrowsBlackjack extends PlayingCard {
 	onNextRound() {
 		this.canHit = false;
 		let playersLeft: number;
-		if (this.round === 1) {
+		this.blackjackRound++;
+		if (this.blackjackRound === 1) {
 			playersLeft = this.getRemainingPlayerCount();
 		} else {
 			playersLeft = 0;
-			const autoFreeze = this.round > 3;
+			const autoFreeze = this.blackjackRound > 3;
 			for (const i in this.getRemainingPlayers()) {
 				const player = this.players[i];
 				const playerCards = this.playerCards.get(player);
@@ -113,7 +115,7 @@ class MurkrowsBlackjack extends PlayingCard {
 				playersLeft++;
 			}
 		}
-		if (!playersLeft || this.round > this.roundLimit) {
+		if (!playersLeft || this.blackjackRound > this.roundLimit) {
 			const text = "All players have finished their turns!";
 			this.on(text, () => {
 				this.canLateJoin = true;
@@ -129,7 +131,7 @@ class MurkrowsBlackjack extends PlayingCard {
 			return;
 		}
 		this.roundActions.clear();
-		const html = this.getRoundHtml(this.getPlayerWins);
+		const html = this.getRoundHtml(this.getPlayerWins, null, "Round " + this.blackjackRound);
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			this.canHit = true;

@@ -37,7 +37,7 @@ export class Game extends Activity {
 	readonly options: Dict<number> = Object.create(null);
 	parentGame: Game | null = null;
 	prng: PRNG = new PRNG();
-	round: number = 0;
+	readonly round: number = 0;
 	signupsTime: number = 0;
 	readonly isUserHosted: boolean = false;
 	readonly winnerPointsToBits: number = 50;
@@ -206,6 +206,7 @@ export class Game extends Activity {
 
 	nextRound() {
 		if (this.timeout) clearTimeout(this.timeout);
+		// @ts-ignore
 		this.round++;
 		if (this.onNextRound) this.onNextRound();
 	}
