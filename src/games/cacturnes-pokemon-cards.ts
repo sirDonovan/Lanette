@@ -25,7 +25,6 @@ class CacturnesPokemonCards extends CardHighLow {
 
 export const game: IGameFile<CacturnesPokemonCards> = {
 	aliases: ["cacturnes", "cpc"],
-	battleFrontierCategory: 'Luck',
 	commandDescriptions: [Config.commandCharacter + "play [Pokemon]"],
 	commands: Object.assign({}, templateCommands),
 	class: CacturnesPokemonCards,

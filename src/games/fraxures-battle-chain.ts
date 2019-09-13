@@ -61,7 +61,6 @@ class FraxuresBattleChain extends Chain {
 
 export const game: IGameFile<FraxuresBattleChain> = {
 	aliases: ["fraxures", "battlechain", "fbc"],
-	battleFrontierCategory: 'Knowledge',
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],
 	commands,
 	class: FraxuresBattleChain,

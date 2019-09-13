@@ -88,21 +88,6 @@ class GolemsGalvanicMine extends Game {
 	}
 
 	onEnd() {
-		if (this.parentGame && this.parentGame.id === 'battlefrontier') {
-			let highestPoints = 0;
-			for (const i in this.players) {
-				const player = this.players[i];
-				if (player.eliminated) continue;
-				const points = this.points.get(player) || 0;
-				if (points > highestPoints) {
-					this.winners.clear();
-					this.winners.set(player, 1);
-					highestPoints = points;
-				} else if (points === highestPoints) {
-					this.winners.set(player, 1);
-				}
-			}
-		}
 		if (this.winners.size) {
 			this.say("**Winner" + (this.winners.size > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners));
 			this.convertPointsToBits(500 / this.options.points, 100 / this.options.points);
@@ -130,7 +115,6 @@ const commands: Dict<ICommandDefinition<GolemsGalvanicMine>> = {
 
 export const game: IGameFile<GolemsGalvanicMine> = {
 	aliases: ["golems", "ggm", "galvanicmine"],
-	battleFrontierCategory: 'Speed',
 	commandDescriptions: [Config.commandCharacter + "mine [stone]"],
 	commands,
 	class: GolemsGalvanicMine,

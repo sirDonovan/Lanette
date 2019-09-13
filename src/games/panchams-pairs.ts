@@ -255,7 +255,6 @@ const commands: Dict<ICommandDefinition<PanchamPairs>> = {
 
 export const game: IGameFile<PanchamPairs> = {
 	aliases: ["panchams", "pairs"],
-	battleFrontierCategory: 'Knowledge',
 	commandDescriptions: [Config.commandCharacter + "pair [name, name, param type]"],
 	commands,
 	class: PanchamPairs,

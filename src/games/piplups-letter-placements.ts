@@ -57,7 +57,6 @@ class PiplupsLetterPlacements extends Guessing {
 
 export const game: IGameFile<PiplupsLetterPlacements> = {
 	aliases: ["piplups", "plp"],
-	battleFrontierCategory: 'Identification',
 	commandDescriptions,
 	commands: Object.assign({}, templateCommands),
 	class: PiplupsLetterPlacements,

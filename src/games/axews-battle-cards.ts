@@ -479,7 +479,6 @@ class AxewsBattleCards extends CardMatching {
 
 export const game: IGameFile<AxewsBattleCards> = {
 	aliases: ["axews", "abc", "battlecards"],
-	battleFrontierCategory: 'Luck',
 	commandDescriptions: [Config.commandCharacter + "play [Pokemon or move]"],
 	commands: Object.assign({}, templateCommands),
 	class: AxewsBattleCards,

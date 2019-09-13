@@ -41,7 +41,6 @@ class MewsMoveCards extends CardHighLow {
 
 export const game: IGameFile<MewsMoveCards> = {
 	aliases: ["mews", "mmc"],
-	battleFrontierCategory: 'Luck',
 	commandDescriptions: [Config.commandCharacter + "play [move]"],
 	commands: Object.assign({}, templateCommands),
 	class: MewsMoveCards,

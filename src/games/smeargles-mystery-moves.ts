@@ -83,7 +83,6 @@ class SmearglesMysteryMoves extends Guessing {
 
 export const game: IGameFile<SmearglesMysteryMoves> = {
 	aliases: ["smeargles", "mysterymoves", "smm", "wtm"],
-	battleFrontierCategory: 'Puzzle',
 	commandDescriptions: [Config.commandCharacter + "g [move]"],
 	commands,
 	class: SmearglesMysteryMoves,

@@ -43,7 +43,6 @@ class SudowoodosSpeciesScramble extends Guessing {
 
 export const game: IGameFile<SudowoodosSpeciesScramble> = {
 	aliases: ["sudowoodos", "sss", "speciesscramble"],
-	battleFrontierCategory: 'Knowledge',
 	commandDescriptions,
 	commands: Object.assign({}, templateCommands),
 	class: SudowoodosSpeciesScramble,

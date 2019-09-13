@@ -8,7 +8,6 @@ class UnownsPokemonChain extends Chain {
 
 export const game: IGameFile<UnownsPokemonChain> = {
 	aliases: ["unowns", "upc", "pokemonchain"],
-	battleFrontierCategory: 'Identification',
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],
 	commands,
 	class: UnownsPokemonChain,

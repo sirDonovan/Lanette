@@ -36,7 +36,6 @@ class PolitoedsPortmanteauChain extends Chain {
 
 export const game: IGameFile<PolitoedsPortmanteauChain> = {
 	aliases: ["politoeds", "politoedsportchain", "portmanteauchain", "portchain", "ppc"],
-	battleFrontierCategory: 'Identification',
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],
 	commands,
 	class: PolitoedsPortmanteauChain,

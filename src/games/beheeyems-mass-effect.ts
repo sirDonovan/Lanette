@@ -85,7 +85,6 @@ class BeheeyemsMassEffect extends Guessing {
 
 export const game: IGameFile<BeheeyemsMassEffect> = {
 	aliases: ["Beheeyems", "bme"],
-	battleFrontierCategory: 'Knowledge',
 	commandDescriptions,
 	commands: Object.assign({}, templateCommands),
 	class: BeheeyemsMassEffect,

@@ -43,7 +43,6 @@ class ChimechosStatSchool extends Guessing {
 
 export const game: IGameFile<ChimechosStatSchool> = {
 	aliases: ['chimechos', 'css', 'statschool'],
-	battleFrontierCategory: 'Knowledge',
 	class: ChimechosStatSchool,
 	commandDescriptions,
 	commands: Object.assign({}, templateCommands),

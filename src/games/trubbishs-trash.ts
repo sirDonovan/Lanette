@@ -55,11 +55,6 @@ class TrubbishsTrash extends Game {
 	// weakestMove: string = '';
 
 	onSignups() {
-		if (this.parentGame && this.parentGame.id === 'battlefrontier') {
-			this.revealTime = 5000;
-			this.roundTime = 3000;
-			this.maxPoints = 1500;
-		}
 		if (this.options.freejoin) {
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 		}
@@ -136,28 +131,11 @@ class TrubbishsTrash extends Game {
 	}
 
 	onEnd() {
-		if (this.parentGame && this.parentGame.id === 'battlefrontier') {
-			let highestPoints = 0;
-			for (const i in this.players) {
-				const player = this.players[i];
-				if (player.eliminated) continue;
-				const points = this.points.get(player);
-				if (!points) continue;
-				if (points > highestPoints) {
-					this.winners.clear();
-					this.winners.set(player, 1);
-					highestPoints = points;
-				} else if (points === highestPoints) {
-					this.winners.set(player, 1);
-				}
-			}
-		} else {
-			for (const i in this.players) {
-				const player = this.players[i];
-				if (player.eliminated) continue;
-				const points = this.points.get(player);
-				if (points && points >= this.maxPoints) this.winners.set(player, 1);
-			}
+		for (const i in this.players) {
+			const player = this.players[i];
+			if (player.eliminated) continue;
+			const points = this.points.get(player);
+			if (points && points >= this.maxPoints) this.winners.set(player, 1);
 		}
 		this.say("**Winner" + (this.winners.size > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners));
 		this.convertPointsToBits(0.5, 0.1);
@@ -187,7 +165,6 @@ const commands: Dict<ICommandDefinition<TrubbishsTrash>> = {
 
 export const game: IGameFile<TrubbishsTrash> = {
 	aliases: ["trubbishs", "tt"],
-	battleFrontierCategory: 'Speed',
 	commandDescriptions: [Config.commandCharacter + "trash [move]"],
 	commands,
 	class: TrubbishsTrash,

@@ -115,7 +115,6 @@ class PikachusMysteryPokemon extends Guessing {
 
 export const game: IGameFile<PikachusMysteryPokemon> = {
 	aliases: ["pikachus", "mysterypokemon", "pmp", "wtp"],
-	battleFrontierCategory: 'Puzzle',
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],
 	commands,
 	class: PikachusMysteryPokemon,

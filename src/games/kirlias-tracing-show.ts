@@ -55,7 +55,6 @@ commands.guess.aliases!.push('trace');
 
 export const game: IGameFile<KirliasTracingShow> = {
 	aliases: ['kirlias', 'kts'],
-	battleFrontierCategory: 'Knowledge',
 	class: KirliasTracingShow,
 	commandDescriptions: [Config.commandCharacter + "trace [ability]"],
 	commands,

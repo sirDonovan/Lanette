@@ -87,7 +87,6 @@ class KyuremsSplits extends Guessing {
 
 export const game: IGameFile<KyuremsSplits> = {
 	aliases: ['kyurems'],
-	battleFrontierCategory: 'Identification',
 	class: KyuremsSplits,
 	commandDescriptions,
 	commands: Object.assign({}, templateCommands),

@@ -108,27 +108,11 @@ class DedennesAbilityBlitz extends Game {
 	}
 
 	onEnd() {
-		if (this.parentGame && this.parentGame.id === 'battlefrontier') {
-			let highestPoints = 0;
-			for (const i in this.players) {
-				if (this.players[i].eliminated) continue;
-				const player = this.players[i];
-				const points = this.points.get(player) || 0;
-				if (points > highestPoints) {
-					this.winners.clear();
-					this.winners.set(player, 1);
-					highestPoints = points;
-				} else if (points === highestPoints) {
-					this.winners.set(player, 1);
-				}
-			}
-		} else {
-			for (const i in this.players) {
-				if (this.players[i].eliminated) continue;
-				const player = this.players[i];
-				const points = this.points.get(player);
-				if (points && points >= this.maxPoints) this.winners.set(player, 1);
-			}
+		for (const i in this.players) {
+			if (this.players[i].eliminated) continue;
+			const player = this.players[i];
+			const points = this.points.get(player);
+			if (points && points >= this.maxPoints) this.winners.set(player, 1);
 		}
 		this.say("**Winner" + (this.winners.size > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners));
 		this.convertPointsToBits(0.5, 0.1);
@@ -159,7 +143,6 @@ const commands: Dict<ICommandDefinition<DedennesAbilityBlitz>> = {
 
 export const game: IGameFile<DedennesAbilityBlitz> = {
 	aliases: ["dedennes", "dab"],
-	battleFrontierCategory: 'Speed',
 	commandDescriptions: [Config.commandCharacter + "select [ability]"],
 	commands,
 	class: DedennesAbilityBlitz,

@@ -91,7 +91,6 @@ class FeraligatrsLostLetters extends Guessing {
 
 export const game: IGameFile<FeraligatrsLostLetters> = {
 	aliases: ['feraligatrs', 'fll', 'll'],
-	battleFrontierCategory: 'Identification',
 	class: FeraligatrsLostLetters,
 	commandDescriptions,
 	commands: Object.assign({}, templateCommands),

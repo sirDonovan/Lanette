@@ -119,7 +119,6 @@ class HitmonchansHangman extends Guessing {
 
 export const game: IGameFile<HitmonchansHangman> = {
 	aliases: ["hitmonchans", "hh"],
-	battleFrontierCategory: 'Identification',
 	commandDescriptions,
 	commands: Object.assign({}, templateCommands),
 	class: HitmonchansHangman,

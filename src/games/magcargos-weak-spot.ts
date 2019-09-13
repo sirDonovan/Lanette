@@ -93,7 +93,6 @@ class MagcargosWeakSpot extends Guessing {
 
 export const game: IGameFile<MagcargosWeakSpot> = {
 	aliases: ["Magcargos", "ws"],
-	battleFrontierCategory: 'Knowledge',
 	commandDescriptions,
 	commands: Object.assign({}, templateCommands),
 	class: MagcargosWeakSpot,

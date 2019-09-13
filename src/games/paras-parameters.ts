@@ -126,7 +126,6 @@ export class ParasParameters extends Guessing {
 
 export const game: IGameFile<ParasParameters> = {
 	aliases: ['paras', 'params'],
-	battleFrontierCategory: 'Puzzle',
 	class: ParasParameters,
 	commandDescriptions,
 	commands: Object.assign({}, templateCommands),

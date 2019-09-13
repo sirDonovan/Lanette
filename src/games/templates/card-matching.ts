@@ -287,7 +287,7 @@ export abstract class CardMatching extends Card {
 				if (!player!.eliminated) {
 					let inactivePlayerCount = this.inactivePlayerCounts.get(player!) || 0;
 					inactivePlayerCount++;
-					if (!(this.parentGame && (this.parentGame.id === 'battlefrontier' || this.parentGame.id === '1v1challenge')) && inactivePlayerCount >= this.inactivePlayerLimit) {
+					if (!(this.parentGame && this.parentGame.id === '1v1challenge') && inactivePlayerCount >= this.inactivePlayerLimit) {
 						this.say(player!.name + " DQed for inactivity!");
 						// nextRound() called in onRemovePlayer
 						player!.eliminated = true;

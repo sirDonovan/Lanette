@@ -124,7 +124,6 @@ class HypnosHunches extends Guessing {
 
 export const game: IGameFile<HypnosHunches> = {
 	aliases: ["hypnos"],
-	battleFrontierCategory: 'Identification',
 	commandDescriptions,
 	commands: Object.assign({}, templateCommands),
 	class: HypnosHunches,

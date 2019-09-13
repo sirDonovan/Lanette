@@ -99,7 +99,6 @@ class LugiasObstructiveLetters extends Guessing {
 
 export const game: IGameFile<LugiasObstructiveLetters> = {
 	aliases: ['lugias', 'lol'],
-	battleFrontierCategory: 'Identification',
 	class: LugiasObstructiveLetters,
 	commandDescriptions,
 	commands: Object.assign({}, templateCommands),

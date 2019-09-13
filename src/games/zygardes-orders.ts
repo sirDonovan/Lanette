@@ -127,7 +127,6 @@ class ZygardesOrders extends Guessing {
 
 export const game: IGameFile<ZygardesOrders> = {
 	aliases: ["zygardes", "zo"],
-	battleFrontierCategory: 'Identification',
 	commandDescriptions,
 	commands: Object.assign({}, templateCommands),
 	class: ZygardesOrders,

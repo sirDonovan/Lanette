@@ -124,7 +124,6 @@ export class PoliwrathsPortmanteaus extends Guessing {
 
 export const game: IGameFile<PoliwrathsPortmanteaus> = {
 	aliases: ['poliwraths', 'ports'],
-	battleFrontierCategory: 'Puzzle',
 	class: PoliwrathsPortmanteaus,
 	commandDescriptions,
 	commands: Object.assign({}, templateCommands),

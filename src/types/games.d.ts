@@ -5,7 +5,6 @@ import { Room } from "../rooms";
 import { User } from "../users";
 import { IWorker } from "./global-types";
 
-type BattleFrontierCategory = "Knowledge" | "Puzzle" | "Identification" | "Speed" | "Reaction" | "Skill" | "Luck" | "TBD";
 export type GameDifficulty = 'easy' | 'medium' | 'hard';
 
 interface IGameClass<T> {
@@ -14,7 +13,6 @@ interface IGameClass<T> {
 }
 
 export interface IGameFile<T extends Game = Game> {
-	readonly battleFrontierCategory: BattleFrontierCategory;
 	readonly class: IGameClass<T>;
 	readonly description: string;
 	readonly name: string;

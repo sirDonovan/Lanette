@@ -60,7 +60,6 @@ class GreninjasTypings extends Guessing {
 
 export const game: IGameFile<GreninjasTypings> = {
 	aliases: ['greninjas'],
-	battleFrontierCategory: 'Knowledge',
 	class: GreninjasTypings,
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],
 	commands: Object.assign({}, templateCommands),

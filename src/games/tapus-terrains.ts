@@ -78,7 +78,7 @@ class TapusTerrains extends Game {
 			} else {
 				this.currentTerrain = null;
 				const len = this.queue.length;
-				if (len > 1 && (this.isElimination || (this.parentGame && this.parentGame.id === 'battlefrontier'))) this.players[this.queue[len - 1].id].eliminated = true;
+				if (len > 1 && this.isElimination) this.players[this.queue[len - 1].id].eliminated = true;
 				for (const i in this.players) {
 					const player = this.players[i];
 					if (player.eliminated) continue;
@@ -176,7 +176,6 @@ const commands: Dict<ICommandDefinition<TapusTerrains>> = {
 
 export const game: IGameFile<TapusTerrains> = {
 	aliases: ['tapus', 'terrains', 'trace', 'tr'],
-	battleFrontierCategory: 'Reaction',
 	class: TapusTerrains,
 	commandDescriptions: [Config.commandCharacter + 'jump'],
 	commands,

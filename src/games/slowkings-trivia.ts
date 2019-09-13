@@ -69,7 +69,6 @@ class SlowkingsTrivia extends Guessing {
 
 export const game: IGameFile<SlowkingsTrivia> = {
 	aliases: ['slowkings', 'triv', 'st'],
-	battleFrontierCategory: 'Knowledge',
 	class: SlowkingsTrivia,
 	commandDescriptions,
 	commands: Object.assign({}, templateCommands),

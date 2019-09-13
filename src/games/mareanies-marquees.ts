@@ -117,7 +117,6 @@ class MareaniesMarquee extends Guessing {
 
 export const game: IGameFile<MareaniesMarquee> = {
 	aliases: ['mareanies', 'marquees'],
-	battleFrontierCategory: 'Identification',
 	class: MareaniesMarquee,
 	commandDescriptions,
 	commands: Object.assign({}, templateCommands),

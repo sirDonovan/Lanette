@@ -139,7 +139,6 @@ const commands: Dict<ICommandDefinition<SerperiorLengthyChains>> = {
 
 export const game: IGameFile<SerperiorLengthyChains> = {
 	aliases: ["serperiors", "slc"],
-	battleFrontierCategory: 'Puzzle',
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon chain]"],
 	commands,
 	class: SerperiorLengthyChains,

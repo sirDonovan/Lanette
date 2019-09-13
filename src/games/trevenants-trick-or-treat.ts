@@ -151,7 +151,6 @@ const commands: Dict<ICommandDefinition<TrevenantsTrickOrTreat>> = {
 
 export const game: IGameFile<TrevenantsTrickOrTreat> = {
 	aliases: ["trevenants", "ttt", "trickortreat"],
-	battleFrontierCategory: 'Knowledge',
 	commandDescriptions: [Config.commandCharacter + "trick [move]"],
 	commands,
 	class: TrevenantsTrickOrTreat,

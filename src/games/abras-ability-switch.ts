@@ -68,7 +68,6 @@ commands.guess.aliases!.push('switch');
 
 export const game: IGameFile<AbrasAbilitySwitch> = {
 	aliases: ['aas', 'abras'],
-	battleFrontierCategory: 'Knowledge',
 	class: AbrasAbilitySwitch,
 	commandDescriptions: [Config.commandCharacter + "switch [Pokemon]"],
 	commands,

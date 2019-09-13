@@ -57,12 +57,10 @@ class ChandeluresCandles extends Game {
 			return;
 		}
 		if (this.round > this.roundLimit) return this.end();
-		let time = 5000;
-		if (this.parentGame && this.parentGame.id === 'battlefrontier') time = this.sampleOne(this.roundTimes);
 		const html = this.getRoundHtml(this.getPlayerLives);
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
-			this.timeout = setTimeout(() => this.exposeCandle(), time);
+			this.timeout = setTimeout(() => this.exposeCandle(), 5 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}
@@ -159,7 +157,6 @@ const commands: Dict<ICommandDefinition<ChandeluresCandles>> = {
 
 export const game: IGameFile<ChandeluresCandles> = {
 	aliases: ["chandelures", "candles", "cc"],
-	battleFrontierCategory: 'Reaction',
 	commandDescriptions: [Config.commandCharacter + "hide", Config.commandCharacter + "puff [player]"],
 	commands,
 	class: ChandeluresCandles,

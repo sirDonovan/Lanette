@@ -177,7 +177,6 @@ const commands: Dict<ICommandDefinition<EmpoleonsEmpires>> = {
 
 export const game: IGameFile<EmpoleonsEmpires> = {
 	aliases: ["empoleons"],
-	battleFrontierCategory: 'Luck',
 	commandDescriptions: [Config.commandCharacter + "alias [alias]", Config.commandCharacter + "guess [player], [alias]"],
 	commands,
 	class: EmpoleonsEmpires,

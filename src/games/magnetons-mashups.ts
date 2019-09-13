@@ -80,7 +80,6 @@ class MagnetonsMashups extends Guessing {
 
 export const game: IGameFile<MagnetonsMashups> = {
 	aliases: ['magnetons'],
-	battleFrontierCategory: 'Identification',
 	class: MagnetonsMashups,
 	commandDescriptions,
 	commands: Object.assign({}, templateCommands),

@@ -50,10 +50,6 @@ class TaurosSafariZone extends Game {
 	winners = new Map<Player, number>();
 
 	onSignups() {
-		if (this.parentGame && this.parentGame.id === 'battlefrontier') {
-			this.revealTime = 5000;
-			this.roundTime = 3000;
-		}
 		if (this.options.freejoin) {
 			this.timeout = setTimeout(() => {
 				this.nextRound();
@@ -161,42 +157,24 @@ class TaurosSafariZone extends Game {
 	}
 
 	onEnd() {
-		if (this.parentGame && this.parentGame.id === 'battlefrontier') {
-			let highestPoints = 0;
-			const winners = new Map<Player, number>();
-			for (const i in this.players) {
-				const player = this.players[i];
-				if (player.eliminated) continue;
-				const points = this.points.get(player) || 0;
-				if (points > highestPoints) {
-					winners.clear();
-					winners.set(player, 1);
-					highestPoints = points;
-				} else if (points === highestPoints) {
-					winners.set(player, 1);
-				}
-			}
-			this.winners = winners;
-		} else {
-			const totalRounds = this.round - 1;
-			const achievement = [];
-			for (const i in this.players) {
-				const player = this.players[i];
-				if (player.eliminated) continue;
-				const points = this.points.get(player);
-				if (points && points >= this.maxPoints) this.winners.set(player, 1);
-				const caughtPokemon = this.caughtPokemon.get(player);
-				if (caughtPokemon && caughtPokemon === totalRounds) achievement.push(player);
-			}
-			/*
-			if (achievement.length) {
-				let multiple = achievement.length > 1;
-				for (let i = 0; i < achievement.length; i++) {
-					Games.unlockAchievement(this.room, achievement[i], "Gotta Catch 'em All", this, multiple);
-				}
-			}
-			*/
+		const totalRounds = this.round - 1;
+		const achievement = [];
+		for (const i in this.players) {
+			const player = this.players[i];
+			if (player.eliminated) continue;
+			const points = this.points.get(player);
+			if (points && points >= this.maxPoints) this.winners.set(player, 1);
+			const caughtPokemon = this.caughtPokemon.get(player);
+			if (caughtPokemon && caughtPokemon === totalRounds) achievement.push(player);
 		}
+		/*
+		if (achievement.length) {
+			let multiple = achievement.length > 1;
+			for (let i = 0; i < achievement.length; i++) {
+				Games.unlockAchievement(this.room, achievement[i], "Gotta Catch 'em All", this, multiple);
+			}
+		}
+		*/
 		const names = this.getPlayerNames(this.winners);
 		this.say("**Winner" + (this.winners.size > 1 ? "s" : "") + "**: " + names);
 		this.convertPointsToBits(0.5, 0.1);
@@ -227,7 +205,6 @@ const commands: Dict<ICommandDefinition<TaurosSafariZone>> = {
 
 export const game: IGameFile<TaurosSafariZone> = {
 	aliases: ["tauros", "tsz", "ctp", "safarizone"],
-	battleFrontierCategory: 'Speed',
 	commandDescriptions: [Config.commandCharacter + "catch [Pokemon]"],
 	commands,
 	class: TaurosSafariZone,
