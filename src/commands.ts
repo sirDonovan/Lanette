@@ -790,7 +790,7 @@ const commands: Dict<ICommandDefinition> = {
 			if (!this.runningMultipleTargets) this.run('playerlist');
 			if (reachedCap) user.say((reachedCap === 1 ? "A user has" : reachedCap + " users have") + " reached the score cap in your game.");
 		},
-		aliases: ['addpoints', 'removepoint', 'removepoints', 'apt', 'rpt'],
+		aliases: ['addpoint', 'removepoint', 'removepoints', 'apt', 'rpt'],
 	},
 	addpointall: {
 		command(target, room, user, cmd) {
