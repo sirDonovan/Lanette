@@ -25,6 +25,9 @@ describe("Tournaments", () => {
 					totalDays = 31;
 				}
 
+				const scheduled = Object.keys(schedule.months[month]!).length;
+				assert(scheduled === totalDays, "Month " + month + " in " + room + " has " + scheduled + " formats scheduled but " + totalDays + " are required");
+
 				for (let i = 1; i <= totalDays; i++) {
 					const day = '' + i;
 					try {
@@ -34,7 +37,7 @@ describe("Tournaments", () => {
 						errors.push(e.message + " on " + month + "/" + day + " in " + room);
 					}
 				}
-				assert(validated === Object.keys(schedule.months[month]!).length, "\n\t" + errors.join("\n\t"));
+				assert(validated === scheduled, "\n\t" + errors.join("\n\t"));
 			}
 		}
 	});
