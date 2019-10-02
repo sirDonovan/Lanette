@@ -96,9 +96,10 @@ class MismagiusFoulPlay extends Game {
 	chooseCriminals() {
 		const keys = this.shuffle(data.pokemon);
 		this.chosenPokemon.forEach((species, player) => {
-			keys.splice(keys.indexOf(species));
+			keys.splice(keys.indexOf(species), 1);
 		});
 		for (const id in this.players) {
+			if (this.players[id].eliminated) continue;
 			const player = this.players[id];
 			if (this.chosenPokemon.has(player)) continue;
 			const pokemon = keys[0];
