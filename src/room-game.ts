@@ -343,7 +343,7 @@ export class Game extends Activity {
 	}
 
 	addBits(user: User | Player, bits: number, noPm?: boolean): boolean {
-		if (this.isPm(this.room) || (this.parentGame && !this.parentGame.allowChildGameBits)) return false;
+		if (bits <= 0 || this.isPm(this.room) || (this.parentGame && !this.parentGame.allowChildGameBits)) return false;
 		if (this.shinyMascot) bits *= 2;
 		Storage.addPoints(this.room, user.name, bits, this.format.id);
 		if (!noPm) user.say("You were awarded " + bits + " bits! To see your total amount, use the command ``" + Config.commandCharacter + "bits " + this.room.title + "``.");
@@ -352,7 +352,7 @@ export class Game extends Activity {
 	}
 
 	removeBits(user: User | Player, bits: number, noPm?: boolean): boolean {
-		if (this.isPm(this.room) || (this.parentGame && !this.parentGame.allowChildGameBits)) return false;
+		if (bits <= 0 || this.isPm(this.room) || (this.parentGame && !this.parentGame.allowChildGameBits)) return false;
 		if (this.shinyMascot) bits *= 2;
 		Storage.removePoints(this.room, user.name, bits, this.format.id);
 		if (!noPm) user.say("You lost " + bits + " bits! To see your remaining amount, use the command ``" + Config.commandCharacter + "bits " + this.room.title + "``.");
