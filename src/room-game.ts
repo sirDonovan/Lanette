@@ -13,6 +13,15 @@ export interface IGameOptionValues {
 	max: number;
 }
 
+type GameCommandListener = (lastUserid: string) => void;
+export interface IGameCommandCountListener {
+	commands: string[];
+	count: number;
+	lastUserId: string;
+	listener: GameCommandListener;
+	max: number;
+}
+
 const SIGNUPS_HTML_DELAY = 2 * 1000;
 
 // base of 0 defaults option to 'off'
@@ -28,6 +37,7 @@ export class Game extends Activity {
 	awardedBits: boolean = false;
 	canLateJoin: boolean = false;
 	readonly commands: CommandsDict<Game> = Object.assign(Object.create(null), Games.sharedCommands);
+	readonly commandsListeners: IGameCommandCountListener[] = [];
 	readonly customizableOptions: Dict<IGameOptionValues> = Object.create(null);
 	readonly loserPointsToBits: number = 10;
 	readonly maxBits: number = 1000;
@@ -306,6 +316,66 @@ export class Game extends Activity {
 		}
 	}
 
+	getCommandsAndAliases(commands: string[]): string[] {
+		const commandsAndAliases: string[] = [];
+		for (let i = 0; i < commands.length; i++) {
+			const command = commands[i];
+			if (!(command in this.commands)) continue;
+			const commandDefinition = this.commands[command];
+			for (const i in this.commands) {
+				if (this.commands[i].command === commandDefinition.command) commandsAndAliases.push(i);
+			}
+		}
+		return commandsAndAliases.sort();
+	}
+
+	findCommandsListener(commands: string[]): IGameCommandCountListener | null {
+		const commandsAndAliases = this.getCommandsAndAliases(commands);
+		let commandListener: IGameCommandCountListener | null = null;
+		for (let i = 0; i < this.commandsListeners.length; i++) {
+			if (this.commandsListeners[i].commands.length !== commandsAndAliases.length) continue;
+			let match = true;
+			for (let j = 0; j < this.commandsListeners[i].commands.length; j++) {
+				if (this.commandsListeners[i].commands[j] !== commandsAndAliases[j]) {
+					match = false;
+					break;
+				}
+			}
+			if (match) {
+				commandListener = this.commandsListeners[i];
+				break;
+			}
+		}
+		return commandListener;
+	}
+
+	increaseOnCommandsMax(commands: string[], increment?: number) {
+		const commandListener = this.findCommandsListener(commands);
+		if (commandListener) commandListener.max += (increment || 1);
+	}
+
+	decreaseOnCommandsMax(commands: string[], decrement?: number) {
+		const commandListener = this.findCommandsListener(commands);
+		if (commandListener) {
+			commandListener.max -= (decrement || 1);
+			if (commandListener.count === commandListener.max) {
+				commandListener.listener(commandListener.lastUserId);
+				this.commandsListeners.splice(this.commandsListeners.indexOf(commandListener, 1));
+			}
+		}
+	}
+
+	onCommands(commands: string[], max: number, listener: GameCommandListener) {
+		const commandsAndAliases = this.getCommandsAndAliases(commands);
+		this.offCommands(commandsAndAliases);
+		this.commandsListeners.push({commands: commandsAndAliases, count: 0, lastUserId: '', listener, max});
+	}
+
+	offCommands(commands: string[]) {
+		const commandListener = this.findCommandsListener(commands);
+		if (commandListener) this.commandsListeners.splice(this.commandsListeners.indexOf(commandListener, 1));
+	}
+
 	tryCommand(target: string, room: Room | User, user: User, command: string) {
 		if (!(command in this.commands)) return;
 		const commandDefinition = this.commands[command];
@@ -317,6 +387,26 @@ export class Game extends Activity {
 		}
 
 		if (commandDefinition.command.call(this, target, room, user, command) === false) return;
+
+		const triggeredListeners: IGameCommandCountListener[] = [];
+		for (let i = 0; i < this.commandsListeners.length; i++) {
+			const commandListener = this.commandsListeners[i];
+			for (let i = 0; i < commandListener.commands.length; i++) {
+				if (commandListener.commands[i] !== command) continue;
+				commandListener.count++;
+				commandListener.lastUserId = user.id;
+
+				if (commandListener.count === commandListener.max) {
+					commandListener.listener(commandListener.lastUserId);
+					triggeredListeners.push(commandListener);
+				}
+				break;
+			}
+		}
+
+		for (let i = 0; i < triggeredListeners.length; i++) {
+			this.commandsListeners.splice(this.commandsListeners.indexOf(triggeredListeners[i]), 1);
+		}
 	}
 
 	getSignupsHtml(): string {
