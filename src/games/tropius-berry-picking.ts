@@ -239,14 +239,13 @@ class TropiusBerryPicking extends Game {
 const commands: Dict<ICommandDefinition<TropiusBerryPicking>> = {
 	eat: {
 		command(target, room, user) {
-			if (!this.canEat) return;
-			if (!this.options.freejoin && (!this.players[user.id] || this.players[user.id].eliminated)) return;
+			if (!this.canEat || (!this.options.freejoin && (!this.players[user.id] || this.players[user.id].eliminated))) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 			const id = Tools.toId(target);
 			const berry = berries[id] || berries[id + 'berry'];
-			if (!berry) return;
+			if (!berry) return false;
 			if (this.options.freejoin) {
-				if (berry.effect !== this.roundEffect.effect) return;
+				if (berry.effect !== this.roundEffect.effect) return false;
 				if (this.timeout) clearTimeout(this.timeout);
 				this.canEat = false;
 				let points = this.points.get(player) || 0;
@@ -257,15 +256,16 @@ const commands: Dict<ICommandDefinition<TropiusBerryPicking>> = {
 					this.winners.set(player, 1);
 					this.convertPointsToBits(50);
 					this.end();
-					return;
+					return true;
 				}
 				this.say('**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '! A possible answer was __' + berry.name + '__.');
 				this.nextRound();
 			} else {
-				if (this.roundBerries.has(player)) return;
+				if (this.roundBerries.has(player)) return false;
 				this.roundBerries.set(player, berry);
 				user.say("You ate a " + berry.name + " Berry!");
 			}
+			return true;
 		},
 	},
 };

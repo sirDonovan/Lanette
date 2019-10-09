@@ -257,42 +257,73 @@ class MismagiusFoulPlay extends Game {
 const commands: Dict<ICommandDefinition<MismagiusFoulPlay>> = {
 	select: {
 		command(target, room, user) {
-			if (!this.started || !(user.id in this.players) || this.players[user.id].eliminated) return;
+			if (!this.started || !(user.id in this.players) || this.players[user.id].eliminated) return false;
 			const player = this.players[user.id];
-			if (this.chosenPokemon.has(player)) return user.say("You already have an assigned Pokemon.");
+			if (this.chosenPokemon.has(player)) {
+				user.say("You already have an assigned Pokemon.");
+				return false;
+			}
 			const pokemon = Dex.getPokemon(target);
-			if (!pokemon) return user.say("You must specify a valid Pokemon.");
-			if (!data.pokemon.includes(pokemon.species)) return user.say(pokemon.species + " cannot be used in this game.");
+			if (!pokemon) {
+				user.say("You must specify a valid Pokemon.");
+				return false;
+			}
+			if (!data.pokemon.includes(pokemon.species)) {
+				user.say(pokemon.species + " cannot be used in this game.");
+				return false;
+			}
 			let chosen = false;
 			this.chosenPokemon.forEach((species, player) => {
 				if (species === pokemon!.species) chosen = true;
 			});
-			if (chosen) return user.say(pokemon.species + " is already assigned to another player.");
+			if (chosen) {
+				user.say(pokemon.species + " is already assigned to another player.");
+				return false;
+			}
 			user.say("You have chosen " + pokemon.species + "!");
 			this.chosenPokemon.set(player, pokemon.species);
+			return true;
 		},
 		pmOnly: true,
 	},
 	suspect: {
 		command(target, room, user) {
-			if (!this.started || !(user.id in this.players) || this.players[user.id].eliminated) return;
+			if (!this.started || !(user.id in this.players) || this.players[user.id].eliminated) return false;
 			const player = this.players[user.id];
-			if (this.roundGuesses.has(player)) return player.say("You have already suspected a player this round!");
+			if (this.roundGuesses.has(player)) {
+				player.say("You have already suspected a player this round!");
+				return false;
+			}
 
 			const targets = target.split(",");
-			if (targets.length !== 2) return player.say("You must specify the player and the Pokemon.");
+			if (targets.length !== 2) {
+				player.say("You must specify the player and the Pokemon.");
+				return false;
+			}
 
 			const targetId = Tools.toId(targets[0]);
-			if (!(targetId in this.players)) return player.say("You must specify a player in the game.");
-			if (this.players[targetId].eliminated) return player.say(this.players[targetId].name + " has already been eliminated.");
+			if (!(targetId in this.players)) {
+				player.say("You must specify a player in the game.");
+				return false;
+			}
+			if (this.players[targetId].eliminated) {
+				player.say(this.players[targetId].name + " has already been eliminated.");
+				return false;
+			}
 
 			const pokemon = Dex.getPokemon(targets[1]);
-			if (!pokemon) return player.say("You must specify a valid Pokemon.");
+			if (!pokemon) {
+				player.say("You must specify a valid Pokemon.");
+				return false;
+			}
 
 			const targetPlayer = this.players[targetId];
 			const playerCriminal = this.criminals.includes(player);
 			const targetCriminal = this.criminals.includes(targetPlayer);
-			if (playerCriminal && targetCriminal) return player.say("You can't suspect a fellow criminal!");
+			if (playerCriminal && targetCriminal) {
+				player.say("You can't suspect a fellow criminal!");
+				return false;
+			}
 			this.roundGuesses.set(player, true);
 			if ((playerCriminal || targetCriminal) && this.chosenPokemon.get(targetPlayer) === pokemon.species) {
 				targetPlayer.eliminated = true;
@@ -311,19 +342,20 @@ const commands: Dict<ICommandDefinition<MismagiusFoulPlay>> = {
 					if (this.criminalCount === 0) {
 						this.say("All criminals have been " + action + "!");
 						this.end();
-						return;
+						return true;
 					}
 				} else {
 					this.detectiveCount--;
 					if (this.detectiveCount === 0) {
 						this.say("All detectives have been " + action + "!");
 						this.end();
-						return;
+						return true;
 					}
 				}
 			} else {
 				player.say("You failed to " + (playerCriminal ? "kidnap" : "identify") + " " + targetPlayer.name + ".");
 			}
+			return true;
 		},
 		pmOnly: true,
 	},

@@ -71,14 +71,15 @@ class OctillerysAmbush extends Game {
 const commands: Dict<ICommandDefinition<OctillerysAmbush>> = {
 	fire: {
 		command(target, room, user) {
-			if (!(user.id in this.players) || this.players[user.id].eliminated) return;
+			if (!(user.id in this.players) || this.players[user.id].eliminated) return false;
 			const player = this.players[user.id];
-			if (this.roundActions.has(player)) return;
+			if (this.roundActions.has(player)) return false;
 			this.roundActions.set(player, true);
-			if (!this.fireTime) return;
+			if (!this.fireTime) return false;
 			const targetPlayer = this.players[Tools.toId(target)];
-			if (!targetPlayer || targetPlayer === player) return;
+			if (!targetPlayer || targetPlayer === player) return false;
 			this.queue.push({"target": targetPlayer, "source": player});
+			return true;
 		},
 	},
 };

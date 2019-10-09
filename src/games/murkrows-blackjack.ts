@@ -209,10 +209,9 @@ class MurkrowsBlackjack extends PlayingCard {
 const commands: Dict<ICommandDefinition<MurkrowsBlackjack>> = {
 	hit: {
 		command(target, room, user) {
-			if (!this.canHit || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) return;
+			if (!this.canHit || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) return false;
 			const player = this.players[user.id];
-			if (this.roundActions.has(player)) return;
-			this.roundActions.add(player);
+			if (this.roundActions.has(player)) return false;
 			const userCards = this.playerCards.get(player)!;
 			const card = this.getCard();
 			userCards.push(card);
@@ -232,13 +231,16 @@ const commands: Dict<ICommandDefinition<MurkrowsBlackjack>> = {
 			this.playerTotals.set(player, total);
 			this.dealCards(player, [card]);
 			// if (total >= 29) Games.unlockAchievement(this.room, user, "Overkill", this);
+			this.roundActions.add(player);
+			return true;
 		},
 		pmGameCommand: true,
 	},
 	stay: {
 		command(target, room, user) {
-			if (!this.started || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) return;
+			if (!this.started || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) return false;
 			const player = this.players[user.id];
+			if (this.roundActions.has(player)) return false;
 			player.frozen = true;
 			this.dealCards(player);
 			if (this.playerTotals.get(player) === 21) {
@@ -246,25 +248,36 @@ const commands: Dict<ICommandDefinition<MurkrowsBlackjack>> = {
 				// if ((cards[0].name === 'J' || cards[1].name === 'J') && (cards[0].name === 'A' || cards[1].name === 'A')) Games.unlockAchievement(this.room, user, "True Blackjack", this);
 			}
 			this.roundActions.add(player);
+			return true;
 		},
 		pmGameCommand: true,
 	},
 	wager: {
 		command(target, room, user) {
-			if (!(user.id in this.players)) return;
-			if (!this.canWager) return user.say("You must place your wager before the game starts.");
+			if (!(user.id in this.players)) return false;
+			if (!this.canWager) {
+				user.say("You must place your wager before the game starts.");
+				return false;
+			}
 			const player = this.players[user.id];
 			const database = Storage.getDatabase(this.room as Room);
-			if (!database.leaderboard || !(user.id in database.leaderboard)) return;
+			if (!database.leaderboard || !(user.id in database.leaderboard)) return false;
 			const bits = database.leaderboard[user.id].current;
-			if (!bits) return user.say("You don't have any bits to wager!");
+			if (!bits) {
+				user.say("You don't have any bits to wager!");
+				return false;
+			}
 			let wager = parseInt(target.trim().split(" ")[0]);
-			if (wager <= 0 || isNaN(wager)) return;
+			if (wager <= 0 || isNaN(wager)) return false;
 			if (this.wagerLimit && wager > this.wagerLimit) wager = this.wagerLimit;
-			if (wager > bits) return user.say("You can't wager more bits than you currently have!");
+			if (wager > bits) {
+				user.say("You can't wager more bits than you currently have!");
+				return false;
+			}
 			wager = Math.floor(wager);
 			this.wagers.set(player, wager);
 			user.say("Your wager for " + wager + " bits has been placed!");
+			return true;
 		},
 	},
 };

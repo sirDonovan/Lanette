@@ -151,14 +151,15 @@ class TrubbishsTrash extends Game {
 const commands: Dict<ICommandDefinition<TrubbishsTrash>> = {
 	trash: {
 		command(target, room, user) {
-			if (!this.canTrash) return;
+			if (!this.canTrash) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
-			if (this.roundTrashes.has(player)) return;
+			if (this.roundTrashes.has(player)) return false;
 			const id = Tools.toId(target);
 			const move = this.roundMoves.get(id);
-			if (!move) return;
+			if (!move) return false;
 			this.roundTrashes.set(player, move);
 			this.roundMoves.delete(id);
+			return true;
 		},
 	},
 };

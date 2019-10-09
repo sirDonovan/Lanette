@@ -99,21 +99,21 @@ class NinjasksCorners extends Game {
 const commands: Dict<ICommandDefinition<NinjasksCorners>> = {
 	travel: {
 		command(target, room, user) {
-			if (!this.canTravel) return;
+			if (!this.canTravel) return false;
 			if (this.options.freejoin) {
 				if (user.id in this.players) {
-					if (this.players[user.id].eliminated) return;
+					if (this.players[user.id].eliminated) return false;
 				} else {
 					this.createPlayer(user);
 				}
 			} else {
-				if (!(user.id in this.players) || this.players[user.id].eliminated) return;
+				if (!(user.id in this.players) || this.players[user.id].eliminated) return false;
 			}
 			const player = this.players[user.id];
 			const color = Tools.toId(target);
-			if (!color) return;
+			if (!color) return false;
 			if (this.options.freejoin) {
-				if (color !== this.color) return;
+				if (color !== this.color) return false;
 				let points = this.points.get(player) || 0;
 				points++;
 				this.points.set(player, points);
@@ -121,13 +121,15 @@ const commands: Dict<ICommandDefinition<NinjasksCorners>> = {
 					for (const i in this.players) {
 						if (this.players[i] !== player) this.players[i].eliminated = true;
 					}
-					return this.end();
+					this.end();
+					return true;
 				}
 				this.nextRound();
 			} else {
 				this.roundTravels.set(player, color);
 				if (this.getRemainingPlayerCount() === 2 && color === this.color) this.nextRound();
 			}
+			return true;
 		},
 	},
 };

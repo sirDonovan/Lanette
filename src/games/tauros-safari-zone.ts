@@ -190,15 +190,16 @@ class TaurosSafariZone extends Game {
 const commands: Dict<ICommandDefinition<TaurosSafariZone>> = {
 	catch: {
 		command(target, room, user) {
-			if (!this.canCatch || (user.id in this.players && this.players[user.id].eliminated)) return;
+			if (!this.canCatch || (user.id in this.players && this.players[user.id].eliminated)) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
-			if (this.roundCatches.has(player)) return;
+			if (this.roundCatches.has(player)) return false;
 			target = Tools.toId(target);
-			if (!target) return;
+			if (!target) return false;
 			const pokemon = this.roundPokemon.get(target);
-			if (!pokemon) return;
+			if (!pokemon) return false;
 			this.roundCatches.set(player, pokemon);
 			this.roundPokemon.delete(target);
+			return true;
 		},
 	},
 };

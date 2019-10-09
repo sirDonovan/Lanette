@@ -124,14 +124,15 @@ class SerperiorLengthyChains extends Game {
 const commands: Dict<ICommandDefinition<SerperiorLengthyChains>> = {
 	guess: {
 		command(target, room, user) {
-			if (!this.category) return;
+			if (!this.category) return false;
 			const guess = Tools.toId(target);
-			if (!guess) return;
+			if (!guess) return false;
 			const chain = this.getChain(guess, []);
 			if (chain.length > this.bestChain.length) {
 				this.bestPlayer = this.createPlayer(user) || this.players[user.id];
 				this.bestChain = chain;
 			}
+			return true;
 		},
 		aliases: ['g'],
 	},

@@ -17,7 +17,7 @@ const userHosted = require(path.join(gamesDirectory, "templates", "user-hosted.j
 const baseCommands: Dict<ICommandDefinition<Game>> = {
 	summary: {
 		command(target, room, user) {
-			if (!(user.id in this.players)) return;
+			if (!(user.id in this.players)) return false;
 			const player = this.players[user.id];
 			if (this.getPlayerSummary) {
 				this.getPlayerSummary(this.players[user.id]);
@@ -26,8 +26,8 @@ const baseCommands: Dict<ICommandDefinition<Game>> = {
 				if (this.points) summary += "Your points: " + (this.points.get(player) || 0) + "<br />";
 				if (summary) player.sayHtml(summary);
 			}
+			return true;
 		},
-		globalGameCommand: true,
 		pmOnly: true,
 	},
 };

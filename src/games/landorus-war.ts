@@ -140,26 +140,50 @@ class LandorusWar extends Game {
 const commands: Dict<ICommandDefinition<LandorusWar>> = {
 	use: {
 		command(target, room, user) {
-			if (!this.started) return;
+			if (!this.started) return false;
 			const player = this.players[user.id];
-			if (!player || player.eliminated) return;
-			if (this.roundMoves.has(player)) return player.say("You have already used a move this round!");
+			if (!player || player.eliminated) return false;
+			if (this.roundMoves.has(player)) {
+				player.say("You have already used a move this round!");
+				return false;
+			}
 
 			const targets = target.split(",");
-			if (targets.length < 2) return player.say("You must specify a move and a trainer class.");
+			if (targets.length < 2) {
+				player.say("You must specify a move and a trainer class.");
+				return false;
+			}
 
 			const move = Dex.getMove(targets[0]);
-			if (!move) return player.say("'" + targets[0] + "' is not a valid move.");
-			if (!data.moves.includes(move.id)) return player.say("**" + move.name + "** cannot be used in this game.");
+			if (!move) {
+				player.say("'" + targets[0] + "' is not a valid move.");
+				return false;
+			}
+			if (!data.moves.includes(move.id)) {
+				player.say("**" + move.name + "** cannot be used in this game.");
+				return false;
+			}
 
 			const playerPokemon = this.playerPokemon.get(player)!;
-			if (!data.learnsets[playerPokemon.id].includes(move.id)) return player.say(playerPokemon.species + " does not learn **" + move.name + "**.");
+			if (!data.learnsets[playerPokemon.id].includes(move.id)) {
+				player.say(playerPokemon.species + " does not learn **" + move.name + "**.");
+				return false;
+			}
 
 			const alias = targets.slice(1).join(",");
-			if (alias === Tools.toId(this.playerAliases.get(player))) return player.say("You cannot use a move on yourself!");
+			if (alias === Tools.toId(this.playerAliases.get(player))) {
+				player.say("You cannot use a move on yourself!");
+				return false;
+			}
 			const attackedPlayer = this.getPlayerByAlias(alias, player);
-			if (!attackedPlayer) return player.say("'" + alias + "' is not a trainer class in this game.");
-			if (attackedPlayer.eliminated) return player.say("The player with that trainer class has already been eliminated.");
+			if (!attackedPlayer) {
+				player.say("'" + alias + "' is not a trainer class in this game.");
+				return false;
+			}
+			if (attackedPlayer.eliminated) {
+				player.say("The player with that trainer class has already been eliminated.");
+				return false;
+			}
 
 			const attackedPokemon = this.playerPokemon.get(attackedPlayer)!;
 			if (Dex.isImmune(move, attackedPokemon)) {
@@ -174,23 +198,39 @@ const commands: Dict<ICommandDefinition<LandorusWar>> = {
 			}
 
 			this.roundMoves.add(player);
+			return true;
 		},
 		pmGameCommand: true,
 	},
 	suspect: {
 		command(target, room, user) {
-			if (!this.started || !(user.id in this.players) || this.players[user.id].eliminated) return;
+			if (!this.started || !(user.id in this.players) || this.players[user.id].eliminated) return false;
 			const player = this.players[user.id];
-			if (this.roundSuspects.has(player)) return player.say("You have already suspected a trainer this round!");
+			if (this.roundSuspects.has(player)) {
+				player.say("You have already suspected a trainer this round!");
+				return false;
+			}
 
 			const targets = target.split(",");
-			if (targets.length !== 2) return player.say("You must specify the player and the Pokemon.");
+			if (targets.length !== 2) {
+				player.say("You must specify the player and the Pokemon.");
+				return false;
+			}
 
 			const alias = targets[0];
 			const targetPlayer = this.getPlayerByAlias(alias, player);
-			if (alias === Tools.toId(this.playerAliases.get(player))) return player.say("You cannot suspect yourself!");
-			if (!targetPlayer) return player.say("'" + alias + "' is not a trainer class in this game.");
-			if (targetPlayer.eliminated) return player.say("The player with that trainer class has already been eliminated.");
+			if (alias === Tools.toId(this.playerAliases.get(player))) {
+				player.say("You cannot suspect yourself!");
+				return false;
+			}
+			if (!targetPlayer) {
+				player.say("'" + alias + "' is not a trainer class in this game.");
+				return false;
+			}
+			if (targetPlayer.eliminated) {
+				player.say("The player with that trainer class has already been eliminated.");
+				return false;
+			}
 
 			const pokemonid = Tools.toId(targets[1]);
 			let pokemonInUse = false;
@@ -203,10 +243,11 @@ const commands: Dict<ICommandDefinition<LandorusWar>> = {
 			if (!pokemonInUse) {
 				const pokemon = Dex.getPokemon(pokemonid);
 				if (!pokemon) {
-					return player.say("'" + targets[1] + "' is not a valid Pokemon.");
+					player.say("'" + targets[1] + "' is not a valid Pokemon.");
 				} else {
-					return player.say("**" + pokemon.species + "** is not a Pokemon in this game.");
+					player.say("**" + pokemon.species + "** is not a Pokemon in this game.");
 				}
+				return false;
 			}
 
 			const targetPokemon = this.playerPokemon.get(targetPlayer)!;
@@ -218,12 +259,16 @@ const commands: Dict<ICommandDefinition<LandorusWar>> = {
 				targetPlayer.eliminated = true;
 				const suspectedPlayers = this.suspectedPlayers.get(player) || 0;
 				this.suspectedPlayers.set(player, suspectedPlayers + 1);
-				if (this.getRemainingPlayerCount() < 2) return this.end();
+				if (this.getRemainingPlayerCount() < 2) {
+					this.end();
+					return true;
+				}
 			} else {
 				player.say("Incorrect!");
 			}
 
 			this.roundSuspects.add(player);
+			return true;
 		},
 		pmGameCommand: true,
 	},

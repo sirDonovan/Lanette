@@ -100,15 +100,19 @@ class GolemsGalvanicMine extends Game {
 const commands: Dict<ICommandDefinition<GolemsGalvanicMine>> = {
 	mine: {
 		command(target, room, user) {
-			if (!this.started || (user.id in this.players && this.players[user.id].eliminated)) return;
+			if (!this.started || (user.id in this.players && this.players[user.id].eliminated)) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
-			if (this.roundMines.has(player)) return;
+			if (this.roundMines.has(player)) return false;
 			const stone = Dex.getItem(target);
-			if (!stone || !data.stones.includes(stone.name)) return user.say("'" + target + "' is not a valid Z or Mega stone.");
-			if (!(stone.id in this.roundStones)) return;
+			if (!stone || !data.stones.includes(stone.name)) {
+				user.say("'" + target + "' is not a valid Z or Mega stone.");
+				return false;
+			}
+			if (!(stone.id in this.roundStones)) return false;
 			this.roundMines.set(player, this.roundStones[stone.id]);
 			user.say("You successfully mined " + stone.name + "-" + this.roundStones[stone.id] + "!");
 			delete this.roundStones[stone.id];
+			return true;
 		},
 	},
 };

@@ -365,27 +365,28 @@ export abstract class CardMatching extends Card {
 const cardMatchingCommands: Dict<ICommandDefinition<CardMatching>> = {
 	play: {
 		command(target, room, user) {
-			if (!(user.id in this.players) || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return;
-			if (this.pm) return this.say("You must use the commands in the chat.");
+			if (!(user.id in this.players) || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
 			const targets = target.split(",");
 			const id = Tools.toId(targets[0]);
-			if (!id) return;
+			if (!id) return false;
 			const player = this.players[user.id];
 			const cards = this.playerCards.get(player);
-			if (!cards || !cards.length) return;
+			if (!cards || !cards.length) return false;
 			const index = this.getCardIndex(id, cards);
 			if (index < 0) {
 				if (Dex.data.pokedex[id]) {
-					return user.say("You don't have [ " + Dex.getExistingPokemon(id).species + " ].");
+					user.say("You don't have [ " + Dex.getExistingPokemon(id).species + " ].");
 				} else if (Dex.data.moves[id]) {
-					return user.say("You don't have [ " + Dex.getExistingMove(id).name + " ].");
+					user.say("You don't have [ " + Dex.getExistingMove(id).name + " ].");
 				} else {
-					return user.say("'" + targets[0] + "' isn't a valid Pokemon or move.");
+					user.say("'" + targets[0] + "' isn't a valid Pokemon or move.");
 				}
+				return false;
 			}
 			const card = cards[index];
 			if (!card.action && !this.isPlayableCard(card, this.topCard)) {
-				return user.say(this.playableCardDescription || "You must play a card that matches color or a type with the top card or an action card.");
+				user.say(this.playableCardDescription || "You must play a card that matches color or a type with the top card or an action card.");
+				return false;
 			}
 
 			let playResult;
@@ -394,18 +395,23 @@ const cardMatchingCommands: Dict<ICommandDefinition<CardMatching>> = {
 			} else {
 				playResult = this.playCard(card as IPokemonCard, player, targets, cards);
 			}
-			if (playResult === false) return;
+			if (playResult === false) return false;
 
 			// may be removed in playCard methods
 			if (cards.includes(card)) cards.splice(cards.indexOf(card), 1);
 			if (!cards.length) {
 				player.frozen = true;
-				if (this.finitePlayerCards) return this.end();
+				if (this.finitePlayerCards) {
+					this.end();
+					return true;
+				}
 			} else if (this.finitePlayerCards && cards.length === this.minimumPlayedCards) {
 				this.say(user.name + " has " + this.minimumPlayedCards + " card" + (this.minimumPlayedCards > 1 ? "s" : "") + " left!");
 			}
 			this.nextRound();
+			return true;
 		},
+		chatOnly: true,
 	},
 	cards: {
 		command: Games.commands.summary.command,

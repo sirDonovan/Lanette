@@ -86,9 +86,12 @@ class TrevenantsTrickOrTreat extends Game {
 const commands: Dict<ICommandDefinition<TrevenantsTrickOrTreat>> = {
 	trick: {
 		command(target, room, user) {
-			if (!this.started || (user.id in this.players && this.players[user.id].eliminated)) return;
+			if (!this.started || (user.id in this.players && this.players[user.id].eliminated)) return false;
 			const move = Dex.getMove(target);
-			if (!move) return user.say("'" + target + "' is not a valid move.");
+			if (!move) {
+				user.say("'" + target + "' is not a valid move.");
+				return false;
+			}
 			const player = this.createPlayer(user) || this.players[user.id];
 			this.hasAnswered.add(player);
 			const indices: [number, number][] = [];
@@ -115,11 +118,13 @@ const commands: Dict<ICommandDefinition<TrevenantsTrickOrTreat>> = {
 			}
 
 			if (!indices.length) {
-				return player.say("**" + move.name + "** isn't learned by any Pokemon in the grid!");
+				player.say("**" + move.name + "** isn't learned by any Pokemon in the grid!");
+				return false;
 			}
 
 			if (indices.length > 1) {
-				return player.say("**" + move.name + "** is learned by more than 1 Pokemon  (" + Tools.joinList(indices.map(index => this.pokemonGrid[index[0]][index[1]])) + ").");
+				player.say("**" + move.name + "** is learned by more than 1 Pokemon  (" + Tools.joinList(indices.map(index => this.pokemonGrid[index[0]][index[1]])) + ").");
+				return false;
 			}
 
 			const points = this.points.get(player) || 0;
@@ -138,12 +143,14 @@ const commands: Dict<ICommandDefinition<TrevenantsTrickOrTreat>> = {
 					const points = this.points.get(player);
 					if (points && !player.eliminated) this.addBits(player, points);
 				}
-				return this.end();
+				this.end();
+				return true;
 			}
 			this.pokemonGrid[indices[0][0]][indices[0][1]] = this.getNextMon();
 			this.display();
 			if (this.timeout) clearTimeout(this.timeout);
 			this.timeout = setTimeout(() => this.generateNewDisplay(), 60 * 1000);
+			return true;
 		},
 		pmGameCommand: true,
 	},

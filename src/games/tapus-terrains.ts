@@ -164,12 +164,13 @@ class TapusTerrains extends Game {
 const commands: Dict<ICommandDefinition<TapusTerrains>> = {
 	jump: {
 		command(target, room, user) {
-			if (!(user.id in this.players) || this.players[user.id].eliminated) return;
+			if (!(user.id in this.players) || this.players[user.id].eliminated) return false;
 			const player = this.players[user.id];
-			if (this.roundJumps.has(player)) return;
+			if (this.roundJumps.has(player)) return false;
 			this.roundJumps.set(player, true);
-			if (!this.canJump) return;
+			if (!this.canJump) return false;
 			this.queue.push(player);
+			return true;
 		},
 	},
 };

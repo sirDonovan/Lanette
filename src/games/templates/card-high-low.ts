@@ -222,26 +222,28 @@ export abstract class CardHighLow extends Card {
 const cardHighLowCommands: Dict<ICommandDefinition<CardHighLow>> = {
 	play: {
 		command(target, room, user) {
-			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].eliminated || this.roundPlays.has(this.players[user.id])) return;
+			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].eliminated || this.roundPlays.has(this.players[user.id])) return false;
 			const player = this.players[user.id];
 			const targets = target.split(",");
 			const id = Tools.toId(targets[0]);
-			if (!id) return;
+			if (!id) return false;
 			const cards = this.playerCards.get(player);
-			if (!cards || !cards.length) return;
+			if (!cards || !cards.length) return false;
 			const index = this.getCardIndex(id, cards);
 			if (index < 0) {
 				if (Dex.data.pokedex[id]) {
-					return user.say("You don't have [ " + Dex.getExistingPokemon(id).species + " ].");
+					user.say("You don't have [ " + Dex.getExistingPokemon(id).species + " ].");
 				} else if (Dex.data.moves[id]) {
-					return user.say("You don't have [ " + Dex.getExistingMove(id).name + " ].");
+					user.say("You don't have [ " + Dex.getExistingMove(id).name + " ].");
 				} else {
-					return user.say("'" + targets[0] + "' isn't a valid Pokemon or move.");
+					user.say("'" + targets[0] + "' isn't a valid Pokemon or move.");
 				}
+				return false;
 			}
 			this.roundPlays.set(player, cards[index]);
 			cards.splice(index, 1);
 			this.drawCard(player, this.roundDrawAmount);
+			return true;
 		},
 	},
 };

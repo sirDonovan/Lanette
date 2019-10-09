@@ -204,7 +204,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	randombattle: {
 		command(target, room, user) {
-			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return false;
+			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
 			const pokemon = Dex.getPokemon(target);
 			if (!pokemon) return this.say("'" + target.trim() + "' is not a valid Pokemon.");
 			if (!pokemon.randomBattleMoves) return this.say("No Random Battle data found for " + pokemon.species + ".");
@@ -218,7 +218,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	randomdoublesbattle: {
 		command(target, room, user) {
-			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return false;
+			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
 			const pokemon = Dex.getPokemon(target);
 			if (!pokemon) return this.say("'" + target.trim() + "' is not a valid Pokemon.");
 			if (!pokemon.randomDoubleBattleMoves) return this.say("No Random Doubles Battle data found for " + pokemon.species + ".");

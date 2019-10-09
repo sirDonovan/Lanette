@@ -1,7 +1,7 @@
-import { ICommandDefinition } from "../../command-parser";
+import { CommandsDict } from "../../command-parser";
 import { Player } from "../../room-activity";
 import { Game } from "../../room-game";
-import { IGameModeFile } from "../../types/games";
+import { GameCommandReturnType, IGameModeFile } from "../../types/games";
 import { Guessing } from "../templates/guessing";
 
 const name = 'Survival';
@@ -119,21 +119,27 @@ class Survival {
 	}
 }
 
-const commands: Dict<ICommandDefinition<Survival & Guessing>> = {
+const commands: CommandsDict<Survival & Guessing, GameCommandReturnType> = {
 	guess: {
 		async command(target, room, user) {
-			if (!this.canGuess || this.players[user.id] !== this.currentPlayer) return;
+			if (!this.canGuess || this.players[user.id] !== this.currentPlayer) return false;
 			const answer = await this.checkAnswer(target);
-			if (!answer) return;
+			if (!answer) return false;
 			if (this.timeout) clearTimeout(this.timeout);
 			this.currentPlayer = null;
-			if (this.getRemainingPlayerCount() === 1) return this.end();
+			if (this.getRemainingPlayerCount() === 1) {
+				this.end();
+				return true;
+			}
 			this.say('**' + user.name + '** advances to the next round! ' + this.getAnswers(answer));
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+			return true;
 		},
 	},
 };
-commands.g = {command: commands.guess.command};
+commands.g = {
+	command: commands.guess.command,
+};
 
 const initialize = (game: Game) => {
 	const mode = new Survival(game);

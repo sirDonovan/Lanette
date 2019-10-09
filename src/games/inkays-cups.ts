@@ -164,11 +164,11 @@ class InkaysCups extends Game {
 const commands: Dict<ICommandDefinition<InkaysCups>> = {
 	grab: {
 		command(target, room, user) {
-			if (!this.canGrab || !(user.id in this.players) || this.players[user.id].eliminated) return;
+			if (!this.canGrab || !(user.id in this.players) || this.players[user.id].eliminated) return false;
 			const player = this.players[user.id];
-			if (this.roundGuesses.has(player)) return;
+			if (this.roundGuesses.has(player)) return false;
 			const guess = Tools.toId(target);
-			if (!guess) return;
+			if (!guess) return false;
 			const guessMega = (guess.substr(0, 4) === 'mega' ? guess.substr(4) + 'mega' : '');
 			const guessPrimal = (guess.substr(0, 6) === 'primal' ? guess.substr(6) + 'primal' : '');
 			let answerIndex = -1;
@@ -179,12 +179,12 @@ const commands: Dict<ICommandDefinition<InkaysCups>> = {
 					break;
 				}
 			}
-			if (answerIndex > -1) {
-				const pokemon = Dex.getExistingPokemon(this.answers[answerIndex]).species;
-				this.answers.splice(answerIndex, 1);
-				this.roundGuesses.set(player, true);
-				user.say("You grabbed " + pokemon + " and advanced to the next round!");
-			}
+			if (answerIndex === -1) return false;
+			const pokemon = Dex.getExistingPokemon(this.answers[answerIndex]).species;
+			this.answers.splice(answerIndex, 1);
+			this.roundGuesses.set(player, true);
+			user.say("You grabbed " + pokemon + " and advanced to the next round!");
+			return true;
 		},
 	},
 };

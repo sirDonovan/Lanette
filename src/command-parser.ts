@@ -1,18 +1,19 @@
+import { Game } from "./room-game";
 import { Room } from "./rooms";
+import { GameCommandReturnType } from "./types/games";
 import { User } from "./users";
 import * as LogsWorker from './workers/logs';
 
-export interface ICommandDefinition<T = undefined> {
-	command: (this: T extends undefined ? Command : T, target: string, room: Room | User, user: User, alias: string) => void;
+export interface ICommandDefinition<T = undefined, U = T extends Game ? GameCommandReturnType : void> {
+	command: (this: T extends undefined ? Command : T, target: string, room: Room | User, user: User, alias: string) => U | Promise<U>;
 	aliases?: string[];
 	readonly chatOnly?: boolean;
 	readonly developerOnly?: boolean;
-	readonly globalGameCommand?: boolean;
 	readonly pmGameCommand?: boolean;
 	readonly pmOnly?: boolean;
 }
 
-export type CommandsDict<T = undefined> = Dict<Pick<ICommandDefinition<T>, Exclude<keyof ICommandDefinition<T>, "aliases">>>;
+export type CommandsDict<T = undefined, U = T extends Game ? GameCommandReturnType : void> = Dict<Pick<ICommandDefinition<T, U>, Exclude<keyof ICommandDefinition<T, U>, "aliases">>>;
 
 type CommandErrorOptionalTarget = 'invalidBotRoom' | 'invalidFormat' | 'invalidGameFormat' | 'invalidTournamentFormat' | 'invalidUserHostedGameFormat' | 'invalidGameOption' | 'tooManyGameModes' |
 	'tooManyGameVariants' | 'emptyUserHostedGameQueue';
@@ -159,8 +160,8 @@ export class CommandParser {
 		this.logsWorker.unref();
 	}
 
-	loadCommands<T = undefined>(commands: Dict<ICommandDefinition<T>>): CommandsDict<T> {
-		const dict: CommandsDict<T> = {};
+	loadCommands<T = undefined, U = void>(commands: Dict<ICommandDefinition<T, U>>): CommandsDict<T, U> {
+		const dict: CommandsDict<T, U> = {};
 		for (const i in commands) {
 			const command = Object.assign({}, commands[i]);
 			if (command.chatOnly && command.pmOnly) throw new Error(i + " cannot be both a chat-only and a pm-only command");

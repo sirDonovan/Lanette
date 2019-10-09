@@ -5,6 +5,7 @@ import { Room } from "../rooms";
 import { User } from "../users";
 import { IWorker } from "./global-types";
 
+export type GameCommandReturnType = boolean;
 export type GameDifficulty = 'easy' | 'medium' | 'hard';
 
 interface IGameClass<T> {

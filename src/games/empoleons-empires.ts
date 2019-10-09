@@ -86,14 +86,26 @@ class EmpoleonsEmpires extends Game {
 const commands: Dict<ICommandDefinition<EmpoleonsEmpires>> = {
 	guess: {
 		command(target, room, user) {
-			if (!this.canGuess || !(user.id in this.players) || this.players[user.id] !== this.currentPlayer) return;
+			if (!this.canGuess || !(user.id in this.players) || this.players[user.id] !== this.currentPlayer) return false;
 			const player = this.players[user.id];
 			const targets = target.split(",");
-			if (targets.length !== 2) return this.say("Usage: ``" + Config.commandCharacter + "guess [player], [alias]``");
+			if (targets.length !== 2) {
+				this.say("Usage: ``" + Config.commandCharacter + "guess [player], [alias]``");
+				return false;
+			}
 			const attackedPlayer = this.players[Tools.toId(targets[0])];
-			if (!attackedPlayer) return this.say("You must specify a player in the game.");
-			if (attackedPlayer === player) return this.say("You cannot guess your own alias.");
-			if (attackedPlayer.eliminated) return this.say(attackedPlayer.name + " has already been eliminated.");
+			if (!attackedPlayer) {
+				this.say("You must specify a player in the game.");
+				return false;
+			}
+			if (attackedPlayer === player) {
+				this.say("You cannot guess your own alias.");
+				return false;
+			}
+			if (attackedPlayer.eliminated) {
+				this.say(attackedPlayer.name + " has already been eliminated.");
+				return false;
+			}
 			let validAlias = false;
 			const guessedAlias = Tools.toId(targets[1]);
 			for (const id in this.players) {
@@ -103,7 +115,10 @@ const commands: Dict<ICommandDefinition<EmpoleonsEmpires>> = {
 					break;
 				}
 			}
-			if (!validAlias) return user.say("You must specify an alias in the game.");
+			if (!validAlias) {
+				this.say("You must specify an alias in the game.");
+				return false;
+			}
 			this.canGuess = false;
 			let successiveSuspects = this.successiveSuspects.get(player) || 0;
 			if (guessedAlias === Tools.toId(this.playerAliases.get(attackedPlayer))) {
@@ -122,43 +137,56 @@ const commands: Dict<ICommandDefinition<EmpoleonsEmpires>> = {
 			}
 			if (this.timeout) clearTimeout(this.timeout);
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+			return true;
 		},
 		aliases: ['g'],
 	},
 	alias: {
 		command(target, room, user) {
-			if (!(user.id in this.players) || this.players[user.id].eliminated) return;
-			if (this.playerAliases.has(this.players[user.id])) return user.say("You have already chosen your alias!");
+			if (!(user.id in this.players) || this.players[user.id].eliminated) return false;
+			if (this.playerAliases.has(this.players[user.id])) {
+				user.say("You have already chosen your alias!");
+				return false;
+			}
 			const player = this.players[user.id];
 			const alias = target.trim();
-			if (alias.includes(',')) return user.say("Aliases cannot include commas.");
+			if (alias.includes(',')) {
+				user.say("Aliases cannot include commas.");
+				return false;
+			}
 			const id = Tools.toId(target);
 			if (!id || Tools.toAlphaNumeric(target).length !== target.length) {
-				return user.say("Aliases can only contain alpha-numeric characters.");
+				user.say("Aliases can only contain alpha-numeric characters.");
+				return false;
 			}
 			if (alias.length > 15) {
-				return user.say("Aliases must be shorter than 15 characters.");
+				user.say("Aliases must be shorter than 15 characters.");
+				return false;
 			}
 			const otherUser = Users.get(target);
 			if (otherUser && otherUser.rooms.has(this.room as Room)) {
-				return user.say("Aliases cannot be the names of other users in the room.");
+				user.say("Aliases cannot be the names of other users in the room.");
+				return false;
 			}
 			if (this.aliasIds.includes(id)) {
-				return user.say("That alias has already been chosen.");
+				user.say("That alias has already been chosen.");
+				return false;
 			}
 			if (Client.willBeFiltered(alias, this.room as Room)) {
-				return user.say("Aliases cannot contain banned words.");
+				user.say("Aliases cannot contain banned words.");
+				return false;
 			}
 			this.playerAliases.set(player, alias);
 			this.aliasIds.push(id);
 			user.say("You have chosen **" + alias + "** as your alias!");
+			return true;
 		},
 		aliases: ['nick'],
 		pmOnly: true,
 	},
 	dqalias: {
 		command(target, room, user) {
-			if (!this.started || !user.hasRank(this.room as Room, 'driver')) return;
+			if (!this.started || !user.hasRank(this.room as Room, 'driver')) return false;
 			let targetPlayer: Player | undefined;
 			const targetAlias = Tools.toId(target);
 			this.playerAliases.forEach((alias, player) => {
@@ -166,10 +194,17 @@ const commands: Dict<ICommandDefinition<EmpoleonsEmpires>> = {
 					targetPlayer = player;
 				}
 			});
-			if (!targetPlayer) return user.say("Please specify a valid alias.");
-			if (targetPlayer.eliminated) return user.say(targetPlayer.name + " is already eliminated.");
+			if (!targetPlayer) {
+				user.say("Please specify a valid alias.");
+				return false;
+			}
+			if (targetPlayer.eliminated) {
+				user.say(targetPlayer.name + " is already eliminated.");
+				return false;
+			}
 			this.removePlayer(targetPlayer.name);
 			this.room.say("/modnote " + targetPlayer.name + " was DQed from " + this.name + " for using the alias '" + target.trim() + "'.");
+			return true;
 		},
 		pmOnly: true,
 	},

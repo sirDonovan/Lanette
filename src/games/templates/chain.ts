@@ -276,15 +276,15 @@ export abstract class Chain extends Game {
 export let commands: Dict<ICommandDefinition<Chain>> = {
 	guess: {
 		command(target, room, user) {
-			if (!this.started || (this.players[user.id] && this.players[user.id].eliminated)) return;
-			if (!this.options.freejoin && (!this.currentPlayer || this.players[user.id] !== this.currentPlayer)) return;
-			if (!this.targetLinkStarts.length && !this.targetLinkEnds.length) return;
+			if (!this.started || (this.players[user.id] && this.players[user.id].eliminated)) return false;
+			if (!this.options.freejoin && (!this.currentPlayer || this.players[user.id] !== this.currentPlayer)) return false;
+			if (!this.targetLinkStarts.length && !this.targetLinkEnds.length) return false;
 			const guess = Tools.toId(target);
-			if (this.roundLinks[guess]) return;
+			if (this.roundLinks[guess]) return false;
 			const possibleLink: Link | undefined = this.pool[guess];
 			if (!possibleLink) {
-				if (this.options.freejoin) return;
-				return this.say("'" + guess + "' is not a valid " + this.linksType + ".");
+				if (!this.options.freejoin) this.say("'" + guess + "' is not a valid " + this.linksType + ".");
+				return false;
 			}
 			const linkStarts = this.getLinkStarts(possibleLink);
 			let linkEnds: string[] = [];
@@ -304,7 +304,7 @@ export let commands: Dict<ICommandDefinition<Chain>> = {
 					}
 				}
 			}
-			if (!match) return;
+			if (!match) return false;
 			if (this.timeout) clearTimeout(this.timeout);
 			if (this.options.freejoin) {
 				this.targetLinkStarts = [];
@@ -318,7 +318,7 @@ export let commands: Dict<ICommandDefinition<Chain>> = {
 					this.winners.set(player, 1);
 					this.convertPointsToBits(50);
 					this.end();
-					return;
+					return true;
 				}
 				this.say('**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '! A possible answer was __' + possibleLink.name + '__.');
 				this.timeout = setTimeout(() => this.nextRound(), 5000);
@@ -327,6 +327,7 @@ export let commands: Dict<ICommandDefinition<Chain>> = {
 				this.setLink(guess);
 				this.nextRound();
 			}
+			return true;
 		},
 		aliases: ['g'],
 	},

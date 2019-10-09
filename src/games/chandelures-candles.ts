@@ -103,30 +103,30 @@ class ChandeluresCandles extends Game {
 const commands: Dict<ICommandDefinition<ChandeluresCandles>> = {
 	hide: {
 		command(target, room, user) {
-			if (!(user.id in this.players) || this.players[user.id].eliminated || !this.roundTarget) return;
+			if (!(user.id in this.players) || this.players[user.id].eliminated || !this.roundTarget) return false;
 			const player = this.players[user.id];
 			if (player !== this.roundTarget) {
-				let lives = this.lives.get(player);
-				if (!lives) throw new Error(player.name + " has no lives");
+				let lives = this.lives.get(player)!;
 				lives -= 1;
 				user.say("Your candle was not exposed! Your swift movements used up one of your lives.");
 				this.lives.set(player, lives);
 				if (lives < 1) this.players[user.id].eliminated = true;
-				return;
+				return false;
 			}
 			if (this.timeout) clearTimeout(this.timeout);
 			this.say(this.roundTarget.name + " has safely escaped to the shadows...");
 			this.roundTarget = null;
 			this.timeout = setTimeout(() => this.nextRound(), 5000);
+			return true;
 		},
 	},
 	puff: {
 		command(target, room, user) {
-			if (!(user.id in this.players) || this.players[user.id].eliminated || !this.roundTarget) return;
+			if (!(user.id in this.players) || this.players[user.id].eliminated || !this.roundTarget) return false;
 			const player = this.players[user.id];
-			if (this.roundActions.has(player)) return;
+			if (this.roundActions.has(player)) return false;
 			const id = Tools.toId(target);
-			if (!(id in this.players) || this.players[id].eliminated) return;
+			if (!(id in this.players) || this.players[id].eliminated) return false;
 			const targetPlayer = this.players[id];
 			if (targetPlayer !== this.roundTarget) {
 				let lives = this.lives.get(player)!;
@@ -134,11 +134,11 @@ const commands: Dict<ICommandDefinition<ChandeluresCandles>> = {
 				user.say("You aimed at the wrong person! Your puff used up one of your lives.");
 				if (lives < 1) this.players[user.id].eliminated = true;
 				this.lives.set(player, lives);
-				return;
+				return false;
 			}
 			this.roundActions.set(player, true);
 			let targetLives = this.lives.get(targetPlayer)!;
-			if (targetLives === 0) return;
+			if (targetLives === 0) return false;
 			targetLives -= 1;
 			this.lives.set(targetPlayer, targetLives);
 			const puffs = this.puffs.get(player) || 0;
@@ -151,6 +151,7 @@ const commands: Dict<ICommandDefinition<ChandeluresCandles>> = {
 				this.roundTarget = null;
 				this.timeout = setTimeout(() => this.nextRound(), 5000);
 			}
+			return true;
 		},
 	},
 };

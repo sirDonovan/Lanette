@@ -214,11 +214,11 @@ class PanchamPairs extends Game {
 const commands: Dict<ICommandDefinition<PanchamPairs>> = {
 	pair: {
 		command(target, room, user) {
-			if (!this.canPair) return;
+			if (!this.canPair) return false;
 			const player = this.players[user.id];
-			if (!player || player.eliminated || this.paired.has(player)) return;
+			if (!player || player.eliminated || this.paired.has(player)) return false;
 			const split = target.split(",");
-			if (split.length !== 3) return;
+			if (split.length !== 3) return false;
 			let param = Tools.toId(split[2]);
 			if (param === 'gen') {
 				param = 'generation';
@@ -226,7 +226,7 @@ const commands: Dict<ICommandDefinition<PanchamPairs>> = {
 				param = 'color';
 			}
 			const pair = this.isParamPair(split[0], split[1], param as keyof IPokemonPairData | keyof IMovePairData, true);
-			if (!pair) return;
+			if (!pair) return false;
 			this.paired.add(player);
 			player.say("You have paired " + pair[0] + " & " + pair[1] + " and advanced to the next round!");
 			this.currentList.splice(this.currentList.indexOf(pair[0]), 1);
@@ -249,6 +249,7 @@ const commands: Dict<ICommandDefinition<PanchamPairs>> = {
 					this.nextRound();
 				}
 			}
+			return true;
 		},
 	},
 };

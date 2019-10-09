@@ -90,20 +90,20 @@ export const commands: Dict<ICommandDefinition<Guessing>> = {
 	guess: {
 		async command(target, room, user) {
 			if (!this.started || !this.canGuess || !this.answers.length || (this.players[user.id] && this.players[user.id].eliminated) ||
-				(this.parentGame && (!this.players[user.id] || this.players[user.id].eliminated))) return;
+				(this.parentGame && (!this.players[user.id] || this.players[user.id].eliminated))) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (!player.active) player.active = true;
-			if (!Tools.toId(target)) return;
-			if (this.filterGuess && this.filterGuess(target)) return;
+			if (!Tools.toId(target)) return false;
+			if (this.filterGuess && this.filterGuess(target)) return false;
 			if (this.roundGuesses) {
-				if (this.roundGuesses.has(player)) return;
+				if (this.roundGuesses.has(player)) return false;
 				this.roundGuesses.set(player, true);
 			}
 			const answer = await this.checkAnswer(target);
-			if (this.ended || !this.answers.length) return;
+			if (this.ended || !this.answers.length) return false;
 			if (!answer) {
 				if (this.onGuess) this.onGuess(target);
-				return;
+				return false;
 			}
 			if (this.timeout) clearTimeout(this.timeout);
 			const awardedPoints = this.getPointsPerAnswer ? this.getPointsPerAnswer(answer) : 1;
@@ -113,7 +113,7 @@ export const commands: Dict<ICommandDefinition<Guessing>> = {
 			if (this.isMiniGame) {
 				this.say((this.pm ? "You are" : "**" + user.name + "** is") + " correct! " + this.getAnswers(answer));
 				this.end();
-				return;
+				return true;
 			} else {
 				// this.markFirstAction(player);
 				// if (this.id === 'zygardesorders' && this.revealedLetters === 1) Games.unlockAchievement(this.room, player, "Tall Order", this);
@@ -150,7 +150,7 @@ export const commands: Dict<ICommandDefinition<Guessing>> = {
 					this.winners.set(player, 1);
 					this.convertPointsToBits();
 					this.end();
-					return;
+					return true;
 				} else {
 					if (this.hint) this.off(this.hint);
 					let text = '**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '! ' + this.getAnswers(answer);
@@ -163,6 +163,7 @@ export const commands: Dict<ICommandDefinition<Guessing>> = {
 
 			this.answers = [];
 			this.timeout = setTimeout(() => this.nextRound(), 5000);
+			return true;
 		},
 		aliases: ['g'],
 	},

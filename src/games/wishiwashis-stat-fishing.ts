@@ -152,10 +152,11 @@ const commands: Dict<ICommandDefinition<WishiwashisStatFishing>> = {
 	reel: {
 		command(target, room, user) {
 			const player = this.createPlayer(user) || this.players[user.id];
-			if (this.roundReels.has(player) || player.eliminated) return;
+			if (this.roundReels.has(player) || player.eliminated) return false;
 			this.roundReels.set(player, true);
-			if (!this.canReel) return;
+			if (!this.canReel) return false;
 			this.queue.push(player);
+			return true;
 		},
 	},
 };

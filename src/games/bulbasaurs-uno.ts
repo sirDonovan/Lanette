@@ -228,12 +228,13 @@ class BulbasaursUno extends CardMatching {
 const commands: Dict<ICommandDefinition<BulbasaursUno>> = {
 	draw: {
 		command(target, room, user) {
-			if (!(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return;
-			if (this.pm) return this.say("You must use the commands in the chat.");
+			if (!(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
 			this.drawCard(this.players[user.id]);
 			this.currentPlayer = null; // prevent Draw Wizard from activating on a draw
 			this.nextRound();
+			return true;
 		},
+		chatOnly: true,
 	},
 };
 

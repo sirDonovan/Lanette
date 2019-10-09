@@ -128,15 +128,16 @@ class DedennesAbilityBlitz extends Game {
 const commands: Dict<ICommandDefinition<DedennesAbilityBlitz>> = {
 	select: {
 		command(target, room, user) {
-			if (!this.canSelect) return;
+			if (!this.canSelect) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
-			if (this.roundSelections.has(player)) return;
+			if (this.roundSelections.has(player)) return false;
 			target = Tools.toId(target);
-			if (!target) return;
+			if (!target) return false;
 			const ability = this.roundAbilities.get(target);
-			if (!ability) return;
+			if (!ability) return false;
 			this.roundSelections.set(player, ability);
 			this.roundAbilities.delete(target);
+			return true;
 		},
 	},
 };

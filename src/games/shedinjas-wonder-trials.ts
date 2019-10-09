@@ -129,13 +129,22 @@ class ShedinjasWonderTrials extends Game {
 const commands: Dict<ICommandDefinition<ShedinjasWonderTrials>> = {
 	use: {
 		command(target, room, user) {
-			if (!this.canUseMove || !this.currentPokemon || (this.players[user.id] && this.players[user.id].eliminated)) return;
+			if (!this.canUseMove || !this.currentPokemon || (this.players[user.id] && this.players[user.id].eliminated)) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
-			if (this.roundMoves.has(player)) return;
+			if (this.roundMoves.has(player)) return false;
 			const move = Dex.getMove(target);
-			if (!move) return user.say("You must specify a valid move.");
-			if (!data.moves.includes(move.name)) return user.say(move.name + " cannot be used in this game.");
-			if (this.usedMoves.includes(move.name)) return user.say("Another player has already used " + move.name + " this round.");
+			if (!move) {
+				user.say("You must specify a valid move.");
+				return false;
+			}
+			if (!data.moves.includes(move.name)) {
+				user.say(move.name + " cannot be used in this game.");
+				return false;
+			}
+			if (this.usedMoves.includes(move.name)) {
+				user.say("Another player has already used " + move.name + " this round.");
+				return false;
+			}
 			this.usedMoves.push(move.name);
 			let effectiveness: number;
 			if (move.id === 'flyingpress') {
@@ -182,6 +191,7 @@ const commands: Dict<ICommandDefinition<ShedinjasWonderTrials>> = {
 				}
 			}
 			this.roundMoves.set(player, '' + effectiveness);
+			return true;
 		},
 	},
 };
