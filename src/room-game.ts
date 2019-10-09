@@ -1,4 +1,4 @@
-import { ICommandDefinition } from "./command-parser";
+import { CommandsDict } from "./command-parser";
 import { PRNG, PRNGSeed } from "./prng";
 import { Activity, Player, PlayerList } from "./room-activity";
 import { Room } from "./rooms";
@@ -27,7 +27,7 @@ export class Game extends Activity {
 	readonly activityType: string = 'game';
 	awardedBits: boolean = false;
 	canLateJoin: boolean = false;
-	readonly commands: Dict<ICommandDefinition<Game>> = Object.assign(Object.create(null), Games.globalGameCommands);
+	readonly commands: CommandsDict<Game> = Object.assign(Object.create(null), Games.sharedCommands);
 	readonly customizableOptions: Dict<IGameOptionValues> = Object.create(null);
 	readonly loserPointsToBits: number = 10;
 	readonly maxBits: number = 1000;
@@ -304,6 +304,19 @@ export class Game extends Activity {
 				this.signupsHtmlTimeout = null;
 			}, SIGNUPS_HTML_DELAY);
 		}
+	}
+
+	tryCommand(target: string, room: Room | User, user: User, command: string) {
+		if (!(command in this.commands)) return;
+		const commandDefinition = this.commands[command];
+		const isPm = room === user;
+		if (isPm) {
+			if (!commandDefinition.pmGameCommand && !commandDefinition.pmOnly) return;
+		} else {
+			if (commandDefinition.pmOnly) return;
+		}
+
+		if (commandDefinition.command.call(this, target, room, user, command) === false) return;
 	}
 
 	getSignupsHtml(): string {

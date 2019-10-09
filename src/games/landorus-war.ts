@@ -273,9 +273,8 @@ const commands: Dict<ICommandDefinition<LandorusWar>> = {
 		pmGameCommand: true,
 	},
 };
-commands.summary = Tools.deepClone(Games.globalGameCommands.summary);
-if (!commands.summary.aliases) commands.summary.aliases = [];
-commands.summary.aliases.push('role');
+commands.summary = Tools.deepClone(Games.sharedCommands.summary);
+commands.summary.aliases = ['role'];
 
 export const game: IGameFile<LandorusWar> = {
 	aliases: ['landorus', 'lw'],

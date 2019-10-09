@@ -14,7 +14,7 @@ const gamesDirectory = path.join(__dirname, 'games');
 // tslint:disable-next-line no-var-requires
 const userHosted = require(path.join(gamesDirectory, "templates", "user-hosted.js")).game as IUserHostedFile;
 
-const baseCommands: Dict<ICommandDefinition<Game>> = {
+const sharedCommandDefinitions: Dict<ICommandDefinition<Game>> = {
 	summary: {
 		command(target, room, user) {
 			if (!(user.id in this.players)) return false;
@@ -32,21 +32,16 @@ const baseCommands: Dict<ICommandDefinition<Game>> = {
 	},
 };
 
-const commands = CommandParser.loadCommands(baseCommands);
-const globalGameCommands: Dict<ICommandDefinition<Game>> = {};
-for (const i in commands) {
-	if (commands[i].globalGameCommand) globalGameCommands[i] = commands[i];
-}
+const sharedCommands = CommandParser.loadCommands(sharedCommandDefinitions);
 
 export class Games {
 	// exported constants
-	readonly commands: typeof commands = commands;
+	readonly sharedCommands: typeof sharedCommands = sharedCommands;
 	readonly gamesDirectory: typeof gamesDirectory = gamesDirectory;
-	readonly globalGameCommands: typeof globalGameCommands = globalGameCommands;
 	readonly userHosted: typeof userHosted = userHosted;
 
 	readonly aliases: Dict<string> = {};
-	readonly commandNames: string[] = Object.keys(commands);
+	readonly commands: typeof sharedCommands = Object.assign(Object.create(null), sharedCommands);
 	readonly formats: Dict<IGameFileComputed> = {};
 	lastGames: Dict<number> = {};
 	lastScriptedGames: Dict<number> = {};
@@ -78,7 +73,9 @@ export class Games {
 			if (!gameFiles[i].endsWith('.js')) continue;
 			const file = require(gamesDirectory + '/' + gameFiles[i]).game as IGameFile;
 			const id = Tools.toId(file.name);
-			this.formats[id] = Object.assign({id}, file);
+			let commands;
+			if (file.commands) commands = CommandParser.loadCommands(file.commands);
+			this.formats[id] = Object.assign({}, file, {commands, id});
 		}
 
 		const modesDirectory = path.join(gamesDirectory, "modes");
@@ -126,9 +123,8 @@ export class Games {
 			}
 
 			if (format.commands) {
-				format.commands = CommandParser.loadCommands(format.commands);
 				for (const i in format.commands) {
-					if (!this.commandNames.includes(i)) this.commandNames.push(i);
+					if (!(i in this.commands)) this.commands[i] = format.commands[i];
 				}
 			}
 
@@ -172,7 +168,7 @@ export class Games {
 			const mode = this.modes[i];
 			if (mode.commands) {
 				for (const i in mode.commands) {
-					if (!this.commandNames.includes(i)) this.commandNames.push(i);
+					if (!(i in this.commands)) this.commands[i] = mode.commands[i];
 				}
 			}
 		}
@@ -181,25 +177,16 @@ export class Games {
 	}
 
 	loadFormatCommands() {
-		for (let i = 0; i < this.commandNames.length; i++) {
-			const commandName = this.commandNames[i];
-			Commands[commandName] = {
+		for (const i in this.commands) {
+			Commands[i] = {
 				command(target, room, user, command) {
 					if (this.isPm(room)) {
-						if (user.game && commandName in user.game.commands) {
-							user.game.commands[commandName].command.call(user.game, target, user, user, command);
-						}
+						if (user.game) user.game.tryCommand(target, user, user, command);
 						user.rooms.forEach((value, room) => {
-							if (room.game && commandName in room.game.commands && (room.game.commands[commandName].pmOnly || room.game.commands[commandName].pmGameCommand)) {
-								room.game.commands[commandName].command.call(room.game, target, user, user, command);
-							}
+							if (room.game) room.game.tryCommand(target, user, user, command);
 						});
 					} else {
-						if (room.game) {
-							if (commandName in room.game.commands && !room.game.commands[commandName].pmOnly) {
-								room.game.commands[commandName].command.call(room.game, target, room, user, command);
-							}
-						}
+						if (room.game) room.game.tryCommand(target, room, user, command);
 					}
 				},
 			};

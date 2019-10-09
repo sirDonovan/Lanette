@@ -355,6 +355,6 @@ export abstract class Card extends Game {
 }
 
 export let commands: Dict<ICommandDefinition<Card>> = {
-	cards: Games.commands.summary,
-	hand: Games.commands.summary,
+	cards: Games.sharedCommands.summary,
+	hand: Games.sharedCommands.summary,
 };

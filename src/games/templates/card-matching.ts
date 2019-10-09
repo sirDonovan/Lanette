@@ -414,10 +414,10 @@ const cardMatchingCommands: Dict<ICommandDefinition<CardMatching>> = {
 		chatOnly: true,
 	},
 	cards: {
-		command: Games.commands.summary.command,
+		command: Games.sharedCommands.summary.command,
 	},
 	hand: {
-		command: Games.commands.summary.command,
+		command: Games.sharedCommands.summary.command,
 	},
 };
 

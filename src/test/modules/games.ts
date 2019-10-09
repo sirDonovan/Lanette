@@ -27,7 +27,7 @@ describe("Games", () => {
 
 	it('should not overwrite data from other games', () => {
 		const aliases: Dict<string> = {};
-		const commandNames: string[] = Object.keys(Games.commands);
+		const commandNames: string[] = Object.keys(Games.sharedCommands);
 		const formats: Dict<IGameFileComputed> = {};
 		const minigameCommandNames: Dict<{aliases: string[], format: string}> = {};
 		const modes: Dict<IGameMode> = {};
@@ -40,7 +40,9 @@ describe("Games", () => {
 			const file = require(Games.gamesDirectory + '/' + gameFiles[i]).game as IGameFile;
 			const id = Tools.toId(file.name);
 			assert(!(id in formats), "'" + id + "' is the name of another game");
-			formats[id] = Object.assign({id}, file);
+			let commands;
+			if (file.commands) commands = CommandParser.loadCommands(file.commands);
+			formats[id] = Object.assign({}, file, {commands, id});
 		}
 
 		const modesDirectory = path.join(Games.gamesDirectory, "modes");
@@ -86,7 +88,6 @@ describe("Games", () => {
 			}
 
 			if (format.commands) {
-				format.commands = CommandParser.loadCommands(format.commands);
 				for (const i in format.commands) {
 					if (!commandNames.includes(i)) commandNames.push(i);
 				}

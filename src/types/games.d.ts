@@ -1,4 +1,4 @@
-import { ICommandDefinition } from "../command-parser";
+import { CommandsDict, ICommandDefinition } from "../command-parser";
 import { UserHosted } from "../games/templates/user-hosted";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
@@ -72,10 +72,12 @@ export interface IUserHostedFormatComputed {
 	inputOptions: Dict<number>;
 }
 
-export interface IUserHostedFormat extends IUserHostedComputed, IUserHostedFormatComputed {}
+export interface IUserHostedFormat<T extends UserHosted = UserHosted> extends IUserHostedComputed<T>, IUserHostedFormatComputed {}
 
-export interface IGameFileComputed extends IGameFile {
+export interface IGameFileComputed<T extends Game = Game> extends IGameFile<T> {
 	readonly id: string;
+
+	commands?: CommandsDict<T>;
 }
 
 export interface IGameFormatComputed {
@@ -93,11 +95,11 @@ export interface IGameModeFile<T = Game, U extends Game = Game> {
 	readonly naming: 'prefix' | 'suffix';
 
 	aliases?: string[];
-	readonly commands?: Dict<ICommandDefinition<T & U>>;
+	readonly commands?: CommandsDict<T & U, GameCommandReturnType>;
 }
 
-export interface IGameMode extends IGameModeFile {
+export interface IGameMode<T = Game, U extends Game = Game> extends IGameModeFile<T, U> {
 	readonly id: string;
 }
 
-export interface IGameFormat extends IGameFileComputed, IGameFormatComputed {}
+export interface IGameFormat<T extends Game = Game> extends IGameFileComputed<T>, IGameFormatComputed {}
