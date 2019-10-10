@@ -41,7 +41,7 @@ export abstract class MapShuffleGame extends MapGame {
 		if (!len) return this.end();
 		if (this.round > 1 && (this.round - 1) % 5 === 0) this.shuffleMap();
 		this.roundActions.clear();
-		this.onCommands(this.moveCommands, len, () => this.nextRound());
+		this.onCommands(this.moveCommands, {max: len, remainingPlayersMax: true}, () => this.nextRound());
 
 		const html = this.getRoundHtml(this.getPlayerNames);
 		const uhtmlName = this.uhtmlBaseName + '-round';

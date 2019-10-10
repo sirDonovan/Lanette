@@ -34,7 +34,7 @@ export abstract class MapDamageGame extends MapGame {
 		const len = this.getRemainingPlayerCount();
 		if (!len) return this.end();
 		this.roundActions.clear();
-		this.onCommands(this.moveCommands, len, () => {
+		this.onCommands(this.moveCommands, {max: len, remainingPlayersMax: true}, () => {
 			if (this.timeout) clearTimeout(this.timeout);
 			this.damagePlayers();
 		});

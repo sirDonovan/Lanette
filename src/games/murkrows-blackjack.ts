@@ -135,7 +135,7 @@ class MurkrowsBlackjack extends PlayingCard {
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			this.canHit = true;
-			this.onCommands(['hit', 'stay'], this.getRemainingPlayerCount(), () => this.nextRound());
+			this.onCommands(['hit', 'stay'], {max: this.getRemainingPlayerCount(), remainingPlayersMax: true}, () => this.nextRound());
 			this.timeout = setTimeout(() => this.nextRound(), 15 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);

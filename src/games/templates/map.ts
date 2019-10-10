@@ -441,7 +441,7 @@ export abstract class MapGame extends Game {
 				if (!this.escapedPlayers.has(player)) return false;
 				this.escapedPlayers.delete(player);
 				player.eliminated = false;
-				this.increaseOnCommandsMax(this.moveCommands);
+				this.increaseOnCommandsMax(this.moveCommands, 1);
 			} else {
 				return false;
 			}

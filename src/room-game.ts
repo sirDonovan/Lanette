@@ -14,12 +14,15 @@ export interface IGameOptionValues {
 }
 
 type GameCommandListener = (lastUserid: string) => void;
-export interface IGameCommandCountListener {
+interface IGameCommandCountOptions {
+	max: number;
+	remainingPlayersMax?: boolean;
+}
+interface IGameCommandCountListener extends IGameCommandCountOptions {
 	commands: string[];
 	count: number;
 	lastUserId: string;
 	listener: GameCommandListener;
-	max: number;
 }
 
 const SIGNUPS_HTML_DELAY = 2 * 1000;
@@ -300,7 +303,13 @@ export class Game extends Activity {
 				this.signupsHtmlTimeout = null;
 			}, SIGNUPS_HTML_DELAY);
 		}
-		if (!this.started && this.playerCap && this.playerCount >= this.playerCap) this.start();
+		if (this.started) {
+			for (let i = 0; i < this.commandsListeners.length; i++) {
+				if (this.commandsListeners[i].remainingPlayersMax) this.increaseOnCommandsMax(this.commandsListeners[i], 1);
+			}
+		} else {
+			if (this.playerCap && this.playerCount >= this.playerCap) this.start();
+		}
 		return player;
 	}
 
@@ -308,6 +317,12 @@ export class Game extends Activity {
 		if (this.isMiniGame) return;
 		const player = this.destroyPlayer(user, failedLateJoin);
 		if (this.options.freejoin || !player) return;
+		if (this.commandsListeners.length) {
+			const commandsListeners = this.commandsListeners.slice();
+			for (let i = 0; i < commandsListeners.length; i++) {
+				if (commandsListeners[i].remainingPlayersMax) this.decreaseOnCommandsMax(commandsListeners[i], 1);
+			}
+		}
 		if (!silent) {
 			if (this.onRemovePlayer) this.onRemovePlayer(player);
 			this.removeBits(player, 10, true);
@@ -355,15 +370,25 @@ export class Game extends Activity {
 		return commandListener;
 	}
 
-	increaseOnCommandsMax(commands: string[], increment?: number) {
-		const commandListener = this.findCommandsListener(commands);
-		if (commandListener) commandListener.max += (increment || 1);
+	increaseOnCommandsMax(commands: string[] | IGameCommandCountListener, increment: number) {
+		let commandListener: IGameCommandCountListener | null = null;
+		if (Array.isArray(commands)) {
+			commandListener = this.findCommandsListener(commands);
+		} else {
+			commandListener = commands;
+		}
+		if (commandListener) commandListener.max += increment;
 	}
 
-	decreaseOnCommandsMax(commands: string[], decrement?: number) {
-		const commandListener = this.findCommandsListener(commands);
+	decreaseOnCommandsMax(commands: string[] | IGameCommandCountListener, decrement: number) {
+		let commandListener: IGameCommandCountListener | null = null;
+		if (Array.isArray(commands)) {
+			commandListener = this.findCommandsListener(commands);
+		} else {
+			commandListener = commands;
+		}
 		if (commandListener) {
-			commandListener.max -= (decrement || 1);
+			commandListener.max -= decrement;
 			if (commandListener.count === commandListener.max) {
 				commandListener.listener(commandListener.lastUserId);
 				this.commandsListeners.splice(this.commandsListeners.indexOf(commandListener, 1));
@@ -371,10 +396,10 @@ export class Game extends Activity {
 		}
 	}
 
-	onCommands(commands: string[], max: number, listener: GameCommandListener) {
+	onCommands(commands: string[], options: IGameCommandCountOptions, listener: GameCommandListener) {
 		const commandsAndAliases = this.getCommandsAndAliases(commands);
 		this.offCommands(commandsAndAliases);
-		this.commandsListeners.push({commands: commandsAndAliases, count: 0, lastUserId: '', listener, max});
+		this.commandsListeners.push(Object.assign(options, {commands: commandsAndAliases, count: 0, lastUserId: '', listener}));
 	}
 
 	offCommands(commands: string[]) {

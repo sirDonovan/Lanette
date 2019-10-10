@@ -61,7 +61,7 @@ class LampentsLabyrinth extends MapGame  {
 			return;
 		}
 		this.roundActions.clear();
-		this.onCommands(this.moveCommands, len, () => {
+		this.onCommands(this.moveCommands, {max: len, remainingPlayersMax: true}, () => {
 			if (this.timeout) clearTimeout(this.timeout);
 			this.nextRound();
 		});

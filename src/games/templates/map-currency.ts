@@ -35,7 +35,7 @@ export abstract class MapCurrencyGame extends MapGame {
 		const len = this.getRemainingPlayerCount();
 		if (len < 2) return this.end();
 		this.roundActions.clear();
-		this.onCommands(this.moveCommands, len, () => this.nextRound());
+		this.onCommands(this.moveCommands, {max: len, remainingPlayersMax: true}, () => this.nextRound());
 
 		const html = this.getRoundHtml(this.getPlayerNames);
 		const uhtmlName = this.uhtmlBaseName + '-round';
