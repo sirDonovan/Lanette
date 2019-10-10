@@ -1,0 +1,532 @@
+import { ICommandDefinition } from "../../command-parser";
+import { Player } from "../../room-activity";
+import { Game } from "../../room-game";
+import { User } from "../../users";
+
+interface ISpaceAttributes {
+	achievement?: boolean;
+	currency?: boolean;
+	event?: string;
+	exit?: boolean;
+	fragments?: number;
+	trap?: boolean;
+	trappedPlayer?: string;
+}
+
+const mapKey: {currency: string, empty: string, exit: string, player: string, trap: string, unknown: string} = {
+	currency: 'o',
+	empty: '-',
+	exit: '[]',
+	player: '*',
+	trap: 'X',
+	unknown: '?',
+};
+
+export class MapFloorSpace {
+	attributes: ISpaceAttributes = {};
+	players = new Set<Player>();
+	traversedAttributes: PartialKeyedDict<ISpaceAttributes, Set<Player>> = {};
+
+	coordinates: string;
+
+	constructor(coordinates: string) {
+		this.coordinates = coordinates;
+	}
+
+	reset() {
+		this.attributes = {};
+		this.players.clear();
+	}
+
+	hasAttributes(): boolean {
+		return !!Object.keys(this.attributes).length;
+	}
+
+	addPlayer(player: Player) {
+		this.players.add(player);
+	}
+
+	removePlayer(player: Player) {
+		this.players.delete(player);
+	}
+}
+
+export class MapFloor {
+	attributes: ISpaceAttributes = {};
+	spaces: Dict<MapFloorSpace> = {};
+	traversedCoordinates: Dict<Set<Player>> = {};
+
+	x: number;
+	y: number;
+
+	constructor(x: number, y: number) {
+		this.x = x;
+		this.y = y;
+	}
+
+	reset() {
+		for (const i in this.spaces) {
+			this.spaces[i].reset();
+		}
+	}
+}
+
+export class GameMap {
+	floors: MapFloor[] = [];
+
+	reset() {
+		for (let i = 0; i < this.floors.length; i++) {
+			this.floors[i].reset();
+		}
+	}
+}
+
+export abstract class MapGame extends Game {
+	abstract currency: string = '';
+	abstract maxDimensions: number;
+	abstract minDimensions: number;
+
+	baseX: number = 0;
+	baseY: number = 0;
+	canMove: boolean = false;
+	currentFloor: number = 1;
+	dimensions: number = 0;
+	lives = new Map<Player, number>();
+	maxMovement: number = 3;
+	maxRounds: number = 20;
+	minMovement: number = 1;
+	moveCommands: string[] = ['up', 'down', 'left', 'right'];
+	playerCoordinates = new Map<Player, number[]>();
+	points = new Map<Player, number>();
+
+	escapedPlayers?: Map<Player, boolean> | null = null;
+	roundActions?: Map<Player, boolean> | null = null;
+	trappedPlayers?: Set<Player> | null = null;
+
+	abstract getMap(player?: Player): GameMap;
+	abstract getFloorIndex(player?: Player): number;
+	abstract onMaxRound(): void;
+	abstract onNextRound(): void;
+
+	toStringCoordindates(x: number, y: number): string {
+		return x + ', ' + y;
+	}
+
+	generateMap(x: number, y?: number): GameMap {
+		if (x < this.minDimensions) {
+			x = this.minDimensions;
+		} else if (x > this.maxDimensions) {
+			x = this.maxDimensions;
+		}
+		if (y) {
+			if (y < this.minDimensions) {
+				y = this.minDimensions;
+			} else if (y > this.maxDimensions) {
+				y = this.maxDimensions;
+			}
+		} else {
+			y = x;
+		}
+		this.baseX = x;
+		this.baseY = y;
+		const map = new GameMap();
+		for (let i = 0; i < this.currentFloor; i++) {
+			this.generateMapFloor(map);
+		}
+
+		if (this.onGenerateMap) this.onGenerateMap(map);
+		return map;
+	}
+
+	generateMapFloor(map: GameMap, x?: number, y?: number) {
+		if (!x) x = this.baseX;
+		if (!y) y = this.baseY;
+		const floor = new MapFloor(x, y);
+		for (let i = 0; i < x; i++) {
+			for (let j = 0; j < y; j++) {
+				const coordinates = this.toStringCoordindates(i, j);
+				floor.spaces[coordinates] = new MapFloorSpace(coordinates);
+			}
+		}
+		map.floors.push(floor);
+		if (this.onGenerateMapFloor) this.onGenerateMapFloor(floor);
+	}
+
+	getExitCoordinates(floorIndex: number, player?: Player): string[] {
+		const exitCoordinates: string[] = [];
+		const floor = this.getMap(player).floors[floorIndex];
+		for (const i in floor.spaces) {
+			const space = floor.spaces[i];
+			if (space.attributes.exit) exitCoordinates.push(space.coordinates);
+		}
+
+		return exitCoordinates;
+	}
+
+	positionPlayer(player: Player) {
+		const map = this.getMap(player);
+		const floorIndex = this.getFloorIndex(player);
+		const floor = map.floors[floorIndex];
+		let failSafe = 0;
+		let coordinates = [this.random(floor.x), this.random(floor.y)];
+		let stringCoordinates = this.toStringCoordindates(coordinates[0], coordinates[1]);
+		while (floor.spaces[stringCoordinates].players.size) {
+			coordinates = [this.random(floor.x), this.random(floor.y)];
+			stringCoordinates = this.toStringCoordindates(coordinates[0], coordinates[1]);
+			failSafe++;
+			if (failSafe > 50) break;
+		}
+		this.playerCoordinates.set(player, coordinates.slice());
+		if (!(stringCoordinates in floor.traversedCoordinates)) floor.traversedCoordinates[stringCoordinates] = new Set();
+		floor.traversedCoordinates[stringCoordinates].add(player);
+		floor.spaces[stringCoordinates].addPlayer(player);
+		player.say("You were teleported to (" + coordinates + ").");
+		this.displayMap(player);
+	}
+
+	positionPlayers() {
+		for (const i in this.players) {
+			if (this.players[i].eliminated) continue;
+			this.positionPlayer(this.players[i]);
+		}
+	}
+
+	displayMap(player: Player) {
+		const map = this.getMap(player);
+		const floorIndex = this.getFloorIndex(player);
+		const floor = map.floors[floorIndex];
+		const spacesPerRow = 8;
+		const width = 100 / spacesPerRow;
+		const playerCoordindates = this.playerCoordinates.get(player)!;
+		const centeredPlayerX = Math.floor((floor.x - playerCoordindates[0]) / 2);
+		const startX = Math.max(0, centeredPlayerX - (spacesPerRow / 2));
+		const centeredPlayerY = Math.floor((floor.y - playerCoordindates[1]) / 2);
+		const startY = Math.min(floor.y, centeredPlayerY + (spacesPerRow / 2));
+		const playerStringCoordinates = this.toStringCoordindates(playerCoordindates[0], playerCoordindates[1]);
+		let currency = false;
+		let empty = false;
+		let exit = false;
+		let trap = false;
+		let mapHtml = '';
+
+		for (let y = startY; y >= 0; y--) {
+			for (let x = startX; x < floor.x; x++) {
+				const coordinates = x + ', ' + y;
+				const space = floor.spaces[coordinates];
+				mapHtml += '<span title="' + coordinates + '">';
+				if (coordinates === playerStringCoordinates) {
+					mapHtml += '<div style="float: left; width: ' + width + '%"><blink>*</blink></div>';
+				} else if (space.traversedAttributes.currency && space.traversedAttributes.currency.has(player)) {
+					mapHtml += '<div style="float: left; width: ' + width + '%">' + mapKey.currency + '</div>';
+					if (!currency) currency = true;
+				} else if (space.traversedAttributes.exit && space.traversedAttributes.exit.has(player)) {
+					mapHtml += '<div style="float: left; width: ' + width + '%">' + mapKey.exit + '</div>';
+					if (!exit) exit = true;
+				} else if (space.traversedAttributes.trap && space.traversedAttributes.trap.has(player)) {
+					mapHtml += '<div style="float: left; width: ' + width + '%">' + mapKey.trap + '</div>';
+					if (!trap) trap = true;
+				} else if (coordinates in floor.traversedCoordinates && floor.traversedCoordinates[coordinates].has(player)) {
+					mapHtml += '<div style="float: left; width: ' + width + '%">' + mapKey.empty + '</div>';
+					if (!empty) empty = true;
+				} else {
+					mapHtml += '<div style="float: left; width: ' + width + '%">' + mapKey.unknown + '</div>';
+				}
+				mapHtml += "</span>";
+			}
+			mapHtml += '<br>';
+		}
+		let html = '<div class="infobox">';
+		let legend = '<b>Map legend</b>:<br>';
+		legend += '<b>' + mapKey.player + '</b>: your current location<br>';
+		legend += '<b>' + mapKey.unknown + '</b>: an unknown space<br>';
+		if (currency) legend += '<b>' + mapKey.currency + '</b>: ' + this.currency + ' that you have discovered<br>';
+		if (empty) legend += '<b>' + mapKey.empty + '</b>: an empty space<br>';
+		if (exit) legend += '<b>' + mapKey.exit + '</b>: an exit that you have discovered<br>';
+		if (trap) legend += '<b>' + mapKey.trap + '</b>: a trap that you have discovered<br>';
+		html += legend + '<br />';
+		html += mapHtml;
+		html += '</div>';
+
+		player.sayUhtml(html, "map");
+	}
+
+	onRegularSpace(player: Player, floor: MapFloor, space: MapFloorSpace) {
+		player.say("You travelled" + (floor.attributes.trap ? " safely" : "") + " to (" + space.coordinates + ").");
+	}
+
+	checkCurrencySpace(player: Player, floor: MapFloor, space: MapFloorSpace): boolean {
+		if (!space.traversedAttributes.currency) space.traversedAttributes.currency = new Set();
+		if (space.traversedAttributes.currency.has(player)) return false;
+		space.traversedAttributes.currency.add(player);
+		return true;
+	}
+
+	onCurrencySpace(player: Player, floor: MapFloor, space: MapFloorSpace): number {
+		if (!this.checkCurrencySpace(player, floor, space)) return 0;
+		let points = this.points.get(player) || 0;
+		const amount = ((Math.floor(Math.random() * 7) + 1) * 100) + ((Math.floor(Math.random() * 9) + 1) * 10) + (Math.floor(Math.random() * 9) + 1);
+		points += amount;
+		this.points.set(player, points);
+		player.say("You arrived at (" + space.coordinates + ") and found **" + amount + " " + this.currency + "**! Your collection is now " + points + ".");
+		return amount;
+	}
+
+	/** Returns `false` if the player gets eliminated by the trap */
+	onTrapSpace(player: Player, floor: MapFloor, space: MapFloorSpace): boolean {
+		let lives = this.lives.get(player)!;
+		lives -= 1;
+		this.lives.set(player, lives);
+		if (!space.traversedAttributes.trap) space.traversedAttributes.trap = new Set();
+		space.traversedAttributes.trap.add(player);
+		if (!lives) {
+			player.say("You arrived at (" + space.coordinates + ") and fell into a trap! You've been eliminated from the game.");
+			player.eliminated = true;
+			return false;
+		} else {
+			player.say("You arrived at (" + space.coordinates + ") and fell into a trap! Be careful, you only have **" + lives + " " + (lives > 1 ? "lives" : "life") + "** left.");
+		}
+		return true;
+	}
+
+	onExitSpace(player: Player, floor: MapFloor, space: MapFloorSpace) {
+		player.say("You arrived at (" + space.coordinates + ") and found an exit! You are now safe and will earn your bits at the end of the game.");
+		if (this.round < this.maxRounds) player.say("If you are brave, you may continue travelling to collect more " + this.currency + " but **you must find your way to an exit** before time is up!");
+		if (this.escapedPlayers) this.escapedPlayers.set(player, true);
+		player.eliminated = true;
+		if (!space.traversedAttributes.exit) space.traversedAttributes.exit = new Set();
+		space.traversedAttributes.exit.add(player);
+	}
+
+	movePlayer(player: Player, position: number[]) {
+		const map = this.getMap(player);
+		const floorIndex = this.getFloorIndex(player);
+		const floor = map.floors[floorIndex];
+
+		const oldPlayerCoordinates = this.playerCoordinates.get(player)!;
+		const oldPlayerStringCoordinates = this.toStringCoordindates(oldPlayerCoordinates[0], oldPlayerCoordinates[1]);
+		floor.spaces[oldPlayerStringCoordinates].removePlayer(player);
+		const newPlayerCoordinates = this.toStringCoordindates(position[0], position[1]);
+		const space = floor.spaces[newPlayerCoordinates];
+		space.addPlayer(player);
+		if (!(space.coordinates in floor.traversedCoordinates)) floor.traversedCoordinates[space.coordinates] = new Set();
+		floor.traversedCoordinates[space.coordinates].add(player);
+
+		let regularSpace = false;
+		if (space.attributes.currency) {
+			if (!this.onCurrencySpace(player, floor, space)) regularSpace = true;
+		} else if (space.attributes.trap) {
+			if (!this.onTrapSpace(player, floor, space)) return;
+		} else if (space.attributes.exit) {
+			this.onExitSpace(player, floor, space);
+			return;
+		} else if (space.attributes.achievement) {
+			if (this.onAchievementSpace) {
+				this.onAchievementSpace(player, floor, space);
+			} else {
+				regularSpace = true;
+			}
+		} else if (space.attributes.trappedPlayer) {
+			let event;
+			if (this.onTrappedPlayerSpace) event = this.onTrappedPlayerSpace(player, floor, space);
+			if (event === false) return;
+			if (!event) regularSpace = true;
+		} else if (space.attributes.event) {
+			let event;
+			if (this.onEventSpace) event = this.onEventSpace(player, floor, space);
+			if (event === false) return;
+			if (!event) regularSpace = true;
+		} else {
+			regularSpace = true;
+		}
+		if (regularSpace) this.onRegularSpace(player, floor, space);
+
+		this.displayMap(player);
+	}
+
+	findOpenFloorSpace(floor: MapFloor): MapFloorSpace | null {
+		let attempts = 0;
+		let coordinates = this.random(floor.x) + ", " + this.random(floor.y);
+		let openSpace = false;
+		while (!openSpace) {
+			coordinates = this.random(floor.x) + ", " + this.random(floor.y);
+			openSpace = !floor.spaces[coordinates].hasAttributes();
+			attempts++;
+			if (attempts > 50) break;
+		}
+		if (!openSpace) return null;
+		return floor.spaces[coordinates];
+	}
+
+	setExitCoordinates(floor: MapFloor, exits?: number) {
+		if (!exits) exits = floor.y;
+		for (let i = 0; i < exits; i++) {
+			const space = this.findOpenFloorSpace(floor);
+			if (!space) continue;
+			space.attributes.exit = true;
+			if (!floor.attributes.exit) floor.attributes.exit = true;
+		}
+	}
+
+	setCurrencyCoordinates(floor: MapFloor, currencySpaces?: number) {
+		if (!currencySpaces) currencySpaces = (floor.y >= 10 ? 25 : Math.round(floor.y * 2));
+		for (let i = 0; i < currencySpaces; i++) {
+			const space = this.findOpenFloorSpace(floor);
+			if (!space) continue;
+			space.attributes.currency = true;
+			if (!floor.attributes.currency) floor.attributes.currency = true;
+		}
+	}
+
+	setTrapCoordinates(floor: MapFloor, traps?: number) {
+		if (!traps) traps = floor.y >= 10 ? Math.round(floor.y * 1.5) : floor.y;
+		for (let i = 0; i < traps; i++) {
+			const space = this.findOpenFloorSpace(floor);
+			if (!space) continue;
+			space.attributes.trap = true;
+			if (!floor.attributes.trap) floor.attributes.trap = true;
+		}
+	}
+
+	setAchievementCoordinates(floor: MapFloor) {
+		const space = this.findOpenFloorSpace(floor);
+		if (space) {
+			space.attributes.achievement = true;
+			floor.attributes.achievement = true;
+		}
+	}
+
+	radiateFromCoordinates(coordinates: string[], radius?: number): string[] {
+		if (!radius || radius < 1) radius = 1;
+		const radiated: string[] = [];
+		let centers: string[][] = [coordinates];
+		let squares: string[][] = [];
+		while (centers.length) {
+			for (let i = 0; i < centers.length; i++) {
+				const center = centers[i];
+				const x = parseInt(center[0]);
+				const y = parseInt(center[1]);
+				const left = x - 1;
+				const right = x + 1;
+				const up = y + 1;
+				const down = y - 1;
+				const square = [
+					left + "," + up, x + "," + up, right + "," + up,
+					left + "," + y, x + "," + y, right + "," + y,
+					left + "," + down, x + "," + down, right + "," + down,
+				];
+				squares.push(square);
+				for (let i = 0; i < square.length; i++) {
+					if (!radiated.includes(square[i])) radiated.push(square[i]);
+				}
+			}
+			centers = [];
+			radius--;
+			if (radius > 0) {
+				for (let i = 0; i < squares.length; i++) {
+					centers.push(squares[i][0].split(","), squares[i][2].split(","), squares[i][6].split(","), squares[i][8].split(","));
+				}
+				squares = [];
+			}
+		}
+
+		return radiated.sort();
+	}
+
+	move(target: string, user: User, cmd: string): boolean {
+		if (!this.canMove || !(user.id in this.players)) return false;
+		const player = this.players[user.id];
+		if (this.roundActions && this.roundActions.has(player)) return false;
+		if (player.eliminated) {
+			if (this.escapedPlayers) {
+				if (!this.escapedPlayers.has(player)) return false;
+				this.escapedPlayers.delete(player);
+				player.eliminated = false;
+				this.increaseOnCommandsMax(this.moveCommands);
+			} else {
+				return false;
+			}
+		}
+		if (this.trappedPlayers && this.trappedPlayers.has(player)) {
+			player.say("You are trapped and cannot move!");
+			return false;
+		}
+		const spacesToMove = target ? parseInt(target.trim().split(" ")[0]) : 1;
+		if (isNaN(spacesToMove)) {
+			player.say("Please input a valid number.");
+			return false;
+		}
+		if (spacesToMove < this.minMovement || spacesToMove > this.maxMovement) {
+			player.say("You may only move between " + this.minMovement + " and " + this.maxMovement + " spaces.");
+			return false;
+		}
+
+		const playerCoordinates = this.playerCoordinates.get(player)!;
+		const map = this.getMap(player);
+		const floorIndex = this.getFloorIndex(player);
+		const floor = map.floors[floorIndex];
+		if (cmd === 'left') {
+			const newPlayerCoordinate = playerCoordinates[0] - spacesToMove;
+			if (newPlayerCoordinate < 0) {
+				player.say("Oops! Moving " + spacesToMove + " space" + (spacesToMove > 1 ? "s" : "") + " in that direction would hit a boundary");
+				return false;
+			}
+			playerCoordinates[0] = newPlayerCoordinate;
+		} else if (cmd === 'right') {
+			const newPlayerCoordinate = playerCoordinates[0] + spacesToMove;
+			if (newPlayerCoordinate >= floor.x) {
+				player.say("Oops! Moving " + spacesToMove + " space" + (spacesToMove > 1 ? "s" : "") + " in that direction would hit a boundary");
+				return false;
+			}
+			playerCoordinates[0] = newPlayerCoordinate;
+		} else if (cmd === 'up') {
+			const newPlayerCoordinate = playerCoordinates[1] + spacesToMove;
+			if (newPlayerCoordinate >= floor.y) {
+				player.say("Oops! Moving " + spacesToMove + " space" + (spacesToMove > 1 ? "s" : "") + " in that direction would hit a boundary");
+				return false;
+			}
+			playerCoordinates[1] = newPlayerCoordinate;
+		} else if (cmd === 'down') {
+			const newPlayerCoordinate = playerCoordinates[1] - spacesToMove;
+			if (newPlayerCoordinate < 0) {
+				player.say("Oops! Moving " + spacesToMove + " space" + (spacesToMove > 1 ? "s" : "") + " in that direction would hit a boundary");
+				return false;
+			}
+			playerCoordinates[1] = newPlayerCoordinate;
+		}
+		this.movePlayer(player, playerCoordinates);
+		if (this.roundActions) this.roundActions.set(player, true);
+		return true;
+	}
+
+	onAchievementSpace?(player: Player, floor: MapFloor, space: MapFloorSpace): void;
+	onEventSpace?(player: Player, floor: MapFloor, space: MapFloorSpace): boolean | null;
+	onGenerateMap?(map: GameMap): void;
+	onGenerateMapFloor?(floor: MapFloor): void;
+	onTrappedPlayerSpace?(player: Player, floor: MapFloor, space: MapFloorSpace): boolean | null;
+}
+
+export let commands: Dict<ICommandDefinition<MapGame>> = {
+	up: {
+		command(target, room, user) {
+			return this.move(target, user, 'up');
+		},
+	},
+	down: {
+		command(target, room, user) {
+			return this.move(target, user, 'down');
+		},
+	},
+	left: {
+		command(target, room, user) {
+			return this.move(target, user, 'left');
+		},
+	},
+	right: {
+		command(target, room, user) {
+			return this.move(target, user, 'right');
+		},
+	},
+};
+
+export let commandDescriptions = [Config.commandCharacter + 'up/down/left/right'];
+export let disabled = false;

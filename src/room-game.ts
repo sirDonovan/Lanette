@@ -67,6 +67,7 @@ export class Game extends Activity {
 	readonly lives?: Map<Player, number>;
 	mascot?: IPokemonCopy;
 	maxPlayers?: number;
+	maxRounds?: number;
 	playerCap?: number;
 	readonly points?: Map<Player, number>;
 	shinyMascot?: boolean;
@@ -218,6 +219,11 @@ export class Game extends Activity {
 		if (this.timeout) clearTimeout(this.timeout);
 		// @ts-ignore
 		this.round++;
+		if (this.maxRounds && this.round >= this.maxRounds) {
+			if (this.onMaxRound) this.onMaxRound();
+			this.end();
+			return;
+		}
 		if (this.onNextRound) this.onNextRound();
 	}
 
@@ -496,8 +502,8 @@ export class Game extends Activity {
 
 	getPlayerLives(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => {
-			const wins = this.lives!.get(player) || this.startingLives;
-			return player.name + (wins ? " (" + wins + ")" : "");
+			const lives = this.lives!.get(player) || this.startingLives;
+			return player.name + (lives ? " (" + lives + ")" : "");
 		}, players).join(', ');
 	}
 
@@ -521,6 +527,7 @@ export class Game extends Activity {
 	onChildEnd?(winners: Map<Player, number>): void;
 	onDeallocate?(): void;
 	onInitialize?(): void;
+	onMaxRound?(): void;
 	onNextRound?(): void;
 	onRemovePlayer?(player: Player): void;
 	onSignups?(): void;
