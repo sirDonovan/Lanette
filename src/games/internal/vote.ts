@@ -7,7 +7,7 @@ import { IGameFile, IGameFormat } from "../../types/games";
 const timeLimit = 30 * 1000;
 
 export class Vote extends Game {
-	customSignups: boolean = true;
+	internalGame: boolean = true;
 	randomFormats: IGameFormat[] = [];
 	uhtmlName: string = '';
 	readonly votes = new Map<Player, IGameFormat>();

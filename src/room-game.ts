@@ -42,7 +42,7 @@ export class Game extends Activity {
 	readonly commands: CommandsDict<Game> = Object.assign(Object.create(null), Games.sharedCommands);
 	readonly commandsListeners: IGameCommandCountListener[] = [];
 	readonly customizableOptions: Dict<IGameOptionValues> = Object.create(null);
-	customSignups: boolean = false;
+	internalGame: boolean = false;
 	readonly loserPointsToBits: number = 10;
 	readonly maxBits: number = 1000;
 	namePrefixes: string[] = [];
@@ -203,7 +203,7 @@ export class Game extends Activity {
 	}
 
 	signups() {
-		if (!this.isMiniGame && !this.customSignups) {
+		if (!this.isMiniGame && !this.internalGame) {
 			this.showSignupsHtml = true;
 			this.sayUhtml(this.uhtmlBaseName + "-signups", this.getSignupsHtml());
 			if (!this.isUserHosted) {
@@ -254,7 +254,7 @@ export class Game extends Activity {
 		if (this.onEnd) this.onEnd();
 
 		let usedDatabase = false;
-		if (!this.isPm(this.room) && !this.isMiniGame && !this.parentGame) {
+		if (!this.isPm(this.room) && !this.isMiniGame && !this.parentGame && !this.internalGame) {
 			usedDatabase = true;
 			const now = Date.now();
 			const database = Storage.getDatabase(this.room);
