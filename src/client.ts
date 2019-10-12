@@ -181,7 +181,11 @@ export class Client {
 					if (typeof config === 'string') config = JSON.parse(config);
 					if (config.host) {
 						if (config.id) this.serverId = config.id;
-						this.client.connect('ws://' + (config.host === 'showdown' ? 'sim.smogon.com' : config.host) + ':' + (config.port || 8000) + '/showdown/websocket');
+						if (config.host === 'showdown') {
+							this.client.connect('wss://sim2.psim.us:' + (config.port || 443) + '/showdown/websocket');
+						} else {
+							this.client.connect('ws://' + config.host + ':' + (config.port || 8000) + '/showdown/websocket');
+						}
 						return;
 					}
 				}
