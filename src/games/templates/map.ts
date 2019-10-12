@@ -93,7 +93,7 @@ export abstract class MapGame extends Game {
 	dimensions: number = 0;
 	lives = new Map<Player, number>();
 	maxMovement: number = 3;
-	maxRounds: number = 20;
+	maxRound: number = 20;
 	minMovement: number = 1;
 	moveCommands: string[] = ['up', 'down', 'left', 'right'];
 	playerCoordinates = new Map<Player, number[]>();
@@ -290,7 +290,7 @@ export abstract class MapGame extends Game {
 
 	onExitSpace(player: Player, floor: MapFloor, space: MapFloorSpace) {
 		player.say("You arrived at (" + space.coordinates + ") and found an exit! You are now safe and will earn your bits at the end of the game.");
-		if (this.round < this.maxRounds) player.say("If you are brave, you may continue travelling to collect more " + this.currency + " but **you must find your way to an exit** before time is up!");
+		if (this.round < this.maxRound) player.say("If you are brave, you may continue travelling to collect more " + this.currency + " but **you must find your way to an exit** before time is up!");
 		if (this.escapedPlayers) this.escapedPlayers.set(player, true);
 		player.eliminated = true;
 		if (!space.traversedAttributes.exit) space.traversedAttributes.exit = new Set();

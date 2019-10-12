@@ -71,7 +71,7 @@ export class Game extends Activity {
 	readonly lives?: Map<Player, number>;
 	mascot?: IPokemonCopy;
 	maxPlayers?: number;
-	maxRounds?: number;
+	maxRound?: number;
 	playerCap?: number;
 	readonly points?: Map<Player, number>;
 	shinyMascot?: boolean;
@@ -224,7 +224,7 @@ export class Game extends Activity {
 		if (this.timeout) clearTimeout(this.timeout);
 		// @ts-ignore
 		this.round++;
-		if (this.maxRounds && this.round >= this.maxRounds) {
+		if (this.maxRound && this.round > this.maxRound) {
 			if (this.onMaxRound) this.onMaxRound();
 			this.end();
 			return;
