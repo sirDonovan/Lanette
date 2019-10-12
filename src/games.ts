@@ -2,17 +2,20 @@ import fs = require('fs');
 import path = require('path');
 
 import { CommandErrorArray, ICommandDefinition } from './command-parser';
-import { UserHosted } from './games/templates/user-hosted';
+import { UserHosted } from './games/internal/user-hosted';
 import { PRNG, PRNGSeed } from './prng';
 import { Game } from "./room-game";
 import { Room } from "./rooms";
-import { IGameFile, IGameFileComputed, IGameFormat, IGameFormatComputed, IGameMode, IGameModeFile, IGameVariant, IUserHostedComputed, IUserHostedFile, IUserHostedFormat, IUserHostedFormatComputed } from './types/games';
+import { IGameFile, IGameFileComputed, IGameFormat, IGameFormatComputed, IGameMode, IGameModeFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFile, IUserHostedFormat, IUserHostedFormatComputed } from './types/games';
 import { IWorker } from './types/global-types';
 import { User } from './users';
 
 const gamesDirectory = path.join(__dirname, 'games');
 // tslint:disable-next-line no-var-requires
-const userHosted = require(path.join(gamesDirectory, "templates", "user-hosted.js")).game as IUserHostedFile;
+const userHosted = require(path.join(gamesDirectory, "internal", "user-hosted.js")).game as IUserHostedFile;
+const internalGamePaths: IInternalGames = {
+	vote: path.join(gamesDirectory, "internal", "vote.js"),
+};
 
 const sharedCommandDefinitions: Dict<ICommandDefinition<Game>> = {
 	summary: {
@@ -43,6 +46,8 @@ export class Games {
 	readonly aliases: Dict<string> = {};
 	readonly commands: typeof sharedCommands = Object.assign(Object.create(null), sharedCommands);
 	readonly formats: Dict<IGameFileComputed> = {};
+	// @ts-ignore - set in loadFormats()
+	readonly internalFormats: KeyedDict<IInternalGames, IGameFileComputed> = {};
 	lastGames: Dict<number> = {};
 	lastScriptedGames: Dict<number> = {};
 	lastUserHostedGames: Dict<number> = {};
@@ -68,10 +73,24 @@ export class Games {
 	}
 
 	loadFormats() {
+		const internalGameKeys = Object.keys(internalGamePaths) as (keyof IInternalGames)[];
+		for (let i = 0; i < internalGameKeys.length; i++) {
+			const file = require(internalGamePaths[internalGameKeys[i]]).game as IGameFile;
+			const id = Tools.toId(file.name);
+			let commands;
+			if (file.commands) {
+				commands = CommandParser.loadCommands(file.commands);
+				for (const i in commands) {
+					if (!(i in this.commands)) this.commands[i] = commands[i];
+				}
+			}
+			this.internalFormats[internalGameKeys[i]] = Object.assign({}, file, {commands, id});
+		}
+
 		const gameFiles = fs.readdirSync(gamesDirectory);
 		for (let i = 0; i < gameFiles.length; i++) {
 			if (!gameFiles[i].endsWith('.js')) continue;
-			const file = require(gamesDirectory + '/' + gameFiles[i]).game as IGameFile;
+			const file = require(path.join(gamesDirectory, gameFiles[i])).game as IGameFile;
 			const id = Tools.toId(file.name);
 			let commands;
 			if (file.commands) commands = CommandParser.loadCommands(file.commands);
@@ -82,7 +101,7 @@ export class Games {
 		const modeFiles = fs.readdirSync(modesDirectory);
 		for (let i = 0; i < modeFiles.length; i++) {
 			if (!modeFiles[i].endsWith('.js')) continue;
-			const file = require(modesDirectory + '/' + modeFiles[i]).mode as IGameModeFile;
+			const file = require(path.join(modesDirectory, modeFiles[i])).mode as IGameModeFile;
 			const id = Tools.toId(file.name);
 			this.modes[id] = Object.assign({id}, file);
 		}
@@ -235,6 +254,7 @@ export class Games {
 	 * Returns a copy of the format
 	 */
 	getFormat(target: string, user?: User): IGameFormat | CommandErrorArray {
+		const inputTarget = target;
 		const targets = target.split(",");
 		const name = targets[0];
 		targets.shift();
@@ -313,6 +333,7 @@ export class Games {
 		const formatComputed: IGameFormatComputed = {
 			effectType: "GameFormat",
 			inputOptions,
+			inputTarget,
 			mode,
 			variant,
 		};
@@ -363,6 +384,28 @@ export class Games {
 		const format = this.getUserHostedFormat(target);
 		if (Array.isArray(format)) throw new Error(format.join(": "));
 		return format;
+	}
+
+	getInternalFormat(id: InternalGameKey): IGameFormat {
+		const formatComputed: IGameFormatComputed = {
+			effectType: "GameFormat",
+			inputOptions: {},
+			inputTarget: id,
+		};
+		return Object.assign({}, this.internalFormats[id], formatComputed);
+	}
+
+	getRandomFormat(room: Room): IGameFormat {
+		return this.getRandomFormats(room, 1)[0];
+	}
+
+	getRandomFormats(room: Room, amount: number): IGameFormat[] {
+		const formats: IGameFormat[] = [];
+		const keys = Tools.shuffle(Object.keys(this.formats));
+		for (let i = 0; i < amount; i++) {
+			formats.push(this.getExistingFormat(keys[i]));
+		}
+		return formats;
 	}
 
 	getRemainingGameCooldown(room: Room, isMinigame?: boolean): number {

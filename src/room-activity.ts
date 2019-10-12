@@ -138,7 +138,7 @@ export abstract class Activity {
 		if (this.timeout) clearTimeout(this.timeout);
 		if (this.onEnd) this.onEnd();
 		this.ended = true;
-		this.deallocate();
+		this.deallocate(false);
 	}
 
 	say(message: string) {
@@ -269,7 +269,7 @@ export abstract class Activity {
 		return this.getPlayerAttributes(player => player.name, players).join(', ');
 	}
 
-	abstract deallocate(): void;
+	abstract deallocate(forceEnd: boolean): void;
 	abstract forceEnd(user?: User): void;
 
 	getSignupsHtml?(): string;

@@ -42,6 +42,7 @@ export class Game extends Activity {
 	readonly commands: CommandsDict<Game> = Object.assign(Object.create(null), Games.sharedCommands);
 	readonly commandsListeners: IGameCommandCountListener[] = [];
 	readonly customizableOptions: Dict<IGameOptionValues> = Object.create(null);
+	customSignups: boolean = false;
 	readonly loserPointsToBits: number = 10;
 	readonly maxBits: number = 1000;
 	namePrefixes: string[] = [];
@@ -178,17 +179,19 @@ export class Game extends Activity {
 		if (this.inputOptions.params) this.namePrefixes.unshift(this.inputOptions.params + '-param');
 	}
 
-	deallocate() {
+	deallocate(forceEnd: boolean) {
 		if (!this.started && this.notifyRankSignups) this.sayCommand("/notifyoffrank all");
 		if (!this.ended) this.ended = true;
 		this.cleanupMessageListeners();
-		if (this.onDeallocate) this.onDeallocate();
+		if (this.onDeallocate) this.onDeallocate(forceEnd);
 		if (!this.isUserHosted) this.room.game = null;
 
 		if (this.parentGame) {
 			this.room.game = this.parentGame;
 			if (this.parentGame.onChildEnd) this.parentGame.onChildEnd(this.winners);
 		}
+
+		if (this.onAfterDeallocate) this.onAfterDeallocate(forceEnd);
 	}
 
 	forceEnd(user: User) {
@@ -196,12 +199,11 @@ export class Game extends Activity {
 		this.say((!this.isUserHosted ? "The " : "") + this.nameWithOptions + " " + this.activityType + " was forcibly ended.");
 		if (this.onForceEnd) this.onForceEnd(user);
 		this.ended = true;
-		this.deallocate();
+		this.deallocate(true);
 	}
 
 	signups() {
-		// TODO: check internal/custom signups
-		if (!this.isMiniGame) {
+		if (!this.isMiniGame && !this.customSignups) {
 			this.showSignupsHtml = true;
 			this.sayUhtml(this.uhtmlBaseName + "-signups", this.getSignupsHtml());
 			if (!this.isUserHosted) {
@@ -280,7 +282,7 @@ export class Game extends Activity {
 
 		if (this.awardedBits || usedDatabase) Storage.exportDatabase(this.room.id);
 
-		this.deallocate();
+		this.deallocate(false);
 	}
 
 	addPlayer(user: User | string): Player | void {
@@ -549,8 +551,9 @@ export class Game extends Activity {
 	getPlayerSummary?(player: Player): void;
 	/** Return `false` to prevent a user from being added to the game (and send the reason to the user) */
 	onAddPlayer?(player: Player, lateJoin?: boolean): boolean | void;
+	onAfterDeallocate?(forceEnd: boolean): void;
 	onChildEnd?(winners: Map<Player, number>): void;
-	onDeallocate?(): void;
+	onDeallocate?(forceEnd: boolean): void;
 	onInitialize?(): void;
 	onMaxRound?(): void;
 	onNextRound?(): void;

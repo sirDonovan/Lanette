@@ -48,7 +48,7 @@ export class PoliwrathsPortmanteaus extends Guessing {
 
 		if (!result.answers.length) {
 			this.say("Invalid ports specified.");
-			this.deallocate();
+			this.deallocate(true);
 		} else {
 			this.answers = result.answers;
 			this.answerParts = result.answerParts;

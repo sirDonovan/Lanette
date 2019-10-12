@@ -15,11 +15,11 @@ export interface ICommandDefinition<T = undefined, U = T extends Game ? GameComm
 
 export type CommandsDict<T = undefined, U = T extends Game ? GameCommandReturnType : void> = Dict<Pick<ICommandDefinition<T, U>, Exclude<keyof ICommandDefinition<T, U>, "aliases">>>;
 
-type CommandErrorOptionalTarget = 'invalidBotRoom' | 'invalidFormat' | 'invalidGameFormat' | 'invalidTournamentFormat' | 'invalidUserHostedGameFormat' | 'invalidGameOption' | 'tooManyGameModes' |
+type CommandErrorOptionalTarget = 'invalidBotRoom' | 'invalidFormat' | 'invalidGameFormat' | 'invalidTournamentFormat' | 'invalidUserHostedGameFormat' | 'tooManyGameModes' |
 	'tooManyGameVariants' | 'emptyUserHostedGameQueue';
 
 type CommandErrorRequiredTarget = 'noPmHtmlRoom' | 'missingBotRankForFeatures' | 'disabledTournamentFeatures' | 'disabledGameFeatures' | 'disabledUserHostedGameFeatures' | 'noRoomEventInformation' |
-	'invalidRoomEvent';
+	'invalidRoomEvent' | 'invalidGameOption';
 
 type CommandErrorNoTarget = 'invalidUsernameLength' | 'reloadInProgress';
 
@@ -76,48 +76,7 @@ export class Command {
 	}
 
 	sayError(error: CommandErrorArray) {
-		if (error[0] === 'invalidBotRoom') {
-			if (error[1]) return this.say("'" + error[1].trim() + "' is not one of " + Users.self.name + "'s rooms.");
-			this.say("You must specify one of " + Users.self.name + "'s rooms.");
-		} else if (error[0] === 'invalidFormat') {
-			if (error[1]) return this.say("'" + error[1].trim() + "' is not a valid format.");
-			this.say("You must specify a valid format.");
-		} else if (error[0] === 'invalidGameFormat') {
-			if (error[1]) return this.say("'" + error[1].trim() + "' is not a valid game format.");
-			this.say("You must specify a valid game format.");
-		} else if (error[0] === 'invalidTournamentFormat') {
-			if (error[1]) return this.say("'" + error[1].trim() + "' is not a valid tournament format.");
-			this.say("You must specify a valid tournament format.");
-		} else if (error[0] === 'invalidUserHostedGameFormat') {
-			if (error[1]) return this.say("'" + error[1].trim() + "' is not a valid user-hosted game format.");
-			this.say("You must specify a valid user-hosted game format.");
-		} else if (error[0] === 'invalidGameOption') {
-			if (error[1]) return this.say("'" + error[1].trim() + "' is not a valid game variant or option.");
-		} else if (error[0] === 'tooManyGameModes') {
-			this.say("You must specify only 1 game mode.");
-		} else if (error[0] === 'tooManyGameVariants') {
-			this.say("You must specify only 1 game variant.");
-		} else if (error[0] === 'emptyUserHostedGameQueue') {
-			this.say("The host queue is empty.");
-		} else if (error[0] === 'noPmHtmlRoom') {
-			this.say("You must be in " + error[1].trim() + " to use this command in PMs.");
-		} else if (error[0] === 'missingBotRankForFeatures') {
-			this.say(Users.self.name + " requires Bot rank (*) to use " + error[1].trim() + " features.");
-		} else if (error[0] === 'disabledTournamentFeatures') {
-			this.say("Tournament features are not enabled for " + error[1].trim() + ".");
-		} else if (error[0] === 'disabledGameFeatures') {
-			this.say("Scripted game features are not enabled for " + error[1].trim() + ".");
-		} else if (error[0] === 'disabledUserHostedGameFeatures') {
-			this.say("User-hosted game features are not enabled for " + error[1].trim() + ".");
-		} else if (error[0] === 'noRoomEventInformation') {
-			this.say(error[1].trim() + " does not currently have any event information stored.");
-		} else if (error[0] === 'invalidRoomEvent') {
-			this.say("You must specify one of " + error[1].trim() + "'s events.");
-		} else if (error[0] === 'invalidUsernameLength') {
-			this.say("You must specify a valid username (between 1 and " + Tools.maxUsernameLength + " characters).");
-		} else if (error[0] === 'reloadInProgress') {
-			this.say("You must wait for " + Users.self.name + " to finish updating.");
-		}
+		this.say(global.CommandParser.getErrorText(error));
 	}
 
 	run(newCommand?: string, newTarget?: string) {
@@ -202,5 +161,52 @@ export class CommandParser {
 
 		(new Command(command, target, room, user)).run();
 		return true;
+	}
+
+	getErrorText(error: CommandErrorArray): string {
+		if (error[0] === 'invalidBotRoom') {
+			if (error[1]) return "'" + error[1].trim() + "' is not one of " + Users.self.name + "'s rooms.";
+			return "You must specify one of " + Users.self.name + "'s rooms.";
+		} else if (error[0] === 'invalidFormat') {
+			if (error[1]) return "'" + error[1].trim() + "' is not a valid format.";
+			return "You must specify a valid format.";
+		} else if (error[0] === 'invalidGameFormat') {
+			if (error[1]) return "'" + error[1].trim() + "' is not a valid game format.";
+			return "You must specify a valid game format.";
+		} else if (error[0] === 'invalidTournamentFormat') {
+			if (error[1]) return "'" + error[1].trim() + "' is not a valid tournament format.";
+			return "You must specify a valid tournament format.";
+		} else if (error[0] === 'invalidUserHostedGameFormat') {
+			if (error[1]) return "'" + error[1].trim() + "' is not a valid user-hosted game format.";
+			return "You must specify a valid user-hosted game format.";
+		} else if (error[0] === 'invalidGameOption') {
+			return "'" + error[1].trim() + "' is not a valid game variant or option.";
+		} else if (error[0] === 'tooManyGameModes') {
+			return "You must specify only 1 game mode.";
+		} else if (error[0] === 'tooManyGameVariants') {
+			return "You must specify only 1 game variant.";
+		} else if (error[0] === 'emptyUserHostedGameQueue') {
+			return "The host queue is empty.";
+		} else if (error[0] === 'noPmHtmlRoom') {
+			return "You must be in " + error[1].trim() + " to use this command in PMs.";
+		} else if (error[0] === 'missingBotRankForFeatures') {
+			return Users.self.name + " requires Bot rank (*) to use " + error[1].trim() + " features.";
+		} else if (error[0] === 'disabledTournamentFeatures') {
+			return "Tournament features are not enabled for " + error[1].trim() + ".";
+		} else if (error[0] === 'disabledGameFeatures') {
+			return "Scripted game features are not enabled for " + error[1].trim() + ".";
+		} else if (error[0] === 'disabledUserHostedGameFeatures') {
+			return "User-hosted game features are not enabled for " + error[1].trim() + ".";
+		} else if (error[0] === 'noRoomEventInformation') {
+			return error[1].trim() + " does not currently have any event information stored.";
+		} else if (error[0] === 'invalidRoomEvent') {
+			return "You must specify one of " + error[1].trim() + "'s events.";
+		} else if (error[0] === 'invalidUsernameLength') {
+			return "You must specify a valid username (between 1 and " + Tools.maxUsernameLength + " characters).";
+		} else if (error[0] === 'reloadInProgress') {
+			return "You must wait for " + Users.self.name + " to finish updating.";
+		}
+
+		return "";
 	}
 }

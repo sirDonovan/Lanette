@@ -234,6 +234,23 @@ const commands: Dict<ICommandDefinition> = {
 	/**
 	 * Game commands
 	 */
+	startvote: {
+		command(target, room, user) {
+			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
+			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) return this.sayError(['disabledGameFeatures', room.title]);
+			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
+			const remainingGameCooldown = Games.getRemainingGameCooldown(room);
+			if (remainingGameCooldown > 1000) {
+				const durationString = Tools.toDurationString(remainingGameCooldown);
+				this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the game cooldown remaining.");
+				return;
+			}
+			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
+			const game = Games.createGame(room, Games.getInternalFormat('vote'));
+			game.signups();
+		},
+		aliases: ['sv'],
+	},
 	creategame: {
 		command(target, room, user) {
 			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;

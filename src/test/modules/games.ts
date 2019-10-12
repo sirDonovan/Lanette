@@ -177,7 +177,7 @@ describe("Games", () => {
 				}
 				throw e;
 			}
-			if (room.game) room.game.deallocate();
+			if (room.game) room.game.deallocate(true);
 		}
 	});
 
@@ -340,7 +340,7 @@ describe("Games", () => {
 			if (format.tests) {
 				describe(format.name, () => {
 					after(() => {
-						game.deallocate();
+						game.deallocate(true);
 					});
 					format.tests!.call(this, game);
 				});

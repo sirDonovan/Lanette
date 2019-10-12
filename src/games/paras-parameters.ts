@@ -79,7 +79,7 @@ export class ParasParameters extends Guessing {
 
 		if (!result.pokemon.length) {
 			this.say("Invalid params specified.");
-			this.deallocate();
+			this.deallocate(true);
 		} else {
 			this.answers = [this.getParamNames(result.params)];
 			this.params = result.params;

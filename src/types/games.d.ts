@@ -1,5 +1,5 @@
 import { CommandsDict, ICommandDefinition } from "../command-parser";
-import { UserHosted } from "../games/templates/user-hosted";
+import { UserHosted } from "../games/internal/user-hosted";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
 import { User } from "../users";
@@ -7,6 +7,12 @@ import { IWorker } from "./global-types";
 
 export type GameCommandReturnType = boolean;
 export type GameDifficulty = 'easy' | 'medium' | 'hard';
+
+export interface IInternalGames {
+	vote: string;
+}
+
+export type InternalGameKey = keyof IInternalGames;
 
 interface IGameClass<T> {
 	new(room: Room | User, pmRoom?: Room): T;
@@ -83,6 +89,7 @@ export interface IGameFileComputed<T extends Game = Game> extends IGameFile<T> {
 export interface IGameFormatComputed {
 	readonly effectType: 'GameFormat';
 	inputOptions: Dict<number>;
+	inputTarget: string;
 
 	readonly mode?: IGameMode;
 	readonly variant?: IGameVariant;
