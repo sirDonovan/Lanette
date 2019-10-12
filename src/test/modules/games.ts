@@ -261,13 +261,13 @@ describe("Games", () => {
 			}
 		}
 
-		game.customPortTypes = ['Pokemon', 'Item'];
+		game.customPortTypes = ['Pokemon', 'Move'];
 		game.customPortCategories = ['egggroup', 'type'];
-		game.customPortDetails = ['Flying', 'Berry'];
+		game.customPortDetails = ['Flying', 'Fire'];
 		await game.onNextRound();
 		assert(game.answers.length);
 		assert(game.ports.length);
-		assert(game.answers.join(',') === 'spearowap,fearowap,togetice,murkrowap,pelippersim,swabluk,swablum,altariapapa,staraviapapa,staraptoran,honchkrowap,archenigma,archeopsncure,swannanab');
+		assert(game.answers.join(',') === 'pelipperuption,swablueflare,pidoverheat,fletchinderuption');
 		for (let i = 0; i < game.answers.length; i++) {
 			assert(game.answers[i] in game.answerParts);
 		}

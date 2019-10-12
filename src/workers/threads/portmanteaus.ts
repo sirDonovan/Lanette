@@ -41,11 +41,12 @@ function search(options: IPortmanteauSearchRequest, prng: PRNG): IPortmanteauSea
 			}
 			let port = '[';
 			if (category === 'type') {
+				/*
 				if (type === 'Item') {
 					port += detail;
 				} else {
-					port += detail + " Type " + type.charAt(0).toUpperCase() + type.substr(1);
-				}
+				*/
+				port += detail + " Type " + type.charAt(0).toUpperCase() + type.substr(1);
 			} else if (category === 'gen') {
 				port += "Gen " + detail + " " + type.charAt(0).toUpperCase() + type.substr(1);
 			} else if (category === 'egggroup') {

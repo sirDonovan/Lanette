@@ -3,7 +3,7 @@ import worker_threads = require('worker_threads');
 import { PRNGSeed } from '../prng';
 
 interface IPoolType {
-	Item: any;
+	// Item: any;
 	Move: any;
 	Pokemon: any;
 }
@@ -47,12 +47,12 @@ interface IPortmanteauSearchQueueItem {
 export const data: IPortmanteausWorkerData = {
 	pool: {
 		"Pokemon": {},
-		"Item": {},
+		// "Item": {},
 		"Move": {},
 	},
 	portCategories: {
 		"Pokemon": ['tier', 'color', 'type', 'gen', 'egggroup'],
-		"Item": ['type'],
+		// "Item": ['type'],
 		"Move": ['type'],
 	},
 };
@@ -73,11 +73,10 @@ export function init(): worker_threads.Worker {
 		}
 	}
 
-	data.pool['Item']['type']['Berry'] = [];
 	/*
+	data.pool['Item']['type']['Berry'] = [];
 	data.pool['Item']['type']['Plate'] = [];
 	data.pool['Item']['type']['Drive'] = [];
-	*/
 
 	// /is shows all items
 	for (const i in Dex.data.items) {
@@ -85,14 +84,13 @@ export function init(): worker_threads.Worker {
 		if (item.isBerry) {
 			data.pool['Item']['type']['Berry'].push(item.name.substr(0, item.name.indexOf(' Berry')));
 		}
-		/*
 		if (item.onPlate) {
 			data.pool['Item']['type']['Plate'].push(item.name.substr(0, item.name.indexOf(' Plate')));
 		} else if (item.onDrive) {
 			data.pool['Item']['type']['Drive'].push(item.name.substr(0, item.name.indexOf(' Drive')));
 		}
-		*/
 	}
+	*/
 
 	const moves = Dex.getMovesList();
 	for (let i = 0; i < moves.length; i++) {
