@@ -38,7 +38,9 @@ export class Vote extends Game {
 	}
 
 	onAfterDeallocate(forceEnd: boolean) {
+		this.sayUhtmlChange(this.uhtmlName, "<div class='infobox'><center><h3>Voting for the next scripted game has ended!</h3></center></div>");
 		if (forceEnd) return;
+
 		const formats = Array.from(this.votes.values());
 		let format: string;
 		if (formats.length) {
@@ -47,7 +49,6 @@ export class Vote extends Game {
 			format = this.sampleOne(this.picks);
 		}
 
-		this.sayUhtmlChange(this.uhtmlName, "<div class='infobox'><center><h3>Voting for the next scripted game has ended!</h3></center></div>");
 		CommandParser.parse(this.room, Users.self, Config.commandCharacter + "creategame " + format);
 	}
 }
