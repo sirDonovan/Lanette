@@ -201,7 +201,7 @@ export abstract class MapGame extends Game {
 		const centeredPlayerX = Math.floor((floor.x - playerCoordindates[0]) / 2);
 		const startX = Math.max(0, centeredPlayerX - (spacesPerRow / 2));
 		const centeredPlayerY = Math.floor((floor.y - playerCoordindates[1]) / 2);
-		const startY = Math.min(floor.y, centeredPlayerY + (spacesPerRow / 2));
+		const startY = Math.min(floor.y - 1, centeredPlayerY + (spacesPerRow / 2));
 		const playerStringCoordinates = this.toStringCoordindates(playerCoordindates[0], playerCoordindates[1]);
 		let currency = false;
 		let empty = false;
@@ -211,7 +211,7 @@ export abstract class MapGame extends Game {
 
 		for (let y = startY; y >= 0; y--) {
 			for (let x = startX; x < floor.x; x++) {
-				const coordinates = x + ', ' + y;
+				const coordinates = this.toStringCoordindates(x, y);
 				const space = floor.spaces[coordinates];
 				mapHtml += '<span title="' + coordinates + '">';
 				if (coordinates === playerStringCoordinates) {
@@ -345,10 +345,10 @@ export abstract class MapGame extends Game {
 
 	findOpenFloorSpace(floor: MapFloor): MapFloorSpace | null {
 		let attempts = 0;
-		let coordinates = this.random(floor.x) + ", " + this.random(floor.y);
+		let coordinates = this.toStringCoordindates(this.random(floor.x), this.random(floor.y));
 		let openSpace = false;
 		while (!openSpace) {
-			coordinates = this.random(floor.x) + ", " + this.random(floor.y);
+			coordinates = this.toStringCoordindates(this.random(floor.x), this.random(floor.y));
 			openSpace = !floor.spaces[coordinates].hasAttributes();
 			attempts++;
 			if (attempts > 50) break;
@@ -410,9 +410,9 @@ export abstract class MapGame extends Game {
 				const up = y + 1;
 				const down = y - 1;
 				const square = [
-					left + "," + up, x + "," + up, right + "," + up,
-					left + "," + y, x + "," + y, right + "," + y,
-					left + "," + down, x + "," + down, right + "," + down,
+					this.toStringCoordindates(left, up), this.toStringCoordindates(x, up), this.toStringCoordindates(right, up),
+					this.toStringCoordindates(left, y), this.toStringCoordindates(x, y), this.toStringCoordindates(right, y),
+					this.toStringCoordindates(left, down), this.toStringCoordindates(x, down), this.toStringCoordindates(right, down),
 				];
 				squares.push(square);
 				for (let i = 0; i < square.length; i++) {
