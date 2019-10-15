@@ -44,6 +44,7 @@ export class Games {
 	readonly userHosted: typeof userHosted = userHosted;
 
 	readonly aliases: Dict<string> = {};
+	autoCreateTimers: Dict<NodeJS.Timer> = {};
 	readonly commands: typeof sharedCommands = Object.assign(Object.create(null), sharedCommands);
 	readonly formats: Dict<IGameFileComputed> = {};
 	// @ts-ignore - set in loadFormats()
@@ -60,6 +61,7 @@ export class Games {
 	readonly workers: IWorker[] = [];
 
 	onReload(previous: Partial<Games>) {
+		if (previous.autoCreateTimers) this.autoCreateTimers = previous.autoCreateTimers;
 		if (previous.lastGames) this.lastGames = previous.lastGames;
 		if (previous.lastScriptedGames) this.lastScriptedGames = previous.lastScriptedGames;
 		if (previous.lastUserHostedGames) this.lastUserHostedGames = previous.lastUserHostedGames;
@@ -237,9 +239,7 @@ export class Games {
 					if (Array.isArray(format)) return this.sayError(format);
 					if (global.Games.reloadInProgress) return this.sayError(['reloadInProgress']);
 					delete format.inputOptions.points;
-					const game = global.Games.createGame(room, format, pmRoom);
-					game.isMiniGame = true;
-					if (game.options.points) game.options.points = 1;
+					const game = global.Games.createGame(room, format, pmRoom, true);
 					if (format.minigameDescription) this.say("**" + format.name + "**: " + format.minigameDescription);
 					game.signups();
 				},
@@ -426,20 +426,45 @@ export class Games {
 		return false;
 	}
 
-	createGame(room: Room | User, format: IGameFormat, pmRoom?: Room, initialSeed?: PRNGSeed): Game {
+	createGame(room: Room | User, format: IGameFormat, pmRoom?: Room, isMinigame?: boolean, initialSeed?: PRNGSeed): Game {
+		if (!isMinigame && room.id in this.autoCreateTimers) clearTimeout(this.autoCreateTimers[room.id]);
+
 		if (format.class.loadData) format.class.loadData(room);
 		room.game = new format.class(room, pmRoom);
 		if (initialSeed) room.game.prng = new PRNG(initialSeed);
 		room.game.initialize(format);
 
+		if (isMinigame) {
+			room.game.isMiniGame = true;
+			if (room.game.options.points) room.game.options.points = 1;
+		}
+
 		return room.game;
 	}
 
 	createUserHostedGame(room: Room, format: IUserHostedFormat, host: User | string): UserHosted {
+		if (room.id in this.autoCreateTimers) clearTimeout(this.autoCreateTimers[room.id]);
+
 		room.userHostedGame = new format.class(room);
 		room.userHostedGame.setHost(host);
 		room.userHostedGame.initialize((format as unknown) as IGameFormat);
 
 		return room.userHostedGame;
+	}
+
+	setAutoCreateTimer(room: Room, type: 'scripted' | 'userhosted', timer: number) {
+		if (room.id in this.autoCreateTimers) clearTimeout(this.autoCreateTimers[room.id]);
+		this.autoCreateTimers[room.id] = setTimeout(() => {
+			if (room.game && room.game.isMiniGame) {
+				this.setAutoCreateTimer(room, type, 5 * 1000);
+				return;
+			}
+			const database = Storage.getDatabase(room);
+			if (type === 'scripted' || !database.userHostedGameQueue || !database.userHostedGameQueue.length) {
+				CommandParser.parse(room, Users.self, Config.commandCharacter + "startvote");
+			} else if (type === 'userhosted') {
+				CommandParser.parse(room, Users.self, Config.commandCharacter + "nexthost");
+			}
+		}, timer);
 	}
 }

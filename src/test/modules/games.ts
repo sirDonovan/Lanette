@@ -170,7 +170,7 @@ describe("Games", () => {
 			try {
 				// tslint:disable-next-line prefer-const
 				let initialSeed: PRNGSeed | undefined;
-				Games.createGame(room, Games.getExistingFormat(i), room, initialSeed);
+				Games.createGame(room, Games.getExistingFormat(i), room, false, initialSeed);
 			} catch (e) {
 				if (room.game) {
 					console.log(Games.getExistingFormat(i).name + " (starting seed = " + room.game.prng.initialSeed + ") crashed with: " + e.message);

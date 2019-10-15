@@ -282,6 +282,12 @@ export class Game extends Activity {
 			if (Config.gameCooldownTimers && this.room.id in Config.gameCooldownTimers) {
 				this.say("Game cooldown of " + Config.gameCooldownTimers[this.room.id] + " minutes has started! Minigames can be played in " + (Config.gameCooldownTimers[this.room.id] / 2) + " minutes.");
 			}
+
+			if (Config.gameAutoCreateTimers && this.room.id in Config.gameAutoCreateTimers) {
+				let autoCreateTimer = Config.gameAutoCreateTimers[this.room.id];
+				if (Config.gameCooldownTimers && this.room.id in Config.gameCooldownTimers) autoCreateTimer += Config.gameCooldownTimers[this.room.id];
+				Games.setAutoCreateTimer(this.room, this.isUserHosted ? 'scripted' : 'userhosted', autoCreateTimer * 60 * 1000);
+			}
 		}
 
 		if (this.awardedBits || usedDatabase) Storage.exportDatabase(this.room.id);

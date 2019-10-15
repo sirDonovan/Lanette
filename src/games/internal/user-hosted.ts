@@ -4,7 +4,8 @@ import { Room } from "../../rooms";
 import { GameDifficulty, IUserHostedFile } from "../../types/games";
 import { User } from "../../users";
 
-const timeLimit = 25 * 60 * 1000;
+const FORCE_END_CREATE_TIMER = 60 * 1000;
+const HOST_TIME_LIMIT = 25 * 60 * 1000;
 
 export class UserHosted extends Game {
 	endTime: number = 0;
@@ -23,7 +24,7 @@ export class UserHosted extends Game {
 	room!: Room;
 
 	onInitialize() {
-		this.endTime = Date.now() + timeLimit;
+		this.endTime = Date.now() + HOST_TIME_LIMIT;
 		this.nameWithOptions = this.hostName + "'s " + this.nameWithOptions;
 		this.uhtmlBaseName = 'userhosted-' + this.id;
 	}
@@ -44,6 +45,10 @@ export class UserHosted extends Game {
 		this.room.userHostedGame = null;
 	}
 
+	onAfterDeallocate(forceEnd?: boolean) {
+		if (forceEnd) Games.setAutoCreateTimer(this.room, 'userhosted', FORCE_END_CREATE_TIMER);
+	}
+
 	onSignups() {
 		this.notifyRankSignups = true;
 		this.sayCommand("/notifyrank all, " + this.room.title + " user-hosted game," + this.name + "," + this.hostName + " is hosting a hostgame of " + this.name, true);
@@ -58,7 +63,7 @@ export class UserHosted extends Game {
 					this.end();
 				}, secondWarning);
 			}, firstWarning - secondWarning);
-		}, timeLimit - firstWarning);
+		}, HOST_TIME_LIMIT - firstWarning);
 	}
 
 	onEnd() {

@@ -171,6 +171,13 @@ export let disallowRepeatUserHostedGames: string[] = [];
 export let gameCooldownTimers: Dict<number> = {};
 
 /**
+ * The number of minutes that must pass before a scripted or user-hosted game is automatically created
+ *
+ * Compounds with gameCooldownTimers
+ */
+export let gameAutoCreateTimers: Dict<number> = {};
+
+/**
  * The number of minutes that must pass before a scripted game is automatically started
  */
 export let gameAutoStartTimers: Dict<number> = {};
