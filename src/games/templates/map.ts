@@ -195,22 +195,34 @@ export abstract class MapGame extends Game {
 		const map = this.getMap(player);
 		const floorIndex = this.getFloorIndex(player);
 		const floor = map.floors[floorIndex];
-		const spacesPerRow = 8;
-		const width = 100 / spacesPerRow;
+		const displayDimensions = Math.min(floor.y, Math.min(floor.x, 8));
+		const width = 100 / displayDimensions;
 		const playerCoordindates = this.playerCoordinates.get(player)!;
-		const centeredPlayerX = Math.floor((floor.x - playerCoordindates[0]) / 2);
-		const startX = Math.max(0, centeredPlayerX - (spacesPerRow / 2));
-		const centeredPlayerY = Math.floor((floor.y - playerCoordindates[1]) / 2);
-		const startY = Math.min(floor.y - 1, centeredPlayerY + (spacesPerRow / 2));
 		const playerStringCoordinates = this.toStringCoordindates(playerCoordindates[0], playerCoordindates[1]);
+
+		let endX: number;
+		if (playerCoordindates[0] > displayDimensions - 1) {
+			endX = playerCoordindates[0] + 1;
+		} else {
+			endX = displayDimensions;
+		}
+		const startX = endX - displayDimensions;
+
+		let startY: number;
+		if (playerCoordindates[1] > displayDimensions - 1) {
+			startY = playerCoordindates[1];
+		} else {
+			startY = displayDimensions - 1;
+		}
+		const endY = startY - displayDimensions;
+
 		let currency = false;
 		let empty = false;
 		let exit = false;
 		let trap = false;
 		let mapHtml = '';
-
-		for (let y = startY; y >= 0; y--) {
-			for (let x = startX; x < floor.x; x++) {
+		for (let y = startY; y > endY; y--) {
+			for (let x = startX; x < endX; x++) {
 				const coordinates = this.toStringCoordindates(x, y);
 				const space = floor.spaces[coordinates];
 				mapHtml += '<span title="' + coordinates + '">';
