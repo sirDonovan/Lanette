@@ -99,7 +99,6 @@ export class Tournament extends Activity {
 	manuallyEnabledPoints: boolean = false;
 	originalFormat: string = '';
 	scheduled: boolean = false;
-	startTimer: NodeJS.Timer | null = null;
 	totalPlayers: number = 0;
 	updates: Partial<ITournamentUpdateJSON> = {};
 
@@ -170,10 +169,6 @@ export class Tournament extends Activity {
 
 		if (this.playerCap && newCap >= this.playerCap) return;
 		CommandParser.parse(this.room, Users.self, Config.commandCharacter + "tournamentcap " + newCap);
-	}
-
-	onStart() {
-		if (this.startTimer) clearTimeout(this.startTimer);
 	}
 
 	deallocate() {

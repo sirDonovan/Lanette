@@ -68,6 +68,7 @@ export abstract class Activity {
 	signupsHtmlTimeout: NodeJS.Timer | null = null;
 	started: boolean = false;
 	startTime: number | null = null;
+	startTimer?: NodeJS.Timer;
 	timeout: NodeJS.Timer | null = null;
 	uhtmlMessageListeners: Dict<string[]> = {};
 
@@ -124,6 +125,7 @@ export abstract class Activity {
 	}
 
 	start() {
+		if (this.startTimer) clearTimeout(this.startTimer);
 		if (this.notifyRankSignups) this.sayCommand("/notifyoffrank all");
 		this.started = true;
 		this.startTime = Date.now();

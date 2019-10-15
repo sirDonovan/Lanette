@@ -180,6 +180,8 @@ export class Game extends Activity {
 	}
 
 	deallocate(forceEnd: boolean) {
+		if (this.timeout) clearTimeout(this.timeout);
+		if (this.startTimer) clearTimeout(this.startTimer);
 		if (!this.started && this.notifyRankSignups) this.sayCommand("/notifyoffrank all");
 		if (!this.ended) this.ended = true;
 		this.cleanupMessageListeners();
@@ -195,7 +197,6 @@ export class Game extends Activity {
 	}
 
 	forceEnd(user: User) {
-		if (this.timeout) clearTimeout(this.timeout);
 		this.say((!this.isUserHosted ? "The " : "") + this.nameWithOptions + " " + this.activityType + " was forcibly ended.");
 		if (this.onForceEnd) this.onForceEnd(user);
 		this.ended = true;
@@ -217,6 +218,10 @@ export class Game extends Activity {
 		if (this.options.freejoin) {
 			this.started = true;
 			this.startTime = Date.now();
+		} else {
+			if (Config.gameAutoStartTimers && this.room.id in Config.gameAutoStartTimers) {
+				this.startTimer = setTimeout(() => this.start(), Config.gameAutoStartTimers[this.room.id] * 60 * 1000);
+			}
 		}
 	}
 
@@ -250,7 +255,6 @@ export class Game extends Activity {
 	}
 
 	end() {
-		if (this.timeout) clearTimeout(this.timeout);
 		if (this.onEnd) this.onEnd();
 
 		let usedDatabase = false;
