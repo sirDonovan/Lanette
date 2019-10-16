@@ -46,7 +46,7 @@ export class UserHosted extends Game {
 	}
 
 	onAfterDeallocate(forceEnd?: boolean) {
-		if (forceEnd) Games.setAutoCreateTimer(this.room, 'userhosted', FORCE_END_CREATE_TIMER);
+		if (forceEnd && Config.gameAutoCreateTimers && this.room.id in Config.gameAutoCreateTimers) Games.setAutoCreateTimer(this.room, 'userhosted', FORCE_END_CREATE_TIMER);
 	}
 
 	onSignups() {
