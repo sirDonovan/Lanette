@@ -21,7 +21,7 @@ type CommandErrorOptionalTarget = 'invalidBotRoom' | 'invalidFormat' | 'invalidG
 type CommandErrorRequiredTarget = 'noPmHtmlRoom' | 'missingBotRankForFeatures' | 'disabledTournamentFeatures' | 'disabledGameFeatures' | 'disabledUserHostedGameFeatures' | 'noRoomEventInformation' |
 	'invalidRoomEvent' | 'invalidGameOption';
 
-type CommandErrorNoTarget = 'invalidUsernameLength' | 'reloadInProgress';
+type CommandErrorNoTarget = 'invalidUsernameLength' | 'reloadInProgress' | 'invalidHttpsLink';
 
 export type CommandErrorArray = [CommandErrorOptionalTarget, string?] | [CommandErrorRequiredTarget, string] | [CommandErrorNoTarget];
 
@@ -205,6 +205,8 @@ export class CommandParser {
 			return "You must specify a valid username (between 1 and " + Tools.maxUsernameLength + " characters).";
 		} else if (error[0] === 'reloadInProgress') {
 			return "You must wait for " + Users.self.name + " to finish updating.";
+		} else if (error[0] === 'invalidHttpsLink') {
+			return "You must specify a valid HTTPS link.";
 		}
 
 		return "";

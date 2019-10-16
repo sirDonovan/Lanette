@@ -350,6 +350,7 @@ export class Games {
 	 * Returns a copy of the format
 	 */
 	getUserHostedFormat(target: string, user?: User): IUserHostedFormat | CommandErrorArray {
+		const inputTarget = target;
 		const targets = target.split(",");
 		const name = targets[0];
 		targets.shift();
@@ -373,9 +374,25 @@ export class Games {
 		}
 		if (!formatData) return ['invalidUserHostedGameFormat', name];
 
+		const inputAttributes: Dict<string> = {};
+		if (formatData.customizableAttributes) {
+			for (let i = 0; i < targets.length; i++) {
+				const colonIndex = targets[i].indexOf(':');
+				if (colonIndex === -1) continue;
+				const attribute = targets[i].substr(0, colonIndex).trim();
+				const value = targets[i].substr(colonIndex + 1).trim();
+				if (attribute === 'link') {
+					if (!value.startsWith('https://')) return ['invalidHttpsLink'];
+				}
+				if (value) inputAttributes[attribute] = value;
+			}
+		}
+
 		const formatComputed: IUserHostedFormatComputed = {
 			effectType: "UserHostedFormat",
+			inputAttributes,
 			inputOptions: {},
+			inputTarget,
 		};
 		return Object.assign({}, formatData, formatComputed);
 	}

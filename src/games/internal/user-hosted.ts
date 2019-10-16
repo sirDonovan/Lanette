@@ -1,13 +1,15 @@
 import { Player } from "../../room-activity";
 import { Game } from "../../room-game";
 import { Room } from "../../rooms";
-import { GameDifficulty, IUserHostedFile } from "../../types/games";
+import { GameDifficulty, IUserHostedFile, IUserHostedFormat } from "../../types/games";
 import { User } from "../../users";
 
 const FORCE_END_CREATE_TIMER = 60 * 1000;
 const HOST_TIME_LIMIT = 25 * 60 * 1000;
 
 export class UserHosted extends Game {
+	readonly attributes: Dict<string> = Object.create(null);
+	readonly customizableAttributes: string[] = [];
 	endTime: number = 0;
 	gameTimer: NodeJS.Timer | null = null;
 	hostId: string = '';
@@ -20,13 +22,31 @@ export class UserHosted extends Game {
 	twist: string | null = null;
 	isUserHosted = true;
 
+	// set immediately in initialize()
+	format!: IUserHostedFormat;
+
 	// type hack for onDeallocate
 	room!: Room;
 
 	onInitialize() {
 		this.endTime = Date.now() + HOST_TIME_LIMIT;
-		this.nameWithOptions = this.hostName + "'s " + this.nameWithOptions;
 		this.uhtmlBaseName = 'userhosted-' + this.id;
+		if (this.format.customizableAttributes) {
+			for (let i = 0; i < this.format.customizableAttributes.length; i++) {
+				if (!this.customizableAttributes.includes(this.format.customizableAttributes[i])) this.customizableAttributes.push(this.format.customizableAttributes[i]);
+			}
+		}
+
+		if (this.customizableAttributes.length) {
+			for (const i in this.format.inputAttributes) {
+				if (this.customizableAttributes.includes(i)) this.attributes[i] = this.format.inputAttributes[i];
+			}
+
+			if (this.attributes.name) this.name = this.attributes.name;
+			if (this.attributes.link) this.description += "<br /><br /><b><a href='" + this.attributes.link + "'>More info</a></b>";
+		}
+
+		this.nameWithOptions = this.hostName + "'s " + this.name;
 	}
 
 	setHost(host: User | string) {
@@ -100,6 +120,7 @@ export const game: IUserHostedFile<UserHosted> = {
 			mascot: "Floette-eternal",
 			description: "A game from Game Corner's official forum.",
 			aliases: ['ffg'],
+			customizableAttributes: ['name', 'link'],
 		},
 		{
 			name: "Acrotopia",

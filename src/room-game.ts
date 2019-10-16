@@ -2,7 +2,7 @@ import { CommandsDict } from "./command-parser";
 import { PRNG, PRNGSeed } from "./prng";
 import { Activity, Player, PlayerList } from "./room-activity";
 import { Room } from "./rooms";
-import { IGameFormat } from "./types/games";
+import { IGameFormat, IUserHostedFormat } from "./types/games";
 import { IPokemonCopy } from "./types/in-game-data-types";
 import { User } from "./users";
 
@@ -43,6 +43,7 @@ export abstract class Game extends Activity {
 	readonly commandsListeners: IGameCommandCountListener[] = [];
 	readonly customizableOptions: Dict<IGameOptionValues> = Object.create(null);
 	internalGame: boolean = false;
+	readonly isUserHosted: boolean = false;
 	readonly loserPointsToBits: number = 10;
 	readonly maxBits: number = 1000;
 	namePrefixes: string[] = [];
@@ -53,7 +54,7 @@ export abstract class Game extends Activity {
 	prng: PRNG = new PRNG();
 	readonly round: number = 0;
 	signupsTime: number = 0;
-	readonly isUserHosted: boolean = false;
+	usesWorkers: boolean = false;
 	readonly winnerPointsToBits: number = 50;
 	readonly winners = new Map<Player, number>();
 
@@ -61,7 +62,7 @@ export abstract class Game extends Activity {
 
 	// set immediately in initialize()
 	description!: string;
-	format!: IGameFormat;
+	format!: IGameFormat | IUserHostedFormat;
 	inputOptions!: Dict<number>;
 
 	allowChildGameBits?: boolean;
@@ -127,6 +128,7 @@ export abstract class Game extends Activity {
 		}
 		if (format.variant) Object.assign(this, format.variant);
 		if (format.mode) format.mode.initialize(this);
+		if (format.workers) this.usesWorkers = true;
 
 		this.setOptions();
 

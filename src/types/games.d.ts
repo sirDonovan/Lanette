@@ -63,6 +63,7 @@ interface IUserHosted {
 
 	aliases?: string[];
 	readonly approvedHostOnly?: boolean;
+	customizableAttributes?: string[];
 	readonly freejoin?: boolean;
 	readonly mascot?: string;
 	readonly mascots?: string[];
@@ -75,7 +76,9 @@ export interface IUserHostedComputed<T extends UserHosted = UserHosted> extends 
 
 export interface IUserHostedFormatComputed {
 	readonly effectType: 'UserHostedFormat';
+	inputAttributes: Dict<string>;
 	inputOptions: Dict<number>;
+	inputTarget: string;
 }
 
 export interface IUserHostedFormat<T extends UserHosted = UserHosted> extends IUserHostedComputed<T>, IUserHostedFormatComputed {}

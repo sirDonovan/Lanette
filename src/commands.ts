@@ -66,7 +66,7 @@ const commands: Dict<ICommandDefinition> = {
 				} else if (id === 'games') {
 					const workerGameRooms: Room[] = [];
 					Users.self.rooms.forEach((rank, room) => {
-						if (room.game && room.game.format.workers) workerGameRooms.push(room);
+						if (room.game && room.game.usesWorkers) workerGameRooms.push(room);
 					});
 					if (workerGameRooms.length) {
 						return this.say("You must wait for the game" + (workerGameRooms.length > 1 ? "s" : "") + " in " + Tools.joinList(workerGameRooms.map(x => x.title)) + " to finish first.");
@@ -460,8 +460,8 @@ const commands: Dict<ICommandDefinition> = {
 				if (database.userHostedGameQueue) {
 					for (let i = 0; i < database.userHostedGameQueue.length; i++) {
 						if (Tools.toId(database.userHostedGameQueue[i].name) === host.id) {
-							if (database.userHostedGameQueue[i].format === format.name) return this.say(host.name + " is already in the host queue for " + format.name + ".");
-							database.userHostedGameQueue[i].format = format.name;
+							if (Games.getExistingUserHostedFormat(database.userHostedGameQueue[i].format).name === format.name && !format.inputTarget.includes(',')) return this.say(host.name + " is already in the host queue for " + format.name + ".");
+							database.userHostedGameQueue[i].format = format.inputTarget;
 							return this.say(host.name + "'s game was changed to " + format.name + ".");
 						}
 					}
@@ -485,7 +485,7 @@ const commands: Dict<ICommandDefinition> = {
 				}
 				this.say((reason ? reason + " so " : "") + host.name + " was added to the host queue.");
 				database.userHostedGameQueue.push({
-					format: format.name,
+					format: format.inputTarget,
 					id: host.id,
 					name: host.name,
 				});
@@ -541,7 +541,7 @@ const commands: Dict<ICommandDefinition> = {
 				let name = database.userHostedGameQueue[i].name;
 				const user = Users.get(database.userHostedGameQueue[i].name);
 				if (user) name = user.name;
-				html.push("<b>" + (i + 1) + "</b>: " + name + " (" + database.userHostedGameQueue[i].format + ")");
+				html.push("<b>" + (i + 1) + "</b>: " + name + " (" + Games.getExistingUserHostedFormat(database.userHostedGameQueue[i].format).name + ")");
 			}
 			this.sayHtml("<b>Host queue</b>:<br><br>" + html.join("<br>"), gameRoom);
 		},
