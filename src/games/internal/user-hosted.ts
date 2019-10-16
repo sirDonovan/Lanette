@@ -167,7 +167,7 @@ export const game: IUserHostedFile<UserHosted> = {
 			name: "Dugtrio's Dex Entries",
 			mascot: "Dugtrio",
 			aliases: ['DDE'],
-			description: "Each round players create a brand new Pokedex entry for each Pokemon the host presents. Entries are judged by creativity and originality.",
+			description: "Each round, players create a brand new Pokedex entry for each Pokemon the host presents. Entries are judged by creativity and originality.",
 			freejoin: true,
 		},
 		{
@@ -215,7 +215,7 @@ export const game: IUserHostedFile<UserHosted> = {
 		{
 			name: "Luig-E's Challenge",
 			aliases: ['Luiges'],
-			description: "Each round the players decide to either attack, counter or rest to take down Luig-E. However, Luig-E picks a move and can attack too, so be careful with your picks!",
+			description: "Each round, the players decide to either attack, counter or rest to take down Luig-E. However, Luig-E picks a move and can attack too, so be careful with your picks!",
 		},
 		{
 			name: "Lyrics",
@@ -229,12 +229,12 @@ export const game: IUserHostedFile<UserHosted> = {
 		},
 		{
 			name: "Mascots",
-			description: "Each round the host will provide a song and players must find a Pokemon that best represents it using the standard formatting --[Pokemon]--.",
+			description: "Each round, the host will provide a song and players must find a Pokemon that best represents it using the standard formatting --[Pokemon]--.",
 			freejoin: true,
 		},
 		{
 			name: "Mega Mania",
-			description: "Each round players make mega evolutions for a Pokemon given by the host. Entries are judged on creativity and viability made through typing, stats, and abilities.",
+			description: "Each round, players make mega evolutions for a Pokemon given by the host. Entries are judged on creativity and viability made through typing, stats, and abilities.",
 			freejoin: true,
 		},
 		{
@@ -251,7 +251,7 @@ export const game: IUserHostedFile<UserHosted> = {
 		},
 		{
 			name: "Nickgames",
-			description: "Each round the host will announce a Pokemon and players must create the most funny, clever, cute, creative, or fitting nickname for it using the standard formatting --[nickname]--.",
+			description: "Each round, the host will announce a Pokemon and players must create the most funny, clever, cute, creative, or fitting nickname for it using the standard formatting --[nickname]--.",
 			freejoin: true,
 		},
 		{
@@ -276,7 +276,7 @@ export const game: IUserHostedFile<UserHosted> = {
 		{
 			name: "Precise Timing",
 			aliases: ['pt'],
-			description: "Each round the host will set a timer and players must do <code>/me check</code> before time runs out. The catch: the first one to check in is eliminated.",
+			description: "Each round, the host will set a timer and players must do <code>/me check</code> before time runs out. The catch: the first one to check in is eliminated.",
 		},
 		{
 			name: "Private Objects",
@@ -364,13 +364,18 @@ export const game: IUserHostedFile<UserHosted> = {
 			description: "Each player is sent the location for the game and a unique job. If a player is chosen to be the spy, only they will know and they will not receive the location. By asking questions in turns, the spy tries to guess the location and the other players try to discover the spy.",
 		},
 		{
+			name: "Test Your Abilities",
+			aliases: ['tya'],
+			description: "Each round, players must guess Pokemon based on the initials of their abilities!",
+		},
+		{
 			name: "The Chosen One",
 			description: "The host PMs a selected player three words. A timer is set and all players have a conversation in the chat, in which the selected player must use all three words. After the timer ends, all players PM the host who they think was The Chosen One.",
 			aliases: ['tco', 'chosenone'],
 		},
 		{
 			name: "The Evo Game",
-			description: "Each round the host will announce a Pokemon and players must create an evolution, providing the species, typing, ability(ies), and dex entry.",
+			description: "Each round, the host will announce a Pokemon and players must create an evolution, providing the species, typing, ability(ies), and dex entry.",
 			aliases: ['evogame'],
 			freejoin: true,
 		},
