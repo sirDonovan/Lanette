@@ -160,6 +160,7 @@ export const game: IUserHostedFile<UserHosted> = {
 		},
 		{
 			name: "Ditto's Who Am I",
+			mascot: 'Ditto',
 			aliases: ['dittos', 'who am i'],
 			description: "The host will assign each player a Pokemon without telling them. Each round, players must ask ‘yes’ or ‘no’ questions in order to guess what Pokemon they were assigned!",
 		},
