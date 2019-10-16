@@ -159,6 +159,11 @@ export const game: IUserHostedFile<UserHosted> = {
 			description: "Players bid numbers from 1-100 and after 30 seconds, the player with highest bid is chosen. Then, a random number from 1-100 is chosen. If the number is greater than or equal to the player's bid, that player wins, but if is lesser, then that player is eliminated.",
 		},
 		{
+			name: "Ditto's Who Am I",
+			aliases: ['dittos', 'who am i'],
+			description: "The host will assign each player a Pokemon without telling them. Each round, players must ask ‘yes’ or ‘no’ questions in order to guess what Pokemon they were assigned!",
+		},
+		{
 			name: "Dugtrio's Dex Entries",
 			mascot: "Dugtrio",
 			aliases: ['DDE'],
