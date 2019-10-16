@@ -35,7 +35,7 @@ const defaultOptionValues: Dict<IGameOptionValues> = {
 	freejoin: {min: 1, base: 0, max: 1},
 };
 
-export class Game extends Activity {
+export abstract class Game extends Activity {
 	readonly activityType: string = 'game';
 	awardedBits: boolean = false;
 	canLateJoin: boolean = false;
@@ -464,10 +464,9 @@ export class Game extends Activity {
 				}
 			}
 			const gif = Dex.getPokemonGif(this.mascot, "xy", this.isUserHosted ? 'back' : 'front');
-			if (gif) html += gif + "&nbsp;&nbsp;&nbsp;";
+			if (gif) html += gif;
 		}
-		html += "<b><font size='3'>" + this.nameWithOptions + "</font></b>";
-		html += "<br />" + this.description;
+		html += "<h3>" + this.nameWithOptions + "</h3>" + this.description;
 		let commandDescriptions: string[] = [];
 		if (this.getPlayerSummary) commandDescriptions.push(Config.commandCharacter + "summary");
 		if (this.commandDescriptions) commandDescriptions = commandDescriptions.concat(this.commandDescriptions);
