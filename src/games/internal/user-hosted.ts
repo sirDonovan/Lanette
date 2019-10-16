@@ -368,6 +368,7 @@ export const game: IUserHostedFile<UserHosted> = {
 			name: "Test Your Abilities",
 			aliases: ['tya'],
 			description: "Each round, players must guess Pokemon based on the initials of their abilities!",
+			freejoin: true,
 		},
 		{
 			name: "The Chosen One",
