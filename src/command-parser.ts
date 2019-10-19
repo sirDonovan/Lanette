@@ -13,7 +13,7 @@ export interface ICommandDefinition<T = undefined, U = T extends Game ? GameComm
 	readonly pmOnly?: boolean;
 }
 
-export type CommandsDict<T = undefined, U = T extends Game ? GameCommandReturnType : void> = Dict<Pick<ICommandDefinition<T, U>, Exclude<keyof ICommandDefinition<T, U>, "aliases">>>;
+export type CommandsDict<T = undefined, U = T extends Game ? GameCommandReturnType : void> = Dict<Omit<ICommandDefinition<T, U>, "aliases">>;
 
 type CommandErrorOptionalTarget = 'invalidBotRoom' | 'invalidFormat' | 'invalidGameFormat' | 'invalidTournamentFormat' | 'invalidUserHostedGameFormat' | 'tooManyGameModes' |
 	'tooManyGameVariants' | 'emptyUserHostedGameQueue';
@@ -43,12 +43,12 @@ export class Command {
 		this.pm = room === user;
 	}
 
-	say(message: string) {
-		this.room.say(message);
+	say(message: string, dontPrepare?: boolean, dontCheckFilter?: boolean) {
+		this.room.say(message, dontPrepare, dontCheckFilter);
 	}
 
-	sayCommand(message: string) {
-		this.room.sayCommand(message);
+	sayCommand(message: string, dontCheckFilter?: boolean) {
+		this.room.sayCommand(message, dontCheckFilter);
 	}
 
 	sayHtml(html: string, pmHtmlRoom: Room) {
