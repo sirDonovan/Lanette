@@ -333,6 +333,12 @@ export const game: IUserHostedFile<UserHosted> = {
 			description: "Each round, the host will announce an action. If the action is preceded by 'Simon Says', players must do the action using <code>/me [action]</code>. If players do the action when it is not preceded by 'Simon Says', they are eliminated.",
 		},
 		{
+			name: "Skitty's Seek and Hide",
+			mascot: "Skitty",
+			description: "Each round, the host will give a param that determines Pokemon players can hide behind (by PMing the host). The pokemon that the most people hide behind turns evil and steals a life away from them! Can you keep yourself from being eliminated?",
+			aliases: ['skittys', 'ssh'],
+		},
+		{
 			name: "Smeargle's Move Parameters",
 			mascot: "Smeargle",
 			aliases: ['MoveParameters', 'MoveParams', 'Smeargles'],
