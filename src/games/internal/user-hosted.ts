@@ -163,6 +163,7 @@ export const game: IUserHostedFile<UserHosted> = {
 		{
 			name: "Gameathlon",
 			description: "A series of Game Corner games in one! Players try to win each mini-game to earn points.",
+			freejoin: true,
 		},
 		{
 			name: "Ghost",
