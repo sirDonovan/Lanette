@@ -43,7 +43,7 @@ export abstract class Chain extends Game {
 	}
 
 	onSignups() {
-		if (this.options.freejoin) this.timeout = setTimeout(() => this.start(), 5000);
+		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
 	}
 
 	onInitialize() {
