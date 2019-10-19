@@ -290,21 +290,29 @@ export class Game extends Activity {
 			usedDatabase = true;
 			const now = Date.now();
 			const database = Storage.getDatabase(this.room);
+
+			Games.lastGames[this.room.id] = now;
+			let pastGamesKey: 'pastGames' | 'pastUserHostedGames';
 			if (this.isUserHosted) {
+				Games.lastUserHostedGames[this.room.id] = now;
+				pastGamesKey = 'pastUserHostedGames';
+
 				if (!database.lastUserHostedGameFormatTimes) database.lastUserHostedGameFormatTimes = {};
 				database.lastUserHostedGameFormatTimes[this.format.id] = now;
 				database.lastUserHostedGameTime = now;
 			} else {
+				Games.lastScriptedGames[this.room.id] = now;
+				pastGamesKey = 'pastGames';
+
 				if (!database.lastGameFormatTimes) database.lastGameFormatTimes = {};
 				database.lastGameFormatTimes[this.format.id] = now;
 				database.lastGameTime = now;
 			}
 
-			Games.lastGames[this.room.id] = now;
-			if (this.isUserHosted) {
-				Games.lastUserHostedGames[this.room.id] = now;
-			} else {
-				Games.lastScriptedGames[this.room.id] = now;
+			if (!database[pastGamesKey]) database[pastGamesKey] = [];
+			database[pastGamesKey]!.unshift({format: this.format.inputTarget, time: now});
+			while (database[pastGamesKey]!.length > 8) {
+				database[pastGamesKey]!.pop();
 			}
 
 			if (Config.gameCooldownTimers && this.room.id in Config.gameCooldownTimers) {

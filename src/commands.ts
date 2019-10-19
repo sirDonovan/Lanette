@@ -377,6 +377,63 @@ const commands: Dict<ICommandDefinition> = {
 			}
 		},
 	},
+	pastgames: {
+		command(target, room, user) {
+			let gameRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(target);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
+				if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(targetRoom.id)) return this.sayError(['disabledGameFeatures', targetRoom.title]);
+				gameRoom = targetRoom;
+			} else {
+				if (!user.hasRank(room, 'voice')) return;
+				if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) return this.sayError(['disabledGameFeatures', room.title]);
+				gameRoom = room;
+			}
+
+			const database = Storage.getDatabase(gameRoom);
+			if (!database.pastGames) return this.say("The past games list is empty.");
+			const names: string[] = [];
+			for (let i = 0; i < database.pastGames.length; i++) {
+				const format = Games.getFormat(database.pastGames[i].format);
+				if (Array.isArray(format)) {
+					names.push(database.pastGames[i].format);
+				} else {
+					names.push(format.name);
+				}
+			}
+			this.say("**Past games** (most recent first): " + Tools.joinList(names) + ".");
+		},
+	},
+	pastuserhostedgames: {
+		command(target, room, user) {
+			let gameRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(target);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
+				if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(targetRoom.id)) return this.sayError(['disabledUserHostedGameFeatures', targetRoom.title]);
+				gameRoom = targetRoom;
+			} else {
+				if (!user.hasRank(room, 'voice')) return;
+				if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id)) return this.sayError(['disabledUserHostedGameFeatures', room.title]);
+				gameRoom = room;
+			}
+
+			const database = Storage.getDatabase(gameRoom);
+			if (!database.pastUserHostedGames) return this.say("The past tournament list is empty.");
+			const names: string[] = [];
+			for (let i = 0; i < database.pastUserHostedGames.length; i++) {
+				const format = Games.getUserHostedFormat(database.pastUserHostedGames[i].format);
+				if (Array.isArray(format)) {
+					names.push(database.pastUserHostedGames[i].format);
+				} else {
+					names.push(format.name);
+				}
+			}
+			this.say("**Past user-hosted games** (most recent first): " + Tools.joinList(names) + ".");
+		},
+		aliases: ['pastuserhosts', 'pasthosts'],
+	},
 	lastgame: {
 		command(target, room, user) {
 			const targets = target.split(',');
