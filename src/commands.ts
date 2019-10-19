@@ -379,12 +379,14 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	pastgames: {
 		command(target, room, user) {
+			const targets = target.split(',');
 			let gameRoom: Room;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.search(target);
-				if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 				if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(targetRoom.id)) return this.sayError(['disabledGameFeatures', targetRoom.title]);
 				gameRoom = targetRoom;
+				targets.shift();
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
 				if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) return this.sayError(['disabledGameFeatures', room.title]);
@@ -394,25 +396,33 @@ const commands: Dict<ICommandDefinition> = {
 			const database = Storage.getDatabase(gameRoom);
 			if (!database.pastGames) return this.say("The past games list is empty.");
 			const names: string[] = [];
+			const option = Tools.toId(targets[0]);
+			const displayTimes = option === 'time' || option === 'times';
+			const now = Date.now();
 			for (let i = 0; i < database.pastGames.length; i++) {
 				const format = Games.getFormat(database.pastGames[i].format);
+				let game: string;
 				if (Array.isArray(format)) {
-					names.push(database.pastGames[i].format);
+					game = database.pastGames[i].format;
 				} else {
-					names.push(format.name);
+					game = format.name;
 				}
+				if (displayTimes) game += " <i>(" + Tools.toDurationString(now - database.pastGames[i].time, {hhmmss: true}) + " ago)</i>";
+				names.push(game);
 			}
-			this.say("**Past games** (most recent first): " + Tools.joinList(names) + ".");
+			this.sayHtml("<b>Past games</b>" + (displayTimes ? "" : " (most recent first)") + ": " + Tools.joinList(names) + ".", gameRoom);
 		},
 	},
 	pastuserhostedgames: {
 		command(target, room, user) {
+			const targets = target.split(',');
 			let gameRoom: Room;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.search(target);
-				if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 				if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(targetRoom.id)) return this.sayError(['disabledUserHostedGameFeatures', targetRoom.title]);
 				gameRoom = targetRoom;
+				targets.shift();
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
 				if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id)) return this.sayError(['disabledUserHostedGameFeatures', room.title]);
@@ -422,15 +432,21 @@ const commands: Dict<ICommandDefinition> = {
 			const database = Storage.getDatabase(gameRoom);
 			if (!database.pastUserHostedGames) return this.say("The past user-hosted games list is empty.");
 			const names: string[] = [];
+			const option = Tools.toId(targets[0]);
+			const displayTimes = option === 'time' || option === 'times';
+			const now = Date.now();
 			for (let i = 0; i < database.pastUserHostedGames.length; i++) {
 				const format = Games.getUserHostedFormat(database.pastUserHostedGames[i].format);
+				let game: string;
 				if (Array.isArray(format)) {
-					names.push(database.pastUserHostedGames[i].format);
+					game = database.pastUserHostedGames[i].format;
 				} else {
-					names.push(format.name);
+					game = format.name;
 				}
+				if (displayTimes) game += " <i>(" + Tools.toDurationString(now - database.pastUserHostedGames[i].time, {hhmmss: true}) + " ago)</i>";
+				names.push(game);
 			}
-			this.say("**Past user-hosted games** (most recent first): " + Tools.joinList(names) + ".");
+			this.sayHtml("<b>Past user-hosted games</b>" + (displayTimes ? "" : " (most recent first)") + ": " + Tools.joinList(names) + ".", gameRoom);
 		},
 		aliases: ['pastuserhosts', 'pasthosts'],
 	},
