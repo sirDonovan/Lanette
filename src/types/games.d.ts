@@ -57,14 +57,16 @@ export interface IUserHostedFile<T extends UserHosted = UserHosted> {
 	readonly formats: IUserHosted[];
 }
 
+export type UserHostedCustomizable = 'name' | 'link';
 interface IUserHosted {
 	readonly description: string;
-	readonly name: string;
+	name: string;
 
 	aliases?: string[];
 	readonly approvedHostOnly?: boolean;
-	customizableAttributes?: string[];
+	readonly customizableAttributes?: UserHostedCustomizable[];
 	readonly freejoin?: boolean;
+	link?: string;
 	readonly mascot?: string;
 	readonly mascots?: string[];
 }
@@ -76,7 +78,6 @@ export interface IUserHostedComputed<T extends UserHosted = UserHosted> extends 
 
 export interface IUserHostedFormatComputed {
 	readonly effectType: 'UserHostedFormat';
-	inputAttributes: Dict<string>;
 	inputOptions: Dict<number>;
 	inputTarget: string;
 }

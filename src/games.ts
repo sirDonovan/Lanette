@@ -6,7 +6,7 @@ import { UserHosted } from './games/internal/user-hosted';
 import { PRNG, PRNGSeed } from './prng';
 import { Game } from "./room-game";
 import { Room } from "./rooms";
-import { IGameFile, IGameFileComputed, IGameFormat, IGameFormatComputed, IGameMode, IGameModeFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFile, IUserHostedFormat, IUserHostedFormatComputed } from './types/games';
+import { IGameFile, IGameFileComputed, IGameFormat, IGameFormatComputed, IGameMode, IGameModeFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFile, IUserHostedFormat, IUserHostedFormatComputed, UserHostedCustomizable } from './types/games';
 import { IWorker } from './types/global-types';
 import { User } from './users';
 
@@ -358,7 +358,7 @@ export class Games {
 		if (id in this.userHostedAliases) return this.getUserHostedFormat(this.userHostedAliases[id] + (targets.length ? "," + targets.join(",") : ""), user);
 		let formatData: IUserHostedComputed | undefined;
 		if (id in this.userHostedFormats) {
-			formatData = this.userHostedFormats[id];
+			formatData = Object.assign({}, this.userHostedFormats[id]);
 		} else {
 			const scriptedFormat = this.getFormat(id + (targets.length ? "," + targets.join(",") : ""));
 			if (Array.isArray(scriptedFormat)) {
@@ -374,23 +374,22 @@ export class Games {
 		}
 		if (!formatData) return ['invalidUserHostedGameFormat', name];
 
-		const inputAttributes: Dict<string> = {};
 		if (formatData.customizableAttributes) {
 			for (let i = 0; i < targets.length; i++) {
 				const colonIndex = targets[i].indexOf(':');
 				if (colonIndex === -1) continue;
-				const attribute = targets[i].substr(0, colonIndex).trim();
+				const attribute = Tools.toId(targets[i].substr(0, colonIndex)) as UserHostedCustomizable;
+				if (!formatData.customizableAttributes.includes(attribute)) continue;
 				const value = targets[i].substr(colonIndex + 1).trim();
 				if (attribute === 'link') {
 					if (!value.startsWith('https://')) return ['invalidHttpsLink'];
 				}
-				if (value) inputAttributes[attribute] = value;
+				if (value) formatData[attribute] = value;
 			}
 		}
 
 		const formatComputed: IUserHostedFormatComputed = {
 			effectType: "UserHostedFormat",
-			inputAttributes,
 			inputOptions: {},
 			inputTarget,
 		};
@@ -463,8 +462,8 @@ export class Games {
 		if (room.id in this.autoCreateTimers) clearTimeout(this.autoCreateTimers[room.id]);
 
 		room.userHostedGame = new format.class(room);
-		room.userHostedGame.setHost(host);
 		room.userHostedGame.initialize((format as unknown) as IGameFormat);
+		room.userHostedGame.setHost(host);
 
 		return room.userHostedGame;
 	}

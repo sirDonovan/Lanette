@@ -8,8 +8,6 @@ const FORCE_END_CREATE_TIMER = 60 * 1000;
 const HOST_TIME_LIMIT = 25 * 60 * 1000;
 
 export class UserHosted extends Game {
-	readonly attributes: Dict<string> = Object.create(null);
-	readonly customizableAttributes: string[] = [];
 	endTime: number = 0;
 	gameTimer: NodeJS.Timer | null = null;
 	hostId: string = '';
@@ -31,22 +29,7 @@ export class UserHosted extends Game {
 	onInitialize() {
 		this.endTime = Date.now() + HOST_TIME_LIMIT;
 		this.uhtmlBaseName = 'userhosted-' + this.id;
-		if (this.format.customizableAttributes) {
-			for (let i = 0; i < this.format.customizableAttributes.length; i++) {
-				if (!this.customizableAttributes.includes(this.format.customizableAttributes[i])) this.customizableAttributes.push(this.format.customizableAttributes[i]);
-			}
-		}
-
-		if (this.customizableAttributes.length) {
-			for (const i in this.format.inputAttributes) {
-				if (this.customizableAttributes.includes(i)) this.attributes[i] = this.format.inputAttributes[i];
-			}
-
-			if (this.attributes.name) this.name = this.attributes.name;
-			if (this.attributes.link) this.description += "<br /><br /><b><a href='" + this.attributes.link + "'>More info</a></b>";
-		}
-
-		this.nameWithOptions = this.hostName + "'s " + this.name;
+		if (this.format.link) this.description += "<br /><br /><b><a href='" + this.format.link + "'>More info</a></b>";
 	}
 
 	setHost(host: User | string) {
@@ -57,6 +40,8 @@ export class UserHosted extends Game {
 			this.hostId = host.id;
 			this.hostName = host.name;
 		}
+
+		this.nameWithOptions = this.hostName + "'s " + this.name;
 	}
 
 	onDeallocate() {
