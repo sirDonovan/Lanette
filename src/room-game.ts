@@ -222,9 +222,19 @@ export class Game extends Activity {
 		if (this.options.freejoin) {
 			this.started = true;
 			this.startTime = Date.now();
-		} else {
+		} else if (!this.internalGame && !this.isUserHosted) {
 			if (Config.gameAutoStartTimers && this.room.id in Config.gameAutoStartTimers) {
-				this.startTimer = setTimeout(() => this.start(), Config.gameAutoStartTimers[this.room.id] * 60 * 1000);
+				const startTimer = Config.gameAutoStartTimers[this.room.id] * 60 * 1000;
+				this.startTimer = setTimeout(() => {
+					if (!this.start()) {
+						this.startTimer = setTimeout(() => {
+							if (!this.start()) {
+								this.say("Ending the game due to a lack of players.");
+								this.deallocate(false);
+							}
+						}, startTimer);
+					}
+				}, startTimer);
 			}
 		}
 	}
