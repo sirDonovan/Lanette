@@ -420,7 +420,7 @@ const commands: Dict<ICommandDefinition> = {
 			}
 
 			const database = Storage.getDatabase(gameRoom);
-			if (!database.pastUserHostedGames) return this.say("The past tournament list is empty.");
+			if (!database.pastUserHostedGames) return this.say("The past user-hosted games list is empty.");
 			const names: string[] = [];
 			for (let i = 0; i < database.pastUserHostedGames.length; i++) {
 				const format = Games.getUserHostedFormat(database.pastUserHostedGames[i].format);
