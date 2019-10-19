@@ -33,7 +33,7 @@ class HypnosHunches extends Guessing {
 
 	currentCategory: string = '';
 	customizableOptions: Dict<IGameOptionValues> = {
-		points: {min: 3, base: 5, max: 5},
+		points: {min: 5, base: 5, max: 5},
 	};
 	guessLimit: number = 10;
 	guessedLetters: string[] = [];

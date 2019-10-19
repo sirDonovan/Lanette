@@ -1,5 +1,5 @@
 import { PRNG, PRNGSeed } from "../prng";
-import { DefaultGameOption, IGameOptionValues } from "../room-game";
+import { IGameOptionValues } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import * as PortmanteausWorker from './../workers/portmanteaus';
@@ -22,11 +22,11 @@ export class PoliwrathsPortmanteaus extends Guessing {
 	baseNumberOfPorts: number = 2;
 	customizableOptions: Dict<IGameOptionValues> = {
 		ports: {min: 2, base: 2, max: 4},
+		points: {min: 5, base: 5, max: 10},
 	};
 	customPortCategories: string[] | null = null;
 	customPortDetails: string[] | null = null;
 	customPortTypes: PortmanteausWorker.PoolType[] | null = null;
-	defaultOptions: DefaultGameOption[] = ['points'];
 	minLetters: number = 2;
 	maxLetters: number = 4;
 	ports: string[] = [];

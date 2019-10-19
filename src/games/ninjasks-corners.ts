@@ -10,7 +10,7 @@ class NinjasksCorners extends Game {
 	canTravel: boolean = false;
 	color: string = '';
 	customizableOptions: Dict<IGameOptionValues> = {
-		points: {min: 5, base: 5, max: 10},
+		points: {min: 10, base: 10, max: 10},
 	};
 	defaultOptions: DefaultGameOption[] = ['freejoin'];
 	// firstTravel: Player | null;

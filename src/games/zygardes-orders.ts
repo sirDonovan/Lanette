@@ -32,7 +32,7 @@ class ZygardesOrders extends Guessing {
 
 	allLetters: number = 0;
 	customizableOptions: Dict<IGameOptionValues> = {
-		points: {min: 3, base: 5, max: 5},
+		points: {min: 5, base: 5, max: 5},
 	};
 	guessedLetters: string[] = [];
 	guessLimit: number = 10;

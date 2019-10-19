@@ -29,7 +29,7 @@ const SIGNUPS_HTML_DELAY = 2 * 1000;
 
 // base of 0 defaults option to 'off'
 const defaultOptionValues: Dict<IGameOptionValues> = {
-	points: {min: 3, base: 5, max: 10},
+	points: {min: 10, base: 10, max: 10},
 	teams: {min: 2, base: 2, max: 4},
 	cards: {min: 4, base: 5, max: 6},
 	freejoin: {min: 1, base: 0, max: 1},

@@ -1,5 +1,5 @@
 import { PRNG, PRNGSeed } from "../prng";
-import { DefaultGameOption, IGameOptionValues } from "../room-game";
+import { IGameOptionValues } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import * as ParametersWorker from './../workers/parameters';
@@ -22,9 +22,9 @@ export class ParasParameters extends Guessing {
 	currentNumberOfParams: number = 0;
 	customizableOptions: Dict<IGameOptionValues> = {
 		params: {min: 2, base: 2, max: 4},
+		points: {min: 5, base: 5, max: 10},
 	};
 	customParamTypes: ParametersWorker.ParamType[] | null = null;
-	defaultOptions: DefaultGameOption[] = ['points'];
 	htmlHint = true;
 	minimumResults: number = 3;
 	maximumResults: number = 50;
