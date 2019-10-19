@@ -177,6 +177,12 @@ export class Tournament extends Activity {
 		this.room.tournament = null;
 	}
 
+	start() {
+		if (this.startTimer) clearTimeout(this.startTimer);
+		this.started = true;
+		this.startTime = Date.now();
+	}
+
 	onEnd() {
 		const database = Storage.getDatabase(this.room);
 		if (!database.pastTournaments) database.pastTournaments = [];

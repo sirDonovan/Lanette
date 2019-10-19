@@ -275,7 +275,7 @@ const commands: Dict<ICommandDefinition> = {
 			if (this.isPm(room)) return;
 			if (room.game) {
 				if (!user.hasRank(room, 'voice') || room.game.started) return;
-				room.game.start();
+				if (!room.game.start()) this.say("Not enough players have joined the game.");
 			} else if (room.userHostedGame) {
 				if (user.id !== room.userHostedGame.hostId || room.userHostedGame.started) return;
 				room.userHostedGame.start();

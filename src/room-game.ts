@@ -35,7 +35,7 @@ const defaultOptionValues: Dict<IGameOptionValues> = {
 	freejoin: {min: 1, base: 0, max: 1},
 };
 
-export abstract class Game extends Activity {
+export class Game extends Activity {
 	readonly activityType: string = 'game';
 	awardedBits: boolean = false;
 	canLateJoin: boolean = false;
@@ -46,9 +46,11 @@ export abstract class Game extends Activity {
 	readonly isUserHosted: boolean = false;
 	readonly loserPointsToBits: number = 10;
 	readonly maxBits: number = 1000;
+	readonly minPlayers: number = 2;
 	namePrefixes: string[] = [];
 	nameSuffixes: string[] = [];
 	nameWithOptions: string = '';
+	notifyRankSignups: boolean = false;
 	readonly options: Dict<number> = Object.create(null);
 	parentGame: Game | null = null;
 	prng: PRNG = new PRNG();
@@ -225,6 +227,20 @@ export abstract class Game extends Activity {
 				this.startTimer = setTimeout(() => this.start(), Config.gameAutoStartTimers[this.room.id] * 60 * 1000);
 			}
 		}
+	}
+
+	start(user?: User): boolean {
+		if (this.minPlayers && this.playerCount < this.minPlayers) return false;
+		if (this.startTimer) clearTimeout(this.startTimer);
+		if (this.notifyRankSignups) this.sayCommand("/notifyoffrank all");
+		this.started = true;
+		this.startTime = Date.now();
+		if (this.getSignupsHtml && this.showSignupsHtml) {
+			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
+			this.sayUhtmlChange(this.uhtmlBaseName + "-signups", this.getSignupsHtml());
+		}
+		if (this.onStart) this.onStart();
+		return true;
 	}
 
 	nextRound() {
@@ -570,5 +586,6 @@ export abstract class Game extends Activity {
 	onNextRound?(): void;
 	onRemovePlayer?(player: Player): void;
 	onSignups?(): void;
+	onStart?(): void;
 	parseChatMessage?(user: User, message: string, isCommand: boolean): void;
 }

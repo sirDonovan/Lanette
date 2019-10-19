@@ -61,7 +61,6 @@ export abstract class Activity {
 	ended: boolean = false;
 	htmlMessageListeners: string[] = [];
 	messageListeners: string[] = [];
-	notifyRankSignups: boolean = false;
 	playerCount: number = 0;
 	players: Dict<Player> = {};
 	showSignupsHtml: boolean = false;
@@ -122,18 +121,6 @@ export abstract class Activity {
 			this.playerCount--;
 		}
 		return player;
-	}
-
-	start() {
-		if (this.startTimer) clearTimeout(this.startTimer);
-		if (this.notifyRankSignups) this.sayCommand("/notifyoffrank all");
-		this.started = true;
-		this.startTime = Date.now();
-		if (this.getSignupsHtml && this.showSignupsHtml) {
-			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
-			this.sayUhtmlChange(this.uhtmlBaseName + "-signups", this.getSignupsHtml());
-		}
-		if (this.onStart) this.onStart();
 	}
 
 	end() {
@@ -273,10 +260,10 @@ export abstract class Activity {
 
 	abstract deallocate(forceEnd: boolean): void;
 	abstract forceEnd(user?: User): void;
+	abstract start(): void;
 
 	getSignupsHtml?(): string;
 	onEnd?(): void;
 	onForceEnd?(user?: User): void;
 	onRenamePlayer?(player: Player, oldId: string): void;
-	onStart?(): void;
 }
