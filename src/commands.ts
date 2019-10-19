@@ -407,7 +407,13 @@ const commands: Dict<ICommandDefinition> = {
 				} else {
 					game = format.name;
 				}
-				if (displayTimes) game += " <i>(" + Tools.toDurationString(now - database.pastGames[i].time, {hhmmss: true}) + " ago)</i>";
+
+				if (displayTimes) {
+					let duration = now - database.pastGames[i].time;
+					if (duration < 1000) duration = 1000;
+					game += " <i>(" + Tools.toDurationString(duration, {hhmmss: true}) + " ago)</i>";
+				}
+
 				names.push(game);
 			}
 			this.sayHtml("<b>Past games</b>" + (displayTimes ? "" : " (most recent first)") + ": " + Tools.joinList(names) + ".", gameRoom);
@@ -443,7 +449,13 @@ const commands: Dict<ICommandDefinition> = {
 				} else {
 					game = format.name;
 				}
-				if (displayTimes) game += " <i>(" + Tools.toDurationString(now - database.pastUserHostedGames[i].time, {hhmmss: true}) + " ago)</i>";
+
+				if (displayTimes) {
+					let duration = now - database.pastUserHostedGames[i].time;
+					if (duration < 1000) duration = 1000;
+					game += " <i>(" + Tools.toDurationString(duration, {hhmmss: true}) + " ago)</i>";
+				}
+
 				names.push(game);
 			}
 			this.sayHtml("<b>Past user-hosted games</b>" + (displayTimes ? "" : " (most recent first)") + ": " + Tools.joinList(names) + ".", gameRoom);
