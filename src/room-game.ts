@@ -186,7 +186,7 @@ export class Game extends Activity {
 	deallocate(forceEnd: boolean) {
 		if (this.timeout) clearTimeout(this.timeout);
 		if (this.startTimer) clearTimeout(this.startTimer);
-		if (!this.started && this.notifyRankSignups) this.sayCommand("/notifyoffrank all");
+		if ((!this.started || this.options.freejoin) && this.notifyRankSignups) this.sayCommand("/notifyoffrank all");
 		if (!this.ended) this.ended = true;
 		this.cleanupMessageListeners();
 		if (this.onDeallocate) this.onDeallocate(forceEnd);
