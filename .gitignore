@@ -60,6 +60,9 @@ typings/
 # next.js build output
 .next
 
+# OS files
+desktop.ini
+
 # Lanette files
 archived-databases/*
 !archived-databases/README.md
