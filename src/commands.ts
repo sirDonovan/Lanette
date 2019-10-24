@@ -903,8 +903,8 @@ const commands: Dict<ICommandDefinition> = {
 			const newCmd = cmd === 'aptall' || cmd === 'addpointall' ? 'addpoint' : 'removepoint';
 			const pointsString = target ? ", " + target : "";
 			for (const i in room.userHostedGame.players) {
+				if (room.userHostedGame.players[i].eliminated) continue;
 				const player = room.userHostedGame.players[i];
-				if (player.eliminated) continue;
 				let expiredUser = false;
 				let user = Users.get(player.name);
 				if (!user) {

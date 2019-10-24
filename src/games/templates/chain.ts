@@ -242,21 +242,14 @@ export abstract class Chain extends Game {
 
 	onEnd() {
 		if (this.options.freejoin) return;
-		const len = this.getRemainingPlayerCount();
-		if (len) {
-			const names = this.getPlayerNames();
-			this.say("**Winner" + (len > 1 ? "s" : "") + "**: " + names);
-			let earnings = 500;
-			if (earnings > 1000) earnings = 1000;
-			for (const i in this.players) {
-				const player = this.players[i];
-				if (player.eliminated) continue;
-				this.winners.set(player, 1);
-				this.addBits(player, earnings);
-			}
-		} else {
-			this.say("No winners this game!");
+		for (const i in this.players) {
+			if (this.players[i].eliminated) continue;
+			const player = this.players[i];
+			this.winners.set(player, 1);
+			this.addBits(player, 500);
 		}
+
+		this.announceWinners();
 	}
 
 	markLinkUsed(linkStarts: string[], linkEnds: string[]) {

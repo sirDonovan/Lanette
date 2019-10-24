@@ -220,8 +220,7 @@ class AxewsBattleCards extends CardMatching {
 		if (Date.now() - this.startTime! > this.timeLimit) return this.timeEnd();
 		const len = this.getRemainingPlayerCount();
 		if (!len) {
-			this.say("All players have left the game!");
-			this.timeout = setTimeout(() => this.end(), 5000);
+			this.end();
 			return;
 		}
 		if (len === 1) return this.end();
@@ -253,23 +252,14 @@ class AxewsBattleCards extends CardMatching {
 	}
 
 	onEnd() {
-		const winners: Player[] = [];
 		for (const i in this.players) {
+			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
-			if (player.eliminated) continue;
-			winners.push(player);
 			this.winners.set(player, 1);
+			this.addBits(player, 500);
 		}
-		const winLen = winners.length;
-		if (winLen) {
-			const names = winners.map(x => x.name).join(", ");
-			this.say("**Winner" + (winLen > 1 ? "s" : "") + "**: " + names);
-			for (let i = 0; i < winLen; i++) {
-				this.addBits(winners[i], 500);
-			}
-		} else {
-			this.say("No winners this game!");
-		}
+
+		this.announceWinners();
 	}
 
 	autoPlay(player: Player, playableCards: string[]) {

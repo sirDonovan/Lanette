@@ -87,8 +87,8 @@ class MismagiusFoulPlay extends Game {
 
 	onStart() {
 		this.say("Now requesting Pokemon!");
-		for (const id in this.players) {
-			this.players[id].say("Please select a Pokemon to play as with ``.select``!");
+		for (const i in this.players) {
+			this.players[i].say("Please select a Pokemon to play as with ``.select``!");
 		}
 		this.timeout = setTimeout(() => this.chooseCriminals(), 30 * 1000);
 	}
@@ -98,10 +98,9 @@ class MismagiusFoulPlay extends Game {
 		this.chosenPokemon.forEach((species, player) => {
 			keys.splice(keys.indexOf(species), 1);
 		});
-		for (const id in this.players) {
-			if (this.players[id].eliminated) continue;
-			const player = this.players[id];
-			if (this.chosenPokemon.has(player)) continue;
+		for (const i in this.players) {
+			if (this.players[i].eliminated || this.chosenPokemon.has(this.players[i])) continue;
+			const player = this.players[i];
 			const pokemon = keys[0];
 			keys.shift();
 			player.say("You did not select a Pokemon so you were randomly assigned " + pokemon + ".");
@@ -122,8 +121,8 @@ class MismagiusFoulPlay extends Game {
 		let count = 0;
 		const criminalNames: string[] = [];
 		for (let i = 0; i < players.length; i++) {
+			if (this.players[players[i]].eliminated) continue;
 			const player = this.players[players[i]];
-			if (player.eliminated) continue;
 			if (count < this.criminalCount) {
 				this.criminals.push(player);
 				criminalNames.push(player.name + " (" + this.chosenPokemon.get(player) + ")");
@@ -177,9 +176,9 @@ class MismagiusFoulPlay extends Game {
 
 		this.previousParams.push(param);
 		const players: string[] = [];
-		for (const id in this.players) {
-			if (this.players[id].eliminated) continue;
-			const player = this.players[id];
+		for (const i in this.players) {
+			if (this.players[i].eliminated) continue;
+			const player = this.players[i];
 			let text = player.name + ": ";
 			const chosenPokemon = this.chosenPokemon.get(player)!;
 			const hasParam = data[category!][param].includes(chosenPokemon);
@@ -215,13 +214,11 @@ class MismagiusFoulPlay extends Game {
 			}
 			if (bits) this.addBits(player, bits);
 		}
-		let remainingCriminals = 0;
 		for (let i = 0; i < this.criminals.length; i++) {
 			const player = this.criminals[i];
 			const kidnaps = this.kidnaps.get(player);
 			let bits = 0;
 			if (!detectiveWin) {
-				remainingCriminals++;
 				bits = 300;
 				if (kidnaps) bits += 150 * kidnaps;
 				if (!player.eliminated) this.winners.set(player, 1);
@@ -230,14 +227,9 @@ class MismagiusFoulPlay extends Game {
 			}
 			this.addBits(player, bits);
 		}
-		const len = this.winners.size;
-		if (len) {
-			const names = this.getPlayerNames(this.winners);
-			// if (!detectiveWin && remainingCriminals === 1) Games.unlockAchievement(this.room, names, "Criminal Mind", this);
-			this.say("**Winner" + (len > 1 ? "s" : "") + "**: " + names);
-		} else {
-			this.say("No winners this game!");
-		}
+		// if (!detectiveWin && this.winners.size === 1) Games.unlockAchievement(this.room, this.getPlayerNames(this.winners), "Criminal Mind", this);
+
+		this.announceWinners();
 	}
 
 	getPlayerSummary(player: Player) {

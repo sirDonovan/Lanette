@@ -160,13 +160,14 @@ class TaurosSafariZone extends Game {
 		const totalRounds = this.round - 1;
 		const achievement = [];
 		for (const i in this.players) {
+			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
-			if (player.eliminated) continue;
 			const points = this.points.get(player);
 			if (points && points >= this.maxPoints) this.winners.set(player, 1);
 			const caughtPokemon = this.caughtPokemon.get(player);
 			if (caughtPokemon && caughtPokemon === totalRounds) achievement.push(player);
 		}
+
 		/*
 		if (achievement.length) {
 			let multiple = achievement.length > 1;
@@ -174,16 +175,15 @@ class TaurosSafariZone extends Game {
 				Games.unlockAchievement(this.room, achievement[i], "Gotta Catch 'em All", this, multiple);
 			}
 		}
-		*/
-		const names = this.getPlayerNames(this.winners);
-		this.say("**Winner" + (this.winners.size > 1 ? "s" : "") + "**: " + names);
-		this.convertPointsToBits(0.5, 0.1);
-		/*
+
 		this.winners.forEach((value, user) => {
 			if (user === this.firstCatch) Games.unlockAchievement(this.room, user, "Pokemon Ranger", this);
 			if (this.highestCatch === user) Games.unlockAchievement(this.room, user, "Legendary Collector", this);
 		});
 		*/
+
+		this.convertPointsToBits(0.5, 0.1);
+		this.announceWinners();
 	}
 }
 

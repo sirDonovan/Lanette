@@ -33,9 +33,8 @@ class NinjasksCorners extends Game {
 		this.canTravel = false;
 		if (this.round > 1 && !this.options.freejoin) {
 			for (const i in this.players) {
-				const player = this.players[i];
-				if (player.eliminated) continue;
-				if (this.roundTravels.get(player) !== this.color) player.eliminated = true;
+				if (this.players[i].eliminated) continue;
+				if (this.roundTravels.get(this.players[i]) !== this.color) this.players[i].eliminated = true;
 			}
 			/*
 			let firstTravel = true;
@@ -74,25 +73,15 @@ class NinjasksCorners extends Game {
 	}
 
 	onEnd() {
-		const len = this.getRemainingPlayerCount();
-		if (len > 1) {
-			this.say("We've reached the end of the game! **Winners**: " + this.getPlayerNames());
-			for (const i in this.players) {
-				const player = this.players[i];
-				if (player.eliminated) continue;
-				// if (player === this.firstTravel) Games.unlockAchievement(this.room, player, "Superspeed", this);
-				this.winners.set(player, 1);
-				this.addBits(player, 250);
-			}
-		} else if (len === 1) {
-			const winner = this.getFinalPlayer();
-			// if (winner === this.firstTravel) Games.unlockAchievement(this.room, winner, "Superspeed", this);
-			this.winners.set(winner, 1);
-			this.say("**Winner**: " + winner.name);
-			this.addBits(winner, 250);
-		} else {
-			this.say("No one made it to the corner! No winners this game.");
+		for (const i in this.players) {
+			if (this.players[i].eliminated) continue;
+			const player = this.players[i];
+			// if (player === this.firstTravel) Games.unlockAchievement(this.room, player, "Superspeed", this);
+			this.winners.set(player, 1);
+			this.addBits(player, 250);
 		}
+
+		this.announceWinners();
 	}
 }
 

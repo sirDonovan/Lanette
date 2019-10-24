@@ -91,12 +91,9 @@ class PanchamPairs extends Game {
 			return;
 		}
 		const players: string[] = [];
-		for (const id in this.players) {
-			const player = this.players[id];
-			if (player.eliminated) continue;
-			if (!this.paired.has(player)) {
-				players.push(player.name);
-			}
+		for (const i in this.players) {
+			if (this.players[i].eliminated) continue;
+			if (!this.paired.has(this.players[i])) players.push(this.players[i].name);
 		}
 		this.say("These players still haven't paired! " + players.join(", "));
 		this.currentListString = "**Current " + this.dataType + "**: " + this.currentList.join(", ");
@@ -110,9 +107,9 @@ class PanchamPairs extends Game {
 		this.canPair = false;
 		const eliminated: Player[] = [];
 		if (this.round > 1) {
-			for (const id in this.players) {
-				const player = this.players[id];
-				if (player.eliminated) continue;
+			for (const i in this.players) {
+				if (this.players[i].eliminated) continue;
+				const player = this.players[i];
 				if (!this.paired.has(player)) {
 					player.say("You didn't pair any " + this.dataType + " and have been eliminated!");
 					player.eliminated = true;
@@ -122,15 +119,13 @@ class PanchamPairs extends Game {
 		}
 		const remainingPlayerCount = this.getRemainingPlayerCount();
 		if (remainingPlayerCount === 1) {
-			const winner = this.getFinalPlayer();
-			this.say("**Winner:** " + winner.name);
+			const winner = this.getFinalPlayer()!;
 			this.winners.set(winner, 1);
 			this.addBits(winner, 500);
 			if (eliminated.length === 1) this.addBits(eliminated[0], 250);
 			this.end();
 			return;
 		} else if (remainingPlayerCount === 0) {
-			this.say("No winners this game. Better luck next time!");
 			this.end();
 			return;
 		}
@@ -154,7 +149,7 @@ class PanchamPairs extends Game {
 		}
 
 		// eliminate 1 person per round
-		let additional = (2 * (this.getRemainingPlayerCount() - 1)) - newList.length;
+		let additional = (2 * (remainingPlayerCount - 1)) - newList.length;
 		if (remainingPlayerCount === 2) additional--;
 		for (let i = 0; i < additional; i++) {
 			newList.push(shuffled[i]);
@@ -168,6 +163,10 @@ class PanchamPairs extends Game {
 			this.listPossiblePairs();
 		});
 		this.sayUhtml(uhtmlName, html);
+	}
+
+	onEnd() {
+		this.announceWinners();
 	}
 
 	isParamPair(inputA: string, inputB: string, paramName: keyof IMovePairData | keyof IPokemonPairData, inCurrent?: boolean): [string, string] | false {

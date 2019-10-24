@@ -207,8 +207,8 @@ export abstract class CardMatching extends Card {
 		const winners = new Map<Player, number>();
 		let leastCards = Infinity;
 		for (const i in this.players) {
+			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
-			if (player.eliminated) continue;
 			const cards = this.playerCards.get(player);
 			if (!cards) throw new Error(player.name + " has no hand");
 			const len = cards.length;
@@ -232,8 +232,7 @@ export abstract class CardMatching extends Card {
 		if (Date.now() - this.startTime! > this.timeLimit) return this.timeEnd();
 		const remainingPlayers = this.getRemainingPlayerCount();
 		if (!remainingPlayers) {
-			this.say("All players have left the game!");
-			this.timeout = setTimeout(() => this.end(), 5000);
+			this.end();
 			return;
 		}
 		if (remainingPlayers === 1) return this.end();
@@ -312,23 +311,14 @@ export abstract class CardMatching extends Card {
 	}
 
 	onEnd() {
-		const winners: Player[] = [];
 		for (const i in this.players) {
+			if (this.players[i].eliminated || !this.players[i].frozen) continue;
 			const player = this.players[i];
-			if (player.eliminated || !player.frozen) continue;
-			winners.push(player);
+			this.addBits(player, 500);
 			this.winners.set(player, 1);
 		}
-		const winLen = winners.length;
-		if (winLen) {
-			const names = winners.map(x => x.name).join(", ");
-			this.say("**Winner" + (winLen > 1 ? "s" : "") + "**: " + names);
-			for (let i = 0; i < winLen; i++) {
-				this.addBits(winners[i], 500);
-			}
-		} else {
-			this.say("No winners this game!");
-		}
+
+		this.announceWinners();
 	}
 
 	isCardPair(cardA: IPokemonCard, cardB: IPokemonCard): boolean {

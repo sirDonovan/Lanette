@@ -32,6 +32,8 @@ export abstract class PlayingCard extends Game {
 	readonly startingHandAmount: number = 2;
 	readonly cardHtmlDelimiter: string = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 
+	abstract onEnd(): void;
+
 	createDeck() {
 		const deck: IPlayingCard[] = [];
 		const suits: IPlayingCardSuits[] = ['clubs', 'diamonds', 'hearts', 'spades'];

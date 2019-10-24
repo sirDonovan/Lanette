@@ -147,8 +147,8 @@ class MurkrowsBlackjack extends PlayingCard {
 		const blackjacks: Player[] = [];
 		const gameWinners: string[] = [];
 		for (const i in this.players) {
+			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
-			if (player.eliminated) continue;
 			const total = this.playerTotals.get(player);
 			// late-joins
 			if (!total) continue;
@@ -184,26 +184,21 @@ class MurkrowsBlackjack extends PlayingCard {
 	}
 
 	onEnd() {
-		if (this.winners.size) {
-			this.say("**Winner" + (this.winners.size > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners));
-			this.winners.forEach((wins, user) => {
-				const wager = this.wagers.get(user);
-				let bits = (wager ? (wager * 2) : 100);
-				bits *= wins;
-				if (bits > this.maxBits) {
-					bits = this.maxBits;
-				} else if (bits < 100) {
-					bits = 100;
-				}
-				const blackJackpots = this.blackJackpots.get(user);
-				if (blackJackpots) bits += blackJackpots;
-				this.addBits(user, bits);
-			});
-		} else if (this.dealersHand > 21) {
-			this.say("No winners this " + (this.parentGame ? "round" : "game") + "!");
-		} else {
-			this.say("Murkrow wins the " + (this.parentGame ? "round" : "game") + "!");
-		}
+		this.winners.forEach((wins, user) => {
+			const wager = this.wagers.get(user);
+			let bits = (wager ? (wager * 2) : 100);
+			bits *= wins;
+			if (bits > this.maxBits) {
+				bits = this.maxBits;
+			} else if (bits < 100) {
+				bits = 100;
+			}
+			const blackJackpots = this.blackJackpots.get(user);
+			if (blackJackpots) bits += blackJackpots;
+			this.addBits(user, bits);
+		});
+
+		this.announceWinners();
 	}
 }
 

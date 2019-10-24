@@ -71,18 +71,16 @@ class TapusTerrains extends Game {
 		if (this.round > 1 && this.targetPokemon && this.currentTerrain) {
 			if (!data.pokemon[this.currentTerrain].includes(this.targetPokemon)) {
 				for (const i in this.players) {
-					const player = this.players[i];
-					if (player.eliminated) continue;
-					if (this.queue.includes(player) || this.roundJumps.has(player)) player.eliminated = true;
+					if (this.players[i].eliminated) continue;
+					if (this.queue.includes(this.players[i]) || this.roundJumps.has(this.players[i])) this.players[i].eliminated = true;
 				}
 			} else {
 				this.currentTerrain = null;
 				const len = this.queue.length;
 				if (len > 1 && this.isElimination) this.players[this.queue[len - 1].id].eliminated = true;
 				for (const i in this.players) {
-					const player = this.players[i];
-					if (player.eliminated) continue;
-					if (!this.queue.includes(player)) player.eliminated = true;
+					if (this.players[i].eliminated) continue;
+					if (!this.queue.includes(this.players[i])) this.players[i].eliminated = true;
 				}
 				// if (len) this.markFirstAction(this.queue[0], 'firstJump');
 			}
@@ -144,20 +142,15 @@ class TapusTerrains extends Game {
 	}
 
 	onEnd() {
-		const len = this.getRemainingPlayerCount();
-		if (len) {
-			// let multiAchieve = len > 1;
-			this.say("**Winner" + (len > 1 ? "s" : "") + "**: " + this.getPlayerNames());
-			for (const i in this.players) {
-				const player = this.players[i];
-				if (player.eliminated) continue;
-				this.winners.set(player, 1);
-				this.addBits(player, 500);
-				// if (player === this.firstJump) Games.unlockAchievement(this.room, player, "Rainbow Wing", this);
-			}
-		} else {
-			this.say("All players fell to the ground! No winners this game.");
+		for (const i in this.players) {
+			if (this.players[i].eliminated) continue;
+			const player = this.players[i];
+			this.winners.set(player, 1);
+			this.addBits(player, 500);
+			// if (player === this.firstJump) Games.unlockAchievement(this.room, player, "Rainbow Wing", this);
 		}
+
+		this.announceWinners();
 	}
 }
 

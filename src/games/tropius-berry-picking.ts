@@ -116,8 +116,8 @@ class TropiusBerryPicking extends Game {
 				if (this.canLateJoin) this.canLateJoin = false;
 				if (this.roundTime > 3000) this.roundTime -= 500;
 				for (const i in this.players) {
+					if (this.players[i].eliminated) continue;
 					const player = this.players[i];
-					if (player.eliminated) continue;
 					if (!this.roundBerries.has(player)) {
 						player.say("You didn't eat a berry! You have been eliminated.");
 						player.eliminated = true;
@@ -212,27 +212,16 @@ class TropiusBerryPicking extends Game {
 
 	onEnd() {
 		if (this.options.freejoin) return;
-		const remainingPlayers = this.getRemainingPlayerCount();
-		if (!remainingPlayers) {
-			this.say("All players were eliminated! No winners this game.");
-		} else {
-			const multipleWinners = remainingPlayers > 1;
-			const winners: string[] = [];
-			let base = 100 * this.round;
-			if (base > 500) {
-				base = 500;
-			}
-			for (const i in this.players) {
-				const player = this.players[i];
-				if (player.eliminated) continue;
-				this.winners.set(player, 1);
-				this.addBits(player, base);
-				// if (player === this.firstEat && this.round >= 5) Games.unlockAchievement(this.room, player, "Berry Master", this);
-				winners.push(player.name);
-			}
-			const names = winners.join(", ");
-			this.say("**Winner" + (multipleWinners ? "s" : "") + "**: " + names);
+		const base = Math.min(500, 100 * this.round);
+		for (const i in this.players) {
+			if (this.players[i].eliminated) continue;
+			const player = this.players[i];
+			this.winners.set(player, 1);
+			this.addBits(player, base);
+			// if (player === this.firstEat && this.round >= 5) Games.unlockAchievement(this.room, player, "Berry Master", this);
 		}
+
+		this.announceWinners();
 	}
 }
 

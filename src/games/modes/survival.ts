@@ -98,13 +98,6 @@ class Survival {
 	}
 
 	onEnd(this: SurvivalThis) {
-		const remainingPlayers = this.getRemainingPlayerCount();
-		if (remainingPlayers) {
-			this.say("**Winner" + (remainingPlayers > 1 ? "s" : "") + "**: " + this.getPlayerNames());
-		} else {
-			this.say("No winners this game!");
-		}
-
 		for (const i in this.players) {
 			const player = this.players[i];
 			if (player.eliminated) {
@@ -116,6 +109,8 @@ class Survival {
 			this.winners.set(player, 1);
 			this.addBits(player, 500);
 		}
+
+		this.announceWinners();
 	}
 }
 

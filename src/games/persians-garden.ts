@@ -55,8 +55,8 @@ class PersiansGarden extends MapCurrencyGame {
 		}
 		const coins = [];
 		for (const i in this.players) {
+			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
-			if (player.eliminated) continue;
 			const points = this.points.get(player) || 0;
 			coins.push({user: player, coins: points});
 		}
@@ -77,29 +77,32 @@ class PersiansGarden extends MapCurrencyGame {
 	}
 
 	onEnd() {
-		const len = this.getRemainingPlayerCount();
-		if (!len) {
-			this.say("All players were purged! No winners this game.");
-		} else {
-			const multi = len > 1;
-			for (const i in this.players) {
-				const player = this.players[i];
-				let earnings = this.points.get(player);
+		// const achievement: Player[] = [];
+		for (const i in this.players) {
+			const player = this.players[i];
+			let earnings = this.points.get(player);
+			if (!earnings) continue;
+			// if (earnings >= 7000) achievement.push(player);
+			if (!player.eliminated) {
+				earnings += 1000;
+				earnings = Math.round(earnings / 4);
+				this.winners.set(player, 1);
+			} else {
 				if (!earnings) continue;
-				// if (earnings >= 7000) Games.unlockAchievement(this.room, player, "Pay Day", this, multi); // "Maze Runner" achievement
-				if (!player.eliminated) {
-					earnings += 1000;
-					earnings = Math.round(earnings / 4);
-					this.winners.set(player, 1);
-				} else {
-					if (!earnings) continue;
-					earnings = Math.round(earnings / 6);
-				}
-				if (earnings > this.maxBits) earnings = this.maxBits;
-				this.addBits(player, earnings);
+				earnings = Math.round(earnings / 6);
 			}
-			this.say("**Winner" + (multi ? "s" : "") + "**: " + this.getPlayerNames(this.winners));
+			if (earnings > this.maxBits) earnings = this.maxBits;
+			this.addBits(player, earnings);
 		}
+
+		/*
+		const multiAchieve = achievement.length > 1;
+		for (let i = 0; i < achievement.length; i++) {
+			Games.unlockAchievement(this.room, achievement[i], "Pay Day", this, multiAchieve);
+		}
+		*/
+
+		this.announceWinners();
 	}
 }
 

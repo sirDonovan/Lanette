@@ -27,8 +27,8 @@ class OctillerysAmbush extends Game {
 			this.shields.clear();
 			// let firstFire = false;
 			for (let i = 0; i < this.queue.length; i++) {
+				if (this.queue[i].source.eliminated) continue;
 				const player = this.queue[i].source;
-				if (player.eliminated) continue;
 				this.shields.set(player, true);
 				const targetPlayer = this.queue[i].target;
 				if (this.shields.has(targetPlayer) || targetPlayer.eliminated) continue;
@@ -41,7 +41,7 @@ class OctillerysAmbush extends Game {
 				*/
 				targetPlayer.eliminated = true;
 			}
-			if (this.getRemainingPlayerCount() === 1) return this.end();
+			if (this.getRemainingPlayerCount() <= 1) return this.end();
 		}
 		this.roundActions.clear();
 		this.queue = [];
@@ -61,10 +61,13 @@ class OctillerysAmbush extends Game {
 
 	onEnd() {
 		const winner = this.getFinalPlayer();
-		this.winners.set(winner, 1);
-		this.say("**Winner**: " + winner.name);
-		this.addBits(winner, 250);
-		// if (this.firstFire === winner) Games.unlockAchievement(this.room, winner, "Sniper", this.format.name);
+		if (winner) {
+			this.winners.set(winner, 1);
+			this.addBits(winner, 250);
+			// if (this.firstFire === winner) Games.unlockAchievement(this.room, winner, "Sniper", this.format.name);
+		}
+
+		this.announceWinners();
 	}
 }
 

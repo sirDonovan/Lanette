@@ -20,13 +20,13 @@ class EmpoleonsEmpires extends Game {
 
 	onStart() {
 		this.say("Now requesting aliases!");
-		for (const id in this.players) {
-			if (!this.playerAliases.has(this.players[id])) this.players[id].say("Please select an alias to use with ``" + Config.commandCharacter + "alias [alias]``!");
+		for (const i in this.players) {
+			if (!this.playerAliases.has(this.players[i])) this.players[i].say("Please select an alias to use with ``" + Config.commandCharacter + "alias [alias]``!");
 		}
 		this.timeout = setTimeout(() => {
-			for (const id in this.players) {
-				if (this.players[id].eliminated) continue;
-				const player = this.players[id];
+			for (const i in this.players) {
+				if (this.players[i].eliminated) continue;
+				const player = this.players[i];
 				if (!this.playerAliases.has(player)) {
 					player.say("You were eliminated for not choosing an alias!");
 					player.eliminated = true;
@@ -39,9 +39,9 @@ class EmpoleonsEmpires extends Game {
 	onNextRound() {
 		if (this.getRemainingPlayerCount() <= 1) return this.end();
 		const aliases: string[] = [];
-		for (const id in this.players) {
-			if (this.players[id].eliminated) continue;
-			aliases.push(this.playerAliases.get(this.players[id])!);
+		for (const i in this.players) {
+			if (this.players[i].eliminated) continue;
+			aliases.push(this.playerAliases.get(this.players[i])!);
 		}
 		const uhtmlName = this.uhtmlBaseName + '-aliases';
 		const html = "<div class='infobox'><b>Remaining players (" + this.getRemainingPlayerCount() + ")</b>: " + this.getPlayerNames(this.getRemainingPlayers()) + "<br><br><b>Remaining aliases</b>: " + Tools.shuffle(aliases).join(", ") + ".</div>";
@@ -66,20 +66,20 @@ class EmpoleonsEmpires extends Game {
 	}
 
 	onEnd() {
-		if (this.getRemainingPlayerCount() === 1) {
-			const winner = this.getFinalPlayer();
-			this.say("**Winner**: " + winner.name);
+		const winner = this.getFinalPlayer();
+		if (winner) {
 			this.addBits(winner, 500);
 			this.winners.set(winner, 1);
 			for (const i in this.players) {
-				if (i === winner.id) continue;
-				const points = this.points.get(this.players[i]);
+				if (this.players[i] === winner) continue;
+				const player = this.players[i];
+				const points = this.points.get(player);
 				if (!points) continue;
-				this.addBits(this.players[i], 50 * points);
+				this.addBits(player, 50 * points);
 			}
-		} else {
-			this.say("No winners this game!");
 		}
+
+		this.announceWinners();
 	}
 }
 
@@ -108,9 +108,9 @@ const commands: Dict<ICommandDefinition<EmpoleonsEmpires>> = {
 			}
 			let validAlias = false;
 			const guessedAlias = Tools.toId(targets[1]);
-			for (const id in this.players) {
-				if (this.players[id].eliminated) continue;
-				if (Tools.toId(this.playerAliases.get(this.players[id])) === guessedAlias) {
+			for (const i in this.players) {
+				if (this.players[i].eliminated) continue;
+				if (Tools.toId(this.playerAliases.get(this.players[i])) === guessedAlias) {
 					validAlias = true;
 					break;
 				}

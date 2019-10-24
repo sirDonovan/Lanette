@@ -117,12 +117,13 @@ class ShedinjasWonderTrials extends Game {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
 			const points = this.points.get(player);
-			if (points && points >= this.maxPoints) this.winners.set(player, 1);
+			if (points && points >= this.maxPoints) {
+				this.winners.set(player, 1);
+				this.addBits(player, 500);
+			}
 		}
-		this.say("**Winner" + (this.winners.size > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners));
-		this.winners.forEach((value, player) => {
-			this.addBits(player, 500);
-		});
+
+		this.announceWinners();
 	}
 }
 

@@ -132,19 +132,21 @@ class TrubbishsTrash extends Game {
 
 	onEnd() {
 		for (const i in this.players) {
+			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
-			if (player.eliminated) continue;
 			const points = this.points.get(player);
 			if (points && points >= this.maxPoints) this.winners.set(player, 1);
 		}
-		this.say("**Winner" + (this.winners.size > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners));
-		this.convertPointsToBits(0.5, 0.1);
+
 		/*
 		this.winners.forEach((value, user) => {
 			if (this.firstTrash === user) Games.unlockAchievement(this.room, user, "Garbage Collector", this);
 			if (this.weakestTrash === user) Games.unlockAchievement(this.room, user, "Technician", this);
 		});
 		*/
+
+		this.convertPointsToBits(0.5, 0.1);
+		this.announceWinners();
 	}
 }
 

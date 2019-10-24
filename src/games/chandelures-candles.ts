@@ -34,11 +34,10 @@ class ChandeluresCandles extends Game {
 	exposeCandle() {
 		if (this.getRemainingPlayerCount() < 2) return this.end();
 		const players = this.shufflePlayers();
-		let target = players.pop();
+		let target = players.pop()!;
 		while (target === this.lastTarget && players.length) {
-			target = players.pop();
+			target = players.pop()!;
 		}
-		if (!target) throw new Error("No target player");
 		this.roundTarget = target;
 		this.lastTarget = target;
 		this.roundActions.clear();
@@ -52,7 +51,7 @@ class ChandeluresCandles extends Game {
 	onNextRound() {
 		this.roundTarget = null;
 		const len = this.getRemainingPlayerCount();
-		if (len === 1) {
+		if (len <= 1) {
 			this.end();
 			return;
 		}
@@ -66,11 +65,9 @@ class ChandeluresCandles extends Game {
 	}
 
 	onEnd() {
-		const len = this.getRemainingPlayerCount();
-		if (len === 1) {
-			const winner = this.getFinalPlayer();
+		const winner = this.getFinalPlayer();
+		if (winner) {
 			this.winners.set(winner, 1);
-			this.say("**Winner:** " + winner.name);
 			const puffs = this.puffs.get(winner) || 0;
 			let bits = 500;
 			if (puffs > 5) {
@@ -79,10 +76,10 @@ class ChandeluresCandles extends Game {
 			}
 			this.addBits(winner, bits);
 		} else {
-			this.say("**Chandelure extinguished the remaining candle" + (len > 1 ? "s" : "") + "! Winner" + (len > 1 ? "s" : "") + "**: " + this.getPlayerNames());
+			this.say("Chandelure extinguished the remaining candles!");
 			for (const i in this.players) {
+				if (this.players[i].eliminated) continue;
 				const player = this.players[i];
-				if (player.eliminated) continue;
 				this.winners.set(player, 1);
 				const puffs = this.puffs.get(player);
 				if (!puffs) continue;
@@ -97,6 +94,8 @@ class ChandeluresCandles extends Game {
 				this.addBits(player, bits);
 			}
 		}
+
+		this.announceWinners();
 	}
 }
 
@@ -146,7 +145,7 @@ const commands: Dict<ICommandDefinition<ChandeluresCandles>> = {
 			// if (puffs >= 15) Games.unlockAchievement(this.room, player, "Blown Out", this);
 			if (targetLives < 1) {
 				if (this.timeout) clearTimeout(this.timeout);
-				this.say(targetPlayer.name + " has been eliminated");
+				this.say(targetPlayer.name + " has been eliminated!");
 				targetPlayer.eliminated = true;
 				this.roundTarget = null;
 				this.timeout = setTimeout(() => this.nextRound(), 5000);

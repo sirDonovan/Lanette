@@ -51,15 +51,16 @@ class WishiwashisStatFishing extends Game {
 
 	scoreRound() {
 		this.canReel = false;
-		let player: Player | null = null;
+		let firstPlayer: Player | null = null;
 		for (let i = 0, len = this.queue.length; i < len; i++) {
 			if (this.queue[i].eliminated) continue;
-			if (!player) {
-				player = this.queue[i];
+			const player = this.queue[i];
+			if (!firstPlayer) {
+				firstPlayer = player;
 				// this.markFirstAction(player, 'firstReel');
 			}
-			const consecutiveReels = this.consecutiveReels.get(this.queue[i]) || 0;
-			this.consecutiveReels.set(this.queue[i], consecutiveReels + 1);
+			const consecutiveReels = this.consecutiveReels.get(player) || 0;
+			this.consecutiveReels.set(player, consecutiveReels + 1);
 		}
 
 		for (const i in this.players) {
@@ -67,7 +68,7 @@ class WishiwashisStatFishing extends Game {
 			if (!this.queue.includes(this.players[i])) this.consecutiveReels.delete(this.players[i]);
 		}
 
-		if (!player) {
+		if (!firstPlayer) {
 			const text = "No one reeled in!";
 			this.on(text, () => this.nextRound());
 			this.timeout = setTimeout(() => this.say(text), 5000);
@@ -79,7 +80,7 @@ class WishiwashisStatFishing extends Game {
 			species = this.sampleOne(data.pokedex);
 		}
 		const pokemon = Dex.getPokemonCopy(species)!;
-		const consecutiveReels = this.consecutiveReels.get(player);
+		const consecutiveReels = this.consecutiveReels.get(firstPlayer);
 		const extraChance = consecutiveReels ? (consecutiveReels * 5) : 0;
 		if (this.rollForShinyPokemon(extraChance)) {
 			pokemon.shiny = true;
@@ -95,10 +96,10 @@ class WishiwashisStatFishing extends Game {
 		}
 		if (negative) statPoints *= -1;
 
-		const points = this.points.get(player) || 0;
-		this.points.set(player, points + statPoints);
+		const points = this.points.get(firstPlayer) || 0;
+		this.points.set(firstPlayer, points + statPoints);
 
-		const html = "<center>" + Dex.getPokemonGif(pokemon) + "<br>" + player.name + " reeled in a <b>" + pokemon.species + (pokemon.shiny ? ' \u2605' : '') + "</b> and " + (negative ? "lost" : "earned") + " its " + this.statNames[stat] + " (" + statPoints + ")!</center>";
+		const html = "<center>" + Dex.getPokemonGif(pokemon) + "<br>" + firstPlayer.name + " reeled in a <b>" + pokemon.species + (pokemon.shiny ? ' \u2605' : '') + "</b> and " + (negative ? "lost" : "earned") + " its " + this.statNames[stat] + " (" + statPoints + ")!</center>";
 		this.onHtml(html, () => {
 			if (points >= this.maxPoints) {
 				this.timeout = setTimeout(() => this.end(), 5000);
@@ -141,10 +142,10 @@ class WishiwashisStatFishing extends Game {
 			}
 			if (points === highestPoints) this.winners.set(player, 1);
 		}
-		this.say("**Winner" + (this.winners.size > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners));
-		this.winners.forEach((value, user) => {
-			this.addBits(user, 500);
-		});
+
+		this.winners.forEach((value, player) => this.addBits(player, 500));
+
+		this.announceWinners();
 	}
 }
 

@@ -240,8 +240,10 @@ export abstract class Activity {
 		return Object.keys(this.getRemainingPlayers(players)).length;
 	}
 
-	getFinalPlayer(): Player {
-		return this.players[Object.keys(this.getRemainingPlayers())[0]];
+	getFinalPlayer(): Player | undefined {
+		const keys = Object.keys(this.getRemainingPlayers());
+		if (keys.length !== 1) return undefined;
+		return this.players[keys[0]];
 	}
 
 	getPlayerAttributes(attribute: (player: Player) => string, players?: PlayerList): string[] {

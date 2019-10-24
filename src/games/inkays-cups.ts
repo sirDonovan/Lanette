@@ -129,9 +129,8 @@ class InkaysCups extends Game {
 		if (this.round > 1) {
 			if (this.roundTime > 5000) this.roundTime -= 2500;
 			for (const i in this.players) {
-				const player = this.players[i];
-				if (player.eliminated) continue;
-				if (!this.roundGuesses.has(player)) player.eliminated = true;
+				if (this.players[i].eliminated) continue;
+				if (!this.roundGuesses.has(this.players[i])) this.players[i].eliminated = true;
 			}
 		}
 		if (this.getRemainingPlayerCount() < 2) return this.end();
@@ -145,19 +144,14 @@ class InkaysCups extends Game {
 	}
 
 	onEnd() {
-		const len = this.getRemainingPlayerCount();
-		if (len) {
-			const names = this.getPlayerNames();
-			this.say("**Winner" + (len > 1 ? "s" : "") + "**: " + names);
-			for (const i in this.players) {
-				const player = this.players[i];
-				if (player.eliminated) continue;
-				this.winners.set(player, 1);
-				this.addBits(player, 500);
-			}
-		} else {
-			this.say("No winners this game!");
+		for (const i in this.players) {
+			if (this.players[i].eliminated) continue;
+			const player = this.players[i];
+			this.winners.set(player, 1);
+			this.addBits(player, 500);
 		}
+
+		this.announceWinners();
 	}
 }
 

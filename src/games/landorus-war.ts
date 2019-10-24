@@ -66,8 +66,8 @@ class LandorusWar extends Game {
 		const pokemonList = this.shuffle(data.pokemon);
 		const playerAliases: string[] = [];
 		const fakes: string[] = [];
-		for (const id in this.players) {
-			const player = this.players[id];
+		for (const i in this.players) {
+			const player = this.players[i];
 			const pokemon = Dex.getExistingPokemon(pokemonList[0]);
 			pokemonList.shift();
 			const alias = aliases[0];
@@ -86,13 +86,13 @@ class LandorusWar extends Game {
 	}
 
 	onNextRound() {
-		if (this.getRemainingPlayerCount() < 2) return this.end();
+		const remainingPlayerCount = this.getRemainingPlayerCount();
+		if (remainingPlayerCount < 2) return this.end();
 		this.roundMoves.clear();
 		this.roundSuspects.clear();
 		let pokemonList: string[] = [];
-		const remainingPlayers = this.getRemainingPlayers();
-		for (const i in remainingPlayers) {
-			pokemonList.push(this.playerPokemon.get(remainingPlayers[i])!.species);
+		for (const i in this.players) {
+			if (!this.players[i].eliminated) pokemonList.push(this.playerPokemon.get(this.players[i])!.species);
 		}
 		pokemonList = pokemonList.concat(this.fakePokemon);
 		pokemonList.sort();
@@ -100,7 +100,7 @@ class LandorusWar extends Game {
 
 		let html = "<div class='infobox'>";
 		html += "<b>Remaining Pokemon</b>: " + this.pokemonList.join(", ") + "<br /><br />";
-		html += "<b>Remaining players (" + this.getRemainingPlayerCount() + ")</b>: " + this.playerAliasesList.join(", ") + "<br /><br />";
+		html += "<b>Remaining players (" + remainingPlayerCount + ")</b>: " + this.playerAliasesList.join(", ") + "<br /><br />";
 		html += "Use <code>" + Config.commandCharacter + "use [move], [trainer]</code> and <code>" + Config.commandCharacter + "suspect [trainer], [Pokemon]</code> in PMs!";
 		html += "</div>";
 
@@ -112,15 +112,16 @@ class LandorusWar extends Game {
 	}
 
 	onEnd() {
-		for (const id in this.players) {
-			const caught = this.suspectedPlayers.get(this.players[id]);
+		for (const i in this.players) {
+			const player = this.players[i];
+			const caught = this.suspectedPlayers.get(player);
 			if (!caught) continue;
-			this.addBits(this.players[id], Math.min(1000, 125 * caught));
+			this.addBits(player, Math.min(1000, 125 * caught));
 		}
 
 		const winner = this.getFinalPlayer();
-		this.winners.set(winner, 1);
-		this.say("**Winner**: " + winner.name);
+		if (winner) this.winners.set(winner, 1);
+		this.announceWinners();
 	}
 
 	getPlayerSummary(player: Player) {
@@ -130,8 +131,8 @@ class LandorusWar extends Game {
 
 	getPlayerByAlias(alias: string, excludedPlayer: Player): Player | null {
 		alias = Tools.toId(alias);
-		for (const id in this.players) {
-			if (this.players[id] !== excludedPlayer && alias === Tools.toId(this.playerAliases.get(this.players[id]))) return this.players[id];
+		for (const i in this.players) {
+			if (this.players[i] !== excludedPlayer && alias === Tools.toId(this.playerAliases.get(this.players[i]))) return this.players[i];
 		}
 		return null;
 	}
@@ -255,7 +256,7 @@ const commands: Dict<ICommandDefinition<LandorusWar>> = {
 				const targetAlias = this.playerAliases.get(targetPlayer)!;
 				player.say("Correct! " + targetAlias + " was " + targetPlayer.name + ".");
 				this.playerAliasesList.splice(this.playerAliasesList.indexOf(targetAlias), 1);
-				targetPlayer.say("Your trainer class was suspected by " + player.name + "!");
+				targetPlayer.say("You have been suspected by " + player.name + " and eliminated from the game!");
 				targetPlayer.eliminated = true;
 				const suspectedPlayers = this.suspectedPlayers.get(player) || 0;
 				this.suspectedPlayers.set(player, suspectedPlayers + 1);

@@ -58,28 +58,31 @@ class ElectrodesMinefield extends MapDamageGame {
 	}
 
 	onEnd() {
-		const len = this.getRemainingPlayerCount();
-		if (len) {
-			// const multiAchieve = len > 1;
-			this.say("**Winner" + (len > 1 ? "s" : "") + "**: " + this.getPlayerNames());
-			for (const i in this.players) {
-				if (this.players[i].eliminated) continue;
-				const player = this.players[i];
-				this.winners.set(player, 1);
-				let earnings = this.points.get(player);
-				if (!earnings) continue;
-				// if (earnings >= 4000) Games.unlockAchievement(this.room, player, "Minesweeper", this, multiAchieve);
-				earnings = Math.round(earnings / 4);
-				if (earnings > this.maxBits) {
-					earnings = this.maxBits;
-				} else if (earnings < 250) {
-					earnings = 250;
-				}
-				this.addBits(player, earnings);
+		// const achievement: Player[] = [];
+		for (const i in this.players) {
+			if (this.players[i].eliminated) continue;
+			const player = this.players[i];
+			this.winners.set(player, 1);
+			let earnings = this.points.get(player);
+			if (!earnings) continue;
+			// if (earnings >= 4000) achievement.push(player);
+			earnings = Math.round(earnings / 4);
+			if (earnings > this.maxBits) {
+				earnings = this.maxBits;
+			} else if (earnings < 250) {
+				earnings = 250;
 			}
-		} else {
-			this.say("All players were eliminated by Electrode explosions! No winners this game.");
+			this.addBits(player, earnings);
 		}
+
+		/*
+		const multiAchieve = achievement.length > 1;
+		for (let i = 0; i < achievement.length; i++) {
+			Games.unlockAchievement(this.room, achievement[i], "Minesweeper", this, multiAchieve);
+		}
+		*/
+
+		this.announceWinners();
 	}
 }
 

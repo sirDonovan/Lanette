@@ -105,6 +105,7 @@ export abstract class MapGame extends Game {
 
 	abstract getMap(player?: Player): GameMap;
 	abstract getFloorIndex(player?: Player): number;
+	abstract onEnd(): void;
 	abstract onMaxRound(): void;
 	abstract onNextRound(): void;
 
@@ -291,7 +292,7 @@ export abstract class MapGame extends Game {
 		if (!space.traversedAttributes.trap) space.traversedAttributes.trap = new Set();
 		space.traversedAttributes.trap.add(player);
 		if (!lives) {
-			player.say("You arrived at (" + space.coordinates + ") and fell into a trap! You've been eliminated from the game.");
+			player.say("You arrived at (" + space.coordinates + ") and fell into a trap! You have been eliminated from the game.");
 			player.eliminated = true;
 			return false;
 		} else {

@@ -82,13 +82,11 @@ class LampentsLabyrinth extends MapGame  {
 
 	onEnd() {
 		for (const i in this.players) {
-			const player = this.players[i];
-			if (this.escapedPlayers.has(player)) this.winners.set(player, 1);
+			if (this.escapedPlayers.has(this.players[i])) this.winners.set(this.players[i], 1);
 		}
 		const len = this.winners.size;
 		if (len) {
 			// const multiAchieve = len > 1;
-			this.say("**Winner" + (len > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners));
 			this.winners.forEach((value, user) => {
 				let earnings = this.points.get(user);
 				if (!earnings) return;
@@ -101,9 +99,9 @@ class LampentsLabyrinth extends MapGame  {
 				}
 				this.addBits(user, earnings);
 			});
-		} else {
-			this.say("All players fell into traps or got lost in the labyrinth!");
 		}
+
+		this.announceWinners();
 	}
 }
 

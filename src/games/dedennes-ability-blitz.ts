@@ -114,8 +114,8 @@ class DedennesAbilityBlitz extends Game {
 			const points = this.points.get(player);
 			if (points && points >= this.maxPoints) this.winners.set(player, 1);
 		}
-		this.say("**Winner" + (this.winners.size > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners));
 		this.convertPointsToBits(0.5, 0.1);
+		this.announceWinners();
 		/*
 		this.winners.forEach((value, user) => {
 			if (user === this.firstType) Games.unlockAchievement(this.room, user, "Pokemon Ranger", this);

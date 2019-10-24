@@ -313,8 +313,8 @@ export abstract class Card extends Game {
 		const winners = new Map();
 		let leastCards = Infinity;
 		for (const i in this.players) {
+			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
-			if (player.eliminated) continue;
 			const cards = this.playerCards.get(player)!;
 			const len = cards.length;
 			if (len < leastCards) {
@@ -332,23 +332,14 @@ export abstract class Card extends Game {
 	}
 
 	onEnd() {
-		const winners: Player[] = [];
 		for (const i in this.players) {
+			if (this.players[i].eliminated || !this.players[i].frozen) continue;
 			const player = this.players[i];
-			if (player.eliminated || !player.frozen) continue;
-			winners.push(player);
+			this.addBits(player, 500);
 			this.winners.set(player, 1);
 		}
-		const winLen = winners.length;
-		if (winLen) {
-			const names = winners.map(x => x.name).join(", ");
-			this.say("**Winner" + (winLen > 1 ? "s" : "") + "**: " + names);
-			for (let i = 0; i < winLen; i++) {
-				this.addBits(winners[i], 500);
-			}
-		} else {
-			this.say("No winners this game!");
-		}
+
+		this.announceWinners();
 	}
 
 	filterPoolItem?(pokemon: IPokemon): boolean;

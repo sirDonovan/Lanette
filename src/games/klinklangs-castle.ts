@@ -48,15 +48,13 @@ class KlinklangsCastle extends MapShuffleGame {
 
 	onEnd() {
 		for (const i in this.players) {
-			const player = this.players[i];
-			if (this.escapedPlayers.has(player)) this.winners.set(player, 1);
+			if (this.escapedPlayers.has(this.players[i])) this.winners.set(this.players[i], 1);
 		}
 		const len = this.winners.size;
 		const exitCoordinates = this.getExitCoordinates(this.getFloorIndex());
 		if (exitCoordinates.length) this.say("The possible exits were: " + exitCoordinates.join(" | "));
 		if (len) {
 			// const multiAchieve = len > 1;
-			this.say("**Winner" + (len > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners));
 			this.winners.forEach((value, user) => {
 				let earnings = this.points.get(user);
 				if (!earnings) return;
@@ -69,9 +67,9 @@ class KlinklangsCastle extends MapShuffleGame {
 				}
 				this.addBits(user, earnings);
 			});
-		} else {
-			this.say("All players fell into traps or got lost in the castle!");
 		}
+
+		this.announceWinners();
 	}
 }
 

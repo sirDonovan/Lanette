@@ -88,8 +88,8 @@ class FeebasChainFishing extends Game {
 	onEnd() {
 		let highestPoints = 0;
 		for (const i in this.players) {
+			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
-			if (player.eliminated) continue;
 			const points = this.points.get(player);
 			if (!points) continue;
 			if (points > highestPoints) {
@@ -98,11 +98,12 @@ class FeebasChainFishing extends Game {
 			}
 			if (points === highestPoints) this.winners.set(player, 1);
 		}
-		this.say("**Winner" + (this.winners.size > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners));
+
 		this.winners.forEach((value, user) => {
 			this.addBits(user, 500);
 			// if (this.firstReel === user) Games.unlockAchievement(this.room, user, "Shiny Hunter", this);
 		});
+		this.announceWinners();
 	}
 }
 

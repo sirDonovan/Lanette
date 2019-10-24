@@ -39,8 +39,7 @@ export abstract class CardHighLow extends Card {
 		this.createDeck();
 		this.say("Now PMing cards!");
 		for (const i in this.players) {
-			const player = this.players[i];
-			this.playerCards.set(player, this.dealHand(player));
+			this.playerCards.set(this.players[i], this.dealHand(this.players[i]));
 		}
 		this.nextRound();
 	}
@@ -102,8 +101,8 @@ export abstract class CardHighLow extends Card {
 		this.canPlay = false;
 		const hands: {player: Player, detail: number, card: CardType}[] = [];
 		for (const i in this.players) {
+			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
-			if (player.eliminated) continue;
 			const card = this.roundPlays.get(player);
 			if (!card) continue;
 			hands.push({player, detail: this.getCardDetail(card, this.currentCategory), card});
@@ -157,8 +156,7 @@ export abstract class CardHighLow extends Card {
 	onNextRound() {
 		const remainingPlayers = this.getRemainingPlayerCount();
 		if (!remainingPlayers) {
-			this.say("All players have left the game!");
-			this.timeout = setTimeout(() => this.end(), 5000);
+			this.end();
 			return;
 		}
 		if (remainingPlayers === 1) return this.end();
@@ -188,8 +186,8 @@ export abstract class CardHighLow extends Card {
 
 	onEnd() {
 		for (const i in this.players) {
+			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
-			if (player.eliminated) continue;
 			const points = this.points.get(player);
 			if (!points) continue;
 			/*
@@ -206,11 +204,8 @@ export abstract class CardHighLow extends Card {
 			this.addBits(player, bits);
 			this.winners.set(player, 1);
 		}
-		if (this.winners.size) {
-			this.say("**Winner" + (this.winners.size > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners));
-		} else {
-			this.say("No winners this game!");
-		}
+
+		this.announceWinners();
 	}
 
 	getPlayerSummary(player: Player) {

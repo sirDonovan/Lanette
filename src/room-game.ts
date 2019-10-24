@@ -523,6 +523,15 @@ export class Game extends Activity {
 		return html;
 	}
 
+	announceWinners() {
+		const len = this.winners.size;
+		if (len) {
+			this.say("**Winner" + (len > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners));
+		} else {
+			this.say("No winners this game!");
+		}
+	}
+
 	addBits(user: User | Player, bits: number, noPm?: boolean): boolean {
 		if (bits <= 0 || this.isPm(this.room) || (this.parentGame && !this.parentGame.allowChildGameBits)) return false;
 		if (this.shinyMascot) bits *= 2;

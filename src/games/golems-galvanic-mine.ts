@@ -88,12 +88,8 @@ class GolemsGalvanicMine extends Game {
 	}
 
 	onEnd() {
-		if (this.winners.size) {
-			this.say("**Winner" + (this.winners.size > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners));
-			this.convertPointsToBits(500 / this.options.points, 100 / this.options.points);
-		} else {
-			this.say("No winners this game!");
-		}
+		if (this.winners.size) this.convertPointsToBits(500 / this.options.points, 100 / this.options.points);
+		this.announceWinners();
 	}
 }
 

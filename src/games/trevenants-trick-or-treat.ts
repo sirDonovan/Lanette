@@ -65,6 +65,10 @@ class TrevenantsTrickOrTreat extends Game {
 		this.timeout = setTimeout(() => this.generateNewDisplay(), 60 * 1000);
 	}
 
+	onEnd() {
+		this.announceWinners();
+	}
+
 	generateNewDisplay() {
 		this.generateNewMons();
 		this.display();
@@ -136,12 +140,12 @@ const commands: Dict<ICommandDefinition<TrevenantsTrickOrTreat>> = {
 			this.points.set(player, totalPoints);
 			player.say("You earned **" + earnedPoints + "** points for " + move.name + "! Your total is now **" + totalPoints + "**.");
 			if (totalPoints >= this.options.points) {
-				this.say("**Winner**: " + player.name);
 				this.winners.set(player, totalPoints);
 				for (const i in this.players) {
+					if (this.players[i].eliminated) continue;
 					const player = this.players[i];
 					const points = this.points.get(player);
-					if (points && !player.eliminated) this.addBits(player, points);
+					if (points) this.addBits(player, points);
 				}
 				this.end();
 				return true;
