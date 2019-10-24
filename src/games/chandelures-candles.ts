@@ -107,9 +107,9 @@ const commands: Dict<ICommandDefinition<ChandeluresCandles>> = {
 			if (player !== this.roundTarget) {
 				let lives = this.lives.get(player)!;
 				lives -= 1;
-				user.say("Your candle was not exposed! Your swift movements used up one of your lives.");
+				user.say("Your candle was not exposed! Your movement used up one of your lives.");
 				this.lives.set(player, lives);
-				if (lives < 1) this.players[user.id].eliminated = true;
+				if (lives < 1) this.eliminatePlayer(player, "You ran out of lives!");
 				return false;
 			}
 			if (this.timeout) clearTimeout(this.timeout);
@@ -130,8 +130,8 @@ const commands: Dict<ICommandDefinition<ChandeluresCandles>> = {
 			if (targetPlayer !== this.roundTarget) {
 				let lives = this.lives.get(player)!;
 				lives -= 1;
-				user.say("You aimed at the wrong person! Your puff used up one of your lives.");
-				if (lives < 1) this.players[user.id].eliminated = true;
+				player.say("You aimed at the wrong person! Your puff used up one of your lives.");
+				if (lives < 1) this.eliminatePlayer(player, "You ran out of lives!");
 				this.lives.set(player, lives);
 				return false;
 			}
@@ -145,8 +145,8 @@ const commands: Dict<ICommandDefinition<ChandeluresCandles>> = {
 			// if (puffs >= 15) Games.unlockAchievement(this.room, player, "Blown Out", this);
 			if (targetLives < 1) {
 				if (this.timeout) clearTimeout(this.timeout);
-				this.say(targetPlayer.name + " has been eliminated!");
-				targetPlayer.eliminated = true;
+				this.say(targetPlayer.name + " has been eliminated from the game!");
+				this.eliminatePlayer(targetPlayer, "You ran out of lives!");
 				this.roundTarget = null;
 				this.timeout = setTimeout(() => this.nextRound(), 5000);
 			}

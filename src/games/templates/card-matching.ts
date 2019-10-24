@@ -289,7 +289,7 @@ export abstract class CardMatching extends Card {
 					if (!(this.parentGame && this.parentGame.id === '1v1challenge') && inactivePlayerCount >= this.inactivePlayerLimit) {
 						this.say(player!.name + " DQed for inactivity!");
 						// nextRound() called in onRemovePlayer
-						player!.eliminated = true;
+						this.eliminatePlayer(player!, "You did not play a card for " + this.inactivePlayerLimit + " rounds!");
 
 						const remainingPlayers: Player[] = [];
 						for (const i in this.players) {

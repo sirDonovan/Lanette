@@ -130,7 +130,7 @@ class InkaysCups extends Game {
 			if (this.roundTime > 5000) this.roundTime -= 2500;
 			for (const i in this.players) {
 				if (this.players[i].eliminated) continue;
-				if (!this.roundGuesses.has(this.players[i])) this.players[i].eliminated = true;
+				if (!this.roundGuesses.has(this.players[i])) this.eliminatePlayer(this.players[i], "You did not grab a Pokemon!");
 			}
 		}
 		if (this.getRemainingPlayerCount() < 2) return this.end();

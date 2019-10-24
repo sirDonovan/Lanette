@@ -39,7 +39,7 @@ class OctillerysAmbush extends Game {
 					firstFire = true;
 				}
 				*/
-				targetPlayer.eliminated = true;
+				this.eliminatePlayer(targetPlayer, "You were hit by " + this.queue[i].source.name + "'s Remoraid!");
 			}
 			if (this.getRemainingPlayerCount() <= 1) return this.end();
 		}

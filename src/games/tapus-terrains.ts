@@ -72,15 +72,15 @@ class TapusTerrains extends Game {
 			if (!data.pokemon[this.currentTerrain].includes(this.targetPokemon)) {
 				for (const i in this.players) {
 					if (this.players[i].eliminated) continue;
-					if (this.queue.includes(this.players[i]) || this.roundJumps.has(this.players[i])) this.players[i].eliminated = true;
+					if (this.queue.includes(this.players[i]) || this.roundJumps.has(this.players[i])) this.eliminatePlayer(this.players[i], "You jumped on a Pokemon of the wrong type!");
 				}
 			} else {
 				this.currentTerrain = null;
 				const len = this.queue.length;
-				if (len > 1 && this.isElimination) this.players[this.queue[len - 1].id].eliminated = true;
+				if (len > 1 && this.isElimination) this.eliminatePlayer(this.queue[len - 1], "You were the last player to jump on " + this.targetPokemon + "!");
 				for (const i in this.players) {
 					if (this.players[i].eliminated) continue;
-					if (!this.queue.includes(this.players[i])) this.players[i].eliminated = true;
+					if (!this.queue.includes(this.players[i])) this.eliminatePlayer(this.players[i], "You did not jump on " + this.targetPokemon + "!");
 				}
 				// if (len) this.markFirstAction(this.queue[0], 'firstJump');
 			}

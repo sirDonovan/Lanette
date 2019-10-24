@@ -318,17 +318,20 @@ const commands: Dict<ICommandDefinition<MismagiusFoulPlay>> = {
 			}
 			this.roundGuesses.set(player, true);
 			if ((playerCriminal || targetCriminal) && this.chosenPokemon.get(targetPlayer) === pokemon.species) {
-				targetPlayer.eliminated = true;
+				let action: string;
 				if (playerCriminal) {
+					action = "kidnapped";
 					const kidnaps = this.kidnaps.get(player) || 0;
 					this.kidnaps.set(player, kidnaps + 1);
 				} else {
+					action = "identified";
 					const identifications = this.identifications.get(player) || 0;
 					this.identifications.set(player, identifications + 1);
 				}
-				const action = playerCriminal ? "kidnapped" : "identified";
+
 				player.say("You " + action + " " + targetPlayer.name + "!");
-				targetPlayer.say("You were " + action + "!");
+				this.eliminatePlayer(targetPlayer, "You were " + action + "!");
+
 				if (targetCriminal) {
 					this.criminalCount--;
 					if (this.criminalCount === 0) {

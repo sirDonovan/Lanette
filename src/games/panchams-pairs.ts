@@ -111,8 +111,7 @@ class PanchamPairs extends Game {
 				if (this.players[i].eliminated) continue;
 				const player = this.players[i];
 				if (!this.paired.has(player)) {
-					player.say("You didn't pair any " + this.dataType + " and have been eliminated!");
-					player.eliminated = true;
+					this.eliminatePlayer(player, "You did not pair any " + this.dataType + "!");
 					eliminated.push(player);
 				}
 			}

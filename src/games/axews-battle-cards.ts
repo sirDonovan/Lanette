@@ -228,8 +228,8 @@ class AxewsBattleCards extends CardMatching {
 		if (!player) return;
 		const playableCards = this.getPlayableCards(player);
 		if (!playableCards.length) {
-			this.say(player.name + " doesn't have a card to play and is eliminated!");
-			player.eliminated = true;
+			this.say(player.name + " doesn't have a card to play and has been eliminated from the game!");
+			this.eliminatePlayer(player, "You do not have a card to play!");
 			return this.nextRound();
 		}
 		const text = player.name + "'s turn!";
@@ -266,8 +266,8 @@ class AxewsBattleCards extends CardMatching {
 		let autoplay = '';
 		if (playableCards.includes('explosion')) playableCards.splice(playableCards.indexOf('explosion'), 1);
 		if (playableCards.length) autoplay = this.sampleOne(playableCards);
-		player.eliminated = true;
-		this.say(player.name + " didn't play a card" + (player.eliminated ? " and is eliminated" : "") + "!" + (autoplay ? " Auto-playing: " + autoplay : ""));
+		this.say(player.name + " didn't play a card and has been eliminated from the game!" + (autoplay ? " Auto-playing: " + autoplay : ""));
+		this.eliminatePlayer(player, "You did not play a card!");
 		if (autoplay) {
 			player.useCommand('play', autoplay);
 		} else {

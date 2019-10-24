@@ -194,10 +194,6 @@ export abstract class Chain extends Game {
 				}, this.roundTime);
 			});
 		} else {
-			if (this.currentPlayer) {
-				this.players[this.currentPlayer.id].eliminated = true;
-				this.currentPlayer = null;
-			}
 			if (!this.playerList.length) {
 				if (this.getRemainingPlayerCount() < 2 || this.survivalRound >= 20) {
 					this.end();
@@ -231,7 +227,7 @@ export abstract class Chain extends Game {
 				this.currentPlayer = currentPlayer!;
 				this.timeout = setTimeout(() => {
 					this.say("Time's up!");
-					this.currentPlayer!.eliminated = true;
+					this.eliminatePlayer(this.currentPlayer!, "You did not guess a " + this.linksType + " link!");
 					this.currentPlayer = null;
 					this.nextRound();
 				}, this.roundTime);
@@ -269,9 +265,11 @@ export abstract class Chain extends Game {
 export let commands: Dict<ICommandDefinition<Chain>> = {
 	guess: {
 		command(target, room, user) {
-			if (!this.started || (this.players[user.id] && this.players[user.id].eliminated)) return false;
-			if (!this.options.freejoin && (!this.currentPlayer || this.players[user.id] !== this.currentPlayer)) return false;
-			if (!this.targetLinkStarts.length && !this.targetLinkEnds.length) return false;
+			if (this.options.freejoin) {
+				if ((!this.targetLinkStarts.length && !this.targetLinkEnds.length) || (this.players[user.id] && this.players[user.id].eliminated)) return false;
+			} else {
+				if (this.players[user.id] !== this.currentPlayer) return false;
+			}
 			const guess = Tools.toId(target);
 			if (this.roundLinks[guess]) return false;
 			const possibleLink: Link | undefined = this.pool[guess];

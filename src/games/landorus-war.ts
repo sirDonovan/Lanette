@@ -256,8 +256,7 @@ const commands: Dict<ICommandDefinition<LandorusWar>> = {
 				const targetAlias = this.playerAliases.get(targetPlayer)!;
 				player.say("Correct! " + targetAlias + " was " + targetPlayer.name + ".");
 				this.playerAliasesList.splice(this.playerAliasesList.indexOf(targetAlias), 1);
-				targetPlayer.say("You have been suspected by " + player.name + " and eliminated from the game!");
-				targetPlayer.eliminated = true;
+				this.eliminatePlayer(targetPlayer, "You were suspected by " + player.name + "!");
 				const suspectedPlayers = this.suspectedPlayers.get(player) || 0;
 				this.suspectedPlayers.set(player, suspectedPlayers + 1);
 				if (this.getRemainingPlayerCount() < 2) {

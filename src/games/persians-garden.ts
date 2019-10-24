@@ -45,30 +45,29 @@ class PersiansGarden extends MapCurrencyGame {
 	}
 
 	eliminatePlayers() {
-		const players = this.getRemainingPlayerCount();
-		if (players < 2) return;
-		let eliminateNumber = Math.floor(players / 2);
-		if (players === 2) {
-			eliminateNumber = 1;
-		} else if (this.round === 20 || eliminateNumber >= players) {
-			eliminateNumber = players - 1;
+		const remainingPlayerCount = this.getRemainingPlayerCount();
+		if (remainingPlayerCount < 2) return;
+		let playersToEliminate = Math.floor(remainingPlayerCount / 2);
+		if (remainingPlayerCount === 2) {
+			playersToEliminate = 1;
+		} else if (this.round === 20) {
+			playersToEliminate = remainingPlayerCount - 1;
 		}
-		const coins = [];
+		const coins: {player: Player, coins: number}[] = [];
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
 			const points = this.points.get(player) || 0;
-			coins.push({user: player, coins: points});
+			coins.push({player, coins: points});
 		}
 		coins.sort((a, b) => a.coins - b.coins);
-		const eliminated = coins.splice(0, eliminateNumber);
+		const eliminated = coins.splice(0, playersToEliminate);
 		const names: string[] = [];
-		for (let i = 0; i < eliminateNumber; i++) {
-			this.players[eliminated[i].user.id].eliminated = true;
-			eliminated[i].user.say("Persian used Fury Swipes! You were knocked out of the garden.");
-			names.push(eliminated[i].user.name);
+		for (let i = 0; i < playersToEliminate; i++) {
+			this.eliminatePlayer(eliminated[i].player, "Persian used Fury Swipes and knocked you out of the garden!");
+			names.push(eliminated[i].player.name);
 		}
-		this.say("The player" + (eliminateNumber > 1 ? "s" : "") + " with the least amount of " + this.currency + " " + (eliminateNumber > 1 ? "were" : "was") + " **" + names.join(", ") + "**!");
+		this.say("The player" + (playersToEliminate > 1 ? "s" : "") + " with the least amount of " + this.currency + " " + (playersToEliminate > 1 ? "were" : "was") + " **" + names.join(", ") + "**!");
 	}
 
 	onMaxRound() {

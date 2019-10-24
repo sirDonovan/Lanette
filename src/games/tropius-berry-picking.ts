@@ -117,11 +117,7 @@ class TropiusBerryPicking extends Game {
 				if (this.roundTime > 3000) this.roundTime -= 500;
 				for (const i in this.players) {
 					if (this.players[i].eliminated) continue;
-					const player = this.players[i];
-					if (!this.roundBerries.has(player)) {
-						player.say("You didn't eat a berry! You have been eliminated.");
-						player.eliminated = true;
-					}
+					if (!this.roundBerries.has(this.players[i])) this.eliminatePlayer(this.players[i], "You did not eat a berry!");
 				}
 				// let firstEat = true;
 				let lastPlayer: Player | null = null;
@@ -134,15 +130,13 @@ class TropiusBerryPicking extends Game {
 					}
 					*/
 					if (berry.effect !== this.roundEffect.effect) {
-						player.say("You ate the wrong berry! You have been eliminated.");
-						player.eliminated = true;
+						this.eliminatePlayer(player, "You ate the wrong berry!");
 						return;
 					}
 					lastPlayer = player;
 				});
 				if (lastPlayer && this.getRemainingPlayerCount() > 1) {
-					lastPlayer!.say("You were the last player to eat a berry! You have been eliminated.");
-					lastPlayer!.eliminated = true;
+					this.eliminatePlayer(lastPlayer, "You were the last player to eat a berry!");
 				}
 			}
 			if (this.round > this.roundLimit) {

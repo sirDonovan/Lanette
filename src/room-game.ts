@@ -385,6 +385,11 @@ export class Game extends Activity {
 		}
 	}
 
+	eliminatePlayer(player: Player, eliminationCause?: string) {
+		player.eliminated = true;
+		player.say((eliminationCause ? eliminationCause + " " : "") + "You have been eliminated from the game.");
+	}
+
 	getCommandsAndAliases(commands: string[]): string[] {
 		const commandsAndAliases: string[] = [];
 		for (let i = 0; i < commands.length; i++) {

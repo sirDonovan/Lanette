@@ -292,11 +292,11 @@ export abstract class MapGame extends Game {
 		if (!space.traversedAttributes.trap) space.traversedAttributes.trap = new Set();
 		space.traversedAttributes.trap.add(player);
 		if (!lives) {
-			player.say("You arrived at (" + space.coordinates + ") and fell into a trap! You have been eliminated from the game.");
-			player.eliminated = true;
+			player.say("You arrived at (" + space.coordinates + ") and fell into a trap!");
+			this.eliminatePlayer(player, "You ran out of lives!");
 			return false;
 		} else {
-			player.say("You arrived at (" + space.coordinates + ") and fell into a trap! Be careful, you only have **" + lives + " " + (lives > 1 ? "lives" : "life") + "** left.");
+			player.say("You arrived at (" + space.coordinates + ") and fell into a trap! You have **" + lives + " " + (lives > 1 ? "lives" : "life") + "** left.");
 		}
 		return true;
 	}

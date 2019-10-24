@@ -26,11 +26,7 @@ class EmpoleonsEmpires extends Game {
 		this.timeout = setTimeout(() => {
 			for (const i in this.players) {
 				if (this.players[i].eliminated) continue;
-				const player = this.players[i];
-				if (!this.playerAliases.has(player)) {
-					player.say("You were eliminated for not choosing an alias!");
-					player.eliminated = true;
-				}
+				if (!this.playerAliases.has(this.players[i])) this.eliminatePlayer(this.players[i], "You did not choose an alias!");
 			}
 			this.nextRound();
 		}, 60 * 1000);
@@ -54,7 +50,7 @@ class EmpoleonsEmpires extends Game {
 				this.timeout = setTimeout(() => {
 					if (this.currentPlayer === currentPlayer) {
 						this.say("**" + this.currentPlayer.name + "** (AKA " + this.playerAliases.get(this.currentPlayer!) + ") didn't suspect anyone and was eliminated!");
-						this.currentPlayer.eliminated = true;
+						this.eliminatePlayer(this.currentPlayer, "You did not suspect another player!");
 						this.currentPlayer = null;
 					}
 					this.nextRound();
@@ -122,8 +118,8 @@ const commands: Dict<ICommandDefinition<EmpoleonsEmpires>> = {
 			this.canGuess = false;
 			let successiveSuspects = this.successiveSuspects.get(player) || 0;
 			if (guessedAlias === Tools.toId(this.playerAliases.get(attackedPlayer))) {
-				this.say("Correct! " + attackedPlayer.name + " has been eliminated.");
-				attackedPlayer.eliminated = true;
+				this.say("Correct! " + attackedPlayer.name + " has been eliminated from the game.");
+				this.eliminatePlayer(attackedPlayer, "Your alias was guessed by " + player.name + "!");
 				let points = this.points.get(player) || 0;
 				points++;
 				this.points.set(player, points);

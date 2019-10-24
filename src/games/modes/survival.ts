@@ -48,7 +48,6 @@ class Survival {
 
 	async onNextRound(this: SurvivalThis) {
 		this.canGuess = false;
-		if (this.currentPlayer) this.currentPlayer.eliminated = true;
 		if (!this.playerList.length) {
 			if (this.getRemainingPlayerCount() < 2) {
 				this.end();
@@ -77,7 +76,7 @@ class Survival {
 					this.timeout = setTimeout(() => {
 						if (this.currentPlayer) {
 							this.say("Time's up! " + this.getAnswers(''));
-							this.currentPlayer.eliminated = true;
+							this.eliminatePlayer(this.currentPlayer, "You did not guess the answer in time!");
 							this.playerRounds.set(this.currentPlayer, this.survivalRound);
 							this.currentPlayer = null;
 						}
