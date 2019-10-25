@@ -260,14 +260,14 @@ const commands: Dict<ICommandDefinition<MurkrowsBlackjack>> = {
 			if (!database.leaderboard || !(user.id in database.leaderboard)) return false;
 			const bits = database.leaderboard[user.id].current;
 			if (!bits) {
-				user.say("You don't have any bits to wager!");
+				user.say("You do not have any bits to wager!");
 				return false;
 			}
 			let wager = parseInt(target.trim().split(" ")[0]);
 			if (wager <= 0 || isNaN(wager)) return false;
 			if (this.wagerLimit && wager > this.wagerLimit) wager = this.wagerLimit;
 			if (wager > bits) {
-				user.say("You can't wager more bits than you currently have!");
+				user.say("You cannot wager more bits than you currently have!");
 				return false;
 			}
 			wager = Math.floor(wager);

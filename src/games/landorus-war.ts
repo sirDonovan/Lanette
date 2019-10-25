@@ -188,7 +188,7 @@ const commands: Dict<ICommandDefinition<LandorusWar>> = {
 
 			const attackedPokemon = this.playerPokemon.get(attackedPlayer)!;
 			if (Dex.isImmune(move, attackedPokemon)) {
-				player.say("The move didn't do damage!");
+				player.say("The move had no effect!");
 			} else {
 				const effectiveness = Dex.getEffectiveness(move, attackedPokemon);
 				if (effectiveness === 0) {

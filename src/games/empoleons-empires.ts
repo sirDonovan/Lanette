@@ -44,12 +44,12 @@ class EmpoleonsEmpires extends Game {
 		this.onUhtml(uhtmlName, html, () => {
 			if (!this.currentPlayer) this.currentPlayer = this.getRandomPlayer();
 			const currentPlayer = this.currentPlayer;
-			const text = "**" + this.currentPlayer.name + "** you're up! Please guess another player with ``" + Config.commandCharacter + "guess [user], [alias]``";
+			const text = "**" + this.currentPlayer.name + "** you are up! Please guess another player with ``" + Config.commandCharacter + "guess [user], [alias]``";
 			this.on(text, () => {
 				this.canGuess = true;
 				this.timeout = setTimeout(() => {
 					if (this.currentPlayer === currentPlayer) {
-						this.say("**" + this.currentPlayer.name + "** (AKA " + this.playerAliases.get(this.currentPlayer!) + ") didn't suspect anyone and was eliminated!");
+						this.say("**" + this.currentPlayer.name + "** (AKA " + this.playerAliases.get(this.currentPlayer!) + ") did not suspect anyone and was eliminated!");
 						this.eliminatePlayer(this.currentPlayer, "You did not suspect another player!");
 						this.currentPlayer = null;
 					}

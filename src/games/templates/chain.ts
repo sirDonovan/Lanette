@@ -189,7 +189,7 @@ export abstract class Chain extends Game {
 			text = "The " + this.mascot!.species + " spelled out **" + this.currentLink.name + "**.";
 			this.on(text, () => {
 				this.timeout = setTimeout(() => {
-					this.say("Time's up!");
+					this.say("Time is up!");
 					this.nextRound();
 				}, this.roundTime);
 			});
@@ -222,11 +222,11 @@ export abstract class Chain extends Game {
 				return;
 			}
 
-			text = currentPlayer.name + " you're up! The " + this.mascot!.species + " spelled out **" + this.currentLink.name + "**.";
+			text = currentPlayer.name + " you are up! The " + this.mascot!.species + " spelled out **" + this.currentLink.name + "**.";
 			this.on(text, () => {
 				this.currentPlayer = currentPlayer!;
 				this.timeout = setTimeout(() => {
-					this.say("Time's up!");
+					this.say("Time is up!");
 					this.eliminatePlayer(this.currentPlayer!, "You did not guess a " + this.linksType + " link!");
 					this.currentPlayer = null;
 					this.nextRound();

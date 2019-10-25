@@ -146,7 +146,7 @@ export abstract class PlayingCard extends Game {
 	getPlayerSummary(player: Player) {
 		if (player.eliminated) return;
 		const userCards = this.playerCards.get(player);
-		if (!userCards || !userCards.length) return player.say("You don't have any cards yet");
+		if (!userCards || !userCards.length) return player.say("You do not have any cards yet");
 		this.dealCards(player);
 	}
 

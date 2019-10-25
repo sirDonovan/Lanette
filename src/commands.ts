@@ -699,7 +699,7 @@ const commands: Dict<ICommandDefinition> = {
 			}
 			const id = Tools.toId(target);
 			if (id === 'off' || id === 'end') {
-				if (!room.timers || !(user.id in room.timers)) return this.say("You don't have a timer running.");
+				if (!room.timers || !(user.id in room.timers)) return this.say("You do not have a timer running.");
 				clearTimeout(room.timers[user.id]);
 				delete room.timers[user.id];
 				return this.say("Your timer has been turned off.");
@@ -714,7 +714,7 @@ const commands: Dict<ICommandDefinition> = {
 			time *= 1000;
 			if (!room.timers) room.timers = {};
 			room.timers[user.id] = setTimeout(() => {
-				room.say(user.name + ": time's up!");
+				room.say(user.name + ": time is up!");
 				delete room.timers![user.id];
 			}, time);
 			this.say("Your timer has been set for: " + Tools.toDurationString(time) + ".");
@@ -739,7 +739,7 @@ const commands: Dict<ICommandDefinition> = {
 			if (isNaN(time) || time > 600 || time < 5) return this.say("Please enter an amount of time between 5 seconds and 10 minutes.");
 			time *= 1000;
 			room.userHostedGame.gameTimer = setTimeout(() => {
-				room.say("Time's up!");
+				room.say("Time is up!");
 				room.userHostedGame!.gameTimer = null;
 			}, time);
 			this.say("Game timer set for: " + Tools.toDurationString(time) + ".");
@@ -1607,7 +1607,7 @@ const commands: Dict<ICommandDefinition> = {
 			}
 			Tournaments.checkChallongeUrl(targetRoom, user, challongeLink, authOrTHC);
 			if (authOrTHC) {
-				this.say("You're free to advertise without using this command!");
+				this.say("You are free to advertise without using this command!");
 			} else {
 				this.say("A staff member will review your tournament as soon as possible!");
 			}
@@ -1721,14 +1721,14 @@ const commands: Dict<ICommandDefinition> = {
 	offlinemessages: {
 		command(target, room, user) {
 			if (!this.isPm(room)) return;
-			if (!Storage.retrieveOfflineMessages(user, true)) return this.say("You don't have any offline messages stored.");
+			if (!Storage.retrieveOfflineMessages(user, true)) return this.say("You do not have any offline messages stored.");
 		},
 		aliases: ['readofflinemessages', 'checkofflinemessages', 'readmail', 'checkmail'],
 	},
 	clearofflinemessages: {
 		command(target, room, user) {
 			if (!this.isPm(room)) return;
-			if (!Storage.clearOfflineMessages(user)) return this.say("You don't have any offline messages stored.");
+			if (!Storage.clearOfflineMessages(user)) return this.say("You do not have any offline messages stored.");
 			this.say("Your offline messages were cleared.");
 		},
 		aliases: ['deleteofflinemessages', 'clearmail', 'deletemail'],
@@ -1937,7 +1937,7 @@ const commands: Dict<ICommandDefinition> = {
 				}
 			}
 
-			if (targetUser && position) return this.say("You can't specify both a username and a position.");
+			if (targetUser && position) return this.say("You cannot specify both a username and a position.");
 
 			const bits = (Config.allowScriptedGames && Config.allowScriptedGames.includes(targetRoom.id)) || (Config.allowUserHostedGames && Config.allowUserHostedGames.includes(targetRoom.id));
 			const currentPointsCache: Dict<number> = {};

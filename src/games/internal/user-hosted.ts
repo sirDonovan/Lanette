@@ -158,7 +158,7 @@ export const game: IUserHostedFile<UserHosted> = {
 		},
 		{
 			name: "Excluded",
-			description: "Players try to guess pokemon that aren't excluded by the parameter..",
+			description: "Players try to guess pokemon that are not excluded by the parameter.",
 		},
 		{
 			name: "Gameathlon",

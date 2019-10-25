@@ -333,7 +333,7 @@ export class Game extends Activity {
 
 	addPlayer(user: User | string): Player | void {
 		if (this.options.freejoin || this.isMiniGame) {
-			if (typeof user !== 'string') user.say("This game doesn't require you to join.");
+			if (typeof user !== 'string') user.say("This game does not require you to join.");
 			return;
 		}
 		const player = this.createPlayer(user);

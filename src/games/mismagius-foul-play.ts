@@ -313,7 +313,7 @@ const commands: Dict<ICommandDefinition<MismagiusFoulPlay>> = {
 			const playerCriminal = this.criminals.includes(player);
 			const targetCriminal = this.criminals.includes(targetPlayer);
 			if (playerCriminal && targetCriminal) {
-				player.say("You can't suspect a fellow criminal!");
+				player.say("You cannot suspect a fellow criminal!");
 				return false;
 			}
 			this.roundGuesses.set(player, true);

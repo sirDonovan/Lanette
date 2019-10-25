@@ -67,7 +67,7 @@ export class PoliwrathsPortmanteaus extends Guessing {
 			this.canGuess = true;
 			this.timeout = setTimeout(() => {
 				if (this.answers.length) {
-					this.say("Time's up! " + this.getAnswers(''));
+					this.say("Time is up! " + this.getAnswers(''));
 					this.answers = [];
 					if (this.isMiniGame) {
 						this.end();

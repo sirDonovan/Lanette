@@ -211,7 +211,7 @@ class AxewsBattleCards extends CardMatching {
 	}
 
 	timeEnd() {
-		this.say("Time's up!");
+		this.say("Time is up!");
 		this.end();
 	}
 
@@ -228,7 +228,7 @@ class AxewsBattleCards extends CardMatching {
 		if (!player) return;
 		const playableCards = this.getPlayableCards(player);
 		if (!playableCards.length) {
-			this.say(player.name + " doesn't have a card to play and has been eliminated from the game!");
+			this.say(player.name + " does not have a card to play and has been eliminated from the game!");
 			this.eliminatePlayer(player, "You do not have a card to play!");
 			return this.nextRound();
 		}
@@ -266,7 +266,7 @@ class AxewsBattleCards extends CardMatching {
 		let autoplay = '';
 		if (playableCards.includes('explosion')) playableCards.splice(playableCards.indexOf('explosion'), 1);
 		if (playableCards.length) autoplay = this.sampleOne(playableCards);
-		this.say(player.name + " didn't play a card and has been eliminated from the game!" + (autoplay ? " Auto-playing: " + autoplay : ""));
+		this.say(player.name + " did not play a card and has been eliminated from the game!" + (autoplay ? " Auto-playing: " + autoplay : ""));
 		this.eliminatePlayer(player, "You did not play a card!");
 		if (autoplay) {
 			player.useCommand('play', autoplay);
@@ -432,9 +432,9 @@ class AxewsBattleCards extends CardMatching {
 			}
 			if (newIndex < 0) {
 				if (newId in Dex.data.pokedex) {
-					player.say("You don't have [ " + Dex.getExistingPokemon(newId).species + " ].");
+					player.say("You do not have [ " + Dex.getExistingPokemon(newId).species + " ].");
 				} else {
-					player.say("'" + targets[1] + "' isn't a valid Pokemon.");
+					player.say("'" + targets[1] + "' is not a valid Pokemon.");
 				}
 				return false;
 			}

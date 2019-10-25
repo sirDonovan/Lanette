@@ -152,11 +152,11 @@ class BulbasaursUno extends CardMatching {
 					}
 				}
 				if (indexA === -1) {
-					player.say(idA in Dex.data.pokedex ? "You don't have [ " + Dex.getExistingPokemon(idA).species + " ]." : "'" + targets[1] + "' isn't a valid Pokemon.");
+					player.say(idA in Dex.data.pokedex ? "You do not have [ " + Dex.getExistingPokemon(idA).species + " ]." : "'" + targets[1] + "' is not a valid Pokemon.");
 					return false;
 				}
 				if (indexB === -1) {
-					player.say(idB in Dex.data.pokedex ? "You don't have [ " + Dex.getExistingPokemon(idB).species + " ]." : "'" + targets[2] + "' isn't a valid Pokemon.");
+					player.say(idB in Dex.data.pokedex ? "You do not have [ " + Dex.getExistingPokemon(idB).species + " ]." : "'" + targets[2] + "' is not a valid Pokemon.");
 					return false;
 				}
 				const cardA = cards[indexA];
@@ -195,7 +195,7 @@ class BulbasaursUno extends CardMatching {
 					}
 				}
 				if (indexA === -1) {
-					player.say(idA in Dex.data.pokedex ? "You don't have [ " + Dex.getExistingPokemon(idA).species + " ]." : "'" + targets[1] + "' isn't a valid Pokemon.");
+					player.say(idA in Dex.data.pokedex ? "You do not have [ " + Dex.getExistingPokemon(idA).species + " ]." : "'" + targets[1] + "' is not a valid Pokemon.");
 					return false;
 				}
 				const cardA = cards[indexA];

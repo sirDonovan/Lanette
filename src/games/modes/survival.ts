@@ -67,7 +67,7 @@ class Survival {
 			return;
 		}
 		await this.setAnswers();
-		const text = "**" + currentPlayer.name + "** you're up!";
+		const text = "**" + currentPlayer.name + "** you are up!";
 		this.on(text, () => {
 			this.currentPlayer = currentPlayer!;
 			this.timeout = setTimeout(() => {
@@ -75,7 +75,7 @@ class Survival {
 					this.canGuess = true;
 					this.timeout = setTimeout(() => {
 						if (this.currentPlayer) {
-							this.say("Time's up! " + this.getAnswers(''));
+							this.say("Time is up! " + this.getAnswers(''));
 							this.eliminatePlayer(this.currentPlayer, "You did not guess the answer in time!");
 							this.playerRounds.set(this.currentPlayer, this.survivalRound);
 							this.currentPlayer = null;

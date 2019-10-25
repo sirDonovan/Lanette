@@ -95,7 +95,7 @@ class PanchamPairs extends Game {
 			if (this.players[i].eliminated) continue;
 			if (!this.paired.has(this.players[i])) players.push(this.players[i].name);
 		}
-		this.say("These players still haven't paired! " + players.join(", "));
+		this.say("These players still have not paired! " + players.join(", "));
 		this.currentListString = "**Current " + this.dataType + "**: " + this.currentList.join(", ");
 		this.on(this.currentListString, () => {
 			this.timeout = setTimeout(() => this.listPossiblePairs(), 15 * 1000);

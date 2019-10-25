@@ -122,7 +122,7 @@ const commands: Dict<ICommandDefinition<TrevenantsTrickOrTreat>> = {
 			}
 
 			if (!indices.length) {
-				player.say("**" + move.name + "** isn't learned by any Pokemon in the grid!");
+				player.say("**" + move.name + "** is not learned by any Pokemon in the grid!");
 				return false;
 			}
 

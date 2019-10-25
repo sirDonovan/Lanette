@@ -227,11 +227,11 @@ const cardHighLowCommands: Dict<ICommandDefinition<CardHighLow>> = {
 			const index = this.getCardIndex(id, cards);
 			if (index < 0) {
 				if (Dex.data.pokedex[id]) {
-					user.say("You don't have [ " + Dex.getExistingPokemon(id).species + " ].");
+					user.say("You do not have [ " + Dex.getExistingPokemon(id).species + " ].");
 				} else if (Dex.data.moves[id]) {
-					user.say("You don't have [ " + Dex.getExistingMove(id).name + " ].");
+					user.say("You do not have [ " + Dex.getExistingMove(id).name + " ].");
 				} else {
-					user.say("'" + targets[0] + "' isn't a valid Pokemon or move.");
+					user.say("'" + targets[0] + "' is not a valid Pokemon or move.");
 				}
 				return false;
 			}

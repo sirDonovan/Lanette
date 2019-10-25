@@ -228,7 +228,7 @@ export abstract class Card extends Game {
 		let pmHeader = '';
 		if (playerCards) {
 			if (!playerCards.length) {
-				handHtml = "You don't have any cards.";
+				handHtml = "You do not have any cards.";
 			}
 		} else {
 			playerCards = [];
@@ -236,7 +236,7 @@ export abstract class Card extends Game {
 				const card = this.getCard();
 				playerCards.push(card);
 			}
-			pmHeader = "<b>Here's your hand</b>:";
+			pmHeader = "<b>Here is your hand</b>:";
 		}
 		let remainingCards = playerCards.length;
 		let shownPlayerCards: CardType[] = [];
@@ -309,7 +309,7 @@ export abstract class Card extends Game {
 
 	timeEnd() {
 		this.timeEnded = true;
-		this.say("Time's up!");
+		this.say("Time is up!");
 		const winners = new Map();
 		let leastCards = Infinity;
 		for (const i in this.players) {

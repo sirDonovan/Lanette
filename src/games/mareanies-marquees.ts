@@ -65,7 +65,7 @@ class MareaniesMarquee extends Guessing {
 	updateHint() {
 		this.hintUpdates++;
 		if (this.hintUpdates >= this.hintLimit) {
-			this.say("Time's up! " + this.getAnswers(''));
+			this.say("Time is up! " + this.getAnswers(''));
 			this.answers = [];
 			if (this.isMiniGame) {
 				this.end();
