@@ -139,11 +139,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			description: "Each round, the host will give a param that determines Pokemon players can hide behind (by PMing the host). One player will be chosen to seek one Pokemon. If anyone hid behind it, they are eliminated. If not, the seeker is eliminated.",
 		},
 		{
-			name: "Diddly Dice",
-			aliases: ['DD', 'DDice'],
-			description: "Players bid numbers from 1-100 and after 30 seconds, the player with highest bid is chosen. Then, a random number from 1-100 is chosen. If the number is greater than or equal to the player's bid, that player wins, but if is lesser, then that player is eliminated.",
-		},
-		{
 			name: "Ditto's Who Am I",
 			mascot: 'Ditto',
 			aliases: ['dittos', 'who am i'],
