@@ -45,7 +45,7 @@ export const game: IGameFile<MewsMoveCards> = {
 	commands: Object.assign({}, templateCommands),
 	class: MewsMoveCards,
 	description: "Players try to play the highest (or lowest) move card in the randomly chosen category each round!",
-	name: "Mews's Move Cards",
+	name: "Mew's Move Cards",
 	mascot: "Mew",
 	scriptedOnly: true,
 };
