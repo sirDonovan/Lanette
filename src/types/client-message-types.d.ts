@@ -9,7 +9,7 @@ export interface IServerGroup {
 	type: "leadership" | "staff" | "normal" | "punishment";
 }
 
-export type ServerGroupData = Pick<IServerGroup, Exclude<keyof IServerGroup, "ranking">>;
+export type ServerGroupData = Omit<IServerGroup, "ranking">;
 
 export interface IUserDetailsResponse {
 	avatar: string;
