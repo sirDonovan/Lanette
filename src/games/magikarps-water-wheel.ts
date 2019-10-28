@@ -89,13 +89,14 @@ class MagikarpsWaterWheel extends Game {
 	}
 
 	onEnd() {
+		const bits = new Map<Player, number>();
 		let highestPoints = 0;
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
 			const points = this.points.get(player);
 			if (!points) continue;
-			this.addBits(player, Math.min(500, points / 10));
+			bits.set(player, Math.min(250, points / 10));
 			if (points > highestPoints) {
 				this.winners.clear();
 				this.winners.set(player, 1);
@@ -104,6 +105,14 @@ class MagikarpsWaterWheel extends Game {
 				this.winners.set(player, 1);
 			}
 		}
+
+		bits.forEach((amount, player) => {
+			if (this.winners.has(player)) {
+				this.addBits(player, 500);
+			} else {
+				this.addBits(player, amount);
+			}
+		});
 
 		this.announceWinners();
 	}
