@@ -33,9 +33,9 @@ export interface IDatabase {
 	lastUserHostedGameFormatTimes?: Dict<number>;
 	lastUserHostedGameTime?: number;
 	leaderboard?: Dict<ILeaderboardEntry>;
-	pastGames?: {format: string, time: number}[];
+	pastGames?: {inputTarget: string, name: string, time: number}[];
 	pastTournaments?: string[];
-	pastUserHostedGames?: {format: string, time: number}[];
+	pastUserHostedGames?: {inputTarget: string, name: string, time: number}[];
 	queuedTournament?: {formatid: string, playerCap: number, scheduled: boolean, time: number};
 	thcWinners?: Dict<string>;
 	userHostedGameQueue?: IQueuedUserHostedGame[];

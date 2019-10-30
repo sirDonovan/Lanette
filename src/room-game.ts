@@ -310,7 +310,7 @@ export class Game extends Activity {
 			}
 
 			if (!database[pastGamesKey]) database[pastGamesKey] = [];
-			database[pastGamesKey]!.unshift({format: this.format.inputTarget, time: now});
+			database[pastGamesKey]!.unshift({inputTarget: this.format.inputTarget, name: this.nameWithOptions, time: now});
 			while (database[pastGamesKey]!.length > 8) {
 				database[pastGamesKey]!.pop();
 			}

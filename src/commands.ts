@@ -400,13 +400,8 @@ const commands: Dict<ICommandDefinition> = {
 			const displayTimes = option === 'time' || option === 'times';
 			const now = Date.now();
 			for (let i = 0; i < database.pastGames.length; i++) {
-				const format = Games.getFormat(database.pastGames[i].format);
-				let game: string;
-				if (Array.isArray(format)) {
-					game = database.pastGames[i].format;
-				} else {
-					game = format.name;
-				}
+				const format = Games.getFormat(database.pastGames[i].inputTarget);
+				let game = Array.isArray(format) ? database.pastGames[i].name : format.name;
 
 				if (displayTimes) {
 					let duration = now - database.pastGames[i].time;
@@ -442,13 +437,8 @@ const commands: Dict<ICommandDefinition> = {
 			const displayTimes = option === 'time' || option === 'times';
 			const now = Date.now();
 			for (let i = 0; i < database.pastUserHostedGames.length; i++) {
-				const format = Games.getUserHostedFormat(database.pastUserHostedGames[i].format);
-				let game: string;
-				if (Array.isArray(format)) {
-					game = database.pastUserHostedGames[i].format;
-				} else {
-					game = format.name;
-				}
+				const format = Games.getUserHostedFormat(database.pastUserHostedGames[i].inputTarget);
+				let game = Array.isArray(format) ? database.pastUserHostedGames[i].name : format.name;
 
 				if (displayTimes) {
 					let duration = now - database.pastUserHostedGames[i].time;
