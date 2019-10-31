@@ -2,12 +2,13 @@ import { ICommandDefinition } from "../../command-parser";
 import { Player } from "../../room-activity";
 import { Game } from "../../room-game";
 import { Room } from "../../rooms";
-import { IGameFile, IGameFormat } from "../../types/games";
+import { IGameFile } from "../../types/games";
 
 const timeLimit = 30 * 1000;
 
 export class Vote extends Game {
 	internalGame: boolean = true;
+	pastGameIds: string[] = [];
 	picks: string[] = [];
 	uhtmlName: string = '';
 	readonly votes = new Map<Player, string>();
@@ -16,21 +17,42 @@ export class Vote extends Game {
 	room!: Room;
 
 	onSignups() {
-		const formats: string[] = [];
-		for (const i in Games.formats) {
-			formats.push(Games.getExistingFormat(i).name);
+		const database = Storage.getDatabase(this.room);
+		const pastGames: string[] = [];
+		if (database.pastGames && database.pastGames.length) {
+			for (let i = 0; i < database.pastGames.length; i++) {
+				const format = Games.getFormat(database.pastGames[i].inputTarget);
+				if (Array.isArray(format)) {
+					pastGames.push(database.pastGames[i].name);
+					this.pastGameIds.push(Tools.toId(database.pastGames[i].name));
+				} else {
+					pastGames.push(format.name);
+					this.pastGameIds.push(format.id);
+				}
+			}
 		}
-		this.picks = this.sampleMany(formats, 3);
-		this.uhtmlName = this.uhtmlBaseName + '-voting';
+
+		const formats: string[] = [];
+		const possiblePicks: string[] = [];
+		for (const i in Games.formats) {
+			const format = Games.getExistingFormat(i);
+			formats.push(format.name);
+			if (!this.pastGameIds.includes(format.id)) possiblePicks.push(format.name);
+		}
+
+		this.picks = this.sampleMany(possiblePicks, 3);
 		let html = "<div class='infobox'><center><h3>Vote for the next scripted game!</h3>Use the command <code>" + Config.commandCharacter + "vote [game]</code>";
 		html += "<br /><details><summary>Games list</summary>" + formats.sort().join(", ") + "</details>";
+		if (pastGames.length) html += "<br /><details><summary>Past games (cannot be voted for)</summary>" + pastGames.join(", ") + "</details>";
 		html += "<br /><b>" + Users.self.name + "'s picks:</b><br />";
+
 		const buttons: string[] = [];
 		for (let i = 0; i < this.picks.length; i++) {
 			buttons.push('<button class="button" name="send" value="' + Config.commandCharacter + 'vote ' + this.picks[i] + '">' + this.picks[i] + '</button>');
 		}
-		html += buttons.join(" | ");
-		html += "</center></div>";
+		html += buttons.join(" | ") + "</center></div>";
+
+		this.uhtmlName = this.uhtmlBaseName + '-voting';
 		this.sayUhtml(this.uhtmlName, html);
 		this.notifyRankSignups = true;
 		this.sayCommand("/notifyrank all, " + this.room.title + " game vote,Help decide the next scripted game!,Hosting a scriptedgamevote", true);
@@ -62,6 +84,11 @@ const commands: Dict<ICommandDefinition<Vote>> = {
 				user.say(CommandParser.getErrorText(format));
 				return false;
 			}
+			if (this.pastGameIds.includes(format.id)) {
+				user.say(format.name + " is on the past games list and cannot be voted for.");
+				return false;
+			}
+
 			this.votes.set(player, format.inputTarget);
 			user.say("Your vote for " + format.name + " has been cast!");
 			return true;
@@ -73,7 +100,7 @@ const commands: Dict<ICommandDefinition<Vote>> = {
 export const game: IGameFile<Vote> = {
 	class: Vote,
 	commands,
-	description: "",
+	description: "Help decide the next scripted game!",
 	freejoin: true,
-	name: "",
+	name: "Vote",
 };
