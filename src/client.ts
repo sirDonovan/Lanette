@@ -83,8 +83,8 @@ export class Client {
 	connection: websocket.connection | null = null;
 	connectionAttempts: number = 0;
 	connectionTimeout: NodeJS.Timer | null = null;
-	filterPhrases: string[] | null = null;
 	filterRegularExpressions: RegExp[] | null = null;
+	evasionFilterRegularExpressions: RegExp[] | null = null;
 	groupSymbols: Dict<string> = {};
 	loggedIn: boolean = false;
 	loginTimeout: NodeJS.Timer | null = null;
@@ -116,8 +116,8 @@ export class Client {
 		if (previous.challstr) this.challstr = previous.challstr;
 		if (previous.client) this.client = previous.client;
 		if (previous.connection) this.connection = previous.connection;
-		if (previous.filterPhrases) this.filterPhrases = previous.filterPhrases;
 		if (previous.filterRegularExpressions) this.filterRegularExpressions = previous.filterRegularExpressions;
+		if (previous.evasionFilterRegularExpressions) this.evasionFilterRegularExpressions = previous.evasionFilterRegularExpressions;
 		if (previous.groupSymbols) this.groupSymbols = previous.groupSymbols;
 		if (previous.loggedIn) this.loggedIn = previous.loggedIn;
 		if (previous.sendQueue) this.sendQueue = previous.sendQueue;
@@ -640,8 +640,8 @@ export class Client {
 
 		case 'pagehtml': {
 			if (room.id === 'view-filters') {
-				let filterPhrases: string[] | null = null;
 				let filterRegularExpressions: RegExp[] | null = null;
+				let evasionFilterRegularExpressions: RegExp[] | null = null;
 				const messageArguments: IClientMessageTypes['pagehtml'] = {
 					html: messageParts.join("|"),
 				};
@@ -649,36 +649,44 @@ export class Client {
 					const table = messageArguments.html.split('<table>')[1].split('</table>')[0];
 					const rows = table.split("<tr>");
 					let currentHeader = '';
+					let shortener = false;
+					let evasion = false;
 
 					for (let i = 0; i < rows.length; i++) {
 						if (!rows[i]) continue;
 						if (rows[i].startsWith('<th colspan="2"><h3>')) {
-							currentHeader = rows[i].split('<th colspan="2"><h3>')[1].split(' <span')[0];
-						} else if (rows[i].startsWith('<td><abbr title="">') && currentHeader !== 'Whitelisted names') {
-							const phrase = rows[i].split('<td><abbr title="">')[1].split('</abbr>')[0];
-							// regular expression
-							if (phrase.startsWith('<code>/')) {
-								const regularExpressionString = phrase.split('<code>/')[1].split('</code>')[0];
-								const slashIndex = regularExpressionString.indexOf('/');
-								let regularExpression;
-								try {
-									regularExpression = new RegExp(regularExpressionString.substr(0, slashIndex), regularExpressionString.substr(slashIndex + 1));
-								} catch (e) {
-									console.log(e);
-								}
-								if (regularExpression) {
+							currentHeader = rows[i].split('<th colspan="2"><h3>')[1].split('</h3>')[0].split(' <span ')[0];
+							shortener = currentHeader === 'URL Shorteners';
+							evasion = currentHeader === 'Filter Evasion Detection';
+						} else if (rows[i].startsWith('<td><abbr title="') && currentHeader !== 'Whitelisted names') {
+							let word = rows[i].split('<td><abbr title="')[1].split('</abbr>')[0].trim();
+							let filterTo = false;
+							if (word.startsWith('<code>') && word.endsWith('</code>')) {
+								word = word.split('<code>')[1].split('</code>')[0].trim();
+								filterTo = true;
+							}
+							let regularExpression;
+							try {
+								regularExpression = new RegExp(shortener ? '\\b' + word : word, filterTo ? 'ig' : 'i');
+							} catch (e) {
+								console.log(e);
+							}
+
+							if (regularExpression) {
+								if (evasion) {
+									if (!evasionFilterRegularExpressions) evasionFilterRegularExpressions = [];
+									evasionFilterRegularExpressions.push(regularExpression);
+								} else {
 									if (!filterRegularExpressions) filterRegularExpressions = [];
 									filterRegularExpressions.push(regularExpression);
 								}
-							} else {
-								if (!filterPhrases) filterPhrases = [];
-								filterPhrases.push(phrase);
 							}
 						}
 					}
 				}
-				this.filterPhrases = filterPhrases;
+
 				this.filterRegularExpressions = filterRegularExpressions;
+				this.evasionFilterRegularExpressions = evasionFilterRegularExpressions;
 			}
 			break;
 		}
@@ -981,16 +989,20 @@ export class Client {
 	}
 
 	willBeFiltered(message: string, room?: Room): boolean {
-		const lowerCase = message.toLowerCase();
-		if (this.filterPhrases) {
-			for (let i = 0; i < this.filterPhrases.length; i++) {
-				if (lowerCase.includes(this.filterPhrases[i])) return true;
-			}
-		}
+		let lowerCase = message.replace(/\u039d/g, 'N').toLowerCase().replace(/[\u200b\u007F\u00AD\uDB40\uDC00\uDC21]/g, '').replace(/\u03bf/g, 'o').replace(/\u043e/g, 'o').replace(/\u0430/g, 'a').replace(/\u0435/g, 'e').replace(/\u039d/g, 'e');
+		lowerCase = lowerCase.replace(/__|\*\*|``|\[\[|\]\]/g, '');
 
 		if (this.filterRegularExpressions) {
 			for (let i = 0; i < this.filterRegularExpressions.length; i++) {
-				if (!!message.match(this.filterRegularExpressions[i])) return true;
+				if (!!lowerCase.match(this.filterRegularExpressions[i])) return true;
+			}
+		}
+
+		if (this.evasionFilterRegularExpressions) {
+			let evasionLowerCase = lowerCase.normalize('NFKC');
+			evasionLowerCase = evasionLowerCase.replace(/[\s-_,.]/g, '');
+			for (let i = 0; i < this.evasionFilterRegularExpressions.length; i++) {
+				if (!!evasionLowerCase.match(this.evasionFilterRegularExpressions[i])) return true;
 			}
 		}
 
