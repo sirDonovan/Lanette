@@ -136,6 +136,7 @@ export const game: IGameFile<MagikarpsWaterWheel> = {
 	commandDescriptions: [Config.commandCharacter + "stay"],
 	commands,
 	description: "Each round, players try to gather points by spinning the wheel while avoiding Magikarp!",
+	disabled: true,
 	formerNames: ['Press Your Luck'],
 	name: "Magikarp's Water Wheel",
 	mascot: "Magikarp",

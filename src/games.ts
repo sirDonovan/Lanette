@@ -268,6 +268,7 @@ export class Games {
 		const id = Tools.toId(name);
 		if (id in this.aliases) return this.getFormat(this.aliases[id] + (targets.length ? "," + targets.join(",") : ""));
 		if (!(id in this.formats)) return ['invalidGameFormat', name];
+		if (this.formats[id].disabled) return ['disabledGameFormat', this.formats[id].name];
 		const formatData = Tools.deepClone(this.formats[id]);
 		const inputOptions: Dict<number> = {};
 		let mode: IGameMode | undefined;

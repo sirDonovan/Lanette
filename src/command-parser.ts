@@ -19,7 +19,7 @@ type CommandErrorOptionalTarget = 'invalidBotRoom' | 'invalidFormat' | 'invalidG
 	'tooManyGameVariants' | 'emptyUserHostedGameQueue';
 
 type CommandErrorRequiredTarget = 'noPmHtmlRoom' | 'missingBotRankForFeatures' | 'disabledTournamentFeatures' | 'disabledGameFeatures' | 'disabledUserHostedGameFeatures' | 'noRoomEventInformation' |
-	'invalidRoomEvent' | 'invalidGameOption';
+	'invalidRoomEvent' | 'invalidGameOption' | 'disabledGameFormat';
 
 type CommandErrorNoTarget = 'invalidUsernameLength' | 'reloadInProgress' | 'invalidHttpsLink';
 
@@ -201,6 +201,8 @@ export class CommandParser {
 			return error[1].trim() + " does not currently have any event information stored.";
 		} else if (error[0] === 'invalidRoomEvent') {
 			return "You must specify one of " + error[1].trim() + "'s events.";
+		} else if (error[0] === 'disabledGameFormat') {
+			return error[1].trim() + " is currently disabled.";
 		} else if (error[0] === 'invalidUsernameLength') {
 			return "You must specify a valid username (between 1 and " + Tools.maxUsernameLength + " characters).";
 		} else if (error[0] === 'reloadInProgress') {
