@@ -64,24 +64,33 @@ export class Game extends Activity {
 			};
 		}
 
+		for (const i in format.customizableOptions) {
+			if (!(i in format.inputOptions)) format.inputOptions[i] = format.customizableOptions[i].base;
+		}
+
+		const customizedOptions: Dict<number> = {};
 		for (const i in format.inputOptions) {
-			if (!(i in format.customizableOptions) || format.inputOptions[i] === format.customizableOptions[i].base) {
+			if (!(i in format.customizableOptions)) {
 				delete format.inputOptions[i];
 				continue;
 			}
+			if (format.inputOptions[i] === format.customizableOptions[i].base) continue;
+
 			if (format.inputOptions[i] < format.customizableOptions[i].min) {
 				format.inputOptions[i] = format.customizableOptions[i].min;
 			} else if (format.inputOptions[i] > format.customizableOptions[i].max) {
 				format.inputOptions[i] = format.customizableOptions[i].max;
 			}
+
+			customizedOptions[i] = format.inputOptions[i];
 		}
 
-		if (format.inputOptions.points) nameSuffixes.push(" (first to " + format.inputOptions.points + ")");
-		if (format.inputOptions.teams) namePrefixes.unshift('' + format.inputOptions.teams);
-		if (format.inputOptions.cards) namePrefixes.unshift(format.inputOptions.cards + "-card");
-		if (format.inputOptions.gen) namePrefixes.unshift('Gen ' + format.inputOptions.gen);
-		if (format.inputOptions.ports) namePrefixes.unshift(format.inputOptions.ports + '-port');
-		if (format.inputOptions.params) namePrefixes.unshift(format.inputOptions.params + '-param');
+		if (customizedOptions.points) nameSuffixes.push(" (first to " + customizedOptions.points + ")");
+		if (customizedOptions.teams) namePrefixes.unshift('' + customizedOptions.teams);
+		if (customizedOptions.cards) namePrefixes.unshift(customizedOptions.cards + "-card");
+		if (customizedOptions.gen) namePrefixes.unshift('Gen ' + customizedOptions.gen);
+		if (customizedOptions.ports) namePrefixes.unshift(customizedOptions.ports + '-port');
+		if (customizedOptions.params) namePrefixes.unshift(customizedOptions.params + '-param');
 
 		let nameWithOptions = '';
 		if (namePrefixes.length) nameWithOptions = namePrefixes.join(" ") + " ";
