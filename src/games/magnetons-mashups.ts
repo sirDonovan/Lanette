@@ -1,7 +1,6 @@
-import { DefaultGameOption } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
+import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Magneton's Mashups";
 const data: {'Pokemon': string[]} = {
@@ -21,8 +20,6 @@ class MagnetonsMashups extends Guessing {
 
 		loadedData = true;
 	}
-
-	defaultOptions: DefaultGameOption[] = ['points'];
 
 	async checkAnswer(guess: string): Promise<string> {
 		guess = Tools.toId(guess);
@@ -78,11 +75,10 @@ class MagnetonsMashups extends Guessing {
 	}
 }
 
-export const game: IGameFile<MagnetonsMashups> = {
+export const game: IGameFile<MagnetonsMashups> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['magnetons'],
 	class: MagnetonsMashups,
-	commandDescriptions,
-	commands: Object.assign({}, templateCommands),
+	defaultOptions: ['points'],
 	description: "Players unscramble the combined names of two Pokemon each round!",
 	formerNames: ['Mashups'],
 	freejoin: true,
@@ -91,4 +87,4 @@ export const game: IGameFile<MagnetonsMashups> = {
 	minigameCommand: 'mashup',
 	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess the two unscrambled Pokemon names!",
 	modes: ["survival"],
-};
+});

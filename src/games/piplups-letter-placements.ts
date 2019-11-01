@@ -1,7 +1,6 @@
-import { DefaultGameOption } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { commandDescriptions, commands as templateCommands, Guessing } from "./templates/guessing";
+import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Piplup's Letter Placements";
 const data: {'Characters': string[], 'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
@@ -29,7 +28,6 @@ class PiplupsLetterPlacements extends Guessing {
 		loadedData = true;
 	}
 
-	defaultOptions: DefaultGameOption[] = ['points'];
 	lastAnswer: string = '';
 
 	async setAnswers() {
@@ -55,11 +53,10 @@ class PiplupsLetterPlacements extends Guessing {
 	}
 }
 
-export const game: IGameFile<PiplupsLetterPlacements> = {
+export const game: IGameFile<PiplupsLetterPlacements> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ["piplups", "plp"],
-	commandDescriptions,
-	commands: Object.assign({}, templateCommands),
 	class: PiplupsLetterPlacements,
+	defaultOptions: ['points'],
 	description: "Players guess answers that contain the given letters back-to-back!",
 	freejoin: true,
 	name,
@@ -67,4 +64,4 @@ export const game: IGameFile<PiplupsLetterPlacements> = {
 	modes: ['survival'],
 	minigameCommand: 'placement',
 	minigameDescription: 'Use ``' + Config.commandCharacter + 'g`` to guess an answer that contains the given letters back-to-back!',
-};
+});

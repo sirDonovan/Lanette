@@ -1,6 +1,7 @@
 import { ICommandDefinition } from '../../command-parser';
 import { Player } from '../../room-activity';
-import { Card, CardType, commands as cardCommands } from './card';
+import { IGameTemplateFile } from '../../types/games';
+import { Card, CardType, game as cardGame } from './card';
 
 type HighLow = 'high' | 'low';
 
@@ -32,7 +33,7 @@ export abstract class CardHighLow extends Card {
 	}
 
 	onSignups() {
-		if (!this.inputOptions.points) this.options.points = 5;
+		if (!this.format.inputOptions.points) this.options.points = 5;
 	}
 
 	onStart() {
@@ -214,7 +215,7 @@ export abstract class CardHighLow extends Card {
 	}
 }
 
-const cardHighLowCommands: Dict<ICommandDefinition<CardHighLow>> = {
+const commands: Dict<ICommandDefinition<CardHighLow>> = {
 	play: {
 		command(target, room, user) {
 			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].eliminated || this.roundPlays.has(this.players[user.id])) return false;
@@ -243,4 +244,6 @@ const cardHighLowCommands: Dict<ICommandDefinition<CardHighLow>> = {
 	},
 };
 
-export const commands = Object.assign(cardCommands, cardHighLowCommands);
+export const game: IGameTemplateFile<CardHighLow> = Object.assign({}, cardGame, {
+	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
+});

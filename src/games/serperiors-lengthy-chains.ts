@@ -1,6 +1,6 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
-import { DefaultGameOption, Game } from "../room-game";
+import { Game } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 
@@ -66,7 +66,6 @@ class SerperiorLengthyChains extends Game {
 	bestChain: string[] = [];
 	bestPlayer: Player | null = null;
 	category: string = '';
-	defaultOptions: DefaultGameOption[] = ['points'];
 	points = new Map<Player, number>();
 	timeout: NodeJS.Timer | null = null;
 
@@ -143,6 +142,7 @@ export const game: IGameFile<SerperiorLengthyChains> = {
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon chain]"],
 	commands,
 	class: SerperiorLengthyChains,
+	defaultOptions: ['points'],
 	description: "Player's form chains of Pokemon that follow the given parameter! A chain is a sequence of pokemon that share 1 letter (such as PikachUxie)!",
 	freejoin: true,
 	name,

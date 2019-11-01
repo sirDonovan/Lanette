@@ -3,7 +3,7 @@ import { IGameOptionValues } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import * as PortmanteausWorker from './../workers/portmanteaus';
-import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
+import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Poliwrath's Portmanteaus";
 let loadedData = false;
@@ -20,10 +20,6 @@ export class PoliwrathsPortmanteaus extends Guessing {
 
 	answerParts: Dict<string[]> = {};
 	baseNumberOfPorts: number = 2;
-	customizableOptions: Dict<IGameOptionValues> = {
-		ports: {min: 2, base: 2, max: 4},
-		points: {min: 5, base: 5, max: 10},
-	};
 	customPortCategories: string[] | null = null;
 	customPortDetails: string[] | null = null;
 	customPortTypes: PortmanteausWorker.PoolType[] | null = null;
@@ -33,7 +29,7 @@ export class PoliwrathsPortmanteaus extends Guessing {
 	roundTime: number = 5 * 60 * 1000;
 
 	async setAnswers() {
-		const numberOfPorts = this.customPortTypes ? this.customPortTypes.length : this.inputOptions.ports ? this.options.ports : this.baseNumberOfPorts + this.random(3);
+		const numberOfPorts = this.customPortTypes ? this.customPortTypes.length : this.format.inputOptions.ports ? this.options.ports : this.baseNumberOfPorts + this.random(3);
 		const result = await PortmanteausWorker.search({
 			customPortCategories: this.customPortCategories,
 			customPortDetails: this.customPortDetails,
@@ -122,11 +118,13 @@ export class PoliwrathsPortmanteaus extends Guessing {
 	}
 }
 
-export const game: IGameFile<PoliwrathsPortmanteaus> = {
+export const game: IGameFile<PoliwrathsPortmanteaus> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['poliwraths', 'ports'],
 	class: PoliwrathsPortmanteaus,
-	commandDescriptions,
-	commands: Object.assign({}, templateCommands),
+	customizableOptions: {
+		ports: {min: 2, base: 2, max: 4},
+		points: {min: 5, base: 5, max: 10},
+	},
 	description: "Players think of portmanteaus that share 2-4 letters and fit the given parameters!",
 	formerNames: ["Portmanteaus"],
 	freejoin: true,
@@ -136,4 +134,4 @@ export const game: IGameFile<PoliwrathsPortmanteaus> = {
 	minigameCommandAliases: ['port'],
 	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess a portmanteau (sharing 2-4 letters) that fits the given parameters!",
 	workers: [PortmanteausWorker],
-};
+});

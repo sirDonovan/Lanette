@@ -1,16 +1,13 @@
-import { DefaultGameOption } from "../room-game";
 import { IGameFile } from "../types/games";
-import { Chain, commands } from "./templates/chain";
+import { Chain, game as chainGame } from "./templates/chain";
 
-class UnownsPokemonChain extends Chain {
-	defaultOptions: DefaultGameOption[] = ['freejoin', 'points'];
-}
+class UnownsPokemonChain extends Chain {}
 
-export const game: IGameFile<UnownsPokemonChain> = {
+export const game: IGameFile<UnownsPokemonChain> = Games.copyTemplateProperties(chainGame, {
 	aliases: ["unowns", "upc", "pokemonchain"],
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],
-	commands,
 	class: UnownsPokemonChain,
+	defaultOptions: ['freejoin', 'points'],
 	description: "Players answer each round with a Pokemon that starts with the last letter of the previous Pokemon (no formes and no repeats in a round)!",
 	name: "Unown's Pokemon Chain",
 	mascot: "Unown",
@@ -30,4 +27,4 @@ export const game: IGameFile<UnownsPokemonChain> = {
 			variantAliases: ['move'],
 		},
 	],
-};
+});

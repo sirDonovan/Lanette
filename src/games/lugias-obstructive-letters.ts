@@ -1,6 +1,6 @@
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
+import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Lugia's Obstructive Letters";
 const data: {'Pokemon': Dict<string>, 'Pokemon Abilities': Dict<string>, 'Pokemon Items': Dict<string>, 'Pokemon Moves': Dict<string>} = {
@@ -57,7 +57,7 @@ class LugiasObstructiveLetters extends Guessing {
 	winnerPointsToBits: number = 10;
 
 	onSignups() {
-		if (!this.inputOptions.points) this.options.points = 30;
+		if (!this.format.inputOptions.points) this.options.points = 30;
 		this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
 	}
 
@@ -97,13 +97,11 @@ class LugiasObstructiveLetters extends Guessing {
 	}
 }
 
-export const game: IGameFile<LugiasObstructiveLetters> = {
+export const game: IGameFile<LugiasObstructiveLetters> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['lugias', 'lol'],
 	class: LugiasObstructiveLetters,
-	commandDescriptions,
-	commands: Object.assign({}, templateCommands),
 	description: "Players guess answers that are missing the given letters! Answers must be at least 6 letters long.",
 	freejoin: true,
 	name,
 	mascot: "Lugia",
-};
+});

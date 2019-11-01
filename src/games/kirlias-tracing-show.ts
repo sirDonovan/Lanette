@@ -1,7 +1,6 @@
-import { DefaultGameOption } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { commands as templateCommands, Guessing } from './templates/guessing';
+import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Kirlia's Tracing Show";
 const data: {abilities: Dict<string>, pokedex: string[]} = {
@@ -28,7 +27,6 @@ class KirliasTracingShow extends Guessing {
 		loadedData = true;
 	}
 
-	defaultOptions: DefaultGameOption[] = ['points'];
 	lastAbilities: string = '';
 	lastPokemon: string = '';
 
@@ -50,16 +48,18 @@ class KirliasTracingShow extends Guessing {
 	}
 }
 
-const commands = Tools.deepClone(templateCommands);
-commands.guess.aliases!.push('trace');
+const commands = Tools.deepClone(guessingGame.commands!);
+if (!commands.guess.aliases) commands.guess.aliases = [];
+commands.guess.aliases.push('trace');
 
-export const game: IGameFile<KirliasTracingShow> = {
+export const game: IGameFile<KirliasTracingShow> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['kirlias', 'kts'],
 	class: KirliasTracingShow,
 	commandDescriptions: [Config.commandCharacter + "trace [ability]"],
 	commands,
+	defaultOptions: ['points'],
 	description: "Players guess abilities that the chosen Pokemon have!",
 	freejoin: true,
 	name,
 	mascot: "Kirlia",
-};
+});

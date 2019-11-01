@@ -1,6 +1,7 @@
 import { ICommandDefinition } from "../../command-parser";
 import { Player } from "../../room-activity";
 import { Game } from "../../room-game";
+import { IGameTemplateFile } from "../../types/games";
 import { User } from "../../users";
 
 interface ISpaceAttributes {
@@ -518,7 +519,7 @@ export abstract class MapGame extends Game {
 	onTrappedPlayerSpace?(player: Player, floor: MapFloor, space: MapFloorSpace): boolean | null;
 }
 
-export let commands: Dict<ICommandDefinition<MapGame>> = {
+const commands: Dict<ICommandDefinition<MapGame>> = {
 	up: {
 		command(target, room, user) {
 			return this.move(target, user, 'up');
@@ -541,5 +542,7 @@ export let commands: Dict<ICommandDefinition<MapGame>> = {
 	},
 };
 
-export let commandDescriptions = [Config.commandCharacter + 'up/down/left/right'];
-export let disabled = false;
+export const game: IGameTemplateFile<MapGame> = {
+	commandDescriptions: [Config.commandCharacter + 'up/down/left/right'],
+	commands,
+};

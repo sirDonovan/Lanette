@@ -3,7 +3,7 @@ import { Player } from "../room-activity";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { IPokemonCard } from "./templates/card";
-import { CardMatching, commands as templateCommands } from "./templates/card-matching";
+import { CardMatching, game as cardGame } from "./templates/card-matching";
 
 const name = "Bulbasaur's Uno";
 const types: Dict<string> = {};
@@ -238,14 +238,14 @@ const commands: Dict<ICommandDefinition<BulbasaursUno>> = {
 	},
 };
 
-export const game: IGameFile<BulbasaursUno> = {
+export const game: IGameFile<BulbasaursUno> = Games.copyTemplateProperties(cardGame, {
 	aliases: ["bulbasaurs", "uno", "bu"],
 	commandDescriptions: [Config.commandCharacter + "play [Pokemon]", Config.commandCharacter + "draw"],
-	commands: Object.assign({}, templateCommands, commands),
+	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
 	class: BulbasaursUno,
 	description: "Each round, players can play a card that matches the type or color of the top card or draw a new card. <a href='http://psgc.weebly.com/pokeuno.html'>Action card descriptions</a>",
 	formerNames: ["Pokeuno"],
 	name,
 	mascot: "Bulbasaur",
 	scriptedOnly: true,
-};
+});

@@ -1,6 +1,7 @@
 import { ICommandDefinition } from '../../command-parser';
 import { Player } from '../../room-activity';
 import { Game } from '../../room-game';
+import { IGameTemplateFile } from '../../types/games';
 
 export abstract class Guessing extends Game {
 	answers: string[] = [];
@@ -86,7 +87,7 @@ export abstract class Guessing extends Game {
 	onGuess?(guess: string, player?: Player): void;
 }
 
-export const commands: Dict<ICommandDefinition<Guessing>> = {
+const commands: Dict<ICommandDefinition<Guessing>> = {
 	guess: {
 		async command(target, room, user) {
 			if (!this.started || !this.canGuess || !this.answers.length || (this.players[user.id] && this.players[user.id].eliminated) ||
@@ -169,5 +170,7 @@ export const commands: Dict<ICommandDefinition<Guessing>> = {
 	},
 };
 
-export let commandDescriptions = [Config.commandCharacter + 'g [answer]'];
-export let disabled = false;
+export const game: IGameTemplateFile<Guessing> = {
+	commandDescriptions: [Config.commandCharacter + 'g [answer]'],
+	commands,
+};

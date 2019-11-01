@@ -1,7 +1,6 @@
-import { DefaultGameOption } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { commands as templateCommands, Guessing } from './templates/guessing';
+import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Greninja's Typings";
 const data: {pokedex: string[], reverseTypes: Dict<string>, species: Dict<string>, types: Dict<string>} = {
@@ -28,7 +27,6 @@ class GreninjasTypings extends Guessing {
 		loadedData = true;
 	}
 
-	defaultOptions: DefaultGameOption[] = ['points'];
 	lastPokemon: string = '';
 	lastTyping: string = '';
 	noOrder: boolean = false;
@@ -58,11 +56,11 @@ class GreninjasTypings extends Guessing {
 	}
 }
 
-export const game: IGameFile<GreninjasTypings> = {
+export const game: IGameFile<GreninjasTypings> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['greninjas'],
 	class: GreninjasTypings,
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],
-	commands: Object.assign({}, templateCommands),
+	defaultOptions: ['points'],
 	description: "Players guess Pokemon that match the given typing!",
 	freejoin: true,
 	formerNames: ['Typings'],
@@ -77,4 +75,4 @@ export const game: IGameFile<GreninjasTypings> = {
 			variant: "noorder",
 		},
 	],
-};
+});

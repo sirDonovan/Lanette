@@ -1,8 +1,7 @@
 import { Player } from "../room-activity";
-import { DefaultGameOption } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { commands, Guessing } from "./templates/guessing";
+import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Smeargle's Mystery Moves";
 const data: {moves: string[]} = {
@@ -25,7 +24,6 @@ class SmearglesMysteryMoves extends Guessing {
 
 	answers: string[] = [];
 	canGuess: boolean = false;
-	defaultOptions: DefaultGameOption[] = ['points'];
 	hints: string[] = [];
 	hintsIndex: number = 0;
 	lastMove: string = '';
@@ -81,14 +79,14 @@ class SmearglesMysteryMoves extends Guessing {
 	}
 }
 
-export const game: IGameFile<SmearglesMysteryMoves> = {
+export const game: IGameFile<SmearglesMysteryMoves> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ["smeargles", "mysterymoves", "smm", "wtm"],
 	commandDescriptions: [Config.commandCharacter + "g [move]"],
-	commands,
 	class: SmearglesMysteryMoves,
+	defaultOptions: ['points'],
 	description: "Players guess moves based on the given hints!",
 	formerNames: ["What's That Move"],
 	freejoin: true,
 	name,
 	mascot: "Smeargle",
-};
+});

@@ -1,7 +1,6 @@
-import { DefaultGameOption } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { commandDescriptions, commands as templateCommands, Guessing } from "./templates/guessing";
+import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Feraligatr's Lost Letters";
 const data: {'Characters': string[], 'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
@@ -31,7 +30,6 @@ class FeraligatrsLostLetters extends Guessing {
 	}
 
 	categoryList: DataKey[] = categories.slice();
-	defaultOptions: DefaultGameOption[] = ['points'];
 	roundTime: number = 10 * 1000;
 
 	onCreate() {
@@ -89,11 +87,10 @@ class FeraligatrsLostLetters extends Guessing {
 	}
 }
 
-export const game: IGameFile<FeraligatrsLostLetters> = {
+export const game: IGameFile<FeraligatrsLostLetters> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['feraligatrs', 'fll', 'll'],
 	class: FeraligatrsLostLetters,
-	commandDescriptions,
-	commands: Object.assign({}, templateCommands),
+	defaultOptions: ['points'],
 	description: "Players guess the missing vowels to find the answers!",
 	formerNames: ["Lost Letters"],
 	freejoin: true,
@@ -128,4 +125,4 @@ export const game: IGameFile<FeraligatrsLostLetters> = {
 			variantAliases: ['ability', 'abilities'],
 		},
 	],
-};
+});

@@ -4,9 +4,9 @@ import path = require('path');
 import { CommandErrorArray, ICommandDefinition } from './command-parser';
 import { UserHosted } from './games/internal/user-hosted';
 import { PRNG, PRNGSeed } from './prng';
-import { Game } from "./room-game";
+import { DefaultGameOption, Game, IGameOptionValues } from "./room-game";
 import { Room } from "./rooms";
-import { IGameFile, IGameFileComputed, IGameFormat, IGameFormatComputed, IGameMode, IGameModeFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFile, IUserHostedFormat, IUserHostedFormatComputed, UserHostedCustomizable } from './types/games';
+import { IGameFile, IGameFileComputed, IGameFormat, IGameFormatComputed, IGameMode, IGameModeFile, IGameTemplateFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFile, IUserHostedFormat, IUserHostedFormatComputed, UserHostedCustomizable } from './types/games';
 import { IWorker } from './types/global-types';
 import { User } from './users';
 
@@ -72,6 +72,13 @@ export class Games {
 		for (let i = 0; i < this.workers.length; i++) {
 			this.workers[i].unref();
 		}
+	}
+
+	copyTemplateProperties<T extends Game, U extends Game>(template: IGameTemplateFile<T>, game: IGameFile<U>): IGameFile<U> {
+		const copied = Object.assign({}, template, game);
+		if (template.commands && !game.commands) copied.commands = Tools.deepClone(copied.commands);
+
+		return copied;
 	}
 
 	loadFormats() {
@@ -235,7 +242,7 @@ export class Games {
 							return;
 						}
 					}
-					const format = global.Games.getFormat(formatName + (target ? "," + target : ""), user);
+					const format = global.Games.getFormat(formatName + (target ? "," + target : ""));
 					if (Array.isArray(format)) return this.sayError(format);
 					if (global.Games.reloadInProgress) return this.sayError(['reloadInProgress']);
 					delete format.inputOptions.points;
@@ -253,15 +260,15 @@ export class Games {
 	/**
 	 * Returns a copy of the format
 	 */
-	getFormat(target: string, user?: User): IGameFormat | CommandErrorArray {
+	getFormat(target: string): IGameFormat | CommandErrorArray {
 		const inputTarget = target;
 		const targets = target.split(",");
 		const name = targets[0];
 		targets.shift();
 		const id = Tools.toId(name);
-		if (id in this.aliases) return this.getFormat(this.aliases[id] + (targets.length ? "," + targets.join(",") : ""), user);
+		if (id in this.aliases) return this.getFormat(this.aliases[id] + (targets.length ? "," + targets.join(",") : ""));
 		if (!(id in this.formats)) return ['invalidGameFormat', name];
-		const formatData = this.formats[id];
+		const formatData = Tools.deepClone(this.formats[id]);
 		const inputOptions: Dict<number> = {};
 		let mode: IGameMode | undefined;
 		let variant: IGameVariant | undefined;
@@ -335,9 +342,28 @@ export class Games {
 			inputOptions,
 			inputTarget,
 			mode,
+			nameWithOptions: '',
 			variant,
 		};
-		return Object.assign({}, formatData, formatComputed);
+
+		let customizableOptions: Dict<IGameOptionValues>;
+		if (variant && variant.customizableOptions) {
+			customizableOptions = variant.customizableOptions;
+		} else {
+			customizableOptions = formatData.customizableOptions || {};
+		}
+
+		let defaultOptions: DefaultGameOption[];
+		if (variant && variant.defaultOptions) {
+			defaultOptions = variant.defaultOptions;
+		} else {
+			defaultOptions = formatData.defaultOptions || [];
+		}
+
+		const format = Object.assign({}, formatData, formatComputed, {customizableOptions, defaultOptions});
+		Game.setOptions(format, mode, variant);
+
+		return format;
 	}
 
 	getExistingFormat(target: string): IGameFormat {
@@ -403,12 +429,14 @@ export class Games {
 	}
 
 	getInternalFormat(id: InternalGameKey): IGameFormat {
+		const formatData = this.internalFormats[id];
 		const formatComputed: IGameFormatComputed = {
 			effectType: "GameFormat",
 			inputOptions: {},
 			inputTarget: id,
+			nameWithOptions: '',
 		};
-		return Object.assign({}, this.internalFormats[id], formatComputed);
+		return Object.assign({}, formatData, formatComputed, {customizableOptions: formatData.customizableOptions || {}, defaultOptions: formatData.defaultOptions || []});
 	}
 
 	getRandomFormat(room: Room): IGameFormat {

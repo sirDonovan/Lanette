@@ -1,11 +1,9 @@
-import { DefaultGameOption } from "../room-game";
 import { IGameFile } from "../types/games";
-import { Chain, commands, Link } from "./templates/chain";
+import { Chain, game as chainGame, Link } from "./templates/chain";
 
 class PolitoedsPortmanteauChain extends Chain {
 	acceptsFormes: boolean = true;
 	canReverseLinks: boolean = true;
-	defaultOptions: DefaultGameOption[] = ['freejoin', 'points'];
 	minLetters: number = 2;
 	maxLetters: number = 4;
 
@@ -34,12 +32,12 @@ class PolitoedsPortmanteauChain extends Chain {
 	}
 }
 
-export const game: IGameFile<PolitoedsPortmanteauChain> = {
+export const game: IGameFile<PolitoedsPortmanteauChain> = Games.copyTemplateProperties(chainGame, {
 	aliases: ["politoeds", "politoedsportchain", "portmanteauchain", "portchain", "ppc"],
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],
-	commands,
 	class: PolitoedsPortmanteauChain,
+	defaultOptions: ['freejoin', 'points'],
 	description: "Players answer each round with a Pokemon that starts with the last 2-4 letters or ends with the first 2-4 letters of the previous Pokemon (no repeats in a round)!",
 	name: "Politoed's Portmanteau Chain",
 	mascot: "Politoed",
-};
+});

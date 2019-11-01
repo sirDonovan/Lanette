@@ -2,7 +2,7 @@ import { Player } from "../room-activity";
 import { IGameOptionValues } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { commandDescriptions, commands as templateCommands, Guessing } from "./templates/guessing";
+import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Hypno's Hunches";
 const data: {'Characters': string[], 'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
@@ -32,9 +32,6 @@ class HypnosHunches extends Guessing {
 	}
 
 	currentCategory: string = '';
-	customizableOptions: Dict<IGameOptionValues> = {
-		points: {min: 5, base: 5, max: 5},
-	};
 	guessLimit: number = 10;
 	guessedLetters: string[] = [];
 	hints: string[] = [];
@@ -122,11 +119,12 @@ class HypnosHunches extends Guessing {
 	}
 }
 
-export const game: IGameFile<HypnosHunches> = {
+export const game: IGameFile<HypnosHunches> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ["hypnos"],
-	commandDescriptions,
-	commands: Object.assign({}, templateCommands),
 	class: HypnosHunches,
+	customizableOptions: {
+		points: {min: 5, base: 5, max: 5},
+	},
 	description: "Players guess letters to reveal the answers without being shown any blanks!",
 	formerNames: ["Hunches"],
 	freejoin: true,
@@ -155,4 +153,4 @@ export const game: IGameFile<HypnosHunches> = {
 			variant: "Pokemon",
 		},
 	],
-};
+});

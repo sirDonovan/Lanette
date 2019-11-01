@@ -2,7 +2,7 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from '../room-activity';
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { commands as templateCommands, IPlayingCard, PlayingCard } from './templates/playing-card';
+import { game as playingCardGame, IPlayingCard, PlayingCard } from './templates/playing-card';
 
 class MurkrowsBlackjack extends PlayingCard {
 	readonly blackJackpots = new Map<Player, number>();
@@ -278,14 +278,14 @@ const commands: Dict<ICommandDefinition<MurkrowsBlackjack>> = {
 	},
 };
 
-export const game: IGameFile<MurkrowsBlackjack> = {
+export const game: IGameFile<MurkrowsBlackjack> = Games.copyTemplateProperties(playingCardGame, {
 	aliases: ["murkrows", "bj", "mb"],
 	commandDescriptions: [Config.commandCharacter + "hit", Config.commandCharacter + "stay"],
-	commands: Object.assign({}, templateCommands, commands),
+	commands: Object.assign(Tools.deepClone(playingCardGame.commands), commands),
 	class: MurkrowsBlackjack,
 	description: "Players wager to beat Murkrow's hand without going over 21!",
 	formerNames: ["Blackjack"],
 	name: "Murkrow's Blackjack",
 	mascot: "Murkrow",
 	scriptedOnly: true,
-};
+});

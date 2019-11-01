@@ -1,7 +1,6 @@
-import { DefaultGameOption } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
+import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Chimecho's Stat School";
 const data: {stats: Dict<string[]>} = {
@@ -28,8 +27,6 @@ class ChimechosStatSchool extends Guessing {
 		loadedData = true;
 	}
 
-	defaultOptions: DefaultGameOption[] = ['points'];
-
 	onSignups() {
 		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
 	}
@@ -41,14 +38,13 @@ class ChimechosStatSchool extends Guessing {
 	}
 }
 
-export const game: IGameFile<ChimechosStatSchool> = {
+export const game: IGameFile<ChimechosStatSchool> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['chimechos', 'css', 'statschool'],
 	class: ChimechosStatSchool,
-	commandDescriptions,
-	commands: Object.assign({}, templateCommands),
+	defaultOptions: ['points'],
 	description: "Players guess Pokémon with the given base stat distributions!",
 	freejoin: true,
 	name,
 	mascot: "Chimecho",
 	modes: ["survival"],
-};
+});

@@ -1,6 +1,6 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
-import { DefaultGameOption, Game, IGameOptionValues  } from "../room-game";
+import { Game, IGameOptionValues } from "../room-game";
 import { IGameFile } from "../types/games";
 
 const colors: string[] = ['Blue', 'Green', 'Red', 'Yellow', 'Orange', 'Purple', 'Pink', 'Gray', 'Teal', 'Silver', 'Gold', 'Lavender', 'Crimson', 'Scarlet', 'Magenta', 'Apricot', 'Cerulean', 'Amber',
@@ -9,10 +9,6 @@ const colors: string[] = ['Blue', 'Green', 'Red', 'Yellow', 'Orange', 'Purple', 
 class NinjasksCorners extends Game {
 	canTravel: boolean = false;
 	color: string = '';
-	customizableOptions: Dict<IGameOptionValues> = {
-		points: {min: 10, base: 10, max: 10},
-	};
-	defaultOptions: DefaultGameOption[] = ['freejoin'];
 	// firstTravel: Player | null;
 	lastColor: string = '';
 	minRoundTime: number = 1.8 * 1000;
@@ -128,6 +124,10 @@ export const game: IGameFile<NinjasksCorners> = {
 	commandDescriptions: [Config.commandCharacter + "travel [color]"],
 	commands,
 	class: NinjasksCorners,
+	customizableOptions: {
+		points: {min: 10, base: 10, max: 10},
+	},
+	defaultOptions: ['freejoin'],
 	description: "Players try to travel to specified corners before time runs out!",
 	formerNames: ["Corners"],
 	name: "Ninjask's Corners",

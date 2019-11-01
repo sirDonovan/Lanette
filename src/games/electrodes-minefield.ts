@@ -1,6 +1,6 @@
 import { Player } from "../room-activity";
 import { IGameFile } from "../types/games";
-import { commandDescriptions, commands as templateCommands, GameMap, MapFloor, MapFloorSpace } from "./templates/map";
+import { game as mapGame, GameMap, MapFloor, MapFloorSpace } from "./templates/map";
 import { MapDamageGame } from "./templates/map-damage";
 
 class ElectrodesMinefield extends MapDamageGame {
@@ -85,13 +85,11 @@ class ElectrodesMinefield extends MapDamageGame {
 	}
 }
 
-export const game: IGameFile<ElectrodesMinefield> = {
+export const game: IGameFile<ElectrodesMinefield> = Games.copyTemplateProperties(mapGame, {
 	aliases: ["electrodes", "eminefield"],
-	commandDescriptions,
-	commands: Object.assign({}, templateCommands),
 	class: ElectrodesMinefield,
 	description: "Players must try to survive the Electrode explosions each round (blasts are in a radius)! You may travel once per turn (up to 3 paces).",
 	name: "Electrode's Minefield",
 	mascot: "Electrode",
 	scriptedOnly: true,
-};
+});

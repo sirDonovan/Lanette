@@ -1,6 +1,6 @@
 import { Player } from "../room-activity";
 import { IGameFile } from "../types/games";
-import { commandDescriptions, commands as templateCommands, GameMap, MapFloor, MapFloorSpace } from "./templates/map";
+import { game as mapGame, GameMap, MapFloor, MapFloorSpace } from "./templates/map";
 import { MapShuffleGame } from "./templates/map-shuffle";
 
 class KlinklangsCastle extends MapShuffleGame {
@@ -73,13 +73,11 @@ class KlinklangsCastle extends MapShuffleGame {
 	}
 }
 
-export const game: IGameFile<KlinklangsCastle> = {
+export const game: IGameFile<KlinklangsCastle> = Games.copyTemplateProperties(mapGame, {
 	aliases: ["klinklangs", "kcastle"],
-	commandDescriptions,
-	commands: Object.assign({}, templateCommands),
 	class: KlinklangsCastle,
 	description: "Players must find a path out of the shifting castle without falling into traps! You may travel once per turn (up to 3 paces).",
 	name: "Klinklang's Castle",
 	mascot: "Klinklang",
 	scriptedOnly: true,
-};
+});

@@ -1,7 +1,6 @@
-import { DefaultGameOption } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { commandDescriptions, commands as templateCommands, Guessing } from "./templates/guessing";
+import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Sudowoodo's Species Scramble";
 const data: {categories: Dict<string[]>} = {
@@ -28,8 +27,6 @@ class SudowoodosSpeciesScramble extends Guessing {
 		loadedData = true;
 	}
 
-	defaultOptions: DefaultGameOption[] = ['points'];
-
 	onSignups() {
 		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
 	}
@@ -41,14 +38,13 @@ class SudowoodosSpeciesScramble extends Guessing {
 	}
 }
 
-export const game: IGameFile<SudowoodosSpeciesScramble> = {
+export const game: IGameFile<SudowoodosSpeciesScramble> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ["sudowoodos", "sss", "speciesscramble"],
-	commandDescriptions,
-	commands: Object.assign({}, templateCommands),
 	class: SudowoodosSpeciesScramble,
+	defaultOptions: ['points'],
 	description: "Players guess Pokemon based on the given categories!",
 	freejoin: true,
 	name,
 	mascot: "Sudowoodo",
 	modes: ['survival'],
-};
+});

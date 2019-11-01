@@ -1,7 +1,7 @@
 import { CommandsDict } from "../../command-parser";
 import { Player } from "../../room-activity";
 import { Game } from "../../room-game";
-import { GameCommandReturnType, IGameModeFile } from "../../types/games";
+import { GameCommandReturnType, IGameFormat, IGameModeFile } from "../../types/games";
 import { Guessing } from "../templates/guessing";
 
 const name = 'Survival';
@@ -10,13 +10,26 @@ const description = 'Answer within the time limit to survive each round!';
 type SurvivalThis = Guessing & Survival;
 
 class Survival {
+	static setOptions<T extends Game>(format: IGameFormat<T>, namePrefixes: string[], nameSuffixes: string[]) {
+		if (!format.name.includes(name)) nameSuffixes.unshift(name);
+		format.description += ' ' + description;
+
+		const pointsIndex = format.defaultOptions.indexOf('points');
+		if (pointsIndex !== -1) format.defaultOptions.splice(pointsIndex, 1);
+		const freejoinIndex = format.defaultOptions.indexOf('freejoin');
+		if (freejoinIndex !== -1) format.defaultOptions.splice(freejoinIndex, 1);
+
+		delete format.customizableOptions.points;
+		delete format.customizableOptions.freejoin;
+		if (format.id === 'parasparameters') delete format.customizableOptions.params;
+	}
+
 	currentPlayer: Player | null = null;
 	readonly maxPlayers: number = 20;
 	playerList: Player[] = [];
 	readonly playerRounds = new Map<Player, number>();
 	survivalRound: number = 0;
 
-	readonly description: string;
 	roundTime: number;
 
 	constructor(game: Game) {
@@ -24,22 +37,9 @@ class Survival {
 			this.roundTime = 7 * 1000;
 		} else if (game.id === 'parasparameters') {
 			this.roundTime = 15 * 1000;
-			delete game.customizableOptions.params;
 		} else {
 			this.roundTime = 9 * 1000;
 		}
-		if (!game.name.includes(name)) game.nameSuffixes.unshift(name);
-		this.description = game.description + ' ' + description;
-
-		if (game.defaultOptions) {
-			const pointsIndex = game.defaultOptions.indexOf('points');
-			if (pointsIndex !== -1) game.defaultOptions.splice(pointsIndex, 1);
-			const freejoinIndex = game.defaultOptions.indexOf('freejoin');
-			if (freejoinIndex !== -1) game.defaultOptions.splice(freejoinIndex, 1);
-		}
-
-		delete game.customizableOptions.points;
-		delete game.customizableOptions.freejoin;
 	}
 
 	onStart(this: SurvivalThis) {
@@ -160,6 +160,7 @@ const initialize = (game: Game) => {
 
 export const mode: IGameModeFile<Survival, Guessing> = {
 	aliases: ['surv'],
+	class: Survival,
 	commands,
 	description,
 	initialize,

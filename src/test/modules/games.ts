@@ -181,9 +181,15 @@ describe("Games", () => {
 		}
 	});
 
-	it('should return proper error codes from getFormat() and getUserHostedFormat()', () => {
+	it('should return proper values from getFormat() and getUserHostedFormat()', () => {
 		const formats = Object.keys(Games.formats);
 		assert(!Array.isArray(Games.getFormat(formats[0])));
+
+		assert(Games.getExistingFormat("Slowking's Trivia").name === "Slowking's Trivia");
+		assert(Games.getExistingFormat('trivia').name === "Slowking's Trivia");
+		assert(Games.getExistingFormat('trivia, abilities').nameWithOptions === "Slowking's Ability Trivia");
+		assert(Games.getExistingFormat('trivia, survival').nameWithOptions === "Slowking's Trivia Survival");
+		assert(Games.getExistingFormat('trivia, abilities, survival').nameWithOptions === "Slowking's Ability Trivia Survival");
 
 		const name = 'Non-existent Game';
 		const nameFormat = Games.getFormat(name) as CommandErrorArray;
@@ -250,8 +256,9 @@ describe("Games", () => {
 			assert(tiers[i].charAt(0) !== '(');
 		}
 		const room = Rooms.add('mocha');
-		const game = Games.createGame(room, Games.getExistingFormat('poliwrathsportmanteaus')) as PoliwrathsPortmanteaus;
-		for (let i = game.customizableOptions.ports.min; i <= game.customizableOptions.ports.max; i++) {
+		const format = Games.getExistingFormat('poliwrathsportmanteaus');
+		const game = Games.createGame(room, format) as PoliwrathsPortmanteaus;
+		for (let i = format.customizableOptions.ports.min; i <= format.customizableOptions.ports.max; i++) {
 			game.options.ports = i;
 			await game.onNextRound();
 			assert(game.answers.length);
@@ -291,15 +298,16 @@ describe("Games", () => {
 		}
 
 		const room = Rooms.add('mocha');
-		const game = Games.createGame(room, Games.getExistingFormat('parasparameters')) as ParasParameters;
-		for (let i = game.customizableOptions.params.min; i <= game.customizableOptions.params.max; i++) {
-			game.inputOptions.params = i;
+		const format = Games.getExistingFormat('parasparameters');
+		const game = Games.createGame(room, format) as ParasParameters;
+		for (let i = format.customizableOptions.params.min; i <= format.customizableOptions.params.max; i++) {
+			format.inputOptions.params = i;
 			game.options.params = i;
 			await game.onNextRound();
 			assert(game.params.length);
 			assert(game.pokemon.length);
 		}
-		delete game.inputOptions.params;
+		delete format.inputOptions.params;
 		delete game.options.params;
 
 		game.customParamTypes = ['move', 'egggroup'];

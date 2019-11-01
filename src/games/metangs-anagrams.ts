@@ -1,7 +1,6 @@
-import { DefaultGameOption } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
+import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Metang's Anagrams";
 const data: {'Characters': string[], 'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
@@ -29,7 +28,6 @@ class MetangsAnagrams extends Guessing {
 		loadedData = true;
 	}
 
-	defaultOptions: DefaultGameOption[] = ['points'];
 	lastAnswer: string = '';
 
 	async setAnswers() {
@@ -49,11 +47,10 @@ class MetangsAnagrams extends Guessing {
 	}
 }
 
-export const game: IGameFile<MetangsAnagrams> = {
+export const game: IGameFile<MetangsAnagrams> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['metangs', 'anags', 'ma'],
 	class: MetangsAnagrams,
-	commandDescriptions,
-	commands: Object.assign({}, templateCommands),
+	defaultOptions: ['points'],
 	description: "Players unscramble letters to reveal the answers!",
 	formerNames: ["Anagrams"],
 	freejoin: true,
@@ -83,4 +80,4 @@ export const game: IGameFile<MetangsAnagrams> = {
 			variant: "Pokemon",
 		},
 	],
-};
+});

@@ -79,7 +79,7 @@ const commands: Dict<ICommandDefinition<Vote>> = {
 	vote: {
 		command(target, room, user) {
 			const player = this.players[user.id] || this.createPlayer(user);
-			const format = Games.getFormat(target, user);
+			const format = Games.getFormat(target);
 			if (Array.isArray(format)) {
 				user.say(CommandParser.getErrorText(format));
 				return false;

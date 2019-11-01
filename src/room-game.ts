@@ -2,7 +2,7 @@ import { CommandsDict } from "./command-parser";
 import { PRNG, PRNGSeed } from "./prng";
 import { Activity, Player, PlayerList } from "./room-activity";
 import { Room } from "./rooms";
-import { IGameFormat, IUserHostedFormat } from "./types/games";
+import { IGameFileComputed, IGameFormat, IGameMode, IGameVariant, IUserHostedFormat } from "./types/games";
 import { IPokemonCopy } from "./types/in-game-data-types";
 import { User } from "./users";
 
@@ -36,22 +36,77 @@ const defaultOptionValues: Dict<IGameOptionValues> = {
 };
 
 export class Game extends Activity {
+	static setOptions<T extends Game>(format: IGameFormat<T>, mode: IGameMode | undefined, variant: IGameVariant | undefined) {
+		const namePrefixes: string[] = [];
+		const nameSuffixes: string[] = [];
+		if (format.freejoin || (variant && variant.freejoin)) {
+			format.customizableOptions.freejoin = {
+				min: 1,
+				base: 1,
+				max: 1,
+			};
+		}
+		if (mode && mode.class.setOptions) mode.class.setOptions(format, namePrefixes, nameSuffixes);
+
+		for (let i = 0; i < format.defaultOptions.length; i++) {
+			const defaultOption = format.defaultOptions[i];
+			if (defaultOption in format.customizableOptions) continue;
+			let base: number;
+			if (defaultOptionValues[defaultOption].base === 0) {
+				base = 0;
+			} else {
+				base = defaultOptionValues[defaultOption].base || 5;
+			}
+			format.customizableOptions[defaultOption] = {
+				min: defaultOptionValues[defaultOption].min || 1,
+				base,
+				max: defaultOptionValues[defaultOption].max || 10,
+			};
+		}
+
+		for (const i in format.inputOptions) {
+			if (!(i in format.customizableOptions) || format.inputOptions[i] === format.customizableOptions[i].base) {
+				delete format.inputOptions[i];
+				continue;
+			}
+			if (format.inputOptions[i] < format.customizableOptions[i].min) {
+				format.inputOptions[i] = format.customizableOptions[i].min;
+			} else if (format.inputOptions[i] > format.customizableOptions[i].max) {
+				format.inputOptions[i] = format.customizableOptions[i].max;
+			}
+		}
+
+		if (format.inputOptions.points) nameSuffixes.push(" (first to " + format.inputOptions.points + ")");
+		if (format.inputOptions.teams) namePrefixes.unshift('' + format.inputOptions.teams);
+		if (format.inputOptions.cards) namePrefixes.unshift(format.inputOptions.cards + "-card");
+		if (format.inputOptions.gen) namePrefixes.unshift('Gen ' + format.inputOptions.gen);
+		if (format.inputOptions.ports) namePrefixes.unshift(format.inputOptions.ports + '-port');
+		if (format.inputOptions.params) namePrefixes.unshift(format.inputOptions.params + '-param');
+
+		let nameWithOptions = '';
+		if (namePrefixes.length) nameWithOptions = namePrefixes.join(" ") + " ";
+		if (variant && variant.name) {
+			nameWithOptions += variant.name;
+		} else {
+			nameWithOptions += format.name;
+		}
+		if (nameSuffixes.length) nameWithOptions += " " + nameSuffixes.join(" ");
+
+		format.nameWithOptions = nameWithOptions;
+	}
+
 	readonly activityType: string = 'game';
 	awardedBits: boolean = false;
 	canLateJoin: boolean = false;
 	readonly commands: CommandsDict<Game> = Object.assign(Object.create(null), Games.sharedCommands);
 	readonly commandsListeners: IGameCommandCountListener[] = [];
-	readonly customizableOptions: Dict<IGameOptionValues> = Object.create(null);
 	internalGame: boolean = false;
 	readonly isUserHosted: boolean = false;
 	readonly loserPointsToBits: number = 10;
 	readonly maxBits: number = 1000;
 	readonly minPlayers: number = 2;
-	namePrefixes: string[] = [];
-	nameSuffixes: string[] = [];
-	nameWithOptions: string = '';
 	notifyRankSignups: boolean = false;
-	readonly options: Dict<number> = Object.create(null);
+	options: Dict<number> = Object.create(null);
 	parentGame: Game | null = null;
 	prng: PRNG = new PRNG();
 	readonly round: number = 0;
@@ -65,11 +120,9 @@ export class Game extends Activity {
 	// set immediately in initialize()
 	description!: string;
 	format!: IGameFormat | IUserHostedFormat;
-	inputOptions!: Dict<number>;
 
 	allowChildGameBits?: boolean;
 	commandDescriptions?: string[];
-	readonly defaultOptions?: DefaultGameOption[];
 	isMiniGame?: boolean;
 	readonly lives?: Map<Player, number>;
 	mascot?: IPokemonCopy;
@@ -107,22 +160,15 @@ export class Game extends Activity {
 
 	initialize(format: IGameFormat) {
 		this.format = format;
-		this.inputOptions = this.format.inputOptions;
-		this.name = format.name;
+		this.name = format.nameWithOptions || format.name;
 		this.id = format.id;
 		this.uhtmlBaseName = 'scripted-' + format.id;
 		this.description = format.description;
+		this.options = format.inputOptions;
 		if (this.maxPlayers) this.playerCap = this.maxPlayers;
 
 		if (format.commands) Object.assign(this.commands, format.commands);
 		if (format.commandDescriptions) this.commandDescriptions = format.commandDescriptions;
-		if (format.freejoin) {
-			this.customizableOptions.freejoin = {
-				min: 1,
-				base: 1,
-				max: 1,
-			};
-		}
 		if (format.mascot) {
 			this.mascot = Dex.getPokemonCopy(format.mascot);
 		} else if (format.mascots) {
@@ -132,55 +178,7 @@ export class Game extends Activity {
 		if (format.mode) format.mode.initialize(this);
 		if (format.workers) this.usesWorkers = true;
 
-		this.setOptions();
-
-		if (this.namePrefixes.length) this.nameWithOptions = this.namePrefixes.join(" ") + " ";
-		this.nameWithOptions += this.name;
-		if (this.nameSuffixes.length) this.nameWithOptions += " " + this.nameSuffixes.join(" ");
-
 		if (this.onInitialize) this.onInitialize();
-	}
-
-	setOptions() {
-		if (this.defaultOptions) {
-			for (let i = 0; i < this.defaultOptions.length; i++) {
-				const defaultOption = this.defaultOptions[i];
-				if (defaultOption in this.customizableOptions) continue;
-				let base: number;
-				if (defaultOptionValues[defaultOption].base === 0) {
-					base = 0;
-				} else {
-					base = defaultOptionValues[defaultOption].base || 5;
-				}
-				this.customizableOptions[defaultOption] = {
-					min: defaultOptionValues[defaultOption].min || 1,
-					base,
-					max: defaultOptionValues[defaultOption].max || 10,
-				};
-			}
-		}
-		for (const i in this.customizableOptions) {
-			this.options[i] = this.customizableOptions[i].base;
-		}
-		for (const i in this.inputOptions) {
-			if (!(i in this.customizableOptions) || this.inputOptions[i] === this.options[i]) {
-				delete this.inputOptions[i];
-				continue;
-			}
-			if (this.inputOptions[i] < this.customizableOptions[i].min) {
-				this.inputOptions[i] = this.customizableOptions[i].min;
-			} else if (this.inputOptions[i] > this.customizableOptions[i].max) {
-				this.inputOptions[i] = this.customizableOptions[i].max;
-			}
-			this.options[i] = this.inputOptions[i];
-		}
-
-		if (this.inputOptions.points) this.nameSuffixes.push(" (first to " + this.options.points + ")");
-		if (this.inputOptions.teams) this.namePrefixes.unshift('' + this.options.teams);
-		if (this.inputOptions.cards) this.namePrefixes.unshift(this.inputOptions.cards + "-card");
-		if (this.inputOptions.gen) this.namePrefixes.unshift('Gen ' + this.options.gen);
-		if (this.inputOptions.ports) this.namePrefixes.unshift(this.inputOptions.ports + '-port');
-		if (this.inputOptions.params) this.namePrefixes.unshift(this.inputOptions.params + '-param');
 	}
 
 	deallocate(forceEnd: boolean) {
@@ -201,7 +199,7 @@ export class Game extends Activity {
 	}
 
 	forceEnd(user: User) {
-		this.say((!this.isUserHosted ? "The " : "") + this.nameWithOptions + " " + this.activityType + " was forcibly ended.");
+		this.say((!this.isUserHosted ? "The " : "") + this.name + " " + this.activityType + " was forcibly ended.");
 		if (this.onForceEnd) this.onForceEnd(user);
 		this.ended = true;
 		this.deallocate(true);
@@ -270,7 +268,7 @@ export class Game extends Activity {
 		if (this.mascot) {
 			html += Dex.getPokemonIcon(this.mascot);
 		}
-		html += this.nameWithOptions;
+		html += this.name;
 		if (this.subGameNumber) html += " - Game " + this.subGameNumber;
 		html += " - " + (roundText || "Round " + this.round);
 
@@ -310,7 +308,7 @@ export class Game extends Activity {
 			}
 
 			if (!database[pastGamesKey]) database[pastGamesKey] = [];
-			database[pastGamesKey]!.unshift({inputTarget: this.format.inputTarget, name: this.nameWithOptions, time: now});
+			database[pastGamesKey]!.unshift({inputTarget: this.format.inputTarget, name: this.name, time: now});
 			while (database[pastGamesKey]!.length > 8) {
 				database[pastGamesKey]!.pop();
 			}
@@ -507,7 +505,7 @@ export class Game extends Activity {
 			const gif = Dex.getPokemonGif(this.mascot, "xy", this.isUserHosted ? 'back' : 'front');
 			if (gif) html += gif;
 		}
-		html += "<h3>" + this.nameWithOptions + "</h3>" + this.description;
+		html += "<h3>" + this.name + "</h3>" + this.description;
 		let commandDescriptions: string[] = [];
 		if (this.getPlayerSummary) commandDescriptions.push(Config.commandCharacter + "summary");
 		if (this.commandDescriptions) commandDescriptions = commandDescriptions.concat(this.commandDescriptions);

@@ -1,8 +1,7 @@
 import { Player } from "../room-activity";
-import { DefaultGameOption } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
+import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Ambipom's Tossups";
 const data: {'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
@@ -28,7 +27,6 @@ class AmbipomsTossups extends Guessing {
 		loadedData = true;
 	}
 
-	defaultOptions: DefaultGameOption[] = ['points'];
 	hints: string[] = [];
 	lastAnswer: string = '';
 	letterCount: number = 0;
@@ -99,11 +97,10 @@ class AmbipomsTossups extends Guessing {
 	}
 }
 
-export const game: IGameFile<AmbipomsTossups> = {
+export const game: IGameFile<AmbipomsTossups> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['ambipoms', 'at'],
 	class: AmbipomsTossups,
-	commandDescriptions,
-	commands: Object.assign({}, templateCommands),
+	defaultOptions: ['points'],
 	description: "Players guess answers as blanks are filled in one by one (one guess per round)!",
 	formerNames: ["Tossups"],
 	freejoin: true,
@@ -132,4 +129,4 @@ export const game: IGameFile<AmbipomsTossups> = {
 			variantAliases: ['move', 'moves'],
 		},
 	],
-};
+});

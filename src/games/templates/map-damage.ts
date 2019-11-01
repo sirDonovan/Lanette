@@ -1,5 +1,6 @@
 import { Player } from "../../room-activity";
-import { MapFloor, MapGame } from "./map";
+import { IGameTemplateFile } from "../../types/games";
+import { game as mapGame, MapFloor, MapGame } from "./map";
 
 export abstract class MapDamageGame extends MapGame {
 	abstract startingLives: number;
@@ -48,3 +49,5 @@ export abstract class MapDamageGame extends MapGame {
 		this.sayUhtml(uhtmlName, html);
 	}
 }
+
+export const game: IGameTemplateFile<MapDamageGame> = Object.assign({}, mapGame);

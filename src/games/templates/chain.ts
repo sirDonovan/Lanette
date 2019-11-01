@@ -1,6 +1,7 @@
 import { ICommandDefinition } from "../../command-parser";
 import { Player } from "../../room-activity";
 import { Game } from "../../room-game";
+import { IGameTemplateFile } from "../../types/games";
 import { IAbility, IItem, IMove, IPokemon } from "../../types/in-game-data-types";
 
 export type Link = IPokemon | IMove | IItem | IAbility;
@@ -262,7 +263,7 @@ export abstract class Chain extends Game {
 	}
 }
 
-export let commands: Dict<ICommandDefinition<Chain>> = {
+const commands: Dict<ICommandDefinition<Chain>> = {
 	guess: {
 		command(target, room, user) {
 			if (this.options.freejoin) {
@@ -324,4 +325,6 @@ export let commands: Dict<ICommandDefinition<Chain>> = {
 	},
 };
 
-export let disabled = false;
+export const game: IGameTemplateFile<Chain> = {
+	commands,
+};

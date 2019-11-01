@@ -1,6 +1,6 @@
 import { CommandsDict, ICommandDefinition } from "../command-parser";
 import { UserHosted } from "../games/internal/user-hosted";
-import { Game } from "../room-game";
+import { DefaultGameOption, Game, IGameOptionValues } from "../room-game";
 import { Room } from "../rooms";
 import { User } from "../users";
 import { IWorker } from "./global-types";
@@ -14,19 +14,23 @@ export interface IInternalGames {
 
 export type InternalGameKey = keyof IInternalGames;
 
-interface IGameClass<T> {
+interface IGameClass<T extends Game = Game> {
 	new(room: Room | User, pmRoom?: Room): T;
 	loadData?(room: Room | User, extendedClass?: boolean): void;
 }
 
-export interface IGameFile<T extends Game = Game> {
-	readonly class: IGameClass<T>;
-	readonly description: string;
-	readonly name: string;
+interface IModeClass<T, U extends Game = Game> {
+	new(game: U): T;
+	setOptions<V extends Game>(format: IGameFormat<V>, namePrefixes: string[], nameSuffixes: string[]): void;
+}
 
+interface IGameFileProperties<T extends Game = Game> {
 	aliases?: string[];
 	commands?: Dict<ICommandDefinition<T>>;
 	readonly commandDescriptions?: string[];
+	readonly customizableOptions?: Dict<IGameOptionValues>;
+	readonly defaultOptions?: DefaultGameOption[];
+	readonly disabled?: boolean;
 	readonly freejoin?: boolean;
 	/** Legacy names, such as from before game mascots were introduced; used for aliases */
 	formerNames?: string[];
@@ -42,12 +46,23 @@ export interface IGameFile<T extends Game = Game> {
 	readonly workers?: IWorker[];
 }
 
+export interface IGameFile<T extends Game = Game> extends IGameFileProperties<T> {
+	readonly class: IGameClass<T>;
+	readonly description: string;
+	readonly name: string;
+}
+
+export interface IGameTemplateFile<T extends Game = Game> extends IGameFileProperties<T> {}
+
 export interface IGameVariant {
 	readonly name: string;
 	readonly variant: string;
 
 	readonly commandDescriptions?: string[];
+	readonly customizableOptions?: Dict<IGameOptionValues>;
+	readonly defaultOptions?: DefaultGameOption[];
 	readonly description?: string;
+	readonly freejoin?: boolean;
 	readonly mode?: string;
 	variantAliases?: string[];
 }
@@ -94,14 +109,16 @@ export interface IGameFormatComputed {
 	readonly effectType: 'GameFormat';
 	inputOptions: Dict<number>;
 	inputTarget: string;
+	nameWithOptions: string;
 
 	readonly mode?: IGameMode;
 	readonly variant?: IGameVariant;
 }
 
 export interface IGameModeFile<T = Game, U extends Game = Game> {
+	readonly class: IModeClass<T, U>;
 	readonly description: string;
-	initialize: (game: Game) => void;
+	initialize: (game: U) => void;
 	readonly name: string;
 	readonly naming: 'prefix' | 'suffix';
 
@@ -113,4 +130,7 @@ export interface IGameMode<T = Game, U extends Game = Game> extends IGameModeFil
 	readonly id: string;
 }
 
-export interface IGameFormat<T extends Game = Game> extends IGameFileComputed<T>, IGameFormatComputed {}
+export interface IGameFormat<T extends Game = Game> extends Mutable<IGameFileComputed<T>>, Mutable<IGameFormatComputed> {
+	customizableOptions: Dict<IGameOptionValues>;
+	defaultOptions: DefaultGameOption[];
+}

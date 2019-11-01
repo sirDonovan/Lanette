@@ -3,7 +3,7 @@ import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { IPokemon } from "../types/in-game-data-types";
 import { CardType, IMoveCard, IPokemonCard } from "./templates/card";
-import { CardMatching, commands as templateCommands} from "./templates/card-matching";
+import { CardMatching, game as cardGame} from "./templates/card-matching";
 
 const name = "Axew's Battle Cards";
 const types: Dict<string> = {};
@@ -467,13 +467,12 @@ class AxewsBattleCards extends CardMatching {
 	}
 }
 
-export const game: IGameFile<AxewsBattleCards> = {
+export const game: IGameFile<AxewsBattleCards> = Games.copyTemplateProperties(cardGame, {
 	aliases: ["axews", "abc", "battlecards"],
 	commandDescriptions: [Config.commandCharacter + "play [Pokemon or move]"],
-	commands: Object.assign({}, templateCommands),
 	class: AxewsBattleCards,
 	description: "Each round, players can play a card that's super-effective against the top card. <a href='http://psgc.weebly.com/axewsbattlecards.html'>Action card descriptions</a>",
 	name,
 	mascot: "Axew",
 	scriptedOnly: true,
-};
+});

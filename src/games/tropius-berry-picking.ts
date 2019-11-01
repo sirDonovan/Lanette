@@ -1,6 +1,6 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
-import { DefaultGameOption, Game } from "../room-game";
+import { Game } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 
@@ -92,7 +92,6 @@ class TropiusBerryPicking extends Game {
 
 	canEat: boolean = false;
 	canLateJoin: boolean = true;
-	defaultOptions: DefaultGameOption[] = ['freejoin', 'points'];
 	// firstEat: Player | null;
 	lastMove: string = '';
 	points = new Map<Player, number>();
@@ -258,6 +257,7 @@ export const game: IGameFile<TropiusBerryPicking> = {
 	commandDescriptions: [Config.commandCharacter + "eat [berry]"],
 	commands,
 	class: TropiusBerryPicking,
+	defaultOptions: ['freejoin', 'points'],
 	description: "Players help Tropius pick berries and fight off wild Pokemon! Use status and super-effective berries based on their moves.",
 	formerNames: ["Smeargle's Berry Picking"],
 	name,

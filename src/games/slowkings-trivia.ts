@@ -1,7 +1,6 @@
-import { DefaultGameOption } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
+import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Slowking's Trivia";
 const data: {"Pokemon Abilities": Dict<string[]>, "Pokemon Items": Dict<string[]>, "Pokemon Moves": Dict<string[]>} = {
@@ -57,8 +56,6 @@ class SlowkingsTrivia extends Guessing {
 		loadedData = true;
 	}
 
-	defaultOptions: DefaultGameOption[] = ['points'];
-
 	async setAnswers() {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		const question = this.sampleOne(categoryKeys[category]);
@@ -67,11 +64,10 @@ class SlowkingsTrivia extends Guessing {
 	}
 }
 
-export const game: IGameFile<SlowkingsTrivia> = {
+export const game: IGameFile<SlowkingsTrivia> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['slowkings', 'triv', 'st'],
 	class: SlowkingsTrivia,
-	commandDescriptions,
-	commands: Object.assign({}, templateCommands),
+	defaultOptions: ['points'],
 	description: "Players use the given descriptions (Pokemon related) to guess the answers!",
 	formerNames: ["Trivia"],
 	freejoin: true,
@@ -97,4 +93,4 @@ export const game: IGameFile<SlowkingsTrivia> = {
 			variantAliases: ['move', 'moves'],
 		},
 	],
-};
+});

@@ -30,7 +30,7 @@ class GolemsGalvanicMine extends Game {
 	roundTime: number = 7000;
 
 	onSignups() {
-		if (!this.inputOptions.points) this.options.points = 30;
+		if (!this.format.inputOptions.points) this.options.points = 30;
 		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 10000);
 	}
 

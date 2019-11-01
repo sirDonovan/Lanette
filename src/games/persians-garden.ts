@@ -1,6 +1,6 @@
 import { Player } from "../room-activity";
 import { IGameFile } from "../types/games";
-import { commandDescriptions, commands as templateCommands, GameMap, MapFloor, MapFloorSpace } from "./templates/map";
+import { game as mapGame, GameMap, MapFloor, MapFloorSpace } from "./templates/map";
 import { MapCurrencyGame } from "./templates/map-currency";
 
 class PersiansGarden extends MapCurrencyGame {
@@ -105,14 +105,12 @@ class PersiansGarden extends MapCurrencyGame {
 	}
 }
 
-export const game: IGameFile<PersiansGarden> = {
+export const game: IGameFile<PersiansGarden> = Games.copyTemplateProperties(mapGame, {
 	aliases: ["persians", "pgarden"],
-	commandDescriptions,
-	commands: Object.assign({}, templateCommands),
 	class: PersiansGarden,
 	description: "Players must collect coins throughout the garden to stay alive! You may travel once per turn (up to 3 paces).",
 	formerNames: ["Persian's Purge"],
 	name: "Persian's Garden",
 	mascot: "Persian",
 	scriptedOnly: true,
-};
+});

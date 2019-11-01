@@ -2,6 +2,7 @@ import { ICommandDefinition } from '../../command-parser';
 import { Player } from '../../room-activity';
 import { Game } from '../../room-game';
 import { Room } from '../../rooms';
+import { IGameTemplateFile } from '../../types/games';
 
 export type IPlayingCardSuits = 'clubs' | 'diamonds' | 'hearts' | 'spades';
 export interface IPlayingCard {
@@ -153,9 +154,11 @@ export abstract class PlayingCard extends Game {
 	getHandInfoHtml?(player: Player): string;
 }
 
-export let commands: Dict<ICommandDefinition<PlayingCard>> = {
+const commands: Dict<ICommandDefinition<PlayingCard>> = {
 	cards: Games.sharedCommands.summary,
 	hand: Games.sharedCommands.summary,
 };
 
-export let disabled = false;
+export const game: IGameTemplateFile<PlayingCard> = {
+	commands,
+};

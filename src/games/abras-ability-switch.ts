@@ -1,7 +1,6 @@
-import { DefaultGameOption } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { commands as templateCommands, Guessing } from './templates/guessing';
+import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Abra's Ability Switch";
 const data: {abilities: Dict<string[]>, pokedex: string[]} = {
@@ -30,7 +29,6 @@ class AbrasAbilitySwitch extends Guessing {
 		loadedData  = true;
 	}
 
-	defaultOptions: DefaultGameOption[] = ['points'];
 	lastAbility: string = '';
 	lastPokemon: string = '';
 
@@ -63,17 +61,19 @@ class AbrasAbilitySwitch extends Guessing {
 	}
 }
 
-const commands = Tools.deepClone(templateCommands);
-commands.guess.aliases!.push('switch');
+const commands = Tools.deepClone(guessingGame.commands!);
+if (!commands.guess.aliases) commands.guess.aliases = [];
+commands.guess.aliases.push('switch');
 
-export const game: IGameFile<AbrasAbilitySwitch> = {
+export const game: IGameFile<AbrasAbilitySwitch> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['aas', 'abras'],
 	class: AbrasAbilitySwitch,
 	commandDescriptions: [Config.commandCharacter + "switch [Pokemon]"],
 	commands,
+	defaultOptions: ['points'],
 	description: "Players switch to Pokemon that have the chosen abilities for Abra to Role Play!",
 	freejoin: true,
 	name,
 	mascot: "Abra",
 	modes: ["survival"],
-};
+});

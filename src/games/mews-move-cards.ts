@@ -1,6 +1,6 @@
 import { IGameFile } from "../types/games";
 import { IMoveCard } from "./templates/card";
-import { CardHighLow, commands as templateCommands } from "./templates/card-high-low";
+import { CardHighLow, game as cardGame } from "./templates/card-high-low";
 
 class MewsMoveCards extends CardHighLow {
 	canLateJoin: boolean = true;
@@ -39,13 +39,12 @@ class MewsMoveCards extends CardHighLow {
 	}
 }
 
-export const game: IGameFile<MewsMoveCards> = {
+export const game: IGameFile<MewsMoveCards> = Games.copyTemplateProperties(cardGame, {
 	aliases: ["mews", "mmc"],
 	commandDescriptions: [Config.commandCharacter + "play [move]"],
-	commands: Object.assign({}, templateCommands),
 	class: MewsMoveCards,
 	description: "Players try to play the highest (or lowest) move card in the randomly chosen category each round!",
 	name: "Mew's Move Cards",
 	mascot: "Mew",
 	scriptedOnly: true,
-};
+});

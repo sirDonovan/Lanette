@@ -1,7 +1,6 @@
-import { DefaultGameOption } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { commandDescriptions, commands as templateCommands, Guessing } from "./templates/guessing";
+import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Magcargo's Weak Spot";
 const data: {pokedex: string[], inverseTypeKeys: string[], inverseTypeWeaknesses: Dict<string[]>, typeKeys: string[], typeWeaknesses: Dict<string[]>} = {
@@ -43,7 +42,6 @@ class MagcargosWeakSpot extends Guessing {
 		loadedData = true;
 	}
 
-	defaultOptions: DefaultGameOption[] = ['points'];
 	inverseTypes: boolean = false;
 	lastAnswers: string[] = [];
 	lastPokemon: string = '';
@@ -91,11 +89,10 @@ class MagcargosWeakSpot extends Guessing {
 	}
 }
 
-export const game: IGameFile<MagcargosWeakSpot> = {
+export const game: IGameFile<MagcargosWeakSpot> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ["Magcargos", "ws"],
-	commandDescriptions,
-	commands: Object.assign({}, templateCommands),
 	class: MagcargosWeakSpot,
+	defaultOptions: ['points'],
 	description: "Players guess the weakness(es) that the given Pokemon share!",
 	formerNames: ["Weak Spot"],
 	freejoin: true,
@@ -110,4 +107,4 @@ export const game: IGameFile<MagcargosWeakSpot> = {
 			variant: "inverse",
 		},
 	],
-};
+});

@@ -1,8 +1,7 @@
 import { Player } from "../room-activity";
-import { DefaultGameOption } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { commands, Guessing } from "./templates/guessing";
+import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Pikachu's Mystery Pokemon";
 const data: {abilities: Dict<string[]>, eggGroups: Dict<string>, pokedex: string[], regions: Dict<string>, types: Dict<string>} = {
@@ -58,7 +57,6 @@ class PikachusMysteryPokemon extends Guessing {
 
 	answers: string[] = [];
 	canGuess: boolean = false;
-	defaultOptions: DefaultGameOption[] = ['points'];
 	hints: string[] = [];
 	hintsIndex: number = 0;
 	lastSpecies: string = '';
@@ -113,14 +111,14 @@ class PikachusMysteryPokemon extends Guessing {
 	}
 }
 
-export const game: IGameFile<PikachusMysteryPokemon> = {
+export const game: IGameFile<PikachusMysteryPokemon> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ["pikachus", "mysterypokemon", "pmp", "wtp"],
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],
-	commands,
 	class: PikachusMysteryPokemon,
+	defaultOptions: ['points'],
 	description: "Players guess Pokemon based on the given hints!",
 	formerNames: ["Who's That Pokemon"],
 	freejoin: true,
 	name,
 	mascot: "Pikachu",
-};
+});

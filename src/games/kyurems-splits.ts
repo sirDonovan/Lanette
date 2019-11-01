@@ -1,7 +1,6 @@
-import { DefaultGameOption } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
+import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Kyurem's Splits";
 const data: {'Characters': string[], 'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
@@ -47,8 +46,6 @@ class KyuremsSplits extends Guessing {
 		loadedData = true;
 	}
 
-	defaultOptions: DefaultGameOption[] = ['points'];
-
 	isValid(answer: string, hint: string): boolean {
 		while (hint.length > 0) {
 			const index = answer.indexOf(hint[0]);
@@ -85,11 +82,10 @@ class KyuremsSplits extends Guessing {
 	}
 }
 
-export const game: IGameFile<KyuremsSplits> = {
+export const game: IGameFile<KyuremsSplits> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['kyurems'],
 	class: KyuremsSplits,
-	commandDescriptions,
-	commands: Object.assign({}, templateCommands),
+	defaultOptions: ['points'],
 	description: "Players guess answers that have all of the given letters in order!",
 	formerNames: ["Splits"],
 	freejoin: true,
@@ -119,4 +115,4 @@ export const game: IGameFile<KyuremsSplits> = {
 			variant: "Pokemon",
 		},
 	],
-};
+});

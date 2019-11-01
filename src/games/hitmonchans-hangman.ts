@@ -1,8 +1,7 @@
 import { Player } from "../room-activity";
-import { DefaultGameOption } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { commandDescriptions, commands as templateCommands, Guessing } from "./templates/guessing";
+import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Hitmonchan's Hangman";
 const data: {'Characters': string[], 'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
@@ -32,7 +31,6 @@ class HitmonchansHangman extends Guessing {
 
 	allLetters: number = 0;
 	currentCategory: string = '';
-	defaultOptions: DefaultGameOption[] = ['points'];
 	guessedLetters: string[] = [];
 	guessLimit: number = 10;
 	hints: string[] = [];
@@ -117,11 +115,10 @@ class HitmonchansHangman extends Guessing {
 	}
 }
 
-export const game: IGameFile<HitmonchansHangman> = {
+export const game: IGameFile<HitmonchansHangman> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ["hitmonchans", "hh"],
-	commandDescriptions,
-	commands: Object.assign({}, templateCommands),
 	class: HitmonchansHangman,
+	defaultOptions: ['points'],
 	description: "Players guess letters to fill in the blanks and reveal the answers!",
 	formerNames: ["Hangman"],
 	freejoin: true,
@@ -150,4 +147,4 @@ export const game: IGameFile<HitmonchansHangman> = {
 			variant: "Pokemon",
 		},
 	],
-};
+});

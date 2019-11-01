@@ -262,7 +262,7 @@ const commands: Dict<ICommandDefinition> = {
 				this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the game cooldown remaining.");
 				return;
 			}
-			const format = Games.getFormat(target, user);
+			const format = Games.getFormat(target);
 			if (Array.isArray(format)) return this.sayError(format);
 			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
 			const game = Games.createGame(room, format);
@@ -346,7 +346,7 @@ const commands: Dict<ICommandDefinition> = {
 			}
 			if (gameRoom.game) {
 				const game = gameRoom.game;
-				let html = (game.mascot ? Dex.getPokemonIcon(game.mascot) : "") + "<b>" + game.nameWithOptions + "</b><br />";
+				let html = (game.mascot ? Dex.getPokemonIcon(game.mascot) : "") + "<b>" + game.name + "</b><br />";
 				if (game.started) {
 					if (game.startTime) html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - game.startTime) + "<br />";
 					const remainingPlayers = game.getRemainingPlayerCount();
@@ -362,7 +362,7 @@ const commands: Dict<ICommandDefinition> = {
 				this.sayHtml(html, gameRoom);
 			} else if (gameRoom.userHostedGame) {
 				const game = gameRoom.userHostedGame;
-				let html = (game.mascot ? Dex.getPokemonIcon(game.mascot, true) : "") + "<b>" + game.nameWithOptions + "</b><br />";
+				let html = (game.mascot ? Dex.getPokemonIcon(game.mascot, true) : "") + "<b>" + game.name + "</b><br />";
 				html += "<b>Remaining time</b>: " + Tools.toDurationString(game.endTime - Date.now()) + "<br />";
 				if (game.started) {
 					if (game.startTime) html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - game.startTime) + "<br />";

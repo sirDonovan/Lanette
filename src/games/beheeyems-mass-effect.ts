@@ -1,7 +1,6 @@
-import { DefaultGameOption } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { commandDescriptions, commands as templateCommands, Guessing } from "./templates/guessing";
+import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Beheeyem's Mass Effect";
 const data: {types: Dict<string[]>} = {
@@ -63,7 +62,6 @@ class BeheeyemsMassEffect extends Guessing {
 		loadedData = true;
 	}
 
-	defaultOptions: DefaultGameOption[] = ['points'];
 	lastEffectiveness: string = '';
 
 	onSignups() {
@@ -83,15 +81,14 @@ class BeheeyemsMassEffect extends Guessing {
 	}
 }
 
-export const game: IGameFile<BeheeyemsMassEffect> = {
+export const game: IGameFile<BeheeyemsMassEffect> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ["Beheeyems", "bme"],
-	commandDescriptions,
-	commands: Object.assign({}, templateCommands),
 	class: BeheeyemsMassEffect,
+	defaultOptions: ['points'],
 	description: "Each round, players find a Pokemon whose type effectiveness matches the given parameters.",
 	formerNames: ["Mass Effect"],
 	freejoin: true,
 	name,
 	mascot: "Beheeyem",
 	modes: ['survival'],
-};
+});

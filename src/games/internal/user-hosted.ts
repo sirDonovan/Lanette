@@ -41,7 +41,7 @@ export class UserHosted extends Game {
 			this.hostName = host.name;
 		}
 
-		this.nameWithOptions = this.hostName + "'s " + this.name;
+		this.name = this.hostName + "'s " + this.format.name;
 	}
 
 	onDeallocate() {

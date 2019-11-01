@@ -1,6 +1,6 @@
 import { Player } from "../room-activity";
 import { IGameFile } from "../types/games";
-import { commandDescriptions, commands as templateCommands, GameMap, MapFloor, MapFloorSpace, MapGame } from "./templates/map";
+import { game as mapGame, GameMap, MapFloor, MapFloorSpace, MapGame } from "./templates/map";
 
 class LampentsLabyrinth extends MapGame  {
 	canLateJoin: boolean = true;
@@ -105,13 +105,11 @@ class LampentsLabyrinth extends MapGame  {
 	}
 }
 
-export const game: IGameFile<LampentsLabyrinth> = {
+export const game: IGameFile<LampentsLabyrinth> = Games.copyTemplateProperties(mapGame, {
 	aliases: ["lampents", "llabyrinth"],
-	commandDescriptions,
-	commands: Object.assign({}, templateCommands),
 	class: LampentsLabyrinth,
 	description: "Players must find a path out of the labyrinth without falling into traps! You may travel once per turn (up to 3 paces).",
 	name: "Lampent's Labyrinth",
 	mascot: "Lampent",
 	scriptedOnly: true,
-};
+});

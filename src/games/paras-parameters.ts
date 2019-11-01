@@ -1,9 +1,9 @@
 import { PRNG, PRNGSeed } from "../prng";
 import { IGameOptionValues } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, IGameFormat } from "../types/games";
 import * as ParametersWorker from './../workers/parameters';
-import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
+import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Paras' Parameters";
 let loadedData = false;
@@ -20,10 +20,6 @@ export class ParasParameters extends Guessing {
 
 	baseNumberOfParams: number = 2;
 	currentNumberOfParams: number = 0;
-	customizableOptions: Dict<IGameOptionValues> = {
-		params: {min: 2, base: 2, max: 4},
-		points: {min: 5, base: 5, max: 10},
-	};
 	customParamTypes: ParametersWorker.ParamType[] | null = null;
 	htmlHint = true;
 	minimumResults: number = 3;
@@ -57,11 +53,11 @@ export class ParasParameters extends Guessing {
 		let numberOfParams: number;
 		if (this.customParamTypes) {
 			numberOfParams = this.customParamTypes.length;
-		} else if (this.inputOptions.params) {
+		} else if (this.format.inputOptions.params) {
 			numberOfParams = this.options.params;
 		} else {
 			numberOfParams = this.baseNumberOfParams;
-			if (this.customizableOptions.params) numberOfParams += this.random(3);
+			if ((this.format as IGameFormat).customizableOptions.params) numberOfParams += this.random(3);
 		}
 		this.currentNumberOfParams = numberOfParams;
 		const result = await ParametersWorker.search({
@@ -124,11 +120,13 @@ export class ParasParameters extends Guessing {
 	}
 }
 
-export const game: IGameFile<ParasParameters> = {
+export const game: IGameFile<ParasParameters> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['paras', 'params'],
 	class: ParasParameters,
-	commandDescriptions,
-	commands: Object.assign({}, templateCommands),
+	customizableOptions: {
+		params: {min: 2, base: 2, max: 4},
+		points: {min: 5, base: 5, max: 10},
+	},
 	description: "Players search for possible <code>/dexsearch</code> parameters that result in the given Pokemon list!",
 	formerNames: ["Parameters"],
 	freejoin: true,
@@ -146,4 +144,4 @@ export const game: IGameFile<ParasParameters> = {
 		},
 	],
 	workers: [ParametersWorker],
-};
+});

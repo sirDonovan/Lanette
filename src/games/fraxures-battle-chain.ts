@@ -1,8 +1,7 @@
-import { DefaultGameOption } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { IPokemon } from "../types/in-game-data-types";
-import { Chain, commands } from "./templates/chain";
+import { Chain, game as chainGame } from "./templates/chain";
 
 const name = "Fraxure's Battle Chain";
 const data: {types: string[]} = {
@@ -28,7 +27,6 @@ class FraxuresBattleChain extends Chain {
 		loadedData = true;
 	}
 
-	defaultOptions: DefaultGameOption[] = ['freejoin', 'points'];
 	linkEndCache: Dict<string[]> = {};
 
 	getLinkStarts(link: IPokemon): string[] {
@@ -59,12 +57,12 @@ class FraxuresBattleChain extends Chain {
 	}
 }
 
-export const game: IGameFile<FraxuresBattleChain> = {
+export const game: IGameFile<FraxuresBattleChain> = Games.copyTemplateProperties(chainGame, {
 	aliases: ["fraxures", "battlechain", "fbc"],
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],
-	commands,
 	class: FraxuresBattleChain,
+	defaultOptions: ['freejoin', 'points'],
 	description: "Players answer each round with a Pokemon whose type is super effective against the previous Pokemon (no formes or repeats in a round)!",
 	name,
 	mascot: "Fraxure",
-};
+});

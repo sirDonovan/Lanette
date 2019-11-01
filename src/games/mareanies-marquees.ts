@@ -1,7 +1,6 @@
-import { DefaultGameOption } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
+import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Mareanie's Marquees";
 const data: {'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
@@ -27,7 +26,6 @@ class MareaniesMarquee extends Guessing {
 		loadedData = true;
 	}
 
-	defaultOptions: DefaultGameOption[] = ['points'];
 	lastAnswer: string = '';
 	letters: string[] = [];
 	currentIndex: number = -1;
@@ -115,11 +113,10 @@ class MareaniesMarquee extends Guessing {
 	}
 }
 
-export const game: IGameFile<MareaniesMarquee> = {
+export const game: IGameFile<MareaniesMarquee> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['mareanies', 'marquees'],
 	class: MareaniesMarquee,
-	commandDescriptions,
-	commands: Object.assign({}, templateCommands),
+	defaultOptions: ['points'],
 	description: "Players guess the answers as letters are cycled through 1 at a time!",
 	freejoin: true,
 	name,
@@ -145,4 +142,4 @@ export const game: IGameFile<MareaniesMarquee> = {
 			variantAliases: ['move', 'moves'],
 		},
 	],
-};
+});

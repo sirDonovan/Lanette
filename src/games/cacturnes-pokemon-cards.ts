@@ -1,6 +1,6 @@
 import { IGameFile } from "../types/games";
 import { IPokemonCard } from "./templates/card";
-import { CardHighLow, commands as templateCommands } from "./templates/card-high-low";
+import { CardHighLow, game as cardGame } from "./templates/card-high-low";
 
 class CacturnesPokemonCards extends CardHighLow {
 	canLateJoin: boolean = true;
@@ -23,13 +23,12 @@ class CacturnesPokemonCards extends CardHighLow {
 	}
 }
 
-export const game: IGameFile<CacturnesPokemonCards> = {
+export const game: IGameFile<CacturnesPokemonCards> = Games.copyTemplateProperties(cardGame, {
 	aliases: ["cacturnes", "cpc"],
 	commandDescriptions: [Config.commandCharacter + "play [Pokemon]"],
-	commands: Object.assign({}, templateCommands),
 	class: CacturnesPokemonCards,
 	description: "Players try to play the highest (or lowest) Pokemon card in the randomly chosen category each round!",
 	name: "Cacturne's Pokemon Cards",
 	mascot: "Cacturne",
 	scriptedOnly: true,
-};
+});

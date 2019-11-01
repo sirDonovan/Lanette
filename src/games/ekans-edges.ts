@@ -1,7 +1,6 @@
-import { DefaultGameOption } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { commandDescriptions, commands as templateCommands, Guessing } from './templates/guessing';
+import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Ekans' Edges";
 const data: {'Characters': Dict<string[]>, 'Pokemon': Dict<string[]>, 'Pokemon Abilities': Dict<string[]>, 'Pokemon Items': Dict<string[]>, 'Pokemon Moves': Dict<string[]>} = {
@@ -69,7 +68,6 @@ class EkansEdges extends Guessing {
 		loadedData = true;
 	}
 
-	defaultOptions: DefaultGameOption[] = ['points'];
 	lastEdge: string = '';
 
 	onSignups() {
@@ -91,11 +89,10 @@ class EkansEdges extends Guessing {
 	}
 }
 
-export const game: IGameFile<EkansEdges> = {
+export const game: IGameFile<EkansEdges> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['ekans', 'ee'],
 	class: EkansEdges,
-	commandDescriptions,
-	commands: Object.assign({}, templateCommands),
+	defaultOptions: ['points'],
 	description: "Players guess answers that have the given starting and ending letters!",
 	formerNames: ["Edges"],
 	freejoin: true,
@@ -125,4 +122,4 @@ export const game: IGameFile<EkansEdges> = {
 			variant: "Pokemon",
 		},
 	],
-};
+});

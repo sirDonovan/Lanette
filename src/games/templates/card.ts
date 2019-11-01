@@ -1,6 +1,7 @@
 import { ICommandDefinition } from '../../command-parser';
 import { Player } from '../../room-activity';
-import { DefaultGameOption, Game } from '../../room-game';
+import { Game } from '../../room-game';
+import { IGameTemplateFile } from '../../types/games';
 import { IMoveCopy, IPokemon, IPokemonCopy } from '../../types/in-game-data-types';
 
 export interface IMoveCard extends IMoveCopy {
@@ -68,7 +69,6 @@ export abstract class Card extends Game {
 	currentPlayer: Player | null = null;
 	deck: CardType[] = [];
 	deckPool: CardType[] = [];
-	defaultOptions: DefaultGameOption[] = ['cards'];
 	detailCategories: string[] = [];
 	detailLabelWidth: number = 75;
 	drawAmount: number = 1;
@@ -345,7 +345,12 @@ export abstract class Card extends Game {
 	filterPoolItem?(pokemon: IPokemon): boolean;
 }
 
-export let commands: Dict<ICommandDefinition<Card>> = {
+const commands: Dict<ICommandDefinition<Card>> = {
 	cards: Games.sharedCommands.summary,
 	hand: Games.sharedCommands.summary,
+};
+
+export const game: IGameTemplateFile<Card> = {
+	commands,
+	defaultOptions: ['cards'],
 };

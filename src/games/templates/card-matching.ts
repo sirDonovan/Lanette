@@ -1,6 +1,7 @@
 import { ICommandDefinition } from '../../command-parser';
 import { Player } from '../../room-activity';
-import { Card, CardType, commands as cardCommands, IPokemonCard } from './card';
+import { IGameTemplateFile } from '../../types/games';
+import { Card, CardType, game as cardGame, IPokemonCard } from './card';
 
 export abstract class CardMatching extends Card {
 	actionCardAmount: number = 5;
@@ -352,7 +353,7 @@ export abstract class CardMatching extends Card {
 	}
 }
 
-const cardMatchingCommands: Dict<ICommandDefinition<CardMatching>> = {
+const commands: Dict<ICommandDefinition<CardMatching>> = {
 	play: {
 		command(target, room, user) {
 			if (!(user.id in this.players) || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
@@ -411,5 +412,6 @@ const cardMatchingCommands: Dict<ICommandDefinition<CardMatching>> = {
 	},
 };
 
-export const commands = Object.assign(cardCommands, cardMatchingCommands);
-export let disabled = false;
+export const game: IGameTemplateFile<CardMatching> = Object.assign({}, cardGame, {
+	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
+});

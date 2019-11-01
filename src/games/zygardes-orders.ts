@@ -2,7 +2,7 @@ import { Player } from "../room-activity";
 import { IGameOptionValues } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { commandDescriptions, commands as templateCommands, Guessing } from "./templates/guessing";
+import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Zygarde's Orders";
 const data: {'Characters': string[], 'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
@@ -31,9 +31,6 @@ class ZygardesOrders extends Guessing {
 	}
 
 	allLetters: number = 0;
-	customizableOptions: Dict<IGameOptionValues> = {
-		points: {min: 5, base: 5, max: 5},
-	};
 	guessedLetters: string[] = [];
 	guessLimit: number = 10;
 	hints: string[] = [];
@@ -125,11 +122,12 @@ class ZygardesOrders extends Guessing {
 	}
 }
 
-export const game: IGameFile<ZygardesOrders> = {
+export const game: IGameFile<ZygardesOrders> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ["zygardes", "zo"],
-	commandDescriptions,
-	commands: Object.assign({}, templateCommands),
 	class: ZygardesOrders,
+	customizableOptions: {
+		points: {min: 5, base: 5, max: 5},
+	},
 	description: "Players guess answers as letters are revealed one by one (one guess per round)!",
 	formerNames: ["Orders"],
 	freejoin: true,
@@ -158,4 +156,4 @@ export const game: IGameFile<ZygardesOrders> = {
 			variant: "Pokemon",
 		},
 	],
-};
+});
