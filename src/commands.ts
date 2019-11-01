@@ -262,7 +262,7 @@ const commands: Dict<ICommandDefinition> = {
 				this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the game cooldown remaining.");
 				return;
 			}
-			const format = Games.getFormat(target);
+			const format = Games.getFormat(target, true);
 			if (Array.isArray(format)) return this.sayError(format);
 			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
 			const game = Games.createGame(room, format);

@@ -30,6 +30,7 @@ export class UserHosted extends Game {
 		this.endTime = Date.now() + HOST_TIME_LIMIT;
 		this.uhtmlBaseName = 'userhosted-' + this.id;
 		if (this.format.link) this.description += "<br /><br /><b><a href='" + this.format.link + "'>More info</a></b>";
+		if (this.format.freejoin) this.options.freejoin = 1;
 	}
 
 	setHost(host: User | string) {

@@ -43,10 +43,6 @@ require(path.join(__dirname, 'pokemon-showdown'));
 
 console.log("Loading data for tests...");
 Dex.loadData();
-for (const i in Games.formats) {
-	// @ts-ignore
-	Games.formats[i].disabled = false;
-}
 
 for (let i = 0; i < moduleTests.length; i++) {
 	// tslint:disable-next-line no-var-requires

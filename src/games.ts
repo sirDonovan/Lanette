@@ -242,7 +242,7 @@ export class Games {
 							return;
 						}
 					}
-					const format = global.Games.getFormat(formatName + (target ? "," + target : ""));
+					const format = global.Games.getFormat(formatName + (target ? "," + target : ""), true);
 					if (Array.isArray(format)) return this.sayError(format);
 					if (global.Games.reloadInProgress) return this.sayError(['reloadInProgress']);
 					delete format.inputOptions.points;
@@ -260,15 +260,15 @@ export class Games {
 	/**
 	 * Returns a copy of the format
 	 */
-	getFormat(target: string): IGameFormat | CommandErrorArray {
+	getFormat(target: string, checkDisabled?: boolean): IGameFormat | CommandErrorArray {
 		const inputTarget = target;
 		const targets = target.split(",");
 		const name = targets[0];
 		targets.shift();
 		const id = Tools.toId(name);
-		if (id in this.aliases) return this.getFormat(this.aliases[id] + (targets.length ? "," + targets.join(",") : ""));
+		if (id in this.aliases) return this.getFormat(this.aliases[id] + (targets.length ? "," + targets.join(",") : ""), checkDisabled);
 		if (!(id in this.formats)) return ['invalidGameFormat', name];
-		if (this.formats[id].disabled) return ['disabledGameFormat', this.formats[id].name];
+		if (checkDisabled && this.formats[id].disabled) return ['disabledGameFormat', this.formats[id].name];
 		const formatData = Tools.deepClone(this.formats[id]);
 		const inputOptions: Dict<number> = {};
 		let mode: IGameMode | undefined;
@@ -385,13 +385,13 @@ export class Games {
 		if (id in this.userHostedAliases) return this.getUserHostedFormat(this.userHostedAliases[id] + (targets.length ? "," + targets.join(",") : ""), user);
 		let formatData: IUserHostedComputed | undefined;
 		if (id in this.userHostedFormats) {
-			formatData = Object.assign({}, this.userHostedFormats[id]);
+			formatData = Tools.deepClone(this.userHostedFormats[id]);
 		} else {
 			const scriptedFormat = this.getFormat(id + (targets.length ? "," + targets.join(",") : ""));
 			if (Array.isArray(scriptedFormat)) {
 				if (scriptedFormat[0] !== 'invalidGameFormat') return scriptedFormat;
 			} else if (!scriptedFormat.scriptedOnly) {
-				formatData = Object.assign({}, scriptedFormat, {
+				formatData = Object.assign(scriptedFormat, {
 					class: userHosted.class,
 					commands: null,
 					commandDescriptions: null,
@@ -447,8 +447,11 @@ export class Games {
 	getRandomFormats(room: Room, amount: number): IGameFormat[] {
 		const formats: IGameFormat[] = [];
 		const keys = Tools.shuffle(Object.keys(this.formats));
-		for (let i = 0; i < amount; i++) {
-			formats.push(this.getExistingFormat(keys[i]));
+		for (let i = 0; i < keys.length; i++) {
+			const format = this.getExistingFormat(keys[i]);
+			if (format.disabled) continue;
+			formats.push(format);
+			if (formats.length === amount) break;
 		}
 		return formats;
 	}

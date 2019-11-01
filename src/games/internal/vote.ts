@@ -36,6 +36,7 @@ export class Vote extends Game {
 		const possiblePicks: string[] = [];
 		for (const i in Games.formats) {
 			const format = Games.getExistingFormat(i);
+			if (format.disabled) continue;
 			formats.push(format.name);
 			if (!this.pastGameIds.includes(format.id)) possiblePicks.push(format.name);
 		}
@@ -79,7 +80,7 @@ const commands: Dict<ICommandDefinition<Vote>> = {
 	vote: {
 		command(target, room, user) {
 			const player = this.players[user.id] || this.createPlayer(user);
-			const format = Games.getFormat(target);
+			const format = Games.getFormat(target, true);
 			if (Array.isArray(format)) {
 				user.say(CommandParser.getErrorText(format));
 				return false;
