@@ -313,14 +313,14 @@ export class Tournaments {
 		}
 	}
 
-	showUserHostedTournamentApprovals(room: Room) {
+	getUserHostedTournamentApprovalHtml(room: Room): string {
 		let html = '<table border="1" style="width:auto"><tr><th style="width:150px">Username</th><th style="width:150px">Links</th><th style="width:150px">Reviewer</th><th style="width:200px">Status</th></tr>';
 		const rows: string[] = [];
-		let needReview = 0;
 		for (const link in room.newUserHostedTournaments) {
 			const tournament = room.newUserHostedTournaments[link];
 			let row = '<tr><td>' + tournament.hostName + '</td>';
 			row += '<td><center><a href="' + link + '">' + link + '</a></center></td>';
+
 			row += '<td><center>';
 			if (tournament.reviewer) {
 				let name = tournament.reviewer;
@@ -328,18 +328,17 @@ export class Tournaments {
 				if (reviewer) name = reviewer.name;
 				row += name;
 			} else {
-				row += '--- <button class="button" name="send" value="/pm ' + Users.self.name + ', .reviewuserhostedtour ' + room.id + ',' + link + '">Review</button>';
-				needReview++;
+				row += '--- <button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter + 'reviewuserhostedtour ' + room.id + ', ' + link + '">Review</button>';
 			}
 			row += '</center></td>';
 
 			row += '<td><center>';
 			if (tournament.approvalStatus === 'changes-requested') {
-				row += 'Changes requested | <button class="button" name="send" value="/pm ' + Users.self.name + ', .removeuserhostedtour ' + room.id + ',' + link + '">Remove</button> | <button class="button" name="send" value="/pm ' + Users.self.name + ', .approveuserhostedtour ' + room.id + ',' + link + '">Approve</button>';
+				row += 'Changes requested | <button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter + 'removeuserhostedtour ' + room.id + ', ' + link + '">Remove</button> | <button class="button" name="send" value="/pm ' + Users.self.name + ', .approveuserhostedtour ' + room.id + ',' + link + '">Approve</button>';
 			} else {
-				row += '<button class="button" name="send" value="/pm ' + Users.self.name + ', .approveuserhostedtour ' + room.id + ',' + link + '">Approve</button>';
+				row += '<button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter + 'approveuserhostedtour ' + room.id + ', ' + link + '">Approve</button>';
 				row += ' | ';
-				row += '<button class="button" name="send" value="/pm ' + Users.self.name + ', .rejectuserhostedtour ' + room.id + ',' + link + '">Reject</button>';
+				row += '<button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter + 'rejectuserhostedtour ' + room.id + ', ' + link + '">Reject</button>';
 			}
 			row += '</center></td>';
 
@@ -347,9 +346,17 @@ export class Tournaments {
 			rows.push(row);
 		}
 
+		if (!rows.length) return "";
+
+		html += rows.join("") + '</table>';
+
+		return html;
+	}
+
+	showUserHostedTournamentApprovals(room: Room) {
 		let rank = USER_HOSTED_TOURNAMENT_RANK;
 		if (Config.userHostedTournamentRanks && room.id in Config.userHostedTournamentRanks) rank = Config.userHostedTournamentRanks[room.id].review;
-		if (!rows.length) {
+		if (!Object.keys(room.newUserHostedTournaments!).length) {
 			if (rank === 'voice') {
 				room.sayAuthUhtmlChange("userhosted-tournament-approvals", "<div></div>");
 			} else {
@@ -362,15 +369,23 @@ export class Tournaments {
 			}
 			return;
 		}
-		html += rows.join("");
-		html += '</table>';
+
+		const html = this.getUserHostedTournamentApprovalHtml(room);
+		let unreviewed = false;
+		for (const link in room.newUserHostedTournaments) {
+			if (!room.newUserHostedTournaments[link].reviewer) {
+				unreviewed = true;
+				break;
+			}
+		}
+
 		if (rank === 'voice') {
 			room.sayAuthUhtml("userhosted-tournament-approvals", html);
 		} else {
 			room.sayModUhtml("userhosted-tournament-approvals", html, rank);
 		}
 
-		if (needReview) {
+		if (unreviewed) {
 			const title = 'Unreviewed user-hosted tournaments!';
 			const message = 'There are new user-hosted tournaments in ' + room.title;
 			if (this.userHostedTournamentNotificationTimeouts[room.id]) return;

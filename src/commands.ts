@@ -1604,8 +1604,8 @@ const commands: Dict<ICommandDefinition> = {
 		},
 		aliases: ['gettourapproval'],
 	},
-	reviewuserhostedtour: {
-		command(target, room, user, cmd) {
+	reviewuserhostedtournament: {
+		command(target, room, user) {
 			if (!this.isPm(room)) return;
 			const targets = target.split(',');
 			const targetRoom = Rooms.search(targets[0]);
@@ -1628,23 +1628,26 @@ const commands: Dict<ICommandDefinition> = {
 			}, 10 * 60 * 1000);
 			Tournaments.showUserHostedTournamentApprovals(targetRoom);
 		},
+		aliases: ['reviewuserhostedtour'],
 	},
-	approveuserhostedtour: {
+	approveuserhostedtournament: {
 		command(target, room, user, cmd) {
 			if (!this.isPm(room)) return;
 			const targets = target.split(',');
 			const targetRoom = Rooms.search(targets[0]);
 			if (!targetRoom || !Config.userHostedTournamentRanks || !(targetRoom.id in Config.userHostedTournamentRanks) || !user.hasRank(targetRoom, Config.userHostedTournamentRanks[targetRoom.id].review)) return;
+
 			const link = targets[1].trim();
 			if (!targetRoom.newUserHostedTournaments || !(link in targetRoom.newUserHostedTournaments)) return;
-			if (!targetRoom.newUserHostedTournaments[link].reviewer) return this.say('You must first claim the tournament by clicking the "Review" button.');
+			if (!targetRoom.newUserHostedTournaments[link].reviewer) return this.say("You must first claim " + targetRoom.newUserHostedTournaments[link].hostName + "'s tournament by clicking the ``Review`` button.");
 			if (targetRoom.newUserHostedTournaments[link].reviewer !== user.id) {
 				let name = targetRoom.newUserHostedTournaments[link].reviewer;
 				const reviewer = Users.get(name);
 				if (reviewer) name = reviewer.name;
 				return this.say(name + " is currently the reviewer of " + targetRoom.newUserHostedTournaments[link].hostName + "'s tournament so they must approve or reject it.");
 			}
-			if (cmd === 'approveuserhostedtour') {
+
+			if (cmd === 'approveuserhostedtournament' || cmd === 'approveuserhostedtour') {
 				targetRoom.newUserHostedTournaments[link].approvalStatus = "approved";
 				if (targetRoom.newUserHostedTournaments[link].reviewTimer) clearTimeout(targetRoom.newUserHostedTournaments[link].reviewTimer!);
 				if (!targetRoom.approvedUserHostedTournaments) targetRoom.approvedUserHostedTournaments = {};
@@ -1662,10 +1665,10 @@ const commands: Dict<ICommandDefinition> = {
 			}
 			Tournaments.showUserHostedTournamentApprovals(targetRoom);
 		},
-		aliases: ['rejectuserhostedtour'],
+		aliases: ['approveuserhostedtour', 'rejectuserhostedtournament', 'rejectuserhostedtour'],
 	},
-	removeuserhostedtour: {
-		command(target, room, user, cmd) {
+	removeuserhostedtournament: {
+		command(target, room, user) {
 			if (!this.isPm(room)) return;
 			const targets = target.split(',');
 			const targetRoom = Rooms.search(targets[0]);
@@ -1682,6 +1685,19 @@ const commands: Dict<ICommandDefinition> = {
 			delete targetRoom.newUserHostedTournaments[link];
 			Tournaments.showUserHostedTournamentApprovals(targetRoom);
 		},
+		aliases: ['removeuserhostedtour'],
+	},
+	viewuserhostedtournaments: {
+		command(target, room, user) {
+			if (!this.isPm(room)) return;
+			const targetRoom = Rooms.search(target);
+			if (!targetRoom || !Config.userHostedTournamentRanks || !(targetRoom.id in Config.userHostedTournamentRanks) || !user.hasRank(targetRoom, Config.userHostedTournamentRanks[targetRoom.id].review)) return;
+
+			const html = Tournaments.getUserHostedTournamentApprovalHtml(targetRoom);
+			if (!html) return this.say("There are no user-hosted tournaments running in " + targetRoom.title + ".");
+			this.sayUhtml('userhosted-tournament-approvals-' + targetRoom.id, html, targetRoom);
+		},
+		aliases: ['viewuserhostedtours'],
 	},
 
 	/**
