@@ -163,6 +163,21 @@ const commands: Dict<ICommandDefinition> = {
 	/**
 	 * Informational commands
 	 */
+	jointournament: {
+		command(target, room, user) {
+			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
+			const targetUser = Users.get(target);
+			this.say((targetUser ? targetUser.name + ": you" : "You") + " can join a scripted tournament by clicking the ``Join`` button at the top of the chat or using the command ``/tour join``. | Guide to joining user-hosted tournaments: http://pstournaments.weebly.com/joining-a-tournament.html");
+		},
+		aliases: ['jointour'],
+	},
+	autodq: {
+		command(target, room, user) {
+			if (this.isPm(room) || !user.hasRank(room, 'voice')) return;
+			if (!Config.tournamentAutoDQTimers || !(room.id in Config.tournamentAutoDQTimers)) return this.say("The automatic disqualification timer is not set for " + room.title + ".");
+			this.say("The automatic disqualification timer is currently set to " + Config.tournamentAutoDQTimers[room.id] + " minutes. You will be disqualified from a tournament if you fail to send or accept a challenge from your opponent before the timer expires.");
+		},
+	},
 	sampleteams: {
 		command(target, room, user) {
 			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
@@ -757,7 +772,7 @@ const commands: Dict<ICommandDefinition> = {
 		aliases: ['gcap'],
 	},
 	addplayer: {
-		command(target, room, user, cmd) {
+		command(target, room, user) {
 			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
 			const users = [];
 			const targets = target.split(",");
@@ -910,7 +925,7 @@ const commands: Dict<ICommandDefinition> = {
 		aliases: ['aptall', 'rptall', 'removepointall'],
 	},
 	movepoint: {
-		command(target, room, user, cmd) {
+		command(target, room, user) {
 			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
 			const targets = target.split(",");
 			const from = Users.get(targets[0]);
@@ -1000,7 +1015,7 @@ const commands: Dict<ICommandDefinition> = {
 		},
 	},
 	savewinner: {
-		command(target, room, user, cmd) {
+		command(target, room, user) {
 			if (this.isPm(room)) return;
 			if (!room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
 			if (!room.userHostedGame.savedWinners) room.userHostedGame.savedWinners = [];
@@ -1028,7 +1043,7 @@ const commands: Dict<ICommandDefinition> = {
 		aliases: ['savewinners', 'storewinner', 'storewinners'],
 	},
 	removewinner: {
-		command(target, room, user, cmd) {
+		command(target, room, user) {
 			if (this.isPm(room)) return;
 			if (!room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
 			const id = Tools.toId(target);
@@ -2201,7 +2216,7 @@ const commands: Dict<ICommandDefinition> = {
 		aliases: ['awardgreeting'],
 	},
 	removegreeting: {
-		command(target, room, user, cmd) {
+		command(target, room, user) {
 			if (!this.isPm(room) || !user.isDeveloper()) return;
 			const targets = target.split(',');
 			const targetRoom = Rooms.search(targets[0]);
