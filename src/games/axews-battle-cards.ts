@@ -264,7 +264,7 @@ class AxewsBattleCards extends CardMatching {
 
 	autoPlay(player: Player, playableCards: string[]) {
 		let autoplay = '';
-		if (playableCards.includes('explosion')) playableCards.splice(playableCards.indexOf('explosion'), 1);
+		if (playableCards.includes('Explosion')) playableCards.splice(playableCards.indexOf('Explosion'), 1);
 		if (playableCards.length) autoplay = this.sampleOne(playableCards);
 		this.say(player.name + " did not play a card and has been eliminated from the game!" + (autoplay ? " Auto-playing: " + autoplay : ""));
 		this.eliminatePlayer(player, "You did not play a card!");
