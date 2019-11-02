@@ -30,7 +30,7 @@ class NinjasksCorners extends Game {
 		if (this.round > 1 && !this.options.freejoin) {
 			for (const i in this.players) {
 				if (this.players[i].eliminated) continue;
-				if (this.roundTravels.get(this.players[i]) !== this.color) this.eliminatePlayer(this.players[i], "You did travel to the corner!");
+				if (this.roundTravels.get(this.players[i]) !== this.color) this.eliminatePlayer(this.players[i], "You did not travel to the corner!");
 			}
 			/*
 			let firstTravel = true;
