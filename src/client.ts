@@ -905,45 +905,38 @@ export class Client {
 				}
 				*/
 				// hasOwnLink = true;
-				let approvedTournament = false;
 				if (room.approvedUserHostedTournaments) {
 					for (const i in room.approvedUserHostedTournaments) {
 						if (room.approvedUserHostedTournaments[i].urls.includes(link)) {
-							approvedTournament = true;
 							if (!authOrTHC && room.approvedUserHostedTournaments[i].hostId !== user.id) {
 								room.sayCommand("/warn " + user.name + ", Please do not post links to other hosts' tournaments");
-								break outer;
 							}
-							break;
+							break outer;
 						}
 					}
 				}
-				if (!approvedTournament) {
-					if (authOrTHC) {
-						Tournaments.checkChallongeUrl(room, user, link, user.name);
-					} else {
-						if (room.newUserHostedTournaments) {
-							for (const i in room.newUserHostedTournaments) {
-								if (room.newUserHostedTournaments[i].urls.includes(link)) {
-									if (room.newUserHostedTournaments[i].hostId !== user.id) {
-										room.sayCommand("/warn " + user.name + ", Please do not post links to other hosts' tournaments");
-									} else if (room.newUserHostedTournaments[i].approvalStatus === 'changes-requested') {
-										let name = room.newUserHostedTournaments[i].reviewer;
-										const reviewer = Users.get(name);
-										if (reviewer) name = reviewer.name;
-										room.sayCommand("/warn " + user.name + ", " + name + " has requested changes for your tournament and you must wait for them to be approved");
-									} else {
-										room.sayCommand("/warn " + user.name + ", You must wait for a staff member to approve your tournament");
-									}
-									break outer;
-								}
+
+				if (authOrTHC) {
+					Tournaments.checkChallongeUrl(room, user, link, user.name);
+				} else {
+					for (const i in room.newUserHostedTournaments) {
+						if (room.newUserHostedTournaments[i].urls.includes(link)) {
+							if (room.newUserHostedTournaments[i].hostId !== user.id) {
+								room.sayCommand("/warn " + user.name + ", Please do not post links to other hosts' tournaments");
+							} else if (room.newUserHostedTournaments[i].approvalStatus === 'changes-requested') {
+								let name = room.newUserHostedTournaments[i].reviewer;
+								const reviewer = Users.get(name);
+								if (reviewer) name = reviewer.name;
+								room.sayCommand("/warn " + user.name + ", " + name + " has requested changes for your tournament and you must wait for them to be approved");
+							} else {
+								room.sayCommand("/warn " + user.name + ", You must wait for a staff member to approve your tournament");
 							}
-						} else {
-							room.sayCommand("/warn " + user.name + ", Your tournament must be approved by a staff member");
-							user.say("If you would like to host your tournament, reply with this command: ``" + Config.commandCharacter + "gettourapproval " + room.id + ", " + link + "``");
-							break;
+							break outer;
 						}
 					}
+					room.sayCommand("/warn " + user.name + ", Your tournament must be approved by a staff member");
+					room.pmHtml(user, '<button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter + 'gettourapproval ' + room.id + ', ' + link + '">Submit your tournament for approval</button>');
+					break;
 				}
 			}
 
