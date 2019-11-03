@@ -417,7 +417,7 @@ export class Client {
 			const now = Date.now();
 			Storage.updateLastSeen(user, now);
 			if (Config.allowMail && messageArguments.rank !== this.groupSymbols.locked) Storage.retrieveOfflineMessages(user);
-			if (!(user.id in this.botGreetingCooldowns) || now - this.botGreetingCooldowns[user.id] >= BOT_GREETING_COOLDOWN) {
+			if ((!room.game || room.game.isMiniGame) && !room.userHostedGame && (!(user.id in this.botGreetingCooldowns) || now - this.botGreetingCooldowns[user.id] >= BOT_GREETING_COOLDOWN)) {
 				if (Storage.checkBotGreeting(room, user, now)) this.botGreetingCooldowns[user.id] = now;
 			}
 			if (room.logChatMessages) {
