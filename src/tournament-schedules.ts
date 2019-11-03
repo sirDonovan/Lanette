@@ -4,7 +4,7 @@
 const schedules: Dict<{months: Dict<Dict<string> | undefined>, times: [number, number][]}> = {
 	'nfe': {
 		months: {
-			'10': {
+			'11': {
 				'daily': 'gen7nfe',
 			},
 		},
@@ -49,39 +49,6 @@ const schedules: Dict<{months: Dict<Dict<string> | undefined>, times: [number, n
 	},
 	'toursplaza': {
 		months: {
-			'10': {
-				'1': 'gen7pu',
-				'2': 'gen7almostanyability@@@gen7tiershift,-Thick Club',
-				'3': 'gen7doublesuu',
-				'4': 'gen7ou@@@+Aegislash,-Swampertite',
-				'5': 'gen5ubers',
-				'6': 'gen7monotype@@@+Arceus',
-				'7': 'gen7lc',
-				'8': 'omotm',
-				'9': 'gen7battlespotsingles',
-				'10': 'gen7battlefactory@@@Inverse Mod',
-				'11': 'gen7ru',
-				'12': 'gen6ou@@@!Team Preview',
-				'13': 'gen7balancedhackmons',
-				'14': 'gen7doublesubers@@@Inverse Mod',
-				'15': 'gen7ubers@@@STABmons Move Legality,Same Type Clause,-Red Orb,-Blue Orb',
-				'16': 'gen7cap',
-				'17': 'gen7monotype@@@gen7tiershift',
-				'18': 'omotm2',
-				'19': 'gen7uu@@@+Mew',
-				'20': 'gen7zu',
-				'21': 'gen7lc@@@+LC Uber',
-				'22': 'gen7camomons',
-				'23': 'gen7doublesou@@@!Team Preview',
-				'24': 'gen7vgc2018',
-				'25': 'gen7letsgoou@@@-OU',
-				'26': 'gen7bssfactory',
-				'27': 'gen7battlespotdoubles@@@STABmons Move Legality',
-				'28': 'gen7nfe',
-				'29': 'gen6monotype@@@Inverse Mod',
-				'30': 'gen7caplc',
-				'31': 'gen7nu@@@+NUBL,+Noivern,!Team Preview,STABmons Move Legality',
-			},
 			'11': {
 				'1': '[Gen 7] RU@@@+RUBL,-Drought,-Trick Room',
 				'2': '[Gen 7] 2v2 Doubles@@@Same Type Clause,-Drizzle,-Drought,-Sand Stream,-Snow Warning',

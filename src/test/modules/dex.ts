@@ -20,7 +20,7 @@ describe("Dex", () => {
 	});
 	it('should support OMoTM# aliases', () => {
 		assert(Dex.getFormat('omotm'));
-		assert(Dex.getFormat('omotm2'));
+		if (Dex.omotms.length > 1) assert(Dex.getFormat('omotm2'));
 	});
 	it('should compute Pokemon properties properly', () => {
 		// allPossibleMoves

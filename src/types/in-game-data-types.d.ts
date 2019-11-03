@@ -7,6 +7,7 @@ import { RuleTable } from "../dex";
 
 type GenderName = 'M' | 'F' | 'N' | '';
 type StatNameExceptHP = 'atk' | 'def' | 'spa' | 'spd' | 'spe';
+type Nonstandard = 'Glitch' | 'Past' | 'Future' | 'CAP' | 'LGPE' | 'Pokestar' | 'Custom';
 export type StatName = 'hp' | StatNameExceptHP;
 
 interface IStatsTable {
@@ -250,7 +251,7 @@ interface IEffectData extends IEventMethods {
 	effect?: Partial<IEffectData>;
 	effectType?: string;
 	infiltrates?: boolean;
-	isNonstandard?: boolean | string;
+	isNonstandard?: Nonstandard;
 	isUnreleased?: boolean;
 	/**
 	 * `true` for generic Z-moves like Gigavolt Havoc.
@@ -318,6 +319,7 @@ export interface IAbilityComputed {
 	effectType: "Ability";
 	gen: number;
 	id: string;
+	isNonstandard?: Nonstandard;
 }
 
 export interface IAbilityCopy extends IAbilityData, IAbilityComputed {}
@@ -450,6 +452,7 @@ export interface IItemComputed {
 	fling?: IFlingData;
 	gen: number;
 	id: string;
+	isNonstandard?: Nonstandard;
 }
 
 export interface IItemCopy extends IItemData, IItemComputed {}
@@ -576,6 +579,7 @@ export interface IMoveComputed {
 	effectType: "Move";
 	gen: number;
 	ignoreImmunity: IMoveData["ignoreImmunity"];
+	isNonstandard?: Nonstandard;
 }
 
 export interface IMoveCopy extends IMoveData, IMoveComputed {
@@ -626,7 +630,7 @@ export interface ITemplateFormatsData {
 	eventPokemon?: IEventInfo[];
 	exclusiveMoves?: string[];
 	gen?: number;
-	isNonstandard?: boolean | string;
+	isNonstandard?: Nonstandard;
 	isUnreleased?: boolean;
 	maleOnlyHidden?: boolean;
 	randomBattleMoves?: string[];
@@ -652,6 +656,7 @@ export interface IPokemonComputed {
 	id: string;
 	isForme: boolean;
 	isMega: boolean;
+	isNonstandard?: Nonstandard;
 	isPrimal: boolean;
 	name: string;
 	nfe: boolean;

@@ -66,7 +66,7 @@ export abstract class Chain extends Game {
 			} else if (this.variant === 'items') {
 				for (const i in Dex.data.items) {
 					const item = Dex.getExistingItem(i);
-					if (item.isNonstandard === true) continue;
+					if (item.isNonstandard !== 'Past') continue;
 					if (this.letterBased && (!this.getLinkStarts(item).length || !this.getLinkEnds(item).length)) continue;
 					pool[i] = item;
 					keys.push(i);
