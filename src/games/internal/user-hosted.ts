@@ -13,6 +13,7 @@ export class UserHosted extends Game {
 	hostId: string = '';
 	hostName: string = '';
 	hostTimeout: NodeJS.Timer | null = null;
+	minPlayers: number = 0;
 	readonly points = new Map<Player, number>();
 	savedWinners: Player[] | null = null;
 	scoreCap: number = 0;
