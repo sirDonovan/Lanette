@@ -31,6 +31,7 @@ class MagikarpsWaterWheel extends Game {
 	actionCommands: string[] = ['swim', 'tread', 'stay'];
 	canLateJoin: boolean = true;
 	canSwim: boolean = false;
+	maxRound: number = 20;
 	playerWheels = new Map<Player, WheelsKey>();
 	points = new Map<Player, number>();
 	roundActions = new Set<Player>();
