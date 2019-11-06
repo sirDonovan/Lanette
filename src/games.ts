@@ -361,7 +361,7 @@ export class Games {
 			defaultOptions = formatData.defaultOptions || [];
 		}
 
-		const format = Object.assign({}, formatData, formatComputed, {customizableOptions, defaultOptions});
+		const format = Object.assign(formatData, formatComputed, {customizableOptions, defaultOptions});
 		Game.setOptions(format, mode, variant);
 
 		return format;
@@ -383,6 +383,7 @@ export class Games {
 		targets.shift();
 		const id = Tools.toId(name);
 		if (id in this.userHostedAliases) return this.getUserHostedFormat(this.userHostedAliases[id] + (targets.length ? "," + targets.join(",") : ""), user);
+
 		let formatData: IUserHostedComputed | undefined;
 		if (id in this.userHostedFormats) {
 			formatData = Tools.deepClone(this.userHostedFormats[id]);
@@ -391,7 +392,7 @@ export class Games {
 			if (Array.isArray(scriptedFormat)) {
 				if (scriptedFormat[0] !== 'invalidGameFormat') return scriptedFormat;
 			} else if (!scriptedFormat.scriptedOnly) {
-				formatData = Object.assign(scriptedFormat, {
+				formatData = Object.assign(Tools.deepClone(scriptedFormat), {
 					class: userHosted.class,
 					commands: null,
 					commandDescriptions: null,
@@ -420,7 +421,8 @@ export class Games {
 			inputOptions: {},
 			inputTarget,
 		};
-		return Object.assign({}, formatData, formatComputed);
+
+		return Object.assign(formatData, formatComputed);
 	}
 
 	getExistingUserHostedFormat(target: string): IUserHostedFormat {

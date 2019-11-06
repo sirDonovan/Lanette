@@ -27,6 +27,8 @@ export abstract class Guessing extends Game {
 	async onNextRound() {
 		this.canGuess = false;
 		await this.setAnswers();
+		if (this.ended) return;
+
 		const onHint = () => {
 			this.canGuess = true;
 			this.timeout = setTimeout(() => {
@@ -84,7 +86,7 @@ export abstract class Guessing extends Game {
 
 	filterGuess?(guess: string): boolean;
 	getPointsPerAnswer?(answer: string): number;
-	onGuess?(guess: string, player?: Player): void;
+	onIncorrectGuess?(guess: string, player?: Player): string;
 }
 
 const commands: Dict<ICommandDefinition<Guessing>> = {
@@ -100,11 +102,12 @@ const commands: Dict<ICommandDefinition<Guessing>> = {
 				if (this.roundGuesses.has(player)) return false;
 				this.roundGuesses.set(player, true);
 			}
-			const answer = await this.checkAnswer(target);
+			let answer = await this.checkAnswer(target);
 			if (this.ended || !this.answers.length) return false;
 			if (!answer) {
-				if (this.onGuess) this.onGuess(target);
-				return false;
+				if (!this.onIncorrectGuess) return false;
+				answer = this.onIncorrectGuess(target);
+				if (!answer) return false;
 			}
 			if (this.timeout) clearTimeout(this.timeout);
 			const awardedPoints = this.getPointsPerAnswer ? this.getPointsPerAnswer(answer) : 1;

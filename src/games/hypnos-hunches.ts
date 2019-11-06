@@ -104,18 +104,22 @@ class HypnosHunches extends Guessing {
 		return false;
 	}
 
-	onGuess(guess: string) {
+	onIncorrectGuess(guess: string): string {
 		guess = Tools.toId(guess);
 		if (!this.timeout) {
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 		}
 		for (let i = 0; i < this.letters.length; i++) {
 			if (Tools.toId(this.letters[i]) === guess) {
-				if (!this.solvedLetters.includes(guess)) this.solvedLetters.push(guess);
-				return;
+				if (!this.solvedLetters.includes(guess)) {
+					this.solvedLetters.push(guess);
+					if (this.solvedLetters.length === this.uniqueLetters) return this.answers[0];
+				}
+				return '';
 			}
 		}
 		this.guessedLetters.push(guess);
+		return '';
 	}
 }
 

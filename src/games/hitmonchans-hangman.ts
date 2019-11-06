@@ -67,15 +67,8 @@ class HitmonchansHangman extends Guessing {
 			await this.setAnswers();
 		}
 		this.roundGuesses.clear();
-		let ended = false;
 		if (this.guessedLetters.length >= this.guessLimit) {
 			this.say("All guesses have been used! The answer was __" + this.answers[0] + "__");
-			ended = true;
-		} else if (this.solvedLetters.length >= this.allLetters) {
-			this.say("All letters have been revealed! The answer was __" + this.answers[0] + "__");
-			ended = true;
-		}
-		if (ended) {
 			if (this.isMiniGame) {
 				this.end();
 			} else {
@@ -100,18 +93,22 @@ class HitmonchansHangman extends Guessing {
 		return false;
 	}
 
-	onGuess(guess: string) {
+	onIncorrectGuess(guess: string): string {
 		guess = Tools.toId(guess);
 		if (!this.timeout) {
 			this.timeout = setTimeout(() => this.nextRound(), 4000);
 		}
 		for (let i = 0; i < this.letters.length; i++) {
 			if (Tools.toId(this.letters[i]) === guess) {
-				if (!this.solvedLetters.includes(guess)) this.solvedLetters.push(guess);
-				return;
+				if (!this.solvedLetters.includes(guess)) {
+					this.solvedLetters.push(guess);
+					if (this.solvedLetters.length === this.allLetters) return this.answers[0];
+				}
+				return '';
 			}
 		}
 		this.guessedLetters.push(guess);
+		return '';
 	}
 }
 
