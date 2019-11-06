@@ -106,9 +106,18 @@ export class Tournaments {
 			}
 
 			if (tournament.playerCap) room.sayCommand("/tour autostart on");
-			if (Config.tournamentAutoDQTimers && room.id in Config.tournamentAutoDQTimers) room.sayCommand("/tour autodq " + Config.tournamentAutoDQTimers[room.id]);
-			if (!tournament.format.team && Config.disallowTournamentScouting && Config.disallowTournamentScouting.includes(room.id)) room.sayCommand("/tour scouting disallow");
-			if (Config.disallowTournamentModjoin && Config.disallowTournamentModjoin.includes(room.id)) room.sayCommand("/tour modjoin disallow");
+
+			if (Config.tournamentAutoDQTimers && room.id in Config.tournamentAutoDQTimers) {
+				room.sayCommand("/tour autodq " + Config.tournamentAutoDQTimers[room.id]);
+			}
+			if ((!tournament.format.team && Config.disallowTournamentScouting && Config.disallowTournamentScouting.includes(room.id)) || (Config.disallowTournamentScoutingFormats &&
+				room.id in Config.disallowTournamentScoutingFormats && Config.disallowTournamentScoutingFormats[room.id].includes(tournament.format.id))) {
+				room.sayCommand("/tour scouting disallow");
+			}
+			if (Config.disallowTournamentModjoin && Config.disallowTournamentModjoin.includes(room.id)) {
+				room.sayCommand("/tour modjoin disallow");
+			}
+
 			let startMinutes = 5;
 			if (Config.tournamentStartTimers && room.id in Config.tournamentStartTimers) {
 				startMinutes = Config.tournamentStartTimers[room.id];
@@ -118,6 +127,7 @@ export class Tournaments {
 			if (Config.adjustTournamentCaps && Config.adjustTournamentCaps.includes(room.id)) {
 				tournament.adjustCapTimer = setTimeout(() => room.tournament!.adjustCap(), (startMinutes / 2) * 60 * 1000);
 			}
+
 			if (Config.displayTournamentFormatInfo && Config.displayTournamentFormatInfo.includes(room.id)) {
 				const formatInfo = Dex.getFormatInfoDisplay(tournament.format);
 				if (formatInfo) {
@@ -132,6 +142,7 @@ export class Tournaments {
 					room.sayHtml("<div class='broadcast-" + divClass + "'><b>" + tournament.name + "</b>:</div>" + formatInfo);
 				}
 			}
+
 			if (Config.tournamentRoomAdvertisements && room.id in Config.tournamentRoomAdvertisements) {
 				for (let i = 0; i < Config.tournamentRoomAdvertisements[room.id].length; i++) {
 					const advertisementRoom = Rooms.get(Config.tournamentRoomAdvertisements[room.id][i]);

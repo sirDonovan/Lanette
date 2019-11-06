@@ -101,6 +101,11 @@ export let displayTournamentFormatInfo: string[] = [];
 export let disallowTournamentScouting: string[] = [];
 
 /**
+ * For each room in the object, a list of formats (full name including gen) for which scouting will not be allowed
+ */
+export let disallowTournamentScoutingFormats: Dict<string[]> = {};
+
+/**
  * A list of rooms (roomids) where modjoin in tournament battles will not be allowed
  */
 export let disallowTournamentModjoin: string[] = [];

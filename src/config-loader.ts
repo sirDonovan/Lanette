@@ -2,6 +2,10 @@ function arrayToRoomIds(array: string[]): string[] {
 	return array.map(x => Tools.toRoomId(x));
 }
 
+function arrayToIds(array: string[]): string[] {
+	return array.map(x => Tools.toId(x));
+}
+
 function objectKeysToRoomId<T>(object: Dict<T>): Dict<T> {
 	for (const i in object) {
 		const id = Tools.toRoomId(i);
@@ -25,6 +29,14 @@ function stringObjectToRoomIds(object: Dict<string>): Dict<string> {
 function stringArrayObjectToRoomIds(object: Dict<string[]>): Dict<string[]> {
 	for (const i in object) {
 		object[i] = arrayToRoomIds(object[i]);
+	}
+
+	return object;
+}
+
+function stringArrayObjectToIds(object: Dict<string[]>): Dict<string[]> {
+	for (const i in object) {
+		object[i] = arrayToIds(object[i]);
 	}
 
 	return object;
@@ -57,6 +69,7 @@ export function load(config: typeof Config): typeof Config {
 	if (config.scheduledTournamentsMaxPlayerCap) config.scheduledTournamentsMaxPlayerCap = arrayToRoomIds(config.scheduledTournamentsMaxPlayerCap);
 	if (config.displayTournamentFormatInfo) config.displayTournamentFormatInfo = arrayToRoomIds(config.displayTournamentFormatInfo);
 	if (config.disallowTournamentScouting) config.disallowTournamentScouting = arrayToRoomIds(config.disallowTournamentScouting);
+	if (config.disallowTournamentScoutingFormats) config.disallowTournamentScoutingFormats = stringArrayObjectToIds(config.disallowTournamentScoutingFormats);
 	if (config.disallowTournamentModjoin) config.disallowTournamentModjoin = arrayToRoomIds(config.disallowTournamentModjoin);
 	if (config.disallowTournamentBattleLinks) config.disallowTournamentBattleLinks = arrayToRoomIds(config.disallowTournamentBattleLinks);
 	if (config.tournamentAutoDQTimers) objectKeysToRoomId(config.tournamentAutoDQTimers);
