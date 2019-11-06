@@ -1528,12 +1528,14 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	pasttournaments: {
 		command(target, room, user) {
+			const targets = target.split(',');
 			let tournamentRoom: Room;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.search(target);
-				if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.sayError(['disabledTournamentFeatures', targetRoom.title]);
 				tournamentRoom = targetRoom;
+				targets.shift();
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.sayError(['disabledTournamentFeatures', room.title]);
@@ -1542,7 +1544,24 @@ const commands: Dict<ICommandDefinition> = {
 
 			const database = Storage.getDatabase(tournamentRoom);
 			if (!database.pastTournaments) return this.say("The past tournament list is empty.");
-			this.say("**Past tournaments** (most recent first): " + Tools.joinList(database.pastTournaments) + ".");
+
+			const names: string[] = [];
+			const option = Tools.toId(targets[0]);
+			const displayTimes = option === 'time' || option === 'times';
+			const now = Date.now();
+			for (let i = 0; i < database.pastTournaments.length; i++) {
+				const format = Dex.getFormat(database.pastTournaments[i].inputTarget);
+				let tournament = format ? Dex.getCustomFormatName(format, tournamentRoom) : database.pastTournaments[i].name;
+
+				if (displayTimes) {
+					let duration = now - database.pastTournaments[i].time;
+					if (duration < 1000) duration = 1000;
+					tournament += " <i>(" + Tools.toDurationString(duration, {hhmmss: true}) + " ago)</i>";
+				}
+
+				names.push(tournament);
+			}
+			this.sayHtml("<b>Past tournaments</b>" + (displayTimes ? "" : " (most recent first)") + ": " + Tools.joinList(names) + ".", tournamentRoom);
 		},
 		aliases: ['pasttours', 'recenttournaments', 'recenttours'],
 	},

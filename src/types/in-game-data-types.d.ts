@@ -402,6 +402,7 @@ export interface IFormatComputed {
 	defaultLevel: number;
 	effectType: "Format" | "Ruleset" | "Rule" | "ValidatorRule";
 	id: string;
+	inputTarget: string;
 	maxLevel: number;
 	ruleset: NonNullable<IFormatData["ruleset"]>;
 	ruleTable: RuleTable | null;

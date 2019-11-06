@@ -1136,6 +1136,7 @@ export class Dex {
 	getFormat(name: string, isTrusted?: boolean): IFormat | null {
 		let id = Tools.toId(name);
 		if (!id) return null;
+		const inputTarget = name;
 
 		let supplementaryAttributes: {customRules?: string[], searchShow?: boolean} = {};
 		if (name.includes('@@@')) {
@@ -1176,7 +1177,7 @@ export class Dex {
 			return null;
 		}
 
-		const formatData = this.data.formats[id]!;
+		const formatData = Tools.deepClone(this.data.formats[id]!);
 		const maxLevel = formatData.maxLevel || 100;
 		const formatComputed: IFormatComputed = {
 			customRules: null,
@@ -1184,6 +1185,7 @@ export class Dex {
 			defaultLevel: formatData.defaultLevel || maxLevel,
 			effectType: formatData.effectType || "Format",
 			id,
+			inputTarget,
 			maxLevel,
 			ruleset: formatData.ruleset || [],
 			ruleTable: null,
@@ -1193,7 +1195,8 @@ export class Dex {
 			unranked: formatData.rated === false || id.includes('customgame') || id.includes('challengecup') || id.includes('hackmonscup') ||
 				(formatData.team && (id.includes('1v1') || id.includes('monotype'))) || formatData.mod === 'seasonal' || formatData.mod === 'ssb',
 		};
-		return Object.assign({}, formatData, formatComputed, supplementaryAttributes);
+
+		return Object.assign(formatData, formatComputed, supplementaryAttributes);
 	}
 
 	getExistingFormat(name: string, isTrusted?: boolean): IFormat {
@@ -1529,10 +1532,10 @@ export class Dex {
 		return {bans, unbans, addedrules, removedrules};
 	}
 
-	getCustomFormatName(room: Room, format: IFormat, showAll?: boolean): string {
+	getCustomFormatName(format: IFormat, room?: Room, showAll?: boolean): string {
 		if (!format.customRules || !format.customRules.length) return format.name;
 		if (!format.separatedCustomRules) format.separatedCustomRules = this.separateCustomRules(format.customRules);
-		const defaultCustomRules: Partial<ISeparatedCustomRules> = Tournaments.defaultCustomRules[room.id] || {};
+		const defaultCustomRules: Partial<ISeparatedCustomRules> = room && room.id in Tournaments.defaultCustomRules ? Tournaments.defaultCustomRules[room.id] : {};
 		const bansLength = format.separatedCustomRules.bans.length;
 		const unbansLength = format.separatedCustomRules.unbans.length;
 		const addedRulesLength = format.separatedCustomRules.addedrules.length;

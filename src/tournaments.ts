@@ -195,8 +195,8 @@ export class Tournaments {
 			const pastTournamentIds: string[] = [];
 			if (database.pastTournaments) {
 				for (let i = 0; i < database.pastTournaments.length; i++) {
-					const format = Dex.getFormat(database.pastTournaments[i]);
-					if (format) pastTournamentIds.push(format.id);
+					const format = Dex.getFormat(database.pastTournaments[i].inputTarget);
+					pastTournamentIds.push(format ? format.id : Tools.toId(database.pastTournaments[i].name));
 				}
 			}
 
@@ -247,7 +247,7 @@ export class Tournaments {
 			html += "<td>&nbsp;</td>";
 		}
 		for (let i = 1; i < lastDay; i++) {
-			html += "<td style='padding: 4px'><b>" + i + "</b> - " + Dex.getCustomFormatName(room, Dex.getExistingFormat(schedule.months[month]!['daily'] || schedule.months[month]![i]), true) + "</td>";
+			html += "<td style='padding: 4px'><b>" + i + "</b> - " + Dex.getCustomFormatName(Dex.getExistingFormat(schedule.months[month]!['daily'] || schedule.months[month]![i]), room, true) + "</td>";
 			currentDay++;
 			if (currentDay === 7) {
 				html += "</tr><tr>";

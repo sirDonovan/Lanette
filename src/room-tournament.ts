@@ -139,7 +139,7 @@ export class Tournament extends Activity {
 
 	setCustomFormatName() {
 		const previousName = this.name;
-		const customFormatName = Dex.getCustomFormatName(this.room, this.format);
+		const customFormatName = Dex.getCustomFormatName(this.format, this.room);
 		if (this.format.customRules && (customFormatName === this.format.name || customFormatName.length > 100)) {
 			this.name = this.format.name + " (custom rules)";
 		} else {
@@ -186,7 +186,7 @@ export class Tournament extends Activity {
 	onEnd() {
 		const database = Storage.getDatabase(this.room);
 		if (!database.pastTournaments) database.pastTournaments = [];
-		database.pastTournaments.unshift(this.format.name);
+		database.pastTournaments.unshift({inputTarget: this.format.inputTarget, name: this.format.name, time: Date.now()});
 		while (database.pastTournaments.length > 8) {
 			database.pastTournaments.pop();
 		}
