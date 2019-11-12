@@ -3,13 +3,10 @@ import fs = require('fs');
 import path = require('path');
 
 import { CommandErrorArray } from '../../command-parser';
-import { ParasParameters } from '../../games/paras-parameters';
-import { PoliwrathsPortmanteaus } from '../../games/poliwraths-portmanteaus';
 import { PRNGSeed } from '../../prng';
-import * as ParametersWorker from '../../workers/parameters';
-import * as PortmanteausWorker from '../../workers/portmanteaus';
 import { Game } from '../../room-game';
 import { GameCommandReturnType, IGameFile, IGameFormat, IGameFormatData, IGameMode, IGameModeFile, IUserHostedComputed, IUserHostedFormat } from '../../types/games';
+import { assertClientSendQueue } from '../test-tools';
 
 function testMascots(format: IGameFormat | IUserHostedFormat) {
 	if (format.mascot) {
@@ -18,6 +15,41 @@ function testMascots(format: IGameFormat | IUserHostedFormat) {
 		for (let i = 0; i < format.mascots.length; i++) {
 			assert(Dex.getPokemon(format.mascots[i]), format.name);
 		}
+	}
+}
+
+function createIndividualTestGame(format: IGameFormat): Game {
+	const game = Games.createGame(room, format);
+	if (game.timeout) clearTimeout(game.timeout);
+
+	return game;
+}
+
+const room = Rooms.add('mocha');
+for (const i in Games.formats) {
+	const format = Games.getExistingFormat(i);
+	if (format.tests) {
+		describe(format.name + " individual tests", () => {
+			afterEach(() => {
+				if (room.game) room.game.deallocate(true);
+			});
+
+			for (const i in format.tests) {
+				const testData = format.tests[i];
+				let testFormat = format;
+				if (testData.attributes && testData.attributes.inputTarget) testFormat = Games.getExistingFormat(testData.attributes.inputTarget);
+
+				if (testData.attributes && testData.attributes.async) {
+					it(i, async function() {
+						await testData.test.call(this, createIndividualTestGame(testFormat), testFormat);
+					});
+				} else {
+					it(i, function() {
+						testData.test.call(this, createIndividualTestGame(testFormat), testFormat);
+					});
+				}
+			}
+		});
 	}
 }
 
@@ -166,7 +198,6 @@ describe("Games", () => {
 
 	it('should load data properly', function() {
 		this.timeout(15000);
-		const room = Rooms.add('mocha');
 		for (const i in Games.formats) {
 			try {
 				// tslint:disable-next-line prefer-const
@@ -191,6 +222,9 @@ describe("Games", () => {
 		assert(Games.getExistingFormat('trivia, abilities').nameWithOptions === "Slowking's Ability Trivia");
 		assert(Games.getExistingFormat('trivia, survival').nameWithOptions === "Slowking's Trivia Survival");
 		assert(Games.getExistingFormat('trivia, abilities, survival').nameWithOptions === "Slowking's Ability Trivia Survival");
+
+		assert(!Array.isArray(Games.getUserHostedFormat(Object.keys(Games.userHostedFormats)[0])));
+		assert(Games.getExistingUserHostedFormat('floettes forum game, name: Mocha Test Game').name === 'Mocha Test Game');
 
 		const name = 'Non-existent Game';
 		const nameFormat = Games.getFormat(name) as CommandErrorArray;
@@ -248,112 +282,63 @@ describe("Games", () => {
 		assert(nameUserHostedFormat[1] === name);
 	});
 
-	it('should return proper values from Portmanteaus worker', async function() {
-		this.timeout(15000);
-		PortmanteausWorker.init();
-		const tiers = Object.keys(PortmanteausWorker.data.pool['Pokemon']['tier']);
-		assert(tiers.length);
-		for (let i = 0; i < tiers.length; i++) {
-			assert(tiers[i].charAt(0) !== '(');
-		}
-		const room = Rooms.add('mocha');
-		const format = Games.getExistingFormat('poliwrathsportmanteaus');
-		const game = Games.createGame(room, format) as PoliwrathsPortmanteaus;
-		for (let i = format.customizableOptions.ports.min; i <= format.customizableOptions.ports.max; i++) {
-			game.options.ports = i;
-			await game.onNextRound();
-			assert(game.answers.length);
-			assert(game.ports.length);
-			for (let i = 0; i < game.answers.length; i++) {
-				assert(game.answers[i] in game.answerParts);
-			}
-		}
-
-		game.customPortTypes = ['Pokemon', 'Move'];
-		game.customPortCategories = ['egggroup', 'type'];
-		game.customPortDetails = ['Flying', 'Fire'];
-		await game.onNextRound();
-		assert(game.answers.length);
-		assert(game.ports.length);
-		assert(game.answers.join(',') === 'pelipperuption,swablueflare,pidoverheat,fletchinderuption');
-		for (let i = 0; i < game.answers.length; i++) {
-			assert(game.answers[i] in game.answerParts);
-		}
-	});
-
-	it('should return proper values from Parameters worker', async function() {
-		this.timeout(15000);
-		ParametersWorker.init();
-		for (const gen in ParametersWorker.data.pokemon.gens) {
-			const types = Object.keys(ParametersWorker.data.pokemon.gens[gen].paramTypeDexes) as ParametersWorker.ParamType[];
-			for (let i = 0; i < types.length; i++) {
-				const type = types[i];
-				const keys = Object.keys(ParametersWorker.data.pokemon.gens[gen].paramTypeDexes[type]);
-				const checkTier = type === 'tier';
-				for (let i = 0; i < keys.length; i++) {
-					const key = Tools.toId(keys[i]);
-					assert(key in ParametersWorker.data.pokemon.gens[gen].paramTypePools[type], key + ' in ' + type);
-					if (checkTier) assert(keys[i].charAt(0) !== '(');
-				}
-			}
-		}
-
-		const room = Rooms.add('mocha');
-		const format = Games.getExistingFormat('parasparameters');
-		const game = Games.createGame(room, format) as ParasParameters;
-		for (let i = format.customizableOptions.params.min; i <= format.customizableOptions.params.max; i++) {
-			format.inputOptions.params = i;
-			game.options.params = i;
-			await game.onNextRound();
-			assert(game.params.length);
-			assert(game.pokemon.length);
-		}
-		delete format.inputOptions.params;
-		delete game.options.params;
-
-		game.customParamTypes = ['move', 'egggroup'];
-		await game.onNextRound();
-		assert(game.params.length);
-		assert(game.pokemon.length);
-		assert(game.params[0].type === 'move');
-		assert(game.params[1].type === 'egggroup');
-		game.customParamTypes = null;
-
-		let intersection = await game.intersect(['rockclimb', 'steeltype']);
-		assert.strictEqual(intersection.pokemon.join(","), "durant,excadrill,ferroseed,ferrothorn,steelix");
-		intersection = await game.intersect(['poisontype', 'powerwhip']);
-		assert.strictEqual(intersection.pokemon.join(","), "bellsprout,bulbasaur,ivysaur,roselia,roserade,venusaur,victreebel,weepinbell");
-		intersection = await game.intersect(['gen1', 'psychic', 'psychictype']);
-		assert.strictEqual(intersection.pokemon.join(","), "abra,alakazam,drowzee,exeggcute,exeggutor,hypno,jynx,kadabra,mew,mewtwo,mrmime,slowbro,slowpoke,starmie");
-		intersection = await game.intersect(['firetype', 'thunder']);
-		assert.strictEqual(intersection.pokemon.join(","), "arceusfire,castformsunny,groudonprimal,hooh,marowakalola,marowakalolatotem,rotomheat,victini");
-		intersection = await game.intersect(['darktype', 'refresh']);
-		assert.strictEqual(intersection.pokemon.join(","), "arceusdark,carvanha,nuzleaf,sharpedo,shiftry,umbreon");
-		intersection = await game.intersect(['monstergroup', 'rockhead']);
-		assert.strictEqual(intersection.pokemon.join(","), "aggron,aron,cubone,lairon,marowak,marowakalola,rhydon,rhyhorn,tyrantrum");
-		// game.options.gen = 6;
-		// intersection = await game.intersect(['Weak to Rock Type', 'Earthquake']);
-		// assert.strictEqual(intersection.pokemon.join(","), "abomasnow,aerodactyl,altaria,arceusbug,arceusfire,arceusflying,arceusice,archen,archeops,armaldo,aurorus,avalugg,charizard,crustle,darmanitan,dragonite,dwebble,glalie,gyarados,hooh,lugia,magcargo,magmortar,mantine,mantyke,pineco,pinsir,rayquaza,regice,salamence,scolipede,sealeo,shuckle,spheal,torkoal,tropius,typhlosion,volcanion,walrein");
-		// intersection = await game.intersect(['Psycho Cut', 'Resists Fighting Type']);
-		// assert.strictEqual(intersection.pokemon.join(","), "alakazam,cresselia,drowzee,gallade,hypno,kadabra,medicham,meditite,mewtwo");
-		// delete game.options.gen;
-	});
-
-	it('should pass individual tests', async function() {
-		this.timeout(60000);
-		const room = Rooms.add('mocha');
+	it('should start signups for scripted games', () => {
+		const roomPrefix = room.id + "|";
 		for (const i in Games.formats) {
 			const format = Games.getExistingFormat(i);
+			const startingSendQueueIndex = Client.sendQueue.length;
+
+			const gameLog: string[] = [];
 			const game = Games.createGame(room, format);
-			if (game.timeout) clearTimeout(game.timeout);
-			if (format.tests) {
-				describe(format.name, () => {
-					after(() => {
-						game.deallocate(true);
-					});
-					format.tests!.call(this, game);
-				});
-			}
+			assert(game);
+			assert(game.format.name === format.name);
+			if (game.mascot) game.shinyMascot = true;
+			game.signups();
+			gameLog.push(roomPrefix + "/adduhtml " + game.uhtmlBaseName + "-signups, " + game.getSignupsHtml());
+			gameLog.push(roomPrefix + "/notifyrank all, Mocha scripted game," + format.name + "," + Games.scriptedGameHighlight + " " + game.name);
+			if (game.mascot) gameLog.push(roomPrefix + game.mascot.name + " is shiny so bits will be doubled!");
+
+			assertClientSendQueue(startingSendQueueIndex, gameLog);
+			game.deallocate(true);
 		}
+	});
+
+	it('should start signups for user-hosted games', () => {
+		const roomPrefix = room.id + "|";
+		const userHostedFormats: IUserHostedFormat[] = [];
+		for (const i in Games.userHostedFormats) {
+			userHostedFormats.push(Games.getExistingUserHostedFormat(i));
+		}
+		for (const i in Games.formats) {
+			const format = Games.getExistingFormat(i);
+			if (!format.scriptedOnly) userHostedFormats.push(Games.getExistingUserHostedFormat(i));
+		}
+
+		for (let i = 0; i < userHostedFormats.length; i++) {
+			const format = userHostedFormats[i];
+			const startingSendQueueIndex = Client.sendQueue.length;
+
+			const gameLog: string[] = [];
+			const game = Games.createUserHostedGame(room, format, Users.self.name);
+			assert(game);
+			assert(game.format.name === format.name);
+			if (game.mascot) game.shinyMascot = true;
+			game.signups();
+			gameLog.push(roomPrefix + "/adduhtml " + game.uhtmlBaseName + "-signups, " + game.getSignupsHtml());
+			if (game.mascot) gameLog.push(roomPrefix + game.mascot.name + " is shiny so bits will be doubled!");
+			gameLog.push(roomPrefix + "/notifyrank all, Mocha user-hosted game," + game.name + "," + game.hostName + " " + Games.userHostedGameHighlight + " " + game.name);
+
+			assertClientSendQueue(startingSendQueueIndex, gameLog);
+			game.deallocate(true);
+		}
+	});
+
+	it('should properly set options', () => {
+		assert(Games.createGame(room, Games.getExistingFormat('trivia')).name === "Slowking's Trivia");
+		assert(Games.createGame(room, Games.getExistingFormat('trivia, abilities')).name === "Slowking's Ability Trivia");
+		assert(Games.createGame(room, Games.getExistingFormat('trivia, survival')).name === "Slowking's Trivia Survival");
+		assert(Games.createGame(room, Games.getExistingFormat('trivia, abilities, survival')).name === "Slowking's Ability Trivia Survival");
+
+		assert(Games.createUserHostedGame(room, Games.getExistingUserHostedFormat('floettes forum game, name: Mocha Test Game'), Users.self.name).name === Users.self.name + "'s Mocha Test Game");
 	});
 });

@@ -43,6 +43,8 @@ require(path.join(__dirname, 'pokemon-showdown'));
 
 console.log("Loading data for tests...");
 Dex.loadData();
+Rooms.add('mocha');
+Rooms.get('mocha')!.title = 'Mocha';
 
 for (let i = 0; i < moduleTests.length; i++) {
 	// tslint:disable-next-line no-var-requires

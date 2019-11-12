@@ -56,7 +56,7 @@ export class Vote extends Game {
 		this.uhtmlName = this.uhtmlBaseName + '-voting';
 		this.sayUhtml(this.uhtmlName, html);
 		this.notifyRankSignups = true;
-		this.sayCommand("/notifyrank all, " + this.room.title + " game vote,Help decide the next scripted game!,Hosting a scriptedgamevote", true);
+		this.sayCommand("/notifyrank all, " + this.room.title + " game vote,Help decide the next scripted game!," + Games.scriptedGameVoteHighlight, true);
 		this.timeout = setTimeout(() => this.end(), timeLimit);
 	}
 

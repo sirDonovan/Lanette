@@ -223,7 +223,7 @@ export class Game extends Activity {
 			this.sayUhtml(this.uhtmlBaseName + "-signups", this.getSignupsHtml());
 			if (!this.isUserHosted) {
 				this.notifyRankSignups = true;
-				this.sayCommand("/notifyrank all, " + (this.room as Room).title + " scripted game," + this.name + ",Hosting a scriptedgame of " + this.name, true);
+				this.sayCommand("/notifyrank all, " + (this.room as Room).title + " scripted game," + this.name + "," + Games.scriptedGameHighlight + " " + this.name, true);
 			}
 		}
 		this.signupsTime = Date.now();

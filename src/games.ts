@@ -42,6 +42,9 @@ export class Games {
 	readonly sharedCommands: typeof sharedCommands = sharedCommands;
 	readonly gamesDirectory: typeof gamesDirectory = gamesDirectory;
 	readonly userHosted: typeof userHosted = userHosted;
+	readonly scriptedGameHighlight: string = "Hosting a scriptedgame of";
+	readonly userHostedGameHighlight: string = "is hosting a hostgame of";
+	readonly scriptedGameVoteHighlight: string = "Hosting a scriptedgamevote";
 
 	readonly aliases: Dict<string> = {};
 	autoCreateTimers: Dict<NodeJS.Timer> = {};

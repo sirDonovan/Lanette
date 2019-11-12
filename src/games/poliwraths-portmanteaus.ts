@@ -1,7 +1,8 @@
+import assert = require('assert');
+
 import { PRNG, PRNGSeed } from "../prng";
-import { IGameOptionValues } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { GameFileTests, IGameFile } from "../types/games";
 import * as PortmanteausWorker from './../workers/portmanteaus';
 import { game as guessingGame, Guessing } from './templates/guessing';
 
@@ -118,6 +119,43 @@ export class PoliwrathsPortmanteaus extends Guessing {
 	}
 }
 
+const tests: GameFileTests<PoliwrathsPortmanteaus> = {
+	'should return proper values from Portmanteaus worker': {
+		attributes: {
+			async: true,
+		},
+		async test(game, format) {
+			this.timeout(15000);
+			PortmanteausWorker.init();
+			const tiers = Object.keys(PortmanteausWorker.data.pool['Pokemon']['tier']);
+			assert(tiers.length);
+			for (let i = 0; i < tiers.length; i++) {
+				assert(tiers[i].charAt(0) !== '(');
+			}
+			for (let i = format.customizableOptions.ports.min; i <= format.customizableOptions.ports.max; i++) {
+				game.options.ports = i;
+				await game.onNextRound();
+				assert(game.answers.length);
+				assert(game.ports.length);
+				for (let i = 0; i < game.answers.length; i++) {
+					assert(game.answers[i] in game.answerParts);
+				}
+			}
+
+			game.customPortTypes = ['Pokemon', 'Move'];
+			game.customPortCategories = ['egggroup', 'type'];
+			game.customPortDetails = ['Flying', 'Fire'];
+			await game.onNextRound();
+			assert(game.answers.length);
+			assert(game.ports.length);
+			assert(game.answers.join(',') === 'pelipperuption,swablueflare,pidoverheat,fletchinderuption');
+			for (let i = 0; i < game.answers.length; i++) {
+				assert(game.answers[i] in game.answerParts);
+			}
+		},
+	},
+};
+
 export const game: IGameFile<PoliwrathsPortmanteaus> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['poliwraths', 'ports'],
 	class: PoliwrathsPortmanteaus,
@@ -133,5 +171,6 @@ export const game: IGameFile<PoliwrathsPortmanteaus> = Games.copyTemplatePropert
 	minigameCommand: 'portmanteau',
 	minigameCommandAliases: ['port'],
 	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess a portmanteau (sharing 2-4 letters) that fits the given parameters!",
+	tests,
 	workers: [PortmanteausWorker],
 });

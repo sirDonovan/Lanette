@@ -24,6 +24,13 @@ interface IModeClass<T, U extends Game = Game> {
 	setOptions<V extends Game>(format: IGameFormat<V>, namePrefixes: string[], nameSuffixes: string[]): void;
 }
 
+interface IGameFileTestAttributes {
+	async?: boolean;
+	inputTarget?: string;
+}
+
+type GameFileTests<T extends Game = Game> = Dict<{attributes?: IGameFileTestAttributes, test: ((this: Mocha.Context, game: T, format: IGameFormat<T>) => void)}>;
+
 interface IGameFileProperties<T extends Game = Game> {
 	aliases?: string[];
 	commands?: Dict<ICommandDefinition<T>>;
@@ -41,6 +48,7 @@ interface IGameFileProperties<T extends Game = Game> {
 	minigameDescription?: string;
 	modes?: string[];
 	scriptedOnly?: boolean;
+	tests?: GameFileTests<T>;
 	variants?: (Partial<T> & IGameVariant)[];
 	workers?: IWorker[];
 }

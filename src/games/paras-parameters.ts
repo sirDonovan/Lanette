@@ -1,7 +1,8 @@
+import assert = require('assert');
+
 import { PRNG, PRNGSeed } from "../prng";
-import { IGameOptionValues } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile, IGameFormat } from "../types/games";
+import { GameFileTests, IGameFile, IGameFormat } from "../types/games";
 import * as ParametersWorker from './../workers/parameters';
 import { game as guessingGame, Guessing } from './templates/guessing';
 
@@ -120,6 +121,68 @@ export class ParasParameters extends Guessing {
 	}
 }
 
+const tests: GameFileTests<ParasParameters> = {
+	'should return proper values from Portmanteaus worker': {
+		attributes: {
+			async: true,
+		},
+		async test(game, format) {
+			this.timeout(15000);
+			ParametersWorker.init();
+			for (const gen in ParametersWorker.data.pokemon.gens) {
+				const types = Object.keys(ParametersWorker.data.pokemon.gens[gen].paramTypeDexes) as ParametersWorker.ParamType[];
+				for (let i = 0; i < types.length; i++) {
+					const type = types[i];
+					const keys = Object.keys(ParametersWorker.data.pokemon.gens[gen].paramTypeDexes[type]);
+					const checkTier = type === 'tier';
+					for (let i = 0; i < keys.length; i++) {
+						const key = Tools.toId(keys[i]);
+						assert(key in ParametersWorker.data.pokemon.gens[gen].paramTypePools[type], key + ' in ' + type);
+						if (checkTier) assert(keys[i].charAt(0) !== '(');
+					}
+				}
+			}
+
+			for (let i = format.customizableOptions.params.min; i <= format.customizableOptions.params.max; i++) {
+				format.inputOptions.params = i;
+				game.options.params = i;
+				await game.onNextRound();
+				assert(game.params.length);
+				assert(game.pokemon.length);
+			}
+			delete format.inputOptions.params;
+			delete game.options.params;
+
+			game.customParamTypes = ['move', 'egggroup'];
+			await game.onNextRound();
+			assert(game.params.length);
+			assert(game.pokemon.length);
+			assert(game.params[0].type === 'move');
+			assert(game.params[1].type === 'egggroup');
+			game.customParamTypes = null;
+
+			let intersection = await game.intersect(['rockclimb', 'steeltype']);
+			assert.strictEqual(intersection.pokemon.join(","), "durant,excadrill,ferroseed,ferrothorn,steelix");
+			intersection = await game.intersect(['poisontype', 'powerwhip']);
+			assert.strictEqual(intersection.pokemon.join(","), "bellsprout,bulbasaur,ivysaur,roselia,roserade,venusaur,victreebel,weepinbell");
+			intersection = await game.intersect(['gen1', 'psychic', 'psychictype']);
+			assert.strictEqual(intersection.pokemon.join(","), "abra,alakazam,drowzee,exeggcute,exeggutor,hypno,jynx,kadabra,mew,mewtwo,mrmime,slowbro,slowpoke,starmie");
+			intersection = await game.intersect(['firetype', 'thunder']);
+			assert.strictEqual(intersection.pokemon.join(","), "arceusfire,castformsunny,groudonprimal,hooh,marowakalola,marowakalolatotem,rotomheat,victini");
+			intersection = await game.intersect(['darktype', 'refresh']);
+			assert.strictEqual(intersection.pokemon.join(","), "arceusdark,carvanha,nuzleaf,sharpedo,shiftry,umbreon");
+			intersection = await game.intersect(['monstergroup', 'rockhead']);
+			assert.strictEqual(intersection.pokemon.join(","), "aggron,aron,cubone,lairon,marowak,marowakalola,rhydon,rhyhorn,tyrantrum");
+			// game.options.gen = 6;
+			// intersection = await game.intersect(['Weak to Rock Type', 'Earthquake']);
+			// assert.strictEqual(intersection.pokemon.join(","), "abomasnow,aerodactyl,altaria,arceusbug,arceusfire,arceusflying,arceusice,archen,archeops,armaldo,aurorus,avalugg,charizard,crustle,darmanitan,dragonite,dwebble,glalie,gyarados,hooh,lugia,magcargo,magmortar,mantine,mantyke,pineco,pinsir,rayquaza,regice,salamence,scolipede,sealeo,shuckle,spheal,torkoal,tropius,typhlosion,volcanion,walrein");
+			// intersection = await game.intersect(['Psycho Cut', 'Resists Fighting Type']);
+			// assert.strictEqual(intersection.pokemon.join(","), "alakazam,cresselia,drowzee,gallade,hypno,kadabra,medicham,meditite,mewtwo");
+			// delete game.options.gen;
+		},
+	},
+};
+
 export const game: IGameFile<ParasParameters> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['paras', 'params'],
 	class: ParasParameters,
@@ -135,6 +198,7 @@ export const game: IGameFile<ParasParameters> = Games.copyTemplateProperties(gue
 	minigameCommand: 'parameter',
 	minigameCommandAliases: ['param'],
 	minigameDescription: "Use ``/ds`` to verify and then ``" + Config.commandCharacter + "g`` to guess ``/ds`` parameters that give the following Pokemon!",
+	tests,
 	variants: [
 		{
 			name: "Paras' Parameters Survival",
