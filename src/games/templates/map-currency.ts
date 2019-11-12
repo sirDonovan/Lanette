@@ -48,4 +48,4 @@ export abstract class MapCurrencyGame extends MapGame {
 	}
 }
 
-export const game: IGameTemplateFile<MapCurrencyGame> = Object.assign({}, mapGame);
+export const game = Tools.deepClone(mapGame) as IGameTemplateFile<MapCurrencyGame>;

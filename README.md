@@ -45,6 +45,7 @@ If possible, it is best to use [Visual Studio Code](https://code.visualstudio.co
 * Quinton Lee ([@sirDonovan](https://github.com/sirDonovan)) - Lead developer
 * [Contributors](https://github.com/sirDonovan/Lanette/graphs/contributors)
 * [Pokemon Showdown](https://github.com/Zarel/Pokemon-Showdown)
+* [ts-essentials](https://github.com/krzkaczor/ts-essentials)
 
 ## License
 Lanette is distributed under the terms of the [MIT License](https://github.com/sirDonovan/Lanette/blob/master/LICENSE).

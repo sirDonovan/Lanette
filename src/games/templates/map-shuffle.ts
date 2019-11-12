@@ -54,4 +54,4 @@ export abstract class MapShuffleGame extends MapGame {
 	}
 }
 
-export const game: IGameTemplateFile<MapShuffleGame> = Object.assign({}, mapGame);
+export const game = Tools.deepClone(mapGame) as IGameTemplateFile<MapShuffleGame>;

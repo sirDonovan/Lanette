@@ -412,6 +412,6 @@ const commands: Dict<ICommandDefinition<CardMatching>> = {
 	},
 };
 
-export const game: IGameTemplateFile<CardMatching> = Object.assign({}, cardGame, {
+export const game: IGameTemplateFile<CardMatching> = Object.assign(Tools.deepClone(cardGame), {
 	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
 });

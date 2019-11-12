@@ -6,9 +6,10 @@ import { CommandErrorArray } from '../../command-parser';
 import { ParasParameters } from '../../games/paras-parameters';
 import { PoliwrathsPortmanteaus } from '../../games/poliwraths-portmanteaus';
 import { PRNGSeed } from '../../prng';
-import { IGameFile, IGameFileComputed, IGameFormat, IGameMode, IGameModeFile, IUserHostedComputed, IUserHostedFormat } from '../../types/games';
 import * as ParametersWorker from '../../workers/parameters';
 import * as PortmanteausWorker from '../../workers/portmanteaus';
+import { Game } from '../../room-game';
+import { GameCommandReturnType, IGameFile, IGameFormat, IGameFormatData, IGameMode, IGameModeFile, IUserHostedComputed, IUserHostedFormat } from '../../types/games';
 
 function testMascots(format: IGameFormat | IUserHostedFormat) {
 	if (format.mascot) {
@@ -28,7 +29,7 @@ describe("Games", () => {
 	it('should not overwrite data from other games', () => {
 		const aliases: Dict<string> = {};
 		const commandNames: string[] = Object.keys(Games.sharedCommands);
-		const formats: Dict<IGameFileComputed> = {};
+		const formats: Dict<IGameFormatData> = {};
 		const minigameCommandNames: Dict<{aliases: string[], format: string}> = {};
 		const modes: Dict<IGameMode> = {};
 		const userHostedAliases: Dict<string> = {};
@@ -41,7 +42,7 @@ describe("Games", () => {
 			const id = Tools.toId(file.name);
 			assert(!(id in formats), "'" + id + "' is the name of another game");
 			let commands;
-			if (file.commands) commands = CommandParser.loadCommands(file.commands);
+			if (file.commands) commands = CommandParser.loadCommands<Game, GameCommandReturnType>(Tools.deepClone(file.commands));
 			formats[id] = Object.assign({}, file, {commands, id});
 		}
 

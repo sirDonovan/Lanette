@@ -6,7 +6,7 @@ import { UserHosted } from './games/internal/user-hosted';
 import { PRNG, PRNGSeed } from './prng';
 import { DefaultGameOption, Game, IGameOptionValues } from "./room-game";
 import { Room } from "./rooms";
-import { IGameFile, IGameFileComputed, IGameFormat, IGameFormatComputed, IGameMode, IGameModeFile, IGameTemplateFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFile, IUserHostedFormat, IUserHostedFormatComputed, UserHostedCustomizable } from './types/games';
+import { GameCommandReturnType, IGameFile, IGameFormat, IGameFormatComputed, IGameFormatData, IGameMode, IGameModeFile, IGameTemplateFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFile, IUserHostedFormat, IUserHostedFormatComputed, UserHostedCustomizable } from './types/games';
 import { IWorker } from './types/global-types';
 import { User } from './users';
 
@@ -46,9 +46,9 @@ export class Games {
 	readonly aliases: Dict<string> = {};
 	autoCreateTimers: Dict<NodeJS.Timer> = {};
 	readonly commands: typeof sharedCommands = Object.assign(Object.create(null), sharedCommands);
-	readonly formats: Dict<IGameFileComputed> = {};
+	readonly formats: Dict<DeepReadonly<IGameFormatData>> = {};
 	// @ts-ignore - set in loadFormats()
-	readonly internalFormats: KeyedDict<IInternalGames, IGameFileComputed> = {};
+	readonly internalFormats: KeyedDict<IInternalGames, DeepReadonly<IGameFormatData>> = {};
 	lastGames: Dict<number> = {};
 	lastScriptedGames: Dict<number> = {};
 	lastUserHostedGames: Dict<number> = {};
@@ -75,10 +75,7 @@ export class Games {
 	}
 
 	copyTemplateProperties<T extends Game, U extends Game>(template: IGameTemplateFile<T>, game: IGameFile<U>): IGameFile<U> {
-		const copied = Object.assign({}, template, game);
-		if (template.commands && !game.commands) copied.commands = Tools.deepClone(copied.commands);
-
-		return copied;
+		return Object.assign(Tools.deepClone(template), game);
 	}
 
 	loadFormats() {
@@ -88,7 +85,7 @@ export class Games {
 			const id = Tools.toId(file.name);
 			let commands;
 			if (file.commands) {
-				commands = CommandParser.loadCommands(file.commands);
+				commands = CommandParser.loadCommands<Game, GameCommandReturnType>(Tools.deepClone(file.commands));
 				for (const i in commands) {
 					if (!(i in this.commands)) this.commands[i] = commands[i];
 				}
@@ -102,8 +99,19 @@ export class Games {
 			const file = require(path.join(gamesDirectory, gameFiles[i])).game as IGameFile;
 			const id = Tools.toId(file.name);
 			let commands;
-			if (file.commands) commands = CommandParser.loadCommands(file.commands);
-			this.formats[id] = Object.assign({}, file, {commands, id});
+			if (file.commands) commands = CommandParser.loadCommands<Game, GameCommandReturnType>(Tools.deepClone(file.commands));
+			let variants;
+			if (file.variants) {
+				variants = Tools.deepClone(file.variants);
+				for (let i = 0; i < variants.length; i++) {
+					if (variants[i].variantAliases) {
+						variants[i].variantAliases = variants[i].variantAliases!.map(x => Tools.toId(x));
+					}
+				}
+			}
+			let modes;
+			if (file.modes) modes = file.modes.map(x => Tools.toId(x));
+			this.formats[id] = Object.assign({}, file, {commands, id, modes, variants});
 		}
 
 		const modesDirectory = path.join(gamesDirectory, "modes");
@@ -166,7 +174,6 @@ export class Games {
 					if (!(id in this.aliases)) this.aliases[id] = format.name + "," + format.variants[i].variant;
 					let variantIds: string[] = [Tools.toId(format.variants[i].variant)];
 					if (format.variants[i].variantAliases) {
-						format.variants[i].variantAliases = format.variants[i].variantAliases!.map(x => Tools.toId(x));
 						variantIds = variantIds.concat(format.variants[i].variantAliases!);
 					}
 
@@ -176,12 +183,6 @@ export class Games {
 							if (!(alias in this.aliases)) this.aliases[alias] = format.name + "," + format.variants[i].variant;
 						}
 					}
-				}
-			}
-
-			if (format.modes) {
-				for (let i = 0; i < format.modes.length; i++) {
-					format.modes[i] = Tools.toId(format.modes[i]);
 				}
 			}
 
@@ -432,7 +433,7 @@ export class Games {
 	}
 
 	getInternalFormat(id: InternalGameKey): IGameFormat {
-		const formatData = this.internalFormats[id];
+		const formatData = Tools.deepClone(this.internalFormats[id]);
 		const formatComputed: IGameFormatComputed = {
 			effectType: "GameFormat",
 			inputOptions: {},

@@ -2,7 +2,7 @@ import { CommandsDict } from "./command-parser";
 import { PRNG, PRNGSeed } from "./prng";
 import { Activity, Player, PlayerList } from "./room-activity";
 import { Room } from "./rooms";
-import { IGameFileComputed, IGameFormat, IGameMode, IGameVariant, IUserHostedFormat } from "./types/games";
+import { IGameFormat, IGameMode, IGameVariant, IUserHostedFormat } from "./types/games";
 import { IPokemonCopy } from "./types/in-game-data-types";
 import { User } from "./users";
 
@@ -183,7 +183,10 @@ export class Game extends Activity {
 		} else if (format.mascots) {
 			this.mascot = Dex.getPokemonCopy(this.sampleOne(format.mascots));
 		}
-		if (format.variant) Object.assign(this, format.variant);
+		if (format.variant) {
+			delete format.variant.name;
+			Object.assign(this, format.variant);
+		}
 		if (format.mode) format.mode.initialize(this);
 		if (format.workers) this.usesWorkers = true;
 

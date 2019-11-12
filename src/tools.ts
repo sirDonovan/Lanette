@@ -287,18 +287,20 @@ export class Tools {
 		return id && id.length <= maxUsernameLength ? true : false;
 	}
 
-	deepClone<T>(obj: T): T {
-		if (obj === null || typeof obj !== 'object') return obj;
+	deepClone<T>(obj: T): DeepWritable<T> {
+		if (obj === null || obj === undefined || typeof obj !== 'object') return obj as DeepWritable<T>;
 		if (Array.isArray(obj)) {
-			const clone = obj.slice() as T & any[];
+			const clone = obj.slice() as DeepWritable<T & any[]>;
 			for (let i = 0; i < obj.length; i++) {
 				clone[i] = this.deepClone(obj[i]);
 			}
 			return clone;
 		}
-		const clone: T = Object.create(Object.getPrototypeOf(obj));
+
+		const clone: DeepWritable<T> = Object.create(Object.getPrototypeOf(obj));
 		const keys = Object.keys(obj) as (keyof T)[];
 		for (let i = 0; i < keys.length; i++) {
+			// @ts-ignore
 			clone[keys[i]] = this.deepClone(obj[keys[i]]);
 		}
 		return clone;
