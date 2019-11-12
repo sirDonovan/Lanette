@@ -1020,8 +1020,8 @@ export class Client {
 	}
 
 	send(message: string) {
-		if (!message || !this.connection || !this.connection.connected) return;
-		if (this.sendTimeout) {
+		if (!message) return;
+		if (!this.connection || !this.connection.connected || this.sendTimeout) {
 			this.sendQueue.push(message);
 			return;
 		}
