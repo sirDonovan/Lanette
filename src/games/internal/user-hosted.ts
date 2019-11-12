@@ -193,7 +193,7 @@ export const game: IUserHostedFile<UserHosted> = {
 		},
 		{
 			name: "Letter Getter",
-			description: "In this game, players must complete the phrase with the given letters and (optional) numbers. Example: __26 L of the A__ would be __26 Letters of the Alphabet__.",
+			description: "In this game, players must complete the phrase with the given letters and (optional) numbers. Example: <i>26 L of the A</i> would be <i>26 Letters of the Alphabet</i>.",
 			freejoin: true,
 		},
 		{
