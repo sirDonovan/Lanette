@@ -3,6 +3,8 @@ import { Player } from '../../room-activity';
 import { Game } from '../../room-game';
 import { IGameTemplateFile } from '../../types/games';
 
+const MINIGAME_BITS = 25;
+
 export abstract class Guessing extends Game {
 	answers: string[] = [];
 	canGuess: boolean = false;
@@ -116,6 +118,7 @@ const commands: Dict<ICommandDefinition<Guessing>> = {
 			this.points.set(player, points);
 			if (this.isMiniGame) {
 				this.say((this.pm ? "You are" : "**" + user.name + "** is") + " correct! " + this.getAnswers(answer));
+				this.addBits(user, MINIGAME_BITS);
 				this.end();
 				return true;
 			} else {
