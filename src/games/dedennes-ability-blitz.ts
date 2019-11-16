@@ -40,7 +40,7 @@ class DedennesAbilityBlitz extends Game {
 	highestCatch: Player | null = null;
 
 	onSignups() {
-		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
+		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
 	}
 
 	generateAbilities() {

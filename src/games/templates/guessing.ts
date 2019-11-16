@@ -20,7 +20,7 @@ export abstract class Guessing extends Game {
 		if (this.isMiniGame) {
 			this.nextRound();
 		} else {
-			if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
+			if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
 		}
 	}
 
@@ -121,7 +121,7 @@ const commands: Dict<ICommandDefinition<Guessing>> = {
 			} else {
 				// this.markFirstAction(player);
 				// if (this.id === 'zygardesorders' && this.revealedLetters === 1) Games.unlockAchievement(this.room, player, "Tall Order", this);
-				if (points >= this.options.points) {
+				if (points >= this.format.options.points) {
 					let text = '**' + player.name + '** wins' + (this.parentGame ? '' : ' the game') + '! ' + this.getAnswers(answer, true);
 					if (text.length > 300) {
 						text = '**' + player.name + '** wins' + (this.parentGame ? '' : ' the game') + '! A possible answer was __' + answer + '__.';
@@ -129,7 +129,7 @@ const commands: Dict<ICommandDefinition<Guessing>> = {
 					this.say(text);
 					/*
 					if (this.firstAnswer === player && !this.parentGame) {
-						if (this.options.points >= 5) {
+						if (this.format.options.points >= 5) {
 							if (this.id === 'metangsanagrams') {
 								Games.unlockAchievement(this.room, player, "wordmaster", this);
 							} else if (this.id === 'slowkingstrivia') {
@@ -142,7 +142,7 @@ const commands: Dict<ICommandDefinition<Guessing>> = {
 								Games.unlockAchievement(this.room, player, 'Skill Swapper', this);
 							}
 						}
-						if (this.options.points >= 3) {
+						if (this.format.options.points >= 3) {
 							if (this.id === 'whosthatpokemon') {
 								Games.unlockAchievement(this.room, player, "Pokemon Researcher", this);
 							} else if (this.id === 'whatsthatmove') {

@@ -366,8 +366,8 @@ export class Games {
 			defaultOptions = formatData.defaultOptions || [];
 		}
 
-		const format = Object.assign(formatData, formatComputed, {customizableOptions, defaultOptions});
-		Game.setOptions(format, mode, variant);
+		const format = Object.assign(formatData, formatComputed, {customizableOptions, defaultOptions, options: {}});
+		format.options = Game.setOptions(format, mode, variant);
 
 		return format;
 	}
@@ -425,6 +425,8 @@ export class Games {
 			effectType: "UserHostedFormat",
 			inputOptions: {},
 			inputTarget,
+			nameWithOptions: '',
+			options: {},
 		};
 
 		return Object.assign(formatData, formatComputed);
@@ -444,7 +446,7 @@ export class Games {
 			inputTarget: id,
 			nameWithOptions: '',
 		};
-		return Object.assign({}, formatData, formatComputed, {customizableOptions: formatData.customizableOptions || {}, defaultOptions: formatData.defaultOptions || []});
+		return Object.assign({}, formatData, formatComputed, {customizableOptions: formatData.customizableOptions || {}, defaultOptions: formatData.defaultOptions || [], options: {}});
 	}
 
 	getRandomFormat(room: Room): IGameFormat {
@@ -491,7 +493,7 @@ export class Games {
 
 		if (isMinigame) {
 			room.game.isMiniGame = true;
-			if (room.game.options.points) room.game.options.points = 1;
+			if (format.options.points) format.options.points = 1;
 		}
 
 		return room.game;
@@ -501,7 +503,7 @@ export class Games {
 		if (room.id in this.autoCreateTimers) clearTimeout(this.autoCreateTimers[room.id]);
 
 		room.userHostedGame = new format.class(room);
-		room.userHostedGame.initialize((format as unknown) as IGameFormat);
+		room.userHostedGame.initialize(format);
 		room.userHostedGame.setHost(host);
 
 		return room.userHostedGame;

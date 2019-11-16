@@ -59,7 +59,7 @@ class TrevenantsTrickOrTreat extends Game {
 	}
 
 	onSignups() {
-		this.options.points = 500;
+		this.format.options.points = 500;
 		this.say("Use ``" + Config.commandCharacter + "trick [move]`` in PMs to guess moves only one Pokemon in the grid can learn.");
 		this.generateNewDisplay();
 		this.timeout = setTimeout(() => this.generateNewDisplay(), 60 * 1000);
@@ -139,7 +139,7 @@ const commands: Dict<ICommandDefinition<TrevenantsTrickOrTreat>> = {
 			const totalPoints = points + earnedPoints;
 			this.points.set(player, totalPoints);
 			player.say("You earned **" + earnedPoints + "** points for " + move.name + "! Your total is now **" + totalPoints + "**.");
-			if (totalPoints >= this.options.points) {
+			if (totalPoints >= this.format.options.points) {
 				this.winners.set(player, totalPoints);
 				for (const i in this.players) {
 					if (this.players[i].eliminated) continue;

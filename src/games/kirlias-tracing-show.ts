@@ -31,7 +31,7 @@ class KirliasTracingShow extends Guessing {
 	lastPokemon: string = '';
 
 	onSignups() {
-		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
 	async setAnswers() {

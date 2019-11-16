@@ -101,7 +101,7 @@ class TropiusBerryPicking extends Game {
 	roundTime: number = 10 * 1000;
 
 	onSignups() {
-		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
 	onStart() {
@@ -110,7 +110,7 @@ class TropiusBerryPicking extends Game {
 
 	onNextRound() {
 		this.canEat = false;
-		if (!this.options.freejoin) {
+		if (!this.format.options.freejoin) {
 			if (this.round > 1) {
 				if (this.canLateJoin) this.canLateJoin = false;
 				if (this.roundTime > 3000) this.roundTime -= 500;
@@ -191,7 +191,7 @@ class TropiusBerryPicking extends Game {
 			this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
 		});
 
-		if (this.options.freejoin) {
+		if (this.format.options.freejoin) {
 			this.timeout = setTimeout(() => this.say(smeargleText), 5000);
 		} else {
 			const html = this.getRoundHtml(this.getPlayerNames);
@@ -204,7 +204,7 @@ class TropiusBerryPicking extends Game {
 	}
 
 	onEnd() {
-		if (this.options.freejoin) return;
+		if (this.format.options.freejoin) return;
 		const base = Math.min(500, 100 * this.round);
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
@@ -221,19 +221,19 @@ class TropiusBerryPicking extends Game {
 const commands: Dict<ICommandDefinition<TropiusBerryPicking>> = {
 	eat: {
 		command(target, room, user) {
-			if (!this.canEat || (!this.options.freejoin && (!this.players[user.id] || this.players[user.id].eliminated))) return false;
+			if (!this.canEat || (!this.format.options.freejoin && (!this.players[user.id] || this.players[user.id].eliminated))) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 			const id = Tools.toId(target);
 			const berry = berries[id] || berries[id + 'berry'];
 			if (!berry) return false;
-			if (this.options.freejoin) {
+			if (this.format.options.freejoin) {
 				if (berry.effect !== this.roundEffect.effect) return false;
 				if (this.timeout) clearTimeout(this.timeout);
 				this.canEat = false;
 				let points = this.points.get(player) || 0;
 				points += 1;
 				this.points.set(player, points);
-				if (points === this.options.points) {
+				if (points === this.format.options.points) {
 					this.say('**' + player.name + '** wins' + (this.parentGame ? '' : ' the game') + '! A possible answer was __' + berry.name + '__.');
 					this.winners.set(player, 1);
 					this.convertPointsToBits(50);

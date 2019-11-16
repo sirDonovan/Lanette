@@ -44,10 +44,6 @@ export abstract class Chain extends Game {
 	}
 
 	onSignups() {
-		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
-	}
-
-	onInitialize() {
 		const pool: Dict<Link> = {};
 		const keys = [];
 		if (this.variant) {
@@ -120,6 +116,8 @@ export abstract class Chain extends Game {
 		for (const i in linkEndsByName) {
 			this.linkEnds[i] = linkEndsByName[i].length;
 		}
+
+		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
 	}
 
 	onStart() {
@@ -184,7 +182,7 @@ export abstract class Chain extends Game {
 
 	onNextRound() {
 		let text;
-		if (this.options.freejoin) {
+		if (this.format.options.freejoin) {
 			this.resetLinkCounts();
 			this.setLink();
 			text = "The " + this.mascot!.species + " spelled out **" + this.currentLink.name + "**.";
@@ -238,7 +236,7 @@ export abstract class Chain extends Game {
 	}
 
 	onEnd() {
-		if (this.options.freejoin) return;
+		if (this.format.options.freejoin) return;
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
@@ -266,7 +264,7 @@ export abstract class Chain extends Game {
 const commands: Dict<ICommandDefinition<Chain>> = {
 	guess: {
 		command(target, room, user) {
-			if (this.options.freejoin) {
+			if (this.format.options.freejoin) {
 				if ((!this.targetLinkStarts.length && !this.targetLinkEnds.length) || (this.players[user.id] && this.players[user.id].eliminated)) return false;
 			} else {
 				if (this.players[user.id] !== this.currentPlayer) return false;
@@ -275,7 +273,7 @@ const commands: Dict<ICommandDefinition<Chain>> = {
 			if (this.roundLinks[guess]) return false;
 			const possibleLink: Link | undefined = this.pool[guess];
 			if (!possibleLink) {
-				if (!this.options.freejoin) this.say("'" + guess + "' is not a valid " + this.linksType + ".");
+				if (!this.format.options.freejoin) this.say("'" + guess + "' is not a valid " + this.linksType + ".");
 				return false;
 			}
 			const linkStarts = this.getLinkStarts(possibleLink);
@@ -298,14 +296,14 @@ const commands: Dict<ICommandDefinition<Chain>> = {
 			}
 			if (!match) return false;
 			if (this.timeout) clearTimeout(this.timeout);
-			if (this.options.freejoin) {
+			if (this.format.options.freejoin) {
 				this.targetLinkStarts = [];
 				this.targetLinkEnds = [];
 				const player = this.createPlayer(user) || this.players[user.id];
 				let points = this.points.get(player) || 0;
 				points++;
 				this.points.set(player, points);
-				if (points === this.options.points) {
+				if (points === this.format.options.points) {
 					this.say('**' + player.name + '** wins' + (this.parentGame ? '' : ' the game') + '! A possible answer was __' + possibleLink.name + '__.');
 					this.winners.set(player, 1);
 					this.convertPointsToBits(50);

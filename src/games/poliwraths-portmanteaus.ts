@@ -2,10 +2,11 @@ import assert = require('assert');
 
 import { PRNG, PRNGSeed } from "../prng";
 import { Room } from "../rooms";
-import { GameFileTests, IGameFile } from "../types/games";
+import { GameFileTests, IGameFile, IGameFormat } from "../types/games";
 import * as PortmanteausWorker from './../workers/portmanteaus';
 import { game as guessingGame, Guessing } from './templates/guessing';
 
+const BASE_NUMBER_OF_PORTS = 2;
 const name = "Poliwrath's Portmanteaus";
 let loadedData = false;
 
@@ -20,7 +21,6 @@ export class PoliwrathsPortmanteaus extends Guessing {
 	}
 
 	answerParts: Dict<string[]> = {};
-	baseNumberOfPorts: number = 2;
 	customPortCategories: string[] | null = null;
 	customPortDetails: string[] | null = null;
 	customPortTypes: PortmanteausWorker.PoolType[] | null = null;
@@ -30,7 +30,15 @@ export class PoliwrathsPortmanteaus extends Guessing {
 	roundTime: number = 5 * 60 * 1000;
 
 	async setAnswers() {
-		const numberOfPorts = this.customPortTypes ? this.customPortTypes.length : this.format.inputOptions.ports ? this.options.ports : this.baseNumberOfPorts + this.random(3);
+		let numberOfPorts: number;
+		if (this.customPortTypes) {
+			numberOfPorts = this.customPortTypes.length;
+		} else if (this.format.inputOptions.ports) {
+			numberOfPorts = this.format.options.ports;
+		} else {
+			numberOfPorts = BASE_NUMBER_OF_PORTS;
+			if ((this.format as IGameFormat).customizableOptions.ports) numberOfPorts += this.random((this.format as IGameFormat).customizableOptions.ports.max - BASE_NUMBER_OF_PORTS + 1);
+		}
 		const result = await PortmanteausWorker.search({
 			customPortCategories: this.customPortCategories,
 			customPortDetails: this.customPortDetails,
@@ -133,7 +141,7 @@ const tests: GameFileTests<PoliwrathsPortmanteaus> = {
 				assert(tiers[i].charAt(0) !== '(');
 			}
 			for (let i = format.customizableOptions.ports.min; i <= format.customizableOptions.ports.max; i++) {
-				game.options.ports = i;
+				game.format.options.ports = i;
 				await game.onNextRound();
 				assert(game.answers.length);
 				assert(game.ports.length);
@@ -160,7 +168,7 @@ export const game: IGameFile<PoliwrathsPortmanteaus> = Games.copyTemplatePropert
 	aliases: ['poliwraths', 'ports'],
 	class: PoliwrathsPortmanteaus,
 	customizableOptions: {
-		ports: {min: 2, base: 2, max: 4},
+		ports: {min: 2, base: BASE_NUMBER_OF_PORTS, max: 4},
 		points: {min: 5, base: 5, max: 10},
 	},
 	description: "Players think of portmanteaus that share 2-4 letters and fit the given parameters!",

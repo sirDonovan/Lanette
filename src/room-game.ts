@@ -37,7 +37,7 @@ const defaultOptionValues: Dict<IGameOptionValues> = {
 };
 
 export class Game extends Activity {
-	static setOptions<T extends Game>(format: IGameFormat<T>, mode: IGameMode | undefined, variant: IGameVariant | undefined) {
+	static setOptions<T extends Game>(format: IGameFormat<T>, mode: IGameMode | undefined, variant: IGameVariant | undefined): Dict<number> {
 		const namePrefixes: string[] = [];
 		const nameSuffixes: string[] = [];
 		if (format.freejoin || (variant && variant.freejoin)) {
@@ -65,8 +65,9 @@ export class Game extends Activity {
 			};
 		}
 
+		const options: Dict<number> = {};
 		for (const i in format.customizableOptions) {
-			if (!(i in format.inputOptions)) format.inputOptions[i] = format.customizableOptions[i].base;
+			options[i] = format.customizableOptions[i].base;
 		}
 
 		const customizedOptions: Dict<number> = {};
@@ -83,6 +84,7 @@ export class Game extends Activity {
 				format.inputOptions[i] = format.customizableOptions[i].max;
 			}
 
+			options[i] = format.inputOptions[i];
 			customizedOptions[i] = format.inputOptions[i];
 		}
 
@@ -103,6 +105,8 @@ export class Game extends Activity {
 		if (nameSuffixes.length) nameWithOptions += " " + nameSuffixes.join(" ");
 
 		format.nameWithOptions = nameWithOptions;
+
+		return options;
 	}
 
 	readonly activityType: string = 'game';
@@ -116,7 +120,6 @@ export class Game extends Activity {
 	readonly maxBits: number = 1000;
 	readonly minPlayers: number = 2;
 	notifyRankSignups: boolean = false;
-	options: Dict<number> = Object.create(null);
 	parentGame: Game | null = null;
 	prng: PRNG = new PRNG();
 	readonly round: number = 0;
@@ -168,15 +171,19 @@ export class Game extends Activity {
 		return Tools.shuffle(array, this.prng);
 	}
 
-	initialize(format: IGameFormat) {
+	initialize(format: IGameFormat | IUserHostedFormat) {
 		this.format = format;
 		this.name = format.nameWithOptions || format.name;
 		this.id = format.id;
 		this.uhtmlBaseName = 'scripted-' + format.id;
 		this.description = format.description;
-		this.options = format.inputOptions;
 		if (this.maxPlayers) this.playerCap = this.maxPlayers;
 
+		this.onInitialize();
+	}
+
+	onInitialize() {
+		const format = this.format as IGameFormat;
 		if (format.commands) Object.assign(this.commands, format.commands);
 		if (format.commandDescriptions) this.commandDescriptions = format.commandDescriptions;
 		if (format.mascot) {
@@ -190,14 +197,12 @@ export class Game extends Activity {
 		}
 		if (format.mode) format.mode.initialize(this);
 		if (format.workers) this.usesWorkers = true;
-
-		if (this.onInitialize) this.onInitialize();
 	}
 
 	deallocate(forceEnd: boolean) {
 		if (this.timeout) clearTimeout(this.timeout);
 		if (this.startTimer) clearTimeout(this.startTimer);
-		if ((!this.started || this.options.freejoin) && this.notifyRankSignups) this.sayCommand("/notifyoffrank all");
+		if ((!this.started || this.format.options.freejoin) && this.notifyRankSignups) this.sayCommand("/notifyoffrank all");
 		if (!this.ended) this.ended = true;
 		this.cleanupMessageListeners();
 		if (this.onDeallocate) this.onDeallocate(forceEnd);
@@ -230,7 +235,7 @@ export class Game extends Activity {
 		this.signupsTime = Date.now();
 		if (this.shinyMascot) this.say(this.mascot!.name + " is shiny so bits will be doubled!");
 		if (this.onSignups) this.onSignups();
-		if (this.options.freejoin) {
+		if (this.format.options.freejoin) {
 			this.started = true;
 			this.startTime = Date.now();
 		} else if (!this.internalGame && !this.isUserHosted) {
@@ -287,7 +292,7 @@ export class Game extends Activity {
 
 		if (!players) players = this.getRemainingPlayers();
 		const remainingPlayerCount = this.getRemainingPlayerCount(players);
-		if (remainingPlayerCount > 0) html += "<br />" + (!this.options.freejoin ? "Remaining players" : "Players") + " (" + remainingPlayerCount + "): " + getAttributes.call(this, players);
+		if (remainingPlayerCount > 0) html += "<br />" + (!this.format.options.freejoin ? "Remaining players" : "Players") + " (" + remainingPlayerCount + "): " + getAttributes.call(this, players);
 		html += "</div>";
 
 		return html;
@@ -342,8 +347,8 @@ export class Game extends Activity {
 		this.deallocate(false);
 	}
 
-	addPlayer(user: User | string): Player | void {
-		if (this.options.freejoin || this.isMiniGame) {
+	addPlayer(user: User | string): Player | undefined {
+		if (this.format.options.freejoin || this.isMiniGame) {
 			if (typeof user !== 'string') user.say("This game does not require you to join.");
 			return;
 		}
@@ -375,7 +380,7 @@ export class Game extends Activity {
 	removePlayer(user: User | string, silent?: boolean, failedLateJoin?: boolean) {
 		if (this.isMiniGame) return;
 		const player = this.destroyPlayer(user, failedLateJoin);
-		if (this.options.freejoin || !player) return;
+		if (this.format.options.freejoin || !player) return;
 		if (this.commandsListeners.length) {
 			const commandsListeners = this.commandsListeners.slice();
 			for (let i = 0; i < commandsListeners.length; i++) {
@@ -528,7 +533,7 @@ export class Game extends Activity {
 		if (commandDescriptions.length) {
 			html += "<br /><b>Command" + (commandDescriptions.length > 1 ? "s" : "") + "</b>: " + commandDescriptions.map(x => "<code>" + x + "</code>").join(", ");
 		}
-		if (this.options.freejoin) {
+		if (this.format.options.freejoin) {
 			html += "<br /><br /><b>This game is free-join!</b>";
 		} else {
 			html += "<br /><br /><b>Players (" + this.playerCount + ")</b>: " + this.getPlayerNames();
@@ -627,7 +632,6 @@ export class Game extends Activity {
 	onAfterDeallocate?(forceEnd: boolean): void;
 	onChildEnd?(winners: Map<Player, number>): void;
 	onDeallocate?(forceEnd: boolean): void;
-	onInitialize?(): void;
 	onMaxRound?(): void;
 	onNextRound?(): void;
 	onRemovePlayer?(player: Player): void;

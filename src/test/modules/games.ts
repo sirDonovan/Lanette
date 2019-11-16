@@ -223,6 +223,9 @@ describe("Games", () => {
 		assert(Games.getExistingFormat('trivia, survival').nameWithOptions === "Slowking's Trivia Survival");
 		assert(Games.getExistingFormat('trivia, abilities, survival').nameWithOptions === "Slowking's Ability Trivia Survival");
 
+		assert(Games.getExistingFormat('params,params:3').inputOptions.params === 3);
+		assert(!Games.getExistingFormat('params').inputOptions.params);
+
 		assert(!Array.isArray(Games.getUserHostedFormat(Object.keys(Games.userHostedFormats)[0])));
 		assert(Games.getExistingUserHostedFormat('floettes forum game, name: Mocha Test Game').name === 'Mocha Test Game');
 

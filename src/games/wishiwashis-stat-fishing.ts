@@ -44,7 +44,7 @@ class WishiwashisStatFishing extends Game {
 	stats: string[] = ['hp', 'atk', 'def', 'spa', 'spd', 'spe', 'bst'];
 
 	onSignups() {
-		if (this.options.freejoin) {
+		if (this.format.options.freejoin) {
 			this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
 		}
 	}

@@ -18,7 +18,7 @@ class NinjasksCorners extends Game {
 	roundTravels = new Map<Player, string>();
 
 	onSignups() {
-		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
+		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
 	}
 
 	onStart() {
@@ -27,7 +27,7 @@ class NinjasksCorners extends Game {
 
 	onNextRound() {
 		this.canTravel = false;
-		if (this.round > 1 && !this.options.freejoin) {
+		if (this.round > 1 && !this.format.options.freejoin) {
 			for (const i in this.players) {
 				if (this.players[i].eliminated) continue;
 				if (this.roundTravels.get(this.players[i]) !== this.color) this.eliminatePlayer(this.players[i], "You did not travel to the corner!");
@@ -52,8 +52,8 @@ class NinjasksCorners extends Game {
 		this.color = Tools.toId(color);
 		this.lastColor = color;
 		this.roundTravels.clear();
-		if (!this.options.freejoin && this.roundTime > this.minRoundTime) this.roundTime -= 250;
-		const html = this.getRoundHtml(this.options.freejoin ? this.getPlayerPoints : this.getPlayerNames);
+		if (!this.format.options.freejoin && this.roundTime > this.minRoundTime) this.roundTime -= 250;
+		const html = this.getRoundHtml(this.format.options.freejoin ? this.getPlayerPoints : this.getPlayerNames);
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			this.timeout = setTimeout(() => {
@@ -85,7 +85,7 @@ const commands: Dict<ICommandDefinition<NinjasksCorners>> = {
 	travel: {
 		command(target, room, user) {
 			if (!this.canTravel) return false;
-			if (this.options.freejoin) {
+			if (this.format.options.freejoin) {
 				if (user.id in this.players) {
 					if (this.players[user.id].eliminated) return false;
 				} else {
@@ -97,12 +97,12 @@ const commands: Dict<ICommandDefinition<NinjasksCorners>> = {
 			const player = this.players[user.id];
 			const color = Tools.toId(target);
 			if (!color) return false;
-			if (this.options.freejoin) {
+			if (this.format.options.freejoin) {
 				if (color !== this.color) return false;
 				let points = this.points.get(player) || 0;
 				points++;
 				this.points.set(player, points);
-				if (points === this.options.points) {
+				if (points === this.format.options.points) {
 					for (const i in this.players) {
 						if (this.players[i] !== player) this.players[i].eliminated = true;
 					}

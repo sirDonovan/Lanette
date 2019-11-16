@@ -58,11 +58,11 @@ class AxewsBattleCards extends CardMatching {
 		if (!this.deckPool.length) this.createDeckPool();
 		const pokedex = this.shuffle(this.deckPool);
 		const deck: CardType[] = [];
-		const minimumDeck = ((this.maxPlayers + 1) * this.options.cards);
+		const minimumDeck = ((this.maxPlayers + 1) * this.format.options.cards);
 		for (let i = 0; i < pokedex.length; i++) {
 			const pokemon = pokedex[i];
 			const weaknesses = Dex.getWeaknesses(pokemon).join(",");
-			if (weaknesses in weaknessCounts && weaknessCounts[weaknesses] >= this.options.cards) continue;
+			if (weaknesses in weaknessCounts && weaknessCounts[weaknesses] >= this.format.options.cards) continue;
 			if (!(weaknesses in weaknessCounts)) weaknessCounts[weaknesses] = 0;
 			weaknessCounts[weaknesses]++;
 

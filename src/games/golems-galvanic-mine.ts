@@ -30,8 +30,8 @@ class GolemsGalvanicMine extends Game {
 	roundTime: number = 7000;
 
 	onSignups() {
-		if (!this.format.inputOptions.points) this.options.points = 30;
-		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 10000);
+		if (!this.format.inputOptions.points) this.format.options.points = 30;
+		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 10000);
 	}
 
 	onNextRound() {
@@ -73,7 +73,7 @@ class GolemsGalvanicMine extends Game {
 		this.roundMines.forEach((value, player) => {
 			let points = this.points.get(player) || 0;
 			points += value;
-			if (points >= this.options.points) {
+			if (points >= this.format.options.points) {
 				if (!reachedMaxPoints) reachedMaxPoints = true;
 				this.winners.set(player, points);
 			}
@@ -88,7 +88,7 @@ class GolemsGalvanicMine extends Game {
 	}
 
 	onEnd() {
-		if (this.winners.size) this.convertPointsToBits(500 / this.options.points, 100 / this.options.points);
+		if (this.winners.size) this.convertPointsToBits(500 / this.format.options.points, 100 / this.format.options.points);
 		this.announceWinners();
 	}
 }

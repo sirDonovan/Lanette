@@ -50,7 +50,7 @@ class TaurosSafariZone extends Game {
 	winners = new Map<Player, number>();
 
 	onSignups() {
-		if (this.options.freejoin) {
+		if (this.format.options.freejoin) {
 			this.timeout = setTimeout(() => {
 				this.nextRound();
 			}, 5000);

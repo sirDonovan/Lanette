@@ -63,7 +63,7 @@ class PikachusMysteryPokemon extends Guessing {
 	points = new Map<Player, number>();
 
 	onSignups() {
-		if (this.options.freejoin) {
+		if (this.format.options.freejoin) {
 			this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
 		}
 	}

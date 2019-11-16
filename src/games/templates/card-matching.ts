@@ -21,17 +21,13 @@ export abstract class CardMatching extends Card {
 	abstract onRemovePlayer(player: Player): void;
 	abstract playActionCard(card: CardType, player: Player, targets: string[], cards: CardType[]): CardType[] | boolean;
 
-	onInitialize() {
-		this.createDeck();
-	}
-
 	createDeck() {
 		const colorCounts: Dict<number> = {};
 		const typeCounts: Dict<number> = {};
 		if (!this.deckPool.length) this.createDeckPool();
 		const pokedex = this.shuffle(this.deckPool);
 		const deck: IPokemonCard[] = [];
-		const minimumDeck = ((this.maxPlayers + 1) * this.options.cards);
+		const minimumDeck = ((this.maxPlayers + 1) * this.format.options.cards);
 		for (let i = 0; i < pokedex.length; i++) {
 			const pokemon = pokedex[i];
 			const multiType = pokemon.types.length > 1;

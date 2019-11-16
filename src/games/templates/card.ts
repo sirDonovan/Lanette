@@ -97,7 +97,6 @@ export abstract class Card extends Game {
 	abstract createDeck(): void;
 	abstract getCardChatDetails(card: CardType): string;
 	abstract getCardsPmHtml(cards: CardType[], player: Player): string;
-	abstract onInitialize(): void;
 	abstract onNextRound(): void;
 	abstract onStart(): void;
 
@@ -232,7 +231,7 @@ export abstract class Card extends Game {
 			}
 		} else {
 			playerCards = [];
-			for (let i = 0; i < this.options.cards; i++) {
+			for (let i = 0; i < this.format.options.cards; i++) {
 				const card = this.getCard();
 				playerCards.push(card);
 			}

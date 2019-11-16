@@ -90,7 +90,7 @@ class SerperiorLengthyChains extends Game {
 			let points = this.points.get(this.bestPlayer) || 0;
 			points++;
 			this.points.set(this.bestPlayer, points);
-			if (points >= this.options.points) {
+			if (points >= this.format.options.points) {
 				this.say("**" + this.bestPlayer.name + "** wins the game with their chain __" + this.bestChain.join(" + ") + "__!");
 				this.winners.set(this.bestPlayer, 1);
 				this.convertPointsToBits(50);

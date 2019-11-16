@@ -85,6 +85,7 @@ export interface IGameFormatComputed {
 export interface IGameFormat<T extends Game = Game> extends DeepWritable<IGameFormatData<T>>, IGameFormatComputed {
 	customizableOptions: Dict<IGameOptionValues>;
 	defaultOptions: DefaultGameOption[];
+	options: Dict<number>;
 }
 
 export interface IGameVariant {
@@ -128,6 +129,8 @@ export interface IUserHostedFormatComputed {
 	effectType: 'UserHostedFormat';
 	inputOptions: Dict<number>;
 	inputTarget: string;
+	nameWithOptions: string;
+	options: Dict<number>;
 }
 
 export interface IUserHostedFormat<T extends UserHosted = UserHosted> extends IUserHostedComputed<T>, IUserHostedFormatComputed {}

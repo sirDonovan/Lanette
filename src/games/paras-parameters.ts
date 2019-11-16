@@ -6,6 +6,7 @@ import { GameFileTests, IGameFile, IGameFormat } from "../types/games";
 import * as ParametersWorker from './../workers/parameters';
 import { game as guessingGame, Guessing } from './templates/guessing';
 
+const BASE_NUMBER_OF_PARAMS = 2;
 const name = "Paras' Parameters";
 let loadedData = false;
 
@@ -19,7 +20,6 @@ export class ParasParameters extends Guessing {
 		loadedData = true;
 	}
 
-	baseNumberOfParams: number = 2;
 	currentNumberOfParams: number = 0;
 	customParamTypes: ParametersWorker.ParamType[] | null = null;
 	htmlHint = true;
@@ -55,10 +55,10 @@ export class ParasParameters extends Guessing {
 		if (this.customParamTypes) {
 			numberOfParams = this.customParamTypes.length;
 		} else if (this.format.inputOptions.params) {
-			numberOfParams = this.options.params;
+			numberOfParams = this.format.options.params;
 		} else {
-			numberOfParams = this.baseNumberOfParams;
-			if ((this.format as IGameFormat).customizableOptions.params) numberOfParams += this.random(3);
+			numberOfParams = BASE_NUMBER_OF_PARAMS;
+			if ((this.format as IGameFormat).customizableOptions.params) numberOfParams += this.random((this.format as IGameFormat).customizableOptions.params.max - BASE_NUMBER_OF_PARAMS + 1);
 		}
 		this.currentNumberOfParams = numberOfParams;
 		const result = await ParametersWorker.search({
@@ -88,7 +88,7 @@ export class ParasParameters extends Guessing {
 
 	getParamsHtml(params: ParametersWorker.IParam[], pokemon: string[]) {
 		let oldGen = '';
-		if (this.options.gen && this.options.gen !== Dex.gen) oldGen = " (Generation " + this.options.gen + ")";
+		if (this.format.options.gen && this.format.options.gen !== Dex.gen) oldGen = " (Generation " + this.format.options.gen + ")";
 		let html = "<div class='infobox'><span style='color: #999999'>" + params.length + " params" + oldGen + ":</span><br />";
 		const pokemonIcons: string[] = [];
 		for (let i = 0; i < pokemon.length; i++) {
@@ -145,13 +145,13 @@ const tests: GameFileTests<ParasParameters> = {
 
 			for (let i = format.customizableOptions.params.min; i <= format.customizableOptions.params.max; i++) {
 				format.inputOptions.params = i;
-				game.options.params = i;
+				game.format.options.params = i;
 				await game.onNextRound();
 				assert(game.params.length);
 				assert(game.pokemon.length);
 			}
 			delete format.inputOptions.params;
-			delete game.options.params;
+			delete game.format.options.params;
 
 			game.customParamTypes = ['move', 'egggroup'];
 			await game.onNextRound();
@@ -174,11 +174,13 @@ const tests: GameFileTests<ParasParameters> = {
 			intersection = await game.intersect(['monstergroup', 'rockhead']);
 			assert.strictEqual(intersection.pokemon.join(","), "aggron,aron,cubone,lairon,marowak,marowakalola,rhydon,rhyhorn,tyrantrum");
 			// game.options.gen = 6;
+			// game.format.options.gen = 6;
 			// intersection = await game.intersect(['Weak to Rock Type', 'Earthquake']);
 			// assert.strictEqual(intersection.pokemon.join(","), "abomasnow,aerodactyl,altaria,arceusbug,arceusfire,arceusflying,arceusice,archen,archeops,armaldo,aurorus,avalugg,charizard,crustle,darmanitan,dragonite,dwebble,glalie,gyarados,hooh,lugia,magcargo,magmortar,mantine,mantyke,pineco,pinsir,rayquaza,regice,salamence,scolipede,sealeo,shuckle,spheal,torkoal,tropius,typhlosion,volcanion,walrein");
 			// intersection = await game.intersect(['Psycho Cut', 'Resists Fighting Type']);
 			// assert.strictEqual(intersection.pokemon.join(","), "alakazam,cresselia,drowzee,gallade,hypno,kadabra,medicham,meditite,mewtwo");
 			// delete game.options.gen;
+			// delete game.format.options.gen;
 		},
 	},
 };
@@ -187,7 +189,7 @@ export const game: IGameFile<ParasParameters> = Games.copyTemplateProperties(gue
 	aliases: ['paras', 'params'],
 	class: ParasParameters,
 	customizableOptions: {
-		params: {min: 2, base: 2, max: 4},
+		params: {min: 2, base: BASE_NUMBER_OF_PARAMS, max: 4},
 		points: {min: 5, base: 5, max: 10},
 	},
 	description: "Players search for possible <code>/dexsearch</code> parameters that result in the given Pokemon list!",

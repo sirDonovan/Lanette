@@ -65,7 +65,7 @@ class BeheeyemsMassEffect extends Guessing {
 	lastEffectiveness: string = '';
 
 	onSignups() {
-		if (this.options.freejoin) {
+		if (this.format.options.freejoin) {
 			this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
 		}
 	}

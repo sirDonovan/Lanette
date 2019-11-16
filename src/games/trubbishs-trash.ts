@@ -55,7 +55,7 @@ class TrubbishsTrash extends Game {
 	// weakestMove: string = '';
 
 	onSignups() {
-		if (this.options.freejoin) {
+		if (this.format.options.freejoin) {
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 		}
 	}

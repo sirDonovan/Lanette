@@ -57,7 +57,7 @@ class LugiasObstructiveLetters extends Guessing {
 	winnerPointsToBits: number = 10;
 
 	onSignups() {
-		if (!this.format.inputOptions.points) this.options.points = 30;
+		if (!this.format.inputOptions.points) this.format.options.points = 30;
 		this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
 	}
 
