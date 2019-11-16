@@ -14,8 +14,10 @@ class EmpoleonsEmpires extends Game {
 	successiveSuspects = new Map<Player, number>();
 
 	onRemovePlayer(player: Player) {
-		if (this.currentPlayer === player) return this.nextRound();
-		if (this.getRemainingPlayerCount() < 2) this.end();
+		if (this.started) {
+			if (this.currentPlayer === player) return this.nextRound();
+			if (this.getRemainingPlayerCount() < 2) this.end();
+		}
 	}
 
 	onStart() {
