@@ -347,6 +347,16 @@ const commands: Dict<ICommandDefinition> = {
 			}
 		},
 	},
+	dqplayer: {
+		command(target, room, user) {
+			if (this.isPm(room) || !user.hasRank(room, 'driver') || !room.game) return;
+			const id = Tools.toId(target);
+			if (!(id in room.game.players)) return this.say("You must specify a player currently in the game.");
+			const player = room.game.players[id];
+			room.game.removePlayer(target, true);
+			this.say(player.name + " has been disqualified from the game.");
+		},
+	},
 	game: {
 		command(target, room, user) {
 			let gameRoom: Room;

@@ -25,6 +25,7 @@ interface IGameCommandCountListener extends IGameCommandCountOptions {
 	listener: GameCommandListener;
 }
 
+const JOIN_BITS = 10;
 const SIGNUPS_HTML_DELAY = 2 * 1000;
 
 // base of 0 defaults option to 'off'
@@ -352,7 +353,7 @@ export class Game extends Activity {
 			this.removePlayer(user, this.started, true);
 			return;
 		}
-		const bits = this.isUserHosted ? 0 : this.addBits(player, 10, true);
+		const bits = this.isUserHosted ? 0 : this.addBits(player, JOIN_BITS, true);
 		player.say("Thanks for joining the " + this.name + " " + this.activityType + "!" + (bits ? " Have some free bits!" : ""));
 		if (this.showSignupsHtml && !this.started) {
 			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
@@ -381,11 +382,14 @@ export class Game extends Activity {
 				if (commandsListeners[i].remainingPlayersMax) this.decreaseOnCommandsMax(commandsListeners[i], 1);
 			}
 		}
+
+		if (this.onRemovePlayer) this.onRemovePlayer(player);
+		this.removeBits(player, JOIN_BITS, silent);
+
 		if (!silent) {
-			if (this.onRemovePlayer) this.onRemovePlayer(player);
-			this.removeBits(player, 10, true);
 			player.say("You have left the " + this.name + " " + this.activityType + ".");
 		}
+
 		if (this.showSignupsHtml && !this.started) {
 			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
 			this.signupsHtmlTimeout = setTimeout(() => {
