@@ -1,3 +1,4 @@
+import { Player } from "../room-activity";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
@@ -46,6 +47,7 @@ class MagcargosWeakSpot extends Guessing {
 	lastAnswers: string[] = [];
 	lastPokemon: string = '';
 	lastType: string = '';
+	roundGuesses = new Map<Player, boolean>();
 
 	async setAnswers() {
 		const typeKeys: string[] = this.inverseTypes ? data.inverseTypeKeys : data.typeKeys;
