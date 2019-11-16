@@ -72,6 +72,7 @@ export function load(config: typeof Config): typeof Config {
 	if (config.disallowTournamentScoutingFormats) config.disallowTournamentScoutingFormats = stringArrayObjectToIds(config.disallowTournamentScoutingFormats);
 	if (config.disallowTournamentModjoin) config.disallowTournamentModjoin = arrayToRoomIds(config.disallowTournamentModjoin);
 	if (config.disallowTournamentBattleLinks) config.disallowTournamentBattleLinks = arrayToRoomIds(config.disallowTournamentBattleLinks);
+	if (config.disallowQueueingPastTournaments) config.disallowQueueingPastTournaments = arrayToRoomIds(config.disallowQueueingPastTournaments);
 	if (config.tournamentAutoDQTimers) objectKeysToRoomId(config.tournamentAutoDQTimers);
 	if (config.adjustTournamentCaps) config.adjustTournamentCaps = arrayToRoomIds(config.adjustTournamentCaps);
 	if (config.trackTournamentBattleScores) config.trackTournamentBattleScores = arrayToRoomIds(config.trackTournamentBattleScores);

@@ -116,6 +116,11 @@ export let disallowTournamentModjoin: string[] = [];
 export let disallowTournamentBattleLinks: string[] = [];
 
 /**
+ * A list of rooms (roomids) where formats on the past tournaments list cannot be queued
+ */
+export let disallowQueueingPastTournaments: string[] = [];
+
+/**
  * For each room in the object, a list of rooms (roomids) where created tournaments will be advertised
  */
 export let tournamentRoomAdvertisements: Dict<string[]> = {};

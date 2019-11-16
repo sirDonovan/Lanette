@@ -1438,8 +1438,17 @@ const commands: Dict<ICommandDefinition> = {
 			} else {
 				if (room.id in Tournaments.scheduledTournaments && Date.now() > Tournaments.scheduledTournaments[room.id].time) return this.say("The scheduled tournament is delayed so you must wait until after it starts.");
 				format = Dex.getFormat(targets[0]);
+				if (!format || !format.tournamentPlayable) return this.sayError(['invalidTournamentFormat', format ? format.name : target]);
+				if (database.pastTournaments && Config.disallowQueueingPastTournaments && Config.disallowQueueingPastTournaments.includes(room.id)) {
+					for (let i = 0; i < database.pastTournaments.length; i++) {
+						const pastFormat = Dex.getFormat(database.pastTournaments[i].inputTarget);
+						const id = pastFormat ? pastFormat.id : Tools.toId(database.pastTournaments[i].name);
+						if (format.id === id) {
+							return this.say(format.name + " is on the past tournaments list and cannot be queued.");
+						}
+					}
+				}
 			}
-			if (!format || !format.tournamentPlayable) return this.sayError(['invalidTournamentFormat', format ? format.name : target]);
 			let playerCap: number = 0;
 			if (scheduled) {
 				if (Config.scheduledTournamentsMaxPlayerCap && Config.scheduledTournamentsMaxPlayerCap.includes(room.id)) playerCap = Tournaments.maxPlayerCap;
