@@ -1,4 +1,3 @@
-import assert = require('assert');
 import fs = require('fs');
 import path = require('path');
 
@@ -6,7 +5,7 @@ import { CommandErrorArray } from '../../command-parser';
 import { PRNGSeed } from '../../prng';
 import { Game } from '../../room-game';
 import { GameCommandReturnType, IGameFile, IGameFormat, IGameFormatData, IGameMode, IGameModeFile, IUserHostedComputed, IUserHostedFormat } from '../../types/games';
-import { assertClientSendQueue } from '../test-tools';
+import { assert, assertClientSendQueue } from '../test-tools';
 
 function testMascots(format: IGameFormat | IUserHostedFormat) {
 	if (format.mascot) {
@@ -230,14 +229,14 @@ describe("Games", () => {
 		assert(Games.getExistingUserHostedFormat('floettes forum game, name: Mocha Test Game').name === 'Mocha Test Game');
 
 		const name = 'Non-existent Game';
-		const nameFormat = Games.getFormat(name) as CommandErrorArray;
+		const nameFormat = Games.getFormat(name);
 		assert(Array.isArray(nameFormat));
 		assert(nameFormat[0] === 'invalidGameFormat');
 		assert(nameFormat[1] === name);
 
 		const modes = Object.keys(Games.modes);
 		if (modes.length >= 2) {
-			const modesFormat = Games.getFormat(name + "," + modes[0] + "," + modes[1]) as CommandErrorArray;
+			const modesFormat = Games.getFormat(name + "," + modes[0] + "," + modes[1]);
 			assert(Array.isArray(modesFormat));
 			assert(modesFormat[0] === 'tooManyGameModes');
 			assert(modesFormat[1] === undefined);
@@ -246,7 +245,7 @@ describe("Games", () => {
 		for (let i = 0; i < formats.length; i++) {
 			const formatData = Games.formats[formats[i]];
 			if (formatData.variants && formatData.variants.length >= 2) {
-				const variantsFormat = Games.getFormat(formats[i] + "," + formatData.variants[0].variant + "," + formatData.variants[1].variant) as CommandErrorArray;
+				const variantsFormat = Games.getFormat(formats[i] + "," + formatData.variants[0].variant + "," + formatData.variants[1].variant);
 				assert(Array.isArray(variantsFormat));
 				assert(variantsFormat[0] === 'tooManyGameVariants');
 				assert(variantsFormat[1] === undefined);
@@ -260,7 +259,7 @@ describe("Games", () => {
 				let hasVariantMode = false;
 				for (let i = 0; i < formatData.variants.length; i++) {
 					if (formatData.variants[i].mode) {
-						const variantsModeFormat = Games.getFormat(formatData.id + "," + formatData.variants[i].variant + "," + formatData.variants[i].mode) as CommandErrorArray;
+						const variantsModeFormat = Games.getFormat(formatData.id + "," + formatData.variants[i].variant + "," + formatData.variants[i].mode);
 						assert(Array.isArray(variantsModeFormat));
 						assert(variantsModeFormat[0] === 'tooManyGameModes');
 						assert(variantsModeFormat[1] === undefined);
@@ -272,14 +271,14 @@ describe("Games", () => {
 		}
 
 		const option = "Non-existent option";
-		const optionFormat = Games.getFormat(formats[0] + "," + option) as CommandErrorArray;
-		assert(Array.isArray(nameFormat));
+		const optionFormat = Games.getFormat(formats[0] + "," + option);
+		assert(Array.isArray(optionFormat));
 		assert(optionFormat[0] === 'invalidGameOption');
 		assert(optionFormat[1] === option);
 
 		assert(!Array.isArray(Games.getUserHostedFormat(Object.keys(Games.userHostedFormats)[0])));
 
-		const nameUserHostedFormat = Games.getUserHostedFormat(name) as CommandErrorArray;
+		const nameUserHostedFormat = Games.getUserHostedFormat(name);
 		assert(Array.isArray(nameUserHostedFormat));
 		assert(nameUserHostedFormat[0] === 'invalidUserHostedGameFormat');
 		assert(nameUserHostedFormat[1] === name);

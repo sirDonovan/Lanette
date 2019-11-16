@@ -1,4 +1,4 @@
-import assert = require('assert');
+import { assert } from './../test-tools';
 
 describe("Dex", () => {
 	it('should compute all data types properly', () => {

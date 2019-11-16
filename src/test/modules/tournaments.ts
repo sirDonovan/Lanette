@@ -1,4 +1,4 @@
-import assert = require('assert');
+import { assert } from "../test-tools";
 
 describe("Tournaments", () => {
 	it('should have valid formats in schedules', () => {

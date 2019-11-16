@@ -1,4 +1,6 @@
-import assert = require('assert');
+import { strictEqual as assertStrictEqual } from 'assert';
+
+import { assert } from "../test-tools";
 
 const second = 1000;
 const minute = 60 * second;
@@ -73,19 +75,19 @@ describe("Tools", () => {
 		assert(!Tools.isFloat('-'));
 	});
 	it('should return proper values from toDurationString()', () => {
-		assert.strictEqual(Tools.toDurationString(second), '1 second');
-		assert.strictEqual(Tools.toDurationString(2 * second), '2 seconds');
-		assert.strictEqual(Tools.toDurationString(minute), '1 minute');
-		assert.strictEqual(Tools.toDurationString(2 * minute), '2 minutes');
-		assert.strictEqual(Tools.toDurationString(hour), '1 hour');
-		assert.strictEqual(Tools.toDurationString(2 * hour), '2 hours');
-		assert.strictEqual(Tools.toDurationString(day), '1 day');
-		assert.strictEqual(Tools.toDurationString(2 * day), '2 days');
-		assert.strictEqual(Tools.toDurationString(month), '1 month');
-		assert.strictEqual(Tools.toDurationString(month + (28 * day)), '2 months');
-		assert.strictEqual(Tools.toDurationString(year), '1 year');
-		assert.strictEqual(Tools.toDurationString(2 * year), '2 years');
-		assert.strictEqual(Tools.toDurationString(minute + second), '1 minute and 1 second');
-		assert.strictEqual(Tools.toDurationString(hour + minute + second), '1 hour, 1 minute, and 1 second');
+		assertStrictEqual(Tools.toDurationString(second), '1 second');
+		assertStrictEqual(Tools.toDurationString(2 * second), '2 seconds');
+		assertStrictEqual(Tools.toDurationString(minute), '1 minute');
+		assertStrictEqual(Tools.toDurationString(2 * minute), '2 minutes');
+		assertStrictEqual(Tools.toDurationString(hour), '1 hour');
+		assertStrictEqual(Tools.toDurationString(2 * hour), '2 hours');
+		assertStrictEqual(Tools.toDurationString(day), '1 day');
+		assertStrictEqual(Tools.toDurationString(2 * day), '2 days');
+		assertStrictEqual(Tools.toDurationString(month), '1 month');
+		assertStrictEqual(Tools.toDurationString(month + (28 * day)), '2 months');
+		assertStrictEqual(Tools.toDurationString(year), '1 year');
+		assertStrictEqual(Tools.toDurationString(2 * year), '2 years');
+		assertStrictEqual(Tools.toDurationString(minute + second), '1 minute and 1 second');
+		assertStrictEqual(Tools.toDurationString(hour + minute + second), '1 hour, 1 minute, and 1 second');
 	});
 });

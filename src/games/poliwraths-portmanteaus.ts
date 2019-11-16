@@ -1,7 +1,6 @@
-import assert = require('assert');
-
 import { PRNG, PRNGSeed } from "../prng";
 import { Room } from "../rooms";
+import { assert } from '../test/test-tools';
 import { GameFileTests, IGameFile, IGameFormat } from "../types/games";
 import * as PortmanteausWorker from './../workers/portmanteaus';
 import { game as guessingGame, Guessing } from './templates/guessing';
