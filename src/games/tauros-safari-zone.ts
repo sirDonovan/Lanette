@@ -21,7 +21,17 @@ class TaurosSafariZone extends Game {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		const pokemonList = Dex.getPokemonList(pokemon => Dex.hasGifData(pokemon));
+		const pokemonList = Dex.getPokemonList(pokemon => Dex.hasGifData(pokemon) && pokemon.id !== 'voltorb' && pokemon.id !== 'electrode');
+		const copy = pokemonList.slice();
+		for (let i = 0; i < copy.length; i++) {
+			if (copy[i].otherFormes) {
+				const formes = copy[i].otherFormes!;
+				for (let i = 0; i < formes.length; i++) {
+					pokemonList.push(Dex.getExistingPokemon(formes[i]));
+				}
+			}
+		}
+
 		for (let i = 0; i < pokemonList.length; i++) {
 			data.pokedex.push(pokemonList[i].id);
 			let bst = 0;
@@ -85,7 +95,7 @@ class TaurosSafariZone extends Game {
 						pokemon[i] = otherForme;
 					}
 				}
-				baseStatTotals.push({pokemon: currentPokemon.species, bst: data.baseStatTotals[pokemon[i].id]});
+				baseStatTotals.push({pokemon: currentPokemon.species, bst: data.baseStatTotals[currentPokemon.id]});
 				const points = 100 + Math.round((data.baseStatTotals[pokemon[i].id] / 12));
 				this.roundPokemon.set(Tools.toId(currentPokemon.species), {species: currentPokemon.species, points});
 			}
