@@ -14,6 +14,7 @@ const gamesDirectory = path.join(__dirname, 'games');
 // tslint:disable-next-line no-var-requires
 const userHosted = require(path.join(gamesDirectory, "internal", "user-hosted.js")).game as IUserHostedFile;
 const internalGamePaths: IInternalGames = {
+	eggtoss: path.join(gamesDirectory, "internal", "egg-toss.js"),
 	vote: path.join(gamesDirectory, "internal", "vote.js"),
 };
 

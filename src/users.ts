@@ -2,12 +2,16 @@ import { GroupName } from "./client";
 import { Game } from "./room-game";
 import { Room } from "./rooms";
 
+interface IUserRoomData {
+	lastChatMessage: number;
+	rank: string;
+}
+
 export class User {
 	away: boolean | null = null;
 	game: Game | null = null;
 	group: string | null = null;
-	/** Map<Room, rank> */
-	rooms = new Map<Room, string>();
+	rooms = new Map<Room, IUserRoomData>();
 	status: string | null = null;
 
 	id: string;
@@ -24,7 +28,7 @@ export class User {
 
 	hasRank(room: Room, targetRank: GroupName): boolean {
 		if (!this.rooms.has(room) || !(targetRank in Client.groupSymbols)) return false;
-		return Client.serverGroups[this.rooms.get(room)!].ranking >= Client.serverGroups[Client.groupSymbols[targetRank]].ranking;
+		return Client.serverGroups[this.rooms.get(room)!.rank].ranking >= Client.serverGroups[Client.groupSymbols[targetRank]].ranking;
 	}
 
 	isDeveloper(): boolean {

@@ -266,6 +266,26 @@ const commands: Dict<ICommandDefinition> = {
 		},
 		aliases: ['sv'],
 	},
+	egg: {
+		command(target, room, user) {
+			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
+			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) return this.sayError(['disabledGameFeatures', room.title]);
+			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
+			const remainingGameCooldown = Games.getRemainingGameCooldown(room, true);
+			if (remainingGameCooldown > 1000) {
+				const durationString = Tools.toDurationString(remainingGameCooldown);
+				this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the minigame cooldown remaining.");
+				return;
+			}
+			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
+			const targetUser = Users.get(target);
+			if (!targetUser || !targetUser.rooms.has(room)) return this.say("You can only egg someone currently in the room.");
+			const game = Games.createGame(room, Games.getInternalFormat('eggtoss'));
+			game.signups();
+			this.say(user.name + " handed an egg to " + targetUser.name + "! Pass it around with ``" + Config.commandCharacter + "toss [user]`` before it explodes!");
+			this.run('toss');
+		},
+	},
 	creategame: {
 		command(target, room, user) {
 			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;

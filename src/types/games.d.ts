@@ -9,6 +9,7 @@ export type GameCommandReturnType = boolean;
 export type GameDifficulty = 'easy' | 'medium' | 'hard';
 
 export interface IInternalGames {
+	eggtoss: string;
 	vote: string;
 }
 
