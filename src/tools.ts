@@ -80,6 +80,20 @@ export class Tools {
 		return shuffled;
 	}
 
+	compareArrays(arrayA: readonly any[], arrayB: readonly any[]): boolean {
+		const arrayALen = arrayA.length;
+		const arrayBLen = arrayB.length;
+		if (arrayALen !== arrayBLen) return false;
+
+		arrayA = arrayA.slice().sort();
+		arrayB = arrayB.slice().sort();
+		for (let i = 0; i < arrayALen; i++) {
+			if (arrayA[i] !== arrayB[i]) return false;
+		}
+
+		return true;
+	}
+
 	intersectArrays<T>(arrayA: readonly T[], arrayB: readonly T[]): T[] {
 		const temp: T[] = [];
 		const arrayALen = arrayA.length;

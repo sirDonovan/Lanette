@@ -303,12 +303,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			description: "Players pick a number between 1-7 and gain points based on what number they pick. First to 15 points wins!",
 		},
 		{
-			name: "Sableye's Trick House",
-			mascot: "Sableye",
-			aliases: ['Trick House', 'TH', 'Sableyes'],
-			description: "Players make their way through various rooms while avoiding the trap doors. Last person standing wins!",
-		},
-		{
 			name: "Scizor's Clock Tower",
 			mascot: "Scizor",
 			aliases: ['Clock Tower', 'Scizors'],
