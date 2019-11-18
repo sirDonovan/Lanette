@@ -85,6 +85,7 @@ class MagcargosWeakSpot extends Guessing {
 			return;
 		}
 
+		this.roundGuesses.clear();
 		this.lastAnswers = answers;
 		this.answers = answers;
 		this.hint = "Randomly generated Pokemon: **" + pokemon.join(", ") + "**";
