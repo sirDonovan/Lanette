@@ -700,10 +700,10 @@ const commands: Dict<ICommandDefinition> = {
 					break;
 				}
 			}
-			if (position === -1) return this.say(target.trim() + " is not in the host queue.");
+			if (position === -1) return this.say(this.sanitizeResponse(target.trim() + " is not in the host queue."));
 			database.userHostedGameQueue.splice(position, 1);
 			Storage.exportDatabase(room.id);
-			this.say(target.trim() + " was removed from the host queue.");
+			this.say(this.sanitizeResponse(target.trim() + " was removed from the host queue."));
 			for (let i = position; i < database.userHostedGameQueue.length; i++) {
 				if (!database.userHostedGameQueue[i]) break;
 				const user = Users.get(database.userHostedGameQueue[i].name);
@@ -1058,7 +1058,7 @@ const commands: Dict<ICommandDefinition> = {
 			const stored = [];
 			for (let i = 0; i < targets.length; i++) {
 				const id = Tools.toId(targets[i]);
-				if (!(id in room.userHostedGame.players)) return this.say(targets[i].trim() + " is not in the game.");
+				if (!(id in room.userHostedGame.players)) return this.say(this.sanitizeResponse(targets[i].trim() + " is not in the game."));
 				if (room.userHostedGame.savedWinners.includes(room.userHostedGame.players[id])) return this.say(room.userHostedGame.players[id].name + " has already been saved as a winner.");
 				stored.push(id);
 			}
@@ -1077,10 +1077,10 @@ const commands: Dict<ICommandDefinition> = {
 			if (this.isPm(room)) return;
 			if (!room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
 			const id = Tools.toId(target);
-			if (!(id in room.userHostedGame.players)) return this.say(target.trim() + " is not in the game.");
+			if (!(id in room.userHostedGame.players)) return this.say(this.sanitizeResponse(target.trim() + " is not in the game."));
 			if (!room.userHostedGame.savedWinners) room.userHostedGame.savedWinners = [];
 			const index = room.userHostedGame.savedWinners.indexOf(room.userHostedGame.players[id]);
-			if (index === -1) return this.say(target.trim() + " has not been saved as a winner.");
+			if (index === -1) return this.say(this.sanitizeResponse(target.trim() + " has not been saved as a winner."));
 			room.userHostedGame.savedWinners.splice(index, 1);
 			room.userHostedGame.players[id].eliminated = false;
 			this.run('playerlist');
@@ -1822,8 +1822,8 @@ const commands: Dict<ICommandDefinition> = {
 			if (!Tools.isUsernameLength(id)) return this.sayError(['invalidUsernameLength']);
 			if (id.startsWith('guest')) return this.say("Guest users cannot be tracked.");
 			const database = Storage.getGlobalDatabase();
-			if (!database.lastSeen || !(id in database.lastSeen)) return this.say(target.trim() + " has not visited any of " + Users.self.name + "'s rooms in the past " + Storage.lastSeenExpirationDuration + ".");
-			return this.say(target.trim() + " last visited one of " + Users.self.name + "'s rooms **" + Tools.toDurationString(Date.now() - database.lastSeen[id]) + "** ago.");
+			if (!database.lastSeen || !(id in database.lastSeen)) return this.say(this.sanitizeResponse(target.trim() + " has not visited any of " + Users.self.name + "'s rooms in the past " + Storage.lastSeenExpirationDuration + "."));
+			return this.say(this.sanitizeResponse(target.trim() + " last visited one of " + Users.self.name + "'s rooms **" + Tools.toDurationString(Date.now() - database.lastSeen[id]) + "** ago."));
 		},
 		aliases: ['seen'],
 	},
@@ -2172,7 +2172,7 @@ const commands: Dict<ICommandDefinition> = {
 				if (!Tools.isUsernameLength(targets[1])) return this.say("You must specify a user.");
 				const targetUser = Tools.toId(targets[1]);
 				if (!database.leaderboard) return this.say("There is no leaderboard for the " + eventRoom.title + " room.");
-				if (!(targetUser in database.leaderboard)) return this.say(targets[1].trim() + " does not have any event points.");
+				if (!(targetUser in database.leaderboard)) return this.say(this.sanitizeResponse(targets[1].trim() + " does not have any event points."));
 				let eventPoints = 0;
 				for (const source in database.leaderboard[targetUser].sources) {
 					if (database.eventInformation[event].formatIds!.includes(source)) eventPoints += database.leaderboard[targetUser].sources[source];
@@ -2269,7 +2269,7 @@ const commands: Dict<ICommandDefinition> = {
 			}
 			database.botGreetings[id] = {greeting};
 			if (duration) database.botGreetings[id].expiration = Date.now() + duration;
-			this.say(targets[1].trim() + "'s greeting in " + targetRoom.title + (duration ? " (expiring in " + Tools.toDurationString(duration) + ")" : "") + " has been stored.");
+			this.say(this.sanitizeResponse(targets[1].trim() + "'s greeting in " + targetRoom.title + (duration ? " (expiring in " + Tools.toDurationString(duration) + ")" : "") + " has been stored."));
 		},
 		aliases: ['awardgreeting'],
 	},
@@ -2283,9 +2283,9 @@ const commands: Dict<ICommandDefinition> = {
 			if (!database.botGreetings) return this.say(targetRoom.title + " does not have any bot greetings stored.");
 			if (!Tools.isUsernameLength(targets[1])) return this.sayError(['invalidUsernameLength']);
 			const id = Tools.toId(targets[1]);
-			if (!(id in database.botGreetings)) return this.say(targets[1].trim() + " does not have a greeting stored for " + targetRoom.title + ".");
+			if (!(id in database.botGreetings)) return this.say(this.sanitizeResponse(targets[1].trim() + " does not have a greeting stored for " + targetRoom.title + "."));
 			delete database.botGreetings[id];
-			this.say(targets[1].trim() + "'s greeting in " + targetRoom.title + " has been removed.");
+			this.say(this.sanitizeResponse(targets[1].trim() + "'s greeting in " + targetRoom.title + " has been removed."));
 		},
 	},
 	logs: {

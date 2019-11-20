@@ -109,6 +109,11 @@ export class Command {
 	isPm(room: Room | User): room is User {
 		return this.pm;
 	}
+
+	sanitizeResponse(response: string): string {
+		if (response.startsWith('/') || response.startsWith('!')) return response.substr(1);
+		return response;
+	}
 }
 
 export class CommandParser {
