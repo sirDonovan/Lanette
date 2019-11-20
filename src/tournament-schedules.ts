@@ -5,7 +5,7 @@ const schedules: Dict<{months: Dict<Dict<string> | undefined>, times: [number, n
 	'nfe': {
 		months: {
 			'11': {
-				'daily': 'gen7nfe',
+				'daily': 'gen8nfe',
 			},
 		},
 		times: [[10, 0], [15, 0], [20, 0]],
@@ -51,7 +51,7 @@ const schedules: Dict<{months: Dict<Dict<string> | undefined>, times: [number, n
 		months: {
 			'11': {
 				'1': '[Gen 7] RU@@@+RUBL,-Drought,-Trick Room',
-				'2': '[Gen 7] 2v2 Doubles@@@Same Type Clause,-Drizzle,-Drought,-Sand Stream,-Snow Warning',
+				'2': '[Gen 8] 2v2 Doubles@@@Same Type Clause,-Drizzle,-Drought,-Sand Stream,-Snow Warning',
 				'3': '[Gen 7] LC@@@+Aipom,+Cutiefly,+Drifloon,+Gothita,+Meditite,+Misdreavus,+Murkrow,+Porygon,+Swirlix,+Trapinch,+Vulpix,+Wingull,+Yanma,+Sonic Boom',
 				'4': '[Gen 7] Ubers@@@+Rayquaza-Mega,!Mega Rayquaza Clause',
 				'5': '[Gen 7] Almost Any Ability@@@gen7tiershift,-Thick Club,-Absol,-Metagross',
@@ -59,7 +59,7 @@ const schedules: Dict<{months: Dict<Dict<string> | undefined>, times: [number, n
 				'7': '[Gen 7] PU@@@STABmons Move Legality,-Acupressure,-Belly Drum,-Chatter,-Extreme Speed,-Geomancy,-Lovely Kiss,-Shell Smash,-Shift Gear,-Spore,-Thousand Arrows',
 				'8': '[Gen 7] Doubles OU@@@Inverse Mod',
 				'9': '[Gen 7] Anything Goes@@@-Rayquaza,-Uber,-OU,-UUBL,-UU,-RUBL,-RU,-NUBL,-NU,-PUBL,-PU,-ZU,-NFE,-LC Uber',
-				'10': '[Gen 7] NFE@@@Ignore Illegal Abilities,-Comatose,-Contrary,-Fluffy,-Fur Coat,-Huge Power,-Illusion,-Imposter,-Innards Out,-Parental Bond,-Protean,-Pure Power,-Simple,-Speed Boost,-Stakeout,-Water Bubble,-Wonder Guard',
+				'10': '[Gen 8] NFE@@@Ignore Illegal Abilities,-Comatose,-Contrary,-Fluffy,-Fur Coat,-Huge Power,-Illusion,-Imposter,-Innards Out,-Parental Bond,-Protean,-Pure Power,-Simple,-Speed Boost,-Stakeout,-Water Bubble,-Wonder Guard',
 				'11': '[Gen 7] OU@@@-Greninja-Ash,-Toxapex,-Magearna,-Heatran,-Landorus-T',
 				'12': '[Gen 7] Mix and Mega@@@-Uber,-OU,-UUBL,-UU,-RUBL,-RU',
 				'13': '[Gen 7] Balanced Hackmons@@@Inverse Mod',
@@ -68,7 +68,7 @@ const schedules: Dict<{months: Dict<Dict<string> | undefined>, times: [number, n
 				'16': '[Gen 7] Almost Any Ability@@@Same Type Clause,Stabmons Move Legality,-OU,-UUBL,-UU,-RUBL,-RU,-Extreme Speed,-Geomancy,-Belly Drum,-Shell Smash,-Aegislash,-Genesect,-Landorus,-Naganadel,-Metagross-Mega',
 				'17': '[Gen 7] Battle Factory@@@!Team Preview',
 				'18': '[Gen 7] Balanced Hackmons',
-				'19': '[Gen 7] 2V2 Doubles',
+				'19': '[Gen 8] 2V2 Doubles',
 				'20': '[Gen 7] Mix and Mega@@@-OU,-UUBL,-UU,-RUBL,-RU,-NUBL,-NU,-PUBL,-PU',
 				'21': '[Gen 7] Doubles OU@@@-Uber,-OU,-UUBL,-UU,-RUBL,-RU,-NUBL,-NU,-PUBL,-PU,-ZU,-NFE,-LC Uber',
 				'22': 'omotm',
@@ -77,7 +77,7 @@ const schedules: Dict<{months: Dict<Dict<string> | undefined>, times: [number, n
 				'25': '[Gen 7] Ubers',
 				'26': '[Gen 7] Monotype@@@gen7tiershift',
 				'27': '[Gen 7] PU@@@+Audino-Mega,+Glalie-Mega,+Incineroar,+Silvally-Steel',
-				'28': '[Gen 7] Doubles Ubers@@@STABmons Move Legality,-Acupressure,-Belly Drum,-Chatter,-Extreme Speed,-Geomancy,-Lovely Kiss,-Shell Smash,-Shift Gear,-Spore,-Thousand Arrows',
+				'28': '[Gen 7] Doubles OU@@@STABmons Move Legality,-Acupressure,-Belly Drum,-Chatter,-Extreme Speed,-Geomancy,-Lovely Kiss,-Shell Smash,-Shift Gear,-Spore,-Thousand Arrows',
 				'29': '[Gen 7] UU@@@Inverse Mod',
 				'30': '[Gen 7] LC@@@Ignore Illegal Abilities,-Comatose,-Contrary,-Fluffy,-Fur Coat,-Huge Power,-Illusion,-Imposter,-Innards Out,-Parental Bond,-Protean,-Pure Power,-Simple,-Speed Boost,-Stakeout,-Water Bubble,- Wonder Guard',
 			},

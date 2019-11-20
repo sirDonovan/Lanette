@@ -65,7 +65,7 @@ export class ParasParameters extends Guessing {
 			customParamTypes: this.customParamTypes,
 			minimumResults: this.minimumResults,
 			maximumResults: this.maximumResults,
-			mod: Dex.currentGenString,
+			mod: 'gen7',
 			numberOfParams,
 			paramTypes: this.paramTypes,
 			prngSeed: this.prng.seed.slice() as PRNGSeed,
@@ -105,7 +105,7 @@ export class ParasParameters extends Guessing {
 
 	async intersect(params: string[]): Promise<ParametersWorker.IParameterIntersectResult> {
 		return ParametersWorker.intersect({
-			mod: Dex.currentGenString,
+			mod: 'gen7',
 			paramTypes: this.paramTypes,
 			searchType: 'pokemon',
 		}, params);
@@ -163,16 +163,22 @@ const tests: GameFileTests<ParasParameters> = {
 
 			let intersection = await game.intersect(['rockclimb', 'steeltype']);
 			assertStrictEqual(intersection.pokemon.join(","), "durant,excadrill,ferroseed,ferrothorn,steelix");
+
 			intersection = await game.intersect(['poisontype', 'powerwhip']);
 			assertStrictEqual(intersection.pokemon.join(","), "bellsprout,bulbasaur,ivysaur,roselia,roserade,venusaur,victreebel,weepinbell");
+
 			intersection = await game.intersect(['gen1', 'psychic', 'psychictype']);
 			assertStrictEqual(intersection.pokemon.join(","), "abra,alakazam,drowzee,exeggcute,exeggutor,hypno,jynx,kadabra,mew,mewtwo,mrmime,slowbro,slowpoke,starmie");
+
 			intersection = await game.intersect(['firetype', 'thunder']);
 			assertStrictEqual(intersection.pokemon.join(","), "arceusfire,castformsunny,groudonprimal,hooh,marowakalola,marowakalolatotem,rotomheat,victini");
+
 			intersection = await game.intersect(['darktype', 'refresh']);
 			assertStrictEqual(intersection.pokemon.join(","), "arceusdark,carvanha,nuzleaf,sharpedo,shiftry,umbreon");
+
 			intersection = await game.intersect(['monstergroup', 'rockhead']);
 			assertStrictEqual(intersection.pokemon.join(","), "aggron,aron,cubone,lairon,marowak,marowakalola,rhydon,rhyhorn,tyrantrum");
+
 			// game.format.options.gen = 6;
 			// intersection = await game.intersect(['Weak to Rock Type', 'Earthquake']);
 			// assertStrictEqual(intersection.pokemon.join(","), "abomasnow,aerodactyl,altaria,arceusbug,arceusfire,arceusflying,arceusice,archen,archeops,armaldo,aurorus,avalugg,charizard,crustle,darmanitan,dragonite,dwebble,glalie,gyarados,hooh,lugia,magcargo,magmortar,mantine,mantyke,pineco,pinsir,rayquaza,regice,salamence,scolipede,sealeo,shuckle,spheal,torkoal,tropius,typhlosion,volcanion,walrein");

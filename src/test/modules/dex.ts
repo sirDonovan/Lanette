@@ -32,10 +32,12 @@ describe("Dex", () => {
 		assert(pokemon.allPossibleMoves.length > Object.keys(pokemon.learnset!).length, pokemon.species);
 
 		// tiers
+		/*
 		assert(Dex.getExistingPokemon('Arceus').tier === 'Uber');
 		assert(Dex.getExistingPokemon('Arceus-Bug').tier === 'Uber');
 		assert(Dex.getExistingPokemon('Lurantis').tier === 'PU');
 		assert(Dex.getExistingPokemon('Lurantis-Totem').tier === 'PU');
+		*/
 		assert(Dex.getDex('gen1').getExistingPokemon('Togetic').tier === 'Illegal');
 	});
 	it('should return proper values from getEvolutionLines()', () => {

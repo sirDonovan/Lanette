@@ -102,7 +102,7 @@ export function init(): worker_threads.Worker {
 	if (worker) return worker;
 
 	// only current gen until performance can be improved
-	for (let i = Dex.gen; i <= Dex.gen; i++) {
+	for (let i = 7; i <= 7; i++) {
 		const gen = i;
 		const genString = 'gen' + i;
 		const dex = Dex.getDex(genString);

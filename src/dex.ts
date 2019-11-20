@@ -9,7 +9,7 @@ import { User } from './users';
 
 const exec = util.promisify(child_process.exec);
 
-const currentGen = 7;
+const currentGen = 8;
 const currentGenString = 'gen' + currentGen;
 const omotmSection = 'OM of the Month';
 const PokemonShowdown = path.join(Tools.rootFolder, 'Pokemon-Showdown');
@@ -105,10 +105,7 @@ const clauseNicknames: Dict<string> = {
 	'Ignore Illegal Abilities': 'Almost Any Ability',
 };
 
-const customRuleFormats: Dict<string> = {
-	'gen7nfe': 'gen7nu@@@-NU,-PU,-PUBL,-ZU,-Vigoroth,-Drought,+Clefairy,+Ferroseed,+Haunter,+Roselia,+Tangela',
-};
-
+const customRuleFormats: Dict<string> = {};
 const dexes: Dict<Dex> = {};
 
 interface IGameTimerSettings {
@@ -588,7 +585,9 @@ export class Dex {
 		id = Tools.toId(abilityData.name);
 
 		let gen = 0;
-		if (abilityData.num >= 192) {
+		if (abilityData.num >= 234) {
+			gen = 8;
+		} else if (abilityData.num >= 192) {
 			gen = 7;
 		} else if (abilityData.num >= 165) {
 			gen = 6;
@@ -733,7 +732,9 @@ export class Dex {
 		moveData.critRatio = Number(moveData.critRatio) || 1;
 		moveData.priority = Number(moveData.priority) || 0;
 		let gen = 0;
-		if (moveData.num >= 622) {
+		if (moveData.num >= 742) {
+			gen = 8;
+		} else if (moveData.num >= 622) {
 			gen = 7;
 		} else if (moveData.num >= 560) {
 			gen = 6;
@@ -881,7 +882,9 @@ export class Dex {
 		let isPrimal = false;
 		let gen = templateFormatsData.gen || 0;
 		if (!gen) {
-			if (templateData.num >= 722 || (templateData.forme && templateData.forme.startsWith('Alola'))) {
+			if (templateData.num >= 810 || (templateData.forme && (templateData.forme.endsWith('Galar') || templateData.forme === 'Gmax'))) {
+				gen = 8;
+			} else if (templateData.num >= 722 || (templateData.forme && templateData.forme.startsWith('Alola'))) {
 				gen = 7;
 			} else if (templateData.forme && ['Mega', 'Mega-X', 'Mega-Y'].includes(templateData.forme)) {
 				gen = 6;

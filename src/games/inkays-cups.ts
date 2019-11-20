@@ -79,10 +79,10 @@ class InkaysCups extends Game {
 		while ((len < lower || len > upper) && attempts < 10) {
 			attempts++;
 			for (let i = 0; i < roundParamTypes.length; i++) {
-				params[i] = this.sampleOne(paramTypeKeys.pokemon[Dex.currentGenString][roundParamTypes[i]]);
+				params[i] = this.sampleOne(paramTypeKeys.pokemon['gen7'][roundParamTypes[i]]);
 			}
 			const intersection = await ParametersWorker.intersect({
-				mod: Dex.currentGenString,
+				mod: 'gen7',
 				paramTypes,
 				searchType: 'pokemon',
 			}, params);

@@ -73,14 +73,16 @@ export function init(): worker_threads.Worker {
 		}
 	}
 
+	const dex = Dex.getDex('gen7');
+
 	/*
 	data.pool['Item']['type']['Berry'] = [];
 	data.pool['Item']['type']['Plate'] = [];
 	data.pool['Item']['type']['Drive'] = [];
 
 	// /is shows all items
-	for (const i in Dex.data.items) {
-		const item = Dex.getExistingItem(i);
+	for (const i in dex.data.items) {
+		const item = dex.getExistingItem(i);
 		if (item.isBerry) {
 			data.pool['Item']['type']['Berry'].push(item.name.substr(0, item.name.indexOf(' Berry')));
 		}
@@ -92,14 +94,14 @@ export function init(): worker_threads.Worker {
 	}
 	*/
 
-	const moves = Dex.getMovesList();
+	const moves = dex.getMovesList();
 	for (let i = 0; i < moves.length; i++) {
 		const move = moves[i];
 		if (!(move.type in data.pool['Move']['type'])) data.pool['Move']['type'][move.type] = [];
 		data.pool['Move']['type'][move.type].push(move.name);
 	}
 
-	const pokedex = Dex.getPokemonList();
+	const pokedex = dex.getPokemonList();
 	for (let i = 0; i < pokedex.length; i++) {
 		const pokemon = pokedex[i];
 		if (pokemon.tier.charAt(0) !== '(') {
