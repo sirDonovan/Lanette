@@ -498,8 +498,8 @@ export class Client {
 				};
 			}
 			const user = Users.add(messageArguments.username);
-			const roomData = user.rooms.get(room)!;
-			roomData.lastChatMessage = messageArguments.timestamp;
+			const roomData = user.rooms.get(room);
+			if (roomData) roomData.lastChatMessage = messageArguments.timestamp;
 
 			if (user === Users.self) {
 				const id = Tools.toId(messageArguments.message);
