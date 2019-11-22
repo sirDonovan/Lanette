@@ -14,7 +14,7 @@ class SmearglesMysteryMoves extends Guessing {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		const movesList = Dex.getMovesList();
+		const movesList = Games.getMovesList();
 		for (let i = 0; i < movesList.length; i++) {
 			data.moves.push(movesList[i].name);
 		}

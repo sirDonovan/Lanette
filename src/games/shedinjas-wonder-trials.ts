@@ -17,11 +17,11 @@ class ShedinjasWonderTrials extends Game {
 		if (loadedData) return;
 
 		room.say("Loading data for " + name + "...");
-		const movesList = Dex.getMovesList(x => x.id !== 'hiddenpower' && x.category !== 'Status');
+		const movesList = Games.getMovesList(x => x.id !== 'hiddenpower' && x.category !== 'Status');
 		for (let i = 0; i < movesList.length; i++) {
 			data.moves.push(movesList[i].name);
 		}
-		const pokemonList = Dex.getPokemonList(x => !x.isForme);
+		const pokemonList = Games.getPokemonList(x => !x.isForme);
 		for (let i = 0; i < pokemonList.length; i++) {
 			data.pokedex.push(pokemonList[i].species);
 		}

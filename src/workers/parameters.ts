@@ -139,7 +139,7 @@ export function init(): worker_threads.Worker {
 			if (dex.data.typeChart[i] !== null) typeChartKeys.push(i);
 		}
 
-		const pokedex = dex.getPokemonList();
+		const pokedex = dex.getPokemonList(pokemon => !(pokemon.isNonstandard === 'LGPE'));
 		for (let i = 0; i < pokedex.length; i++) {
 			const pokemon = pokedex[i];
 			if (pokemon.forme) formes[pokemon.id] = pokemon.forme;

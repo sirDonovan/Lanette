@@ -15,7 +15,7 @@ class GolemsGalvanicMine extends Game {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		const items = Dex.getItemsList();
+		const items = Games.getItemsList();
 		for (let i = 0; i < items.length; i++) {
 			const item = items[i];
 			if (item.megaStone || item.zMove) data.stones.push(item.name);

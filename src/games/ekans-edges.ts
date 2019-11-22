@@ -32,28 +32,28 @@ class EkansEdges extends Guessing {
 			data["Characters"][edge].push(Dex.data.characters[i]);
 		}
 
-		const pokemon = Dex.getPokemonList();
+		const pokemon = Games.getPokemonList();
 		for (let i = 0; i < pokemon.length; i++) {
 			const edge = pokemon[i].species.charAt(0) + " - " + pokemon[i].species.substr(-1);
 			if (!data["Pokemon"][edge]) data["Pokemon"][edge] = [];
 			data["Pokemon"][edge].push(pokemon[i].species);
 		}
 
-		const abilities = Dex.getAbilitiesList();
+		const abilities = Games.getAbilitiesList();
 		for (let i = 0; i < abilities.length; i++) {
 			const edge = abilities[i].name.charAt(0) + " - " + abilities[i].name.substr(-1);
 			if (!data["Pokemon Abilities"][edge]) data["Pokemon Abilities"][edge] = [];
 			data["Pokemon Abilities"][edge].push(abilities[i].name);
 		}
 
-		const items = Dex.getItemsList();
+		const items = Games.getItemsList();
 		for (let i = 0; i < items.length; i++) {
 			const edge = items[i].name.charAt(0) + " - " + items[i].name.substr(-1);
 			if (!data["Pokemon Items"][edge]) data["Pokemon Items"][edge] = [];
 			data["Pokemon Items"][edge].push(items[i].name);
 		}
 
-		const moves = Dex.getMovesList();
+		const moves = Games.getMovesList();
 		for (let i = 0; i < moves.length; i++) {
 			const edge = moves[i].name.charAt(0) + " - " + moves[i].name.substr(-1);
 			if (!data["Pokemon Moves"][edge]) data["Pokemon Moves"][edge] = [];

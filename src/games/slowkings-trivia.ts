@@ -22,7 +22,7 @@ class SlowkingsTrivia extends Guessing {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		const abilities = Dex.getAbilitiesList();
+		const abilities = Games.getAbilitiesList();
 		for (let i = 0; i < abilities.length; i++) {
 			const ability = abilities[i];
 			const desc = ability.desc || ability.shortDesc;
@@ -31,7 +31,7 @@ class SlowkingsTrivia extends Guessing {
 			data["Pokemon Abilities"][desc].push(ability.name);
 		}
 
-		const items = Dex.getItemsList();
+		const items = Games.getItemsList();
 		for (let i = 0; i < items.length; i++) {
 			const item = items[i];
 			const desc = item.desc || item.shortDesc;
@@ -40,7 +40,7 @@ class SlowkingsTrivia extends Guessing {
 			data["Pokemon Items"][desc].push(item.name);
 		}
 
-		const moves = Dex.getMovesList();
+		const moves = Games.getMovesList();
 		for (let i = 0; i < moves.length; i++) {
 			const move = moves[i];
 			const desc = move.desc || move.shortDesc;

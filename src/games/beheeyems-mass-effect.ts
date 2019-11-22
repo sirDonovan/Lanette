@@ -15,7 +15,7 @@ class BeheeyemsMassEffect extends Guessing {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		const pokemonList = Dex.getPokemonList();
+		const pokemonList = Games.getPokemonList();
 		for (let i = 0; i < pokemonList.length; i++) {
 			const pokemon = pokemonList[i];
 			const typing = pokemon.types.slice().sort().join('/');

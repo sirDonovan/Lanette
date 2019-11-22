@@ -14,7 +14,7 @@ class SudowoodosSpeciesScramble extends Guessing {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		const pokemonList = Dex.getPokemonList(pokemon => !!pokemon.category);
+		const pokemonList = Games.getPokemonList(pokemon => !!pokemon.category);
 		for (let i = 0; i < pokemonList.length; i++) {
 			const pokemon = pokemonList[i];
 			if (!(pokemon.category in data.categories)) {

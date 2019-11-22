@@ -18,7 +18,7 @@ class PikachusMysteryPokemon extends Guessing {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		const pokemonList = Dex.getPokemonList(pokemon => !pokemon.forme);
+		const pokemonList = Games.getPokemonList(pokemon => !pokemon.forme);
 		for (let i = 0; i < pokemonList.length; i++) {
 			const pokemon = pokemonList[i];
 			data.pokedex.push(pokemon.id);

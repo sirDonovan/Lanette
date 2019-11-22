@@ -11,6 +11,7 @@ const exec = util.promisify(child_process.exec);
 
 const currentGen = 8;
 const currentGenString = 'gen' + currentGen;
+const defaultNewTier = 'OU';
 const omotmSection = 'OM of the Month';
 const PokemonShowdown = path.join(Tools.rootFolder, 'Pokemon-Showdown');
 const dataDir = path.join(PokemonShowdown, 'data');
@@ -628,7 +629,7 @@ export class Dex {
 		return Tools.deepClone(this.getExistingAbility(name)) as IAbilityCopy;
 	}
 
-	/** Returns a list of standard abilities
+	/** Returns a list of existing abilities
 	 *
 	 * filterAbility: Return `false` to filter `ability` out of the list
 	 */
@@ -636,10 +637,23 @@ export class Dex {
 		const abilities: IAbility[] = [];
 		for (const i in this.data.abilities) {
 			const ability = this.getExistingAbility(i);
-			if (!ability.name || ability.isNonstandard || ability.gen > this.gen || (filter && !filter(ability))) continue;
+			if (ability.gen > this.gen || ability.isNonstandard || (filter && !filter(ability))) continue;
 			abilities.push(ability);
 		}
 		return abilities;
+	}
+
+	/** Returns a list of existing, copied abilities
+	 *
+	 * filterMove: Return `false` to filter `ability` out of the list
+	 */
+	getAbilitiesCopyList(filter?: (ability: IAbility) => boolean): IAbilityCopy[] {
+		const abilities = this.getAbilitiesList(filter);
+		const copiedAbilities: IAbilityCopy[] = [];
+		for (let i = 0; i < abilities.length; i++) {
+			copiedAbilities.push(this.getAbilityCopy(abilities[i].name));
+		}
+		return copiedAbilities;
 	}
 
 	getItem(name: string): IItem | null {
@@ -703,7 +717,7 @@ export class Dex {
 		return Tools.deepClone(this.getExistingItem(name)) as IItemCopy;
 	}
 
-	/** Returns a list of standard items
+	/** Returns a list of existing items
 	 *
 	 * filterItem: Return `false` to filter `item` out of the list
 	 */
@@ -711,10 +725,23 @@ export class Dex {
 		const items: IItem[] = [];
 		for (const i in this.data.items) {
 			const item = this.getExistingItem(i);
-			if (!item.name || item.isNonstandard || item.gen > this.gen || (filter && !filter(item))) continue;
+			if (item.gen > this.gen || item.isNonstandard || (filter && !filter(item))) continue;
 			items.push(item);
 		}
 		return items;
+	}
+
+	/** Returns a list of existing, copied items
+	 *
+	 * filterMove: Return `false` to filter `item` out of the list
+	 */
+	getItemsCopyList(filter?: (item: IItem) => boolean): IItemCopy[] {
+		const items = this.getItemsList(filter);
+		const copiedItems: IItemCopy[] = [];
+		for (let i = 0; i < items.length; i++) {
+			copiedItems.push(this.getItemCopy(items[i].name));
+		}
+		return copiedItems;
 	}
 
 	getMove(name: string): IMove | null {
@@ -775,7 +802,7 @@ export class Dex {
 		return Tools.deepClone(this.getExistingMove(name)) as IMoveCopy;
 	}
 
-	/** Returns a list of standard moves
+	/** Returns a list of existing moves
 	 *
 	 * filterMove: Return `false` to filter `move` out of the list
 	 */
@@ -783,17 +810,17 @@ export class Dex {
 		const moves: IMove[] = [];
 		for (const i in this.data.moves) {
 			const move = this.getExistingMove(i);
-			if (!move.name || move.isNonstandard || move.gen > this.gen || (filter && !filter(move))) continue;
+			if (move.gen > this.gen || move.isNonstandard || (filter && !filter(move))) continue;
 			moves.push(move);
 		}
 		return moves;
 	}
 
-	/** Returns a list of standard, copied moves
+	/** Returns a list of existing, copied moves
 	 *
 	 * filterMove: Return `false` to filter `move` out of the list
 	 */
-	getMovesCopyList(filter?: (pokemon: IMove) => boolean): IMoveCopy[] {
+	getMovesCopyList(filter?: (move: IMove) => boolean): IMoveCopy[] {
 		const moves = this.getMovesList(filter);
 		const copiedMoves: IMoveCopy[] = [];
 		for (let i = 0; i < moves.length; i++) {
@@ -933,6 +960,8 @@ export class Dex {
 			}
 			if (!tier) {
 				tier = 'Illegal';
+			} else if (tier === 'New') {
+				tier = defaultNewTier;
 			} else if (tier === '(PU)') {
 				tier = 'ZU';
 			}
@@ -1018,7 +1047,7 @@ export class Dex {
 		return Tools.deepClone(this.getExistingPokemon(name)) as IPokemonCopy;
 	}
 
-	/** Returns a list of standard Pokemon
+	/** Returns a list of existing Pokemon
 	 *
 	 * filterPokemon: Return `false` to filter `pokemon` out of the list
 	 */
@@ -1026,13 +1055,14 @@ export class Dex {
 		const pokedex: IPokemon[] = [];
 		for (const i in this.data.pokedex) {
 			const pokemon = this.getExistingPokemon(i);
-			if (!pokemon.species || pokemon.tier === 'Unreleased' || pokemon.tier === 'Illegal' || pokemon.tier.startsWith('CAP') || pokemon.gen > this.gen || (filter && !filter(pokemon))) continue;
+			if (pokemon.isNonstandard === 'CAP' || pokemon.isNonstandard === 'Glitch' || pokemon.isNonstandard === 'Pokestar' || pokemon.gen > this.gen ||
+				(filter && !filter(pokemon))) continue;
 			pokedex.push(pokemon);
 		}
 		return pokedex;
 	}
 
-	/** Returns a list of standard, copied Pokemon
+	/** Returns a list of existing, copied Pokemon
 	 *
 	 * filterPokemon: Return `false` to filter `pokemon` out of the list
 	 */

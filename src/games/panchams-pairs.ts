@@ -41,7 +41,7 @@ class PanchamPairs extends Game {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		const pokemonList = Dex.getPokemonList();
+		const pokemonList = Games.getPokemonList();
 		for (let i = 0; i < pokemonList.length; i++) {
 			const pokemon = pokemonList[i];
 			dataKeys['Pokemon'].push(pokemon.species);
@@ -58,7 +58,7 @@ class PanchamPairs extends Game {
 			};
 		}
 
-		const movesList = Dex.getMovesList(x => !!x.basePower);
+		const movesList = Games.getMovesList(x => !!x.basePower);
 		for (let i = 0; i < movesList.length; i++) {
 			const move = movesList[i];
 			dataKeys.moves.push(move.name);

@@ -155,6 +155,7 @@ const tests: GameFileTests<PoliwrathsPortmanteaus> = {
 			await game.onNextRound();
 			assert(game.answers.length);
 			assert(game.ports.length);
+			console.log(game.answers.join(','));
 			assert(game.answers.join(',') === 'pelipperuption,swablueflare,pidoverheat,fletchinderuption');
 			for (let i = 0; i < game.answers.length; i++) {
 				assert(game.answers[i] in game.answerParts);

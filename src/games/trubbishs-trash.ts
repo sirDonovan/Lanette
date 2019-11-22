@@ -23,7 +23,7 @@ class TrubbishsTrash extends Game {
 		room.say("Loading data for " + name + "...");
 
 		const basePowers: Dict<number> = {};
-		const movesList = Dex.getMovesList(move => !move.id.startsWith('hiddenpower'));
+		const movesList = Games.getMovesList(move => !move.id.startsWith('hiddenpower'));
 		for (let i = 0; i < movesList.length; i++) {
 			const move = movesList[i];
 			let basePower = move.basePower;

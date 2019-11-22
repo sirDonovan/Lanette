@@ -17,7 +17,7 @@ class WishiwashisStatFishing extends Game {
 
 		room.say("Loading data for " + name + "...");
 
-		const pokemonList = Dex.getPokemonList(x => x.types.includes("Water") && Dex.hasGifData(x));
+		const pokemonList = Games.getPokemonList(x => x.types.includes("Water") && Dex.hasGifData(x));
 		for (let i = 0; i < pokemonList.length; i++) {
 			const pokemon = pokemonList[i];
 			let bst = 0;

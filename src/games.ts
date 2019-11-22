@@ -8,6 +8,7 @@ import { DefaultGameOption, Game, IGameOptionValues } from "./room-game";
 import { Room } from "./rooms";
 import { GameCommandReturnType, IGameFile, IGameFormat, IGameFormatComputed, IGameFormatData, IGameMode, IGameModeFile, IGameTemplateFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFile, IUserHostedFormat, IUserHostedFormatComputed, UserHostedCustomizable } from './types/games';
 import { IWorker } from './types/global-types';
+import { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/in-game-data-types';
 import { User } from './users';
 
 const gamesDirectory = path.join(__dirname, 'games');
@@ -523,5 +524,117 @@ export class Games {
 				CommandParser.parse(room, Users.self, Config.commandCharacter + "nexthost");
 			}
 		}, timer);
+	}
+
+	/** Returns a list of standard abilities for games
+	 *
+	 * filterAbility: Return `false` to filter `ability` out of the list
+	 */
+	getAbilitiesList(filter?: (ability: IAbility) => boolean): IAbility[] {
+		const baseList = Dex.getAbilitiesList(filter);
+		const list: IAbility[] = [];
+		for (let i = 0; i < baseList.length; i++) {
+			const ability = baseList[i];
+			if (!ability.name || ability.isNonstandard) continue;
+			list.push(ability);
+		}
+		return list;
+	}
+
+	/** Returns a list of copied standard abilities for games
+	 *
+	 * filterAbility: Return `false` to filter `ability` out of the list
+	 */
+	getAbilitiesCopyList(filter?: (ability: IAbility) => boolean): IAbilityCopy[] {
+		const baseList = this.getAbilitiesList(filter);
+		const list: IAbilityCopy[] = [];
+		for (let i = 0; i < baseList.length; i++) {
+			list.push(Dex.getAbilityCopy(baseList[i].name));
+		}
+		return list;
+	}
+
+	/** Returns a list of standard items for games
+	 *
+	 * filterItem: Return `false` to filter `item` out of the list
+	 */
+	getItemsList(filter?: (item: IItem) => boolean): IItem[] {
+		const baseList = Dex.getItemsList(filter);
+		const list: IItem[] = [];
+		for (let i = 0; i < baseList.length; i++) {
+			const item = baseList[i];
+			if (!item.name || item.isNonstandard) continue;
+			list.push(item);
+		}
+		return list;
+	}
+
+	/** Returns a list of copied standard items for games
+	 *
+	 * filterItem: Return `false` to filter `item` out of the list
+	 */
+	getItemsCopyList(filter?: (item: IItem) => boolean): IItemCopy[] {
+		const baseList = this.getItemsList(filter);
+		const list: IItemCopy[] = [];
+		for (let i = 0; i < baseList.length; i++) {
+			list.push(Dex.getItemCopy(baseList[i].name));
+		}
+		return list;
+	}
+
+	/** Returns a list of standard moves for games
+	 *
+	 * filterItem: Return `false` to filter `move` out of the list
+	 */
+	getMovesList(filter?: (item: IMove) => boolean): IMove[] {
+		const baseList = Dex.getMovesList(filter);
+		const list: IMove[] = [];
+		for (let i = 0; i < baseList.length; i++) {
+			const move = baseList[i];
+			if (!move.name || move.isNonstandard) continue;
+			list.push(move);
+		}
+		return list;
+	}
+
+	/** Returns a list of copied standard moves for games
+	 *
+	 * filterItem: Return `false` to filter `move` out of the list
+	 */
+	getMovesCopyList(filter?: (item: IMove) => boolean): IMoveCopy[] {
+		const baseList = this.getMovesList(filter);
+		const list: IMoveCopy[] = [];
+		for (let i = 0; i < baseList.length; i++) {
+			list.push(Dex.getMoveCopy(baseList[i].name));
+		}
+		return list;
+	}
+
+	/** Returns a list of standard Pokemon for games
+	 *
+	 * filterItem: Return `false` to filter `item` out of the list
+	 */
+	getPokemonList(filter?: (item: IPokemon) => boolean): IPokemon[] {
+		const baseList = Dex.getPokemonList(filter);
+		const list: IPokemon[] = [];
+		for (let i = 0; i < baseList.length; i++) {
+			const pokemon = baseList[i];
+			if (!pokemon.species || pokemon.isNonstandard === 'LGPE') continue;
+			list.push(pokemon);
+		}
+		return list;
+	}
+
+	/** Returns a list of copied standard Pokemon for games
+	 *
+	 * filterItem: Return `false` to filter `item` out of the list
+	 */
+	getPokemonCopyList(filter?: (item: IPokemon) => boolean): IPokemonCopy[] {
+		const baseList = this.getPokemonList(filter);
+		const list: IPokemonCopy[] = [];
+		for (let i = 0; i < baseList.length; i++) {
+			list.push(Dex.getPokemonCopy(baseList[i].name));
+		}
+		return list;
 	}
 }

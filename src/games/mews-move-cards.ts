@@ -12,8 +12,8 @@ class MewsMoveCards extends CardHighLow {
 	createDeckPool() {
 		this.deckPool = [];
 
-		const pokedex = Dex.getPokemonList();
-		const moves = Dex.getMovesCopyList(move => {
+		const pokedex = Games.getPokemonList();
+		const moves = Games.getMovesCopyList(move => {
 			if (!move.basePower || !move.accuracy || !move.pp || isNaN(move.basePower) || move.basePower <= 0 || move.accuracy === true || isNaN(move.accuracy) || move.accuracy === 100 ||
 				isNaN(move.pp)) return false;
 			return true;

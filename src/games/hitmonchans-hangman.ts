@@ -21,10 +21,10 @@ class HitmonchansHangman extends Guessing {
 		room.say("Loading data for " + name + "...");
 
 		data["Characters"] = Dex.data.characters.slice();
-		data["Pokemon"] = Dex.getPokemonList().map(x => x.species);
-		data["Pokemon Abilities"] = Dex.getAbilitiesList().map(x => x.name);
-		data["Pokemon Items"] = Dex.getItemsList().map(x => x.name);
-		data["Pokemon Moves"] = Dex.getMovesList().map(x => x.name);
+		data["Pokemon"] = Games.getPokemonList().map(x => x.species);
+		data["Pokemon Abilities"] = Games.getAbilitiesList().map(x => x.name);
+		data["Pokemon Items"] = Games.getItemsList().map(x => x.name);
+		data["Pokemon Moves"] = Games.getMovesList().map(x => x.name);
 
 		loadedData = true;
 	}

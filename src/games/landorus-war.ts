@@ -19,7 +19,7 @@ class LandorusWar extends Game {
 
 		room.say("Loading data for " + name + "...");
 
-		const moveList = Dex.getMovesList(x => {
+		const moveList = Games.getMovesList(x => {
 			if (x.id === 'hiddenpower' || (!x.basePower && !x.basePowerCallback)) return false;
 			return true;
 		});
@@ -28,7 +28,7 @@ class LandorusWar extends Game {
 			data.moves.push(moveList[i].id);
 		}
 
-		const pokemonList = Dex.getPokemonList(x => !!x.allPossibleMoves.length);
+		const pokemonList = Games.getPokemonList(x => !!x.allPossibleMoves.length);
 		for (let i = 0; i < pokemonList.length; i++) {
 			const pokemon = pokemonList[i];
 			let moves = 0;

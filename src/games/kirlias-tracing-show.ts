@@ -14,7 +14,7 @@ class KirliasTracingShow extends Guessing {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		const pokedex = Dex.getPokemonList();
+		const pokedex = Games.getPokemonList();
 		for (let i = 0; i < pokedex.length; i++) {
 			const abilities: string[] = [];
 			for (const ability in pokedex[i].abilities) {

@@ -14,7 +14,7 @@ class ChimechosStatSchool extends Guessing {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		const pokemon = Dex.getPokemonList();
+		const pokemon = Games.getPokemonList();
 		for (let i = 0; i < pokemon.length; i++) {
 			const stats = Object.values(pokemon[i].baseStats).join(" / ");
 			if (!(stats in data.stats)) {

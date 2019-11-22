@@ -19,7 +19,7 @@ class TrevenantsTrickOrTreat extends Game {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		const pokedex = Dex.getPokemonList(x => !x.forme && Dex.hasGifData(x, 'bw'));
+		const pokedex = Games.getPokemonList(x => !x.forme && Dex.hasGifData(x, 'bw'));
 		for (let i = 0; i < pokedex.length; i++) {
 			const pokemon = pokedex[i];
 			data.pokedex.push(pokemon.id);

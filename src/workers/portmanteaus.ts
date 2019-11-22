@@ -73,7 +73,7 @@ export function init(): worker_threads.Worker {
 		}
 	}
 
-	const dex = Dex.getDex('gen7');
+	const dex = Dex.getDex('gen8');
 
 	/*
 	data.pool['Item']['type']['Berry'] = [];

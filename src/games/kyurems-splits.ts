@@ -23,22 +23,22 @@ class KyuremsSplits extends Guessing {
 			data["Characters"].push(Dex.data.characters[i]);
 		}
 
-		const pokemon = Dex.getPokemonList();
+		const pokemon = Games.getPokemonList();
 		for (let i = 0; i < pokemon.length; i++) {
 			data["Pokemon"].push(pokemon[i].species);
 		}
 
-		const abilities = Dex.getAbilitiesList();
+		const abilities = Games.getAbilitiesList();
 		for (let i = 0; i < abilities.length; i++) {
 			data["Pokemon Abilities"].push(abilities[i].name);
 		}
 
-		const items = Dex.getItemsList();
+		const items = Games.getItemsList();
 		for (let i = 0; i < items.length; i++) {
 			data["Pokemon Items"].push(items[i].name);
 		}
 
-		const moves = Dex.getMovesList();
+		const moves = Games.getMovesList();
 		for (let i = 0; i < moves.length; i++) {
 			data["Pokemon Moves"].push(moves[i].name);
 		}

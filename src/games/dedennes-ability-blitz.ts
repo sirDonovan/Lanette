@@ -20,7 +20,7 @@ class DedennesAbilityBlitz extends Game {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		const abilities = Dex.getAbilitiesList();
+		const abilities = Games.getAbilitiesList();
 		for (let i = 0; i < abilities.length; i++) {
 			data.abilities.push(abilities[i].name);
 		}

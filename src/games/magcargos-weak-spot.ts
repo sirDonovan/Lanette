@@ -20,7 +20,7 @@ class MagcargosWeakSpot extends Guessing {
 		room.say("Loading data for " + name + "...");
 
 		const types = Object.keys(Dex.data.typeChart);
-		const pokemonList = Dex.getPokemonList(x => !x.species.startsWith("Arceus-") && !x.species.startsWith('Silvally-'));
+		const pokemonList = Games.getPokemonList(x => !x.species.startsWith("Arceus-") && !x.species.startsWith('Silvally-'));
 		for (let i = 0; i < pokemonList.length; i++) {
 			for (let j = 0; j < types.length; j++) {
 				const effectiveness = Dex.getEffectiveness(types[j], pokemonList[i]);

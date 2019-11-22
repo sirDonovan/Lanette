@@ -20,10 +20,10 @@ class PiplupsLetterPlacements extends Guessing {
 		room.say("Loading data for " + name + "...");
 
 		data["Characters"] = Dex.data.characters.filter(x => x.length > 3);
-		data["Pokemon"] = Dex.getPokemonList(x => x.species.length > 3).map(x => x.species);
-		data["Pokemon Abilities"] = Dex.getAbilitiesList(x => x.name.length > 3).map(x => x.name);
-		data["Pokemon Items"] = Dex.getItemsList(x => x.name.length > 3).map(x => x.name);
-		data["Pokemon Moves"] = Dex.getMovesList(x => x.name.length > 3).map(x => x.name);
+		data["Pokemon"] = Games.getPokemonList(x => x.species.length > 3).map(x => x.species);
+		data["Pokemon Abilities"] = Games.getAbilitiesList(x => x.name.length > 3).map(x => x.name);
+		data["Pokemon Items"] = Games.getItemsList(x => x.name.length > 3).map(x => x.name);
+		data["Pokemon Moves"] = Games.getMovesList(x => x.name.length > 3).map(x => x.name);
 
 		loadedData = true;
 	}
