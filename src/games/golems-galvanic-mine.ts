@@ -5,6 +5,7 @@ import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 
 const name = "Golem's Galvanic Mine";
+const gen = 'gen7';
 const data: {stones: string[]} = {
 	stones: [],
 };
@@ -15,7 +16,7 @@ class GolemsGalvanicMine extends Game {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		const items = Games.getItemsList();
+		const items = Games.getItemsList(undefined, gen);
 		for (let i = 0; i < items.length; i++) {
 			const item = items[i];
 			if (item.megaStone || item.zMove) data.stones.push(item.name);
@@ -99,7 +100,7 @@ const commands: Dict<ICommandDefinition<GolemsGalvanicMine>> = {
 			if (!this.started || (user.id in this.players && this.players[user.id].eliminated)) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (this.roundMines.has(player)) return false;
-			const stone = Dex.getItem(target);
+			const stone = Dex.getDex(gen).getItem(target);
 			if (!stone || !data.stones.includes(stone.name)) {
 				user.say("'" + target + "' is not a valid Z or Mega stone.");
 				return false;

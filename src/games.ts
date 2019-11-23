@@ -530,8 +530,10 @@ export class Games {
 	 *
 	 * filterAbility: Return `false` to filter `ability` out of the list
 	 */
-	getAbilitiesList(filter?: (ability: IAbility) => boolean): IAbility[] {
-		const baseList = Dex.getAbilitiesList(filter);
+	getAbilitiesList(filter?: (ability: IAbility) => boolean, gen?: string): IAbility[] {
+		let dex = Dex;
+		if (gen) dex = Dex.getDex(gen);
+		const baseList = dex.getAbilitiesList(filter);
 		const list: IAbility[] = [];
 		for (let i = 0; i < baseList.length; i++) {
 			const ability = baseList[i];
@@ -545,11 +547,13 @@ export class Games {
 	 *
 	 * filterAbility: Return `false` to filter `ability` out of the list
 	 */
-	getAbilitiesCopyList(filter?: (ability: IAbility) => boolean): IAbilityCopy[] {
-		const baseList = this.getAbilitiesList(filter);
+	getAbilitiesCopyList(filter?: (ability: IAbility) => boolean, gen?: string): IAbilityCopy[] {
+		let dex = Dex;
+		if (gen) dex = Dex.getDex(gen);
+		const baseList = this.getAbilitiesList(filter, gen);
 		const list: IAbilityCopy[] = [];
 		for (let i = 0; i < baseList.length; i++) {
-			list.push(Dex.getAbilityCopy(baseList[i].name));
+			list.push(dex.getAbilityCopy(baseList[i].name));
 		}
 		return list;
 	}
@@ -558,8 +562,10 @@ export class Games {
 	 *
 	 * filterItem: Return `false` to filter `item` out of the list
 	 */
-	getItemsList(filter?: (item: IItem) => boolean): IItem[] {
-		const baseList = Dex.getItemsList(filter);
+	getItemsList(filter?: (item: IItem) => boolean, gen?: string): IItem[] {
+		let dex = Dex;
+		if (gen) dex = Dex.getDex(gen);
+		const baseList = dex.getItemsList(filter);
 		const list: IItem[] = [];
 		for (let i = 0; i < baseList.length; i++) {
 			const item = baseList[i];
@@ -573,11 +579,13 @@ export class Games {
 	 *
 	 * filterItem: Return `false` to filter `item` out of the list
 	 */
-	getItemsCopyList(filter?: (item: IItem) => boolean): IItemCopy[] {
+	getItemsCopyList(filter?: (item: IItem) => boolean, gen?: string): IItemCopy[] {
+		let dex = Dex;
+		if (gen) dex = Dex.getDex(gen);
 		const baseList = this.getItemsList(filter);
 		const list: IItemCopy[] = [];
 		for (let i = 0; i < baseList.length; i++) {
-			list.push(Dex.getItemCopy(baseList[i].name));
+			list.push(dex.getItemCopy(baseList[i].name));
 		}
 		return list;
 	}
@@ -586,8 +594,10 @@ export class Games {
 	 *
 	 * filterItem: Return `false` to filter `move` out of the list
 	 */
-	getMovesList(filter?: (item: IMove) => boolean): IMove[] {
-		const baseList = Dex.getMovesList(filter);
+	getMovesList(filter?: (move: IMove) => boolean, gen?: string): IMove[] {
+		let dex = Dex;
+		if (gen) dex = Dex.getDex(gen);
+		const baseList = dex.getMovesList(filter);
 		const list: IMove[] = [];
 		for (let i = 0; i < baseList.length; i++) {
 			const move = baseList[i];
@@ -601,21 +611,25 @@ export class Games {
 	 *
 	 * filterItem: Return `false` to filter `move` out of the list
 	 */
-	getMovesCopyList(filter?: (item: IMove) => boolean): IMoveCopy[] {
+	getMovesCopyList(filter?: (move: IMove) => boolean, gen?: string): IMoveCopy[] {
+		let dex = Dex;
+		if (gen) dex = Dex.getDex(gen);
 		const baseList = this.getMovesList(filter);
 		const list: IMoveCopy[] = [];
 		for (let i = 0; i < baseList.length; i++) {
-			list.push(Dex.getMoveCopy(baseList[i].name));
+			list.push(dex.getMoveCopy(baseList[i].name));
 		}
 		return list;
 	}
 
 	/** Returns a list of standard Pokemon for games
 	 *
-	 * filterItem: Return `false` to filter `item` out of the list
+	 * filterItem: Return `false` to filter `pokemon` out of the list
 	 */
-	getPokemonList(filter?: (item: IPokemon) => boolean): IPokemon[] {
-		const baseList = Dex.getPokemonList(filter);
+	getPokemonList(filter?: (pokemon: IPokemon) => boolean, gen?: string): IPokemon[] {
+		let dex = Dex;
+		if (gen) dex = Dex.getDex(gen);
+		const baseList = dex.getPokemonList(filter);
 		const list: IPokemon[] = [];
 		for (let i = 0; i < baseList.length; i++) {
 			const pokemon = baseList[i];
@@ -627,13 +641,15 @@ export class Games {
 
 	/** Returns a list of copied standard Pokemon for games
 	 *
-	 * filterItem: Return `false` to filter `item` out of the list
+	 * filterItem: Return `false` to filter `pokemon` out of the list
 	 */
-	getPokemonCopyList(filter?: (item: IPokemon) => boolean): IPokemonCopy[] {
+	getPokemonCopyList(filter?: (pokemon: IPokemon) => boolean, gen?: string): IPokemonCopy[] {
+		let dex = Dex;
+		if (gen) dex = Dex.getDex(gen);
 		const baseList = this.getPokemonList(filter);
 		const list: IPokemonCopy[] = [];
 		for (let i = 0; i < baseList.length; i++) {
-			list.push(Dex.getPokemonCopy(baseList[i].name));
+			list.push(dex.getPokemonCopy(baseList[i].name));
 		}
 		return list;
 	}
