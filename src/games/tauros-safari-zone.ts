@@ -27,7 +27,8 @@ class TaurosSafariZone extends Game {
 			if (copy[i].otherFormes) {
 				const formes = copy[i].otherFormes!;
 				for (let i = 0; i < formes.length; i++) {
-					pokemonList.push(Dex.getExistingPokemon(formes[i]));
+					const forme = Dex.getExistingPokemon(formes[i]);
+					if (Dex.hasGifData(forme)) pokemonList.push(forme);
 				}
 			}
 		}
@@ -88,13 +89,6 @@ class TaurosSafariZone extends Game {
 					this.roundPokemon.set(Tools.toId(currentPokemon.species), {species: currentPokemon.species, points: -100});
 				}
 			} else {
-				if (currentPokemon.otherFormes && chance < 85) {
-					const otherForme = Dex.getExistingPokemon(this.sampleOne(currentPokemon.otherFormes));
-					if (Dex.hasGifData(otherForme)) {
-						currentPokemon = otherForme;
-						pokemon[i] = otherForme;
-					}
-				}
 				baseStatTotals.push({pokemon: currentPokemon.species, bst: data.baseStatTotals[currentPokemon.id]});
 				const points = 100 + Math.round((data.baseStatTotals[pokemon[i].id] / 12));
 				this.roundPokemon.set(Tools.toId(currentPokemon.species), {species: currentPokemon.species, points});
