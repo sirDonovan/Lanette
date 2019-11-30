@@ -344,6 +344,7 @@ export interface IFormatData extends IEventMethods {
 	gameType?: 'singles' | 'doubles' | 'triples' | 'rotation';
 	maxForcedLevel?: number;
 	maxLevel?: number;
+	minSourceGen?: number;
 	noChangeAbility?: boolean;
 	noChangeForme?: boolean;
 	onBasePowerPriority?: number;
@@ -351,8 +352,6 @@ export interface IFormatData extends IEventMethods {
 	onStartPriority?: number;
 	onSwitchInPriority?: number;
 	rated?: boolean;
-	requirePentagon?: boolean;
-	requirePlus?: boolean;
 	restrictedAbilities?: string[];
 	restrictedMoves?: string[];
 	restrictedStones?: string[];
@@ -435,6 +434,7 @@ export interface IItemData extends IEffectData {
 	isBerry?: boolean;
 	isChoice?: boolean;
 	isGem?: boolean;
+	itemUser?: string[];
 	megaStone?: string;
 	megaEvolves?: string;
 	naturalGift?: {basePower: number, type: string};
@@ -445,7 +445,6 @@ export interface IItemData extends IEffectData {
 	zMove?: string | true;
 	zMoveFrom?: string;
 	zMoveType?: string;
-	zMoveUser?: string[];
 }
 
 export interface IItemComputed {
@@ -525,6 +524,7 @@ export interface IMoveData extends IEffectData {
 	damage?: number | 'level' | false | null;
 	defensiveCategory?: 'Physical' | 'Special' | 'Status';
 	forceSwitch?: boolean;
+	gmaxPower?: number;
 	hasCustomRecoil?: boolean;
 	heal?: number[] | null;
 	ignoreAbility?: boolean;
@@ -579,8 +579,10 @@ export interface IMoveComputed {
 	baseMoveType: string;
 	effectType: "Move";
 	gen: number;
+	gmaxPower?: number;
 	ignoreImmunity: IMoveData["ignoreImmunity"];
 	isNonstandard?: Nonstandard;
+	zMovePower?: number;
 }
 
 export interface IMoveCopy extends IMoveData, IMoveComputed {
@@ -609,7 +611,6 @@ export interface ITemplateData {
 	evoMove?: string;
 	evos?: string[];
 	forme?: string;
-	formeLetter?: string;
 	gender?: 'M' | 'F' | 'N' | '';
 	genderRatio?: {[k: string]: number};
 	maxHP?: number;

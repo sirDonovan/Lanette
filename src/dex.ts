@@ -77,7 +77,6 @@ const natures: Dict<INature> = {
 };
 
 const tagNames: Dict<string> = {
-	'mega': 'Mega',
 	'uber': 'Uber',
 	'ou': 'OU',
 	'uubl': 'UUBL',
@@ -88,12 +87,26 @@ const tagNames: Dict<string> = {
 	'nu': 'NU',
 	'publ': 'PUBL',
 	'pu': 'PU',
+	'zu': 'ZU',
 	'nfe': 'NFE',
 	'lcuber': 'LC Uber',
 	'lc': 'LC',
 	'cap': 'Cap',
 	'caplc': 'Cap LC',
 	'capnfe': 'Cap NFE',
+	'ag': 'Anything Goes',
+	'duber': 'DUber',
+	'dou': 'DOU',
+	'dbl': 'DBL',
+	'duu': 'DUU',
+	'dnu': 'DNU',
+	'mega': 'Mega',
+	'glitch': 'Glitch',
+	'past': 'Past',
+	'future': 'Future',
+	'lgpe': 'LGPE',
+	'pokestar': 'PokeStar',
+	'custom': 'Custom',
 };
 
 const clauseNicknames: Dict<string> = {
@@ -527,7 +540,8 @@ export class Dex {
 			}
 		}
 
-		if (BattleScripts.gen) this.gen = BattleScripts.gen;
+		this.gen = BattleScripts.gen;
+		if (!this.gen) throw new Error(`Mod ${this.currentMod} needs a generation number in scripts.js`);
 
 		this.loadedData = true;
 
@@ -758,8 +772,78 @@ export class Dex {
 		if (!moveData.flags) moveData.flags = {};
 		moveData.critRatio = Number(moveData.critRatio) || 1;
 		moveData.priority = Number(moveData.priority) || 0;
+
+		let gmaxPower = moveData.gmaxPower;
+		if (moveData.category !== 'Status' && !gmaxPower) {
+			if (!moveData.basePower) {
+				gmaxPower = 100;
+			} else if (['Fighting', 'Poison'].includes(moveData.type)) {
+				if (moveData.basePower >= 150) {
+					gmaxPower = 100;
+				} else if (moveData.basePower >= 110) {
+					gmaxPower = 95;
+				} else if (moveData.basePower >= 75) {
+					gmaxPower = 90;
+				} else if (moveData.basePower >= 65) {
+					gmaxPower = 85;
+				} else if (moveData.basePower >= 55) {
+					gmaxPower = 80;
+				} else if (moveData.basePower >= 45) {
+					gmaxPower = 75;
+				} else  {
+					gmaxPower = 70;
+				}
+			} else {
+				if (moveData.basePower >= 150) {
+					gmaxPower = 150;
+				} else if (moveData.basePower >= 110) {
+					gmaxPower = 140;
+				} else if (moveData.basePower >= 75) {
+					gmaxPower = 130;
+				} else if (moveData.basePower >= 65) {
+					gmaxPower = 120;
+				} else if (moveData.basePower >= 55) {
+					gmaxPower = 110;
+				} else if (moveData.basePower >= 45) {
+					gmaxPower = 100;
+				} else  {
+					gmaxPower = 90;
+				}
+			}
+		}
+
+		let zMovePower = moveData.zMovePower;
+		if (moveData.category !== 'Status' && !zMovePower) {
+			let basePower = moveData.basePower;
+			if (Array.isArray(moveData.multihit)) basePower *= 3;
+
+			if (!basePower) {
+				zMovePower = 100;
+			} else if (basePower >= 140) {
+				zMovePower = 200;
+			} else if (basePower >= 130) {
+				zMovePower = 195;
+			} else if (basePower >= 120) {
+				zMovePower = 190;
+			} else if (basePower >= 110) {
+				zMovePower = 185;
+			} else if (basePower >= 100) {
+				zMovePower = 180;
+			} else if (basePower >= 90) {
+				zMovePower = 175;
+			} else if (basePower >= 80) {
+				zMovePower = 160;
+			} else if (basePower >= 70) {
+				zMovePower = 140;
+			} else if (basePower >= 60) {
+				zMovePower = 120;
+			} else  {
+				zMovePower = 100;
+			}
+		}
+
 		let gen = 0;
-		if (moveData.num >= 742) {
+		if (moveData.num >= 743) {
 			gen = 8;
 		} else if (moveData.num >= 622) {
 			gen = 7;
@@ -784,8 +868,10 @@ export class Dex {
 			baseMoveType: moveData.baseMoveType || moveData.type,
 			effectType: "Move",
 			gen,
+			gmaxPower,
 			ignoreImmunity: moveData.ignoreImmunity !== undefined ? moveData.ignoreImmunity : moveData.category === 'Status',
 			isNonstandard,
+			zMovePower,
 		};
 		const move: IMove = Object.assign(moveData, moveComputed);
 		this.moveCache.set(id, move);
@@ -909,7 +995,7 @@ export class Dex {
 		let isPrimal = false;
 		let gen = templateFormatsData.gen || 0;
 		if (!gen) {
-			if (templateData.num >= 810 || (templateData.forme && (templateData.forme.endsWith('Galar') || templateData.forme === 'Gmax'))) {
+			if (templateData.num >= 810 || templateData.species.includes('Galar') || (templateData.forme && templateData.forme === 'Gmax')) {
 				gen = 8;
 			} else if (templateData.num >= 722 || (templateData.forme && templateData.forme.startsWith('Alola'))) {
 				gen = 7;
@@ -1486,6 +1572,7 @@ export class Dex {
 	getValidatedRuleName(rule: string): string {
 		if (rule === 'unreleased') return 'Unreleased';
 		if (rule === 'illegal') return 'Illegal';
+		if (rule === 'nonexistent') return 'Non-existent';
 		const type = rule.charAt(0);
 		let ruleName: string;
 		if (type === '+' || type === '-' || type === '!') {
@@ -1733,7 +1820,7 @@ export class Dex {
 		/**
 		 * The minimum past gen the format allows
 		 */
-		const minPastGen = (set.format.requirePlus ? 7 : set.format.requirePentagon ? 6 : 1);
+		const minPastGen = (set.format.minSourceGen ? set.format.minSourceGen : 1);
 		/**
 		 * The format doesn't allow Pokemon who've bred with past gen Pokemon
 		 * (e.g. Gen 6-7 before Pokebank was released)
