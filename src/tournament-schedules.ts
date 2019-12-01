@@ -5,7 +5,7 @@ const schedules: Dict<{months: Dict<Dict<string> | undefined>, times: [number, n
 	'tournaments': {
 		months: {
 			'12': {
-				'1': 'gen7randombattle',
+				'1': 'gen8randombattle',
 				'2': 'gen7pu',
 				'3': 'gen8ou',
 				'4': 'gen8lc',
