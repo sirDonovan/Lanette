@@ -30,6 +30,8 @@ describe("Dex", () => {
 		assert(pokemon.allPossibleMoves.length > Object.keys(pokemon.learnset!).length, pokemon.species);
 		pokemon = Dex.getExistingPokemon('Rotom-Frost');
 		assert(pokemon.allPossibleMoves.length > Object.keys(pokemon.learnset!).length, pokemon.species);
+		pokemon = Dex.getExistingPokemon('Pikachu-Gmax');
+		assert(pokemon.allPossibleMoves.length > Object.keys(pokemon.learnset!).length, pokemon.species);
 
 		// tiers
 		/*

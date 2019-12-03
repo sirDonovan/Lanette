@@ -44,7 +44,7 @@ const schedules: Dict<{months: Dict<Dict<string> | undefined>, times: [number, n
 		months: {
 			'12': {
 				'1': '[Gen 8] Random Battle',
-				'2': '[Gen 7] Mix and Mega@@@gen7tiershift',
+				'2': '[Gen 8] Mix and Mega@@@gen7tiershift',
 				'3': '[Gen 8] Anything Goes@@@-Zacian',
 				'4': '[Gen 8] NFE',
 				'5': '[Gen 7] Battle Factory@@@Inverse Mod,!Team Preview',

@@ -949,6 +949,9 @@ export class Dex {
 		if (!templateFormatsData.requiredItems && templateFormatsData.requiredItem) templateFormatsData.requiredItems = [templateFormatsData.requiredItem];
 		const baseSpecies = templateData.baseSpecies || templateData.species;
 		const isForme = baseSpecies !== templateData.species;
+		let inheritsLearnsetFrom = templateData.inheritsLearnsetFrom;
+		if (templateData.forme === 'Gmax') inheritsLearnsetFrom = Tools.toId(baseSpecies);
+
 		const allPossibleMoves: string[] = [];
 		if (this.data.learnsets.hasOwnProperty(id)) {
 			for (const i in this.data.learnsets[id]!.learnset) {
@@ -970,13 +973,6 @@ export class Dex {
 					if (!allPossibleMoves.includes(i)) allPossibleMoves.push(i);
 				}
 			}
-		} else if (isForme && templateData.baseSpecies === 'Rotom') {
-			const basePokemon = this.getExistingPokemon('Rotom');
-			if (basePokemon.learnset) {
-				for (const i in basePokemon.learnset) {
-					if (!allPossibleMoves.includes(i)) allPossibleMoves.push(i);
-				}
-			}
 		} else if (templateData.prevo) {
 			let prevo = Tools.toId(templateData.prevo);
 			while (prevo && this.data.pokedex.hasOwnProperty(prevo)) {
@@ -988,6 +984,12 @@ export class Dex {
 				}
 				prevo = Tools.toId(prevoTemplateData.prevo);
 			}
+		} else if (inheritsLearnsetFrom) {
+			if (this.data.learnsets.hasOwnProperty(inheritsLearnsetFrom)) {
+				for (const i in this.data.learnsets[inheritsLearnsetFrom]!.learnset) {
+					if (!allPossibleMoves.includes(i)) allPossibleMoves.push(i);
+				}
+			}
 		}
 
 		let battleOnly = templateFormatsData.battleOnly;
@@ -995,7 +997,7 @@ export class Dex {
 		let isPrimal = false;
 		let gen = templateFormatsData.gen || 0;
 		if (!gen) {
-			if (templateData.num >= 810 || templateData.species.includes('Galar') || (templateData.forme && templateData.forme === 'Gmax')) {
+			if (templateData.num >= 810 || (templateData.forme && (templateData.forme.endsWith('Galar') || templateData.forme === 'Gmax'))) {
 				gen = 8;
 			} else if (templateData.num >= 722 || (templateData.forme && templateData.forme.startsWith('Alola'))) {
 				gen = 7;
@@ -1103,6 +1105,7 @@ export class Dex {
 			evos,
 			forme: templateData.forme || '',
 			id: speciesId,
+			inheritsLearnsetFrom,
 			isForme,
 			isMega,
 			isNonstandard,
@@ -2064,9 +2067,9 @@ export class Dex {
 				pokemon = this.getExistingPokemon(pokemon.prevo);
 				if (pokemon.gen > Math.max(2, this.gen)) break;
 				if (pokemon && !pokemon.abilities['H']) isHidden = false;
-			} else if (pokemon.baseSpecies !== pokemon.species && pokemon.baseSpecies === 'Rotom') {
-				// only Rotom inherit learnsets from base
-				pokemon = this.getExistingPokemon(pokemon.baseSpecies);
+			} else if (pokemon.inheritsLearnsetFrom) {
+				// For Pokemon like Rotom, Necrozma, and Gmax formes whose movesets are extensions are their base formes
+				pokemon = this.getExistingPokemon(pokemon.inheritsLearnsetFrom);
 			} else {
 				break;
 			}
