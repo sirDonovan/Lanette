@@ -71,4 +71,33 @@ describe("Dex", () => {
 		assert(evolutionLines[1].join(",") === 'Tyrogue,Hitmonchan');
 		assert(evolutionLines[2].join(",") === 'Tyrogue,Hitmontop');
 	});
+	it('should return proper values from getList methods', () => {
+		const abilities = Dex.getAbilitiesList().map(x => x.name);
+		const items = Dex.getItemsList().map(x => x.name);
+		const moves = Dex.getMovesList().map(x => x.name);
+		const pokemon = Dex.getPokemonList().map(x => x.species);
+
+		assert(!abilities.includes(Dex.getExistingAbility('No Ability').name));
+
+		// LGPE/CAP/Glitch/Pokestar
+		assert(!abilities.includes(Dex.getExistingAbility('Mountaineer').name));
+		assert(!items.includes(Dex.getExistingItem('Crucibellite').name));
+		assert(!moves.includes(Dex.getExistingMove('Baddy Bad').name));
+		assert(!moves.includes(Dex.getExistingMove('Paleo Wave').name));
+		assert(!pokemon.includes(Dex.getExistingPokemon('Pikachu-Starter').species));
+		assert(!pokemon.includes(Dex.getExistingPokemon('Voodoom').species));
+		assert(!pokemon.includes(Dex.getExistingPokemon('Missingno.').species));
+		assert(!pokemon.includes(Dex.getExistingPokemon('Pokestar Smeargle').species));
+
+		// not available in Sword/Shield
+		assert(items.includes(Dex.getExistingItem('Abomasite').name));
+		assert(moves.includes(Dex.getExistingMove('Aeroblast').name));
+		assert(pokemon.includes(Dex.getExistingPokemon('Bulbasaur').species));
+
+		// available in Sword/Shield
+		assert(abilities.includes(Dex.getExistingAbility('Intimidate').name));
+		assert(items.includes(Dex.getExistingItem('Choice Scarf').name));
+		assert(moves.includes(Dex.getExistingMove('Tackle').name));
+		assert(pokemon.includes(Dex.getExistingPokemon('Charmander').species));
+	});
 });

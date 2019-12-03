@@ -343,4 +343,34 @@ describe("Games", () => {
 
 		assert(Games.createUserHostedGame(room, Games.getExistingUserHostedFormat('floettes forum game, name: Mocha Test Game'), Users.self.name).name === Users.self.name + "'s Mocha Test Game");
 	});
+
+	it('should return proper values from getList methods', () => {
+		const abilities = Games.getAbilitiesList().map(x => x.name);
+		const items = Games.getItemsList().map(x => x.name);
+		const moves = Games.getMovesList().map(x => x.name);
+		const pokemon = Games.getPokemonList().map(x => x.species);
+
+		assert(!abilities.includes(Dex.getExistingAbility('No Ability').name));
+
+		// LGPE/CAP/Glitch/Pokestar
+		assert(!abilities.includes(Dex.getExistingAbility('Mountaineer').name));
+		assert(!items.includes(Dex.getExistingItem('Crucibellite').name));
+		assert(!moves.includes(Dex.getExistingMove('Baddy Bad').name));
+		assert(!moves.includes(Dex.getExistingMove('Paleo Wave').name));
+		assert(!pokemon.includes(Dex.getExistingPokemon('Pikachu-Starter').species));
+		assert(!pokemon.includes(Dex.getExistingPokemon('Voodoom').species));
+		assert(!pokemon.includes(Dex.getExistingPokemon('Missingno.').species));
+		assert(!pokemon.includes(Dex.getExistingPokemon('Pokestar Smeargle').species));
+
+		// not available in Sword/Shield
+		assert(items.includes(Dex.getExistingItem('Abomasite').name));
+		assert(moves.includes(Dex.getExistingMove('Aeroblast').name));
+		assert(pokemon.includes(Dex.getExistingPokemon('Bulbasaur').species));
+
+		// available in Sword/Shield
+		assert(abilities.includes(Dex.getExistingAbility('Intimidate').name));
+		assert(items.includes(Dex.getExistingItem('Choice Scarf').name));
+		assert(moves.includes(Dex.getExistingMove('Tackle').name));
+		assert(pokemon.includes(Dex.getExistingPokemon('Charmander').species));
+	});
 });

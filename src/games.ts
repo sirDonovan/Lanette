@@ -537,7 +537,7 @@ export class Games {
 		const list: IAbility[] = [];
 		for (let i = 0; i < baseList.length; i++) {
 			const ability = baseList[i];
-			if (!ability.name || ability.isNonstandard) continue;
+			if (!ability.name) continue;
 			list.push(ability);
 		}
 		return list;
@@ -569,7 +569,7 @@ export class Games {
 		const list: IItem[] = [];
 		for (let i = 0; i < baseList.length; i++) {
 			const item = baseList[i];
-			if (!item.name || item.isNonstandard) continue;
+			if (!item.name) continue;
 			list.push(item);
 		}
 		return list;
@@ -601,7 +601,7 @@ export class Games {
 		const list: IMove[] = [];
 		for (let i = 0; i < baseList.length; i++) {
 			const move = baseList[i];
-			if (!move.name || move.isNonstandard) continue;
+			if (!move.name) continue;
 			list.push(move);
 		}
 		return list;
@@ -633,7 +633,7 @@ export class Games {
 		const list: IPokemon[] = [];
 		for (let i = 0; i < baseList.length; i++) {
 			const pokemon = baseList[i];
-			if (!pokemon.species || pokemon.isNonstandard === 'LGPE') continue;
+			if (!pokemon.species) continue;
 			list.push(pokemon);
 		}
 		return list;
