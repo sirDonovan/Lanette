@@ -33,7 +33,7 @@ export class Tools {
 	readonly maxUsernameLength: typeof maxUsernameLength = maxUsernameLength;
 	readonly roomLogsFolder: string = path.join(rootFolder, 'roomlogs');
 	readonly rootFolder: typeof rootFolder = rootFolder;
-	readonly pokemonShowdownFolder: string = path.join(rootFolder, 'Pokemon-Showdown');
+	readonly pokemonShowdownFolder: string = path.join(rootFolder, 'pokemon-showdown');
 
 	fetchUrlTimeouts: Dict<NodeJS.Timer> = {};
 	fetchUrlQueues: Dict<(() => any)[]> = {};
