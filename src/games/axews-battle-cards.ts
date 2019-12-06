@@ -373,7 +373,7 @@ class AxewsBattleCards extends CardMatching {
 				return false;
 			}
 			const pokemon = Dex.getPokemon(targets[1]);
-			if (!pokemon || pokemon.isNonstandard) {
+			if (!pokemon) {
 				this.say("Please enter a valid Pokemon.");
 				return false;
 			}

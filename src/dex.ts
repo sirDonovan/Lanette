@@ -119,6 +119,8 @@ const clauseNicknames: Dict<string> = {
 	'Ignore Illegal Abilities': 'Almost Any Ability',
 };
 
+const gen2Items: string[] = ['berserkgene', 'berry', 'bitterberry', 'burntberry', 'goldberry', 'iceberry', 'mintberry', 'miracleberry', 'mysteryberry', 'pinkbow', 'polkadotbow', 'przcureberry', 'psncureberry'];
+
 const customRuleFormats: Dict<string> = {};
 const dexes: Dict<Dex> = {};
 
@@ -741,7 +743,7 @@ export class Dex {
 		for (const i in this.data.items) {
 			const item = this.getExistingItem(i);
 			if (item.isNonstandard === 'CAP' || item.isNonstandard === 'Glitch' || item.isNonstandard === 'Pokestar' || item.isNonstandard === 'LGPE' || item.isNonstandard === 'Custom' ||
-				item.gen > this.gen || (filter && !filter(item))) continue;
+				item.gen > this.gen || (this.gen !== 2 && gen2Items.includes(item.id)) || (filter && !filter(item))) continue;
 			items.push(item);
 		}
 		return items;

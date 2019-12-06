@@ -45,48 +45,49 @@ export abstract class Chain extends Game {
 
 	onSignups() {
 		const pool: Dict<Link> = {};
-		const keys = [];
+		const keys: string[] = [];
 		if (this.variant) {
 			if (this.variant === 'moves') {
-				for (const i in Dex.data.moves) {
-					const move = Dex.getExistingMove(i);
-					if (move.isNonstandard) continue;
+				const moves = Games.getMovesList();
+				for (let i = 0; i < moves.length; i++) {
+					const move = moves[i];
 					if (this.letterBased) {
 						if (move.id === 'hiddenpower') continue;
 						if (!this.getLinkStarts(move).length || !this.getLinkEnds(move).length) continue;
 					}
-					pool[i] = move;
-					keys.push(i);
+					pool[move.id] = move;
+					keys.push(move.id);
 				}
 				this.linksType = 'move';
 			} else if (this.variant === 'items') {
-				for (const i in Dex.data.items) {
-					const item = Dex.getExistingItem(i);
-					if (item.isNonstandard !== 'Past') continue;
+				const items = Games.getItemsList();
+				for (let i = 0; i < items.length; i++) {
+					const item = items[i];
 					if (this.letterBased && (!this.getLinkStarts(item).length || !this.getLinkEnds(item).length)) continue;
-					pool[i] = item;
-					keys.push(i);
+					pool[item.id] = item;
+					keys.push(item.id);
 				}
 				this.linksType = 'item';
 			} else if (this.variant === 'abilities') {
-				for (const i in Dex.data.abilities) {
-					const ability = Dex.getExistingAbility(i);
-					if (ability.isNonstandard) continue;
+				const abilities = Games.getAbilitiesList();
+				for (let i = 0; i < abilities.length; i++) {
+					const ability = abilities[i];
 					if (this.letterBased && (!this.getLinkStarts(ability).length || !this.getLinkEnds(ability).length)) continue;
-					pool[i] = ability;
-					keys.push(i);
+					pool[ability.id] = ability;
+					keys.push(ability.id);
 				}
 				this.linksType = 'ability';
 			} else {
 				throw new Error("Game variation'" + this.variant + "' has no pool");
 			}
 		} else {
-			for (const i in Dex.data.pokedex) {
-				const pokemon = Dex.getExistingPokemon(i);
-				if ((pokemon.forme && !this.acceptsFormes) || pokemon.isNonstandard) continue;
+			const pokedex = Games.getPokemonList();
+			for (let i = 0; i < pokedex.length; i++) {
+				const pokemon = pokedex[i];
+				if (pokemon.forme && !this.acceptsFormes) continue;
 				if (this.letterBased && (!this.getLinkStarts(pokemon).length || !this.getLinkEnds(pokemon).length)) continue;
-				pool[i] = pokemon;
-				keys.push(i);
+				pool[pokemon.id] = pokemon;
+				keys.push(pokemon.id);
 			}
 		}
 		this.pool = pool;

@@ -1244,10 +1244,10 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id)))) return;
 			let type = '';
-			const pokedex = Tools.shuffle(Object.keys(Dex.data.pokedex));
+			const pokedex = Dex.getPokemonList();
 			for (let i = 0; i < pokedex.length; i++) {
-				const pokemon = Dex.getExistingPokemon(pokedex[i]);
-				if (!pokemon.isNonstandard && !pokemon.forme) {
+				const pokemon = pokedex[i];
+				if (!pokemon.forme) {
 					type = pokemon.types.join('/');
 					break;
 				}
