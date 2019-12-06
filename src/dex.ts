@@ -630,7 +630,7 @@ export class Dex {
 			id,
 			isNonstandard,
 		};
-		const ability: IAbility = Object.assign(abilityData, abilityComputed);
+		const ability: IAbility = Object.assign({}, abilityData, abilityComputed);
 		this.abilityCache.set(id, ability);
 		return ability;
 	}
@@ -719,7 +719,7 @@ export class Dex {
 			isNonstandard,
 			fling,
 		};
-		const item: IItem = Object.assign(itemData, itemComputed);
+		const item: IItem = Object.assign({}, itemData, itemComputed);
 		this.itemCache.set(id, item);
 		return item;
 	}
@@ -877,7 +877,7 @@ export class Dex {
 			isNonstandard,
 			zMovePower,
 		};
-		const move: IMove = Object.assign(moveData, moveComputed);
+		const move: IMove = Object.assign({}, moveData, moveComputed);
 		this.moveCache.set(id, move);
 		return move;
 	}
@@ -1122,7 +1122,7 @@ export class Dex {
 			spriteId: Tools.toId(baseSpecies) + (baseSpecies !== templateData.species ? '-' + Tools.toId(templateData.forme) : ''),
 			tier,
 		};
-		const pokemon: IPokemon = Object.assign(templateData, templateFormatsData, this.data.learnsets[id] || {}, pokemonComputed);
+		const pokemon: IPokemon = Object.assign({}, templateData, templateFormatsData, this.data.learnsets[id] || {}, pokemonComputed);
 		this.pokemonCache.set(id, pokemon);
 		return pokemon;
 	}
@@ -1323,7 +1323,7 @@ export class Dex {
 				(formatData.team && (id.includes('1v1') || id.includes('monotype'))) || formatData.mod === 'seasonal' || formatData.mod === 'ssb',
 		};
 
-		return Object.assign(formatData, formatComputed, supplementaryAttributes);
+		return Object.assign({}, formatData, formatComputed, supplementaryAttributes);
 	}
 
 	getExistingFormat(name: string, isTrusted?: boolean): IFormat {

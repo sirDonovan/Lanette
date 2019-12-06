@@ -17,13 +17,22 @@ describe("Dex", () => {
 		for (const i in Dex.data.pokedex) {
 			assert(Dex.getExistingPokemon(i), i);
 		}
-	});
-	it('should support OMoTM# aliases', () => {
-		assert(Dex.getFormat('omotm'));
-		if (Dex.omotms.length > 1) assert(Dex.getFormat('omotm2'));
-	});
-	it('should compute Pokemon properties properly', () => {
-		// allPossibleMoves
+
+		// abilities
+		assert(Dex.getDex('gen2').getExistingAbility('Intimidate').isNonstandard === 'Future');
+		assert(!Dex.getDex('gen3').getExistingAbility('Intimidate').isNonstandard);
+
+		// items
+		assert(Dex.getDex('gen1').getExistingItem('Gold Berry').isNonstandard === 'Future');
+		assert(!Dex.getDex('gen2').getExistingItem('Gold Berry').isNonstandard);
+		assert(Dex.getDex('gen3').getExistingItem('Gold Berry').isNonstandard === 'Past');
+
+		// pokemon
+		assert(Dex.getDex('gen1').getExistingPokemon('Togepi').isNonstandard === 'Future');
+		assert(!Dex.getDex('gen2').getExistingPokemon('Togepi').isNonstandard);
+		assert(!Dex.getDex('gen4').getExistingPokemon('Pichu-Spiky-Eared').isNonstandard);
+		assert(Dex.getDex('gen5').getExistingPokemon('Pichu=Spiky-Eared').isNonstandard === 'Past');
+
 		let pokemon = Dex.getExistingPokemon('Charizard');
 		assert(pokemon.allPossibleMoves.length > Object.keys(pokemon.learnset!).length, pokemon.species);
 		pokemon = Dex.getExistingPokemon('Lycanroc-Dusk');
@@ -33,7 +42,6 @@ describe("Dex", () => {
 		pokemon = Dex.getExistingPokemon('Pikachu-Gmax');
 		assert(pokemon.allPossibleMoves.length > Object.keys(pokemon.learnset!).length, pokemon.species);
 
-		// tiers
 		/*
 		assert(Dex.getExistingPokemon('Arceus').tier === 'Uber');
 		assert(Dex.getExistingPokemon('Arceus-Bug').tier === 'Uber');
@@ -41,6 +49,14 @@ describe("Dex", () => {
 		assert(Dex.getExistingPokemon('Lurantis-Totem').tier === 'PU');
 		*/
 		assert(Dex.getDex('gen1').getExistingPokemon('Togetic').tier === 'Illegal');
+
+		// moves
+		assert(Dex.getDex('gen6').getExistingMove('Baddy Bad').isNonstandard === 'Future');
+		assert(Dex.getDex('gen7').getExistingMove('Baddy Bad').isNonstandard === 'LGPE');
+	});
+	it('should support OMoTM# aliases', () => {
+		assert(Dex.getFormat('omotm'));
+		if (Dex.omotms.length > 1) assert(Dex.getFormat('omotm2'));
 	});
 	it('should return proper values from getEvolutionLines()', () => {
 		const pokemon = ['Charmander', 'Charmeleon', 'Charizard'];
