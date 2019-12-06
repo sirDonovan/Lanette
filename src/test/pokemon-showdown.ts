@@ -3,7 +3,7 @@ import path = require('path');
 
 import { assert } from './test-tools';
 
-describe("Pokemon-Showdown compatibility - ", () => {
+describe("Pokemon Showdown code compatibility - ", () => {
 	it('data files', () => {
 		assert(fs.existsSync(Dex.dataDir));
 		assert(fs.lstatSync(Dex.dataDir).isDirectory());

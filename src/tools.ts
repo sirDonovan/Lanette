@@ -1,8 +1,14 @@
+import child_process = require('child_process');
 import fs = require('fs');
 import https = require('https');
 import path = require('path');
+import util = require('util');
+
 import { PRNG } from './prng';
+import { User } from './users';
 import { IParam } from './workers/parameters';
+
+const exec = util.promisify(child_process.exec);
 
 const ALPHA_NUMERIC_REGEX = /[^a-zA-Z0-9 ]/g;
 const ID_REGEX = /[^a-z0-9]/g;
@@ -404,5 +410,12 @@ export class Tools {
 		const tempFilepath = filepath + '.temp';
 		fs.writeFileSync(tempFilepath, data);
 		fs.renameSync(tempFilepath, filepath);
+	}
+
+	async runUpdatePS(user?: User) {
+		await exec('node update-ps.js --hotpatch');
+
+		if (!user) user = Users.self;
+		CommandParser.parse(user, user, Config.commandCharacter + 'reload dex');
 	}
 }

@@ -74,6 +74,5 @@ databases/*
 design.txt
 local-utils/*
 Pokemon-Showdown/
-pokemon-showdown-lkg.txt
 roomlogs/
 src/config.ts

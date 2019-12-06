@@ -1,13 +1,9 @@
-import child_process = require('child_process');
 import fs = require('fs');
 import path = require('path');
-import util = require('util');
 
 import { Room } from './rooms';
 import { IAbility, IAbilityComputed, IAbilityCopy, IDataTable, IFormat, IFormatComputed, IFormatData, IFormatLinks, IGifData, IItem, IItemComputed, IItemCopy, IMove, IMoveComputed, IMoveCopy, INature, IPokemon, IPokemonComputed, IPokemonCopy, IPokemonSources, ISeparatedCustomRules, Nonstandard, PokemonSource } from './types/in-game-data-types';
-import { User } from './users';
 
-const exec = util.promisify(child_process.exec);
 
 const currentGen = 8;
 const currentGenString = 'gen' + currentGen;
@@ -579,13 +575,6 @@ export class Dex {
 				await Tools.safeWriteFile(path.join(lanetteDataDir, files[i]), file);
 			}
 		}
-	}
-
-	async updatePSLKG(user?: User) {
-		await exec('node update-ps.js');
-
-		if (!user) user = Users.self;
-		CommandParser.parse(user, user, Config.commandCharacter + 'reload dex');
 	}
 
 	getAbility(name: string): IAbility | null {

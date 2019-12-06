@@ -74,42 +74,144 @@ function pruneBuiltFiles() {
 	}
 }
 
+async function setToSha(sha) {
+	return await exec('git reset --hard ' + sha).catch(e => console.log(e));
+}
+
 module.exports = async (resolve, reject) => {
 	if (firstBuild) {
 		firstBuild = false;
-		console.log("Deleting built folder...");
+		console.log("Preparing to build files...");
 		deleteFolderRecursive(builtFolder);
+		console.log("Deleted old built folder");
 
-		const PokemonShowdown = path.join(__dirname, 'Pokemon-Showdown');
-		if (!fs.existsSync(PokemonShowdown)) {
-			console.log("Setting up Pokemon-Showdown folder...");
-			await exec('git clone https://github.com/Zarel/Pokemon-Showdown.git');
-		}
-		process.chdir(PokemonShowdown);
-		const revParse = await exec('git rev-parse master').catch(e => console.log(e));
-		if (revParse && !revParse.Error) {
-			const sha = revParse.stdout.replace("\n", "");
-			const PokemonShowdownLKG = path.join(__dirname, "pokemon-showdown-lkg.txt");
-			if (!fs.existsSync(PokemonShowdownLKG)) {
-				console.log("Copying pokemon-showdown-lkg...");
-				fs.writeFileSync(PokemonShowdownLKG, fs.readFileSync(path.join(__dirname, "pokemon-showdown-lkg-base.txt")));
-			}
-			const lkg = fs.readFileSync(PokemonShowdownLKG).toString();
-			if (sha !== lkg) {
-				console.log("Setting Pokemon-Showdown to LKG...");
-				await exec('git pull');
-				await exec('git reset --hard ' + lkg);
+		let testIndex = -1;
+		for (let i = 0; i < process.argv.length; i++) {
+			if (process.argv[i] === 'test/setup.js') {
+				testIndex = i;
+				break;
 			}
 		}
 
-		process.chdir(__dirname);
+		const offline = testIndex !== -1 && process.argv[testIndex + 1] === '--offline';
+		if (!offline) {
+			console.log("Checking pokemon-showdown remote...");
+			const pokemonShowdown = path.join(__dirname, 'pokemon-showdown');
+			const remoteDirectories = [path.join(__dirname, 'Pokemon-Showdown'), pokemonShowdown];
+			const lanetteRemote = fs.readFileSync(path.join(__dirname, "pokemon-showdown-remote.txt")).toString();
+			let needsClone = true;
+			for (let i = 0; i < remoteDirectories.length; i++) {
+				if (!fs.existsSync(remoteDirectories[i])) continue;
+				process.chdir(remoteDirectories[i]);
+
+				const remoteOutput = await exec('git remote -v').catch(e => console.log(e));
+				if (!remoteOutput || remoteOutput.Error) {
+					reject();
+					return;
+				}
+
+				let currentRemote;
+				const remotes = remoteOutput.stdout.split("\n");
+				for (let i = 0; i < remotes.length; i++) {
+					const remote = remotes[i].replace("\t", " ");
+					if (remote.startsWith('origin ') && remote.endsWith(' (fetch)')) {
+						currentRemote = remote.split('origin ')[1].split(' (fetch)')[0].trim();
+						break;
+					}
+				}
+				process.chdir(__dirname);
+
+				if (currentRemote === lanetteRemote) {
+					needsClone = false;
+				} else {
+					for (let i = 0; i < remoteDirectories.length; i++) {
+						deleteFolderRecursive(remoteDirectories[i]);
+					}
+					console.log("Deleted old remote " + currentRemote);
+				}
+			}
+
+			if (needsClone) {
+				console.log("Cloning " + lanetteRemote + "...");
+				const cmd = await exec('git clone ' + lanetteRemote).catch(e => console.log(e));
+				if (!cmd || cmd.Error) {
+					reject();
+					return;
+				}
+
+				console.log("Cloned into pokemon-showdown");
+			}
+
+			console.log("Checking pokemon-showdown version...");
+			process.chdir(pokemonShowdown);
+
+			const revParseOutput = await exec('git rev-parse master').catch(e => console.log(e));
+			if (!revParseOutput || revParseOutput.Error) {
+				reject();
+				return;
+			}
+
+			const currentSha = revParseOutput.stdout.replace("\n", "");
+
+			const cmd = await exec('git pull').catch(e => console.log(e));
+			if (!cmd || cmd.Error) {
+				await setToSha(currentSha);
+				reject();
+				return;
+			}
+
+			const lanetteSha = fs.readFileSync(path.join(__dirname, "pokemon-showdown-sha.txt")).toString();
+			let setToLanetteSha = false;
+			if (needsClone) {
+				setToLanetteSha = true;
+			} else {
+				const gitShowCurrentOutput = await exec('git show -s --format=%ct ' + currentSha).catch(e => console.log(e));
+				if (!gitShowCurrentOutput || gitShowCurrentOutput.Error) {
+					await setToSha(currentSha);
+					reject();
+					return;
+				}
+
+				const gitShowLanetteOutput = await exec('git show -s --format=%ct ' + lanetteSha).catch(e => console.log(e));
+				if (!gitShowLanetteOutput || gitShowLanetteOutput.Error) {
+					await setToSha(currentSha);
+					reject();
+					return;
+				}
+
+				const currentTimestamp = parseInt(gitShowCurrentOutput.stdout.replace("\n", ""));
+				const lanetteTimestamp = parseInt(gitShowLanetteOutput.stdout.replace("\n", ""));
+				if (!isNaN(currentTimestamp) && !isNaN(lanetteTimestamp) && lanetteTimestamp > currentTimestamp) {
+					setToLanetteSha = true;
+				}
+			}
+
+			if (setToLanetteSha) {
+				const cmd = await setToSha(lanetteSha);
+				if (!cmd || cmd.Error) {
+					await setToSha(currentSha);
+					reject();
+					return;
+				}
+
+				console.log("Updated pokemon-showdown to latest compatible version");
+			} else {
+				const cmd = await setToSha(currentSha);
+				if (!cmd || cmd.Error) {
+					reject();
+					return;
+				}
+			}
+
+			process.chdir(__dirname);
+		}
 	} else {
 		pruneBuiltFiles();
 	}
 
 	console.log("Running tsc...");
-	const build = await exec('npm run tsc').catch(e => console.log(e));
-	if (!build || build.Error) {
+	const cmd = await exec('npm run tsc').catch(e => console.log(e));
+	if (!cmd || cmd.Error) {
 		reject();
 		return;
 	}

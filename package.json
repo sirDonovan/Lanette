@@ -4,6 +4,8 @@
   "description": "A bot for Pokemon Showdown",
   "main": "app.js",
   "scripts": {
+    "offlinetest": "tslint -c tslint.json 'src/**/*.ts' && mocha -R dot -u bdd --delay --no-config test/setup.js --offline",
+    "otest": "npm run offlinetest",
     "test": "tslint -c tslint.json 'src/**/*.ts' && mocha -R dot -u bdd --delay --no-config test/setup.js",
     "tsc": "tsc"
   },

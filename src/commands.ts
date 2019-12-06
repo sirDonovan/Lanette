@@ -50,7 +50,7 @@ const commands: Dict<ICommandDefinition> = {
 	updateps: {
 		command(target, room, user) {
 			this.say("Running ``update-ps``...");
-			Dex.updatePSLKG(user);
+			Tools.runUpdatePS(user);
 		},
 		developerOnly: true,
 	},

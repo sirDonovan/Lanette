@@ -2,7 +2,7 @@ import { RuleTable } from "../dex";
 
 /**
  * Some types imported from:
- * Pokemon Showdown - https://github.com/Zarel/Pokemon-Showdown
+ * Pokemon Showdown - https://github.com/smogon/pokemon-showdown
  */
 
 type GenderName = 'M' | 'F' | 'N' | '';
