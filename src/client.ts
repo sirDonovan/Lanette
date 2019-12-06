@@ -91,7 +91,7 @@ export class Client {
 	reconnectTime: number = Config.reconnectTime || 60 * 1000;
 	sendQueue: string[] = [];
 	sendTimeout: NodeJS.Timer | null = null;
-	server: string = Config.server || 'play.pokemonshowdown.com';
+	server: string = Config.server || Tools.mainServer;
 	serverGroups: Dict<IServerGroup> = {};
 	serverId: string = 'showdown';
 	serverTimeOffset: number = 0;
@@ -159,7 +159,7 @@ export class Client {
 
 	connect() {
 		const options = {
-			hostname: 'play.pokemonshowdown.com',
+			hostname: Tools.mainServer,
 			path: '/crossdomain.php?' + querystring.stringify({host: this.server, path: ''}),
 			method: 'GET',
 		};
@@ -1038,7 +1038,7 @@ export class Client {
 	}
 
 	login() {
-		const action = url.parse('https://play.pokemonshowdown.com/~~' + this.serverId + '/action.php');
+		const action = url.parse('https://' + Tools.mainServer + '/~~' + this.serverId + '/action.php');
 		const options: {hostname: string | undefined, path: string | undefined, agent: boolean, method: string, headers?: Dict<string | number>} = {
 			hostname: action.hostname,
 			path: action.pathname,

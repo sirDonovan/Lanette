@@ -13,10 +13,9 @@ const currentGen = 8;
 const currentGenString = 'gen' + currentGen;
 const defaultNewTier = 'OU';
 const omotmSection = 'OM of the Month';
-const PokemonShowdown = path.join(Tools.rootFolder, 'Pokemon-Showdown');
-const dataDir = path.join(PokemonShowdown, 'data');
+const dataDir = path.join(Tools.pokemonShowdownFolder, 'data');
 const modsDir = path.join(dataDir, 'mods');
-const formatsPath = path.join(PokemonShowdown, 'config', 'formats.js');
+const formatsPath = path.join(Tools.pokemonShowdownFolder, 'config', 'formats.js');
 const lanetteDataDir = path.join(Tools.rootFolder, 'data');
 
 // tslint:disable-next-line no-var-requires
@@ -216,7 +215,6 @@ export class Dex {
 	readonly formatsPath: typeof formatsPath = formatsPath;
 	readonly modsDir: typeof modsDir = modsDir;
 	readonly omotms: string[] = [];
-	readonly PokemonShowdown: typeof PokemonShowdown = PokemonShowdown;
 	readonly tagNames: typeof tagNames = tagNames;
 
 	readonly abilityCache = new Map<string, IAbility>();
@@ -574,7 +572,7 @@ export class Dex {
 	async fetchClientData() {
 		const files = ['pokedex-mini.js', 'pokedex-mini-bw.js'];
 		for (let i = 0; i < files.length; i++) {
-			const file = await Tools.fetchUrl('https://play.pokemonshowdown.com/data/' + files[i]);
+			const file = await Tools.fetchUrl('https://' + Tools.mainServer + '/data/' + files[i]);
 			if (typeof file !== 'string') {
 				console.log(file);
 			} else if (file) {
@@ -1732,7 +1730,7 @@ export class Dex {
 		if (!generation) generation = 'xy';
 		const bw = generation === 'bw';
 		if (bw && pokemon.gen > 5) return '';
-		let prefix = '//play.pokemonshowdown.com/sprites/' + generation + 'ani';
+		let prefix = '//' + Tools.mainServer + '/sprites/' + generation + 'ani';
 		if (!direction) direction = 'front';
 		if (direction === 'front') {
 			if (pokemon.shiny) {
@@ -1786,7 +1784,7 @@ export class Dex {
 		const top = Math.floor(num / 12) * 30;
 		const left = (num % 12) * 40;
 		const facingLeftStyle = facingLeft ? "transform:scaleX(-1);webkit-transform:scaleX(-1);" : "";
-		return '<span style="display: inline-block;width: 40px;height: 30px;background:transparent url(https://play.pokemonshowdown.com/sprites/smicons-sheet.png?a5) no-repeat scroll -' + left + 'px -' + top + 'px;' + facingLeftStyle + '"></span>';
+		return '<span style="display: inline-block;width: 40px;height: 30px;background:transparent url(https://' + Tools.mainServer + '/sprites/smicons-sheet.png?a5) no-repeat scroll -' + left + 'px -' + top + 'px;' + facingLeftStyle + '"></span>';
 	}
 
 	checkLearnset(move: IMove, species: IPokemon, lsetData: IPokemonSources = {sources: [], sourcesBefore: this.gen}, set: {format: IFormat, ability?: string, level?: number}): {type: string, [key: string]: any} | null {

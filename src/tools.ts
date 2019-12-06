@@ -22,10 +22,12 @@ type FetchUrlTimeoutKey = keyof typeof fetchUrlTimeoutTimers;
 
 export class Tools {
 	// exported constants
+	readonly mainServer: string = 'play.pokemonshowdown.com';
 	readonly maxMessageLength: typeof maxMessageLength = maxMessageLength;
 	readonly maxUsernameLength: typeof maxUsernameLength = maxUsernameLength;
 	readonly roomLogsFolder: string = path.join(rootFolder, 'roomlogs');
 	readonly rootFolder: typeof rootFolder = rootFolder;
+	readonly pokemonShowdownFolder: string = path.join(rootFolder, 'Pokemon-Showdown');
 
 	fetchUrlTimeouts: Dict<NodeJS.Timer> = {};
 	fetchUrlQueues: Dict<(() => any)[]> = {};
