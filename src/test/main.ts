@@ -34,19 +34,25 @@ Object.assign(fs, {createWriteStream() {
 	return new stream.Writable();
 }});
 
-// tslint:disable-next-line no-var-requires
-require(path.join(rootFolder, 'built', 'app.js'));
-clearInterval(Storage.globalDatabaseExportInterval);
-
-// tslint:disable-next-line no-var-requires
-require(path.join(__dirname, 'pokemon-showdown'));
-
-console.log("Loading data for tests...");
-Dex.loadData();
-Rooms.add('mocha');
-Rooms.get('mocha')!.title = 'Mocha';
-
-for (let i = 0; i < moduleTests.length; i++) {
+try {
 	// tslint:disable-next-line no-var-requires
-	require(path.join(modulesDir, moduleTests[i]));
+	require(path.join(rootFolder, 'built', 'app.js'));
+	clearInterval(Storage.globalDatabaseExportInterval);
+
+	// tslint:disable-next-line no-var-requires
+	require(path.join(__dirname, 'pokemon-showdown'));
+
+	console.log("Loading data for tests...");
+	Dex.loadData();
+
+	Rooms.add('mocha');
+	Rooms.get('mocha')!.title = 'Mocha';
+
+	for (let i = 0; i < moduleTests.length; i++) {
+		// tslint:disable-next-line no-var-requires
+		require(path.join(modulesDir, moduleTests[i]));
+	}
+} catch (e) {
+	console.log(e);
+	process.exit(1);
 }
