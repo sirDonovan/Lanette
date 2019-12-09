@@ -33,48 +33,6 @@ interface IBoostsTable {
 
 interface ISparseBoostsTable extends Partial<IBoostsTable> {}
 
-/**
- * Describes a possible way to get a pokemon. Is not exhaustive!
- * sourcesBefore covers all sources that do not have exclusive
- * moves (like catching wild pokemon).
- *
- * First character is a generation number, 1-7.
- * Second character is a source ID, one of:
- *
- * - E = egg, 3rd char+ is the father in gen 2-5, empty in gen 6-7
- *   because egg moves aren't restricted to fathers anymore
- * - S = event, 3rd char+ is the index in .eventPokemon
- * - D = Dream World, only 5D is valid
- * - V = Virtual Console transfer, only 7V is valid
- *
- * Designed to match MoveSource where possible.
- */
-export type PokemonSource = string;
-
-/**
- * Keeps track of how a pokemon with a given set might be obtained.
- *
- * `sources` is a list of possible PokemonSources, and a nonzero
- * sourcesBefore means the Pokemon is compatible with all possible
- * PokemonSources from that gen or earlier.
- *
- * `limitedEgg` tracks moves that can only be obtained from an egg with
- * another father in gen 2-5. If there are multiple such moves,
- * potential fathers need to be checked to see if they can actually
- * learn the move combination in question.
- */
-export interface IPokemonSources {
-	sources: PokemonSource[];
-	sourcesBefore: number;
-	babyOnly?: string;
-	sketchMove?: string;
-	hm?: string;
-	restrictiveMoves?: string[];
-	limitedEgg?: (string | 'self')[];
-	isHidden?: boolean;
-	fastCheck?: true;
-}
-
 interface IEventInfo {
 	generation: number;
 	level?: number;
@@ -89,6 +47,23 @@ interface IEventInfo {
 	moves?: string[];
 	pokeball?: string;
 	from?: string;
+}
+
+interface IPokemonSet {
+	name: string;
+	species: string;
+	item: string;
+	ability: string;
+	moves: string[];
+	nature: string;
+	gender: string;
+	evs: IStatsTable;
+	ivs: IStatsTable;
+	level: number;
+	shiny?: boolean;
+	happiness?: number;
+	pokeball?: string;
+	hpType?: string;
 }
 
 interface IEventMethods {
@@ -609,6 +584,7 @@ export interface ITemplateData {
 	baseSpecies?: string;
 	evoLevel?: number;
 	evoMove?: string;
+	evoType?: string;
 	evos?: string[];
 	forme?: string;
 	gender?: 'M' | 'F' | 'N' | '';
@@ -666,6 +642,7 @@ export interface IPokemonComputed {
 	nfe: boolean;
 	pseudoLC: boolean;
 	shiny: boolean;
+	speciesid: string;
 	spriteId: string;
 	tier: string;
 }

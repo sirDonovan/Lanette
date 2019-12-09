@@ -139,7 +139,7 @@ export function init(): worker_threads.Worker {
 			if (dex.data.typeChart[i] !== null) typeChartKeys.push(i);
 		}
 
-		const pokedex = dex.getPokemonList(pokemon => !(pokemon.isNonstandard === 'LGPE'));
+		const pokedex = Games.getPokemonList(undefined, genString);
 		for (let i = 0; i < pokedex.length; i++) {
 			const pokemon = pokedex[i];
 			if (pokemon.forme) formes[pokemon.id] = pokemon.forme;
@@ -259,7 +259,8 @@ export function init(): worker_threads.Worker {
 		tiers['ubers'] = tiers['uber'];
 
 		const format = dex.getExistingFormat(genString + 'ou');
-		const movesList = dex.getMovesList();
+		const validator = Dex.getValidator(format);
+		const movesList = Games.getMovesList(undefined, genString);
 		for (let i = 0; i < movesList.length; i++) {
 			const move = movesList[i];
 			const moveParam = {type: 'move', param: move.name};
@@ -270,7 +271,7 @@ export function init(): worker_threads.Worker {
 			}
 			for (let i = 0; i < pokedex.length; i++) {
 				const pokemon = pokedex[i];
-				if (!dex.checkLearnset(move, pokemon, {fastCheck: true, sources: [], sourcesBefore: gen}, {format})) {
+				if (pokemon.allPossibleMoves.includes(move.id) && !validator.checkLearnset(move, pokemon)) {
 					if (!(move.name in moveDex)) moveDex[move.name] = [];
 					moveDex[move.name].push(pokemon.species);
 				}

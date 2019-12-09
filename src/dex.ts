@@ -2,7 +2,8 @@ import fs = require('fs');
 import path = require('path');
 
 import { Room } from './rooms';
-import { IAbility, IAbilityComputed, IAbilityCopy, IDataTable, IFormat, IFormatComputed, IFormatData, IFormatLinks, IGifData, IItem, IItemComputed, IItemCopy, IMove, IMoveComputed, IMoveCopy, INature, IPokemon, IPokemonComputed, IPokemonCopy, IPokemonSources, ISeparatedCustomRules, Nonstandard, PokemonSource } from './types/in-game-data-types';
+import { TeamValidator } from './team-validator';
+import { IAbility, IAbilityComputed, IAbilityCopy, IDataTable, IFormat, IFormatComputed, IFormatData, IFormatLinks, IGifData, IItem, IItemComputed, IItemCopy, IMove, IMoveComputed, IMoveCopy, INature, IPokemon, IPokemonComputed, IPokemonCopy, ISeparatedCustomRules } from './types/in-game-data-types';
 
 const currentGen = 8;
 const currentGenString = 'gen' + currentGen;
@@ -1120,16 +1121,13 @@ export class Dex {
 			nfe: !!evos.length,
 			pseudoLC,
 			shiny: false,
+			speciesid: speciesId,
 			spriteId: Tools.toId(baseSpecies) + (baseSpecies !== templateData.species ? '-' + Tools.toId(templateData.forme) : ''),
 			tier,
 		};
 		const pokemon: IPokemon = Object.assign({}, templateData, templateFormatsData, this.data.learnsets[id] || {}, pokemonComputed);
 		this.pokemonCache.set(id, pokemon);
 		return pokemon;
-	}
-
-	getTemplate(name: string): IPokemon | null {
-		return this.getPokemon(name);
 	}
 
 	getExistingPokemon(name: string): IPokemon {
@@ -1718,6 +1716,16 @@ export class Dex {
 		return html.join("<br />");
 	}
 
+	getValidator(formatid?: string | IFormat): TeamValidator {
+		let format;
+		if (formatid) {
+			format = typeof formatid === 'string' ? this.getExistingFormat(formatid) : formatid;
+		} else {
+			format = this.getExistingFormat('gen' + this.gen + 'ou');
+		}
+		return TeamValidator.get(format);
+	}
+
 	hasGifData(pokemon: IPokemon, generation?: 'xy' | 'bw', direction?: 'front' | 'back'): boolean {
 		if (!generation) generation = 'xy';
 		if (!direction) direction = 'front';
@@ -1790,365 +1798,22 @@ export class Dex {
 		return '<span style="display: inline-block;width: 40px;height: 30px;background:transparent url(https://' + Tools.mainServer + '/sprites/smicons-sheet.png?a5) no-repeat scroll -' + left + 'px -' + top + 'px;' + facingLeftStyle + '"></span>';
 	}
 
-	checkLearnset(move: IMove, species: IPokemon, lsetData: IPokemonSources = {sources: [], sourcesBefore: this.gen}, set: {format: IFormat, ability?: string, level?: number}): {type: string, [key: string]: any} | null {
-		const ruleTable = this.getRuleTable(set.format);
-		const alreadyChecked: {[k: string]: boolean} = {};
-		const level = set.level || 100;
+	// PS compatibility
+	forFormat(formatid: string | IFormat): Dex {
+		const format = typeof formatid === 'string' ? this.getExistingFormat(formatid) : formatid;
+		dexes['base'].loadData();
+		const dex = dexes[format.mod || 'base'];
+		if (dex !== dexes['base']) dex.loadData();
+		return dex;
+	}
 
-		let incompatibleAbility = false;
-		let isHidden = false;
-		if (set.ability && this.getExistingAbility(set.ability).name === species.abilities['H']) isHidden = true;
+	mod(mod: string | undefined): Dex {
+		if (!dexes['base'].loadedMods) dexes['base'].includeMods();
+		return dexes[mod || 'base'];
+	}
 
-		let limit1 = true;
-		let sketch = false;
-		let blockedHM = false;
-
-		let sometimesPossible = false; // is this move in the learnset at all?
-
-		let babyOnly = '';
-
-		// This is a pretty complicated algorithm
-
-		// Abstractly, what it does is construct the union of sets of all
-		// possible ways this pokemon could be obtained, and then intersect
-		// it with a the pokemon's existing set of all possible ways it could
-		// be obtained. If this intersection is non-empty, the move is legal.
-
-		// We apply several optimizations to this algorithm. The most
-		// important is that with, for instance, a TM move, that Pokemon
-		// could have been obtained from any gen at or before that TM's gen.
-		// Instead of adding every possible source before or during that gen,
-		// we keep track of a maximum gen variable, intended to mean "any
-		// source at or before this gen is possible."
-
-		// set of possible sources of a pokemon with this move, represented as an array
-		const sources: PokemonSource[] = [];
-		// the equivalent of adding "every source at or before this gen" to sources
-		let sourcesBefore = 0;
-
-		/**
-		 * The minimum past gen the format allows
-		 */
-		const minPastGen = (set.format.minSourceGen ? set.format.minSourceGen : 1);
-		/**
-		 * The format doesn't allow Pokemon who've bred with past gen Pokemon
-		 * (e.g. Gen 6-7 before Pokebank was released)
-		 */
-		const noPastGenBreeding = false;
-		/**
-		 * The format doesn't allow Pokemon traded from the future
-		 * (This is everything except in Gen 1 Tradeback)
-		 */
-		const noFutureGen = !ruleTable.has('allowtradeback');
-		/**
-		 * If a move can only be learned from a gen 2-5 egg, we have to check chainbreeding validity
-		 * limitedEgg is false if there are any legal non-egg sources for the move, and true otherwise
-		 */
-		let limitedEgg = null;
-
-		let tradebackEligible = false;
-		let pokemon = species;
-		while (pokemon.species && !alreadyChecked[pokemon.id]) {
-			alreadyChecked[pokemon.id] = true;
-			if (this.gen === 2 && pokemon.gen === 1) tradebackEligible = true;
-			if (!pokemon.learnset) {
-				if (pokemon.baseSpecies !== pokemon.species) {
-					// forme without its own learnset
-					pokemon = this.getExistingPokemon(pokemon.baseSpecies);
-					// warning: formes with their own learnset, like Wormadam, should NOT
-					// inherit from their base forme unless they're freely switchable
-					continue;
-				}
-				// should never happen
-				break;
-			}
-			const checkingPrevo = pokemon.baseSpecies !== species.baseSpecies;
-			if (checkingPrevo && !sources.length && !sourcesBefore) {
-				if (!lsetData.babyOnly || !pokemon.prevo) {
-					babyOnly = pokemon.id;
-				}
-			}
-
-			if (pokemon.learnset[move.id] || pokemon.learnset['sketch']) {
-				sometimesPossible = true;
-				let lset = pokemon.learnset[move.id];
-				if (move.id === 'sketch' || !lset || pokemon.id === 'smeargle') {
-					if (move.noSketch || move.isZ) return {type: 'invalid'};
-					lset = pokemon.learnset['sketch'];
-					sketch = true;
-				}
-				if (typeof lset === 'string') lset = [lset];
-
-				for (let learned of lset) {
-					// Every `learned` represents a single way a pokemon might
-					// learn a move. This can be handled one of several ways:
-					// `continue`
-					//   means we can't learn it
-					// `return false`
-					//   means we can learn it with no restrictions
-					//   (there's a way to just teach any pokemon of this species
-					//   the move in the current gen, like a TM.)
-					// `sources.push(source)`
-					//   means we can learn it only if obtained that exact way described
-					//   in source
-					// `sourcesBefore = Math.max(sourcesBefore, learnedGen)`
-					//   means we can learn it only if obtained at or before learnedGen
-					//   (i.e. get the pokemon however you want, transfer to that gen,
-					//   teach it, and transfer it to the current gen.)
-
-					const learnedGen = parseInt(learned.charAt(0), 10);
-					if (learnedGen < minPastGen) continue;
-					if (noFutureGen && learnedGen > this.gen) continue;
-
-					// redundant
-					if (learnedGen <= sourcesBefore) continue;
-
-					if (learnedGen < 7 && isHidden && !this.getDex('gen' + learnedGen).getExistingPokemon(pokemon.species).abilities['H']) {
-						// check if the Pokemon's hidden ability was available
-						incompatibleAbility = true;
-						continue;
-					}
-					if (!pokemon.isNonstandard) {
-						// HMs can't be transferred
-						if (this.gen >= 4 && learnedGen <= 3 &&
-							['cut', 'fly', 'surf', 'strength', 'flash', 'rocksmash', 'waterfall', 'dive'].includes(move.id)) continue;
-						if (this.gen >= 5 && learnedGen <= 4 &&
-							['cut', 'fly', 'surf', 'strength', 'rocksmash', 'waterfall', 'rockclimb'].includes(move.id)) continue;
-						// Defog and Whirlpool can't be transferred together
-						if (this.gen >= 5 && ['defog', 'whirlpool'].includes(move.id) && learnedGen <= 4) blockedHM = true;
-					}
-
-					if (learned.charAt(1) === 'L') {
-						// special checking for level-up moves
-						if (level >= parseInt(learned.substr(2), 10) || learnedGen >= 7) {
-							// we're past the required level to learn it
-							// (gen 7 level-up moves can be relearnered at any level)
-							// falls through to LMT check below
-						} else if (level >= 5 && learnedGen === 3 && pokemon.eggGroups && pokemon.eggGroups[0] !== 'Undiscovered') {
-							// Pomeg Glitch
-						} else if ((!pokemon.gender || pokemon.gender === 'F') && learnedGen >= 2) {
-							// available as egg move
-							learned = learnedGen + 'Eany';
-							limitedEgg = false;
-							// falls through to E check below
-						} else {
-							// this move is unavailable, skip it
-							continue;
-						}
-					}
-
-					if ('LMT'.includes(learned.charAt(1))) {
-						if (learnedGen === this.gen) {
-							// current-gen level-up, TM or tutor moves:
-							//   always available
-							if (babyOnly) lsetData.babyOnly = babyOnly;
-							return null;
-						}
-						// past-gen level-up, TM, or tutor moves:
-						//   available as long as the source gen was or was before this gen
-						limit1 = false;
-						sourcesBefore = Math.max(sourcesBefore, learnedGen);
-						limitedEgg = false;
-					} else if (learned.charAt(1) === 'E') {
-						// egg moves:
-						//   only if that was the source
-						if ((learnedGen >= 6 && !noPastGenBreeding) || lsetData.fastCheck) {
-							// gen 6 doesn't have egg move incompatibilities except for certain cases with baby Pokemon
-							learned = learnedGen + 'E' + (pokemon.prevo ? pokemon.id : '');
-							sources.push(learned);
-							limitedEgg = false;
-							continue;
-						}
-						// it's a past gen; egg moves can only be inherited from the father
-						// we'll add each possible father separately to the source list
-						let eggGroups = pokemon.eggGroups;
-						if (!eggGroups) continue;
-						if (eggGroups[0] === 'Undiscovered') eggGroups = this.getExistingPokemon(pokemon.evos[0]).eggGroups;
-						let atLeastOne = false;
-						const fromSelf = (learned.substr(1) === 'Eany');
-						const eggGroupsSet = new Set(eggGroups);
-						learned = learned.substr(0, 2);
-						// loop through pokemon for possible fathers to inherit the egg move from
-						for (const fatherid in this.data.pokedex) {
-							const father = this.getExistingPokemon(fatherid);
-							// can't inherit from CAP pokemon
-							if (father.isNonstandard) continue;
-							// can't breed mons from future gens
-							if (father.gen > learnedGen) continue;
-							// father must be male
-							if (father.gender === 'N' || father.gender === 'F') continue;
-							// can't inherit from dex entries with no learnsets
-							if (!father.learnset) continue;
-							// unless it's supposed to be self-breedable, can't inherit from self, prevos, evos, etc
-							// only basic pokemon have egg moves, so by now all evolutions should be in alreadyChecked
-							if (!fromSelf && alreadyChecked[father.id]) continue;
-							if (!fromSelf && father.evos.includes(pokemon.id)) continue;
-							if (!fromSelf && father.prevo === pokemon.id) continue;
-							// father must be able to learn the move
-							const fatherSources = father.learnset[move.id] || father.learnset['sketch'];
-							if (!fromSelf && !fatherSources) continue;
-
-							// must be able to breed with father
-							if (!father.eggGroups.some(eggGroup => eggGroupsSet.has(eggGroup))) continue;
-
-							// detect unavailable egg moves
-							if (noPastGenBreeding && fatherSources) {
-								const fatherLatestMoveGen = fatherSources[0].charAt(0);
-								if (father.tier.startsWith('Bank') || (father.doublesTier && father.doublesTier.startsWith('Bank')) || fatherLatestMoveGen !== '7') {
-									continue;
-								}
-								atLeastOne = true;
-								break;
-							}
-
-							// we can breed with it
-							atLeastOne = true;
-							if (tradebackEligible && learnedGen === 2 && move.gen <= 1) {
-								// can tradeback
-								sources.push('1ET' + father.id);
-							}
-							sources.push(learned + father.id);
-							if (limitedEgg !== false) limitedEgg = true;
-						}
-						if (atLeastOne && noPastGenBreeding) {
-							// gen 6+ doesn't have egg move incompatibilities except for certain cases with baby Pokemon
-							learned = learnedGen + 'E' + (pokemon.prevo ? pokemon.id : '');
-							sources.push(learned);
-							limitedEgg = false;
-							continue;
-						}
-						// chainbreeding with itself
-						// e.g. ExtremeSpeed Dragonite
-						if (!atLeastOne) {
-							if (noPastGenBreeding) continue;
-							sources.push(learned + pokemon.id);
-							limitedEgg = 'self';
-						}
-					} else if (learned.charAt(1) === 'S') {
-						// event moves:
-						//   only if that was the source
-						// Event Pokémon:
-						// 	Available as long as the past gen can get the Pokémon and then trade it back.
-						if (tradebackEligible && learnedGen === 2 && move.gen <= 1) {
-							// can tradeback
-							sources.push('1ST' + learned.slice(2) + ' ' + pokemon.id);
-						}
-						sources.push(learned + ' ' + pokemon.id);
-					} else if (learned.charAt(1) === 'D') {
-						// DW moves:
-						//   only if that was the source
-						sources.push(learned);
-					} else if (learned.charAt(1) === 'V') {
-						// Virtual Console moves:
-						//   only if that was the source
-						if (sources[sources.length - 1] !== learned) sources.push(learned);
-					}
-				}
-			}
-			if (ruleTable.has('mimicglitch') && pokemon.gen < 5) {
-				// include the Mimic Glitch when checking this mon's learnset
-				const glitchMoves = ['metronome', 'copycat', 'transform', 'mimic', 'assist'];
-				let getGlitch = false;
-				for (const i of glitchMoves) {
-					if (pokemon.learnset[i]) {
-						const ability = this.getAbility(set.ability!);
-						if (!(i === 'mimic' && ability && ability.gen === 4 && !pokemon.prevo)) {
-							getGlitch = true;
-							break;
-						}
-					}
-				}
-				if (getGlitch) {
-					sourcesBefore = Math.max(sourcesBefore, 4);
-					if (move.gen < 5) {
-						limit1 = false;
-					}
-				}
-			}
-
-			// also check to see if the mon's prevo or freely switchable formes can learn this move
-			if (pokemon.species === 'Lycanroc-Dusk') {
-				pokemon = this.getExistingPokemon('Rockruff-Dusk');
-			} else if (pokemon.prevo) {
-				pokemon = this.getExistingPokemon(pokemon.prevo);
-				if (pokemon.gen > Math.max(2, this.gen)) break;
-				if (pokemon && !pokemon.abilities['H']) isHidden = false;
-			} else if (pokemon.inheritsLearnsetFrom) {
-				// For Pokemon like Rotom, Necrozma, and Gmax formes whose movesets are extensions are their base formes
-				pokemon = this.getExistingPokemon(pokemon.inheritsLearnsetFrom);
-			} else {
-				break;
-			}
-		}
-
-		if (limit1 && sketch) {
-			// limit 1 sketch move
-			if (lsetData.sketchMove) {
-				return {type: 'oversketched', maxSketches: 1};
-			}
-			lsetData.sketchMove = move.id;
-		}
-
-		if (blockedHM) {
-			// Limit one of Defog/Whirlpool to be transferred
-			if (lsetData.hm) return {type: 'incompatible'};
-			lsetData.hm = move.id;
-		}
-
-		if (!lsetData.restrictiveMoves) {
-			lsetData.restrictiveMoves = [];
-		}
-		lsetData.restrictiveMoves.push(move.name);
-
-		// Now that we have our list of possible sources, intersect it with the current list
-		if (!sourcesBefore && !sources.length) {
-			if (minPastGen > 1 && sometimesPossible) return {type: 'pastgen', gen: minPastGen};
-			if (incompatibleAbility) return {type: 'incompatibleAbility'};
-			return {type: 'invalid'};
-		}
-		if (sourcesBefore || lsetData.sourcesBefore) {
-			// having sourcesBefore is the equivalent of having everything before that gen
-			// in sources, so we fill the other array in preparation for intersection
-			if (sourcesBefore > lsetData.sourcesBefore) {
-				for (const oldSource of lsetData.sources) {
-					const oldSourceGen = parseInt(oldSource.charAt(0), 10);
-					if (oldSourceGen <= sourcesBefore) {
-						sources.push(oldSource);
-					}
-				}
-			} else if (lsetData.sourcesBefore > sourcesBefore) {
-				for (const source of sources) {
-					const sourceGen = parseInt(source.charAt(0), 10);
-					if (sourceGen <= lsetData.sourcesBefore) {
-						lsetData.sources.push(source);
-					}
-				}
-			}
-			lsetData.sourcesBefore = sourcesBefore = Math.min(sourcesBefore, lsetData.sourcesBefore);
-		}
-		if (lsetData.sources.length) {
-			if (sources.length) {
-				const sourcesSet = new Set(sources);
-				const intersectSources = lsetData.sources.filter(source => sourcesSet.has(source));
-				lsetData.sources = intersectSources;
-			} else {
-				lsetData.sources = [];
-			}
-		}
-		if (!lsetData.sources.length && !sourcesBefore) {
-			return {type: 'incompatible'};
-		}
-
-		if (limitedEgg) {
-			// lsetData.limitedEgg = [moveid] of egg moves with potential breeding incompatibilities
-			// 'self' is a possible entry (namely, ExtremeSpeed on Dragonite) meaning it's always
-			// incompatible with any other egg move
-			if (!lsetData.limitedEgg) lsetData.limitedEgg = [];
-			lsetData.limitedEgg.push(limitedEgg === true ? move.id : limitedEgg);
-		}
-
-		if (babyOnly) lsetData.babyOnly = babyOnly;
-		return null;
+	getTemplate(name: string | IPokemon): IPokemon | null {
+		return this.getPokemon(typeof name === 'string' ? name : name.species);
 	}
 
 	private getAllEvolutionLines(pokemon: IPokemon, prevoList?: string[], evolutionLines?: string[][]): string[][] {
