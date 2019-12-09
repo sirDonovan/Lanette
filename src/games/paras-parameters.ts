@@ -7,6 +7,8 @@ import * as ParametersWorker from './../workers/parameters';
 import { game as guessingGame, Guessing } from './templates/guessing';
 
 const BASE_NUMBER_OF_PARAMS = 2;
+const MIN_GEN = 1;
+const MAX_GEN = 7;
 const name = "Paras' Parameters";
 let loadedData = false;
 
@@ -65,7 +67,7 @@ export class ParasParameters extends Guessing {
 			customParamTypes: this.customParamTypes,
 			minimumResults: this.minimumResults,
 			maximumResults: this.maximumResults,
-			mod: 'gen7',
+			mod: 'gen' + this.format.options.gen,
 			numberOfParams,
 			paramTypes: this.paramTypes,
 			prngSeed: this.prng.seed.slice() as PRNGSeed,
@@ -105,7 +107,7 @@ export class ParasParameters extends Guessing {
 
 	async intersect(params: string[]): Promise<ParametersWorker.IParameterIntersectResult> {
 		return ParametersWorker.intersect({
-			mod: 'gen7',
+			mod: 'gen' + this.format.options.gen,
 			paramTypes: this.paramTypes,
 			searchType: 'pokemon',
 		}, params);
@@ -143,16 +145,22 @@ const tests: GameFileTests<ParasParameters> = {
 				}
 			}
 
-			for (let i = format.customizableOptions.params.min; i <= format.customizableOptions.params.max; i++) {
-				format.inputOptions.params = i;
-				game.format.options.params = i;
-				await game.onNextRound();
-				assert(game.params.length);
-				assert(game.pokemon.length);
+			for (let i = MIN_GEN; i <= MAX_GEN; i++) {
+				const gen = i;
+				for (let i = format.customizableOptions.params.min; i <= format.customizableOptions.params.max; i++) {
+					format.inputOptions.params = i;
+					game.format.options.params = i;
+					format.inputOptions.gen = gen;
+					game.format.options.gen = gen;
+					await game.onNextRound();
+					assert(game.params.length);
+					assert(game.pokemon.length);
+				}
 			}
 			delete format.inputOptions.params;
 			delete game.format.options.params;
 
+			game.format.options.gen = 7;
 			game.customParamTypes = ['move', 'egggroup'];
 			await game.onNextRound();
 			assert(game.params.length);
@@ -179,12 +187,12 @@ const tests: GameFileTests<ParasParameters> = {
 			intersection = await game.intersect(['monstergroup', 'rockhead']);
 			assertStrictEqual(intersection.pokemon.join(","), "aggron,aron,cubone,lairon,marowak,marowakalola,rhydon,rhyhorn,tyrantrum");
 
-			// game.format.options.gen = 6;
-			// intersection = await game.intersect(['Weak to Rock Type', 'Earthquake']);
-			// assertStrictEqual(intersection.pokemon.join(","), "abomasnow,aerodactyl,altaria,arceusbug,arceusfire,arceusflying,arceusice,archen,archeops,armaldo,aurorus,avalugg,charizard,crustle,darmanitan,dragonite,dwebble,glalie,gyarados,hooh,lugia,magcargo,magmortar,mantine,mantyke,pineco,pinsir,rayquaza,regice,salamence,scolipede,sealeo,shuckle,spheal,torkoal,tropius,typhlosion,volcanion,walrein");
-			// intersection = await game.intersect(['Psycho Cut', 'Resists Fighting Type']);
-			// assertStrictEqual(intersection.pokemon.join(","), "alakazam,cresselia,drowzee,gallade,hypno,kadabra,medicham,meditite,mewtwo");
-			// delete game.format.options.gen;
+			game.format.options.gen = 6;
+			intersection = await game.intersect(['Weak to Rock Type', 'Earthquake']);
+			assertStrictEqual(intersection.pokemon.join(","), "abomasnow,aerodactyl,altaria,arceusbug,arceusfire,arceusflying,arceusice,archen,archeops,armaldo,aurorus,avalugg,charizard,crustle,darmanitan,dragonite,dwebble,glalie,gyarados,hooh,lugia,magcargo,magmortar,mantine,mantyke,pineco,pinsir,rayquaza,regice,salamence,scolipede,sealeo,shuckle,spheal,torkoal,tropius,typhlosion,volcanion,walrein");
+
+			intersection = await game.intersect(['Psycho Cut', 'Resists Fighting Type']);
+			assertStrictEqual(intersection.pokemon.join(","), "alakazam,cresselia,drowzee,gallade,hypno,kadabra,medicham,meditite,mewtwo");
 		},
 	},
 };
@@ -193,6 +201,7 @@ export const game: IGameFile<ParasParameters> = Games.copyTemplateProperties(gue
 	aliases: ['paras', 'params'],
 	class: ParasParameters,
 	customizableOptions: {
+		gen: {min: MIN_GEN, base: MAX_GEN, max: MAX_GEN},
 		params: {min: 2, base: BASE_NUMBER_OF_PARAMS, max: 4},
 		points: {min: 5, base: 5, max: 10},
 	},
