@@ -214,7 +214,12 @@ const commands: Dict<ICommandDefinition<MagikarpsWaterWheel>> = {
 		command(target, room, user) {
 			if (!this.canSwim || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) return false;
 			const player = this.players[user.id];
-			player.say("You have stopped with **" + this.points.get(player) + "**!");
+			const points = this.points.get(player);
+			if (!points) {
+				player.say("You cannot stop without any points!");
+				return false;
+			}
+			player.say("You have stopped with **" + points + "**!");
 			player.frozen = true;
 			this.roundActions.add(player);
 			return true;
