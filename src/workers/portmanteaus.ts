@@ -73,8 +73,6 @@ export function init(): worker_threads.Worker {
 		}
 	}
 
-	const dex = Dex.getDex('gen8');
-
 	/*
 	data.pool['Item']['type']['Berry'] = [];
 	data.pool['Item']['type']['Plate'] = [];
@@ -94,14 +92,14 @@ export function init(): worker_threads.Worker {
 	}
 	*/
 
-	const moves = dex.getMovesList();
+	const moves = Games.getMovesList();
 	for (let i = 0; i < moves.length; i++) {
 		const move = moves[i];
 		if (!(move.type in data.pool['Move']['type'])) data.pool['Move']['type'][move.type] = [];
 		data.pool['Move']['type'][move.type].push(move.name);
 	}
 
-	const pokedex = dex.getPokemonList();
+	const pokedex = Games.getPokemonList();
 	for (let i = 0; i < pokedex.length; i++) {
 		const pokemon = pokedex[i];
 		if (pokemon.tier !== 'Illegal' && pokemon.tier !== 'Unreleased' && pokemon.tier.charAt(0) !== '(') {
