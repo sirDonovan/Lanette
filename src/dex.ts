@@ -70,6 +70,14 @@ const natures: Dict<INature> = {
 	timid: {name: "Timid", plus: 'spe', minus: 'atk'},
 };
 
+const formeNames: Dict<string[]> = {
+	alola: ['a', 'alola', 'alolan'],
+	galar: ['g', 'galar', 'galarian'],
+	gmax: ['gigantamax', 'gmax'],
+	mega: ['m', 'mega'],
+	primal: ['p', 'primal'],
+};
+
 const tagNames: Dict<string> = {
 	'uber': 'Uber',
 	'ou': 'OU',
@@ -918,17 +926,24 @@ export class Dex {
 		}
 		if (this.data.aliases.hasOwnProperty(id)) id = Tools.toId(this.data.aliases[id]);
 		if (!this.data.pokedex.hasOwnProperty(id)) {
-			if (id.startsWith('mega') && this.data.pokedex.hasOwnProperty(id.slice(4) + 'mega')) {
-				id = id.slice(4) + 'mega';
-			} else if (id.startsWith('m') && this.data.pokedex.hasOwnProperty(id.slice(1) + 'mega')) {
-				id = id.slice(1) + 'mega';
-			} else if (id.startsWith('primal') && this.data.pokedex.hasOwnProperty(id.slice(6) + 'primal')) {
-				id = id.slice(6) + 'primal';
-			} else if (id.startsWith('p') && this.data.pokedex.hasOwnProperty(id.slice(1) + 'primal')) {
-				id = id.slice(1) + 'primal';
-			} else {
-				return null;
+			let formeId = '';
+			for (const forme in formeNames) {
+				let pokemonName = '';
+				for (let i = 0; i < formeNames[forme].length; i++) {
+					if (id.startsWith(formeNames[forme][i])) {
+						pokemonName = id.slice(formeNames[forme][i].length);
+					} else if (id.endsWith(formeNames[forme][i])) {
+						pokemonName = id.slice(0, -formeNames[forme][i].length);
+					}
+				}
+				if (this.data.aliases.hasOwnProperty(pokemonName)) pokemonName = Tools.toId(this.data.aliases[pokemonName]);
+				if (this.data.pokedex.hasOwnProperty(pokemonName + forme)) {
+					formeId = pokemonName + forme;
+					break;
+				}
 			}
+			if (!formeId) return null;
+			id = formeId;
 		}
 
 		const cached = this.pokemonCache.get(id);
