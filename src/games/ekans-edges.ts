@@ -71,7 +71,7 @@ class EkansEdges extends Guessing {
 	lastEdge: string = '';
 
 	onSignups() {
-		if (this.isMiniGame) {
+		if (!this.isMiniGame) {
 			if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
 		}
 	}
