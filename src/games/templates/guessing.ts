@@ -19,9 +19,7 @@ export abstract class Guessing extends Game {
 	abstract async setAnswers(): Promise<void>;
 
 	onSignups() {
-		if (this.isMiniGame) {
-			this.nextRound();
-		} else {
+		if (!this.isMiniGame) {
 			if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
 		}
 	}

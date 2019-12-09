@@ -253,7 +253,6 @@ export class Games {
 					if (global.Games.reloadInProgress) return this.sayError(['reloadInProgress']);
 					delete format.inputOptions.points;
 					const game = global.Games.createGame(room, format, pmRoom, true);
-					if (format.minigameDescription) this.say("**" + format.name + "**: " + format.minigameDescription);
 					game.signups();
 				},
 			};

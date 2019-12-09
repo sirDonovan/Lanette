@@ -238,7 +238,7 @@ export class Game extends Activity {
 		if (this.format.options.freejoin) {
 			this.started = true;
 			this.startTime = Date.now();
-		} else if (!this.internalGame && !this.isUserHosted) {
+		} else if (!this.internalGame && !this.isUserHosted && !this.isMiniGame) {
 			if (Config.gameAutoStartTimers && this.room.id in Config.gameAutoStartTimers) {
 				const startTimer = Config.gameAutoStartTimers[this.room.id] * 60 * 1000;
 				this.startTimer = setTimeout(() => {
@@ -252,6 +252,11 @@ export class Game extends Activity {
 					}
 				}, startTimer);
 			}
+		}
+
+		if (this.isMiniGame) {
+			if ((this.format as IGameFormat).minigameDescription) this.say((this.format as IGameFormat).minigameDescription!);
+			this.nextRound();
 		}
 	}
 

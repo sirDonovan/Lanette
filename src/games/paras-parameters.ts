@@ -32,6 +32,13 @@ export class ParasParameters extends Guessing {
 	pokemon: string[] = [];
 	roundTime: number = 5 * 60 * 1000;
 
+	onSignups() {
+		super.onSignups();
+		if (this.isMiniGame) {
+			(this.format as IGameFormat).minigameDescription = "Use ``/ds" + this.format.options.gen + "`` to search for and then ``" + Config.commandCharacter + "g`` to guess ``/ds`` parameters that give the following Pokemon!";
+		}
+	}
+
 	getParamNames(params: ParametersWorker.IParam[]): string {
 		const names = [];
 		for (let i = 0; i < params.length; i++) {
@@ -212,7 +219,6 @@ export const game: IGameFile<ParasParameters> = Games.copyTemplateProperties(gue
 	mascot: "Paras",
 	minigameCommand: 'parameter',
 	minigameCommandAliases: ['param'],
-	minigameDescription: "Use ``/ds`` to verify and then ``" + Config.commandCharacter + "g`` to guess ``/ds`` parameters that give the following Pokemon!",
 	tests,
 	variants: [
 		{

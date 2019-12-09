@@ -32,7 +32,8 @@ class FeraligatrsLostLetters extends Guessing {
 	categoryList: DataKey[] = categories.slice();
 	roundTime: number = 10 * 1000;
 
-	onCreate() {
+	onSignups() {
+		super.onSignups();
 		if (this.variant === 'inverse') {
 			this.roundTime = 15 * 1000;
 			this.categoryList.splice(this.categoryList.indexOf('Characters'), 1);
