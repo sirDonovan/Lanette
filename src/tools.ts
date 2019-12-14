@@ -167,11 +167,12 @@ export class Tools {
 		} else if (input.activityType && typeof input.activityType === 'string') {
 			return '[' + input.activityType + ' ' + input.name + ']';
 		} else {
-			if (input.toString) {
-				return JSON.stringify(input);
-			} else {
-				return '[object UnknownType]';
+			const properties: string[] = [];
+			for (const i in input) {
+				// @ts-ignore
+				properties.push(i + ": " + this.toString(input[i]));
 			}
+			return "{" + properties.join(", ") + "}";
 		}
 	}
 
