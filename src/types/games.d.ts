@@ -144,6 +144,7 @@ export interface IGameModeFile<T = Game, U extends Game = Game> {
 
 	aliases?: string[];
 	commands?: CommandsDict<T & U, GameCommandReturnType>;
+	removedOptions?: string[];
 }
 
 export interface IGameMode<T = Game, U extends Game = Game> extends IGameModeFile<T, U> {

@@ -2,6 +2,8 @@ import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 
+const BASE_POINTS = 30;
+
 const name = "Lugia's Obstructive Letters";
 const data: {'Pokemon': Dict<string>, 'Pokemon Abilities': Dict<string>, 'Pokemon Items': Dict<string>, 'Pokemon Moves': Dict<string>} = {
 	"Pokemon": {},
@@ -56,11 +58,6 @@ class LugiasObstructiveLetters extends Guessing {
 	roundTime: number = 30 * 1000;
 	winnerPointsToBits: number = 10;
 
-	onSignups() {
-		if (!this.format.inputOptions.points) this.format.options.points = 30;
-		this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
-	}
-
 	async setAnswers() {
 		let answers: string[] = [];
 		let category: DataKey;
@@ -100,6 +97,9 @@ class LugiasObstructiveLetters extends Guessing {
 export const game: IGameFile<LugiasObstructiveLetters> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['lugias', 'lol'],
 	class: LugiasObstructiveLetters,
+	customizableOptions: {
+		points: {min: BASE_POINTS, base: BASE_POINTS, max: BASE_POINTS},
+	},
 	description: "Players guess answers that are missing the given letters! Answers must be at least 6 letters long.",
 	freejoin: true,
 	name,

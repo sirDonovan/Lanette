@@ -1,7 +1,7 @@
 import { ICommandDefinition } from '../../command-parser';
 import { Player } from '../../room-activity';
 import { Game } from '../../room-game';
-import { IGameTemplateFile } from '../../types/games';
+import { IGameFormat, IGameTemplateFile } from '../../types/games';
 
 const MINIGAME_BITS = 25;
 
@@ -17,6 +17,15 @@ export abstract class Guessing extends Game {
 	readonly roundGuesses?: Map<Player, boolean>;
 
 	abstract async setAnswers(): Promise<void>;
+
+	onInitialize() {
+		super.onInitialize();
+
+		const format = (this.format as IGameFormat);
+		if (!format.options.points && !(format.mode && format.mode.removedOptions && format.mode.removedOptions.includes('points'))) {
+			throw new Error("Guessing games must include default or customizable points options");
+		}
+	}
 
 	onSignups() {
 		if (!this.isMiniGame) {

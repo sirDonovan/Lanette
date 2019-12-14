@@ -1,11 +1,12 @@
 import { CommandsDict } from "../../command-parser";
 import { Player } from "../../room-activity";
-import { Game } from "../../room-game";
+import { DefaultGameOption, Game } from "../../room-game";
 import { GameCommandReturnType, IGameFormat, IGameModeFile } from "../../types/games";
 import { Guessing } from "../templates/guessing";
 
 const name = 'Survival';
 const description = 'Answer within the time limit to survive each round!';
+const removedOptions: string[] = ['points', 'freejoin'];
 
 type SurvivalThis = Guessing & Survival;
 
@@ -14,13 +15,13 @@ class Survival {
 		if (!format.name.includes(name)) nameSuffixes.unshift(name);
 		format.description += ' ' + description;
 
-		const pointsIndex = format.defaultOptions.indexOf('points');
-		if (pointsIndex !== -1) format.defaultOptions.splice(pointsIndex, 1);
-		const freejoinIndex = format.defaultOptions.indexOf('freejoin');
-		if (freejoinIndex !== -1) format.defaultOptions.splice(freejoinIndex, 1);
+		for (let i = 0; i < removedOptions.length; i++) {
+			const index = format.defaultOptions.indexOf(removedOptions[i] as DefaultGameOption);
+			if (index !== -1) format.defaultOptions.splice(index, 1);
 
-		delete format.customizableOptions.points;
-		delete format.customizableOptions.freejoin;
+			delete format.customizableOptions[removedOptions[i]];
+		}
+
 		if (format.id === 'parasparameters') delete format.customizableOptions.params;
 	}
 
@@ -166,4 +167,5 @@ export const mode: IGameModeFile<Survival, Guessing> = {
 	initialize,
 	name,
 	naming: 'suffix',
+	removedOptions,
 };

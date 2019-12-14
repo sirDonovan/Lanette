@@ -57,6 +57,7 @@ class MiltanksMoves extends Guessing {
 export const game: IGameFile<MiltanksMoves> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['miltanks', 'mm'],
 	class: MiltanksMoves,
+	defaultOptions: ['points'],
 	description: "Players guess moves of the specified type that the given Pokemon learn!",
 	freejoin: true,
 	name,
