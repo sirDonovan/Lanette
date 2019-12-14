@@ -154,7 +154,7 @@ class QuizBuzzwole extends Game {
 		if (!expectedMultiple) expectedMultiple = nextNumber;
 		this.expectedMultiple = expectedMultiple;
 
-		const text = player.name + " you are re up! | Current number: " + this.currentNumber;
+		const text = player.name + " you are up! | Current number: " + this.currentNumber;
 		this.on(text, () => {
 			this.currentPlayer = player;
 			this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
