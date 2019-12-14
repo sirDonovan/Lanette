@@ -228,6 +228,7 @@ export function init(): worker_threads.Worker {
 			if (!(pokemon.gen in gens)) {
 				gens[pokemon.gen] = genParam;
 				gens['gen' + pokemon.gen] = genParam;
+				gens['g' + pokemon.gen] = genParam;
 			}
 			if (!(pokemon.gen in genDex)) genDex[pokemon.gen] = [];
 			genDex[pokemon.gen].push(pokemon.species);
