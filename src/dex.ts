@@ -956,8 +956,6 @@ export class Dex {
 		if (!templateFormatsData.requiredItems && templateFormatsData.requiredItem) templateFormatsData.requiredItems = [templateFormatsData.requiredItem];
 		const baseSpecies = templateData.baseSpecies || templateData.species;
 		const isForme = baseSpecies !== templateData.species;
-		let inheritsLearnsetFrom = templateData.inheritsLearnsetFrom;
-		if (templateData.forme === 'Gmax') inheritsLearnsetFrom = Tools.toId(baseSpecies);
 
 		const allPossibleMoves: string[] = [];
 		if (this.data.learnsets.hasOwnProperty(id)) {
@@ -991,9 +989,9 @@ export class Dex {
 				}
 				prevo = Tools.toId(prevoTemplateData.prevo);
 			}
-		} else if (inheritsLearnsetFrom) {
-			if (this.data.learnsets.hasOwnProperty(inheritsLearnsetFrom)) {
-				for (const i in this.data.learnsets[inheritsLearnsetFrom]!.learnset) {
+		} else if (templateData.inheritsFrom) {
+			if (typeof templateData.inheritsFrom === 'string' && this.data.learnsets.hasOwnProperty(templateData.inheritsFrom)) {
+				for (const i in this.data.learnsets[templateData.inheritsFrom]!.learnset) {
 					if (!allPossibleMoves.includes(i)) allPossibleMoves.push(i);
 				}
 			}
@@ -1112,7 +1110,6 @@ export class Dex {
 			evos,
 			forme: templateData.forme || '',
 			id: speciesId,
-			inheritsLearnsetFrom,
 			isForme,
 			isMega,
 			isNonstandard,
@@ -1797,8 +1794,10 @@ export class Dex {
 		const facingLeftStyle = facingLeft ? "transform:scaleX(-1);webkit-transform:scaleX(-1);" : "";
 		return '<span style="display: inline-block;width: 40px;height: 30px;background:transparent url(https://' + Tools.mainServer + '/sprites/smicons-sheet.png?a5) no-repeat scroll -' + left + 'px -' + top + 'px;' + facingLeftStyle + '"></span>';
 	}
+	/*
+		pokemon-showdown compatibility
+	*/
 
-	// PS compatibility
 	forFormat(formatid: string | IFormat): Dex {
 		const format = typeof formatid === 'string' ? this.getExistingFormat(formatid) : formatid;
 		dexes['base'].loadData();

@@ -589,7 +589,7 @@ export interface ITemplateData {
 	forme?: string;
 	gender?: 'M' | 'F' | 'N' | '';
 	genderRatio?: {[k: string]: number};
-	inheritsLearnsetFrom?: string;
+	inheritsFrom?: string | string[];
 	maxHP?: number;
 	otherForms?: string[];
 	otherFormes?: string[];
@@ -633,7 +633,6 @@ export interface IPokemonComputed {
 	gen: number;
 	genderRatio: NonNullable<ITemplateData["genderRatio"]>;
 	id: string;
-	inheritsLearnsetFrom?: string;
 	isForme: boolean;
 	isMega: boolean;
 	isNonstandard?: Nonstandard;

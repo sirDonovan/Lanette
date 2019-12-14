@@ -50,7 +50,7 @@ async function revert(sha) {
 	process.chdir(__dirname);
 	const npmTest = await exec('npm test').catch(e => console.log(e));
 	if (!npmTest || npmTest.Error) {
-		if (hotpatch) await revert(currentSha);
+		await revert(currentSha);
 		return;
 	}
 
