@@ -129,12 +129,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			description: "Players have to do .count in the right order based on the given category (numbers, words or etc.). The first person to mess up the sequence loses a point, so be careful!",
 		},
 		{
-			name: "Delcatty's Hide and Seek",
-			mascot: "Delcatty",
-			aliases: ['DHS', 'Delcattys'],
-			description: "Each round, the host will give a param that determines Pokemon players can hide behind (by PMing the host). One player will be chosen to seek one Pokemon. If anyone hid behind it, they are eliminated. If not, the seeker is eliminated.",
-		},
-		{
 			name: "Ditto's Who Am I",
 			mascot: 'Ditto',
 			aliases: ['dittos', 'who am i'],
