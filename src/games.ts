@@ -653,4 +653,8 @@ export class Games {
 		}
 		return list;
 	}
+
+	isIncludedPokemonTier(tier: string): boolean {
+		return tier !== 'Illegal' && tier !== 'Unreleased' && tier.charAt(0) !== '(';
+	}
 }

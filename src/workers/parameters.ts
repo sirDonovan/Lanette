@@ -209,19 +209,17 @@ export function init(): worker_threads.Worker {
 				}
 			}
 
-			if (pokemon.tier !== 'Illegal') {
-				if (pokemon.tier.charAt(0) !== '(') {
-					const tierId = Tools.toId(pokemon.tier);
-					if (!(tierId in tiers)) tiers[tierId] = {type: 'tier', param: pokemon.tier};
-					if (!(pokemon.tier in tierDex)) tierDex[pokemon.tier] = [];
-					tierDex[pokemon.tier].push(pokemon.species);
-				}
+			if (Games.isIncludedPokemonTier(pokemon.tier)) {
+				const tierId = Tools.toId(pokemon.tier);
+				if (!(tierId in tiers)) tiers[tierId] = {type: 'tier', param: pokemon.tier};
+				if (!(pokemon.tier in tierDex)) tierDex[pokemon.tier] = [];
+				tierDex[pokemon.tier].push(pokemon.species);
+			}
 
-				if (pokemon.pseudoLC) {
-					if (!tiers['lc']) tiers['lc'] = {type: 'tier', param: 'LC'};
-					if (!('LC' in tierDex)) tierDex['LC'] = [];
-					tierDex['LC'].push(pokemon.species);
-				}
+			if (pokemon.pseudoLC) {
+				if (!tiers['lc']) tiers['lc'] = {type: 'tier', param: 'LC'};
+				if (!('LC' in tierDex)) tierDex['LC'] = [];
+				tierDex['LC'].push(pokemon.species);
 			}
 
 			const genParam = {type: 'gen', param: '' + pokemon.gen};

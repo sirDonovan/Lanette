@@ -30,7 +30,7 @@ class DelcattysHideAndSeek extends Game {
 				pokemonCategories[pokemon.id].push(pokemon.types[j] + " Type");
 			}
 			pokemonCategories[pokemon.id].push("Generation " + pokemon.gen);
-			if (!pokemon.tier.startsWith('(') && pokemon.tier !== "Illegal") pokemonCategories[pokemon.id].push(pokemon.tier);
+			if (Games.isIncludedPokemonTier(pokemon.tier)) pokemonCategories[pokemon.id].push(pokemon.tier);
 			pokemonCategories[pokemon.id].push(pokemon.color);
 			data.pokemon.push(pokemon.id);
 		}

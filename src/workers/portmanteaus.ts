@@ -102,7 +102,7 @@ export function init(): worker_threads.Worker {
 	const pokedex = Games.getPokemonList();
 	for (let i = 0; i < pokedex.length; i++) {
 		const pokemon = pokedex[i];
-		if (pokemon.tier !== 'Illegal' && pokemon.tier !== 'Unreleased' && pokemon.tier.charAt(0) !== '(') {
+		if (Games.isIncludedPokemonTier(pokemon.tier)) {
 			if (!(pokemon.tier in data.pool['Pokemon']['tier'])) data.pool['Pokemon']['tier'][pokemon.tier] = [];
 			if (!(pokemon.forme && data.pool['Pokemon']['tier'][pokemon.tier].includes(pokemon.baseSpecies))) data.pool['Pokemon']['tier'][pokemon.tier].push(pokemon.species);
 		}

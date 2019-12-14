@@ -21,7 +21,7 @@ class SerperiorLengthyChains extends Game {
 		for (let i = 0; i < pokemonList.length; i++) {
 			const pokemon = pokemonList[i];
 			const pokemonParameters: string[] = ["Generation " + pokemon.gen, pokemon.color];
-			if (pokemon.tier !== 'Illegal') pokemonParameters.push(pokemon.tier);
+			if (Games.isIncludedPokemonTier(pokemon.tier)) pokemonParameters.push(pokemon.tier);
 			for (let i = 0; i < pokemon.eggGroups.length; i++) {
 				pokemonParameters.push(pokemon.eggGroups[i] + " Group");
 			}
@@ -84,7 +84,7 @@ class SerperiorLengthyChains extends Game {
 	checkBestChain() {
 		this.category = '';
 		if (!this.bestPlayer) {
-			this.say("Nobody gave a valid chain!");
+			this.say("No one gave a valid chain!");
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 		} else {
 			let points = this.points.get(this.bestPlayer) || 0;
