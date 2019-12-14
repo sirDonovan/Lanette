@@ -740,6 +740,7 @@ const commands: Dict<ICommandDefinition> = {
 				delete room.timers[user.id];
 				return this.say("Your timer has been turned off.");
 			}
+
 			let time: number;
 			if (id.length === 1) {
 				time = parseInt(id) * 60;
@@ -748,7 +749,9 @@ const commands: Dict<ICommandDefinition> = {
 			}
 			if (isNaN(time) || time > 1800 || time < 5) return this.say("Please enter an amount of time between 5 seconds and 30 minutes.");
 			time *= 1000;
+
 			if (!room.timers) room.timers = {};
+			if (user.id in room.timers) clearTimeout(room.timers[user.id]);
 			room.timers[user.id] = setTimeout(() => {
 				room.say(user.name + ": time is up!");
 				delete room.timers![user.id];
@@ -766,6 +769,7 @@ const commands: Dict<ICommandDefinition> = {
 				room.userHostedGame.gameTimer = null;
 				return this.say("The game timer has been turned off.");
 			}
+
 			let time: number;
 			if (id.length === 1) {
 				time = parseInt(id) * 60;
@@ -774,6 +778,8 @@ const commands: Dict<ICommandDefinition> = {
 			}
 			if (isNaN(time) || time > 600 || time < 5) return this.say("Please enter an amount of time between 5 seconds and 10 minutes.");
 			time *= 1000;
+
+			if (room.userHostedGame.gameTimer) clearTimeout(room.userHostedGame.gameTimer);
 			room.userHostedGame.gameTimer = setTimeout(() => {
 				room.say("Time is up!");
 				room.userHostedGame!.gameTimer = null;
