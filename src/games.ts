@@ -58,6 +58,7 @@ export class Games {
 	lastScriptedGames: Dict<number> = {};
 	lastUserHostedGames: Dict<number> = {};
 	lastUserHostTimes: Dict<Dict<number>> = {};
+	readonly maxMoveAvailability: number = 500;
 	readonly minigameCommandNames: Dict<{aliases: string[], format: string}> = {};
 	readonly modes: Dict<IGameMode> = {};
 	reloadInProgress: boolean = false;

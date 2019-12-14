@@ -12,23 +12,18 @@ class MewsMoveCards extends CardHighLow {
 	createDeckPool() {
 		this.deckPool = [];
 
-		const pokedex = Games.getPokemonList();
 		const moves = Games.getMovesCopyList(move => {
 			if (!move.basePower || !move.accuracy || !move.pp || isNaN(move.basePower) || move.basePower <= 0 || move.accuracy === true || isNaN(move.accuracy) || move.accuracy === 100 ||
 				isNaN(move.pp)) return false;
 			return true;
 		});
 
+		const pokedex = Games.getPokemonList();
 		for (let i = 0; i < moves.length; i++) {
+			const availability = Dex.getMoveAvailability(moves[i], pokedex);
+			if (!availability) continue;
 			const move = moves[i] as IMoveCard;
-			const availability: string[] = [];
-			for (let i = 0; i < pokedex.length; i++) {
-				if (pokedex[i].allPossibleMoves.includes(move.id) && !(pokedex[i].baseSpecies !== pokedex[i].species && availability.includes(pokedex[i].baseSpecies))) {
-					availability.push(pokedex[i].species);
-				}
-			}
-			if (!availability.length) continue;
-			move.availability = availability.length;
+			move.availability = availability;
 			this.deckPool.push(move);
 		}
 	}

@@ -927,6 +927,22 @@ export class Dex {
 		return copiedMoves;
 	}
 
+	getMoveAvailability(move: IMove, pokedex?: IPokemon[]): number {
+		if (!pokedex) pokedex = this.getPokemonList();
+		const availability: string[] = [];
+		for (let i = 0; i < pokedex.length; i++) {
+			if (pokedex[i].allPossibleMoves.includes(move.id) && !(pokedex[i].baseSpecies !== pokedex[i].species && availability.includes(pokedex[i].baseSpecies))) {
+				availability.push(pokedex[i].species);
+			}
+		}
+
+		return availability.length;
+	}
+
+	/*
+		Pokemon
+	*/
+
 	getPokemon(name: string): IPokemon | null {
 		let id = Tools.toId(name);
 		if (!id) return null;
