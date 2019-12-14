@@ -28,8 +28,13 @@ export function assertClientSendQueue(startingSendQueueIndex: number, input: rea
 }
 
 export function addPlayer(game: Game, name: string): Player {
-	const player = game.addPlayer(name);
+	const user = Users.add(name);
+	assert(user);
+	user.rooms.set(game.room as Room, {lastChatMessage: Date.now(), rank: ' '});
+
+	const player = game.addPlayer(user);
 	assert(player);
+
 	return player;
 }
 

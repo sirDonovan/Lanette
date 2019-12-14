@@ -352,9 +352,9 @@ export class Game extends Activity {
 		this.deallocate(false);
 	}
 
-	addPlayer(user: User | string): Player | undefined {
+	addPlayer(user: User): Player | undefined {
 		if (this.format.options.freejoin || this.isMiniGame) {
-			if (typeof user !== 'string') user.say("This game does not require you to join.");
+			user.say("This game does not require you to join.");
 			return;
 		}
 		const player = this.createPlayer(user);
