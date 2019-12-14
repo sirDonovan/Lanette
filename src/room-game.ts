@@ -280,7 +280,7 @@ export class Game extends Activity {
 		this.round++;
 		if (this.maxRound && this.round > this.maxRound) {
 			if (this.onMaxRound) this.onMaxRound();
-			this.end();
+			if (!this.ended) this.end();
 			return;
 		}
 		if (this.onNextRound) this.onNextRound();
