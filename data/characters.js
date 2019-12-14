@@ -106,7 +106,7 @@ exports.BattleCharacters = [
 	"Hau",
 	"Lillie",
 	"Professor Kukui",
-	"Ilmia",
+	"Ilima",
 	"Lana",
 	"Kiawe",
 	"Mallow",
