@@ -33,6 +33,13 @@ describe("Dex", () => {
 		assert(!Dex.getDex('gen4').getExistingPokemon('Pichu-Spiky-Eared').isNonstandard);
 		assert(Dex.getDex('gen5').getExistingPokemon('Pichu=Spiky-Eared').isNonstandard === 'Past');
 
+		assert(Dex.getExistingPokemon("Darmanitan").gen === 5);
+		assert(Dex.getExistingPokemon("Darmanitan-Zen").gen === 5);
+		assert(Dex.getExistingPokemon("Darmanitan-Galar").gen === 8);
+		assert(Dex.getExistingPokemon("Darmanitan-Galar-Zen").gen === 8);
+		assert(Dex.getExistingPokemon("Greninja").gen === 6);
+		assert(Dex.getExistingPokemon("Ash Greninja").gen === 7);
+
 		let pokemon = Dex.getExistingPokemon('Charizard');
 		assert(pokemon.allPossibleMoves.length > Object.keys(pokemon.learnset!).length, pokemon.species);
 		pokemon = Dex.getExistingPokemon('Lycanroc-Dusk');

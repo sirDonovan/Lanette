@@ -1025,24 +1025,22 @@ export class Dex {
 			}
 		}
 
-		let battleOnly = templateFormatsData.battleOnly;
-		let isMega = false;
+		const forme = templateData.forme || '';
+		const isMega = ['Mega', 'Mega-X', 'Mega-Y'].includes(forme) ? true : false;
+		const isGigantamax = templateFormatsData.isGigantamax;
+		let battleOnly = templateFormatsData.battleOnly || isMega || !!isGigantamax || false;
 		let isPrimal = false;
 		let gen = templateFormatsData.gen || 0;
-		if (!gen) {
-			if (templateData.num >= 810 || (templateData.forme && (templateData.forme.endsWith('Galar') || templateData.forme === 'Gmax'))) {
+		if (!gen && templateData.num >= 1) {
+			if (templateData.num >= 810 || ['Galar', 'Galar-Zen'].includes(forme) || forme === 'Gmax') {
 				gen = 8;
-			} else if (templateData.num >= 722 || (templateData.forme && templateData.forme.startsWith('Alola'))) {
+			} else if (templateData.num >= 722 || forme.startsWith('Alola') || forme === 'Starter') {
 				gen = 7;
-			} else if (templateData.forme && ['Mega', 'Mega-X', 'Mega-Y'].includes(templateData.forme)) {
-				gen = 6;
-				isMega = true;
-				battleOnly = true;
-			} else if (templateData.forme === 'Primal') {
+			} else if (forme === 'Primal') {
 				gen = 6;
 				isPrimal = true;
 				battleOnly = true;
-			} else if (templateData.num >= 650) {
+			} else if (templateData.num >= 650 || isMega) {
 				gen = 6;
 			} else if (templateData.num >= 494) {
 				gen = 5;
@@ -1089,7 +1087,7 @@ export class Dex {
 			if (!doublesTier) doublesTier = tier;
 
 			if (this.currentMod === 'letsgo' && !isNonstandard && !((templateData.num <= 151 || ['Meltan', 'Melmetal'].includes(templateData.species)) &&
-				(!templateData.forme || ['Alola', 'Mega', 'Mega-X', 'Mega-Y'].includes(templateData.forme)))) {
+				['Alola', 'Mega', 'Mega-X', 'Mega-Y'].includes(forme))) {
 				isNonstandard = 'Past';
 			}
 		}
@@ -1136,7 +1134,7 @@ export class Dex {
 				templateData.gender === 'N' ? {M: 0, F: 0} :
 				{M: 0.5, F: 0.5}),
 			evos,
-			forme: templateData.forme || '',
+			forme,
 			id: speciesId,
 			isForme,
 			isMega,
@@ -1145,9 +1143,10 @@ export class Dex {
 			name: templateData.species,
 			nfe: !!evos.length,
 			pseudoLC,
+			requiredItems: templateFormatsData.requiredItems || (templateFormatsData.requiredItem ? [templateFormatsData.requiredItem] : undefined),
 			shiny: false,
 			speciesid: speciesId,
-			spriteId: Tools.toId(baseSpecies) + (baseSpecies !== templateData.species ? '-' + Tools.toId(templateData.forme) : ''),
+			spriteId: Tools.toId(baseSpecies) + (baseSpecies !== templateData.species ? '-' + Tools.toId(forme) : ''),
 			tier,
 		};
 		const pokemon: IPokemon = Object.assign({}, templateData, templateFormatsData, this.data.learnsets[id] || {}, pokemonComputed);

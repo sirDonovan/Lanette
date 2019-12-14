@@ -609,6 +609,7 @@ export interface ITemplateFormatsData {
 	eventPokemon?: IEventInfo[];
 	exclusiveMoves?: string[];
 	gen?: number;
+	isGigantamax?: string;
 	isNonstandard?: Nonstandard;
 	isUnreleased?: boolean;
 	maleOnlyHidden?: boolean;
@@ -640,6 +641,7 @@ export interface IPokemonComputed {
 	name: string;
 	nfe: boolean;
 	pseudoLC: boolean;
+	requiredItems: string[] | undefined;
 	shiny: boolean;
 	speciesid: string;
 	spriteId: string;
@@ -652,6 +654,7 @@ export interface IPokemonCopy extends ITemplateData, Partial<ILearnset>, ITempla
 	forme: string;
 	gen: number;
 	genderRatio: NonNullable<ITemplateData["genderRatio"]>;
+	requiredItems: string[] | undefined;
 	tier: string;
 }
 export interface IPokemon extends DeepReadonly<IPokemonCopy> {}
