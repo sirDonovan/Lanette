@@ -373,6 +373,7 @@ const commands: Dict<ICommandDefinition> = {
 			const id = Tools.toId(target);
 			if (!(id in room.game.players)) return this.say("You must specify a player currently in the game.");
 			const player = room.game.players[id];
+			room.game.winners.delete(player);
 			room.game.removePlayer(target, true);
 			this.say(player.name + " has been disqualified from the game.");
 		},
