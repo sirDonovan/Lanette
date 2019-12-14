@@ -120,12 +120,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			description: "A tournament style game where each player is given a Pokemon to battle with in [Gen 7] OU. Defeating an opponent allows the player to add the opponent’s Pokemon to his or her team. This continues until there is only one player left standing!",
 		},
 		{
-			name: "Buneary's Bountiful Buffet",
-			mascot: "Buneary",
-			aliases: ['BBB', 'Bunearys'],
-			description: "Players try to choose the meals for maximum points, but meals picked by multiple people are shared!",
-		},
-		{
 			name: "Commonyms",
 			description: "Players must find the word that applies to all of the words in the puzzle Ex: sky, jay, sad | Answer: blue",
 			freejoin: true,
