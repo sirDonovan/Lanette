@@ -585,6 +585,10 @@ export class Dex {
 		}
 	}
 
+	/*
+		Abilities
+	*/
+
 	getAbility(name: string): IAbility | null {
 		let id = Tools.toId(name);
 		if (!id) return null;
@@ -667,6 +671,10 @@ export class Dex {
 		}
 		return copiedAbilities;
 	}
+
+	/*
+		Items
+	*/
 
 	getItem(name: string): IItem | null {
 		let id = Tools.toId(name);
@@ -756,6 +764,10 @@ export class Dex {
 		}
 		return copiedItems;
 	}
+
+	/*
+		Moves
+	*/
 
 	getMove(name: string): IMove | null {
 		let id = Tools.toId(name);
@@ -1256,6 +1268,82 @@ export class Dex {
 		return weaknesses;
 	}
 
+	hasGifData(pokemon: IPokemon, generation?: 'xy' | 'bw', direction?: 'front' | 'back'): boolean {
+		if (!generation) generation = 'xy';
+		if (!direction) direction = 'front';
+		if (generation === 'bw') {
+			if (this.data.gifDataBW.hasOwnProperty(pokemon.id) && this.data.gifDataBW[pokemon.id]![direction]) return true;
+		} else {
+			if (this.data.gifData.hasOwnProperty(pokemon.id) && this.data.gifData[pokemon.id]![direction]) return true;
+		}
+		return false;
+	}
+
+	getPokemonGif(pokemon: IPokemon, generation?: 'xy' | 'bw', direction?: 'front' | 'back', width?: number, height?: number): string {
+		if (!generation) generation = 'xy';
+		const bw = generation === 'bw';
+		if (bw && pokemon.gen > 5) return '';
+		let prefix = '//' + Tools.mainServer + '/sprites/' + generation + 'ani';
+		if (!direction) direction = 'front';
+		if (direction === 'front') {
+			if (pokemon.shiny) {
+				prefix += "-shiny";
+			}
+		} else {
+			if (pokemon.shiny) {
+				prefix += "-back-shiny";
+			} else {
+				prefix += "-back";
+			}
+		}
+		let gif = '<img src="' + prefix + '/' + pokemon.spriteId + '.gif" ';
+		if (!width || !height) {
+			let gifData: IGifData | undefined;
+			if (bw) {
+				if (this.data.gifDataBW.hasOwnProperty(pokemon.id)) gifData = this.data.gifDataBW[pokemon.id]!;
+			} else {
+				if (this.data.gifData.hasOwnProperty(pokemon.id)) gifData = this.data.gifData[pokemon.id]!;
+			}
+			if (gifData && gifData[direction]) {
+				if (!width) width = gifData[direction]!.w;
+				if (!height) height = gifData[direction]!.h;
+			} else if (bw) {
+				if (!width) width = 96;
+				if (!height) height = 96;
+			}
+		}
+		gif += 'width="' + width + '" height="' + height + '" />';
+		return gif;
+	}
+
+	getPokemonIcon(pokemon: IPokemon, facingLeft?: boolean): string {
+		let num = pokemon.num;
+		if (num < 0) {
+			num = 0;
+		} else if (num > 809) {
+			num = 0;
+		}
+
+		if (facingLeft) {
+			if (alternateIconNumbers.left[pokemon.id]) num = alternateIconNumbers.left[pokemon.id];
+		} else if (pokemon.gender === 'F') {
+			if (pokemon.id === 'unfezant' || pokemon.id === 'frillish' || pokemon.id === 'jellicent' || pokemon.id === 'meowstic' || pokemon.id === 'pyroar') {
+				num = alternateIconNumbers.right[pokemon.id + 'f'];
+			}
+		} else {
+			if (alternateIconNumbers.right[pokemon.id]) num = alternateIconNumbers.right[pokemon.id];
+		}
+
+		const top = Math.floor(num / 12) * 30;
+		const left = (num % 12) * 40;
+		const facingLeftStyle = facingLeft ? "transform:scaleX(-1);webkit-transform:scaleX(-1);" : "";
+		return '<span style="display: inline-block;width: 40px;height: 30px;background:transparent url(https://' + Tools.mainServer + '/sprites/smicons-sheet.png?a5) no-repeat scroll -' + left + 'px -' + top + 'px;' + facingLeftStyle + '"></span>';
+	}
+
+	/*
+		Formats
+	*/
+
 	getFormat(name: string, isTrusted?: boolean): IFormat | null {
 		let id = Tools.toId(name);
 		if (!id) return null;
@@ -1723,77 +1811,6 @@ export class Dex {
 		return TeamValidator.get(format);
 	}
 
-	hasGifData(pokemon: IPokemon, generation?: 'xy' | 'bw', direction?: 'front' | 'back'): boolean {
-		if (!generation) generation = 'xy';
-		if (!direction) direction = 'front';
-		if (generation === 'bw') {
-			if (this.data.gifDataBW.hasOwnProperty(pokemon.id) && this.data.gifDataBW[pokemon.id]![direction]) return true;
-		} else {
-			if (this.data.gifData.hasOwnProperty(pokemon.id) && this.data.gifData[pokemon.id]![direction]) return true;
-		}
-		return false;
-	}
-
-	getPokemonGif(pokemon: IPokemon, generation?: 'xy' | 'bw', direction?: 'front' | 'back', width?: number, height?: number): string {
-		if (!generation) generation = 'xy';
-		const bw = generation === 'bw';
-		if (bw && pokemon.gen > 5) return '';
-		let prefix = '//' + Tools.mainServer + '/sprites/' + generation + 'ani';
-		if (!direction) direction = 'front';
-		if (direction === 'front') {
-			if (pokemon.shiny) {
-				prefix += "-shiny";
-			}
-		} else {
-			if (pokemon.shiny) {
-				prefix += "-back-shiny";
-			} else {
-				prefix += "-back";
-			}
-		}
-		let gif = '<img src="' + prefix + '/' + pokemon.spriteId + '.gif" ';
-		if (!width || !height) {
-			let gifData: IGifData | undefined;
-			if (bw) {
-				if (this.data.gifDataBW.hasOwnProperty(pokemon.id)) gifData = this.data.gifDataBW[pokemon.id]!;
-			} else {
-				if (this.data.gifData.hasOwnProperty(pokemon.id)) gifData = this.data.gifData[pokemon.id]!;
-			}
-			if (gifData && gifData[direction]) {
-				if (!width) width = gifData[direction]!.w;
-				if (!height) height = gifData[direction]!.h;
-			} else if (bw) {
-				if (!width) width = 96;
-				if (!height) height = 96;
-			}
-		}
-		gif += 'width="' + width + '" height="' + height + '" />';
-		return gif;
-	}
-
-	getPokemonIcon(pokemon: IPokemon, facingLeft?: boolean): string {
-		let num = pokemon.num;
-		if (num < 0) {
-			num = 0;
-		} else if (num > 809) {
-			num = 0;
-		}
-
-		if (facingLeft) {
-			if (alternateIconNumbers.left[pokemon.id]) num = alternateIconNumbers.left[pokemon.id];
-		} else if (pokemon.gender === 'F') {
-			if (pokemon.id === 'unfezant' || pokemon.id === 'frillish' || pokemon.id === 'jellicent' || pokemon.id === 'meowstic' || pokemon.id === 'pyroar') {
-				num = alternateIconNumbers.right[pokemon.id + 'f'];
-			}
-		} else {
-			if (alternateIconNumbers.right[pokemon.id]) num = alternateIconNumbers.right[pokemon.id];
-		}
-
-		const top = Math.floor(num / 12) * 30;
-		const left = (num % 12) * 40;
-		const facingLeftStyle = facingLeft ? "transform:scaleX(-1);webkit-transform:scaleX(-1);" : "";
-		return '<span style="display: inline-block;width: 40px;height: 30px;background:transparent url(https://' + Tools.mainServer + '/sprites/smicons-sheet.png?a5) no-repeat scroll -' + left + 'px -' + top + 'px;' + facingLeftStyle + '"></span>';
-	}
 	/*
 		pokemon-showdown compatibility
 	*/
