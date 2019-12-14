@@ -28,22 +28,22 @@ export abstract class CardMatching extends Card {
 		const pokedex = this.shuffle(this.deckPool);
 		const deck: IPokemonCard[] = [];
 		const minimumDeck = ((this.maxPlayers + 1) * this.format.options.cards);
+		outer:
 		for (let i = 0; i < pokedex.length; i++) {
 			const pokemon = pokedex[i];
-			const multiType = pokemon.types.length > 1;
 			if (this.colorsLimit && pokemon.color in colorCounts && colorCounts[pokemon.color] >= this.colorsLimit) continue;
 			if (this.typesLimit) {
-				if (pokemon.types[0] in typeCounts && typeCounts[pokemon.types[0]] >= this.typesLimit) continue;
-				if (multiType && pokemon.types[1] in typeCounts && typeCounts[pokemon.types[1]] >= this.typesLimit) continue;
+				for (let i = 0; i < pokemon.types.length; i++) {
+					if (pokemon.types[i] in typeCounts && typeCounts[pokemon.types[i]] >= this.typesLimit) continue outer;
+				}
 			}
 
 			if (!(pokemon.color in colorCounts)) colorCounts[pokemon.color] = 0;
 			colorCounts[pokemon.color]++;
-			if (!(pokemon.types[0] in typeCounts)) typeCounts[pokemon.types[0]] = 0;
-			typeCounts[pokemon.types[0]]++;
-			if (multiType) {
-				if (!(pokemon.types[1] in typeCounts)) typeCounts[pokemon.types[1]] = 0;
-				typeCounts[pokemon.types[1]]++;
+
+			for (let i = 0; i < pokemon.types.length; i++) {
+				if (!(pokemon.types[i] in typeCounts)) typeCounts[pokemon.types[i]] = 0;
+				typeCounts[pokemon.types[i]]++;
 			}
 			if (this.rollForShinyPokemon()) pokemon.shiny = true;
 			deck.push(pokemon);
@@ -320,7 +320,11 @@ export abstract class CardMatching extends Card {
 
 	isCardPair(cardA: IPokemonCard, cardB: IPokemonCard): boolean {
 		if (!cardA || !cardB || (cardA !== this.topCard && cardA.action) || (cardB !== this.topCard && cardB.action)) return false;
-		return cardA.color === cardB.color || cardA.types.includes(cardB.types[0]) || (cardB.types.length > 1 && cardA.types.includes(cardB.types[1]));
+		if (cardA.color === cardB.color) return true;
+		for (let i = 0; i < cardB.types.length; i++) {
+			if (cardA.types.includes(cardB.types[i])) return true;
+		}
+		return false;
 	}
 
 	playCard(card: IPokemonCard, player: Player, targets: string[], cards: CardType[]): CardType[] | boolean {

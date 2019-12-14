@@ -179,8 +179,10 @@ class AxewsBattleCards extends CardMatching {
 						playableCards.push(card.name + ", " + type);
 					} else if (card.id === 'conversion2') {
 						let types = this.sampleMany(Object.keys(Dex.data.typeChart), 2);
-						while (types.sort().join(",") === this.topCard.types.slice().sort().join(",")) {
-							types = this.sampleMany(Object.keys(Dex.data.typeChart), 2);
+						if (this.topCard.types.length === 2) {
+							while (types.sort().join(",") === this.topCard.types.slice().sort().join(",")) {
+								types = this.sampleMany(Object.keys(Dex.data.typeChart), 2);
+							}
 						}
 						playableCards.push(card.name + ", " + types.join(", "));
 					} else if (card.id === 'transform') {

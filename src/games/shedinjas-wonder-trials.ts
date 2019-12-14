@@ -155,18 +155,18 @@ const commands: Dict<ICommandDefinition<ShedinjasWonderTrials>> = {
 					effectiveness = Dex.getEffectiveness('Fighting', this.currentPokemon) + Dex.getEffectiveness('Flying', this.currentPokemon);
 				}
 			} else if (move.id === 'freezedry') {
-				if (this.currentPokemon.types[0] === 'Water') {
-					if (this.currentPokemon.types[1]) {
-						effectiveness = 1 + Dex.getEffectiveness(move.type, this.currentPokemon.types[1]);
+				const waterIndex = this.currentPokemon.types.indexOf('Water');
+				if (waterIndex !== -1) {
+					const otherTypes = this.currentPokemon.types.slice().splice(waterIndex, 1);
+					if (otherTypes.length) {
+						effectiveness = 1 + Dex.getEffectiveness(move.type, otherTypes);
 					} else {
 						effectiveness = 1;
 					}
-				} else if (this.currentPokemon.types[1] === 'Water') {
-					effectiveness = 1 + Dex.getEffectiveness(move.type, this.currentPokemon.types[0]);
 				} else {
 					effectiveness = Dex.getEffectiveness(move.type, this.currentPokemon);
 				}
-			} else if (move.id === 'thousandarrows' && (this.currentPokemon.types[0] === 'Flying' || this.currentPokemon.types[1] === 'Flying')) {
+			} else if (move.id === 'thousandarrows' && this.currentPokemon.types.includes('Flying')) {
 				effectiveness = 0;
 			} else {
 				if (Dex.isImmune(move.type, this.currentPokemon)) {
