@@ -195,8 +195,8 @@ describe("Games", () => {
 		}
 	});
 
-	it('should load data properly', function() {
-		this.timeout(15000);
+	it('should create games properly', function() {
+		this.timeout(30000);
 		for (const i in Games.formats) {
 			try {
 				// tslint:disable-next-line prefer-const
@@ -209,6 +209,32 @@ describe("Games", () => {
 				throw e;
 			}
 			if (room.game) room.game.deallocate(true);
+		}
+
+		const formatsByMode: Dict<string[]> = {};
+		for (const i in Games.modes) {
+			const mode = Games.modes[i];
+			formatsByMode[mode.id] = [];
+			for (const i in Games.formats) {
+				if (Games.formats[i].modes && Games.formats[i].modes!.includes(mode.id)) formatsByMode[mode.id].push(i);
+			}
+		}
+
+		for (const mode in formatsByMode) {
+			for (let i = 0; i < formatsByMode[mode].length; i++) {
+				const format = Games.getExistingFormat(formatsByMode[mode][i] + "," + mode);
+				try {
+					// tslint:disable-next-line prefer-const
+					let initialSeed: PRNGSeed | undefined;
+					Games.createGame(room, format, room, false, initialSeed);
+				} catch (e) {
+					if (room.game) {
+						console.log(format.name + " (starting seed = " + room.game.prng.initialSeed + ") crashed with: " + e.message);
+					}
+					throw e;
+				}
+				if (room.game) room.game.deallocate(true);
+			}
 		}
 	});
 
