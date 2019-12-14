@@ -1085,6 +1085,11 @@ export class Client {
 
 	login() {
 		const action = url.parse('https://' + Tools.mainServer + '/~~' + this.serverId + '/action.php');
+		if (!action.hostname || !action.pathname) {
+			console.log("Failed to parse login URL");
+			process.exit();
+		}
+
 		const options: {hostname: string | undefined, path: string | undefined, agent: boolean, method: string, headers?: Dict<string | number>} = {
 			hostname: action.hostname,
 			path: action.pathname,
