@@ -90,15 +90,9 @@ class DelcattysHideAndSeek extends Game {
 		this.pokemonChoices.clear();
 		this.charmer = this.shufflePlayers()[0];
 		let requiredPokemon = remainingPlayerCount;
-		if (requiredPokemon > 2) requiredPokemon += Math.floor(Math.random() * 3) - 1;
+		if (requiredPokemon > 2) requiredPokemon += this.random(3) - 1;
 
-		const paramsList = this.shuffle(Object.keys(data.parameters));
-		let param = paramsList[0];
-		paramsList.shift();
-		while (data.parameters[param].length < requiredPokemon) {
-			param = paramsList[0];
-			paramsList.shift();
-		}
+		const param = this.sampleOne(Object.keys(data.parameters).filter(x => data.parameters[x].length === requiredPokemon));
 		this.categories = param.split(", ");
 
 		const otherPlayers: string[] = [];
@@ -106,7 +100,7 @@ class DelcattysHideAndSeek extends Game {
 			if (this.players[i].eliminated || this.charmer === this.players[i]) continue;
 			otherPlayers.push(this.players[i].name);
 		}
-		const text = "**" + this.charmer.name + "** is the charmer! " + Tools.joinList(otherPlayers) + ", select a **" + this.categories.join(", ") + "** Pokemon with ``" + Config.commandCharacter + "select [Pokemon]`` in PMs!";
+		const text = "**" + this.charmer.name + "** is the charmer! " + Tools.joinList(otherPlayers) + ", select a **" + param + "** Pokemon with ``" + Config.commandCharacter + "select [Pokemon]`` in PMs!";
 		this.on(text, () => {
 			this.canSelect = true;
 			this.timeout = setTimeout(() => this.selectCharmedPokemon(), 60 * 1000);
@@ -237,6 +231,23 @@ const commands: Dict<ICommandDefinition<DelcattysHideAndSeek>> = {
 };
 
 const tests: GameFileTests<DelcattysHideAndSeek> = {
+	'should have parameters for all possible numbers of remaining players': {
+		test(game, format) {
+			// 1 extra Pokemon can be added in onNextRound()
+			const maxPlayers = game.maxPlayers + 1;
+			const parameterKeys = Object.keys(data.parameters);
+			for (let i = game.minPlayers; i < maxPlayers; i++) {
+				let hasParameters = false;
+				for (let j = 0; j < parameterKeys.length; j++) {
+					if (data.parameters[parameterKeys[j]].length === i) {
+						hasParameters = true;
+						break;
+					}
+				}
+				assert(hasParameters);
+			}
+		},
+	},
 	'should eliminate players who are charmed': {
 		test(game, format) {
 			const players = addPlayers(game, 2);
