@@ -10,6 +10,7 @@ import { User } from './users';
 
 export type GroupName = 'voice' | 'bot' | 'driver' | 'moderator' | 'roomowner' | 'locked';
 
+const MAIN_HOST = "sim3.psim.us";
 const RELOGIN_SECONDS = 60;
 const SEND_THROTTLE = 800;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
@@ -224,7 +225,7 @@ export class Client {
 					if (config.host) {
 						if (config.id) this.serverId = config.id;
 						if (config.host === 'showdown') {
-							this.client.connect('wss://sim2.psim.us:' + (config.port || 443) + '/showdown/websocket');
+							this.client.connect('wss://' + MAIN_HOST + ':' + (config.port || 443) + '/showdown/websocket');
 						} else {
 							this.client.connect('ws://' + config.host + ':' + (config.port || 8000) + '/showdown/websocket');
 						}
