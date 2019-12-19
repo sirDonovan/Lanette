@@ -157,7 +157,8 @@ const commands: Dict<ICommandDefinition<ShedinjasWonderTrials>> = {
 			} else if (move.id === 'freezedry') {
 				const waterIndex = this.currentPokemon.types.indexOf('Water');
 				if (waterIndex !== -1) {
-					const otherTypes = this.currentPokemon.types.slice().splice(waterIndex, 1);
+					const otherTypes = this.currentPokemon.types.slice();
+					otherTypes.splice(waterIndex, 1);
 					if (otherTypes.length) {
 						effectiveness = 1 + Dex.getEffectiveness(move.type, otherTypes);
 					} else {
