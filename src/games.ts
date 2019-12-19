@@ -214,14 +214,14 @@ export class Games {
 	loadFormatCommands() {
 		for (const i in this.commands) {
 			Commands[i] = {
-				command(target, room, user, command) {
+				async asyncCommand(target, room, user, command) {
 					if (this.isPm(room)) {
-						if (user.game) user.game.tryCommand(target, user, user, command);
-						user.rooms.forEach((value, room) => {
-							if (room.game) room.game.tryCommand(target, user, user, command);
+						if (user.game) await user.game.tryCommand(target, user, user, command);
+						user.rooms.forEach(async (value, room) => {
+							if (room.game) await room.game.tryCommand(target, user, user, command);
 						});
 					} else {
-						if (room.game) room.game.tryCommand(target, room, user, command);
+						if (room.game) await room.game.tryCommand(target, room, user, command);
 					}
 				},
 			};

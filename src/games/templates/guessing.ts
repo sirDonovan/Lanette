@@ -75,7 +75,7 @@ export abstract class Guessing extends Game {
 				break;
 			}
 		}
-		return Promise.resolve(match);
+		return match;
 	}
 
 	getAnswers(givenAnswer: string, finalAnswer?: boolean): string {
@@ -100,8 +100,8 @@ export abstract class Guessing extends Game {
 
 const commands: Dict<ICommandDefinition<Guessing>> = {
 	guess: {
-		async command(target, room, user) {
 			if (!this.started || !this.canGuess || !this.answers.length || (this.players[user.id] && this.players[user.id].eliminated) ||
+		async asyncCommand(target, room, user) {
 				(this.parentGame && (!this.players[user.id] || this.players[user.id].eliminated))) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (!player.active) player.active = true;

@@ -417,6 +417,6 @@ export class Tools {
 		await exec('node update-ps.js --hotpatch');
 
 		if (!user) user = Users.self;
-		CommandParser.parse(user, user, Config.commandCharacter + 'reload dex');
+		await CommandParser.parse(user, user, Config.commandCharacter + 'reload dex');
 	}
 }

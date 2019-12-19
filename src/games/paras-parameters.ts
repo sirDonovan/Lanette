@@ -39,7 +39,7 @@ export class ParasParameters extends Guessing {
 		}
 	}
 
-	getParamNames(params: ParametersWorker.IParam[]): string {
+	getParamNames(params: ParametersWorker.IParam[]): string[] {
 		const names = [];
 		for (let i = 0; i < params.length; i++) {
 			if (params[i].type === 'type') {
@@ -56,7 +56,7 @@ export class ParasParameters extends Guessing {
 				names.push(params[i].param);
 			}
 		}
-		return Tools.joinList(names.sort());
+		return names.sort();
 	}
 
 	async setAnswers() {
@@ -87,7 +87,7 @@ export class ParasParameters extends Guessing {
 			this.say("Invalid params specified.");
 			this.deallocate(true);
 		} else {
-			this.answers = [this.getParamNames(result.params)];
+			this.answers = [this.getParamNames(result.params).join(',')];
 			this.params = result.params;
 			this.pokemon = result.pokemon;
 			this.hint = this.getParamsHtml(this.params, this.pokemon);
@@ -108,7 +108,7 @@ export class ParasParameters extends Guessing {
 	}
 
 	getAnswers(givenAnswer: string, finalAnswer?: boolean): string {
-		if (!givenAnswer) givenAnswer = this.answers[0];
+		if (!givenAnswer) givenAnswer = Tools.joinList(this.answers[0].split(','));
 		return "A possible set of parameters was __" + givenAnswer + "__.";
 	}
 
@@ -124,9 +124,9 @@ export class ParasParameters extends Guessing {
 		const parts = guess.split(',');
 		if (parts.length === this.currentNumberOfParams) {
 			const intersection = await this.intersect(parts);
-			if (intersection.pokemon.join(',') === this.pokemon.join(',')) return Promise.resolve(this.getParamNames(intersection.params));
+			if (intersection.pokemon.join(',') === this.pokemon.join(',')) return Tools.joinList(this.getParamNames(intersection.params));
 		}
-		return Promise.resolve("");
+		return "";
 	}
 }
 

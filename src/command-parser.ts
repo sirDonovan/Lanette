@@ -5,7 +5,8 @@ import { User } from "./users";
 import * as LogsWorker from './workers/logs';
 
 export interface ICommandDefinition<T = undefined, U = T extends Game ? GameCommandReturnType : void> {
-	command: (this: T extends undefined ? Command : T, target: string, room: Room | User, user: User, alias: string) => U | Promise<U>;
+	asyncCommand?: (this: T extends undefined ? Command : T, target: string, room: Room | User, user: User, alias: string) => Promise<U>;
+	command?: (this: T extends undefined ? Command : T, target: string, room: Room | User, user: User, alias: string) => U;
 	aliases?: string[];
 	readonly chatOnly?: boolean;
 	readonly developerOnly?: boolean;
@@ -79,7 +80,7 @@ export class Command {
 		this.say(global.CommandParser.getErrorText(error));
 	}
 
-	run(newCommand?: string, newTarget?: string) {
+	async run(newCommand?: string, newTarget?: string): Promise<any> {
 		let command = this.originalCommand;
 		if (newCommand) {
 			command = Tools.toId(newCommand);
@@ -92,17 +93,22 @@ export class Command {
 			if (Commands[command].pmOnly) return;
 		}
 		const target = newTarget !== undefined ? newTarget : this.target;
-		Commands[command].command.call(this, target, this.room, this.user, command);
+
+		if (Commands[command].asyncCommand) {
+			return await Commands[command].asyncCommand!.call(this, target, this.room, this.user, command);
+		} else {
+			return Commands[command].command!.call(this, target, this.room, this.user, command);
+		}
 	}
 
-	runMultipleTargets(delimiter: string) {
+	async runMultipleTargets(delimiter: string) {
 		if (!delimiter) return;
 		const parts = this.target.split(delimiter);
 		const lastMultipleTarget = parts.length - 1;
 		this.runningMultipleTargets = true;
 		for (let i = 0; i < parts.length; i++) {
 			if (i === lastMultipleTarget) this.runningMultipleTargets = false;
-			this.run(this.originalCommand, parts[i].trim());
+			await this.run(this.originalCommand, parts[i].trim());
 		}
 	}
 
@@ -147,9 +153,12 @@ export class CommandParser {
 		return Object.assign(Object.create(null), this.loadCommands(commands));
 	}
 
-	/** Returns true if the message contains a command */
-	parse(room: Room | User, user: User, message: string): boolean {
-		if (message.charAt(0) !== Config.commandCharacter) return false;
+	isCommandMessage(message: string): boolean {
+		return message.charAt(0) === Config.commandCharacter;
+	}
+
+	async parse(room: Room | User, user: User, message: string): Promise<any> {
+		if (!this.isCommandMessage(message)) return;
 		message = message.substr(1);
 		let command: string;
 		let target: string;
@@ -162,10 +171,9 @@ export class CommandParser {
 			target = message.substr(spaceIndex + 1).trim();
 		}
 		command = Tools.toId(command);
-		if (!(command in Commands)) return false;
+		if (!(command in Commands)) return;
 
-		(new Command(command, target, room, user)).run();
-		return true;
+		return await (new Command(command, target, room, user)).run();
 	}
 
 	getErrorText(error: CommandErrorArray): string {

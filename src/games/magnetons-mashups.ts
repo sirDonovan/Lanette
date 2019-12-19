@@ -30,7 +30,7 @@ class MagnetonsMashups extends Guessing {
 		} else if (guess === Tools.toId(pokemon[1] + pokemon[0])) {
 			match = pokemon[1] + ' & ' + pokemon[0];
 		}
-		return Promise.resolve(match);
+		return match;
 	}
 
 	async setAnswers() {

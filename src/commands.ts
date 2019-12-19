@@ -2296,7 +2296,7 @@ const commands: Dict<ICommandDefinition> = {
 		},
 	},
 	logs: {
-		async command(target, room, user) {
+		async asyncCommand(target, room, user) {
 			if (!this.isPm(room)) return;
 			const targets = target.split(",");
 			if (targets.length < 3) return this.say("You must specify at least a room, a user, and a start date or phrase.");

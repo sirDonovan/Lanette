@@ -484,7 +484,7 @@ export class Game extends Activity {
 		if (commandListener) this.commandsListeners.splice(this.commandsListeners.indexOf(commandListener, 1));
 	}
 
-	tryCommand(target: string, room: Room | User, user: User, command: string) {
+	async tryCommand(target: string, room: Room | User, user: User, command: string) {
 		if (!(command in this.commands)) return;
 		const commandDefinition = this.commands[command];
 		const isPm = room === user;
@@ -494,7 +494,14 @@ export class Game extends Activity {
 			if (commandDefinition.pmOnly) return;
 		}
 
-		if (commandDefinition.command.call(this, target, room, user, command) === false) return;
+		let result: boolean;
+		if (commandDefinition.asyncCommand) {
+			result = await commandDefinition.asyncCommand.call(this, target, room, user, command);
+		} else {
+			result = commandDefinition.command!.call(this, target, room, user, command);
+		}
+
+		if (result === false) return;
 
 		const triggeredListeners: IGameCommandCountListener[] = [];
 		for (let i = 0; i < this.commandsListeners.length; i++) {
@@ -642,5 +649,5 @@ export class Game extends Activity {
 	onRemovePlayer?(player: Player): void;
 	onSignups?(): void;
 	onStart?(): void;
-	parseChatMessage?(user: User, message: string, isCommand: boolean): void;
+	parseChatMessage?(user: User, message: string): void;
 }

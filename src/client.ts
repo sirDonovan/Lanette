@@ -919,7 +919,7 @@ export class Client {
 	}
 
 	parseChatMessage(room: Room, user: User, message: string) {
-		const isCommand = CommandParser.parse(room, user, message);
+		CommandParser.parse(room, user, message);
 		const lowerCaseMessage = message.toLowerCase();
 
 		// unlink tournament battle replays
@@ -995,7 +995,7 @@ export class Client {
 		}
 
 		// per-game parsing
-		if (room.game && room.game.parseChatMessage) room.game.parseChatMessage(user, message, isCommand);
+		if (room.game && room.game.parseChatMessage) room.game.parseChatMessage(user, message);
 	}
 
 	parseServerGroups(groups: ServerGroupData[]) {

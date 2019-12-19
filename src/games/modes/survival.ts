@@ -116,7 +116,7 @@ class Survival {
 
 const commands: CommandsDict<Survival & Guessing, GameCommandReturnType> = {
 	guess: {
-		async command(target, room, user) {
+		async asyncCommand(target, room, user) {
 			if (!this.canGuess || this.players[user.id] !== this.currentPlayer) return false;
 			const answer = await this.checkAnswer(target);
 			if (!answer) return false;

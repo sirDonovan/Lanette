@@ -53,7 +53,7 @@ export function addPlayers(game: Game, numberOrNames: number | string[]): Player
 	return players;
 }
 
-export function runCommand(command: string, target: string, room: Room | User, user: User | string) {
+export async function runCommand(command: string, target: string, room: Room | User, user: User | string) {
 	if (typeof user === 'string') user = Users.add(user);
-	CommandParser.parse(room, user, Config.commandCharacter + command + (target ? " " + target : ""));
+	await CommandParser.parse(room, user, Config.commandCharacter + command + (target ? " " + target : ""));
 }

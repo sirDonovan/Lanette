@@ -122,7 +122,7 @@ export class PoliwrathsPortmanteaus extends Guessing {
 				break;
 			}
 		}
-		return Promise.resolve(match);
+		return match;
 	}
 }
 
