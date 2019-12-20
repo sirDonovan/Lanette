@@ -11,6 +11,10 @@ export function assert(condition: any, message?: string | Error | undefined): as
 	nodeAssert(condition, message);
 }
 
+export function assertStrictEqual<T>(actual: T, expected: T, message?: string | Error | undefined) {
+	nodeAssert.strictEqual(actual, expected, message);
+}
+
 function checkClientSendQueue(startingSendQueueIndex: number, input: readonly string[]): string[] {
 	const expected = input.slice();
 	for (let i = startingSendQueueIndex; i < Client.sendQueue.length; i++) {

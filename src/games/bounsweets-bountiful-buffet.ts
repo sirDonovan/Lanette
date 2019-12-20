@@ -1,7 +1,7 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
-import { addPlayers, assert, runCommand } from "../test/test-tools";
+import { addPlayers, assertStrictEqual, runCommand } from "../test/test-tools";
 import { GameFileTests, IGameFile } from "../types/games";
 
 const data: {'meals': string[], 'aliases': Dict<string>} = {
@@ -158,12 +158,12 @@ const tests: GameFileTests<BounsweetsBountifulBuffet> = {
 		test(game, format) {
 			const players = addPlayers(game, 2);
 			game.start();
-			assert(game.numberOfMeals === 2);
+			assertStrictEqual(game.numberOfMeals, 2);
 			const expectedPoints = Math.floor(game.mealPoints[0] / 2);
 			runCommand('select', game.meals[0], game.room, players[0].name);
 			runCommand('select', game.meals[0], game.room, players[1].name);
-			assert(game.points.get(players[0]) === expectedPoints);
-			assert(game.points.get(players[1]) === expectedPoints);
+			assertStrictEqual(game.points.get(players[0]), expectedPoints);
+			assertStrictEqual(game.points.get(players[1]), expectedPoints);
 		},
 	},
 	'should give different points for separate meals': {
@@ -174,8 +174,8 @@ const tests: GameFileTests<BounsweetsBountifulBuffet> = {
 			const expectedPointsB = game.mealPoints[1];
 			runCommand('select', game.meals[0], game.room, players[0].name);
 			runCommand('select', game.meals[1], game.room, players[1].name);
-			assert(game.points.get(players[0]) === expectedPointsA);
-			assert(game.points.get(players[1]) === expectedPointsB);
+			assertStrictEqual(game.points.get(players[0]), expectedPointsA);
+			assertStrictEqual(game.points.get(players[1]), expectedPointsB);
 		},
 	},
 };

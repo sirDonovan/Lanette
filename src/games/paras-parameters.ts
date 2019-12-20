@@ -1,7 +1,6 @@
-import { strictEqual as assertStrictEqual } from 'assert';
 import { PRNG, PRNGSeed } from "../prng";
 import { Room } from "../rooms";
-import { assert } from "../test/test-tools";
+import { assert, assertStrictEqual } from "../test/test-tools";
 import { GameFileTests, IGameFile, IGameFormat } from "../types/games";
 import * as ParametersWorker from './../workers/parameters';
 import { game as guessingGame, Guessing } from './templates/guessing';
@@ -172,8 +171,8 @@ const tests: GameFileTests<ParasParameters> = {
 			await game.onNextRound();
 			assert(game.params.length);
 			assert(game.pokemon.length);
-			assert(game.params[0].type === 'move');
-			assert(game.params[1].type === 'egggroup');
+			assertStrictEqual(game.params[0].type, 'move');
+			assertStrictEqual(game.params[1].type, 'egggroup');
 			game.customParamTypes = null;
 
 			let intersection = await game.intersect(['rockclimb', 'steeltype']);

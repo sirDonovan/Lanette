@@ -5,7 +5,7 @@ import { CommandErrorArray } from '../../command-parser';
 import { PRNGSeed } from '../../prng';
 import { Game } from '../../room-game';
 import { GameCommandReturnType, IGameFile, IGameFormat, IGameFormatData, IGameMode, IGameModeFile, IUserHostedComputed, IUserHostedFormat } from '../../types/games';
-import { assert, assertClientSendQueue } from '../test-tools';
+import { assert, assertClientSendQueue, assertStrictEqual } from '../test-tools';
 
 function testMascots(format: IGameFormat | IUserHostedFormat) {
 	if (format.mascot) {
@@ -242,23 +242,21 @@ describe("Games", () => {
 		const formats = Object.keys(Games.formats);
 		assert(!Array.isArray(Games.getFormat(formats[0])));
 
-		assert(Games.getExistingFormat("Slowking's Trivia").name === "Slowking's Trivia");
-		assert(Games.getExistingFormat('trivia').name === "Slowking's Trivia");
-		assert(Games.getExistingFormat('trivia, abilities').nameWithOptions === "Slowking's Ability Trivia");
-		assert(Games.getExistingFormat('trivia, survival').nameWithOptions === "Slowking's Trivia Survival");
-		assert(Games.getExistingFormat('trivia, abilities, survival').nameWithOptions === "Slowking's Ability Trivia Survival");
+		assertStrictEqual(Games.getExistingFormat("Slowking's Trivia").name, "Slowking's Trivia");
+		assertStrictEqual(Games.getExistingFormat('trivia').name, "Slowking's Trivia");
+		assertStrictEqual(Games.getExistingFormat('trivia, abilities').nameWithOptions, "Slowking's Ability Trivia");
+		assertStrictEqual(Games.getExistingFormat('trivia, survival').nameWithOptions, "Slowking's Trivia Survival");
+		assertStrictEqual(Games.getExistingFormat('trivia, abilities, survival').nameWithOptions, "Slowking's Ability Trivia Survival");
 
-		assert(Games.getExistingFormat('params,params:3').inputOptions.params === 3);
+		assertStrictEqual(Games.getExistingFormat('params,params:3').inputOptions.params, 3);
 		assert(!Games.getExistingFormat('params').inputOptions.params);
 
 		assert(!Array.isArray(Games.getUserHostedFormat(Object.keys(Games.userHostedFormats)[0])));
-		assert(Games.getExistingUserHostedFormat('floettes forum game, name: Mocha Test Game').name === 'Mocha Test Game');
+		assertStrictEqual(Games.getExistingUserHostedFormat('floettes forum game, name: Mocha Test Game').name, 'Mocha Test Game');
 
 		const name = 'Non-existent Game';
 		const nameFormat = Games.getFormat(name);
 		assert(Array.isArray(nameFormat));
-		assert(nameFormat[0] === 'invalidGameFormat');
-		assert(nameFormat[1] === name);
 
 		const modes = Object.keys(Games.modes);
 		if (modes.length >= 2) {
@@ -266,6 +264,8 @@ describe("Games", () => {
 			assert(Array.isArray(modesFormat));
 			assert(modesFormat[0] === 'tooManyGameModes');
 			assert(modesFormat[1] === undefined);
+		assertStrictEqual(nameFormat[0], 'invalidGameFormat');
+		assertStrictEqual(nameFormat[1], name);
 		}
 
 		for (let i = 0; i < formats.length; i++) {
@@ -273,8 +273,8 @@ describe("Games", () => {
 			if (formatData.variants && formatData.variants.length >= 2) {
 				const variantsFormat = Games.getFormat(formats[i] + "," + formatData.variants[0].variant + "," + formatData.variants[1].variant);
 				assert(Array.isArray(variantsFormat));
-				assert(variantsFormat[0] === 'tooManyGameVariants');
-				assert(variantsFormat[1] === undefined);
+				assertStrictEqual(variantsFormat[0], 'tooManyGameVariants');
+				assertStrictEqual(variantsFormat[1], undefined);
 				break;
 			}
 		}
@@ -287,8 +287,8 @@ describe("Games", () => {
 					if (formatData.variants[i].mode) {
 						const variantsModeFormat = Games.getFormat(formatData.id + "," + formatData.variants[i].variant + "," + formatData.variants[i].mode);
 						assert(Array.isArray(variantsModeFormat));
-						assert(variantsModeFormat[0] === 'tooManyGameModes');
-						assert(variantsModeFormat[1] === undefined);
+						assertStrictEqual(variantsModeFormat[0], 'tooManyGameModes');
+						assertStrictEqual(variantsModeFormat[1], undefined);
 						hasVariantMode = true;
 					}
 				}
@@ -299,15 +299,15 @@ describe("Games", () => {
 		const option = "Non-existent option";
 		const optionFormat = Games.getFormat(formats[0] + "," + option);
 		assert(Array.isArray(optionFormat));
-		assert(optionFormat[0] === 'invalidGameOption');
-		assert(optionFormat[1] === option);
+		assertStrictEqual(optionFormat[0], 'invalidGameOption');
+		assertStrictEqual(optionFormat[1], option);
 
 		assert(!Array.isArray(Games.getUserHostedFormat(Object.keys(Games.userHostedFormats)[0])));
 
 		const nameUserHostedFormat = Games.getUserHostedFormat(name);
 		assert(Array.isArray(nameUserHostedFormat));
-		assert(nameUserHostedFormat[0] === 'invalidUserHostedGameFormat');
-		assert(nameUserHostedFormat[1] === name);
+		assertStrictEqual(nameUserHostedFormat[0], 'invalidUserHostedGameFormat');
+		assertStrictEqual(nameUserHostedFormat[1], name);
 	});
 
 	it('should start signups for scripted games', () => {
@@ -319,7 +319,7 @@ describe("Games", () => {
 			const gameLog: string[] = [];
 			const game = Games.createGame(room, format);
 			assert(game);
-			assert(game.format.name === format.name);
+			assertStrictEqual(game.format.name, format.name);
 			if (game.mascot) game.shinyMascot = true;
 			game.signups();
 			gameLog.push(roomPrefix + "/adduhtml " + game.uhtmlBaseName + "-signups, " + game.getSignupsHtml());
@@ -349,7 +349,7 @@ describe("Games", () => {
 			const gameLog: string[] = [];
 			const game = Games.createUserHostedGame(room, format, Users.self.name);
 			assert(game);
-			assert(game.format.name === format.name);
+			assertStrictEqual(game.format.name, format.name);
 			if (game.mascot) game.shinyMascot = true;
 			game.signups();
 			gameLog.push(roomPrefix + "/adduhtml " + game.uhtmlBaseName + "-signups, " + game.getSignupsHtml());
@@ -362,12 +362,12 @@ describe("Games", () => {
 	});
 
 	it('should properly set options', () => {
-		assert(Games.createGame(room, Games.getExistingFormat('trivia')).name === "Slowking's Trivia");
-		assert(Games.createGame(room, Games.getExistingFormat('trivia, abilities')).name === "Slowking's Ability Trivia");
-		assert(Games.createGame(room, Games.getExistingFormat('trivia, survival')).name === "Slowking's Trivia Survival");
-		assert(Games.createGame(room, Games.getExistingFormat('trivia, abilities, survival')).name === "Slowking's Ability Trivia Survival");
+		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia')).name, "Slowking's Trivia");
+		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia, abilities')).name, "Slowking's Ability Trivia");
+		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia, survival')).name, "Slowking's Trivia Survival");
+		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia, abilities, survival')).name, "Slowking's Ability Trivia Survival");
 
-		assert(Games.createUserHostedGame(room, Games.getExistingUserHostedFormat('floettes forum game, name: Mocha Test Game'), Users.self.name).name === Users.self.name + "'s Mocha Test Game");
+		assertStrictEqual(Games.createUserHostedGame(room, Games.getExistingUserHostedFormat('floettes forum game, name: Mocha Test Game'), Users.self.name).name, Users.self.name + "'s Mocha Test Game");
 	});
 
 	it('should return proper values from getList methods', () => {

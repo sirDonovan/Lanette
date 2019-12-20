@@ -1,6 +1,6 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
-import { addPlayers, assert, runCommand } from "../test/test-tools";
+import { addPlayers, assert, assertStrictEqual, runCommand } from "../test/test-tools";
 import { GameFileTests, IGameFile } from "../types/games";
 import { CardType, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
@@ -198,7 +198,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 			assert(game.hasPlayableCard(player));
 			runCommand('play', 'Manaphy', game.room, player.name);
 			assert(!game.ended);
-			assert(game.playerCards.get(player) === newCards);
+			assertStrictEqual(game.playerCards.get(player), newCards);
 		},
 	},
 	'it should properly handle card counts - 1 remaining': {
@@ -212,7 +212,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 			assert(game.hasPlayableCard(player));
 			runCommand('play', 'Ampharos, Archen, Beautifly', game.room, player.name);
 			assert(!game.ended);
-			assert(cards.length === 2);
+			assertStrictEqual(cards.length, 2);
 		},
 	},
 	'it should properly handle card counts - 0 remaining': {
@@ -226,7 +226,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 			assert(game.hasPlayableCard(player));
 			runCommand('play', 'Ampharos, Archen, Beautifly, Beedrill', game.room, player.name);
 			assert(game.ended);
-			assert(cards.length === 0);
+			assertStrictEqual(cards.length, 0);
 		},
 	},
 };

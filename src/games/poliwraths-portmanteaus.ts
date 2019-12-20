@@ -1,6 +1,6 @@
 import { PRNG, PRNGSeed } from "../prng";
 import { Room } from "../rooms";
-import { assert } from '../test/test-tools';
+import { assert, assertStrictEqual } from '../test/test-tools';
 import { GameFileTests, IGameFile, IGameFormat } from "../types/games";
 import * as PortmanteausWorker from './../workers/portmanteaus';
 import { game as guessingGame, Guessing } from './templates/guessing';
@@ -155,7 +155,7 @@ const tests: GameFileTests<PoliwrathsPortmanteaus> = {
 			await game.onNextRound();
 			assert(game.answers.length);
 			assert(game.ports.length);
-			assert(game.answers.join(',') === 'pelipperuption,swablueflare,pidoverheat,fletchinderuption');
+			assertStrictEqual(game.answers.join(','), 'pelipperuption,swablueflare,pidoverheat,fletchinderuption');
 			for (let i = 0; i < game.answers.length; i++) {
 				assert(game.answers[i] in game.answerParts);
 			}
