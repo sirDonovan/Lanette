@@ -421,7 +421,10 @@ export class Game extends Activity {
 			if (!(command in this.commands)) continue;
 			const commandDefinition = this.commands[command];
 			for (const i in this.commands) {
-				if (this.commands[i].command === commandDefinition.command) commandsAndAliases.push(i);
+				if ((commandDefinition.asyncCommand && this.commands[i].asyncCommand === commandDefinition.asyncCommand) ||
+					(commandDefinition.command && this.commands[i].command === commandDefinition.command)) {
+					commandsAndAliases.push(i);
+				}
 			}
 		}
 		return commandsAndAliases.sort();

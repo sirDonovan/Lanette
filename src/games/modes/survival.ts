@@ -133,7 +133,7 @@ const commands: CommandsDict<Survival & Guessing, GameCommandReturnType> = {
 	},
 };
 commands.g = {
-	command: commands.guess.command,
+	asyncCommand: commands.guess.asyncCommand,
 };
 
 const initialize = (game: Game) => {
@@ -147,7 +147,8 @@ const initialize = (game: Game) => {
 	for (const command in commands) {
 		if (command in game.commands) {
 			for (const i in game.commands) {
-				if (game.commands[i].command === game.commands[command].command) {
+				if ((game.commands[command].asyncCommand && game.commands[i].asyncCommand === game.commands[command].asyncCommand) ||
+					(game.commands[command].command && game.commands[i].command === game.commands[command].command)) {
 					// @ts-ignore
 					game.commands[i] = commands[command];
 				}
