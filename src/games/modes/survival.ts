@@ -118,7 +118,7 @@ const commands: CommandsDict<Survival & Guessing, GameCommandReturnType> = {
 	guess: {
 		async asyncCommand(target, room, user) {
 			if (!this.canGuess || this.players[user.id] !== this.currentPlayer) return false;
-			const answer = await this.checkAnswer(target);
+			const answer = await this.guessAnswer(this.players[user.id], target);
 			if (!answer) return false;
 			if (this.timeout) clearTimeout(this.timeout);
 			this.currentPlayer = null;

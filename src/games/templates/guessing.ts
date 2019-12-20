@@ -63,6 +63,23 @@ export abstract class Guessing extends Game {
 		}
 	}
 
+	async guessAnswer(player: Player, guess: string): Promise<string | false> {
+		if (!Tools.toId(guess)) return false;
+		if (this.filterGuess && this.filterGuess(guess)) return false;
+		if (this.roundGuesses) {
+			if (this.roundGuesses.has(player)) return false;
+			this.roundGuesses.set(player, true);
+		}
+		let answer = await this.checkAnswer(guess);
+		if (this.ended || !this.answers.length) return false;
+		if (!answer) {
+			if (!this.onIncorrectGuess) return false;
+			answer = this.onIncorrectGuess(player, guess);
+			if (!answer) return false;
+		}
+		return answer;
+	}
+
 	async checkAnswer(guess: string): Promise<string> {
 		guess = Tools.toId(guess);
 		let match = '';
@@ -105,19 +122,10 @@ const commands: Dict<ICommandDefinition<Guessing>> = {
 				(this.parentGame && (!this.players[user.id] || this.players[user.id].eliminated))) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (!player.active) player.active = true;
-			if (!Tools.toId(target)) return false;
-			if (this.filterGuess && this.filterGuess(target)) return false;
-			if (this.roundGuesses) {
-				if (this.roundGuesses.has(player)) return false;
-				this.roundGuesses.set(player, true);
-			}
-			let answer = await this.checkAnswer(target);
-			if (this.ended || !this.answers.length) return false;
-			if (!answer) {
-				if (!this.onIncorrectGuess) return false;
-				answer = this.onIncorrectGuess(target);
-				if (!answer) return false;
-			}
+
+			const answer = await this.guessAnswer(player, target);
+			if (!answer) return false;
+
 			if (this.timeout) clearTimeout(this.timeout);
 			const awardedPoints = this.getPointsPerAnswer ? this.getPointsPerAnswer(answer) : 1;
 			let points = this.points.get(player) || 0;
