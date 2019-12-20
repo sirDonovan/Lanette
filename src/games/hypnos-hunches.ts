@@ -104,7 +104,7 @@ class HypnosHunches extends Guessing {
 		return false;
 	}
 
-	onIncorrectGuess(guess: string): string {
+	onIncorrectGuess(player: Player, guess: string): string {
 		guess = Tools.toId(guess);
 		if (!this.timeout) {
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);

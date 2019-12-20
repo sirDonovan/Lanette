@@ -89,7 +89,7 @@ class LugiasObstructiveLetters extends Guessing {
 		this.hint = "[**" + category! + "**] " + unavailableLetters.map(letter => letter.toUpperCase()).join(", ");
 	}
 
-	getPointsPerAnswer(answer: string): number {
+	getPointsForAnswer(answer: string): number {
 		return Tools.toId(answer).length;
 	}
 }

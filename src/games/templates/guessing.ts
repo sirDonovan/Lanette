@@ -111,14 +111,15 @@ export abstract class Guessing extends Game {
 	}
 
 	filterGuess?(guess: string): boolean;
-	getPointsPerAnswer?(answer: string): number;
-	onIncorrectGuess?(guess: string, player?: Player): string;
+	getPointsForAnswer?(answer: string): number;
+	onCorrectGuess?(player: Player, guess: string): void;
+	onIncorrectGuess?(player: Player, guess: string): string;
 }
 
 const commands: Dict<ICommandDefinition<Guessing>> = {
 	guess: {
-			if (!this.started || !this.canGuess || !this.answers.length || (this.players[user.id] && this.players[user.id].eliminated) ||
 		async asyncCommand(target, room, user) {
+			if (!this.canGuess || !this.answers.length || (this.players[user.id] && this.players[user.id].eliminated) ||
 				(this.parentGame && (!this.players[user.id] || this.players[user.id].eliminated))) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (!player.active) player.active = true;
@@ -127,60 +128,69 @@ const commands: Dict<ICommandDefinition<Guessing>> = {
 			if (!answer) return false;
 
 			if (this.timeout) clearTimeout(this.timeout);
-			const awardedPoints = this.getPointsPerAnswer ? this.getPointsPerAnswer(answer) : 1;
-			let points = this.points.get(player) || 0;
-			points += awardedPoints;
-			this.points.set(player, points);
+
 			if (this.isMiniGame) {
 				this.say((this.pm ? "You are" : "**" + user.name + "** is") + " correct! " + this.getAnswers(answer));
 				this.addBits(user, MINIGAME_BITS);
 				this.end();
 				return true;
-			} else {
-				// this.markFirstAction(player);
-				// if (this.id === 'zygardesorders' && this.revealedLetters === 1) Games.unlockAchievement(this.room, player, "Tall Order", this);
-				if (points >= this.format.options.points) {
-					let text = '**' + player.name + '** wins' + (this.parentGame ? '' : ' the game') + '! ' + this.getAnswers(answer, true);
-					if (text.length > 300) {
-						text = '**' + player.name + '** wins' + (this.parentGame ? '' : ' the game') + '! A possible answer was __' + answer + '__.';
-					}
-					this.say(text);
-					/*
-					if (this.firstAnswer === player && !this.parentGame) {
-						if (this.format.options.points >= 5) {
-							if (this.id === 'metangsanagrams') {
-								Games.unlockAchievement(this.room, player, "wordmaster", this);
-							} else if (this.id === 'slowkingstrivia') {
-								Games.unlockAchievement(this.room, player, "pokenerd", this);
-							} else if (this.id === 'greninjastypings') {
-								Games.unlockAchievement(this.room, player, "Dexter", this);
-							} else if (this.id === 'magcargosweakspot') {
-								Games.unlockAchievement(this.room, player, "Achilles Heel", this);
-							} else if (this.id === 'abrasabilityswitch') {
-								Games.unlockAchievement(this.room, player, 'Skill Swapper', this);
-							}
-						}
-						if (this.format.options.points >= 3) {
-							if (this.id === 'whosthatpokemon') {
-								Games.unlockAchievement(this.room, player, "Pokemon Researcher", this);
-							} else if (this.id === 'whatsthatmove') {
-								Games.unlockAchievement(this.room, player, "Move Relearner", this);
-							}
-						}
-					}
-					*/
-					this.winners.set(player, 1);
-					this.convertPointsToBits();
-					this.end();
-					return true;
+			}
+
+			if (this.onCorrectGuess) this.onCorrectGuess(player, answer);
+
+			const awardedPoints = this.getPointsForAnswer ? this.getPointsForAnswer(answer) : 1;
+			let points = this.points.get(player) || 0;
+			points += awardedPoints;
+			this.points.set(player, points);
+
+			// this.markFirstAction(player);
+			if (points >= this.format.options.points) {
+				let text = '**' + player.name + '** wins' + (this.parentGame ? '' : ' the game') + '!';
+				const answers = ' ' + this.getAnswers(answer, true);
+				if (text.length + answers.length <= Tools.maxMessageLength) {
+					text += answers;
 				} else {
-					if (this.hint) this.off(this.hint);
-					let text = '**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '! ' + this.getAnswers(answer);
-					if (text.length > 300) {
-						text = '**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '! A possible answer was __' + answer + '__.';
-					}
-					this.say(text);
+					text += ' A possible answer was __' + answer + '__.';
 				}
+				this.say(text);
+				/*
+				if (this.firstAnswer === player && !this.parentGame) {
+					if (this.format.options.points >= 5) {
+						if (this.id === 'metangsanagrams') {
+							Games.unlockAchievement(this.room, player, "wordmaster", this);
+						} else if (this.id === 'slowkingstrivia') {
+							Games.unlockAchievement(this.room, player, "pokenerd", this);
+						} else if (this.id === 'greninjastypings') {
+							Games.unlockAchievement(this.room, player, "Dexter", this);
+						} else if (this.id === 'magcargosweakspot') {
+							Games.unlockAchievement(this.room, player, "Achilles Heel", this);
+						} else if (this.id === 'abrasabilityswitch') {
+							Games.unlockAchievement(this.room, player, 'Skill Swapper', this);
+						}
+					}
+					if (this.format.options.points >= 3) {
+						if (this.id === 'whosthatpokemon') {
+							Games.unlockAchievement(this.room, player, "Pokemon Researcher", this);
+						} else if (this.id === 'whatsthatmove') {
+							Games.unlockAchievement(this.room, player, "Move Relearner", this);
+						}
+					}
+				}
+				*/
+				this.winners.set(player, 1);
+				this.convertPointsToBits();
+				this.end();
+				return true;
+			} else {
+				if (this.hint) this.off(this.hint);
+				let text = '**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '!';
+				const answers = ' ' + this.getAnswers(answer);
+				if (text.length + answers.length <= Tools.maxMessageLength) {
+					text += answers;
+				} else {
+					text += ' A possible answer was __' + answer + '__.';
+				}
+				this.say(text);
 			}
 
 			this.answers = [];

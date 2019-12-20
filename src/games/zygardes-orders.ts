@@ -120,6 +120,10 @@ class ZygardesOrders extends Guessing {
 		});
 		this.say(text);
 	}
+
+	onCorrectGuess(player: Player, answer: string) {
+		// if (this.revealedLetters === 1) Games.unlockAchievement(this.room, player, "Tall Order", this);
+	}
 }
 
 export const game: IGameFile<ZygardesOrders> = Games.copyTemplateProperties(guessingGame, {
