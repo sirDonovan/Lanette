@@ -46,5 +46,5 @@ export const game: IGameFile<ChimechosStatSchool> = Games.copyTemplateProperties
 	freejoin: true,
 	name,
 	mascot: "Chimecho",
-	modes: ["survival"],
+	modes: ["survival", "team"],
 });

@@ -75,5 +75,5 @@ export const game: IGameFile<AbrasAbilitySwitch> = Games.copyTemplateProperties(
 	freejoin: true,
 	name,
 	mascot: "Abra",
-	modes: ["survival"],
+	modes: ["survival", "team"],
 });

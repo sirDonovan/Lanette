@@ -3,6 +3,7 @@ import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 
 const BASE_POINTS = 30;
+const BASE_TEAM_POINTS = 60;
 
 const name = "Lugia's Obstructive Letters";
 const data: {'Pokemon': Dict<string>, 'Pokemon Abilities': Dict<string>, 'Pokemon Items': Dict<string>, 'Pokemon Moves': Dict<string>} = {
@@ -99,9 +100,11 @@ export const game: IGameFile<LugiasObstructiveLetters> = Games.copyTemplatePrope
 	class: LugiasObstructiveLetters,
 	customizableOptions: {
 		points: {min: BASE_POINTS, base: BASE_POINTS, max: BASE_POINTS},
+		teamPoints: {min: BASE_TEAM_POINTS, base: BASE_TEAM_POINTS, max: BASE_TEAM_POINTS},
 	},
 	description: "Players guess answers that are missing the given letters! Answers must be at least 6 letters long.",
 	freejoin: true,
 	name,
 	mascot: "Lugia",
+	modes: ['survival', 'team'],
 });

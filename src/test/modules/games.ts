@@ -260,15 +260,18 @@ describe("Games", () => {
 		const name = 'Non-existent Game';
 		const nameFormat = Games.getFormat(name);
 		assert(Array.isArray(nameFormat));
-
-		const modes = Object.keys(Games.modes);
-		if (modes.length >= 2) {
-			const modesFormat = Games.getFormat(name + "," + modes[0] + "," + modes[1]);
-			assert(Array.isArray(modesFormat));
-			assert(modesFormat[0] === 'tooManyGameModes');
-			assert(modesFormat[1] === undefined);
 		assertStrictEqual(nameFormat[0], 'invalidGameFormat');
 		assertStrictEqual(nameFormat[1], name);
+
+		for (let i = 0; i < formats.length; i++) {
+			const formatData = Games.formats[formats[i]];
+			if (formatData.modes && formatData.modes.length >= 2) {
+				const modesFormat = Games.getFormat(formats[i] + "," + formatData.modes[0] + "," + formatData.modes[1]);
+				assert(Array.isArray(modesFormat));
+				assertStrictEqual(modesFormat[0], 'tooManyGameModes');
+				assertStrictEqual(modesFormat[1], undefined);
+				break;
+			}
 		}
 
 		for (let i = 0; i < formats.length; i++) {
@@ -287,7 +290,7 @@ describe("Games", () => {
 			if (formatData.modes && formatData.variants) {
 				let hasVariantMode = false;
 				for (let i = 0; i < formatData.variants.length; i++) {
-					if (formatData.variants[i].mode) {
+					if (formatData.variants[i].mode && formatData.modes.includes(formatData.variants[i].mode!)) {
 						const variantsModeFormat = Games.getFormat(formatData.id + "," + formatData.variants[i].variant + "," + formatData.variants[i].mode);
 						assert(Array.isArray(variantsModeFormat));
 						assertStrictEqual(variantsModeFormat[0], 'tooManyGameModes');

@@ -66,7 +66,7 @@ export const game: IGameFile<GreninjasTypings> = Games.copyTemplateProperties(gu
 	formerNames: ['Typings'],
 	name: "Greninja's Typings",
 	mascot: "Greninja",
-	modes: ["survival"],
+	modes: ["survival", "team"],
 	variants: [
 		{
 			name: "Greninja's No Order Typings",

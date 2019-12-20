@@ -46,5 +46,5 @@ export const game: IGameFile<SudowoodosSpeciesScramble> = Games.copyTemplateProp
 	freejoin: true,
 	name,
 	mascot: "Sudowoodo",
-	modes: ['survival'],
+	modes: ['survival', 'team'],
 });

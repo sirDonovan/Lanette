@@ -7,6 +7,10 @@ import { User } from '../users';
 
 const basePlayerName = 'Mocha Player';
 
+export function getBasePlayerName(): string {
+	return basePlayerName;
+}
+
 export function assert(condition: any, message?: string | Error | undefined): asserts condition {
 	nodeAssert(condition, message);
 }

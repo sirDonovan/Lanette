@@ -10,6 +10,7 @@ export class Player {
 	/** The player can temporarily not perform any actions */
 	frozen: boolean | null = null;
 	losses: number | null = null;
+	team: PlayerTeam | null = null;
 
 	id: string;
 	readonly activity: Activity;
@@ -52,6 +53,27 @@ export class Player {
 		}
 		CommandParser.parse(this.activity.room, user, Config.commandCharacter + command + (target !== undefined ? " " + target : ""));
 		if (expiredUser) Users.remove(user);
+	}
+}
+
+export class PlayerTeam {
+	players: Player[] = [];
+	points: number = 0;
+
+	name: string;
+	id: string;
+
+	constructor(name: string) {
+		this.name = name;
+		this.id = Tools.toId(name);
+	}
+
+	getPlayerNames(): string[] {
+		const names: string[] = [];
+		for (let i = 0; i < this.players.length; i++) {
+			names.push(this.players[i].name);
+		}
+		return names;
 	}
 }
 

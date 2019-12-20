@@ -341,6 +341,7 @@ export class Games {
 			if (!name || isNaN(optionNumber)) return ['invalidGameOption', option];
 
 			if (name === 'firstto') name = 'points';
+			if (name === 'points' && mode && mode.id === 'team') name = 'teamPoints';
 			inputOptions[name] = optionNumber;
 		}
 

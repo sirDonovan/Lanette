@@ -101,7 +101,7 @@ export const game: IGameFile<MagcargosWeakSpot> = Games.copyTemplateProperties(g
 	freejoin: true,
 	name,
 	mascot: "Magcargo",
-	modes: ['survival'],
+	modes: ['survival', 'team'],
 	variants: [
 		{
 			name: "Magcargo's Inverse Weak Spot",

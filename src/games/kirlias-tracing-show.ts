@@ -62,4 +62,5 @@ export const game: IGameFile<KirliasTracingShow> = Games.copyTemplateProperties(
 	freejoin: true,
 	name,
 	mascot: "Kirlia",
+	modes: ['survival', 'team'],
 });

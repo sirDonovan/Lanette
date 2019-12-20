@@ -75,7 +75,7 @@ export const game: IGameFile<SlowkingsTrivia> = Games.copyTemplateProperties(gue
 	mascot: "Slowking",
 	minigameCommand: 'trivium',
 	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess an answer based on the description!",
-	modes: ["survival"],
+	modes: ["survival", "team"],
 	variants: [
 		{
 			name: "Slowking's Ability Trivia",

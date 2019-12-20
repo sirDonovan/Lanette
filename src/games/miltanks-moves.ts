@@ -62,5 +62,5 @@ export const game: IGameFile<MiltanksMoves> = Games.copyTemplateProperties(guess
 	freejoin: true,
 	name,
 	mascot: "Miltank",
-	modes: ['survival'],
+	modes: ['survival', 'team'],
 });

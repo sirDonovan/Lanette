@@ -90,5 +90,5 @@ export const game: IGameFile<BeheeyemsMassEffect> = Games.copyTemplateProperties
 	freejoin: true,
 	name,
 	mascot: "Beheeyem",
-	modes: ['survival'],
+	modes: ['survival', 'team'],
 });

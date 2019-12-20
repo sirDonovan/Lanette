@@ -61,7 +61,7 @@ export const game: IGameFile<PiplupsLetterPlacements> = Games.copyTemplateProper
 	freejoin: true,
 	name,
 	mascot: "Piplup",
-	modes: ['survival'],
+	modes: ['survival', 'team'],
 	minigameCommand: 'placement',
 	minigameDescription: 'Use ``' + Config.commandCharacter + 'g`` to guess an answer that contains the given letters back-to-back!',
 });

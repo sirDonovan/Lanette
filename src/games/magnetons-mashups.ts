@@ -86,5 +86,5 @@ export const game: IGameFile<MagnetonsMashups> = Games.copyTemplateProperties(gu
 	mascot: "Magneton",
 	minigameCommand: 'mashup',
 	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess the two unscrambled Pokemon names!",
-	modes: ["survival"],
+	modes: ["survival", "team"],
 });

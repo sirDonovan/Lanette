@@ -225,6 +225,12 @@ export const game: IGameFile<ParasParameters> = Games.copyTemplateProperties(gue
 			mode: 'survival',
 			variant: "survival",
 		},
+		{
+			name: "Team Paras' Parameters",
+			paramTypes: ['tier', 'color', 'type', 'egggroup', 'ability', 'gen'],
+			mode: 'team',
+			variant: "team",
+		},
 	],
 	workers: [ParametersWorker],
 });

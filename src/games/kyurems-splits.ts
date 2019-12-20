@@ -93,7 +93,7 @@ export const game: IGameFile<KyuremsSplits> = Games.copyTemplateProperties(guess
 	mascot: "Kyurem",
 	minigameCommand: 'split',
 	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess an answer with all of the given letters in that order!",
-	modes: ["survival"],
+	modes: ["survival", "team"],
 	variants: [
 		{
 			name: "Kyurem's Ability Splits",

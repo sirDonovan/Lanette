@@ -177,7 +177,6 @@ export const game: IGameFile<TapusTerrains> = {
 	formerNames: ["Terrain Race"],
 	name,
 	mascots: ['tapu koko', 'tapu lele', 'tapu bulu', 'tapu fini'],
-	modes: ["survival"],
 	variants: [
 		{
 			name: "Tapus' Terrains Elimination",
