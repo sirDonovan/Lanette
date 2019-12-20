@@ -218,7 +218,7 @@ export const game: IGameFile<ParasParameters> = Games.copyTemplateProperties(gue
 	mascot: "Paras",
 	minigameCommand: 'parameter',
 	minigameCommandAliases: ['param'],
-	tests,
+	tests: Object.assign({}, guessingGame.tests, tests),
 	variants: [
 		{
 			name: "Paras' Parameters Survival",

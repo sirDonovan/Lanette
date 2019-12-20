@@ -1,7 +1,6 @@
 import fs = require('fs');
 import path = require('path');
 
-import { CommandErrorArray } from '../../command-parser';
 import { PRNGSeed } from '../../prng';
 import { Game } from '../../room-game';
 import { GameCommandReturnType, IGameFile, IGameFormat, IGameFormatData, IGameMode, IGameModeFile, IUserHostedComputed, IUserHostedFormat } from '../../types/games';
@@ -26,25 +25,29 @@ function createIndividualTestGame(format: IGameFormat): Game {
 
 const room = Rooms.add('mocha');
 for (const i in Games.formats) {
-	const format = Games.getExistingFormat(i);
-	if (format.tests) {
-		describe(format.name + " individual tests", () => {
+	const formatData = Games.formats[i];
+	if (formatData.tests) {
+		describe(formatData.name + " individual tests", () => {
 			afterEach(() => {
 				if (room.game) room.game.deallocate(true);
 			});
 
-			for (const i in format.tests) {
-				const testData = format.tests[i];
-				let testFormat = format;
-				if (testData.attributes && testData.attributes.inputTarget) testFormat = Games.getExistingFormat(testData.attributes.inputTarget);
+			for (const i in formatData.tests) {
+				const testData = formatData.tests[i];
+				let format: IGameFormat;
+				if (testData.attributes && testData.attributes.inputTarget) {
+					format = Games.getExistingFormat(testData.attributes.inputTarget);
+				} else {
+					format = Games.getExistingFormat(formatData.name);
+				}
 
 				if (testData.attributes && testData.attributes.async) {
 					it(i, async function() {
-						await testData.test.call(this, createIndividualTestGame(testFormat), testFormat);
+						await testData.test.call(this, createIndividualTestGame(format), format);
 					});
 				} else {
 					it(i, function() {
-						testData.test.call(this, createIndividualTestGame(testFormat), testFormat);
+						testData.test.call(this, createIndividualTestGame(format), format);
 					});
 				}
 			}

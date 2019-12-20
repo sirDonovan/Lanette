@@ -1,7 +1,8 @@
 import { ICommandDefinition } from '../../command-parser';
 import { Player } from '../../room-activity';
 import { Game } from '../../room-game';
-import { IGameFormat, IGameTemplateFile } from '../../types/games';
+import { assert, assertStrictEqual, getBasePlayerName, runCommand } from '../../test/test-tools';
+import { GameFileTests, IGameFormat, IGameTemplateFile } from '../../types/games';
 
 const MINIGAME_BITS = 25;
 
@@ -201,7 +202,60 @@ const commands: Dict<ICommandDefinition<Guessing>> = {
 	},
 };
 
+const tests: GameFileTests<Guessing> = {
+	'it should properly set answers and award points': {
+		attributes: {
+			async: true,
+		},
+		async test(game, format) {
+			this.timeout(15000);
+
+			assert(!game.canGuess);
+			const name = getBasePlayerName() + " 1";
+			const id = Tools.toId(name);
+			await runCommand('guess', "test", game.room, name);
+			assert(!(id in game.players));
+
+			await game.onNextRound();
+			assert(game.answers.length);
+			const expectedPoints = game.getPointsForAnswer ? game.getPointsForAnswer(game.answers[0]) : 1;
+			game.canGuess = true;
+			await runCommand('guess', game.answers[0], game.room, name);
+			assert(id in game.players);
+			assertStrictEqual(game.points.get(game.players[id]), expectedPoints);
+		},
+	},
+	'it should end the game when the maximum points are reached': {
+		attributes: {
+			async: true,
+		},
+		async test(game, format) {
+			this.timeout(15000);
+
+			const name = getBasePlayerName() + " 1";
+			const id = Tools.toId(name);
+			game.format.options.points = 3;
+
+			for (let i = 0; i < 3; i++) {
+				if (game.timeout) clearTimeout(game.timeout);
+				await game.onNextRound();
+				assert(game.answers.length);
+				let expectedPoints = game.getPointsForAnswer ? game.getPointsForAnswer(game.answers[0]) : 1;
+				const points = game.points.get(game.players[id]);
+				if (points) expectedPoints += points;
+				game.canGuess = true;
+				await runCommand('guess', game.answers[0], game.room, name);
+				assertStrictEqual(game.points.get(game.players[id]), expectedPoints);
+				if (game.ended) break;
+			}
+
+			assert(game.ended);
+		},
+	},
+};
+
 export const game: IGameTemplateFile<Guessing> = {
 	commandDescriptions: [Config.commandCharacter + 'g [answer]'],
 	commands,
+	tests,
 };
