@@ -136,7 +136,6 @@ const tests: GameFileTests<ParasParameters> = {
 		},
 		async test(game, format) {
 			this.timeout(15000);
-			ParametersWorker.init();
 			for (const gen in ParametersWorker.data.pokemon.gens) {
 				const types = Object.keys(ParametersWorker.data.pokemon.gens[gen].paramTypeDexes) as ParametersWorker.ParamType[];
 				for (let i = 0; i < types.length; i++) {

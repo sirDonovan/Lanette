@@ -42,11 +42,15 @@ try {
 	// tslint:disable-next-line no-var-requires
 	require(path.join(__dirname, 'pokemon-showdown'));
 
+	const mochaRoom = Rooms.add('mocha');
+	mochaRoom.title = 'Mocha';
+
 	console.log("Loading data for tests...");
 	Dex.loadData();
-
-	Rooms.add('mocha');
-	Rooms.get('mocha')!.title = 'Mocha';
+	for (const i in Games.formats) {
+		const game = Games.createGame(mochaRoom, Games.getExistingFormat(i));
+		game.deallocate(true);
+	}
 
 	for (let i = 0; i < moduleTests.length; i++) {
 		// tslint:disable-next-line no-var-requires

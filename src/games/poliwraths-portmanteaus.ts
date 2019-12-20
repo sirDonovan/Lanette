@@ -133,7 +133,6 @@ const tests: GameFileTests<PoliwrathsPortmanteaus> = {
 		},
 		async test(game, format) {
 			this.timeout(15000);
-			PortmanteausWorker.init();
 			const tiers = Object.keys(PortmanteausWorker.data.pool['Pokemon']['tier']);
 			assert(tiers.length);
 			for (let i = 0; i < tiers.length; i++) {
