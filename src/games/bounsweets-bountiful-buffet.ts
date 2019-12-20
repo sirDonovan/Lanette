@@ -36,6 +36,7 @@ class BounsweetsBountifulBuffet extends Game {
 	canSelect: boolean = false;
 	mealPoints: number[] = [];
 	meals: string[] = [];
+	minPlayers: number = 4;
 	numberOfMeals: number = 0;
 	points = new Map<Player, number>();
 	selectedMeals = new Map<Player, number>();
@@ -157,6 +158,7 @@ const tests: GameFileTests<BounsweetsBountifulBuffet> = {
 	'should give the same points for shared meals': {
 		test(game, format) {
 			const players = addPlayers(game, 2);
+			game.minPlayers = 2;
 			game.start();
 			assertStrictEqual(game.numberOfMeals, 2);
 			const expectedPoints = Math.floor(game.mealPoints[0] / 2);
@@ -169,6 +171,7 @@ const tests: GameFileTests<BounsweetsBountifulBuffet> = {
 	'should give different points for separate meals': {
 		test(game, format) {
 			const players = addPlayers(game, 2);
+			game.minPlayers = 2;
 			game.start();
 			const expectedPointsA = game.mealPoints[0];
 			const expectedPointsB = game.mealPoints[1];
