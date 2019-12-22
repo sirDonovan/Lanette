@@ -61,6 +61,7 @@ export class Games {
 	readonly maxMoveAvailability: number = 500;
 	readonly minigameCommandNames: Dict<{aliases: string[], format: string}> = {};
 	readonly modes: Dict<IGameMode> = {};
+	readonly modeAliases: Dict<string> = {};
 	reloadInProgress: boolean = false;
 	readonly userHostedAliases: Dict<string> = {};
 	readonly userHostedFormats: Dict<IUserHostedComputed> = {};
@@ -126,6 +127,11 @@ export class Games {
 			if (!modeFiles[i].endsWith('.js')) continue;
 			const file = require(path.join(modesDirectory, modeFiles[i])).mode as IGameModeFile;
 			const id = Tools.toId(file.name);
+			if (file.aliases) {
+				for (let i = 0; i < file.aliases.length; i++) {
+					this.modeAliases[Tools.toId(file.aliases[i])] = id;
+				}
+			}
 			this.modes[id] = Object.assign({id}, file);
 		}
 
@@ -282,10 +288,13 @@ export class Games {
 		for (let i = 0; i < targets.length; i++) {
 			const targetId = Tools.toId(targets[i]);
 			if (!targetId) continue;
-			if (formatData.modes && formatData.modes.includes(targetId)) {
-				if (mode) return ['tooManyGameModes'];
-				mode = this.modes[targetId];
-				continue;
+			if (formatData.modes) {
+				const modeId = targetId in this.modeAliases ? this.modeAliases[targetId] : targetId;
+				if (formatData.modes.includes(modeId)) {
+					if (mode) return ['tooManyGameModes'];
+					mode = this.modes[modeId];
+					continue;
+				}
 			}
 			if (formatData.variants) {
 				let matchingVariant: IGameVariant | undefined;

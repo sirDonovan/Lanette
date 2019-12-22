@@ -250,6 +250,7 @@ describe("Games", () => {
 		assertStrictEqual(Games.getExistingFormat('trivia, abilities').nameWithOptions, "Slowking's Ability Trivia");
 		assertStrictEqual(Games.getExistingFormat('trivia, survival').nameWithOptions, "Slowking's Trivia Survival");
 		assertStrictEqual(Games.getExistingFormat('trivia, abilities, survival').nameWithOptions, "Slowking's Ability Trivia Survival");
+		assertStrictEqual(Games.getExistingFormat('trivia, abilities, surv').nameWithOptions, "Slowking's Ability Trivia Survival");
 
 		assertStrictEqual(Games.getExistingFormat('params,params:3').inputOptions.params, 3);
 		assert(!Games.getExistingFormat('params').inputOptions.params);
