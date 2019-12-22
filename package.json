@@ -4,10 +4,14 @@
   "description": "A bot for Pokemon Showdown",
   "main": "app.js",
   "scripts": {
-    "offlinetest": "tslint -c tslint.json 'src/**/*.ts' && mocha -R dot -u bdd --delay --no-config test/setup.js --offline",
+    "mocha": "mocha -R dot -u bdd --delay --no-config test/setup.js",
+    "offlinetest": "npm run tslint && npm run offlinemocha",
+    "offlinemocha": "mocha -R dot -u bdd --delay --no-config test/setup.js --offline",
+    "omocha": "npm run offlinemocha",
     "otest": "npm run offlinetest",
-    "test": "tslint -c tslint.json 'src/**/*.ts' && mocha -R dot -u bdd --delay --no-config test/setup.js",
-    "tsc": "tsc"
+    "test": "npm run tslint && npm run mocha",
+    "tsc": "tsc",
+    "tslint": "tslint -c tslint.json 'src/**/*.ts'"
   },
   "repository": {
     "type": "git",
@@ -21,9 +25,9 @@
   "homepage": "https://github.com/sirDonovan/Lanette#readme",
   "dependencies": {
     "@types/mocha": "5.2.7",
-    "@types/node": "12.12.17",
+    "@types/node": "12.12.21",
     "@types/websocket": "1.0.0",
-    "typescript": "3.7.3",
+    "typescript": "3.7.4",
     "websocket": "1.0.31"
   },
   "devDependencies": {
