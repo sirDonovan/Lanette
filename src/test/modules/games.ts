@@ -3,7 +3,7 @@ import path = require('path');
 
 import { PRNGSeed } from '../../prng';
 import { Game } from '../../room-game';
-import { GameCommandReturnType, IGameFile, IGameFormat, IGameFormatData, IGameMode, IGameModeFile, IUserHostedComputed, IUserHostedFormat } from '../../types/games';
+import { GameCommandReturnType, GameFileTests, IGameFile, IGameFormat, IGameFormatData, IGameMode, IGameModeFile, IGameTestAttributes, IUserHostedComputed, IUserHostedFormat } from '../../types/games';
 import { assert, assertClientSendQueue, assertStrictEqual } from '../test-tools';
 
 function testMascots(format: IGameFormat | IUserHostedFormat) {
@@ -23,35 +23,71 @@ function createIndividualTestGame(format: IGameFormat): Game {
 	return game;
 }
 
+function createIndividualTests(format: IGameFormat, tests: GameFileTests) {
+	for (const test in tests) {
+		const testData = tests[test];
+		const testConfig = testData.config || {};
+		if (testConfig.inputTargets && testConfig.commands && testConfig.inputTargets.length !== testConfig.commands.length) {
+			throw new Error(format.name + " must have the same number of test inputTargets and commands");
+		}
+		const formats = testConfig.inputTargets ? testConfig.inputTargets : [format.inputTarget];
+		const commands = testConfig.commands ? testConfig.commands : null;
+		const numberOfTests = Math.max(formats.length, commands ? commands.length : 0);
+		for (let i = 0; i < numberOfTests; i++) {
+			let testFormat: IGameFormat;
+			if (formats[i]) {
+				testFormat = Games.getExistingFormat(formats[i]);
+			} else {
+				testFormat = format;
+			}
+			const attributes: IGameTestAttributes = {};
+			if (commands) attributes.commands = commands[i];
+			if (testConfig.async) {
+				it(test, async function() {
+					await testData.test.call(this, createIndividualTestGame(testFormat), testFormat, attributes);
+				});
+			} else {
+				it(test, function() {
+					testData.test.call(this, createIndividualTestGame(testFormat), testFormat, attributes);
+				});
+			}
+		}
+	}
+}
+
 const room = Rooms.add('mocha');
 for (const i in Games.formats) {
-	const formatData = Games.formats[i];
-	if (formatData.tests) {
-		describe(formatData.name + " individual tests", () => {
+	if (Games.formats[i].tests) {
+		const format = Games.getExistingFormat(i);
+		describe(format.name + " individual tests", () => {
 			afterEach(() => {
 				if (room.game) room.game.deallocate(true);
 			});
-
-			for (const i in formatData.tests) {
-				const testData = formatData.tests[i];
-				let format: IGameFormat;
-				if (testData.attributes && testData.attributes.inputTarget) {
-					format = Games.getExistingFormat(testData.attributes.inputTarget);
-				} else {
-					format = Games.getExistingFormat(formatData.name);
-				}
-
-				if (testData.attributes && testData.attributes.async) {
-					it(i, async function() {
-						await testData.test.call(this, createIndividualTestGame(format), format);
-					});
-				} else {
-					it(i, function() {
-						testData.test.call(this, createIndividualTestGame(format), format);
-					});
-				}
-			}
+			createIndividualTests(format, format.tests!);
 		});
+	}
+}
+
+for (const i in Games.modes) {
+	const mode = Games.modes[i];
+	if (mode.tests) {
+		const formats: string[] = [];
+		for (const i in Games.formats) {
+			if (Games.formats[i].modes && Games.formats[i].modes!.includes(mode.id)) {
+				formats.push(i);
+			}
+		}
+		if (!formats.length) throw new Error("No format found for " + mode.name + " tests");
+
+		for (let i = 0; i < formats.length; i++) {
+			const format = Games.getExistingFormat(formats[i] + ", " + mode.id);
+			describe(format.nameWithOptions + " individual tests", () => {
+				afterEach(() => {
+					if (room.game) room.game.deallocate(true);
+				});
+				createIndividualTests(format, mode.tests!);
+			});
+		}
 	}
 }
 

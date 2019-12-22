@@ -25,12 +25,17 @@ interface IModeClass<T, U extends Game = Game> {
 	setOptions<V extends Game>(format: IGameFormat<V>, namePrefixes: string[], nameSuffixes: string[]): void;
 }
 
-interface IGameFileTestAttributes {
+interface IGameFileTestConfig {
 	async?: boolean;
-	inputTarget?: string;
+	inputTargets?: string[];
+	commands?: string[][];
 }
 
-type GameFileTests<T extends Game = Game> = Dict<{attributes?: IGameFileTestAttributes, test: ((this: Mocha.Context, game: T, format: IGameFormat<T>) => void)}>;
+export interface IGameTestAttributes {
+	commands?: readonly string[];
+}
+
+type GameFileTests<T extends Game = Game> = Dict<{config?: IGameFileTestConfig, test: ((this: Mocha.Context, game: T, format: IGameFormat<T>, attributes: IGameTestAttributes) => void)}>;
 
 interface IGameFileProperties<T extends Game = Game> {
 	aliases?: string[];
@@ -135,7 +140,7 @@ export interface IUserHostedFormatComputed {
 
 export interface IUserHostedFormat<T extends UserHosted = UserHosted> extends IUserHostedComputed<T>, IUserHostedFormatComputed {}
 
-export interface IGameModeFile<T = Game, U extends Game = Game> {
+export interface IGameModeFile<T = Game, U extends Game = Game, V extends Game = Game> {
 	class: IModeClass<T, U>;
 	description: string;
 	initialize: (game: U) => void;
@@ -145,6 +150,7 @@ export interface IGameModeFile<T = Game, U extends Game = Game> {
 	aliases?: string[];
 	commands?: CommandsDict<T & U, GameCommandReturnType>;
 	removedOptions?: string[];
+	tests?: GameFileTests<V>;
 }
 
 export interface IGameMode<T = Game, U extends Game = Game> extends IGameModeFile<T, U> {

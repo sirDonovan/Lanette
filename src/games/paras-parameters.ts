@@ -131,7 +131,7 @@ export class ParasParameters extends Guessing {
 
 const tests: GameFileTests<ParasParameters> = {
 	'should return proper values from Portmanteaus worker': {
-		attributes: {
+		config: {
 			async: true,
 		},
 		async test(game, format) {

@@ -128,7 +128,7 @@ export class PoliwrathsPortmanteaus extends Guessing {
 
 const tests: GameFileTests<PoliwrathsPortmanteaus> = {
 	'should return proper values from Portmanteaus worker': {
-		attributes: {
+		config: {
 			async: true,
 		},
 		async test(game, format) {

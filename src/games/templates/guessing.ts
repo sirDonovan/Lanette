@@ -204,7 +204,7 @@ const commands: Dict<ICommandDefinition<Guessing>> = {
 
 const tests: GameFileTests<Guessing> = {
 	'it should properly set answers and award points': {
-		attributes: {
+		config: {
 			async: true,
 		},
 		async test(game, format) {
@@ -226,7 +226,7 @@ const tests: GameFileTests<Guessing> = {
 		},
 	},
 	'it should end the game when the maximum points are reached': {
-		attributes: {
+		config: {
 			async: true,
 		},
 		async test(game, format) {

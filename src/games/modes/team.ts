@@ -1,7 +1,8 @@
 import { CommandsDict } from "../../command-parser";
 import { Player, PlayerTeam } from "../../room-activity";
 import { DefaultGameOption, Game } from "../../room-game";
-import { GameCommandReturnType, IGameFormat, IGameModeFile } from "../../types/games";
+import { addPlayers, assert, assertStrictEqual, runCommand } from "../../test/test-tools";
+import { GameCommandReturnType, GameFileTests, IGameFormat, IGameModeFile } from "../../types/games";
 import { Guessing } from "../templates/guessing";
 
 const BASE_POINTS = 10;
@@ -242,7 +243,33 @@ const initialize = (game: Game) => {
 	}
 };
 
-export const mode: IGameModeFile<Team, Guessing> = {
+const tests: GameFileTests<TeamThis> = {
+	'it should advance players who answer correctly': {
+		config: {
+			async: true,
+			commands: [['guess'], ['g']],
+		},
+		async test(game, format, attributes) {
+			this.timeout(15000);
+
+			const players = addPlayers(game, 4);
+			game.start();
+			if (game.timeout) clearTimeout(game.timeout);
+			await game.onNextRound();
+			assert(game.answers.length);
+			const team = players[0].team!;
+			const currentPlayer = game.currentPlayers[team.id];
+			assert(currentPlayer);
+			game.canGuess = true;
+			const expectedPoints = game.getPointsForAnswer ? game.getPointsForAnswer(game.answers[0]) : 1;
+			await runCommand(attributes.commands![0], game.answers[0], game.room, currentPlayer.name);
+			assertStrictEqual(game.points.get(currentPlayer), expectedPoints);
+			assertStrictEqual(team.points, expectedPoints);
+		},
+	},
+};
+
+export const mode: IGameModeFile<Team, Guessing, TeamThis> = {
 	aliases: ['teams'],
 	class: Team,
 	commands,
@@ -251,4 +278,5 @@ export const mode: IGameModeFile<Team, Guessing> = {
 	name,
 	naming: 'prefix',
 	removedOptions,
+	tests,
 };

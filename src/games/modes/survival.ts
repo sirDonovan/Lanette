@@ -1,7 +1,8 @@
 import { CommandsDict } from "../../command-parser";
 import { Player } from "../../room-activity";
 import { DefaultGameOption, Game } from "../../room-game";
-import { GameCommandReturnType, IGameFormat, IGameModeFile } from "../../types/games";
+import { addPlayers, assert, runCommand } from "../../test/test-tools";
+import { GameCommandReturnType, GameFileTests, IGameFormat, IGameModeFile } from "../../types/games";
 import { Guessing } from "../templates/guessing";
 
 const name = 'Survival';
@@ -49,6 +50,13 @@ class Survival {
 
 	async onNextRound(this: SurvivalThis) {
 		this.canGuess = false;
+		if (this.currentPlayer) {
+			this.say("Time is up! " + this.getAnswers(''));
+			this.eliminatePlayer(this.currentPlayer, "You did not guess the answer in time!");
+			this.playerRounds.set(this.currentPlayer, this.survivalRound);
+			this.currentPlayer = null;
+		}
+
 		if (!this.playerList.length) {
 			if (this.getRemainingPlayerCount() < 2) {
 				this.end();
@@ -68,21 +76,13 @@ class Survival {
 			return;
 		}
 		await this.setAnswers();
-		const text = "**" + currentPlayer.name + "** you are up!";
+		this.currentPlayer = currentPlayer;
+		const text = "**" + this.currentPlayer.name + "** you are up!";
 		this.on(text, () => {
-			this.currentPlayer = currentPlayer!;
 			this.timeout = setTimeout(() => {
 				const onHint = () => {
 					this.canGuess = true;
-					this.timeout = setTimeout(() => {
-						if (this.currentPlayer) {
-							this.say("Time is up! " + this.getAnswers(''));
-							this.eliminatePlayer(this.currentPlayer, "You did not guess the answer in time!");
-							this.playerRounds.set(this.currentPlayer, this.survivalRound);
-							this.currentPlayer = null;
-						}
-						this.nextRound();
-					}, this.roundTime);
+					this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
 				};
 				if (this.htmlHint) {
 					const uhtmlName = this.uhtmlBaseName + '-hint';
@@ -160,7 +160,49 @@ const initialize = (game: Game) => {
 	}
 };
 
-export const mode: IGameModeFile<Survival, Guessing> = {
+const tests: GameFileTests<SurvivalThis> = {
+	'it should advance players who answer correctly': {
+		config: {
+			async: true,
+			commands: [['guess'], ['g']],
+		},
+		async test(game, format, attributes) {
+			this.timeout(15000);
+
+			addPlayers(game, 2);
+			await game.onNextRound();
+			assert(game.answers.length);
+			const currentPlayer = game.currentPlayer;
+			assert(currentPlayer);
+			game.canGuess = true;
+			await runCommand(attributes.commands![0], game.answers[0], game.room, currentPlayer.name);
+			assert(!currentPlayer.eliminated);
+			await game.onNextRound();
+			assert(game.currentPlayer !== currentPlayer);
+		},
+	},
+	'it should eliminate players who do not answer correctly': {
+		config: {
+			async: true,
+			commands: [['guess'], ['g']],
+		},
+		async test(game, format, attributes) {
+			this.timeout(15000);
+
+			addPlayers(game, 2);
+			await game.onNextRound();
+			assert(game.answers.length);
+			const currentPlayer = game.currentPlayer;
+			assert(currentPlayer);
+			game.canGuess = true;
+			await runCommand(attributes.commands![0], 'mocha', game.room, currentPlayer.name);
+			await game.onNextRound();
+			assert(currentPlayer.eliminated);
+		},
+	},
+};
+
+export const mode: IGameModeFile<Survival, Guessing, SurvivalThis> = {
 	aliases: ['surv'],
 	class: Survival,
 	commands,
@@ -169,4 +211,5 @@ export const mode: IGameModeFile<Survival, Guessing> = {
 	name,
 	naming: 'suffix',
 	removedOptions,
+	tests,
 };
