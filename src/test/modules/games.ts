@@ -178,6 +178,9 @@ describe("Games", () => {
 		assertStrictEqual(Games.getExistingFormat('trivia, abilities, survival').nameWithOptions, "Slowking's Ability Trivia Survival");
 		assertStrictEqual(Games.getExistingFormat('trivia, abilities, surv').nameWithOptions, "Slowking's Ability Trivia Survival");
 
+		assertStrictEqual(Games.getExistingFormat('params, survival').nameWithOptions, "Paras' Parameters Survival");
+		assertStrictEqual(Games.getExistingFormat('params, team').nameWithOptions, "Team Paras' Parameters");
+
 		assertStrictEqual(Games.getExistingFormat('params,params:3').inputOptions.params, 3);
 		assert(!Games.getExistingFormat('params').inputOptions.params);
 
@@ -209,23 +212,6 @@ describe("Games", () => {
 				assertStrictEqual(variantsFormat[0], 'tooManyGameVariants');
 				assertStrictEqual(variantsFormat[1], undefined);
 				break;
-			}
-		}
-
-		for (let i = 0; i < formats.length; i++) {
-			const formatData = Games.formats[formats[i]];
-			if (formatData.modes && formatData.variants) {
-				let hasVariantMode = false;
-				for (let i = 0; i < formatData.variants.length; i++) {
-					if (formatData.variants[i].mode && formatData.modes.includes(formatData.variants[i].mode!)) {
-						const variantsModeFormat = Games.getFormat(formatData.id + "," + formatData.variants[i].variant + "," + formatData.variants[i].mode);
-						assert(Array.isArray(variantsModeFormat));
-						assertStrictEqual(variantsModeFormat[0], 'tooManyGameModes');
-						assertStrictEqual(variantsModeFormat[1], undefined);
-						hasVariantMode = true;
-					}
-				}
-				if (hasVariantMode) break;
 			}
 		}
 

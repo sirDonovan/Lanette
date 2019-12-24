@@ -102,7 +102,6 @@ export interface IGameVariant {
 	defaultOptions?: DefaultGameOption[];
 	description?: string;
 	freejoin?: boolean;
-	mode?: string;
 	variantAliases?: string[];
 }
 

@@ -31,6 +31,15 @@ export class ParasParameters extends Guessing {
 	pokemon: string[] = [];
 	roundTime: number = 5 * 60 * 1000;
 
+	onInitialize() {
+		super.onInitialize();
+
+		const format = this.format as IGameFormat;
+		if (format.mode && (format.mode.id === 'survival' || format.mode.id === 'team')) {
+			this.paramTypes = ['tier', 'color', 'type', 'egggroup', 'ability', 'gen'];
+		}
+	}
+
 	onSignups() {
 		super.onSignups();
 		if (this.isMiniGame) {
@@ -200,6 +209,14 @@ const tests: GameFileTests<ParasParameters> = {
 			assertStrictEqual(intersection.pokemon.join(","), "alakazam,cresselia,drowzee,gallade,hypno,kadabra,medicham,meditite,mewtwo");
 		},
 	},
+	'should use proper paramTypes for modes': {
+		config: {
+			inputTargets: ['params, survival', 'params, team'],
+		},
+		test(game, format) {
+			assertStrictEqual(game.paramTypes.join(','), 'tier,color,type,egggroup,ability,gen');
+		},
+	},
 };
 
 export const game: IGameFile<ParasParameters> = Games.copyTemplateProperties(guessingGame, {
@@ -217,20 +234,7 @@ export const game: IGameFile<ParasParameters> = Games.copyTemplateProperties(gue
 	mascot: "Paras",
 	minigameCommand: 'parameter',
 	minigameCommandAliases: ['param'],
+	modes: ['survival', 'team'],
 	tests: Object.assign({}, guessingGame.tests, tests),
-	variants: [
-		{
-			name: "Paras' Parameters Survival",
-			paramTypes: ['tier', 'color', 'type', 'egggroup', 'ability', 'gen'],
-			mode: 'survival',
-			variant: "",
-		},
-		{
-			name: "Team Paras' Parameters",
-			paramTypes: ['tier', 'color', 'type', 'egggroup', 'ability', 'gen'],
-			mode: 'team',
-			variant: "",
-		},
-	],
 	workers: [ParametersWorker],
 });

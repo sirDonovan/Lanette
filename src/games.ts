@@ -205,9 +205,7 @@ export class Games {
 					const id = Tools.toId(format.variants[i].name);
 					if (id in this.aliases) throw new Error(format.name + "'s variant '" + format.variants[i].name + "' is already an alias for " + this.aliases[id] + ".");
 					this.aliases[id] = format.name + "," + format.variants[i].variant;
-					let variantIds: string[] = [];
-					const variantId = Tools.toId(format.variants[i].variant);
-					if (variantId) variantIds.push(variantId);
+					let variantIds: string[] = [Tools.toId(format.variants[i].variant)];
 					if (format.variants[i].variantAliases) {
 						variantIds = variantIds.concat(format.variants[i].variantAliases!);
 					}
@@ -331,10 +329,6 @@ export class Games {
 				if (matchingVariant) {
 					if (variant) return ['tooManyGameVariants'];
 					variant = matchingVariant;
-					if (variant.mode) {
-						if (mode) return ['tooManyGameModes'];
-						mode = this.modes[Tools.toId(variant.mode)];
-					}
 					continue;
 				}
 			}
