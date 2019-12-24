@@ -8,7 +8,9 @@ import { game as guessingGame, Guessing } from './templates/guessing';
 const BASE_NUMBER_OF_PARAMS = 2;
 const MIN_GEN = 1;
 const MAX_GEN = 7;
+
 const name = "Paras' Parameters";
+const allParamTypes: ParametersWorker.ParamType[] = ['move', 'tier', 'color', 'type', 'resistance', 'weakness', 'egggroup', 'ability', 'gen'];
 let loadedData = false;
 
 export class ParasParameters extends Guessing {
@@ -27,7 +29,7 @@ export class ParasParameters extends Guessing {
 	minimumResults: number = 3;
 	maximumResults: number = 50;
 	params: ParametersWorker.IParam[] = [];
-	paramTypes: ParametersWorker.ParamType[] = ['move', 'tier', 'color', 'type', 'resistance', 'weakness', 'egggroup', 'ability', 'gen'];
+	paramTypes: ParametersWorker.ParamType[] = allParamTypes;
 	pokemon: string[] = [];
 	roundTime: number = 5 * 60 * 1000;
 
@@ -123,7 +125,7 @@ export class ParasParameters extends Guessing {
 	async intersect(params: string[]): Promise<ParametersWorker.IParameterIntersectResult> {
 		return ParametersWorker.intersect({
 			mod: 'gen' + this.format.options.gen,
-			paramTypes: this.paramTypes,
+			paramTypes: allParamTypes,
 			searchType: 'pokemon',
 		}, params);
 	}
