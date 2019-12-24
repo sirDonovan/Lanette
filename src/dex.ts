@@ -1006,21 +1006,24 @@ export class Dex {
 					if (!allPossibleMoves.includes(i)) allPossibleMoves.push(i);
 				}
 			}
-		} else if (templateData.prevo) {
-			let prevo = Tools.toId(templateData.prevo);
-			while (prevo && this.data.pokedex.hasOwnProperty(prevo)) {
-				const prevoTemplateData = this.data.pokedex[prevo]!;
-				if (this.data.learnsets.hasOwnProperty(prevo)) {
-					for (const i in this.data.learnsets[prevo]!.learnset) {
+		} else {
+			const baseTemplateData = isForme ? this.data.pokedex[Tools.toId(baseSpecies)]! : templateData;
+			if (baseTemplateData.prevo) {
+				let prevo = Tools.toId(baseTemplateData.prevo);
+				while (prevo && this.data.pokedex.hasOwnProperty(prevo)) {
+					const prevoTemplateData = this.data.pokedex[prevo]!;
+					if (this.data.learnsets.hasOwnProperty(prevo)) {
+						for (const i in this.data.learnsets[prevo]!.learnset) {
+							if (!allPossibleMoves.includes(i)) allPossibleMoves.push(i);
+						}
+					}
+					prevo = Tools.toId(prevoTemplateData.prevo);
+				}
+			} else if (templateData.inheritsFrom) {
+				if (typeof templateData.inheritsFrom === 'string' && this.data.learnsets.hasOwnProperty(templateData.inheritsFrom)) {
+					for (const i in this.data.learnsets[templateData.inheritsFrom]!.learnset) {
 						if (!allPossibleMoves.includes(i)) allPossibleMoves.push(i);
 					}
-				}
-				prevo = Tools.toId(prevoTemplateData.prevo);
-			}
-		} else if (templateData.inheritsFrom) {
-			if (typeof templateData.inheritsFrom === 'string' && this.data.learnsets.hasOwnProperty(templateData.inheritsFrom)) {
-				for (const i in this.data.learnsets[templateData.inheritsFrom]!.learnset) {
-					if (!allPossibleMoves.includes(i)) allPossibleMoves.push(i);
 				}
 			}
 		}

@@ -203,6 +203,9 @@ const tests: GameFileTests<ParasParameters> = {
 			intersection = await game.intersect(['monstergroup', 'rockhead']);
 			assertStrictEqual(intersection.pokemon.join(","), "aggron,aron,cubone,lairon,marowak,marowakalola,rhydon,rhyhorn,tyrantrum");
 
+			intersection = await game.intersect(['gen6', 'resists ice', 'destiny bond']);
+			assertStrictEqual(intersection.pokemon.join(","), "aegislash,doublade,honedge,houndoommega,sharpedomega");
+
 			game.format.options.gen = 6;
 			intersection = await game.intersect(['Weak to Rock Type', 'Earthquake']);
 			assertStrictEqual(intersection.pokemon.join(","), "abomasnow,aerodactyl,altaria,arceusbug,arceusfire,arceusflying,arceusice,archen,archeops,armaldo,aurorus,avalugg,charizard,crustle,darmanitan,dragonite,dwebble,glalie,gyarados,hooh,lugia,magcargo,magmortar,mantine,mantyke,pineco,pinsir,rayquaza,regice,salamence,scolipede,sealeo,shuckle,spheal,torkoal,tropius,typhlosion,volcanion,walrein");
