@@ -57,7 +57,7 @@ const schedules: Dict<{months: Dict<Dict<string> | undefined>, times: [number, n
 				'12': '[Gen 8] Doubles OU',
 				'13': '[Gen 8] STABmons@@@-Fishious Rend',
 				'14': '[Gen 7] NU',
-				'15': '[Gen 8] National Dex (beta)',
+				'15': '[Gen 8] National Dex',
 				'16': '[Gen 7] UU@@@+Alakazam,-Blissey',
 				'17': '[Gen 3] Random Battle',
 				'18': '[Gen 8] LC@@@+Corsola-Galar,+Sneasel,+Swirlix',
