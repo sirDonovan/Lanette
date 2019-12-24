@@ -96,124 +96,14 @@ describe("Games", () => {
 		Games.unrefWorkers();
 	});
 
-	it('should not overwrite data from other games', () => {
-		const aliases: Dict<string> = {};
-		const commandNames: string[] = Object.keys(Games.sharedCommands);
-		const formats: Dict<IGameFormatData> = {};
-		const minigameCommandNames: Dict<{aliases: string[], format: string}> = {};
-		const modes: Dict<IGameMode> = {};
-		const userHostedAliases: Dict<string> = {};
-		const userHostedFormats: Dict<IUserHostedComputed> = {};
-
-		const gameFiles = fs.readdirSync(Games.gamesDirectory);
-		for (let i = 0; i < gameFiles.length; i++) {
-			if (!gameFiles[i].endsWith('.js')) continue;
-			const file = require(Games.gamesDirectory + '/' + gameFiles[i]).game as IGameFile;
-			const id = Tools.toId(file.name);
-			assert(!(id in formats), "'" + id + "' is the name of another game");
-			let commands;
-			if (file.commands) commands = CommandParser.loadCommands<Game, GameCommandReturnType>(Tools.deepClone(file.commands));
-			formats[id] = Object.assign({}, file, {commands, id});
-		}
-
-		const modesDirectory = path.join(Games.gamesDirectory, "modes");
-		const modeFiles = fs.readdirSync(modesDirectory);
-		for (let i = 0; i < modeFiles.length; i++) {
-			if (!modeFiles[i].endsWith('.js')) continue;
-			const file = require(modesDirectory + '/' + modeFiles[i]).mode as IGameModeFile;
-			const id = Tools.toId(file.name);
-			assert(!(id in modes), "'" + id + "' is the name of another game mode");
-			modes[id] = Object.assign({id}, file);
-		}
-
-		for (let i = 0; i < Games.userHosted.formats.length; i++) {
-			const format = Games.userHosted.formats[i];
-			const id = Tools.toId(format.name);
-
-			assert(!(id in userHostedFormats), "'" + id + "' is the name of another user-hosted game");
-
-			if (format.aliases) {
-				for (let i = 0; i < format.aliases.length; i++) {
-					const alias = Tools.toId(format.aliases[i]);
-					assert(!(alias in userHostedFormats), format.name + "'s alias '" + alias + "' is the name of another user-hosted game");
-					assert(!(alias in userHostedAliases), format.name + "'s alias '" + alias + "' is already used by " + userHostedAliases[alias]);
-					userHostedAliases[alias] = format.name;
-				}
-			}
-
-			userHostedFormats[id] = Object.assign({}, format, {
-				class: Games.userHosted.class,
-				id,
-			});
-		}
-
-		for (const i in formats) {
-			const format = formats[i];
-			if (format.aliases) {
-				for (let i = 0; i < format.aliases.length; i++) {
-					const alias = Tools.toId(format.aliases[i]);
-					assert(!(alias in formats), format.name + "'s alias '" + alias + "' is the name of another game");
-					assert(!(alias in aliases), format.name + "'s alias '" + alias + "' is already used by " + aliases[alias]);
-					aliases[alias] = format.name;
-				}
-			}
-
-			if (format.commands) {
-				for (const i in format.commands) {
-					if (!commandNames.includes(i)) commandNames.push(i);
-				}
-			}
-
-			if (format.minigameCommand) {
-				const minigameCommand = Tools.toId(format.minigameCommand);
-				assert(!minigameCommandNames.hasOwnProperty(minigameCommand), format.name + "'s minigame command '" + minigameCommand + "' is already used by " + minigameCommandNames[minigameCommand]);
-				minigameCommandNames[minigameCommand] = {aliases: format.minigameCommandAliases ? format.minigameCommandAliases.map(x => Tools.toId(x)) : [], format: format.name};
-			}
-
-			if (format.variants) {
-				for (let i = 0; i < format.variants.length; i++) {
-					if (format.variants[i].mode) assert(Tools.toId(format.variants[i].mode) in modes, "Variant " + format.variants[i].name + "'s mode '" + format.variants[i].mode + "' does not exist");
-					const id = Tools.toId(format.variants[i].name);
-					assert(!(id in formats), "Variant " + format.variants[i].name + " is the name of another game");
-					assert(!(id in modes), "Variant " + format.variants[i].name + " is the name of a game mode");
-					if (!(id in aliases)) aliases[id] = format.name + "," + format.variants[i].variant;
-				}
-			}
-
-			if (format.modes) {
-				for (let i = 0; i < format.modes.length; i++) {
-					assert(Tools.toId(format.modes[i]) in modes, "'" + format.modes[i] + "' is not a valid mode");
-				}
-			}
-		}
-
-		for (const i in formats) {
-			const format = formats[i];
-			if (format.formerNames) {
-				for (let i = 0; i < format.formerNames.length; i++) {
-					const id = Tools.toId(format.formerNames[i]);
-					assert(!(id in formats), format.name + "'s former name '" + format.formerNames[i] + "' is the name of another game");
-					assert(!(id in aliases), aliases[id] + "'s alias '" + id + "' is the former name of another game");
-				}
-			}
-		}
-
-		for (const i in modes) {
-			const mode = modes[i];
-			if (mode.commands) {
-				for (const i in mode.commands) {
-					if (!commandNames.includes(i)) commandNames.push(i);
-				}
-			}
-		}
-
-		for (const name in minigameCommandNames) {
-			assert(!commandNames.includes(name), "Minigame command '" + name + "' is a regular command for another game");
-			for (let i = 0; i < minigameCommandNames[name].aliases.length; i++) {
-				const alias = minigameCommandNames[name].aliases[i];
-				assert(!commandNames.includes(alias), "Minigame command alias '" + alias + "' (" + name + ") is a regular command for another game");
-			}
-		}
+	it('should load data properly', () => {
+		assert(Object.keys(Games.aliases).length);
+		assert(Object.keys(Games.formats).length);
+		assert(Object.keys(Games.internalFormats).length);
+		assert(Object.keys(Games.modes).length);
+		assert(Object.keys(Games.modeAliases).length);
+		assert(Object.keys(Games.userHostedFormats).length);
+		assert(Object.keys(Games.userHostedAliases).length);
 	});
 
 	it('should have valid mascots', () => {

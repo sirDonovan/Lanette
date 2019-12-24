@@ -100,11 +100,29 @@ export class Games {
 			this.internalFormats[internalGameKeys[i]] = Object.assign({}, file, {commands, id});
 		}
 
+		const modesDirectory = path.join(gamesDirectory, "modes");
+		const modeFiles = fs.readdirSync(modesDirectory);
+		for (let i = 0; i < modeFiles.length; i++) {
+			if (!modeFiles[i].endsWith('.js')) continue;
+			const file = require(path.join(modesDirectory, modeFiles[i])).mode as IGameModeFile;
+			const id = Tools.toId(file.name);
+			if (id in this.modes) throw new Error("The name '" + file.name + "' is already used by another mode.");
+			if (file.aliases) {
+				for (let i = 0; i < file.aliases.length; i++) {
+					const alias = Tools.toId(file.aliases[i]);
+					if (alias in this.modeAliases) throw new Error(file.name + " mode's alias '" + file.aliases[i] + " is already used by " + this.modes[this.modeAliases[alias]].name + ".");
+					this.modeAliases[alias] = id;
+				}
+			}
+			this.modes[id] = Object.assign({}, file, {id});
+		}
+
 		const gameFiles = fs.readdirSync(gamesDirectory);
 		for (let i = 0; i < gameFiles.length; i++) {
 			if (!gameFiles[i].endsWith('.js')) continue;
 			const file = require(path.join(gamesDirectory, gameFiles[i])).game as IGameFile;
 			const id = Tools.toId(file.name);
+			if (id in this.formats) throw new Error("The name '" + file.name + "' is already used by another game.");
 			let commands;
 			if (file.commands) commands = CommandParser.loadCommands<Game, GameCommandReturnType>(Tools.deepClone(file.commands));
 			let variants;
@@ -116,32 +134,29 @@ export class Games {
 					}
 				}
 			}
-			let modes;
-			if (file.modes) modes = file.modes.map(x => Tools.toId(x));
-			this.formats[id] = Object.assign({}, file, {commands, id, modes, variants});
-		}
-
-		const modesDirectory = path.join(gamesDirectory, "modes");
-		const modeFiles = fs.readdirSync(modesDirectory);
-		for (let i = 0; i < modeFiles.length; i++) {
-			if (!modeFiles[i].endsWith('.js')) continue;
-			const file = require(path.join(modesDirectory, modeFiles[i])).mode as IGameModeFile;
-			const id = Tools.toId(file.name);
-			if (file.aliases) {
-				for (let i = 0; i < file.aliases.length; i++) {
-					this.modeAliases[Tools.toId(file.aliases[i])] = id;
+			let modes: string[] | undefined;
+			if (file.modes) {
+				modes = [];
+				for (let i = 0; i < file.modes.length; i++) {
+					const mode = Tools.toId(file.modes[i]);
+					if (!(mode in this.modes)) throw new Error(file.name + "'s mode '" + file.modes[i] + "' is not a valid mode.");
+					modes.push(mode);
 				}
 			}
-			this.modes[id] = Object.assign({id}, file);
+			this.formats[id] = Object.assign({}, file, {commands, id, modes, variants});
 		}
 
 		for (let i = 0; i < userHosted.formats.length; i++) {
 			const format = userHosted.formats[i];
 			const id = Tools.toId(format.name);
+			if (id in this.userHostedFormats) throw new Error("The name '" + format.name + "' is already used by another user-hosted format.");
 
 			if (format.aliases) {
 				for (let i = 0; i < format.aliases.length; i++) {
-					this.userHostedAliases[Tools.toId(format.aliases[i])] = format.name;
+					const alias = Tools.toId(format.aliases[i]);
+					if (alias in this.userHostedFormats) throw new Error(format.name + "'s alias '" + format.aliases[i] + "' is the name of another user-hosted format.");
+					if (alias in this.userHostedAliases) throw new Error(format.name + "'s alias '" + format.aliases[i] + "' is already an alias for " + this.userHostedAliases[alias] + ".");
+					this.userHostedAliases[alias] = format.name;
 				}
 			}
 
@@ -157,6 +172,8 @@ export class Games {
 			if (format.formerNames) {
 				for (let i = 0; i < format.formerNames.length; i++) {
 					const id = Tools.toId(format.formerNames[i]);
+					if (id in this.formats) throw new Error(format.name + "'s former name '" + format.formerNames[i] + "' is already used by another game.");
+					if (id in this.aliases) throw new Error(format.name + "'s former name '" + format.formerNames[i] + "' is already an alias for " + this.aliases[id] + ".");
 					this.aliases[id] = format.name;
 					idsToAlias.push(id);
 				}
@@ -165,6 +182,7 @@ export class Games {
 			if (format.aliases) {
 				for (let i = 0; i < format.aliases.length; i++) {
 					const alias = Tools.toId(format.aliases[i]);
+					if (alias in this.aliases) throw new Error(format.name + "'s alias '" + format.aliases[i] + "' is already an alias for " + this.aliases[alias] + ".");
 					this.aliases[alias] = format.name;
 					idsToAlias.push(alias);
 				}
@@ -177,14 +195,19 @@ export class Games {
 			}
 
 			if (format.minigameCommand) {
-				this.minigameCommandNames[Tools.toId(format.minigameCommand)] = {aliases: format.minigameCommandAliases ? format.minigameCommandAliases.map(x => Tools.toId(x)) : [], format: format.name};
+				const command = Tools.toId(format.minigameCommand);
+				if (command in this.minigameCommandNames) throw new Error(format.name + "'s minigame command '" + format.minigameCommand + "' is already a minigame command for " + this.minigameCommandNames[command].format + ".");
+				this.minigameCommandNames[command] = {aliases: format.minigameCommandAliases ? format.minigameCommandAliases.map(x => Tools.toId(x)) : [], format: format.name};
 			}
 
 			if (format.variants) {
 				for (let i = 0; i < format.variants.length; i++) {
 					const id = Tools.toId(format.variants[i].name);
-					if (!(id in this.aliases)) this.aliases[id] = format.name + "," + format.variants[i].variant;
-					let variantIds: string[] = [Tools.toId(format.variants[i].variant)];
+					if (id in this.aliases) throw new Error(format.name + "'s variant '" + format.variants[i].name + "' is already an alias for " + this.aliases[id] + ".");
+					this.aliases[id] = format.name + "," + format.variants[i].variant;
+					let variantIds: string[] = [];
+					const variantId = Tools.toId(format.variants[i].variant);
+					if (variantId) variantIds.push(variantId);
 					if (format.variants[i].variantAliases) {
 						variantIds = variantIds.concat(format.variants[i].variantAliases!);
 					}
@@ -192,6 +215,7 @@ export class Games {
 					for (let j = 0; j < idsToAlias.length; j++) {
 						for (let k = 0; k < variantIds.length; k++) {
 							const alias = variantIds[k] + idsToAlias[j];
+							if (alias in this.aliases) throw new Error(format.name + "'s variant " + format.variants[i].name + " variant alias '" + variantIds[k] + "' clashes with the alias for " + this.aliases[alias] + ".");
 							if (!(alias in this.aliases)) this.aliases[alias] = format.name + "," + format.variants[i].variant;
 						}
 					}
