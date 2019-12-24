@@ -378,10 +378,11 @@ export interface IFormatComputed {
 	id: string;
 	inputTarget: string;
 	maxLevel: number;
+	quickFormat: boolean;
 	ruleset: NonNullable<IFormatData["ruleset"]>;
 	ruleTable: RuleTable | null;
-	tournamentPlayable: boolean;
 	separatedCustomRules: ISeparatedCustomRules | null;
+	tournamentPlayable: boolean;
 	unbanlist: NonNullable<IFormatData["unbanlist"]>;
 	unranked: boolean;
 }

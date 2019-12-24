@@ -1469,6 +1469,7 @@ const commands: Dict<ICommandDefinition> = {
 				if (database.pastTournaments && Config.disallowQueueingPastTournaments && Config.disallowQueueingPastTournaments.includes(room.id)) {
 					for (let i = 0; i < database.pastTournaments.length; i++) {
 						const pastFormat = Dex.getFormat(database.pastTournaments[i].inputTarget);
+						if (pastFormat && pastFormat.quickFormat) continue;
 						const id = pastFormat ? pastFormat.id : Tools.toId(database.pastTournaments[i].name);
 						if (format.id === id) {
 							return this.say(format.name + " is on the past tournaments list and cannot be queued.");
@@ -1476,6 +1477,7 @@ const commands: Dict<ICommandDefinition> = {
 					}
 				}
 			}
+
 			let playerCap: number = 0;
 			if (scheduled) {
 				if (Config.scheduledTournamentsMaxPlayerCap && Config.scheduledTournamentsMaxPlayerCap.includes(room.id)) playerCap = Tournaments.maxPlayerCap;

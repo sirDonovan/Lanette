@@ -1413,10 +1413,11 @@ export class Dex {
 			id,
 			inputTarget,
 			maxLevel,
+			quickFormat: formatData.teamLength && formatData.teamLength.battle && formatData.teamLength.battle <= 2 ? true : false,
 			ruleset: formatData.ruleset || [],
 			ruleTable: null,
-			tournamentPlayable: !!(formatData.searchShow || formatData.challengeShow || formatData.tournamentShow),
 			separatedCustomRules: null,
+			tournamentPlayable: !!(formatData.searchShow || formatData.challengeShow || formatData.tournamentShow),
 			unbanlist: formatData.unbanlist || [],
 			unranked: formatData.rated === false || id.includes('customgame') || id.includes('challengecup') || id.includes('hackmonscup') ||
 				(formatData.team && (id.includes('1v1') || id.includes('monotype'))) || formatData.mod === 'seasonal' || formatData.mod === 'ssb',
