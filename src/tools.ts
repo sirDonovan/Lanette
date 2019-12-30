@@ -396,10 +396,6 @@ export class Tools {
 		return challongeLink;
 	}
 
-	isChallongeBracketUrl(url: string): boolean {
-		return url.trim().lastIndexOf('/') === 21;
-	}
-
 	safeWriteFile(filepath: string, data: string): Promise<void> {
 		const tempFilepath = filepath + '.temp';
 		return new Promise(resolve => {

@@ -89,36 +89,25 @@ describe("Tools", () => {
 		assertStrictEqual(Tools.toDurationString(hour + minute + second), '1 hour, 1 minute, and 1 second');
 	});
 	it('should return proper values from getChallongeUrl()', () => {
-		const link = 'https://challonge.com/mocha';
-		assert(Tools.isChallongeBracketUrl(link));
 		assert(!Tools.getChallongeUrl('https://challonge.com'));
 		assert(!Tools.getChallongeUrl('https://challonge.com/'));
-		assertStrictEqual(Tools.getChallongeUrl(link), link);
-		assertStrictEqual(Tools.getChallongeUrl(" **https://challonge.com/mocha**"), link);
-		assertStrictEqual(Tools.getChallongeUrl(" **https://challonge.com/mocha**!"), link);
-		assertStrictEqual(Tools.getChallongeUrl(" **https://challonge.com/mocha**."), link);
-		assertStrictEqual(Tools.getChallongeUrl(" **https://challonge.com/mocha**'"), link);
-		assertStrictEqual(Tools.getChallongeUrl(" **https://challonge.com/mocha**\""), link);
-		assertStrictEqual(Tools.getChallongeUrl(" **https://challonge.com/mocha**\\"), link);
-		assertStrictEqual(Tools.getChallongeUrl(" https://challonge.com/mocha!"), link);
-		assertStrictEqual(Tools.getChallongeUrl(" https://challonge.com/mocha."), link);
-		assertStrictEqual(Tools.getChallongeUrl(" https://challonge.com/mocha'"), link);
-		assertStrictEqual(Tools.getChallongeUrl(" https://challonge.com/mocha\""), link);
-		assertStrictEqual(Tools.getChallongeUrl(" https://challonge.com/mocha\\"), link);
-		assertStrictEqual(Tools.getChallongeUrl(" http://challonge.com/mocha."), link);
-		assertStrictEqual(Tools.getChallongeUrl(" **http://challonge.com/mocha**!"), link);
-		assertStrictEqual(Tools.getChallongeUrl(" **http://challonge.com/mocha**."), link);
-		assertStrictEqual(Tools.getChallongeUrl(" **http://challonge.com/mocha**'"), link);
-		assertStrictEqual(Tools.getChallongeUrl(" **http://challonge.com/mocha**\""), link);
-		assertStrictEqual(Tools.getChallongeUrl(" **http://challonge.com/mocha**\\"), link);
-		assertStrictEqual(Tools.getChallongeUrl(" http://challonge.com/mocha!"), link);
-		assertStrictEqual(Tools.getChallongeUrl(" http://challonge.com/mocha."), link);
-		assertStrictEqual(Tools.getChallongeUrl(" http://challonge.com/mocha'"), link);
-		assertStrictEqual(Tools.getChallongeUrl(" http://challonge.com/mocha\""), link);
-		assertStrictEqual(Tools.getChallongeUrl(" http://challonge.com/mocha\\"), link);
 
-		const signupsLink = 'https://challonge.com/signup/mocha';
-		assert(!Tools.isChallongeBracketUrl(signupsLink));
-		assertStrictEqual(Tools.getChallongeUrl(signupsLink), signupsLink);
+		const links = ['https://challonge.com/mocha', 'http://challonge.com/mocha', 'https://challonge.com/signup/mocha', 'http://challonge.com/signup/mocha'];
+		for (let i = 0; i < links.length; i++) {
+			const link = links[i];
+			const expectedLink = link.startsWith('http://') ? 'https://' + link.substr(7) : link;
+			assertStrictEqual(Tools.getChallongeUrl(link), expectedLink);
+			assertStrictEqual(Tools.getChallongeUrl(" **" + link + "**"), expectedLink);
+			assertStrictEqual(Tools.getChallongeUrl(" **" + link + "**!"), expectedLink);
+			assertStrictEqual(Tools.getChallongeUrl(" **" + link + "**."), expectedLink);
+			assertStrictEqual(Tools.getChallongeUrl(" **" + link + "**'"), expectedLink);
+			assertStrictEqual(Tools.getChallongeUrl(" **" + link + "**\""), expectedLink);
+			assertStrictEqual(Tools.getChallongeUrl(" **" + link + "**\\"), expectedLink);
+			assertStrictEqual(Tools.getChallongeUrl(" " + link + "!"), expectedLink);
+			assertStrictEqual(Tools.getChallongeUrl(" " + link + "."), expectedLink);
+			assertStrictEqual(Tools.getChallongeUrl(" " + link + "'"), expectedLink);
+			assertStrictEqual(Tools.getChallongeUrl(" " + link + "\""), expectedLink);
+			assertStrictEqual(Tools.getChallongeUrl(" " + link + "\\"), expectedLink);
+		}
 	});
 });

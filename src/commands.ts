@@ -1654,13 +1654,15 @@ const commands: Dict<ICommandDefinition> = {
 			const targets = target.split(',');
 			const targetRoom = Rooms.search(targets[0]);
 			if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
-			const challongeLink = Tools.getChallongeUrl(targets[1]);
-			if (!challongeLink) return this.say("You must specify a valid Challonge link.");
-			if (!Tools.isChallongeBracketUrl(challongeLink)) return this.say("You must specify the main link to your tournament (click \"Bracket\").");
+			const bracketLink = Tools.getChallongeUrl(targets[1]);
+			const signupsLink = Tools.getChallongeUrl(targets[2]);
+			if (!bracketLink || !signupsLink) return this.say("You must specify valid Challonge links.");
+			if (bracketLink.lastIndexOf('/') === 21) return this.say("You must specify the bracket link to your tournament (click \"Bracket\").");
+			if (!signupsLink.includes('/signup/')) return this.say("You must specify the signup link to your tournament (click \"Register\").");
 			if (targetRoom.approvedUserHostedTournaments) {
 				for (const i in targetRoom.approvedUserHostedTournaments) {
-					if (targetRoom.approvedUserHostedTournaments[i].url === challongeLink) {
-						if (user.id !== targetRoom.approvedUserHostedTournaments[i].hostId) return this.say("The specified link has already been approved for " + targetRoom.approvedUserHostedTournaments[i].hostName + ".");
+					if (targetRoom.approvedUserHostedTournaments[i].urls.includes(bracketLink) || targetRoom.approvedUserHostedTournaments[i].urls.includes(signupsLink)) {
+						if (user.id !== targetRoom.approvedUserHostedTournaments[i].hostId) return this.say("The specified tournament has already been approved for " + targetRoom.approvedUserHostedTournaments[i].hostName + ".");
 						delete targetRoom.approvedUserHostedTournaments[i];
 						break;
 					}
@@ -1672,6 +1674,7 @@ const commands: Dict<ICommandDefinition> = {
 					if (user.id === targetRoom.newUserHostedTournaments[i].hostId) return this.say("You are already on the waiting list for staff review.");
 				}
 			}
+
 			const database = Storage.getDatabase(targetRoom);
 			let authOrTHC = '';
 			if ((Config.userHostedTournamentRanks && targetRoom.id in Config.userHostedTournamentRanks && user.hasRank(targetRoom, Config.userHostedTournamentRanks[targetRoom.id].review)) ||
@@ -1680,22 +1683,22 @@ const commands: Dict<ICommandDefinition> = {
 			}
 
 			if (!targetRoom.newUserHostedTournaments) targetRoom.newUserHostedTournaments = {};
-			targetRoom.newUserHostedTournaments[challongeLink] = {
+			targetRoom.newUserHostedTournaments[bracketLink] = {
 				hostName: user.name,
 				hostId: user.id,
 				startTime: Date.now(),
 				approvalStatus: '',
 				reviewer: '',
-				url: challongeLink,
+				urls: [bracketLink, signupsLink],
 			};
 
 			if (authOrTHC) {
 				if (!targetRoom.approvedUserHostedTournaments) targetRoom.approvedUserHostedTournaments = {};
-				targetRoom.approvedUserHostedTournaments[challongeLink] = targetRoom.newUserHostedTournaments[challongeLink];
-				delete targetRoom.newUserHostedTournaments[challongeLink];
+				targetRoom.approvedUserHostedTournaments[bracketLink] = targetRoom.newUserHostedTournaments[bracketLink];
+				delete targetRoom.newUserHostedTournaments[bracketLink];
 
-				targetRoom.approvedUserHostedTournaments[challongeLink].approvalStatus = 'approved';
-				targetRoom.approvedUserHostedTournaments[challongeLink].reviewer = Tools.toId(authOrTHC);
+				targetRoom.approvedUserHostedTournaments[bracketLink].approvalStatus = 'approved';
+				targetRoom.approvedUserHostedTournaments[bracketLink].reviewer = Tools.toId(authOrTHC);
 
 				this.say("You are free to advertise without using this command!");
 			} else {

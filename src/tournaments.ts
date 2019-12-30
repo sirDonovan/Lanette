@@ -12,7 +12,7 @@ export interface IUserHostedTournament {
 	reviewer: string;
 	startTime: number;
 	reviewTimer?: NodeJS.Timer;
-	url: string;
+	urls: string[];
 }
 
 for (const room in schedules) {
@@ -270,7 +270,7 @@ export class Tournaments {
 	}
 
 	getUserHostedTournamentApprovalHtml(room: Room): string {
-		let html = '<table border="1" style="width:auto"><tr><th style="width:150px">Username</th><th style="width:150px">Links</th><th style="width:150px">Reviewer</th><th style="width:200px">Status</th></tr>';
+		let html = '<table border="1" style="width:auto"><tr><th style="width:150px">Username</th><th style="width:150px">Link</th><th style="width:150px">Reviewer</th><th style="width:200px">Status</th></tr>';
 		const rows: string[] = [];
 		for (const link in room.newUserHostedTournaments) {
 			const tournament = room.newUserHostedTournaments[link];

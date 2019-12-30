@@ -939,7 +939,7 @@ export class Client {
 			const possibleLinks = message.split(" ");
 			for (let i = 0; i < possibleLinks.length; i++) {
 				const link = Tools.getChallongeUrl(possibleLinks[i]);
-				if (link && Tools.isChallongeBracketUrl(link)) links.push(link);
+				if (link) links.push(link);
 			}
 			// let hasOwnLink = false;
 			const database = Storage.getDatabase(room);
@@ -958,7 +958,7 @@ export class Client {
 				// hasOwnLink = true;
 				if (room.approvedUserHostedTournaments) {
 					for (const i in room.approvedUserHostedTournaments) {
-						if (room.approvedUserHostedTournaments[i].url === link) {
+						if (room.approvedUserHostedTournaments[i].urls.includes(link)) {
 							if (!authOrTHC && room.approvedUserHostedTournaments[i].hostId !== user.id) {
 								room.sayCommand("/warn " + user.name + ", Please do not post links to other hosts' tournaments");
 							}
@@ -975,11 +975,11 @@ export class Client {
 						startTime: Date.now(),
 						approvalStatus: 'approved',
 						reviewer: user.id,
-						url: link,
+						urls: [link],
 					};
 				} else {
 					for (const i in room.newUserHostedTournaments) {
-						if (room.newUserHostedTournaments[i].url === link) {
+						if (room.newUserHostedTournaments[i].urls.includes(link)) {
 							if (room.newUserHostedTournaments[i].hostId !== user.id) {
 								room.sayCommand("/warn " + user.name + ", Please do not post links to other hosts' tournaments");
 							} else if (room.newUserHostedTournaments[i].approvalStatus === 'changes-requested') {
@@ -994,7 +994,7 @@ export class Client {
 						}
 					}
 					room.sayCommand("/warn " + user.name + ", Your tournament must be approved by a staff member");
-					room.pmHtml(user, '<button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter + 'gettourapproval ' + room.id + ', ' + link + '">Submit your tournament for approval</button>');
+					user.say('Use the command ``' + Config.commandCharacter + 'gettourapproval ' + room.id + ', __bracket link__, __signup link__`` to get your tournament approved (insert your actual links).');
 					break;
 				}
 			}
