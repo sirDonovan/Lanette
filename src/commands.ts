@@ -1656,9 +1656,10 @@ const commands: Dict<ICommandDefinition> = {
 			if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 			const challongeLink = Tools.getChallongeUrl(targets[1]);
 			if (!challongeLink) return this.say("You must specify a valid Challonge link.");
+			if (!Tools.isChallongeBracketUrl(challongeLink)) return this.say("You must specify the main link to your tournament (click \"Bracket\").");
 			if (targetRoom.approvedUserHostedTournaments) {
 				for (const i in targetRoom.approvedUserHostedTournaments) {
-					if (targetRoom.approvedUserHostedTournaments[i].urls.includes(challongeLink)) {
+					if (targetRoom.approvedUserHostedTournaments[i].url === challongeLink) {
 						if (user.id !== targetRoom.approvedUserHostedTournaments[i].hostId) return this.say("The specified link has already been approved for " + targetRoom.approvedUserHostedTournaments[i].hostName + ".");
 						delete targetRoom.approvedUserHostedTournaments[i];
 						break;
@@ -1677,10 +1678,28 @@ const commands: Dict<ICommandDefinition> = {
 				(database.thcWinners && user.id in database.thcWinners)) {
 				authOrTHC = user.name;
 			}
-			Tournaments.checkChallongeUrl(targetRoom, user, challongeLink, authOrTHC);
+
+			if (!targetRoom.newUserHostedTournaments) targetRoom.newUserHostedTournaments = {};
+			targetRoom.newUserHostedTournaments[challongeLink] = {
+				hostName: user.name,
+				hostId: user.id,
+				startTime: Date.now(),
+				approvalStatus: '',
+				reviewer: '',
+				url: challongeLink,
+			};
+
 			if (authOrTHC) {
+				if (!targetRoom.approvedUserHostedTournaments) targetRoom.approvedUserHostedTournaments = {};
+				targetRoom.approvedUserHostedTournaments[challongeLink] = targetRoom.newUserHostedTournaments[challongeLink];
+				delete targetRoom.newUserHostedTournaments[challongeLink];
+
+				targetRoom.approvedUserHostedTournaments[challongeLink].approvalStatus = 'approved';
+				targetRoom.approvedUserHostedTournaments[challongeLink].reviewer = Tools.toId(authOrTHC);
+
 				this.say("You are free to advertise without using this command!");
 			} else {
+				Tournaments.showUserHostedTournamentApprovals(targetRoom);
 				this.say("A staff member will review your tournament as soon as possible!");
 			}
 		},

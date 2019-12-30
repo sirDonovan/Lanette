@@ -390,10 +390,14 @@ export class Tools {
 		}
 		const boldIndex = challongeLink.lastIndexOf("**");
 		if (boldIndex !== -1) challongeLink = challongeLink.substr(0, boldIndex);
-		while (challongeLink.endsWith('.') || challongeLink.endsWith("'") || challongeLink.endsWith('"') || challongeLink.endsWith("\\")) {
+		while (challongeLink.endsWith('!') || challongeLink.endsWith('.') || challongeLink.endsWith("'") || challongeLink.endsWith('"') || challongeLink.endsWith("\\")) {
 			challongeLink = challongeLink.substr(0, challongeLink.length - 1);
 		}
 		return challongeLink;
+	}
+
+	isChallongeBracketUrl(url: string): boolean {
+		return url.trim().lastIndexOf('/') === 21;
 	}
 
 	safeWriteFile(filepath: string, data: string): Promise<void> {

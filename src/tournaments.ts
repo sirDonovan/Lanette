@@ -12,7 +12,7 @@ export interface IUserHostedTournament {
 	reviewer: string;
 	startTime: number;
 	reviewTimer?: NodeJS.Timer;
-	urls: string[];
+	url: string;
 }
 
 for (const room in schedules) {
@@ -267,61 +267,6 @@ export class Tournaments {
 		}
 		html += "</tr></table>";
 		return html;
-	}
-
-	async checkChallongeUrl(room: Room, user: User, url: string, authOrTHC?: string) {
-		const fetchType = 'challonge';
-		if (fetchType in Tools.fetchUrlTimeouts) {
-			if (!(fetchType in Tools.fetchUrlQueues)) Tools.fetchUrlQueues[fetchType] = [];
-			Tools.fetchUrlQueues[fetchType].push(() => this.checkChallongeUrl(room, user, url, authOrTHC));
-			return;
-		}
-
-		const html = await Tools.fetchUrl(url, fetchType);
-		if (typeof html !== 'string') {
-			console.log(html);
-			return;
-		}
-
-		if (!html.includes("<ul class='tabbed-navlist -phone-scrollable -fade' data-js-navtab-fade data-js-sudo-nav>")) return;
-		const navigation = html.split("<ul class='tabbed-navlist -phone-scrollable -fade' data-js-navtab-fade data-js-sudo-nav>")[1].split('</ul>')[0].split('<li');
-
-		const urls: string[] = [];
-		let bracketUrl = '';
-		for (let i = 0; i < navigation.length; i++) {
-			if (navigation[i].includes('Bracket</a>\n</li>')) {
-				bracketUrl = Tools.getChallongeUrl(navigation[i].split(' href="')[1].split('">')[0])!;
-			} else if (navigation[i].includes('Register</a>\n</li>') || navigation[i].includes('Standings</a>\n</li>') ||
-				(navigation[i].includes('Discussion (') && navigation[i].includes('</a>\n</li>')) || (navigation[i].includes('Log (') && navigation[i].includes('</a>\n</li>'))) {
-				urls.push(Tools.getChallongeUrl(navigation[i].split(' href="')[1].split('">')[0])!);
-			}
-		}
-
-		if (!bracketUrl) return;
-
-		urls.push(bracketUrl);
-
-		const now = Date.now();
-		if (!room.newUserHostedTournaments) room.newUserHostedTournaments = {};
-		room.newUserHostedTournaments[bracketUrl] = {
-			hostName: user.name,
-			hostId: user.id,
-			startTime: now,
-			approvalStatus: '',
-			reviewer: '',
-			urls,
-		};
-
-		if (authOrTHC) {
-			if (!room.approvedUserHostedTournaments) room.approvedUserHostedTournaments = {};
-			room.approvedUserHostedTournaments[bracketUrl] = room.newUserHostedTournaments[bracketUrl];
-			delete room.newUserHostedTournaments[bracketUrl];
-
-			room.approvedUserHostedTournaments[bracketUrl].approvalStatus = 'approved';
-			room.approvedUserHostedTournaments[bracketUrl].reviewer = Tools.toId(authOrTHC);
-		} else {
-			this.showUserHostedTournamentApprovals(room);
-		}
 	}
 
 	getUserHostedTournamentApprovalHtml(room: Room): string {

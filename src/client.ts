@@ -939,7 +939,7 @@ export class Client {
 			const possibleLinks = message.split(" ");
 			for (let i = 0; i < possibleLinks.length; i++) {
 				const link = Tools.getChallongeUrl(possibleLinks[i]);
-				if (link) links.push(link);
+				if (link && Tools.isChallongeBracketUrl(link)) links.push(link);
 			}
 			// let hasOwnLink = false;
 			const database = Storage.getDatabase(room);
@@ -958,7 +958,7 @@ export class Client {
 				// hasOwnLink = true;
 				if (room.approvedUserHostedTournaments) {
 					for (const i in room.approvedUserHostedTournaments) {
-						if (room.approvedUserHostedTournaments[i].urls.includes(link)) {
+						if (room.approvedUserHostedTournaments[i].url === link) {
 							if (!authOrTHC && room.approvedUserHostedTournaments[i].hostId !== user.id) {
 								room.sayCommand("/warn " + user.name + ", Please do not post links to other hosts' tournaments");
 							}
@@ -968,10 +968,18 @@ export class Client {
 				}
 
 				if (authOrTHC) {
-					Tournaments.checkChallongeUrl(room, user, link, user.name);
+					if (!room.approvedUserHostedTournaments) room.approvedUserHostedTournaments = {};
+					room.approvedUserHostedTournaments[link] = {
+						hostName: user.name,
+						hostId: user.id,
+						startTime: Date.now(),
+						approvalStatus: 'approved',
+						reviewer: user.id,
+						url: link,
+					};
 				} else {
 					for (const i in room.newUserHostedTournaments) {
-						if (room.newUserHostedTournaments[i].urls.includes(link)) {
+						if (room.newUserHostedTournaments[i].url === link) {
 							if (room.newUserHostedTournaments[i].hostId !== user.id) {
 								room.sayCommand("/warn " + user.name + ", Please do not post links to other hosts' tournaments");
 							} else if (room.newUserHostedTournaments[i].approvalStatus === 'changes-requested') {
