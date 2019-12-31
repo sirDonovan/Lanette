@@ -7,7 +7,7 @@ import { RuleTable } from "../dex";
 
 type GenderName = 'M' | 'F' | 'N' | '';
 type StatNameExceptHP = 'atk' | 'def' | 'spa' | 'spd' | 'spe';
-type Nonstandard = 'Glitch' | 'Past' | 'Future' | 'CAP' | 'LGPE' | 'Pokestar' | 'Custom';
+type Nonstandard = 'Past' | 'Future' | 'Unobtainable' | 'CAP' | 'LGPE' | 'Custom';
 export type StatName = 'hp' | StatNameExceptHP;
 
 interface IStatsTable {

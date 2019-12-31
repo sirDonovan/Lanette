@@ -652,8 +652,8 @@ export class Dex {
 		const abilities: IAbility[] = [];
 		for (const i in this.data.abilities) {
 			const ability = this.getExistingAbility(i);
-			if (ability.isNonstandard === 'CAP' || ability.isNonstandard === 'Glitch' || ability.isNonstandard === 'Pokestar' || ability.isNonstandard === 'LGPE' ||
-				ability.isNonstandard === 'Custom' || ability.id === 'noability' || ability.gen > this.gen || (filter && !filter(ability))) continue;
+			if (ability.isNonstandard === 'CAP' || ability.isNonstandard === 'Unobtainable' || ability.isNonstandard === 'LGPE' || ability.isNonstandard === 'Custom' ||
+				ability.id === 'noability' || ability.gen > this.gen || (filter && !filter(ability))) continue;
 			abilities.push(ability);
 		}
 		return abilities;
@@ -745,8 +745,8 @@ export class Dex {
 		const items: IItem[] = [];
 		for (const i in this.data.items) {
 			const item = this.getExistingItem(i);
-			if (item.isNonstandard === 'CAP' || item.isNonstandard === 'Glitch' || item.isNonstandard === 'Pokestar' || item.isNonstandard === 'LGPE' || item.isNonstandard === 'Custom' ||
-				item.gen > this.gen || (this.gen !== 2 && gen2Items.includes(item.id)) || (filter && !filter(item))) continue;
+			if (item.isNonstandard === 'CAP' || item.isNonstandard === 'Unobtainable' || item.isNonstandard === 'LGPE' || item.isNonstandard === 'Custom' || item.gen > this.gen ||
+				(this.gen !== 2 && gen2Items.includes(item.id)) || (filter && !filter(item))) continue;
 			items.push(item);
 		}
 		return items;
@@ -907,8 +907,8 @@ export class Dex {
 		const moves: IMove[] = [];
 		for (const i in this.data.moves) {
 			const move = this.getExistingMove(i);
-			if (move.isNonstandard === 'CAP' || move.isNonstandard === 'Glitch' || move.isNonstandard === 'Pokestar' || move.isNonstandard === 'LGPE' || move.isNonstandard === 'Custom' ||
-				move.gen > this.gen || (filter && !filter(move))) continue;
+			if (move.isNonstandard === 'CAP' || move.isNonstandard === 'Unobtainable' || move.isNonstandard === 'LGPE' || move.isNonstandard === 'Custom' || move.gen > this.gen ||
+				(filter && !filter(move))) continue;
 			moves.push(move);
 		}
 		return moves;
@@ -1072,8 +1072,12 @@ export class Dex {
 			doublesTier = templateFormatsData.doublesTier;
 			if (!tier && !doublesTier && baseSpecies !== templateData.species) {
 				let baseSpeciesId: string;
-				if (speciesId.endsWith('totem')) {
+				if (templateData.baseSpecies === 'Mimikyu') {
+					baseSpeciesId = Tools.toId(templateData.baseSpecies);
+				} else if (speciesId.endsWith('totem')) {
 					baseSpeciesId = speciesId.slice(0, -5);
+				} else if (templateData.inheritsFrom) {
+					baseSpeciesId = typeof templateData.inheritsFrom === 'string' ? templateData.inheritsFrom : templateData.inheritsFrom[0];
 				} else {
 					baseSpeciesId = Tools.toId(baseSpecies);
 				}
@@ -1175,8 +1179,8 @@ export class Dex {
 		const pokedex: IPokemon[] = [];
 		for (const i in this.data.pokedex) {
 			const pokemon = this.getExistingPokemon(i);
-			if (pokemon.isNonstandard === 'CAP' || pokemon.isNonstandard === 'Glitch' || pokemon.isNonstandard === 'Pokestar' || pokemon.isNonstandard === 'LGPE' ||
-				pokemon.isNonstandard === 'Custom' || pokemon.gen > this.gen || (filter && !filter(pokemon))) continue;
+			if (pokemon.isNonstandard === 'CAP' || pokemon.isNonstandard === 'Unobtainable' || pokemon.isNonstandard === 'LGPE' || pokemon.isNonstandard === 'Custom' ||
+				pokemon.gen > this.gen || (filter && !filter(pokemon))) continue;
 			pokedex.push(pokemon);
 		}
 		return pokedex;
@@ -1648,7 +1652,9 @@ export class Dex {
 					// custom tags
 					'mega',
 					// illegal/nonstandard reasons
-					'glitch', 'past', 'future', 'lgpe', 'pokestar', 'custom',
+					'past', 'future', 'unobtainable', 'lgpe', 'custom',
+					// all
+					'allpokemon', 'allitems', 'allmoves', 'allabilities',
 				];
 				if (validTags.includes(ruleid)) matches.push('pokemontag:' + ruleid);
 				continue;
@@ -1672,7 +1678,7 @@ export class Dex {
 			}
 		}
 		if (matches.length > 1) {
-			throw new Error(`More than one thing matches "${rule}"; please use something like "-item:metronome" to disambiguate`);
+			throw new Error(`More than one thing matches "${rule}"; please specify one of: ` + matches.join(', '));
 		}
 		if (matches.length < 1) {
 			throw new Error(`Nothing matches "${rule}"`);
