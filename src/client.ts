@@ -708,11 +708,14 @@ export class Client {
 						} else if (rows[i].startsWith('<td><abbr title="') && currentHeader !== 'Whitelisted names') {
 							let word = rows[i].split('<td><abbr title="')[1].split('</abbr>')[0].trim();
 							let filterTo = false;
+							const titleEndIndex = word.indexOf('">');
+							if (titleEndIndex !== -1) word = word.substr(titleEndIndex + 2);
 							if (word.startsWith('<code>') && word.endsWith('</code>')) {
 								word = word.split('<code>')[1].split('</code>')[0].trim();
 								filterTo = true;
 							}
-							let regularExpression;
+
+							let regularExpression: RegExp | undefined;
 							try {
 								if (evasion) {
 									regularExpression = constructEvasionRegex(word);
