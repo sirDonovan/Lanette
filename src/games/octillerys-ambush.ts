@@ -89,6 +89,7 @@ const commands: Dict<ICommandDefinition<OctillerysAmbush>> = {
 
 export const game: IGameFile<OctillerysAmbush> = {
 	aliases: ["octillerys", "oa"],
+	category: 'reaction',
 	commandDescriptions: [Config.commandCharacter + "fire [player]"],
 	commands,
 	class: OctillerysAmbush,

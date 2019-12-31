@@ -185,6 +185,7 @@ const commands: Dict<ICommandDefinition<InkaysCups>> = {
 
 export const game: IGameFile<InkaysCups> = {
 	aliases: ['inkays', 'cups'],
+	category: 'parameter',
 	class: InkaysCups,
 	commandDescriptions: [Config.commandCharacter + 'grab [Pokemon]'],
 	commands,

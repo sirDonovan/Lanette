@@ -144,6 +144,7 @@ const commands: Dict<ICommandDefinition<DedennesAbilityBlitz>> = {
 
 export const game: IGameFile<DedennesAbilityBlitz> = {
 	aliases: ["dedennes", "dab"],
+	category: 'speed',
 	commandDescriptions: [Config.commandCharacter + "select [ability]"],
 	commands,
 	class: DedennesAbilityBlitz,

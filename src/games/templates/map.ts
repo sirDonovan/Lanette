@@ -543,6 +543,7 @@ const commands: Dict<ICommandDefinition<MapGame>> = {
 };
 
 export const game: IGameTemplateFile<MapGame> = {
+	category: 'map',
 	commandDescriptions: [Config.commandCharacter + 'up/down/left/right'],
 	commands,
 };

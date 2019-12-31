@@ -325,5 +325,6 @@ const commands: Dict<ICommandDefinition<Chain>> = {
 };
 
 export const game: IGameTemplateFile<Chain> = {
+	category: 'chain',
 	commands,
 };

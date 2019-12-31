@@ -39,6 +39,7 @@ type GameFileTests<T extends Game = Game> = Dict<{config?: IGameFileTestConfig, 
 
 interface IGameFileProperties<T extends Game = Game> {
 	aliases?: string[];
+	category?: string;
 	commands?: Dict<ICommandDefinition<T>>;
 	commandDescriptions?: string[];
 	customizableOptions?: Dict<IGameOptionValues>;

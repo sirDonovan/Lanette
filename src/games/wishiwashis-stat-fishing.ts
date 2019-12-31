@@ -164,6 +164,7 @@ const commands: Dict<ICommandDefinition<WishiwashisStatFishing>> = {
 
 export const game: IGameFile<WishiwashisStatFishing> = {
 	aliases: ["wishiwashis", "wsf", "sf"],
+	category: 'reaction',
 	commandDescriptions: [Config.commandCharacter + "reel"],
 	commands,
 	class: WishiwashisStatFishing,

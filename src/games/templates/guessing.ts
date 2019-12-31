@@ -255,6 +255,7 @@ const tests: GameFileTests<Guessing> = {
 };
 
 export const game: IGameTemplateFile<Guessing> = {
+	category: 'guessing',
 	commandDescriptions: [Config.commandCharacter + 'g [answer]'],
 	commands,
 	tests,

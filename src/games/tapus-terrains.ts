@@ -170,6 +170,7 @@ const commands: Dict<ICommandDefinition<TapusTerrains>> = {
 
 export const game: IGameFile<TapusTerrains> = {
 	aliases: ['tapus', 'terrains', 'trace', 'tr'],
+	category: 'reaction',
 	class: TapusTerrains,
 	commandDescriptions: [Config.commandCharacter + 'jump'],
 	commands,

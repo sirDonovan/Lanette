@@ -122,6 +122,7 @@ const commands: Dict<ICommandDefinition<FeebasChainFishing>> = {
 
 export const game: IGameFile<FeebasChainFishing> = {
 	aliases: ["feebas", "fcf", "cf"],
+	category: 'reaction',
 	commandDescriptions: [Config.commandCharacter + "reel"],
 	commands,
 	class: FeebasChainFishing,

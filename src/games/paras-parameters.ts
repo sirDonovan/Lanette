@@ -226,6 +226,7 @@ const tests: GameFileTests<ParasParameters> = {
 
 export const game: IGameFile<ParasParameters> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['paras', 'params'],
+	category: 'parameter',
 	class: ParasParameters,
 	customizableOptions: {
 		gen: {min: MIN_GEN, base: MAX_GEN, max: MAX_GEN},

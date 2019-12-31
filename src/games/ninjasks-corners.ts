@@ -121,6 +121,7 @@ const commands: Dict<ICommandDefinition<NinjasksCorners>> = {
 
 export const game: IGameFile<NinjasksCorners> = {
 	aliases: ["ninjasks", "nc"],
+	category: 'speed',
 	commandDescriptions: [Config.commandCharacter + "travel [color]"],
 	commands,
 	class: NinjasksCorners,

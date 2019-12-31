@@ -168,6 +168,7 @@ const commands: Dict<ICommandDefinition<TrubbishsTrash>> = {
 
 export const game: IGameFile<TrubbishsTrash> = {
 	aliases: ["trubbishs", "tt"],
+	category: 'speed',
 	commandDescriptions: [Config.commandCharacter + "trash [move]"],
 	commands,
 	class: TrubbishsTrash,
