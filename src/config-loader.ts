@@ -60,6 +60,8 @@ export function load(config: typeof Config): typeof Config {
 	if (config.maxUserHostedGameWinners) objectKeysToRoomId(config.maxUserHostedGameWinners);
 	if (config.maxQueuedUserHostedGames) objectKeysToRoomId(config.maxQueuedUserHostedGames);
 	if (config.userHostCooldownTimers) objectKeysToRoomId(config.userHostCooldownTimers);
+	if (config.disallowCreatingPastGames) config.disallowCreatingPastGames = arrayToRoomIds(config.disallowCreatingPastGames);
+	if (config.disallowCreatingPreviousUserHostedGame) config.disallowCreatingPreviousUserHostedGame = arrayToRoomIds(config.disallowCreatingPreviousUserHostedGame);
 	if (config.awardedBotGreetingDurations) objectKeysToRoomId(config.awardedBotGreetingDurations);
 
 	if (config.allowTournaments) config.allowTournaments = arrayToRoomIds(config.allowTournaments);

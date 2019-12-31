@@ -1,9 +1,7 @@
-import fs = require('fs');
-import path = require('path');
-
 import { PRNGSeed } from '../../prng';
 import { Game } from '../../room-game';
-import { GameCommandReturnType, GameFileTests, IGameFile, IGameFormat, IGameFormatData, IGameMode, IGameModeFile, IGameTestAttributes, IUserHostedComputed, IUserHostedFormat } from '../../types/games';
+import { GameFileTests, IGameFormat, IGameTestAttributes, IUserHostedFormat } from '../../types/games';
+import { IPastGame } from '../../types/storage';
 import { assert, assertClientSendQueue, assertStrictEqual } from '../test-tools';
 
 function testMascots(format: IGameFormat | IUserHostedFormat) {
@@ -55,7 +53,7 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests) {
 	}
 }
 
-const room = Rooms.add('mocha');
+const room = Rooms.get('mocha')!;
 for (const i in Games.formats) {
 	if (Games.formats[i].tests) {
 		const format = Games.getExistingFormat(i);
@@ -289,6 +287,20 @@ describe("Games", () => {
 		assertStrictEqual(Games.createUserHostedGame(room, Games.getExistingUserHostedFormat('floettes forum game, name: Mocha Test Game'), Users.self.name).name, Users.self.name + "'s Mocha Test Game");
 	});
 
+	it('should return proper values from isInPastGames()', () => {
+		const now = Date.now();
+		const pastGames: IPastGame[] = [
+			{inputTarget: 'trivia', name: "Slowking's Trivia", time: now},
+			{inputTarget: 'mocha', name: 'Mocha', time: now},
+		];
+
+		assert(Games.isInPastGames(room, 'trivia', pastGames));
+		assert(Games.isInPastGames(room, "Slowking's Trivia", pastGames));
+		assert(Games.isInPastGames(room, 'trivia,Pokemon Moves', pastGames));
+		assert(!Games.isInPastGames(room, 'anagrams', pastGames));
+		assert(Games.isInPastGames(room, 'mocha', pastGames));
+		assert(Games.isInPastGames(room, 'Mocha', pastGames));
+	});
 	it('should return proper values from getList methods', () => {
 		const abilities = Games.getAbilitiesList().map(x => x.name);
 		const items = Games.getItemsList().map(x => x.name);

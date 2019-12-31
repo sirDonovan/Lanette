@@ -8,7 +8,6 @@ const timeLimit = 30 * 1000;
 
 export class Vote extends Game {
 	internalGame: boolean = true;
-	pastGameIds: string[] = [];
 	picks: string[] = [];
 	uhtmlName: string = '';
 	readonly votes = new Map<Player, string>();
@@ -24,34 +23,41 @@ export class Vote extends Game {
 				const format = Games.getFormat(database.pastGames[i].inputTarget);
 				if (Array.isArray(format)) {
 					pastGames.push(database.pastGames[i].name);
-					this.pastGameIds.push(Tools.toId(database.pastGames[i].name));
 				} else {
 					pastGames.push(format.name);
-					this.pastGameIds.push(format.id);
 				}
 			}
 		}
 
 		const formats: string[] = [];
-		const possiblePicks: string[] = [];
+		let possiblePicks: string[] = [];
 		for (const i in Games.formats) {
 			const format = Games.getExistingFormat(i);
 			if (format.disabled) continue;
 			formats.push(format.name);
-			if (!this.pastGameIds.includes(format.id)) possiblePicks.push(format.name);
+			if (Games.canCreateGame(this.room, format) === true) possiblePicks.push(format.name);
 		}
 
-		this.picks = this.sampleMany(possiblePicks, 3);
+		possiblePicks = this.shuffle(possiblePicks);
+		this.picks = [];
+		for (let i = 0; i < 3; i++) {
+			if (!possiblePicks[i]) break;
+			this.picks.push(possiblePicks[i]);
+		}
+
 		let html = "<div class='infobox'><center><h3>Vote for the next scripted game!</h3>Use the command <code>" + Config.commandCharacter + "vote [game]</code>";
 		html += "<br /><details><summary>Games list</summary>" + formats.sort().join(", ") + "</details>";
 		if (pastGames.length) html += "<br /><details><summary>Past games (cannot be voted for)</summary>" + pastGames.join(", ") + "</details>";
-		html += "<br /><b>" + Users.self.name + "'s picks:</b><br />";
+		if (this.picks.length) {
+			html += "<br /><b>" + Users.self.name + "'s picks:</b><br />";
 
-		const buttons: string[] = [];
-		for (let i = 0; i < this.picks.length; i++) {
-			buttons.push('<button class="button" name="send" value="' + Config.commandCharacter + 'vote ' + this.picks[i] + '">' + this.picks[i] + '</button>');
+			const buttons: string[] = [];
+			for (let i = 0; i < this.picks.length; i++) {
+				buttons.push('<button class="button" name="send" value="' + Config.commandCharacter + 'vote ' + this.picks[i] + '">' + this.picks[i] + '</button>');
+			}
+			html += buttons.join(" | ");
 		}
-		html += buttons.join(" | ") + "</center></div>";
+		html += "</center></div>";
 
 		this.uhtmlName = this.uhtmlBaseName + '-voting';
 		this.sayUhtml(this.uhtmlName, html);
@@ -69,6 +75,10 @@ export class Vote extends Game {
 		if (formats.length) {
 			format = this.sampleOne(formats);
 		} else {
+			if (!this.picks.length) {
+				this.say("A random game could not be chosen.");
+				return;
+			}
 			format = this.sampleOne(this.picks);
 		}
 
@@ -85,8 +95,10 @@ const commands: Dict<ICommandDefinition<Vote>> = {
 				user.say(CommandParser.getErrorText(format));
 				return false;
 			}
-			if (this.pastGameIds.includes(format.id)) {
-				user.say(format.name + " is on the past games list and cannot be voted for.");
+
+			const canCreateGame = Games.canCreateGame(this.room, format);
+			if (canCreateGame !== true) {
+				user.say(canCreateGame + " Please vote for a different game!");
 				return false;
 			}
 

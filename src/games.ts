@@ -9,7 +9,10 @@ import { Room } from "./rooms";
 import { GameCommandReturnType, IGameFile, IGameFormat, IGameFormatComputed, IGameFormatData, IGameMode, IGameModeFile, IGameTemplateFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFile, IUserHostedFormat, IUserHostedFormatComputed, UserHostedCustomizable } from './types/games';
 import { IWorker } from './types/global-types';
 import { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/in-game-data-types';
+import { IPastGame } from './types/storage';
 import { User } from './users';
+
+const CATEGORY_COOLDOWN = 3;
 
 const gamesDirectory = path.join(__dirname, 'games');
 // tslint:disable-next-line no-var-requires
@@ -509,6 +512,84 @@ export class Games {
 			(!(room.id in this.lastScriptedGames) || this.lastUserHostedGames[room.id] > this.lastScriptedGames[room.id])) {
 			return true;
 		}
+		return false;
+	}
+
+	canCreateGame(room: Room, format: IGameFormat): true | string {
+		const database = Storage.getDatabase(room);
+		const pastGames = database.pastGames || [];
+
+		if (Config.disallowCreatingPastGames && Config.disallowCreatingPastGames.includes(room.id) && this.isInPastGames(room, format.inputTarget, pastGames)) {
+			return format.name + " is on the past games list.";
+		}
+
+		if (Config.disallowCreatingPreviousUserHostedGame && Config.disallowCreatingPreviousUserHostedGame.includes(room.id)) {
+			const database = Storage.getDatabase(room);
+			if (database.pastUserHostedGames && database.pastUserHostedGames.length) {
+				const pastUserHostedFormat = this.getUserHostedFormat(database.pastUserHostedGames[0].inputTarget);
+				const id = Array.isArray(pastUserHostedFormat) ? Tools.toId(database.pastUserHostedGames[0].name) : pastUserHostedFormat.id;
+				if (id === format.id) return format.name + " was the last user-hosted game.";
+			}
+		}
+
+		if (database.userHostedGameQueue && database.userHostedGameQueue.length) {
+			const userHostedFormat = this.getUserHostedFormat(database.userHostedGameQueue[0].format);
+			if (!Array.isArray(userHostedFormat) && userHostedFormat.id === format.id) {
+				return format.name + " is the next user-hosted game.";
+			}
+		}
+
+		let pastGameCategory = false;
+		let categoryGamesBetween = 0;
+
+		for (let i = pastGames.length - 1; i >= 0; i--) {
+			const pastFormat = this.getFormat(pastGames[i].inputTarget);
+			if (Array.isArray(pastFormat)) {
+				if (format.category) categoryGamesBetween++;
+				continue;
+			}
+
+			if (format.variant && pastFormat.variant && format.variant.variant === pastFormat.variant.variant) {
+				return "There is another " + format.variant.variant + "-variant game on the past games list.";
+			}
+			if (format.mode && pastFormat.mode && format.mode.id === pastFormat.mode.id) {
+				return "There is another " + format.mode.name + "-mode game on the past games list.";
+			}
+
+			if (format.category) {
+				if (pastFormat.category === format.category) {
+					pastGameCategory = true;
+					categoryGamesBetween = 0;
+				} else {
+					categoryGamesBetween++;
+				}
+			}
+		}
+
+		if (pastGameCategory && categoryGamesBetween < CATEGORY_COOLDOWN) {
+			const remainingGames = CATEGORY_COOLDOWN - categoryGamesBetween;
+			return remainingGames + " more game" + (remainingGames > 1 ? "s" : "") + " must be played before another " + format.category + " game.";
+		}
+
+		return true;
+	}
+
+	isInPastGames(room: Room, input: string, pastGames?: IPastGame[]): boolean {
+		if (!pastGames) {
+			const database = Storage.getDatabase(room);
+			if (!database.pastGames) return false;
+			pastGames = database.pastGames;
+		}
+
+		const format = this.getFormat(input);
+		const formatId = Array.isArray(format) ? Tools.toId(input) : format.id;
+
+		for (let i = 0; i < pastGames.length; i++) {
+			const pastFormat = this.getFormat(pastGames[i].inputTarget);
+			const id = Array.isArray(pastFormat) ? Tools.toId(pastGames[i].name) : pastFormat.id;
+			if (formatId === id) return true;
+		}
+
 		return false;
 	}
 

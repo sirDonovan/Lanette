@@ -313,22 +313,24 @@ export class Game extends Activity {
 			const database = Storage.getDatabase(this.room);
 
 			Games.lastGames[this.room.id] = now;
+			let lastFormatTimesKey: 'lastGameFormatTimes' | 'lastUserHostedGameFormatTimes';
 			let pastGamesKey: 'pastGames' | 'pastUserHostedGames';
 			if (this.isUserHosted) {
 				Games.lastUserHostedGames[this.room.id] = now;
+				lastFormatTimesKey = 'lastUserHostedGameFormatTimes';
 				pastGamesKey = 'pastUserHostedGames';
 
-				if (!database.lastUserHostedGameFormatTimes) database.lastUserHostedGameFormatTimes = {};
-				database.lastUserHostedGameFormatTimes[this.format.id] = now;
 				database.lastUserHostedGameTime = now;
 			} else {
 				Games.lastScriptedGames[this.room.id] = now;
+				lastFormatTimesKey = 'lastGameFormatTimes';
 				pastGamesKey = 'pastGames';
 
-				if (!database.lastGameFormatTimes) database.lastGameFormatTimes = {};
-				database.lastGameFormatTimes[this.format.id] = now;
 				database.lastGameTime = now;
 			}
+
+			if (!database[lastFormatTimesKey]) database[lastFormatTimesKey] = {};
+			database[lastFormatTimesKey]![this.format.id] = now;
 
 			if (!database[pastGamesKey]) database[pastGamesKey] = [];
 			database[pastGamesKey]!.unshift({inputTarget: this.format.inputTarget, name: this.name, time: now});

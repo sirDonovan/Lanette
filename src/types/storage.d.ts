@@ -29,6 +29,12 @@ export interface IPastTournament {
 	time: number;
 }
 
+export interface IPastGame {
+	inputTarget: string;
+	name: string;
+	time: number;
+}
+
 export interface IDatabase {
 	botGreetings?: Dict<IBotGreeting>;
 	eventInformation?: Dict<IEventInformation>;
@@ -39,9 +45,9 @@ export interface IDatabase {
 	lastUserHostedGameFormatTimes?: Dict<number>;
 	lastUserHostedGameTime?: number;
 	leaderboard?: Dict<ILeaderboardEntry>;
-	pastGames?: {inputTarget: string, name: string, time: number}[];
-	pastUserHostedGames?: {inputTarget: string, name: string, time: number}[];
+	pastGames?: IPastGame[];
 	pastTournaments?: IPastTournament[];
+	pastUserHostedGames?: IPastGame[];
 	queuedTournament?: {formatid: string, playerCap: number, scheduled: boolean, time: number};
 	thcWinners?: Dict<string>;
 	userHostedGameQueue?: IQueuedUserHostedGame[];

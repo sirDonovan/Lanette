@@ -282,12 +282,12 @@ const commands: Dict<ICommandDefinition> = {
 			if (!targetUser || !targetUser.rooms.has(room)) return this.say("You can only egg someone currently in the room.");
 			const game = Games.createGame(room, Games.getInternalFormat('eggtoss'));
 			game.signups();
-			this.say(user.name + " handed an egg to " + targetUser.name + "! Pass it around with ``" + Config.commandCharacter + "toss [user]`` before it explodes!");
+			this.say("**" + user.name + "** handed an egg to **" + targetUser.name + "**! Pass it around with ``" + Config.commandCharacter + "toss [user]`` before it explodes!");
 			this.run('toss');
 		},
 	},
 	creategame: {
-		command(target, room, user) {
+		command(target, room, user, cmd) {
 			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
 			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) return this.sayError(['disabledGameFeatures', room.title]);
 			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
@@ -297,13 +297,31 @@ const commands: Dict<ICommandDefinition> = {
 				this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the game cooldown remaining.");
 				return;
 			}
-			const format = Games.getFormat(target, true);
-			if (Array.isArray(format)) return this.sayError(format);
 			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
+
+			let format: IGameFormat | undefined;
+			if (cmd === 'createrandomgame' || cmd === 'crg') {
+				const formats = Tools.shuffle(Object.keys(Games.formats));
+				for (let i = 0; i < formats.length; i++) {
+					const randomFormat = Games.getExistingFormat(formats[i]);
+					if (Games.canCreateGame(room, randomFormat) === true) {
+						format = randomFormat;
+						break;
+					}
+				}
+				if (!format) return this.say("A random game could not be chosen.");
+			} else {
+				const inputFormat = Games.getFormat(target, true);
+				if (Array.isArray(inputFormat)) return this.sayError(inputFormat);
+				const canCreateGame = Games.canCreateGame(room, inputFormat);
+				if (canCreateGame !== true) return this.say(canCreateGame + " Please choose a different game!");
+				format = inputFormat;
+			}
+
 			const game = Games.createGame(room, format);
 			game.signups();
 		},
-		aliases: ['cg'],
+		aliases: ['cg', 'createrandomgame', 'crg'],
 	},
 	startgame: {
 		command(target, room, user) {
@@ -447,7 +465,7 @@ const commands: Dict<ICommandDefinition> = {
 			const now = Date.now();
 			for (let i = 0; i < database.pastGames.length; i++) {
 				const format = Games.getFormat(database.pastGames[i].inputTarget);
-				let game = Array.isArray(format) ? database.pastGames[i].name : format.name;
+				let game = Array.isArray(format) ? database.pastGames[i].name : format.nameWithOptions;
 
 				if (displayTimes) {
 					let duration = now - database.pastGames[i].time;

@@ -223,6 +223,16 @@ export let maxQueuedUserHostedGames: Dict<number> = {};
 export let userHostCooldownTimers: Dict<number> = {};
 
 /**
+ * A list of rooms (roomids) where formats on the past games list cannot be created
+ */
+export let disallowCreatingPastGames: string[] = [];
+
+/**
+ * A list of rooms (roomids) where the last user-hosted game cannot be the next scripted game
+ */
+export let disallowCreatingPreviousUserHostedGame: string[] = [];
+
+/**
  * A list of rooms (roomids) where messages will not be logged
  */
 export let disallowChatLogging: string[] = [];
