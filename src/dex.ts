@@ -1404,10 +1404,12 @@ export class Dex {
 			if (!isNaN(index) && index <= this.omotms.length) id = this.omotms[index - 1];
 		}
 		if (!this.data.formats.hasOwnProperty(id)) {
-			const currentGenId = currentGenString + id;
-			if (this.data.formats.hasOwnProperty(currentGenId)) return this.getFormat(currentGenId, isTrusted);
-			if (customRuleFormats.hasOwnProperty(id)) return this.getFormat(customRuleFormats[id], true);
-			if (customRuleFormats.hasOwnProperty(currentGenId)) return this.getFormat(customRuleFormats[currentGenId], true);
+			for (let i = currentGen; i >= 1; i--) {
+				const genId = 'gen' + i + id;
+				if (this.data.formats.hasOwnProperty(genId)) return this.getFormat(genId, isTrusted);
+				if (customRuleFormats.hasOwnProperty(id)) return this.getFormat(customRuleFormats[id], true);
+				if (customRuleFormats.hasOwnProperty(genId)) return this.getFormat(customRuleFormats[genId], true);
+			}
 			return null;
 		}
 
