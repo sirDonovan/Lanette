@@ -55,7 +55,7 @@ const commands: Dict<ICommandDefinition> = {
 		developerOnly: true,
 	},
 	reload: {
-		command(target, room, user) {
+		async asyncCommand(target, room, user) {
 			if (!target) return;
 			const hasModules: boolean[] = moduleOrder.slice().map(x => false);
 			const targets = target.split(",");
@@ -92,7 +92,7 @@ const commands: Dict<ICommandDefinition> = {
 			if (modules.includes('games')) Games.reloadInProgress = true;
 
 			this.say("Running ``tsc``...");
-			require(path.join(Tools.rootFolder, 'build.js'))(() => {
+			await require(path.join(Tools.rootFolder, 'build.js'))(() => {
 				for (let i = 0; i < modules.length; i++) {
 					if (modules[i] === 'client') {
 						const oldClient = global.Client;
