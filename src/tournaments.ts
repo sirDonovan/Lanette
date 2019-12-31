@@ -3,7 +3,7 @@ import { Tournament } from "./room-tournament";
 import { Room } from "./rooms";
 import * as schedules from './tournament-schedules';
 import { IFormat, ISeparatedCustomRules } from "./types/in-game-data-types";
-import { User } from "./users";
+import { IPastTournament } from "./types/storage";
 
 export interface IUserHostedTournament {
 	approvalStatus: 'changes-requested' | 'approved' | '';
@@ -355,5 +355,25 @@ export class Tournaments {
 			room.sayCommand('/notifyoffrank ' + Client.groupSymbols[rank]);
 			delete this.userHostedTournamentNotificationTimeouts[room.id];
 		}
+	}
+
+	isInPastTournaments(room: Room, input: string, pastTournaments?: IPastTournament[]): boolean {
+		if (!pastTournaments) {
+			const database = Storage.getDatabase(room);
+			if (!database.pastTournaments || !(Config.disallowQueueingPastTournaments && Config.disallowQueueingPastTournaments.includes(room.id))) return false;
+			pastTournaments = database.pastTournaments;
+		}
+
+		const format = Dex.getFormat(input);
+		const formatId = format ? format.id : Tools.toId(input);
+
+		for (let i = 0; i < pastTournaments.length; i++) {
+			const pastFormat = Dex.getFormat(pastTournaments[i].inputTarget);
+			if (pastFormat && pastFormat.quickFormat) continue;
+			const id = pastFormat ? pastFormat.id : Tools.toId(pastTournaments[i].name);
+			if (formatId === id) return true;
+		}
+
+		return false;
 	}
 }

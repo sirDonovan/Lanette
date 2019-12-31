@@ -1,6 +1,21 @@
+import { IPastTournament } from "../../types/storage";
 import { assert } from "../test-tools";
 
 describe("Tournaments", () => {
+	it('should return proper values from isInPastTournaments()', () => {
+		const room = Rooms.get('mocha')!;
+		const now = Date.now();
+		const pastTournaments: IPastTournament[] = [
+			{inputTarget: 'gen8ou', name: '[Gen 8] OU', time: now},
+			{inputTarget: 'mocha', name: 'Mocha', time: now},
+		];
+
+		assert(Tournaments.isInPastTournaments(room, 'gen8ou', pastTournaments));
+		assert(!Tournaments.isInPastTournaments(room, 'gen7ou', pastTournaments));
+		assert(!Tournaments.isInPastTournaments(room, 'gen8randombattle', pastTournaments));
+		assert(Tournaments.isInPastTournaments(room, 'mocha', pastTournaments));
+		assert(!Tournaments.isInPastTournaments(room, 'gen8mocha', pastTournaments));
+	});
 	it('should have valid formats in schedules', () => {
 		const date = new Date();
 		for (const room in Tournaments.schedules) {
