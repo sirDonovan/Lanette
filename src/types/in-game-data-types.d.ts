@@ -641,7 +641,6 @@ export interface IPokemonComputed {
 	isPrimal: boolean;
 	name: string;
 	nfe: boolean;
-	pseudoLC: boolean;
 	requiredItems: string[] | undefined;
 	shiny: boolean;
 	speciesid: string;

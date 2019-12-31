@@ -106,7 +106,7 @@ export function init(): worker_threads.Worker {
 			if (!(pokemon.tier in data.pool['Pokemon']['tier'])) data.pool['Pokemon']['tier'][pokemon.tier] = [];
 			if (!(pokemon.forme && data.pool['Pokemon']['tier'][pokemon.tier].includes(pokemon.baseSpecies))) data.pool['Pokemon']['tier'][pokemon.tier].push(pokemon.species);
 		}
-		if (pokemon.pseudoLC) {
+		if (Dex.isPseudoLCPokemon(pokemon)) {
 			if (!('LC' in data.pool['Pokemon']['tier'])) data.pool['Pokemon']['tier']['LC'] = [];
 			if (!(pokemon.forme && data.pool['Pokemon']['tier']['LC'].includes(pokemon.baseSpecies))) data.pool['Pokemon']['tier']['LC'].push(pokemon.species);
 		}

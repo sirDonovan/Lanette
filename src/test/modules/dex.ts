@@ -49,6 +49,18 @@ describe("Dex", () => {
 		pokemon = Dex.getExistingPokemon('Pikachu-Gmax');
 		assert(pokemon.allPossibleMoves.length > Object.keys(pokemon.learnset!).length, pokemon.species);
 
+		const houndour = Dex.getExistingPokemon('Houndour');
+		const houndoomMega = Dex.getExistingPokemon('Houndoom-Mega');
+		for (let i = 0; i < houndour.allPossibleMoves.length; i++) {
+			assert(houndoomMega.allPossibleMoves.includes(houndour.allPossibleMoves[i]));
+		}
+
+		const rattataAlola = Dex.getExistingPokemon('Rattata-Alola');
+		const raticateAlola = Dex.getExistingPokemon('Raticate-Alola');
+		for (let i = 0; i < rattataAlola.allPossibleMoves.length; i++) {
+			assert(raticateAlola.allPossibleMoves.includes(rattataAlola.allPossibleMoves[i]));
+		}
+
 		/*
 		assertStrictEqual(Dex.getExistingPokemon('Arceus').tier, 'Uber');
 		assertStrictEqual(Dex.getExistingPokemon('Arceus-Bug').tier, 'Uber');

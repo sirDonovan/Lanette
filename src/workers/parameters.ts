@@ -216,7 +216,7 @@ export function init(): worker_threads.Worker {
 				tierDex[pokemon.tier].push(pokemon.species);
 			}
 
-			if (pokemon.pseudoLC) {
+			if (Dex.isPseudoLCPokemon(pokemon)) {
 				if (!tiers['lc']) tiers['lc'] = {type: 'tier', param: 'LC'};
 				if (!('LC' in tierDex)) tierDex['LC'] = [];
 				tierDex['LC'].push(pokemon.species);

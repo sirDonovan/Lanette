@@ -3,7 +3,7 @@ import path = require('path');
 
 import { Room } from './rooms';
 import { TeamValidator } from './team-validator';
-import { IAbility, IAbilityComputed, IAbilityCopy, IDataTable, IFormat, IFormatComputed, IFormatData, IFormatLinks, IGifData, IItem, IItemComputed, IItemCopy, IMove, IMoveComputed, IMoveCopy, INature, IPokemon, IPokemonComputed, IPokemonCopy, ISeparatedCustomRules } from './types/in-game-data-types';
+import { IAbility, IAbilityComputed, IAbilityCopy, IDataTable, IFormat, IFormatComputed, IFormatData, IFormatLinks, IGifData, IItem, IItemComputed, IItemCopy, IMove, IMoveComputed, IMoveCopy, INature, IPokemon, IPokemonComputed, IPokemonCopy, ISeparatedCustomRules, ITemplateData } from './types/in-game-data-types';
 
 const currentGen = 8;
 const currentGenString = 'gen' + currentGen;
@@ -986,12 +986,14 @@ export class Dex {
 		const isForme = baseSpecies !== templateData.species;
 
 		const allPossibleMoves: string[] = [];
+		let firstLearnsetParentData: ITemplateData = templateData;
 		if (this.data.learnsets.hasOwnProperty(id)) {
 			for (const i in this.data.learnsets[id]!.learnset) {
 				allPossibleMoves.push(i);
 			}
 		} else if (isForme) {
 			const basePokemon = this.getExistingPokemon(baseSpecies);
+			firstLearnsetParentData = this.data.pokedex[basePokemon.id]!;
 			if (basePokemon.learnset) {
 				for (const i in basePokemon.learnset) {
 					allPossibleMoves.push(i);
@@ -999,33 +1001,12 @@ export class Dex {
 			}
 		}
 
-		if (templateData.species === 'Lycanroc-Dusk') {
-			const prevo = this.getExistingPokemon('Rockruff-Dusk');
-			if (prevo.learnset) {
-				for (const i in prevo.learnset) {
-					if (!allPossibleMoves.includes(i)) allPossibleMoves.push(i);
-				}
+		let learnsetParent = this.getLearnsetParent(firstLearnsetParentData.species, firstLearnsetParentData.prevo, firstLearnsetParentData.inheritsFrom);
+		while (learnsetParent) {
+			for (const i in learnsetParent.learnset) {
+				if (!allPossibleMoves.includes(i)) allPossibleMoves.push(i);
 			}
-		} else {
-			const baseTemplateData = isForme ? this.data.pokedex[Tools.toId(baseSpecies)]! : templateData;
-			if (baseTemplateData.prevo) {
-				let prevo = Tools.toId(baseTemplateData.prevo);
-				while (prevo && this.data.pokedex.hasOwnProperty(prevo)) {
-					const prevoTemplateData = this.data.pokedex[prevo]!;
-					if (this.data.learnsets.hasOwnProperty(prevo)) {
-						for (const i in this.data.learnsets[prevo]!.learnset) {
-							if (!allPossibleMoves.includes(i)) allPossibleMoves.push(i);
-						}
-					}
-					prevo = Tools.toId(prevoTemplateData.prevo);
-				}
-			} else if (templateData.inheritsFrom) {
-				if (typeof templateData.inheritsFrom === 'string' && this.data.learnsets.hasOwnProperty(templateData.inheritsFrom)) {
-					for (const i in this.data.learnsets[templateData.inheritsFrom]!.learnset) {
-						if (!allPossibleMoves.includes(i)) allPossibleMoves.push(i);
-					}
-				}
-			}
+			learnsetParent = this.getLearnsetParent(learnsetParent.species, learnsetParent.prevo, learnsetParent.inheritsFrom);
 		}
 
 		const forme = templateData.forme || '';
@@ -1099,36 +1080,6 @@ export class Dex {
 			}
 		}
 
-		let pseudoLC = false;
-		// LC handling, checks for LC Pokemon in higher tiers that need to be handled separately,
-		// as well as event-only Pokemon that are not eligible for LC despite being the first stage
-		if (tier !== 'LC' && !templateData.prevo) {
-			const lcFormat = this.getFormat('lc');
-			if (!lcFormat || (!lcFormat.banlist.includes(templateData.species) && !lcFormat.banlist.includes(templateData.species + "-Base"))) {
-				let invalidEvent = true;
-				if (templateFormatsData.eventPokemon && templateFormatsData.eventOnly) {
-					for (const event of templateFormatsData.eventPokemon) {
-						if (event.level && event.level <= 5)  {
-							invalidEvent = false;
-							break;
-						}
-					}
-				}
-				let nfe = false;
-				if (!invalidEvent && templateData.evos) {
-					for (let i = 0; i < templateData.evos.length; i++) {
-						const evolution = this.getPokemon(templateData.evos[i]);
-						if (evolution && evolution.gen <= this.gen) {
-							nfe = true;
-							break;
-						}
-					}
-				}
-
-				if (!invalidEvent && nfe) pseudoLC = true;
-			}
-		}
-
 		const pokemonComputed: IPokemonComputed = {
 			allPossibleMoves,
 			baseSpecies,
@@ -1149,7 +1100,6 @@ export class Dex {
 			isPrimal,
 			name: templateData.species,
 			nfe: !!evos.length,
-			pseudoLC,
 			requiredItems: templateFormatsData.requiredItems || (templateFormatsData.requiredItem ? [templateFormatsData.requiredItem] : undefined),
 			shiny: false,
 			speciesid: speciesId,
@@ -1159,6 +1109,25 @@ export class Dex {
 		const pokemon: IPokemon = Object.assign({}, templateData, templateFormatsData, this.data.learnsets[id] || {}, pokemonComputed);
 		this.pokemonCache.set(id, pokemon);
 		return pokemon;
+	}
+
+	getLearnsetParent(species: string, prevo: string | undefined, inheritsFrom: string | readonly string[] | undefined): IPokemon | null {
+		if (species === 'Lycanroc-Dusk') {
+			return this.getPokemon('Rockruff-Dusk');
+		} else if (prevo) {
+			// there used to be a check for Hidden Ability here, but apparently it's unnecessary
+			// Shed Skin Pupitar can definitely evolve into Unnerve Tyranitar
+			const pokemon = this.getPokemon(prevo)!;
+			if (pokemon.gen > Math.max(2, this.gen)) return null;
+			return pokemon;
+		} else if (inheritsFrom) {
+			// For Pokemon like Rotom, Necrozma, and Gmax formes whose movesets are extensions are their base formes
+			if (Array.isArray(inheritsFrom)) {
+				throw new Error(`Ambiguous template ${species} passed to getLearnsetParent`);
+			}
+			return this.getPokemon(inheritsFrom as string);
+		}
+		return null;
 	}
 
 	getExistingPokemon(name: string): IPokemon {
@@ -1238,6 +1207,38 @@ export class Dex {
 			if (typeData && typeData.damageTaken[sourceType] === 3) return true;
 		}
 		return false;
+	}
+
+	isPseudoLCPokemon(pokemon: IPokemon): boolean {
+		// LC handling, checks for LC Pokemon in higher tiers that need to be handled separately,
+		// as well as event-only Pokemon that are not eligible for LC despite being the first stage
+		if (pokemon.tier === 'LC' || pokemon.prevo) return false;
+
+		const lcFormat = this.getFormat('lc');
+		if (lcFormat && (lcFormat.banlist.includes(pokemon.species) || lcFormat.banlist.includes(pokemon.species + "-Base"))) return false;
+
+		let invalidEvent = true;
+		if (pokemon.eventPokemon && pokemon.eventOnly) {
+			for (const event of pokemon.eventPokemon) {
+				if (event.level && event.level <= 5)  {
+					invalidEvent = false;
+					break;
+				}
+			}
+		}
+
+		let nfe = false;
+		if (!invalidEvent && pokemon.evos) {
+			for (let i = 0; i < pokemon.evos.length; i++) {
+				const evolution = this.getPokemon(pokemon.evos[i]);
+				if (evolution && evolution.gen <= this.gen) {
+					nfe = true;
+					break;
+				}
+			}
+		}
+
+		return !invalidEvent && nfe;
 	}
 
 	/**

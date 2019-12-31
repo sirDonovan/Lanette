@@ -434,7 +434,7 @@ export class TeamValidator {
 			}
 
 			// also check to see if the mon's prevo or freely switchable formes can learn this move
-			template = this.learnsetParent(template);
+			template = this.dex.getLearnsetParent(template.species, template.prevo, template.inheritsFrom);
 		}
 
 		if (limit1 && sketch) {
@@ -468,22 +468,6 @@ export class TeamValidator {
 		}
 
 		if (babyOnly) setSources.babyOnly = babyOnly;
-		return null;
-	}
-
-	learnsetParent(template: Template) {
-		if (template.species === 'Lycanroc-Dusk') {
-			return this.dex.getTemplate('Rockruff-Dusk');
-		} else if (template.prevo) {
-			// there used to be a check for Hidden Ability here, but apparently it's unnecessary
-			// Shed Skin Pupitar can definitely evolve into Unnerve Tyranitar
-			template = this.dex.getTemplate(template.prevo)!;
-			if (template.gen > Math.max(2, this.dex.gen)) return null;
-			return template;
-		} else if (template.inheritsFrom) {
-			// For Pokemon like Rotom, Necrozma, and Gmax formes whose movesets are extensions are their base formes
-			return this.dex.getTemplate(Array.isArray(template.inheritsFrom) ? template.inheritsFrom[0] : template.inheritsFrom);
-		}
 		return null;
 	}
 }
