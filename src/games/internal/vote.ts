@@ -24,7 +24,7 @@ export class Vote extends Game {
 				if (Array.isArray(format)) {
 					pastGames.push(database.pastGames[i].name);
 				} else {
-					pastGames.push(format.name);
+					pastGames.push(format.nameWithOptions);
 				}
 			}
 		}
