@@ -319,13 +319,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			aliases: ['skittys', 'ssh'],
 		},
 		{
-			name: "Smeargle's Move Parameters",
-			mascot: "Smeargle",
-			aliases: ['MoveParameters', 'MoveParams', 'Smeargles'],
-			description: "Players search for possible /movesearch parameters that result in the given move list!",
-			freejoin: true,
-		},
-		{
 			name: "Spot The Reference",
 			description: "Players must identify the source (who said it, movie/tv show title, etc.) of a quote",
 			aliases: ['str'],
