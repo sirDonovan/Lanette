@@ -12,7 +12,7 @@ import { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, I
 import { IPastGame } from './types/storage';
 import { User } from './users';
 
-const CATEGORY_COOLDOWN = 3;
+const DEFAULT_CATEGORY_COOLDOWN = 3;
 
 const gamesDirectory = path.join(__dirname, 'games');
 // tslint:disable-next-line no-var-requires
@@ -539,6 +539,9 @@ export class Games {
 			}
 		}
 
+		const limitVariants = format.variant && Config.limitGamesByVariant && Config.limitGamesByVariant.includes(room.id) ? true : false;
+		const limitModes = format.mode && Config.limitGamesByMode && Config.limitGamesByMode.includes(room.id) ? true : false;
+		const limitCategories = format.category && Config.limitGamesByCategory && Config.limitGamesByCategory.includes(room.id) ? true : false;
 		let pastGameCategory = false;
 		let categoryGamesBetween = 0;
 
@@ -549,14 +552,14 @@ export class Games {
 				continue;
 			}
 
-			if (format.variant && pastFormat.variant && format.variant.variant === pastFormat.variant.variant) {
+			if (limitVariants && format.variant && pastFormat.variant && format.variant.variant === pastFormat.variant.variant) {
 				return "There is another " + format.variant.variant + "-variant game on the past games list.";
 			}
-			if (format.mode && pastFormat.mode && format.mode.id === pastFormat.mode.id) {
+			if (limitModes && format.mode && pastFormat.mode && format.mode.id === pastFormat.mode.id) {
 				return "There is another " + format.mode.name + "-mode game on the past games list.";
 			}
 
-			if (format.category) {
+			if (limitCategories) {
 				if (pastFormat.category === format.category) {
 					pastGameCategory = true;
 					categoryGamesBetween = 0;
@@ -566,8 +569,9 @@ export class Games {
 			}
 		}
 
-		if (pastGameCategory && categoryGamesBetween < CATEGORY_COOLDOWN) {
-			const remainingGames = CATEGORY_COOLDOWN - categoryGamesBetween;
+		const categoryCooldown = Config.gameCategoryCooldowns && room.id in Config.gameCategoryCooldowns ? Config.gameCategoryCooldowns[room.id] : DEFAULT_CATEGORY_COOLDOWN;
+		if (pastGameCategory && categoryGamesBetween < categoryCooldown) {
+			const remainingGames = categoryCooldown - categoryGamesBetween;
 			return remainingGames + " more game" + (remainingGames > 1 ? "s" : "") + " must be played before another " + format.category + " game.";
 		}
 

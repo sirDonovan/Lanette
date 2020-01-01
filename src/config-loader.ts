@@ -55,6 +55,7 @@ export function load(config: typeof Config): typeof Config {
 
 	if (config.allowScriptedGames) config.allowScriptedGames = arrayToRoomIds(config.allowScriptedGames);
 	if (config.allowUserHostedGames) config.allowUserHostedGames = arrayToRoomIds(config.allowUserHostedGames);
+	if (config.gameCategoryCooldowns) objectKeysToRoomId(config.gameCategoryCooldowns);
 	if (config.gameCooldownTimers) objectKeysToRoomId(config.gameCooldownTimers);
 	if (config.maxUserHostedGameWinners) objectKeysToRoomId(config.maxUserHostedGameWinners);
 	if (config.maxUserHostedGameWinners) objectKeysToRoomId(config.maxUserHostedGameWinners);
@@ -62,6 +63,9 @@ export function load(config: typeof Config): typeof Config {
 	if (config.userHostCooldownTimers) objectKeysToRoomId(config.userHostCooldownTimers);
 	if (config.disallowCreatingPastGames) config.disallowCreatingPastGames = arrayToRoomIds(config.disallowCreatingPastGames);
 	if (config.disallowCreatingPreviousUserHostedGame) config.disallowCreatingPreviousUserHostedGame = arrayToRoomIds(config.disallowCreatingPreviousUserHostedGame);
+	if (config.limitGamesByVariant) config.limitGamesByVariant = arrayToRoomIds(config.limitGamesByVariant);
+	if (config.limitGamesByMode) config.limitGamesByMode = arrayToRoomIds(config.limitGamesByMode);
+	if (config.limitGamesByCategory) config.limitGamesByCategory = arrayToRoomIds(config.limitGamesByCategory);
 	if (config.awardedBotGreetingDurations) objectKeysToRoomId(config.awardedBotGreetingDurations);
 
 	if (config.allowTournaments) config.allowTournaments = arrayToRoomIds(config.allowTournaments);

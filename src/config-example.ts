@@ -176,6 +176,11 @@ export let allowUserHostedGames: string[] = [];
 export let disallowRepeatUserHostedGames: string[] = [];
 
 /**
+ * The number of games that must be played before a game category can be played again
+ */
+export let gameCategoryCooldowns: Dict<number> = {};
+
+/**
  * The number of minutes that must pass before starting consecutive scripted or user-hosted games
  */
 export let gameCooldownTimers: Dict<number> = {};
@@ -231,6 +236,21 @@ export let disallowCreatingPastGames: string[] = [];
  * A list of rooms (roomids) where the last user-hosted game cannot be the next scripted game
  */
 export let disallowCreatingPreviousUserHostedGame: string[] = [];
+
+/**
+ * A list of rooms (roomids) where variants on the past games list cannot be used
+ */
+export let limitGamesByVariant: string[] = [];
+
+/**
+ * A list of rooms (roomids) where modes on the past games list cannot be used
+ */
+export let limitGamesByMode: string[] = [];
+
+/**
+ * A list of rooms (roomids) where categories on the past games list cannot be created before a cooldown
+ */
+export let limitGamesByCategory: string[] = [];
 
 /**
  * A list of rooms (roomids) where messages will not be logged
