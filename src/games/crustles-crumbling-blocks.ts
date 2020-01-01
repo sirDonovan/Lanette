@@ -7,8 +7,9 @@ const MIN_BLOCKS = 1;
 const MAX_BLOCKS = 5;
 
 class CrustlesCrumblingBlocks extends Game {
-	currentPlayer: Player | null = null;
 	blocks: number = 0;
+	currentPlayer: Player | null = null;
+	minPlayers: number = 4;
 	order: Player[] = [];
 	playerList: Player[] = [];
 
