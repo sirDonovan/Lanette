@@ -1360,7 +1360,7 @@ export class Dex {
 		const top = Math.floor(num / 12) * 30;
 		const left = (num % 12) * 40;
 		const facingLeftStyle = facingLeft ? "transform:scaleX(-1);webkit-transform:scaleX(-1);" : "";
-		return '<span style="display: inline-block;width: 40px;height: 30px;background:transparent url(https://' + Tools.mainServer + '/sprites/smicons-sheet.png?a5) no-repeat scroll -' + left + 'px -' + top + 'px;' + facingLeftStyle + '"></span>';
+		return '<span style="display: inline-block;width: 40px;height: 30px;image-rendering: pixelated;background:transparent url(https://' + Tools.mainServer + '/sprites/pokemonicons-sheet.png?g8) no-repeat scroll -' + left + 'px -' + top + 'px;' + facingLeftStyle + '"></span>';
 	}
 
 	/*
