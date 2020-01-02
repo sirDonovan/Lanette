@@ -66,6 +66,8 @@ export class Games {
 	readonly modes: Dict<IGameMode> = {};
 	readonly modeAliases: Dict<string> = {};
 	reloadInProgress: boolean = false;
+	uhtmlScriptedCounts: Dict<number> = {};
+	uhtmlUserHostedCounts: Dict<number> = {};
 	readonly userHostedAliases: Dict<string> = {};
 	readonly userHostedFormats: Dict<IUserHostedComputed> = {};
 	readonly workers: IWorker[] = [];
@@ -76,6 +78,8 @@ export class Games {
 		if (previous.lastScriptedGames) this.lastScriptedGames = previous.lastScriptedGames;
 		if (previous.lastUserHostedGames) this.lastUserHostedGames = previous.lastUserHostedGames;
 		if (previous.lastUserHostTimes) this.lastUserHostTimes = previous.lastUserHostTimes;
+		if (previous.uhtmlScriptedCounts) this.uhtmlScriptedCounts = previous.uhtmlScriptedCounts;
+		if (previous.uhtmlUserHostedCounts) this.uhtmlUserHostedCounts = previous.uhtmlUserHostedCounts;
 	}
 
 	unrefWorkers() {

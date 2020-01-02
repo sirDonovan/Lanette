@@ -171,11 +171,17 @@ export class Game extends Activity {
 		return Tools.shuffle(array, this.prng);
 	}
 
+	setUhtmlBaseName(gameType: 'scripted' | 'userhosted') {
+		const counts = gameType === 'scripted' ? Games.uhtmlScriptedCounts : Games.uhtmlUserHostedCounts;
+		if (!(this.id in counts)) counts[this.id] = 0;
+		counts[this.id]++;
+		this.uhtmlBaseName = gameType + '-' + this.id + '-' + counts[this.id];
+	}
+
 	initialize(format: IGameFormat | IUserHostedFormat) {
 		this.format = format;
 		this.name = format.nameWithOptions || format.name;
 		this.id = format.id;
-		this.uhtmlBaseName = 'scripted-' + format.id;
 		this.description = format.description;
 		if (this.maxPlayers) this.playerCap = this.maxPlayers;
 
@@ -183,6 +189,8 @@ export class Game extends Activity {
 	}
 
 	onInitialize() {
+		this.setUhtmlBaseName('scripted');
+
 		const format = this.format as IGameFormat;
 		if (format.commands) Object.assign(this.commands, format.commands);
 		if (format.commandDescriptions) this.commandDescriptions = format.commandDescriptions;

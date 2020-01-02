@@ -28,8 +28,9 @@ export class UserHosted extends Game {
 	room!: Room;
 
 	onInitialize() {
+		this.setUhtmlBaseName('userhosted');
+
 		this.endTime = Date.now() + HOST_TIME_LIMIT;
-		this.uhtmlBaseName = 'userhosted-' + this.id;
 		if (this.format.link) this.description += "<br /><br /><b><a href='" + this.format.link + "'>More info</a></b>";
 		if (this.format.freejoin) this.format.options.freejoin = 1;
 	}
