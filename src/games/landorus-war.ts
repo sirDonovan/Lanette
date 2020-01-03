@@ -126,7 +126,11 @@ class LandorusWar extends Game {
 
 	getPlayerSummary(player: Player) {
 		if (player.eliminated) return;
-		player.say("You were assigned **" + this.playerPokemon.get(player)!.species + "** and you are the **" + this.playerAliases.get(player) + "**!");
+		const pokemon = this.playerPokemon.get(player);
+		if (!pokemon) return player.say("You have not been assigned a Pokemon yet.");
+		const alias = this.playerAliases.get(player);
+		if (!alias) return player.say("You have not been assigned an alias yet.");
+		player.say("You were assigned **" + pokemon.species + "** and you are the **" + alias + "**!");
 	}
 
 	getPlayerByAlias(alias: string, excludedPlayer: Player): Player | null {
