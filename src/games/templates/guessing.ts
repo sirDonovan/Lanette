@@ -7,10 +7,10 @@ import { GameFileTests, IGameFormat, IGameTemplateFile } from '../../types/games
 const MINIGAME_BITS = 25;
 
 export abstract class Guessing extends Game {
+	additionalHintHeader: string = '';
 	answers: string[] = [];
 	canGuess: boolean = false;
 	hint: string = '';
-	htmlHint: boolean | null = null;
 	readonly points: Map<Player, number> = new Map();
 	roundTime: number = 10 * 1000;
 
@@ -34,12 +34,18 @@ export abstract class Guessing extends Game {
 		}
 	}
 
+	getHintHtml(): string {
+		return "<div style='padding-bottom:8px'><span style='color: #999999'>" + this.name + (this.additionalHintHeader ? " " + this.additionalHintHeader : "") + "</span><br /><br />" + this.hint + "</div>";
+	}
+
 	async onNextRound() {
 		this.canGuess = false;
 		await this.setAnswers();
 		if (this.ended) return;
 
-		const onHint = () => {
+		const html = this.getHintHtml();
+		const uhtmlName = this.uhtmlBaseName + '-hint-' + this.round;
+		this.onUhtml(uhtmlName, html, () => {
 			this.canGuess = true;
 			this.timeout = setTimeout(() => {
 				if (this.answers.length) {
@@ -52,16 +58,8 @@ export abstract class Guessing extends Game {
 				}
 				this.nextRound();
 			}, this.roundTime);
-		};
-
-		if (this.htmlHint) {
-			const uhtmlName = this.uhtmlBaseName + '-hint';
-			this.onUhtml(uhtmlName, this.hint, onHint);
-			this.sayUhtml(uhtmlName, this.hint);
-		} else {
-			this.on(this.hint, onHint);
-			this.say(this.hint);
-		}
+		});
+		this.sayUhtml(uhtmlName, html);
 	}
 
 	async guessAnswer(player: Player, guess: string): Promise<string | false> {

@@ -77,7 +77,7 @@ class BeheeyemsMassEffect extends Guessing {
 		}
 		this.lastEffectiveness = effectiveness;
 		this.answers = effectivenessLists[effectiveness];
-		this.hint = "Randomly generated effectiveness: " + effectiveness;
+		this.hint = "<b>Randomly generated effectiveness</b>: <i>" + effectiveness + "</i>";
 	}
 }
 

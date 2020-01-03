@@ -1,5 +1,6 @@
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
+import { IMove } from "../types/in-game-data-types";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Miltank's Moves";
@@ -23,18 +24,21 @@ class MiltanksMoves extends Guessing {
 			if (availability >= Games.maxMoveAvailability) bannedMoves.push(move.id);
 		}
 
+		const moveCache: Dict<IMove> = {};
 		for (let i = 0; i < pokedex.length; i++) {
 			const pokemon = pokedex[i];
 			for (let i = 0; i < pokemon.allPossibleMoves.length; i++) {
-				const move = Dex.getExistingMove(pokemon.allPossibleMoves[i]);
+				if (!(pokemon.allPossibleMoves[i] in moveCache)) {
+					moveCache[pokemon.allPossibleMoves[i]] = Dex.getExistingMove(pokemon.allPossibleMoves[i]);
+				}
+				const move = moveCache[pokemon.allPossibleMoves[i]];
 				if (bannedMoves.includes(move.id)) continue;
-				const hint = "Name a move of **" + pokemon.species + "** that is **" + move.type + "** type!";
 				if (!(pokemon.species in data.moves)) {
 					data.moves[pokemon.species] = {};
 					data.pokemon.push(pokemon.species);
 				}
-				if (!(hint in data.moves[pokemon.species])) data.moves[pokemon.species][hint] = [];
-				data.moves[pokemon.species][hint].push(move.name);
+				if (!(move.type in data.moves[pokemon.species])) data.moves[pokemon.species][move.type] = [];
+				data.moves[pokemon.species][move.type].push(move.name);
 			}
 		}
 
@@ -49,8 +53,9 @@ class MiltanksMoves extends Guessing {
 
 	async setAnswers() {
 		const species = this.sampleOne(data.pokemon);
-		this.hint = this.sampleOne(Object.keys(data.moves[species]));
-		this.answers = data.moves[species][this.hint];
+		const type = this.sampleOne(Object.keys(data.moves[species]));
+		this.answers = data.moves[species][type];
+		this.hint = "<b>Randomly generated Pokemon and type</b>: <i>" + species + " - " + type + " type</i>";
 	}
 }
 

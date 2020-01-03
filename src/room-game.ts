@@ -299,13 +299,13 @@ export class Game extends Activity {
 		if (this.mascot) {
 			html += Dex.getPokemonIcon(this.mascot);
 		}
-		html += this.name;
+		html += "<span style='color: #999999'>" + this.name;
 		if (this.subGameNumber) html += " - Game " + this.subGameNumber;
-		html += " - " + (roundText || "Round " + this.round);
+		html += " - " + (roundText || "Round " + this.round) + "</span>";
 
 		if (!players) players = this.getRemainingPlayers();
 		const remainingPlayerCount = this.getRemainingPlayerCount(players);
-		if (remainingPlayerCount > 0) html += "<br />" + (!this.format.options.freejoin ? "Remaining players" : "Players") + " (" + remainingPlayerCount + "): " + getAttributes.call(this, players);
+		if (remainingPlayerCount > 0) html += "<br /><br />" + (!this.format.options.freejoin ? "Remaining players" : "Players") + " (" + remainingPlayerCount + "): " + getAttributes.call(this, players);
 		html += "</div>";
 
 		return html;

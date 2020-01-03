@@ -84,7 +84,7 @@ class FeraligatrsLostLetters extends Guessing {
 			if (name === answer) continue;
 			if (this.removeLetters(name.split(''), isInverse) === hint) this.answers.push(name);
 		}
-		this.hint = '[**' + category + '**] __' + hint + '__';
+		this.hint = '<b>' + category + '</b>: <i>' + hint + '</i>';
 	}
 }
 

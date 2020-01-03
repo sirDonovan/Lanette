@@ -58,9 +58,9 @@ class SlowkingsTrivia extends Guessing {
 
 	async setAnswers() {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
-		const question = this.sampleOne(categoryKeys[category]);
-		this.answers = data[category][question];
-		this.hint = "[**" + category + "**] " + question;
+		const description = this.sampleOne(categoryKeys[category]);
+		this.answers = data[category][description];
+		this.hint = "<b>" + category + "</b>: <i>" + description + "</i>";
 	}
 }
 

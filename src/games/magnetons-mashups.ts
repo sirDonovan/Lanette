@@ -71,7 +71,7 @@ class MagnetonsMashups extends Guessing {
 			return;
 		}
 		this.answers = [pokemon[0] + ' & ' + pokemon[1]];
-		this.hint = "**" + mashup + "**";
+		this.hint = "<b>" + mashup + "</b>";
 	}
 }
 

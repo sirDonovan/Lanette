@@ -25,7 +25,6 @@ export class ParasParameters extends Guessing {
 
 	currentNumberOfParams: number = 0;
 	customParamTypes: ParametersWorker.ParamType[] | null = null;
-	htmlHint = true;
 	minimumResults: number = 3;
 	maximumResults: number = 50;
 	params: ParametersWorker.IParam[] = [];
@@ -97,24 +96,21 @@ export class ParasParameters extends Guessing {
 			this.say("Invalid params specified.");
 			this.deallocate(true);
 		} else {
-			this.answers = [this.getParamNames(result.params).join(',')];
 			this.params = result.params;
 			this.pokemon = result.pokemon;
-			this.hint = this.getParamsHtml(this.params, this.pokemon);
 			this.prng = new PRNG(result.prngSeed);
-		}
-	}
 
-	getParamsHtml(params: ParametersWorker.IParam[], pokemon: string[]) {
-		let oldGen = '';
-		if (this.format.options.gen && this.format.options.gen !== Dex.gen) oldGen = " (Generation " + this.format.options.gen + ")";
-		let html = "<div class='infobox'><span style='color: #999999'>" + params.length + " params" + oldGen + ":</span><br />";
-		const pokemonIcons: string[] = [];
-		for (let i = 0; i < pokemon.length; i++) {
-			pokemonIcons.push('<psicon pokemon="' + pokemon[i] + '" style="vertical-align: -7px;margin: -2px" />' + Dex.getExistingPokemon(pokemon[i]).species);
+			this.answers = [this.getParamNames(result.params).join(',')];
+			let oldGen = '';
+			if (this.format.options.gen && this.format.options.gen !== Dex.gen) oldGen = " (Generation " + this.format.options.gen + ")";
+			this.additionalHintHeader = "- " + this.params.length + " params" + oldGen + ":";
+
+			const pokemonIcons: string[] = [];
+			for (let i = 0; i < result.pokemon.length; i++) {
+				pokemonIcons.push('<psicon pokemon="' + result.pokemon[i] + '" style="vertical-align: -7px;margin: -2px" />' + Dex.getExistingPokemon(result.pokemon[i]).species);
+			}
+			this.hint = pokemonIcons.join(", ");
 		}
-		html += pokemonIcons.join(", ") + "</div>";
-		return html;
 	}
 
 	getAnswers(givenAnswer: string, finalAnswer?: boolean): string {

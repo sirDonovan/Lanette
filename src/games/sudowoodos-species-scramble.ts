@@ -34,7 +34,7 @@ class SudowoodosSpeciesScramble extends Guessing {
 	async setAnswers() {
 		const category = this.sampleOne(categoryKeys);
 		this.answers = data.categories[category];
-		this.hint = "Sudowoodo imitated the **" + category + " Pokemon**!";
+		this.hint = "<b>Sudowoodo imitated</b>: <i>the " + category + " Pokemon</i>";
 	}
 }
 

@@ -43,7 +43,7 @@ class MetangsAnagrams extends Guessing {
 		while (hint.join("") === id) {
 			hint = this.shuffle(letters);
 		}
-		this.hint = '[**' + category + '**] __' + hint.join(", ") + '__.';
+		this.hint = '<b>' + category + '</b>: <i>' + hint.join(", ") + '</i>';
 	}
 }
 

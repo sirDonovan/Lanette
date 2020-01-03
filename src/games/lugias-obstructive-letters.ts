@@ -87,7 +87,7 @@ class LugiasObstructiveLetters extends Guessing {
 			}
 		}
 		this.answers = answers;
-		this.hint = "[**" + category! + "**] " + unavailableLetters.map(letter => letter.toUpperCase()).join(", ");
+		this.hint = "<b>" + category! + "</b>: <i>" + unavailableLetters.map(letter => letter.toUpperCase()).join(", ") + "</i>";
 	}
 
 	getPointsForAnswer(answer: string): number {

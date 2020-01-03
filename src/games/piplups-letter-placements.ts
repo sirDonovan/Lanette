@@ -49,7 +49,7 @@ class PiplupsLetterPlacements extends Guessing {
 			if (Tools.toId(data[category][i]).includes(letters)) this.answers.push(data[category][i]);
 		}
 
-		this.hint = '[**' + category + '**] __' + letters + '__';
+		this.hint = '<b>' + category + '</b>: <i>' + letters + '</i>';
 	}
 }
 

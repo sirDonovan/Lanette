@@ -57,31 +57,9 @@ export class PoliwrathsPortmanteaus extends Guessing {
 			this.answers = result.answers;
 			this.answerParts = result.answerParts;
 			this.ports = result.ports;
-			this.hint = "**" + result.ports.join(" ") + "**";
+			this.hint = "<b>" + result.ports.join(" ") + "</b>";
 			this.prng = new PRNG(result.prngSeed);
 		}
-	}
-
-	async onNextRound() {
-		this.canGuess = false;
-		await this.setAnswers();
-		if (this.ended) return;
-
-		this.on(this.hint, () => {
-			this.canGuess = true;
-			this.timeout = setTimeout(() => {
-				if (this.answers.length) {
-					this.say("Time is up! " + this.getAnswers(''));
-					this.answers = [];
-					if (this.isMiniGame) {
-						this.end();
-						return;
-					}
-				}
-				this.nextRound();
-			}, this.roundTime);
-		});
-		this.say(this.hint);
 	}
 
 	getAnswers(givenAnswer: string, finalAnswer?: boolean): string {

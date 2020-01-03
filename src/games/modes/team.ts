@@ -123,10 +123,14 @@ class Team {
 		}
 
 		await this.setAnswers();
+		if (this.ended) return;
+
 		const text = Tools.joinList(Object.values(this.currentPlayers).map(x => x.name)) + ", you are up!";
 		this.on(text, () => {
 			this.timeout = setTimeout(() => {
-				const onHint = () => {
+				const html = this.getHintHtml();
+				const uhtmlName = this.uhtmlBaseName + '-hint-' + this.round;
+				this.onUhtml(uhtmlName, html, () => {
 					this.canGuess = true;
 					this.timeout = setTimeout(() => {
 						if (this.answers.length) {
@@ -135,15 +139,8 @@ class Team {
 						}
 						this.nextRound();
 					}, this.roundTime);
-				};
-				if (this.htmlHint) {
-					const uhtmlName = this.uhtmlBaseName + '-hint';
-					this.onUhtml(uhtmlName, this.hint, onHint);
-					this.sayUhtml(uhtmlName, this.hint);
-				} else {
-					this.on(this.hint, onHint);
-					this.say(this.hint);
-				}
+				});
+				this.sayUhtml(uhtmlName, html);
 			}, 5 * 1000);
 		});
 		this.say(text);

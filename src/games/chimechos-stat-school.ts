@@ -34,7 +34,7 @@ class ChimechosStatSchool extends Guessing {
 	async setAnswers() {
 		const stats = this.sampleOne(statsKeys);
 		this.answers = data.stats[stats];
-		this.hint = "**Base stats**: " + stats;
+		this.hint = "<b>Randomly generated base stats</b>: <i>" + stats + "</i>";
 	}
 }
 

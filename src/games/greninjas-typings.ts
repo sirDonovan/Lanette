@@ -52,7 +52,7 @@ class GreninjasTypings extends Guessing {
 		}
 		this.lastTyping = typing;
 		this.answers = answers;
-		this.hint = "Randomly generated typing: **" + typing + "**";
+		this.hint = "<b>Randomly generated typing</b>: <i>" + typing + "</i>";
 	}
 }
 

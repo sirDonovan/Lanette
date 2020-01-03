@@ -83,7 +83,7 @@ class EkansEdges extends Guessing {
 			edge = this.sampleOne(dataKeys[category]);
 		}
 		this.answers = data[category][edge];
-		this.hint = "[**" + category + "**] " + edge;
+		this.hint = "<b>" + category + "</b>: <i>" + edge + "</i>";
 	}
 }
 

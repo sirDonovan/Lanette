@@ -78,7 +78,7 @@ class KyuremsSplits extends Guessing {
 				}
 			}
 		}
-		this.hint = "[**" + category + "**]: " + hint.toUpperCase();
+		this.hint = "<b>" + category + "</b>: <i>" + hint.toUpperCase() + "</i>";
 	}
 }
 

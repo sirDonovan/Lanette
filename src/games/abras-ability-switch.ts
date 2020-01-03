@@ -57,7 +57,7 @@ class AbrasAbilitySwitch extends Guessing {
 			}
 		}
 		this.answers = answers;
-		this.hint = "Abra wants the ability **" + ability + "**!";
+		this.hint = "<b>Abra wants the ability</b>: <i>" + ability + "</i>";
 	}
 }
 
