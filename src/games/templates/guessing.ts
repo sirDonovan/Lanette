@@ -35,7 +35,7 @@ export abstract class Guessing extends Game {
 	}
 
 	getHintHtml(): string {
-		return "<div style='padding-bottom:8px'><span style='color: #999999'>" + this.name + (this.additionalHintHeader ? " " + this.additionalHintHeader : "") + "</span><br /><br />" + this.hint + "</div>";
+		return "<div style='padding-bottom:8px'><span style='color: #999999'>" + this.name + (this.isMiniGame ? " (minigame)" : "") + (this.additionalHintHeader ? " " + this.additionalHintHeader : "") + "</span><br /><br />" + this.hint + "</div>";
 	}
 
 	async onNextRound() {
