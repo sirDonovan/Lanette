@@ -120,11 +120,13 @@ const commands: Dict<ICommandDefinition> = {
 						const dex: typeof import('./dex') = require('./dex');
 						global.Dex = new dex.Dex();
 					} else if (modules[i] === 'games') {
+						const oldGames = global.Games;
 						Games.unrefWorkers();
 						Tools.uncacheTree('./games');
 						Tools.uncacheTree('./room-activity');
 						const games: typeof import('./games') = require('./games');
 						global.Games = new games.Games();
+						Games.onReload(oldGames);
 						Games.loadFormats();
 					} else if (modules[i] === 'storage') {
 						const oldStorage = global.Storage;
