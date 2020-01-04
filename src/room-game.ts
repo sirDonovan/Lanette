@@ -294,7 +294,7 @@ export class Game extends Activity {
 		if (this.onNextRound) this.onNextRound();
 	}
 
-	getRoundHtml(getAttributes: (players: PlayerList) => string, players?: PlayerList | null, roundText?: string): string {
+	getRoundHtml(getAttributes: (players: PlayerList) => string, players?: PlayerList | null, roundText?: string, attributeText?: string): string {
 		let html = '<div class="infobox">';
 		if (this.mascot) {
 			html += Dex.getPokemonIcon(this.mascot);
@@ -304,8 +304,14 @@ export class Game extends Activity {
 		html += " - " + (roundText || "Round " + this.round) + "</span>";
 
 		if (!players) players = this.getRemainingPlayers();
-		const remainingPlayerCount = this.getRemainingPlayerCount(players);
-		if (remainingPlayerCount > 0) html += "<br /><br />" + (!this.format.options.freejoin ? "Remaining players" : "Players") + " (" + remainingPlayerCount + "): " + getAttributes.call(this, players);
+		const attributes = getAttributes.call(this, players);
+
+		if (!attributeText) {
+			const remainingPlayerCount = this.getRemainingPlayerCount(players);
+			if (remainingPlayerCount > 0) attributeText = (!this.format.options.freejoin ? "Remaining players" : "Players") + " (" + remainingPlayerCount + ")";
+		}
+
+		if (attributes || attributeText) html += "<br /><br />" + (attributeText ? attributeText : "") + (attributes ? (attributeText ? ": " : "") + attributes : "");
 		html += "</div>";
 
 		return html;
