@@ -109,7 +109,7 @@ export class ParasParameters extends Guessing {
 			for (let i = 0; i < result.pokemon.length; i++) {
 				pokemonIcons.push('<psicon pokemon="' + result.pokemon[i] + '" style="vertical-align: -7px;margin: -2px" />' + Dex.getExistingPokemon(result.pokemon[i]).species);
 			}
-			this.hint = pokemonIcons.join(", ");
+			this.hint = "<div class='infobox'>" + pokemonIcons.join(", ") + "</div>";
 		}
 	}
 
