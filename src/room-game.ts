@@ -1,6 +1,6 @@
 import { CommandsDict } from "./command-parser";
 import { PRNG, PRNGSeed } from "./prng";
-import { Activity, Player, PlayerList } from "./room-activity";
+import { Activity, Player, PlayerList, PlayerTeam } from "./room-activity";
 import { Room } from "./rooms";
 import { IGameFormat, IGameMode, IGameVariant, IUserHostedFormat } from "./types/games";
 import { IPokemonCopy } from "./types/in-game-data-types";
@@ -27,6 +27,14 @@ interface IGameCommandCountListener extends IGameCommandCountOptions {
 
 const JOIN_BITS = 10;
 const SIGNUPS_HTML_DELAY = 2 * 1000;
+
+const teamNameLists: Dict<string[][]> = {
+	'2': [["Red", "Blue"], ["Gold", "Silver"], ["Ruby", "Sapphire"], ["Diamond", "Pearl"], ["Black", "White"], ["X", "Y"], ["Sun", "Moon"], ["Sword", "Shield"], ["Land", "Sea"],
+		["Time", "Space"], ["Yin", "Yang"], ["Life", "Destruction"], ["Sunne", "Moone"]],
+	'3': [["Red", "Blue", "Yellow"], ["Gold", "Silver", "Crystal"], ["Ruby", "Sapphire", "Emerald"], ["Diamond", "Pearl", "Platinum"], ["Land", "Sea", "Sky"],
+		["Time", "Space", "Antimatter"], ["Yin", "Yang", "Wuji"], ["Life", "Destruction", "Order"], ["Sunne", "Moone", "Prism"]],
+	'4': [["Red", "Blue", "Yellow", "Green"], ["Fall", "Winter", "Spring", "Summer"], ["Water", "Fire", "Earth", "Air"], ["Clubs", "Spades", "Hearts", "Diamonds"]],
+};
 
 // base of 0 defaults option to 'off'
 const defaultOptionValues: Dict<IGameOptionValues> = {
@@ -636,6 +644,30 @@ export class Game extends Activity {
 		return this.players[this.sampleOne(Object.keys(this.getRemainingPlayers(players)))];
 	}
 
+	generateTeams(numberOfTeams: number, players?: PlayerList): Dict<PlayerTeam> {
+		const teams: Dict<PlayerTeam> = {};
+		const playerList = this.shufflePlayers(players);
+		const teamNames = this.sampleOne(teamNameLists['' + numberOfTeams]);
+		const teamIds: string[] = [];
+
+		for (let i = 0; i < numberOfTeams; i++) {
+			const id = Tools.toId(teamNames[i]);
+			teams[id] = new PlayerTeam(teamNames[i]);
+			teamIds.push(id);
+		}
+
+		while (playerList.length) {
+			for (let i = 0; i < numberOfTeams; i++) {
+				const player = playerList.shift();
+				if (!player) break;
+				teams[teamIds[i]].players.push(player);
+				player.team = teams[teamIds[i]];
+			}
+		}
+
+		return teams;
+	}
+
 	getPlayerLives(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => {
 			const lives = this.lives!.get(player) || this.startingLives;
@@ -655,6 +687,31 @@ export class Game extends Activity {
 			const wins = this.winners.get(player);
 			return player.name + (wins ? " (" + wins + ")" : "");
 		}, players).join(', ');
+	}
+
+	getTeamPlayers(teams: Dict<PlayerTeam>, players?: PlayerList): Dict<string[]> {
+		players = this.getPlayerList(players);
+		const teamPlayers: Dict<string[]> = {};
+		for (const i in teams) {
+			const team = teams[i];
+			teamPlayers[team.id] = [];
+			for (let i = 0; i < team.players.length; i++) {
+				if (players.includes(team.players[i])) teamPlayers[team.id].push(team.players[i].name);
+			}
+		}
+
+		return teamPlayers;
+	}
+
+	getTeamPlayerNames(teams: Dict<PlayerTeam>, players?: PlayerList): string {
+		const teamPlayers = this.getTeamPlayers(teams, players);
+
+		const output: string[] = [];
+		const teamKeys = Object.keys(teams).sort();
+		for (let i = 0; i < teamKeys.length; i++) {
+			output.push("<b>" + teams[teamKeys[i]].name + "</b>: " + Tools.joinList(teamPlayers[teamKeys[i]]));
+		}
+		return output.join(" | ");
 	}
 
 	getPlayerSummary?(player: Player): void;

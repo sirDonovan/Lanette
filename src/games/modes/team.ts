@@ -11,14 +11,6 @@ const name = 'Team';
 const description = 'Players will be split into teams once the game starts!';
 const removedOptions: string[] = ['points', 'freejoin'];
 
-const teamNameLists: Dict<string[][]> = {
-	'2': [["Red", "Blue"], ["Gold", "Silver"], ["Ruby", "Sapphire"], ["Diamond", "Pearl"], ["Black", "White"], ["X", "Y"], ["Sun", "Moon"], ["Sword", "Shield"], ["Land", "Sea"],
-		["Time", "Space"], ["Yin", "Yang"], ["Life", "Destruction"], ["Sunne", "Moone"]],
-	'3': [["Red", "Blue", "Yellow"], ["Gold", "Silver", "Crystal"], ["Ruby", "Sapphire", "Emerald"], ["Diamond", "Pearl", "Platinum"], ["Land", "Sea", "Sky"],
-		["Time", "Space", "Antimatter"], ["Yin", "Yang", "Wuji"], ["Life", "Destruction", "Order"], ["Sunne", "Moone", "Prism"]],
-	'4': [["Red", "Blue", "Yellow", "Green"], ["Fall", "Winter", "Spring", "Summer"], ["Water", "Fire", "Earth", "Air"], ["Clubs", "Spades", "Hearts", "Diamonds"]],
-};
-
 type TeamThis = Guessing & Team;
 
 class Team {
@@ -44,31 +36,28 @@ class Team {
 		}
 	}
 
-	teams: Dict<PlayerTeam> = {};
-	teamPoints: Dict<number> = {};
 	currentPlayers: Dict<Player> = {};
+	minPlayers: number = 4;
 	playerOrders: Dict<Player[]> = {};
 	playerLists: Dict<Player[]> = {};
-	minPlayers: number = 4;
+	teamPoints: Dict<number> = {};
+	teamRound: number = 0;
+	teams: Dict<PlayerTeam> = {};
+
+	// set in onStart()
+	largestTeam!: PlayerTeam;
 
 	setTeams(this: TeamThis) {
-		const teamNames = this.sampleOne(teamNameLists['' + this.format.options.teams]);
-		const players = this.shufflePlayers();
-		while (players.length) {
-			for (let i = 0; i < teamNames.length; i++) {
-				const player = players.shift();
-				if (!player) break;
-				const name = teamNames[i];
-				const id = Tools.toId(name);
-				if (!(id in this.teams)) {
-					const team = new PlayerTeam(name);
-					this.teams[id] = team;
-					this.playerOrders[id] = [];
-					this.playerLists[id] = [];
-				}
-				this.teams[id].players.push(player);
-				player.team = this.teams[id];
-			}
+		this.teams = this.generateTeams(this.format.options.teams);
+
+		const teamIds = Object.keys(this.teams);
+		this.largestTeam = this.teams[teamIds[0]];
+
+		for (let i = 0; i < teamIds.length; i++) {
+			const team = this.teams[teamIds[i]];
+			if (team.players.length > this.largestTeam.players.length) this.largestTeam = team;
+			this.playerOrders[team.id] = [];
+			this.playerLists[team.id] = [];
 		}
 
 		for (const i in this.players) {
@@ -76,11 +65,13 @@ class Team {
 			if (player.eliminated) continue;
 			this.playerOrders[player.team!.id].push(player);
 		}
+
 		for (const team in this.playerOrders) {
 			this.playerOrders[team] = this.shuffle(this.playerOrders[team]);
 		}
+
 		for (const team in this.teams) {
-			this.say("**Team " + this.teams[team].name + "**: " + this.teams[team].getPlayerNames().join(", "));
+			this.say("**Team " + this.teams[team].name + "**: " + Tools.joinList(this.teams[team].getPlayerNames()));
 		}
 	}
 
@@ -92,18 +83,23 @@ class Team {
 	async onNextRound(this: TeamThis) {
 		this.canGuess = false;
 
+		let largestTeamPlayersCycled = false;
 		let emptyTeams = 0;
-		for (const team in this.teams) {
-			if (!this.getRemainingPlayerCount(this.playerOrders[team])) {
-				delete this.currentPlayers[team];
+		for (const id in this.teams) {
+			const team = this.teams[id];
+			if (!this.getRemainingPlayerCount(this.playerOrders[team.id])) {
+				delete this.currentPlayers[team.id];
 				emptyTeams++;
 			} else {
-				let player = this.playerLists[team].shift();
+				let player = this.playerLists[team.id].shift();
 				while (!player || player.eliminated) {
-					if (!this.playerLists[team].length) this.playerLists[team] = this.shuffle(this.playerOrders[team]);
-					player = this.playerLists[team].shift();
+					if (!this.playerLists[team.id].length) {
+						if (team === this.largestTeam) largestTeamPlayersCycled = true;
+						this.playerLists[team.id] = this.shuffle(this.playerOrders[team.id]);
+					}
+					player = this.playerLists[team.id].shift();
 				}
-				this.currentPlayers[team] = player;
+				this.currentPlayers[team.id] = player;
 			}
 		}
 
@@ -143,7 +139,27 @@ class Team {
 				this.sayUhtml(uhtmlName, html);
 			}, 5 * 1000);
 		});
-		this.say(text);
+
+		if (largestTeamPlayersCycled) {
+			this.teamRound++;
+			const html = this.getRoundHtml(this.getTeamPoints, undefined, 'Round ' + this.teamRound, "Team standings");
+			const uhtmlName = this.uhtmlBaseName + '-round-html';
+			this.onUhtml(uhtmlName, html, () => {
+				this.timeout = setTimeout(() => this.say(text), 5 * 1000);
+			});
+			this.sayUhtml(uhtmlName, html);
+		} else {
+			this.say(text);
+		}
+	}
+
+	getTeamPoints(): string {
+		const points: string[] = [];
+		for (const i in this.teams) {
+			points.push("<b>" + this.teams[i].name + "</b>: " + this.teams[i].points);
+		}
+
+		return points.join(" | ");
 	}
 
 	onEnd(this: TeamThis) {

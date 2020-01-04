@@ -93,7 +93,7 @@ export const game: IGameFile<OctillerysAmbush> = {
 	commandDescriptions: [Config.commandCharacter + "fire [player]"],
 	commands,
 	class: OctillerysAmbush,
-	description: "Players await the <code>FIRE</code> signal to eliminate their opponents with their Remoraid!",
+	description: "Players await Octillery's <code>FIRE</code> signal to eliminate their opponents with their Remoraid!",
 	formerNames: ["Ambush"],
 	name: "Octillery's Ambush",
 	mascot: "Octillery",

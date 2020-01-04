@@ -168,12 +168,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			approvedHostOnly: true,
 		},
 		{
-			name: "Jigglypuff's Dodgeball",
-			mascot: "Jigglypuff",
-			aliases: ['Dodgeball', 'Jigglypuffs'],
-			description: "Players await Jigglypuff's THROW signal to eliminate the opposing team!",
-		},
-		{
 			name: "Jynx's Klutsy Kissing",
 			mascot: "Jynx",
 			aliases: ['JKK'],
