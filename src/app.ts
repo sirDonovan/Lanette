@@ -1,6 +1,9 @@
 import * as tools from './tools';
 global.Tools = new tools.Tools();
 
+// PS compatability
+global.toID = Tools.toId;
+
 // @ts-ignore - generated after first run
 import * as config from './config';
 import * as ConfigLoader from './config-loader';

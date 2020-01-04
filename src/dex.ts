@@ -108,8 +108,12 @@ const tagNames: Dict<string> = {
 	'past': 'Past',
 	'future': 'Future',
 	'lgpe': 'LGPE',
-	'pokestar': 'PokeStar',
+	'unobtainable': 'Unobtainable',
 	'custom': 'Custom',
+	'allpokemon': 'All Pokemon',
+	'allitems': 'All Items',
+	'allmoves': 'All Moves',
+	'allabilities': 'All Abilities',
 };
 
 const clauseNicknames: Dict<string> = {
@@ -153,10 +157,21 @@ export type ComplexTeamBan = ComplexBan;
  * The value is the name of the parent rule (blank for the active format).
  */
 export class RuleTable extends Map<string, string> {
-	complexBans: ComplexBan[] = [];
-	complexTeamBans: ComplexTeamBan[] = [];
-	checkLearnset: [(...args: any) => any, string] | null = null;
-	timer: [Partial<IGameTimerSettings>, string] | null = null;
+	complexBans: ComplexBan[];
+	complexTeamBans: ComplexTeamBan[];
+	// tslint:disable-next-line:ban-types
+	checkLearnset: [Function, string] | null;
+	timer: [any, string] | null;
+	minSourceGen: [number, string] | null;
+
+	constructor() {
+		super();
+		this.complexBans = [];
+		this.complexTeamBans = [];
+		this.checkLearnset = null;
+		this.timer = null;
+		this.minSourceGen = null;
+	}
 
 	isBanned(thing: string) {
 		if (this.has(`+${thing}`)) return false;
@@ -1491,8 +1506,11 @@ export class Dex {
 		return validatedFormatid;
 	}
 
-	getRuleTable(format: IFormat, depth: number = 0): RuleTable {
-		if (format.ruleTable) return format.ruleTable;
+	getRuleTable(format: IFormat, depth: number = 1, repeals?: Map<string, number>): RuleTable {
+		if (format.ruleTable && !repeals) return format.ruleTable;
+		if (depth === 1 && dexes[format.mod || 'base'] !== this) {
+			return this.mod(format.mod).getRuleTable(format, depth + 1);
+		}
 		const ruleTable = new RuleTable();
 
 		const ruleset = format.ruleset.slice();
@@ -1511,19 +1529,23 @@ export class Dex {
 		if (format.timer) {
 			ruleTable.timer = [format.timer, format.name];
 		}
+		if (format.minSourceGen) {
+			ruleTable.minSourceGen = [format.minSourceGen, format.name];
+		}
 
 		// apply rule repeals before other rules
+		// repeals is a ruleid:depth map
 		for (const rule of ruleset) {
 			if (rule.startsWith('!')) {
 				const ruleSpec = this.validateRule(rule, format) as string;
-				ruleTable.set(ruleSpec, '');
+				if (!repeals) repeals = new Map();
+				repeals.set(ruleSpec.slice(1), depth);
 			}
 		}
 
 		for (const rule of ruleset) {
-			if (rule.startsWith('!')) continue;
-
 			const ruleSpec = this.validateRule(rule, format);
+
 			if (typeof ruleSpec !== 'string') {
 				if (ruleSpec[0] === 'complexTeamBan') {
 					const complexTeamBan: ComplexTeamBan = ruleSpec.slice(1) as ComplexTeamBan;
@@ -1536,30 +1558,50 @@ export class Dex {
 				}
 				continue;
 			}
-			if ("!+-".includes(ruleSpec.charAt(0))) {
+
+			if (rule.startsWith('!')) {
+				const repealDepth = repeals!.get(ruleSpec.slice(1));
+				if (repealDepth === undefined) throw new Error(`Multiple "${rule}" rules in ${format.name}`);
+				if (repealDepth === depth) throw new Error(`Rule "${rule}" did nothing because "${rule.slice(1)}" is not in effect`);
+				if (repealDepth === -depth) repeals!.delete(ruleSpec.slice(1));
+				continue;
+			}
+
+			if ("+-".includes(ruleSpec.charAt(0))) {
 				if (ruleSpec.startsWith('+')) ruleTable.delete('-' + ruleSpec.slice(1));
 				if (ruleSpec.startsWith('-')) ruleTable.delete('+' + ruleSpec.slice(1));
+				if (ruleTable.has(ruleSpec)) {
+					throw new Error(`Rule "${rule}" was added by "${format.name}" but already exists in "${ruleTable.get(ruleSpec) || format.name}"`);
+				}
 				ruleTable.set(ruleSpec, '');
 				continue;
 			}
 			const subformat = this.getFormat(ruleSpec);
-			if (!subformat) {
-				ruleTable.set(Tools.toId(ruleSpec), '');
+			const subformatId = subformat ? subformat.id : Tools.toId(ruleSpec);
+			if (repeals && repeals.has(subformatId)) {
+				repeals.set(subformatId, -Math.abs(repeals.get(subformatId)!));
 				continue;
 			}
-
-			if (ruleTable.has('!' + subformat.id)) continue;
-			ruleTable.set(subformat.id, '');
+			if (ruleTable.has(subformatId)) {
+				throw new Error(`Rule "${rule}" was added by "${format.name}" but already exists in "${ruleTable.get(subformatId) || format.name}"`);
+			}
+			ruleTable.set(subformatId, '');
+			if (!subformat) continue;
 			if (depth > 16) {
 				throw new Error(`Excessive ruleTable recursion in ${format.name}: ${ruleSpec} of ${format.ruleset}`);
 			}
-			const subRuleTable = this.getRuleTable(subformat, depth + 1);
+			const subRuleTable = this.getRuleTable(subformat, depth + 1, repeals);
 			for (const [k, v] of subRuleTable) {
-				if (!ruleTable.has('!' + k)) ruleTable.set(k, v || subformat.name);
+				// don't check for "already exists" here; multiple inheritance is allowed
+				if (!(repeals && repeals.has(k))) {
+					ruleTable.set(k, v || subformat.name);
+				}
 			}
+			// tslint:disable-next-line:no-shadowed-variable
 			for (const [rule, source, limit, bans] of subRuleTable.complexBans) {
 				ruleTable.addComplexBan(rule, source || subformat.name, limit, bans);
 			}
+			// tslint:disable-next-line:no-shadowed-variable
 			for (const [rule, source, limit, bans] of subRuleTable.complexTeamBans) {
 				ruleTable.addComplexTeamBan(rule, source || subformat.name, limit, bans);
 			}
@@ -1578,6 +1620,17 @@ export class Dex {
 						`"${ruleTable.timer[1]}" and "${subRuleTable.timer[1]}"`);
 				}
 				ruleTable.timer = subRuleTable.timer;
+			}
+			// minSourceGen is automatically ignored if higher than current gen
+			// this helps the common situation where Standard has a minSourceGen in the
+			// latest gen but not in any past gens
+			if (subRuleTable.minSourceGen && subRuleTable.minSourceGen[0] <= this.gen) {
+				if (ruleTable.minSourceGen) {
+					throw new Error(
+						`"${format.name}" has conflicting minSourceGen from ` +
+						`"${ruleTable.minSourceGen[1]}" and "${subRuleTable.minSourceGen[1]}"`);
+				}
+				ruleTable.minSourceGen = subRuleTable.minSourceGen;
 			}
 		}
 
@@ -1667,7 +1720,7 @@ export class Dex {
 			if (table.hasOwnProperty(id)) {
 				if (matchType === 'pokemon') {
 					const template: IPokemon = (table[id] as unknown) as IPokemon;
-					if (template.otherFormes) {
+					if (template.otherFormes && ruleid !== template.id + Tools.toId(template.baseForme)) {
 						matches.push('basepokemon:' + id);
 						continue;
 					}

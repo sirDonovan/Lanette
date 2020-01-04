@@ -10,6 +10,7 @@ declare namespace NodeJS {
 		Rooms: import('./rooms').Rooms;
 		Storage: import('./storage').Storage;
 		tempConfig: boolean;
+		toID: (input: string | number | {id: string} | undefined) => string;
 		Tools: import('./tools').Tools;
 		Tournaments: import('./tournaments').Tournaments;
 		Users: import('./users').Users;
