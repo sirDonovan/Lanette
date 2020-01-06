@@ -723,13 +723,13 @@ const commands: Dict<ICommandDefinition> = {
 			}
 			if (position === -1) return this.say(this.sanitizeResponse(target.trim() + " is not in the host queue."));
 			database.userHostedGameQueue.splice(position, 1);
-			Storage.exportDatabase(room.id);
 			this.say(this.sanitizeResponse(target.trim() + " was removed from the host queue."));
 			for (let i = position; i < database.userHostedGameQueue.length; i++) {
 				if (!database.userHostedGameQueue[i]) break;
 				const user = Users.get(database.userHostedGameQueue[i].name);
 				if (user) user.say("You are now #" + (i + 1) + " in the host queue.");
 			}
+			Storage.exportDatabase(room.id);
 		},
 		aliases: ['unhost'],
 	},
@@ -1472,7 +1472,14 @@ const commands: Dict<ICommandDefinition> = {
 			if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.sayError(['disabledTournamentFeatures', room.title]);
 			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'tournament']);
 			const database = Storage.getDatabase(room);
-			if (database.queuedTournament && !cmd.startsWith('force')) return this.say(Dex.getExistingFormat(database.queuedTournament.formatid, true).name + " is already queued for " + room.title + ".");
+			if (database.queuedTournament && !cmd.startsWith('force')) {
+				const format = Dex.getFormat(database.queuedTournament.formatid, true);
+				if (format) {
+					return this.say(format.name + " is already queued for " + room.title + ".");
+				} else {
+					delete database.queuedTournament;
+				}
+			}
 			if (target.includes('@@@')) return this.say("You must specify custom rules separately (``" + Config.commandCharacter + cmd + " format, cap, custom rules``).");
 			const targets = target.split(',');
 			const id = Tools.toId(targets[0]);
@@ -1546,6 +1553,8 @@ const commands: Dict<ICommandDefinition> = {
 				Tournaments.setTournamentTimer(room, time, format, playerCap);
 			}
 			this.run('queuedtournament', '');
+
+			Storage.exportDatabase(room.id);
 		},
 		aliases: ['forcequeuetournament', 'forcenexttournament', 'forcenexttour'],
 	},
@@ -1566,8 +1575,14 @@ const commands: Dict<ICommandDefinition> = {
 			}
 
 			const database = Storage.getDatabase(tournamentRoom);
-			if (!database.queuedTournament) return this.say("There is no tournament queued for " + (this.pm ? tournamentRoom.title : "this room") + ".");
-			const format = Dex.getExistingFormat(database.queuedTournament.formatid, true);
+			const errorText = "There is no tournament queued for " + (this.pm ? tournamentRoom.title : "this room") + ".";
+			if (!database.queuedTournament) return this.say(errorText);
+			const format = Dex.getFormat(database.queuedTournament.formatid, true);
+			if (!format) {
+				delete database.queuedTournament;
+				Storage.exportDatabase(tournamentRoom.id);
+				return this.say(errorText);
+			}
 			let html = "<b>Queued" + (this.pm ? " " + tournamentRoom.title : "") + " tournament</b>: " + format.name + (database.queuedTournament.scheduled ? " <i>(scheduled)</i>" : "") + "<br />";
 			if (database.queuedTournament.time) {
 				const now = Date.now();

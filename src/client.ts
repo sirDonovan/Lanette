@@ -799,14 +799,26 @@ export class Client {
 					const hasSchedule = room.id in Tournaments.scheduledTournaments;
 					if (hasSchedule && Tournaments.scheduledTournaments[room.id].time <= now) {
 						Tournaments.setScheduledTournamentTimer(room);
-					} else if (database.queuedTournament) {
-						if (!database.queuedTournament.time) database.queuedTournament.time = now + Tournaments.queuedTournamentTime;
-						Tournaments.setTournamentTimer(room, database.queuedTournament.time, Dex.getExistingFormat(database.queuedTournament.formatid, true), database.queuedTournament.playerCap, database.queuedTournament.scheduled);
 					} else {
-						if (Config.randomTournamentTimers && room.id in Config.randomTournamentTimers && Tournaments.canSetRandomTournament(room)) {
-							Tournaments.setRandomTournamentTimer(room, Config.randomTournamentTimers![room.id]);
-						} else if (hasSchedule) {
-							Tournaments.setScheduledTournamentTimer(room);
+						let queuedTournament = false;
+						if (database.queuedTournament) {
+							const format = Dex.getFormat(database.queuedTournament.formatid, true);
+							if (format) {
+								queuedTournament = true;
+								if (!database.queuedTournament.time) database.queuedTournament.time = now + Tournaments.queuedTournamentTime;
+								Tournaments.setTournamentTimer(room, database.queuedTournament.time, format, database.queuedTournament.playerCap, database.queuedTournament.scheduled);
+							} else {
+								delete database.queuedTournament;
+								Storage.exportDatabase(room.id);
+							}
+						}
+
+						if (!queuedTournament) {
+							if (Config.randomTournamentTimers && room.id in Config.randomTournamentTimers && Tournaments.canSetRandomTournament(room)) {
+								Tournaments.setRandomTournamentTimer(room, Config.randomTournamentTimers![room.id]);
+							} else if (hasSchedule) {
+								Tournaments.setScheduledTournamentTimer(room);
+							}
 						}
 					}
 					break;

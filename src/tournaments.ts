@@ -101,7 +101,13 @@ export class Tournaments {
 					room.sayCommand("/tour rules " + tournament.format.customRules.join(","));
 				}
 				const database = Storage.getDatabase(room);
-				if (database.queuedTournament && tournament.format.id === Dex.getExistingFormat(database.queuedTournament.formatid, true).id) delete database.queuedTournament;
+				if (database.queuedTournament) {
+					const format = Dex.getFormat(database.queuedTournament.formatid, true);
+					if (!format || tournament.format.id === format.id) {
+						delete database.queuedTournament;
+						Storage.exportDatabase(room.id);
+					}
+				}
 				delete this.createListeners[room.id];
 			}
 
