@@ -2328,7 +2328,7 @@ const commands: Dict<ICommandDefinition> = {
 			if (duration) database.botGreetings[id].expiration = Date.now() + duration;
 			this.say(this.sanitizeResponse(targets[1].trim() + "'s greeting in " + targetRoom.title + (duration ? " (expiring in " + Tools.toDurationString(duration) + ")" : "") + " has been stored."));
 		},
-		aliases: ['awardgreeting'],
+		aliases: ['addgreeting', 'awardgreeting'],
 	},
 	removegreeting: {
 		command(target, room, user) {
