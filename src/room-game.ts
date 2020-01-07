@@ -276,7 +276,7 @@ export class Game extends Activity {
 		}
 	}
 
-	start(user?: User): boolean {
+	start(): boolean {
 		if (this.minPlayers && this.playerCount < this.minPlayers) return false;
 		if (this.startTimer) clearTimeout(this.startTimer);
 		if (this.notifyRankSignups) this.sayCommand("/notifyoffrank all");
@@ -286,6 +286,8 @@ export class Game extends Activity {
 			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
 			this.sayUhtmlChange(this.uhtmlBaseName + "-signups", this.getSignupsHtml());
 		}
+
+		this.say(this.name + " is starting! **Players (" + this.playerCount + ")**: " + this.getPlayerNames());
 		if (this.onStart) this.onStart();
 		return true;
 	}
