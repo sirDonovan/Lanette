@@ -397,6 +397,7 @@ const commands: Dict<ICommandDefinition> = {
 			room.game.winners.delete(player);
 			room.game.removePlayer(target, true);
 			this.say(player.name + " has been disqualified from the game.");
+			this.sayCommand("/modnote " + user.name + " DQed " + player.name + " from " + room.game.name + ".");
 		},
 	},
 	game: {
