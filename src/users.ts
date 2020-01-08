@@ -35,6 +35,12 @@ export class User {
 		return Config.developers && Config.developers.includes(this.id) ? true : false;
 	}
 
+	isIdleStatus(): boolean {
+		if (!this.status) return false;
+		const status = Tools.toId(this.status);
+		return !(status === 'busy' || status === 'idle' || status === 'away');
+	}
+
 	say(message: string, dontPrepare?: boolean, dontCheckFilter?: boolean) {
 		if (!dontPrepare) message = Tools.prepareMessage(message);
 		if (!dontCheckFilter && Client.willBeFiltered(message)) return;
