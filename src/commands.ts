@@ -282,6 +282,7 @@ const commands: Dict<ICommandDefinition> = {
 			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
 			const targetUser = Users.get(target);
 			if (!targetUser || !targetUser.rooms.has(room)) return this.say("You can only egg someone currently in the room.");
+			if (targetUser.away) return this.say("You cannot egg someone who is marked as away.");
 			const game = Games.createGame(room, Games.getInternalFormat('eggtoss'));
 			game.signups();
 			this.say("**" + user.name + "** handed an egg to **" + targetUser.name + "**! Pass it around with ``" + Config.commandCharacter + "toss [user]`` before it explodes!");
