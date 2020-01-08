@@ -201,7 +201,7 @@ const commands: Dict<ICommandDefinition<EmpoleonsEmpires>> = {
 				return false;
 			}
 			this.removePlayer(targetPlayer.name);
-			this.room.say("/modnote " + targetPlayer.name + " was DQed from " + this.name + " for using the alias '" + target.trim() + "'.");
+			this.room.say("/modnote " + user.name + " DQed " + targetPlayer.name + " from " + this.name + " for using the alias '" + target.trim() + "'.");
 			return true;
 		},
 		pmOnly: true,
