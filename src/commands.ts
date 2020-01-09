@@ -269,7 +269,7 @@ const commands: Dict<ICommandDefinition> = {
 		aliases: ['sv'],
 	},
 	egg: {
-		command(target, room, user) {
+		async asyncCommand(target, room, user) {
 			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
 			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) return this.sayError(['disabledGameFeatures', room.title]);
 			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
@@ -280,13 +280,14 @@ const commands: Dict<ICommandDefinition> = {
 				return;
 			}
 			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
-			const targetUser = Users.get(target);
-			if (!targetUser || !targetUser.rooms.has(room)) return this.say("You can only egg someone currently in the room.");
-			if (targetUser.away || targetUser.isIdleStatus()) return this.say("You cannot egg someone who is marked as away.");
 			const game = Games.createGame(room, Games.getInternalFormat('eggtoss'));
 			game.signups();
-			this.say("**" + user.name + "** handed an egg to **" + targetUser.name + "**! Pass it around with ``" + Config.commandCharacter + "toss [user]`` before it explodes!");
-			this.run('toss');
+			const canEgg = await this.run('toss');
+			if (canEgg) {
+				this.say("**" + user.name + "** handed an egg to **" + Users.get(target)!.name + "**! Pass it around with ``" + Config.commandCharacter + "toss [user]`` before it explodes!");
+			} else {
+				game.end();
+			}
 		},
 	},
 	creategame: {

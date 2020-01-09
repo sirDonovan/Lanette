@@ -513,14 +513,14 @@ export class Game extends Activity {
 		if (commandListener) this.commandsListeners.splice(this.commandsListeners.indexOf(commandListener, 1));
 	}
 
-	async tryCommand(target: string, room: Room | User, user: User, command: string) {
-		if (!(command in this.commands)) return;
+	async tryCommand(target: string, room: Room | User, user: User, command: string): Promise<boolean> {
+		if (!(command in this.commands)) return false;
 		const commandDefinition = this.commands[command];
 		const isPm = room === user;
 		if (isPm) {
-			if (!commandDefinition.pmGameCommand && !commandDefinition.pmOnly) return;
+			if (!commandDefinition.pmGameCommand && !commandDefinition.pmOnly) return false;
 		} else {
-			if (commandDefinition.pmOnly) return;
+			if (commandDefinition.pmOnly) return false;
 		}
 
 		let result: boolean;
@@ -530,7 +530,7 @@ export class Game extends Activity {
 			result = commandDefinition.command!.call(this, target, room, user, command);
 		}
 
-		if (result === false) return;
+		if (result === false) return false;
 
 		const triggeredListeners: IGameCommandCountListener[] = [];
 		for (let i = 0; i < this.commandsListeners.length; i++) {
@@ -551,6 +551,8 @@ export class Game extends Activity {
 		for (let i = 0; i < triggeredListeners.length; i++) {
 			this.commandsListeners.splice(this.commandsListeners.indexOf(triggeredListeners[i]), 1);
 		}
+
+		return result;
 	}
 
 	getSignupsHtml(): string {

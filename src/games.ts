@@ -250,14 +250,26 @@ export class Games {
 		for (const i in this.commands) {
 			Commands[i] = {
 				async asyncCommand(target, room, user, command) {
+					let returnedResult: boolean = false;
 					if (this.isPm(room)) {
-						if (user.game) await user.game.tryCommand(target, user, user, command);
+						if (user.game) {
+							const result = await user.game.tryCommand(target, user, user, command);
+							if (result) returnedResult = result;
+						}
 						user.rooms.forEach(async (value, room) => {
-							if (room.game) await room.game.tryCommand(target, user, user, command);
+							if (room.game) {
+								const result = await room.game.tryCommand(target, user, user, command);
+								if (result) returnedResult = result;
+							}
 						});
 					} else {
-						if (room.game) await room.game.tryCommand(target, room, user, command);
+						if (room.game) {
+							const result = await room.game.tryCommand(target, room, user, command);
+							if (result) returnedResult = result;
+						}
 					}
+
+					return returnedResult;
 				},
 			};
 		}

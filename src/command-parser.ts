@@ -4,7 +4,7 @@ import { GameCommandReturnType } from "./types/games";
 import { User } from "./users";
 import * as LogsWorker from './workers/logs';
 
-export interface ICommandDefinition<T = undefined, U = T extends Game ? GameCommandReturnType : void> {
+export interface ICommandDefinition<T = undefined, U = T extends Game ? GameCommandReturnType : any> {
 	asyncCommand?: (this: T extends undefined ? Command : T, target: string, room: Room | User, user: User, alias: string) => Promise<U>;
 	command?: (this: T extends undefined ? Command : T, target: string, room: Room | User, user: User, alias: string) => U;
 	aliases?: string[];
@@ -14,7 +14,7 @@ export interface ICommandDefinition<T = undefined, U = T extends Game ? GameComm
 	readonly pmOnly?: boolean;
 }
 
-export type CommandsDict<T = undefined, U = T extends Game ? GameCommandReturnType : void> = Dict<Omit<ICommandDefinition<T, U>, "aliases">>;
+export type CommandsDict<T = undefined, U = T extends Game ? GameCommandReturnType : any> = Dict<Omit<ICommandDefinition<T, U>, "aliases">>;
 
 type CommandErrorOptionalTarget = 'invalidBotRoom' | 'invalidFormat' | 'invalidGameFormat' | 'invalidTournamentFormat' | 'invalidUserHostedGameFormat' | 'tooManyGameModes' |
 	'tooManyGameVariants' | 'emptyUserHostedGameQueue';

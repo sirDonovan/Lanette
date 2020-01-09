@@ -33,7 +33,7 @@ class EggToss extends Game {
 		const now = Date.now();
 		const limit = 5 * 60 * 1000;
 		this.room.users.forEach(user => {
-			if (user.id === Users.self.id) return;
+			if (user.id === Users.self.id || user.away || user.isIdleStatus()) return;
 			const roomData = user.rooms.get(this.room)!;
 			if (!roomData.lastChatMessage || now - roomData.lastChatMessage > limit) return;
 			users.push(user);
@@ -56,7 +56,18 @@ const commands: Dict<ICommandDefinition<EggToss>> = {
 				if (this.currentHolder.id !== user.id) return false;
 			}
 			const targetUser = Users.get(target);
-			if (!targetUser || !targetUser.rooms.has(this.room) || (targetUser.id !== Users.self.id && targetUser.hasRank(this.room, 'bot'))) return false;
+			if (!targetUser || !targetUser.rooms.has(this.room)) {
+				this.say("You can only egg someone currently in the room.");
+				return false;
+			}
+			if (targetUser === user) {
+				this.say("You cannot egg yourself!");
+				return false;
+			}
+			if (targetUser.away || targetUser.isIdleStatus()) {
+				this.say("You cannot egg someone who is marked as away.");
+				return false;
+			}
 			this.currentHolder = this.createPlayer(targetUser) || this.players[targetUser.id];
 			// this.lastHolder = user.name;
 			if (targetUser.id === Users.self.id) {
