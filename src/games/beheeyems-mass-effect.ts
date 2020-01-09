@@ -45,9 +45,9 @@ class BeheeyemsMassEffect extends Guessing {
 				}
 			}
 			const text: string[] = [];
-			if (weaknesses.length) text.push("``Weaknesses`` " + weaknesses.join(", "));
-			if (resistances.length) text.push("``Resistances`` " + resistances.join(", "));
-			if (immunities.length) text.push("``Immunities`` " + immunities.join(", "));
+			if (weaknesses.length) text.push("Weak to " + Tools.joinList(weaknesses));
+			if (resistances.length) text.push("Resists " + Tools.joinList(resistances));
+			if (immunities.length) text.push("Immune to " + Tools.joinList(immunities));
 			const effectiveness = text.join(" | ");
 			if (!(effectiveness in effectivenessLists)) {
 				effectivenessLists[effectiveness] = [];
