@@ -103,9 +103,9 @@ exports.BattleLocations = [
 	// Galar
 	"Motostoke",
 	"Turffield",
-	"Hulbery",
+	"Hulbury",
 	"Hammerlocke",
-	"Stow-On-Side",
+	"Stow-on-Side",
 	"Ballonlea",
 	"Circhester",
 	"Spikemuth",
