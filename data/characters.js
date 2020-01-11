@@ -1,7 +1,10 @@
 exports.BattleCharacters = [
+	// Kanto
+	"Professor Oak",
 	"Red",
 	"Blue",
-	"Professor Oak",
+	"Yellow",
+	"Green",
 	"Brock",
 	"Misty",
 	"Lt. Surge",
@@ -14,9 +17,13 @@ exports.BattleCharacters = [
 	"Bruno",
 	"Agatha",
 	"Lance",
+
+	// Johto
+	"Professor Elm",
 	"Gold",
 	"Silver",
-	"Professor Elm",
+	"Kris",
+	"Silver",
 	"Falkner",
 	"Bugsy",
 	"Whitney",
@@ -27,9 +34,11 @@ exports.BattleCharacters = [
 	"Clair",
 	"Will",
 	"Karen",
+
+	// Hoenn
+	"Professor Birch",
 	"Brendan",
 	"May",
-	"Professor Birch",
 	"Roxanne",
 	"Brawly",
 	"Wattson",
@@ -44,10 +53,12 @@ exports.BattleCharacters = [
 	"Glacia",
 	"Drake",
 	"Steven",
+
+	// Sinnoh
+	"Professor Rowan",
 	"Lucas",
 	"Dawn",
 	"Barry",
-	"Professor Rowan",
 	"Roark",
 	"Gardenia",
 	"Maylene",
@@ -61,11 +72,13 @@ exports.BattleCharacters = [
 	"Flint",
 	"Lucian",
 	"Cynthia",
+
+	// Unova
+	"Professor Juniper",
 	"Hilbert",
 	"Hilda",
 	"Cheren",
 	"Bianca",
-	"Professor Juniper",
 	"Cilan",
 	"Chili",
 	"Cress",
@@ -82,9 +95,11 @@ exports.BattleCharacters = [
 	"Caitlin",
 	"Marshal",
 	"Alder",
+
+	// Kalos
+	"Professor Sycamore",
 	"Calem",
 	"Serena",
-	"Professor Sycamore",
 	"Shauna",
 	"Tierno",
 	"Trevor",
@@ -101,11 +116,13 @@ exports.BattleCharacters = [
 	"Wikstrom",
 	"Drasna",
 	"Diantha",
+
+	// Alola
+	"Professor Kukui",
 	"Sun",
 	"Moon",
 	"Hau",
 	"Lillie",
-	"Professor Kukui",
 	"Ilima",
 	"Lana",
 	"Kiawe",
@@ -118,5 +135,27 @@ exports.BattleCharacters = [
 	"Hapu",
 	"Kahili",
 	"Mina",
-	"Molayne"
+	"Molayne",
+
+	// Galar
+	"Victor",
+	"Gloria",
+	"Professor Magnolia",
+	"Sonia",
+	"Leon",
+	"Hop",
+	"Chairman Rose",
+	"Oleana",
+	"Milo",
+	"Nessa",
+	"Kabu",
+	"Bea",
+	"Allister",
+	"Opal",
+	"Gordie",
+	"Melony",
+	"Piers",
+	"Raihan",
+	"Bede",
+	"Marnie",
 ];
