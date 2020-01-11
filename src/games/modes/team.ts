@@ -163,7 +163,17 @@ class Team {
 	}
 
 	onEnd(this: TeamThis) {
-		this.convertPointsToBits();
+		this.winners.forEach((value, player) => {
+			const points = this.points.get(player);
+			let earnings = 250;
+			if (points) {
+				earnings += (50 * points);
+				if (earnings > this.maxBits) earnings = this.maxBits;
+			}
+			this.addBits(player, earnings);
+		});
+
+		this.convertPointsToBits(0);
 		this.announceWinners();
 	}
 }

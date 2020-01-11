@@ -619,8 +619,8 @@ export class Game extends Activity {
 	convertPointsToBits(winnerBits?: number, loserBits?: number) {
 		if (this.parentGame && !this.parentGame.allowChildGameBits) return;
 		if (!this.points) throw new Error(this.name + " called convertPointsToBits() with no points Map");
-		if (!winnerBits) winnerBits = this.winnerPointsToBits;
-		if (!loserBits) loserBits = this.loserPointsToBits;
+		if (winnerBits === undefined) winnerBits = this.winnerPointsToBits;
+		if (loserBits === undefined) loserBits = this.loserPointsToBits;
 		this.points.forEach((points, player) => {
 			if (points <= 0) return;
 			let winnings = 0;
