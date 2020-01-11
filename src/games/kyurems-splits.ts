@@ -3,8 +3,9 @@ import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Kyurem's Splits";
-const data: {'Characters': string[], 'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
+const data: {'Characters': string[], 'Locations': string[], 'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
 	"Characters": [],
+	"Locations": [],
 	"Pokemon": [],
 	"Pokemon Abilities": [],
 	"Pokemon Items": [],
@@ -19,9 +20,8 @@ class KyuremsSplits extends Guessing {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		for (let i = 0; i < Dex.data.characters.length; i++) {
-			data["Characters"].push(Dex.data.characters[i]);
-		}
+		data["Characters"] = Dex.data.characters.slice();
+		data["Locations"] = Dex.data.locations.slice();
 
 		const pokemon = Games.getPokemonList();
 		for (let i = 0; i < pokemon.length; i++) {

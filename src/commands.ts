@@ -1291,7 +1291,14 @@ const commands: Dict<ICommandDefinition> = {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id)))) return;
 			this.say('Randomly generated character: **' + Tools.sampleOne(Dex.data.characters).trim() + '**');
 		},
-		aliases: ['rchar', 'rcharacter', 'randchar', 'randcharacters'],
+		aliases: ['rchar', 'rcharacter', 'randchar', 'randcharacter'],
+	},
+	randomlocation: {
+		command(target, room, user) {
+			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id)))) return;
+			this.say('Randomly generated location: **' + Tools.sampleOne(Dex.data.locations).trim() + '**');
+		},
+		aliases: ['rlocation', 'rloc', 'randloc', 'randlocation'],
 	},
 
 	/**

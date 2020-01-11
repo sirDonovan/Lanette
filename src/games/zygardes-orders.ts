@@ -5,8 +5,9 @@ import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Zygarde's Orders";
-const data: {'Characters': string[], 'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
+const data: {'Characters': string[], 'Locations': string[], 'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
 	"Characters": [],
+	"Locations": [],
 	"Pokemon": [],
 	"Pokemon Abilities": [],
 	"Pokemon Items": [],
@@ -22,6 +23,7 @@ class ZygardesOrders extends Guessing {
 		room.say("Loading data for " + name + "...");
 
 		data["Characters"] = Dex.data.characters.slice();
+		data["Locations"] = Dex.data.locations.slice();
 		data["Pokemon"] = Games.getPokemonList().map(x => x.species);
 		data["Pokemon Abilities"] = Games.getAbilitiesList().map(x => x.name);
 		data["Pokemon Items"] = Games.getItemsList().map(x => x.name);

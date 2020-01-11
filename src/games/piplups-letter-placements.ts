@@ -3,8 +3,9 @@ import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Piplup's Letter Placements";
-const data: {'Characters': string[], 'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
+const data: {'Characters': string[], 'Locations': string[], 'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
 	"Characters": [],
+	"Locations": [],
 	"Pokemon": [],
 	"Pokemon Abilities": [],
 	"Pokemon Items": [],
@@ -20,6 +21,7 @@ class PiplupsLetterPlacements extends Guessing {
 		room.say("Loading data for " + name + "...");
 
 		data["Characters"] = Dex.data.characters.filter(x => x.length > 3);
+		data["Locations"] = Dex.data.locations.filter(x => x.length > 3);
 		data["Pokemon"] = Games.getPokemonList(x => x.species.length > 3).map(x => x.species);
 		data["Pokemon Abilities"] = Games.getAbilitiesList(x => x.name.length > 3).map(x => x.name);
 		data["Pokemon Items"] = Games.getItemsList(x => x.name.length > 3).map(x => x.name);

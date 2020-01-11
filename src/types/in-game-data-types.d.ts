@@ -690,6 +690,7 @@ export interface IDataTable {
 	readonly gifDataBW: Dict<IGifData | undefined>;
 	readonly items: Dict<IItemData | undefined>;
 	readonly learnsets: Dict<ILearnset | undefined>;
+	readonly locations: string[];
 	readonly moves: Dict<IMoveData | undefined>;
 	readonly natures: Dict<INature | undefined>;
 	readonly pokedex: Dict<ITemplateData | undefined>;

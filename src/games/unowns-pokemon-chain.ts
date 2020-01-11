@@ -9,8 +9,8 @@ export const game: IGameFile<UnownsPokemonChain> = Games.copyTemplateProperties(
 	class: UnownsPokemonChain,
 	defaultOptions: ['freejoin', 'points'],
 	description: "Players answer each round with a Pokemon that starts with the last letter of the previous Pokemon (no formes and no repeats in a round)!",
-	name: "Unown's Pokemon Chain",
 	mascot: "Unown",
+	name: "Unown's Pokemon Chain",
 	variants: [
 		{
 			name: "Unown's Ability Chain",

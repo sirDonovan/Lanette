@@ -3,8 +3,9 @@ import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Ekans' Edges";
-const data: {'Characters': Dict<string[]>, 'Pokemon': Dict<string[]>, 'Pokemon Abilities': Dict<string[]>, 'Pokemon Items': Dict<string[]>, 'Pokemon Moves': Dict<string[]>} = {
+const data: {'Characters': Dict<string[]>, 'Locations': Dict<string[]>, 'Pokemon': Dict<string[]>, 'Pokemon Abilities': Dict<string[]>, 'Pokemon Items': Dict<string[]>, 'Pokemon Moves': Dict<string[]>} = {
 	"Characters": {},
+	"Locations": {},
 	"Pokemon": {},
 	"Pokemon Abilities": {},
 	"Pokemon Items": {},
@@ -14,6 +15,7 @@ type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
 const dataKeys: KeyedDict<typeof data, string[]> = {
 	"Characters": [],
+	"Locations": [],
 	"Pokemon": [],
 	"Pokemon Abilities": [],
 	"Pokemon Items": [],
@@ -30,6 +32,12 @@ class EkansEdges extends Guessing {
 			const edge = Dex.data.characters[i].charAt(0) + " - " + Dex.data.characters[i].substr(-1);
 			if (!data["Characters"][edge]) data["Characters"][edge] = [];
 			data["Characters"][edge].push(Dex.data.characters[i]);
+		}
+
+		for (let i = 0; i < Dex.data.locations.length; i++) {
+			const edge = Dex.data.locations[i].charAt(0) + " - " + Dex.data.locations[i].substr(-1);
+			if (!data["Locations"][edge]) data["Locations"][edge] = [];
+			data["Locations"][edge].push(Dex.data.locations[i]);
 		}
 
 		const pokemon = Games.getPokemonList();
