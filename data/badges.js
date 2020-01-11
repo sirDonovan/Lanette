@@ -1,4 +1,5 @@
 exports.BattleBadges = [
+	// Kanto
 	"Boulder",
 	"Cascade",
 	"Thunder",
@@ -7,6 +8,8 @@ exports.BattleBadges = [
 	"Marsh",
 	"Volcano",
 	"Earth",
+
+	// Johto
 	"Zephyr",
 	"Hive",
 	"Plain",
@@ -15,6 +18,8 @@ exports.BattleBadges = [
 	"Mineral",
 	"Glacier",
 	"Rising",
+
+	// Hoenn
 	"Stone",
 	"Knuckle",
 	"Dynamo",
@@ -23,6 +28,8 @@ exports.BattleBadges = [
 	"Feather",
 	"Mind",
 	"Rain",
+
+	// Sinnoh
 	"Coal",
 	"Forest",
 	"Cobble",
@@ -31,6 +38,8 @@ exports.BattleBadges = [
 	"Mine",
 	"Icicle",
 	"Beacon",
+
+	// Unova
 	"Trio",
 	"Basic",
 	"Toxic",
@@ -41,6 +50,8 @@ exports.BattleBadges = [
 	"Freeze",
 	"Legend",
 	"Wave",
+
+	// Kalos
 	"Bug",
 	"Cliff",
 	"Rumble",
@@ -48,5 +59,16 @@ exports.BattleBadges = [
 	"Voltage",
 	"Fairy",
 	"Psychic",
-	"Iceberg"
+	"Iceberg",
+
+	// Galar
+	"Grass",
+	"Water",
+	"Fire",
+	"Fighting",
+	"Ghost",
+	"Rock",
+	"Ice",
+	"Dark",
+	"Dragon"
 ];
