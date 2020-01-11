@@ -5,7 +5,7 @@ import { addPlayers, assert, assertStrictEqual, runCommand } from "../../test/te
 import { GameCommandReturnType, GameFileTests, IGameFormat, IGameModeFile } from "../../types/games";
 import { Guessing } from "../templates/guessing";
 
-const BASE_POINTS = 10;
+const BASE_POINTS = 20;
 
 const name = 'Team';
 const description = 'Players will be split into teams once the game starts!';
