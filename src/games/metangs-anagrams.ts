@@ -68,9 +68,19 @@ export const game: IGameFile<MetangsAnagrams> = Games.copyTemplateProperties(gue
 			variantAliases: ['ability', 'abilities'],
 		},
 		{
+			name: "Metangs's Character Anagrams",
+			variant: "Characters",
+			variantAliases: ['character'],
+		},
+		{
 			name: "Metangs's Item Anagrams",
 			variant: "Pokemon Items",
 			variantAliases: ['item', 'items'],
+		},
+		{
+			name: "Metangs's Location Anagrams",
+			variant: "Locations",
+			variantAliases: ['location'],
 		},
 		{
 			name: "Metangs's Move Anagrams",

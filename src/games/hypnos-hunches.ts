@@ -145,9 +145,19 @@ export const game: IGameFile<HypnosHunches> = Games.copyTemplateProperties(guess
 			variantAliases: ['ability', 'abilities'],
 		},
 		{
+			name: "Hypno's Character Hunches",
+			variant: "Characters",
+			variantAliases: ['character'],
+		},
+		{
 			name: "Hypno's Item Hunches",
 			variant: "Pokemon Items",
 			variantAliases: ['item', 'items'],
+		},
+		{
+			name: "Hypno's Location Hunches",
+			variant: "Locations",
+			variantAliases: ['location'],
 		},
 		{
 			name: "Hypno's Move Hunches",

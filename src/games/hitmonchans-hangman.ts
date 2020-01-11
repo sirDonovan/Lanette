@@ -132,9 +132,19 @@ export const game: IGameFile<HitmonchansHangman> = Games.copyTemplateProperties(
 			variantAliases: ['ability', 'abilities'],
 		},
 		{
+			name: "Hitmonchan's Character Hangman",
+			variant: "Characters",
+			variantAliases: ['character'],
+		},
+		{
 			name: "Hitmonchan's Item Hangman",
 			variant: "Pokemon Items",
 			variantAliases: ['item', 'items'],
+		},
+		{
+			name: "Hitmonchan's Location Hangman",
+			variant: "Locations",
+			variantAliases: ['location'],
 		},
 		{
 			name: "Hitmonchan's Move Hangman",

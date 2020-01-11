@@ -101,9 +101,19 @@ export const game: IGameFile<KyuremsSplits> = Games.copyTemplateProperties(guess
 			variantAliases: ['ability', 'abilities'],
 		},
 		{
+			name: "Kyurem's Character Splits",
+			variant: "Characters",
+			variantAliases: ['character'],
+		},
+		{
 			name: "Kyurem's Item Splits",
 			variant: "Pokemon Items",
 			variantAliases: ['item', 'items'],
+		},
+		{
+			name: "Kyurem's Location Splits",
+			variant: "Locations",
+			variantAliases: ['location'],
 		},
 		{
 			name: "Kyurem's Move Splits",

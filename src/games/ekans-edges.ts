@@ -114,9 +114,19 @@ export const game: IGameFile<EkansEdges> = Games.copyTemplateProperties(guessing
 			variantAliases: ['ability', 'abilities'],
 		},
 		{
+			name: "Ekans' Character Edges",
+			variant: "Characters",
+			variantAliases: ['character'],
+		},
+		{
 			name: "Ekans' Item Edges",
 			variant: "Pokemon Items",
 			variantAliases: ['item', 'items'],
+		},
+		{
+			name: "Ekans' Location Edges",
+			variant: "Locations",
+			variantAliases: ['location'],
 		},
 		{
 			name: "Ekans' Move Edges",

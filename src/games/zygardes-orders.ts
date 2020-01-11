@@ -148,9 +148,19 @@ export const game: IGameFile<ZygardesOrders> = Games.copyTemplateProperties(gues
 			variantAliases: ['ability', 'abilities'],
 		},
 		{
+			name: "Zygarde's Character Orders",
+			variant: "Characters",
+			variantAliases: ['character'],
+		},
+		{
 			name: "Zygarde's Item Orders",
 			variant: "Pokemon Items",
 			variantAliases: ['item', 'items'],
+		},
+		{
+			name: "Zygarde's Location Orders",
+			variant: "Locations",
+			variantAliases: ['location'],
 		},
 		{
 			name: "Zygarde's Move Orders",

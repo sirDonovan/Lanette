@@ -66,4 +66,35 @@ export const game: IGameFile<PiplupsLetterPlacements> = Games.copyTemplateProper
 	modes: ['survival', 'team'],
 	minigameCommand: 'placement',
 	minigameDescription: 'Use ``' + Config.commandCharacter + 'g`` to guess an answer that contains the given letters back-to-back!',
+	variants: [
+		{
+			name: "Piplup's Ability Letter Placements",
+			variant: "Pokemon Abilities",
+			variantAliases: ['ability', 'abilities'],
+		},
+		{
+			name: "Piplup's Character Letter Placements",
+			variant: "Characters",
+			variantAliases: ['character'],
+		},
+		{
+			name: "Piplup's Item Letter Placements",
+			variant: "Pokemon Items",
+			variantAliases: ['item', 'items'],
+		},
+		{
+			name: "Piplup's Location Letter Placements",
+			variant: "Locations",
+			variantAliases: ['location'],
+		},
+		{
+			name: "Piplup's Move Letter Placements",
+			variant: "Pokemon Moves",
+			variantAliases: ['move', 'moves'],
+		},
+		{
+			name: "Piplup's Pokemon Letter Placements",
+			variant: "Pokemon",
+		},
+	],
 });

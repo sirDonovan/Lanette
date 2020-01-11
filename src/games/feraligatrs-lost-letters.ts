@@ -104,18 +104,19 @@ export const game: IGameFile<FeraligatrsLostLetters> = Games.copyTemplatePropert
 	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess the answer after finding the missing vowels!",
 	variants: [
 		{
+			name: "Feraligatr's Ability Lost Letters",
+			variant: "Pokemon Abilities",
+			variantAliases: ['ability', 'abilities'],
+		},
+		{
+			name: "Feraligatr's Character Lost Letters",
+			variant: "Characters",
+			variantAliases: ['character'],
+		},
+		{
 			name: "Feraligatr's Inverse Lost Letters",
 			description: "Players guess the missing consonants to find the answers!",
 			variant: "inverse",
-		},
-		{
-			name: "Feraligatr's Pokemon Lost Letters",
-			variant: "Pokemon",
-		},
-		{
-			name: "Feraligatr's Move Lost Letters",
-			variant: "Pokemon Moves",
-			variantAliases: ['move', 'moves'],
 		},
 		{
 			name: "Feraligatr's Item Lost Letters",
@@ -123,9 +124,18 @@ export const game: IGameFile<FeraligatrsLostLetters> = Games.copyTemplatePropert
 			variantAliases: ['item', 'items'],
 		},
 		{
-			name: "Feraligatr's Ability Lost Letters",
-			variant: "Pokemon Abilities",
-			variantAliases: ['ability', 'abilities'],
+			name: "Feraligatr's Location Lost Letters",
+			variant: "Locations",
+			variantAliases: ['location'],
+		},
+		{
+			name: "Feraligatr's Move Lost Letters",
+			variant: "Pokemon Moves",
+			variantAliases: ['move', 'moves'],
+		},
+		{
+			name: "Feraligatr's Pokemon Lost Letters",
+			variant: "Pokemon",
 		},
 	],
 });
