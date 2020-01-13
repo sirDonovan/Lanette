@@ -81,7 +81,6 @@ class BulbasaursUno extends CardMatching {
 			} else {
 				if (card.action || this.isPlayableCard(card, this.topCard)) {
 					playableCards.push(card.name);
-					break;
 				}
 			}
 		}
