@@ -4,14 +4,21 @@ import { Game } from '../../room-game';
 import { IGameTemplateFile } from '../../types/games';
 import { IMoveCopy, IPokemon, IPokemonCopy } from '../../types/in-game-data-types';
 
+export interface IActionCardData {
+	readonly description: string;
+	readonly name: string;
+	readonly requiredOtherCards?: number;
+	readonly requiredTarget?: boolean;
+}
+
 export interface IMoveCard extends IMoveCopy {
-	action?: string;
+	action?: IActionCardData | null;
 	availability?: number;
 	played?: boolean;
 }
 
 export interface IPokemonCard extends IPokemonCopy {
-	action?: string;
+	action?: IActionCardData | null;
 	played?: boolean;
 }
 
@@ -19,8 +26,7 @@ export type CardType = IMoveCard | IPokemonCard;
 
 export abstract class Card extends Game {
 	actionCardAmount: number = 0;
-	actionCards: Dict<string> = {};
-	actionCardLabels: Dict<string> = {};
+	actionCards: Dict<IActionCardData> = {};
 	autoFillHands: boolean = false;
 	canLateJoin: boolean = true;
 	cardRound: number = 0;
@@ -161,9 +167,9 @@ export abstract class Card extends Game {
 	drawCard(player: Player, amount?: number | null, cards?: CardType[] | null, dontShow?: boolean): CardType[] {
 		if (!amount) {
 			amount = this.drawAmount;
-			if (this.topCard.action && this.topCard.action.startsWith('Draw')) {
-				amount += parseInt(this.topCard.action.split('Draw ')[1].trim());
-				this.topCard.action = '';
+			if (this.topCard.action && this.topCard.action.name.startsWith('Draw')) {
+				amount += parseInt(this.topCard.action.name.split('Draw ')[1].trim());
+				this.topCard.action = null;
 			}
 		}
 		if (!cards) {
@@ -184,9 +190,8 @@ export abstract class Card extends Game {
 	}
 
 	dealHand(player: Player, highlightedCards?: CardType[], action?: 'drawn' | 'autodrawn' | 'played'): CardType[] {
-		let handHtml = '';
-		let highlightedCardsHtml = '';
 		let playerCards = this.playerCards.get(player);
+		let handHtml = '';
 		let pmHeader = '';
 		if (playerCards) {
 			if (!playerCards.length) {
@@ -200,7 +205,7 @@ export abstract class Card extends Game {
 			}
 			pmHeader = "<b>Here is your hand</b>:";
 		}
-		let remainingCards = playerCards.length;
+
 		let shownPlayerCards: CardType[] = [];
 		if (highlightedCards && action === 'autodrawn') {
 			for (let i = 0; i < playerCards.length; i++) {
@@ -210,13 +215,17 @@ export abstract class Card extends Game {
 		} else {
 			shownPlayerCards = playerCards;
 		}
+		if (!handHtml) handHtml = this.getCardsPmHtml(shownPlayerCards, player);
+
+		let remainingCards = playerCards.length;
 		if (highlightedCards) {
 			if (action === 'drawn') remainingCards += highlightedCards.length;
 		}
 		if (!pmHeader && this.finitePlayerCards) {
 			pmHeader = '<b>' + remainingCards + ' card' + (remainingCards > 1 ? 's' : '') + ' remaining</b>:';
 		}
-		if (!handHtml) handHtml = this.getCardsPmHtml(shownPlayerCards, player);
+
+		let highlightedCardsHtml = '';
 		if (highlightedCards) {
 			highlightedCardsHtml += '<br />';
 			if (action === 'drawn') {

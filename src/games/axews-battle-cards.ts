@@ -2,8 +2,8 @@ import { Player } from "../room-activity";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { IPokemon } from "../types/in-game-data-types";
-import { CardType, IMoveCard, IPokemonCard } from "./templates/card";
-import { CardMatching, game as cardGame} from "./templates/card-matching";
+import { CardType, IActionCardData, IMoveCard, IPokemonCard } from "./templates/card";
+import { CardMatching, game as cardGame } from "./templates/card-matching";
 
 const name = "Axew's Battle Cards";
 const types: Dict<string> = {};
@@ -22,12 +22,20 @@ class AxewsBattleCards extends CardMatching {
 		loadedData = true;
 	}
 
-	actionCardLabels: Dict<string> = {'soak': 'Make pure Water type', 'trickortreat': 'Add Ghost type', "forestscurse": "Add Grass type", "explosion": "Skip your turn", 'batonpass': 'Replace top card & draw 2',
-		'allyswitch': 'Swap with top card & draw 1', 'conversion': 'Change to 1 type', 'conversion2': 'Change to 2 types', 'transform': 'Change the top card', 'recycle': 'Draw 1 card',
-		'teeterdance': 'Shuffle the turn order', 'topsyturvy': 'Reverse the turn order'};
-	actionCards: Dict<string> = {'soak': 'Soak', 'trickortreat': 'Trick-or-Treat', "forestscurse": "Forest's Curse", "explosion": "Explosion", 'batonpass': 'Baton Pass',
-		'allyswitch': 'Ally Switch', 'conversion': 'Conversion', 'conversion2': 'Conversion2', 'transform': 'Transform', 'recycle': 'Recycle',
-		'teeterdance': 'Teeter Dance', 'topsyturvy': 'Topsy-Turvy'};
+	actionCards: Dict<IActionCardData> = {
+		"soak": {name: "Soak", description: "Make pure Water type"},
+		"trickortreat": {name: "Trick-or-Treat", description: "Add Ghost type"},
+		"forestscurse": {name: "Forest's Curse", description: "Add Grass type"},
+		"magicpowder": {name: "Magic Powder", description: "Make pure Psychic type"},
+		"batonpass": {name: "Baton Pass", description: "Replace top card & draw 2", requiredOtherCards: 1, requiredTarget: true},
+		"allyswitch": {name: "Ally Switch", description: "Swap with top card & draw 1", requiredOtherCards: 1, requiredTarget: true},
+		"conversion": {name: "Conversion", description: "Change to 1 type", requiredTarget: true},
+		"conversion2": {name: "Conversion2", description: "Change to 2 types", requiredTarget: true},
+		"transform": {name: "Transform", description: "Change the top card", requiredTarget: true},
+		"recycle": {name: "Recycle", description: "Draw 1 card"},
+		"teeterdance": {name: "Teeter Dance", description: "Shuffle the turn order"},
+		"topsyturvy": {name: "Topsy-Turvy", description: "Reverse the turn order"},
+	};
 	finitePlayerCards = false;
 	maxPlayers = 20;
 	playableCardDescription = "You must play a card that is super-effective against the top card";
@@ -90,10 +98,10 @@ class AxewsBattleCards extends CardMatching {
 			}
 			this.actionCardAmount = actionCardAmount;
 			for (const i in this.actionCards) {
-				const move = this.actionCards[i];
+				const actionCard = this.actionCards[i];
 				for (let i = 0; i < actionCardAmount; i++) {
-					const card = Dex.getMoveCopy(move) as IMoveCard;
-					card.action = card.name;
+					const card = Dex.getMoveCopy(actionCard.name) as IMoveCard;
+					card.action = actionCard;
 					deck.push(card);
 				}
 			}
@@ -129,15 +137,15 @@ class AxewsBattleCards extends CardMatching {
 		return this.hasNoWeaknesses(this.topCard);
 	}
 
-	isPlayableCard(cardA: IPokemonCard, cardB?: IPokemonCard) {
-		if (!cardA || cardA === this.topCard) return false;
-		if (!cardB) cardB = this.topCard;
+	isPlayableCard(card: IPokemonCard, otherCard?: IPokemonCard) {
+		if (card === this.topCard) return false;
+		if (!otherCard) otherCard = this.topCard;
 		let valid = false;
-		for (let i = 0; i < cardA.types.length; i++) {
-			if (Dex.isImmune(cardA.types[i], cardB)) {
+		for (let i = 0; i < card.types.length; i++) {
+			if (Dex.isImmune(card.types[i], otherCard)) {
 				continue;
 			} else {
-				const effectiveness = Dex.getEffectiveness(cardA.types[i], cardB);
+				const effectiveness = Dex.getEffectiveness(card.types[i], otherCard);
 				if (effectiveness > 0) {
 					valid = true;
 					break;
@@ -151,12 +159,14 @@ class AxewsBattleCards extends CardMatching {
 		const cards = this.playerCards.get(player)!;
 		const pokemon: string[] = [];
 		const playableCards: string[] = [];
-		const actionCards: string[] = [];
+		const requiresOtherCards: string[] = [];
 		for (let i = 0; i < cards.length; i++) {
 			let card = cards[i];
 			if (card.action) {
 				card = card as IMoveCard;
-				if (card.id === 'soak') {
+				if (card.action!.requiredOtherCards) {
+					requiresOtherCards.push(card.name);
+				} else if (card.id === 'soak') {
 					if (this.topCard.types[0] !== 'Water' || this.topCard.types.length > 1) {
 						playableCards.push(card.name);
 					}
@@ -168,32 +178,28 @@ class AxewsBattleCards extends CardMatching {
 					if (!this.topCard.types.includes('Grass')) {
 						playableCards.push(card.name);
 					}
-				} else {
-					if (card.id === 'batonpass' || card.id === 'allyswitch') {
-						actionCards.push(card.name);
-					} else if (card.id === 'conversion') {
-						let type = this.sampleOne(Object.keys(Dex.data.typeChart));
-						while (type === this.topCard.types[0] && this.topCard.types.length === 1) {
-							type = this.sampleOne(Object.keys(Dex.data.typeChart));
-						}
-						playableCards.push(card.name + ", " + type);
-					} else if (card.id === 'conversion2') {
-						let types = this.sampleMany(Object.keys(Dex.data.typeChart), 2);
-						if (this.topCard.types.length === 2) {
-							while (types.sort().join(",") === this.topCard.types.slice().sort().join(",")) {
-								types = this.sampleMany(Object.keys(Dex.data.typeChart), 2);
-							}
-						}
-						playableCards.push(card.name + ", " + types.join(", "));
-					} else if (card.id === 'transform') {
-						let pokemon = this.sampleOne(this.deckPool);
-						while (pokemon.species === this.topCard.species) {
-							pokemon = this.sampleOne(this.deckPool);
-						}
-						playableCards.push(card.name + ", " + pokemon.species);
-					} else {
-						playableCards.push(card.name);
+				} else if (card.id === 'conversion') {
+					let type = this.sampleOne(Object.keys(Dex.data.typeChart));
+					while (type === this.topCard.types[0] && this.topCard.types.length === 1) {
+						type = this.sampleOne(Object.keys(Dex.data.typeChart));
 					}
+					playableCards.push(card.name + ", " + type);
+				} else if (card.id === 'conversion2') {
+					let types = this.sampleMany(Object.keys(Dex.data.typeChart), 2);
+					if (this.topCard.types.length === 2) {
+						while (types.sort().join(",") === this.topCard.types.slice().sort().join(",")) {
+							types = this.sampleMany(Object.keys(Dex.data.typeChart), 2);
+						}
+					}
+					playableCards.push(card.name + ", " + types.join(", "));
+				} else if (card.id === 'transform') {
+					let pokemon = this.sampleOne(this.deckPool);
+					while (pokemon.species === this.topCard.species) {
+						pokemon = this.sampleOne(this.deckPool);
+					}
+					playableCards.push(card.name + ", " + pokemon.species);
+				} else {
+					playableCards.push(card.name);
 				}
 			} else {
 				card = card as IPokemonCard;
@@ -203,8 +209,8 @@ class AxewsBattleCards extends CardMatching {
 				}
 			}
 		}
-		for (let i = 0; i < actionCards.length; i++) {
-			const action = actionCards[i];
+		for (let i = 0; i < requiresOtherCards.length; i++) {
+			const action = requiresOtherCards[i];
 			for (let i = 0; i < pokemon.length; i++) {
 				playableCards.push(action + ", " + pokemon[i]);
 			}
@@ -218,6 +224,7 @@ class AxewsBattleCards extends CardMatching {
 	}
 
 	onNextRound() {
+		this.canPlay = false;
 		this.currentPlayer = null;
 		if (Date.now() - this.startTime! > this.timeLimit) return this.timeEnd();
 		const len = this.getRemainingPlayerCount();
@@ -228,12 +235,15 @@ class AxewsBattleCards extends CardMatching {
 		if (len === 1) return this.end();
 		const player = this.getNextPlayer();
 		if (!player) return;
+
 		const playableCards = this.getPlayableCards(player);
 		if (!playableCards.length) {
 			this.say(player.name + " does not have a card to play and has been eliminated from the game!");
 			this.eliminatePlayer(player, "You do not have a card to play!");
 			return this.nextRound();
 		}
+
+		this.currentPlayer = player;
 		const text = player.name + "'s turn!";
 		this.on(text, () => {
 			// left before text appeared
@@ -241,7 +251,11 @@ class AxewsBattleCards extends CardMatching {
 				this.nextRound();
 				return;
 			}
-			this.currentPlayer = player;
+
+			this.awaitingCurrentPlayerCard = true;
+			this.canPlay = true;
+			this.dealHand(player!);
+
 			this.timeout = setTimeout(() => {
 				if (!player!.eliminated) {
 					this.autoPlay(player!, playableCards);
@@ -282,6 +296,7 @@ class AxewsBattleCards extends CardMatching {
 			player.say(card.species + " does not have any super-effective STAB against " + this.topCard.species + "!");
 			return false;
 		}
+		this.awaitingCurrentPlayerCard = false;
 		this.topCard = card;
 		this.showTopCard(card.shiny && !card.played);
 		if (!player.eliminated) {
@@ -453,6 +468,7 @@ class AxewsBattleCards extends CardMatching {
 			drawCards = [card1, card2];
 		}
 
+		this.awaitingCurrentPlayerCard = false;
 		if (showTopCard) this.showTopCard(firstTimeShiny);
 		if (cards.includes(card)) cards.splice(cards.indexOf(card), 1);
 

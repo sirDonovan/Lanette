@@ -2,12 +2,15 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { addPlayers, assert, assertStrictEqual, runCommand } from "../test/test-tools";
 import { GameFileTests, IGameFile } from "../types/games";
-import { CardType, IPokemonCard } from "./templates/card";
+import { CardType, IActionCardData, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 
 class StakatakasCardTower extends CardMatching {
-	actionCardLabels: Dict<string> = {'manaphy': "Shuffle 4 of everyone's cards", 'phione': "Shuffle 2 of everyone's cards", 'pachirisu': 'Get a pair from the deck'};
-	actionCards: Dict<string> = {'manaphy': 'Shuffle 4', 'phione': 'Shuffle 2', 'pachirisu': 'Get pair'};
+	actionCards: Dict<IActionCardData> = {
+		"manaphy": {name: "Shuffle 4", description: "Shuffle 4 of everyone's cards"},
+		"phione": {name: "Shuffle 2", description: "Shuffle 2 of everyone's cards"},
+		"pachirisu": {name: "Get pair", description: "Get a pair from the deck"},
+	};
 	autoFillHands: boolean = true;
 	colorsLimit: number = 20;
 	finitePlayerCards: boolean = true;
@@ -21,16 +24,16 @@ class StakatakasCardTower extends CardMatching {
 		const index = this.playerOrder.indexOf(player);
 		if (index > -1) this.playerOrder.splice(index, 1);
 		if (player === this.currentPlayer) {
-			if (this.topCard.action && this.topCard.action.startsWith('Draw')) {
-				this.topCard.action = '';
+			if (this.topCard.action && this.topCard.action.name.startsWith('Draw')) {
+				this.topCard.action = null;
 				this.showTopCard();
 			}
 			this.nextRound();
 		}
 	}
 
-	isPlayableCard(cardA: IPokemonCard, cardB: IPokemonCard) {
-		return this.isCardPair(cardA, cardB);
+	isPlayableCard(card: IPokemonCard, otherCard: IPokemonCard) {
+		return this.isCardPair(card, otherCard);
 	}
 
 	arePlayableCards(cards: IPokemonCard[]) {
@@ -75,6 +78,7 @@ class StakatakasCardTower extends CardMatching {
 		for (let i = 0; i < playedCards.length; i++) {
 			cards.splice(cards.indexOf(playedCards[i]), 1);
 		}
+		this.awaitingCurrentPlayerCard = false;
 		this.topCard = card;
 		this.showTopCard(card.shiny && !card.played);
 		// if (card.shiny && !card.played) Games.unlockAchievement(this.room, player, 'luck of the draw', this);
@@ -92,8 +96,8 @@ class StakatakasCardTower extends CardMatching {
 
 	playActionCard(card: IPokemonCard, player: Player, targets: string[], cards: IPokemonCard[]): IPokemonCard[] | boolean {
 		const showTopCard = true;
-		if (card.action!.startsWith('Shuffle ')) {
-			const amount = parseInt(card.action!.split("Shuffle ")[1]);
+		if (card.action!.name.startsWith('Shuffle ')) {
+			const amount = parseInt(card.action!.name.split("Shuffle ")[1]);
 			cards.splice(cards.indexOf(card), 1);
 			this.say("Everyone shuffled " + amount + " of their card" + (amount > 1 ? "s" : "") + "!");
 			if (cards.length < this.minimumPlayedCards) this.drawCard(player, this.minimumPlayedCards - cards.length);
@@ -124,7 +128,7 @@ class StakatakasCardTower extends CardMatching {
 				}
 				if (this.players[i] !== player) this.dealHand(this.players[i]);
 			}
-		} else if (card.action === 'Get pair') {
+		} else if (card.action!.name === 'Get pair') {
 			let pair: IPokemonCard | null = null;
 			while (!pair) {
 				const card = this.getCard() as IPokemonCard;
@@ -140,6 +144,7 @@ class StakatakasCardTower extends CardMatching {
 			player.say(card.species + " found you a " + pair.species + "!");
 		}
 
+		this.awaitingCurrentPlayerCard = false;
 		if (cards.includes(card)) cards.splice(cards.indexOf(card), 1);
 
 		if (showTopCard) {
@@ -155,7 +160,7 @@ class StakatakasCardTower extends CardMatching {
 const commands: Dict<ICommandDefinition<StakatakasCardTower>> = {
 	draw: {
 		command(target, room, user) {
-			if (!(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
+			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
 			this.drawCard(this.players[user.id]);
 			this.currentPlayer = null; // prevent Draw Wizard from activating on a draw
 			this.nextRound();
@@ -192,13 +197,16 @@ const tests: GameFileTests<StakatakasCardTower> = {
 			const player = game.currentPlayer!;
 			const newCards = [Dex.getPokemonCopy("Charmander"), Dex.getPokemonCopy("Bulbasaur"), Dex.getPokemonCopy("Squirtle")];
 			const manaphyAction = Dex.getPokemonCopy("Manaphy") as IPokemonCard;
-			manaphyAction.action = 'Shuffle 4';
+			manaphyAction.action = game.actionCards.manaphy;
 			newCards.push(manaphyAction);
 			game.playerCards.set(player, newCards);
 			assert(game.hasPlayableCard(player));
+			game.canPlay = true;
 			runCommand('play', 'Manaphy', game.room, player.name);
 			assert(!game.ended);
-			assertStrictEqual(game.playerCards.get(player), newCards);
+			const playerCards = game.playerCards.get(player)!;
+			assert(!playerCards.map(x => x.name).includes("Manaphy"));
+			assertStrictEqual(playerCards, newCards);
 		},
 	},
 	'it should properly handle card counts - 1 remaining': {
@@ -210,9 +218,10 @@ const tests: GameFileTests<StakatakasCardTower> = {
 			const cards = [Dex.getPokemonCopy("Ampharos"), Dex.getPokemonCopy("Archen"), Dex.getPokemonCopy("Beautifly"), Dex.getPokemonCopy("Squirtle")];
 			game.playerCards.set(player, cards);
 			assert(game.hasPlayableCard(player));
+			game.canPlay = true;
 			runCommand('play', 'Ampharos, Archen, Beautifly', game.room, player.name);
 			assert(!game.ended);
-			assertStrictEqual(cards.length, 2);
+			assertStrictEqual(game.playerCards.get(player)!.length, 2);
 		},
 	},
 	'it should properly handle card counts - 0 remaining': {
@@ -224,6 +233,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 			const cards = [Dex.getPokemonCopy("Ampharos"), Dex.getPokemonCopy("Archen"), Dex.getPokemonCopy("Beautifly"), Dex.getPokemonCopy("Beedrill")];
 			game.playerCards.set(player, cards);
 			assert(game.hasPlayableCard(player));
+			game.canPlay = true;
 			runCommand('play', 'Ampharos, Archen, Beautifly, Beedrill', game.room, player.name);
 			assert(game.ended);
 			assertStrictEqual(cards.length, 0);
@@ -244,4 +254,5 @@ export const game: IGameFile<StakatakasCardTower> = Games.copyTemplateProperties
 	name: "Stakataka's Card Tower",
 	mascot: "Stakataka",
 	scriptedOnly: true,
+	tests,
 });

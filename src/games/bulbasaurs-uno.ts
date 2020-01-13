@@ -2,7 +2,7 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { IPokemonCard } from "./templates/card";
+import { IActionCardData, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 
 const name = "Bulbasaur's Uno";
@@ -22,10 +22,16 @@ class BulbasaursUno extends CardMatching {
 		loadedData = true;
 	}
 
-	actionCardLabels: Dict<string> = {'greninja': 'Change to 1 type', 'kecleon': 'Change the color', 'doduo': 'Make the next player draw 2', 'machamp': 'Make the next player draw 4',
-		'inkay': 'Reverse the turn order', 'slaking': 'Skip the next player\'s turn', 'magnemite': 'Pair and play 2 Pokemon', 'spinda': 'Shuffle the player order'};
-	actionCards: Dict<string> = {'greninja': 'Wild (type)', 'kecleon': 'Wild (color)', 'doduo': 'Draw 2', 'machamp': 'Draw 4', 'inkay': 'Reverse',
-		'slaking': 'Skip', 'magnemite': 'Pair 2', 'spinda': 'Shuffle'};
+	actionCards: Dict<IActionCardData> = {
+		"greninja": {name: "Wild (type)", description: "Change to 1 type", requiredTarget: true},
+		"kecleon": {name: "Wild (color)", description: "Change the color", requiredTarget: true},
+		"doduo": {name: "Draw 2", description: "Make the next player draw 2"},
+		"machamp": {name: "Draw 4", description: "Make the next player draw 4"},
+		"inkay": {name: "Reverse", description: "Reverse the turn order"},
+		"slaking": {name: "Skip", description: "Skip the next player's turn"},
+		"magnemite": {name: "Pair 2", description: "Pair and play 2 Pokemon", requiredOtherCards: 2, requiredTarget: true},
+		"spinda": {name: "Shuffle", description: "Shuffle the player order"},
+	};
 	colorsLimit: number = 20;
 	finitePlayerCards: boolean = true;
 	playerCards = new Map<Player, IPokemonCard[]>();
@@ -40,16 +46,16 @@ class BulbasaursUno extends CardMatching {
 		const index = this.playerOrder.indexOf(player);
 		if (index > -1) this.playerOrder.splice(index, 1);
 		if (player === this.currentPlayer) {
-			if (this.topCard.action && this.topCard.action.startsWith('Draw')) {
-				this.topCard.action = '';
+			if (this.topCard.action && this.topCard.action.name.startsWith('Draw')) {
+				this.topCard.action = null;
 				this.showTopCard();
 			}
 			this.nextRound();
 		}
 	}
 
-	isPlayableCard(cardA: IPokemonCard, cardB: IPokemonCard) {
-		return this.isCardPair(cardA, cardB);
+	isPlayableCard(card: IPokemonCard, otherCard: IPokemonCard) {
+		return this.isCardPair(card, otherCard);
 	}
 
 	getPlayableCards(player: Player): string[] {
@@ -57,7 +63,7 @@ class BulbasaursUno extends CardMatching {
 		const playableCards: string[] = [];
 		for (let i = 0; i < cards.length; i++) {
 			const card = cards[i];
-			if (card.action && card.action === 'Pair 2') {
+			if (card.action && card.action.name === 'Pair 2') {
 				const outer = cards.slice();
 				outer.splice(i, 1);
 				for (let i = 0; i < outer.length; i++) {
@@ -86,14 +92,16 @@ class BulbasaursUno extends CardMatching {
 		if (!card.action) throw new Error("playActionCard called with a regular card");
 		let showTopCard = true;
 		let drawCards = 0;
-		if (this.topCard.action && this.topCard.action.startsWith('Draw ')) drawCards = parseInt(this.topCard.action.split('Draw ')[1].trim());
-		if (card.action.startsWith('Draw ')) {
-			const newNumber = drawCards + parseInt(card.action.split('Draw ')[1].trim());
-			this.topCard.action = 'Draw ' + newNumber;
+		if (this.topCard.action && this.topCard.action.name.startsWith('Draw ')) drawCards = parseInt(this.topCard.action.name.split('Draw ')[1].trim());
+		if (card.action.name.startsWith('Draw ')) {
+			const newNumber = drawCards + parseInt(card.action.name.split('Draw ')[1].trim());
+			const newAction = Tools.deepClone(card.action);
+			newAction.name = 'Draw ' + newNumber;
+			this.topCard.action = newAction;
 			this.say("The top card is now **Draw " + newNumber + "**!");
 			showTopCard = false;
 			drawCards = 0;
-		} else if (card.action === 'Wild (type)') {
+		} else if (card.action.name === 'Wild (type)') {
 			if (!targets[1]) {
 				this.say("Please include your choice of type (``" + Config.commandCharacter + "play " + card.species + ", __type__``).");
 				return false;
@@ -104,7 +112,7 @@ class BulbasaursUno extends CardMatching {
 				return false;
 			}
 			this.topCard.types = [types[type]];
-		} else if (card.action === 'Wild (color)') {
+		} else if (card.action.name === 'Wild (color)') {
 			if (!targets[1]) {
 				this.say("Please include your choice of color (``" + Config.commandCharacter + "play " + card.species + ", __color__``).");
 				return false;
@@ -115,23 +123,23 @@ class BulbasaursUno extends CardMatching {
 				return false;
 			}
 			this.topCard.color = this.colors[color];
-		} else if (card.action === 'Reverse') {
+		} else if (card.action.name === 'Reverse') {
 			this.say("**The turn order was reversed!**");
 			this.playerOrder.reverse();
 			const playerIndex = this.playerOrder.indexOf(player);
 			this.playerList = this.playerOrder.slice(playerIndex + 1);
 			showTopCard = false;
-		} else if (card.action === 'Shuffle') {
+		} else if (card.action.name === 'Shuffle') {
 			this.say("**The turn order was shuffled!**");
 			this.playerOrder = this.shuffle(this.playerOrder);
 			let index = this.playerOrder.indexOf(player) + 1;
 			if (index === this.playerOrder.length) index = 0;
 			this.playerList = this.playerOrder.slice(index);
 			showTopCard = false;
-		} else if (card.action === 'Skip') {
-			this.topCard.action = 'Skip';
+		} else if (card.action.name === 'Skip') {
+			this.topCard.action = card.action;
 			showTopCard = false;
-		} else if (card.action === 'Pair 2') {
+		} else if (card.action.name === 'Pair 2') {
 			if (cards.length >= 3) {
 				if (targets.length < 3) {
 					this.say("Please include the 2 cards you want to pair.");
@@ -209,6 +217,7 @@ class BulbasaursUno extends CardMatching {
 			}
 		}
 
+		this.awaitingCurrentPlayerCard = false;
 		if (cards.includes(card)) cards.splice(cards.indexOf(card), 1);
 
 		if (showTopCard) {
@@ -216,7 +225,7 @@ class BulbasaursUno extends CardMatching {
 		}
 		if (drawCards > 0) {
 			if (!player.eliminated) this.drawCard(player, drawCards);
-			if (this.topCard.action && this.topCard.action.startsWith('Draw ')) this.topCard.action = '';
+			if (this.topCard.action && this.topCard.action.name.startsWith('Draw ')) this.topCard.action = null;
 		} else {
 			if (!player.eliminated && cards.length) this.dealHand(player);
 		}
@@ -228,7 +237,7 @@ class BulbasaursUno extends CardMatching {
 const commands: Dict<ICommandDefinition<BulbasaursUno>> = {
 	draw: {
 		command(target, room, user) {
-			if (!(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
+			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
 			this.drawCard(this.players[user.id]);
 			this.currentPlayer = null; // prevent Draw Wizard from activating on a draw
 			this.nextRound();
