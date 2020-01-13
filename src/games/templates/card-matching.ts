@@ -443,9 +443,7 @@ const commands: Dict<ICommandDefinition<CardMatching>> = {
 	pmplay: {
 		command(target, room, user) {
 			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
-			const player = this.players[user.id];
-			this.say(player.name + " played: " + target);
-			player.useCommand('play', target);
+			this.players[user.id].useCommand('play', target);
 			return true;
 		},
 		pmOnly: true,
