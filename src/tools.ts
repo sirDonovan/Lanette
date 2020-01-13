@@ -24,10 +24,72 @@ const fetchUrlTimeoutTimers = {
 	'challonge': 5 * 1000,
 };
 
+const hexColorCodes: Dict<{'background-color': string, 'background': string, 'border-color': string}> = {
+	"White": {'background-color': '#eeeeee', 'background': 'linear-gradient(#eeeeee, #dddddd)', 'border-color': '#222222'},
+	"Black": {'background-color': '#222222', 'background': 'linear-gradient(#222222, #111111)', 'border-color': '#eeeeee'},
+	"Dark Yellow": {'background-color': '#8A8A59', 'background': 'linear-gradient(#A8A878,#8A8A59)', 'border-color': '#79794E'},
+	"Orange": {'background-color': '#F08030', 'background': 'linear-gradient(#F08030,#DD6610)', 'border-color': '#B4530D'},
+	"Blue": {'background-color': '#6890F0', 'background': 'linear-gradient(#6890F0,#386CEB)', 'border-color': '#1753E3'},
+	"Yellow": {'background-color': '#F8D030', 'background': 'linear-gradient(#F8D030,#F0C108)', 'border-color': '#C19B07'},
+	"Light Pink": {'background-color': '#F830D0', 'background': 'linear-gradient(#F830D0,#F008C1)', 'border-color': '#C1079B'},
+	"Green": {'background-color': '#78C850', 'background': 'linear-gradient(#78C850,#5CA935)', 'border-color': '#4A892B'},
+	"Light Blue": {'background-color': '#98D8D8', 'background': 'linear-gradient(#98D8D8,#69C6C6)', 'border-color': '#45B6B6'},
+	"Red": {'background-color': '#C03028', 'background': 'linear-gradient(#C03028,#9D2721)', 'border-color': '#82211B'},
+	"Dark Pink": {'background-color': '#A040A0', 'background': 'linear-gradient(#A040A0,#803380)', 'border-color': '#662966'},
+	"Light Brown": {'background-color': '#E0C068', 'background': 'linear-gradient(#E0C068,#D4A82F)', 'border-color': '#AA8623'},
+	"Light Purple": {'background-color': '#A890F0', 'background': 'linear-gradient(#A890F0,#9180C4)', 'border-color': '#7762B6'},
+	"Pink": {'background-color': '#F85888', 'background': 'linear-gradient(#F85888,#F61C5D)', 'border-color': '#D60945'},
+	"Light Green": {'background-color': '#A8B820', 'background': 'linear-gradient(#A8B820,#8D9A1B)', 'border-color': '#616B13'},
+	"Brown": {'background-color': '#B8A038', 'background': 'linear-gradient(#B8A038,#93802D)', 'border-color': '#746523'},
+	"Dark Purple": {'background-color': '#705898', 'background': 'linear-gradient(#705898,#554374)', 'border-color': '#413359'},
+	"Purple": {'background-color': '#7038F8', 'background': 'linear-gradient(#7038F8,#4C08EF)', 'border-color': '#3D07C0'},
+	"Light Gray": {'background-color': '#B8B8D0', 'background': 'linear-gradient(#B8B8D0,#9797BA)', 'border-color': '#7A7AA7'},
+	"Dark Brown": {'background-color': '#705848', 'background': 'linear-gradient(#705848,#513F34)', 'border-color': '#362A23'},
+};
+
+const typeHexColors: Dict<string> = {
+	"Normal": "Dark Yellow",
+	"Fire": "Orange",
+	"Water": "Blue",
+	"Electric": "Yellow",
+	"Fairy": "Light Pink",
+	"Grass": "Green",
+	"Ice": "Light Blue",
+	"Fighting": "Red",
+	"Poison": "Dark Pink",
+	"Ground": "Light Brown",
+	"Flying": "Light Purple",
+	"Psychic": "Pink",
+	"Bug": "Light Green",
+	"Rock": "Brown",
+	"Ghost": "Dark Purple",
+	"Dragon": "Purple",
+	"Steel": "Light Gray",
+	"Dark": "Dark Brown",
+	"???": "White",
+	"Bird": "White",
+};
+
+const pokemonColorHexColors: Dict<string> = {
+	"Green": "Green",
+	"Red": "Red",
+	"Black": "Dark Brown",
+	"Blue": "Blue",
+	"White": "Light Gray",
+	"Brown": "Brown",
+	"Yellow": "Yellow",
+	"Purple": "Dark Pink",
+	"Pink": "Pink",
+	"Gray": "Dark Yellow",
+};
+
 type FetchUrlTimeoutKey = keyof typeof fetchUrlTimeoutTimers;
 
 export class Tools {
 	// exported constants
+	readonly hexColorCodes: typeof hexColorCodes = hexColorCodes;
+	readonly typeHexColors: typeof typeHexColors = typeHexColors;
+	readonly pokemonColorHexColors: typeof pokemonColorHexColors = pokemonColorHexColors;
 	readonly mainServer: string = 'play.pokemonshowdown.com';
 	readonly maxMessageLength: typeof maxMessageLength = maxMessageLength;
 	readonly maxUsernameLength: typeof maxUsernameLength = maxUsernameLength;

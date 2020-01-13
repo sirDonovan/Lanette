@@ -17,46 +17,7 @@ export interface IPokemonCard extends IPokemonCopy {
 
 export type CardType = IMoveCard | IPokemonCard;
 
-const typeColorCodes: Dict<{'background-color': string, 'background': string, 'border-color': string}> = {
-	"White": {'background-color': '#eeeeee', 'background': 'linear-gradient(#eeeeee, #dddddd)', 'border-color': '#222222'},
-	"Black": {'background-color': '#222222', 'background': 'linear-gradient(#222222, #111111)', 'border-color': '#eeeeee'},
-	"Normal": {'background-color': '#8A8A59', 'background': 'linear-gradient(#A8A878,#8A8A59)', 'border-color': '#79794E'},
-	"Fire": {'background-color': '#F08030', 'background': 'linear-gradient(#F08030,#DD6610)', 'border-color': '#B4530D'},
-	"Water": {'background-color': '#6890F0', 'background': 'linear-gradient(#6890F0,#386CEB)', 'border-color': '#1753E3'},
-	"Electric": {'background-color': '#F8D030', 'background': 'linear-gradient(#F8D030,#F0C108)', 'border-color': '#C19B07'},
-	"Fairy": {'background-color': '#F830D0', 'background': 'linear-gradient(#F830D0,#F008C1)', 'border-color': '#C1079B'},
-	"Grass": {'background-color': '#78C850', 'background': 'linear-gradient(#78C850,#5CA935)', 'border-color': '#4A892B'},
-	"Ice": {'background-color': '#98D8D8', 'background': 'linear-gradient(#98D8D8,#69C6C6)', 'border-color': '#45B6B6'},
-	"Fighting": {'background-color': '#C03028', 'background': 'linear-gradient(#C03028,#9D2721)', 'border-color': '#82211B'},
-	"Poison": {'background-color': '#A040A0', 'background': 'linear-gradient(#A040A0,#803380)', 'border-color': '#662966'},
-	"Ground": {'background-color': '#E0C068', 'background': 'linear-gradient(#E0C068,#D4A82F)', 'border-color': '#AA8623'},
-	"Flying": {'background-color': '#A890F0', 'background': 'linear-gradient(#A890F0,#9180C4)', 'border-color': '#7762B6'},
-	"Psychic": {'background-color': '#F85888', 'background': 'linear-gradient(#F85888,#F61C5D)', 'border-color': '#D60945'},
-	"Bug": {'background-color': '#A8B820', 'background': 'linear-gradient(#A8B820,#8D9A1B)', 'border-color': '#616B13'},
-	"Rock": {'background-color': '#B8A038', 'background': 'linear-gradient(#B8A038,#93802D)', 'border-color': '#746523'},
-	"Ghost": {'background-color': '#705898', 'background': 'linear-gradient(#705898,#554374)', 'border-color': '#413359'},
-	"Dragon": {'background-color': '#7038F8', 'background': 'linear-gradient(#7038F8,#4C08EF)', 'border-color': '#3D07C0'},
-	"Steel": {'background-color': '#B8B8D0', 'background': 'linear-gradient(#B8B8D0,#9797BA)', 'border-color': '#7A7AA7'},
-	"Dark": {'background-color': '#705848', 'background': 'linear-gradient(#705848,#513F34)', 'border-color': '#362A23'},
-};
-
-const colorsToType: Dict<string> = {
-	"Green": "Grass",
-	"Red": "Fighting",
-	"Black": "Dark",
-	"Blue": "Water",
-	"White": "Steel",
-	"Brown": "Rock",
-	"Yellow": "Electric",
-	"Purple": "Poison",
-	"Pink": "Psychic",
-	"Gray": "Normal",
-};
-
 export abstract class Card extends Game {
-	// exported constants
-	typeColorCodes: typeof typeColorCodes = typeColorCodes;
-
 	actionCardAmount: number = 0;
 	actionCards: Dict<string> = {};
 	actionCardLabels: Dict<string> = {};
@@ -154,14 +115,15 @@ export abstract class Card extends Game {
 	getChatTypeLabel(card: IPokemonCard): string {
 		const types = [];
 		for (let i = 0; i < card.types.length; i++) {
-			types.push('<div style="display:inline-block;background-color:' + typeColorCodes[card.types[i]]['background-color'] + ';background:' + typeColorCodes[card.types[i]]['background'] + ';border-color:' + typeColorCodes[card.types[i]]['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt;text-align:center"><b>' + card.types[i] + '</b></div>');
+			const colorData = Tools.hexColorCodes[Tools.typeHexColors[card.types[i]]];
+			types.push('<div style="display:inline-block;background-color:' + colorData['background-color'] + ';background:' + colorData['background'] + ';border-color:' + colorData['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt;text-align:center"><b>' + card.types[i] + '</b></div>');
 		}
 		return types.join("&nbsp;/&nbsp;");
 	}
 
 	getChatColorLabel(card: IPokemonCard): string {
-		const type = colorsToType[card.color];
-		return '<div style="display:inline-block;background-color:' + typeColorCodes[type]['background-color'] + ';background:' + typeColorCodes[type]['background'] + ';border-color:' + typeColorCodes[type]['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt;text-align:center"><b>' + card.color + '</b></div>';
+		const colorData = Tools.hexColorCodes[Tools.pokemonColorHexColors[card.color]];
+		return '<div style="display:inline-block;background-color:' + colorData['background-color'] + ';background:' + colorData['background'] + ';border-color:' + colorData['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt;text-align:center"><b>' + card.color + '</b></div>';
 	}
 
 	getCardChatHtml(cards: CardType | CardType[]): string {
@@ -176,7 +138,8 @@ export abstract class Card extends Game {
 			let image = '';
 			if (this.isMoveBased(card)) {
 				names.push(cards[i].name);
-				image = '<div style="display:inline-block;height:51px;width:' + (this.detailLabelWidth + 10) + '"><br /><div style="display:inline-block;background-color:' + typeColorCodes[card.type]['background-color'] + ';background:' + typeColorCodes[card.type]['background'] + ';border-color:' + typeColorCodes[card.type]['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt"><b>' + card.type + '</b></div></div>';
+				const colorData = Tools.hexColorCodes[Tools.typeHexColors[card.type]];
+				image = '<div style="display:inline-block;height:51px;width:' + (this.detailLabelWidth + 10) + '"><br /><div style="display:inline-block;background-color:' + colorData['background-color'] + ';background:' + colorData['background'] + ';border-color:' + colorData['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt"><b>' + card.type + '</b></div></div>';
 				width += this.detailLabelWidth;
 			} else {
 				card = card as IPokemonCard;

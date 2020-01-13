@@ -113,13 +113,13 @@ export abstract class CardMatching extends Card {
 		if (card.id in this.actionCards) {
 			html += card.name + '<br />';
 			if (this.usesColors) {
-				html += '<div style="display:inline-block;background-color:' + this.typeColorCodes['White']['background-color'] + ';background:' + this.typeColorCodes['White']['background'] + ';border-color:' + this.typeColorCodes['White']['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;padding:1px;color:#333;text-shadow:1px 1px 1px #eee;text-transform: uppercase;text-align:center;font-size:8pt"><b>Action</b></div>';
+				html += '<div style="display:inline-block;background-color:' + Tools.hexColorCodes['White']['background-color'] + ';background:' + Tools.hexColorCodes['White']['background'] + ';border-color:' + Tools.hexColorCodes['White']['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;padding:1px;color:#333;text-shadow:1px 1px 1px #eee;text-transform: uppercase;text-align:center;font-size:8pt"><b>Action</b></div>';
 				html += '<br />';
 			}
 			const description = (this.actionCardLabels[card.id] || this.actionCards[card.id]);
 			let descriptionWidth = 'auto';
 			if (description.length <= 8) descriptionWidth = this.detailLabelWidth + 'px';
-			html += '<div style="display:inline-block;background-color:' + this.typeColorCodes['Black']['background-color'] + ';background:' + this.typeColorCodes['Black']['background'] + ';border-color:' + this.typeColorCodes['Black']['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:' + descriptionWidth + ';padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;text-align:center;font-size:8pt"><b>' + description + '</b></div>';
+			html += '<div style="display:inline-block;background-color:' + Tools.hexColorCodes['Black']['background-color'] + ';background:' + Tools.hexColorCodes['Black']['background'] + ';border-color:' + Tools.hexColorCodes['Black']['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:' + descriptionWidth + ';padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;text-align:center;font-size:8pt"><b>' + description + '</b></div>';
 		} else {
 			html += card.name + '<br />' + this.getCardPmDetails(card);
 		}

@@ -110,4 +110,26 @@ describe("Tools", () => {
 			assertStrictEqual(Tools.getChallongeUrl(" " + link + "\\"), expectedLink);
 		}
 	});
+	it('should have proper typeHexColors and pokemonColorHexColors lists', () => {
+		for (const i in Tools.typeHexColors) {
+			assert(Tools.typeHexColors[i] in Tools.hexColorCodes, i);
+		}
+
+		for (const i in Tools.pokemonColorHexColors) {
+			assert(Tools.pokemonColorHexColors[i] in Tools.hexColorCodes, i);
+		}
+
+		for (const i in Dex.data.pokedex) {
+			const pokemon = Dex.getExistingPokemon(i);
+			assert(pokemon.color in Tools.pokemonColorHexColors, pokemon.species + "'s color " + pokemon.color);
+			for (let i = 0; i < pokemon.types.length; i++) {
+				assert(pokemon.types[i] in Tools.typeHexColors, pokemon.species + "'s type " + pokemon.types[i]);
+			}
+		}
+
+		for (const i in Dex.data.moves) {
+			const move = Dex.getExistingMove(i);
+			assert(move.type in Tools.typeHexColors, move.name);
+		}
+	});
 });
