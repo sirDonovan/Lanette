@@ -170,6 +170,10 @@ class AxewsBattleCards extends CardMatching {
 					if (this.topCard.types[0] !== 'Water' || this.topCard.types.length > 1) {
 						playableCards.push(card.name);
 					}
+				} else if (card.id === 'magicpowder') {
+					if (this.topCard.types[0] !== 'Psychic' || this.topCard.types.length > 1) {
+						playableCards.push(card.name);
+					}
 				} else if (card.id === 'trickortreat') {
 					if (!this.topCard.types.includes('Ghost')) {
 						playableCards.push(card.name);
@@ -320,6 +324,12 @@ class AxewsBattleCards extends CardMatching {
 				return false;
 			}
 			this.topCard.types = ['Water'];
+		} else if (card.id === 'magicpowder') {
+			if (this.topCard.types.length === 1 && this.topCard.types[0] === 'Psychic') {
+				this.say(this.topCard.name + " is already pure Psychic-type!");
+				return false;
+			}
+			this.topCard.types = ['Psychic'];
 		} else if (card.id === 'conversion') {
 			const type = Tools.toId(targets[1]);
 			if (!type) {
