@@ -23,7 +23,6 @@ exports.BattleCharacters = [
 	"Gold",
 	"Silver",
 	"Kris",
-	"Silver",
 	"Falkner",
 	"Bugsy",
 	"Whitney",

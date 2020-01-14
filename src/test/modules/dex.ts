@@ -72,6 +72,21 @@ describe("Dex", () => {
 		// moves
 		assertStrictEqual(Dex.getDex('gen6').getExistingMove('Baddy Bad').isNonstandard, 'Future');
 		assertStrictEqual(Dex.getDex('gen7').getExistingMove('Baddy Bad').isNonstandard, 'LGPE');
+
+		// other in-game data
+		for (let i = 0; i < Dex.data.badges.length; i++) {
+			assert(Dex.data.badges.indexOf(Dex.data.badges[i]) === i, "Duplicate badge " + Dex.data.badges[i]);
+		}
+
+		for (let i = 0; i < Dex.data.characters.length; i++) {
+			assert(Dex.data.characters.indexOf(Dex.data.characters[i]) === i, "Duplicate character " + Dex.data.characters[i]);
+		}
+
+		const categoryKeys = Object.keys(Dex.data.categories);
+		for (let i = 0; i < categoryKeys.length; i++) {
+			assert(Tools.toId(categoryKeys[i]) === categoryKeys[i], categoryKeys[i] + " should be an ID in categories.js");
+			assert(categoryKeys.indexOf(categoryKeys[i]) === i, "Duplicate category for " + categoryKeys[i]);
+		}
 	});
 	it('should support OMoTM# aliases', () => {
 		assert(Dex.getFormat('omotm'));
