@@ -5,6 +5,7 @@ import path = require('path');
 import util = require('util');
 
 import { PRNG } from './prng';
+import type { HexColor, IHexColor } from './types/global-types';
 import { User } from './users';
 import { IParam } from './workers/parameters';
 
@@ -24,7 +25,7 @@ const fetchUrlTimeoutTimers = {
 	'challonge': 5 * 1000,
 };
 
-const hexColorCodes: Dict<{'background-color': string, 'background': string, 'border-color': string}> = {
+const hexColorCodes: KeyedDict<IHexColor, {'background-color': string, 'background': string, 'border-color': string}> = {
 	"White": {'background-color': '#eeeeee', 'background': 'linear-gradient(#eeeeee, #dddddd)', 'border-color': '#222222'},
 	"Black": {'background-color': '#222222', 'background': 'linear-gradient(#222222, #111111)', 'border-color': '#eeeeee'},
 	"Dark Yellow": {'background-color': '#8A8A59', 'background': 'linear-gradient(#A8A878,#8A8A59)', 'border-color': '#79794E'},
@@ -47,7 +48,7 @@ const hexColorCodes: Dict<{'background-color': string, 'background': string, 'bo
 	"Dark Brown": {'background-color': '#705848', 'background': 'linear-gradient(#705848,#513F34)', 'border-color': '#362A23'},
 };
 
-const typeHexColors: Dict<string> = {
+const typeHexColors: Dict<HexColor> = {
 	"Normal": "Dark Yellow",
 	"Fire": "Orange",
 	"Water": "Blue",
@@ -70,7 +71,7 @@ const typeHexColors: Dict<string> = {
 	"Bird": "White",
 };
 
-const pokemonColorHexColors: Dict<string> = {
+const pokemonColorHexColors: Dict<HexColor> = {
 	"Green": "Green",
 	"Red": "Red",
 	"Black": "Dark Brown",
@@ -96,6 +97,7 @@ export class Tools {
 	readonly roomLogsFolder: string = path.join(rootFolder, 'roomlogs');
 	readonly rootFolder: typeof rootFolder = rootFolder;
 	readonly pokemonShowdownFolder: string = path.join(rootFolder, 'pokemon-showdown');
+	readonly letters: string = "abcdefghijklmnopqrstuvwxyz";
 
 	fetchUrlTimeouts: Dict<NodeJS.Timer> = {};
 	fetchUrlQueues: Dict<(() => any)[]> = {};
@@ -236,6 +238,15 @@ export class Tools {
 			}
 			return "{" + properties.join(", ") + "}";
 		}
+	}
+
+	toNumberOrderString(input: number): string {
+		const numberString = "" + input;
+		if (numberString.endsWith('11') || numberString.endsWith('12') || numberString.endsWith('13')) return numberString + "th";
+		if (numberString.endsWith('1')) return numberString + "st";
+		if (numberString.endsWith('2')) return numberString + "nd";
+		if (numberString.endsWith('3')) return numberString + "rd";
+		return numberString + "th";
 	}
 
 	stripHtmlCharacters(input: string): string {

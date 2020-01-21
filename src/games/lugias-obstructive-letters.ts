@@ -20,8 +20,9 @@ const dataKeys: KeyedDict<typeof data, string[]> = {
 	"Pokemon Items": [],
 	"Pokemon Moves": [],
 };
-const letters = "abcdefghijklmnopqrstuvwxyz".split("");
 let loadedData = false;
+
+const letters = Tools.letters.split("");
 
 class LugiasObstructiveLetters extends Guessing {
 	static loadData(room: Room) {

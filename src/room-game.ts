@@ -435,9 +435,10 @@ export class Game extends Activity {
 		}
 	}
 
-	eliminatePlayer(player: Player, eliminationCause?: string) {
+	eliminatePlayer(player: Player, eliminationCause?: string | null, eliminator?: Player | null) {
 		player.eliminated = true;
 		player.say((eliminationCause ? eliminationCause + " " : "") + "You have been eliminated from the game.");
+		if (this.onEliminatePlayer) this.onEliminatePlayer(player, eliminationCause, eliminator);
 	}
 
 	getCommandsAndAliases(commands: string[]): string[] {
@@ -724,6 +725,7 @@ export class Game extends Activity {
 	onAfterDeallocate?(forceEnd: boolean): void;
 	onChildEnd?(winners: Map<Player, number>): void;
 	onDeallocate?(forceEnd: boolean): void;
+	onEliminatePlayer?(player: Player, eliminationCause?: string | null, eliminator?: Player | null): void;
 	onMaxRound?(): void;
 	onNextRound?(): void;
 	onRemovePlayer?(player: Player): void;
