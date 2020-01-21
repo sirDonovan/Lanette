@@ -237,6 +237,7 @@ const commands: Dict<ICommandDefinition<BulbasaursUno>> = {
 	draw: {
 		command(target, room, user) {
 			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
+			this.awaitingCurrentPlayerCard = false;
 			this.drawCard(this.players[user.id]);
 			this.currentPlayer = null; // prevent Draw Wizard from activating on a draw
 			this.nextRound();
