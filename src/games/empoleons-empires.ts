@@ -10,6 +10,7 @@ class EmpoleonsEmpires extends Game {
 	aliasIds: string[] = [];
 	currentPlayer: Player | null = null;
 	maxPlayers: number = 15;
+	minPlayers: number = 4;
 	points = new Map<Player, number>();
 	successiveSuspects = new Map<Player, number>();
 
