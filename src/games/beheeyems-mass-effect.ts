@@ -34,13 +34,13 @@ class BeheeyemsMassEffect extends Guessing {
 				} else {
 					const effectiveness = Dex.getEffectiveness(type, typingArray);
 					if (effectiveness <= -2) {
-						resistances.push("**" + type + "**");
+						resistances.push("<b>" + type + "</b>");
 					} else if (effectiveness === -1) {
 						resistances.push(type);
 					} else if (effectiveness === 1) {
 						weaknesses.push(type);
 					} else if (effectiveness >= 2) {
-						weaknesses.push("**" + type + "**");
+						weaknesses.push("<b>" + type + "</b>");
 					}
 				}
 			}
@@ -63,6 +63,7 @@ class BeheeyemsMassEffect extends Guessing {
 	}
 
 	lastEffectiveness: string = '';
+	roundTime: number = 20 * 1000;
 
 	onSignups() {
 		if (this.format.options.freejoin) {
