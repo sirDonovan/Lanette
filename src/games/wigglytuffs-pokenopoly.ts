@@ -1,7 +1,8 @@
 import type { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { addPlayers, assertStrictEqual } from "../test/test-tools";
+import { GameFileTests, IGameFile } from "../types/games";
 import type { HexColor } from "../types/global-types";
 import { BoardGame, BoardSide, BoardSpace, game as boardGame, IBoard, IMovedBoardLocation } from "./templates/board";
 
@@ -222,6 +223,13 @@ class WigglytuffsPokenopoly extends BoardGame {
 
 	isUtilitySpace(space: BoardSpace): space is BoardUtilitySpace {
 		return !!space.isUtilitySpace;
+	}
+
+	onAfterDeallocate(forceEnd: boolean) {
+		for (const i in spaces) {
+			const space = spaces[i];
+			if (this.isPropertySpace(space)) space.owner = null;
+		}
 	}
 
 	onRemovePlayer(player: Player) {
@@ -550,6 +558,18 @@ const commands: Dict<ICommandDefinition<WigglytuffsPokenopoly>> = {
 	},
 };
 
+const tests: GameFileTests<WigglytuffsPokenopoly> = {
+	'it should clear property owners once the game ends': {
+		test(game, format) {
+			const players = addPlayers(game, 4);
+			game.start();
+			(spaces.pallet as BoardPropertySpace).owner = players[0];
+			game.forceEnd(Users.self);
+			assertStrictEqual((spaces.pallet as BoardPropertySpace).owner, null);
+		},
+	},
+};
+
 export const game: IGameFile<WigglytuffsPokenopoly> = Games.copyTemplateProperties(boardGame, {
 	aliases: ["Wigglytuffs"],
 	class: WigglytuffsPokenopoly,
@@ -559,4 +579,5 @@ export const game: IGameFile<WigglytuffsPokenopoly> = Games.copyTemplateProperti
 	formerNames: ['pokenopoly'],
 	mascot: "Wigglytuff",
 	name: "Wigglytuff's Pokenopoly",
+	tests: Object.assign({}, boardGame.tests, tests),
 });
