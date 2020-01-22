@@ -216,7 +216,7 @@ const commands: CommandsDict<Team & Guessing, GameCommandReturnType> = {
 				this.say(text);
 
 				for (let i = 0; i < player.team!.players.length; i++) {
-					this.winners.set(player.team!.players[i], 1);
+					if (!player.team!.players[i].eliminated) this.winners.set(player.team!.players[i], 1);
 				}
 				this.end();
 				return true;
