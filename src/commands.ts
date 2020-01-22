@@ -1692,9 +1692,7 @@ const commands: Dict<ICommandDefinition> = {
 			if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 			const bracketLink = Tools.getChallongeUrl(targets[1]);
 			const signupsLink = Tools.getChallongeUrl(targets[2]);
-			if (!bracketLink || !signupsLink) return this.say("You must specify valid Challonge links.");
-			if (bracketLink.lastIndexOf('/') === 21) return this.say("You must specify the bracket link to your tournament (click \"Bracket\").");
-			if (!signupsLink.includes('/signup/')) return this.say("You must specify the signup link to your tournament (click \"Register\").");
+			if (!bracketLink || !signupsLink || (!bracketLink.includes('/signup/') && !signupsLink.includes('/signup/'))) return this.say("You must specify the links to your tournament's bracket and signup page.");
 			if (targetRoom.approvedUserHostedTournaments) {
 				for (const i in targetRoom.approvedUserHostedTournaments) {
 					if (targetRoom.approvedUserHostedTournaments[i].urls.includes(bracketLink) || targetRoom.approvedUserHostedTournaments[i].urls.includes(signupsLink)) {

@@ -92,7 +92,7 @@ describe("Tools", () => {
 		assert(!Tools.getChallongeUrl('https://challonge.com'));
 		assert(!Tools.getChallongeUrl('https://challonge.com/'));
 
-		const links = ['https://challonge.com/mocha', 'http://challonge.com/mocha', 'https://challonge.com/signup/mocha', 'http://challonge.com/signup/mocha'];
+		const links = ['https://challonge.com/mocha', 'http://challonge.com/mocha', 'https://challonge.com/tournament/signup/mocha', 'http://challonge.com/tournament/signup/mocha'];
 		for (let i = 0; i < links.length; i++) {
 			const link = links[i];
 			const expectedLink = link.startsWith('http://') ? 'https://' + link.substr(7) : link;
