@@ -6,6 +6,9 @@ import { IGameFile } from "../types/games";
 import * as ParametersWorker from './../workers/parameters';
 
 const name = "Inkay's Cups";
+const gen = 7;
+const genString = 'gen' + gen;
+
 interface IParamType {
 	'color': any;
 	'letter': any;
@@ -61,7 +64,7 @@ class InkaysCups extends Game {
 	}
 
 	onStart() {
-		const text = "Now randomizing categories!";
+		const text = "The game will be played in Gen " + gen + "!";
 		this.on(text, () => {
 			this.timeout = setTimeout(() => this.nextRound(), 5000);
 		});
@@ -79,10 +82,10 @@ class InkaysCups extends Game {
 		while ((len < lower || len > upper) && attempts < 10) {
 			attempts++;
 			for (let i = 0; i < roundParamTypes.length; i++) {
-				params[i] = this.sampleOne(paramTypeKeys.pokemon['gen7'][roundParamTypes[i]]);
+				params[i] = this.sampleOne(paramTypeKeys.pokemon[genString][roundParamTypes[i]]);
 			}
 			const intersection = await ParametersWorker.intersect({
-				mod: 'gen7',
+				mod: genString,
 				paramTypes,
 				searchType: 'pokemon',
 			}, params);
