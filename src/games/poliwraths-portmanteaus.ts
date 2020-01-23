@@ -142,7 +142,7 @@ const tests: GameFileTests<PoliwrathsPortmanteaus> = {
 
 export const game: IGameFile<PoliwrathsPortmanteaus> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['poliwraths', 'ports'],
-	category: '',
+	category: 'puzzle',
 	class: PoliwrathsPortmanteaus,
 	customizableOptions: {
 		ports: {min: 2, base: BASE_NUMBER_OF_PORTS, max: 4},

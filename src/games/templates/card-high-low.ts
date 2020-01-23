@@ -1,6 +1,6 @@
 import { ICommandDefinition } from '../../command-parser';
 import { Player } from '../../room-activity';
-import { IGameTemplateFile } from '../../types/games';
+import { GameCategory, IGameTemplateFile } from '../../types/games';
 import { Card, CardType, game as cardGame } from './card';
 
 type HighLow = 'high' | 'low';
@@ -242,6 +242,6 @@ const commands: Dict<ICommandDefinition<CardHighLow>> = {
 };
 
 export const game: IGameTemplateFile<CardHighLow> = Object.assign(Tools.deepClone(cardGame), {
-	category: 'card-high-low',
+	category: 'cardHighLow' as GameCategory,
 	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
 });

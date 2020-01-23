@@ -84,6 +84,7 @@ class KyuremsSplits extends Guessing {
 
 export const game: IGameFile<KyuremsSplits> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['kyurems'],
+	category: 'identification',
 	class: KyuremsSplits,
 	defaultOptions: ['points'],
 	description: "Players guess answers that have all of the given letters in order!",

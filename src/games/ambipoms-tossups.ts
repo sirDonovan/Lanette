@@ -99,6 +99,7 @@ class AmbipomsTossups extends Guessing {
 
 export const game: IGameFile<AmbipomsTossups> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['ambipoms', 'at'],
+	category: 'identification',
 	class: AmbipomsTossups,
 	defaultOptions: ['points'],
 	description: "Players guess answers as blanks are filled in one by one (one guess per round)!",

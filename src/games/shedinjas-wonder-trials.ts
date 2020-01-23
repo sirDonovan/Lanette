@@ -200,6 +200,7 @@ const commands: Dict<ICommandDefinition<ShedinjasWonderTrials>> = {
 
 export const game: IGameFile<ShedinjasWonderTrials> = {
 	aliases: ["shedinjas", "swt", "wondertrials"],
+	category: 'knowledge',
 	commandDescriptions: [Config.commandCharacter + "use [move]"],
 	commands,
 	class: ShedinjasWonderTrials,

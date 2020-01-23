@@ -99,6 +99,7 @@ class MagnetonsMashups extends Guessing {
 
 export const game: IGameFile<MagnetonsMashups> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['magnetons'],
+	category: 'identification',
 	class: MagnetonsMashups,
 	defaultOptions: ['points'],
 	description: "Players unscramble the two combined names each round!",

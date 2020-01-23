@@ -81,6 +81,7 @@ class SmearglesMysteryMoves extends Guessing {
 
 export const game: IGameFile<SmearglesMysteryMoves> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ["smeargles", "mysterymoves", "smm", "wtm"],
+	category: 'knowledge',
 	commandDescriptions: [Config.commandCharacter + "g [move]"],
 	class: SmearglesMysteryMoves,
 	defaultOptions: ['points'],

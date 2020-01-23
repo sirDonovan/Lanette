@@ -116,6 +116,7 @@ const commands: Dict<ICommandDefinition<GolemsGalvanicMine>> = {
 
 export const game: IGameFile<GolemsGalvanicMine> = {
 	aliases: ["golems", "ggm", "galvanicmine"],
+	category: 'speed',
 	commandDescriptions: [Config.commandCharacter + "mine [stone]"],
 	commands,
 	class: GolemsGalvanicMine,

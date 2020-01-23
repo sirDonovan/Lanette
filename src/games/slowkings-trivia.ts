@@ -66,6 +66,7 @@ class SlowkingsTrivia extends Guessing {
 
 export const game: IGameFile<SlowkingsTrivia> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['slowkings', 'triv', 'st'],
+	category: 'knowledge',
 	class: SlowkingsTrivia,
 	defaultOptions: ['points'],
 	description: "Players use the given descriptions (Pokemon related) to guess the answers!",

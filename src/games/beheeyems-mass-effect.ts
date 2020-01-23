@@ -84,6 +84,7 @@ class BeheeyemsMassEffect extends Guessing {
 
 export const game: IGameFile<BeheeyemsMassEffect> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ["Beheeyems", "bme"],
+	category: 'knowledge',
 	class: BeheeyemsMassEffect,
 	defaultOptions: ['points'],
 	description: "Each round, players find a Pokemon whose type effectiveness matches the given parameters.",

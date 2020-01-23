@@ -115,6 +115,7 @@ class MareaniesMarquee extends Guessing {
 
 export const game: IGameFile<MareaniesMarquee> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['mareanies', 'marquees'],
+	category: 'identification',
 	class: MareaniesMarquee,
 	defaultOptions: ['points'],
 	description: "Players guess the answers as letters are cycled through 1 at a time!",

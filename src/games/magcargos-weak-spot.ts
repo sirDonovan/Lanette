@@ -94,6 +94,7 @@ class MagcargosWeakSpot extends Guessing {
 
 export const game: IGameFile<MagcargosWeakSpot> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ["Magcargos", "ws"],
+	category: 'knowledge',
 	class: MagcargosWeakSpot,
 	defaultOptions: ['points'],
 	description: "Players guess the weakness(es) that the given Pokemon share!",

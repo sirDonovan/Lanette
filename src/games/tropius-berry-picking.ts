@@ -254,6 +254,7 @@ const commands: Dict<ICommandDefinition<TropiusBerryPicking>> = {
 
 export const game: IGameFile<TropiusBerryPicking> = {
 	aliases: ["tropius", "berrypicking", "berries", "tbp"],
+	category: 'knowledge',
 	commandDescriptions: [Config.commandCharacter + "eat [berry]"],
 	commands,
 	class: TropiusBerryPicking,

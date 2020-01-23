@@ -1,6 +1,6 @@
 import { ICommandDefinition } from '../../command-parser';
 import { Player } from '../../room-activity';
-import { IGameTemplateFile } from '../../types/games';
+import { GameCategory, IGameTemplateFile } from '../../types/games';
 import { Card, CardType, game as cardGame, IPokemonCard } from './card';
 
 export abstract class CardMatching extends Card {
@@ -457,6 +457,6 @@ const commands: Dict<ICommandDefinition<CardMatching>> = {
 };
 
 export const game: IGameTemplateFile<CardMatching> = Object.assign(Tools.deepClone(cardGame), {
-	category: 'card-matching',
+	category: 'cardMatching' as GameCategory,
 	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
 });

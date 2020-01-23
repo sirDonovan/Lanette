@@ -98,6 +98,7 @@ class LugiasObstructiveLetters extends Guessing {
 
 export const game: IGameFile<LugiasObstructiveLetters> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['lugias', 'lol'],
+	category: 'identification',
 	class: LugiasObstructiveLetters,
 	customizableOptions: {
 		points: {min: BASE_POINTS, base: BASE_POINTS, max: BASE_POINTS},

@@ -282,6 +282,7 @@ commands.summary.aliases = ['role'];
 
 export const game: IGameFile<LandorusWar> = {
 	aliases: ['landorus', 'lw'],
+	category: 'knowledge',
 	class: LandorusWar,
 	commandDescriptions: [Config.commandCharacter + "use [move], [trainer]", Config.commandCharacter + "suspect [trainer], [Pokemon]"],
 	commands,

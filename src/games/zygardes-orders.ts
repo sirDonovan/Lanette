@@ -130,6 +130,7 @@ class ZygardesOrders extends Guessing {
 
 export const game: IGameFile<ZygardesOrders> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ["zygardes", "zo"],
+	category: 'identification',
 	class: ZygardesOrders,
 	customizableOptions: {
 		points: {min: 5, base: 5, max: 5},

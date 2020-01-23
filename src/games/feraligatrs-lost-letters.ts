@@ -92,6 +92,7 @@ class FeraligatrsLostLetters extends Guessing {
 
 export const game: IGameFile<FeraligatrsLostLetters> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['feraligatrs', 'fll', 'll'],
+	category: 'identification',
 	class: FeraligatrsLostLetters,
 	defaultOptions: ['points'],
 	description: "Players guess the missing vowels to find the answers!",

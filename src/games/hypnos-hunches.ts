@@ -127,6 +127,7 @@ class HypnosHunches extends Guessing {
 
 export const game: IGameFile<HypnosHunches> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ["hypnos"],
+	category: 'identification',
 	class: HypnosHunches,
 	customizableOptions: {
 		points: {min: 5, base: 5, max: 5},

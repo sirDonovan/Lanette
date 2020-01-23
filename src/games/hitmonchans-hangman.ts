@@ -116,6 +116,7 @@ class HitmonchansHangman extends Guessing {
 
 export const game: IGameFile<HitmonchansHangman> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ["hitmonchans", "hh"],
+	category: 'identification',
 	class: HitmonchansHangman,
 	defaultOptions: ['points'],
 	description: "Players guess letters to fill in the blanks and reveal the answers!",

@@ -40,6 +40,7 @@ class ChimechosStatSchool extends Guessing {
 
 export const game: IGameFile<ChimechosStatSchool> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['chimechos', 'css', 'statschool'],
+	category: 'knowledge',
 	class: ChimechosStatSchool,
 	defaultOptions: ['points'],
 	description: "Players guess Pokémon with the given base stat distributions!",

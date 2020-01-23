@@ -8,6 +8,23 @@ import { IWorker } from "./global-types";
 export type GameCommandReturnType = boolean;
 export type GameDifficulty = 'easy' | 'medium' | 'hard';
 
+interface IGameCategoryKeys {
+	board: any;
+	card: any;
+	cardHighLow: any;
+	cardMatching: any;
+	chain: any;
+	identification: any;
+	knowledge: any;
+	map: any;
+	playingCard: any;
+	puzzle: any;
+	reaction: any;
+	speed: any;
+}
+
+export type GameCategory = keyof IGameCategoryKeys;
+
 export interface IInternalGames {
 	eggtoss: string;
 	vote: string;
@@ -39,7 +56,7 @@ type GameFileTests<T extends Game = Game> = Dict<{config?: IGameFileTestConfig, 
 
 interface IGameFileProperties<T extends Game = Game> {
 	aliases?: string[];
-	category?: string;
+	category?: GameCategory;
 	commands?: Dict<ICommandDefinition<T>>;
 	commandDescriptions?: string[];
 	customizableOptions?: Dict<IGameOptionValues>;

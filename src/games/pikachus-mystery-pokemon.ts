@@ -113,6 +113,7 @@ class PikachusMysteryPokemon extends Guessing {
 
 export const game: IGameFile<PikachusMysteryPokemon> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ["pikachus", "mysterypokemon", "pmp", "wtp"],
+	category: 'knowledge',
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],
 	class: PikachusMysteryPokemon,
 	defaultOptions: ['points'],

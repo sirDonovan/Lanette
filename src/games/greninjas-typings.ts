@@ -58,6 +58,7 @@ class GreninjasTypings extends Guessing {
 
 export const game: IGameFile<GreninjasTypings> = Games.copyTemplateProperties(guessingGame, {
 	aliases: ['greninjas'],
+	category: 'knowledge',
 	class: GreninjasTypings,
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],
 	defaultOptions: ['points'],

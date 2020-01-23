@@ -157,6 +157,7 @@ const commands: Dict<ICommandDefinition<ChandeluresCandles>> = {
 
 export const game: IGameFile<ChandeluresCandles> = {
 	aliases: ["chandelures", "candles", "cc"],
+	category: 'reaction',
 	commandDescriptions: [Config.commandCharacter + "hide", Config.commandCharacter + "puff [player]"],
 	commands,
 	class: ChandeluresCandles,

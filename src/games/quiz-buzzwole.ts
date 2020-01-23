@@ -305,6 +305,7 @@ const commands: Dict<ICommandDefinition<QuizBuzzwole>> = {
 
 export const game: IGameFile<QuizBuzzwole> = {
 	aliases: ['buzzwoles', 'qb'],
+	category: 'knowledge',
 	class: QuizBuzzwole,
 	commandDescriptions: [Config.commandCharacter + "guess [number or item]"],
 	commands,
