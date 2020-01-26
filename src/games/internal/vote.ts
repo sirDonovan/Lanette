@@ -7,9 +7,12 @@ import { IGameFile } from "../../types/games";
 const timeLimit = 30 * 1000;
 
 export class Vote extends Game {
+	canVote: boolean = false;
+	chosenFormat: string = '';
+	gamesUhtml: string = '';
 	internalGame: boolean = true;
 	picks: string[] = [];
-	uhtmlName: string = '';
+	voteUhtml: string = '';
 	readonly votes = new Map<Player, string>();
 
 	// hack for onSignups()
@@ -45,50 +48,74 @@ export class Vote extends Game {
 			this.picks.push(possiblePicks[i]);
 		}
 
-		let html = "<div class='infobox'><center><h3>Vote for the next scripted game!</h3>Use the command <code>" + Config.commandCharacter + "vote [game]</code>";
-		html += "<br /><details><summary>Games list</summary>" + formats.sort().join(", ") + "</details>";
-		if (pastGames.length) html += "<br /><details><summary>Past games (cannot be voted for)</summary>" + pastGames.join(", ") + "</details>";
+		let voteHtml = "<div class='infobox'><center><h3>Vote for the next scripted game!</h3>Use the command <code>" + Config.commandCharacter + "vote [game]</code>";
 		if (this.picks.length) {
-			html += "<br /><b>" + Users.self.name + "'s picks:</b><br />";
+			voteHtml += "<br /><br /><b>" + Users.self.name + "'s picks:</b><br />";
 
 			const buttons: string[] = [];
 			for (let i = 0; i < this.picks.length; i++) {
 				buttons.push('<button class="button" name="send" value="' + Config.commandCharacter + 'vote ' + this.picks[i] + '">' + this.picks[i] + '</button>');
 			}
-			html += buttons.join(" | ");
+			voteHtml += buttons.join(" | ");
 		}
-		html += "</center></div>";
+		voteHtml += "</center></div>";
+		this.voteUhtml = this.uhtmlBaseName + '-voting';
+		this.onUhtml(this.voteUhtml, voteHtml, () => {
+			this.canVote = true;
+		});
+		this.sayUhtml(this.voteUhtml, voteHtml);
 
-		this.uhtmlName = this.uhtmlBaseName + '-voting';
-		this.sayUhtml(this.uhtmlName, html);
+		let gamesHtml = "<div class='infobox'><center><details><summary>Click to see all games</summary>" + formats.sort().join(", ") + "</details></center>";
+		if (pastGames.length) {
+			gamesHtml += "<br /><b>Past games (cannot be voted for)</b>: " + Tools.joinList(pastGames);
+		}
+		gamesHtml += "</div>";
+		this.gamesUhtml = this.uhtmlBaseName + '-games';
+		this.onUhtml(this.gamesUhtml, gamesHtml, () => {
+			this.timeout = setTimeout(() => this.endVoting(), timeLimit);
+		});
+		this.sayUhtml(this.gamesUhtml, gamesHtml);
+
 		this.notifyRankSignups = true;
 		this.sayCommand("/notifyrank all, " + this.room.title + " game vote,Help decide the next scripted game!," + Games.scriptedGameVoteHighlight, true);
-		this.timeout = setTimeout(() => this.end(), timeLimit);
+	}
+
+	endVoting() {
+		const html = "<div class='infobox'><center><h3>Voting for the next scripted game has ended!</h3></center></div>";
+		this.onUhtml(this.voteUhtml, html, () => {
+			this.canVote = false;
+			const formats = Array.from(this.votes.values());
+			let format: string;
+			if (formats.length) {
+				format = this.sampleOne(formats);
+			} else {
+				if (!this.picks.length) {
+					this.say("A random game could not be chosen.");
+					this.forceEnd(Users.self);
+					return;
+				}
+				format = this.sampleOne(this.picks);
+			}
+
+			this.chosenFormat = format;
+			this.end();
+		});
+		this.sayUhtml(this.voteUhtml, html);
+	}
+
+	onForceEnd() {
+		this.sayUhtmlChange(this.voteUhtml, "<div></div>");
 	}
 
 	onAfterDeallocate(forceEnd: boolean) {
-		this.sayUhtmlChange(this.uhtmlName, "<div class='infobox'><center><h3>Voting for the next scripted game has ended!</h3></center></div>");
-		if (forceEnd) return;
-
-		const formats = Array.from(this.votes.values());
-		let format: string;
-		if (formats.length) {
-			format = this.sampleOne(formats);
-		} else {
-			if (!this.picks.length) {
-				this.say("A random game could not be chosen.");
-				return;
-			}
-			format = this.sampleOne(this.picks);
-		}
-
-		CommandParser.parse(this.room, Users.self, Config.commandCharacter + "creategame " + format);
+		if (!forceEnd && this.chosenFormat) CommandParser.parse(this.room, Users.self, Config.commandCharacter + "creategame " + this.chosenFormat);
 	}
 }
 
 const commands: Dict<ICommandDefinition<Vote>> = {
 	vote: {
 		command(target, room, user) {
+			if (!this.canVote) return false;
 			const player = this.players[user.id] || this.createPlayer(user);
 			const format = Games.getFormat(target, true);
 			if (Array.isArray(format)) {
