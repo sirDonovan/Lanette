@@ -94,7 +94,6 @@ export class UserHosted extends Game {
 		Storage.addPoints(this.room as Room, this.hostName, hostBits!, 'userhosted');
 		const user = Users.get(this.hostName);
 		if (user) user.say("You were awarded " + hostBits! + " bits! To see your total amount, use this command: ``" + Config.commandCharacter + "bits " + (this.room as Room).title + "``. Thanks for your efforts, we hope you host again soon!");
-		const database = Storage.getDatabase(this.room);
 		if (!(this.room.id in Games.lastUserHostTimes)) Games.lastUserHostTimes[this.room.id] = {};
 		Games.lastUserHostTimes[this.room.id][this.hostId] = Date.now();
 	}
@@ -127,7 +126,7 @@ export const game: IUserHostedFile<UserHosted> = {
 		},
 		{
 			name: "Counting",
-			description: "Players have to do .count in the right order based on the given category (numbers, words or etc.). The first person to mess up the sequence loses a point, so be careful!",
+			description: "Players have to do " + Config.commandCharacter + "count in the right order based on the given category (numbers, words or etc.). The first person to mess up the sequence loses a point, so be careful!",
 		},
 		{
 			name: "Ditto's Who Am I",
@@ -171,7 +170,7 @@ export const game: IUserHostedFile<UserHosted> = {
 			name: "Jynx's Klutsy Kissing",
 			mascot: "Jynx",
 			aliases: ['JKK'],
-			description: "Kiss the Pokemon with gender differences to win! Use the command ''.kiss'' on the Pokemon you believe has different sprites when it is female or male.",
+			description: "Kiss the Pokemon with gender differences to win! Use the command <code>" + Config.commandCharacter + "kiss</code> on the Pokemon you believe has different sprites when it is female or male.",
 			freejoin: true,
 		},
 		{
@@ -225,7 +224,7 @@ export const game: IUserHostedFile<UserHosted> = {
 			name: "Pachirisu's Picking Process",
 			mascot: 'Pachirisu',
 			aliases: ['pachirisus'],
-			description: "'A random Pokemon is displayed by the host and the players have to either recommend or not recommend it. Then, the host will display another random Pokemon. If the 1st Pokemon wins type-wise, the players that recommended it win a point and vice-versa!",
+			description: "A random Pokemon is displayed by the host and the players have to either recommend or not recommend it. Then, the host will display another random Pokemon. If the 1st Pokemon wins type-wise, the players that recommended it win a point and vice-versa!",
 			freejoin: true,
 		},
 		{
