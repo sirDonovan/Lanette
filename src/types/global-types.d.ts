@@ -1,10 +1,3 @@
-import { Worker } from "worker_threads";
-
-export interface IWorker {
-	init: (data: any) => Worker;
-	unref: () => void;
-}
-
 export interface IHexColor {
 	"White": any;
 	"Black": any;

@@ -2,7 +2,7 @@ import { PRNG, PRNGSeed } from "../prng";
 import { Room } from "../rooms";
 import { assert, assertStrictEqual } from "../test/test-tools";
 import { GameFileTests, IGameFile, IGameFormat } from "../types/games";
-import * as ParametersWorker from './../workers/parameters';
+import { IParam, IParametersResponse, ParamType } from '../workers/parameters';
 import { game as guessingGame, Guessing } from './templates/guessing';
 
 const BASE_NUMBER_OF_PARAMS = 2;
@@ -10,7 +10,7 @@ const MIN_GEN = 1;
 const MAX_GEN = 7;
 
 const name = "Paras' Parameters";
-const allParamTypes: ParametersWorker.ParamType[] = ['move', 'tier', 'color', 'type', 'resistance', 'weakness', 'egggroup', 'ability', 'gen'];
+const allParamTypes: ParamType[] = ['move', 'tier', 'color', 'type', 'resistance', 'weakness', 'egggroup', 'ability', 'gen'];
 let loadedData = false;
 
 export class ParasParameters extends Guessing {
@@ -18,19 +18,20 @@ export class ParasParameters extends Guessing {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		ParametersWorker.init();
+		Games.workers.parameters.loadData();
 
 		loadedData = true;
 	}
 
 	currentNumberOfParams: number = 0;
-	customParamTypes: ParametersWorker.ParamType[] | null = null;
+	customParamTypes: ParamType[] | null = null;
 	minimumResults: number = 3;
 	maximumResults: number = 50;
-	params: ParametersWorker.IParam[] = [];
-	paramTypes: ParametersWorker.ParamType[] = allParamTypes;
+	params: IParam[] = [];
+	paramTypes: ParamType[] = allParamTypes;
 	pokemon: string[] = [];
 	roundTime: number = 5 * 60 * 1000;
+	usesWorkers: boolean = true;
 
 	onInitialize() {
 		super.onInitialize();
@@ -48,7 +49,7 @@ export class ParasParameters extends Guessing {
 		}
 	}
 
-	getParamNames(params: ParametersWorker.IParam[]): string[] {
+	getParamNames(params: IParam[]): string[] {
 		const names = [];
 		for (let i = 0; i < params.length; i++) {
 			if (params[i].type === 'type') {
@@ -79,7 +80,7 @@ export class ParasParameters extends Guessing {
 			if ((this.format as IGameFormat).customizableOptions.params) numberOfParams += this.random((this.format as IGameFormat).customizableOptions.params.max - BASE_NUMBER_OF_PARAMS + 1);
 		}
 		this.currentNumberOfParams = numberOfParams;
-		const result = await ParametersWorker.search({
+		const result = await Games.workers.parameters.search({
 			customParamTypes: this.customParamTypes,
 			minimumResults: this.minimumResults,
 			maximumResults: this.maximumResults,
@@ -118,8 +119,8 @@ export class ParasParameters extends Guessing {
 		return "A possible set of parameters was __" + givenAnswer + "__.";
 	}
 
-	async intersect(params: string[]): Promise<ParametersWorker.IParameterIntersectResult> {
-		return ParametersWorker.intersect({
+	async intersect(params: string[]): Promise<IParametersResponse> {
+		return Games.workers.parameters.intersect({
 			mod: 'gen' + this.format.options.gen,
 			paramTypes: allParamTypes,
 			searchType: 'pokemon',
@@ -143,15 +144,17 @@ const tests: GameFileTests<ParasParameters> = {
 		},
 		async test(game, format) {
 			this.timeout(15000);
-			for (const gen in ParametersWorker.data.pokemon.gens) {
-				const types = Object.keys(ParametersWorker.data.pokemon.gens[gen].paramTypeDexes) as ParametersWorker.ParamType[];
+			const parametersData = Games.workers.parameters.loadData();
+
+			for (const gen in parametersData.pokemon.gens) {
+				const types = Object.keys(parametersData.pokemon.gens[gen].paramTypeDexes) as ParamType[];
 				for (let i = 0; i < types.length; i++) {
 					const type = types[i];
-					const keys = Object.keys(ParametersWorker.data.pokemon.gens[gen].paramTypeDexes[type]);
+					const keys = Object.keys(parametersData.pokemon.gens[gen].paramTypeDexes[type]);
 					const checkTier = type === 'tier';
 					for (let i = 0; i < keys.length; i++) {
 						const key = Tools.toId(keys[i]);
-						assert(key in ParametersWorker.data.pokemon.gens[gen].paramTypePools[type], key + ' in ' + type);
+						assert(key in parametersData.pokemon.gens[gen].paramTypePools[type], key + ' in ' + type);
 						if (checkTier) assert(keys[i].charAt(0) !== '(');
 					}
 				}
@@ -238,5 +241,4 @@ export const game: IGameFile<ParasParameters> = Games.copyTemplateProperties(gue
 	minigameCommandAliases: ['param'],
 	modes: ['survival', 'team'],
 	tests: Object.assign({}, guessingGame.tests, tests),
-	workers: [ParametersWorker],
 });

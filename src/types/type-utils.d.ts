@@ -5,6 +5,8 @@ type KeyedDict<T, U> = {[K in keyof T]: U};
 
 type PartialKeyedDict<T, U> = {[K in keyof T]?: U};
 
+type PromiseResolve<T> = (value?: T | PromiseLike<T> | undefined) => void;
+
 /*
 * Credit to ts-essentials (MIT licensed)
 *

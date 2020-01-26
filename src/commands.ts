@@ -62,7 +62,7 @@ const commands: Dict<ICommandDefinition> = {
 			for (let i = 0; i < targets.length; i++) {
 				const id = Tools.toId(targets[i]) as ReloadableModule;
 				if (id === 'commandparser') {
-					if (CommandParser.logsWorker.requestsByUserid.length) return this.say("You must wait for all logs requests to finish first.");
+					if (Storage.workers.logs.requestsByUserid.length) return this.say("You must wait for all logs requests to finish first.");
 				} else if (id === 'games') {
 					const workerGameRooms: Room[] = [];
 					Users.self.rooms.forEach((rank, room) => {
@@ -101,7 +101,6 @@ const commands: Dict<ICommandDefinition> = {
 						global.Client = new client.Client();
 						Client.onReload(oldClient);
 					} else if (modules[i] === 'commandparser') {
-						CommandParser.unrefWorkers();
 						Tools.uncacheTree('./command-parser');
 						const commandParser: typeof import('./command-parser') = require('./command-parser');
 						global.CommandParser = new commandParser.CommandParser();
@@ -130,6 +129,7 @@ const commands: Dict<ICommandDefinition> = {
 						Games.loadFormats();
 					} else if (modules[i] === 'storage') {
 						const oldStorage = global.Storage;
+						Storage.unrefWorkers();
 						Tools.uncacheTree('./storage');
 						const storage: typeof import('./storage') = require('./storage');
 						global.Storage = new storage.Storage();
@@ -2506,7 +2506,9 @@ const commands: Dict<ICommandDefinition> = {
 				}
 			}
 			if (CommandParser.reloadInProgress) return this.sayError(['reloadInProgress']);
-			if (CommandParser.logsWorker.requestsByUserid.includes(user.id)) return this.say("You can only perform 1 search at a time.");
+
+			const userId = user.id;
+			if (Storage.workers.logs.requestsByUserid.includes(userId)) return this.say("You can only perform 1 search at a time.");
 
 			const displayStartDate = startDate.slice(1);
 			displayStartDate.push(startDate[0]);
@@ -2520,8 +2522,8 @@ const commands: Dict<ICommandDefinition> = {
 			}
 			text += "...";
 			this.say(text);
-			CommandParser.logsWorker.requestsByUserid.push(user.id);
-			const result = await CommandParser.logsWorker.search({
+			Storage.workers.logs.requestsByUserid.push(userId);
+			const result = await Storage.workers.logs.search({
 				endDate,
 				phrases,
 				roomid: targetRoom.id,
@@ -2529,8 +2531,10 @@ const commands: Dict<ICommandDefinition> = {
 				startDate,
 				userids,
 			});
+
 			this.sayHtml("<details><summary>Found <b>" + result.totalLines + "</b> line" + (result.totalLines === 1 ? "" : "s") + ":</summary><br>" + result.lines.join("<br />") + "</details>", targetRoom);
-			CommandParser.logsWorker.requestsByUserid.splice(CommandParser.logsWorker.requestsByUserid.indexOf(user.id), 1);
+
+			Storage.workers.logs.requestsByUserid.splice(Storage.workers.logs.requestsByUserid.indexOf(userId), 1);
 		},
 	},
 };

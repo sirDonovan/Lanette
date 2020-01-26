@@ -3,7 +3,6 @@ import { UserHosted } from "../games/internal/user-hosted";
 import { DefaultGameOption, Game, IGameOptionValues } from "../room-game";
 import { Room } from "../rooms";
 import { User } from "../users";
-import { IWorker } from "./global-types";
 
 export type GameCommandReturnType = boolean;
 export type GameDifficulty = 'easy' | 'medium' | 'hard';
@@ -74,7 +73,6 @@ interface IGameFileProperties<T extends Game = Game> {
 	scriptedOnly?: boolean;
 	tests?: GameFileTests<T>;
 	variants?: (Partial<T> & IGameVariant)[];
-	workers?: IWorker[];
 }
 
 export interface IGameFile<T extends Game = Game> extends DeepReadonly<IGameFileProperties<T>> {

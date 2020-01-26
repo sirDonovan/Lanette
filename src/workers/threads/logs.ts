@@ -3,12 +3,12 @@ import path = require('path');
 import worker_threads = require('worker_threads');
 
 import * as tools from '../../tools';
-import { ILogsSearchRequest, ILogsSearchResponse, ILogsSearchResult, ILogsWorkerData } from '../logs';
+import { ILogsResponse, ILogsSearchMessage, ILogsSearchOptions, ILogsWorkerData, LogsId } from '../logs';
 
 const Tools = new tools.Tools();
 const data = worker_threads.workerData as ILogsWorkerData;
 
-function search(options: ILogsSearchRequest): ILogsSearchResult {
+function search(options: ILogsSearchOptions): ILogsResponse {
 	const lines: string[] = [];
 	let totalLines = 0;
 	let targetUser = '';
@@ -130,14 +130,16 @@ function search(options: ILogsSearchRequest): ILogsSearchResult {
 	return {lines, totalLines};
 }
 
-worker_threads.parentPort!.on('message', message => {
-	const pipeIndex = message.indexOf('|');
-	const request = message.substr(0, pipeIndex);
-	let response: ILogsSearchResponse;
-	if (request === 'search') {
-		const options = JSON.parse(message.substr(pipeIndex + 1)) as ILogsSearchRequest;
-		response = Object.assign(search(options), {requestNumber: options.requestNumber});
+worker_threads.parentPort!.on('message', incommingMessage => {
+	const parts = incommingMessage.split("|");
+	const messageNumber = parts[0];
+	const id = parts[1] as LogsId;
+	const message = parts.slice(2).join("|");
+	let response: ILogsResponse;
+	if (id === 'search') {
+		const options = JSON.parse(message) as ILogsSearchMessage;
+		response = search(options);
 	}
 
-	worker_threads.parentPort!.postMessage(request + '|' + JSON.stringify(response!));
+	worker_threads.parentPort!.postMessage(messageNumber + "|" + id + "|" + JSON.stringify(response!));
 });

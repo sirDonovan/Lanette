@@ -212,7 +212,6 @@ export class Game extends Activity {
 			Object.assign(this, format.variant);
 		}
 		if (format.mode) format.mode.initialize(this);
-		if (format.workers) this.usesWorkers = true;
 	}
 
 	deallocate(forceEnd: boolean) {

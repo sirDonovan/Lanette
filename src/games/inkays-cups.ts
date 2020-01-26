@@ -3,7 +3,7 @@ import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import * as ParametersWorker from './../workers/parameters';
+import { IParametersWorkerData } from './../workers/parameters';
 
 const name = "Inkay's Cups";
 const gen = 7;
@@ -19,7 +19,7 @@ type ParamType = keyof IParamType;
 const paramTypes: ParamType[] = ['color', 'letter', 'tier', 'type'];
 const paramTypeKeys: Dict<Dict<KeyedDict<IParamType, string[]>>> = {};
 
-const searchTypes: (keyof typeof ParametersWorker.data)[] = ['pokemon'];
+const searchTypes: (keyof IParametersWorkerData)[] = ['pokemon'];
 
 let loadedData = false;
 
@@ -28,12 +28,12 @@ class InkaysCups extends Game {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		ParametersWorker.init();
+		const parametersData = Games.workers.parameters.loadData();
 
 		for (let i = 0; i < searchTypes.length; i++) {
 			const searchType = searchTypes[i];
 			paramTypeKeys[searchType] = {};
-			for (const gen in ParametersWorker.data[searchType].gens) {
+			for (const gen in parametersData[searchType].gens) {
 				paramTypeKeys[searchType][gen] = {
 					'color': [],
 					'letter': [],
@@ -41,7 +41,7 @@ class InkaysCups extends Game {
 					'type': [],
 				};
 				for (let i = 0; i < paramTypes.length; i++) {
-					paramTypeKeys[searchType][gen][paramTypes[i]] = Object.keys(ParametersWorker.data[searchType].gens[gen].paramTypeDexes[paramTypes[i]]);
+					paramTypeKeys[searchType][gen][paramTypes[i]] = Object.keys(parametersData[searchType].gens[gen].paramTypeDexes[paramTypes[i]]);
 				}
 			}
 		}
@@ -54,6 +54,7 @@ class InkaysCups extends Game {
 	canLateJoin: boolean = true;
 	roundGuesses = new Map<Player, boolean>();
 	roundTime: number = 15 * 1000;
+	usesWorkers: boolean = true;
 
 	onAddPlayer(player: Player, lateJoin?: boolean) {
 		if (lateJoin && this.round > 1) {
@@ -84,7 +85,7 @@ class InkaysCups extends Game {
 			for (let i = 0; i < roundParamTypes.length; i++) {
 				params[i] = this.sampleOne(paramTypeKeys.pokemon[genString][roundParamTypes[i]]);
 			}
-			const intersection = await ParametersWorker.intersect({
+			const intersection = await Games.workers.parameters.intersect({
 				mod: genString,
 				paramTypes,
 				searchType: 'pokemon',
@@ -195,5 +196,4 @@ export const game: IGameFile<InkaysCups> = {
 	description: "Players grab Pokemon that fit the given parameters each round (one per player)!",
 	name,
 	mascot: "Inkay",
-	workers: [ParametersWorker],
 };

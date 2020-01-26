@@ -7,10 +7,11 @@ import { PRNG, PRNGSeed } from './prng';
 import { DefaultGameOption, Game, IGameOptionValues } from "./room-game";
 import { Room } from "./rooms";
 import { GameCommandReturnType, IGameFile, IGameFormat, IGameFormatComputed, IGameFormatData, IGameMode, IGameModeFile, IGameTemplateFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFile, IUserHostedFormat, IUserHostedFormatComputed, UserHostedCustomizable } from './types/games';
-import { IWorker } from './types/global-types';
 import { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/in-game-data-types';
 import { IPastGame } from './types/storage';
 import { User } from './users';
+import { ParametersWorker } from './workers/parameters';
+import { PortmanteausWorker } from './workers/portmanteaus';
 
 const DEFAULT_CATEGORY_COOLDOWN = 3;
 
@@ -42,6 +43,11 @@ const sharedCommandDefinitions: Dict<ICommandDefinition<Game>> = {
 
 const sharedCommands = CommandParser.loadCommands(sharedCommandDefinitions);
 
+interface IGamesWorkers {
+	parameters: ParametersWorker;
+	portmanteaus: PortmanteausWorker;
+}
+
 export class Games {
 	// exported constants
 	readonly sharedCommands: typeof sharedCommands = sharedCommands;
@@ -70,7 +76,10 @@ export class Games {
 	uhtmlUserHostedCounts: Dict<number> = {};
 	readonly userHostedAliases: Dict<string> = {};
 	readonly userHostedFormats: Dict<IUserHostedComputed> = {};
-	readonly workers: IWorker[] = [];
+	readonly workers: IGamesWorkers = {
+		parameters: new ParametersWorker(),
+		portmanteaus: new PortmanteausWorker(),
+	};
 
 	onReload(previous: Partial<Games>) {
 		if (previous.autoCreateTimers) this.autoCreateTimers = previous.autoCreateTimers;
@@ -83,8 +92,9 @@ export class Games {
 	}
 
 	unrefWorkers() {
-		for (let i = 0; i < this.workers.length; i++) {
-			this.workers[i].unref();
+		const workers = Object.keys(this.workers) as (keyof IGamesWorkers)[];
+		for (let i = 0; i < workers.length; i++) {
+			this.workers[workers[i]].unref();
 		}
 	}
 
@@ -224,12 +234,6 @@ export class Games {
 							if (!(alias in this.aliases)) this.aliases[alias] = format.name + "," + format.variants[i].variant;
 						}
 					}
-				}
-			}
-
-			if (format.workers) {
-				for (let i = 0; i < format.workers.length; i++) {
-					if (!this.workers.includes(format.workers[i])) this.workers.push(format.workers[i]);
 				}
 			}
 		}

@@ -2,7 +2,6 @@ import { Game } from "./room-game";
 import { Room } from "./rooms";
 import { GameCommandReturnType } from "./types/games";
 import { User } from "./users";
-import * as LogsWorker from './workers/logs';
 
 export interface ICommandDefinition<T = undefined, U = T extends Game ? GameCommandReturnType : any> {
 	asyncCommand?: (this: T extends undefined ? Command : T, target: string, room: Room | User, user: User, alias: string) => Promise<U>;
@@ -123,12 +122,7 @@ export class Command {
 }
 
 export class CommandParser {
-	logsWorker: typeof LogsWorker = LogsWorker;
 	reloadInProgress: boolean = false;
-
-	unrefWorkers() {
-		this.logsWorker.unref();
-	}
 
 	loadCommands<T = undefined, U = void>(commands: Dict<ICommandDefinition<T, U>>): CommandsDict<T, U> {
 		const dict: CommandsDict<T, U> = {};

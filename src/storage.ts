@@ -4,6 +4,7 @@ import path = require('path');
 import { Room } from './rooms';
 import { IDatabase, IGlobalDatabase } from './types/storage';
 import { User } from './users';
+import { LogsWorker } from './workers/logs';
 
 const MAX_QUEUED_OFFLINE_MESSAGES = 3;
 const LAST_SEEN_EXPIRATION = 30 * 24 * 60 * 60 * 1000;
@@ -15,12 +16,19 @@ const archivedDatabasesDir = path.join(Tools.rootFolder, 'archived-databases');
 const databasesDir = path.join(Tools.rootFolder, 'databases');
 const baseOfflineMessageLength = '[28 Jun 2019, 00:00:00 GMT-0500] **** said: '.length;
 
+interface IStorageWorkers {
+	logs: LogsWorker;
+}
+
 export class Storage {
 	chatLogFilePathCache: Dict<string> = {};
 	chatLogRolloverTimes: Dict<number> = {};
 	databases: Dict<IDatabase> = {};
 	lastSeenExpirationDuration = Tools.toDurationString(LAST_SEEN_EXPIRATION);
 	loadedDatabases: boolean = false;
+	workers: IStorageWorkers = {
+		logs: new LogsWorker(),
+	};
 
 	globalDatabaseExportInterval: NodeJS.Timer;
 
@@ -36,6 +44,13 @@ export class Storage {
 
 		if (previous.globalDatabaseExportInterval) clearInterval(previous.globalDatabaseExportInterval);
 		this.globalDatabaseExportInterval = this.setGlobalDatabaseExportInterval();
+	}
+
+	unrefWorkers() {
+		const workers = Object.keys(this.workers) as (keyof IStorageWorkers)[];
+		for (let i = 0; i < workers.length; i++) {
+			this.workers[workers[i]].unref();
+		}
 	}
 
 	setGlobalDatabaseExportInterval(): NodeJS.Timer {

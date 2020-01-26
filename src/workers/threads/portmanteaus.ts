@@ -2,13 +2,13 @@ import worker_threads = require('worker_threads');
 
 import { PRNG, PRNGSeed } from '../../prng';
 import * as tools from '../../tools';
-import { IPortmanteauSearchRequest, IPortmanteauSearchResponse, IPortmanteauSearchResult, IPortmanteausWorkerData, PoolType } from '../portmanteaus';
+import { IPortmanteausResponse, IPortmanteausSearchMessage, IPortmanteausWorkerData, PoolType, PortmanteausId } from '../portmanteaus';
 
 const Tools = new tools.Tools();
 const data = worker_threads.workerData as IPortmanteausWorkerData;
 const portTypes = Object.keys(data.pool) as PoolType[];
 
-function search(options: IPortmanteauSearchRequest, prng: PRNG): IPortmanteauSearchResult {
+function search(options: IPortmanteausSearchMessage, prng: PRNG): IPortmanteausResponse {
 	const customPort = options.customPortTypes || options.customPortCategories || options.customPortDetails ? true : false;
 	let answerParts: Dict<{detail: string, part: string}[]> = {};
 	const ports: string[] = [];
@@ -124,15 +124,17 @@ function search(options: IPortmanteauSearchRequest, prng: PRNG): IPortmanteauSea
 	return {answers, ports, answerParts: formattedAnswerParts, prngSeed: prng.seed.slice() as PRNGSeed};
 }
 
-worker_threads.parentPort!.on('message', message => {
-	const pipeIndex = message.indexOf('|');
-	const request = message.substr(0, pipeIndex);
-	let response: IPortmanteauSearchResponse;
-	if (request === 'search') {
-		const options = JSON.parse(message.substr(pipeIndex + 1)) as IPortmanteauSearchRequest;
+worker_threads.parentPort!.on('message', incommingMessage => {
+	const parts = incommingMessage.split("|");
+	const messageNumber = parts[0];
+	const id = parts[1] as PortmanteausId;
+	const message = parts.slice(2).join("|");
+	let response: IPortmanteausResponse;
+	if (id === 'search') {
+		const options = JSON.parse(message) as IPortmanteausSearchMessage;
 		const prng = new PRNG(options.prngSeed);
-		response = Object.assign(search(options, prng), {requestNumber: options.requestNumber});
+		response = search(options, prng);
 	}
 
-	worker_threads.parentPort!.postMessage(request + '|' + JSON.stringify(response!));
+	worker_threads.parentPort!.postMessage(messageNumber + "|" + id + "|" + JSON.stringify(response!));
 });

@@ -1,13 +1,14 @@
 import path = require('path');
-import worker_threads = require('worker_threads');
 import { PRNGSeed } from '../prng';
+import { WorkerBase } from './worker-base';
 
-export interface IParam {
-	type: string;
-	param: string;
+interface IParametersIdKeys {
+	search: any;
+	intersect: any;
 }
+export type ParametersId = keyof IParametersIdKeys;
 
-export interface IParamType {
+export interface IParamTypeKeys {
 	ability: any;
 	color: any;
 	egggroup: any;
@@ -19,13 +20,18 @@ export interface IParamType {
 	type: any;
 	weakness: any;
 }
-export type ParamType = keyof IParamType;
+export type ParamType = keyof IParamTypeKeys;
+
+export interface IParam {
+	type: string;
+	param: string;
+}
 
 export interface IParametersGenData {
 	readonly evolutionLines: string[];
 	readonly formes: Dict<string>;
-	readonly paramTypePools: KeyedDict<IParamType, Dict<IParam>>;
-	readonly paramTypeDexes: KeyedDict<IParamType, Dict<string[]>>;
+	readonly paramTypePools: KeyedDict<IParamTypeKeys, Dict<IParam>>;
+	readonly paramTypeDexes: KeyedDict<IParamTypeKeys, Dict<string[]>>;
 	readonly otherFormes: Dict<string>;
 }
 
@@ -33,334 +39,278 @@ export interface IParametersWorkerData {
 	readonly pokemon: {gens: Dict<IParametersGenData>};
 }
 
-export interface IParameterSearchOptions {
+export interface IParametersResponse {
+	params: IParam[];
+	pokemon: string[];
+	prngSeed?: PRNGSeed;
+}
+
+export interface IParametersSearchOptions {
 	readonly mod: string;
 	readonly numberOfParams: number;
 	readonly minimumResults: number;
 	readonly maximumResults: number;
 	readonly paramTypes: ParamType[];
 	readonly prngSeed: PRNGSeed;
-	readonly searchType: keyof typeof data;
+	readonly searchType: keyof IParametersWorkerData;
 	readonly customParamTypes?: ParamType[] | null;
 	readonly filter?: string[];
 }
 
-export interface IParameterIntersectOptions {
+// tslint:disable-next-line:no-empty-interface
+export interface IParametersSearchMessage extends IParametersSearchOptions {}
+
+export interface IParametersIntersectOptions {
 	readonly mod: string;
 	readonly paramTypes: ParamType[];
-	readonly searchType: keyof typeof data;
+	readonly searchType: keyof IParametersWorkerData;
 }
 
-export interface IParameterSearchRequest extends IParameterSearchOptions {
-	requestNumber: number;
+export interface IParametersIntersectMessage extends IParametersIntersectOptions {
+	readonly params: IParam[];
 }
 
-export interface IParameterIntersectRequest extends IParameterIntersectOptions {
-	requestNumber: number;
-}
+export class ParametersWorker extends WorkerBase<IParametersWorkerData, ParametersId, IParametersResponse> {
+	threadPath: string = path.join(__dirname, 'threads', __filename.substr(__dirname.length + 1));
 
-export interface IParameterSearchResult {
-	params: IParam[];
-	pokemon: string[];
-	prngSeed: PRNGSeed;
-}
+	loadData(): IParametersWorkerData {
+		if (this.workerData) return this.workerData;
 
-export interface IParameterIntersectResult {
-	params: IParam[];
-	pokemon: string[];
-}
+		const data: IParametersWorkerData = {
+			pokemon: {
+				gens: {},
+			},
+		};
 
-export interface IParameterSearchResponse extends IParameterSearchResult {
-	requestNumber: number;
-}
+		for (let i = 1; i <= 7; i++) {
+			const genString = 'gen' + i;
+			const dex = Dex.getDex(genString);
 
-export interface IParameterIntersectResponse extends IParameterIntersectResult {
-	requestNumber: number;
-}
+			const evolutionLines: string[] = [];
+			const formes: Dict<string> = {};
+			const otherFormes: Dict<string> = {};
+			const learnsets: Dict<Dict<readonly string[]>> = {};
 
-interface IParameterSearchQueueItem {
-	resolve: (value?: IParameterSearchResult | PromiseLike<IParameterSearchResult> | undefined) => void;
-	requestNumber: number;
-}
+			const letters: Dict<IParam> = {};
+			const colors: Dict<IParam> = {};
+			const gens: Dict<IParam> = {};
+			const types: Dict<IParam> = {};
+			const tiers: Dict<IParam> = {};
+			const moves: Dict<IParam> = {};
+			const abilities: Dict<IParam> = {};
+			const eggGroups: Dict<IParam> = {};
+			const resistances: Dict<IParam> = {};
+			const weaknesses: Dict<IParam> = {};
 
-interface IParameterIntersectQueueItem {
-	resolve: (value?: IParameterIntersectResult | PromiseLike<IParameterIntersectResult> | undefined) => void;
-	requestNumber: number;
-}
+			const letterDex: Dict<string[]> = {};
+			const colorDex: Dict<string[]> = {};
+			const typeDex: Dict<string[]> = {};
+			const tierDex: Dict<string[]> = {};
+			const genDex: Dict<string[]> = {};
+			const moveDex: Dict<string[]> = {};
+			const abilityDex: Dict<string[]> = {};
+			const eggGroupDex: Dict<string[]> = {};
+			const weaknessesDex: Dict<string[]> = {};
+			const resistancesDex: Dict<string[]> = {};
 
-export const data: IParametersWorkerData = {
-	pokemon: {
-		gens: {},
-	},
-};
-
-let requestNumber = 0;
-const requestQueue: (IParameterIntersectQueueItem | IParameterSearchQueueItem)[] = [];
-let worker: worker_threads.Worker | undefined;
-
-export function init(): worker_threads.Worker {
-	if (worker) return worker;
-
-	for (let i = 1; i <= 7; i++) {
-		const genString = 'gen' + i;
-		const dex = Dex.getDex(genString);
-
-		const evolutionLines: string[] = [];
-		const formes: Dict<string> = {};
-		const otherFormes: Dict<string> = {};
-		const learnsets: Dict<Dict<readonly string[]>> = {};
-
-		const letters: Dict<IParam> = {};
-		const colors: Dict<IParam> = {};
-		const gens: Dict<IParam> = {};
-		const types: Dict<IParam> = {};
-		const tiers: Dict<IParam> = {};
-		const moves: Dict<IParam> = {};
-		const abilities: Dict<IParam> = {};
-		const eggGroups: Dict<IParam> = {};
-		const resistances: Dict<IParam> = {};
-		const weaknesses: Dict<IParam> = {};
-
-		const letterDex: Dict<string[]> = {};
-		const colorDex: Dict<string[]> = {};
-		const typeDex: Dict<string[]> = {};
-		const tierDex: Dict<string[]> = {};
-		const genDex: Dict<string[]> = {};
-		const moveDex: Dict<string[]> = {};
-		const abilityDex: Dict<string[]> = {};
-		const eggGroupDex: Dict<string[]> = {};
-		const weaknessesDex: Dict<string[]> = {};
-		const resistancesDex: Dict<string[]> = {};
-
-		const typeChartKeys: string[] = [];
-		for (const i in dex.data.typeChart) {
-			if (dex.data.typeChart[i] !== null) typeChartKeys.push(i);
-		}
-
-		const pokedex = Games.getPokemonList(undefined, genString);
-		for (let i = 0; i < pokedex.length; i++) {
-			const pokemon = pokedex[i];
-			if (pokemon.forme) formes[pokemon.id] = pokemon.forme;
-			if (pokemon.baseSpecies !== pokemon.species) otherFormes[pokemon.id] = pokemon.baseSpecies;
-			if (pokemon.learnset) {
-				learnsets[pokemon.id] = pokemon.learnset;
-			} else if (pokemon.baseSpecies !== pokemon.species) {
-				const baseSpecies = dex.getExistingPokemon(pokemon.baseSpecies);
-				if (baseSpecies.learnset) learnsets[pokemon.id] = baseSpecies.learnset;
-			}
-			if (pokemon.evos.length && !pokemon.prevo) {
-				const pokemonEvolutionLines = dex.getEvolutionLines(pokemon);
-				for (let i = 0; i < pokemonEvolutionLines.length; i++) {
-					evolutionLines.push(pokemonEvolutionLines[i].map(x => Tools.toId(x)).sort().join(","));
-				}
+			const typeChartKeys: string[] = [];
+			for (const i in dex.data.typeChart) {
+				if (dex.data.typeChart[i] !== null) typeChartKeys.push(i);
 			}
 
-			const letter = pokemon.species.charAt(0);
-			const letterId = Tools.toId(letter);
-			if (!(letterId in letters)) letters[letterId] = {type: 'letter', param: letter};
-			if (!(letter in letterDex)) letterDex[letter] = [];
-			letterDex[letter].push(pokemon.species);
-
-			const colorId = Tools.toId(pokemon.color);
-			if (!(colorId in colors)) colors[colorId] = {type: 'color', param: pokemon.color};
-			if (!(pokemon.color in colorDex)) colorDex[pokemon.color] = [];
-			colorDex[pokemon.color].push(pokemon.species);
-
-			for (let i = 0; i < pokemon.types.length; i++) {
-				const type = pokemon.types[i];
-				const typeId = Tools.toId(type);
-				const typeParam = {type: 'type', param: type};
-				if (!(typeId in types)) {
-					types[typeId] = typeParam;
-					types[typeId + 'type'] = typeParam;
-				}
-				if (!(type in typeDex)) typeDex[type] = [];
-				typeDex[type].push(pokemon.species);
-			}
-
-			for (let i = 0; i < typeChartKeys.length; i++) {
-				const type = typeChartKeys[i];
-				const typeId = Tools.toId(type);
-				const immune = dex.isImmune(type, pokemon);
-				let effectiveness = 0;
-				if (!immune) effectiveness = dex.getEffectiveness(type, pokemon);
-				if (effectiveness >= 1) {
-					if (!(typeId in weaknesses)) {
-						const weaknessParam = {type: 'weakness', param: type};
-						weaknesses[typeId] = weaknessParam;
-						weaknesses['weak' + typeId] = weaknessParam;
-						weaknesses['weak' + typeId + 'type'] = weaknessParam;
-						weaknesses['weakto' + typeId] = weaknessParam;
-						weaknesses['weakto' + typeId + 'type'] = weaknessParam;
-					}
-					if (!(type in weaknessesDex)) weaknessesDex[type] = [];
-					weaknessesDex[type].push(pokemon.species);
-				} else if (immune || effectiveness <= -1) {
-					if (!(typeId in resistances)) {
-						const resistanceParam = {type: 'resistance', param: type};
-						resistances[typeId] = resistanceParam;
-						resistances['resists' + typeId] = resistanceParam;
-						resistances['resists' + typeId + 'type'] = resistanceParam;
-						resistances['resist' + typeId] = resistanceParam;
-						resistances['resist' + typeId + 'type'] = resistanceParam;
-					}
-					if (!(type in resistancesDex)) resistancesDex[type] = [];
-					resistancesDex[type].push(pokemon.species);
-				}
-			}
-
-			if (Games.isIncludedPokemonTier(pokemon.tier)) {
-				const tierId = Tools.toId(pokemon.tier);
-				if (!(tierId in tiers)) tiers[tierId] = {type: 'tier', param: pokemon.tier};
-				if (!(pokemon.tier in tierDex)) tierDex[pokemon.tier] = [];
-				tierDex[pokemon.tier].push(pokemon.species);
-			}
-
-			if (Dex.isPseudoLCPokemon(pokemon)) {
-				if (!tiers['lc']) tiers['lc'] = {type: 'tier', param: 'LC'};
-				if (!('LC' in tierDex)) tierDex['LC'] = [];
-				tierDex['LC'].push(pokemon.species);
-			}
-
-			const genParam = {type: 'gen', param: '' + pokemon.gen};
-			if (!(pokemon.gen in gens)) {
-				gens[pokemon.gen] = genParam;
-				gens['gen' + pokemon.gen] = genParam;
-				gens['g' + pokemon.gen] = genParam;
-			}
-			if (!(pokemon.gen in genDex)) genDex[pokemon.gen] = [];
-			genDex[pokemon.gen].push(pokemon.species);
-
-			for (const i in pokemon.abilities) {
-				// @ts-ignore
-				const ability = pokemon.abilities[i] as string;
-				const abilityId = Tools.toId(ability);
-				if (!(abilityId in abilities)) abilities[abilityId] = {type: 'ability', param: ability};
-				if (!(ability in abilityDex)) abilityDex[ability] = [];
-				abilityDex[ability].push(pokemon.species);
-			}
-
-			for (let i = 0; i < pokemon.eggGroups.length; i++) {
-				const group = pokemon.eggGroups[i];
-				const groupId = Tools.toId(group);
-				const groupParam = {type: 'egggroup', param: group};
-				if (!(groupId in eggGroups)) {
-					eggGroups[groupId] = groupParam;
-					eggGroups[groupId + 'group'] = groupParam;
-				}
-				if (!(group in eggGroupDex)) eggGroupDex[group] = [];
-				eggGroupDex[group].push(pokemon.species);
-			}
-		}
-
-		tiers['ubers'] = tiers['uber'];
-
-		const format = dex.getExistingFormat(genString + 'ou');
-		const validator = Dex.getValidator(format);
-		const movesList = Games.getMovesList(undefined, genString);
-		for (let i = 0; i < movesList.length; i++) {
-			const move = movesList[i];
-			const moveParam = {type: 'move', param: move.name};
-			if (move.id.startsWith('hiddenpower')) {
-				moves[Tools.toId(move.name)] = moveParam;
-			} else {
-				moves[move.id] = moveParam;
-			}
+			const pokedex = Games.getPokemonList(undefined, genString);
 			for (let i = 0; i < pokedex.length; i++) {
 				const pokemon = pokedex[i];
-				if (pokemon.allPossibleMoves.includes(move.id) && !validator.checkLearnset(move, pokemon)) {
-					if (!(move.name in moveDex)) moveDex[move.name] = [];
-					moveDex[move.name].push(pokemon.species);
+				if (pokemon.forme) formes[pokemon.id] = pokemon.forme;
+				if (pokemon.baseSpecies !== pokemon.species) otherFormes[pokemon.id] = pokemon.baseSpecies;
+				if (pokemon.learnset) {
+					learnsets[pokemon.id] = pokemon.learnset;
+				} else if (pokemon.baseSpecies !== pokemon.species) {
+					const baseSpecies = dex.getExistingPokemon(pokemon.baseSpecies);
+					if (baseSpecies.learnset) learnsets[pokemon.id] = baseSpecies.learnset;
+				}
+				if (pokemon.evos.length && !pokemon.prevo) {
+					const pokemonEvolutionLines = dex.getEvolutionLines(pokemon);
+					for (let i = 0; i < pokemonEvolutionLines.length; i++) {
+						evolutionLines.push(pokemonEvolutionLines[i].map(x => Tools.toId(x)).sort().join(","));
+					}
+				}
+
+				const letter = pokemon.species.charAt(0);
+				const letterId = Tools.toId(letter);
+				if (!(letterId in letters)) letters[letterId] = {type: 'letter', param: letter};
+				if (!(letter in letterDex)) letterDex[letter] = [];
+				letterDex[letter].push(pokemon.species);
+
+				const colorId = Tools.toId(pokemon.color);
+				if (!(colorId in colors)) colors[colorId] = {type: 'color', param: pokemon.color};
+				if (!(pokemon.color in colorDex)) colorDex[pokemon.color] = [];
+				colorDex[pokemon.color].push(pokemon.species);
+
+				for (let i = 0; i < pokemon.types.length; i++) {
+					const type = pokemon.types[i];
+					const typeId = Tools.toId(type);
+					const typeParam = {type: 'type', param: type};
+					if (!(typeId in types)) {
+						types[typeId] = typeParam;
+						types[typeId + 'type'] = typeParam;
+					}
+					if (!(type in typeDex)) typeDex[type] = [];
+					typeDex[type].push(pokemon.species);
+				}
+
+				for (let i = 0; i < typeChartKeys.length; i++) {
+					const type = typeChartKeys[i];
+					const typeId = Tools.toId(type);
+					const immune = dex.isImmune(type, pokemon);
+					let effectiveness = 0;
+					if (!immune) effectiveness = dex.getEffectiveness(type, pokemon);
+					if (effectiveness >= 1) {
+						if (!(typeId in weaknesses)) {
+							const weaknessParam = {type: 'weakness', param: type};
+							weaknesses[typeId] = weaknessParam;
+							weaknesses['weak' + typeId] = weaknessParam;
+							weaknesses['weak' + typeId + 'type'] = weaknessParam;
+							weaknesses['weakto' + typeId] = weaknessParam;
+							weaknesses['weakto' + typeId + 'type'] = weaknessParam;
+						}
+						if (!(type in weaknessesDex)) weaknessesDex[type] = [];
+						weaknessesDex[type].push(pokemon.species);
+					} else if (immune || effectiveness <= -1) {
+						if (!(typeId in resistances)) {
+							const resistanceParam = {type: 'resistance', param: type};
+							resistances[typeId] = resistanceParam;
+							resistances['resists' + typeId] = resistanceParam;
+							resistances['resists' + typeId + 'type'] = resistanceParam;
+							resistances['resist' + typeId] = resistanceParam;
+							resistances['resist' + typeId + 'type'] = resistanceParam;
+						}
+						if (!(type in resistancesDex)) resistancesDex[type] = [];
+						resistancesDex[type].push(pokemon.species);
+					}
+				}
+
+				if (Games.isIncludedPokemonTier(pokemon.tier)) {
+					const tierId = Tools.toId(pokemon.tier);
+					if (!(tierId in tiers)) tiers[tierId] = {type: 'tier', param: pokemon.tier};
+					if (!(pokemon.tier in tierDex)) tierDex[pokemon.tier] = [];
+					tierDex[pokemon.tier].push(pokemon.species);
+				}
+
+				if (Dex.isPseudoLCPokemon(pokemon)) {
+					if (!tiers['lc']) tiers['lc'] = {type: 'tier', param: 'LC'};
+					if (!('LC' in tierDex)) tierDex['LC'] = [];
+					tierDex['LC'].push(pokemon.species);
+				}
+
+				const genParam = {type: 'gen', param: '' + pokemon.gen};
+				if (!(pokemon.gen in gens)) {
+					gens[pokemon.gen] = genParam;
+					gens['gen' + pokemon.gen] = genParam;
+					gens['g' + pokemon.gen] = genParam;
+				}
+				if (!(pokemon.gen in genDex)) genDex[pokemon.gen] = [];
+				genDex[pokemon.gen].push(pokemon.species);
+
+				for (const i in pokemon.abilities) {
+					// @ts-ignore
+					const ability = pokemon.abilities[i] as string;
+					const abilityId = Tools.toId(ability);
+					if (!(abilityId in abilities)) abilities[abilityId] = {type: 'ability', param: ability};
+					if (!(ability in abilityDex)) abilityDex[ability] = [];
+					abilityDex[ability].push(pokemon.species);
+				}
+
+				for (let i = 0; i < pokemon.eggGroups.length; i++) {
+					const group = pokemon.eggGroups[i];
+					const groupId = Tools.toId(group);
+					const groupParam = {type: 'egggroup', param: group};
+					if (!(groupId in eggGroups)) {
+						eggGroups[groupId] = groupParam;
+						eggGroups[groupId + 'group'] = groupParam;
+					}
+					if (!(group in eggGroupDex)) eggGroupDex[group] = [];
+					eggGroupDex[group].push(pokemon.species);
 				}
 			}
+
+			tiers['ubers'] = tiers['uber'];
+
+			const format = dex.getExistingFormat(genString + 'ou');
+			const validator = Dex.getValidator(format);
+			const movesList = Games.getMovesList(undefined, genString);
+			for (let i = 0; i < movesList.length; i++) {
+				const move = movesList[i];
+				const moveParam = {type: 'move', param: move.name};
+				if (move.id.startsWith('hiddenpower')) {
+					moves[Tools.toId(move.name)] = moveParam;
+				} else {
+					moves[move.id] = moveParam;
+				}
+				for (let i = 0; i < pokedex.length; i++) {
+					const pokemon = pokedex[i];
+					if (pokemon.allPossibleMoves.includes(move.id) && !validator.checkLearnset(move, pokemon)) {
+						if (!(move.name in moveDex)) moveDex[move.name] = [];
+						moveDex[move.name].push(pokemon.species);
+					}
+				}
+			}
+
+			data.pokemon.gens[genString] = {
+				evolutionLines,
+				formes,
+				paramTypePools: {
+					'move': moves,
+					'ability': abilities,
+					'color': colors,
+					'type': types,
+					'tier': tiers,
+					'gen': gens,
+					'egggroup': eggGroups,
+					'resistance': resistances,
+					'weakness': weaknesses,
+					'letter': letters,
+				},
+				paramTypeDexes: {
+					'move': moveDex,
+					'ability': abilityDex,
+					'color': colorDex,
+					'type': typeDex,
+					'tier': tierDex,
+					'gen': genDex,
+					'egggroup': eggGroupDex,
+					'resistance': resistancesDex,
+					'weakness': weaknessesDex,
+					'letter': letterDex,
+				},
+				otherFormes,
+			};
 		}
 
-		data.pokemon.gens[genString] = {
-			evolutionLines,
-			formes,
-			paramTypePools: {
-				'move': moves,
-				'ability': abilities,
-				'color': colors,
-				'type': types,
-				'tier': tiers,
-				'gen': gens,
-				'egggroup': eggGroups,
-				'resistance': resistances,
-				'weakness': weaknesses,
-				'letter': letters,
-			},
-			paramTypeDexes: {
-				'move': moveDex,
-				'ability': abilityDex,
-				'color': colorDex,
-				'type': typeDex,
-				'tier': tierDex,
-				'gen': genDex,
-				'egggroup': eggGroupDex,
-				'resistance': resistancesDex,
-				'weakness': weaknessesDex,
-				'letter': letterDex,
-			},
-			otherFormes,
-		};
+		return data;
 	}
 
-	worker = new worker_threads.Worker(path.join(__dirname, 'threads', __filename.substr(__dirname.length + 1)), {workerData: data});
-	worker.on('message', (message: string) => {
-		const pipeIndex = message.indexOf('|');
-		const result: IParameterSearchResponse | IParameterIntersectResponse = JSON.parse(message.substr(pipeIndex + 1));
-		for (let i = 0; i < requestQueue.length; i++) {
-			if (requestQueue[i].requestNumber === result.requestNumber) {
-				// @ts-ignore
-				requestQueue.splice(i, 1)[0].resolve(result);
-				break;
-			}
-		}
-	});
-	worker.on('error', e => console.log(e));
-	worker.on('exit', code => {
-		if (code !== 0) {
-			console.log(new Error(`Worker stopped with exit code ${code}`));
-		}
-	});
-
-	return worker;
-}
-
-export function unref() {
-	if (worker) worker.unref();
-}
-
-export function search(options: IParameterSearchOptions): Promise<IParameterSearchResult> {
-	return (new Promise(resolve => {
-		const request: IParameterSearchRequest = Object.assign({}, options, {requestNumber});
-		requestQueue.push({resolve, requestNumber});
-		requestNumber++;
-		worker!.postMessage('search|' + JSON.stringify(request));
-	}));
-}
-
-export function intersect(options: IParameterIntersectOptions, parts: string[]): Promise<IParameterIntersectResult> {
-	const paramTypePools = data[options.searchType].gens[options.mod].paramTypePools;
-	const params: IParam[] = [];
-	for (let i = 0; i < parts.length; i++) {
-		const part = Tools.toId(parts[i]);
-		let param: IParam | undefined;
-		for (let i = 0; i < options.paramTypes.length; i++) {
-			if (part in paramTypePools[options.paramTypes[i]]) {
-				param = paramTypePools[options.paramTypes[i]][part];
-				break;
-			}
-		}
-		if (!param) return Promise.resolve({params: [], pokemon: []});
-		params.push(param);
+	search(options: IParametersSearchOptions): Promise<IParametersResponse> {
+		return this.sendMessage('search', JSON.stringify(options));
 	}
 
-	return (new Promise(resolve => {
-		const request: IParameterIntersectRequest = Object.assign({}, options, {requestNumber});
-		requestQueue.push({resolve, requestNumber});
-		requestNumber++;
-		worker!.postMessage('intersect|' + JSON.stringify(request) + '|' + JSON.stringify(params));
-	}));
+	intersect(options: IParametersIntersectOptions, parts: string[]): Promise<IParametersResponse> {
+		if (!this.workerData) this.workerData = this.loadData();
+		const paramTypePools = this.workerData[options.searchType].gens[options.mod].paramTypePools;
+		const params: IParam[] = [];
+		for (let i = 0; i < parts.length; i++) {
+			const part = Tools.toId(parts[i]);
+			let param: IParam | undefined;
+			for (let i = 0; i < options.paramTypes.length; i++) {
+				if (part in paramTypePools[options.paramTypes[i]]) {
+					param = paramTypePools[options.paramTypes[i]][part];
+					break;
+				}
+			}
+			if (!param) return Promise.resolve({params: [], pokemon: []});
+			params.push(param);
+		}
+
+		return this.sendMessage('intersect', JSON.stringify(Object.assign(options, {params})));
+	}
 }
