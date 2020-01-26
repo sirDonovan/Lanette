@@ -438,9 +438,9 @@ class WigglytuffsPokenopoly extends BoardGame {
 	}
 
 	rollPropertyElimination(player: Player, space: BoardPropertySpace, eliminationChance: number) {
-		const randomNumber = this.random(100);
+		const randomNumber = this.random(100) + 1;
 		const text = "The randomly generated number is **" + randomNumber + "**!";
-		if (randomNumber <= eliminationChance) {
+		if (randomNumber < eliminationChance) {
 			this.say(text + " **" + player.name + "** has been eliminated by **" + space.owner!.name + "**!");
 			this.eliminatePlayer(player, undefined, space.owner);
 			this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
