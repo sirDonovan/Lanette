@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "mocha": "7.0.0",
-    "tslint": "5.20.1",
+    "tslint": "6.0.0",
     "typescript-tslint-plugin": "0.5.5"
   }
 }
