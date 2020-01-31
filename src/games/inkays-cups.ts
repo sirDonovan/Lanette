@@ -3,7 +3,7 @@ import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { IParametersWorkerData } from './../workers/parameters';
+import { IParametersWorkerData, IParam } from './../workers/parameters';
 
 const name = "Inkay's Cups";
 const gen = 7;
@@ -17,7 +17,7 @@ interface IParamType {
 }
 type ParamType = keyof IParamType;
 const paramTypes: ParamType[] = ['color', 'letter', 'tier', 'type'];
-const paramTypeKeys: Dict<Dict<KeyedDict<IParamType, string[]>>> = {};
+const paramTypeDexesKeys: Dict<Dict<KeyedDict<IParamType, string[]>>> = {};
 
 const searchTypes: (keyof IParametersWorkerData)[] = ['pokemon'];
 
@@ -32,16 +32,16 @@ class InkaysCups extends Game {
 
 		for (let i = 0; i < searchTypes.length; i++) {
 			const searchType = searchTypes[i];
-			paramTypeKeys[searchType] = {};
+			paramTypeDexesKeys[searchType] = {};
 			for (const gen in parametersData[searchType].gens) {
-				paramTypeKeys[searchType][gen] = {
+				paramTypeDexesKeys[searchType][gen] = {
 					'color': [],
 					'letter': [],
 					'tier': [],
 					'type': [],
 				};
 				for (let i = 0; i < paramTypes.length; i++) {
-					paramTypeKeys[searchType][gen][paramTypes[i]] = Object.keys(parametersData[searchType].gens[gen].paramTypeDexes[paramTypes[i]]);
+					paramTypeDexesKeys[searchType][gen][paramTypes[i]] = Object.keys(parametersData[searchType].gens[gen].paramTypeDexes[paramTypes[i]]);
 				}
 			}
 		}
@@ -78,18 +78,21 @@ class InkaysCups extends Game {
 		const upper = lower * 3;
 		let attempts = 0;
 		let len = 0;
-		const params: string[] = [];
+		let params: IParam[] = [];
 		let mons: string[] = [];
 		while ((len < lower || len > upper) && attempts < 10) {
+			params = [];
 			attempts++;
 			for (let i = 0; i < roundParamTypes.length; i++) {
-				params[i] = this.sampleOne(paramTypeKeys.pokemon[genString][roundParamTypes[i]]);
+				const name = this.sampleOne(paramTypeDexesKeys.pokemon[genString][roundParamTypes[i]]);
+				params.push(Games.workers.parameters.workerData!.pokemon.gens[genString].paramTypePools[roundParamTypes[i]][Tools.toId(name)]);
 			}
 			const intersection = await Games.workers.parameters.intersect({
 				mod: genString,
+				params,
 				paramTypes,
 				searchType: 'pokemon',
-			}, params);
+			});
 			mons = intersection.pokemon;
 			len = mons.length;
 		}
@@ -99,6 +102,8 @@ class InkaysCups extends Game {
 		}
 		this.answers = mons;
 		this.roundGuesses.clear();
+
+		const paramNames: string[] = params.map(x => x.param);
 		let text = '';
 		let letterIndex = -1;
 		let tierIndex = -1;
@@ -108,17 +113,17 @@ class InkaysCups extends Game {
 			} else if (roundParamTypes[i] === 'tier') {
 				tierIndex = i;
 			} else if (roundParamTypes[i] === 'type') {
-				params[i] += " type";
+				paramNames[i] += " type";
 			}
 		}
 		if (letterIndex !== -1 && tierIndex !== -1) {
-			text = "Grab a Pokemon that is **" + params[tierIndex] + "** and starts with the letter **" + params[letterIndex] + "**!";
+			text = "Grab a Pokemon that is **" + paramNames[tierIndex] + "** and starts with the letter **" + paramNames[letterIndex] + "**!";
 		} else if (letterIndex !== -1) {
-			text = "Grab a **" + (letterIndex === 0 ? params[1] : params[0]) + "** Pokemon that starts with the letter **" + params[letterIndex] + "**!";
+			text = "Grab a **" + (letterIndex === 0 ? paramNames[1] : paramNames[0]) + "** Pokemon that starts with the letter **" + paramNames[letterIndex] + "**!";
 		} else if (tierIndex !== -1) {
-			text = "Grab a **" + (tierIndex === 0 ? params[1] : params[0]) + "** Pokemon that is **" + params[tierIndex] + "**!";
+			text = "Grab a **" + (tierIndex === 0 ? paramNames[1] : paramNames[0]) + "** Pokemon that is **" + paramNames[tierIndex] + "**!";
 		} else {
-			text = "Grab a **" + params[0] + ", " + params[1] + "** Pokemon!";
+			text = "Grab a **" + paramNames[0] + ", " + paramNames[1] + "** Pokemon!";
 		}
 		this.on(text, () => {
 			this.canGrab = true;

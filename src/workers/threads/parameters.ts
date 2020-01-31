@@ -6,13 +6,13 @@ import { IParam, IParametersIntersectMessage, IParametersIntersectOptions, IPara
 
 const Tools = new tools.Tools();
 const data = worker_threads.workerData as DeepReadonly<IParametersWorkerData>;
-const paramTypeKeys: Dict<Dict<KeyedDict<IParamTypeKeys, readonly string[]>>> = {};
+const paramTypeDexesKeys: Dict<Dict<KeyedDict<IParamTypeKeys, readonly string[]>>> = {};
 const searchTypes: (keyof typeof data)[] = ['pokemon'];
 for (let i = 0; i < searchTypes.length; i++) {
 	const searchType = searchTypes[i];
-	paramTypeKeys[searchType] = {};
+	paramTypeDexesKeys[searchType] = {};
 	for (const gen in data[searchType].gens) {
-		paramTypeKeys[searchType][gen] = {
+		paramTypeDexesKeys[searchType][gen] = {
 			ability: [],
 			color: [],
 			egggroup: [],
@@ -26,7 +26,7 @@ for (let i = 0; i < searchTypes.length; i++) {
 		};
 		const keys = Object.keys(data[searchType].gens[gen].paramTypeDexes) as ParamType[];
 		for (let i = 0; i < keys.length; i++) {
-			paramTypeKeys[searchType][gen][keys[i]] = Object.keys(data[searchType].gens[gen].paramTypeDexes[keys[i]]);
+			paramTypeDexesKeys[searchType][gen][keys[i]] = Object.keys(data[searchType].gens[gen].paramTypeDexes[keys[i]]);
 		}
 	}
 }
@@ -61,7 +61,7 @@ function search(options: IParametersSearchOptions, prng: PRNG): IParametersRespo
 		possibleKeys = {};
 		for (let i = 0; i < paramTypes.length; i++) {
 			if (!possibleKeys[paramTypes[i]]) {
-				const keys = paramTypeKeys[options.searchType][options.mod][paramTypes[i]];
+				const keys = paramTypeDexesKeys[options.searchType][options.mod][paramTypes[i]];
 				const possible: string[] = [];
 				for (let j = 0; j < keys.length; j++) {
 					if (data[options.searchType].gens[options.mod].paramTypeDexes[paramTypes[i]][keys[j]].length >= options.minimumResults) possible.push(Tools.toId(keys[j]));
@@ -121,7 +121,7 @@ function search(options: IParametersSearchOptions, prng: PRNG): IParametersRespo
 							if (params.includes(paramPools[k][combination[k]])) continue innerLoop;
 							params.push(paramPools[k][combination[k]]);
 						}
-						const intersection = intersect(options, params);
+						const intersection = intersect(Object.assign(options, {params}));
 						if (intersection.length >= options.minimumResults && intersection.length <= options.maximumResults && !(searchingPokemon && data.pokemon.gens[options.mod].evolutionLines.includes(intersection.join(",")))) {
 							pokemon = intersection;
 							validParams = true;
@@ -144,8 +144,8 @@ function search(options: IParametersSearchOptions, prng: PRNG): IParametersRespo
 	return {params, pokemon, prngSeed: prng.seed.slice() as PRNGSeed};
 }
 
-function intersect(options: IParametersIntersectOptions, params: IParam[]): string[] {
-	let intersection = Tools.intersectParams(params, data[options.searchType].gens[options.mod].paramTypeDexes);
+function intersect(options: IParametersIntersectOptions): string[] {
+	let intersection = Tools.intersectParams(options.params, data[options.searchType].gens[options.mod].paramTypeDexes);
 
 	if (options.searchType === 'pokemon') {
 		const filtered: string[] = [];
@@ -173,7 +173,7 @@ worker_threads.parentPort!.on('message', incommingMessage => {
 		response = search(options, prng);
 	} else if (id === 'intersect') {
 		const options = JSON.parse(message) as IParametersIntersectMessage;
-		response = {params: options.params, pokemon: intersect(options, options.params)};
+		response = {params: options.params, pokemon: intersect(options)};
 	}
 
 	worker_threads.parentPort!.postMessage(messageNumber + "|" + id + "|" + JSON.stringify(response!));

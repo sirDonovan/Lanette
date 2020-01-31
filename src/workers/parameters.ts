@@ -62,13 +62,13 @@ export interface IParametersSearchMessage extends IParametersSearchOptions {}
 
 export interface IParametersIntersectOptions {
 	readonly mod: string;
+	readonly params: IParam[];
 	readonly paramTypes: ParamType[];
 	readonly searchType: keyof IParametersWorkerData;
 }
 
-export interface IParametersIntersectMessage extends IParametersIntersectOptions {
-	readonly params: IParam[];
-}
+// tslint:disable-next-line:no-empty-interface
+export interface IParametersIntersectMessage extends IParametersIntersectOptions {}
 
 export class ParametersWorker extends WorkerBase<IParametersWorkerData, ParametersId, IParametersResponse> {
 	threadPath: string = path.join(__dirname, 'threads', __filename.substr(__dirname.length + 1));
@@ -138,12 +138,20 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 
 				const letter = pokemon.species.charAt(0);
 				const letterId = Tools.toId(letter);
-				if (!(letterId in letters)) letters[letterId] = {type: 'letter', param: letter};
+				if (!(letterId in letters)) {
+					const letterParam = {type: 'letter', param: letter};
+					letters[letterId] = letterParam;
+					letters[letterId + 'letter'] = letterParam;
+				}
 				if (!(letter in letterDex)) letterDex[letter] = [];
 				letterDex[letter].push(pokemon.species);
 
 				const colorId = Tools.toId(pokemon.color);
-				if (!(colorId in colors)) colors[colorId] = {type: 'color', param: pokemon.color};
+				if (!(colorId in colors)) {
+					const colorParam = {type: 'color', param: pokemon.color};
+					colors[colorId] = colorParam;
+					colors[colorId + 'color'] = colorParam;
+				}
 				if (!(pokemon.color in colorDex)) colorDex[pokemon.color] = [];
 				colorDex[pokemon.color].push(pokemon.species);
 
@@ -169,6 +177,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 						if (!(typeId in weaknesses)) {
 							const weaknessParam = {type: 'weakness', param: type};
 							weaknesses[typeId] = weaknessParam;
+							weaknesses[typeId + 'weakness'] = weaknessParam;
 							weaknesses['weak' + typeId] = weaknessParam;
 							weaknesses['weak' + typeId + 'type'] = weaknessParam;
 							weaknesses['weakto' + typeId] = weaknessParam;
@@ -180,6 +189,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 						if (!(typeId in resistances)) {
 							const resistanceParam = {type: 'resistance', param: type};
 							resistances[typeId] = resistanceParam;
+							resistances[typeId + 'resistance'] = resistanceParam;
 							resistances['resists' + typeId] = resistanceParam;
 							resistances['resists' + typeId + 'type'] = resistanceParam;
 							resistances['resist' + typeId] = resistanceParam;
@@ -192,19 +202,27 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 
 				if (Games.isIncludedPokemonTier(pokemon.tier)) {
 					const tierId = Tools.toId(pokemon.tier);
-					if (!(tierId in tiers)) tiers[tierId] = {type: 'tier', param: pokemon.tier};
+					if (!(tierId in tiers)) {
+						const tierParam = {type: 'tier', param: pokemon.tier};
+						tiers[tierId] = tierParam;
+						tiers[tierId + 'tier'] = tierParam;
+					}
 					if (!(pokemon.tier in tierDex)) tierDex[pokemon.tier] = [];
 					tierDex[pokemon.tier].push(pokemon.species);
 				}
 
 				if (Dex.isPseudoLCPokemon(pokemon)) {
-					if (!tiers['lc']) tiers['lc'] = {type: 'tier', param: 'LC'};
+					if (!('lc' in tiers)) {
+						const tierParam = {type: 'tier', param: 'LC'};
+						tiers['lc'] = tierParam;
+						tiers['lctier'] = tierParam;
+					}
 					if (!('LC' in tierDex)) tierDex['LC'] = [];
 					tierDex['LC'].push(pokemon.species);
 				}
 
-				const genParam = {type: 'gen', param: '' + pokemon.gen};
 				if (!(pokemon.gen in gens)) {
+					const genParam = {type: 'gen', param: '' + pokemon.gen};
 					gens[pokemon.gen] = genParam;
 					gens['gen' + pokemon.gen] = genParam;
 					gens['g' + pokemon.gen] = genParam;
@@ -216,7 +234,10 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 					// @ts-ignore
 					const ability = pokemon.abilities[i] as string;
 					const abilityId = Tools.toId(ability);
-					if (!(abilityId in abilities)) abilities[abilityId] = {type: 'ability', param: ability};
+					if (!(abilityId in abilities)) {
+						abilities[abilityId] = {type: 'ability', param: ability};
+						abilities[abilityId + 'ability'] = {type: 'ability', param: ability};
+					}
 					if (!(ability in abilityDex)) abilityDex[ability] = [];
 					abilityDex[ability].push(pokemon.species);
 				}
@@ -243,10 +264,14 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 				const move = movesList[i];
 				const moveParam = {type: 'move', param: move.name};
 				if (move.id.startsWith('hiddenpower')) {
-					moves[Tools.toId(move.name)] = moveParam;
+					const id = Tools.toId(move.name);
+					moves[id] = moveParam;
+					moves[id + 'move'] = moveParam;
 				} else {
 					moves[move.id] = moveParam;
+					moves[move.id + 'move'] = moveParam;
 				}
+
 				for (let i = 0; i < pokedex.length; i++) {
 					const pokemon = pokedex[i];
 					if (pokemon.allPossibleMoves.includes(move.id) && !validator.checkLearnset(move, pokemon)) {
@@ -294,23 +319,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 		return this.sendMessage('search', JSON.stringify(options));
 	}
 
-	intersect(options: IParametersIntersectOptions, parts: string[]): Promise<IParametersResponse> {
-		if (!this.workerData) this.workerData = this.loadData();
-		const paramTypePools = this.workerData[options.searchType].gens[options.mod].paramTypePools;
-		const params: IParam[] = [];
-		for (let i = 0; i < parts.length; i++) {
-			const part = Tools.toId(parts[i]);
-			let param: IParam | undefined;
-			for (let i = 0; i < options.paramTypes.length; i++) {
-				if (part in paramTypePools[options.paramTypes[i]]) {
-					param = paramTypePools[options.paramTypes[i]][part];
-					break;
-				}
-			}
-			if (!param) return Promise.resolve({params: [], pokemon: []});
-			params.push(param);
-		}
-
-		return this.sendMessage('intersect', JSON.stringify(Object.assign(options, {params})));
+	intersect(options: IParametersIntersectOptions): Promise<IParametersResponse> {
+		return this.sendMessage('intersect', JSON.stringify(options));
 	}
 }

@@ -1414,6 +1414,10 @@ export class Dex {
 		return '<span style="display: inline-block;width: 40px;height: 30px;image-rendering: pixelated;background:transparent url(https://' + Tools.mainServer + '/sprites/pokemonicons-sheet.png?g8) no-repeat scroll -' + left + 'px -' + top + 'px;' + facingLeftStyle + '"></span>';
 	}
 
+	getPSPokemonIcon(pokemon: IPokemon): string {
+		return '<psicon pokemon="' + pokemon.id + '" style="vertical-align: -7px;margin: -2px" />';
+	}
+
 	/*
 		Formats
 	*/

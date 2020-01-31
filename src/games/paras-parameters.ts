@@ -16,6 +16,7 @@ let loadedData = false;
 export class ParasParameters extends Guessing {
 	static loadData(room: Room) {
 		if (loadedData) return;
+
 		room.say("Loading data for " + name + "...");
 
 		Games.workers.parameters.loadData();
@@ -108,7 +109,8 @@ export class ParasParameters extends Guessing {
 
 			const pokemonIcons: string[] = [];
 			for (let i = 0; i < result.pokemon.length; i++) {
-				pokemonIcons.push('<psicon pokemon="' + result.pokemon[i] + '" style="vertical-align: -7px;margin: -2px" />' + Dex.getExistingPokemon(result.pokemon[i]).species);
+				const pokemon = Dex.getExistingPokemon(result.pokemon[i]);
+				pokemonIcons.push(Dex.getPSPokemonIcon(pokemon) + pokemon.species);
 			}
 			this.hint = "<div class='infobox'>" + pokemonIcons.join(", ") + "</div>";
 		}
@@ -119,12 +121,29 @@ export class ParasParameters extends Guessing {
 		return "A possible set of parameters was __" + givenAnswer + "__.";
 	}
 
-	async intersect(params: string[]): Promise<IParametersResponse> {
+	async intersect(parts: string[]): Promise<IParametersResponse> {
+		const mod = 'gen' + this.format.options.gen;
+		const paramTypePools = Games.workers.parameters.workerData!.pokemon.gens[mod].paramTypePools;
+		const params: IParam[] = [];
+		for (let i = 0; i < parts.length; i++) {
+			const part = Tools.toId(parts[i]);
+			let param: IParam | undefined;
+			for (let i = 0; i < allParamTypes.length; i++) {
+				if (part in paramTypePools[allParamTypes[i]]) {
+					param = paramTypePools[allParamTypes[i]][part];
+					break;
+				}
+			}
+			if (!param) return Promise.resolve({params: [], pokemon: []});
+			params.push(param);
+		}
+
 		return Games.workers.parameters.intersect({
-			mod: 'gen' + this.format.options.gen,
+			mod,
+			params,
 			paramTypes: allParamTypes,
 			searchType: 'pokemon',
-		}, params);
+		});
 	}
 
 	async checkAnswer(guess: string): Promise<string> {
