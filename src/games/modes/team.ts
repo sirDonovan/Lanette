@@ -275,7 +275,7 @@ const tests: GameFileTests<TeamThis> = {
 		async test(game, format, attributes) {
 			this.timeout(15000);
 
-			const players = addPlayers(game, 4);
+			const players = addPlayers(game);
 			game.start();
 			if (game.timeout) clearTimeout(game.timeout);
 			await game.onNextRound();

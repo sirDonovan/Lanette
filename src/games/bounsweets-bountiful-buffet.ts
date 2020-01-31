@@ -36,7 +36,6 @@ class BounsweetsBountifulBuffet extends Game {
 	canSelect: boolean = false;
 	mealPoints: number[] = [];
 	meals: string[] = [];
-	minPlayers: number = 4;
 	numberOfMeals: number = 0;
 	points = new Map<Player, number>();
 	selectedMeals = new Map<Player, number>();

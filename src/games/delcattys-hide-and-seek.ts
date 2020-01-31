@@ -251,6 +251,7 @@ const tests: GameFileTests<DelcattysHideAndSeek> = {
 	'should eliminate players who are charmed': {
 		test(game, format) {
 			const players = addPlayers(game, 2);
+			game.minPlayers = 2;
 			game.start();
 			assert(!game.canSelect);
 			assert(!game.canCharm);
@@ -268,6 +269,7 @@ const tests: GameFileTests<DelcattysHideAndSeek> = {
 	'should eliminate the charmer if they fail to charm any players': {
 		test(game, format) {
 			const players = addPlayers(game, 2);
+			game.minPlayers = 2;
 			game.start();
 			const selector = game.charmer === players[0] ? players[1] : players[0];
 			game.canSelect = true;

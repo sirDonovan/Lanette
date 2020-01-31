@@ -126,7 +126,7 @@ export class Game extends Activity {
 	readonly isUserHosted: boolean = false;
 	readonly loserPointsToBits: number = 10;
 	readonly maxBits: number = 1000;
-	readonly minPlayers: number = 4;
+	minPlayers: number = 4;
 	notifyRankSignups: boolean = false;
 	parentGame: Game | null = null;
 	prng: PRNG = new PRNG();

@@ -561,7 +561,7 @@ const commands: Dict<ICommandDefinition<WigglytuffsPokenopoly>> = {
 const tests: GameFileTests<WigglytuffsPokenopoly> = {
 	'it should clear property owners once the game ends': {
 		test(game, format) {
-			const players = addPlayers(game, 4);
+			const players = addPlayers(game);
 			game.start();
 			(spaces.pallet as BoardPropertySpace).owner = players[0];
 			game.forceEnd(Users.self);

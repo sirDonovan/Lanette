@@ -167,7 +167,8 @@ const tests: GameFileTests<SurvivalThis> = {
 		async test(game, format, attributes) {
 			this.timeout(15000);
 
-			addPlayers(game, 2);
+			addPlayers(game);
+			game.start();
 			await game.onNextRound();
 			assert(game.answers.length);
 			const currentPlayer = game.currentPlayer;
@@ -187,7 +188,8 @@ const tests: GameFileTests<SurvivalThis> = {
 		async test(game, format, attributes) {
 			this.timeout(15000);
 
-			addPlayers(game, 2);
+			addPlayers(game);
+			game.start();
 			await game.onNextRound();
 			assert(game.answers.length);
 			const currentPlayer = game.currentPlayer;
