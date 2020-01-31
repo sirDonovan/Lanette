@@ -3,6 +3,7 @@ import { Game } from '../../room-game';
 import { GameFileTests, IGameFormat, IGameTestAttributes, IUserHostedFormat } from '../../types/games';
 import { IPastGame } from '../../types/storage';
 import { assert, assertClientSendQueue, assertStrictEqual } from '../test-tools';
+import { fail } from 'assert';
 
 function testMascots(format: IGameFormat | IUserHostedFormat) {
 	if (format.mascot) {
@@ -42,11 +43,21 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests) {
 			if (commands) attributes.commands = commands[i];
 			if (testConfig.async) {
 				it(test, async function() {
-					await testData.test.call(this, createIndividualTestGame(testFormat), testFormat, attributes);
+					const game = createIndividualTestGame(testFormat);
+					try {
+						await testData.test.call(this, game, testFormat, attributes);
+					} catch (e) {
+						fail(e.message + " (initial seed = " + game.initialSeed + ")");
+					}
 				});
 			} else {
 				it(test, function() {
-					testData.test.call(this, createIndividualTestGame(testFormat), testFormat, attributes);
+					const game = createIndividualTestGame(testFormat);
+					try {
+						testData.test.call(this, game, testFormat, attributes);
+					} catch (e) {
+						fail(e.message + " (initial seed = " + game.initialSeed + ")");
+					}
 				});
 			}
 		}
@@ -130,10 +141,11 @@ describe("Games", () => {
 				let initialSeed: PRNGSeed | undefined;
 				Games.createGame(room, Games.getExistingFormat(i), room, false, initialSeed);
 			} catch (e) {
+				let message = e.message;
 				if (room.game) {
-					console.log(Games.getExistingFormat(i).name + " (starting seed = " + room.game.prng.initialSeed + ") crashed with: " + e.message);
+					message += " (" + Games.getExistingFormat(i).name + "; initial seed = " + room.game.initialSeed + ")";
 				}
-				throw e;
+				fail(message);
 			}
 			if (room.game) room.game.deallocate(true);
 		}
@@ -155,10 +167,11 @@ describe("Games", () => {
 					let initialSeed: PRNGSeed | undefined;
 					Games.createGame(room, format, room, false, initialSeed);
 				} catch (e) {
+					let message = e.message;
 					if (room.game) {
-						console.log(format.name + " (starting seed = " + room.game.prng.initialSeed + ") crashed with: " + e.message);
+						message += " (" + format.nameWithOptions + "; initial seed = " + room.game.initialSeed + ")";
 					}
-					throw e;
+					fail(message);
 				}
 				if (room.game) room.game.deallocate(true);
 			}
