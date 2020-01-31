@@ -56,7 +56,7 @@ class SableyesTrickHouse extends Game {
 		const remainingPlayerCount = this.getRemainingPlayerCount();
 		if (remainingPlayerCount < 2) return this.end();
 		let roundDoors = this.sampleOne(doors);
-		while (this.previousDoors && Tools.compareArrays(this.previousDoors, doors)) {
+		while (this.previousDoors && Tools.compareArrays(this.previousDoors, roundDoors)) {
 			roundDoors = this.sampleOne(doors);
 		}
 		this.previousDoors = roundDoors;
