@@ -329,7 +329,7 @@ class WigglytuffsPokenopoly extends BoardGame {
 				}
 			} else {
 				if (money >= this.moneyForBail || getOutOfJailCards) {
-					this.say("This is **" + player.name + "**'s " + Tools.toNumberOrderString(numTurns) + " turn in jail. They can either attempt to roll out of jail (with ``" + Config.commandCharacter + "roll``) or bail themselves out with ``" + Config.commandCharacter + "bail``!");
+					this.say("This is **" + player.name + "**'s " + Tools.toNumberOrderString(numTurns) + " turn in jail. They can either attempt to roll out of jail (with ``" + Config.commandCharacter + "rolldice``) or bail themselves out with ``" + Config.commandCharacter + "bail``!");
 					this.canBail = true;
 					this.canRoll = true;
 					this.timeout = setTimeout(() => {
@@ -482,7 +482,7 @@ class WigglytuffsPokenopoly extends BoardGame {
 }
 
 const commands: Dict<ICommandDefinition<WigglytuffsPokenopoly>> = {
-	roll: {
+	rolldice: {
 		command(target, room, user) {
 			if (!this.canRoll || !(user.id in this.players) || this.players[user.id] !== this.currentPlayer) return false;
 			if (this.timeout) clearTimeout(this.timeout);

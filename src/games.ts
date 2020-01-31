@@ -207,6 +207,7 @@ export class Games {
 
 			if (format.commands) {
 				for (const i in format.commands) {
+					if (i in Commands) throw new Error(format.name + " command '" + i + "' already exists as a regular command.");
 					if (!(i in this.commands)) this.commands[i] = format.commands[i];
 				}
 			}
