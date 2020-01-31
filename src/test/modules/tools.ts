@@ -88,6 +88,60 @@ describe("Tools", () => {
 		assertStrictEqual(Tools.toDurationString(minute + second), '1 minute and 1 second');
 		assertStrictEqual(Tools.toDurationString(hour + minute + second), '1 hour, 1 minute, and 1 second');
 	});
+	it('should return proper values from deepSortArray()', () => {
+		assertStrictEqual(Tools.deepSortArray(['c', 'a', 'b']).join(''), 'abc');
+		assertStrictEqual(Tools.deepSortArray([2, 0, 1]).join(''), '012');
+		assertStrictEqual(Tools.deepSortArray([['c'], ['a'], ['b']]).map(x => x[0]).join(''), 'abc');
+		assertStrictEqual(Tools.deepSortArray([[2], [0], [1]]).map(x => x[0]).join(''), '012');
+
+		assertStrictEqual(Tools.deepSortArray([['b'], ['a'], ['b']]).map(x => x[0]).join(''), 'abb');
+		assertStrictEqual(Tools.deepSortArray([['c'], ['a'], ['b'], ['a', 'a'], ['b', 'a']]).map(x => x.join('')).join(','), 'a,b,c,aa,ab');
+		assertStrictEqual(Tools.deepSortArray([[1], [0], [1]]).map(x => x[0]).join(''), '011');
+		assertStrictEqual(Tools.deepSortArray([[2], [0], [1], [0, 0], [1, 0]]).map(x => x.join('')).join(','), '0,1,2,00,01');
+	});
+	it('should return proper values from compareArrays()', () => {
+		assert(Tools.compareArrays([], []));
+		assert(!Tools.compareArrays([0], []));
+		assert(!Tools.compareArrays([], [0]));
+
+		assert(Tools.compareArrays([0], [0]));
+		assert(!Tools.compareArrays([0], [1]));
+		assert(Tools.compareArrays([0, 1], [0, 1]));
+		assert(Tools.compareArrays([0, 1], [1, 0]));
+		assert(Tools.compareArrays([1, 0], [0, 1]));
+		assert(Tools.compareArrays([1, 0], [1, 0]));
+		assert(!Tools.compareArrays([0, 1], [0, 0]));
+		assert(!Tools.compareArrays([0, 1], [0]));
+
+		assert(Tools.compareArrays([[0]], [[0]]));
+		assert(!Tools.compareArrays([[0]], [[1]]));
+		assert(Tools.compareArrays([[0, 1]], [[0, 1]]));
+		assert(Tools.compareArrays([[0, 1]], [[1, 0]]));
+		assert(Tools.compareArrays([[1, 0]], [[0, 1]]));
+		assert(Tools.compareArrays([[1, 0]], [[1, 0]]));
+		assert(!Tools.compareArrays([[0, 1]], [[0, 0]]));
+		assert(!Tools.compareArrays([[0], [1]], [[0]]));
+
+		assert(Tools.compareArrays(['a'], ['a']));
+		assert(!Tools.compareArrays(['a'], ['b']));
+		assert(Tools.compareArrays(['a', 'b'], ['a', 'b']));
+		assert(Tools.compareArrays(['a', 'b'], ['b', 'a']));
+		assert(Tools.compareArrays(['b', 'a'], ['a', 'b']));
+		assert(Tools.compareArrays(['b', 'a'], ['b', 'a']));
+		assert(!Tools.compareArrays(['a', 'b'], ['a', 'a']));
+		assert(!Tools.compareArrays(['a', 'b'], ['a']));
+
+		assert(Tools.compareArrays([[0], [1]], [[0], [1]]));
+		assert(Tools.compareArrays([[0], [1]], [[1], [0]]));
+		assert(Tools.compareArrays([[0], [0, 1]], [[0], [0, 1]]));
+		assert(Tools.compareArrays([[0], [1, 0]], [[0], [0, 1]]));
+		assert(Tools.compareArrays([[0], [0, 1]], [[0, 1], [0]]));
+		assert(Tools.compareArrays([[0], [0, 1]], [[1, 0], [0]]));
+		assert(!Tools.compareArrays([[0], [0, 1]], [[0]]));
+		assert(!Tools.compareArrays([[0], [0, 1]], [[0, 1]]));
+		assert(!Tools.compareArrays([[0, 1]], [[0, 1], [0]]));
+		assert(!Tools.compareArrays([[0, 1]], [[0], [0, 1]]));
+	});
 	it('should return proper values from getChallongeUrl()', () => {
 		assert(!Tools.getChallongeUrl('https://challonge.com'));
 		assert(!Tools.getChallongeUrl('https://challonge.com/'));

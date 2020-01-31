@@ -152,15 +152,59 @@ export class Tools {
 		return shuffled;
 	}
 
-	compareArrays(arrayA: readonly any[], arrayB: readonly any[]): boolean {
-		const arrayALen = arrayA.length;
-		const arrayBLen = arrayB.length;
-		if (arrayALen !== arrayBLen) return false;
+	deepSortArray<T>(unsortedArray: readonly T[]): T[] {
+		const copy = unsortedArray.slice();
+		const arrayType = typeof copy[0];
+		if (arrayType === 'number' || arrayType === 'bigint') {
+			copy.sort((a, b) => ((a as unknown) as number) - ((b as unknown) as number));
+		} else if (Array.isArray(copy[0])) {
+			for (let i = 0; i < copy.length; i++) {
+				// @ts-ignore
+				copy[i] = this.deepSortArray(copy[i]);
+			}
 
-		arrayA = arrayA.slice().sort();
-		arrayB = arrayB.slice().sort();
+			copy.sort((a, b) => {
+				const subArrayA = (a as unknown) as T[];
+				const subArrayB = (b as unknown) as T[];
+				const subArrayALen = subArrayA.length;
+				const subArrayBLen = subArrayB.length;
+				if (subArrayALen === subArrayBLen) {
+					const subArrayType = typeof subArrayA[0];
+					const isInteger = subArrayType === 'number' || subArrayType === 'bigint';
+					for (let i = 0; i < subArrayALen; i++) {
+						if (subArrayA[i] === subArrayB[i]) continue;
+						if (isInteger) return ((subArrayA[i] as unknown) as number) - ((subArrayB[i] as unknown) as number);
+						return subArrayA[i] > subArrayB[i] ? 1 : -1;
+					}
+
+					return 0;
+				} else {
+					return subArrayALen - subArrayBLen;
+				}
+			});
+		} else {
+			copy.sort();
+		}
+
+		return copy;
+	}
+
+	compareArrays<T>(arrayA: readonly T[], arrayB: readonly T[]): boolean {
+		const arrayALen = arrayA.length;
+		if (arrayALen !== arrayB.length) return false;
+		if (arrayALen === 0) return true;
+
+		arrayA = this.deepSortArray(arrayA);
+		arrayB = this.deepSortArray(arrayB);
+
+		const isSubArrayA = Array.isArray(arrayA[0]);
+		const isSubArrayB = Array.isArray(arrayB[0]);
 		for (let i = 0; i < arrayALen; i++) {
-			if (arrayA[i] !== arrayB[i]) return false;
+			if (isSubArrayA && isSubArrayB) {
+				if (!this.compareArrays((arrayA[i] as unknown) as any[], (arrayB[i] as unknown) as any[])) return false;
+			} else {
+				if (arrayA[i] !== arrayB[i]) return false;
+			}
 		}
 
 		return true;
