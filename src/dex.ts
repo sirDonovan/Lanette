@@ -1194,6 +1194,40 @@ export class Dex {
 		return evolutionLines;
 	}
 
+	isEvolutionFamily(species: string[]): boolean {
+		if (species.length < 2) return true;
+
+		const evolutionLines: string[][][] = [];
+
+		for (let i = 0; i < species.length; i++) {
+			const pokemon = this.getPokemon(species[i]);
+			if (!pokemon) return false;
+			evolutionLines.push(this.getEvolutionLines(pokemon));
+		}
+
+		evolutionLines.sort((a, b) => a.length - b.length);
+
+		for (let i = 0; i < evolutionLines.length - 1; i++) {
+			let sharedEvolutionLine = false;
+			const currentLine = evolutionLines[i];
+			const nextLine = evolutionLines[i + 1];
+
+			outer:
+			for (let i = 0; i < currentLine.length; i++) {
+				for (let j = 0; j < nextLine.length; j++) {
+					if (Tools.compareArrays(currentLine[i], nextLine[j])) {
+						sharedEvolutionLine = true;
+						break outer;
+					}
+				}
+			}
+
+			if (!sharedEvolutionLine) return false;
+		}
+
+		return true;
+	}
+
 	/**
 	 * Returns true if target is immune to source
 	 */

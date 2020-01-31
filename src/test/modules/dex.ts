@@ -96,7 +96,7 @@ describe("Dex", () => {
 		const pokemon = ['Charmander', 'Charmeleon', 'Charizard'];
 		for (let i = 0; i < pokemon.length; i++) {
 			const evolutionLines = Dex.getEvolutionLines(Dex.getExistingPokemon(pokemon[i]));
-			assert(evolutionLines.length === 1);
+			assertStrictEqual(evolutionLines.length, 1);
 			assertStrictEqual(evolutionLines[0].join(","), 'Charmander,Charmeleon,Charizard');
 		}
 
@@ -120,6 +120,24 @@ describe("Dex", () => {
 		assertStrictEqual(evolutionLines[0].join(","), 'Tyrogue,Hitmonlee');
 		assertStrictEqual(evolutionLines[1].join(","), 'Tyrogue,Hitmonchan');
 		assertStrictEqual(evolutionLines[2].join(","), 'Tyrogue,Hitmontop');
+	});
+	it('should return proper values from isEvolutionFamily()', () => {
+		assert(Dex.isEvolutionFamily(['Charmander', 'Charmeleon', 'Charizard']));
+		assert(Dex.isEvolutionFamily(['Charmander', 'Charmeleon']));
+		assert(Dex.isEvolutionFamily(['Charmeleon', 'Charizard']));
+		assert(Dex.isEvolutionFamily(['Charmander', 'Charizard']));
+		assert(Dex.isEvolutionFamily(['Charmander']));
+		assert(Dex.isEvolutionFamily(['Charmeleon']));
+		assert(Dex.isEvolutionFamily(['Charizard']));
+		assert(!Dex.isEvolutionFamily(['Bulbasaur', 'Charmeleon', 'Charizard']));
+		assert(Dex.isEvolutionFamily(['Tyrogue', 'Hitmonlee']));
+		assert(Dex.isEvolutionFamily(['Tyrogue', 'Hitmonchan']));
+		assert(Dex.isEvolutionFamily(['Tyrogue', 'Hitmontop']));
+		assert(!Dex.isEvolutionFamily(['Tyrogue', 'Hitmonlee', 'Hitmonchan']));
+		assert(Dex.isEvolutionFamily(['Oddish', 'Gloom', 'Vileplume']));
+		assert(Dex.isEvolutionFamily(['Oddish', 'Gloom', 'Bellossom']));
+		assert(Dex.isEvolutionFamily(['Oddish', 'Vileplume']));
+		assert(Dex.isEvolutionFamily(['Oddish', 'Bellossom']));
 	});
 	it('should return proper values from getList methods', () => {
 		const abilities = Dex.getAbilitiesList().map(x => x.name);
