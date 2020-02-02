@@ -4,7 +4,7 @@
 const schedules: Dict<{months: Dict<Dict<string> | undefined>, times: [number, number][]}> = {
 	'tournaments': {
 		months: {
-			'1': {
+			'2': {
 				'1': 'randombattle',
 				'2': 'pu',
 				'3': 'ou',
@@ -33,16 +33,14 @@ const schedules: Dict<{months: Dict<Dict<string> | undefined>, times: [number, n
 				'26': 'nu',
 				'27': 'doublesou',
 				'28': 'uu',
-				'29': 'ru',
-				'30': 'monotype',
-				'31': 'omotm',
+				'29': 'omotm',
 			},
 		},
 		times: [[2, 30], [9, 30], [15, 30], [20, 30]],
 	},
 	'toursplaza': {
 		months: {
-			'1': {
+			'2': {
 				'1': 'Gen7 PU, +PUBL',
 				'2': 'NFE',
 				'3': 'MixandMega, -Eternatus, -OU, -UU, -NFE',
@@ -72,8 +70,6 @@ const schedules: Dict<{months: Dict<Dict<string> | undefined>, times: [number, n
 				'27': 'CAP',
 				'28': 'LC, +gothita, +swirlix, +gastly, +cherubi',
 				'29': 'omotm2',
-				'30': 'Gen7 UU, Inverse Mod',
-				'31': 'Anything Goes',
 			},
 		},
 		times: [[5, 30], [12, 30], [18, 30], [23, 30]],
