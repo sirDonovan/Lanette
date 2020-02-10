@@ -210,6 +210,7 @@ export const game: IGameFile<PluslesAdditiveParameters> = {
 	aliases: ['plusles', 'additiveparameters', 'additiveparams', 'pluslesadditiveparams'],
 	category: 'puzzle',
 	class: PluslesAdditiveParameters,
+	commandDescriptions: [Config.commandCharacter + "add [parameter]"],
 	commands,
 	description: "Players add <code>/ds" + GEN + "</code> parameters that result in at least 2 Pokemon of different evolution lines in the given list!",
 	formerNames: ["Pumpkaboo's Parameters"],
