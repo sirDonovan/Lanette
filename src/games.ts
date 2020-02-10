@@ -705,7 +705,7 @@ export class Games {
 		const list: IItem[] = [];
 		for (let i = 0; i < baseList.length; i++) {
 			const item = baseList[i];
-			if (!item.name) continue;
+			if (!item.name || (item.id.substr(0, 2) === 'tr' && !isNaN(parseInt(item.id.substr(2))))) continue;
 			list.push(item);
 		}
 		return list;
