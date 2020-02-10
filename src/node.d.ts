@@ -1,6 +1,7 @@
 // tslint:disable
 declare namespace NodeJS {
 	interface Global {
+		BaseCommands: import('./command-parser').CommandsDict;
 		Client: import('./client').Client;
 		CommandParser: import('./command-parser').CommandParser;
 		Commands: import('./command-parser').CommandsDict;

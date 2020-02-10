@@ -89,6 +89,8 @@ export class Games {
 		if (previous.lastUserHostTimes) this.lastUserHostTimes = previous.lastUserHostTimes;
 		if (previous.uhtmlScriptedCounts) this.uhtmlScriptedCounts = previous.uhtmlScriptedCounts;
 		if (previous.uhtmlUserHostedCounts) this.uhtmlUserHostedCounts = previous.uhtmlUserHostedCounts;
+
+		this.loadFormats();
 	}
 
 	unrefWorkers() {
@@ -207,7 +209,7 @@ export class Games {
 
 			if (format.commands) {
 				for (const i in format.commands) {
-					if (i in Commands) throw new Error(format.name + " command '" + i + "' already exists as a regular command.");
+					if (i in BaseCommands) throw new Error(format.name + " command '" + i + "' already exists as a regular command.");
 					if (!(i in this.commands)) this.commands[i] = format.commands[i];
 				}
 			}

@@ -126,7 +126,6 @@ const commands: Dict<ICommandDefinition> = {
 						const games: typeof import('./games') = require('./games');
 						global.Games = new games.Games();
 						Games.onReload(oldGames);
-						Games.loadFormats();
 					} else if (modules[i] === 'storage') {
 						const oldStorage = global.Storage;
 						Storage.unrefWorkers();

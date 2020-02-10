@@ -20,6 +20,7 @@ global.CommandParser = new commandParser.CommandParser();
 
 import commands = require('./commands');
 global.Commands = CommandParser.loadBaseCommands(commands);
+global.BaseCommands = Tools.deepClone(global.Commands);
 
 import * as games from './games';
 global.Games = new games.Games();

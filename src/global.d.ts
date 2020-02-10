@@ -10,6 +10,7 @@ import { Tournaments } from './tournaments';
 import { Users } from './users';
 
 declare global {
+	const BaseCommands: CommandsDict;
 	const Client: Client;
 	const CommandParser: CommandParser;
 	const Commands: CommandsDict;
