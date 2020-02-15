@@ -108,6 +108,7 @@ export class Games {
 		const internalGameKeys = Object.keys(internalGamePaths) as (keyof IInternalGames)[];
 		for (let i = 0; i < internalGameKeys.length; i++) {
 			const file = require(internalGamePaths[internalGameKeys[i]]).game as IGameFile;
+			if (!file) throw new Error("No game exported from " + internalGamePaths[internalGameKeys[i]]);
 			const id = Tools.toId(file.name);
 			let commands;
 			if (file.commands) {
@@ -123,7 +124,9 @@ export class Games {
 		const modeFiles = fs.readdirSync(modesDirectory);
 		for (let i = 0; i < modeFiles.length; i++) {
 			if (!modeFiles[i].endsWith('.js')) continue;
-			const file = require(path.join(modesDirectory, modeFiles[i])).mode as IGameModeFile;
+			const modePath = path.join(modesDirectory, modeFiles[i]);
+			const file = require(modePath).mode as IGameModeFile;
+			if (!file) throw new Error("No mode exported from " + modePath);
 			const id = Tools.toId(file.name);
 			if (id in this.modes) throw new Error("The name '" + file.name + "' is already used by another mode.");
 			if (file.aliases) {
@@ -139,7 +142,9 @@ export class Games {
 		const gameFiles = fs.readdirSync(gamesDirectory);
 		for (let i = 0; i < gameFiles.length; i++) {
 			if (!gameFiles[i].endsWith('.js')) continue;
-			const file = require(path.join(gamesDirectory, gameFiles[i])).game as IGameFile;
+			const gamePath = path.join(gamesDirectory, gameFiles[i]);
+			const file = require(gamePath).game as IGameFile;
+			if (!file) throw new Error("No game exported from " + gamePath);
 			const id = Tools.toId(file.name);
 			if (id in this.formats) throw new Error("The name '" + file.name + "' is already used by another game.");
 			let commands;
