@@ -457,6 +457,6 @@ const commands: Dict<ICommandDefinition<CardMatching>> = {
 };
 
 export const game: IGameTemplateFile<CardMatching> = Object.assign(Tools.deepClone(cardGame), {
-	category: 'cardMatching' as GameCategory,
+	category: 'card-matching' as GameCategory,
 	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
 });

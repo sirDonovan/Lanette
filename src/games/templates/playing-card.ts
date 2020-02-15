@@ -160,6 +160,6 @@ const commands: Dict<ICommandDefinition<PlayingCard>> = {
 };
 
 export const game: IGameTemplateFile<PlayingCard> = {
-	category: 'playingCard',
+	category: 'playing-card',
 	commands,
 };

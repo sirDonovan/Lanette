@@ -8,18 +8,18 @@ export type GameCommandReturnType = boolean;
 export type GameDifficulty = 'easy' | 'medium' | 'hard';
 
 interface IGameCategoryKeys {
-	board: any;
-	card: any;
-	cardHighLow: any;
-	cardMatching: any;
-	chain: any;
-	identification: any;
-	knowledge: any;
-	map: any;
-	playingCard: any;
-	puzzle: any;
-	reaction: any;
-	speed: any;
+	'board': any;
+	'card': any;
+	'card-high-low': any;
+	'card-matching': any;
+	'chain': any;
+	'identification': any;
+	'knowledge': any;
+	'map': any;
+	'playing-card': any;
+	'puzzle': any;
+	'reaction': any;
+	'speed': any;
 }
 
 export type GameCategory = keyof IGameCategoryKeys;

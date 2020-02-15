@@ -242,6 +242,6 @@ const commands: Dict<ICommandDefinition<CardHighLow>> = {
 };
 
 export const game: IGameTemplateFile<CardHighLow> = Object.assign(Tools.deepClone(cardGame), {
-	category: 'cardHighLow' as GameCategory,
+	category: 'card-high-low' as GameCategory,
 	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
 });
