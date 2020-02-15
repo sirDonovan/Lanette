@@ -9,6 +9,7 @@ export type GameDifficulty = 'easy' | 'medium' | 'hard';
 
 interface IGameCategoryKeys {
 	'board': any;
+	'board-property': any;
 	'card': any;
 	'card-high-low': any;
 	'card-matching': any;

@@ -8,10 +8,6 @@ export class BoardSpace {
 	name: string;
 	color: HexColor;
 
-	isChanceSpace?: boolean;
-	isPropertySpace?: boolean;
-	isUtilitySpace?: boolean;
-
 	constructor(name: string, color: HexColor) {
 		this.name = name;
 		this.color = color;
@@ -36,6 +32,8 @@ export interface IMovedBoardLocation extends IBoardLocation {
 	passedSpaces: BoardSpace[];
 }
 
+export type BoardActionCard<T extends BoardGame = BoardGame> = (this: T, player: Player) => void;
+
 // needs to be in order for getLocationAfterMovement
 const boardSides: readonly BoardSide[] = ['leftColumn', 'topRow', 'rightColumn', 'bottomRow'];
 
@@ -46,17 +44,15 @@ export abstract class BoardGame extends Game {
 	maxPlayers: number = 25;
 	playerLocations = new Map<Player, IBoardLocation>();
 	playerList: Player[] = [];
-	playerMoney = new Map<Player, number>();
 	playerLetters = new Map<Player, string>();
 	playerOrder: Player[] = [];
+	currentPlayerReRoll: boolean = false;
 	roundTime: number = 5 * 1000;
-
-	startingMoney?: number;
 
 	abstract board: IBoard;
 	abstract numberOfDice: number;
 	abstract startingBoardSide: BoardSide;
-	abstract startingBoardSpace: number;
+	abstract startingBoardSideSpace: number;
 
 	displayBoard() {
 		const playerLocations: KeyedDict<IBoard, Dict<Player[]>> = {
@@ -108,8 +104,7 @@ export abstract class BoardGame extends Game {
 		this.playerOrder = this.shufflePlayers();
 		for (let i = 0; i < this.playerOrder.length; i++) {
 			const player = this.playerOrder[i];
-			this.playerLocations.set(player, {side: this.startingBoardSide, space: this.startingBoardSpace});
-			if (this.startingMoney) this.playerMoney.set(player, this.startingMoney);
+			this.playerLocations.set(player, {side: this.startingBoardSide, space: this.startingBoardSideSpace});
 			const playerLetter = letters[0];
 			letters.shift();
 			this.playerLetters.set(player, playerLetter);
@@ -172,6 +167,7 @@ export abstract class BoardGame extends Game {
 		let side: BoardSide = startingLocation.side;
 		let space: number = startingLocation.space;
 		const forward = spacesMoved > 0;
+		if (spacesMoved < 0) spacesMoved *= -1;
 		const passedSpaces: BoardSpace[] = [];
 		for (let i = 0; i < spacesMoved; i++) {
 			passedSpaces.push(this.board[side][space]);
@@ -182,7 +178,7 @@ export abstract class BoardGame extends Game {
 				changeSides = space >= this.board[side].length;
 			} else {
 				space--;
-				changeSides = space <= 0;
+				changeSides = space < 0;
 			}
 
 			if (changeSides) {
@@ -218,6 +214,8 @@ export abstract class BoardGame extends Game {
 		for (let i = 0; i < this.dice.length; i++) {
 			rollAmount += this.dice[i];
 		}
+
+		this.currentPlayerReRoll = rollAmount / this.dice.length === this.dice[0];
 
 		const location = this.playerLocations.get(player)!;
 		const locationAfterMovement = this.getLocationAfterMovement(location, rollAmount);
@@ -300,6 +298,30 @@ const tests: GameFileTests<BoardGame> = {
 			locationAfterMovement = game.getLocationAfterMovement({side: 'bottomRow', space: game.board['bottomRow'].length - 1}, game.board['leftColumn'].length + 1);
 			assertStrictEqual(locationAfterMovement.side, 'topRow');
 			assertStrictEqual(locationAfterMovement.space, 0);
+
+			locationAfterMovement = game.getLocationAfterMovement({side: 'leftColumn', space: 1}, -1);
+			assertStrictEqual(locationAfterMovement.side, 'leftColumn');
+			assertStrictEqual(locationAfterMovement.space, 0);
+
+			locationAfterMovement = game.getLocationAfterMovement({side: 'leftColumn', space: 2}, -2);
+			assertStrictEqual(locationAfterMovement.side, 'leftColumn');
+			assertStrictEqual(locationAfterMovement.space, 0);
+
+			locationAfterMovement = game.getLocationAfterMovement({side: 'topRow', space: 0}, -1);
+			assertStrictEqual(locationAfterMovement.side, 'leftColumn');
+			assertStrictEqual(locationAfterMovement.space, game.board['leftColumn'].length - 1);
+
+			locationAfterMovement = game.getLocationAfterMovement({side: 'rightColumn', space: 0}, -1);
+			assertStrictEqual(locationAfterMovement.side, 'topRow');
+			assertStrictEqual(locationAfterMovement.space, game.board['topRow'].length - 1);
+
+			locationAfterMovement = game.getLocationAfterMovement({side: 'bottomRow', space: 0}, -1);
+			assertStrictEqual(locationAfterMovement.side, 'rightColumn');
+			assertStrictEqual(locationAfterMovement.space, game.board['rightColumn'].length - 1);
+
+			locationAfterMovement = game.getLocationAfterMovement({side: 'leftColumn', space: 0}, -1);
+			assertStrictEqual(locationAfterMovement.side, 'bottomRow');
+			assertStrictEqual(locationAfterMovement.space, game.board['bottomRow'].length - 1);
 		},
 	},
 	'it should have properly initialized board spaces': {
