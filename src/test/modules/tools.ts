@@ -152,6 +152,10 @@ describe("Tools", () => {
 			const expectedLink = link.startsWith('http://') ? 'https://' + link.substr(7) : link;
 			assertStrictEqual(Tools.getChallongeUrl(link), expectedLink);
 			assertStrictEqual(Tools.getChallongeUrl(" **" + link + "**"), expectedLink);
+			assertStrictEqual(Tools.getChallongeUrl(" __" + link + "__"), expectedLink);
+			assertStrictEqual(Tools.getChallongeUrl(" __" + link + "__!"), expectedLink);
+			assertStrictEqual(Tools.getChallongeUrl(" ``" + link + "``"), expectedLink);
+			assertStrictEqual(Tools.getChallongeUrl(" ``" + link + "``!"), expectedLink);
 			assertStrictEqual(Tools.getChallongeUrl(" **" + link + "**!"), expectedLink);
 			assertStrictEqual(Tools.getChallongeUrl(" **" + link + "**."), expectedLink);
 			assertStrictEqual(Tools.getChallongeUrl(" **" + link + "**'"), expectedLink);

@@ -505,8 +505,13 @@ export class Tools {
 			const httpsIndex = challongeLink.indexOf('https://');
 			if (httpsIndex === -1) challongeLink = 'https://' + challongeLink;
 		}
-		const boldIndex = challongeLink.lastIndexOf("**");
-		if (boldIndex !== -1) challongeLink = challongeLink.substr(0, boldIndex);
+
+		const formatting: string[] = ["**", "__", "``"];
+		for (let i = 0; i < formatting.length; i++) {
+			const index = challongeLink.lastIndexOf(formatting[i]);
+			if (index !== -1) challongeLink = challongeLink.substr(0, index);
+		}
+
 		while (challongeLink.endsWith('!') || challongeLink.endsWith('.') || challongeLink.endsWith("'") || challongeLink.endsWith('"') || challongeLink.endsWith("\\")) {
 			challongeLink = challongeLink.substr(0, challongeLink.length - 1);
 		}
