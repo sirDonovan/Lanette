@@ -37,5 +37,6 @@ global.Tournaments = new tournaments.Tournaments();
 import * as users from './users';
 global.Users = new users.Users();
 
+Tournaments.loadSchedules();
 Games.loadFormats();
 Storage.importDatabases();

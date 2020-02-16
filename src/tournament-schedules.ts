@@ -1,7 +1,12 @@
+export interface ITournamentSchedule {
+	months: Dict<Dict<string> | undefined>;
+	times: [number, number][];
+}
+
 /**
  * Hours are in the same timezone as wherever Lanette is running
  */
-const schedules: Dict<{months: Dict<Dict<string> | undefined>, times: [number, number][]}> = {
+export const tournamentSchedules: Dict<ITournamentSchedule> = {
 	'tournaments': {
 		months: {
 			'2': {
@@ -36,7 +41,7 @@ const schedules: Dict<{months: Dict<Dict<string> | undefined>, times: [number, n
 				'29': 'omotm',
 			},
 		},
-		times: [[2, 30], [9, 30], [15, 30], [20, 30]],
+		times: [[4, 30], [10, 30], [15, 30], [21, 30]],
 	},
 	'toursplaza': {
 		months: {
@@ -75,5 +80,3 @@ const schedules: Dict<{months: Dict<Dict<string> | undefined>, times: [number, n
 		times: [[5, 30], [12, 30], [18, 30], [23, 30]],
 	},
 };
-
-export = schedules;

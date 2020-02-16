@@ -1,7 +1,7 @@
 import { GroupName } from "./client";
 import { Tournament } from "./room-tournament";
 import { Room } from "./rooms";
-import * as schedules from './tournament-schedules';
+import { tournamentSchedules } from './tournament-schedules';
 import { IFormat, ISeparatedCustomRules } from "./types/in-game-data-types";
 import { IPastTournament } from "./types/storage";
 
@@ -15,38 +15,11 @@ export interface IUserHostedTournament {
 	urls: string[];
 }
 
-for (const room in schedules) {
-	for (const month in schedules[room].months) {
-		for (const day in schedules[room].months[month]) {
-			const formatid = schedules[room].months[month]![day];
-			if (formatid.includes(',') && !formatid.includes('@@@')) {
-				const parts = formatid.split(',');
-				const customRules: string[] = [];
-				let customFormatid = parts[0].trim();
-				for (let i = 1; i < parts.length; i++) {
-					const part = parts[i].trim();
-					if (part && part !== '0') customRules.push(part);
-				}
-				if (customRules.length) customFormatid += '@@@' + customRules.join(',');
-				schedules[room].months[month]![day] = customFormatid;
-			}
-		}
-	}
-	const id = Tools.toRoomId(room);
-	if (id !== room) {
-		schedules[id] = schedules[room];
-		delete schedules[room];
-	}
-}
-
 const SCHEDULED_TOURNAMENT_BUFFER_TIME = 90 * 60 * 1000;
 const USER_HOSTED_TOURNAMENT_TIMEOUT = 5 * 60 * 1000;
 const USER_HOSTED_TOURNAMENT_RANK: GroupName = 'driver';
 
 export class Tournaments {
-	// exported constants
-	readonly schedules: typeof schedules = schedules;
-
 	createListeners: Dict<{format: IFormat, scheduled: boolean}> = {};
 	readonly defaultCustomRules: Dict<Partial<ISeparatedCustomRules>> = {
 		tournaments: {
@@ -61,6 +34,7 @@ export class Tournaments {
 	readonly minPlayerCap: number = 4;
 	queuedTournamentTime: number = 5 * 60 * 1000;
 	scheduledTournaments: Dict<{format: IFormat, time: number}> = {};
+	readonly schedules: typeof tournamentSchedules = tournamentSchedules;
 	tournamentTimers: Dict<NodeJS.Timer> = {};
 	userHostedTournamentNotificationTimeouts: Dict<NodeJS.Timer> = {};
 
@@ -70,10 +44,43 @@ export class Tournaments {
 		if (previous.tournamentTimers) this.tournamentTimers = previous.tournamentTimers;
 		if (previous.userHostedTournamentNotificationTimeouts) this.userHostedTournamentNotificationTimeouts = previous.userHostedTournamentNotificationTimeouts;
 
+		this.loadSchedules();
+
 		const now = Date.now();
 		Users.self.rooms.forEach((rank, room) => {
 			if (room.id in this.schedules && (!(room.id in this.scheduledTournaments) || now < this.scheduledTournaments[room.id].time)) this.setScheduledTournament(room);
 		});
+	}
+
+	loadSchedules() {
+		const rooms = Object.keys(this.schedules);
+		for (let i = 0; i < rooms.length; i++) {
+			const room = rooms[i];
+			const id = Tools.toRoomId(room);
+			if (id !== room) {
+				this.schedules[id] = this.schedules[room];
+				delete this.schedules[room];
+			}
+		}
+
+		for (const room in this.schedules) {
+			for (const month in this.schedules[room].months) {
+				for (const day in this.schedules[room].months[month]) {
+					const formatid = this.schedules[room].months[month]![day];
+					if (formatid.includes(',') && !formatid.includes('@@@')) {
+						const parts = formatid.split(',');
+						const customRules: string[] = [];
+						let customFormatid = parts[0].trim();
+						for (let i = 1; i < parts.length; i++) {
+							const part = parts[i].trim();
+							if (part && part !== '0') customRules.push(part);
+						}
+						if (customRules.length) customFormatid += '@@@' + customRules.join(',');
+						this.schedules[room].months[month]![day] = customFormatid;
+					}
+				}
+			}
+		}
 	}
 
 	createTournament(room: Room, json: {format: string, generator: string, isStarted?: boolean, playerCap?: number, teambuilderFormat?: string}) {
