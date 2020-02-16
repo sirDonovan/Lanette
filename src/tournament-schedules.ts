@@ -41,7 +41,7 @@ export const tournamentSchedules: Dict<ITournamentSchedule> = {
 				'29': 'omotm',
 			},
 		},
-		times: [[4, 30], [10, 30], [15, 30], [21, 30]],
+		times: [[2, 30], [9, 30], [15, 30], [20, 30]],
 	},
 	'toursplaza': {
 		months: {
