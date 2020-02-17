@@ -106,8 +106,12 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		locationAfterMovement.passedSpaces = passedSpaces;
 
 		const passedGo = passedSpaces.includes(this.startingSpace);
+		let reachedMaxCurrency = false;
 		if (passedGo) {
-			this.playerCurrency.set(player, this.playerCurrency.get(player)! + this.passingGoCurrency);
+			let currency = this.playerCurrency.get(player)!;
+			currency += this.passingGoCurrency;
+			this.playerCurrency.set(player, currency);
+			if (this.maxCurrency && currency >= this.maxCurrency) reachedMaxCurrency = true;
 		}
 		this.playerLocations.set(player, {side: locationAfterMovement.side, space: locationAfterMovement.space});
 
@@ -115,15 +119,25 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		if (passedGo) text += " (and collect **" + this.passingGoCurrency + " " + (this.passingGoCurrency > 1 ? this.currencyPluralName : this.currencyName) + "** for passing " + this.startingSpace.name + ")";
 		text += "!";
 		this.on(text, () => {
-			this.timeout = setTimeout(() => this.onSpaceLanding(player, passedSpaces.length, locationAfterMovement, true), this.roundTime);
+			if (reachedMaxCurrency) {
+				this.onMaxCurrency(player);
+			} else {
+				this.timeout = setTimeout(() => this.onSpaceLanding(player, passedSpaces.length, locationAfterMovement, true), this.roundTime);
+			}
 		});
 		this.say(text);
 	},
 	function(player) {
-		this.playerCurrency.set(player, this.playerCurrency.get(player)! + this.rafflePrize);
+		let currency = this.playerCurrency.get(player)!;
+		currency += this.rafflePrize;
+		this.playerCurrency.set(player, currency);
 		const text = "They win the " + this.raffleRunner + " raffle and earn **" + this.rafflePrize + " " + (this.rafflePrize > 1 ? this.currencyPluralName : this.currencyName) + "**!";
 		this.on(text, () => {
-			this.timeout = setTimeout(() => this.beforeNextRound(), this.roundTime);
+			if (this.maxCurrency && currency >= this.maxCurrency) {
+				this.onMaxCurrency(player);
+			} else {
+				this.timeout = setTimeout(() => this.beforeNextRound(), this.roundTime);
+			}
 		});
 		this.say(text);
 	},
@@ -170,6 +184,8 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 	startingBoardSide: BoardSide = 'leftColumn';
 	startingBoardSideSpace: number = 0;
 	turnsInJail = new Map<Player, number>();
+
+	maxCurrency?: number;
 
 	// set once the game starts
 	startingSpace!: BoardSpace;
@@ -362,6 +378,7 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 		const space = this.board[location.side][location.space];
 
 		let rollText: string | undefined;
+		let reachedMaxCurrency = false;
 		if (!teleported) {
 			const jailIndex = this.playersInJail.indexOf(player);
 			const outOfJail = jailIndex !== -1;
@@ -374,8 +391,16 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 			const passedGo = spacesMoved > 0 && location.passedSpaces.includes(this.startingSpace);
 			if (passedGo && this.boardRound > 1) {
 				rollText += " They also passed " + this.startingSpace.name + " and gained **" + this.passingGoCurrency + " " + (this.passingGoCurrency > 1 ? this.currencyPluralName : this.currencyName) + "**!";
-				this.playerCurrency.set(player, this.playerCurrency.get(player)! + this.passingGoCurrency);
+				let currency = this.playerCurrency.get(player)!;
+				currency += this.passingGoCurrency;
+				this.playerCurrency.set(player, currency);
+				if (this.maxCurrency && currency >= this.maxCurrency) reachedMaxCurrency = true;
 			}
+		}
+
+		if (reachedMaxCurrency) {
+			this.onMaxCurrency(player);
+			return;
 		}
 
 		if (space instanceof BoardPropertyEliminationSpace || space instanceof BoardPropertyRentSpace) {
@@ -459,30 +484,62 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 	}
 
 	checkRentPayment(space: BoardPropertyRentSpace | BoardRentSpace, player: Player, rent: number) {
-		let owner: Player | undefined;
-		if (space instanceof BoardPropertyRentSpace && space.owner) owner = space.owner;
-
 		const currency = this.playerCurrency.get(player)!;
-		let text: string;
 		let payment: number;
+		let eliminated = false;
 		if (currency >= rent) {
 			payment = rent;
+		} else {
+			eliminated = true;
+			payment = currency;
+		}
+
+		let owner: Player | undefined;
+		let ownerCurrency: number | undefined;
+		let reachedMaxCurrency = false;
+		if (space instanceof BoardPropertyRentSpace && space.owner) {
+			owner = space.owner;
+			ownerCurrency = this.playerCurrency.get(owner)!;
+			ownerCurrency += payment;
+			this.playerCurrency.set(owner, ownerCurrency);
+			if (this.maxCurrency && ownerCurrency >= this.maxCurrency) reachedMaxCurrency = true;
+		}
+
+		let text: string;
+		if (eliminated) {
+			text = "They only have " + currency + " " + (currency > 1 ? this.currencyPluralName : this.currencyName) + " and cannot pay the full rent!";
+			this.on(text, () => {
+				if (reachedMaxCurrency) {
+					this.onMaxCurrency(owner!);
+				} else {
+					this.eliminatePlayer(player, undefined, owner);
+					this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
+				}
+			});
+		} else {
 			text = "They pay **" + rent + " " + (rent > 1 ? this.currencyPluralName : this.currencyName) + "**" + (owner ? " to **" + owner.name + "**" : "") + " as rent!";
 			this.playerCurrency.set(player, currency - rent);
 			this.on(text, () => {
-				this.timeout = setTimeout(() => this.beforeNextRound(), this.roundTime);
-			});
-		} else {
-			payment = currency;
-			text = "They do not have enough " + this.currencyPluralName + " to pay the rent!";
-			this.on(text, () => {
-				this.eliminatePlayer(player, undefined, owner);
-				this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
+				if (reachedMaxCurrency) {
+					this.onMaxCurrency(owner!);
+				} else {
+					this.timeout = setTimeout(() => this.beforeNextRound(), this.roundTime);
+				}
 			});
 		}
 
-		if (owner) this.playerCurrency.set(owner, this.playerCurrency.get(owner)! + payment);
+		this.say(text);
+	}
 
+	onMaxCurrency(winner: Player) {
+		for (const i in this.players) {
+			if (this.players[i] !== winner) this.players[i].eliminated = true;
+		}
+
+		const text = winner.name + " has reached the " + this.currencyPluralName + " limit!";
+		this.on(text, () => {
+			this.timeout = setTimeout(() => this.end(), this.roundTime);
+		});
 		this.say(text);
 	}
 
@@ -555,9 +612,7 @@ const commands: Dict<ICommandDefinition<BoardPropertyGame>> = {
 				this.escapeFromJailCards.set(player, escapeFromJailCards - 1);
 				text += "a " + this.escapeFromJailCard + "!";
 			} else {
-				let currency = this.playerCurrency.get(player)!;
-				currency -= this.currencyToEscapeJail;
-				this.playerCurrency.set(player, currency);
+				this.playerCurrency.set(player, this.playerCurrency.get(player)! - this.currencyToEscapeJail);
 				text += this.currencyToEscapeJail + " " + (this.currencyToEscapeJail > 1 ? this.currencyPluralName : this.currencyName) + "!";
 			}
 			this.playersInJail.splice(this.playersInJail.indexOf(player), 1);

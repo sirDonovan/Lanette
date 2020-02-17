@@ -105,6 +105,7 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 	highestBidAmount: number = 0;
 	highestBidder: Player | null = null;
 	jailSpace: BoardSpace = spaces.pyritetownjail;
+	maxCurrency: number = 5000;
 	passingGoCurrency: number = 200;
 	rafflePrize: number = 200;
 	raffleRunner: string = "Jellicent";
