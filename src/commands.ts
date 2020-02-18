@@ -585,17 +585,32 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	host: {
 		command(target, room, user) {
-			if (this.isPm(room) || !user.hasRank(room, 'voice')) return;
+			if (this.isPm(room)) return;
+			const database = Storage.getDatabase(room);
+			const approvedHost = database.userHostStatuses && database.userHostStatuses[user.id] === 'approved' ? true : false;
+			if (!user.hasRank(room, 'voice') && !approvedHost) return;
 			if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id)) return this.sayError(['disabledUserHostedGameFeatures', room.title]);
 			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'user-hosted game']);
+
 			const targets = target.split(",");
 			const host = Users.get(targets[0]);
 			if (!host || !host.rooms.has(room)) return this.say("Please specify a user currently in this room.");
+			if (approvedHost && user !== host) return user.say("You are only able to use this command on yourself as approved host.");
 			targets.shift();
+
 			const format = Games.getUserHostedFormat(targets.join(","), user);
 			if (Array.isArray(format)) return this.sayError(format);
 			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
-			const database = Storage.getDatabase(room);
+
+			if (!approvedHost && database.userHostStatuses && host.id in database.userHostStatuses) {
+				if (database.userHostStatuses[host.id] === 'unapproved') {
+					return this.say(host.name + " is currently unapproved for hosting games.");
+				} else if (database.userHostStatuses[host.id] === 'novice') {
+					const gameHostingDifficulty = Config.userHostedGameHostDifficulties && format.id in Config.userHostedGameHostDifficulties ? Config.userHostedGameHostDifficulties[format.id] : 'medium';
+					if (gameHostingDifficulty !== 'easy') return this.say(host.name + " is currently unapproved for hosting '" + gameHostingDifficulty + "' games such as " + format.name + ".");
+				}
+			}
+
 			if (Config.userHostCooldownTimers && room.id in Config.userHostCooldownTimers && room.id in Games.lastUserHostTimes && host.id in Games.lastUserHostTimes[room.id]) {
 				const userHostCooldown = (Config.userHostCooldownTimers[room.id] * 60 * 1000) - (Date.now() - Games.lastUserHostTimes[room.id][host.id]);
 				if (userHostCooldown > 1000) {
@@ -603,6 +618,7 @@ const commands: Dict<ICommandDefinition> = {
 					return this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of " + host.name + "'s host cooldown remaining.");
 				}
 			}
+
 			const otherUsersQueued = database.userHostedGameQueue && database.userHostedGameQueue.length;
 			const remainingGameCooldown = Games.getRemainingGameCooldown(room);
 			const inCooldown = remainingGameCooldown > 1000;
@@ -719,10 +735,13 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	dehost: {
 		command(target, room, user) {
-			if (this.isPm(room) || !user.hasRank(room, 'voice')) return;
-			const id = Tools.toId(target);
-			if (room.userHostedGame && room.userHostedGame.hostId === id) return this.run('endgame');
+			if (this.isPm(room)) return;
 			const database = Storage.getDatabase(room);
+			const approvedHost = database.userHostStatuses && database.userHostStatuses[user.id] === 'approved' ? true : false;
+			if (!user.hasRank(room, 'voice') && !approvedHost) return;
+			const id = Tools.toId(target);
+			if (approvedHost && id !== user.id) return user.say("You are only able to use this command on yourself as approved host.");
+			if (room.userHostedGame && room.userHostedGame.hostId === id) return this.run('endgame');
 			if (!database.userHostedGameQueue || !database.userHostedGameQueue.length) return this.sayError(['emptyUserHostedGameQueue']);
 			let position = -1;
 			for (let i = 0; i < database.userHostedGameQueue.length; i++) {
@@ -742,6 +761,51 @@ const commands: Dict<ICommandDefinition> = {
 			Storage.exportDatabase(room.id);
 		},
 		aliases: ['unhost'],
+	},
+	hoststatus: {
+		command(target, room, user) {
+			const targets = target.split(',');
+			let gameRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				gameRoom = targetRoom;
+				targets.shift();
+			} else {
+				if (!user.hasRank(room, 'voice')) return;
+				gameRoom = room;
+			}
+			let hostName = targets[0].trim();
+			let hostId: string;
+			const targetUser = Users.get(targets[0]);
+			if (targetUser) {
+				hostName = targetUser.name;
+				hostId = targetUser.id;
+			} else {
+				hostId = Tools.toId(hostName);
+			}
+
+			if (!hostId) return this.say("Please specify a user and optionally a new host status.");
+
+			const database = Storage.getDatabase(gameRoom);
+			if (targets.length > 1) {
+				if (!user.hasRank(gameRoom, 'driver')) return;
+				const status = Tools.toId(targets[1]);
+				if (status === 'standard') {
+					if (!database.userHostStatuses || !(hostId in database.userHostStatuses)) return this.say(hostName + "'s host status is already standard.");
+					delete database.userHostStatuses[hostId];
+					return this.say(hostName + "'s host status has been set to 'standard'.");
+				} else if (status === 'unapproved' || status === 'novice' || status === 'approved') {
+					if (!database.userHostStatuses) database.userHostStatuses = {};
+					database.userHostStatuses[hostId] = status;
+					return this.say(hostName + "'s host status has been set to '" + status + "'.");
+				}
+			} else {
+				if (!database.userHostStatuses || !(hostId in database.userHostStatuses)) return this.say(hostName + "'s host status is 'standard'.");
+				this.say(hostName + "'s host status is '" + database.userHostStatuses[hostId] + "'.");
+			}
+		},
+		aliases: ['hstatus'],
 	},
 	randompick: {
 		command(target, room, user) {

@@ -35,6 +35,8 @@ export interface IPastGame {
 	time: number;
 }
 
+export type UserHostStatus = 'unapproved' | 'novice' | 'approved';
+
 export interface IDatabase {
 	botGreetings?: Dict<IBotGreeting>;
 	eventInformation?: Dict<IEventInformation>;
@@ -51,6 +53,7 @@ export interface IDatabase {
 	queuedTournament?: {formatid: string, playerCap: number, scheduled: boolean, time: number};
 	thcWinners?: Dict<string>;
 	userHostedGameQueue?: IQueuedUserHostedGame[];
+	userHostStatuses?: Dict<UserHostStatus>;
 }
 
 interface IOfflineMessage {
