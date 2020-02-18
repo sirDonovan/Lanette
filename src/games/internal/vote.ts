@@ -2,7 +2,7 @@ import { ICommandDefinition } from "../../command-parser";
 import { Player } from "../../room-activity";
 import { Game } from "../../room-game";
 import { Room } from "../../rooms";
-import { IGameFile } from "../../types/games";
+import { IGameFile, IGameFormat } from "../../types/games";
 
 const timeLimit = 30 * 1000;
 
@@ -117,10 +117,30 @@ const commands: Dict<ICommandDefinition<Vote>> = {
 		command(target, room, user) {
 			if (!this.canVote) return false;
 			const player = this.players[user.id] || this.createPlayer(user);
-			const format = Games.getFormat(target, true);
-			if (Array.isArray(format)) {
-				user.say(CommandParser.getErrorText(format));
-				return false;
+			const targetId = Tools.toId(target);
+			let format: IGameFormat | undefined;
+			if (targetId === 'random' || targetId === 'randomgame') {
+				const formats = Tools.shuffle(Object.keys(Games.formats));
+				for (let i = 0; i < formats.length; i++) {
+					const randomFormat = Games.getExistingFormat(formats[i]);
+					if (Games.canCreateGame(this.room, randomFormat) === true) {
+						format = randomFormat;
+						break;
+					}
+				}
+
+				if (!format) {
+					user.say("A random game could not be chosen.");
+					return false;
+				}
+			} else {
+				const targetFormat = Games.getFormat(target, true);
+				if (Array.isArray(targetFormat)) {
+					user.say(CommandParser.getErrorText(targetFormat));
+					return false;
+				}
+
+				format = targetFormat;
 			}
 
 			const canCreateGame = Games.canCreateGame(this.room, format);
