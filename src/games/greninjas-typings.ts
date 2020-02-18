@@ -31,10 +31,6 @@ class GreninjasTypings extends Guessing {
 	lastTyping: string = '';
 	noOrder: boolean = false;
 
-	onSignups() {
-		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
-	}
-
 	async setAnswers() {
 		let pokemon = this.sampleOne(data.pokedex);
 		let typing = data.types[pokemon];
@@ -67,6 +63,7 @@ export const game: IGameFile<GreninjasTypings> = Games.copyTemplateProperties(gu
 	formerNames: ['Typings'],
 	name: "Greninja's Typings",
 	mascot: "Greninja",
+	minigameCommand: 'typing',
 	modes: ["survival", "team"],
 	variants: [
 		{

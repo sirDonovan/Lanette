@@ -108,5 +108,7 @@ export const game: IGameFile<LugiasObstructiveLetters> = Games.copyTemplatePrope
 	freejoin: true,
 	name,
 	mascot: "Lugia",
+	minigameCommand: 'obstructiveletter',
+	minigameCommandAliases: ['loletter'],
 	modes: ['survival', 'team'],
 });

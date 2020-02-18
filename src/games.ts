@@ -288,6 +288,8 @@ export class Games {
 
 		for (const name in this.minigameCommandNames) {
 			const formatName = this.minigameCommandNames[name].format;
+			if (name in BaseCommands) throw new Error(formatName + " minigame command '" + name + "' is already a command.");
+
 			Commands[name] = {
 				command(target, room, user, command) {
 					let pmRoom: Room | undefined;
@@ -316,8 +318,11 @@ export class Games {
 					game.signups();
 				},
 			};
+
 			for (let i = 0; i < this.minigameCommandNames[name].aliases.length; i++) {
-				Commands[this.minigameCommandNames[name].aliases[i]] = Commands[name];
+				const alias = this.minigameCommandNames[name].aliases[i];
+				if (alias in BaseCommands) throw new Error(formatName + " minigame command alias '" + alias + "' is already a command.");
+				Commands[alias] = Commands[name];
 			}
 		}
 	}
