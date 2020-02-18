@@ -61,6 +61,7 @@ export class Games {
 	autoCreateTimers: Dict<NodeJS.Timer> = {};
 	readonly commands: typeof sharedCommands = Object.assign(Object.create(null), sharedCommands);
 	readonly formats: Dict<DeepReadonly<IGameFormatData>> = {};
+	readonly freejoinFormatTargets: string[] = [];
 	// @ts-ignore - set in loadFormats()
 	readonly internalFormats: KeyedDict<IInternalGames, DeepReadonly<IGameFormatData>> = {};
 	lastGames: Dict<number> = {};
@@ -243,6 +244,12 @@ export class Games {
 						}
 					}
 				}
+			}
+
+			if (format.freejoin) {
+				this.freejoinFormatTargets.push(format.id);
+			} else if (format.defaultOptions && format.defaultOptions.includes('freejoin')) {
+				this.freejoinFormatTargets.push(format.id + ",freejoin");
 			}
 		}
 

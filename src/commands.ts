@@ -304,7 +304,15 @@ const commands: Dict<ICommandDefinition> = {
 
 			let format: IGameFormat | undefined;
 			if (cmd === 'createrandomgame' || cmd === 'crg') {
-				const formats = Tools.shuffle(Object.keys(Games.formats));
+				const option = Tools.toId(target);
+				let formats: string[];
+				if (option === 'freejoin' || option === 'fj') {
+					formats = Games.freejoinFormatTargets;
+				} else {
+					formats = Object.keys(Games.formats);
+				}
+				formats = Tools.shuffle(formats);
+
 				for (let i = 0; i < formats.length; i++) {
 					const randomFormat = Games.getExistingFormat(formats[i]);
 					if (Games.canCreateGame(room, randomFormat) === true) {
