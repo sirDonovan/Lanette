@@ -10,6 +10,7 @@ import { Room } from "./rooms";
 import { GameDifficulty, IGameFormat } from "./types/games";
 import { IFormat } from "./types/in-game-data-types";
 import { User } from "./users";
+import { UserHostStatus } from './types/storage';
 
 type ReloadableModule = 'client' | 'commandparser' | 'commands' | 'config' | 'dex' | 'games' | 'storage' | 'tools' | 'tournaments';
 const moduleOrder: ReloadableModule[] = ['tools', 'config', 'dex', 'client', 'commandparser', 'commands', 'games', 'storage', 'tournaments'];
@@ -806,6 +807,40 @@ const commands: Dict<ICommandDefinition> = {
 			}
 		},
 		aliases: ['hstatus'],
+	},
+	hoststatuslist: {
+		command(target, room, user) {
+			const targets = target.split(',');
+			let gameRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				gameRoom = targetRoom;
+				targets.shift();
+			} else {
+				if (!user.hasRank(room, 'voice')) return;
+				gameRoom = room;
+			}
+
+			const status = Tools.toId(targets[0]) as UserHostStatus;
+			if (status === 'unapproved' || status === 'novice' || status === 'approved') {
+				const list: string[] = [];
+				const database = Storage.getDatabase(gameRoom);
+				if (database.userHostStatuses) {
+					for (const i in database.userHostStatuses) {
+						if (database.userHostStatuses[i] === status) {
+							const host = Users.get(i);
+							list.push(host ? host.name : i);
+						}
+					}
+				}
+				if (!list.length) return this.say("There are no users with a host status of '" + status + "'.");
+				this.sayHtml("<b>Users with a host status of '" + status + "'</b>: " + list.join(", "), gameRoom);
+			} else {
+				return this.say("Please specify a valid host status (unapproved, novice, or approved).");
+			}
+		},
+		aliases: ['hstatuslist'],
 	},
 	randompick: {
 		command(target, room, user) {
