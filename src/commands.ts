@@ -1079,7 +1079,7 @@ const commands: Dict<ICommandDefinition> = {
 				let expiredUser = false;
 				let user = Users.get(player.name);
 				if (!user) {
-					user = Users.add(player.name);
+					user = Users.add(player.name, player.id);
 					expiredUser = true;
 				}
 				this.run(newCmd, player.name + pointsString);

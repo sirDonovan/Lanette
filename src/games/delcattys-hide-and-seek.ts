@@ -258,7 +258,7 @@ const tests: GameFileTests<DelcattysHideAndSeek> = {
 			const selector = game.charmer === players[0] ? players[1] : players[0];
 			const pokemon = data.parameters[game.categories.join(", ")][0];
 			game.canSelect = true;
-			runCommand('select', pokemon, Users.add(selector.name), selector.name);
+			runCommand('select', pokemon, Users.add(selector.name, selector.id), selector.name);
 			assert(!game.canSelect);
 			game.canCharm = true;
 			runCommand('charm', pokemon, game.room, game.charmer.name);
@@ -273,7 +273,7 @@ const tests: GameFileTests<DelcattysHideAndSeek> = {
 			game.start();
 			const selector = game.charmer === players[0] ? players[1] : players[0];
 			game.canSelect = true;
-			runCommand('select', data.parameters[game.categories.join(", ")][0], Users.add(selector.name), selector.name);
+			runCommand('select', data.parameters[game.categories.join(", ")][0], Users.add(selector.name, selector.id), selector.name);
 			game.canCharm = true;
 			runCommand('charm', data.parameters[game.categories.join(", ")][1], game.room, game.charmer.name);
 			assert(game.charmer.eliminated);

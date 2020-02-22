@@ -92,12 +92,12 @@ export class Users {
 	private users: Dict<User> = {};
 
 	constructor() {
-		this.self = this.add(Config.username || "");
+		const username = Config.username || "Self";
+		this.self = this.add(username, Tools.toId(username));
 	}
 
 	/** Should only be used when interacting with a potentially new user (in Client) */
-	add(name: string): User {
-		const id = Tools.toId(name);
+	add(name: string, id: string): User {
 		if (!(id in this.users)) this.users[id] = new User(name, id);
 		return this.users[id];
 	}
@@ -117,10 +117,10 @@ export class Users {
 	}
 
 	rename(name: string, oldId: string): User {
-		if (!(oldId in this.users)) return this.add(name);
+		const id = Tools.toId(name);
+		if (!(oldId in this.users)) return this.add(name, id);
 		const user = this.users[oldId];
 		this.remove(user);
-		const id = Tools.toId(name);
 		if (id in this.users) return this.users[id];
 		user.name = name;
 		user.id = id;

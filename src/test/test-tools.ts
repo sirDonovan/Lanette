@@ -36,7 +36,7 @@ export function assertClientSendQueue(startingSendQueueIndex: number, input: rea
 }
 
 export function addPlayer(game: Game, name: string): Player {
-	const user = Users.add(name);
+	const user = Users.add(name, Tools.toId(name));
 	assert(user);
 	user.rooms.set(game.room as Room, {lastChatMessage: Date.now(), rank: ' '});
 
@@ -63,6 +63,6 @@ export function addPlayers(game: Game, numberOrNames?: number | string[]): Playe
 }
 
 export async function runCommand(command: string, target: string, room: Room | User, user: User | string) {
-	if (typeof user === 'string') user = Users.add(user);
+	if (typeof user === 'string') user = Users.add(user, Tools.toId(user));
 	await CommandParser.parse(room, user, Config.commandCharacter + command + (target ? " " + target : ""));
 }

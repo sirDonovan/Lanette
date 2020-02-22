@@ -49,7 +49,7 @@ export class Player {
 		let user = Users.get(this.name);
 		if (!user) {
 			expiredUser = true;
-			user = Users.add(this.name);
+			user = Users.add(this.name, this.id);
 		}
 		CommandParser.parse(this.activity.room, user, Config.commandCharacter + command + (target !== undefined ? " " + target : ""));
 		if (expiredUser) Users.remove(user);

@@ -288,7 +288,7 @@ export class Client {
 		}
 	}
 
-	parseMessage(room: Room, rawMessage: string): true {
+	parseMessage(room: Room, rawMessage: string) {
 		let message: string;
 		let messageType: keyof IClientMessageTypes;
 		if (rawMessage.charAt(0) !== "|") {
@@ -332,34 +332,33 @@ export class Client {
 			}
 			const {away, status, username} = Tools.parseUsernameText(messageArguments.usernameText);
 
-			if (Tools.toId(username) === Users.self.id) {
-				if (this.loggedIn) {
-					if (status || Users.self.status) Users.self.status = status;
-					if (away) {
-						Users.self.away = true;
-					} else if (Users.self.away) {
-						Users.self.away = false;
-					}
-				} else {
-					if (messageArguments.loginStatus !== '1') {
-						console.log('Failed to log in');
-						process.exit();
-					}
-					console.log('Successfully logged in');
-					this.loggedIn = true;
-					this.send('|/blockchallenges');
-					if (rank) {
-						Users.self.group = rank;
-					} else {
-						this.send('|/cmd userdetails ' + Users.self.id);
-					}
-					if (Config.rooms) {
-						for (let i = 0; i < Config.rooms.length; i++) {
-							this.send('|/join ' + Config.rooms[i]);
-						}
-					}
-					if (Config.avatar) this.send('|/avatar ' + Config.avatar);
+			if (Tools.toId(username) !== Users.self.id) return;
+			if (this.loggedIn) {
+				if (status || Users.self.status) Users.self.status = status;
+				if (away) {
+					Users.self.away = true;
+				} else if (Users.self.away) {
+					Users.self.away = false;
 				}
+			} else {
+				if (messageArguments.loginStatus !== '1') {
+					console.log('Failed to log in');
+					process.exit();
+				}
+				console.log('Successfully logged in');
+				this.loggedIn = true;
+				this.send('|/blockchallenges');
+				if (rank) {
+					Users.self.group = rank;
+				} else {
+					this.send('|/cmd userdetails ' + Users.self.id);
+				}
+				if (Config.rooms) {
+					for (let i = 0; i < Config.rooms.length; i++) {
+						this.send('|/join ' + Config.rooms[i]);
+					}
+				}
+				if (Config.avatar) this.send('|/avatar ' + Config.avatar);
 			}
 			break;
 		}
@@ -421,21 +420,24 @@ export class Client {
 			const messageArguments: IClientMessageTypes['users'] = {
 				userlist: messageParts[0],
 			};
-			if (messageArguments.userlist !== '0') {
-				const users = messageArguments.userlist.split(",");
-				for (let i = 1; i < users.length; i++) {
-					const rank = users[i].charAt(0);
-					const {away, status, username} = Tools.parseUsernameText(users[i].substr(1));
-					const user = Users.add(username);
-					room.users.add(user);
-					if (status || user.status) user.status = status;
-					if (away) {
-						user.away = true;
-					} else if (user.away) {
-						user.away = false;
-					}
-					user.rooms.set(room, {lastChatMessage: 0, rank});
+
+			if (messageArguments.userlist === '0') return;
+			const users = messageArguments.userlist.split(",");
+			for (let i = 1; i < users.length; i++) {
+				const rank = users[i].charAt(0);
+				const {away, status, username} = Tools.parseUsernameText(users[i].substr(1));
+				const id = Tools.toId(username);
+				if (!id) continue;
+
+				const user = Users.add(username, id);
+				room.users.add(user);
+				if (status || user.status) user.status = status;
+				if (away) {
+					user.away = true;
+				} else if (user.away) {
+					user.away = false;
 				}
+				user.rooms.set(room, {lastChatMessage: 0, rank});
 			}
 			break;
 		}
@@ -448,7 +450,10 @@ export class Client {
 				usernameText: messageParts[0].substr(1),
 			};
 			const {away, status, username} = Tools.parseUsernameText(messageArguments.usernameText);
-			const user = Users.add(username);
+			const id = Tools.toId(username);
+			if (!id) return;
+
+			const user = Users.add(username, id);
 			room.users.add(user);
 			if (status || user.status) user.status = status;
 			if (away) {
@@ -477,7 +482,10 @@ export class Client {
 				usernameText: messageParts[0].substr(1),
 			};
 			const {away, status, username} = Tools.parseUsernameText(messageArguments.usernameText);
-			const user = Users.add(username);
+			const id = Tools.toId(username);
+			if (!id) return;
+
+			const user = Users.add(username, id);
 			room.users.delete(user);
 			user.rooms.delete(room);
 			if (!user.rooms.size) {
@@ -540,7 +548,11 @@ export class Client {
 					message: messageParts.slice(1).join("|"),
 				};
 			}
-			const user = Users.add(messageArguments.username);
+
+			const id = Tools.toId(messageArguments.username);
+			if (!id) return;
+
+			const user = Users.add(messageArguments.username, id);
 			const roomData = user.rooms.get(room);
 			if (roomData) roomData.lastChatMessage = messageArguments.timestamp;
 
@@ -553,10 +565,12 @@ export class Client {
 			} else {
 				this.parseChatMessage(room, user, messageArguments.message);
 			}
+
 			Storage.updateLastSeen(user, messageArguments.timestamp);
 			if (room.logChatMessages) {
 				Storage.logChatMessage(room, messageArguments.timestamp, 'c', messageArguments.rank + user.name + '|' + messageArguments.message);
 			}
+
 			if (messageArguments.message.startsWith('/log ') && messageArguments.message.includes(' used /hotpatch ')) {
 				const hotpatched = messageArguments.message.substr(messageArguments.message.indexOf('/hotpatch ') + 10).trim();
 				if (hotpatched === 'formats' || hotpatched === 'battles') {
@@ -583,9 +597,15 @@ export class Client {
 			};
 			const isHtml = messageArguments.message.startsWith("/raw") || messageArguments.message.startsWith("/html");
 			const isUthml = !isHtml && messageArguments.message.startsWith("/uthml");
-			const user = Users.add(messageArguments.username);
+			const id = Tools.toId(messageArguments.username);
+			if (!id) return;
+
+			const user = Users.add(messageArguments.username, id);
 			if (user === Users.self) {
-				const recipient = Users.add(messageArguments.recipient);
+				const recipientId = Tools.toId(messageArguments.recipient);
+				if (!recipientId) return;
+
+				const recipient = Users.add(messageArguments.recipient, recipientId);
 				if (isUthml) {
 					if (recipient.uhtmlMessageListeners) {
 						const uhtml = messageArguments.message.substr(messageArguments.message.indexOf(" ") + 1);
@@ -835,50 +855,50 @@ export class Client {
 				}
 
 				case 'join': {
-					if (room.tournament) {
-						const messageArguments: ITournamentMessageTypes['join'] = {
-							username: messageParts[0],
-						};
-						room.tournament.createPlayer(messageArguments.username);
-					}
+					if (!room.tournament) return;
+
+					const messageArguments: ITournamentMessageTypes['join'] = {
+						username: messageParts[0],
+					};
+					room.tournament.createPlayer(messageArguments.username);
 					break;
 				}
 
 				case 'leave':
 				case 'disqualify': {
-					if (room.tournament) {
-						const messageArguments: ITournamentMessageTypes['leave'] = {
-							username: messageParts[0],
-						};
-						room.tournament.destroyPlayer(messageArguments.username);
-					}
+					if (!room.tournament) return;
+
+					const messageArguments: ITournamentMessageTypes['leave'] = {
+						username: messageParts[0],
+					};
+					room.tournament.destroyPlayer(messageArguments.username);
 					break;
 				}
 
 				case 'battlestart': {
-					if (room.tournament) {
-						const messageArguments: ITournamentMessageTypes['battlestart'] = {
-							usernameA: messageParts[0],
-							usernameB: messageParts[1],
-							roomid: messageParts[2],
-						};
-						room.tournament.onBattleStart(messageArguments.usernameA, messageArguments.usernameB, messageArguments.roomid);
-					}
+					if (!room.tournament) return;
+
+					const messageArguments: ITournamentMessageTypes['battlestart'] = {
+						usernameA: messageParts[0],
+						usernameB: messageParts[1],
+						roomid: messageParts[2],
+					};
+					room.tournament.onBattleStart(messageArguments.usernameA, messageArguments.usernameB, messageArguments.roomid);
 					break;
 				}
 
 				case 'battleend': {
-					if (room.tournament) {
-						const messageArguments: ITournamentMessageTypes['battleend'] = {
-							usernameA: messageParts[0],
-							usernameB: messageParts[1],
-							result: messageParts[2] as 'win' | 'loss' | 'draw',
-							score: messageParts[3].split(',') as [string, string],
-							recorded: messageParts[4] as 'success' | 'fail',
-							roomid: messageParts[5],
-						};
-						room.tournament.onBattleEnd(messageArguments.usernameA, messageArguments.usernameB, messageArguments.score, messageArguments.roomid);
-					}
+					if (!room.tournament) return;
+
+					const messageArguments: ITournamentMessageTypes['battleend'] = {
+						usernameA: messageParts[0],
+						usernameB: messageParts[1],
+						result: messageParts[2] as 'win' | 'loss' | 'draw',
+						score: messageParts[3].split(',') as [string, string],
+						recorded: messageParts[4] as 'success' | 'fail',
+						roomid: messageParts[5],
+					};
+					room.tournament.onBattleEnd(messageArguments.usernameA, messageArguments.usernameB, messageArguments.score, messageArguments.roomid);
 					break;
 				}
 			}
@@ -929,8 +949,6 @@ export class Client {
 			break;
 		}
 		}
-
-		return true;
 	}
 
 	parseChatMessage(room: Room, user: User, message: string) {
