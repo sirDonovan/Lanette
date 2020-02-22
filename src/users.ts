@@ -7,6 +7,8 @@ interface IUserRoomData {
 	rank: string;
 }
 
+const chatFormatting: string[] = ["*", "_", "`", "~", "^", "\\"];
+
 export class User {
 	away: boolean | null = null;
 	game: Game | null = null;
@@ -22,7 +24,16 @@ export class User {
 	uhtmlMessageListeners?: Dict<Dict<() => void>>;
 
 	constructor(name: string, id: string) {
-		this.name = Tools.stripHtmlCharacters(name);
+		name = Tools.stripHtmlCharacters(name);
+
+		while (chatFormatting.includes(name.charAt(0))) {
+			name = name.substr(1);
+		}
+		while (chatFormatting.includes(name.substr(-1))) {
+			name = name.substr(0, name.length - 1);
+		}
+
+		this.name = name;
 		this.id = id;
 	}
 
