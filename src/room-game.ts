@@ -382,14 +382,17 @@ export class Game extends Activity {
 			user.say("This game does not require you to join.");
 			return;
 		}
+
 		const player = this.createPlayer(user);
 		if (!player) return;
 		if ((this.started && (!this.canLateJoin || (this.playerCap && this.playerCount >= this.playerCap))) || (this.onAddPlayer && !this.onAddPlayer(player, this.started))) {
-			this.removePlayer(user, this.started, true);
+			this.destroyPlayer(user, true);
 			return;
 		}
+
 		const bits = this.isUserHosted ? 0 : this.addBits(player, JOIN_BITS, true);
 		player.say("Thanks for joining the " + this.name + " " + this.activityType + "!" + (bits ? " Have some free bits!" : ""));
+
 		if (this.showSignupsHtml && !this.started) {
 			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
 			this.signupsHtmlTimeout = setTimeout(() => {
@@ -397,6 +400,7 @@ export class Game extends Activity {
 				this.signupsHtmlTimeout = null;
 			}, SIGNUPS_HTML_DELAY);
 		}
+
 		if (this.started) {
 			for (let i = 0; i < this.commandsListeners.length; i++) {
 				if (this.commandsListeners[i].remainingPlayersMax) this.increaseOnCommandsMax(this.commandsListeners[i], 1);
@@ -404,13 +408,15 @@ export class Game extends Activity {
 		} else {
 			if (this.playerCap && this.playerCount >= this.playerCap) this.start();
 		}
+
 		return player;
 	}
 
-	removePlayer(user: User | string, silent?: boolean, failedLateJoin?: boolean) {
+	removePlayer(user: User | string, silent?: boolean) {
 		if (this.isMiniGame) return;
-		const player = this.destroyPlayer(user, failedLateJoin);
+		const player = this.destroyPlayer(user);
 		if (this.format.options.freejoin || !player) return;
+
 		if (this.commandsListeners.length) {
 			const commandsListeners = this.commandsListeners.slice();
 			for (let i = 0; i < commandsListeners.length; i++) {
