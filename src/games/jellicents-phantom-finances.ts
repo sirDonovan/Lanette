@@ -110,7 +110,7 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 	rafflePrize: number = 200;
 	raffleRunner: string = "Jellicent";
 	spaces: IBoardSpaces = spaces;
-	startingCurrency: number = 1000;
+	startingCurrency: number = 1500;
 
 	baseActionCards: BoardActionCard<JellicentsPhantomFinances>[];
 
