@@ -19,6 +19,11 @@ const SCHEDULED_TOURNAMENT_BUFFER_TIME = 90 * 60 * 1000;
 const USER_HOSTED_TOURNAMENT_TIMEOUT = 5 * 60 * 1000;
 const USER_HOSTED_TOURNAMENT_RANK: GroupName = 'driver';
 
+interface IScheduledTournament {
+	format: string;
+	time: number;
+}
+
 export class Tournaments {
 	createListeners: Dict<{format: IFormat, scheduled: boolean}> = {};
 	readonly defaultCustomRules: Dict<Partial<ISeparatedCustomRules>> = {
@@ -33,14 +38,15 @@ export class Tournaments {
 	readonly maxPlayerCap: number = 128;
 	readonly minPlayerCap: number = 4;
 	queuedTournamentTime: number = 5 * 60 * 1000;
-	scheduledTournaments: Dict<{format: IFormat, time: number}> = {};
+	nextScheduledTournaments: Dict<IScheduledTournament> = {};
+	scheduledTournaments: Dict<IScheduledTournament[]> = {};
 	readonly schedules: typeof tournamentSchedules = tournamentSchedules;
 	tournamentTimers: Dict<NodeJS.Timer> = {};
 	userHostedTournamentNotificationTimeouts: Dict<NodeJS.Timer> = {};
 
 	onReload(previous: Partial<Tournaments>) {
 		if (previous.createListeners) this.createListeners = previous.createListeners;
-		if (previous.scheduledTournaments) this.scheduledTournaments = previous.scheduledTournaments;
+		if (previous.nextScheduledTournaments) this.nextScheduledTournaments = previous.nextScheduledTournaments;
 		if (previous.tournamentTimers) this.tournamentTimers = previous.tournamentTimers;
 		if (previous.userHostedTournamentNotificationTimeouts) this.userHostedTournamentNotificationTimeouts = previous.userHostedTournamentNotificationTimeouts;
 
@@ -48,7 +54,7 @@ export class Tournaments {
 
 		const now = Date.now();
 		Users.self.rooms.forEach((rank, room) => {
-			if (room.id in this.schedules && (!(room.id in this.scheduledTournaments) || now < this.scheduledTournaments[room.id].time)) this.setScheduledTournament(room);
+			if (room.id in this.schedules && (!(room.id in this.nextScheduledTournaments) || now < this.nextScheduledTournaments[room.id].time)) this.setScheduledTournament(room);
 		});
 	}
 
@@ -64,9 +70,11 @@ export class Tournaments {
 		}
 
 		for (const room in this.schedules) {
+			this.scheduledTournaments[room] = [];
+
 			for (const month in this.schedules[room].months) {
-				for (const day in this.schedules[room].months[month]) {
-					const formatid = this.schedules[room].months[month]![day];
+				for (const day in this.schedules[room].months[month].formats) {
+					const formatid = this.schedules[room].months[month].formats[day];
 					if (formatid.includes(',') && !formatid.includes('@@@')) {
 						const parts = formatid.split(',');
 						const customRules: string[] = [];
@@ -76,9 +84,58 @@ export class Tournaments {
 							if (part && part !== '0') customRules.push(part);
 						}
 						if (customRules.length) customFormatid += '@@@' + customRules.join(',');
-						this.schedules[room].months[month]![day] = customFormatid;
+						this.schedules[room].months[month].formats[day] = customFormatid;
 					}
 				}
+			}
+
+			const months = Object.keys(this.schedules[room].months).map(x => parseInt(x)).sort((a, b) => a - b);
+			let month = months[0];
+			months.shift();
+
+			let formats = this.schedules[room].months[month].formats;
+			const date = new Date();
+			date.setMonth(month - 1);
+			let day = 1;
+			date.setDate(day);
+			let times = this.schedules[room].months[month].times;
+			let lastDayOfMonth = Tools.getLastDayOfMonth(date);
+
+			const rolloverDay = () => {
+				day++;
+				if (day > lastDayOfMonth) {
+					const previousMonth = month;
+					month = months[0];
+					months.shift();
+					if (month) {
+						date.setMonth(month - 1);
+
+						formats = this.schedules[room].months[month].formats;
+						times = this.schedules[room].months[month].times;
+						lastDayOfMonth = Tools.getLastDayOfMonth(date);
+					} else {
+						// previousMonth + 1 - 1
+						date.setMonth(previousMonth);
+					}
+					day = 1;
+				}
+				date.setDate(day);
+			}
+
+			while (month) {
+				const format = formats[day];
+				let rolledOverDay = false;
+				for (let i = 0; i < times.length; i++) {
+					if (i > 0 && times[i][0] < times[i - 1][0]) {
+						rolloverDay();
+						rolledOverDay = true;
+					}
+
+					date.setHours(times[i][0], times[i][1], 0, 0);
+					this.scheduledTournaments[room].push({format, time: date.getTime()});
+				}
+
+				if (!rolledOverDay) rolloverDay();
 			}
 		}
 	}
@@ -166,55 +223,41 @@ export class Tournaments {
 	}
 
 	setScheduledTournament(room: Room) {
-		if (!(room.id in this.schedules)) return;
-		const schedule = this.schedules[room.id];
+		if (!(room.id in this.scheduledTournaments)) return;
+		delete this.nextScheduledTournaments[room.id];
+
 		const now = Date.now();
-		const date = new Date();
-		let month = date.getMonth() + 1;
-		let day = date.getDate();
-		let nextScheduledTime = 0;
-		for (let i = 0; i < schedule.times.length; i++) {
-			date.setHours(schedule.times[i][0], schedule.times[i][1], 0, 0);
-			const time = date.getTime();
-			if (now <= time) {
-				nextScheduledTime = time;
+		let nextScheduledIndex = -1;
+
+		for (let i = 0; i < this.scheduledTournaments[room.id].length; i++) {
+			if (this.scheduledTournaments[room.id][i].time >= now) {
+				nextScheduledIndex = i;
 				break;
 			}
 		}
 
-		// after the last scheduled tournament for the day
-		if (!nextScheduledTime) {
-			day++;
-			if (day > Tools.getLastDayOfMonth(date)) {
-				day = 1;
-				const nextMonth = month === 12 ? 1 : month + 1;
-				if (schedule.months[nextMonth]) {
-					month = nextMonth;
-				}
-			}
-			date.setHours(schedule.times[0][0] + 24, schedule.times[0][1], 0, 0);
-			nextScheduledTime = date.getTime();
-		}
-		if (!(month in schedule.months)) return;
-		const format = Dex.getExistingFormat(schedule.months[month]!['daily'] || schedule.months[month]![day], true);
-		this.scheduledTournaments[room.id] = {format, time: nextScheduledTime};
+		if (nextScheduledIndex === -1) return;
+
+		if (nextScheduledIndex > 0) this.scheduledTournaments[room.id] = this.scheduledTournaments[room.id].slice(nextScheduledIndex);
+
+		this.nextScheduledTournaments[room.id] = this.scheduledTournaments[room.id][0];
 		this.setScheduledTournamentTimer(room);
 	}
 
 	setScheduledTournamentTimer(room: Room) {
-		this.setTournamentTimer(room, this.scheduledTournaments[room.id].time, this.scheduledTournaments[room.id].format, this.maxPlayerCap, true);
+		this.setTournamentTimer(room, this.nextScheduledTournaments[room.id].time, Dex.getExistingFormat(this.nextScheduledTournaments[room.id].format, true), this.maxPlayerCap, true);
 	}
 
 	canSetRandomTournament(room: Room): boolean {
-		if (!(room.id in this.scheduledTournaments)) return true;
-		return this.scheduledTournaments[room.id].time - Date.now() > SCHEDULED_TOURNAMENT_BUFFER_TIME;
+		if (!(room.id in this.nextScheduledTournaments)) return true;
+		return this.nextScheduledTournaments[room.id].time - Date.now() > SCHEDULED_TOURNAMENT_BUFFER_TIME;
 	}
 
 	setRandomTournamentTimer(room: Room, minutes: number) {
 		if (room.id in this.tournamentTimers) clearTimeout(this.tournamentTimers[room.id]);
 		this.tournamentTimers[room.id] = setTimeout(() => {
 			let scheduledFormat: IFormat | null = null;
-			if (room.id in this.scheduledTournaments) scheduledFormat = this.scheduledTournaments[room.id].format;
+			if (room.id in this.nextScheduledTournaments) scheduledFormat = Dex.getExistingFormat(this.nextScheduledTournaments[room.id].format, true);
 			const database = Storage.getDatabase(room);
 			const pastTournamentIds: string[] = [];
 			if (database.pastTournaments) {
@@ -271,7 +314,7 @@ export class Tournaments {
 			html += "<td>&nbsp;</td>";
 		}
 		for (let i = 1; i < lastDay; i++) {
-			html += "<td style='padding: 4px'><b>" + i + "</b> - " + Dex.getCustomFormatName(Dex.getExistingFormat(schedule.months[month]!['daily'] || schedule.months[month]![i]), room, true) + "</td>";
+			html += "<td style='padding: 4px'><b>" + i + "</b> - " + Dex.getCustomFormatName(Dex.getExistingFormat(schedule.months[month].formats[i]), room, true) + "</td>";
 			currentDay++;
 			if (currentDay === 7) {
 				html += "</tr><tr>";

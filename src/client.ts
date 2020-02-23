@@ -816,8 +816,9 @@ export class Client {
 					const database = Storage.getDatabase(room);
 					const now = Date.now();
 					database.lastTournamentTime = now;
-					const hasSchedule = room.id in Tournaments.scheduledTournaments;
-					if (hasSchedule && Tournaments.scheduledTournaments[room.id].time <= now) {
+
+					// delayed scheduled tournament
+					if (room.id in Tournaments.nextScheduledTournaments && Tournaments.nextScheduledTournaments[room.id].time <= now) {
 						Tournaments.setScheduledTournamentTimer(room);
 					} else {
 						let queuedTournament = false;
@@ -836,7 +837,7 @@ export class Client {
 						if (!queuedTournament) {
 							if (Config.randomTournamentTimers && room.id in Config.randomTournamentTimers && Tournaments.canSetRandomTournament(room)) {
 								Tournaments.setRandomTournamentTimer(room, Config.randomTournamentTimers![room.id]);
-							} else if (hasSchedule) {
+							} else if (room.id in Tournaments.scheduledTournaments) {
 								Tournaments.setScheduledTournamentTimer(room);
 							}
 						}

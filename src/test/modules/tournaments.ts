@@ -1,5 +1,6 @@
 import { IPastTournament } from "../../types/storage";
-import { assert } from "../test-tools";
+import { IRoomTournamentSchedule } from "../../tournament-schedules";
+import { assert, assertStrictEqual } from "../test-tools";
 
 describe("Tournaments", () => {
 	it('should return proper values from isInPastTournaments()', () => {
@@ -21,32 +22,18 @@ describe("Tournaments", () => {
 		for (const room in Tournaments.schedules) {
 			const schedule = Tournaments.schedules[room];
 			for (const month in schedule.months) {
-				if (schedule.months[month]!['daily']) {
-					assert(Dex.validateFormat(schedule.months[month]!['daily']));
-					continue;
-				}
-				let validated = 0;
-				const errors: string[] = [];
-				let totalDays = 0;
-				if (month === '2') {
-					if (date.getFullYear() % 4 === 0) {
-						totalDays = 29;
-					} else {
-						totalDays = 28;
-					}
-				} else if (['4', '6', '9', '11'].includes(month)) {
-					totalDays = 30;
-				} else {
-					totalDays = 31;
-				}
+				date.setMonth(parseInt(month) - 1);
+				const totalDays = Tools.getLastDayOfMonth(date);
 
-				const scheduled = Object.keys(schedule.months[month]!).length;
+				const scheduled = Object.keys(schedule.months[month].formats).length;
 				assert(scheduled === totalDays, "Month " + month + " in " + room + " has " + scheduled + " formats scheduled but " + totalDays + " are required");
 
+				let validated = 0;
+				const errors: string[] = [];
 				for (let i = 1; i <= totalDays; i++) {
 					const day = '' + i;
 					try {
-						Dex.validateFormat(schedule.months[month]![day]);
+						Dex.validateFormat(schedule.months[month].formats[day]);
 						validated++;
 					} catch (e) {
 						errors.push(e.message + " on " + month + "/" + day + " in " + room);
@@ -54,6 +41,153 @@ describe("Tournaments", () => {
 				}
 				assert(validated === scheduled, "\n\t" + errors.join("\n\t"));
 			}
+		}
+	});
+	it('should properly set scheduled formats according to configured timed', () => {
+		const room = Rooms.get('mocha')!;
+		const date = new Date();
+		const month = date.getMonth() + 1;
+		const lastDayOfMonth = Tools.getLastDayOfMonth(date);
+
+		const formats: Dict<string> = {1: "gen8randombattle", 2: "gen8ou"};
+		const schedule: IRoomTournamentSchedule = {months: {}};
+
+		// 4 officials on 1 day
+		let times: [number, number][] = [[2, 30], [9, 30], [15, 30], [20, 30]];
+		schedule.months[month] = {formats: {}, times};
+		for (let i = 1; i <= lastDayOfMonth; i++) {
+			schedule.months[month].formats[i] = i > 1 ? formats['2'] : formats['1'];
+		}
+
+		Tournaments.schedules[room.id] = schedule;
+		Tournaments.loadSchedules();
+		assertStrictEqual(Tournaments.scheduledTournaments[room.id].length, lastDayOfMonth * times.length);
+
+		let day = 1;
+		date.setDate(day);
+		for (let i = 0; i < times.length; i++) {
+			date.setHours(times[i][0], times[i][1], 0, 0);
+			assertStrictEqual(Tournaments.scheduledTournaments[room.id][i].format, formats[day]);
+			assertStrictEqual(Tournaments.scheduledTournaments[room.id][i].time, date.getTime());
+		}
+
+		// 1 official on day 1, 3 officials on day 2
+		times = [[20, 30], [2, 30], [9, 30], [15, 30]];
+		schedule.months[month] = {formats: {}, times};
+		for (let i = 1; i <= lastDayOfMonth; i++) {
+			schedule.months[month].formats[i] = i > 1 ? formats['2'] : formats['1'];
+		}
+
+		Tournaments.loadSchedules();
+		assertStrictEqual(Tournaments.scheduledTournaments[room.id].length, lastDayOfMonth * times.length);
+
+		day = 1;
+		date.setDate(day);
+		for (let i = 0; i < times.length; i++) {
+			if (i > 0 && times[i][0] < times[i - 1][0]) {
+				day++;
+				date.setDate(day);
+			}
+			date.setHours(times[i][0], times[i][1], 0, 0);
+			assertStrictEqual(Tournaments.scheduledTournaments[room.id][i].format, formats['1']);
+			assertStrictEqual(Tournaments.scheduledTournaments[room.id][i].time, date.getTime());
+		}
+
+		day = lastDayOfMonth;
+		date.setDate(day);
+		let startIndex = (times.length * day) - times.length;
+		let endIndex = startIndex + times.length;
+		let timesIndex = 0;
+		for (let i = startIndex; i < endIndex; i++) {
+			if (timesIndex > 0 && times[timesIndex][0] < times[timesIndex - 1][0]) {
+				// month + 1 - 1
+				date.setMonth(month);
+				date.setDate(1);
+			}
+			date.setHours(times[timesIndex][0], times[timesIndex][1], 0, 0);
+			timesIndex++;
+			assertStrictEqual(Tournaments.scheduledTournaments[room.id][i].format, formats['2']);
+			assertStrictEqual(Tournaments.scheduledTournaments[room.id][i].time, date.getTime());
+		}
+
+		// 2 officials on day 1, 2 officials on day 2
+		times = [[15, 30], [20, 30], [2, 30], [9, 30]];
+		schedule.months[month] = {formats: {}, times};
+		for (let i = 1; i <= lastDayOfMonth; i++) {
+			schedule.months[month].formats[i] = i > 1 ? formats['2'] : formats['1'];
+		}
+
+		Tournaments.loadSchedules();
+		assertStrictEqual(Tournaments.scheduledTournaments[room.id].length, lastDayOfMonth * times.length);
+
+		date.setMonth(month - 1);
+		day = 1;
+		date.setDate(day);
+		for (let i = 0; i < times.length; i++) {
+			if (i > 0 && times[i][0] < times[i - 1][0]) {
+				day++;
+				date.setDate(day);
+			}
+			date.setHours(times[i][0], times[i][1], 0, 0);
+			assertStrictEqual(Tournaments.scheduledTournaments[room.id][i].format, formats['1']);
+			assertStrictEqual(Tournaments.scheduledTournaments[room.id][i].time, date.getTime());
+		}
+
+		day = lastDayOfMonth;
+		date.setDate(day);
+		startIndex = (times.length * day) - times.length;
+		endIndex = startIndex + times.length;
+		timesIndex = 0;
+		for (let i = startIndex; i < endIndex; i++) {
+			if (timesIndex > 0 && times[timesIndex][0] < times[timesIndex - 1][0]) {
+				// month + 1 - 1
+				date.setMonth(month);
+				date.setDate(1);
+			}
+			date.setHours(times[timesIndex][0], times[timesIndex][1], 0, 0);
+			timesIndex++;
+			assertStrictEqual(Tournaments.scheduledTournaments[room.id][i].format, formats['2']);
+			assertStrictEqual(Tournaments.scheduledTournaments[room.id][i].time, date.getTime());
+		}
+
+		// 3 officials on day 1, 1 official on day 2
+		times = [[9, 30], [15, 30], [20, 30], [2, 30]];
+		schedule.months[month] = {formats: {}, times};
+		for (let i = 1; i <= lastDayOfMonth; i++) {
+			schedule.months[month].formats[i] = i > 1 ? formats['2'] : formats['1'];
+		}
+
+		Tournaments.loadSchedules();
+		assertStrictEqual(Tournaments.scheduledTournaments[room.id].length, lastDayOfMonth * times.length);
+
+		date.setMonth(month - 1);
+		day = 1;
+		date.setDate(day);
+		for (let i = 0; i < times.length; i++) {
+			if (i > 0 && times[i][0] < times[i - 1][0]) {
+				day++;
+				date.setDate(day);
+			}
+			date.setHours(times[i][0], times[i][1], 0, 0);
+			assertStrictEqual(Tournaments.scheduledTournaments[room.id][i].format, formats['1']);
+			assertStrictEqual(Tournaments.scheduledTournaments[room.id][i].time, date.getTime());
+		}
+
+		day = lastDayOfMonth;
+		date.setDate(day);
+		startIndex = (times.length * day) - times.length;
+		endIndex = startIndex + times.length;
+		timesIndex = 0;
+		for (let i = startIndex; i < endIndex; i++) {
+			if (timesIndex > 0 && times[timesIndex][0] < times[timesIndex - 1][0]) {
+				// month + 1 - 1
+				date.setMonth(month);
+				date.setDate(1);
+			}
+			date.setHours(times[timesIndex][0], times[timesIndex][1], 0, 0);
+			timesIndex++;
+			assertStrictEqual(Tournaments.scheduledTournaments[room.id][i].format, formats['2']);
+			assertStrictEqual(Tournaments.scheduledTournaments[room.id][i].time, date.getTime());
 		}
 	});
 });

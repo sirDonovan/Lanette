@@ -1537,25 +1537,26 @@ const commands: Dict<ICommandDefinition> = {
 				targets.shift();
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.sayError(['disabledTournamentFeatures', targetRoom.title]);
 				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
-				if (!(targetRoom.id in Tournaments.schedules)) return this.say("There is no tournament schedule for " + targetRoom.title + ".");
+				if (!(targetRoom.id in Tournaments.nextScheduledTournaments)) return this.say("There is no tournament scheduled for " + targetRoom.title + ".");
 				tournamentRoom = targetRoom;
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.sayError(['disabledTournamentFeatures', room.title]);
-				if (!(room.id in Tournaments.schedules)) return this.say("There is no tournament schedule for this room.");
+				if (!(room.id in Tournaments.nextScheduledTournaments)) return this.say("There is no tournament scheduled for this room.");
 				tournamentRoom = room;
 			}
 
-			const scheduledTournament = Tournaments.scheduledTournaments[tournamentRoom.id];
+			const scheduledTournament = Tournaments.nextScheduledTournaments[tournamentRoom.id];
+			const format = Dex.getExistingFormat(scheduledTournament.format, true);
 			const now = Date.now();
-			let html = "<b>Next" + (this.pm ? " " + tournamentRoom.title : "") + " scheduled tournament</b>: " + scheduledTournament.format.name + "<br />";
+			let html = "<b>Next" + (this.pm ? " " + tournamentRoom.title : "") + " scheduled tournament</b>: " + format.name + "<br />";
 			if (now > scheduledTournament.time) {
 				html += "<b>Delayed</b><br />";
 			} else {
 				html += "<b>Starting in</b>: " + Tools.toDurationString(scheduledTournament.time - now) + "<br />";
 			}
 
-			if (scheduledTournament.format.customRules) html += "<br /><b>Custom rules:</b><br />" + Dex.getCustomRulesHtml(scheduledTournament.format);
+			if (format.customRules) html += "<br /><b>Custom rules:</b><br />" + Dex.getCustomRulesHtml(format);
 			this.sayHtml(html, tournamentRoom);
 		},
 		aliases: ['scheduledtour', 'officialtournament', 'officialtour', 'official'],
@@ -1604,9 +1605,9 @@ const commands: Dict<ICommandDefinition> = {
 			if (id === 'scheduled' || id === 'official') {
 				if (!(room.id in Tournaments.schedules)) return this.say("There is no tournament schedule for this room.");
 				scheduled = true;
-				format = Tournaments.scheduledTournaments[room.id].format;
+				format = Dex.getExistingFormat(Tournaments.nextScheduledTournaments[room.id].format, true);
 			} else {
-				if (room.id in Tournaments.scheduledTournaments && Date.now() > Tournaments.scheduledTournaments[room.id].time) return this.say("The scheduled tournament is delayed so you must wait until after it starts.");
+				if (room.id in Tournaments.nextScheduledTournaments && Date.now() > Tournaments.nextScheduledTournaments[room.id].time) return this.say("The scheduled tournament is delayed so you must wait until after it starts.");
 				format = Dex.getFormat(targets[0]);
 				if (!format || !format.tournamentPlayable) return this.sayError(['invalidTournamentFormat', format ? format.name : target]);
 				if (Tournaments.isInPastTournaments(room, format.inputTarget)) return this.say(format.name + " is on the past tournaments list and cannot be queued.");
@@ -1647,7 +1648,7 @@ const commands: Dict<ICommandDefinition> = {
 
 			let time: number = 0;
 			if (scheduled) {
-				time = Tournaments.scheduledTournaments[room.id].time;
+				time = Tournaments.nextScheduledTournaments[room.id].time;
 			} else if (!room.tournament) {
 				const now = Date.now();
 				if (database.lastTournamentTime) {
