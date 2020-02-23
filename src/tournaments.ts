@@ -249,7 +249,7 @@ export class Tournaments {
 		this.tournamentTimers[room.id] = setTimeout(() => {
 			if (room.tournament) return;
 			this.createListeners[room.id] = {format, scheduled: scheduled || false};
-			room.sayCommand("/tour new " + format.id + ", elimination, " + cap);
+			room.sayCommand("/tour new " + format.id + ", elimination" + (cap ? ", " + cap : ""));
 			delete this.tournamentTimers[room.id];
 		}, timer);
 	}

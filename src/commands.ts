@@ -1457,7 +1457,7 @@ const commands: Dict<ICommandDefinition> = {
 			if (Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
 				playerCap = Config.defaultTournamentPlayerCaps[room.id];
 			}
-			this.sayCommand("/tour new " + format.name + ", elimination, " + playerCap);
+			this.sayCommand("/tour new " + format.name + ", elimination" + (playerCap ? ", " + playerCap : ""));
 		},
 		aliases: ['createtour', 'ct'],
 	},
