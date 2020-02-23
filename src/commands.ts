@@ -352,14 +352,14 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			if (this.isPm(room)) {
 				if (room.game) {
-					room.game.forceEnd(user);
+					room.game.forceEnd(user, target.trim());
 				}
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
 				if (room.game) {
-					room.game.forceEnd(user);
+					room.game.forceEnd(user, target.trim());
 				} else if (room.userHostedGame) {
-					room.userHostedGame.forceEnd(user);
+					room.userHostedGame.forceEnd(user, target.trim());
 				}
 			}
 		},

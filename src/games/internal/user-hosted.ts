@@ -47,8 +47,8 @@ export class UserHosted extends Game {
 		this.name = this.hostName + "'s " + this.format.name;
 	}
 
-	onForceEnd(user?: User) {
-		if (user) this.sayCommand("/modnote " + this.name + " was forcibly ended by " + user.name);
+	onForceEnd(user?: User, reason?: string) {
+		if (user) this.sayCommand("/modnote " + this.name + " was forcibly ended by " + user.name + (reason ? " (" + reason + ")" : ""));
 	}
 
 	onDeallocate() {

@@ -283,11 +283,11 @@ export abstract class Activity {
 	}
 
 	abstract deallocate(forceEnd: boolean): void;
-	abstract forceEnd(user?: User): void;
+	abstract forceEnd(user?: User, reason?: string): void;
 	abstract start(): void;
 
 	getSignupsHtml?(): string;
 	onEnd?(): void;
-	onForceEnd?(user?: User): void;
+	onForceEnd?(user?: User, reason?: string): void;
 	onRenamePlayer?(player: Player, oldId: string): void;
 }

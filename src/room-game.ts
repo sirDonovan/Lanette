@@ -231,9 +231,9 @@ export class Game extends Activity {
 		if (this.onAfterDeallocate) this.onAfterDeallocate(forceEnd);
 	}
 
-	forceEnd(user: User) {
+	forceEnd(user: User, reason?: string) {
 		this.say((!this.isUserHosted ? "The " : "") + this.name + " " + this.activityType + " was forcibly ended.");
-		if (this.onForceEnd) this.onForceEnd(user);
+		if (this.onForceEnd) this.onForceEnd(user, reason);
 		this.ended = true;
 		this.deallocate(true);
 	}
