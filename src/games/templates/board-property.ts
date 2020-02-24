@@ -233,12 +233,13 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 
 	onRemovePlayer(player: Player) {
 		if (!this.started) return;
-		const properties = this.properties.get(player);
-		if (!properties) return;
+		const properties = this.properties.get(player)!;
 
 		for (let i = 0; i < properties.length; i++) {
 			properties[i].owner = null;
 		}
+
+		this.properties.set(player, []);
 	}
 
 	onEliminatePlayer(player: Player, eliminationCause?: string | null, eliminator?: Player | null) {
@@ -249,6 +250,7 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 			eliminatorProperties.push(properties[i]);
 		}
 		if (eliminator) this.properties.set(eliminator, eliminatorProperties);
+		this.properties.set(player, []);
 	}
 
 	getSpaceHtml(side: BoardSide, space: number, playerLocations: KeyedDict<IBoard, Dict<Player[]>>): string {
@@ -560,6 +562,7 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 	}
 
 	passOnPropertySpace(player: Player) {
+		this.canAcquire = false;
 		const text = "They decided not to " + this.acquirePropertyAction + " **" + this.propertyToAcquire!.name + "**!";
 		this.on(text, () => this.onPassOnPropertySpace(player));
 		this.say(text);

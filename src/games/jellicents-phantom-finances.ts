@@ -231,7 +231,6 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 	}
 
 	beginAuction() {
-		this.canAcquire = false;
 		this.highestBidAmount = 0;
 		this.highestBidder = null;
 		this.say("Place your bids for **" + this.propertyToAcquire!.name + "** (cost: **" + this.propertyToAcquire!.cost + " " + POKE_DOLLAR + "**) with ``" + Config.commandCharacter + "bid [amount]``!");
