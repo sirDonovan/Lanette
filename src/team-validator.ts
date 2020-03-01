@@ -6,8 +6,6 @@ type AnyObject = Dict<any>;
 type Template = IPokemon;
 type ID = string;
 
-const toID = Tools.toId;
-
 /**
  * Team Validator
  * Pokemon Showdown - http://pokemonshowdown.com/
@@ -199,6 +197,7 @@ export class TeamValidator {
 	readonly format: IFormat;
 	readonly dex: typeof Dex;
 	readonly gen: number;
+	readonly minSourceGen: number;
 	readonly ruleTable: RuleTable;
 
 	constructor(formatid: string | IFormat) {
@@ -206,25 +205,29 @@ export class TeamValidator {
 		this.dex = Dex.forFormat(this.format);
 		this.gen = this.dex.gen;
 		this.ruleTable = this.dex.getRuleTable(this.format);
+
+		this.minSourceGen = this.ruleTable.minSourceGen ?
+			this.ruleTable.minSourceGen[0] : 1;
 	}
 
 	allSources(template?: Template) {
-		let minPastGen = (this.dex.gen < 3 ? 1 : this.format.minSourceGen || 3);
-		if (template) minPastGen = Math.max(minPastGen, template.gen);
-		const maxPastGen = this.ruleTable.has('allowtradeback') ? 2 : this.dex.gen;
-		return new PokemonSources(maxPastGen, minPastGen);
+		let minSourceGen = this.minSourceGen;
+		if (this.dex.gen >= 3 && minSourceGen < 3) minSourceGen = 3;
+		if (template) minSourceGen = Math.max(minSourceGen, template.gen);
+		const maxSourceGen = this.ruleTable.has('allowtradeback') ? 2 : this.dex.gen;
+		return new PokemonSources(maxSourceGen, minSourceGen);
 	}
 
 	checkLearnset(
 		move: Move,
 		species: Template,
 		setSources = this.allSources(species),
-		set: AnyObject = {},
+		set: AnyObject = {}
 	): {type: string, [key: string]: any} | null {
 		const dex = this.dex;
 		if (!setSources.size()) throw new Error(`Bad sources passed to checkLearnset`);
 
-		const moveid = toID(move);
+		const moveid = Tools.toId(move);
 		move = dex.getMove(moveid)!;
 		const baseTemplate = dex.getTemplate(species)!;
 		let template: Template | null = baseTemplate;
@@ -254,10 +257,6 @@ export class TeamValidator {
 		// set of possible sources of a pokemon with this move
 		const moveSources = new PokemonSources();
 
-		/**
-		 * The minimum past gen the format allows
-		 */
-		const minPastGen = format.minSourceGen || 1;
 		/**
 		 * The format doesn't allow Pokemon traded from the future
 		 * (This is everything except in Gen 1 Tradeback)
@@ -314,7 +313,7 @@ export class TeamValidator {
 					//   teach it, and transfer it to the current gen.)
 
 					const learnedGen = parseInt(learned.charAt(0));
-					if (learnedGen < minPastGen) continue;
+					if (learnedGen < this.minSourceGen) continue;
 					if (noFutureGen && learnedGen > dex.gen) continue;
 
 					// redundant
@@ -355,6 +354,9 @@ export class TeamValidator {
 							continue;
 						}
 					}
+
+					// Gen 8 egg moves can be taught to any pokemon from any source
+					if (learned === '8E') learned = '8T';
 
 					if ('LMTR'.includes(learned.charAt(1))) {
 						if (learnedGen === dex.gen && learned.charAt(1) !== 'R') {
@@ -397,8 +399,8 @@ export class TeamValidator {
 						// DW moves:
 						//   only if that was the source
 						moveSources.add(learned + template.id);
-					} else if (learned.charAt(1) === 'V') {
-						// Virtual Console moves:
+					} else if (learned.charAt(1) === 'V' && this.minSourceGen < learnedGen) {
+						// Virtual Console or Let's Go transfer moves:
 						//   only if that was the source
 						moveSources.add(learned);
 					}
@@ -434,7 +436,7 @@ export class TeamValidator {
 			}
 
 			// also check to see if the mon's prevo or freely switchable formes can learn this move
-			template = this.dex.getLearnsetParent(template.species, template.prevo, template.inheritsFrom);
+			template = this.learnsetParent(template);
 		}
 
 		if (limit1 && sketch) {
@@ -458,7 +460,7 @@ export class TeamValidator {
 
 		// Now that we have our list of possible sources, intersect it with the current list
 		if (!moveSources.size()) {
-			if (minPastGen > 1 && sometimesPossible) return {type: 'pastgen', gen: minPastGen};
+			if (this.minSourceGen > 1 && sometimesPossible) return {type: 'pastgen', gen: this.minSourceGen};
 			if (incompatibleAbility) return {type: 'incompatibleAbility'};
 			return {type: 'invalid'};
 		}
@@ -468,6 +470,25 @@ export class TeamValidator {
 		}
 
 		if (babyOnly) setSources.babyOnly = babyOnly;
+		return null;
+	}
+
+	learnsetParent(template: Template) {
+		if (template.species === 'Lycanroc-Dusk') {
+			return this.dex.getTemplate('Rockruff-Dusk');
+		} else if (template.prevo) {
+			// there used to be a check for Hidden Ability here, but apparently it's unnecessary
+			// Shed Skin Pupitar can definitely evolve into Unnerve Tyranitar
+			template = this.dex.getTemplate(template.prevo)!;
+			if (template.gen > Math.max(2, this.dex.gen)) return null;
+			return template;
+		} else if (template.inheritsFrom) {
+			// For Pokemon like Rotom, Necrozma, and Gmax formes whose movesets are extensions are their base formes
+			if (Array.isArray(template.inheritsFrom)) {
+				throw new Error(`Ambiguous template ${template.species} passed to learnsetParent`);
+			}
+			return this.dex.getTemplate(template.inheritsFrom as string);
+		}
 		return null;
 	}
 }
