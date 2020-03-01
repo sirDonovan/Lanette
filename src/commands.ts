@@ -1792,14 +1792,16 @@ const commands: Dict<ICommandDefinition> = {
 		aliases: ['userhostedformats', 'userformats'],
 	},
 	gettournamentapproval: {
-		command(target, room, user) {
+		command(target, room, user, cmd) {
 			if (!this.isPm(room)) return;
 			const targets = target.split(',');
 			const targetRoom = Rooms.search(targets[0]);
 			if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 			const bracketLink = Tools.getChallongeUrl(targets[1]);
 			const signupsLink = Tools.getChallongeUrl(targets[2]);
-			if (!bracketLink || !signupsLink || (!bracketLink.includes('/signup/') && !signupsLink.includes('/signup/'))) return this.say("You must specify the links to your tournament's bracket and signup page.");
+			if (!bracketLink || !signupsLink || (!bracketLink.includes('/signup/') && !signupsLink.includes('/signup/'))) {
+				return this.say("You must specify the links to both your tournament's bracket page and its signup page. (e.g. ``" + Config.commandCharacter + cmd + " " + targets[0].trim() + ", challonge.com/abc, challonge.com/tournaments/signup/123``)");
+			}
 			if (targetRoom.approvedUserHostedTournaments) {
 				for (const i in targetRoom.approvedUserHostedTournaments) {
 					if (targetRoom.approvedUserHostedTournaments[i].urls.includes(bracketLink) || targetRoom.approvedUserHostedTournaments[i].urls.includes(signupsLink)) {
@@ -1841,7 +1843,7 @@ const commands: Dict<ICommandDefinition> = {
 				targetRoom.approvedUserHostedTournaments[bracketLink].approvalStatus = 'approved';
 				targetRoom.approvedUserHostedTournaments[bracketLink].reviewer = Tools.toId(authOrTHC);
 
-				this.say("You are free to advertise without using this command!");
+				this.say("Roomauth and THC winners are free to advertise without using this command!");
 			} else {
 				Tournaments.showUserHostedTournamentApprovals(targetRoom);
 				this.say("A staff member will review your tournament as soon as possible!");
