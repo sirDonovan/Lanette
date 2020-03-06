@@ -260,30 +260,34 @@ export class Client {
 		}
 		for (let i = 0; i < lines.length; i++) {
 			if (!lines[i]) continue;
-			this.parseMessage(room, lines[i]);
-			if (lines[i].startsWith('|init|')) {
-				const page = room.type === 'html';
-				const chat = !page && room.type === 'chat';
-				for (let j = i + 1; j < lines.length; j++) {
-					if (page) {
-						if (lines[j].startsWith('|pagehtml|')) {
-							this.parseMessage(room, lines[j]);
-							break;
-						}
-					} else if (chat) {
-						if (lines[j].startsWith('|users|')) {
-							this.parseMessage(room, lines[j]);
-							for (let k = j + 1; k < lines.length; k++) {
-								if (lines[k].startsWith('|:|')) {
-									this.parseMessage(room, lines[k]);
-									break;
-								}
+			try {
+				this.parseMessage(room, lines[i]);
+				if (lines[i].startsWith('|init|')) {
+					const page = room.type === 'html';
+					const chat = !page && room.type === 'chat';
+					for (let j = i + 1; j < lines.length; j++) {
+						if (page) {
+							if (lines[j].startsWith('|pagehtml|')) {
+								this.parseMessage(room, lines[j]);
+								break;
 							}
-							break;
+						} else if (chat) {
+							if (lines[j].startsWith('|users|')) {
+								this.parseMessage(room, lines[j]);
+								for (let k = j + 1; k < lines.length; k++) {
+									if (lines[k].startsWith('|:|')) {
+										this.parseMessage(room, lines[k]);
+										break;
+									}
+								}
+								break;
+							}
 						}
 					}
+					if (page || chat) return;
 				}
-				if (page || chat) return;
+			} catch (e) {
+				console.log(e);
 			}
 		}
 	}

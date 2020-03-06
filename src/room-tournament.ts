@@ -400,7 +400,10 @@ export class Tournament extends Activity {
 	onBattleStart(usernameA: string, usernameB: string, roomid: string) {
 		const idA = Tools.toId(usernameA);
 		const idB = Tools.toId(usernameB);
-		if (!(idA in this.players) || !(idB in this.players)) throw new Error("Player not found for " + usernameA + " vs. " + usernameB + " in " + roomid);
+		if (!(idA in this.players) || !(idB in this.players)) {
+			console.log("Player not found for " + usernameA + " vs. " + usernameB + " in " + roomid);
+			return;
+		}
 		this.currentBattles.push({
 			playerA: this.players[idA],
 			playerB: this.players[idB],
@@ -422,7 +425,10 @@ export class Tournament extends Activity {
 	onBattleEnd(usernameA: string, usernameB: string, score: [string, string], roomid: string) {
 		const idA = Tools.toId(usernameA);
 		const idB = Tools.toId(usernameB);
-		if (!(idA in this.players) || !(idB in this.players)) throw new Error("Player not found for " + usernameA + " vs. " + usernameB + " in " + roomid);
+		if (!(idA in this.players) || !(idB in this.players)) {
+			console.log("Player not found for " + usernameA + " vs. " + usernameB + " in " + roomid);
+			return;
+		}
 		for (let i = 0; i < this.currentBattles.length; i++) {
 			if (this.currentBattles[i].playerA === this.players[idA] && this.currentBattles[i].playerB === this.players[idB] && this.currentBattles[i].roomid === roomid) {
 				this.currentBattles.splice(i, 1);
