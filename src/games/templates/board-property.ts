@@ -255,7 +255,10 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 			properties[i].owner = eliminator || null;
 			eliminatorProperties.push(properties[i]);
 		}
-		if (eliminator) this.properties.set(eliminator, eliminatorProperties);
+		if (eliminator) {
+			this.properties.set(eliminator, eliminatorProperties);
+			this.checkPropertyAchievements(eliminator);
+		}
 		this.properties.set(player, []);
 	}
 
@@ -564,24 +567,7 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 		property.owner = player;
 		properties.push(property);
 
-		if (this.acquireAllMountainsAchievement || this.acquireAllPropertiesAchievement) {
-			let acquiredAllMountains = true;
-			let acquiredAllProperties = true;
-			const spaceKeys = Object.keys(this.spaces) as (keyof BoardSpaces)[];
-			for (let i = 0; i < spaceKeys.length; i++) {
-				const space = this.spaces[spaceKeys[i]];
-				if (space instanceof BoardPropertySpace) {
-					if (space.owner !== player) {
-						if (acquiredAllMountains && space.name.startsWith(mountainPrefix)) acquiredAllMountains = false;
-						if (acquiredAllProperties) acquiredAllProperties = false;
-					}
-				}
-				if (!acquiredAllMountains && !acquiredAllProperties) break;
-			}
-
-			if (this.acquireAllMountainsAchievement && acquiredAllMountains) this.unlockAchievement(player, this.acquireAllMountainsAchievement);
-			if (this.acquireAllPropertiesAchievement && acquiredAllProperties) this.unlockAchievement(player, this.acquireAllPropertiesAchievement);
-		}
+		this.checkPropertyAchievements(player);
 
 		this.onAcquirePropertySpace(property, player, cost);
 	}
@@ -591,6 +577,27 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 		const text = "They decided not to " + this.acquirePropertyAction + " **" + this.propertyToAcquire!.name + "**!";
 		this.on(text, () => this.onPassOnPropertySpace(player));
 		this.say(text);
+	}
+
+	checkPropertyAchievements(player: Player) {
+		if (this.getRemainingPlayerCount() <= 1) return;
+		if (!this.acquireAllMountainsAchievement && !this.acquireAllPropertiesAchievement) return;
+		let acquiredAllMountains = true;
+		let acquiredAllProperties = true;
+		const spaceKeys = Object.keys(this.spaces) as (keyof BoardSpaces)[];
+		for (let i = 0; i < spaceKeys.length; i++) {
+			const space = this.spaces[spaceKeys[i]];
+			if (space instanceof BoardPropertySpace) {
+				if (space.owner !== player) {
+					if (acquiredAllMountains && space.name.startsWith(mountainPrefix)) acquiredAllMountains = false;
+					if (acquiredAllProperties) acquiredAllProperties = false;
+				}
+			}
+			if (!acquiredAllMountains && !acquiredAllProperties) break;
+		}
+
+		if (this.acquireAllMountainsAchievement && acquiredAllMountains) this.unlockAchievement(player, this.acquireAllMountainsAchievement);
+		if (this.acquireAllPropertiesAchievement && acquiredAllProperties) this.unlockAchievement(player, this.acquireAllPropertiesAchievement);
 	}
 }
 
