@@ -2,7 +2,7 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, AchievementsDict } from "../types/games";
 
 interface ICaughtPokemon {
 	points: number;
@@ -15,6 +15,10 @@ const data: {baseStatTotals: Dict<number>, pokedex: string[]} = {
 	pokedex: [],
 };
 let loadedData = false;
+
+const achievements: AchievementsDict = {
+	"pokemonranger": {name: "Pokemon Ranger", type: 'first', bits: 1000, description: 'catch first in every round'},
+};
 
 class TaurosSafariZone extends Game {
 	static loadData(room: Room) {
@@ -48,7 +52,7 @@ class TaurosSafariZone extends Game {
 
 	canCatch: boolean = false;
 	caughtPokemon = new Map<Player, number>();
-	firstCatch: Player | null = null;
+	firstCatch: Player | false | undefined;
 	highestBST: string = '';
 	highestCatch: Player | null = null;
 	maxPoints: number = 1000;
@@ -113,13 +117,16 @@ class TaurosSafariZone extends Game {
 		this.canCatch = false;
 		if (this.round > 1) {
 			const catches: {player: Player, pokemon: string, points: number}[] = [];
-			// let actions = 0;
-			this.roundCatches.forEach((pokemon, user) => {
-				if (this.players[user.id].eliminated) return;
-				const player = this.players[user.id];
-				if (pokemon.points > 0) {
-					// if (actions === 0) this.markFirstAction(player, 'firstCatch');
-					// actions++;
+			let firstCatch = true;
+			this.roundCatches.forEach((pokemon, player) => {
+				if (player.eliminated) return;
+				if (firstCatch && pokemon.points > 0) {
+					if (this.firstCatch === undefined) {
+						this.firstCatch = player;
+					} else {
+						if (this.firstCatch && this.firstCatch !== player) this.firstCatch = false;
+					}
+					firstCatch = false;
 				}
 				catches.push({player, pokemon: pokemon.species, points: pokemon.points});
 				let caughtPokemon = this.caughtPokemon.get(player) || 0;
@@ -162,29 +169,13 @@ class TaurosSafariZone extends Game {
 
 	onEnd() {
 		const totalRounds = this.round - 1;
-		const achievement = [];
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
 			const points = this.points.get(player);
 			if (points && points >= this.maxPoints) this.winners.set(player, 1);
-			const caughtPokemon = this.caughtPokemon.get(player);
-			if (caughtPokemon && caughtPokemon === totalRounds) achievement.push(player);
+			if (this.firstCatch && player === this.firstCatch) this.unlockAchievement(player, achievements.pokemonranger!);
 		}
-
-		/*
-		if (achievement.length) {
-			let multiple = achievement.length > 1;
-			for (let i = 0; i < achievement.length; i++) {
-				Games.unlockAchievement(this.room, achievement[i], "Gotta Catch 'em All", this, multiple);
-			}
-		}
-
-		this.winners.forEach((value, user) => {
-			if (user === this.firstCatch) Games.unlockAchievement(this.room, user, "Pokemon Ranger", this);
-			if (this.highestCatch === user) Games.unlockAchievement(this.room, user, "Legendary Collector", this);
-		});
-		*/
 
 		this.convertPointsToBits(0.5, 0.1);
 		this.announceWinners();

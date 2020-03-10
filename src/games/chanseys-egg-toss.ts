@@ -1,7 +1,12 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
-import { IGameFile } from "../types/games";
+import { IGameFile, AchievementsDict } from "../types/games";
+
+const hotPotatoHeroTime = 9000;
+const achievements: AchievementsDict = {
+	"hotpotatohero": {name: "Hot Potato Hero", type: 'special', bits: 1000, description: 'hold the egg for ' + (hotPotatoHeroTime/ 1000) + ' seconds'},
+};
 
 class ChanseysEggToss extends Game {
 	canToss: boolean = false;
@@ -54,7 +59,6 @@ class ChanseysEggToss extends Game {
 			return this.end();
 		} else if (remainingPlayerCount <= 4) {
 			this.roundTimes = [5000, 6000, 7000, 8000];
-			// this.achievementTime = this.roundTimes[this.roundTimes.length - 2];
 		}
 
 		const html = this.getRoundHtml(this.getPlayerNames);
@@ -118,7 +122,7 @@ const commands: Dict<ICommandDefinition<ChanseysEggToss>> = {
 				return false;
 			}
 
-			// if (Date.now() - this.holdTime >= this.achievementTime) Games.unlockAchievement(this.room, user, "Lucky Egg", this);
+			if (Date.now() - this.holdTime >= hotPotatoHeroTime) this.unlockAchievement(player, achievements.hotpotatohero!);
 			this.giveEgg(targetPlayer);
 			return true;
 		},
@@ -127,6 +131,7 @@ const commands: Dict<ICommandDefinition<ChanseysEggToss>> = {
 };
 
 export const game: IGameFile<ChanseysEggToss> = {
+	achievements,
 	aliases: ['chanseys', 'eggtoss'],
 	category: 'reaction',
 	class: ChanseysEggToss,

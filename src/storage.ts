@@ -232,6 +232,14 @@ export class Storage {
 			database.leaderboard[sourceId].annual = 0;
 		}
 
+		if (database.gameAchievements && sourceId in database.gameAchievements) {
+			if (!(destinationId in database.gameAchievements)) database.gameAchievements[destinationId] = [];
+			for (let i = 0; i  < database.gameAchievements[sourceId].length; i++) {
+				const achievement = database.gameAchievements[sourceId][i];
+				if (!database.gameAchievements[destinationId].includes(achievement)) database.gameAchievements[destinationId].push(achievement);
+			}
+		}
+
 		if (roomid + hostingDatabaseSuffix in this.databases) this.transferData(roomid + hostingDatabaseSuffix, source, destination);
 		return true;
 	}

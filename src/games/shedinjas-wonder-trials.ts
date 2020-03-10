@@ -2,7 +2,7 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, AchievementsDict } from "../types/games";
 import { IPokemon } from "../types/in-game-data-types";
 
 const name = "Shedinja's Wonder Trials";
@@ -11,6 +11,10 @@ const data: {moves: string[], pokedex: string[]} = {
 	pokedex: [],
 };
 let loadedData = false;
+
+const achievements: AchievementsDict = {
+	'wonderguardwarrior': {name: "Wonder Guard Warrior", type: 'special', bits: 1000, description: "use a move first every round that is super-effective"},
+};
 
 class ShedinjasWonderTrials extends Game {
 	static loadData(room: Room) {
@@ -31,6 +35,7 @@ class ShedinjasWonderTrials extends Game {
 
 	canUseMove: boolean = false;
 	currentPokemon: IPokemon | null = null;
+	firstMove: Player | false | undefined;
 	lastTyping: string = '';
 	maxPoints: number = 1500;
 	points = new Map<Player, number>();
@@ -73,6 +78,17 @@ class ShedinjasWonderTrials extends Game {
 			const effectivenessScale: Dict<string> = {'1': '2x', '2': '4x', '-1': '0.5x', '-2': '0.25x', 'immune': '0x', '0': '1x'};
 			let highestPoints = 0;
 			this.roundMoves.forEach((effectiveness, player) => {
+				const wonderGuardWarrior = effectiveness === '1' || effectiveness === '2';
+				if (this.firstMove === undefined) {
+					if (wonderGuardWarrior) {
+						this.firstMove = player;
+					} else {
+						this.firstMove = false;
+					}
+				} else {
+					if (this.firstMove && (this.firstMove !== player || !wonderGuardWarrior)) this.firstMove = false;
+				}
+
 				let points = this.points.get(player) || 0;
 				const originalPoints = points;
 				if (effectiveness === '1') {
@@ -120,6 +136,7 @@ class ShedinjasWonderTrials extends Game {
 			if (points && points >= this.maxPoints) {
 				this.winners.set(player, 1);
 				this.addBits(player, 500);
+				if (this.firstMove === player) this.unlockAchievement(player, achievements.wonderguardwarrior!);
 			}
 		}
 
@@ -192,13 +209,15 @@ const commands: Dict<ICommandDefinition<ShedinjasWonderTrials>> = {
 					effectiveness = -2;
 				}
 			}
-			this.roundMoves.set(player, '' + effectiveness);
+
+			this.roundMoves.set(player, effectiveness === Infinity ? 'immune' : '' + effectiveness);
 			return true;
 		},
 	},
 };
 
 export const game: IGameFile<ShedinjasWonderTrials> = {
+	achievements,
 	aliases: ["shedinjas", "swt", "wondertrials"],
 	category: 'knowledge',
 	commandDescriptions: [Config.commandCharacter + "use [move]"],

@@ -1,13 +1,19 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, AchievementsDict } from "../types/games";
 import { IActionCardData, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 
 const name = "Bulbasaur's Uno";
 const types: Dict<string> = {};
 let loadedData = false;
+
+const drawWizardAmount = 6;
+const achievements: AchievementsDict = {
+	"drawwizard": {name: "Draw Wizard", type: 'special', bits: 1000, description: 'play a card that forces the next ' + drawWizardAmount + ' or more players to draw a card'},
+	"luckofthedraw": {name: "Luck of the Draw", type: 'shiny', bits: 1000, repeatBits: 250, description:'draw and play a shiny card'},
+};
 
 class BulbasaursUno extends CardMatching {
 	static loadData(room: Room) {
@@ -33,8 +39,11 @@ class BulbasaursUno extends CardMatching {
 		"spinda": {name: "Shuffle", description: "Shuffle the player order"},
 	};
 	colorsLimit: number = 20;
+	drawAchievement = achievements.drawwizard;
+	drawAchievementAmount = drawWizardAmount;
 	finitePlayerCards: boolean = true;
 	playerCards = new Map<Player, IPokemonCard[]>();
+	shinyCardAchievement = achievements.luckofthedraw;
 	typesLimit: number = 20;
 
 // TODO: better workaround?
@@ -184,7 +193,7 @@ class BulbasaursUno extends CardMatching {
 					return false;
 				}
 				this.topCard = this.sampleOne(newTopCards);
-				// if (this.topCard.shiny) Games.unlockAchievement(this.room, player, 'luck of the draw', this);
+				if (this.topCard.shiny && this.shinyCardAchievement) this.unlockAchievement(player, this.shinyCardAchievement);
 				cards.splice(indexA, 1);
 				indexB = cards.indexOf(cardB);
 				cards.splice(indexB, 1);
@@ -210,7 +219,7 @@ class BulbasaursUno extends CardMatching {
 					this.say("You must play a card that matches color or a type with the top card.");
 					return false;
 				}
-				// if (cardA.shiny) Games.unlockAchievement(this.room, player, 'luck of the draw', this);
+				if (cardA.shiny && this.shinyCardAchievement) this.unlockAchievement(player, this.shinyCardAchievement);
 				this.topCard = cardA;
 				cards.splice(indexA, 1);
 			}
@@ -248,6 +257,7 @@ const commands: Dict<ICommandDefinition<BulbasaursUno>> = {
 };
 
 export const game: IGameFile<BulbasaursUno> = Games.copyTemplateProperties(cardGame, {
+	achievements,
 	aliases: ["bulbasaurs", "uno", "bu"],
 	commandDescriptions: [Config.commandCharacter + "play [Pokemon]", Config.commandCharacter + "draw"],
 	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),

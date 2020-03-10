@@ -1,9 +1,13 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { addPlayers, assert, assertStrictEqual, runCommand } from "../test/test-tools";
-import { GameFileTests, IGameFile } from "../types/games";
+import { GameFileTests, IGameFile, AchievementsDict } from "../types/games";
 import { CardType, IActionCardData, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
+
+const achievements: AchievementsDict = {
+	"luckofthedraw": {name: "Luck of the Draw", type: 'shiny', bits: 1000, repeatBits: 250, description:'draw and play a shiny card'},
+};
 
 class StakatakasCardTower extends CardMatching {
 	actionCards: Dict<IActionCardData> = {
@@ -17,6 +21,7 @@ class StakatakasCardTower extends CardMatching {
 	maxCardRounds: number = 50;
 	minimumPlayedCards: number = 2;
 	roundTime: number = 50 * 1000;
+	shinyCardAchievement = achievements.luckofthedraw;
 	showPlayerCards: boolean = true;
 	typesLimit: number = 20;
 
@@ -81,7 +86,7 @@ class StakatakasCardTower extends CardMatching {
 		this.awaitingCurrentPlayerCard = false;
 		this.topCard = card;
 		this.showTopCard(card.shiny && !card.played);
-		// if (card.shiny && !card.played) Games.unlockAchievement(this.room, player, 'luck of the draw', this);
+		if (this.shinyCardAchievement && card.shiny && !card.played) this.unlockAchievement(player, this.shinyCardAchievement);
 		card.played = true;
 		let drewCards = false;
 		if (this.autoFillHands && !player.eliminated) {
@@ -242,6 +247,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 };
 
 export const game: IGameFile<StakatakasCardTower> = Games.copyTemplateProperties(cardGame, {
+	achievements,
 	aliases: ["stakatakas", "cardtower", "sct"],
 	commandDescriptions: [Config.commandCharacter + "play [Pokemon], [Pokemon], [...]", Config.commandCharacter + "draw"],
 	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),

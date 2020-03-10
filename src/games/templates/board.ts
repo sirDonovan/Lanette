@@ -247,6 +247,7 @@ const tests: GameFileTests<BoardGame> = {
 	},
 	'it should properly determine space order in getLocationAfterMovement': {
 		test(game, format) {
+			// forward movement
 			let locationAfterMovement = game.getLocationAfterMovement({side: 'leftColumn', space: 0}, 1);
 			assertStrictEqual(locationAfterMovement.side, 'leftColumn');
 			assertStrictEqual(locationAfterMovement.space, 1);
@@ -299,6 +300,7 @@ const tests: GameFileTests<BoardGame> = {
 			assertStrictEqual(locationAfterMovement.side, 'topRow');
 			assertStrictEqual(locationAfterMovement.space, 0);
 
+			// backward movement
 			locationAfterMovement = game.getLocationAfterMovement({side: 'leftColumn', space: 1}, -1);
 			assertStrictEqual(locationAfterMovement.side, 'leftColumn');
 			assertStrictEqual(locationAfterMovement.space, 0);

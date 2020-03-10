@@ -2,7 +2,7 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, AchievementsDict } from "../types/games";
 
 const name = "Mismagius' Foul Play";
 const data: {colors: Dict<string[]>, eggGroups: Dict<string[]>, moves: Dict<string[]>, pokemon: string[], types: Dict<string[]>} = {
@@ -21,6 +21,11 @@ const dataKeys: {colors: string[], eggGroups: string[], moves: string[], types: 
 };
 const categories: Category[] = ["colors", "eggGroups", "moves", "types"];
 let loadedData = false;
+
+const achievements: AchievementsDict = {
+	"criminalmind": {name: "Criminal Mind", type: 'special', bits: 1000, description: "win as the only criminal remaining"},
+	"truedetective": {name: "True Detective", type: 'special', bits: 1000, description: "win as the only detective remaining"},
+};
 
 class MismagiusFoulPlay extends Game {
 	static loadData(room: Room) {
@@ -227,7 +232,8 @@ class MismagiusFoulPlay extends Game {
 			}
 			this.addBits(player, bits);
 		}
-		// if (!detectiveWin && this.winners.size === 1) Games.unlockAchievement(this.room, this.getPlayerNames(this.winners), "Criminal Mind", this);
+
+		if (this.winners.size === 1) this.unlockAchievement(this.getFinalPlayer()!, detectiveWin ? achievements.truedetective! : achievements.criminalmind!);
 
 		this.announceWinners();
 	}
@@ -359,6 +365,7 @@ commands.summary = Tools.deepClone(Games.sharedCommands.summary);
 commands.summary.aliases = ['role'];
 
 export const game: IGameFile<MismagiusFoulPlay> = {
+	achievements,
 	aliases: ['mismagius', 'mfp'],
 	category: 'knowledge',
 	class: MismagiusFoulPlay,

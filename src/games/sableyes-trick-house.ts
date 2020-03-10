@@ -3,18 +3,22 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { addPlayers, runCommand } from '../test/test-tools';
-import { GameFileTests, IGameFile } from "../types/games";
+import { GameFileTests, IGameFile, AchievementsDict } from "../types/games";
 
 const doors: string[][] = [["Red", "Green", "Yellow"], ["Gold", "Silver", "Crystal"], ["Ruby", "Sapphire", "Emerald"], ["Diamond", "Pearl", "Platinum"],
 ["Land", "Sea", "Sky"], ["Time", "Space", "Distortion"], ["Creation", "Destruction", "Harmony"], ["Sun", "Earth", "Moon"]];
 
+const achievements: AchievementsDict = {
+	"escapeartist": {name: "Escape Artist", type: 'first', bits: 1000, description: "select a door first every round and win"},
+};
+
 class SableyesTrickHouse extends Game {
 	canLateJoin: boolean = true;
 	canSelect: boolean = false;
-	// firstChoice: Player | null;
+	firstSelection: Player | false | undefined;
 	points = new Map<Player, number>();
 	previousDoors: string[] | null = null;
-	roundChoices = new Map<Player, string>();
+	roundSelections = new Map<Player, string>();
 	roundDoors: string[] = [];
 	trapChosen: boolean = false;
 
@@ -36,11 +40,11 @@ class SableyesTrickHouse extends Game {
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
-			const choice = this.roundChoices.get(player);
+			const choice = this.roundSelections.get(player);
 			if (!choice) {
-				this.eliminatePlayer(player, "You did not choose a door!");
+				this.eliminatePlayer(player, "You did not select a door!");
 			} else if (choice === id) {
-				this.eliminatePlayer(player, "You chose the trap door!");
+				this.eliminatePlayer(player, "You selected the trap door!");
 			}
 		}
 
@@ -53,6 +57,20 @@ class SableyesTrickHouse extends Game {
 
 	onNextRound() {
 		this.canSelect = false;
+		if (this.round > 1) {
+			let firstSelection = false;
+			this.roundSelections.forEach((door, player) => {
+				if (firstSelection) {
+					if (this.firstSelection === undefined) {
+						this.firstSelection = player;
+					} else {
+						if (this.firstSelection && this.firstSelection !== player) this.firstSelection = false;
+					}
+					firstSelection = false;
+				}
+			});
+		}
+
 		const remainingPlayerCount = this.getRemainingPlayerCount();
 		if (remainingPlayerCount < 2) return this.end();
 		let roundDoors = this.sampleOne(doors);
@@ -62,7 +80,7 @@ class SableyesTrickHouse extends Game {
 		this.previousDoors = roundDoors;
 		this.roundDoors = roundDoors.slice();
 		if (remainingPlayerCount === 2) this.roundDoors.pop();
-		this.roundChoices.clear();
+		this.roundSelections.clear();
 		this.onCommands(['select'], {max: remainingPlayerCount, remainingPlayersMax: true}, () => {
 			if (this.timeout) clearTimeout(this.timeout);
 			this.timeout = setTimeout(() => this.revealTrap(), 5 * 1000);
@@ -85,7 +103,7 @@ class SableyesTrickHouse extends Game {
 		const winner = this.getFinalPlayer();
 		if (winner) {
 			this.winners.set(winner, 1);
-			// if (this.firstChoice === winner) Games.unlockAchievement(this.room, winner, "Escape Artist", this);
+			if (this.firstSelection === winner) this.unlockAchievement(winner, achievements.escapeartist!);
 			this.addBits(winner, 500);
 		}
 		this.announceWinners();
@@ -96,7 +114,7 @@ const commands: Dict<ICommandDefinition<SableyesTrickHouse>> = {
 	select: {
 		command(target, room, user) {
 			if (!this.canSelect || !(user.id in this.players) || this.players[user.id].eliminated) return false;
-			if (this.roundChoices.has(this.players[user.id])) return false;
+			if (this.roundSelections.has(this.players[user.id])) return false;
 			const player = this.players[user.id];
 			const choice = Tools.toId(target);
 			let match = -1;
@@ -111,16 +129,16 @@ const commands: Dict<ICommandDefinition<SableyesTrickHouse>> = {
 				player.say("'" + target.trim() + "' is not one of the doors this round.");
 				return false;
 			}
-			if (this.getRemainingPlayerCount() === 2 && this.roundChoices.size) {
-				if (choice === this.roundChoices.values().next().value) {
-					player.say("You cannot choose the same door as your opponent!");
+			if (this.getRemainingPlayerCount() === 2 && this.roundSelections.size) {
+				if (choice === this.roundSelections.values().next().value) {
+					player.say("You cannot select the same door as your final opponent!");
 					return false;
 				}
 			}
 
 			// if (!this.roundChoices.size) this.markFirstAction(player, 'firstChoice');
-			this.roundChoices.set(player, choice);
-			player.say("You have chosen the " + this.roundDoors[match] + " door!");
+			this.roundSelections.set(player, choice);
+			player.say("You have selected the " + this.roundDoors[match] + " door!");
 			return true;
 		},
 	},
@@ -135,7 +153,7 @@ const tests: GameFileTests<SableyesTrickHouse> = {
 			game.canSelect = true;
 			runCommand('select', game.roundDoors[0], game.room, players[0].name);
 			runCommand('select', game.roundDoors[1], game.room, players[0].name);
-			assertStrictEqual(Tools.toId(game.roundChoices.get(players[0])), Tools.toId(game.roundDoors[0]));
+			assertStrictEqual(Tools.toId(game.roundSelections.get(players[0])), Tools.toId(game.roundDoors[0]));
 		},
 	},
 	'should eliminate users who pick the trap': {
@@ -159,14 +177,15 @@ const tests: GameFileTests<SableyesTrickHouse> = {
 			game.nextRound();
 			game.canSelect = true;
 			runCommand('select', 'mocha', game.room, players[0].name);
-			assertStrictEqual(game.roundChoices.has(players[0]), false);
+			assertStrictEqual(game.roundSelections.has(players[0]), false);
 			runCommand('select', game.roundDoors[0], game.room, players[1].name);
-			assertStrictEqual(game.roundChoices.has(players[1]), true);
+			assertStrictEqual(game.roundSelections.has(players[1]), true);
 		},
 	},
 };
 
 export const game: IGameFile<SableyesTrickHouse> = {
+	achievements,
 	aliases: ["sableyes", "th"],
 	commandDescriptions: [Config.commandCharacter + "select [door]"],
 	commands,

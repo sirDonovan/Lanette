@@ -1,7 +1,7 @@
 import { Player } from "../room-activity";
 import { IGameOptionValues } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Zygarde's Orders";
@@ -16,6 +16,10 @@ const data: {'Characters': string[], 'Locations': string[], 'Pokemon': string[],
 type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
 let loadedData = false;
+
+const achievements: AchievementsDict = {
+	"tallorder": {name: "Tall Order", type: 'special', bits: 1000, description: "guess the answer with only 1 letter revealed"},
+};
 
 class ZygardesOrders extends Guessing {
 	static loadData(room: Room) {
@@ -124,11 +128,12 @@ class ZygardesOrders extends Guessing {
 	}
 
 	onCorrectGuess(player: Player, answer: string) {
-		// if (this.revealedLetters === 1) Games.unlockAchievement(this.room, player, "Tall Order", this);
+		if (this.revealedLetters === 1) this.unlockAchievement(player, achievements.tallorder!);
 	}
 }
 
 export const game: IGameFile<ZygardesOrders> = Games.copyTemplateProperties(guessingGame, {
+	achievements,
 	aliases: ["zygardes", "zo"],
 	category: 'identification',
 	class: ZygardesOrders,

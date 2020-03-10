@@ -1,6 +1,6 @@
 import { Player } from "../room-activity";
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, AchievementsDict } from "../types/games";
 import { IPokemon } from "../types/in-game-data-types";
 import { CardType, IActionCardData, IMoveCard, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
@@ -8,6 +8,12 @@ import { CardMatching, game as cardGame } from "./templates/card-matching";
 const name = "Axew's Battle Cards";
 const types: Dict<string> = {};
 let loadedData = false;
+
+const trumpCardEliminations = 5;
+const achievements: AchievementsDict = {
+	"luckofthedraw": {name: "Luck of the Draw", type: 'shiny', bits: 1000, repeatBits: 250, description: 'draw and play a shiny card'},
+	"trumpcard": {name: "Trump Card", type: 'special', bits: 1000, description: 'play a card that eliminates ' + trumpCardEliminations + ' or more players'},
+};
 
 class AxewsBattleCards extends CardMatching {
 	static loadData(room: Room) {
@@ -40,6 +46,7 @@ class AxewsBattleCards extends CardMatching {
 	maxPlayers = 20;
 	playableCardDescription = "You must play a card that is super-effective against the top card";
 	roundDrawAmount: number = 1;
+	shinyCardAchievement = achievements.luckofthedraw;
 	showPlayerCards = false;
 	usesColors = false;
 
@@ -229,26 +236,47 @@ class AxewsBattleCards extends CardMatching {
 
 	onNextRound() {
 		this.canPlay = false;
-		this.currentPlayer = null;
+		if (this.currentPlayer) {
+			this.lastPlayer = this.currentPlayer;
+			this.currentPlayer = null;
+		}
 		if (Date.now() - this.startTime! > this.timeLimit) return this.timeEnd();
-		const len = this.getRemainingPlayerCount();
-		if (!len) {
+		if (this.getRemainingPlayerCount() <= 1) {
 			this.end();
 			return;
 		}
-		if (len === 1) return this.end();
-		const player = this.getNextPlayer();
-		if (!player) return;
+		let player = this.getNextPlayer();
+		if (!player || this.timeEnded) return;
 
-		const playableCards = this.getPlayableCards(player);
-		if (!playableCards.length) {
+		let playableCards = this.getPlayableCards(player);
+		let eliminateCount = 0;
+		let ended = false;
+		while (!playableCards.length) {
+			eliminateCount++;
 			this.say(player.name + " does not have a card to play and has been eliminated from the game!");
 			this.eliminatePlayer(player, "You do not have a card to play!");
-			return this.nextRound();
+			if (this.getRemainingPlayerCount() === 1) {
+				ended = true;
+				break;
+			}
+			player = this.getNextPlayer();
+			if (!player) {
+				if (this.timeEnded) break;
+				throw new Error("No player given by Game.getNextPlayer");
+			}
+			playableCards = this.getPlayableCards(player);
 		}
 
+		if (this.lastPlayer && eliminateCount >= trumpCardEliminations && !this.lastPlayer.eliminated) this.unlockAchievement(this.lastPlayer, achievements.trumpcard!);
+
+		if (ended) {
+			this.end();
+			return;
+		}
+		if (this.timeEnded) return;
+
 		this.currentPlayer = player;
-		const text = player.name + "'s turn!";
+		const text = player!.name + "'s turn!";
 		this.on(text, () => {
 			// left before text appeared
 			if (player!.eliminated) {
@@ -304,7 +332,7 @@ class AxewsBattleCards extends CardMatching {
 		this.topCard = card;
 		this.showTopCard(card.shiny && !card.played);
 		if (!player.eliminated) {
-			// if (card.shiny && !card.played) Games.unlockAchievement(this.room, player, 'luck of the draw', this);
+			if (this.shinyCardAchievement && card.shiny && !card.played) this.unlockAchievement(player, this.shinyCardAchievement);
 			cards.splice(cards.indexOf(card), 1);
 			this.drawCard(player, this.roundDrawAmount);
 		}
@@ -427,7 +455,7 @@ class AxewsBattleCards extends CardMatching {
 				if (this.rollForShinyPokemon()) {
 					this.topCard.shiny = true;
 					firstTimeShiny = true;
-					// Games.unlockAchievement(this.room, player, 'luck of the draw', this);
+					if (this.shinyCardAchievement) this.unlockAchievement(player, this.shinyCardAchievement);
 					this.topCard.played = true;
 				}
 			}
@@ -470,7 +498,7 @@ class AxewsBattleCards extends CardMatching {
 			const newTopCard = cards[newIndex] as IPokemonCard;
 			this.topCard = newTopCard;
 			if (newTopCard.shiny && !newTopCard.played) {
-				// Games.unlockAchievement(this.room, player, 'luck of the draw', this);
+				if (this.shinyCardAchievement) this.unlockAchievement(player, this.shinyCardAchievement);
 				firstTimeShiny = true;
 				newTopCard.played = true;
 			}
@@ -483,7 +511,6 @@ class AxewsBattleCards extends CardMatching {
 		if (cards.includes(card)) cards.splice(cards.indexOf(card), 1);
 
 		if (!player.eliminated) {
-			// if (drawAmount > 0 && !this.noDrawing.has(player)) {
 			if (drawAmount > 0) {
 				this.drawCard(player, drawAmount, drawCards);
 			} else if (showHand) {
@@ -496,6 +523,7 @@ class AxewsBattleCards extends CardMatching {
 }
 
 export const game: IGameFile<AxewsBattleCards> = Games.copyTemplateProperties(cardGame, {
+	achievements,
 	aliases: ["axews", "abc", "battlecards"],
 	commandDescriptions: [Config.commandCharacter + "play [Pokemon or move]"],
 	class: AxewsBattleCards,

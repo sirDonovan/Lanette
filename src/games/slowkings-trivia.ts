@@ -1,5 +1,5 @@
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Slowking's Trivia";
@@ -16,6 +16,11 @@ const categoryKeys: KeyedDict<typeof data, string[]> = {
 	"Pokemon Moves": [],
 };
 let loadedData = false;
+
+const achievements: AchievementsDict = {
+	'knowitall': {name: "Know-It-All", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+	'captainknowitall': {name: "Captain Know-It-All", type: 'all-answers-team', bits: 1000, description: "get every answer for your team and win"},
+};
 
 class SlowkingsTrivia extends Guessing {
 	static loadData(room: Room) {
@@ -56,6 +61,9 @@ class SlowkingsTrivia extends Guessing {
 		loadedData = true;
 	}
 
+	allAnswersAchievement = achievements.knowitall;
+	allAnswersTeamAchievement = achievements.captainknowitall;
+
 	async setAnswers() {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		const description = this.sampleOne(categoryKeys[category]);
@@ -65,6 +73,7 @@ class SlowkingsTrivia extends Guessing {
 }
 
 export const game: IGameFile<SlowkingsTrivia> = Games.copyTemplateProperties(guessingGame, {
+	achievements,
 	aliases: ['slowkings', 'triv', 'st'],
 	category: 'knowledge',
 	class: SlowkingsTrivia,

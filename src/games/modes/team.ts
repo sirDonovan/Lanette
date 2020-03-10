@@ -37,6 +37,7 @@ class Team {
 	}
 
 	currentPlayers: Dict<Player> = {};
+	firstAnswers: Dict<Player | false> = {};
 	minPlayers: number = 4;
 	playerOrders: Dict<Player[]> = {};
 	playerLists: Dict<Player[]> = {};
@@ -205,6 +206,14 @@ const commands: CommandsDict<Team & Guessing, GameCommandReturnType> = {
 			this.points.set(player, points);
 			player.team!.points += awardedPoints;
 
+			if (this.allAnswersTeamAchievement) {
+				if (player.team!.id in this.firstAnswers) {
+					if (this.firstAnswers[player.team!.id] && this.firstAnswers[player.team!.id] !== player) this.firstAnswers[player.team!.id] = false;
+				} else {
+					this.firstAnswers[player.team!.id] = player;
+				}
+			}
+
 			if (player.team!.points >= this.format.options.teamPoints) {
 				let text = '**' + player.name + '** wins' + (this.parentGame ? '' : ' the game') + ' for Team ' + player.team!.name + '!';
 				const answers = ' ' + this.getAnswers(answer, true);
@@ -214,6 +223,10 @@ const commands: CommandsDict<Team & Guessing, GameCommandReturnType> = {
 					text += ' A possible answer was __' + answer + '__.';
 				}
 				this.say(text);
+
+				if (this.allAnswersTeamAchievement && this.firstAnswers[player.team!.id] === player) {
+					this.unlockAchievement(player, this.allAnswersTeamAchievement);
+				}
 
 				for (let i = 0; i < player.team!.players.length; i++) {
 					if (!player.team!.players[i].eliminated) this.winners.set(player.team!.players[i], 1);

@@ -2261,6 +2261,27 @@ const commands: Dict<ICommandDefinition> = {
 			targetRoom.sayCommand("/modnote " + user.name + " transferred data from " + source + " to " + destination + ".");
 		},
 	},
+	gameachievements: {
+		command(target, room, user) {
+			if (!this.isPm(room)) return;
+			const targets = target.split(',');
+			const targetRoom = Rooms.search(targets[0]);
+			if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(targetRoom.id)) return this.sayError(['disabledGameFeatures', targetRoom.title]);
+			targets.shift();
+			const database = Storage.getDatabase(targetRoom);
+			const unlockedAchievements: string[] = [];
+			if (database.gameAchievements && user.id in database.gameAchievements) {
+				for (let i = 0; i < database.gameAchievements[user.id].length; i++) {
+					const achievement = database.gameAchievements[user.id][i];
+					if (achievement in Games.achievementNames) unlockedAchievements.push(Games.achievementNames[achievement]);
+				}
+			}
+			if (!unlockedAchievements.length) return this.say("You have not unlocked any game achievements in " + targetRoom.title + " room.");
+			this.sayHtml("<b>Unlocked game achievements</b>:<br />" + unlockedAchievements.join(", "), targetRoom);
+		},
+		aliases: ['achievements', 'chieves'],
+	},
 	eventlink: {
 		command(target, room, user) {
 			const targets = target.split(',');

@@ -2,13 +2,17 @@ import { ICommandDefinition } from "../../command-parser";
 import { Player } from "../../room-activity";
 import { Game } from "../../room-game";
 import { Room } from "../../rooms";
-import { IGameFile } from "../../types/games";
+import { IGameFile, AchievementsDict } from "../../types/games";
 import { User } from "../../users";
+
+const achievements: AchievementsDict = {
+	"eggthesystem": {name: "Egg the System", type: 'special', bits: 500, description: 'explode the egg on Lady Monita'},
+};
 
 class EggToss extends Game {
 	currentHolder: Player | null = null;
 	internalGame: boolean = true;
-	// lastHolder: string = '';
+	lastHolder: Player | null = null;
 	tossTimeout: NodeJS.Timer | null = null;
 
 	// hack for selectUser()
@@ -22,9 +26,8 @@ class EggToss extends Game {
 		if (this.tossTimeout) clearTimeout(this.tossTimeout);
 		if (this.currentHolder) {
 			this.say("**BOOOOM**! The egg exploded on **" + this.currentHolder.name + "**!");
-			// if (this.currentHolder.id === Users.self.id) Games.unlockAchievement(this.room, this.lastHolder, 'egg the system', this);
+			if (this.lastHolder && this.currentHolder.id === Users.self.id) this.unlockAchievement(this.lastHolder, achievements.eggthesystem!);
 		}
-		// Games.lastEggTimes[this.room.id] = Date.now();
 		this.end();
 	}
 
@@ -69,7 +72,7 @@ const commands: Dict<ICommandDefinition<EggToss>> = {
 				return false;
 			}
 			this.currentHolder = this.createPlayer(targetUser) || this.players[targetUser.id];
-			// this.lastHolder = user.name;
+			this.lastHolder = this.currentHolder;
 			if (targetUser.id === Users.self.id) {
 				const selectedUser = this.selectUser();
 				this.timeout = setTimeout(() => {
@@ -84,6 +87,7 @@ const commands: Dict<ICommandDefinition<EggToss>> = {
 };
 
 export const game: IGameFile<EggToss> = {
+	achievements,
 	class: EggToss,
 	commands,
 	description: "Players try to get rid of the egg before it explodes!",

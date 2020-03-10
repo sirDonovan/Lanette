@@ -6,7 +6,7 @@ import { UserHosted } from './games/internal/user-hosted';
 import { PRNG, PRNGSeed } from './prng';
 import { DefaultGameOption, Game, IGameOptionValues } from "./room-game";
 import { Room } from "./rooms";
-import { GameCommandReturnType, IGameFile, IGameFormat, IGameFormatComputed, IGameFormatData, IGameMode, IGameModeFile, IGameTemplateFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFile, IUserHostedFormat, IUserHostedFormatComputed, UserHostedCustomizable } from './types/games';
+import { GameCommandReturnType, IGameFile, IGameFormat, IGameFormatComputed, IGameFormatData, IGameMode, IGameModeFile, IGameTemplateFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFile, IUserHostedFormat, IUserHostedFormatComputed, UserHostedCustomizable, IGameAchievement, IGameAchievementKeys } from './types/games';
 import { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/in-game-data-types';
 import { IPastGame } from './types/storage';
 import { User } from './users';
@@ -57,6 +57,7 @@ export class Games {
 	readonly userHostedGameHighlight: string = "is hosting a hostgame of";
 	readonly scriptedGameVoteHighlight: string = "Hosting a scriptedgamevote";
 
+	readonly achievementNames: Dict<string> = {};
 	readonly aliases: Dict<string> = {};
 	autoCreateTimers: Dict<NodeJS.Timer> = {};
 	readonly commands: typeof sharedCommands = Object.assign(Object.create(null), sharedCommands);
@@ -243,6 +244,20 @@ export class Games {
 							if (!(alias in this.aliases)) this.aliases[alias] = format.name + "," + format.variants[i].variant;
 						}
 					}
+				}
+			}
+
+			if (format.achievements) {
+				const keys = Object.keys(format.achievements) as (keyof IGameAchievementKeys)[];
+				for (let i = 0; i < keys.length; i++) {
+					const key = keys[i];
+					const achievement = format.achievements[key]!;
+					if (Tools.toId(achievement.name) !== key) throw new Error(format.name + "'s achievement " + achievement.name + " needs to have the key '" + Tools.toId(achievement.name) + "'");
+					if (key in this.achievementNames) {
+						if (this.achievementNames[key] !== achievement.name) throw new Error(format.name + "'s achievement '" + key + "' has the name " + this.achievementNames[key] + " in another game.");
+						continue;
+					}
+					this.achievementNames[key] = achievement.name;
 				}
 			}
 

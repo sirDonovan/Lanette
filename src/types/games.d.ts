@@ -25,6 +25,74 @@ interface IGameCategoryKeys {
 
 export type GameCategory = keyof IGameCategoryKeys;
 
+interface IGameAchievementKeys {
+	quickdraw: any;
+	captainwordmaster: any;
+	wordmaster: any;
+	knowitall: any;
+	captainknowitall: any;
+	fishoutofwater: any;
+	goldenmagikarp: any;
+	hightidesurvivor: any;
+	mazerunner: any;
+	kingofthecastle: any;
+	minesweeper: any;
+	voltorbsfuse: any;
+	litwicksflame: any;
+	klinksgear: any;
+	recklessadventurer: any;
+	bankrupt: any;
+	achillesheel: any;
+	captainachilles: any;
+	pokemonresearcher: any;
+	moverelearner: any;
+	shinyhunter: any;
+	sunkentreasure: any;
+	pokemonranger: any;
+	rainbowwing: any;
+	meowthscoin: any;
+	payday: any;
+	berrymaster: any;
+	skillswapper: any;
+	captainskillswapper: any;
+	garbagecollector: any;
+	technician: any;
+	eggthesystem: any;
+	luckofthedraw: any;
+	drawwizard: any;
+	criminalmind: any;
+	truedetective: any;
+	tallorder: any;
+	escapeartist: any;
+	movesearchhero: any;
+	hotpotatohero: any;
+	speedbooster: any;
+	cheapskate: any;
+	ohbabyatriple: any;
+	realestatetycoon: any;
+	locksmith: any;
+	mountainmover: any;
+	blownout: any;
+	proteaneye: any;
+	captainproteaneye: any;
+	wonderguardwarrior: any;
+	trumpcard: any;
+}
+
+export type GameAchievements = keyof IGameAchievementKeys;
+
+type GameAchievementType = 'first' | 'all-answers' | 'all-answers-team' | 'points' | 'shiny' | 'special';
+
+export interface IGameAchievement {
+	description: string;
+	name: string;
+	type: GameAchievementType;
+	bits: number;
+
+	repeatBits?: number;
+	mode?: string;
+}
+
 export interface IInternalGames {
 	eggtoss: string;
 	vote: string;
@@ -54,7 +122,10 @@ export interface IGameTestAttributes {
 
 type GameFileTests<T extends Game = Game> = Dict<{config?: IGameFileTestConfig, test: ((this: Mocha.Context, game: T, format: IGameFormat<T>, attributes: IGameTestAttributes) => void)}>;
 
+export type AchievementsDict = PartialKeyedDict<IGameAchievementKeys, IGameAchievement>;
+
 interface IGameFileProperties<T extends Game = Game> {
+	achievements?: AchievementsDict;
 	aliases?: string[];
 	category?: GameCategory;
 	commands?: Dict<ICommandDefinition<T>>;

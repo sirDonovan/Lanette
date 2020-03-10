@@ -1,7 +1,7 @@
 import type { ICommandDefinition } from "../../command-parser";
 import { Player } from "../../room-activity";
 import { addPlayers, assertStrictEqual } from "../../test/test-tools";
-import { GameFileTests, IGameTemplateFile, GameCategory } from "../../types/games";
+import { GameFileTests, IGameTemplateFile, GameCategory, IGameAchievement } from "../../types/games";
 import type { HexColor } from "../../types/global-types";
 import { BoardGame, BoardSide, BoardSpace, game as boardGame, IBoard, IMovedBoardLocation, BoardActionCard } from "./board";
 
@@ -10,6 +10,8 @@ type BoardRentType = 'random' | number;
 
 const RANDOM_ELIMINATION_CHANCE = 35;
 const RANDOM_RENT = 7;
+
+export const mountainPrefix = "Mt.";
 
 export class BoardPropertySpace extends BoardSpace {
 	owner: Player | null = null;
@@ -99,7 +101,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		const location = this.playerLocations.get(player)!;
 		let locationAfterMovement = this.getLocationAfterMovement(location, 1);
 		let passedSpaces = locationAfterMovement.passedSpaces.slice();
-		while (!this.board[locationAfterMovement.side][locationAfterMovement.space].name.startsWith("Mt. ")) {
+		while (!this.board[locationAfterMovement.side][locationAfterMovement.space].name.startsWith(mountainPrefix)) {
 			locationAfterMovement = this.getLocationAfterMovement({side: locationAfterMovement.side, space: locationAfterMovement.space}, 1);
 			passedSpaces = passedSpaces.concat(locationAfterMovement.passedSpaces);
 		}
@@ -185,6 +187,10 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 	startingBoardSideSpace: number = 0;
 	turnsInJail = new Map<Player, number>();
 
+	acquireAllPropertiesAchievement?: IGameAchievement;
+	acquireAllMountainsAchievement?: IGameAchievement;
+	doublesRollsAchievement?: IGameAchievement;
+	doublesRollsAchievementAmount?: number;
 	maxCurrency?: number;
 
 	// set once the game starts
@@ -285,7 +291,7 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 	beforeNextRound() {
 		if (this.currentPlayer && this.currentPlayerReRoll) {
 			this.doubleRolls++;
-			// if (this.doubleRolls === 3) Games.unlockAchievement(this.room, this.currentPlayer, 'Pokenopoly Expert', this);
+			if (this.doublesRollsAchievement && this.doubleRolls === this.doublesRollsAchievementAmount) this.unlockAchievement(this.currentPlayer, this.doublesRollsAchievement);
 			this.rollDice(this.currentPlayer!);
 		} else {
 			this.doubleRolls = 0;
@@ -557,6 +563,25 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 		const properties = this.properties.get(player)!;
 		property.owner = player;
 		properties.push(property);
+
+		if (this.acquireAllMountainsAchievement || this.acquireAllPropertiesAchievement) {
+			let acquiredAllMountains = true;
+			let acquiredAllProperties = true;
+			const spaceKeys = Object.keys(this.spaces) as (keyof BoardSpaces)[];
+			for (let i = 0; i < spaceKeys.length; i++) {
+				const space = this.spaces[spaceKeys[i]];
+				if (space instanceof BoardPropertySpace) {
+					if (space.owner !== player) {
+						if (acquiredAllMountains && space.name.startsWith(mountainPrefix)) acquiredAllMountains = false;
+						if (acquiredAllProperties) acquiredAllProperties = false;
+					}
+				}
+				if (!acquiredAllMountains && !acquiredAllProperties) break;
+			}
+
+			if (this.acquireAllMountainsAchievement && acquiredAllMountains) this.unlockAchievement(player, this.acquireAllMountainsAchievement);
+			if (this.acquireAllPropertiesAchievement && acquiredAllProperties) this.unlockAchievement(player, this.acquireAllPropertiesAchievement);
+		}
 
 		this.onAcquirePropertySpace(property, player, cost);
 	}

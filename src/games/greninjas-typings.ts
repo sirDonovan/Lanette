@@ -1,5 +1,5 @@
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Greninja's Typings";
@@ -10,6 +10,11 @@ const data: {pokedex: string[], reverseTypes: Dict<string>, species: Dict<string
 	types: {},
 };
 let loadedData = false;
+
+const achievements: AchievementsDict = {
+	'proteaneye': {name: "Protean Eye", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+	'captainproteaneye': {name: "Captain Protean Eye", type: 'all-answers-team', bits: 1000, mode: 'team', description: "get every answer for your team and win"},
+};
 
 class GreninjasTypings extends Guessing {
 	static loadData(room: Room) {
@@ -27,6 +32,8 @@ class GreninjasTypings extends Guessing {
 		loadedData = true;
 	}
 
+	allAnswersAchievement = achievements.proteaneye;
+	allAnswersTeamAchievement = achievements.captainproteaneye;
 	lastPokemon: string = '';
 	lastTyping: string = '';
 	noOrder: boolean = false;
@@ -53,6 +60,7 @@ class GreninjasTypings extends Guessing {
 }
 
 export const game: IGameFile<GreninjasTypings> = Games.copyTemplateProperties(guessingGame, {
+	achievements,
 	aliases: ['greninjas'],
 	category: 'knowledge',
 	class: GreninjasTypings,

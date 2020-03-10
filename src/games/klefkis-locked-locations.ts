@@ -1,7 +1,7 @@
 import { Player } from "../room-activity";
-import { IGameFile } from "../types/games";
+import { IGameFile, AchievementsDict } from "../types/games";
 import { BoardActionCard, BoardSpace, IBoard } from "./templates/board";
-import { BoardActionSpace, BoardEliminationSpace, BoardPropertyGame, BoardPropertyEliminationSpace, game as boardPropertyGame } from "./templates/board-property";
+import { BoardActionSpace, BoardEliminationSpace, BoardPropertyGame, BoardPropertyEliminationSpace, game as boardPropertyGame,mountainPrefix } from "./templates/board-property";
 import { Room } from "../rooms";
 import { User } from "../users";
 
@@ -52,10 +52,10 @@ const spaces: IBoardSpaces = {
 	diglettscave: new BoardPropertyEliminationSpace("Diglett's Cave", "Light Purple", 1, 15),
 	diglettstunnel: new BoardPropertyEliminationSpace("Diglett's Tunnel", "Light Purple", 1, 15),
 
-	mtmoon: new BoardPropertyEliminationSpace("Mt. Moon", "Dark Brown", 1, 10),
-	mtsilver: new BoardPropertyEliminationSpace("Mt. Silver", "Dark Brown", 1, 10),
-	mtpyre: new BoardPropertyEliminationSpace("Mt. Pyre", "Dark Brown", 1, 10),
-	mtcoronet: new BoardPropertyEliminationSpace("Mt. Coronet", "Dark Brown", 1, 10),
+	mtmoon: new BoardPropertyEliminationSpace(mountainPrefix + " Moon", "Dark Brown", 1, 10),
+	mtsilver: new BoardPropertyEliminationSpace(mountainPrefix + " Silver", "Dark Brown", 1, 10),
+	mtpyre: new BoardPropertyEliminationSpace(mountainPrefix + " Pyre", "Dark Brown", 1, 10),
+	mtcoronet: new BoardPropertyEliminationSpace(mountainPrefix + " Coronet", "Dark Brown", 1, 10),
 
 	// top row
 	lakeacuity: new BoardPropertyEliminationSpace("Lake Acuity", "Purple", 1, 10),
@@ -81,7 +81,16 @@ const spaces: IBoardSpaces = {
 	distortionworld: new BoardPropertyEliminationSpace("Distortion World", "Light Brown", 1, 35),
 };
 
+const doublesRollsAchievementAmount = 3;
+const achievements: AchievementsDict = {
+	"ohbabyatriple": {name: "Oh Baby A Triple", type: 'special', bits: 1000, description: 'roll doubles ' + doublesRollsAchievementAmount + ' times in one round'},
+	"locksmith": {name: "Locksmith", type: 'special', bits: 1000, description: "unlock every property on the board"},
+	"mountainmover": {name: "Mountain Mover", type: 'special', bits: 1000, description: "unlock every mountain on the board"},
+};
+
 class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
+	acquireAllMountainsAchievement = achievements.mountainmover;
+	acquireAllPropertiesAchievement = achievements.locksmith;
 	acquirePropertyAction: string = "unlock";
 	acquirePropertyActionPast: string = "unlocked";
 	availablePropertyState: string = "locked";
@@ -94,6 +103,8 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 	currencyName: string = "key";
 	currencyPluralName: string = "keys";
 	currencyToEscapeJail: number = 1;
+	doublesRollsAchievement = achievements.ohbabyatriple;
+	doublesRollsAchievementAmount = doublesRollsAchievementAmount;
 	escapeFromJailCard: string = "Klefki Card";
 	jailSpace: BoardSpace = spaces.pyritetownjail;
 	passingGoCurrency: number = 1;
@@ -201,6 +212,7 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 }
 
 export const game: IGameFile<KlefkisLockedLocations> = Games.copyTemplateProperties(boardPropertyGame, {
+	achievements,
 	aliases: ["klefkis", "lockedlocations", "kll"],
 	class: KlefkisLockedLocations,
 	commandDescriptions: [Config.commandCharacter + "unlock", Config.commandCharacter + "pass", Config.commandCharacter + "rolldice", Config.commandCharacter + "escape"],

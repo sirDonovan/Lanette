@@ -1,5 +1,5 @@
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, IGameAchievement, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Metang's Anagrams";
@@ -14,6 +14,11 @@ const data: {'Characters': string[], 'Locations': string[], 'Pokemon': string[],
 type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
 let loadedData = false;
+
+const achievements: AchievementsDict = {
+	'wordmaster': {name: "Wordmaster", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+	'captainwordmaster': {name: "Captain Wordmaster", type: 'all-answers-team', bits: 1000, mode: 'team', description: "get every answer for your team and win"},
+};
 
 class MetangsAnagrams extends Guessing {
 	static loadData(room: Room) {
@@ -30,6 +35,8 @@ class MetangsAnagrams extends Guessing {
 		loadedData = true;
 	}
 
+	allAnswersAchievement = achievements.wordmaster;
+	allAnswersTeamAchievement = achievements.captainwordmaster;
 	lastAnswer: string = '';
 
 	async setAnswers() {
@@ -50,6 +57,7 @@ class MetangsAnagrams extends Guessing {
 }
 
 export const game: IGameFile<MetangsAnagrams> = Games.copyTemplateProperties(guessingGame, {
+	achievements,
 	aliases: ['metangs', 'anags', 'ma'],
 	class: MetangsAnagrams,
 	defaultOptions: ['points'],

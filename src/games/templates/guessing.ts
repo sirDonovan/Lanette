@@ -2,7 +2,7 @@ import { ICommandDefinition } from '../../command-parser';
 import { Player } from '../../room-activity';
 import { Game } from '../../room-game';
 import { assert, assertStrictEqual, getBasePlayerName, runCommand } from '../../test/test-tools';
-import { GameFileTests, IGameFormat, IGameTemplateFile } from '../../types/games';
+import { GameFileTests, IGameFormat, IGameTemplateFile, IGameAchievement } from '../../types/games';
 
 const MINIGAME_BITS = 25;
 
@@ -10,10 +10,13 @@ export abstract class Guessing extends Game {
 	additionalHintHeader: string = '';
 	answers: string[] = [];
 	canGuess: boolean = false;
+	firstAnswer: Player | false | undefined;
 	hint: string = '';
 	readonly points: Map<Player, number> = new Map();
 	roundTime: number = 10 * 1000;
 
+	allAnswersAchievement?: IGameAchievement;
+	allAnswersTeamAchievement?: IGameAchievement;
 	roundCategory?: string;
 	readonly roundGuesses?: Map<Player, boolean>;
 
@@ -142,7 +145,14 @@ const commands: Dict<ICommandDefinition<Guessing>> = {
 			points += awardedPoints;
 			this.points.set(player, points);
 
-			// this.markFirstAction(player);
+			if (this.allAnswersAchievement) {
+				if (this.firstAnswer === undefined) {
+					this.firstAnswer = player;
+				} else {
+					if (this.firstAnswer && this.firstAnswer !== player) this.firstAnswer = false;
+				}
+			}
+
 			if (points >= this.format.options.points) {
 				let text = '**' + player.name + '** wins' + (this.parentGame ? '' : ' the game') + '!';
 				const answers = ' ' + this.getAnswers(answer, true);
@@ -152,30 +162,9 @@ const commands: Dict<ICommandDefinition<Guessing>> = {
 					text += ' A possible answer was __' + answer + '__.';
 				}
 				this.say(text);
-				/*
-				if (this.firstAnswer === player && !this.parentGame) {
-					if (this.format.options.points >= 5) {
-						if (this.id === 'metangsanagrams') {
-							Games.unlockAchievement(this.room, player, "wordmaster", this);
-						} else if (this.id === 'slowkingstrivia') {
-							Games.unlockAchievement(this.room, player, "pokenerd", this);
-						} else if (this.id === 'greninjastypings') {
-							Games.unlockAchievement(this.room, player, "Dexter", this);
-						} else if (this.id === 'magcargosweakspot') {
-							Games.unlockAchievement(this.room, player, "Achilles Heel", this);
-						} else if (this.id === 'abrasabilityswitch') {
-							Games.unlockAchievement(this.room, player, 'Skill Swapper', this);
-						}
-					}
-					if (this.format.options.points >= 3) {
-						if (this.id === 'whosthatpokemon') {
-							Games.unlockAchievement(this.room, player, "Pokemon Researcher", this);
-						} else if (this.id === 'whatsthatmove') {
-							Games.unlockAchievement(this.room, player, "Move Relearner", this);
-						}
-					}
+				if (this.allAnswersAchievement && this.firstAnswer === player && !this.parentGame) {
+					this.unlockAchievement(player, this.allAnswersAchievement);
 				}
-				*/
 				this.winners.set(player, 1);
 				this.convertPointsToBits();
 				this.end();

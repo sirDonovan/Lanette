@@ -40,6 +40,7 @@ export type UserHostStatus = 'unapproved' | 'novice' | 'approved';
 export interface IDatabase {
 	botGreetings?: Dict<IBotGreeting>;
 	eventInformation?: Dict<IEventInformation>;
+	gameAchievements?: Dict<string[]>;
 	lastGameFormatTimes?: Dict<number>;
 	lastGameTime?: number;
 	lastTournamentFormatTimes?: Dict<number>;

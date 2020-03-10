@@ -1,5 +1,5 @@
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Abra's Ability Switch";
@@ -8,6 +8,11 @@ const data: {abilities: Dict<string[]>, pokedex: string[]} = {
 	"pokedex": [],
 };
 let loadedData = false;
+
+const achievements: AchievementsDict = {
+	"skillswapper": {name: "Skill Swapper", type: 'all-answers', bits: 1000, description: 'get every answer in one game'},
+	"captainskillswapper": {name: "Captain Skill Swapper", type: 'all-answers-team', bits: 1000, description: 'get every answer in one game'},
+};
 
 class AbrasAbilitySwitch extends Guessing {
 	static loadData(room: Room) {
@@ -28,6 +33,9 @@ class AbrasAbilitySwitch extends Guessing {
 
 		loadedData  = true;
 	}
+
+	allAnswersAchievement = achievements.skillswapper;
+	allAnswersTeamAchievement = achievements.captainskillswapper;
 
 	lastAbility: string = '';
 	lastPokemon: string = '';
@@ -66,6 +74,7 @@ if (!commands.guess.aliases) commands.guess.aliases = [];
 commands.guess.aliases.push('switch');
 
 export const game: IGameFile<AbrasAbilitySwitch> = Games.copyTemplateProperties(guessingGame, {
+	achievements,
 	aliases: ['aas', 'abras'],
 	category: 'knowledge',
 	class: AbrasAbilitySwitch,

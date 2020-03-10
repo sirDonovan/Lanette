@@ -1,15 +1,19 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game, IGameOptionValues } from "../room-game";
-import { IGameFile } from "../types/games";
+import { IGameFile, AchievementsDict } from "../types/games";
 
 const colors: string[] = ['Blue', 'Green', 'Red', 'Yellow', 'Orange', 'Purple', 'Pink', 'Gray', 'Teal', 'Silver', 'Gold', 'Lavender', 'Crimson', 'Scarlet', 'Magenta', 'Apricot', 'Cerulean', 'Amber',
 	'Cyan', 'Peach', 'Lime'];
 
+const achievements: AchievementsDict = {
+	"speedbooster": {name: "Speed Booster", type: 'first', bits: 1000, description: 'travel first every round'},
+};
+
 class NinjasksCorners extends Game {
 	canTravel: boolean = false;
 	color: string = '';
-	// firstTravel: Player | null;
+	firstTravel: Player | false | undefined;
 	lastColor: string = '';
 	minRoundTime: number = 1.8 * 1000;
 	points = new Map<Player, number>();
@@ -30,18 +34,22 @@ class NinjasksCorners extends Game {
 		if (this.round > 1 && !this.format.options.freejoin) {
 			for (const i in this.players) {
 				if (this.players[i].eliminated) continue;
-				if (this.roundTravels.get(this.players[i]) !== this.color) this.eliminatePlayer(this.players[i], "You did not travel to the corner!");
+				const player = this.players[i];
+				if (this.roundTravels.get(player) !== this.color) this.eliminatePlayer(player, "You did not travel to the corner!");
 			}
-			/*
+
 			let firstTravel = true;
-			this.roundTravels.forEach((color, user) => {
-				if (!(user.id in this.players)) return;
-				if (firstTravel && !this.players[user.id].eliminated) {
-					this.markFirstAction(this.players[user.id], 'firstTravel');
+			this.roundTravels.forEach((color, player) => {
+				if (firstTravel) {
+					if (this.firstTravel === undefined) {
+						this.firstTravel = player;
+					} else {
+						if (this.firstTravel && this.firstTravel !== player) this.firstTravel = false;
+					}
 					firstTravel = false;
 				}
 			});
-			*/
+
 			if (this.getRemainingPlayerCount() < 2 || this.round > this.roundLimit) return this.end();
 		}
 
@@ -72,7 +80,7 @@ class NinjasksCorners extends Game {
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
-			// if (player === this.firstTravel) Games.unlockAchievement(this.room, player, "Superspeed", this);
+			if (player === this.firstTravel) this.unlockAchievement(player, achievements.speedbooster!);
 			this.winners.set(player, 1);
 			this.addBits(player, 250);
 		}

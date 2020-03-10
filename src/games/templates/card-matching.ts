@@ -1,6 +1,6 @@
 import { ICommandDefinition } from '../../command-parser';
 import { Player } from '../../room-activity';
-import { GameCategory, IGameTemplateFile } from '../../types/games';
+import { GameCategory, IGameTemplateFile, IGameAchievement } from '../../types/games';
 import { Card, CardType, game as cardGame, IPokemonCard } from './card';
 
 export abstract class CardMatching extends Card {
@@ -17,6 +17,10 @@ export abstract class CardMatching extends Card {
 
 	// always truthy once the game starts
 	topCard!: IPokemonCard;
+
+	drawAchievement?: IGameAchievement;
+	drawAchievementAmount?: number;
+	shinyCardAchievement?: IGameAchievement;
 
 	abstract arePlayableCards(cards: CardType[]): boolean;
 	abstract isPlayableCard(card: CardType, otherCard?: CardType): boolean;
@@ -253,18 +257,18 @@ export abstract class CardMatching extends Card {
 
 	onNextRound() {
 		this.canPlay = false;
-		if (this.currentPlayer) this.lastPlayer = this.currentPlayer;
-		this.currentPlayer = null;
+		if (this.currentPlayer) {
+			this.lastPlayer = this.currentPlayer;
+			this.currentPlayer = null;
+		}
 		if (Date.now() - this.startTime! > this.timeLimit) return this.timeEnd();
-		const remainingPlayers = this.getRemainingPlayerCount();
-		if (!remainingPlayers) {
+		if (this.getRemainingPlayerCount() <= 1) {
 			this.end();
 			return;
 		}
-		if (remainingPlayers === 1) return this.end();
 		let player = this.getNextPlayer();
-		if (!player) return;
-		if (this.timeEnded) return;
+		if (!player || this.timeEnded) return;
+
 		if (this.topCard.action && this.topCard.action.name === 'Skip') {
 			this.say(player.name + "'s turn was skipped!");
 			this.topCard.action = null;
@@ -288,7 +292,9 @@ export abstract class CardMatching extends Card {
 			}
 			hasCard = this.hasPlayableCard(player);
 		}
-		// if (this.lastPlayer && drawCount > 5 && !this.lastPlayer.eliminated && this.id === 'bulbasaursuno') Games.unlockAchievement(this.room, this.lastPlayer, 'draw wizard', this);
+
+		if (this.drawAchievement && this.drawAchievementAmount && this.lastPlayer && drawCount >= this.drawAchievementAmount && !this.lastPlayer.eliminated) this.unlockAchievement(this.lastPlayer, this.drawAchievement);
+
 		if (this.timeEnded) return;
 		if (autoDraws.size) {
 			const names: string[] = [];
@@ -372,7 +378,7 @@ export abstract class CardMatching extends Card {
 		this.awaitingCurrentPlayerCard = false;
 		this.topCard = card;
 		this.showTopCard(card.shiny && !card.played);
-		// if (card.shiny && !card.played) Games.unlockAchievement(this.room, player, 'luck of the draw', this);
+		if (card.shiny && !card.played && this.shinyCardAchievement) this.unlockAchievement(player, this.shinyCardAchievement);
 		card.played = true;
 		cards.splice(cards.indexOf(card), 1);
 		if (drawCards > 0) {

@@ -1,15 +1,27 @@
 import { Player } from "../room-activity";
-import { IGameFile } from "../types/games";
+import { IGameFile, AchievementsDict } from "../types/games";
 import { game as mapGame, GameMap, MapFloor, MapFloorSpace } from "./templates/map";
 import { MapCurrencyGame } from "./templates/map-currency";
 
+const currency = "coins";
+const payDayPoints = 7000;
+const bankruptRounds = 5;
+
+const achievements: AchievementsDict = {
+	"payday": {name: "Pay Day", type: 'points', bits: 1000, description: 'collect at least ' + payDayPoints + ' ' + currency},
+	"meowthscoin": {name: "Meowth's Coin", type: 'special', bits: 1000, description: 'get lucky and find Meowth in the garden'},
+	"bankrupt": {name: "Bankrupt", type: 'special', bits: 1000, description: 'go ' + bankruptRounds + ' rounds without finding any ' + currency},
+};
+
 class PersiansGarden extends MapCurrencyGame {
 	canLateJoin: boolean = true;
-	currency: string = "coins";
+	currency: string = currency;
 	initialCurrencySpaces: number = 40;
 	floors = new Map<Player, number>();
 	maxDimensions: number = 8;
 	minDimensions: number = 8;
+	noCurrencyAchievement = achievements.bankrupt;
+	noCurrencyRound = bankruptRounds;
 	roundActions = new Map<Player, boolean>();
 	startingLives: number = 3;
 	userMaps = new Map<Player, GameMap>();
@@ -28,20 +40,8 @@ class PersiansGarden extends MapCurrencyGame {
 
 	onAchievementSpace(player: Player, floor: MapFloor, space: MapFloorSpace) {
 		delete space.attributes.achievement;
-		/*
-		const database = Storage.getDatabase(this.room as Room);
-		if (database.achievements && database.achievements[player.id] && database.achievements[player.id].indexOf('meowthscoin') !== -1) {
-			let coins = ((Math.floor(Math.random() * 7) + 1) * 100) + ((Math.floor(Math.random() * 9) + 1) * 10) + (Math.floor(Math.random() * 9) + 1);
-			player.say("You arrived at (" + space.coordinates + ") and were greeted by a Meowth. It scratched at a hedge and revealed " + coins + " " + this.currency + "!");
-			let points = this.points.get(player) || 0;
-			points += coins;
-			this.points.set(player, points);
-			player.say("Your collection is now " + points);
-		} else {
-			player.say("You arrived at (" + space.coordinates + ") and were greeted by a Meowth. It scratched at a hedge and revealed a small coin!");
-			Games.unlockAchievement(this.room, player, "Meowth's Coin", this);
-		}
-		*/
+		player.say("You arrived at (" + space.coordinates + ") and were greeted by a Meowth. It scratched at a hedge and revealed a small coin!");
+		this.unlockAchievement(player, achievements.meowthscoin!);
 	}
 
 	eliminatePlayers() {
@@ -76,12 +76,13 @@ class PersiansGarden extends MapCurrencyGame {
 	}
 
 	onEnd() {
-		// const achievement: Player[] = [];
+		const unlockedPayDay: Player[] = [];
+
 		for (const i in this.players) {
 			const player = this.players[i];
 			let earnings = this.points.get(player);
 			if (!earnings) continue;
-			// if (earnings >= 7000) achievement.push(player);
+			if (earnings >= payDayPoints) unlockedPayDay.push(player);
 			if (!player.eliminated) {
 				earnings += 1000;
 				earnings = Math.round(earnings / 4);
@@ -94,12 +95,7 @@ class PersiansGarden extends MapCurrencyGame {
 			this.addBits(player, earnings);
 		}
 
-		/*
-		const multiAchieve = achievement.length > 1;
-		for (let i = 0; i < achievement.length; i++) {
-			Games.unlockAchievement(this.room, achievement[i], "Pay Day", this, multiAchieve);
-		}
-		*/
+		if (unlockedPayDay.length) this.unlockAchievement(unlockedPayDay, achievements.payday!);
 
 		this.announceWinners();
 	}

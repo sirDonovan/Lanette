@@ -1,7 +1,7 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
-import { IGameFile } from "../types/games";
+import { IGameFile, AchievementsDict } from "../types/games";
 
 interface IWheel {
 	magikarpChance: number;
@@ -26,11 +26,22 @@ const colorCodes: KeyedDict<IWheels, {'background-color': string, 'background': 
 	"red": {'background-color': '#C03028', 'background': 'linear-gradient(#C03028,#9D2721)', 'border-color': '#82211B'},
 };
 
+const achievements: AchievementsDict = {
+	'fishoutofwater': {name: "Fish out of Water", type: 'points', bits: 1000, description: "get at least 4000 points"},
+	'goldenmagikarp': {name: "Golden Magikarp", type: 'special', bits: 1000, description: "get lucky and find the golden Magikarp"},
+	'hightidesurvivor': {name: "High Tide Survivor", type: 'special', bits: 1000, description: "survive 5 rounds in the red wheel"},
+};
+
+const fishOutOfWaterPoints = 4000;
+const goldenMagikarpPoints = 1000;
+const highTideSurvivorWheel: WheelsKey = 'red';
+const highTideSurvivorSpins = 5;
+
 class MagikarpsWaterWheel extends Game {
-	achievementGetters = new Map<Player, boolean>();
 	actionCommands: string[] = ['swim', 'tread', 'stay'];
 	canLateJoin: boolean = true;
 	canSwim: boolean = false;
+	consecutiveWheelSpins = new Map<Player, number>();
 	maxRound: number = 20;
 	playerWheels = new Map<Player, WheelsKey>();
 	points = new Map<Player, number>();
@@ -79,40 +90,40 @@ class MagikarpsWaterWheel extends Game {
 		let html = '<div class="infobox"><center>';
 		html += '<div style="display:inline-block;background-color:' + colorCodes[wheel]['background-color'] + ';background:' + colorCodes[wheel]['background'] + ';border-color:' + colorCodes[wheel]['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:100px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt;text-align:center"><b>' + wheel.charAt(0).toUpperCase() + wheel.substr(1) + '</b></div>';
 		let magikarp = false;
+		let goldenMagikarp = false;
 		if (this.random(100) <= wheelStats.magikarpChance) {
 			magikarp = true;
 			const gif = Dex.getPokemonGif(this.mascot!);
 			if (gif) html += "<br />" + gif;
 		} else {
 			let points = this.points.get(player) || 0;
-			/*
 			if (!this.random(100)) {
-				player.say("The wheel landed on something sparkling...");
-				Games.unlockAchievement(this.room, user, "golden Magikarp", this);
-				points += 1000;
-				player.say("The golden Magikarp was worth 1000 points! Your score is now **" + points + "**.");
+				goldenMagikarp = true;
+				points += goldenMagikarpPoints;
+				html += '<br /><br />The wheel landed on <b>Golden Magikarp (' + goldenMagikarpPoints + ' points)</b>!';
 			} else {
-			*/
+				const spin = this.sampleOne(wheelStats.slots);
+				points += spin;
+				this.points.set(player, points);
 
-			const spin = this.sampleOne(wheelStats.slots);
-			points += spin;
-			this.points.set(player, points);
-
-			html += '<br /><br />The wheel landed on <b>' + spin + ' points</b>!';
-			html += '<br /><br />Your total is now <b>' + points + '</b>.';
-
-			/*
-			if (points >= 4000 && !this.achievementGetters.has(player)) {
-				Games.unlockAchievement(this.room, user, "Fish out of Water", this);
-				this.achievementGetters.set(player, true);
+				html += '<br /><br />The wheel landed on <b>' + spin + ' points</b>!';
 			}
-			*/
+			html += '<br /><br />Your total is now <b>' + points + '</b>.';
 		}
 
 		html += '</center></div>';
 		player.sayUhtml(html, 'spin');
 
-		if (magikarp) this.eliminatePlayer(player, "The wheel landed on a Magikarp!");
+		if (magikarp) {
+			this.eliminatePlayer(player, "The wheel landed on a Magikarp!");
+		} else {
+			let consecutiveWheels = this.consecutiveWheelSpins.get(player) || 0;
+			consecutiveWheels++;
+			this.consecutiveWheelSpins.set(player, consecutiveWheels);
+			if (wheel === highTideSurvivorWheel && consecutiveWheels === highTideSurvivorSpins) this.unlockAchievement(player, achievements.hightidesurvivor!);
+
+			if (goldenMagikarp) this.unlockAchievement(player, achievements.goldenmagikarp!);
+		}
 	}
 
 	onNextRound() {
@@ -144,11 +155,13 @@ class MagikarpsWaterWheel extends Game {
 	onEnd() {
 		const bits = new Map<Player, number>();
 		let highestPoints = 0;
+		const reachedAchievementPoints: Player[] = [];
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
 			const points = this.points.get(player);
 			if (!points) continue;
+			if (points >= fishOutOfWaterPoints) reachedAchievementPoints.push(player);
 			bits.set(player, Math.min(250, points / 10));
 			if (points > highestPoints) {
 				this.winners.clear();
@@ -166,6 +179,8 @@ class MagikarpsWaterWheel extends Game {
 				this.addBits(player, amount);
 			}
 		});
+
+		if (reachedAchievementPoints.length) this.unlockAchievement(reachedAchievementPoints, achievements.fishoutofwater!);
 
 		this.announceWinners();
 	}
@@ -197,6 +212,7 @@ const commands: Dict<ICommandDefinition<MagikarpsWaterWheel>> = {
 				return false;
 			}
 
+			this.consecutiveWheelSpins.delete(player);
 			this.roundActions.add(player);
 			this.playerWheels.set(player, newWheel);
 			player.say("You have swam to the **" + newWheel.charAt(0).toUpperCase() + newWheel.substr(1) + "** wheel and " + (direction === "up" ? "increased" : "decreased") + " your chances of Magikarp to " + this.wheels[newWheel].magikarpChance + "%!");
@@ -228,6 +244,7 @@ const commands: Dict<ICommandDefinition<MagikarpsWaterWheel>> = {
 };
 
 export const game: IGameFile<MagikarpsWaterWheel> = {
+	achievements,
 	aliases: ['magikarps', 'mww', 'waterwheel', 'pyl'],
 	class: MagikarpsWaterWheel,
 	commandDescriptions: [Config.commandCharacter + "swim [up/down]", Config.commandCharacter + "tread", Config.commandCharacter + "stay"],

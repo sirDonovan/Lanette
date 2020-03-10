@@ -2,7 +2,7 @@ import { CommandsDict } from "./command-parser";
 import { PRNG, PRNGSeed } from "./prng";
 import { Activity, Player, PlayerList, PlayerTeam } from "./room-activity";
 import { Room } from "./rooms";
-import { IGameFormat, IGameMode, IGameVariant, IUserHostedFormat } from "./types/games";
+import { IGameAchievement, IGameFormat, IGameMode, IGameVariant, IUserHostedFormat } from "./types/games";
 import { IPokemonCopy } from "./types/in-game-data-types";
 import { User } from "./users";
 
@@ -638,6 +638,41 @@ export class Game extends Activity {
 			if (winnings > this.maxBits) winnings = this.maxBits;
 			if (winnings) this.addBits(player, winnings);
 		});
+	}
+
+	unlockAchievement(players: Player | Player[], achievement: IGameAchievement) {
+		if (this.isMiniGame || this.isPm(this.room)) return;
+		const format = this.format as IGameFormat;
+		if (format.mode && format.mode.id !== achievement.mode) return;
+
+		const database = Storage.getDatabase(this.room);
+		if (!database.gameAchievements) database.gameAchievements = {};
+
+		const unlocked: Player[] = [];
+		if (!Array.isArray(players)) players = [players];
+
+		const achievementId = Tools.toId(achievement.name);
+		for (let i = 0; i < players.length; i++) {
+			const player = players[i];
+			let repeat = false;
+			if (player.id in database.gameAchievements) {
+				if (database.gameAchievements[player.id].includes(achievementId)) {
+					if (!achievement.repeatBits) continue;
+					repeat = true;
+				} else {
+					database.gameAchievements[player.id].push(achievementId);
+				}
+			} else {
+				database.gameAchievements[player.id] = [achievementId];
+			}
+
+			unlocked.push(player);
+			this.addBits(player, repeat ? achievement.repeatBits! : achievement.bits);
+		}
+
+		if (!unlocked.length) return;
+
+		this.say(Tools.joinList(unlocked.map(x => x.name), "**") + " unlocked the **" + achievement.name + "** achievement!");
 	}
 
 	rollForShinyPokemon(extraChance?: number): boolean {

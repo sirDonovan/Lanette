@@ -1,7 +1,7 @@
 import { ICommandDefinition } from "../../command-parser";
 import { Player } from "../../room-activity";
 import { Game } from "../../room-game";
-import { IGameTemplateFile } from "../../types/games";
+import { IGameTemplateFile, IGameAchievement } from "../../types/games";
 import { User } from "../../users";
 
 interface ISpaceAttributes {
@@ -99,8 +99,13 @@ export abstract class MapGame extends Game {
 	moveCommands: string[] = ['up', 'down', 'left', 'right'];
 	playerCoordinates = new Map<Player, number[]>();
 	points = new Map<Player, number>();
+	roundsWithoutCurrency = new Map<Player, number>();
 
 	escapedPlayers?: Map<Player, boolean> | null = null;
+	noCurrencyAchievement?: IGameAchievement;
+	noCurrencyRound?: number;
+	recklessAdventurerAchievement?: IGameAchievement;
+	recklessAdventurerRound?: number;
 	roundActions?: Map<Player, boolean> | null = null;
 	trappedPlayers?: Set<Player> | null = null;
 
@@ -295,6 +300,7 @@ export abstract class MapGame extends Game {
 		if (!lives) {
 			player.say("You arrived at (" + space.coordinates + ") and fell into a trap!");
 			this.eliminatePlayer(player, "You ran out of lives!");
+			if (this.recklessAdventurerAchievement && this.round === this.recklessAdventurerRound) this.unlockAchievement(player, this.recklessAdventurerAchievement);
 			return false;
 		} else {
 			player.say("You arrived at (" + space.coordinates + ") and fell into a trap! You have **" + lives + " " + (lives > 1 ? "lives" : "life") + "** left.");
@@ -325,9 +331,15 @@ export abstract class MapGame extends Game {
 		if (!(space.coordinates in floor.traversedCoordinates)) floor.traversedCoordinates[space.coordinates] = new Set();
 		floor.traversedCoordinates[space.coordinates].add(player);
 
+		let currencySpace = false;
 		let regularSpace = false;
 		if (space.attributes.currency) {
-			if (!this.onCurrencySpace(player, floor, space)) regularSpace = true;
+			if (!this.onCurrencySpace(player, floor, space)) {
+				regularSpace = true;
+			} else {
+				this.roundsWithoutCurrency.delete(player);
+				currencySpace = true;
+			}
 		} else if (space.attributes.trap) {
 			if (!this.onTrapSpace(player, floor, space)) return;
 		} else if (space.attributes.exit) {
@@ -355,6 +367,13 @@ export abstract class MapGame extends Game {
 		if (regularSpace) this.onRegularSpace(player, floor, space);
 
 		this.displayMap(player);
+
+		if (!currencySpace && this.noCurrencyAchievement) {
+			let roundsWithoutCurrency = this.roundsWithoutCurrency.get(player) || 0;
+			roundsWithoutCurrency++;
+			this.roundsWithoutCurrency.set(player, roundsWithoutCurrency);
+			if (roundsWithoutCurrency === this.noCurrencyRound) this.unlockAchievement(player, this.noCurrencyAchievement);
+		}
 	}
 
 	findOpenFloorSpace(floor: MapFloor): MapFloorSpace | null {

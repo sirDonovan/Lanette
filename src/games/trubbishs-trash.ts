@@ -2,7 +2,7 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, AchievementsDict } from "../types/games";
 
 interface ITrashedMove {
 	name: string;
@@ -16,6 +16,11 @@ const data: {movePoints: Dict<number>, moves: string[]} = {
 };
 let highestBasePower: number = 0;
 let loadedData = false;
+
+const achievements: AchievementsDict = {
+	"garbagecollector": {name: "Garbage Collector", type: 'first', bits: 1000, description: 'trash first in every round'},
+	"technician": {name: "Technician", type: 'special', bits: 1000, description: 'trash the weakest move in every round'},
+};
 
 class TrubbishsTrash extends Game {
 	static loadData(room: Room) {
@@ -42,7 +47,7 @@ class TrubbishsTrash extends Game {
 	}
 
 	canTrash: boolean = false;
-	// firstTrash: Player | null;
+	firstTrash: Player | false | undefined;
 	maxPoints: number = 1000;
 	points = new Map<Player, number>();
 	roundTrashes = new Map<Player, ITrashedMove>();
@@ -50,9 +55,9 @@ class TrubbishsTrash extends Game {
 	revealTime: number = 10 * 1000;
 	roundTime: number = 5 * 1000;
 	winners = new Map<Player, number>();
-	weakestTrash: Player | boolean = false;
 	roundLimit: number = 20;
-	// weakestMove: string = '';
+	weakestMove: string = '';
+	weakestTrash: Player | false | undefined;
 
 	onSignups() {
 		if (this.format.options.freejoin) {
@@ -62,15 +67,15 @@ class TrubbishsTrash extends Game {
 
 	generateMoves() {
 		const moves = this.sampleMany(data.moves, 3);
-		// let basePowers = [];
+		const basePowers: {move: string, basePower: number}[] = [];
 		for (let i = 0; i < moves.length; i++) {
 			const move = Dex.getExistingMove(moves[i]);
-			// basePowers.push({move: move.name, basePower: data.movePoints[moves[i]]});
+			basePowers.push({move: move.name, basePower: data.movePoints[moves[i]]});
 			this.roundMoves.set(move.id, {name: move.name, points: data.movePoints[moves[i]]});
 			moves[i] = move.name;
 		}
-		// basePowers.sort(function (a, b) { return a.basePower - b.basePower; });
-		// this.weakestMove = basePowers[0].move;
+		basePowers.sort((a, b) => a.basePower - b.basePower);
+		this.weakestMove = basePowers[0].move;
 		const text = "Trubbish found **" + moves.join(", ") + "**!";
 		this.on(text, () => {
 			this.canTrash = true;
@@ -83,11 +88,27 @@ class TrubbishsTrash extends Game {
 		this.canTrash = false;
 		if (this.round > 1) {
 			const trash: {player: Player, move: string, points: number}[] = [];
-			// let actions = 0;
+			let firstTrash = true;
 			this.roundTrashes.forEach((move, player) => {
 				if (player.eliminated) return;
-				// if (actions === 0) this.markFirstAction(player, 'firstTrash');
-				// actions++;
+				if (firstTrash) {
+					if (this.firstTrash === undefined) {
+						this.firstTrash = player;
+					} else {
+						if (this.firstTrash && this.firstTrash !== player) this.firstTrash = false;
+					}
+					firstTrash = false;
+				}
+
+				if (move.name === this.weakestMove) {
+					if (this.weakestTrash === undefined) {
+						this.weakestTrash = player;
+					} else {
+						if (this.weakestTrash && this.weakestTrash !== player) this.weakestTrash = false;
+					}
+				} else if (this.weakestTrash === player) {
+					this.weakestTrash = false;
+				}
 				trash.push({player, move: move.name, points: move.points});
 			});
 			trash.sort((a, b) => b.points - a.points);
@@ -99,13 +120,6 @@ class TrubbishsTrash extends Game {
 				this.points.set(player, points);
 				player.say(trash[i].move + " was worth " + trash[i].points + " points! Your total score is now: " + points + ".");
 				if (points > highestPoints) highestPoints = points;
-				/*
-				if (trash[i].move === this.weakestMove) {
-					this.markFirstAction(player, 'weakestTrash');
-				} else if (this.weakestTrash === player) {
-					this.weakestTrash = true;
-				}
-				*/
 			}
 			this.roundTrashes.clear();
 			this.roundMoves.clear();
@@ -135,15 +149,12 @@ class TrubbishsTrash extends Game {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
 			const points = this.points.get(player);
-			if (points && points >= this.maxPoints) this.winners.set(player, 1);
+			if (points && points >= this.maxPoints) {
+				this.winners.set(player, 1);
+				if (this.firstTrash === player) this.unlockAchievement(player, achievements.garbagecollector!);
+				if (this.weakestTrash === player) this.unlockAchievement(player, achievements.technician!);
+			}
 		}
-
-		/*
-		this.winners.forEach((value, user) => {
-			if (this.firstTrash === user) Games.unlockAchievement(this.room, user, "Garbage Collector", this);
-			if (this.weakestTrash === user) Games.unlockAchievement(this.room, user, "Technician", this);
-		});
-		*/
 
 		this.convertPointsToBits(0.5, 0.1);
 		this.announceWinners();
@@ -167,6 +178,7 @@ const commands: Dict<ICommandDefinition<TrubbishsTrash>> = {
 };
 
 export const game: IGameFile<TrubbishsTrash> = {
+	achievements,
 	aliases: ["trubbishs", "tt"],
 	category: 'speed',
 	commandDescriptions: [Config.commandCharacter + "trash [move]"],
