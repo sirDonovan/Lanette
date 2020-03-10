@@ -6,7 +6,7 @@ import { UserHosted } from './games/internal/user-hosted';
 import { PRNG, PRNGSeed } from './prng';
 import { DefaultGameOption, Game, IGameOptionValues } from "./room-game";
 import { Room } from "./rooms";
-import { GameCommandReturnType, IGameFile, IGameFormat, IGameFormatComputed, IGameFormatData, IGameMode, IGameModeFile, IGameTemplateFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFile, IUserHostedFormat, IUserHostedFormatComputed, UserHostedCustomizable, IGameAchievement, IGameAchievementKeys } from './types/games';
+import { GameCommandReturnType, IGameFile, IGameFormat, IGameFormatComputed, IGameFormatData, IGameMode, IGameModeFile, IGameTemplateFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFile, IUserHostedFormat, IUserHostedFormatComputed, UserHostedCustomizable, IGameAchievementKeys } from './types/games';
 import { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/in-game-data-types';
 import { IPastGame } from './types/storage';
 import { User } from './users';
@@ -106,6 +106,21 @@ export class Games {
 		return Object.assign(Tools.deepClone(template), game);
 	}
 
+	loadFileAchievements(file: IGameFile) {
+		if (!file.achievements) return;
+		const keys = Object.keys(file.achievements) as (keyof IGameAchievementKeys)[];
+		for (let i = 0; i < keys.length; i++) {
+			const key = keys[i];
+			const achievement = file.achievements[key]!;
+			if (Tools.toId(achievement.name) !== key) throw new Error(file.name + "'s achievement " + achievement.name + " needs to have the key '" + Tools.toId(achievement.name) + "'");
+			if (key in this.achievementNames) {
+				if (this.achievementNames[key] !== achievement.name) throw new Error(file.name + "'s achievement '" + key + "' has the name " + this.achievementNames[key] + " in another game.");
+				continue;
+			}
+			this.achievementNames[key] = achievement.name;
+		}
+	}
+
 	loadFormats() {
 		const internalGameKeys = Object.keys(internalGamePaths) as (keyof IInternalGames)[];
 		for (let i = 0; i < internalGameKeys.length; i++) {
@@ -119,6 +134,7 @@ export class Games {
 					if (!(i in this.commands)) this.commands[i] = commands[i];
 				}
 			}
+			if (file.achievements) this.loadFileAchievements(file);
 			this.internalFormats[internalGameKeys[i]] = Object.assign({}, file, {commands, id});
 		}
 
@@ -169,6 +185,7 @@ export class Games {
 					modes.push(mode);
 				}
 			}
+			if (file.achievements) this.loadFileAchievements(file);
 			this.formats[id] = Object.assign({}, file, {commands, id, modes, variants});
 		}
 
@@ -244,20 +261,6 @@ export class Games {
 							if (!(alias in this.aliases)) this.aliases[alias] = format.name + "," + format.variants[i].variant;
 						}
 					}
-				}
-			}
-
-			if (format.achievements) {
-				const keys = Object.keys(format.achievements) as (keyof IGameAchievementKeys)[];
-				for (let i = 0; i < keys.length; i++) {
-					const key = keys[i];
-					const achievement = format.achievements[key]!;
-					if (Tools.toId(achievement.name) !== key) throw new Error(format.name + "'s achievement " + achievement.name + " needs to have the key '" + Tools.toId(achievement.name) + "'");
-					if (key in this.achievementNames) {
-						if (this.achievementNames[key] !== achievement.name) throw new Error(format.name + "'s achievement '" + key + "' has the name " + this.achievementNames[key] + " in another game.");
-						continue;
-					}
-					this.achievementNames[key] = achievement.name;
 				}
 			}
 
