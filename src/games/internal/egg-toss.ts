@@ -71,8 +71,8 @@ const commands: Dict<ICommandDefinition<EggToss>> = {
 				this.say("You cannot egg someone who is marked as away.");
 				return false;
 			}
-			this.currentHolder = this.createPlayer(targetUser) || this.players[targetUser.id];
 			this.lastHolder = this.currentHolder;
+			this.currentHolder = this.createPlayer(targetUser) || this.players[targetUser.id];
 			if (targetUser.id === Users.self.id) {
 				const selectedUser = this.selectUser();
 				this.timeout = setTimeout(() => {
