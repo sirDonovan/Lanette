@@ -2,7 +2,7 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, AchievementsDict } from "../types/games";
 
 const name = "Wishiwashi's Stat Fishing";
 const data: {baseStatTotals: Dict<number>, pokedex: string[]} = {
@@ -10,6 +10,10 @@ const data: {baseStatTotals: Dict<number>, pokedex: string[]} = {
 	pokedex: [],
 };
 let loadedData = false;
+
+const achievements: AchievementsDict = {
+	"sunkentreasure": {name: "Sunken Treasure", type: 'shiny', bits: 1000, repeatBits: 250, description: 'reel in a shiny Pokemon'},
+};
 
 class WishiwashisStatFishing extends Game {
 	static loadData(room: Room) {
@@ -108,7 +112,7 @@ class WishiwashisStatFishing extends Game {
 			}
 		});
 		this.sayHtml(html);
-		// if (pokemon.shiny) Games.unlockAchievement(this.room, player.name, 'Sunken Treasure', this);
+		if (pokemon.shiny) this.unlockAchievement(firstPlayer, achievements.sunkentreasure!);
 	}
 
 	onNextRound() {
@@ -163,6 +167,7 @@ const commands: Dict<ICommandDefinition<WishiwashisStatFishing>> = {
 };
 
 export const game: IGameFile<WishiwashisStatFishing> = {
+	achievements,
 	aliases: ["wishiwashis", "wsf", "sf"],
 	category: 'reaction',
 	commandDescriptions: [Config.commandCharacter + "reel"],

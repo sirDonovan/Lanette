@@ -1,6 +1,6 @@
 import { Player } from "../room-activity";
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Magcargo's Weak Spot";
@@ -12,6 +12,11 @@ const data: {pokedex: string[], inverseTypeKeys: string[], inverseTypeWeaknesses
 	typeWeaknesses: {},
 };
 let loadedData = false;
+
+const achievements: AchievementsDict = {
+	"achillesheel": {name: "Achilles Heel", type: 'all-answers', bits: 1000, description: 'get every answer in one game'},
+	"captainachilles": {name: "Captain Achilles", type: 'all-answers-team', bits: 1000, description: 'get every answer for your team and win'},
+};
 
 class MagcargosWeakSpot extends Guessing {
 	static loadData(room: Room) {
@@ -43,6 +48,8 @@ class MagcargosWeakSpot extends Guessing {
 		loadedData = true;
 	}
 
+	allAnswersAchievement = achievements.achillesheel;
+	allAnswersTeamAchievement = achievements.captainachilles;
 	inverseTypes: boolean = false;
 	lastAnswers: string[] = [];
 	lastPokemon: string = '';
@@ -93,6 +100,7 @@ class MagcargosWeakSpot extends Guessing {
 }
 
 export const game: IGameFile<MagcargosWeakSpot> = Games.copyTemplateProperties(guessingGame, {
+	achievements,
 	aliases: ["Magcargos", "ws"],
 	category: 'knowledge',
 	class: MagcargosWeakSpot,

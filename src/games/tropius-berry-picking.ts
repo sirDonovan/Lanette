@@ -2,7 +2,7 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, AchievementsDict } from "../types/games";
 
 interface IBerry {
 	effect: string;
@@ -77,6 +77,10 @@ const effectDescriptions: Dict<string> = {
 const stats: string[] = ['Attack', 'Defense', 'Special Attack', 'Special Defense', 'Speed'];
 const evs: string[] = ['HP', 'Attack', 'Defense', 'Special Attack', 'Special Defense', 'Speed'];
 
+const achievements: AchievementsDict = {
+	"berrymaster": {name: "Berry Master", type: 'first', bits: 1000, description: 'eat first in every round'},
+};
+
 class TropiusBerryPicking extends Game {
 	static loadData(room: Room) {
 		if (loadedData) return;
@@ -92,7 +96,7 @@ class TropiusBerryPicking extends Game {
 
 	canEat: boolean = false;
 	canLateJoin: boolean = true;
-	// firstEat: Player | null;
+	firstEat: Player | false | undefined;
 	lastMove: string = '';
 	points = new Map<Player, number>();
 	roundBerries = new Map<Player, IBerry>();
@@ -118,16 +122,18 @@ class TropiusBerryPicking extends Game {
 					if (this.players[i].eliminated) continue;
 					if (!this.roundBerries.has(this.players[i])) this.eliminatePlayer(this.players[i], "You did not eat a berry!");
 				}
-				// let firstEat = true;
+				let firstEat = true;
 				let lastPlayer: Player | null = null;
 				this.roundBerries.forEach((berry, player) => {
 					if (player.eliminated) return;
-					/*
 					if (firstEat) {
-						this.markFirstAction(player, 'firstEat');
+						if (this.firstEat === undefined) {
+							this.firstEat = player;
+						} else {
+							if (this.firstEat && this.firstEat !== player) this.firstEat = false;
+						}
 						firstEat = false;
 					}
-					*/
 					if (berry.effect !== this.roundEffect.effect) {
 						this.eliminatePlayer(player, "You ate the wrong berry!");
 						return;
@@ -211,7 +217,7 @@ class TropiusBerryPicking extends Game {
 			const player = this.players[i];
 			this.winners.set(player, 1);
 			this.addBits(player, base);
-			// if (player === this.firstEat && this.round >= 5) Games.unlockAchievement(this.room, player, "Berry Master", this);
+			if (this.firstEat === player && this.round >= 5) this.unlockAchievement(player, achievements.berrymaster!);
 		}
 
 		this.announceWinners();
@@ -253,6 +259,7 @@ const commands: Dict<ICommandDefinition<TropiusBerryPicking>> = {
 };
 
 export const game: IGameFile<TropiusBerryPicking> = {
+	achievements,
 	aliases: ["tropius", "berrypicking", "berries", "tbp"],
 	category: 'knowledge',
 	commandDescriptions: [Config.commandCharacter + "eat [berry]"],

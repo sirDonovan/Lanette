@@ -1,7 +1,7 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
-import { IGameFile } from "../types/games";
+import { IGameFile, AchievementsDict } from "../types/games";
 
 const rods: {rod: string, pokemon: {pokemon: string, points: number}[]}[] = [
 	{rod: 'Super Rod', pokemon: [{pokemon: "Wailmer", points: 250}, {pokemon: "Skrelp", points: 250}, {pokemon: "Sharpedo", points: 300}, {pokemon: "Seaking", points: 300}, {pokemon: "Gyarados", points: 350},
@@ -19,9 +19,14 @@ const rods: {rod: string, pokemon: {pokemon: string, points: number}[]}[] = [
 	},
 ];
 
+const achievements: AchievementsDict = {
+	"quickrod": {name: "Quick Rod", type: 'first', bits: 1000, description: 'reel first in every round'},
+	"sunkentreasure": {name: "Sunken Treasure", type: 'special', bits: 1000, repeatBits: 250, description: 'reel in a shiny Pokemon'},
+};
+
 class FeebasChainFishing extends Game {
 	canReel: boolean = false;
-	// firstReel: Player | null;
+	firstReel: Player | false | undefined;
 	highestPoints: number = 0;
 	maxPoints: number = 2000;
 	points = new Map<Player, number>();
@@ -47,9 +52,14 @@ class FeebasChainFishing extends Game {
 			for (let i = 0; i < this.queue.length; i++) {
 				const player = this.queue[i];
 				const reel = this.sampleOne(currentRod.pokemon);
+				if (this.rollForShinyPokemon()) this.unlockAchievement(player, achievements.sunkentreasure!);
 				let points = reel.points;
 				if (i === 0) {
-					// this.markFirstAction(player, 'firstReel');
+					if (this.firstReel === undefined) {
+						this.firstReel = player;
+					} else {
+						if (this.firstReel && this.firstReel !== player) this.firstReel = false;
+					}
 					points += 50;
 				}
 				let totalPoints = this.points.get(player) || 0;
@@ -99,9 +109,9 @@ class FeebasChainFishing extends Game {
 			if (points === highestPoints) this.winners.set(player, 1);
 		}
 
-		this.winners.forEach((value, user) => {
-			this.addBits(user, 500);
-			// if (this.firstReel === user) Games.unlockAchievement(this.room, user, "Shiny Hunter", this);
+		this.winners.forEach((value, player) => {
+			this.addBits(player, 500);
+			if (this.firstReel === player) this.unlockAchievement(player, achievements.quickrod!);
 		});
 		this.announceWinners();
 	}
@@ -121,6 +131,7 @@ const commands: Dict<ICommandDefinition<FeebasChainFishing>> = {
 };
 
 export const game: IGameFile<FeebasChainFishing> = {
+	achievements,
 	aliases: ["feebas", "fcf", "cf"],
 	category: 'reaction',
 	commandDescriptions: [Config.commandCharacter + "reel"],

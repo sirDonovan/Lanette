@@ -1,7 +1,12 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
-import { IGameFile } from "../types/games";
+import { IGameFile, AchievementsDict } from "../types/games";
+
+const puffAchievementAmount = 15;
+const achievements: AchievementsDict = {
+	"spectralsnuffer": {name: "Spectral Snuffer", type: 'special', bits: 1000, description: 'puff candles ' + puffAchievementAmount + ' times'},
+};
 
 class ChandeluresCandles extends Game {
 	lastTarget: Player | null = null;
@@ -140,9 +145,10 @@ const commands: Dict<ICommandDefinition<ChandeluresCandles>> = {
 			if (targetLives === 0) return false;
 			targetLives -= 1;
 			this.lives.set(targetPlayer, targetLives);
-			const puffs = this.puffs.get(player) || 0;
-			this.puffs.set(player, (puffs + 1));
-			// if (puffs >= 15) Games.unlockAchievement(this.room, player, "Blown Out", this);
+			let puffs = this.puffs.get(player) || 0;
+			puffs++;
+			this.puffs.set(player, puffs);
+			if (puffs === puffAchievementAmount) this.unlockAchievement(player, achievements.spectralsnuffer!);
 			if (targetLives < 1) {
 				if (this.timeout) clearTimeout(this.timeout);
 				this.say(targetPlayer.name + " has been eliminated from the game!");
@@ -156,12 +162,13 @@ const commands: Dict<ICommandDefinition<ChandeluresCandles>> = {
 };
 
 export const game: IGameFile<ChandeluresCandles> = {
+	achievements,
 	aliases: ["chandelures", "candles", "cc"],
 	category: 'reaction',
 	commandDescriptions: [Config.commandCharacter + "hide", Config.commandCharacter + "puff [player]"],
 	commands,
 	class: ChandeluresCandles,
-	description: "Players try to blow out their opponents' candles for bits each round! If your candle is exposed, hide from others before they blow it out.",
+	description: "Players try to put out their opponents' candles for bits each round! If your candle is exposed, hide from others before they can puff.",
 	name: "Chandelure's Candles",
 	mascot: "Chandelure",
 };

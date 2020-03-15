@@ -44,9 +44,9 @@ interface IGameAchievementKeys {
 	bankrupt: any;
 	achillesheel: any;
 	captainachilles: any;
-	pokemonresearcher: any;
+	pokemonprofessor: any;
 	moverelearner: any;
-	shinyhunter: any;
+	quickrod: any;
 	sunkentreasure: any;
 	pokemonranger: any;
 	rainbowwing: any;
@@ -72,7 +72,7 @@ interface IGameAchievementKeys {
 	realestatetycoon: any;
 	locksmith: any;
 	mountainmover: any;
-	blownout: any;
+	spectralsnuffer: any;
 	proteaneye: any;
 	captainproteaneye: any;
 	wonderguardwarrior: any;
