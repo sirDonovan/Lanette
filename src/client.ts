@@ -14,6 +14,9 @@ const MAIN_HOST = "sim3.psim.us";
 const RELOGIN_SECONDS = 60;
 const SEND_THROTTLE = 800;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
+const HTML_CHAT_COMMAND = '/raw ';
+const UHTML_CHAT_COMMAND = '/uhtml ';
+const UHTML_CHANGE_CHAT_COMMAND = '/uhtmlchange ';
 const DEFAULT_SERVER_GROUPS: ServerGroupData[] = [
 	{
 		"symbol": "~",
@@ -561,10 +564,38 @@ export class Client {
 			if (roomData) roomData.lastChatMessage = messageArguments.timestamp;
 
 			if (user === Users.self) {
-				const id = Tools.toId(messageArguments.message);
-				if (id in room.messageListeners) {
-					room.messageListeners[id]();
-					delete room.messageListeners[id];
+				if (messageArguments.message.startsWith(HTML_CHAT_COMMAND)) {
+					const htmlId = Tools.toId(messageArguments.message.substr(HTML_CHAT_COMMAND.length));
+					if (htmlId in room.htmlMessageListeners) {
+						room.htmlMessageListeners[htmlId]();
+						delete room.htmlMessageListeners[htmlId];
+					}
+				} else {
+					let uhtml = '';
+					if (messageArguments.message.startsWith(UHTML_CHAT_COMMAND)) {
+						uhtml = messageArguments.message.substr(UHTML_CHAT_COMMAND.length);
+					} else if (messageArguments.message.startsWith(UHTML_CHANGE_CHAT_COMMAND)) {
+						uhtml = messageArguments.message.substr(UHTML_CHANGE_CHAT_COMMAND.length);
+					}
+
+					const commaIndex = uhtml.indexOf(',');
+					if (commaIndex !== -1) {
+						const name = uhtml.substr(0, commaIndex);
+						const id = Tools.toId(name);
+						if (id in room.uhtmlMessageListeners) {
+							const htmlId = Tools.toId(uhtml.substr(commaIndex + 1));
+							if (htmlId in room.uhtmlMessageListeners[id]) {
+								room.uhtmlMessageListeners[id][htmlId]();
+								delete room.uhtmlMessageListeners[id][htmlId];
+							}
+						}
+					} else {
+						const id = Tools.toId(messageArguments.message);
+						if (id in room.messageListeners) {
+							room.messageListeners[id]();
+							delete room.messageListeners[id];
+						}
+					}
 				}
 			} else {
 				this.parseChatMessage(room, user, messageArguments.message);
