@@ -370,6 +370,10 @@ const commands: Dict<ICommandDefinition> = {
 				if (!target) return;
 				const chatRoom = Rooms.search(Tools.toRoomId(target));
 				if (!chatRoom) return;
+
+				const userData = user.rooms.get(chatRoom);
+				if (userData && userData.rank === Client.groupSymbols.muted) return this.say("You cannot join games while you are muted.");
+
 				if (chatRoom.game) {
 					chatRoom.game.addPlayer(user);
 				} else if (chatRoom.userHostedGame) {

@@ -8,7 +8,7 @@ import { IClientMessageTypes, IRoomInfoResponse, IServerGroup, ITournamentMessag
 import { ISeparatedCustomRules } from './types/in-game-data-types';
 import { User } from './users';
 
-export type GroupName = 'voice' | 'bot' | 'driver' | 'moderator' | 'roomowner' | 'locked';
+export type GroupName = 'voice' | 'bot' | 'driver' | 'moderator' | 'roomowner' | 'muted' | 'locked';
 
 const MAIN_HOST = "sim3.psim.us";
 const RELOGIN_SECONDS = 60;
@@ -1103,8 +1103,12 @@ export class Client {
 				}
 			} else if (groups[i].type === 'normal' && groups[i].name === 'Voice') {
 				this.groupSymbols.voice = groups[i].symbol;
-			} else if (groups[i].type === 'punishment' && groups[i].name === 'Locked') {
-				this.groupSymbols.locked = groups[i].symbol;
+			} else if (groups[i].type === 'punishment') {
+				if (groups[i].name === 'Locked') {
+					this.groupSymbols.locked = groups[i].symbol;
+				} else if (groups[i].name === 'Muted') {
+					this.groupSymbols.muted = groups[i].symbol;
+				}
 			}
 			ranking--;
 		}
