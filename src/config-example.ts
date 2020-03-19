@@ -51,6 +51,11 @@ export let avatar = '';
 export let commandCharacter = '.';
 
 /**
+ * Whether or not PS code should be updated upon hotpatching
+ */
+export let autoUpdatePS: boolean = false;
+
+/**
  * Whether or not users can send messages to other offline users
  */
 export let allowMail: boolean = true;

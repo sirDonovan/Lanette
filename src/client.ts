@@ -17,6 +17,7 @@ const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const HTML_CHAT_COMMAND = '/raw ';
 const UHTML_CHAT_COMMAND = '/uhtml ';
 const UHTML_CHANGE_CHAT_COMMAND = '/uhtmlchange ';
+const HOTPATCH_CHAT_COMMAND = ' used /hotpatch ';
 const DEFAULT_SERVER_GROUPS: ServerGroupData[] = [
 	{
 		"symbol": "~",
@@ -606,10 +607,10 @@ export class Client {
 				Storage.logChatMessage(room, messageArguments.timestamp, 'c', messageArguments.rank + user.name + '|' + messageArguments.message);
 			}
 
-			if (messageArguments.message.startsWith('/log ') && messageArguments.message.includes(' used /hotpatch ')) {
-				const hotpatched = messageArguments.message.substr(messageArguments.message.indexOf('/hotpatch ') + 10).trim();
+			if (messageArguments.message.startsWith('/log ') && messageArguments.message.includes(HOTPATCH_CHAT_COMMAND)) {
+				const hotpatched = messageArguments.message.substr(messageArguments.message.indexOf(HOTPATCH_CHAT_COMMAND) + HOTPATCH_CHAT_COMMAND.length).trim();
 				if (hotpatched === 'formats' || hotpatched === 'battles') {
-					Tools.runUpdatePS();
+					if (Config.autoUpdatePS) Tools.runUpdatePS();
 				}
 			}
 			break;
