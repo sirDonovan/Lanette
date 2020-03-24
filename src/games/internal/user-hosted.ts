@@ -222,6 +222,10 @@ export const game: IUserHostedFile<UserHosted> = {
 			freejoin: true,
 		},
 		{
+			name: "Necturna's Move Tutor",
+			description: "Each round, players create a move of a type chosen by the host. Entries are judged on creativity and viability based on base power, PP, and secondary effects.",
+		},
+		{
 			name: "Nickgames",
 			description: "Each round, the host will announce a Pokemon and players must create the most funny, clever, cute, creative, or fitting nickname for it using the standard formatting --[nickname]--.",
 			freejoin: true,
