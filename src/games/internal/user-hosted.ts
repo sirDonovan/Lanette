@@ -13,7 +13,6 @@ export class UserHosted extends Game {
 	hostId: string = '';
 	hostName: string = '';
 	hostTimeout: NodeJS.Timer | null = null;
-	minPlayers: number = 0;
 	readonly points = new Map<Player, number>();
 	savedWinners: Player[] | null = null;
 	scoreCap: number = 0;
@@ -32,7 +31,10 @@ export class UserHosted extends Game {
 
 		this.endTime = Date.now() + HOST_TIME_LIMIT;
 		if (this.format.link) this.description += "<br /><br /><b><a href='" + this.format.link + "'>More info</a></b>";
-		if (this.format.freejoin) this.format.options.freejoin = 1;
+		if (this.format.freejoin) {
+			this.format.options.freejoin = 1;
+			this.minPlayers = 0;
+		}
 	}
 
 	setHost(host: User | string) {

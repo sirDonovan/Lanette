@@ -343,7 +343,7 @@ const commands: Dict<ICommandDefinition> = {
 				if (!room.game.start()) this.say("Not enough players have joined the game.");
 			} else if (room.userHostedGame) {
 				if (user.id !== room.userHostedGame.hostId || room.userHostedGame.started) return;
-				room.userHostedGame.start();
+				if (!room.userHostedGame.start()) user.say("Not enough players have joined your game.");
 			}
 		},
 		aliases: ['sg'],
