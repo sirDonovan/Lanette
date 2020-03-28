@@ -41,6 +41,7 @@ export abstract class BoardGame extends Game {
 	boardRound: number = 0;
 	currentPlayer: Player | null = null;
 	dice: number[] = [];
+	doubleRolls: number = 0;
 	maxPlayers: number = 25;
 	playerLocations = new Map<Player, IBoardLocation>();
 	playerList: Player[] = [];
@@ -138,6 +139,7 @@ export abstract class BoardGame extends Game {
 			return;
 		}
 
+		this.doubleRolls = 1;
 		this.currentPlayer = player;
 		this.onNextPlayer(player);
 	}

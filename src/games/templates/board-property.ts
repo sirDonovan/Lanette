@@ -174,7 +174,6 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 	canEscape: boolean = false;
 	canRoll: boolean = false;
 	canAcquire: boolean = false;
-	doubleRolls: number = 0;
 	escapeFromJailCards = new Map<Player, number>();
 	maxPlayers: number = 25;
 	numberOfDice: number = 2;
@@ -294,10 +293,9 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 	beforeNextRound() {
 		if (this.currentPlayer && this.currentPlayerReRoll) {
 			this.doubleRolls++;
-			if (this.doublesRollsAchievement && this.doubleRolls === this.doublesRollsAchievementAmount) this.unlockAchievement(this.currentPlayer, this.doublesRollsAchievement);
 			this.rollDice(this.currentPlayer!);
+			if (this.doublesRollsAchievement && this.doubleRolls === this.doublesRollsAchievementAmount) this.unlockAchievement(this.currentPlayer, this.doublesRollsAchievement);
 		} else {
-			this.doubleRolls = 0;
 			this.nextRound();
 		}
 	}
