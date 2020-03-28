@@ -11,6 +11,7 @@ import { GameDifficulty, IGameFormat } from "./types/games";
 import { IFormat } from "./types/in-game-data-types";
 import { User } from "./users";
 import { UserHostStatus } from './types/storage';
+import { UserHosted } from './games/internal/user-hosted';
 
 type ReloadableModule = 'client' | 'commandparser' | 'commands' | 'config' | 'dex' | 'games' | 'storage' | 'tools' | 'tournaments';
 const moduleOrder: ReloadableModule[] = ['tools', 'config', 'dex', 'client', 'commandparser', 'commands', 'games', 'storage', 'tournaments'];
@@ -391,13 +392,33 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	leavegame: {
 		command(target, room, user) {
-			if (this.isPm(room)) return;
-			if (room.game) {
-				room.game.removePlayer(user);
-			} else if (room.userHostedGame) {
-				if (!(user.id in room.userHostedGame.players) || room.userHostedGame.players[user.id].eliminated) return;
-				room.userHostedGame.destroyPlayer(user);
-				user.say("You have left the " + room.userHostedGame.name + " " + room.userHostedGame.activityType + ".");
+			let game: Game | undefined;
+			let userHostedGame: UserHosted | undefined;
+
+			if (this.isPm(room)) {
+				if (!target) return;
+				const chatRoom = Rooms.search(Tools.toRoomId(target));
+				if (!chatRoom) return;
+
+				if (chatRoom.game) {
+					game = chatRoom.game;
+				} else if (chatRoom.userHostedGame) {
+					userHostedGame = chatRoom.userHostedGame;
+				}
+			} else {
+				if (room.game) {
+					game = room.game;
+				} else if (room.userHostedGame) {
+					userHostedGame = room.userHostedGame;
+				}
+			}
+
+			if (game) {
+				game.removePlayer(user);
+			} else if (userHostedGame) {
+				if (!(user.id in userHostedGame.players) || userHostedGame.players[user.id].eliminated) return;
+				userHostedGame.destroyPlayer(user);
+				user.say("You have left the " + userHostedGame.name + " " + userHostedGame.activityType + ".");
 			}
 		},
 	},
