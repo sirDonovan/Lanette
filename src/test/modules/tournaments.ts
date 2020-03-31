@@ -22,7 +22,7 @@ describe("Tournaments", () => {
 		for (const room in Tournaments.schedules) {
 			const schedule = Tournaments.schedules[room];
 			for (const month in schedule.months) {
-				date.setMonth(parseInt(month) - 1);
+				date.setMonth(parseInt(month) - 1, 1);
 				const totalDays = Tools.getLastDayOfMonth(date);
 
 				const scheduled = Object.keys(schedule.months[month].formats).length;
@@ -101,7 +101,7 @@ describe("Tournaments", () => {
 		for (let i = startIndex; i < endIndex; i++) {
 			if (timesIndex > 0 && times[timesIndex][0] < times[timesIndex - 1][0]) {
 				// month + 1 - 1
-				date.setMonth(month);
+				date.setMonth(month, 1);
 				date.setDate(1);
 			}
 			date.setHours(times[timesIndex][0], times[timesIndex][1], 0, 0);
@@ -120,7 +120,7 @@ describe("Tournaments", () => {
 		Tournaments.loadSchedules();
 		assertStrictEqual(Tournaments.scheduledTournaments[room.id].length, lastDayOfMonth * times.length);
 
-		date.setMonth(month - 1);
+		date.setMonth(month - 1, 1);
 		day = 1;
 		date.setDate(day);
 		for (let i = 0; i < times.length; i++) {
@@ -141,7 +141,7 @@ describe("Tournaments", () => {
 		for (let i = startIndex; i < endIndex; i++) {
 			if (timesIndex > 0 && times[timesIndex][0] < times[timesIndex - 1][0]) {
 				// month + 1 - 1
-				date.setMonth(month);
+				date.setMonth(month, 1);
 				date.setDate(1);
 			}
 			date.setHours(times[timesIndex][0], times[timesIndex][1], 0, 0);
@@ -160,7 +160,7 @@ describe("Tournaments", () => {
 		Tournaments.loadSchedules();
 		assertStrictEqual(Tournaments.scheduledTournaments[room.id].length, lastDayOfMonth * times.length);
 
-		date.setMonth(month - 1);
+		date.setMonth(month - 1, 1);
 		day = 1;
 		date.setDate(day);
 		for (let i = 0; i < times.length; i++) {
@@ -181,7 +181,7 @@ describe("Tournaments", () => {
 		for (let i = startIndex; i < endIndex; i++) {
 			if (timesIndex > 0 && times[timesIndex][0] < times[timesIndex - 1][0]) {
 				// month + 1 - 1
-				date.setMonth(month);
+				date.setMonth(month, 1);
 				date.setDate(1);
 			}
 			date.setHours(times[timesIndex][0], times[timesIndex][1], 0, 0);
