@@ -94,30 +94,30 @@ export class Tournaments {
 			months.shift();
 
 			let formats = this.schedules[room].months[month].formats;
-			const date = new Date();
-			date.setMonth(month - 1);
-			let day = 1;
-			date.setDate(day);
 			let times = this.schedules[room].months[month].times;
+			const date = new Date();
+			let day = 1;
+			date.setMonth(month - 1, day);
+			date.setDate(day);
 			let lastDayOfMonth = Tools.getLastDayOfMonth(date);
 
 			const rolloverDay = () => {
 				day++;
 				if (day > lastDayOfMonth) {
+					day = 1;
 					const previousMonth = month;
 					month = months[0];
 					months.shift();
 					if (month) {
-						date.setMonth(month - 1);
+						date.setMonth(month - 1, day);
 
 						formats = this.schedules[room].months[month].formats;
 						times = this.schedules[room].months[month].times;
 						lastDayOfMonth = Tools.getLastDayOfMonth(date);
 					} else {
 						// previousMonth + 1 - 1
-						date.setMonth(previousMonth);
+						date.setMonth(previousMonth, day);
 					}
-					day = 1;
 				}
 				date.setDate(day);
 			}
