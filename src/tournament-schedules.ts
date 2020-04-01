@@ -51,15 +51,6 @@ export const tournamentSchedules: Dict<IRoomTournamentSchedule> = {
 			},
 			'4': {
 				formats: {
-					/*
-					SWSH OU
-					SWSH UU
-					SWSH RU
-					SWSH NU
-					SWSH LC
-					SWSH DOU
-					SWSH Monotype
-					*/
 					'1': 'ou',
 					'2': 'monotype',
 					'3': 'uu',
