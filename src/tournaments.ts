@@ -307,12 +307,11 @@ export class Tournaments {
 		}, timer);
 	}
 
-	getTournamentScheduleHtml(room: Room): string {
+	getTournamentScheduleHtml(room: Room, month: number): string {
 		if (!(room.id in this.schedules)) return "";
 		const schedule = this.schedules[room.id];
 		const daysOfTheWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 		const date = new Date();
-		const month = date.getMonth() + 1;
 		if (!(month in schedule.months)) return "";
 		const currentDate = date.getDate();
 		if (currentDate > 1) date.setHours(-24 * (currentDate - 1), 0, 0, 0);

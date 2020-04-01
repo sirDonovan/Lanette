@@ -1602,7 +1602,9 @@ const commands: Dict<ICommandDefinition> = {
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.sayError(['disabledTournamentFeatures', room.title]);
 				tournamentRoom = room;
 			}
-			const schedule = Tournaments.getTournamentScheduleHtml(tournamentRoom);
+			const month = parseInt(target);
+			if (isNaN(month)) return this.say("You must specify the month (1-12).");
+			const schedule = Tournaments.getTournamentScheduleHtml(tournamentRoom, month);
 			if (!schedule) return this.say("No tournament schedule found for " + tournamentRoom.title + ".");
 			this.sayCommand("!code " + schedule);
 		},
