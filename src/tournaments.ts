@@ -311,10 +311,10 @@ export class Tournaments {
 		if (!(room.id in this.schedules)) return "";
 		const schedule = this.schedules[room.id];
 		const daysOfTheWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-		const date = new Date();
 		if (!(month in schedule.months)) return "";
-		const currentDate = date.getDate();
-		if (currentDate > 1) date.setHours(-24 * (currentDate - 1), 0, 0, 0);
+		const date = new Date();
+		date.setMonth(month - 1, 1);
+		date.setDate(1);
 		const firstDay = date.getDay();
 		const lastDay = Tools.getLastDayOfMonth(date) + 1;
 		let currentDay = firstDay;
