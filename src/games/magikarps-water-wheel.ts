@@ -1,7 +1,7 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
-import { IGameFile, AchievementsDict } from "../types/games";
+import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
 
 interface IWheel {
 	magikarpChance: number;
@@ -18,7 +18,7 @@ interface IWheels {
 
 type WheelsKey = keyof IWheels;
 
-const colorCodes: KeyedDict<IWheels, {'background-color': string, 'background': string, 'border-color': string}> = {
+const colorCodes: KeyedDict<IWheels, {'background-color': string; 'background': string; 'border-color': string}> = {
 	"purple": {'background-color': '#A040A0', 'background': 'linear-gradient(#A040A0,#803380)', 'border-color': '#662966'},
 	"blue": {'background-color': '#6890F0', 'background': 'linear-gradient(#6890F0,#386CEB)', 'border-color': '#1753E3'},
 	"green": {'background-color': '#78C850', 'background': 'linear-gradient(#78C850,#5CA935)', 'border-color': '#4A892B'},
@@ -71,7 +71,7 @@ class MagikarpsWaterWheel extends Game {
 		},
 	};
 
-	onAddPlayer(player: Player, lateJoin?: boolean) {
+	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
 		if (lateJoin) {
 			if (this.round > 1) return false;
 		}
@@ -79,12 +79,12 @@ class MagikarpsWaterWheel extends Game {
 		return true;
 	}
 
-	onStart() {
+	onStart(): void {
 		this.say("Use ``" + Config.commandCharacter + "swim [up/down]`` to swim to a higher/lower wheel, ``" + Config.commandCharacter + "tread`` to remain on your current wheel, or ``" + Config.commandCharacter + "stay`` to stop with your current score any round!");
 		this.nextRound();
 	}
 
-	spinWheel(player: Player) {
+	spinWheel(player: Player): void {
 		const wheel = this.playerWheels.get(player)!;
 		const wheelStats = this.wheels[wheel];
 		let html = '<div class="infobox"><center>';
@@ -126,7 +126,7 @@ class MagikarpsWaterWheel extends Game {
 		}
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		this.canSwim = false;
 		if (this.round > 1) {
 			for (const i in this.players) {
@@ -152,7 +152,7 @@ class MagikarpsWaterWheel extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		const bits = new Map<Player, number>();
 		let highestPoints = 0;
 		const reachedAchievementPoints: Player[] = [];
@@ -188,7 +188,7 @@ class MagikarpsWaterWheel extends Game {
 
 const commands: Dict<ICommandDefinition<MagikarpsWaterWheel>> = {
 	swim: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canSwim || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) return false;
 			if (this.roundActions.has(this.players[user.id])) return false;
 			const player = this.players[user.id];
@@ -220,14 +220,14 @@ const commands: Dict<ICommandDefinition<MagikarpsWaterWheel>> = {
 		},
 	},
 	tread: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canSwim || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) return false;
 			this.roundActions.add(this.players[user.id]);
 			return true;
 		},
 	},
 	stay: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canSwim || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) return false;
 			const player = this.players[user.id];
 			const points = this.points.get(player);

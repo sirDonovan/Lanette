@@ -16,7 +16,7 @@ const achievements: AchievementsDict = {
 };
 
 class AxewsBattleCards extends CardMatching {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 		const typeKeys = Object.keys(Dex.data.typeChart);
@@ -55,7 +55,7 @@ class AxewsBattleCards extends CardMatching {
 		return true;
 	}
 
-	onRemovePlayer(player: Player) {
+	onRemovePlayer(player: Player): void {
 		const index = this.playerOrder.indexOf(player);
 		if (index > -1) this.playerOrder.splice(index, 1);
 		if (player === this.currentPlayer) {
@@ -63,12 +63,12 @@ class AxewsBattleCards extends CardMatching {
 		}
 	}
 
-	filterPoolItem(pokemon: IPokemon) {
+	filterPoolItem(pokemon: IPokemon): boolean {
 		if (this.hasNoWeaknesses(pokemon)) return true;
 		return false;
 	}
 
-	createDeck() {
+	createDeck(): void {
 		const weaknessCounts: Dict<number> = {};
 		if (!this.deckPool.length) this.createDeckPool();
 		const pokedex = this.shuffle(this.deckPool);
@@ -117,7 +117,7 @@ class AxewsBattleCards extends CardMatching {
 		this.deck = this.shuffle(deck);
 	}
 
-	getTopCardText() {
+	getTopCardText(): string {
 		return "**" + this.topCard.species + "** (" + this.topCard.types.join("/") + ")";
 	}
 
@@ -129,7 +129,7 @@ class AxewsBattleCards extends CardMatching {
 		return this.getChatTypeLabel(card);
 	}
 
-	hasNoWeaknesses(pokemon: IPokemon) {
+	hasNoWeaknesses(pokemon: IPokemon): boolean {
 		let noWeaknesses = true;
 		for (const i in Dex.data.typeChart) {
 			if (!Dex.isImmune(i, pokemon) && Dex.getEffectiveness(i, pokemon) > 0) {
@@ -140,11 +140,11 @@ class AxewsBattleCards extends CardMatching {
 		return noWeaknesses;
 	}
 
-	isStaleTopCard() {
+	isStaleTopCard(): boolean {
 		return this.hasNoWeaknesses(this.topCard);
 	}
 
-	isPlayableCard(card: IPokemonCard, otherCard?: IPokemonCard) {
+	isPlayableCard(card: IPokemonCard, otherCard?: IPokemonCard): boolean {
 		if (card === this.topCard) return false;
 		if (!otherCard) otherCard = this.topCard;
 		let valid = false;
@@ -229,12 +229,12 @@ class AxewsBattleCards extends CardMatching {
 		return playableCards;
 	}
 
-	timeEnd() {
+	timeEnd(): void {
 		this.say("Time is up!");
 		this.end();
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		this.canPlay = false;
 		if (this.currentPlayer) {
 			this.lastPlayer = this.currentPlayer;
@@ -299,7 +299,7 @@ class AxewsBattleCards extends CardMatching {
 		this.say(text);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
@@ -310,7 +310,7 @@ class AxewsBattleCards extends CardMatching {
 		this.announceWinners();
 	}
 
-	autoPlay(player: Player, playableCards: string[]) {
+	autoPlay(player: Player, playableCards: string[]): void {
 		let autoplay = '';
 		if (playableCards.includes('Explosion')) playableCards.splice(playableCards.indexOf('Explosion'), 1);
 		if (playableCards.length) autoplay = this.sampleOne(playableCards);

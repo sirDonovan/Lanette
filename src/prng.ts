@@ -15,7 +15,7 @@ export type PRNGSeed = [number, number, number, number];
  * initial seed.
  */
 export class PRNG {
-	static generateSeed() {
+	static generateSeed(): PRNGSeed {
 		return [
 			Math.floor(Math.random() * 0x10000),
 			Math.floor(Math.random() * 0x10000),
@@ -61,7 +61,6 @@ export class PRNG {
 	 */
 	next(from?: number, to?: number): number {
 		this.seed = this.nextFrame(this.seed); // Advance the RNG
-		// tslint:disable-next-line no-bitwise
 		let result = (this.seed[0] << 16 >>> 0) + this.seed[1]; // Use the upper 32 bits
 		if (from) from = Math.floor(from);
 		if (to) to = Math.floor(to);
@@ -120,7 +119,7 @@ export class PRNG {
 	 * At least according to V4 in
 	 * https://github.com/Zarel/Pokemon-Showdown/issues/1157#issuecomment-214454873
 	 */
-	shuffle<T>(items: T[], start: number = 0, end: number = items.length) {
+	shuffle<T>(items: T[], start: number = 0, end: number = items.length): void {
 		while (start < end - 1) {
 			const nextIndex = this.next(start, end);
 			if (start !== nextIndex) {
@@ -199,15 +198,11 @@ export class PRNG {
 				let aN = seed.length - 1;
 				for (let seedN = cN; seedN < seed.length; --aN, ++seedN) {
 					const nextWord = a[aN] * seed[seedN];
-					// tslint:disable-next-line no-bitwise
 					carry += nextWord >>> 16;
-					// tslint:disable-next-line no-bitwise
 					nextSeed[cN] += nextWord & 0xFFFF;
 				}
 				nextSeed[cN] += c[cN];
-				// tslint:disable-next-line no-bitwise
 				carry += nextSeed[cN] >>> 16;
-				// tslint:disable-next-line no-bitwise
 				nextSeed[cN] &= 0xFFFF;
 			}
 

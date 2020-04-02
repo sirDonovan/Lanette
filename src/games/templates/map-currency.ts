@@ -11,12 +11,12 @@ export abstract class MapCurrencyGame extends MapGame {
 
 	abstract eliminatePlayers(): void;
 
-	onGenerateMapFloor(floor: MapFloor) {
+	onGenerateMapFloor(floor: MapFloor): void {
 		this.setCurrencyCoordinates(floor, this.initialCurrencySpaces);
 		this.setAchievementCoordinates(floor);
 	}
 
-	onAddPlayer(player: Player, lateJoin?: boolean) {
+	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
 		if (lateJoin) {
 			if (this.round > 1) return false;
 			this.positionPlayer(player);
@@ -25,13 +25,13 @@ export abstract class MapCurrencyGame extends MapGame {
 		return true;
 	}
 
-	onStart() {
+	onStart(): void {
 		this.say("Now sending coordinates in PMs!");
 		this.positionPlayers();
 		this.nextRound();
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		if (this.round > 1 && (this.round - 1) % 5 === 0) this.eliminatePlayers();
 		const len = this.getRemainingPlayerCount();
 		if (len < 2) return this.end();

@@ -10,12 +10,12 @@ export abstract class MapDamageGame extends MapGame {
 
 	abstract damagePlayers(): void;
 
-	onGenerateMapFloor(floor: MapFloor) {
+	onGenerateMapFloor(floor: MapFloor): void {
 		this.setCurrencyCoordinates(floor);
 		this.setAchievementCoordinates(floor);
 	}
 
-	onAddPlayer(player: Player, lateJoin?: boolean) {
+	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
 		if (lateJoin) {
 			if (this.round > 1) return false;
 			this.positionPlayer(player);
@@ -24,14 +24,14 @@ export abstract class MapDamageGame extends MapGame {
 		return true;
 	}
 
-	onStart() {
+	onStart(): void {
 		this.say("Now sending coordinates in PMs!");
 		this.maxDimensions = this.playerCount;
 		this.positionPlayers();
 		this.nextRound();
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		const len = this.getRemainingPlayerCount();
 		if (!len) return this.end();
 		this.roundActions.clear();

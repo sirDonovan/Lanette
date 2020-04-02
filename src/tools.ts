@@ -1,4 +1,4 @@
-import child_process = require('child_process');
+import childProcess = require('child_process');
 import fs = require('fs');
 import https = require('https');
 import path = require('path');
@@ -9,7 +9,7 @@ import type { HexColor, IHexColor } from './types/global-types';
 import { User } from './users';
 import { IParam } from './workers/parameters';
 
-const exec = util.promisify(child_process.exec);
+const exec = util.promisify(childProcess.exec);
 
 const ALPHA_NUMERIC_REGEX = /[^a-zA-Z0-9 ]/g;
 const ID_REGEX = /[^a-z0-9]/g;
@@ -25,7 +25,7 @@ const fetchUrlTimeoutTimers = {
 	'challonge': 5 * 1000,
 };
 
-const hexColorCodes: KeyedDict<IHexColor, {'background-color': string, 'background': string, 'border-color': string}> = {
+const hexColorCodes: KeyedDict<IHexColor, {'background-color': string; 'background': string; 'border-color': string}> = {
 	"White": {'background-color': '#eeeeee', 'background': 'linear-gradient(#eeeeee, #dddddd)', 'border-color': '#222222'},
 	"Black": {'background-color': '#222222', 'background': 'linear-gradient(#222222, #111111)', 'border-color': '#eeeeee'},
 	"Dark Yellow": {'background-color': '#8A8A59', 'background': 'linear-gradient(#A8A878,#8A8A59)', 'border-color': '#79794E'},
@@ -100,9 +100,10 @@ export class Tools {
 	readonly letters: string = "abcdefghijklmnopqrstuvwxyz";
 
 	fetchUrlTimeouts: Dict<NodeJS.Timer> = {};
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	fetchUrlQueues: Dict<(() => any)[]> = {};
 
-	onReload(previous: Partial<Tools>) {
+	onReload(previous: Partial<Tools>): void {
 		if (previous.fetchUrlTimeouts) this.fetchUrlTimeouts = previous.fetchUrlTimeouts;
 		if (previous.fetchUrlQueues) this.fetchUrlQueues = previous.fetchUrlQueues;
 	}
@@ -201,6 +202,7 @@ export class Tools {
 		const isSubArrayB = Array.isArray(arrayB[0]);
 		for (let i = 0; i < arrayALen; i++) {
 			if (isSubArrayA && isSubArrayB) {
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				if (!this.compareArrays((arrayA[i] as unknown) as any[], (arrayB[i] as unknown) as any[])) return false;
 			} else {
 				if (arrayA[i] !== arrayB[i]) return false;
@@ -260,7 +262,7 @@ export class Tools {
 		return input.replace(ALPHA_NUMERIC_REGEX, '').trim();
 	}
 
-	toString(input: string | number | boolean | undefined | null | {activityType?: string, effectType?: string, name?: string, toString?(): string}): string {
+	toString(input: string | number | boolean | undefined | null | {activityType?: string; effectType?: string; name?: string; toString?(): string}): string {
 		if (input === undefined) return 'undefined';
 		if (input === null) return 'null';
 		if (typeof input === 'string') return input;
@@ -297,7 +299,7 @@ export class Tools {
 		return input.replace(HTML_CHARACTER_REGEX, '');
 	}
 
-	parseUsernameText(usernameText: string): {away: boolean, status: string, username: string} {
+	parseUsernameText(usernameText: string): {away: boolean; status: string; username: string} {
 		let away = false;
 		let status = '';
 		let username = '';
@@ -340,18 +342,19 @@ export class Tools {
 	 *
 	 * options.human = true will reports hours human-readable
 	 */
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	toTimestampString(date: Date, options?: Dict<any>): string {
 		const human = options && options.human;
-		let parts: any[] = [date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()];
+		let parts: (number | string)[] = [date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()];
 		if (human) {
 			parts.push(parts[3] >= 12 ? 'pm' : 'am');
-			parts[3] = parts[3] % 12 || 12;
+			parts[3] = (parts[3] as number) % 12 || 12;
 		}
 		parts = parts.map(val => val < 10 ? '0' + val : '' + val);
 		return parts.slice(0, 3).join("-") + " " + parts.slice(3, human ? 5 : 6).join(":") + (human ? "" + parts[6] : "");
 	}
 
-	toDurationString(input: number, options?: {precision?: number, hhmmss?: boolean}): string {
+	toDurationString(input: number, options?: {precision?: number; hhmmss?: boolean}): string {
 		const date = new Date(input);
 		const parts = [date.getUTCFullYear() - 1970, date.getUTCMonth(), date.getUTCDate() - 1, date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()];
 		const roundingBoundaries = [6, 15, 12, 30, 30];
@@ -430,6 +433,7 @@ export class Tools {
 	deepClone<T>(obj: T): DeepWritable<T> {
 		if (obj === null || obj === undefined || typeof obj !== 'object') return obj as DeepWritable<T>;
 		if (Array.isArray(obj)) {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const clone = obj.slice() as DeepWritable<T & any[]>;
 			for (let i = 0; i < obj.length; i++) {
 				clone[i] = this.deepClone(obj[i]);
@@ -446,13 +450,13 @@ export class Tools {
 		return clone;
 	}
 
-	uncacheTree(root: string) {
+	uncacheTree(root: string): void {
 		let uncache = [require.resolve(root)];
 		do {
 			const newuncache: string[] = [];
 			for (const target of uncache) {
 				if (require.cache[target]) {
-					// @ts-ignore
+					// eslint-disable-next-line prefer-spread
 					newuncache.push.apply(newuncache, require.cache[target].children.filter(cachedModule => !cachedModule.id.endsWith('.node')).map(cachedModule => cachedModule.id));
 					delete require.cache[target];
 				}
@@ -480,7 +484,7 @@ export class Tools {
 		});
 	}
 
-	prepareNextFetchUrl(type: FetchUrlTimeoutKey) {
+	prepareNextFetchUrl(type: FetchUrlTimeoutKey): void {
 		this.fetchUrlTimeouts[type] = setTimeout(() => {
 			delete this.fetchUrlTimeouts[type];
 			if (!(type in this.fetchUrlQueues)) return;
@@ -529,13 +533,14 @@ export class Tools {
 		});
 	}
 
-	safeWriteFileSync(filepath: string, data: string) {
+	safeWriteFileSync(filepath: string, data: string): void {
 		const tempFilepath = filepath + '.temp';
 		fs.writeFileSync(tempFilepath, data);
 		fs.renameSync(tempFilepath, filepath);
 	}
 
-	async runUpdatePS(user?: User) {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	async runUpdatePS(user?: User): Promise<any> {
 		await exec('node update-ps.js --hotpatch');
 
 		if (!user) user = Users.self;

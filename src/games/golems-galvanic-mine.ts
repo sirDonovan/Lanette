@@ -2,7 +2,7 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, GameCommandReturnType } from "../types/games";
 
 const name = "Golem's Galvanic Mine";
 const gen = 'gen7';
@@ -12,7 +12,7 @@ const data: {stones: string[]} = {
 let loadedData = false;
 
 class GolemsGalvanicMine extends Game {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -30,12 +30,12 @@ class GolemsGalvanicMine extends Game {
 	roundStones: Dict<number> = {};
 	roundTime: number = 7000;
 
-	onSignups() {
+	onSignups(): void {
 		if (!this.format.inputOptions.points) this.format.options.points = 30;
 		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 10000);
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		this.roundStones = {};
 		this.roundMines.clear();
 		const html = this.getRoundHtml(this.getPlayerPoints);
@@ -46,7 +46,7 @@ class GolemsGalvanicMine extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	displayStones() {
+	displayStones(): void {
 		const stones = this.sampleMany(data.stones, 9);
 		const tr = '<tr style="text-align:center;line-height:5">';
 		let html = '<center><table border="1">' + tr;
@@ -69,7 +69,7 @@ class GolemsGalvanicMine extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	tallyPoints() {
+	tallyPoints(): void {
 		let reachedMaxPoints = false;
 		this.roundMines.forEach((value, player) => {
 			let points = this.points.get(player) || 0;
@@ -88,7 +88,7 @@ class GolemsGalvanicMine extends Game {
 		}
 	}
 
-	onEnd() {
+	onEnd(): void {
 		if (this.winners.size) this.convertPointsToBits(500 / this.format.options.points, 100 / this.format.options.points);
 		this.announceWinners();
 	}
@@ -96,7 +96,7 @@ class GolemsGalvanicMine extends Game {
 
 const commands: Dict<ICommandDefinition<GolemsGalvanicMine>> = {
 	mine: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.started || (user.id in this.players && this.players[user.id].eliminated)) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (this.roundMines.has(player)) return false;

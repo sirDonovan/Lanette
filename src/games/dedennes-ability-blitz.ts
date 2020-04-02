@@ -2,7 +2,7 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, GameCommandReturnType } from "../types/games";
 
 interface IRoundAbility {
 	name: string;
@@ -16,7 +16,7 @@ const data: {abilities: string[]} = {
 let loadedData = false;
 
 class DedennesAbilityBlitz extends Game {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -39,11 +39,11 @@ class DedennesAbilityBlitz extends Game {
 	roundTime: number = 3 * 1000;
 	highestCatch: Player | null = null;
 
-	onSignups() {
+	onSignups(): void {
 		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
 	}
 
-	generateAbilities() {
+	generateAbilities(): void {
 		const abilities = this.sampleMany(data.abilities, 3);
 		for (let i = 0; i < abilities.length; i++) {
 			const ability = Tools.toId(abilities[i]);
@@ -57,10 +57,10 @@ class DedennesAbilityBlitz extends Game {
 		this.say(text);
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		this.canSelect = false;
 		if (this.round > 1) {
-			const selections: {player: Player, ability: string, points: number}[] = [];
+			const selections: {player: Player; ability: string; points: number}[] = [];
 			// let actions = 0;
 			this.roundSelections.forEach((ability, user) => {
 				if (!(user.id in this.players) || this.players[user.id].eliminated) return;
@@ -107,7 +107,7 @@ class DedennesAbilityBlitz extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
@@ -127,7 +127,7 @@ class DedennesAbilityBlitz extends Game {
 
 const commands: Dict<ICommandDefinition<DedennesAbilityBlitz>> = {
 	select: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canSelect) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (this.roundSelections.has(player)) return false;

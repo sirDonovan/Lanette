@@ -1,11 +1,13 @@
 import fs = require('fs');
 import path = require('path');
+// eslint-disable-next-line @typescript-eslint/camelcase
 import worker_threads = require('worker_threads');
 
 import * as tools from '../../tools';
 import { ILogsResponse, ILogsSearchMessage, ILogsSearchOptions, ILogsWorkerData, LogsId } from '../logs';
 
 const Tools = new tools.Tools();
+// eslint-disable-next-line @typescript-eslint/camelcase
 const data = worker_threads.workerData as ILogsWorkerData;
 
 function search(options: ILogsSearchOptions): ILogsResponse {
@@ -21,7 +23,7 @@ function search(options: ILogsSearchOptions): ILogsResponse {
 	}
 	const startYear = options.startDate[0];
 	const endYear = options.endDate[0];
-	const separatedLogs: Dict<Dict<Dict<{regular: number, commands: number}>>> = {};
+	const separatedLogs: Dict<Dict<Dict<{regular: number; commands: number}>>> = {};
 	const roomDirectory = path.join(data.roomLogsFolder, options.roomid);
 	const userIds: Dict<string> = {};
 	for (let i = startYear; i <= endYear; i++) {
@@ -130,6 +132,7 @@ function search(options: ILogsSearchOptions): ILogsResponse {
 	return {lines, totalLines};
 }
 
+// eslint-disable-next-line @typescript-eslint/camelcase
 worker_threads.parentPort!.on('message', incommingMessage => {
 	const parts = incommingMessage.split("|");
 	const messageNumber = parts[0];
@@ -141,5 +144,6 @@ worker_threads.parentPort!.on('message', incommingMessage => {
 		response = search(options);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/camelcase
 	worker_threads.parentPort!.postMessage(messageNumber + "|" + id + "|" + JSON.stringify(response!));
 });

@@ -14,7 +14,7 @@ const allParamTypes: ParamType[] = ['move', 'tier', 'color', 'type', 'resistance
 let loadedData = false;
 
 export class ParasParameters extends Guessing {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 
 		room.say("Loading data for " + name + "...");
@@ -34,7 +34,7 @@ export class ParasParameters extends Guessing {
 	roundTime: number = 5 * 60 * 1000;
 	usesWorkers: boolean = true;
 
-	onInitialize() {
+	onInitialize(): void {
 		super.onInitialize();
 
 		const format = this.format as IGameFormat;
@@ -43,7 +43,7 @@ export class ParasParameters extends Guessing {
 		}
 	}
 
-	onSignups() {
+	onSignups(): void {
 		super.onSignups();
 		if (this.isMiniGame) {
 			(this.format as IGameFormat).minigameDescription = "Use ``/ds" + this.format.options.gen + "`` to search for and then ``" + Config.commandCharacter + "g`` to guess ``/ds`` parameters that give the following Pokemon!";
@@ -70,7 +70,7 @@ export class ParasParameters extends Guessing {
 		return names.sort();
 	}
 
-	async setAnswers() {
+	async setAnswers(): Promise<void> {
 		let numberOfParams: number;
 		if (this.customParamTypes) {
 			numberOfParams = this.customParamTypes.length;
@@ -161,7 +161,7 @@ const tests: GameFileTests<ParasParameters> = {
 		config: {
 			async: true,
 		},
-		async test(game, format) {
+		async test(game, format): Promise<void> {
 			this.timeout(15000);
 			const parametersData = Games.workers.parameters.loadData();
 
@@ -236,7 +236,7 @@ const tests: GameFileTests<ParasParameters> = {
 		config: {
 			inputTargets: ['params, survival', 'params, team'],
 		},
-		test(game, format) {
+		test(game, format): void {
 			assertStrictEqual(game.paramTypes.join(','), 'tier,color,type,egggroup,ability,gen');
 		},
 	},

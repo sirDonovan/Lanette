@@ -26,7 +26,7 @@ export class UserHosted extends Game {
 	// type hack for onDeallocate
 	room!: Room;
 
-	onInitialize() {
+	onInitialize(): void {
 		this.setUhtmlBaseName('userhosted');
 
 		this.endTime = Date.now() + HOST_TIME_LIMIT;
@@ -37,7 +37,7 @@ export class UserHosted extends Game {
 		}
 	}
 
-	setHost(host: User | string) {
+	setHost(host: User | string): void {
 		if (typeof host === 'string') {
 			this.hostId = Tools.toId(host);
 			this.hostName = host;
@@ -49,21 +49,21 @@ export class UserHosted extends Game {
 		this.name = this.hostName + "'s " + this.format.name;
 	}
 
-	onForceEnd(user?: User, reason?: string) {
+	onForceEnd(user?: User, reason?: string): void {
 		if (user) this.sayCommand("/modnote " + this.name + " was forcibly ended by " + user.name + (reason ? " (" + reason + ")" : ""));
 	}
 
-	onDeallocate() {
+	onDeallocate(): void {
 		if (this.gameTimer) clearTimeout(this.gameTimer);
 		if (this.hostTimeout) clearTimeout(this.hostTimeout);
 		this.room.userHostedGame = null;
 	}
 
-	onAfterDeallocate(forceEnd?: boolean) {
+	onAfterDeallocate(forceEnd?: boolean): void {
 		if (forceEnd && Config.gameAutoCreateTimers && this.room.id in Config.gameAutoCreateTimers) Games.setAutoCreateTimer(this.room, 'userhosted', FORCE_END_CREATE_TIMER);
 	}
 
-	onSignups() {
+	onSignups(): void {
 		this.notifyRankSignups = true;
 		this.sayCommand("/notifyrank all, " + this.room.title + " user-hosted game," + this.name + "," + this.hostName + " " + Games.userHostedGameHighlight + " " + this.name, true);
 		const firstWarning = 5 * 60 * 1000;
@@ -80,7 +80,7 @@ export class UserHosted extends Game {
 		}, HOST_TIME_LIMIT - firstWarning);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		let hostDifficulty: GameDifficulty;
 		if (Config.userHostedGameHostDifficulties && this.format.id in Config.userHostedGameHostDifficulties) {
 			hostDifficulty = Config.userHostedGameHostDifficulties[this.format.id];

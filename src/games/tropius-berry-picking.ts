@@ -2,7 +2,7 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile, AchievementsDict } from "../types/games";
+import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
 
 interface IBerry {
 	effect: string;
@@ -82,7 +82,7 @@ const achievements: AchievementsDict = {
 };
 
 class TropiusBerryPicking extends Game {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -104,15 +104,15 @@ class TropiusBerryPicking extends Game {
 	roundLimit: number = 20;
 	roundTime: number = 10 * 1000;
 
-	onSignups() {
+	onSignups(): void {
 		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
-	onStart() {
+	onStart(): void {
 		this.nextRound();
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		this.canEat = false;
 		if (!this.format.options.freejoin) {
 			if (this.round > 1) {
@@ -209,7 +209,7 @@ class TropiusBerryPicking extends Game {
 		}
 	}
 
-	onEnd() {
+	onEnd(): void {
 		if (this.format.options.freejoin) return;
 		const base = Math.min(500, 100 * this.round);
 		for (const i in this.players) {
@@ -226,7 +226,7 @@ class TropiusBerryPicking extends Game {
 
 const commands: Dict<ICommandDefinition<TropiusBerryPicking>> = {
 	eat: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canEat || (!this.format.options.freejoin && (!this.players[user.id] || this.players[user.id].eliminated))) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 			const id = Tools.toId(target);

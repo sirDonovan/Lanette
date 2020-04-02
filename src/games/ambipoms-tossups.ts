@@ -4,7 +4,7 @@ import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Ambipom's Tossups";
-const data: {'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
+const data: {'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]} = {
 	"Pokemon": [],
 	"Pokemon Abilities": [],
 	"Pokemon Items": [],
@@ -15,7 +15,7 @@ const categories = Object.keys(data) as DataKey[];
 let loadedData = false;
 
 class AmbipomsTossups extends Guessing {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -35,7 +35,7 @@ class AmbipomsTossups extends Guessing {
 	readonly roundGuesses = new Map<Player, boolean>();
 	tossupRound: number = 0;
 
-	async setAnswers() {
+	async setAnswers(): Promise<void> {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		let answer = this.sampleOne(data[category]);
 		while (answer === this.lastAnswer) {
@@ -55,7 +55,7 @@ class AmbipomsTossups extends Guessing {
 		this.say("The category is **" + category + "**");
 	}
 
-	async onNextRound() {
+	async onNextRound(): Promise<void> {
 		if (!this.answers.length) {
 			this.canGuess = false;
 			await this.setAnswers();
@@ -91,7 +91,7 @@ class AmbipomsTossups extends Guessing {
 		this.say(this.hint);
 	}
 
-	filterGuess(guess: string) {
+	filterGuess(guess: string): boolean {
 		if (Tools.toId(guess).length > this.answers[0].length) return true;
 		return false;
 	}

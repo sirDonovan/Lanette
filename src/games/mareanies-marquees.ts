@@ -3,7 +3,7 @@ import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Mareanie's Marquees";
-const data: {'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
+const data: {'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]} = {
 	"Pokemon": [],
 	"Pokemon Abilities": [],
 	"Pokemon Items": [],
@@ -14,7 +14,7 @@ const categories = Object.keys(data) as DataKey[];
 let loadedData = false;
 
 class MareaniesMarquee extends Guessing {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -34,7 +34,7 @@ class MareaniesMarquee extends Guessing {
 	lettersToReveal: number = 4;
 	currentCategory: string = '';
 
-	async setAnswers() {
+	async setAnswers(): Promise<void> {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		this.currentCategory = category;
 		let answer = '';
@@ -60,7 +60,7 @@ class MareaniesMarquee extends Guessing {
 		this.updateHint();
 	}
 
-	updateHint() {
+	updateHint(): void {
 		this.hintUpdates++;
 		if (this.hintUpdates >= this.hintLimit) {
 			this.say("Time is up! " + this.getAnswers(''));
@@ -93,7 +93,7 @@ class MareaniesMarquee extends Guessing {
 		if (this.currentIndex > lastIndex) this.currentIndex = 0;
 	}
 
-	sayHint() {
+	sayHint(): void {
 		const html = "<div class='infobox' style='text-align:center'>The category is <b>" + this.currentCategory + "</b>:<br /><br />" + this.hint + "<br />&nbsp;</div>";
 		const uhtmlName = this.uhtmlBaseName + '-hint';
 		this.onUhtml(uhtmlName, html, () => {
@@ -106,7 +106,7 @@ class MareaniesMarquee extends Guessing {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	async onNextRound() {
+	async onNextRound(): Promise<void> {
 		this.canGuess = false;
 		await this.setAnswers();
 		this.sayHint();

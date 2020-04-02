@@ -15,14 +15,14 @@ export abstract class MapShuffleGame extends MapGame {
 
 	abstract shuffleMap(): void;
 
-	onGenerateMapFloor(floor: MapFloor) {
+	onGenerateMapFloor(floor: MapFloor): void {
 		this.setExitCoordinates(floor);
 		this.setCurrencyCoordinates(floor);
 		this.setTrapCoordinates(floor);
 		this.setAchievementCoordinates(floor);
 	}
 
-	onAddPlayer(player: Player, lateJoin?: boolean) {
+	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
 		if (lateJoin) {
 			if (this.round > 1) return false;
 			this.positionPlayer(player);
@@ -31,13 +31,13 @@ export abstract class MapShuffleGame extends MapGame {
 		return true;
 	}
 
-	onStart() {
+	onStart(): void {
 		this.say("Now sending coordinates in PMs!");
 		this.positionPlayers();
 		this.nextRound();
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		const len = this.getRemainingPlayerCount();
 		if (!len) return this.end();
 		if (this.round > 1 && (this.round - 1) % 5 === 0) this.shuffleMap();

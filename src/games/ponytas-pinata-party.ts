@@ -1,7 +1,7 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
-import { IGameFile } from "../types/games";
+import { IGameFile, GameCommandReturnType } from "../types/games";
 
 class PonytasPinataParty extends Game {
 	canHit: boolean = false;
@@ -11,15 +11,15 @@ class PonytasPinataParty extends Game {
 	roundHits = new Map<Player, number>();
 	roundTimes: number[] = [4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000];
 
-	onSignups() {
+	onSignups(): void {
 		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
-	onMaxRound() {
+	onMaxRound(): void {
 		this.say("All Piñatas have been broken!");
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		this.roundHits.clear();
 		this.pinataHits = 0;
 		const html = this.getRoundHtml(this.getPlayerPoints);
@@ -37,7 +37,7 @@ class PonytasPinataParty extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	breakPinata() {
+	breakPinata(): void {
 		this.say("The Piñata broke!");
 		this.canHit = false;
 		if (this.pinataHits === 0) {
@@ -58,7 +58,7 @@ class PonytasPinataParty extends Game {
 		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		let highestPoints = 0;
 		for (const id in this.players) {
 			const player = this.players[id];
@@ -83,7 +83,7 @@ class PonytasPinataParty extends Game {
 
 const commands: Dict<ICommandDefinition<PonytasPinataParty>> = {
 	hit: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canHit) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (this.roundHits.has(player)) return false;

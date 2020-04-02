@@ -42,11 +42,11 @@ export class Room {
 		this.checkConfigSettings();
 	}
 
-	init(type: RoomType) {
+	init(type: RoomType): void {
 		this.type = type;
 	}
 
-	deInit() {
+	deInit(): void {
 		if (this.game && this.game.room === this) this.game.deallocate(true);
 		if (this.tournament && this.tournament.room === this) this.tournament.deallocate();
 		if (this.userHostedGame && this.userHostedGame.room === this) this.userHostedGame.deallocate(true);
@@ -57,90 +57,90 @@ export class Room {
 		});
 	}
 
-	checkConfigSettings() {
+	checkConfigSettings(): void {
 		this.logChatMessages = !this.id.startsWith('battle-') && !this.id.startsWith('groupchat-') && !(Config.disallowChatLogging && Config.disallowChatLogging.includes(this.id));
 		this.unlinkTournamentReplays = Config.disallowTournamentBattleLinks && Config.disallowTournamentBattleLinks.includes(this.id) ? true : false;
 		this.unlinkChallongeLinks = Config.allowUserHostedTournaments && Config.allowUserHostedTournaments.includes(this.id) ? true : false;
 	}
 
-	onRoomInfoResponse(response: IRoomInfoResponse) {
+	onRoomInfoResponse(response: IRoomInfoResponse): void {
 		this.modchat = response.modchat === false ? 'off' : response.modchat;
 		this.title = response.title;
 	}
 
-	say(message: string, dontPrepare?: boolean, dontCheckFilter?: boolean) {
+	say(message: string, dontPrepare?: boolean, dontCheckFilter?: boolean): void {
 		if (!dontPrepare) message = Tools.prepareMessage(message);
 		if (!dontCheckFilter && Client.willBeFiltered(message, this)) return;
 		Client.send(this.sendId + "|" + message);
 	}
 
-	sayCommand(command: string, dontCheckFilter?: boolean) {
+	sayCommand(command: string, dontCheckFilter?: boolean): void {
 		this.say(command, true, dontCheckFilter);
 	}
 
-	sayHtml(html: string) {
+	sayHtml(html: string): void {
 		this.say("/addhtmlbox " + html, true, true);
 	}
 
-	sayUhtml(uhtmlName: string, html: string) {
+	sayUhtml(uhtmlName: string, html: string): void {
 		this.say("/adduhtml " + uhtmlName + ", " + html, true, true);
 	}
 
-	sayUhtmlChange(uhtmlName: string, html: string) {
+	sayUhtmlChange(uhtmlName: string, html: string): void {
 		this.say("/changeuhtml " + uhtmlName + ", " + html, true, true);
 	}
 
-	sayAuthUhtml(uhtmlName: string, html: string) {
+	sayAuthUhtml(uhtmlName: string, html: string): void {
 		this.say("/addrankuhtml +, " + uhtmlName + ", " + html, true, true);
 	}
 
-	sayAuthUhtmlChange(uhtmlName: string, html: string) {
+	sayAuthUhtmlChange(uhtmlName: string, html: string): void {
 		this.say("/changerankuhtml +, " + uhtmlName + ", " + html, true, true);
 	}
 
-	sayModUhtml(uhtmlName: string, html: string, rank: GroupName) {
+	sayModUhtml(uhtmlName: string, html: string, rank: GroupName): void {
 		this.say("/addrankuhtml " + Client.groupSymbols[rank] + ", " + uhtmlName + ", " + html, true, true);
 	}
 
-	sayModUhtmlChange(uhtmlName: string, html: string, rank: GroupName) {
+	sayModUhtmlChange(uhtmlName: string, html: string, rank: GroupName): void {
 		this.say("/changerankuhtml " + Client.groupSymbols[rank] + ", " + uhtmlName + ", " + html, true, true);
 	}
 
-	pmHtml(user: User | Player, html: string) {
+	pmHtml(user: User | Player, html: string): void {
 		this.say("/pminfobox " + user.id + "," + html, true);
 	}
 
-	pmUhtml(user: User | Player, uhtmlName: string, html: string) {
+	pmUhtml(user: User | Player, uhtmlName: string, html: string): void {
 		this.say("/pmuhtml " + user.id + "," + uhtmlName + "," + html, true);
 	}
 
-	pmUhtmlChange(user: User | Player, uhtmlName: string, html: string) {
+	pmUhtmlChange(user: User | Player, uhtmlName: string, html: string): void {
 		this.say("/pmuhtmlchange " + user.id + "," + uhtmlName + "," + html, true);
 	}
 
-	on(message: string, listener: () => void) {
+	on(message: string, listener: () => void): void {
 		this.messageListeners[Tools.toId(Tools.prepareMessage(message))] = listener;
 	}
 
-	onHtml(html: string, listener: () => void) {
+	onHtml(html: string, listener: () => void): void {
 		this.htmlMessageListeners[Tools.toId(Client.getListenerHtml(html))] = listener;
 	}
 
-	onUhtml(name: string, html: string, listener: () => void) {
+	onUhtml(name: string, html: string, listener: () => void): void {
 		const id = Tools.toId(name);
 		if (!(id in this.uhtmlMessageListeners)) this.uhtmlMessageListeners[id] = {};
 		this.uhtmlMessageListeners[id][Tools.toId(Client.getListenerUhtml(html))] = listener;
 	}
 
-	off(message: string) {
+	off(message: string): void {
 		delete this.messageListeners[Tools.toId(Tools.prepareMessage(message))];
 	}
 
-	offHtml(html: string) {
+	offHtml(html: string): void {
 		delete this.htmlMessageListeners[Tools.toId(Client.getListenerHtml(html))];
 	}
 
-	offUhtml(name: string, html: string) {
+	offUhtml(name: string, html: string): void {
 		const id = Tools.toId(name);
 		if (!(id in this.uhtmlMessageListeners)) return;
 		delete this.uhtmlMessageListeners[id][Tools.toId(Client.getListenerUhtml(html))];
@@ -155,12 +155,12 @@ export class Rooms {
 		return this.rooms[id];
 	}
 
-	remove(room: Room) {
+	remove(room: Room): void {
 		room.deInit();
 		delete this.rooms[room.id];
 	}
 
-	removeAll() {
+	removeAll(): void {
 		for (const i in this.rooms) {
 			this.remove(this.rooms[i]);
 		}
@@ -176,7 +176,7 @@ export class Rooms {
 		return this.get(id);
 	}
 
-	checkLoggingConfigs() {
+	checkLoggingConfigs(): void {
 		for (const i in this.rooms) {
 			this.rooms[i].checkConfigSettings();
 		}

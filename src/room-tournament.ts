@@ -12,7 +12,8 @@ interface IBracketNode {
 interface IBracketData {
 	readonly type: string;
 	readonly rootNode?: IBracketNode;
-	readonly tableHeaders?: {cols: any[], rows: any[]};
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	readonly tableHeaders?: {cols: any[]; rows: any[]};
 	readonly users?: string[];
 }
 
@@ -115,7 +116,7 @@ export class Tournament extends Activity {
 		this.joinBattles = Config.trackTournamentBattleScores && Config.trackTournamentBattleScores.includes(room.id) ? true : false;
 	}
 
-	initialize(format: IFormat, generator: string, playerCap: number, name?: string) {
+	initialize(format: IFormat, generator: string, playerCap: number, name?: string): void {
 		this.format = format;
 		this.playerCap = playerCap;
 		this.name = name || format.name;
@@ -126,7 +127,7 @@ export class Tournament extends Activity {
 		this.setGenerator(generator);
 	}
 
-	setGenerator(generator: string) {
+	setGenerator(generator: string): void {
 		const generatorName = generator.split(" ")[0];
 		if (generatorName in generators) {
 			this.generator = generators[generatorName];
@@ -137,7 +138,7 @@ export class Tournament extends Activity {
 		this.isRoundRobin = Tools.toId(generator).includes('roundrobin');
 	}
 
-	setCustomFormatName() {
+	setCustomFormatName(): void {
 		const previousName = this.name;
 		const customFormatName = Dex.getCustomFormatName(this.format, this.room);
 		if (this.format.customRules && (customFormatName === this.format.name || customFormatName.length > 100)) {
@@ -157,7 +158,7 @@ export class Tournament extends Activity {
 		return false;
 	}
 
-	adjustCap() {
+	adjustCap(): void {
 		if (this.playerCount % 8 === 0) {
 			this.sayCommand("/tour start");
 			return;
@@ -171,19 +172,19 @@ export class Tournament extends Activity {
 		CommandParser.parse(this.room, Users.self, Config.commandCharacter + "tournamentcap " + newCap);
 	}
 
-	deallocate() {
+	deallocate(): void {
 		if (this.adjustCapTimer) clearTimeout(this.adjustCapTimer);
 		if (this.startTimer) clearTimeout(this.startTimer);
 		this.room.tournament = null;
 	}
 
-	start() {
+	start(): void {
 		if (this.startTimer) clearTimeout(this.startTimer);
 		this.started = true;
 		this.startTime = Date.now();
 	}
 
-	onEnd() {
+	onEnd(): void {
 		const database = Storage.getDatabase(this.room);
 		if (!database.pastTournaments) database.pastTournaments = [];
 		database.pastTournaments.unshift({inputTarget: this.format.inputTarget, name: this.format.name, time: Date.now()});
@@ -300,16 +301,16 @@ export class Tournament extends Activity {
 		Storage.exportDatabase(this.room.id);
 	}
 
-	forceEnd() {
+	forceEnd(): void {
 		if (this.timeout) clearTimeout(this.timeout);
 		this.deallocate();
 	}
 
-	update(json: Partial<ITournamentUpdateJSON & ITournamentEndJSON>) {
+	update(json: Partial<ITournamentUpdateJSON & ITournamentEndJSON>): void {
 		Object.assign(this.updates, json);
 	}
 
-	updateEnd() {
+	updateEnd(): void {
 		Object.assign(this.info, this.updates);
 		if (this.updates.generator) this.setGenerator(this.updates.generator);
 		if (this.updates.bracketData) {
@@ -337,7 +338,7 @@ export class Tournament extends Activity {
 		this.updates = {};
 	}
 
-	updateBracket() {
+	updateBracket(): void {
 		const players: Dict<string> = {};
 		const losses: Dict<number> = {};
 		if (this.info.bracketData.type === 'tree') {
@@ -397,7 +398,7 @@ export class Tournament extends Activity {
 		}
 	}
 
-	onBattleStart(usernameA: string, usernameB: string, roomid: string) {
+	onBattleStart(usernameA: string, usernameB: string, roomid: string): void {
 		const idA = Tools.toId(usernameA);
 		const idB = Tools.toId(usernameB);
 		if (!(idA in this.players) || !(idB in this.players)) {
@@ -422,7 +423,7 @@ export class Tournament extends Activity {
 		}
 	}
 
-	onBattleEnd(usernameA: string, usernameB: string, score: [string, string], roomid: string) {
+	onBattleEnd(usernameA: string, usernameB: string, score: [string, string], roomid: string): void {
 		const idA = Tools.toId(usernameA);
 		const idB = Tools.toId(usernameB);
 		if (!(idA in this.players) || !(idB in this.players)) {

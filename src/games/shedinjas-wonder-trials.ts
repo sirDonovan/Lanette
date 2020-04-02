@@ -2,11 +2,11 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile, AchievementsDict } from "../types/games";
+import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
 import { IPokemon } from "../types/in-game-data-types";
 
 const name = "Shedinja's Wonder Trials";
-const data: {moves: string[], pokedex: string[]} = {
+const data: {moves: string[]; pokedex: string[]} = {
 	moves: [],
 	pokedex: [],
 };
@@ -17,7 +17,7 @@ const achievements: AchievementsDict = {
 };
 
 class ShedinjasWonderTrials extends Game {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 
 		room.say("Loading data for " + name + "...");
@@ -42,13 +42,13 @@ class ShedinjasWonderTrials extends Game {
 	roundMoves = new Map<Player, string>();
 	usedMoves: string[] = [];
 
-	onSignups() {
+	onSignups(): void {
 		if (this.format.options.freejoin) {
 			this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
 		}
 	}
 
-	generatePokemon() {
+	generatePokemon(): void {
 		let pokemon = Dex.getExistingPokemon(this.sampleOne(data.pokedex));
 		let typing = pokemon.types.join("/");
 		while ((this.currentPokemon && this.currentPokemon.id === pokemon.id) || typing === this.lastTyping) {
@@ -72,7 +72,7 @@ class ShedinjasWonderTrials extends Game {
 		this.say(text);
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		this.canUseMove = false;
 		if (this.round > 1) {
 			const effectivenessScale: Dict<string> = {'1': '2x', '2': '4x', '-1': '0.5x', '-2': '0.25x', 'immune': '0x', '0': '1x'};
@@ -128,7 +128,7 @@ class ShedinjasWonderTrials extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
@@ -146,7 +146,7 @@ class ShedinjasWonderTrials extends Game {
 
 const commands: Dict<ICommandDefinition<ShedinjasWonderTrials>> = {
 	use: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canUseMove || !this.currentPokemon || (this.players[user.id] && this.players[user.id].eliminated)) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (this.roundMoves.has(player)) return false;

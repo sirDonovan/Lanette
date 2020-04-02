@@ -3,14 +3,14 @@ import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Kirlia's Tracing Show";
-const data: {abilities: Dict<string>, pokedex: string[]} = {
+const data: {abilities: Dict<string>; pokedex: string[]} = {
 	abilities: {},
 	pokedex: [],
 };
 let loadedData = false;
 
 class KirliasTracingShow extends Guessing {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -30,11 +30,11 @@ class KirliasTracingShow extends Guessing {
 	lastAbilities: string = '';
 	lastPokemon: string = '';
 
-	onSignups() {
+	onSignups(): void {
 		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
-	async setAnswers() {
+	async setAnswers(): Promise<void> {
 		let pokemon = this.sampleOne(data.pokedex);
 		let abilities = data.abilities[pokemon];
 		while (pokemon === this.lastPokemon || abilities === this.lastAbilities) {

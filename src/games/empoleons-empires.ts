@@ -2,7 +2,7 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, GameCommandReturnType } from "../types/games";
 
 class EmpoleonsEmpires extends Game {
 	canGuess: boolean = false;
@@ -14,14 +14,14 @@ class EmpoleonsEmpires extends Game {
 	points = new Map<Player, number>();
 	successiveSuspects = new Map<Player, number>();
 
-	onRemovePlayer(player: Player) {
+	onRemovePlayer(player: Player): void {
 		if (this.started) {
 			if (this.currentPlayer === player) return this.nextRound();
 			if (this.getRemainingPlayerCount() < 2) this.end();
 		}
 	}
 
-	onStart() {
+	onStart(): void {
 		this.say("Now requesting aliases!");
 		for (const i in this.players) {
 			if (!this.playerAliases.has(this.players[i])) this.players[i].say("Please select an alias to use with ``" + Config.commandCharacter + "alias [alias]``!");
@@ -35,7 +35,7 @@ class EmpoleonsEmpires extends Game {
 		}, 60 * 1000);
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		if (this.getRemainingPlayerCount() <= 1) return this.end();
 		const aliases: string[] = [];
 		for (const i in this.players) {
@@ -64,7 +64,7 @@ class EmpoleonsEmpires extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		const winner = this.getFinalPlayer();
 		if (winner) {
 			this.addBits(winner, 500);
@@ -84,7 +84,7 @@ class EmpoleonsEmpires extends Game {
 
 const commands: Dict<ICommandDefinition<EmpoleonsEmpires>> = {
 	guess: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canGuess || !(user.id in this.players) || this.players[user.id] !== this.currentPlayer) return false;
 			const player = this.players[user.id];
 			const targets = target.split(",");
@@ -141,7 +141,7 @@ const commands: Dict<ICommandDefinition<EmpoleonsEmpires>> = {
 		aliases: ['g'],
 	},
 	alias: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!(user.id in this.players) || this.players[user.id].eliminated) return false;
 			if (this.playerAliases.has(this.players[user.id])) {
 				user.say("You have already chosen your alias!");
@@ -184,7 +184,7 @@ const commands: Dict<ICommandDefinition<EmpoleonsEmpires>> = {
 		pmOnly: true,
 	},
 	dqalias: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.started || !user.hasRank(this.room as Room, 'driver')) return false;
 			let targetPlayer: Player | undefined;
 			const targetAlias = Tools.toId(target);

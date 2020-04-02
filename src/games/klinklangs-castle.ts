@@ -30,31 +30,31 @@ class KlinklangsCastle extends MapShuffleGame {
 		return this.currentFloor - 1;
 	}
 
-	onGenerateMapFloor(floor: MapFloor) {
+	onGenerateMapFloor(floor: MapFloor): void {
 		this.setExitCoordinates(floor);
 		this.setCurrencyCoordinates(floor);
 		this.setTrapCoordinates(floor);
 		this.setAchievementCoordinates(floor);
 	}
 
-	onAchievementSpace(player: Player, floor: MapFloor, space: MapFloorSpace) {
+	onAchievementSpace(player: Player, floor: MapFloor, space: MapFloorSpace): void {
 		delete space.attributes.achievement;
 		player.say("You arrived safely at (" + space.coordinates + ") and were greeted by a Klink. It shifted a hidden gear on the wall and revealed a small coin!");
 		this.unlockAchievement(player, achievements.klinksgear!);
 	}
 
-	shuffleMap() {
+	shuffleMap(): void {
 		this.currentFloor++;
 		this.generateMapFloor(this.getMap());
 		this.say("**The Klinklang used Shift Gear and shuffled the map!**");
 	}
 
-	onMaxRound() {
+	onMaxRound(): void {
 		this.say("The remaining players drop their " + this.currency + " as the castle shifts into a clear path!");
 		this.canMove = false;
 	}
 
-	onEnd() {
+	onEnd(): void {
 		for (const i in this.players) {
 			if (this.escapedPlayers.has(this.players[i])) this.winners.set(this.players[i], 1);
 		}

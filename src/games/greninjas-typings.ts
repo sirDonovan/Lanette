@@ -3,7 +3,7 @@ import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Greninja's Typings";
-const data: {pokedex: string[], reverseTypes: Dict<string>, species: Dict<string>, types: Dict<string>} = {
+const data: {pokedex: string[]; reverseTypes: Dict<string>; species: Dict<string>; types: Dict<string>} = {
 	pokedex: [],
 	reverseTypes: {},
 	species: {},
@@ -17,7 +17,7 @@ const achievements: AchievementsDict = {
 };
 
 class GreninjasTypings extends Guessing {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -38,7 +38,7 @@ class GreninjasTypings extends Guessing {
 	lastTyping: string = '';
 	noOrder: boolean = false;
 
-	async setAnswers() {
+	async setAnswers(): Promise<void> {
 		let pokemon = this.sampleOne(data.pokedex);
 		let typing = data.types[pokemon];
 		let reverseTyping = data.reverseTypes[pokemon];

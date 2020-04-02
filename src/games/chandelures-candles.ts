@@ -1,7 +1,7 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
-import { IGameFile, AchievementsDict } from "../types/games";
+import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
 
 const puffAchievementAmount = 15;
 const achievements: AchievementsDict = {
@@ -17,14 +17,14 @@ class ChandeluresCandles extends Game {
 	roundTarget: Player | null = null;
 	roundTimes: number[] = [3000, 4000, 5000, 6000];
 
-	onStart() {
+	onStart(): void {
 		for (const i in this.players) {
 			this.lives.set(this.players[i], 3);
 		}
 		this.nextRound();
 	}
 
-	onRenamePlayer(player: Player, oldId: string) {
+	onRenamePlayer(player: Player, oldId: string): void {
 		if (!this.started || player.eliminated) return;
 		this.removePlayer(player.name, true);
 		const text = player.name + " was DQed for changing names!";
@@ -36,7 +36,7 @@ class ChandeluresCandles extends Game {
 		this.say(text);
 	}
 
-	exposeCandle() {
+	exposeCandle(): void {
 		if (this.getRemainingPlayerCount() < 2) return this.end();
 		const players = this.shufflePlayers();
 		let target = players.pop()!;
@@ -53,7 +53,7 @@ class ChandeluresCandles extends Game {
 		this.say(text);
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		this.roundTarget = null;
 		const len = this.getRemainingPlayerCount();
 		if (len <= 1) {
@@ -69,7 +69,7 @@ class ChandeluresCandles extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		const winner = this.getFinalPlayer();
 		if (winner) {
 			this.winners.set(winner, 1);
@@ -106,7 +106,7 @@ class ChandeluresCandles extends Game {
 
 const commands: Dict<ICommandDefinition<ChandeluresCandles>> = {
 	hide: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!(user.id in this.players) || this.players[user.id].eliminated || !this.roundTarget) return false;
 			const player = this.players[user.id];
 			if (player !== this.roundTarget) {
@@ -125,7 +125,7 @@ const commands: Dict<ICommandDefinition<ChandeluresCandles>> = {
 		},
 	},
 	puff: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!(user.id in this.players) || this.players[user.id].eliminated || !this.roundTarget) return false;
 			const player = this.players[user.id];
 			if (this.roundActions.has(player)) return false;

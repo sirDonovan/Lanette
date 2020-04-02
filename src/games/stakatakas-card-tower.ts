@@ -1,7 +1,7 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { addPlayers, assert, assertStrictEqual, runCommand } from "../test/test-tools";
-import { GameFileTests, IGameFile, AchievementsDict } from "../types/games";
+import { GameFileTests, IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
 import { CardType, IActionCardData, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 
@@ -25,7 +25,7 @@ class StakatakasCardTower extends CardMatching {
 	showPlayerCards: boolean = true;
 	typesLimit: number = 20;
 
-	onRemovePlayer(player: Player) {
+	onRemovePlayer(player: Player): void {
 		const index = this.playerOrder.indexOf(player);
 		if (index > -1) this.playerOrder.splice(index, 1);
 		if (player === this.currentPlayer) {
@@ -37,11 +37,11 @@ class StakatakasCardTower extends CardMatching {
 		}
 	}
 
-	isPlayableCard(card: IPokemonCard, otherCard: IPokemonCard) {
+	isPlayableCard(card: IPokemonCard, otherCard: IPokemonCard): boolean {
 		return this.isCardPair(card, otherCard);
 	}
 
-	arePlayableCards(cards: IPokemonCard[]) {
+	arePlayableCards(cards: IPokemonCard[]): boolean {
 		for (let i = 0; i < cards.length - 1; i++) {
 			if (!this.isPlayableCard(cards[i], cards[i + 1])) {
 				return false;
@@ -164,7 +164,7 @@ class StakatakasCardTower extends CardMatching {
 
 const commands: Dict<ICommandDefinition<StakatakasCardTower>> = {
 	draw: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
 			this.drawCard(this.players[user.id]);
 			this.currentPlayer = null; // prevent Draw Wizard from activating on a draw
@@ -177,7 +177,7 @@ const commands: Dict<ICommandDefinition<StakatakasCardTower>> = {
 
 const tests: GameFileTests<StakatakasCardTower> = {
 	'it should properly detect possible chains': {
-		test(game, format) {
+		test(game, format): void {
 			addPlayers(game, 4);
 			game.topCard = Dex.getPokemonCopy("Pikachu");
 			game.start();
@@ -195,7 +195,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 		},
 	},
 	'it should not create new card arrays for actions': {
-		test(game, format) {
+		test(game, format): void {
 			addPlayers(game, 4);
 			game.topCard = Dex.getPokemonCopy("Pikachu");
 			game.start();
@@ -215,7 +215,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 		},
 	},
 	'it should properly handle card counts - 1 remaining': {
-		test(game, format) {
+		test(game, format): void {
 			addPlayers(game, 4);
 			game.topCard = Dex.getPokemonCopy("Pikachu");
 			game.start();
@@ -230,7 +230,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 		},
 	},
 	'it should properly handle card counts - 0 remaining': {
-		test(game, format) {
+		test(game, format): void {
 			addPlayers(game, 4);
 			game.topCard = Dex.getPokemonCopy("Pikachu");
 			game.start();

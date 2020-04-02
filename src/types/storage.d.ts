@@ -1,6 +1,6 @@
 interface IEventInformation {
 	name: string;
-	link?: {description: string, url: string};
+	link?: {description: string; url: string};
 	formatIds?: string[];
 }
 
@@ -51,7 +51,7 @@ export interface IDatabase {
 	pastGames?: IPastGame[];
 	pastTournaments?: IPastTournament[];
 	pastUserHostedGames?: IPastGame[];
-	queuedTournament?: {formatid: string, playerCap: number, scheduled: boolean, time: number};
+	queuedTournament?: {formatid: string; playerCap: number; scheduled: boolean; time: number};
 	thcWinners?: Dict<string>;
 	userHostedGameQueue?: IQueuedUserHostedGame[];
 	userHostStatuses?: Dict<UserHostStatus>;

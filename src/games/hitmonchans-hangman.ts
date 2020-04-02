@@ -4,7 +4,7 @@ import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Hitmonchan's Hangman";
-const data: {'Characters': string[], 'Locations': string[], 'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
+const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]} = {
 	"Characters": [],
 	"Locations": [],
 	"Pokemon": [],
@@ -17,7 +17,7 @@ const categories = Object.keys(data) as DataKey[];
 let loadedData = false;
 
 class HitmonchansHangman extends Guessing {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -41,7 +41,7 @@ class HitmonchansHangman extends Guessing {
 	roundGuesses = new Map<Player, boolean>();
 	solvedLetters: string[] = [];
 
-	async setAnswers() {
+	async setAnswers(): Promise<void> {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		this.currentCategory = category;
 		let answer = this.sampleOne(data[category]);
@@ -62,7 +62,7 @@ class HitmonchansHangman extends Guessing {
 		}
 	}
 
-	async onNextRound() {
+	async onNextRound(): Promise<void> {
 		if (this.timeout) this.timeout = null;
 		if (!this.answers.length) {
 			this.canGuess = false;
@@ -89,7 +89,7 @@ class HitmonchansHangman extends Guessing {
 		this.say(text);
 	}
 
-	filterGuess(guess: string) {
+	filterGuess(guess: string): boolean {
 		guess = Tools.toId(guess);
 		if (this.guessedLetters.indexOf(guess) > -1 || this.solvedLetters.indexOf(guess) > -1 || guess.length > Tools.toId(this.answers[0]).length) return true;
 		return false;

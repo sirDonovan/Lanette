@@ -14,7 +14,7 @@ const removedOptions: string[] = ['points', 'freejoin'];
 type TeamThis = Guessing & Team;
 
 class Team {
-	static setOptions<T extends Game>(format: IGameFormat<T>, namePrefixes: string[], nameSuffixes: string[]) {
+	static setOptions<T extends Game>(format: IGameFormat<T>, namePrefixes: string[], nameSuffixes: string[]): void {
 		if (!format.name.includes(name)) namePrefixes.unshift(name);
 		format.description += ' ' + description;
 
@@ -48,7 +48,7 @@ class Team {
 	// set in onStart()
 	largestTeam!: PlayerTeam;
 
-	setTeams(this: TeamThis) {
+	setTeams(this: TeamThis): void {
 		this.teams = this.generateTeams(this.format.options.teams);
 
 		const teamIds = Object.keys(this.teams);
@@ -76,12 +76,12 @@ class Team {
 		}
 	}
 
-	onStart(this: TeamThis) {
+	onStart(this: TeamThis): void {
 		this.setTeams();
 		this.timeout = setTimeout(() => this.nextRound(), 10000);
 	}
 
-	async onNextRound(this: TeamThis) {
+	async onNextRound(this: TeamThis): Promise<void> {
 		this.canGuess = false;
 
 		let largestTeamPlayersCycled = false;
@@ -163,7 +163,7 @@ class Team {
 		return points.join(" | ");
 	}
 
-	onEnd(this: TeamThis) {
+	onEnd(this: TeamThis): void {
 		this.winners.forEach((value, player) => {
 			const points = this.points.get(player);
 			let earnings = 250;
@@ -181,7 +181,7 @@ class Team {
 
 const commands: CommandsDict<Team & Guessing, GameCommandReturnType> = {
 	guess: {
-		async asyncCommand(target, room, user) {
+		async asyncCommand(target, room, user): Promise<GameCommandReturnType> {
 			if (!this.canGuess || !this.answers.length || !(user.id in this.players)) return false;
 			const player = this.players[user.id];
 			let currentPlayer = false;
@@ -255,7 +255,7 @@ commands.g = {
 	asyncCommand: commands.guess.asyncCommand,
 };
 
-const initialize = (game: Game) => {
+const initialize = (game: Game): void => {
 	const mode = new Team();
 	const propertiesToOverride = Object.getOwnPropertyNames(mode).concat(Object.getOwnPropertyNames(Team.prototype)) as (keyof Team)[];
 	for (let i = 0; i < propertiesToOverride.length; i++) {
@@ -285,7 +285,7 @@ const tests: GameFileTests<TeamThis> = {
 			async: true,
 			commands: [['guess'], ['g']],
 		},
-		async test(game, format, attributes) {
+		async test(game, format, attributes): Promise<void> {
 			this.timeout(15000);
 
 			const players = addPlayers(game);

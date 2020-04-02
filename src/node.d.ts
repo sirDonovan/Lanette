@@ -1,4 +1,3 @@
-// tslint:disable
 declare namespace NodeJS {
 	interface Global {
 		BaseCommands: import('./command-parser').CommandsDict;
@@ -17,4 +16,3 @@ declare namespace NodeJS {
 		Users: import('./users').Users;
 	}
 }
-// tslint:enable

@@ -2,20 +2,20 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, GameCommandReturnType } from "../types/games";
 import { User } from "../users";
 
 const GRID_SIZE = 4;
 
 const name = "Trevenant's Trick-or-Treat";
-const data: {allPossibleMoves: Dict<readonly string[]>, pokedex: string[]} = {
+const data: {allPossibleMoves: Dict<readonly string[]>; pokedex: string[]} = {
 	allPossibleMoves: {},
 	pokedex: [],
 };
 let loadedData = false;
 
 class TrevenantsTrickOrTreat extends Game {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -43,7 +43,7 @@ class TrevenantsTrickOrTreat extends Game {
 		this.pokemonList = this.shuffle(data.pokedex);
 	}
 
-	generateNewMons() {
+	generateNewMons(): void {
 		this.pokemonGrid = [];
 		for (let i = 0; i < GRID_SIZE; i++) {
 			this.pokemonGrid.push([]);
@@ -58,23 +58,23 @@ class TrevenantsTrickOrTreat extends Game {
 		return this.pokemonList.shift()!;
 	}
 
-	onSignups() {
+	onSignups(): void {
 		this.format.options.points = 500;
 		this.say("Use ``" + Config.commandCharacter + "trick [move]`` in PMs to guess moves only one Pokemon in the grid can learn.");
 		this.generateNewDisplay();
 		this.timeout = setTimeout(() => this.generateNewDisplay(), 60 * 1000);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		this.announceWinners();
 	}
 
-	generateNewDisplay() {
+	generateNewDisplay(): void {
 		this.generateNewMons();
 		this.display();
 	}
 
-	display() {
+	display(): void {
 		let html = `<div class="infobox"><center>`;
 		for (let i = 0; i < GRID_SIZE; i++) {
 			for (let j = 0; j < GRID_SIZE; j++) {
@@ -89,7 +89,7 @@ class TrevenantsTrickOrTreat extends Game {
 
 const commands: Dict<ICommandDefinition<TrevenantsTrickOrTreat>> = {
 	trick: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.started || (user.id in this.players && this.players[user.id].eliminated)) return false;
 			const move = Dex.getMove(target);
 			if (!move) {

@@ -1,7 +1,7 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
-import { IGameFile, AchievementsDict } from "../types/games";
+import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
 
 const hotPotatoHeroTime = 9000;
 const achievements: AchievementsDict = {
@@ -15,7 +15,7 @@ class ChanseysEggToss extends Game {
 	holdTime: number = 0;
 	roundTimes: number[] = [7000, 8000, 9000, 10000];
 
-	onRenamePlayer(player: Player, oldId: string) {
+	onRenamePlayer(player: Player, oldId: string): void {
 		if (!this.started || player.eliminated) return;
 		this.removePlayer(player.name);
 		const text = player.name + " was DQed for changing names!";
@@ -27,23 +27,23 @@ class ChanseysEggToss extends Game {
 		this.say(text);
 	}
 
-	onRemovePlayer(player: Player) {
+	onRemovePlayer(player: Player): void {
 		if (this.currentHolder && this.getRemainingPlayerCount() < 2) {
 			this.say(player.name + " left the game!");
 			this.end();
 		}
 	}
 
-	onStart() {
+	onStart(): void {
 		this.nextRound();
 	}
 
-	giveEgg(player: Player) {
+	giveEgg(player: Player): void {
 		this.holdTime = Date.now();
 		this.currentHolder = player;
 	}
 
-	explodeEgg() {
+	explodeEgg(): void {
 		if (this.currentHolder) {
 			this.say("The egg exploded on " + this.currentHolder.name + "!");
 			this.eliminatePlayer(this.currentHolder);
@@ -53,7 +53,7 @@ class ChanseysEggToss extends Game {
 		this.timeout = setTimeout(() => this.nextRound(), 5000);
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		const remainingPlayerCount = this.getRemainingPlayerCount();
 		if (remainingPlayerCount < 2) {
 			return this.end();
@@ -91,7 +91,7 @@ class ChanseysEggToss extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		const winner = this.getFinalPlayer();
 		if (winner) {
 			this.winners.set(winner, 1);
@@ -104,7 +104,7 @@ class ChanseysEggToss extends Game {
 
 const commands: Dict<ICommandDefinition<ChanseysEggToss>> = {
 	toss: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canToss || !(user.id in this.players) || this.players[user.id].eliminated) return false;
 			const player = this.players[user.id];
 			if (player !== this.currentHolder) {

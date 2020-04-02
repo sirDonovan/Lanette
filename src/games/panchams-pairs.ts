@@ -2,7 +2,7 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, GameCommandReturnType } from "../types/games";
 
 interface IPokemonPairData {
 	type: readonly string[];
@@ -20,15 +20,15 @@ interface IMovePairData {
 
 const name = "Pancham's Pairs";
 
-const data: {moves: Dict<IMovePairData>, pokemon: Dict<IPokemonPairData>} = {
+const data: {moves: Dict<IMovePairData>; pokemon: Dict<IPokemonPairData>} = {
 	moves: {},
 	pokemon: {},
 };
-const dataKeys: {'Pokemon': string[], moves: string[]} = {
+const dataKeys: {'Pokemon': string[]; moves: string[]} = {
 	'moves': [],
 	'Pokemon': [],
 };
-const categories: {'Pokemon': (keyof IPokemonPairData)[], moves: (keyof IMovePairData)[]} = {
+const categories: {'Pokemon': (keyof IPokemonPairData)[]; moves: (keyof IMovePairData)[]} = {
 	'moves': ['type', 'pp', 'bp', 'generation'],
 	'Pokemon': ['type', 'color', 'ability', 'generation'],
 };
@@ -37,7 +37,7 @@ type dataTypes = keyof typeof categories;
 let loadedData = false;
 
 class PanchamPairs extends Game {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -80,11 +80,11 @@ class PanchamPairs extends Game {
 	paired = new Set<Player>();
 	pairRound: number = 0;
 
-	onStart() {
+	onStart(): void {
 		this.nextRound();
 	}
 
-	listPossiblePairs() {
+	listPossiblePairs(): void {
 		this.pairRound++;
 		if (this.pairRound >= 4) {
 			this.nextRound();
@@ -103,7 +103,7 @@ class PanchamPairs extends Game {
 		this.say(this.currentListString);
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		this.canPair = false;
 		const eliminated: Player[] = [];
 		if (this.round > 1) {
@@ -164,7 +164,7 @@ class PanchamPairs extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		this.announceWinners();
 	}
 
@@ -201,7 +201,7 @@ class PanchamPairs extends Game {
 		return false;
 	}
 
-	isPair(inputA: string, inputB: string) {
+	isPair(inputA: string, inputB: string): boolean {
 		for (let i = 0, len = categories[this.dataType].length; i < len; i++) {
 			if (this.isParamPair(inputA, inputB, categories[this.dataType][i], false)) return true;
 		}
@@ -211,7 +211,7 @@ class PanchamPairs extends Game {
 
 const commands: Dict<ICommandDefinition<PanchamPairs>> = {
 	pair: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canPair) return false;
 			const player = this.players[user.id];
 			if (!player || player.eliminated || this.paired.has(player)) return false;

@@ -1,6 +1,6 @@
 import { ICommandDefinition } from '../../command-parser';
 import { Player } from '../../room-activity';
-import { GameCategory, IGameTemplateFile, IGameAchievement } from '../../types/games';
+import { GameCategory, IGameTemplateFile, IGameAchievement, GameCommandReturnType } from '../../types/games';
 import { Card, CardType, game as cardGame, IPokemonCard } from './card';
 
 export abstract class CardMatching extends Card {
@@ -27,7 +27,7 @@ export abstract class CardMatching extends Card {
 	abstract onRemovePlayer(player: Player): void;
 	abstract playActionCard(card: CardType, player: Player, targets: string[], cards: CardType[]): CardType[] | boolean;
 
-	createDeck() {
+	createDeck(): void {
 		const colorCounts: Dict<number> = {};
 		const typeCounts: Dict<number> = {};
 		if (!this.deckPool.length) this.createDeckPool();
@@ -91,7 +91,7 @@ export abstract class CardMatching extends Card {
 		this.deck = this.shuffle(deck);
 	}
 
-	showTopCard(firstPlayedShiny?: boolean) {
+	showTopCard(firstPlayedShiny?: boolean): void {
 		const html = '<center>' + this.getCardChatHtml(this.topCard) + '</center>';
 		if (firstPlayedShiny) {
 			this.sayUhtml(this.uhtmlBaseName, "<div></div>");
@@ -101,11 +101,11 @@ export abstract class CardMatching extends Card {
 		}
 	}
 
-	getTopCardText() {
+	getTopCardText(): string {
 		return "**" + this.topCard.species + "** (" + this.topCard.color + ", " + this.topCard.types.join("/") + ")";
 	}
 
-	repostTopCard() {
+	repostTopCard(): void {
 		if (!this.topCard) return;
 		this.showTopCard();
 	}
@@ -165,7 +165,7 @@ export abstract class CardMatching extends Card {
 		return html.join("<br />");
 	}
 
-	onStart() {
+	onStart(): void {
 		this.createDeck();
 		this.playerOrder = this.shufflePlayers();
 		this.say("Now PMing cards!");
@@ -230,7 +230,7 @@ export abstract class CardMatching extends Card {
 		return !!this.getPlayableCards(player).length;
 	}
 
-	timeEnd() {
+	timeEnd(): void {
 		this.timeEnded = true;
 		this.say("Time is up!");
 		const winners = new Map<Player, number>();
@@ -255,7 +255,7 @@ export abstract class CardMatching extends Card {
 		this.end();
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		this.canPlay = false;
 		if (this.currentPlayer) {
 			this.lastPlayer = this.currentPlayer;
@@ -348,7 +348,7 @@ export abstract class CardMatching extends Card {
 		this.say(text);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		for (const i in this.players) {
 			if (this.players[i].eliminated || !this.players[i].frozen) continue;
 			const player = this.players[i];
@@ -389,7 +389,7 @@ export abstract class CardMatching extends Card {
 		return true;
 	}
 
-	getPlayerSummary(player: Player) {
+	getPlayerSummary(player: Player): void {
 		if (player.eliminated) return;
 		this.dealHand(player);
 	}
@@ -397,7 +397,7 @@ export abstract class CardMatching extends Card {
 
 const commands: Dict<ICommandDefinition<CardMatching>> = {
 	play: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
 			const targets = target.split(",");
 			const id = Tools.toId(targets[0]);
@@ -447,7 +447,7 @@ const commands: Dict<ICommandDefinition<CardMatching>> = {
 		chatOnly: true,
 	},
 	pmplay: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
 			this.players[user.id].useCommand('play', target);
 			return true;

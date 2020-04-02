@@ -5,7 +5,7 @@ import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Zygarde's Orders";
-const data: {'Characters': string[], 'Locations': string[], 'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
+const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]} = {
 	"Characters": [],
 	"Locations": [],
 	"Pokemon": [],
@@ -22,7 +22,7 @@ const achievements: AchievementsDict = {
 };
 
 class ZygardesOrders extends Guessing {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -47,7 +47,7 @@ class ZygardesOrders extends Guessing {
 	roundGuesses = new Map<Player, boolean>();
 	solvedLetters: string[] = [];
 
-	async setAnswers() {
+	async setAnswers(): Promise<void> {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		let answer = this.sampleOne(data[category]);
 		while (answer === this.lastAnswer) {
@@ -69,7 +69,7 @@ class ZygardesOrders extends Guessing {
 		this.say("The category is **" + category + "**");
 	}
 
-	async onNextRound() {
+	async onNextRound(): Promise<void> {
 		if (!this.answers.length) {
 			this.canGuess = false;
 			await this.setAnswers();
@@ -127,7 +127,7 @@ class ZygardesOrders extends Guessing {
 		this.say(text);
 	}
 
-	onCorrectGuess(player: Player, answer: string) {
+	onCorrectGuess(player: Player, answer: string): void {
 		if (this.revealedLetters === 1) this.unlockAchievement(player, achievements.tallorder!);
 	}
 }

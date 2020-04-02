@@ -23,7 +23,7 @@ export abstract class PlayingCard extends Game {
 	readonly wagers: Map<Player, number> | null = null;
 	readonly playerTotals = new Map<Player, number>();
 	deck: IPlayingCard[] = [];
-	readonly faceCardValues: {J: number, Q: number, K: number, A: number} = {
+	readonly faceCardValues: {J: number; Q: number; K: number; A: number} = {
 		J: 11,
 		Q: 12,
 		K: 13,
@@ -35,7 +35,7 @@ export abstract class PlayingCard extends Game {
 
 	abstract onEnd(): void;
 
-	createDeck() {
+	createDeck(): IPlayingCard[] {
 		const deck: IPlayingCard[] = [];
 		const suits: IPlayingCardSuits[] = ['clubs', 'diamonds', 'hearts', 'spades'];
 		for (let i = 1; i <= 13; i++) {
@@ -89,7 +89,7 @@ export abstract class PlayingCard extends Game {
 		return html;
 	}
 
-	dealCards(player: Player, newCards?: IPlayingCard[]) {
+	dealCards(player: Player, newCards?: IPlayingCard[]): void {
 		let cards = this.playerCards.get(player);
 		if (!cards) {
 			if (this.wagers) {
@@ -144,7 +144,7 @@ export abstract class PlayingCard extends Game {
 		player.sayUhtml(html, this.uhtmlBaseName + "-hand");
 	}
 
-	getPlayerSummary(player: Player) {
+	getPlayerSummary(player: Player): void {
 		if (player.eliminated) return;
 		const userCards = this.playerCards.get(player);
 		if (!userCards || !userCards.length) return player.say("You do not have any cards yet");

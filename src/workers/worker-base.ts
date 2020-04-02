@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/camelcase
 import worker_threads = require('worker_threads');
 
 const UNREF_TIMER = 30 * 60 * 1000;
@@ -12,6 +13,7 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse> {
 
 	workerData: WorkerData | null = null;
 
+	// eslint-disable-next-line @typescript-eslint/camelcase
 	protected worker: worker_threads.Worker | null = null;
 
 	private messageNumber: number = 0;
@@ -33,9 +35,10 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse> {
 		}));
 	}
 
-	init() {
+	init(): void {
 		if (!this.workerData) this.workerData = this.loadData();
 		if (!this.worker) {
+			// eslint-disable-next-line @typescript-eslint/camelcase
 			this.worker = new worker_threads.Worker(this.threadPath, {workerData: this.workerData});
 
 			this.worker.on('message', (message: string) => {
@@ -60,7 +63,7 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse> {
 		}
 	}
 
-	unref() {
+	unref(): void {
 		if (this.unrefTimer) clearTimeout(this.unrefTimer);
 		if (this.worker) {
 			this.worker.unref();

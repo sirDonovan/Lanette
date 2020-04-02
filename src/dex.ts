@@ -14,8 +14,8 @@ const modsDir = path.join(dataDir, 'mods');
 const formatsPath = path.join(Tools.pokemonShowdownFolder, 'config', 'formats.js');
 const lanetteDataDir = path.join(Tools.rootFolder, 'data');
 
-// tslint:disable-next-line no-var-requires
-const alternateIconNumbers: {right: Dict<number>, left: Dict<number>} = require(path.join(lanetteDataDir, 'alternate-icon-numbers.js'));
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const alternateIconNumbers: {right: Dict<number>; left: Dict<number>} = require(path.join(lanetteDataDir, 'alternate-icon-numbers.js'));
 
 const dataFiles: Dict<string> = {
 	'Pokedex': 'pokedex',
@@ -132,18 +132,6 @@ const gen2Items: string[] = ['berserkgene', 'berry', 'bitterberry', 'burntberry'
 const customRuleFormats: Dict<string> = {};
 const dexes: Dict<Dex> = {};
 
-interface IGameTimerSettings {
-	dcTimer: boolean;
-	dcTimerBank: boolean;
-	starting: number;
-	grace: number;
-	addPerTurn: number;
-	maxPerTurn: number;
-	maxFirstTurn: number;
-	timeoutAutoChoose: boolean;
-	accelerate: boolean;
-}
-
 /** rule, source, limit, bans */
 export type ComplexBan = [string, string, number, string[]];
 export type ComplexTeamBan = ComplexBan;
@@ -160,8 +148,8 @@ export type ComplexTeamBan = ComplexBan;
 export class RuleTable extends Map<string, string> {
 	complexBans: ComplexBan[];
 	complexTeamBans: ComplexTeamBan[];
-	// tslint:disable-next-line:ban-types
 	checkLearnset: [Function, string] | null;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	timer: [any, string] | null;
 	minSourceGen: [number, string] | null;
 
@@ -174,12 +162,12 @@ export class RuleTable extends Map<string, string> {
 		this.minSourceGen = null;
 	}
 
-	isBanned(thing: string) {
+	isBanned(thing: string): boolean {
 		if (this.has(`+${thing}`)) return false;
 		return this.has(`-${thing}`);
 	}
 
-	check(thing: string, setHas: {[id: string]: true} | null = null) {
+	check(thing: string, setHas: {[id: string]: true} | null = null): string | null {
 		if (this.has(`+${thing}`)) return '';
 		if (setHas) setHas[thing] = true;
 		return this.getReason(`-${thing}`);
@@ -206,7 +194,7 @@ export class RuleTable extends Map<string, string> {
 		return complexBanIndex;
 	}
 
-	addComplexBan(rule: string, source: string, limit: number, bans: string[]) {
+	addComplexBan(rule: string, source: string, limit: number, bans: string[]): void {
 		const complexBanIndex = this.getComplexBanIndex(this.complexBans, rule);
 		if (complexBanIndex !== -1) {
 			if (this.complexBans[complexBanIndex][2] === Infinity) return;
@@ -216,7 +204,7 @@ export class RuleTable extends Map<string, string> {
 		}
 	}
 
-	addComplexTeamBan(rule: string, source: string, limit: number, bans: string[]) {
+	addComplexTeamBan(rule: string, source: string, limit: number, bans: string[]): void {
 		const complexBanTeamIndex = this.getComplexBanIndex(this.complexTeamBans, rule);
 		if (complexBanTeamIndex !== -1) {
 			if (this.complexTeamBans[complexBanTeamIndex][2] === Infinity) return;
@@ -308,7 +296,8 @@ export class Dex {
 		return this;
 	}
 
-	modData(dataType: string, id: string) {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	modData(dataType: string, id: string): any {
 		// @ts-ignore
 		if (this.isBase) return this.data[dataType][id];
 		// @ts-ignore
@@ -319,9 +308,11 @@ export class Dex {
 		return this.data[dataType][id];
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	loadDataFile(basePath: string, dataFiles: Dict<string>, dataType: string): Dict<any> {
 		try {
 			const filePath = path.join(basePath, dataFiles[dataType]);
+			// eslint-disable-next-line @typescript-eslint/no-var-requires
 			const dataObject = require(filePath);
 			const key = `Battle${dataType}`;
 			if (!dataObject || typeof dataObject !== 'object') return new TypeError(`${filePath}, if it exists, must export a non-null object`);
@@ -335,9 +326,10 @@ export class Dex {
 		return {};
 	}
 
-	includeFormats() {
+	includeFormats(): void {
 		let formatsList: IFormatData[] = [];
 		try {
+			// eslint-disable-next-line @typescript-eslint/no-var-requires
 			const dataObject = require(formatsPath);
 			formatsList = dataObject.Formats;
 		} catch (e) {
@@ -367,6 +359,7 @@ export class Dex {
 
 		let formats: Dict<IFormatData & IFormatLinks> = {};
 		try {
+			// eslint-disable-next-line @typescript-eslint/no-var-requires
 			const dataObject = require(path.join(lanetteDataDir, 'format-links.js'));
 			formats = dataObject.BattleFormatLinks;
 		} catch (e) {
@@ -446,7 +439,7 @@ export class Dex {
 		Object.assign(this.dataCache.formats, formats);
 	}
 
-	loadData() {
+	loadData(): void {
 		if (this.loadedData) return;
 
 		dexes['base'].includeMods();
@@ -586,11 +579,9 @@ export class Dex {
 				}
 			}
 		}
-
-		return this.dataCache;
 	}
 
-	async fetchClientData() {
+	async fetchClientData(): Promise<void> {
 		const files = ['pokedex-mini.js', 'pokedex-mini-bw.js'];
 		for (let i = 0; i < files.length; i++) {
 			const file = await Tools.fetchUrl('https://' + Tools.mainServer + '/data/' + files[i]);
@@ -1427,13 +1418,13 @@ export class Dex {
 		if (!id) return null;
 		const inputTarget = name;
 
-		let supplementaryAttributes: {customRules?: string[], searchShow?: boolean} = {};
+		let supplementaryAttributes: {customRules?: string[]; searchShow?: boolean} = {};
 		if (name.includes('@@@')) {
 			if (!isTrusted) {
 				try {
 					name = this.validateFormat(name);
 					isTrusted = true;
-				// tslint:disable-next-line
+				// eslint-disable-next-line no-empty
 				} catch (e) {}
 			}
 			const [newName, customRulesString] = name.split('@@@', 2);
@@ -1528,7 +1519,7 @@ export class Dex {
 	/**
 	 * Returns a sanitized format ID if valid, or throws if invalid.
 	 */
-	validateFormat(name: string) {
+	validateFormat(name: string): string {
 		const [formatName, customRulesString] = name.split('@@@', 2);
 		const format = this.getFormat(formatName);
 		if (!format) throw new Error(`Unrecognized format "${formatName}"`);
@@ -1637,11 +1628,9 @@ export class Dex {
 					ruleTable.set(k, v || subformat.name);
 				}
 			}
-			// tslint:disable-next-line:no-shadowed-variable
 			for (const [rule, source, limit, bans] of subRuleTable.complexBans) {
 				ruleTable.addComplexBan(rule, source || subformat.name, limit, bans);
 			}
-			// tslint:disable-next-line:no-shadowed-variable
 			for (const [rule, source, limit, bans] of subRuleTable.complexTeamBans) {
 				ruleTable.addComplexTeamBan(rule, source || subformat.name, limit, bans);
 			}
@@ -1678,7 +1667,7 @@ export class Dex {
 		return ruleTable;
 	}
 
-	validateRule(rule: string, format: IFormat | null = null) {
+	validateRule(rule: string, format: IFormat | null = null): string | ['complexTeamBan' | 'complexBan', string, string, number, string[]] {
 		switch (rule.charAt(0)) {
 		case '-':
 		case '+':
@@ -1706,7 +1695,7 @@ export class Dex {
 				throw new Error(`Confusing rule ${rule}`);
 			}
 			return rule.charAt(0) + this.validateBanRule(rule.slice(1));
-		default:
+		default: {
 			const id = Tools.toId(rule);
 			if (!this.data.formats.hasOwnProperty(id)) {
 				throw new Error(`Unrecognized rule "${rule}"`);
@@ -1714,9 +1703,10 @@ export class Dex {
 			if (rule.charAt(0) === '!') return `!${id}`;
 			return id;
 		}
+		}
 	}
 
-	validateBanRule(rule: string) {
+	validateBanRule(rule: string): string {
 		let id = Tools.toId(rule);
 		if (id === 'unreleased') return 'unreleased';
 		if (id === 'nonexistent') return 'nonexistent';
@@ -1738,7 +1728,7 @@ export class Dex {
 			case 'move': table = this.data.moves; break;
 			case 'item': table = this.data.items; break;
 			case 'ability': table = this.data.abilities; break;
-			case 'pokemontag':
+			case 'pokemontag': {
 				// valid pokemontags
 				const validTags = [
 					// singles tiers
@@ -1754,6 +1744,7 @@ export class Dex {
 				];
 				if (validTags.includes(ruleid)) matches.push('pokemontag:' + ruleid);
 				continue;
+			}
 			default:
 				throw new Error(`Unrecognized match type.`);
 			}

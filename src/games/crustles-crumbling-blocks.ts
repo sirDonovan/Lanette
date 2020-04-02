@@ -1,7 +1,7 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
-import { IGameFile } from "../types/games";
+import { IGameFile, GameCommandReturnType } from "../types/games";
 
 const MIN_BLOCKS = 1;
 const MAX_BLOCKS = 5;
@@ -13,17 +13,17 @@ class CrustlesCrumblingBlocks extends Game {
 	order: Player[] = [];
 	playerList: Player[] = [];
 
-	onRemovePlayer() {
+	onRemovePlayer(): void {
 		if (!this.started) return;
 		this.currentPlayer = null;
 		this.nextRound();
 	}
 
-	onStart() {
+	onStart(): void {
 		this.nextRound();
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		if (this.currentPlayer) {
 			this.say("**" + this.currentPlayer.name + "** did not remove any blocks and has been eliminated from the game! The blocks will now reset.");
 			this.eliminatePlayer(this.currentPlayer, "You did not remove any blocks!");
@@ -63,7 +63,7 @@ class CrustlesCrumblingBlocks extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	chooseNextPlayer() {
+	chooseNextPlayer(): void {
 		if (!this.getRemainingPlayerCount()) {
 			this.nextRound();
 			return;
@@ -95,14 +95,14 @@ class CrustlesCrumblingBlocks extends Game {
 		this.say(text);
 	}
 
-	removeLastBlock(player: Player) {
+	removeLastBlock(player: Player): void {
 		this.say("**" + player.name + "** was forced to remove the last block from the pyramid and has been eliminated from the game!");
 		this.eliminatePlayer(player, "You removed the last block from the pyramid!");
 		this.currentPlayer = null;
 		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		const remainingPlayers = Object.keys(this.getRemainingPlayers());
 		if (remainingPlayers.length) {
 			for (let i = 0; i < 2; i++) {
@@ -117,7 +117,7 @@ class CrustlesCrumblingBlocks extends Game {
 
 const commands: Dict<ICommandDefinition<CrustlesCrumblingBlocks>> = {
 	remove: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id] !== this.currentPlayer) return false;
 			const player = this.players[user.id];
 			const targetNumber = parseInt(target);

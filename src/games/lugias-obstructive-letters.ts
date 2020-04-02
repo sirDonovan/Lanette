@@ -6,7 +6,7 @@ const BASE_POINTS = 30;
 const BASE_TEAM_POINTS = 60;
 
 const name = "Lugia's Obstructive Letters";
-const data: {'Pokemon': Dict<string>, 'Pokemon Abilities': Dict<string>, 'Pokemon Items': Dict<string>, 'Pokemon Moves': Dict<string>} = {
+const data: {'Pokemon': Dict<string>; 'Pokemon Abilities': Dict<string>; 'Pokemon Items': Dict<string>; 'Pokemon Moves': Dict<string>} = {
 	"Pokemon": {},
 	"Pokemon Abilities": {},
 	"Pokemon Items": {},
@@ -25,7 +25,7 @@ let loadedData = false;
 const letters = Tools.letters.split("");
 
 class LugiasObstructiveLetters extends Guessing {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -60,7 +60,7 @@ class LugiasObstructiveLetters extends Guessing {
 	roundTime: number = 30 * 1000;
 	winnerPointsToBits: number = 10;
 
-	async setAnswers() {
+	async setAnswers(): Promise<void> {
 		let answers: string[] = [];
 		let category: DataKey;
 		let unavailableLetters: string[] = [];

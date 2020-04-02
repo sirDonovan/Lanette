@@ -2,19 +2,22 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, GameCommandReturnType } from "../types/games";
 import { IParametersWorkerData, IParam } from './../workers/parameters';
 
 const name = "Inkay's Cups";
 const gen = 7;
 const genString = 'gen' + gen;
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 interface IParamType {
 	'color': any;
 	'letter': any;
 	'tier': any;
 	'type': any;
 }
+/* eslint-enable */
+
 type ParamType = keyof IParamType;
 const paramTypes: ParamType[] = ['color', 'letter', 'tier', 'type'];
 const paramTypeDexesKeys: Dict<Dict<KeyedDict<IParamType, string[]>>> = {};
@@ -24,7 +27,7 @@ const searchTypes: (keyof IParametersWorkerData)[] = ['pokemon'];
 let loadedData = false;
 
 class InkaysCups extends Game {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -56,7 +59,7 @@ class InkaysCups extends Game {
 	roundTime: number = 15 * 1000;
 	usesWorkers: boolean = true;
 
-	onAddPlayer(player: Player, lateJoin?: boolean) {
+	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
 		if (lateJoin && this.round > 1) {
 			player.say("Sorry, the late-join period has ended.");
 			return false;
@@ -64,7 +67,7 @@ class InkaysCups extends Game {
 		return true;
 	}
 
-	onStart() {
+	onStart(): void {
 		const text = "The game will be played in Gen " + gen + "!";
 		this.on(text, () => {
 			this.timeout = setTimeout(() => this.nextRound(), 5000);
@@ -72,7 +75,7 @@ class InkaysCups extends Game {
 		this.say(text);
 	}
 
-	async generateCups() {
+	async generateCups(): Promise<void> {
 		const roundParamTypes = this.sampleMany(paramTypes, 2);
 		const lower = this.getRemainingPlayerCount();
 		const upper = lower * 3;
@@ -133,7 +136,7 @@ class InkaysCups extends Game {
 		this.say(text);
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		this.canGrab = false;
 		if (this.round > 1) {
 			if (this.roundTime > 5000) this.roundTime -= 2500;
@@ -152,7 +155,7 @@ class InkaysCups extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
@@ -166,7 +169,7 @@ class InkaysCups extends Game {
 
 const commands: Dict<ICommandDefinition<InkaysCups>> = {
 	grab: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canGrab || !(user.id in this.players) || this.players[user.id].eliminated) return false;
 			const player = this.players[user.id];
 			if (this.roundGuesses.has(player)) return false;

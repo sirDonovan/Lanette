@@ -17,14 +17,6 @@
 		],
 		"lib": [
 		    "esnext"
-		],
-		"plugins": [
-			{
-				"name": "typescript-tslint-plugin",
-				"alwaysShowRuleFailuresAsWarnings": true,
-				"ignoreDefinitionFiles": false,
-				"suppressWhileTypeErrorsPresent": true
-			}
 		]
 	},
 	"include": [

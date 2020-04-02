@@ -2,7 +2,7 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile, AchievementsDict } from "../types/games";
+import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
 
 interface ICaughtPokemon {
 	points: number;
@@ -10,7 +10,7 @@ interface ICaughtPokemon {
 }
 
 const name = "Tauros' Safari Zone";
-const data: {baseStatTotals: Dict<number>, pokedex: string[]} = {
+const data: {baseStatTotals: Dict<number>; pokedex: string[]} = {
 	baseStatTotals: {},
 	pokedex: [],
 };
@@ -21,7 +21,7 @@ const achievements: AchievementsDict = {
 };
 
 class TaurosSafariZone extends Game {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -64,7 +64,7 @@ class TaurosSafariZone extends Game {
 	roundTime: number = 5 * 1000;
 	winners = new Map<Player, number>();
 
-	onSignups() {
+	onSignups(): void {
 		if (this.format.options.freejoin) {
 			this.timeout = setTimeout(() => {
 				this.nextRound();
@@ -72,11 +72,11 @@ class TaurosSafariZone extends Game {
 		}
 	}
 
-	generatePokemon() {
+	generatePokemon(): void {
 		const pokemon = this.sampleMany(data.pokedex, 3).map(x => Dex.getExistingPokemon(x));
 		let hasVoltorb = false;
 		let hasElectrode = false;
-		const baseStatTotals: {pokemon: string, bst: number}[] = [];
+		const baseStatTotals: {pokemon: string; bst: number}[] = [];
 		for (let i = 0; i < pokemon.length; i++) {
 			let currentPokemon = pokemon[i];
 			const chance = this.random(100);
@@ -113,10 +113,10 @@ class TaurosSafariZone extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		this.canCatch = false;
 		if (this.round > 1) {
-			const catches: {player: Player, pokemon: string, points: number}[] = [];
+			const catches: {player: Player; pokemon: string; points: number}[] = [];
 			let firstCatch = true;
 			this.roundCatches.forEach((pokemon, player) => {
 				if (player.eliminated) return;
@@ -167,7 +167,7 @@ class TaurosSafariZone extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		const totalRounds = this.round - 1;
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
@@ -184,7 +184,7 @@ class TaurosSafariZone extends Game {
 
 const commands: Dict<ICommandDefinition<TaurosSafariZone>> = {
 	catch: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canCatch || (user.id in this.players && this.players[user.id].eliminated)) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (this.roundCatches.has(player)) return false;

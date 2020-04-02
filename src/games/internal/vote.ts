@@ -2,7 +2,7 @@ import { ICommandDefinition } from "../../command-parser";
 import { Player } from "../../room-activity";
 import { Game } from "../../room-game";
 import { Room } from "../../rooms";
-import { IGameFile, IGameFormat } from "../../types/games";
+import { IGameFile, IGameFormat, GameCommandReturnType } from "../../types/games";
 
 const timeLimit = 30 * 1000;
 
@@ -18,7 +18,7 @@ export class Vote extends Game {
 	// hack for onSignups()
 	room!: Room;
 
-	onSignups() {
+	onSignups(): void {
 		const database = Storage.getDatabase(this.room);
 		const pastGames: string[] = [];
 		if (database.pastGames && database.pastGames.length) {
@@ -80,7 +80,7 @@ export class Vote extends Game {
 		this.sayCommand("/notifyrank all, " + this.room.title + " game vote,Help decide the next scripted game!," + Games.scriptedGameVoteHighlight, true);
 	}
 
-	endVoting() {
+	endVoting(): void {
 		const html = "<div class='infobox'><center><h3>Voting for the next scripted game has ended!</h3></center></div>";
 		this.onUhtml(this.voteUhtml, html, () => {
 			this.canVote = false;
@@ -103,18 +103,18 @@ export class Vote extends Game {
 		this.sayUhtml(this.voteUhtml, html);
 	}
 
-	onForceEnd() {
+	onForceEnd(): void {
 		this.sayUhtmlChange(this.voteUhtml, "<div></div>");
 	}
 
-	onAfterDeallocate(forceEnd: boolean) {
+	onAfterDeallocate(forceEnd: boolean): void {
 		if (!forceEnd && this.chosenFormat) CommandParser.parse(this.room, Users.self, Config.commandCharacter + "creategame " + this.chosenFormat);
 	}
 }
 
 const commands: Dict<ICommandDefinition<Vote>> = {
 	vote: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canVote) return false;
 			const player = this.players[user.id] || this.createPlayer(user);
 			const targetId = Tools.toId(target);

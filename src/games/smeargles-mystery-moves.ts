@@ -14,7 +14,7 @@ const achievements: AchievementsDict = {
 };
 
 class SmearglesMysteryMoves extends Guessing {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -34,13 +34,13 @@ class SmearglesMysteryMoves extends Guessing {
 	lastMove: string = '';
 	points = new Map<Player, number>();
 
-	onSignups() {
+	onSignups(): void {
 		if (this.format.options.freejoin) {
 			this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
 		}
 	}
 
-	async setAnswers() {
+	async setAnswers(): Promise<void> {
 		this.hintsIndex = 0;
 		let name = this.sampleOne(data.moves);
 		while (this.lastMove === name) {
@@ -59,7 +59,7 @@ class SmearglesMysteryMoves extends Guessing {
 		this.answers = [move.name];
 	}
 
-	async onNextRound() {
+	async onNextRound(): Promise<void> {
 		if (!this.answers.length) {
 			this.canGuess = false;
 			await this.setAnswers();

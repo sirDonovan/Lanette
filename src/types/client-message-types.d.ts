@@ -43,18 +43,18 @@ export interface IClientMessageTypes {
 	 */
 	updateuser: {
 		/** username[@status] */
-		usernameText: string,
+		usernameText: string;
 		/** '1' if logged in */
-		readonly loginStatus: string,
+		readonly loginStatus: string;
 	};
 
 	/**
 	 * Query type|response
 	 */
 	queryresponse: {
-		readonly type: 'roominfo' | 'userdetails',
+		readonly type: 'roominfo' | 'userdetails';
 		/** JSON string */
-		readonly response: string,
+		readonly response: string;
 	};
 
 	/**
@@ -62,7 +62,7 @@ export interface IClientMessageTypes {
 	 */
 	init: {
 		/** Chat, battle, or HTML */
-		readonly type: RoomType,
+		readonly type: RoomType;
 	};
 
 	deinit: {};
@@ -71,7 +71,7 @@ export interface IClientMessageTypes {
 	 * Groups list
 	 */
 	customgroups: {
-		readonly groups: ServerGroupData[],
+		readonly groups: ServerGroupData[];
 	};
 
 	/**
@@ -83,15 +83,15 @@ export interface IClientMessageTypes {
 	 */
 	users: {
 		/** usercount,[rank]username[@status],[rank]username[@status], etc. */
-		readonly userlist: string,
+		readonly userlist: string;
 	};
 
 	/**
 	 * Rank+username[@status]
 	 */
 	join: {
-		readonly rank: string,
-		readonly usernameText: string,
+		readonly rank: string;
+		readonly usernameText: string;
 	};
 	j: IClientMessageTypes['join'];
 	J: IClientMessageTypes['join'];
@@ -100,8 +100,8 @@ export interface IClientMessageTypes {
 	 * Rank+username[@status]
 	 */
 	leave: {
-		readonly rank: string,
-		readonly usernameText: string,
+		readonly rank: string;
+		readonly usernameText: string;
 	};
 	l: IClientMessageTypes['leave'];
 	L: IClientMessageTypes['leave'];
@@ -110,9 +110,9 @@ export interface IClientMessageTypes {
 	 * Rank+username[@status]|old userid
 	 */
 	name: {
-		readonly rank: string,
-		readonly usernameText: string,
-		readonly oldId: string,
+		readonly rank: string;
+		readonly usernameText: string;
+		readonly oldId: string;
 	};
 	n: IClientMessageTypes['name'];
 	N: IClientMessageTypes['name'];
@@ -122,10 +122,10 @@ export interface IClientMessageTypes {
 	 */
 	chat: {
 		/** Defaults to current time */
-		readonly timestamp: number,
-		readonly rank: string,
-		readonly username: string,
-		readonly message: string,
+		readonly timestamp: number;
+		readonly rank: string;
+		readonly username: string;
+		readonly message: string;
 	};
 	c: IClientMessageTypes['chat'];
 
@@ -138,31 +138,31 @@ export interface IClientMessageTypes {
 	 * Server timestamp
 	 */
 	':': {
-		readonly timestamp: number,
+		readonly timestamp: number;
 	};
 
 	/**
 	 * Rank+username|message
 	 */
 	pm: {
-		readonly rank: string,
-		readonly username: string,
-		readonly recipient: string,
-		readonly message: string,
+		readonly rank: string;
+		readonly username: string;
+		readonly recipient: string;
+		readonly message: string;
 	};
 
 	/**
 	 * Plaintext message
 	 */
 	'': {
-		readonly message: string,
+		readonly message: string;
 	};
 
 	/**
 	 * HTML message
 	 */
 	html: {
-		readonly html: string,
+		readonly html: string;
 	};
 	raw: IClientMessageTypes['html'];
 
@@ -170,15 +170,15 @@ export interface IClientMessageTypes {
 	 * Page HTML
 	 */
 	pagehtml: {
-		readonly html: string,
+		readonly html: string;
 	};
 
 	/**
 	 * Name|HTML message
 	 */
 	uhtml: {
-		readonly name: string,
-		readonly html: string,
+		readonly name: string;
+		readonly html: string;
 	};
 	uhtmlchange: IClientMessageTypes['uhtml'];
 
@@ -190,7 +190,7 @@ export interface IClientMessageTypes {
 	 * Message type|(Rest)
 	 */
 	tournament: {
-		readonly type: keyof ITournamentMessageTypes,
+		readonly type: keyof ITournamentMessageTypes;
 	};
 
 	/**
@@ -201,23 +201,23 @@ export interface IClientMessageTypes {
 	 * Slot|username
 	 */
 	player: {
-		slot: string,
-		username: string,
+		slot: string;
+		username: string;
 	};
 
 	/**
 	 * Slot|size
 	 */
 	teamsize: {
-		slot: string,
-		size: number,
+		slot: string;
+		size: number;
 	};
 
 	/**
 	 * Slot+name
 	 */
 	faint: {
-		details: string,
+		details: string;
 	};
 }
 
@@ -226,16 +226,16 @@ export interface ITournamentMessageTypes {
 	 * Format|Generator|Player cap
 	 */
 	create: {
-		readonly format: IFormat,
-		readonly generator: string,
-		readonly playerCap: number,
+		readonly format: IFormat;
+		readonly generator: string;
+		readonly playerCap: number;
 	};
 
 	/**
 	 * Update JSON
 	 */
 	update: {
-		readonly json: ITournamentUpdateJSON,
+		readonly json: ITournamentUpdateJSON;
 	};
 
 	updateEnd: {};
@@ -244,7 +244,7 @@ export interface ITournamentMessageTypes {
 	 * End JSON
 	 */
 	end: {
-		readonly json: ITournamentEndJSON,
+		readonly json: ITournamentEndJSON;
 	};
 
 	forceend: {};

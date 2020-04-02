@@ -3,7 +3,7 @@ import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Piplup's Letter Placements";
-const data: {'Characters': string[], 'Locations': string[], 'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
+const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]} = {
 	"Characters": [],
 	"Locations": [],
 	"Pokemon": [],
@@ -16,7 +16,7 @@ const categories = Object.keys(data) as DataKey[];
 let loadedData = false;
 
 class PiplupsLetterPlacements extends Guessing {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -32,7 +32,7 @@ class PiplupsLetterPlacements extends Guessing {
 
 	lastAnswer: string = '';
 
-	async setAnswers() {
+	async setAnswers(): Promise<void> {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		let answer = Tools.toId(this.sampleOne(data[category]));
 		while (answer === this.lastAnswer) {

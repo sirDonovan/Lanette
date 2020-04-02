@@ -29,13 +29,13 @@ class ElectrodesMinefield extends MapDamageGame {
 		return this.currentFloor - 1;
 	}
 
-	onAchievementSpace(player: Player, floor: MapFloor, space: MapFloorSpace) {
+	onAchievementSpace(player: Player, floor: MapFloor, space: MapFloorSpace): void {
 		delete space.attributes.achievement;
 		player.say("You arrived at (" + space.coordinates + ") and were greeted by a Voltorb. It rolled over a hidden switch and revealed a small coin!");
 		this.unlockAchievement(player, achievements.voltorbsfuse!);
 	}
 
-	damagePlayers() {
+	damagePlayers(): void {
 		const map  = this.getMap();
 		const floor = map.floors[this.getFloorIndex()];
 		const x = this.random(floor.x);
@@ -59,12 +59,12 @@ class ElectrodesMinefield extends MapDamageGame {
 		this.timeout = setTimeout(() => this.nextRound(), 5000);
 	}
 
-	onMaxRound() {
+	onMaxRound(): void {
 		this.say("The Electrode roll away and give the remaining players time to escape!");
 		this.canMove = false;
 	}
 
-	onEnd() {
+	onEnd(): void {
 		const unlockedMinesweeper: Player[] = [];
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;

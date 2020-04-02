@@ -3,6 +3,7 @@ import { Room } from "./rooms";
 import { GameCommandReturnType } from "./types/games";
 import { User } from "./users";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface ICommandDefinition<T = undefined, U = T extends Game ? GameCommandReturnType : any> {
 	asyncCommand?: (this: T extends undefined ? Command : T, target: string, room: Room | User, user: User, alias: string) => Promise<U>;
 	command?: (this: T extends undefined ? Command : T, target: string, room: Room | User, user: User, alias: string) => U;
@@ -13,6 +14,7 @@ export interface ICommandDefinition<T = undefined, U = T extends Game ? GameComm
 	readonly pmOnly?: boolean;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type CommandsDict<T = undefined, U = T extends Game ? GameCommandReturnType : any> = Dict<Omit<ICommandDefinition<T, U>, "aliases">>;
 
 type CommandErrorOptionalTarget = 'invalidBotRoom' | 'invalidFormat' | 'invalidGameFormat' | 'invalidTournamentFormat' | 'invalidUserHostedGameFormat' | 'tooManyGameModes' |
@@ -43,15 +45,15 @@ export class Command {
 		this.pm = room === user;
 	}
 
-	say(message: string, dontPrepare?: boolean, dontCheckFilter?: boolean) {
+	say(message: string, dontPrepare?: boolean, dontCheckFilter?: boolean): void {
 		this.room.say(message, dontPrepare, dontCheckFilter);
 	}
 
-	sayCommand(message: string, dontCheckFilter?: boolean) {
+	sayCommand(message: string, dontCheckFilter?: boolean): void {
 		this.room.sayCommand(message, dontCheckFilter);
 	}
 
-	sayHtml(html: string, pmHtmlRoom: Room) {
+	sayHtml(html: string, pmHtmlRoom: Room): void {
 		if (this.isPm(this.room)) {
 			pmHtmlRoom.pmHtml(this.user, html);
 		} else {
@@ -59,7 +61,7 @@ export class Command {
 		}
 	}
 
-	sayUhtml(uhtmlName: string, html: string, pmHtmlRoom: Room) {
+	sayUhtml(uhtmlName: string, html: string, pmHtmlRoom: Room): void {
 		if (this.isPm(this.room)) {
 			pmHtmlRoom.pmUhtml(this.user, uhtmlName, html);
 		} else {
@@ -67,7 +69,7 @@ export class Command {
 		}
 	}
 
-	sayUhtmlChange(uhtmlName: string, html: string, pmHtmlRoom: Room) {
+	sayUhtmlChange(uhtmlName: string, html: string, pmHtmlRoom: Room): void {
 		if (this.isPm(this.room)) {
 			pmHtmlRoom.pmUhtmlChange(this.user, uhtmlName, html);
 		} else {
@@ -75,10 +77,11 @@ export class Command {
 		}
 	}
 
-	sayError(error: CommandErrorArray) {
+	sayError(error: CommandErrorArray): void {
 		this.say(global.CommandParser.getErrorText(error));
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	async run(newCommand?: string, newTarget?: string): Promise<any> {
 		let command = this.originalCommand;
 		if (newCommand) {
@@ -100,7 +103,7 @@ export class Command {
 		}
 	}
 
-	async runMultipleTargets(delimiter: string) {
+	async runMultipleTargets(delimiter: string): Promise<void> {
 		if (!delimiter) return;
 		const parts = this.target.split(delimiter);
 		const lastMultipleTarget = parts.length - 1;
@@ -111,6 +114,7 @@ export class Command {
 		}
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	isPm(room: Room | User): room is User {
 		return this.pm;
 	}
@@ -151,6 +155,7 @@ export class CommandParser {
 		return message.charAt(0) === Config.commandCharacter;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	async parse(room: Room | User, user: User, message: string): Promise<any> {
 		if (!this.isCommandMessage(message)) return;
 		message = message.substr(1);

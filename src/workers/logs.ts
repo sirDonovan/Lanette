@@ -2,6 +2,7 @@ import path = require('path');
 import { WorkerBase } from './worker-base';
 
 interface ILogsIdKeys {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	search: any;
 }
 export type LogsId = keyof ILogsIdKeys;
@@ -21,7 +22,7 @@ export interface ILogsSearchOptions {
 	userids: string[] | null;
 }
 
-// tslint:disable-next-line:no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ILogsSearchMessage extends ILogsSearchOptions {}
 
 export interface ILogsResponse {

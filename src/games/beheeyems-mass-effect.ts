@@ -11,7 +11,7 @@ const effectivenessListsKeys: string[] = [];
 let loadedData = false;
 
 class BeheeyemsMassEffect extends Guessing {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -65,13 +65,13 @@ class BeheeyemsMassEffect extends Guessing {
 	lastEffectiveness: string = '';
 	roundTime: number = 20 * 1000;
 
-	onSignups() {
+	onSignups(): void {
 		if (this.format.options.freejoin) {
 			this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
 		}
 	}
 
-	async setAnswers() {
+	async setAnswers(): Promise<void> {
 		let effectiveness = this.sampleOne(effectivenessListsKeys);
 		while (effectiveness === this.lastEffectiveness) {
 			effectiveness = this.sampleOne(effectivenessListsKeys);

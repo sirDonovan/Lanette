@@ -3,7 +3,7 @@ import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Kyurem's Splits";
-const data: {'Characters': string[], 'Locations': string[], 'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
+const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]} = {
 	"Characters": [],
 	"Locations": [],
 	"Pokemon": [],
@@ -16,7 +16,7 @@ const categories = Object.keys(data) as DataKey[];
 let loadedData = false;
 
 class KyuremsSplits extends Guessing {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -56,7 +56,7 @@ class KyuremsSplits extends Guessing {
 		return true;
 	}
 
-	async setAnswers() {
+	async setAnswers(): Promise<void> {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		let hint = '';
 		while (!this.answers.length || this.answers.length > 15 || Client.willBeFiltered(hint)) {

@@ -4,14 +4,14 @@
   "description": "A bot for Pokemon Showdown",
   "main": "app.js",
   "scripts": {
+    "eslint": "eslint -c .eslintrc --ext .ts .",
     "mocha": "mocha -R dot -u bdd --delay --no-config test/setup.js",
-    "offlinetest": "npm run tslint && npm run offlinemocha",
+    "offlinetest": "npm run eslint && npm run offlinemocha",
     "offlinemocha": "mocha -R dot -u bdd --delay --no-config test/setup.js --offline",
     "omocha": "npm run offlinemocha",
     "otest": "npm run offlinetest",
-    "test": "npm run tslint && npm run mocha",
-    "tsc": "tsc",
-    "tslint": "tslint -c tslint.json 'src/**/*.ts'"
+    "test": "npm run eslint && npm run mocha",
+    "tsc": "tsc"
   },
   "repository": {
     "type": "git",
@@ -31,9 +31,10 @@
     "websocket": "1.0.31"
   },
   "devDependencies": {
+    "eslint": "6.8.0",
     "minimist": ">=1.2.2",
     "mocha": "7.1.0",
-    "tslint": "6.1.0",
-    "typescript-tslint-plugin": "0.5.5"
+    "@typescript-eslint/eslint-plugin": "2.26.0",
+    "@typescript-eslint/parser": "2.26.0"
   }
 }

@@ -1,7 +1,7 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Room } from "../rooms";
-import { IGameFile, AchievementsDict } from "../types/games";
+import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
 import { IActionCardData, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 
@@ -16,7 +16,7 @@ const achievements: AchievementsDict = {
 };
 
 class BulbasaursUno extends CardMatching {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 		const typeKeys = Object.keys(Dex.data.typeChart);
@@ -51,7 +51,7 @@ class BulbasaursUno extends CardMatching {
 		return true;
 	}
 
-	onRemovePlayer(player: Player) {
+	onRemovePlayer(player: Player): void {
 		const index = this.playerOrder.indexOf(player);
 		if (index > -1) this.playerOrder.splice(index, 1);
 		if (player === this.currentPlayer) {
@@ -63,7 +63,7 @@ class BulbasaursUno extends CardMatching {
 		}
 	}
 
-	isPlayableCard(card: IPokemonCard, otherCard: IPokemonCard) {
+	isPlayableCard(card: IPokemonCard, otherCard: IPokemonCard): boolean {
 		return this.isCardPair(card, otherCard);
 	}
 
@@ -244,7 +244,7 @@ class BulbasaursUno extends CardMatching {
 
 const commands: Dict<ICommandDefinition<BulbasaursUno>> = {
 	draw: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
 			this.awaitingCurrentPlayerCard = false;
 			this.drawCard(this.players[user.id]);

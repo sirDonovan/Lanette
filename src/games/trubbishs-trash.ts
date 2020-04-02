@@ -2,7 +2,7 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile, AchievementsDict } from "../types/games";
+import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
 
 interface ITrashedMove {
 	name: string;
@@ -10,7 +10,7 @@ interface ITrashedMove {
 }
 
 const name = "Trubbish's Trash";
-const data: {movePoints: Dict<number>, moves: string[]} = {
+const data: {movePoints: Dict<number>; moves: string[]} = {
 	movePoints: {},
 	moves: [],
 };
@@ -23,7 +23,7 @@ const achievements: AchievementsDict = {
 };
 
 class TrubbishsTrash extends Game {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -59,15 +59,15 @@ class TrubbishsTrash extends Game {
 	weakestMove: string = '';
 	weakestTrash: Player | false | undefined;
 
-	onSignups() {
+	onSignups(): void {
 		if (this.format.options.freejoin) {
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 		}
 	}
 
-	generateMoves() {
+	generateMoves(): void {
 		const moves = this.sampleMany(data.moves, 3);
-		const basePowers: {move: string, basePower: number}[] = [];
+		const basePowers: {move: string; basePower: number}[] = [];
 		for (let i = 0; i < moves.length; i++) {
 			const move = Dex.getExistingMove(moves[i]);
 			basePowers.push({move: move.name, basePower: data.movePoints[moves[i]]});
@@ -84,10 +84,10 @@ class TrubbishsTrash extends Game {
 		this.say(text);
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		this.canTrash = false;
 		if (this.round > 1) {
-			const trash: {player: Player, move: string, points: number}[] = [];
+			const trash: {player: Player; move: string; points: number}[] = [];
 			let firstTrash = true;
 			this.roundTrashes.forEach((move, player) => {
 				if (player.eliminated) return;
@@ -144,7 +144,7 @@ class TrubbishsTrash extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
@@ -163,7 +163,7 @@ class TrubbishsTrash extends Game {
 
 const commands: Dict<ICommandDefinition<TrubbishsTrash>> = {
 	trash: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canTrash) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (this.roundTrashes.has(player)) return false;

@@ -12,7 +12,7 @@ const removedOptions: string[] = ['points', 'freejoin'];
 type SurvivalThis = Guessing & Survival;
 
 class Survival {
-	static setOptions<T extends Game>(format: IGameFormat<T>, namePrefixes: string[], nameSuffixes: string[]) {
+	static setOptions<T extends Game>(format: IGameFormat<T>, namePrefixes: string[], nameSuffixes: string[]): void {
 		if (!format.name.includes(name)) nameSuffixes.unshift(name);
 		format.description += ' ' + description;
 
@@ -44,11 +44,11 @@ class Survival {
 		}
 	}
 
-	onStart(this: SurvivalThis) {
+	onStart(this: SurvivalThis): void {
 		this.nextRound();
 	}
 
-	async onNextRound(this: SurvivalThis) {
+	async onNextRound(this: SurvivalThis): Promise<void> {
 		this.canGuess = false;
 		if (this.currentPlayer) {
 			this.say("Time is up! " + this.getAnswers(''));
@@ -95,7 +95,7 @@ class Survival {
 		this.say(text);
 	}
 
-	onEnd(this: SurvivalThis) {
+	onEnd(this: SurvivalThis): void {
 		for (const i in this.players) {
 			const player = this.players[i];
 			if (player.eliminated) {
@@ -114,7 +114,7 @@ class Survival {
 
 const commands: CommandsDict<Survival & Guessing, GameCommandReturnType> = {
 	guess: {
-		async asyncCommand(target, room, user) {
+		async asyncCommand(target, room, user): Promise<GameCommandReturnType> {
 			if (!this.canGuess || this.players[user.id] !== this.currentPlayer) return false;
 			const answer = await this.guessAnswer(this.players[user.id], target);
 			if (!answer) return false;
@@ -134,7 +134,7 @@ commands.g = {
 	asyncCommand: commands.guess.asyncCommand,
 };
 
-const initialize = (game: Game) => {
+const initialize = (game: Game): void => {
 	const mode = new Survival(game);
 	const propertiesToOverride = Object.getOwnPropertyNames(mode).concat(Object.getOwnPropertyNames(Survival.prototype)) as (keyof Survival)[];
 	for (let i = 0; i < propertiesToOverride.length; i++) {
@@ -164,7 +164,7 @@ const tests: GameFileTests<SurvivalThis> = {
 			async: true,
 			commands: [['guess'], ['g']],
 		},
-		async test(game, format, attributes) {
+		async test(game, format, attributes): Promise<void> {
 			this.timeout(15000);
 
 			addPlayers(game);
@@ -185,7 +185,7 @@ const tests: GameFileTests<SurvivalThis> = {
 			async: true,
 			commands: [['guess'], ['g']],
 		},
-		async test(game, format, attributes) {
+		async test(game, format, attributes): Promise<void> {
 			this.timeout(15000);
 
 			addPlayers(game);

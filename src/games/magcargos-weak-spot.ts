@@ -4,7 +4,7 @@ import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Magcargo's Weak Spot";
-const data: {pokedex: string[], inverseTypeKeys: string[], inverseTypeWeaknesses: Dict<string[]>, typeKeys: string[], typeWeaknesses: Dict<string[]>} = {
+const data: {pokedex: string[]; inverseTypeKeys: string[]; inverseTypeWeaknesses: Dict<string[]>; typeKeys: string[]; typeWeaknesses: Dict<string[]>} = {
 	pokedex: [],
 	inverseTypeKeys: [],
 	inverseTypeWeaknesses: {},
@@ -19,7 +19,7 @@ const achievements: AchievementsDict = {
 };
 
 class MagcargosWeakSpot extends Guessing {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 
 		room.say("Loading data for " + name + "...");
@@ -56,7 +56,7 @@ class MagcargosWeakSpot extends Guessing {
 	lastType: string = '';
 	roundGuesses = new Map<Player, boolean>();
 
-	async setAnswers() {
+	async setAnswers(): Promise<void> {
 		const typeKeys: string[] = this.inverseTypes ? data.inverseTypeKeys : data.typeKeys;
 		const typeWeaknesses: Dict<string[]> = this.inverseTypes ? data.inverseTypeWeaknesses : data.typeWeaknesses;
 		let type = this.sampleOne(typeKeys);

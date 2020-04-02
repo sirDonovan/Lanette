@@ -3,7 +3,7 @@ import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Ekans' Edges";
-const data: {'Characters': Dict<string[]>, 'Locations': Dict<string[]>, 'Pokemon': Dict<string[]>, 'Pokemon Abilities': Dict<string[]>, 'Pokemon Items': Dict<string[]>, 'Pokemon Moves': Dict<string[]>} = {
+const data: {'Characters': Dict<string[]>; 'Locations': Dict<string[]>; 'Pokemon': Dict<string[]>; 'Pokemon Abilities': Dict<string[]>; 'Pokemon Items': Dict<string[]>; 'Pokemon Moves': Dict<string[]>} = {
 	"Characters": {},
 	"Locations": {},
 	"Pokemon": {},
@@ -24,7 +24,7 @@ const dataKeys: KeyedDict<typeof data, string[]> = {
 let loadedData = false;
 
 class EkansEdges extends Guessing {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -78,13 +78,13 @@ class EkansEdges extends Guessing {
 
 	lastEdge: string = '';
 
-	onSignups() {
+	onSignups(): void {
 		if (!this.isMiniGame) {
 			if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
 		}
 	}
 
-	async setAnswers() {
+	async setAnswers(): Promise<void> {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		let edge = this.sampleOne(dataKeys[category]);
 		while (edge === this.lastEdge) {

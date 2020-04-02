@@ -3,7 +3,7 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { addPlayers, runCommand } from '../test/test-tools';
-import { GameFileTests, IGameFile, AchievementsDict } from "../types/games";
+import { GameFileTests, IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
 
 const doors: string[][] = [["Red", "Green", "Yellow"], ["Gold", "Silver", "Crystal"], ["Ruby", "Sapphire", "Emerald"], ["Diamond", "Pearl", "Platinum"],
 ["Land", "Sea", "Sky"], ["Time", "Space", "Distortion"], ["Creation", "Destruction", "Harmony"], ["Sun", "Earth", "Moon"]];
@@ -22,7 +22,7 @@ class SableyesTrickHouse extends Game {
 	roundDoors: string[] = [];
 	trapChosen: boolean = false;
 
-	onAddPlayer(player: Player, lateJoin?: boolean) {
+	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
 		if (this.trapChosen || this.round > 1) {
 			player.say("Sorry, the late-join period has ended.");
 			return false;
@@ -30,11 +30,11 @@ class SableyesTrickHouse extends Game {
 		return true;
 	}
 
-	onStart() {
+	onStart(): void {
 		this.nextRound();
 	}
 
-	revealTrap() {
+	revealTrap(): void {
 		const trap = this.sampleOne(this.roundDoors);
 		const id = Tools.toId(trap);
 		for (const i in this.players) {
@@ -55,7 +55,7 @@ class SableyesTrickHouse extends Game {
 		this.say(text);
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		this.canSelect = false;
 		if (this.round > 1) {
 			let firstSelection = false;
@@ -99,7 +99,7 @@ class SableyesTrickHouse extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		const winner = this.getFinalPlayer();
 		if (winner) {
 			this.winners.set(winner, 1);
@@ -112,7 +112,7 @@ class SableyesTrickHouse extends Game {
 
 const commands: Dict<ICommandDefinition<SableyesTrickHouse>> = {
 	select: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canSelect || !(user.id in this.players) || this.players[user.id].eliminated) return false;
 			if (this.roundSelections.has(this.players[user.id])) return false;
 			const player = this.players[user.id];
@@ -146,7 +146,7 @@ const commands: Dict<ICommandDefinition<SableyesTrickHouse>> = {
 
 const tests: GameFileTests<SableyesTrickHouse> = {
 	'should only allow one choice per round': {
-		test(game) {
+		test(game): void {
 			const players = addPlayers(game, 3);
 			game.start();
 			game.nextRound();
@@ -157,7 +157,7 @@ const tests: GameFileTests<SableyesTrickHouse> = {
 		},
 	},
 	'should eliminate users who pick the trap': {
-		test(game) {
+		test(game): void {
 			const players = addPlayers(game, 3);
 			game.start();
 			game.nextRound();
@@ -171,7 +171,7 @@ const tests: GameFileTests<SableyesTrickHouse> = {
 		},
 	},
 	'should limit choices to given doors': {
-		test(game) {
+		test(game): void {
 			const players = addPlayers(game, 3);
 			game.start();
 			game.nextRound();

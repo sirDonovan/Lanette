@@ -2,6 +2,7 @@ import path = require('path');
 import { PRNGSeed } from '../prng';
 import { WorkerBase } from './worker-base';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 interface IPortmanteausIdKeys {
 	search: any;
 }
@@ -13,6 +14,7 @@ interface IPoolType {
 	Pokemon: any;
 }
 export type PoolType = keyof IPoolType;
+/* eslint-enable */
 
 export interface IPortmanteausWorkerData {
 	pool: KeyedDict<IPoolType, Dict<Dict<string[]>>>;
@@ -29,7 +31,7 @@ export interface IPortmanteausSearchOptions {
 	customPortTypes?: PoolType[] | null;
 }
 
-// tslint:disable-next-line:no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IPortmanteausSearchMessage extends IPortmanteausSearchOptions {}
 
 export interface IPortmanteausResponse {

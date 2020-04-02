@@ -1,7 +1,7 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game, IGameOptionValues } from "../room-game";
-import { IGameFile, AchievementsDict } from "../types/games";
+import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
 
 const colors: string[] = ['Blue', 'Green', 'Red', 'Yellow', 'Orange', 'Purple', 'Pink', 'Gray', 'Teal', 'Silver', 'Gold', 'Lavender', 'Crimson', 'Scarlet', 'Magenta', 'Apricot', 'Cerulean', 'Amber',
 	'Cyan', 'Peach', 'Lime'];
@@ -21,15 +21,15 @@ class NinjasksCorners extends Game {
 	roundTime: number = 4 * 1000;
 	roundTravels = new Map<Player, string>();
 
-	onSignups() {
+	onSignups(): void {
 		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
 	}
 
-	onStart() {
+	onStart(): void {
 		this.nextRound();
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		this.canTravel = false;
 		if (this.round > 1 && !this.format.options.freejoin) {
 			for (const i in this.players) {
@@ -76,7 +76,7 @@ class NinjasksCorners extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
@@ -91,7 +91,7 @@ class NinjasksCorners extends Game {
 
 const commands: Dict<ICommandDefinition<NinjasksCorners>> = {
 	travel: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canTravel) return false;
 			if (this.format.options.freejoin) {
 				if (user.id in this.players) {

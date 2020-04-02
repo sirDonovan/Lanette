@@ -4,14 +4,14 @@ import { IMove } from "../types/in-game-data-types";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Miltank's Moves";
-const data: {'moves': Dict<Dict<string[]>>, 'pokemon': string[]} = {
+const data: {'moves': Dict<Dict<string[]>>; 'pokemon': string[]} = {
 	moves: {},
 	pokemon: [],
 };
 let loadedData = false;
 
 class MiltanksMoves extends Guessing {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -51,7 +51,7 @@ class MiltanksMoves extends Guessing {
 		loadedData = true;
 	}
 
-	async setAnswers() {
+	async setAnswers(): Promise<void> {
 		const species = this.sampleOne(data.pokemon);
 		const type = this.sampleOne(Object.keys(data.moves[species]));
 		this.answers = data.moves[species][type];

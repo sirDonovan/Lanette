@@ -3,7 +3,7 @@ import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Feraligatr's Lost Letters";
-const data: {'Characters': string[], 'Locations': string[], 'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
+const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]} = {
 	"Characters": [],
 	"Locations": [],
 	"Pokemon": [],
@@ -17,7 +17,7 @@ const vowels: string[] = ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'];
 let loadedData = false;
 
 class FeraligatrsLostLetters extends Guessing {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -34,7 +34,7 @@ class FeraligatrsLostLetters extends Guessing {
 	categoryList: DataKey[] = categories.slice();
 	roundTime: number = 10 * 1000;
 
-	onSignups() {
+	onSignups(): void {
 		super.onSignups();
 		if (this.variant === 'inverse') {
 			this.roundTime = 15 * 1000;
@@ -60,7 +60,7 @@ class FeraligatrsLostLetters extends Guessing {
 		return newLetters.join('');
 	}
 
-	async setAnswers() {
+	async setAnswers(): Promise<void> {
 		const isInverse = this.variant === 'inverse';
 		let category: DataKey;
 		if (this.roundCategory) {

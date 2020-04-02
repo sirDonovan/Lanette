@@ -3,7 +3,7 @@ import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Abra's Ability Switch";
-const data: {abilities: Dict<string[]>, pokedex: string[]} = {
+const data: {abilities: Dict<string[]>; pokedex: string[]} = {
 	"abilities": {},
 	"pokedex": [],
 };
@@ -15,7 +15,7 @@ const achievements: AchievementsDict = {
 };
 
 class AbrasAbilitySwitch extends Guessing {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -40,7 +40,7 @@ class AbrasAbilitySwitch extends Guessing {
 	lastAbility: string = '';
 	lastPokemon: string = '';
 
-	async setAnswers() {
+	async setAnswers(): Promise<void> {
 		let pokemon = this.sampleOne(data.pokedex);
 		while (pokemon === this.lastPokemon) {
 			pokemon = this.sampleOne(data.pokedex);

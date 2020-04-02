@@ -1,6 +1,7 @@
 import { Room } from "./rooms";
 import { User } from "./users";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type PlayerList = Dict<Player> | Player[] | Map<Player, any>;
 
 export class Player {
@@ -27,24 +28,24 @@ export class Player {
 		this.activity = activity;
 	}
 
-	say(message: string) {
+	say(message: string): void {
 		const user = Users.get(this.name);
 		if (user) user.say(message);
 	}
 
-	sayHtml(html: string) {
+	sayHtml(html: string): void {
 		this.activity.pmRoom.pmHtml(this, html);
 	}
 
-	sayUhtml(html: string, name?: string) {
+	sayUhtml(html: string, name?: string): void {
 		this.activity.pmRoom.pmUhtml(this, name || this.activity.uhtmlBaseName, html);
 	}
 
-	sayUhtmlChange(html: string, name?: string) {
+	sayUhtmlChange(html: string, name?: string): void {
 		this.activity.pmRoom.pmUhtmlChange(this, name || this.activity.uhtmlBaseName, html);
 	}
 
-	useCommand(command: string, target?: string) {
+	useCommand(command: string, target?: string): void {
 		let expiredUser = false;
 		let user = Users.get(this.name);
 		if (!user) {
@@ -108,6 +109,7 @@ export abstract class Activity {
 		this.pmRoom = this.isPm(room) ? pmRoom! : room;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	isPm(room: Room | User): room is User {
 		return this.pm;
 	}
@@ -121,7 +123,7 @@ export abstract class Activity {
 		return player;
 	}
 
-	renamePlayer(user: User, oldId: string) {
+	renamePlayer(user: User, oldId: string): void {
 		if (!(oldId in this.players) || (user.id in this.players && oldId !== user.id)) return;
 		const player = this.players[oldId];
 		player.name = user.name;
@@ -145,49 +147,49 @@ export abstract class Activity {
 		return player;
 	}
 
-	end() {
+	end(): void {
 		if (this.timeout) clearTimeout(this.timeout);
 		if (this.onEnd) this.onEnd();
 		this.ended = true;
 		this.deallocate(false);
 	}
 
-	say(message: string) {
+	say(message: string): void {
 		this.room.say(message);
 	}
 
-	sayCommand(command: string, dontCheckFilter?: boolean) {
+	sayCommand(command: string, dontCheckFilter?: boolean): void {
 		this.room.sayCommand(command, dontCheckFilter);
 	}
 
-	sayHtml(html: string) {
+	sayHtml(html: string): void {
 		if (this.isPm(this.room)) return this.pmRoom.pmHtml(this.room, html);
 		this.room.sayHtml(html);
 	}
 
-	sayUhtml(name: string, html: string) {
+	sayUhtml(name: string, html: string): void {
 		if (this.isPm(this.room)) return this.pmRoom.pmUhtml(this.room, name, html);
 		this.room.sayUhtml(name, html);
 	}
 
-	sayUhtmlChange(name: string, html: string) {
+	sayUhtmlChange(name: string, html: string): void {
 		if (this.isPm(this.room)) return this.pmRoom.pmUhtmlChange(this.room, name, html);
 		this.room.sayUhtmlChange(name, html);
 	}
 
-	on(message: string, listener: () => any) {
+	on(message: string, listener: () => void): void {
 		if (this.ended) return;
 		this.messageListeners.push(message);
 		this.room.on(message, listener);
 	}
 
-	onHtml(html: string, listener: () => any) {
+	onHtml(html: string, listener: () => void): void {
 		if (this.ended) return;
 		this.htmlMessageListeners.push(html);
 		this.room.onHtml(html, listener);
 	}
 
-	onUhtml(name: string, html: string, listener: () => any) {
+	onUhtml(name: string, html: string, listener: () => void): void {
 		if (this.ended) return;
 		const id = Tools.toId(name);
 		if (!(id in this.uhtmlMessageListeners)) this.uhtmlMessageListeners[id] = [];
@@ -195,19 +197,19 @@ export abstract class Activity {
 		this.room.onUhtml(name, html, listener);
 	}
 
-	off(message: string) {
+	off(message: string): void {
 		this.room.off(message);
 	}
 
-	offHtml(html: string) {
+	offHtml(html: string): void {
 		this.room.offHtml(html);
 	}
 
-	offUhtml(name: string, html: string) {
+	offUhtml(name: string, html: string): void {
 		this.room.offUhtml(name, html);
 	}
 
-	cleanupMessageListeners() {
+	cleanupMessageListeners(): void {
 		for (let i = 0; i < this.htmlMessageListeners.length; i++) {
 			this.offHtml(this.htmlMessageListeners[i]);
 		}

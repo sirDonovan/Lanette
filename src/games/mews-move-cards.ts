@@ -9,7 +9,7 @@ class MewsMoveCards extends CardHighLow {
 	maxPlayers: number = 15;
 	usesMoves: boolean = true;
 
-	createDeckPool() {
+	createDeckPool(): void {
 		this.deckPool = [];
 
 		const moves = Games.getMovesCopyList(move => {
@@ -28,7 +28,7 @@ class MewsMoveCards extends CardHighLow {
 		}
 	}
 
-	getCardDetail(card: IMoveCard, detail: string) {
+	getCardDetail(card: IMoveCard, detail: string): number {
 		// @ts-ignore
 		return card[detail];
 	}

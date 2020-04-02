@@ -55,7 +55,7 @@ export abstract class BoardGame extends Game {
 	abstract startingBoardSide: BoardSide;
 	abstract startingBoardSideSpace: number;
 
-	displayBoard() {
+	displayBoard(): void {
 		const playerLocations: KeyedDict<IBoard, Dict<Player[]>> = {
 			leftColumn: {},
 			rightColumn: {},
@@ -100,7 +100,7 @@ export abstract class BoardGame extends Game {
 		this.sayUhtml(this.uhtmlBaseName + '-board', html);
 	}
 
-	onStart() {
+	onStart(): void {
 		const letters = Tools.letters.toUpperCase().split("");
 		this.playerOrder = this.shufflePlayers();
 		for (let i = 0; i < this.playerOrder.length; i++) {
@@ -115,7 +115,7 @@ export abstract class BoardGame extends Game {
 		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		if (this.getRemainingPlayerCount() < 2) return this.end();
 		if (!this.playerList.length) {
 			this.boardRound++;
@@ -144,7 +144,7 @@ export abstract class BoardGame extends Game {
 		this.onNextPlayer(player);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			this.addBits(this.players[i], 500);
@@ -204,7 +204,7 @@ export abstract class BoardGame extends Game {
 		return {side, space, passedSpaces};
 	}
 
-	rollDice(player: Player) {
+	rollDice(player: Player): void {
 		this.dice = [];
 		for (let i = 0; i < this.numberOfDice; i++) {
 			this.dice.push(this.random(6) + 1);
@@ -242,13 +242,13 @@ export abstract class BoardGame extends Game {
 
 const tests: GameFileTests<BoardGame> = {
 	'it should have equal size columns and rows': {
-		test(game, format) {
+		test(game, format): void {
 			assertStrictEqual(game.board.leftColumn.length, game.board.rightColumn.length);
 			assertStrictEqual(game.board.topRow.length, game.board.bottomRow.length);
 		},
 	},
 	'it should properly determine space order in getLocationAfterMovement': {
-		test(game, format) {
+		test(game, format): void {
 			// forward movement
 			let locationAfterMovement = game.getLocationAfterMovement({side: 'leftColumn', space: 0}, 1);
 			assertStrictEqual(locationAfterMovement.side, 'leftColumn');
@@ -329,7 +329,7 @@ const tests: GameFileTests<BoardGame> = {
 		},
 	},
 	'it should have properly initialized board spaces': {
-		test(game, format) {
+		test(game, format): void {
 			let location: IMovedBoardLocation = {side: 'leftColumn', space: 0, passedSpaces: []};
 			let spaceId = location.side + ": " + location.space;
 			let space = game.board[location.side][location.space];

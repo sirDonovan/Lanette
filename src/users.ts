@@ -52,44 +52,44 @@ export class User {
 		return !(status === 'busy' || status === 'idle' || status === 'away');
 	}
 
-	say(message: string, dontPrepare?: boolean, dontCheckFilter?: boolean) {
+	say(message: string, dontPrepare?: boolean, dontCheckFilter?: boolean): void {
 		if (!dontPrepare) message = Tools.prepareMessage(message);
 		if (!dontCheckFilter && Client.willBeFiltered(message)) return;
 		Client.send("|/pm " + this.name + ", " + message);
 	}
 
-	sayCommand(command: string, dontCheckFilter?: boolean) {
+	sayCommand(command: string, dontCheckFilter?: boolean): void {
 		this.say(command, true, dontCheckFilter);
 	}
 
-	on(message: string, listener: () => void) {
+	on(message: string, listener: () => void): void {
 		if (!this.messageListeners) this.messageListeners = {};
 		this.messageListeners[Tools.toId(Tools.prepareMessage(message))] = listener;
 	}
 
-	onHtml(html: string, listener: () => void) {
+	onHtml(html: string, listener: () => void): void {
 		if (!this.htmlMessageListeners) this.htmlMessageListeners = {};
 		this.htmlMessageListeners[Tools.toId(Client.getListenerHtml(html))] = listener;
 	}
 
-	onUhtml(name: string, html: string, listener: () => void) {
+	onUhtml(name: string, html: string, listener: () => void): void {
 		const id = Tools.toId(name);
 		if (!this.uhtmlMessageListeners) this.uhtmlMessageListeners = {};
 		if (!(id in this.uhtmlMessageListeners)) this.uhtmlMessageListeners[id] = {};
 		this.uhtmlMessageListeners[id][Tools.toId(Client.getListenerUhtml(html))] = listener;
 	}
 
-	off(message: string) {
+	off(message: string): void {
 		if (!this.messageListeners) return;
 		delete this.messageListeners[Tools.toId(Tools.prepareMessage(message))];
 	}
 
-	offHtml(html: string) {
+	offHtml(html: string): void {
 		if (!this.htmlMessageListeners) return;
 		delete this.htmlMessageListeners[Tools.toId(Client.getListenerHtml(html))];
 	}
 
-	offUhtml(name: string, html: string) {
+	offUhtml(name: string, html: string): void {
 		if (!this.uhtmlMessageListeners) return;
 		const id = Tools.toId(name);
 		if (!(id in this.uhtmlMessageListeners)) return;
@@ -117,11 +117,11 @@ export class Users {
 		return this.users[Tools.toId(name)];
 	}
 
-	remove(user: User) {
+	remove(user: User): void {
 		if (user !== this.self) delete this.users[user.id];
 	}
 
-	removeAll() {
+	removeAll(): void {
 		for (const i in this.users) {
 			this.remove(this.users[i]);
 		}

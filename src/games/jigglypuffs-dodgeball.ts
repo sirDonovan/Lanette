@@ -1,26 +1,26 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player, PlayerTeam } from "../room-activity";
 import { Game } from "../room-game";
-import { IGameFile } from "../types/games";
+import { IGameFile, GameCommandReturnType } from "../types/games";
 
 const BALL_POKEMON = "Igglybuff";
 
 class JigglypuffsDodgeball extends Game {
 	throwTime: boolean = false;
-	queue: {source: Player, target: Player}[] = [];
+	queue: {source: Player; target: Player}[] = [];
 	renameDQs: Player[] = [];
 	roundActions = new Map<Player, boolean>();
 	shields = new Map<Player, boolean>();
 	teams: Dict<PlayerTeam> = {};
 
-	onRenamePlayer(player: Player, oldId: string) {
+	onRenamePlayer(player: Player, oldId: string): void {
 		if (!this.started || player.eliminated) return;
 		this.removePlayer(player.name, true);
 		this.say(player.name + " was DQed for changing names!");
 		this.renameDQs.push(player);
 	}
 
-	onStart() {
+	onStart(): void {
 		this.teams = this.generateTeams(2);
 		for (const i in this.teams) {
 			const players = this.teams[i].players;
@@ -32,7 +32,7 @@ class JigglypuffsDodgeball extends Game {
 		this.nextRound();
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		this.throwTime = false;
 		if (this.round > 1) {
 			this.shields.clear();
@@ -89,7 +89,7 @@ class JigglypuffsDodgeball extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		let team: PlayerTeam | undefined;
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
@@ -114,7 +114,7 @@ class JigglypuffsDodgeball extends Game {
 
 const commands: Dict<ICommandDefinition<JigglypuffsDodgeball>> = {
 	throw: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!(user.id in this.players) || this.players[user.id].eliminated) return false;
 			const player = this.players[user.id];
 			if (this.roundActions.has(player)) return false;

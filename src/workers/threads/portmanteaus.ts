@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/camelcase
 import worker_threads = require('worker_threads');
 
 import { PRNG, PRNGSeed } from '../../prng';
@@ -5,12 +6,13 @@ import * as tools from '../../tools';
 import { IPortmanteausResponse, IPortmanteausSearchMessage, IPortmanteausWorkerData, PoolType, PortmanteausId } from '../portmanteaus';
 
 const Tools = new tools.Tools();
+// eslint-disable-next-line @typescript-eslint/camelcase
 const data = worker_threads.workerData as IPortmanteausWorkerData;
 const portTypes = Object.keys(data.pool) as PoolType[];
 
 function search(options: IPortmanteausSearchMessage, prng: PRNG): IPortmanteausResponse {
 	const customPort = options.customPortTypes || options.customPortCategories || options.customPortDetails ? true : false;
-	let answerParts: Dict<{detail: string, part: string}[]> = {};
+	let answerParts: Dict<{detail: string; part: string}[]> = {};
 	const ports: string[] = [];
 	let answers: string[] | null = null;
 	let depth = 0;
@@ -18,7 +20,7 @@ function search(options: IPortmanteausSearchMessage, prng: PRNG): IPortmanteausR
 	const maxAttempts = 100;
 	while (attempts < maxAttempts) {
 		attempts++;
-		const portLists: {list: string[], port: string, detail: string}[] = [];
+		const portLists: {list: string[]; port: string; detail: string}[] = [];
 		for (let i = 0; i < options.numberOfPorts; i++) {
 			let type: PoolType;
 			if (options.customPortTypes) {
@@ -124,6 +126,7 @@ function search(options: IPortmanteausSearchMessage, prng: PRNG): IPortmanteausR
 	return {answers, ports, answerParts: formattedAnswerParts, prngSeed: prng.seed.slice() as PRNGSeed};
 }
 
+// eslint-disable-next-line @typescript-eslint/camelcase
 worker_threads.parentPort!.on('message', incommingMessage => {
 	const parts = incommingMessage.split("|");
 	const messageNumber = parts[0];
@@ -136,5 +139,6 @@ worker_threads.parentPort!.on('message', incommingMessage => {
 		response = search(options, prng);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/camelcase
 	worker_threads.parentPort!.postMessage(messageNumber + "|" + id + "|" + JSON.stringify(response!));
 });

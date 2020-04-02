@@ -7,6 +7,7 @@ import { User } from "../users";
 export type GameCommandReturnType = boolean;
 export type GameDifficulty = 'easy' | 'medium' | 'hard';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 interface IGameCategoryKeys {
 	'board': any;
 	'board-property': any;
@@ -78,6 +79,7 @@ interface IGameAchievementKeys {
 	wonderguardwarrior: any;
 	trumpcard: any;
 }
+/* eslint-enable */
 
 export type GameAchievements = keyof IGameAchievementKeys;
 
@@ -120,7 +122,7 @@ export interface IGameTestAttributes {
 	commands?: readonly string[];
 }
 
-type GameFileTests<T extends Game = Game> = Dict<{config?: IGameFileTestConfig, test: ((this: Mocha.Context, game: T, format: IGameFormat<T>, attributes: IGameTestAttributes) => void)}>;
+type GameFileTests<T extends Game = Game> = Dict<{config?: IGameFileTestConfig; test: ((this: Mocha.Context, game: T, format: IGameFormat<T>, attributes: IGameTestAttributes) => void)}>;
 
 export type AchievementsDict = PartialKeyedDict<IGameAchievementKeys, IGameAchievement>;
 
@@ -153,6 +155,7 @@ export interface IGameFile<T extends Game = Game> extends DeepReadonly<IGameFile
 	readonly name: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IGameTemplateFile<T extends Game = Game> extends IGameFileProperties<T> {}
 
 export interface IGameFileComputed<T extends Game = Game> {

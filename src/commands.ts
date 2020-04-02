@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/camelcase
 import child_process = require('child_process');
 import fs = require('fs');
 import path = require('path');
@@ -20,6 +21,8 @@ const AWARDED_BOT_GREETING_DURATION = 60 * 24 * 60 * 60 * 1000;
 
 let reloadInProgress = false;
 
+/* eslint-disable @typescript-eslint/explicit-function-return-type,@typescript-eslint/no-unused-vars*/
+
 const commands: Dict<ICommandDefinition> = {
 	/**
 	 * Developer commands
@@ -27,7 +30,6 @@ const commands: Dict<ICommandDefinition> = {
 	eval: {
 		command(target, room, user) {
 			try {
-				// tslint:disable-next-line no-eval
 				this.say(eval(target));
 			} catch (e) {
 				this.say(e.message);
@@ -39,6 +41,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	gitpull: {
 		command(target, room, user) {
+			// eslint-disable-next-line @typescript-eslint/camelcase
 			child_process.exec('git pull', {}, err => {
 				if (err) {
 					this.say("An error occurred while running ``git pull``: " + err.message);
@@ -94,30 +97,36 @@ const commands: Dict<ICommandDefinition> = {
 			if (modules.includes('games')) Games.reloadInProgress = true;
 
 			this.say("Running ``tsc``...");
+			// eslint-disable-next-line @typescript-eslint/no-var-requires
 			await require(path.join(Tools.rootFolder, 'build.js'))(() => {
 				for (let i = 0; i < modules.length; i++) {
 					if (modules[i] === 'client') {
 						const oldClient = global.Client;
 						Tools.uncacheTree('./client');
+						// eslint-disable-next-line @typescript-eslint/no-var-requires
 						const client: typeof import('./client') = require('./client');
 						global.Client = new client.Client();
 						Client.onReload(oldClient);
 					} else if (modules[i] === 'commandparser') {
 						Tools.uncacheTree('./command-parser');
+						// eslint-disable-next-line @typescript-eslint/no-var-requires
 						const commandParser: typeof import('./command-parser') = require('./command-parser');
 						global.CommandParser = new commandParser.CommandParser();
 					} else if (modules[i] === 'commands') {
 						Tools.uncacheTree('./commands');
+						// eslint-disable-next-line @typescript-eslint/no-var-requires
 						global.Commands = CommandParser.loadBaseCommands(require('./commands'));
 						if (!modules.includes('games')) Games.loadFormatCommands();
 					} else if (modules[i] === 'config') {
 						Tools.uncacheTree('./config');
 						Tools.uncacheTree('./config-loader');
+						// eslint-disable-next-line @typescript-eslint/no-var-requires
 						const config: typeof import('./config-example') = require('./config-loader').load(require('./config'));
 						global.Config = config;
 						Rooms.checkLoggingConfigs();
 					} else if (modules[i] === 'dex') {
 						Tools.uncacheTree('./dex');
+						// eslint-disable-next-line @typescript-eslint/no-var-requires
 						const dex: typeof import('./dex') = require('./dex');
 						global.Dex = new dex.Dex();
 					} else if (modules[i] === 'games') {
@@ -125,6 +134,7 @@ const commands: Dict<ICommandDefinition> = {
 						Games.unrefWorkers();
 						Tools.uncacheTree('./games');
 						Tools.uncacheTree('./room-activity');
+						// eslint-disable-next-line @typescript-eslint/no-var-requires
 						const games: typeof import('./games') = require('./games');
 						global.Games = new games.Games();
 						Games.onReload(oldGames);
@@ -132,12 +142,14 @@ const commands: Dict<ICommandDefinition> = {
 						const oldStorage = global.Storage;
 						Storage.unrefWorkers();
 						Tools.uncacheTree('./storage');
+						// eslint-disable-next-line @typescript-eslint/no-var-requires
 						const storage: typeof import('./storage') = require('./storage');
 						global.Storage = new storage.Storage();
 						Storage.onReload(oldStorage);
 					} else if (modules[i] === 'tools') {
 						const oldTools = global.Tools;
 						Tools.uncacheTree('./tools');
+						// eslint-disable-next-line @typescript-eslint/no-var-requires
 						const tools: typeof import('./tools') = require('./tools');
 						global.Tools = new tools.Tools();
 						Tools.onReload(oldTools);
@@ -145,6 +157,7 @@ const commands: Dict<ICommandDefinition> = {
 						const oldTournaments = global.Tournaments;
 						Tools.uncacheTree('./tournaments');
 						Tools.uncacheTree('./room-activity');
+						// eslint-disable-next-line @typescript-eslint/no-var-requires
 						const tournaments: typeof import('./tournaments') = require('./tournaments');
 						global.Tournaments = new tournaments.Tournaments();
 						Tournaments.onReload(oldTournaments);
@@ -203,11 +216,12 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	format: {
 		command(target, room, user) {
-			let pmRoom: Room;
+			let pmRoom: Room | undefined;
 			if (this.isPm(room)) {
 				user.rooms.forEach((value, room) => {
 					if (!pmRoom && Users.self.hasRank(room, 'bot')) pmRoom = room;
 				});
+				if (!pmRoom) return this.say("You must be in a room where " + Users.self.name + " has bot rank.");
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
 				pmRoom = room;
@@ -216,7 +230,7 @@ const commands: Dict<ICommandDefinition> = {
 			if (!format) return this.sayError(['invalidFormat', target]);
 			const html = Dex.getFormatInfoDisplay(format);
 			if (!html.length) return this.say("No info found for " + format.name + ".");
-			this.sayHtml("<b>" + format.name + "</b>" + html, pmRoom!);
+			this.sayHtml("<b>" + format.name + "</b>" + html, pmRoom);
 		},
 		aliases: ['om', 'tier'],
 	},
@@ -281,11 +295,13 @@ const commands: Dict<ICommandDefinition> = {
 				return;
 			}
 			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
+			const targetUser = Users.get(target);
+			if (!targetUser) return this.say("You must specify a user.");
 			const game = Games.createGame(room, Games.getInternalFormat('eggtoss'));
 			game.signups();
 			const canEgg = await this.run('toss');
 			if (canEgg) {
-				this.say("**" + user.name + "** handed an egg to **" + Users.get(target)!.name + "**! Pass it around with ``" + Config.commandCharacter + "toss [user]`` before it explodes!");
+				this.say("**" + user.name + "** handed an egg to **" + targetUser.name + "**! Pass it around with ``" + Config.commandCharacter + "toss [user]`` before it explodes!");
 			} else {
 				game.end();
 			}
@@ -1300,20 +1316,18 @@ const commands: Dict<ICommandDefinition> = {
 				playerDifficulty = 'medium';
 			}
 
-			let playerBits: number;
-			if (playerDifficulty === 'easy') {
-				playerBits = 300;
-			} else if (playerDifficulty === 'medium') {
+			let playerBits = 300;
+			if (playerDifficulty === 'medium') {
 				playerBits = 400;
 			} else if (playerDifficulty === 'hard') {
 				playerBits = 500;
 			}
 
-			if (room.userHostedGame.shinyMascot) playerBits! *= 2;
+			if (room.userHostedGame.shinyMascot) playerBits *= 2;
 
 			for (let i = 0; i < players.length; i++) {
-				Storage.addPoints(room, players[i].name, playerBits!, 'userhosted');
-				players[i].say("You were awarded " + playerBits! + " bits! To see your total amount, use this command: ``" + Config.commandCharacter + "bits " + room.title + "``");
+				Storage.addPoints(room, players[i].name, playerBits, 'userhosted');
+				players[i].say("You were awarded " + playerBits + " bits! To see your total amount, use this command: ``" + Config.commandCharacter + "bits " + room.title + "``");
 			}
 			this.say("The winner" + (players.length === 1 ? " is" : "s are") + " " + players.map(x => x.name).join(", ") + "!");
 			room.userHostedGame.end();
@@ -1991,7 +2005,7 @@ const commands: Dict<ICommandDefinition> = {
 			if (recipientId === user.id || recipientId.startsWith('guest')) return this.say("You must specify a user other than yourself or a guest.");
 			const message = targets.slice(1).join(',').trim();
 			if (!message.length) return this.say("You must specify a message to send.");
-			const maxMessageLength = Storage.getMaxOfflineMessageLength(user, message);
+			const maxMessageLength = Storage.getMaxOfflineMessageLength(user);
 			if (message.length > maxMessageLength) return this.say("Your message cannot exceed " + maxMessageLength + " characters.");
 			if (!Storage.storeOfflineMessage(user.name, recipientId, message)) return this.say("Sorry, you have too many messages queued for " + recipient + ".");
 			this.say("Your message has been sent to " + recipient + ".");
@@ -2337,8 +2351,9 @@ const commands: Dict<ICommandDefinition> = {
 			if (!database.eventInformation) return this.sayError(['noRoomEventInformation', eventRoom.title]);
 			const event = Tools.toId(targets[0]);
 			if (!(event in database.eventInformation)) return this.sayError(['invalidRoomEvent', eventRoom.title]);
-			if (!database.eventInformation[event].link) return this.say(database.eventInformation[event].name + " does not have a link stored.");
-			this.sayHtml("<b>" + database.eventInformation[event].name + "</b>: <a href='" + database.eventInformation[event].link!.url + "'>" + database.eventInformation[event].link!.description + "</a>", eventRoom);
+			const eventInformation = database.eventInformation[event];
+			if (!eventInformation.link) return this.say(database.eventInformation[event].name + " does not have a link stored.");
+			this.sayHtml("<b>" + eventInformation.name + "</b>: <a href='" + eventInformation.link.url + "'>" + eventInformation.link.description + "</a>", eventRoom);
 		},
 		aliases: ['elink'],
 	},
@@ -2397,8 +2412,9 @@ const commands: Dict<ICommandDefinition> = {
 			if (!database.eventInformation) return this.sayError(['noRoomEventInformation', eventRoom.title]);
 			const event = Tools.toId(targets[0]);
 			if (!event || !(event in database.eventInformation)) return this.say("You must specify a valid event.");
-			if (!database.eventInformation[event].formatIds) return this.say(database.eventInformation[event].name + " does not have any formats stored.");
-			const multipleFormats = database.eventInformation[event].formatIds!.length > 1;
+			const eventInformation = database.eventInformation[event];
+			if (!eventInformation.formatIds) return this.say(database.eventInformation[event].name + " does not have any formats stored.");
+			const multipleFormats = eventInformation.formatIds.length > 1;
 			if (targets.length > 1) {
 				if (!Tools.isUsernameLength(targets[1])) return this.say("You must specify a user.");
 				const targetUser = Tools.toId(targets[1]);
@@ -2406,14 +2422,14 @@ const commands: Dict<ICommandDefinition> = {
 				if (!(targetUser in database.leaderboard)) return this.say(this.sanitizeResponse(targets[1].trim() + " does not have any event points."));
 				let eventPoints = 0;
 				for (const source in database.leaderboard[targetUser].sources) {
-					if (database.eventInformation[event].formatIds!.includes(source)) eventPoints += database.leaderboard[targetUser].sources[source];
+					if (eventInformation.formatIds.includes(source)) eventPoints += database.leaderboard[targetUser].sources[source];
 				}
 				this.say(database.leaderboard[targetUser].name + " has " + eventPoints + " points in" + (!multipleFormats ? " the" : "") + " " + database.eventInformation[event].name + " format" + (multipleFormats ? "s" : "") + ".");
 			} else {
 				const formatNames: string[] = [];
-				for (let i = 0; i < database.eventInformation[event].formatIds!.length; i++) {
-					const format = Dex.getFormat(database.eventInformation[event].formatIds![i]);
-					formatNames.push(format ? format.name : database.eventInformation[event].formatIds![i]);
+				for (let i = 0; i < eventInformation.formatIds.length; i++) {
+					const format = Dex.getFormat(eventInformation.formatIds[i]);
+					formatNames.push(format ? format.name : eventInformation.formatIds[i]);
 				}
 				this.say("The format" + (multipleFormats ? "s" : "") + " for " + database.eventInformation[event].name + " " + (multipleFormats ? "are " : "is ") + Tools.joinList(formatNames) + ".");
 			}
@@ -2706,3 +2722,5 @@ const commands: Dict<ICommandDefinition> = {
 };
 
 export = commands;
+
+/* eslint-enable @typescript-eslint/explicit-function-return-type,@typescript-eslint/no-unused-vars*/

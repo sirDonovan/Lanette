@@ -36,20 +36,20 @@ class LampentsLabyrinth extends MapGame  {
 		return this.floors.get(player)! - 1;
 	}
 
-	onGenerateMapFloor(floor: MapFloor) {
+	onGenerateMapFloor(floor: MapFloor): void {
 		this.setExitCoordinates(floor);
 		this.setCurrencyCoordinates(floor);
 		this.setTrapCoordinates(floor);
 		this.setAchievementCoordinates(floor);
 	}
 
-	onAchievementSpace(player: Player, floor: MapFloor, space: MapFloorSpace) {
+	onAchievementSpace(player: Player, floor: MapFloor, space: MapFloorSpace): void {
 		delete space.attributes.achievement;
 		player.say("You arrived safely at (" + space.coordinates + ") and were greeted by a Litwick. Its flame illuminated a small coin on the ground!");
 		this.unlockAchievement(player, achievements.litwicksflame!);
 	}
 
-	onAddPlayer(player: Player, lateJoin?: boolean) {
+	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
 		if (lateJoin) {
 			if (this.round > 1) return false;
 			this.positionPlayer(player);
@@ -58,13 +58,13 @@ class LampentsLabyrinth extends MapGame  {
 		return true;
 	}
 
-	onStart() {
+	onStart(): void {
 		this.say("Now sending coordinates in PMs!");
 		this.positionPlayers();
 		this.nextRound();
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		const len = this.getRemainingPlayerCount();
 		if (!len) {
 			this.say("The Lampent sweep through the labyrinth and find no remaining players!");
@@ -87,12 +87,12 @@ class LampentsLabyrinth extends MapGame  {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onMaxRound() {
+	onMaxRound(): void {
 		this.say("The Lampent flee the labyrinth and leave the remaining players shrouded in darkness!");
 		this.canMove = false;
 	}
 
-	onEnd() {
+	onEnd(): void {
 		for (const i in this.players) {
 			if (this.escapedPlayers.has(this.players[i])) this.winners.set(this.players[i], 1);
 		}

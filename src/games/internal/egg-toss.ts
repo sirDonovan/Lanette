@@ -2,7 +2,7 @@ import { ICommandDefinition } from "../../command-parser";
 import { Player } from "../../room-activity";
 import { Game } from "../../room-game";
 import { Room } from "../../rooms";
-import { IGameFile, AchievementsDict } from "../../types/games";
+import { IGameFile, AchievementsDict, GameCommandReturnType } from "../../types/games";
 import { User } from "../../users";
 
 const achievements: AchievementsDict = {
@@ -18,11 +18,11 @@ class EggToss extends Game {
 	// hack for selectUser()
 	room!: Room;
 
-	onSignups() {
+	onSignups(): void {
 		this.timeout = setTimeout(() => this.explodeEgg(), this.sampleOne([10, 10.5, 11, 11.5, 12]) * 1000);
 	}
 
-	explodeEgg() {
+	explodeEgg(): void {
 		if (this.tossTimeout) clearTimeout(this.tossTimeout);
 		if (this.currentHolder) {
 			this.say("**BOOOOM**! The egg exploded on **" + this.currentHolder.name + "**!");
@@ -52,7 +52,7 @@ class EggToss extends Game {
 
 const commands: Dict<ICommandDefinition<EggToss>> = {
 	toss: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.currentHolder) {
 				this.currentHolder = this.createPlayer(user) || this.players[user.id];
 			} else {

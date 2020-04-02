@@ -10,7 +10,7 @@ const name = "Poliwrath's Portmanteaus";
 let loadedData = false;
 
 export class PoliwrathsPortmanteaus extends Guessing {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -29,7 +29,7 @@ export class PoliwrathsPortmanteaus extends Guessing {
 	roundTime: number = 5 * 60 * 1000;
 	usesWorkers: boolean = true;
 
-	async setAnswers() {
+	async setAnswers(): Promise<void> {
 		let numberOfPorts: number;
 		if (this.customPortTypes) {
 			numberOfPorts = this.customPortTypes.length;
@@ -110,7 +110,7 @@ const tests: GameFileTests<PoliwrathsPortmanteaus> = {
 		config: {
 			async: true,
 		},
-		async test(game, format) {
+		async test(game, format): Promise<void> {
 			this.timeout(15000);
 			const portmanteausData = Games.workers.portmanteaus.loadData();
 

@@ -2,10 +2,10 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile, AchievementsDict } from "../types/games";
+import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
 
 const name = "Wishiwashi's Stat Fishing";
-const data: {baseStatTotals: Dict<number>, pokedex: string[]} = {
+const data: {baseStatTotals: Dict<number>; pokedex: string[]} = {
 	baseStatTotals: {},
 	pokedex: [],
 };
@@ -16,7 +16,7 @@ const achievements: AchievementsDict = {
 };
 
 class WishiwashisStatFishing extends Game {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 
 		room.say("Loading data for " + name + "...");
@@ -47,13 +47,13 @@ class WishiwashisStatFishing extends Game {
 	statNames: Dict<string> = {hp: 'HP', atk: 'Atk', def: 'Def', spa: 'SpA', spd: 'SpD', spe: 'Spe', bst: 'BST'};
 	stats: string[] = ['hp', 'atk', 'def', 'spa', 'spd', 'spe', 'bst'];
 
-	onSignups() {
+	onSignups(): void {
 		if (this.format.options.freejoin) {
 			this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
 		}
 	}
 
-	scoreRound() {
+	scoreRound(): void {
 		this.canReel = false;
 		let firstPlayer: Player | null = null;
 		for (let i = 0, len = this.queue.length; i < len; i++) {
@@ -115,7 +115,7 @@ class WishiwashisStatFishing extends Game {
 		if (pokemon.shiny) this.unlockAchievement(firstPlayer, achievements.sunkentreasure!);
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		if (this.round > this.roundLimit) return this.end();
 		this.roundReels = new Map();
 		this.queue = [];
@@ -133,7 +133,7 @@ class WishiwashisStatFishing extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		let highestPoints = 0;
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
@@ -155,7 +155,7 @@ class WishiwashisStatFishing extends Game {
 
 const commands: Dict<ICommandDefinition<WishiwashisStatFishing>> = {
 	reel: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (this.roundReels.has(player) || player.eliminated) return false;
 			this.roundReels.set(player, true);

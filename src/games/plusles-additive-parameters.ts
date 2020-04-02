@@ -1,5 +1,5 @@
 import { Player } from "../room-activity";
-import type { IGameFile } from "../types/games";
+import type { IGameFile, GameCommandReturnType } from "../types/games";
 import { Room } from "../rooms";
 import { Game } from "../room-game";
 import type { ICommandDefinition } from "../command-parser";
@@ -13,7 +13,7 @@ const paramTypes: ParamType[] = ['move', 'tier', 'color', 'type', 'egggroup', 'a
 let loadedData = false;
 
 class PluslesAdditiveParameters extends Game {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 
 		room.say("Loading data for " + name + "...");
@@ -35,11 +35,11 @@ class PluslesAdditiveParameters extends Game {
 	pokemon: string[] = [];
 	roundTime: number = 15 * 1000;
 
-	onStart() {
+	onStart(): void {
 		this.nextRound();
 	}
 
-	async onNextRound() {
+	async onNextRound(): Promise<void> {
 		this.canAdd = false;
 		this.offCommands(['add']);
 
@@ -114,7 +114,7 @@ class PluslesAdditiveParameters extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		for (const i in this.players) {
 			const player = this.players[i];
 			if (player.eliminated) continue;
@@ -145,7 +145,7 @@ class PluslesAdditiveParameters extends Game {
 
 const commands: Dict<ICommandDefinition<PluslesAdditiveParameters>> = {
 	add: {
-		async asyncCommand(target, room, user) {
+		async asyncCommand(target, room, user): Promise<GameCommandReturnType> {
 			if (!this.canAdd || !target || this.players[user.id] !== this.currentPlayer) return false;
 			const params = this.getParam(target);
 			if (!params.length) {

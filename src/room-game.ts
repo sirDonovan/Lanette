@@ -179,14 +179,14 @@ export class Game extends Activity {
 		return Tools.shuffle(array, this.prng);
 	}
 
-	setUhtmlBaseName(gameType: 'scripted' | 'userhosted') {
+	setUhtmlBaseName(gameType: 'scripted' | 'userhosted'): void {
 		const counts = gameType === 'scripted' ? Games.uhtmlScriptedCounts : Games.uhtmlUserHostedCounts;
 		if (!(this.id in counts)) counts[this.id] = 0;
 		counts[this.id]++;
 		this.uhtmlBaseName = gameType + '-' + this.id + '-' + counts[this.id];
 	}
 
-	initialize(format: IGameFormat | IUserHostedFormat) {
+	initialize(format: IGameFormat | IUserHostedFormat): void {
 		this.format = format;
 		this.name = format.nameWithOptions || format.name;
 		this.id = format.id;
@@ -196,7 +196,7 @@ export class Game extends Activity {
 		this.onInitialize();
 	}
 
-	onInitialize() {
+	onInitialize(): void {
 		this.setUhtmlBaseName('scripted');
 
 		const format = this.format as IGameFormat;
@@ -214,7 +214,7 @@ export class Game extends Activity {
 		if (format.mode) format.mode.initialize(this);
 	}
 
-	deallocate(forceEnd: boolean) {
+	deallocate(forceEnd: boolean): void {
 		if (this.timeout) clearTimeout(this.timeout);
 		if (this.startTimer) clearTimeout(this.startTimer);
 		if ((!this.started || this.format.options.freejoin) && this.notifyRankSignups) this.sayCommand("/notifyoffrank all");
@@ -231,14 +231,14 @@ export class Game extends Activity {
 		if (this.onAfterDeallocate) this.onAfterDeallocate(forceEnd);
 	}
 
-	forceEnd(user: User, reason?: string) {
+	forceEnd(user: User, reason?: string): void {
 		this.say((!this.isUserHosted ? "The " : "") + this.name + " " + this.activityType + " was forcibly ended.");
 		if (this.onForceEnd) this.onForceEnd(user, reason);
 		this.ended = true;
 		this.deallocate(true);
 	}
 
-	signups() {
+	signups(): void {
 		if (!this.isMiniGame && !this.internalGame) {
 			this.showSignupsHtml = true;
 			this.sayUhtml(this.uhtmlBaseName + "-signups", this.getSignupsHtml());
@@ -291,7 +291,7 @@ export class Game extends Activity {
 		return true;
 	}
 
-	nextRound() {
+	nextRound(): void {
 		if (this.timeout) clearTimeout(this.timeout);
 		// @ts-ignore
 		this.round++;
@@ -326,7 +326,7 @@ export class Game extends Activity {
 		return html;
 	}
 
-	end() {
+	end(): void {
 		if (this.onEnd) this.onEnd();
 
 		let usedDatabase = false;
@@ -412,7 +412,7 @@ export class Game extends Activity {
 		return player;
 	}
 
-	removePlayer(user: User | string, silent?: boolean) {
+	removePlayer(user: User | string, silent?: boolean): void {
 		if (this.isMiniGame) return;
 		const player = this.destroyPlayer(user);
 		if (this.format.options.freejoin || !player) return;
@@ -440,7 +440,7 @@ export class Game extends Activity {
 		}
 	}
 
-	eliminatePlayer(player: Player, eliminationCause?: string | null, eliminator?: Player | null) {
+	eliminatePlayer(player: Player, eliminationCause?: string | null, eliminator?: Player | null): void {
 		player.eliminated = true;
 		player.say((eliminationCause ? eliminationCause + " " : "") + "You have been eliminated from the game.");
 		if (this.onEliminatePlayer) this.onEliminatePlayer(player, eliminationCause, eliminator);
@@ -482,7 +482,7 @@ export class Game extends Activity {
 		return commandListener;
 	}
 
-	increaseOnCommandsMax(commands: string[] | IGameCommandCountListener, increment: number) {
+	increaseOnCommandsMax(commands: string[] | IGameCommandCountListener, increment: number): void {
 		let commandListener: IGameCommandCountListener | null = null;
 		if (Array.isArray(commands)) {
 			commandListener = this.findCommandsListener(commands);
@@ -492,7 +492,7 @@ export class Game extends Activity {
 		if (commandListener) commandListener.max += increment;
 	}
 
-	decreaseOnCommandsMax(commands: string[] | IGameCommandCountListener, decrement: number) {
+	decreaseOnCommandsMax(commands: string[] | IGameCommandCountListener, decrement: number): void {
 		let commandListener: IGameCommandCountListener | null = null;
 		if (Array.isArray(commands)) {
 			commandListener = this.findCommandsListener(commands);
@@ -508,13 +508,13 @@ export class Game extends Activity {
 		}
 	}
 
-	onCommands(commands: string[], options: IGameCommandCountOptions, listener: GameCommandListener) {
+	onCommands(commands: string[], options: IGameCommandCountOptions, listener: GameCommandListener): void {
 		const commandsAndAliases = this.getCommandsAndAliases(commands);
 		this.offCommands(commandsAndAliases);
 		this.commandsListeners.push(Object.assign(options, {commands: commandsAndAliases, count: 0, lastUserId: '', listener}));
 	}
 
-	offCommands(commands: string[]) {
+	offCommands(commands: string[]): void {
 		const commandListener = this.findCommandsListener(commands);
 		if (commandListener) this.commandsListeners.splice(this.commandsListeners.indexOf(commandListener, 1));
 	}
@@ -596,7 +596,7 @@ export class Game extends Activity {
 		return html;
 	}
 
-	announceWinners() {
+	announceWinners(): void {
 		const len = this.winners.size;
 		if (len) {
 			this.say("**Winner" + (len > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners));
@@ -622,7 +622,7 @@ export class Game extends Activity {
 		return true;
 	}
 
-	convertPointsToBits(winnerBits?: number, loserBits?: number) {
+	convertPointsToBits(winnerBits?: number, loserBits?: number): void {
 		if (this.parentGame && !this.parentGame.allowChildGameBits) return;
 		if (!this.points) throw new Error(this.name + " called convertPointsToBits() with no points Map");
 		if (winnerBits === undefined) winnerBits = this.winnerPointsToBits;
@@ -640,7 +640,7 @@ export class Game extends Activity {
 		});
 	}
 
-	unlockAchievement(players: Player | Player[], achievement: IGameAchievement) {
+	unlockAchievement(players: Player | Player[], achievement: IGameAchievement): void {
 		if (this.isMiniGame || this.isPm(this.room)) return;
 		const format = this.format as IGameFormat;
 		if (format.mode && format.mode.id !== achievement.mode) return;

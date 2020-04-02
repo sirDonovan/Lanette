@@ -10,7 +10,7 @@ const data: {types: string[]} = {
 let loadedData = false;
 
 class FraxuresBattleChain extends Chain {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 

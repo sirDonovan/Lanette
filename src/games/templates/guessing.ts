@@ -2,7 +2,7 @@ import { ICommandDefinition } from '../../command-parser';
 import { Player } from '../../room-activity';
 import { Game } from '../../room-game';
 import { assert, assertStrictEqual, getBasePlayerName, runCommand } from '../../test/test-tools';
-import { GameFileTests, IGameFormat, IGameTemplateFile, IGameAchievement } from '../../types/games';
+import { GameFileTests, IGameFormat, IGameTemplateFile, IGameAchievement, GameCommandReturnType } from '../../types/games';
 
 const MINIGAME_BITS = 25;
 
@@ -22,7 +22,7 @@ export abstract class Guessing extends Game {
 
 	abstract async setAnswers(): Promise<void>;
 
-	onInitialize() {
+	onInitialize(): void {
 		super.onInitialize();
 
 		const format = (this.format as IGameFormat);
@@ -31,7 +31,7 @@ export abstract class Guessing extends Game {
 		}
 	}
 
-	onSignups() {
+	onSignups(): void {
 		if (!this.isMiniGame) {
 			if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
 		}
@@ -41,7 +41,7 @@ export abstract class Guessing extends Game {
 		return "<div style='padding-bottom:8px'><span style='color: #999999'>" + this.name + (this.isMiniGame ? " (minigame)" : "") + (this.additionalHintHeader ? " " + this.additionalHintHeader : "") + "</span><br /><br />" + this.hint + "</div>";
 	}
 
-	async onNextRound() {
+	async onNextRound(): Promise<void> {
 		this.canGuess = false;
 		await this.setAnswers();
 		if (this.ended) return;
@@ -120,7 +120,7 @@ export abstract class Guessing extends Game {
 
 const commands: Dict<ICommandDefinition<Guessing>> = {
 	guess: {
-		async asyncCommand(target, room, user) {
+		async asyncCommand(target, room, user): Promise<GameCommandReturnType> {
 			if (!this.canGuess || !this.answers.length || (this.players[user.id] && this.players[user.id].eliminated) ||
 				(this.parentGame && (!this.players[user.id] || this.players[user.id].eliminated))) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
@@ -194,7 +194,7 @@ const tests: GameFileTests<Guessing> = {
 		config: {
 			async: true,
 		},
-		async test(game, format) {
+		async test(game, format): Promise<void> {
 			this.timeout(15000);
 
 			assert(!game.canGuess);
@@ -216,7 +216,7 @@ const tests: GameFileTests<Guessing> = {
 		config: {
 			async: true,
 		},
-		async test(game, format) {
+		async test(game, format): Promise<void> {
 			this.timeout(15000);
 
 			const name = getBasePlayerName() + " 1";

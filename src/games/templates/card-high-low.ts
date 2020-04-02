@@ -1,6 +1,6 @@
 import { ICommandDefinition } from '../../command-parser';
 import { Player } from '../../room-activity';
-import { GameCategory, IGameTemplateFile } from '../../types/games';
+import { GameCategory, IGameTemplateFile, GameCommandReturnType } from '../../types/games';
 import { Card, CardType, game as cardGame } from './card';
 
 type HighLow = 'high' | 'low';
@@ -23,17 +23,17 @@ export abstract class CardHighLow extends Card {
 
 	abstract getCardDetail(card: CardType, detail: string): number;
 
-	createDeck() {
+	createDeck(): void {
 		if (!this.deckPool.length) this.createDeckPool();
 		this.deck = this.shuffle(this.deckPool);
 	}
 
-	onSignups() {
+	onSignups(): void {
 		this.createDeck();
 		if (!this.format.inputOptions.points) this.format.options.points = 5;
 	}
 
-	onStart() {
+	onStart(): void {
 		this.createDeck();
 		this.say("Now PMing cards!");
 		for (const i in this.players) {
@@ -48,7 +48,7 @@ export abstract class CardHighLow extends Card {
 
 	getCardsPmHtml(cards: CardType[], player: Player): string {
 		let html = '';
-		const cardDetails: {card: CardType, detail: number}[] = [];
+		const cardDetails: {card: CardType; detail: number}[] = [];
 		for (let i = 0; i < cards.length; i++) {
 			cardDetails.push({card: cards[i], detail: this.getCardDetail(cards[i], this.currentCategory)});
 		}
@@ -95,9 +95,9 @@ export abstract class CardHighLow extends Card {
 		return html;
 	}
 
-	scoreRound() {
+	scoreRound(): void {
 		this.canPlay = false;
-		const hands: {player: Player, detail: number, card: CardType}[] = [];
+		const hands: {player: Player; detail: number; card: CardType}[] = [];
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
@@ -151,7 +151,7 @@ export abstract class CardHighLow extends Card {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		const remainingPlayers = this.getRemainingPlayerCount();
 		if (!remainingPlayers) {
 			this.end();
@@ -182,7 +182,7 @@ export abstract class CardHighLow extends Card {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
@@ -206,7 +206,7 @@ export abstract class CardHighLow extends Card {
 		this.announceWinners();
 	}
 
-	getPlayerSummary(player: Player) {
+	getPlayerSummary(player: Player): void {
 		if (player.eliminated) return;
 		this.dealHand(player);
 	}
@@ -214,7 +214,7 @@ export abstract class CardHighLow extends Card {
 
 const commands: Dict<ICommandDefinition<CardHighLow>> = {
 	play: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].eliminated || this.roundPlays.has(this.players[user.id])) return false;
 			const player = this.players[user.id];
 			const targets = target.split(",");

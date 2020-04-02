@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface IHexColor {
 	"White": any;
 	"Black": any;
@@ -20,5 +21,6 @@ export interface IHexColor {
 	"Light Gray": any;
 	"Dark Brown": any;
 }
+/* eslint-enable */
 
 export type HexColor = keyof IHexColor;

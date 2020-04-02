@@ -2,11 +2,11 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, GameCommandReturnType } from "../types/games";
 import { IPokemon } from "../types/in-game-data-types";
 
 const name = "Landorus' War";
-const data: {learnsets: Dict<readonly string[]>, moves: string[], pokemon: string[]} = {
+const data: {learnsets: Dict<readonly string[]>; moves: string[]; pokemon: string[]} = {
 	learnsets: {},
 	moves: [],
 	pokemon: [],
@@ -14,7 +14,7 @@ const data: {learnsets: Dict<readonly string[]>, moves: string[], pokemon: strin
 let loadedData = false;
 
 class LandorusWar extends Game {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 
 		room.say("Loading data for " + name + "...");
@@ -52,7 +52,7 @@ class LandorusWar extends Game {
 	roundSuspects = new Set<Player>();
 	suspectedPlayers = new Map<Player, number>();
 
-	onRemovePlayer(player: Player) {
+	onRemovePlayer(player: Player): void {
 		const alias = this.playerAliases.get(player);
 		if (alias) {
 			const index = this.playerAliasesList.indexOf(alias);
@@ -60,7 +60,7 @@ class LandorusWar extends Game {
 		}
 	}
 
-	onStart() {
+	onStart(): void {
 		this.say("Now handing out Pokemon!");
 		const aliases = this.sampleMany(Dex.data.trainerClasses, this.getRemainingPlayerCount());
 		const pokemonList = this.shuffle(data.pokemon);
@@ -85,7 +85,7 @@ class LandorusWar extends Game {
 		this.nextRound();
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		const remainingPlayerCount = this.getRemainingPlayerCount();
 		if (remainingPlayerCount < 2) return this.end();
 		this.roundMoves.clear();
@@ -111,7 +111,7 @@ class LandorusWar extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		for (const i in this.players) {
 			const player = this.players[i];
 			const caught = this.suspectedPlayers.get(player);
@@ -124,7 +124,7 @@ class LandorusWar extends Game {
 		this.announceWinners();
 	}
 
-	getPlayerSummary(player: Player) {
+	getPlayerSummary(player: Player): void {
 		if (player.eliminated) return;
 		const pokemon = this.playerPokemon.get(player);
 		if (!pokemon) return player.say("You have not been assigned a Pokemon yet.");
@@ -144,7 +144,7 @@ class LandorusWar extends Game {
 
 const commands: Dict<ICommandDefinition<LandorusWar>> = {
 	use: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.started) return false;
 			const player = this.players[user.id];
 			if (!player || player.eliminated) return false;
@@ -208,7 +208,7 @@ const commands: Dict<ICommandDefinition<LandorusWar>> = {
 		pmGameCommand: true,
 	},
 	suspect: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.started || !(user.id in this.players) || this.players[user.id].eliminated) return false;
 			const player = this.players[user.id];
 			if (this.roundSuspects.has(player)) {

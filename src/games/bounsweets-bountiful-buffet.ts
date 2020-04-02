@@ -2,14 +2,14 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { addPlayers, assertStrictEqual, runCommand } from "../test/test-tools";
-import { GameFileTests, IGameFile } from "../types/games";
+import { GameFileTests, IGameFile, GameCommandReturnType } from "../types/games";
 
-const data: {'meals': string[], 'aliases': Dict<string>} = {
+const data: {'meals': string[]; 'aliases': Dict<string>} = {
 	meals: [],
 	aliases: {},
 };
 
-const meals: {'name': string, 'aliases': string[]}[] = [
+const meals: {'name': string; 'aliases': string[]}[] = [
 	{name: "Chansey Eggs", aliases: ['chansey', 'eggs']},
 	{name: "Slowpoke Tails", aliases: ['slowpoke', 'tails']},
 	{name: "Tropius Fruit", aliases: ['tropius', 'fruit']},
@@ -40,11 +40,11 @@ class BounsweetsBountifulBuffet extends Game {
 	points = new Map<Player, number>();
 	selectedMeals = new Map<Player, number>();
 
-	onStart() {
+	onStart(): void {
 		this.nextRound();
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		this.canSelect = false;
 
 		if (this.round > 1) {
@@ -121,14 +121,14 @@ class BounsweetsBountifulBuffet extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		this.announceWinners();
 	}
 }
 
 const commands: Dict<ICommandDefinition<BounsweetsBountifulBuffet>> = {
 	select: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!(user.id in this.players) || this.players[user.id].eliminated || this.selectedMeals.has(this.players[user.id])) return false;
 			const player = this.players[user.id];
 			target = Tools.toId(target);
@@ -155,7 +155,7 @@ const commands: Dict<ICommandDefinition<BounsweetsBountifulBuffet>> = {
 
 const tests: GameFileTests<BounsweetsBountifulBuffet> = {
 	'should give the same points for shared meals': {
-		test(game, format) {
+		test(game, format): void {
 			const players = addPlayers(game, 2);
 			game.minPlayers = 2;
 			game.start();
@@ -168,7 +168,7 @@ const tests: GameFileTests<BounsweetsBountifulBuffet> = {
 		},
 	},
 	'should give different points for separate meals': {
-		test(game, format) {
+		test(game, format): void {
 			const players = addPlayers(game, 2);
 			game.minPlayers = 2;
 			game.start();

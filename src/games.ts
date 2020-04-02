@@ -16,7 +16,6 @@ import { PortmanteausWorker } from './workers/portmanteaus';
 const DEFAULT_CATEGORY_COOLDOWN = 3;
 
 const gamesDirectory = path.join(__dirname, 'games');
-// tslint:disable-next-line no-var-requires
 const userHosted = require(path.join(gamesDirectory, "internal", "user-hosted.js")).game as IUserHostedFile;
 const internalGamePaths: IInternalGames = {
 	eggtoss: path.join(gamesDirectory, "internal", "egg-toss.js"),
@@ -25,6 +24,7 @@ const internalGamePaths: IInternalGames = {
 
 const sharedCommandDefinitions: Dict<ICommandDefinition<Game>> = {
 	summary: {
+		// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 		command(target, room, user) {
 			if (!(user.id in this.players)) return false;
 			const player = this.players[user.id];
@@ -70,7 +70,7 @@ export class Games {
 	lastUserHostedGames: Dict<number> = {};
 	lastUserHostTimes: Dict<Dict<number>> = {};
 	readonly maxMoveAvailability: number = 500;
-	readonly minigameCommandNames: Dict<{aliases: string[], format: string}> = {};
+	readonly minigameCommandNames: Dict<{aliases: string[]; format: string}> = {};
 	readonly modes: Dict<IGameMode> = {};
 	readonly modeAliases: Dict<string> = {};
 	reloadInProgress: boolean = false;
@@ -83,7 +83,7 @@ export class Games {
 		portmanteaus: new PortmanteausWorker(),
 	};
 
-	onReload(previous: Partial<Games>) {
+	onReload(previous: Partial<Games>): void {
 		if (previous.autoCreateTimers) this.autoCreateTimers = previous.autoCreateTimers;
 		if (previous.lastGames) this.lastGames = previous.lastGames;
 		if (previous.lastScriptedGames) this.lastScriptedGames = previous.lastScriptedGames;
@@ -95,7 +95,7 @@ export class Games {
 		this.loadFormats();
 	}
 
-	unrefWorkers() {
+	unrefWorkers(): void {
 		const workers = Object.keys(this.workers) as (keyof IGamesWorkers)[];
 		for (let i = 0; i < workers.length; i++) {
 			this.workers[workers[i]].unref();
@@ -106,7 +106,7 @@ export class Games {
 		return Object.assign(Tools.deepClone(template), game);
 	}
 
-	loadFileAchievements(file: IGameFile) {
+	loadFileAchievements(file: IGameFile): void {
 		if (!file.achievements) return;
 		const keys = Object.keys(file.achievements) as (keyof IGameAchievementKeys)[];
 		for (let i = 0; i < keys.length; i++) {
@@ -121,7 +121,7 @@ export class Games {
 		}
 	}
 
-	loadFormats() {
+	loadFormats(): void {
 		const internalGameKeys = Object.keys(internalGamePaths) as (keyof IInternalGames)[];
 		for (let i = 0; i < internalGameKeys.length; i++) {
 			const file = require(internalGamePaths[internalGameKeys[i]]).game as IGameFile;
@@ -283,9 +283,10 @@ export class Games {
 		this.loadFormatCommands();
 	}
 
-	loadFormatCommands() {
+	loadFormatCommands(): void {
 		for (const i in this.commands) {
 			Commands[i] = {
+				// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 				async asyncCommand(target, room, user, command) {
 					let returnedResult: boolean = false;
 					if (this.isPm(room)) {
@@ -316,7 +317,8 @@ export class Games {
 			if (name in BaseCommands) throw new Error(formatName + " minigame command '" + name + "' is already a command.");
 
 			Commands[name] = {
-				command(target, room, user, command) {
+				// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+				command(target, room, user) {
 					let pmRoom: Room | undefined;
 					if (this.isPm(room)) {
 						user.rooms.forEach((rank, room) => {
@@ -681,7 +683,7 @@ export class Games {
 		return room.userHostedGame;
 	}
 
-	setAutoCreateTimer(room: Room, type: 'scripted' | 'userhosted', timer: number) {
+	setAutoCreateTimer(room: Room, type: 'scripted' | 'userhosted', timer: number): void {
 		if (room.id in this.autoCreateTimers) clearTimeout(this.autoCreateTimers[room.id]);
 		this.autoCreateTimers[room.id] = setTimeout(() => {
 			if (room.game && room.game.isMiniGame) {

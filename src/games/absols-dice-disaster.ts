@@ -1,7 +1,7 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
-import { IGameFile } from "../types/games";
+import { IGameFile, GameCommandReturnType } from "../types/games";
 
 class AbsolsDiceDisaster extends Game {
 	bestPlayer: Player | null = null;
@@ -13,12 +13,12 @@ class AbsolsDiceDisaster extends Game {
 	roundDiceRoll: number = 0;
 	roundTimer: number = 20 * 1000;
 
-	onStart() {
+	onStart(): void {
 		this.say("Each round, you will have " + Tools.toDurationString(this.roundTimer) + " to bid numbers between " + this.minBid + " and " + this.maxBid + " based on Absol's senses!");
 		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		if (this.getRemainingPlayerCount() <= 1) {
 			this.end();
 			return;
@@ -49,7 +49,7 @@ class AbsolsDiceDisaster extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	endBidding() {
+	endBidding(): void {
 		this.canBid = false;
 		if (!this.bestPlayer) {
 			this.say("There were no bids!");
@@ -79,7 +79,7 @@ class AbsolsDiceDisaster extends Game {
 		this.say(text);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		const winner = this.getFinalPlayer();
 		if (winner) {
 			this.winners.set(winner, 1);
@@ -91,7 +91,7 @@ class AbsolsDiceDisaster extends Game {
 
 const commands: Dict<ICommandDefinition<AbsolsDiceDisaster>> = {
 	bid: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canBid || !(user.id in this.players) || this.players[user.id].eliminated) return false;
 			const bid = parseInt(target);
 			if (isNaN(bid) || bid > this.maxBid || bid < this.minBid) {

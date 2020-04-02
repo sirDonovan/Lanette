@@ -4,7 +4,7 @@ import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Pikachu's Mystery Pokemon";
-const data: {abilities: Dict<string[]>, eggGroups: Dict<string>, pokedex: string[], regions: Dict<string>, types: Dict<string>} = {
+const data: {abilities: Dict<string[]>; eggGroups: Dict<string>; pokedex: string[]; regions: Dict<string>; types: Dict<string>} = {
 	abilities: {},
 	eggGroups: {},
 	pokedex: [],
@@ -18,7 +18,7 @@ const achievements: AchievementsDict = {
 };
 
 class PikachusMysteryPokemon extends Guessing {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -67,13 +67,13 @@ class PikachusMysteryPokemon extends Guessing {
 	lastSpecies: string = '';
 	points = new Map<Player, number>();
 
-	onSignups() {
+	onSignups(): void {
 		if (this.format.options.freejoin) {
 			this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
 		}
 	}
 
-	async setAnswers() {
+	async setAnswers(): Promise<void> {
 		this.hintsIndex = 0;
 		let species = this.sampleOne(data.pokedex);
 		while (this.lastSpecies === species) {
@@ -91,7 +91,7 @@ class PikachusMysteryPokemon extends Guessing {
 		this.answers = [pokemon.species];
 	}
 
-	async onNextRound() {
+	async onNextRound(): Promise<void> {
 		if (!this.answers.length) {
 			this.canGuess = false;
 			await this.setAnswers();

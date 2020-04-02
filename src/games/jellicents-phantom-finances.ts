@@ -1,6 +1,6 @@
 import type { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
-import { IGameFile, AchievementsDict } from "../types/games";
+import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
 import { BoardActionCard, BoardSpace, IBoard } from "./templates/board";
 import { BoardActionSpace, BoardPropertyGame, BoardPropertyRentSpace, BoardRentSpace, game as boardPropertyGame, mountainPrefix } from "./templates/board-property";
 import { Room } from "../rooms";
@@ -130,7 +130,7 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 		super(room);
 
 		this.baseActionCards = [
-			function(player) {
+			function(player): void {
 				const currency = this.playerCurrency.get(player)!;
 				let text: string;
 				if (currency >= DONATE_ACTION_AMOUNT) {
@@ -156,7 +156,7 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 				});
 				this.say(text);
 			},
-			function(player) {
+			function(player): void {
 				const location = this.getSpaceLocation(this.spaces.ultraspace)!;
 				this.playerLocations.set(player, location);
 				const text = "They go through a strange portal and end up in " + this.spaces.ultraspace.name + "!";
@@ -165,7 +165,7 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 				});
 				this.say(text);
 			},
-			function(player) {
+			function(player): void {
 				const location = this.getSpaceLocation(this.spaces.castelia)!;
 				this.playerLocations.set(player, location);
 				const text = "They travel to **" + this.spaces.castelia.name + "** to get a Casteliacone!";
@@ -174,7 +174,7 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 				});
 				this.say(text);
 			},
-			function(player) {
+			function(player): void {
 				let text = "A Delibird appeared and used Present!";
 				if (this.random(2)) {
 					text += " It didn't have any " + this.currencyPluralName + " to give!";
@@ -191,7 +191,7 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 		];
 	}
 
-	onStart() {
+	onStart(): void {
 		super.onStart();
 
 		for (let i = 0; i < this.playerOrder.length; i++) {
@@ -201,7 +201,7 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 		}
 	}
 
-	getActionCards() {
+	getActionCards(): BoardActionCard<BoardPropertyGame>[] {
 		// @ts-ignore
 		return this.sharedActionCards.concat(this.baseActionCards);
 	}
@@ -211,7 +211,7 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 		return "<b>" + POKE_DOLLAR + "</b>: " + this.playerCurrency.get(player) + "<br /><b>Properties</b>: " + (properties.length ? properties.map(prop => prop.name + " (" + prop.color + ")").join(", ") : "(none)");
 	}
 
-	onOwnedPropertySpace(space: BoardPropertyRentSpace, player: Player) {
+	onOwnedPropertySpace(space: BoardPropertyRentSpace, player: Player): void {
 		const ownerProperties = this.properties.get(space.owner!) || [];
 		let rent = 0;
 		for (let i = 0; i < ownerProperties.length; i++) {
@@ -223,15 +223,15 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 		this.checkRentPayment(space, player, rent);
 	}
 
-	onAcquirePropertySpace(property: BoardPropertyRentSpace, player: Player, amount: number) {
+	onAcquirePropertySpace(property: BoardPropertyRentSpace, player: Player, amount: number): void {
 		this.playerCurrency.set(player, this.playerCurrency.get(player)! - amount);
 	}
 
-	onPassOnPropertySpace(player: Player) {
+	onPassOnPropertySpace(player: Player): void {
 		this.beginAuction();
 	}
 
-	onInsufficientCurrencyToAcquire(property: BoardPropertyRentSpace, player: Player) {
+	onInsufficientCurrencyToAcquire(property: BoardPropertyRentSpace, player: Player): void {
 		const text = "They do not have enough " + this.currencyPluralName + " so an auction will begin!";
 		this.on(text, () => {
 			this.timeout = setTimeout(() => {
@@ -242,7 +242,7 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 		this.say(text);
 	}
 
-	beginAuction() {
+	beginAuction(): void {
 		this.highestBidAmount = 0;
 		this.highestBidder = null;
 		this.say("Place your bids for **" + this.propertyToAcquire!.name + "** (cost: **" + this.propertyToAcquire!.cost + " " + POKE_DOLLAR + "**) with ``" + Config.commandCharacter + "bid [amount]``!");
@@ -250,7 +250,7 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 		this.timeout = setTimeout(() => this.sellProperty(), 10 * 1000);
 	}
 
-	sellProperty() {
+	sellProperty(): void {
 		this.canBid = false;
 		if (this.highestBidder) {
 			this.say("**" + this.propertyToAcquire!.name + "** is sold to **" + this.highestBidder.name + "** for **" + this.highestBidAmount + " " + POKE_DOLLAR + "**!");
@@ -265,7 +265,7 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 
 const commands: Dict<ICommandDefinition<JellicentsPhantomFinances>> = {
 	bid: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canBid || !(user.id in this.players) || this.players[user.id].eliminated) return false;
 			const player = this.players[user.id];
 			const amount = parseInt(target);

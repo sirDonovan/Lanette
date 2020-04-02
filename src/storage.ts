@@ -36,7 +36,7 @@ export class Storage {
 		this.globalDatabaseExportInterval = this.setGlobalDatabaseExportInterval();
 	}
 
-	onReload(previous: Partial<Storage>) {
+	onReload(previous: Partial<Storage>): void {
 		if (previous.chatLogFilePathCache) this.chatLogFilePathCache = previous.chatLogFilePathCache;
 		if (previous.chatLogRolloverTimes) this.chatLogRolloverTimes = previous.chatLogRolloverTimes;
 		if (previous.databases) this.databases = previous.databases;
@@ -46,7 +46,7 @@ export class Storage {
 		this.globalDatabaseExportInterval = this.setGlobalDatabaseExportInterval();
 	}
 
-	unrefWorkers() {
+	unrefWorkers(): void {
 		const workers = Object.keys(this.workers) as (keyof IStorageWorkers)[];
 		for (let i = 0; i < workers.length; i++) {
 			this.workers[workers[i]].unref();
@@ -73,13 +73,13 @@ export class Storage {
 		return this.databases[id];
 	}
 
-	exportDatabase(roomid: string) {
+	exportDatabase(roomid: string): void {
 		if (!(roomid in this.databases) || roomid.startsWith('battle-') || roomid.startsWith('groupchat-')) return;
 		const contents = JSON.stringify(this.databases[roomid]);
 		Tools.safeWriteFileSync(path.join(databasesDir, roomid + '.json'), contents);
 	}
 
-	archiveDatabase(roomid: string) {
+	archiveDatabase(roomid: string): void {
 		if (!(roomid in this.databases) || roomid.startsWith('battle-') || roomid.startsWith('groupchat-')) return;
 		const date = new Date();
 		const year = date.getFullYear();
@@ -90,7 +90,7 @@ export class Storage {
 		Tools.safeWriteFileSync(path.join(archivedDatabasesDir, filename + '.json'), contents);
 	}
 
-	importDatabases() {
+	importDatabases(): void {
 		if (this.loadedDatabases) return;
 
 		const databases = fs.readdirSync(databasesDir);
@@ -113,7 +113,7 @@ export class Storage {
 		this.loadedDatabases = true;
 	}
 
-	exportDatabases() {
+	exportDatabases(): void {
 		for (const i in this.databases) {
 			this.exportDatabase(i);
 		}
@@ -153,7 +153,7 @@ export class Storage {
 		return true;
 	}
 
-	createLeaderboardEntry(database: IDatabase, name: string, id: string) {
+	createLeaderboardEntry(database: IDatabase, name: string, id: string): void {
 		database.leaderboard![id] = {
 			annual: 0,
 			annualSources: {},
@@ -244,7 +244,7 @@ export class Storage {
 		return true;
 	}
 
-	logChatMessage(room: Room, time: number, messageType: string, message: string) {
+	logChatMessage(room: Room, time: number, messageType: string, message: string): void {
 		const date = new Date(time);
 		if (!this.chatLogRolloverTimes[room.id] || time >= this.chatLogRolloverTimes[room.id]) {
 			const midnight = new Date();
@@ -256,7 +256,7 @@ export class Storage {
 			const directory = path.join(Tools.roomLogsFolder, room.id, '' + year);
 			try {
 				fs.mkdirSync(directory, {recursive: true});
-			// tslint:disable-next-line no-empty
+			// eslint-disable-next-line no-empty
 			} catch {}
 			const filename = year + '-' + (month < 10 ? '0' : '') + month + '-' + (day < 10 ? '0' : '') + day + '.txt';
 			this.chatLogFilePathCache[room.id] = path.join(directory, filename);
@@ -264,7 +264,7 @@ export class Storage {
 		fs.appendFileSync(this.chatLogFilePathCache[room.id], Tools.toTimestampString(date).split(" ")[1] + ' |' + messageType + '|' + message + "\n");
 	}
 
-	getMaxOfflineMessageLength(sender: User, message: string): number {
+	getMaxOfflineMessageLength(sender: User): number {
 		return Tools.maxMessageLength - (baseOfflineMessageLength + sender.name.length);
 	}
 
@@ -339,7 +339,7 @@ export class Storage {
 		return true;
 	}
 
-	updateLastSeen(user: User, time: number) {
+	updateLastSeen(user: User, time: number): void {
 		const database = this.getGlobalDatabase();
 		if (!database.lastSeen) database.lastSeen = {};
 		database.lastSeen[user.id] = time;

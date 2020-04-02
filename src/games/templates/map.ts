@@ -1,7 +1,7 @@
 import { ICommandDefinition } from "../../command-parser";
 import { Player } from "../../room-activity";
 import { Game } from "../../room-game";
-import { IGameTemplateFile, IGameAchievement } from "../../types/games";
+import { IGameTemplateFile, IGameAchievement, GameCommandReturnType } from "../../types/games";
 import { User } from "../../users";
 
 interface ISpaceAttributes {
@@ -14,7 +14,7 @@ interface ISpaceAttributes {
 	trappedPlayer?: string;
 }
 
-const mapKey: {currency: string, empty: string, exit: string, player: string, trap: string, unknown: string} = {
+const mapKey: {currency: string; empty: string; exit: string; player: string; trap: string; unknown: string} = {
 	currency: 'o',
 	empty: '-',
 	exit: '[]',
@@ -34,7 +34,7 @@ export class MapFloorSpace {
 		this.coordinates = coordinates;
 	}
 
-	reset() {
+	reset(): void {
 		this.attributes = {};
 		this.players.clear();
 	}
@@ -43,11 +43,11 @@ export class MapFloorSpace {
 		return !!Object.keys(this.attributes).length;
 	}
 
-	addPlayer(player: Player) {
+	addPlayer(player: Player): void {
 		this.players.add(player);
 	}
 
-	removePlayer(player: Player) {
+	removePlayer(player: Player): void {
 		this.players.delete(player);
 	}
 }
@@ -65,7 +65,7 @@ export class MapFloor {
 		this.y = y;
 	}
 
-	reset() {
+	reset(): void {
 		for (const i in this.spaces) {
 			this.spaces[i].reset();
 		}
@@ -75,7 +75,7 @@ export class MapFloor {
 export class GameMap {
 	floors: MapFloor[] = [];
 
-	reset() {
+	reset(): void {
 		for (let i = 0; i < this.floors.length; i++) {
 			this.floors[i].reset();
 		}
@@ -145,7 +145,7 @@ export abstract class MapGame extends Game {
 		return map;
 	}
 
-	generateMapFloor(map: GameMap, x?: number, y?: number) {
+	generateMapFloor(map: GameMap, x?: number, y?: number): void {
 		if (!x) x = this.baseX;
 		if (!y) y = this.baseY;
 		const floor = new MapFloor(x, y);
@@ -170,7 +170,7 @@ export abstract class MapGame extends Game {
 		return exitCoordinates;
 	}
 
-	positionPlayer(player: Player) {
+	positionPlayer(player: Player): void {
 		const map = this.getMap(player);
 		const floorIndex = this.getFloorIndex(player);
 		const floor = map.floors[floorIndex];
@@ -191,14 +191,14 @@ export abstract class MapGame extends Game {
 		this.displayMap(player);
 	}
 
-	positionPlayers() {
+	positionPlayers(): void {
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			this.positionPlayer(this.players[i]);
 		}
 	}
 
-	displayMap(player: Player) {
+	displayMap(player: Player): void {
 		const map = this.getMap(player);
 		const floorIndex = this.getFloorIndex(player);
 		const floor = map.floors[floorIndex];
@@ -269,7 +269,7 @@ export abstract class MapGame extends Game {
 		player.sayUhtml(html, "map");
 	}
 
-	onRegularSpace(player: Player, floor: MapFloor, space: MapFloorSpace) {
+	onRegularSpace(player: Player, floor: MapFloor, space: MapFloorSpace): void {
 		player.say("You travelled" + (floor.attributes.trap ? " safely" : "") + " to (" + space.coordinates + ").");
 	}
 
@@ -308,7 +308,7 @@ export abstract class MapGame extends Game {
 		return true;
 	}
 
-	onExitSpace(player: Player, floor: MapFloor, space: MapFloorSpace) {
+	onExitSpace(player: Player, floor: MapFloor, space: MapFloorSpace): void {
 		player.say("You arrived at (" + space.coordinates + ") and found an exit! You are now safe and will earn your bits at the end of the game.");
 		if (this.round < this.maxRound) player.say("If you are brave, you may continue travelling to collect more " + this.currency + " but **you must find your way to an exit** before time is up!");
 		if (this.escapedPlayers) this.escapedPlayers.set(player, true);
@@ -317,7 +317,7 @@ export abstract class MapGame extends Game {
 		space.traversedAttributes.exit.add(player);
 	}
 
-	movePlayer(player: Player, position: number[]) {
+	movePlayer(player: Player, position: number[]): void {
 		const map = this.getMap(player);
 		const floorIndex = this.getFloorIndex(player);
 		const floor = map.floors[floorIndex];
@@ -390,7 +390,7 @@ export abstract class MapGame extends Game {
 		return floor.spaces[coordinates];
 	}
 
-	setExitCoordinates(floor: MapFloor, exits?: number) {
+	setExitCoordinates(floor: MapFloor, exits?: number): void {
 		if (!exits) exits = floor.y;
 		for (let i = 0; i < exits; i++) {
 			const space = this.findOpenFloorSpace(floor);
@@ -400,7 +400,7 @@ export abstract class MapGame extends Game {
 		}
 	}
 
-	setCurrencyCoordinates(floor: MapFloor, currencySpaces?: number) {
+	setCurrencyCoordinates(floor: MapFloor, currencySpaces?: number): void {
 		if (!currencySpaces) currencySpaces = (floor.y >= 10 ? 25 : Math.round(floor.y * 2));
 		for (let i = 0; i < currencySpaces; i++) {
 			const space = this.findOpenFloorSpace(floor);
@@ -410,7 +410,7 @@ export abstract class MapGame extends Game {
 		}
 	}
 
-	setTrapCoordinates(floor: MapFloor, traps?: number) {
+	setTrapCoordinates(floor: MapFloor, traps?: number): void {
 		if (!traps) traps = floor.y >= 10 ? Math.round(floor.y * 1.5) : floor.y;
 		for (let i = 0; i < traps; i++) {
 			const space = this.findOpenFloorSpace(floor);
@@ -420,7 +420,7 @@ export abstract class MapGame extends Game {
 		}
 	}
 
-	setAchievementCoordinates(floor: MapFloor) {
+	setAchievementCoordinates(floor: MapFloor): void {
 		const space = this.findOpenFloorSpace(floor);
 		if (space) {
 			space.attributes.achievement = true;
@@ -540,22 +540,22 @@ export abstract class MapGame extends Game {
 
 const commands: Dict<ICommandDefinition<MapGame>> = {
 	up: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			return this.move(target, user, 'up');
 		},
 	},
 	down: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			return this.move(target, user, 'down');
 		},
 	},
 	left: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			return this.move(target, user, 'left');
 		},
 	},
 	right: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			return this.move(target, user, 'right');
 		},
 	},

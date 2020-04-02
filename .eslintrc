@@ -1,0 +1,33 @@
+{
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "warnOnUnsupportedTypeScriptVersion": false,
+        "ecmaVersion": 6,
+        "sourceType": "module",
+        "project": "./tsconfig.json"
+    },
+    "env": {
+        "browser": false,
+        "node": true,
+        "es6": true
+    },
+    "globals": {
+        "BaseCommands": false, "Client": false, "CommandParser": false, "Commands": false, "Config": false,
+        "Dex": false, "Games": false, "Rooms": false, "Storage": false, "tempConfig": false,
+        "toID": false, "Tools": false, "Tournaments": false, "Users": false
+    },
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "extends": [
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "rules": {
+        "@typescript-eslint/ban-ts-ignore": "off",
+        "@typescript-eslint/no-inferrable-types": "off",
+        "@typescript-eslint/interface-name-prefix": "off",
+        "@typescript-eslint/no-non-null-assertion": "off",
+        "@typescript-eslint/no-unused-vars": "off",
+        "@typescript-eslint/semi": ["error"]
+    }
+}

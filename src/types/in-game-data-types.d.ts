@@ -19,6 +19,7 @@ interface IStatsTable {
 	spe: number;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface ISparseStatsTable extends Partial<IStatsTable> {}
 
 interface IBoostsTable {
@@ -31,6 +32,7 @@ interface IBoostsTable {
 	evasion: number;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface ISparseBoostsTable extends Partial<IBoostsTable> {}
 
 interface IEventInfo {
@@ -66,6 +68,7 @@ interface IPokemonSet {
 	hpType?: string;
 }
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 interface IEventMethods {
 	/** Return true to stop the move from being used */
 	beforeMoveCallback?: (this: any, pokemon: any, target: any | null, move: any) => boolean | void;
@@ -208,6 +211,7 @@ interface IEventMethods {
 	onModifyDamagePhase1?: IEventMethods["onAnyModifyDamagePhase1"];
 	onModifyDamagePhase2?: IEventMethods["onAnyModifyDamagePhase1"];
 }
+/* eslint-enable */
 
 interface ISecondaryEffect {
 	status?: string;
@@ -298,8 +302,11 @@ export interface IAbilityComputed {
 }
 
 export interface IAbilityCopy extends IAbilityData, IAbilityComputed {}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IAbility extends DeepReadonly<IAbilityCopy> {}
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface IFormatData extends IEventMethods {
 	challengeShow: boolean;
 	column: number;
@@ -332,11 +339,11 @@ export interface IFormatData extends IEventMethods {
 	restrictedStones?: string[];
 	ruleset?: string[];
 	team?: string;
-	teamLength?: {validate?: [number, number], battle?: number};
+	teamLength?: {validate?: [number, number]; battle?: number};
 	threads?: string[];
-	timer?: {starting?: number, perTurn?: number, maxPerTurn?: number, maxFirstTurn?: number, timeoutAutoChoose?: boolean, accelerate?: boolean};
+	timer?: {starting?: number; perTurn?: number; maxPerTurn?: number; maxFirstTurn?: number; timeoutAutoChoose?: boolean; accelerate?: boolean};
 	unbanlist?: string[];
-	checkLearnset?: (this: any, move: any, template: any, lsetData: any, set: any) => {type: string, [k: string]: any} | null;
+	checkLearnset?: (this: any, move: any, template: any, lsetData: any, set: any) => {type: string; [k: string]: any} | null;
 	onAfterMega?: (this: any, pokemon: any) => void;
 	onBegin?: (this: any) => void;
 	onChangeSet?: (this: any, set: any, format: any, setHas?: any, teamHas?: any) => string[] | void;
@@ -347,6 +354,7 @@ export interface IFormatData extends IEventMethods {
 	validateSet?: (this: any, set: any, teamHas: any) => string[] | void;
 	validateTeam?: (this: any, team: any[], removeNicknames: boolean) => string[] | void;
 }
+/* eslint-enable */
 
 export interface IFormatLinks {
 	aliases?: string[];
@@ -413,7 +421,7 @@ export interface IItemData extends IEffectData {
 	itemUser?: string[];
 	megaStone?: string;
 	megaEvolves?: string;
-	naturalGift?: {basePower: number, type: string};
+	naturalGift?: {basePower: number; type: string};
 	onDrive?: string;
 	onMemory?: string;
 	onPlate?: string;
@@ -432,6 +440,8 @@ export interface IItemComputed {
 }
 
 export interface IItemCopy extends IItemData, IItemComputed {}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IItem extends DeepReadonly<IItemCopy> {}
 
 export interface IMoveFlags {
@@ -548,6 +558,7 @@ export interface IMoveData extends IEffectData {
 	zMovePower?: number;
 	zMoveEffect?: string;
 	zMoveBoost?: ISparseBoostsTable;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	basePowerCallback?: (pokemon: any, target: any, move: any) => number | false | null;
 }
 
@@ -565,10 +576,11 @@ export interface IMoveCopy extends IMoveData, IMoveComputed {
 	baseMoveType: string;
 	ignoreImmunity: IMoveData["ignoreImmunity"];
 }
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IMove extends DeepReadonly<IMoveCopy> {}
 
-// tslint:disable-next-line interface-over-type-literal
-type TemplateAbility = {0: string, 1?: string, H?: string, S?: string};
+type TemplateAbility = {0: string; 1?: string; H?: string; S?: string};
 
 export interface ITemplateData {
 	effectType: 'Pokemon';
@@ -657,6 +669,8 @@ export interface IPokemonCopy extends ITemplateData, Partial<ILearnset>, ITempla
 	requiredItems: string[] | undefined;
 	tier: string;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IPokemon extends DeepReadonly<IPokemonCopy> {}
 
 export interface ITypeChart {
@@ -672,8 +686,8 @@ export interface INature {
 }
 
 export interface IGifData {
-	back?: {h: number, w: number};
-	front?: {h: number, w: number};
+	back?: {h: number; w: number};
+	front?: {h: number; w: number};
 }
 
 export interface IDataTable {

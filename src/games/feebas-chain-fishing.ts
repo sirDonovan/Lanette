@@ -1,9 +1,9 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
-import { IGameFile, AchievementsDict } from "../types/games";
+import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
 
-const rods: {rod: string, pokemon: {pokemon: string, points: number}[]}[] = [
+const rods: {rod: string; pokemon: {pokemon: string; points: number}[]}[] = [
 	{rod: 'Super Rod', pokemon: [{pokemon: "Wailmer", points: 250}, {pokemon: "Skrelp", points: 250}, {pokemon: "Sharpedo", points: 300}, {pokemon: "Seaking", points: 300}, {pokemon: "Gyarados", points: 350},
 		{pokemon: "Lanturn", points: 300}, {pokemon: "Tentacruel", points: 300}, {pokemon: "Kingler", points: 300}, {pokemon: "Whiscash", points: 300}, {pokemon: "Lumineon", points: 300},
 		{pokemon: "Seadra", points: 300}, {pokemon: "Starmie", points: 300}, {pokemon: "Clawitzer", points: 300}, {pokemon: "Cloyster", points: 300}, {pokemon: "Dragalge", points: 300},
@@ -34,13 +34,13 @@ class FeebasChainFishing extends Game {
 	roundReels = new Map<Player, boolean>();
 	queue: Player[] = [];
 
-	onSignups() {
+	onSignups(): void {
 		if (this.format.options.freejoin) {
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 		}
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		this.canReel = false;
 		if (this.round > 1) {
 			const roundRods = rods.slice();
@@ -95,7 +95,7 @@ class FeebasChainFishing extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		let highestPoints = 0;
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
@@ -119,7 +119,7 @@ class FeebasChainFishing extends Game {
 
 const commands: Dict<ICommandDefinition<FeebasChainFishing>> = {
 	reel: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (this.roundReels.has(player) || player.eliminated) return false;
 			this.roundReels.set(player, true);

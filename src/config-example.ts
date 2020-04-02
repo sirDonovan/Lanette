@@ -1,6 +1,8 @@
 import { GroupName } from "./client";
 import { GameDifficulty } from "./types/games";
 
+/* eslint-disable prefer-const*/
+
 /**
  * Values in the object will override the values set throughout the config when starting Lanette with `tempConfig.js`
  */
@@ -271,3 +273,5 @@ export let serverLogsViewer: string = '';
  * For each room in the object, the length of time in which an awarded bot greeting will last
  */
 export let awardedBotGreetingDurations: Dict<number> = {};
+
+/* eslint-enable prefer-const*/

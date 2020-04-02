@@ -25,7 +25,7 @@ interface IScheduledTournament {
 }
 
 export class Tournaments {
-	createListeners: Dict<{format: IFormat, scheduled: boolean}> = {};
+	createListeners: Dict<{format: IFormat; scheduled: boolean}> = {};
 	readonly defaultCustomRules: Dict<Partial<ISeparatedCustomRules>> = {
 		tournaments: {
 			bans: ['Leppa Berry'],
@@ -44,7 +44,7 @@ export class Tournaments {
 	tournamentTimers: Dict<NodeJS.Timer> = {};
 	userHostedTournamentNotificationTimeouts: Dict<NodeJS.Timer> = {};
 
-	onReload(previous: Partial<Tournaments>) {
+	onReload(previous: Partial<Tournaments>): void {
 		if (previous.createListeners) this.createListeners = previous.createListeners;
 		if (previous.nextScheduledTournaments) this.nextScheduledTournaments = previous.nextScheduledTournaments;
 		if (previous.tournamentTimers) this.tournamentTimers = previous.tournamentTimers;
@@ -58,7 +58,7 @@ export class Tournaments {
 		});
 	}
 
-	loadSchedules() {
+	loadSchedules(): void {
 		const rooms = Object.keys(this.schedules);
 		for (let i = 0; i < rooms.length; i++) {
 			const room = rooms[i];
@@ -102,7 +102,7 @@ export class Tournaments {
 			date.setDate(day);
 			let lastDayOfMonth = Tools.getLastDayOfMonth(date);
 
-			const rolloverDay = () => {
+			const rolloverDay = (): void => {
 				formatIndex++;
 				if (!formats[formatIndex]) {
 					if (months.length) {
@@ -130,7 +130,7 @@ export class Tournaments {
 					}
 				}
 				date.setDate(day);
-			}
+			};
 
 			while (month) {
 				const format = formats[formatIndex];
@@ -150,7 +150,7 @@ export class Tournaments {
 		}
 	}
 
-	createTournament(room: Room, json: {format: string, generator: string, isStarted?: boolean, playerCap?: number, teambuilderFormat?: string}) {
+	createTournament(room: Room, json: {format: string; generator: string; isStarted?: boolean; playerCap?: number; teambuilderFormat?: string}): void {
 		if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return;
 		const format = json.teambuilderFormat ? Dex.getFormat(json.teambuilderFormat) : Dex.getFormat(json.format);
 		if (!format) return;
@@ -232,7 +232,7 @@ export class Tournaments {
 		}
 	}
 
-	setScheduledTournament(room: Room) {
+	setScheduledTournament(room: Room): void {
 		if (!(room.id in this.scheduledTournaments)) return;
 		delete this.nextScheduledTournaments[room.id];
 
@@ -240,6 +240,7 @@ export class Tournaments {
 		let nextScheduledIndex = -1;
 
 		for (let i = 0; i < this.scheduledTournaments[room.id].length; i++) {
+			const date = new Date(this.scheduledTournaments[room.id][i].time);
 			if (this.scheduledTournaments[room.id][i].time >= now) {
 				nextScheduledIndex = i;
 				break;
@@ -254,7 +255,7 @@ export class Tournaments {
 		this.setScheduledTournamentTimer(room);
 	}
 
-	setScheduledTournamentTimer(room: Room) {
+	setScheduledTournamentTimer(room: Room): void {
 		this.setTournamentTimer(room, this.nextScheduledTournaments[room.id].time, Dex.getExistingFormat(this.nextScheduledTournaments[room.id].format, true), this.maxPlayerCap, true);
 	}
 
@@ -263,7 +264,7 @@ export class Tournaments {
 		return this.nextScheduledTournaments[room.id].time - Date.now() > SCHEDULED_TOURNAMENT_BUFFER_TIME;
 	}
 
-	setRandomTournamentTimer(room: Room, minutes: number) {
+	setRandomTournamentTimer(room: Room, minutes: number): void {
 		if (room.id in this.tournamentTimers) clearTimeout(this.tournamentTimers[room.id]);
 		this.tournamentTimers[room.id] = setTimeout(() => {
 			let scheduledFormat: IFormat | null = null;
@@ -295,7 +296,7 @@ export class Tournaments {
 		}, minutes * 60 * 1000);
 	}
 
-	setTournamentTimer(room: Room, startTime: number, format: IFormat, cap: number, scheduled?: boolean) {
+	setTournamentTimer(room: Room, startTime: number, format: IFormat, cap: number, scheduled?: boolean): void {
 		let timer = startTime - Date.now();
 		if (timer <= 0) timer = this.delayedScheduledTournamentTime;
 		if (room.id in this.tournamentTimers) clearTimeout(this.tournamentTimers[room.id]);
@@ -374,7 +375,7 @@ export class Tournaments {
 		return html;
 	}
 
-	showUserHostedTournamentApprovals(room: Room) {
+	showUserHostedTournamentApprovals(room: Room): void {
 		let rank = USER_HOSTED_TOURNAMENT_RANK;
 		if (Config.userHostedTournamentRanks && room.id in Config.userHostedTournamentRanks) rank = Config.userHostedTournamentRanks[room.id].review;
 		if (!Object.keys(room.newUserHostedTournaments!).length) {

@@ -116,7 +116,7 @@ for (const letter in EVASION_DETECTION_SUBSTITUTIONS) {
 	EVASION_DETECTION_SUB_STRINGS[letter] = `[${EVASION_DETECTION_SUBSTITUTIONS[letter].join('')}]`;
 }
 
-function constructEvasionRegex(str: string) {
+function constructEvasionRegex(str: string): RegExp {
 	const buf = "\\b" +
 		str.split('').map(letter => (EVASION_DETECTION_SUB_STRINGS[letter] || letter) + '+').join('\\.?') +
 		"\\b";
@@ -158,7 +158,7 @@ export class Client {
 		this.parseServerGroups(DEFAULT_SERVER_GROUPS);
 	}
 
-	onReload(previous: Partial<Client>) {
+	onReload(previous: Partial<Client>): void {
 		if (previous.botGreetingCooldowns) this.botGreetingCooldowns = previous.botGreetingCooldowns;
 		if (previous.challstr) this.challstr = previous.challstr;
 		if (previous.client) this.client = previous.client;
@@ -175,7 +175,7 @@ export class Client {
 		if (previous.serverTimeOffset) this.serverTimeOffset = previous.serverTimeOffset;
 	}
 
-	onConnectFail(error?: Error) {
+	onConnectFail(error?: Error): void {
 		if (this.connectionTimeout) clearTimeout(this.connectionTimeout);
 		console.log('Failed to connect to server ' + this.serverId);
 		if (error) console.log(error.stack);
@@ -185,12 +185,12 @@ export class Client {
 		this.connectionTimeout = setTimeout(() => this.connect(), reconnectTime);
 	}
 
-	onConnectionError(error: Error) {
+	onConnectionError(error: Error): void {
 		console.log('Connection error: ' + error.stack);
 		// 'close' is emitted directly after 'error' so reconnecting is handled in onConnectionClose
 	}
 
-	onConnectionClose(code: number, description: string) {
+	onConnectionClose(code: number, description: string): void {
 		if (this.connectionTimeout) clearTimeout(this.connectionTimeout);
 		if (this.loginTimeout) clearTimeout(this.loginTimeout);
 		console.log('Connection closed: ' + description + ' (' + code + ')');
@@ -198,13 +198,13 @@ export class Client {
 		this.connectionTimeout = setTimeout(() => this.reconnect(), this.reconnectTime);
 	}
 
-	onConnect() {
+	onConnect(): void {
 		if (this.connectionTimeout) clearTimeout(this.connectionTimeout);
 		console.log('Successfully connected');
 		Dex.fetchClientData();
 	}
 
-	connect() {
+	connect(): void {
 		const options = {
 			hostname: Tools.mainServer,
 			path: '/crossdomain.php?' + querystring.stringify({host: this.server, path: ''}),
@@ -243,7 +243,7 @@ export class Client {
 		});
 	}
 
-	reconnect() {
+	reconnect(): void {
 		Rooms.removeAll();
 		Users.removeAll();
 
@@ -252,7 +252,7 @@ export class Client {
 		this.connect();
 	}
 
-	onMessage(websocketMessage: websocket.IMessage) {
+	onMessage(websocketMessage: websocket.IMessage): void {
 		if (websocketMessage.type !== 'utf8' || !websocketMessage.utf8Data) return;
 		const lines = websocketMessage.utf8Data.split("\n");
 		let room: Room;
@@ -296,7 +296,7 @@ export class Client {
 		}
 	}
 
-	parseMessage(room: Room, rawMessage: string) {
+	parseMessage(room: Room, rawMessage: string): void {
 		let message: string;
 		let messageType: keyof IClientMessageTypes;
 		if (rawMessage.charAt(0) !== "|") {
@@ -676,6 +676,7 @@ export class Client {
 			} else if (!isHtml && !isUthml && messageArguments.rank !== this.groupSymbols.locked) {
 				CommandParser.parse(user, user, messageArguments.message);
 			}
+			break;
 		}
 
 		case '': {
@@ -872,7 +873,7 @@ export class Client {
 
 						if (!queuedTournament) {
 							if (Config.randomTournamentTimers && room.id in Config.randomTournamentTimers && Tournaments.canSetRandomTournament(room)) {
-								Tournaments.setRandomTournamentTimer(room, Config.randomTournamentTimers![room.id]);
+								Tournaments.setRandomTournamentTimer(room, Config.randomTournamentTimers[room.id]);
 							} else if (room.id in Tournaments.scheduledTournaments) {
 								Tournaments.setScheduledTournamentTimer(room);
 							}
@@ -988,7 +989,7 @@ export class Client {
 		}
 	}
 
-	parseChatMessage(room: Room, user: User, message: string) {
+	parseChatMessage(room: Room, user: User, message: string): void {
 		CommandParser.parse(room, user, message);
 		const lowerCaseMessage = message.toLowerCase();
 
@@ -1076,7 +1077,7 @@ export class Client {
 		if (room.game && room.game.parseChatMessage) room.game.parseChatMessage(user, message);
 	}
 
-	parseServerGroups(groups: ServerGroupData[]) {
+	parseServerGroups(groups: ServerGroupData[]): void {
 		this.serverGroups = {};
 		// Bot is below Driver on the user list but above Moderator in terms of permissions
 		let botIndex = -1;
@@ -1099,7 +1100,7 @@ export class Client {
 			if (groups[i].name === 'Bot') this.groupSymbols.bot = groups[i].symbol;
 			if (groups[i].type === 'leadership' || groups[i].type === 'staff') {
 				if (groups[i].name === 'Room Owner' || groups[i].name === 'Moderator' || groups[i].name === 'Driver') {
-					this.groupSymbols[Tools.toId(groups[i].name!)] = groups[i].symbol;
+					this.groupSymbols[Tools.toId(groups[i].name as string)] = groups[i].symbol;
 				}
 			} else if (groups[i].type === 'normal' && groups[i].name === 'Voice') {
 				this.groupSymbols.voice = groups[i].symbol;
@@ -1115,12 +1116,12 @@ export class Client {
 	}
 
 	willBeFiltered(message: string, room?: Room): boolean {
-		let lowerCase = message.replace(/\u039d/g, 'N').toLowerCase().replace(/[\u200b\u007F\u00AD\uDB40\uDC00\uDC21]/g, '').replace(/\u03bf/g, 'o').replace(/\u043e/g, 'o').replace(/\u0430/g, 'a').replace(/\u0435/g, 'e').replace(/\u039d/g, 'e');
+		let lowerCase = message.replace(/\u039d/g, 'N').toLowerCase().replace(/[\u200b\u007F\u00AD\uDB40\uDC00\uDC21]/gu, '').replace(/\u03bf/g, 'o').replace(/\u043e/g, 'o').replace(/\u0430/g, 'a').replace(/\u0435/g, 'e').replace(/\u039d/g, 'e');
 		lowerCase = lowerCase.replace(/__|\*\*|``|\[\[|\]\]/g, '');
 
 		if (this.filterRegularExpressions) {
 			for (let i = 0; i < this.filterRegularExpressions.length; i++) {
-				if (!!lowerCase.match(this.filterRegularExpressions[i])) return true;
+				if (lowerCase.match(this.filterRegularExpressions[i])) return true;
 			}
 		}
 
@@ -1128,13 +1129,13 @@ export class Client {
 			let evasionLowerCase = lowerCase.normalize('NFKC');
 			evasionLowerCase = evasionLowerCase.replace(/[\s-_,.]+/g, '.');
 			for (let i = 0; i < this.evasionFilterRegularExpressions.length; i++) {
-				if (!!evasionLowerCase.match(this.evasionFilterRegularExpressions[i])) return true;
+				if (evasionLowerCase.match(this.evasionFilterRegularExpressions[i])) return true;
 			}
 		}
 
 		if (room && room.bannedWords) {
 			if (!room.bannedWordsRegex) room.bannedWordsRegex = new RegExp('(?:\\b|(?!\\w))(?:' + room.bannedWords.join('|') + ')(?:\\b|\\B(?!\\w))', 'i');
-			if (!!message.match(room.bannedWordsRegex)) return true;
+			if (message.match(room.bannedWordsRegex)) return true;
 		}
 
 		return false;
@@ -1152,7 +1153,7 @@ export class Client {
 		return html;
 	}
 
-	send(message: string) {
+	send(message: string): void {
 		if (!message) return;
 		if (!this.connection || !this.connection.connected || this.sendTimeout) {
 			this.sendQueue.push(message);
@@ -1162,18 +1163,20 @@ export class Client {
 		this.sendTimeout = setTimeout(() => {
 			this.sendTimeout = null;
 			if (!this.sendQueue.length) return;
-			this.send(this.sendQueue.shift()!);
+			const message = this.sendQueue[0];
+			this.sendQueue.shift();
+			this.send(message);
 		}, SEND_THROTTLE);
 	}
 
-	login() {
+	login(): void {
 		const action = url.parse('https://' + Tools.mainServer + '/~~' + this.serverId + '/action.php');
 		if (!action.hostname || !action.pathname) {
 			console.log("Failed to parse login URL");
 			process.exit();
 		}
 
-		const options: {hostname: string | undefined, path: string | undefined, agent: boolean, method: string, headers?: Dict<string | number>} = {
+		const options: {hostname: string | undefined; path: string | undefined; agent: boolean; method: string; headers?: Dict<string | number>} = {
 			hostname: action.hostname,
 			path: action.pathname,
 			agent: false,

@@ -3,7 +3,7 @@ import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Slowking's Trivia";
-const data: {"Pokemon Abilities": Dict<string[]>, "Pokemon Items": Dict<string[]>, "Pokemon Moves": Dict<string[]>} = {
+const data: {"Pokemon Abilities": Dict<string[]>; "Pokemon Items": Dict<string[]>; "Pokemon Moves": Dict<string[]>} = {
 	"Pokemon Abilities": {},
 	"Pokemon Items": {},
 	"Pokemon Moves": {},
@@ -23,7 +23,7 @@ const achievements: AchievementsDict = {
 };
 
 class SlowkingsTrivia extends Guessing {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -64,7 +64,7 @@ class SlowkingsTrivia extends Guessing {
 	allAnswersAchievement = achievements.knowitall;
 	allAnswersTeamAchievement = achievements.captainknowitall;
 
-	async setAnswers() {
+	async setAnswers(): Promise<void> {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		const description = this.sampleOne(categoryKeys[category]);
 		this.answers = data[category][description];

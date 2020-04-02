@@ -2,10 +2,10 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, GameCommandReturnType } from "../types/games";
 
 const name = "Serperior's Lengthy Chains";
-const data: {parameters: Dict<string[]>, parameterKeys: string[]} = {
+const data: {parameters: Dict<string[]>; parameterKeys: string[]} = {
 	parameters: {},
 	parameterKeys: [],
 };
@@ -13,7 +13,7 @@ const data: {parameters: Dict<string[]>, parameterKeys: string[]} = {
 let loadedData = false;
 
 class SerperiorLengthyChains extends Game {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -69,11 +69,11 @@ class SerperiorLengthyChains extends Game {
 	points = new Map<Player, number>();
 	timeout: NodeJS.Timer | null = null;
 
-	onSignups() {
+	onSignups(): void {
 		this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		this.bestChain = [];
 		this.bestPlayer = null;
 		this.category = this.sampleOne(data.parameterKeys);
@@ -81,7 +81,7 @@ class SerperiorLengthyChains extends Game {
 		this.timeout = setTimeout(() => this.checkBestChain(), 15 * 1000);
 	}
 
-	checkBestChain() {
+	checkBestChain(): void {
 		this.category = '';
 		if (!this.bestPlayer) {
 			this.say("No one gave a valid chain!");
@@ -122,7 +122,7 @@ class SerperiorLengthyChains extends Game {
 
 const commands: Dict<ICommandDefinition<SerperiorLengthyChains>> = {
 	guess: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.category) return false;
 			const guess = Tools.toId(target);
 			if (!guess) return false;

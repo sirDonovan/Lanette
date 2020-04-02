@@ -2,6 +2,7 @@ import path = require('path');
 import { PRNGSeed } from '../prng';
 import { WorkerBase } from './worker-base';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 interface IParametersIdKeys {
 	search: any;
 	intersect: any;
@@ -21,6 +22,7 @@ export interface IParamTypeKeys {
 	weakness: any;
 }
 export type ParamType = keyof IParamTypeKeys;
+/* eslint-enable */
 
 export interface IParam {
 	type: string;
@@ -57,7 +59,7 @@ export interface IParametersSearchOptions {
 	readonly filter?: string[];
 }
 
-// tslint:disable-next-line:no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IParametersSearchMessage extends IParametersSearchOptions {}
 
 export interface IParametersIntersectOptions {
@@ -67,7 +69,7 @@ export interface IParametersIntersectOptions {
 	readonly searchType: keyof IParametersWorkerData;
 }
 
-// tslint:disable-next-line:no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IParametersIntersectMessage extends IParametersIntersectOptions {}
 
 export class ParametersWorker extends WorkerBase<IParametersWorkerData, ParametersId, IParametersResponse> {

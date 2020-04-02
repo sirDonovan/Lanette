@@ -3,7 +3,7 @@ import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Magneton's Mashups";
-const data: {'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[], 'Pokemon': string[]} = {
+const data: {'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]; 'Pokemon': string[]} = {
 	'Pokemon Abilities': [],
 	'Pokemon Items': [],
 	'Pokemon Moves': [],
@@ -14,7 +14,7 @@ const categories = Object.keys(data) as DataKey[];
 let loadedData = false;
 
 class MagnetonsMashups extends Guessing {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -53,7 +53,7 @@ class MagnetonsMashups extends Guessing {
 		return match;
 	}
 
-	async setAnswers() {
+	async setAnswers(): Promise<void> {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		const answer = this.sampleMany(data[category], 2);
 		let indexA = 0;

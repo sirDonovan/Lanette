@@ -1,7 +1,7 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
-import { IGameFile, AchievementsDict } from "../types/games";
+import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
 
 const achievements: AchievementsDict = {
 	'quickdraw': {name: 'Quick Draw', type: 'first', bits: 1000, description: "be the first to successfully fire each round"},
@@ -10,22 +10,22 @@ const achievements: AchievementsDict = {
 class OctillerysAmbush extends Game {
 	fireTime: boolean = false;
 	firstFire: Player | false | undefined;
-	queue: {source: Player, target: Player}[] = [];
+	queue: {source: Player; target: Player}[] = [];
 	roundActions = new Map<Player, boolean>();
 	shields = new Map<Player, boolean>();
 
-	onStart() {
+	onStart(): void {
 		this.say("Prepare your Remoraid!");
 		this.nextRound();
 	}
 
-	onRenamePlayer(player: Player, oldId: string) {
+	onRenamePlayer(player: Player, oldId: string): void {
 		if (!this.started || player.eliminated) return;
 		this.removePlayer(player.name, true);
 		this.say(player.name + " was DQed for changing names!");
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		this.fireTime = false;
 		if (this.round > 1) {
 			this.shields.clear();
@@ -66,7 +66,7 @@ class OctillerysAmbush extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		const winner = this.getFinalPlayer();
 		if (winner) {
 			this.winners.set(winner, 1);
@@ -80,7 +80,7 @@ class OctillerysAmbush extends Game {
 
 const commands: Dict<ICommandDefinition<OctillerysAmbush>> = {
 	fire: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!(user.id in this.players) || this.players[user.id].eliminated) return false;
 			const player = this.players[user.id];
 			if (this.roundActions.has(player)) return false;

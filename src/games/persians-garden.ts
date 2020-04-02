@@ -38,13 +38,13 @@ class PersiansGarden extends MapCurrencyGame {
 		return this.floors.get(player)! - 1;
 	}
 
-	onAchievementSpace(player: Player, floor: MapFloor, space: MapFloorSpace) {
+	onAchievementSpace(player: Player, floor: MapFloor, space: MapFloorSpace): void {
 		delete space.attributes.achievement;
 		player.say("You arrived at (" + space.coordinates + ") and were greeted by a Meowth. It scratched at a hedge and revealed a small coin!");
 		this.unlockAchievement(player, achievements.meowthscoin!);
 	}
 
-	eliminatePlayers() {
+	eliminatePlayers(): void {
 		const remainingPlayerCount = this.getRemainingPlayerCount();
 		if (remainingPlayerCount < 2) return;
 		let playersToEliminate = Math.floor(remainingPlayerCount / 2);
@@ -53,7 +53,7 @@ class PersiansGarden extends MapCurrencyGame {
 		} else if (this.round === 20) {
 			playersToEliminate = remainingPlayerCount - 1;
 		}
-		const coins: {player: Player, coins: number}[] = [];
+		const coins: {player: Player; coins: number}[] = [];
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
@@ -70,12 +70,12 @@ class PersiansGarden extends MapCurrencyGame {
 		this.say("The player" + (playersToEliminate > 1 ? "s" : "") + " with the least amount of " + this.currency + " " + (playersToEliminate > 1 ? "were" : "was") + " **" + names.join(", ") + "**!");
 	}
 
-	onMaxRound() {
+	onMaxRound(): void {
 		this.say("Persian fled the garden and gave the remaining players a chance to escape!");
 		this.canMove = false;
 	}
 
-	onEnd() {
+	onEnd(): void {
 		const unlockedPayDay: Player[] = [];
 
 		for (const i in this.players) {

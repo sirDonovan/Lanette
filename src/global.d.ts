@@ -9,6 +9,7 @@ import { Tools } from './tools';
 import { Tournaments } from './tournaments';
 import { Users } from './users';
 
+/* eslint-disable no-redeclare, no-undef */
 declare global {
 	const BaseCommands: CommandsDict;
 	const Client: Client;
@@ -25,3 +26,4 @@ declare global {
 	const Tournaments: Tournaments;
 	const Users: Users;
 }
+/* eslint-enable */

@@ -3,7 +3,7 @@ import { IGameFile, IGameAchievement, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Metang's Anagrams";
-const data: {'Characters': string[], 'Locations': string[], 'Pokemon': string[], 'Pokemon Abilities': string[], 'Pokemon Items': string[], 'Pokemon Moves': string[]} = {
+const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]} = {
 	"Characters": [],
 	"Locations": [],
 	"Pokemon": [],
@@ -21,7 +21,7 @@ const achievements: AchievementsDict = {
 };
 
 class MetangsAnagrams extends Guessing {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -39,7 +39,7 @@ class MetangsAnagrams extends Guessing {
 	allAnswersTeamAchievement = achievements.captainwordmaster;
 	lastAnswer: string = '';
 
-	async setAnswers() {
+	async setAnswers(): Promise<void> {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		let answer = this.sampleOne(data[category]);
 		while (answer === this.lastAnswer) {

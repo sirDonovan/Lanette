@@ -5,7 +5,9 @@ import { IPastGame } from '../../types/storage';
 import { assert, assertClientSendQueue, assertStrictEqual } from '../test-tools';
 import { fail } from 'assert';
 
-function testMascots(format: IGameFormat | IUserHostedFormat) {
+const room = Rooms.get('mocha')!;
+
+function testMascots(format: IGameFormat | IUserHostedFormat): void {
 	if (format.mascot) {
 		assert(Dex.getPokemon(format.mascot), format.name);
 	} else if (format.mascots) {
@@ -22,7 +24,7 @@ function createIndividualTestGame(format: IGameFormat): Game {
 	return game;
 }
 
-function createIndividualTests(format: IGameFormat, tests: GameFileTests) {
+function createIndividualTests(format: IGameFormat, tests: GameFileTests): void {
 	for (const test in tests) {
 		const testData = tests[test];
 		const testConfig = testData.config || {};
@@ -64,7 +66,6 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests) {
 	}
 }
 
-const room = Rooms.get('mocha')!;
 for (const i in Games.formats) {
 	if (Games.formats[i].tests) {
 		const format = Games.getExistingFormat(i);
@@ -137,7 +138,6 @@ describe("Games", () => {
 		this.timeout(30000);
 		for (const i in Games.formats) {
 			try {
-				// tslint:disable-next-line prefer-const
 				let initialSeed: PRNGSeed | undefined;
 				Games.createGame(room, Games.getExistingFormat(i), room, false, initialSeed);
 			} catch (e) {
@@ -163,7 +163,6 @@ describe("Games", () => {
 			for (let i = 0; i < formatsByMode[mode].length; i++) {
 				const format = Games.getExistingFormat(formatsByMode[mode][i] + "," + mode);
 				try {
-					// tslint:disable-next-line prefer-const
 					let initialSeed: PRNGSeed | undefined;
 					Games.createGame(room, format, room, false, initialSeed);
 				} catch (e) {

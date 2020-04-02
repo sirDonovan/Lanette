@@ -71,7 +71,7 @@ export abstract class Card extends Game {
 		return this.usesMoves;
 	}
 
-	createDeckPool() {
+	createDeckPool(): void {
 		this.deckPool = [];
 		const pokemonList = Games.getPokemonCopyList(pokemon => {
 			if (pokemon.forme || pokemon.id in this.actionCards || !Dex.hasGifData(pokemon) || (this.filterPoolItem && this.filterPoolItem(pokemon))) return false;
@@ -85,7 +85,7 @@ export abstract class Card extends Game {
 		}
 	}
 
-	onAddPlayer(player: Player, lateJoin?: boolean) {
+	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
 		if (lateJoin) {
 			const cards = this.dealHand(player);
 			this.playerCards.set(player, cards);
@@ -271,6 +271,7 @@ export abstract class Card extends Game {
 		return player;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	getPlayerCards(players?: Dict<Player> | Player[] | Map<Player, any>): string {
 		return this.getPlayerAttributes(player => {
 			const cards = this.playerCards.get(player);
@@ -278,7 +279,7 @@ export abstract class Card extends Game {
 		}, players).join(', ');
 	}
 
-	timeEnd() {
+	timeEnd(): void {
 		this.timeEnded = true;
 		this.say("Time is up!");
 		const winners = new Map();
@@ -302,7 +303,7 @@ export abstract class Card extends Game {
 		this.end();
 	}
 
-	onEnd() {
+	onEnd(): void {
 		for (const i in this.players) {
 			if (this.players[i].eliminated || !this.players[i].frozen) continue;
 			const player = this.players[i];

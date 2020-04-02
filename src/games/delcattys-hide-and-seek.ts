@@ -3,18 +3,18 @@ import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
 import { addPlayers, assert, runCommand } from "../test/test-tools";
-import { GameFileTests, IGameFile } from "../types/games";
+import { GameFileTests, IGameFile, GameCommandReturnType } from "../types/games";
 import { IPokemon } from "../types/in-game-data-types";
 
 const name = "Delcatty's Hide and Seek";
-const data: {'parameters': Dict<string[]>, 'pokemon': string[]} = {
+const data: {'parameters': Dict<string[]>; 'pokemon': string[]} = {
 	"parameters": {},
 	"pokemon": [],
 };
 let loadedData = false;
 
 class DelcattysHideAndSeek extends Game {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -70,18 +70,18 @@ class DelcattysHideAndSeek extends Game {
 
 	charmer!: Player;
 
-	onRemovePlayer(player: Player) {
+	onRemovePlayer(player: Player): void {
 		if (player === this.charmer) {
 			this.offCommands(['select']);
 			this.nextRound();
 		}
 	}
 
-	onStart() {
+	onStart(): void {
 		this.nextRound();
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		this.canSelect = false;
 
 		const remainingPlayerCount = this.getRemainingPlayerCount();
@@ -109,7 +109,7 @@ class DelcattysHideAndSeek extends Game {
 		this.say(text);
 	}
 
-	selectCharmedPokemon() {
+	selectCharmedPokemon(): void {
 		if (this.timeout) clearTimeout(this.timeout);
 
 		this.canSelect = false;
@@ -139,11 +139,11 @@ class DelcattysHideAndSeek extends Game {
 		this.say(text);
 	}
 
-	pokemonFitsParameters(pokemon: IPokemon) {
+	pokemonFitsParameters(pokemon: IPokemon): boolean {
 		return data.parameters[this.categories.join(', ')].includes(Tools.toId(pokemon.species));
 	}
 
-	onEnd() {
+	onEnd(): void {
 		const winner = this.getFinalPlayer();
 		if (winner) {
 			this.winners.set(winner, 1);
@@ -155,7 +155,7 @@ class DelcattysHideAndSeek extends Game {
 
 const commands: Dict<ICommandDefinition<DelcattysHideAndSeek>> = {
 	charm: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			const player = this.players[user.id];
 			if (player !== this.charmer || !this.canCharm) return false;
 			target = Tools.toId(target);
@@ -197,7 +197,7 @@ const commands: Dict<ICommandDefinition<DelcattysHideAndSeek>> = {
 		chatOnly: true,
 	},
 	select: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			const player = this.players[user.id];
 			if (!this.canSelect || !player || player.eliminated) return false;
 			if (player === this.charmer) {
@@ -232,7 +232,7 @@ const commands: Dict<ICommandDefinition<DelcattysHideAndSeek>> = {
 
 const tests: GameFileTests<DelcattysHideAndSeek> = {
 	'should have parameters for all possible numbers of remaining players': {
-		test(game, format) {
+		test(game, format): void {
 			// 1 extra Pokemon can be added in onNextRound()
 			const maxPlayers = game.maxPlayers + 1;
 			const parameterKeys = Object.keys(data.parameters);
@@ -249,7 +249,7 @@ const tests: GameFileTests<DelcattysHideAndSeek> = {
 		},
 	},
 	'should eliminate players who are charmed': {
-		test(game, format) {
+		test(game, format): void {
 			const players = addPlayers(game, 2);
 			game.minPlayers = 2;
 			game.start();
@@ -267,7 +267,7 @@ const tests: GameFileTests<DelcattysHideAndSeek> = {
 		},
 	},
 	'should eliminate the charmer if they fail to charm any players': {
-		test(game, format) {
+		test(game, format): void {
 			const players = addPlayers(game, 2);
 			game.minPlayers = 2;
 			game.start();

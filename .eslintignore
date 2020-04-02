@@ -1,0 +1,8 @@
+/archived-databases/**
+/built/**
+/data/**
+/databases/**
+/node_modules/**
+/pokemon-showdown/**
+/roomlogs/**
+/src/config.ts

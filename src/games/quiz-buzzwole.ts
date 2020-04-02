@@ -2,19 +2,19 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, GameCommandReturnType } from "../types/games";
 
 type ExpectedMultiple = 'firstMultiple' | 'secondMultiple' | 'both' | number;
 
 const name = "Quiz Buzzwole";
-const data: {"categories": string[], "categoryPools": Dict<string[]>} = {
+const data: {"categories": string[]; "categoryPools": Dict<string[]>} = {
 	"categories": ['Plate', 'Mega Stone', 'Berry', 'contact move', 'sound move'],
 	"categoryPools": {},
 };
 let loadedData = false;
 
 class QuizBuzzwole extends Game {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -67,15 +67,15 @@ class QuizBuzzwole extends Game {
 	firstMultiple: number = 0;
 	secondMultiple: number = 0;
 	expectedMultiple: ExpectedMultiple = 0;
-	roundCategories: {'firstMultiple': string, 'secondMultiple': string} = {firstMultiple: '', secondMultiple: ''};
-	expectedMultiples: {'firstMultiple': string[], 'secondMultiple': string[]} = {firstMultiple: [], secondMultiple: []};
+	roundCategories: {'firstMultiple': string; 'secondMultiple': string} = {firstMultiple: '', secondMultiple: ''};
+	expectedMultiples: {'firstMultiple': string[]; 'secondMultiple': string[]} = {firstMultiple: [], secondMultiple: []};
 
-	onStart() {
+	onStart(): void {
 		this.playerOrder = this.shufflePlayers();
 		this.resetCount();
 	}
 
-	resetCount() {
+	resetCount(): void {
 		this.currentNumber = 0;
 		let firstMultiple = 2;
 		let secondMultiple = 2;
@@ -116,7 +116,7 @@ class QuizBuzzwole extends Game {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		if (this.currentPlayer) {
 			this.currentPlayer.eliminated = true;
 			this.currentPlayer = null;
@@ -162,7 +162,7 @@ class QuizBuzzwole extends Game {
 		this.say(text);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		for (const i in this.players) {
 			if (!this.players[i].eliminated) this.winners.set(this.players[i], 1);
 		}
@@ -177,7 +177,7 @@ class QuizBuzzwole extends Game {
 
 const commands: Dict<ICommandDefinition<QuizBuzzwole>> = {
 	guess: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.currentPlayer || this.players[user.id] !== this.currentPlayer) return false;
 			if (this.timeout) clearTimeout(this.timeout);
 			const guess = Tools.toId(target);

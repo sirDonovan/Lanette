@@ -119,7 +119,7 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 		super(room);
 
 		this.baseActionCards = [
-			function(player) {
+			function(player): void {
 				const location = this.getSpaceLocation(this.spaces.ultraspace)!;
 				this.playerLocations.set(player, location);
 				const text = "They go through a strange portal and end up in " + this.spaces.ultraspace.name + "!";
@@ -128,7 +128,7 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 				});
 				this.say(text);
 			},
-			function(player) {
+			function(player): void {
 				const location = this.getSpaceLocation(this.spaces.castelia)!;
 				this.playerLocations.set(player, location);
 				const text = "They travel to **" + this.spaces.castelia.name + "** to get a Casteliacone!";
@@ -137,7 +137,7 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 				});
 				this.say(text);
 			},
-			function(player) {
+			function(player): void {
 				let text = "A Delibird appeared and used Present!";
 				if (this.random(2)) {
 					text += " It didn't have any " + this.currencyPluralName + " to give!";
@@ -154,7 +154,7 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 		];
 	}
 
-	onStart() {
+	onStart(): void {
 		super.onStart();
 
 		for (let i = 0; i < this.playerOrder.length; i++) {
@@ -164,7 +164,7 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 		}
 	}
 
-	getActionCards() {
+	getActionCards(): BoardActionCard<BoardPropertyGame>[] {
 		// @ts-ignore
 		return this.sharedActionCards.concat(this.baseActionCards);
 	}
@@ -174,7 +174,7 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 		return "<b>Keys</b>: " + this.playerCurrency.get(player) + "<br /><b>Properties</b>: " + (properties.length ? properties.map(prop => prop.name + " (" + prop.color + ")").join(", ") : "(none)");
 	}
 
-	onOwnedPropertySpace(space: BoardPropertyEliminationSpace, player: Player) {
+	onOwnedPropertySpace(space: BoardPropertyEliminationSpace, player: Player): void {
 		const ownerProperties = this.properties.get(space.owner!) || [];
 		let eliminationChance = 0;
 		for (let i = 0; i < ownerProperties.length; i++) {
@@ -190,15 +190,15 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 		this.say(text);
 	}
 
-	onAcquirePropertySpace(property: BoardPropertyEliminationSpace, player: Player, amount: number) {
+	onAcquirePropertySpace(property: BoardPropertyEliminationSpace, player: Player, amount: number): void {
 		this.playerCurrency.set(player, this.playerCurrency.get(player)! - amount);
 	}
 
-	onPassOnPropertySpace(player: Player) {
+	onPassOnPropertySpace(player: Player): void {
 		this.beforeNextRound();
 	}
 
-	onInsufficientCurrencyToAcquire(property: BoardPropertyEliminationSpace, player: Player) {
+	onInsufficientCurrencyToAcquire(property: BoardPropertyEliminationSpace, player: Player): void {
 		const text = "They do not have enough " + this.currencyPluralName + " so **" + property.name + "** will remain locked!";
 		this.on(text, () => {
 			this.timeout = setTimeout(() => this.beforeNextRound(), this.roundTime);
@@ -206,7 +206,7 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 		this.say(text);
 	}
 
-	checkEliminationChanceOnProperty(player: Player, space: BoardPropertyEliminationSpace, eliminationChance: number) {
+	checkEliminationChanceOnProperty(player: Player, space: BoardPropertyEliminationSpace, eliminationChance: number): void {
 		this.checkEliminationChance(player, eliminationChance, space.owner!);
 	}
 }

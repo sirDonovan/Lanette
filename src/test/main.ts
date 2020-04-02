@@ -20,8 +20,8 @@ if (!fs.existsSync(pokedexMiniBWFile)) {
 	fs.writeFileSync(pokedexMiniBWFile, fs.readFileSync(path.join(rootFolder, 'data', 'pokedex-mini-bw-base.js')));
 }
 
-// tslint:disable-next-line no-empty
-const noOp = () => {};
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+const noOp = (): void => {};
 const methodsToNoOp = ['appendFile', 'chmod', 'rename', 'rmdir', 'symlink', 'unlink', 'watchFile', 'writeFile'];
 for (let i = 0; i < methodsToNoOp.length; i++) {
 	// @ts-ignore
@@ -35,11 +35,9 @@ Object.assign(fs, {createWriteStream() {
 }});
 
 try {
-	// tslint:disable-next-line no-var-requires
 	require(path.join(rootFolder, 'built', 'app.js'));
 	clearInterval(Storage.globalDatabaseExportInterval);
 
-	// tslint:disable-next-line no-var-requires
 	require(path.join(__dirname, 'pokemon-showdown'));
 
 	const mochaRoom = Rooms.add('mocha');
@@ -53,7 +51,6 @@ try {
 	}
 
 	for (let i = 0; i < moduleTests.length; i++) {
-		// tslint:disable-next-line no-var-requires
 		require(path.join(modulesDir, moduleTests[i]));
 	}
 } catch (e) {

@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/camelcase
 import worker_threads = require('worker_threads');
 
 import { PRNG, PRNGSeed } from '../../prng';
@@ -5,6 +6,7 @@ import * as tools from '../../tools';
 import { IParam, IParametersIntersectMessage, IParametersIntersectOptions, IParametersResponse, IParametersSearchMessage, IParametersSearchOptions, IParametersWorkerData, IParamTypeKeys, ParametersId, ParamType } from '../parameters';
 
 const Tools = new tools.Tools();
+// eslint-disable-next-line @typescript-eslint/camelcase
 const data = worker_threads.workerData as DeepReadonly<IParametersWorkerData>;
 const paramTypeDexesKeys: Dict<Dict<KeyedDict<IParamTypeKeys, readonly string[]>>> = {};
 const searchTypes: (keyof typeof data)[] = ['pokemon'];
@@ -29,6 +31,23 @@ for (let i = 0; i < searchTypes.length; i++) {
 			paramTypeDexesKeys[searchType][gen][keys[i]] = Object.keys(data[searchType].gens[gen].paramTypeDexes[keys[i]]);
 		}
 	}
+}
+
+function intersect(options: IParametersIntersectOptions): string[] {
+	let intersection = Tools.intersectParams(options.params, data[options.searchType].gens[options.mod].paramTypeDexes);
+
+	if (options.searchType === 'pokemon') {
+		const filtered: string[] = [];
+		for (let i = 0; i < intersection.length; i++) {
+			const id = Tools.toId(intersection[i]);
+			const isAlola = data.pokemon.gens[options.mod].formes[id] === 'Alola' && intersection[i] !== "Pikachu-Alola";
+			if (!isAlola && id in data.pokemon.gens[options.mod].otherFormes && intersection.includes(data.pokemon.gens[options.mod].otherFormes[id])) continue;
+			filtered.push(id);
+		}
+
+		intersection = filtered;
+	}
+	return intersection.sort();
 }
 
 function search(options: IParametersSearchOptions, prng: PRNG): IParametersResponse {
@@ -144,23 +163,7 @@ function search(options: IParametersSearchOptions, prng: PRNG): IParametersRespo
 	return {params, pokemon, prngSeed: prng.seed.slice() as PRNGSeed};
 }
 
-function intersect(options: IParametersIntersectOptions): string[] {
-	let intersection = Tools.intersectParams(options.params, data[options.searchType].gens[options.mod].paramTypeDexes);
-
-	if (options.searchType === 'pokemon') {
-		const filtered: string[] = [];
-		for (let i = 0; i < intersection.length; i++) {
-			const id = Tools.toId(intersection[i]);
-			const isAlola = data.pokemon.gens[options.mod].formes[id] === 'Alola' && intersection[i] !== "Pikachu-Alola";
-			if (!isAlola && id in data.pokemon.gens[options.mod].otherFormes && intersection.includes(data.pokemon.gens[options.mod].otherFormes[id])) continue;
-			filtered.push(id);
-		}
-
-		intersection = filtered;
-	}
-	return intersection.sort();
-}
-
+// eslint-disable-next-line @typescript-eslint/camelcase
 worker_threads.parentPort!.on('message', incommingMessage => {
 	const parts = incommingMessage.split("|");
 	const messageNumber = parts[0];
@@ -176,5 +179,6 @@ worker_threads.parentPort!.on('message', incommingMessage => {
 		response = {params: options.params, pokemon: intersect(options)};
 	}
 
+	// eslint-disable-next-line @typescript-eslint/camelcase
 	worker_threads.parentPort!.postMessage(messageNumber + "|" + id + "|" + JSON.stringify(response!));
 });

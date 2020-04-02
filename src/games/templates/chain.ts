@@ -1,7 +1,7 @@
 import { ICommandDefinition } from "../../command-parser";
 import { Player } from "../../room-activity";
 import { Game } from "../../room-game";
-import { IGameTemplateFile } from "../../types/games";
+import { IGameTemplateFile, GameCommandReturnType } from "../../types/games";
 import { IAbility, IItem, IMove, IPokemon } from "../../types/in-game-data-types";
 
 export type Link = IPokemon | IMove | IItem | IAbility;
@@ -43,7 +43,7 @@ export abstract class Chain extends Game {
 		return [end];
 	}
 
-	onSignups() {
+	onSignups(): void {
 		const pool: Dict<Link> = {};
 		const keys: string[] = [];
 		if (this.variant) {
@@ -121,7 +121,7 @@ export abstract class Chain extends Game {
 		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
 	}
 
-	onStart() {
+	onStart(): void {
 		this.nextRound();
 	}
 
@@ -143,13 +143,13 @@ export abstract class Chain extends Game {
 		return filtered;
 	}
 
-	resetLinkCounts() {
+	resetLinkCounts(): void {
 		this.roundLinks = {};
 		this.linkStartCounts = {};
 		this.linkEndCounts = {};
 	}
 
-	setLink(input?: string) {
+	setLink(input?: string): void {
 		let id = Tools.toId(input) || this.sampleOne(this.keys);
 		let link = this.pool[id];
 		let linkStarts = this.getLinkStarts(link);
@@ -181,7 +181,7 @@ export abstract class Chain extends Game {
 		this.roundLinks[this.currentLink.id] = true;
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		let text;
 		if (this.format.options.freejoin) {
 			this.resetLinkCounts();
@@ -236,7 +236,7 @@ export abstract class Chain extends Game {
 		this.say(text);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		if (this.format.options.freejoin) return;
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
@@ -248,7 +248,7 @@ export abstract class Chain extends Game {
 		this.announceWinners();
 	}
 
-	markLinkUsed(linkStarts: string[], linkEnds: string[]) {
+	markLinkUsed(linkStarts: string[], linkEnds: string[]): void {
 		for (let i = 0; i < linkStarts.length; i++) {
 			if (!this.linkStarts[linkStarts[i]]) continue;
 			if (!this.linkStartCounts[linkStarts[i]]) this.linkStartCounts[linkStarts[i]] = 0;
@@ -264,7 +264,7 @@ export abstract class Chain extends Game {
 
 const commands: Dict<ICommandDefinition<Chain>> = {
 	guess: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (this.format.options.freejoin) {
 				if ((!this.targetLinkStarts.length && !this.targetLinkEnds.length) || (this.players[user.id] && this.players[user.id].eliminated)) return false;
 			} else {

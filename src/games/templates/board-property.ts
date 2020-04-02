@@ -1,7 +1,7 @@
 import type { ICommandDefinition } from "../../command-parser";
 import { Player } from "../../room-activity";
 import { addPlayers, assertStrictEqual } from "../../test/test-tools";
-import { GameFileTests, IGameTemplateFile, GameCategory, IGameAchievement } from "../../types/games";
+import { GameFileTests, IGameTemplateFile, GameCategory, IGameAchievement, GameCommandReturnType } from "../../types/games";
 import type { HexColor } from "../../types/global-types";
 import { BoardGame, BoardSide, BoardSpace, game as boardGame, IBoard, IMovedBoardLocation, BoardActionCard } from "./board";
 
@@ -68,7 +68,7 @@ export class BoardRentSpace extends BoardSpace {
 export class BoardActionSpace extends BoardSpace {}
 
 const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
-	function(player) {
+	function(player): void {
 		this.playerLocations.set(player, this.getSpaceLocation(this.startingSpace)!);
 		const text = "They hop on the Flying Taxi and advance to " + this.startingSpace.name + "!";
 		this.on(text, () => {
@@ -76,7 +76,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
-	function(player) {
+	function(player): void {
 		const getOutOfJailCards = this.escapeFromJailCards.get(player) || 0;
 		this.escapeFromJailCards.set(player, getOutOfJailCards + 1);
 		const text = "They draw a " + this.escapeFromJailCard + "!";
@@ -85,7 +85,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
-	function(player) {
+	function(player): void {
 		const location = this.playerLocations.get(player)!;
 		const spaces = -1 * (this.random(3) + 1);
 		const locationAfterMovement = this.getLocationAfterMovement(location, spaces);
@@ -97,7 +97,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
-	function(player) {
+	function(player): void {
 		const location = this.playerLocations.get(player)!;
 		let locationAfterMovement = this.getLocationAfterMovement(location, 1);
 		let passedSpaces = locationAfterMovement.passedSpaces.slice();
@@ -129,7 +129,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
-	function(player) {
+	function(player): void {
 		let currency = this.playerCurrency.get(player)!;
 		currency += this.rafflePrize;
 		this.playerCurrency.set(player, currency);
@@ -143,7 +143,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
-	function(player) {
+	function(player): void {
 		const totalSpaces = this.board.leftColumn.length + this.board.topRow.length + this.board.rightColumn.length + this.board.bottomRow.length;
 		const spacesMoved = this.random(totalSpaces - 1) + 1;
 		const location = this.playerLocations.get(player)!;
@@ -156,7 +156,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
-	function(player) {
+	function(player): void {
 		this.playerLocations.set(player, this.getSpaceLocation(this.jailSpace)!);
 		this.playersInJail.push(player);
 		this.turnsInJail.set(player, 0);
@@ -217,7 +217,7 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 	abstract onPassOnPropertySpace(player: Player): void;
 	abstract onInsufficientCurrencyToAcquire(property: BoardPropertySpace, player: Player): void;
 
-	onStart() {
+	onStart(): void {
 		super.onStart();
 
 		this.startingSpace = this.board[this.startingBoardSide][this.startingBoardSideSpace];
@@ -228,7 +228,7 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 		}
 	}
 
-	onAfterDeallocate(forceEnd: boolean) {
+	onAfterDeallocate(forceEnd: boolean): void {
 		const spaceKeys = Object.keys(this.spaces) as (keyof BoardSpaces)[];
 		for (let i = 0; i < spaceKeys.length; i++) {
 			const space = this.spaces[spaceKeys[i]];
@@ -236,7 +236,7 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 		}
 	}
 
-	onRemovePlayer(player: Player) {
+	onRemovePlayer(player: Player): void {
 		if (!this.started) return;
 		const properties = this.properties.get(player)!;
 
@@ -247,7 +247,7 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 		this.properties.set(player, []);
 	}
 
-	onEliminatePlayer(player: Player, eliminationCause?: string | null, eliminator?: Player | null) {
+	onEliminatePlayer(player: Player, eliminationCause?: string | null, eliminator?: Player | null): void {
 		const properties = this.properties.get(player) || [];
 		const eliminatorProperties = eliminator ? this.properties.get(eliminator)! : [];
 		for (let i = 0; i < properties.length; i++) {
@@ -274,8 +274,8 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 		return html;
 	}
 
-	getPlayerSummary(player: Player) {
-		if (!this.started) return "";
+	getPlayerSummary(player: Player): void {
+		if (!this.started) return;
 		let html = '<div class="infobox">';
 		const playerHtml: string[] = ["<b><u>You (" + this.playerLetters.get(player) + ")</u></b><br />" + this.getPlayerPropertiesHtml(player)];
 		for (let i = 0; i < this.playerOrder.length; i++) {
@@ -290,7 +290,7 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 		player.sayUhtml(html, this.uhtmlBaseName + '-summary');
 	}
 
-	beforeNextRound() {
+	beforeNextRound(): void {
 		if (this.currentPlayer && this.currentPlayerReRoll) {
 			this.doubleRolls++;
 			this.rollDice(this.currentPlayer!);
@@ -300,7 +300,7 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 		}
 	}
 
-	onNextPlayer(player: Player) {
+	onNextPlayer(player: Player): void {
 		if (this.playersInJail.includes(player)) {
 			let turnsInJail = this.turnsInJail.get(player) || 0;
 			turnsInJail++;
@@ -383,7 +383,7 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 		return space.rent;
 	}
 
-	onSpaceLanding(player: Player, spacesMoved: number, location: IMovedBoardLocation, teleported?: boolean) {
+	onSpaceLanding(player: Player, spacesMoved: number, location: IMovedBoardLocation, teleported?: boolean): void {
 		const space = this.board[location.side][location.space];
 
 		let rollText: string | undefined;
@@ -473,7 +473,7 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 		this.timeout = setTimeout(() => this.beforeNextRound(), this.roundTime);
 	}
 
-	checkEliminationChance(player: Player, eliminationChance: number, eliminator?: Player) {
+	checkEliminationChance(player: Player, eliminationChance: number, eliminator?: Player): void {
 		const randomNumber = this.random(100) + 1;
 		let text = "The randomly generated number is **" + randomNumber + "**!";
 		if (randomNumber < eliminationChance) {
@@ -492,7 +492,7 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 		this.say(text);
 	}
 
-	checkRentPayment(space: BoardPropertyRentSpace | BoardRentSpace, player: Player, rent: number) {
+	checkRentPayment(space: BoardPropertyRentSpace | BoardRentSpace, player: Player, rent: number): void {
 		const currency = this.playerCurrency.get(player)!;
 		let payment: number;
 		let eliminated = false;
@@ -540,7 +540,7 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 		this.say(text);
 	}
 
-	onMaxCurrency(winner: Player) {
+	onMaxCurrency(winner: Player): void {
 		for (const i in this.players) {
 			if (this.players[i] !== winner) this.players[i].eliminated = true;
 		}
@@ -552,7 +552,7 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 		this.say(text);
 	}
 
-	onActionSpace(player: Player) {
+	onActionSpace(player: Player): void {
 		if (!this.actionCards.length) this.actionCards = this.shuffle(this.getActionCards());
 		const card = this.actionCards[0];
 		this.actionCards.shift();
@@ -560,7 +560,7 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 		card.call(this, player);
 	}
 
-	acquirePropertySpace(property: BoardPropertyEliminationSpace | BoardPropertyRentSpace, player: Player, cost: number) {
+	acquirePropertySpace(property: BoardPropertyEliminationSpace | BoardPropertyRentSpace, player: Player, cost: number): void {
 		const properties = this.properties.get(player)!;
 		property.owner = player;
 		properties.push(property);
@@ -570,14 +570,14 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 		this.onAcquirePropertySpace(property, player, cost);
 	}
 
-	passOnPropertySpace(player: Player) {
+	passOnPropertySpace(player: Player): void {
 		this.canAcquire = false;
 		const text = "They decided not to " + this.acquirePropertyAction + " **" + this.propertyToAcquire!.name + "**!";
 		this.on(text, () => this.onPassOnPropertySpace(player));
 		this.say(text);
 	}
 
-	checkPropertyAchievements(player: Player) {
+	checkPropertyAchievements(player: Player): void {
 		if (this.getRemainingPlayerCount() <= 1) return;
 		if (!this.acquireAllMountainsAchievement && !this.acquireAllPropertiesAchievement) return;
 		let acquiredAllMountains = true;
@@ -601,7 +601,7 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 
 const commands: Dict<ICommandDefinition<BoardPropertyGame>> = {
 	rolldice: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canRoll || !(user.id in this.players) || this.players[user.id] !== this.currentPlayer) return false;
 			if (this.timeout) clearTimeout(this.timeout);
 			this.canRoll = false;
@@ -610,7 +610,7 @@ const commands: Dict<ICommandDefinition<BoardPropertyGame>> = {
 		},
 	},
 	unlock: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.propertyToAcquire || !this.canAcquire || !(user.id in this.players) || this.players[user.id] !== this.currentPlayer) return false;
 			this.acquirePropertySpace(this.propertyToAcquire, this.currentPlayer, this.propertyToAcquire.cost);
 			this.canAcquire = false;
@@ -625,7 +625,7 @@ const commands: Dict<ICommandDefinition<BoardPropertyGame>> = {
 		aliases: ['buy'],
 	},
 	pass: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.propertyToAcquire || !this.canAcquire || !(user.id in this.players) || this.players[user.id] !== this.currentPlayer) return false;
 			this.canAcquire = false;
 			if (this.timeout) clearTimeout(this.timeout);
@@ -634,7 +634,7 @@ const commands: Dict<ICommandDefinition<BoardPropertyGame>> = {
 		},
 	},
 	escape: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canEscape || !(user.id in this.players) || this.players[user.id] !== this.currentPlayer) return false;
 			if (this.timeout) clearTimeout(this.timeout);
 			const player = this.players[user.id];
@@ -660,7 +660,7 @@ const commands: Dict<ICommandDefinition<BoardPropertyGame>> = {
 
 const tests: GameFileTests<BoardPropertyGame> = {
 	'it should clear property owners once the game ends': {
-		test(game, format) {
+		test(game, format): void {
 			const players = addPlayers(game);
 			game.start();
 			for (const i in game.spaces) {

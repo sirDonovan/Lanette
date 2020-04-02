@@ -2,6 +2,7 @@ import { RuleTable } from './dex';
 import { IFormat, IMove, IPokemon } from './types/in-game-data-types';
 
 type Move = IMove;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyObject = Dict<any>;
 type Template = IPokemon;
 type ID = string;
@@ -102,11 +103,13 @@ export class PokemonSources {
 		this.limitedEggMoves = undefined;
 		this.moveEvoCarryCount = 0;
 	}
-	size() {
+
+	size(): number {
 		if (this.sourcesBefore) return Infinity;
 		return this.sources.length;
 	}
-	add(source: PokemonSource, limitedEggMove?: ID | null) {
+
+	add(source: PokemonSource, limitedEggMove?: ID | null): void {
 		if (this.sources[this.sources.length - 1] !== source) this.sources.push(source);
 		if (limitedEggMove && this.limitedEggMoves !== null) {
 			this.limitedEggMoves = [limitedEggMove];
@@ -114,11 +117,13 @@ export class PokemonSources {
 			this.limitedEggMoves = null;
 		}
 	}
-	addGen(sourceGen: number) {
+
+	addGen(sourceGen: number): void {
 		this.sourcesBefore = Math.max(this.sourcesBefore, sourceGen);
 		this.limitedEggMoves = null;
 	}
-	minSourceGen() {
+
+	minSourceGen(): number {
 		if (this.sourcesBefore) return this.sourcesAfter || 1;
 		let min = 10;
 		for (const source of this.sources) {
@@ -128,7 +133,8 @@ export class PokemonSources {
 		if (min === 10) return 0;
 		return min;
 	}
-	maxSourceGen() {
+
+	maxSourceGen(): number {
 		let max = this.sourcesBefore;
 		for (const source of this.sources) {
 			const sourceGen = parseInt(source.charAt(0));
@@ -136,7 +142,8 @@ export class PokemonSources {
 		}
 		return max;
 	}
-	intersectWith(other: PokemonSources) {
+
+	intersectWith(other: PokemonSources): void {
 		if (other.sourcesBefore || this.sourcesBefore) {
 			// having sourcesBefore is the equivalent of having everything before that gen
 			// in sources, so we fill the other array in preparation for intersection
@@ -190,7 +197,7 @@ export class PokemonSources {
 }
 
 export class TeamValidator {
-	static get(format: string | IFormat) {
+	static get(format: string | IFormat): TeamValidator {
 		return new TeamValidator(format);
 	}
 
@@ -210,7 +217,7 @@ export class TeamValidator {
 			this.ruleTable.minSourceGen[0] : 1;
 	}
 
-	allSources(template?: Template) {
+	allSources(template?: Template): PokemonSources {
 		let minSourceGen = this.minSourceGen;
 		if (this.dex.gen >= 3 && minSourceGen < 3) minSourceGen = 3;
 		if (template) minSourceGen = Math.max(minSourceGen, template.gen);
@@ -218,12 +225,8 @@ export class TeamValidator {
 		return new PokemonSources(maxSourceGen, minSourceGen);
 	}
 
-	checkLearnset(
-		move: Move,
-		species: Template,
-		setSources = this.allSources(species),
-		set: AnyObject = {}
-	): {type: string, [key: string]: any} | null {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	checkLearnset(move: Move, species: Template, setSources = this.allSources(species), set: AnyObject = {}): {type: string; [key: string]: any} | null {
 		const dex = this.dex;
 		if (!setSources.size()) throw new Error(`Bad sources passed to checkLearnset`);
 
@@ -473,7 +476,7 @@ export class TeamValidator {
 		return null;
 	}
 
-	learnsetParent(template: Template) {
+	learnsetParent(template: Template): IPokemon | null {
 		if (template.species === 'Lycanroc-Dusk') {
 			return this.dex.getTemplate('Rockruff-Dusk');
 		} else if (template.prevo) {

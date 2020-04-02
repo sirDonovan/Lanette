@@ -10,7 +10,7 @@ const categoryKeys: string[] = [];
 let loadedData = false;
 
 class SudowoodosSpeciesScramble extends Guessing {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -27,11 +27,11 @@ class SudowoodosSpeciesScramble extends Guessing {
 		loadedData = true;
 	}
 
-	onSignups() {
+	onSignups(): void {
 		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
 	}
 
-	async setAnswers() {
+	async setAnswers(): Promise<void> {
 		const category = this.sampleOne(categoryKeys);
 		this.answers = data.categories[category];
 		this.hint = "<b>Sudowoodo imitated</b>: <i>the " + category + " Pokemon</i>";

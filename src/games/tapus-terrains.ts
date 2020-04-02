@@ -2,7 +2,7 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, GameCommandReturnType } from "../types/games";
 import { IPokemon } from "../types/in-game-data-types";
 
 const name = "Tapus' Terrains";
@@ -14,7 +14,7 @@ const terrains = {
 };
 type TerrainKey = keyof typeof terrains;
 const terrainKeys = Object.keys(terrains) as TerrainKey[];
-const data: {pokemon: KeyedDict<typeof terrains, string[]>, unusedPokemon: string[]} = {
+const data: {pokemon: KeyedDict<typeof terrains, string[]>; unusedPokemon: string[]} = {
 	pokemon: {
 		'Molten': [],
 		'Rocky': [],
@@ -27,7 +27,7 @@ const data: {pokemon: KeyedDict<typeof terrains, string[]>, unusedPokemon: strin
 let loadedData = false;
 
 class TapusTerrains extends Game {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
@@ -62,11 +62,11 @@ class TapusTerrains extends Game {
 	targetPokemon: string | null = null;
 	terrainRound: number = 0;
 
-	onStart() {
+	onStart(): void {
 		this.nextRound();
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		this.canJump = false;
 		if (this.round > 1 && this.targetPokemon && this.currentTerrain) {
 			if (!data.pokemon[this.currentTerrain].includes(this.targetPokemon)) {
@@ -141,7 +141,7 @@ class TapusTerrains extends Game {
 		}
 	}
 
-	onEnd() {
+	onEnd(): void {
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
@@ -156,7 +156,7 @@ class TapusTerrains extends Game {
 
 const commands: Dict<ICommandDefinition<TapusTerrains>> = {
 	jump: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!(user.id in this.players) || this.players[user.id].eliminated) return false;
 			const player = this.players[user.id];
 			if (this.roundJumps.has(player)) return false;

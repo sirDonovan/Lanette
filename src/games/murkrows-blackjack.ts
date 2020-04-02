@@ -1,7 +1,7 @@
 import { ICommandDefinition } from "../command-parser";
 import { Player } from '../room-activity';
 import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import { IGameFile, GameCommandReturnType } from "../types/games";
 import { game as playingCardGame, IPlayingCard, PlayingCard } from './templates/playing-card';
 
 class MurkrowsBlackjack extends PlayingCard {
@@ -27,7 +27,7 @@ class MurkrowsBlackjack extends PlayingCard {
 
 	dealersTopCard!: IPlayingCard;
 
-	getHandInfoHtml(player: Player) {
+	getHandInfoHtml(player: Player): string {
 		let info = '';
 		const total = this.playerTotals.get(player)!;
 		if (total > 21) {
@@ -40,15 +40,15 @@ class MurkrowsBlackjack extends PlayingCard {
 		return info;
 	}
 
-	onStart() {
+	onStart(): void {
 		this.nextBlackJackGame();
 	}
 
-	onSignups() {
+	onSignups(): void {
 		this.say("Place your wager for each game now with ``" + Config.commandCharacter + "wager amount``!");
 	}
 
-	startBlackjackGame() {
+	startBlackjackGame(): void {
 		if (this.timeout) clearTimeout(this.timeout);
 		this.canWager = false;
 		this.subGameNumber++;
@@ -87,7 +87,7 @@ class MurkrowsBlackjack extends PlayingCard {
 		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
-	nextBlackJackGame() {
+	nextBlackJackGame(): void {
 		if (this.timeout) clearTimeout(this.timeout);
 		for (const i in this.players) {
 			this.players[i].frozen = false;
@@ -96,7 +96,7 @@ class MurkrowsBlackjack extends PlayingCard {
 		this.startBlackjackGame();
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		this.canHit = false;
 		let playersLeft: number;
 		this.blackjackRound++;
@@ -141,7 +141,7 @@ class MurkrowsBlackjack extends PlayingCard {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	endBlackjackGame() {
+	endBlackjackGame(): void {
 		if (this.timeout) clearTimeout(this.timeout);
 		this.canHit = false;
 		const blackjacks: Player[] = [];
@@ -183,7 +183,7 @@ class MurkrowsBlackjack extends PlayingCard {
 		this.say(text);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		this.winners.forEach((wins, user) => {
 			const wager = this.wagers.get(user);
 			let bits = (wager ? (wager * 2) : 100);
@@ -204,7 +204,7 @@ class MurkrowsBlackjack extends PlayingCard {
 
 const commands: Dict<ICommandDefinition<MurkrowsBlackjack>> = {
 	hit: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canHit || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) return false;
 			const player = this.players[user.id];
 			if (this.roundActions.has(player)) return false;
@@ -233,7 +233,7 @@ const commands: Dict<ICommandDefinition<MurkrowsBlackjack>> = {
 		pmGameCommand: true,
 	},
 	stay: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.started || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) return false;
 			const player = this.players[user.id];
 			if (this.roundActions.has(player)) return false;
@@ -249,7 +249,7 @@ const commands: Dict<ICommandDefinition<MurkrowsBlackjack>> = {
 		pmGameCommand: true,
 	},
 	wager: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!(user.id in this.players)) return false;
 			if (!this.canWager) {
 				user.say("You must place your wager before the game starts.");

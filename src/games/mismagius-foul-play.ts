@@ -2,10 +2,10 @@ import { ICommandDefinition } from "../command-parser";
 import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
-import { IGameFile, AchievementsDict } from "../types/games";
+import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
 
 const name = "Mismagius' Foul Play";
-const data: {colors: Dict<string[]>, eggGroups: Dict<string[]>, moves: Dict<string[]>, pokemon: string[], types: Dict<string[]>} = {
+const data: {colors: Dict<string[]>; eggGroups: Dict<string[]>; moves: Dict<string[]>; pokemon: string[]; types: Dict<string[]>} = {
 	colors: {},
 	eggGroups: {},
 	moves: {},
@@ -13,7 +13,7 @@ const data: {colors: Dict<string[]>, eggGroups: Dict<string[]>, moves: Dict<stri
 	types: {},
 };
 type Category = Exclude<keyof typeof data, 'pokemon'>;
-const dataKeys: {colors: string[], eggGroups: string[], moves: string[], types: string[]} = {
+const dataKeys: {colors: string[]; eggGroups: string[]; moves: string[]; types: string[]} = {
 	colors: [],
 	eggGroups: [],
 	moves: [],
@@ -28,7 +28,7 @@ const achievements: AchievementsDict = {
 };
 
 class MismagiusFoulPlay extends Game {
-	static loadData(room: Room) {
+	static loadData(room: Room): void {
 		if (loadedData) return;
 
 		room.say("Loading data for " + name + "...");
@@ -82,7 +82,7 @@ class MismagiusFoulPlay extends Game {
 	previousParams: string[] = [];
 	roundGuesses = new Map<Player, boolean>();
 
-	onRemovePlayer(player: Player) {
+	onRemovePlayer(player: Player): void {
 		if (this.criminals.includes(player)) {
 			this.criminalCount--;
 		} else if (this.detectives.includes(player)) {
@@ -90,7 +90,7 @@ class MismagiusFoulPlay extends Game {
 		}
 	}
 
-	onStart() {
+	onStart(): void {
 		this.say("Now requesting Pokemon!");
 		for (const i in this.players) {
 			this.players[i].say("Please select a Pokemon to play as with ``.select``!");
@@ -98,7 +98,7 @@ class MismagiusFoulPlay extends Game {
 		this.timeout = setTimeout(() => this.chooseCriminals(), 30 * 1000);
 	}
 
-	chooseCriminals() {
+	chooseCriminals(): void {
 		const keys = this.shuffle(data.pokemon);
 		this.chosenPokemon.forEach((species, player) => {
 			keys.splice(keys.indexOf(species), 1);
@@ -146,7 +146,7 @@ class MismagiusFoulPlay extends Game {
 		this.nextRound();
 	}
 
-	onNextRound() {
+	onNextRound(): void {
 		if (!this.getRemainingPlayerCount(this.criminals) || !this.getRemainingPlayerCount(this.detectives)) return this.end();
 		let mons: string[] = [];
 		this.chosenPokemon.forEach((species, player) => {
@@ -204,7 +204,7 @@ class MismagiusFoulPlay extends Game {
 		this.sayHtml(html);
 	}
 
-	onEnd() {
+	onEnd(): void {
 		const detectiveWin = this.criminalCount === 0;
 		for (let i = 0; i < this.detectives.length; i++) {
 			const player = this.detectives[i];
@@ -238,7 +238,7 @@ class MismagiusFoulPlay extends Game {
 		this.announceWinners();
 	}
 
-	getPlayerSummary(player: Player) {
+	getPlayerSummary(player: Player): void {
 		if (!this.criminals.length) return player.say("The roles have not been distributed yet.");
 		if (this.criminals.includes(player)) {
 			const criminals: string[] = [];
@@ -254,7 +254,7 @@ class MismagiusFoulPlay extends Game {
 
 const commands: Dict<ICommandDefinition<MismagiusFoulPlay>> = {
 	select: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.started || !(user.id in this.players) || this.players[user.id].eliminated) return false;
 			const player = this.players[user.id];
 			if (this.chosenPokemon.has(player)) {
@@ -285,7 +285,7 @@ const commands: Dict<ICommandDefinition<MismagiusFoulPlay>> = {
 		pmOnly: true,
 	},
 	suspect: {
-		command(target, room, user) {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.started || !(user.id in this.players) || this.players[user.id].eliminated) return false;
 			const player = this.players[user.id];
 			if (this.roundGuesses.has(player)) {
