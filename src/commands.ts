@@ -1838,6 +1838,7 @@ const commands: Dict<ICommandDefinition> = {
 			const targets = target.split(',');
 			const targetRoom = Rooms.search(targets[0]);
 			if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+			if (!Config.allowUserHostedTournaments || !Config.allowUserHostedTournaments.includes(targetRoom.id)) return this.sayError(['disabledUserHostedTournamentFeatures', targetRoom.title]);
 			const bracketLink = Tools.getChallongeUrl(targets[1]);
 			const signupsLink = Tools.getChallongeUrl(targets[2]);
 			if (!bracketLink || !signupsLink || (!bracketLink.includes('/signup/') && !signupsLink.includes('/signup/'))) {

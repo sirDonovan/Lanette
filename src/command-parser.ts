@@ -20,8 +20,8 @@ export type CommandsDict<T = undefined, U = T extends Game ? GameCommandReturnTy
 type CommandErrorOptionalTarget = 'invalidBotRoom' | 'invalidFormat' | 'invalidGameFormat' | 'invalidTournamentFormat' | 'invalidUserHostedGameFormat' | 'tooManyGameModes' |
 	'tooManyGameVariants' | 'emptyUserHostedGameQueue';
 
-type CommandErrorRequiredTarget = 'noPmHtmlRoom' | 'missingBotRankForFeatures' | 'disabledTournamentFeatures' | 'disabledGameFeatures' | 'disabledUserHostedGameFeatures' | 'noRoomEventInformation' |
-	'invalidRoomEvent' | 'invalidGameOption' | 'disabledGameFormat';
+type CommandErrorRequiredTarget = 'noPmHtmlRoom' | 'missingBotRankForFeatures' | 'disabledTournamentFeatures' | 'disabledGameFeatures' | 'disabledUserHostedGameFeatures' |
+	'disabledUserHostedTournamentFeatures' |'noRoomEventInformation' | 'invalidRoomEvent' | 'invalidGameOption' | 'disabledGameFormat';
 
 type CommandErrorNoTarget = 'invalidUsernameLength' | 'reloadInProgress' | 'invalidHttpsLink';
 
@@ -209,6 +209,8 @@ export class CommandParser {
 			return "Scripted game features are not enabled for " + error[1].trim() + ".";
 		} else if (error[0] === 'disabledUserHostedGameFeatures') {
 			return "User-hosted game features are not enabled for " + error[1].trim() + ".";
+		} else if (error[0] === 'disabledUserHostedTournamentFeatures') {
+			return "User-hosted tournament features are not enabled for " + error[1].trim() + ".";
 		} else if (error[0] === 'noRoomEventInformation') {
 			return error[1].trim() + " does not currently have any event information stored.";
 		} else if (error[0] === 'invalidRoomEvent') {
