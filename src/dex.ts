@@ -517,7 +517,7 @@ export class Dex {
 
 		const allDataTypes = dataTypesToLoad.concat(lanetteDataTypes);
 		// alias data types
-		for (let dataType of allDataTypes) {
+		for (const dataType of allDataTypes) {
 			let id = dataType;
 			if (dataType === 'FormatsData') {
 				id = 'formatsData';
