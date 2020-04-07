@@ -97,8 +97,10 @@ export class Command {
 		const target = newTarget !== undefined ? newTarget : this.target;
 
 		if (Commands[command].asyncCommand) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 			return await Commands[command].asyncCommand!.call(this, target, this.room, this.user, command);
 		} else {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 			return Commands[command].command!.call(this, target, this.room, this.user, command);
 		}
 	}
@@ -137,8 +139,8 @@ export class CommandParser {
 			if (command.aliases) {
 				const aliases = command.aliases.slice();
 				delete command.aliases;
-				for (let i = 0; i < aliases.length; i++) {
-					dict[Tools.toId(aliases[i])] = command;
+				for (const alias of aliases) {
+					dict[Tools.toId(alias)] = command;
 				}
 			}
 			dict[Tools.toId(i)] = command;
@@ -148,11 +150,11 @@ export class CommandParser {
 	}
 
 	loadBaseCommands<T = undefined>(commands: Dict<ICommandDefinition<T>>): CommandsDict<T> {
-		return Object.assign(Object.create(null), this.loadCommands(commands));
+		return Object.assign(Object.create(null), this.loadCommands(commands)) as CommandsDict<T>;
 	}
 
 	isCommandMessage(message: string): boolean {
-		return message.charAt(0) === Config.commandCharacter;
+		return Config.commandCharacter ? message.startsWith(Config.commandCharacter) : false;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -172,6 +174,7 @@ export class CommandParser {
 		command = Tools.toId(command);
 		if (!(command in Commands)) return;
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return await (new Command(command, target, room, user)).run();
 	}
 

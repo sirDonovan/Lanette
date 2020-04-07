@@ -1,7 +1,7 @@
 import { Player } from "../room-activity";
 import { IGameFile, AchievementsDict } from "../types/games";
 import { BoardActionCard, BoardSpace, IBoard } from "./templates/board";
-import { BoardActionSpace, BoardEliminationSpace, BoardPropertyGame, BoardPropertyEliminationSpace, game as boardPropertyGame,mountainPrefix } from "./templates/board-property";
+import { BoardActionSpace, BoardEliminationSpace, BoardPropertyGame, BoardPropertyEliminationSpace, game as boardPropertyGame, mountainPrefix } from "./templates/board-property";
 import { Room } from "../rooms";
 import { User } from "../users";
 
@@ -157,8 +157,7 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 	onStart(): void {
 		super.onStart();
 
-		for (let i = 0; i < this.playerOrder.length; i++) {
-			const player = this.playerOrder[i];
+		for (const player of this.playerOrder) {
 			this.playerCurrency.set(player, this.startingCurrency);
 			this.properties.set(player, []);
 		}
@@ -177,9 +176,9 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 	onOwnedPropertySpace(space: BoardPropertyEliminationSpace, player: Player): void {
 		const ownerProperties = this.properties.get(space.owner!) || [];
 		let eliminationChance = 0;
-		for (let i = 0; i < ownerProperties.length; i++) {
-			if (ownerProperties[i].color === space.color) {
-				eliminationChance += this.getSpaceEliminationValue(ownerProperties[i] as BoardPropertyEliminationSpace);
+		for (const property of ownerProperties) {
+			if (property.color === space.color) {
+				eliminationChance += this.getSpaceEliminationValue(property as BoardPropertyEliminationSpace);
 			}
 		}
 

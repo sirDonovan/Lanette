@@ -21,35 +21,6 @@ const achievements: AchievementsDict = {
 };
 
 class TaurosSafariZone extends Game {
-	static loadData(room: Room): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
-		const pokemonList = Games.getPokemonList(pokemon => Dex.hasGifData(pokemon) && pokemon.id !== 'voltorb' && pokemon.id !== 'electrode');
-		const copy = pokemonList.slice();
-		for (let i = 0; i < copy.length; i++) {
-			if (copy[i].otherFormes) {
-				const formes = copy[i].otherFormes!;
-				for (let i = 0; i < formes.length; i++) {
-					const forme = Dex.getExistingPokemon(formes[i]);
-					if (Dex.hasGifData(forme)) pokemonList.push(forme);
-				}
-			}
-		}
-
-		for (let i = 0; i < pokemonList.length; i++) {
-			data.pokedex.push(pokemonList[i].id);
-			let bst = 0;
-			for (const stat in pokemonList[i].baseStats) {
-				// @ts-ignore
-				bst += pokemonList[i].baseStats[stat];
-			}
-			data.baseStatTotals[pokemonList[i].id] = bst;
-		}
-
-		loadedData = true;
-	}
-
 	canCatch: boolean = false;
 	caughtPokemon = new Map<Player, number>();
 	firstCatch: Player | false | undefined;
@@ -64,6 +35,35 @@ class TaurosSafariZone extends Game {
 	roundTime: number = 5 * 1000;
 	winners = new Map<Player, number>();
 
+	static loadData(room: Room): void {
+		if (loadedData) return;
+		room.say("Loading data for " + name + "...");
+
+		const pokemonList = Games.getPokemonList(pokemon => Dex.hasGifData(pokemon) && pokemon.id !== 'voltorb' && pokemon.id !== 'electrode');
+		const copy = pokemonList.slice();
+		for (const pokemon of copy) {
+			if (pokemon.otherFormes) {
+				const formes = pokemon.otherFormes;
+				for (const name of formes) {
+					const forme = Dex.getExistingPokemon(name);
+					if (Dex.hasGifData(forme)) pokemonList.push(forme);
+				}
+			}
+		}
+
+		for (const pokemon of pokemonList) {
+			data.pokedex.push(pokemon.id);
+			let bst = 0;
+			for (const stat in pokemon.baseStats) {
+				// @ts-ignore
+				bst += pokemon.baseStats[stat];
+			}
+			data.baseStatTotals[pokemon.id] = bst;
+		}
+
+		loadedData = true;
+	}
+
 	onSignups(): void {
 		if (this.format.options.freejoin) {
 			this.timeout = setTimeout(() => {
@@ -73,38 +73,38 @@ class TaurosSafariZone extends Game {
 	}
 
 	generatePokemon(): void {
-		const pokemon = this.sampleMany(data.pokedex, 3).map(x => Dex.getExistingPokemon(x));
+		const pokemonList = this.sampleMany(data.pokedex, 3).map(x => Dex.getExistingPokemon(x));
 		let hasVoltorb = false;
 		let hasElectrode = false;
 		const baseStatTotals: {pokemon: string; bst: number}[] = [];
-		for (let i = 0; i < pokemon.length; i++) {
-			let currentPokemon = pokemon[i];
+		for (let i = 0; i < pokemonList.length; i++) {
+			let currentPokemon = pokemonList[i];
 			const chance = this.random(100);
 			if (chance < 25 && !hasVoltorb && !hasElectrode) {
 				if (chance < 10 && !hasElectrode) {
 					hasElectrode = true;
 					currentPokemon = Dex.getExistingPokemon('electrode');
-					pokemon[i] = currentPokemon;
+					pokemonList[i] = currentPokemon;
 					this.roundPokemon.set(Tools.toId(currentPokemon.species), {species: currentPokemon.species, points: -250});
 				} else {
 					hasVoltorb = true;
 					currentPokemon = Dex.getExistingPokemon('voltorb');
-					pokemon[i] = currentPokemon;
+					pokemonList[i] = currentPokemon;
 					this.roundPokemon.set(Tools.toId(currentPokemon.species), {species: currentPokemon.species, points: -100});
 				}
 			} else {
 				baseStatTotals.push({pokemon: currentPokemon.species, bst: data.baseStatTotals[currentPokemon.id]});
-				const points = 100 + Math.round((data.baseStatTotals[pokemon[i].id] / 12));
+				const points = 100 + Math.round((data.baseStatTotals[pokemonList[i].id] / 12));
 				this.roundPokemon.set(Tools.toId(currentPokemon.species), {species: currentPokemon.species, points});
 			}
 		}
 		baseStatTotals.sort((a, b) => b.bst - a.bst);
 		this.highestBST = baseStatTotals[0].pokemon;
 		let html = "<div class='infobox'><center>";
-		for (let i = 0; i < pokemon.length; i++) {
-			html += Dex.getPokemonGif(pokemon[i]);
+		for (const pokemon of pokemonList) {
+			html += Dex.getPokemonGif(pokemon);
 		}
-		html += "<br />Wild <b>" + pokemon.map(x => x.species).join(", ") + "</b> appeared!</center></div>";
+		html += "<br />Wild <b>" + pokemonList.map(x => x.species).join(", ") + "</b> appeared!</center></div>";
 		const uhtmlName = this.uhtmlBaseName + '-pokemon';
 		this.onUhtml(uhtmlName, html, () => {
 			this.canCatch = true;
@@ -116,7 +116,7 @@ class TaurosSafariZone extends Game {
 	onNextRound(): void {
 		this.canCatch = false;
 		if (this.round > 1) {
-			const catches: {player: Player; pokemon: string; points: number}[] = [];
+			const catchQueue: {player: Player; pokemon: string; points: number}[] = [];
 			let firstCatch = true;
 			this.roundCatches.forEach((pokemon, player) => {
 				if (player.eliminated) return;
@@ -128,21 +128,21 @@ class TaurosSafariZone extends Game {
 					}
 					firstCatch = false;
 				}
-				catches.push({player, pokemon: pokemon.species, points: pokemon.points});
+				catchQueue.push({player, pokemon: pokemon.species, points: pokemon.points});
 				let caughtPokemon = this.caughtPokemon.get(player) || 0;
 				caughtPokemon++;
 				this.caughtPokemon.set(player, caughtPokemon);
 			});
-			catches.sort((a, b) => b.points - a.points);
+			catchQueue.sort((a, b) => b.points - a.points);
 			let highestPoints = 0;
-			for (let i = 0; i < catches.length; i++) {
-				const player = catches[i].player;
+			for (const slot of catchQueue) {
+				const player = slot.player;
 				let points = this.points.get(player) || 0;
-				points += catches[i].points;
+				points += slot.points;
 				this.points.set(player, points);
-				player.say(catches[i].pokemon + " was worth " + catches[i].points + " points! Your total score is now: " + points + ".");
+				player.say(slot.pokemon + " was worth " + slot.points + " points! Your total score is now: " + points + ".");
 				if (points > highestPoints) highestPoints = points;
-				// if (catches[i].pokemon === this.highestBST) this.markFirstAction(player, 'highestCatch');
+				// if (slot.pokemon === this.highestBST) this.markFirstAction(player, 'highestCatch');
 			}
 			this.roundCatches.clear();
 			this.roundPokemon.clear();

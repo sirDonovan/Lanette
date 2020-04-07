@@ -15,31 +15,31 @@ const achievements: AchievementsDict = {
 };
 
 class AbrasAbilitySwitch extends Guessing {
-	static loadData(room: Room): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
-		const pokedex = Games.getPokemonList();
-		for (let i = 0; i < pokedex.length; i++) {
-			const pokemon = pokedex[i];
-			const abilities: string[] = [];
-			for (const i in pokemon.abilities) {
-				// @ts-ignore
-				abilities.push(pokemon.abilities[i]);
-			}
-			data.abilities[pokemon.id] = abilities;
-			data.pokedex.push(pokedex[i].species);
-		}
-
-		loadedData  = true;
-	}
-
 	allAnswersAchievement = achievements.skillswapper;
 	allAnswersTeamAchievement = achievements.captainskillswapper;
 
 	lastAbility: string = '';
 	lastPokemon: string = '';
 
+	static loadData(room: Room): void {
+		if (loadedData) return;
+		room.say("Loading data for " + name + "...");
+
+		const pokedex = Games.getPokemonList();
+		for (const pokemon of pokedex) {
+			const abilities: string[] = [];
+			for (const i in pokemon.abilities) {
+				// @ts-ignore
+				abilities.push(pokemon.abilities[i]);
+			}
+			data.abilities[pokemon.id] = abilities;
+			data.pokedex.push(pokemon.species);
+		}
+
+		loadedData  = true;
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
 		let pokemon = this.sampleOne(data.pokedex);
 		while (pokemon === this.lastPokemon) {
@@ -51,7 +51,7 @@ class AbrasAbilitySwitch extends Guessing {
 		let ability = this.sampleOne(data.abilities[id]);
 		while (ability === this.lastAbility) {
 			if (data.abilities[id].length === 1) {
-				this.setAnswers();
+				await this.setAnswers();
 				return;
 			}
 			ability = this.sampleOne(data.abilities[id]);
@@ -59,9 +59,9 @@ class AbrasAbilitySwitch extends Guessing {
 		this.lastAbility = ability;
 
 		const answers: string[] = [];
-		for (let i = 0; i < data.pokedex.length; i++) {
-			if (data.abilities[Tools.toId(data.pokedex[i])].includes(ability)) {
-				answers.push(data.pokedex[i]);
+		for (const name of data.pokedex) {
+			if (data.abilities[Tools.toId(name)].includes(ability)) {
+				answers.push(name);
 			}
 		}
 		this.answers = answers;

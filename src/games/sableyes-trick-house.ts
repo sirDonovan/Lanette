@@ -146,39 +146,48 @@ const commands: Dict<ICommandDefinition<SableyesTrickHouse>> = {
 
 const tests: GameFileTests<SableyesTrickHouse> = {
 	'should only allow one choice per round': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			const players = addPlayers(game, 3);
 			game.start();
 			game.nextRound();
 			game.canSelect = true;
-			runCommand('select', game.roundDoors[0], game.room, players[0].name);
-			runCommand('select', game.roundDoors[1], game.room, players[0].name);
+			await runCommand('select', game.roundDoors[0], game.room, players[0].name);
+			await runCommand('select', game.roundDoors[1], game.room, players[0].name);
 			assertStrictEqual(Tools.toId(game.roundSelections.get(players[0])), Tools.toId(game.roundDoors[0]));
 		},
 	},
 	'should eliminate users who pick the trap': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			const players = addPlayers(game, 3);
 			game.start();
 			game.nextRound();
 			game.offCommands(['select']);
 			game.canSelect = true;
-			runCommand('select', game.roundDoors[0], game.room, players[0].name);
-			runCommand('select', game.roundDoors[1], game.room, players[1].name);
-			runCommand('select', game.roundDoors[2], game.room, players[2].name);
+			await runCommand('select', game.roundDoors[0], game.room, players[0].name);
+			await runCommand('select', game.roundDoors[1], game.room, players[1].name);
+			await runCommand('select', game.roundDoors[2], game.room, players[2].name);
 			game.revealTrap();
 			assertStrictEqual(game.getRemainingPlayerCount(), 2);
 		},
 	},
 	'should limit choices to given doors': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			const players = addPlayers(game, 3);
 			game.start();
 			game.nextRound();
 			game.canSelect = true;
-			runCommand('select', 'mocha', game.room, players[0].name);
+			await runCommand('select', 'mocha', game.room, players[0].name);
 			assertStrictEqual(game.roundSelections.has(players[0]), false);
-			runCommand('select', game.roundDoors[0], game.room, players[1].name);
+			await runCommand('select', game.roundDoors[0], game.room, players[1].name);
 			assertStrictEqual(game.roundSelections.has(players[1]), true);
 		},
 	},

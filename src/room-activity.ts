@@ -52,7 +52,7 @@ export class Player {
 			expiredUser = true;
 			user = Users.add(this.name, this.id);
 		}
-		CommandParser.parse(this.activity.room, user, Config.commandCharacter + command + (target !== undefined ? " " + target : ""));
+		void CommandParser.parse(this.activity.room, user, Config.commandCharacter + command + (target !== undefined ? " " + target : ""));
 		if (expiredUser) Users.remove(user);
 	}
 }
@@ -71,8 +71,8 @@ export class PlayerTeam {
 
 	getPlayerNames(): string[] {
 		const names: string[] = [];
-		for (let i = 0; i < this.players.length; i++) {
-			names.push(this.players[i].name);
+		for (const player of this.players) {
+			names.push(player.name);
 		}
 		return names;
 	}
@@ -108,6 +108,10 @@ export abstract class Activity {
 		this.pm = pmRoom && room !== pmRoom ? true : false;
 		this.pmRoom = this.isPm(room) ? pmRoom! : room;
 	}
+
+	abstract deallocate(forceEnd: boolean): void;
+	abstract forceEnd(user?: User, reason?: string): void;
+	abstract start(): void;
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	isPm(room: Room | User): room is User {
@@ -210,17 +214,17 @@ export abstract class Activity {
 	}
 
 	cleanupMessageListeners(): void {
-		for (let i = 0; i < this.htmlMessageListeners.length; i++) {
-			this.offHtml(this.htmlMessageListeners[i]);
+		for (const listener of this.htmlMessageListeners) {
+			this.offHtml(listener);
 		}
 
-		for (let i = 0; i < this.messageListeners.length; i++) {
-			this.off(this.messageListeners[i]);
+		for (const listener of this.messageListeners) {
+			this.off(listener);
 		}
 
 		for (const name in this.uhtmlMessageListeners) {
-			for (let i = 0; i < this.uhtmlMessageListeners[name].length; i++) {
-				this.offUhtml(name, this.uhtmlMessageListeners[name][i]);
+			for (const listener of this.uhtmlMessageListeners[name]) {
+				this.offUhtml(name, listener);
 			}
 		}
 	}
@@ -252,9 +256,9 @@ export abstract class Activity {
 	getRemainingPlayers(players?: PlayerList): Dict<Player> {
 		const playerList = this.getPlayerList(players, true);
 		const remainingPlayers: Dict<Player> = {};
-		for (let i = 0; i < playerList.length; i++) {
-			if (playerList[i].eliminated || playerList[i].frozen) continue;
-			remainingPlayers[playerList[i].id] = playerList[i];
+		for (const player of playerList) {
+			if (player.eliminated || player.frozen) continue;
+			remainingPlayers[player.id] = player;
 		}
 
 		return remainingPlayers;
@@ -273,8 +277,8 @@ export abstract class Activity {
 	getPlayerAttributes(attribute: (player: Player) => string, players?: PlayerList): string[] {
 		const playerList = this.getPlayerList(players);
 		const playerAttributes: string[] = [];
-		for (let i = 0; i < playerList.length; i++) {
-			playerAttributes.push(attribute(playerList[i]));
+		for (const player of playerList) {
+			playerAttributes.push(attribute(player));
 		}
 
 		return playerAttributes;
@@ -283,10 +287,6 @@ export abstract class Activity {
 	getPlayerNames(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => player.name, players).join(', ');
 	}
-
-	abstract deallocate(forceEnd: boolean): void;
-	abstract forceEnd(user?: User, reason?: string): void;
-	abstract start(): void;
 
 	getSignupsHtml?(): string;
 	onEnd?(): void;

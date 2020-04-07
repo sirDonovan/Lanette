@@ -48,21 +48,21 @@ export abstract class CardHighLow extends Card {
 
 	getCardsPmHtml(cards: CardType[], player: Player): string {
 		let html = '';
-		const cardDetails: {card: CardType; detail: number}[] = [];
-		for (let i = 0; i < cards.length; i++) {
-			cardDetails.push({card: cards[i], detail: this.getCardDetail(cards[i], this.currentCategory)});
+		const cardInfo: {card: CardType; detail: number}[] = [];
+		for (const card of cards) {
+			cardInfo.push({card: card, detail: this.getCardDetail(card, this.currentCategory)});
 		}
-		const sorted = cardDetails.slice().sort((a, b) => b.detail - a.detail);
+		const sorted = cardInfo.slice().sort((a, b) => b.detail - a.detail);
 		let bestDetail = -1;
 		if (this.highOrLow && !this.roundPlays.has(player)) {
 			bestDetail = (this.highOrLow === 'high' ? sorted[0].detail : sorted[sorted.length - 1].detail);
 		}
 		const cardsHtml: string[] = [];
 		const notPlayed = !this.roundPlays.has(player);
-		for (let i = 0; i < cardDetails.length; i++) {
-			const card = cardDetails[i].card;
+		for (const info of cardInfo) {
+			const card = info.card;
 			let cardHtml = '<div style="height:auto">';
-			const bolded = notPlayed && cardDetails[i].detail === bestDetail;
+			const bolded = notPlayed && info.detail === bestDetail;
 			if (bolded) {
 				cardHtml += '<b>' + card.name + '</b>';
 			} else {
@@ -71,9 +71,9 @@ export abstract class CardHighLow extends Card {
 			if (this.currentCategory) {
 				cardHtml += ':&nbsp;<div style="display:inline-block;background-color:' + Tools.hexColorCodes['Black']['background-color'] + ';background:' + Tools.hexColorCodes['Black']['background'] + ';border-color:' + Tools.hexColorCodes['Black']['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:auto;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;text-align:center;font-size:8pt">';
 				if (bolded) {
-					cardHtml += '<b>' + cardDetails[i].detail + ' ' + this.categoriesNames[this.currentCategory] + '</b>';
+					cardHtml += '<b>' + info.detail + ' ' + this.categoriesNames[this.currentCategory] + '</b>';
 				} else {
-					cardHtml += cardDetails[i].detail + ' ' + this.categoriesNames[this.currentCategory];
+					cardHtml += info.detail + ' ' + this.categoriesNames[this.currentCategory];
 				}
 				cardHtml += '</div>';
 

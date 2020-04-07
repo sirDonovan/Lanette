@@ -20,7 +20,8 @@
         "@typescript-eslint"
     ],
     "extends": [
-        "plugin:@typescript-eslint/recommended"
+        "plugin:@typescript-eslint/recommended",
+        "plugin:@typescript-eslint/recommended-requiring-type-checking"
     ],
     "rules": {
         "@typescript-eslint/ban-ts-ignore": "off",
@@ -28,6 +29,82 @@
         "@typescript-eslint/interface-name-prefix": "off",
         "@typescript-eslint/no-non-null-assertion": "off",
         "@typescript-eslint/no-unused-vars": "off",
-        "@typescript-eslint/semi": ["error"]
+        "@typescript-eslint/prefer-regexp-exec": "off",
+        "@typescript-eslint/unbound-method": "off",
+
+        "@typescript-eslint/no-extra-non-null-assertion": "error",
+        "@typescript-eslint/no-throw-literal": "error",
+        "@typescript-eslint/no-unsafe-return": "error",
+        "@typescript-eslint/prefer-for-of": "error",
+        "@typescript-eslint/promise-function-async": "error",
+        "@typescript-eslint/type-annotation-spacing": "error",
+        "@typescript-eslint/no-extra-semi": "error",
+        "@typescript-eslint/no-floating-promises": ["error", {"ignoreVoid": true}],
+        "@typescript-eslint/array-type": ["error", {"default": "array"}],
+        "@typescript-eslint/ban-ts-comment": ["error", {"ts-ignore": false, "ts-nocheck": true, "ts-check": true}],
+
+        "semi": "off",
+        "@typescript-eslint/semi": ["error", "always"],
+
+        "brace-style": "off",
+        "@typescript-eslint/brace-style": ["error", "1tbs"],
+
+        "func-call-spacing": "off",
+        "@typescript-eslint/func-call-spacing": "error",
+
+        "comma-spacing": "off",
+        "@typescript-eslint/comma-spacing": "error",
+
+        "no-dupe-class-members": "off",
+        "@typescript-eslint/no-dupe-class-members": "error",
+
+        "space-before-function-paren": "off",
+        "@typescript-eslint/space-before-function-paren": ["error", "never"],
+
+        "@typescript-eslint/member-ordering": ["error", {"default": [
+            // Index signature
+            "signature",
+            
+            // Fields
+            "public-abstract-field",
+            "protected-abstract-field",
+            "private-abstract-field",
+            "public-static-field",
+            "protected-static-field",
+            "private-static-field",
+            "public-instance-field",
+            "protected-instance-field",
+            "private-instance-field",
+            
+            // Constructors
+            "public-constructor",
+            "protected-constructor",
+            "private-constructor",
+            
+            // Methods
+            "public-abstract-method",
+            "protected-abstract-method",
+            "private-abstract-method",
+            "public-static-method",
+            "protected-static-method",
+            "private-static-method",
+            "public-instance-method",
+            "protected-instance-method",
+            "private-instance-method"
+            ]
+        }],
+
+        "@typescript-eslint/naming-convention": ["error", {
+            "selector": "variableLike",
+            "format": ["camelCase", "UPPER_CASE"],
+            "leadingUnderscore": "forbid",
+            "trailingUnderscore": "forbid"
+          }, {
+            "selector": "typeLike",
+            "format": ["PascalCase"],
+            "leadingUnderscore": "forbid",
+            "trailingUnderscore": "forbid"
+          }
+        ]
     }
 }

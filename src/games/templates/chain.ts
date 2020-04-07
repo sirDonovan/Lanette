@@ -49,8 +49,7 @@ export abstract class Chain extends Game {
 		if (this.variant) {
 			if (this.variant === 'moves') {
 				const moves = Games.getMovesList();
-				for (let i = 0; i < moves.length; i++) {
-					const move = moves[i];
+				for (const move of moves) {
 					if (this.letterBased) {
 						if (move.id === 'hiddenpower') continue;
 						if (!this.getLinkStarts(move).length || !this.getLinkEnds(move).length) continue;
@@ -61,8 +60,7 @@ export abstract class Chain extends Game {
 				this.linksType = 'move';
 			} else if (this.variant === 'items') {
 				const items = Games.getItemsList();
-				for (let i = 0; i < items.length; i++) {
-					const item = items[i];
+				for (const item of items) {
 					if (this.letterBased && (!this.getLinkStarts(item).length || !this.getLinkEnds(item).length)) continue;
 					pool[item.id] = item;
 					keys.push(item.id);
@@ -70,8 +68,7 @@ export abstract class Chain extends Game {
 				this.linksType = 'item';
 			} else if (this.variant === 'abilities') {
 				const abilities = Games.getAbilitiesList();
-				for (let i = 0; i < abilities.length; i++) {
-					const ability = abilities[i];
+				for (const ability of abilities) {
 					if (this.letterBased && (!this.getLinkStarts(ability).length || !this.getLinkEnds(ability).length)) continue;
 					pool[ability.id] = ability;
 					keys.push(ability.id);
@@ -82,8 +79,7 @@ export abstract class Chain extends Game {
 			}
 		} else {
 			const pokedex = Games.getPokemonList();
-			for (let i = 0; i < pokedex.length; i++) {
-				const pokemon = pokedex[i];
+			for (const pokemon of pokedex) {
 				if (pokemon.forme && !this.acceptsFormes) continue;
 				if (this.letterBased && (!this.getLinkStarts(pokemon).length || !this.getLinkEnds(pokemon).length)) continue;
 				pool[pokemon.id] = pokemon;
@@ -97,15 +93,15 @@ export abstract class Chain extends Game {
 		const linkEndsByName: Dict<string[]> = {};
 		for (const i in pool) {
 			const starts = this.getLinkStarts(pool[i]);
-			for (let j = 0; j < starts.length; j++) {
-				if (!linkStartsByName[starts[j]]) linkStartsByName[starts[j]] = [];
-				if (!linkStartsByName[starts[j]].includes(pool[i].id)) linkStartsByName[starts[j]].push(pool[i].id);
+			for (const start of starts) {
+				if (!linkStartsByName[start]) linkStartsByName[start] = [];
+				if (!linkStartsByName[start].includes(pool[i].id)) linkStartsByName[start].push(pool[i].id);
 			}
 			if (this.canReverseLinks) {
 				const ends = this.getLinkEnds(pool[i]);
-				for (let j = 0; j < ends.length; j++) {
-					if (!linkEndsByName[ends[j]]) linkEndsByName[ends[j]] = [];
-					if (!linkEndsByName[ends[j]].includes(pool[i].id)) linkEndsByName[ends[j]].push(pool[i].id);
+				for (const end of ends) {
+					if (!linkEndsByName[end]) linkEndsByName[end] = [];
+					if (!linkEndsByName[end].includes(pool[i].id)) linkEndsByName[end].push(pool[i].id);
 				}
 			}
 		}
@@ -127,18 +123,18 @@ export abstract class Chain extends Game {
 
 	filterUnusableLinkStarts(links: string[]): string[] {
 		const filtered: string[] = [];
-		for (let i = 0; i < links.length; i++) {
-			if (!this.linkStarts[links[i]] || this.linkStartCounts[links[i]] === this.linkStarts[links[i]]) continue;
-			filtered.push(links[i]);
+		for (const link of links) {
+			if (!this.linkStarts[link] || this.linkStartCounts[link] === this.linkStarts[link]) continue;
+			filtered.push(link);
 		}
 		return filtered;
 	}
 
 	filterUnusableLinkEnds(links: string[]): string[] {
 		const filtered: string[] = [];
-		for (let i = 0; i < links.length; i++) {
-			if (!this.linkEnds[links[i]] || this.linkEndCounts[links[i]] === this.linkEnds[links[i]]) continue;
-			filtered.push(links[i]);
+		for (const link of links) {
+			if (!this.linkEnds[link] || this.linkEndCounts[link] === this.linkEnds[link]) continue;
+			filtered.push(link);
 		}
 		return filtered;
 	}
@@ -249,15 +245,15 @@ export abstract class Chain extends Game {
 	}
 
 	markLinkUsed(linkStarts: string[], linkEnds: string[]): void {
-		for (let i = 0; i < linkStarts.length; i++) {
-			if (!this.linkStarts[linkStarts[i]]) continue;
-			if (!this.linkStartCounts[linkStarts[i]]) this.linkStartCounts[linkStarts[i]] = 0;
-			this.linkStartCounts[linkStarts[i]]++;
+		for (const start of linkStarts) {
+			if (!this.linkStarts[start]) continue;
+			if (!this.linkStartCounts[start]) this.linkStartCounts[start] = 0;
+			this.linkStartCounts[start]++;
 		}
-		for (let i = 0; i < linkEnds.length; i++) {
-			if (!this.linkEnds[linkEnds[i]]) continue;
-			if (!this.linkEndCounts[linkEnds[i]]) this.linkEndCounts[linkEnds[i]] = 0;
-			this.linkEndCounts[linkEnds[i]]++;
+		for (const end of linkEnds) {
+			if (!this.linkEnds[end]) continue;
+			if (!this.linkEndCounts[end]) this.linkEndCounts[end] = 0;
+			this.linkEndCounts[end]++;
 		}
 	}
 }
@@ -281,15 +277,15 @@ const commands: Dict<ICommandDefinition<Chain>> = {
 			let linkEnds: string[] = [];
 			if (this.canReverseLinks) linkEnds = this.getLinkEnds(possibleLink);
 			let match = false;
-			for (let i = 0; i < linkStarts.length; i++) {
-				if (this.targetLinkStarts.includes(linkStarts[i])) {
+			for (const start of linkStarts) {
+				if (this.targetLinkStarts.includes(start)) {
 					match = true;
 					break;
 				}
 			}
 			if (!match && this.canReverseLinks) {
-				for (let i = 0; i < linkEnds.length; i++) {
-					if (this.targetLinkEnds.includes(linkEnds[i])) {
+				for (const end of linkEnds) {
+					if (this.targetLinkEnds.includes(end)) {
 						match = true;
 						break;
 					}

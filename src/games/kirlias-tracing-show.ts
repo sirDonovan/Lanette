@@ -10,30 +10,31 @@ const data: {abilities: Dict<string>; pokedex: string[]} = {
 let loadedData = false;
 
 class KirliasTracingShow extends Guessing {
+	lastAbilities: string = '';
+	lastPokemon: string = '';
+
 	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		const pokedex = Games.getPokemonList();
-		for (let i = 0; i < pokedex.length; i++) {
+		const pokemonList = Games.getPokemonList();
+		for (const pokemon of pokemonList) {
 			const abilities: string[] = [];
-			for (const ability in pokedex[i].abilities) {
+			for (const ability in pokemon.abilities) {
 				// @ts-ignore
-				abilities.push(pokedex[i].abilities[ability]);
+				abilities.push(pokemon.abilities[ability]);
 			}
-			data.abilities[pokedex[i].id] = abilities.join(",");
-			data.pokedex.push(pokedex[i].id);
+			data.abilities[pokemon.id] = abilities.join(",");
+			data.pokedex.push(pokemon.id);
 		}
 		loadedData = true;
 	}
-
-	lastAbilities: string = '';
-	lastPokemon: string = '';
 
 	onSignups(): void {
 		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
 		let pokemon = this.sampleOne(data.pokedex);
 		let abilities = data.abilities[pokemon];

@@ -77,8 +77,7 @@ export abstract class Card extends Game {
 			if (pokemon.forme || pokemon.id in this.actionCards || !Dex.hasGifData(pokemon) || (this.filterPoolItem && this.filterPoolItem(pokemon))) return false;
 			return true;
 		});
-		for (let i = 0; i < pokemonList.length; i++) {
-			const pokemon = pokemonList[i];
+		for (const pokemon of pokemonList) {
 			const color = Tools.toId(pokemon.color);
 			if (!(color in this.colors)) this.colors[color] = pokemon.color;
 			this.deckPool.push(pokemon);
@@ -120,9 +119,9 @@ export abstract class Card extends Game {
 
 	getChatTypeLabel(card: IPokemonCard): string {
 		const types = [];
-		for (let i = 0; i < card.types.length; i++) {
-			const colorData = Tools.hexColorCodes[Tools.typeHexColors[card.types[i]]];
-			types.push('<div style="display:inline-block;background-color:' + colorData['background-color'] + ';background:' + colorData['background'] + ';border-color:' + colorData['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt;text-align:center"><b>' + card.types[i] + '</b></div>');
+		for (const type of card.types) {
+			const colorData = Tools.hexColorCodes[Tools.typeHexColors[type]];
+			types.push('<div style="display:inline-block;background-color:' + colorData['background-color'] + ';background:' + colorData['background'] + ';border-color:' + colorData['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt;text-align:center"><b>' + type + '</b></div>');
 		}
 		return types.join("&nbsp;/&nbsp;");
 	}
@@ -139,23 +138,21 @@ export abstract class Card extends Game {
 		const names: string[] = [];
 		const images: string[] = [];
 		let info = '';
-		for (let i = 0; i < cards.length; i++) {
-			let card = cards[i];
+		for (const card of cards) {
 			let image = '';
 			if (this.isMoveBased(card)) {
-				names.push(cards[i].name);
+				names.push(card.name);
 				const colorData = Tools.hexColorCodes[Tools.typeHexColors[card.type]];
 				image = '<div style="display:inline-block;height:51px;width:' + (this.detailLabelWidth + 10) + '"><br /><div style="display:inline-block;background-color:' + colorData['background-color'] + ';background:' + colorData['background'] + ';border-color:' + colorData['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt"><b>' + card.type + '</b></div></div>';
 				width += this.detailLabelWidth;
 			} else {
-				card = card as IPokemonCard;
-				names.push(cards[i].name + (card.shiny ? ' \u2605' : ''));
+				names.push(card.name + (card.shiny ? ' \u2605' : ''));
 				image = Dex.getPokemonGif(card);
 				width += Dex.data.gifData[card.id]!.front!.w;
 			}
 
 			images.push(image);
-			if (!info) info = this.getCardChatDetails(cards[i]);
+			if (!info) info = this.getCardChatDetails(card);
 		}
 		width *= 1.5;
 		if (width < 250) width = 250;
@@ -180,8 +177,8 @@ export abstract class Card extends Game {
 		}
 		if (dontShow) {
 			const playerCards = this.playerCards.get(player)!;
-			for (let i = 0; i < cards.length; i++) {
-				playerCards.push(cards[i]);
+			for (const card of cards) {
+				playerCards.push(card);
 			}
 		} else {
 			this.dealHand(player, cards, 'drawn');
@@ -208,8 +205,7 @@ export abstract class Card extends Game {
 
 		let shownPlayerCards: CardType[] = [];
 		if (highlightedCards && action === 'autodrawn') {
-			for (let i = 0; i < playerCards.length; i++) {
-				const card = playerCards[i];
+			for (const card of playerCards) {
 				if (!highlightedCards.includes(card)) shownPlayerCards.push(card);
 			}
 		} else {
@@ -232,8 +228,8 @@ export abstract class Card extends Game {
 				highlightedCardsHtml += "<u><b>Newest card" + (highlightedCards.length > 1 ? "s" : "") + "</b></u>:<br />";
 
 				// add to player's hand after generating playerCards HTML
-				for (let i = 0; i < highlightedCards.length; i++) {
-					playerCards.push(highlightedCards[i]);
+				for (const card of highlightedCards) {
+					playerCards.push(card);
 				}
 			} else if (action === 'autodrawn') {
 				highlightedCardsHtml += "<u><b>Newest card" + (highlightedCards.length > 1 ? "s" : "") + "</b></u>:<br />";

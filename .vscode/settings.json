@@ -1,4 +1,7 @@
 {
+	"eslint.options": {
+		"cache": true
+	},
 	"typescript.tsdk": "node_modules/typescript/lib",
 	"search.exclude": {
 		"**/.vscode": true,

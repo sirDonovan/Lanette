@@ -121,8 +121,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 			}
 
 			const pokedex = Games.getPokemonList(undefined, genString);
-			for (let i = 0; i < pokedex.length; i++) {
-				const pokemon = pokedex[i];
+			for (const pokemon of pokedex) {
 				if (pokemon.forme) formes[pokemon.id] = pokemon.forme;
 				if (pokemon.baseSpecies !== pokemon.species) otherFormes[pokemon.id] = pokemon.baseSpecies;
 				if (pokemon.learnset) {
@@ -133,8 +132,8 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 				}
 				if (pokemon.evos.length && !pokemon.prevo) {
 					const pokemonEvolutionLines = dex.getEvolutionLines(pokemon);
-					for (let i = 0; i < pokemonEvolutionLines.length; i++) {
-						evolutionLines.push(pokemonEvolutionLines[i].map(x => Tools.toId(x)).sort().join(","));
+					for (const line of pokemonEvolutionLines) {
+						evolutionLines.push(line.map(x => Tools.toId(x)).sort().join(","));
 					}
 				}
 
@@ -157,8 +156,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 				if (!(pokemon.color in colorDex)) colorDex[pokemon.color] = [];
 				colorDex[pokemon.color].push(pokemon.species);
 
-				for (let i = 0; i < pokemon.types.length; i++) {
-					const type = pokemon.types[i];
+				for (const type of pokemon.types) {
 					const typeId = Tools.toId(type);
 					const typeParam = {type: 'type', param: type};
 					if (!(typeId in types)) {
@@ -169,8 +167,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 					typeDex[type].push(pokemon.species);
 				}
 
-				for (let i = 0; i < typeChartKeys.length; i++) {
-					const type = typeChartKeys[i];
+				for (const type of typeChartKeys) {
 					const typeId = Tools.toId(type);
 					const immune = dex.isImmune(type, pokemon);
 					let effectiveness = 0;
@@ -244,16 +241,15 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 					abilityDex[ability].push(pokemon.species);
 				}
 
-				for (let i = 0; i < pokemon.eggGroups.length; i++) {
-					const group = pokemon.eggGroups[i];
-					const groupId = Tools.toId(group);
-					const groupParam = {type: 'egggroup', param: group};
+				for (const eggGroup of pokemon.eggGroups) {
+					const groupId = Tools.toId(eggGroup);
+					const groupParam = {type: 'egggroup', param: eggGroup};
 					if (!(groupId in eggGroups)) {
 						eggGroups[groupId] = groupParam;
 						eggGroups[groupId + 'group'] = groupParam;
 					}
-					if (!(group in eggGroupDex)) eggGroupDex[group] = [];
-					eggGroupDex[group].push(pokemon.species);
+					if (!(eggGroup in eggGroupDex)) eggGroupDex[eggGroup] = [];
+					eggGroupDex[eggGroup].push(pokemon.species);
 				}
 			}
 
@@ -262,8 +258,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 			const format = dex.getExistingFormat(genString + 'ou');
 			const validator = Dex.getValidator(format);
 			const movesList = Games.getMovesList(undefined, genString);
-			for (let i = 0; i < movesList.length; i++) {
-				const move = movesList[i];
+			for (const move of movesList) {
 				const moveParam = {type: 'move', param: move.name};
 				if (move.id.startsWith('hiddenpower')) {
 					const id = Tools.toId(move.name);
@@ -274,8 +269,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 					moves[move.id + 'move'] = moveParam;
 				}
 
-				for (let i = 0; i < pokedex.length; i++) {
-					const pokemon = pokedex[i];
+				for (const pokemon of pokedex) {
 					if (pokemon.allPossibleMoves.includes(move.id) && !validator.checkLearnset(move, pokemon)) {
 						if (!(move.name in moveDex)) moveDex[move.name] = [];
 						moveDex[move.name].push(pokemon.species);
@@ -317,11 +311,11 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 		return data;
 	}
 
-	search(options: IParametersSearchOptions): Promise<IParametersResponse> {
+	async search(options: IParametersSearchOptions): Promise<IParametersResponse> {
 		return this.sendMessage('search', JSON.stringify(options));
 	}
 
-	intersect(options: IParametersIntersectOptions): Promise<IParametersResponse> {
+	async intersect(options: IParametersIntersectOptions): Promise<IParametersResponse> {
 		return this.sendMessage('intersect', JSON.stringify(options));
 	}
 }

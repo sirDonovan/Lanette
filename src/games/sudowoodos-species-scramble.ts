@@ -15,8 +15,7 @@ class SudowoodosSpeciesScramble extends Guessing {
 		room.say("Loading data for " + name + "...");
 
 		const pokemonList = Games.getPokemonList(pokemon => !!pokemon.category);
-		for (let i = 0; i < pokemonList.length; i++) {
-			const pokemon = pokemonList[i];
+		for (const pokemon of pokemonList) {
 			if (!(pokemon.category in data.categories)) {
 				data.categories[pokemon.category] = [];
 				categoryKeys.push(pokemon.category);
@@ -31,6 +30,7 @@ class SudowoodosSpeciesScramble extends Guessing {
 		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
 		const category = this.sampleOne(categoryKeys);
 		this.answers = data.categories[category];

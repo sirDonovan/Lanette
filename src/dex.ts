@@ -298,6 +298,7 @@ export class Dex {
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	modData(dataType: string, id: string): any {
+		/* eslint-disable @typescript-eslint/no-unsafe-return */
 		// @ts-ignore
 		if (this.isBase) return this.data[dataType][id];
 		// @ts-ignore
@@ -306,6 +307,7 @@ export class Dex {
 		this.data[dataType][id] = Tools.deepClone(this.data[dataType][id]);
 		// @ts-ignore
 		return this.data[dataType][id];
+		/* eslint-enable */
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -317,6 +319,7 @@ export class Dex {
 			const key = `Battle${dataType}`;
 			if (!dataObject || typeof dataObject !== 'object') return new TypeError(`${filePath}, if it exists, must export a non-null object`);
 			if (!dataObject[key] || typeof dataObject[key] !== 'object') return new TypeError(`${filePath}, if it exists, must export an object whose '${key}' property is a non-null object`);
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 			return dataObject[key];
 		} catch (e) {
 			if (e.code !== 'MODULE_NOT_FOUND' && e.code !== 'ENOENT') {
@@ -368,8 +371,7 @@ export class Dex {
 			}
 		}
 
-		for (let i = 0; i < formatsList.length; i++) {
-			const formatData = formatsList[i];
+		for (const formatData of formatsList) {
 			const id = Tools.toId(formatData.name);
 			if (!id) continue;
 			let viability = '';
@@ -377,8 +379,8 @@ export class Dex {
 			let np = '';
 			if (formatData.threads) {
 				const threads = formatData.threads.slice();
-				for (let i = 0; i < threads.length; i++) {
-					const line = threads[i].trim();
+				for (let line of threads) {
+					line = line.trim();
 					if (line.startsWith('&bullet;')) {
 						const text = line.split('</a>')[0].split('">')[1];
 						if (!text) continue;
@@ -419,18 +421,18 @@ export class Dex {
 		for (const id in formats) {
 			const format = formats[id];
 			const links: ('info' | 'np' | 'roleCompendium' | 'teams' | 'viability')[] = ['info', 'np', 'roleCompendium', 'teams', 'viability'];
-			for (let i = 0; i < links.length; i++) {
-				const link = format[links[i]];
+			for (const id of links) {
+				const link = format[id];
 				if (!link) continue;
 				let num = parseInt(link.split("/")[0]);
 				if (isNaN(num)) continue;
 				// @ts-ignore
-				if (format[links[i] + '-official']) {
+				if (format[id + '-official']) {
 					// @ts-ignore
-					const officialNum = parseInt(format[links[i] + '-official']);
+					const officialNum = parseInt(format[id + '-official']);
 					if (!isNaN(officialNum) && officialNum > num) num = officialNum;
 				}
-				format[links[i]] = 'http://www.smogon.com/forums/threads/' + num;
+				format[id] = 'http://www.smogon.com/forums/threads/' + num;
 			}
 		}
 
@@ -444,9 +446,9 @@ export class Dex {
 
 		dexes['base'].includeMods();
 
-		const BattleScripts = this.loadDataFile(this.modDataDir, dataFiles, 'Scripts');
+		const battleScripts = this.loadDataFile(this.modDataDir, dataFiles, 'Scripts');
 
-		this.parentMod = this.isBase ? '' : (BattleScripts.inherit || 'base');
+		this.parentMod = this.isBase ? '' : (battleScripts.inherit || 'base');
 
 		let parentDex;
 		if (this.parentMod) {
@@ -461,25 +463,24 @@ export class Dex {
 				if (this.isBase) this.dataCache[dataType] = natures;
 				continue;
 			}
-			const BattleData = this.loadDataFile(this.modDataDir, dataFiles, dataType);
-			if (!BattleData || typeof BattleData !== 'object') throw new TypeError("Exported property `Battle" + dataType + "`from `" + this.modDataDir + '/' + dataFiles[dataType] + "` must be an object except `null`.");
+			const battleData = this.loadDataFile(this.modDataDir, dataFiles, dataType);
+			if (!battleData || typeof battleData !== 'object') throw new TypeError("Exported property `Battle" + dataType + "`from `" + this.modDataDir + '/' + dataFiles[dataType] + "` must be an object except `null`.");
 			// @ts-ignore
-			if (BattleData !== this.dataCache[dataType]) this.dataCache[dataType] = Object.assign(BattleData, this.dataCache[dataType]);
+			if (battleData !== this.dataCache[dataType]) this.dataCache[dataType] = Object.assign(battleData, this.dataCache[dataType]);
 		}
 
 		for (const dataType of lanetteDataTypes) {
-			const BattleData = this.loadDataFile(lanetteDataDir, lanetteDataFiles, dataType);
-			if (!BattleData || typeof BattleData !== 'object') throw new TypeError("Exported property `Battle" + dataType + "`from `" + this.modDataDir + '/' + dataFiles[dataType] + "` must be an object except `null`.");
+			const battleData = this.loadDataFile(lanetteDataDir, lanetteDataFiles, dataType);
+			if (!battleData || typeof battleData !== 'object') throw new TypeError("Exported property `Battle" + dataType + "`from `" + this.modDataDir + '/' + dataFiles[dataType] + "` must be an object except `null`.");
 			// @ts-ignore
-			this.dataCache[dataType] = Object.assign(BattleData, this.dataCache[dataType]);
+			this.dataCache[dataType] = Object.assign(battleData, this.dataCache[dataType]);
 		}
 
 		if (!parentDex) {
 			// Formats are inherited by mods
 			this.includeFormats();
 		} else {
-			for (let i = 0; i < dataTypes.length; i++) {
-				const dataType = dataTypes[i];
+			for (const dataType of dataTypes) {
 				// @ts-ignore
 				const parentTypedData = parentDex.data[dataType];
 				// @ts-ignore
@@ -516,27 +517,27 @@ export class Dex {
 
 		const allDataTypes = dataTypesToLoad.concat(lanetteDataTypes);
 		// alias data types
-		for (let i = 0; i < allDataTypes.length; i++) {
-			let dataType = allDataTypes[i];
+		for (let dataType of allDataTypes) {
+			let id = dataType;
 			if (dataType === 'FormatsData') {
-				dataType = 'formatsData';
+				id = 'formatsData';
 			} else if (dataType === 'FormatLinks') {
-				dataType = 'formatLinks';
+				id = 'formatLinks';
 			} else if (dataType === 'Movedex') {
-				dataType = 'moves';
+				id = 'moves';
 			} else if (dataType === 'PokemonSprites') {
-				dataType = 'gifData';
+				id = 'gifData';
 			} else if (dataType === 'PokemonSpritesBW') {
-				dataType = 'gifDataBW';
+				id = 'gifDataBW';
 			} else if (dataType === 'TrainerClasses') {
-				dataType = 'trainerClasses';
+				id = 'trainerClasses';
 			} else if (dataType === 'TypeChart') {
-				dataType = 'typeChart';
+				id = 'typeChart';
 			} else {
-				dataType = Tools.toId(dataType);
+				id = Tools.toId(dataType);
 			}
 			// @ts-ignore
-			this.dataCache[dataType] = this.dataCache[allDataTypes[i]];
+			this.dataCache[id] = this.dataCache[dataType];
 		}
 
 		for (const i in this.dataCache.typeChart) {
@@ -547,20 +548,20 @@ export class Dex {
 			const formatid = i;
 			const format = this.dataCache.formats[i];
 			if (format && format.aliases) {
-				for (let i = 0; i < format.aliases.length; i++) {
-					const alias = Tools.toId(format.aliases[i]);
-					if (!this.dataCache.aliases.hasOwnProperty(alias)) this.dataCache.aliases[alias] = formatid;
+				for (const alias of format.aliases) {
+					const id = Tools.toId(alias);
+					if (!this.dataCache.aliases.hasOwnProperty(id)) this.dataCache.aliases[id] = formatid;
 				}
 			}
 		}
 
-		this.gen = BattleScripts.gen;
+		this.gen = battleScripts.gen;
 		if (!this.gen) throw new Error(`Mod ${this.currentMod} needs a generation number in scripts.js`);
 
 		this.loadedData = true;
 
 		// Execute initialization script.
-		if (BattleScripts.init) BattleScripts.init.call(this);
+		if (battleScripts.init) battleScripts.init.call(this);
 
 		for (const i in this.data.pokedex) {
 			const pokemon = this.getExistingPokemon(i);
@@ -573,9 +574,9 @@ export class Dex {
 				if (!(id in tagNames)) tagNames[id] = pokemon.tier;
 			}
 			if (pokemon.eggGroups) {
-				for (let i = 0; i < pokemon.eggGroups.length; i++) {
-					const id = Tools.toId(pokemon.eggGroups[i]);
-					if (!(id in this.dataCache.eggGroups)) this.dataCache.eggGroups[id] = pokemon.eggGroups[i];
+				for (const eggGroup of pokemon.eggGroups) {
+					const id = Tools.toId(eggGroup);
+					if (!(id in this.dataCache.eggGroups)) this.dataCache.eggGroups[id] = eggGroup;
 				}
 			}
 		}
@@ -583,12 +584,12 @@ export class Dex {
 
 	async fetchClientData(): Promise<void> {
 		const files = ['pokedex-mini.js', 'pokedex-mini-bw.js'];
-		for (let i = 0; i < files.length; i++) {
-			const file = await Tools.fetchUrl('https://' + Tools.mainServer + '/data/' + files[i]);
+		for (const fileName of files) {
+			const file = await Tools.fetchUrl('https://' + Tools.mainServer + '/data/' + fileName);
 			if (typeof file !== 'string') {
 				console.log(file);
 			} else if (file) {
-				await Tools.safeWriteFile(path.join(lanetteDataDir, files[i]), file);
+				await Tools.safeWriteFile(path.join(lanetteDataDir, fileName), file);
 			}
 		}
 	}
@@ -674,8 +675,8 @@ export class Dex {
 	getAbilitiesCopyList(filter?: (ability: IAbility) => boolean): IAbilityCopy[] {
 		const abilities = this.getAbilitiesList(filter);
 		const copiedAbilities: IAbilityCopy[] = [];
-		for (let i = 0; i < abilities.length; i++) {
-			copiedAbilities.push(this.getAbilityCopy(abilities[i].name));
+		for (const ability of abilities) {
+			copiedAbilities.push(this.getAbilityCopy(ability.name));
 		}
 		return copiedAbilities;
 	}
@@ -767,8 +768,8 @@ export class Dex {
 	getItemsCopyList(filter?: (item: IItem) => boolean): IItemCopy[] {
 		const items = this.getItemsList(filter);
 		const copiedItems: IItemCopy[] = [];
-		for (let i = 0; i < items.length; i++) {
-			copiedItems.push(this.getItemCopy(items[i].name));
+		for (const item of items) {
+			copiedItems.push(this.getItemCopy(item.name));
 		}
 		return copiedItems;
 	}
@@ -929,8 +930,8 @@ export class Dex {
 	getMovesCopyList(filter?: (move: IMove) => boolean): IMoveCopy[] {
 		const moves = this.getMovesList(filter);
 		const copiedMoves: IMoveCopy[] = [];
-		for (let i = 0; i < moves.length; i++) {
-			copiedMoves.push(this.getMoveCopy(moves[i].name));
+		for (const move of moves) {
+			copiedMoves.push(this.getMoveCopy(move.name));
 		}
 		return copiedMoves;
 	}
@@ -938,9 +939,9 @@ export class Dex {
 	getMoveAvailability(move: IMove, pokedex?: IPokemon[]): number {
 		if (!pokedex) pokedex = this.getPokemonList();
 		const availability: string[] = [];
-		for (let i = 0; i < pokedex.length; i++) {
-			if (pokedex[i].allPossibleMoves.includes(move.id) && !(pokedex[i].baseSpecies !== pokedex[i].species && availability.includes(pokedex[i].baseSpecies))) {
-				availability.push(pokedex[i].species);
+		for (const pokemon of pokedex) {
+			if (pokemon.allPossibleMoves.includes(move.id) && !(pokemon.baseSpecies !== pokemon.species && availability.includes(pokemon.baseSpecies))) {
+				availability.push(pokemon.species);
 			}
 		}
 
@@ -955,9 +956,9 @@ export class Dex {
 		let id = Tools.toId(name);
 		if (!id) return null;
 		if (id === 'nidoran') {
-			if (name.slice(-1) === '♀') {
+			if (name.endsWith('♀')) {
 				id = 'nidoranf';
-			} else if (name.slice(-1) === '♂') {
+			} else if (name.endsWith('♂')) {
 				id = 'nidoranm';
 			}
 		}
@@ -966,11 +967,11 @@ export class Dex {
 			let formeId = '';
 			for (const forme in formeNames) {
 				let pokemonName = '';
-				for (let i = 0; i < formeNames[forme].length; i++) {
-					if (id.startsWith(formeNames[forme][i])) {
-						pokemonName = id.slice(formeNames[forme][i].length);
-					} else if (id.endsWith(formeNames[forme][i])) {
-						pokemonName = id.slice(0, -formeNames[forme][i].length);
+				for (const formeName of formeNames[forme]) {
+					if (id.startsWith(formeName)) {
+						pokemonName = id.slice(formeName.length);
+					} else if (id.endsWith(formeName)) {
+						pokemonName = id.slice(0, -formeName.length);
 					}
 				}
 				if (this.data.aliases.hasOwnProperty(pokemonName)) pokemonName = Tools.toId(this.data.aliases[pokemonName]);
@@ -1170,8 +1171,8 @@ export class Dex {
 	getPokemonCopyList(filter?: (pokemon: IPokemon) => boolean): IPokemonCopy[] {
 		const pokedex = this.getPokemonList(filter);
 		const copiedPokedex: IPokemonCopy[] = [];
-		for (let i = 0; i < pokedex.length; i++) {
-			copiedPokedex.push(this.getPokemonCopy(pokedex[i].species));
+		for (const pokemon of pokedex) {
+			copiedPokedex.push(this.getPokemonCopy(pokemon.species));
 		}
 		return copiedPokedex;
 	}
@@ -1179,19 +1180,19 @@ export class Dex {
 	getEvolutionLines(pokemon: IPokemon): string[][] {
 		const allEvolutionLines = this.getAllEvolutionLines(pokemon);
 		const evolutionLines: string[][] = [];
-		for (let i = 0; i < allEvolutionLines.length; i++) {
-			if (allEvolutionLines[i].includes(pokemon.species)) evolutionLines.push(allEvolutionLines[i]);
+		for (const line of allEvolutionLines) {
+			if (line.includes(pokemon.species)) evolutionLines.push(line);
 		}
 		return evolutionLines;
 	}
 
-	isEvolutionFamily(species: string[]): boolean {
-		if (species.length < 2) return true;
+	isEvolutionFamily(speciesList: string[]): boolean {
+		if (speciesList.length < 2) return true;
 
 		const evolutionLines: string[][][] = [];
 
-		for (let i = 0; i < species.length; i++) {
-			const pokemon = this.getPokemon(species[i]);
+		for (const species of speciesList) {
+			const pokemon = this.getPokemon(species);
 			if (!pokemon) return false;
 			evolutionLines.push(this.getEvolutionLines(pokemon));
 		}
@@ -1204,9 +1205,9 @@ export class Dex {
 			const nextLine = evolutionLines[i + 1];
 
 			outer:
-			for (let i = 0; i < currentLine.length; i++) {
-				for (let j = 0; j < nextLine.length; j++) {
-					if (Tools.compareArrays(currentLine[i], nextLine[j])) {
+			for (const current of currentLine) {
+				for (const next of nextLine) {
+					if (Tools.compareArrays(current, next)) {
 						sharedEvolutionLine = true;
 						break outer;
 					}
@@ -1239,8 +1240,8 @@ export class Dex {
 			targetType = target.types;
 		}
 		if (Array.isArray(targetType)) {
-			for (let i = 0; i < targetType.length; i++) {
-				if (this.isImmune(sourceType, targetType[i])) return true;
+			for (const type of targetType) {
+				if (this.isImmune(sourceType, type)) return true;
 			}
 			return false;
 		} else {
@@ -1271,8 +1272,8 @@ export class Dex {
 
 		let nfe = false;
 		if (!invalidEvent && pokemon.evos) {
-			for (let i = 0; i < pokemon.evos.length; i++) {
-				const evolution = this.getPokemon(pokemon.evos[i]);
+			for (const evo of pokemon.evos) {
+				const evolution = this.getPokemon(evo);
 				if (evolution && evolution.gen <= this.gen) {
 					nfe = true;
 					break;
@@ -1304,8 +1305,8 @@ export class Dex {
 		}
 		if (Array.isArray(targetType)) {
 			let totalTypeMod = 0;
-			for (let i = 0; i < targetType.length; i++) {
-				totalTypeMod += this.getEffectiveness(sourceType, targetType[i]);
+			for (const type of targetType) {
+				totalTypeMod += this.getEffectiveness(sourceType, type);
 			}
 			return totalTypeMod;
 		} else {
@@ -1325,10 +1326,10 @@ export class Dex {
 	getWeaknesses(pokemon: IPokemon): string[] {
 		const weaknesses = [];
 		const types = Object.keys(this.data.typeChart);
-		for (let i = 0; i < types.length; i++) {
-			const isImmune = this.isImmune(types[i], pokemon);
-			const effectiveness = this.getEffectiveness(types[i], pokemon);
-			if (!isImmune && effectiveness >= 1) weaknesses.push(types[i]);
+		for (const type of types) {
+			const isImmune = this.isImmune(type, pokemon);
+			const effectiveness = this.getEffectiveness(type, pokemon);
+			if (!isImmune && effectiveness >= 1) weaknesses.push(type);
 		}
 		return weaknesses;
 	}
@@ -1675,7 +1676,7 @@ export class Dex {
 			if (rule.slice(1).includes('>') || rule.slice(1).includes('+')) {
 				let buf = rule.slice(1);
 				const gtIndex = buf.lastIndexOf('>');
-				let limit = rule.charAt(0) === '+' ? Infinity : 0;
+				let limit = rule.startsWith('+') ? Infinity : 0;
 				if (gtIndex >= 0 && /^[0-9]+$/.test(buf.slice(gtIndex + 1).trim())) {
 					if (limit === 0) limit = parseInt(buf.slice(gtIndex + 1), 10);
 					buf = buf.slice(0, gtIndex);
@@ -1700,7 +1701,7 @@ export class Dex {
 			if (!this.data.formats.hasOwnProperty(id)) {
 				throw new Error(`Unrecognized rule "${rule}"`);
 			}
-			if (rule.charAt(0) === '!') return `!${id}`;
+			if (rule.startsWith('!')) return `!${id}`;
 			return id;
 		}
 		}
@@ -1713,7 +1714,7 @@ export class Dex {
 		const matches = [];
 		let matchTypes = ['pokemon', 'move', 'ability', 'item', 'pokemontag'];
 		for (const matchType of matchTypes) {
-			if (rule.slice(0, 1 + matchType.length) === matchType + ':') {
+			if (rule.startsWith(matchType + ':')) {
 				matchTypes = [matchType];
 				id = id.slice(matchType.length);
 				break;
@@ -1757,7 +1758,7 @@ export class Dex {
 					}
 				}
 				matches.push(matchType + ':' + id);
-			} else if (matchType === 'pokemon' && id.slice(-4) === 'base') {
+			} else if (matchType === 'pokemon' && id.endsWith('base')) {
 				id = id.slice(0, -4);
 				if (table.hasOwnProperty(id)) {
 					matches.push('pokemon:' + id);
@@ -1807,17 +1808,17 @@ export class Dex {
 
 	combineCustomRules(separatedCustomRules: ISeparatedCustomRules): string[] {
 		const customRules: string[] = [];
-		for (let i = 0; i < separatedCustomRules.bans.length; i++) {
-			customRules.push('-' + separatedCustomRules.bans[i]);
+		for (const ban of separatedCustomRules.bans) {
+			customRules.push('-' + ban);
 		}
-		for (let i = 0; i < separatedCustomRules.unbans.length; i++) {
-			customRules.push('+' + separatedCustomRules.unbans[i]);
+		for (const unban of separatedCustomRules.unbans) {
+			customRules.push('+' + unban);
 		}
-		for (let i = 0; i < separatedCustomRules.addedrules.length; i++) {
-			customRules.push(separatedCustomRules.addedrules[i]);
+		for (const addedRule of separatedCustomRules.addedrules) {
+			customRules.push(addedRule);
 		}
-		for (let i = 0; i < separatedCustomRules.removedrules.length; i++) {
-			customRules.push('!' + separatedCustomRules.removedrules[i]);
+		for (const removedRule of separatedCustomRules.removedrules) {
+			customRules.push('!' + removedRule);
 		}
 
 		return customRules;
@@ -1828,8 +1829,8 @@ export class Dex {
 		const unbans: string[] = [];
 		const addedrules: string[] = [];
 		const removedrules: string[] = [];
-		for (let i = 0; i < customRules.length; i++) {
-			const rule = this.validateRule(customRules[i]);
+		for (const ruleString of customRules) {
+			const rule = this.validateRule(ruleString);
 			if (typeof rule === 'string') {
 				const type = rule.charAt(0);
 				const ruleName = this.getValidatedRuleName(rule);
@@ -1844,7 +1845,7 @@ export class Dex {
 					addedrules.push(ruleName);
 				}
 			} else {
-				const complexBans = (rule[4] as string[]).map(x => this.getValidatedRuleName(x));
+				const complexBans = rule[4].map(x => this.getValidatedRuleName(x));
 				if (rule[0] === 'complexTeamBan') {
 					bans.push(complexBans.join(' ++ '));
 				} else {
@@ -1877,15 +1878,15 @@ export class Dex {
 				suffixes = suffixes.concat(format.separatedCustomRules.unbans);
 			}
 			if (addedRulesLength && (!defaultCustomRules.addedrules || format.separatedCustomRules.addedrules.join(",") !== defaultCustomRules.addedrules.join(","))) {
-				for (let i = 0; i < format.separatedCustomRules.addedrules.length; i++) {
-					let addedRule = format.separatedCustomRules.addedrules[i];
-					const subFormat = this.getFormat(format.separatedCustomRules.addedrules[i]);
+				for (const addedRule of format.separatedCustomRules.addedrules) {
+					let rule = addedRule;
+					const subFormat = this.getFormat(rule);
 					if (subFormat && subFormat.effectType === 'Format' && subFormat.name.startsWith('[Gen')) {
-						addedRule = subFormat.name.substr(subFormat.name.indexOf(']') + 2);
-					} else if (addedRule in clauseNicknames) {
-						addedRule = clauseNicknames[addedRule];
+						rule = subFormat.name.substr(subFormat.name.indexOf(']') + 2);
+					} else if (rule in clauseNicknames) {
+						rule = clauseNicknames[rule];
 					}
-					prefixesAdded.push(addedRule);
+					prefixesAdded.push(rule);
 				}
 			}
 			if (removedRulesLength && (!defaultCustomRules.removedrules || format.separatedCustomRules.removedrules.join(",") !== defaultCustomRules.removedrules.join(","))) {
@@ -1958,8 +1959,8 @@ export class Dex {
 		if (!pokemon.evos.length) {
 			evolutionLines.push(prevoList);
 		} else {
-			for (let i = 0; i < pokemon.evos.length; i++) {
-				this.getAllEvolutionLines(this.getExistingPokemon(pokemon.evos[i]), prevoList, evolutionLines);
+			for (const evo of pokemon.evos) {
+				this.getAllEvolutionLines(this.getExistingPokemon(evo), prevoList, evolutionLines);
 			}
 		}
 		return evolutionLines;

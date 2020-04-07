@@ -22,7 +22,7 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse> {
 
 	abstract loadData(): WorkerData;
 
-	sendMessage(id: MessageId, message: string): Promise<ThreadResponse> {
+	async sendMessage(id: MessageId, message: string): Promise<ThreadResponse> {
 		this.init();
 
 		if (this.unrefTimer) clearTimeout(this.unrefTimer);

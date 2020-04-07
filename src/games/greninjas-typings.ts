@@ -17,27 +17,28 @@ const achievements: AchievementsDict = {
 };
 
 class GreninjasTypings extends Guessing {
-	static loadData(room: Room): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
-		const pokedex = Games.getPokemonList(x => !x.species.startsWith('Arcues-') && !x.species.startsWith('Silvally-'));
-		for (let i = 0; i < pokedex.length; i++) {
-			data.pokedex.push(pokedex[i].id);
-			data.species[pokedex[i].id] = pokedex[i].species;
-			data.reverseTypes[pokedex[i].id] = pokedex[i].types.slice().reverse().join('/');
-			data.types[pokedex[i].id] = pokedex[i].types.join('/');
-		}
-
-		loadedData = true;
-	}
-
 	allAnswersAchievement = achievements.proteaneye;
 	allAnswersTeamAchievement = achievements.captainproteaneye;
 	lastPokemon: string = '';
 	lastTyping: string = '';
 	noOrder: boolean = false;
 
+	static loadData(room: Room): void {
+		if (loadedData) return;
+		room.say("Loading data for " + name + "...");
+
+		const pokedex = Games.getPokemonList(x => !x.species.startsWith('Arcues-') && !x.species.startsWith('Silvally-'));
+		for (const pokemon of pokedex) {
+			data.pokedex.push(pokemon.id);
+			data.species[pokemon.id] = pokemon.species;
+			data.reverseTypes[pokemon.id] = pokemon.types.slice().reverse().join('/');
+			data.types[pokemon.id] = pokemon.types.join('/');
+		}
+
+		loadedData = true;
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
 		let pokemon = this.sampleOne(data.pokedex);
 		let typing = data.types[pokemon];
@@ -48,9 +49,9 @@ class GreninjasTypings extends Guessing {
 			reverseTyping = data.reverseTypes[pokemon];
 		}
 		const answers: string[] = [];
-		for (let i = 0; i < data.pokedex.length; i++) {
-			if (typing === data.types[data.pokedex[i]] || (this.noOrder && typing === data.reverseTypes[data.pokedex[i]])) {
-				answers.push(data.species[data.pokedex[i]]);
+		for (const pokemon of data.pokedex) {
+			if (typing === data.types[pokemon] || (this.noOrder && typing === data.reverseTypes[pokemon])) {
+				answers.push(data.species[pokemon]);
 			}
 		}
 		this.lastTyping = typing;

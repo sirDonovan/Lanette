@@ -12,20 +12,6 @@ const removedOptions: string[] = ['points', 'freejoin'];
 type SurvivalThis = Guessing & Survival;
 
 class Survival {
-	static setOptions<T extends Game>(format: IGameFormat<T>, namePrefixes: string[], nameSuffixes: string[]): void {
-		if (!format.name.includes(name)) nameSuffixes.unshift(name);
-		format.description += ' ' + description;
-
-		for (let i = 0; i < removedOptions.length; i++) {
-			const index = format.defaultOptions.indexOf(removedOptions[i] as DefaultGameOption);
-			if (index !== -1) format.defaultOptions.splice(index, 1);
-
-			delete format.customizableOptions[removedOptions[i]];
-		}
-
-		if (format.id === 'parasparameters') delete format.customizableOptions.params;
-	}
-
 	currentPlayer: Player | null = null;
 	readonly maxPlayers: number = 20;
 	playerList: Player[] = [];
@@ -42,6 +28,20 @@ class Survival {
 		} else {
 			this.roundTime = 9 * 1000;
 		}
+	}
+
+	static setOptions<T extends Game>(format: IGameFormat<T>, namePrefixes: string[], nameSuffixes: string[]): void {
+		if (!format.name.includes(name)) nameSuffixes.unshift(name);
+		format.description += ' ' + description;
+
+		for (const option of removedOptions) {
+			const index = format.defaultOptions.indexOf(option as DefaultGameOption);
+			if (index !== -1) format.defaultOptions.splice(index, 1);
+
+			delete format.customizableOptions[option];
+		}
+
+		if (format.id === 'parasparameters') delete format.customizableOptions.params;
 	}
 
 	onStart(this: SurvivalThis): void {
@@ -72,7 +72,7 @@ class Survival {
 			currentPlayer = this.playerList.shift();
 		}
 		if (!currentPlayer || currentPlayer.eliminated) {
-			this.onNextRound();
+			await this.onNextRound();
 			return;
 		}
 
@@ -137,9 +137,9 @@ commands.g = {
 const initialize = (game: Game): void => {
 	const mode = new Survival(game);
 	const propertiesToOverride = Object.getOwnPropertyNames(mode).concat(Object.getOwnPropertyNames(Survival.prototype)) as (keyof Survival)[];
-	for (let i = 0; i < propertiesToOverride.length; i++) {
+	for (const property of propertiesToOverride) {
 		// @ts-ignore
-		game[propertiesToOverride[i]] = mode[propertiesToOverride[i]];
+		game[property] = mode[property];
 	}
 
 	for (const command in commands) {

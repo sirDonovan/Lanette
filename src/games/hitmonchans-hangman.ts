@@ -17,6 +17,16 @@ const categories = Object.keys(data) as DataKey[];
 let loadedData = false;
 
 class HitmonchansHangman extends Guessing {
+	allLetters: number = 0;
+	currentCategory: string = '';
+	guessedLetters: string[] = [];
+	guessLimit: number = 10;
+	hints: string[] = [];
+	lastAnswer: string = '';
+	letters: string[] = [];
+	roundGuesses = new Map<Player, boolean>();
+	solvedLetters: string[] = [];
+
 	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
@@ -31,16 +41,7 @@ class HitmonchansHangman extends Guessing {
 		loadedData = true;
 	}
 
-	allLetters: number = 0;
-	currentCategory: string = '';
-	guessedLetters: string[] = [];
-	guessLimit: number = 10;
-	hints: string[] = [];
-	lastAnswer: string = '';
-	letters: string[] = [];
-	roundGuesses = new Map<Player, boolean>();
-	solvedLetters: string[] = [];
-
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		this.currentCategory = category;
@@ -91,7 +92,7 @@ class HitmonchansHangman extends Guessing {
 
 	filterGuess(guess: string): boolean {
 		guess = Tools.toId(guess);
-		if (this.guessedLetters.indexOf(guess) > -1 || this.solvedLetters.indexOf(guess) > -1 || guess.length > Tools.toId(this.answers[0]).length) return true;
+		if (this.guessedLetters.includes(guess) || this.solvedLetters.includes(guess)|| guess.length > Tools.toId(this.answers[0]).length) return true;
 		return false;
 	}
 
@@ -100,8 +101,8 @@ class HitmonchansHangman extends Guessing {
 		if (!this.timeout) {
 			this.timeout = setTimeout(() => this.nextRound(), 4000);
 		}
-		for (let i = 0; i < this.letters.length; i++) {
-			if (Tools.toId(this.letters[i]) === guess) {
+		for (const letter of this.letters) {
+			if (Tools.toId(letter) === guess) {
 				if (!this.solvedLetters.includes(guess)) {
 					this.solvedLetters.push(guess);
 					if (this.solvedLetters.length === this.allLetters) return this.answers[0];

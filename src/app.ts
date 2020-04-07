@@ -2,7 +2,9 @@ import * as tools from './tools';
 global.Tools = new tools.Tools();
 
 // PS compatability
-global.toID = Tools.toId;
+global.toID = (input: string | number | {id: string} | undefined): string => {
+	return Tools.toId(input);
+};
 
 // @ts-ignore - generated after first run
 import * as config from './config';

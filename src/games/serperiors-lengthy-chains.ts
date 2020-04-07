@@ -13,23 +13,27 @@ const data: {parameters: Dict<string[]>; parameterKeys: string[]} = {
 let loadedData = false;
 
 class SerperiorLengthyChains extends Game {
+	bestChain: string[] = [];
+	bestPlayer: Player | null = null;
+	category: string = '';
+	points = new Map<Player, number>();
+	timeout: NodeJS.Timer | null = null;
+
 	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
 		const pokemonList = Games.getPokemonList();
-		for (let i = 0; i < pokemonList.length; i++) {
-			const pokemon = pokemonList[i];
+		for (const pokemon of pokemonList) {
 			const pokemonParameters: string[] = ["Generation " + pokemon.gen, pokemon.color];
 			if (Games.isIncludedPokemonTier(pokemon.tier)) pokemonParameters.push(pokemon.tier);
-			for (let i = 0; i < pokemon.eggGroups.length; i++) {
-				pokemonParameters.push(pokemon.eggGroups[i] + " Group");
+			for (const eggGroup of pokemon.eggGroups) {
+				pokemonParameters.push(eggGroup + " Group");
 			}
-			for (let i = 0; i < pokemon.types.length; i++) {
-				pokemonParameters.push(pokemon.types[i] + " Type");
+			for (const type of pokemon.types) {
+				pokemonParameters.push(type + " Type");
 			}
-			for (let i = 0; i < pokemonParameters.length; i++) {
-				const param = pokemonParameters[i];
+			for (const param of pokemonParameters) {
 				if (!(param in data.parameters)) data.parameters[param] = [];
 				data.parameters[param].push(pokemon.id);
 			}
@@ -44,9 +48,9 @@ class SerperiorLengthyChains extends Game {
 				const paramB = parametersKeys[j];
 				const combined = paramA + ", " + paramB;
 				data.parameters[combined] = [];
-				for (let k = 0; k < data.parameters[paramA].length; k++) {
-					if (data.parameters[paramB].includes(data.parameters[paramA][k])) {
-						data.parameters[combined].push(data.parameters[paramA][k]);
+				for (const pokemon of data.parameters[paramA]) {
+					if (data.parameters[paramB].includes(pokemon)) {
+						data.parameters[combined].push(pokemon);
 					}
 				}
 			}
@@ -62,12 +66,6 @@ class SerperiorLengthyChains extends Game {
 
 		loadedData = true;
 	}
-
-	bestChain: string[] = [];
-	bestPlayer: Player | null = null;
-	category: string = '';
-	points = new Map<Player, number>();
-	timeout: NodeJS.Timer | null = null;
 
 	onSignups(): void {
 		this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
@@ -107,7 +105,7 @@ class SerperiorLengthyChains extends Game {
 		let chain = [];
 		for (let i = 0; i < guess.length; i++) {
 			const substr = guess.substr(0, i + 1);
-			if (data.parameters[this.category].indexOf(substr) !== -1) {
+			if (data.parameters[this.category].includes(substr)) {
 				const pokemon = Dex.getExistingPokemon(substr);
 				if (chainSoFar.includes(pokemon.species)) return chainSoFar;
 				const curChain = chainSoFar.slice();

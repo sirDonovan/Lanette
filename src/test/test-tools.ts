@@ -50,8 +50,8 @@ export function addPlayer(game: Game, name: string): Player {
 export function addPlayers(game: Game, numberOrNames?: number | string[]): Player[] {
 	const players: Player[] = [];
 	if (Array.isArray(numberOrNames)) {
-		for (let i = 0; i < numberOrNames.length; i++) {
-			players.push(addPlayer(game, numberOrNames[i]));
+		for (const name of numberOrNames) {
+			players.push(addPlayer(game, name));
 		}
 	} else {
 		if (!numberOrNames) numberOrNames = game.minPlayers;

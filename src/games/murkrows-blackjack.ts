@@ -66,9 +66,9 @@ class MurkrowsBlackjack extends PlayingCard {
 			cards.push(card);
 			let total = 0;
 			const aceCards = [];
-			for (let i = 0; i < cards.length; i++) {
-				total += cards[i].value;
-				if (cards[i].value === 11) aceCards.push(cards[i]);
+			for (const card of cards) {
+				total += card.value;
+				if (card.value === 11) aceCards.push(card);
 			}
 			let ace = aceCards.shift();
 			while (total > 21 && ace) {
@@ -165,9 +165,9 @@ class MurkrowsBlackjack extends PlayingCard {
 		if (gameWinners.length) {
 			if (blackjacks.length) {
 				const blackJackpot = Math.floor(300 / blackjacks.length);
-				for (let i = 0; i < blackjacks.length; i++) {
-					const previousBlackJackpots = this.blackJackpots.get(blackjacks[i]) || 0;
-					this.blackJackpots.set(blackjacks[i], previousBlackJackpots + blackJackpot);
+				for (const blackjack of blackjacks) {
+					const previousBlackJackpots = this.blackJackpots.get(blackjack) || 0;
+					this.blackJackpots.set(blackjack, previousBlackJackpots + blackJackpot);
 				}
 			}
 			text = "**Game " + this.subGameNumber + " winner" + (gameWinners.length > 1 ? "s" : "") + "**: " + gameWinners.join(", ") + (blackjacks.length ? " | **BlackJackpot winner" + (blackjacks.length > 1 ? "s" : "") + "**: " + this.getPlayerNames(blackjacks) : "");
@@ -213,9 +213,9 @@ const commands: Dict<ICommandDefinition<MurkrowsBlackjack>> = {
 			userCards.push(card);
 			let total = 0;
 			const aceCards = [];
-			for (let i = 0; i < userCards.length; i++) {
-				total += userCards[i].value;
-				if (userCards[i].value === 11) aceCards.push(userCards[i]);
+			for (const card of userCards) {
+				total += card.value;
+				if (card.value === 11) aceCards.push(card);
 			}
 			let ace = aceCards.shift();
 			while (total > 21 && ace) {

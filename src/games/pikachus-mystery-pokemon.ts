@@ -18,13 +18,20 @@ const achievements: AchievementsDict = {
 };
 
 class PikachusMysteryPokemon extends Guessing {
+	allAnswersAchievement = achievements.pokemonprofessor;
+	answers: string[] = [];
+	canGuess: boolean = false;
+	hints: string[] = [];
+	hintsIndex: number = 0;
+	lastSpecies: string = '';
+	points = new Map<Player, number>();
+
 	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
 		const pokemonList = Games.getPokemonList(pokemon => !pokemon.forme);
-		for (let i = 0; i < pokemonList.length; i++) {
-			const pokemon = pokemonList[i];
+		for (const pokemon of pokemonList) {
 			data.pokedex.push(pokemon.id);
 			data.eggGroups[pokemon.id] = pokemon.eggGroups.join(", ");
 			data.types[pokemon.id] = pokemon.types.join("/");
@@ -59,20 +66,13 @@ class PikachusMysteryPokemon extends Guessing {
 		loadedData = true;
 	}
 
-	allAnswersAchievement = achievements.pokemonprofessor;
-	answers: string[] = [];
-	canGuess: boolean = false;
-	hints: string[] = [];
-	hintsIndex: number = 0;
-	lastSpecies: string = '';
-	points = new Map<Player, number>();
-
 	onSignups(): void {
 		if (this.format.options.freejoin) {
 			this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
 		}
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
 		this.hintsIndex = 0;
 		let species = this.sampleOne(data.pokedex);

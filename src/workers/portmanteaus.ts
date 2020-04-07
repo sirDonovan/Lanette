@@ -62,10 +62,9 @@ export class PortmanteausWorker extends WorkerBase<IPortmanteausWorkerData, Port
 
 		const poolTypes = Object.keys(data.pool) as PoolType[];
 
-		for (let i = 0; i < poolTypes.length; i++) {
-			const type = poolTypes[i];
-			for (let i = 0; i < data.portCategories[type].length; i++) {
-				data.pool[type][data.portCategories[type][i]] = {};
+		for (const type of poolTypes) {
+			for (const category of data.portCategories[type]) {
+				data.pool[type][category] = {};
 			}
 		}
 
@@ -89,15 +88,13 @@ export class PortmanteausWorker extends WorkerBase<IPortmanteausWorkerData, Port
 		*/
 
 		const moves = Games.getMovesList();
-		for (let i = 0; i < moves.length; i++) {
-			const move = moves[i];
+		for (const move of moves) {
 			if (!(move.type in data.pool['Move']['type'])) data.pool['Move']['type'][move.type] = [];
 			data.pool['Move']['type'][move.type].push(move.name);
 		}
 
 		const pokedex = Games.getPokemonList();
-		for (let i = 0; i < pokedex.length; i++) {
-			const pokemon = pokedex[i];
+		for (const pokemon of pokedex) {
 			if (Games.isIncludedPokemonTier(pokemon.tier)) {
 				if (!(pokemon.tier in data.pool['Pokemon']['tier'])) data.pool['Pokemon']['tier'][pokemon.tier] = [];
 				if (!(pokemon.forme && data.pool['Pokemon']['tier'][pokemon.tier].includes(pokemon.baseSpecies))) data.pool['Pokemon']['tier'][pokemon.tier].push(pokemon.species);
@@ -110,20 +107,22 @@ export class PortmanteausWorker extends WorkerBase<IPortmanteausWorkerData, Port
 			if (!(pokemon.forme && data.pool['Pokemon']['color'][pokemon.color].includes(pokemon.baseSpecies))) data.pool['Pokemon']['color'][pokemon.color].push(pokemon.species);
 			if (!(pokemon.gen in data.pool['Pokemon']['gen'])) data.pool['Pokemon']['gen'][pokemon.gen] = [];
 			if (!(pokemon.forme && data.pool['Pokemon']['gen'][pokemon.gen].includes(pokemon.baseSpecies))) data.pool['Pokemon']['gen'][pokemon.gen].push(pokemon.species);
-			for (let i = 0; i < pokemon.types.length; i++) {
-				if (!(pokemon.types[i] in data.pool['Pokemon']['type'])) data.pool['Pokemon']['type'][pokemon.types[i]] = [];
-				if (!(pokemon.forme && data.pool['Pokemon']['type'][pokemon.types[i]].includes(pokemon.baseSpecies))) data.pool['Pokemon']['type'][pokemon.types[i]].push(pokemon.species);
+
+			for (const type of pokemon.types) {
+				if (!(type in data.pool['Pokemon']['type'])) data.pool['Pokemon']['type'][type] = [];
+				if (!(pokemon.forme && data.pool['Pokemon']['type'][type].includes(pokemon.baseSpecies))) data.pool['Pokemon']['type'][type].push(pokemon.species);
 			}
-			for (let i = 0; i < pokemon.eggGroups.length; i++) {
-				if (!(pokemon.eggGroups[i] in data.pool['Pokemon']['egggroup'])) data.pool['Pokemon']['egggroup'][pokemon.eggGroups[i]] = [];
-				if (!(pokemon.forme && data.pool['Pokemon']['egggroup'][pokemon.eggGroups[i]].includes(pokemon.baseSpecies))) data.pool['Pokemon']['egggroup'][pokemon.eggGroups[i]].push(pokemon.species);
+
+			for (const eggGroup of pokemon.eggGroups) {
+				if (!(eggGroup in data.pool['Pokemon']['egggroup'])) data.pool['Pokemon']['egggroup'][eggGroup] = [];
+				if (!(pokemon.forme && data.pool['Pokemon']['egggroup'][eggGroup].includes(pokemon.baseSpecies))) data.pool['Pokemon']['egggroup'][eggGroup].push(pokemon.species);
 			}
 		}
 
 		return data;
 	}
 
-	search(options: IPortmanteausSearchOptions): Promise<IPortmanteausResponse> {
+	async search(options: IPortmanteausSearchOptions): Promise<IPortmanteausResponse> {
 		return this.sendMessage('search', JSON.stringify(options));
 	}
 }

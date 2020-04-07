@@ -14,6 +14,14 @@ const categories = Object.keys(data) as DataKey[];
 let loadedData = false;
 
 class MareaniesMarquee extends Guessing {
+	lastAnswer: string = '';
+	letters: string[] = [];
+	currentIndex: number = -1;
+	hintUpdates: number = 0;
+	hintLimit: number = 0;
+	lettersToReveal: number = 4;
+	currentCategory: string = '';
+
 	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
@@ -26,14 +34,7 @@ class MareaniesMarquee extends Guessing {
 		loadedData = true;
 	}
 
-	lastAnswer: string = '';
-	letters: string[] = [];
-	currentIndex: number = -1;
-	hintUpdates: number = 0;
-	hintLimit: number = 0;
-	lettersToReveal: number = 4;
-	currentCategory: string = '';
-
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		this.currentCategory = category;

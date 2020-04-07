@@ -35,21 +35,20 @@ export abstract class CardMatching extends Card {
 		const deck: IPokemonCard[] = [];
 		const minimumDeck = ((this.maxPlayers + 1) * this.format.options.cards);
 		outer:
-		for (let i = 0; i < pokedex.length; i++) {
-			const pokemon = pokedex[i];
+		for (const pokemon of pokedex) {
 			if (this.colorsLimit && pokemon.color in colorCounts && colorCounts[pokemon.color] >= this.colorsLimit) continue;
 			if (this.typesLimit) {
-				for (let i = 0; i < pokemon.types.length; i++) {
-					if (pokemon.types[i] in typeCounts && typeCounts[pokemon.types[i]] >= this.typesLimit) continue outer;
+				for (const type of pokemon.types) {
+					if (type in typeCounts && typeCounts[type] >= this.typesLimit) continue outer;
 				}
 			}
 
 			if (!(pokemon.color in colorCounts)) colorCounts[pokemon.color] = 0;
 			colorCounts[pokemon.color]++;
 
-			for (let i = 0; i < pokemon.types.length; i++) {
-				if (!(pokemon.types[i] in typeCounts)) typeCounts[pokemon.types[i]] = 0;
-				typeCounts[pokemon.types[i]]++;
+			for (const type of pokemon.types) {
+				if (!(type in typeCounts)) typeCounts[type] = 0;
+				typeCounts[type]++;
 			}
 			if (this.rollForShinyPokemon()) pokemon.shiny = true;
 			deck.push(pokemon);
@@ -71,9 +70,8 @@ export abstract class CardMatching extends Card {
 				return;
 			}
 			this.actionCardAmount = actionCardAmount;
-			for (let i = 0; i < actionCards.length; i++) {
-				const action = actionCards[i];
-				const id = Tools.toId(actionCards[i]);
+			for (const action of actionCards) {
+				const id = Tools.toId(action);
 				const pokemon = id in Dex.data.pokedex;
 				for (let i = 0; i < actionCardAmount; i++) {
 					let card: CardType;
@@ -157,8 +155,7 @@ export abstract class CardMatching extends Card {
 		}
 
 		const html: string[] = [];
-		for (let i = 0; i < cards.length; i++) {
-			const card = cards[i];
+		for (const card of cards) {
 			const playable = playableCards ? playableCards.includes(card.name) : false;
 			html.push('<div style="height:auto">' + this.getCardPmHtml(card, playable) + '</div>');
 		}
@@ -195,8 +192,7 @@ export abstract class CardMatching extends Card {
 
 		const playableCards: string[] = [];
 		if (this.minimumPlayedCards === 1) {
-			for (let i = 0; i < cards.length; i++) {
-				const card = cards[i];
+			for (const card of cards) {
 				let playable = false;
 				if (card.action) {
 					playable = card.action.requiredOtherCards ? cards.length - 1 >= card.action.requiredOtherCards : true;
@@ -208,14 +204,12 @@ export abstract class CardMatching extends Card {
 				}
 			}
 		} else {
-			for (let i = 0; i < cards.length; i++) {
-				const card = cards[i];
+			for (const card of cards) {
 				if (card.action && (!card.action.requiredOtherCards || cards.length - 1 >= card.action.requiredOtherCards)) {
 					playableCards.push(card.name);
 					continue;
 				}
-				for (let i = 0; i < cards.length; i++) {
-					const otherCard = cards[i];
+				for (const otherCard of cards) {
 					if (card === otherCard || otherCard.action) continue;
 					if (this.arePlayableCards([this.topCard, card, otherCard])) {
 						playableCards.push(card.name + ", " + otherCard.name);
@@ -362,8 +356,8 @@ export abstract class CardMatching extends Card {
 	isCardPair(card: IPokemonCard, otherCard: IPokemonCard): boolean {
 		if (!card || !otherCard || (card !== this.topCard && card.action) || (otherCard !== this.topCard && otherCard.action)) return false;
 		if (card.color === otherCard.color) return true;
-		for (let i = 0; i < otherCard.types.length; i++) {
-			if (card.types.includes(otherCard.types[i])) return true;
+		for (const type of otherCard.types) {
+			if (card.types.includes(type)) return true;
 		}
 		return false;
 	}

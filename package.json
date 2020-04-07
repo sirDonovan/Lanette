@@ -4,13 +4,13 @@
   "description": "A bot for Pokemon Showdown",
   "main": "app.js",
   "scripts": {
-    "eslint": "eslint -c .eslintrc --ext .ts .",
+    "lint": "eslint -c .eslintrc --ext .ts .",
     "mocha": "mocha -R dot -u bdd --delay --no-config test/setup.js",
-    "offlinetest": "npm run eslint && npm run offlinemocha",
+    "offlinetest": "npm run lint && npm run offlinemocha",
     "offlinemocha": "mocha -R dot -u bdd --delay --no-config test/setup.js --offline",
     "omocha": "npm run offlinemocha",
     "otest": "npm run offlinetest",
-    "test": "npm run eslint && npm run mocha",
+    "test": "npm run lint && npm run mocha",
     "tsc": "tsc"
   },
   "repository": {

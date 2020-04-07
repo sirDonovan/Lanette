@@ -13,16 +13,6 @@ const paramTypes: ParamType[] = ['move', 'tier', 'color', 'type', 'egggroup', 'a
 let loadedData = false;
 
 class PluslesAdditiveParameters extends Game {
-	static loadData(room: Room): void {
-		if (loadedData) return;
-
-		room.say("Loading data for " + name + "...");
-
-		Games.workers.parameters.loadData();
-
-		loadedData = true;
-	}
-
 	canAdd: boolean = false;
 	currentPlayer: Player | null = null;
 	maxPlayers: number = 20;
@@ -34,6 +24,16 @@ class PluslesAdditiveParameters extends Game {
 	playerOrder: Player[] = [];
 	pokemon: string[] = [];
 	roundTime: number = 15 * 1000;
+
+	static loadData(room: Room): void {
+		if (loadedData) return;
+
+		room.say("Loading data for " + name + "...");
+
+		Games.workers.parameters.loadData();
+
+		loadedData = true;
+	}
 
 	onStart(): void {
 		this.nextRound();
@@ -86,13 +86,13 @@ class PluslesAdditiveParameters extends Game {
 		}
 
 		if (!currentPlayer || currentPlayer.eliminated) {
-			this.onNextRound();
+			await this.onNextRound();
 			return;
 		}
 
 		const pokemonIcons: string[] = [];
-		for (let i = 0; i < this.pokemon.length; i++) {
-			const pokemon = Dex.getExistingPokemon(this.pokemon[i]);
+		for (const name of this.pokemon) {
+			const pokemon = Dex.getExistingPokemon(name);
 			pokemonIcons.push(Dex.getPSPokemonIcon(pokemon) + pokemon.species);
 		}
 
@@ -129,8 +129,8 @@ class PluslesAdditiveParameters extends Game {
 		input = Tools.toId(input);
 		const params: IParam[] = [];
 
-		for (let i = 0; i < paramTypes.length; i++) {
-			const pool = Games.workers.parameters.workerData!.pokemon.gens[GEN_STRING].paramTypePools[paramTypes[i]];
+		for (const paramType of paramTypes) {
+			const pool = Games.workers.parameters.workerData!.pokemon.gens[GEN_STRING].paramTypePools[paramType];
 			for (const i in pool) {
 				if (i === input) {
 					params.push(pool[i]);
@@ -157,21 +157,21 @@ const commands: Dict<ICommandDefinition<PluslesAdditiveParameters>> = {
 				return false;
 			}
 
-			const param = params[0];
-			if (param.type === 'move' && Games.workers.parameters.workerData!.pokemon.gens[GEN_STRING].paramTypeDexes.move[param.param].length >= Games.maxMoveAvailability) {
+			const inputParam = params[0];
+			if (inputParam.type === 'move' && Games.workers.parameters.workerData!.pokemon.gens[GEN_STRING].paramTypeDexes.move[inputParam.param].length >= Games.maxMoveAvailability) {
 				user.say("You cannot add a move learned by " + Games.maxMoveAvailability + " or more Pokemon.");
 				return false;
 			}
 
-			for (let i = 0; i < this.params.length; i++) {
-				if (this.params[i].type === param.type && this.params[i].param === param.param) {
-					user.say("``" + param.param + "`` is already in the parameters list!");
+			for (const existingParam of this.params) {
+				if (inputParam.type === existingParam.type && inputParam.param === existingParam.param) {
+					user.say("``" + inputParam.param + "`` is already in the parameters list!");
 					return false;
 				}
 			}
 
 			const testParams: IParam[] = this.params.slice();
-			testParams.push(param);
+			testParams.push(inputParam);
 
 			const result = await Games.workers.parameters.intersect({
 				mod: GEN_STRING,
@@ -186,8 +186,8 @@ const commands: Dict<ICommandDefinition<PluslesAdditiveParameters>> = {
 				eliminationReason = "The parameters resulted in too few Pokemon (" + (pokemon ? pokemon.species : "none") + ")!";
 			} else if (Dex.isEvolutionFamily(result.pokemon)) {
 				const species: string[] = [];
-				for (let i = 0; i < result.pokemon.length; i++) {
-					species.push(Dex.getExistingPokemon(result.pokemon[i]).species);
+				for (const name of result.pokemon) {
+					species.push(Dex.getExistingPokemon(name).species);
 				}
 				eliminationReason = "The parameters resulted in a single evolution line (" + Tools.joinList(species) + ")!";
 			}

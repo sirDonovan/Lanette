@@ -45,6 +45,52 @@ const defaultOptionValues: Dict<IGameOptionValues> = {
 };
 
 export class Game extends Activity {
+	readonly activityType: string = 'game';
+	awardedBits: boolean = false;
+	canLateJoin: boolean = false;
+	readonly commands: CommandsDict<Game> = Object.assign(Object.create(null), Games.sharedCommands);
+	readonly commandsListeners: IGameCommandCountListener[] = [];
+	internalGame: boolean = false;
+	readonly isUserHosted: boolean = false;
+	readonly loserPointsToBits: number = 10;
+	readonly maxBits: number = 1000;
+	minPlayers: number = 4;
+	notifyRankSignups: boolean = false;
+	parentGame: Game | null = null;
+	prng: PRNG = new PRNG();
+	readonly round: number = 0;
+	signupsTime: number = 0;
+	usesWorkers: boolean = false;
+	readonly winnerPointsToBits: number = 50;
+	readonly winners = new Map<Player, number>();
+
+	initialSeed: PRNGSeed;
+
+	// set immediately in initialize()
+	description!: string;
+	format!: IGameFormat | IUserHostedFormat;
+
+	allowChildGameBits?: boolean;
+	commandDescriptions?: string[];
+	isMiniGame?: boolean;
+	readonly lives?: Map<Player, number>;
+	mascot?: IPokemonCopy;
+	maxPlayers?: number;
+	maxRound?: number;
+	playerCap?: number;
+	readonly points?: Map<Player, number>;
+	shinyMascot?: boolean;
+	startingLives?: number;
+	startingPoints?: number;
+	subGameNumber?: number;
+	readonly variant?: string;
+
+	constructor(room: Room | User, pmRoom?: Room) {
+		super(room, pmRoom);
+
+		this.initialSeed = this.prng.initialSeed.slice() as PRNGSeed;
+	}
+
 	static setOptions<T extends Game>(format: IGameFormat<T>, mode: IGameMode | undefined, variant: IGameVariant | undefined): Dict<number> {
 		const namePrefixes: string[] = [];
 		const nameSuffixes: string[] = [];
@@ -57,8 +103,7 @@ export class Game extends Activity {
 		}
 		if (mode && mode.class.setOptions) mode.class.setOptions(format, namePrefixes, nameSuffixes);
 
-		for (let i = 0; i < format.defaultOptions.length; i++) {
-			const defaultOption = format.defaultOptions[i];
+		for (const defaultOption of format.defaultOptions) {
 			if (defaultOption in format.customizableOptions) continue;
 			let base: number;
 			if (defaultOptionValues[defaultOption].base === 0) {
@@ -115,52 +160,6 @@ export class Game extends Activity {
 		format.nameWithOptions = nameWithOptions;
 
 		return options;
-	}
-
-	readonly activityType: string = 'game';
-	awardedBits: boolean = false;
-	canLateJoin: boolean = false;
-	readonly commands: CommandsDict<Game> = Object.assign(Object.create(null), Games.sharedCommands);
-	readonly commandsListeners: IGameCommandCountListener[] = [];
-	internalGame: boolean = false;
-	readonly isUserHosted: boolean = false;
-	readonly loserPointsToBits: number = 10;
-	readonly maxBits: number = 1000;
-	minPlayers: number = 4;
-	notifyRankSignups: boolean = false;
-	parentGame: Game | null = null;
-	prng: PRNG = new PRNG();
-	readonly round: number = 0;
-	signupsTime: number = 0;
-	usesWorkers: boolean = false;
-	readonly winnerPointsToBits: number = 50;
-	readonly winners = new Map<Player, number>();
-
-	initialSeed: PRNGSeed;
-
-	// set immediately in initialize()
-	description!: string;
-	format!: IGameFormat | IUserHostedFormat;
-
-	allowChildGameBits?: boolean;
-	commandDescriptions?: string[];
-	isMiniGame?: boolean;
-	readonly lives?: Map<Player, number>;
-	mascot?: IPokemonCopy;
-	maxPlayers?: number;
-	maxRound?: number;
-	playerCap?: number;
-	readonly points?: Map<Player, number>;
-	shinyMascot?: boolean;
-	startingLives?: number;
-	startingPoints?: number;
-	subGameNumber?: number;
-	readonly variant?: string;
-
-	constructor(room: Room | User, pmRoom?: Room) {
-		super(room, pmRoom);
-
-		this.initialSeed = this.prng.initialSeed.slice() as PRNGSeed;
 	}
 
 	random(m: number): number {
@@ -402,8 +401,8 @@ export class Game extends Activity {
 		}
 
 		if (this.started) {
-			for (let i = 0; i < this.commandsListeners.length; i++) {
-				if (this.commandsListeners[i].remainingPlayersMax) this.increaseOnCommandsMax(this.commandsListeners[i], 1);
+			for (const listener of this.commandsListeners) {
+				if (listener.remainingPlayersMax) this.increaseOnCommandsMax(listener, 1);
 			}
 		} else {
 			if (this.playerCap && this.playerCount >= this.playerCap) this.start();
@@ -419,8 +418,8 @@ export class Game extends Activity {
 
 		if (this.commandsListeners.length) {
 			const commandsListeners = this.commandsListeners.slice();
-			for (let i = 0; i < commandsListeners.length; i++) {
-				if (commandsListeners[i].remainingPlayersMax) this.decreaseOnCommandsMax(commandsListeners[i], 1);
+			for (const listener of commandsListeners) {
+				if (listener.remainingPlayersMax) this.decreaseOnCommandsMax(listener, 1);
 			}
 		}
 
@@ -448,8 +447,7 @@ export class Game extends Activity {
 
 	getCommandsAndAliases(commands: string[]): string[] {
 		const commandsAndAliases: string[] = [];
-		for (let i = 0; i < commands.length; i++) {
-			const command = commands[i];
+		for (const command of commands) {
 			if (!(command in this.commands)) continue;
 			const commandDefinition = this.commands[command];
 			for (const i in this.commands) {
@@ -465,17 +463,17 @@ export class Game extends Activity {
 	findCommandsListener(commands: string[]): IGameCommandCountListener | null {
 		const commandsAndAliases = this.getCommandsAndAliases(commands);
 		let commandListener: IGameCommandCountListener | null = null;
-		for (let i = 0; i < this.commandsListeners.length; i++) {
-			if (this.commandsListeners[i].commands.length !== commandsAndAliases.length) continue;
+		for (const listener of this.commandsListeners) {
+			if (listener.commands.length !== commandsAndAliases.length) continue;
 			let match = true;
-			for (let j = 0; j < this.commandsListeners[i].commands.length; j++) {
-				if (this.commandsListeners[i].commands[j] !== commandsAndAliases[j]) {
+			for (let j = 0; j < listener.commands.length; j++) {
+				if (listener.commands[j] !== commandsAndAliases[j]) {
 					match = false;
 					break;
 				}
 			}
 			if (match) {
-				commandListener = this.commandsListeners[i];
+				commandListener = listener;
 				break;
 			}
 		}
@@ -539,10 +537,9 @@ export class Game extends Activity {
 		if (result === false) return false;
 
 		const triggeredListeners: IGameCommandCountListener[] = [];
-		for (let i = 0; i < this.commandsListeners.length; i++) {
-			const commandListener = this.commandsListeners[i];
-			for (let i = 0; i < commandListener.commands.length; i++) {
-				if (commandListener.commands[i] !== command) continue;
+		for (const commandListener of this.commandsListeners) {
+			for (const listenerCommand of commandListener.commands) {
+				if (listenerCommand !== command) continue;
 				commandListener.count++;
 				commandListener.lastUserId = user.id;
 
@@ -554,8 +551,8 @@ export class Game extends Activity {
 			}
 		}
 
-		for (let i = 0; i < triggeredListeners.length; i++) {
-			this.commandsListeners.splice(this.commandsListeners.indexOf(triggeredListeners[i]), 1);
+		for (const listener of triggeredListeners) {
+			this.commandsListeners.splice(this.commandsListeners.indexOf(listener), 1);
 		}
 
 		return result;
@@ -652,8 +649,7 @@ export class Game extends Activity {
 		if (!Array.isArray(players)) players = [players];
 
 		const achievementId = Tools.toId(achievement.name);
-		for (let i = 0; i < players.length; i++) {
-			const player = players[i];
+		for (const player of players) {
 			let repeat = false;
 			if (player.id in database.gameAchievements) {
 				if (database.gameAchievements[player.id].includes(achievementId)) {
@@ -740,8 +736,8 @@ export class Game extends Activity {
 		for (const i in teams) {
 			const team = teams[i];
 			teamPlayers[team.id] = [];
-			for (let i = 0; i < team.players.length; i++) {
-				if (players.includes(team.players[i])) teamPlayers[team.id].push(team.players[i].name);
+			for (const player of team.players) {
+				if (players.includes(player)) teamPlayers[team.id].push(player.name);
 			}
 		}
 
@@ -753,8 +749,8 @@ export class Game extends Activity {
 
 		const output: string[] = [];
 		const teamKeys = Object.keys(teams).sort();
-		for (let i = 0; i < teamKeys.length; i++) {
-			output.push("<b>" + teams[teamKeys[i]].name + "</b>: " + Tools.joinList(teamPlayers[teamKeys[i]]));
+		for (const key of teamKeys) {
+			output.push("<b>" + teams[key].name + "</b>: " + Tools.joinList(teamPlayers[key]));
 		}
 		return output.join(" | ");
 	}

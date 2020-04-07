@@ -15,6 +15,14 @@ const categories = Object.keys(data) as DataKey[];
 let loadedData = false;
 
 class AmbipomsTossups extends Guessing {
+	hints: string[] = [];
+	lastAnswer: string = '';
+	letterCount: number = 0;
+	letters: string[] = [];
+	revealedLetters: number = 0;
+	readonly roundGuesses = new Map<Player, boolean>();
+	tossupRound: number = 0;
+
 	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
@@ -26,15 +34,8 @@ class AmbipomsTossups extends Guessing {
 
 		loadedData = true;
 	}
-
-	hints: string[] = [];
-	lastAnswer: string = '';
-	letterCount: number = 0;
-	letters: string[] = [];
-	revealedLetters: number = 0;
-	readonly roundGuesses = new Map<Player, boolean>();
-	tossupRound: number = 0;
-
+	
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		let answer = this.sampleOne(data[category]);

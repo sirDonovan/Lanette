@@ -60,8 +60,7 @@ export class Tournaments {
 
 	loadSchedules(): void {
 		const rooms = Object.keys(this.schedules);
-		for (let i = 0; i < rooms.length; i++) {
-			const room = rooms[i];
+		for (const room of rooms) {
 			const id = Tools.toRoomId(room);
 			if (id !== room) {
 				this.schedules[id] = this.schedules[room];
@@ -224,8 +223,8 @@ export class Tournaments {
 			}
 
 			if (Config.tournamentRoomAdvertisements && room.id in Config.tournamentRoomAdvertisements) {
-				for (let i = 0; i < Config.tournamentRoomAdvertisements[room.id].length; i++) {
-					const advertisementRoom = Rooms.get(Config.tournamentRoomAdvertisements[room.id][i]);
+				for (const roomId of Config.tournamentRoomAdvertisements[room.id]) {
+					const advertisementRoom = Rooms.get(roomId);
 					if (advertisementRoom) advertisementRoom.sayHtml('<a href="/' + room.id + '" class="ilink"><strong>' + tournament.name + '</strong> tournament created in <strong>' + room.title + '</strong>.</a>');
 				}
 			}
@@ -272,9 +271,9 @@ export class Tournaments {
 			const database = Storage.getDatabase(room);
 			const pastTournamentIds: string[] = [];
 			if (database.pastTournaments) {
-				for (let i = 0; i < database.pastTournaments.length; i++) {
-					const format = Dex.getFormat(database.pastTournaments[i].inputTarget);
-					pastTournamentIds.push(format ? format.id : Tools.toId(database.pastTournaments[i].name));
+				for (const pastTournament of database.pastTournaments) {
+					const format = Dex.getFormat(pastTournament.inputTarget);
+					pastTournamentIds.push(format ? format.id : Tools.toId(pastTournament.name));
 				}
 			}
 
@@ -433,10 +432,10 @@ export class Tournaments {
 		const format = Dex.getFormat(input);
 		const formatId = format ? format.id : Tools.toId(input);
 
-		for (let i = 0; i < pastTournaments.length; i++) {
-			const pastFormat = Dex.getFormat(pastTournaments[i].inputTarget);
+		for (const pastTournament of pastTournaments) {
+			const pastFormat = Dex.getFormat(pastTournament.inputTarget);
 			if (pastFormat && pastFormat.quickFormat) continue;
-			const id = pastFormat ? pastFormat.id : Tools.toId(pastTournaments[i].name);
+			const id = pastFormat ? pastFormat.id : Tools.toId(pastTournament.name);
 			if (formatId === id) return true;
 		}
 

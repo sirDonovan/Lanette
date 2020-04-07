@@ -10,6 +10,8 @@ const data: {types: string[]} = {
 let loadedData = false;
 
 class FraxuresBattleChain extends Chain {
+	linkEndCache: Dict<string[]> = {};
+
 	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
@@ -27,8 +29,6 @@ class FraxuresBattleChain extends Chain {
 		loadedData = true;
 	}
 
-	linkEndCache: Dict<string[]> = {};
-
 	getLinkStarts(link: IPokemon): string[] {
 		return [link.types.slice().sort().join(",")];
 	}
@@ -37,19 +37,19 @@ class FraxuresBattleChain extends Chain {
 		const type = link.types.slice().sort().join(",");
 		if (type in this.linkEndCache) return this.linkEndCache[type].slice();
 		const ends: string[] = [];
-		for (let i = 0; i < data.types.length; i++) {
-			const type = data.types[i].split(",");
+		for (const typeString of data.types) {
+			const types = typeString.split(",");
 			let superEffective = false;
-			for (let i = 0; i < type.length; i++) {
-				if (Dex.isImmune(type[i], link.types)) {
+			for (const type of types) {
+				if (Dex.isImmune(type, link.types)) {
 					continue;
 				} else {
-					if (Dex.getEffectiveness(type[i], link.types) > 0) {
+					if (Dex.getEffectiveness(type, link.types) > 0) {
 						superEffective = true;
 					}
 				}
 			}
-			if (superEffective) ends.push(data.types[i]);
+			if (superEffective) ends.push(typeString);
 		}
 
 		this.linkEndCache[type] = ends;

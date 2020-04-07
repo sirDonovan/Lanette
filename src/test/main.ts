@@ -23,11 +23,11 @@ if (!fs.existsSync(pokedexMiniBWFile)) {
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noOp = (): void => {};
 const methodsToNoOp = ['appendFile', 'chmod', 'rename', 'rmdir', 'symlink', 'unlink', 'watchFile', 'writeFile'];
-for (let i = 0; i < methodsToNoOp.length; i++) {
+for (const method of methodsToNoOp) {
 	// @ts-ignore
-	fs[methodsToNoOp[i]] = noOp;
+	fs[method] = noOp;
 	// @ts-ignore
-	fs[methodsToNoOp[i] + 'Sync'] = noOp;
+	fs[method + 'Sync'] = noOp;
 }
 
 Object.assign(fs, {createWriteStream() {
@@ -50,8 +50,8 @@ try {
 		game.deallocate(true);
 	}
 
-	for (let i = 0; i < moduleTests.length; i++) {
-		require(path.join(modulesDir, moduleTests[i]));
+	for (const moduleTest of moduleTests) {
+		require(path.join(modulesDir, moduleTest));
 	}
 } catch (e) {
 	console.log(e);

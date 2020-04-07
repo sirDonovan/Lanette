@@ -82,18 +82,6 @@ const achievements: AchievementsDict = {
 };
 
 class TropiusBerryPicking extends Game {
-	static loadData(room: Room): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
-		const movesList = Games.getMovesList(move => move.category !== 'Status' && move.type in Dex.data.typeChart && !move.id.startsWith('hiddenpower'));
-		for (let i = 0; i < movesList.length; i++) {
-			data.moves.push(movesList[i].name);
-		}
-
-		loadedData = true;
-	}
-
 	canEat: boolean = false;
 	canLateJoin: boolean = true;
 	firstEat: Player | false | undefined;
@@ -103,6 +91,18 @@ class TropiusBerryPicking extends Game {
 	roundEffect: IRoundEffect = {effect: '', type: ''};
 	roundLimit: number = 20;
 	roundTime: number = 10 * 1000;
+
+	static loadData(room: Room): void {
+		if (loadedData) return;
+		room.say("Loading data for " + name + "...");
+
+		const movesList = Games.getMovesList(move => move.category !== 'Status' && move.type in Dex.data.typeChart && !move.id.startsWith('hiddenpower'));
+		for (const move of movesList) {
+			data.moves.push(move.name);
+		}
+
+		loadedData = true;
+	}
 
 	onSignups(): void {
 		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);

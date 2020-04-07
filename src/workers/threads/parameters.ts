@@ -5,13 +5,13 @@ import { PRNG, PRNGSeed } from '../../prng';
 import * as tools from '../../tools';
 import { IParam, IParametersIntersectMessage, IParametersIntersectOptions, IParametersResponse, IParametersSearchMessage, IParametersSearchOptions, IParametersWorkerData, IParamTypeKeys, ParametersId, ParamType } from '../parameters';
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 const Tools = new tools.Tools();
 // eslint-disable-next-line @typescript-eslint/camelcase
 const data = worker_threads.workerData as DeepReadonly<IParametersWorkerData>;
 const paramTypeDexesKeys: Dict<Dict<KeyedDict<IParamTypeKeys, readonly string[]>>> = {};
 const searchTypes: (keyof typeof data)[] = ['pokemon'];
-for (let i = 0; i < searchTypes.length; i++) {
-	const searchType = searchTypes[i];
+for (const searchType of searchTypes) {
 	paramTypeDexesKeys[searchType] = {};
 	for (const gen in data[searchType].gens) {
 		paramTypeDexesKeys[searchType][gen] = {
@@ -27,8 +27,8 @@ for (let i = 0; i < searchTypes.length; i++) {
 			weakness: [],
 		};
 		const keys = Object.keys(data[searchType].gens[gen].paramTypeDexes) as ParamType[];
-		for (let i = 0; i < keys.length; i++) {
-			paramTypeDexesKeys[searchType][gen][keys[i]] = Object.keys(data[searchType].gens[gen].paramTypeDexes[keys[i]]);
+		for (const key of keys) {
+			paramTypeDexesKeys[searchType][gen][key] = Object.keys(data[searchType].gens[gen].paramTypeDexes[key]);
 		}
 	}
 }
@@ -38,9 +38,9 @@ function intersect(options: IParametersIntersectOptions): string[] {
 
 	if (options.searchType === 'pokemon') {
 		const filtered: string[] = [];
-		for (let i = 0; i < intersection.length; i++) {
-			const id = Tools.toId(intersection[i]);
-			const isAlola = data.pokemon.gens[options.mod].formes[id] === 'Alola' && intersection[i] !== "Pikachu-Alola";
+		for (const slice of intersection) {
+			const id = Tools.toId(slice);
+			const isAlola = data.pokemon.gens[options.mod].formes[id] === 'Alola' && slice !== "Pikachu-Alola";
 			if (!isAlola && id in data.pokemon.gens[options.mod].otherFormes && intersection.includes(data.pokemon.gens[options.mod].otherFormes[id])) continue;
 			filtered.push(id);
 		}
@@ -78,14 +78,14 @@ function search(options: IParametersSearchOptions, prng: PRNG): IParametersRespo
 		}
 
 		possibleKeys = {};
-		for (let i = 0; i < paramTypes.length; i++) {
-			if (!possibleKeys[paramTypes[i]]) {
-				const keys = paramTypeDexesKeys[options.searchType][options.mod][paramTypes[i]];
+		for (const paramType of paramTypes) {
+			if (!possibleKeys[paramType]) {
+				const keys = paramTypeDexesKeys[options.searchType][options.mod][paramType];
 				const possible: string[] = [];
-				for (let j = 0; j < keys.length; j++) {
-					if (data[options.searchType].gens[options.mod].paramTypeDexes[paramTypes[i]][keys[j]].length >= options.minimumResults) possible.push(Tools.toId(keys[j]));
+				for (const key of keys) {
+					if (data[options.searchType].gens[options.mod].paramTypeDexes[paramType][key].length >= options.minimumResults) possible.push(Tools.toId(key));
 				}
-				possibleKeys[paramTypes[i]] = possible;
+				possibleKeys[paramType] = possible;
 			}
 		}
 
@@ -93,9 +93,9 @@ function search(options: IParametersSearchOptions, prng: PRNG): IParametersRespo
 
 		possibleParams = [];
 		paramPools = [];
-		for (let i = 0; i < paramTypes.length; i++) {
-			paramPools.push(data[options.searchType].gens[options.mod].paramTypePools[paramTypes[i]]);
-			possibleParams.push(possibleKeys[paramTypes[i]]);
+		for (const paramType of paramTypes) {
+			paramPools.push(data[options.searchType].gens[options.mod].paramTypePools[paramType]);
+			possibleParams.push(possibleKeys[paramType]);
 		}
 		possibleParamsLen = possibleParams.length;
 
@@ -115,8 +115,8 @@ function search(options: IParametersSearchOptions, prng: PRNG): IParametersRespo
 		}
 
 		paramCombinations = [];
-		for (let i = 0; i < paramLists[0].length; i++) {
-			paramCombinations.push([paramLists[0][i]]);
+		for (const list of paramLists[0]) {
+			paramCombinations.push([list]);
 		}
 		paramCombinationsLen = paramCombinations.length;
 		paramLists.shift();
@@ -126,10 +126,10 @@ function search(options: IParametersSearchOptions, prng: PRNG): IParametersRespo
 			const finalCombinations = i === paramLists.length - 1;
 			const list = paramLists[i];
 			tempCombinations = [];
-			for (let i = 0; i < list.length; i++) {
+			for (const param of list) {
 				innerLoop:
 				for (let j = 0; j < paramCombinationsLen; j++) {
-					const combination = paramCombinations[j].concat([list[i]]);
+					const combination = paramCombinations[j].concat([param]);
 					if (finalCombinations) {
 						if (maxAttempts) {
 							if (attempts === maxAttempts) break outerloop;

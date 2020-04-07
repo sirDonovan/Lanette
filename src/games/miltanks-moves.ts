@@ -18,20 +18,18 @@ class MiltanksMoves extends Guessing {
 		const pokedex = Games.getPokemonList(x => !x.isForme && !!x.allPossibleMoves.length);
 		const moves = Games.getMovesList();
 		const bannedMoves: string[] = [];
-		for (let i = 0; i < moves.length; i++) {
-			const move = moves[i];
+		for (const move of moves) {
 			const availability = Dex.getMoveAvailability(move, pokedex);
 			if (availability >= Games.maxMoveAvailability) bannedMoves.push(move.id);
 		}
 
 		const moveCache: Dict<IMove> = {};
-		for (let i = 0; i < pokedex.length; i++) {
-			const pokemon = pokedex[i];
-			for (let i = 0; i < pokemon.allPossibleMoves.length; i++) {
-				if (!(pokemon.allPossibleMoves[i] in moveCache)) {
-					moveCache[pokemon.allPossibleMoves[i]] = Dex.getExistingMove(pokemon.allPossibleMoves[i]);
+		for (const pokemon of pokedex) {
+			for (const possibleMove of pokemon.allPossibleMoves) {
+				if (!(possibleMove in moveCache)) {
+					moveCache[possibleMove] = Dex.getExistingMove(possibleMove);
 				}
-				const move = moveCache[pokemon.allPossibleMoves[i]];
+				const move = moveCache[possibleMove];
 				if (bannedMoves.includes(move.id)) continue;
 				if (!(pokemon.species in data.moves)) {
 					data.moves[pokemon.species] = {};
@@ -51,6 +49,7 @@ class MiltanksMoves extends Guessing {
 		loadedData = true;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
 		const species = this.sampleOne(data.pokemon);
 		const type = this.sampleOne(Object.keys(data.moves[species]));

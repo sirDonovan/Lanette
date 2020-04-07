@@ -147,8 +147,7 @@ describe("Tools", () => {
 		assert(!Tools.getChallongeUrl('https://challonge.com/'));
 
 		const links = ['https://challonge.com/mocha', 'http://challonge.com/mocha', 'https://challonge.com/tournament/signup/mocha', 'http://challonge.com/tournament/signup/mocha'];
-		for (let i = 0; i < links.length; i++) {
-			const link = links[i];
+		for (const link of links) {
 			const expectedLink = link.startsWith('http://') ? 'https://' + link.substr(7) : link;
 			assertStrictEqual(Tools.getChallongeUrl(link), expectedLink);
 			assertStrictEqual(Tools.getChallongeUrl(" **" + link + "**"), expectedLink);
@@ -180,8 +179,8 @@ describe("Tools", () => {
 		for (const i in Dex.data.pokedex) {
 			const pokemon = Dex.getExistingPokemon(i);
 			assert(pokemon.color in Tools.pokemonColorHexColors, pokemon.species + "'s color " + pokemon.color);
-			for (let i = 0; i < pokemon.types.length; i++) {
-				assert(pokemon.types[i] in Tools.typeHexColors, pokemon.species + "'s type " + pokemon.types[i]);
+			for (const type of pokemon.types) {
+				assert(type in Tools.typeHexColors, pokemon.species + "'s type " + type);
 			}
 		}
 

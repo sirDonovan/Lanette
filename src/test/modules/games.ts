@@ -11,8 +11,8 @@ function testMascots(format: IGameFormat | IUserHostedFormat): void {
 	if (format.mascot) {
 		assert(Dex.getPokemon(format.mascot), format.name);
 	} else if (format.mascots) {
-		for (let i = 0; i < format.mascots.length; i++) {
-			assert(Dex.getPokemon(format.mascots[i]), format.name);
+		for (const mascot of format.mascots) {
+			assert(Dex.getPokemon(mascot), format.name);
 		}
 	}
 }
@@ -47,6 +47,7 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 				it(test, async function() {
 					const game = createIndividualTestGame(testFormat);
 					try {
+						// eslint-disable-next-line @typescript-eslint/await-thenable
 						await testData.test.call(this, game, testFormat, attributes);
 					} catch (e) {
 						fail(e.message + " (initial seed = " + game.initialSeed + ")");
@@ -89,8 +90,8 @@ for (const i in Games.modes) {
 		}
 		if (!formats.length) throw new Error("No format found for " + mode.name + " tests");
 
-		for (let i = 0; i < formats.length; i++) {
-			const format = Games.getExistingFormat(formats[i] + ", " + mode.id);
+		for (const formatId of formats) {
+			const format = Games.getExistingFormat(formatId + ", " + mode.id);
 			describe(format.nameWithOptions + " individual tests", () => {
 				afterEach(() => {
 					if (room.game) room.game.deallocate(true);
@@ -160,8 +161,8 @@ describe("Games", () => {
 		}
 
 		for (const mode in formatsByMode) {
-			for (let i = 0; i < formatsByMode[mode].length; i++) {
-				const format = Games.getExistingFormat(formatsByMode[mode][i] + "," + mode);
+			for (const formatId of formatsByMode[mode]) {
+				const format = Games.getExistingFormat(formatId + "," + mode);
 				try {
 					let initialSeed: PRNGSeed | undefined;
 					Games.createGame(room, format, room, false, initialSeed);
@@ -203,10 +204,10 @@ describe("Games", () => {
 		assertStrictEqual(nameFormat[0], 'invalidGameFormat');
 		assertStrictEqual(nameFormat[1], name);
 
-		for (let i = 0; i < formats.length; i++) {
-			const formatData = Games.formats[formats[i]];
+		for (const formatId of formats) {
+			const formatData = Games.formats[formatId];
 			if (formatData.modes && formatData.modes.length >= 2) {
-				const modesFormat = Games.getFormat(formats[i] + "," + formatData.modes[0] + "," + formatData.modes[1]);
+				const modesFormat = Games.getFormat(formatId + "," + formatData.modes[0] + "," + formatData.modes[1]);
 				assert(Array.isArray(modesFormat));
 				assertStrictEqual(modesFormat[0], 'tooManyGameModes');
 				assertStrictEqual(modesFormat[1], undefined);
@@ -214,10 +215,10 @@ describe("Games", () => {
 			}
 		}
 
-		for (let i = 0; i < formats.length; i++) {
-			const formatData = Games.formats[formats[i]];
+		for (const formatId of formats) {
+			const formatData = Games.formats[formatId];
 			if (formatData.variants && formatData.variants.length >= 2) {
-				const variantsFormat = Games.getFormat(formats[i] + "," + formatData.variants[0].variant + "," + formatData.variants[1].variant);
+				const variantsFormat = Games.getFormat(formatId + "," + formatData.variants[0].variant + "," + formatData.variants[1].variant);
 				assert(Array.isArray(variantsFormat));
 				assertStrictEqual(variantsFormat[0], 'tooManyGameVariants');
 				assertStrictEqual(variantsFormat[1], undefined);
@@ -271,8 +272,7 @@ describe("Games", () => {
 			if (!format.scriptedOnly) userHostedFormats.push(Games.getExistingUserHostedFormat(i));
 		}
 
-		for (let i = 0; i < userHostedFormats.length; i++) {
-			const format = userHostedFormats[i];
+		for (const format of userHostedFormats) {
 			const startingSendQueueIndex = Client.sendQueue.length;
 
 			const gameLog: string[] = [];

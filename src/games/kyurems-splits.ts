@@ -23,24 +23,24 @@ class KyuremsSplits extends Guessing {
 		data["Characters"] = Dex.data.characters.slice();
 		data["Locations"] = Dex.data.locations.slice();
 
-		const pokemon = Games.getPokemonList();
-		for (let i = 0; i < pokemon.length; i++) {
-			data["Pokemon"].push(pokemon[i].species);
+		const pokemonList = Games.getPokemonList();
+		for (const pokemon of pokemonList) {
+			data["Pokemon"].push(pokemon.species);
 		}
 
 		const abilities = Games.getAbilitiesList();
-		for (let i = 0; i < abilities.length; i++) {
-			data["Pokemon Abilities"].push(abilities[i].name);
+		for (const ability of abilities) {
+			data["Pokemon Abilities"].push(ability.name);
 		}
 
 		const items = Games.getItemsList();
-		for (let i = 0; i < items.length; i++) {
-			data["Pokemon Items"].push(items[i].name);
+		for (const item of items) {
+			data["Pokemon Items"].push(item.name);
 		}
 
 		const moves = Games.getMovesList();
-		for (let i = 0; i < moves.length; i++) {
-			data["Pokemon Moves"].push(moves[i].name);
+		for (const move of moves) {
+			data["Pokemon Moves"].push(move.name);
 		}
 
 		loadedData = true;
@@ -56,6 +56,7 @@ class KyuremsSplits extends Guessing {
 		return true;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		let hint = '';
@@ -68,13 +69,13 @@ class KyuremsSplits extends Guessing {
 			const numberOfLetters = Math.min(5, Math.max(2, Math.floor(validIndices.length * (Math.random() * 0.4 + 0.3))));
 			const chosenIndices = this.sampleMany(validIndices, numberOfLetters);
 			hint = '';
-			for (let i = 0; i < chosenIndices.length; i++) {
-				hint += answer[chosenIndices[i]];
+			for (const index of chosenIndices) {
+				hint += answer[index];
 			}
 			this.answers = [];
-			for (let i = 0; i < data[category].length; i++) {
-				if (this.isValid(Tools.toId(data[category][i]), hint)) {
-					this.answers.push(data[category][i]);
+			for (const answer of data[category]) {
+				if (this.isValid(Tools.toId(answer), hint)) {
+					this.answers.push(answer);
 				}
 			}
 		}

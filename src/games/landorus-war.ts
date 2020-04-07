@@ -14,6 +14,15 @@ const data: {learnsets: Dict<readonly string[]>; moves: string[]; pokemon: strin
 let loadedData = false;
 
 class LandorusWar extends Game {
+	fakePokemon: string[] = [];
+	playerAliases = new Map<Player, string>();
+	playerAliasesList: string[] = [];
+	playerPokemon = new Map<Player, IPokemon>();
+	pokemonList: string[] = [];
+	roundMoves = new Set<Player>();
+	roundSuspects = new Set<Player>();
+	suspectedPlayers = new Map<Player, number>();
+
 	static loadData(room: Room): void {
 		if (loadedData) return;
 
@@ -24,16 +33,15 @@ class LandorusWar extends Game {
 			return true;
 		});
 
-		for (let i = 0; i < moveList.length; i++) {
-			data.moves.push(moveList[i].id);
+		for (const move of moveList) {
+			data.moves.push(move.id);
 		}
 
 		const pokemonList = Games.getPokemonList(x => !!x.allPossibleMoves.length);
-		for (let i = 0; i < pokemonList.length; i++) {
-			const pokemon = pokemonList[i];
+		for (const pokemon of pokemonList) {
 			let moves = 0;
-			for (let i = 0; i < pokemon.allPossibleMoves.length; i++) {
-				if (data.moves.includes(pokemon.allPossibleMoves[i])) moves++;
+			for (const move of pokemon.allPossibleMoves) {
+				if (data.moves.includes(move)) moves++;
 			}
 			if (moves < 20) continue;
 			data.learnsets[pokemon.id] = pokemon.allPossibleMoves;
@@ -42,15 +50,6 @@ class LandorusWar extends Game {
 
 		loadedData = true;
 	}
-
-	fakePokemon: string[] = [];
-	playerAliases = new Map<Player, string>();
-	playerAliasesList: string[] = [];
-	playerPokemon = new Map<Player, IPokemon>();
-	pokemonList: string[] = [];
-	roundMoves = new Set<Player>();
-	roundSuspects = new Set<Player>();
-	suspectedPlayers = new Map<Player, number>();
 
 	onRemovePlayer(player: Player): void {
 		const alias = this.playerAliases.get(player);
@@ -237,16 +236,16 @@ const commands: Dict<ICommandDefinition<LandorusWar>> = {
 				return false;
 			}
 
-			const pokemonid = Tools.toId(targets[1]);
+			const pokemonId = Tools.toId(targets[1]);
 			let pokemonInUse = false;
-			for (let i = 0; i < this.pokemonList.length; i++) {
-				if (Tools.toId(this.pokemonList[i]) === pokemonid) {
+			for (const pokemon of this.pokemonList) {
+				if (Tools.toId(pokemon) === pokemonId) {
 					pokemonInUse = true;
 					break;
 				}
 			}
 			if (!pokemonInUse) {
-				const pokemon = Dex.getPokemon(pokemonid);
+				const pokemon = Dex.getPokemon(pokemonId);
 				if (!pokemon) {
 					player.say("'" + targets[1] + "' is not a valid Pokemon.");
 				} else {
@@ -256,7 +255,7 @@ const commands: Dict<ICommandDefinition<LandorusWar>> = {
 			}
 
 			const targetPokemon = this.playerPokemon.get(targetPlayer)!;
-			if (pokemonid === targetPokemon.id) {
+			if (pokemonId === targetPokemon.id) {
 				const targetAlias = this.playerAliases.get(targetPlayer)!;
 				player.say("Correct! " + targetAlias + " was " + targetPlayer.name + ".");
 				this.playerAliasesList.splice(this.playerAliasesList.indexOf(targetAlias), 1);

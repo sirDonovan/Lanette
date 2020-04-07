@@ -16,18 +16,6 @@ const achievements: AchievementsDict = {
 };
 
 class AxewsBattleCards extends CardMatching {
-	static loadData(room: Room): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-		const typeKeys = Object.keys(Dex.data.typeChart);
-		for (let i = 0; i < typeKeys.length; i++) {
-			const type = Tools.toId(typeKeys[i]);
-			types[type] = typeKeys[i];
-			types[type + 'type'] = typeKeys[i];
-		}
-		loadedData = true;
-	}
-
 	actionCards: Dict<IActionCardData> = {
 		"soak": {name: "Soak", description: "Make pure Water type"},
 		"trickortreat": {name: "Trick-or-Treat", description: "Add Ghost type"},
@@ -50,6 +38,18 @@ class AxewsBattleCards extends CardMatching {
 	showPlayerCards = false;
 	usesColors = false;
 
+	static loadData(room: Room): void {
+		if (loadedData) return;
+		room.say("Loading data for " + name + "...");
+		const typeKeys = Object.keys(Dex.data.typeChart);
+		for (const type of typeKeys) {
+			const id = Tools.toId(type);
+			types[id] = type;
+			types[id + 'type'] = type;
+		}
+		loadedData = true;
+	}
+	
 // TODO: better workaround?
 	arePlayableCards(cards: IPokemonCard[]): boolean {
 		return true;
@@ -74,8 +74,7 @@ class AxewsBattleCards extends CardMatching {
 		const pokedex = this.shuffle(this.deckPool);
 		const deck: CardType[] = [];
 		const minimumDeck = ((this.maxPlayers + 1) * this.format.options.cards);
-		for (let i = 0; i < pokedex.length; i++) {
-			const pokemon = pokedex[i];
+		for (const pokemon of pokedex) {
 			const weaknesses = Dex.getWeaknesses(pokemon).join(",");
 			if (weaknesses in weaknessCounts && weaknessCounts[weaknesses] >= this.format.options.cards) continue;
 			if (!(weaknesses in weaknessCounts)) weaknessCounts[weaknesses] = 0;
@@ -148,11 +147,11 @@ class AxewsBattleCards extends CardMatching {
 		if (card === this.topCard) return false;
 		if (!otherCard) otherCard = this.topCard;
 		let valid = false;
-		for (let i = 0; i < card.types.length; i++) {
-			if (Dex.isImmune(card.types[i], otherCard)) {
+		for (const type of card.types) {
+			if (Dex.isImmune(type, otherCard)) {
 				continue;
 			} else {
-				const effectiveness = Dex.getEffectiveness(card.types[i], otherCard);
+				const effectiveness = Dex.getEffectiveness(type, otherCard);
 				if (effectiveness > 0) {
 					valid = true;
 					break;
@@ -167,8 +166,7 @@ class AxewsBattleCards extends CardMatching {
 		const pokemon: string[] = [];
 		const playableCards: string[] = [];
 		const requiresOtherCards: string[] = [];
-		for (let i = 0; i < cards.length; i++) {
-			let card = cards[i];
+		for (let card of cards) {
 			if (card.action) {
 				card = card as IMoveCard;
 				if (card.action!.requiredOtherCards) {
@@ -220,10 +218,10 @@ class AxewsBattleCards extends CardMatching {
 				}
 			}
 		}
-		for (let i = 0; i < requiresOtherCards.length; i++) {
-			const action = requiresOtherCards[i];
-			for (let i = 0; i < pokemon.length; i++) {
-				playableCards.push(action + ", " + pokemon[i]);
+
+		for (const action of requiresOtherCards) {
+			for (const name of pokemon) {
+				playableCards.push(action + ", " + name);
 			}
 		}
 		return playableCards;
@@ -433,8 +431,8 @@ class AxewsBattleCards extends CardMatching {
 				return false;
 			}
 			let deckHasSpecies = false;
-			for (let i = 0; i < this.deckPool.length; i++) {
-				if (this.deckPool[i].species === pokemon.species) {
+			for (const card of this.deckPool) {
+				if (card.species === pokemon.species) {
 					deckHasSpecies = true;
 					break;
 				}

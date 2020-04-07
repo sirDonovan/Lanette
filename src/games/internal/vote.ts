@@ -22,10 +22,10 @@ export class Vote extends Game {
 		const database = Storage.getDatabase(this.room);
 		const pastGames: string[] = [];
 		if (database.pastGames && database.pastGames.length) {
-			for (let i = 0; i < database.pastGames.length; i++) {
-				const format = Games.getFormat(database.pastGames[i].inputTarget);
+			for (const pastGame of database.pastGames) {
+				const format = Games.getFormat(pastGame.inputTarget);
 				if (Array.isArray(format)) {
-					pastGames.push(database.pastGames[i].name);
+					pastGames.push(pastGame.name);
 				} else {
 					pastGames.push(format.nameWithOptions);
 				}
@@ -53,8 +53,8 @@ export class Vote extends Game {
 			voteHtml += "<br /><br /><b>" + Users.self.name + "'s picks:</b><br />";
 
 			const buttons: string[] = [];
-			for (let i = 0; i < this.picks.length; i++) {
-				buttons.push('<button class="button" name="send" value="' + Config.commandCharacter + 'vote ' + this.picks[i] + '">' + this.picks[i] + '</button>');
+			for (const pick of this.picks) {
+				buttons.push('<button class="button" name="send" value="' + Config.commandCharacter + 'vote ' + pick + '">' + pick + '</button>');
 			}
 			voteHtml += buttons.join(" | ");
 		}
@@ -108,7 +108,7 @@ export class Vote extends Game {
 	}
 
 	onAfterDeallocate(forceEnd: boolean): void {
-		if (!forceEnd && this.chosenFormat) CommandParser.parse(this.room, Users.self, Config.commandCharacter + "creategame " + this.chosenFormat);
+		if (!forceEnd && this.chosenFormat) void CommandParser.parse(this.room, Users.self, Config.commandCharacter + "creategame " + this.chosenFormat);
 	}
 }
 
@@ -121,8 +121,8 @@ const commands: Dict<ICommandDefinition<Vote>> = {
 			let format: IGameFormat | undefined;
 			if (targetId === 'random' || targetId === 'randomgame') {
 				const formats = Tools.shuffle(Object.keys(Games.formats));
-				for (let i = 0; i < formats.length; i++) {
-					const randomFormat = Games.getExistingFormat(formats[i]);
+				for (const formatId of formats) {
+					const randomFormat = Games.getExistingFormat(formatId);
 					if (Games.canCreateGame(this.room, randomFormat) === true) {
 						format = randomFormat;
 						break;

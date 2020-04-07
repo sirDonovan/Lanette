@@ -14,49 +14,6 @@ const data: {"categories": string[]; "categoryPools": Dict<string[]>} = {
 let loadedData = false;
 
 class QuizBuzzwole extends Game {
-	static loadData(room: Room): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
-		for (const type in Dex.data.typeChart) {
-			data.categories.push(type + " type Pokemon");
-		}
-
-		for (let i = 0; i < data.categories.length; i++) {
-			data.categoryPools[Tools.toId(data.categories[i])] = [];
-		}
-
-		const pokedex = Games.getPokemonList();
-		for (let i = 0; i < pokedex.length; i++) {
-			const pokemon = pokedex[i];
-			data.categoryPools[Tools.toId(pokemon.types[0] + 'typepokemon')].push(pokemon.id);
-			if (pokemon.types.length > 1) data.categoryPools[Tools.toId(pokemon.types[1] + 'typepokemon')].push(pokemon.id);
-		}
-
-		const items = Games.getItemsList();
-		for (let i = 0; i < items.length; i++) {
-			const item = items[i];
-			if (item.onPlate) {
-				data.categoryPools.plate.push(item.id);
-				data.categoryPools.plate.push(item.id.substr(0, item.id.length - 5));
-			} else if (item.megaStone) {
-				data.categoryPools.megastone.push(item.id);
-			} else if (item.isBerry) {
-				data.categoryPools.berry.push(item.id);
-				data.categoryPools.berry.push(item.id.substr(0, item.id.length - 5));
-			}
-		}
-
-		const moves = Games.getMovesList(x => !!x.flags);
-		for (let i = 0; i < moves.length; i++) {
-			const move = moves[i];
-			if (move.flags.contact) data.categoryPools.contactmove.push(move.id);
-			if (move.flags.sound) data.categoryPools.soundmove.push(move.id);
-		}
-
-		loadedData = true;
-	}
-
 	maxPlayers: number = 20;
 	playerOrder: Player[] = [];
 	playerList: Player[] = [];
@@ -69,6 +26,46 @@ class QuizBuzzwole extends Game {
 	expectedMultiple: ExpectedMultiple = 0;
 	roundCategories: {'firstMultiple': string; 'secondMultiple': string} = {firstMultiple: '', secondMultiple: ''};
 	expectedMultiples: {'firstMultiple': string[]; 'secondMultiple': string[]} = {firstMultiple: [], secondMultiple: []};
+
+	static loadData(room: Room): void {
+		if (loadedData) return;
+		room.say("Loading data for " + name + "...");
+
+		for (const type in Dex.data.typeChart) {
+			data.categories.push(type + " type Pokemon");
+		}
+
+		for (const category of data.categories) {
+			data.categoryPools[Tools.toId(category)] = [];
+		}
+
+		const pokedex = Games.getPokemonList();
+		for (const pokemon of pokedex) {
+			data.categoryPools[Tools.toId(pokemon.types[0] + 'typepokemon')].push(pokemon.id);
+			if (pokemon.types.length > 1) data.categoryPools[Tools.toId(pokemon.types[1] + 'typepokemon')].push(pokemon.id);
+		}
+
+		const items = Games.getItemsList();
+		for (const item of items) {
+			if (item.onPlate) {
+				data.categoryPools.plate.push(item.id);
+				data.categoryPools.plate.push(item.id.substr(0, item.id.length - 5));
+			} else if (item.megaStone) {
+				data.categoryPools.megastone.push(item.id);
+			} else if (item.isBerry) {
+				data.categoryPools.berry.push(item.id);
+				data.categoryPools.berry.push(item.id.substr(0, item.id.length - 5));
+			}
+		}
+
+		const moves = Games.getMovesList(x => !!x.flags);
+		for (const move of moves) {
+			if (move.flags.contact) data.categoryPools.contactmove.push(move.id);
+			if (move.flags.sound) data.categoryPools.soundmove.push(move.id);
+		}
+
+		loadedData = true;
+	}
 
 	onStart(): void {
 		this.playerOrder = this.shufflePlayers();

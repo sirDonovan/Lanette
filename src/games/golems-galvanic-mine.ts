@@ -12,23 +12,22 @@ const data: {stones: string[]} = {
 let loadedData = false;
 
 class GolemsGalvanicMine extends Game {
+	points = new Map<Player, number>();
+	roundMines = new Map<Player, number>();
+	roundStones: Dict<number> = {};
+	roundTime: number = 7000;
+
 	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
 		const items = Games.getItemsList(undefined, gen);
-		for (let i = 0; i < items.length; i++) {
-			const item = items[i];
+		for (const item of items) {
 			if (item.megaStone || item.zMove) data.stones.push(item.name);
 		}
 
 		loadedData = true;
 	}
-
-	points = new Map<Player, number>();
-	roundMines = new Map<Player, number>();
-	roundStones: Dict<number> = {};
-	roundTime: number = 7000;
 
 	onSignups(): void {
 		if (!this.format.inputOptions.points) this.format.options.points = 30;
@@ -51,14 +50,14 @@ class GolemsGalvanicMine extends Game {
 		const tr = '<tr style="text-align:center;line-height:5">';
 		let html = '<center><table border="1">' + tr;
 		let currentRowCount = 0;
-		for (let i = 0; i < stones.length; i++) {
+		for (const stone of stones) {
 			if (currentRowCount === 3) {
 				html += '</tr>' + tr;
 				currentRowCount = 0;
 			}
 			const value = this.random(6) + 1;
-			this.roundStones[Tools.toId(stones[i])] = value;
-			html += '<td style="width:125px">' + stones[i] + '-' + value + '</td>';
+			this.roundStones[Tools.toId(stone)] = value;
+			html += '<td style="width:125px">' + stone + '-' + value + '</td>';
 			currentRowCount++;
 		}
 		html += "</tr></table></center>";

@@ -82,15 +82,16 @@ export abstract class Guessing extends Game {
 		return answer;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async checkAnswer(guess: string): Promise<string> {
 		guess = Tools.toId(guess);
 		let match = '';
 		const guessMega = (guess.substr(0, 4) === 'mega' ? guess.substr(4) + 'mega' : '');
 		const guessPrimal = (guess.substr(0, 6) === 'primal' ? guess.substr(6) + 'primal' : '');
-		for (let i = 0; i < this.answers.length; i++) {
-			const answer = Tools.toId(this.answers[i]);
-			if (answer === guess || (guessMega && answer === guessMega) || (guessPrimal && answer === guessPrimal)) {
-				match = this.answers[i];
+		for (const answer of this.answers) {
+			const id = Tools.toId(answer);
+			if (id === guess || (guessMega && id === guessMega) || (guessPrimal && id === guessPrimal)) {
+				match = answer;
 				break;
 			}
 		}

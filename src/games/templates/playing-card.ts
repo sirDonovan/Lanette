@@ -99,9 +99,9 @@ export abstract class PlayingCard extends Game {
 			cards = this.getCards(this.startingHandAmount);
 			let total = 0;
 			const aces: IPlayingCard[] = [];
-			for (let i = 0; i < cards.length; i++) {
-				total += cards[i].value;
-				if (cards[i].name === 'A') aces.push(cards[i]);
+			for (const card of cards) {
+				total += card.value;
+				if (card.name === 'A') aces.push(card);
 			}
 			while (this.maxHandTotal && total > this.maxHandTotal && aces.length) {
 				const ace = aces[0];
@@ -116,8 +116,8 @@ export abstract class PlayingCard extends Game {
 		if (newCards) {
 			html += '<b>New card' + (newCards.length > 1 ? 's' : '') + '</b>:<br /><font size="4">';
 			const newCardsHtml: string[] = [];
-			for (let i = 0; i < newCards.length; i++) {
-				newCardsHtml.push(this.getCardHtml(newCards[i]));
+			for (const card of newCards) {
+				newCardsHtml.push(this.getCardHtml(card));
 			}
 			html += newCardsHtml.join(this.cardHtmlDelimiter) + '</font><br /><br />';
 		}
@@ -129,8 +129,8 @@ export abstract class PlayingCard extends Game {
 
 		html += '<br /><font size="4">';
 		const cardsHtml: string[] = [];
-		for (let i = 0; i < cards.length; i++) {
-			cardsHtml.push(this.getCardHtml(cards[i]));
+		for (const card of cards) {
+			cardsHtml.push(this.getCardHtml(card));
 		}
 
 		html += cardsHtml.join(this.cardHtmlDelimiter) + '</font>';

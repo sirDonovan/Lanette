@@ -21,6 +21,10 @@ const achievements: AchievementsDict = {
 };
 
 class MetangsAnagrams extends Guessing {
+	allAnswersAchievement = achievements.wordmaster;
+	allAnswersTeamAchievement = achievements.captainwordmaster;
+	lastAnswer: string = '';
+
 	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
@@ -35,10 +39,7 @@ class MetangsAnagrams extends Guessing {
 		loadedData = true;
 	}
 
-	allAnswersAchievement = achievements.wordmaster;
-	allAnswersTeamAchievement = achievements.captainwordmaster;
-	lastAnswer: string = '';
-
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		let answer = this.sampleOne(data[category]);

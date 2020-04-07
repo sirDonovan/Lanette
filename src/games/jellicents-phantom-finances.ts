@@ -194,8 +194,7 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 	onStart(): void {
 		super.onStart();
 
-		for (let i = 0; i < this.playerOrder.length; i++) {
-			const player = this.playerOrder[i];
+		for (const player of this.playerOrder) {
 			this.playerCurrency.set(player, this.startingCurrency);
 			this.properties.set(player, []);
 		}
@@ -214,9 +213,9 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 	onOwnedPropertySpace(space: BoardPropertyRentSpace, player: Player): void {
 		const ownerProperties = this.properties.get(space.owner!) || [];
 		let rent = 0;
-		for (let i = 0; i < ownerProperties.length; i++) {
-			if (ownerProperties[i].color === space.color) {
-				rent += this.getSpaceRentValue(ownerProperties[i] as BoardPropertyRentSpace);
+		for (const property of ownerProperties) {
+			if (property.color === space.color) {
+				rent += this.getSpaceRentValue(property as BoardPropertyRentSpace);
 			}
 		}
 

@@ -18,6 +18,16 @@ const categories = Object.keys(data) as DataKey[];
 let loadedData = false;
 
 class HypnosHunches extends Guessing {
+	currentCategory: string = '';
+	guessLimit: number = 10;
+	guessedLetters: string[] = [];
+	hints: string[] = [];
+	solvedLetters: string[] = [];
+	uniqueLetters: number = 0;
+	lastAnswer: string = '';
+	letters: string[] = [];
+	roundGuesses = new Map<Player, boolean>();
+
 	static loadData(room: Room): void {
 		if (loadedData) return;
 
@@ -33,16 +43,7 @@ class HypnosHunches extends Guessing {
 		loadedData = true;
 	}
 
-	currentCategory: string = '';
-	guessLimit: number = 10;
-	guessedLetters: string[] = [];
-	hints: string[] = [];
-	solvedLetters: string[] = [];
-	uniqueLetters: number = 0;
-	lastAnswer: string = '';
-	letters: string[] = [];
-	roundGuesses = new Map<Player, boolean>();
-
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		this.currentCategory = category;
@@ -58,8 +59,8 @@ class HypnosHunches extends Guessing {
 		this.letters = letters;
 		const id = Tools.toId(answer).split("");
 		const uniqueLetters: string[] = [];
-		for (let i = 0; i < id.length; i++) {
-			if (!uniqueLetters.includes(id[i])) uniqueLetters.push(id[i]);
+		for (const letter of id) {
+			if (!uniqueLetters.includes(letter)) uniqueLetters.push(letter);
 		}
 		this.uniqueLetters = uniqueLetters.length;
 		this.hints = new Array(letters.length).fill('');
@@ -111,8 +112,8 @@ class HypnosHunches extends Guessing {
 		if (!this.timeout) {
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 		}
-		for (let i = 0; i < this.letters.length; i++) {
-			if (Tools.toId(this.letters[i]) === guess) {
+		for (const letter of this.letters) {
+			if (Tools.toId(letter) === guess) {
 				if (!this.solvedLetters.includes(guess)) {
 					this.solvedLetters.push(guess);
 					if (this.solvedLetters.length === this.uniqueLetters) return this.answers[0];

@@ -17,22 +17,6 @@ const achievements: AchievementsDict = {
 };
 
 class ShedinjasWonderTrials extends Game {
-	static loadData(room: Room): void {
-		if (loadedData) return;
-
-		room.say("Loading data for " + name + "...");
-		const movesList = Games.getMovesList(x => x.id !== 'hiddenpower' && x.category !== 'Status');
-		for (let i = 0; i < movesList.length; i++) {
-			data.moves.push(movesList[i].name);
-		}
-		const pokemonList = Games.getPokemonList(x => !x.isForme);
-		for (let i = 0; i < pokemonList.length; i++) {
-			data.pokedex.push(pokemonList[i].species);
-		}
-
-		loadedData = true;
-	}
-
 	canUseMove: boolean = false;
 	currentPokemon: IPokemon | null = null;
 	firstMove: Player | false | undefined;
@@ -41,6 +25,22 @@ class ShedinjasWonderTrials extends Game {
 	points = new Map<Player, number>();
 	roundMoves = new Map<Player, string>();
 	usedMoves: string[] = [];
+
+	static loadData(room: Room): void {
+		if (loadedData) return;
+
+		room.say("Loading data for " + name + "...");
+		const movesList = Games.getMovesList(x => x.id !== 'hiddenpower' && x.category !== 'Status');
+		for (const move of movesList) {
+			data.moves.push(move.name);
+		}
+		const pokemonList = Games.getPokemonList(x => !x.isForme);
+		for (const pokemon of pokemonList) {
+			data.pokedex.push(pokemon.species);
+		}
+
+		loadedData = true;
+	}
 
 	onSignups(): void {
 		if (this.format.options.freejoin) {

@@ -76,8 +76,8 @@ export class GameMap {
 	floors: MapFloor[] = [];
 
 	reset(): void {
-		for (let i = 0; i < this.floors.length; i++) {
-			this.floors[i].reset();
+		for (const floor of this.floors) {
+			floor.reset();
 		}
 	}
 }
@@ -434,8 +434,7 @@ export abstract class MapGame extends Game {
 		let centers: string[][] = [coordinates];
 		let squares: string[][] = [];
 		while (centers.length) {
-			for (let i = 0; i < centers.length; i++) {
-				const center = centers[i];
+			for (const center of centers) {
 				const x = parseInt(center[0]);
 				const y = parseInt(center[1]);
 				const left = x - 1;
@@ -448,15 +447,15 @@ export abstract class MapGame extends Game {
 					this.toStringCoordindates(left, down), this.toStringCoordindates(x, down), this.toStringCoordindates(right, down),
 				];
 				squares.push(square);
-				for (let i = 0; i < square.length; i++) {
-					if (!radiated.includes(square[i])) radiated.push(square[i]);
+				for (const coords of square) {
+					if (!radiated.includes(coords)) radiated.push(coords);
 				}
 			}
 			centers = [];
 			radius--;
 			if (radius > 0) {
-				for (let i = 0; i < squares.length; i++) {
-					centers.push(squares[i][0].split(","), squares[i][2].split(","), squares[i][6].split(","), squares[i][8].split(","));
+				for (const square of squares) {
+					centers.push(square[0].split(","), square[2].split(","), square[6].split(","), square[8].split(","));
 				}
 				squares = [];
 			}

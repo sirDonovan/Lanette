@@ -15,15 +15,6 @@ export type PRNGSeed = [number, number, number, number];
  * initial seed.
  */
 export class PRNG {
-	static generateSeed(): PRNGSeed {
-		return [
-			Math.floor(Math.random() * 0x10000),
-			Math.floor(Math.random() * 0x10000),
-			Math.floor(Math.random() * 0x10000),
-			Math.floor(Math.random() * 0x10000),
-		] as PRNGSeed;
-	}
-
 	readonly initialSeed: PRNGSeed;
 	seed: PRNGSeed;
 	/** Creates a new source of randomness for the given seed. */
@@ -31,6 +22,15 @@ export class PRNG {
 		if (!seed) seed = PRNG.generateSeed();
 		this.initialSeed = seed.slice() as PRNGSeed; // make a copy
 		this.seed = seed.slice() as PRNGSeed;
+	}
+
+	static generateSeed(): PRNGSeed {
+		return [
+			Math.floor(Math.random() * 0x10000),
+			Math.floor(Math.random() * 0x10000),
+			Math.floor(Math.random() * 0x10000),
+			Math.floor(Math.random() * 0x10000),
+		] as PRNGSeed;
 	}
 
 	/**
@@ -101,7 +101,7 @@ export class PRNG {
 	 *
 	 * The array must not be sparse.
 	 */
-	sample<T>(items: ReadonlyArray<T>): T {
+	sample<T>(items: readonly T[]): T {
 		if (items.length === 0) {
 			throw new RangeError(`Cannot sample an empty array`);
 		}

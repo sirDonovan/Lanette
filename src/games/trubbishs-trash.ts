@@ -23,29 +23,6 @@ const achievements: AchievementsDict = {
 };
 
 class TrubbishsTrash extends Game {
-	static loadData(room: Room): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
-		const basePowers: Dict<number> = {};
-		const movesList = Games.getMovesList(move => !move.id.startsWith('hiddenpower'));
-		for (let i = 0; i < movesList.length; i++) {
-			const move = movesList[i];
-			let basePower = move.basePower;
-			if (typeof basePower !== 'number') basePower = parseInt(basePower);
-			if (isNaN(basePower) || basePower <= 0) continue;
-			if (basePower > highestBasePower) highestBasePower = basePower;
-			basePowers[move.id] = basePower;
-			data.moves.push(move.id);
-		}
-
-		for (let i = 0; i < data.moves.length; i++) {
-			data.movePoints[data.moves[i]] = highestBasePower - basePowers[data.moves[i]];
-		}
-
-		loadedData = true;
-	}
-
 	canTrash: boolean = false;
 	firstTrash: Player | false | undefined;
 	maxPoints: number = 1000;
@@ -58,6 +35,28 @@ class TrubbishsTrash extends Game {
 	roundLimit: number = 20;
 	weakestMove: string = '';
 	weakestTrash: Player | false | undefined;
+
+	static loadData(room: Room): void {
+		if (loadedData) return;
+		room.say("Loading data for " + name + "...");
+
+		const basePowers: Dict<number> = {};
+		const movesList = Games.getMovesList(move => !move.id.startsWith('hiddenpower'));
+		for (const move of movesList) {
+			let basePower = move.basePower;
+			if (typeof basePower !== 'number') basePower = parseInt(basePower);
+			if (isNaN(basePower) || basePower <= 0) continue;
+			if (basePower > highestBasePower) highestBasePower = basePower;
+			basePowers[move.id] = basePower;
+			data.moves.push(move.id);
+		}
+
+		for (const move of data.moves) {
+			data.movePoints[move] = highestBasePower - basePowers[move];
+		}
+
+		loadedData = true;
+	}
 
 	onSignups(): void {
 		if (this.format.options.freejoin) {
@@ -87,7 +86,7 @@ class TrubbishsTrash extends Game {
 	onNextRound(): void {
 		this.canTrash = false;
 		if (this.round > 1) {
-			const trash: {player: Player; move: string; points: number}[] = [];
+			const trashQueue: {player: Player; move: string; points: number}[] = [];
 			let firstTrash = true;
 			this.roundTrashes.forEach((move, player) => {
 				if (player.eliminated) return;
@@ -109,16 +108,16 @@ class TrubbishsTrash extends Game {
 				} else if (this.weakestTrash === player) {
 					this.weakestTrash = false;
 				}
-				trash.push({player, move: move.name, points: move.points});
+				trashQueue.push({player, move: move.name, points: move.points});
 			});
-			trash.sort((a, b) => b.points - a.points);
+			trashQueue.sort((a, b) => b.points - a.points);
 			let highestPoints = 0;
-			for (let i = 0; i < trash.length; i++) {
-				const player = trash[i].player;
+			for (const slot of trashQueue) {
+				const player = slot.player;
 				let points = this.points.get(player) || 0;
-				points += trash[i].points;
+				points += slot.points;
 				this.points.set(player, points);
-				player.say(trash[i].move + " was worth " + trash[i].points + " points! Your total score is now: " + points + ".");
+				player.say(slot.move + " was worth " + slot.points + " points! Your total score is now: " + points + ".");
 				if (points > highestPoints) highestPoints = points;
 			}
 			this.roundTrashes.clear();

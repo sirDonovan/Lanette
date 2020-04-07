@@ -197,10 +197,6 @@ export class PokemonSources {
 }
 
 export class TeamValidator {
-	static get(format: string | IFormat): TeamValidator {
-		return new TeamValidator(format);
-	}
-
 	readonly format: IFormat;
 	readonly dex: typeof Dex;
 	readonly gen: number;
@@ -215,6 +211,10 @@ export class TeamValidator {
 
 		this.minSourceGen = this.ruleTable.minSourceGen ?
 			this.ruleTable.minSourceGen[0] : 1;
+	}
+
+	static get(format: string | IFormat): TeamValidator {
+		return new TeamValidator(format);
 	}
 
 	allSources(template?: Template): PokemonSources {
@@ -377,6 +377,7 @@ export class TeamValidator {
 						// egg moves:
 						//   only if hatched from an egg
 						let limitedEggMove: ID | null | undefined;
+						// eslint-disable-next-line @typescript-eslint/prefer-string-starts-ends-with
 						if (learned.slice(1) === 'Eany') {
 							limitedEggMove = null;
 						} else if (learnedGen < 6) {

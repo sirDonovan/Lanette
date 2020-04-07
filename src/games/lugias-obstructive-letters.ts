@@ -25,41 +25,42 @@ let loadedData = false;
 const letters = Tools.letters.split("");
 
 class LugiasObstructiveLetters extends Guessing {
+	loserPointsToBits: number = 2;
+	roundTime: number = 30 * 1000;
+	winnerPointsToBits: number = 10;
+
 	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		const pokemon = Games.getPokemonList();
-		for (let i = 0; i < pokemon.length; i++) {
-			data["Pokemon"][pokemon[i].id] = pokemon[i].species;
+		const pokemonList = Games.getPokemonList();
+		for (const pokemon of pokemonList) {
+			data["Pokemon"][pokemon.id] = pokemon.species;
 		}
 
 		const abilities = Games.getAbilitiesList();
-		for (let i = 0; i < abilities.length; i++) {
-			data["Pokemon Abilities"][abilities[i].id] = abilities[i].name;
+		for (const ability of abilities) {
+			data["Pokemon Abilities"][ability.id] = ability.name;
 		}
 
 		const items = Games.getItemsList();
-		for (let i = 0; i < items.length; i++) {
-			data["Pokemon Items"][items[i].id] = items[i].name;
+		for (const item of items) {
+			data["Pokemon Items"][item.id] = item.name;
 		}
 
 		const moves = Games.getMovesList();
-		for (let i = 0; i < moves.length; i++) {
-			data["Pokemon Moves"][moves[i].id] = moves[i].name;
+		for (const move of moves) {
+			data["Pokemon Moves"][move.id] = move.name;
 		}
 
-		for (let i = 0; i < categories.length; i++) {
-			dataKeys[categories[i]] = Object.keys(data[categories[i]]);
+		for (const category of categories) {
+			dataKeys[category] = Object.keys(data[category]);
 		}
 
 		loadedData = true;
 	}
 
-	loserPointsToBits: number = 2;
-	roundTime: number = 30 * 1000;
-	winnerPointsToBits: number = 10;
-
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
 		let answers: string[] = [];
 		let category: DataKey;
@@ -68,17 +69,16 @@ class LugiasObstructiveLetters extends Guessing {
 			category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 			const id = this.sampleOne(dataKeys[category]);
 			const availableLetters: string[] = [];
-			for (let i = 0; i < letters.length; i++) {
-				if (id.indexOf(letters[i]) === -1) availableLetters.push(letters[i]);
+			for (const letter of letters) {
+				if (!id.includes(letter)) availableLetters.push(letter);
 			}
 			unavailableLetters = this.sampleMany(availableLetters, Math.floor(availableLetters.length / 2)).sort();
 			answers = [];
-			for (let i = 0; i < dataKeys[category].length; i++) {
-				const answer = dataKeys[category][i];
+			for (const answer of dataKeys[category]) {
 				if (answer.length <= 5) continue;
 				let hasUnavailableLetter = false;
-				for (let i = 0; i < unavailableLetters.length; i++) {
-					if (answer.indexOf(unavailableLetters[i]) !== -1) {
+				for (const letter of unavailableLetters) {
+					if (answer.includes(letter)) {
 						hasUnavailableLetter = true;
 						break;
 					}

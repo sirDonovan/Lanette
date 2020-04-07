@@ -27,30 +27,6 @@ const data: {pokemon: KeyedDict<typeof terrains, string[]>; unusedPokemon: strin
 let loadedData = false;
 
 class TapusTerrains extends Game {
-	static loadData(room: Room): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
-		const pokedex = Games.getPokemonList(x => Dex.hasGifData(x));
-		for (let i = 0; i < pokedex.length; i++) {
-			const pokemon = pokedex[i];
-			let used = false;
-			for (let i = 0; i < pokemon.types.length; i++) {
-				const type = pokemon.types[i];
-				for (let i = 0; i < terrainKeys.length; i++) {
-					if (type === terrains[terrainKeys[i]]) {
-						data.pokemon[terrainKeys[i]].push(pokemon.species);
-						if (!used) used = true;
-						break;
-					}
-				}
-			}
-			if (!used) data.unusedPokemon.push(pokemon.species);
-		}
-
-		loadedData = true;
-	}
-
 	canJump: boolean = false;
 	canLateJoin: boolean = true;
 	currentTerrain: TerrainKey | null = null;
@@ -61,6 +37,28 @@ class TapusTerrains extends Game {
 	roundJumps = new Map<Player, boolean>();
 	targetPokemon: string | null = null;
 	terrainRound: number = 0;
+
+	static loadData(room: Room): void {
+		if (loadedData) return;
+		room.say("Loading data for " + name + "...");
+
+		const pokedex = Games.getPokemonList(x => Dex.hasGifData(x));
+		for (const pokemon of pokedex) {
+			let used = false;
+			for (const type of pokemon.types) {
+				for (const key of terrainKeys) {
+					if (type === terrains[key]) {
+						data.pokemon[key].push(pokemon.species);
+						if (!used) used = true;
+						break;
+					}
+				}
+			}
+			if (!used) data.unusedPokemon.push(pokemon.species);
+		}
+
+		loadedData = true;
+	}
 
 	onStart(): void {
 		this.nextRound();

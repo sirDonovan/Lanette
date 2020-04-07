@@ -51,14 +51,14 @@ describe("Dex", () => {
 
 		const houndour = Dex.getExistingPokemon('Houndour');
 		const houndoomMega = Dex.getExistingPokemon('Houndoom-Mega');
-		for (let i = 0; i < houndour.allPossibleMoves.length; i++) {
-			assert(houndoomMega.allPossibleMoves.includes(houndour.allPossibleMoves[i]));
+		for (const move of houndour.allPossibleMoves) {
+			assert(houndoomMega.allPossibleMoves.includes(move));
 		}
 
 		const rattataAlola = Dex.getExistingPokemon('Rattata-Alola');
 		const raticateAlola = Dex.getExistingPokemon('Raticate-Alola');
-		for (let i = 0; i < rattataAlola.allPossibleMoves.length; i++) {
-			assert(raticateAlola.allPossibleMoves.includes(rattataAlola.allPossibleMoves[i]));
+		for (const move of rattataAlola.allPossibleMoves) {
+			assert(raticateAlola.allPossibleMoves.includes(move));
 		}
 
 		/*
@@ -93,9 +93,9 @@ describe("Dex", () => {
 		if (Dex.omotms.length > 1) assert(Dex.getFormat('omotm2'));
 	});
 	it('should return proper values from getEvolutionLines()', () => {
-		const pokemon = ['Charmander', 'Charmeleon', 'Charizard'];
-		for (let i = 0; i < pokemon.length; i++) {
-			const evolutionLines = Dex.getEvolutionLines(Dex.getExistingPokemon(pokemon[i]));
+		const pokemonList = ['Charmander', 'Charmeleon', 'Charizard'];
+		for (const pokemon of pokemonList) {
+			const evolutionLines = Dex.getEvolutionLines(Dex.getExistingPokemon(pokemon));
 			assertStrictEqual(evolutionLines.length, 1);
 			assertStrictEqual(evolutionLines[0].join(","), 'Charmander,Charmeleon,Charizard');
 		}

@@ -307,7 +307,7 @@ export class Tools {
 		if (atIndex !== -1) {
 			username = usernameText.substr(0, atIndex);
 			status = usernameText.substr(atIndex + 1);
-			away = status.charAt(0) === '!';
+			away = status.startsWith('!');
 		} else {
 			username = usernameText;
 		}
@@ -396,8 +396,8 @@ export class Tools {
 		const parts = input.split('/');
 		const extracted: number[] = [];
 		let hasYear = false;
-		for (let i = 0; i < parts.length; i++) {
-			const partNumber = parseInt(parts[i]);
+		for (const part of parts) {
+			const partNumber = parseInt(part);
 			if (isNaN(partNumber)) return null;
 			if (partNumber > 31) {
 				if (hasYear) return null;
@@ -413,14 +413,14 @@ export class Tools {
 
 	isInteger(text: string): boolean {
 		text = text.trim();
-		if (text.charAt(0) === '-') text = text.substr(1);
+		if (text.startsWith('-')) text = text.substr(1);
 		if (text === '') return false;
 		return !!text.match(INTEGER_REGEX);
 	}
 
 	isFloat(text: string): boolean {
 		text = text.trim();
-		if (text.charAt(0) === '-') text = text.substr(1);
+		if (text.startsWith('-')) text = text.substr(1);
 		if (text === '') return false;
 		return !!text.match(FLOAT_REGEX);
 	}
@@ -443,9 +443,9 @@ export class Tools {
 
 		const clone: DeepWritable<T> = Object.create(Object.getPrototypeOf(obj));
 		const keys = Object.keys(obj) as (keyof T)[];
-		for (let i = 0; i < keys.length; i++) {
+		for (const key of keys) {
 			// @ts-ignore
-			clone[keys[i]] = this.deepClone(obj[keys[i]]);
+			clone[key] = this.deepClone(obj[key]);
 		}
 		return clone;
 	}
@@ -511,8 +511,8 @@ export class Tools {
 		}
 
 		const formatting: string[] = ["**", "__", "``"];
-		for (let i = 0; i < formatting.length; i++) {
-			const index = challongeLink.lastIndexOf(formatting[i]);
+		for (const format of formatting) {
+			const index = challongeLink.lastIndexOf(format);
 			if (index !== -1) challongeLink = challongeLink.substr(0, index);
 		}
 
@@ -522,7 +522,7 @@ export class Tools {
 		return challongeLink;
 	}
 
-	safeWriteFile(filepath: string, data: string): Promise<void> {
+	async safeWriteFile(filepath: string, data: string): Promise<void> {
 		const tempFilepath = filepath + '.temp';
 		return new Promise(resolve => {
 			fs.writeFile(tempFilepath, data, () => {

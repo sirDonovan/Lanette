@@ -16,18 +16,6 @@ const data: {abilities: string[]} = {
 let loadedData = false;
 
 class DedennesAbilityBlitz extends Game {
-	static loadData(room: Room): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
-		const abilities = Games.getAbilitiesList();
-		for (let i = 0; i < abilities.length; i++) {
-			data.abilities.push(abilities[i].name);
-		}
-
-		loadedData = true;
-	}
-
 	canSelect: boolean = false;
 	firstType: Player | null = null;
 	maxPoints: number = 1000;
@@ -39,15 +27,27 @@ class DedennesAbilityBlitz extends Game {
 	roundTime: number = 3 * 1000;
 	highestCatch: Player | null = null;
 
+	static loadData(room: Room): void {
+		if (loadedData) return;
+		room.say("Loading data for " + name + "...");
+
+		const abilities = Games.getAbilitiesList();
+		for (const ability of abilities) {
+			data.abilities.push(ability.name);
+		}
+
+		loadedData = true;
+	}
+
 	onSignups(): void {
 		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
 	}
 
 	generateAbilities(): void {
 		const abilities = this.sampleMany(data.abilities, 3);
-		for (let i = 0; i < abilities.length; i++) {
-			const ability = Tools.toId(abilities[i]);
-			this.roundAbilities.set(ability, {name: abilities[i], points: ability.length * 10});
+		for (const ability of abilities) {
+			const id = Tools.toId(ability);
+			this.roundAbilities.set(id, {name: ability, points: id.length * 10});
 		}
 		const text = "Randomly generated abilities: **" + abilities.join(", ") + "**!";
 		this.on(text, () => {

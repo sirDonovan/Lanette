@@ -151,7 +151,7 @@ export class Client {
 			this.connection.on('error', error => global.Client.onConnectionError(error));
 			this.connection.on('close', (code, description) => global.Client.onConnectionClose(code, description));
 
-			this.onConnect();
+			void this.onConnect();
 		});
 		this.client.on('connectFailed', error => global.Client.onConnectFail(error));
 
@@ -198,10 +198,10 @@ export class Client {
 		this.connectionTimeout = setTimeout(() => this.reconnect(), this.reconnectTime);
 	}
 
-	onConnect(): void {
+	async onConnect(): Promise<void> {
 		if (this.connectionTimeout) clearTimeout(this.connectionTimeout);
 		console.log('Successfully connected');
-		Dex.fetchClientData();
+		await Dex.fetchClientData();
 	}
 
 	connect(): void {
@@ -256,7 +256,7 @@ export class Client {
 		if (websocketMessage.type !== 'utf8' || !websocketMessage.utf8Data) return;
 		const lines = websocketMessage.utf8Data.split("\n");
 		let room: Room;
-		if (lines[0].charAt(0) === '>') {
+		if (lines[0].startsWith('>')) {
 			room = Rooms.add(lines[0].substr(1));
 			lines.shift();
 		} else {
@@ -299,7 +299,7 @@ export class Client {
 	parseMessage(room: Room, rawMessage: string): void {
 		let message: string;
 		let messageType: keyof IClientMessageTypes;
-		if (rawMessage.charAt(0) !== "|") {
+		if (!rawMessage.startsWith("|")) {
 			message = rawMessage;
 			messageType = '';
 		} else {
@@ -362,8 +362,8 @@ export class Client {
 					this.send('|/cmd userdetails ' + Users.self.id);
 				}
 				if (Config.rooms) {
-					for (let i = 0; i < Config.rooms.length; i++) {
-						this.send('|/join ' + Config.rooms[i]);
+					for (const room of Config.rooms) {
+						this.send('|/join ' + room);
 					}
 				}
 				if (Config.avatar) this.send('|/avatar ' + Config.avatar);
@@ -599,7 +599,7 @@ export class Client {
 					}
 				}
 			} else {
-				this.parseChatMessage(room, user, messageArguments.message);
+				void this.parseChatMessage(room, user, messageArguments.message);
 			}
 
 			Storage.updateLastSeen(user, messageArguments.timestamp);
@@ -610,7 +610,7 @@ export class Client {
 			if (messageArguments.message.startsWith('/log ') && messageArguments.message.includes(HOTPATCH_CHAT_COMMAND)) {
 				const hotpatched = messageArguments.message.substr(messageArguments.message.indexOf(HOTPATCH_CHAT_COMMAND) + HOTPATCH_CHAT_COMMAND.length).trim();
 				if (hotpatched === 'formats' || hotpatched === 'battles') {
-					if (Config.autoUpdatePS) Tools.runUpdatePS();
+					if (Config.autoUpdatePS) void Tools.runUpdatePS();
 				}
 			}
 			break;
@@ -674,7 +674,7 @@ export class Client {
 					}
 				}
 			} else if (!isHtml && !isUthml && messageArguments.rank !== this.groupSymbols.locked) {
-				CommandParser.parse(user, user, messageArguments.message);
+				void CommandParser.parse(user, user, messageArguments.message);
 			}
 			break;
 		}
@@ -716,8 +716,8 @@ export class Client {
 					const separatedCustomRules: ISeparatedCustomRules = {bans: [], unbans: [], addedrules: [], removedrules: []};
 					const lines = messageArguments.html.substr(0, messageArguments.html.length - 6).split("<div class='infobox infobox-limited'>This tournament includes:<br />")[1].split('<br />');
 					let currentCategory: 'bans' | 'unbans' | 'addedrules' | 'removedrules' = 'bans';
-					for (let i = 0; i < lines.length; i++) {
-						let line = lines[i].trim();
+					for (let line of lines) {
+						line = line.trim();
 						if (line.startsWith('<b>')) {
 							const category = Tools.toId(line.split('<b>')[1].split('</b>')[0]);
 							if (category === 'bans' || category === 'unbans' || category === 'addedrules' || category === 'removedrules') {
@@ -756,14 +756,14 @@ export class Client {
 					let shortener = false;
 					let evasion = false;
 
-					for (let i = 0; i < rows.length; i++) {
-						if (!rows[i]) continue;
-						if (rows[i].startsWith('<th colspan="2"><h3>')) {
-							currentHeader = rows[i].split('<th colspan="2"><h3>')[1].split('</h3>')[0].split(' <span ')[0];
+					for (const row of rows) {
+						if (!row) continue;
+						if (row.startsWith('<th colspan="2"><h3>')) {
+							currentHeader = row.split('<th colspan="2"><h3>')[1].split('</h3>')[0].split(' <span ')[0];
 							shortener = currentHeader === 'URL Shorteners';
 							evasion = currentHeader === 'Filter Evasion Detection';
-						} else if (rows[i].startsWith('<td><abbr title="') && currentHeader !== 'Whitelisted names') {
-							let word = rows[i].split('<td><abbr title="')[1].split('</abbr>')[0].trim();
+						} else if (row.startsWith('<td><abbr title="') && currentHeader !== 'Whitelisted names') {
+							let word = row.split('<td><abbr title="')[1].split('</abbr>')[0].trim();
 							let filterTo = false;
 							const titleEndIndex = word.indexOf('">');
 							if (titleEndIndex !== -1) word = word.substr(titleEndIndex + 2);
@@ -826,119 +826,119 @@ export class Client {
 			const type = messageParts[0] as keyof ITournamentMessageTypes;
 			messageParts.shift();
 			switch (type) {
-				case 'update': {
-					const messageArguments: ITournamentMessageTypes['update'] = {
-						json: JSON.parse(messageParts.join("|")),
-					};
-					if (!room.tournament) Tournaments.createTournament(room, messageArguments.json);
-					if (room.tournament) room.tournament.update(messageArguments.json);
-					break;
+			case 'update': {
+				const messageArguments: ITournamentMessageTypes['update'] = {
+					json: JSON.parse(messageParts.join("|")),
+				};
+				if (!room.tournament) Tournaments.createTournament(room, messageArguments.json);
+				if (room.tournament) room.tournament.update(messageArguments.json);
+				break;
+			}
+
+			case 'updateEnd': {
+				if (room.tournament) room.tournament.updateEnd();
+				break;
+			}
+
+			case 'end': {
+				const messageArguments: ITournamentMessageTypes['end'] = {
+					json: JSON.parse(messageParts.join("|")),
+				};
+				if (!room.tournament) Tournaments.createTournament(room, messageArguments.json);
+				if (room.tournament) {
+					room.tournament.update(messageArguments.json);
+					room.tournament.updateEnd();
+					room.tournament.end();
 				}
+				const database = Storage.getDatabase(room);
+				const now = Date.now();
+				database.lastTournamentTime = now;
 
-				case 'updateEnd': {
-					if (room.tournament) room.tournament.updateEnd();
-					break;
-				}
-
-				case 'end': {
-					const messageArguments: ITournamentMessageTypes['end'] = {
-						json: JSON.parse(messageParts.join("|")),
-					};
-					if (!room.tournament) Tournaments.createTournament(room, messageArguments.json);
-					if (room.tournament) {
-						room.tournament.update(messageArguments.json);
-						room.tournament.updateEnd();
-						room.tournament.end();
-					}
-					const database = Storage.getDatabase(room);
-					const now = Date.now();
-					database.lastTournamentTime = now;
-
-					// delayed scheduled tournament
-					if (room.id in Tournaments.nextScheduledTournaments && Tournaments.nextScheduledTournaments[room.id].time <= now) {
-						Tournaments.setScheduledTournamentTimer(room);
-					} else {
-						let queuedTournament = false;
-						if (database.queuedTournament) {
-							const format = Dex.getFormat(database.queuedTournament.formatid, true);
-							if (format) {
-								queuedTournament = true;
-								if (!database.queuedTournament.time) database.queuedTournament.time = now + Tournaments.queuedTournamentTime;
-								Tournaments.setTournamentTimer(room, database.queuedTournament.time, format, database.queuedTournament.playerCap, database.queuedTournament.scheduled);
-							} else {
-								delete database.queuedTournament;
-								Storage.exportDatabase(room.id);
-							}
-						}
-
-						if (!queuedTournament) {
-							if (Config.randomTournamentTimers && room.id in Config.randomTournamentTimers && Tournaments.canSetRandomTournament(room)) {
-								Tournaments.setRandomTournamentTimer(room, Config.randomTournamentTimers[room.id]);
-							} else if (room.id in Tournaments.scheduledTournaments) {
-								Tournaments.setScheduledTournamentTimer(room);
-							}
+				// delayed scheduled tournament
+				if (room.id in Tournaments.nextScheduledTournaments && Tournaments.nextScheduledTournaments[room.id].time <= now) {
+					Tournaments.setScheduledTournamentTimer(room);
+				} else {
+					let queuedTournament = false;
+					if (database.queuedTournament) {
+						const format = Dex.getFormat(database.queuedTournament.formatid, true);
+						if (format) {
+							queuedTournament = true;
+							if (!database.queuedTournament.time) database.queuedTournament.time = now + Tournaments.queuedTournamentTime;
+							Tournaments.setTournamentTimer(room, database.queuedTournament.time, format, database.queuedTournament.playerCap, database.queuedTournament.scheduled);
+						} else {
+							delete database.queuedTournament;
+							Storage.exportDatabase(room.id);
 						}
 					}
-					break;
+
+					if (!queuedTournament) {
+						if (Config.randomTournamentTimers && room.id in Config.randomTournamentTimers && Tournaments.canSetRandomTournament(room)) {
+							Tournaments.setRandomTournamentTimer(room, Config.randomTournamentTimers[room.id]);
+						} else if (room.id in Tournaments.scheduledTournaments) {
+							Tournaments.setScheduledTournamentTimer(room);
+						}
+					}
 				}
+				break;
+			}
 
-				case 'forceend': {
-					if (room.tournament) room.tournament.forceEnd();
-					break;
-				}
+			case 'forceend': {
+				if (room.tournament) room.tournament.forceEnd();
+				break;
+			}
 
-				case 'start': {
-					if (room.tournament) room.tournament.start();
-					break;
-				}
+			case 'start': {
+				if (room.tournament) room.tournament.start();
+				break;
+			}
 
-				case 'join': {
-					if (!room.tournament) return;
+			case 'join': {
+				if (!room.tournament) return;
 
-					const messageArguments: ITournamentMessageTypes['join'] = {
-						username: messageParts[0],
-					};
-					room.tournament.createPlayer(messageArguments.username);
-					break;
-				}
+				const messageArguments: ITournamentMessageTypes['join'] = {
+					username: messageParts[0],
+				};
+				room.tournament.createPlayer(messageArguments.username);
+				break;
+			}
 
-				case 'leave':
-				case 'disqualify': {
-					if (!room.tournament) return;
+			case 'leave':
+			case 'disqualify': {
+				if (!room.tournament) return;
 
-					const messageArguments: ITournamentMessageTypes['leave'] = {
-						username: messageParts[0],
-					};
-					room.tournament.destroyPlayer(messageArguments.username);
-					break;
-				}
+				const messageArguments: ITournamentMessageTypes['leave'] = {
+					username: messageParts[0],
+				};
+				room.tournament.destroyPlayer(messageArguments.username);
+				break;
+			}
 
-				case 'battlestart': {
-					if (!room.tournament) return;
+			case 'battlestart': {
+				if (!room.tournament) return;
 
-					const messageArguments: ITournamentMessageTypes['battlestart'] = {
-						usernameA: messageParts[0],
-						usernameB: messageParts[1],
-						roomid: messageParts[2],
-					};
-					room.tournament.onBattleStart(messageArguments.usernameA, messageArguments.usernameB, messageArguments.roomid);
-					break;
-				}
+				const messageArguments: ITournamentMessageTypes['battlestart'] = {
+					usernameA: messageParts[0],
+					usernameB: messageParts[1],
+					roomid: messageParts[2],
+				};
+				room.tournament.onBattleStart(messageArguments.usernameA, messageArguments.usernameB, messageArguments.roomid);
+				break;
+			}
 
-				case 'battleend': {
-					if (!room.tournament) return;
+			case 'battleend': {
+				if (!room.tournament) return;
 
-					const messageArguments: ITournamentMessageTypes['battleend'] = {
-						usernameA: messageParts[0],
-						usernameB: messageParts[1],
-						result: messageParts[2] as 'win' | 'loss' | 'draw',
-						score: messageParts[3].split(',') as [string, string],
-						recorded: messageParts[4] as 'success' | 'fail',
-						roomid: messageParts[5],
-					};
-					room.tournament.onBattleEnd(messageArguments.usernameA, messageArguments.usernameB, messageArguments.score, messageArguments.roomid);
-					break;
-				}
+				const messageArguments: ITournamentMessageTypes['battleend'] = {
+					usernameA: messageParts[0],
+					usernameB: messageParts[1],
+					result: messageParts[2] as 'win' | 'loss' | 'draw',
+					score: messageParts[3].split(',') as [string, string],
+					recorded: messageParts[4] as 'success' | 'fail',
+					roomid: messageParts[5],
+				};
+				room.tournament.onBattleEnd(messageArguments.usernameA, messageArguments.usernameB, messageArguments.score, messageArguments.roomid);
+				break;
+			}
 			}
 			break;
 		}
@@ -989,8 +989,9 @@ export class Client {
 		}
 	}
 
-	parseChatMessage(room: Room, user: User, message: string): void {
-		CommandParser.parse(room, user, message);
+	async parseChatMessage(room: Room, user: User, message: string): Promise<void> {
+		await CommandParser.parse(room, user, message);
+
 		const lowerCaseMessage = message.toLowerCase();
 
 		// unlink tournament battle replays
@@ -1008,8 +1009,8 @@ export class Client {
 		if (room.unlinkChallongeLinks && lowerCaseMessage.includes('challonge.com/')) {
 			const links: string[] = [];
 			const possibleLinks = message.split(" ");
-			for (let i = 0; i < possibleLinks.length; i++) {
-				const link = Tools.getChallongeUrl(possibleLinks[i]);
+			for (const possibleLink of possibleLinks) {
+				const link = Tools.getChallongeUrl(possibleLink);
 				if (link) links.push(link);
 			}
 			// let hasOwnLink = false;
@@ -1018,8 +1019,7 @@ export class Client {
 			if (Config.userHostedTournamentRanks && room.id in Config.userHostedTournamentRanks) rank = Config.userHostedTournamentRanks[room.id].review;
 			const authOrTHC = user.hasRank(room, rank) || (database.thcWinners && user.id in database.thcWinners);
 			outer:
-			for (let i = 0; i < links.length; i++) {
-				const link = links[i];
+			for (const link of links) {
 				/*
 				if (database.hostingBlacklist && user.id in database.hostingBlacklist) {
 					room.sayCommand("/warn " + user.name + ", You are currently banned from hosting");
@@ -1095,20 +1095,20 @@ export class Client {
 		}
 
 		let ranking = groups.length;
-		for (let i = 0; i < groups.length; i++) {
-			this.serverGroups[groups[i].symbol] = Object.assign({ranking}, groups[i]);
-			if (groups[i].name === 'Bot') this.groupSymbols.bot = groups[i].symbol;
-			if (groups[i].type === 'leadership' || groups[i].type === 'staff') {
-				if (groups[i].name === 'Room Owner' || groups[i].name === 'Moderator' || groups[i].name === 'Driver') {
-					this.groupSymbols[Tools.toId(groups[i].name as string)] = groups[i].symbol;
+		for (const group of groups) {
+			this.serverGroups[group.symbol] = Object.assign({ranking}, group);
+			if (group.name === 'Bot') this.groupSymbols.bot = group.symbol;
+			if (group.type === 'leadership' || group.type === 'staff') {
+				if (group.name === 'Room Owner' || group.name === 'Moderator' || group.name === 'Driver') {
+					this.groupSymbols[Tools.toId(group.name as string)] = group.symbol;
 				}
-			} else if (groups[i].type === 'normal' && groups[i].name === 'Voice') {
-				this.groupSymbols.voice = groups[i].symbol;
-			} else if (groups[i].type === 'punishment') {
-				if (groups[i].name === 'Locked') {
-					this.groupSymbols.locked = groups[i].symbol;
-				} else if (groups[i].name === 'Muted') {
-					this.groupSymbols.muted = groups[i].symbol;
+			} else if (group.type === 'normal' && group.name === 'Voice') {
+				this.groupSymbols.voice = group.symbol;
+			} else if (group.type === 'punishment') {
+				if (group.name === 'Locked') {
+					this.groupSymbols.locked = group.symbol;
+				} else if (group.name === 'Muted') {
+					this.groupSymbols.muted = group.symbol;
 				}
 			}
 			ranking--;
@@ -1120,21 +1120,21 @@ export class Client {
 		lowerCase = lowerCase.replace(/__|\*\*|``|\[\[|\]\]/g, '');
 
 		if (this.filterRegularExpressions) {
-			for (let i = 0; i < this.filterRegularExpressions.length; i++) {
-				if (lowerCase.match(this.filterRegularExpressions[i])) return true;
+			for (const expression of this.filterRegularExpressions) {
+				if (lowerCase.match(expression)) return true;
 			}
 		}
 
 		if (this.evasionFilterRegularExpressions) {
 			let evasionLowerCase = lowerCase.normalize('NFKC');
 			evasionLowerCase = evasionLowerCase.replace(/[\s-_,.]+/g, '.');
-			for (let i = 0; i < this.evasionFilterRegularExpressions.length; i++) {
-				if (evasionLowerCase.match(this.evasionFilterRegularExpressions[i])) return true;
+			for (const expression of this.evasionFilterRegularExpressions) {
+				if (evasionLowerCase.match(expression)) return true;
 			}
 		}
 
 		if (room && room.bannedWords) {
-			if (!room.bannedWordsRegex) room.bannedWordsRegex = new RegExp('(?:\\b|(?!\\w))(?:' + room.bannedWords.join('|') + ')(?:\\b|\\B(?!\\w))', 'i');
+			if (!room.bannedWordsRegex) room.bannedWordsRegex = new RegExp('(?:\\b|(?!\\w))(?:' + room.bannedWords.join('|') + ')(?:\\b|\\B(?!\\w))', 'gi');
 			if (message.match(room.bannedWordsRegex)) return true;
 		}
 
@@ -1215,7 +1215,7 @@ export class Client {
 				if (data === ';') {
 					console.log('Failed to log in: invalid password');
 					process.exit();
-				} else if (data.charAt(0) !== ']') {
+				} else if (!data.startsWith(']')) {
 					console.log('Failed to log in: ' + data);
 					process.exit();
 				} else if (data.startsWith('<!DOCTYPE html>')) {

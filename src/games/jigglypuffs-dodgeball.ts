@@ -24,8 +24,8 @@ class JigglypuffsDodgeball extends Game {
 		this.teams = this.generateTeams(2);
 		for (const i in this.teams) {
 			const players = this.teams[i].players;
-			for (let i = 0; i < players.length; i++) {
-				players[i].say("**Your team**: " + Tools.joinList(players.filter(x => x !== players[i]).map(x => x.name)));
+			for (const player of players) {
+				player.say("**Your team**: " + Tools.joinList(players.filter(x => x !== player).map(x => x.name)));
 			}
 		}
 
@@ -37,19 +37,18 @@ class JigglypuffsDodgeball extends Game {
 		if (this.round > 1) {
 			this.shields.clear();
 			let caughtBall = false;
-			for (let i = 0; i < this.queue.length; i++) {
-				const player = this.queue[i].source;
-				const targetPlayer = this.queue[i].target;
+			for (const slot of this.queue) {
+				const player = slot.source;
+				const targetPlayer = slot.target;
 				if (player.team === targetPlayer.team) continue;
 				this.shields.set(player, true);
 				if (this.shields.has(targetPlayer) || targetPlayer.eliminated) continue;
 				if (!caughtBall && !this.random(4)) {
 					caughtBall = true;
 					const eliminatedTeammates: Player[] = [];
-					for (let i = 0; i < targetPlayer.team!.players.length; i++) {
-						const teammate = targetPlayer.team!.players[i];
-						if (teammate.eliminated && !this.renameDQs.includes(teammate)) {
-							eliminatedTeammates.push(teammate);
+					for (const teamMember of targetPlayer.team!.players) {
+						if (teamMember.eliminated && !this.renameDQs.includes(teamMember)) {
+							eliminatedTeammates.push(teamMember);
 						}
 					}
 					const revived = eliminatedTeammates.length ? this.sampleOne(eliminatedTeammates) : null;
@@ -59,7 +58,7 @@ class JigglypuffsDodgeball extends Game {
 					this.say(targetPlayer.name + " caught " + player.name + "'s " + BALL_POKEMON + (revived ? " and brought " + revived.name + " back into the game" : "") + "!");
 					this.shields.set(targetPlayer, true);
 				} else {
-					this.eliminatePlayer(targetPlayer, "You were hit by " + this.queue[i].source.name + "'s " + BALL_POKEMON + "!");
+					this.eliminatePlayer(targetPlayer, "You were hit by " + player.name + "'s " + BALL_POKEMON + "!");
 				}
 			}
 
@@ -98,8 +97,8 @@ class JigglypuffsDodgeball extends Game {
 		}
 
 		if (team) {
-			for (let i = 0; i < team.players.length; i++) {
-				this.winners.set(team.players[i], 1);
+			for (const player of team.players) {
+				this.winners.set(player, 1);
 			}
 			this.winners.forEach((value, player) => {
 				let earnings = 250;

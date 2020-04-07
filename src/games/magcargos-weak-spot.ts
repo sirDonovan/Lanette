@@ -19,35 +19,6 @@ const achievements: AchievementsDict = {
 };
 
 class MagcargosWeakSpot extends Guessing {
-	static loadData(room: Room): void {
-		if (loadedData) return;
-
-		room.say("Loading data for " + name + "...");
-
-		const types = Object.keys(Dex.data.typeChart);
-		const pokemonList = Games.getPokemonList(x => !x.species.startsWith("Arceus-") && !x.species.startsWith('Silvally-'));
-		for (let i = 0; i < pokemonList.length; i++) {
-			for (let j = 0; j < types.length; j++) {
-				const effectiveness = Dex.getEffectiveness(types[j], pokemonList[i]);
-				if (Dex.isImmune(types[j], pokemonList[i]) || effectiveness <= -1) {
-					if (!(types[j] in data.inverseTypeWeaknesses)) {
-						data.inverseTypeWeaknesses[types[j]] = [];
-						data.inverseTypeKeys.push(types[j]);
-					}
-					data.inverseTypeWeaknesses[types[j]].push(pokemonList[i].species);
-				} else if (effectiveness >= 1) {
-					if (!(types[j] in data.typeWeaknesses)) {
-						data.typeWeaknesses[types[j]] = [];
-						data.typeKeys.push(types[j]);
-					}
-					data.typeWeaknesses[types[j]].push(pokemonList[i].species);
-				}
-			}
-		}
-
-		loadedData = true;
-	}
-
 	allAnswersAchievement = achievements.achillesheel;
 	allAnswersTeamAchievement = achievements.captainachilles;
 	inverseTypes: boolean = false;
@@ -56,24 +27,53 @@ class MagcargosWeakSpot extends Guessing {
 	lastType: string = '';
 	roundGuesses = new Map<Player, boolean>();
 
+	static loadData(room: Room): void {
+		if (loadedData) return;
+
+		room.say("Loading data for " + name + "...");
+
+		const types = Object.keys(Dex.data.typeChart);
+		const pokemonList = Games.getPokemonList(x => !x.species.startsWith("Arceus-") && !x.species.startsWith('Silvally-'));
+		for (const pokemon of pokemonList) {
+			for (const type of types) {
+				const effectiveness = Dex.getEffectiveness(type, pokemon);
+				if (Dex.isImmune(type, pokemon) || effectiveness <= -1) {
+					if (!(type in data.inverseTypeWeaknesses)) {
+						data.inverseTypeWeaknesses[type] = [];
+						data.inverseTypeKeys.push(type);
+					}
+					data.inverseTypeWeaknesses[type].push(pokemon.species);
+				} else if (effectiveness >= 1) {
+					if (!(type in data.typeWeaknesses)) {
+						data.typeWeaknesses[type] = [];
+						data.typeKeys.push(type);
+					}
+					data.typeWeaknesses[type].push(pokemon.species);
+				}
+			}
+		}
+
+		loadedData = true;
+	}
+
 	async setAnswers(): Promise<void> {
 		const typeKeys: string[] = this.inverseTypes ? data.inverseTypeKeys : data.typeKeys;
 		const typeWeaknesses: Dict<string[]> = this.inverseTypes ? data.inverseTypeWeaknesses : data.typeWeaknesses;
 		let type = this.sampleOne(typeKeys);
-		let pokemon = this.sampleMany(typeWeaknesses[type], 3).sort();
-		while (type === this.lastType || pokemon.join(', ') === this.lastPokemon) {
+		let pokemonList = this.sampleMany(typeWeaknesses[type], 3).sort();
+		while (type === this.lastType || pokemonList.join(', ') === this.lastPokemon) {
 			type = this.sampleOne(typeKeys);
-			pokemon = this.sampleMany(typeWeaknesses[type], 3).sort();
+			pokemonList = this.sampleMany(typeWeaknesses[type], 3).sort();
 		}
-		this.lastPokemon = pokemon.join(', ');
+		this.lastPokemon = pokemonList.join(', ');
 		this.lastType = type;
 
 		const answers: string[] = [type];
 		for (const i in typeWeaknesses) {
 			if (i === type) continue;
 			let containsPokemon = true;
-			for (let j = 0; j < pokemon.length; j++) {
-				if (!typeWeaknesses[i].includes(pokemon[j])) {
+			for (const pokemon of pokemonList) {
+				if (!typeWeaknesses[i].includes(pokemon)) {
 					containsPokemon = false;
 					break;
 				}
@@ -81,8 +81,8 @@ class MagcargosWeakSpot extends Guessing {
 			if (containsPokemon) answers.push(i);
 		}
 		let containsPreviousAnswer = false;
-		for (let i = 0; i < answers.length; i++) {
-			if (this.lastAnswers.includes(answers[i])) {
+		for (const answer of answers) {
+			if (this.lastAnswers.includes(answer)) {
 				containsPreviousAnswer = true;
 				break;
 			}
@@ -95,7 +95,7 @@ class MagcargosWeakSpot extends Guessing {
 		this.roundGuesses.clear();
 		this.lastAnswers = answers;
 		this.answers = answers;
-		this.hint = "<b>Randomly generated Pokemon</b>: <i>" + pokemon.join(", ") + "</i>";
+		this.hint = "<b>Randomly generated Pokemon</b>: <i>" + pokemonList.join(", ") + "</i>";
 	}
 }
 

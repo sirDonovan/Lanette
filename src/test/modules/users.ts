@@ -8,8 +8,8 @@ describe("Users", () => {
 		Users.remove(user);
 
 		const formatting: string[] = ['*', '_', '`', '~', '^', '\\'];
-		for (let i = 0; i < formatting.length; i++) {
-			user = Users.add(formatting[i] + id + formatting[i], id);
+		for (const format of formatting) {
+			user = Users.add(format + id + format, id);
 			assertStrictEqual(user.name, id);
 			Users.remove(user);
 		}

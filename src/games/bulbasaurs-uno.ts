@@ -16,18 +16,6 @@ const achievements: AchievementsDict = {
 };
 
 class BulbasaursUno extends CardMatching {
-	static loadData(room: Room): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-		const typeKeys = Object.keys(Dex.data.typeChart);
-		for (let i = 0; i < typeKeys.length; i++) {
-			const type = Tools.toId(typeKeys[i]);
-			types[type] = typeKeys[i];
-			types[type + 'type'] = typeKeys[i];
-		}
-		loadedData = true;
-	}
-
 	actionCards: Dict<IActionCardData> = {
 		"greninja": {name: "Wild (type)", description: "Change to 1 type", requiredTarget: true},
 		"kecleon": {name: "Wild (color)", description: "Change the color", requiredTarget: true},
@@ -45,6 +33,18 @@ class BulbasaursUno extends CardMatching {
 	playerCards = new Map<Player, IPokemonCard[]>();
 	shinyCardAchievement = achievements.luckofthedraw;
 	typesLimit: number = 20;
+
+	static loadData(room: Room): void {
+		if (loadedData) return;
+		room.say("Loading data for " + name + "...");
+		const typeKeys = Object.keys(Dex.data.typeChart);
+		for (const type of typeKeys) {
+			const id = Tools.toId(type);
+			types[id] = type;
+			types[id + 'type'] = type;
+		}
+		loadedData = true;
+	}
 
 // TODO: better workaround?
 	arePlayableCards(cards: IPokemonCard[]): boolean {
@@ -80,9 +80,9 @@ class BulbasaursUno extends CardMatching {
 					if (!this.isPlayableCard(outerCard, this.topCard)) continue;
 					const inner = outer.slice();
 					inner.splice(i, 1);
-					for (let i = 0; i < inner.length; i++) {
-						if (this.isPlayableCard(inner[i], outerCard)) {
-							const action = card.name + ', ' + [inner[i].species, outerCard.species].sort().join(', ');
+					for (const card of inner) {
+						if (this.isPlayableCard(card, outerCard)) {
+							const action = card.name + ', ' + [card.species, outerCard.species].sort().join(', ');
 							if (!playableCards.includes(action)) playableCards.push(action);
 						}
 					}

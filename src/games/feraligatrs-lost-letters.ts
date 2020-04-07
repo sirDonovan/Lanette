@@ -17,6 +17,9 @@ const vowels: string[] = ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'];
 let loadedData = false;
 
 class FeraligatrsLostLetters extends Guessing {
+	categoryList: DataKey[] = categories.slice();
+	roundTime: number = 10 * 1000;
+
 	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
@@ -31,9 +34,6 @@ class FeraligatrsLostLetters extends Guessing {
 		loadedData = true;
 	}
 
-	categoryList: DataKey[] = categories.slice();
-	roundTime: number = 10 * 1000;
-
 	onSignups(): void {
 		super.onSignups();
 		if (this.variant === 'inverse') {
@@ -44,15 +44,15 @@ class FeraligatrsLostLetters extends Guessing {
 
 	removeLetters(letters: string[], isInverse: boolean): string {
 		const newLetters: string[] = [];
-		for (let i = 0; i < letters.length; i++) {
-			if (letters[i] === ' ') continue;
+		for (const letter of letters) {
+			if (letter === ' ') continue;
 			if (isInverse) {
-				if (vowels.includes(letters[i])) {
-					newLetters.push(letters[i]);
+				if (vowels.includes(letter)) {
+					newLetters.push(letter);
 				}
 			} else {
-				if (!vowels.includes(letters[i])) {
-					newLetters.push(letters[i]);
+				if (!vowels.includes(letter)) {
+					newLetters.push(letter);
 				}
 			}
 		}
@@ -60,6 +60,7 @@ class FeraligatrsLostLetters extends Guessing {
 		return newLetters.join('');
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
 		const isInverse = this.variant === 'inverse';
 		let category: DataKey;
@@ -81,8 +82,8 @@ class FeraligatrsLostLetters extends Guessing {
 			answer = name;
 		}
 		this.answers = [answer];
-		for (let i = 0; i < data[category].length; i++) {
-			const name = data[category][i].trim();
+		for (let name of data[category]) {
+			name = name.trim();
 			if (name === answer) continue;
 			if (this.removeLetters(name.split(''), isInverse) === hint) this.answers.push(name);
 		}

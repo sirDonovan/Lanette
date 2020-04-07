@@ -32,18 +32,24 @@ const categories: {'Pokemon': (keyof IPokemonPairData)[]; moves: (keyof IMovePai
 	'moves': ['type', 'pp', 'bp', 'generation'],
 	'Pokemon': ['type', 'color', 'ability', 'generation'],
 };
-type dataTypes = keyof typeof categories;
+type DataTypes = keyof typeof categories;
 
 let loadedData = false;
 
 class PanchamPairs extends Game {
+	canPair: boolean = false;
+	dataType: DataTypes = 'Pokemon';
+	currentList: string[] = [];
+	currentListString: string = '';
+	paired = new Set<Player>();
+	pairRound: number = 0;
+
 	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
 		const pokemonList = Games.getPokemonList();
-		for (let i = 0; i < pokemonList.length; i++) {
-			const pokemon = pokemonList[i];
+		for (const pokemon of pokemonList) {
 			dataKeys['Pokemon'].push(pokemon.species);
 			const abilities: string[] = [];
 			for (const i in pokemon.abilities) {
@@ -59,8 +65,7 @@ class PanchamPairs extends Game {
 		}
 
 		const movesList = Games.getMovesList(x => !!x.basePower);
-		for (let i = 0; i < movesList.length; i++) {
-			const move = movesList[i];
+		for (const move of movesList) {
 			dataKeys.moves.push(move.name);
 			data.moves[move.name] = {
 				"type": [move.type],
@@ -72,13 +77,6 @@ class PanchamPairs extends Game {
 
 		loadedData = true;
 	}
-
-	canPair: boolean = false;
-	dataType: dataTypes = 'Pokemon';
-	currentList: string[] = [];
-	currentListString: string = '';
-	paired = new Set<Player>();
-	pairRound: number = 0;
 
 	onStart(): void {
 		this.nextRound();
@@ -190,11 +188,11 @@ class PanchamPairs extends Game {
 		}
 		if (!nameA || !nameB || (inCurrent && (!this.currentList.includes(nameA) || !this.currentList.includes(nameB)))) return false;
 		// @ts-ignore
-		if (categories[this.dataType].indexOf(paramName) === -1) return false;
+		if (!categories[this.dataType].includes(paramName)) return false;
 		// @ts-ignore
-		for (let i = 0; i < usedData[nameA][paramName].length; i++) {
+		for (const thing of usedData[nameA][paramName]) {
 			// @ts-ignore
-			if (usedData[nameB][paramName].includes(usedData[nameA][paramName][i])) {
+			if (usedData[nameB][paramName].includes(thing)) {
 				return [nameA, nameB];
 			}
 		}

@@ -18,7 +18,7 @@ class CacturnesPokemonCards extends CardHighLow {
 			return bst;
 		} else {
 			// @ts-ignore
-			return card.baseStats[detail];
+			return card.baseStats[detail] as number;
 		}
 	}
 }

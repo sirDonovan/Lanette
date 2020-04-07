@@ -11,13 +11,15 @@ const effectivenessListsKeys: string[] = [];
 let loadedData = false;
 
 class BeheeyemsMassEffect extends Guessing {
+	lastEffectiveness: string = '';
+	roundTime: number = 20 * 1000;
+
 	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
 		const pokemonList = Games.getPokemonList();
-		for (let i = 0; i < pokemonList.length; i++) {
-			const pokemon = pokemonList[i];
+		for (const pokemon of pokemonList) {
 			const typing = pokemon.types.slice().sort().join('/');
 			if (!(typing in data.types)) data.types[typing] = [];
 			data.types[typing].push(pokemon.species);
@@ -53,8 +55,8 @@ class BeheeyemsMassEffect extends Guessing {
 				effectivenessLists[effectiveness] = [];
 				effectivenessListsKeys.push(effectiveness);
 			}
-			for (let i = 0; i < data.types[typing].length; i++) {
-				const pokemon = data.types[typing][i];
+
+			for (const pokemon of  data.types[typing]) {
 				if (!effectivenessLists[effectiveness].includes(pokemon)) effectivenessLists[effectiveness].push(pokemon);
 			}
 		}
@@ -62,15 +64,13 @@ class BeheeyemsMassEffect extends Guessing {
 		loadedData = true;
 	}
 
-	lastEffectiveness: string = '';
-	roundTime: number = 20 * 1000;
-
 	onSignups(): void {
 		if (this.format.options.freejoin) {
 			this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
 		}
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
 		let effectiveness = this.sampleOne(effectivenessListsKeys);
 		while (effectiveness === this.lastEffectiveness) {

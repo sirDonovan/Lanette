@@ -24,59 +24,59 @@ const dataKeys: KeyedDict<typeof data, string[]> = {
 let loadedData = false;
 
 class EkansEdges extends Guessing {
+	lastEdge: string = '';
+
 	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		for (let i = 0; i < Dex.data.characters.length; i++) {
-			const edge = Dex.data.characters[i].charAt(0) + " - " + Dex.data.characters[i].substr(-1);
+		for (const character of Dex.data.characters) {
+			const edge = character.charAt(0) + " - " + character.substr(-1);
 			if (!data["Characters"][edge]) data["Characters"][edge] = [];
-			data["Characters"][edge].push(Dex.data.characters[i]);
+			data["Characters"][edge].push(character);
 		}
 
-		for (let i = 0; i < Dex.data.locations.length; i++) {
-			const edge = Dex.data.locations[i].charAt(0) + " - " + Dex.data.locations[i].substr(-1);
+		for (const location of Dex.data.locations) {
+			const edge = location.charAt(0) + " - " + location.substr(-1);
 			if (!data["Locations"][edge]) data["Locations"][edge] = [];
-			data["Locations"][edge].push(Dex.data.locations[i]);
+			data["Locations"][edge].push(location);
 		}
 
-		const pokemon = Games.getPokemonList();
-		for (let i = 0; i < pokemon.length; i++) {
-			const edge = pokemon[i].species.charAt(0) + " - " + pokemon[i].species.substr(-1);
+		const pokemonList = Games.getPokemonList();
+		for (const pokemon of pokemonList) {
+			const edge = pokemon.species.charAt(0) + " - " + pokemon.species.substr(-1);
 			if (!data["Pokemon"][edge]) data["Pokemon"][edge] = [];
-			data["Pokemon"][edge].push(pokemon[i].species);
+			data["Pokemon"][edge].push(pokemon.species);
 		}
 
 		const abilities = Games.getAbilitiesList();
-		for (let i = 0; i < abilities.length; i++) {
-			const edge = abilities[i].name.charAt(0) + " - " + abilities[i].name.substr(-1);
+		for (const ability of abilities) {
+			const edge = ability.name.charAt(0) + " - " + ability.name.substr(-1);
 			if (!data["Pokemon Abilities"][edge]) data["Pokemon Abilities"][edge] = [];
-			data["Pokemon Abilities"][edge].push(abilities[i].name);
+			data["Pokemon Abilities"][edge].push(ability.name);
 		}
 
 		const items = Games.getItemsList();
-		for (let i = 0; i < items.length; i++) {
-			const edge = items[i].name.charAt(0) + " - " + items[i].name.substr(-1);
+		for (const item of items) {
+			const edge = item.name.charAt(0) + " - " + item.name.substr(-1);
 			if (!data["Pokemon Items"][edge]) data["Pokemon Items"][edge] = [];
-			data["Pokemon Items"][edge].push(items[i].name);
+			data["Pokemon Items"][edge].push(item.name);
 		}
 
 		const moves = Games.getMovesList();
-		for (let i = 0; i < moves.length; i++) {
-			const edge = moves[i].name.charAt(0) + " - " + moves[i].name.substr(-1);
+		for (const move of moves) {
+			const edge = move.name.charAt(0) + " - " + move.name.substr(-1);
 			if (!data["Pokemon Moves"][edge]) data["Pokemon Moves"][edge] = [];
-			data["Pokemon Moves"][edge].push(moves[i].name);
+			data["Pokemon Moves"][edge].push(move.name);
 		}
 
 		const keys = Object.keys(data) as DataKey[];
-		for (let i = 0; i < keys.length; i++) {
-			dataKeys[keys[i]] = Object.keys(data[keys[i]]);
+		for (const key of keys) {
+			dataKeys[key] = Object.keys(data[key]);
 		}
 
 		loadedData = true;
 	}
-
-	lastEdge: string = '';
 
 	onSignups(): void {
 		if (!this.isMiniGame) {
@@ -84,6 +84,7 @@ class EkansEdges extends Guessing {
 		}
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		let edge = this.sampleOne(dataKeys[category]);

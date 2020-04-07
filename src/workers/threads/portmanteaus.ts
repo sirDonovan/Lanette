@@ -5,6 +5,7 @@ import { PRNG, PRNGSeed } from '../../prng';
 import * as tools from '../../tools';
 import { IPortmanteausResponse, IPortmanteausSearchMessage, IPortmanteausWorkerData, PoolType, PortmanteausId } from '../portmanteaus';
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 const Tools = new tools.Tools();
 // eslint-disable-next-line @typescript-eslint/camelcase
 const data = worker_threads.workerData as IPortmanteausWorkerData;
@@ -95,8 +96,8 @@ function search(options: IPortmanteausSearchMessage, prng: PRNG): IPortmanteausR
 		}
 		if (baseLen >= 2) {
 			answers = baseAnswers;
-			for (let i = 0; i < portLists.length; i++) {
-				ports.push(portLists[i].port);
+			for (const list of portLists) {
+				ports.push(list.port);
 			}
 			break;
 		} else {
@@ -111,16 +112,16 @@ function search(options: IPortmanteausSearchMessage, prng: PRNG): IPortmanteausR
 		if (!answers.includes(combination)) continue;
 		const parts = answerParts[combination];
 		formattedAnswerParts[combination] = [];
-		for (let i = 0; i < parts.length; i++) {
-			let part = parts[i].part;
-			if (parts[i].detail === 'Berry') {
-				part += " Berry";
-			} else if (parts[i].detail === 'Drive') {
-				part += " Drive";
-			} else if (parts[i].detail === 'Plate') {
-				part += " Plate";
+		for (const part of parts) {
+			let name = part.part;
+			if (part.detail === 'Berry') {
+				name += " Berry";
+			} else if (part.detail === 'Drive') {
+				name += " Drive";
+			} else if (part.detail === 'Plate') {
+				name += " Plate";
 			}
-			formattedAnswerParts[combination].push(part);
+			formattedAnswerParts[combination].push(name);
 		}
 	}
 	return {answers, ports, answerParts: formattedAnswerParts, prngSeed: prng.seed.slice() as PRNGSeed};

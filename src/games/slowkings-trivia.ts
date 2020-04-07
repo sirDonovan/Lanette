@@ -23,13 +23,15 @@ const achievements: AchievementsDict = {
 };
 
 class SlowkingsTrivia extends Guessing {
+	allAnswersAchievement = achievements.knowitall;
+	allAnswersTeamAchievement = achievements.captainknowitall;
+
 	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
 		const abilities = Games.getAbilitiesList();
-		for (let i = 0; i < abilities.length; i++) {
-			const ability = abilities[i];
+		for (const ability of abilities) {
 			const desc = ability.desc || ability.shortDesc;
 			if (!desc) continue;
 			if (!(desc in data["Pokemon Abilities"])) data["Pokemon Abilities"][desc] = [];
@@ -37,8 +39,7 @@ class SlowkingsTrivia extends Guessing {
 		}
 
 		const items = Games.getItemsList();
-		for (let i = 0; i < items.length; i++) {
-			const item = items[i];
+		for (const item of items) {
 			const desc = item.desc || item.shortDesc;
 			if (!desc) continue;
 			if (!(desc in data["Pokemon Items"])) data["Pokemon Items"][desc] = [];
@@ -46,24 +47,21 @@ class SlowkingsTrivia extends Guessing {
 		}
 
 		const moves = Games.getMovesList();
-		for (let i = 0; i < moves.length; i++) {
-			const move = moves[i];
+		for (const move of moves) {
 			const desc = move.desc || move.shortDesc;
 			if (!desc) continue;
 			if (!(desc in data["Pokemon Moves"])) data["Pokemon Moves"][desc] = [];
 			data["Pokemon Moves"][desc].push(move.name);
 		}
 
-		for (let i = 0; i < categories.length; i++) {
-			categoryKeys[categories[i]] = Object.keys(data[categories[i]]);
+		for (const category of categories) {
+			categoryKeys[category] = Object.keys(data[category]);
 		}
 
 		loadedData = true;
 	}
 
-	allAnswersAchievement = achievements.knowitall;
-	allAnswersTeamAchievement = achievements.captainknowitall;
-
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		const description = this.sampleOne(categoryKeys[category]);

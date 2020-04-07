@@ -10,15 +10,6 @@ const name = "Poliwrath's Portmanteaus";
 let loadedData = false;
 
 export class PoliwrathsPortmanteaus extends Guessing {
-	static loadData(room: Room): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
-		Games.workers.portmanteaus.loadData();
-
-		loadedData = true;
-	}
-
 	answerParts: Dict<string[]> = {};
 	customPortCategories: string[] | null = null;
 	customPortDetails: string[] | null = null;
@@ -28,6 +19,15 @@ export class PoliwrathsPortmanteaus extends Guessing {
 	ports: string[] = [];
 	roundTime: number = 5 * 60 * 1000;
 	usesWorkers: boolean = true;
+
+	static loadData(room: Room): void {
+		if (loadedData) return;
+		room.say("Loading data for " + name + "...");
+
+		Games.workers.portmanteaus.loadData();
+
+		loadedData = true;
+	}
 
 	async setAnswers(): Promise<void> {
 		let numberOfPorts: number;
@@ -68,6 +68,7 @@ export class PoliwrathsPortmanteaus extends Guessing {
 		return "A possible portmanteau was __" + givenAnswer.charAt(0).toUpperCase() + givenAnswer.substr(1) + "__ (" + this.answerParts[givenAnswer].join(" + ") + ").";
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async checkAnswer(guess: string): Promise<string> {
 		let sanitizedGuess;
 		let guessParts;
@@ -80,8 +81,8 @@ export class PoliwrathsPortmanteaus extends Guessing {
 			if (guessParts.length === this.ports.length) {
 				let base = Tools.toId(guessParts[0]);
 				guessParts.shift();
-				for (let i = 0; i < guessParts.length; i++) {
-					const current = Tools.toId(guessParts[i]);
+				for (const part of guessParts) {
+					const current = Tools.toId(part);
 					for (let l = this.maxLetters; l >= this.minLetters; l--) {
 						if (l > base.length || l > current.length) continue;
 						if (base.substr(-l) === current.substr(0, l)) {
@@ -95,9 +96,9 @@ export class PoliwrathsPortmanteaus extends Guessing {
 		}
 		if (!sanitizedGuess) sanitizedGuess = Tools.toId(guess);
 		let match = '';
-		for (let i = 0; i < this.answers.length; i++) {
-			if (sanitizedGuess === this.answers[i]) {
-				match = this.answers[i];
+		for (const answer of this.answers) {
+			if (sanitizedGuess === answer) {
+				match = answer;
 				break;
 			}
 		}
@@ -116,16 +117,16 @@ const tests: GameFileTests<PoliwrathsPortmanteaus> = {
 
 			const tiers = Object.keys(portmanteausData.pool['Pokemon']['tier']);
 			assert(tiers.length);
-			for (let i = 0; i < tiers.length; i++) {
-				assert(tiers[i].charAt(0) !== '(');
+			for (const tier of tiers) {
+				assert(!tier.startsWith('('));
 			}
 			for (let i = format.customizableOptions.ports.min; i <= format.customizableOptions.ports.max; i++) {
 				game.format.options.ports = i;
 				await game.onNextRound();
 				assert(game.answers.length);
 				assert(game.ports.length);
-				for (let i = 0; i < game.answers.length; i++) {
-					assert(game.answers[i] in game.answerParts);
+				for (const answer of game.answers) {
+					assert(answer in game.answerParts);
 				}
 			}
 
@@ -136,8 +137,8 @@ const tests: GameFileTests<PoliwrathsPortmanteaus> = {
 			assert(game.answers.length);
 			assert(game.ports.length);
 			assertStrictEqual(game.answers.join(','), 'pelipperuption,swablueflare,pidoverheat,fletchinderuption');
-			for (let i = 0; i < game.answers.length; i++) {
-				assert(game.answers[i] in game.answerParts);
+			for (const answer of game.answers) {
+				assert(answer in game.answerParts);
 			}
 		},
 	},

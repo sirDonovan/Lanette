@@ -48,8 +48,8 @@ export class Storage {
 
 	unrefWorkers(): void {
 		const workers = Object.keys(this.workers) as (keyof IStorageWorkers)[];
-		for (let i = 0; i < workers.length; i++) {
-			this.workers[workers[i]].unref();
+		for (const worker of workers) {
+			this.workers[worker].unref();
 		}
 	}
 
@@ -93,9 +93,8 @@ export class Storage {
 	importDatabases(): void {
 		if (this.loadedDatabases) return;
 
-		const databases = fs.readdirSync(databasesDir);
-		for (let i = 0; i < databases.length; i++) {
-			const fileName = databases[i];
+		const files = fs.readdirSync(databasesDir);
+		for (const fileName of files) {
 			if (!fileName.endsWith('.json')) continue;
 			const id = fileName.substr(0, fileName.indexOf('.json'));
 			const file = fs.readFileSync(path.join(databasesDir, fileName)).toString();
@@ -234,8 +233,7 @@ export class Storage {
 
 		if (database.gameAchievements && sourceId in database.gameAchievements) {
 			if (!(destinationId in database.gameAchievements)) database.gameAchievements[destinationId] = [];
-			for (let i = 0; i  < database.gameAchievements[sourceId].length; i++) {
-				const achievement = database.gameAchievements[sourceId][i];
+			for (const achievement of database.gameAchievements[sourceId]) {
 				if (!database.gameAchievements[destinationId].includes(achievement)) database.gameAchievements[destinationId].push(achievement);
 			}
 		}
@@ -274,8 +272,8 @@ export class Storage {
 		if (recipientId in database.offlineMessages) {
 			const senderId = Tools.toId(sender);
 			let queuedMessages = 0;
-			for (let i = 0; i < database.offlineMessages[recipientId].length; i++) {
-				if (!database.offlineMessages[recipientId][i].readTime && Tools.toId(database.offlineMessages[recipientId][i].sender) === senderId) queuedMessages++;
+			for (const message of database.offlineMessages[recipientId]) {
+				if (!message.readTime && Tools.toId(message.sender) === senderId) queuedMessages++;
 			}
 			if (queuedMessages > MAX_QUEUED_OFFLINE_MESSAGES) return false;
 		} else {
@@ -297,8 +295,7 @@ export class Storage {
 		const now = Date.now();
 		const expiredTime = now - OFFLINE_MESSAGE_EXPIRATION;
 		let hasExpiredMessages = false;
-		for (let i = 0; i < database.offlineMessages[user.id].length; i++) {
-			const message = database.offlineMessages[user.id][i];
+		for (const message of database.offlineMessages[user.id]) {
 			if (message.readTime) {
 				if (message.readTime <= expiredTime) {
 					message.expired = true;

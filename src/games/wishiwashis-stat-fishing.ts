@@ -16,25 +16,6 @@ const achievements: AchievementsDict = {
 };
 
 class WishiwashisStatFishing extends Game {
-	static loadData(room: Room): void {
-		if (loadedData) return;
-
-		room.say("Loading data for " + name + "...");
-
-		const pokemonList = Games.getPokemonList(x => x.types.includes("Water") && Dex.hasGifData(x));
-		for (let i = 0; i < pokemonList.length; i++) {
-			const pokemon = pokemonList[i];
-			let bst = 0;
-			for (const i in pokemon.baseStats) {
-				// @ts-ignore
-				bst += pokemon.baseStats[i];
-			}
-			data.baseStatTotals[pokemon.id] = bst;
-			data.pokedex.push(pokemon.species);
-		}
-		loadedData = true;
-	}
-
 	canReel: boolean = false;
 	consecutiveReels = new Map<Player, number>();
 	// firstReel: Player | null;
@@ -46,6 +27,24 @@ class WishiwashisStatFishing extends Game {
 	roundReels = new Map<Player, boolean>();
 	statNames: Dict<string> = {hp: 'HP', atk: 'Atk', def: 'Def', spa: 'SpA', spd: 'SpD', spe: 'Spe', bst: 'BST'};
 	stats: string[] = ['hp', 'atk', 'def', 'spa', 'spd', 'spe', 'bst'];
+
+	static loadData(room: Room): void {
+		if (loadedData) return;
+
+		room.say("Loading data for " + name + "...");
+
+		const pokemonList = Games.getPokemonList(x => x.types.includes("Water") && Dex.hasGifData(x));
+		for (const pokemon of pokemonList) {
+			let bst = 0;
+			for (const i in pokemon.baseStats) {
+				// @ts-ignore
+				bst += pokemon.baseStats[i];
+			}
+			data.baseStatTotals[pokemon.id] = bst;
+			data.pokedex.push(pokemon.species);
+		}
+		loadedData = true;
+	}
 
 	onSignups(): void {
 		if (this.format.options.freejoin) {

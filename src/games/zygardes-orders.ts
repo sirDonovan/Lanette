@@ -22,6 +22,17 @@ const achievements: AchievementsDict = {
 };
 
 class ZygardesOrders extends Guessing {
+	allLetters: number = 0;
+	guessedLetters: string[] = [];
+	guessLimit: number = 10;
+	hints: string[] = [];
+	lastAnswer: string = '';
+	letters: string[] = [];
+	orderRound: number = 0;
+	revealedLetters: number = 0;
+	roundGuesses = new Map<Player, boolean>();
+	solvedLetters: string[] = [];
+
 	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
@@ -36,17 +47,7 @@ class ZygardesOrders extends Guessing {
 		loadedData = true;
 	}
 
-	allLetters: number = 0;
-	guessedLetters: string[] = [];
-	guessLimit: number = 10;
-	hints: string[] = [];
-	lastAnswer: string = '';
-	letters: string[] = [];
-	orderRound: number = 0;
-	revealedLetters: number = 0;
-	roundGuesses = new Map<Player, boolean>();
-	solvedLetters: string[] = [];
-
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		let answer = this.sampleOne(data[category]);
@@ -80,18 +81,8 @@ class ZygardesOrders extends Guessing {
 			for (let i = 0; i < this.hints.length; i++) {
 				if (this.hints[i] === '') indicies.push(i);
 			}
-			indicies = this.shuffle(indicies);
-			let index = -1;
-			for (let i = 0; i < indicies.length; i++) {
-				index = indicies[i];
-				this.hints[index] = this.letters[index];
-				if (Client.willBeFiltered(this.hints.join(""), this.isPm(this.room) ? undefined : this.room)) {
-					this.hints[index] = '';
-					continue;
-				}
-				break;
-			}
-			if (index === -1) {
+
+			if (!indicies.length) {
 				const text = "All possible letters have been revealed! " + this.getAnswers('');
 				this.on(text, () => {
 					this.answers = [];
@@ -103,6 +94,16 @@ class ZygardesOrders extends Guessing {
 				});
 				this.say(text);
 				return;
+			}
+
+			indicies = this.shuffle(indicies);
+			for (const index of indicies) {
+				this.hints[index] = this.letters[index];
+				if (Client.willBeFiltered(this.hints.join(""), this.isPm(this.room) ? undefined : this.room)) {
+					this.hints[index] = '';
+					continue;
+				}
+				break;
 			}
 			this.revealedLetters++;
 		}

@@ -14,14 +14,14 @@ class ChimechosStatSchool extends Guessing {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		const pokemon = Games.getPokemonList();
-		for (let i = 0; i < pokemon.length; i++) {
-			const stats = Object.values(pokemon[i].baseStats).join(" / ");
+		const pokemonList = Games.getPokemonList();
+		for (const pokemon of pokemonList) {
+			const stats = Object.values(pokemon.baseStats).join(" / ");
 			if (!(stats in data.stats)) {
 				data.stats[stats] = [];
 				statsKeys.push(stats);
 			}
-			data.stats[stats].push(pokemon[i].species);
+			data.stats[stats].push(pokemon.species);
 		}
 
 		loadedData = true;
@@ -31,6 +31,7 @@ class ChimechosStatSchool extends Guessing {
 		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
 		const stats = this.sampleOne(statsKeys);
 		this.answers = data.stats[stats];

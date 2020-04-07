@@ -6,6 +6,7 @@ import worker_threads = require('worker_threads');
 import * as tools from '../../tools';
 import { ILogsResponse, ILogsSearchMessage, ILogsSearchOptions, ILogsWorkerData, LogsId } from '../logs';
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 const Tools = new tools.Tools();
 // eslint-disable-next-line @typescript-eslint/camelcase
 const data = worker_threads.workerData as ILogsWorkerData;
@@ -32,9 +33,9 @@ function search(options: ILogsSearchOptions): ILogsResponse {
 		const lastYear = i === endYear;
 		const yearDirectory = path.join(roomDirectory, year);
 		const dayFiles = fs.readdirSync(yearDirectory).sort();
-		for (let i = 0; i < dayFiles.length; i++) {
-			if (!dayFiles[i].endsWith('.txt')) continue;
-			let date = dayFiles[i].substr(0, dayFiles[i].indexOf('.txt'));
+		for (const file of dayFiles) {
+			if (!file.endsWith('.txt')) continue;
+			let date = file.substr(0, file.indexOf('.txt'));
 			let hyphenIndex = date.indexOf("-");
 
 			// skip year
@@ -50,11 +51,11 @@ function search(options: ILogsSearchOptions): ILogsResponse {
 			if (lastYear) {
 				if (monthNumber > options.endDate[1] || (monthNumber === options.endDate[1] && parseInt(day) > options.endDate[2])) continue;
 			}
-			const logs = fs.readFileSync(path.join(yearDirectory, dayFiles[i])).toString().split("\n");
+			const logs = fs.readFileSync(path.join(yearDirectory, file)).toString().split("\n");
 			const dayLines: string[] = [];
-			for (let i = 0; i < logs.length; i++) {
-				if (logs[i].substr(9, 3) !== '|c|') continue;
-				const line = logs[i].substr(12);
+			for (const log of logs) {
+				if (log.substr(9, 3) !== '|c|') continue;
+				const line = log.substr(12);
 				const pipeIndex = line.indexOf("|");
 				const name = line.substr(1, pipeIndex - 1);
 				if (!(name in userIds)) userIds[name] = Tools.toId(name);
@@ -107,12 +108,10 @@ function search(options: ILogsSearchOptions): ILogsResponse {
 		if (!(year in separatedLogs)) continue;
 
 		const monthsOrder = Object.keys(separatedLogs[year]).sort((a, b) => parseInt(a) - parseInt(b));
-		for (let i = 0; i < monthsOrder.length; i++) {
-			const month = monthsOrder[i];
+		for (const month of monthsOrder) {
 			const monthLen = month.length;
 			const daysOrder = Object.keys(separatedLogs[year][month]).sort((a, b) => parseInt(a) - parseInt(b));
-			for (let i = 0; i < daysOrder.length; i++) {
-				const day = daysOrder[i];
+			for (const day of daysOrder) {
 				let line = "";
 				if (data.serverLogsViewer) {
 					line += "<a href='" + data.serverLogsViewer + options.roomid + "/" + year + "-" + (monthLen > 1 ? month : '0' + month) + "-" + (day.length > 1 ? day : '0' + day) + ".html'>" + month + "/" + day + "/" + year + "</a>:";

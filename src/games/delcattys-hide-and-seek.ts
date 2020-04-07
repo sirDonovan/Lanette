@@ -14,14 +14,21 @@ const data: {'parameters': Dict<string[]>; 'pokemon': string[]} = {
 let loadedData = false;
 
 class DelcattysHideAndSeek extends Game {
+	canCharm: boolean = false;
+	canSelect: boolean = false;
+	categories: string[] = [];
+	maxPlayers: number = 15;
+	pokemonChoices = new Map<Player, string>();
+
+	charmer!: Player;
+
 	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
 		const pokemonCategories: Dict<string[]> = {};
 		const pokemonList = Games.getPokemonList();
-		for (let i = 0; i < pokemonList.length; i++) {
-			const pokemon = pokemonList[i];
+		for (const pokemon of pokemonList) {
 			pokemonCategories[pokemon.id] = [];
 			for (let j = 0, len = pokemon.eggGroups.length; j < len; j++) {
 				pokemonCategories[pokemon.id].push(pokemon.eggGroups[j] + " Group");
@@ -36,8 +43,7 @@ class DelcattysHideAndSeek extends Game {
 		}
 
 		for (const i in pokemonCategories) {
-			for (let j = 0; j < pokemonCategories[i].length; j++) {
-				const param = pokemonCategories[i][j];
+			for (const param of pokemonCategories[i]) {
 				if (!(param in data.parameters)) data.parameters[param] = [];
 				data.parameters[param].push(i);
 			}
@@ -51,9 +57,9 @@ class DelcattysHideAndSeek extends Game {
 				const paramB = parameterKeys[j];
 				const parameter = paramA + ", " + paramB;
 				data.parameters[parameter] = [];
-				for (let i = 0; i < data.parameters[paramA].length; i++) {
-					if (data.parameters[paramB].includes(data.parameters[paramA][i])) {
-						data.parameters[parameter].push(data.parameters[paramA][i]);
+				for (const pokemon of data.parameters[paramA]) {
+					if (data.parameters[paramB].includes(pokemon)) {
+						data.parameters[parameter].push(pokemon);
 					}
 				}
 			}
@@ -61,14 +67,6 @@ class DelcattysHideAndSeek extends Game {
 
 		loadedData = true;
 	}
-
-	canCharm: boolean = false;
-	canSelect: boolean = false;
-	categories: string[] = [];
-	maxPlayers: number = 15;
-	pokemonChoices = new Map<Player, string>();
-
-	charmer!: Player;
 
 	onRemovePlayer(player: Player): void {
 		if (player === this.charmer) {
@@ -238,8 +236,8 @@ const tests: GameFileTests<DelcattysHideAndSeek> = {
 			const parameterKeys = Object.keys(data.parameters);
 			for (let i = game.minPlayers; i < maxPlayers; i++) {
 				let hasParameters = false;
-				for (let j = 0; j < parameterKeys.length; j++) {
-					if (data.parameters[parameterKeys[j]].length === i) {
+				for (const key of parameterKeys) {
+					if (data.parameters[key].length === i) {
 						hasParameters = true;
 						break;
 					}
@@ -249,7 +247,10 @@ const tests: GameFileTests<DelcattysHideAndSeek> = {
 		},
 	},
 	'should eliminate players who are charmed': {
-		test(game, format): void {
+		config: {
+			async: true,
+		},
+		async test(game, format): Promise<void> {
 			const players = addPlayers(game, 2);
 			game.minPlayers = 2;
 			game.start();
@@ -258,24 +259,27 @@ const tests: GameFileTests<DelcattysHideAndSeek> = {
 			const selector = game.charmer === players[0] ? players[1] : players[0];
 			const pokemon = data.parameters[game.categories.join(", ")][0];
 			game.canSelect = true;
-			runCommand('select', pokemon, Users.add(selector.name, selector.id), selector.name);
+			await runCommand('select', pokemon, Users.add(selector.name, selector.id), selector.name);
 			assert(!game.canSelect);
 			game.canCharm = true;
-			runCommand('charm', pokemon, game.room, game.charmer.name);
+			await runCommand('charm', pokemon, game.room, game.charmer.name);
 			assert(!game.charmer.eliminated);
 			assert(selector.eliminated);
 		},
 	},
 	'should eliminate the charmer if they fail to charm any players': {
-		test(game, format): void {
+		config: {
+			async: true,
+		},
+		async test(game, format): Promise<void> {
 			const players = addPlayers(game, 2);
 			game.minPlayers = 2;
 			game.start();
 			const selector = game.charmer === players[0] ? players[1] : players[0];
 			game.canSelect = true;
-			runCommand('select', data.parameters[game.categories.join(", ")][0], Users.add(selector.name, selector.id), selector.name);
+			await runCommand('select', data.parameters[game.categories.join(", ")][0], Users.add(selector.name, selector.id), selector.name);
 			game.canCharm = true;
-			runCommand('charm', data.parameters[game.categories.join(", ")][1], game.room, game.charmer.name);
+			await runCommand('charm', data.parameters[game.categories.join(", ")][1], game.room, game.charmer.name);
 			assert(game.charmer.eliminated);
 			assert(!selector.eliminated);
 		},

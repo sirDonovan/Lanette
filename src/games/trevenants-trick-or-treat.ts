@@ -15,32 +15,31 @@ const data: {allPossibleMoves: Dict<readonly string[]>; pokedex: string[]} = {
 let loadedData = false;
 
 class TrevenantsTrickOrTreat extends Game {
-	static loadData(room: Room): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
-		const pokedex = Games.getPokemonList(x => x.gen <= 5 && !x.forme && Dex.hasGifData(x, 'bw'));
-		for (let i = 0; i < pokedex.length; i++) {
-			const pokemon = pokedex[i];
-			data.pokedex.push(pokemon.id);
-			data.allPossibleMoves[pokemon.id] = pokemon.allPossibleMoves;
-		}
-
-		loadedData = true;
-	}
-
-	pokemonList: string[];
-
 	points = new Map<Player, number>();
 	pokemonGrid: string[][] = [];
 	hasAnswered = new Set<Player>();
 	indicesToReplace = new Set();
 	timeout: NodeJS.Timer | null = null;
 
+	pokemonList: string[];
+
 	constructor(room: Room | User) {
 		super(room);
 
 		this.pokemonList = this.shuffle(data.pokedex);
+	}
+
+	static loadData(room: Room): void {
+		if (loadedData) return;
+		room.say("Loading data for " + name + "...");
+
+		const pokedex = Games.getPokemonList(x => x.gen <= 5 && !x.forme && Dex.hasGifData(x, 'bw'));
+		for (const pokemon of pokedex) {
+			data.pokedex.push(pokemon.id);
+			data.allPossibleMoves[pokemon.id] = pokemon.allPossibleMoves;
+		}
+
+		loadedData = true;
 	}
 
 	generateNewMons(): void {
@@ -133,8 +132,8 @@ const commands: Dict<ICommandDefinition<TrevenantsTrickOrTreat>> = {
 
 			const points = this.points.get(player) || 0;
 			let earnedPoints = 0;
-			for (let i = 0; i < data.pokedex.length; i++) {
-				if (data.allPossibleMoves[data.pokedex[i]].includes(move.id)) earnedPoints++;
+			for (const pokemon of data.pokedex) {
+				if (data.allPossibleMoves[pokemon].includes(move.id)) earnedPoints++;
 			}
 			const totalPoints = points + earnedPoints;
 			this.points.set(player, totalPoints);

@@ -28,34 +28,45 @@ const achievements: AchievementsDict = {
 };
 
 class MismagiusFoulPlay extends Game {
+	chosenPokemon = new Map<Player, string>();
+	criminalCount: number = 0;
+	criminals: Player[] = [];
+	decoyPokemon: string[] = [];
+	detectiveCount: number = 0;
+	detectives: Player[] = [];
+	identifications = new Map<Player, number>();
+	kidnaps = new Map<Player, number>();
+	lastCategory: Category | null = null;
+	previousParams: string[] = [];
+	roundGuesses = new Map<Player, boolean>();
+
 	static loadData(room: Room): void {
 		if (loadedData) return;
 
 		room.say("Loading data for " + name + "...");
 		const pokemonList = Games.getPokemonList(x => !x.isForme && !!x.learnset);
-		for (let i = 0; i < pokemonList.length; i++) {
-			const pokemon = pokemonList[i];
+		for (const pokemon of pokemonList) {
 			data.pokemon.push(pokemon.species);
 			if (!(pokemon.color in data.colors)) {
 				data.colors[pokemon.color] = [];
 				dataKeys.colors.push(pokemon.color);
 			}
 			data.colors[pokemon.color].push(pokemon.species);
-			for (let i = 0; i < pokemon.eggGroups.length; i++) {
-				const eggGroup = pokemon.eggGroups[i] + " group";
-				if (!(eggGroup in data.eggGroups)) {
-					data.eggGroups[eggGroup] = [];
-					dataKeys.eggGroups.push(eggGroup);
+			for (const eggGroup of pokemon.eggGroups) {
+				const name = eggGroup + " group";
+				if (!(name in data.eggGroups)) {
+					data.eggGroups[name] = [];
+					dataKeys.eggGroups.push(name);
 				}
-				data.eggGroups[eggGroup].push(pokemon.species);
+				data.eggGroups[name].push(pokemon.species);
 			}
-			for (let i = 0; i < pokemon.types.length; i++) {
-				const type = pokemon.types[i] + " type";
-				if (!(type in data.types)) {
-					data.types[type] = [];
-					dataKeys.types.push(type);
+			for (const type of pokemon.types) {
+				const name = type + " type";
+				if (!(name in data.types)) {
+					data.types[name] = [];
+					dataKeys.types.push(name);
 				}
-				data.types[type].push(pokemon.species);
+				data.types[name].push(pokemon.species);
 			}
 			for (const i in pokemon.learnset) {
 				const move = Dex.getExistingMove(i);
@@ -69,18 +80,6 @@ class MismagiusFoulPlay extends Game {
 
 		loadedData = true;
 	}
-
-	chosenPokemon = new Map<Player, string>();
-	criminalCount: number = 0;
-	criminals: Player[] = [];
-	decoyPokemon: string[] = [];
-	detectiveCount: number = 0;
-	detectives: Player[] = [];
-	identifications = new Map<Player, number>();
-	kidnaps = new Map<Player, number>();
-	lastCategory: Category | null = null;
-	previousParams: string[] = [];
-	roundGuesses = new Map<Player, boolean>();
 
 	onRemovePlayer(player: Player): void {
 		if (this.criminals.includes(player)) {
@@ -125,9 +124,9 @@ class MismagiusFoulPlay extends Game {
 		const players = this.shuffle(Object.keys(this.players));
 		let count = 0;
 		const criminalNames: string[] = [];
-		for (let i = 0; i < players.length; i++) {
-			if (this.players[players[i]].eliminated) continue;
-			const player = this.players[players[i]];
+		for (const id of players) {
+			if (this.players[id].eliminated) continue;
+			const player = this.players[id];
 			if (count < this.criminalCount) {
 				this.criminals.push(player);
 				criminalNames.push(player.name + " (" + this.chosenPokemon.get(player) + ")");
@@ -138,8 +137,8 @@ class MismagiusFoulPlay extends Game {
 				player.say("You have been assigned the role of detective for this game!");
 			}
 		}
-		for (let i = 0; i < this.criminals.length; i++) {
-			this.criminals[i].say("Criminal list: " + criminalNames.join(", "));
+		for (const player of this.criminals) {
+			player.say("Criminal list: " + criminalNames.join(", "));
 		}
 
 		this.say("Use Mismagius' hints each round to deduce who is a criminal and who is a detective!");
@@ -148,10 +147,10 @@ class MismagiusFoulPlay extends Game {
 
 	onNextRound(): void {
 		if (!this.getRemainingPlayerCount(this.criminals) || !this.getRemainingPlayerCount(this.detectives)) return this.end();
-		let mons: string[] = [];
+		let pokemonList: string[] = [];
 		this.chosenPokemon.forEach((species, player) => {
 			if (player.eliminated) return;
-			mons.push(species);
+			pokemonList.push(species);
 		});
 		const roundCategories = this.shuffle(categories);
 		if (this.lastCategory) roundCategories.splice(roundCategories.indexOf(this.lastCategory), 1);
@@ -161,15 +160,15 @@ class MismagiusFoulPlay extends Game {
 			category = roundCategories[0];
 			roundCategories.shift();
 			const keys = this.shuffle(dataKeys[category]);
-			for (let i = 0; i < keys.length; i++) {
-				if (this.previousParams.includes(keys[i])) continue;
+			for (const key of keys) {
+				if (this.previousParams.includes(key)) continue;
 				let matchingPokemon = 0;
-				const list = data[category][keys[i]];
-				for (let i = 0; i < mons.length; i++) {
-					if (list.includes(mons[i])) matchingPokemon++;
+				const list = data[category][key];
+				for (const pokemon of pokemonList) {
+					if (list.includes(pokemon)) matchingPokemon++;
 				}
-				if (matchingPokemon && matchingPokemon < mons.length) {
-					param = keys[i];
+				if (matchingPokemon && matchingPokemon < pokemonList.length) {
+					param = key;
 					break;
 				}
 			}
@@ -195,9 +194,9 @@ class MismagiusFoulPlay extends Game {
 			}
 			players.push(text);
 		}
-		mons = mons.concat(this.decoyPokemon).sort();
+		pokemonList = pokemonList.concat(this.decoyPokemon).sort();
 		this.roundGuesses.clear();
-		const html = "<center><b>Param " + this.round + "</b>: " + param + "<br><br><b>Pokemon</b>: " + mons.join(", ") + "<br><br><b>Players</b>: " + players.join(", ") + "</center>";
+		const html = "<center><b>Param " + this.round + "</b>: " + param + "<br><br><b>Pokemon</b>: " + pokemonList.join(", ") + "<br><br><b>Players</b>: " + players.join(", ") + "</center>";
 		this.onHtml(html, () => {
 			this.timeout = setTimeout(() => this.nextRound(), 45 * 1000);
 		});
@@ -206,8 +205,7 @@ class MismagiusFoulPlay extends Game {
 
 	onEnd(): void {
 		const detectiveWin = this.criminalCount === 0;
-		for (let i = 0; i < this.detectives.length; i++) {
-			const player = this.detectives[i];
+		for (const player of this.detectives) {
 			const identifications = this.identifications.get(player);
 			let bits = 0;
 			if (detectiveWin) {
@@ -219,8 +217,8 @@ class MismagiusFoulPlay extends Game {
 			}
 			if (bits) this.addBits(player, bits);
 		}
-		for (let i = 0; i < this.criminals.length; i++) {
-			const player = this.criminals[i];
+
+		for (const player of this.criminals) {
 			const kidnaps = this.kidnaps.get(player);
 			let bits = 0;
 			if (!detectiveWin) {
@@ -242,8 +240,8 @@ class MismagiusFoulPlay extends Game {
 		if (!this.criminals.length) return player.say("The roles have not been distributed yet.");
 		if (this.criminals.includes(player)) {
 			const criminals: string[] = [];
-			for (let i = 0; i < this.criminals.length; i++) {
-				if (this.criminals[i].name !== player.name) criminals.push(this.criminals[i].name);
+			for (const otherPlayer of this.criminals) {
+				if (otherPlayer.name !== player.name) criminals.push(otherPlayer.name);
 			}
 			player.say("You are a criminal (" + this.chosenPokemon.get(player) + "). Your fellow criminals are " + Tools.joinList(criminals));
 		} else {
@@ -272,7 +270,7 @@ const commands: Dict<ICommandDefinition<MismagiusFoulPlay>> = {
 			}
 			let chosen = false;
 			this.chosenPokemon.forEach((species, player) => {
-				if (species === pokemon!.species) chosen = true;
+				if (species === pokemon.species) chosen = true;
 			});
 			if (chosen) {
 				user.say(pokemon.species + " is already assigned to another player.");

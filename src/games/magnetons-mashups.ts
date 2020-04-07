@@ -19,28 +19,29 @@ class MagnetonsMashups extends Guessing {
 		room.say("Loading data for " + name + "...");
 
 		const abilities = Games.getAbilitiesList();
-		for (let i = 0; i < abilities.length; i++) {
-			data['Pokemon Abilities'].push(abilities[i].name);
+		for (const ability of abilities) {
+			data['Pokemon Abilities'].push(ability.name);
 		}
 
 		const items = Games.getItemsList();
-		for (let i = 0; i < items.length; i++) {
-			data['Pokemon Items'].push(items[i].name);
+		for (const item of items) {
+			data['Pokemon Items'].push(item.name);
 		}
 
 		const moves = Games.getMovesList();
-		for (let i = 0; i < moves.length; i++) {
-			data['Pokemon Moves'].push(moves[i].name);
+		for (const move of moves) {
+			data['Pokemon Moves'].push(move.name);
 		}
 
 		const pokedex = Games.getPokemonList();
-		for (let i = 0; i < pokedex.length; i++) {
-			data['Pokemon'].push(pokedex[i].species);
+		for (const pokemon of pokedex) {
+			data['Pokemon'].push(pokemon.species);
 		}
 
 		loadedData = true;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async checkAnswer(guess: string): Promise<string> {
 		guess = Tools.toId(guess);
 		const answer = this.answers[0].split(" & ");

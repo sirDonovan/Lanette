@@ -14,28 +14,6 @@ const removedOptions: string[] = ['points', 'freejoin'];
 type TeamThis = Guessing & Team;
 
 class Team {
-	static setOptions<T extends Game>(format: IGameFormat<T>, namePrefixes: string[], nameSuffixes: string[]): void {
-		if (!format.name.includes(name)) namePrefixes.unshift(name);
-		format.description += ' ' + description;
-
-		if (!format.defaultOptions.includes('teams')) format.defaultOptions.push('teams');
-
-		for (let i = 0; i < removedOptions.length; i++) {
-			const index = format.defaultOptions.indexOf(removedOptions[i] as DefaultGameOption);
-			if (index !== -1) format.defaultOptions.splice(index, 1);
-
-			delete format.customizableOptions[removedOptions[i]];
-		}
-
-		if (!format.customizableOptions.teamPoints) {
-			format.customizableOptions.teamPoints = {
-				min: BASE_POINTS,
-				base: BASE_POINTS,
-				max: BASE_POINTS,
-			};
-		}
-	}
-
 	currentPlayers: Dict<Player> = {};
 	firstAnswers: Dict<Player | false> = {};
 	minPlayers: number = 4;
@@ -48,14 +26,36 @@ class Team {
 	// set in onStart()
 	largestTeam!: PlayerTeam;
 
+	static setOptions<T extends Game>(format: IGameFormat<T>, namePrefixes: string[], nameSuffixes: string[]): void {
+		if (!format.name.includes(name)) namePrefixes.unshift(name);
+		format.description += ' ' + description;
+
+		if (!format.defaultOptions.includes('teams')) format.defaultOptions.push('teams');
+
+		for (const option of removedOptions) {
+			const index = format.defaultOptions.indexOf(option as DefaultGameOption);
+			if (index !== -1) format.defaultOptions.splice(index, 1);
+
+			delete format.customizableOptions[option];
+		}
+
+		if (!format.customizableOptions.teamPoints) {
+			format.customizableOptions.teamPoints = {
+				min: BASE_POINTS,
+				base: BASE_POINTS,
+				max: BASE_POINTS,
+			};
+		}
+	}
+
 	setTeams(this: TeamThis): void {
 		this.teams = this.generateTeams(this.format.options.teams);
 
 		const teamIds = Object.keys(this.teams);
 		this.largestTeam = this.teams[teamIds[0]];
 
-		for (let i = 0; i < teamIds.length; i++) {
-			const team = this.teams[teamIds[i]];
+		for (const teamId of teamIds) {
+			const team = this.teams[teamId];
 			if (team.players.length > this.largestTeam.players.length) this.largestTeam = team;
 			this.playerOrders[team.id] = [];
 			this.playerLists[team.id] = [];
@@ -108,8 +108,8 @@ class Team {
 			this.say("Only one team remains!");
 			for (const team in this.teams) {
 				if (this.getRemainingPlayerCount(this.playerOrders[team])) {
-					for (let i = 0; i < this.teams[team].players.length; i++) {
-						this.winners.set(this.teams[team].players[i], 1);
+					for (const player of this.teams[team].players) {
+						this.winners.set(player, 1);
 					}
 					break;
 				}
@@ -228,8 +228,8 @@ const commands: CommandsDict<Team & Guessing, GameCommandReturnType> = {
 					this.unlockAchievement(player, this.allAnswersTeamAchievement);
 				}
 
-				for (let i = 0; i < player.team!.players.length; i++) {
-					if (!player.team!.players[i].eliminated) this.winners.set(player.team!.players[i], 1);
+				for (const teamMember of player.team!.players) {
+					if (!teamMember.eliminated) this.winners.set(teamMember, 1);
 				}
 				this.end();
 				return true;
@@ -258,9 +258,9 @@ commands.g = {
 const initialize = (game: Game): void => {
 	const mode = new Team();
 	const propertiesToOverride = Object.getOwnPropertyNames(mode).concat(Object.getOwnPropertyNames(Team.prototype)) as (keyof Team)[];
-	for (let i = 0; i < propertiesToOverride.length; i++) {
+	for (const property of propertiesToOverride) {
 		// @ts-ignore
-		game[propertiesToOverride[i]] = mode[propertiesToOverride[i]];
+		game[property] = mode[property];
 	}
 
 	for (const command in commands) {

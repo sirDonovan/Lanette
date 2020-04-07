@@ -22,12 +22,11 @@ const meals: {'name': string; 'aliases': string[]}[] = [
 	{name: "Basculin Fillet", aliases: ['basculin', 'fillet']},
 ];
 
-for (let i = 0; i < meals.length; i++) {
-	const meal = meals[i];
+for (const meal of meals) {
 	data.meals.push(meal.name);
 	const id = Tools.toId(meal.name);
-	for (let i = 0; i < meal.aliases.length; i++) {
-		data.aliases[Tools.toId(meal.aliases[i])] = id;
+	for (const alias of meal.aliases) {
+		data.aliases[Tools.toId(alias)] = id;
 	}
 }
 
@@ -155,27 +154,33 @@ const commands: Dict<ICommandDefinition<BounsweetsBountifulBuffet>> = {
 
 const tests: GameFileTests<BounsweetsBountifulBuffet> = {
 	'should give the same points for shared meals': {
-		test(game, format): void {
+		config: {
+			async: true,
+		},
+		async test(game, format): Promise<void> {
 			const players = addPlayers(game, 2);
 			game.minPlayers = 2;
 			game.start();
 			assertStrictEqual(game.numberOfMeals, 2);
 			const expectedPoints = Math.floor(game.mealPoints[0] / 2);
-			runCommand('select', game.meals[0], game.room, players[0].name);
-			runCommand('select', game.meals[0], game.room, players[1].name);
+			await runCommand('select', game.meals[0], game.room, players[0].name);
+			await runCommand('select', game.meals[0], game.room, players[1].name);
 			assertStrictEqual(game.points.get(players[0]), expectedPoints);
 			assertStrictEqual(game.points.get(players[1]), expectedPoints);
 		},
 	},
 	'should give different points for separate meals': {
-		test(game, format): void {
+		config: {
+			async: true,
+		},
+		async test(game, format): Promise<void> {
 			const players = addPlayers(game, 2);
 			game.minPlayers = 2;
 			game.start();
 			const expectedPointsA = game.mealPoints[0];
 			const expectedPointsB = game.mealPoints[1];
-			runCommand('select', game.meals[0], game.room, players[0].name);
-			runCommand('select', game.meals[1], game.room, players[1].name);
+			await runCommand('select', game.meals[0], game.room, players[0].name);
+			await runCommand('select', game.meals[1], game.room, players[1].name);
 			assertStrictEqual(game.points.get(players[0]), expectedPointsA);
 			assertStrictEqual(game.points.get(players[1]), expectedPointsB);
 		},

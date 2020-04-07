@@ -27,14 +27,20 @@ const searchTypes: (keyof IParametersWorkerData)[] = ['pokemon'];
 let loadedData = false;
 
 class InkaysCups extends Game {
+	answers: string[] = [];
+	canGrab: boolean = false;
+	canLateJoin: boolean = true;
+	roundGuesses = new Map<Player, boolean>();
+	roundTime: number = 15 * 1000;
+	usesWorkers: boolean = true;
+
 	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
 		const parametersData = Games.workers.parameters.loadData();
 
-		for (let i = 0; i < searchTypes.length; i++) {
-			const searchType = searchTypes[i];
+		for (const searchType of searchTypes) {
 			paramTypeDexesKeys[searchType] = {};
 			for (const gen in parametersData[searchType].gens) {
 				paramTypeDexesKeys[searchType][gen] = {
@@ -43,21 +49,14 @@ class InkaysCups extends Game {
 					'tier': [],
 					'type': [],
 				};
-				for (let i = 0; i < paramTypes.length; i++) {
-					paramTypeDexesKeys[searchType][gen][paramTypes[i]] = Object.keys(parametersData[searchType].gens[gen].paramTypeDexes[paramTypes[i]]);
+				for (const paramType of paramTypes) {
+					paramTypeDexesKeys[searchType][gen][paramType] = Object.keys(parametersData[searchType].gens[gen].paramTypeDexes[paramType]);
 				}
 			}
 		}
 
 		loadedData = true;
 	}
-
-	answers: string[] = [];
-	canGrab: boolean = false;
-	canLateJoin: boolean = true;
-	roundGuesses = new Map<Player, boolean>();
-	roundTime: number = 15 * 1000;
-	usesWorkers: boolean = true;
 
 	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
 		if (lateJoin && this.round > 1) {
@@ -86,9 +85,9 @@ class InkaysCups extends Game {
 		while ((len < lower || len > upper) && attempts < 10) {
 			params = [];
 			attempts++;
-			for (let i = 0; i < roundParamTypes.length; i++) {
-				const name = this.sampleOne(paramTypeDexesKeys.pokemon[genString][roundParamTypes[i]]);
-				params.push(Games.workers.parameters.workerData!.pokemon.gens[genString].paramTypePools[roundParamTypes[i]][Tools.toId(name)]);
+			for (const paramType of roundParamTypes) {
+				const name = this.sampleOne(paramTypeDexesKeys.pokemon[genString][paramType]);
+				params.push(Games.workers.parameters.workerData!.pokemon.gens[genString].paramTypePools[paramType][Tools.toId(name)]);
 			}
 			const intersection = await Games.workers.parameters.intersect({
 				mod: genString,
@@ -100,7 +99,7 @@ class InkaysCups extends Game {
 			len = mons.length;
 		}
 		if (len < lower || len > upper) {
-			this.generateCups();
+			await this.generateCups();
 			return;
 		}
 		this.answers = mons;
@@ -150,6 +149,7 @@ class InkaysCups extends Game {
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
 			if (this.timeout) clearTimeout(this.timeout);
+			// eslint-disable-next-line @typescript-eslint/no-misused-promises, @typescript-eslint/promise-function-async
 			this.timeout = setTimeout(() => this.generateCups(), 5000);
 		});
 		this.sayUhtml(uhtmlName, html);

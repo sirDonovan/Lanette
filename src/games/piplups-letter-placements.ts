@@ -16,6 +16,8 @@ const categories = Object.keys(data) as DataKey[];
 let loadedData = false;
 
 class PiplupsLetterPlacements extends Guessing {
+	lastAnswer: string = '';
+
 	static loadData(room: Room): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
@@ -29,8 +31,6 @@ class PiplupsLetterPlacements extends Guessing {
 
 		loadedData = true;
 	}
-
-	lastAnswer: string = '';
 
 	async setAnswers(): Promise<void> {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
@@ -47,8 +47,8 @@ class PiplupsLetterPlacements extends Guessing {
 		}
 
 		this.answers = [];
-		for (let i = 0; i < data[category].length; i++) {
-			if (Tools.toId(data[category][i]).includes(letters)) this.answers.push(data[category][i]);
+		for (const answer of data[category]) {
+			if (Tools.toId(answer).includes(letters)) this.answers.push(answer);
 		}
 
 		this.hint = '<b>' + category + '</b>: <i>' + letters + '</i>';

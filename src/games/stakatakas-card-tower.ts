@@ -80,8 +80,8 @@ class StakatakasCardTower extends CardMatching {
 			return false;
 		}
 		card = playedCards[playedCards.length - 1];
-		for (let i = 0; i < playedCards.length; i++) {
-			cards.splice(cards.indexOf(playedCards[i]), 1);
+		for (const playedCard of playedCards) {
+			cards.splice(cards.indexOf(playedCard), 1);
 		}
 		this.awaitingCurrentPlayerCard = false;
 		this.topCard = card;
@@ -136,10 +136,10 @@ class StakatakasCardTower extends CardMatching {
 		} else if (card.action!.name === 'Get pair') {
 			let pair: IPokemonCard | null = null;
 			while (!pair) {
-				const card = this.getCard() as IPokemonCard;
-				for (let i = 0; i < cards.length; i++) {
-					if (this.isPlayableCard(card, cards[i])) {
-						pair = card;
+				const possiblePair = this.getCard() as IPokemonCard;
+				for (const card of cards) {
+					if (this.isPlayableCard(possiblePair, card)) {
+						pair = possiblePair;
 						break;
 					}
 				}
@@ -195,7 +195,10 @@ const tests: GameFileTests<StakatakasCardTower> = {
 		},
 	},
 	'it should not create new card arrays for actions': {
-		test(game, format): void {
+		config: {
+			async: true,
+		},
+		async test(game, format): Promise<void> {
 			addPlayers(game, 4);
 			game.topCard = Dex.getPokemonCopy("Pikachu");
 			game.start();
@@ -207,7 +210,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 			game.playerCards.set(player, newCards);
 			assert(game.hasPlayableCard(player));
 			game.canPlay = true;
-			runCommand('play', 'Manaphy', game.room, player.name);
+			await runCommand('play', 'Manaphy', game.room, player.name);
 			assert(!game.ended);
 			const playerCards = game.playerCards.get(player)!;
 			assert(!playerCards.map(x => x.name).includes("Manaphy"));
@@ -215,7 +218,10 @@ const tests: GameFileTests<StakatakasCardTower> = {
 		},
 	},
 	'it should properly handle card counts - 1 remaining': {
-		test(game, format): void {
+		config: {
+			async: true,
+		},
+		async test(game, format): Promise<void> {
 			addPlayers(game, 4);
 			game.topCard = Dex.getPokemonCopy("Pikachu");
 			game.start();
@@ -224,13 +230,16 @@ const tests: GameFileTests<StakatakasCardTower> = {
 			game.playerCards.set(player, cards);
 			assert(game.hasPlayableCard(player));
 			game.canPlay = true;
-			runCommand('play', 'Ampharos, Archen, Beautifly', game.room, player.name);
+			await runCommand('play', 'Ampharos, Archen, Beautifly', game.room, player.name);
 			assert(!game.ended);
 			assertStrictEqual(game.playerCards.get(player)!.length, 2);
 		},
 	},
 	'it should properly handle card counts - 0 remaining': {
-		test(game, format): void {
+		config: {
+			async: true,
+		},
+		async test(game, format): Promise<void> {
 			addPlayers(game, 4);
 			game.topCard = Dex.getPokemonCopy("Pikachu");
 			game.start();
@@ -239,7 +248,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 			game.playerCards.set(player, cards);
 			assert(game.hasPlayableCard(player));
 			game.canPlay = true;
-			runCommand('play', 'Ampharos, Archen, Beautifly, Beedrill', game.room, player.name);
+			await runCommand('play', 'Ampharos, Archen, Beautifly, Beedrill', game.room, player.name);
 			assert(game.ended);
 			assertStrictEqual(cards.length, 0);
 		},

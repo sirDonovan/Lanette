@@ -38,6 +38,11 @@ export type BoardActionCard<T extends BoardGame = BoardGame> = (this: T, player:
 const boardSides: readonly BoardSide[] = ['leftColumn', 'topRow', 'rightColumn', 'bottomRow'];
 
 export abstract class BoardGame extends Game {
+	abstract board: IBoard;
+	abstract numberOfDice: number;
+	abstract startingBoardSide: BoardSide;
+	abstract startingBoardSideSpace: number;
+
 	boardRound: number = 0;
 	currentPlayer: Player | null = null;
 	dice: number[] = [];
@@ -50,10 +55,9 @@ export abstract class BoardGame extends Game {
 	currentPlayerReRoll: boolean = false;
 	roundTime: number = 5 * 1000;
 
-	abstract board: IBoard;
-	abstract numberOfDice: number;
-	abstract startingBoardSide: BoardSide;
-	abstract startingBoardSideSpace: number;
+	abstract getSpaceHtml(side: BoardSide, space: number, playerLocations: KeyedDict<IBoard, Dict<Player[]>>): string;
+	abstract onNextPlayer(player: Player): void;
+	abstract onSpaceLanding(player: Player, spacesMoved: number, location: IMovedBoardLocation, teleported?: boolean): void;
 
 	displayBoard(): void {
 		const playerLocations: KeyedDict<IBoard, Dict<Player[]>> = {
@@ -88,7 +92,7 @@ export abstract class BoardGame extends Game {
 					html += this.getSpaceHtml('bottomRow', i, playerLocations);
 				}
 			} else {
-				for (let i = 0; i < this.board.bottomRow.length; i++) {
+				for (const space of this.board.bottomRow) {
 					html += "<td>&nbsp;</td>";
 				}
 			}
@@ -103,8 +107,7 @@ export abstract class BoardGame extends Game {
 	onStart(): void {
 		const letters = Tools.letters.toUpperCase().split("");
 		this.playerOrder = this.shufflePlayers();
-		for (let i = 0; i < this.playerOrder.length; i++) {
-			const player = this.playerOrder[i];
+		for (const player of this.playerOrder) {
 			this.playerLocations.set(player, {side: this.startingBoardSide, space: this.startingBoardSideSpace});
 			const playerLetter = letters[0];
 			letters.shift();
@@ -155,8 +158,7 @@ export abstract class BoardGame extends Game {
 	}
 
 	getSpaceLocation(space: BoardSpace): IBoardLocation | null {
-		for (let i = 0; i < boardSides.length; i++) {
-			const side = boardSides[i];
+		for (const side of boardSides) {
 			for (let i = 0; i < this.board[side].length; i++) {
 				if (this.board[side][i] === space) return {side, space: i};
 			}
@@ -210,11 +212,11 @@ export abstract class BoardGame extends Game {
 			this.dice.push(this.random(6) + 1);
 		}
 
-		if (this.onPlayerRoll && this.onPlayerRoll(player) === false) return;
+		if (this.onPlayerRoll && !this.onPlayerRoll(player)) return;
 
 		let rollAmount = 0;
-		for (let i = 0; i < this.dice.length; i++) {
-			rollAmount += this.dice[i];
+		for (const roll of this.dice) {
+			rollAmount += roll;
 		}
 
 		this.currentPlayerReRoll = rollAmount / this.dice.length === this.dice[0];
@@ -234,10 +236,6 @@ export abstract class BoardGame extends Game {
 	}
 
 	onPlayerRoll?(player: Player): boolean;
-
-	abstract getSpaceHtml(side: BoardSide, space: number, playerLocations: KeyedDict<IBoard, Dict<Player[]>>): string;
-	abstract onNextPlayer(player: Player): void;
-	abstract onSpaceLanding(player: Player, spacesMoved: number, location: IMovedBoardLocation, teleported?: boolean): void;
 }
 
 const tests: GameFileTests<BoardGame> = {

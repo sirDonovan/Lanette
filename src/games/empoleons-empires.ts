@@ -52,7 +52,7 @@ class EmpoleonsEmpires extends Game {
 				this.canGuess = true;
 				this.timeout = setTimeout(() => {
 					if (this.currentPlayer === currentPlayer) {
-						this.say("**" + this.currentPlayer.name + "** (AKA " + this.playerAliases.get(this.currentPlayer!) + ") did not suspect anyone and was eliminated!");
+						this.say("**" + this.currentPlayer.name + "** (AKA " + this.playerAliases.get(this.currentPlayer) + ") did not suspect anyone and was eliminated!");
 						this.eliminatePlayer(this.currentPlayer, "You did not suspect another player!");
 						this.currentPlayer = null;
 					}

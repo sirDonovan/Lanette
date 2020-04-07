@@ -30,11 +30,11 @@ class OctillerysAmbush extends Game {
 		if (this.round > 1) {
 			this.shields.clear();
 			let firstFireChecked = false;
-			for (let i = 0; i < this.queue.length; i++) {
-				if (this.queue[i].source.eliminated) continue;
-				const player = this.queue[i].source;
+			for (const slot of this.queue) {
+				if (slot.source.eliminated) continue;
+				const player = slot.source;
 				this.shields.set(player, true);
-				const targetPlayer = this.queue[i].target;
+				const targetPlayer = slot.target;
 				if (this.shields.has(targetPlayer) || targetPlayer.eliminated) continue;
 
 				if (!firstFireChecked) {

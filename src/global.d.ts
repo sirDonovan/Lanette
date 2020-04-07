@@ -9,7 +9,7 @@ import { Tools } from './tools';
 import { Tournaments } from './tournaments';
 import { Users } from './users';
 
-/* eslint-disable no-redeclare, no-undef */
+/* eslint-disable no-redeclare, no-undef, @typescript-eslint/naming-convention */
 declare global {
 	const BaseCommands: CommandsDict;
 	const Client: Client;

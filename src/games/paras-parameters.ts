@@ -14,16 +14,6 @@ const allParamTypes: ParamType[] = ['move', 'tier', 'color', 'type', 'resistance
 let loadedData = false;
 
 export class ParasParameters extends Guessing {
-	static loadData(room: Room): void {
-		if (loadedData) return;
-
-		room.say("Loading data for " + name + "...");
-
-		Games.workers.parameters.loadData();
-
-		loadedData = true;
-	}
-
 	currentNumberOfParams: number = 0;
 	customParamTypes: ParamType[] | null = null;
 	minimumResults: number = 3;
@@ -33,6 +23,16 @@ export class ParasParameters extends Guessing {
 	pokemon: string[] = [];
 	roundTime: number = 5 * 60 * 1000;
 	usesWorkers: boolean = true;
+
+	static loadData(room: Room): void {
+		if (loadedData) return;
+
+		room.say("Loading data for " + name + "...");
+
+		Games.workers.parameters.loadData();
+
+		loadedData = true;
+	}
 
 	onInitialize(): void {
 		super.onInitialize();
@@ -52,19 +52,19 @@ export class ParasParameters extends Guessing {
 
 	getParamNames(params: IParam[]): string[] {
 		const names = [];
-		for (let i = 0; i < params.length; i++) {
-			if (params[i].type === 'type') {
-				names.push(params[i].param + ' type');
-			} else if (params[i].type === 'resistance') {
-				names.push('Resists ' + params[i].param + ' type');
-			} else if (params[i].type === 'weakness') {
-				names.push('Weak to ' + params[i].param + ' type');
-			} else if (params[i].type === 'gen') {
-				names.push("Gen " + params[i].param);
-			} else if (params[i].type === 'egggroup') {
-				names.push(params[i].param + " Group");
+		for (const param of params) {
+			if (param.type === 'type') {
+				names.push(param.param + ' type');
+			} else if (param.type === 'resistance') {
+				names.push('Resists ' + param.param + ' type');
+			} else if (param.type === 'weakness') {
+				names.push('Weak to ' + param.param + ' type');
+			} else if (param.type === 'gen') {
+				names.push("Gen " + param.param);
+			} else if (param.type === 'egggroup') {
+				names.push(param.param + " Group");
 			} else {
-				names.push(params[i].param);
+				names.push(param.param);
 			}
 		}
 		return names.sort();
@@ -108,8 +108,8 @@ export class ParasParameters extends Guessing {
 			this.additionalHintHeader = "- " + this.params.length + " params" + oldGen + ":";
 
 			const pokemonIcons: string[] = [];
-			for (let i = 0; i < result.pokemon.length; i++) {
-				const pokemon = Dex.getExistingPokemon(result.pokemon[i]);
+			for (const name of result.pokemon) {
+				const pokemon = Dex.getExistingPokemon(name);
 				pokemonIcons.push(Dex.getPSPokemonIcon(pokemon) + pokemon.species);
 			}
 			this.hint = "<div class='infobox'>" + pokemonIcons.join(", ") + "</div>";
@@ -125,12 +125,12 @@ export class ParasParameters extends Guessing {
 		const mod = 'gen' + this.format.options.gen;
 		const paramTypePools = Games.workers.parameters.workerData!.pokemon.gens[mod].paramTypePools;
 		const params: IParam[] = [];
-		for (let i = 0; i < parts.length; i++) {
-			const part = Tools.toId(parts[i]);
+		for (const part of parts) {
+			const id = Tools.toId(part);
 			let param: IParam | undefined;
-			for (let i = 0; i < allParamTypes.length; i++) {
-				if (part in paramTypePools[allParamTypes[i]]) {
-					param = paramTypePools[allParamTypes[i]][part];
+			for (const paramType of allParamTypes) {
+				if (id in paramTypePools[paramType]) {
+					param = paramTypePools[paramType][id];
 					break;
 				}
 			}
@@ -167,14 +167,13 @@ const tests: GameFileTests<ParasParameters> = {
 
 			for (const gen in parametersData.pokemon.gens) {
 				const types = Object.keys(parametersData.pokemon.gens[gen].paramTypeDexes) as ParamType[];
-				for (let i = 0; i < types.length; i++) {
-					const type = types[i];
+				for (const type of types) {
 					const keys = Object.keys(parametersData.pokemon.gens[gen].paramTypeDexes[type]);
 					const checkTier = type === 'tier';
-					for (let i = 0; i < keys.length; i++) {
-						const key = Tools.toId(keys[i]);
-						assert(key in parametersData.pokemon.gens[gen].paramTypePools[type], key + ' in ' + type);
-						if (checkTier) assert(keys[i].charAt(0) !== '(');
+					for (const key of keys) {
+						const id = Tools.toId(key);
+						assert(id in parametersData.pokemon.gens[gen].paramTypePools[type], id + ' in ' + type);
+						if (checkTier) assert(!key.startsWith('('));
 					}
 				}
 			}

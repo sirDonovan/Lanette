@@ -170,31 +170,6 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 ];
 
 export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
-	actionCards: BoardActionCard<BoardPropertyGame>[] = [];
-	canEscape: boolean = false;
-	canRoll: boolean = false;
-	canAcquire: boolean = false;
-	escapeFromJailCards = new Map<Player, number>();
-	maxPlayers: number = 25;
-	numberOfDice: number = 2;
-	playersInJail: Player[] = [];
-	playerCurrency = new Map<Player, number>();
-	properties = new Map<Player, Array<BoardPropertyEliminationSpace | BoardPropertyRentSpace>>();
-	propertyToAcquire: BoardPropertyEliminationSpace | BoardPropertyRentSpace | null = null;
-	sharedActionCards: BoardActionCard<BoardPropertyGame>[] = sharedActionCards;
-	startingBoardSide: BoardSide = 'leftColumn';
-	startingBoardSideSpace: number = 0;
-	turnsInJail = new Map<Player, number>();
-
-	acquireAllPropertiesAchievement?: IGameAchievement;
-	acquireAllMountainsAchievement?: IGameAchievement;
-	doublesRollsAchievement?: IGameAchievement;
-	doublesRollsAchievementAmount?: number;
-	maxCurrency?: number;
-
-	// set once the game starts
-	startingSpace!: BoardSpace;
-
 	abstract acquirePropertyAction: string;
 	abstract acquirePropertyActionPast: string;
 	abstract availablePropertyState: string;
@@ -210,6 +185,31 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 	abstract spaces: BoardSpaces;
 	abstract startingCurrency: number;
 
+	actionCards: BoardActionCard<BoardPropertyGame>[] = [];
+	canEscape: boolean = false;
+	canRoll: boolean = false;
+	canAcquire: boolean = false;
+	escapeFromJailCards = new Map<Player, number>();
+	maxPlayers: number = 25;
+	numberOfDice: number = 2;
+	playersInJail: Player[] = [];
+	playerCurrency = new Map<Player, number>();
+	properties = new Map<Player, (BoardPropertyEliminationSpace | BoardPropertyRentSpace)[]>();
+	propertyToAcquire: BoardPropertyEliminationSpace | BoardPropertyRentSpace | null = null;
+	sharedActionCards: BoardActionCard<BoardPropertyGame>[] = sharedActionCards;
+	startingBoardSide: BoardSide = 'leftColumn';
+	startingBoardSideSpace: number = 0;
+	turnsInJail = new Map<Player, number>();
+
+	acquireAllPropertiesAchievement?: IGameAchievement;
+	acquireAllMountainsAchievement?: IGameAchievement;
+	doublesRollsAchievement?: IGameAchievement;
+	doublesRollsAchievementAmount?: number;
+	maxCurrency?: number;
+
+	// set once the game starts
+	startingSpace!: BoardSpace;
+
 	abstract getActionCards(): BoardActionCard<BoardPropertyGame>[];
 	abstract getPlayerPropertiesHtml(player: Player): string;
 	abstract onOwnedPropertySpace(space: BoardPropertySpace, player: Player): void;
@@ -221,8 +221,7 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 		super.onStart();
 
 		this.startingSpace = this.board[this.startingBoardSide][this.startingBoardSideSpace];
-		for (let i = 0; i < this.playerOrder.length; i++) {
-			const player = this.playerOrder[i];
+		for (const player of this.playerOrder) {
 			this.playerCurrency.set(player, this.startingCurrency);
 			this.properties.set(player, []);
 		}
@@ -230,8 +229,8 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 
 	onAfterDeallocate(forceEnd: boolean): void {
 		const spaceKeys = Object.keys(this.spaces) as (keyof BoardSpaces)[];
-		for (let i = 0; i < spaceKeys.length; i++) {
-			const space = this.spaces[spaceKeys[i]];
+		for (const key of spaceKeys) {
+			const space = this.spaces[key];
 			if (space instanceof BoardPropertySpace) space.owner = null;
 		}
 	}
@@ -240,8 +239,8 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 		if (!this.started) return;
 		const properties = this.properties.get(player)!;
 
-		for (let i = 0; i < properties.length; i++) {
-			properties[i].owner = null;
+		for (const property of properties) {
+			property.owner = null;
 		}
 
 		this.properties.set(player, []);
@@ -250,9 +249,9 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 	onEliminatePlayer(player: Player, eliminationCause?: string | null, eliminator?: Player | null): void {
 		const properties = this.properties.get(player) || [];
 		const eliminatorProperties = eliminator ? this.properties.get(eliminator)! : [];
-		for (let i = 0; i < properties.length; i++) {
-			properties[i].owner = eliminator || null;
-			eliminatorProperties.push(properties[i]);
+		for (const property of properties) {
+			property.owner = eliminator || null;
+			eliminatorProperties.push(property);
 		}
 		if (eliminator) {
 			this.properties.set(eliminator, eliminatorProperties);
@@ -278,9 +277,8 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 		if (!this.started) return;
 		let html = '<div class="infobox">';
 		const playerHtml: string[] = ["<b><u>You (" + this.playerLetters.get(player) + ")</u></b><br />" + this.getPlayerPropertiesHtml(player)];
-		for (let i = 0; i < this.playerOrder.length; i++) {
-			if (this.playerOrder[i] === player) continue;
-			const otherPlayer = this.playerOrder[i];
+		for (const otherPlayer of this.playerOrder) {
+			if (otherPlayer === player) continue;
 			if (!otherPlayer.eliminated) playerHtml.push("<b><u>" + otherPlayer.name + " (" + this.playerLetters.get(otherPlayer) + ")</u></b><br />" + this.getPlayerPropertiesHtml(otherPlayer));
 		}
 
@@ -293,7 +291,7 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 	beforeNextRound(): void {
 		if (this.currentPlayer && this.currentPlayerReRoll) {
 			this.doubleRolls++;
-			this.rollDice(this.currentPlayer!);
+			this.rollDice(this.currentPlayer);
 			if (this.doublesRollsAchievement && this.doubleRolls === this.doublesRollsAchievementAmount) this.unlockAchievement(this.currentPlayer, this.doublesRollsAchievement);
 		} else {
 			this.nextRound();
@@ -583,8 +581,8 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 		let acquiredAllMountains = true;
 		let acquiredAllProperties = true;
 		const spaceKeys = Object.keys(this.spaces) as (keyof BoardSpaces)[];
-		for (let i = 0; i < spaceKeys.length; i++) {
-			const space = this.spaces[spaceKeys[i]];
+		for (const key of spaceKeys) {
+			const space = this.spaces[key];
 			if (space instanceof BoardPropertySpace) {
 				if (space.owner !== player) {
 					if (acquiredAllMountains && space.name.startsWith(mountainPrefix)) acquiredAllMountains = false;
