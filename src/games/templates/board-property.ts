@@ -290,9 +290,13 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 
 	beforeNextRound(): void {
 		if (this.currentPlayer && this.currentPlayerReRoll) {
-			this.doubleRolls++;
 			this.rollDice(this.currentPlayer);
-			if (this.doublesRollsAchievement && this.doubleRolls === this.doublesRollsAchievementAmount) this.unlockAchievement(this.currentPlayer, this.doublesRollsAchievement);
+			if (this.currentPlayerReRoll) {
+				this.doubleRolls++;
+				if (this.doublesRollsAchievement && this.doubleRolls === this.doublesRollsAchievementAmount) {
+					this.unlockAchievement(this.currentPlayer, this.doublesRollsAchievement);
+				}
+			}
 		} else {
 			this.nextRound();
 		}
