@@ -486,30 +486,33 @@ export class Client {
 		case 'l':
 		case 'L': {
 			const messageArguments: IClientMessageTypes['leave'] = {
-				rank: messageParts[0].charAt(0),
-				usernameText: messageParts[0].substr(1),
+				possibleRank: messageParts[0].charAt(0),
+				username: messageParts[0].substr(1),
 			};
-			const {away, status, username} = Tools.parseUsernameText(messageArguments.usernameText);
+			let rank: string | undefined;
+			let username: string;
+			if (messageArguments.possibleRank in this.serverGroups) {
+				rank = messageArguments.possibleRank;
+				username = messageArguments.username;
+			} else {
+				username = messageArguments.possibleRank + messageArguments.username;
+			}
 			const id = Tools.toId(username);
 			if (!id) return;
 
 			const user = Users.add(username, id);
+			if (!rank) {
+				const roomData = user.rooms.get(room);
+				if (roomData && roomData.rank) rank = roomData.rank;
+			}
+
 			room.users.delete(user);
 			user.rooms.delete(room);
-			if (!user.rooms.size) {
-				Users.remove(user);
-			} else {
-				if (status || user.status) user.status = status;
-				if (away) {
-					user.away = true;
-				} else if (user.away) {
-					user.away = false;
-				}
-			}
+			if (!user.rooms.size) Users.remove(user);
 			const now = Date.now();
 			Storage.updateLastSeen(user, now);
 			if (room.logChatMessages) {
-				Storage.logChatMessage(room, now, 'L', messageArguments.rank + user.name);
+				Storage.logChatMessage(room, now, 'L', (rank ? rank : "") + user.name);
 			}
 			break;
 		}

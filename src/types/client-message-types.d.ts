@@ -100,8 +100,8 @@ export interface IClientMessageTypes {
 	 * Rank+username[@status]
 	 */
 	leave: {
-		readonly rank: string;
-		readonly usernameText: string;
+		readonly possibleRank: string;
+		readonly username: string;
 	};
 	l: IClientMessageTypes['leave'];
 	L: IClientMessageTypes['leave'];
