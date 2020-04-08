@@ -684,7 +684,7 @@ export class Games {
 	setAutoCreateTimer(room: Room, type: 'scripted' | 'userhosted', timer: number): void {
 		if (room.id in this.autoCreateTimers) clearTimeout(this.autoCreateTimers[room.id]);
 		this.autoCreateTimers[room.id] = setTimeout(() => {
-			if (room.game && room.game.isMiniGame) {
+			if (global.Games.reloadInProgress || (room.game && room.game.isMiniGame)) {
 				this.setAutoCreateTimer(room, type, 5 * 1000);
 				return;
 			}
