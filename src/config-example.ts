@@ -21,6 +21,11 @@ export let username = '';
 export let password = '';
 
 /**
+ * Whether the configured username should always be considered to have the 'trusted' status on PS
+ */
+export let trustedUser = false;
+
+/**
  * The server address used to connect to PS (must end in .psim.us)
  *
  * Leave blank to connect to the main server

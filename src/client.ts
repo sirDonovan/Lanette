@@ -4,7 +4,7 @@ import url = require('url');
 import websocket = require('websocket');
 
 import { Room, RoomType } from './rooms';
-import { IClientMessageTypes, IRoomInfoResponse, IServerGroup, ITournamentMessageTypes, IUserDetailsResponse, ServerGroupData } from './types/client-message-types';
+import { IClientMessageTypes, IRoomInfoResponse, IServerGroup, ITournamentMessageTypes, IUserDetailsResponse, ServerGroupData, IRoomsResponse, QueryResponseType } from './types/client-message-types';
 import { ISeparatedCustomRules } from './types/in-game-data-types';
 import { User } from './users';
 
@@ -12,7 +12,8 @@ export type GroupName = 'voice' | 'bot' | 'driver' | 'moderator' | 'roomowner' |
 
 const MAIN_HOST = "sim3.psim.us";
 const RELOGIN_SECONDS = 60;
-const SEND_THROTTLE = 800;
+const REGULAR_MESSAGE_THROTTLE = 600;
+const TRUSTED_MESSAGE_THROTTLE = 100;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const HTML_CHAT_COMMAND = '/raw ';
 const UHTML_CHAT_COMMAND = '/uhtml ';
@@ -135,13 +136,15 @@ export class Client {
 	groupSymbols: Dict<string> = {};
 	loggedIn: boolean = false;
 	loginTimeout: NodeJS.Timer | null = null;
+	publicChatRooms: string[] = [];
 	reconnectTime: number = Config.reconnectTime || 60 * 1000;
 	sendQueue: string[] = [];
-	sendTimeout: NodeJS.Timer | null = null;
+	sendTimeout: NodeJS.Timer | true | null = null;
 	server: string = Config.server || Tools.mainServer;
 	serverGroups: Dict<IServerGroup> = {};
 	serverId: string = 'showdown';
 	serverTimeOffset: number = 0;
+	trustedThrottle: boolean = Config.trustedUser || false;
 
 	constructor() {
 		this.client.on('connect', connection => {
@@ -167,12 +170,14 @@ export class Client {
 		if (previous.evasionFilterRegularExpressions) this.evasionFilterRegularExpressions = previous.evasionFilterRegularExpressions;
 		if (previous.groupSymbols) this.groupSymbols = previous.groupSymbols;
 		if (previous.loggedIn) this.loggedIn = previous.loggedIn;
+		if (previous.publicChatRooms) this.publicChatRooms = previous.publicChatRooms;
 		if (previous.sendQueue) this.sendQueue = previous.sendQueue;
 		if (previous.sendTimeout) this.sendTimeout = previous.sendTimeout;
 		if (previous.server) this.server = previous.server;
 		if (previous.serverGroups) this.serverGroups = previous.serverGroups;
 		if (previous.serverId) this.serverId = previous.serverId;
 		if (previous.serverTimeOffset) this.serverTimeOffset = previous.serverTimeOffset;
+		if (previous.trustedThrottle) this.trustedThrottle = previous.trustedThrottle;
 	}
 
 	onConnectFail(error?: Error): void {
@@ -356,6 +361,7 @@ export class Client {
 				console.log('Successfully logged in');
 				this.loggedIn = true;
 				this.send('|/blockchallenges');
+				this.send('|/cmd rooms');
 				if (rank) {
 					Users.self.group = rank;
 				} else {
@@ -373,16 +379,30 @@ export class Client {
 
 		case 'queryresponse': {
 			const messageArguments: IClientMessageTypes['queryresponse'] = {
-				type: messageParts[0] as 'roominfo' | 'userdetails',
+				type: messageParts[0] as QueryResponseType,
 				response: messageParts.slice(1).join('|'),
 			};
-			if (messageParts[0] === 'roominfo') {
+
+			if (messageArguments.type === 'roominfo') {
 				if (messageArguments.response && messageArguments.response !== 'null') {
 					const response = JSON.parse(messageArguments.response) as IRoomInfoResponse;
 					const room = Rooms.get(response.id);
 					if (room) room.onRoomInfoResponse(response);
 				}
-			} else if (messageParts[0] === 'userdetails') {
+			} else if (messageArguments.type === 'rooms') {
+				if (messageArguments.response && messageArguments.response !== 'null') {
+					const response = JSON.parse(messageArguments.response) as IRoomsResponse;
+					for (const room of response.chat) {
+						this.publicChatRooms.push(Tools.toRoomId(room.title));
+					}
+					for (const room of response.official) {
+						this.publicChatRooms.push(Tools.toRoomId(room.title));
+					}
+					for (const room of response.pspl) {
+						this.publicChatRooms.push(Tools.toRoomId(room.title));
+					}
+				}
+			} else if (messageArguments.type === 'userdetails') {
 				if (messageArguments.response && messageArguments.response !== 'null') {
 					const response = JSON.parse(messageArguments.response) as IUserDetailsResponse;
 					if (response.userid === Users.self.id) Users.self.group = response.group;
@@ -469,7 +489,12 @@ export class Client {
 			} else if (user.away) {
 				user.away = false;
 			}
+
 			user.rooms.set(room, {lastChatMessage: 0, rank: messageArguments.rank});
+			if (!this.trustedThrottle && user === Users.self && this.publicChatRooms.includes(room.id) && Users.self.hasRank(room, 'driver')) {
+				this.trustedThrottle = true;
+			}
+
 			const now = Date.now();
 			Storage.updateLastSeen(user, now);
 			if (Config.allowMail && messageArguments.rank !== this.groupSymbols.locked) Storage.retrieveOfflineMessages(user);
@@ -1162,14 +1187,17 @@ export class Client {
 			this.sendQueue.push(message);
 			return;
 		}
-		this.connection.send(message);
-		this.sendTimeout = setTimeout(() => {
-			this.sendTimeout = null;
-			if (!this.sendQueue.length) return;
-			const message = this.sendQueue[0];
-			this.sendQueue.shift();
-			this.send(message);
-		}, SEND_THROTTLE);
+
+		this.sendTimeout = true;
+		this.connection.send(message, () => {
+			global.Client.sendTimeout = setTimeout(() => {
+				global.Client.sendTimeout = null;
+				if (!global.Client.sendQueue.length) return;
+				const message = global.Client.sendQueue[0];
+				global.Client.sendQueue.shift();
+				global.Client.send(message);
+			}, global.Client.trustedThrottle ? TRUSTED_MESSAGE_THROTTLE : REGULAR_MESSAGE_THROTTLE);
+		});
 	}
 
 	login(): void {

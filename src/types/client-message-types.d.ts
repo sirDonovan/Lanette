@@ -11,11 +11,7 @@ export interface IServerGroup {
 
 export type ServerGroupData = Omit<IServerGroup, "ranking">;
 
-export interface IUserDetailsResponse {
-	avatar: string;
-	group: string;
-	userid: string;
-}
+export type QueryResponseType = 'roominfo' | 'rooms' | 'userdetails';
 
 export interface IRoomInfoResponse {
 	id: string;
@@ -26,6 +22,27 @@ export interface IRoomInfoResponse {
 	modjoin: string | boolean;
 	auth: Dict<string[]>;
 	users: string[];
+}
+
+interface IRoomDetails {
+	desc?: string;
+	title: string;
+	subRooms?: string[];
+	userCount: number;
+}
+
+export interface IRoomsResponse {
+	battleCount: number;
+	chat: IRoomDetails[];
+	official: IRoomDetails[];
+	pspl: IRoomDetails[];
+	userCount: number;
+}
+
+export interface IUserDetailsResponse {
+	avatar: string;
+	group: string;
+	userid: string;
 }
 
 export interface IClientMessageTypes {
@@ -52,7 +69,7 @@ export interface IClientMessageTypes {
 	 * Query type|response
 	 */
 	queryresponse: {
-		readonly type: 'roominfo' | 'userdetails';
+		readonly type: QueryResponseType;
 		/** JSON string */
 		readonly response: string;
 	};
