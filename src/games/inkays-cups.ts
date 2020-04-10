@@ -186,7 +186,7 @@ const commands: Dict<ICommandDefinition<InkaysCups>> = {
 				}
 			}
 			if (answerIndex === -1) return false;
-			const pokemon = Dex.getExistingPokemon(this.answers[answerIndex]).species;
+			const pokemon = Dex.getExistingPokemon(this.answers[answerIndex]).name;
 			this.answers.splice(answerIndex, 1);
 			this.roundGuesses.set(player, true);
 			user.say("You grabbed " + pokemon + " and advanced to the next round!");

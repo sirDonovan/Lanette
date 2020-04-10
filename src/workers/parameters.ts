@@ -91,7 +91,6 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 			const evolutionLines: string[] = [];
 			const formes: Dict<string> = {};
 			const otherFormes: Dict<string> = {};
-			const learnsets: Dict<Dict<readonly string[]>> = {};
 
 			const letters: Dict<IParam> = {};
 			const colors: Dict<IParam> = {};
@@ -120,16 +119,14 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 				if (dex.data.typeChart[i] !== null) typeChartKeys.push(i);
 			}
 
+			const allPossibleMoves: Dict<string[]> = {};
 			const pokedex = Games.getPokemonList(undefined, genString);
 			for (const pokemon of pokedex) {
+				allPossibleMoves[pokemon.id] = dex.getAllPossibleMoves(pokemon);
+
 				if (pokemon.forme) formes[pokemon.id] = pokemon.forme;
-				if (pokemon.baseSpecies !== pokemon.species) otherFormes[pokemon.id] = pokemon.baseSpecies;
-				if (pokemon.learnset) {
-					learnsets[pokemon.id] = pokemon.learnset;
-				} else if (pokemon.baseSpecies !== pokemon.species) {
-					const baseSpecies = dex.getExistingPokemon(pokemon.baseSpecies);
-					if (baseSpecies.learnset) learnsets[pokemon.id] = baseSpecies.learnset;
-				}
+				if (pokemon.baseSpecies !== pokemon.name) otherFormes[pokemon.id] = pokemon.baseSpecies;
+
 				if (pokemon.evos.length && !pokemon.prevo) {
 					const pokemonEvolutionLines = dex.getEvolutionLines(pokemon);
 					for (const line of pokemonEvolutionLines) {
@@ -137,7 +134,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 					}
 				}
 
-				const letter = pokemon.species.charAt(0);
+				const letter = pokemon.name.charAt(0);
 				const letterId = Tools.toId(letter);
 				if (!(letterId in letters)) {
 					const letterParam = {type: 'letter', param: letter};
@@ -145,7 +142,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 					letters[letterId + 'letter'] = letterParam;
 				}
 				if (!(letter in letterDex)) letterDex[letter] = [];
-				letterDex[letter].push(pokemon.species);
+				letterDex[letter].push(pokemon.name);
 
 				const colorId = Tools.toId(pokemon.color);
 				if (!(colorId in colors)) {
@@ -154,7 +151,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 					colors[colorId + 'color'] = colorParam;
 				}
 				if (!(pokemon.color in colorDex)) colorDex[pokemon.color] = [];
-				colorDex[pokemon.color].push(pokemon.species);
+				colorDex[pokemon.color].push(pokemon.name);
 
 				for (const type of pokemon.types) {
 					const typeId = Tools.toId(type);
@@ -164,7 +161,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 						types[typeId + 'type'] = typeParam;
 					}
 					if (!(type in typeDex)) typeDex[type] = [];
-					typeDex[type].push(pokemon.species);
+					typeDex[type].push(pokemon.name);
 				}
 
 				for (const type of typeChartKeys) {
@@ -183,7 +180,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 							weaknesses['weakto' + typeId + 'type'] = weaknessParam;
 						}
 						if (!(type in weaknessesDex)) weaknessesDex[type] = [];
-						weaknessesDex[type].push(pokemon.species);
+						weaknessesDex[type].push(pokemon.name);
 					} else if (immune || effectiveness <= -1) {
 						if (!(typeId in resistances)) {
 							const resistanceParam = {type: 'resistance', param: type};
@@ -195,7 +192,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 							resistances['resist' + typeId + 'type'] = resistanceParam;
 						}
 						if (!(type in resistancesDex)) resistancesDex[type] = [];
-						resistancesDex[type].push(pokemon.species);
+						resistancesDex[type].push(pokemon.name);
 					}
 				}
 
@@ -207,7 +204,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 						tiers[tierId + 'tier'] = tierParam;
 					}
 					if (!(pokemon.tier in tierDex)) tierDex[pokemon.tier] = [];
-					tierDex[pokemon.tier].push(pokemon.species);
+					tierDex[pokemon.tier].push(pokemon.name);
 				}
 
 				if (Dex.isPseudoLCPokemon(pokemon)) {
@@ -217,7 +214,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 						tiers['lctier'] = tierParam;
 					}
 					if (!('LC' in tierDex)) tierDex['LC'] = [];
-					tierDex['LC'].push(pokemon.species);
+					tierDex['LC'].push(pokemon.name);
 				}
 
 				if (!(pokemon.gen in gens)) {
@@ -227,7 +224,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 					gens['g' + pokemon.gen] = genParam;
 				}
 				if (!(pokemon.gen in genDex)) genDex[pokemon.gen] = [];
-				genDex[pokemon.gen].push(pokemon.species);
+				genDex[pokemon.gen].push(pokemon.name);
 
 				for (const i in pokemon.abilities) {
 					// @ts-ignore
@@ -238,7 +235,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 						abilities[abilityId + 'ability'] = {type: 'ability', param: ability};
 					}
 					if (!(ability in abilityDex)) abilityDex[ability] = [];
-					abilityDex[ability].push(pokemon.species);
+					abilityDex[ability].push(pokemon.name);
 				}
 
 				for (const eggGroup of pokemon.eggGroups) {
@@ -249,7 +246,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 						eggGroups[groupId + 'group'] = groupParam;
 					}
 					if (!(eggGroup in eggGroupDex)) eggGroupDex[eggGroup] = [];
-					eggGroupDex[eggGroup].push(pokemon.species);
+					eggGroupDex[eggGroup].push(pokemon.name);
 				}
 			}
 
@@ -270,9 +267,9 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 				}
 
 				for (const pokemon of pokedex) {
-					if (pokemon.allPossibleMoves.includes(move.id) && !validator.checkLearnset(move, pokemon)) {
+					if (allPossibleMoves[pokemon.id].includes(move.id) && !validator.checkLearnset(move, pokemon)) {
 						if (!(move.name in moveDex)) moveDex[move.name] = [];
-						moveDex[move.name].push(pokemon.species);
+						moveDex[move.name].push(pokemon.name);
 					}
 				}
 			}

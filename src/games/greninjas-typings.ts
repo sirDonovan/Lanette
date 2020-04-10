@@ -27,10 +27,10 @@ class GreninjasTypings extends Guessing {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		const pokedex = Games.getPokemonList(x => !x.species.startsWith('Arcues-') && !x.species.startsWith('Silvally-'));
+		const pokedex = Games.getPokemonList(x => !x.name.startsWith('Arceus-') && !x.name.startsWith('Silvally-'));
 		for (const pokemon of pokedex) {
 			data.pokedex.push(pokemon.id);
-			data.species[pokemon.id] = pokemon.species;
+			data.species[pokemon.id] = pokemon.name;
 			data.reverseTypes[pokemon.id] = pokemon.types.slice().reverse().join('/');
 			data.types[pokemon.id] = pokemon.types.join('/');
 		}

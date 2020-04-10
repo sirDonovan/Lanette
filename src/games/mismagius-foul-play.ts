@@ -44,21 +44,23 @@ class MismagiusFoulPlay extends Game {
 		if (loadedData) return;
 
 		room.say("Loading data for " + name + "...");
-		const pokemonList = Games.getPokemonList(x => !x.isForme && !!x.learnset);
+		const pokemonList = Games.getPokemonList(x => !x.isForme);
 		for (const pokemon of pokemonList) {
-			data.pokemon.push(pokemon.species);
+			const learnsetData = Dex.getLearnsetData(pokemon.id);
+			if (!learnsetData || !learnsetData.learnset) continue;
+			data.pokemon.push(pokemon.name);
 			if (!(pokemon.color in data.colors)) {
 				data.colors[pokemon.color] = [];
 				dataKeys.colors.push(pokemon.color);
 			}
-			data.colors[pokemon.color].push(pokemon.species);
+			data.colors[pokemon.color].push(pokemon.name);
 			for (const eggGroup of pokemon.eggGroups) {
 				const name = eggGroup + " group";
 				if (!(name in data.eggGroups)) {
 					data.eggGroups[name] = [];
 					dataKeys.eggGroups.push(name);
 				}
-				data.eggGroups[name].push(pokemon.species);
+				data.eggGroups[name].push(pokemon.name);
 			}
 			for (const type of pokemon.types) {
 				const name = type + " type";
@@ -66,15 +68,16 @@ class MismagiusFoulPlay extends Game {
 					data.types[name] = [];
 					dataKeys.types.push(name);
 				}
-				data.types[name].push(pokemon.species);
+				data.types[name].push(pokemon.name);
 			}
-			for (const i in pokemon.learnset) {
+
+			for (const i in learnsetData.learnset) {
 				const move = Dex.getExistingMove(i);
 				if (!(move.name in data.moves)) {
 					data.moves[move.name] = [];
 					dataKeys.moves.push(move.name);
 				}
-				data.moves[move.name].push(pokemon.species);
+				data.moves[move.name].push(pokemon.name);
 			}
 		}
 
@@ -264,20 +267,20 @@ const commands: Dict<ICommandDefinition<MismagiusFoulPlay>> = {
 				user.say("You must specify a valid Pokemon.");
 				return false;
 			}
-			if (!data.pokemon.includes(pokemon.species)) {
-				user.say(pokemon.species + " cannot be used in this game.");
+			if (!data.pokemon.includes(pokemon.name)) {
+				user.say(pokemon.name + " cannot be used in this game.");
 				return false;
 			}
 			let chosen = false;
 			this.chosenPokemon.forEach((species, player) => {
-				if (species === pokemon.species) chosen = true;
+				if (species === pokemon.name) chosen = true;
 			});
 			if (chosen) {
-				user.say(pokemon.species + " is already assigned to another player.");
+				user.say(pokemon.name + " is already assigned to another player.");
 				return false;
 			}
-			user.say("You have chosen " + pokemon.species + "!");
-			this.chosenPokemon.set(player, pokemon.species);
+			user.say("You have chosen " + pokemon.name + "!");
+			this.chosenPokemon.set(player, pokemon.name);
 			return true;
 		},
 		pmOnly: true,
@@ -321,7 +324,7 @@ const commands: Dict<ICommandDefinition<MismagiusFoulPlay>> = {
 				return false;
 			}
 			this.roundGuesses.set(player, true);
-			if ((playerCriminal || targetCriminal) && this.chosenPokemon.get(targetPlayer) === pokemon.species) {
+			if ((playerCriminal || targetCriminal) && this.chosenPokemon.get(targetPlayer) === pokemon.name) {
 				let action: string;
 				if (playerCriminal) {
 					action = "kidnapped";

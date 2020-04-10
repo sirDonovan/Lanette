@@ -45,7 +45,7 @@ class KirliasTracingShow extends Guessing {
 		this.lastPokemon = pokemon;
 		this.lastAbilities = abilities;
 		this.answers = abilities.split(',');
-		this.hint = "<b>Kirlia traced</b>: <i>" + Dex.getExistingPokemon(pokemon).species + "</i>";
+		this.hint = "<b>Kirlia traced</b>: <i>" + Dex.getExistingPokemon(pokemon).name + "</i>";
 	}
 }
 

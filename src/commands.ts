@@ -239,12 +239,12 @@ const commands: Dict<ICommandDefinition> = {
 			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
 			const pokemon = Dex.getPokemon(target);
 			if (!pokemon) return this.say("'" + target.trim() + "' is not a valid Pokemon.");
-			if (!pokemon.randomBattleMoves) return this.say("No Random Battle data found for " + pokemon.species + ".");
+			if (!pokemon.randomBattleMoves) return this.say("No Random Battle data found for " + pokemon.name + ".");
 			const data: string[] = [];
 			for (const move of pokemon.randomBattleMoves) {
 				data.push(Dex.getExistingMove(move).name);
 			}
-			this.say("**" + pokemon.species + " moves**: " + Tools.joinList(data.sort()) + ".");
+			this.say("**" + pokemon.name + " moves**: " + Tools.joinList(data.sort()) + ".");
 		},
 		aliases: ['randombattles', 'randbat', 'randbats'],
 	},
@@ -253,12 +253,12 @@ const commands: Dict<ICommandDefinition> = {
 			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
 			const pokemon = Dex.getPokemon(target);
 			if (!pokemon) return this.say("'" + target.trim() + "' is not a valid Pokemon.");
-			if (!pokemon.randomDoubleBattleMoves) return this.say("No Random Doubles Battle data found for " + pokemon.species + ".");
+			if (!pokemon.randomDoubleBattleMoves) return this.say("No Random Doubles Battle data found for " + pokemon.name + ".");
 			const data: string[] = [];
 			for (const move of pokemon.randomDoubleBattleMoves) {
 				data.push(Dex.getExistingMove(move).name);
 			}
-			this.say("**" + pokemon.species + " doubles moves**: " + Tools.joinList(data.sort()) + ".");
+			this.say("**" + pokemon.name + " doubles moves**: " + Tools.joinList(data.sort()) + ".");
 		},
 		aliases: ['randomdoublesbattles', 'randombattledoubles', 'randombattlesdoubles', 'randdubs', 'randbatdubs', 'randbatsdubs'],
 	},
@@ -1349,7 +1349,7 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id)))) return;
 			if (!target) {
-				const species = Dex.getExistingPokemon(Tools.sampleOne(Object.keys(Dex.data.pokedex))).species;
+				const species = Dex.getExistingPokemon(Tools.sampleOne(Object.keys(Dex.data.pokedex))).name;
 				if (this.pm) {
 					this.say('Randomly generated Pokemon: **' + species + '**');
 				} else {

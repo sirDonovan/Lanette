@@ -85,17 +85,17 @@ class TaurosSafariZone extends Game {
 					hasElectrode = true;
 					currentPokemon = Dex.getExistingPokemon('electrode');
 					pokemonList[i] = currentPokemon;
-					this.roundPokemon.set(Tools.toId(currentPokemon.species), {species: currentPokemon.species, points: -250});
+					this.roundPokemon.set(Tools.toId(currentPokemon.name), {species: currentPokemon.name, points: -250});
 				} else {
 					hasVoltorb = true;
 					currentPokemon = Dex.getExistingPokemon('voltorb');
 					pokemonList[i] = currentPokemon;
-					this.roundPokemon.set(Tools.toId(currentPokemon.species), {species: currentPokemon.species, points: -100});
+					this.roundPokemon.set(Tools.toId(currentPokemon.name), {species: currentPokemon.name, points: -100});
 				}
 			} else {
-				baseStatTotals.push({pokemon: currentPokemon.species, bst: data.baseStatTotals[currentPokemon.id]});
+				baseStatTotals.push({pokemon: currentPokemon.name, bst: data.baseStatTotals[currentPokemon.id]});
 				const points = 100 + Math.round((data.baseStatTotals[pokemonList[i].id] / 12));
-				this.roundPokemon.set(Tools.toId(currentPokemon.species), {species: currentPokemon.species, points});
+				this.roundPokemon.set(Tools.toId(currentPokemon.name), {species: currentPokemon.name, points});
 			}
 		}
 		baseStatTotals.sort((a, b) => b.bst - a.bst);
@@ -104,7 +104,7 @@ class TaurosSafariZone extends Game {
 		for (const pokemon of pokemonList) {
 			html += Dex.getPokemonGif(pokemon);
 		}
-		html += "<br />Wild <b>" + pokemonList.map(x => x.species).join(", ") + "</b> appeared!</center></div>";
+		html += "<br />Wild <b>" + pokemonList.map(x => x.name).join(", ") + "</b> appeared!</center></div>";
 		const uhtmlName = this.uhtmlBaseName + '-pokemon';
 		this.onUhtml(uhtmlName, html, () => {
 			this.canCatch = true;

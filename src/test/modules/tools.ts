@@ -178,9 +178,9 @@ describe("Tools", () => {
 
 		for (const i in Dex.data.pokedex) {
 			const pokemon = Dex.getExistingPokemon(i);
-			assert(pokemon.color in Tools.pokemonColorHexColors, pokemon.species + "'s color " + pokemon.color);
+			assert(pokemon.color in Tools.pokemonColorHexColors, pokemon.name + "'s color " + pokemon.color);
 			for (const type of pokemon.types) {
-				assert(type in Tools.typeHexColors, pokemon.species + "'s type " + type);
+				assert(type in Tools.typeHexColors, pokemon.name + "'s type " + type);
 			}
 		}
 

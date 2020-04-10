@@ -35,7 +35,7 @@ class MagnetonsMashups extends Guessing {
 
 		const pokedex = Games.getPokemonList();
 		for (const pokemon of pokedex) {
-			data['Pokemon'].push(pokemon.species);
+			data['Pokemon'].push(pokemon.name);
 		}
 
 		loadedData = true;

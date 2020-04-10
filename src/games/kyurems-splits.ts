@@ -25,7 +25,7 @@ class KyuremsSplits extends Guessing {
 
 		const pokemonList = Games.getPokemonList();
 		for (const pokemon of pokemonList) {
-			data["Pokemon"].push(pokemon.species);
+			data["Pokemon"].push(pokemon.name);
 		}
 
 		const abilities = Games.getAbilitiesList();

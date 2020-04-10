@@ -88,7 +88,7 @@ class PikachusMysteryPokemon extends Guessing {
 		hints.push("**Egg group" + (data.eggGroups[species].includes(',') ? "s" : "") + "**: " + data.eggGroups[species]);
 		hints.push("**Ability**: " + this.sampleOne(data.abilities[species]));
 		this.hints = this.shuffle(hints);
-		this.answers = [pokemon.species];
+		this.answers = [pokemon.name];
 	}
 
 	async onNextRound(): Promise<void> {

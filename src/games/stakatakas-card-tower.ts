@@ -59,7 +59,7 @@ class StakatakasCardTower extends CardMatching {
 			const index = this.getCardIndex(id, cards);
 			if (index < 0) {
 				if (Dex.data.pokedex[id]) {
-					player.say("You do not have [ " + Dex.getExistingPokemon(id).species + " ].");
+					player.say("You do not have [ " + Dex.getExistingPokemon(id).name + " ].");
 				} else {
 					player.say("'" + targets[i] + "' is not a valid Pokemon.");
 				}
@@ -146,7 +146,7 @@ class StakatakasCardTower extends CardMatching {
 			}
 
 			cards.push(pair);
-			player.say(card.species + " found you a " + pair.species + "!");
+			player.say(card.name + " found you a " + pair.name + "!");
 		}
 
 		this.awaitingCurrentPlayerCard = false;

@@ -82,7 +82,7 @@ class BulbasaursUno extends CardMatching {
 					inner.splice(i, 1);
 					for (const card of inner) {
 						if (this.isPlayableCard(card, outerCard)) {
-							const action = card.name + ', ' + [card.species, outerCard.species].sort().join(', ');
+							const action = card.name + ', ' + [card.name, outerCard.name].sort().join(', ');
 							if (!playableCards.includes(action)) playableCards.push(action);
 						}
 					}
@@ -111,7 +111,7 @@ class BulbasaursUno extends CardMatching {
 			drawCards = 0;
 		} else if (card.action.name === 'Wild (type)') {
 			if (!targets[1]) {
-				this.say("Please include your choice of type (``" + Config.commandCharacter + "play " + card.species + ", __type__``).");
+				this.say("Please include your choice of type (``" + Config.commandCharacter + "play " + card.name + ", __type__``).");
 				return false;
 			}
 			const type = Tools.toId(targets[1]);
@@ -122,7 +122,7 @@ class BulbasaursUno extends CardMatching {
 			this.topCard.types = [types[type]];
 		} else if (card.action.name === 'Wild (color)') {
 			if (!targets[1]) {
-				this.say("Please include your choice of color (``" + Config.commandCharacter + "play " + card.species + ", __color__``).");
+				this.say("Please include your choice of color (``" + Config.commandCharacter + "play " + card.name + ", __color__``).");
 				return false;
 			}
 			const color = Tools.toId(targets[1]);
@@ -168,11 +168,11 @@ class BulbasaursUno extends CardMatching {
 					}
 				}
 				if (indexA === -1) {
-					player.say(idA in Dex.data.pokedex ? "You do not have [ " + Dex.getExistingPokemon(idA).species + " ]." : "'" + targets[1] + "' is not a valid Pokemon.");
+					player.say(idA in Dex.data.pokedex ? "You do not have [ " + Dex.getExistingPokemon(idA).name + " ]." : "'" + targets[1] + "' is not a valid Pokemon.");
 					return false;
 				}
 				if (indexB === -1) {
-					player.say(idB in Dex.data.pokedex ? "You do not have [ " + Dex.getExistingPokemon(idB).species + " ]." : "'" + targets[2] + "' is not a valid Pokemon.");
+					player.say(idB in Dex.data.pokedex ? "You do not have [ " + Dex.getExistingPokemon(idB).name + " ]." : "'" + targets[2] + "' is not a valid Pokemon.");
 					return false;
 				}
 				const cardA = cards[indexA];
@@ -211,7 +211,7 @@ class BulbasaursUno extends CardMatching {
 					}
 				}
 				if (indexA === -1) {
-					player.say(idA in Dex.data.pokedex ? "You do not have [ " + Dex.getExistingPokemon(idA).species + " ]." : "'" + targets[1] + "' is not a valid Pokemon.");
+					player.say(idA in Dex.data.pokedex ? "You do not have [ " + Dex.getExistingPokemon(idA).name + " ]." : "'" + targets[1] + "' is not a valid Pokemon.");
 					return false;
 				}
 				const cardA = cards[indexA];

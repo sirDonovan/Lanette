@@ -33,7 +33,7 @@ class AbrasAbilitySwitch extends Guessing {
 				abilities.push(pokemon.abilities[i]);
 			}
 			data.abilities[pokemon.id] = abilities;
-			data.pokedex.push(pokemon.species);
+			data.pokedex.push(pokemon.name);
 		}
 
 		loadedData  = true;

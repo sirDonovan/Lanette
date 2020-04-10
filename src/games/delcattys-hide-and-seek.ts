@@ -138,7 +138,7 @@ class DelcattysHideAndSeek extends Game {
 	}
 
 	pokemonFitsParameters(pokemon: IPokemon): boolean {
-		return data.parameters[this.categories.join(', ')].includes(Tools.toId(pokemon.species));
+		return data.parameters[this.categories.join(', ')].includes(Tools.toId(pokemon.name));
 	}
 
 	onEnd(): void {
@@ -163,11 +163,11 @@ const commands: Dict<ICommandDefinition<DelcattysHideAndSeek>> = {
 				return false;
 			}
 			if (!data.pokemon.includes(pokemon.id)) {
-				player.say(pokemon.species + " is not in this game.");
+				player.say(pokemon.name + " is not in this game.");
 				return false;
 			}
 			if (!this.pokemonFitsParameters(pokemon)) {
-				player.say("**" + pokemon.species + "** does not follow the parameters.");
+				player.say("**" + pokemon.name + "** does not follow the parameters.");
 				return false;
 			}
 
@@ -177,16 +177,16 @@ const commands: Dict<ICommandDefinition<DelcattysHideAndSeek>> = {
 			for (const i in this.players) {
 				if (this.players[i].eliminated) continue;
 				const player = this.players[i];
-				if (this.pokemonChoices.get(player) === pokemon.species) {
+				if (this.pokemonChoices.get(player) === pokemon.name) {
 					this.eliminatePlayer(player, "Your Pokemon was charmed!");
 					eliminatedPlayers.push(player.name);
 				}
 			}
 			if (!eliminatedPlayers.length) {
-				this.say("**" + this.charmer.name + "** charmed **" + pokemon.species + "**! Unfortunately, they did not eliminate anyone...");
+				this.say("**" + this.charmer.name + "** charmed **" + pokemon.name + "**! Unfortunately, they did not eliminate anyone...");
 				this.eliminatePlayer(this.charmer, "No one chose the Pokemon you charmed!");
 			} else {
-				this.say("**" + this.charmer.name + "** charmed **" + pokemon.species + "** and eliminated " + Tools.joinList(eliminatedPlayers) + " from the game!");
+				this.say("**" + this.charmer.name + "** charmed **" + pokemon.name + "** and eliminated " + Tools.joinList(eliminatedPlayers) + " from the game!");
 			}
 			if (this.timeout) clearTimeout(this.timeout);
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
@@ -213,15 +213,15 @@ const commands: Dict<ICommandDefinition<DelcattysHideAndSeek>> = {
 				return false;
 			}
 			if (!data.pokemon.includes(pokemon.id)) {
-				player.say(pokemon.species + " is not in this game.");
+				player.say(pokemon.name + " is not in this game.");
 				return false;
 			}
 			if (!this.pokemonFitsParameters(pokemon)) {
-				player.say("**" + pokemon.species + "** does not follow the parameters!");
+				player.say("**" + pokemon.name + "** does not follow the parameters!");
 				return false;
 			}
-			this.pokemonChoices.set(player, pokemon.species);
-			player.say("You have selected **" + pokemon.species + "**!");
+			this.pokemonChoices.set(player, pokemon.name);
+			player.say("You have selected **" + pokemon.name + "**!");
 			return true;
 		},
 		pmOnly: true,

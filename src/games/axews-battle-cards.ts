@@ -117,7 +117,7 @@ class AxewsBattleCards extends CardMatching {
 	}
 
 	getTopCardText(): string {
-		return "**" + this.topCard.species + "** (" + this.topCard.types.join("/") + ")";
+		return "**" + this.topCard.name + "** (" + this.topCard.types.join("/") + ")";
 	}
 
 	getCardChatDetails(card: IPokemonCard): string {
@@ -203,18 +203,18 @@ class AxewsBattleCards extends CardMatching {
 					playableCards.push(card.name + ", " + types.join(", "));
 				} else if (card.id === 'transform') {
 					let pokemon = this.sampleOne(this.deckPool);
-					while (pokemon.species === this.topCard.species) {
+					while (pokemon.name === this.topCard.name) {
 						pokemon = this.sampleOne(this.deckPool);
 					}
-					playableCards.push(card.name + ", " + pokemon.species);
+					playableCards.push(card.name + ", " + pokemon.name);
 				} else {
 					playableCards.push(card.name);
 				}
 			} else {
 				card = card as IPokemonCard;
-				pokemon.push(card.species);
+				pokemon.push(card.name);
 				if (this.isPlayableCard(card)) {
-					playableCards.push(card.species);
+					playableCards.push(card.name);
 				}
 			}
 		}
@@ -323,7 +323,7 @@ class AxewsBattleCards extends CardMatching {
 
 	playCard(card: IPokemonCard, player: Player, targets: string[], cards: IPokemonCard[]): IPokemonCard[] | boolean {
 		if (!this.isPlayableCard(card)) {
-			player.say(card.species + " does not have any super-effective STAB against " + this.topCard.species + "!");
+			player.say(card.name + " does not have any super-effective STAB against " + this.topCard.name + "!");
 			return false;
 		}
 		this.awaitingCurrentPlayerCard = false;
@@ -380,7 +380,7 @@ class AxewsBattleCards extends CardMatching {
 			}
 			this.topCard.types = [types[type1], types[type2]];
 			if (this.isStaleTopCard()) {
-				this.say(this.topCard.species + " no longer has any weaknesses!");
+				this.say(this.topCard.name + " no longer has any weaknesses!");
 				let topCard = this.getCard();
 				while (topCard.effectType === 'Move') {
 					topCard = this.getCard();
@@ -394,7 +394,7 @@ class AxewsBattleCards extends CardMatching {
 			}
 			this.topCard.types.push("Ghost");
 			if (this.isStaleTopCard()) {
-				this.say(this.topCard.species + " no longer has any weaknesses!");
+				this.say(this.topCard.name + " no longer has any weaknesses!");
 				let topCard = this.getCard();
 				while (topCard.effectType === 'Move') {
 					topCard = this.getCard();
@@ -408,7 +408,7 @@ class AxewsBattleCards extends CardMatching {
 			}
 			this.topCard.types.push("Grass");
 			if (this.isStaleTopCard()) {
-				this.say(this.topCard.species + " no longer has any weaknesses!");
+				this.say(this.topCard.name + " no longer has any weaknesses!");
 				let topCard = this.getCard();
 				while (topCard.effectType === 'Move') {
 					topCard = this.getCard();
@@ -432,18 +432,18 @@ class AxewsBattleCards extends CardMatching {
 			}
 			let deckHasSpecies = false;
 			for (const card of this.deckPool) {
-				if (card.species === pokemon.species) {
+				if (card.name === pokemon.name) {
 					deckHasSpecies = true;
 					break;
 				}
 			}
 			if (!deckHasSpecies) {
-				this.say(pokemon.species + " is not playable in this game.");
+				this.say(pokemon.name + " is not playable in this game.");
 				return false;
 			}
-			this.topCard = Dex.getPokemonCopy(pokemon.species);
+			this.topCard = Dex.getPokemonCopy(pokemon.name);
 			if (this.isStaleTopCard()) {
-				this.say(this.topCard.species + " has no weaknesses! Randomly selecting a different Pokemon...");
+				this.say(this.topCard.name + " has no weaknesses! Randomly selecting a different Pokemon...");
 				let topCard = this.getCard();
 				while (topCard.effectType === 'Move') {
 					topCard = this.getCard();
@@ -485,7 +485,7 @@ class AxewsBattleCards extends CardMatching {
 			}
 			if (newIndex < 0) {
 				if (newId in Dex.data.pokedex) {
-					player.say("You do not have [ " + Dex.getExistingPokemon(newId).species + " ].");
+					player.say("You do not have [ " + Dex.getExistingPokemon(newId).name + " ].");
 				} else {
 					player.say("'" + targets[1] + "' is not a valid Pokemon.");
 				}

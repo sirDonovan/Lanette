@@ -44,9 +44,9 @@ class EkansEdges extends Guessing {
 
 		const pokemonList = Games.getPokemonList();
 		for (const pokemon of pokemonList) {
-			const edge = pokemon.species.charAt(0) + " - " + pokemon.species.substr(-1);
+			const edge = pokemon.name.charAt(0) + " - " + pokemon.name.substr(-1);
 			if (!data["Pokemon"][edge]) data["Pokemon"][edge] = [];
-			data["Pokemon"][edge].push(pokemon.species);
+			data["Pokemon"][edge].push(pokemon.name);
 		}
 
 		const abilities = Games.getAbilitiesList();

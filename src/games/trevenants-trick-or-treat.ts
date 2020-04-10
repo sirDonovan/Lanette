@@ -35,8 +35,10 @@ class TrevenantsTrickOrTreat extends Game {
 
 		const pokedex = Games.getPokemonList(x => x.gen <= 5 && !x.forme && Dex.hasGifData(x, 'bw'));
 		for (const pokemon of pokedex) {
+			const allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
+			if (!allPossibleMoves.length) continue;
 			data.pokedex.push(pokemon.id);
-			data.allPossibleMoves[pokemon.id] = pokemon.allPossibleMoves;
+			data.allPossibleMoves[pokemon.id] = allPossibleMoves;
 		}
 
 		loadedData = true;
@@ -101,20 +103,7 @@ const commands: Dict<ICommandDefinition<TrevenantsTrickOrTreat>> = {
 			for (let i = 0; i < GRID_SIZE; i++) {
 				for (let j = 0; j < GRID_SIZE; j++) {
 					const pokemon = Dex.getExistingPokemon(this.pokemonGrid[i][j]);
-					let learnsMove = pokemon.learnset ? move.id in pokemon.learnset : false;
-					if (!learnsMove) {
-						let evolution = pokemon;
-						while (evolution.prevo) {
-							evolution = Dex.getExistingPokemon(evolution.prevo);
-							learnsMove = evolution.learnset ? move.id in evolution.learnset : false;
-							if (learnsMove) break;
-						}
-					}
-					if (pokemon.forme) {
-						const baseSpecies = Dex.getExistingPokemon(pokemon.baseSpecies);
-						if (baseSpecies.learnset && move.id in baseSpecies.learnset) learnsMove = false;
-					}
-					if (learnsMove) {
+					if (data.allPossibleMoves[pokemon.id].includes(move.id)) {
 						indices.push([i, j]);
 					}
 				}

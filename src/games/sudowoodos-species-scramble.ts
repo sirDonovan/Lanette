@@ -20,7 +20,7 @@ class SudowoodosSpeciesScramble extends Guessing {
 				data.categories[pokemon.category] = [];
 				categoryKeys.push(pokemon.category);
 			}
-			data.categories[pokemon.category].push(pokemon.species);
+			data.categories[pokemon.category].push(pokemon.name);
 		}
 
 		loadedData = true;

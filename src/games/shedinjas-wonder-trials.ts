@@ -36,7 +36,7 @@ class ShedinjasWonderTrials extends Game {
 		}
 		const pokemonList = Games.getPokemonList(x => !x.isForme);
 		for (const pokemon of pokemonList) {
-			data.pokedex.push(pokemon.species);
+			data.pokedex.push(pokemon.name);
 		}
 
 		loadedData = true;
@@ -60,11 +60,11 @@ class ShedinjasWonderTrials extends Game {
 		this.usedMoves = [];
 		this.roundMoves.clear();
 
-		const text = "Shedinja summoned **" + this.currentPokemon.species + "**!";
+		const text = "Shedinja summoned **" + this.currentPokemon.name + "**!";
 		this.on(text, () => {
 			this.canUseMove = true;
 			this.timeout = setTimeout(() => {
-				const text = this.currentPokemon!.species + " fled!";
+				const text = this.currentPokemon!.name + " fled!";
 				this.on(text, () => this.nextRound());
 				this.say(text);
 			}, 5 * 1000);

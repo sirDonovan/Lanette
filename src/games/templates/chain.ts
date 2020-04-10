@@ -182,7 +182,7 @@ export abstract class Chain extends Game {
 		if (this.format.options.freejoin) {
 			this.resetLinkCounts();
 			this.setLink();
-			text = "The " + this.mascot!.species + " spelled out **" + this.currentLink.name + "**.";
+			text = "The " + this.mascot!.name + " spelled out **" + this.currentLink.name + "**.";
 			this.on(text, () => {
 				this.timeout = setTimeout(() => {
 					this.say("Time is up!");
@@ -218,7 +218,7 @@ export abstract class Chain extends Game {
 				return;
 			}
 
-			text = currentPlayer.name + " you are up! The " + this.mascot!.species + " spelled out **" + this.currentLink.name + "**.";
+			text = currentPlayer.name + " you are up! The " + this.mascot!.name + " spelled out **" + this.currentLink.name + "**.";
 			this.on(text, () => {
 				this.currentPlayer = currentPlayer!;
 				this.timeout = setTimeout(() => {

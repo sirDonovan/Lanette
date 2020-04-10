@@ -3,7 +3,7 @@ import path = require('path');
 
 import { Room } from './rooms';
 import { TeamValidator } from './team-validator';
-import { IAbility, IAbilityComputed, IAbilityCopy, IDataTable, IFormat, IFormatComputed, IFormatData, IFormatLinks, IGifData, IItem, IItemComputed, IItemCopy, IMove, IMoveComputed, IMoveCopy, INature, IPokemon, IPokemonComputed, IPokemonCopy, ISeparatedCustomRules, ITemplateData } from './types/in-game-data-types';
+import { IAbility, IAbilityComputed, IAbilityCopy, IDataTable, IFormat, IFormatComputed, IFormatData, IFormatLinks, IGifData, IItem, IItemComputed, IItemCopy, IMove, IMoveComputed, IMoveCopy, INature, IPokemon, IPokemonComputed, IPokemonCopy, ISeparatedCustomRules, ISpeciesData, ILearnsetData, FormatEffectType } from './types/in-game-data-types';
 
 const currentGen = 8;
 const currentGenString = 'gen' + currentGen;
@@ -226,6 +226,7 @@ export class Dex {
 	readonly tagNames: typeof tagNames = tagNames;
 
 	readonly abilityCache = new Map<string, IAbility>();
+	readonly allPossibleMovesCache = new Map<string, string[]>();
 	gen: number = currentGen;
 	readonly itemCache = new Map<string, IItem>();
 	loadedData: boolean = false;
@@ -317,8 +318,12 @@ export class Dex {
 			// eslint-disable-next-line @typescript-eslint/no-var-requires
 			const dataObject = require(filePath);
 			const key = `Battle${dataType}`;
-			if (!dataObject || typeof dataObject !== 'object') return new TypeError(`${filePath}, if it exists, must export a non-null object`);
-			if (!dataObject[key] || typeof dataObject[key] !== 'object') return new TypeError(`${filePath}, if it exists, must export an object whose '${key}' property is a non-null object`);
+			if (!dataObject || typeof dataObject !== 'object') {
+				throw new TypeError(`${filePath}, if it exists, must export a non-null object`);
+			}
+			if (!dataObject[key] || typeof dataObject[key] !== 'object') {
+				throw new TypeError(`${filePath}, if it exists, must export an object whose '${key}' property is a non-null object`);
+			}
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 			return dataObject[key];
 		} catch (e) {
@@ -464,7 +469,6 @@ export class Dex {
 				continue;
 			}
 			const battleData = this.loadDataFile(this.modDataDir, dataFiles, dataType);
-			if (!battleData || typeof battleData !== 'object') throw new TypeError("Exported property `Battle" + dataType + "`from `" + this.modDataDir + '/' + dataFiles[dataType] + "` must be an object except `null`.");
 			// @ts-ignore
 			if (battleData !== this.dataCache[dataType]) this.dataCache[dataType] = Object.assign(battleData, this.dataCache[dataType]);
 		}
@@ -628,15 +632,16 @@ export class Dex {
 		if (gen > this.gen) isNonstandard = 'Future';
 		if (this.currentMod === 'letsgo' && id !== 'noability') {
 			isNonstandard = 'Past';
-		} else if ((this.currentMod === 'letsgo' || this.gen <= 2) && id === 'noability') {
-			isNonstandard = undefined;
+		}
+		if ((this.currentMod === 'letsgo' || this.gen <= 2) && id === 'noability') {
+			isNonstandard = null;
 		}
 
 		const abilityComputed: IAbilityComputed = {
 			effectType: "Ability",
 			gen,
 			id,
-			isNonstandard,
+			isNonstandard: isNonstandard || null,
 		};
 		const ability: IAbility = Object.assign({}, abilityData, abilityComputed);
 		this.abilityCache.set(id, ability);
@@ -713,11 +718,12 @@ export class Dex {
 
 		let isNonstandard = itemData.isNonstandard;
 		if (gen > this.gen) isNonstandard = 'Future';
+		// hack for allowing mega evolution in LGPE
 		if (this.currentMod === 'letsgo' && !isNonstandard && !itemData.megaStone) {
 			isNonstandard = 'Past';
 		}
 
-		let fling;
+		let fling = itemData.fling;
 		if (itemData.isBerry) fling = {basePower: 10};
 		if (itemData.id.endsWith('plate')) fling = {basePower: 90};
 		if (itemData.onDrive) fling = {basePower: 70};
@@ -728,8 +734,8 @@ export class Dex {
 			effectType: "Item",
 			gen,
 			id: Tools.toId(itemData.name),
-			isNonstandard,
 			fling,
+			isNonstandard: isNonstandard || null,
 		};
 		const item: IItem = Object.assign({}, itemData, itemComputed);
 		this.itemCache.set(id, item);
@@ -890,7 +896,7 @@ export class Dex {
 			gen,
 			gmaxPower,
 			ignoreImmunity: moveData.ignoreImmunity !== undefined ? moveData.ignoreImmunity : moveData.category === 'Status',
-			isNonstandard,
+			isNonstandard: isNonstandard || null,
 			zMovePower,
 		};
 		const move: IMove = Object.assign({}, moveData, moveComputed);
@@ -940,8 +946,8 @@ export class Dex {
 		if (!pokedex) pokedex = this.getPokemonList();
 		const availability: string[] = [];
 		for (const pokemon of pokedex) {
-			if (pokemon.allPossibleMoves.includes(move.id) && !(pokemon.baseSpecies !== pokemon.species && availability.includes(pokemon.baseSpecies))) {
-				availability.push(pokemon.species);
+			if (this.getAllPossibleMoves(pokemon).includes(move.id) && !(pokemon.baseSpecies !== pokemon.name && availability.includes(pokemon.baseSpecies))) {
+				availability.push(pokemon.name);
 			}
 		}
 
@@ -990,40 +996,16 @@ export class Dex {
 		const templateFormatsData = this.data.formatsData[id] || {};
 
 		if (!templateData.eggGroups) templateData.eggGroups = [];
-		if (!templateFormatsData.requiredItems && templateFormatsData.requiredItem) templateFormatsData.requiredItems = [templateFormatsData.requiredItem];
-		const baseSpecies = templateData.baseSpecies || templateData.species;
-		const isForme = baseSpecies !== templateData.species;
-
-		const allPossibleMoves: string[] = [];
-		let firstLearnsetParentData: ITemplateData = templateData;
-		if (this.data.learnsets.hasOwnProperty(id)) {
-			for (const i in this.data.learnsets[id]!.learnset) {
-				allPossibleMoves.push(i);
-			}
-		} else if (isForme) {
-			const basePokemon = this.getExistingPokemon(baseSpecies);
-			firstLearnsetParentData = this.data.pokedex[basePokemon.id]!;
-			if (basePokemon.learnset) {
-				for (const i in basePokemon.learnset) {
-					allPossibleMoves.push(i);
-				}
-			}
-		}
-
-		let learnsetParent = this.getLearnsetParent(firstLearnsetParentData.species, firstLearnsetParentData.prevo, firstLearnsetParentData.inheritsFrom);
-		while (learnsetParent) {
-			for (const i in learnsetParent.learnset) {
-				if (!allPossibleMoves.includes(i)) allPossibleMoves.push(i);
-			}
-			learnsetParent = this.getLearnsetParent(learnsetParent.species, learnsetParent.prevo, learnsetParent.inheritsFrom);
-		}
+		if (!templateData.requiredItems && templateData.requiredItem) templateData.requiredItems = [templateData.requiredItem];
+		const baseSpecies = templateData.baseSpecies || templateData.name;
+		const isForme = baseSpecies !== templateData.name;
 
 		const forme = templateData.forme || '';
 		const isMega = ['Mega', 'Mega-X', 'Mega-Y'].includes(forme) ? true : false;
-		const isGigantamax = templateFormatsData.isGigantamax;
-		let battleOnly = templateFormatsData.battleOnly || isMega || !!isGigantamax || false;
+		const isGigantamax = templateData.isGigantamax;
+		let battleOnly = templateData.battleOnly || (isMega || isGigantamax ? baseSpecies : undefined);
 		let isPrimal = false;
-		let gen = templateFormatsData.gen || 0;
+		let gen = templateData.gen || 0;
 		if (!gen && templateData.num >= 1) {
 			if (templateData.num >= 810 || ['Galar', 'Galar-Zen'].includes(forme) || forme === 'Gmax') {
 				gen = 8;
@@ -1032,7 +1014,7 @@ export class Dex {
 			} else if (forme === 'Primal') {
 				gen = 6;
 				isPrimal = true;
-				battleOnly = true;
+				battleOnly = baseSpecies;
 			} else if (templateData.num >= 650 || isMega) {
 				gen = 6;
 			} else if (templateData.num >= 494) {
@@ -1049,7 +1031,7 @@ export class Dex {
 		}
 
 		const evos = templateData.evos || [];
-		const speciesId = Tools.toId(templateData.species);
+		const speciesId = Tools.toId(templateData.name);
 		let tier: string | undefined;
 		let doublesTier: string | undefined;
 		let isNonstandard = templateFormatsData.isNonstandard;
@@ -1060,14 +1042,14 @@ export class Dex {
 		} else {
 			tier = templateFormatsData.tier;
 			doublesTier = templateFormatsData.doublesTier;
-			if (!tier && !doublesTier && baseSpecies !== templateData.species) {
+			if (!tier && !doublesTier && baseSpecies !== templateData.name) {
 				let baseSpeciesId: string;
 				if (templateData.baseSpecies === 'Mimikyu') {
 					baseSpeciesId = Tools.toId(templateData.baseSpecies);
 				} else if (speciesId.endsWith('totem')) {
 					baseSpeciesId = speciesId.slice(0, -5);
-				} else if (templateData.inheritsFrom) {
-					baseSpeciesId = typeof templateData.inheritsFrom === 'string' ? templateData.inheritsFrom : templateData.inheritsFrom[0];
+				} else if (battleOnly) {
+					baseSpeciesId = typeof battleOnly === 'string' ? Tools.toId(battleOnly) : Tools.toId(battleOnly[0]);
 				} else {
 					baseSpeciesId = Tools.toId(baseSpecies);
 				}
@@ -1083,14 +1065,14 @@ export class Dex {
 			}
 			if (!doublesTier) doublesTier = tier;
 
-			if (this.currentMod === 'letsgo' && !isNonstandard && !((templateData.num <= 151 || ['Meltan', 'Melmetal'].includes(templateData.species)) &&
+			if (this.currentMod === 'letsgo' && !isNonstandard && !((templateData.num <= 151 || ['Meltan', 'Melmetal'].includes(templateData.name)) &&
 				['Alola', 'Mega', 'Mega-X', 'Mega-Y'].includes(forme))) {
 				isNonstandard = 'Past';
 			}
 		}
 
 		const pokemonComputed: IPokemonComputed = {
-			allPossibleMoves,
+			baseForme: templateData.baseForme || '',
 			baseSpecies,
 			battleOnly,
 			category: this.data.categories[speciesId] || '',
@@ -1103,40 +1085,63 @@ export class Dex {
 			evos,
 			forme,
 			id: speciesId,
+			inheritsFrom: templateData.inheritsFrom || (isGigantamax ? Tools.toId(baseSpecies) : undefined),
 			isForme,
 			isMega,
-			isNonstandard,
+			isNonstandard: isNonstandard || null,
 			isPrimal,
-			name: templateData.species,
+			name: templateData.name,
 			nfe: !!evos.length,
-			requiredItems: templateFormatsData.requiredItems || (templateFormatsData.requiredItem ? [templateFormatsData.requiredItem] : undefined),
+			requiredItems: templateData.requiredItems || (templateData.requiredItem ? [templateData.requiredItem] : undefined),
 			shiny: false,
 			speciesid: speciesId,
-			spriteId: Tools.toId(baseSpecies) + (baseSpecies !== templateData.species ? '-' + Tools.toId(forme) : ''),
+			spriteId: Tools.toId(baseSpecies) + (baseSpecies !== templateData.name ? '-' + Tools.toId(forme) : ''),
 			tier,
 		};
-		const pokemon: IPokemon = Object.assign({}, templateData, templateFormatsData, this.data.learnsets[id] || {}, pokemonComputed);
+		const pokemon: IPokemon = Object.assign({}, templateData, templateFormatsData, pokemonComputed);
 		this.pokemonCache.set(id, pokemon);
 		return pokemon;
 	}
 
-	getLearnsetParent(species: string, prevo: string | undefined, inheritsFrom: string | readonly string[] | undefined): IPokemon | null {
-		if (species === 'Lycanroc-Dusk') {
-			return this.getPokemon('Rockruff-Dusk');
-		} else if (prevo) {
-			// there used to be a check for Hidden Ability here, but apparently it's unnecessary
-			// Shed Skin Pupitar can definitely evolve into Unnerve Tyranitar
-			const pokemon = this.getPokemon(prevo)!;
-			if (pokemon.gen > Math.max(2, this.gen)) return null;
-			return pokemon;
-		} else if (inheritsFrom) {
-			// For Pokemon like Rotom, Necrozma, and Gmax formes whose movesets are extensions are their base formes
-			if (Array.isArray(inheritsFrom)) {
-				throw new Error(`Ambiguous template ${species} passed to getLearnsetParent`);
+	getAllPossibleMoves(pokemon: IPokemon): string[] {
+		const cached = this.allPossibleMovesCache.get(pokemon.id);
+		if (cached) return cached;
+
+		const allPossibleMoves: string[] = [];
+		let firstLearnsetParent = pokemon;
+		const learnsetData = this.getLearnsetData(pokemon.id);
+		if (learnsetData && learnsetData.learnset) {
+			for (const i in this.data.learnsets[pokemon.id]!.learnset) {
+				allPossibleMoves.push(i);
 			}
-			return this.getPokemon(inheritsFrom as string);
+		} else if (pokemon.baseSpecies !== pokemon.name) {
+			const basePokemon = this.getExistingPokemon(pokemon.baseSpecies);
+			firstLearnsetParent = basePokemon;
+			const baseLearnsetData = this.getLearnsetData(basePokemon.id);
+			if (baseLearnsetData && baseLearnsetData.learnset) {
+				for (const i in baseLearnsetData.learnset) {
+					allPossibleMoves.push(i);
+				}
+			}
 		}
-		return null;
+
+		const validator = this.getValidator("ou");
+		let learnsetParent = validator.learnsetParent(firstLearnsetParent);
+		while (learnsetParent) {
+			const parentAllPossibleMoves = this.getAllPossibleMoves(learnsetParent);
+			for (const move of parentAllPossibleMoves) {
+				if (!allPossibleMoves.includes(move)) allPossibleMoves.push(move);
+			}
+			learnsetParent = validator.learnsetParent(learnsetParent);
+		}
+
+		this.allPossibleMovesCache.set(pokemon.id, allPossibleMoves);
+		return allPossibleMoves;
+	}
+
+	getLearnsetData(id: string): ILearnsetData | null {
+		if (!this.data.learnsets.hasOwnProperty(id)) return null;
+		return this.data.learnsets[id]!;
 	}
 
 	getExistingPokemon(name: string): IPokemon {
@@ -1172,7 +1177,7 @@ export class Dex {
 		const pokedex = this.getPokemonList(filter);
 		const copiedPokedex: IPokemonCopy[] = [];
 		for (const pokemon of pokedex) {
-			copiedPokedex.push(this.getPokemonCopy(pokemon.species));
+			copiedPokedex.push(this.getPokemonCopy(pokemon.name));
 		}
 		return copiedPokedex;
 	}
@@ -1181,7 +1186,7 @@ export class Dex {
 		const allEvolutionLines = this.getAllEvolutionLines(pokemon);
 		const evolutionLines: string[][] = [];
 		for (const line of allEvolutionLines) {
-			if (line.includes(pokemon.species)) evolutionLines.push(line);
+			if (line.includes(pokemon.name)) evolutionLines.push(line);
 		}
 		return evolutionLines;
 	}
@@ -1258,11 +1263,12 @@ export class Dex {
 		if (pokemon.tier === 'LC' || pokemon.prevo) return false;
 
 		const lcFormat = this.getFormat('lc');
-		if (lcFormat && (lcFormat.banlist.includes(pokemon.species) || lcFormat.banlist.includes(pokemon.species + "-Base"))) return false;
+		if (lcFormat && (lcFormat.banlist.includes(pokemon.name) || lcFormat.banlist.includes(pokemon.name + "-Base"))) return false;
 
 		let invalidEvent = true;
-		if (pokemon.eventPokemon && pokemon.eventOnly) {
-			for (const event of pokemon.eventPokemon) {
+		const learnsetData = this.getLearnsetData(pokemon.id);
+		if (learnsetData && learnsetData.eventData && learnsetData.eventOnly) {
+			for (const event of learnsetData.eventData) {
 				if (event.level && event.level <= 5)  {
 					invalidEvent = false;
 					break;
@@ -1465,11 +1471,16 @@ export class Dex {
 		const formatComputed: IFormatComputed = {
 			customRules: null,
 			banlist: formatData.banlist || [],
+			baseRuleset: formatData.baseRuleset || [],
 			defaultLevel: formatData.defaultLevel || maxLevel,
 			effectType: formatData.effectType || "Format",
+			gameType: formatData.gameType || "singles",
+			gen: formatData.mod ? this.mod(formatData.mod).gen : this.gen,
 			id,
 			inputTarget,
 			maxLevel,
+			mod: formatData.mod || currentGenString,
+			num: 0,
 			quickFormat: formatData.teamLength && formatData.teamLength.battle && formatData.teamLength.battle <= 2 ? true : false,
 			ruleset: formatData.ruleset || [],
 			ruleTable: null,
@@ -1625,7 +1636,7 @@ export class Dex {
 			const subRuleTable = this.getRuleTable(subformat, depth + 1, repeals);
 			for (const [k, v] of subRuleTable) {
 				// don't check for "already exists" here; multiple inheritance is allowed
-				if (!(repeals && repeals.has(k))) {
+				if (!repeals || !repeals.has(k)) {
 					ruleTable.set(k, v || subformat.name);
 				}
 			}
@@ -1795,7 +1806,7 @@ export class Dex {
 		} else if (tag === 'move') {
 			ruleName = this.getExistingMove(ruleName).name;
 		} else if (tag === 'pokemon' || tag === 'basepokemon') {
-			ruleName = this.getExistingPokemon(ruleName).species;
+			ruleName = this.getExistingPokemon(ruleName).name;
 		} else if (tag === 'pokemontag') {
 			ruleName = tagNames[ruleName];
 		} else {
@@ -1941,8 +1952,8 @@ export class Dex {
 		return dexes[mod || 'base'];
 	}
 
-	getTemplate(name: string | IPokemon): IPokemon | null {
-		return this.getPokemon(typeof name === 'string' ? name : name.species);
+	getSpecies(name: string | IPokemon): IPokemon | null {
+		return this.getPokemon(typeof name === 'string' ? name : name.name);
 	}
 
 	private getAllEvolutionLines(pokemon: IPokemon, prevoList?: string[], evolutionLines?: string[][]): string[][] {
@@ -1955,7 +1966,7 @@ export class Dex {
 		}
 
 		prevoList = prevoList.slice();
-		prevoList.push(pokemon.species);
+		prevoList.push(pokemon.name);
 		if (!pokemon.evos.length) {
 			evolutionLines.push(prevoList);
 		} else {

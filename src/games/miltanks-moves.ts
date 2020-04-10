@@ -15,7 +15,7 @@ class MiltanksMoves extends Guessing {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		const pokedex = Games.getPokemonList(x => !x.isForme && !!x.allPossibleMoves.length);
+		const pokedex = Games.getPokemonList(x => !x.isForme && !!Dex.getAllPossibleMoves(x).length);
 		const moves = Games.getMovesList();
 		const bannedMoves: string[] = [];
 		for (const move of moves) {
@@ -25,18 +25,19 @@ class MiltanksMoves extends Guessing {
 
 		const moveCache: Dict<IMove> = {};
 		for (const pokemon of pokedex) {
-			for (const possibleMove of pokemon.allPossibleMoves) {
+			const allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
+			for (const possibleMove of allPossibleMoves) {
 				if (!(possibleMove in moveCache)) {
 					moveCache[possibleMove] = Dex.getExistingMove(possibleMove);
 				}
 				const move = moveCache[possibleMove];
 				if (bannedMoves.includes(move.id)) continue;
-				if (!(pokemon.species in data.moves)) {
-					data.moves[pokemon.species] = {};
-					data.pokemon.push(pokemon.species);
+				if (!(pokemon.name in data.moves)) {
+					data.moves[pokemon.name] = {};
+					data.pokemon.push(pokemon.name);
 				}
-				if (!(move.type in data.moves[pokemon.species])) data.moves[pokemon.species][move.type] = [];
-				data.moves[pokemon.species][move.type].push(move.name);
+				if (!(move.type in data.moves[pokemon.name])) data.moves[pokemon.name][move.type] = [];
+				data.moves[pokemon.name][move.type].push(move.name);
 			}
 		}
 

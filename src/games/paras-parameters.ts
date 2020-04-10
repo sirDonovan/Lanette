@@ -110,7 +110,7 @@ export class ParasParameters extends Guessing {
 			const pokemonIcons: string[] = [];
 			for (const name of result.pokemon) {
 				const pokemon = Dex.getExistingPokemon(name);
-				pokemonIcons.push(Dex.getPSPokemonIcon(pokemon) + pokemon.species);
+				pokemonIcons.push(Dex.getPSPokemonIcon(pokemon) + pokemon.name);
 			}
 			this.hint = "<div class='infobox'>" + pokemonIcons.join(", ") + "</div>";
 		}

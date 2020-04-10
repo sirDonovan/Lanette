@@ -225,7 +225,7 @@ const commands: Dict<ICommandDefinition<CardHighLow>> = {
 			const index = this.getCardIndex(id, cards);
 			if (index < 0) {
 				if (Dex.data.pokedex[id]) {
-					user.say("You do not have [ " + Dex.getExistingPokemon(id).species + " ].");
+					user.say("You do not have [ " + Dex.getExistingPokemon(id).name + " ].");
 				} else if (Dex.data.moves[id]) {
 					user.say("You do not have [ " + Dex.getExistingMove(id).name + " ].");
 				} else {

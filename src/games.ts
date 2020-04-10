@@ -800,7 +800,7 @@ export class Games {
 		const baseList = dex.getPokemonList(filter);
 		const list: IPokemon[] = [];
 		for (const pokemon of baseList) {
-			if (!pokemon.species) continue;
+			if (!pokemon.name) continue;
 			list.push(pokemon);
 		}
 		return list;

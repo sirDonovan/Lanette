@@ -37,14 +37,15 @@ class LandorusWar extends Game {
 			data.moves.push(move.id);
 		}
 
-		const pokemonList = Games.getPokemonList(x => !!x.allPossibleMoves.length);
+		const pokemonList = Games.getPokemonList();
 		for (const pokemon of pokemonList) {
 			let moves = 0;
-			for (const move of pokemon.allPossibleMoves) {
+			const allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
+			for (const move of allPossibleMoves) {
 				if (data.moves.includes(move)) moves++;
 			}
 			if (moves < 20) continue;
-			data.learnsets[pokemon.id] = pokemon.allPossibleMoves;
+			data.learnsets[pokemon.id] = allPossibleMoves;
 			data.pokemon.push(pokemon.id);
 		}
 
@@ -72,11 +73,11 @@ class LandorusWar extends Game {
 			const alias = aliases[0];
 			aliases.shift();
 			playerAliases.push(alias);
-			fakes.push(Dex.getExistingPokemon(pokemonList[0]).species);
+			fakes.push(Dex.getExistingPokemon(pokemonList[0]).name);
 			pokemonList.shift();
 			this.playerPokemon.set(player, pokemon);
 			this.playerAliases.set(player, alias);
-			player.say("You were assigned **" + pokemon.species + "** and the **" + alias + "** trainer class!");
+			player.say("You were assigned **" + pokemon.name + "** and the **" + alias + "** trainer class!");
 		}
 		this.playerAliasesList = this.shuffle(playerAliases);
 		this.fakePokemon = fakes;
@@ -91,7 +92,7 @@ class LandorusWar extends Game {
 		this.roundSuspects.clear();
 		let pokemonList: string[] = [];
 		for (const i in this.players) {
-			if (!this.players[i].eliminated) pokemonList.push(this.playerPokemon.get(this.players[i])!.species);
+			if (!this.players[i].eliminated) pokemonList.push(this.playerPokemon.get(this.players[i])!.name);
 		}
 		pokemonList = pokemonList.concat(this.fakePokemon);
 		pokemonList.sort();
@@ -129,7 +130,7 @@ class LandorusWar extends Game {
 		if (!pokemon) return player.say("You have not been assigned a Pokemon yet.");
 		const alias = this.playerAliases.get(player);
 		if (!alias) return player.say("You have not been assigned an alias yet.");
-		player.say("You were assigned **" + pokemon.species + "** and you are the **" + alias + "**!");
+		player.say("You were assigned **" + pokemon.name + "** and you are the **" + alias + "**!");
 	}
 
 	getPlayerByAlias(alias: string, excludedPlayer: Player): Player | null {
@@ -170,7 +171,7 @@ const commands: Dict<ICommandDefinition<LandorusWar>> = {
 
 			const playerPokemon = this.playerPokemon.get(player)!;
 			if (!data.learnsets[playerPokemon.id].includes(move.id)) {
-				player.say(playerPokemon.species + " does not learn **" + move.name + "**.");
+				player.say(playerPokemon.name + " does not learn **" + move.name + "**.");
 				return false;
 			}
 
@@ -249,7 +250,7 @@ const commands: Dict<ICommandDefinition<LandorusWar>> = {
 				if (!pokemon) {
 					player.say("'" + targets[1] + "' is not a valid Pokemon.");
 				} else {
-					player.say("**" + pokemon.species + "** is not a Pokemon in this game.");
+					player.say("**" + pokemon.name + "** is not a Pokemon in this game.");
 				}
 				return false;
 			}

@@ -21,7 +21,7 @@ class ChimechosStatSchool extends Guessing {
 				data.stats[stats] = [];
 				statsKeys.push(stats);
 			}
-			data.stats[stats].push(pokemon.species);
+			data.stats[stats].push(pokemon.name);
 		}
 
 		loadedData = true;

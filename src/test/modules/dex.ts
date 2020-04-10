@@ -41,24 +41,39 @@ describe("Dex", () => {
 		assertStrictEqual(Dex.getExistingPokemon("Ash Greninja").gen, 7);
 
 		let pokemon = Dex.getExistingPokemon('Charizard');
-		assert(pokemon.allPossibleMoves.length > Object.keys(pokemon.learnset!).length, pokemon.species);
+		let learnsetData = Dex.getLearnsetData(pokemon.id);
+		assert(learnsetData && learnsetData.learnset);
+		assert(Dex.getAllPossibleMoves(pokemon).length > Object.keys(learnsetData.learnset).length, pokemon.name);
+
 		pokemon = Dex.getExistingPokemon('Lycanroc-Dusk');
-		assert(pokemon.allPossibleMoves.length > Object.keys(pokemon.learnset!).length, pokemon.species);
+		learnsetData = Dex.getLearnsetData(pokemon.id);
+		assert(learnsetData && learnsetData.learnset);
+		assert(Dex.getAllPossibleMoves(pokemon).length > Object.keys(learnsetData.learnset).length, pokemon.name);
+
 		pokemon = Dex.getExistingPokemon('Rotom-Frost');
-		assert(pokemon.allPossibleMoves.length > Object.keys(pokemon.learnset!).length, pokemon.species);
+		learnsetData = Dex.getLearnsetData(pokemon.id);
+		assert(learnsetData && learnsetData.learnset);
+		assert(Dex.getAllPossibleMoves(pokemon).length > Object.keys(learnsetData.learnset).length, pokemon.name);
+
 		pokemon = Dex.getExistingPokemon('Pikachu-Gmax');
-		assert(pokemon.allPossibleMoves.length > Object.keys(pokemon.learnset!).length, pokemon.species);
+		learnsetData = Dex.getLearnsetData(pokemon.id);
+		assert(learnsetData && learnsetData.learnset);
+		assert(Dex.getAllPossibleMoves(pokemon).length > Object.keys(learnsetData.learnset).length, pokemon.name);
 
 		const houndour = Dex.getExistingPokemon('Houndour');
 		const houndoomMega = Dex.getExistingPokemon('Houndoom-Mega');
-		for (const move of houndour.allPossibleMoves) {
-			assert(houndoomMega.allPossibleMoves.includes(move));
+		const allPossibleMovesHoundour = Dex.getAllPossibleMoves(houndour);
+		const allPossibleMovesHoundoomMega = Dex.getAllPossibleMoves(houndoomMega);
+		for (const move of allPossibleMovesHoundour) {
+			assert(allPossibleMovesHoundoomMega.includes(move));
 		}
 
 		const rattataAlola = Dex.getExistingPokemon('Rattata-Alola');
 		const raticateAlola = Dex.getExistingPokemon('Raticate-Alola');
-		for (const move of rattataAlola.allPossibleMoves) {
-			assert(raticateAlola.allPossibleMoves.includes(move));
+		const allPossibleMovesRattataAlola = Dex.getAllPossibleMoves(rattataAlola);
+		const allPossibleMovesRaticateAlola = Dex.getAllPossibleMoves(raticateAlola);
+		for (const move of allPossibleMovesRattataAlola) {
+			assert(allPossibleMovesRaticateAlola.includes(move));
 		}
 
 		/*
@@ -143,7 +158,7 @@ describe("Dex", () => {
 		const abilities = Dex.getAbilitiesList().map(x => x.name);
 		const items = Dex.getItemsList().map(x => x.name);
 		const moves = Dex.getMovesList().map(x => x.name);
-		const pokemon = Dex.getPokemonList().map(x => x.species);
+		const pokemon = Dex.getPokemonList().map(x => x.name);
 
 		assert(!abilities.includes(Dex.getExistingAbility('No Ability').name));
 
@@ -152,20 +167,20 @@ describe("Dex", () => {
 		assert(!items.includes(Dex.getExistingItem('Crucibellite').name));
 		assert(!moves.includes(Dex.getExistingMove('Baddy Bad').name));
 		assert(!moves.includes(Dex.getExistingMove('Paleo Wave').name));
-		assert(!pokemon.includes(Dex.getExistingPokemon('Pikachu-Starter').species));
-		assert(!pokemon.includes(Dex.getExistingPokemon('Voodoom').species));
-		assert(!pokemon.includes(Dex.getExistingPokemon('Missingno.').species));
-		assert(!pokemon.includes(Dex.getExistingPokemon('Pokestar Smeargle').species));
+		assert(!pokemon.includes(Dex.getExistingPokemon('Pikachu-Starter').name));
+		assert(!pokemon.includes(Dex.getExistingPokemon('Voodoom').name));
+		assert(!pokemon.includes(Dex.getExistingPokemon('Missingno.').name));
+		assert(!pokemon.includes(Dex.getExistingPokemon('Pokestar Smeargle').name));
 
 		// not available in Sword/Shield
 		assert(items.includes(Dex.getExistingItem('Abomasite').name));
 		assert(moves.includes(Dex.getExistingMove('Aeroblast').name));
-		assert(pokemon.includes(Dex.getExistingPokemon('Bulbasaur').species));
+		assert(pokemon.includes(Dex.getExistingPokemon('Bulbasaur').name));
 
 		// available in Sword/Shield
 		assert(abilities.includes(Dex.getExistingAbility('Intimidate').name));
 		assert(items.includes(Dex.getExistingItem('Choice Scarf').name));
 		assert(moves.includes(Dex.getExistingMove('Tackle').name));
-		assert(pokemon.includes(Dex.getExistingPokemon('Charmander').species));
+		assert(pokemon.includes(Dex.getExistingPokemon('Charmander').name));
 	});
 });

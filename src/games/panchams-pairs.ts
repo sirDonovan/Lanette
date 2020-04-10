@@ -50,13 +50,13 @@ class PanchamPairs extends Game {
 
 		const pokemonList = Games.getPokemonList();
 		for (const pokemon of pokemonList) {
-			dataKeys['Pokemon'].push(pokemon.species);
+			dataKeys['Pokemon'].push(pokemon.name);
 			const abilities: string[] = [];
 			for (const i in pokemon.abilities) {
 				// @ts-ignore
 				abilities.push(pokemon.abilities[i]);
 			}
-			data.pokemon[pokemon.species] = {
+			data.pokemon[pokemon.name] = {
 				type: pokemon.types,
 				color: [pokemon.color],
 				ability: abilities,
@@ -183,8 +183,8 @@ class PanchamPairs extends Game {
 			usedData = data.pokemon;
 			const pokemonA = Dex.getPokemon(inputA);
 			const pokemonB = Dex.getPokemon(inputB);
-			if (pokemonA) nameA = pokemonA.species;
-			if (pokemonB) nameB = pokemonB.species;
+			if (pokemonA) nameA = pokemonA.name;
+			if (pokemonB) nameB = pokemonB.name;
 		}
 		if (!nameA || !nameB || (inCurrent && (!this.currentList.includes(nameA) || !this.currentList.includes(nameB)))) return false;
 		// @ts-ignore

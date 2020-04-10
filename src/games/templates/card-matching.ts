@@ -100,7 +100,7 @@ export abstract class CardMatching extends Card {
 	}
 
 	getTopCardText(): string {
-		return "**" + this.topCard.species + "** (" + this.topCard.color + ", " + this.topCard.types.join("/") + ")";
+		return "**" + this.topCard.name + "** (" + this.topCard.color + ", " + this.topCard.types.join("/") + ")";
 	}
 
 	repostTopCard(): void {
@@ -402,7 +402,7 @@ const commands: Dict<ICommandDefinition<CardMatching>> = {
 			const index = this.getCardIndex(id, cards);
 			if (index < 0) {
 				if (Dex.data.pokedex[id]) {
-					user.say("You do not have [ " + Dex.getExistingPokemon(id).species + " ].");
+					user.say("You do not have [ " + Dex.getExistingPokemon(id).name + " ].");
 				} else if (Dex.data.moves[id]) {
 					user.say("You do not have [ " + Dex.getExistingMove(id).name + " ].");
 				} else {

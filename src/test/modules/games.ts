@@ -317,7 +317,7 @@ describe("Games", () => {
 		const abilities = Games.getAbilitiesList().map(x => x.name);
 		const items = Games.getItemsList().map(x => x.name);
 		const moves = Games.getMovesList().map(x => x.name);
-		const pokemon = Games.getPokemonList().map(x => x.species);
+		const pokemon = Games.getPokemonList().map(x => x.name);
 
 		assert(!abilities.includes(Dex.getExistingAbility('No Ability').name));
 
@@ -326,20 +326,20 @@ describe("Games", () => {
 		assert(!items.includes(Dex.getExistingItem('Crucibellite').name));
 		assert(!moves.includes(Dex.getExistingMove('Baddy Bad').name));
 		assert(!moves.includes(Dex.getExistingMove('Paleo Wave').name));
-		assert(!pokemon.includes(Dex.getExistingPokemon('Pikachu-Starter').species));
-		assert(!pokemon.includes(Dex.getExistingPokemon('Voodoom').species));
-		assert(!pokemon.includes(Dex.getExistingPokemon('Missingno.').species));
-		assert(!pokemon.includes(Dex.getExistingPokemon('Pokestar Smeargle').species));
+		assert(!pokemon.includes(Dex.getExistingPokemon('Pikachu-Starter').name));
+		assert(!pokemon.includes(Dex.getExistingPokemon('Voodoom').name));
+		assert(!pokemon.includes(Dex.getExistingPokemon('Missingno.').name));
+		assert(!pokemon.includes(Dex.getExistingPokemon('Pokestar Smeargle').name));
 
 		// not available in Sword/Shield
 		assert(items.includes(Dex.getExistingItem('Abomasite').name));
 		assert(moves.includes(Dex.getExistingMove('Aeroblast').name));
-		assert(pokemon.includes(Dex.getExistingPokemon('Bulbasaur').species));
+		assert(pokemon.includes(Dex.getExistingPokemon('Bulbasaur').name));
 
 		// available in Sword/Shield
 		assert(abilities.includes(Dex.getExistingAbility('Intimidate').name));
 		assert(items.includes(Dex.getExistingItem('Choice Scarf').name));
 		assert(moves.includes(Dex.getExistingMove('Tackle').name));
-		assert(pokemon.includes(Dex.getExistingPokemon('Charmander').species));
+		assert(pokemon.includes(Dex.getExistingPokemon('Charmander').name));
 	});
 });

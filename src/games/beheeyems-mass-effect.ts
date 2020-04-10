@@ -22,7 +22,7 @@ class BeheeyemsMassEffect extends Guessing {
 		for (const pokemon of pokemonList) {
 			const typing = pokemon.types.slice().sort().join('/');
 			if (!(typing in data.types)) data.types[typing] = [];
-			data.types[typing].push(pokemon.species);
+			data.types[typing].push(pokemon.name);
 		}
 
 		for (const typing in data.types) {

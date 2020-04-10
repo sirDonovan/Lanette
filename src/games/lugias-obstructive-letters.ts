@@ -35,7 +35,7 @@ class LugiasObstructiveLetters extends Guessing {
 
 		const pokemonList = Games.getPokemonList();
 		for (const pokemon of pokemonList) {
-			data["Pokemon"][pokemon.id] = pokemon.species;
+			data["Pokemon"][pokemon.id] = pokemon.name;
 		}
 
 		const abilities = Games.getAbilitiesList();

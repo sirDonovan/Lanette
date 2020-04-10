@@ -48,13 +48,13 @@ class TapusTerrains extends Game {
 			for (const type of pokemon.types) {
 				for (const key of terrainKeys) {
 					if (type === terrains[key]) {
-						data.pokemon[key].push(pokemon.species);
+						data.pokemon[key].push(pokemon.name);
 						if (!used) used = true;
 						break;
 					}
 				}
 			}
-			if (!used) data.unusedPokemon.push(pokemon.species);
+			if (!used) data.unusedPokemon.push(pokemon.name);
 		}
 
 		loadedData = true;

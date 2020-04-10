@@ -93,7 +93,7 @@ class PluslesAdditiveParameters extends Game {
 		const pokemonIcons: string[] = [];
 		for (const name of this.pokemon) {
 			const pokemon = Dex.getExistingPokemon(name);
-			pokemonIcons.push(Dex.getPSPokemonIcon(pokemon) + pokemon.species);
+			pokemonIcons.push(Dex.getPSPokemonIcon(pokemon) + pokemon.name);
 		}
 
 		const html = "<div class='infobox'><span style='color: #999999'>" + this.params.length + " parameters (Generation " + GEN + ")</span><br /><br />" + pokemonIcons.join(", ") + "</div>";
@@ -183,11 +183,11 @@ const commands: Dict<ICommandDefinition<PluslesAdditiveParameters>> = {
 			let eliminationReason = '';
 			if (result.pokemon.length <= 1) {
 				const pokemon = Dex.getPokemon(result.pokemon[0]);
-				eliminationReason = "The parameters resulted in too few Pokemon (" + (pokemon ? pokemon.species : "none") + ")!";
+				eliminationReason = "The parameters resulted in too few Pokemon (" + (pokemon ? pokemon.name : "none") + ")!";
 			} else if (Dex.isEvolutionFamily(result.pokemon)) {
 				const species: string[] = [];
 				for (const name of result.pokemon) {
-					species.push(Dex.getExistingPokemon(name).species);
+					species.push(Dex.getExistingPokemon(name).name);
 				}
 				eliminationReason = "The parameters resulted in a single evolution line (" + Tools.joinList(species) + ")!";
 			}
