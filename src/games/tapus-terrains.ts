@@ -59,6 +59,7 @@ class TapusTerrains extends Game {
 
 		loadedData = true;
 	}
+
 	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
 		if (this.terrainRound > 1) {
 			player.say("Sorry, the late-join period has ended.");
