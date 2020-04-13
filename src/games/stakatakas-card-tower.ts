@@ -213,7 +213,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 			await runCommand('play', 'Manaphy', game.room, player.name);
 			assert(!game.ended);
 			const playerCards = game.playerCards.get(player)!;
-			assert(!playerCards.map(x => x.name).includes("Manaphy"));
+			assert(!playerCards.includes(manaphyAction));
 			assertStrictEqual(playerCards, newCards);
 		},
 	},
