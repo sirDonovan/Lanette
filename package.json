@@ -5,12 +5,7 @@
   "main": "app.js",
   "scripts": {
     "lint": "eslint -c .eslintrc --ext .ts --cache .",
-    "mocha": "mocha -R dot -u bdd --delay --no-config test/setup.js",
-    "offlinetest": "npm run lint && npm run offlinemocha",
-    "offlinemocha": "mocha -R dot -u bdd --delay --no-config test/setup.js --offline",
-    "omocha": "npm run offlinemocha",
-    "otest": "npm run offlinetest",
-    "test": "npm run lint && npm run mocha",
+    "test": "npm run lint && node mocha.js",
     "tsc": "tsc"
   },
   "repository": {

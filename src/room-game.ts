@@ -57,13 +57,13 @@ export class Game extends Activity {
 	minPlayers: number = 4;
 	notifyRankSignups: boolean = false;
 	parentGame: Game | null = null;
-	prng: PRNG = new PRNG();
 	readonly round: number = 0;
 	signupsTime: number = 0;
 	usesWorkers: boolean = false;
 	readonly winnerPointsToBits: number = 50;
 	readonly winners = new Map<Player, number>();
 
+	prng: PRNG;
 	initialSeed: PRNGSeed;
 
 	// set immediately in initialize()
@@ -85,9 +85,10 @@ export class Game extends Activity {
 	subGameNumber?: number;
 	readonly variant?: string;
 
-	constructor(room: Room | User, pmRoom?: Room) {
+	constructor(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed) {
 		super(room, pmRoom);
 
+		this.prng = new PRNG(initialSeed);
 		this.initialSeed = this.prng.initialSeed.slice() as PRNGSeed;
 	}
 

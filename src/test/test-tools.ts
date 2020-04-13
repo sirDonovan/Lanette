@@ -7,6 +7,8 @@ import { User } from '../users';
 
 const basePlayerName = 'Mocha Player';
 
+export const testOptions: Dict<string> = {};
+
 export function getBasePlayerName(): string {
 	return basePlayerName;
 }

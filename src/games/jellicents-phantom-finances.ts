@@ -5,6 +5,7 @@ import { BoardActionCard, BoardSpace, IBoard } from "./templates/board";
 import { BoardActionSpace, BoardPropertyGame, BoardPropertyRentSpace, BoardRentSpace, game as boardPropertyGame, mountainPrefix } from "./templates/board-property";
 import { Room } from "../rooms";
 import { User } from "../users";
+import { PRNGSeed } from "../prng";
 
 const DONATE_ACTION_AMOUNT = 100;
 const BID_MULTIPLE = 5;
@@ -126,8 +127,8 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 
 	baseActionCards: BoardActionCard<JellicentsPhantomFinances>[];
 
-	constructor(room: Room | User) {
-		super(room);
+	constructor(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed) {
+		super(room, pmRoom, initialSeed);
 
 		this.baseActionCards = [
 			function(player): void {

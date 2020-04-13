@@ -659,8 +659,7 @@ export class Games {
 		if (!isMinigame && room.id in this.autoCreateTimers) clearTimeout(this.autoCreateTimers[room.id]);
 
 		if (format.class.loadData) format.class.loadData(room);
-		room.game = new format.class(room, pmRoom);
-		if (initialSeed) room.game.prng = new PRNG(initialSeed);
+		room.game = new format.class(room, pmRoom, initialSeed);
 		room.game.initialize(format);
 
 		if (isMinigame) {
