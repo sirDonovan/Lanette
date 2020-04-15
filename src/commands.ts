@@ -98,7 +98,7 @@ const commands: Dict<ICommandDefinition> = {
 
 			this.say("Running ``tsc``...");
 			// eslint-disable-next-line @typescript-eslint/no-var-requires
-			await require(path.join(Tools.rootFolder, 'build.js'))(() => {
+			await require(path.join(Tools.rootFolder, 'build.js'))({}, () => {
 				for (const moduleId of modules) {
 					if (moduleId === 'client') {
 						const oldClient = global.Client;
