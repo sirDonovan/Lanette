@@ -357,15 +357,18 @@ describe("Games", () => {
 		assert(!pokemon.includes(Dex.getExistingPokemon('Missingno.').name));
 		assert(!pokemon.includes(Dex.getExistingPokemon('Pokestar Smeargle').name));
 
-		// not available in Sword/Shield
-		assert(items.includes(Dex.getExistingItem('Abomasite').name));
-		assert(moves.includes(Dex.getExistingMove('Aeroblast').name));
-		assert(pokemon.includes(Dex.getExistingPokemon('Bulbasaur').name));
-
-		// available in Sword/Shield
 		assert(abilities.includes(Dex.getExistingAbility('Intimidate').name));
+
+		assert(items.includes(Dex.getExistingItem('Abomasite').name));
 		assert(items.includes(Dex.getExistingItem('Choice Scarf').name));
+		assert(items.includes(Dex.getExistingItem('Custap Berry').name));
+
+		assert(moves.includes(Dex.getExistingMove('Aeroblast').name));
 		assert(moves.includes(Dex.getExistingMove('Tackle').name));
+		assert(moves.includes(Dex.getExistingMove('Thousand Arrows').name));
+
+		assert(pokemon.includes(Dex.getExistingPokemon('Bulbasaur').name));
 		assert(pokemon.includes(Dex.getExistingPokemon('Charmander').name));
+		assert(pokemon.includes(Dex.getExistingPokemon('Slowpoke').name));
 	});
 });

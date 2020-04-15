@@ -666,8 +666,8 @@ export class Dex {
 		const abilities: IAbility[] = [];
 		for (const i in this.data.abilities) {
 			const ability = this.getExistingAbility(i);
-			if (ability.isNonstandard === 'CAP' || ability.isNonstandard === 'Unobtainable' || ability.isNonstandard === 'LGPE' || ability.isNonstandard === 'Custom' ||
-				ability.id === 'noability' || ability.gen > this.gen || (filter && !filter(ability))) continue;
+			if (ability.isNonstandard === 'CAP' || ability.isNonstandard === 'LGPE' || ability.isNonstandard === 'Custom' || ability.id === 'noability' || ability.gen > this.gen ||
+				(filter && !filter(ability))) continue;
 			abilities.push(ability);
 		}
 		return abilities;
@@ -760,8 +760,8 @@ export class Dex {
 		const items: IItem[] = [];
 		for (const i in this.data.items) {
 			const item = this.getExistingItem(i);
-			if (item.isNonstandard === 'CAP' || item.isNonstandard === 'Unobtainable' || item.isNonstandard === 'LGPE' || item.isNonstandard === 'Custom' || item.gen > this.gen ||
-				(this.gen !== 2 && gen2Items.includes(item.id)) || (filter && !filter(item))) continue;
+			if (item.isNonstandard === 'CAP' || item.isNonstandard === 'LGPE' || item.isNonstandard === 'Custom' || item.gen > this.gen || (this.gen !== 2 && gen2Items.includes(item.id)) ||
+				(filter && !filter(item))) continue;
 			items.push(item);
 		}
 		return items;
@@ -922,8 +922,7 @@ export class Dex {
 		const moves: IMove[] = [];
 		for (const i in this.data.moves) {
 			const move = this.getExistingMove(i);
-			if (move.isNonstandard === 'CAP' || move.isNonstandard === 'Unobtainable' || move.isNonstandard === 'LGPE' || move.isNonstandard === 'Custom' || move.gen > this.gen ||
-				(filter && !filter(move))) continue;
+			if (move.isNonstandard === 'CAP' || move.isNonstandard === 'LGPE' || move.isNonstandard === 'Custom' || move.gen > this.gen || (filter && !filter(move))) continue;
 			moves.push(move);
 		}
 		return moves;
@@ -1162,8 +1161,7 @@ export class Dex {
 		const pokedex: IPokemon[] = [];
 		for (const i in this.data.pokedex) {
 			const pokemon = this.getExistingPokemon(i);
-			if (pokemon.isNonstandard === 'CAP' || pokemon.isNonstandard === 'Unobtainable' || pokemon.isNonstandard === 'LGPE' || pokemon.isNonstandard === 'Custom' ||
-				pokemon.gen > this.gen || (filter && !filter(pokemon))) continue;
+			if (pokemon.isNonstandard === 'CAP' || pokemon.isNonstandard === 'LGPE' || pokemon.isNonstandard === 'Custom' || pokemon.gen > this.gen || (filter && !filter(pokemon))) continue;
 			pokedex.push(pokemon);
 		}
 		return pokedex;
