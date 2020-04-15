@@ -285,7 +285,12 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	egg: {
 		async asyncCommand(target, room, user) {
-			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
+			if (this.isPm(room)) return;
+			if (room.game) {
+				await this.run('toss');
+				return;
+			}
+			if (!user.hasRank(room, 'voice') || room.userHostedGame) return;
 			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) return this.sayError(['disabledGameFeatures', room.title]);
 			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
 			const remainingGameCooldown = Games.getRemainingGameCooldown(room, true);
