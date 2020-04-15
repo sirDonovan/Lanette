@@ -328,11 +328,18 @@ export class Game extends Activity {
 
 	end(): void {
 		if (this.onEnd) this.onEnd();
+		if (this.isPm(this.room)) {
+			this.deallocate(false);
+			return;
+		}
 
+		const now = Date.now();
 		let usedDatabase = false;
-		if (!this.isPm(this.room) && !this.isMiniGame && !this.parentGame && !this.internalGame) {
+
+		if (this.isMiniGame) {
+			Games.lastMinigames[this.room.id] = now;
+		} else if (!this.parentGame && !this.internalGame) {
 			usedDatabase = true;
-			const now = Date.now();
 			const database = Storage.getDatabase(this.room);
 
 			Games.lastGames[this.room.id] = now;

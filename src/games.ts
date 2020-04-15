@@ -66,6 +66,7 @@ export class Games {
 	// @ts-ignore - set in loadFormats()
 	readonly internalFormats: KeyedDict<IInternalGames, DeepReadonly<IGameFormatData>> = {};
 	lastGames: Dict<number> = {};
+	lastMinigames: Dict<number> = {};
 	lastScriptedGames: Dict<number> = {};
 	lastUserHostedGames: Dict<number> = {};
 	lastUserHostTimes: Dict<Dict<number>> = {};
@@ -86,6 +87,7 @@ export class Games {
 	onReload(previous: Partial<Games>): void {
 		if (previous.autoCreateTimers) this.autoCreateTimers = previous.autoCreateTimers;
 		if (previous.lastGames) this.lastGames = previous.lastGames;
+		if (previous.lastMinigames) this.lastMinigames = previous.lastMinigames;
 		if (previous.lastScriptedGames) this.lastScriptedGames = previous.lastScriptedGames;
 		if (previous.lastUserHostedGames) this.lastUserHostedGames = previous.lastUserHostedGames;
 		if (previous.lastUserHostTimes) this.lastUserHostTimes = previous.lastUserHostTimes;
@@ -556,12 +558,17 @@ export class Games {
 	}
 
 	getRemainingGameCooldown(room: Room, isMinigame?: boolean): number {
+		const now = Date.now();
 		if (Config.gameCooldownTimers && room.id in Config.gameCooldownTimers && room.id in this.lastGames) {
-			const now = Date.now();
 			let cooldown = Config.gameCooldownTimers[room.id] * 60 * 1000;
 			if (isMinigame) cooldown /= 2;
 			return cooldown - (now - this.lastGames[room.id]);
 		}
+
+		if (isMinigame && Config.minigameCooldownTimers && room.id in Config.minigameCooldownTimers && room.id in this.lastMinigames) {
+			return (Config.minigameCooldownTimers[room.id] * 1000) - (now - this.lastMinigames[room.id]);
+		}
+
 		return 0;
 	}
 
