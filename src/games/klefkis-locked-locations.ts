@@ -4,6 +4,7 @@ import { BoardActionCard, BoardSpace, IBoard } from "./templates/board";
 import { BoardActionSpace, BoardEliminationSpace, BoardPropertyGame, BoardPropertyEliminationSpace, game as boardPropertyGame, mountainPrefix } from "./templates/board-property";
 import { Room } from "../rooms";
 import { User } from "../users";
+import { PRNGSeed } from "../prng";
 
 interface IBoardSpaces {
 	oakslab: BoardSpace;
@@ -115,8 +116,8 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 
 	baseActionCards: BoardActionCard<KlefkisLockedLocations>[];
 
-	constructor(room: Room | User) {
-		super(room);
+	constructor(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed) {
+		super(room, pmRoom, initialSeed);
 
 		this.baseActionCards = [
 			function(player): void {

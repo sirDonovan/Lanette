@@ -1,6 +1,9 @@
 import fs = require('fs');
+import Mocha = require('mocha');
 import path = require('path');
 import stream = require('stream');
+
+import { testOptions } from './test-tools';
 
 const rootFolder = path.resolve(__dirname, '..', '..');
 const modulesDir = path.join(__dirname, 'modules');
@@ -8,6 +11,7 @@ const moduleTests = fs.readdirSync(modulesDir);
 const configFile = path.join(rootFolder, 'built', 'config.js');
 const pokedexMiniFile = path.join(rootFolder, 'data', 'pokedex-mini.js');
 const pokedexMiniBWFile = path.join(rootFolder, 'data', 'pokedex-mini-bw.js');
+const pokemonShowdownTestFile = 'pokemon-showdown.js';
 
 // create needed files if running on Travis CI
 if (!fs.existsSync(configFile)) {
@@ -34,26 +38,51 @@ Object.assign(fs, {createWriteStream() {
 	return new stream.Writable();
 }});
 
-try {
-	require(path.join(rootFolder, 'built', 'app.js'));
-	clearInterval(Storage.globalDatabaseExportInterval);
-
-	require(path.join(__dirname, 'pokemon-showdown'));
-
-	const mochaRoom = Rooms.add('mocha');
-	mochaRoom.title = 'Mocha';
-
-	console.log("Loading data for tests...");
-	Dex.loadData();
-	for (const i in Games.formats) {
-		const game = Games.createGame(mochaRoom, Games.getExistingFormat(i));
-		game.deallocate(true);
+module.exports = (inputOptions: Dict<string>): void => {
+	for (const i in inputOptions) {
+		testOptions[i] = inputOptions[i];
 	}
 
-	for (const moduleTest of moduleTests) {
-		require(path.join(modulesDir, moduleTest));
+	try {
+		require(path.join(rootFolder, 'built', 'app.js'));
+		clearInterval(Storage.globalDatabaseExportInterval);
+		const mochaRoom = Rooms.add('mocha');
+		mochaRoom.title = 'Mocha';
+
+
+		let modulesToTest: string[] | undefined;
+		if (testOptions.modules) {
+			modulesToTest = testOptions.modules.split(',').map(x => x.trim() + '.js');
+		} else {
+			modulesToTest = moduleTests.concat(pokemonShowdownTestFile);
+		}
+
+		if (moduleTests.includes('dex') || moduleTests.includes('games') || moduleTests.includes('tournaments')) {
+			console.log("Loading data for tests...");
+			Dex.loadData();
+		}
+
+		if (modulesToTest.includes('games')) {
+			for (const i in Games.formats) {
+				const game = Games.createGame(mochaRoom, Games.getExistingFormat(i));
+				game.deallocate(true);
+			}
+		}
+
+		const mocha = new Mocha({
+			reporter: 'dot',
+			ui: 'bdd',
+		});
+
+		if (modulesToTest.includes(pokemonShowdownTestFile)) mocha.addFile(path.join(__dirname, pokemonShowdownTestFile));
+
+		for (const moduleTest of moduleTests) {
+			if (modulesToTest.includes(moduleTest)) mocha.addFile(path.join(modulesDir, moduleTest));
+		}
+
+		mocha.run();
+	} catch (e) {
+		console.log(e);
+		process.exit(1);
 	}
-} catch (e) {
-	console.log(e);
-	process.exit(1);
-}
+};

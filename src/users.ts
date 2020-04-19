@@ -17,13 +17,19 @@ export class User {
 	status: string | null = null;
 
 	id: string;
-	name: string;
+	name!: string;
 
 	htmlMessageListeners?: Dict<() => void>;
 	messageListeners?: Dict<() => void>;
 	uhtmlMessageListeners?: Dict<Dict<() => void>>;
 
 	constructor(name: string, id: string) {
+		this.id = id;
+
+		this.setName(name);
+	}
+
+	setName(name: string): void {
 		name = Tools.stripHtmlCharacters(name);
 
 		while (chatFormatting.includes(name.charAt(0))) {
@@ -34,7 +40,6 @@ export class User {
 		}
 
 		this.name = name;
-		this.id = id;
 	}
 
 	hasRank(room: Room, targetRank: GroupName): boolean {
@@ -133,7 +138,7 @@ export class Users {
 		const user = this.users[oldId];
 		this.remove(user);
 		if (id in this.users) return this.users[id];
-		user.name = name;
+		user.setName(name);
 		user.id = id;
 		this.users[id] = user;
 		user.rooms.forEach((value, room) => {

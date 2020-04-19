@@ -1,11 +1,26 @@
-import { PRNGSeed } from '../../prng';
+import { PRNGSeed, PRNG } from '../../prng';
 import { Game } from '../../room-game';
 import { GameFileTests, IGameFormat, IGameTestAttributes, IUserHostedFormat } from '../../types/games';
 import { IPastGame } from '../../types/storage';
-import { assert, assertClientSendQueue, assertStrictEqual } from '../test-tools';
+import { assert, assertClientSendQueue, assertStrictEqual, testOptions } from '../test-tools';
 import { fail } from 'assert';
 
 const room = Rooms.get('mocha')!;
+const initialSeed: PRNGSeed | undefined = testOptions.gameSeed ? testOptions.gameSeed.split(',').map(x => parseInt(x.trim())) as PRNGSeed : undefined;
+
+const formatsToTest: IGameFormat[] = [];
+if (testOptions.games) {
+	const games = testOptions.games.split(',');
+	for (const game of games) {
+		const format = Games.getFormat(game);
+		if (Array.isArray(format)) throw new Error("Unknown game format '" + game + "'");
+		formatsToTest.push(format);
+	}
+} else {
+	for (const i in Games.formats) {
+		formatsToTest.push(Games.getExistingFormat(i));
+	}
+}
 
 function testMascots(format: IGameFormat | IUserHostedFormat): void {
 	if (format.mascot) {
@@ -18,7 +33,7 @@ function testMascots(format: IGameFormat | IUserHostedFormat): void {
 }
 
 function createIndividualTestGame(format: IGameFormat): Game {
-	const game = Games.createGame(room, format);
+	const game = Games.createGame(room, format, room, false, initialSeed);
 	if (game.timeout) clearTimeout(game.timeout);
 
 	return game;
@@ -67,9 +82,8 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 	}
 }
 
-for (const i in Games.formats) {
-	if (Games.formats[i].tests) {
-		const format = Games.getExistingFormat(i);
+for (const format of formatsToTest) {
+	if (format.tests) {
 		describe(format.name + " individual tests", () => {
 			afterEach(() => {
 				if (room.game) room.game.deallocate(true);
@@ -83,12 +97,15 @@ for (const i in Games.modes) {
 	const mode = Games.modes[i];
 	if (mode.tests) {
 		const formats: string[] = [];
-		for (const i in Games.formats) {
-			if (Games.formats[i].modes && Games.formats[i].modes!.includes(mode.id)) {
-				formats.push(i);
+		for (const format of formatsToTest) {
+			if (format.modes && format.modes.includes(mode.id)) {
+				formats.push(format.id);
 			}
 		}
-		if (!formats.length) throw new Error("No format found for " + mode.name + " tests");
+
+		if (!formats.length && !testOptions.games) {
+			throw new Error("No format found for " + mode.name + " tests");
+		}
 
 		for (const formatId of formats) {
 			const format = Games.getExistingFormat(formatId + ", " + mode.id);
@@ -118,8 +135,7 @@ describe("Games", () => {
 	});
 
 	it('should have valid mascots', () => {
-		for (const i in Games.formats) {
-			const format = Games.getExistingFormat(i);
+		for (const format of formatsToTest) {
 			testMascots(format);
 		}
 
@@ -137,14 +153,13 @@ describe("Games", () => {
 
 	it('should create games properly', function() {
 		this.timeout(30000);
-		for (const i in Games.formats) {
+		for (const format of formatsToTest) {
 			try {
-				let initialSeed: PRNGSeed | undefined;
-				Games.createGame(room, Games.getExistingFormat(i), room, false, initialSeed);
+				Games.createGame(room, format, room, false, initialSeed);
 			} catch (e) {
 				let message = e.message;
 				if (room.game) {
-					message += " (" + Games.getExistingFormat(i).name + "; initial seed = " + room.game.initialSeed + ")";
+					message += " (" + format.name + "; initial seed = " + room.game.initialSeed + ")";
 				}
 				fail(message);
 			}
@@ -155,8 +170,8 @@ describe("Games", () => {
 		for (const i in Games.modes) {
 			const mode = Games.modes[i];
 			formatsByMode[mode.id] = [];
-			for (const i in Games.formats) {
-				if (Games.formats[i].modes && Games.formats[i].modes!.includes(mode.id)) formatsByMode[mode.id].push(i);
+			for (const format of formatsToTest) {
+				if (format.modes && format.modes.includes(mode.id)) formatsByMode[mode.id].push(format.id);
 			}
 		}
 
@@ -164,7 +179,6 @@ describe("Games", () => {
 			for (const formatId of formatsByMode[mode]) {
 				const format = Games.getExistingFormat(formatId + "," + mode);
 				try {
-					let initialSeed: PRNGSeed | undefined;
 					Games.createGame(room, format, room, false, initialSeed);
 				} catch (e) {
 					let message = e.message;
@@ -175,6 +189,19 @@ describe("Games", () => {
 				}
 				if (room.game) room.game.deallocate(true);
 			}
+		}
+	});
+
+	it('should support setting the initial PRNG seed', function() {
+		this.timeout(30000);
+
+		const prng = new PRNG();
+		for (const format of formatsToTest) {
+			const game = Games.createGame(room, format, room, false, prng.initialSeed.slice() as PRNGSeed);
+			for (let i = 0; i < game.prng.initialSeed.length; i++) {
+				assert(game.prng.initialSeed[i] === prng.initialSeed[i], format.name);
+			}
+			if (room.game) room.game.deallocate(true);
 		}
 	});
 
@@ -242,8 +269,7 @@ describe("Games", () => {
 
 	it('should start signups for scripted games', () => {
 		const roomPrefix = room.id + "|";
-		for (const i in Games.formats) {
-			const format = Games.getExistingFormat(i);
+		for (const format of formatsToTest) {
 			const startingSendQueueIndex = Client.sendQueue.length;
 
 			const gameLog: string[] = [];
@@ -331,15 +357,18 @@ describe("Games", () => {
 		assert(!pokemon.includes(Dex.getExistingPokemon('Missingno.').name));
 		assert(!pokemon.includes(Dex.getExistingPokemon('Pokestar Smeargle').name));
 
-		// not available in Sword/Shield
-		assert(items.includes(Dex.getExistingItem('Abomasite').name));
-		assert(moves.includes(Dex.getExistingMove('Aeroblast').name));
-		assert(pokemon.includes(Dex.getExistingPokemon('Bulbasaur').name));
-
-		// available in Sword/Shield
 		assert(abilities.includes(Dex.getExistingAbility('Intimidate').name));
+
+		assert(items.includes(Dex.getExistingItem('Abomasite').name));
 		assert(items.includes(Dex.getExistingItem('Choice Scarf').name));
+		assert(items.includes(Dex.getExistingItem('Custap Berry').name));
+
+		assert(moves.includes(Dex.getExistingMove('Aeroblast').name));
 		assert(moves.includes(Dex.getExistingMove('Tackle').name));
+		assert(moves.includes(Dex.getExistingMove('Thousand Arrows').name));
+
+		assert(pokemon.includes(Dex.getExistingPokemon('Bulbasaur').name));
 		assert(pokemon.includes(Dex.getExistingPokemon('Charmander').name));
+		assert(pokemon.includes(Dex.getExistingPokemon('Slowpoke').name));
 	});
 });

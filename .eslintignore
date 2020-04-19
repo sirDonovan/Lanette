@@ -6,3 +6,8 @@
 /pokemon-showdown/**
 /roomlogs/**
 /src/config.ts
+app.js
+build.js
+mocha.js
+tempConfig.js
+update-ps.js

@@ -3,6 +3,7 @@ import { UserHosted } from "../games/internal/user-hosted";
 import { DefaultGameOption, Game, IGameOptionValues } from "../room-game";
 import { Room } from "../rooms";
 import { User } from "../users";
+import { PRNGSeed } from "../prng";
 
 export type GameCommandReturnType = boolean;
 export type GameDifficulty = 'easy' | 'medium' | 'hard';
@@ -103,7 +104,7 @@ export interface IInternalGames {
 export type InternalGameKey = keyof IInternalGames;
 
 interface IGameClass<T extends Game = Game> {
-	new(room: Room | User, pmRoom?: Room): T;
+	new(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed): T;
 	loadData?(room: Room | User, extendedClass?: boolean): void;
 }
 
