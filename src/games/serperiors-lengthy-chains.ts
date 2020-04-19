@@ -99,41 +99,13 @@ class SerperiorLengthyChains extends Game {
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 		}
 	}
-
+	
 	getChain(guess: string, chainSoFar: string[]): string[] {
 		if (!guess || guess.length === 1) return chainSoFar;
 		let chain = [];
-		for (let i = 0; i < guess.length; i++) {
+		for (let i = guess.length; i > 0; i--) {
 			const substr = guess.substr(0, i + 1);
 			if (data.parameters[this.category].includes(substr)) {
-				for (let j = 0; j < guess.length; j++) {
-					const altSubstr = guess.substr(0, j + 1);
-					if (data.parameters[this.category].includes(altSubstr) && substr != altSubstr) {
-						for (let k = 0; k < guess.length; k++){
-							const anotherSubstr = guess.substr(0, k + 1);
-							if (data.parameters[this.category].includes(anotherSubstr) && altSubstr != anotherSubstr && substr != anotherSubstr) {
-								const pokemon = Dex.getExistingPokemon(anotherSubstr);
-								if (chainSoFar.includes(pokemon.name)) {
-									return chainSoFar;
-								}
-								const curChain = chainSoFar.slice();
-								curChain.push(pokemon.name);
-								chain = this.getChain(guess.substr(k), curChain);
-								if (chain) return chain;
-							} 
-						}
-						if (altSubstr != substr){
-							const pokemon = Dex.getExistingPokemon(altSubstr);
-							if (chainSoFar.includes(pokemon.name)) {
-								return chainSoFar;
-							}
-							const curChain = chainSoFar.slice();
-							curChain.push(pokemon.name);
-							chain = this.getChain(guess.substr(j), curChain);
-							if (chain) return chain;
-						} 
-					}
-				}
 				const pokemon = Dex.getExistingPokemon(substr);
 				if (chainSoFar.includes(pokemon.name)) {
 					return chainSoFar;
@@ -141,11 +113,11 @@ class SerperiorLengthyChains extends Game {
 				const curChain = chainSoFar.slice();
 				curChain.push(pokemon.name);
 				chain = this.getChain(guess.substr(i), curChain);
-				if (chain) return chain;	
-			} 
+				if (chain) return chain;
+			}
 		}
-	return [];
-	}	
+		return [];
+	}
 }
 
 const commands: Dict<ICommandDefinition<SerperiorLengthyChains>> = {
