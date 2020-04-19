@@ -4,6 +4,7 @@ import { Game } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile, GameCommandReturnType } from "../types/games";
 import { User } from "../users";
+import { PRNGSeed } from "../prng";
 
 const GRID_SIZE = 4;
 
@@ -23,8 +24,8 @@ class TrevenantsTrickOrTreat extends Game {
 
 	pokemonList: string[];
 
-	constructor(room: Room | User) {
-		super(room);
+	constructor(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed) {
+		super(room, pmRoom, initialSeed);
 
 		this.pokemonList = this.shuffle(data.pokedex);
 	}

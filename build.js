@@ -78,23 +78,17 @@ async function setToSha(sha) {
 	return await exec('git reset --hard ' + sha).catch(e => console.log(e));
 }
 
-module.exports = async (resolve, reject) => {
+module.exports = async (options, resolve, reject) => {
 	if (firstBuild) {
 		firstBuild = false;
-		console.log("Preparing to build files...");
-		deleteFolderRecursive(builtFolder);
-		console.log("Deleted old built folder");
-
-		let testIndex = -1;
-		for (let i = 0; i < process.argv.length; i++) {
-			if (process.argv[i] === 'test/setup.js') {
-				testIndex = i;
-				break;
-			}
+		
+		if (!options.noBuild) {
+			console.log("Preparing to build files...");
+			deleteFolderRecursive(builtFolder);
+			console.log("Deleted old built folder");
 		}
 
-		const offline = testIndex !== -1 && process.argv[testIndex + 1] === '--offline';
-		if (!offline) {
+		if (!options.offline) {
 			console.log("Checking pokemon-showdown remote...");
 			const pokemonShowdown = path.join(__dirname, 'pokemon-showdown');
 			const remoteDirectories = [path.join(__dirname, 'Pokemon-Showdown'), pokemonShowdown];
@@ -206,16 +200,19 @@ module.exports = async (resolve, reject) => {
 			process.chdir(__dirname);
 		}
 	} else {
-		pruneBuiltFiles();
+		if (!options.noBuild) pruneBuiltFiles();
 	}
 
-	console.log("Running tsc...");
-	const cmd = await exec('npm run tsc').catch(e => console.log(e));
-	if (!cmd || cmd.Error) {
-		reject();
-		return;
+	if (!options.noBuild) {
+		console.log("Running tsc...");
+		const cmd = await exec('npm run tsc').catch(e => console.log(e));
+		if (!cmd || cmd.Error) {
+			reject();
+			return;
+		}
+
+		console.log("Successfully built files");
 	}
 
-	console.log("Successfully built files");
 	resolve();
 }

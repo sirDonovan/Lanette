@@ -198,6 +198,11 @@ export let gameCategoryCooldowns: Dict<number> = {};
 export let gameCooldownTimers: Dict<number> = {};
 
 /**
+ * The number of seconds that must pass before starting consecutive minigames
+ */
+export let minigameCooldownTimers: Dict<number> = {};
+
+/**
  * The number of minutes that must pass before a scripted or user-hosted game is automatically created
  *
  * Compounds with gameCooldownTimers
