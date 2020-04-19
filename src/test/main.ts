@@ -57,8 +57,10 @@ module.exports = (inputOptions: Dict<string>): void => {
 			modulesToTest = moduleTests.concat(pokemonShowdownTestFile);
 		}
 
-		console.log("Loading data for tests...");
-		Dex.loadData();
+		if (moduleTests.includes('dex') || moduleTests.includes('games') || moduleTests.includes('tournaments')) {
+			console.log("Loading data for tests...");
+			Dex.loadData();
+		}
 
 		if (modulesToTest.includes('games')) {
 			for (const i in Games.formats) {
