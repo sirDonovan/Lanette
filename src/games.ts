@@ -27,6 +27,10 @@ const sharedCommandDefinitions: Dict<ICommandDefinition<Game>> = {
 		// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 		command(target, room, user) {
 			if (!(user.id in this.players)) return false;
+			if (!this.started) {
+				user.say("You must wait for the game to start to see your summary.");
+				return false;
+			}
 			const player = this.players[user.id];
 			if (this.getPlayerSummary) {
 				this.getPlayerSummary(this.players[user.id]);
