@@ -103,8 +103,8 @@ class SerperiorLengthyChains extends Game {
 	getChain(guess: string, chainSoFar: string[]): string[] {
 		if (!guess || guess.length === 1) return chainSoFar;
 		let chain = [];
-		for (let i = guess.length; i > 0; i--) {
-			const substr = guess.substr(0, i);
+		for (let i = guess.length - 1; i > 0; i--) {
+			const substr = guess.substr(0, i + 1);
 			if (data.parameters[this.category].includes(substr)) {
 				const pokemon = Dex.getExistingPokemon(substr);
 				if (chainSoFar.includes(pokemon.name)) {
