@@ -99,7 +99,7 @@ class SerperiorLengthyChains extends Game {
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 		}
 	}
-	
+
 	getChain(guess: string, chainSoFar: string[]): string[] {
 		if (!guess || guess.length === 1) return chainSoFar;
 		let chain = [];
