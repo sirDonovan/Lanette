@@ -1562,13 +1562,13 @@ const commands: Dict<ICommandDefinition> = {
 				return this.say("A tournament leaderboard is not enabled for this room.");
 			}
 			if (cmd === 'tournamentenablepoints' || cmd === 'tourenablepoints') {
-				if (room.tournament.canAwardPoints() || room.tournament.manuallyEnabledPoints) {
+				if ((room.tournament.canAwardPoints() && room.tournament.manuallyEnabledPoints === undefined) || room.tournament.manuallyEnabledPoints) {
 					return this.say("The " + room.tournament.name + " tournament will already award leaderboard points.");
 				}
 				room.tournament.manuallyEnabledPoints = true;
 				this.say("The " + room.tournament.name + " tournament will now award leaderboard points.");
 			} else {
-				if (!room.tournament.canAwardPoints() || !room.tournament.manuallyEnabledPoints) {
+				if ((!room.tournament.canAwardPoints() && room.tournament.manuallyEnabledPoints === undefined) || !room.tournament.manuallyEnabledPoints) {
 					return this.say("The " + room.tournament.name + " tournament will already not award leaderboard points.");
 				}
 				room.tournament.manuallyEnabledPoints = false;

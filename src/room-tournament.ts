@@ -97,7 +97,7 @@ export class Tournament extends Activity {
 	};
 	isRoundRobin: boolean = false;
 	manuallyNamed: boolean = false;
-	manuallyEnabledPoints: boolean = false;
+	manuallyEnabledPoints: boolean | undefined = undefined;
 	originalFormat: string = '';
 	scheduled: boolean = false;
 	totalPlayers: number = 0;
