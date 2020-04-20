@@ -46,7 +46,9 @@ export class ParasParameters extends Guessing {
 	onSignups(): void {
 		super.onSignups();
 		if (this.isMiniGame) {
-			(this.format as IGameFormat).minigameDescription = "Use ``/ds" + this.format.options.gen + "`` to search for and then ``" + Config.commandCharacter + "g`` to guess ``/ds`` parameters that give the following Pokemon!";
+			const dexsearchCommand = "``/ds" + this.format.options.gen + "``";
+			(this.format as IGameFormat).minigameDescription = "Use " + dexsearchCommand + " to search for and then ``" + Config.commandCharacter + "g`` to guess " +
+				dexsearchCommand + " parameters that give the following Pokemon!";
 		}
 	}
 
@@ -78,7 +80,9 @@ export class ParasParameters extends Guessing {
 			numberOfParams = this.format.options.params;
 		} else {
 			numberOfParams = BASE_NUMBER_OF_PARAMS;
-			if ((this.format as IGameFormat).customizableOptions.params) numberOfParams += this.random((this.format as IGameFormat).customizableOptions.params.max - BASE_NUMBER_OF_PARAMS + 1);
+			if ((this.format as IGameFormat).customizableOptions.params) {
+				numberOfParams += this.random((this.format as IGameFormat).customizableOptions.params.max - BASE_NUMBER_OF_PARAMS + 1);
+			}
 		}
 		this.currentNumberOfParams = numberOfParams;
 		const result = await Games.workers.parameters.search({
@@ -225,7 +229,9 @@ const tests: GameFileTests<ParasParameters> = {
 
 			game.format.options.gen = 6;
 			intersection = await game.intersect(['Weak to Rock Type', 'Earthquake']);
-			assertStrictEqual(intersection.pokemon.join(","), "abomasnow,aerodactyl,altaria,arceusbug,arceusfire,arceusflying,arceusice,archen,archeops,armaldo,aurorus,avalugg,charizard,crustle,darmanitan,dragonite,dwebble,glalie,gyarados,hooh,lugia,magcargo,magmortar,mantine,mantyke,pineco,pinsir,rayquaza,regice,salamence,scolipede,sealeo,shuckle,spheal,torkoal,tropius,typhlosion,volcanion,walrein");
+			assertStrictEqual(intersection.pokemon.join(","), "abomasnow,aerodactyl,altaria,arceusbug,arceusfire,arceusflying,arceusice,archen,archeops,armaldo,aurorus," +
+				"avalugg,charizard,crustle,darmanitan,dragonite,dwebble,glalie,gyarados,hooh,lugia,magcargo,magmortar,mantine,mantyke,pineco,pinsir,rayquaza,regice,salamence," +
+				"scolipede,sealeo,shuckle,spheal,torkoal,tropius,typhlosion,volcanion,walrein");
 
 			intersection = await game.intersect(['Psycho Cut', 'Resists Fighting Type']);
 			assertStrictEqual(intersection.pokemon.join(","), "alakazam,cresselia,drowzee,gallade,hypno,kadabra,medicham,meditite,mewtwo");

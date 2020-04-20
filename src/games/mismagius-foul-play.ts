@@ -199,7 +199,8 @@ class MismagiusFoulPlay extends Game {
 		}
 		pokemonList = pokemonList.concat(this.decoyPokemon).sort();
 		this.roundGuesses.clear();
-		const html = "<center><b>Param " + this.round + "</b>: " + param + "<br><br><b>Pokemon</b>: " + pokemonList.join(", ") + "<br><br><b>Players</b>: " + players.join(", ") + "</center>";
+		const html = "<center><b>Param " + this.round + "</b>: " + param + "<br><br><b>Pokemon</b>: " + pokemonList.join(", ") + "<br><br><b>Players</b>: " +
+			players.join(", ") + "</center>";
 		this.onHtml(html, () => {
 			this.timeout = setTimeout(() => this.nextRound(), 45 * 1000);
 		});
@@ -372,7 +373,8 @@ export const game: IGameFile<MismagiusFoulPlay> = {
 	class: MismagiusFoulPlay,
 	commandDescriptions: [Config.commandCharacter + "select [Pokemon]", Config.commandCharacter + "suspect [player], [Pokemon]"],
 	commands,
-	description: "<a href='https://docs.google.com/document/d/1Zx72KwQjQyKE4yWsM83yimglxa5qOnM-YTudCJ89fKM/edit'>Guide</a> | Detectives try to help Mismagius identify the criminals in this murder mystery team game (one guess per round)! Parameters will be given as hints but they will be opposite for criminals.",
+	description: "<a href='https://docs.google.com/document/d/1Zx72KwQjQyKE4yWsM83yimglxa5qOnM-YTudCJ89fKM/edit'>Guide</a> | Detectives try to help Mismagius identify the " +
+		"criminals in this murder mystery team game (one guess per round)! Parameters will be given as hints but they will be opposite for criminals.",
 	name,
 	mascot: "Mismagius",
 	scriptedOnly: true,

@@ -105,7 +105,8 @@ class QuizBuzzwole extends Game {
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			this.timeout = setTimeout(() => {
-				const text = "Replace every multiple of **" + this.firstMultiple + "** with a " + firstCategory + " and replace every multiple of **" + this.secondMultiple + "** with a " + secondCategory + "!";
+				const text = "Replace every multiple of **" + this.firstMultiple + "** with a " + firstCategory + " and replace every multiple of **" + this.secondMultiple +
+					"** with a " + secondCategory + "!";
 				this.on(text, () => this.timeout = setTimeout(() => this.nextRound(), 10 * 1000));
 				this.say(text);
 			}, 5000);
@@ -244,13 +245,15 @@ const commands: Dict<ICommandDefinition<QuizBuzzwole>> = {
 							this.expectedMultiples[this.expectedMultiple].splice(i, 1);
 							if (this.roundCategories[this.expectedMultiple] === 'Plate') {
 								if (guess.endsWith('plate')) {
-									this.expectedMultiples[this.expectedMultiple].splice(this.expectedMultiples[this.expectedMultiple].indexOf(guess.substr(0, guess.length - 5)), 1);
+									this.expectedMultiples[this.expectedMultiple].splice(this.expectedMultiples[this.expectedMultiple].indexOf(guess.substr(0, guess.length - 5)),
+										1);
 								} else {
 									this.expectedMultiples[this.expectedMultiple].splice(this.expectedMultiples[this.expectedMultiple].indexOf(guess + 'plate'), 1);
 								}
 							} else if (this.roundCategories[this.expectedMultiple] === 'Berry') {
 								if (guess.endsWith('berry')) {
-									this.expectedMultiples[this.expectedMultiple].splice(this.expectedMultiples[this.expectedMultiple].indexOf(guess.substr(0, guess.length - 5)), 1);
+									this.expectedMultiples[this.expectedMultiple].splice(this.expectedMultiples[this.expectedMultiple].indexOf(guess.substr(0, guess.length - 5)),
+										1);
 								} else {
 									this.expectedMultiples[this.expectedMultiple].splice(this.expectedMultiples[this.expectedMultiple].indexOf(guess + 'berry'), 1);
 								}
@@ -306,7 +309,8 @@ export const game: IGameFile<QuizBuzzwole> = {
 	class: QuizBuzzwole,
 	commandDescriptions: [Config.commandCharacter + "guess [number or item]"],
 	commands,
-	description: "Players take turns counting and replace certain multiples with items in the chosen categories (no repeats in a round). <a href='https://www.tapatalk.com/groups/ps_game_corner/quiz-buzz-t110.html'>More info</a>",
+	description: "Players take turns counting and replace certain multiples with items in the chosen categories (no repeats in a round). " +
+		"<a href='https://www.tapatalk.com/groups/ps_game_corner/quiz-buzz-t110.html'>More info</a>",
 	formerNames: ["Quiz Buzz"],
 	name,
 	mascot: "Buzzwole",

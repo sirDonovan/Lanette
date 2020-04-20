@@ -114,11 +114,13 @@ function search(options: ILogsSearchOptions): ILogsResponse {
 			for (const day of daysOrder) {
 				let line = "";
 				if (data.serverLogsViewer) {
-					line += "<a href='" + data.serverLogsViewer + options.roomid + "/" + year + "-" + (monthLen > 1 ? month : '0' + month) + "-" + (day.length > 1 ? day : '0' + day) + ".html'>" + month + "/" + day + "/" + year + "</a>:";
+					line += "<a href='" + data.serverLogsViewer + options.roomid + "/" + year + "-" + (monthLen > 1 ? month : '0' + month) + "-" + (day.length > 1 ? day : '0' +
+						day) + ".html'>" + month + "/" + day + "/" + year + "</a>:";
 				} else {
 					line += month + "/" + day + "/" + year + ":";
 				}
-				if (separatedLogs[year][month][day].regular) line += " <b>" + separatedLogs[year][month][day].regular + "</b> line" + (separatedLogs[year][month][day].regular !== 1 ? "s" : "");
+				if (separatedLogs[year][month][day].regular) line += " <b>" + separatedLogs[year][month][day].regular + "</b> line" +
+					(separatedLogs[year][month][day].regular !== 1 ? "s" : "");
 				if (separatedLogs[year][month][day].commands) {
 					if (separatedLogs[year][month][day].regular) line += ",";
 					line += " <b>" + separatedLogs[year][month][day].commands + "</b> command" + (separatedLogs[year][month][day].commands !== 1 ? "s" : "");

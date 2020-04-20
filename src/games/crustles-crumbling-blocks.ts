@@ -87,7 +87,8 @@ class CrustlesCrumblingBlocks extends Game {
 			return;
 		}
 
-		const text = "**" + currentPlayer.name + "**, you are up! There " + (this.blocks > 1 ? "are" : "is") + " currently **" + this.blocks + "** block" + (this.blocks > 1 ? "s" : "") + " remaining.";
+		const text = "**" + currentPlayer.name + "**, you are up! There " + (this.blocks > 1 ? "are" : "is") + " currently **" + this.blocks + "** block" +
+			(this.blocks > 1 ? "s" : "") + " remaining.";
 		this.on(text, () => {
 			this.currentPlayer = currentPlayer;
 			this.timeout = setTimeout(() => this.nextRound(), 30 * 1000);

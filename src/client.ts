@@ -82,6 +82,7 @@ const DEFAULT_SERVER_GROUPS: ServerGroupData[] = [
 	},
 ];
 
+/* eslint-disable max-len */
 // Substitution dictionary adapted from https://github.com/ThreeLetters/NoSwearingPlease/blob/master/index.js, licensed under MIT.
 const EVASION_DETECTION_SUBSTITUTIONS: Dict<string[]> = {
 	"a": ["a", "4", "@", "á", "â", "ã", "à", "ᗩ", "A", "ⓐ", "Ⓐ", "α", "͏", "₳", "ä", "Ä", "Ꮧ", "λ", "Δ", "Ḁ", "Ꭺ", "ǟ", "̾", "ａ", "Ａ", "ᴀ", "ɐ", "🅐", "𝐚", "𝐀", "𝘢", "𝘈", "𝙖", "𝘼", "𝒶", "𝓪", "𝓐", "𝕒", "𝔸", "𝔞", "𝔄", "𝖆", "𝕬", "🄰", "🅰", "𝒜", "𝚊", "𝙰", "ꍏ", "а"],
@@ -111,6 +112,7 @@ const EVASION_DETECTION_SUBSTITUTIONS: Dict<string[]> = {
 	"y": ["y", "Y", "ⓨ", "Ⓨ", "у", "͏", "Ɏ", "ÿ", "Ÿ", "Ꭹ", "ψ", "Ψ", "ẏ", "Ẏ", "Ꮍ", "ч", "ʏ", "̾", "ｙ", "Ｙ", "ʎ", "🅨", "𝐲", "𝐘", "𝘺", "𝘠", "𝙮", "𝙔", "𝓎", "𝔂", "𝓨", "𝕪", "𝕊", "𝔶", "𝔘", "𝖞", "𝖄", "🅈", "🆈", "𝒴", "ყ", "𝚢", "𝚈", "☿", "у"],
 	"z": ["z", "ᘔ", "Z", "ⓩ", "Ⓩ", "Ⱬ", "ẓ", "Ẓ", "ፚ", "Ꮓ", "ʐ", "ｚ", "Ｚ", "ᴢ", "🅩", "𝐳", "𝐙", "𝘻", "𝘡", "𝙯", "𝙕", "𝓏", "𝔃", "𝓩", "𝕫", "𝕋", "𝔷", "𝔙", "𝖟", "𝖅", "🅉", "🆉", "𝒵", "ȥ", "𝚣", "𝚉", "☡", "z"],
 };
+/* eslint-enable */
 const EVASION_DETECTION_SUB_STRINGS: Dict<string> = {};
 
 for (const letter in EVASION_DETECTION_SUBSTITUTIONS) {
@@ -498,7 +500,8 @@ export class Client {
 			const now = Date.now();
 			Storage.updateLastSeen(user, now);
 			if (Config.allowMail && messageArguments.rank !== this.groupSymbols.locked) Storage.retrieveOfflineMessages(user);
-			if ((!room.game || room.game.isMiniGame) && !room.userHostedGame && (!(user.id in this.botGreetingCooldowns) || now - this.botGreetingCooldowns[user.id] >= BOT_GREETING_COOLDOWN)) {
+			if ((!room.game || room.game.isMiniGame) && !room.userHostedGame && (!(user.id in this.botGreetingCooldowns) ||
+				now - this.botGreetingCooldowns[user.id] >= BOT_GREETING_COOLDOWN)) {
 				if (Storage.checkBotGreeting(room, user, now)) this.botGreetingCooldowns[user.id] = now;
 			}
 			if (room.logChatMessages) {
@@ -742,7 +745,8 @@ export class Client {
 			} else if (messageArguments.html.startsWith("<div class='infobox infobox-limited'>This tournament includes:<br />")) {
 				if (room.tournament) {
 					const separatedCustomRules: ISeparatedCustomRules = {bans: [], unbans: [], addedrules: [], removedrules: []};
-					const lines = messageArguments.html.substr(0, messageArguments.html.length - 6).split("<div class='infobox infobox-limited'>This tournament includes:<br />")[1].split('<br />');
+					const lines = messageArguments.html.substr(0, messageArguments.html.length - 6).split("<div class='infobox infobox-limited'>This tournament includes:<br />")[1]
+						.split('<br />');
 					let currentCategory: 'bans' | 'unbans' | 'addedrules' | 'removedrules' = 'bans';
 					for (let line of lines) {
 						line = line.trim();
@@ -1023,7 +1027,8 @@ export class Client {
 		const lowerCaseMessage = message.toLowerCase();
 
 		// unlink tournament battle replays
-		if (room.unlinkTournamentReplays && !user.hasRank(room, 'voice') && room.tournament && !room.tournament.format.team && lowerCaseMessage.includes("replay.pokemonshowdown.com/")) {
+		if (room.unlinkTournamentReplays && !user.hasRank(room, 'voice') && room.tournament && !room.tournament.format.team &&
+			lowerCaseMessage.includes("replay.pokemonshowdown.com/")) {
 			let battle = lowerCaseMessage.split("replay.pokemonshowdown.com/")[1];
 			if (battle) {
 				battle = 'battle-' + battle.split(" ")[0].trim();
@@ -1093,7 +1098,8 @@ export class Client {
 						}
 					}
 					room.sayCommand("/warn " + user.name + ", Your tournament must be approved by a staff member");
-					user.say('Use the command ``' + Config.commandCharacter + 'gettourapproval ' + room.id + ', __bracket link__, __signup link__`` to get your tournament approved (insert your actual links).');
+					user.say('Use the command ``' + Config.commandCharacter + 'gettourapproval ' + room.id + ', __bracket link__, __signup link__`` to get your tournament ' +
+						'approved (insert your actual links).');
 					break;
 				}
 			}
@@ -1144,7 +1150,8 @@ export class Client {
 	}
 
 	willBeFiltered(message: string, room?: Room): boolean {
-		let lowerCase = message.replace(/\u039d/g, 'N').toLowerCase().replace(/[\u200b\u007F\u00AD\uDB40\uDC00\uDC21]/gu, '').replace(/\u03bf/g, 'o').replace(/\u043e/g, 'o').replace(/\u0430/g, 'a').replace(/\u0435/g, 'e').replace(/\u039d/g, 'e');
+		let lowerCase = message.replace(/\u039d/g, 'N').toLowerCase().replace(/[\u200b\u007F\u00AD\uDB40\uDC00\uDC21]/gu, '').replace(/\u03bf/g, 'o').replace(/\u043e/g, 'o')
+			.replace(/\u0430/g, 'a').replace(/\u0435/g, 'e').replace(/\u039d/g, 'e');
 		lowerCase = lowerCase.replace(/__|\*\*|``|\[\[|\]\]/g, '');
 
 		if (this.filterRegularExpressions) {

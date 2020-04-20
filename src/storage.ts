@@ -85,7 +85,8 @@ export class Storage {
 		const year = date.getFullYear();
 		const month = date.getMonth() + 1;
 		const day = date.getDate();
-		const filename = roomid + '-' + year + '-' + (month < 10 ? '0' : '') + month + '-' + (day < 10 ? '0' : '') + day + '-at-' + Tools.toTimestampString(date).split(' ')[1].split(':').join('-');
+		const filename = roomid + '-' + year + '-' + (month < 10 ? '0' : '') + month + '-' + (day < 10 ? '0' : '') + day + '-at-' +
+			Tools.toTimestampString(date).split(' ')[1].split(':').join('-');
 		const contents = JSON.stringify(this.databases[roomid]);
 		Tools.safeWriteFileSync(path.join(archivedDatabasesDir, filename + '.json'), contents);
 	}

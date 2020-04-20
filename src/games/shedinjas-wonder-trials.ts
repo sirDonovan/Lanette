@@ -105,7 +105,8 @@ class ShedinjasWonderTrials extends Game {
 				if (points < 0) points = 0;
 				if (points > highestPoints) highestPoints = points;
 				this.points.set(player, points);
-				player.say("Your move was **" + effectivenessScale[effectiveness] + "** effective!" + (points !== originalPoints ? " Your total score is now " + points + "." : ""));
+				player.say("Your move was **" + effectivenessScale[effectiveness] + "** effective!" + (points !== originalPoints ? " Your total score is now " +
+					points + "." : ""));
 			});
 			if (highestPoints >= this.maxPoints) {
 				this.timeout = setTimeout(() => this.end(), 3000);
@@ -231,7 +232,8 @@ export const game: IGameFile<ShedinjasWonderTrials> = {
 	variants: [
 		{
 			name: "Shedinja's Inverse Wonder Trials",
-			description: "Using an inverted type chart, Players must use damaging moves that are super-effective against each Pokemon that Shedinja summons (no repeats in a round)!",
+			description: "Using an inverted type chart, Players must use damaging moves that are super-effective against each Pokemon that Shedinja summons " +
+				"(no repeats in a round)!",
 			variant: "inverse",
 		},
 	],

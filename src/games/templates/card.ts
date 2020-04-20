@@ -121,14 +121,19 @@ export abstract class Card extends Game {
 		const types = [];
 		for (const type of card.types) {
 			const colorData = Tools.hexColorCodes[Tools.typeHexColors[type]];
-			types.push('<div style="display:inline-block;background-color:' + colorData['background-color'] + ';background:' + colorData['background'] + ';border-color:' + colorData['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt;text-align:center"><b>' + type + '</b></div>');
+			types.push('<div style="display:inline-block;background-color:' + colorData['background-color'] + ';background:' + colorData['background'] + ';border-color:' +
+				colorData['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;padding:1px;color:#fff;' +
+				'text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt;text-align:center"><b>' + type + '</b></div>'
+			);
 		}
 		return types.join("&nbsp;/&nbsp;");
 	}
 
 	getChatColorLabel(card: IPokemonCard): string {
 		const colorData = Tools.hexColorCodes[Tools.pokemonColorHexColors[card.color]];
-		return '<div style="display:inline-block;background-color:' + colorData['background-color'] + ';background:' + colorData['background'] + ';border-color:' + colorData['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt;text-align:center"><b>' + card.color + '</b></div>';
+		return '<div style="display:inline-block;background-color:' + colorData['background-color'] + ';background:' + colorData['background'] + ';border-color:' +
+			colorData['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;padding:1px;color:#fff;' +
+			'text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt;text-align:center"><b>' + card.color + '</b></div>';
 	}
 
 	getCardChatHtml(cards: CardType | CardType[]): string {
@@ -143,7 +148,10 @@ export abstract class Card extends Game {
 			if (this.isMoveBased(card)) {
 				names.push(card.name);
 				const colorData = Tools.hexColorCodes[Tools.typeHexColors[card.type]];
-				image = '<div style="display:inline-block;height:51px;width:' + (this.detailLabelWidth + 10) + '"><br /><div style="display:inline-block;background-color:' + colorData['background-color'] + ';background:' + colorData['background'] + ';border-color:' + colorData['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt"><b>' + card.type + '</b></div></div>';
+				image = '<div style="display:inline-block;height:51px;width:' + (this.detailLabelWidth + 10) + '"><br /><div style="display:inline-block;background-color:' +
+					colorData['background-color'] + ';background:' + colorData['background'] + ';border-color:' + colorData['border-color'] + ';border: 1px solid #a99890;' +
+					'border-radius:3px;width:' + this.detailLabelWidth + 'px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt"><b>' +
+					card.type + '</b></div></div>';
 				width += this.detailLabelWidth;
 			} else {
 				names.push(card.name + (card.shiny ? ' \u2605' : ''));
@@ -259,7 +267,8 @@ export abstract class Card extends Game {
 					this.timeEnd();
 					return null;
 				}
-				const html = this.getRoundHtml(this.showPlayerCards ? this.getPlayerCards : this.getPlayerNames, this.getRemainingPlayers(this.playerOrder), "Round " + this.cardRound);
+				const html = this.getRoundHtml(this.showPlayerCards ? this.getPlayerCards : this.getPlayerNames, this.getRemainingPlayers(this.playerOrder),
+					"Round " + this.cardRound);
 				this.sayUhtml(this.uhtmlBaseName + '-round-html', html);
 			}
 			player = this.playerList.shift();

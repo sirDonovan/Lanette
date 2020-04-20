@@ -146,7 +146,9 @@ describe("Tools", () => {
 		assert(!Tools.getChallongeUrl('https://challonge.com'));
 		assert(!Tools.getChallongeUrl('https://challonge.com/'));
 
-		const links = ['https://challonge.com/mocha', 'http://challonge.com/mocha', 'https://challonge.com/tournament/signup/mocha', 'http://challonge.com/tournament/signup/mocha'];
+		const links = ['https://challonge.com/mocha', 'http://challonge.com/mocha', 'https://challonge.com/tournament/signup/mocha',
+			'http://challonge.com/tournament/signup/mocha',
+		];
 		for (const link of links) {
 			const expectedLink = link.startsWith('http://') ? 'https://' + link.substr(7) : link;
 			assertStrictEqual(Tools.getChallongeUrl(link), expectedLink);

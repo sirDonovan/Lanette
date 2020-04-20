@@ -91,7 +91,8 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		const locationAfterMovement = this.getLocationAfterMovement(location, spaces);
 		this.playerLocations.set(player, {side: locationAfterMovement.side, space: locationAfterMovement.space});
 
-		const text = "They slip on an Inkay and go back **" + (-1 * spaces) + "** space" + (spaces < -1 ? "s" : "") + " to **" + this.board[locationAfterMovement.side][locationAfterMovement.space].name + "**!";
+		const text = "They slip on an Inkay and go back **" + (-1 * spaces) + "** space" + (spaces < -1 ? "s" : "") + " to **" +
+			this.board[locationAfterMovement.side][locationAfterMovement.space].name + "**!";
 		this.on(text, () => {
 			this.timeout = setTimeout(() => this.onSpaceLanding(player, spaces, locationAfterMovement, true), this.roundTime);
 		});
@@ -118,7 +119,10 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		this.playerLocations.set(player, {side: locationAfterMovement.side, space: locationAfterMovement.space});
 
 		let text = "They go hiking at the nearest mountain, **" + this.board[locationAfterMovement.side][locationAfterMovement.space].name + "**";
-		if (passedGo) text += " (and collect **" + this.passingGoCurrency + " " + (this.passingGoCurrency > 1 ? this.currencyPluralName : this.currencyName) + "** for passing " + this.startingSpace.name + ")";
+		if (passedGo) {
+			text += " (and collect **" + this.passingGoCurrency + " " + (this.passingGoCurrency > 1 ? this.currencyPluralName : this.currencyName) + "** for passing " +
+				this.startingSpace.name + ")";
+		}
 		text += "!";
 		this.on(text, () => {
 			if (reachedMaxCurrency) {
@@ -133,7 +137,8 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		let currency = this.playerCurrency.get(player)!;
 		currency += this.rafflePrize;
 		this.playerCurrency.set(player, currency);
-		const text = "They win the " + this.raffleRunner + " raffle and earn **" + this.rafflePrize + " " + (this.rafflePrize > 1 ? this.currencyPluralName : this.currencyName) + "**!";
+		const text = "They win the " + this.raffleRunner + " raffle and earn **" + this.rafflePrize + " " + (this.rafflePrize > 1 ? this.currencyPluralName : this.currencyName) +
+			"**!";
 		this.on(text, () => {
 			if (this.maxCurrency && currency >= this.maxCurrency) {
 				this.onMaxCurrency(player);
@@ -279,7 +284,9 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 		const playerHtml: string[] = ["<b><u>You (" + this.playerLetters.get(player) + ")</u></b><br />" + this.getPlayerPropertiesHtml(player)];
 		for (const otherPlayer of this.playerOrder) {
 			if (otherPlayer === player) continue;
-			if (!otherPlayer.eliminated) playerHtml.push("<b><u>" + otherPlayer.name + " (" + this.playerLetters.get(otherPlayer) + ")</u></b><br />" + this.getPlayerPropertiesHtml(otherPlayer));
+			if (!otherPlayer.eliminated) {
+				playerHtml.push("<b><u>" + otherPlayer.name + " (" + this.playerLetters.get(otherPlayer) + ")</u></b><br />" + this.getPlayerPropertiesHtml(otherPlayer));
+			}
 		}
 
 		html += playerHtml.join("<br /><br />");
@@ -316,7 +323,8 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 						text = "Since it is **" + player.name + "**'s 4th turn in " + this.jailSpace.name + ", they must use a " + this.escapeFromJailCard + "!";
 						this.escapeFromJailCards.set(player, escapeFromJailCards - 1);
 					} else {
-						text = "Since it is **" + player.name + "**'s 4th turn in " + this.jailSpace.name + ", they must use **" + this.currencyToEscapeJail + " " + (this.currencyToEscapeJail > 1 ? this.currencyPluralName : this.currencyName) + "** to escape!";
+						text = "Since it is **" + player.name + "**'s 4th turn in " + this.jailSpace.name + ", they must use **" + this.currencyToEscapeJail + " " +
+							(this.currencyToEscapeJail > 1 ? this.currencyPluralName : this.currencyName) + "** to escape!";
 						this.playerCurrency.set(player, currency - this.currencyToEscapeJail);
 					}
 					this.playersInJail.splice(this.playersInJail.indexOf(player), 1);
@@ -334,7 +342,10 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 				}
 			} else {
 				if (currency >= this.currencyToEscapeJail || escapeFromJailCards) {
-					const text = "This is **" + player.name + "**'s " + Tools.toNumberOrderString(turnsInJail) + " turn in " + this.jailSpace.name + ". They can either attempt to roll doubles (with ``" + Config.commandCharacter + "rolldice``) or use " + (escapeFromJailCards ? "a " + this.escapeFromJailCard : this.currencyToEscapeJail + " " + (this.currencyToEscapeJail > 1 ? this.currencyPluralName : this.currencyName)) + " to escape (with ``" + Config.commandCharacter + "escape``)!";
+					const text = "This is **" + player.name + "**'s " + Tools.toNumberOrderString(turnsInJail) + " turn in " + this.jailSpace.name + ". They can either attempt " +
+						"to roll doubles (with ``" + Config.commandCharacter + "rolldice``) or use " + (escapeFromJailCards ? "a " + this.escapeFromJailCard :
+						this.currencyToEscapeJail + " " + (this.currencyToEscapeJail > 1 ? this.currencyPluralName : this.currencyName)) + " to escape (with ``" +
+						Config.commandCharacter + "escape``)!";
 					this.canEscape = true;
 					this.canRoll = true;
 					this.on(text, () => {
@@ -346,7 +357,8 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 					});
 					this.say(text);
 				} else {
-					const text = "This is **" + player.name + "**'s " + Tools.toNumberOrderString(turnsInJail) + " turn in " + this.jailSpace.name + ", but they cannot escape so they must roll!";
+					const text = "This is **" + player.name + "**'s " + Tools.toNumberOrderString(turnsInJail) + " turn in " + this.jailSpace.name + ", but they cannot escape " +
+						"so they must roll!";
 					this.on(text, () => {
 						this.timeout = setTimeout(() => this.rollDice(player), this.roundTime);
 					});
@@ -398,10 +410,12 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 				this.currentPlayerReRoll = false;
 			}
 
-			rollText = "**" + player.name + " (" + this.playerLetters.get(player) + ")** rolled **[ " + this.dice[0] + " ]** **[ " + this.dice[1] + " ]** " + (outOfJail ? "to get out of jail " : "") + "and landed on **" + space.name + "**!";
+			rollText = "**" + player.name + " (" + this.playerLetters.get(player) + ")** rolled **[ " + this.dice[0] + " ]** **[ " + this.dice[1] + " ]** " +
+				(outOfJail ? "to get out of jail " : "") + "and landed on **" + space.name + "**!";
 			const passedGo = spacesMoved > 0 && location.passedSpaces.includes(this.startingSpace);
 			if (passedGo && this.boardRound > 1) {
-				rollText += " They also passed " + this.startingSpace.name + " and gained **" + this.passingGoCurrency + " " + (this.passingGoCurrency > 1 ? this.currencyPluralName : this.currencyName) + "**!";
+				rollText += " They also passed " + this.startingSpace.name + " and gained **" + this.passingGoCurrency + " " +
+					(this.passingGoCurrency > 1 ? this.currencyPluralName : this.currencyName) + "**!";
 				let currency = this.playerCurrency.get(player)!;
 				currency += this.passingGoCurrency;
 				this.playerCurrency.set(player, currency);
@@ -434,7 +448,10 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 				const currency = this.playerCurrency.get(player)!;
 				if (currency >= space.cost) {
 					const currency = this.playerCurrency.get(player)!;
-					const text = "Would you like to " + this.acquirePropertyAction + " it using " + (currency > space.cost ? "**" + space.cost + "** of your **" + currency + " " + this.currencyPluralName + "**" : "**your last " + (currency === 1 ? this.currencyName : currency + " " + this.currencyPluralName) + "**") + "? Use ``" + Config.commandCharacter + this.acquirePropertyAction + "`` if so or ``" + Config.commandCharacter + "pass`` to leave it " + this.availablePropertyState + ".";
+					const text = "Would you like to " + this.acquirePropertyAction + " it using " + (currency > space.cost ? "**" + space.cost + "** of your **" + currency +
+						" " + this.currencyPluralName + "**" : "**your last " + (currency === 1 ? this.currencyName : currency + " " + this.currencyPluralName) + "**") +
+						"? Use ``" + Config.commandCharacter + this.acquirePropertyAction + "`` if so or ``" + Config.commandCharacter + "pass`` to leave it " +
+						this.availablePropertyState + ".";
 					this.on(text, () => {
 						this.canAcquire = true;
 						this.propertyToAcquire = space;

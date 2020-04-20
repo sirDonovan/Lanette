@@ -158,7 +158,8 @@ export abstract class Chain extends Game {
 		while (this.currentLink === link || (!nextLinkStarts.length && !nextLinkEnds.length) || (linkToSkip && this.currentLink === linkToSkip)) {
 			if (input && this.playerList.length) {
 				const list = Tools.joinList(nextLinkStarts.concat(nextLinkEnds).map(x => x.toUpperCase()));
-				this.say("There are no " + (list ? "'" + list + "' " + this.linksType + " links left" : "links with " + link.name) + "! Substituting in a random " + this.linksType + ".");
+				this.say("There are no " + (list ? "'" + list + "' " + this.linksType + " links left" : "links with " + link.name) + "! Substituting in a random " +
+					this.linksType + ".");
 				input = '';
 				if (!linkToSkip) linkToSkip = this.pool[id];
 			}

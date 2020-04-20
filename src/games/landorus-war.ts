@@ -286,7 +286,8 @@ export const game: IGameFile<LandorusWar> = {
 	class: LandorusWar,
 	commandDescriptions: [Config.commandCharacter + "use [move], [trainer]", Config.commandCharacter + "suspect [trainer], [Pokemon]"],
 	commands,
-	description: "Players try to identify the randomly chosen Pokemon of other players by using moves against them to discover their type. Players may only use moves of which the Pokemon they have been randomly assigned to is able to learn.",
+	description: "Players try to identify the randomly chosen Pokemon of other players by using moves against them to discover their type. Players may only use moves of " +
+		"which the Pokemon they have been randomly assigned to is able to learn.",
 	name,
 	mascot: "Landorus",
 	scriptedOnly: true,

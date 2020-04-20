@@ -10,8 +10,9 @@ export abstract class CardHighLow extends Card {
 	bitsPerRound: number = 100;
 	canPlay: boolean = false;
 	categoryList: string[] = [];
-	categoriesNames: Dict<string> = {hp: 'HP', atk: 'Atk', attack: 'Atk', def: 'Def', defense: 'Def', spa: 'SpA', specialattack: 'SpA', spd: 'SpD', specialdefense: 'SpD', spe: 'Spe',
-		speed: 'Spe', bst: 'BST', basestattotal: 'BST'};
+	categoriesNames: Dict<string> = {hp: 'HP', atk: 'Atk', attack: 'Atk', def: 'Def', defense: 'Def', spa: 'SpA', specialattack: 'SpA', spd: 'SpD', specialdefense: 'SpD',
+		spe: 'Spe', speed: 'Spe', bst: 'BST', basestattotal: 'BST',
+	};
 	currentCategory: string = '';
 	detailCategories: string[] = [];
 	highOrLow: HighLow = 'high';
@@ -43,7 +44,10 @@ export abstract class CardHighLow extends Card {
 	}
 
 	getCardChatDetails(card: CardType): string {
-		return '<div style="display:inline-block;background-color:' + Tools.hexColorCodes['Black']['background-color'] + ';background:' + Tools.hexColorCodes['Black']['background'] + ';border-color:' + Tools.hexColorCodes['Black']['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:auto;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;text-align:center;font-size:8pt">' + this.getCardDetail(card, this.currentCategory) + ' ' + this.categoriesNames[this.currentCategory] + '</div>';
+		return '<div style="display:inline-block;background-color:' + Tools.hexColorCodes['Black']['background-color'] + ';background:' +
+			Tools.hexColorCodes['Black']['background'] + ';border-color:' + Tools.hexColorCodes['Black']['border-color'] + ';border: 1px solid #a99890;border-radius:3px;' +
+			'width:auto;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;text-align:center;font-size:8pt">' +
+			this.getCardDetail(card, this.currentCategory) + ' ' + this.categoriesNames[this.currentCategory] + '</div>';
 	}
 
 	getCardsPmHtml(cards: CardType[], player: Player): string {
@@ -69,7 +73,9 @@ export abstract class CardHighLow extends Card {
 				cardHtml += card.name + '';
 			}
 			if (this.currentCategory) {
-				cardHtml += ':&nbsp;<div style="display:inline-block;background-color:' + Tools.hexColorCodes['Black']['background-color'] + ';background:' + Tools.hexColorCodes['Black']['background'] + ';border-color:' + Tools.hexColorCodes['Black']['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:auto;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;text-align:center;font-size:8pt">';
+				cardHtml += ':&nbsp;<div style="display:inline-block;background-color:' + Tools.hexColorCodes['Black']['background-color'] + ';background:' +
+					Tools.hexColorCodes['Black']['background'] + ';border-color:' + Tools.hexColorCodes['Black']['border-color'] + ';border: 1px solid #a99890;' +
+					'border-radius:3px;width:auto;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;text-align:center;font-size:8pt">';
 				if (bolded) {
 					cardHtml += '<b>' + info.detail + ' ' + this.categoriesNames[this.currentCategory] + '</b>';
 				} else {
@@ -82,7 +88,9 @@ export abstract class CardHighLow extends Card {
 					if (this.detailCategories[i] === this.currentCategory) continue;
 					const detail = '' + this.getCardDetail(card, this.detailCategories[i]);
 					if (i !== 0) cardHtml += '&nbsp;';
-					cardHtml += '<div style="display:inline-block;background-color:' + Tools.hexColorCodes['Black']['background-color'] + ';background:' + Tools.hexColorCodes['Black']['background'] + ';border-color:' + Tools.hexColorCodes['Black']['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:auto;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;text-align:center;font-size:6pt">';
+					cardHtml += '<div style="display:inline-block;background-color:' + Tools.hexColorCodes['Black']['background-color'] + ';background:' +
+						Tools.hexColorCodes['Black']['background'] + ';border-color:' + Tools.hexColorCodes['Black']['border-color'] + ';border: 1px solid #a99890;' +
+						'border-radius:3px;width:auto;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;text-align:center;font-size:6pt">';
 					cardHtml += detail + '&nbsp;<span style="font-size:6pt">' + this.categoriesNames[this.detailCategories[i]] + "</span>";
 					cardHtml += '</div>';
 				}

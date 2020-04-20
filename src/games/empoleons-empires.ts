@@ -43,7 +43,8 @@ class EmpoleonsEmpires extends Game {
 			aliases.push(this.playerAliases.get(this.players[i])!);
 		}
 		const uhtmlName = this.uhtmlBaseName + '-aliases';
-		const html = "<div class='infobox'><b>Remaining players (" + this.getRemainingPlayerCount() + ")</b>: " + this.getPlayerNames(this.getRemainingPlayers()) + "<br><br><b>Remaining aliases</b>: " + Tools.shuffle(aliases).join(", ") + ".</div>";
+		const html = "<div class='infobox'><b>Remaining players (" + this.getRemainingPlayerCount() + ")</b>: " + this.getPlayerNames(this.getRemainingPlayers()) + "<br><br>" +
+			"<b>Remaining aliases</b>: " + Tools.shuffle(aliases).join(", ") + ".</div>";
 		this.onUhtml(uhtmlName, html, () => {
 			if (!this.currentPlayer) this.currentPlayer = this.getRandomPlayer();
 			const currentPlayer = this.currentPlayer;
@@ -214,7 +215,8 @@ export const game: IGameFile<EmpoleonsEmpires> = {
 	commandDescriptions: [Config.commandCharacter + "alias [alias]", Config.commandCharacter + "guess [player], [alias]"],
 	commands,
 	class: EmpoleonsEmpires,
-	description: "Players choose aliases and await their turns to guess the aliases of other players. A player will guess until they are incorrect, at which point it will be the guessed player's turn.",
+	description: "Players choose aliases and await their turns to guess the aliases of other players. A player will guess until they are incorrect, at which point it will " +
+		"be the guessed player's turn.",
 	formerNames: ["Empires"],
 	name: "Empoleon's Empires",
 	mascot: "Empoleon",

@@ -4,18 +4,29 @@ import { Game } from "../room-game";
 import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
 
 const rods: {rod: string; pokemon: {pokemon: string; points: number}[]}[] = [
-	{rod: 'Super Rod', pokemon: [{pokemon: "Wailmer", points: 250}, {pokemon: "Skrelp", points: 250}, {pokemon: "Sharpedo", points: 300}, {pokemon: "Seaking", points: 300}, {pokemon: "Gyarados", points: 350},
-		{pokemon: "Lanturn", points: 300}, {pokemon: "Tentacruel", points: 300}, {pokemon: "Kingler", points: 300}, {pokemon: "Whiscash", points: 300}, {pokemon: "Lumineon", points: 300},
-		{pokemon: "Seadra", points: 300}, {pokemon: "Starmie", points: 300}, {pokemon: "Clawitzer", points: 300}, {pokemon: "Cloyster", points: 300}, {pokemon: "Dragalge", points: 300},
-		{pokemon: "Octillery", points: 350}, {pokemon: "Milotic", points: 350}, {pokemon: "Gorebyss", points: 350}, {pokemon: "Huntail", points: 350}, {pokemon: "Kingdra", points: 350}],
+	{
+		rod: 'Super Rod',
+		pokemon: [{pokemon: "Wailmer", points: 250}, {pokemon: "Skrelp", points: 250}, {pokemon: "Sharpedo", points: 300}, {pokemon: "Seaking", points: 300},
+			{pokemon: "Gyarados", points: 350}, {pokemon: "Lanturn", points: 300}, {pokemon: "Tentacruel", points: 300}, {pokemon: "Kingler", points: 300},
+			{pokemon: "Whiscash", points: 300}, {pokemon: "Lumineon", points: 300}, {pokemon: "Seadra", points: 300}, {pokemon: "Starmie", points: 300},
+			{pokemon: "Clawitzer", points: 300}, {pokemon: "Cloyster", points: 300}, {pokemon: "Dragalge", points: 300}, {pokemon: "Octillery", points: 350},
+			{pokemon: "Milotic", points: 350}, {pokemon: "Gorebyss", points: 350}, {pokemon: "Huntail", points: 350}, {pokemon: "Kingdra", points: 350},
+		],
 	},
-	{rod: 'Good Rod', pokemon: [{pokemon: "Poliwag", points: 150}, {pokemon: "Tentacool", points: 150}, {pokemon: "Qwilfish", points: 200}, {pokemon: "Krabby", points: 200},
-		{pokemon: "Corsola", points: 250}, {pokemon: "Goldeen", points: 200}, {pokemon: "Wailmer", points: 250}, {pokemon: "Barboach", points: 200}, {pokemon: "Chinchou", points: 200},
-		{pokemon: "Shellder", points: 200}, {pokemon: "Horsea", points: 200}, {pokemon: "Finneon", points: 200}, {pokemon: "Staryu", points: 200}, {pokemon: "Clauncher", points: 200},
-		{pokemon: "Skrelp", points: 250}, {pokemon: "Remoraid", points: 200}, {pokemon: "Feebas", points: 250}, {pokemon: "Clamperl", points: 250}],
+	{
+		rod: 'Good Rod',
+		pokemon: [{pokemon: "Poliwag", points: 150}, {pokemon: "Tentacool", points: 150}, {pokemon: "Qwilfish", points: 200}, {pokemon: "Krabby", points: 200},
+			{pokemon: "Corsola", points: 250}, {pokemon: "Goldeen", points: 200}, {pokemon: "Wailmer", points: 250}, {pokemon: "Barboach", points: 200},
+			{pokemon: "Chinchou", points: 200}, {pokemon: "Shellder", points: 200}, {pokemon: "Horsea", points: 200}, {pokemon: "Finneon", points: 200},
+			{pokemon: "Staryu", points: 200}, {pokemon: "Clauncher", points: 200}, {pokemon: "Skrelp", points: 250}, {pokemon: "Remoraid", points: 200},
+			{pokemon: "Feebas", points: 250}, {pokemon: "Clamperl", points: 250},
+		],
 	},
-	{rod: 'Old Rod', pokemon: [{pokemon: "Poliwag", points: 150}, {pokemon: "Tentacool", points: 150}, {pokemon: "Magikarp", points: 100}, {pokemon: "Magikarp", points: 100},
-		{pokemon: "Magikarp", points: 100}, {pokemon: "Magikarp", points: 100}],
+	{
+		rod: 'Old Rod',
+		pokemon: [{pokemon: "Poliwag", points: 150}, {pokemon: "Tentacool", points: 150}, {pokemon: "Magikarp", points: 100}, {pokemon: "Magikarp", points: 100},
+			{pokemon: "Magikarp", points: 100}, {pokemon: "Magikarp", points: 100},
+		],
 	},
 ];
 

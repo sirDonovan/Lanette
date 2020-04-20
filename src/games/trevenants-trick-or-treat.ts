@@ -155,7 +155,8 @@ export const game: IGameFile<TrevenantsTrickOrTreat> = {
 	commandDescriptions: [Config.commandCharacter + "trick [move]"],
 	commands,
 	class: TrevenantsTrickOrTreat,
-	description: "Players guess moves learned by only one Pokemon on the grid, gaining points equal to the total number of pokemon that learn that move. The grid is constantly updating, so beware!",
+	description: "Players guess moves learned by only one Pokemon on the grid, gaining points equal to the total number of pokemon that learn that move. The grid is " +
+		"constantly updating, so beware!",
 	freejoin: true,
 	name,
 	mascot: "Trevenant",

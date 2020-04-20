@@ -78,7 +78,9 @@ class TapusTerrains extends Game {
 			if (!data.pokemon[this.currentTerrain].includes(this.targetPokemon)) {
 				for (const i in this.players) {
 					if (this.players[i].eliminated) continue;
-					if (this.queue.includes(this.players[i]) || this.roundJumps.has(this.players[i])) this.eliminatePlayer(this.players[i], "You jumped on a Pokemon of the wrong type!");
+					if (this.queue.includes(this.players[i]) || this.roundJumps.has(this.players[i])) {
+						this.eliminatePlayer(this.players[i], "You jumped on a Pokemon of the wrong type!");
+					}
 				}
 			} else {
 				this.currentTerrain = null;
@@ -112,12 +114,15 @@ class TapusTerrains extends Game {
 		this.targetPokemon = targetPokemon;
 		this.roundJumps.clear();
 		this.queue = [];
-		const pokemonHtml = '<div class="infobox"><center>' + Dex.getPokemonGif(Dex.getExistingPokemon(this.targetPokemon)) + '<br />A wild <b>' + this.targetPokemon + '</b> appeared!</center></div>';
+
+		const pokemonHtml = '<div class="infobox"><center>' + Dex.getPokemonGif(Dex.getExistingPokemon(this.targetPokemon)) + '<br />A wild <b>' + this.targetPokemon +
+			'</b> appeared!</center></div>';
 		if (newTerrain) {
 			const roundHtml = this.getRoundHtml(this.getPlayerNames, null, "Round " + this.terrainRound);
 			const uhtmlName = this.uhtmlBaseName + '-round';
 			this.onUhtml(uhtmlName, roundHtml, () => {
-				const terrainHtml = '<div class="infobox"><center><br />The terrain is <b>' + this.currentTerrain + '</b> (jump on a <b>' + terrains[this.currentTerrain!] + '</b> type)!<br />&nbsp;</center></div>';
+				const terrainHtml = '<div class="infobox"><center><br />The terrain is <b>' + this.currentTerrain + '</b> (jump on a <b>' + terrains[this.currentTerrain!] +
+					'</b> type)!<br />&nbsp;</center></div>';
 				const uhtmlName = this.uhtmlBaseName + '-terrain';
 				this.onUhtml(uhtmlName, terrainHtml, () => {
 					// if (this.timeout) clearTimeout(this.timeout); // mocha tests

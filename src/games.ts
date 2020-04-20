@@ -113,9 +113,13 @@ export class Games {
 		const keys = Object.keys(file.achievements) as (keyof IGameAchievementKeys)[];
 		for (const key of keys) {
 			const achievement = file.achievements[key]!;
-			if (Tools.toId(achievement.name) !== key) throw new Error(file.name + "'s achievement " + achievement.name + " needs to have the key '" + Tools.toId(achievement.name) + "'");
+			if (Tools.toId(achievement.name) !== key) {
+				throw new Error(file.name + "'s achievement " + achievement.name + " needs to have the key '" + Tools.toId(achievement.name) + "'");
+			}
 			if (key in this.achievementNames) {
-				if (this.achievementNames[key] !== achievement.name) throw new Error(file.name + "'s achievement '" + key + "' has the name " + this.achievementNames[key] + " in another game.");
+				if (this.achievementNames[key] !== achievement.name) {
+					throw new Error(file.name + "'s achievement '" + key + "' has the name " + this.achievementNames[key] + " in another game.");
+				}
 				continue;
 			}
 			this.achievementNames[key] = achievement.name;
@@ -151,7 +155,9 @@ export class Games {
 			if (file.aliases) {
 				for (const alias of file.aliases) {
 					const aliasId = Tools.toId(alias);
-					if (aliasId in this.modeAliases) throw new Error(file.name + " mode's alias '" + alias + " is already used by " + this.modes[this.modeAliases[aliasId]].name + ".");
+					if (aliasId in this.modeAliases) {
+						throw new Error(file.name + " mode's alias '" + alias + " is already used by " + this.modes[this.modeAliases[aliasId]].name + ".");
+					}
 					this.modeAliases[aliasId] = id;
 				}
 			}
@@ -198,7 +204,9 @@ export class Games {
 				for (const alias of format.aliases) {
 					const aliasId = Tools.toId(alias);
 					if (aliasId in this.userHostedFormats) throw new Error(format.name + "'s alias '" + alias + "' is the name of another user-hosted format.");
-					if (aliasId in this.userHostedAliases) throw new Error(format.name + "'s alias '" + alias + "' is already an alias for " + this.userHostedAliases[aliasId] + ".");
+					if (aliasId in this.userHostedAliases) {
+						throw new Error(format.name + "'s alias '" + alias + "' is already an alias for " + this.userHostedAliases[aliasId] + ".");
+					}
 					this.userHostedAliases[aliasId] = format.name;
 				}
 			}
@@ -240,7 +248,10 @@ export class Games {
 
 			if (format.minigameCommand) {
 				const command = Tools.toId(format.minigameCommand);
-				if (command in this.minigameCommandNames) throw new Error(format.name + "'s minigame command '" + format.minigameCommand + "' is already a minigame command for " + this.minigameCommandNames[command].format + ".");
+				if (command in this.minigameCommandNames) {
+					throw new Error(format.name + "'s minigame command '" + format.minigameCommand + "' is already a minigame command for " +
+						this.minigameCommandNames[command].format + ".");
+				}
 				this.minigameCommandNames[command] = {aliases: format.minigameCommandAliases ? format.minigameCommandAliases.map(x => Tools.toId(x)) : [], format: format.name};
 			}
 
@@ -257,7 +268,10 @@ export class Games {
 					for (const id of idsToAlias) {
 						for (const variantId of variantIds) {
 							const alias = variantId + id;
-							if (alias in this.aliases) throw new Error(format.name + "'s variant " + variant.name + " variant alias '" + variantId + "' clashes with the alias for " + this.aliases[alias] + ".");
+							if (alias in this.aliases) {
+								throw new Error(format.name + "'s variant " + variant.name + " variant alias '" + variantId + "' clashes with the alias for " +
+									this.aliases[alias] + ".");
+							}
 							if (!(alias in this.aliases)) this.aliases[alias] = format.name + "," + variant.variant;
 						}
 					}
@@ -323,8 +337,10 @@ export class Games {
 					let pmRoom: Room | undefined;
 					if (this.isPm(room)) {
 						user.rooms.forEach((rank, room) => {
-							if (!pmRoom && ((Config.allowScriptedGames && Config.allowScriptedGames.includes(room.id)) || (Config.allowUserHostedGames && Config.allowUserHostedGames.includes(room.id))) &&
-								Users.self.hasRank(room, 'bot')) pmRoom = room;
+							if (!pmRoom && ((Config.allowScriptedGames && Config.allowScriptedGames.includes(room.id)) ||
+								(Config.allowUserHostedGames && Config.allowUserHostedGames.includes(room.id))) && Users.self.hasRank(room, 'bot')) {
+								pmRoom = room;
+							}
 						});
 						if (!pmRoom) return this.say("You must be in a room that has enabled scripted games and where " + Users.self.name + " has Bot rank (*).");
 					} else {
@@ -538,7 +554,8 @@ export class Games {
 			inputTarget: id,
 			nameWithOptions: '',
 		};
-		return Object.assign({}, formatData, formatComputed, {customizableOptions: formatData.customizableOptions || {}, defaultOptions: formatData.defaultOptions || [], options: {}});
+		return Object.assign({}, formatData, formatComputed, {customizableOptions: formatData.customizableOptions || {}, defaultOptions: formatData.defaultOptions || [],
+			options: {}});
 	}
 
 	getRandomFormat(room: Room): IGameFormat {

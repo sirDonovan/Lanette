@@ -245,7 +245,8 @@ class BulbasaursUno extends CardMatching {
 const commands: Dict<ICommandDefinition<BulbasaursUno>> = {
 	draw: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
+			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen ||
+				this.currentPlayer !== this.players[user.id]) return false;
 			this.awaitingCurrentPlayerCard = false;
 			this.drawCard(this.players[user.id]);
 			this.currentPlayer = null; // prevent Draw Wizard from activating on a draw
@@ -262,7 +263,8 @@ export const game: IGameFile<BulbasaursUno> = Games.copyTemplateProperties(cardG
 	commandDescriptions: [Config.commandCharacter + "play [Pokemon]", Config.commandCharacter + "draw"],
 	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
 	class: BulbasaursUno,
-	description: "Each round, players can play a card that matches the type or color of the top card or draw a new card. <a href='http://psgc.weebly.com/pokeuno.html'>Action card descriptions</a>",
+	description: "Each round, players can play a card that matches the type or color of the top card or draw a new card. <a href='http://psgc.weebly.com/pokeuno.html'>Action " +
+		"card descriptions</a>",
 	formerNames: ["Pokeuno"],
 	name,
 	mascot: "Bulbasaur",

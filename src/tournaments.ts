@@ -189,8 +189,9 @@ export class Tournaments {
 			if (Config.tournamentAutoDQTimers && room.id in Config.tournamentAutoDQTimers) {
 				room.sayCommand("/tour autodq " + Config.tournamentAutoDQTimers[room.id]);
 			}
-			if ((!tournament.format.team && Config.disallowTournamentScouting && Config.disallowTournamentScouting.includes(room.id)) || (Config.disallowTournamentScoutingFormats &&
-				room.id in Config.disallowTournamentScoutingFormats && Config.disallowTournamentScoutingFormats[room.id].includes(tournament.format.id))) {
+			if ((!tournament.format.team && Config.disallowTournamentScouting && Config.disallowTournamentScouting.includes(room.id)) ||
+				(Config.disallowTournamentScoutingFormats && room.id in Config.disallowTournamentScoutingFormats &&
+				Config.disallowTournamentScoutingFormats[room.id].includes(tournament.format.id))) {
 				room.sayCommand("/tour scouting disallow");
 			}
 			if (Config.disallowTournamentModjoin && Config.disallowTournamentModjoin.includes(room.id)) {
@@ -225,7 +226,8 @@ export class Tournaments {
 			if (Config.tournamentRoomAdvertisements && room.id in Config.tournamentRoomAdvertisements) {
 				for (const roomId of Config.tournamentRoomAdvertisements[room.id]) {
 					const advertisementRoom = Rooms.get(roomId);
-					if (advertisementRoom) advertisementRoom.sayHtml('<a href="/' + room.id + '" class="ilink"><strong>' + tournament.name + '</strong> tournament created in <strong>' + room.title + '</strong>.</a>');
+					if (advertisementRoom) advertisementRoom.sayHtml('<a href="/' + room.id + '" class="ilink"><strong>' + tournament.name + '</strong> tournament created in ' +
+						'<strong>' + room.title + '</strong>.</a>');
 				}
 			}
 		}
@@ -255,7 +257,8 @@ export class Tournaments {
 	}
 
 	setScheduledTournamentTimer(room: Room): void {
-		this.setTournamentTimer(room, this.nextScheduledTournaments[room.id].time, Dex.getExistingFormat(this.nextScheduledTournaments[room.id].format, true), this.maxPlayerCap, true);
+		this.setTournamentTimer(room, this.nextScheduledTournaments[room.id].time, Dex.getExistingFormat(this.nextScheduledTournaments[room.id].format, true), this.maxPlayerCap,
+			true);
 	}
 
 	canSetRandomTournament(room: Room): boolean {
@@ -280,7 +283,8 @@ export class Tournaments {
 			const formats: IFormat[] = [];
 			for (const i in Dex.data.formats) {
 				const format = Dex.getExistingFormat(i);
-				if (!format.tournamentPlayable || format.unranked || format.mod !== 'gen7' || (scheduledFormat && scheduledFormat.id === format.id) || pastTournamentIds.includes(format.id)) continue;
+				if (!format.tournamentPlayable || format.unranked || format.mod !== 'gen7' || (scheduledFormat && scheduledFormat.id === format.id) ||
+					pastTournamentIds.includes(format.id)) continue;
 				formats.push(format);
 			}
 
@@ -335,7 +339,8 @@ export class Tournaments {
 	}
 
 	getUserHostedTournamentApprovalHtml(room: Room): string {
-		let html = '<table border="1" style="width:auto"><tr><th style="width:150px">Username</th><th style="width:150px">Link</th><th style="width:150px">Reviewer</th><th style="width:200px">Status</th></tr>';
+		let html = '<table border="1" style="width:auto"><tr><th style="width:150px">Username</th><th style="width:150px">Link</th><th style="width:150px">Reviewer</th>' +
+			'<th style="width:200px">Status</th></tr>';
 		const rows: string[] = [];
 		for (const link in room.newUserHostedTournaments) {
 			const tournament = room.newUserHostedTournaments[link];
@@ -349,17 +354,22 @@ export class Tournaments {
 				if (reviewer) name = reviewer.name;
 				row += name;
 			} else {
-				row += '--- <button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter + 'reviewuserhostedtour ' + room.id + ', ' + link + '">Review</button>';
+				row += '--- <button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter + 'reviewuserhostedtour ' + room.id + ', ' + link +
+					'">Review</button>';
 			}
 			row += '</center></td>';
 
 			row += '<td><center>';
 			if (tournament.approvalStatus === 'changes-requested') {
-				row += 'Changes requested | <button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter + 'removeuserhostedtour ' + room.id + ', ' + link + '">Remove</button> | <button class="button" name="send" value="/pm ' + Users.self.name + ', .approveuserhostedtour ' + room.id + ',' + link + '">Approve</button>';
+				row += 'Changes requested | <button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter + 'removeuserhostedtour ' + room.id +
+					', ' + link + '">Remove</button> | <button class="button" name="send" value="/pm ' + Users.self.name + ', .approveuserhostedtour ' + room.id + ',' + link +
+					'">Approve</button>';
 			} else {
-				row += '<button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter + 'approveuserhostedtour ' + room.id + ', ' + link + '">Approve</button>';
+				row += '<button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter + 'approveuserhostedtour ' + room.id + ', ' + link +
+					'">Approve</button>';
 				row += ' | ';
-				row += '<button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter + 'rejectuserhostedtour ' + room.id + ', ' + link + '">Reject</button>';
+				row += '<button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter + 'rejectuserhostedtour ' + room.id + ', ' + link +
+					'">Reject</button>';
 			}
 			row += '</center></td>';
 

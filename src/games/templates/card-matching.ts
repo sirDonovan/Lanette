@@ -127,13 +127,19 @@ export abstract class CardMatching extends Card {
 		html += '<br />';
 		if (card.action) {
 			if (this.usesColors) {
-				html += '<div style="display:inline-block;background-color:' + Tools.hexColorCodes['White']['background-color'] + ';background:' + Tools.hexColorCodes['White']['background'] + ';border-color:' + Tools.hexColorCodes['White']['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;padding:1px;color:#333;text-shadow:1px 1px 1px #eee;text-transform: uppercase;text-align:center;font-size:8pt"><b>Action</b></div>';
+				html += '<div style="display:inline-block;background-color:' + Tools.hexColorCodes['White']['background-color'] + ';background:' +
+					Tools.hexColorCodes['White']['background'] + ';border-color:' + Tools.hexColorCodes['White']['border-color'] + ';border: 1px solid #a99890;' +
+					'border-radius:3px;width:' + this.detailLabelWidth + 'px;padding:1px;color:#333;text-shadow:1px 1px 1px #eee;text-transform: uppercase;text-align:center;' +
+					'font-size:8pt"><b>Action</b></div>';
 				html += '<br />';
 			}
 			const description = card.action.description;
 			let descriptionWidth = 'auto';
 			if (description.length <= 8) descriptionWidth = this.detailLabelWidth + 'px';
-			html += '<div style="display:inline-block;background-color:' + Tools.hexColorCodes['Black']['background-color'] + ';background:' + Tools.hexColorCodes['Black']['background'] + ';border-color:' + Tools.hexColorCodes['Black']['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:' + descriptionWidth + ';padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;text-align:center;font-size:8pt"><b>' + description + '</b></div>';
+			html += '<div style="display:inline-block;background-color:' + Tools.hexColorCodes['Black']['background-color'] + ';background:' +
+				Tools.hexColorCodes['Black']['background'] + ';border-color:' + Tools.hexColorCodes['Black']['border-color'] + ';border: 1px solid #a99890;' +
+				'border-radius:3px;width:' + descriptionWidth + ';padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;text-align:center;' +
+				'font-size:8pt"><b>' + description + '</b></div>';
 		} else {
 			html += this.getCardPmDetails(card);
 		}
@@ -287,7 +293,9 @@ export abstract class CardMatching extends Card {
 			hasCard = this.hasPlayableCard(player);
 		}
 
-		if (this.drawAchievement && this.drawAchievementAmount && this.lastPlayer && drawCount >= this.drawAchievementAmount && !this.lastPlayer.eliminated) this.unlockAchievement(this.lastPlayer, this.drawAchievement);
+		if (this.drawAchievement && this.drawAchievementAmount && this.lastPlayer && drawCount >= this.drawAchievementAmount && !this.lastPlayer.eliminated) {
+			this.unlockAchievement(this.lastPlayer, this.drawAchievement);
+		}
 
 		if (this.timeEnded) return;
 		if (autoDraws.size) {

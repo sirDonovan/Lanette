@@ -98,7 +98,9 @@ class DelcattysHideAndSeek extends Game {
 			if (this.players[i].eliminated || this.charmer === this.players[i]) continue;
 			otherPlayers.push(this.players[i].name);
 		}
-		const text = "**" + this.charmer.name + "** is the charmer! " + Tools.joinList(otherPlayers) + ", select a **" + param + "** Pokemon with ``" + Config.commandCharacter + "select [Pokemon]`` in PMs!";
+
+		const text = "**" + this.charmer.name + "** is the charmer! " + Tools.joinList(otherPlayers) + ", select a **" + param + "** Pokemon with ``" + Config.commandCharacter +
+			"select [Pokemon]`` in PMs!";
 		this.on(text, () => {
 			this.canSelect = true;
 			this.timeout = setTimeout(() => this.selectCharmedPokemon(), 60 * 1000);
@@ -291,7 +293,8 @@ export const game: IGameFile<DelcattysHideAndSeek> = {
 	class: DelcattysHideAndSeek,
 	commandDescriptions: [Config.commandCharacter + "select [Pokemon]", Config.commandCharacter + "charm [Pokemon]"],
 	commands,
-	description: "Each round, the host will give a param that determines Pokemon players can hide behind (by PMing the host). One player will be chosen to seek one Pokemon. If anyone hid behind it, they are eliminated. If not, the seeker is eliminated.",
+	description: "Each round, the host will give a param that determines Pokemon players can hide behind (by PMing the host). One player will be chosen to seek one Pokemon. " +
+		"If anyone hid behind it, they are eliminated. If not, the seeker is eliminated.",
 	name,
 	mascot: "Delcatty",
 	tests,

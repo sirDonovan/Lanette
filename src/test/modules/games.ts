@@ -322,7 +322,8 @@ describe("Games", () => {
 		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia, survival')).name, "Slowking's Trivia Survival");
 		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia, abilities, survival')).name, "Slowking's Ability Trivia Survival");
 
-		assertStrictEqual(Games.createUserHostedGame(room, Games.getExistingUserHostedFormat('floettes forum game, name: Mocha Test Game'), Users.self.name).name, Users.self.name + "'s Mocha Test Game");
+		assertStrictEqual(Games.createUserHostedGame(room, Games.getExistingUserHostedFormat('floettes forum game, name: Mocha Test Game'), Users.self.name).name,
+			Users.self.name + "'s Mocha Test Game");
 	});
 
 	it('should return proper values from isInPastGames()', () => {

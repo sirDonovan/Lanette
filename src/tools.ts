@@ -327,7 +327,8 @@ export class Tools {
 			return preFormatting + list[0] + postFormatting + " " + conjunction + " " + preFormatting + list[1] + postFormatting;
 		} else {
 			len--;
-			return preFormatting + list.slice(0, len).join(postFormatting + ", " + preFormatting) + postFormatting + ", " + conjunction + " " + preFormatting + list[len] + postFormatting;
+			return preFormatting + list.slice(0, len).join(postFormatting + ", " + preFormatting) + postFormatting + ", " + conjunction + " " + preFormatting + list[len] +
+				postFormatting;
 		}
 	}
 
@@ -457,7 +458,8 @@ export class Tools {
 			for (const target of uncache) {
 				if (require.cache[target]) {
 					// eslint-disable-next-line prefer-spread
-					newuncache.push.apply(newuncache, require.cache[target].children.filter(cachedModule => !cachedModule.id.endsWith('.node')).map(cachedModule => cachedModule.id));
+					newuncache.push.apply(newuncache, require.cache[target].children.filter(cachedModule => !cachedModule.id.endsWith('.node'))
+						.map(cachedModule => cachedModule.id));
 					delete require.cache[target];
 				}
 			}

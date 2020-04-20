@@ -141,7 +141,8 @@ function search(options: IParametersSearchOptions, prng: PRNG): IParametersRespo
 							params.push(paramPools[k][combination[k]]);
 						}
 						const intersection = intersect(Object.assign(options, {params}));
-						if (intersection.length >= options.minimumResults && intersection.length <= options.maximumResults && !(searchingPokemon && data.pokemon.gens[options.mod].evolutionLines.includes(intersection.join(",")))) {
+						if (intersection.length >= options.minimumResults && intersection.length <= options.maximumResults &&
+							!(searchingPokemon && data.pokemon.gens[options.mod].evolutionLines.includes(intersection.join(",")))) {
 							pokemon = intersection;
 							validParams = true;
 							break outerloop;

@@ -525,7 +525,8 @@ export const game: IGameFile<AxewsBattleCards> = Games.copyTemplateProperties(ca
 	aliases: ["axews", "abc", "battlecards"],
 	commandDescriptions: [Config.commandCharacter + "play [Pokemon or move]"],
 	class: AxewsBattleCards,
-	description: "Each round, players can play a card that's super-effective against the top card. <a href='http://psgc.weebly.com/axewsbattlecards.html'>Action card descriptions</a>",
+	description: "Each round, players can play a card that's super-effective against the top card. <a href='http://psgc.weebly.com/axewsbattlecards.html'>Action card " +
+		"descriptions</a>",
 	name,
 	mascot: "Axew",
 	scriptedOnly: true,

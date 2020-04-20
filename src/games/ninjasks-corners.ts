@@ -3,8 +3,8 @@ import { Player } from "../room-activity";
 import { Game, IGameOptionValues } from "../room-game";
 import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
 
-const colors: string[] = ['Blue', 'Green', 'Red', 'Yellow', 'Orange', 'Purple', 'Pink', 'Gray', 'Teal', 'Silver', 'Gold', 'Lavender', 'Crimson', 'Scarlet', 'Magenta', 'Apricot', 'Cerulean', 'Amber',
-	'Cyan', 'Peach', 'Lime'];
+const colors: string[] = ['Blue', 'Green', 'Red', 'Yellow', 'Orange', 'Purple', 'Pink', 'Gray', 'Teal', 'Silver', 'Gold', 'Lavender', 'Crimson', 'Scarlet', 'Magenta', 'Apricot',
+	'Cerulean', 'Amber', 'Cyan', 'Peach', 'Lime'];
 
 const achievements: AchievementsDict = {
 	"speedbooster": {name: "Speed Booster", type: 'first', bits: 1000, description: 'travel first every round'},

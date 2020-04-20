@@ -33,8 +33,8 @@ type Nonstandard = 'Past' | 'Future' | 'Unobtainable' | 'CAP' | 'LGPE' | 'Custom
  * scripted - The move targets the foe that damaged the user.
  * self - The move affects the user of the move.
  */
-type MoveTarget = 'adjacentAlly' | 'adjacentAllyOrSelf' | 'adjacentFoe' | 'all' | 'allAdjacent' | 'allAdjacentFoes' | 'allies' | 'allySide' | 'allyTeam' | 'any' | 'foeSide' | 'normal' |
-	'randomNormal' | 'scripted' | 'self';
+type MoveTarget = 'adjacentAlly' | 'adjacentAllyOrSelf' | 'adjacentFoe' | 'all' | 'allAdjacent' | 'allAdjacentFoes' | 'allies' | 'allySide' | 'allyTeam' | 'any' | 'foeSide' |
+	'normal' | 'randomNormal' | 'scripted' | 'self';
 
 interface IPokemonSet {
 	name: string;

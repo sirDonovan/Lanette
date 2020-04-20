@@ -37,7 +37,9 @@ export class PoliwrathsPortmanteaus extends Guessing {
 			numberOfPorts = this.format.options.ports;
 		} else {
 			numberOfPorts = BASE_NUMBER_OF_PORTS;
-			if ((this.format as IGameFormat).customizableOptions.ports) numberOfPorts += this.random((this.format as IGameFormat).customizableOptions.ports.max - BASE_NUMBER_OF_PORTS + 1);
+			if ((this.format as IGameFormat).customizableOptions.ports) {
+				numberOfPorts += this.random((this.format as IGameFormat).customizableOptions.ports.max - BASE_NUMBER_OF_PORTS + 1);
+			}
 		}
 		const result = await Games.workers.portmanteaus.search({
 			customPortCategories: this.customPortCategories,

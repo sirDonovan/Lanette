@@ -165,7 +165,8 @@ class StakatakasCardTower extends CardMatching {
 const commands: Dict<ICommandDefinition<StakatakasCardTower>> = {
 	draw: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
+			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen ||
+				this.currentPlayer !== this.players[user.id]) return false;
 			this.drawCard(this.players[user.id]);
 			this.currentPlayer = null; // prevent Draw Wizard from activating on a draw
 			this.nextRound();

@@ -2,8 +2,17 @@ import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 
+interface IEkansEdgesData {
+	'Characters': Dict<string[]>;
+	'Locations': Dict<string[]>;
+	'Pokemon': Dict<string[]>;
+	'Pokemon Abilities': Dict<string[]>;
+	'Pokemon Items': Dict<string[]>;
+	'Pokemon Moves': Dict<string[]>;
+}
+
 const name = "Ekans' Edges";
-const data: {'Characters': Dict<string[]>; 'Locations': Dict<string[]>; 'Pokemon': Dict<string[]>; 'Pokemon Abilities': Dict<string[]>; 'Pokemon Items': Dict<string[]>; 'Pokemon Moves': Dict<string[]>} = {
+const data: IEkansEdgesData = {
 	"Characters": {},
 	"Locations": {},
 	"Pokemon": {},
@@ -11,9 +20,9 @@ const data: {'Characters': Dict<string[]>; 'Locations': Dict<string[]>; 'Pokemon
 	"Pokemon Items": {},
 	"Pokemon Moves": {},
 };
-type DataKey = keyof typeof data;
+type DataKey = keyof IEkansEdgesData;
 const categories = Object.keys(data) as DataKey[];
-const dataKeys: KeyedDict<typeof data, string[]> = {
+const dataKeys: KeyedDict<IEkansEdgesData, string[]> = {
 	"Characters": [],
 	"Locations": [],
 	"Pokemon": [],

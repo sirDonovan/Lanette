@@ -127,7 +127,8 @@ const clauseNicknames: Dict<string> = {
 	'Ignore Illegal Abilities': 'Almost Any Ability',
 };
 
-const gen2Items: string[] = ['berserkgene', 'berry', 'bitterberry', 'burntberry', 'goldberry', 'iceberry', 'mintberry', 'miracleberry', 'mysteryberry', 'pinkbow', 'polkadotbow', 'przcureberry', 'psncureberry'];
+const gen2Items: string[] = ['berserkgene', 'berry', 'bitterberry', 'burntberry', 'goldberry', 'iceberry', 'mintberry', 'miracleberry', 'mysteryberry', 'pinkbow', 'polkadotbow',
+	'przcureberry', 'psncureberry'];
 
 const customRuleFormats: Dict<string> = {};
 const dexes: Dict<Dex> = {};
@@ -458,7 +459,9 @@ export class Dex {
 		let parentDex;
 		if (this.parentMod) {
 			parentDex = dexes[this.parentMod];
-			if (!parentDex || parentDex === this) throw new Error("Unable to load " + this.currentMod + ". `inherit` should specify a parent mod from which to inherit data, or must be not specified.");
+			if (!parentDex || parentDex === this) {
+				throw new Error("Unable to load " + this.currentMod + ". `inherit` should specify a parent mod from which to inherit data, or must be not specified.");
+			}
 		}
 
 		const dataTypesToLoad = dataTypes.concat(['Aliases', 'Natures']);
@@ -475,7 +478,9 @@ export class Dex {
 
 		for (const dataType of lanetteDataTypes) {
 			const battleData = this.loadDataFile(lanetteDataDir, lanetteDataFiles, dataType);
-			if (!battleData || typeof battleData !== 'object') throw new TypeError("Exported property `Battle" + dataType + "`from `" + this.modDataDir + '/' + dataFiles[dataType] + "` must be an object except `null`.");
+			if (!battleData || typeof battleData !== 'object') {
+				throw new TypeError("Exported property `Battle" + dataType + "`from `" + this.modDataDir + '/' + dataFiles[dataType] + "` must be an object except `null`.");
+			}
 			// @ts-ignore
 			this.dataCache[dataType] = Object.assign(battleData, this.dataCache[dataType]);
 		}
@@ -760,8 +765,8 @@ export class Dex {
 		const items: IItem[] = [];
 		for (const i in this.data.items) {
 			const item = this.getExistingItem(i);
-			if (item.isNonstandard === 'CAP' || item.isNonstandard === 'LGPE' || item.isNonstandard === 'Custom' || item.gen > this.gen || (this.gen !== 2 && gen2Items.includes(item.id)) ||
-				(filter && !filter(item))) continue;
+			if (item.isNonstandard === 'CAP' || item.isNonstandard === 'LGPE' || item.isNonstandard === 'Custom' || item.gen > this.gen ||
+				(this.gen !== 2 && gen2Items.includes(item.id)) || (filter && !filter(item))) continue;
 			items.push(item);
 		}
 		return items;
@@ -1161,7 +1166,8 @@ export class Dex {
 		const pokedex: IPokemon[] = [];
 		for (const i in this.data.pokedex) {
 			const pokemon = this.getExistingPokemon(i);
-			if (pokemon.isNonstandard === 'CAP' || pokemon.isNonstandard === 'LGPE' || pokemon.isNonstandard === 'Custom' || pokemon.gen > this.gen || (filter && !filter(pokemon))) continue;
+			if (pokemon.isNonstandard === 'CAP' || pokemon.isNonstandard === 'LGPE' || pokemon.isNonstandard === 'Custom' || pokemon.gen > this.gen ||
+				(filter && !filter(pokemon))) continue;
 			pokedex.push(pokemon);
 		}
 		return pokedex;
@@ -1407,7 +1413,8 @@ export class Dex {
 		const top = Math.floor(num / 12) * 30;
 		const left = (num % 12) * 40;
 		const facingLeftStyle = facingLeft ? "transform:scaleX(-1);webkit-transform:scaleX(-1);" : "";
-		return '<span style="display: inline-block;width: 40px;height: 30px;image-rendering: pixelated;background:transparent url(https://' + Tools.mainServer + '/sprites/pokemonicons-sheet.png?g8) no-repeat scroll -' + left + 'px -' + top + 'px;' + facingLeftStyle + '"></span>';
+		return '<span style="display: inline-block;width: 40px;height: 30px;image-rendering: pixelated;background:transparent url(https://' + Tools.mainServer +
+			'/sprites/pokemonicons-sheet.png?g8) no-repeat scroll -' + left + 'px -' + top + 'px;' + facingLeftStyle + '"></span>';
 	}
 
 	getPSPokemonIcon(pokemon: IPokemon): string {
@@ -1517,7 +1524,8 @@ export class Dex {
 				html += '<br>&nbsp; - Description and more info on the <a href="' + format.info + '">official page</a>.';
 				if (format.generator) html += '<br>&nbsp; - Use our <a href="' + format.generator + '">random generator</a> to ease the hosting process.';
 			} else {
-				html += '<br>&nbsp; - Description and more info ' + (format.info.startsWith('https://www.smogon.com/dex/') ? 'on the  <a href="' + format.info + '">dex page' : 'in the  <a href="' + format.info + '">discussion thread') + '</a>.';
+				html += '<br>&nbsp; - Description and more info ' + (format.info.startsWith('https://www.smogon.com/dex/') ? 'on the  <a href="' + format.info + '">dex page' :
+					'in the  <a href="' + format.info + '">discussion thread') + '</a>.';
 			}
 		}
 		if (format.teams) html += '<br>&nbsp; - Need to borrow a team? Check out the <a href="' + format.teams + '">sample teams thread</a>.';

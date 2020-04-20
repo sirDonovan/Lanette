@@ -170,7 +170,8 @@ class MurkrowsBlackjack extends PlayingCard {
 					this.blackJackpots.set(blackjack, previousBlackJackpots + blackJackpot);
 				}
 			}
-			text = "**Game " + this.subGameNumber + " winner" + (gameWinners.length > 1 ? "s" : "") + "**: " + gameWinners.join(", ") + (blackjacks.length ? " | **BlackJackpot winner" + (blackjacks.length > 1 ? "s" : "") + "**: " + this.getPlayerNames(blackjacks) : "");
+			text = "**Game " + this.subGameNumber + " winner" + (gameWinners.length > 1 ? "s" : "") + "**: " + gameWinners.join(", ") + (blackjacks.length ?
+				" | **BlackJackpot winner" + (blackjacks.length > 1 ? "s" : "") + "**: " + this.getPlayerNames(blackjacks) : "");
 		} else if (this.dealersHand > 21) {
 			text = "No one wins Game " + this.subGameNumber + "!";
 		} else {
@@ -241,7 +242,11 @@ const commands: Dict<ICommandDefinition<MurkrowsBlackjack>> = {
 			this.dealCards(player);
 			if (this.playerTotals.get(player) === 21) {
 				const cards = this.playerCards.get(player)!;
-				// if ((cards[0].name === 'J' || cards[1].name === 'J') && (cards[0].name === 'A' || cards[1].name === 'A')) Games.unlockAchievement(this.room, user, "True Blackjack", this);
+				/*
+				if ((cards[0].name === 'J' || cards[1].name === 'J') && (cards[0].name === 'A' || cards[1].name === 'A')) {
+					Games.unlockAchievement(this.room, user, "True Blackjack", this);
+				}
+				*/
 			}
 			this.roundActions.add(player);
 			return true;

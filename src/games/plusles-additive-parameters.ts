@@ -96,7 +96,8 @@ class PluslesAdditiveParameters extends Game {
 			pokemonIcons.push(Dex.getPSPokemonIcon(pokemon) + pokemon.name);
 		}
 
-		const html = "<div class='infobox'><span style='color: #999999'>" + this.params.length + " parameters (Generation " + GEN + ")</span><br /><br />" + pokemonIcons.join(", ") + "</div>";
+		const html = "<div class='infobox'><span style='color: #999999'>" + this.params.length + " parameters (Generation " + GEN + ")</span><br /><br />" +
+			pokemonIcons.join(", ") + "</div>";
 		const uhtmlName = this.uhtmlBaseName + "-params";
 		this.onUhtml(uhtmlName, html, () => {
 			const text = currentPlayer!.name + " you are up!";
@@ -153,12 +154,14 @@ const commands: Dict<ICommandDefinition<PluslesAdditiveParameters>> = {
 				return false;
 			}
 			if (params.length > 1) {
-				user.say("The specified parameter does not have a unique name so you must include the type (e.g. ``" + Config.commandCharacter + "add Psychic move`` vs. ``" + Config.commandCharacter + "add Psychic type``).");
+				user.say("The specified parameter does not have a unique name so you must include the type (e.g. ``" + Config.commandCharacter + "add Psychic move`` vs. ``" +
+					Config.commandCharacter + "add Psychic type``).");
 				return false;
 			}
 
 			const inputParam = params[0];
-			if (inputParam.type === 'move' && Games.workers.parameters.workerData!.pokemon.gens[GEN_STRING].paramTypeDexes.move[inputParam.param].length >= Games.maxMoveAvailability) {
+			if (inputParam.type === 'move' &&
+				Games.workers.parameters.workerData!.pokemon.gens[GEN_STRING].paramTypeDexes.move[inputParam.param].length >= Games.maxMoveAvailability) {
 				user.say("You cannot add a move learned by " + Games.maxMoveAvailability + " or more Pokemon.");
 				return false;
 			}
@@ -212,7 +215,8 @@ export const game: IGameFile<PluslesAdditiveParameters> = {
 	class: PluslesAdditiveParameters,
 	commandDescriptions: [Config.commandCharacter + "add [parameter]"],
 	commands,
-	description: "Players add <code>/ds" + GEN + "</code> parameters (no weaknesses or resistances) that result in at least 2 Pokemon of different evolution lines in the given list!",
+	description: "Players add <code>/ds" + GEN + "</code> parameters (no weaknesses or resistances) that result in at least 2 Pokemon of different evolution lines in the " +
+		"given list!",
 	formerNames: ["Pumpkaboo's Parameters"],
 	name,
 	mascot: "Plusle",
