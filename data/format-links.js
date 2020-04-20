@@ -19,7 +19,7 @@ exports.BattleFormatLinks = {
 	'gen8nu': {name: '[Gen 8] NU', info: 'https://www.smogon.com/dex/ss/formats/nu/'},
 	'gen8pu': {name: '[Gen 8] PU', info: 'https://www.smogon.com/dex/ss/formats/pu/'},
 	'gen8lc': {name: '[Gen 8] LC', info: 'https://www.smogon.com/dex/ss/formats/lc/'},
-	'gen8cap': {name: '[Gen 8] CAP', info: 'https://www.smogon.com/dex/ss/formats/cap/'},
+	'gen8cap': {name: '[Gen 8] CAP', info: 'https://www.smogon.com/dex/ss/formats/cap/', teams: '3662655', viability: '3658514'},
 
 	// Gen 7
 	'gen7letsgoou': {name: '[Gen 7 Let\'s Go] OU', info: '3644015', teams: '3645829', viability: '3645828'},
