@@ -181,12 +181,12 @@ class TropiusBerryPicking extends Game {
 		}
 		let smeargleText = 'A wild Smeargle used **' + move.name + '**!';
 		if (effectType === 'status') {
-			smeargleText += ' You were ' + effectDescriptions[effect] + '!';
+			smeargleText += ' You were **' + effectDescriptions[effect] + '**!';
 		} else if (effectType === 'stat') {
-			smeargleText = 'Tropius is down to 25% health and wants a' + (effect === 'Attack' ? "n" : "") + " " + effect + " boost!";
+			smeargleText = 'Tropius is down to 25% health and wants a' + (effect === 'Attack' ? "n" : "") + " **" + effect + " boost**!";
 			effect = 'stat-' + Tools.toId(effect);
 		} else if (effectType === 'ev') {
-			smeargleText = 'Tropius has excess ' + effect + ' EVs!';
+			smeargleText = 'Tropius has excess **' + effect + ' EVs**!';
 			effect = 'ev-' + Tools.toId(effect);
 		}
 		const roundEffect: IRoundEffect = {effect, type: effectType};
