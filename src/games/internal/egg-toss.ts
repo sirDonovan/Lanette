@@ -31,8 +31,8 @@ class EggToss extends Game {
 		this.end();
 	}
 
-	selectUser(): User {
-		const users: User[] = [];
+	selectUser(): User | undefined {
+		let users: User[] = [];
 		const now = Date.now();
 		const limit = 5 * 60 * 1000;
 		this.room.users.forEach(user => {
@@ -42,10 +42,15 @@ class EggToss extends Game {
 			users.push(user);
 		});
 
-		let targetUser = this.sampleOne(users);
-		while (targetUser.hasRank(this.room, 'bot')) {
-			targetUser = this.sampleOne(users);
+		let targetUser: User | undefined;
+		users = this.shuffle(users);
+		for (const user of users) {
+			if (!user.hasRank(this.room, 'bot')) {
+				targetUser = user;
+				break;
+			}
 		}
+
 		return targetUser;
 	}
 }
@@ -67,6 +72,10 @@ const commands: Dict<ICommandDefinition<EggToss>> = {
 				this.say("You cannot egg yourself!");
 				return false;
 			}
+			if (user.away || user.isIdleStatus()) {
+				this.say("You cannot egg someone while you are marked as away.");
+				return false;
+			}
 			if (targetUser.away || targetUser.isIdleStatus()) {
 				this.say("You cannot egg someone who is marked as away.");
 				return false;
@@ -75,10 +84,12 @@ const commands: Dict<ICommandDefinition<EggToss>> = {
 			this.currentHolder = this.createPlayer(targetUser) || this.players[targetUser.id];
 			if (targetUser.id === Users.self.id) {
 				const selectedUser = this.selectUser();
-				this.timeout = setTimeout(() => {
-					this.say(Config.commandCharacter + "pass " + selectedUser.name);
-					this.currentHolder = this.createPlayer(selectedUser) || this.players[selectedUser.id];
-				}, this.sampleOne([500, 1000, 1500]));
+				if (selectedUser) {
+					this.timeout = setTimeout(() => {
+						this.say(Config.commandCharacter + "pass " + selectedUser.name);
+						this.currentHolder = this.createPlayer(selectedUser) || this.players[selectedUser.id];
+					}, this.sampleOne([500, 1000, 1500]));
+				}
 			}
 			return true;
 		},
