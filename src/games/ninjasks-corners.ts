@@ -85,6 +85,8 @@ class NinjasksCorners extends Game {
 			this.addBits(player, 250);
 		}
 
+		if (this.format.options.freejoin) this.convertPointsToBits(0);
+
 		this.announceWinners();
 	}
 }
