@@ -4,7 +4,7 @@ import { Game } from "../room-game";
 import { Room } from "../rooms";
 import { addPlayers, assert, runCommand } from "../test/test-tools";
 import { GameFileTests, IGameFile, GameCommandReturnType } from "../types/games";
-import { IPokemon } from "../types/in-game-data-types";
+import { IPokemon } from "../types/dex";
 
 const name = "Delcatty's Hide and Seek";
 const data: {'parameters': Dict<string[]>; 'pokemon': string[]} = {

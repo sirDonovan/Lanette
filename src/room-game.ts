@@ -3,7 +3,7 @@ import { PRNG, PRNGSeed } from "./prng";
 import { Activity, Player, PlayerList, PlayerTeam } from "./room-activity";
 import { Room } from "./rooms";
 import { IGameAchievement, IGameFormat, IGameMode, IGameVariant, IUserHostedFormat } from "./types/games";
-import { IPokemonCopy } from "./types/in-game-data-types";
+import { IPokemonCopy } from "./types/dex";
 import { User } from "./users";
 
 export type DefaultGameOption = 'points' | 'teams' | 'cards' | 'freejoin';

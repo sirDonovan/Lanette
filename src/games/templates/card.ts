@@ -2,7 +2,7 @@ import { ICommandDefinition } from '../../command-parser';
 import { Player } from '../../room-activity';
 import { Game } from '../../room-game';
 import { IGameTemplateFile } from '../../types/games';
-import { IMoveCopy, IPokemon, IPokemonCopy } from '../../types/in-game-data-types';
+import { IMoveCopy, IPokemon, IPokemonCopy } from '../../types/dex';
 
 export interface IActionCardData {
 	readonly description: string;

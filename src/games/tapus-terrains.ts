@@ -3,7 +3,7 @@ import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile, GameCommandReturnType } from "../types/games";
-import { IPokemon } from "../types/in-game-data-types";
+import { IPokemon } from "../types/dex";
 
 const name = "Tapus' Terrains";
 const terrains = {

@@ -1,6 +1,6 @@
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { IPokemon } from "../types/in-game-data-types";
+import { IPokemon } from "../types/dex";
 import { Chain, game as chainGame } from "./templates/chain";
 
 const name = "Fraxure's Battle Chain";

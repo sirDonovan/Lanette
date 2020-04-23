@@ -2,7 +2,7 @@ import { ICommandDefinition } from "../../command-parser";
 import { Player } from "../../room-activity";
 import { Game } from "../../room-game";
 import { IGameTemplateFile, GameCommandReturnType } from "../../types/games";
-import { IAbility, IItem, IMove, IPokemon } from "../../types/in-game-data-types";
+import { IAbility, IItem, IMove, IPokemon } from "../../types/dex";
 
 export type Link = IPokemon | IMove | IItem | IAbility;
 

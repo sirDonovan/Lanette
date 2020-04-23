@@ -1,6 +1,6 @@
 import { ITournamentEndJSON, ITournamentUpdateJSON } from "../room-tournament";
 import { RoomType } from "../rooms";
-import { IFormat } from "../types/in-game-data-types";
+import { IFormat } from "./dex";
 
 export interface IServerGroup {
 	name: string | null;

@@ -1,6 +1,6 @@
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
-import { IMove } from "../types/in-game-data-types";
+import { IMove } from "../types/dex";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Miltank's Moves";

@@ -1,7 +1,7 @@
 import { Player } from "../room-activity";
 import { Room } from "../rooms";
 import { IGameFile, AchievementsDict } from "../types/games";
-import { IPokemon } from "../types/in-game-data-types";
+import { IPokemon } from "../types/dex";
 import { CardType, IActionCardData, IMoveCard, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 

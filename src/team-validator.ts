@@ -1,5 +1,5 @@
 import { RuleTable } from './dex';
-import { IFormat, IMove, IPokemon, ISpeciesData } from './types/in-game-data-types';
+import { IFormat, IMove, IPokemon, ISpeciesData } from './types/dex';
 
 type Move = IMove;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

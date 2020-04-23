@@ -1,6 +1,6 @@
 import { Activity, Player } from "./room-activity";
 import { Room } from "./rooms";
-import { IFormat } from "./types/in-game-data-types";
+import { IFormat } from "./types/dex";
 
 interface IBracketNode {
 	readonly result: string;

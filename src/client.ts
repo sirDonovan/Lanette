@@ -4,8 +4,8 @@ import url = require('url');
 import websocket = require('websocket');
 
 import { Room, RoomType } from './rooms';
-import { IClientMessageTypes, IRoomInfoResponse, IServerGroup, ITournamentMessageTypes, IUserDetailsResponse, ServerGroupData, IRoomsResponse, QueryResponseType } from './types/client-message-types';
-import { ISeparatedCustomRules } from './types/in-game-data-types';
+import { IClientMessageTypes, IRoomInfoResponse, IServerGroup, ITournamentMessageTypes, IUserDetailsResponse, ServerGroupData, IRoomsResponse, QueryResponseType } from './types/client';
+import { ISeparatedCustomRules } from './types/dex';
 import { User } from './users';
 
 export type GroupName = 'voice' | 'bot' | 'driver' | 'moderator' | 'roomowner' | 'muted' | 'locked';

@@ -4,7 +4,7 @@ import { Player } from "./room-activity";
 import { Game } from "./room-game";
 import { Tournament } from "./room-tournament";
 import { IUserHostedTournament } from "./tournaments";
-import { IRoomInfoResponse } from "./types/client-message-types";
+import { IRoomInfoResponse } from "./types/client";
 import { User } from "./users";
 
 export type RoomType = 'battle' | 'chat' | 'html';

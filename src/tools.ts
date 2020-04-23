@@ -5,7 +5,7 @@ import path = require('path');
 import util = require('util');
 
 import { PRNG } from './prng';
-import type { HexColor, IHexColor } from './types/global-types';
+import type { HexColor, IHexColor } from './types/tools';
 import { User } from './users';
 import { IParam } from './workers/parameters';
 

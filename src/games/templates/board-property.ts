@@ -2,7 +2,7 @@ import type { ICommandDefinition } from "../../command-parser";
 import { Player } from "../../room-activity";
 import { addPlayers, assertStrictEqual } from "../../test/test-tools";
 import { GameFileTests, IGameTemplateFile, GameCategory, IGameAchievement, GameCommandReturnType } from "../../types/games";
-import type { HexColor } from "../../types/global-types";
+import type { HexColor } from "../../types/tools";
 import { BoardGame, BoardSide, BoardSpace, game as boardGame, IBoard, IMovedBoardLocation, BoardActionCard } from "./board";
 
 type BoardEliminationType = 'random' | number;

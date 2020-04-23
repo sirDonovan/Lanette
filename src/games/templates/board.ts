@@ -2,7 +2,7 @@ import { Player, PlayerList } from "../../room-activity";
 import { Game } from "../../room-game";
 import { assert, assertStrictEqual } from "../../test/test-tools";
 import { GameFileTests, IGameTemplateFile } from "../../types/games";
-import type { HexColor } from "../../types/global-types";
+import type { HexColor } from "../../types/tools";
 
 export class BoardSpace {
 	name: string;

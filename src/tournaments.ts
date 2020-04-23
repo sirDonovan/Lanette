@@ -2,7 +2,7 @@ import { GroupName } from "./client";
 import { Tournament } from "./room-tournament";
 import { Room } from "./rooms";
 import { tournamentSchedules } from './tournament-schedules';
-import { IFormat, ISeparatedCustomRules } from "./types/in-game-data-types";
+import { IFormat, ISeparatedCustomRules } from "./types/dex";
 import { IPastTournament } from "./types/storage";
 
 export interface IUserHostedTournament {
