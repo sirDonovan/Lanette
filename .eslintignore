@@ -2,6 +2,7 @@
 /built/**
 /data/**
 /databases/**
+/local-utils/**
 /node_modules/**
 /pokemon-showdown/**
 /roomlogs/**
