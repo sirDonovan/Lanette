@@ -58,7 +58,7 @@ class SableyesTrickHouse extends Game {
 	onNextRound(): void {
 		this.canSelect = false;
 		if (this.round > 1) {
-			let firstSelection = false;
+			let firstSelection = true;
 			this.roundSelections.forEach((door, player) => {
 				if (firstSelection) {
 					if (this.firstSelection === undefined) {
