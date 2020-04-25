@@ -453,7 +453,7 @@ export class Game extends Activity {
 		}
 
 		if (this.onRemovePlayer) this.onRemovePlayer(player);
-		this.removeBits(player, JOIN_BITS, silent);
+		if (!this.isUserHosted) this.removeBits(player, JOIN_BITS, silent);
 
 		if (!silent) {
 			player.say("You have left the " + this.name + " " + this.activityType + ".");

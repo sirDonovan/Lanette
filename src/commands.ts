@@ -419,33 +419,22 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	leavegame: {
 		command(target, room, user) {
-			let game: Game | undefined;
-			let userHostedGame: UserHosted | undefined;
-
 			if (this.isPm(room)) {
 				if (!target) return;
 				const chatRoom = Rooms.search(Tools.toRoomId(target));
 				if (!chatRoom) return;
 
 				if (chatRoom.game) {
-					game = chatRoom.game;
+					chatRoom.game.removePlayer(user);
 				} else if (chatRoom.userHostedGame) {
-					userHostedGame = chatRoom.userHostedGame;
+					chatRoom.userHostedGame.removePlayer(user);
 				}
 			} else {
 				if (room.game) {
-					game = room.game;
+					room.game.removePlayer(user);
 				} else if (room.userHostedGame) {
-					userHostedGame = room.userHostedGame;
+					room.userHostedGame.removePlayer(user);
 				}
-			}
-
-			if (game) {
-				game.removePlayer(user);
-			} else if (userHostedGame) {
-				if (!(user.id in userHostedGame.players) || userHostedGame.players[user.id].eliminated) return;
-				userHostedGame.destroyPlayer(user);
-				user.say("You have left the " + userHostedGame.name + " " + userHostedGame.activityType + ".");
 			}
 		},
 	},
