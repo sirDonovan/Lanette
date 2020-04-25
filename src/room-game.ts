@@ -26,7 +26,7 @@ interface IGameCommandCountListener extends IGameCommandCountOptions {
 }
 
 const JOIN_BITS = 10;
-const SIGNUPS_HTML_DELAY = 2 * 1000;
+const SIGNUPS_HTML_DELAY = 1 * 1000;
 
 const teamNameLists: Dict<string[][]> = {
 	'2': [["Red", "Blue"], ["Gold", "Silver"], ["Ruby", "Sapphire"], ["Diamond", "Pearl"], ["Black", "White"], ["X", "Y"], ["Sun", "Moon"], ["Sword", "Shield"], ["Land", "Sea"],
@@ -66,9 +66,11 @@ export class Game extends Activity {
 	prng: PRNG;
 	initialSeed: PRNGSeed;
 
-	// set immediately in initialize()
+	// set in initialize()
 	description!: string;
 	format!: IGameFormat | IUserHostedFormat;
+	signupsUhtmlName!: string;
+	joinLeaveButtonUhtmlName!: string;
 
 	allowChildGameBits?: boolean;
 	commandDescriptions?: string[];
@@ -184,6 +186,8 @@ export class Game extends Activity {
 		if (!(this.id in counts)) counts[this.id] = 0;
 		counts[this.id]++;
 		this.uhtmlBaseName = gameType + '-' + this.id + '-' + counts[this.id];
+		this.signupsUhtmlName = this.uhtmlBaseName + "-signups";
+		this.joinLeaveButtonUhtmlName = this.uhtmlBaseName + "-join-leave";
 	}
 
 	initialize(format: IGameFormat | IUserHostedFormat): void {
@@ -241,7 +245,21 @@ export class Game extends Activity {
 	signups(): void {
 		if (!this.isMiniGame && !this.internalGame) {
 			this.showSignupsHtml = true;
-			this.sayUhtml(this.uhtmlBaseName + "-signups", this.getSignupsHtml());
+			this.sayUhtml(this.signupsUhtmlName, this.getSignupsHtml());
+
+			let joinLeaveHtml = "<center>";
+			if (this.format.options.freejoin) {
+				joinLeaveHtml += "<b>This game is free-join!</b>";
+			} else {
+				joinLeaveHtml += "<button class='button' name='send' value='/pm " + Users.self.name + ", " + Config.commandCharacter + "joingame " +
+					this.room.id + "'>Join game</button>";
+				joinLeaveHtml += " | ";
+				joinLeaveHtml += "<button class='button' name='send' value='/pm " + Users.self.name + ", " + Config.commandCharacter + "leavegame " +
+					this.room.id + "'>Leave game</button>";
+			}
+			joinLeaveHtml += "</center>";
+			this.sayUhtml(this.joinLeaveButtonUhtmlName, joinLeaveHtml);
+	
 			if (!this.isUserHosted) {
 				this.notifyRankSignups = true;
 				this.sayCommand("/notifyrank all, " + (this.room as Room).title + " scripted game," + this.name + "," + Games.scriptedGameHighlight + " " + this.name, true);
@@ -281,9 +299,10 @@ export class Game extends Activity {
 		if (this.notifyRankSignups) this.sayCommand("/notifyoffrank all");
 		this.started = true;
 		this.startTime = Date.now();
-		if (this.getSignupsHtml && this.showSignupsHtml) {
+		if (this.showSignupsHtml) {
 			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
-			this.sayUhtmlChange(this.uhtmlBaseName + "-signups", this.getSignupsHtml());
+			this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsHtml());
+			this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, "<center><b>The game has started!</b></center>");
 		}
 
 		this.say(this.name + " is starting! **Players (" + this.playerCount + ")**: " + this.getPlayerNames());
@@ -402,11 +421,12 @@ export class Game extends Activity {
 		player.say("Thanks for joining the " + this.name + " " + this.activityType + "!" + (bits ? " Have some free bits!" : ""));
 
 		if (this.showSignupsHtml && !this.started) {
-			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
-			this.signupsHtmlTimeout = setTimeout(() => {
-				this.sayUhtmlChange(this.uhtmlBaseName + "-signups", this.getSignupsHtml());
-				this.signupsHtmlTimeout = null;
-			}, SIGNUPS_HTML_DELAY);
+			if (!this.signupsHtmlTimeout) {
+				this.signupsHtmlTimeout = setTimeout(() => {
+					this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsHtml());
+					this.signupsHtmlTimeout = null;
+				}, SIGNUPS_HTML_DELAY);
+			}
 		}
 
 		if (this.started) {
@@ -440,11 +460,12 @@ export class Game extends Activity {
 		}
 
 		if (this.showSignupsHtml && !this.started) {
-			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
-			this.signupsHtmlTimeout = setTimeout(() => {
-				this.sayUhtmlChange(this.uhtmlBaseName + "-signups", this.getSignupsHtml());
-				this.signupsHtmlTimeout = null;
-			}, SIGNUPS_HTML_DELAY);
+			if (!this.signupsHtmlTimeout) {
+				this.signupsHtmlTimeout = setTimeout(() => {
+					this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsHtml());
+					this.signupsHtmlTimeout = null;
+				}, SIGNUPS_HTML_DELAY);
+			}
 		}
 	}
 
@@ -588,15 +609,8 @@ export class Game extends Activity {
 		if (commandDescriptions.length) {
 			html += "<br /><b>Command" + (commandDescriptions.length > 1 ? "s" : "") + "</b>: " + commandDescriptions.map(x => "<code>" + x + "</code>").join(", ");
 		}
-		if (this.format.options.freejoin) {
-			html += "<br /><br /><b>This game is free-join!</b>";
-		} else {
+		if (!this.format.options.freejoin) {
 			html += "<br /><br /><b>Players (" + this.playerCount + ")</b>: " + this.getPlayerNames();
-			if (this.started) {
-				html += "<br /><br /><b>The game has started!</b>";
-			} else {
-				html += "<br /><button class='button' name='send' value='/pm " + Users.self.name + ", " + Config.commandCharacter + "joingame " + this.room.id + "'>Join</button>";
-			}
 		}
 		html += "</center></div>";
 		return html;
