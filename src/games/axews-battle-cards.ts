@@ -116,10 +116,6 @@ class AxewsBattleCards extends CardMatching {
 		this.deck = this.shuffle(deck);
 	}
 
-	getTopCardText(): string {
-		return "**" + this.topCard.name + "** (" + this.topCard.types.join("/") + ")";
-	}
-
 	getCardChatDetails(card: IPokemonCard): string {
 		return this.getChatTypeLabel(card);
 	}
@@ -246,17 +242,18 @@ class AxewsBattleCards extends CardMatching {
 		let player = this.getNextPlayer();
 		if (!player || this.timeEnded) return;
 
+		const eliminatedText = "does not have a card to play and has been eliminated from the game!";
 		let playableCards = this.getPlayableCards(player);
 		let eliminateCount = 0;
-		let ended = false;
+		let finalPlayer = false;
 		while (!playableCards.length) {
 			eliminateCount++;
-			this.say(player.name + " does not have a card to play and has been eliminated from the game!");
 			this.eliminatePlayer(player, "You do not have a card to play!");
 			if (this.getRemainingPlayerCount() === 1) {
-				ended = true;
+				finalPlayer = true;
 				break;
 			}
+			this.say(player.name + " " + eliminatedText);
 			player = this.getNextPlayer();
 			if (!player) {
 				if (this.timeEnded) break;
@@ -267,15 +264,20 @@ class AxewsBattleCards extends CardMatching {
 
 		if (this.lastPlayer && eliminateCount >= trumpCardEliminations && !this.lastPlayer.eliminated) this.unlockAchievement(this.lastPlayer, achievements.trumpcard!);
 
-		if (ended) {
-			this.end();
-			return;
-		}
 		if (this.timeEnded) return;
 
+		// needs to be set outside of on() for tests
 		this.currentPlayer = player;
-		const text = player!.name + "'s turn!";
-		this.on(text, () => {
+
+		const html = "<center>" + this.getTopCardHtml() + "<br /><br /><b>" + player!.name + "</b>'s turn!</center>";
+		const uhtmlName = this.uhtmlBaseName + '-round';
+		this.onUhtml(uhtmlName, html, () => {
+			if (finalPlayer) {
+				this.say(player!.name + " " + eliminatedText);
+				this.end();
+				return;
+			}
+
 			// left before text appeared
 			if (player!.eliminated) {
 				this.nextRound();
@@ -285,6 +287,7 @@ class AxewsBattleCards extends CardMatching {
 			this.awaitingCurrentPlayerCard = true;
 			this.canPlay = true;
 			this.dealHand(player!);
+			this.highlightPlayerTurn(player!);
 
 			this.timeout = setTimeout(() => {
 				if (!player!.eliminated) {
@@ -294,7 +297,8 @@ class AxewsBattleCards extends CardMatching {
 				}
 			}, 30 * 1000);
 		});
-		this.say(text);
+
+		this.sayUhtml(uhtmlName, html);
 	}
 
 	onEnd(): void {
@@ -310,7 +314,6 @@ class AxewsBattleCards extends CardMatching {
 
 	autoPlay(player: Player, playableCards: string[]): void {
 		let autoplay = '';
-		if (playableCards.includes('Explosion')) playableCards.splice(playableCards.indexOf('Explosion'), 1);
 		if (playableCards.length) autoplay = this.sampleOne(playableCards);
 		this.say(player.name + " did not play a card and has been eliminated from the game!" + (autoplay ? " Auto-playing: " + autoplay : ""));
 		this.eliminatePlayer(player, "You did not play a card!");
@@ -321,29 +324,11 @@ class AxewsBattleCards extends CardMatching {
 		}
 	}
 
-	playCard(card: IPokemonCard, player: Player, targets: string[], cards: IPokemonCard[]): IPokemonCard[] | boolean {
-		if (!this.isPlayableCard(card)) {
-			player.say(card.name + " does not have any super-effective STAB against " + this.topCard.name + "!");
-			return false;
-		}
-		this.awaitingCurrentPlayerCard = false;
-		this.topCard = card;
-		this.showTopCard(card.shiny && !card.played);
-		if (!player.eliminated) {
-			if (this.shinyCardAchievement && card.shiny && !card.played) this.unlockAchievement(player, this.shinyCardAchievement);
-			cards.splice(cards.indexOf(card), 1);
-			this.drawCard(player, this.roundDrawAmount);
-		}
-		card.played = true;
-		return true;
-	}
-
 	playActionCard(card: CardType, player: Player, targets: string[], cards: CardType[]): CardType[] | boolean {
-		let showTopCard = true;
-		let showHand = false;
-		let firstTimeShiny = false;
 		let drawAmount = this.roundDrawAmount;
+		let firstTimeShiny = false;
 		let drawCards: CardType[] | null = null;
+		let cardDetail: string | undefined;
 		if (card.id === 'soak') {
 			if (this.topCard.types.length === 1 && this.topCard.types[0] === 'Water') {
 				this.say(this.topCard.name + " is already pure Water-type!");
@@ -367,6 +352,7 @@ class AxewsBattleCards extends CardMatching {
 				return false;
 			}
 			this.topCard.types = [types[type]];
+			cardDetail = types[type];
 		} else if (card.id === 'conversion2') {
 			const type1 = Tools.toId(targets[1]);
 			const type2 = Tools.toId(targets[2]);
@@ -379,6 +365,7 @@ class AxewsBattleCards extends CardMatching {
 				return false;
 			}
 			this.topCard.types = [types[type1], types[type2]];
+			cardDetail = types[type1] + ", " + types[type2];
 			if (this.isStaleTopCard()) {
 				this.say(this.topCard.name + " no longer has any weaknesses!");
 				let topCard = this.getCard();
@@ -415,9 +402,6 @@ class AxewsBattleCards extends CardMatching {
 				}
 				this.topCard = topCard;
 			}
-		} else if (card.id === 'explosion') {
-			drawAmount = 0;
-			showHand = true;
 		} else if (card.id === 'recycle') {
 			drawAmount = 2;
 		} else if (card.id === 'transform') {
@@ -441,7 +425,13 @@ class AxewsBattleCards extends CardMatching {
 				this.say(pokemon.name + " is not playable in this game.");
 				return false;
 			}
-			this.topCard = Dex.getPokemonCopy(pokemon.name);
+			const newTopCard = Dex.getPokemonCopy(pokemon.name);
+			if (this.rollForShinyPokemon()) {
+				newTopCard.shiny = true;
+				firstTimeShiny = true;
+			}
+			this.setTopCard(newTopCard, player);
+			cardDetail = pokemon.name;
 			if (this.isStaleTopCard()) {
 				this.say(this.topCard.name + " has no weaknesses! Randomly selecting a different Pokemon...");
 				let topCard = this.getCard();
@@ -449,27 +439,18 @@ class AxewsBattleCards extends CardMatching {
 					topCard = this.getCard();
 				}
 				this.topCard = topCard;
-			} else {
-				if (this.rollForShinyPokemon()) {
-					this.topCard.shiny = true;
-					firstTimeShiny = true;
-					if (this.shinyCardAchievement) this.unlockAchievement(player, this.shinyCardAchievement);
-					this.topCard.played = true;
-				}
 			}
 		} else if (card.id === 'topsyturvy') {
 			this.say("**The turn order was reversed!**");
 			this.playerOrder.reverse();
 			const playerIndex = this.playerOrder.indexOf(player);
 			this.playerList = this.playerOrder.slice(playerIndex + 1);
-			showTopCard = false;
 		} else if (card.id === 'teeterdance') {
 			this.say("**The turn order was shuffled!**");
 			this.playerOrder = this.shuffle(this.playerOrder);
 			let index = this.playerOrder.indexOf(player) + 1;
 			if (index === this.playerOrder.length) index = 0;
 			this.playerList = this.playerOrder.slice(index);
-			showTopCard = false;
 		} else if (card.id === 'batonpass' || card.id === 'allyswitch') {
 			const newId = Tools.toId(targets[1]);
 			if (!newId) {
@@ -494,25 +475,21 @@ class AxewsBattleCards extends CardMatching {
 			const card1 = this.getCard();
 			const card2 = (card.id === 'batonpass' ? this.getCard() : this.topCard);
 			const newTopCard = cards[newIndex] as IPokemonCard;
-			this.topCard = newTopCard;
-			if (newTopCard.shiny && !newTopCard.played) {
-				if (this.shinyCardAchievement) this.unlockAchievement(player, this.shinyCardAchievement);
-				firstTimeShiny = true;
-				newTopCard.played = true;
-			}
+			if (newTopCard.shiny && !newTopCard.played) firstTimeShiny = true;
+			this.setTopCard(newTopCard, player);
 			cards.splice(newIndex, 1);
 			drawCards = [card1, card2];
+			cardDetail = newTopCard.name;
 		}
 
 		this.awaitingCurrentPlayerCard = false;
-		if (showTopCard) this.showTopCard(firstTimeShiny);
+
 		if (cards.includes(card)) cards.splice(cards.indexOf(card), 1);
+		this.storePreviouslyPlayedCard({card: card.displayName || card.name, detail: cardDetail, shiny: firstTimeShiny});
 
 		if (!player.eliminated) {
 			if (drawAmount > 0) {
 				this.drawCard(player, drawAmount, drawCards);
-			} else if (showHand) {
-				this.dealHand(player);
 			}
 		}
 

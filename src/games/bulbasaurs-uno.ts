@@ -57,7 +57,6 @@ class BulbasaursUno extends CardMatching {
 		if (player === this.currentPlayer) {
 			if (this.topCard.action && this.topCard.action.name.startsWith('Draw')) {
 				this.topCard.action = null;
-				this.showTopCard();
 			}
 			this.nextRound();
 		}
@@ -98,7 +97,8 @@ class BulbasaursUno extends CardMatching {
 
 	playActionCard(card: IPokemonCard, player: Player, targets: string[], cards: IPokemonCard[]): IPokemonCard[] | boolean {
 		if (!card.action) throw new Error("playActionCard called with a regular card");
-		let showTopCard = true;
+		let firstTimeShiny = false;
+		let cardDetail: string | undefined;
 		let drawCards = 0;
 		if (this.topCard.action && this.topCard.action.name.startsWith('Draw ')) drawCards = parseInt(this.topCard.action.name.split('Draw ')[1].trim());
 		if (card.action.name.startsWith('Draw ')) {
@@ -107,7 +107,6 @@ class BulbasaursUno extends CardMatching {
 			newAction.name = 'Draw ' + newNumber;
 			this.topCard.action = newAction;
 			this.say("The top card is now **Draw " + newNumber + "**!");
-			showTopCard = false;
 			drawCards = 0;
 		} else if (card.action.name === 'Wild (type)') {
 			if (!targets[1]) {
@@ -120,6 +119,7 @@ class BulbasaursUno extends CardMatching {
 				return false;
 			}
 			this.topCard.types = [types[type]];
+			cardDetail = types[type];
 		} else if (card.action.name === 'Wild (color)') {
 			if (!targets[1]) {
 				this.say("Please include your choice of color (``" + Config.commandCharacter + "play " + card.name + ", __color__``).");
@@ -131,22 +131,20 @@ class BulbasaursUno extends CardMatching {
 				return false;
 			}
 			this.topCard.color = this.colors[color];
+			cardDetail = this.colors[color];
 		} else if (card.action.name === 'Reverse') {
 			this.say("**The turn order was reversed!**");
 			this.playerOrder.reverse();
 			const playerIndex = this.playerOrder.indexOf(player);
 			this.playerList = this.playerOrder.slice(playerIndex + 1);
-			showTopCard = false;
 		} else if (card.action.name === 'Shuffle') {
 			this.say("**The turn order was shuffled!**");
 			this.playerOrder = this.shuffle(this.playerOrder);
 			let index = this.playerOrder.indexOf(player) + 1;
 			if (index === this.playerOrder.length) index = 0;
 			this.playerList = this.playerOrder.slice(index);
-			showTopCard = false;
 		} else if (card.action.name === 'Skip') {
 			this.topCard.action = card.action;
-			showTopCard = false;
 		} else if (card.action.name === 'Pair 2') {
 			if (cards.length >= 3) {
 				if (targets.length < 3) {
@@ -192,11 +190,15 @@ class BulbasaursUno extends CardMatching {
 					this.say("You must play a card that matches color or a type with the top card.");
 					return false;
 				}
-				this.topCard = this.sampleOne(newTopCards);
-				if (this.topCard.shiny && this.shinyCardAchievement) this.unlockAchievement(player, this.shinyCardAchievement);
+
+				const newTopCard = this.sampleOne(newTopCards);
+				if (newTopCard.shiny && !newTopCard.played) firstTimeShiny = true;
+				this.setTopCard(newTopCard, player);
+
 				cards.splice(indexA, 1);
 				indexB = cards.indexOf(cardB);
 				cards.splice(indexB, 1);
+				cardDetail = cardA.name + ", " + cardB.name;
 			} else {
 				if (targets.length < 2) {
 					this.say("Please include another card.");
@@ -219,18 +221,18 @@ class BulbasaursUno extends CardMatching {
 					this.say("You must play a card that matches color or a type with the top card.");
 					return false;
 				}
-				if (cardA.shiny && this.shinyCardAchievement) this.unlockAchievement(player, this.shinyCardAchievement);
-				this.topCard = cardA;
+				if (cardA.shiny && !cardA.played) firstTimeShiny = true;
+				this.setTopCard(cardA, player);
 				cards.splice(indexA, 1);
+				cardDetail = cardA.name;
 			}
 		}
 
 		this.awaitingCurrentPlayerCard = false;
 		if (cards.includes(card)) cards.splice(cards.indexOf(card), 1);
 
-		if (showTopCard) {
-			this.showTopCard();
-		}
+		this.storePreviouslyPlayedCard({card: card.displayName || card.name, detail: cardDetail, shiny: firstTimeShiny});
+
 		if (drawCards > 0) {
 			if (!player.eliminated) this.drawCard(player, drawCards);
 			if (this.topCard.action && this.topCard.action.name.startsWith('Draw ')) this.topCard.action = null;

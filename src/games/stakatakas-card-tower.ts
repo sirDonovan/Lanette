@@ -31,7 +31,6 @@ class StakatakasCardTower extends CardMatching {
 		if (player === this.currentPlayer) {
 			if (this.topCard.action && this.topCard.action.name.startsWith('Draw')) {
 				this.topCard.action = null;
-				this.showTopCard();
 			}
 			this.nextRound();
 		}
@@ -51,7 +50,7 @@ class StakatakasCardTower extends CardMatching {
 		return true;
 	}
 
-	playCard(card: IPokemonCard, player: Player, targets: string[], cards: IPokemonCard[]): IPokemonCard[] | boolean {
+	playRegularCard(card: IPokemonCard, player: Player, targets: string[], cards: IPokemonCard[]): IPokemonCard[] | boolean {
 		const playedCards = [card];
 		for (let i = 1; i < targets.length; i++) {
 			const id = Tools.toId(targets[i]);
@@ -71,6 +70,7 @@ class StakatakasCardTower extends CardMatching {
 			}
 			playedCards.push(cards[index]);
 		}
+
 		if (playedCards.length < 2) {
 			player.say("You must play at least 2 cards.");
 			return false;
@@ -79,15 +79,18 @@ class StakatakasCardTower extends CardMatching {
 			player.say("All played cards must pair one after the other.");
 			return false;
 		}
+
 		card = playedCards[playedCards.length - 1];
+		const names: string[] = [];
 		for (const playedCard of playedCards) {
+			if (playedCard !== card) names.push(playedCard.name);
 			cards.splice(cards.indexOf(playedCard), 1);
 		}
+
 		this.awaitingCurrentPlayerCard = false;
-		this.topCard = card;
-		this.showTopCard(card.shiny && !card.played);
-		if (this.shinyCardAchievement && card.shiny && !card.played) this.unlockAchievement(player, this.shinyCardAchievement);
-		card.played = true;
+		this.storePreviouslyPlayedCard({card: player.name + "'s " + card.name + " ( + " + names.join(" + ") + ")", shiny: card.shiny && !card.played});
+		this.setTopCard(card, player);
+
 		let drewCards = false;
 		if (this.autoFillHands && !player.eliminated) {
 			if (cards.length && cards.length < this.minimumPlayedCards) {
@@ -100,7 +103,6 @@ class StakatakasCardTower extends CardMatching {
 	}
 
 	playActionCard(card: IPokemonCard, player: Player, targets: string[], cards: IPokemonCard[]): IPokemonCard[] | boolean {
-		const showTopCard = true;
 		if (card.action!.name.startsWith('Shuffle ')) {
 			const amount = parseInt(card.action!.name.split("Shuffle ")[1]);
 			cards.splice(cards.indexOf(card), 1);
@@ -152,9 +154,7 @@ class StakatakasCardTower extends CardMatching {
 		this.awaitingCurrentPlayerCard = false;
 		if (cards.includes(card)) cards.splice(cards.indexOf(card), 1);
 
-		if (showTopCard) {
-			this.showTopCard();
-		}
+		this.storePreviouslyPlayedCard({card: card.displayName || card.name});
 
 		if (!player.eliminated && cards.length) this.dealHand(player);
 

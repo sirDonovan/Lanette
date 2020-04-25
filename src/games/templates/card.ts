@@ -14,11 +14,13 @@ export interface IActionCardData {
 export interface IMoveCard extends IMoveCopy {
 	action?: IActionCardData | null;
 	availability?: number;
+	displayName?: string;
 	played?: boolean;
 }
 
 export interface IPokemonCard extends IPokemonCopy {
 	action?: IActionCardData | null;
+	displayName?: string;
 	played?: boolean;
 }
 

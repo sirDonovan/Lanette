@@ -602,6 +602,14 @@ export class Game extends Activity {
 		return html;
 	}
 
+	highlightPlayerTurn(player: Player): void {
+		this.sayCommand("/notifyrank all, " + (this.room as Room).title + ", " + this.name + ": " + player.name + "'s turn, " + player.name);
+	}
+
+	highlightOffPlayer(player: Player): void {
+		this.sayCommand("/notifyoffrank all");
+	}
+
 	announceWinners(): void {
 		const len = this.winners.size;
 		if (len) {

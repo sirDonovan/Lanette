@@ -65,6 +65,7 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 						// eslint-disable-next-line @typescript-eslint/await-thenable
 						await testData.test.call(this, game, testFormat, attributes);
 					} catch (e) {
+						console.log(e);
 						fail(e.message + " (initial seed = " + game.initialSeed + ")");
 					}
 				});
@@ -74,6 +75,7 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 					try {
 						testData.test.call(this, game, testFormat, attributes);
 					} catch (e) {
+						console.log(e);
 						fail(e.message + " (initial seed = " + game.initialSeed + ")");
 					}
 				});
@@ -157,6 +159,7 @@ describe("Games", () => {
 			try {
 				Games.createGame(room, format, room, false, initialSeed);
 			} catch (e) {
+				console.log(e);
 				let message = e.message;
 				if (room.game) {
 					message += " (" + format.name + "; initial seed = " + room.game.initialSeed + ")";
@@ -181,6 +184,7 @@ describe("Games", () => {
 				try {
 					Games.createGame(room, format, room, false, initialSeed);
 				} catch (e) {
+					console.log(e);
 					let message = e.message;
 					if (room.game) {
 						message += " (" + format.nameWithOptions + "; initial seed = " + room.game.initialSeed + ")";

@@ -3,6 +3,12 @@ import { Player } from '../../room-activity';
 import { GameCategory, IGameTemplateFile, IGameAchievement, GameCommandReturnType } from '../../types/games';
 import { Card, CardType, game as cardGame, IPokemonCard } from './card';
 
+interface IPreviouslyPlayedCard {
+	card: string;
+	detail?: string;
+	shiny?: boolean;
+}
+
 export abstract class CardMatching extends Card {
 	actionCardAmount: number = 5;
 	awaitingCurrentPlayerCard: boolean = false;
@@ -12,6 +18,9 @@ export abstract class CardMatching extends Card {
 	lastPlayer: Player | null = null;
 	maxCardRounds: number = 30;
 	maxPlayers: number = 15;
+	previouslyPlayedCards: IPreviouslyPlayedCard[] = [];
+	previouslyPlayedCardsAmount: number = 4;
+	roundDrawAmount: number = 0;
 	showPlayerCards: boolean = true;
 	usesColors: boolean = true;
 
@@ -89,27 +98,25 @@ export abstract class CardMatching extends Card {
 		this.deck = this.shuffle(deck);
 	}
 
-	showTopCard(firstPlayedShiny?: boolean): void {
-		const html = '<center>' + this.getCardChatHtml(this.topCard) + '</center>';
-		if (firstPlayedShiny) {
-			this.sayUhtml(this.uhtmlBaseName, "<div></div>");
-			this.sayHtml(html);
-		} else {
-			this.sayUhtml(this.uhtmlBaseName, html);
-		}
-	}
-
-	getTopCardText(): string {
-		return "**" + this.topCard.name + "** (" + this.topCard.color + ", " + this.topCard.types.join("/") + ")";
-	}
-
-	repostTopCard(): void {
-		if (!this.topCard) return;
-		this.showTopCard();
+	getTopCardHtml(): string {
+		return (this.previouslyPlayedCardsAmount ? this.getPreviouslyPlayedCardsHtml() + '<br />' : '') + this.getCardChatHtml(this.topCard);
 	}
 
 	getCardChatDetails(card: IPokemonCard): string {
 		return this.getChatTypeLabel(card) + '<br />' + this.getChatColorLabel(card);
+	}
+
+	getPreviouslyPlayedCardsHtml(): string {
+		let html = '';
+		const lowestOpacity = 25;
+		const opacityIncrement = Math.floor((100 - lowestOpacity) / this.previouslyPlayedCardsAmount);
+		for (let i = 0; i < this.previouslyPlayedCards.length; i++) {
+			const card = this.previouslyPlayedCards[i];
+			const cardText = card.card + (card.detail ? ' (' + card.detail + ')' : '');
+			html += '<div class="infobox" style="width:' + (cardText.length * 8) + 'px;opacity:' + (lowestOpacity + (opacityIncrement * i)) + '%;' +
+				(card.shiny ? 'color: ' + Tools.hexColorCodes['Dark Yellow']['background-color'] : '') + '">' + cardText + '</div>';
+		}
+		return html;
 	}
 
 	getCardPmHtml(card: IPokemonCard, showPlayable: boolean): string {
@@ -168,6 +175,17 @@ export abstract class CardMatching extends Card {
 		return html.join("<br />");
 	}
 
+	setTopCard(card: IPokemonCard, player: Player): void {
+		this.topCard = card;
+		if (card.shiny && !card.played) this.onShinyTopCard(player);
+	}
+
+	onShinyTopCard(player: Player): void {
+		this.sayHtml("<center>" + this.getCardChatHtml(this.topCard) + "</center>");
+		if (!player.eliminated && this.shinyCardAchievement) this.unlockAchievement(player, this.shinyCardAchievement);
+		this.topCard.played = true;
+	}
+
 	onStart(): void {
 		this.createDeck();
 		this.playerOrder = this.shufflePlayers();
@@ -187,8 +205,9 @@ export abstract class CardMatching extends Card {
 			if (!topCard) throw new Error("Invalid top card");
 			this.topCard = topCard as IPokemonCard;
 		}
-		this.showTopCard();
+
 		this.nextRound();
+		this.storePreviouslyPlayedCard({card: Users.self.name + "'s " + this.topCard.name});
 	}
 
 	getPlayableCards(player: Player): string[] {
@@ -276,11 +295,9 @@ export abstract class CardMatching extends Card {
 		}
 		const autoDraws = new Map<Player, CardType[]>();
 		let hasCard = this.hasPlayableCard(player);
-		let showTopCard = false;
 		let drawCount = 0;
 		while (!hasCard) {
 			drawCount++;
-			if (!showTopCard && this.topCard.action && this.topCard.action.name.startsWith('Draw')) showTopCard = true;
 			const cards = this.drawCard(player, null, null, true);
 			let drawnCards = autoDraws.get(player) || [];
 			drawnCards = drawnCards.concat(cards);
@@ -307,11 +324,13 @@ export abstract class CardMatching extends Card {
 			});
 			this.say("Automatically drawing for: " + names.join(", "));
 		}
-		if (showTopCard) this.showTopCard();
 
+		// needs to be set outside of on() for tests
 		this.currentPlayer = player;
-		const text = player!.name + "'s turn!";
-		this.on(text, () => {
+
+		const html = "<center>" + this.getTopCardHtml() + "<br /><br /><b>" + player!.name + "</b>'s turn!</center>";
+		const uhtmlName = this.uhtmlBaseName + '-round';
+		this.onUhtml(uhtmlName, html, () => {
 			// left before text appeared
 			if (player!.eliminated) {
 				this.nextRound();
@@ -321,6 +340,7 @@ export abstract class CardMatching extends Card {
 			this.awaitingCurrentPlayerCard = true;
 			this.canPlay = true;
 			this.dealHand(player!);
+			this.highlightPlayerTurn(player!);
 
 			this.timeout = setTimeout(() => {
 				if (!player!.eliminated) {
@@ -347,7 +367,8 @@ export abstract class CardMatching extends Card {
 				}
 			}, this.roundTime);
 		});
-		this.say(text);
+
+		this.sayUhtml(uhtmlName, html);
 	}
 
 	onEnd(): void {
@@ -370,18 +391,35 @@ export abstract class CardMatching extends Card {
 		return false;
 	}
 
+	storePreviouslyPlayedCard(card: IPreviouslyPlayedCard): void {
+		if (this.previouslyPlayedCardsAmount) {
+			while (this.previouslyPlayedCards.length >= this.previouslyPlayedCardsAmount) {
+				this.previouslyPlayedCards.shift();
+			}
+			this.previouslyPlayedCards.push(card);
+		}
+	}
+
 	playCard(card: IPokemonCard, player: Player, targets: string[], cards: CardType[]): CardType[] | boolean {
-		let drawCards = 0;
+		card.displayName = player.name + "'s " + card.name;
+
+		if (card.action) {
+			return this.playActionCard(card, player, targets, cards);
+		} else {
+			return this.playRegularCard(card, player, targets, cards);
+		}
+	}
+
+	playRegularCard(card: IPokemonCard, player: Player, targets: string[], cards: CardType[]): CardType[] | boolean {
+		let drawCards = this.roundDrawAmount;
 		if (this.topCard.action && this.topCard.action.name.startsWith('Draw ')) drawCards = parseInt(this.topCard.action.name.split('Draw ')[1].trim());
 		if (this.autoFillHands) {
 			const remainingCards = cards.length - 1;
 			if (remainingCards && (remainingCards + drawCards) < this.minimumPlayedCards) drawCards += this.minimumPlayedCards - remainingCards;
 		}
 		this.awaitingCurrentPlayerCard = false;
-		this.topCard = card;
-		this.showTopCard(card.shiny && !card.played);
-		if (card.shiny && !card.played && this.shinyCardAchievement) this.unlockAchievement(player, this.shinyCardAchievement);
-		card.played = true;
+		this.storePreviouslyPlayedCard({card: card.displayName || card.name, shiny: card.shiny && !card.played});
+		this.setTopCard(card, player);
 		cards.splice(cards.indexOf(card), 1);
 		if (drawCards > 0) {
 			if (!player.eliminated) this.drawCard(player, drawCards);
@@ -424,19 +462,12 @@ const commands: Dict<ICommandDefinition<CardMatching>> = {
 				return false;
 			}
 
-			let playResult;
-			if (card.action) {
-				playResult = this.playActionCard(card, player, targets, cards);
-			} else {
-				playResult = this.playCard(card as IPokemonCard, player, targets, cards);
-			}
-			if (playResult === false) return false;
+			if (this.playCard(card as IPokemonCard, player, targets, cards) === false) return false;
 
-			// may be removed in playCard methods
-			if (cards.includes(card)) cards.splice(cards.indexOf(card), 1);
 			if (!cards.length) {
 				player.frozen = true;
 				if (this.finitePlayerCards) {
+					this.sayUhtml(this.uhtmlBaseName + '-round', "<center>" + this.getTopCardHtml() + "</center>");
 					this.end();
 					return true;
 				}
