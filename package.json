@@ -4,8 +4,8 @@
   "description": "A bot for Pokemon Showdown",
   "main": "app.js",
   "scripts": {
-    "start" : "node app.js",
     "lint": "eslint -c .eslintrc --ext .ts --cache .",
+    "start": "node app.js",
     "test": "npm run lint && node mocha.js",
     "tsc": "tsc"
   },
