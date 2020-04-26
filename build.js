@@ -84,8 +84,10 @@ module.exports = async (options, resolve, reject) => {
 		
 		if (!options.noBuild) {
 			console.log("Preparing to build files...");
-			deleteFolderRecursive(builtFolder);
-			console.log("Deleted old built folder");
+			if (!options.incrementalBuild) {
+				deleteFolderRecursive(builtFolder);
+				console.log("Deleted old built folder");
+			}
 		}
 
 		if (!options.offline) {
