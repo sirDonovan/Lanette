@@ -5,6 +5,7 @@
   "main": "app.js",
   "scripts": {
     "lint": "eslint -c .eslintrc --ext .ts --cache .",
+    "start": "node app.js",
     "test": "npm run lint && node mocha.js",
     "tsc": "tsc"
   },
