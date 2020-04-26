@@ -52,6 +52,7 @@ const commands: Dict<ICommandDefinition> = {
 		},
 		developerOnly: true,
 	},
+	/*
 	updateps: {
 		async asyncCommand(target, room, user) {
 			this.say("Running ``update-ps``...");
@@ -59,6 +60,7 @@ const commands: Dict<ICommandDefinition> = {
 		},
 		developerOnly: true,
 	},
+	*/
 	reload: {
 		async asyncCommand(target, room, user) {
 			if (!target) return;

@@ -542,10 +542,12 @@ export class Tools {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	/*
 	async runUpdatePS(user?: User): Promise<any> {
 		await exec('node update-ps.js --hotpatch');
 
 		if (!user) user = Users.self;
 		await CommandParser.parse(user, user, Config.commandCharacter + 'reload dex');
 	}
+	*/
 }

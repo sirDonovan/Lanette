@@ -638,12 +638,15 @@ export class Client {
 				Storage.logChatMessage(room, messageArguments.timestamp, 'c', messageArguments.rank + user.name + '|' + messageArguments.message);
 			}
 
+			/*
 			if (messageArguments.message.startsWith('/log ') && messageArguments.message.includes(HOTPATCH_CHAT_COMMAND)) {
 				const hotpatched = messageArguments.message.substr(messageArguments.message.indexOf(HOTPATCH_CHAT_COMMAND) + HOTPATCH_CHAT_COMMAND.length).trim();
 				if (hotpatched === 'formats' || hotpatched === 'battles') {
 					if (Config.autoUpdatePS) void Tools.runUpdatePS();
 				}
 			}
+			*/
+
 			break;
 		}
 
