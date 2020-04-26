@@ -180,7 +180,10 @@ module.exports = async (options, resolve, reject) => {
 				}
 			}
 
+			const pokemonShowdownData = path.join(pokemonShowdown, ".data-dist");
+			let buildPokemonShowdown = false;
 			if (setToLanetteSha) {
+				buildPokemonShowdown = true;
 				const cmd = await setToSha(lanetteSha);
 				if (!cmd || cmd.Error) {
 					await setToSha(currentSha);
@@ -192,6 +195,28 @@ module.exports = async (options, resolve, reject) => {
 			} else {
 				const cmd = await setToSha(currentSha);
 				if (!cmd || cmd.Error) {
+					reject();
+					return;
+				}
+
+				if (!fs.existsSync(pokemonShowdownData)) buildPokemonShowdown = true;
+			}
+
+			if (buildPokemonShowdown) {
+				console.log("Installing pokemon-showdown dependencies...");
+				const npmInstallOutput = await exec('npm install').catch(e => console.log(e));
+				if (!npmInstallOutput || npmInstallOutput.Error) {
+					await setToSha(currentSha);
+					reject();
+					return;
+				}
+
+				deleteFolderRecursive(pokemonShowdownData);
+
+				console.log("Running pokemon-showdown build script...");
+				const nodeBuildOutput = await exec('node build').catch(e => console.log(e));
+				if (!nodeBuildOutput || nodeBuildOutput.Error) {
+					await setToSha(currentSha);
 					reject();
 					return;
 				}
