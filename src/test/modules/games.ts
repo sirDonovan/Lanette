@@ -1,6 +1,6 @@
 import { PRNGSeed, PRNG } from '../../prng';
 import { Game } from '../../room-game';
-import { GameFileTests, IGameFormat, IGameTestAttributes, IUserHostedFormat } from '../../types/games';
+import { GameFileTests, IGameFormat, IGameTestAttributes, IUserHostedFormat, IGameAchievementKeys } from '../../types/games';
 import { IPastGame } from '../../types/storage';
 import { assert, assertClientSendQueue, assertStrictEqual, testOptions } from '../test-tools';
 import { fail } from 'assert';
@@ -136,14 +136,34 @@ describe("Games", () => {
 		assert(Object.keys(Games.userHostedAliases).length);
 	});
 
-	it('should have valid mascots', () => {
+	it('should export valid data from files', () => {
 		for (const format of formatsToTest) {
 			testMascots(format);
+			assert(!format.name.match(Tools.unsafeApiCharacterRegex), format.name + " name");
+			assert(!format.description.match(Tools.unsafeApiCharacterRegex), format.name + " description");
+
+			if (format.achievements) {
+				const keys = Object.keys(format.achievements) as (keyof IGameAchievementKeys)[];
+				for (const key of keys) {
+					assert(!format.achievements[key]!.name.match(Tools.unsafeApiCharacterRegex), format.name + " achievement " + key);
+					assert(!format.achievements[key]!.description.match(Tools.unsafeApiCharacterRegex), format.name + " achievement " + key + "'s description");
+				}
+			}
+			if (format.category) {
+				assert(!format.category.match(Tools.unsafeApiCharacterRegex), format.name + " category");
+			}
+			if (format.commandDescriptions) {
+				for (const command of format.commandDescriptions) {
+					assert(!command.match(Tools.unsafeApiCharacterRegex), format.name + " command descriptions");
+				}
+			}
 		}
 
 		for (const i in Games.userHostedFormats) {
 			const format = Games.getExistingUserHostedFormat(i);
 			testMascots(format);
+			assert(!format.name.match(Tools.unsafeApiCharacterRegex), format.name + " name");
+			assert(!format.description.match(Tools.unsafeApiCharacterRegex), format.name + " description");
 		}
 	});
 

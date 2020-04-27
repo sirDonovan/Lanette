@@ -9,7 +9,7 @@ interface IRoundAbility {
 	points: number;
 }
 
-const name = "Dedenne’s Ability Blitz";
+const name = "Dedenne's Ability Blitz";
 const data: {abilities: string[]} = {
 	abilities: [],
 };

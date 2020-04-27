@@ -128,7 +128,7 @@ export const game: IUserHostedFile<UserHosted> = {
 			name: "Battle Maison",
 			aliases: ['bm'],
 			description: "A tournament style game where each player is given a Pokemon to battle with in [Gen " + Dex.gen + "] OU. Defeating an opponent allows the player to " +
-				"add the opponent’s Pokemon to his or her team. This continues until there is only one player left standing!",
+				"add the opponent's Pokemon to his or her team. This continues until there is only one player left standing!",
 		},
 		{
 			name: "Commonyms",
@@ -144,7 +144,7 @@ export const game: IUserHostedFile<UserHosted> = {
 			name: "Ditto's Who Am I",
 			mascot: 'Ditto',
 			aliases: ['dittos', 'who am i'],
-			description: "The host will assign each player a Pokemon without telling them. Each round, players must ask ‘yes’ or ‘no’ questions in order to guess what Pokemon " +
+			description: "The host will assign each player a Pokemon without telling them. Each round, players must ask 'yes' or 'no' questions in order to guess what Pokemon " +
 				"they were assigned!",
 		},
 		{
@@ -331,7 +331,7 @@ export const game: IUserHostedFile<UserHosted> = {
 		},
 		{
 			name: "Similarities",
-			description: "Each round, the host names three objects (Pokémon related or not) and players must guess what the similarity between the three is.",
+			description: "Each round, the host names three objects (Pokemon related or not) and players must guess what the similarity between the three is.",
 			freejoin: true,
 		},
 		{

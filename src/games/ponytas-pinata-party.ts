@@ -99,7 +99,7 @@ export const game: IGameFile<PonytasPinataParty> = {
 	class: PonytasPinataParty,
 	commandDescriptions: [Config.commandCharacter + "hit"],
 	commands,
-	description: "Players try to hit the piñata before it explodes, but hitting later on gives more points!",
+	description: "Players try to hit the pinata before it explodes, but hitting later on gives more points!",
 	freejoin: true,
 	name: "Ponyta's Pinata Party",
 	mascot: "Ponyta",

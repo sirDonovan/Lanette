@@ -91,7 +91,7 @@ const spaces: IBoardSpaces = {
 const doublesRollsAchievementAmount = 3;
 const achievements: AchievementsDict = {
 	"ohbabyatriple": {name: "Oh Baby A Triple", type: 'special', bits: 1000, description: 'roll doubles ' + doublesRollsAchievementAmount + ' times in one round'},
-	"cheapskate": {name: "Cheapskate", type: 'special', bits: 1000, description: 'win a property auction with a bid of ' + BID_MULTIPLE + ' ' + POKE_DOLLAR},
+	"cheapskate": {name: "Cheapskate", type: 'special', bits: 1000, description: 'win a property auction with a bid of ' + BID_MULTIPLE + ' Poke'},
 	"realestatetycoon": {name: "Real Estate Tycoon", type: 'special', bits: 1000, description: "buy every property on the board"},
 	"mountainmover": {name: "Mountain Mover", type: 'special', bits: 1000, description: "buy every mountain on the board"},
 };
@@ -304,7 +304,7 @@ export const game: IGameFile<JellicentsPhantomFinances> = Games.copyTemplateProp
 		Config.commandCharacter + "escape",
 	],
 	commands: Object.assign(Tools.deepClone(boardPropertyGame.commands), commands),
-	description: "Players travel around the board to buy properties and avoid paying all of their " + POKE_DOLLAR + " as rent for others!",
+	description: "Players travel around the board to buy properties and avoid paying all of their Poke as rent for others!",
 	mascot: "Jellicent",
 	name: "Jellicent's Phantom Finances",
 });

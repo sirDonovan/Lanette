@@ -17,6 +17,7 @@ const INTEGER_REGEX = /^[0-9]*$/g;
 const FLOAT_REGEX = /^[.0-9]*$/g;
 const SPACE_REGEX = /[ ]*/g;
 const HTML_CHARACTER_REGEX = /[<>/'"]/g;
+const UNSAFE_API_CHARACTER_REGEX = /[^A-Za-z0-9 \,\.\%\&\'\"\!\?\(\)\[\]\`\_\<\>\/\|\:\;\=\+\-]/g;
 
 const maxMessageLength = 300;
 const maxUsernameLength = 18;
@@ -98,6 +99,7 @@ export class Tools {
 	readonly rootFolder: typeof rootFolder = rootFolder;
 	readonly pokemonShowdownFolder: string = path.join(rootFolder, 'pokemon-showdown');
 	readonly letters: string = "abcdefghijklmnopqrstuvwxyz";
+	readonly unsafeApiCharacterRegex: RegExp = UNSAFE_API_CHARACTER_REGEX;
 
 	fetchUrlTimeouts: Dict<NodeJS.Timer> = {};
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
