@@ -6,7 +6,7 @@ import { UserHosted } from './games/internal/user-hosted';
 import { PRNG, PRNGSeed } from './prng';
 import { DefaultGameOption, Game, IGameOptionValues } from "./room-game";
 import { Room } from "./rooms";
-import { GameCommandReturnType, IGameFile, IGameFormat, IGameFormatComputed, IGameFormatData, IGameMode, IGameModeFile, IGameTemplateFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFile, IUserHostedFormat, IUserHostedFormatComputed, UserHostedCustomizable, IGameAchievementKeys } from './types/games';
+import { GameCommandReturnType, IGameFile, IGameFormat, IGameFormatComputed, IGameFormatData, IGameMode, IGameModeFile, IGameTemplateFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFile, IUserHostedFormat, IUserHostedFormatComputed, UserHostedCustomizable, IGameAchievementKeys, IGameCategoryKeys } from './types/games';
 import { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/dex';
 import { IPastGame } from './types/storage';
 import { User } from './users';
@@ -20,6 +20,22 @@ const userHosted = require(path.join(gamesDirectory, "internal", "user-hosted.js
 const internalGamePaths: IInternalGames = {
 	eggtoss: path.join(gamesDirectory, "internal", "egg-toss.js"),
 	vote: path.join(gamesDirectory, "internal", "vote.js"),
+};
+
+const categoryNames: KeyedDict<IGameCategoryKeys, string> = {
+	'board': 'Board',
+	'board-property': 'Board (property)',
+	'card': 'Card',
+	'card-high-low': 'Card (high-low)',
+	'card-matching': 'Card (matching)',
+	'chain': 'Chain',
+	'identification': 'Identification',
+	'knowledge': 'Knowledge',
+	'map': 'Map',
+	'playing-card': 'Playing card',
+	'puzzle': 'Puzzle',
+	'reaction': 'Reaction',
+	'speed': 'Speed',
 };
 
 const sharedCommandDefinitions: Dict<ICommandDefinition<Game>> = {
@@ -99,6 +115,12 @@ export class Games {
 		if (previous.uhtmlUserHostedCounts) this.uhtmlUserHostedCounts = previous.uhtmlUserHostedCounts;
 
 		this.loadFormats();
+		if (Config.gameCatalogGists) {
+			for (const i in Config.gameCatalogGists) {
+				const room = Rooms.get(i);
+				if (room) this.updateGameCatalog(room);
+			}
+		}
 	}
 
 	unrefWorkers(): void {
@@ -850,5 +872,134 @@ export class Games {
 
 	isIncludedPokemonTier(tier: string): boolean {
 		return tier !== 'Illegal' && tier !== 'Unreleased' && !tier.startsWith('(');
+	}
+
+	updateGameCatalog(room: Room): void {
+		if (!Config.gameCatalogGists || !(room.id in Config.gameCatalogGists)) return;
+
+		const allowsScriptedGames = Config.allowScriptedGames && Config.allowScriptedGames.includes(room.id);
+		const allowsUserHostedGames = Config.allowUserHostedGames && Config.allowUserHostedGames.includes(room.id);
+
+		if (!allowsScriptedGames && !allowsUserHostedGames) return;
+
+		const header = room.title + " Game Catalog";
+		let document: string[] = ["# " + header];
+
+		let subHeader = "This document contains information on all ";
+		if (allowsScriptedGames && allowsUserHostedGames) {
+			subHeader += "scripted and user-hosted";
+		} else if (allowsScriptedGames) {
+			subHeader += "scripted";
+		} else if (allowsUserHostedGames) {
+			subHeader += "user-hosted";
+		}
+		subHeader += " games that can be played in the " + room.title + " room.";
+		document.push(subHeader);
+
+		const defaultCategory = "Uncategorized";
+		if (allowsScriptedGames) {
+			// const scriptedGames: string[] = ["## Scripted games"];
+			const categories: Dict<string[]> = {};
+			const keys = Object.keys(this.formats);
+			keys.sort();
+			for (const key of keys) {
+				const format = this.getExistingFormat(key);
+				const info: string[] = [];
+
+				let mascot: IPokemon | undefined;
+				if (format.mascot) {
+					mascot = Dex.getExistingPokemon(format.mascot);
+				} else if (format.mascots) {
+					mascot = Dex.getExistingPokemon(Tools.sampleOne(format.mascots));
+				}
+
+				let mascotIcon = '';
+				if (mascot) {
+					let num = '' + mascot.num;
+					while (num.length < 3) {
+						num = '0' + num;
+					}
+					mascotIcon = '![' + mascot.name + '](https://www.serebii.net/pokedex-swsh/icon/' + num + '.png) ';
+				}
+				info.push("### " + mascotIcon + format.name);
+				info.push(format.description + "\n");
+
+				if (format.commandDescriptions) {
+					info.push("**Commands**:");
+					for (const command of format.commandDescriptions) {
+						info.push("* <code>" + command + "</code>");
+					}
+					info.push("\n");
+				}
+
+				if (format.achievements) {
+					info.push("**Achievements**:");
+					const keys = Object.keys(format.achievements) as (keyof IGameAchievementKeys)[];
+					for (const key of keys) {
+						info.push("* " + format.achievements[key]!.name + ": " + format.achievements[key]!.description);
+					}
+					info.push("\n");
+				}
+
+				const playingDifficulty = Config.scriptedGameDifficulties && format.id in Config.scriptedGameDifficulties ? Config.scriptedGameDifficulties[format.id] : "medium";
+				info.push("**Playing difficulty**: " + playingDifficulty + (format.scriptedOnly ? " (scripted only)" : "") + "\n");
+
+				if (!format.scriptedOnly) {
+					const hostingDifficulty = Config.userHostedGameHostDifficulties && format.id in Config.userHostedGameHostDifficulties ?
+						Config.userHostedGameHostDifficulties[format.id] : "medium";
+					info.push("**Hosting difficulty**: " + hostingDifficulty + " | ");
+
+					const playingDifficulty = Config.userHostedGamePlayerDifficulties && format.id in Config.userHostedGamePlayerDifficulties ?
+						Config.userHostedGamePlayerDifficulties[format.id] : "medium";
+					info.push("**User-hosted playing difficulty**: " + playingDifficulty + "\n");
+				}
+
+				info.push("\n");
+				info.push("---");
+
+				const category = format.category ? categoryNames[format.category] : defaultCategory;
+				if (!(category in categories)) categories[category] = [];
+				categories[category] = categories[category].concat(info);
+			}
+
+			let scriptedGames: string[] = ["## Scripted games", "(listed by category)"];
+			const categoryKeys = Object.keys(categories);
+			categoryKeys.splice(categoryKeys.indexOf(defaultCategory), 1);
+			categoryKeys.push(defaultCategory);
+			for (const key of categoryKeys) {
+				scriptedGames.push("## " + key);
+				scriptedGames = scriptedGames.concat(categories[key]);
+				scriptedGames.push("\n");
+			}
+
+			document = document.concat(scriptedGames);
+		}
+
+		if (allowsUserHostedGames) {
+			const userHostedGames: string[] = ["", "## User-hosted games"];
+			for (const i in this.userHostedFormats) {
+				const format = this.getExistingUserHostedFormat(i);
+				userHostedGames.push("### " + format.name);
+				userHostedGames.push(format.description + "\n");
+
+				const hostingDifficulty = Config.userHostedGameHostDifficulties && format.id in Config.userHostedGameHostDifficulties ?
+					Config.userHostedGameHostDifficulties[format.id] : "medium";
+				userHostedGames.push("**Hosting difficulty**: " + hostingDifficulty + " | ");
+
+				const playingDifficulty = Config.userHostedGamePlayerDifficulties && format.id in Config.userHostedGamePlayerDifficulties ?
+					Config.userHostedGamePlayerDifficulties[format.id] : "medium";
+				userHostedGames.push("**Playing difficulty**: " + playingDifficulty + "\n");
+
+				userHostedGames.push("\n");
+				userHostedGames.push("---");
+			}
+
+			document = document.concat(userHostedGames);
+		}
+
+		const filename = Config.gameCatalogGists[room.id].files[0];
+
+		Tools.editGist(Config.gameCatalogGists[room.id].id, Config.gameCatalogGists[room.id].description,
+			{[filename]: {content: document.join("\n").trim(), filename}});
 	}
 }

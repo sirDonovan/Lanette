@@ -389,7 +389,10 @@ export class Client {
 				if (messageArguments.response && messageArguments.response !== 'null') {
 					const response = JSON.parse(messageArguments.response) as IRoomInfoResponse;
 					const room = Rooms.get(response.id);
-					if (room) room.onRoomInfoResponse(response);
+					if (room) {
+						room.onRoomInfoResponse(response);
+						Games.updateGameCatalog(room);
+					}
 				}
 			} else if (messageArguments.type === 'rooms') {
 				if (messageArguments.response && messageArguments.response !== 'null') {
@@ -423,6 +426,7 @@ export class Client {
 				if (room.id === 'staff') room.sayCommand('/filters view');
 				room.sayCommand('/cmd roominfo ' + room.id);
 				room.sayCommand('/banword list');
+
 				if (room.id in Tournaments.schedules) {
 					Tournaments.setScheduledTournament(room);
 				}

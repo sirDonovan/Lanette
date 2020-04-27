@@ -284,4 +284,14 @@ export let serverLogsViewer: string = '';
  */
 export let awardedBotGreetingDurations: Dict<number> = {};
 
+/**
+ * The username(s) and personal access token(s) to use for various GitHub API endpoints
+ */
+export let githubApiCredentials: Dict<{token: string; username: string}> = {};
+
+/**
+ * For each room in the object, the information for its game catalog gist
+ */
+export let gameCatalogGists: Dict<{description: string; files: string[]; id: string}> = {};
+
 /* eslint-enable prefer-const*/

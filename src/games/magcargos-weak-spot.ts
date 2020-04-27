@@ -15,7 +15,7 @@ let loadedData = false;
 
 const achievements: AchievementsDict = {
 	"achillesheel": {name: "Achilles Heel", type: 'all-answers', bits: 1000, description: 'get every answer in one game'},
-	"captainachilles": {name: "Captain Achilles", type: 'all-answers-team', bits: 1000, description: 'get every answer for your team and win'},
+	"captainachilles": {name: "Captain Achilles", type: 'all-answers-team', bits: 1000, description: 'get every answer for your team and win the game'},
 };
 
 class MagcargosWeakSpot extends Guessing {

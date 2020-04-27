@@ -2,11 +2,11 @@ import childProcess = require('child_process');
 import fs = require('fs');
 import https = require('https');
 import path = require('path');
+import url = require('url');
 import util = require('util');
 
 import { PRNG } from './prng';
 import type { HexColor, IHexColor } from './types/tools';
-import { User } from './users';
 import { IParam } from './workers/parameters';
 
 const exec = util.promisify(childProcess.exec);
@@ -22,9 +22,7 @@ const UNSAFE_API_CHARACTER_REGEX = /[^A-Za-z0-9 \,\.\%\&\'\"\!\?\(\)\[\]\`\_\<\>
 const maxMessageLength = 300;
 const maxUsernameLength = 18;
 const rootFolder = path.resolve(__dirname, '..');
-const fetchUrlTimeoutTimers = {
-	'challonge': 5 * 1000,
-};
+const githubApiThrottle = 2 * 1000;
 
 const hexColorCodes: KeyedDict<IHexColor, {'background-color': string; 'background': string; 'border-color': string}> = {
 	"White": {'background-color': '#eeeeee', 'background': 'linear-gradient(#eeeeee, #dddddd)', 'border-color': '#222222'},
@@ -85,8 +83,6 @@ const pokemonColorHexColors: Dict<HexColor> = {
 	"Gray": "Dark Yellow",
 };
 
-type FetchUrlTimeoutKey = keyof typeof fetchUrlTimeoutTimers;
-
 export class Tools {
 	// exported constants
 	readonly hexColorCodes: typeof hexColorCodes = hexColorCodes;
@@ -101,13 +97,10 @@ export class Tools {
 	readonly letters: string = "abcdefghijklmnopqrstuvwxyz";
 	readonly unsafeApiCharacterRegex: RegExp = UNSAFE_API_CHARACTER_REGEX;
 
-	fetchUrlTimeouts: Dict<NodeJS.Timer> = {};
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	fetchUrlQueues: Dict<(() => any)[]> = {};
+	lastGithubApiCall: number = 0;
 
 	onReload(previous: Partial<Tools>): void {
-		if (previous.fetchUrlTimeouts) this.fetchUrlTimeouts = previous.fetchUrlTimeouts;
-		if (previous.fetchUrlQueues) this.fetchUrlQueues = previous.fetchUrlQueues;
+		if (previous.lastGithubApiCall) this.lastGithubApiCall = previous.lastGithubApiCall;
 	}
 
 	random(limit?: number, prng?: PRNG): number {
@@ -469,33 +462,21 @@ export class Tools {
 		} while (uncache.length > 0);
 	}
 
-	async fetchUrl(url: string, timeoutKey?: FetchUrlTimeoutKey): Promise<string | Error> {
+	async fetchUrl(url: string): Promise<string | Error> {
 		return new Promise(resolve => {
 			let data = '';
 			const request = https.get(url, res => {
 				res.setEncoding('utf8');
 				res.on('data', chunk => data += chunk);
 				res.on('end', () => {
-					if (timeoutKey) this.prepareNextFetchUrl(timeoutKey);
 					resolve(data);
 				});
 			});
 
 			request.on('error', error => {
-				if (timeoutKey) this.prepareNextFetchUrl(timeoutKey);
 				resolve(error);
 			});
 		});
-	}
-
-	prepareNextFetchUrl(type: FetchUrlTimeoutKey): void {
-		this.fetchUrlTimeouts[type] = setTimeout(() => {
-			delete this.fetchUrlTimeouts[type];
-			if (!(type in this.fetchUrlQueues)) return;
-			const queued = this.fetchUrlQueues[type].shift();
-			if (!queued) return;
-			queued();
-		}, fetchUrlTimeoutTimers[type]);
 	}
 
 	getChallongeUrl(input: string): string | undefined {
@@ -524,6 +505,58 @@ export class Tools {
 			challongeLink = challongeLink.substr(0, challongeLink.length - 1);
 		}
 		return challongeLink;
+	}
+
+	editGist(gistId: string, description: string, files: Dict<{filename: string; content: string}>): void {
+		if (this.lastGithubApiCall && (Date.now() - this.lastGithubApiCall) < githubApiThrottle) return;
+		if (!Config.githubApiCredentials || !Config.githubApiCredentials.gist) return;
+
+		const patchData = JSON.stringify({
+			description,
+			files,
+		});
+	
+		const gistAPi = url.parse('https://api.github.com/gists/' + gistId);
+		if (!gistAPi.hostname || !gistAPi.pathname) {
+			console.log("Failed to parse gist API URL");
+			return;
+		}
+
+		const options = {
+			hostname: gistAPi.hostname,
+			path: gistAPi.pathname,
+			method: "PATCH",
+			headers: {
+				'Accept': 'application/vnd.github.v3+json',
+				'Content-Type': 'application/json; charset=utf-8',
+				'Content-Length': patchData.length,
+				'User-Agent': Config.githubApiCredentials.gist.username,
+				'Authorization': 'token ' + Config.githubApiCredentials.gist.token,
+			},
+		};
+	
+		const request = https.request(options, response => {
+			response.setEncoding('utf8');
+			let data = '';
+			response.on('data', chunk => {
+				data += chunk;
+			});
+			response.on('end', () => {
+				if (response.statusCode !== 200) {
+					console.log(response.statusCode + ": " + response.statusMessage);
+					console.log(data);
+				}
+			});
+		});
+	
+		request.on('error', error => {
+			console.log("Error updating gist " + gistId + ": " + error.stack);
+		});
+	
+		request.write(patchData);
+		request.end();
+
+		this.lastGithubApiCall = Date.now();
 	}
 
 	async safeWriteFile(filepath: string, data: string): Promise<void> {

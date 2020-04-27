@@ -13,7 +13,7 @@ let loadedData = false;
 
 const achievements: AchievementsDict = {
 	'proteaneye': {name: "Protean Eye", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
-	'captainproteaneye': {name: "Captain Protean Eye", type: 'all-answers-team', bits: 1000, mode: 'team', description: "get every answer for your team and win"},
+	'captainproteaneye': {name: "Captain Protean Eye", type: 'all-answers-team', bits: 1000, mode: 'team', description: "get every answer for your team and win the game"},
 };
 
 class GreninjasTypings extends Guessing {

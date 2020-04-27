@@ -17,7 +17,7 @@ let loadedData = false;
 
 const achievements: AchievementsDict = {
 	'wordmaster': {name: "Wordmaster", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
-	'captainwordmaster': {name: "Captain Wordmaster", type: 'all-answers-team', bits: 1000, mode: 'team', description: "get every answer for your team and win"},
+	'captainwordmaster': {name: "Captain Wordmaster", type: 'all-answers-team', bits: 1000, mode: 'team', description: "get every answer for your team and win the game"},
 };
 
 class MetangsAnagrams extends Guessing {
@@ -60,6 +60,7 @@ class MetangsAnagrams extends Guessing {
 export const game: IGameFile<MetangsAnagrams> = Games.copyTemplateProperties(guessingGame, {
 	achievements,
 	aliases: ['metangs', 'anags', 'ma'],
+	category: 'identification',
 	class: MetangsAnagrams,
 	defaultOptions: ['points'],
 	description: "Players unscramble letters to reveal the answers!",

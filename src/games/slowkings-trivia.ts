@@ -19,7 +19,7 @@ let loadedData = false;
 
 const achievements: AchievementsDict = {
 	'knowitall': {name: "Know-It-All", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
-	'captainknowitall': {name: "Captain Know-It-All", type: 'all-answers-team', bits: 1000, description: "get every answer for your team and win"},
+	'captainknowitall': {name: "Captain Know-It-All", type: 'all-answers-team', bits: 1000, description: "get every answer for your team and win the game"},
 };
 
 class SlowkingsTrivia extends Guessing {
