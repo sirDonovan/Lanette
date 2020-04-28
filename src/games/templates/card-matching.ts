@@ -340,7 +340,7 @@ export abstract class CardMatching extends Card {
 			this.awaitingCurrentPlayerCard = true;
 			this.canPlay = true;
 			this.dealHand(player!);
-			this.highlightPlayerTurn(player!);
+			player!.say("It is your turn in " + this.name + "!");
 
 			this.timeout = setTimeout(() => {
 				if (!player!.eliminated) {
