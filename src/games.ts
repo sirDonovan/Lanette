@@ -898,7 +898,6 @@ export class Games {
 
 		const defaultCategory = "Uncategorized";
 		if (allowsScriptedGames) {
-			// const scriptedGames: string[] = ["## Scripted games"];
 			const categories: Dict<string[]> = {};
 			const keys = Object.keys(this.formats);
 			keys.sort();

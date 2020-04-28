@@ -372,7 +372,7 @@ const commands: Dict<ICommandDefinition> = {
 				if (!user.hasRank(room, 'voice') || room.game.started) return;
 				if (!room.game.start()) this.say("Not enough players have joined the game.");
 			} else if (room.userHostedGame) {
-				if (user.id !== room.userHostedGame.hostId || room.userHostedGame.started) return;
+				if (!room.userHostedGame.isHost(user) || room.userHostedGame.started) return;
 				if (!room.userHostedGame.start()) user.say("Not enough players have joined your game.");
 			}
 		},
@@ -461,7 +461,7 @@ const commands: Dict<ICommandDefinition> = {
 				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
 				gameRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id)) return;
+				if (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
 				gameRoom = room;
 			}
 			if (gameRoom.game) {
@@ -483,6 +483,7 @@ const commands: Dict<ICommandDefinition> = {
 			} else if (gameRoom.userHostedGame) {
 				const game = gameRoom.userHostedGame;
 				let html = (game.mascot ? Dex.getPokemonIcon(game.mascot, true) : "") + "<b>" + game.name + "</b><br />";
+				if (gameRoom.userHostedGame.subHostName) html += "<b>Sub-host</b>: " + gameRoom.userHostedGame.subHostName + "<br />";
 				html += "<b>Remaining time</b>: " + Tools.toDurationString(game.endTime - Date.now()) + "<br />";
 				if (game.started) {
 					if (game.startTime) html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - game.startTime) + "<br />";
@@ -721,6 +722,17 @@ const commands: Dict<ICommandDefinition> = {
 			game.signups();
 		},
 	},
+	subhost: {
+		command(target, room, user) {
+			if (this.isPm(room) || !user.hasRank(room, 'voice') || !room.userHostedGame) return;
+			const targetUser = Users.get(Tools.toId(target));
+			if (!targetUser || !targetUser.rooms.has(room) || targetUser.isBot(room)) return this.say("You must specify a user currently in the room.");
+			if (room.userHostedGame.hostId === targetUser.id) return this.say(targetUser.name + " is already the game's host.");
+			if (room.userHostedGame.subHostId === targetUser.id) return this.say(targetUser.name + " is already the game's sub-host.");
+			room.userHostedGame.setSubHost(targetUser);
+			this.say(targetUser.name + " is now the sub-host for " + room.userHostedGame.name + ".");
+		},
+	},
 	nexthost: {
 		command(target, room, user) {
 			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
@@ -800,7 +812,7 @@ const commands: Dict<ICommandDefinition> = {
 			if (!user.hasRank(room, 'voice') && !approvedHost) return;
 			const id = Tools.toId(target);
 			if (approvedHost && id !== user.id) return user.say("You are only able to use this command on yourself as approved host.");
-			if (room.userHostedGame && room.userHostedGame.hostId === id) return this.run('endgame');
+			if (room.userHostedGame && (room.userHostedGame.hostId === id || room.userHostedGame.subHostId === id)) return this.run('endgame');
 			if (!database.userHostedGameQueue || !database.userHostedGameQueue.length) return this.sayError(['emptyUserHostedGameQueue']);
 			let position = -1;
 			for (let i = 0; i < database.userHostedGameQueue.length; i++) {
@@ -902,7 +914,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	randompick: {
 		command(target, room, user) {
-			if (!this.isPm(room) && !user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id)) return;
+			if (!this.isPm(room) && !user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
 			const choices: string[] = [];
 			const targets = target.split(',');
 			for (const target of targets) {
@@ -917,7 +929,7 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			if (this.isPm(room)) return;
 			if (!user.hasRank(room, 'voice')) {
-				if (room.userHostedGame && room.userHostedGame.hostId === user.id) return this.run('gametimer');
+				if (room.userHostedGame && room.userHostedGame.isHost(user)) return this.run('gametimer');
 				return;
 			}
 			const id = Tools.toId(target);
@@ -948,7 +960,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	gametimer: {
 		command(target, room, user) {
-			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
+			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			const id = Tools.toId(target);
 			if (id === 'off' || id === 'end') {
 				if (!room.userHostedGame.gameTimer) return this.say("There is no game timer running.");
@@ -984,7 +996,7 @@ const commands: Dict<ICommandDefinition> = {
 				if (!user.hasRank(room, 'voice')) return;
 				game = room.game;
 			} else if (room.userHostedGame) {
-				if (room.userHostedGame.hostId !== user.id) return;
+				if (!room.userHostedGame.isHost(user)) return;
 				game = room.userHostedGame;
 			}
 			if (!game) return;
@@ -997,7 +1009,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	addplayer: {
 		command(target, room, user) {
-			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
+			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			const users = [];
 			const targets = target.split(",");
 			for (const target of targets) {
@@ -1019,7 +1031,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	removeplayer: {
 		async asyncCommand(target, room, user, cmd) {
-			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
+			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			const users: string[] = [];
 			const targets = target.split(",");
 			for (const target of targets) {
@@ -1036,7 +1048,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	shuffleplayers: {
 		async asyncCommand(target, room, user) {
-			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
+			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			const temp: {[k: string]: Player} = {};
 			const players = room.userHostedGame.shufflePlayers();
 			if (!players.length) return this.say("The player list is empty.");
@@ -1056,7 +1068,7 @@ const commands: Dict<ICommandDefinition> = {
 				if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
 				gameRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.hostId === user.id)) return;
+				if (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
 				gameRoom = room;
 			}
 			const game = gameRoom.game || gameRoom.userHostedGame;
@@ -1069,7 +1081,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	clearplayerlist: {
 		async asyncCommand(target, room, user) {
-			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
+			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			const users: string[] = [];
 			for (const i in room.userHostedGame.players) {
 				if (!room.userHostedGame.players[i].eliminated) users.push(room.userHostedGame.players[i].name);
@@ -1081,7 +1093,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	addpoints: {
 		async asyncCommand(target, room, user, cmd) {
-			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
+			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			if (!room.userHostedGame.started) return this.say("You must first start the game with ``" + Config.commandCharacter + "startgame``.");
 			if (target.includes("|")) {
 				await this.runMultipleTargets("|");
@@ -1126,7 +1138,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	addpointall: {
 		async asyncCommand(target, room, user, cmd) {
-			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
+			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			if (!room.userHostedGame.started) return this.say("You must first start the game with ``" + Config.commandCharacter + "startgame``.");
 			if (target && !Tools.isInteger(target)) return this.say("You must specify a valid number of points.");
 			this.runningMultipleTargets = true;
@@ -1151,7 +1163,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	movepoint: {
 		command(target, room, user) {
-			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
+			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			const targets = target.split(",");
 			const from = Users.get(targets[0]);
 			const to = Users.get(targets[1]);
@@ -1184,7 +1196,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	scorecap: {
 		command(target, room, user) {
-			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
+			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			const id = Tools.toId(target);
 			if (!id) {
 				if (room.userHostedGame.scoreCap) return this.say("The score cap is set to " + room.userHostedGame.scoreCap + ".");
@@ -1198,7 +1210,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	store: {
 		async asyncCommand(target, room, user, cmd) {
-			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
+			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			if (cmd === 'stored' || !target) {
 				if (!room.userHostedGame.storedMessage) return this.say("You must store a message first with ``" + Config.commandCharacter + "store``.");
 				if (CommandParser.isCommandMessage(room.userHostedGame.storedMessage)) {
@@ -1228,7 +1240,7 @@ const commands: Dict<ICommandDefinition> = {
 			} else {
 				gameRoom = room;
 			}
-			if (!gameRoom.userHostedGame || (!isPm && gameRoom.userHostedGame.hostId !== user.id)) return;
+			if (!gameRoom.userHostedGame || (!isPm && !gameRoom.userHostedGame.isHost(user))) return;
 			if (!target) {
 				if (!gameRoom.userHostedGame.twist) return this.say("There is no twist set for the current game.");
 				this.say(gameRoom.userHostedGame.name + " twist: " + gameRoom.userHostedGame.twist);
@@ -1242,7 +1254,7 @@ const commands: Dict<ICommandDefinition> = {
 	savewinner: {
 		async asyncCommand(target, room, user) {
 			if (this.isPm(room)) return;
-			if (!room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
+			if (!room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			if (!room.userHostedGame.savedWinners) room.userHostedGame.savedWinners = [];
 			const targets = target.split(",");
 			if (Config.maxUserHostedGameWinners && room.id in Config.maxUserHostedGameWinners) {
@@ -1273,7 +1285,7 @@ const commands: Dict<ICommandDefinition> = {
 	removewinner: {
 		async asyncCommand(target, room, user) {
 			if (this.isPm(room)) return;
-			if (!room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
+			if (!room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			const id = Tools.toId(target);
 			if (!(id in room.userHostedGame.players)) return this.say(this.sanitizeResponse(target.trim() + " is not in the game."));
 			if (!room.userHostedGame.savedWinners) room.userHostedGame.savedWinners = [];
@@ -1287,7 +1299,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	winner: {
 		command(target, room, user, cmd) {
-			if (this.isPm(room) || !room.userHostedGame || room.userHostedGame.hostId !== user.id) return;
+			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			const targets = target.split(",");
 			const savedWinners: Player[] | null = room.userHostedGame.savedWinners || null;
 			let players: Player[] = [];
@@ -1358,21 +1370,21 @@ const commands: Dict<ICommandDefinition> = {
 	roll: {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
-				!(room.userHostedGame && room.userHostedGame.hostId === user.id)))) return;
+				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
 			this.say('!roll ' + (target || "2"));
 		},
 	},
 	dt: {
 		command(target, room, user) {
 			if (!target || (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
-				!(room.userHostedGame && room.userHostedGame.hostId === user.id))))) return;
+				!(room.userHostedGame && room.userHostedGame.isHost(user)))))) return;
 			this.say('!dt ' + target);
 		},
 	},
 	randompokemon: {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
-				!(room.userHostedGame && room.userHostedGame.hostId === user.id)))) return;
+				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
 			if (!target) {
 				const species = Dex.getExistingPokemon(Tools.sampleOne(Object.keys(Dex.data.pokedex))).name;
 				if (this.pm) {
@@ -1389,7 +1401,7 @@ const commands: Dict<ICommandDefinition> = {
 	randommove: {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
-				!(room.userHostedGame && room.userHostedGame.hostId === user.id)))) return;
+				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
 			const move = Dex.getExistingMove(Tools.sampleOne(Object.keys(Dex.data.moves))).name;
 			if (this.pm) {
 				this.say('Randomly generated move: **' + move + '**');
@@ -1402,7 +1414,7 @@ const commands: Dict<ICommandDefinition> = {
 	randomitem: {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
-				!(room.userHostedGame && room.userHostedGame.hostId === user.id)))) return;
+				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
 			const item = Dex.getExistingItem(Tools.sampleOne(Object.keys(Dex.data.items))).name;
 			if (this.pm) {
 				this.say('Randomly generated item: **' + item + '**');
@@ -1415,7 +1427,7 @@ const commands: Dict<ICommandDefinition> = {
 	randomability: {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
-				!(room.userHostedGame && room.userHostedGame.hostId === user.id)))) return;
+				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
 			const abilities = Object.keys(Dex.data.abilities);
 			let ability = Dex.getExistingAbility(Tools.sampleOne(abilities));
 			while (ability.id === 'noability') {
@@ -1432,7 +1444,7 @@ const commands: Dict<ICommandDefinition> = {
 	randomtype: {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
-				!(room.userHostedGame && room.userHostedGame.hostId === user.id)))) return;
+				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
 			const types = Object.keys(Dex.data.typeChart);
 			let type = Tools.sampleOne(types);
 			if (Tools.random(2)) {
@@ -1446,7 +1458,7 @@ const commands: Dict<ICommandDefinition> = {
 	randomexistingtype: {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
-				!(room.userHostedGame && room.userHostedGame.hostId === user.id)))) return;
+				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
 			let type = '';
 			const pokedex = Dex.getPokemonList();
 			for (const pokemon of pokedex) {
@@ -1462,7 +1474,7 @@ const commands: Dict<ICommandDefinition> = {
 	randomcharacter: {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
-				!(room.userHostedGame && room.userHostedGame.hostId === user.id)))) return;
+				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
 			this.say('Randomly generated character: **' + Tools.sampleOne(Dex.data.characters).trim() + '**');
 		},
 		aliases: ['rchar', 'rcharacter', 'randchar', 'randcharacter'],
@@ -1470,7 +1482,7 @@ const commands: Dict<ICommandDefinition> = {
 	randomlocation: {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
-				!(room.userHostedGame && room.userHostedGame.hostId === user.id)))) return;
+				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
 			this.say('Randomly generated location: **' + Tools.sampleOne(Dex.data.locations).trim() + '**');
 		},
 		aliases: ['rlocation', 'rloc', 'randloc', 'randlocation'],

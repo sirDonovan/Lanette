@@ -47,6 +47,11 @@ export class User {
 		return Client.serverGroups[this.rooms.get(room)!.rank].ranking >= Client.serverGroups[Client.groupSymbols[targetRank]].ranking;
 	}
 
+	isBot(room: Room): boolean {
+		if (!this.rooms.has(room) || !Client.groupSymbols.bot) return false;
+		return this.rooms.get(room)!.rank === Client.groupSymbols.bot;
+	}
+
 	isDeveloper(): boolean {
 		return Config.developers && Config.developers.includes(this.id) ? true : false;
 	}

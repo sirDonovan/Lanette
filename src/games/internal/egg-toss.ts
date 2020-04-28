@@ -45,7 +45,7 @@ class EggToss extends Game {
 		let targetUser: User | undefined;
 		users = this.shuffle(users);
 		for (const user of users) {
-			if (!user.hasRank(this.room, 'bot')) {
+			if (!user.isBot(this.room)) {
 				targetUser = user;
 				break;
 			}
@@ -78,6 +78,10 @@ const commands: Dict<ICommandDefinition<EggToss>> = {
 			}
 			if (targetUser.away || targetUser.isIdleStatus()) {
 				this.say("You cannot egg someone who is marked as away.");
+				return false;
+			}
+			if (targetUser.isBot(this.room) && targetUser !== Users.self) {
+				this.say("You cannot egg another bot.");
 				return false;
 			}
 			this.lastHolder = this.currentHolder;

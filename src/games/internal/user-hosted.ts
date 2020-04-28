@@ -13,12 +13,14 @@ export class UserHosted extends Game {
 	hostId: string = '';
 	hostName: string = '';
 	hostTimeout: NodeJS.Timer | null = null;
+	isUserHosted = true;
 	readonly points = new Map<Player, number>();
 	savedWinners: Player[] | null = null;
 	scoreCap: number = 0;
 	storedMessage: string | null = null;
+	subHostId: string | null = null;
+	subHostName: string | null = null;
 	twist: string | null = null;
-	isUserHosted = true;
 
 	// set immediately in initialize()
 	format!: IUserHostedFormat;
@@ -47,6 +49,16 @@ export class UserHosted extends Game {
 		}
 
 		this.name = this.hostName + "'s " + this.format.name;
+	}
+
+	setSubHost(user: User): void {
+		this.subHostId = user.id;
+		this.subHostName = user.name;
+	}
+
+	isHost(user: User): boolean {
+		if (user.id === this.hostId || (this.subHostId && user.id === this.subHostId)) return true;
+		return false;
 	}
 
 	onForceEnd(user?: User, reason?: string): void {
@@ -89,21 +101,27 @@ export class UserHosted extends Game {
 			hostDifficulty = 'medium';
 		}
 
-		let hostBits: number;
-		if (hostDifficulty === 'easy') {
-			hostBits = 300;
-		} else if (hostDifficulty === 'medium') {
+		let hostBits = 300;
+		if (hostDifficulty === 'medium') {
 			hostBits = 400;
 		} else if (hostDifficulty === 'hard') {
 			hostBits = 500;
 		}
-		if (this.shinyMascot) hostBits! *= 2;
-		Storage.addPoints(this.room, this.hostName, hostBits!, 'userhosted');
-		const user = Users.get(this.hostName);
+		if (this.shinyMascot) hostBits *= 2;
+
+		let hostName = this.hostName;
+		if (this.subHostName) {
+			hostName = this.subHostName;
+			hostBits /= 2;
+		}
+
+		Storage.addPoints(this.room, hostName, hostBits, 'userhosted');
+		const user = Users.get(hostName);
 		if (user) {
-			user.say("You were awarded " + hostBits! + " bits! To see your total amount, use this command: ``" + Config.commandCharacter + "bits " + this.room.title + "``. " +
+			user.say("You were awarded " + hostBits + " bits! To see your total amount, use this command: ``" + Config.commandCharacter + "bits " + this.room.title + "``. " +
 				"Thanks for your efforts, we hope you host again soon!");
 		}
+
 		if (!(this.room.id in Games.lastUserHostTimes)) Games.lastUserHostTimes[this.room.id] = {};
 		Games.lastUserHostTimes[this.room.id][this.hostId] = Date.now();
 	}
