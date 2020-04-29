@@ -846,9 +846,9 @@ const commands: Dict<ICommandDefinition> = {
 				if (!user.hasRank(room, 'voice')) return;
 				gameRoom = room;
 			}
-			let hostName = targets[0].trim();
+			let hostName = targets.length ? targets[0].trim() : "";
 			let hostId: string;
-			const targetUser = Users.get(targets[0]);
+			const targetUser = Users.get(hostName);
 			if (targetUser) {
 				hostName = targetUser.name;
 				hostId = targetUser.id;
