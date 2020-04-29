@@ -37,7 +37,7 @@ class WishiwashisStatFishing extends Game {
 		for (const pokemon of pokemonList) {
 			let bst = 0;
 			for (const i in pokemon.baseStats) {
-				// @ts-ignore
+				// @ts-expect-error
 				bst += pokemon.baseStats[i];
 			}
 			data.baseStatTotals[pokemon.id] = bst;
@@ -94,7 +94,7 @@ class WishiwashisStatFishing extends Game {
 		if (stat === 'bst') {
 			statPoints = data.baseStatTotals[pokemon.id];
 		} else {
-			// @ts-ignore
+			// @ts-expect-error
 			statPoints = pokemon.baseStats[stat];
 		}
 		if (negative) statPoints *= -1;

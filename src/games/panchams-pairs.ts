@@ -53,7 +53,7 @@ class PanchamPairs extends Game {
 			dataKeys['Pokemon'].push(pokemon.name);
 			const abilities: string[] = [];
 			for (const i in pokemon.abilities) {
-				// @ts-ignore
+				// @ts-expect-error
 				abilities.push(pokemon.abilities[i]);
 			}
 			data.pokemon[pokemon.name] = {
@@ -187,11 +187,11 @@ class PanchamPairs extends Game {
 			if (pokemonB) nameB = pokemonB.name;
 		}
 		if (!nameA || !nameB || (inCurrent && (!this.currentList.includes(nameA) || !this.currentList.includes(nameB)))) return false;
-		// @ts-ignore
+		// @ts-expect-error
 		if (!categories[this.dataType].includes(paramName)) return false;
-		// @ts-ignore
+		// @ts-expect-error
 		for (const thing of usedData[nameA][paramName]) {
-			// @ts-ignore
+			// @ts-expect-error
 			if (usedData[nameB][paramName].includes(thing)) {
 				return [nameA, nameB];
 			}

@@ -13,12 +13,12 @@ class CacturnesPokemonCards extends CardHighLow {
 		if (detail === 'bst') {
 			let bst = 0;
 			for (const i in card.baseStats) {
-				// @ts-ignore
+				// @ts-expect-error
 				bst += card.baseStats[i];
 			}
 			return bst;
 		} else {
-			// @ts-ignore
+			// @ts-expect-error
 			return card.baseStats[detail] as number;
 		}
 	}

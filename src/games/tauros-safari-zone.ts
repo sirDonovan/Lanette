@@ -55,7 +55,7 @@ class TaurosSafariZone extends Game {
 			data.pokedex.push(pokemon.id);
 			let bst = 0;
 			for (const stat in pokemon.baseStats) {
-				// @ts-ignore
+				// @ts-expect-error
 				bst += pokemon.baseStats[stat];
 			}
 			data.baseStatTotals[pokemon.id] = bst;

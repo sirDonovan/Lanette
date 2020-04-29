@@ -28,7 +28,7 @@ class MewsMoveCards extends CardHighLow {
 	}
 
 	getCardDetail(card: IMoveCard, detail: string): number {
-		// @ts-ignore
+		// @ts-expect-error
 		return card[detail] as number;
 	}
 }

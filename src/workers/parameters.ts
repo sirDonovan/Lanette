@@ -227,7 +227,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 				genDex[pokemon.gen].push(pokemon.name);
 
 				for (const i in pokemon.abilities) {
-					// @ts-ignore
+					// @ts-expect-error
 					const ability = pokemon.abilities[i] as string;
 					const abilityId = Tools.toId(ability);
 					if (!(abilityId in abilities)) {

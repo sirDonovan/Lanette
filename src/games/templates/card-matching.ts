@@ -90,7 +90,7 @@ export abstract class CardMatching extends Card {
 						card = Dex.getMoveCopy(id);
 					}
 					card.action = this.actionCards[action];
-					// @ts-ignore
+					// @ts-expect-error
 					deck.push(card);
 				}
 			}
@@ -498,4 +498,6 @@ const commands: Dict<ICommandDefinition<CardMatching>> = {
 export const game: IGameTemplateFile<CardMatching> = Object.assign(Tools.deepClone(cardGame), {
 	category: 'card-matching' as GameCategory,
 	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
+	tests: undefined,
+	variants: undefined,
 });

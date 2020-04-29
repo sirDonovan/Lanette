@@ -83,7 +83,7 @@ export class Games {
 	readonly commands: typeof sharedCommands = Object.assign(Object.create(null), sharedCommands);
 	readonly formats: Dict<DeepReadonly<IGameFormatData>> = {};
 	readonly freejoinFormatTargets: string[] = [];
-	// @ts-ignore - set in loadFormats()
+	// @ts-expect-error - set in loadFormats()
 	readonly internalFormats: KeyedDict<IInternalGames, DeepReadonly<IGameFormatData>> = {};
 	lastGames: Dict<number> = {};
 	lastMinigames: Dict<number> = {};

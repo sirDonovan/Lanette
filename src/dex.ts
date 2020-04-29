@@ -301,13 +301,13 @@ export class Dex {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	modData(dataType: string, id: string): any {
 		/* eslint-disable @typescript-eslint/no-unsafe-return */
-		// @ts-ignore
+		// @ts-expect-error
 		if (this.isBase) return this.data[dataType][id];
-		// @ts-ignore
+		// @ts-expect-error
 		if (this.data[dataType][id] !== dexes[this.parentMod].data[dataType][id]) return this.data[dataType][id];
-		// @ts-ignore
+		// @ts-expect-error
 		this.data[dataType][id] = Tools.deepClone(this.data[dataType][id]);
-		// @ts-ignore
+		// @ts-expect-error
 		return this.data[dataType][id];
 		/* eslint-enable */
 	}
@@ -432,9 +432,9 @@ export class Dex {
 				if (!link) continue;
 				let num = parseInt(link.split("/")[0]);
 				if (isNaN(num)) continue;
-				// @ts-ignore
+				// @ts-expect-error
 				if (format[id + '-official']) {
-					// @ts-ignore
+					// @ts-expect-error
 					const officialNum = parseInt(format[id + '-official']);
 					if (!isNaN(officialNum) && officialNum > num) num = officialNum;
 				}
@@ -442,7 +442,7 @@ export class Dex {
 			}
 		}
 
-		// @ts-ignore
+		// @ts-expect-error
 		Object.assign(this.dataCache.Formats, formats);
 		Object.assign(this.dataCache.formats, formats);
 	}
@@ -467,12 +467,12 @@ export class Dex {
 		const dataTypesToLoad = dataTypes.concat(['Aliases', 'Natures']);
 		for (const dataType of dataTypesToLoad) {
 			if (dataType === 'Natures') {
-				// @ts-ignore
+				// @ts-expect-error
 				if (this.isBase) this.dataCache[dataType] = natures;
 				continue;
 			}
 			const battleData = this.loadDataFile(this.modDataDir, dataFiles, dataType);
-			// @ts-ignore
+			// @ts-expect-error
 			if (battleData !== this.dataCache[dataType]) this.dataCache[dataType] = Object.assign(battleData, this.dataCache[dataType]);
 		}
 
@@ -481,7 +481,7 @@ export class Dex {
 			if (!battleData || typeof battleData !== 'object') {
 				throw new TypeError("Exported property `Battle" + dataType + "`from `" + this.modDataDir + '/' + dataFiles[dataType] + "` must be an object except `null`.");
 			}
-			// @ts-ignore
+			// @ts-expect-error
 			this.dataCache[dataType] = Object.assign(battleData, this.dataCache[dataType]);
 		}
 
@@ -490,9 +490,9 @@ export class Dex {
 			this.includeFormats();
 		} else {
 			for (const dataType of dataTypes) {
-				// @ts-ignore
+				// @ts-expect-error
 				const parentTypedData = parentDex.data[dataType];
-				// @ts-ignore
+				// @ts-expect-error
 				const childTypedData = this.dataCache[dataType] || (this.dataCache[dataType] = {});
 				for (const entryId in parentTypedData) {
 					if (childTypedData[entryId] === null) {
@@ -520,7 +520,7 @@ export class Dex {
 					}
 				}
 			}
-			// @ts-ignore
+			// @ts-expect-error
 			this.dataCache['Aliases'] = parentDex.data['Aliases'];
 		}
 
@@ -545,7 +545,7 @@ export class Dex {
 			} else {
 				id = Tools.toId(dataType);
 			}
-			// @ts-ignore
+			// @ts-expect-error
 			this.dataCache[id] = this.dataCache[dataType];
 		}
 
@@ -1245,7 +1245,7 @@ export class Dex {
 		} else if (Array.isArray(target)) {
 			targetType = target;
 		} else {
-			// @ts-ignore
+			// @ts-expect-error
 			targetType = target.types;
 		}
 		if (Array.isArray(targetType)) {
@@ -1310,7 +1310,7 @@ export class Dex {
 		} else if (Array.isArray(target)) {
 			targetType = target;
 		} else {
-			// @ts-ignore
+			// @ts-expect-error
 			targetType = target.types;
 		}
 		if (Array.isArray(targetType)) {

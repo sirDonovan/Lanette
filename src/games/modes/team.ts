@@ -259,7 +259,7 @@ const initialize = (game: Game): void => {
 	const mode = new Team();
 	const propertiesToOverride = Object.getOwnPropertyNames(mode).concat(Object.getOwnPropertyNames(Team.prototype)) as (keyof Team)[];
 	for (const property of propertiesToOverride) {
-		// @ts-ignore
+		// @ts-expect-error
 		game[property] = mode[property];
 	}
 
@@ -268,12 +268,12 @@ const initialize = (game: Game): void => {
 			for (const i in game.commands) {
 				if ((game.commands[command].asyncCommand && game.commands[i].asyncCommand === game.commands[command].asyncCommand) ||
 					(game.commands[command].command && game.commands[i].command === game.commands[command].command)) {
-					// @ts-ignore
+					// @ts-expect-error
 					game.commands[i] = commands[command];
 				}
 			}
 		} else {
-			// @ts-ignore
+			// @ts-expect-error
 			game.commands[command] = commands[command];
 		}
 	}

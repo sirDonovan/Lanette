@@ -28,9 +28,9 @@ if (!fs.existsSync(pokedexMiniBWFile)) {
 const noOp = (): void => {};
 const methodsToNoOp = ['appendFile', 'chmod', 'rename', 'rmdir', 'symlink', 'unlink', 'watchFile', 'writeFile'];
 for (const method of methodsToNoOp) {
-	// @ts-ignore
+	// @ts-expect-error
 	fs[method] = noOp;
-	// @ts-ignore
+	// @ts-expect-error
 	fs[method + 'Sync'] = noOp;
 }
 

@@ -155,7 +155,7 @@ export class Tools {
 			copy.sort((a, b) => ((a as unknown) as number) - ((b as unknown) as number));
 		} else if (Array.isArray(copy[0])) {
 			for (let i = 0; i < copy.length; i++) {
-				// @ts-ignore
+				// @ts-expect-error
 				copy[i] = this.deepSortArray(copy[i]);
 			}
 
@@ -264,7 +264,7 @@ export class Tools {
 		if (typeof input === 'number' || typeof input === 'boolean') return '' + input;
 		if (Array.isArray(input)) return '[' + input.map(x => this.toString(x)).join(', ') + ']';
 		for (const i in global) {
-			// @ts-ignore
+			// @ts-expect-error
 			if (input === global[i]) return '[global ' + i + ']';
 		}
 		if (input.effectType && typeof input.effectType === 'string') {
@@ -274,7 +274,7 @@ export class Tools {
 		} else {
 			const properties: string[] = [];
 			for (const i in input) {
-				// @ts-ignore
+				// @ts-expect-error
 				properties.push(i + ": " + this.toString(input[i]));
 			}
 			return "{" + properties.join(", ") + "}";
@@ -440,7 +440,7 @@ export class Tools {
 		const clone: DeepWritable<T> = Object.create(Object.getPrototypeOf(obj));
 		const keys = Object.keys(obj) as (keyof T)[];
 		for (const key of keys) {
-			// @ts-ignore
+			// @ts-expect-error
 			clone[key] = this.deepClone(obj[key]);
 		}
 		return clone;

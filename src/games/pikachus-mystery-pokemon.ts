@@ -57,7 +57,7 @@ class PikachusMysteryPokemon extends Guessing {
 			const abilities: string[] = [];
 			for (const i in pokemon.abilities) {
 				if (i === 'H') continue;
-				// @ts-ignore
+				// @ts-expect-error
 				abilities.push(pokemon.abilities[i]);
 			}
 			data.abilities[pokemon.id] = abilities;

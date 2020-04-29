@@ -683,13 +683,13 @@ const tests: GameFileTests<BoardPropertyGame> = {
 			const players = addPlayers(game);
 			game.start();
 			for (const i in game.spaces) {
-				// @ts-ignore
+				// @ts-expect-error
 				const space = game.spaces[i];
 				if (space instanceof BoardPropertySpace) space.owner = players[0];
 			}
 			game.forceEnd(Users.self);
 			for (const i in game.spaces) {
-				// @ts-ignore
+				// @ts-expect-error
 				const space = game.spaces[i];
 				if (space instanceof BoardPropertySpace) assertStrictEqual(space.owner, null);
 			}
@@ -701,4 +701,5 @@ export const game: IGameTemplateFile<BoardPropertyGame> = Object.assign(Tools.de
 	category: 'board-property' as GameCategory,
 	commands,
 	tests: Object.assign({}, boardGame.tests, tests),
+	variants: undefined,
 });

@@ -21,7 +21,7 @@ class KirliasTracingShow extends Guessing {
 		for (const pokemon of pokemonList) {
 			const abilities: string[] = [];
 			for (const ability in pokemon.abilities) {
-				// @ts-ignore
+				// @ts-expect-error
 				abilities.push(pokemon.abilities[ability]);
 			}
 			data.abilities[pokemon.id] = abilities.join(",");

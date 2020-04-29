@@ -29,7 +29,7 @@ class AbrasAbilitySwitch extends Guessing {
 		for (const pokemon of pokedex) {
 			const abilities: string[] = [];
 			for (const i in pokemon.abilities) {
-				// @ts-ignore
+				// @ts-expect-error
 				abilities.push(pokemon.abilities[i]);
 			}
 			data.abilities[pokemon.id] = abilities;

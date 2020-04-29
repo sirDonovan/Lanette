@@ -169,7 +169,7 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 	}
 
 	getActionCards(): BoardActionCard<BoardPropertyGame>[] {
-		// @ts-ignore
+		// @ts-expect-error
 		return this.sharedActionCards.concat(this.baseActionCards);
 	}
 

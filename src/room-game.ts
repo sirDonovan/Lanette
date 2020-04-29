@@ -312,7 +312,7 @@ export class Game extends Activity {
 
 	nextRound(): void {
 		if (this.timeout) clearTimeout(this.timeout);
-		// @ts-ignore
+		// @ts-expect-error
 		this.round++;
 		if (this.maxRound && this.round > this.maxRound) {
 			if (this.onMaxRound) this.onMaxRound();
