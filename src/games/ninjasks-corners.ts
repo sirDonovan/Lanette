@@ -130,6 +130,7 @@ const commands: Dict<ICommandDefinition<NinjasksCorners>> = {
 };
 
 export const game: IGameFile<NinjasksCorners> = {
+	achievements,
 	aliases: ["ninjasks", "nc"],
 	category: 'speed',
 	commandDescriptions: [Config.commandCharacter + "travel [color]"],

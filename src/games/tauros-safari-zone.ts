@@ -200,6 +200,7 @@ const commands: Dict<ICommandDefinition<TaurosSafariZone>> = {
 };
 
 export const game: IGameFile<TaurosSafariZone> = {
+	achievements,
 	aliases: ["tauros", "tsz", "ctp", "safarizone"],
 	category: 'speed',
 	commandDescriptions: [Config.commandCharacter + "catch [Pokemon]"],

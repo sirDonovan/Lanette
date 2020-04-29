@@ -103,6 +103,7 @@ class PersiansGarden extends MapCurrencyGame {
 }
 
 export const game: IGameFile<PersiansGarden> = Games.copyTemplateProperties(mapGame, {
+	achievements,
 	aliases: ["persians", "pgarden"],
 	class: PersiansGarden,
 	description: "Players must collect coins throughout the garden to stay alive! You may travel once per turn (up to 3 paces).",
