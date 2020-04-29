@@ -443,21 +443,13 @@ export class Game extends Activity {
 	removePlayer(user: User | string, silent?: boolean): void {
 		if (this.isMiniGame) return;
 		const player = this.destroyPlayer(user);
-		if (this.format.options.freejoin || !player) return;
-
-		if (this.commandsListeners.length) {
-			const commandsListeners = this.commandsListeners.slice();
-			for (const listener of commandsListeners) {
-				if (listener.remainingPlayersMax) this.decreaseOnCommandsMax(listener, 1);
-			}
-		}
-
-		if (this.onRemovePlayer) this.onRemovePlayer(player);
-		if (!this.isUserHosted) this.removeBits(player, JOIN_BITS, silent);
+		if (!player) return;
 
 		if (!silent) {
 			player.say("You have left the " + this.name + " " + this.activityType + ".");
 		}
+
+		if (this.format.options.freejoin) return;
 
 		if (this.showSignupsHtml && !this.started) {
 			if (!this.signupsHtmlTimeout) {
@@ -467,6 +459,18 @@ export class Game extends Activity {
 				}, SIGNUPS_HTML_DELAY);
 			}
 		}
+
+		if (this.isUserHosted) return;
+
+		if (this.commandsListeners.length) {
+			const commandsListeners = this.commandsListeners.slice();
+			for (const listener of commandsListeners) {
+				if (listener.remainingPlayersMax) this.decreaseOnCommandsMax(listener, 1);
+			}
+		}
+
+		if (this.onRemovePlayer) this.onRemovePlayer(player);
+		this.removeBits(player, JOIN_BITS, silent);
 	}
 
 	eliminatePlayer(player: Player, eliminationCause?: string | null, eliminator?: Player | null): void {
