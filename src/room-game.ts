@@ -293,8 +293,8 @@ export class Game extends Activity {
 		}
 	}
 
-	start(): boolean {
-		if (this.minPlayers && this.playerCount < this.minPlayers) return false;
+	start(isAuth?: boolean): boolean {
+		if (this.minPlayers && this.playerCount < this.minPlayers && !(isAuth && this.isUserHosted)) return false;
 		if (this.startTimer) clearTimeout(this.startTimer);
 		if (this.notifyRankSignups) this.sayCommand("/notifyoffrank all");
 		this.started = true;

@@ -372,8 +372,10 @@ const commands: Dict<ICommandDefinition> = {
 				if (!user.hasRank(room, 'voice') || room.game.started) return;
 				if (!room.game.start()) this.say("Not enough players have joined the game.");
 			} else if (room.userHostedGame) {
-				if (!room.userHostedGame.isHost(user) || room.userHostedGame.started) return;
-				if (!room.userHostedGame.start()) user.say("Not enough players have joined your game.");
+				const isHost = room.userHostedGame.isHost(user);
+				const isAuth = !isHost && user.hasRank(room, 'voice');
+				if ((!isHost && !isAuth) || room.userHostedGame.started) return;
+				if (!room.userHostedGame.start(isAuth)) user.say("Not enough players have joined your game.");
 			}
 		},
 		aliases: ['sg'],
