@@ -20,11 +20,15 @@ export abstract class Guessing extends Game {
 	roundCategory?: string;
 	readonly roundGuesses?: Map<Player, boolean>;
 
+	// set in intialize()
+	hintUhtmlName!: string;
+
 	abstract async setAnswers(): Promise<void>;
 
 	onInitialize(): void {
 		super.onInitialize();
 
+		this.hintUhtmlName = this.uhtmlBaseName + '-hint-' + this.round;
 		const format = (this.format as IGameFormat);
 		if (!format.options.points && !(format.mode && format.mode.removedOptions && format.mode.removedOptions.includes('points'))) {
 			throw new Error("Guessing games must include default or customizable points options");
@@ -42,14 +46,19 @@ export abstract class Guessing extends Game {
 			(this.additionalHintHeader ? " " + this.additionalHintHeader : "") + "</span><br /><br />" + this.hint + "</div>";
 	}
 
+	repostInformation(): void {
+		if (!this.answers.length) return;
+
+		this.sayUhtml(this.hintUhtmlName, this.getHintHtml());
+	}
+
 	async onNextRound(): Promise<void> {
 		this.canGuess = false;
 		await this.setAnswers();
 		if (this.ended) return;
 
 		const html = this.getHintHtml();
-		const uhtmlName = this.uhtmlBaseName + '-hint-' + this.round;
-		this.onUhtml(uhtmlName, html, () => {
+		this.onUhtml(this.hintUhtmlName, html, () => {
 			this.canGuess = true;
 			this.timeout = setTimeout(() => {
 				if (this.answers.length) {
@@ -63,7 +72,7 @@ export abstract class Guessing extends Game {
 				this.nextRound();
 			}, this.roundTime);
 		});
-		this.sayUhtml(uhtmlName, html);
+		this.sayUhtml(this.hintUhtmlName, html);
 	}
 
 	async guessAnswer(player: Player, guess: string): Promise<string | false> {

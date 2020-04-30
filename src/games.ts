@@ -59,6 +59,15 @@ const sharedCommandDefinitions: Dict<ICommandDefinition<Game>> = {
 		},
 		pmOnly: true,
 	},
+	repost: {
+		// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+		command(target, room, user) {
+			if (!user.hasRank(this.room as Room, 'voice')) return false;
+			if (this.repostInformation) this.repostInformation();
+			return true;
+		},
+		chatOnly: true,
+	},
 };
 
 const sharedCommands = CommandParser.loadCommands(sharedCommandDefinitions);

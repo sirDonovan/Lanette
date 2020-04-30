@@ -795,4 +795,5 @@ export class Game extends Activity {
 	onSignups?(): void;
 	onStart?(): void;
 	parseChatMessage?(user: User, message: string): void;
+	repostInformation?(): void;
 }
