@@ -40,6 +40,8 @@ describe("Dex", () => {
 		assertStrictEqual(Dex.getExistingPokemon("Greninja").gen, 6);
 		assertStrictEqual(Dex.getExistingPokemon("Ash Greninja").gen, 7);
 
+		assertStrictEqual(Dex.getExistingPokemon('Flabébé-yellow').name, 'Flabébé-Yellow');
+
 		let pokemon = Dex.getExistingPokemon('Charizard');
 		let learnsetData = Dex.getLearnsetData(pokemon.id);
 		assert(learnsetData && learnsetData.learnset);

@@ -645,6 +645,7 @@ export class Dex {
 		const abilityComputed: IAbilityComputed = {
 			effectType: "Ability",
 			gen,
+			fullname: 'ability: ' + abilityData.name,
 			id,
 			isNonstandard: isNonstandard || null,
 		};
@@ -738,6 +739,7 @@ export class Dex {
 		const itemComputed: IItemComputed = {
 			effectType: "Item",
 			gen,
+			fullname: 'item: ' + itemData.name,
 			id: Tools.toId(itemData.name),
 			fling,
 			isNonstandard: isNonstandard || null,
@@ -897,11 +899,17 @@ export class Dex {
 
 		const moveComputed: IMoveComputed = {
 			baseMoveType: moveData.baseMoveType || moveData.type,
+			critRatio: moveData.critRatio || 1,
 			effectType: "Move",
+			flags: moveData.flags || {},
+			fullname: 'move: ' + moveData.name,
 			gen,
 			gmaxPower,
 			ignoreImmunity: moveData.ignoreImmunity !== undefined ? moveData.ignoreImmunity : moveData.category === 'Status',
 			isNonstandard: isNonstandard || null,
+			nonGhostTarget: moveData.nonGhostTarget || '',
+			pressureTarget: moveData.pressureTarget || '',
+			secondaries: moveData.secondaries || (moveData.secondary ? [moveData.secondary] : undefined),
 			zMovePower,
 		};
 		const move: IMove = Object.assign({}, moveData, moveComputed);
@@ -972,9 +980,45 @@ export class Dex {
 				id = 'nidoranm';
 			}
 		}
-		if (this.data.aliases.hasOwnProperty(id)) id = Tools.toId(this.data.aliases[id]);
+
+		const cached = this.pokemonCache.get(id);
+		if (cached) return cached;
+
+		if (this.data.aliases.hasOwnProperty(id)) {
+			let species: IPokemon | null = null;
+			if (this.data.formatsData.hasOwnProperty(id)) {
+				// special event ID, like Rockruff-Dusk
+				const basePokemon = this.getPokemonCopy(this.data.aliases[id]!);
+				species = Object.assign(basePokemon, this.data.formatsData[id], {name: id, id, abilities: {0: basePokemon.abilities['S']}});
+			} else {
+				species = this.getPokemon(this.data.aliases[id]!);
+				if (species && species.cosmeticFormes) {
+					for (const forme of species.cosmeticFormes) {
+						if (Tools.toId(forme) === id) {
+							const basePokemon = this.getPokemonCopy(species.name);
+							species = Object.assign(basePokemon, {
+								name: forme,
+								id,
+								forme: forme.slice(basePokemon.name.length + 1),
+								baseForme: "",
+								baseSpecies: basePokemon.name,
+								otherFormes: null,
+								cosmeticFormes: null,
+							});
+							break;
+						}
+					}
+				}
+			}
+
+			if (species) {
+				this.pokemonCache.set(id, species);
+			}
+			return species;
+		}
+
 		if (!this.data.pokedex.hasOwnProperty(id)) {
-			let formeId = '';
+			let aliasTo = '';
 			for (const forme in formeNames) {
 				let pokemonName = '';
 				for (const formeName of formeNames[forme]) {
@@ -986,16 +1030,17 @@ export class Dex {
 				}
 				if (this.data.aliases.hasOwnProperty(pokemonName)) pokemonName = Tools.toId(this.data.aliases[pokemonName]);
 				if (this.data.pokedex.hasOwnProperty(pokemonName + forme)) {
-					formeId = pokemonName + forme;
+					aliasTo = pokemonName + forme;
 					break;
 				}
 			}
-			if (!formeId) return null;
-			id = formeId;
+
+			if (!aliasTo) return null;
+			const pokemon = this.getExistingPokemon(aliasTo);
+			this.pokemonCache.set(id, pokemon);
+			return pokemon;
 		}
 
-		const cached = this.pokemonCache.get(id);
-		if (cached) return cached;
 		const templateData = this.data.pokedex[id]!;
 		const templateFormatsData = this.data.formatsData[id] || {};
 
@@ -1011,7 +1056,7 @@ export class Dex {
 		let isPrimal = false;
 		let gen = templateData.gen || 0;
 		if (!gen && templateData.num >= 1) {
-			if (templateData.num >= 810 || ['Galar', 'Galar-Zen'].includes(forme) || forme === 'Gmax') {
+			if (templateData.num >= 810 || ['Gmax', 'Galar', 'Galar-Zen'].includes(forme)) {
 				gen = 8;
 			} else if (templateData.num >= 722 || forme.startsWith('Alola') || forme === 'Starter') {
 				gen = 7;
@@ -1034,7 +1079,6 @@ export class Dex {
 			}
 		}
 
-		const evos = templateData.evos || [];
 		const speciesId = Tools.toId(templateData.name);
 		let tier: string | undefined;
 		let doublesTier: string | undefined;
@@ -1048,8 +1092,8 @@ export class Dex {
 			doublesTier = templateFormatsData.doublesTier;
 			if (!tier && !doublesTier && baseSpecies !== templateData.name) {
 				let baseSpeciesId: string;
-				if (templateData.baseSpecies === 'Mimikyu') {
-					baseSpeciesId = Tools.toId(templateData.baseSpecies);
+				if (baseSpecies === 'Mimikyu') {
+					baseSpeciesId = Tools.toId(baseSpecies);
 				} else if (speciesId.endsWith('totem')) {
 					baseSpeciesId = speciesId.slice(0, -5);
 				} else if (battleOnly) {
@@ -1060,6 +1104,7 @@ export class Dex {
 				tier = this.data.formatsData[baseSpeciesId]!.tier;
 				doublesTier = this.data.formatsData[baseSpeciesId]!.doublesTier;
 			}
+
 			if (!tier) {
 				tier = 'Illegal';
 			} else if (tier === 'New') {
@@ -1075,32 +1120,38 @@ export class Dex {
 			}
 		}
 
+		const evos = templateData.evos || [];
 		const pokemonComputed: IPokemonComputed = {
 			baseForme: templateData.baseForme || '',
 			baseSpecies,
 			battleOnly,
 			category: this.data.categories[speciesId] || '',
+			changesFrom: templateData.changesFrom || (isGigantamax ? baseSpecies : undefined),
+			doublesTier,
 			effectType: "Pokemon",
 			gen,
+			gender: templateData.gender || '',
 			genderRatio: templateData.genderRatio || (templateData.gender === 'M' ? {M: 1, F: 0} :
 				templateData.gender === 'F' ? {M: 0, F: 1} :
 				templateData.gender === 'N' ? {M: 0, F: 0} :
 				{M: 0.5, F: 0.5}),
 			evos,
 			forme,
+			fullname: 'pokemon: ' + templateData.name,
 			id: speciesId,
-			inheritsFrom: templateData.inheritsFrom || (isGigantamax ? Tools.toId(baseSpecies) : undefined),
 			isForme,
 			isMega,
 			isNonstandard: isNonstandard || null,
 			isPrimal,
 			name: templateData.name,
 			nfe: !!evos.length,
+			prevo: templateData.prevo || '',
 			requiredItems: templateData.requiredItems || (templateData.requiredItem ? [templateData.requiredItem] : undefined),
 			shiny: false,
 			speciesid: speciesId,
 			spriteId: Tools.toId(baseSpecies) + (baseSpecies !== templateData.name ? '-' + Tools.toId(forme) : ''),
 			tier,
+			weighthg: (templateData.weightkg || 0) * 10,
 		};
 		const pokemon: IPokemon = Object.assign({}, templateData, templateFormatsData, pokemonComputed);
 		this.pokemonCache.set(id, pokemon);
@@ -1281,7 +1332,7 @@ export class Dex {
 		}
 
 		let nfe = false;
-		if (!invalidEvent && pokemon.evos) {
+		if (!invalidEvent && pokemon.evos.length) {
 			for (const evo of pokemon.evos) {
 				const evolution = this.getPokemon(evo);
 				if (evolution && evolution.gen <= this.gen) {
@@ -1476,9 +1527,9 @@ export class Dex {
 		const formatComputed: IFormatComputed = {
 			customRules: null,
 			banlist: formatData.banlist || [],
-			baseRuleset: formatData.baseRuleset || [],
 			defaultLevel: formatData.defaultLevel || maxLevel,
-			effectType: formatData.effectType || "Format",
+			effectType: (formatData.effectType || "Format") as FormatEffectType,
+			fullname: formatData.name,
 			gameType: formatData.gameType || "singles",
 			gen: formatData.mod ? this.mod(formatData.mod).gen : this.gen,
 			id,

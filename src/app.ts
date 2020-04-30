@@ -2,6 +2,7 @@ import * as tools from './tools';
 global.Tools = new tools.Tools();
 
 // PS compatability
+// @ts-ignore
 global.toID = (input: string | number | {id: string} | undefined): string => {
 	return Tools.toId(input);
 };

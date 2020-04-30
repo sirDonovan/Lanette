@@ -43,8 +43,7 @@ class TaurosSafariZone extends Game {
 		const copy = pokemonList.slice();
 		for (const pokemon of copy) {
 			if (pokemon.otherFormes) {
-				const formes = pokemon.otherFormes;
-				for (const name of formes) {
+				for (const name of pokemon.otherFormes) {
 					const forme = Dex.getExistingPokemon(name);
 					if (Dex.hasGifData(forme)) pokemonList.push(forme);
 				}

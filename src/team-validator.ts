@@ -148,14 +148,14 @@ export class PokemonSources {
 			// in sources, so we fill the other array in preparation for intersection
 			if (other.sourcesBefore > this.sourcesBefore) {
 				for (const source of this.sources) {
-					const sourceGen = parseInt(source.charAt(0), 10);
+					const sourceGen = parseInt(source.charAt(0));
 					if (sourceGen <= other.sourcesBefore) {
 						other.sources.push(source);
 					}
 				}
 			} else if (this.sourcesBefore > other.sourcesBefore) {
 				for (const source of other.sources) {
-					const sourceGen = parseInt(source.charAt(0), 10);
+					const sourceGen = parseInt(source.charAt(0));
 					if (sourceGen <= this.sourcesBefore) {
 						this.sources.push(source);
 					}
@@ -216,10 +216,10 @@ export class TeamValidator {
 		return new TeamValidator(format);
 	}
 
-	allSources(template?: IPokemon): PokemonSources {
+	allSources(species?: IPokemon): PokemonSources {
 		let minSourceGen = this.minSourceGen;
 		if (this.dex.gen >= 3 && minSourceGen < 3) minSourceGen = 3;
-		if (template) minSourceGen = Math.max(minSourceGen, template.gen);
+		if (species) minSourceGen = Math.max(minSourceGen, species.gen);
 		const maxSourceGen = this.ruleTable.has('allowtradeback') ? 2 : this.dex.gen;
 		return new PokemonSources(maxSourceGen, minSourceGen);
 	}
@@ -229,10 +229,10 @@ export class TeamValidator {
 		const dex = this.dex;
 		if (!setSources.size()) throw new Error(`Bad sources passed to checkLearnset`);
 
-		const moveid = toID(move);
-		move = dex.getMove(moveid)!;
-		const baseSpecies = dex.getSpecies(s)!;
-		let species: IPokemon | null = baseSpecies;
+		const moveid = Tools.toId(move);
+		move = dex.getExistingMove(moveid);
+		const baseSpecies: IPokemon = s;
+		let species: IPokemon | null = s;
 
 		const format = this.format;
 		const ruleTable = dex.getRuleTable(format);
@@ -271,15 +271,15 @@ export class TeamValidator {
 			if (dex.gen <= 2 && species.gen === 1) tradebackEligible = true;
 			const lsetData = dex.getLearnsetData(species.id);
 			if (!lsetData || !lsetData.learnset) {
-				if (species.baseSpecies !== species.name) {
+				if ((species.changesFrom || species.baseSpecies) !== species.name) {
 					// forme without its own learnset
-					species = dex.getSpecies(species.baseSpecies);
+					species = dex.getSpecies(species.changesFrom || species.baseSpecies);
 					// warning: formes with their own learnset, like Wormadam, should NOT
 					// inherit from their base forme unless they're freely switchable
 					continue;
 				}
 				// should never happen
-				break;
+				throw new Error(`Species with no learnset data: ${species.id}`);
 			}
 			const checkingPrevo = species.baseSpecies !== s.baseSpecies;
 			if (checkingPrevo && !moveSources.size()) {
@@ -324,7 +324,7 @@ export class TeamValidator {
 
 					if (
 						learnedGen < 7 && setSources.isHidden &&
-						!dex.mod('gen' + learnedGen).getSpecies(baseSpecies.name)!.abilities['H']
+						!dex.mod('gen' + learnedGen).getExistingPokemon(baseSpecies.name).abilities['H']
 					) {
 						// check if the Pokemon's hidden ability was available
 						incompatibleAbility = true;
@@ -383,7 +383,6 @@ export class TeamValidator {
 						// egg moves:
 						//   only if hatched from an egg
 						let limitedEggMove: ID | null | undefined = undefined;
-						// eslint-disable-next-line @typescript-eslint/prefer-string-starts-ends-with
 						if (learned.slice(1) === 'Eany') {
 							limitedEggMove = null;
 						} else if (learnedGen < 6) {
@@ -422,7 +421,7 @@ export class TeamValidator {
 				let getGlitch = false;
 				for (const i of glitchMoves) {
 					if (lsetData.learnset[i]) {
-						if (!(i === 'mimic' && dex.getAbility(set.ability)!.gen === 4 && !species.prevo)) {
+						if (!(i === 'mimic' && dex.getExistingAbility(set.ability).gen === 4 && !species.prevo)) {
 							getGlitch = true;
 							break;
 						}
@@ -496,12 +495,12 @@ export class TeamValidator {
 		} else if (species.prevo) {
 			// there used to be a check for Hidden Ability here, but apparently it's unnecessary
 			// Shed Skin Pupitar can definitely evolve into Unnerve Tyranitar
-			const prevo = this.dex.getSpecies(species.prevo)!;
-			if (prevo.gen > Math.max(2, this.dex.gen)) return null;
-			return prevo;
-		} else if (species.inheritsFrom) {
+			species = this.dex.getExistingPokemon(species.prevo);
+			if (species.gen > Math.max(2, this.dex.gen)) return null;
+			return species;
+		} else if (species.changesFrom) {
 			// For Pokemon like Rotom, Necrozma, and Gmax formes whose movesets are extensions are their base formes
-			return this.dex.getSpecies(species.inheritsFrom);
+			return this.dex.getSpecies(species.changesFrom);
 		}
 		return null;
 	}

@@ -21,7 +21,6 @@ declare global {
 	const Rooms: Rooms;
 	const Storage: Storage;
 	const tempConfig: boolean;
-	const toID: (input: string | number | {id: string} | undefined) => string;
 	const Tools: Tools;
 	const Tournaments: Tournaments;
 	const Users: Users;

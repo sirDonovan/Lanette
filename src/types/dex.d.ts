@@ -53,7 +53,7 @@ interface IPokemonSet {
 	hpType?: string;
 }
 
- /**
+/**
  * Describes a possible way to get a move onto a pokemon.
  *
  * First character is a generation number, 1-7.
@@ -95,80 +95,39 @@ interface IEventInfo {
 	from?: string;
 }
 
-interface ISelfEffect {
-	boosts?: SparseBoostsTable;
-	chance?: number;
-	pseudoWeather?: string;
-	sideCondition?: string;
-	slotCondition?: string;
-	terrain?: string;
-	volatileStatus?: string;
-	weather?: string;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	onHit?: () => any;
-}
-
-interface ISecondaryEffect {
-	chance?: number;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	ability?: any;
-	boosts?: SparseBoostsTable;
-	dustproof?: boolean;
-	kingsrock?: boolean;
-	self?: ISelfEffect;
-	status?: string;
-	volatileStatus?: string;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	onHit?: () => any;
-}
-
 interface IEffectData {
 	id: string;
 	name: string;
 	num: number;
 	affectsFainted?: boolean;
-	counterMax?: number;
 	desc?: string;
-	drain?: [number, number];
 	duration?: number;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	effect?: any;
 	effectType?: string;
 	infiltrates?: boolean;
 	isNonstandard?: Nonstandard | null;
-	/**
-	 * `true` for generic Z-moves like Gigavolt Havoc.
-	 * Also `true` for Z-powered status moves like Z-Encore.
-	 * Move ID of the base move, for specific Z-moves like Stoked
-	 * Sparksurfer.
-	 */
-	isZ?: boolean | string;
-	/**
-	 * `true` for Max moves like Max Airstream. If its a G-Max moves, this is
-	 * the species ID of the Gigantamax Pokemon that can use this G-Max move.
-	 */
-	isMax?: boolean | string;
-	noCopy?: boolean;
-	recoil?: [number, number];
-	secondary?: ISecondaryEffect | null;
-	secondaries?: ISecondaryEffect[] | null;
-	self?: ISelfEffect | null;
 	shortDesc?: string;
-	status?: string;
-	weather?: string;
 }
 
 type EffectType = 'Effect' | 'Pokemon' | 'Move' | 'Item' | 'Ability' | 'Format' | 'Ruleset' | 'Weather' | 'Status' | 'Rule' | 'ValidatorRule';
 
 interface IBasicEffect extends IEffectData {
 	id: string;
-	weather?: string;
-	status?: string;
 	effectType: EffectType;
+	fullname: string;
 	gen: number;
 }
 
+interface IPureEffectData extends IEffectData {
+	noCopy?: boolean;
+	counterMax?: number;
+}
+
+interface IPureEffect extends Readonly<IBasicEffect & IPureEffectData> {
+	readonly effectType: 'Status' | 'Effect' | 'Weather';
+}
+
 interface IAbilityData extends IEffectData {
+	effect?: Partial<IPureEffectData>;
 	rating: number;
 	isUnbreakable?: boolean;
 	suppressWeather?: boolean;
@@ -176,6 +135,7 @@ interface IAbilityData extends IEffectData {
 
 export interface IAbilityComputed {
 	effectType: "Ability";
+	fullname: string;
 	gen: number;
 	id: string;
 	isNonstandard: Nonstandard | null;
@@ -189,126 +149,6 @@ interface IAbilityCopy extends IBasicEffect, IAbilityData, IAbilityComputed {
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IAbility extends DeepReadonly<IAbilityCopy> {}
 
-export type FormatEffectType = 'Format' | 'Ruleset' | 'Rule' | 'ValidatorRule';
-type GameType = 'singles' | 'doubles' | 'triples' | 'rotation' | 'multi' | 'free-for-all';
-type SideID = 'p1' | 'p2' | 'p3' | 'p4';
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export interface IFormatData {
-	name: string;
-	banlist?: string[];
-	baseRuleset?: string[];
-	battle?: any;
-	pokemon?: any;
-	cannotMega?: string[];
-	challengeShow?: boolean;
-	debug?: boolean;
-	defaultLevel?: number;
-	desc?: string;
-	effectType?: FormatEffectType;
-	forcedLevel?: number;
-	gameType?: GameType;
-	maxForcedLevel?: number;
-	maxLevel?: number;
-	mod?: string;
-	onBasePowerPriority?: number;
-	onModifyMovePriority?: number;
-	onModifyTypePriority?: number;
-	onSwitchInPriority?: number;
-	rated?: boolean;
-	minSourceGen?: number;
-	restricted?: string[];
-	ruleset?: string[];
-	searchShow?: boolean;
-	team?: string;
-	teamLength?: {validate?: [number, number]; battle?: number};
-	threads?: string[];
-	timer?: Dict<any>;
-	tournamentShow?: boolean;
-	unbanlist?: string[];
-	checkLearnset?: (
-		this: any, move: any, species: any, setSources: any, set: any
-	) => {type: string; [any: string]: any} | null;
-	onAfterMega?: (this: any, pokemon: any) => void;
-	onBegin?: (this: any) => void;
-	onChangeSet?: (
-		this: any, set: any, format: any, setHas?: any, teamHas?: any
-	) => string[] | void;
-	onModifySpecies?: (
-		this: any, species: any, target?: any, source?: any, effect?: any
-	) => any | void;
-	onStart?: (this: any) => void;
-	onTeamPreview?: (this: any) => void;
-	onValidateSet?: (
-		this: any, set: any, format: any, setHas: any, teamHas: any
-	) => string[] | void;
-	onValidateTeam?: (this: any, team: any[], format: any, teamHas: any) => string[] | void;
-	validateSet?: (this: any, set: any, teamHas: any) => string[] | null;
-	validateTeam?: (this: any, team: any[], options?: {
-		removeNicknames?: boolean; skipSets?: {[name: string]: {[key: string]: boolean}};}) => string[] | void;
-	trunc?: (n: number) => number;
-	section?: string;
-	column?: number;
-}
-/* eslint-enable */
-
-export interface IFormatLinks {
-	aliases?: string[];
-	desc?: string;
-	generator?: string;
-	info?: string;
-	'info-official'?: string;
-	np?: string;
-	'np-official'?: string;
-	roleCompendium?: string;
-	teams?: string;
-	userHosted?: boolean;
-	viability?: string;
-	'viability-official'?: string;
-}
-
-export interface ISeparatedCustomRules {
-	bans: string[];
-	unbans: string[];
-	addedrules: string[];
-	removedrules: string[];
-}
-
-export interface IFormatComputed {
-	banlist: NonNullable<IFormatData["banlist"]>;
-	baseRuleset: string[];
-	customRules: string[] | null;
-	defaultLevel: number;
-	effectType: FormatEffectType;
-	gameType: GameType;
-	gen: number;
-	id: string;
-	inputTarget: string;
-	maxLevel: number;
-	mod: string;
-	num: number;
-	quickFormat: boolean;
-	ruleset: NonNullable<IFormatData["ruleset"]>;
-	ruleTable: RuleTable | null;
-	separatedCustomRules: ISeparatedCustomRules | null;
-	tournamentPlayable: boolean;
-	unbanlist: NonNullable<IFormatData["unbanlist"]>;
-	unranked: boolean;
-}
-
-export interface IFormat extends IBasicEffect, IFormatData, IFormatLinks, IFormatComputed {
-	readonly effectType: FormatEffectType;
-	baseRuleset: string[];
-	banlist: string[];
-	customRules: string[] | null;
-	defaultLevel: number;
-	gameType: GameType;
-	maxLevel: number;
-	mod: string;
-	ruleset: string[];
-	unbanlist: string[];
-}
-
 interface IFlingData {
 	basePower: number;
 	status?: string;
@@ -318,6 +158,7 @@ interface IFlingData {
 }
 
 export interface IItemData extends IEffectData {
+	effect?: Partial<IPureEffectData>;
 	gen: number;
 	fling?: IFlingData;
 	forcedForme?: string;
@@ -343,6 +184,7 @@ export interface IItemData extends IEffectData {
 export interface IItemComputed {
 	effectType: "Item";
 	fling?: IFlingData;
+	fullname: string;
 	gen: number;
 	id: string;
 	isNonstandard: Nonstandard | null;
@@ -356,29 +198,126 @@ export interface IItemCopy extends IBasicEffect, IItemData, IItemComputed {
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IItem extends DeepReadonly<IItemCopy> {}
 
-export interface IMoveData extends IEffectData {
-	accuracy: true | number;
-	basePower: number;
-	category: 'Physical' | 'Special' | 'Status';
+interface IHitEffect {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	flags: Dict<any>;
+	onHit?: () => any;
+
+	// set pokemon conditions
+	boosts?: SparseBoostsTable | null;
+	status?: string;
+	volatileStatus?: string;
+
+	// set side/slot conditions
+	sideCondition?: string;
+	slotCondition?: string;
+
+	// set field conditions
+	pseudoWeather?: string;
+	terrain?: string;
+	weather?: string;
+}
+
+interface ISecondaryEffect extends IHitEffect {
+	chance?: number;
+	/** Used to flag a secondary effect as added by Poison Touch */
+	ability?: IAbility;
+	/**
+	 * Applies to Sparkling Aria's secondary effect: Affected by
+	 * Sheer Force but not Shield Dust.
+	 */
+	dustproof?: boolean;
+	/**
+	 * Gen 2 specific mechanics: Bypasses Substitute only on Twineedle,
+	 * and allows it to flinch sleeping/frozen targets
+	 */
+	kingsrock?: boolean;
+	self?: IHitEffect;
+}
+
+export interface IMoveData extends IEffectData {
+	effect?: Partial<IPureEffectData>;
+	basePower: number;
+	accuracy: true | number;
 	pp: number;
+	category: 'Physical' | 'Special' | 'Status';
+	type: string;
 	priority: number;
 	target: MoveTarget;
-	type: string;
-	alwaysHit?: boolean;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	flags: Dict<any>;
+
+	damage?: number | 'level' | false | null;
+	contestType?: string;
+	isViable?: boolean;
+	noPPBoosts?: boolean;
+
+	// Z-move data
+	// -----------
+	/**
+	 * `true` for generic Z-moves like Gigavolt Havoc.
+	 * Also `true` for Z-powered status moves like Z-Encore.
+	 * Move ID of the base move, for specific Z-moves like Stoked
+	 * Sparksurfer.
+	 */
+	isZ?: boolean | string;
+	zMovePower?: number;
+	zMoveEffect?: string;
+	zMoveBoost?: SparseBoostsTable;
+	/**
+	 * Has this move been boosted by a Z-crystal? Usually the same as
+	 * `isZ`, but hacked moves will have this be `false` and `isZ` be
+	 * truthy.
+	 */
+	isZPowered?: boolean;
+
+	// Max move data
+	// -------------
+	gmaxPower?: number;
+	/**
+	 * `true` for Max moves like Max Airstream. If its a G-Max moves, this is
+	 * the species ID of the Gigantamax Pokemon that can use this G-Max move.
+	 */
+	isMax?: boolean | string;
+	/**
+	 * Same idea has `isZPowered`. Hacked Max moves will have this be
+	 * `false` and `isMax` be truthy.
+	 */
+	maxPowered?: boolean;
+
+	// Hit effects
+	// -----------
+	ohko?: boolean | string;
+	thawsTarget?: boolean;
+	heal?: number[] | null;
+	forceSwitch?: boolean;
+	selfSwitch?: string | boolean;
+	selfBoost?: {boosts?: SparseBoostsTable};
+	selfdestruct?: string | boolean;
+	breaksProtect?: boolean;
+	/**
+	 * Note that this is only "true" recoil. Other self-damage, like Struggle,
+	 * crash (High Jump Kick), Mind Blown, Life Orb, and even Substitute and
+	 * Healing Wish, are sometimes called "recoil" by the community, but don't
+	 * count as "real" recoil.
+	 */
+	recoil?: [number, number];
+	drain?: [number, number];
+	mindBlownRecoil?: boolean;
+	stealsBoosts?: boolean;
+	struggleRecoil?: boolean;
+	secondary?: ISecondaryEffect | null;
+	secondaries?: ISecondaryEffect[] | null;
+	self?: IHitEffect | null;
+
+	// Hit effect modifiers
+	// --------------------
+	alwaysHit?: boolean; // currently unused
 	baseMoveType?: string;
 	basePowerModifier?: number;
-	boosts?: SparseBoostsTable | false;
-	breaksProtect?: boolean;
-	contestType?: string;
 	critModifier?: number;
 	critRatio?: number;
-	damage?: number | 'level' | false | null;
 	defensiveCategory?: 'Physical' | 'Special' | 'Status';
-	forceSwitch?: boolean;
-	hasCustomRecoil?: boolean;
-	heal?: number[] | null;
+	forceSTAB?: boolean;
 	ignoreAbility?: boolean;
 	ignoreAccuracy?: boolean;
 	ignoreDefensive?: boolean;
@@ -388,85 +327,69 @@ export interface IMoveData extends IEffectData {
 	ignoreOffensive?: boolean;
 	ignorePositiveDefensive?: boolean;
 	ignorePositiveEvasion?: boolean;
-	isSelfHit?: boolean;
-	isFutureMove?: boolean;
-	isViable?: boolean;
-	isMax?: boolean | string;
-	mindBlownRecoil?: boolean;
 	multiaccuracy?: boolean;
 	multihit?: number | number[];
 	multihitType?: string;
 	noDamageVariance?: boolean;
+	/** False Swipe */
 	noFaint?: boolean;
-	noMetronome?: string[];
 	nonGhostTarget?: string;
-	noPPBoosts?: boolean;
-	noSketch?: boolean;
-	ohko?: boolean | string;
 	pressureTarget?: string;
-	pseudoWeather?: string;
-	selfBoost?: {boosts?: SparseBoostsTable};
-	selfdestruct?: string | boolean;
-	selfSwitch?: string | boolean;
-	sideCondition?: string;
-	sleepUsable?: boolean;
-	slotCondition?: string;
 	spreadModifier?: number;
-	stallingMove?: boolean;
-	stealsBoosts?: boolean;
-	struggleRecoil?: boolean;
-	terrain?: string;
-	thawsTarget?: boolean;
+	sleepUsable?: boolean;
+	/**
+	 * Will change target if current target is unavailable. (Dragon Darts)
+	 */
+	smartTarget?: boolean;
 	/**
 	 * Tracks the original target through Ally Switch and other switch-out-and-back-in
 	 * situations, rather than just targeting a slot. (Stalwart, Snipe Shot)
 	 */
 	tracksTarget?: boolean;
-	/**
-	 * Will change target if current target is unavailable. (Dragon Darts)
-	 */
-	smartTarget?: boolean;
 	useTargetOffensive?: boolean;
 	useSourceDefensiveAsOffensive?: boolean;
-	volatileStatus?: string;
-	weather?: string;
 	willCrit?: boolean;
-	forceSTAB?: boolean;
-	zMovePower?: number;
-	zMoveEffect?: string;
-	zMoveBoost?: SparseBoostsTable;
-	gmaxPower?: number;
+
+	// Mechanics flags
+	// ---------------
+	hasCrashDamage?: boolean;
+	isConfusionSelfHit?: boolean;
+	isFutureMove?: boolean;
+	noMetronome?: string[];
+	noSketch?: boolean;
+	stallingMove?: boolean;
+	baseMove?: string;
+
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	basePowerCallback?: (this: any, pokemon: any, target: any, move: any) => number | false | null;
-	baseMove?: string;
-	/**
-	 * Has this move been boosted by a Z-crystal? Usually the same as
-	 * `isZ`, but hacked moves will have this be `false` and `isZ` be
-	 * truthy.
-	 */
-	isZPowered?: boolean;
-	/**
-	 * Same idea has `isZPowered`. Hacked Max moves will have this be
-	 * `false` and `isMax` be truthy.
-	 */
-	maxPowered?: boolean;
 }
 
 export interface IMoveComputed {
 	baseMoveType: string;
+	critRatio: number;
 	effectType: "Move";
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	flags: Dict<any>;
+	fullname: string;
 	gen: number;
 	gmaxPower?: number;
 	ignoreImmunity: IMoveData["ignoreImmunity"];
 	isNonstandard: Nonstandard | null;
+	nonGhostTarget: string;
+	pressureTarget: string;
+	secondaries: IMoveData["secondaries"];
 	zMovePower?: number;
 }
 
 export interface IMoveCopy extends IBasicEffect, IMoveData, IMoveComputed {
 	readonly effectType: "Move";
 	baseMoveType: string;
+	critRatio: number;
 	ignoreImmunity: IMoveData["ignoreImmunity"];
 	isNonstandard: Nonstandard | null;
+	nonGhostTarget: string;
+	pressureTarget: string;
+	secondaries: IMoveData["secondaries"];
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -479,7 +402,7 @@ interface ISpeciesAbility {
 	S?: string;
 }
 
-export interface ISpeciesData {
+interface ISpeciesData {
 	abilities: ISpeciesAbility;
 	baseStats: StatsTable;
 	canHatch?: boolean;
@@ -512,7 +435,7 @@ export interface ISpeciesData {
 	requiredMove?: string;
 	battleOnly?: string | string[];
 	isGigantamax?: string;
-	inheritsFrom?: string;
+	changesFrom?: string;
 }
 
 interface IGen2RandomSet {
@@ -554,41 +477,171 @@ export interface IPokemonComputed {
 	baseSpecies: string;
 	battleOnly?: string | string[];
 	category: string;
+	changesFrom?: string;
+	doublesTier: string;
 	effectType: "Pokemon";
 	evos: string[];
 	forme: string;
+	fullname: string;
 	gen: number;
+	gender: GenderName;
 	genderRatio: NonNullable<ISpeciesData["genderRatio"]>;
 	id: string;
-	inheritsFrom?: string;
 	isForme: boolean;
 	isMega: boolean;
 	isNonstandard: Nonstandard | null;
 	isPrimal: boolean;
 	name: string;
 	nfe: boolean;
+	prevo: string;
 	requiredItems: string[] | undefined;
 	shiny: boolean;
 	speciesid: string;
 	spriteId: string;
 	tier: string;
+	weighthg: number;
 }
 
 export interface IPokemonCopy extends IBasicEffect, ISpeciesData, ISpeciesFormatsData, IPokemonComputed {
 	readonly effectType: "Pokemon";
 	baseForme: string;
 	baseSpecies: string;
+	doublesTier: string;
 	evos: string[];
 	forme: string;
 	gen: number;
+	gender: GenderName;
 	genderRatio: NonNullable<ISpeciesData["genderRatio"]>;
 	isNonstandard: Nonstandard | null;
+	prevo: string;
 	requiredItems: string[] | undefined;
 	tier: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IPokemon extends DeepReadonly<IPokemonCopy> {}
+
+export type FormatEffectType = 'Format' | 'Ruleset' | 'Rule' | 'ValidatorRule';
+type GameType = 'singles' | 'doubles' | 'triples' | 'rotation' | 'multi' | 'free-for-all';
+type SideID = 'p1' | 'p2' | 'p3' | 'p4';
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export interface IFormatData {
+	name: string;
+	banlist?: string[];
+	battle?: any;
+	pokemon?: any;
+	// queue?: ModdedBattleQueue;
+	field?: any;
+	cannotMega?: string[];
+	challengeShow?: boolean;
+	debug?: boolean;
+	defaultLevel?: number;
+	desc?: string;
+	effectType?: string;
+	forcedLevel?: number;
+	gameType?: GameType;
+	maxForcedLevel?: number;
+	maxLevel?: number;
+	mod?: string;
+	onBasePowerPriority?: number;
+	onModifyMovePriority?: number;
+	onModifyTypePriority?: number;
+	onSwitchInPriority?: number;
+	rated?: boolean;
+	minSourceGen?: number;
+	restricted?: string[];
+	ruleset?: string[];
+	searchShow?: boolean;
+	team?: string;
+	teamLength?: {validate?: [number, number]; battle?: number};
+	threads?: string[];
+	timer?: Partial<any>;
+	tournamentShow?: boolean;
+	unbanlist?: string[];
+	checkLearnset?: (
+		this: any, move: any, species: any, setSources: any, set: any
+	) => {type: string; [any: string]: any} | null;
+	onAfterMega?: (this: any, pokemon: any) => void;
+	onBegin?: (this: any) => void;
+	onChangeSet?: (
+		this: any, set: any, format: any, setHas?: any, teamHas?: any
+	) => string[] | void;
+	onModifySpecies?: (
+		this: any, species: any, target?: any, source?: any, effect?: any
+	) => void;
+	onStart?: (this: any) => void;
+	onTeamPreview?: (this: any) => void;
+	onValidateSet?: (
+		this: any, set: any, format: any, setHas: any, teamHas: any
+	) => string[] | void;
+	onValidateTeam?: (this: any, team: any[], format: any, teamHas: any) => string[] | void;
+	validateSet?: (this: any, set: any, teamHas: any) => string[] | null;
+	validateTeam?: (this: any, team: any[], options?: {
+		removeNicknames?: boolean;
+		skipSets?: {[name: string]: {[key: string]: boolean}};
+	}) => string[] | void;
+	trunc?: (n: number) => number;
+	section?: string;
+	column?: number;
+}
+/* eslint-enable */
+
+export interface IFormatLinks {
+	aliases?: string[];
+	desc?: string;
+	generator?: string;
+	info?: string;
+	'info-official'?: string;
+	np?: string;
+	'np-official'?: string;
+	roleCompendium?: string;
+	teams?: string;
+	userHosted?: boolean;
+	viability?: string;
+	'viability-official'?: string;
+}
+
+export interface ISeparatedCustomRules {
+	bans: string[];
+	unbans: string[];
+	addedrules: string[];
+	removedrules: string[];
+}
+
+export interface IFormatComputed {
+	banlist: NonNullable<IFormatData["banlist"]>;
+	customRules: string[] | null;
+	defaultLevel: number;
+	effectType: FormatEffectType;
+	fullname: string;
+	gameType: GameType;
+	gen: number;
+	id: string;
+	inputTarget: string;
+	maxLevel: number;
+	mod: string;
+	num: number;
+	quickFormat: boolean;
+	ruleset: NonNullable<IFormatData["ruleset"]>;
+	ruleTable: RuleTable | null;
+	separatedCustomRules: ISeparatedCustomRules | null;
+	tournamentPlayable: boolean;
+	unbanlist: NonNullable<IFormatData["unbanlist"]>;
+	unranked: boolean;
+}
+
+export interface IFormat extends IBasicEffect, IFormatData, IFormatLinks, IFormatComputed {
+	readonly effectType: FormatEffectType;
+	banlist: string[];
+	customRules: string[] | null;
+	defaultLevel: number;
+	gameType: GameType;
+	maxLevel: number;
+	mod: string;
+	ruleset: string[];
+	unbanlist: string[];
+}
 
 interface ITypeData {
 	damageTaken: {[attackingTypeNameOrEffectid: string]: number};
