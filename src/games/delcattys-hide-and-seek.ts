@@ -99,13 +99,14 @@ class DelcattysHideAndSeek extends Game {
 			otherPlayers.push(this.players[i].name);
 		}
 
-		const text = "**" + this.charmer.name + "** is the charmer! " + Tools.joinList(otherPlayers) + ", select a **" + param + "** Pokemon with ``" + Config.commandCharacter +
-			"select [Pokemon]`` in PMs!";
+		const text = "**" + this.charmer.name + "** is the charmer! " + Tools.joinList(otherPlayers) + ", select a **" + param +
+			"** Pokemon with ``" + Config.commandCharacter +"select [Pokemon]`` in PMs!";
 		this.on(text, () => {
 			this.canSelect = true;
 			this.timeout = setTimeout(() => this.selectCharmedPokemon(), 60 * 1000);
 		});
-		this.onCommands(['select'], {max: this.getRemainingPlayerCount() - 1, remainingPlayersMax: true}, () => this.selectCharmedPokemon());
+		this.onCommands(['select'], {max: this.getRemainingPlayerCount() - 1, remainingPlayersMax: true},
+			() => this.selectCharmedPokemon());
 		this.say(text);
 	}
 
@@ -126,7 +127,8 @@ class DelcattysHideAndSeek extends Game {
 			return;
 		}
 
-		const text = this.charmer.name + " please select a **" + this.categories.join(", ") + "** Pokemon to charm with ``" + Config.commandCharacter + "charm [Pokemon]``!";
+		const text = this.charmer.name + " please select a **" + this.categories.join(", ") + "** Pokemon to charm with ``" +
+			Config.commandCharacter + "charm [Pokemon]``!";
 		this.on(text, () => {
 			this.canCharm = true;
 			this.timeout = setTimeout(() => {
@@ -185,10 +187,12 @@ const commands: Dict<ICommandDefinition<DelcattysHideAndSeek>> = {
 				}
 			}
 			if (!eliminatedPlayers.length) {
-				this.say("**" + this.charmer.name + "** charmed **" + pokemon.name + "**! Unfortunately, they did not eliminate anyone...");
+				this.say("**" + this.charmer.name + "** charmed **" + pokemon.name + "**! Unfortunately, they did not eliminate " +
+					"anyone...");
 				this.eliminatePlayer(this.charmer, "No one chose the Pokemon you charmed!");
 			} else {
-				this.say("**" + this.charmer.name + "** charmed **" + pokemon.name + "** and eliminated " + Tools.joinList(eliminatedPlayers) + " from the game!");
+				this.say("**" + this.charmer.name + "** charmed **" + pokemon.name + "** and eliminated " +
+					Tools.joinList(eliminatedPlayers) + " from the game!");
 			}
 			if (this.timeout) clearTimeout(this.timeout);
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
@@ -279,7 +283,8 @@ const tests: GameFileTests<DelcattysHideAndSeek> = {
 			game.start();
 			const selector = game.charmer === players[0] ? players[1] : players[0];
 			game.canSelect = true;
-			await runCommand('select', data.parameters[game.categories.join(", ")][0], Users.add(selector.name, selector.id), selector.name);
+			await runCommand('select', data.parameters[game.categories.join(", ")][0], Users.add(selector.name, selector.id),
+				selector.name);
 			game.canCharm = true;
 			await runCommand('charm', data.parameters[game.categories.join(", ")][1], game.room, game.charmer.name);
 			assert(game.charmer.eliminated);
@@ -293,8 +298,8 @@ export const game: IGameFile<DelcattysHideAndSeek> = {
 	class: DelcattysHideAndSeek,
 	commandDescriptions: [Config.commandCharacter + "select [Pokemon]", Config.commandCharacter + "charm [Pokemon]"],
 	commands,
-	description: "Each round, the host will give a param that determines Pokemon players can hide behind (by PMing the host). One player will be chosen to seek one Pokemon. " +
-		"If anyone hid behind it, they are eliminated. If not, the seeker is eliminated.",
+	description: "Each round, the host will give a param that determines Pokemon players can hide behind (by PMing the host). One " +
+		"player will be chosen to seek one Pokemon. If anyone hid behind it, they are eliminated. If not, the seeker is eliminated.",
 	name,
 	mascot: "Delcatty",
 	tests,

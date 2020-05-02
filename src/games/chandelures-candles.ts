@@ -5,7 +5,8 @@ import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/gam
 
 const puffAchievementAmount = 15;
 const achievements: AchievementsDict = {
-	"spectralsnuffer": {name: "Spectral Snuffer", type: 'special', bits: 1000, description: 'puff candles ' + puffAchievementAmount + ' times'},
+	"spectralsnuffer": {name: "Spectral Snuffer", type: 'special', bits: 1000, description: 'puff candles ' +
+		puffAchievementAmount + ' times'},
 };
 
 class ChandeluresCandles extends Game {
@@ -168,7 +169,8 @@ export const game: IGameFile<ChandeluresCandles> = {
 	commandDescriptions: [Config.commandCharacter + "hide", Config.commandCharacter + "puff [player]"],
 	commands,
 	class: ChandeluresCandles,
-	description: "Players try to put out their opponents' candles for bits each round! If your candle is exposed, hide from others before they can puff.",
+	description: "Players try to put out their opponents' candles for bits each round! If your candle is exposed, hide from others " +
+		"before they can puff.",
 	name: "Chandelure's Candles",
 	mascot: "Chandelure",
 };

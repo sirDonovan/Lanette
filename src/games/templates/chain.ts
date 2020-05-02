@@ -155,11 +155,12 @@ export abstract class Chain extends Game {
 		let nextLinkEnds: string[] = [];
 		if (this.canReverseLinks) nextLinkEnds = this.filterUnusableLinkEnds(linkStarts);
 		let linkToSkip: Link | null = null;
-		while (this.currentLink === link || (!nextLinkStarts.length && !nextLinkEnds.length) || (linkToSkip && this.currentLink === linkToSkip)) {
+		while (this.currentLink === link || (!nextLinkStarts.length && !nextLinkEnds.length) ||
+			(linkToSkip && this.currentLink === linkToSkip)) {
 			if (input && this.playerList.length) {
 				const list = Tools.joinList(nextLinkStarts.concat(nextLinkEnds).map(x => x.toUpperCase()));
-				this.say("There are no " + (list ? "'" + list + "' " + this.linksType + " links left" : "links with " + link.name) + "! Substituting in a random " +
-					this.linksType + ".");
+				this.say("There are no " + (list ? "'" + list + "' " + this.linksType + " links left" : "links with " + link.name) +
+					"! Substituting in a random " + this.linksType + ".");
 				input = '';
 				if (!linkToSkip) linkToSkip = this.pool[id];
 			}
@@ -263,7 +264,8 @@ const commands: Dict<ICommandDefinition<Chain>> = {
 	guess: {
 		command(target, room, user): GameCommandReturnType {
 			if (this.format.options.freejoin) {
-				if ((!this.targetLinkStarts.length && !this.targetLinkEnds.length) || (this.players[user.id] && this.players[user.id].eliminated)) return false;
+				if ((!this.targetLinkStarts.length && !this.targetLinkEnds.length) || (this.players[user.id] &&
+					this.players[user.id].eliminated)) return false;
 			} else {
 				if (this.players[user.id] !== this.currentPlayer) return false;
 			}
@@ -302,13 +304,15 @@ const commands: Dict<ICommandDefinition<Chain>> = {
 				points++;
 				this.points.set(player, points);
 				if (points === this.format.options.points) {
-					this.say('**' + player.name + '** wins' + (this.parentGame ? '' : ' the game') + '! A possible answer was __' + possibleLink.name + '__.');
+					this.say('**' + player.name + '** wins' + (this.parentGame ? '' : ' the game') + '! A possible answer was __' +
+						possibleLink.name + '__.');
 					this.winners.set(player, 1);
 					this.convertPointsToBits(50);
 					this.end();
 					return true;
 				}
-				this.say('**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '! A possible answer was __' + possibleLink.name + '__.');
+				this.say('**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '! A possible ' +
+					'answer was __' + possibleLink.name + '__.');
 				this.timeout = setTimeout(() => this.nextRound(), 5000);
 			} else {
 				this.currentPlayer = null;

@@ -105,8 +105,8 @@ class QuizBuzzwole extends Game {
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			this.timeout = setTimeout(() => {
-				const text = "Replace every multiple of **" + this.firstMultiple + "** with a " + firstCategory + " and replace every multiple of **" + this.secondMultiple +
-					"** with a " + secondCategory + "!";
+				const text = "Replace every multiple of **" + this.firstMultiple + "** with a " + firstCategory + " and replace every " +
+					"multiple of **" + this.secondMultiple + "** with a " + secondCategory + "!";
 				this.on(text, () => this.timeout = setTimeout(() => this.nextRound(), 10 * 1000));
 				this.say(text);
 			}, 5000);
@@ -190,20 +190,25 @@ const commands: Dict<ICommandDefinition<QuizBuzzwole>> = {
 							this.expectedMultiples['firstMultiple'].splice(i, 1);
 							if (this.roundCategories['firstMultiple'] === 'Plate') {
 								if (guess.endsWith('plate')) {
-									this.expectedMultiples['firstMultiple'].splice(this.expectedMultiples['firstMultiple'].indexOf(guess.substr(0, guess.length - 5)), 1);
+									this.expectedMultiples['firstMultiple'].splice(this.expectedMultiples['firstMultiple']
+										.indexOf(guess.substr(0, guess.length - 5)), 1);
 								} else {
-									this.expectedMultiples['firstMultiple'].splice(this.expectedMultiples['firstMultiple'].indexOf(guess + 'plate'), 1);
+									this.expectedMultiples['firstMultiple'].splice(this.expectedMultiples['firstMultiple']
+										.indexOf(guess + 'plate'), 1);
 								}
 							} else if (this.roundCategories['firstMultiple'] === 'Berry') {
 								if (guess.endsWith('berry')) {
-									this.expectedMultiples['firstMultiple'].splice(this.expectedMultiples['firstMultiple'].indexOf(guess.substr(0, guess.length - 5)), 1);
+									this.expectedMultiples['firstMultiple'].splice(this.expectedMultiples['firstMultiple']
+										.indexOf(guess.substr(0, guess.length - 5)), 1);
 								} else {
-									this.expectedMultiples['firstMultiple'].splice(this.expectedMultiples['firstMultiple'].indexOf(guess + 'berry'), 1);
+									this.expectedMultiples['firstMultiple'].splice(this.expectedMultiples['firstMultiple']
+										.indexOf(guess + 'berry'), 1);
 								}
 							}
 							if (!this.expectedMultiples['firstMultiple'].length) {
 								this.say("Resetting the " + this.roundCategories['firstMultiple'] + " list!");
-								this.expectedMultiples['firstMultiple'] = data.categoryPools[Tools.toId(this.roundCategories['firstMultiple'])].slice();
+								this.expectedMultiples['firstMultiple'] =
+									data.categoryPools[Tools.toId(this.roundCategories['firstMultiple'])].slice();
 							}
 							break;
 						}
@@ -214,20 +219,25 @@ const commands: Dict<ICommandDefinition<QuizBuzzwole>> = {
 							this.expectedMultiples['secondMultiple'].splice(i, 1);
 							if (this.roundCategories['secondMultiple'] === 'Plate') {
 								if (guess.endsWith('plate')) {
-									this.expectedMultiples['secondMultiple'].splice(this.expectedMultiples['secondMultiple'].indexOf(guess.substr(0, guess.length - 5)), 1);
+									this.expectedMultiples['secondMultiple'].splice(this.expectedMultiples['secondMultiple']
+										.indexOf(guess.substr(0, guess.length - 5)), 1);
 								} else {
-									this.expectedMultiples['secondMultiple'].splice(this.expectedMultiples['secondMultiple'].indexOf(guess + 'plate'), 1);
+									this.expectedMultiples['secondMultiple'].splice(this.expectedMultiples['secondMultiple']
+										.indexOf(guess + 'plate'), 1);
 								}
 							} else if (this.roundCategories['secondMultiple'] === 'Berry') {
 								if (guess.endsWith('berry')) {
-									this.expectedMultiples['secondMultiple'].splice(this.expectedMultiples['secondMultiple'].indexOf(guess.substr(0, guess.length - 5)), 1);
+									this.expectedMultiples['secondMultiple'].splice(this.expectedMultiples['secondMultiple']
+										.indexOf(guess.substr(0, guess.length - 5)), 1);
 								} else {
-									this.expectedMultiples['secondMultiple'].splice(this.expectedMultiples['secondMultiple'].indexOf(guess + 'berry'), 1);
+									this.expectedMultiples['secondMultiple'].splice(this.expectedMultiples['secondMultiple']
+										.indexOf(guess + 'berry'), 1);
 								}
 							}
 							if (!this.expectedMultiples['secondMultiple'].length) {
 								this.say("Resetting the " + this.roundCategories['secondMultiple'] + " list!");
-								this.expectedMultiples['secondMultiple'] = data.categoryPools[Tools.toId(this.roundCategories['secondMultiple'])].slice();
+								this.expectedMultiples['secondMultiple'] =
+									data.categoryPools[Tools.toId(this.roundCategories['secondMultiple'])].slice();
 							}
 							break;
 						}
@@ -245,22 +255,25 @@ const commands: Dict<ICommandDefinition<QuizBuzzwole>> = {
 							this.expectedMultiples[this.expectedMultiple].splice(i, 1);
 							if (this.roundCategories[this.expectedMultiple] === 'Plate') {
 								if (guess.endsWith('plate')) {
-									this.expectedMultiples[this.expectedMultiple].splice(this.expectedMultiples[this.expectedMultiple].indexOf(guess.substr(0, guess.length - 5)),
-										1);
+									this.expectedMultiples[this.expectedMultiple].splice(this.expectedMultiples[this.expectedMultiple]
+										.indexOf(guess.substr(0, guess.length - 5)), 1);
 								} else {
-									this.expectedMultiples[this.expectedMultiple].splice(this.expectedMultiples[this.expectedMultiple].indexOf(guess + 'plate'), 1);
+									this.expectedMultiples[this.expectedMultiple].splice(this.expectedMultiples[this.expectedMultiple]
+										.indexOf(guess + 'plate'), 1);
 								}
 							} else if (this.roundCategories[this.expectedMultiple] === 'Berry') {
 								if (guess.endsWith('berry')) {
-									this.expectedMultiples[this.expectedMultiple].splice(this.expectedMultiples[this.expectedMultiple].indexOf(guess.substr(0, guess.length - 5)),
-										1);
+									this.expectedMultiples[this.expectedMultiple].splice(this.expectedMultiples[this.expectedMultiple]
+										.indexOf(guess.substr(0, guess.length - 5)), 1);
 								} else {
-									this.expectedMultiples[this.expectedMultiple].splice(this.expectedMultiples[this.expectedMultiple].indexOf(guess + 'berry'), 1);
+									this.expectedMultiples[this.expectedMultiple].splice(this.expectedMultiples[this.expectedMultiple]
+										.indexOf(guess + 'berry'), 1);
 								}
 							}
 							if (!this.expectedMultiples[this.expectedMultiple].length) {
 								this.say("Resetting the " + this.roundCategories[this.expectedMultiple] + " list!");
-								this.expectedMultiples[this.expectedMultiple] = data.categoryPools[Tools.toId(this.roundCategories[this.expectedMultiple])].slice();
+								this.expectedMultiples[this.expectedMultiple] =
+									data.categoryPools[Tools.toId(this.roundCategories[this.expectedMultiple])].slice();
 							}
 							break;
 						}
@@ -273,7 +286,8 @@ const commands: Dict<ICommandDefinition<QuizBuzzwole>> = {
 								this.expectedMultiples[otherMultiple].splice(i, 1);
 								if (!this.expectedMultiples[otherMultiple].length) {
 									this.say("Resetting the " + this.roundCategories[otherMultiple] + " list!");
-									this.expectedMultiples[otherMultiple] = data.categoryPools[Tools.toId(this.roundCategories[otherMultiple])].slice();
+									this.expectedMultiples[otherMultiple] =
+										data.categoryPools[Tools.toId(this.roundCategories[otherMultiple])].slice();
 								}
 							}
 							break;
@@ -309,8 +323,8 @@ export const game: IGameFile<QuizBuzzwole> = {
 	class: QuizBuzzwole,
 	commandDescriptions: [Config.commandCharacter + "guess [number or item]"],
 	commands,
-	description: "Players take turns counting and replace certain multiples with items in the chosen categories (no repeats in a round). " +
-		"<a href='https://www.tapatalk.com/groups/ps_game_corner/quiz-buzz-t110.html'>More info</a>",
+	description: "Players take turns counting and replace certain multiples with items in the chosen categories " +
+		"(no repeats in a round). <a href='https://www.tapatalk.com/groups/ps_game_corner/quiz-buzz-t110.html'>More info</a>",
 	formerNames: ["Quiz Buzz"],
 	name,
 	mascot: "Buzzwole",

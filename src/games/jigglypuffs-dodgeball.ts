@@ -55,7 +55,8 @@ class JigglypuffsDodgeball extends Game {
 					if (revived) {
 						revived.eliminated = false;
 					}
-					this.say(targetPlayer.name + " caught " + player.name + "'s " + BALL_POKEMON + (revived ? " and brought " + revived.name + " back into the game" : "") + "!");
+					this.say(targetPlayer.name + " caught " + player.name + "'s " + BALL_POKEMON + (revived ? " and brought " +
+						revived.name + " back into the game" : "") + "!");
 					this.shields.set(targetPlayer, true);
 				} else {
 					this.eliminatePlayer(targetPlayer, "You were hit by " + player.name + "'s " + BALL_POKEMON + "!");

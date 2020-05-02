@@ -80,8 +80,9 @@ class MagikarpsWaterWheel extends Game {
 	}
 
 	onStart(): void {
-		this.say("Use ``" + Config.commandCharacter + "swim [up/down]`` to swim to a higher/lower wheel, ``" + Config.commandCharacter + "tread`` to remain on your current " +
-			"wheel, or ``" + Config.commandCharacter + "stay`` to stop with your current score any round!");
+		this.say("Use ``" + Config.commandCharacter + "swim [up/down]`` to swim to a higher/lower wheel, ``" +
+			Config.commandCharacter + "tread`` to remain on your current wheel, or ``" + Config.commandCharacter + "stay`` to stop with " +
+			"your current score any round!");
 		this.nextRound();
 	}
 
@@ -89,9 +90,10 @@ class MagikarpsWaterWheel extends Game {
 		const wheel = this.playerWheels.get(player)!;
 		const wheelStats = this.wheels[wheel];
 		let html = '<div class="infobox"><center>';
-		html += '<div style="display:inline-block;background-color:' + colorCodes[wheel]['background-color'] + ';background:' + colorCodes[wheel]['background'] + ';' +
-			'border-color:' + colorCodes[wheel]['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:100px;padding:1px;color:#fff;' +
-			'text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt;text-align:center"><b>' + wheel.charAt(0).toUpperCase() + wheel.substr(1) + '</b></div>';
+		html += '<div style="display:inline-block;background-color:' + colorCodes[wheel]['background-color'] + ';background:' +
+			colorCodes[wheel]['background'] + ';border-color:' + colorCodes[wheel]['border-color'] + ';border: 1px solid #a99890;' +
+			'border-radius:3px;width:100px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;' +
+			'font-size:8pt;text-align:center"><b>' + wheel.charAt(0).toUpperCase() + wheel.substr(1) + '</b></div>';
 		let magikarp = false;
 		let goldenMagikarp = false;
 		if (this.random(100) <= wheelStats.magikarpChance) {
@@ -123,7 +125,9 @@ class MagikarpsWaterWheel extends Game {
 			let consecutiveWheels = this.consecutiveWheelSpins.get(player) || 0;
 			consecutiveWheels++;
 			this.consecutiveWheelSpins.set(player, consecutiveWheels);
-			if (wheel === highTideSurvivorWheel && consecutiveWheels === highTideSurvivorSpins) this.unlockAchievement(player, achievements.hightidesurvivor!);
+			if (wheel === highTideSurvivorWheel && consecutiveWheels === highTideSurvivorSpins) {
+				this.unlockAchievement(player, achievements.hightidesurvivor!);
+			}
 
 			if (goldenMagikarp) this.unlockAchievement(player, achievements.goldenmagikarp!);
 		}
@@ -192,7 +196,9 @@ class MagikarpsWaterWheel extends Game {
 const commands: Dict<ICommandDefinition<MagikarpsWaterWheel>> = {
 	swim: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canSwim || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) return false;
+			if (!this.canSwim || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) {
+				return false;
+			}
 			if (this.roundActions.has(this.players[user.id])) return false;
 			const player = this.players[user.id];
 			const wheel = this.playerWheels.get(player)!;
@@ -218,21 +224,26 @@ const commands: Dict<ICommandDefinition<MagikarpsWaterWheel>> = {
 			this.consecutiveWheelSpins.delete(player);
 			this.roundActions.add(player);
 			this.playerWheels.set(player, newWheel);
-			player.say("You have swam to the **" + newWheel.charAt(0).toUpperCase() + newWheel.substr(1) + "** wheel and " + (direction === "up" ? "increased" : "decreased") +
-				" your chances of Magikarp to " + this.wheels[newWheel].magikarpChance + "%!");
+			player.say("You have swam to the **" + newWheel.charAt(0).toUpperCase() + newWheel.substr(1) + "** wheel and " +
+				(direction === "up" ? "increased" : "decreased") + " your chances of Magikarp to " +
+				this.wheels[newWheel].magikarpChance + "%!");
 			return true;
 		},
 	},
 	tread: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canSwim || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) return false;
+			if (!this.canSwim || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) {
+				return false;
+			}
 			this.roundActions.add(this.players[user.id]);
 			return true;
 		},
 	},
 	stay: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canSwim || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) return false;
+			if (!this.canSwim || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) {
+				return false;
+			}
 			const player = this.players[user.id];
 			const points = this.points.get(player);
 			if (!points) {

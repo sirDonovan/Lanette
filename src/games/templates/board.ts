@@ -260,7 +260,8 @@ const tests: GameFileTests<BoardGame> = {
 			assertStrictEqual(locationAfterMovement.side, 'topRow');
 			assertStrictEqual(locationAfterMovement.space, 0);
 
-			locationAfterMovement = game.getLocationAfterMovement({side: 'leftColumn', space: game.board['leftColumn'].length - 1}, game.board['topRow'].length + 1);
+			locationAfterMovement = game.getLocationAfterMovement({side: 'leftColumn', space: game.board['leftColumn'].length - 1},
+				game.board['topRow'].length + 1);
 			assertStrictEqual(locationAfterMovement.side, 'rightColumn');
 			assertStrictEqual(locationAfterMovement.space, 0);
 
@@ -272,7 +273,8 @@ const tests: GameFileTests<BoardGame> = {
 			assertStrictEqual(locationAfterMovement.side, 'rightColumn');
 			assertStrictEqual(locationAfterMovement.space, 0);
 
-			locationAfterMovement = game.getLocationAfterMovement({side: 'topRow', space: game.board['topRow'].length - 1}, game.board['rightColumn'].length + 1);
+			locationAfterMovement = game.getLocationAfterMovement({side: 'topRow', space: game.board['topRow'].length - 1},
+				game.board['rightColumn'].length + 1);
 			assertStrictEqual(locationAfterMovement.side, 'bottomRow');
 			assertStrictEqual(locationAfterMovement.space, 0);
 
@@ -284,7 +286,8 @@ const tests: GameFileTests<BoardGame> = {
 			assertStrictEqual(locationAfterMovement.side, 'bottomRow');
 			assertStrictEqual(locationAfterMovement.space, 0);
 
-			locationAfterMovement = game.getLocationAfterMovement({side: 'rightColumn', space: game.board['rightColumn'].length - 1}, game.board['bottomRow'].length + 1);
+			locationAfterMovement = game.getLocationAfterMovement({side: 'rightColumn', space: game.board['rightColumn'].length - 1},
+				game.board['bottomRow'].length + 1);
 			assertStrictEqual(locationAfterMovement.side, 'leftColumn');
 			assertStrictEqual(locationAfterMovement.space, 0);
 
@@ -296,7 +299,8 @@ const tests: GameFileTests<BoardGame> = {
 			assertStrictEqual(locationAfterMovement.side, 'leftColumn');
 			assertStrictEqual(locationAfterMovement.space, 0);
 
-			locationAfterMovement = game.getLocationAfterMovement({side: 'bottomRow', space: game.board['bottomRow'].length - 1}, game.board['leftColumn'].length + 1);
+			locationAfterMovement = game.getLocationAfterMovement({side: 'bottomRow', space: game.board['bottomRow'].length - 1},
+				game.board['leftColumn'].length + 1);
 			assertStrictEqual(locationAfterMovement.side, 'topRow');
 			assertStrictEqual(locationAfterMovement.space, 0);
 

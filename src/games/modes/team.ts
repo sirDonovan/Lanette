@@ -208,7 +208,9 @@ const commands: CommandsDict<Team & Guessing, GameCommandReturnType> = {
 
 			if (this.allAnswersTeamAchievement) {
 				if (player.team!.id in this.firstAnswers) {
-					if (this.firstAnswers[player.team!.id] && this.firstAnswers[player.team!.id] !== player) this.firstAnswers[player.team!.id] = false;
+					if (this.firstAnswers[player.team!.id] && this.firstAnswers[player.team!.id] !== player) {
+						this.firstAnswers[player.team!.id] = false;
+					}
 				} else {
 					this.firstAnswers[player.team!.id] = player;
 				}
@@ -235,7 +237,8 @@ const commands: CommandsDict<Team & Guessing, GameCommandReturnType> = {
 				return true;
 			} else {
 				if (this.hint) this.off(this.hint);
-				let text = '**' + player.name + '** advances Team ' + player.team!.name + ' to **' + player.team!.points + '** point' + (player.team!.points > 1 ? 's' : '') + '!';
+				let text = '**' + player.name + '** advances Team ' + player.team!.name + ' to **' + player.team!.points + '** point' +
+					(player.team!.points > 1 ? 's' : '') + '!';
 				const answers = ' ' + this.getAnswers(answer);
 				if (text.length + answers.length <= Tools.maxMessageLength) {
 					text += answers;

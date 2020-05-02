@@ -90,8 +90,10 @@ const spaces: IBoardSpaces = {
 
 const doublesRollsAchievementAmount = 3;
 const achievements: AchievementsDict = {
-	"ohbabyatriple": {name: "Oh Baby A Triple", type: 'special', bits: 1000, description: 'roll doubles ' + doublesRollsAchievementAmount + ' times in one round'},
-	"cheapskate": {name: "Cheapskate", type: 'special', bits: 1000, description: 'win a property auction with a bid of ' + BID_MULTIPLE + ' Poke'},
+	"ohbabyatriple": {name: "Oh Baby A Triple", type: 'special', bits: 1000, description: 'roll doubles ' +
+		doublesRollsAchievementAmount + ' times in one round'},
+	"cheapskate": {name: "Cheapskate", type: 'special', bits: 1000, description: 'win a property auction with a bid of ' +
+		BID_MULTIPLE + ' Poke'},
 	"realestatetycoon": {name: "Real Estate Tycoon", type: 'special', bits: 1000, description: "buy every property on the board"},
 	"mountainmover": {name: "Mountain Mover", type: 'special', bits: 1000, description: "buy every mountain on the board"},
 };
@@ -103,14 +105,16 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 	acquirePropertyActionPast: string = "bought";
 	availablePropertyState: string = "vacant";
 	board: IBoard = {
-		leftColumn: [spaces.oakslab, spaces.pallet, spaces.littleroot, spaces.action, spaces.twinleaf, spaces.mtmoon, spaces.action, spaces.diglettscave, spaces.diglettstunnel,
-			spaces.pyritetownjail,
+		leftColumn: [spaces.oakslab, spaces.pallet, spaces.littleroot, spaces.action, spaces.twinleaf, spaces.mtmoon, spaces.action,
+			spaces.diglettscave, spaces.diglettstunnel, spaces.pyritetownjail,
 		],
-		topRow: [spaces.lakeacuity, spaces.lakeverity, spaces.action, spaces.lakevalor, spaces.mtsilver, spaces.action, spaces.battlefactory, spaces.battlemaison],
-		rightColumn: [spaces.pokemoncenter, spaces.viridianforest, spaces.eternaforest, spaces.action, spaces.pinwheelforest, spaces.mtpyre, spaces.action, spaces.whitetreehollow,
-			spaces.blackcity, spaces.pokemart,
+		topRow: [spaces.lakeacuity, spaces.lakeverity, spaces.action, spaces.lakevalor, spaces.mtsilver, spaces.action,
+			spaces.battlefactory, spaces.battlemaison],
+		rightColumn: [spaces.pokemoncenter, spaces.viridianforest, spaces.eternaforest, spaces.action, spaces.pinwheelforest,
+			spaces.mtpyre, spaces.action, spaces.whitetreehollow, spaces.blackcity, spaces.pokemart,
 		],
-		bottomRow: [spaces.jubilife, spaces.castelia, spaces.action, spaces.lumiose, spaces.mtcoronet, spaces.action, spaces.ultraspace, spaces.distortionworld],
+		bottomRow: [spaces.jubilife, spaces.castelia, spaces.action, spaces.lumiose, spaces.mtcoronet, spaces.action, spaces.ultraspace,
+			spaces.distortionworld],
 	};
 	canBid: boolean = false;
 	currencyName: string = POKE_DOLLAR;
@@ -151,8 +155,8 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 					randomPlayerCurrency += DONATE_ACTION_AMOUNT;
 					this.playerCurrency.set(randomPlayer, randomPlayerCurrency);
 					this.playerCurrency.set(player, currency - DONATE_ACTION_AMOUNT);
-					text = "They are feeling generous and donate **" + DONATE_ACTION_AMOUNT + " " + (DONATE_ACTION_AMOUNT > 1 ? this.currencyPluralName : this.currencyName) +
-						"** to **" + randomPlayer.name + "**!";
+					text = "They are feeling generous and donate **" + DONATE_ACTION_AMOUNT + " " + (DONATE_ACTION_AMOUNT > 1 ?
+						this.currencyPluralName : this.currencyName) + "** to **" + randomPlayer.name + "**!";
 				} else {
 					text = "They were feeling generous but they do not have enough " + this.currencyPluralName + " to give any away!";
 				}
@@ -167,7 +171,8 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 				this.playerLocations.set(player, location);
 				const text = "They go through a strange portal and end up in " + this.spaces.ultraspace.name + "!";
 				this.on(text, () => {
-					this.timeout = setTimeout(() => this.onSpaceLanding(player, 0, Object.assign(location, {passedSpaces: []}), true), this.roundTime);
+					this.timeout = setTimeout(() => this.onSpaceLanding(player, 0, Object.assign(location, {passedSpaces: []}), true),
+						this.roundTime);
 				});
 				this.say(text);
 			},
@@ -176,7 +181,8 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 				this.playerLocations.set(player, location);
 				const text = "They travel to **" + this.spaces.castelia.name + "** to get a Casteliacone!";
 				this.on(text, () => {
-					this.timeout = setTimeout(() => this.onSpaceLanding(player, 0, Object.assign(location, {passedSpaces: []}), true), this.roundTime);
+					this.timeout = setTimeout(() => this.onSpaceLanding(player, 0, Object.assign(location, {passedSpaces: []}), true),
+						this.roundTime);
 				});
 				this.say(text);
 			},
@@ -213,8 +219,8 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 
 	getPlayerPropertiesHtml(player: Player): string {
 		const properties = this.properties.get(player) || [];
-		return "<b>" + POKE_DOLLAR + "</b>: " + this.playerCurrency.get(player) + "<br /><b>Properties</b>: " + (properties.length ? properties.map(prop => prop.name +
-			" (" + prop.color + ")").join(", ") : "(none)");
+		return "<b>" + POKE_DOLLAR + "</b>: " + this.playerCurrency.get(player) + "<br /><b>Properties</b>: " +
+			(properties.length ? properties.map(prop => prop.name + " (" + prop.color + ")").join(", ") : "(none)");
 	}
 
 	onOwnedPropertySpace(space: BoardPropertyRentSpace, player: Player): void {
@@ -251,8 +257,8 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 	beginAuction(): void {
 		this.highestBidAmount = 0;
 		this.highestBidder = null;
-		this.say("Place your bids for **" + this.propertyToAcquire!.name + "** (cost: **" + this.propertyToAcquire!.cost + " " + POKE_DOLLAR + "**) with ``" +
-			Config.commandCharacter + "bid [amount]``!");
+		this.say("Place your bids for **" + this.propertyToAcquire!.name + "** (cost: **" + this.propertyToAcquire!.cost + " " +
+			POKE_DOLLAR + "**) with ``" + Config.commandCharacter + "bid [amount]``!");
 		this.canBid = true;
 		this.timeout = setTimeout(() => this.sellProperty(), 10 * 1000);
 	}
@@ -260,7 +266,8 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 	sellProperty(): void {
 		this.canBid = false;
 		if (this.highestBidder) {
-			this.say("**" + this.propertyToAcquire!.name + "** is sold to **" + this.highestBidder.name + "** for **" + this.highestBidAmount + " " + POKE_DOLLAR + "**!");
+			this.say("**" + this.propertyToAcquire!.name + "** is sold to **" + this.highestBidder.name + "** for **" +
+				this.highestBidAmount + " " + POKE_DOLLAR + "**!");
 			if (this.highestBidAmount === BID_MULTIPLE) this.unlockAchievement(this.highestBidder, achievements.cheapskate!);
 			this.acquirePropertySpace(this.propertyToAcquire!, this.highestBidder, this.highestBidAmount);
 		} else {
@@ -300,8 +307,8 @@ export const game: IGameFile<JellicentsPhantomFinances> = Games.copyTemplateProp
 	achievements,
 	aliases: ["jellicents", "phantomfinances", "jpf"],
 	class: JellicentsPhantomFinances,
-	commandDescriptions: [Config.commandCharacter + "buy", Config.commandCharacter + "pass", Config.commandCharacter + "bid [amount]", Config.commandCharacter + "rolldice",
-		Config.commandCharacter + "escape",
+	commandDescriptions: [Config.commandCharacter + "buy", Config.commandCharacter + "pass", Config.commandCharacter + "bid [amount]",
+		Config.commandCharacter + "rolldice", Config.commandCharacter + "escape",
 	],
 	commands: Object.assign(Tools.deepClone(boardPropertyGame.commands), commands),
 	description: "Players travel around the board to buy properties and avoid paying all of their Poke as rent for others!",

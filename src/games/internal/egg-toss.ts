@@ -26,7 +26,9 @@ class EggToss extends Game {
 		if (this.tossTimeout) clearTimeout(this.tossTimeout);
 		if (this.currentHolder) {
 			this.say("**BOOOOM**! The egg exploded on **" + this.currentHolder.name + "**!");
-			if (this.lastHolder && this.currentHolder.id === Users.self.id) this.unlockAchievement(this.lastHolder, achievements.eggthesystem!);
+			if (this.lastHolder && this.currentHolder.id === Users.self.id) {
+				this.unlockAchievement(this.lastHolder, achievements.eggthesystem!);
+			}
 		}
 		this.end();
 	}

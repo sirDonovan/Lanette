@@ -95,7 +95,8 @@ class MareaniesMarquee extends Guessing {
 	}
 
 	sayHint(): void {
-		const html = "<div class='infobox' style='text-align:center'>The category is <b>" + this.currentCategory + "</b>:<br /><br />" + this.hint + "<br />&nbsp;</div>";
+		const html = "<div class='infobox' style='text-align:center'>The category is <b>" + this.currentCategory + "</b>:<br /><br />" +
+			this.hint + "<br />&nbsp;</div>";
 		const uhtmlName = this.uhtmlBaseName + '-hint';
 		this.onUhtml(uhtmlName, html, () => {
 			if (!this.canGuess) this.canGuess = true;

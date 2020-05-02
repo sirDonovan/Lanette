@@ -12,7 +12,8 @@ let loadedData = false;
 const trumpCardEliminations = 5;
 const achievements: AchievementsDict = {
 	"luckofthedraw": {name: "Luck of the Draw", type: 'shiny', bits: 1000, repeatBits: 250, description: 'draw and play a shiny card'},
-	"trumpcard": {name: "Trump Card", type: 'special', bits: 1000, description: 'play a card that eliminates ' + trumpCardEliminations + ' or more players'},
+	"trumpcard": {name: "Trump Card", type: 'special', bits: 1000, description: 'play a card that eliminates ' +
+		trumpCardEliminations + ' or more players'},
 };
 
 class AxewsBattleCards extends CardMatching {
@@ -262,7 +263,9 @@ class AxewsBattleCards extends CardMatching {
 			playableCards = this.getPlayableCards(player);
 		}
 
-		if (this.lastPlayer && eliminateCount >= trumpCardEliminations && !this.lastPlayer.eliminated) this.unlockAchievement(this.lastPlayer, achievements.trumpcard!);
+		if (this.lastPlayer && eliminateCount >= trumpCardEliminations && !this.lastPlayer.eliminated) {
+			this.unlockAchievement(this.lastPlayer, achievements.trumpcard!);
+		}
 
 		if (this.timeEnded) return;
 
@@ -315,7 +318,8 @@ class AxewsBattleCards extends CardMatching {
 	autoPlay(player: Player, playableCards: string[]): void {
 		let autoplay = '';
 		if (playableCards.length) autoplay = this.sampleOne(playableCards);
-		this.say(player.name + " did not play a card and has been eliminated from the game!" + (autoplay ? " Auto-playing: " + autoplay : ""));
+		this.say(player.name + " did not play a card and has been eliminated from the game!" + (autoplay ? " Auto-playing: " +
+			autoplay : ""));
 		this.eliminatePlayer(player, "You did not play a card!");
 		if (autoplay) {
 			player.useCommand('play', autoplay);
@@ -502,8 +506,8 @@ export const game: IGameFile<AxewsBattleCards> = Games.copyTemplateProperties(ca
 	aliases: ["axews", "abc", "battlecards"],
 	commandDescriptions: [Config.commandCharacter + "play [Pokemon or move]"],
 	class: AxewsBattleCards,
-	description: "Each round, players can play a card that's super-effective against the top card. <a href='http://psgc.weebly.com/axewsbattlecards.html'>Action card " +
-		"descriptions</a>",
+	description: "Each round, players can play a card that's super-effective against the top card. " +
+		"<a href='http://psgc.weebly.com/axewsbattlecards.html'>Action card descriptions</a>",
 	name,
 	mascot: "Axew",
 	scriptedOnly: true,

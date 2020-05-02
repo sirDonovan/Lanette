@@ -9,7 +9,8 @@ const recklessAdventurerRound = 3;
 const achievements: AchievementsDict = {
 	"mazerunner": {name: "Maze Runner", type: 'points', bits: 1000, description: 'collect at least ' + mazeRunnerPoints + ' ' + currency},
 	"litwicksflame": {name: "Litwick's Flame", type: 'special', bits: 1000, description: 'get lucky and find Litwick in the labyrinth'},
-	"recklessadventurer": {name: "Reckless Adventurer", type: 'special', bits: 1000, description: 'get eliminated by traps in the first ' + recklessAdventurerRound + ' rounds'},
+	"recklessadventurer": {name: "Reckless Adventurer", type: 'special', bits: 1000, description: 'get eliminated by traps in the ' +
+		'first ' + recklessAdventurerRound + ' rounds'},
 };
 
 class LampentsLabyrinth extends MapGame  {
@@ -45,7 +46,8 @@ class LampentsLabyrinth extends MapGame  {
 
 	onAchievementSpace(player: Player, floor: MapFloor, space: MapFloorSpace): void {
 		delete space.attributes.achievement;
-		player.say("You arrived safely at (" + space.coordinates + ") and were greeted by a Litwick. Its flame illuminated a small coin on the ground!");
+		player.say("You arrived safely at (" + space.coordinates + ") and were greeted by a Litwick. Its flame illuminated a small coin " +
+			"on the ground!");
 		this.unlockAchievement(player, achievements.litwicksflame!);
 	}
 

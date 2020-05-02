@@ -283,10 +283,12 @@ export abstract class MapGame extends Game {
 	onCurrencySpace(player: Player, floor: MapFloor, space: MapFloorSpace): number {
 		if (!this.checkCurrencySpace(player, floor, space)) return 0;
 		let points = this.points.get(player) || 0;
-		const amount = ((Math.floor(Math.random() * 7) + 1) * 100) + ((Math.floor(Math.random() * 9) + 1) * 10) + (Math.floor(Math.random() * 9) + 1);
+		const amount = ((Math.floor(Math.random() * 7) + 1) * 100) + ((Math.floor(Math.random() * 9) + 1) * 10) +
+			(Math.floor(Math.random() * 9) + 1);
 		points += amount;
 		this.points.set(player, points);
-		player.say("You arrived at (" + space.coordinates + ") and found **" + amount + " " + this.currency + "**! Your collection is now " + points + ".");
+		player.say("You arrived at (" + space.coordinates + ") and found **" + amount + " " + this.currency + "**! Your collection " +
+			"is now " + points + ".");
 		return amount;
 	}
 
@@ -300,18 +302,23 @@ export abstract class MapGame extends Game {
 		if (!lives) {
 			player.say("You arrived at (" + space.coordinates + ") and fell into a trap!");
 			this.eliminatePlayer(player, "You ran out of lives!");
-			if (this.recklessAdventurerAchievement && this.round === this.recklessAdventurerRound) this.unlockAchievement(player, this.recklessAdventurerAchievement);
+			if (this.recklessAdventurerAchievement && this.round === this.recklessAdventurerRound) {
+				this.unlockAchievement(player, this.recklessAdventurerAchievement);
+			}
 			return false;
 		} else {
-			player.say("You arrived at (" + space.coordinates + ") and fell into a trap! You have **" + lives + " " + (lives > 1 ? "lives" : "life") + "** left.");
+			player.say("You arrived at (" + space.coordinates + ") and fell into a trap! You have **" + lives + " " + (lives > 1 ?
+				"lives" : "life") + "** left.");
 		}
 		return true;
 	}
 
 	onExitSpace(player: Player, floor: MapFloor, space: MapFloorSpace): void {
-		player.say("You arrived at (" + space.coordinates + ") and found an exit! You are now safe and will earn your bits at the end of the game.");
+		player.say("You arrived at (" + space.coordinates + ") and found an exit! You are now safe and will earn your bits at the end " +
+			"of the game.");
 		if (this.round < this.maxRound) {
-			player.say("If you are brave, you may continue travelling to collect more " + this.currency + " but **you must find your way to an exit** before time is up!");
+			player.say("If you are brave, you may continue travelling to collect more " + this.currency + " but **you must find your way " +
+				"to an exit** before time is up!");
 		}
 		if (this.escapedPlayers) this.escapedPlayers.set(player, true);
 		player.eliminated = true;
@@ -501,28 +508,32 @@ export abstract class MapGame extends Game {
 		if (cmd === 'left') {
 			const newPlayerCoordinate = playerCoordinates[0] - spacesToMove;
 			if (newPlayerCoordinate < 0) {
-				player.say("Oops! Moving " + spacesToMove + " space" + (spacesToMove > 1 ? "s" : "") + " in that direction would hit a boundary");
+				player.say("Oops! Moving " + spacesToMove + " space" + (spacesToMove > 1 ? "s" : "") + " in that direction would hit a " +
+					"boundary");
 				return false;
 			}
 			playerCoordinates[0] = newPlayerCoordinate;
 		} else if (cmd === 'right') {
 			const newPlayerCoordinate = playerCoordinates[0] + spacesToMove;
 			if (newPlayerCoordinate >= floor.x) {
-				player.say("Oops! Moving " + spacesToMove + " space" + (spacesToMove > 1 ? "s" : "") + " in that direction would hit a boundary");
+				player.say("Oops! Moving " + spacesToMove + " space" + (spacesToMove > 1 ? "s" : "") + " in that direction would hit a " +
+					"boundary");
 				return false;
 			}
 			playerCoordinates[0] = newPlayerCoordinate;
 		} else if (cmd === 'up') {
 			const newPlayerCoordinate = playerCoordinates[1] + spacesToMove;
 			if (newPlayerCoordinate >= floor.y) {
-				player.say("Oops! Moving " + spacesToMove + " space" + (spacesToMove > 1 ? "s" : "") + " in that direction would hit a boundary");
+				player.say("Oops! Moving " + spacesToMove + " space" + (spacesToMove > 1 ? "s" : "") + " in that direction would hit a " +
+					"boundary");
 				return false;
 			}
 			playerCoordinates[1] = newPlayerCoordinate;
 		} else if (cmd === 'down') {
 			const newPlayerCoordinate = playerCoordinates[1] - spacesToMove;
 			if (newPlayerCoordinate < 0) {
-				player.say("Oops! Moving " + spacesToMove + " space" + (spacesToMove > 1 ? "s" : "") + " in that direction would hit a boundary");
+				player.say("Oops! Moving " + spacesToMove + " space" + (spacesToMove > 1 ? "s" : "") + " in that direction would hit a " +
+					"boundary");
 				return false;
 			}
 			playerCoordinates[1] = newPlayerCoordinate;

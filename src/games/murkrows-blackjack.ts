@@ -170,8 +170,9 @@ class MurkrowsBlackjack extends PlayingCard {
 					this.blackJackpots.set(blackjack, previousBlackJackpots + blackJackpot);
 				}
 			}
-			text = "**Game " + this.subGameNumber + " winner" + (gameWinners.length > 1 ? "s" : "") + "**: " + gameWinners.join(", ") + (blackjacks.length ?
-				" | **BlackJackpot winner" + (blackjacks.length > 1 ? "s" : "") + "**: " + this.getPlayerNames(blackjacks) : "");
+			text = "**Game " + this.subGameNumber + " winner" + (gameWinners.length > 1 ? "s" : "") + "**: " + gameWinners.join(", ") +
+				(blackjacks.length ? " | **BlackJackpot winner" + (blackjacks.length > 1 ? "s" : "") + "**: " +
+				this.getPlayerNames(blackjacks) : "");
 		} else if (this.dealersHand > 21) {
 			text = "No one wins Game " + this.subGameNumber + "!";
 		} else {
@@ -206,7 +207,9 @@ class MurkrowsBlackjack extends PlayingCard {
 const commands: Dict<ICommandDefinition<MurkrowsBlackjack>> = {
 	hit: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canHit || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) return false;
+			if (!this.canHit || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) {
+				return false;
+			}
 			const player = this.players[user.id];
 			if (this.roundActions.has(player)) return false;
 			const userCards = this.playerCards.get(player)!;
@@ -235,7 +238,9 @@ const commands: Dict<ICommandDefinition<MurkrowsBlackjack>> = {
 	},
 	stay: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.started || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) return false;
+			if (!this.started || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) {
+				return false;
+			}
 			const player = this.players[user.id];
 			if (this.roundActions.has(player)) return false;
 			player.frozen = true;

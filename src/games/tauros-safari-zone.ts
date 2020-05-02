@@ -39,7 +39,8 @@ class TaurosSafariZone extends Game {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		const pokemonList = Games.getPokemonList(pokemon => Dex.hasGifData(pokemon) && pokemon.id !== 'voltorb' && pokemon.id !== 'electrode');
+		const pokemonList = Games.getPokemonList(pokemon => Dex.hasGifData(pokemon) && pokemon.id !== 'voltorb' &&
+			pokemon.id !== 'electrode');
 		const copy = pokemonList.slice();
 		for (const pokemon of copy) {
 			if (pokemon.otherFormes) {
@@ -205,7 +206,8 @@ export const game: IGameFile<TaurosSafariZone> = {
 	commandDescriptions: [Config.commandCharacter + "catch [Pokemon]"],
 	commands,
 	class: TaurosSafariZone,
-	description: "Players try to catch Pokemon each round before others while avoiding Voltorb and Electrode! Points are determined by base stats.",
+	description: "Players try to catch Pokemon each round before others while avoiding Voltorb and Electrode! Points are determined by " +
+		"base stats.",
 	formerNames: ["Catch That Pokemon"],
 	freejoin: true,
 	name,

@@ -50,7 +50,8 @@ class InkaysCups extends Game {
 					'type': [],
 				};
 				for (const paramType of paramTypes) {
-					paramTypeDexesKeys[searchType][gen][paramType] = Object.keys(parametersData[searchType].gens[gen].paramTypeDexes[paramType]);
+					paramTypeDexesKeys[searchType][gen][paramType] =
+						Object.keys(parametersData[searchType].gens[gen].paramTypeDexes[paramType]);
 				}
 			}
 		}
@@ -119,11 +120,14 @@ class InkaysCups extends Game {
 			}
 		}
 		if (letterIndex !== -1 && tierIndex !== -1) {
-			text = "Grab a Pokemon that is **" + paramNames[tierIndex] + "** and starts with the letter **" + paramNames[letterIndex] + "**!";
+			text = "Grab a Pokemon that is **" + paramNames[tierIndex] + "** and starts with the letter **" +
+				paramNames[letterIndex] + "**!";
 		} else if (letterIndex !== -1) {
-			text = "Grab a **" + (letterIndex === 0 ? paramNames[1] : paramNames[0]) + "** Pokemon that starts with the letter **" + paramNames[letterIndex] + "**!";
+			text = "Grab a **" + (letterIndex === 0 ? paramNames[1] : paramNames[0]) + "** Pokemon that starts with the letter **" +
+				paramNames[letterIndex] + "**!";
 		} else if (tierIndex !== -1) {
-			text = "Grab a **" + (tierIndex === 0 ? paramNames[1] : paramNames[0]) + "** Pokemon that is **" + paramNames[tierIndex] + "**!";
+			text = "Grab a **" + (tierIndex === 0 ? paramNames[1] : paramNames[0]) + "** Pokemon that is **" +
+				paramNames[tierIndex] + "**!";
 		} else {
 			text = "Grab a **" + paramNames[0] + ", " + paramNames[1] + "** Pokemon!";
 		}

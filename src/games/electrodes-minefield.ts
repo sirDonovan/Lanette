@@ -7,7 +7,8 @@ const currency = "fragments";
 const minesweeperPoints = 4000;
 
 const achievements: AchievementsDict = {
-	"minesweeper": {name: "Minesweeper", type: 'points', bits: 1000, description: 'collect at least ' + minesweeperPoints + ' ' + currency},
+	"minesweeper": {name: "Minesweeper", type: 'points', bits: 1000, description: 'collect at least ' + minesweeperPoints + ' ' +
+		currency},
 	"voltorbsfuse": {name: "Voltorb's Fuse", type: 'special', bits: 1000, description: 'get lucky and find Voltorb in the minefield'},
 };
 
@@ -31,7 +32,8 @@ class ElectrodesMinefield extends MapDamageGame {
 
 	onAchievementSpace(player: Player, floor: MapFloor, space: MapFloorSpace): void {
 		delete space.attributes.achievement;
-		player.say("You arrived at (" + space.coordinates + ") and were greeted by a Voltorb. It rolled over a hidden switch and revealed a small coin!");
+		player.say("You arrived at (" + space.coordinates + ") and were greeted by a Voltorb. It rolled over a hidden switch and " +
+			"revealed a small coin!");
 		this.unlockAchievement(player, achievements.voltorbsfuse!);
 	}
 
@@ -51,7 +53,8 @@ class ElectrodesMinefield extends MapDamageGame {
 			lives -= 1;
 			const eliminated = lives === 0;
 			this.lives.set(player, lives);
-			player.say("You were hit by the explosion and lost 1 life!" + (!eliminated ? " You have " + lives + " " + (lives > 1 ? "lives" : "life") + " left." : ""));
+			player.say("You were hit by the explosion and lost 1 life!" + (!eliminated ? " You have " + lives + " " +
+				(lives > 1 ? "lives" : "life") + " left." : ""));
 			if (eliminated) {
 				this.eliminatePlayer(player, "You ran out of lives!");
 			}
@@ -92,7 +95,8 @@ export const game: IGameFile<ElectrodesMinefield> = Games.copyTemplateProperties
 	achievements,
 	aliases: ["electrodes", "eminefield"],
 	class: ElectrodesMinefield,
-	description: "Players must try to survive the Electrode explosions each round (blasts are in a radius)! You may travel once per turn (up to 3 paces).",
+	description: "Players must try to survive the Electrode explosions each round (blasts are in a radius)! You may travel once per " +
+		"turn (up to 3 paces).",
 	name: "Electrode's Minefield",
 	mascot: "Electrode",
 	scriptedOnly: true,

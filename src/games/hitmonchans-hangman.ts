@@ -4,7 +4,8 @@ import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Hitmonchan's Hangman";
-const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]} = {
+const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
+	'Pokemon Items': string[]; 'Pokemon Moves': string[];} = {
 	"Characters": [],
 	"Locations": [],
 	"Pokemon": [],
@@ -92,7 +93,8 @@ class HitmonchansHangman extends Guessing {
 
 	filterGuess(guess: string): boolean {
 		guess = Tools.toId(guess);
-		if (this.guessedLetters.includes(guess) || this.solvedLetters.includes(guess)|| guess.length > Tools.toId(this.answers[0]).length) return true;
+		if (this.guessedLetters.includes(guess) || this.solvedLetters.includes(guess) ||
+			guess.length > Tools.toId(this.answers[0]).length) return true;
 		return false;
 	}
 

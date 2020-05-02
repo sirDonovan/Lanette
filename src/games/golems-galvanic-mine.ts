@@ -119,7 +119,8 @@ export const game: IGameFile<GolemsGalvanicMine> = {
 	commandDescriptions: [Config.commandCharacter + "mine [stone]"],
 	commands,
 	class: GolemsGalvanicMine,
-	description: "Players try to be the fastest miner by mining the Z and Mega stones with the highest values! Stones and their values are randomized each round.",
+	description: "Players try to be the fastest miner by mining the Z and Mega stones with the highest values! Stones and their values " +
+		"are randomized each round.",
 	freejoin: true,
 	name,
 	mascot: "Golem-Alola",

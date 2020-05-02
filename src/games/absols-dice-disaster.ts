@@ -14,8 +14,8 @@ class AbsolsDiceDisaster extends Game {
 	roundTimer: number = 20 * 1000;
 
 	onStart(): void {
-		this.say("Each round, you will have " + Tools.toDurationString(this.roundTimer) + " to bid numbers between " + this.minBid + " and " + this.maxBid +
-			" based on Absol's senses!");
+		this.say("Each round, you will have " + Tools.toDurationString(this.roundTimer) + " to bid numbers between " + this.minBid +
+			" and " + this.maxBid + " based on Absol's senses!");
 		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
@@ -117,8 +117,9 @@ export const game: IGameFile<AbsolsDiceDisaster> = {
 	class: AbsolsDiceDisaster,
 	commandDescriptions: [Config.commandCharacter + "bid [number]"],
 	commands,
-	description: "Each round, players bid numbers based on Absol's sense of disaster. Once time is up, dice will be rolled for the player with the highest bid. If the result " +
-		"is greater than or equal to the bid then the player wins, otherwise the player is eliminated!",
+	description: "Each round, players bid numbers based on Absol's sense of disaster. Once time is up, dice will be rolled for the " +
+		"player with the highest bid. If the result is greater than or equal to the bid then the player wins, otherwise the player is " +
+		"eliminated!",
 	name: "Absol's Dice Disaster",
 	mascot: "Absol",
 };

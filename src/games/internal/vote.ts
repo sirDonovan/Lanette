@@ -48,13 +48,15 @@ export class Vote extends Game {
 			this.picks.push(possiblePicks[i]);
 		}
 
-		let voteHtml = "<div class='infobox'><center><h3>Vote for the next scripted game!</h3>Use the command <code>" + Config.commandCharacter + "vote [game]</code>";
+		let voteHtml = "<div class='infobox'><center><h3>Vote for the next scripted game!</h3>Use the command <code>" +
+			Config.commandCharacter + "vote [game]</code>";
 		if (this.picks.length) {
 			voteHtml += "<br /><br /><b>" + Users.self.name + "'s picks:</b><br />";
 
 			const buttons: string[] = [];
 			for (const pick of this.picks) {
-				buttons.push('<button class="button" name="send" value="' + Config.commandCharacter + 'vote ' + pick + '">' + pick + '</button>');
+				buttons.push('<button class="button" name="send" value="' + Config.commandCharacter + 'vote ' + pick + '">' + pick +
+					'</button>');
 			}
 			voteHtml += buttons.join(" | ");
 		}
@@ -65,7 +67,8 @@ export class Vote extends Game {
 		});
 		this.sayUhtml(this.voteUhtml, voteHtml);
 
-		let gamesHtml = "<div class='infobox'><center><details><summary>Click to see all games</summary>" + formats.sort().join(", ") + "</details></center>";
+		let gamesHtml = "<div class='infobox'><center><details><summary>Click to see all games</summary>" + formats.sort().join(", ") +
+			"</details></center>";
 		if (pastGames.length) {
 			gamesHtml += "<br /><b>Past games (cannot be voted for)</b>: " + Tools.joinList(pastGames);
 		}
@@ -77,7 +80,8 @@ export class Vote extends Game {
 		this.sayUhtml(this.gamesUhtml, gamesHtml);
 
 		this.notifyRankSignups = true;
-		this.sayCommand("/notifyrank all, " + this.room.title + " game vote,Help decide the next scripted game!," + Games.scriptedGameVoteHighlight, true);
+		this.sayCommand("/notifyrank all, " + this.room.title + " game vote,Help decide the next scripted game!," +
+			Games.scriptedGameVoteHighlight, true);
 	}
 
 	endVoting(): void {
@@ -108,7 +112,9 @@ export class Vote extends Game {
 	}
 
 	onAfterDeallocate(forceEnd: boolean): void {
-		if (!forceEnd && this.chosenFormat) void CommandParser.parse(this.room, Users.self, Config.commandCharacter + "creategame " + this.chosenFormat);
+		if (!forceEnd && this.chosenFormat) {
+			void CommandParser.parse(this.room, Users.self, Config.commandCharacter + "creategame " + this.chosenFormat);
+		}
 	}
 }
 

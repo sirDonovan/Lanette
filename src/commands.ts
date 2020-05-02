@@ -12,10 +12,10 @@ import { GameDifficulty, IGameFormat } from "./types/games";
 import { IFormat } from "./types/dex";
 import { User } from "./users";
 import { UserHostStatus } from './types/storage';
-import { UserHosted } from './games/internal/user-hosted';
 
 type ReloadableModule = 'client' | 'commandparser' | 'commands' | 'config' | 'dex' | 'games' | 'storage' | 'tools' | 'tournaments';
-const moduleOrder: ReloadableModule[] = ['tools', 'config', 'dex', 'client', 'commandparser', 'commands', 'games', 'storage', 'tournaments'];
+const moduleOrder: ReloadableModule[] = ['tools', 'config', 'dex', 'client', 'commandparser', 'commands', 'games', 'storage',
+	'tournaments'];
 
 const AWARDED_BOT_GREETING_DURATION = 60 * 24 * 60 * 60 * 1000;
 
@@ -69,15 +69,17 @@ const commands: Dict<ICommandDefinition> = {
 			for (const target of targets) {
 				const id = Tools.toId(target) as ReloadableModule;
 				if (id === 'commandparser') {
-					if (Storage.workers.logs.requestsByUserid.length) return this.say("You must wait for all logs requests to finish first.");
+					if (Storage.workers.logs.requestsByUserid.length) {
+						return this.say("You must wait for all logs requests to finish first.");
+					}
 				} else if (id === 'games') {
 					const workerGameRooms: Room[] = [];
 					Users.self.rooms.forEach((rank, room) => {
 						if (room.game && room.game.usesWorkers) workerGameRooms.push(room);
 					});
 					if (workerGameRooms.length) {
-						return this.say("You must wait for the game" + (workerGameRooms.length > 1 ? "s" : "") + " in " + Tools.joinList(workerGameRooms.map(x => x.title)) +
-							" to finish first.");
+						return this.say("You must wait for the game" + (workerGameRooms.length > 1 ? "s" : "") + " in " +
+							Tools.joinList(workerGameRooms.map(x => x.title)) + " to finish first.");
 					}
 				}
 				const moduleIndex = moduleOrder.indexOf(id);
@@ -186,8 +188,9 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
 			const targetUser = Users.get(target);
-			this.say((targetUser ? targetUser.name + ": you" : "You") + " can join a scripted tournament by clicking the ``Join`` button at the top of the chat or using the " +
-				"command ``/tour join``. | Guide to joining user-hosted tournaments: http://pstournaments.weebly.com/joining-a-tournament.html");
+			this.say((targetUser ? targetUser.name + ": you" : "You") + " can join a scripted tournament by clicking the ``Join`` button " +
+				"at the top of the chat or using the command ``/tour join``. | Guide to joining user-hosted tournaments: " +
+				"http://pstournaments.weebly.com/joining-a-tournament.html");
 		},
 		aliases: ['jointour'],
 	},
@@ -197,8 +200,9 @@ const commands: Dict<ICommandDefinition> = {
 			if (!Config.tournamentAutoDQTimers || !(room.id in Config.tournamentAutoDQTimers)) {
 				return this.say("The automatic disqualification timer is not set for " + room.title + ".");
 			}
-			this.say("The automatic disqualification timer is currently set to " + Config.tournamentAutoDQTimers[room.id] + " minutes. You will be disqualified from a " +
-				"tournament if you fail to send or accept a challenge from your opponent before the timer expires.");
+			this.say("The automatic disqualification timer is currently set to " + Config.tournamentAutoDQTimers[room.id] + " minutes. " +
+				"You will be disqualified from a tournament if you fail to send or accept a challenge from your opponent before the " +
+				"timer expires.");
 		},
 	},
 	sampleteams: {
@@ -276,12 +280,15 @@ const commands: Dict<ICommandDefinition> = {
 	startvote: {
 		command(target, room, user) {
 			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
-			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) return this.sayError(['disabledGameFeatures', room.title]);
+			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) {
+				return this.sayError(['disabledGameFeatures', room.title]);
+			}
 			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
 			const remainingGameCooldown = Games.getRemainingGameCooldown(room);
 			if (remainingGameCooldown > 1000) {
 				const durationString = Tools.toDurationString(remainingGameCooldown);
-				this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the game cooldown remaining.");
+				this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the game cooldown " +
+					"remaining.");
 				return;
 			}
 			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
@@ -298,12 +305,15 @@ const commands: Dict<ICommandDefinition> = {
 				return;
 			}
 			if (!user.hasRank(room, 'voice') || room.userHostedGame) return;
-			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) return this.sayError(['disabledGameFeatures', room.title]);
+			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) {
+				return this.sayError(['disabledGameFeatures', room.title]);
+			}
 			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
 			const remainingGameCooldown = Games.getRemainingGameCooldown(room, true);
 			if (remainingGameCooldown > 1000) {
 				const durationString = Tools.toDurationString(remainingGameCooldown);
-				this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the minigame cooldown remaining.");
+				this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the minigame " +
+					"cooldown remaining.");
 				return;
 			}
 			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
@@ -313,8 +323,8 @@ const commands: Dict<ICommandDefinition> = {
 			game.signups();
 			const canEgg = await this.run('toss');
 			if (canEgg) {
-				this.say("**" + user.name + "** handed an egg to **" + targetUser.name + "**! Pass it around with ``" + Config.commandCharacter + "toss [user]`` before it " +
-					"explodes!");
+				this.say("**" + user.name + "** handed an egg to **" + targetUser.name + "**! Pass it around with ``" +
+					Config.commandCharacter + "toss [user]`` before it explodes!");
 			} else {
 				game.end();
 			}
@@ -323,12 +333,15 @@ const commands: Dict<ICommandDefinition> = {
 	creategame: {
 		command(target, room, user, cmd) {
 			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
-			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) return this.sayError(['disabledGameFeatures', room.title]);
+			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) {
+				return this.sayError(['disabledGameFeatures', room.title]);
+			}
 			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
 			const remainingGameCooldown = Games.getRemainingGameCooldown(room);
 			if (remainingGameCooldown > 1000) {
 				const durationString = Tools.toDurationString(remainingGameCooldown);
-				this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the game cooldown remaining.");
+				this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the game cooldown " +
+					"remaining.");
 				return;
 			}
 			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
@@ -507,12 +520,16 @@ const commands: Dict<ICommandDefinition> = {
 			if (this.isPm(room)) {
 				const targetRoom = Rooms.search(targets[0]);
 				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
-				if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(targetRoom.id)) return this.sayError(['disabledGameFeatures', targetRoom.title]);
+				if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(targetRoom.id)) {
+					return this.sayError(['disabledGameFeatures', targetRoom.title]);
+				}
 				gameRoom = targetRoom;
 				targets.shift();
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
-				if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) return this.sayError(['disabledGameFeatures', room.title]);
+				if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) {
+					return this.sayError(['disabledGameFeatures', room.title]);
+				}
 				gameRoom = room;
 			}
 
@@ -551,7 +568,9 @@ const commands: Dict<ICommandDefinition> = {
 				targets.shift();
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
-				if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id)) return this.sayError(['disabledUserHostedGameFeatures', room.title]);
+				if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id)) {
+					return this.sayError(['disabledUserHostedGameFeatures', room.title]);
+				}
 				gameRoom = room;
 			}
 
@@ -573,7 +592,8 @@ const commands: Dict<ICommandDefinition> = {
 
 				names.push(game);
 			}
-			this.sayHtml("<b>Past user-hosted games</b>" + (displayTimes ? "" : " (most recent first)") + ": " + Tools.joinList(names) + ".", gameRoom);
+			this.sayHtml("<b>Past user-hosted games</b>" + (displayTimes ? "" : " (most recent first)") + ": " + Tools.joinList(names) +
+				".", gameRoom);
 		},
 		aliases: ['pastuserhosts', 'pasthosts'],
 	},
@@ -585,24 +605,31 @@ const commands: Dict<ICommandDefinition> = {
 				const targetRoom = Rooms.search(targets[0]);
 				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 				targets.shift();
-				if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(targetRoom.id)) return this.sayError(['disabledGameFeatures', targetRoom.title]);
+				if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(targetRoom.id)) {
+					return this.sayError(['disabledGameFeatures', targetRoom.title]);
+				}
 				gameRoom = targetRoom;
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
-				if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) return this.sayError(['disabledGameFeatures', room.title]);
+				if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) {
+					return this.sayError(['disabledGameFeatures', room.title]);
+				}
 				gameRoom = room;
 			}
 
 			const database = Storage.getDatabase(gameRoom);
 			if (!targets[0]) {
 				if (!database.lastGameTime) return this.say("No scripted games have been played in " + gameRoom.title + ".");
-				return this.say("The last scripted game in " + gameRoom.title + " ended **" + Tools.toDurationString(Date.now() - database.lastGameTime) + "** ago.");
+				return this.say("The last scripted game in " + gameRoom.title + " ended **" +
+					Tools.toDurationString(Date.now() - database.lastGameTime) + "** ago.");
 			}
 			const format = Games.getFormat(targets[0]);
 			if (Array.isArray(format)) return this.sayError(format);
-			if (!database.lastGameFormatTimes || !(format.id in database.lastGameFormatTimes)) return this.say(format.name + " has not been played in " + gameRoom.title + ".");
-			this.say("The last game of " + format.name + " in " + gameRoom.title + " ended **" + Tools.toDurationString(Date.now() - database.lastGameFormatTimes[format.id]) +
-				"** ago.");
+			if (!database.lastGameFormatTimes || !(format.id in database.lastGameFormatTimes)) {
+				return this.say(format.name + " has not been played in " + gameRoom.title + ".");
+			}
+			this.say("The last game of " + format.name + " in " + gameRoom.title + " ended **" +
+				Tools.toDurationString(Date.now() - database.lastGameFormatTimes[format.id]) + "** ago.");
 		},
 	},
 	lastuserhostedgame: {
@@ -619,14 +646,17 @@ const commands: Dict<ICommandDefinition> = {
 				gameRoom = targetRoom;
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
-				if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id)) return this.sayError(['disabledUserHostedGameFeatures', room.title]);
+				if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id)) {
+					return this.sayError(['disabledUserHostedGameFeatures', room.title]);
+				}
 				gameRoom = room;
 			}
 
 			const database = Storage.getDatabase(gameRoom);
 			if (!targets[0]) {
 				if (!database.lastUserHostedGameTime) return this.say("No user-hosted games have been played in " + gameRoom.title + ".");
-				return this.say("The last user-hosted game in " + gameRoom.title + " ended **" + Tools.toDurationString(Date.now() - database.lastUserHostedGameTime) + "** ago.");
+				return this.say("The last user-hosted game in " + gameRoom.title + " ended **" +
+					Tools.toDurationString(Date.now() - database.lastUserHostedGameTime) + "** ago.");
 			}
 			const format = Games.getUserHostedFormat(targets[0]);
 			if (Array.isArray(format)) return this.sayError(format);
@@ -644,7 +674,9 @@ const commands: Dict<ICommandDefinition> = {
 			const database = Storage.getDatabase(room);
 			const approvedHost = database.userHostStatuses && database.userHostStatuses[user.id] === 'approved' ? true : false;
 			if (!user.hasRank(room, 'voice') && !approvedHost) return;
-			if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id)) return this.sayError(['disabledUserHostedGameFeatures', room.title]);
+			if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id)) {
+				return this.sayError(['disabledUserHostedGameFeatures', room.title]);
+			}
 			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'user-hosted game']);
 
 			const targets = target.split(",");
@@ -664,16 +696,20 @@ const commands: Dict<ICommandDefinition> = {
 					const gameHostingDifficulty = Config.userHostedGameHostDifficulties &&
 						format.id in Config.userHostedGameHostDifficulties ? Config.userHostedGameHostDifficulties[format.id] : 'medium';
 					if (gameHostingDifficulty !== 'easy') {
-						return this.say(host.name + " is currently unapproved for hosting '" + gameHostingDifficulty + "' games such as " + format.name + ".");
+						return this.say(host.name + " is currently unapproved for hosting '" + gameHostingDifficulty + "' games such as " +
+							format.name + ".");
 					}
 				}
 			}
 
-			if (Config.userHostCooldownTimers && room.id in Config.userHostCooldownTimers && room.id in Games.lastUserHostTimes && host.id in Games.lastUserHostTimes[room.id]) {
-				const userHostCooldown = (Config.userHostCooldownTimers[room.id] * 60 * 1000) - (Date.now() - Games.lastUserHostTimes[room.id][host.id]);
+			if (Config.userHostCooldownTimers && room.id in Config.userHostCooldownTimers && room.id in Games.lastUserHostTimes &&
+				host.id in Games.lastUserHostTimes[room.id]) {
+				const userHostCooldown = (Config.userHostCooldownTimers[room.id] * 60 * 1000) -
+					(Date.now() - Games.lastUserHostTimes[room.id][host.id]);
 				if (userHostCooldown > 1000) {
 					const durationString = Tools.toDurationString(userHostCooldown);
-					return this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of " + host.name + "'s host cooldown remaining.");
+					return this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of " +
+						host.name + "'s host cooldown remaining.");
 				}
 			}
 
@@ -703,10 +739,12 @@ const commands: Dict<ICommandDefinition> = {
 				let reason = '';
 				if (!room.game && !room.userHostedGame) {
 					if (otherUsersQueued) {
-						reason = (database.userHostedGameQueue.length === 1 ? "Another host is" : database.userHostedGameQueue.length + " other hosts are") + " currently queued";
+						reason = (database.userHostedGameQueue.length === 1 ? "Another host is" : database.userHostedGameQueue.length +
+							" other hosts are") + " currently queued";
 					} else if (inCooldown) {
 						const durationString = Tools.toDurationString(remainingGameCooldown);
-						reason = "There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the game cooldown remaining";
+						reason = "There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the game " +
+							"cooldown remaining";
 					} else if (requiresScriptedGame) {
 						reason = "At least 1 scripted game needs to be played before the next user-hosted game can start";
 					}
@@ -728,7 +766,9 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			if (this.isPm(room) || !user.hasRank(room, 'voice') || !room.userHostedGame) return;
 			const targetUser = Users.get(Tools.toId(target));
-			if (!targetUser || !targetUser.rooms.has(room) || targetUser.isBot(room)) return this.say("You must specify a user currently in the room.");
+			if (!targetUser || !targetUser.rooms.has(room) || targetUser.isBot(room)) {
+				return this.say("You must specify a user currently in the room.");
+			}
 			if (room.userHostedGame.hostId === targetUser.id) return this.say(targetUser.name + " is already the game's host.");
 			if (room.userHostedGame.subHostId === targetUser.id) return this.say(targetUser.name + " is already the game's sub-host.");
 			room.userHostedGame.setSubHost(targetUser);
@@ -738,7 +778,9 @@ const commands: Dict<ICommandDefinition> = {
 	nexthost: {
 		command(target, room, user) {
 			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
-			if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id)) return this.sayError(['disabledUserHostedGameFeatures', room.title]);
+			if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id)) {
+				return this.sayError(['disabledUserHostedGameFeatures', room.title]);
+			}
 			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'user-hosted game']);
 			if (Games.requiresScriptedGame(room)) {
 				this.say("At least 1 scripted game needs to be played before the next user-hosted game can start.");
@@ -749,7 +791,8 @@ const commands: Dict<ICommandDefinition> = {
 			const remainingGameCooldown = Games.getRemainingGameCooldown(room);
 			if (remainingGameCooldown > 1000) {
 				const durationString = Tools.toDurationString(remainingGameCooldown);
-				this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the game cooldown remaining.");
+				this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the game cooldown " +
+					"remaining.");
 				return;
 			}
 			const nextHost = database.userHostedGameQueue[0];
@@ -780,7 +823,8 @@ const commands: Dict<ICommandDefinition> = {
 				let name = database.userHostedGameQueue[i].name;
 				const user = Users.get(database.userHostedGameQueue[i].name);
 				if (user) name = user.name;
-				html.push("<b>" + (i + 1) + "</b>: " + name + " (" + Games.getExistingUserHostedFormat(database.userHostedGameQueue[i].format).name + ")");
+				html.push("<b>" + (i + 1) + "</b>: " + name + " (" +
+					Games.getExistingUserHostedFormat(database.userHostedGameQueue[i].format).name + ")");
 			}
 			this.sayHtml("<b>Host queue</b>:<br><br>" + html.join("<br>"), gameRoom);
 		},
@@ -791,12 +835,14 @@ const commands: Dict<ICommandDefinition> = {
 			if (!this.isPm(room)) return;
 			const targetRoom = Rooms.search(target);
 			if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
-			if (Config.userHostCooldownTimers && targetRoom.id in Config.userHostCooldownTimers && targetRoom.id in Games.lastUserHostTimes &&
-				user.id in Games.lastUserHostTimes[targetRoom.id]) {
-				const userHostCooldown = (Config.userHostCooldownTimers[targetRoom.id] * 60 * 1000) - (Date.now() - Games.lastUserHostTimes[targetRoom.id][user.id]);
+			if (Config.userHostCooldownTimers && targetRoom.id in Config.userHostCooldownTimers &&
+				targetRoom.id in Games.lastUserHostTimes && user.id in Games.lastUserHostTimes[targetRoom.id]) {
+				const userHostCooldown = (Config.userHostCooldownTimers[targetRoom.id] * 60 * 1000) -
+					(Date.now() - Games.lastUserHostTimes[targetRoom.id][user.id]);
 				if (userHostCooldown > 1000) {
 					const durationString = Tools.toDurationString(userHostCooldown);
-					this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of your host cooldown remaining.");
+					this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of your host " +
+						"cooldown remaining.");
 				} else {
 					this.say("Your host cooldown has ended.");
 				}
@@ -814,7 +860,9 @@ const commands: Dict<ICommandDefinition> = {
 			if (!user.hasRank(room, 'voice') && !approvedHost) return;
 			const id = Tools.toId(target);
 			if (approvedHost && id !== user.id) return user.say("You are only able to use this command on yourself as approved host.");
-			if (room.userHostedGame && (room.userHostedGame.hostId === id || room.userHostedGame.subHostId === id)) return this.run('endgame');
+			if (room.userHostedGame && (room.userHostedGame.hostId === id || room.userHostedGame.subHostId === id)) {
+				return this.run('endgame');
+			}
 			if (!database.userHostedGameQueue || !database.userHostedGameQueue.length) return this.sayError(['emptyUserHostedGameQueue']);
 			let position = -1;
 			for (let i = 0; i < database.userHostedGameQueue.length; i++) {
@@ -865,7 +913,9 @@ const commands: Dict<ICommandDefinition> = {
 				if (!user.hasRank(gameRoom, 'driver')) return;
 				const status = Tools.toId(targets[1]);
 				if (status === 'standard') {
-					if (!database.userHostStatuses || !(hostId in database.userHostStatuses)) return this.say(hostName + "'s host status is already standard.");
+					if (!database.userHostStatuses || !(hostId in database.userHostStatuses)) {
+						return this.say(hostName + "'s host status is already standard.");
+					}
 					delete database.userHostStatuses[hostId];
 					return this.say(hostName + "'s host status has been set to 'standard'.");
 				} else if (status === 'unapproved' || status === 'novice' || status === 'approved') {
@@ -874,7 +924,9 @@ const commands: Dict<ICommandDefinition> = {
 					return this.say(hostName + "'s host status has been set to '" + status + "'.");
 				}
 			} else {
-				if (!database.userHostStatuses || !(hostId in database.userHostStatuses)) return this.say(hostName + "'s host status is 'standard'.");
+				if (!database.userHostStatuses || !(hostId in database.userHostStatuses)) {
+					return this.say(hostName + "'s host status is 'standard'.");
+				}
 				this.say(hostName + "'s host status is '" + database.userHostStatuses[hostId] + "'.");
 			}
 		},
@@ -1017,7 +1069,10 @@ const commands: Dict<ICommandDefinition> = {
 			for (const target of targets) {
 				const user = Users.get(target.trim());
 				if (!user) continue;
-				if (!room.userHostedGame.players[user.id] || (room.userHostedGame.players[user.id] && room.userHostedGame.players[user.id].eliminated)) users.push(user);
+				if (!room.userHostedGame.players[user.id] || (room.userHostedGame.players[user.id] &&
+					room.userHostedGame.players[user.id].eliminated)) {
+						users.push(user);
+				}
 			}
 			if (!users.length) return this.say("Please specify at least one user who is not already in the game.");
 			for (const user of users) {
@@ -1038,7 +1093,9 @@ const commands: Dict<ICommandDefinition> = {
 			const targets = target.split(",");
 			for (const target of targets) {
 				const id = Tools.toId(target);
-				if (id && room.userHostedGame.players[id] && !room.userHostedGame.players[id].eliminated) users.push(room.userHostedGame.players[id].name);
+				if (id && room.userHostedGame.players[id] && !room.userHostedGame.players[id].eliminated) {
+					users.push(room.userHostedGame.players[id].name);
+				}
 			}
 			if (!users.length) return this.say("Please specify at least one player who is still in the game.");
 			for (const user of users) {
@@ -1096,7 +1153,9 @@ const commands: Dict<ICommandDefinition> = {
 	addpoints: {
 		async asyncCommand(target, room, user, cmd) {
 			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
-			if (!room.userHostedGame.started) return this.say("You must first start the game with ``" + Config.commandCharacter + "startgame``.");
+			if (!room.userHostedGame.started) {
+				return this.say("You must first start the game with ``" + Config.commandCharacter + "startgame``.");
+			}
 			if (target.includes("|")) {
 				await this.runMultipleTargets("|");
 				return;
@@ -1134,14 +1193,18 @@ const commands: Dict<ICommandDefinition> = {
 				if (room.userHostedGame.scoreCap && total >= room.userHostedGame.scoreCap) reachedCap++;
 			}
 			if (!this.runningMultipleTargets) await this.run('playerlist');
-			if (reachedCap) user.say((reachedCap === 1 ? "A user has" : reachedCap + " users have") + " reached the score cap in your game.");
+			if (reachedCap) {
+				user.say((reachedCap === 1 ? "A user has" : reachedCap + " users have") + " reached the score cap in your game.");
+			}
 		},
 		aliases: ['addpoint', 'removepoint', 'removepoints', 'apt', 'rpt'],
 	},
 	addpointall: {
 		async asyncCommand(target, room, user, cmd) {
 			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
-			if (!room.userHostedGame.started) return this.say("You must first start the game with ``" + Config.commandCharacter + "startgame``.");
+			if (!room.userHostedGame.started) {
+				return this.say("You must first start the game with ``" + Config.commandCharacter + "startgame``.");
+			}
 			if (target && !Tools.isInteger(target)) return this.say("You must specify a valid number of points.");
 			this.runningMultipleTargets = true;
 			const newCmd = cmd === 'aptall' || cmd === 'addpointall' ? 'addpoint' : 'removepoint';
@@ -1192,7 +1255,8 @@ const commands: Dict<ICommandDefinition> = {
 			let toPoints = room.userHostedGame.points.get(room.userHostedGame.players[to.id]) || 0;
 			toPoints += amount;
 			room.userHostedGame.points.set(room.userHostedGame.players[to.id], toPoints);
-			this.say((allPoints ? "" : amount + " of ") + from.name + "'s points have been moved to " + to.name + ". Their total is now " + toPoints + ".");
+			this.say((allPoints ? "" : amount + " of ") + from.name + "'s points have been moved to " + to.name + ". Their total is now " +
+				toPoints + ".");
 		},
 		aliases: ['mpt'],
 	},
@@ -1214,7 +1278,8 @@ const commands: Dict<ICommandDefinition> = {
 		async asyncCommand(target, room, user, cmd) {
 			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			if (cmd === 'stored' || !target) {
-				if (!room.userHostedGame.storedMessage) return this.say("You must store a message first with ``" + Config.commandCharacter + "store``.");
+				if (!room.userHostedGame.storedMessage) return this.say("You must store a message first with ``" + Config.commandCharacter +
+					"store``.");
 				if (CommandParser.isCommandMessage(room.userHostedGame.storedMessage)) {
 					const parts = room.userHostedGame.storedMessage.split(" ");
 					await this.run(parts[0].substr(1), parts.slice(1).join(" "));
@@ -1224,7 +1289,9 @@ const commands: Dict<ICommandDefinition> = {
 				return;
 			}
 			target = target.trim();
-			if (target.startsWith('/') || (target.startsWith('!') && target.trim().split(" ")[0] !== '!pick')) return this.say("You cannot store a command.");
+			if (target.startsWith('/') || (target.startsWith('!') && target.trim().split(" ")[0] !== '!pick')) {
+				return this.say("You cannot store a command.");
+			}
 			room.userHostedGame.storedMessage = target;
 			this.say("Your message has been stored. You can now repeat it with ``" + Config.commandCharacter + "stored``.");
 		},
@@ -1261,7 +1328,9 @@ const commands: Dict<ICommandDefinition> = {
 			const targets = target.split(",");
 			if (Config.maxUserHostedGameWinners && room.id in Config.maxUserHostedGameWinners) {
 				const totalStored = room.userHostedGame.savedWinners.length + targets.length;
-				if (totalStored > Config.maxUserHostedGameWinners[room.id]) return this.say("You cannot store more than " + Config.maxUserHostedGameWinners[room.id] + " winners.");
+				if (totalStored > Config.maxUserHostedGameWinners[room.id]) {
+					return this.say("You cannot store more than " + Config.maxUserHostedGameWinners[room.id] + " winners.");
+				}
 				if (totalStored === Config.maxUserHostedGameWinners[room.id]) {
 					return this.say("You will reach the maximum amount of winners. Please use ``" + Config.commandCharacter + "win``.");
 				}
@@ -1362,7 +1431,8 @@ const commands: Dict<ICommandDefinition> = {
 
 			for (const player of players) {
 				Storage.addPoints(room, player.name, playerBits, 'userhosted');
-				player.say("You were awarded " + playerBits + " bits! To see your total amount, use this command: ``" + Config.commandCharacter + "bits " + room.title + "``");
+				player.say("You were awarded " + playerBits + " bits! To see your total amount, use this command: ``" +
+					Config.commandCharacter + "bits " + room.title + "``");
 			}
 			this.say("The winner" + (players.length === 1 ? " is" : "s are") + " " + players.map(x => x.name).join(", ") + "!");
 			room.userHostedGame.end();
@@ -1499,13 +1569,17 @@ const commands: Dict<ICommandDefinition> = {
 			if (this.isPm(room)) {
 				const targetRoom = Rooms.search(target);
 				if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
-				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.sayError(['disabledTournamentFeatures', targetRoom.title]);
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) {
+					return this.sayError(['disabledTournamentFeatures', targetRoom.title]);
+				}
 				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
 				tournamentRoom = targetRoom;
 			} else {
 				if (target) return this.run('createtournament');
 				if (!user.hasRank(room, 'voice')) return;
-				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.sayError(['disabledTournamentFeatures', room.title]);
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
+					return this.sayError(['disabledTournamentFeatures', room.title]);
+				}
 				tournamentRoom = room;
 			}
 
@@ -1513,7 +1587,9 @@ const commands: Dict<ICommandDefinition> = {
 			const tournament = tournamentRoom.tournament;
 			let html = "<b>" + tournament.name + " " + (tournament.isRoundRobin ? "Round Robin " : "") + "tournament</b><br />";
 			if (tournament.started) {
-				if (tournament.startTime) html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - tournament.startTime) + "<br />";
+				if (tournament.startTime) {
+					html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - tournament.startTime) + "<br />";
+				}
 				const remainingPlayers = tournament.getRemainingPlayerCount();
 				if (remainingPlayers !== tournament.totalPlayers) {
 					html += "<b>Remaining players</b>: " + remainingPlayers + "/" + tournament.totalPlayers;
@@ -1531,7 +1607,9 @@ const commands: Dict<ICommandDefinition> = {
 	createtournament: {
 		command(target, room, user) {
 			if (this.isPm(room) || !user.hasRank(room, 'driver')) return;
-			if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.sayError(['disabledTournamentFeatures', room.title]);
+			if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
+				return this.sayError(['disabledTournamentFeatures', room.title]);
+			}
 			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'tournament']);
 			if (room.tournament) return this.say("There is already a tournament in progress in this room.");
 			const format = Dex.getFormat(target);
@@ -1550,7 +1628,8 @@ const commands: Dict<ICommandDefinition> = {
 			const cap = parseInt(target);
 			if (isNaN(cap)) return this.say("You must specify a valid player cap.");
 			if (cap < Tournaments.minPlayerCap || cap > Tournaments.maxPlayerCap) {
-				return this.say("The tournament's player cap must be between " + Tournaments.minPlayerCap + " and " + Tournaments.maxPlayerCap + ".");
+				return this.say("The tournament's player cap must be between " + Tournaments.minPlayerCap + " and " +
+					Tournaments.maxPlayerCap + ".");
 			}
 			if (room.tournament.adjustCapTimer) clearTimeout(room.tournament.adjustCapTimer);
 			this.sayCommand("/tour cap " + cap);
@@ -1567,13 +1646,15 @@ const commands: Dict<ICommandDefinition> = {
 				return this.say("A tournament leaderboard is not enabled for this room.");
 			}
 			if (cmd === 'tournamentenablepoints' || cmd === 'tourenablepoints') {
-				if ((room.tournament.canAwardPoints() && room.tournament.manuallyEnabledPoints === undefined) || room.tournament.manuallyEnabledPoints) {
+				if ((room.tournament.canAwardPoints() && room.tournament.manuallyEnabledPoints === undefined) ||
+					room.tournament.manuallyEnabledPoints) {
 					return this.say("The " + room.tournament.name + " tournament will already award leaderboard points.");
 				}
 				room.tournament.manuallyEnabledPoints = true;
 				this.say("The " + room.tournament.name + " tournament will now award leaderboard points.");
 			} else {
-				if ((!room.tournament.canAwardPoints() && room.tournament.manuallyEnabledPoints === undefined) || !room.tournament.manuallyEnabledPoints) {
+				if ((!room.tournament.canAwardPoints() && room.tournament.manuallyEnabledPoints === undefined) ||
+					!room.tournament.manuallyEnabledPoints) {
 					return this.say("The " + room.tournament.name + " tournament will already not award leaderboard points.");
 				}
 				room.tournament.manuallyEnabledPoints = false;
@@ -1597,11 +1678,17 @@ const commands: Dict<ICommandDefinition> = {
 			}
 
 			if (!tournamentRoom.tournament) return this.say("A tournament is not in progress in this room.");
-			if (tournamentRoom.tournament.generator !== 1) return this.say("This command is currently only usable in Single Elimination tournaments.");
+			if (tournamentRoom.tournament.generator !== 1) {
+				return this.say("This command is currently only usable in Single Elimination tournaments.");
+			}
 			const id = Tools.toId(targets[0]);
-			if (!(id in tournamentRoom.tournament.players)) return this.say("'" + targets[0] + "' is not a player in the " + tournamentRoom.title + " tournament.");
+			if (!(id in tournamentRoom.tournament.players)) {
+				return this.say("'" + targets[0] + "' is not a player in the " + tournamentRoom.title + " tournament.");
+			}
 			const targetPlayer = tournamentRoom.tournament.players[id];
-			if (targetPlayer.eliminated) return this.say(targetPlayer.name + " has already been eliminated from the " + tournamentRoom.title + " tournament.");
+			if (targetPlayer.eliminated) {
+				return this.say(targetPlayer.name + " has already been eliminated from the " + tournamentRoom.title + " tournament.");
+			}
 
 			let currentBattle: IBattleData | undefined;
 			for (const battle of tournamentRoom.tournament.currentBattles) {
@@ -1613,8 +1700,8 @@ const commands: Dict<ICommandDefinition> = {
 
 			if (!currentBattle) return this.say(targetPlayer.name + " is not currently in a tournament battle.");
 			const slots = Tools.shuffle(Object.keys(currentBattle.remainingPokemon));
-			this.say("The score of " + targetPlayer.name + "'s current battle is " + (slots.length < 2 ? "not yet available" : currentBattle.remainingPokemon[slots[0]] + " - " +
-				currentBattle.remainingPokemon[slots[1]]) + ".");
+			this.say("The score of " + targetPlayer.name + "'s current battle is " + (slots.length < 2 ? "not yet available" :
+				currentBattle.remainingPokemon[slots[0]] + " - " + currentBattle.remainingPokemon[slots[1]]) + ".");
 		},
 		aliases: ['tbscore', 'tbattlescore'],
 	},
@@ -1626,13 +1713,19 @@ const commands: Dict<ICommandDefinition> = {
 				const targetRoom = Rooms.search(targets[0]);
 				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 				targets.shift();
-				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.sayError(['disabledTournamentFeatures', targetRoom.title]);
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) {
+					return this.sayError(['disabledTournamentFeatures', targetRoom.title]);
+				}
 				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
-				if (!(targetRoom.id in Tournaments.nextScheduledTournaments)) return this.say("There is no tournament scheduled for " + targetRoom.title + ".");
+				if (!(targetRoom.id in Tournaments.nextScheduledTournaments)) {
+					return this.say("There is no tournament scheduled for " + targetRoom.title + ".");
+				}
 				tournamentRoom = targetRoom;
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
-				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.sayError(['disabledTournamentFeatures', room.title]);
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
+					return this.sayError(['disabledTournamentFeatures', room.title]);
+				}
 				if (!(room.id in Tournaments.nextScheduledTournaments)) return this.say("There is no tournament scheduled for this room.");
 				tournamentRoom = room;
 			}
@@ -1661,11 +1754,15 @@ const commands: Dict<ICommandDefinition> = {
 				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 				targets.shift();
 				if (!user.hasRank(targetRoom, 'moderator')) return;
-				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.sayError(['disabledTournamentFeatures', targetRoom.title]);
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) {
+					return this.sayError(['disabledTournamentFeatures', targetRoom.title]);
+				}
 				tournamentRoom = targetRoom;
 			} else {
 				if (!user.hasRank(room, 'moderator')) return;
-				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.sayError(['disabledTournamentFeatures', room.title]);
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
+					return this.sayError(['disabledTournamentFeatures', room.title]);
+				}
 				tournamentRoom = room;
 			}
 			const month = parseInt(targets[0]);
@@ -1679,7 +1776,9 @@ const commands: Dict<ICommandDefinition> = {
 	queuetournament: {
 		async asyncCommand(target, room, user, cmd) {
 			if (this.isPm(room) || !user.hasRank(room, 'driver')) return;
-			if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.sayError(['disabledTournamentFeatures', room.title]);
+			if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
+				return this.sayError(['disabledTournamentFeatures', room.title]);
+			}
 			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'tournament']);
 			const database = Storage.getDatabase(room);
 			if (database.queuedTournament && !cmd.startsWith('force')) {
@@ -1690,7 +1789,10 @@ const commands: Dict<ICommandDefinition> = {
 					delete database.queuedTournament;
 				}
 			}
-			if (target.includes('@@@')) return this.say("You must specify custom rules separately (``" + Config.commandCharacter + cmd + " format, cap, custom rules``).");
+			if (target.includes('@@@')) {
+				return this.say("You must specify custom rules separately (``" + Config.commandCharacter + cmd + " format, cap, custom " +
+					"rules``).");
+			}
 			const targets = target.split(',');
 			const id = Tools.toId(targets[0]);
 			let scheduled = false;
@@ -1705,17 +1807,21 @@ const commands: Dict<ICommandDefinition> = {
 				}
 				format = Dex.getFormat(targets[0]);
 				if (!format || !format.tournamentPlayable) return this.sayError(['invalidTournamentFormat', format ? format.name : target]);
-				if (Tournaments.isInPastTournaments(room, format.inputTarget)) return this.say(format.name + " is on the past tournaments list and cannot be queued.");
+				if (Tournaments.isInPastTournaments(room, format.inputTarget)) return this.say(format.name + " is on the past " +
+					"tournaments list and cannot be queued.");
 			}
 
 			let playerCap: number = 0;
 			if (scheduled) {
-				if (Config.scheduledTournamentsMaxPlayerCap && Config.scheduledTournamentsMaxPlayerCap.includes(room.id)) playerCap = Tournaments.maxPlayerCap;
+				if (Config.scheduledTournamentsMaxPlayerCap && Config.scheduledTournamentsMaxPlayerCap.includes(room.id)) {
+					playerCap = Tournaments.maxPlayerCap;
+				}
 			} else if (targets.length > 1) {
 				playerCap = parseInt(targets[1]);
 				if (isNaN(playerCap)) return this.say("You must specify a valid number for the player cap.");
 				if (playerCap && (playerCap < Tournaments.minPlayerCap || playerCap > Tournaments.maxPlayerCap)) {
-					return this.say("You must specify a player cap between " + Tournaments.minPlayerCap + " and " + Tournaments.maxPlayerCap + ".");
+					return this.say("You must specify a player cap between " + Tournaments.minPlayerCap + " and " +
+						Tournaments.maxPlayerCap + ".");
 				}
 			}
 			if (!playerCap && Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
@@ -1760,7 +1866,12 @@ const commands: Dict<ICommandDefinition> = {
 				}
 			}
 
-			database.queuedTournament = {formatid: format.name + (format.customRules ? '@@@' + format.customRules.join(',') : ''), playerCap, scheduled, time};
+			database.queuedTournament = {
+				formatid: format.name + (format.customRules ? '@@@' + format.customRules.join(',') : ''),
+				playerCap,
+				scheduled,
+				time,
+			};
 			if (scheduled) {
 				Tournaments.setScheduledTournamentTimer(room);
 			} else if (time) {
@@ -1778,12 +1889,16 @@ const commands: Dict<ICommandDefinition> = {
 			if (this.isPm(room)) {
 				const targetRoom = Rooms.search(target);
 				if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
-				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.sayError(['disabledTournamentFeatures', targetRoom.title]);
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) {
+					return this.sayError(['disabledTournamentFeatures', targetRoom.title]);
+				}
 				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
 				tournamentRoom = targetRoom;
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
-				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.sayError(['disabledTournamentFeatures', room.title]);
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
+					return this.sayError(['disabledTournamentFeatures', room.title]);
+				}
 				if (target) return this.run('queuetournament');
 				tournamentRoom = room;
 			}
@@ -1797,8 +1912,8 @@ const commands: Dict<ICommandDefinition> = {
 				Storage.exportDatabase(tournamentRoom.id);
 				return this.say(errorText);
 			}
-			let html = "<b>Queued" + (this.pm ? " " + tournamentRoom.title : "") + " tournament</b>: " + format.name + (database.queuedTournament.scheduled ?
-				" <i>(scheduled)</i>" : "") + "<br />";
+			let html = "<b>Queued" + (this.pm ? " " + tournamentRoom.title : "") + " tournament</b>: " + format.name +
+				(database.queuedTournament.scheduled ? " <i>(scheduled)</i>" : "") + "<br />";
 			if (database.queuedTournament.time) {
 				const now = Date.now();
 				if (now > database.queuedTournament.time) {
@@ -1807,8 +1922,8 @@ const commands: Dict<ICommandDefinition> = {
 					html += "<b>Starting in</b>: " + Tools.toDurationString(database.queuedTournament.time - now) + "<br />";
 				}
 			} else if (tournamentRoom.tournament) {
-				html += "<b>Starting in</b>: " + Tools.toDurationString(Tournaments.queuedTournamentTime) + " after the " + tournamentRoom.tournament.name +
-					" tournament ends<br />";
+				html += "<b>Starting in</b>: " + Tools.toDurationString(Tournaments.queuedTournamentTime) + " after the " +
+					tournamentRoom.tournament.name + " tournament ends<br />";
 			}
 
 			if (format.customRules) html += "<br /><b>Custom rules:</b><br />" + Dex.getCustomRulesHtml(format);
@@ -1823,12 +1938,16 @@ const commands: Dict<ICommandDefinition> = {
 			if (this.isPm(room)) {
 				const targetRoom = Rooms.search(targets[0]);
 				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
-				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.sayError(['disabledTournamentFeatures', targetRoom.title]);
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) {
+					return this.sayError(['disabledTournamentFeatures', targetRoom.title]);
+				}
 				tournamentRoom = targetRoom;
 				targets.shift();
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
-				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.sayError(['disabledTournamentFeatures', room.title]);
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
+					return this.sayError(['disabledTournamentFeatures', room.title]);
+				}
 				tournamentRoom = room;
 			}
 
@@ -1851,7 +1970,8 @@ const commands: Dict<ICommandDefinition> = {
 
 				names.push(tournament);
 			}
-			this.sayHtml("<b>Past tournaments</b>" + (displayTimes ? "" : " (most recent first)") + ": " + Tools.joinList(names) + ".", tournamentRoom);
+			this.sayHtml("<b>Past tournaments</b>" + (displayTimes ? "" : " (most recent first)") + ": " + Tools.joinList(names) + ".",
+				tournamentRoom);
 		},
 		aliases: ['pasttours', 'recenttournaments', 'recenttours'],
 	},
@@ -1863,18 +1983,23 @@ const commands: Dict<ICommandDefinition> = {
 				const targetRoom = Rooms.search(targets[0]);
 				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 				targets.shift();
-				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) return this.sayError(['disabledTournamentFeatures', targetRoom.title]);
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) {
+					return this.sayError(['disabledTournamentFeatures', targetRoom.title]);
+				}
 				tournamentRoom = targetRoom;
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
-				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return this.sayError(['disabledTournamentFeatures', room.title]);
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
+					return this.sayError(['disabledTournamentFeatures', room.title]);
+				}
 				tournamentRoom = room;
 			}
 
 			const database = Storage.getDatabase(tournamentRoom);
 			if (!targets[0]) {
 				if (!database.lastTournamentTime) return this.say("No tournaments have been played in " + tournamentRoom.title + ".");
-				return this.say("The last tournament in " + tournamentRoom.title + " ended **" + Tools.toDurationString(Date.now() - database.lastTournamentTime) + "** ago.");
+				return this.say("The last tournament in " + tournamentRoom.title + " ended **" + Tools.toDurationString(Date.now() -
+					database.lastTournamentTime) + "** ago.");
 			}
 			const format = Dex.getFormat(targets[0]);
 			if (!format) return this.sayError(['invalidFormat', target]);
@@ -1905,14 +2030,17 @@ const commands: Dict<ICommandDefinition> = {
 			const bracketLink = Tools.getChallongeUrl(targets[1]);
 			const signupsLink = Tools.getChallongeUrl(targets[2]);
 			if (!bracketLink || !signupsLink || (!bracketLink.includes('/signup/') && !signupsLink.includes('/signup/'))) {
-				return this.say("You must specify the links to both your tournament's bracket page and its signup page. (e.g. ``" + Config.commandCharacter + cmd + " " +
-					targets[0].trim() + ", challonge.com/abc, challonge.com/tournaments/signup/123``)");
+				return this.say("You must specify the links to both your tournament's bracket page and its signup page. (e.g. ``" +
+					Config.commandCharacter + cmd + " " + targets[0].trim() + ", challonge.com/abc, " +
+					"challonge.com/tournaments/signup/123``)");
 			}
 			if (targetRoom.approvedUserHostedTournaments) {
 				for (const i in targetRoom.approvedUserHostedTournaments) {
-					if (targetRoom.approvedUserHostedTournaments[i].urls.includes(bracketLink) || targetRoom.approvedUserHostedTournaments[i].urls.includes(signupsLink)) {
+					if (targetRoom.approvedUserHostedTournaments[i].urls.includes(bracketLink) ||
+						targetRoom.approvedUserHostedTournaments[i].urls.includes(signupsLink)) {
 						if (user.id !== targetRoom.approvedUserHostedTournaments[i].hostId) {
-							return this.say("The specified tournament has already been approved for " + targetRoom.approvedUserHostedTournaments[i].hostName + ".");
+							return this.say("The specified tournament has already been approved for " +
+								targetRoom.approvedUserHostedTournaments[i].hostName + ".");
 						}
 						delete targetRoom.approvedUserHostedTournaments[i];
 						break;
@@ -1922,14 +2050,17 @@ const commands: Dict<ICommandDefinition> = {
 
 			if (targetRoom.newUserHostedTournaments) {
 				for (const i in targetRoom.newUserHostedTournaments) {
-					if (user.id === targetRoom.newUserHostedTournaments[i].hostId) return this.say("You are already on the waiting list for staff review.");
+					if (user.id === targetRoom.newUserHostedTournaments[i].hostId) {
+						return this.say("You are already on the waiting list for staff review.");
+					}
 				}
 			}
 
 			const database = Storage.getDatabase(targetRoom);
 			let authOrTHC = '';
 			if ((Config.userHostedTournamentRanks && targetRoom.id in Config.userHostedTournamentRanks &&
-				user.hasRank(targetRoom, Config.userHostedTournamentRanks[targetRoom.id].review)) || (database.thcWinners && user.id in database.thcWinners)) {
+				user.hasRank(targetRoom, Config.userHostedTournamentRanks[targetRoom.id].review)) ||
+				(database.thcWinners && user.id in database.thcWinners)) {
 				authOrTHC = user.name;
 			}
 
@@ -1997,18 +2128,22 @@ const commands: Dict<ICommandDefinition> = {
 			const link = targets[1].trim();
 			if (!targetRoom.newUserHostedTournaments || !(link in targetRoom.newUserHostedTournaments)) return;
 			if (!targetRoom.newUserHostedTournaments[link].reviewer) {
-				return this.say("You must first claim " + targetRoom.newUserHostedTournaments[link].hostName + "'s tournament by clicking the ``Review`` button.");
+				return this.say("You must first claim " + targetRoom.newUserHostedTournaments[link].hostName + "'s tournament by " +
+					"clicking the ``Review`` button.");
 			}
 			if (targetRoom.newUserHostedTournaments[link].reviewer !== user.id) {
 				let name = targetRoom.newUserHostedTournaments[link].reviewer;
 				const reviewer = Users.get(name);
 				if (reviewer) name = reviewer.name;
-				return this.say(name + " is currently the reviewer of " + targetRoom.newUserHostedTournaments[link].hostName + "'s tournament so they must approve or reject it.");
+				return this.say(name + " is currently the reviewer of " + targetRoom.newUserHostedTournaments[link].hostName + "'s " +
+					"tournament so they must approve or reject it.");
 			}
 
 			if (cmd === 'approveuserhostedtournament' || cmd === 'approveuserhostedtour') {
 				targetRoom.newUserHostedTournaments[link].approvalStatus = "approved";
-				if (targetRoom.newUserHostedTournaments[link].reviewTimer) clearTimeout(targetRoom.newUserHostedTournaments[link].reviewTimer!);
+				if (targetRoom.newUserHostedTournaments[link].reviewTimer) {
+					clearTimeout(targetRoom.newUserHostedTournaments[link].reviewTimer!);
+				}
 				if (!targetRoom.approvedUserHostedTournaments) targetRoom.approvedUserHostedTournaments = {};
 				targetRoom.approvedUserHostedTournaments[link] = targetRoom.newUserHostedTournaments[link];
 				delete targetRoom.newUserHostedTournaments[link];
@@ -2017,13 +2152,17 @@ const commands: Dict<ICommandDefinition> = {
 				if (host) host.say(user.name + " has approved your tournament! You may now advertise in " + targetRoom.title + ".");
 			} else {
 				if (targetRoom.newUserHostedTournaments[link].approvalStatus === 'changes-requested') {
-					return this.say("Changes have already been requested for " + targetRoom.newUserHostedTournaments[link].hostName + "'s tournament.");
+					return this.say("Changes have already been requested for " +
+						targetRoom.newUserHostedTournaments[link].hostName + "'s tournament.");
 				}
 				targetRoom.newUserHostedTournaments[link].approvalStatus = 'changes-requested';
-				this.say("You have rejected " + targetRoom.newUserHostedTournaments[link].hostName + "'s tournament. Be sure to PM them the reason(s) so that they can make " +
-					"the necessary changes!");
+				this.say("You have rejected " + targetRoom.newUserHostedTournaments[link].hostName + "'s tournament. Be sure to PM them " +
+					"the reason(s) so that they can make the necessary changes!");
+
 				const host = Users.get(targetRoom.newUserHostedTournaments[link].hostName);
-				if (host) host.say(user.name + " has requested changes for your tournament. Please wait for them to PM you before advertising.");
+				if (host) {
+					host.say(user.name + " has requested changes for your tournament. Please wait for them to PM you before advertising.");
+				}
 			}
 			Tournaments.showUserHostedTournamentApprovals(targetRoom);
 		},
@@ -2078,12 +2217,15 @@ const commands: Dict<ICommandDefinition> = {
 			const recipientId = Tools.toId(recipient);
 			if (recipientId === 'constructor') return;
 			if (!Tools.isUsernameLength(recipient)) return this.sayError(['invalidUsernameLength']);
-			if (recipientId === user.id || recipientId.startsWith('guest')) return this.say("You must specify a user other than yourself or a guest.");
+			if (recipientId === user.id || recipientId.startsWith('guest')) {
+				return this.say("You must specify a user other than yourself or a guest.");
+			}
 			const message = targets.slice(1).join(',').trim();
 			if (!message.length) return this.say("You must specify a message to send.");
 			const maxMessageLength = Storage.getMaxOfflineMessageLength(user);
 			if (message.length > maxMessageLength) return this.say("Your message cannot exceed " + maxMessageLength + " characters.");
-			if (!Storage.storeOfflineMessage(user.name, recipientId, message)) return this.say("Sorry, you have too many messages queued for " + recipient + ".");
+			if (!Storage.storeOfflineMessage(user.name, recipientId, message)) return this.say("Sorry, you have too many messages queued " +
+				"for " + recipient + ".");
 			this.say("Your message has been sent to " + recipient + ".");
 		},
 		aliases: ['mail', 'offlinepm'],
@@ -2114,8 +2256,8 @@ const commands: Dict<ICommandDefinition> = {
 			if (id.startsWith('guest')) return this.say("Guest users cannot be tracked.");
 			const database = Storage.getGlobalDatabase();
 			if (!database.lastSeen || !(id in database.lastSeen)) {
-				return this.say(this.sanitizeResponse(target.trim() + " has not visited any of " + Users.self.name + "'s rooms in the past " +
-					Storage.lastSeenExpirationDuration + "."));
+				return this.say(this.sanitizeResponse(target.trim() + " has not visited any of " + Users.self.name + "'s rooms in the " +
+					"past " + Storage.lastSeenExpirationDuration + "."));
 			}
 			return this.say(this.sanitizeResponse(target.trim() + " last visited one of " + Users.self.name + "'s rooms **" +
 				Tools.toDurationString(Date.now() - database.lastSeen[id]) + "** ago."));
@@ -2166,7 +2308,8 @@ const commands: Dict<ICommandDefinition> = {
 				} else {
 					Storage.addPoints(room, users[i], bits, 'manual');
 					if (user && user.rooms.has(room)) {
-						user.say("You were awarded " + bits + " bits! To see your total amount, use this command: ``" + Config.commandCharacter + "rank " + room.title + "``");
+						user.say("You were awarded " + bits + " bits! To see your total amount, use this command: ``" +
+							Config.commandCharacter + "rank " + room.title + "``");
 					}
 				}
 			}
@@ -2272,7 +2415,8 @@ const commands: Dict<ICommandDefinition> = {
 			}
 			let endPosition = startPosition + positions;
 			if (endPosition > users.length) endPosition = users.length;
-			this.say("``" + (annual ? "Annual " : "") + (source ? source.name + " " : "") + "Top " + endPosition + " of " + users.length + "``: " + output.join(", "));
+			this.say("``" + (annual ? "Annual " : "") + (source ? source.name + " " : "") + "Top " + endPosition + " of " + users.length +
+				"``: " + output.join(", "));
 		},
 		aliases: ['lb', 'top'],
 	},
@@ -2322,7 +2466,9 @@ const commands: Dict<ICommandDefinition> = {
 				for (const id of users) {
 					let annualPoints = 0;
 					if (database.leaderboard[id].sources[source.id]) annualPoints += database.leaderboard[id].sources[source.id];
-					if (database.leaderboard[id].annualSources[source.id]) annualPoints += database.leaderboard[id].annualSources[source.id];
+					if (database.leaderboard[id].annualSources[source.id]) {
+						annualPoints += database.leaderboard[id].annualSources[source.id];
+					}
 					annualPointsCache[id] = annualPoints;
 					currentPointsCache[id] = database.leaderboard[id].sources[source.id] || 0;
 				}
@@ -2339,31 +2485,40 @@ const commands: Dict<ICommandDefinition> = {
 			if (position) {
 				const index = position - 1;
 				if (current[index]) {
-					results.push("#" + position + " on the " + targetRoom.title + " " + (source ? source.name + " " : "") + "leaderboard is " +
-						database.leaderboard[current[index]].name + " with " + (currentPointsCache[current[index]] || database.leaderboard[current[index]].current) + " " +
-						(bits ? "bits" : "points") + ".");
+					results.push("#" + position + " on the " + targetRoom.title + " " + (source ? source.name + " " : "") + "leaderboard " +
+						"is " + database.leaderboard[current[index]].name + " with " + (currentPointsCache[current[index]] ||
+						database.leaderboard[current[index]].current) + " " + (bits ? "bits" : "points") + ".");
 				}
 				if (annual[index]) {
-					results.push("#" + position + " on the annual " + targetRoom.title + " " + (source ? source.name + " " : "") + "leaderboard is " +
-						database.leaderboard[annual[index]].name + " with " + annualPointsCache[annual[index]] + " " + (bits ? "bits" : "points") + ".");
+					results.push("#" + position + " on the annual " + targetRoom.title + " " + (source ? source.name + " " : "") +
+						"leaderboard is " + database.leaderboard[annual[index]].name + " with " + annualPointsCache[annual[index]] + " " +
+						(bits ? "bits" : "points") + ".");
 				}
-				if (!results.length) return this.say("No one is #" + position + " on the " + targetRoom.title + " " + (source ? source.name + " " : "") + "leaderboard.");
+				if (!results.length) {
+					return this.say("No one is #" + position + " on the " + targetRoom.title + " " + (source ? source.name + " " : "") +
+						"leaderboard.");
+				}
 			} else {
 				if (!targetUser) targetUser = user.id;
 				const self = targetUser === user.id;
 				const currentIndex = current.indexOf(targetUser);
 				const annualIndex = annual.indexOf(targetUser);
 				if (currentIndex !== -1) {
-					results.push((self ? "You are" : database.leaderboard[targetUser].name + " is") + " #" + (currentIndex + 1) + " on the " + targetRoom.title + " " +
-						(source ? source.name + " " : "") + "leaderboard with " + (currentPointsCache[targetUser] || database.leaderboard[targetUser].current) + " " +
-						(bits ? "bits" : "points") + ".");
+					results.push((self ? "You are" : database.leaderboard[targetUser].name + " is") + " #" + (currentIndex + 1) + " on " +
+						"the " + targetRoom.title + " " + (source ? source.name + " " : "") + "leaderboard with " +
+						(currentPointsCache[targetUser] || database.leaderboard[targetUser].current) + " " + (bits ? "bits" : "points") +
+						".");
 				}
 				if (annualIndex !== -1) {
-					results.push((self ? "You are" : database.leaderboard[targetUser].name + " is") + " #" + (annualIndex + 1) + " on the annual " + targetRoom.title + " " +
-						(source ? source.name + " " : "") + "leaderboard with " + annualPointsCache[targetUser] + " " + (bits ? "bits" : "points") + ".");
+					results.push((self ? "You are" : database.leaderboard[targetUser].name + " is") + " #" + (annualIndex + 1) + " on " +
+						"the annual " + targetRoom.title + " " + (source ? source.name + " " : "") + "leaderboard with " +
+						annualPointsCache[targetUser] + " " + (bits ? "bits" : "points") + ".");
 				}
-				if (!results.length) return this.say((self ? "You are" : database.leaderboard[targetUser] ? database.leaderboard[targetUser].name : targetUser + " is") + " not " +
-					"on the " + targetRoom.title + " " + (source ? source.name + " " : "") + "leaderboard.");
+				if (!results.length) {
+					return this.say((self ? "You are" : database.leaderboard[targetUser] ? database.leaderboard[targetUser].name :
+						targetUser + " is") + " not " + "on the " + targetRoom.title + " " + (source ? source.name + " " : "") +
+						"leaderboard.");
+				}
 			}
 			this.say(results.join(" "));
 		},
@@ -2397,7 +2552,9 @@ const commands: Dict<ICommandDefinition> = {
 			const targets = target.split(',');
 			const targetRoom = Rooms.search(targets[0]);
 			if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
-			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(targetRoom.id)) return this.sayError(['disabledGameFeatures', targetRoom.title]);
+			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(targetRoom.id)) {
+				return this.sayError(['disabledGameFeatures', targetRoom.title]);
+			}
 
 			let id = Tools.toId(targets[1]);
 			let name: string;
@@ -2415,8 +2572,12 @@ const commands: Dict<ICommandDefinition> = {
 					if (achievement in Games.achievementNames) unlockedAchievements.push(Games.achievementNames[achievement]);
 				}
 			}
-			if (!unlockedAchievements.length) return this.say((id === user.id ? "You have" : name + " has") + " not unlocked any game achievements in " + targetRoom.title + ".");
-			this.sayHtml("<b>" + (id === user.id ? "Your" : name + "'s") + " unlocked game achievements</b>:<br />" + unlockedAchievements.join(", "), targetRoom);
+			if (!unlockedAchievements.length) {
+				return this.say((id === user.id ? "You have" : name + " has") + " not unlocked any game achievements in " +
+					targetRoom.title + ".");
+			}
+			this.sayHtml("<b>" + (id === user.id ? "Your" : name + "'s") + " unlocked game achievements</b>:<br />" +
+				unlockedAchievements.join(", "), targetRoom);
 		},
 		aliases: ['achievements', 'chieves'],
 	},
@@ -2441,7 +2602,8 @@ const commands: Dict<ICommandDefinition> = {
 			if (!(event in database.eventInformation)) return this.sayError(['invalidRoomEvent', eventRoom.title]);
 			const eventInformation = database.eventInformation[event];
 			if (!eventInformation.link) return this.say(database.eventInformation[event].name + " does not have a link stored.");
-			this.sayHtml("<b>" + eventInformation.name + "</b>: <a href='" + eventInformation.link.url + "'>" + eventInformation.link.description + "</a>", eventRoom);
+			this.sayHtml("<b>" + eventInformation.name + "</b>: <a href='" + eventInformation.link.url + "'>" +
+				eventInformation.link.description + "</a>", eventRoom);
 		},
 		aliases: ['elink'],
 	},
@@ -2476,7 +2638,8 @@ const commands: Dict<ICommandDefinition> = {
 			const event = Tools.toId(target);
 			if (!event) return this.say("You must specify an event.");
 			if (!(event in database.eventInformation)) return this.sayError(['invalidRoomEvent', room.title]);
-			if (!database.eventInformation[event].link) return this.say(database.eventInformation[event].name + " does not have a link stored.");
+			if (!database.eventInformation[event].link) return this.say(database.eventInformation[event].name + " does not have a link " +
+				"stored.");
 			delete database.eventInformation[event].link;
 			this.say("The link for " + database.eventInformation[event].name + " has been removed.");
 		},
@@ -2507,21 +2670,23 @@ const commands: Dict<ICommandDefinition> = {
 				if (!Tools.isUsernameLength(targets[1])) return this.say("You must specify a user.");
 				const targetUser = Tools.toId(targets[1]);
 				if (!database.leaderboard) return this.say("There is no leaderboard for the " + eventRoom.title + " room.");
-				if (!(targetUser in database.leaderboard)) return this.say(this.sanitizeResponse(targets[1].trim() + " does not have any event points."));
+				if (!(targetUser in database.leaderboard)) return this.say(this.sanitizeResponse(targets[1].trim() + " does not have any " +
+					"event points."));
 				let eventPoints = 0;
 				for (const source in database.leaderboard[targetUser].sources) {
 					if (eventInformation.formatIds.includes(source)) eventPoints += database.leaderboard[targetUser].sources[source];
 				}
-				this.say(database.leaderboard[targetUser].name + " has " + eventPoints + " points in" + (!multipleFormats ? " the" : "") + " " +
-					database.eventInformation[event].name + " format" + (multipleFormats ? "s" : "") + ".");
+				this.say(database.leaderboard[targetUser].name + " has " + eventPoints + " points in" +
+					(!multipleFormats ? " the" : "") + " " + database.eventInformation[event].name + " format" +
+					(multipleFormats ? "s" : "") + ".");
 			} else {
 				const formatNames: string[] = [];
 				for (const formatId of eventInformation.formatIds) {
 					const format = Dex.getFormat(formatId);
 					formatNames.push(format ? format.name : formatId);
 				}
-				this.say("The format" + (multipleFormats ? "s" : "") + " for " + database.eventInformation[event].name + " " + (multipleFormats ? "are " : "is ") +
-					Tools.joinList(formatNames) + ".");
+				this.say("The format" + (multipleFormats ? "s" : "") + " for " + database.eventInformation[event].name + " " +
+					(multipleFormats ? "are " : "is ") + Tools.joinList(formatNames) + ".");
 			}
 		},
 		aliases: ['eformats'],
@@ -2529,7 +2694,9 @@ const commands: Dict<ICommandDefinition> = {
 	seteventformats: {
 		command(target, room, user) {
 			if (this.isPm(room) || !user.hasRank(room, 'driver')) return;
-			if (!Config.rankedTournaments || !Config.rankedTournaments.includes(room.id)) return this.sayError(['disabledTournamentFeatures', room.title]);
+			if (!Config.rankedTournaments || !Config.rankedTournaments.includes(room.id)) {
+				return this.sayError(['disabledTournamentFeatures', room.title]);
+			}
 			const targets = target.split(',');
 			const event = Tools.toId(targets[0]);
 			if (!event) return this.say("You must specify an event.");
@@ -2550,7 +2717,8 @@ const commands: Dict<ICommandDefinition> = {
 			}
 			database.eventInformation[event].formatIds = formatIds;
 			const multipleFormats = formatIds.length > 1;
-			this.say("The event format" + (multipleFormats ? "s" : "") + " for " + name + " " + (multipleFormats ? "have" : "has") + " been stored.");
+			this.say("The event format" + (multipleFormats ? "s" : "") + " for " + name + " " + (multipleFormats ? "have" : "has") +
+				" been stored.");
 		},
 		aliases: ['seteformats'],
 	},
@@ -2563,7 +2731,9 @@ const commands: Dict<ICommandDefinition> = {
 			const database = Storage.getDatabase(room);
 			if (!database.eventInformation) return this.sayError(['noRoomEventInformation', room.title]);
 			if (!(event in database.eventInformation)) return this.sayError(['invalidRoomEvent', room.title]);
-			if (!database.eventInformation[event].formatIds) return this.say(database.eventInformation[event].name + " does not have any formats stored.");
+			if (!database.eventInformation[event].formatIds) {
+				return this.say(database.eventInformation[event].name + " does not have any formats stored.");
+			}
 			delete database.eventInformation[event].formatIds;
 			this.say("The formats for " + database.eventInformation[event].name + " have been removed.");
 		},
@@ -2608,8 +2778,8 @@ const commands: Dict<ICommandDefinition> = {
 			}
 			database.botGreetings[id] = {greeting};
 			if (duration) database.botGreetings[id].expiration = Date.now() + duration;
-			this.say(this.sanitizeResponse(targets[1].trim() + "'s greeting in " + targetRoom.title + (duration ? " (expiring in " + Tools.toDurationString(duration) + ")" : "") +
-				" has been stored."));
+			this.say(this.sanitizeResponse(targets[1].trim() + "'s greeting in " + targetRoom.title + (duration ? " (expiring in " +
+				Tools.toDurationString(duration) + ")" : "") + " has been stored."));
 		},
 		aliases: ['addgreeting', 'awardgreeting'],
 	},
@@ -2623,7 +2793,10 @@ const commands: Dict<ICommandDefinition> = {
 			if (!database.botGreetings) return this.say(targetRoom.title + " does not have any bot greetings stored.");
 			if (!Tools.isUsernameLength(targets[1])) return this.sayError(['invalidUsernameLength']);
 			const id = Tools.toId(targets[1]);
-			if (!(id in database.botGreetings)) return this.say(this.sanitizeResponse(targets[1].trim() + " does not have a greeting stored for " + targetRoom.title + "."));
+			if (!(id in database.botGreetings)) {
+				return this.say(this.sanitizeResponse(targets[1].trim() + " does not have a greeting stored for " + targetRoom.title +
+					"."));
+			}
 			delete database.botGreetings[id];
 			this.say(this.sanitizeResponse(targets[1].trim() + "'s greeting in " + targetRoom.title + " has been removed."));
 		},
@@ -2737,10 +2910,13 @@ const commands: Dict<ICommandDefinition> = {
 
 				if (startDate[0] < firstLoggedYear) return this.say("There are no chat logs from before " + firstLoggedYear + ".");
 				if (startDate[0] === firstLoggedYear) {
-					if (startDate[1] < firstLoggedMonth) return this.say("There are no chat logs from before " + firstLoggedMonth + "/" + firstLoggedYear + ".");
+					if (startDate[1] < firstLoggedMonth) {
+						return this.say("There are no chat logs from before " + firstLoggedMonth + "/" + firstLoggedYear + ".");
+					}
 					if (startDate[1] === firstLoggedMonth) {
 						if (startDate[2] < firstLoggedDay) {
-							return this.say("There are no chat logs from before " + firstLoggedMonth + "/" + firstLoggedDay + "/" + firstLoggedYear + ".");
+							return this.say("There are no chat logs from before " + firstLoggedMonth + "/" + firstLoggedDay + "/" +
+								firstLoggedYear + ".");
 						}
 					}
 				}
@@ -2760,10 +2936,13 @@ const commands: Dict<ICommandDefinition> = {
 
 				if (endDate[0] < firstLoggedYear) return this.say("There are no chat logs from before " + firstLoggedYear + ".");
 				if (endDate[0] === firstLoggedYear) {
-					if (endDate[1] < firstLoggedMonth) return this.say("There are no chat logs from before " + firstLoggedMonth + "/" + firstLoggedYear + ".");
+					if (endDate[1] < firstLoggedMonth) {
+						return this.say("There are no chat logs from before " + firstLoggedMonth + "/" + firstLoggedYear + ".");
+					}
 					if (endDate[1] === firstLoggedMonth) {
 						if (endDate[2] < firstLoggedDay) {
-							return this.say("There are no chat logs from before " + firstLoggedDay + "/" + firstLoggedMonth + "/" + firstLoggedYear + ".");
+							return this.say("There are no chat logs from before " + firstLoggedDay + "/" + firstLoggedMonth + "/" +
+								firstLoggedYear + ".");
 						}
 					}
 				}
@@ -2814,8 +2993,8 @@ const commands: Dict<ICommandDefinition> = {
 				userids,
 			});
 
-			this.sayHtml("<details><summary>Found <b>" + result.totalLines + "</b> line" + (result.totalLines === 1 ? "" : "s") + ":</summary><br>" + result.lines.join("<br />") +
-				"</details>", targetRoom);
+			this.sayHtml("<details><summary>Found <b>" + result.totalLines + "</b> line" + (result.totalLines === 1 ? "" : "s") +
+				":</summary><br>" + result.lines.join("<br />") + "</details>", targetRoom);
 
 			Storage.workers.logs.requestsByUserid.splice(Storage.workers.logs.requestsByUserid.indexOf(userId), 1);
 		},

@@ -101,7 +101,8 @@ class LandorusWar extends Game {
 		let html = "<div class='infobox'>";
 		html += "<b>Remaining Pokemon</b>: " + this.pokemonList.join(", ") + "<br /><br />";
 		html += "<b>Remaining players (" + remainingPlayerCount + ")</b>: " + this.playerAliasesList.join(", ") + "<br /><br />";
-		html += "Use <code>" + Config.commandCharacter + "use [move], [trainer]</code> and <code>" + Config.commandCharacter + "suspect [trainer], [Pokemon]</code> in PMs!";
+		html += "Use <code>" + Config.commandCharacter + "use [move], [trainer]</code> and <code>" + Config.commandCharacter +
+			"suspect [trainer], [Pokemon]</code> in PMs!";
 		html += "</div>";
 
 		const uhtmlName = this.uhtmlBaseName + '-pokemon';
@@ -198,7 +199,8 @@ const commands: Dict<ICommandDefinition<LandorusWar>> = {
 				if (effectiveness === 0) {
 					player.say("The move was neutral!");
 				} else {
-					player.say("The move was **" + (2 * Math.abs(effectiveness)) + "x** " + (effectiveness < 0 ? "resisted" : "super-effective") + "!");
+					player.say("The move was **" + (2 * Math.abs(effectiveness)) + "x** " +
+						(effectiveness < 0 ? "resisted" : "super-effective") + "!");
 				}
 			}
 
@@ -286,8 +288,8 @@ export const game: IGameFile<LandorusWar> = {
 	class: LandorusWar,
 	commandDescriptions: [Config.commandCharacter + "use [move], [trainer]", Config.commandCharacter + "suspect [trainer], [Pokemon]"],
 	commands,
-	description: "Players try to identify the randomly chosen Pokemon of other players by using moves against them to discover their type. Players may only use moves of " +
-		"which the Pokemon they have been randomly assigned to is able to learn.",
+	description: "Players try to identify the randomly chosen Pokemon of other players by using moves against them to discover their " +
+		"type. Players may only use moves of which the Pokemon they have been randomly assigned to is able to learn.",
 	name,
 	mascot: "Landorus",
 	scriptedOnly: true,

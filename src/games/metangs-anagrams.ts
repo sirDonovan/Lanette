@@ -1,9 +1,10 @@
 import { Room } from "../rooms";
-import { IGameFile, IGameAchievement, AchievementsDict } from "../types/games";
+import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Metang's Anagrams";
-const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]} = {
+const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
+	'Pokemon Items': string[]; 'Pokemon Moves': string[];} = {
 	"Characters": [],
 	"Locations": [],
 	"Pokemon": [],
@@ -17,7 +18,8 @@ let loadedData = false;
 
 const achievements: AchievementsDict = {
 	'wordmaster': {name: "Wordmaster", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
-	'captainwordmaster': {name: "Captain Wordmaster", type: 'all-answers-team', bits: 1000, mode: 'team', description: "get every answer for your team and win the game"},
+	'captainwordmaster': {name: "Captain Wordmaster", type: 'all-answers-team', bits: 1000, mode: 'team', description: "get every answer " +
+		"for your team and win the game"},
 };
 
 class MetangsAnagrams extends Guessing {

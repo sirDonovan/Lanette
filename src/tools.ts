@@ -257,7 +257,8 @@ export class Tools {
 		return input.replace(ALPHA_NUMERIC_REGEX, '').trim();
 	}
 
-	toString(input: string | number | boolean | undefined | null | {activityType?: string; effectType?: string; name?: string; toString?(): string}): string {
+	toString(input: string | number | boolean | undefined | null | {activityType?: string; effectType?: string; name?: string;
+		toString?(): string;}): string {
 		if (input === undefined) return 'undefined';
 		if (input === null) return 'null';
 		if (typeof input === 'string') return input;
@@ -322,8 +323,8 @@ export class Tools {
 			return preFormatting + list[0] + postFormatting + " " + conjunction + " " + preFormatting + list[1] + postFormatting;
 		} else {
 			len--;
-			return preFormatting + list.slice(0, len).join(postFormatting + ", " + preFormatting) + postFormatting + ", " + conjunction + " " + preFormatting + list[len] +
-				postFormatting;
+			return preFormatting + list.slice(0, len).join(postFormatting + ", " + preFormatting) + postFormatting + ", " + conjunction +
+				" " + preFormatting + list[len] + postFormatting;
 		}
 	}
 
@@ -341,7 +342,8 @@ export class Tools {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	toTimestampString(date: Date, options?: Dict<any>): string {
 		const human = options && options.human;
-		let parts: (number | string)[] = [date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()];
+		let parts: (number | string)[] = [date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes(),
+			date.getSeconds()];
 		if (human) {
 			parts.push(parts[3] >= 12 ? 'pm' : 'am');
 			parts[3] = (parts[3] as number) % 12 || 12;
@@ -352,7 +354,8 @@ export class Tools {
 
 	toDurationString(input: number, options?: {precision?: number; hhmmss?: boolean}): string {
 		const date = new Date(input);
-		const parts = [date.getUTCFullYear() - 1970, date.getUTCMonth(), date.getUTCDate() - 1, date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()];
+		const parts = [date.getUTCFullYear() - 1970, date.getUTCMonth(), date.getUTCDate() - 1, date.getUTCHours(), date.getUTCMinutes(),
+			date.getUTCSeconds()];
 		const roundingBoundaries = [6, 15, 12, 30, 30];
 		const unitNames = ["year", "month", "day", "hour", "minute", "second"];
 		const positiveIndex = parts.findIndex(elem => elem > 0);
@@ -453,8 +456,8 @@ export class Tools {
 			for (const target of uncache) {
 				if (require.cache[target]) {
 					// eslint-disable-next-line prefer-spread
-					newuncache.push.apply(newuncache, require.cache[target].children.filter(cachedModule => !cachedModule.id.endsWith('.node'))
-						.map(cachedModule => cachedModule.id));
+					newuncache.push.apply(newuncache, require.cache[target].children
+						.filter(cachedModule => !cachedModule.id.endsWith('.node')).map(cachedModule => cachedModule.id));
 					delete require.cache[target];
 				}
 			}
@@ -501,7 +504,8 @@ export class Tools {
 			if (index !== -1) challongeLink = challongeLink.substr(0, index);
 		}
 
-		while (challongeLink.endsWith('!') || challongeLink.endsWith('.') || challongeLink.endsWith("'") || challongeLink.endsWith('"') || challongeLink.endsWith("\\")) {
+		while (challongeLink.endsWith('!') || challongeLink.endsWith('.') || challongeLink.endsWith("'") || challongeLink.endsWith('"') ||
+			challongeLink.endsWith("\\")) {
 			challongeLink = challongeLink.substr(0, challongeLink.length - 1);
 		}
 		return challongeLink;

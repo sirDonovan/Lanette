@@ -123,8 +123,8 @@ export interface IGameTestAttributes {
 	commands?: readonly string[];
 }
 
-type GameFileTests<T extends Game = Game> =
-	Dict<{config?: IGameFileTestConfig; test: ((this: Mocha.Context, game: T, format: IGameFormat<T>, attributes: IGameTestAttributes) => void)}>;
+type GameFileTests<T extends Game = Game> = Dict<{config?: IGameFileTestConfig; test: ((this: Mocha.Context, game: T,
+	format: IGameFormat<T>, attributes: IGameTestAttributes) => void);}>;
 
 export type AchievementsDict = PartialKeyedDict<IGameAchievementKeys, IGameAchievement>;
 

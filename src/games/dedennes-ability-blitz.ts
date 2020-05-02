@@ -80,7 +80,8 @@ class DedennesAbilityBlitz extends Game {
 				let points = this.points.get(player) || 0;
 				points += selections[i].points;
 				this.points.set(player, points);
-				player.say(selections[i].ability + " was worth " + selections[i].points + " points! Your total score is now: " + points + ".");
+				player.say(selections[i].ability + " was worth " + selections[i].points + " points! Your total score is now: " +
+					points + ".");
 				if (points > highestPoints) highestPoints = points;
 				// if (catches[i].pokemon === this.highestBST) this.markFirstAction(player, 'highestCatch');
 			}
@@ -148,7 +149,8 @@ export const game: IGameFile<DedennesAbilityBlitz> = {
 	commandDescriptions: [Config.commandCharacter + "select [ability]"],
 	commands,
 	class: DedennesAbilityBlitz,
-	description: "Players try to type one of the shown abilities before anyone else within the three second timer! Abilities containing more letters award more points.",
+	description: "Players try to type one of the shown abilities before anyone else within the three second timer! Abilities containing " +
+		"more letters award more points.",
 	freejoin: true,
 	name,
 	mascot: "Dedenne",

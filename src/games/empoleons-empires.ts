@@ -24,7 +24,9 @@ class EmpoleonsEmpires extends Game {
 	onStart(): void {
 		this.say("Now requesting aliases!");
 		for (const i in this.players) {
-			if (!this.playerAliases.has(this.players[i])) this.players[i].say("Please select an alias to use with ``" + Config.commandCharacter + "alias [alias]``!");
+			if (!this.playerAliases.has(this.players[i])) {
+				this.players[i].say("Please select an alias to use with ``" +Config.commandCharacter + "alias [alias]``!");
+			}
 		}
 		this.timeout = setTimeout(() => {
 			for (const i in this.players) {
@@ -43,17 +45,20 @@ class EmpoleonsEmpires extends Game {
 			aliases.push(this.playerAliases.get(this.players[i])!);
 		}
 		const uhtmlName = this.uhtmlBaseName + '-aliases';
-		const html = "<div class='infobox'><b>Remaining players (" + this.getRemainingPlayerCount() + ")</b>: " + this.getPlayerNames(this.getRemainingPlayers()) + "<br><br>" +
-			"<b>Remaining aliases</b>: " + Tools.shuffle(aliases).join(", ") + ".</div>";
+		const html = "<div class='infobox'><b>Remaining players (" + this.getRemainingPlayerCount() + ")</b>: " +
+			this.getPlayerNames(this.getRemainingPlayers()) + "<br><br><b>Remaining aliases</b>: " + Tools.shuffle(aliases).join(", ") +
+			".</div>";
 		this.onUhtml(uhtmlName, html, () => {
 			if (!this.currentPlayer) this.currentPlayer = this.getRandomPlayer();
 			const currentPlayer = this.currentPlayer;
-			const text = "**" + this.currentPlayer.name + "** you are up! Please guess another player with ``" + Config.commandCharacter + "guess [user], [alias]``";
+			const text = "**" + this.currentPlayer.name + "** you are up! Please guess another player with ``" +
+				Config.commandCharacter + "guess [user], [alias]``";
 			this.on(text, () => {
 				this.canGuess = true;
 				this.timeout = setTimeout(() => {
 					if (this.currentPlayer === currentPlayer) {
-						this.say("**" + this.currentPlayer.name + "** (AKA " + this.playerAliases.get(this.currentPlayer) + ") did not suspect anyone and was eliminated!");
+						this.say("**" + this.currentPlayer.name + "** (AKA " + this.playerAliases.get(this.currentPlayer) + ") did not " +
+							"suspect anyone and was eliminated!");
 						this.eliminatePlayer(this.currentPlayer, "You did not suspect another player!");
 						this.currentPlayer = null;
 					}
@@ -203,7 +208,8 @@ const commands: Dict<ICommandDefinition<EmpoleonsEmpires>> = {
 				return false;
 			}
 			this.removePlayer(targetPlayer.name);
-			this.room.say("/modnote " + user.name + " DQed " + targetPlayer.name + " from " + this.name + " for using the alias '" + target.trim() + "'.");
+			this.room.say("/modnote " + user.name + " DQed " + targetPlayer.name + " from " + this.name + " for using the alias '" +
+				target.trim() + "'.");
 			return true;
 		},
 		pmOnly: true,
@@ -215,8 +221,8 @@ export const game: IGameFile<EmpoleonsEmpires> = {
 	commandDescriptions: [Config.commandCharacter + "alias [alias]", Config.commandCharacter + "guess [player], [alias]"],
 	commands,
 	class: EmpoleonsEmpires,
-	description: "Players choose aliases and await their turns to guess the aliases of other players. A player will guess until they are incorrect, at which point it will " +
-		"be the guessed player's turn.",
+	description: "Players choose aliases and await their turns to guess the aliases of other players. A player will guess until they " +
+		"are incorrect, at which point it will be the guessed player's turn.",
 	formerNames: ["Empires"],
 	name: "Empoleon's Empires",
 	mascot: "Empoleon",

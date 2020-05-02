@@ -5,7 +5,8 @@ import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/gam
 
 const hotPotatoHeroTime = 9000;
 const achievements: AchievementsDict = {
-	"hotpotatohero": {name: "Hot Potato Hero", type: 'special', bits: 1000, description: 'hold the egg for ' + (hotPotatoHeroTime/ 1000) + ' seconds'},
+	"hotpotatohero": {name: "Hot Potato Hero", type: 'special', bits: 1000, description: 'hold the egg for ' +
+		(hotPotatoHeroTime/ 1000) + ' seconds'},
 };
 
 class ChanseysEggToss extends Game {

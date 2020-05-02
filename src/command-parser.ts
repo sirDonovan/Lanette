@@ -17,11 +17,12 @@ export interface ICommandDefinition<T = undefined, U = T extends Game ? GameComm
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type CommandsDict<T = undefined, U = T extends Game ? GameCommandReturnType : any> = Dict<Omit<ICommandDefinition<T, U>, "aliases">>;
 
-type CommandErrorOptionalTarget = 'invalidBotRoom' | 'invalidFormat' | 'invalidGameFormat' | 'invalidTournamentFormat' | 'invalidUserHostedGameFormat' | 'tooManyGameModes' |
-	'tooManyGameVariants' | 'emptyUserHostedGameQueue';
+type CommandErrorOptionalTarget = 'invalidBotRoom' | 'invalidFormat' | 'invalidGameFormat' | 'invalidTournamentFormat' |
+	'invalidUserHostedGameFormat' | 'tooManyGameModes' | 'tooManyGameVariants' | 'emptyUserHostedGameQueue';
 
-type CommandErrorRequiredTarget = 'noPmHtmlRoom' | 'missingBotRankForFeatures' | 'disabledTournamentFeatures' | 'disabledGameFeatures' | 'disabledUserHostedGameFeatures' |
-	'disabledUserHostedTournamentFeatures' |'noRoomEventInformation' | 'invalidRoomEvent' | 'invalidGameOption' | 'disabledGameFormat';
+type CommandErrorRequiredTarget = 'noPmHtmlRoom' | 'missingBotRankForFeatures' | 'disabledTournamentFeatures' | 'disabledGameFeatures' |
+	'disabledUserHostedGameFeatures' | 'disabledUserHostedTournamentFeatures' |'noRoomEventInformation' | 'invalidRoomEvent' |
+	'invalidGameOption' | 'disabledGameFormat';
 
 type CommandErrorNoTarget = 'invalidUsernameLength' | 'reloadInProgress' | 'invalidHttpsLink';
 

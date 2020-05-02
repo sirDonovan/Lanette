@@ -31,7 +31,7 @@
         "@typescript-eslint/prefer-regexp-exec": "off",
         "@typescript-eslint/unbound-method": "off",
 
-        "max-len": ["error", {"code": 180, "ignorePattern": "^import \\{"}],
+        "max-len": ["error", {"code": 140, "ignorePattern": "^import \\{"}],
 
         "@typescript-eslint/no-extra-non-null-assertion": "error",
         "@typescript-eslint/no-throw-literal": "error",

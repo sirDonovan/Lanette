@@ -13,8 +13,8 @@ class MewsMoveCards extends CardHighLow {
 		this.deckPool = [];
 
 		const moves = Games.getMovesCopyList(move => {
-			if (!move.basePower || !move.accuracy || !move.pp || isNaN(move.basePower) || move.basePower <= 0 || move.accuracy === true || isNaN(move.accuracy) ||
-				move.accuracy === 100 || isNaN(move.pp)) return false;
+			if (!move.basePower || !move.accuracy || !move.pp || isNaN(move.basePower) || move.basePower <= 0 || move.accuracy === true ||
+				isNaN(move.accuracy) || move.accuracy === 100 || isNaN(move.pp)) return false;
 			return true;
 		}) as IMoveCard[];
 

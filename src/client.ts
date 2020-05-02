@@ -10,6 +10,14 @@ import { User } from './users';
 
 export type GroupName = 'voice' | 'bot' | 'driver' | 'moderator' | 'roomowner' | 'muted' | 'locked';
 
+interface ILoginOptions {
+	hostname: string | undefined;
+	path: string | undefined;
+	agent: boolean;
+	method: string;
+	headers?: Dict<string | number>;
+}
+
 const MAIN_HOST = "sim3.psim.us";
 const RELOGIN_SECONDS = 60;
 const REGULAR_MESSAGE_THROTTLE = 600;
@@ -18,7 +26,7 @@ const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const HTML_CHAT_COMMAND = '/raw ';
 const UHTML_CHAT_COMMAND = '/uhtml ';
 const UHTML_CHANGE_CHAT_COMMAND = '/uhtmlchange ';
-const HOTPATCH_CHAT_COMMAND = ' used /hotpatch ';
+// const HOTPATCH_CHAT_COMMAND = ' used /hotpatch ';
 const DEFAULT_SERVER_GROUPS: ServerGroupData[] = [
 	{
 		"symbol": "~",
@@ -497,7 +505,8 @@ export class Client {
 			}
 
 			user.rooms.set(room, {lastChatMessage: 0, rank: messageArguments.rank});
-			if (!this.trustedThrottle && user === Users.self && this.publicChatRooms.includes(room.id) && Users.self.hasRank(room, 'driver')) {
+			if (!this.trustedThrottle && user === Users.self && this.publicChatRooms.includes(room.id) &&
+				Users.self.hasRank(room, 'driver')) {
 				this.trustedThrottle = true;
 			}
 
@@ -639,12 +648,14 @@ export class Client {
 
 			Storage.updateLastSeen(user, messageArguments.timestamp);
 			if (room.logChatMessages) {
-				Storage.logChatMessage(room, messageArguments.timestamp, 'c', messageArguments.rank + user.name + '|' + messageArguments.message);
+				Storage.logChatMessage(room, messageArguments.timestamp, 'c', messageArguments.rank + user.name + '|' +
+					messageArguments.message);
 			}
 
 			/*
 			if (messageArguments.message.startsWith('/log ') && messageArguments.message.includes(HOTPATCH_CHAT_COMMAND)) {
-				const hotpatched = messageArguments.message.substr(messageArguments.message.indexOf(HOTPATCH_CHAT_COMMAND) + HOTPATCH_CHAT_COMMAND.length).trim();
+				const hotpatched = messageArguments.message.substr(messageArguments.message.indexOf(HOTPATCH_CHAT_COMMAND) +
+					HOTPATCH_CHAT_COMMAND.length).trim();
 				if (hotpatched === 'formats' || hotpatched === 'battles') {
 					if (Config.autoUpdatePS) void Tools.runUpdatePS();
 				}
@@ -746,14 +757,15 @@ export class Client {
 			}
 
 			if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
-				room.modchat = messageArguments.html.split('<div class="broadcast-red"><strong>Moderated chat was set to ')[1].split('!</strong>')[0];
+				room.modchat = messageArguments.html.split('<div class="broadcast-red"><strong>Moderated chat was set to ')[1]
+					.split('!</strong>')[0];
 			} else if (messageArguments.html.startsWith('<div class="broadcast-blue"><strong>Moderated chat was disabled!</strong>')) {
 				room.modchat = 'off';
 			} else if (messageArguments.html.startsWith("<div class='infobox infobox-limited'>This tournament includes:<br />")) {
 				if (room.tournament) {
 					const separatedCustomRules: ISeparatedCustomRules = {bans: [], unbans: [], addedrules: [], removedrules: []};
-					const lines = messageArguments.html.substr(0, messageArguments.html.length - 6).split("<div class='infobox infobox-limited'>This tournament includes:<br />")[1]
-						.split('<br />');
+					const lines = messageArguments.html.substr(0, messageArguments.html.length - 6)
+						.split("<div class='infobox infobox-limited'>This tournament includes:<br />")[1].split('<br />');
 					let currentCategory: 'bans' | 'unbans' | 'addedrules' | 'removedrules' = 'bans';
 					for (let line of lines) {
 						line = line.trim();
@@ -903,7 +915,8 @@ export class Client {
 						if (format) {
 							queuedTournament = true;
 							if (!database.queuedTournament.time) database.queuedTournament.time = now + Tournaments.queuedTournamentTime;
-							Tournaments.setTournamentTimer(room, database.queuedTournament.time, format, database.queuedTournament.playerCap, database.queuedTournament.scheduled);
+							Tournaments.setTournamentTimer(room, database.queuedTournament.time, format,
+								database.queuedTournament.playerCap, database.queuedTournament.scheduled);
 						} else {
 							delete database.queuedTournament;
 							Storage.exportDatabase(room.id);
@@ -911,7 +924,8 @@ export class Client {
 					}
 
 					if (!queuedTournament) {
-						if (Config.randomTournamentTimers && room.id in Config.randomTournamentTimers && Tournaments.canSetRandomTournament(room)) {
+						if (Config.randomTournamentTimers && room.id in Config.randomTournamentTimers &&
+							Tournaments.canSetRandomTournament(room)) {
 							Tournaments.setRandomTournamentTimer(room, Config.randomTournamentTimers[room.id]);
 						} else if (room.id in Tournaments.scheduledTournaments) {
 							Tournaments.setScheduledTournamentTimer(room);
@@ -975,7 +989,8 @@ export class Client {
 					recorded: messageParts[4] as 'success' | 'fail',
 					roomid: messageParts[5],
 				};
-				room.tournament.onBattleEnd(messageArguments.usernameA, messageArguments.usernameB, messageArguments.score, messageArguments.roomid);
+				room.tournament.onBattleEnd(messageArguments.usernameA, messageArguments.usernameB, messageArguments.score,
+					messageArguments.roomid);
 				break;
 			}
 			}
@@ -1056,7 +1071,9 @@ export class Client {
 			// let hasOwnLink = false;
 			const database = Storage.getDatabase(room);
 			let rank: GroupName = 'voice';
-			if (Config.userHostedTournamentRanks && room.id in Config.userHostedTournamentRanks) rank = Config.userHostedTournamentRanks[room.id].review;
+			if (Config.userHostedTournamentRanks && room.id in Config.userHostedTournamentRanks) {
+				rank = Config.userHostedTournamentRanks[room.id].review;
+			}
 			const authOrTHC = user.hasRank(room, rank) || (database.thcWinners && user.id in database.thcWinners);
 			outer:
 			for (const link of links) {
@@ -1097,7 +1114,8 @@ export class Client {
 								let name = room.newUserHostedTournaments[i].reviewer;
 								const reviewer = Users.get(name);
 								if (reviewer) name = reviewer.name;
-								room.sayCommand("/warn " + user.name + ", " + name + " has requested changes for your tournament and you must wait for them to be approved");
+								room.sayCommand("/warn " + user.name + ", " + name + " has requested changes for your tournament and you " +
+									"must wait for them to be approved");
 							} else {
 								room.sayCommand("/warn " + user.name + ", You must wait for a staff member to approve your tournament");
 							}
@@ -1105,8 +1123,8 @@ export class Client {
 						}
 					}
 					room.sayCommand("/warn " + user.name + ", Your tournament must be approved by a staff member");
-					user.say('Use the command ``' + Config.commandCharacter + 'gettourapproval ' + room.id + ', __bracket link__, __signup link__`` to get your tournament ' +
-						'approved (insert your actual links).');
+					user.say('Use the command ``' + Config.commandCharacter + 'gettourapproval ' + room.id + ', __bracket link__, ' +
+						'__signup link__`` to get your tournament approved (insert your actual links).');
 					break;
 				}
 			}
@@ -1157,8 +1175,8 @@ export class Client {
 	}
 
 	willBeFiltered(message: string, room?: Room): boolean {
-		let lowerCase = message.replace(/\u039d/g, 'N').toLowerCase().replace(/[\u200b\u007F\u00AD\uDB40\uDC00\uDC21]/gu, '').replace(/\u03bf/g, 'o').replace(/\u043e/g, 'o')
-			.replace(/\u0430/g, 'a').replace(/\u0435/g, 'e').replace(/\u039d/g, 'e');
+		let lowerCase = message.replace(/\u039d/g, 'N').toLowerCase().replace(/[\u200b\u007F\u00AD\uDB40\uDC00\uDC21]/gu, '')
+			.replace(/\u03bf/g, 'o').replace(/\u043e/g, 'o').replace(/\u0430/g, 'a').replace(/\u0435/g, 'e').replace(/\u039d/g, 'e');
 		lowerCase = lowerCase.replace(/__|\*\*|``|\[\[|\]\]/g, '');
 
 		if (this.filterRegularExpressions) {
@@ -1176,7 +1194,9 @@ export class Client {
 		}
 
 		if (room && room.bannedWords) {
-			if (!room.bannedWordsRegex) room.bannedWordsRegex = new RegExp('(?:\\b|(?!\\w))(?:' + room.bannedWords.join('|') + ')(?:\\b|\\B(?!\\w))', 'gi');
+			if (!room.bannedWordsRegex) {
+				room.bannedWordsRegex = new RegExp('(?:\\b|(?!\\w))(?:' + room.bannedWords.join('|') +')(?:\\b|\\B(?!\\w))', 'gi');
+			}
 			if (message.match(room.bannedWordsRegex)) return true;
 		}
 
@@ -1185,13 +1205,17 @@ export class Client {
 
 	getListenerHtml(html: string): string {
 		html = '<div class="infobox">' + html;
-		if (Users.self.group !== this.groupSymbols.bot) html += '<div style="float:right;color:#888;font-size:8pt">[' + Users.self.name + ']</div><div style="clear:both"></div>';
+		if (Users.self.group !== this.groupSymbols.bot) {
+			html += '<div style="float:right;color:#888;font-size:8pt">[' + Users.self.name + ']</div><div style="clear:both"></div>';
+		}
 		html += '</div>';
 		return html;
 	}
 
 	getListenerUhtml(html: string): string {
-		if (Users.self.group !== this.groupSymbols.bot) html += '<div style="float:right;color:#888;font-size:8pt">[' + Users.self.name + ']</div><div style="clear:both"></div>';
+		if (Users.self.group !== this.groupSymbols.bot) {
+			html += '<div style="float:right;color:#888;font-size:8pt">[' + Users.self.name + ']</div><div style="clear:both"></div>';
+		}
 		return html;
 	}
 
@@ -1221,7 +1245,7 @@ export class Client {
 			process.exit();
 		}
 
-		const options: {hostname: string | undefined; path: string | undefined; agent: boolean; method: string; headers?: Dict<string | number>} = {
+		const options: ILoginOptions = {
 			hostname: action.hostname,
 			path: action.pathname,
 			agent: false,
@@ -1268,7 +1292,8 @@ export class Client {
 					this.loginTimeout = setTimeout(() => this.login(), RELOGIN_SECONDS * 1000);
 					return;
 				} else if (data.includes('heavy load')) {
-					console.log('Failed to log in: the login server is under heavy load. Trying again in ' + (RELOGIN_SECONDS * 5) + ' seconds');
+					console.log('Failed to log in: the login server is under heavy load. Trying again in ' + (RELOGIN_SECONDS * 5) +
+						' seconds');
 					this.loginTimeout = setTimeout(() => this.login(), RELOGIN_SECONDS * 5 * 1000);
 					return;
 				} else {

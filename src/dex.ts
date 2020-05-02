@@ -3,7 +3,7 @@ import path = require('path');
 
 import { Room } from './rooms';
 import { TeamValidator } from './team-validator';
-import { IAbility, IAbilityComputed, IAbilityCopy, IDataTable, IFormat, IFormatComputed, IFormatData, IFormatLinks, IGifData, IItem, IItemComputed, IItemCopy, IMove, IMoveComputed, IMoveCopy, INature, IPokemon, IPokemonComputed, IPokemonCopy, ISeparatedCustomRules, ISpeciesData, ILearnsetData, FormatEffectType } from './types/dex';
+import { IAbility, IAbilityComputed, IAbilityCopy, IDataTable, IFormat, IFormatComputed, IFormatData, IFormatLinks, IGifData, IItem, IItemComputed, IItemCopy, IMove, IMoveComputed, IMoveCopy, INature, IPokemon, IPokemonComputed, IPokemonCopy, ISeparatedCustomRules, ILearnsetData, FormatEffectType } from './types/dex';
 
 const currentGen = 8;
 const currentGenString = 'gen' + currentGen;
@@ -127,8 +127,8 @@ const clauseNicknames: Dict<string> = {
 	'Ignore Illegal Abilities': 'Almost Any Ability',
 };
 
-const gen2Items: string[] = ['berserkgene', 'berry', 'bitterberry', 'burntberry', 'goldberry', 'iceberry', 'mintberry', 'miracleberry', 'mysteryberry', 'pinkbow', 'polkadotbow',
-	'przcureberry', 'psncureberry'];
+const gen2Items: string[] = ['berserkgene', 'berry', 'bitterberry', 'burntberry', 'goldberry', 'iceberry', 'mintberry', 'miracleberry',
+	'mysteryberry', 'pinkbow', 'polkadotbow', 'przcureberry', 'psncureberry'];
 
 const customRuleFormats: Dict<string> = {};
 const dexes: Dict<Dex> = {};
@@ -426,7 +426,8 @@ export class Dex {
 
 		for (const id in formats) {
 			const format = formats[id];
-			const links: ('info' | 'np' | 'roleCompendium' | 'teams' | 'viability')[] = ['info', 'np', 'roleCompendium', 'teams', 'viability'];
+			const links: ('info' | 'np' | 'roleCompendium' | 'teams' | 'viability')[] = ['info', 'np', 'roleCompendium', 'teams',
+				'viability'];
 			for (const id of links) {
 				const link = format[id];
 				if (!link) continue;
@@ -460,7 +461,8 @@ export class Dex {
 		if (this.parentMod) {
 			parentDex = dexes[this.parentMod];
 			if (!parentDex || parentDex === this) {
-				throw new Error("Unable to load " + this.currentMod + ". `inherit` should specify a parent mod from which to inherit data, or must be not specified.");
+				throw new Error("Unable to load " + this.currentMod + ". `inherit` should specify a parent mod from which to inherit " +
+					"data, or must be not specified.");
 			}
 		}
 
@@ -479,7 +481,8 @@ export class Dex {
 		for (const dataType of lanetteDataTypes) {
 			const battleData = this.loadDataFile(lanetteDataDir, lanetteDataFiles, dataType);
 			if (!battleData || typeof battleData !== 'object') {
-				throw new TypeError("Exported property `Battle" + dataType + "`from `" + this.modDataDir + '/' + dataFiles[dataType] + "` must be an object except `null`.");
+				throw new TypeError("Exported property `Battle" + dataType + "`from `" + this.modDataDir + '/' + dataFiles[dataType] +
+					"` must be an object except `null`.");
 			}
 			// @ts-expect-error
 			this.dataCache[dataType] = Object.assign(battleData, this.dataCache[dataType]);
@@ -672,8 +675,8 @@ export class Dex {
 		const abilities: IAbility[] = [];
 		for (const i in this.data.abilities) {
 			const ability = this.getExistingAbility(i);
-			if (ability.isNonstandard === 'CAP' || ability.isNonstandard === 'LGPE' || ability.isNonstandard === 'Custom' || ability.id === 'noability' || ability.gen > this.gen ||
-				(filter && !filter(ability))) continue;
+			if (ability.isNonstandard === 'CAP' || ability.isNonstandard === 'LGPE' || ability.isNonstandard === 'Custom' ||
+				ability.id === 'noability' || ability.gen > this.gen || (filter && !filter(ability))) continue;
 			abilities.push(ability);
 		}
 		return abilities;
@@ -935,7 +938,8 @@ export class Dex {
 		const moves: IMove[] = [];
 		for (const i in this.data.moves) {
 			const move = this.getExistingMove(i);
-			if (move.isNonstandard === 'CAP' || move.isNonstandard === 'LGPE' || move.isNonstandard === 'Custom' || move.gen > this.gen || (filter && !filter(move))) continue;
+			if (move.isNonstandard === 'CAP' || move.isNonstandard === 'LGPE' || move.isNonstandard === 'Custom' || move.gen > this.gen ||
+				(filter && !filter(move))) continue;
 			moves.push(move);
 		}
 		return moves;
@@ -958,7 +962,8 @@ export class Dex {
 		if (!pokedex) pokedex = this.getPokemonList();
 		const availability: string[] = [];
 		for (const pokemon of pokedex) {
-			if (this.getAllPossibleMoves(pokemon).includes(move.id) && !(pokemon.baseSpecies !== pokemon.name && availability.includes(pokemon.baseSpecies))) {
+			if (this.getAllPossibleMoves(pokemon).includes(move.id) && !(pokemon.baseSpecies !== pokemon.name &&
+				availability.includes(pokemon.baseSpecies))) {
 				availability.push(pokemon.name);
 			}
 		}
@@ -1114,8 +1119,8 @@ export class Dex {
 			}
 			if (!doublesTier) doublesTier = tier;
 
-			if (this.currentMod === 'letsgo' && !isNonstandard && !((templateData.num <= 151 || ['Meltan', 'Melmetal'].includes(templateData.name)) &&
-				['Alola', 'Mega', 'Mega-X', 'Mega-Y'].includes(forme))) {
+			if (this.currentMod === 'letsgo' && !isNonstandard && !((templateData.num <= 151 ||
+				['Meltan', 'Melmetal'].includes(templateData.name)) && ['Alola', 'Mega', 'Mega-X', 'Mega-Y'].includes(forme))) {
 				isNonstandard = 'Past';
 			}
 		}
@@ -1217,8 +1222,8 @@ export class Dex {
 		const pokedex: IPokemon[] = [];
 		for (const i in this.data.pokedex) {
 			const pokemon = this.getExistingPokemon(i);
-			if (pokemon.isNonstandard === 'CAP' || pokemon.isNonstandard === 'LGPE' || pokemon.isNonstandard === 'Custom' || pokemon.gen > this.gen ||
-				(filter && !filter(pokemon))) continue;
+			if (pokemon.isNonstandard === 'CAP' || pokemon.isNonstandard === 'LGPE' || pokemon.isNonstandard === 'Custom' ||
+				pokemon.gen > this.gen || (filter && !filter(pokemon))) continue;
 			pokedex.push(pokemon);
 		}
 		return pokedex;
@@ -1454,7 +1459,8 @@ export class Dex {
 		if (facingLeft) {
 			if (alternateIconNumbers.left[pokemon.id]) num = alternateIconNumbers.left[pokemon.id];
 		} else if (pokemon.gender === 'F') {
-			if (pokemon.id === 'unfezant' || pokemon.id === 'frillish' || pokemon.id === 'jellicent' || pokemon.id === 'meowstic' || pokemon.id === 'pyroar') {
+			if (pokemon.id === 'unfezant' || pokemon.id === 'frillish' || pokemon.id === 'jellicent' || pokemon.id === 'meowstic' ||
+				pokemon.id === 'pyroar') {
 				num = alternateIconNumbers.right[pokemon.id + 'f'];
 			}
 		} else {
@@ -1464,8 +1470,9 @@ export class Dex {
 		const top = Math.floor(num / 12) * 30;
 		const left = (num % 12) * 40;
 		const facingLeftStyle = facingLeft ? "transform:scaleX(-1);webkit-transform:scaleX(-1);" : "";
-		return '<span style="display: inline-block;width: 40px;height: 30px;image-rendering: pixelated;background:transparent url(https://' + Tools.mainServer +
-			'/sprites/pokemonicons-sheet.png?g8) no-repeat scroll -' + left + 'px -' + top + 'px;' + facingLeftStyle + '"></span>';
+		return '<span style="display: inline-block;width: 40px;height: 30px;image-rendering: pixelated;' +
+			'background:transparent url(https://' + Tools.mainServer + '/sprites/pokemonicons-sheet.png?g8) no-repeat scroll -' + left +
+			'px -' + top + 'px;' + facingLeftStyle + '"></span>';
 	}
 
 	getPSPokemonIcon(pokemon: IPokemon): string {
@@ -1543,8 +1550,9 @@ export class Dex {
 			separatedCustomRules: null,
 			tournamentPlayable: !!(formatData.searchShow || formatData.challengeShow || formatData.tournamentShow),
 			unbanlist: formatData.unbanlist || [],
-			unranked: formatData.rated === false || id.includes('customgame') || id.includes('challengecup') || id.includes('hackmonscup') ||
-				(formatData.team && (id.includes('1v1') || id.includes('monotype'))) || formatData.mod === 'seasonal' || formatData.mod === 'ssb',
+			unranked: formatData.rated === false || id.includes('customgame') || id.includes('challengecup') ||
+				id.includes('hackmonscup') || (formatData.team && (id.includes('1v1') || id.includes('monotype'))) ||
+				formatData.mod === 'seasonal' || formatData.mod === 'ssb',
 		};
 
 		return Object.assign({}, formatData, formatComputed, supplementaryAttributes);
@@ -1573,15 +1581,24 @@ export class Dex {
 		} else if (format.info) {
 			if (format.userHosted) {
 				html += '<br>&nbsp; - Description and more info on the <a href="' + format.info + '">official page</a>.';
-				if (format.generator) html += '<br>&nbsp; - Use our <a href="' + format.generator + '">random generator</a> to ease the hosting process.';
+				if (format.generator) {
+					html += '<br>&nbsp; - Use our <a href="' + format.generator + '">random generator</a> to ease the hosting process.';
+				}
 			} else {
-				html += '<br>&nbsp; - Description and more info ' + (format.info.startsWith('https://www.smogon.com/dex/') ? 'on the  <a href="' + format.info + '">dex page' :
-					'in the  <a href="' + format.info + '">discussion thread') + '</a>.';
+				html += '<br>&nbsp; - Description and more info ' + (format.info.startsWith('https://www.smogon.com/dex/') ? 'on the ' +
+					'<a href="' + format.info + '">dex page' : 'in the  <a href="' + format.info + '">discussion thread') + '</a>.';
 			}
 		}
-		if (format.teams) html += '<br>&nbsp; - Need to borrow a team? Check out the <a href="' + format.teams + '">sample teams thread</a>.';
-		if (format.viability) html += '<br>&nbsp; - See how viable each Pokemon is in the <a href="' + format.viability + '">viability rankings thread</a>.';
-		if (format.roleCompendium) html += '<br>&nbsp; - Check the common role that each Pokemon plays in the <a href="' + format.roleCompendium + '">role compendium thread</a>.';
+		if (format.teams) {
+			html += '<br>&nbsp; - Need to borrow a team? Check out the <a href="' + format.teams + '">sample teams thread</a>.';
+		}
+		if (format.viability) {
+			html += '<br>&nbsp; - See how viable each Pokemon is in the <a href="' + format.viability + '">viability rankings thread</a>.';
+		}
+		if (format.roleCompendium) {
+			html += '<br>&nbsp; - Check the common role that each Pokemon plays in the <a href="' + format.roleCompendium + '">role ' +
+				'compendium thread</a>.';
+		}
 		return html;
 	}
 
@@ -1671,7 +1688,8 @@ export class Dex {
 				if (ruleSpec.startsWith('+')) ruleTable.delete('-' + ruleSpec.slice(1));
 				if (ruleSpec.startsWith('-')) ruleTable.delete('+' + ruleSpec.slice(1));
 				if (ruleTable.has(ruleSpec)) {
-					throw new Error(`Rule "${rule}" was added by "${format.name}" but already exists in "${ruleTable.get(ruleSpec) || format.name}"`);
+					throw new Error(`Rule "${rule}" was added by "${format.name}" but already exists in "${ruleTable.get(ruleSpec) ||
+						format.name}"`);
 				}
 				ruleTable.set(ruleSpec, '');
 				continue;
@@ -1683,7 +1701,8 @@ export class Dex {
 				continue;
 			}
 			if (ruleTable.has(subformatId)) {
-				throw new Error(`Rule "${rule}" was added by "${format.name}" but already exists in "${ruleTable.get(subformatId) || format.name}"`);
+				throw new Error(`Rule "${rule}" was added by "${format.name}" but already exists in "${ruleTable.get(subformatId) ||
+					format.name}"`);
 			}
 			ruleTable.set(subformatId, '');
 			if (!subformat) continue;
@@ -1736,7 +1755,8 @@ export class Dex {
 		return ruleTable;
 	}
 
-	validateRule(rule: string, format: IFormat | null = null): string | ['complexTeamBan' | 'complexBan', string, string, number, string[]] {
+	validateRule(rule: string, format: IFormat | null = null): string |
+		['complexTeamBan' | 'complexBan', string, string, number, string[]] {
 		switch (rule.charAt(0)) {
 		case '-':
 		case '+':
@@ -1801,7 +1821,8 @@ export class Dex {
 				// valid pokemontags
 				const validTags = [
 					// singles tiers
-					'uber', 'ou', 'uubl', 'uu', 'rubl', 'ru', 'nubl', 'nu', 'publ', 'pu', 'zu', 'nfe', 'lcuber', 'lc', 'cap', 'caplc', 'capnfe', 'ag',
+					'uber', 'ou', 'uubl', 'uu', 'rubl', 'ru', 'nubl', 'nu', 'publ', 'pu', 'zu', 'nfe', 'lcuber', 'lc', 'cap', 'caplc',
+					'capnfe', 'ag',
 					// doubles tiers
 					'duber', 'dou', 'dbl', 'duu', 'dnu',
 					// custom tags
@@ -1928,7 +1949,8 @@ export class Dex {
 	getCustomFormatName(format: IFormat, room?: Room, showAll?: boolean): string {
 		if (!format.customRules || !format.customRules.length) return format.name;
 		if (!format.separatedCustomRules) format.separatedCustomRules = this.separateCustomRules(format.customRules);
-		const defaultCustomRules: Partial<ISeparatedCustomRules> = room && room.id in Tournaments.defaultCustomRules ? Tournaments.defaultCustomRules[room.id] : {};
+		const defaultCustomRules: Partial<ISeparatedCustomRules> = room && room.id in Tournaments.defaultCustomRules ?
+			Tournaments.defaultCustomRules[room.id] : {};
 		const bansLength = format.separatedCustomRules.bans.length;
 		const unbansLength = format.separatedCustomRules.unbans.length;
 		const addedRulesLength = format.separatedCustomRules.addedrules.length;
@@ -1939,13 +1961,16 @@ export class Dex {
 		let suffixes: string[] = [];
 
 		if (showAll || (bansLength <= 2 && unbansLength <= 2 && addedRulesLength <= 2 && removedRulesLength <= 2)) {
-			if (bansLength && (!defaultCustomRules.bans || format.separatedCustomRules.bans.join(",") !== defaultCustomRules.bans.join(","))) {
+			if (bansLength && (!defaultCustomRules.bans ||
+				format.separatedCustomRules.bans.join(",") !== defaultCustomRules.bans.join(","))) {
 				prefixesRemoved = prefixesRemoved.concat(format.separatedCustomRules.bans);
 			}
-			if (unbansLength && (!defaultCustomRules.unbans || format.separatedCustomRules.unbans.join(",") !== defaultCustomRules.unbans.join(","))) {
+			if (unbansLength && (!defaultCustomRules.unbans ||
+				format.separatedCustomRules.unbans.join(",") !== defaultCustomRules.unbans.join(","))) {
 				suffixes = suffixes.concat(format.separatedCustomRules.unbans);
 			}
-			if (addedRulesLength && (!defaultCustomRules.addedrules || format.separatedCustomRules.addedrules.join(",") !== defaultCustomRules.addedrules.join(","))) {
+			if (addedRulesLength && (!defaultCustomRules.addedrules ||
+				format.separatedCustomRules.addedrules.join(",") !== defaultCustomRules.addedrules.join(","))) {
 				for (const addedRule of format.separatedCustomRules.addedrules) {
 					let rule = addedRule;
 					const subFormat = this.getFormat(rule);
@@ -1957,7 +1982,8 @@ export class Dex {
 					prefixesAdded.push(rule);
 				}
 			}
-			if (removedRulesLength && (!defaultCustomRules.removedrules || format.separatedCustomRules.removedrules.join(",") !== defaultCustomRules.removedrules.join(","))) {
+			if (removedRulesLength && (!defaultCustomRules.removedrules ||
+				format.separatedCustomRules.removedrules.join(",") !== defaultCustomRules.removedrules.join(","))) {
 				prefixesRemoved = prefixesRemoved.concat(format.separatedCustomRules.removedrules.map(x => clauseNicknames[x] || x));
 			}
 
@@ -1975,10 +2001,18 @@ export class Dex {
 	getCustomRulesHtml(format: IFormat): string {
 		if (!format.separatedCustomRules) format.separatedCustomRules = this.separateCustomRules(format.customRules!);
 		const html: string[] = [];
-		if (format.separatedCustomRules.bans.length) html.push("&nbsp;&nbsp;&nbsp;&nbsp;<b>Bans</b>: " + format.separatedCustomRules.bans.join(", "));
-		if (format.separatedCustomRules.unbans.length) html.push("&nbsp;&nbsp;&nbsp;&nbsp;<b>Unbans</b>: " + format.separatedCustomRules.unbans.join(", "));
-		if (format.separatedCustomRules.addedrules.length) html.push("&nbsp;&nbsp;&nbsp;&nbsp;<b>Added rules</b>: " + format.separatedCustomRules.addedrules.join(", "));
-		if (format.separatedCustomRules.removedrules.length) html.push("&nbsp;&nbsp;&nbsp;&nbsp;<b>Removed rules</b>: " + format.separatedCustomRules.removedrules.join(", "));
+		if (format.separatedCustomRules.bans.length) {
+			html.push("&nbsp;&nbsp;&nbsp;&nbsp;<b>Bans</b>: " + format.separatedCustomRules.bans.join(", "));
+		}
+		if (format.separatedCustomRules.unbans.length) {
+			html.push("&nbsp;&nbsp;&nbsp;&nbsp;<b>Unbans</b>: " + format.separatedCustomRules.unbans.join(", "));
+		}
+		if (format.separatedCustomRules.addedrules.length) {
+			html.push("&nbsp;&nbsp;&nbsp;&nbsp;<b>Added rules</b>: " + format.separatedCustomRules.addedrules.join(", "));
+		}
+		if (format.separatedCustomRules.removedrules.length) {
+			html.push("&nbsp;&nbsp;&nbsp;&nbsp;<b>Removed rules</b>: " + format.separatedCustomRules.removedrules.join(", "));
+		}
 		return html.join("<br />");
 	}
 

@@ -10,7 +10,8 @@ const bankruptRounds = 5;
 const achievements: AchievementsDict = {
 	"payday": {name: "Pay Day", type: 'points', bits: 1000, description: 'collect at least ' + payDayPoints + ' ' + currency},
 	"meowthscoin": {name: "Meowth's Coin", type: 'special', bits: 1000, description: 'get lucky and find Meowth in the garden'},
-	"bankrupt": {name: "Bankrupt", type: 'special', bits: 1000, description: 'go ' + bankruptRounds + ' rounds without finding any ' + currency},
+	"bankrupt": {name: "Bankrupt", type: 'special', bits: 1000, description: 'go ' + bankruptRounds + ' rounds without finding any ' +
+		currency},
 };
 
 class PersiansGarden extends MapCurrencyGame {
@@ -40,7 +41,8 @@ class PersiansGarden extends MapCurrencyGame {
 
 	onAchievementSpace(player: Player, floor: MapFloor, space: MapFloorSpace): void {
 		delete space.attributes.achievement;
-		player.say("You arrived at (" + space.coordinates + ") and were greeted by a Meowth. It scratched at a hedge and revealed a small coin!");
+		player.say("You arrived at (" + space.coordinates + ") and were greeted by a Meowth. It scratched at a hedge and revealed a " +
+			"small coin!");
 		this.unlockAchievement(player, achievements.meowthscoin!);
 	}
 
@@ -67,8 +69,8 @@ class PersiansGarden extends MapCurrencyGame {
 			this.eliminatePlayer(eliminated[i].player, "Persian used Fury Swipes and knocked you out of the garden!");
 			names.push(eliminated[i].player.name);
 		}
-		this.say("The player" + (playersToEliminate > 1 ? "s" : "") + " with the least amount of " + this.currency + " " + (playersToEliminate > 1 ? "were" : "was") +
-			" **" + names.join(", ") + "**!");
+		this.say("The player" + (playersToEliminate > 1 ? "s" : "") + " with the least amount of " + this.currency + " " +
+			(playersToEliminate > 1 ? "were" : "was") + " **" + names.join(", ") + "**!");
 	}
 
 	onMaxRound(): void {

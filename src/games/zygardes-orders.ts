@@ -1,11 +1,11 @@
 import { Player } from "../room-activity";
-import { IGameOptionValues } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Zygarde's Orders";
-const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]} = {
+const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
+	'Pokemon Items': string[]; 'Pokemon Moves': string[];} = {
 	"Characters": [],
 	"Locations": [],
 	"Pokemon": [],
@@ -147,7 +147,8 @@ export const game: IGameFile<ZygardesOrders> = Games.copyTemplateProperties(gues
 	name,
 	mascot: "Zygarde",
 	minigameCommand: 'order',
-	minigameDescription: 'Use ``' + Config.commandCharacter + 'g`` to guess the answer as letters are revealed one by one (one chance to guess correctly)!',
+	minigameDescription: 'Use ``' + Config.commandCharacter + 'g`` to guess the answer as letters are revealed one by one (one chance ' +
+		'to guess correctly)!',
 	variants: [
 		{
 			name: "Zygarde's Ability Orders",

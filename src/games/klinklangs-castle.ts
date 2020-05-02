@@ -7,7 +7,8 @@ const currency = "gears";
 const kingOfTheCastlePoints = 4000;
 
 const achievements: AchievementsDict = {
-	"kingofthecastle": {name: "King of the Castle", type: 'points', bits: 1000, description: 'collect at least ' + kingOfTheCastlePoints + ' ' + currency},
+	"kingofthecastle": {name: "King of the Castle", type: 'points', bits: 1000, description: 'collect at least ' +
+		kingOfTheCastlePoints + ' ' + currency},
 	"klinksgear": {name: "Klink's Gear", type: 'special', bits: 1000, description: 'get lucky and find Klink in the castle'},
 };
 
@@ -39,7 +40,8 @@ class KlinklangsCastle extends MapShuffleGame {
 
 	onAchievementSpace(player: Player, floor: MapFloor, space: MapFloorSpace): void {
 		delete space.attributes.achievement;
-		player.say("You arrived safely at (" + space.coordinates + ") and were greeted by a Klink. It shifted a hidden gear on the wall and revealed a small coin!");
+		player.say("You arrived safely at (" + space.coordinates + ") and were greeted by a Klink. It shifted a hidden gear on the " +
+			"wall and revealed a small coin!");
 		this.unlockAchievement(player, achievements.klinksgear!);
 	}
 
@@ -86,7 +88,8 @@ export const game: IGameFile<KlinklangsCastle> = Games.copyTemplateProperties(ma
 	achievements,
 	aliases: ["klinklangs", "kcastle"],
 	class: KlinklangsCastle,
-	description: "Players must find a path out of the shifting castle without falling into traps! You may travel once per turn (up to 3 paces).",
+	description: "Players must find a path out of the shifting castle without falling into traps! You may travel once per turn " +
+		"(up to 3 paces).",
 	name: "Klinklang's Castle",
 	mascot: "Klinklang",
 	scriptedOnly: true,

@@ -26,7 +26,8 @@ describe("Tournaments", () => {
 				const totalDays = Tools.getLastDayOfMonth(date);
 
 				const scheduled = Object.keys(schedule.months[month].formats).length;
-				assert(scheduled === totalDays, "Month " + month + " in " + room + " has " + scheduled + " formats scheduled but " + totalDays + " are required");
+				assert(scheduled === totalDays, "Month " + month + " in " + room + " has " + scheduled + " formats scheduled but " +
+					totalDays + " are required");
 
 				let validated = 0;
 				const errors: string[] = [];

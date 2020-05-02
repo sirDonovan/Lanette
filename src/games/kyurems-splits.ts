@@ -3,7 +3,8 @@ import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 
 const name = "Kyurem's Splits";
-const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]} = {
+const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
+	'Pokemon Items': string[]; 'Pokemon Moves': string[];} = {
 	"Characters": [],
 	"Locations": [],
 	"Pokemon": [],

@@ -41,7 +41,8 @@ function intersect(options: IParametersIntersectOptions): string[] {
 		for (const slice of intersection) {
 			const id = Tools.toId(slice);
 			const isAlola = data.pokemon.gens[options.mod].formes[id] === 'Alola' && slice !== "Pikachu-Alola";
-			if (!isAlola && id in data.pokemon.gens[options.mod].otherFormes && intersection.includes(data.pokemon.gens[options.mod].otherFormes[id])) continue;
+			if (!isAlola && id in data.pokemon.gens[options.mod].otherFormes &&
+				intersection.includes(data.pokemon.gens[options.mod].otherFormes[id])) continue;
 			filtered.push(id);
 		}
 
@@ -83,7 +84,9 @@ function search(options: IParametersSearchOptions, prng: PRNG): IParametersRespo
 				const keys = paramTypeDexesKeys[options.searchType][options.mod][paramType];
 				const possible: string[] = [];
 				for (const key of keys) {
-					if (data[options.searchType].gens[options.mod].paramTypeDexes[paramType][key].length >= options.minimumResults) possible.push(Tools.toId(key));
+					if (data[options.searchType].gens[options.mod].paramTypeDexes[paramType][key].length >= options.minimumResults) {
+						possible.push(Tools.toId(key));
+					}
 				}
 				possibleKeys[paramType] = possible;
 			}

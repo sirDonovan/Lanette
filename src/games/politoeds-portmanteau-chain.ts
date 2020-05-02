@@ -37,8 +37,8 @@ export const game: IGameFile<PolitoedsPortmanteauChain> = Games.copyTemplateProp
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],
 	class: PolitoedsPortmanteauChain,
 	defaultOptions: ['freejoin', 'points'],
-	description: "Players answer each round with a Pokemon that starts with the last 2-4 letters or ends with the first 2-4 letters of the previous Pokemon " +
-		"(no repeats in a round)!",
+	description: "Players answer each round with a Pokemon that starts with the last 2-4 letters or ends with the first 2-4 letters of " +
+		"the previous Pokemon (no repeats in a round)!",
 	name: "Politoed's Portmanteau Chain",
 	mascot: "Politoed",
 });

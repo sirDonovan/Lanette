@@ -5,8 +5,9 @@ import { Game } from "../room-game";
 import { addPlayers, runCommand } from '../test/test-tools';
 import { GameFileTests, IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
 
-const doors: string[][] = [["Red", "Green", "Yellow"], ["Gold", "Silver", "Crystal"], ["Ruby", "Sapphire", "Emerald"], ["Diamond", "Pearl", "Platinum"],
-["Land", "Sea", "Sky"], ["Time", "Space", "Distortion"], ["Creation", "Destruction", "Harmony"], ["Sun", "Earth", "Moon"]];
+const doors: string[][] = [["Red", "Green", "Yellow"], ["Gold", "Silver", "Crystal"], ["Ruby", "Sapphire", "Emerald"],
+	["Diamond", "Pearl", "Platinum"], ["Land", "Sea", "Sky"], ["Time", "Space", "Distortion"], ["Creation", "Destruction", "Harmony"],
+	["Sun", "Earth", "Moon"]];
 
 const achievements: AchievementsDict = {
 	"escapeartist": {name: "Escape Artist", type: 'first', bits: 1000, description: "select a door first every round and win"},

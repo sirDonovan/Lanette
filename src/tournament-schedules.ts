@@ -140,9 +140,10 @@ export const tournamentSchedules: Dict<IRoomTournamentSchedule> = {
 					'13': 'Gen 6 Battle Spot Triples, Inverse mod',
 					'14': 'Gen 8 National Dex',
 					'15': 'VGC2020, Same Type Clause, -Togekiss',
-					'16': 'STABmons, Obtainable Abilities, -Arena Trap, -Comatose, -Contrary, -Fluffy, -Fur Coat, -Gorilla Tactics, -Huge Power, -Ice Scales, -Illusion, ' +
-						'-Imposter, -Innards Out, -Intrepid Sword, -Libero, -Moody, -Neutralizing Gas, -Parental Bond, -Protean, -Pure Power, -Shadow Tag, -Simple, -Stakeout, ' +
-						'-Speed Boost, -Water Bubble, -Wonder Guard, -Shedinja, 2 Ability Clause, -V-Create, -Keldeo, -Terrakion, -Chandelure, -Zeraora',
+					'16': 'STABmons, Obtainable Abilities, -Arena Trap, -Comatose, -Contrary, -Fluffy, -Fur Coat, -Gorilla Tactics, ' +
+						'-Huge Power, -Ice Scales, -Illusion, -Imposter, -Innards Out, -Intrepid Sword, -Libero, -Moody, ' +
+						'-Neutralizing Gas, -Parental Bond, -Protean, -Pure Power, -Shadow Tag, -Simple, -Stakeout, -Speed Boost, ' +
+						'-Water Bubble, -Wonder Guard, -Shedinja, 2 Ability Clause, -V-Create, -Keldeo, -Terrakion, -Chandelure, -Zeraora',
 					'17': 'RU, Same Type Clause',
 					'18': 'gen7anythinggoes',
 					'19': 'omotm2, inverse mod',

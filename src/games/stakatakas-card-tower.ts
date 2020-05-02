@@ -88,7 +88,8 @@ class StakatakasCardTower extends CardMatching {
 		}
 
 		this.awaitingCurrentPlayerCard = false;
-		this.storePreviouslyPlayedCard({card: player.name + "'s " + card.name + " ( + " + names.join(" + ") + ")", shiny: card.shiny && !card.played});
+		this.storePreviouslyPlayedCard({card: player.name + "'s " + card.name + " ( + " + names.join(" + ") + ")",
+			shiny: card.shiny && !card.played});
 		this.setTopCard(card, player);
 
 		let drewCards = false;
@@ -183,7 +184,8 @@ const tests: GameFileTests<StakatakasCardTower> = {
 			game.topCard = Dex.getPokemonCopy("Pikachu");
 			game.start();
 			const player = game.currentPlayer!;
-			const newCards = [Dex.getPokemonCopy("Charmander"), Dex.getPokemonCopy("Bulbasaur"), Dex.getPokemonCopy("Squirtle"), Dex.getPokemonCopy("Eevee")];
+			const newCards = [Dex.getPokemonCopy("Charmander"), Dex.getPokemonCopy("Bulbasaur"), Dex.getPokemonCopy("Squirtle"),
+				Dex.getPokemonCopy("Eevee")];
 			game.playerCards.set(player, newCards);
 			assert(!game.hasPlayableCard(player));
 			// beginning of chain behind
@@ -227,7 +229,8 @@ const tests: GameFileTests<StakatakasCardTower> = {
 			game.topCard = Dex.getPokemonCopy("Pikachu");
 			game.start();
 			const player = game.currentPlayer!;
-			const cards = [Dex.getPokemonCopy("Ampharos"), Dex.getPokemonCopy("Archen"), Dex.getPokemonCopy("Beautifly"), Dex.getPokemonCopy("Squirtle")];
+			const cards = [Dex.getPokemonCopy("Ampharos"), Dex.getPokemonCopy("Archen"), Dex.getPokemonCopy("Beautifly"),
+				Dex.getPokemonCopy("Squirtle")];
 			game.playerCards.set(player, cards);
 			assert(game.hasPlayableCard(player));
 			game.canPlay = true;
@@ -245,7 +248,8 @@ const tests: GameFileTests<StakatakasCardTower> = {
 			game.topCard = Dex.getPokemonCopy("Pikachu");
 			game.start();
 			const player = game.currentPlayer!;
-			const cards = [Dex.getPokemonCopy("Ampharos"), Dex.getPokemonCopy("Archen"), Dex.getPokemonCopy("Beautifly"), Dex.getPokemonCopy("Beedrill")];
+			const cards = [Dex.getPokemonCopy("Ampharos"), Dex.getPokemonCopy("Archen"), Dex.getPokemonCopy("Beautifly"),
+				Dex.getPokemonCopy("Beedrill")];
 			game.playerCards.set(player, cards);
 			assert(game.hasPlayableCard(player));
 			game.canPlay = true;
@@ -266,7 +270,8 @@ export const game: IGameFile<StakatakasCardTower> = Games.copyTemplateProperties
 		cards: {min: 6, base: 6, max: 8},
 	},
 	defaultOptions: [],
-	description: "Try to play all your cards to win! Stack as many cards as you can with each other by either color or type, starting with the top card.",
+	description: "Try to play all your cards to win! Stack as many cards as you can with each other by either color or type, starting " +
+		"with the top card.",
 	name: "Stakataka's Card Tower",
 	mascot: "Stakataka",
 	scriptedOnly: true,

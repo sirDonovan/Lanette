@@ -103,7 +103,8 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		let locationAfterMovement = this.getLocationAfterMovement(location, 1);
 		let passedSpaces = locationAfterMovement.passedSpaces.slice();
 		while (!this.board[locationAfterMovement.side][locationAfterMovement.space].name.startsWith(mountainPrefix)) {
-			locationAfterMovement = this.getLocationAfterMovement({side: locationAfterMovement.side, space: locationAfterMovement.space}, 1);
+			locationAfterMovement = this.getLocationAfterMovement({side: locationAfterMovement.side, space: locationAfterMovement.space},
+				1);
 			passedSpaces = passedSpaces.concat(locationAfterMovement.passedSpaces);
 		}
 		locationAfterMovement.passedSpaces = passedSpaces;
@@ -118,17 +119,19 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		}
 		this.playerLocations.set(player, {side: locationAfterMovement.side, space: locationAfterMovement.space});
 
-		let text = "They go hiking at the nearest mountain, **" + this.board[locationAfterMovement.side][locationAfterMovement.space].name + "**";
+		let text = "They go hiking at the nearest mountain, **" + this.board[locationAfterMovement.side][locationAfterMovement.space].name +
+			"**";
 		if (passedGo) {
-			text += " (and collect **" + this.passingGoCurrency + " " + (this.passingGoCurrency > 1 ? this.currencyPluralName : this.currencyName) + "** for passing " +
-				this.startingSpace.name + ")";
+			text += " (and collect **" + this.passingGoCurrency + " " + (this.passingGoCurrency > 1 ? this.currencyPluralName :
+				this.currencyName) + "** for passing " + this.startingSpace.name + ")";
 		}
 		text += "!";
 		this.on(text, () => {
 			if (reachedMaxCurrency) {
 				this.onMaxCurrency(player);
 			} else {
-				this.timeout = setTimeout(() => this.onSpaceLanding(player, passedSpaces.length, locationAfterMovement, true), this.roundTime);
+				this.timeout = setTimeout(() => this.onSpaceLanding(player, passedSpaces.length, locationAfterMovement, true),
+					this.roundTime);
 			}
 		});
 		this.say(text);
@@ -137,8 +140,8 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		let currency = this.playerCurrency.get(player)!;
 		currency += this.rafflePrize;
 		this.playerCurrency.set(player, currency);
-		const text = "They win the " + this.raffleRunner + " raffle and earn **" + this.rafflePrize + " " + (this.rafflePrize > 1 ? this.currencyPluralName : this.currencyName) +
-			"**!";
+		const text = "They win the " + this.raffleRunner + " raffle and earn **" + this.rafflePrize + " " + (this.rafflePrize > 1 ?
+			this.currencyPluralName : this.currencyName) + "**!";
 		this.on(text, () => {
 			if (this.maxCurrency && currency >= this.maxCurrency) {
 				this.onMaxCurrency(player);
@@ -149,13 +152,15 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		this.say(text);
 	},
 	function(player): void {
-		const totalSpaces = this.board.leftColumn.length + this.board.topRow.length + this.board.rightColumn.length + this.board.bottomRow.length;
+		const totalSpaces = this.board.leftColumn.length + this.board.topRow.length + this.board.rightColumn.length +
+			this.board.bottomRow.length;
 		const spacesMoved = this.random(totalSpaces - 1) + 1;
 		const location = this.playerLocations.get(player)!;
 		const locationAfterMovement = this.getLocationAfterMovement(location, spacesMoved);
 		this.playerLocations.set(player, {side: locationAfterMovement.side, space: locationAfterMovement.space});
 
-		const text = "An Abra appeared and teleported them to **" + this.board[locationAfterMovement.side][locationAfterMovement.space].name + "**!";
+		const text = "An Abra appeared and teleported them to **" +
+			this.board[locationAfterMovement.side][locationAfterMovement.space].name + "**!";
 		this.on(text, () => {
 			this.timeout = setTimeout(() => this.onSpaceLanding(player, spacesMoved, locationAfterMovement, true), this.roundTime);
 		});
@@ -267,9 +272,11 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 
 	getSpaceHtml(side: BoardSide, space: number, playerLocations: KeyedDict<IBoard, Dict<Player[]>>): string {
 		const boardSpace = this.board[side][space];
-		let html = '<td style=background-color:' + Tools.hexColorCodes[boardSpace.color]["background-color"] + ' width="20px" height="20px"; align="center">';
+		let html = '<td style=background-color:' + Tools.hexColorCodes[boardSpace.color]["background-color"] +
+			' width="20px" height="20px"; align="center">';
 		if (playerLocations[side][space]) {
-			html += "<b>" + (playerLocations[side][space].length > 1 ? "*" : this.playerLetters.get(playerLocations[side][space][0])) + "</b>";
+			html += "<b>" + (playerLocations[side][space].length > 1 ? "*" : this.playerLetters.get(playerLocations[side][space][0])) +
+				"</b>";
 		} else if (boardSpace instanceof BoardPropertySpace && boardSpace.owner) {
 			html += "<b>" + this.playerLetters.get(boardSpace.owner)!.toLowerCase() + "</b>";
 		}
@@ -281,11 +288,13 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 	getPlayerSummary(player: Player): void {
 		if (!this.started) return;
 		let html = '<div class="infobox">';
-		const playerHtml: string[] = ["<b><u>You (" + this.playerLetters.get(player) + ")</u></b><br />" + this.getPlayerPropertiesHtml(player)];
+		const playerHtml: string[] = ["<b><u>You (" + this.playerLetters.get(player) + ")</u></b><br />" +
+			this.getPlayerPropertiesHtml(player)];
 		for (const otherPlayer of this.playerOrder) {
 			if (otherPlayer === player) continue;
 			if (!otherPlayer.eliminated) {
-				playerHtml.push("<b><u>" + otherPlayer.name + " (" + this.playerLetters.get(otherPlayer) + ")</u></b><br />" + this.getPlayerPropertiesHtml(otherPlayer));
+				playerHtml.push("<b><u>" + otherPlayer.name + " (" + this.playerLetters.get(otherPlayer) + ")</u></b><br />" +
+					this.getPlayerPropertiesHtml(otherPlayer));
 			}
 		}
 
@@ -320,11 +329,13 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 				if (escapeFromJailCards || currency >= this.currencyToEscapeJail) {
 					let text: string;
 					if (escapeFromJailCards) {
-						text = "Since it is **" + player.name + "**'s 4th turn in " + this.jailSpace.name + ", they must use a " + this.escapeFromJailCard + "!";
+						text = "Since it is **" + player.name + "**'s 4th turn in " + this.jailSpace.name + ", they must use a " +
+							this.escapeFromJailCard + "!";
 						this.escapeFromJailCards.set(player, escapeFromJailCards - 1);
 					} else {
-						text = "Since it is **" + player.name + "**'s 4th turn in " + this.jailSpace.name + ", they must use **" + this.currencyToEscapeJail + " " +
-							(this.currencyToEscapeJail > 1 ? this.currencyPluralName : this.currencyName) + "** to escape!";
+						text = "Since it is **" + player.name + "**'s 4th turn in " + this.jailSpace.name + ", they must use **" +
+							this.currencyToEscapeJail + " " + (this.currencyToEscapeJail > 1 ? this.currencyPluralName :
+							this.currencyName) + "** to escape!";
 						this.playerCurrency.set(player, currency - this.currencyToEscapeJail);
 					}
 					this.playersInJail.splice(this.playersInJail.indexOf(player), 1);
@@ -333,7 +344,8 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 					});
 					this.say(text);
 				} else {
-					const text = "It is **" + player.name + "**'s 4th turn in " + this.jailSpace.name + ", but they do not have enough " + this.currencyPluralName + " to escape!";
+					const text = "It is **" + player.name + "**'s 4th turn in " + this.jailSpace.name + ", but they do not have enough " +
+						this.currencyPluralName + " to escape!";
 					this.on(text, () => {
 						this.eliminatePlayer(player);
 						this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
@@ -342,9 +354,10 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 				}
 			} else {
 				if (currency >= this.currencyToEscapeJail || escapeFromJailCards) {
-					const text = "This is **" + player.name + "**'s " + Tools.toNumberOrderString(turnsInJail) + " turn in " + this.jailSpace.name + ". They can either attempt " +
-						"to roll doubles (with ``" + Config.commandCharacter + "rolldice``) or use " + (escapeFromJailCards ? "a " + this.escapeFromJailCard :
-						this.currencyToEscapeJail + " " + (this.currencyToEscapeJail > 1 ? this.currencyPluralName : this.currencyName)) + " to escape (with ``" +
+					const text = "This is **" + player.name + "**'s " + Tools.toNumberOrderString(turnsInJail) + " turn in " +
+						this.jailSpace.name + ". They can either attempt to roll doubles (with ``" + Config.commandCharacter +
+						"rolldice``) or use " + (escapeFromJailCards ? "a " + this.escapeFromJailCard : this.currencyToEscapeJail + " " +
+						(this.currencyToEscapeJail > 1 ? this.currencyPluralName : this.currencyName)) + " to escape (with ``" +
 						Config.commandCharacter + "escape``)!";
 					this.canEscape = true;
 					this.canRoll = true;
@@ -357,8 +370,8 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 					});
 					this.say(text);
 				} else {
-					const text = "This is **" + player.name + "**'s " + Tools.toNumberOrderString(turnsInJail) + " turn in " + this.jailSpace.name + ", but they cannot escape " +
-						"so they must roll!";
+					const text = "This is **" + player.name + "**'s " + Tools.toNumberOrderString(turnsInJail) + " turn in " +
+						this.jailSpace.name + ", but they cannot escape so they must roll!";
 					this.on(text, () => {
 						this.timeout = setTimeout(() => this.rollDice(player), this.roundTime);
 					});
@@ -373,7 +386,8 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 	onPlayerRoll(player: Player): boolean {
 		if (this.playersInJail.includes(player)) {
 			if (this.dice[0] !== this.dice[1]) {
-				const text = "**" + player.name + "** rolled [ " + this.dice[0] + " ] [ " + this.dice[1] + " ] and failed to get out of " + this.jailSpace.name + "!";
+				const text = "**" + player.name + "** rolled [ " + this.dice[0] + " ] [ " + this.dice[1] + " ] and failed to get out of " +
+					this.jailSpace.name + "!";
 				this.on(text, () => {
 					this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
 				});
@@ -410,8 +424,8 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 				this.currentPlayerReRoll = false;
 			}
 
-			rollText = "**" + player.name + " (" + this.playerLetters.get(player) + ")** rolled **[ " + this.dice[0] + " ]** **[ " + this.dice[1] + " ]** " +
-				(outOfJail ? "to get out of jail " : "") + "and landed on **" + space.name + "**!";
+			rollText = "**" + player.name + " (" + this.playerLetters.get(player) + ")** rolled **[ " + this.dice[0] + " ]** **[ " +
+				this.dice[1] + " ]** " + (outOfJail ? "to get out of jail " : "") + "and landed on **" + space.name + "**!";
 			const passedGo = spacesMoved > 0 && location.passedSpaces.includes(this.startingSpace);
 			if (passedGo && this.boardRound > 1) {
 				rollText += " They also passed " + this.startingSpace.name + " and gained **" + this.passingGoCurrency + " " +
@@ -448,10 +462,11 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 				const currency = this.playerCurrency.get(player)!;
 				if (currency >= space.cost) {
 					const currency = this.playerCurrency.get(player)!;
-					const text = "Would you like to " + this.acquirePropertyAction + " it using " + (currency > space.cost ? "**" + space.cost + "** of your **" + currency +
-						" " + this.currencyPluralName + "**" : "**your last " + (currency === 1 ? this.currencyName : currency + " " + this.currencyPluralName) + "**") +
-						"? Use ``" + Config.commandCharacter + this.acquirePropertyAction + "`` if so or ``" + Config.commandCharacter + "pass`` to leave it " +
-						this.availablePropertyState + ".";
+					const text = "Would you like to " + this.acquirePropertyAction + " it using " + (currency > space.cost ? "**" +
+						space.cost + "** of your **" + currency + " " + this.currencyPluralName + "**" : "**your last " +
+						(currency === 1 ? this.currencyName : currency + " " + this.currencyPluralName) + "**") + "? Use ``" +
+						Config.commandCharacter + this.acquirePropertyAction + "`` if so or ``" + Config.commandCharacter + "pass`` to " +
+						"leave it " + this.availablePropertyState + ".";
 					this.on(text, () => {
 						this.canAcquire = true;
 						this.propertyToAcquire = space;
@@ -535,7 +550,8 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 
 		let text: string;
 		if (eliminated) {
-			text = "They only have " + currency + " " + (currency > 1 ? this.currencyPluralName : this.currencyName) + " and cannot pay the full rent!";
+			text = "They only have " + currency + " " + (currency > 1 ? this.currencyPluralName : this.currencyName) + " and cannot pay " +
+				"the full rent!";
 			this.on(text, () => {
 				if (reachedMaxCurrency) {
 					this.onMaxCurrency(owner!);
@@ -545,7 +561,8 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 				}
 			});
 		} else {
-			text = "They pay **" + rent + " " + (rent > 1 ? this.currencyPluralName : this.currencyName) + "**" + (owner ? " to **" + owner.name + "**" : "") + " as rent!";
+			text = "They pay **" + rent + " " + (rent > 1 ? this.currencyPluralName : this.currencyName) + "**" + (owner ? " to **" +
+				owner.name + "**" : "") + " as rent!";
 			this.playerCurrency.set(player, currency - rent);
 			this.on(text, () => {
 				if (reachedMaxCurrency) {
@@ -613,8 +630,12 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 			if (!acquiredAllMountains && !acquiredAllProperties) break;
 		}
 
-		if (this.acquireAllMountainsAchievement && acquiredAllMountains) this.unlockAchievement(player, this.acquireAllMountainsAchievement);
-		if (this.acquireAllPropertiesAchievement && acquiredAllProperties) this.unlockAchievement(player, this.acquireAllPropertiesAchievement);
+		if (this.acquireAllMountainsAchievement && acquiredAllMountains) {
+			this.unlockAchievement(player, this.acquireAllMountainsAchievement);
+		}
+		if (this.acquireAllPropertiesAchievement && acquiredAllProperties) {
+			this.unlockAchievement(player, this.acquireAllPropertiesAchievement);
+		}
 	}
 }
 
@@ -630,7 +651,9 @@ const commands: Dict<ICommandDefinition<BoardPropertyGame>> = {
 	},
 	unlock: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.propertyToAcquire || !this.canAcquire || !(user.id in this.players) || this.players[user.id] !== this.currentPlayer) return false;
+			if (!this.propertyToAcquire || !this.canAcquire || !(user.id in this.players) || this.players[user.id] !== this.currentPlayer) {
+				return false;
+			}
 			this.acquirePropertySpace(this.propertyToAcquire, this.currentPlayer, this.propertyToAcquire.cost);
 			this.canAcquire = false;
 			if (this.timeout) clearTimeout(this.timeout);
@@ -645,7 +668,9 @@ const commands: Dict<ICommandDefinition<BoardPropertyGame>> = {
 	},
 	pass: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.propertyToAcquire || !this.canAcquire || !(user.id in this.players) || this.players[user.id] !== this.currentPlayer) return false;
+			if (!this.propertyToAcquire || !this.canAcquire || !(user.id in this.players) || this.players[user.id] !== this.currentPlayer) {
+				return false;
+			}
 			this.canAcquire = false;
 			if (this.timeout) clearTimeout(this.timeout);
 			this.passOnPropertySpace(this.players[user.id]);
@@ -665,7 +690,8 @@ const commands: Dict<ICommandDefinition<BoardPropertyGame>> = {
 				text += "a " + this.escapeFromJailCard + "!";
 			} else {
 				this.playerCurrency.set(player, this.playerCurrency.get(player)! - this.currencyToEscapeJail);
-				text += this.currencyToEscapeJail + " " + (this.currencyToEscapeJail > 1 ? this.currencyPluralName : this.currencyName) + "!";
+				text += this.currencyToEscapeJail + " " + (this.currencyToEscapeJail > 1 ? this.currencyPluralName : this.currencyName) +
+					"!";
 			}
 			this.playersInJail.splice(this.playersInJail.indexOf(player), 1);
 			this.on(text, () => {

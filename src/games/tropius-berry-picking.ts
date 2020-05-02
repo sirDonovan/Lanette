@@ -96,7 +96,8 @@ class TropiusBerryPicking extends Game {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		const movesList = Games.getMovesList(move => move.category !== 'Status' && move.type in Dex.data.typeChart && !move.id.startsWith('hiddenpower'));
+		const movesList = Games.getMovesList(move => move.category !== 'Status' && move.type in Dex.data.typeChart &&
+			!move.id.startsWith('hiddenpower'));
 		for (const move of movesList) {
 			data.moves.push(move.name);
 		}
@@ -227,7 +228,9 @@ class TropiusBerryPicking extends Game {
 const commands: Dict<ICommandDefinition<TropiusBerryPicking>> = {
 	eat: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canEat || (!this.format.options.freejoin && (!this.players[user.id] || this.players[user.id].eliminated))) return false;
+			if (!this.canEat || (!this.format.options.freejoin && (!this.players[user.id] || this.players[user.id].eliminated))) {
+				return false;
+			}
 			const player = this.createPlayer(user) || this.players[user.id];
 			const id = Tools.toId(target);
 			const berry = berries[id] || berries[id + 'berry'];
@@ -240,13 +243,15 @@ const commands: Dict<ICommandDefinition<TropiusBerryPicking>> = {
 				points += 1;
 				this.points.set(player, points);
 				if (points === this.format.options.points) {
-					this.say('**' + player.name + '** wins' + (this.parentGame ? '' : ' the game') + '! A possible answer was __' + berry.name + '__.');
+					this.say('**' + player.name + '** wins' + (this.parentGame ? '' : ' the game') + '! A possible answer was __' +
+						berry.name + '__.');
 					this.winners.set(player, 1);
 					this.convertPointsToBits(50);
 					this.end();
 					return true;
 				}
-				this.say('**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '! A possible answer was __' + berry.name + '__.');
+				this.say('**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '! A possible ' +
+					'answer was __' + berry.name + '__.');
 				this.nextRound();
 			} else {
 				if (this.roundBerries.has(player)) return false;
@@ -266,7 +271,8 @@ export const game: IGameFile<TropiusBerryPicking> = {
 	commands,
 	class: TropiusBerryPicking,
 	defaultOptions: ['freejoin', 'points'],
-	description: "Players help Tropius pick berries and fight off wild Pokemon! Use status and super-effective berries based on their moves.",
+	description: "Players help Tropius pick berries and fight off wild Pokemon! Use status and super-effective berries based on their " +
+		"moves.",
 	formerNames: ["Smeargle's Berry Picking"],
 	name,
 	mascot: "Tropius",

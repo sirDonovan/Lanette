@@ -13,7 +13,8 @@ const data: {moves: string[]; pokedex: string[]} = {
 let loadedData = false;
 
 const achievements: AchievementsDict = {
-	'wonderguardwarrior': {name: "Wonder Guard Warrior", type: 'special', bits: 1000, description: "use a move first every round that is super-effective"},
+	'wonderguardwarrior': {name: "Wonder Guard Warrior", type: 'special', bits: 1000, description: "use a move first every round that " +
+		"is super-effective"},
 };
 
 class ShedinjasWonderTrials extends Game {
@@ -105,8 +106,8 @@ class ShedinjasWonderTrials extends Game {
 				if (points < 0) points = 0;
 				if (points > highestPoints) highestPoints = points;
 				this.points.set(player, points);
-				player.say("Your move was **" + effectivenessScale[effectiveness] + "** effective!" + (points !== originalPoints ? " Your total score is now " +
-					points + "." : ""));
+				player.say("Your move was **" + effectivenessScale[effectiveness] + "** effective!" + (points !== originalPoints ?
+					" Your total score is now " + points + "." : ""));
 			});
 			if (highestPoints >= this.maxPoints) {
 				this.timeout = setTimeout(() => this.end(), 3000);
@@ -170,7 +171,8 @@ const commands: Dict<ICommandDefinition<ShedinjasWonderTrials>> = {
 				if (Dex.isImmune('Fighting', this.currentPokemon) || Dex.isImmune('Flying', this.currentPokemon)) {
 					effectiveness = Infinity;
 				} else {
-					effectiveness = Dex.getEffectiveness('Fighting', this.currentPokemon) + Dex.getEffectiveness('Flying', this.currentPokemon);
+					effectiveness = Dex.getEffectiveness('Fighting', this.currentPokemon) +
+						Dex.getEffectiveness('Flying', this.currentPokemon);
 				}
 			} else if (move.id === 'freezedry') {
 				const waterIndex = this.currentPokemon.types.indexOf('Water');
@@ -224,7 +226,8 @@ export const game: IGameFile<ShedinjasWonderTrials> = {
 	commandDescriptions: [Config.commandCharacter + "use [move]"],
 	commands,
 	class: ShedinjasWonderTrials,
-	description: "Players must use damaging moves that are super-effective against each Pokemon that Shedinja summons (no repeats in a round)!",
+	description: "Players must use damaging moves that are super-effective against each Pokemon that Shedinja summons " +
+		"(no repeats in a round)!",
 	formerNames: ["Wonder Guard Wipeout"],
 	freejoin: true,
 	name,
@@ -232,8 +235,8 @@ export const game: IGameFile<ShedinjasWonderTrials> = {
 	variants: [
 		{
 			name: "Shedinja's Inverse Wonder Trials",
-			description: "Using an inverted type chart, Players must use damaging moves that are super-effective against each Pokemon that Shedinja summons " +
-				"(no repeats in a round)!",
+			description: "Using an inverted type chart, Players must use damaging moves that are super-effective against each Pokemon " +
+				"that Shedinja summons (no repeats in a round)!",
 			variant: "inverse",
 		},
 	],

@@ -99,7 +99,8 @@ export abstract class CardMatching extends Card {
 	}
 
 	getTopCardHtml(): string {
-		return (this.previouslyPlayedCardsAmount ? this.getPreviouslyPlayedCardsHtml() + '<br />' : '') + this.getCardChatHtml(this.topCard);
+		return (this.previouslyPlayedCardsAmount ? this.getPreviouslyPlayedCardsHtml() + '<br />' : '') +
+			this.getCardChatHtml(this.topCard);
 	}
 
 	getCardChatDetails(card: IPokemonCard): string {
@@ -113,8 +114,9 @@ export abstract class CardMatching extends Card {
 		for (let i = 0; i < this.previouslyPlayedCards.length; i++) {
 			const card = this.previouslyPlayedCards[i];
 			const cardText = card.card + (card.detail ? ' (' + card.detail + ')' : '');
-			html += '<div class="infobox" style="width:' + (cardText.length * 8) + 'px;opacity:' + (lowestOpacity + (opacityIncrement * i)) + '%;' +
-				(card.shiny ? 'color: ' + Tools.hexColorCodes['Dark Yellow']['background-color'] : '') + '">' + cardText + '</div>';
+			html += '<div class="infobox" style="width:' + (cardText.length * 8) + 'px;opacity:' + (lowestOpacity +
+				(opacityIncrement * i)) + '%;' + (card.shiny ? 'color: ' + Tools.hexColorCodes['Dark Yellow']['background-color'] : '') +
+				'">' + cardText + '</div>';
 		}
 		return html;
 	}
@@ -126,7 +128,8 @@ export abstract class CardMatching extends Card {
 			if (card.action && (card.action.requiredTarget || card.action.requiredOtherCards)) {
 				html += ' (play manually!)';
 			} else {
-				html += ' <button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter + 'pmplay ' + card.name + '">Play!</button>';
+				html += ' <button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter + 'pmplay ' +
+					card.name + '">Play!</button>';
 			}
 		} else {
 			html += card.name;
@@ -134,18 +137,20 @@ export abstract class CardMatching extends Card {
 		html += '<br />';
 		if (card.action) {
 			if (this.usesColors) {
-				html += '<div style="display:inline-block;background-color:' + Tools.hexColorCodes['White']['background-color'] + ';background:' +
-					Tools.hexColorCodes['White']['background'] + ';border-color:' + Tools.hexColorCodes['White']['border-color'] + ';border: 1px solid #a99890;' +
-					'border-radius:3px;width:' + this.detailLabelWidth + 'px;padding:1px;color:#333;text-shadow:1px 1px 1px #eee;text-transform: uppercase;text-align:center;' +
-					'font-size:8pt"><b>Action</b></div>';
+				html += '<div style="display:inline-block;background-color:' + Tools.hexColorCodes['White']['background-color'] +
+					';background:' + Tools.hexColorCodes['White']['background'] + ';border-color:' +
+					Tools.hexColorCodes['White']['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:' +
+					this.detailLabelWidth + 'px;padding:1px;color:#333;text-shadow:1px 1px 1px #eee;text-transform: uppercase;' +
+					'text-align:center;font-size:8pt"><b>Action</b></div>';
 				html += '<br />';
 			}
 			const description = card.action.description;
 			let descriptionWidth = 'auto';
 			if (description.length <= 8) descriptionWidth = this.detailLabelWidth + 'px';
-			html += '<div style="display:inline-block;background-color:' + Tools.hexColorCodes['Black']['background-color'] + ';background:' +
-				Tools.hexColorCodes['Black']['background'] + ';border-color:' + Tools.hexColorCodes['Black']['border-color'] + ';border: 1px solid #a99890;' +
-				'border-radius:3px;width:' + descriptionWidth + ';padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;text-align:center;' +
+			html += '<div style="display:inline-block;background-color:' + Tools.hexColorCodes['Black']['background-color'] +
+				';background:' + Tools.hexColorCodes['Black']['background'] + ';border-color:' +
+				Tools.hexColorCodes['Black']['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:' +
+				descriptionWidth + ';padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;text-align:center;' +
 				'font-size:8pt"><b>' + description + '</b></div>';
 		} else {
 			html += this.getCardPmDetails(card);
@@ -310,7 +315,8 @@ export abstract class CardMatching extends Card {
 			hasCard = this.hasPlayableCard(player);
 		}
 
-		if (this.drawAchievement && this.drawAchievementAmount && this.lastPlayer && drawCount >= this.drawAchievementAmount && !this.lastPlayer.eliminated) {
+		if (this.drawAchievement && this.drawAchievementAmount && this.lastPlayer && drawCount >= this.drawAchievementAmount &&
+			!this.lastPlayer.eliminated) {
 			this.unlockAchievement(this.lastPlayer, this.drawAchievement);
 		}
 
@@ -383,7 +389,9 @@ export abstract class CardMatching extends Card {
 	}
 
 	isCardPair(card: IPokemonCard, otherCard: IPokemonCard): boolean {
-		if (!card || !otherCard || (card !== this.topCard && card.action) || (otherCard !== this.topCard && otherCard.action)) return false;
+		if (!card || !otherCard || (card !== this.topCard && card.action) || (otherCard !== this.topCard && otherCard.action)) {
+			return false;
+		}
 		if (card.color === otherCard.color) return true;
 		for (const type of otherCard.types) {
 			if (card.types.includes(type)) return true;
@@ -412,10 +420,14 @@ export abstract class CardMatching extends Card {
 
 	playRegularCard(card: IPokemonCard, player: Player, targets: string[], cards: CardType[]): CardType[] | boolean {
 		let drawCards = this.roundDrawAmount;
-		if (this.topCard.action && this.topCard.action.name.startsWith('Draw ')) drawCards = parseInt(this.topCard.action.name.split('Draw ')[1].trim());
+		if (this.topCard.action && this.topCard.action.name.startsWith('Draw ')) {
+			drawCards = parseInt(this.topCard.action.name.split('Draw ')[1].trim());
+		}
 		if (this.autoFillHands) {
 			const remainingCards = cards.length - 1;
-			if (remainingCards && (remainingCards + drawCards) < this.minimumPlayedCards) drawCards += this.minimumPlayedCards - remainingCards;
+			if (remainingCards && (remainingCards + drawCards) < this.minimumPlayedCards) {
+				drawCards += this.minimumPlayedCards - remainingCards;
+			}
 		}
 		this.awaitingCurrentPlayerCard = false;
 		this.storePreviouslyPlayedCard({card: card.displayName || card.name, shiny: card.shiny && !card.played});
@@ -438,7 +450,8 @@ export abstract class CardMatching extends Card {
 const commands: Dict<ICommandDefinition<CardMatching>> = {
 	play: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
+			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].frozen ||
+				this.currentPlayer !== this.players[user.id]) return false;
 			const targets = target.split(",");
 			const id = Tools.toId(targets[0]);
 			if (!id) return false;
@@ -458,7 +471,8 @@ const commands: Dict<ICommandDefinition<CardMatching>> = {
 			}
 			const card = cards[index];
 			if (!card.action && !this.isPlayableCard(card, this.topCard)) {
-				user.say(this.playableCardDescription || "You must play a card that matches color or a type with the top card or an action card.");
+				user.say(this.playableCardDescription || "You must play a card that matches color or a type with the top card or an " +
+					"action card.");
 				return false;
 			}
 
@@ -481,7 +495,8 @@ const commands: Dict<ICommandDefinition<CardMatching>> = {
 	},
 	pmplay: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
+			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].frozen ||
+				this.currentPlayer !== this.players[user.id]) return false;
 			this.players[user.id].useCommand('play', target);
 			return true;
 		},

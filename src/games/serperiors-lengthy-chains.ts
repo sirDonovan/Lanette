@@ -95,7 +95,8 @@ class SerperiorLengthyChains extends Game {
 				this.end();
 				return;
 			}
-			this.say("**" + this.bestPlayer.name + "** advances to " + points + " point" + (points > 1 ? "s" : "") + " with their chain __" + this.bestChain.join(" + ") + "__!");
+			this.say("**" + this.bestPlayer.name + "** advances to " + points + " point" + (points > 1 ? "s" : "") + " with their chain " +
+				"__" + this.bestChain.join(" + ") + "__!");
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 		}
 	}
@@ -144,7 +145,8 @@ export const game: IGameFile<SerperiorLengthyChains> = {
 	commands,
 	class: SerperiorLengthyChains,
 	defaultOptions: ['points'],
-	description: "Player's form chains of Pokemon that follow the given parameter! A chain is a sequence of pokemon that share 1 letter (such as PikachUxie)!",
+	description: "Player's form chains of Pokemon that follow the given parameter! A chain is a sequence of pokemon that share 1 letter " +
+		"(such as PikachUxie)!",
 	freejoin: true,
 	name,
 	mascot: "Serperior",

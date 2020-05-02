@@ -67,7 +67,8 @@ export class PoliwrathsPortmanteaus extends Guessing {
 
 	getAnswers(givenAnswer: string, finalAnswer?: boolean): string {
 		if (!givenAnswer) givenAnswer = this.answers[0];
-		return "A possible portmanteau was __" + givenAnswer.charAt(0).toUpperCase() + givenAnswer.substr(1) + "__ (" + this.answerParts[givenAnswer].join(" + ") + ").";
+		return "A possible portmanteau was __" + givenAnswer.charAt(0).toUpperCase() + givenAnswer.substr(1) + "__ (" +
+			this.answerParts[givenAnswer].join(" + ") + ").";
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -161,7 +162,8 @@ export const game: IGameFile<PoliwrathsPortmanteaus> = Games.copyTemplatePropert
 	mascot: "Poliwrath",
 	minigameCommand: 'portmanteau',
 	minigameCommandAliases: ['port'],
-	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess a portmanteau (sharing 2-4 letters) that fits the given parameters!",
+	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess a portmanteau (sharing 2-4 letters) that fits the given " +
+		"parameters!",
 	modes: ['team'],
 	tests: Object.assign({}, guessingGame.tests, tests),
 });

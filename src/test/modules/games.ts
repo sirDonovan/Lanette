@@ -6,7 +6,8 @@ import { assert, assertClientSendQueue, assertStrictEqual, testOptions } from '.
 import { fail } from 'assert';
 
 const room = Rooms.get('mocha')!;
-const initialSeed: PRNGSeed | undefined = testOptions.gameSeed ? testOptions.gameSeed.split(',').map(x => parseInt(x.trim())) as PRNGSeed : undefined;
+const initialSeed: PRNGSeed | undefined = testOptions.gameSeed ? testOptions.gameSeed.split(',')
+	.map(x => parseInt(x.trim())) as PRNGSeed : undefined;
 
 const formatsToTest: IGameFormat[] = [];
 if (testOptions.games) {
@@ -146,7 +147,8 @@ describe("Games", () => {
 				const keys = Object.keys(format.achievements) as (keyof IGameAchievementKeys)[];
 				for (const key of keys) {
 					assert(!format.achievements[key]!.name.match(Tools.unsafeApiCharacterRegex), format.name + " achievement " + key);
-					assert(!format.achievements[key]!.description.match(Tools.unsafeApiCharacterRegex), format.name + " achievement " + key + "'s description");
+					assert(!format.achievements[key]!.description.match(Tools.unsafeApiCharacterRegex), format.name + " achievement " +
+						key + "'s description");
 				}
 			}
 			if (format.category) {
@@ -269,7 +271,8 @@ describe("Games", () => {
 		for (const formatId of formats) {
 			const formatData = Games.formats[formatId];
 			if (formatData.variants && formatData.variants.length >= 2) {
-				const variantsFormat = Games.getFormat(formatId + "," + formatData.variants[0].variant + "," + formatData.variants[1].variant);
+				const variantsFormat = Games.getFormat(formatId + "," + formatData.variants[0].variant + "," +
+					formatData.variants[1].variant);
 				assert(Array.isArray(variantsFormat));
 				assertStrictEqual(variantsFormat[0], 'tooManyGameVariants');
 				assertStrictEqual(variantsFormat[1], undefined);
@@ -303,7 +306,8 @@ describe("Games", () => {
 			if (game.mascot) game.shinyMascot = true;
 			game.signups();
 			gameLog.push(roomPrefix + "/adduhtml " + game.uhtmlBaseName + "-signups, " + game.getSignupsHtml());
-			gameLog.push(roomPrefix + "/notifyrank all, Mocha scripted game," + format.name + "," + Games.scriptedGameHighlight + " " + game.name);
+			gameLog.push(roomPrefix + "/notifyrank all, Mocha scripted game," + format.name + "," + Games.scriptedGameHighlight +
+				" " + game.name);
 			if (game.mascot) gameLog.push(roomPrefix + game.mascot.name + " is shiny so bits will be doubled!");
 
 			assertClientSendQueue(startingSendQueueIndex, gameLog);
@@ -333,7 +337,8 @@ describe("Games", () => {
 			game.signups();
 			gameLog.push(roomPrefix + "/adduhtml " + game.uhtmlBaseName + "-signups, " + game.getSignupsHtml());
 			if (game.mascot) gameLog.push(roomPrefix + game.mascot.name + " is shiny so bits will be doubled!");
-			gameLog.push(roomPrefix + "/notifyrank all, Mocha user-hosted game," + game.name + "," + game.hostName + " " + Games.userHostedGameHighlight + " " + game.name);
+			gameLog.push(roomPrefix + "/notifyrank all, Mocha user-hosted game," + game.name + "," + game.hostName + " " +
+				Games.userHostedGameHighlight + " " + game.name);
 
 			assertClientSendQueue(startingSendQueueIndex, gameLog);
 			game.deallocate(true);
@@ -344,10 +349,11 @@ describe("Games", () => {
 		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia')).name, "Slowking's Trivia");
 		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia, abilities')).name, "Slowking's Ability Trivia");
 		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia, survival')).name, "Slowking's Trivia Survival");
-		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia, abilities, survival')).name, "Slowking's Ability Trivia Survival");
+		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia, abilities, survival')).name,
+			"Slowking's Ability Trivia Survival");
 
-		assertStrictEqual(Games.createUserHostedGame(room, Games.getExistingUserHostedFormat('floettes forum game, name: Mocha Test Game'), Users.self.name).name,
-			Users.self.name + "'s Mocha Test Game");
+		assertStrictEqual(Games.createUserHostedGame(room, Games.getExistingUserHostedFormat('floettes forum game, name: Mocha Test Game'),
+			Users.self.name).name, Users.self.name + "'s Mocha Test Game");
 	});
 
 	it('should return proper values from isInPastGames()', () => {

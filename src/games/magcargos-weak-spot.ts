@@ -4,7 +4,8 @@ import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Magcargo's Weak Spot";
-const data: {pokedex: string[]; inverseTypeKeys: string[]; inverseTypeWeaknesses: Dict<string[]>; typeKeys: string[]; typeWeaknesses: Dict<string[]>} = {
+const data: {pokedex: string[]; inverseTypeKeys: string[]; inverseTypeWeaknesses: Dict<string[]>; typeKeys: string[];
+	typeWeaknesses: Dict<string[]>;} = {
 	pokedex: [],
 	inverseTypeKeys: [],
 	inverseTypeWeaknesses: {},
@@ -15,7 +16,8 @@ let loadedData = false;
 
 const achievements: AchievementsDict = {
 	"achillesheel": {name: "Achilles Heel", type: 'all-answers', bits: 1000, description: 'get every answer in one game'},
-	"captainachilles": {name: "Captain Achilles", type: 'all-answers-team', bits: 1000, description: 'get every answer for your team and win the game'},
+	"captainachilles": {name: "Captain Achilles", type: 'all-answers-team', bits: 1000, description: 'get every answer for your team ' +
+		'and win the game'},
 };
 
 class MagcargosWeakSpot extends Guessing {

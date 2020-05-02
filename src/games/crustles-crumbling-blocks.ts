@@ -25,7 +25,8 @@ class CrustlesCrumblingBlocks extends Game {
 
 	onNextRound(): void {
 		if (this.currentPlayer) {
-			this.say("**" + this.currentPlayer.name + "** did not remove any blocks and has been eliminated from the game! The blocks will now reset.");
+			this.say("**" + this.currentPlayer.name + "** did not remove any blocks and has been eliminated from the game! The blocks " +
+				"will now reset.");
 			this.eliminatePlayer(this.currentPlayer, "You did not remove any blocks!");
 			this.currentPlayer = null;
 		}
@@ -87,8 +88,8 @@ class CrustlesCrumblingBlocks extends Game {
 			return;
 		}
 
-		const text = "**" + currentPlayer.name + "**, you are up! There " + (this.blocks > 1 ? "are" : "is") + " currently **" + this.blocks + "** block" +
-			(this.blocks > 1 ? "s" : "") + " remaining.";
+		const text = "**" + currentPlayer.name + "**, you are up! There " + (this.blocks > 1 ? "are" : "is") + " currently **" +
+			this.blocks + "** block" + (this.blocks > 1 ? "s" : "") + " remaining.";
 		this.on(text, () => {
 			this.currentPlayer = currentPlayer;
 			this.timeout = setTimeout(() => this.nextRound(), 30 * 1000);
@@ -119,7 +120,9 @@ class CrustlesCrumblingBlocks extends Game {
 const commands: Dict<ICommandDefinition<CrustlesCrumblingBlocks>> = {
 	remove: {
 		command(target, room, user): GameCommandReturnType {
-			if (!(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id] !== this.currentPlayer) return false;
+			if (!(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id] !== this.currentPlayer) {
+				return false;
+			}
 			const player = this.players[user.id];
 			const targetNumber = parseInt(target);
 			if (isNaN(targetNumber) || targetNumber > MAX_BLOCKS || targetNumber < MIN_BLOCKS) {
@@ -143,7 +146,8 @@ export const game: IGameFile<CrustlesCrumblingBlocks> = {
 	class: CrustlesCrumblingBlocks,
 	commandDescriptions: [Config.commandCharacter + "remove [number of blocks]"],
 	commands,
-	description: "Players remove blocks from Crustle's pyramid until only one remains. The player forced to remove the final block is eliminated!",
+	description: "Players remove blocks from Crustle's pyramid until only one remains. The player forced to remove the final block is " +
+		"eliminated!",
 	name: "Crustle's Crumbling Blocks",
 	mascot: "Crustle",
 	scriptedOnly: true,

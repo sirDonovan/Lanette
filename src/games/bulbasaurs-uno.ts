@@ -11,7 +11,8 @@ let loadedData = false;
 
 const drawWizardAmount = 6;
 const achievements: AchievementsDict = {
-	"drawwizard": {name: "Draw Wizard", type: 'special', bits: 1000, description: 'play a card that forces the next ' + drawWizardAmount + ' or more players to draw a card'},
+	"drawwizard": {name: "Draw Wizard", type: 'special', bits: 1000, description: 'play a card that forces the next ' +
+		drawWizardAmount + ' or more players to draw a card'},
 	"luckofthedraw": {name: "Luck of the Draw", type: 'shiny', bits: 1000, repeatBits: 250, description:'draw and play a shiny card'},
 };
 
@@ -100,7 +101,9 @@ class BulbasaursUno extends CardMatching {
 		let firstTimeShiny = false;
 		let cardDetail: string | undefined;
 		let drawCards = 0;
-		if (this.topCard.action && this.topCard.action.name.startsWith('Draw ')) drawCards = parseInt(this.topCard.action.name.split('Draw ')[1].trim());
+		if (this.topCard.action && this.topCard.action.name.startsWith('Draw ')) {
+			drawCards = parseInt(this.topCard.action.name.split('Draw ')[1].trim());
+		}
 		if (card.action.name.startsWith('Draw ')) {
 			const newNumber = drawCards + parseInt(card.action.name.split('Draw ')[1].trim());
 			const newAction = Tools.deepClone(card.action);
@@ -166,11 +169,13 @@ class BulbasaursUno extends CardMatching {
 					}
 				}
 				if (indexA === -1) {
-					player.say(idA in Dex.data.pokedex ? "You do not have [ " + Dex.getExistingPokemon(idA).name + " ]." : "'" + targets[1] + "' is not a valid Pokemon.");
+					player.say(idA in Dex.data.pokedex ? "You do not have [ " + Dex.getExistingPokemon(idA).name + " ]." : "'" +
+						targets[1] + "' is not a valid Pokemon.");
 					return false;
 				}
 				if (indexB === -1) {
-					player.say(idB in Dex.data.pokedex ? "You do not have [ " + Dex.getExistingPokemon(idB).name + " ]." : "'" + targets[2] + "' is not a valid Pokemon.");
+					player.say(idB in Dex.data.pokedex ? "You do not have [ " + Dex.getExistingPokemon(idB).name + " ]." : "'" +
+						targets[2] + "' is not a valid Pokemon.");
 					return false;
 				}
 				const cardA = cards[indexA];
@@ -213,7 +218,8 @@ class BulbasaursUno extends CardMatching {
 					}
 				}
 				if (indexA === -1) {
-					player.say(idA in Dex.data.pokedex ? "You do not have [ " + Dex.getExistingPokemon(idA).name + " ]." : "'" + targets[1] + "' is not a valid Pokemon.");
+					player.say(idA in Dex.data.pokedex ? "You do not have [ " + Dex.getExistingPokemon(idA).name + " ]." : "'" +
+						targets[1] + "' is not a valid Pokemon.");
 					return false;
 				}
 				const cardA = cards[indexA];
@@ -265,8 +271,8 @@ export const game: IGameFile<BulbasaursUno> = Games.copyTemplateProperties(cardG
 	commandDescriptions: [Config.commandCharacter + "play [Pokemon]", Config.commandCharacter + "draw"],
 	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
 	class: BulbasaursUno,
-	description: "Each round, players can play a card that matches the type or color of the top card or draw a new card. <a href='http://psgc.weebly.com/pokeuno.html'>Action " +
-		"card descriptions</a>",
+	description: "Each round, players can play a card that matches the type or color of the top card or draw a new card. " +
+		"<a href='http://psgc.weebly.com/pokeuno.html'>Action card descriptions</a>",
 	formerNames: ["Pokeuno"],
 	name,
 	mascot: "Bulbasaur",

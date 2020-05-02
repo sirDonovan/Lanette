@@ -235,7 +235,9 @@ export class Storage {
 		if (database.gameAchievements && sourceId in database.gameAchievements) {
 			if (!(destinationId in database.gameAchievements)) database.gameAchievements[destinationId] = [];
 			for (const achievement of database.gameAchievements[sourceId]) {
-				if (!database.gameAchievements[destinationId].includes(achievement)) database.gameAchievements[destinationId].push(achievement);
+				if (!database.gameAchievements[destinationId].includes(achievement)) {
+					database.gameAchievements[destinationId].push(achievement);
+				}
 			}
 		}
 
@@ -260,7 +262,8 @@ export class Storage {
 			const filename = year + '-' + (month < 10 ? '0' : '') + month + '-' + (day < 10 ? '0' : '') + day + '.txt';
 			this.chatLogFilePathCache[room.id] = path.join(directory, filename);
 		}
-		fs.appendFileSync(this.chatLogFilePathCache[room.id], Tools.toTimestampString(date).split(" ")[1] + ' |' + messageType + '|' + message + "\n");
+		fs.appendFileSync(this.chatLogFilePathCache[room.id], Tools.toTimestampString(date).split(" ")[1] + ' |' + messageType + '|' +
+			message + "\n");
 	}
 
 	getMaxOfflineMessageLength(sender: User): number {

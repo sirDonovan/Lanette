@@ -29,11 +29,13 @@ const JOIN_BITS = 10;
 const SIGNUPS_HTML_DELAY = 1 * 1000;
 
 const teamNameLists: Dict<string[][]> = {
-	'2': [["Red", "Blue"], ["Gold", "Silver"], ["Ruby", "Sapphire"], ["Diamond", "Pearl"], ["Black", "White"], ["X", "Y"], ["Sun", "Moon"], ["Sword", "Shield"], ["Land", "Sea"],
-		["Time", "Space"], ["Yin", "Yang"], ["Life", "Destruction"], ["Sunne", "Moone"]],
-	'3': [["Red", "Blue", "Yellow"], ["Gold", "Silver", "Crystal"], ["Ruby", "Sapphire", "Emerald"], ["Diamond", "Pearl", "Platinum"], ["Land", "Sea", "Sky"],
-		["Time", "Space", "Antimatter"], ["Yin", "Yang", "Wuji"], ["Life", "Destruction", "Order"], ["Sunne", "Moone", "Prism"]],
-	'4': [["Red", "Blue", "Yellow", "Green"], ["Fall", "Winter", "Spring", "Summer"], ["Water", "Fire", "Earth", "Air"], ["Clubs", "Spades", "Hearts", "Diamonds"]],
+	'2': [["Red", "Blue"], ["Gold", "Silver"], ["Ruby", "Sapphire"], ["Diamond", "Pearl"], ["Black", "White"], ["X", "Y"], ["Sun", "Moon"],
+		["Sword", "Shield"], ["Land", "Sea"], ["Time", "Space"], ["Yin", "Yang"], ["Life", "Destruction"], ["Sunne", "Moone"]],
+	'3': [["Red", "Blue", "Yellow"], ["Gold", "Silver", "Crystal"], ["Ruby", "Sapphire", "Emerald"], ["Diamond", "Pearl", "Platinum"],
+		["Land", "Sea", "Sky"], ["Time", "Space", "Antimatter"], ["Yin", "Yang", "Wuji"], ["Life", "Destruction", "Order"],
+		["Sunne", "Moone", "Prism"]],
+	'4': [["Red", "Blue", "Yellow", "Green"], ["Fall", "Winter", "Spring", "Summer"], ["Water", "Fire", "Earth", "Air"],
+		["Clubs", "Spades", "Hearts", "Diamonds"]],
 };
 
 // base of 0 defaults option to 'off'
@@ -94,7 +96,8 @@ export class Game extends Activity {
 		this.initialSeed = this.prng.initialSeed.slice() as PRNGSeed;
 	}
 
-	static setOptions<T extends Game>(format: IGameFormat<T>, mode: IGameMode | undefined, variant: IGameVariant | undefined): Dict<number> {
+	static setOptions<T extends Game>(format: IGameFormat<T>, mode: IGameMode | undefined, variant: IGameVariant | undefined):
+		Dict<number> {
 		const namePrefixes: string[] = [];
 		const nameSuffixes: string[] = [];
 		if (format.freejoin || (variant && variant.freejoin)) {
@@ -251,18 +254,19 @@ export class Game extends Activity {
 			if (this.format.options.freejoin) {
 				joinLeaveHtml += "<b>This game is free-join!</b>";
 			} else {
-				joinLeaveHtml += "<button class='button' name='send' value='/pm " + Users.self.name + ", " + Config.commandCharacter + "joingame " +
-					this.room.id + "'>Join game</button>";
+				joinLeaveHtml += "<button class='button' name='send' value='/pm " + Users.self.name + ", " + Config.commandCharacter +
+					"joingame " + this.room.id + "'>Join game</button>";
 				joinLeaveHtml += " | ";
-				joinLeaveHtml += "<button class='button' name='send' value='/pm " + Users.self.name + ", " + Config.commandCharacter + "leavegame " +
-					this.room.id + "'>Leave game</button>";
+				joinLeaveHtml += "<button class='button' name='send' value='/pm " + Users.self.name + ", " + Config.commandCharacter +
+					"leavegame " + this.room.id + "'>Leave game</button>";
 			}
 			joinLeaveHtml += "</center>";
 			this.sayUhtml(this.joinLeaveButtonUhtmlName, joinLeaveHtml);
 	
 			if (!this.isUserHosted) {
 				this.notifyRankSignups = true;
-				this.sayCommand("/notifyrank all, " + (this.room as Room).title + " scripted game," + this.name + "," + Games.scriptedGameHighlight + " " + this.name, true);
+				this.sayCommand("/notifyrank all, " + (this.room as Room).title + " scripted game," + this.name + "," +
+					Games.scriptedGameHighlight + " " + this.name, true);
 			}
 		}
 		this.signupsTime = Date.now();
@@ -322,7 +326,8 @@ export class Game extends Activity {
 		if (this.onNextRound) this.onNextRound();
 	}
 
-	getRoundHtml(getAttributes: (players: PlayerList) => string, players?: PlayerList | null, roundText?: string, attributeText?: string): string {
+	getRoundHtml(getAttributes: (players: PlayerList) => string, players?: PlayerList | null, roundText?: string,
+		attributeText?: string): string {
 		let html = '<div class="infobox">';
 		if (this.mascot) {
 			html += Dex.getPokemonIcon(this.mascot);
@@ -336,10 +341,14 @@ export class Game extends Activity {
 
 		if (!attributeText) {
 			const remainingPlayerCount = this.getRemainingPlayerCount(players);
-			if (remainingPlayerCount > 0) attributeText = (!this.format.options.freejoin ? "Remaining players" : "Players") + " (" + remainingPlayerCount + ")";
+			if (remainingPlayerCount > 0) {
+				attributeText = (!this.format.options.freejoin ? "Remaining players" : "Players") + " (" + remainingPlayerCount + ")";
+			}
 		}
 
-		if (attributes || attributeText) html += "<br /><br />" + (attributeText ? attributeText : "") + (attributes ? (attributeText ? ": " : "") + attributes : "");
+		if (attributes || attributeText) {
+			html += "<br /><br />" + (attributeText ? attributeText : "") + (attributes ? (attributeText ? ": " : "") + attributes : "");
+		}
 		html += "</div>";
 
 		return html;
@@ -388,13 +397,15 @@ export class Game extends Activity {
 			}
 
 			if (Config.gameCooldownTimers && this.room.id in Config.gameCooldownTimers) {
-				this.say("Game cooldown of " + Config.gameCooldownTimers[this.room.id] + " minutes has started! Minigames can be played in " +
-					(Config.gameCooldownTimers[this.room.id] / 2) + " minutes.");
+				this.say("Game cooldown of " + Config.gameCooldownTimers[this.room.id] + " minutes has started! Minigames can be played " +
+					"in " + (Config.gameCooldownTimers[this.room.id] / 2) + " minutes.");
 			}
 
 			if (Config.gameAutoCreateTimers && this.room.id in Config.gameAutoCreateTimers) {
 				let autoCreateTimer = Config.gameAutoCreateTimers[this.room.id];
-				if (Config.gameCooldownTimers && this.room.id in Config.gameCooldownTimers) autoCreateTimer += Config.gameCooldownTimers[this.room.id];
+				if (Config.gameCooldownTimers && this.room.id in Config.gameCooldownTimers) {
+					autoCreateTimer += Config.gameCooldownTimers[this.room.id];
+				}
 				Games.setAutoCreateTimer(this.room, this.isUserHosted ? 'scripted' : 'userhosted', autoCreateTimer * 60 * 1000);
 			}
 		}
@@ -412,7 +423,8 @@ export class Game extends Activity {
 
 		const player = this.createPlayer(user);
 		if (!player) return;
-		if ((this.started && (!this.canLateJoin || (this.playerCap && this.playerCount >= this.playerCap))) || (this.onAddPlayer && !this.onAddPlayer(player, this.started))) {
+		if ((this.started && (!this.canLateJoin || (this.playerCap && this.playerCount >= this.playerCap))) ||
+			(this.onAddPlayer && !this.onAddPlayer(player, this.started))) {
 			this.destroyPlayer(user, true);
 			return;
 		}
@@ -611,7 +623,8 @@ export class Game extends Activity {
 		if (this.getPlayerSummary) commandDescriptions.push(Config.commandCharacter + "summary");
 		if (this.commandDescriptions) commandDescriptions = commandDescriptions.concat(this.commandDescriptions);
 		if (commandDescriptions.length) {
-			html += "<br /><b>Command" + (commandDescriptions.length > 1 ? "s" : "") + "</b>: " + commandDescriptions.map(x => "<code>" + x + "</code>").join(", ");
+			html += "<br /><b>Command" + (commandDescriptions.length > 1 ? "s" : "") + "</b>: " +
+				commandDescriptions.map(x => "<code>" + x + "</code>").join(", ");
 		}
 		if (!this.format.options.freejoin) {
 			html += "<br /><br /><b>Players (" + this.playerCount + ")</b>: " + this.getPlayerNames();
@@ -633,7 +646,10 @@ export class Game extends Activity {
 		if (bits <= 0 || this.isPm(this.room) || (this.parentGame && !this.parentGame.allowChildGameBits)) return false;
 		if (this.shinyMascot) bits *= 2;
 		Storage.addPoints(this.room, user.name, bits, this.format.id);
-		if (!noPm) user.say("You were awarded " + bits + " bits! To see your total amount, use the command ``" + Config.commandCharacter + "bits " + this.room.title + "``.");
+		if (!noPm) {
+			user.say("You were awarded " + bits + " bits! To see your total amount, use the command ``" + Config.commandCharacter +
+				"bits " + this.room.title + "``.");
+		}
 		if (!this.awardedBits) this.awardedBits = true;
 		return true;
 	}
@@ -642,7 +658,10 @@ export class Game extends Activity {
 		if (bits <= 0 || this.isPm(this.room) || (this.parentGame && !this.parentGame.allowChildGameBits)) return false;
 		if (this.shinyMascot) bits *= 2;
 		Storage.removePoints(this.room, user.name, bits, this.format.id);
-		if (!noPm) user.say("You lost " + bits + " bits! To see your remaining amount, use the command ``" + Config.commandCharacter + "bits " + this.room.title + "``.");
+		if (!noPm) {
+			user.say("You lost " + bits + " bits! To see your remaining amount, use the command ``" + Config.commandCharacter + "bits " +
+				this.room.title + "``.");
+		}
 		return true;
 	}
 

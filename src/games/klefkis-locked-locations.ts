@@ -84,7 +84,8 @@ const spaces: IBoardSpaces = {
 
 const doublesRollsAchievementAmount = 3;
 const achievements: AchievementsDict = {
-	"ohbabyatriple": {name: "Oh Baby A Triple", type: 'special', bits: 1000, description: 'roll doubles ' + doublesRollsAchievementAmount + ' times in one round'},
+	"ohbabyatriple": {name: "Oh Baby A Triple", type: 'special', bits: 1000, description: 'roll doubles ' +
+		doublesRollsAchievementAmount + ' times in one round'},
 	"locksmith": {name: "Locksmith", type: 'special', bits: 1000, description: "unlock every property on the board"},
 	"mountainmover": {name: "Mountain Mover", type: 'special', bits: 1000, description: "unlock every mountain on the board"},
 };
@@ -96,14 +97,16 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 	acquirePropertyActionPast: string = "unlocked";
 	availablePropertyState: string = "locked";
 	board: IBoard = {
-		leftColumn: [spaces.oakslab, spaces.pallet, spaces.littleroot, spaces.chance, spaces.twinleaf, spaces.mtmoon, spaces.chance, spaces.diglettscave, spaces.diglettstunnel,
-			spaces.pyritetownjail,
+		leftColumn: [spaces.oakslab, spaces.pallet, spaces.littleroot, spaces.chance, spaces.twinleaf, spaces.mtmoon, spaces.chance,
+			spaces.diglettscave, spaces.diglettstunnel, spaces.pyritetownjail,
 		],
-		topRow: [spaces.lakeacuity, spaces.lakeverity, spaces.chance, spaces.lakevalor, spaces.mtsilver, spaces.chance, spaces.battlefactory, spaces.battlemaison],
-		rightColumn: [spaces.pokemoncenter, spaces.viridianforest, spaces.eternaforest, spaces.chance, spaces.pinwheelforest, spaces.mtpyre, spaces.chance, spaces.whitetreehollow,
-			spaces.blackcity, spaces.victoryroad,
+		topRow: [spaces.lakeacuity, spaces.lakeverity, spaces.chance, spaces.lakevalor, spaces.mtsilver, spaces.chance,
+			spaces.battlefactory, spaces.battlemaison],
+		rightColumn: [spaces.pokemoncenter, spaces.viridianforest, spaces.eternaforest, spaces.chance, spaces.pinwheelforest, spaces.mtpyre,
+			spaces.chance, spaces.whitetreehollow, spaces.blackcity, spaces.victoryroad,
 		],
-		bottomRow: [spaces.jubilife, spaces.castelia, spaces.chance, spaces.lumiose, spaces.mtcoronet, spaces.chance, spaces.ultraspace, spaces.distortionworld],
+		bottomRow: [spaces.jubilife, spaces.castelia, spaces.chance, spaces.lumiose, spaces.mtcoronet, spaces.chance, spaces.ultraspace,
+			spaces.distortionworld],
 	};
 	currencyName: string = "key";
 	currencyPluralName: string = "keys";
@@ -129,7 +132,8 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 				this.playerLocations.set(player, location);
 				const text = "They go through a strange portal and end up in " + this.spaces.ultraspace.name + "!";
 				this.on(text, () => {
-					this.timeout = setTimeout(() => this.onSpaceLanding(player, 0, Object.assign(location, {passedSpaces: []}), true), this.roundTime);
+					this.timeout = setTimeout(() => this.onSpaceLanding(player, 0, Object.assign(location, {passedSpaces: []}), true),
+						this.roundTime);
 				});
 				this.say(text);
 			},
@@ -138,7 +142,8 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 				this.playerLocations.set(player, location);
 				const text = "They travel to **" + this.spaces.castelia.name + "** to get a Casteliacone!";
 				this.on(text, () => {
-					this.timeout = setTimeout(() => this.onSpaceLanding(player, 0, Object.assign(location, {passedSpaces: []}), true), this.roundTime);
+					this.timeout = setTimeout(() => this.onSpaceLanding(player, 0, Object.assign(location, {passedSpaces: []}), true),
+						this.roundTime);
 				});
 				this.say(text);
 			},
@@ -175,8 +180,8 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 
 	getPlayerPropertiesHtml(player: Player): string {
 		const properties = this.properties.get(player) || [];
-		return "<b>Keys</b>: " + this.playerCurrency.get(player) + "<br /><b>Properties</b>: " + (properties.length ? properties.map(prop => prop.name +
-			" (" + prop.color + ")").join(", ") : "(none)");
+		return "<b>Keys</b>: " + this.playerCurrency.get(player) + "<br /><b>Properties</b>: " +
+			(properties.length ? properties.map(prop => prop.name + " (" + prop.color + ")").join(", ") : "(none)");
 	}
 
 	onOwnedPropertySpace(space: BoardPropertyEliminationSpace, player: Player): void {
@@ -220,7 +225,8 @@ export const game: IGameFile<KlefkisLockedLocations> = Games.copyTemplatePropert
 	achievements,
 	aliases: ["klefkis", "lockedlocations", "kll"],
 	class: KlefkisLockedLocations,
-	commandDescriptions: [Config.commandCharacter + "unlock", Config.commandCharacter + "pass", Config.commandCharacter + "rolldice", Config.commandCharacter + "escape"],
+	commandDescriptions: [Config.commandCharacter + "unlock", Config.commandCharacter + "pass", Config.commandCharacter + "rolldice",
+		Config.commandCharacter + "escape"],
 	description: "Players travel around the board to unlock properties and avoid getting eliminated by others!",
 	mascot: "Klefki",
 	name: "Klefki's Locked Locations",

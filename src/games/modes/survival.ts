@@ -136,7 +136,8 @@ commands.g = {
 
 const initialize = (game: Game): void => {
 	const mode = new Survival(game);
-	const propertiesToOverride = Object.getOwnPropertyNames(mode).concat(Object.getOwnPropertyNames(Survival.prototype)) as (keyof Survival)[];
+	const propertiesToOverride = Object.getOwnPropertyNames(mode)
+		.concat(Object.getOwnPropertyNames(Survival.prototype)) as (keyof Survival)[];
 	for (const property of propertiesToOverride) {
 		// @ts-expect-error
 		game[property] = mode[property];

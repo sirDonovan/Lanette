@@ -46,10 +46,12 @@ function search(options: ILogsSearchOptions): ILogsResponse {
 			const day = date.substr(hyphenIndex + 1);
 			const monthNumber = parseInt(month);
 			if (firstYear) {
-				if (monthNumber < options.startDate[1] || (monthNumber === options.startDate[1] && parseInt(day) < options.startDate[2])) continue;
+				if (monthNumber < options.startDate[1] || (monthNumber === options.startDate[1] &&
+					parseInt(day) < options.startDate[2])) continue;
 			}
 			if (lastYear) {
-				if (monthNumber > options.endDate[1] || (monthNumber === options.endDate[1] && parseInt(day) > options.endDate[2])) continue;
+				if (monthNumber > options.endDate[1] || (monthNumber === options.endDate[1] &&
+					parseInt(day) > options.endDate[2])) continue;
 			}
 			const logs = fs.readFileSync(path.join(yearDirectory, file)).toString().split("\n");
 			const dayLines: string[] = [];
@@ -114,8 +116,8 @@ function search(options: ILogsSearchOptions): ILogsResponse {
 			for (const day of daysOrder) {
 				let line = "";
 				if (data.serverLogsViewer) {
-					line += "<a href='" + data.serverLogsViewer + options.roomid + "/" + year + "-" + (monthLen > 1 ? month : '0' + month) + "-" + (day.length > 1 ? day : '0' +
-						day) + ".html'>" + month + "/" + day + "/" + year + "</a>:";
+					line += "<a href='" + data.serverLogsViewer + options.roomid + "/" + year + "-" + (monthLen > 1 ? month : '0' +
+						month) + "-" + (day.length > 1 ? day : '0' + day) + ".html'>" + month + "/" + day + "/" + year + "</a>:";
 				} else {
 					line += month + "/" + day + "/" + year + ":";
 				}
@@ -123,7 +125,8 @@ function search(options: ILogsSearchOptions): ILogsResponse {
 					(separatedLogs[year][month][day].regular !== 1 ? "s" : "");
 				if (separatedLogs[year][month][day].commands) {
 					if (separatedLogs[year][month][day].regular) line += ",";
-					line += " <b>" + separatedLogs[year][month][day].commands + "</b> command" + (separatedLogs[year][month][day].commands !== 1 ? "s" : "");
+					line += " <b>" + separatedLogs[year][month][day].commands + "</b> command" +
+						(separatedLogs[year][month][day].commands !== 1 ? "s" : "");
 				}
 				lines.push(line);
 			}

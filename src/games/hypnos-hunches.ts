@@ -1,11 +1,11 @@
 import { Player } from "../room-activity";
-import { IGameOptionValues } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 
 const name = "Hypno's Hunches";
-const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]} = {
+const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
+	'Pokemon Items': string[]; 'Pokemon Moves': string[];} = {
 	"Characters": [],
 	"Locations": [],
 	"Pokemon": [],
@@ -103,7 +103,8 @@ class HypnosHunches extends Guessing {
 
 	filterGuess(guess: string): boolean {
 		guess = Tools.toId(guess);
-		if (this.guessedLetters.includes(guess) || this.solvedLetters.includes(guess) || guess.length > Tools.toId(this.answers[0]).length) return true;
+		if (this.guessedLetters.includes(guess) || this.solvedLetters.includes(guess) ||
+			guess.length > Tools.toId(this.answers[0]).length) return true;
 		return false;
 	}
 

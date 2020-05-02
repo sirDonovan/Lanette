@@ -15,14 +15,22 @@ export interface IUserHostedTournament {
 	urls: string[];
 }
 
-const SCHEDULED_TOURNAMENT_BUFFER_TIME = 90 * 60 * 1000;
-const USER_HOSTED_TOURNAMENT_TIMEOUT = 5 * 60 * 1000;
-const USER_HOSTED_TOURNAMENT_RANK: GroupName = 'driver';
+interface ITournamentCreateJson {
+	format: string;
+	generator: string;
+	isStarted?: boolean;
+	playerCap?: number;
+	teambuilderFormat?: string;
+}
 
 interface IScheduledTournament {
 	format: string;
 	time: number;
 }
+
+const SCHEDULED_TOURNAMENT_BUFFER_TIME = 90 * 60 * 1000;
+const USER_HOSTED_TOURNAMENT_TIMEOUT = 5 * 60 * 1000;
+const USER_HOSTED_TOURNAMENT_RANK: GroupName = 'driver';
 
 export class Tournaments {
 	createListeners: Dict<{format: IFormat; scheduled: boolean}> = {};
@@ -48,13 +56,18 @@ export class Tournaments {
 		if (previous.createListeners) this.createListeners = previous.createListeners;
 		if (previous.nextScheduledTournaments) this.nextScheduledTournaments = previous.nextScheduledTournaments;
 		if (previous.tournamentTimers) this.tournamentTimers = previous.tournamentTimers;
-		if (previous.userHostedTournamentNotificationTimeouts) this.userHostedTournamentNotificationTimeouts = previous.userHostedTournamentNotificationTimeouts;
+		if (previous.userHostedTournamentNotificationTimeouts) {
+			this.userHostedTournamentNotificationTimeouts = previous.userHostedTournamentNotificationTimeouts;
+		}
 
 		this.loadSchedules();
 
 		const now = Date.now();
 		Users.self.rooms.forEach((rank, room) => {
-			if (room.id in this.schedules && (!(room.id in this.nextScheduledTournaments) || now < this.nextScheduledTournaments[room.id].time)) this.setScheduledTournament(room);
+			if (room.id in this.schedules && (!(room.id in this.nextScheduledTournaments) ||
+			now < this.nextScheduledTournaments[room.id].time)) {
+				this.setScheduledTournament(room);
+			}
 		});
 	}
 
@@ -149,7 +162,7 @@ export class Tournaments {
 		}
 	}
 
-	createTournament(room: Room, json: {format: string; generator: string; isStarted?: boolean; playerCap?: number; teambuilderFormat?: string}): void {
+	createTournament(room: Room, json: ITournamentCreateJson): void {
 		if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return;
 		const format = json.teambuilderFormat ? Dex.getFormat(json.teambuilderFormat) : Dex.getFormat(json.format);
 		if (!format) return;
@@ -226,8 +239,8 @@ export class Tournaments {
 			if (Config.tournamentRoomAdvertisements && room.id in Config.tournamentRoomAdvertisements) {
 				for (const roomId of Config.tournamentRoomAdvertisements[room.id]) {
 					const advertisementRoom = Rooms.get(roomId);
-					if (advertisementRoom) advertisementRoom.sayHtml('<a href="/' + room.id + '" class="ilink"><strong>' + tournament.name + '</strong> tournament created in ' +
-						'<strong>' + room.title + '</strong>.</a>');
+					if (advertisementRoom) advertisementRoom.sayHtml('<a href="/' + room.id + '" class="ilink"><strong>' + tournament.name +
+						'</strong> tournament created in <strong>' + room.title + '</strong>.</a>');
 				}
 			}
 		}
@@ -257,8 +270,8 @@ export class Tournaments {
 	}
 
 	setScheduledTournamentTimer(room: Room): void {
-		this.setTournamentTimer(room, this.nextScheduledTournaments[room.id].time, Dex.getExistingFormat(this.nextScheduledTournaments[room.id].format, true), this.maxPlayerCap,
-			true);
+		this.setTournamentTimer(room, this.nextScheduledTournaments[room.id].time,
+			Dex.getExistingFormat(this.nextScheduledTournaments[room.id].format, true), this.maxPlayerCap, true);
 	}
 
 	canSetRandomTournament(room: Room): boolean {
@@ -270,7 +283,9 @@ export class Tournaments {
 		if (room.id in this.tournamentTimers) clearTimeout(this.tournamentTimers[room.id]);
 		this.tournamentTimers[room.id] = setTimeout(() => {
 			let scheduledFormat: IFormat | null = null;
-			if (room.id in this.nextScheduledTournaments) scheduledFormat = Dex.getExistingFormat(this.nextScheduledTournaments[room.id].format, true);
+			if (room.id in this.nextScheduledTournaments) {
+				scheduledFormat = Dex.getExistingFormat(this.nextScheduledTournaments[room.id].format, true);
+			}
 			const database = Storage.getDatabase(room);
 			const pastTournamentIds: string[] = [];
 			if (database.pastTournaments) {
@@ -283,8 +298,8 @@ export class Tournaments {
 			const formats: IFormat[] = [];
 			for (const i in Dex.data.formats) {
 				const format = Dex.getExistingFormat(i);
-				if (!format.tournamentPlayable || format.unranked || format.mod !== 'gen7' || (scheduledFormat && scheduledFormat.id === format.id) ||
-					pastTournamentIds.includes(format.id)) continue;
+				if (!format.tournamentPlayable || format.unranked || format.mod !== 'gen7' ||
+					(scheduledFormat && scheduledFormat.id === format.id) || pastTournamentIds.includes(format.id)) continue;
 				formats.push(format);
 			}
 
@@ -322,12 +337,14 @@ export class Tournaments {
 		const firstDay = date.getDay();
 		const lastDay = Tools.getLastDayOfMonth(date) + 1;
 		let currentDay = firstDay;
-		let html = "<table style='overflow: hidden;font-size: 14px;border-collapse: collapse'><tr>" + daysOfTheWeek.map(x => "<th>" + x + "</th>").join("") + "</tr><tr>";
+		let html = "<table style='overflow: hidden;font-size: 14px;border-collapse: collapse'><tr>" + daysOfTheWeek.map(x => "<th>" + x +
+			"</th>").join("") + "</tr><tr>";
 		for (let i = 0; i < currentDay; i++) {
 			html += "<td>&nbsp;</td>";
 		}
 		for (let i = 1; i < lastDay; i++) {
-			html += "<td style='padding: 4px'><b>" + i + "</b> - " + Dex.getCustomFormatName(Dex.getExistingFormat(schedule.months[month].formats[i]), room, true) + "</td>";
+			html += "<td style='padding: 4px'><b>" + i + "</b> - " +
+				Dex.getCustomFormatName(Dex.getExistingFormat(schedule.months[month].formats[i]), room, true) + "</td>";
 			currentDay++;
 			if (currentDay === 7) {
 				html += "</tr><tr>";
@@ -339,8 +356,8 @@ export class Tournaments {
 	}
 
 	getUserHostedTournamentApprovalHtml(room: Room): string {
-		let html = '<table border="1" style="width:auto"><tr><th style="width:150px">Username</th><th style="width:150px">Link</th><th style="width:150px">Reviewer</th>' +
-			'<th style="width:200px">Status</th></tr>';
+		let html = '<table border="1" style="width:auto"><tr><th style="width:150px">Username</th><th style="width:150px">Link</th>' +
+			'<th style="width:150px">Reviewer</th><th style="width:200px">Status</th></tr>';
 		const rows: string[] = [];
 		for (const link in room.newUserHostedTournaments) {
 			const tournament = room.newUserHostedTournaments[link];
@@ -354,22 +371,23 @@ export class Tournaments {
 				if (reviewer) name = reviewer.name;
 				row += name;
 			} else {
-				row += '--- <button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter + 'reviewuserhostedtour ' + room.id + ', ' + link +
-					'">Review</button>';
+				row += '--- <button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter +
+					'reviewuserhostedtour ' + room.id + ', ' + link + '">Review</button>';
 			}
 			row += '</center></td>';
 
 			row += '<td><center>';
 			if (tournament.approvalStatus === 'changes-requested') {
-				row += 'Changes requested | <button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter + 'removeuserhostedtour ' + room.id +
-					', ' + link + '">Remove</button> | <button class="button" name="send" value="/pm ' + Users.self.name + ', .approveuserhostedtour ' + room.id + ',' + link +
-					'">Approve</button>';
+				row += 'Changes requested | <button class="button" name="send" value="/pm ' + Users.self.name + ', ' +
+					Config.commandCharacter + 'removeuserhostedtour ' + room.id + ', ' + link + '">Remove</button> | ' +
+					'<button class="button" name="send" value="/pm ' + Users.self.name + ', .approveuserhostedtour ' + room.id + ',' +
+					link + '">Approve</button>';
 			} else {
-				row += '<button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter + 'approveuserhostedtour ' + room.id + ', ' + link +
-					'">Approve</button>';
+				row += '<button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter +
+					'approveuserhostedtour ' + room.id + ', ' + link + '">Approve</button>';
 				row += ' | ';
-				row += '<button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter + 'rejectuserhostedtour ' + room.id + ', ' + link +
-					'">Reject</button>';
+				row += '<button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter +
+					'rejectuserhostedtour ' + room.id + ', ' + link + '">Reject</button>';
 			}
 			row += '</center></td>';
 
@@ -386,7 +404,9 @@ export class Tournaments {
 
 	showUserHostedTournamentApprovals(room: Room): void {
 		let rank = USER_HOSTED_TOURNAMENT_RANK;
-		if (Config.userHostedTournamentRanks && room.id in Config.userHostedTournamentRanks) rank = Config.userHostedTournamentRanks[room.id].review;
+		if (Config.userHostedTournamentRanks && room.id in Config.userHostedTournamentRanks) {
+			rank = Config.userHostedTournamentRanks[room.id].review;
+		}
 		if (!Object.keys(room.newUserHostedTournaments!).length) {
 			if (rank === 'voice') {
 				room.sayAuthUhtmlChange("userhosted-tournament-approvals", "<div></div>");
@@ -435,7 +455,8 @@ export class Tournaments {
 	isInPastTournaments(room: Room, input: string, pastTournaments?: IPastTournament[]): boolean {
 		if (!pastTournaments) {
 			const database = Storage.getDatabase(room);
-			if (!database.pastTournaments || !(Config.disallowQueueingPastTournaments && Config.disallowQueueingPastTournaments.includes(room.id))) return false;
+			if (!database.pastTournaments || !(Config.disallowQueueingPastTournaments &&
+				Config.disallowQueueingPastTournaments.includes(room.id))) return false;
 			pastTournaments = database.pastTournaments;
 		}
 

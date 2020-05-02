@@ -11,7 +11,8 @@ let loadedData = false;
 
 const achievements: AchievementsDict = {
 	"skillswapper": {name: "Skill Swapper", type: 'all-answers', bits: 1000, description: 'get every answer in one game'},
-	"captainskillswapper": {name: "Captain Skill Swapper", type: 'all-answers-team', bits: 1000, description: 'get every answer for your team and win the game'},
+	"captainskillswapper": {name: "Captain Skill Swapper", type: 'all-answers-team', bits: 1000, description: 'get every answer for ' +
+		'your team and win the game'},
 };
 
 class AbrasAbilitySwitch extends Guessing {
