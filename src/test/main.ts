@@ -57,12 +57,16 @@ module.exports = (inputOptions: Dict<string>): void => {
 			modulesToTest = moduleTests.concat(pokemonShowdownTestFile);
 		}
 
-		if (moduleTests.includes('dex') || moduleTests.includes('games') || moduleTests.includes('tournaments')) {
+		if (modulesToTest.includes('dex.js') || modulesToTest.includes('games.js') || modulesToTest.includes('tournaments.js')) {
 			console.log("Loading data for tests...");
 			Dex.loadData();
+			for (let i = 1; i < Dex.gen; i++) {
+				Dex.getDex('gen' + i).loadData();
+			}
 		}
 
-		if (modulesToTest.includes('games')) {
+		if (modulesToTest.includes('games.js')) {
+			console.log("Loading game data for tests...");
 			for (const i in Games.formats) {
 				const game = Games.createGame(mochaRoom, Games.getExistingFormat(i));
 				game.deallocate(true);
