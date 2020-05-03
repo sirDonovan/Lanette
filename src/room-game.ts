@@ -185,10 +185,22 @@ export class Game extends Activity {
 	}
 
 	setUhtmlBaseName(gameType: 'scripted' | 'userhosted'): void {
-		const counts = gameType === 'scripted' ? Games.uhtmlScriptedCounts : Games.uhtmlUserHostedCounts;
-		if (!(this.id in counts)) counts[this.id] = 0;
-		counts[this.id]++;
-		this.uhtmlBaseName = gameType + '-' + this.id + '-' + counts[this.id];
+		let gameCount: number;
+		if (this.isPm(this.room)) {
+			gameCount = this.random(1000);
+		} else {
+			const database = Storage.getDatabase(this.room);
+			if (gameType === 'scripted') {
+				if (!database.gameCount) database.gameCount = 0;
+				database.gameCount++;
+				gameCount = database.gameCount;
+			} else {
+				if (!database.userHostedGameCount) database.userHostedGameCount = 0;
+				database.userHostedGameCount++;
+				gameCount = database.userHostedGameCount;
+			}
+		}
+		this.uhtmlBaseName = gameType + '-' + gameCount + '-' + this.id;
 		this.signupsUhtmlName = this.uhtmlBaseName + "-signups";
 		this.joinLeaveButtonUhtmlName = this.uhtmlBaseName + "-join-leave";
 	}

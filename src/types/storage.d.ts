@@ -52,7 +52,9 @@ export interface IDatabase {
 	pastTournaments?: IPastTournament[];
 	pastUserHostedGames?: IPastGame[];
 	queuedTournament?: {formatid: string; playerCap: number; scheduled: boolean; time: number};
+	gameCount?: number;
 	thcWinners?: Dict<string>;
+	userHostedGameCount?: number;
 	userHostedGameQueue?: IQueuedUserHostedGame[];
 	userHostStatuses?: Dict<UserHostStatus>;
 }
