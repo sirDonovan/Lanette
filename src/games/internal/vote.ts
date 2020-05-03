@@ -38,10 +38,19 @@ export class Vote extends Game {
 				formatCounts[name]++;
 			});
 
-			if (!ended) votesHtml += "<br /><br />";
-			votesHtml += "<b>" + (ended ? "Final" : "Current") + " votes</b>:";
-			for (const format in formatCounts) {
-				votesHtml += "<br />" + format + " - <i>" + formatCounts[format] + " vote" + (formatCounts[format] > 1 ? "s" : "") + "</i>";
+			if (ended) {
+				votesHtml += "<b>Final votes</b>:";
+				const formats = Object.keys(formatCounts).sort((a, b) => formatCounts[b] - formatCounts[a]);
+				for (const format of formats) {
+					const chance = Math.floor((formatCounts[format] / this.votes.size) * 100);
+					votesHtml += "<br />" + format + " (" + formatCounts[format] + ") - <i> " + chance + "% chance</i>";
+				}
+			} else {
+				votesHtml += "<br /><br /><b>Current votes</b>:";
+				for (const format in formatCounts) {
+					votesHtml += "<br />" + format + " - <i>" + formatCounts[format] + " vote" + (formatCounts[format] > 1 ? "s" : "") +
+						"</i>";
+				}
 			}
 		}
 
