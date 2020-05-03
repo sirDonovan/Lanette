@@ -35,7 +35,7 @@ class AmbipomsTossups extends Guessing {
 
 		loadedData = true;
 	}
-	
+
 	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;

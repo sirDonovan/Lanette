@@ -1,5 +1,7 @@
 import { assert, assertStrictEqual } from './../test-tools';
 
+/* eslint-env mocha */
+
 describe("Client", () => {
 	it('should support all join and leave message types', () => {
 		const room = Rooms.get('mocha')!;

@@ -1,5 +1,7 @@
 import { assert, assertStrictEqual } from "../test-tools";
 
+/* eslint-env mocha */
+
 const second = 1000;
 const minute = 60 * second;
 const hour = 60 * minute;

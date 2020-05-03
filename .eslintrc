@@ -20,18 +20,20 @@
         "@typescript-eslint"
     ],
     "extends": [
+        "eslint:recommended",
         "plugin:@typescript-eslint/recommended",
         "plugin:@typescript-eslint/recommended-requiring-type-checking"
     ],
     "rules": {
+        "no-trailing-spaces": "error",
+        "max-len": ["error", {"code": 140, "ignorePattern": "^import \\{", "ignoreComments": true}],
+
         "@typescript-eslint/ban-ts-ignore": "off",
         "@typescript-eslint/no-inferrable-types": "off",
         "@typescript-eslint/no-non-null-assertion": "off",
         "@typescript-eslint/no-unused-vars": "off",
         "@typescript-eslint/prefer-regexp-exec": "off",
         "@typescript-eslint/unbound-method": "off",
-
-        "max-len": ["error", {"code": 140, "ignorePattern": "^import \\{", "ignoreComments": true}],
 
         "@typescript-eslint/no-extra-non-null-assertion": "error",
         "@typescript-eslint/no-throw-literal": "error",

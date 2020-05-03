@@ -2,6 +2,8 @@ import { IPastTournament } from "../../types/storage";
 import { IRoomTournamentSchedule } from "../../tournament-schedules";
 import { assert, assertStrictEqual } from "../test-tools";
 
+/* eslint-env mocha */
+
 describe("Tournaments", () => {
 	it('should return proper values from isInPastTournaments()', () => {
 		const room = Rooms.get('mocha')!;

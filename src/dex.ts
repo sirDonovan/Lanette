@@ -130,7 +130,6 @@ const clauseNicknames: Dict<string> = {
 const gen2Items: string[] = ['berserkgene', 'berry', 'bitterberry', 'burntberry', 'goldberry', 'iceberry', 'mintberry', 'miracleberry',
 	'mysteryberry', 'pinkbow', 'polkadotbow', 'przcureberry', 'psncureberry'];
 
-const customRuleFormats: Dict<string> = {};
 const dexes: Dict<Dex> = {};
 
 /** rule, source, limit, bans */
@@ -567,7 +566,7 @@ export class Dex {
 			if (format && format.aliases) {
 				for (const alias of format.aliases) {
 					const id = Tools.toId(alias);
-					if (!this.dataCache.aliases.hasOwnProperty(id)) this.dataCache.aliases[id] = formatid;
+					if (!Object.prototype.hasOwnProperty.call(this.dataCache.aliases, id)) this.dataCache.aliases[id] = formatid;
 				}
 			}
 		}
@@ -618,8 +617,8 @@ export class Dex {
 	getAbility(name: string): IAbility | null {
 		let id = Tools.toId(name);
 		if (!id) return null;
-		if (this.data.aliases.hasOwnProperty(id)) id = Tools.toId(this.data.aliases[id]);
-		if (!this.data.abilities.hasOwnProperty(id)) return null;
+		if (Object.prototype.hasOwnProperty.call(this.data.aliases, id)) id = Tools.toId(this.data.aliases[id]);
+		if (!Object.prototype.hasOwnProperty.call(this.data.abilities, id)) return null;
 
 		const cached = this.abilityCache.get(id);
 		if (cached) return cached;
@@ -709,8 +708,8 @@ export class Dex {
 	getItem(name: string): IItem | null {
 		let id = Tools.toId(name);
 		if (!id) return null;
-		if (this.data.aliases.hasOwnProperty(id)) id = Tools.toId(this.data.aliases[id]);
-		if (!this.data.items.hasOwnProperty(id)) return null;
+		if (Object.prototype.hasOwnProperty.call(this.data.aliases, id)) id = Tools.toId(this.data.aliases[id]);
+		if (!Object.prototype.hasOwnProperty.call(this.data.items, id)) return null;
 
 		const cached = this.itemCache.get(id);
 		if (cached) return cached;
@@ -806,8 +805,8 @@ export class Dex {
 	getMove(name: string): IMove | null {
 		let id = Tools.toId(name);
 		if (!id) return null;
-		if (this.data.aliases.hasOwnProperty(id)) id = Tools.toId(this.data.aliases[id]);
-		if (!this.data.moves.hasOwnProperty(id)) return null;
+		if (Object.prototype.hasOwnProperty.call(this.data.aliases, id)) id = Tools.toId(this.data.aliases[id]);
+		if (!Object.prototype.hasOwnProperty.call(this.data.moves, id)) return null;
 
 		const cached = this.moveCache.get(id);
 		if (cached) return cached;
@@ -1001,9 +1000,9 @@ export class Dex {
 		const cached = this.pokemonCache.get(id);
 		if (cached) return cached;
 
-		if (this.data.aliases.hasOwnProperty(id)) {
+		if (Object.prototype.hasOwnProperty.call(this.data.aliases, id)) {
 			let species: IPokemon | null = null;
-			if (this.data.formatsData.hasOwnProperty(id)) {
+			if (Object.prototype.hasOwnProperty.call(this.data.formatsData, id)) {
 				// special event ID, like Rockruff-Dusk
 				const basePokemon = this.getPokemonCopy(this.data.aliases[id]!);
 				species = Object.assign(basePokemon, this.data.formatsData[id], {name: id, id, abilities: {0: basePokemon.abilities['S']}});
@@ -1034,7 +1033,7 @@ export class Dex {
 			return species;
 		}
 
-		if (!this.data.pokedex.hasOwnProperty(id)) {
+		if (!Object.prototype.hasOwnProperty.call(this.data.pokedex, id)) {
 			let aliasTo = '';
 			for (const forme in formeNames) {
 				let pokemonName = '';
@@ -1045,8 +1044,10 @@ export class Dex {
 						pokemonName = id.slice(0, -formeName.length);
 					}
 				}
-				if (this.data.aliases.hasOwnProperty(pokemonName)) pokemonName = Tools.toId(this.data.aliases[pokemonName]);
-				if (this.data.pokedex.hasOwnProperty(pokemonName + forme)) {
+				if (Object.prototype.hasOwnProperty.call(this.data.aliases, pokemonName)) {
+					pokemonName = Tools.toId(this.data.aliases[pokemonName]);
+				}
+				if (Object.prototype.hasOwnProperty.call(this.data.pokedex, pokemonName + forme)) {
 					aliasTo = pokemonName + forme;
 					break;
 				}
@@ -1216,7 +1217,7 @@ export class Dex {
 	}
 
 	getLearnsetData(id: string): ILearnsetData | null {
-		if (!this.data.learnsets.hasOwnProperty(id)) return null;
+		if (!Object.prototype.hasOwnProperty.call(this.data.learnsets, id)) return null;
 		return this.data.learnsets[id]!;
 	}
 
@@ -1420,9 +1421,13 @@ export class Dex {
 		if (!generation) generation = 'xy';
 		if (!direction) direction = 'front';
 		if (generation === 'bw') {
-			if (this.data.gifDataBW.hasOwnProperty(pokemon.id) && this.data.gifDataBW[pokemon.id]![direction]) return true;
+			if (Object.prototype.hasOwnProperty.call(this.data.gifDataBW, pokemon.id) && this.data.gifDataBW[pokemon.id]![direction]) {
+				return true;
+			}
 		} else {
-			if (this.data.gifData.hasOwnProperty(pokemon.id) && this.data.gifData[pokemon.id]![direction]) return true;
+			if (Object.prototype.hasOwnProperty.call(this.data.gifData, pokemon.id) && this.data.gifData[pokemon.id]![direction]) {
+				return true;
+			}
 		}
 		return false;
 	}
@@ -1448,9 +1453,9 @@ export class Dex {
 		if (!width || !height) {
 			let gifData: IGifData | undefined;
 			if (bw) {
-				if (this.data.gifDataBW.hasOwnProperty(pokemon.id)) gifData = this.data.gifDataBW[pokemon.id]!;
+				if (Object.prototype.hasOwnProperty.call(this.data.gifDataBW, pokemon.id)) gifData = this.data.gifDataBW[pokemon.id]!;
 			} else {
-				if (this.data.gifData.hasOwnProperty(pokemon.id)) gifData = this.data.gifData[pokemon.id]!;
+				if (Object.prototype.hasOwnProperty.call(this.data.gifData, pokemon.id)) gifData = this.data.gifData[pokemon.id]!;
 			}
 			if (gifData && gifData[direction]) {
 				if (!width) width = gifData[direction]!.w;
@@ -1524,7 +1529,7 @@ export class Dex {
 			}
 		}
 
-		if (this.data.aliases.hasOwnProperty(id)) {
+		if (Object.prototype.hasOwnProperty.call(this.data.aliases, id)) {
 			id = Tools.toId(this.data.aliases[id]);
 		} else if (id.startsWith('omotm')) {
 			let index: number;
@@ -1535,12 +1540,10 @@ export class Dex {
 			}
 			if (!isNaN(index) && index <= this.omotms.length) id = this.omotms[index - 1];
 		}
-		if (!this.data.formats.hasOwnProperty(id)) {
+		if (!Object.prototype.hasOwnProperty.call(this.data.formats, id)) {
 			for (let i = currentGen; i >= 1; i--) {
 				const genId = 'gen' + i + id;
-				if (this.data.formats.hasOwnProperty(genId)) return this.getFormat(genId, isTrusted);
-				if (customRuleFormats.hasOwnProperty(id)) return this.getFormat(customRuleFormats[id], true);
-				if (customRuleFormats.hasOwnProperty(genId)) return this.getFormat(customRuleFormats[genId], true);
+				if (Object.prototype.hasOwnProperty.call(this.data.formats, genId)) return this.getFormat(genId, isTrusted);
 			}
 			return null;
 		}
@@ -1802,7 +1805,7 @@ export class Dex {
 			return rule.charAt(0) + this.validateBanRule(rule.slice(1));
 		default: {
 			const id = Tools.toId(rule);
-			if (!this.data.formats.hasOwnProperty(id)) {
+			if (!Object.prototype.hasOwnProperty.call(this.data.formats, id)) {
 				throw new Error(`Unrecognized rule "${rule}"`);
 			}
 			if (rule.startsWith('!')) return `!${id}`;
@@ -1825,7 +1828,7 @@ export class Dex {
 			}
 		}
 		const ruleid = id;
-		if (this.data.aliases.hasOwnProperty(id)) id = Tools.toId(this.data.aliases[id]);
+		if (Object.prototype.hasOwnProperty.call(this.data.aliases, id)) id = Tools.toId(this.data.aliases[id]);
 		for (const matchType of matchTypes) {
 			let table;
 			switch (matchType) {
@@ -1854,7 +1857,7 @@ export class Dex {
 			default:
 				throw new Error(`Unrecognized match type.`);
 			}
-			if (table.hasOwnProperty(id)) {
+			if (Object.prototype.hasOwnProperty.call(table, id)) {
 				if (matchType === 'pokemon') {
 					const template: IPokemon = (table[id] as unknown) as IPokemon;
 					if (template.otherFormes && ruleid !== template.id + Tools.toId(template.baseForme)) {
@@ -1865,7 +1868,7 @@ export class Dex {
 				matches.push(matchType + ':' + id);
 			} else if (matchType === 'pokemon' && id.endsWith('base')) {
 				id = id.slice(0, -4);
-				if (table.hasOwnProperty(id)) {
+				if (Object.prototype.hasOwnProperty.call(table, id)) {
 					matches.push('pokemon:' + id);
 				}
 			}

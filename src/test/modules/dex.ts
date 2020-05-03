@@ -1,5 +1,7 @@
 import { assert, assertStrictEqual } from './../test-tools';
 
+/* eslint-env mocha */
+
 describe("Dex", () => {
 	it('should compute all data types properly', () => {
 		for (const i in Dex.data.abilities) {

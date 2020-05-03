@@ -5,6 +5,8 @@ import { IPastGame } from '../../types/storage';
 import { assert, assertClientSendQueue, assertStrictEqual, testOptions } from '../test-tools';
 import { fail } from 'assert';
 
+/* eslint-env mocha */
+
 const room = Rooms.get('mocha')!;
 const initialSeed: PRNGSeed | undefined = testOptions.gameSeed ? testOptions.gameSeed.split(',')
 	.map(x => parseInt(x.trim())) as PRNGSeed : undefined;

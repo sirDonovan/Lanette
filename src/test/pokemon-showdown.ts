@@ -3,6 +3,8 @@ import path = require('path');
 
 import { assert } from './test-tools';
 
+/* eslint-env mocha */
+
 describe("Pokemon Showdown code compatibility - ", () => {
 	it('data files', () => {
 		assert(fs.existsSync(Dex.dataDir));

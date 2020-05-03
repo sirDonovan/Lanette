@@ -262,7 +262,7 @@ export class Game extends Activity {
 			}
 			joinLeaveHtml += "</center>";
 			this.sayUhtml(this.joinLeaveButtonUhtmlName, joinLeaveHtml);
-	
+
 			if (!this.isUserHosted) {
 				this.notifyRankSignups = true;
 				this.sayCommand("/notifyrank all, " + (this.room as Room).title + " scripted game," + this.name + "," +

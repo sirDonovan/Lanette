@@ -1,5 +1,7 @@
 import { assertStrictEqual } from "../test-tools";
 
+/* eslint-env mocha */
+
 const formatting: string[] = ['*', '_', '`', '~', '^', '\\'];
 
 describe("Users", () => {

@@ -17,7 +17,7 @@ const INTEGER_REGEX = /^[0-9]*$/g;
 const FLOAT_REGEX = /^[.0-9]*$/g;
 const SPACE_REGEX = /[ ]*/g;
 const HTML_CHARACTER_REGEX = /[<>/'"]/g;
-const UNSAFE_API_CHARACTER_REGEX = /[^A-Za-z0-9 \,\.\%\&\'\"\!\?\(\)\[\]\`\_\<\>\/\|\:\;\=\+\-]/g;
+const UNSAFE_API_CHARACTER_REGEX = /[^A-Za-z0-9 ,.%&'"!?()[\]`_<>/|:;=+-]/g;
 
 const maxMessageLength = 300;
 const maxUsernameLength = 18;
@@ -520,7 +520,7 @@ export class Tools {
 			description,
 			files,
 		});
-	
+
 		const gistAPi = url.parse('https://api.github.com/gists/' + gistId);
 		if (!gistAPi.hostname || !gistAPi.pathname) {
 			console.log("Failed to parse gist API URL");
@@ -539,7 +539,7 @@ export class Tools {
 				'Authorization': 'token ' + Config.githubApiCredentials.gist.token,
 			},
 		};
-	
+
 		const request = https.request(options, response => {
 			response.setEncoding('utf8');
 			let data = '';
@@ -553,11 +553,11 @@ export class Tools {
 				}
 			});
 		});
-	
+
 		request.on('error', error => {
 			console.log("Error updating gist " + gistId + ": " + error.stack);
 		});
-	
+
 		request.write(patchData);
 		request.end();
 

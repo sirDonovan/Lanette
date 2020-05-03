@@ -51,7 +51,7 @@ class AxewsBattleCards extends CardMatching {
 		}
 		loadedData = true;
 	}
-	
+
 // TODO: better workaround?
 	arePlayableCards(cards: IPokemonCard[]): boolean {
 		return true;
