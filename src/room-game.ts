@@ -239,6 +239,7 @@ export class Game extends Activity {
 	}
 
 	forceEnd(user: User, reason?: string): void {
+		if (!this.started && this.showSignupsHtml) this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, "<div></div>");
 		this.say((!this.isUserHosted ? "The " : "") + this.name + " " + this.activityType + " was forcibly ended.");
 		if (this.onForceEnd) this.onForceEnd(user, reason);
 		this.ended = true;
