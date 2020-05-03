@@ -50,7 +50,12 @@ export class Vote extends Game {
 		this.onUhtml(this.votesUhtmlName, votesHtml, () => {
 			if (callback) callback();
 		});
-		this.sayUhtmlChange(this.votesUhtmlName, votesHtml);
+
+		if (ended) {
+			this.sayUhtml(this.votesUhtmlName, votesHtml);
+		} else {
+			this.sayUhtmlChange(this.votesUhtmlName, votesHtml);
+		}
 	}
 
 	onSignups(): void {
@@ -121,21 +126,23 @@ export class Vote extends Game {
 	endVoting(): void {
 		this.canVote = false;
 		this.updateVotesHtml(() => {
-			const formats = Array.from(this.votes.values());
-			let format: string;
-			if (formats.length) {
-				format = this.sampleOne(formats);
-			} else {
-				if (!this.picks.length) {
-					this.say("A random game could not be chosen.");
-					this.forceEnd(Users.self);
-					return;
+			this.timeout = setTimeout(() => {
+				const formats = Array.from(this.votes.values());
+				let format: string;
+				if (formats.length) {
+					format = this.sampleOne(formats);
+				} else {
+					if (!this.picks.length) {
+						this.say("A random game could not be chosen.");
+						this.forceEnd(Users.self);
+						return;
+					}
+					format = this.sampleOne(this.picks);
 				}
-				format = this.sampleOne(this.picks);
-			}
 
-			this.chosenFormat = format;
-			this.end();
+				this.chosenFormat = format;
+				this.end();
+			}, 3000);
 		});
 	}
 
