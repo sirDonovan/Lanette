@@ -1559,6 +1559,47 @@ const commands: Dict<ICommandDefinition> = {
 		},
 		aliases: ['rlocation', 'rloc', 'randloc', 'randlocation'],
 	},
+	randomletter: {
+		command(target, room, user) {
+			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
+				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
+			this.say('Randomly generated letter: **' + Tools.sampleOne(Tools.letters.toUpperCase().split("")) + '**');
+		},
+		aliases: ['rletter'],
+	},
+	randomcolor: {
+		command(target, room, user) {
+			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
+				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
+			this.say('Randomly generated color: **' + Dex.data.colors[Tools.sampleOne(Object.keys(Dex.data.colors))] + '**');
+		},
+		aliases: ['rcolor'],
+	},
+	randomegggroup: {
+		command(target, room, user) {
+			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
+				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
+			this.say('Randomly generated egg group: **' + Dex.data.eggGroups[Tools.sampleOne(Object.keys(Dex.data.eggGroups))] + '**');
+		},
+		aliases: ['regggroup', 'regg'],
+	},
+	randomnature: {
+		command(target, room, user) {
+			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
+				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
+			this.say('Randomly generated nature: **' + Dex.data.natures[Tools.sampleOne(Object.keys(Dex.data.natures))]!.name + '**');
+		},
+		aliases: ['rnature'],
+	},
+	randomcategory: {
+		command(target, room, user) {
+			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
+				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
+			this.say('Randomly generated category: **the ' + Dex.data.categories[Tools.sampleOne(Object.keys(Dex.data.categories))] +
+				' Pokemon**');
+		},
+		aliases: ['rcategory', 'rcat'],
+	},
 
 	/**
 	 * Tournament commands
