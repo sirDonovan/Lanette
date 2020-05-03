@@ -327,15 +327,17 @@ export class Game extends Activity {
 		if (this.onNextRound) this.onNextRound();
 	}
 
+	getNameSpan(additionalText?: string): string {
+		const mascot = this.mascot ? Dex.getPokemonIcon(this.mascot) : '';
+		return mascot + "<span style='color: #999999'>" + this.name + (additionalText || "") + "</span>";
+	}
+
 	getRoundHtml(getAttributes: (players: PlayerList) => string, players?: PlayerList | null, roundText?: string,
 		attributeText?: string): string {
-		let html = '<div class="infobox">';
-		if (this.mascot) {
-			html += Dex.getPokemonIcon(this.mascot);
-		}
-		html += "<span style='color: #999999'>" + this.name;
-		if (this.subGameNumber) html += " - Game " + this.subGameNumber;
-		html += " - " + (roundText || "Round " + this.round) + "</span>";
+		let additionalSpanText = '';
+		if (this.subGameNumber) additionalSpanText += " - Game " + this.subGameNumber;
+		additionalSpanText += " - " + (roundText || "Round " + this.round);
+		let html = '<div class="infobox">' + this.getNameSpan(additionalSpanText);
 
 		if (!players) players = this.getRemainingPlayers();
 		const attributes = getAttributes.call(this, players);

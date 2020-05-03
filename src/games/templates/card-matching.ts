@@ -334,7 +334,8 @@ export abstract class CardMatching extends Card {
 		// needs to be set outside of on() for tests
 		this.currentPlayer = player;
 
-		const html = "<center>" + this.getTopCardHtml() + "<br /><br /><b>" + player!.name + "</b>'s turn!</center>";
+		const html = this.getNameSpan() + "<br /><center>" + this.getTopCardHtml() + "<br /><br /><b>" + player!.name + "</b>'s " +
+			"turn!</center>";
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
 			// left before text appeared
@@ -481,7 +482,8 @@ const commands: Dict<ICommandDefinition<CardMatching>> = {
 			if (!cards.length) {
 				player.frozen = true;
 				if (this.finitePlayerCards) {
-					this.sayUhtml(this.uhtmlBaseName + '-round', "<center>" + this.getTopCardHtml() + "</center>");
+					this.sayUhtml(this.uhtmlBaseName + '-round', this.getNameSpan() + "<br /><center>" + this.getNameSpan() + "<br />" +
+						this.getTopCardHtml() + "</center>");
 					this.end();
 					return true;
 				}

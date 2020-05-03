@@ -273,7 +273,8 @@ class AxewsBattleCards extends CardMatching {
 		// needs to be set outside of on() for tests
 		this.currentPlayer = player;
 
-		const html = "<center>" + this.getTopCardHtml() + "<br /><br /><b>" + player!.name + "</b>'s turn!</center>";
+		const html = this.getNameSpan() + "<br /><center>" + this.getTopCardHtml() + "<br /><br /><b>" + player!.name + "</b>'s " +
+			"turn!</center>";
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
 			if (finalPlayer) {
