@@ -574,6 +574,14 @@ export class Dex {
 		this.gen = battleScripts.gen;
 		if (!this.gen) throw new Error(`Mod ${this.currentMod} needs a generation number in scripts.js`);
 
+		const speciesList = Object.keys(this.dataCache.categories);
+		for (const species of speciesList) {
+			const id = Tools.toId(species);
+			if (id === species) continue;
+			this.dataCache.categories[id] = this.dataCache.categories[species];
+			delete this.dataCache.categories[species];
+		}
+
 		this.loadedData = true;
 
 		// Execute initialization script.
