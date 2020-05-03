@@ -2,6 +2,7 @@ import { Player } from "../room-activity";
 import { Room } from "../rooms";
 import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
+import { User } from "../users";
 
 const name = "Pikachu's Mystery Pokemon";
 const data: {abilities: Dict<string[]>; eggGroups: Dict<string>; pokedex: string[]; regions: Dict<string>; types: Dict<string>} = {
@@ -26,7 +27,7 @@ class PikachusMysteryPokemon extends Guessing {
 	lastSpecies: string = '';
 	points = new Map<Player, number>();
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 

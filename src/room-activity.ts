@@ -118,7 +118,7 @@ export abstract class Activity {
 		return this.pm;
 	}
 
-	createPlayer(user: User | string): Player | void {
+	createPlayer(user: User | string): Player | undefined {
 		const id = Tools.toId(user);
 		if (id in this.players) return;
 		const player = new Player(user, this);
@@ -138,7 +138,7 @@ export abstract class Activity {
 		if (this.onRenamePlayer) this.onRenamePlayer(player, oldId);
 	}
 
-	destroyPlayer(user: User | string, forceDelete?: boolean): Player | void {
+	destroyPlayer(user: User | string, forceDelete?: boolean): Player | undefined {
 		const id = Tools.toId(user);
 		if (!(id in this.players)) return;
 		const player = this.players[id];

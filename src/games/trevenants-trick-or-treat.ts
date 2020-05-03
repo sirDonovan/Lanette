@@ -30,7 +30,7 @@ class TrevenantsTrickOrTreat extends Game {
 		this.pokemonList = this.shuffle(data.pokedex);
 	}
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 

@@ -258,7 +258,7 @@ export class Tools {
 	}
 
 	toString(input: string | number | boolean | undefined | null | {activityType?: string; effectType?: string; name?: string;
-		toString?(): string;}): string {
+		toString?: () => string;}): string {
 		if (input === undefined) return 'undefined';
 		if (input === null) return 'null';
 		if (typeof input === 'string') return input;
@@ -341,7 +341,7 @@ export class Tools {
 	 */
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	toTimestampString(date: Date, options?: Dict<any>): string {
-		const human = options && options.human;
+		const human: boolean = options && options.human ? true : false;
 		let parts: (number | string)[] = [date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes(),
 			date.getSeconds()];
 		if (human) {
@@ -435,12 +435,13 @@ export class Tools {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const clone = obj.slice() as DeepWritable<T & any[]>;
 			for (let i = 0; i < obj.length; i++) {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				clone[i] = this.deepClone(obj[i]);
 			}
 			return clone;
 		}
 
-		const clone: DeepWritable<T> = Object.create(Object.getPrototypeOf(obj));
+		const clone = Object.create(Object.getPrototypeOf(obj)) as DeepWritable<T>;
 		const keys = Object.keys(obj) as (keyof T)[];
 		for (const key of keys) {
 			// @ts-expect-error

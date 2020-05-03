@@ -99,7 +99,7 @@ export class Storage {
 			if (!fileName.endsWith('.json')) continue;
 			const id = fileName.substr(0, fileName.indexOf('.json'));
 			const file = fs.readFileSync(path.join(databasesDir, fileName)).toString();
-			this.databases[id] = JSON.parse(file);
+			this.databases[id] = JSON.parse(file) as IDatabase;
 		}
 
 		const globalDatabase = this.getGlobalDatabase();

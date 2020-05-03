@@ -168,7 +168,7 @@ function search(options: IParametersSearchOptions, prng: PRNG): IParametersRespo
 }
 
 // eslint-disable-next-line @typescript-eslint/camelcase
-worker_threads.parentPort!.on('message', incommingMessage => {
+worker_threads.parentPort!.on('message', (incommingMessage: string) => {
 	const parts = incommingMessage.split("|");
 	const messageNumber = parts[0];
 	const id = parts[1] as ParametersId;

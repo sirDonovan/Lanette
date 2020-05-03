@@ -89,7 +89,7 @@ export class Games {
 	readonly achievementNames: Dict<string> = {};
 	readonly aliases: Dict<string> = {};
 	autoCreateTimers: Dict<NodeJS.Timer> = {};
-	readonly commands: typeof sharedCommands = Object.assign(Object.create(null), sharedCommands);
+	readonly commands = Object.assign(Object.create(null), sharedCommands) as typeof sharedCommands;
 	readonly formats: Dict<DeepReadonly<IGameFormatData>> = {};
 	readonly freejoinFormatTargets: string[] = [];
 	// @ts-expect-error - set in loadFormats()

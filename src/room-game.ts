@@ -50,7 +50,7 @@ export class Game extends Activity {
 	readonly activityType: string = 'game';
 	awardedBits: boolean = false;
 	canLateJoin: boolean = false;
-	readonly commands: CommandsDict<Game> = Object.assign(Object.create(null), Games.sharedCommands);
+	readonly commands = Object.assign(Object.create(null), Games.sharedCommands) as CommandsDict<Game>;
 	readonly commandsListeners: IGameCommandCountListener[] = [];
 	internalGame: boolean = false;
 	readonly isUserHosted: boolean = false;
@@ -803,7 +803,7 @@ export class Game extends Activity {
 
 	getPlayerSummary?(player: Player): void;
 	/** Return `false` to prevent a user from being added to the game (and send the reason to the user) */
-	onAddPlayer?(player: Player, lateJoin?: boolean): boolean | void;
+	onAddPlayer?(player: Player, lateJoin?: boolean): boolean | undefined;
 	onAfterDeallocate?(forceEnd: boolean): void;
 	onChildEnd?(winners: Map<Player, number>): void;
 	onDeallocate?(forceEnd: boolean): void;

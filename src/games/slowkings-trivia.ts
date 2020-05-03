@@ -1,6 +1,7 @@
 import { Room } from "../rooms";
 import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
+import { User } from "../users";
 
 const name = "Slowking's Trivia";
 const data: {"Pokemon Abilities": Dict<string[]>; "Pokemon Items": Dict<string[]>; "Pokemon Moves": Dict<string[]>} = {
@@ -27,7 +28,7 @@ class SlowkingsTrivia extends Guessing {
 	allAnswersAchievement = achievements.knowitall;
 	allAnswersTeamAchievement = achievements.captainknowitall;
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 

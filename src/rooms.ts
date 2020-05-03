@@ -3,7 +3,7 @@ import { UserHosted } from "./games/internal/user-hosted";
 import { Player } from "./room-activity";
 import { Game } from "./room-game";
 import { Tournament } from "./room-tournament";
-import { IUserHostedTournament } from "./tournaments";
+import { IUserHostedTournament } from "./types/tournaments";
 import { IRoomInfoResponse } from "./types/client";
 import { User } from "./users";
 

@@ -5,6 +5,7 @@ import { Room } from "../rooms";
 import { addPlayers, assert, runCommand } from "../test/test-tools";
 import { GameFileTests, IGameFile, GameCommandReturnType } from "../types/games";
 import { IPokemon } from "../types/dex";
+import { User } from "../users";
 
 const name = "Delcatty's Hide and Seek";
 const data: {'parameters': Dict<string[]>; 'pokemon': string[]} = {
@@ -22,7 +23,7 @@ class DelcattysHideAndSeek extends Game {
 
 	charmer!: Player;
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 

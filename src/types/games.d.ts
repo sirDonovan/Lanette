@@ -105,12 +105,12 @@ export type InternalGameKey = keyof IInternalGames;
 
 interface IGameClass<T extends Game = Game> {
 	new(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed): T;
-	loadData?(room: Room | User, extendedClass?: boolean): void;
+	loadData?: (room: Room | User, extendedClass?: boolean) => void;
 }
 
 interface IModeClass<T, U extends Game = Game> {
 	new(game: U): T;
-	setOptions<V extends Game>(format: IGameFormat<V>, namePrefixes: string[], nameSuffixes: string[]): void;
+	setOptions: <V extends Game>(format: IGameFormat<V>, namePrefixes: string[], nameSuffixes: string[]) => void;
 }
 
 interface IGameFileTestConfig {

@@ -4,6 +4,7 @@ import { assert, assertStrictEqual } from '../test/test-tools';
 import { GameFileTests, IGameFile, IGameFormat } from "../types/games";
 import * as PortmanteausWorker from './../workers/portmanteaus';
 import { game as guessingGame, Guessing } from './templates/guessing';
+import { User } from "../users";
 
 const BASE_NUMBER_OF_PORTS = 2;
 const name = "Poliwrath's Portmanteaus";
@@ -20,7 +21,7 @@ export class PoliwrathsPortmanteaus extends Guessing {
 	roundTime: number = 5 * 60 * 1000;
 	usesWorkers: boolean = true;
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 

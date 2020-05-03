@@ -2,6 +2,7 @@ import { Player } from "../room-activity";
 import { Room } from "../rooms";
 import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
+import { User } from "../users";
 
 const name = "Zygarde's Orders";
 const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
@@ -33,7 +34,7 @@ class ZygardesOrders extends Guessing {
 	roundGuesses = new Map<Player, boolean>();
 	solvedLetters: string[] = [];
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 

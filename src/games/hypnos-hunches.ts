@@ -2,6 +2,7 @@ import { Player } from "../room-activity";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
+import { User } from "../users";
 
 const name = "Hypno's Hunches";
 const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
@@ -28,7 +29,7 @@ class HypnosHunches extends Guessing {
 	letters: string[] = [];
 	roundGuesses = new Map<Player, boolean>();
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 
 		room.say("Loading data for " + name + "...");
@@ -63,7 +64,7 @@ class HypnosHunches extends Guessing {
 			if (!uniqueLetters.includes(letter)) uniqueLetters.push(letter);
 		}
 		this.uniqueLetters = uniqueLetters.length;
-		this.hints = new Array(letters.length).fill('');
+		this.hints = new Array(letters.length).fill('') as string[];
 	}
 
 	async onNextRound(): Promise<void> {

@@ -182,11 +182,7 @@ describe("Games", () => {
 				Games.createGame(room, format, room, false, initialSeed);
 			} catch (e) {
 				console.log(e);
-				let message = e.message;
-				if (room.game) {
-					message += " (" + format.name + "; initial seed = " + room.game.initialSeed + ")";
-				}
-				fail(message);
+				fail(e.message + (room.game ? " (" + format.name + "; initial seed = " + room.game.initialSeed + ")" : ""));
 			}
 			if (room.game) room.game.deallocate(true);
 		}
@@ -207,11 +203,7 @@ describe("Games", () => {
 					Games.createGame(room, format, room, false, initialSeed);
 				} catch (e) {
 					console.log(e);
-					let message = e.message;
-					if (room.game) {
-						message += " (" + format.nameWithOptions + "; initial seed = " + room.game.initialSeed + ")";
-					}
-					fail(message);
+					fail(e.message + (room.game ? " (" + format.nameWithOptions + "; initial seed = " + room.game.initialSeed + ")" : ""));
 				}
 				if (room.game) room.game.deallocate(true);
 			}

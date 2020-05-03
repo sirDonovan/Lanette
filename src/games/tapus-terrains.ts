@@ -3,6 +3,7 @@ import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile, GameCommandReturnType } from "../types/games";
+import { User } from "../users";
 
 const name = "Tapus' Terrains";
 const terrains = {
@@ -37,7 +38,7 @@ class TapusTerrains extends Game {
 	targetPokemon: string | null = null;
 	terrainRound: number = 0;
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 

@@ -6,7 +6,7 @@ import path = require('path');
 import { ICommandDefinition } from "./command-parser";
 import { Player } from "./room-activity";
 import { Game } from './room-game';
-import { IBattleData } from './room-tournament';
+import { IBattleData } from './types/tournaments';
 import { Room } from "./rooms";
 import { GameDifficulty, IGameFormat } from "./types/games";
 import { IFormat } from "./types/dex";
@@ -109,13 +109,13 @@ const commands: Dict<ICommandDefinition> = {
 						const oldClient = global.Client;
 						Tools.uncacheTree('./client');
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const client: typeof import('./client') = require('./client');
+						const client = require('./client') as typeof import('./client');
 						global.Client = new client.Client();
 						Client.onReload(oldClient);
 					} else if (moduleId === 'commandparser') {
 						Tools.uncacheTree('./command-parser');
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const commandParser: typeof import('./command-parser') = require('./command-parser');
+						const commandParser = require('./command-parser') as typeof import('./command-parser');
 						global.CommandParser = new commandParser.CommandParser();
 					} else if (moduleId === 'commands') {
 						Tools.uncacheTree('./commands');
@@ -126,13 +126,13 @@ const commands: Dict<ICommandDefinition> = {
 						Tools.uncacheTree('./config');
 						Tools.uncacheTree('./config-loader');
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const config: typeof import('./config-example') = require('./config-loader').load(require('./config'));
+						const config = require('./config-loader').load(require('./config')) as typeof import('./config-example');
 						global.Config = config;
 						Rooms.checkLoggingConfigs();
 					} else if (moduleId === 'dex') {
 						Tools.uncacheTree('./dex');
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const dex: typeof import('./dex') = require('./dex');
+						const dex = require('./dex') as typeof import('./dex');
 						global.Dex = new dex.Dex();
 					} else if (moduleId === 'games') {
 						const oldGames = global.Games;
@@ -140,7 +140,7 @@ const commands: Dict<ICommandDefinition> = {
 						Tools.uncacheTree('./games');
 						Tools.uncacheTree('./room-activity');
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const games: typeof import('./games') = require('./games');
+						const games = require('./games') as typeof import('./games');
 						global.Games = new games.Games();
 						Games.onReload(oldGames);
 					} else if (moduleId === 'storage') {
@@ -148,14 +148,14 @@ const commands: Dict<ICommandDefinition> = {
 						Storage.unrefWorkers();
 						Tools.uncacheTree('./storage');
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const storage: typeof import('./storage') = require('./storage');
+						const storage = require('./storage') as typeof import('./storage');
 						global.Storage = new storage.Storage();
 						Storage.onReload(oldStorage);
 					} else if (moduleId === 'tools') {
 						const oldTools = global.Tools;
 						Tools.uncacheTree('./tools');
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const tools: typeof import('./tools') = require('./tools');
+						const tools = require('./tools') as typeof import('./tools');
 						global.Tools = new tools.Tools();
 						Tools.onReload(oldTools);
 					} else if (moduleId === 'tournaments') {
@@ -163,7 +163,7 @@ const commands: Dict<ICommandDefinition> = {
 						Tools.uncacheTree('./tournaments');
 						Tools.uncacheTree('./room-activity');
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const tournaments: typeof import('./tournaments') = require('./tournaments');
+						const tournaments = require('./tournaments') as typeof import('./tournaments');
 						global.Tournaments = new tournaments.Tournaments();
 						Tournaments.onReload(oldTournaments);
 					}
@@ -321,7 +321,7 @@ const commands: Dict<ICommandDefinition> = {
 			if (!targetUser) return this.say("You must specify a user.");
 			const game = Games.createGame(room, Games.getInternalFormat('eggtoss'));
 			game.signups();
-			const canEgg = await this.run('toss');
+			const canEgg = await this.run('toss') as boolean;
 			if (canEgg) {
 				this.say("**" + user.name + "** handed an egg to **" + targetUser.name + "**! Pass it around with ``" +
 					Config.commandCharacter + "toss [user]`` before it explodes!");

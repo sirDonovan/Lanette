@@ -1,6 +1,7 @@
 import { Room } from "../rooms";
 import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
+import { User } from "../users";
 
 const name = "Greninja's Typings";
 const data: {pokedex: string[]; reverseTypes: Dict<string>; species: Dict<string>; types: Dict<string>} = {
@@ -24,7 +25,7 @@ class GreninjasTypings extends Guessing {
 	lastTyping: string = '';
 	noOrder: boolean = false;
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 

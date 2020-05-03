@@ -4,6 +4,7 @@ import { IGameFile, AchievementsDict } from "../types/games";
 import { IPokemon } from "../types/dex";
 import { CardType, IActionCardData, IMoveCard, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
+import { User } from "../users";
 
 const name = "Axew's Battle Cards";
 const types: Dict<string> = {};
@@ -39,7 +40,7 @@ class AxewsBattleCards extends CardMatching {
 	showPlayerCards = false;
 	usesColors = false;
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 		const typeKeys = Object.keys(Dex.data.typeChart);

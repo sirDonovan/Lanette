@@ -2,6 +2,7 @@ import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { IPokemon } from "../types/dex";
 import { Chain, game as chainGame } from "./templates/chain";
+import { User } from "../users";
 
 const name = "Fraxure's Battle Chain";
 const data: {types: string[]} = {
@@ -12,7 +13,7 @@ let loadedData = false;
 class FraxuresBattleChain extends Chain {
 	linkEndCache: Dict<string[]> = {};
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 

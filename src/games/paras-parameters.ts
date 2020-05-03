@@ -4,6 +4,7 @@ import { assert, assertStrictEqual } from "../test/test-tools";
 import { GameFileTests, IGameFile, IGameFormat } from "../types/games";
 import { IParam, IParametersResponse, ParamType } from '../workers/parameters';
 import { game as guessingGame, Guessing } from './templates/guessing';
+import { User } from "../users";
 
 const BASE_NUMBER_OF_PARAMS = 2;
 const MIN_GEN = 1;
@@ -24,7 +25,7 @@ export class ParasParameters extends Guessing {
 	roundTime: number = 5 * 60 * 1000;
 	usesWorkers: boolean = true;
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 
 		room.say("Loading data for " + name + "...");

@@ -1,6 +1,7 @@
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
+import { User } from "../users";
 
 const name = "Kirlia's Tracing Show";
 const data: {abilities: Dict<string>; pokedex: string[]} = {
@@ -13,7 +14,7 @@ class KirliasTracingShow extends Guessing {
 	lastAbilities: string = '';
 	lastPokemon: string = '';
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 

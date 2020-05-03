@@ -2,6 +2,7 @@ import { Player } from "../room-activity";
 import { Room } from "../rooms";
 import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
+import { User } from "../users";
 
 const name = "Magcargo's Weak Spot";
 const data: {pokedex: string[]; inverseTypeKeys: string[]; inverseTypeWeaknesses: Dict<string[]>; typeKeys: string[];
@@ -29,7 +30,7 @@ class MagcargosWeakSpot extends Guessing {
 	lastType: string = '';
 	roundGuesses = new Map<Player, boolean>();
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 
 		room.say("Loading data for " + name + "...");

@@ -2,6 +2,7 @@ import { Player } from "../room-activity";
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
+import { User } from "../users";
 
 const name = "Ambipom's Tossups";
 const data: {'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]} = {
@@ -23,7 +24,7 @@ class AmbipomsTossups extends Guessing {
 	readonly roundGuesses = new Map<Player, boolean>();
 	tossupRound: number = 0;
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 

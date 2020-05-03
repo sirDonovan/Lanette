@@ -3,6 +3,7 @@ import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
+import { User } from "../users";
 
 const name = "Wishiwashi's Stat Fishing";
 const data: {baseStatTotals: Dict<number>; pokedex: string[]} = {
@@ -28,7 +29,7 @@ class WishiwashisStatFishing extends Game {
 	statNames: Dict<string> = {hp: 'HP', atk: 'Atk', def: 'Def', spa: 'SpA', spd: 'SpD', spe: 'Spe', bst: 'BST'};
 	stats: string[] = ['hp', 'atk', 'def', 'spa', 'spd', 'spe', 'bst'];
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 
 		room.say("Loading data for " + name + "...");
@@ -95,7 +96,7 @@ class WishiwashisStatFishing extends Game {
 			statPoints = data.baseStatTotals[pokemon.id];
 		} else {
 			// @ts-expect-error
-			statPoints = pokemon.baseStats[stat];
+			statPoints = pokemon.baseStats[stat] as number;
 		}
 		if (negative) statPoints *= -1;
 
@@ -118,7 +119,7 @@ class WishiwashisStatFishing extends Game {
 
 	onNextRound(): void {
 		if (this.round > this.roundLimit) return this.end();
-		this.roundReels = new Map();
+		this.roundReels.clear();
 		this.queue = [];
 		const html = this.getRoundHtml(this.getPlayerPoints);
 		const uhtmlName = this.uhtmlBaseName + '-round-html';

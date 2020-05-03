@@ -31,7 +31,7 @@
         "@typescript-eslint/prefer-regexp-exec": "off",
         "@typescript-eslint/unbound-method": "off",
 
-        "max-len": ["error", {"code": 140, "ignorePattern": "^import \\{"}],
+        "max-len": ["error", {"code": 140, "ignorePattern": "^import \\{", "ignoreComments": true}],
 
         "@typescript-eslint/no-extra-non-null-assertion": "error",
         "@typescript-eslint/no-throw-literal": "error",
@@ -40,6 +40,10 @@
         "@typescript-eslint/promise-function-async": "error",
         "@typescript-eslint/type-annotation-spacing": "error",
         "@typescript-eslint/no-extra-semi": "error",
+        "@typescript-eslint/no-unsafe-assignment": "error",
+        "@typescript-eslint/method-signature-style": "error",
+        "@typescript-eslint/prefer-ts-expect-error": "error",
+        "@typescript-eslint/no-invalid-void-type": "error",
         "@typescript-eslint/interface-name-prefix": ["error", {"prefixWithI": "always"}],
         "@typescript-eslint/no-floating-promises": ["error", {"ignoreVoid": true}],
         "@typescript-eslint/array-type": ["error", {"default": "array"}],
@@ -60,40 +64,47 @@
         "no-dupe-class-members": "off",
         "@typescript-eslint/no-dupe-class-members": "error",
 
+        "keyword-spacing": "off",
+        "@typescript-eslint/keyword-spacing": "error",
+
         "space-before-function-paren": "off",
         "@typescript-eslint/space-before-function-paren": ["error", "never"],
 
-        "@typescript-eslint/member-ordering": ["error", {"default": [
-            // Index signature
-            "signature",
-            
-            // Fields
-            "public-abstract-field",
-            "protected-abstract-field",
-            "private-abstract-field",
-            "public-static-field",
-            "protected-static-field",
-            "private-static-field",
-            "public-instance-field",
-            "protected-instance-field",
-            "private-instance-field",
-            
-            // Constructors
-            "public-constructor",
-            "protected-constructor",
-            "private-constructor",
-            
-            // Methods
-            "public-abstract-method",
-            "protected-abstract-method",
-            "private-abstract-method",
-            "public-static-method",
-            "protected-static-method",
-            "private-static-method",
-            "public-instance-method",
-            "protected-instance-method",
-            "private-instance-method"
-            ]
+        "@typescript-eslint/member-ordering": ["error", {
+            "default": {
+                "memberTypes": [
+                    // Index signature
+                    "signature",
+                    
+                    // Fields
+                    "public-abstract-field",
+                    "protected-abstract-field",
+                    "private-abstract-field",
+                    "public-static-field",
+                    "protected-static-field",
+                    "private-static-field",
+                    "public-instance-field",
+                    "protected-instance-field",
+                    "private-instance-field",
+                    
+                    // Constructors
+                    "public-constructor",
+                    "protected-constructor",
+                    "private-constructor",
+                    
+                    // Methods
+                    "public-abstract-method",
+                    "protected-abstract-method",
+                    "private-abstract-method",
+                    "public-static-method",
+                    "protected-static-method",
+                    "private-static-method",
+                    "public-instance-method",
+                    "protected-instance-method",
+                    "private-instance-method"
+                ],
+                "order": "as-written"
+            }
         }],
 
         "@typescript-eslint/naming-convention": ["error", {

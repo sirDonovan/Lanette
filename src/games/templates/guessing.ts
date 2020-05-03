@@ -12,7 +12,7 @@ export abstract class Guessing extends Game {
 	canGuess: boolean = false;
 	firstAnswer: Player | false | undefined;
 	hint: string = '';
-	readonly points: Map<Player, number> = new Map();
+	readonly points = new Map<Player, number>();
 	roundTime: number = 10 * 1000;
 
 	allAnswersAchievement?: IGameAchievement;

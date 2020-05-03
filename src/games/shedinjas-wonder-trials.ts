@@ -4,6 +4,7 @@ import { Game } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
 import { IPokemon } from "../types/dex";
+import { User } from "../users";
 
 const name = "Shedinja's Wonder Trials";
 const data: {moves: string[]; pokedex: string[]} = {
@@ -27,7 +28,7 @@ class ShedinjasWonderTrials extends Game {
 	roundMoves = new Map<Player, string>();
 	usedMoves: string[] = [];
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 
 		room.say("Loading data for " + name + "...");

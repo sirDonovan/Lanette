@@ -3,6 +3,7 @@ import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile, GameCommandReturnType } from "../types/games";
+import { User } from "../users";
 
 const name = "Golem's Galvanic Mine";
 const gen = 'gen7';
@@ -17,7 +18,7 @@ class GolemsGalvanicMine extends Game {
 	roundStones: Dict<number> = {};
 	roundTime: number = 7000;
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 

@@ -7,6 +7,8 @@ import { Room, RoomType } from './rooms';
 import { IClientMessageTypes, IRoomInfoResponse, IServerGroup, ITournamentMessageTypes, IUserDetailsResponse, ServerGroupData, IRoomsResponse, QueryResponseType } from './types/client';
 import { ISeparatedCustomRules } from './types/dex';
 import { User } from './users';
+import { ITournamentCreateJson, ITournamentUpdateJson, ITournamentEndJson } from './types/tournaments';
+import { Player } from './room-activity';
 
 export type GroupName = 'voice' | 'bot' | 'driver' | 'moderator' | 'roomowner' | 'muted' | 'locked';
 
@@ -16,6 +18,12 @@ interface ILoginOptions {
 	agent: boolean;
 	method: string;
 	headers?: Dict<string | number>;
+}
+
+interface IServerConfig {
+	host?: string;
+	id?: string;
+	port?: number;
 }
 
 const MAIN_HOST = "sim3.psim.us";
@@ -141,8 +149,8 @@ export class Client {
 	connection: websocket.connection | null = null;
 	connectionAttempts: number = 0;
 	connectionTimeout: NodeJS.Timer | null = null;
-	filterRegularExpressions: RegExp[] | null = null;
 	evasionFilterRegularExpressions: RegExp[] | null = null;
+	filterRegularExpressions: RegExp[] | null = null;
 	groupSymbols: Dict<string> = {};
 	loggedIn: boolean = false;
 	loginTimeout: NodeJS.Timer | null = null;
@@ -238,9 +246,9 @@ export class Client {
 			response.on('end', () => {
 				const configData = data.split('var config = ')[1];
 				if (configData) {
-					let config = JSON.parse(configData.split(';')[0]);
+					let config = JSON.parse(configData.split(';')[0]) as IServerConfig | string;
 					// the config is potentially encoded twice by the server
-					if (typeof config === 'string') config = JSON.parse(config);
+					if (typeof config === 'string') config = JSON.parse(config) as IServerConfig;
 					if (config.host) {
 						if (config.id) this.serverId = config.id;
 						if (config.host === 'showdown') {
@@ -449,7 +457,7 @@ export class Client {
 
 		case 'customgroups': {
 			const messageArguments: IClientMessageTypes['customgroups'] = {
-				groups: JSON.parse(messageParts[0]),
+				groups: JSON.parse(messageParts[0]) as ServerGroupData[],
 			};
 			this.parseServerGroups(messageArguments.groups);
 			break;
@@ -879,7 +887,7 @@ export class Client {
 			switch (type) {
 			case 'update': {
 				const messageArguments: ITournamentMessageTypes['update'] = {
-					json: JSON.parse(messageParts.join("|")),
+					json: JSON.parse(messageParts.join("|")) as ITournamentUpdateJson,
 				};
 				if (!room.tournament) Tournaments.createTournament(room, messageArguments.json);
 				if (room.tournament) room.tournament.update(messageArguments.json);
@@ -893,7 +901,7 @@ export class Client {
 
 			case 'end': {
 				const messageArguments: ITournamentMessageTypes['end'] = {
-					json: JSON.parse(messageParts.join("|")),
+					json: JSON.parse(messageParts.join("|")) as ITournamentEndJson,
 				};
 				if (!room.tournament) Tournaments.createTournament(room, messageArguments.json);
 				if (room.tournament) {
@@ -1011,7 +1019,7 @@ export class Client {
 					if (!(room.id in room.tournament.battleData)) {
 						room.tournament.battleData[room.id] = {
 							remainingPokemon: {},
-							slots: new Map(),
+							slots: new Map<Player, string>(),
 						};
 					}
 					room.tournament.battleData[room.id].slots.set(player, messageArguments.slot);
@@ -1298,7 +1306,7 @@ export class Client {
 					return;
 				} else {
 					if (Config.password) {
-						const assertion = JSON.parse(data.substr(1));
+						const assertion = JSON.parse(data.substr(1)) as {actionsuccess?: boolean; assertion?: string};
 						if (assertion.actionsuccess && assertion.assertion) {
 							data = assertion.assertion;
 						} else {

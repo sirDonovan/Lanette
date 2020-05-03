@@ -2,6 +2,7 @@ import { Player } from "../room-activity";
 import { Room } from "../rooms";
 import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
+import { User } from "../users";
 
 const name = "Smeargle's Mystery Moves";
 const data: {moves: string[]} = {
@@ -22,7 +23,7 @@ class SmearglesMysteryMoves extends Guessing {
 	lastMove: string = '';
 	points = new Map<Player, number>();
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 

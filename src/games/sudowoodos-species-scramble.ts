@@ -1,6 +1,7 @@
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
+import { User } from "../users";
 
 const name = "Sudowoodo's Species Scramble";
 const data: {categories: Dict<string[]>} = {
@@ -10,7 +11,7 @@ const categoryKeys: string[] = [];
 let loadedData = false;
 
 class SudowoodosSpeciesScramble extends Guessing {
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 

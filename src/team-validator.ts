@@ -238,7 +238,7 @@ export class TeamValidator {
 		const format = this.format;
 		const ruleTable = dex.getRuleTable(format);
 		const alreadyChecked: {[k: string]: boolean} = {};
-		const level = set.level || 100;
+		const level = (set.level as number) || 100;
 
 		let incompatibleAbility = false;
 

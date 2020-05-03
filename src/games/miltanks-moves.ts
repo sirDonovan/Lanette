@@ -2,6 +2,7 @@ import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { IMove } from "../types/dex";
 import { game as guessingGame, Guessing } from "./templates/guessing";
+import { User } from "../users";
 
 const name = "Miltank's Moves";
 const data: {'moves': Dict<Dict<string[]>>; 'pokemon': string[]} = {
@@ -11,7 +12,7 @@ const data: {'moves': Dict<Dict<string[]>>; 'pokemon': string[]} = {
 let loadedData = false;
 
 class MiltanksMoves extends Guessing {
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 

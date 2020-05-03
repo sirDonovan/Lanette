@@ -1,6 +1,7 @@
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
+import { User } from "../users";
 
 const name = "Mareanie's Marquees";
 const data: {'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]} = {
@@ -22,7 +23,7 @@ class MareaniesMarquee extends Guessing {
 	lettersToReveal: number = 4;
 	currentCategory: string = '';
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 

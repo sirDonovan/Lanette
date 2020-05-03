@@ -1,6 +1,7 @@
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
+import { User } from "../users";
 
 const name = "Piplup's Letter Placements";
 const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
@@ -19,7 +20,7 @@ let loadedData = false;
 class PiplupsLetterPlacements extends Guessing {
 	lastAnswer: string = '';
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 

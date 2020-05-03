@@ -4,24 +4,7 @@ import { Room } from "./rooms";
 import { tournamentSchedules } from './tournament-schedules';
 import { IFormat, ISeparatedCustomRules } from "./types/dex";
 import { IPastTournament } from "./types/storage";
-
-export interface IUserHostedTournament {
-	approvalStatus: 'changes-requested' | 'approved' | '';
-	hostId: string;
-	hostName: string;
-	reviewer: string;
-	startTime: number;
-	reviewTimer?: NodeJS.Timer;
-	urls: string[];
-}
-
-interface ITournamentCreateJson {
-	format: string;
-	generator: string;
-	isStarted?: boolean;
-	playerCap?: number;
-	teambuilderFormat?: string;
-}
+import { ITournamentCreateJson } from "./types/tournaments";
 
 interface IScheduledTournament {
 	format: string;

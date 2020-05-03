@@ -567,7 +567,7 @@ export interface IFormatData {
 	onBegin?: (this: any) => void;
 	onChangeSet?: (
 		this: any, set: any, format: any, setHas?: any, teamHas?: any
-	) => string[] | void;
+	) => string[] | undefined;
 	onModifySpecies?: (
 		this: any, species: any, target?: any, source?: any, effect?: any
 	) => void;
@@ -575,13 +575,13 @@ export interface IFormatData {
 	onTeamPreview?: (this: any) => void;
 	onValidateSet?: (
 		this: any, set: any, format: any, setHas: any, teamHas: any
-	) => string[] | void;
-	onValidateTeam?: (this: any, team: any[], format: any, teamHas: any) => string[] | void;
+	) => string[] | undefined;
+	onValidateTeam?: (this: any, team: any[], format: any, teamHas: any) => string[] | undefined;
 	validateSet?: (this: any, set: any, teamHas: any) => string[] | null;
 	validateTeam?: (this: any, team: any[], options?: {
 		removeNicknames?: boolean;
 		skipSets?: {[name: string]: {[key: string]: boolean}};
-	}) => string[] | void;
+	}) => string[] | undefined;
 	trunc?: (n: number) => number;
 	section?: string;
 	column?: number;

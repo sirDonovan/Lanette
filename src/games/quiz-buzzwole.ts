@@ -3,6 +3,7 @@ import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile, GameCommandReturnType } from "../types/games";
+import { User } from "../users";
 
 type ExpectedMultiple = 'firstMultiple' | 'secondMultiple' | 'both' | number;
 
@@ -27,7 +28,7 @@ class QuizBuzzwole extends Game {
 	roundCategories: {'firstMultiple': string; 'secondMultiple': string} = {firstMultiple: '', secondMultiple: ''};
 	expectedMultiples: {'firstMultiple': string[]; 'secondMultiple': string[]} = {firstMultiple: [], secondMultiple: []};
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 

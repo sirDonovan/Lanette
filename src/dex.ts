@@ -15,7 +15,7 @@ const formatsPath = path.join(Tools.pokemonShowdownFolder, 'config', 'formats.js
 const lanetteDataDir = path.join(Tools.rootFolder, 'data');
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const alternateIconNumbers: {right: Dict<number>; left: Dict<number>} = require(path.join(lanetteDataDir, 'alternate-icon-numbers.js'));
+const alternateIconNumbers = require(path.join(lanetteDataDir, 'alternate-icon-numbers.js')) as {right: Dict<number>; left: Dict<number>};
 
 const dataFiles: Dict<string> = {
 	'Pokedex': 'pokedex',
@@ -306,7 +306,7 @@ export class Dex {
 		// @ts-expect-error
 		if (this.data[dataType][id] !== dexes[this.parentMod].data[dataType][id]) return this.data[dataType][id];
 		// @ts-expect-error
-		this.data[dataType][id] = Tools.deepClone(this.data[dataType][id]);
+		this.data[dataType][id] = Tools.deepClone(this.data[dataType][id]); // eslint-disable-line @typescript-eslint/no-unsafe-assignment
 		// @ts-expect-error
 		return this.data[dataType][id];
 		/* eslint-enable */
@@ -316,7 +316,7 @@ export class Dex {
 	loadDataFile(basePath: string, dataFiles: Dict<string>, dataType: string): Dict<any> {
 		try {
 			const filePath = path.join(basePath, dataFiles[dataType]);
-			// eslint-disable-next-line @typescript-eslint/no-var-requires
+			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 			const dataObject = require(filePath);
 			const key = `Battle${dataType}`;
 			if (!dataObject || typeof dataObject !== 'object') {
@@ -339,7 +339,7 @@ export class Dex {
 		let formatsList: IFormatData[] = [];
 		try {
 			// eslint-disable-next-line @typescript-eslint/no-var-requires
-			const dataObject = require(formatsPath);
+			const dataObject = require(formatsPath) as {Formats: IFormatData[]};
 			formatsList = dataObject.Formats;
 		} catch (e) {
 			if (e.code !== 'MODULE_NOT_FOUND' && e.code !== 'ENOENT') {
@@ -369,7 +369,8 @@ export class Dex {
 		let formats: Dict<IFormatData & IFormatLinks> = {};
 		try {
 			// eslint-disable-next-line @typescript-eslint/no-var-requires
-			const dataObject = require(path.join(lanetteDataDir, 'format-links.js'));
+			const dataObject = require(path.join(lanetteDataDir, 'format-links.js')) as
+				{BattleFormatLinks: Dict<IFormatData & IFormatLinks>};
 			formats = dataObject.BattleFormatLinks;
 		} catch (e) {
 			if (e.code !== 'MODULE_NOT_FOUND' && e.code !== 'ENOENT') {
@@ -453,7 +454,8 @@ export class Dex {
 
 		dexes['base'].includeMods();
 
-		const battleScripts = this.loadDataFile(this.modDataDir, dataFiles, 'Scripts');
+		const battleScripts = this.loadDataFile(this.modDataDir, dataFiles, 'Scripts') as {gen: number; inherit?: string;
+			init?: (this: Dex) => void;};
 
 		this.parentMod = this.isBase ? '' : (battleScripts.inherit || 'base');
 
@@ -475,7 +477,7 @@ export class Dex {
 			}
 			const battleData = this.loadDataFile(this.modDataDir, dataFiles, dataType);
 			// @ts-expect-error
-			if (battleData !== this.dataCache[dataType]) this.dataCache[dataType] = Object.assign(battleData, this.dataCache[dataType]);
+			if (battleData !== this.dataCache[dataType]) this.dataCache[dataType] = Object.assign(battleData, this.dataCache[dataType]); // eslint-disable-line @typescript-eslint/no-unsafe-assignment
 		}
 
 		for (const dataType of lanetteDataTypes) {
@@ -485,7 +487,7 @@ export class Dex {
 					"` must be an object except `null`.");
 			}
 			// @ts-expect-error
-			this.dataCache[dataType] = Object.assign(battleData, this.dataCache[dataType]);
+			this.dataCache[dataType] = Object.assign(battleData, this.dataCache[dataType]); // eslint-disable-line @typescript-eslint/no-unsafe-assignment
 		}
 
 		if (!parentDex) {
@@ -494,9 +496,9 @@ export class Dex {
 		} else {
 			for (const dataType of dataTypes) {
 				// @ts-expect-error
-				const parentTypedData = parentDex.data[dataType];
+				const parentTypedData = parentDex.data[dataType]; // eslint-disable-line @typescript-eslint/no-unsafe-assignment
 				// @ts-expect-error
-				const childTypedData = this.dataCache[dataType] || (this.dataCache[dataType] = {});
+				const childTypedData = this.dataCache[dataType] || (this.dataCache[dataType] = {}); // eslint-disable-line @typescript-eslint/no-unsafe-assignment
 				for (const entryId in parentTypedData) {
 					if (childTypedData[entryId] === null) {
 						// null means don't inherit
@@ -506,8 +508,10 @@ export class Dex {
 						if (dataType === 'Pokedex') {
 							// Pokedex entries can be modified too many different ways
 							// e.g. inheriting different formats-data/learnsets
+							// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 							childTypedData[entryId] = Tools.deepClone(parentTypedData[entryId]);
 						} else {
+							// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 							childTypedData[entryId] = parentTypedData[entryId];
 						}
 					} else if (childTypedData[entryId] && childTypedData[entryId].inherit) {
@@ -518,13 +522,14 @@ export class Dex {
 						// Merge parent into children entry, preserving existing childs' properties.
 						for (const key in parentTypedData[entryId]) {
 							if (key in childTypedData[entryId]) continue;
+							// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 							childTypedData[entryId][key] = parentTypedData[entryId][key];
 						}
 					}
 				}
 			}
 			// @ts-expect-error
-			this.dataCache['Aliases'] = parentDex.data['Aliases'];
+			this.dataCache['Aliases'] = parentDex.data['Aliases']; // eslint-disable-line @typescript-eslint/no-unsafe-assignment
 		}
 
 		const allDataTypes = dataTypesToLoad.concat(lanetteDataTypes);
@@ -549,7 +554,7 @@ export class Dex {
 				id = Tools.toId(dataType);
 			}
 			// @ts-expect-error
-			this.dataCache[id] = this.dataCache[dataType];
+			this.dataCache[id] = this.dataCache[dataType]; // eslint-disable-line @typescript-eslint/no-unsafe-assignment
 		}
 
 		for (const i in this.dataCache.typeChart) {
@@ -1288,7 +1293,7 @@ export class Dex {
 	/**
 	 * Returns true if target is immune to source
 	 */
-	isImmune(source: IMove | string, target: IPokemon | string | readonly string[]): boolean {
+	isImmune(source: IMove | string, target: string | readonly string[] | IPokemon): boolean {
 		const sourceType = (typeof source === 'string' ? source : source.type);
 		let targetType: string | readonly string[];
 		if (typeof target === 'string') {
@@ -1302,7 +1307,7 @@ export class Dex {
 			targetType = target;
 		} else {
 			// @ts-expect-error
-			targetType = target.types;
+			targetType = target.types as string[];
 		}
 		if (Array.isArray(targetType)) {
 			for (const type of targetType) {
@@ -1367,7 +1372,7 @@ export class Dex {
 			targetType = target;
 		} else {
 			// @ts-expect-error
-			targetType = target.types;
+			targetType = target.types as string[];
 		}
 		if (Array.isArray(targetType)) {
 			let totalTypeMod = 0;

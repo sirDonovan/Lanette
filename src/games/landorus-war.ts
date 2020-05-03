@@ -4,6 +4,7 @@ import { Game } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile, GameCommandReturnType } from "../types/games";
 import { IPokemon } from "../types/dex";
+import { User } from "../users";
 
 const name = "Landorus' War";
 const data: {learnsets: Dict<readonly string[]>; moves: string[]; pokemon: string[]} = {
@@ -23,7 +24,7 @@ class LandorusWar extends Game {
 	roundSuspects = new Set<Player>();
 	suspectedPlayers = new Map<Player, number>();
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 
 		room.say("Loading data for " + name + "...");

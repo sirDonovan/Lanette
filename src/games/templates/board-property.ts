@@ -710,13 +710,13 @@ const tests: GameFileTests<BoardPropertyGame> = {
 			game.start();
 			for (const i in game.spaces) {
 				// @ts-expect-error
-				const space = game.spaces[i];
+				const space = game.spaces[i] as BoardSpace;
 				if (space instanceof BoardPropertySpace) space.owner = players[0];
 			}
 			game.forceEnd(Users.self);
 			for (const i in game.spaces) {
 				// @ts-expect-error
-				const space = game.spaces[i];
+				const space = game.spaces[i] as BoardSpace;
 				if (space instanceof BoardPropertySpace) assertStrictEqual(space.owner, null);
 			}
 		},

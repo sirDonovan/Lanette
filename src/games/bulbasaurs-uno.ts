@@ -4,6 +4,7 @@ import { Room } from "../rooms";
 import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
 import { IActionCardData, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
+import { User } from "../users";
 
 const name = "Bulbasaur's Uno";
 const types: Dict<string> = {};
@@ -35,7 +36,7 @@ class BulbasaursUno extends CardMatching {
 	shinyCardAchievement = achievements.luckofthedraw;
 	typesLimit: number = 20;
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 		const typeKeys = Object.keys(Dex.data.typeChart);

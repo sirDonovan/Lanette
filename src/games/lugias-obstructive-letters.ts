@@ -1,6 +1,7 @@
 import { Room } from "../rooms";
 import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
+import { User } from "../users";
 
 const BASE_POINTS = 30;
 const BASE_TEAM_POINTS = 60;
@@ -29,7 +30,7 @@ class LugiasObstructiveLetters extends Guessing {
 	roundTime: number = 30 * 1000;
 	winnerPointsToBits: number = 10;
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 

@@ -4,6 +4,7 @@ import { Game } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile, GameCommandReturnType } from "../types/games";
 import { IParametersWorkerData, IParam } from './../workers/parameters';
+import { User } from "../users";
 
 const name = "Inkay's Cups";
 const gen = 7;
@@ -34,7 +35,7 @@ class InkaysCups extends Game {
 	roundTime: number = 15 * 1000;
 	usesWorkers: boolean = true;
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 

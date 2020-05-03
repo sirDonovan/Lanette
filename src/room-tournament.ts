@@ -1,67 +1,12 @@
 import { Activity, Player } from "./room-activity";
 import { Room } from "./rooms";
 import { IFormat } from "./types/dex";
-
-interface IBracketNode {
-	readonly result: string;
-	readonly state: 'available' | 'challenging' | 'inprogress' | 'finished' | 'unavailable';
-	readonly team: string;
-	readonly children?: IBracketNode[];
-}
-
-interface IBracketData {
-	readonly type: string;
-	readonly rootNode?: IBracketNode;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	readonly tableHeaders?: {cols: any[]; rows: any[]};
-	readonly users?: string[];
-}
+import { IBattleData, ITournamentUpdateJson, ITournamentEndJson } from "./types/tournaments";
 
 interface ICurrentBattle {
 	readonly playerA: Player;
 	readonly playerB: Player;
 	readonly roomid: string;
-}
-
-export interface ITournamentUpdateJSON {
-	/** An object representing the current state of the bracket */
-	bracketData: IBracketData;
-	/** A list of opponents that can currently challenge you */
-	challengeBys: string[];
-	/** The name of the opponent that has challenged you */
-	challenged: string;
-	/** A list of opponents that you can currently challenge */
-	challenges: string[];
-	/** The name of the opponent that you are challenging */
-	challenging: string;
-	/** The tournament's custom name or the format being used */
-	format: string;
-	/** The type of bracket being used by the tournament */
-	generator: string;
-	/** Whether or not you have joined the tournament */
-	isJoined: boolean;
-	/** Whether or not the tournament has started */
-	isStarted: boolean;
-	/** The player cap that was set or 0 if it was removed */
-	playerCap: number;
-	/** The format being used; sent if a custom name was set */
-	teambuilderFormat: string;
-}
-
-export interface ITournamentEndJSON {
-	/** An object representing the final state of the bracket */
-	bracketData: IBracketData;
-	/** The tournament's custom name or the format that was used */
-	format: string;
-	/** The type of bracket that was used by the tournament */
-	generator: string;
-	/** The name(s) of the winner(s) of the tournament */
-	results: string[][];
-}
-
-export interface IBattleData {
-	remainingPokemon: Dict<number>;
-	slots: Map<Player, string>;
 }
 
 const generators: Dict<number> = {
@@ -81,7 +26,7 @@ export class Tournament extends Activity {
 	readonly createTime: number = Date.now();
 	readonly currentBattles: ICurrentBattle[] = [];
 	generator: number = 1;
-	readonly info: ITournamentUpdateJSON & ITournamentEndJSON = {
+	readonly info: ITournamentUpdateJson & ITournamentEndJson = {
 		bracketData: {type: ''},
 		challengeBys: [],
 		challenged: '',
@@ -101,7 +46,7 @@ export class Tournament extends Activity {
 	originalFormat: string = '';
 	scheduled: boolean = false;
 	totalPlayers: number = 0;
-	updates: Partial<ITournamentUpdateJSON> = {};
+	updates: Partial<ITournamentUpdateJson> = {};
 
 	readonly joinBattles: boolean;
 
@@ -321,7 +266,7 @@ export class Tournament extends Activity {
 		this.deallocate();
 	}
 
-	update(json: Partial<ITournamentUpdateJSON & ITournamentEndJSON>): void {
+	update(json: Partial<ITournamentUpdateJson & ITournamentEndJson>): void {
 		Object.assign(this.updates, json);
 	}
 

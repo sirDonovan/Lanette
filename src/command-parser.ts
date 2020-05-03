@@ -131,6 +131,7 @@ export class Command {
 export class CommandParser {
 	reloadInProgress: boolean = false;
 
+	// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
 	loadCommands<T = undefined, U = void>(commands: Dict<ICommandDefinition<T, U>>): CommandsDict<T, U> {
 		const dict: CommandsDict<T, U> = {};
 		for (const i in commands) {

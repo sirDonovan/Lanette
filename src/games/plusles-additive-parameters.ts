@@ -5,6 +5,7 @@ import { Game } from "../room-game";
 import type { ICommandDefinition } from "../command-parser";
 import type { IParam, ParamType } from "../workers/parameters";
 import { PRNGSeed, PRNG } from "../prng";
+import { User } from "../users";
 
 const GEN = 7;
 const GEN_STRING = 'gen' + GEN;
@@ -25,7 +26,7 @@ class PluslesAdditiveParameters extends Game {
 	pokemon: string[] = [];
 	roundTime: number = 15 * 1000;
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 
 		room.say("Loading data for " + name + "...");

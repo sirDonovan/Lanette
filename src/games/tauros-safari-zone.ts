@@ -3,6 +3,7 @@ import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
+import { User } from "../users";
 
 interface ICaughtPokemon {
 	points: number;
@@ -35,7 +36,7 @@ class TaurosSafariZone extends Game {
 	roundTime: number = 5 * 1000;
 	winners = new Map<Player, number>();
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 

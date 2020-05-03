@@ -3,6 +3,7 @@ import { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { Room } from "../rooms";
 import { IGameFile, GameCommandReturnType } from "../types/games";
+import { User } from "../users";
 
 interface IPokemonPairData {
 	type: readonly string[];
@@ -44,7 +45,7 @@ class PanchamPairs extends Game {
 	paired = new Set<Player>();
 	pairRound: number = 0;
 
-	static loadData(room: Room): void {
+	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
