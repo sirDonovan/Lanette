@@ -948,7 +948,7 @@ export class Games {
 				if (format.mascot) {
 					mascot = Dex.getExistingPokemon(format.mascot);
 				} else if (format.mascots) {
-					mascot = Dex.getExistingPokemon(Tools.sampleOne(format.mascots));
+					mascot = Dex.getExistingPokemon(format.mascots[0]);
 				}
 
 				let mascotIcon = '';
