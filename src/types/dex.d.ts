@@ -96,10 +96,7 @@ interface IEventInfo {
 }
 
 interface IEffectData {
-	id: string;
-	name: string;
-	num: number;
-	affectsFainted?: boolean;
+	name?: string;
 	desc?: string;
 	duration?: number;
 	effectType?: string;
@@ -119,6 +116,7 @@ interface IBasicEffect extends IEffectData {
 }
 
 interface IPureEffectData extends IEffectData {
+	affectsFainted?: boolean;
 	noCopy?: boolean;
 	counterMax?: number;
 }
@@ -128,8 +126,11 @@ interface IPureEffect extends Readonly<IBasicEffect & IPureEffectData> {
 }
 
 interface IAbilityData extends IEffectData {
+	name: string;
+	/** internal index number */
+	num?: number;
 	effect?: Partial<IPureEffectData>;
-	rating: number;
+	rating?: number;
 	isUnbreakable?: boolean;
 	suppressWeather?: boolean;
 }
@@ -140,11 +141,14 @@ export interface IAbilityComputed {
 	gen: number;
 	id: string;
 	isNonstandard: Nonstandard | null;
+	rating: number;
 }
 
 interface IAbilityCopy extends IBasicEffect, IAbilityData, IAbilityComputed {
 	readonly effectType: 'Ability';
+	name: string;
 	isNonstandard: Nonstandard | null;
+	rating: number;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -159,6 +163,9 @@ interface IFlingData {
 }
 
 export interface IItemData extends IEffectData {
+	name: string;
+	/** just controls location on the item spritesheet */
+	num?: number;
 	effect?: Partial<IPureEffectData>;
 	gen: number;
 	fling?: IFlingData;
@@ -193,6 +200,7 @@ export interface IItemComputed {
 
 export interface IItemCopy extends IBasicEffect, IItemData, IItemComputed {
 	readonly effectType: 'Item';
+	name: string;
 	isNonstandard: Nonstandard | null;
 }
 
@@ -236,6 +244,9 @@ interface ISecondaryEffect extends IHitEffect {
 }
 
 export interface IMoveData extends IEffectData {
+	name: string;
+	/** move index number, used for Metronome rolls */
+	num?: number;
 	effect?: Partial<IPureEffectData>;
 	basePower: number;
 	accuracy: true | number;
@@ -246,6 +257,8 @@ export interface IMoveData extends IEffectData {
 	target: MoveTarget;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	flags: Dict<any>;
+	/** Hidden Power */
+	realMove?: string;
 
 	damage?: number | 'level' | false | null;
 	contestType?: string;
@@ -374,6 +387,7 @@ export interface IMoveComputed {
 	fullname: string;
 	gen: number;
 	gmaxPower?: number;
+	id: string;
 	ignoreImmunity: IMoveData["ignoreImmunity"];
 	isNonstandard: Nonstandard | null;
 	nonGhostTarget: string;
@@ -388,6 +402,7 @@ export interface IMoveCopy extends IBasicEffect, IMoveData, IMoveComputed {
 	critRatio: number;
 	ignoreImmunity: IMoveData["ignoreImmunity"];
 	isNonstandard: Nonstandard | null;
+	name: string;
 	nonGhostTarget: string;
 	pressureTarget: string;
 	secondaries: IMoveData["secondaries"];
@@ -404,16 +419,18 @@ interface ISpeciesAbility {
 }
 
 interface ISpeciesData {
+	name: string;
+	/** National Dex number */
+	num: number;
 	abilities: ISpeciesAbility;
 	baseStats: StatsTable;
-	canHatch?: boolean;
-	color: string;
 	eggGroups: string[];
-	heightm: number;
-	num: number;
-	name: string;
 	types: string[];
 	weightkg: number;
+	color?: string;
+	heightm?: number;
+
+	canHatch?: boolean;
 	baseForme?: string;
 	baseSpecies?: string;
 	evoLevel?: number;
@@ -479,6 +496,7 @@ export interface IPokemonComputed {
 	battleOnly?: string | string[];
 	category: string;
 	changesFrom?: string;
+	color: string;
 	doublesTier: string;
 	effectType: "Pokemon";
 	evos: string[];
@@ -487,6 +505,7 @@ export interface IPokemonComputed {
 	gen: number;
 	gender: GenderName;
 	genderRatio: NonNullable<ISpeciesData["genderRatio"]>;
+	heightm: number;
 	id: string;
 	isForme: boolean;
 	isMega: boolean;
@@ -500,6 +519,7 @@ export interface IPokemonComputed {
 	speciesid: string;
 	spriteId: string;
 	tier: string;
+	weightkg: number;
 	weighthg: number;
 }
 
@@ -507,13 +527,16 @@ export interface IPokemonCopy extends IBasicEffect, ISpeciesData, ISpeciesFormat
 	readonly effectType: "Pokemon";
 	baseForme: string;
 	baseSpecies: string;
+	color: string;
 	doublesTier: string;
 	evos: string[];
 	forme: string;
 	gen: number;
 	gender: GenderName;
 	genderRatio: NonNullable<ISpeciesData["genderRatio"]>;
+	heightm: number;
 	isNonstandard: Nonstandard | null;
+	name: string;
 	prevo: string;
 	requiredItems: string[] | undefined;
 	tier: string;
@@ -640,6 +663,7 @@ export interface IFormat extends IBasicEffect, IFormatData, IFormatLinks, IForma
 	gameType: GameType;
 	maxLevel: number;
 	mod: string;
+	name: string;
 	ruleset: string[];
 	unbanlist: string[];
 }

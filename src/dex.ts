@@ -627,17 +627,18 @@ export class Dex {
 		id = Tools.toId(abilityData.name);
 
 		let gen = 0;
-		if (abilityData.num >= 234) {
+		const num = abilityData.num || 0;
+		if (num >= 234) {
 			gen = 8;
-		} else if (abilityData.num >= 192) {
+		} else if (num >= 192) {
 			gen = 7;
-		} else if (abilityData.num >= 165) {
+		} else if (num >= 165) {
 			gen = 6;
-		} else if (abilityData.num >= 124) {
+		} else if (num >= 124) {
 			gen = 5;
-		} else if (abilityData.num >= 77) {
+		} else if (num >= 77) {
 			gen = 4;
-		} else if (abilityData.num >= 1) {
+		} else if (num >= 1) {
 			gen = 3;
 		}
 
@@ -656,6 +657,7 @@ export class Dex {
 			fullname: 'ability: ' + abilityData.name,
 			id,
 			isNonstandard: isNonstandard || null,
+			rating: abilityData.rating || 0,
 		};
 		const ability: IAbility = Object.assign({}, abilityData, abilityComputed);
 		this.abilityCache.set(id, ability);
@@ -713,15 +715,17 @@ export class Dex {
 		const cached = this.itemCache.get(id);
 		if (cached) return cached;
 		const itemData = this.data.items[id]!;
+		id = Tools.toId(itemData.name);
 		let gen = itemData.gen || 0;
 		if (!gen) {
-			if (itemData.num >= 689) {
+			const num = itemData.num || 0;
+			if (num >= 689) {
 				gen = 7;
-			} else if (itemData.num >= 577) {
+			} else if (num >= 577) {
 				gen = 6;
-			} else if (itemData.num >= 537) {
+			} else if (num >= 537) {
 				gen = 5;
-			} else if (itemData.num >= 377) {
+			} else if (num >= 377) {
 				gen = 4;
 			} else {
 				gen = 3;
@@ -739,7 +743,7 @@ export class Dex {
 
 		let fling = itemData.fling;
 		if (itemData.isBerry) fling = {basePower: 10};
-		if (itemData.id.endsWith('plate')) fling = {basePower: 90};
+		if (id.endsWith('plate')) fling = {basePower: 90};
 		if (itemData.onDrive) fling = {basePower: 70};
 		if (itemData.megaStone) fling = {basePower: 80};
 		if (itemData.onMemory) fling = {basePower: 50};
@@ -748,7 +752,7 @@ export class Dex {
 			effectType: "Item",
 			gen,
 			fullname: 'item: ' + itemData.name,
-			id: Tools.toId(itemData.name),
+			id,
 			fling,
 			isNonstandard: isNonstandard || null,
 		};
@@ -808,15 +812,16 @@ export class Dex {
 		const cached = this.moveCache.get(id);
 		if (cached) return cached;
 		const moveData = this.data.moves[id]!;
-		// Hidden Power
-		if (!moveData.id) moveData.id = Tools.toId(moveData.name);
+		id = moveData.realMove ? Tools.toId(moveData.realMove) : Tools.toId(moveData.name);
 		if (!moveData.flags) moveData.flags = {};
 		moveData.critRatio = Number(moveData.critRatio) || 1;
 		moveData.priority = Number(moveData.priority) || 0;
 
 		let gmaxPower = moveData.gmaxPower;
 		if (moveData.category !== 'Status' && !gmaxPower) {
-			if (!moveData.basePower) {
+			if (moveData.isMax || moveData.isZ) {
+				gmaxPower = 1;
+			} else if (!moveData.basePower) {
 				gmaxPower = 100;
 			} else if (['Fighting', 'Poison'].includes(moveData.type)) {
 				if (moveData.basePower >= 150) {
@@ -854,7 +859,7 @@ export class Dex {
 		}
 
 		let zMovePower = moveData.zMovePower;
-		if (moveData.category !== 'Status' && !zMovePower) {
+		if (moveData.category !== 'Status' && !zMovePower && !moveData.isZ && !moveData.isMax) {
 			let basePower = moveData.basePower;
 			if (Array.isArray(moveData.multihit)) basePower *= 3;
 
@@ -884,21 +889,22 @@ export class Dex {
 		}
 
 		let gen = 0;
-		if (moveData.num >= 743) {
+		const num = moveData.num || 0;
+		if (num >= 743) {
 			gen = 8;
-		} else if (moveData.num >= 622) {
+		} else if (num >= 622) {
 			gen = 7;
-		} else if (moveData.num >= 560) {
+		} else if (num >= 560) {
 			gen = 6;
-		} else if (moveData.num >= 468) {
+		} else if (num >= 468) {
 			gen = 5;
-		} else if (moveData.num >= 355) {
+		} else if (num >= 355) {
 			gen = 4;
-		} else if (moveData.num >= 252) {
+		} else if (num >= 252) {
 			gen = 3;
-		} else if (moveData.num >= 166) {
+		} else if (num >= 166) {
 			gen = 2;
-		} else if (moveData.num >= 1) {
+		} else if (num >= 1) {
 			gen = 1;
 		}
 
@@ -913,6 +919,7 @@ export class Dex {
 			fullname: 'move: ' + moveData.name,
 			gen,
 			gmaxPower,
+			id,
 			ignoreImmunity: moveData.ignoreImmunity !== undefined ? moveData.ignoreImmunity : moveData.category === 'Status',
 			isNonstandard: isNonstandard || null,
 			nonGhostTarget: moveData.nonGhostTarget || '',
@@ -1131,23 +1138,26 @@ export class Dex {
 		}
 
 		const evos = templateData.evos || [];
+		const weightkg = templateData.weightkg || 0;
 		const pokemonComputed: IPokemonComputed = {
 			baseForme: templateData.baseForme || '',
 			baseSpecies,
 			battleOnly,
 			category: this.data.categories[speciesId] || '',
 			changesFrom: templateData.changesFrom || (isGigantamax ? baseSpecies : undefined),
+			color: templateData.color || '',
 			doublesTier,
 			effectType: "Pokemon",
+			evos,
+			forme,
+			fullname: 'pokemon: ' + templateData.name,
 			gen,
 			gender: templateData.gender || '',
 			genderRatio: templateData.genderRatio || (templateData.gender === 'M' ? {M: 1, F: 0} :
 				templateData.gender === 'F' ? {M: 0, F: 1} :
 				templateData.gender === 'N' ? {M: 0, F: 0} :
 				{M: 0.5, F: 0.5}),
-			evos,
-			forme,
-			fullname: 'pokemon: ' + templateData.name,
+			heightm: templateData.heightm || 0,
 			id: speciesId,
 			isForme,
 			isMega,
@@ -1161,7 +1171,8 @@ export class Dex {
 			speciesid: speciesId,
 			spriteId: Tools.toId(baseSpecies) + (baseSpecies !== templateData.name ? '-' + Tools.toId(forme) : ''),
 			tier,
-			weighthg: (templateData.weightkg || 0) * 10,
+			weightkg,
+			weighthg: weightkg * 10,
 		};
 		const pokemon: IPokemon = Object.assign({}, templateData, templateFormatsData, pokemonComputed);
 		this.pokemonCache.set(id, pokemon);

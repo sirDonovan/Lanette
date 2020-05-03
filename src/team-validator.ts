@@ -230,8 +230,7 @@ export class TeamValidator {
 		const dex = this.dex;
 		if (!setSources.size()) throw new Error(`Bad sources passed to checkLearnset`);
 
-		const moveid = Tools.toId(move);
-		move = dex.getExistingMove(moveid);
+		const moveid = move.id;
 		const baseSpecies: IPokemon = s;
 		let species: IPokemon | null = s;
 
@@ -278,6 +277,13 @@ export class TeamValidator {
 					// warning: formes with their own learnset, like Wormadam, should NOT
 					// inherit from their base forme unless they're freely switchable
 					continue;
+				}
+				if (species.isNonstandard) {
+					// It's normal for a nonstandard species not to have learnset data
+
+					// Formats should replace the `Obtainable Moves` rule if they want to
+					// allow pokemon without learnsets.
+					return {type: 'invalid'};
 				}
 				// should never happen
 				throw new Error(`Species with no learnset data: ${species.id}`);
