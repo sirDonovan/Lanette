@@ -350,8 +350,8 @@ export const game: IUserHostedFile<UserHosted> = {
 			mascot: "Scizor",
 			aliases: ['Clock Tower', 'Scizors'],
 			description: "Evade the Scizor as it tries to capture the players by selecting their doors and capturing its prey by being " +
-				"faster than them in a series of minigames! More info: " +
-				"https://www.tapatalk.com/groups/ps_game_corner/scizor-39-s-clock-tower-t803.html",
+				"faster than them in a series of minigames! " +
+				"<a href='https://www.tapatalk.com/groups/ps_game_corner/scizor-39-s-clock-tower-t803.html'>More info</a>",
 		},
 		{
 			name: "Scyther's Message Slide",
