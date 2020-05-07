@@ -437,7 +437,7 @@ export const game: IUserHostedFile<UserHosted> = {
 			mascot: "Weavile",
 			description: "Each round, one player PMs the host a move while the other players PM the host a Pokemon. If a player's " +
 				"Pokemon resists the move or is immune to it, they win points. However, the more picked Pokemon the move hits super " +
-				"effectively, the more points the user gets",
+				"effectively, the more points the user gets.",
 			aliases: ['WWB'],
 		},
 		{
