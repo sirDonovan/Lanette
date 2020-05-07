@@ -46,6 +46,11 @@ class MiltanksMoves extends Guessing {
 			for (const i in data.moves[species]) {
 				if (data.moves[species][i].length > 4) delete data.moves[species][i];
 			}
+
+			if (!Object.keys(data.moves[species]).length) {
+				delete data.moves[species];
+				data.pokemon.splice(data.pokemon.indexOf(species), 1);
+			}
 		}
 
 		loadedData = true;
