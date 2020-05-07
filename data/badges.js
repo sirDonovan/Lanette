@@ -1,4 +1,4 @@
-exports.BattleBadges = [
+module.exports = [
 	// Kanto
 	"Boulder",
 	"Cascade",

@@ -125,10 +125,6 @@ for (const i in Games.modes) {
 }
 
 describe("Games", () => {
-	after(() => {
-		Games.unrefWorkers();
-	});
-
 	it('should load data properly', () => {
 		assert(Object.keys(Games.aliases).length);
 		assert(Object.keys(Games.formats).length);
@@ -369,6 +365,11 @@ describe("Games", () => {
 		const items = Games.getItemsList().map(x => x.name);
 		const moves = Games.getMovesList().map(x => x.name);
 		const pokemon = Games.getPokemonList().map(x => x.name);
+
+		assert(abilities.length);
+		assert(items.length);
+		assert(moves.length);
+		assert(pokemon.length);
 
 		assert(!abilities.includes(Dex.getExistingAbility('No Ability').name));
 

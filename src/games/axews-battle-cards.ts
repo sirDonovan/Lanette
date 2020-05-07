@@ -43,11 +43,10 @@ class AxewsBattleCards extends CardMatching {
 	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
-		const typeKeys = Object.keys(Dex.data.typeChart);
-		for (const type of typeKeys) {
-			const id = Tools.toId(type);
-			types[id] = type;
-			types[id + 'type'] = type;
+		for (const key of Dex.data.typeKeys) {
+			const type = Dex.getExistingType(key);
+			types[type.id] = type.name;
+			types[type.id + 'type'] = type.name;
 		}
 		loadedData = true;
 	}
@@ -128,8 +127,9 @@ class AxewsBattleCards extends CardMatching {
 
 	hasNoWeaknesses(pokemon: IPokemon): boolean {
 		let noWeaknesses = true;
-		for (const i in Dex.data.typeChart) {
-			if (!Dex.isImmune(i, pokemon) && Dex.getEffectiveness(i, pokemon) > 0) {
+		for (const key of Dex.data.typeKeys) {
+			const type = Dex.getExistingType(key).name;
+			if (!Dex.isImmune(type, pokemon) && Dex.getEffectiveness(type, pokemon) > 0) {
 				noWeaknesses = false;
 				break;
 			}
@@ -186,16 +186,16 @@ class AxewsBattleCards extends CardMatching {
 						playableCards.push(card.name);
 					}
 				} else if (card.id === 'conversion') {
-					let type = this.sampleOne(Object.keys(Dex.data.typeChart));
+					let type = Dex.getExistingType(this.sampleOne(Dex.data.typeKeys)).name;
 					while (type === this.topCard.types[0] && this.topCard.types.length === 1) {
-						type = this.sampleOne(Object.keys(Dex.data.typeChart));
+						type = Dex.getExistingType(this.sampleOne(Dex.data.typeKeys)).name;
 					}
 					playableCards.push(card.name + ", " + type);
 				} else if (card.id === 'conversion2') {
-					let types = this.sampleMany(Object.keys(Dex.data.typeChart), 2);
+					let types = this.sampleMany(Dex.data.typeKeys, 2).map(x => Dex.getExistingType(x).name);
 					if (this.topCard.types.length === 2) {
 						while (types.sort().join(",") === this.topCard.types.slice().sort().join(",")) {
-							types = this.sampleMany(Object.keys(Dex.data.typeChart), 2);
+							types = this.sampleMany(Dex.data.typeKeys, 2).map(x => Dex.getExistingType(x).name);
 						}
 					}
 					playableCards.push(card.name + ", " + types.join(", "));
@@ -471,8 +471,9 @@ class AxewsBattleCards extends CardMatching {
 				}
 			}
 			if (newIndex < 0) {
-				if (newId in Dex.data.pokedex) {
-					player.say("You do not have [ " + Dex.getExistingPokemon(newId).name + " ].");
+				const pokemon = Dex.getPokemon(newId);
+				if (pokemon) {
+					player.say("You do not have [ " + pokemon.name + " ].");
 				} else {
 					player.say("'" + targets[1] + "' is not a valid Pokemon.");
 				}

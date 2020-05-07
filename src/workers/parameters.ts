@@ -115,8 +115,9 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 			const resistancesDex: Dict<string[]> = {};
 
 			const typeChartKeys: string[] = [];
-			for (const i in dex.data.typeChart) {
-				if (dex.data.typeChart[i] !== null) typeChartKeys.push(i);
+			for (const key of dex.data.typeKeys) {
+				const type = dex.getType(key);
+				if (type) typeChartKeys.push(type.name);
 			}
 
 			const allPossibleMoves: Dict<string[]> = {};
@@ -252,8 +253,6 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 
 			tiers['ubers'] = tiers['uber'];
 
-			const format = dex.getExistingFormat(genString + 'ou');
-			const validator = Dex.getValidator(format);
 			const movesList = Games.getMovesList(undefined, genString);
 			for (const move of movesList) {
 				const moveParam = {type: 'move', param: move.name};
@@ -267,7 +266,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 				}
 
 				for (const pokemon of pokedex) {
-					if (allPossibleMoves[pokemon.id].includes(move.id) && !validator.checkLearnset(move, pokemon)) {
+					if (allPossibleMoves[pokemon.id].includes(move.id)) {
 						if (!(move.name in moveDex)) moveDex[move.name] = [];
 						moveDex[move.name].push(pokemon.name);
 					}

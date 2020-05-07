@@ -17,12 +17,12 @@ class FraxuresBattleChain extends Chain {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		const typeKeys = Object.keys(Dex.data.typeChart);
-		for (let i = 0; i < typeKeys.length; i++) {
-			data.types.push(typeKeys[i]);
-			for (let j = 0; j < typeKeys.length; j++) {
+		for (let i = 0; i < Dex.data.typeKeys.length; i++) {
+			const outerType = Dex.getExistingType(Dex.data.typeKeys[i]).name;
+			data.types.push(outerType);
+			for (let j = 0; j < Dex.data.typeKeys.length; j++) {
 				if (i === j) continue;
-				const type = [typeKeys[i], typeKeys[j]].sort().join(',');
+				const type = [outerType, Dex.getExistingType(Dex.data.typeKeys[j]).name].sort().join(',');
 				if (!data.types.includes(type)) data.types.push(type);
 			}
 		}

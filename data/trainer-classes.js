@@ -1,4 +1,4 @@
-exports.BattleTrainerClasses = [
+module.exports = [
 	"Beauty",
 	"Biker",
 	"Bird Keeper",

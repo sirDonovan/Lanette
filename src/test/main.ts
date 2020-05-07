@@ -38,31 +38,24 @@ Object.assign(fs, {createWriteStream() {
 	return new stream.Writable();
 }});
 
-module.exports = (inputOptions: Dict<string>): void => {
+module.exports = async(inputOptions: Dict<string>): Promise<void> => {
 	for (const i in inputOptions) {
 		testOptions[i] = inputOptions[i];
 	}
 
 	try {
-		require(path.join(rootFolder, 'built', 'app.js'));
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
+		await require(path.join(rootFolder, 'built', 'app.js'))();
 		clearInterval(Storage.globalDatabaseExportInterval);
+
 		const mochaRoom = Rooms.add('mocha');
 		mochaRoom.title = 'Mocha';
-
 
 		let modulesToTest: string[] | undefined;
 		if (testOptions.modules) {
 			modulesToTest = testOptions.modules.split(',').map(x => x.trim() + '.js');
 		} else {
 			modulesToTest = moduleTests.concat(pokemonShowdownTestFile);
-		}
-
-		if (modulesToTest.includes('dex.js') || modulesToTest.includes('games.js') || modulesToTest.includes('tournaments.js')) {
-			console.log("Loading data for tests...");
-			Dex.loadData();
-			for (let i = 1; i < Dex.gen; i++) {
-				Dex.getDex('gen' + i).loadData();
-			}
 		}
 
 		if (modulesToTest.includes('games.js')) {
@@ -84,7 +77,10 @@ module.exports = (inputOptions: Dict<string>): void => {
 			if (modulesToTest.includes(moduleTest)) mocha.addFile(path.join(modulesDir, moduleTest));
 		}
 
-		mocha.run();
+		mocha.run(failures => {
+			Games.unrefWorkers();
+			Storage.unrefWorkers();
+		});
 	} catch (e) {
 		console.log(e);
 		process.exit(1);

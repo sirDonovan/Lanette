@@ -7,8 +7,8 @@ if (!fs.existsSync(configFile)) {
 	fs.writeFileSync(configFile, fs.readFileSync(path.join(__dirname, 'src', 'config-example.ts')));
 }
 
-require(path.join(__dirname, 'build.js'))({}, () => {
-	require(path.join(__dirname, 'built', 'app.js'));
+require(path.join(__dirname, 'build.js'))({}, async() => {
+	await require(path.join(__dirname, 'built', 'app.js'))();
 
 	process.on('uncaughtException', error => {
 		console.log(error);

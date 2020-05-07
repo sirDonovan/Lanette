@@ -39,11 +39,10 @@ class BulbasaursUno extends CardMatching {
 	static loadData(room: Room | User): void {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
-		const typeKeys = Object.keys(Dex.data.typeChart);
-		for (const type of typeKeys) {
-			const id = Tools.toId(type);
-			types[id] = type;
-			types[id + 'type'] = type;
+		for (const key of Dex.data.typeKeys) {
+			const type = Dex.getExistingType(key);
+			types[type.id] = type.name;
+			types[type.id + 'type'] = type.name;
 		}
 		loadedData = true;
 	}
@@ -170,13 +169,13 @@ class BulbasaursUno extends CardMatching {
 					}
 				}
 				if (indexA === -1) {
-					player.say(idA in Dex.data.pokedex ? "You do not have [ " + Dex.getExistingPokemon(idA).name + " ]." : "'" +
-						targets[1] + "' is not a valid Pokemon.");
+					const pokemon = Dex.getPokemon(idA);
+					player.say(pokemon ? "You do not have [ " + pokemon.name + " ]." : "'" + targets[1] + "' is not a valid Pokemon.");
 					return false;
 				}
 				if (indexB === -1) {
-					player.say(idB in Dex.data.pokedex ? "You do not have [ " + Dex.getExistingPokemon(idB).name + " ]." : "'" +
-						targets[2] + "' is not a valid Pokemon.");
+					const pokemon = Dex.getPokemon(idB);
+					player.say(pokemon ? "You do not have [ " + pokemon.name + " ]." : "'" + targets[2] + "' is not a valid Pokemon.");
 					return false;
 				}
 				const cardA = cards[indexA];
@@ -219,8 +218,8 @@ class BulbasaursUno extends CardMatching {
 					}
 				}
 				if (indexA === -1) {
-					player.say(idA in Dex.data.pokedex ? "You do not have [ " + Dex.getExistingPokemon(idA).name + " ]." : "'" +
-						targets[1] + "' is not a valid Pokemon.");
+					const pokemon = Dex.getPokemon(idA);
+					player.say(pokemon ? "You do not have [ " + pokemon.name + " ]." : "'" + targets[1] + "' is not a valid Pokemon.");
 					return false;
 				}
 				const cardA = cards[indexA];

@@ -1,4 +1,4 @@
-exports.BattleLocations = [
+module.exports = [
 	// Kanto
 	"Celadon",
 	"Cerulean",

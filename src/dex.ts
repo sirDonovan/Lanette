@@ -1,48 +1,30 @@
-import fs = require('fs');
 import path = require('path');
 
 import { Room } from './rooms';
-import { TeamValidator } from './team-validator';
-import { IAbility, IAbilityComputed, IAbilityCopy, IDataTable, IFormat, IFormatComputed, IFormatData, IFormatLinks, IGifData, IItem, IItemComputed, IItemCopy, IMove, IMoveComputed, IMoveCopy, INature, IPokemon, IPokemonComputed, IPokemonCopy, ISeparatedCustomRules, ILearnsetData, FormatEffectType } from './types/dex';
+import { IAbility, IAbilityCopy, IDataTable, IFormat, IFormatData, IFormatLinks, IGifData, IItem, IItemCopy, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy, ISeparatedCustomRules, ILearnsetData, ITypeData } from './types/dex';
+import { PokemonShowdownWorker } from './workers/pokemon-showdown';
+
+interface IDexWorkers {
+	pokemonShowdown: PokemonShowdownWorker;
+}
 
 const currentGen = 8;
 const currentGenString = 'gen' + currentGen;
-const defaultNewTier = 'OU';
 const omotmSection = 'OM of the Month';
-const dataDir = path.join(Tools.pokemonShowdownFolder, '.data-dist');
-const modsDir = path.join(dataDir, 'mods');
 const formatsPath = path.join(Tools.pokemonShowdownFolder, 'config', 'formats.js');
 const lanetteDataDir = path.join(Tools.rootFolder, 'data');
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+/* eslint-disable @typescript-eslint/no-var-requires */
 const alternateIconNumbers = require(path.join(lanetteDataDir, 'alternate-icon-numbers.js')) as {right: Dict<number>; left: Dict<number>};
-
-const dataFiles: Dict<string> = {
-	'Pokedex': 'pokedex',
-	'Movedex': 'moves',
-	'Statuses': 'statuses',
-	'TypeChart': 'typechart',
-	'Scripts': 'scripts',
-	'Items': 'items',
-	'Abilities': 'abilities',
-	'FormatsData': 'formats-data',
-	'Learnsets': 'learnsets',
-	'Aliases': 'aliases',
-	'Formats': 'rulesets',
-};
-const dataTypes = ['Pokedex', 'FormatsData', 'Learnsets', 'Movedex', 'Statuses', 'TypeChart', 'Scripts', 'Items', 'Abilities', 'Formats'];
-
-const lanetteDataFiles: Dict<string> = {
-	'Badges': 'badges',
-	'Categories': 'categories',
-	'Characters': 'characters',
-	'FormatLinks': 'format-links',
-	'Locations': 'locations',
-	'PokemonSprites': 'pokedex-mini',
-	'PokemonSpritesBW': 'pokedex-mini-bw',
-	'TrainerClasses': 'trainer-classes',
-};
-const lanetteDataTypes = Object.keys(lanetteDataFiles);
+const badges = require(path.join(lanetteDataDir, 'badges.js')) as string[];
+const categories = require(path.join(lanetteDataDir, 'categories.js')) as Dict<string>;
+const characters = require(path.join(lanetteDataDir, 'characters.js')) as string[];
+const formatLinks = require(path.join(lanetteDataDir, 'format-links.js')) as Dict<IFormatLinks | undefined>;
+const locations = require(path.join(lanetteDataDir, 'locations.js')) as string[];
+const gifData = require(path.join(lanetteDataDir, 'pokedex-mini.js')).BattlePokemonSprites as Dict<IGifData | undefined>;
+const gifDataBW = require(path.join(lanetteDataDir, 'pokedex-mini-bw.js')).BattlePokemonSpritesBW as Dict<IGifData | undefined>;
+const trainerClasses = require(path.join(lanetteDataDir, 'trainer-classes.js')) as string[];
+/* eslint-enable */
 
 const natures: Dict<INature> = {
 	adamant: {name: "Adamant", plus: 'atk', minus: 'spa'},
@@ -70,14 +52,6 @@ const natures: Dict<INature> = {
 	sassy: {name: "Sassy", plus: 'spd', minus: 'spe'},
 	serious: {name: "Serious"},
 	timid: {name: "Timid", plus: 'spe', minus: 'atk'},
-};
-
-const formeNames: Dict<string[]> = {
-	alola: ['a', 'alola', 'alolan'],
-	galar: ['g', 'galar', 'galarian'],
-	gmax: ['gigantamax', 'gmax'],
-	mega: ['m', 'mega'],
-	primal: ['p', 'primal'],
 };
 
 const tagNames: Dict<string> = {
@@ -148,9 +122,9 @@ export type ComplexTeamBan = ComplexBan;
 export class RuleTable extends Map<string, string> {
 	complexBans: ComplexBan[];
 	complexTeamBans: ComplexTeamBan[];
-	checkLearnset: [Function, string] | null;
+	checkLearnset: [boolean, string] | null;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	timer: [any, string] | null;
+	timer: [Partial<any>, string] | null;
 	minSourceGen: [number, string] | null;
 
 	constructor() {
@@ -218,29 +192,29 @@ export class RuleTable extends Map<string, string> {
 export class Dex {
 	// exported constants
 	readonly currentGenString: typeof currentGenString = currentGenString;
-	readonly dataDir: typeof dataDir = dataDir;
-	readonly dataFiles: typeof dataFiles = dataFiles;
+	dexes: Dict<Dex> = dexes;
 	readonly formatsPath: typeof formatsPath = formatsPath;
-	readonly modsDir: typeof modsDir = modsDir;
 	readonly omotms: string[] = [];
 	readonly tagNames: typeof tagNames = tagNames;
 
 	readonly abilityCache = new Map<string, IAbility>();
 	readonly allPossibleMovesCache = new Map<string, string[]>();
-	gen: number = currentGen;
+	readonly formatCache = new Map<string, IFormat>();
 	readonly itemCache = new Map<string, IItem>();
+	readonly learnsetDataCache = new Map<string, ILearnsetData>();
 	loadedData: boolean = false;
-	loadedMods: boolean = false;
 	readonly moveCache = new Map<string, IMove>();
-	parentMod: string = '';
 	readonly pokemonCache = new Map<string, IPokemon>();
+	readonly typeCache = new Map<string, ITypeData>();
 
 	readonly currentMod: string;
-	readonly dataCache: IDataTable;
-	readonly modDataDir: string;
+	readonly data: IDataTable;
+	readonly gen: number;
 	readonly isBase: boolean;
+	workers: IDexWorkers;
 
-	constructor(mod?: string) {
+	constructor(gen?: number, mod?: string) {
+		if (!gen) gen = currentGen;
 		if (!mod) mod = 'base';
 		const isBase = mod === 'base';
 		if (isBase) {
@@ -248,360 +222,433 @@ export class Dex {
 			dexes[currentGenString] = this;
 		}
 		this.currentMod = mod;
+		this.gen = gen;
 		this.isBase = isBase;
-		this.modDataDir = isBase ? dataDir : path.join(modsDir, mod);
-		this.dataCache = {
-			abilities: {},
+		this.data = {
 			aliases: {},
-			badges: [],
-			categories: {},
-			characters: [],
+			abilityKeys: [],
+			badges,
+			categories,
+			characters,
 			colors: {},
 			eggGroups: {},
-			formats: {},
-			formatsData: {},
-			gifData: {},
-			gifDataBW: {},
-			items: {},
-			learnsets: {},
-			locations: [],
-			moves: {},
-			natures: {},
-			pokedex: {},
-			trainerClasses: [],
-			typeChart: {},
-			types: {},
+			formatKeys: [],
+			gifData,
+			gifDataBW,
+			itemKeys: [],
+			learnsetDataKeys: [],
+			locations,
+			moveKeys: [],
+			natures,
+			pokemonKeys: [],
+			trainerClasses,
+			typeKeys: [],
+		};
+		this.workers = {
+			pokemonShowdown: isBase ? new PokemonShowdownWorker() : dexes['base'].workers.pokemonShowdown,
 		};
 	}
 
-	get data(): IDataTable {
-		if (!this.loadedData) this.loadData();
-		return this.dataCache;
+	async onReload(previous: Partial<Dex>): Promise<void> {
+		await this.loadAllData();
+	}
+
+	unrefWorkers(): void {
+		const workers = Object.keys(this.workers) as (keyof IDexWorkers)[];
+		for (const worker of workers) {
+			this.workers[worker].unref();
+			delete this.workers[worker];
+		}
 	}
 
 	getDex(mod?: string): Dex {
-		dexes['base'].loadData();
 		if (!mod) mod = currentGenString;
 		return dexes[mod];
 	}
 
-	includeMods(): Dex {
-		if (!this.isBase) throw new Error(`This must be called on the base Dex`);
-		if (this.loadedMods) return this;
+	async loadAllData(): Promise<void> {
+		if (this.loadedData || !this.isBase) return;
+		console.log("Loading dex data...");
 
-		for (const mod of fs.readdirSync(modsDir)) {
-			dexes[mod] = new Dex(mod);
+		await this.loadData();
+		for (let i = this.gen - 1; i >= 1; i--) {
+			const mod = 'gen' + i;
+			dexes[mod] = new Dex(i, mod);
+			await dexes[mod].loadData();
 		}
-		this.loadedMods = true;
 
-		return this;
+		console.log("Loaded all dex data");
+
+		this.unrefWorkers();
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	modData(dataType: string, id: string): any {
-		/* eslint-disable @typescript-eslint/no-unsafe-return */
-		// @ts-expect-error
-		if (this.isBase) return this.data[dataType][id];
-		// @ts-expect-error
-		if (this.data[dataType][id] !== dexes[this.parentMod].data[dataType][id]) return this.data[dataType][id];
-		// @ts-expect-error
-		this.data[dataType][id] = Tools.deepClone(this.data[dataType][id]); // eslint-disable-line @typescript-eslint/no-unsafe-assignment
-		// @ts-expect-error
-		return this.data[dataType][id];
-		/* eslint-enable */
-	}
-
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	loadDataFile(basePath: string, dataFiles: Dict<string>, dataType: string): Dict<any> {
-		try {
-			const filePath = path.join(basePath, dataFiles[dataType]);
-			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-			const dataObject = require(filePath);
-			const key = `Battle${dataType}`;
-			if (!dataObject || typeof dataObject !== 'object') {
-				throw new TypeError(`${filePath}, if it exists, must export a non-null object`);
-			}
-			if (!dataObject[key] || typeof dataObject[key] !== 'object') {
-				throw new TypeError(`${filePath}, if it exists, must export an object whose '${key}' property is a non-null object`);
-			}
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-			return dataObject[key];
-		} catch (e) {
-			if (e.code !== 'MODULE_NOT_FOUND' && e.code !== 'ENOENT') {
-				throw e;
-			}
-		}
-		return {};
-	}
-
-	includeFormats(): void {
-		let formatsList: IFormatData[] = [];
-		try {
-			// eslint-disable-next-line @typescript-eslint/no-var-requires
-			const dataObject = require(formatsPath) as {Formats: IFormatData[]};
-			formatsList = dataObject.Formats;
-		} catch (e) {
-			if (e.code !== 'MODULE_NOT_FOUND' && e.code !== 'ENOENT') {
-				throw e;
-			}
-		}
-
-		let section = '';
-		let column = 1;
-		for (let i = 0; i < formatsList.length; i++) {
-			const format = formatsList[i];
-			const id = Tools.toId(format.name);
-			if (format.section) section = format.section;
-			if (format.column) column = format.column;
-			if (!format.name && format.section) continue;
-			if (!id) throw new RangeError(`Format #${i + 1} must have a name with alphanumeric characters, not '${format.name}'`);
-			if (!format.section) format.section = section;
-			if (!format.column) format.column = column;
-			if (format.challengeShow === undefined) format.challengeShow = true;
-			if (format.searchShow === undefined) format.searchShow = true;
-			if (format.tournamentShow === undefined) format.tournamentShow = true;
-			if (format.mod === undefined) format.mod = currentGenString;
-
-			if (format.section === omotmSection) this.omotms.push(id);
-		}
-
-		let formats: Dict<IFormatData & IFormatLinks> = {};
-		try {
-			// eslint-disable-next-line @typescript-eslint/no-var-requires
-			const dataObject = require(path.join(lanetteDataDir, 'format-links.js')) as
-				{BattleFormatLinks: Dict<IFormatData & IFormatLinks>};
-			formats = dataObject.BattleFormatLinks;
-		} catch (e) {
-			if (e.code !== 'MODULE_NOT_FOUND' && e.code !== 'ENOENT') {
-				throw e;
-			}
-		}
-
-		for (const formatData of formatsList) {
-			const id = Tools.toId(formatData.name);
-			if (!id) continue;
-			let viability = '';
-			let info = '';
-			let np = '';
-			if (formatData.threads) {
-				const threads = formatData.threads.slice();
-				for (let line of threads) {
-					line = line.trim();
-					if (line.startsWith('&bullet;')) {
-						const text = line.split('</a>')[0].split('">')[1];
-						if (!text) continue;
-						if (text.includes('Viability Ranking')) {
-							const link = line.split('<a href="');
-							if (link[1]) {
-								viability = link[1].split('/">')[0].split('/').pop()!;
-							}
-						} else if (text.startsWith("np:") || text.includes(formatData.name + " Stage")) {
-							const link = line.split('<a href="');
-							if (link[1]) {
-								np = link[1].split('/">')[0].split('/').pop()!;
-							}
-						} else if (Tools.toId(text) === id) {
-							const link = line.split('<a href="');
-							if (link[1]) {
-								info = link[1].split('/">')[0].split('/').pop()!;
-							}
-						}
-					}
-				}
-			}
-			if (id in formats) {
-				Object.assign(formats[id], formatData, {
-					'info-official': info,
-					'np-official': np,
-					'viability-official': viability,
-				});
-			} else {
-				formats[id] = Object.assign(formatData, {
-					info,
-					np,
-					viability,
-				});
-			}
-		}
-
-		for (const id in formats) {
-			const format = formats[id];
-			const links: ('info' | 'np' | 'roleCompendium' | 'teams' | 'viability')[] = ['info', 'np', 'roleCompendium', 'teams',
-				'viability'];
-			for (const id of links) {
-				const link = format[id];
-				if (!link) continue;
-				let num = parseInt(link.split("/")[0]);
-				if (isNaN(num)) continue;
-				// @ts-expect-error
-				if (format[id + '-official']) {
-					// @ts-expect-error
-					const officialNum = parseInt(format[id + '-official']);
-					if (!isNaN(officialNum) && officialNum > num) num = officialNum;
-				}
-				format[id] = 'http://www.smogon.com/forums/threads/' + num;
-			}
-		}
-
-		// @ts-expect-error
-		Object.assign(this.dataCache.Formats, formats);
-		Object.assign(this.dataCache.formats, formats);
-	}
-
-	loadData(): void {
+	async loadData(): Promise<void> {
 		if (this.loadedData) return;
+		this.loadedData = true;
 
-		dexes['base'].includeMods();
-
-		const battleScripts = this.loadDataFile(this.modDataDir, dataFiles, 'Scripts') as {gen: number; inherit?: string;
-			init?: (this: Dex) => void;};
-
-		this.parentMod = this.isBase ? '' : (battleScripts.inherit || 'base');
-
-		let parentDex;
-		if (this.parentMod) {
-			parentDex = dexes[this.parentMod];
-			if (!parentDex || parentDex === this) {
-				throw new Error("Unable to load " + this.currentMod + ". `inherit` should specify a parent mod from which to inherit " +
-					"data, or must be not specified.");
-			}
-		}
-
-		const dataTypesToLoad = dataTypes.concat(['Aliases', 'Natures']);
-		for (const dataType of dataTypesToLoad) {
-			if (dataType === 'Natures') {
-				// @ts-expect-error
-				if (this.isBase) this.dataCache[dataType] = natures;
-				continue;
-			}
-			const battleData = this.loadDataFile(this.modDataDir, dataFiles, dataType);
-			// @ts-expect-error
-			if (battleData !== this.dataCache[dataType]) this.dataCache[dataType] = Object.assign(battleData, this.dataCache[dataType]); // eslint-disable-line @typescript-eslint/no-unsafe-assignment
-		}
-
-		for (const dataType of lanetteDataTypes) {
-			const battleData = this.loadDataFile(lanetteDataDir, lanetteDataFiles, dataType);
-			if (!battleData || typeof battleData !== 'object') {
-				throw new TypeError("Exported property `Battle" + dataType + "`from `" + this.modDataDir + '/' + dataFiles[dataType] +
-					"` must be an object except `null`.");
-			}
-			// @ts-expect-error
-			this.dataCache[dataType] = Object.assign(battleData, this.dataCache[dataType]); // eslint-disable-line @typescript-eslint/no-unsafe-assignment
-		}
-
-		if (!parentDex) {
-			// Formats are inherited by mods
-			this.includeFormats();
-		} else {
-			for (const dataType of dataTypes) {
-				// @ts-expect-error
-				const parentTypedData = parentDex.data[dataType]; // eslint-disable-line @typescript-eslint/no-unsafe-assignment
-				// @ts-expect-error
-				const childTypedData = this.dataCache[dataType] || (this.dataCache[dataType] = {}); // eslint-disable-line @typescript-eslint/no-unsafe-assignment
-				for (const entryId in parentTypedData) {
-					if (childTypedData[entryId] === null) {
-						// null means don't inherit
-						delete childTypedData[entryId];
-					} else if (!(entryId in childTypedData)) {
-						// If it doesn't exist it's inherited from the parent data
-						if (dataType === 'Pokedex') {
-							// Pokedex entries can be modified too many different ways
-							// e.g. inheriting different formats-data/learnsets
-							// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-							childTypedData[entryId] = Tools.deepClone(parentTypedData[entryId]);
-						} else {
-							// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-							childTypedData[entryId] = parentTypedData[entryId];
-						}
-					} else if (childTypedData[entryId] && childTypedData[entryId].inherit) {
-						// {inherit: true} can be used to modify only parts of the parent data,
-						// instead of overwriting entirely
-						delete childTypedData[entryId].inherit;
-
-						// Merge parent into children entry, preserving existing childs' properties.
-						for (const key in parentTypedData[entryId]) {
-							if (key in childTypedData[entryId]) continue;
-							// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-							childTypedData[entryId][key] = parentTypedData[entryId][key];
-						}
-					}
-				}
-			}
-			// @ts-expect-error
-			this.dataCache['Aliases'] = parentDex.data['Aliases']; // eslint-disable-line @typescript-eslint/no-unsafe-assignment
-		}
-
-		const allDataTypes = dataTypesToLoad.concat(lanetteDataTypes);
-		// alias data types
-		for (const dataType of allDataTypes) {
-			let id = dataType;
-			if (dataType === 'FormatsData') {
-				id = 'formatsData';
-			} else if (dataType === 'FormatLinks') {
-				id = 'formatLinks';
-			} else if (dataType === 'Movedex') {
-				id = 'moves';
-			} else if (dataType === 'PokemonSprites') {
-				id = 'gifData';
-			} else if (dataType === 'PokemonSpritesBW') {
-				id = 'gifDataBW';
-			} else if (dataType === 'TrainerClasses') {
-				id = 'trainerClasses';
-			} else if (dataType === 'TypeChart') {
-				id = 'typeChart';
-			} else {
-				id = Tools.toId(dataType);
-			}
-			// @ts-expect-error
-			this.dataCache[id] = this.dataCache[dataType]; // eslint-disable-line @typescript-eslint/no-unsafe-assignment
-		}
-
-		for (const i in this.dataCache.typeChart) {
-			this.dataCache.types[Tools.toId(i)] = i;
-		}
-
-		for (const i in this.dataCache.formats) {
-			const formatid = i;
-			const format = this.dataCache.formats[i];
-			if (format && format.aliases) {
-				for (const alias of format.aliases) {
-					const id = Tools.toId(alias);
-					if (!Object.prototype.hasOwnProperty.call(this.dataCache.aliases, id)) this.dataCache.aliases[id] = formatid;
-				}
-			}
-		}
-
-		this.gen = battleScripts.gen;
-		if (!this.gen) throw new Error(`Mod ${this.currentMod} needs a generation number in scripts.js`);
-
-		const speciesList = Object.keys(this.dataCache.categories);
+		const speciesList = Object.keys(this.data.categories);
 		for (const species of speciesList) {
 			const id = Tools.toId(species);
 			if (id === species) continue;
-			this.dataCache.categories[id] = this.dataCache.categories[species];
-			delete this.dataCache.categories[species];
+			// @ts-expect-error
+			this.data.categories[id] = this.data.categories[species];
+			// @ts-expect-error
+			delete this.data.categories[species];
 		}
 
-		this.loadedData = true;
+		const mod = 'gen' + this.gen;
 
-		// Execute initialization script.
-		if (battleScripts.init) battleScripts.init.call(this);
+		// aliases
+		if (this.isBase) {
+			// @ts-expect-error
+			this.data.aliases = JSON.parse((await this.workers.pokemonShowdown.getAliases({mod})).data) as Dict<string | undefined>;
+		} else {
+			// @ts-expect-error
+			this.data.aliases = dexes['base'].data.aliases;
+		}
 
-		for (const i in this.data.pokedex) {
-			const pokemon = this.getExistingPokemon(i);
-			if (pokemon.color) {
-				const id = Tools.toId(pokemon.color);
-				if (!(id in this.dataCache.colors)) this.dataCache.colors[id] = pokemon.color;
-			}
-			if (pokemon.tier) {
-				const id = Tools.toId(pokemon.tier);
-				if (!(id in tagNames)) tagNames[id] = pokemon.tier;
-			}
-			if (pokemon.eggGroups) {
-				for (const eggGroup of pokemon.eggGroups) {
-					const id = Tools.toId(eggGroup);
-					if (!(id in this.dataCache.eggGroups)) this.dataCache.eggGroups[id] = eggGroup;
+		// abilities
+		if (this.gen === 1) {
+			// @ts-expect-error
+			this.abilityCache = new Map(dexes['gen2'].abilityCache);
+			// @ts-expect-error
+			this.data.abilityKeys = dexes['gen2'].data.abilityKeys.slice();
+		} else {
+			const abilityIds = JSON.parse((await this.workers.pokemonShowdown.getAbilityIds({mod})).data) as
+				{aliases: Dict<string>; keys: string[]};
+			const abilityKeys = abilityIds.keys;
+			if (abilityKeys.length) {
+				let abilitiesCurrentIndex = 0;
+				const abilitiesEndIndex = abilityKeys.length - 1;
+				while (abilitiesCurrentIndex < abilitiesEndIndex) {
+					const batch = JSON.parse((await this.workers.pokemonShowdown.getAbilities({mod, keys: abilityKeys,
+						startIndex: abilitiesCurrentIndex})).data) as {abilities: IAbility[]; endIndex: number};
+					if (batch.endIndex === abilitiesCurrentIndex) throw new Error("Not enough memory to load abilities");
+
+					for (const ability of batch.abilities) {
+						if (ability.id) {
+							this.abilityCache.set(ability.id, ability);
+							// @ts-expect-error
+							this.data.abilityKeys.push(ability.id);
+						}
+					}
+
+					abilitiesCurrentIndex = batch.endIndex;
 				}
+
+				for (const key in abilityIds.aliases) {
+					const id = Tools.toId(key);
+					if (!id) continue;
+					const ability = this.abilityCache.get(abilityIds.aliases[key]);
+					if (ability) this.abilityCache.set(id, ability);
+				}
+			}
+		}
+
+		// formats
+		if (this.isBase) {
+			const formatIds = JSON.parse((await this.workers.pokemonShowdown.getFormatIds({mod})).data) as
+				{aliases: Dict<string>; keys: string[]};
+			const links: ('info' | 'np' | 'roleCompendium' | 'teams' | 'viability')[] = ['info', 'np', 'roleCompendium', 'teams',
+					'viability'];
+
+			const formatKeys = formatIds.keys;
+			if (formatKeys.length) {
+				let formatsCurrentIndex = 0;
+				const formatsEndIndex = formatKeys.length - 1;
+				while (formatsCurrentIndex < formatsEndIndex) {
+					const batch = JSON.parse((await this.workers.pokemonShowdown.getFormats({mod, keys: formatKeys,
+						startIndex: formatsCurrentIndex})).data) as {formats: IFormat[]; endIndex: number};
+					if (batch.endIndex === formatsCurrentIndex) throw new Error("Not enough memory to load formats");
+
+					for (const item of batch.formats) {
+						let format = item;
+						let viability: string | undefined;
+						let np: string | undefined;
+						let info: string | undefined;
+						if (format.threads) {
+							const threads = format.threads.slice();
+							for (let line of threads) {
+								line = line.trim();
+								if (line.startsWith('&bullet;')) {
+									const text = line.split('</a>')[0].split('">')[1];
+									if (!text) continue;
+									if (text.includes('Viability Ranking')) {
+										const link = line.split('<a href="');
+										if (link[1]) {
+											viability = link[1].split('/">')[0].split('/').pop()!;
+										}
+									} else if (text.startsWith("np:") || text.includes(format.name + " Stage")) {
+										const link = line.split('<a href="');
+										if (link[1]) {
+											np = link[1].split('/">')[0].split('/').pop()!;
+										}
+									} else if (Tools.toId(text) === format.id) {
+										const link = line.split('<a href="');
+										if (link[1]) {
+											info = link[1].split('/">')[0].split('/').pop()!;
+										}
+									}
+								}
+							}
+
+							if (format.id in formatLinks) {
+								format = Object.assign(formatLinks[format.id], format, {
+									'info-official': info,
+									'np-official': np,
+									'viability-official': viability,
+								});
+							} else {
+								format.info = info;
+								format.np = np;
+								format.viability = viability;
+							}
+
+							for (const id of links) {
+								const link = format[id];
+								if (!link) continue;
+								let num = parseInt(link.split("/")[0]);
+								if (isNaN(num)) continue;
+								// @ts-expect-error
+								if (format[id + '-official']) {
+									// @ts-expect-error
+									const officialNum = parseInt(format[id + '-official']);
+									if (!isNaN(officialNum) && officialNum > num) num = officialNum;
+								}
+								format[id] = 'http://www.smogon.com/forums/threads/' + num;
+							}
+						}
+
+						if (format.section === omotmSection) this.omotms.push(format.id);
+
+						if (format.id) {
+							this.formatCache.set(format.id, format);
+							// @ts-expect-error
+							this.data.formatKeys.push(format.id);
+						}
+
+						if (format.aliases) {
+							for (const alias of format.aliases) {
+								const id = Tools.toId(alias);
+								if (id) this.formatCache.set(id, format);
+							}
+						}
+					}
+
+					formatsCurrentIndex = batch.endIndex;
+				}
+
+				for (const key in formatIds.aliases) {
+					const id = Tools.toId(key);
+					if (!id) continue;
+					const format = this.formatCache.get(formatIds.aliases[key]);
+					if (format) this.formatCache.set(id, format);
+				}
+			}
+		} else {
+			// @ts-expect-error
+			this.formatCache = new Map(dexes['base'].formatCache);
+			// @ts-expect-error
+			this.data.formatKeys = dexes['base'].data.formatKeys.slice();
+		}
+
+		// items
+		const itemIds = JSON.parse((await this.workers.pokemonShowdown.getItemIds({mod})).data) as {aliases: Dict<string>; keys: string[]};
+		const itemKeys = itemIds.keys;
+		if (itemKeys.length) {
+			let itemsCurrentIndex = 0;
+			const itemsEndIndex = itemKeys.length - 1;
+			while (itemsCurrentIndex < itemsEndIndex) {
+				const batch = JSON.parse((await this.workers.pokemonShowdown.getItems({mod, keys: itemKeys,
+					startIndex: itemsCurrentIndex})).data) as {items: IItem[]; endIndex: number};
+				if (batch.endIndex === itemsCurrentIndex) throw new Error("Not enough memory to load items");
+
+				for (const item of batch.items) {
+					if (item.id) {
+						this.itemCache.set(item.id, item);
+						// @ts-expect-error
+						this.data.itemKeys.push(item.id);
+					}
+				}
+
+				itemsCurrentIndex = batch.endIndex;
+			}
+
+			for (const key in itemIds.aliases) {
+				const id = Tools.toId(key);
+				if (!id) continue;
+				const item = this.itemCache.get(itemIds.aliases[key]);
+				if (item) this.itemCache.set(id, item);
+			}
+		}
+
+		// learnsets
+		const learnsetDataIds = JSON.parse((await this.workers.pokemonShowdown.getLearnsetDataIds({mod})).data) as
+			{aliases: Dict<string>; keys: string[]};
+		const learnsetDataKeys = learnsetDataIds.keys;
+		if (learnsetDataKeys.length) {
+			let learnsetDataCurrentIndex = 0;
+			const learnsetDataEndIndex = learnsetDataKeys.length - 1;
+			while (learnsetDataCurrentIndex < learnsetDataEndIndex) {
+				const batch = JSON.parse((await this.workers.pokemonShowdown.getLearnsetData({mod, keys: learnsetDataKeys,
+					startIndex: learnsetDataCurrentIndex})).data) as {learnsets: Dict<ILearnsetData>; endIndex: number};
+				if (batch.endIndex === learnsetDataCurrentIndex) throw new Error("Not enough memory to load learnset data");
+
+				for (const key in batch.learnsets) {
+					const id = Tools.toId(key);
+					if (!id) continue;
+					this.learnsetDataCache.set(id, batch.learnsets[key]);
+					// @ts-expect-error
+					this.data.learnsetDataKeys.push(id);
+				}
+
+				learnsetDataCurrentIndex = batch.endIndex;
+			}
+		}
+
+		// moves
+		const moveIds = JSON.parse((await this.workers.pokemonShowdown.getMoveIds({mod})).data) as {aliases: Dict<string>; keys: string[]};
+		const moveKeys = moveIds.keys;
+		if (moveKeys.length) {
+			let movesCurrentIndex = 0;
+			const movesEndIndex = moveKeys.length - 1;
+			while (movesCurrentIndex < movesEndIndex) {
+				const batch = JSON.parse((await this.workers.pokemonShowdown.getMoves({mod, keys: moveKeys,
+					startIndex: movesCurrentIndex})).data) as {moves: IMove[]; endIndex: number};
+				if (batch.endIndex === movesCurrentIndex) throw new Error("Not enough memory to load moves");
+
+				for (const move of batch.moves) {
+					const id = move.realMove ? Tools.toId(move.name) : move.id;
+					if (id) {
+						this.moveCache.set(id, move);
+						// @ts-expect-error
+						this.data.moveKeys.push(id);
+					}
+				}
+
+				movesCurrentIndex = batch.endIndex;
+			}
+
+			for (const key in moveIds.aliases) {
+				const id = Tools.toId(key);
+				if (!id) continue;
+				const move = this.moveCache.get(moveIds.aliases[key]);
+				if (move) this.moveCache.set(id, move);
+			}
+		}
+
+		// pokemon
+		const pokemonIds = JSON.parse((await this.workers.pokemonShowdown.getSpeciesIds({mod})).data) as
+			{aliases: Dict<string>; keys: string[]};
+
+		const formeNames: Dict<string[]> = {
+			alola: ['a', 'alola', 'alolan'],
+			galar: ['g', 'galar', 'galarian'],
+			gmax: ['gigantamax', 'gmax'],
+			mega: ['m', 'mega'],
+			primal: ['p', 'primal'],
+		};
+
+		const pokemonKeys = pokemonIds.keys;
+		if (pokemonKeys.length) {
+			let pokemonCurrentIndex = 0;
+			const pokemonEndIndex = pokemonKeys.length - 1;
+			while (pokemonCurrentIndex < pokemonEndIndex) {
+				const batch = JSON.parse((await this.workers.pokemonShowdown.getSpecies({mod, keys: pokemonKeys,
+					startIndex: pokemonCurrentIndex})).data) as {pokemon: IPokemon[]; endIndex: number};
+				if (batch.endIndex === pokemonCurrentIndex) throw new Error("Not enough memory to load Pokemon");
+
+				for (const pokemon of batch.pokemon) {
+					if (!pokemon.id) continue;
+
+					if (pokemon.color) {
+						const id = Tools.toId(pokemon.color);
+						if (!(id in this.data.colors)) {
+							// @ts-expect-error
+							this.data.colors[id] = pokemon.color;
+						}
+					}
+
+					if (pokemon.tier) {
+						const id = Tools.toId(pokemon.tier);
+						if (!(id in tagNames)) tagNames[id] = pokemon.tier;
+					}
+
+					if (pokemon.eggGroups) {
+						for (const eggGroup of pokemon.eggGroups) {
+							const id = Tools.toId(eggGroup);
+							if (!(id in this.data.eggGroups)) {
+								// @ts-expect-error
+								this.data.eggGroups[id] = eggGroup;
+							}
+						}
+					}
+
+					if (pokemon.id in this.data.categories) {
+						// @ts-expect-error
+						pokemon.category = this.data.categories[pokemon.id];
+					}
+
+					this.pokemonCache.set(pokemon.id, pokemon);
+					// @ts-expect-error
+					this.data.pokemonKeys.push(pokemon.id);
+
+					const formeId = Tools.toId(pokemon.forme);
+					if (formeId && formeId in formeNames) {
+						for (const alias of formeNames[formeId]) {
+							this.pokemonCache.set(pokemon.id + alias, pokemon);
+							this.pokemonCache.set(alias + pokemon.id, pokemon);
+						}
+					}
+				}
+
+				pokemonCurrentIndex = batch.endIndex;
+			}
+
+			for (const key in pokemonIds.aliases) {
+				const id = Tools.toId(key);
+				if (!id) continue;
+				const pokemon = this.pokemonCache.get(pokemonIds.aliases[key]);
+				if (pokemon) this.pokemonCache.set(id, pokemon);
+			}
+
+			let allPossibleMovesCurrentIndex = 0;
+			const allPossibleMovesEndIndex = pokemonKeys.length - 1;
+			while (allPossibleMovesCurrentIndex < allPossibleMovesEndIndex) {
+				const batch = JSON.parse((await this.workers.pokemonShowdown.getAllPossibleMoves({mod, keys: pokemonKeys,
+					startIndex: allPossibleMovesCurrentIndex})).data) as {allPossibleMoves: Dict<string[]>; endIndex: number};
+
+				if (batch.endIndex === allPossibleMovesCurrentIndex) throw new Error("Not enough memory to load all possible moves");
+
+				for (const id in batch.allPossibleMoves) {
+					this.allPossibleMovesCache.set(id, batch.allPossibleMoves[id]);
+				}
+
+				allPossibleMovesCurrentIndex = batch.endIndex;
+			}
+		}
+
+		// types
+		const typeIds = JSON.parse((await this.workers.pokemonShowdown.getTypeIds({mod})).data) as {aliases: Dict<string>; keys: string[]};
+		const typeKeys = typeIds.keys;
+		if (typeKeys.length) {
+			let typesCurrentIndex = 0;
+			const typesEndIndex = typeKeys.length - 1;
+			while (typesCurrentIndex < typesEndIndex) {
+				const batch = JSON.parse((await this.workers.pokemonShowdown.getTypes({mod, keys: typeKeys,
+					startIndex: typesCurrentIndex})).data) as {types: ITypeData[]; endIndex: number};
+
+				if (batch.endIndex === typesCurrentIndex) throw new Error("Not enough memory to load types");
+
+				for (const type of batch.types) {
+					if (type.id) {
+						this.typeCache.set(type.id, type);
+						// @ts-expect-error
+						this.data.typeKeys.push(type.id);
+					}
+				}
+
+				typesCurrentIndex = batch.endIndex;
 			}
 		}
 	}
@@ -622,53 +669,8 @@ export class Dex {
 		Abilities
 	*/
 
-	getAbility(name: string): IAbility | null {
-		let id = Tools.toId(name);
-		if (!id) return null;
-		if (Object.prototype.hasOwnProperty.call(this.data.aliases, id)) id = Tools.toId(this.data.aliases[id]);
-		if (!Object.prototype.hasOwnProperty.call(this.data.abilities, id)) return null;
-
-		const cached = this.abilityCache.get(id);
-		if (cached) return cached;
-		const abilityData = this.data.abilities[id]!;
-		id = Tools.toId(abilityData.name);
-
-		let gen = 0;
-		const num = abilityData.num || 0;
-		if (num >= 234) {
-			gen = 8;
-		} else if (num >= 192) {
-			gen = 7;
-		} else if (num >= 165) {
-			gen = 6;
-		} else if (num >= 124) {
-			gen = 5;
-		} else if (num >= 77) {
-			gen = 4;
-		} else if (num >= 1) {
-			gen = 3;
-		}
-
-		let isNonstandard = abilityData.isNonstandard;
-		if (gen > this.gen) isNonstandard = 'Future';
-		if (this.currentMod === 'letsgo' && id !== 'noability') {
-			isNonstandard = 'Past';
-		}
-		if ((this.currentMod === 'letsgo' || this.gen <= 2) && id === 'noability') {
-			isNonstandard = null;
-		}
-
-		const abilityComputed: IAbilityComputed = {
-			effectType: "Ability",
-			gen,
-			fullname: 'ability: ' + abilityData.name,
-			id,
-			isNonstandard: isNonstandard || null,
-			rating: abilityData.rating || 0,
-		};
-		const ability: IAbility = Object.assign({}, abilityData, abilityComputed);
-		this.abilityCache.set(id, ability);
-		return ability;
+	getAbility(name: string): IAbility | undefined {
+		return this.abilityCache.get(Tools.toId(name));
 	}
 
 	getExistingAbility(name: string): IAbility {
@@ -677,8 +679,8 @@ export class Dex {
 		return ability;
 	}
 
-	getAbilityCopy(name: string): IAbilityCopy {
-		return Tools.deepClone(this.getExistingAbility(name)) as IAbilityCopy;
+	getAbilityCopy(name: string | IAbility): IAbilityCopy {
+		return Tools.deepClone(typeof name === 'string' ? this.getExistingAbility(name) : name);
 	}
 
 	/** Returns a list of existing abilities
@@ -687,7 +689,7 @@ export class Dex {
 	 */
 	getAbilitiesList(filter?: (ability: IAbility) => boolean): IAbility[] {
 		const abilities: IAbility[] = [];
-		for (const i in this.data.abilities) {
+		for (const i of this.data.abilityKeys) {
 			const ability = this.getExistingAbility(i);
 			if (ability.isNonstandard === 'CAP' || ability.isNonstandard === 'LGPE' || ability.isNonstandard === 'Custom' ||
 				ability.id === 'noability' || ability.gen > this.gen || (filter && !filter(ability))) continue;
@@ -701,71 +703,15 @@ export class Dex {
 	 * filterMove: Return `false` to filter `ability` out of the list
 	 */
 	getAbilitiesCopyList(filter?: (ability: IAbility) => boolean): IAbilityCopy[] {
-		const abilities = this.getAbilitiesList(filter);
-		const copiedAbilities: IAbilityCopy[] = [];
-		for (const ability of abilities) {
-			copiedAbilities.push(this.getAbilityCopy(ability.name));
-		}
-		return copiedAbilities;
+		return this.getAbilitiesList(filter).map(x => this.getAbilityCopy(x));
 	}
 
 	/*
 		Items
 	*/
 
-	getItem(name: string): IItem | null {
-		let id = Tools.toId(name);
-		if (!id) return null;
-		if (Object.prototype.hasOwnProperty.call(this.data.aliases, id)) id = Tools.toId(this.data.aliases[id]);
-		if (!Object.prototype.hasOwnProperty.call(this.data.items, id)) return null;
-
-		const cached = this.itemCache.get(id);
-		if (cached) return cached;
-		const itemData = this.data.items[id]!;
-		id = Tools.toId(itemData.name);
-		let gen = itemData.gen || 0;
-		if (!gen) {
-			const num = itemData.num || 0;
-			if (num >= 689) {
-				gen = 7;
-			} else if (num >= 577) {
-				gen = 6;
-			} else if (num >= 537) {
-				gen = 5;
-			} else if (num >= 377) {
-				gen = 4;
-			} else {
-				gen = 3;
-			}
-			// Due to difference in gen 2 item numbering, gen 2 items must be
-			// specified manually
-		}
-
-		let isNonstandard = itemData.isNonstandard;
-		if (gen > this.gen) isNonstandard = 'Future';
-		// hack for allowing mega evolution in LGPE
-		if (this.currentMod === 'letsgo' && !isNonstandard && !itemData.megaStone) {
-			isNonstandard = 'Past';
-		}
-
-		let fling = itemData.fling;
-		if (itemData.isBerry) fling = {basePower: 10};
-		if (id.endsWith('plate')) fling = {basePower: 90};
-		if (itemData.onDrive) fling = {basePower: 70};
-		if (itemData.megaStone) fling = {basePower: 80};
-		if (itemData.onMemory) fling = {basePower: 50};
-
-		const itemComputed: IItemComputed = {
-			effectType: "Item",
-			gen,
-			fullname: 'item: ' + itemData.name,
-			id,
-			fling,
-			isNonstandard: isNonstandard || null,
-		};
-		const item: IItem = Object.assign({}, itemData, itemComputed);
-		this.itemCache.set(id, item);
-		return item;
+	getItem(name: string): IItem | undefined {
+		return this.itemCache.get(Tools.toId(name));
 	}
 
 	getExistingItem(name: string): IItem {
@@ -774,8 +720,8 @@ export class Dex {
 		return item;
 	}
 
-	getItemCopy(name: string): IItemCopy {
-		return Tools.deepClone(this.getExistingItem(name)) as IItemCopy;
+	getItemCopy(name: string | IItem): IItemCopy {
+		return Tools.deepClone(typeof name === 'string' ? this.getExistingItem(name) : name);
 	}
 
 	/** Returns a list of existing items
@@ -784,7 +730,7 @@ export class Dex {
 	 */
 	getItemsList(filter?: (item: IItem) => boolean): IItem[] {
 		const items: IItem[] = [];
-		for (const i in this.data.items) {
+		for (const i of this.data.itemKeys) {
 			const item = this.getExistingItem(i);
 			if (item.isNonstandard === 'CAP' || item.isNonstandard === 'LGPE' || item.isNonstandard === 'Custom' || item.gen > this.gen ||
 				(this.gen !== 2 && gen2Items.includes(item.id)) || (filter && !filter(item))) continue;
@@ -798,145 +744,19 @@ export class Dex {
 	 * filterMove: Return `false` to filter `item` out of the list
 	 */
 	getItemsCopyList(filter?: (item: IItem) => boolean): IItemCopy[] {
-		const items = this.getItemsList(filter);
-		const copiedItems: IItemCopy[] = [];
-		for (const item of items) {
-			copiedItems.push(this.getItemCopy(item.name));
-		}
-		return copiedItems;
+		return this.getItemsList(filter).map(x => this.getItemCopy(x));
+	}
+
+	getLearnsetData(name: string): ILearnsetData | undefined {
+		return this.learnsetDataCache.get(Tools.toId(name));
 	}
 
 	/*
 		Moves
 	*/
 
-	getMove(name: string): IMove | null {
-		let id = Tools.toId(name);
-		if (!id) return null;
-		if (Object.prototype.hasOwnProperty.call(this.data.aliases, id)) id = Tools.toId(this.data.aliases[id]);
-		if (!Object.prototype.hasOwnProperty.call(this.data.moves, id)) return null;
-
-		const cached = this.moveCache.get(id);
-		if (cached) return cached;
-		const moveData = this.data.moves[id]!;
-		id = moveData.realMove ? Tools.toId(moveData.realMove) : Tools.toId(moveData.name);
-		if (!moveData.flags) moveData.flags = {};
-		moveData.critRatio = Number(moveData.critRatio) || 1;
-		moveData.priority = Number(moveData.priority) || 0;
-
-		let gmaxPower = moveData.gmaxPower;
-		if (moveData.category !== 'Status' && !gmaxPower) {
-			if (moveData.isMax || moveData.isZ) {
-				gmaxPower = 1;
-			} else if (!moveData.basePower) {
-				gmaxPower = 100;
-			} else if (['Fighting', 'Poison'].includes(moveData.type)) {
-				if (moveData.basePower >= 150) {
-					gmaxPower = 100;
-				} else if (moveData.basePower >= 110) {
-					gmaxPower = 95;
-				} else if (moveData.basePower >= 75) {
-					gmaxPower = 90;
-				} else if (moveData.basePower >= 65) {
-					gmaxPower = 85;
-				} else if (moveData.basePower >= 55) {
-					gmaxPower = 80;
-				} else if (moveData.basePower >= 45) {
-					gmaxPower = 75;
-				} else  {
-					gmaxPower = 70;
-				}
-			} else {
-				if (moveData.basePower >= 150) {
-					gmaxPower = 150;
-				} else if (moveData.basePower >= 110) {
-					gmaxPower = 140;
-				} else if (moveData.basePower >= 75) {
-					gmaxPower = 130;
-				} else if (moveData.basePower >= 65) {
-					gmaxPower = 120;
-				} else if (moveData.basePower >= 55) {
-					gmaxPower = 110;
-				} else if (moveData.basePower >= 45) {
-					gmaxPower = 100;
-				} else  {
-					gmaxPower = 90;
-				}
-			}
-		}
-
-		let zMovePower = moveData.zMovePower;
-		if (moveData.category !== 'Status' && !zMovePower && !moveData.isZ && !moveData.isMax) {
-			let basePower = moveData.basePower;
-			if (Array.isArray(moveData.multihit)) basePower *= 3;
-
-			if (!basePower) {
-				zMovePower = 100;
-			} else if (basePower >= 140) {
-				zMovePower = 200;
-			} else if (basePower >= 130) {
-				zMovePower = 195;
-			} else if (basePower >= 120) {
-				zMovePower = 190;
-			} else if (basePower >= 110) {
-				zMovePower = 185;
-			} else if (basePower >= 100) {
-				zMovePower = 180;
-			} else if (basePower >= 90) {
-				zMovePower = 175;
-			} else if (basePower >= 80) {
-				zMovePower = 160;
-			} else if (basePower >= 70) {
-				zMovePower = 140;
-			} else if (basePower >= 60) {
-				zMovePower = 120;
-			} else  {
-				zMovePower = 100;
-			}
-		}
-
-		let gen = 0;
-		const num = moveData.num || 0;
-		if (num >= 743) {
-			gen = 8;
-		} else if (num >= 622) {
-			gen = 7;
-		} else if (num >= 560) {
-			gen = 6;
-		} else if (num >= 468) {
-			gen = 5;
-		} else if (num >= 355) {
-			gen = 4;
-		} else if (num >= 252) {
-			gen = 3;
-		} else if (num >= 166) {
-			gen = 2;
-		} else if (num >= 1) {
-			gen = 1;
-		}
-
-		let isNonstandard = moveData.isNonstandard;
-		if (gen > this.gen) isNonstandard = 'Future';
-
-		const moveComputed: IMoveComputed = {
-			baseMoveType: moveData.baseMoveType || moveData.type,
-			critRatio: moveData.critRatio || 1,
-			effectType: "Move",
-			flags: moveData.flags || {},
-			fullname: 'move: ' + moveData.name,
-			gen,
-			gmaxPower,
-			id,
-			ignoreImmunity: moveData.ignoreImmunity !== undefined ? moveData.ignoreImmunity : moveData.category === 'Status',
-			isNonstandard: isNonstandard || null,
-			nonGhostTarget: moveData.nonGhostTarget || '',
-			pressureTarget: moveData.pressureTarget || '',
-			secondaries: moveData.secondaries || (moveData.secondary ? [moveData.secondary] : undefined),
-			zMovePower,
-		};
-		const move: IMove = Object.assign({}, moveData, moveComputed);
-		this.moveCache.set(id, move);
-		return move;
+	getMove(name: string): IMove | undefined {
+		return this.moveCache.get(Tools.toId(name));
 	}
 
 	getExistingMove(name: string): IMove {
@@ -945,8 +765,8 @@ export class Dex {
 		return move;
 	}
 
-	getMoveCopy(name: string): IMoveCopy {
-		return Tools.deepClone(this.getExistingMove(name)) as IMoveCopy;
+	getMoveCopy(name: string | IMove): IMoveCopy {
+		return Tools.deepClone(typeof name === 'string' ? this.getExistingMove(name) : name) as IMoveCopy;
 	}
 
 	/** Returns a list of existing moves
@@ -955,7 +775,7 @@ export class Dex {
 	 */
 	getMovesList(filter?: (move: IMove) => boolean): IMove[] {
 		const moves: IMove[] = [];
-		for (const i in this.data.moves) {
+		for (const i of this.data.moveKeys) {
 			const move = this.getExistingMove(i);
 			if (move.isNonstandard === 'CAP' || move.isNonstandard === 'LGPE' || move.isNonstandard === 'Custom' || move.gen > this.gen ||
 				(filter && !filter(move))) continue;
@@ -969,12 +789,7 @@ export class Dex {
 	 * filterMove: Return `false` to filter `move` out of the list
 	 */
 	getMovesCopyList(filter?: (move: IMove) => boolean): IMoveCopy[] {
-		const moves = this.getMovesList(filter);
-		const copiedMoves: IMoveCopy[] = [];
-		for (const move of moves) {
-			copiedMoves.push(this.getMoveCopy(move.name));
-		}
-		return copiedMoves;
+		return this.getMovesList(filter).map(x => this.getMoveCopy(x));
 	}
 
 	getMoveAvailability(move: IMove, pokedex?: IPokemon[]): number {
@@ -994,9 +809,8 @@ export class Dex {
 		Pokemon
 	*/
 
-	getPokemon(name: string): IPokemon | null {
+	getPokemon(name: string): IPokemon | undefined {
 		let id = Tools.toId(name);
-		if (!id) return null;
 		if (id === 'nidoran') {
 			if (name.endsWith('♀')) {
 				id = 'nidoranf';
@@ -1005,238 +819,21 @@ export class Dex {
 			}
 		}
 
-		const cached = this.pokemonCache.get(id);
-		if (cached) return cached;
-
-		if (Object.prototype.hasOwnProperty.call(this.data.aliases, id)) {
-			let species: IPokemon | null = null;
-			if (Object.prototype.hasOwnProperty.call(this.data.formatsData, id)) {
-				// special event ID, like Rockruff-Dusk
-				const basePokemon = this.getPokemonCopy(this.data.aliases[id]!);
-				species = Object.assign(basePokemon, this.data.formatsData[id], {name: id, id, abilities: {0: basePokemon.abilities['S']}});
-			} else {
-				species = this.getPokemon(this.data.aliases[id]!);
-				if (species && species.cosmeticFormes) {
-					for (const forme of species.cosmeticFormes) {
-						if (Tools.toId(forme) === id) {
-							const basePokemon = this.getPokemonCopy(species.name);
-							species = Object.assign(basePokemon, {
-								name: forme,
-								id,
-								forme: forme.slice(basePokemon.name.length + 1),
-								baseForme: "",
-								baseSpecies: basePokemon.name,
-								otherFormes: null,
-								cosmeticFormes: null,
-							});
-							break;
-						}
-					}
-				}
-			}
-
-			if (species) {
-				this.pokemonCache.set(id, species);
-			}
-			return species;
-		}
-
-		if (!Object.prototype.hasOwnProperty.call(this.data.pokedex, id)) {
-			let aliasTo = '';
-			for (const forme in formeNames) {
-				let pokemonName = '';
-				for (const formeName of formeNames[forme]) {
-					if (id.startsWith(formeName)) {
-						pokemonName = id.slice(formeName.length);
-					} else if (id.endsWith(formeName)) {
-						pokemonName = id.slice(0, -formeName.length);
-					}
-				}
-				if (Object.prototype.hasOwnProperty.call(this.data.aliases, pokemonName)) {
-					pokemonName = Tools.toId(this.data.aliases[pokemonName]);
-				}
-				if (Object.prototype.hasOwnProperty.call(this.data.pokedex, pokemonName + forme)) {
-					aliasTo = pokemonName + forme;
-					break;
-				}
-			}
-
-			if (!aliasTo) return null;
-			const pokemon = this.getExistingPokemon(aliasTo);
-			this.pokemonCache.set(id, pokemon);
-			return pokemon;
-		}
-
-		const templateData = this.data.pokedex[id]!;
-		const templateFormatsData = this.data.formatsData[id] || {};
-
-		if (!templateData.eggGroups) templateData.eggGroups = [];
-		if (!templateData.requiredItems && templateData.requiredItem) templateData.requiredItems = [templateData.requiredItem];
-		const baseSpecies = templateData.baseSpecies || templateData.name;
-		const isForme = baseSpecies !== templateData.name;
-
-		const forme = templateData.forme || '';
-		const isMega = ['Mega', 'Mega-X', 'Mega-Y'].includes(forme) ? true : false;
-		const isGigantamax = templateData.isGigantamax;
-		let battleOnly = templateData.battleOnly || (isMega || isGigantamax ? baseSpecies : undefined);
-		let isPrimal = false;
-		let gen = templateData.gen || 0;
-		if (!gen && templateData.num >= 1) {
-			if (templateData.num >= 810 || ['Gmax', 'Galar', 'Galar-Zen'].includes(forme)) {
-				gen = 8;
-			} else if (templateData.num >= 722 || forme.startsWith('Alola') || forme === 'Starter') {
-				gen = 7;
-			} else if (forme === 'Primal') {
-				gen = 6;
-				isPrimal = true;
-				battleOnly = baseSpecies;
-			} else if (templateData.num >= 650 || isMega) {
-				gen = 6;
-			} else if (templateData.num >= 494) {
-				gen = 5;
-			} else if (templateData.num >= 387) {
-				gen = 4;
-			} else if (templateData.num >= 252) {
-				gen = 3;
-			} else if (templateData.num >= 152) {
-				gen = 2;
-			} else if (templateData.num >= 1) {
-				gen = 1;
-			}
-		}
-
-		const speciesId = Tools.toId(templateData.name);
-		let tier: string | undefined;
-		let doublesTier: string | undefined;
-		let isNonstandard = templateFormatsData.isNonstandard;
-		if (gen > this.gen) {
-			tier = 'Illegal';
-			doublesTier = 'Illegal';
-			isNonstandard = 'Future';
-		} else {
-			tier = templateFormatsData.tier;
-			doublesTier = templateFormatsData.doublesTier;
-			if (!tier && !doublesTier && baseSpecies !== templateData.name) {
-				let baseSpeciesId: string;
-				if (baseSpecies === 'Mimikyu') {
-					baseSpeciesId = Tools.toId(baseSpecies);
-				} else if (speciesId.endsWith('totem')) {
-					baseSpeciesId = speciesId.slice(0, -5);
-				} else if (battleOnly) {
-					baseSpeciesId = typeof battleOnly === 'string' ? Tools.toId(battleOnly) : Tools.toId(battleOnly[0]);
-				} else {
-					baseSpeciesId = Tools.toId(baseSpecies);
-				}
-				tier = this.data.formatsData[baseSpeciesId]!.tier;
-				doublesTier = this.data.formatsData[baseSpeciesId]!.doublesTier;
-			}
-
-			if (!tier) {
-				tier = 'Illegal';
-			} else if (tier === 'New') {
-				tier = defaultNewTier;
-			} else if (tier === '(PU)') {
-				tier = 'ZU';
-			}
-			if (!doublesTier) doublesTier = tier;
-
-			if (this.currentMod === 'letsgo' && !isNonstandard && !((templateData.num <= 151 ||
-				['Meltan', 'Melmetal'].includes(templateData.name)) && ['Alola', 'Mega', 'Mega-X', 'Mega-Y'].includes(forme))) {
-				isNonstandard = 'Past';
-			}
-		}
-
-		const evos = templateData.evos || [];
-		const weightkg = templateData.weightkg || 0;
-		const pokemonComputed: IPokemonComputed = {
-			baseForme: templateData.baseForme || '',
-			baseSpecies,
-			battleOnly,
-			category: this.data.categories[speciesId] || '',
-			changesFrom: templateData.changesFrom || (isGigantamax ? baseSpecies : undefined),
-			color: templateData.color || '',
-			doublesTier,
-			effectType: "Pokemon",
-			evos,
-			forme,
-			fullname: 'pokemon: ' + templateData.name,
-			gen,
-			gender: templateData.gender || '',
-			genderRatio: templateData.genderRatio || (templateData.gender === 'M' ? {M: 1, F: 0} :
-				templateData.gender === 'F' ? {M: 0, F: 1} :
-				templateData.gender === 'N' ? {M: 0, F: 0} :
-				{M: 0.5, F: 0.5}),
-			heightm: templateData.heightm || 0,
-			id: speciesId,
-			isForme,
-			isMega,
-			isNonstandard: isNonstandard || null,
-			isPrimal,
-			name: templateData.name,
-			nfe: !!evos.length,
-			prevo: templateData.prevo || '',
-			requiredItems: templateData.requiredItems || (templateData.requiredItem ? [templateData.requiredItem] : undefined),
-			shiny: false,
-			speciesid: speciesId,
-			spriteId: Tools.toId(baseSpecies) + (baseSpecies !== templateData.name ? '-' + Tools.toId(forme) : ''),
-			tier,
-			weightkg,
-			weighthg: weightkg * 10,
-		};
-		const pokemon: IPokemon = Object.assign({}, templateData, templateFormatsData, pokemonComputed);
-		this.pokemonCache.set(id, pokemon);
-		return pokemon;
+		return this.pokemonCache.get(id);
 	}
 
 	getAllPossibleMoves(pokemon: IPokemon): string[] {
-		const cached = this.allPossibleMovesCache.get(pokemon.id);
-		if (cached) return cached;
-
-		const allPossibleMoves: string[] = [];
-		let firstLearnsetParent = pokemon;
-		const learnsetData = this.getLearnsetData(pokemon.id);
-		if (learnsetData && learnsetData.learnset) {
-			for (const i in this.data.learnsets[pokemon.id]!.learnset) {
-				allPossibleMoves.push(i);
-			}
-		} else if (pokemon.baseSpecies !== pokemon.name) {
-			const basePokemon = this.getExistingPokemon(pokemon.baseSpecies);
-			firstLearnsetParent = basePokemon;
-			const baseLearnsetData = this.getLearnsetData(basePokemon.id);
-			if (baseLearnsetData && baseLearnsetData.learnset) {
-				for (const i in baseLearnsetData.learnset) {
-					allPossibleMoves.push(i);
-				}
-			}
-		}
-
-		const validator = this.getValidator("ou");
-		let learnsetParent = validator.learnsetParent(firstLearnsetParent);
-		while (learnsetParent) {
-			const parentAllPossibleMoves = this.getAllPossibleMoves(learnsetParent);
-			for (const move of parentAllPossibleMoves) {
-				if (!allPossibleMoves.includes(move)) allPossibleMoves.push(move);
-			}
-			learnsetParent = validator.learnsetParent(learnsetParent);
-		}
-
-		this.allPossibleMovesCache.set(pokemon.id, allPossibleMoves);
-		return allPossibleMoves;
-	}
-
-	getLearnsetData(id: string): ILearnsetData | null {
-		if (!Object.prototype.hasOwnProperty.call(this.data.learnsets, id)) return null;
-		return this.data.learnsets[id]!;
+		return this.allPossibleMovesCache.get(pokemon.id) || [];
 	}
 
 	getExistingPokemon(name: string): IPokemon {
 		const pokemon = this.getPokemon(name);
-		if (!pokemon) throw new Error("No pokemon returned for '" + name + "'");
+		if (!pokemon) throw new Error("No Pokemon returned for '" + name + "'");
 		return pokemon;
 	}
 
-	getPokemonCopy(name: string): IPokemonCopy {
-		return Tools.deepClone(this.getExistingPokemon(name)) as IPokemonCopy;
+	getPokemonCopy(name: string | IPokemon): IPokemonCopy {
+		return Tools.deepClone(typeof name === 'string' ? this.getExistingPokemon(name) : name) as IPokemonCopy;
 	}
 
 	/** Returns a list of existing Pokemon
@@ -1245,7 +842,7 @@ export class Dex {
 	 */
 	getPokemonList(filter?: (pokemon: IPokemon) => boolean): IPokemon[] {
 		const pokedex: IPokemon[] = [];
-		for (const i in this.data.pokedex) {
+		for (const i of this.data.pokemonKeys) {
 			const pokemon = this.getExistingPokemon(i);
 			if (pokemon.isNonstandard === 'CAP' || pokemon.isNonstandard === 'LGPE' || pokemon.isNonstandard === 'Custom' ||
 				pokemon.gen > this.gen || (filter && !filter(pokemon))) continue;
@@ -1259,12 +856,7 @@ export class Dex {
 	 * filterPokemon: Return `false` to filter `pokemon` out of the list
 	 */
 	getPokemonCopyList(filter?: (pokemon: IPokemon) => boolean): IPokemonCopy[] {
-		const pokedex = this.getPokemonList(filter);
-		const copiedPokedex: IPokemonCopy[] = [];
-		for (const pokemon of pokedex) {
-			copiedPokedex.push(this.getPokemonCopy(pokemon.name));
-		}
-		return copiedPokedex;
+		return this.getPokemonList(filter).map(x => this.getPokemonCopy(x));
 	}
 
 	getEvolutionLines(pokemon: IPokemon): string[][] {
@@ -1310,6 +902,16 @@ export class Dex {
 		return true;
 	}
 
+	getType(name: string): ITypeData | undefined {
+		return this.typeCache.get(Tools.toId(name));
+	}
+
+	getExistingType(name: string): ITypeData {
+		const type = this.getType(name);
+		if (!type) throw new Error("No type returned for '" + name + "'");
+		return type;
+	}
+
 	/**
 	 * Returns true if target is immune to source
 	 */
@@ -1336,7 +938,7 @@ export class Dex {
 			return false;
 		} else {
 			targetType = targetType as string;
-			const typeData = this.data.typeChart[targetType];
+			const typeData = this.getType(targetType);
 			if (typeData && typeData.damageTaken[sourceType] === 3) return true;
 		}
 		return false;
@@ -1402,7 +1004,7 @@ export class Dex {
 			return totalTypeMod;
 		} else {
 			targetType = targetType as string;
-			const typeData = this.data.typeChart[targetType];
+			const typeData = this.getType(targetType);
 			if (!typeData) return 0;
 			switch (typeData.damageTaken[sourceType]) {
 			case 1: return 1; // super-effective
@@ -1415,12 +1017,12 @@ export class Dex {
 	}
 
 	getWeaknesses(pokemon: IPokemon): string[] {
-		const weaknesses = [];
-		const types = Object.keys(this.data.typeChart);
-		for (const type of types) {
-			const isImmune = this.isImmune(type, pokemon);
-			const effectiveness = this.getEffectiveness(type, pokemon);
-			if (!isImmune && effectiveness >= 1) weaknesses.push(type);
+		const weaknesses: string[] = [];
+		for (const key of this.data.typeKeys) {
+			const type = this.getExistingType(key);
+			const isImmune = this.isImmune(type.name, pokemon);
+			const effectiveness = this.getEffectiveness(type.name, pokemon);
+			if (!isImmune && effectiveness >= 1) weaknesses.push(type.name);
 		}
 		return weaknesses;
 	}
@@ -1457,7 +1059,7 @@ export class Dex {
 				prefix += "-back";
 			}
 		}
-		let gif = '<img src="' + prefix + '/' + pokemon.spriteId + '.gif" ';
+		let gif = '<img src="' + prefix + '/' + pokemon.spriteid + '.gif" ';
 		if (!width || !height) {
 			let gifData: IGifData | undefined;
 			if (bw) {
@@ -1512,9 +1114,9 @@ export class Dex {
 		Formats
 	*/
 
-	getFormat(name: string, isTrusted?: boolean): IFormat | null {
+	getFormat(name: string, isTrusted?: boolean): IFormat | undefined {
 		let id = Tools.toId(name);
-		if (!id) return null;
+		if (!id) return;
 		const inputTarget = name;
 
 		let supplementaryAttributes: {customRules?: string[]; searchShow?: boolean} = {};
@@ -1537,9 +1139,7 @@ export class Dex {
 			}
 		}
 
-		if (Object.prototype.hasOwnProperty.call(this.data.aliases, id)) {
-			id = Tools.toId(this.data.aliases[id]);
-		} else if (id.startsWith('omotm')) {
+		if (id.startsWith('omotm')) {
 			let index: number;
 			if (id === 'omotm') {
 				index = 1;
@@ -1548,41 +1148,16 @@ export class Dex {
 			}
 			if (!isNaN(index) && index <= this.omotms.length) id = this.omotms[index - 1];
 		}
-		if (!Object.prototype.hasOwnProperty.call(this.data.formats, id)) {
+
+		if (!this.formatCache.has(id)) {
 			for (let i = currentGen; i >= 1; i--) {
 				const genId = 'gen' + i + id;
-				if (Object.prototype.hasOwnProperty.call(this.data.formats, genId)) return this.getFormat(genId, isTrusted);
+				if (this.formatCache.has(genId)) return this.getFormat(genId, isTrusted);
 			}
-			return null;
 		}
 
-		const formatData = Tools.deepClone(this.data.formats[id]!);
-		const maxLevel = formatData.maxLevel || 100;
-		const formatComputed: IFormatComputed = {
-			customRules: null,
-			banlist: formatData.banlist || [],
-			defaultLevel: formatData.defaultLevel || maxLevel,
-			effectType: (formatData.effectType || "Format") as FormatEffectType,
-			fullname: formatData.name,
-			gameType: formatData.gameType || "singles",
-			gen: formatData.mod ? this.mod(formatData.mod).gen : this.gen,
-			id,
-			inputTarget,
-			maxLevel,
-			mod: formatData.mod || currentGenString,
-			num: 0,
-			quickFormat: formatData.teamLength && formatData.teamLength.battle && formatData.teamLength.battle <= 2 ? true : false,
-			ruleset: formatData.ruleset || [],
-			ruleTable: null,
-			separatedCustomRules: null,
-			tournamentPlayable: !!(formatData.searchShow || formatData.challengeShow || formatData.tournamentShow),
-			unbanlist: formatData.unbanlist || [],
-			unranked: formatData.rated === false || id.includes('customgame') || id.includes('challengecup') ||
-				id.includes('hackmonscup') || (formatData.team && (id.includes('1v1') || id.includes('monotype'))) ||
-				formatData.mod === 'seasonal' || formatData.mod === 'ssb',
-		};
-
-		return Object.assign({}, formatData, formatComputed, supplementaryAttributes);
+		const format = this.formatCache.get(id);
+		return format ? Object.assign(Tools.deepClone(format), supplementaryAttributes, {inputTarget}) as IFormat : undefined;
 	}
 
 	getExistingFormat(name: string, isTrusted?: boolean): IFormat {
@@ -1650,10 +1225,11 @@ export class Dex {
 		return validatedFormatid;
 	}
 
-	getRuleTable(format: IFormat, depth: number = 1, repeals?: Map<string, number>): RuleTable {
+	getRuleTable(format: IFormat, depth = 1, repeals?: Map<string, number>): RuleTable {
 		if (format.ruleTable && !repeals) return format.ruleTable;
 		if (depth === 1 && dexes[format.mod || 'base'] !== this) {
-			return this.mod(format.mod).getRuleTable(format, depth + 1);
+			// throw new Error(`${format.mod} ${this.currentMod}`);
+			return this.getDex(format.mod).getRuleTable(format, depth + 1);
 		}
 		const ruleTable = new RuleTable();
 
@@ -1667,8 +1243,8 @@ export class Dex {
 		if (format.customRules) {
 			ruleset.push(...format.customRules);
 		}
-		if (format.checkLearnset) {
-			ruleTable.checkLearnset = [format.checkLearnset, format.name];
+		if (format.hasCheckLearnset) {
+			ruleTable.checkLearnset = [true, format.name];
 		}
 		if (format.timer) {
 			ruleTable.timer = [format.timer, format.name];
@@ -1706,7 +1282,9 @@ export class Dex {
 			if (rule.startsWith('!')) {
 				const repealDepth = repeals!.get(ruleSpec.slice(1));
 				if (repealDepth === undefined) throw new Error(`Multiple "${rule}" rules in ${format.name}`);
-				if (repealDepth === depth) throw new Error(`Rule "${rule}" did nothing because "${rule.slice(1)}" is not in effect`);
+				if (repealDepth === depth) {
+					throw new Error(`Rule "${rule}" did nothing because "${rule.slice(1)}" is not in effect`);
+				}
 				if (repealDepth === -depth) repeals!.delete(ruleSpec.slice(1));
 				continue;
 			}
@@ -1722,16 +1300,16 @@ export class Dex {
 				continue;
 			}
 			const subformat = this.getFormat(ruleSpec);
-			const subformatId = subformat ? subformat.id : Tools.toId(ruleSpec);
-			if (repeals && repeals.has(subformatId)) {
-				repeals.set(subformatId, -Math.abs(repeals.get(subformatId)!));
+			const subFormatId = subformat ? subformat.id: Tools.toId(ruleSpec);
+			if (repeals && repeals.has(subFormatId)) {
+				repeals.set(subFormatId, -Math.abs(repeals.get(subFormatId)!));
 				continue;
 			}
-			if (ruleTable.has(subformatId)) {
-				throw new Error(`Rule "${rule}" was added by "${format.name}" but already exists in "${ruleTable.get(subformatId) ||
+			if (ruleTable.has(subFormatId)) {
+				throw new Error(`Rule "${rule}" was added by "${format.name}" but already exists in "${ruleTable.get(subFormatId) ||
 					format.name}"`);
 			}
-			ruleTable.set(subformatId, '');
+			ruleTable.set(subFormatId, '');
 			if (!subformat) continue;
 			if (depth > 16) {
 				throw new Error(`Excessive ruleTable recursion in ${format.name}: ${ruleSpec} of ${format.ruleset}`);
@@ -1743,25 +1321,25 @@ export class Dex {
 					ruleTable.set(k, v || subformat.name);
 				}
 			}
-			for (const [rule, source, limit, bans] of subRuleTable.complexBans) {
-				ruleTable.addComplexBan(rule, source || subformat.name, limit, bans);
+			for (const [subRule, source, limit, bans] of subRuleTable.complexBans) {
+				ruleTable.addComplexBan(subRule, source || subformat.name, limit, bans);
 			}
-			for (const [rule, source, limit, bans] of subRuleTable.complexTeamBans) {
-				ruleTable.addComplexTeamBan(rule, source || subformat.name, limit, bans);
+			for (const [subRule, source, limit, bans] of subRuleTable.complexTeamBans) {
+				ruleTable.addComplexTeamBan(subRule, source || subformat.name, limit, bans);
 			}
 			if (subRuleTable.checkLearnset) {
 				if (ruleTable.checkLearnset) {
 					throw new Error(
 						`"${format.name}" has conflicting move validation rules from ` +
-						`"${ruleTable.checkLearnset[1]}" and "${subRuleTable.checkLearnset[1]}"`);
+						`"${ruleTable.checkLearnset[1]}" and "${subRuleTable.checkLearnset[1]}"`
+					);
 				}
 				ruleTable.checkLearnset = subRuleTable.checkLearnset;
 			}
 			if (subRuleTable.timer) {
 				if (ruleTable.timer) {
-					throw new Error(
-						`"${format.name}" has conflicting timer validation rules from ` +
-						`"${ruleTable.timer[1]}" and "${subRuleTable.timer[1]}"`);
+					throw new Error(`"${format.name}" has conflicting timer validation rules from "${ruleTable.timer[1]}" and ` +
+						`"${subRuleTable.timer[1]}"`);
 				}
 				ruleTable.timer = subRuleTable.timer;
 			}
@@ -1770,9 +1348,8 @@ export class Dex {
 			// latest gen but not in any past gens
 			if (subRuleTable.minSourceGen && subRuleTable.minSourceGen[0] <= this.gen) {
 				if (ruleTable.minSourceGen) {
-					throw new Error(
-						`"${format.name}" has conflicting minSourceGen from ` +
-						`"${ruleTable.minSourceGen[1]}" and "${subRuleTable.minSourceGen[1]}"`);
+					throw new Error(`"${format.name}" has conflicting minSourceGen from "${ruleTable.minSourceGen[1]}" and ` +
+						`"${subRuleTable.minSourceGen[1]}"`);
 				}
 				ruleTable.minSourceGen = subRuleTable.minSourceGen;
 			}
@@ -1782,18 +1359,17 @@ export class Dex {
 		return ruleTable;
 	}
 
-	validateRule(rule: string, format: IFormat | null = null): string |
-		['complexTeamBan' | 'complexBan', string, string, number, string[]] {
+	validateRule(rule: string, format: IFormat | null = null): [string, string, string, number, string[]] | string {
 		switch (rule.charAt(0)) {
 		case '-':
-		case '+':
+		case '+': {
 			if (format && format.team) throw new Error(`We don't currently support bans in generated teams`);
 			if (rule.slice(1).includes('>') || rule.slice(1).includes('+')) {
 				let buf = rule.slice(1);
 				const gtIndex = buf.lastIndexOf('>');
 				let limit = rule.startsWith('+') ? Infinity : 0;
 				if (gtIndex >= 0 && /^[0-9]+$/.test(buf.slice(gtIndex + 1).trim())) {
-					if (limit === 0) limit = parseInt(buf.slice(gtIndex + 1), 10);
+					if (limit === 0) limit = parseInt(buf.slice(gtIndex + 1));
 					buf = buf.slice(0, gtIndex);
 				}
 				let checkTeam = buf.includes('++');
@@ -1811,9 +1387,10 @@ export class Dex {
 				throw new Error(`Confusing rule ${rule}`);
 			}
 			return rule.charAt(0) + this.validateBanRule(rule.slice(1));
+		}
 		default: {
 			const id = Tools.toId(rule);
-			if (!Object.prototype.hasOwnProperty.call(this.data.formats, id)) {
+			if (!this.data.formatKeys.includes(id)) {
 				throw new Error(`Unrecognized rule "${rule}"`);
 			}
 			if (rule.startsWith('!')) return `!${id}`;
@@ -1838,12 +1415,12 @@ export class Dex {
 		const ruleid = id;
 		if (Object.prototype.hasOwnProperty.call(this.data.aliases, id)) id = Tools.toId(this.data.aliases[id]);
 		for (const matchType of matchTypes) {
-			let table;
+			let table: readonly string[];
 			switch (matchType) {
-			case 'pokemon': table = this.data.pokedex; break;
-			case 'move': table = this.data.moves; break;
-			case 'item': table = this.data.items; break;
-			case 'ability': table = this.data.abilities; break;
+			case 'pokemon': table = this.data.pokemonKeys; break;
+			case 'move': table = this.data.moveKeys; break;
+			case 'item': table = this.data.itemKeys; break;
+			case 'ability': table = this.data.abilityKeys; break;
 			case 'pokemontag': {
 				// valid pokemontags
 				const validTags = [
@@ -1865,10 +1442,10 @@ export class Dex {
 			default:
 				throw new Error(`Unrecognized match type.`);
 			}
-			if (Object.prototype.hasOwnProperty.call(table, id)) {
+			if (table.includes(id)) {
 				if (matchType === 'pokemon') {
-					const template: IPokemon = (table[id] as unknown) as IPokemon;
-					if (template.otherFormes && ruleid !== template.id + Tools.toId(template.baseForme)) {
+					const species = this.pokemonCache.get(id) as IPokemon;
+					if (species.otherFormes && ruleid !== species.id + Tools.toId(species.baseForme)) {
 						matches.push('basepokemon:' + id);
 						continue;
 					}
@@ -1876,7 +1453,7 @@ export class Dex {
 				matches.push(matchType + ':' + id);
 			} else if (matchType === 'pokemon' && id.endsWith('base')) {
 				id = id.slice(0, -4);
-				if (Object.prototype.hasOwnProperty.call(table, id)) {
+				if (table.includes(id)) {
 					matches.push('pokemon:' + id);
 				}
 			}
@@ -2041,37 +1618,6 @@ export class Dex {
 			html.push("&nbsp;&nbsp;&nbsp;&nbsp;<b>Removed rules</b>: " + format.separatedCustomRules.removedrules.join(", "));
 		}
 		return html.join("<br />");
-	}
-
-	getValidator(formatid?: string | IFormat): TeamValidator {
-		let format;
-		if (formatid) {
-			format = typeof formatid === 'string' ? this.getExistingFormat(formatid) : formatid;
-		} else {
-			format = this.getExistingFormat('gen' + this.gen + 'ou');
-		}
-		return TeamValidator.get(format);
-	}
-
-	/*
-		pokemon-showdown compatibility
-	*/
-
-	forFormat(formatid: string | IFormat): Dex {
-		const format = typeof formatid === 'string' ? this.getExistingFormat(formatid) : formatid;
-		dexes['base'].loadData();
-		const dex = dexes[format.mod || 'base'];
-		if (dex !== dexes['base']) dex.loadData();
-		return dex;
-	}
-
-	mod(mod: string | undefined): Dex {
-		if (!dexes['base'].loadedMods) dexes['base'].includeMods();
-		return dexes[mod || 'base'];
-	}
-
-	getSpecies(name: string | IPokemon): IPokemon | null {
-		return this.getPokemon(typeof name === 'string' ? name : name.name);
 	}
 
 	private getAllEvolutionLines(pokemon: IPokemon, prevoList?: string[], evolutionLines?: string[][]): string[][] {

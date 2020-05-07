@@ -3,66 +3,63 @@ import { assert, assertStrictEqual } from './../test-tools';
 /* eslint-env mocha */
 
 describe("Dex", () => {
-	it('should compute all data types properly', () => {
-		for (const i in Dex.data.abilities) {
-			assert(Dex.getExistingAbility(i), i);
-		}
-		for (const i in Dex.data.formats) {
-			assert(Dex.getExistingFormat(i), i);
-		}
-		for (const i in Dex.data.items) {
-			assert(Dex.getExistingItem(i), i);
-		}
-		for (const i in Dex.data.moves) {
-			assert(Dex.getExistingMove(i), i);
-		}
-		for (const i in Dex.data.pokedex) {
-			assert(Dex.getExistingPokemon(i), i);
-		}
+	it('should properly load data', () => {
+		assert(Dex.data.abilityKeys.length > 1);
+		assert(Dex.data.formatKeys.length > 1);
+		assert(Dex.data.itemKeys.length > 1);
+		assert(Dex.data.learnsetDataKeys.length > 1);
+		assert(Dex.data.moveKeys.length > 1);
+		assert(Dex.data.pokemonKeys.length > 1);
+		assert(Dex.data.typeKeys.length > 1);
 
-		// abilities
-		assertStrictEqual(Dex.getDex('gen2').getExistingAbility('Intimidate').isNonstandard, 'Future');
-		assert(!Dex.getDex('gen3').getExistingAbility('Intimidate').isNonstandard);
+		assert(Dex.data.badges.length > 1);
+		assert(Dex.data.characters.length > 1);
+		assert(Dex.data.locations.length > 1);
+		assert(Dex.data.trainerClasses.length > 1);
 
-		// items
-		assertStrictEqual(Dex.getDex('gen1').getExistingItem('Gold Berry').isNonstandard, 'Future');
-		assert(!Dex.getDex('gen2').getExistingItem('Gold Berry').isNonstandard);
-		assertStrictEqual(Dex.getDex('gen3').getExistingItem('Gold Berry').isNonstandard, 'Past');
+		assert(Object.keys(Dex.data.aliases).length > 1);
+		assert(Object.keys(Dex.data.categories).length > 1);
+		assert(Object.keys(Dex.data.colors).length > 1);
+		assert(Object.keys(Dex.data.eggGroups).length > 1);
+		assert(Object.keys(Dex.data.gifData).length > 1);
+		assert(Object.keys(Dex.data.gifDataBW).length > 1);
+		assert(Object.keys(Dex.data.natures).length > 1);
 
-		// pokemon
-		assertStrictEqual(Dex.getDex('gen1').getExistingPokemon('Togepi').isNonstandard, 'Future');
-		assert(!Dex.getDex('gen2').getExistingPokemon('Togepi').isNonstandard);
-		assert(!Dex.getDex('gen4').getExistingPokemon('Pichu-Spiky-Eared').isNonstandard);
-		assertStrictEqual(Dex.getDex('gen5').getExistingPokemon('Pichu=Spiky-Eared').isNonstandard, 'Past');
+		// aliases
+		assert(Dex.abilityCache.size > Dex.data.abilityKeys.length);
+		assert(Dex.formatCache.size > Dex.data.formatKeys.length);
+		assert(Dex.itemCache.size > Dex.data.itemKeys.length);
+		assert(Dex.moveCache.size > Dex.data.moveKeys.length);
+		assert(Dex.pokemonCache.size > Dex.data.pokemonKeys.length);
 
-		assertStrictEqual(Dex.getExistingPokemon("Darmanitan").gen, 5);
-		assertStrictEqual(Dex.getExistingPokemon("Darmanitan-Zen").gen, 5);
-		assertStrictEqual(Dex.getExistingPokemon("Darmanitan-Galar").gen, 8);
-		assertStrictEqual(Dex.getExistingPokemon("Darmanitan-Galar-Zen").gen, 8);
-		assertStrictEqual(Dex.getExistingPokemon("Greninja").gen, 6);
-		assertStrictEqual(Dex.getExistingPokemon("Ash Greninja").gen, 7);
-
-		assertStrictEqual(Dex.getExistingPokemon('Flabébé-yellow').name, 'Flabébé-Yellow');
-
+		// allPossibleMoves
 		let pokemon = Dex.getExistingPokemon('Charizard');
+		let allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
+		assert(allPossibleMoves.length > 1);
 		let learnsetData = Dex.getLearnsetData(pokemon.id);
-		assert(learnsetData && learnsetData.learnset);
-		assert(Dex.getAllPossibleMoves(pokemon).length > Object.keys(learnsetData.learnset).length, pokemon.name);
+		assert(learnsetData && learnsetData.learnset && Object.keys(learnsetData.learnset).length > 1);
+		assert(allPossibleMoves.length > Object.keys(learnsetData.learnset).length, pokemon.name);
 
 		pokemon = Dex.getExistingPokemon('Lycanroc-Dusk');
+		allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
+		assert(allPossibleMoves.length > 1);
 		learnsetData = Dex.getLearnsetData(pokemon.id);
-		assert(learnsetData && learnsetData.learnset);
-		assert(Dex.getAllPossibleMoves(pokemon).length > Object.keys(learnsetData.learnset).length, pokemon.name);
+		assert(learnsetData && learnsetData.learnset && Object.keys(learnsetData.learnset).length > 1);
+		assert(allPossibleMoves.length > Object.keys(learnsetData.learnset).length, pokemon.name);
 
 		pokemon = Dex.getExistingPokemon('Rotom-Frost');
+		allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
+		assert(allPossibleMoves.length > 1);
 		learnsetData = Dex.getLearnsetData(pokemon.id);
 		assert(learnsetData && learnsetData.learnset);
-		assert(Dex.getAllPossibleMoves(pokemon).length > Object.keys(learnsetData.learnset).length, pokemon.name);
+		assert(allPossibleMoves.length > Object.keys(learnsetData.learnset).length, pokemon.name);
 
 		pokemon = Dex.getExistingPokemon('Pikachu-Gmax');
+		allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
+		assert(allPossibleMoves.length > 1);
 		learnsetData = Dex.getLearnsetData(pokemon.id);
 		assert(learnsetData && learnsetData.learnset);
-		assert(Dex.getAllPossibleMoves(pokemon).length > Object.keys(learnsetData.learnset).length, pokemon.name);
+		assert(allPossibleMoves.length > Object.keys(learnsetData.learnset).length, pokemon.name);
 
 		const houndour = Dex.getExistingPokemon('Houndour');
 		const houndoomMega = Dex.getExistingPokemon('Houndoom-Mega');
@@ -80,35 +77,63 @@ describe("Dex", () => {
 			assert(allPossibleMovesRaticateAlola.includes(move));
 		}
 
-		/*
-		assertStrictEqual(Dex.getExistingPokemon('Arceus').tier, 'Uber');
-		assertStrictEqual(Dex.getExistingPokemon('Arceus-Bug').tier, 'Uber');
-		assertStrictEqual(Dex.getExistingPokemon('Lurantis').tier, 'PU');
-		assertStrictEqual(Dex.getExistingPokemon('Lurantis-Totem').tier, 'PU');
-		*/
-		assertStrictEqual(Dex.getDex('gen1').getExistingPokemon('Togetic').tier, 'Illegal');
-
-		// moves
-		assertStrictEqual(Dex.getDex('gen6').getExistingMove('Baddy Bad').isNonstandard, 'Future');
-		assertStrictEqual(Dex.getDex('gen7').getExistingMove('Baddy Bad').isNonstandard, 'LGPE');
-
 		// other in-game data
-		assert(Dex.data.badges.length, "Badges should be loaded from badges.js");
 		for (let i = 0; i < Dex.data.badges.length; i++) {
 			assert(Dex.data.badges.indexOf(Dex.data.badges[i]) === i, "Duplicate badge " + Dex.data.badges[i]);
 		}
 
-		assert(Dex.data.characters.length, "Characters should be loaded from characters.js");
 		for (let i = 0; i < Dex.data.characters.length; i++) {
 			assert(Dex.data.characters.indexOf(Dex.data.characters[i]) === i, "Duplicate character " + Dex.data.characters[i]);
 		}
 
 		const categoryKeys = Object.keys(Dex.data.categories);
-		assert(categoryKeys.length, "Categories should be loaded from categories.js");
 		assertStrictEqual(Dex.getExistingPokemon('Pikachu').category, 'Mouse');
 		for (let i = 0; i < categoryKeys.length; i++) {
 			assert(Tools.toId(categoryKeys[i]) === categoryKeys[i], categoryKeys[i] + " should be an ID in categories.js");
 			assert(categoryKeys.indexOf(categoryKeys[i]) === i, "Duplicate category for " + categoryKeys[i]);
+		}
+	});
+	it('should return data based on ids', () => {
+		const ability = Dex.getAbility("Air Lock");
+		assert(ability);
+		let variants: string[] = ["airlock", "air lock", "Air lock", "air Lock", "AIRLOCK", "AIR LOCK"];
+		for (const variant of variants) {
+			assertStrictEqual(Dex.getAbility(variant), ability);
+		}
+
+		const format = Dex.getFormat("[Gen " + Dex.gen + "] OU");
+		assert(format);
+		variants = ["gen" + Dex.gen + "ou", "gen" + Dex.gen + " ou", "Gen" + Dex.gen + "ou", "Gen" + Dex.gen + " ou"];
+		for (const variant of variants) {
+			assertStrictEqual(Dex.getFormat(variant)!.name, format.name);
+		}
+
+		const item = Dex.getItem("Burn Drive");
+		assert(item);
+		variants = ["burndrive", "burn drive", "Burn drive", "burn Drive", "BURNDRIVE", "BURN DRIVE"];
+		for (const variant of variants) {
+			assertStrictEqual(Dex.getItem(variant), item);
+		}
+
+		const move = Dex.getMove("Acid Armor");
+		assert(move);
+		variants = ["acidarmor", "acid armor", "Acid armor", "acid Armor", "ACIDARMOR", "ACID ARMOR"];
+		for (const variant of variants) {
+			assertStrictEqual(Dex.getMove(variant), move);
+		}
+
+		const pokemon = Dex.getPokemon("Mr. Mime");
+		assert(pokemon);
+		variants = ["mrmime", "mr mime", "Mr mime", "mr Mime", "MRMIME", "MR MIME", "mr.mime", "mr. mime", "Mr. mime", "mr. Mime",
+			"MR.MIME", "MR. MIME"];
+		for (const variant of variants) {
+			assertStrictEqual(Dex.getPokemon(variant), pokemon);
+		}
+
+		const learnsetData = Dex.getLearnsetData("Mr. Mime");
+		assert(learnsetData);
+		for (const variant of variants) {
+			assertStrictEqual(Dex.getLearnsetData(variant), learnsetData);
 		}
 	});
 	it('should support OMoTM# aliases', () => {
@@ -167,6 +192,11 @@ describe("Dex", () => {
 		const items = Dex.getItemsList().map(x => x.name);
 		const moves = Dex.getMovesList().map(x => x.name);
 		const pokemon = Dex.getPokemonList().map(x => x.name);
+
+		assert(abilities.length);
+		assert(items.length);
+		assert(moves.length);
+		assert(pokemon.length);
 
 		assert(!abilities.includes(Dex.getExistingAbility('No Ability').name));
 

@@ -57,8 +57,9 @@ class StakatakasCardTower extends CardMatching {
 			if (!id) return false;
 			const index = this.getCardIndex(id, cards);
 			if (index < 0) {
-				if (Dex.data.pokedex[id]) {
-					player.say("You do not have [ " + Dex.getExistingPokemon(id).name + " ].");
+				const pokemon = Dex.getPokemon(id);
+				if (pokemon) {
+					player.say("You do not have [ " + pokemon.name + " ].");
 				} else {
 					player.say("'" + targets[i] + "' is not a valid Pokemon.");
 				}
@@ -275,5 +276,5 @@ export const game: IGameFile<StakatakasCardTower> = Games.copyTemplateProperties
 	name: "Stakataka's Card Tower",
 	mascot: "Stakataka",
 	scriptedOnly: true,
-	tests,
+	tests: Object.assign({}, cardGame.tests, tests),
 });

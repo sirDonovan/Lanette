@@ -132,6 +132,7 @@ export class Games {
 		const workers = Object.keys(this.workers) as (keyof IGamesWorkers)[];
 		for (const worker of workers) {
 			this.workers[worker].unref();
+			delete this.workers[worker];
 		}
 	}
 
@@ -804,12 +805,7 @@ export class Games {
 	getAbilitiesCopyList(filter?: (ability: IAbility) => boolean, gen?: string): IAbilityCopy[] {
 		let dex = Dex;
 		if (gen) dex = Dex.getDex(gen);
-		const baseList = this.getAbilitiesList(filter, gen);
-		const list: IAbilityCopy[] = [];
-		for (const ability of baseList) {
-			list.push(dex.getAbilityCopy(ability.name));
-		}
-		return list;
+		return this.getAbilitiesList(filter, gen).map(x => dex.getAbilityCopy(x));
 	}
 
 	/** Returns a list of standard items for games
@@ -835,12 +831,7 @@ export class Games {
 	getItemsCopyList(filter?: (item: IItem) => boolean, gen?: string): IItemCopy[] {
 		let dex = Dex;
 		if (gen) dex = Dex.getDex(gen);
-		const baseList = this.getItemsList(filter);
-		const list: IItemCopy[] = [];
-		for (const item of baseList) {
-			list.push(dex.getItemCopy(item.name));
-		}
-		return list;
+		return this.getItemsList(filter, gen).map(x => dex.getItemCopy(x));
 	}
 
 	/** Returns a list of standard moves for games
@@ -866,12 +857,7 @@ export class Games {
 	getMovesCopyList(filter?: (move: IMove) => boolean, gen?: string): IMoveCopy[] {
 		let dex = Dex;
 		if (gen) dex = Dex.getDex(gen);
-		const baseList = this.getMovesList(filter);
-		const list: IMoveCopy[] = [];
-		for (const move of baseList) {
-			list.push(dex.getMoveCopy(move.name));
-		}
-		return list;
+		return this.getMovesList(filter, gen).map(x => dex.getMoveCopy(x));
 	}
 
 	/** Returns a list of standard Pokemon for games
@@ -897,12 +883,7 @@ export class Games {
 	getPokemonCopyList(filter?: (pokemon: IPokemon) => boolean, gen?: string): IPokemonCopy[] {
 		let dex = Dex;
 		if (gen) dex = Dex.getDex(gen);
-		const baseList = this.getPokemonList(filter);
-		const list: IPokemonCopy[] = [];
-		for (const pokemon of baseList) {
-			list.push(dex.getPokemonCopy(pokemon.name));
-		}
-		return list;
+		return this.getPokemonList(filter, gen).map(x => dex.getPokemonCopy(x));
 	}
 
 	isIncludedPokemonTier(tier: string): boolean {

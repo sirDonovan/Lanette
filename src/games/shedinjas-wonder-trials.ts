@@ -36,7 +36,7 @@ class ShedinjasWonderTrials extends Game {
 		for (const move of movesList) {
 			data.moves.push(move.name);
 		}
-		const pokemonList = Games.getPokemonList(x => !x.isForme);
+		const pokemonList = Games.getPokemonList(x => x.baseSpecies === x.name);
 		for (const pokemon of pokemonList) {
 			data.pokedex.push(pokemon.name);
 		}

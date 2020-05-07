@@ -16,7 +16,7 @@ class MiltanksMoves extends Guessing {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		const pokedex = Games.getPokemonList(x => !x.isForme && !!Dex.getAllPossibleMoves(x).length);
+		const pokedex = Games.getPokemonList(x => x.baseSpecies === x.name && !!Dex.getAllPossibleMoves(x).length);
 		const moves = Games.getMovesList();
 		const bannedMoves: string[] = [];
 		for (const move of moves) {

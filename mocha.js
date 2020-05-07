@@ -12,8 +12,8 @@ for (let i = process.argv.indexOf(__filename) + 1; i < process.argv.length; i++)
 	}
 }
 
-require(path.join(__dirname, 'build.js'))(options, () => {
-	require(path.join(__dirname, 'built', 'test', 'main.js'))(options);
+require(path.join(__dirname, 'build.js'))(options, async () => {
+	await require(path.join(__dirname, 'built', 'test', 'main.js'))(options);
 }, () => {
 	process.exit(1);
 });

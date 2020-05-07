@@ -1,9 +1,9 @@
-import { RuleTable } from "../dex";
-
 /**
  * Some types imported from:
  * Pokemon Showdown - https://github.com/smogon/pokemon-showdown
  */
+
+import { RuleTable } from "../dex";
 
 type GenderName = 'M' | 'F' | 'N' | '';
 type StatNameExceptHP = 'atk' | 'def' | 'spa' | 'spd' | 'spe';
@@ -95,60 +95,27 @@ interface IEventInfo {
 	from?: string;
 }
 
-interface IEffectData {
-	name?: string;
-	desc?: string;
-	duration?: number;
-	effectType?: string;
-	infiltrates?: boolean;
-	isNonstandard?: Nonstandard | null;
-	shortDesc?: string;
-}
-
 type EffectType = 'Effect' | 'Pokemon' | 'Move' | 'Item' | 'Ability' | 'Format' | 'Ruleset' | 'Weather' | 'Status' | 'Rule' |
 	'ValidatorRule';
 
-interface IBasicEffect extends IEffectData {
-	id: string;
+interface IBasicEffect {
+	desc: string;
 	effectType: EffectType;
-	fullname: string;
 	gen: number;
+	id: string;
+	shortDesc: string;
 }
 
-interface IPureEffectData extends IEffectData {
-	affectsFainted?: boolean;
-	noCopy?: boolean;
-	counterMax?: number;
-}
-
-interface IPureEffect extends Readonly<IBasicEffect & IPureEffectData> {
-	readonly effectType: 'Status' | 'Effect' | 'Weather';
-}
-
-interface IAbilityData extends IEffectData {
+interface IAbilityCopy extends IBasicEffect {
 	name: string;
-	/** internal index number */
-	num?: number;
-	effect?: Partial<IPureEffectData>;
-	rating?: number;
-	isUnbreakable?: boolean;
-	suppressWeather?: boolean;
-}
-
-export interface IAbilityComputed {
 	effectType: "Ability";
 	fullname: string;
 	gen: number;
 	id: string;
 	isNonstandard: Nonstandard | null;
 	rating: number;
-}
-
-interface IAbilityCopy extends IBasicEffect, IAbilityData, IAbilityComputed {
-	readonly effectType: 'Ability';
-	name: string;
-	isNonstandard: Nonstandard | null;
-	rating: number;
+	isUnbreakable?: boolean;
+	suppressWeather?: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -158,17 +125,18 @@ interface IFlingData {
 	basePower: number;
 	status?: string;
 	volatileStatus?: string;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	effect?: () => any;
 }
 
-export interface IItemData extends IEffectData {
+export interface IItemCopy extends IBasicEffect {
 	name: string;
+	effectType: "Item";
+	fling?: IFlingData;
+	fullname: string;
+	gen: number;
+	id: string;
+	isNonstandard: Nonstandard | null;
 	/** just controls location on the item spritesheet */
 	num?: number;
-	effect?: Partial<IPureEffectData>;
-	gen: number;
-	fling?: IFlingData;
 	forcedForme?: string;
 	ignoreKlutz?: boolean;
 	isBerry?: boolean;
@@ -189,28 +157,10 @@ export interface IItemData extends IEffectData {
 	boosts?: SparseBoostsTable | false;
 }
 
-export interface IItemComputed {
-	effectType: "Item";
-	fling?: IFlingData;
-	fullname: string;
-	gen: number;
-	id: string;
-	isNonstandard: Nonstandard | null;
-}
-
-export interface IItemCopy extends IBasicEffect, IItemData, IItemComputed {
-	readonly effectType: 'Item';
-	name: string;
-	isNonstandard: Nonstandard | null;
-}
-
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IItem extends DeepReadonly<IItemCopy> {}
 
 interface IHitEffect {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	onHit?: () => any;
-
 	// set pokemon conditions
 	boosts?: SparseBoostsTable | null;
 	status?: string;
@@ -243,11 +193,24 @@ interface ISecondaryEffect extends IHitEffect {
 	self?: IHitEffect;
 }
 
-export interface IMoveData extends IEffectData {
+export interface IMoveCopy extends IBasicEffect {
 	name: string;
+	baseMoveType: string;
+	critRatio: number;
+	effectType: "Move";
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	flags: Dict<any>;
+	fullname: string;
+	gen: number;
+	id: string;
+	ignoreImmunity: boolean | Dict<boolean>;
+	isNonstandard: Nonstandard | null;
+	nonGhostTarget: string;
+	pressureTarget: string;
+	secondaries: ISecondaryEffect[] | null;
+	zMovePower?: number;
 	/** move index number, used for Metronome rolls */
 	num?: number;
-	effect?: Partial<IPureEffectData>;
 	basePower: number;
 	accuracy: true | number;
 	pp: number;
@@ -255,8 +218,6 @@ export interface IMoveData extends IEffectData {
 	type: string;
 	priority: number;
 	target: MoveTarget;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	flags: Dict<any>;
 	/** Hidden Power */
 	realMove?: string;
 
@@ -274,29 +235,22 @@ export interface IMoveData extends IEffectData {
 	 * Sparksurfer.
 	 */
 	isZ?: boolean | string;
-	zMovePower?: number;
-	zMoveEffect?: string;
-	zMoveBoost?: SparseBoostsTable;
-	/**
-	 * Has this move been boosted by a Z-crystal? Usually the same as
-	 * `isZ`, but hacked moves will have this be `false` and `isZ` be
-	 * truthy.
-	 */
-	isZPowered?: boolean;
+	zMove?: {
+		basePower?: number;
+		effect?: string;
+		boost?: SparseBoostsTable;
+	};
 
 	// Max move data
 	// -------------
-	gmaxPower?: number;
 	/**
 	 * `true` for Max moves like Max Airstream. If its a G-Max moves, this is
 	 * the species ID of the Gigantamax Pokemon that can use this G-Max move.
 	 */
 	isMax?: boolean | string;
-	/**
-	 * Same idea has `isZPowered`. Hacked Max moves will have this be
-	 * `false` and `isMax` be truthy.
-	 */
-	maxPowered?: boolean;
+	maxMove?: {
+		basePower: number;
+	};
 
 	// Hit effects
 	// -----------
@@ -320,23 +274,19 @@ export interface IMoveData extends IEffectData {
 	stealsBoosts?: boolean;
 	struggleRecoil?: boolean;
 	secondary?: ISecondaryEffect | null;
-	secondaries?: ISecondaryEffect[] | null;
 	self?: IHitEffect | null;
 
 	// Hit effect modifiers
 	// --------------------
 	alwaysHit?: boolean; // currently unused
-	baseMoveType?: string;
 	basePowerModifier?: number;
 	critModifier?: number;
-	critRatio?: number;
 	defensiveCategory?: 'Physical' | 'Special' | 'Status';
 	forceSTAB?: boolean;
 	ignoreAbility?: boolean;
 	ignoreAccuracy?: boolean;
 	ignoreDefensive?: boolean;
 	ignoreEvasion?: boolean;
-	ignoreImmunity?: boolean | {[k: string]: boolean};
 	ignoreNegativeOffensive?: boolean;
 	ignoreOffensive?: boolean;
 	ignorePositiveDefensive?: boolean;
@@ -347,8 +297,6 @@ export interface IMoveData extends IEffectData {
 	noDamageVariance?: boolean;
 	/** False Swipe */
 	noFaint?: boolean;
-	nonGhostTarget?: string;
-	pressureTarget?: string;
 	spreadModifier?: number;
 	sleepUsable?: boolean;
 	/**
@@ -374,38 +322,7 @@ export interface IMoveData extends IEffectData {
 	stallingMove?: boolean;
 	baseMove?: string;
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	basePowerCallback?: (this: any, pokemon: any, target: any, move: any) => number | false | null;
-}
-
-export interface IMoveComputed {
-	baseMoveType: string;
-	critRatio: number;
-	effectType: "Move";
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	flags: Dict<any>;
-	fullname: string;
-	gen: number;
-	gmaxPower?: number;
-	id: string;
-	ignoreImmunity: IMoveData["ignoreImmunity"];
-	isNonstandard: Nonstandard | null;
-	nonGhostTarget: string;
-	pressureTarget: string;
-	secondaries: IMoveData["secondaries"];
-	zMovePower?: number;
-}
-
-export interface IMoveCopy extends IBasicEffect, IMoveData, IMoveComputed {
-	readonly effectType: "Move";
-	baseMoveType: string;
-	critRatio: number;
-	ignoreImmunity: IMoveData["ignoreImmunity"];
-	isNonstandard: Nonstandard | null;
-	name: string;
-	nonGhostTarget: string;
-	pressureTarget: string;
-	secondaries: IMoveData["secondaries"];
+	hasBasePowerCallback?: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -416,44 +333,6 @@ interface ISpeciesAbility {
 	1?: string;
 	H?: string;
 	S?: string;
-}
-
-interface ISpeciesData {
-	name: string;
-	/** National Dex number */
-	num: number;
-	abilities: ISpeciesAbility;
-	baseStats: StatsTable;
-	eggGroups: string[];
-	types: string[];
-	weightkg: number;
-	color?: string;
-	heightm?: number;
-
-	canHatch?: boolean;
-	baseForme?: string;
-	baseSpecies?: string;
-	evoLevel?: number;
-	evoMove?: string;
-	evoCondition?: string;
-	evoItem?: string;
-	evos?: string[];
-	evoType?: 'trade' | 'useItem' | 'levelMove' | 'levelExtra' | 'levelFriendship' | 'levelHold' | 'other';
-	forme?: string;
-	gender?: GenderName;
-	genderRatio?: {[k: string]: number};
-	maxHP?: number;
-	cosmeticFormes?: string[];
-	otherFormes?: string[];
-	prevo?: string;
-	gen?: number;
-	requiredAbility?: string;
-	requiredItem?: string;
-	requiredItems?: string[];
-	requiredMove?: string;
-	battleOnly?: string | string[];
-	isGigantamax?: string;
-	changesFrom?: string;
 }
 
 interface IGen2RandomSet {
@@ -483,14 +362,10 @@ export interface ISpeciesFormatsData {
 	unreleasedHidden?: boolean | 'Past';
 }
 
-interface ILearnsetData {
-	learnset?: Dict<MoveSource[]>;
-	eventData?: IEventInfo[];
-	eventOnly?: boolean;
-	encounters?: IEventInfo[];
-}
-
-export interface IPokemonComputed {
+interface IPokemonCopy extends ISpeciesFormatsData {
+	name: string;
+	/** National Dex number */
+	num: number;
 	baseForme: string;
 	baseSpecies: string;
 	battleOnly?: string | string[];
@@ -504,46 +379,50 @@ export interface IPokemonComputed {
 	fullname: string;
 	gen: number;
 	gender: GenderName;
-	genderRatio: NonNullable<ISpeciesData["genderRatio"]>;
+	genderRatio: Dict<number>;
 	heightm: number;
 	id: string;
-	isForme: boolean;
 	isMega: boolean;
 	isNonstandard: Nonstandard | null;
 	isPrimal: boolean;
-	name: string;
 	nfe: boolean;
 	prevo: string;
 	requiredItems: string[] | undefined;
 	shiny: boolean;
 	speciesid: string;
-	spriteId: string;
+	spriteid: string;
 	tier: string;
 	weightkg: number;
 	weighthg: number;
-}
+	abilities: ISpeciesAbility;
+	baseStats: StatsTable;
+	eggGroups: string[];
+	types: string[];
 
-export interface IPokemonCopy extends IBasicEffect, ISpeciesData, ISpeciesFormatsData, IPokemonComputed {
-	readonly effectType: "Pokemon";
-	baseForme: string;
-	baseSpecies: string;
-	color: string;
-	doublesTier: string;
-	evos: string[];
-	forme: string;
-	gen: number;
-	gender: GenderName;
-	genderRatio: NonNullable<ISpeciesData["genderRatio"]>;
-	heightm: number;
-	isNonstandard: Nonstandard | null;
-	name: string;
-	prevo: string;
-	requiredItems: string[] | undefined;
-	tier: string;
+	canHatch?: boolean;
+	evoLevel?: number;
+	evoMove?: string;
+	evoCondition?: string;
+	evoItem?: string;
+	evoType?: 'trade' | 'useItem' | 'levelMove' | 'levelExtra' | 'levelFriendship' | 'levelHold' | 'other';
+	maxHP?: number;
+	cosmeticFormes?: string[];
+	otherFormes?: string[];
+	requiredAbility?: string;
+	requiredItem?: string;
+	requiredMove?: string;
+	isGigantamax?: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IPokemon extends DeepReadonly<IPokemonCopy> {}
+
+interface ILearnsetData {
+	learnset?: Dict<MoveSource[]>;
+	eventData?: IEventInfo[];
+	eventOnly?: boolean;
+	encounters?: IEventInfo[];
+}
 
 export type FormatEffectType = 'Format' | 'Ruleset' | 'Rule' | 'ValidatorRule';
 type GameType = 'singles' | 'doubles' | 'triples' | 'rotation' | 'multi' | 'free-for-all';
@@ -552,7 +431,22 @@ type SideID = 'p1' | 'p2' | 'p3' | 'p4';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface IFormatData {
 	name: string;
-	banlist?: string[];
+	banlist: string[];
+	customRules: string[] | null;
+	defaultLevel: number;
+	fullname: string;
+	gameType: GameType;
+	gen: number;
+	id: string;
+	maxLevel: number;
+	mod: string;
+	num: number;
+	quickFormat: boolean;
+	ruleset: string[];
+	separatedCustomRules: ISeparatedCustomRules | null;
+	tournamentPlayable: boolean;
+	unbanlist: string[];
+	unranked: boolean;
 	battle?: any;
 	pokemon?: any;
 	// queue?: ModdedBattleQueue;
@@ -560,54 +454,21 @@ export interface IFormatData {
 	cannotMega?: string[];
 	challengeShow?: boolean;
 	debug?: boolean;
-	defaultLevel?: number;
 	desc?: string;
-	effectType?: string;
 	forcedLevel?: number;
-	gameType?: GameType;
 	maxForcedLevel?: number;
-	maxLevel?: number;
-	mod?: string;
-	onBasePowerPriority?: number;
-	onModifyMovePriority?: number;
-	onModifyTypePriority?: number;
-	onSwitchInPriority?: number;
 	rated?: boolean;
 	minSourceGen?: number;
 	restricted?: string[];
-	ruleset?: string[];
 	searchShow?: boolean;
 	team?: string;
 	teamLength?: {validate?: [number, number]; battle?: number};
 	threads?: string[];
 	timer?: Partial<any>;
 	tournamentShow?: boolean;
-	unbanlist?: string[];
-	checkLearnset?: (
-		this: any, move: any, species: any, setSources: any, set: any
-	) => {type: string; [any: string]: any} | null;
-	onAfterMega?: (this: any, pokemon: any) => void;
-	onBegin?: (this: any) => void;
-	onChangeSet?: (
-		this: any, set: any, format: any, setHas?: any, teamHas?: any
-	) => string[] | undefined;
-	onModifySpecies?: (
-		this: any, species: any, target?: any, source?: any, effect?: any
-	) => void;
-	onStart?: (this: any) => void;
-	onTeamPreview?: (this: any) => void;
-	onValidateSet?: (
-		this: any, set: any, format: any, setHas: any, teamHas: any
-	) => string[] | undefined;
-	onValidateTeam?: (this: any, team: any[], format: any, teamHas: any) => string[] | undefined;
-	validateSet?: (this: any, set: any, teamHas: any) => string[] | null;
-	validateTeam?: (this: any, team: any[], options?: {
-		removeNicknames?: boolean;
-		skipSets?: {[name: string]: {[key: string]: boolean}};
-	}) => string[] | undefined;
-	trunc?: (n: number) => number;
 	section?: string;
 	column?: number;
+	hasCheckLearnset?: boolean;
 }
 /* eslint-enable */
 
@@ -633,45 +494,19 @@ export interface ISeparatedCustomRules {
 	removedrules: string[];
 }
 
-export interface IFormatComputed {
-	banlist: NonNullable<IFormatData["banlist"]>;
-	customRules: string[] | null;
-	defaultLevel: number;
-	effectType: FormatEffectType;
-	fullname: string;
-	gameType: GameType;
-	gen: number;
-	id: string;
+export interface IFormat extends IBasicEffect, IFormatData, IFormatLinks {
+	desc: string;
 	inputTarget: string;
-	maxLevel: number;
-	mod: string;
-	num: number;
-	quickFormat: boolean;
-	ruleset: NonNullable<IFormatData["ruleset"]>;
-	ruleTable: RuleTable | null;
-	separatedCustomRules: ISeparatedCustomRules | null;
-	tournamentPlayable: boolean;
-	unbanlist: NonNullable<IFormatData["unbanlist"]>;
-	unranked: boolean;
-}
-
-export interface IFormat extends IBasicEffect, IFormatData, IFormatLinks, IFormatComputed {
-	readonly effectType: FormatEffectType;
-	banlist: string[];
-	customRules: string[] | null;
-	defaultLevel: number;
-	gameType: GameType;
-	maxLevel: number;
-	mod: string;
-	name: string;
-	ruleset: string[];
-	unbanlist: string[];
+	ruleTable?: RuleTable;
 }
 
 interface ITypeData {
 	damageTaken: {[attackingTypeNameOrEffectid: string]: number};
-	HPdvs?: SparseStatsTable;
-	HPivs?: SparseStatsTable;
+	gen: number;
+	HPdvs: SparseStatsTable;
+	HPivs: SparseStatsTable;
+	id: string;
+	name: string;
 }
 
 export interface INature {
@@ -686,24 +521,22 @@ export interface IGifData {
 }
 
 export interface IDataTable {
-	readonly abilities: Dict<IAbilityData | undefined>;
-	readonly aliases: Dict<string | undefined>;
-	readonly badges: string[];
-	readonly categories: Dict<string | undefined>;
-	readonly characters: string[];
-	readonly colors: Dict<string>;
-	readonly eggGroups: Dict<string>;
-	readonly formats: Dict<(IFormatData & IFormatLinks) | undefined>;
-	readonly formatsData: Dict<ISpeciesFormatsData | undefined>;
-	readonly gifData: Dict<IGifData | undefined>;
-	readonly gifDataBW: Dict<IGifData | undefined>;
-	readonly items: Dict<IItemData | undefined>;
-	readonly learnsets: Dict<ILearnsetData | undefined>;
-	readonly locations: string[];
-	readonly moves: Dict<IMoveData | undefined>;
-	readonly natures: Dict<INature | undefined>;
-	readonly pokedex: Dict<ISpeciesData | undefined>;
-	readonly trainerClasses: string[];
-	readonly typeChart: Dict<ITypeData | undefined>;
-	readonly types: Dict<string>;
+	readonly aliases: Readonly<Dict<string | undefined>>;
+	readonly abilityKeys: readonly string[];
+	readonly badges: readonly string[];
+	readonly categories: Readonly<Dict<string | undefined>>;
+	readonly characters: readonly string[];
+	readonly colors: Readonly<Dict<string>>;
+	readonly eggGroups: Readonly<Dict<string>>;
+	readonly formatKeys: readonly string[];
+	readonly gifData: Readonly<Dict<IGifData | undefined>>;
+	readonly gifDataBW: Readonly<Dict<IGifData | undefined>>;
+	readonly itemKeys: readonly string[];
+	readonly learnsetDataKeys: readonly string[];
+	readonly locations: readonly string[];
+	readonly moveKeys: readonly string[];
+	readonly natures: Readonly<Dict<INature | undefined>>;
+	readonly pokemonKeys: readonly string[];
+	readonly trainerClasses: readonly string[];
+	readonly typeKeys: readonly string[];
 }

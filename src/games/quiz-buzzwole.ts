@@ -32,8 +32,8 @@ class QuizBuzzwole extends Game {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		for (const type in Dex.data.typeChart) {
-			data.categories.push(type + " type Pokemon");
+		for (const key of Dex.data.typeKeys) {
+			data.categories.push(Dex.getExistingType(key).name + " type Pokemon");
 		}
 
 		for (const category of data.categories) {

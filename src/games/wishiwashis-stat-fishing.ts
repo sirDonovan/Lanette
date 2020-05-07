@@ -83,7 +83,7 @@ class WishiwashisStatFishing extends Game {
 		while (species === this.lastSpecies) {
 			species = this.sampleOne(data.pokedex);
 		}
-		const pokemon = Dex.getPokemonCopy(species)!;
+		const pokemon = Dex.getPokemonCopy(species);
 		const consecutiveReels = this.consecutiveReels.get(firstPlayer);
 		const extraChance = consecutiveReels ? (consecutiveReels * 5) : 0;
 		if (this.rollForShinyPokemon(extraChance)) {

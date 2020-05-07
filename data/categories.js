@@ -1,4 +1,4 @@
-exports.BattleCategories = {
+module.exports = {
 	Bulbasaur: 'Seed',
 	Ivysaur: 'Seed',
 	Venusaur: 'Seed',

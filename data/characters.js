@@ -1,4 +1,4 @@
-exports.BattleCharacters = [
+module.exports = [
 	// Kanto
 	"Professor Oak",
 	"Red",

@@ -31,7 +31,8 @@ class BeheeyemsMassEffect extends Guessing {
 			const resistances: string[] = [];
 			const weaknesses: string[] = [];
 			const typingArray = typing.split('/');
-			for (const type in Dex.data.typeChart) {
+			for (const key of Dex.data.typeKeys) {
+				const type = Dex.getExistingType(key).name;
 				if (Dex.isImmune(type, typingArray)) {
 					immunities.push(type);
 				} else {

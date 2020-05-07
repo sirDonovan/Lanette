@@ -1,4 +1,4 @@
-exports.BattleFormatLinks = {
+module.exports = {
 	// User-hosted
 	'catchandevolve': {name: 'Catch and Evolve', aliases: ['c&e', 'catch&evolve', 'cne'], generator: 'https://xfix.github.io/ce/', info: 'https://pstournaments.weebly.com/campe.html', userHosted: true},
 	'tradeandevolve': {name: 'Trade and Evolve', aliases: ['t&e', 'trade&evolve', 'tne'], generator: 'https://xfix.github.io/ce/', info: 'https://pstournaments.weebly.com/te.html', userHosted: true},

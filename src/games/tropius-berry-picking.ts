@@ -97,7 +97,12 @@ class TropiusBerryPicking extends Game {
 		if (loadedData) return;
 		room.say("Loading data for " + name + "...");
 
-		const movesList = Games.getMovesList(move => move.category !== 'Status' && move.type in Dex.data.typeChart &&
+		const types: string[] = [];
+		for (const key of Dex.data.typeKeys) {
+			types.push(Dex.getExistingType(key).name);
+		}
+
+		const movesList = Games.getMovesList(move => move.category !== 'Status' && types.includes(move.type) &&
 			!move.id.startsWith('hiddenpower'));
 		for (const move of movesList) {
 			data.moves.push(move.name);

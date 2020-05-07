@@ -279,7 +279,7 @@ export class Tournaments {
 			}
 
 			const formats: IFormat[] = [];
-			for (const i in Dex.data.formats) {
+			for (const i of Dex.data.formatKeys) {
 				const format = Dex.getExistingFormat(i);
 				if (!format.tournamentPlayable || format.unranked || format.mod !== 'gen7' ||
 					(scheduledFormat && scheduledFormat.id === format.id) || pastTournamentIds.includes(format.id)) continue;

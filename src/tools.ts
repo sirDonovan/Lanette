@@ -1,15 +1,12 @@
-import childProcess = require('child_process');
 import fs = require('fs');
 import https = require('https');
 import path = require('path');
 import url = require('url');
-import util = require('util');
+import v8 = require('v8');
 
 import { PRNG } from './prng';
 import type { HexColor, IHexColor } from './types/tools';
 import { IParam } from './workers/parameters';
-
-const exec = util.promisify(childProcess.exec);
 
 const ALPHA_NUMERIC_REGEX = /[^a-zA-Z0-9 ]/g;
 const ID_REGEX = /[^a-z0-9]/g;
@@ -464,6 +461,11 @@ export class Tools {
 			}
 			uncache = newuncache;
 		} while (uncache.length > 0);
+	}
+
+	getHeapLimit(): number {
+		const heapStatistics: v8.HeapInfo = v8.getHeapStatistics();
+		return heapStatistics.heap_size_limit - heapStatistics.used_heap_size;
 	}
 
 	async fetchUrl(url: string): Promise<string | Error> {

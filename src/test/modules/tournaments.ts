@@ -21,18 +21,20 @@ describe("Tournaments", () => {
 	});
 	it('should have valid formats in schedules', () => {
 		const date = new Date();
+		let scheduled = 0;
+		let validated = 0;
+		const errors: string[] = [];
 		for (const room in Tournaments.schedules) {
 			const schedule = Tournaments.schedules[room];
 			for (const month in schedule.months) {
 				date.setMonth(parseInt(month) - 1, 1);
 				const totalDays = Tools.getLastDayOfMonth(date);
 
-				const scheduled = Object.keys(schedule.months[month].formats).length;
-				assert(scheduled === totalDays, "Month " + month + " in " + room + " has " + scheduled + " formats scheduled but " +
-					totalDays + " are required");
+				const monthScheduled = Object.keys(schedule.months[month].formats).length;
+				scheduled += monthScheduled;
+				assert(monthScheduled === totalDays, "Month " + month + " in " + room + " has " + monthScheduled + " formats scheduled " +
+					"but " + totalDays + " are required");
 
-				let validated = 0;
-				const errors: string[] = [];
 				for (let i = 1; i <= totalDays; i++) {
 					const day = '' + i;
 					try {
@@ -42,9 +44,10 @@ describe("Tournaments", () => {
 						errors.push(e.message + " on " + month + "/" + day + " in " + room);
 					}
 				}
-				assert(validated === scheduled, "\n\t" + errors.join("\n\t"));
 			}
 		}
+
+		assert(validated === scheduled, "\n\t" + errors.join("\n\t"));
 	});
 	it('should properly set scheduled formats according to configured timed', () => {
 		const room = Rooms.get('mocha')!;

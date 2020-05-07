@@ -1,7 +1,8 @@
 import { ICommandDefinition } from '../../command-parser';
 import { Player } from '../../room-activity';
-import { GameCategory, IGameTemplateFile, IGameAchievement, GameCommandReturnType } from '../../types/games';
+import { GameCategory, IGameTemplateFile, IGameAchievement, GameCommandReturnType, GameFileTests } from '../../types/games';
 import { Card, CardType, game as cardGame, IPokemonCard } from './card';
+import { addPlayers, assert } from '../../test/test-tools';
 
 interface IPreviouslyPlayedCard {
 	card: string;
@@ -80,14 +81,13 @@ export abstract class CardMatching extends Card {
 			}
 			this.actionCardAmount = actionCardAmount;
 			for (const action of actionCards) {
-				const id = Tools.toId(action);
-				const pokemon = id in Dex.data.pokedex;
+				const pokemon = !!(Dex.getPokemon(action));
 				for (let i = 0; i < actionCardAmount; i++) {
 					let card: CardType;
 					if (pokemon) {
-						card = Dex.getPokemonCopy(id);
+						card = Dex.getPokemonCopy(action);
 					} else {
-						card = Dex.getMoveCopy(id);
+						card = Dex.getMoveCopy(action);
 					}
 					card.action = this.actionCards[action];
 					// @ts-expect-error
@@ -461,10 +461,12 @@ const commands: Dict<ICommandDefinition<CardMatching>> = {
 			if (!cards || !cards.length) return false;
 			const index = this.getCardIndex(id, cards);
 			if (index < 0) {
-				if (Dex.data.pokedex[id]) {
-					user.say("You do not have [ " + Dex.getExistingPokemon(id).name + " ].");
-				} else if (Dex.data.moves[id]) {
-					user.say("You do not have [ " + Dex.getExistingMove(id).name + " ].");
+				const pokemon = Dex.getPokemon(id);
+				const move = Dex.getMove(id);
+				if (pokemon) {
+					user.say("You do not have [ " + pokemon + " ].");
+				} else if (move) {
+					user.say("You do not have [ " + move.name + " ].");
 				} else {
 					user.say("'" + targets[0] + "' is not a valid Pokemon or move.");
 				}
@@ -512,9 +514,19 @@ const commands: Dict<ICommandDefinition<CardMatching>> = {
 	},
 };
 
+const tests: GameFileTests<CardMatching> = {
+	'it should properly create a deck': {
+		test(game, format): void {
+			addPlayers(game, 4);
+			game.start();
+			assert(game.deck.length);
+		},
+	},
+};
+
 export const game: IGameTemplateFile<CardMatching> = Object.assign(Tools.deepClone(cardGame), {
 	category: 'card-matching' as GameCategory,
 	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
-	tests: undefined,
+	tests,
 	variants: undefined,
 });

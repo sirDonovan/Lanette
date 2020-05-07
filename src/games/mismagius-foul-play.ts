@@ -45,7 +45,7 @@ class MismagiusFoulPlay extends Game {
 		if (loadedData) return;
 
 		room.say("Loading data for " + name + "...");
-		const pokemonList = Games.getPokemonList(x => !x.isForme);
+		const pokemonList = Games.getPokemonList(x => x.baseSpecies === x.name);
 		for (const pokemon of pokemonList) {
 			const learnsetData = Dex.getLearnsetData(pokemon.id);
 			if (!learnsetData || !learnsetData.learnset) continue;

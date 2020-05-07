@@ -50,6 +50,7 @@ export class Storage {
 		const workers = Object.keys(this.workers) as (keyof IStorageWorkers)[];
 		for (const worker of workers) {
 			this.workers[worker].unref();
+			delete this.workers[worker];
 		}
 	}
 

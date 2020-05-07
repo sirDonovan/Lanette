@@ -9,7 +9,7 @@ import { Game } from './room-game';
 import { IBattleData } from './types/tournaments';
 import { Room } from "./rooms";
 import { GameDifficulty, IGameFormat } from "./types/games";
-import { IFormat } from "./types/dex";
+import { IFormat, ITypeData } from "./types/dex";
 import { User } from "./users";
 import { UserHostStatus } from './types/storage';
 
@@ -103,7 +103,7 @@ const commands: Dict<ICommandDefinition> = {
 
 			this.say("Running ``tsc``...");
 			// eslint-disable-next-line @typescript-eslint/no-var-requires
-			await require(path.join(Tools.rootFolder, 'build.js'))({}, () => {
+			await require(path.join(Tools.rootFolder, 'build.js'))({}, async() => {
 				for (const moduleId of modules) {
 					if (moduleId === 'client') {
 						const oldClient = global.Client;
@@ -130,10 +130,12 @@ const commands: Dict<ICommandDefinition> = {
 						global.Config = config;
 						Rooms.checkLoggingConfigs();
 					} else if (moduleId === 'dex') {
+						const oldDex = global.Dex;
 						Tools.uncacheTree('./dex');
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
 						const dex = require('./dex') as typeof import('./dex');
 						global.Dex = new dex.Dex();
+						await Dex.onReload(oldDex);
 					} else if (moduleId === 'games') {
 						const oldGames = global.Games;
 						Games.unrefWorkers();
@@ -1458,7 +1460,7 @@ const commands: Dict<ICommandDefinition> = {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
 				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
 			if (!target) {
-				const species = Dex.getExistingPokemon(Tools.sampleOne(Object.keys(Dex.data.pokedex))).name;
+				const species = Dex.getExistingPokemon(Tools.sampleOne(Dex.data.pokemonKeys)).name;
 				if (this.pm) {
 					this.say('Randomly generated Pokemon: **' + species + '**');
 				} else {
@@ -1474,7 +1476,7 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
 				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
-			const move = Dex.getExistingMove(Tools.sampleOne(Object.keys(Dex.data.moves))).name;
+			const move = Dex.getExistingMove(Tools.sampleOne(Dex.data.moveKeys)).name;
 			if (this.pm) {
 				this.say('Randomly generated move: **' + move + '**');
 			} else {
@@ -1487,7 +1489,7 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
 				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
-			const item = Dex.getExistingItem(Tools.sampleOne(Object.keys(Dex.data.items))).name;
+			const item = Dex.getExistingItem(Tools.sampleOne(Dex.data.itemKeys)).name;
 			if (this.pm) {
 				this.say('Randomly generated item: **' + item + '**');
 			} else {
@@ -1500,10 +1502,9 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
 				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
-			const abilities = Object.keys(Dex.data.abilities);
-			let ability = Dex.getExistingAbility(Tools.sampleOne(abilities));
+			let ability = Dex.getExistingAbility(Tools.sampleOne(Dex.data.abilityKeys));
 			while (ability.id === 'noability') {
-				ability = Dex.getExistingAbility(Tools.sampleOne(abilities));
+				ability = Dex.getExistingAbility(Tools.sampleOne(Dex.data.abilityKeys));
 			}
 			if (this.pm) {
 				this.say('Randomly generated ability: **' + ability.name + '**');
@@ -1517,13 +1518,14 @@ const commands: Dict<ICommandDefinition> = {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
 				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
-			const types = Object.keys(Dex.data.typeChart);
-			let type = Tools.sampleOne(types);
+			const typeKeys = Dex.data.typeKeys.slice();
+			const key = Tools.sampleOne(typeKeys);
+			const types: string[] = [Dex.getExistingType(key).name];
 			if (Tools.random(2)) {
-				types.splice(types.indexOf(type), 1);
-				type += "/" + Tools.sampleOne(types);
+				typeKeys.splice(typeKeys.indexOf(key), 1);
+				types.push(Dex.getExistingType(Tools.sampleOne(typeKeys)).name);
 			}
-			this.say('Randomly generated type: **' + type + '**');
+			this.say('Randomly generated type: **' + types.join("/") + '**');
 		},
 		aliases: ['rtype', 'randtype'],
 	},
@@ -1837,7 +1839,7 @@ const commands: Dict<ICommandDefinition> = {
 			const targets = target.split(',');
 			const id = Tools.toId(targets[0]);
 			let scheduled = false;
-			let format: IFormat | null = null;
+			let format: IFormat | undefined;
 			if (id === 'scheduled' || id === 'official') {
 				if (!(room.id in Tournaments.schedules)) return this.say("There is no tournament schedule for this room.");
 				scheduled = true;
