@@ -18,7 +18,7 @@ module.exports = {
 	'gen8ru': {name: '[Gen 8] RU', info: 'https://www.smogon.com/dex/ss/formats/ru/'},
 	'gen8nu': {name: '[Gen 8] NU', info: 'https://www.smogon.com/dex/ss/formats/nu/'},
 	'gen8pu': {name: '[Gen 8] PU', info: 'https://www.smogon.com/dex/ss/formats/pu/'},
-	'gen8lc': {name: '[Gen 8] LC', info: 'https://www.smogon.com/dex/ss/formats/lc/'},
+	'gen8lc': {name: '[Gen 8] LC', info: 'https://www.smogon.com/dex/ss/formats/lc/', teams: '3661419', viability: '3657374'},
 	'gen8cap': {name: '[Gen 8] CAP', info: 'https://www.smogon.com/dex/ss/formats/cap/', teams: '3662655', viability: '3658514'},
 
 	// Gen 7
