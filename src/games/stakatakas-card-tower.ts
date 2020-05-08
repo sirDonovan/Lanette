@@ -18,11 +18,13 @@ class StakatakasCardTower extends CardMatching {
 	autoFillHands: boolean = true;
 	colorsLimit: number = 20;
 	finitePlayerCards: boolean = true;
+	inactivePlayerLimit = 2;
 	maxCardRounds: number = 50;
 	minimumPlayedCards: number = 2;
-	roundTime: number = 60 * 1000;
 	shinyCardAchievement = achievements.luckofthedraw;
 	showPlayerCards: boolean = true;
+	turnTimeBeforeHighlight: number = 25 * 1000;
+	turnTimeAfterHighlight: number = 50 * 1000;
 	typesLimit: number = 20;
 
 	onRemovePlayer(player: Player): void {

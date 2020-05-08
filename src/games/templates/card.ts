@@ -51,7 +51,6 @@ export abstract class Card extends Game {
 	playerCards = new Map<Player, CardType[]>();
 	playerList: Player[] = [];
 	playerOrder: Player[] = [];
-	roundTime: number = 30 * 1000;
 	showPlayerCards: boolean = false;
 	timeEnded: boolean = false;
 	timeLimit: number = 25 * 60 * 1000;

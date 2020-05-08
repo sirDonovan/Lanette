@@ -293,8 +293,6 @@ class AxewsBattleCards extends CardMatching {
 			this.canPlay = true;
 			this.dealHand(player!);
 
-			const chatMessageTime = this.roundTime / 2;
-			const remainingRoundTime = this.roundTime - chatMessageTime;
 			this.timeout = setTimeout(() => {
 				this.say(player!.name + " it is your turn!");
 
@@ -304,8 +302,8 @@ class AxewsBattleCards extends CardMatching {
 					} else {
 						this.nextRound();
 					}
-				}, remainingRoundTime);
-			}, chatMessageTime);
+				}, this.turnTimeAfterHighlight);
+			}, this.turnTimeBeforeHighlight);
 		});
 
 		this.sayUhtml(uhtmlName, html);

@@ -22,8 +22,9 @@ export abstract class CardMatching extends Card {
 	previouslyPlayedCards: IPreviouslyPlayedCard[] = [];
 	previouslyPlayedCardsAmount: number = 4;
 	roundDrawAmount: number = 0;
-	roundTime: number = 40 * 1000;
 	showPlayerCards: boolean = true;
+	turnTimeBeforeHighlight: number = 15 * 1000;
+	turnTimeAfterHighlight: number = 30 * 1000;
 	usesColors: boolean = true;
 
 	// always truthy once the game starts
@@ -349,8 +350,6 @@ export abstract class CardMatching extends Card {
 			this.canPlay = true;
 			this.dealHand(player!);
 
-			const chatMessageTime = this.roundTime / 2;
-			const remainingRoundTime = this.roundTime - chatMessageTime;
 			this.timeout = setTimeout(() => {
 				this.say(player!.name + " it is your turn!");
 
@@ -378,8 +377,8 @@ export abstract class CardMatching extends Card {
 					} else {
 						this.nextRound();
 					}
-				}, remainingRoundTime);
-			}, chatMessageTime);
+				}, this.turnTimeAfterHighlight);
+			}, this.turnTimeBeforeHighlight);
 		});
 
 		this.sayUhtml(uhtmlName, html);
