@@ -20,7 +20,7 @@ class StakatakasCardTower extends CardMatching {
 	finitePlayerCards: boolean = true;
 	maxCardRounds: number = 50;
 	minimumPlayedCards: number = 2;
-	roundTime: number = 50 * 1000;
+	roundTime: number = 60 * 1000;
 	shinyCardAchievement = achievements.luckofthedraw;
 	showPlayerCards: boolean = true;
 	typesLimit: number = 20;

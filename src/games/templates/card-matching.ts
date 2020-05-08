@@ -22,6 +22,7 @@ export abstract class CardMatching extends Card {
 	previouslyPlayedCards: IPreviouslyPlayedCard[] = [];
 	previouslyPlayedCardsAmount: number = 4;
 	roundDrawAmount: number = 0;
+	roundTime: number = 40 * 1000;
 	showPlayerCards: boolean = true;
 	usesColors: boolean = true;
 
@@ -347,32 +348,38 @@ export abstract class CardMatching extends Card {
 			this.awaitingCurrentPlayerCard = true;
 			this.canPlay = true;
 			this.dealHand(player!);
-			player!.say("It is your turn in " + this.name + "!");
 
+			const chatMessageTime = this.roundTime / 2;
+			const remainingRoundTime = this.roundTime - chatMessageTime;
 			this.timeout = setTimeout(() => {
-				if (!player!.eliminated) {
-					let inactivePlayerCount = this.inactivePlayerCounts.get(player!) || 0;
-					inactivePlayerCount++;
-					if (!(this.parentGame && this.parentGame.id === '1v1challenge') && inactivePlayerCount >= this.inactivePlayerLimit) {
-						this.say(player!.name + " DQed for inactivity!");
-						// nextRound() called in onRemovePlayer
-						this.eliminatePlayer(player!, "You did not play a card for " + this.inactivePlayerLimit + " rounds!");
+				this.say(player!.name + " it is your turn!");
 
-						const remainingPlayers: Player[] = [];
-						for (const i in this.players) {
-							if (!this.players[i].eliminated) remainingPlayers.push(this.players[i]);
+				this.timeout = setTimeout(() => {
+					if (!player!.eliminated) {
+						let inactivePlayerCount = this.inactivePlayerCounts.get(player!) || 0;
+						inactivePlayerCount++;
+						if (!(this.parentGame && this.parentGame.id === '1v1challenge') &&
+							inactivePlayerCount >= this.inactivePlayerLimit) {
+							this.say(player!.name + " DQed for inactivity!");
+							// nextRound() called in onRemovePlayer
+							this.eliminatePlayer(player!, "You did not play a card for " + this.inactivePlayerLimit + " rounds!");
+
+							const remainingPlayers: Player[] = [];
+							for (const i in this.players) {
+								if (!this.players[i].eliminated) remainingPlayers.push(this.players[i]);
+							}
+							if (remainingPlayers.length === 1) remainingPlayers[0].frozen = true;
+
+							this.onRemovePlayer(player!);
+						} else {
+							player!.useCommand('draw');
+							this.inactivePlayerCounts.set(player!, inactivePlayerCount);
 						}
-						if (remainingPlayers.length === 1) remainingPlayers[0].frozen = true;
-
-						this.onRemovePlayer(player!);
 					} else {
-						player!.useCommand('draw');
-						this.inactivePlayerCounts.set(player!, inactivePlayerCount);
+						this.nextRound();
 					}
-				} else {
-					this.nextRound();
-				}
-			}, this.roundTime);
+				}, remainingRoundTime);
+			}, chatMessageTime);
 		});
 
 		this.sayUhtml(uhtmlName, html);

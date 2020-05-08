@@ -292,15 +292,20 @@ class AxewsBattleCards extends CardMatching {
 			this.awaitingCurrentPlayerCard = true;
 			this.canPlay = true;
 			this.dealHand(player!);
-			player!.say("It is your turn in " + this.name + "!");
 
+			const chatMessageTime = this.roundTime / 2;
+			const remainingRoundTime = this.roundTime - chatMessageTime;
 			this.timeout = setTimeout(() => {
-				if (!player!.eliminated) {
-					this.autoPlay(player!, playableCards);
-				} else {
-					this.nextRound();
-				}
-			}, 30 * 1000);
+				this.say(player!.name + " it is your turn!");
+
+				this.timeout = setTimeout(() => {
+					if (!player!.eliminated) {
+						this.autoPlay(player!, playableCards);
+					} else {
+						this.nextRound();
+					}
+				}, remainingRoundTime);
+			}, chatMessageTime);
 		});
 
 		this.sayUhtml(uhtmlName, html);
