@@ -141,11 +141,12 @@ describe("Dex", () => {
 		if (Dex.omotms.length > 1) assert(Dex.getFormat('omotm2'));
 	});
 	it('should set custom attributes for formats', () => {
-		const format = Dex.getFormat('ou');
-		assert(format);
-		assertStrictEqual(typeof format.quickFormat, 'boolean');
-		assertStrictEqual(typeof format.tournamentPlayable, 'boolean');
-		assertStrictEqual(typeof format.unranked, 'boolean');
+		for (const i of Dex.data.formatKeys) {
+			const format = Dex.getExistingFormat(i);
+			assertStrictEqual(typeof format.quickFormat, 'boolean');
+			assertStrictEqual(typeof format.tournamentPlayable, 'boolean');
+			assertStrictEqual(typeof format.unranked, 'boolean');
+		}
 	});
 	it('should return proper values from getEvolutionLines()', () => {
 		const pokemonList = ['Charmander', 'Charmeleon', 'Charizard'];

@@ -419,6 +419,13 @@ export class Dex {
 							}
 						}
 
+						format.quickFormat = format.teamLength && format.teamLength.battle && format.teamLength.battle <= 2 ? true : false;
+						format.tournamentPlayable = !!(format.searchShow || format.challengeShow || format.tournamentShow);
+						format.unranked = format.rated === false || format.id.includes('customgame') ||
+							format.id.includes('challengecup') || format.id.includes('hackmonscup') || (format.team &&
+							(format.id.includes('1v1') || format.id.includes('monotype'))) || format.mod === 'seasonal' ||
+							format.mod === 'ssb' ? true : false;
+
 						if (format.section === omotmSection) this.omotms.push(format.id);
 
 						if (format.id) {
@@ -1157,16 +1164,8 @@ export class Dex {
 		}
 
 		const format = this.formatCache.get(id);
-		if (!format) return undefined;
 
-		const quickFormat = format.teamLength && format.teamLength.battle && format.teamLength.battle <= 2 ? true : false;
-		const tournamentPlayable = !!(format.searchShow || format.challengeShow || format.tournamentShow);
-		const unranked = format.rated === false || format.id.includes('customgame') || format.id.includes('challengecup') ||
-			format.id.includes('hackmonscup') || (format.team && (id.includes('1v1') || format.id.includes('monotype'))) ||
-			format.mod === 'seasonal' || format.mod === 'ssb';
-
-		return Object.assign(Tools.deepClone(format), supplementaryAttributes, {inputTarget, quickFormat, tournamentPlayable,
-			unranked}) as IFormat;
+		return format ? Object.assign(Tools.deepClone(format), supplementaryAttributes, {inputTarget}) as IFormat : undefined;
 	}
 
 	getExistingFormat(name: string, isTrusted?: boolean): IFormat {
