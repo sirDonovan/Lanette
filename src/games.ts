@@ -92,6 +92,7 @@ export class Games {
 	readonly commands = Object.assign(Object.create(null), sharedCommands) as typeof sharedCommands;
 	readonly formats: Dict<DeepReadonly<IGameFormatData>> = {};
 	readonly freejoinFormatTargets: string[] = [];
+	gameCooldownMessageTimers: Dict<NodeJS.Timer> = {};
 	// @ts-expect-error - set in loadFormats()
 	readonly internalFormats: KeyedDict<IInternalGames, DeepReadonly<IGameFormatData>> = {};
 	lastGames: Dict<number> = {};
@@ -113,6 +114,7 @@ export class Games {
 
 	onReload(previous: Partial<Games>): void {
 		if (previous.autoCreateTimers) this.autoCreateTimers = previous.autoCreateTimers;
+		if (previous.gameCooldownMessageTimers) this.gameCooldownMessageTimers = previous.gameCooldownMessageTimers;
 		if (previous.lastGames) this.lastGames = previous.lastGames;
 		if (previous.lastMinigames) this.lastMinigames = previous.lastMinigames;
 		if (previous.lastScriptedGames) this.lastScriptedGames = previous.lastScriptedGames;

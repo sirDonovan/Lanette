@@ -412,8 +412,15 @@ export class Game extends Activity {
 			}
 
 			if (Config.gameCooldownTimers && this.room.id in Config.gameCooldownTimers) {
-				this.say("Game cooldown of " + Config.gameCooldownTimers[this.room.id] + " minutes has started! Minigames can be played " +
-					"in " + (Config.gameCooldownTimers[this.room.id] / 2) + " minutes.");
+				this.say("The **" + Config.gameCooldownTimers[this.room.id] + "-minute cooldown** until the next game starts now!");
+				const minigameCooldownMinutes = Config.gameCooldownTimers[this.room.id] / 2;
+				if (minigameCooldownMinutes >= 1) {
+					Games.gameCooldownMessageTimers[this.room.id] = setTimeout(() => {
+						delete Games.gameCooldownMessageTimers[this.room.id];
+						this.room.say("There **" + (minigameCooldownMinutes === 1 ? "is 1 minute" : "are " + minigameCooldownMinutes + " " +
+							"minutes") + "** of the game cooldown remaining so minigames can now be played!");
+					}, minigameCooldownMinutes * 60 * 1000);
+				}
 			}
 
 			if (Config.gameAutoCreateTimers && this.room.id in Config.gameAutoCreateTimers) {
