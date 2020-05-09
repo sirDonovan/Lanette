@@ -386,11 +386,21 @@ const commands: Dict<ICommandDefinition> = {
 			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
 
 			let format: IGameFormat | undefined;
-			if (cmd === 'createrandomgame' || cmd === 'crg') {
+			if (cmd === 'createrandomgame' || cmd === 'crg' || cmd === 'randomgame') {
 				const option = Tools.toId(target);
 				let formats: string[];
 				if (option === 'freejoin' || option === 'fj') {
 					formats = Games.freejoinFormatTargets;
+				} else if (option) {
+					formats = [];
+					for (const i in Games.formats) {
+						const format = Games.getExistingFormat(i);
+						if (Tools.toId(format.category) === option) {
+							formats.push(i);
+						}
+					}
+
+					if (!formats.length) return this.say("There are no games in the category '" + target.trim() + "'.");
 				} else {
 					formats = Object.keys(Games.formats);
 				}
@@ -415,7 +425,7 @@ const commands: Dict<ICommandDefinition> = {
 			const game = Games.createGame(room, format);
 			game.signups();
 		},
-		aliases: ['cg', 'createrandomgame', 'crg'],
+		aliases: ['cg', 'createrandomgame', 'crg', 'randomgame'],
 	},
 	startgame: {
 		command(target, room, user) {
