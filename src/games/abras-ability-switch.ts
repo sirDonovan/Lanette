@@ -87,5 +87,8 @@ export const game: IGameFile<AbrasAbilitySwitch> = Games.copyTemplateProperties(
 	freejoin: true,
 	name,
 	mascot: "Abra",
+	minigameCommand: 'abilityswitch',
+	minigameCommandAliases: ['aswitch'],
+	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess a Pokemon with the chosen ability!",
 	modes: ["survival", "team"],
 });

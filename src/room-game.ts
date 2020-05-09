@@ -417,8 +417,8 @@ export class Game extends Activity {
 				if (minigameCooldownMinutes >= 1) {
 					Games.gameCooldownMessageTimers[this.room.id] = setTimeout(() => {
 						delete Games.gameCooldownMessageTimers[this.room.id];
-						this.room.say("There **" + (minigameCooldownMinutes === 1 ? "is 1 minute" : "are " + minigameCooldownMinutes + " " +
-							"minutes") + "** of the game cooldown remaining so minigames can now be played!");
+						this.room.say("There " + (minigameCooldownMinutes === 1 ? "is **1 minute**" : "are **" + minigameCooldownMinutes +
+							" minutes**") + " of the game cooldown remaining so minigames can now be played!");
 					}, minigameCooldownMinutes * 60 * 1000);
 				}
 			}

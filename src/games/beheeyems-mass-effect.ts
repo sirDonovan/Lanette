@@ -94,5 +94,9 @@ export const game: IGameFile<BeheeyemsMassEffect> = Games.copyTemplateProperties
 	freejoin: true,
 	name,
 	mascot: "Beheeyem",
+	minigameCommand: 'masseffect',
+	minigameCommandAliases: ['meffect'],
+	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess a Pokemon whose type effectiveness matches the given " +
+		"parameters.",
 	modes: ['survival', 'team'],
 });

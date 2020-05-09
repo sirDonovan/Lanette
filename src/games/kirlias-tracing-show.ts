@@ -65,5 +65,8 @@ export const game: IGameFile<KirliasTracingShow> = Games.copyTemplateProperties(
 	freejoin: true,
 	name,
 	mascot: "Kirlia",
+	minigameCommand: 'kirliatrace',
+	minigameCommandAliases: ['ktrace'],
+	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess an ability that the given Pokemon has!",
 	modes: ['survival', 'team'],
 });
