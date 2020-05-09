@@ -332,6 +332,43 @@ const commands: Dict<ICommandDefinition> = {
 			}
 		},
 	},
+	randomminigame: {
+		async asyncCommand(target, room, user, cmd) {
+			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
+			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) {
+				return this.sayError(['disabledGameFeatures', room.title]);
+			}
+			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
+			const remainingGameCooldown = Games.getRemainingGameCooldown(room, true);
+			if (remainingGameCooldown > 1000) {
+				const durationString = Tools.toDurationString(remainingGameCooldown);
+				this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the minigame " +
+					"cooldown remaining.");
+				return;
+			}
+			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
+
+			let minigameCommands: string[];
+			const category = Tools.toId(target);
+			if (category) {
+				minigameCommands = [];
+				for (const i in Games.minigameCommandNames) {
+					const format = Games.getExistingFormat(Games.minigameCommandNames[i].format);
+					if (Tools.toId(format.category) === category) {
+						minigameCommands.push(i);
+					}
+				}
+
+				if (!minigameCommands.length) return this.say("There are no minigames in the category '" + target.trim() + "'.");
+			} else {
+				minigameCommands = Object.keys(Games.minigameCommandNames);
+				if (!minigameCommands.length) return this.say("A random minigame could not be chosen.");
+			}
+
+			await this.run(Tools.sampleOne(minigameCommands), "");
+		},
+		aliases: ['randminigame', 'rminigame', 'minigame'],
+	},
 	creategame: {
 		command(target, room, user, cmd) {
 			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
