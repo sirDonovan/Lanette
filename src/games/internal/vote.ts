@@ -41,16 +41,20 @@ export class Vote extends Game {
 			if (ended) {
 				votesHtml += "<b>Final votes</b>:";
 				const formats = Object.keys(formatCounts).sort((a, b) => formatCounts[b] - formatCounts[a]);
+				const formatsByPercentage: Dict<string[]> = {};
 				for (const format of formats) {
-					const chance = Math.floor((formatCounts[format] / this.votes.size) * 100);
-					votesHtml += "<br />" + format + " (" + formatCounts[format] + ") - <i> " + chance + "% chance</i>";
+					let percentage = "" + ((formatCounts[format] / this.votes.size) * 100);
+					if (percentage.length > 5) percentage = percentage.substr(0, 5);
+					if (!(percentage in formatsByPercentage)) formatsByPercentage[percentage] = [];
+					formatsByPercentage[percentage].push(format);
+				}
+
+				for (const percentage in formatsByPercentage) {
+					votesHtml += "<br /><i>" + percentage + "%</i>: " + formatsByPercentage[percentage].join(", ");
 				}
 			} else {
-				votesHtml += "<br /><br /><b>Current votes</b>:";
-				for (const format in formatCounts) {
-					votesHtml += "<br />" + format + " - <i>" + formatCounts[format] + " vote" + (formatCounts[format] > 1 ? "s" : "") +
-						"</i>";
-				}
+				votesHtml += "<br /><br /><b>Current votes</b>:<br />" + Object.keys(formatCounts).map(x => x + " <i>(" + formatCounts[x] +
+					" vote" + (formatCounts[x] > 1 ? "s" : "") + ")</i>").join(", ");
 			}
 		}
 
