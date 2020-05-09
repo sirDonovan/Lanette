@@ -572,17 +572,25 @@ export class Games {
 		}
 		if (!formatData) return ['invalidUserHostedGameFormat', name];
 
-		if (formatData.customizableAttributes) {
-			for (const target of targets) {
+		for (const target of targets) {
+			const id = Tools.toId(target);
+			if (id === 'freejoin' || id === 'fj') {
+				formatData.freejoin = true;
+			} else if (formatData.customizableAttributes) {
 				const colonIndex = target.indexOf(':');
 				if (colonIndex === -1) continue;
+
 				const attribute = Tools.toId(target.substr(0, colonIndex)) as UserHostedCustomizable;
 				if (!formatData.customizableAttributes.includes(attribute)) continue;
+
 				const value = target.substr(colonIndex + 1).trim();
 				if (attribute === 'link') {
 					if (!value.startsWith('https://')) return ['invalidHttpsLink'];
 				}
-				if (value) formatData[attribute] = value;
+
+				if (value) {
+					formatData[attribute] = value;
+				}
 			}
 		}
 

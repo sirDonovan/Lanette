@@ -204,6 +204,7 @@ export interface IUserHostedFile<T extends UserHosted = UserHosted> {
 }
 
 export type UserHostedCustomizable = 'name' | 'link';
+
 interface IUserHosted {
 	description: string;
 	name: string;
