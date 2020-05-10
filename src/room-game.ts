@@ -586,7 +586,12 @@ export class Game extends Activity {
 	}
 
 	async tryCommand(target: string, room: Room | User, user: User, command: string): Promise<boolean> {
-		if (!(command in this.commands)) return false;
+		if (!(command in this.commands)) {
+			if (this.format.options.freejoin || user.id in this.players) {
+				user.say("'" + command + "' is not a command in " + this.format.nameWithOptions + ".");
+			}
+			return false;
+		}
 		const commandDefinition = this.commands[command];
 		const isPm = room === user;
 		if (isPm) {
