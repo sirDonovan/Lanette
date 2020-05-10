@@ -175,7 +175,7 @@ class QuizBuzzwole extends Game {
 }
 
 const commands: Dict<ICommandDefinition<QuizBuzzwole>> = {
-	guess: {
+	fizz: {
 		command(target, room, user): GameCommandReturnType {
 			if (!this.currentPlayer || this.players[user.id] !== this.currentPlayer) return false;
 			if (this.timeout) clearTimeout(this.timeout);
@@ -314,7 +314,6 @@ const commands: Dict<ICommandDefinition<QuizBuzzwole>> = {
 
 			return true;
 		},
-		aliases: ['g'],
 	},
 };
 
@@ -322,7 +321,7 @@ export const game: IGameFile<QuizBuzzwole> = {
 	aliases: ['buzzwoles', 'qb'],
 	category: 'knowledge',
 	class: QuizBuzzwole,
-	commandDescriptions: [Config.commandCharacter + "guess [number or item]"],
+	commandDescriptions: [Config.commandCharacter + "fizz [number or item]"],
 	commands,
 	description: "Players take turns counting and replace certain multiples with items in the chosen categories " +
 		"(no repeats in a round). <a href='https://www.tapatalk.com/groups/ps_game_corner/quiz-buzz-t110.html'>More info</a>",
