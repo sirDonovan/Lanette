@@ -49,7 +49,8 @@ export class Vote extends Game {
 					formatsByPercentage[percentage].push(format);
 				}
 
-				for (const percentage in formatsByPercentage) {
+				const sortedPercentages = Object.keys(formatsByPercentage).map(x => parseFloat(x)).sort((a, b) => b - a);
+				for (const percentage of sortedPercentages) {
 					votesHtml += "<br /><i>" + percentage + "%</i>: " + formatsByPercentage[percentage].join(", ");
 				}
 			} else {
