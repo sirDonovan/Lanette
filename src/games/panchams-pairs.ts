@@ -19,8 +19,6 @@ interface IMovePairData {
 	generation: number[];
 }
 
-const name = "Pancham's Pairs";
-
 const data: {moves: Dict<IMovePairData>; pokemon: Dict<IPokemonPairData>} = {
 	moves: {},
 	pokemon: {},
@@ -35,8 +33,6 @@ const categories: {'Pokemon': (keyof IPokemonPairData)[]; moves: (keyof IMovePai
 };
 type DataTypes = keyof typeof categories;
 
-let loadedData = false;
-
 class PanchamPairs extends Game {
 	canPair: boolean = false;
 	dataType: DataTypes = 'Pokemon';
@@ -46,9 +42,6 @@ class PanchamPairs extends Game {
 	pairRound: number = 0;
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		const pokemonList = Games.getPokemonList();
 		for (const pokemon of pokemonList) {
 			dataKeys['Pokemon'].push(pokemon.name);
@@ -75,8 +68,6 @@ class PanchamPairs extends Game {
 				"generation": [move.gen],
 			};
 		}
-
-		loadedData = true;
 	}
 
 	onStart(): void {

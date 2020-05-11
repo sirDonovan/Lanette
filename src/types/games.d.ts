@@ -106,6 +106,7 @@ export type InternalGameKey = keyof IInternalGames;
 interface IGameClass<T extends Game = Game> {
 	new(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed): T;
 	loadData?: (room: Room | User, extendedClass?: boolean) => void;
+	loadedData?: boolean;
 }
 
 interface IModeClass<T, U extends Game = Game> {

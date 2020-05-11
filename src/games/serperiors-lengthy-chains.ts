@@ -5,13 +5,10 @@ import { Room } from "../rooms";
 import { IGameFile, GameCommandReturnType } from "../types/games";
 import { User } from "../users";
 
-const name = "Serperior's Lengthy Chains";
 const data: {parameters: Dict<string[]>; parameterKeys: string[]} = {
 	parameters: {},
 	parameterKeys: [],
 };
-
-let loadedData = false;
 
 class SerperiorLengthyChains extends Game {
 	bestChain: string[] = [];
@@ -21,9 +18,6 @@ class SerperiorLengthyChains extends Game {
 	timeout: NodeJS.Timer | null = null;
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		const pokemonList = Games.getPokemonList();
 		for (const pokemon of pokemonList) {
 			const pokemonParameters: string[] = ["Generation " + pokemon.gen, pokemon.color];
@@ -64,8 +58,6 @@ class SerperiorLengthyChains extends Game {
 				data.parameterKeys.push(param);
 			}
 		}
-
-		loadedData = true;
 	}
 
 	onSignups(): void {
@@ -149,6 +141,6 @@ export const game: IGameFile<SerperiorLengthyChains> = {
 	description: "Player's form chains of Pokemon that follow the given parameter! A chain is a sequence of pokemon that share 1 letter " +
 		"(such as PikachUxie)!",
 	freejoin: true,
-	name,
+	name: "Serperior's Lengthy Chains",
 	mascot: "Serperior",
 };

@@ -5,7 +5,6 @@ import { Room } from "../rooms";
 import { IGameFile, GameCommandReturnType } from "../types/games";
 import { User } from "../users";
 
-const name = "Tapus' Terrains";
 const terrains = {
 	'Molten': 'Fire',
 	'Rocky': 'Rock',
@@ -24,8 +23,6 @@ const data: {pokemon: KeyedDict<typeof terrains, string[]>; unusedPokemon: strin
 	unusedPokemon: [],
 };
 
-let loadedData = false;
-
 class TapusTerrains extends Game {
 	canJump: boolean = false;
 	canLateJoin: boolean = true;
@@ -39,9 +36,6 @@ class TapusTerrains extends Game {
 	terrainRound: number = 0;
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		const pokedex = Games.getPokemonList(x => Dex.hasGifData(x));
 		for (const pokemon of pokedex) {
 			let used = false;
@@ -56,8 +50,6 @@ class TapusTerrains extends Game {
 			}
 			if (!used) data.unusedPokemon.push(pokemon.name);
 		}
-
-		loadedData = true;
 	}
 
 	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
@@ -191,7 +183,7 @@ export const game: IGameFile<TapusTerrains> = {
 	commands,
 	description: "Players race through various terrains on Pokemon! Only jump on Pokemon of the appropriate type in each terrain.",
 	formerNames: ["Terrain Race"],
-	name,
+	name: "Tapus' Terrains",
 	mascots: ['tapu koko', 'tapu lele', 'tapu bulu', 'tapu fini'],
 	variants: [
 		{

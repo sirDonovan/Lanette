@@ -3,7 +3,6 @@ import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 import { User } from "../users";
 
-const name = "Mareanie's Marquees";
 const data: {'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]} = {
 	"Pokemon": [],
 	"Pokemon Abilities": [],
@@ -12,7 +11,6 @@ const data: {'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items'
 };
 type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
-let loadedData = false;
 
 class MareaniesMarquee extends Guessing {
 	lastAnswer: string = '';
@@ -24,15 +22,10 @@ class MareaniesMarquee extends Guessing {
 	currentCategory: string = '';
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		data["Pokemon"] = Games.getPokemonList().map(x => x.name);
 		data["Pokemon Abilities"] = Games.getAbilitiesList().map(x => x.name);
 		data["Pokemon Items"] = Games.getItemsList().map(x => x.name);
 		data["Pokemon Moves"] = Games.getMovesList().map(x => x.name);
-
-		loadedData = true;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -123,7 +116,7 @@ export const game: IGameFile<MareaniesMarquee> = Games.copyTemplateProperties(gu
 	defaultOptions: ['points'],
 	description: "Players guess the answers as letters are cycled through 1 at a time!",
 	freejoin: true,
-	name,
+	name: "Mareanie's Marquees",
 	mascot: "Mareanie",
 	variants: [
 		{

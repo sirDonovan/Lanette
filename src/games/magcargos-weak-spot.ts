@@ -4,7 +4,6 @@ import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 import { User } from "../users";
 
-const name = "Magcargo's Weak Spot";
 const data: {pokedex: string[]; inverseTypeKeys: string[]; inverseTypeWeaknesses: Dict<string[]>; typeKeys: string[];
 	typeWeaknesses: Dict<string[]>;} = {
 	pokedex: [],
@@ -13,7 +12,6 @@ const data: {pokedex: string[]; inverseTypeKeys: string[]; inverseTypeWeaknesses
 	typeKeys: [],
 	typeWeaknesses: {},
 };
-let loadedData = false;
 
 const achievements: AchievementsDict = {
 	"achillesheel": {name: "Achilles Heel", type: 'all-answers', bits: 1000, description: 'get every answer in one game'},
@@ -31,10 +29,6 @@ class MagcargosWeakSpot extends Guessing {
 	roundGuesses = new Map<Player, boolean>();
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-
-		room.say("Loading data for " + name + "...");
-
 		const types: string[] = [];
 		for (const key of Dex.data.typeKeys) {
 			types.push(Dex.getExistingType(key).name);
@@ -59,8 +53,6 @@ class MagcargosWeakSpot extends Guessing {
 				}
 			}
 		}
-
-		loadedData = true;
 	}
 
 	async setAnswers(): Promise<void> {
@@ -115,7 +107,7 @@ export const game: IGameFile<MagcargosWeakSpot> = Games.copyTemplateProperties(g
 	description: "Players guess the weakness(es) that the given Pokemon share!",
 	formerNames: ["Weak Spot"],
 	freejoin: true,
-	name,
+	name: "Magcargo's Weak Spot",
 	mascot: "Magcargo",
 	modes: ['survival', 'team'],
 	variants: [

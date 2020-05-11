@@ -3,12 +3,10 @@ import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 import { User } from "../users";
 
-const name = "Abra's Ability Switch";
 const data: {abilities: Dict<string[]>; pokedex: string[]} = {
 	"abilities": {},
 	"pokedex": [],
 };
-let loadedData = false;
 
 const achievements: AchievementsDict = {
 	"skillswapper": {name: "Skill Swapper", type: 'all-answers', bits: 1000, description: 'get every answer in one game'},
@@ -19,14 +17,10 @@ const achievements: AchievementsDict = {
 class AbrasAbilitySwitch extends Guessing {
 	allAnswersAchievement = achievements.skillswapper;
 	allAnswersTeamAchievement = achievements.captainskillswapper;
-
 	lastAbility: string = '';
 	lastPokemon: string = '';
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		const pokedex = Games.getPokemonList();
 		for (const pokemon of pokedex) {
 			const abilities: string[] = [];
@@ -37,8 +31,6 @@ class AbrasAbilitySwitch extends Guessing {
 			data.abilities[pokemon.id] = abilities;
 			data.pokedex.push(pokemon.name);
 		}
-
-		loadedData  = true;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -85,7 +77,7 @@ export const game: IGameFile<AbrasAbilitySwitch> = Games.copyTemplateProperties(
 	defaultOptions: ['points'],
 	description: "Players switch to Pokemon that have the chosen abilities for Abra to Role Play!",
 	freejoin: true,
-	name,
+	name: "Abra's Ability Switch",
 	mascot: "Abra",
 	minigameCommand: 'abilityswitch',
 	minigameCommandAliases: ['aswitch'],

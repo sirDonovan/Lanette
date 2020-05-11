@@ -3,21 +3,16 @@ import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 import { User } from "../users";
 
-const name = "Kirlia's Tracing Show";
 const data: {abilities: Dict<string>; pokedex: string[]} = {
 	abilities: {},
 	pokedex: [],
 };
-let loadedData = false;
 
 class KirliasTracingShow extends Guessing {
 	lastAbilities: string = '';
 	lastPokemon: string = '';
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		const pokemonList = Games.getPokemonList();
 		for (const pokemon of pokemonList) {
 			const abilities: string[] = [];
@@ -28,7 +23,6 @@ class KirliasTracingShow extends Guessing {
 			data.abilities[pokemon.id] = abilities.join(",");
 			data.pokedex.push(pokemon.id);
 		}
-		loadedData = true;
 	}
 
 	onSignups(): void {
@@ -63,7 +57,7 @@ export const game: IGameFile<KirliasTracingShow> = Games.copyTemplateProperties(
 	defaultOptions: ['points'],
 	description: "Players guess abilities that the chosen Pokemon have!",
 	freejoin: true,
-	name,
+	name: "Kirlia's Tracing Show",
 	mascot: "Kirlia",
 	minigameCommand: 'kirliatrace',
 	minigameCommandAliases: ['ktrace'],

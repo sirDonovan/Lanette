@@ -3,22 +3,17 @@ import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 import { User } from "../users";
 
-const name = "Beheeyem's Mass Effect";
 const data: {types: Dict<string[]>} = {
 	types: {},
 };
 const effectivenessLists: Dict<string[]> = {};
 const effectivenessListsKeys: string[] = [];
-let loadedData = false;
 
 class BeheeyemsMassEffect extends Guessing {
 	lastEffectiveness: string = '';
 	roundTime: number = 20 * 1000;
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		const pokemonList = Games.getPokemonList();
 		for (const pokemon of pokemonList) {
 			const typing = pokemon.types.slice().sort().join('/');
@@ -62,8 +57,6 @@ class BeheeyemsMassEffect extends Guessing {
 				if (!effectivenessLists[effectiveness].includes(pokemon)) effectivenessLists[effectiveness].push(pokemon);
 			}
 		}
-
-		loadedData = true;
 	}
 
 	onSignups(): void {
@@ -92,7 +85,7 @@ export const game: IGameFile<BeheeyemsMassEffect> = Games.copyTemplateProperties
 	description: "Each round, players find a Pokemon whose type effectiveness matches the given parameters.",
 	formerNames: ["Mass Effect"],
 	freejoin: true,
-	name,
+	name: "Beheeyem's Mass Effect",
 	mascot: "Beheeyem",
 	minigameCommand: 'masseffect',
 	minigameCommandAliases: ['meffect'],

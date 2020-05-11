@@ -3,7 +3,6 @@ import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 import { User } from "../users";
 
-const name = "Slowking's Trivia";
 const data: {"Pokemon Abilities": Dict<string[]>; "Pokemon Items": Dict<string[]>; "Pokemon Moves": Dict<string[]>} = {
 	"Pokemon Abilities": {},
 	"Pokemon Items": {},
@@ -16,7 +15,6 @@ const categoryKeys: KeyedDict<typeof data, string[]> = {
 	"Pokemon Items": [],
 	"Pokemon Moves": [],
 };
-let loadedData = false;
 
 const achievements: AchievementsDict = {
 	'knowitall': {name: "Know-It-All", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
@@ -29,9 +27,6 @@ class SlowkingsTrivia extends Guessing {
 	allAnswersTeamAchievement = achievements.captainknowitall;
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		const abilities = Games.getAbilitiesList();
 		for (const ability of abilities) {
 			const desc = ability.desc || ability.shortDesc;
@@ -59,8 +54,6 @@ class SlowkingsTrivia extends Guessing {
 		for (const category of categories) {
 			categoryKeys[category] = Object.keys(data[category]);
 		}
-
-		loadedData = true;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -81,7 +74,7 @@ export const game: IGameFile<SlowkingsTrivia> = Games.copyTemplateProperties(gue
 	description: "Players use the given descriptions (Pokemon related) to guess the answers!",
 	formerNames: ["Trivia"],
 	freejoin: true,
-	name,
+	name: "Slowking's Trivia",
 	mascot: "Slowking",
 	minigameCommand: 'trivium',
 	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess an answer based on the description!",

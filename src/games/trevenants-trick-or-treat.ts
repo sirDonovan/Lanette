@@ -8,12 +8,10 @@ import { PRNGSeed } from "../prng";
 
 const GRID_SIZE = 4;
 
-const name = "Trevenant's Trick-or-Treat";
 const data: {allPossibleMoves: Dict<readonly string[]>; pokedex: string[]} = {
 	allPossibleMoves: {},
 	pokedex: [],
 };
-let loadedData = false;
 
 class TrevenantsTrickOrTreat extends Game {
 	points = new Map<Player, number>();
@@ -31,9 +29,6 @@ class TrevenantsTrickOrTreat extends Game {
 	}
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		const pokedex = Games.getPokemonList(x => x.gen <= 5 && !x.forme && Dex.hasGifData(x, 'bw'));
 		for (const pokemon of pokedex) {
 			const allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
@@ -41,8 +36,6 @@ class TrevenantsTrickOrTreat extends Game {
 			data.pokedex.push(pokemon.id);
 			data.allPossibleMoves[pokemon.id] = allPossibleMoves;
 		}
-
-		loadedData = true;
 	}
 
 	generateNewMons(): void {
@@ -159,7 +152,7 @@ export const game: IGameFile<TrevenantsTrickOrTreat> = {
 	description: "Players guess moves learned by only one Pokemon on the grid, gaining points equal to the total number of pokemon that " +
 		"learn that move. The grid is constantly updating, so beware!",
 	freejoin: true,
-	name,
+	name: "Trevenant's Trick-or-Treat",
 	mascot: "Trevenant",
 	scriptedOnly: true,
 };

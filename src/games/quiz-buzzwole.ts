@@ -7,12 +7,10 @@ import { User } from "../users";
 
 type ExpectedMultiple = 'firstMultiple' | 'secondMultiple' | 'both' | number;
 
-const name = "Quiz Buzzwole";
 const data: {"categories": string[]; "categoryPools": Dict<string[]>} = {
 	"categories": ['Plate', 'Mega Stone', 'Berry', 'contact move', 'sound move'],
 	"categoryPools": {},
 };
-let loadedData = false;
 
 class QuizBuzzwole extends Game {
 	maxPlayers: number = 20;
@@ -29,9 +27,6 @@ class QuizBuzzwole extends Game {
 	expectedMultiples: {'firstMultiple': string[]; 'secondMultiple': string[]} = {firstMultiple: [], secondMultiple: []};
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		for (const key of Dex.data.typeKeys) {
 			data.categories.push(Dex.getExistingType(key).name + " type Pokemon");
 		}
@@ -64,8 +59,6 @@ class QuizBuzzwole extends Game {
 			if (move.flags.contact) data.categoryPools.contactmove.push(move.id);
 			if (move.flags.sound) data.categoryPools.soundmove.push(move.id);
 		}
-
-		loadedData = true;
 	}
 
 	onStart(): void {
@@ -326,7 +319,7 @@ export const game: IGameFile<QuizBuzzwole> = {
 	description: "Players take turns counting and replace certain multiples with items in the chosen categories " +
 		"(no repeats in a round). <a href='https://www.tapatalk.com/groups/ps_game_corner/quiz-buzz-t110.html'>More info</a>",
 	formerNames: ["Quiz Buzz"],
-	name,
+	name: "Quiz Buzzwole",
 	mascot: "Buzzwole",
 	scriptedOnly: true,
 };

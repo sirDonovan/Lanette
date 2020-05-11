@@ -4,7 +4,6 @@ import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 import { User } from "../users";
 
-const name = "Pikachu's Mystery Pokemon";
 const data: {abilities: Dict<string[]>; eggGroups: Dict<string>; pokedex: string[]; regions: Dict<string>; types: Dict<string>} = {
 	abilities: {},
 	eggGroups: {},
@@ -12,7 +11,6 @@ const data: {abilities: Dict<string[]>; eggGroups: Dict<string>; pokedex: string
 	regions: {},
 	types: {},
 };
-let loadedData = false;
 
 const achievements: AchievementsDict = {
 	"pokemonprofessor": {name: "Pokemon Professor", type: 'all-answers', bits: 1000, description: 'get every answer in one game'},
@@ -28,9 +26,6 @@ class PikachusMysteryPokemon extends Guessing {
 	points = new Map<Player, number>();
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		const pokemonList = Games.getPokemonList(pokemon => !pokemon.forme);
 		for (const pokemon of pokemonList) {
 			data.pokedex.push(pokemon.id);
@@ -63,8 +58,6 @@ class PikachusMysteryPokemon extends Guessing {
 			}
 			data.abilities[pokemon.id] = abilities;
 		}
-
-		loadedData = true;
 	}
 
 	onSignups(): void {
@@ -127,6 +120,6 @@ export const game: IGameFile<PikachusMysteryPokemon> = Games.copyTemplatePropert
 	description: "Players guess Pokemon based on the given hints!",
 	formerNames: ["Who's That Pokemon"],
 	freejoin: true,
-	name,
+	name: "Pikachu's Mystery Pokemon",
 	mascot: "Pikachu",
 });

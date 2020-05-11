@@ -6,9 +6,7 @@ import { IActionCardData, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 import { User } from "../users";
 
-const name = "Bulbasaur's Uno";
 const types: Dict<string> = {};
-let loadedData = false;
 
 const drawWizardAmount = 6;
 const achievements: AchievementsDict = {
@@ -37,14 +35,11 @@ class BulbasaursUno extends CardMatching {
 	typesLimit: number = 20;
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
 		for (const key of Dex.data.typeKeys) {
 			const type = Dex.getExistingType(key);
 			types[type.id] = type.name;
 			types[type.id + 'type'] = type.name;
 		}
-		loadedData = true;
 	}
 
 // TODO: better workaround?
@@ -274,7 +269,7 @@ export const game: IGameFile<BulbasaursUno> = Games.copyTemplateProperties(cardG
 	description: "Each round, players can play a card that matches the type or color of the top card or draw a new card. " +
 		"<a href='http://psgc.weebly.com/pokeuno.html'>Action card descriptions</a>",
 	formerNames: ["Pokeuno"],
-	name,
+	name: "Bulbasaur's Uno",
 	mascot: "Bulbasaur",
 	scriptedOnly: true,
 });

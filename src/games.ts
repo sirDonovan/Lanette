@@ -754,7 +754,17 @@ export class Games {
 	createGame(room: Room | User, format: IGameFormat, pmRoom?: Room, isMinigame?: boolean, initialSeed?: PRNGSeed): Game {
 		if (!isMinigame && room.id in this.autoCreateTimers) clearTimeout(this.autoCreateTimers[room.id]);
 
-		if (format.class.loadData) format.class.loadData(room);
+		if (format.class.loadData && !format.class.loadedData) {
+			const loadingTimeout = setTimeout(() => {
+				room.say("Loading data for " + format.name + "'s first game since restarting...");
+			}, Client.sendThrottle);
+
+			format.class.loadData(room);
+
+			clearTimeout(loadingTimeout);
+			format.class.loadedData = true;
+		}
+
 		room.game = new format.class(room, pmRoom, initialSeed);
 		room.game.initialize(format);
 

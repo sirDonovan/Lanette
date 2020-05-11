@@ -157,12 +157,12 @@ export class Client {
 	publicChatRooms: string[] = [];
 	reconnectTime: number = Config.reconnectTime || 60 * 1000;
 	sendQueue: string[] = [];
+	sendThrottle: number = Config.trustedUser ? TRUSTED_MESSAGE_THROTTLE : REGULAR_MESSAGE_THROTTLE;
 	sendTimeout: NodeJS.Timer | true | null = null;
 	server: string = Config.server || Tools.mainServer;
 	serverGroups: Dict<IServerGroup> = {};
 	serverId: string = 'showdown';
 	serverTimeOffset: number = 0;
-	trustedThrottle: boolean = Config.trustedUser || false;
 
 	constructor() {
 		this.client.on('connect', connection => {
@@ -190,12 +190,12 @@ export class Client {
 		if (previous.loggedIn) this.loggedIn = previous.loggedIn;
 		if (previous.publicChatRooms) this.publicChatRooms = previous.publicChatRooms;
 		if (previous.sendQueue) this.sendQueue = previous.sendQueue;
+		if (previous.sendThrottle) this.sendThrottle = previous.sendThrottle;
 		if (previous.sendTimeout) this.sendTimeout = previous.sendTimeout;
 		if (previous.server) this.server = previous.server;
 		if (previous.serverGroups) this.serverGroups = previous.serverGroups;
 		if (previous.serverId) this.serverId = previous.serverId;
 		if (previous.serverTimeOffset) this.serverTimeOffset = previous.serverTimeOffset;
-		if (previous.trustedThrottle) this.trustedThrottle = previous.trustedThrottle;
 	}
 
 	onConnectFail(error?: Error): void {
@@ -513,9 +513,8 @@ export class Client {
 			}
 
 			user.rooms.set(room, {lastChatMessage: 0, rank: messageArguments.rank});
-			if (!this.trustedThrottle && user === Users.self && this.publicChatRooms.includes(room.id) &&
-				Users.self.hasRank(room, 'driver')) {
-				this.trustedThrottle = true;
+			if (user === Users.self && this.publicChatRooms.includes(room.id) && Users.self.hasRank(room, 'driver')) {
+				this.sendThrottle = TRUSTED_MESSAGE_THROTTLE;
 			}
 
 			const now = Date.now();
@@ -1242,7 +1241,7 @@ export class Client {
 				const message = global.Client.sendQueue[0];
 				global.Client.sendQueue.shift();
 				global.Client.send(message);
-			}, global.Client.trustedThrottle ? TRUSTED_MESSAGE_THROTTLE : REGULAR_MESSAGE_THROTTLE);
+			}, global.Client.sendThrottle);
 		});
 	}
 

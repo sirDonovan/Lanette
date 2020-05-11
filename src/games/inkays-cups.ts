@@ -6,7 +6,6 @@ import { IGameFile, GameCommandReturnType } from "../types/games";
 import { IParametersWorkerData, IParam } from './../workers/parameters';
 import { User } from "../users";
 
-const name = "Inkay's Cups";
 const gen = 7;
 const genString = 'gen' + gen;
 
@@ -25,8 +24,6 @@ const paramTypeDexesKeys: Dict<Dict<KeyedDict<IParamType, string[]>>> = {};
 
 const searchTypes: (keyof IParametersWorkerData)[] = ['pokemon'];
 
-let loadedData = false;
-
 class InkaysCups extends Game {
 	answers: string[] = [];
 	canGrab: boolean = false;
@@ -36,9 +33,6 @@ class InkaysCups extends Game {
 	usesWorkers: boolean = true;
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		const parametersData = Games.workers.parameters.loadData();
 
 		for (const searchType of searchTypes) {
@@ -56,8 +50,6 @@ class InkaysCups extends Game {
 				}
 			}
 		}
-
-		loadedData = true;
 	}
 
 	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
@@ -207,6 +199,6 @@ export const game: IGameFile<InkaysCups> = {
 	commandDescriptions: [Config.commandCharacter + 'grab [Pokemon]'],
 	commands,
 	description: "Players grab Pokemon that fit the given parameters each round (one per player)!",
-	name,
+	name: "Inkay's Cups",
 	mascot: "Inkay",
 };

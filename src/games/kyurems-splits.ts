@@ -3,7 +3,6 @@ import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 import { User } from "../users";
 
-const name = "Kyurem's Splits";
 const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
 	'Pokemon Items': string[]; 'Pokemon Moves': string[];} = {
 	"Characters": [],
@@ -15,13 +14,9 @@ const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[];
 };
 type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
-let loadedData = false;
 
 class KyuremsSplits extends Guessing {
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		data["Characters"] = Dex.data.characters.slice();
 		data["Locations"] = Dex.data.locations.slice();
 
@@ -44,8 +39,6 @@ class KyuremsSplits extends Guessing {
 		for (const move of moves) {
 			data["Pokemon Moves"].push(move.name);
 		}
-
-		loadedData = true;
 	}
 
 	isValid(answer: string, hint: string): boolean {
@@ -93,7 +86,7 @@ export const game: IGameFile<KyuremsSplits> = Games.copyTemplateProperties(guess
 	description: "Players guess answers that have all of the given letters in order!",
 	formerNames: ["Splits"],
 	freejoin: true,
-	name,
+	name: "Kyurem's Splits",
 	mascot: "Kyurem",
 	minigameCommand: 'split',
 	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess an answer with all of the given letters in that order!",

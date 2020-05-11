@@ -15,11 +15,9 @@ interface IRoundEffect {
 	type: string;
 }
 
-const name = "Tropius' Berry Picking";
 const data: {moves: string[]} = {
 	moves: [],
 };
-let loadedData = false;
 
 const berries: Dict<IBerry> = {
 	// status
@@ -94,9 +92,6 @@ class TropiusBerryPicking extends Game {
 	roundTime: number = 10 * 1000;
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		const types: string[] = [];
 		for (const key of Dex.data.typeKeys) {
 			types.push(Dex.getExistingType(key).name);
@@ -107,8 +102,6 @@ class TropiusBerryPicking extends Game {
 		for (const move of movesList) {
 			data.moves.push(move.name);
 		}
-
-		loadedData = true;
 	}
 
 	onSignups(): void {
@@ -280,6 +273,6 @@ export const game: IGameFile<TropiusBerryPicking> = {
 	description: "Players help Tropius pick berries and fight off wild Pokemon! Use status and super-effective berries based on their " +
 		"moves.",
 	formerNames: ["Smeargle's Berry Picking"],
-	name,
+	name: "Tropius' Berry Picking",
 	mascot: "Tropius",
 };

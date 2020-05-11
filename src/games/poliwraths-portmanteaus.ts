@@ -7,8 +7,6 @@ import { game as guessingGame, Guessing } from './templates/guessing';
 import { User } from "../users";
 
 const BASE_NUMBER_OF_PORTS = 2;
-const name = "Poliwrath's Portmanteaus";
-let loadedData = false;
 
 export class PoliwrathsPortmanteaus extends Guessing {
 	answerParts: Dict<string[]> = {};
@@ -22,12 +20,8 @@ export class PoliwrathsPortmanteaus extends Guessing {
 	usesWorkers: boolean = true;
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		Games.workers.portmanteaus.loadData();
 
-		loadedData = true;
 	}
 
 	async setAnswers(): Promise<void> {
@@ -159,7 +153,7 @@ export const game: IGameFile<PoliwrathsPortmanteaus> = Games.copyTemplatePropert
 	description: "Players think of portmanteaus that share 2-4 letters and fit the given parameters!",
 	formerNames: ["Portmanteaus"],
 	freejoin: true,
-	name,
+	name: "Poliwrath's Portmanteaus",
 	mascot: "Poliwrath",
 	minigameCommand: 'portmanteau',
 	minigameCommandAliases: ['port'],

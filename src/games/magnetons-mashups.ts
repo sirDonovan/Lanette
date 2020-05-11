@@ -3,7 +3,6 @@ import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 import { User } from "../users";
 
-const name = "Magneton's Mashups";
 const data: {'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]; 'Pokemon': string[]} = {
 	'Pokemon Abilities': [],
 	'Pokemon Items': [],
@@ -12,13 +11,9 @@ const data: {'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon 
 };
 type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
-let loadedData = false;
 
 class MagnetonsMashups extends Guessing {
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		const abilities = Games.getAbilitiesList();
 		for (const ability of abilities) {
 			data['Pokemon Abilities'].push(ability.name);
@@ -38,8 +33,6 @@ class MagnetonsMashups extends Guessing {
 		for (const pokemon of pokedex) {
 			data['Pokemon'].push(pokemon.name);
 		}
-
-		loadedData = true;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -107,7 +100,7 @@ export const game: IGameFile<MagnetonsMashups> = Games.copyTemplateProperties(gu
 	description: "Players unscramble the two combined names each round!",
 	formerNames: ['Mashups'],
 	freejoin: true,
-	name,
+	name: "Magneton's Mashups",
 	mascot: "Magneton",
 	minigameCommand: 'mashup',
 	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess the two unscrambled names!",

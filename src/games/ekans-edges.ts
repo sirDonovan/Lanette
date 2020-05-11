@@ -12,7 +12,6 @@ interface IEkansEdgesData {
 	'Pokemon Moves': Dict<string[]>;
 }
 
-const name = "Ekans' Edges";
 const data: IEkansEdgesData = {
 	"Characters": {},
 	"Locations": {},
@@ -31,15 +30,11 @@ const dataKeys: KeyedDict<IEkansEdgesData, string[]> = {
 	"Pokemon Items": [],
 	"Pokemon Moves": [],
 };
-let loadedData = false;
 
 class EkansEdges extends Guessing {
 	lastEdge: string = '';
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		for (const character of Dex.data.characters) {
 			const edge = character.charAt(0) + " - " + character.substr(-1);
 			if (!data["Characters"][edge]) data["Characters"][edge] = [];
@@ -84,8 +79,6 @@ class EkansEdges extends Guessing {
 		for (const key of keys) {
 			dataKeys[key] = Object.keys(data[key]);
 		}
-
-		loadedData = true;
 	}
 
 	onSignups(): void {
@@ -114,7 +107,7 @@ export const game: IGameFile<EkansEdges> = Games.copyTemplateProperties(guessing
 	description: "Players guess answers that have the given starting and ending letters!",
 	formerNames: ["Edges"],
 	freejoin: true,
-	name,
+	name: "Ekans' Edges",
 	mascot: "Ekans",
 	minigameCommand: 'edge',
 	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess an answer with the given starting and ending letters!",

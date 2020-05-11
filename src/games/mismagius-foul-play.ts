@@ -5,7 +5,6 @@ import { Room } from "../rooms";
 import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
 import { User } from "../users";
 
-const name = "Mismagius' Foul Play";
 const data: {colors: Dict<string[]>; eggGroups: Dict<string[]>; moves: Dict<string[]>; pokemon: string[]; types: Dict<string[]>} = {
 	colors: {},
 	eggGroups: {},
@@ -21,7 +20,6 @@ const dataKeys: {colors: string[]; eggGroups: string[]; moves: string[]; types: 
 	types: [],
 };
 const categories: Category[] = ["colors", "eggGroups", "moves", "types"];
-let loadedData = false;
 
 const achievements: AchievementsDict = {
 	"criminalmind": {name: "Criminal Mind", type: 'special', bits: 1000, description: "win as the only criminal remaining"},
@@ -42,9 +40,6 @@ class MismagiusFoulPlay extends Game {
 	roundGuesses = new Map<Player, boolean>();
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-
-		room.say("Loading data for " + name + "...");
 		const pokemonList = Games.getPokemonList(x => x.baseSpecies === x.name);
 		for (const pokemon of pokemonList) {
 			const learnsetData = Dex.getLearnsetData(pokemon.id);
@@ -81,8 +76,6 @@ class MismagiusFoulPlay extends Game {
 				data.moves[move.name].push(pokemon.name);
 			}
 		}
-
-		loadedData = true;
 	}
 
 	onRemovePlayer(player: Player): void {
@@ -380,7 +373,7 @@ export const game: IGameFile<MismagiusFoulPlay> = {
 	description: "<a href='https://docs.google.com/document/d/1Zx72KwQjQyKE4yWsM83yimglxa5qOnM-YTudCJ89fKM/edit'>Guide</a> | Detectives " +
 		"try to help Mismagius identify the criminals in this murder mystery team game (one guess per round)! Parameters will be given " +
 		"as hints but they will be opposite for criminals.",
-	name,
+	name: "Mismagius' Foul Play",
 	mascot: "Mismagius",
 	scriptedOnly: true,
 };

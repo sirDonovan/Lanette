@@ -9,9 +9,8 @@ import { User } from "../users";
 
 const GEN = 7;
 const GEN_STRING = 'gen' + GEN;
-const name = "Plusle's Additive Parameters";
+
 const paramTypes: ParamType[] = ['move', 'tier', 'color', 'type', 'egggroup', 'ability', 'gen'];
-let loadedData = false;
 
 class PluslesAdditiveParameters extends Game {
 	canAdd: boolean = false;
@@ -27,13 +26,7 @@ class PluslesAdditiveParameters extends Game {
 	roundTime: number = 15 * 1000;
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-
-		room.say("Loading data for " + name + "...");
-
 		Games.workers.parameters.loadData();
-
-		loadedData = true;
 	}
 
 	onStart(): void {
@@ -220,6 +213,6 @@ export const game: IGameFile<PluslesAdditiveParameters> = {
 	description: "Players add <code>/ds" + GEN + "</code> parameters (no weaknesses or resistances) that result in at least 2 Pokemon of " +
 		"different evolution lines in the given list!",
 	formerNames: ["Pumpkaboo's Parameters"],
-	name,
+	name: "Plusle's Additive Parameters",
 	mascot: "Plusle",
 };

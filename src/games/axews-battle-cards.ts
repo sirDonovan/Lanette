@@ -6,9 +6,7 @@ import { CardType, IActionCardData, IMoveCard, IPokemonCard } from "./templates/
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 import { User } from "../users";
 
-const name = "Axew's Battle Cards";
 const types: Dict<string> = {};
-let loadedData = false;
 
 const trumpCardEliminations = 5;
 const achievements: AchievementsDict = {
@@ -41,14 +39,11 @@ class AxewsBattleCards extends CardMatching {
 	usesColors = false;
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
 		for (const key of Dex.data.typeKeys) {
 			const type = Dex.getExistingType(key);
 			types[type.id] = type.name;
 			types[type.id + 'type'] = type.name;
 		}
-		loadedData = true;
 	}
 
 // TODO: better workaround?
@@ -514,7 +509,7 @@ export const game: IGameFile<AxewsBattleCards> = Games.copyTemplateProperties(ca
 	class: AxewsBattleCards,
 	description: "Each round, players can play a card that's super-effective against the top card. " +
 		"<a href='http://psgc.weebly.com/axewsbattlecards.html'>Action card descriptions</a>",
-	name,
+	name: "Axew's Battle Cards",
 	mascot: "Axew",
 	scriptedOnly: true,
 });

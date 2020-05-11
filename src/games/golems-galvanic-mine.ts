@@ -5,12 +5,10 @@ import { Room } from "../rooms";
 import { IGameFile, GameCommandReturnType } from "../types/games";
 import { User } from "../users";
 
-const name = "Golem's Galvanic Mine";
 const gen = 'gen7';
 const data: {stones: string[]} = {
 	stones: [],
 };
-let loadedData = false;
 
 class GolemsGalvanicMine extends Game {
 	points = new Map<Player, number>();
@@ -19,15 +17,10 @@ class GolemsGalvanicMine extends Game {
 	roundTime: number = 7000;
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		const items = Games.getItemsList(undefined, gen);
 		for (const item of items) {
 			if (item.megaStone || item.zMove) data.stones.push(item.name);
 		}
-
-		loadedData = true;
 	}
 
 	onSignups(): void {
@@ -123,6 +116,6 @@ export const game: IGameFile<GolemsGalvanicMine> = {
 	description: "Players try to be the fastest miner by mining the Z and Mega stones with the highest values! Stones and their values " +
 		"are randomized each round.",
 	freejoin: true,
-	name,
+	name: "Golem's Galvanic Mine",
 	mascot: "Golem-Alola",
 };

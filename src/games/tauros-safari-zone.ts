@@ -10,12 +10,10 @@ interface ICaughtPokemon {
 	species: string;
 }
 
-const name = "Tauros' Safari Zone";
 const data: {baseStatTotals: Dict<number>; pokedex: string[]} = {
 	baseStatTotals: {},
 	pokedex: [],
 };
-let loadedData = false;
 
 const achievements: AchievementsDict = {
 	"pokemonranger": {name: "Pokemon Ranger", type: 'first', bits: 1000, description: 'catch first in every round'},
@@ -37,9 +35,6 @@ class TaurosSafariZone extends Game {
 	winners = new Map<Player, number>();
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		const pokemonList = Games.getPokemonList(pokemon => Dex.hasGifData(pokemon) && pokemon.id !== 'voltorb' &&
 			pokemon.id !== 'electrode');
 		const copy = pokemonList.slice();
@@ -61,8 +56,6 @@ class TaurosSafariZone extends Game {
 			}
 			data.baseStatTotals[pokemon.id] = bst;
 		}
-
-		loadedData = true;
 	}
 
 	onSignups(): void {
@@ -211,6 +204,6 @@ export const game: IGameFile<TaurosSafariZone> = {
 		"base stats.",
 	formerNames: ["Catch That Pokemon"],
 	freejoin: true,
-	name,
+	name: "Tauros' Safari Zone",
 	mascot: "Tauros",
 };

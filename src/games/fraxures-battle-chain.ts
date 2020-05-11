@@ -4,19 +4,14 @@ import { IPokemon } from "../types/dex";
 import { Chain, game as chainGame } from "./templates/chain";
 import { User } from "../users";
 
-const name = "Fraxure's Battle Chain";
 const data: {types: string[]} = {
 	types: [],
 };
-let loadedData = false;
 
 class FraxuresBattleChain extends Chain {
 	linkEndCache: Dict<string[]> = {};
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		for (let i = 0; i < Dex.data.typeKeys.length; i++) {
 			const outerType = Dex.getExistingType(Dex.data.typeKeys[i]).name;
 			data.types.push(outerType);
@@ -26,8 +21,6 @@ class FraxuresBattleChain extends Chain {
 				if (!data.types.includes(type)) data.types.push(type);
 			}
 		}
-
-		loadedData = true;
 	}
 
 	getLinkStarts(link: IPokemon): string[] {
@@ -65,6 +58,6 @@ export const game: IGameFile<FraxuresBattleChain> = Games.copyTemplateProperties
 	defaultOptions: ['freejoin', 'points'],
 	description: "Players answer each round with a Pokemon whose type is super effective against the previous Pokemon (no formes or " +
 		"repeats in a round)!",
-	name,
+	name: "Fraxure's Battle Chain",
 	mascot: "Fraxure",
 });

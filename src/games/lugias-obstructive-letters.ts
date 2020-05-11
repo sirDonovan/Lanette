@@ -6,7 +6,6 @@ import { User } from "../users";
 const BASE_POINTS = 30;
 const BASE_TEAM_POINTS = 60;
 
-const name = "Lugia's Obstructive Letters";
 const data: {'Pokemon': Dict<string>; 'Pokemon Abilities': Dict<string>; 'Pokemon Items': Dict<string>; 'Pokemon Moves': Dict<string>} = {
 	"Pokemon": {},
 	"Pokemon Abilities": {},
@@ -21,7 +20,6 @@ const dataKeys: KeyedDict<typeof data, string[]> = {
 	"Pokemon Items": [],
 	"Pokemon Moves": [],
 };
-let loadedData = false;
 
 const letters = Tools.letters.split("");
 
@@ -31,9 +29,6 @@ class LugiasObstructiveLetters extends Guessing {
 	winnerPointsToBits: number = 10;
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		const pokemonList = Games.getPokemonList();
 		for (const pokemon of pokemonList) {
 			data["Pokemon"][pokemon.id] = pokemon.name;
@@ -57,8 +52,6 @@ class LugiasObstructiveLetters extends Guessing {
 		for (const category of categories) {
 			dataKeys[category] = Object.keys(data[category]);
 		}
-
-		loadedData = true;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -107,7 +100,7 @@ export const game: IGameFile<LugiasObstructiveLetters> = Games.copyTemplatePrope
 	},
 	description: "Players guess answers that are missing the given letters! Answers must be at least 6 letters long.",
 	freejoin: true,
-	name,
+	name: "Lugia's Obstructive Letters",
 	mascot: "Lugia",
 	minigameCommand: 'obstruction',
 	modes: ['survival', 'team'],

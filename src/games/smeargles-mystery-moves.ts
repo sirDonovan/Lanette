@@ -4,11 +4,9 @@ import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 import { User } from "../users";
 
-const name = "Smeargle's Mystery Moves";
 const data: {moves: string[]} = {
 	moves: [],
 };
-let loadedData = false;
 
 const achievements: AchievementsDict = {
 	"moverelearner": {name: "Move Relearner", type: 'all-answers', bits: 1000, description: 'get every answer in one game'},
@@ -24,15 +22,10 @@ class SmearglesMysteryMoves extends Guessing {
 	points = new Map<Player, number>();
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		const movesList = Games.getMovesList();
 		for (const move of movesList) {
 			data.moves.push(move.name);
 		}
-
-		loadedData = true;
 	}
 
 	onSignups(): void {
@@ -96,6 +89,6 @@ export const game: IGameFile<SmearglesMysteryMoves> = Games.copyTemplateProperti
 	description: "Players guess moves based on the given hints!",
 	formerNames: ["What's That Move"],
 	freejoin: true,
-	name,
+	name: "Smeargle's Mystery Moves",
 	mascot: "Smeargle",
 });

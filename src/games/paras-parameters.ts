@@ -10,9 +10,7 @@ const BASE_NUMBER_OF_PARAMS = 2;
 const MIN_GEN = 1;
 const MAX_GEN = 7;
 
-const name = "Paras' Parameters";
 const allParamTypes: ParamType[] = ['move', 'tier', 'color', 'type', 'resistance', 'weakness', 'egggroup', 'ability', 'gen'];
-let loadedData = false;
 
 export class ParasParameters extends Guessing {
 	currentNumberOfParams: number = 0;
@@ -26,13 +24,7 @@ export class ParasParameters extends Guessing {
 	usesWorkers: boolean = true;
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-
-		room.say("Loading data for " + name + "...");
-
 		Games.workers.parameters.loadData();
-
-		loadedData = true;
 	}
 
 	onInitialize(): void {
@@ -264,7 +256,7 @@ export const game: IGameFile<ParasParameters> = Games.copyTemplateProperties(gue
 	description: "Players search for possible <code>/dexsearch</code> parameters that result in the given Pokemon list!",
 	formerNames: ["Parameters"],
 	freejoin: true,
-	name,
+	name: "Paras' Parameters",
 	mascot: "Paras",
 	minigameCommand: 'parameter',
 	minigameCommandAliases: ['param'],

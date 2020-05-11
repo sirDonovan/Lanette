@@ -3,7 +3,6 @@ import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 import { User } from "../users";
 
-const name = "Piplup's Letter Placements";
 const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
 	'Pokemon Items': string[]; 'Pokemon Moves': string[];} = {
 	"Characters": [],
@@ -15,23 +14,17 @@ const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[];
 };
 type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
-let loadedData = false;
 
 class PiplupsLetterPlacements extends Guessing {
 	lastAnswer: string = '';
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		data["Characters"] = Dex.data.characters.filter(x => x.length > 3);
 		data["Locations"] = Dex.data.locations.filter(x => x.length > 3);
 		data["Pokemon"] = Games.getPokemonList(x => x.name.length > 3).map(x => x.name);
 		data["Pokemon Abilities"] = Games.getAbilitiesList(x => x.name.length > 3).map(x => x.name);
 		data["Pokemon Items"] = Games.getItemsList(x => x.name.length > 3).map(x => x.name);
 		data["Pokemon Moves"] = Games.getMovesList(x => x.name.length > 3).map(x => x.name);
-
-		loadedData = true;
 	}
 
 	async setAnswers(): Promise<void> {
@@ -64,7 +57,7 @@ export const game: IGameFile<PiplupsLetterPlacements> = Games.copyTemplateProper
 	defaultOptions: ['points'],
 	description: "Players guess answers that contain the given letters back-to-back!",
 	freejoin: true,
-	name,
+	name: "Piplup's Letter Placements",
 	mascot: "Piplup",
 	modes: ['survival', 'team'],
 	minigameCommand: 'placement',

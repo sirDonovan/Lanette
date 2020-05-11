@@ -5,12 +5,10 @@ import { Room } from "../rooms";
 import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
 import { User } from "../users";
 
-const name = "Wishiwashi's Stat Fishing";
 const data: {baseStatTotals: Dict<number>; pokedex: string[]} = {
 	baseStatTotals: {},
 	pokedex: [],
 };
-let loadedData = false;
 
 const achievements: AchievementsDict = {
 	"sunkentreasure": {name: "Sunken Treasure", type: 'shiny', bits: 1000, repeatBits: 250, description: 'reel in a shiny Pokemon'},
@@ -30,10 +28,6 @@ class WishiwashisStatFishing extends Game {
 	stats: string[] = ['hp', 'atk', 'def', 'spa', 'spd', 'spe', 'bst'];
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-
-		room.say("Loading data for " + name + "...");
-
 		const pokemonList = Games.getPokemonList(x => x.types.includes("Water") && Dex.hasGifData(x));
 		for (const pokemon of pokemonList) {
 			let bst = 0;
@@ -44,7 +38,6 @@ class WishiwashisStatFishing extends Game {
 			data.baseStatTotals[pokemon.id] = bst;
 			data.pokedex.push(pokemon.name);
 		}
-		loadedData = true;
 	}
 
 	onSignups(): void {
@@ -178,6 +171,6 @@ export const game: IGameFile<WishiwashisStatFishing> = {
 	description: "Players await the [ ! ] signal to reel in Pokemon and earn points based on their stats!",
 	formerNames: ["Stat Fishing"],
 	freejoin: true,
-	name,
+	name: "Wishiwashi's Stat Fishing",
 	mascot: "Wishiwashi",
 };

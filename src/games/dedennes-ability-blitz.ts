@@ -10,11 +10,9 @@ interface IRoundAbility {
 	points: number;
 }
 
-const name = "Dedenne's Ability Blitz";
 const data: {abilities: string[]} = {
 	abilities: [],
 };
-let loadedData = false;
 
 class DedennesAbilityBlitz extends Game {
 	canSelect: boolean = false;
@@ -29,15 +27,10 @@ class DedennesAbilityBlitz extends Game {
 	highestCatch: Player | null = null;
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		const abilities = Games.getAbilitiesList();
 		for (const ability of abilities) {
 			data.abilities.push(ability.name);
 		}
-
-		loadedData = true;
 	}
 
 	onSignups(): void {
@@ -153,6 +146,6 @@ export const game: IGameFile<DedennesAbilityBlitz> = {
 	description: "Players try to type one of the shown abilities before anyone else within the three second timer! Abilities containing " +
 		"more letters award more points.",
 	freejoin: true,
-	name,
+	name: "Dedenne's Ability Blitz",
 	mascot: "Dedenne",
 };

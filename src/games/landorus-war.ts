@@ -6,13 +6,11 @@ import { IGameFile, GameCommandReturnType } from "../types/games";
 import { IPokemon } from "../types/dex";
 import { User } from "../users";
 
-const name = "Landorus' War";
 const data: {learnsets: Dict<readonly string[]>; moves: string[]; pokemon: string[]} = {
 	learnsets: {},
 	moves: [],
 	pokemon: [],
 };
-let loadedData = false;
 
 class LandorusWar extends Game {
 	fakePokemon: string[] = [];
@@ -25,10 +23,6 @@ class LandorusWar extends Game {
 	suspectedPlayers = new Map<Player, number>();
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-
-		room.say("Loading data for " + name + "...");
-
 		const moveList = Games.getMovesList(x => {
 			if (x.id === 'hiddenpower' || (!x.basePower && !x.hasBasePowerCallback)) return false;
 			return true;
@@ -49,8 +43,6 @@ class LandorusWar extends Game {
 			data.learnsets[pokemon.id] = allPossibleMoves;
 			data.pokemon.push(pokemon.id);
 		}
-
-		loadedData = true;
 	}
 
 	onRemovePlayer(player: Player): void {
@@ -291,7 +283,7 @@ export const game: IGameFile<LandorusWar> = {
 	commands,
 	description: "Players try to identify the randomly chosen Pokemon of other players by using moves against them to discover their " +
 		"type. Players may only use moves of which the Pokemon they have been randomly assigned to is able to learn.",
-	name,
+	name: "Landorus' War",
 	mascot: "Landorus",
 	scriptedOnly: true,
 };

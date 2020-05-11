@@ -10,13 +10,11 @@ interface ITrashedMove {
 	points: number;
 }
 
-const name = "Trubbish's Trash";
 const data: {movePoints: Dict<number>; moves: string[]} = {
 	movePoints: {},
 	moves: [],
 };
 let highestBasePower: number = 0;
-let loadedData = false;
 
 const achievements: AchievementsDict = {
 	"garbagecollector": {name: "Garbage Collector", type: 'first', bits: 1000, description: 'trash first in every round'},
@@ -38,9 +36,6 @@ class TrubbishsTrash extends Game {
 	weakestTrash: Player | false | undefined;
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		const basePowers: Dict<number> = {};
 		const movesList = Games.getMovesList(move => !move.id.startsWith('hiddenpower'));
 		for (const move of movesList) {
@@ -55,8 +50,6 @@ class TrubbishsTrash extends Game {
 		for (const move of data.moves) {
 			data.movePoints[move] = highestBasePower - basePowers[move];
 		}
-
-		loadedData = true;
 	}
 
 	onSignups(): void {
@@ -186,6 +179,6 @@ export const game: IGameFile<TrubbishsTrash> = {
 	class: TrubbishsTrash,
 	description: "Players help Trubbish trash the weakest moves each round!",
 	freejoin: true,
-	name,
+	name: "Trubbish's Trash",
 	mascot: "Trubbish",
 };

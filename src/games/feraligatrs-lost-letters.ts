@@ -3,7 +3,6 @@ import { IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 import { User } from "../users";
 
-const name = "Feraligatr's Lost Letters";
 const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
 	'Pokemon Items': string[]; 'Pokemon Moves': string[];} = {
 	"Characters": [],
@@ -16,24 +15,18 @@ const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[];
 type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
 const vowels: string[] = ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'];
-let loadedData = false;
 
 class FeraligatrsLostLetters extends Guessing {
 	categoryList: DataKey[] = categories.slice();
 	roundTime: number = 10 * 1000;
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		data["Characters"] = Dex.data.characters.slice();
 		data["Locations"] = Dex.data.locations.slice();
 		data["Pokemon"] = Games.getPokemonList().map(x => x.name);
 		data["Pokemon Abilities"] = Games.getAbilitiesList().map(x => x.name);
 		data["Pokemon Items"] = Games.getItemsList().map(x => x.name);
 		data["Pokemon Moves"] = Games.getMovesList().map(x => x.name);
-
-		loadedData = true;
 	}
 
 	onSignups(): void {
@@ -101,7 +94,7 @@ export const game: IGameFile<FeraligatrsLostLetters> = Games.copyTemplatePropert
 	description: "Players guess the missing vowels to find the answers!",
 	formerNames: ["Lost Letters"],
 	freejoin: true,
-	name,
+	name: "Feraligatr's Lost Letters",
 	mascot: "Feraligatr",
 	minigameCommand: 'lostletter',
 	minigameCommandAliases: ['lletter'],

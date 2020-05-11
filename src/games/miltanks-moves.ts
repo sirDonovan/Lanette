@@ -4,18 +4,13 @@ import { IMove } from "../types/dex";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 import { User } from "../users";
 
-const name = "Miltank's Moves";
 const data: {'moves': Dict<Dict<string[]>>; 'pokemon': string[]} = {
 	moves: {},
 	pokemon: [],
 };
-let loadedData = false;
 
 class MiltanksMoves extends Guessing {
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		const pokedex = Games.getPokemonList(x => x.baseSpecies === x.name && !!Dex.getAllPossibleMoves(x).length);
 		const moves = Games.getMovesList();
 		const bannedMoves: string[] = [];
@@ -52,8 +47,6 @@ class MiltanksMoves extends Guessing {
 				data.pokemon.splice(data.pokemon.indexOf(species), 1);
 			}
 		}
-
-		loadedData = true;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -72,7 +65,7 @@ export const game: IGameFile<MiltanksMoves> = Games.copyTemplateProperties(guess
 	defaultOptions: ['points'],
 	description: "Players guess moves of the specified type that the given Pokemon learn!",
 	freejoin: true,
-	name,
+	name: "Miltank's Moves",
 	mascot: "Miltank",
 	modes: ['survival', 'team'],
 });

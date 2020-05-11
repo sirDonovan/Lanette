@@ -7,12 +7,10 @@ import { GameFileTests, IGameFile, GameCommandReturnType } from "../types/games"
 import { IPokemon } from "../types/dex";
 import { User } from "../users";
 
-const name = "Delcatty's Hide and Seek";
 const data: {'parameters': Dict<string[]>; 'pokemon': string[]} = {
 	"parameters": {},
 	"pokemon": [],
 };
-let loadedData = false;
 
 class DelcattysHideAndSeek extends Game {
 	canCharm: boolean = false;
@@ -24,9 +22,6 @@ class DelcattysHideAndSeek extends Game {
 	charmer!: Player;
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		const pokemonCategories: Dict<string[]> = {};
 		const pokemonList = Games.getPokemonList();
 		for (const pokemon of pokemonList) {
@@ -65,8 +60,6 @@ class DelcattysHideAndSeek extends Game {
 				}
 			}
 		}
-
-		loadedData = true;
 	}
 
 	onRemovePlayer(player: Player): void {
@@ -301,7 +294,7 @@ export const game: IGameFile<DelcattysHideAndSeek> = {
 	commands,
 	description: "Each round, the host will give a param that determines Pokemon players can hide behind (by PMing the host). One " +
 		"player will be chosen to seek one Pokemon. If anyone hid behind it, they are eliminated. If not, the seeker is eliminated.",
-	name,
+	name: "Delcatty's Hide and Seek",
 	mascot: "Delcatty",
 	tests,
 };

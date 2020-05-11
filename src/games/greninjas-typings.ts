@@ -3,14 +3,12 @@ import { IGameFile, AchievementsDict } from "../types/games";
 import { game as guessingGame, Guessing } from './templates/guessing';
 import { User } from "../users";
 
-const name = "Greninja's Typings";
 const data: {pokedex: string[]; reverseTypes: Dict<string>; species: Dict<string>; types: Dict<string>} = {
 	pokedex: [],
 	reverseTypes: {},
 	species: {},
 	types: {},
 };
-let loadedData = false;
 
 const achievements: AchievementsDict = {
 	'proteaneye': {name: "Protean Eye", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
@@ -26,9 +24,6 @@ class GreninjasTypings extends Guessing {
 	noOrder: boolean = false;
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-		room.say("Loading data for " + name + "...");
-
 		const pokedex = Games.getPokemonList(x => !x.name.startsWith('Arceus-') && !x.name.startsWith('Silvally-'));
 		for (const pokemon of pokedex) {
 			data.pokedex.push(pokemon.id);
@@ -36,8 +31,6 @@ class GreninjasTypings extends Guessing {
 			data.reverseTypes[pokemon.id] = pokemon.types.slice().reverse().join('/');
 			data.types[pokemon.id] = pokemon.types.join('/');
 		}
-
-		loadedData = true;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

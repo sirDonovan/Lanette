@@ -6,12 +6,10 @@ import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/gam
 import { IPokemon } from "../types/dex";
 import { User } from "../users";
 
-const name = "Shedinja's Wonder Trials";
 const data: {moves: string[]; pokedex: string[]} = {
 	moves: [],
 	pokedex: [],
 };
-let loadedData = false;
 
 const achievements: AchievementsDict = {
 	'wonderguardwarrior': {name: "Wonder Guard Warrior", type: 'special', bits: 1000, description: "use a move first every round that " +
@@ -29,9 +27,6 @@ class ShedinjasWonderTrials extends Game {
 	usedMoves: string[] = [];
 
 	static loadData(room: Room | User): void {
-		if (loadedData) return;
-
-		room.say("Loading data for " + name + "...");
 		const movesList = Games.getMovesList(x => x.id !== 'hiddenpower' && x.category !== 'Status');
 		for (const move of movesList) {
 			data.moves.push(move.name);
@@ -40,8 +35,6 @@ class ShedinjasWonderTrials extends Game {
 		for (const pokemon of pokemonList) {
 			data.pokedex.push(pokemon.name);
 		}
-
-		loadedData = true;
 	}
 
 	onSignups(): void {
@@ -231,7 +224,7 @@ export const game: IGameFile<ShedinjasWonderTrials> = {
 		"(no repeats in a round)!",
 	formerNames: ["Wonder Guard Wipeout"],
 	freejoin: true,
-	name,
+	name: "Shedinja's Wonder Trials",
 	mascot: "Shedinja",
 	variants: [
 		{
