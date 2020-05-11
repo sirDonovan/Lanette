@@ -31,8 +31,11 @@ export class ParasParameters extends Guessing {
 		super.onInitialize();
 
 		const format = this.format as IGameFormat;
-		if (format.mode && (format.mode.id === 'survival' || format.mode.id === 'team')) {
-			this.paramTypes = ['tier', 'color', 'type', 'egggroup', 'ability', 'gen'];
+		if (format.mode) {
+			if (format.mode.id === 'team') this.roundTime = 60 * 1000;
+			if (format.mode.id === 'survival' || format.mode.id === 'team') {
+				this.paramTypes = ['tier', 'color', 'type', 'egggroup', 'ability', 'gen'];
+			}
 		}
 	}
 
@@ -252,6 +255,7 @@ export const game: IGameFile<ParasParameters> = Games.copyTemplateProperties(gue
 		gen: {min: MIN_GEN, base: MAX_GEN, max: MAX_GEN},
 		params: {min: 2, base: BASE_NUMBER_OF_PARAMS, max: 4},
 		points: {min: 5, base: 5, max: 10},
+		teamPoints: {min: 10, base: 10, max: 10},
 	},
 	description: "Players search for possible <code>/dexsearch</code> parameters that result in the given Pokemon list!",
 	formerNames: ["Parameters"],
