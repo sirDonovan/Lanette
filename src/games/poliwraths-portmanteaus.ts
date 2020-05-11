@@ -21,7 +21,15 @@ export class PoliwrathsPortmanteaus extends Guessing {
 
 	static loadData(room: Room | User): void {
 		Games.workers.portmanteaus.loadData();
+	}
 
+	onInitialize(): void {
+		super.onInitialize();
+
+		const format = this.format as IGameFormat;
+		if (format.mode) {
+			if (format.mode.id === 'team') this.roundTime = 60 * 1000;
+		}
 	}
 
 	async setAnswers(): Promise<void> {
@@ -149,6 +157,7 @@ export const game: IGameFile<PoliwrathsPortmanteaus> = Games.copyTemplatePropert
 	customizableOptions: {
 		ports: {min: 2, base: BASE_NUMBER_OF_PORTS, max: 4},
 		points: {min: 5, base: 5, max: 10},
+		teamPoints: {min: 10, base: 10, max: 10},
 	},
 	description: "Players think of portmanteaus that share 2-4 letters and fit the given parameters!",
 	formerNames: ["Portmanteaus"],
