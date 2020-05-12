@@ -212,6 +212,7 @@ export const game: IGameFile<PluslesAdditiveParameters> = {
 	commands,
 	description: "Players add <code>/ds" + GEN + "</code> parameters (no weaknesses or resistances) that result in at least 2 Pokemon of " +
 		"different evolution lines in the given list!",
+	disabled: true,
 	formerNames: ["Pumpkaboo's Parameters"],
 	name: "Plusle's Additive Parameters",
 	mascot: "Plusle",
