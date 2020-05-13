@@ -11,6 +11,7 @@ export abstract class Guessing extends Game {
 	answers: string[] = [];
 	canGuess: boolean = false;
 	firstAnswer: Player | false | undefined;
+	guessingRound: number = 0;
 	hint: string = '';
 	readonly points = new Map<Player, number>();
 	roundTime: number = 10 * 1000;
@@ -28,7 +29,7 @@ export abstract class Guessing extends Game {
 	onInitialize(): void {
 		super.onInitialize();
 
-		this.hintUhtmlName = this.uhtmlBaseName + '-hint-' + this.round;
+		this.hintUhtmlName = this.uhtmlBaseName + '-hint';
 		const format = (this.format as IGameFormat);
 		if (!format.options.points && !(format.mode && format.mode.removedOptions && format.mode.removedOptions.includes('points'))) {
 			throw new Error("Guessing games must include default or customizable points options");
@@ -42,8 +43,8 @@ export abstract class Guessing extends Game {
 	}
 
 	getHintHtml(): string {
-		return "<div style='padding-bottom:8px'><span style='color: #999999'>" + this.name + (this.isMiniGame ? " (minigame)" : "") +
-			(this.additionalHintHeader ? " " + this.additionalHintHeader : "") + "</span><br /><br />" + this.hint + "</div>";
+		return "<div style='padding-bottom:8px'>" + this.getNameSpan((this.isMiniGame ? " (minigame)" : "") +
+			(this.additionalHintHeader ? " " + this.additionalHintHeader : "")) + "<br /><br />" + this.hint + "</div>";
 	}
 
 	repostInformation(): void {
@@ -52,27 +53,41 @@ export abstract class Guessing extends Game {
 		this.sayUhtml(this.hintUhtmlName, this.getHintHtml());
 	}
 
+	onHintHtml(): void {
+		this.canGuess = true;
+		this.timeout = setTimeout(() => {
+			if (this.answers.length) {
+				this.say("Time is up! " + this.getAnswers(''));
+				this.answers = [];
+				if (this.isMiniGame) {
+					this.end();
+					return;
+				}
+			}
+			this.nextRound();
+		}, this.roundTime);
+	}
+
 	async onNextRound(): Promise<void> {
-		this.canGuess = false;
-		await this.setAnswers();
-		if (this.ended) return;
+		if (!this.answers.length) {
+			this.canGuess = false;
+			await this.setAnswers();
+			if (this.ended) return;
+			this.guessingRound++;
+		}
+
+		if (this.updateHint) {
+			this.updateHint();
+			if (this.ended) return;
+		}
 
 		const html = this.getHintHtml();
-		this.onUhtml(this.hintUhtmlName, html, () => {
-			this.canGuess = true;
-			this.timeout = setTimeout(() => {
-				if (this.answers.length) {
-					this.say("Time is up! " + this.getAnswers(''));
-					this.answers = [];
-					if (this.isMiniGame) {
-						this.end();
-						return;
-					}
-				}
-				this.nextRound();
-			}, this.roundTime);
+		const hintUhtmlName = this.hintUhtmlName + '-round' + this.guessingRound;
+		this.onUhtml(hintUhtmlName, html, () => {
+			if (this.ended) return;
+			this.onHintHtml();
 		});
-		this.sayUhtml(this.hintUhtmlName, html);
+		this.sayUhtml(hintUhtmlName, html);
 	}
 
 	async guessAnswer(player: Player, guess: string): Promise<string | false> {
@@ -127,6 +142,7 @@ export abstract class Guessing extends Game {
 	getPointsForAnswer?(answer: string): number;
 	onCorrectGuess?(player: Player, guess: string): void;
 	onIncorrectGuess?(player: Player, guess: string): string;
+	updateHint?(): void;
 }
 
 const commands: Dict<ICommandDefinition<Guessing>> = {

@@ -58,13 +58,17 @@ class HitmonchansHangman extends Guessing {
 		}
 	}
 
-	async onNextRound(): Promise<void> {
+	updateHint(): void {
 		if (this.timeout) this.timeout = null;
-		if (!this.answers.length) {
-			this.canGuess = false;
-			await this.setAnswers();
-		}
 		this.roundGuesses.clear();
+		for (let i = 0; i < this.letters.length; i++) {
+			if (this.solvedLetters.includes(Tools.toId(this.letters[i]))) this.hints[i] = this.letters[i];
+		}
+		this.hint = "<b>" + this.currentCategory + "</b> | " + this.hints.join(" ") + (this.guessedLetters.length ? " | " +
+			this.guessedLetters.join(", ") : "");
+	}
+
+	onHintHtml(): void {
 		if (this.guessedLetters.length >= this.guessLimit) {
 			this.say("All guesses have been used! The answer was __" + this.answers[0] + "__");
 			if (this.isMiniGame) {
@@ -73,16 +77,9 @@ class HitmonchansHangman extends Guessing {
 				this.answers = [];
 				this.timeout = setTimeout(() => this.nextRound(), 5000);
 			}
-			return;
-		}
-		for (let i = 0; i < this.letters.length; i++) {
-			if (this.solvedLetters.includes(Tools.toId(this.letters[i]))) this.hints[i] = this.letters[i];
-		}
-		const text = this.hints.join(" ") + " | **" + this.currentCategory + "** | " + this.guessedLetters.join(", ");
-		this.on(text, () => {
+		} else {
 			if (!this.canGuess) this.canGuess = true;
-		});
-		this.say(text);
+		}
 	}
 
 	filterGuess(guess: string): boolean {

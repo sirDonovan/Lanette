@@ -77,35 +77,22 @@ class MareaniesMarquee extends Guessing {
 		}
 
 		let index = this.currentIndex;
-		this.hint = '';
+		let hint = '';
 		const lastIndex = this.letters.length - 1;
 		for (let i = 0; i < this.lettersToReveal; i++) {
-			this.hint += this.letters[index];
+			hint += this.letters[index];
 			index++;
 			if (index > lastIndex) index = 0;
 		}
 		this.currentIndex++;
 		if (this.currentIndex > lastIndex) this.currentIndex = 0;
+
+		this.hint = "<center><b>" + this.currentCategory + "</b><br /><br />" + hint + "</center>";
 	}
 
-	sayHint(): void {
-		const html = "<div class='infobox' style='text-align:center'>The category is <b>" + this.currentCategory + "</b>:<br /><br />" +
-			this.hint + "<br />&nbsp;</div>";
-		const uhtmlName = this.uhtmlBaseName + '-hint';
-		this.onUhtml(uhtmlName, html, () => {
-			if (!this.canGuess) this.canGuess = true;
-			this.timeout = setTimeout(() => {
-				this.updateHint();
-				this.sayHint();
-			}, 1500);
-		});
-		this.sayUhtml(uhtmlName, html);
-	}
-
-	async onNextRound(): Promise<void> {
-		this.canGuess = false;
-		await this.setAnswers();
-		this.sayHint();
+	onHintHtml(): void {
+		if (!this.canGuess) this.canGuess = true;
+		this.timeout = setTimeout(() => this.nextRound(), 1500);
 	}
 }
 

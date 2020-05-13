@@ -59,13 +59,18 @@ class HypnosHunches extends Guessing {
 		this.hints = new Array(letters.length).fill('') as string[];
 	}
 
-	async onNextRound(): Promise<void> {
+	updateHint(): void {
 		if (this.timeout) this.timeout = null;
-		if (!this.answers.length) {
-			this.canGuess = false;
-			await this.setAnswers();
-		}
 		this.roundGuesses.clear();
+		for (let i = 0; i < this.letters.length; i++) {
+			const id = Tools.toId(this.letters[i]);
+			if (this.solvedLetters.includes(id)) this.hints[i] = id;
+		}
+		this.hint = "<b>" + this.currentCategory + "</b> | " + this.hints.join("") + (this.guessedLetters.length ? " | " +
+			this.guessedLetters.join(", ") : "");
+	}
+
+	onHintHtml(): void {
 		let ended = false;
 		if (this.guessedLetters.length >= this.guessLimit) {
 			this.say("All guesses have been used! The answer was __" + this.answers[0] + "__");
@@ -74,6 +79,7 @@ class HypnosHunches extends Guessing {
 			this.say("All letters have been revealed! The answer was __" + this.answers[0] + "__");
 			ended = true;
 		}
+
 		if (ended) {
 			if (this.isMiniGame) {
 				this.end();
@@ -82,16 +88,9 @@ class HypnosHunches extends Guessing {
 				this.timeout = setTimeout(() => this.nextRound(), 5000);
 			}
 			return;
-		}
-		for (let i = 0; i < this.letters.length; i++) {
-			const id = Tools.toId(this.letters[i]);
-			if (this.solvedLetters.includes(id)) this.hints[i] = id;
-		}
-		const text = "**[" + this.currentCategory + "]** " + this.hints.join("") + " | " + this.guessedLetters.join(", ");
-		this.on(text, () => {
+		} else {
 			if (!this.canGuess) this.canGuess = true;
-		});
-		this.say(text);
+		}
 	}
 
 	filterGuess(guess: string): boolean {

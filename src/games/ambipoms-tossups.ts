@@ -14,6 +14,7 @@ type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
 
 class AmbipomsTossups extends Guessing {
+	currentCategory: string = '';
 	hints: string[] = [];
 	lastAnswer: string = '';
 	letterCount: number = 0;
@@ -32,6 +33,7 @@ class AmbipomsTossups extends Guessing {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
+		this.currentCategory = category;
 		let answer = this.sampleOne(data[category]);
 		while (answer === this.lastAnswer) {
 			answer = this.sampleOne(data[category]);
@@ -47,14 +49,9 @@ class AmbipomsTossups extends Guessing {
 		for (let i = 0; i < this.hints.length; i++) {
 			this.hints[i] = (Tools.toId(this.hints[i]).length ? "_" : this.hints[i] === ' ' ? "/" : this.hints[i]);
 		}
-		this.say("The category is **" + category + "**");
 	}
 
-	async onNextRound(): Promise<void> {
-		if (!this.answers.length) {
-			this.canGuess = false;
-			await this.setAnswers();
-		}
+	updateHint(): void {
 		this.tossupRound++;
 		if (this.tossupRound > 1) {
 			let index = this.random(this.hints.length);
@@ -64,26 +61,26 @@ class AmbipomsTossups extends Guessing {
 			this.hints[index] = this.letters[index];
 			this.revealedLetters++;
 		}
-		this.hint = this.hints.join(" ");
-		this.on(this.hint, () => {
-			if (this.ended) return;
-			if (!this.canGuess) this.canGuess = true;
-			if (this.revealedLetters >= this.letterCount) {
-				const text = "All letters have been revealed! " + this.getAnswers('');
-				this.on(text, () => {
-					this.answers = [];
-					if (this.isMiniGame) {
-						this.end();
-						return;
-					}
-					this.timeout = setTimeout(() => this.nextRound(), 5000);
-				});
-				this.say(text);
-			} else {
+
+		this.hint = "<b>" + this.currentCategory + "</b> | " + this.hints.join(" ");
+	}
+
+	onHintHtml(): void {
+		if (this.revealedLetters >= this.letterCount) {
+			const text = "All letters have been revealed! " + this.getAnswers('');
+			this.on(text, () => {
+				this.answers = [];
+				if (this.isMiniGame) {
+					this.end();
+					return;
+				}
 				this.timeout = setTimeout(() => this.nextRound(), 5000);
-			}
-		});
-		this.say(this.hint);
+			});
+			this.say(text);
+		} else {
+			if (!this.canGuess) this.canGuess = true;
+			this.timeout = setTimeout(() => this.nextRound(), 5000);
+		}
 	}
 
 	filterGuess(guess: string): boolean {

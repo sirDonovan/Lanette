@@ -22,6 +22,7 @@ const achievements: AchievementsDict = {
 
 class ZygardesOrders extends Guessing {
 	allLetters: number = 0;
+	currentCategory: string = '';
 	guessedLetters: string[] = [];
 	guessLimit: number = 10;
 	hints: string[] = [];
@@ -44,6 +45,7 @@ class ZygardesOrders extends Guessing {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
+		this.currentCategory = category;
 		let answer = this.sampleOne(data[category]);
 		while (answer === this.lastAnswer) {
 			answer = this.sampleOne(data[category]);
@@ -61,14 +63,9 @@ class ZygardesOrders extends Guessing {
 		const firstLetter = this.random(this.letters.length);
 		this.hints[firstLetter] = this.letters[firstLetter];
 		this.revealedLetters = 1;
-		this.say("The category is **" + category + "**");
 	}
 
-	async onNextRound(): Promise<void> {
-		if (!this.answers.length) {
-			this.canGuess = false;
-			await this.setAnswers();
-		}
+	updateHint(): void {
 		this.orderRound++;
 		if (this.orderRound > 1) {
 			let indicies: number[] = [];
@@ -76,50 +73,44 @@ class ZygardesOrders extends Guessing {
 				if (this.hints[i] === '') indicies.push(i);
 			}
 
-			if (!indicies.length) {
-				const text = "All possible letters have been revealed! " + this.getAnswers('');
-				this.on(text, () => {
-					this.answers = [];
-					if (this.isMiniGame) {
-						this.end();
-						return;
-					}
-					this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
-				});
-				this.say(text);
-				return;
-			}
-
 			indicies = this.shuffle(indicies);
+			let revealedLetter = false;
 			for (const index of indicies) {
 				this.hints[index] = this.letters[index];
 				if (Client.willBeFiltered(this.hints.join(""), this.isPm(this.room) ? undefined : this.room)) {
 					this.hints[index] = '';
 					continue;
 				}
+				revealedLetter = true;
 				break;
 			}
-			this.revealedLetters++;
-		}
-		const text = "**" + this.hints.join("") + "**";
-		this.on(text, () => {
-			if (this.revealedLetters >= this.allLetters) {
-				const text = "All letters have been revealed! " + this.getAnswers('');
-				this.on(text, () => {
-					this.answers = [];
-					if (this.isMiniGame) {
-						this.end();
-						return;
-					}
-					this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
-				});
-				this.say(text);
+
+			if (revealedLetter) {
+				this.revealedLetters++;
 			} else {
-				if (!this.canGuess) this.canGuess = true;
-				this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+				this.revealedLetters = this.allLetters;
 			}
-		});
-		this.say(text);
+		}
+
+		this.hint = "<b>" + this.currentCategory + "</b> | " + this.hints.join("");
+	}
+
+	onHintHtml(): void {
+		if (this.revealedLetters >= this.allLetters) {
+			const text = "All possible letters have been revealed! " + this.getAnswers('');
+			this.on(text, () => {
+				this.answers = [];
+				if (this.isMiniGame) {
+					this.end();
+					return;
+				}
+				this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+			});
+			this.say(text);
+		} else {
+			if (!this.canGuess) this.canGuess = true;
+			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+		}
 	}
 
 	onCorrectGuess(player: Player, answer: string): void {

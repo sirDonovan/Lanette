@@ -128,6 +128,7 @@ const tests: GameFileTests<PoliwrathsPortmanteaus> = {
 			}
 			for (let i = format.customizableOptions.ports.min; i <= format.customizableOptions.ports.max; i++) {
 				game.format.options.ports = i;
+				game.answers = [];
 				await game.onNextRound();
 				assert(game.answers.length);
 				assert(game.ports.length);
@@ -139,6 +140,7 @@ const tests: GameFileTests<PoliwrathsPortmanteaus> = {
 			game.customPortTypes = ['Pokemon', 'Move'];
 			game.customPortCategories = ['egggroup', 'type'];
 			game.customPortDetails = ['Flying', 'Fire'];
+			game.answers = [];
 			await game.onNextRound();
 			assert(game.answers.length);
 			assert(game.ports.length);

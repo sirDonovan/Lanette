@@ -185,6 +185,7 @@ const tests: GameFileTests<ParasParameters> = {
 					game.format.options.params = i;
 					format.inputOptions.gen = gen;
 					game.format.options.gen = gen;
+					game.answers = [];
 					await game.onNextRound();
 					assert(game.params.length);
 					assert(game.pokemon.length);
@@ -195,6 +196,7 @@ const tests: GameFileTests<ParasParameters> = {
 
 			game.format.options.gen = 7;
 			game.customParamTypes = ['move', 'egggroup'];
+			game.answers = [];
 			await game.onNextRound();
 			assert(game.params.length);
 			assert(game.pokemon.length);
