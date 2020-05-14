@@ -121,6 +121,8 @@ const commands: Dict<ICommandDefinition<NinjasksCorners>> = {
 				}
 				this.nextRound();
 			} else {
+				// don't activate achievement if the player typos first
+				this.roundTravels.delete(player);
 				this.roundTravels.set(player, color);
 				if (this.getRemainingPlayerCount() === 2 && color === this.color) this.nextRound();
 			}
