@@ -164,7 +164,8 @@ export interface IClientMessageTypes {
 	pm: {
 		readonly rank: string;
 		readonly username: string;
-		readonly recipient: string;
+		readonly recipientRank: string;
+		readonly recipientUsername: string;
 		readonly message: string;
 	};
 

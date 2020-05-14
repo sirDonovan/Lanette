@@ -79,14 +79,14 @@ export class User {
 
 	onHtml(html: string, listener: () => void): void {
 		if (!this.htmlMessageListeners) this.htmlMessageListeners = {};
-		this.htmlMessageListeners[Tools.toId(Client.getListenerHtml(html))] = listener;
+		this.htmlMessageListeners[Tools.toId(Client.getListenerHtml(html, true))] = listener;
 	}
 
 	onUhtml(name: string, html: string, listener: () => void): void {
 		const id = Tools.toId(name);
 		if (!this.uhtmlMessageListeners) this.uhtmlMessageListeners = {};
 		if (!(id in this.uhtmlMessageListeners)) this.uhtmlMessageListeners[id] = {};
-		this.uhtmlMessageListeners[id][Tools.toId(Client.getListenerUhtml(html))] = listener;
+		this.uhtmlMessageListeners[id][Tools.toId(Client.getListenerUhtml(html, true))] = listener;
 	}
 
 	off(message: string): void {
@@ -96,14 +96,14 @@ export class User {
 
 	offHtml(html: string): void {
 		if (!this.htmlMessageListeners) return;
-		delete this.htmlMessageListeners[Tools.toId(Client.getListenerHtml(html))];
+		delete this.htmlMessageListeners[Tools.toId(Client.getListenerHtml(html, true))];
 	}
 
 	offUhtml(name: string, html: string): void {
 		if (!this.uhtmlMessageListeners) return;
 		const id = Tools.toId(name);
 		if (!(id in this.uhtmlMessageListeners)) return;
-		delete this.uhtmlMessageListeners[id][Tools.toId(Client.getListenerUhtml(html))];
+		delete this.uhtmlMessageListeners[id][Tools.toId(Client.getListenerUhtml(html, true))];
 	}
 }
 

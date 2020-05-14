@@ -27,4 +27,27 @@ describe("Client", () => {
 		assert(!voiceUser.rooms.has(room));
 		assert(!Users.get('Voice'));
 	});
+	it('should properly parse PM messages', () => {
+		const room = Rooms.add('lobby');
+
+		Client.parseMessage(room, "|pm| Regular| " + Users.self.name + "|test");
+		let regularUser = Users.get('Regular');
+		assert(regularUser);
+		Users.remove(regularUser);
+
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| Regular|test");
+		regularUser = Users.get('Regular');
+		assert(regularUser);
+		Users.remove(regularUser);
+
+		Client.parseMessage(room, "|pm|+Voice| " + Users.self.name + "|test");
+		let voiceUser = Users.get('Voice');
+		assert(voiceUser);
+		Users.remove(voiceUser);
+
+		Client.parseMessage(room, "|pm| " + Users.self.name + "|+Voice|test");
+		voiceUser = Users.get('Voice');
+		assert(voiceUser);
+		Users.remove(voiceUser);
+	});
 });

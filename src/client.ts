@@ -684,26 +684,30 @@ export class Client {
 			const messageArguments: IClientMessageTypes['pm'] = {
 				rank: messageParts[0].charAt(0),
 				username: messageParts[0].substr(1),
-				recipient: messageParts[1].substr(1),
+				recipientRank: messageParts[1].charAt(0),
+				recipientUsername: messageParts[1].substr(1),
 				message: messageParts.slice(2).join("|"),
 			};
-			const isHtml = messageArguments.message.startsWith("/raw") || messageArguments.message.startsWith("/html");
-			const isUthml = !isHtml && messageArguments.message.startsWith("/uthml");
+
 			const id = Tools.toId(messageArguments.username);
 			if (!id) return;
 
+			const isHtml = messageArguments.message.startsWith("/raw ") || messageArguments.message.startsWith("/html ");
+			const isUhtml = !isHtml && messageArguments.message.startsWith("/uhtml ");
+			const isUhtmlChange = !isHtml && !isUhtml && messageArguments.message.startsWith("/uhtmlchange ");
+
 			const user = Users.add(messageArguments.username, id);
 			if (user === Users.self) {
-				const recipientId = Tools.toId(messageArguments.recipient);
+				const recipientId = Tools.toId(messageArguments.recipientUsername);
 				if (!recipientId) return;
 
-				const recipient = Users.add(messageArguments.recipient, recipientId);
-				if (isUthml) {
+				const recipient = Users.add(messageArguments.recipientUsername, recipientId);
+				if (isUhtml || isUhtmlChange) {
 					if (recipient.uhtmlMessageListeners) {
 						const uhtml = messageArguments.message.substr(messageArguments.message.indexOf(" ") + 1);
-						const pipeIndex = uhtml.indexOf("|");
-						const id = Tools.toId(uhtml.substr(0, pipeIndex));
-						const html = uhtml.substr(pipeIndex + 1);
+						const commaIndex = uhtml.indexOf(",");
+						const id = Tools.toId(uhtml.substr(0, commaIndex));
+						const html = uhtml.substr(commaIndex + 1);
 						if (id in recipient.uhtmlMessageListeners) {
 							const htmlId = Tools.toId(html);
 							if (htmlId in recipient.uhtmlMessageListeners[id]) {
@@ -729,7 +733,7 @@ export class Client {
 						}
 					}
 				}
-			} else if (!isHtml && !isUthml && messageArguments.rank !== this.groupSymbols.locked) {
+			} else if (!isHtml && !isUhtml && !isUhtmlChange && messageArguments.rank !== this.groupSymbols.locked) {
 				void CommandParser.parse(user, user, messageArguments.message);
 			}
 			break;
@@ -1210,17 +1214,17 @@ export class Client {
 		return false;
 	}
 
-	getListenerHtml(html: string): string {
+	getListenerHtml(html: string, inPm?: boolean): string {
 		html = '<div class="infobox">' + html;
-		if (Users.self.group !== this.groupSymbols.bot) {
+		if (!inPm && Users.self.group !== this.groupSymbols.bot) {
 			html += '<div style="float:right;color:#888;font-size:8pt">[' + Users.self.name + ']</div><div style="clear:both"></div>';
 		}
 		html += '</div>';
 		return html;
 	}
 
-	getListenerUhtml(html: string): string {
-		if (Users.self.group !== this.groupSymbols.bot) {
+	getListenerUhtml(html: string, inPm?: boolean): string {
+		if (!inPm && Users.self.group !== this.groupSymbols.bot) {
 			html += '<div style="float:right;color:#888;font-size:8pt">[' + Users.self.name + ']</div><div style="clear:both"></div>';
 		}
 		return html;
