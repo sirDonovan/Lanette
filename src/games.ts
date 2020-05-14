@@ -755,13 +755,8 @@ export class Games {
 		if (!isMinigame && room.id in this.autoCreateTimers) clearTimeout(this.autoCreateTimers[room.id]);
 
 		if (format.class.loadData && !format.class.loadedData) {
-			const loadingTimeout = setTimeout(() => {
-				room.say("Loading data for " + format.name + "'s first game since restarting...");
-			}, Client.sendThrottle);
-
+			room.say("Loading data for " + Users.self.name + "'s first " + format.name + " game since updating...");
 			format.class.loadData(room);
-
-			clearTimeout(loadingTimeout);
 			format.class.loadedData = true;
 		}
 
