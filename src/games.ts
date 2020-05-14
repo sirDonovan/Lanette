@@ -666,6 +666,8 @@ export class Games {
 	}
 
 	canCreateGame(room: Room, format: IGameFormat): true | string {
+		if (format.disabled) return CommandParser.getErrorText(['disabledGameFormat', format.name]);
+
 		const database = Storage.getDatabase(room);
 		const pastGames = database.pastGames || [];
 
@@ -934,6 +936,7 @@ export class Games {
 			keys.sort();
 			for (const key of keys) {
 				const format = this.getExistingFormat(key);
+				if (format.disabled) continue;
 				const info: string[] = [];
 
 				let mascot: IPokemon | undefined;

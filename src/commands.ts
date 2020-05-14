@@ -402,21 +402,19 @@ const commands: Dict<ICommandDefinition> = {
 			}
 			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
 
-			let minigameCommands: string[];
+			const minigameCommands: string[] = [];
 			const category = Tools.toId(target);
-			if (category) {
-				minigameCommands = [];
-				for (const i in Games.minigameCommandNames) {
-					const format = Games.getExistingFormat(Games.minigameCommandNames[i].format);
-					if (Tools.toId(format.category) === category) {
-						minigameCommands.push(i);
-					}
+			for (const i in Games.minigameCommandNames) {
+				const format = Games.getExistingFormat(Games.minigameCommandNames[i].format);
+				if (format.disabled) continue;
+				if (!category || Tools.toId(format.category) === category) {
+					minigameCommands.push(i);
 				}
+			}
 
-				if (!minigameCommands.length) return this.say("There are no minigames in the category '" + target.trim() + "'.");
-			} else {
-				minigameCommands = Object.keys(Games.minigameCommandNames);
-				if (!minigameCommands.length) return this.say("A random minigame could not be chosen.");
+			if (!minigameCommands.length) {
+				return this.say((category ? "There are no minigames in the category '" + target.trim() + "'" : "A random minigame could " +
+					"not be chosen") + ".");
 			}
 
 			await this.run(Tools.sampleOne(minigameCommands), "");
@@ -449,6 +447,7 @@ const commands: Dict<ICommandDefinition> = {
 					formats = [];
 					for (const i in Games.formats) {
 						const format = Games.getExistingFormat(i);
+						if (format.disabled) continue;
 						if (Tools.toId(format.category) === option) {
 							formats.push(i);
 						}
