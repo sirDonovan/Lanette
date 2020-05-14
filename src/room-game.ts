@@ -252,7 +252,11 @@ export class Game extends Activity {
 
 	forceEnd(user: User, reason?: string): void {
 		if (!this.started && this.showSignupsHtml) this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, "<div></div>");
-		this.say((!this.isUserHosted ? "The " : "") + this.name + " " + this.activityType + " was forcibly ended.");
+
+		const forceEndMessage = this.getForceEndMessage ? this.getForceEndMessage() : "";
+		this.say((!this.isUserHosted ? "The " : "") + this.name + " " + this.activityType + " was forcibly ended!" +
+			(forceEndMessage ? " " + forceEndMessage : ""));
+
 		if (this.onForceEnd) this.onForceEnd(user, reason);
 		this.ended = true;
 		this.deallocate(true);
@@ -828,6 +832,7 @@ export class Game extends Activity {
 		return output.join(" | ");
 	}
 
+	getForceEndMessage?(): string;
 	getPlayerSummary?(player: Player): void;
 	/** Return `false` to prevent a user from being added to the game (and send the reason to the user) */
 	onAddPlayer?(player: Player, lateJoin?: boolean): boolean | undefined;

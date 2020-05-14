@@ -139,6 +139,11 @@ export abstract class Guessing extends Game {
 		return answers;
 	}
 
+	getForceEndMessage(): string {
+		if (!this.answers.length) return "";
+		return this.getAnswers("", !this.isMiniGame);
+	}
+
 	filterGuess?(guess: string): boolean;
 	getPointsForAnswer?(answer: string): number;
 	onCorrectGuess?(player: Player, guess: string): void;
