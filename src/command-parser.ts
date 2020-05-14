@@ -24,7 +24,7 @@ type CommandErrorRequiredTarget = 'noPmHtmlRoom' | 'missingBotRankForFeatures' |
 	'disabledUserHostedGameFeatures' | 'disabledUserHostedTournamentFeatures' |'noRoomEventInformation' | 'invalidRoomEvent' |
 	'invalidGameOption' | 'disabledGameFormat';
 
-type CommandErrorNoTarget = 'invalidUsernameLength' | 'reloadInProgress' | 'invalidHttpsLink';
+type CommandErrorNoTarget = 'invalidUsernameLength' | 'reloadInProgress' | 'invalidHttpsLink' | 'noPmGameRoom';
 
 export type CommandErrorArray = [CommandErrorOptionalTarget, string?] | [CommandErrorRequiredTarget, string] | [CommandErrorNoTarget];
 
@@ -234,6 +234,8 @@ export class CommandParser {
 			return "You must wait for " + Users.self.name + " to finish updating.";
 		} else if (error[0] === 'invalidHttpsLink') {
 			return "You must specify a valid HTTPS link.";
+		} else if (error[0] === 'noPmGameRoom') {
+			return "You must be in a room that has enabled scripted games and where " + Users.self.name + " has Bot rank (*).";
 		}
 
 		return "";

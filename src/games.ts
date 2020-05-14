@@ -386,17 +386,16 @@ export class Games {
 				command(target, room, user) {
 					let pmRoom: Room | undefined;
 					if (this.isPm(room)) {
+						if (room.game) return;
+
 						user.rooms.forEach((rank, room) => {
-							if (!pmRoom && ((Config.allowScriptedGames && Config.allowScriptedGames.includes(room.id)) ||
-								(Config.allowUserHostedGames && Config.allowUserHostedGames.includes(room.id))) &&
+							if (!pmRoom && Config.allowScriptedGames && Config.allowScriptedGames.includes(room.id) &&
 								Users.self.hasRank(room, 'bot')) {
 								pmRoom = room;
 							}
 						});
-						if (!pmRoom) {
-							return this.say("You must be in a room that has enabled scripted games and where " + Users.self.name +
-								" has Bot rank (*).");
-						}
+
+						if (!pmRoom) return this.say(CommandParser.getErrorText(['noPmGameRoom']));
 					} else {
 						if (!user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
 						if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) {

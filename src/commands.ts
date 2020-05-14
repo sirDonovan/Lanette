@@ -388,18 +388,33 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	randomminigame: {
 		async asyncCommand(target, room, user, cmd) {
-			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
-			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) {
-				return this.sayError(['disabledGameFeatures', room.title]);
+			let gameRoom: Room | undefined;
+			if (this.isPm(room)) {
+				if (room.game) return;
+
+				user.rooms.forEach((data, room) => {
+					if (!gameRoom && Config.allowScriptedGames && Config.allowScriptedGames.includes(room.id) &&
+						Users.self.hasRank(room, 'bot')) {
+						gameRoom = room;
+					}
+				});
+
+				if (!gameRoom) return this.say(CommandParser.getErrorText(['noPmGameRoom']));
+			} else {
+				if (!user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
+				if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) {
+					return this.sayError(['disabledGameFeatures', room.title]);
+				}
+				if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
+				const remainingGameCooldown = Games.getRemainingGameCooldown(room, true);
+				if (remainingGameCooldown > 1000) {
+					const durationString = Tools.toDurationString(remainingGameCooldown);
+					this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the minigame " +
+						"cooldown remaining.");
+					return;
+				}
 			}
-			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
-			const remainingGameCooldown = Games.getRemainingGameCooldown(room, true);
-			if (remainingGameCooldown > 1000) {
-				const durationString = Tools.toDurationString(remainingGameCooldown);
-				this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the minigame " +
-					"cooldown remaining.");
-				return;
-			}
+
 			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
 
 			const minigameCommands: string[] = [];
