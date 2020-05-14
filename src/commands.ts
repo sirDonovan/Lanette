@@ -279,6 +279,60 @@ const commands: Dict<ICommandDefinition> = {
 	/**
 	 * Game commands
 	 */
+	gamecatalog: {
+		command(target, room, user) {
+			let gameRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(Tools.toRoomId(target));
+				if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
+				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
+				gameRoom = targetRoom;
+			} else {
+				if (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
+				gameRoom = room;
+			}
+
+			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(gameRoom.id)) {
+				return this.sayError(['disabledGameFeatures', gameRoom.title]);
+			}
+			if (!Config.gameCatalogGists || !(gameRoom.id in Config.gameCatalogGists) || !Config.githubApiCredentials ||
+				!Config.githubApiCredentials.gist) {
+				return this.say(gameRoom.title + " does not have a game catalog.");
+			}
+			this.sayHtml("<a href='https://gist.github.com/" + Config.githubApiCredentials.gist.username + "/" +
+				Config.gameCatalogGists[gameRoom.id].id + "'>" + gameRoom.title + " game catalog</a>", gameRoom);
+		},
+		aliases: ['games'],
+	},
+	minigamecatalog: {
+		command(target, room, user) {
+			let gameRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(Tools.toRoomId(target));
+				if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
+				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
+				gameRoom = targetRoom;
+			} else {
+				if (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
+				gameRoom = room;
+			}
+
+			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(gameRoom.id)) {
+				return this.sayError(['disabledGameFeatures', gameRoom.title]);
+			}
+
+			const minigames: string[] = [];
+			for (const i in Games.minigameCommandNames) {
+				const format = Games.getExistingFormat(Games.minigameCommandNames[i].format);
+				if (format.disabled) continue;
+				minigames.push("<code>" + Config.commandCharacter + i + "</code> - " + format.name);
+			}
+
+			this.sayHtml("<details><summary>" + gameRoom.title + " minigame list</summary>" + minigames.join(", ") + "</details>",
+				gameRoom);
+		},
+		aliases: ['minigames'],
+	},
 	startvote: {
 		command(target, room, user) {
 			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
