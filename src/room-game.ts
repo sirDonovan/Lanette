@@ -595,7 +595,7 @@ export class Game extends Activity {
 		const commandDefinition = this.commands[command];
 		const isPm = room === user;
 		if (isPm) {
-			if (!commandDefinition.pmGameCommand && !commandDefinition.pmOnly) return false;
+			if (!this.isPm(this.room) && !commandDefinition.pmGameCommand && !commandDefinition.pmOnly) return false;
 		} else {
 			if (commandDefinition.pmOnly) return false;
 		}

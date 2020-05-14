@@ -3,6 +3,7 @@ import { Player } from '../../room-activity';
 import { Game } from '../../room-game';
 import { assert, assertStrictEqual, getBasePlayerName, runCommand } from '../../test/test-tools';
 import { GameFileTests, IGameFormat, IGameTemplateFile, IGameAchievement, GameCommandReturnType } from '../../types/games';
+import { Room } from '../../rooms';
 
 const MINIGAME_BITS = 25;
 
@@ -266,6 +267,53 @@ const tests: GameFileTests<Guessing> = {
 			assert(game.ended);
 		},
 	},
+	'it should end after 1 question as a minigame': {
+		config: {
+			async: true,
+		},
+		async test(game, format): Promise<void> {
+			if (!format.minigameCommand) return;
+			this.timeout(15000);
+			game.deallocate(true);
+
+			const minigame = Games.createGame(game.room, (format as unknown) as IGameFormat<Game>, game.room as Room, true) as Guessing;
+			minigame.signups();
+			if (minigame.timeout) clearTimeout(minigame.timeout);
+			await minigame.onNextRound();
+			assert(minigame.answers.length);
+			minigame.canGuess = true;
+			await runCommand('guess', minigame.answers[0], minigame.room, getBasePlayerName());
+			assert(minigame.ended);
+
+			minigame.deallocate(true);
+		},
+	},
+	'it should properly work in PMs as a minigame': {
+		config: {
+			async: true,
+		},
+		async test(game, format): Promise<void> {
+			if (!format.minigameCommand) return;
+			this.timeout(15000);
+			game.deallocate(true);
+
+			const name = getBasePlayerName() + " 1";
+			const id = Tools.toId(name);
+			const user = Users.add(name, id);
+			const pmMinigame = Games.createGame(user, (format as unknown) as IGameFormat<Game>, game.room as Room, true) as Guessing;
+
+			pmMinigame.signups();
+			if (pmMinigame.timeout) clearTimeout(pmMinigame.timeout);
+			await pmMinigame.onNextRound();
+			assert(pmMinigame.answers.length);
+			pmMinigame.canGuess = true;
+			await runCommand('guess', pmMinigame.answers[0], user, name);
+			assert(pmMinigame.ended);
+
+			pmMinigame.deallocate(true);
+			Users.remove(user);
+		},
+	}
 };
 
 export const game: IGameTemplateFile<Guessing> = {
