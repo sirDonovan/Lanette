@@ -2447,7 +2447,7 @@ const commands: Dict<ICommandDefinition> = {
 			if (!users.length) return this.say("You must specify at least 1 user to receive bits.");
 
 			let bits = 100;
-			let bitsLimit = 300;
+			let bitsLimit = 500;
 			if (user.hasRank(room, 'driver')) bitsLimit = 5000;
 			if (customBits) {
 				if (customBits > bitsLimit) {
