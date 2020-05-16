@@ -295,7 +295,7 @@ describe("Games", () => {
 			assertStrictEqual(game.format.name, format.name);
 			if (game.mascot) game.shinyMascot = true;
 			game.signups();
-			gameLog.push(roomPrefix + "/adduhtml " + game.uhtmlBaseName + "-signups, " + game.getSignupsHtml());
+			gameLog.push(roomPrefix + "/addhtmlbox " + game.getSignupsHtml());
 			gameLog.push(roomPrefix + "/notifyrank all, Mocha scripted game," + format.name + "," + Games.scriptedGameHighlight +
 				" " + game.name);
 			if (game.mascot) gameLog.push(roomPrefix + game.mascot.name + " is shiny so bits will be doubled!");
@@ -325,7 +325,7 @@ describe("Games", () => {
 			assertStrictEqual(game.format.name, format.name);
 			if (game.mascot) game.shinyMascot = true;
 			game.signups();
-			gameLog.push(roomPrefix + "/adduhtml " + game.uhtmlBaseName + "-signups, " + game.getSignupsHtml());
+			gameLog.push(roomPrefix + "/addhtmlbox " + game.getSignupsHtml());
 			if (game.mascot) gameLog.push(roomPrefix + game.mascot.name + " is shiny so bits will be doubled!");
 			gameLog.push(roomPrefix + "/notifyrank all, Mocha user-hosted game," + game.name + "," + game.hostName + " " +
 				Games.userHostedGameHighlight + " " + game.name);

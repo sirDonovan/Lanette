@@ -10,7 +10,6 @@ export class Vote extends Game {
 	canVote: boolean | undefined;
 	chosenFormat: string = '';
 	endedVoting: boolean = false;
-	gamesUhtmlName: string = '';
 	internalGame: boolean = true;
 	picks: string[] = [];
 	updateVotesHtmlTimeout: NodeJS.Timeout | null = null;
@@ -23,11 +22,6 @@ export class Vote extends Game {
 	updateVotesHtml(callback?: () => void): void {
 		let votesHtml = "<div class='infobox'><center>";
 		const ended = this.canVote === false;
-		if (ended) {
-			votesHtml += "<h3>Voting for the next scripted game has ended!</h3>";
-		} else {
-			votesHtml += "<h3>Vote for the next scripted game!</h3>Use the command <code>" + Config.commandCharacter + "vote [game]</code>";
-		}
 
 		if (this.votes.size) {
 			const formatCounts: Dict<number> = {};
@@ -39,7 +33,7 @@ export class Vote extends Game {
 			});
 
 			if (ended) {
-				votesHtml += "<b>Final votes</b>:";
+				votesHtml += "<h3>Voting for the next scripted game has ended!</h3><b>Final votes</b>:";
 				const formats = Object.keys(formatCounts).sort((a, b) => formatCounts[b] - formatCounts[a]);
 				const formatsByVotes: Dict<string[]> = {};
 				for (const format of formats) {
@@ -56,7 +50,7 @@ export class Vote extends Game {
 						(formatsByVotes[vote].length > 1 ? " each" : "") + ")</i>: " + formatsByVotes[vote].join(", ");
 				}
 			} else {
-				votesHtml += "<br /><br /><b>Current votes</b>:<br />" + Object.keys(formatCounts).map(x => x + " <i>(" + formatCounts[x] +
+				votesHtml += "<b>Current votes</b>:<br />" + Object.keys(formatCounts).map(x => x + " <i>(" + formatCounts[x] +
 					" vote" + (formatCounts[x] > 1 ? "s" : "") + ")</i>").join(", ");
 			}
 		}
@@ -75,8 +69,7 @@ export class Vote extends Game {
 	}
 
 	onSignups(): void {
-		this.gamesUhtmlName = this.uhtmlBaseName + '-games';
-		this.votesUhtmlName = this.uhtmlBaseName + '-voting';
+		this.votesUhtmlName = this.uhtmlBaseName + '-votes';
 
 		const database = Storage.getDatabase(this.room);
 		const pastGames: string[] = [];
@@ -107,32 +100,30 @@ export class Vote extends Game {
 			this.picks.push(possiblePicks[i]);
 		}
 
-		this.updateVotesHtml(() => {
-			this.canVote = true;
-		});
+		let html = "<center><h3>Vote for the next scripted game with <code>" + Config.commandCharacter + "vote [game]</code></h3>";
 
-		let gamesHtml = "<div class='infobox'><center>";
 		if (this.picks.length) {
-			gamesHtml += "<b>" + Users.self.name + "'s picks:</b><br />";
+			html += "<b>" + Users.self.name + "'s picks:</b><br />";
 
 			const buttons: string[] = [];
 			for (const pick of this.picks) {
 				buttons.push('<button class="button" name="send" value="/pm ' + Users.self.name + ', ' +
 					Config.commandCharacter + 'pmvote ' + pick + '">' + pick + '</button>');
 			}
-			gamesHtml += buttons.join(" | ");
-			gamesHtml += "<br /><br />";
+			html += buttons.join(" | ");
+			html += "<br /><br />";
 		}
 
-		gamesHtml += "<details><summary>Click to see all games</summary>" + formats.sort().join(", ") + "</details></center>";
+		html += "<details><summary>Click to see all games</summary>" + formats.sort().join(", ") + "</details></center>";
 		if (pastGames.length) {
-			gamesHtml += "<br /><b>Past games (cannot be voted for)</b>: " + Tools.joinList(pastGames);
+			html += "<br /><b>Past games (cannot be voted for)</b>: " + Tools.joinList(pastGames);
 		}
-		gamesHtml += "</div>";
-		this.onUhtml(this.gamesUhtmlName, gamesHtml, () => {
+
+		this.onHtml(html, () => {
+			this.canVote = true;
 			this.timeout = setTimeout(() => this.endVoting(), timeLimit);
 		});
-		this.sayUhtml(this.gamesUhtmlName, gamesHtml);
+		this.sayHtml(html);
 
 		this.notifyRankSignups = true;
 		this.sayCommand("/notifyrank all, " + this.room.title + " game vote,Help decide the next scripted game!," +
