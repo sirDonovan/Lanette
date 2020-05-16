@@ -145,7 +145,7 @@ function constructEvasionRegex(str: string): RegExp {
 export class Client {
 	botGreetingCooldowns: Dict<number> = {};
 	challstr: string = '';
-	client: websocket.client = new websocket.client();
+	client: websocket.client = new websocket.client({maxReceivedFrameSize: 0x400000});
 	connection: websocket.connection | null = null;
 	connectionAttempts: number = 0;
 	connectionTimeout: NodeJS.Timer | null = null;
