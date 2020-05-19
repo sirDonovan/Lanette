@@ -208,7 +208,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 					tierDex[pokemon.tier].push(pokemon.name);
 				}
 
-				if (Dex.isPseudoLCPokemon(pokemon)) {
+				if (dex.isPseudoLCPokemon(pokemon)) {
 					if (!('lc' in tiers)) {
 						const tierParam = {type: 'tier', param: 'LC'};
 						tiers['lc'] = tierParam;
