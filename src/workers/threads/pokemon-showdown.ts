@@ -299,6 +299,8 @@ function getSpecies(messageNumber: string, id: string, options: IGetDataOptions)
 	const length = options.keys.length;
 	for (let i = options.startIndex; i < length; i++) {
 		const species = dex.getSpecies(options.keys[i]);
+		if (species.tier === '(PU)') species.tier = 'ZU';
+
 		removeObjectFunctions(species);
 		pokemon.push(species);
 	}
