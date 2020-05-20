@@ -3,6 +3,7 @@ import { Player } from '../room-activity';
 import { Room } from "../rooms";
 import { IGameFile, GameCommandReturnType } from "../types/games";
 import { game as playingCardGame, IPlayingCard, PlayingCard } from './templates/playing-card';
+import { User } from "../users";
 
 class MurkrowsBlackjack extends PlayingCard {
 	readonly blackJackpots = new Map<Player, number>();
@@ -22,10 +23,17 @@ class MurkrowsBlackjack extends PlayingCard {
 	readonly roundActions = new Set<Player>();
 	readonly roundLimit: number = 20;
 	subGameNumber: number = 0;
-	readonly wagerLimit: number = Math.floor((this.maxBits / this.maxBlackjackGames) / 2);
 	readonly wagers = new Map<Player, number>();
 
 	dealersTopCard!: IPlayingCard;
+
+	readonly wagerLimit: number;
+
+	constructor(room: Room | User, pmRoom?: Room) {
+		super(room, pmRoom);
+
+		this.wagerLimit = Math.floor((this.maxBits / this.maxBlackjackGames) / 2);
+	}
 
 	getHandInfoHtml(player: Player): string {
 		let info = '';

@@ -127,7 +127,7 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 		super(room, pmRoom, initialSeed);
 
 		this.baseActionCards = [
-			function(player): void {
+			function(this: KlefkisLockedLocations, player): void {
 				const location = this.getSpaceLocation(this.spaces.ultraspace)!;
 				this.playerLocations.set(player, location);
 				const text = "They go through a strange portal and end up in " + this.spaces.ultraspace.name + "!";
@@ -137,7 +137,7 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 				});
 				this.say(text);
 			},
-			function(player): void {
+			function(this: KlefkisLockedLocations, player): void {
 				const location = this.getSpaceLocation(this.spaces.castelia)!;
 				this.playerLocations.set(player, location);
 				const text = "They travel to **" + this.spaces.castelia.name + "** to get a Casteliacone!";
@@ -147,7 +147,7 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 				});
 				this.say(text);
 			},
-			function(player): void {
+			function(this: KlefkisLockedLocations, player): void {
 				let text = "A Delibird appeared and used Present!";
 				if (this.random(2)) {
 					text += " It didn't have any " + this.currencyPluralName + " to give!";

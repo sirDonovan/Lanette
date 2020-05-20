@@ -70,6 +70,12 @@
         "keyword-spacing": "off",
         "@typescript-eslint/keyword-spacing": "error",
 
+        "no-invalid-this": "off",
+        "@typescript-eslint/no-invalid-this": "error",
+
+        "lines-between-class-members": "off",
+        "@typescript-eslint/lines-between-class-members": ["error", {"exceptAfterSingleLine": true}],
+
         "space-before-function-paren": "off",
         "@typescript-eslint/space-before-function-paren": ["error", "never"],
 

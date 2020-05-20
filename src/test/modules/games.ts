@@ -62,7 +62,7 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 			const attributes: IGameTestAttributes = {};
 			if (commands) attributes.commands = commands[i];
 			if (testConfig.async) {
-				it(test, async function() {
+				it(test, async function(this: Mocha.Context) {
 					const game = createIndividualTestGame(testFormat);
 					try {
 						// eslint-disable-next-line @typescript-eslint/await-thenable
@@ -73,7 +73,7 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 					}
 				});
 			} else {
-				it(test, function() {
+				it(test, function(this: Mocha.Context) {
 					const game = createIndividualTestGame(testFormat);
 					try {
 						testData.test.call(this, game, testFormat, attributes);
@@ -173,7 +173,7 @@ describe("Games", () => {
 		}
 	});
 
-	it('should create games properly', function() {
+	it('should create games properly', function(this: Mocha.Context) {
 		this.timeout(30000);
 		for (const format of formatsToTest) {
 			try {
@@ -208,7 +208,7 @@ describe("Games", () => {
 		}
 	});
 
-	it('should support setting the initial PRNG seed', function() {
+	it('should support setting the initial PRNG seed', function(this: Mocha.Context) {
 		this.timeout(30000);
 
 		const prng = new PRNG();

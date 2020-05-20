@@ -68,7 +68,7 @@ export class BoardRentSpace extends BoardSpace {
 export class BoardActionSpace extends BoardSpace {}
 
 const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
-	function(player): void {
+	function(this: BoardPropertyGame, player): void {
 		this.playerLocations.set(player, this.getSpaceLocation(this.startingSpace)!);
 		const text = "They hop on the Flying Taxi and advance to " + this.startingSpace.name + "!";
 		this.on(text, () => {
@@ -76,7 +76,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
-	function(player): void {
+	function(this: BoardPropertyGame, player): void {
 		const getOutOfJailCards = this.escapeFromJailCards.get(player) || 0;
 		this.escapeFromJailCards.set(player, getOutOfJailCards + 1);
 		const text = "They draw a " + this.escapeFromJailCard + "!";
@@ -85,7 +85,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
-	function(player): void {
+	function(this: BoardPropertyGame, player): void {
 		const location = this.playerLocations.get(player)!;
 		const spaces = -1 * (this.random(3) + 1);
 		const locationAfterMovement = this.getLocationAfterMovement(location, spaces);
@@ -98,7 +98,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
-	function(player): void {
+	function(this: BoardPropertyGame, player): void {
 		const location = this.playerLocations.get(player)!;
 		let locationAfterMovement = this.getLocationAfterMovement(location, 1);
 		let passedSpaces = locationAfterMovement.passedSpaces.slice();
@@ -136,7 +136,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
-	function(player): void {
+	function(this: BoardPropertyGame, player): void {
 		let currency = this.playerCurrency.get(player)!;
 		currency += this.rafflePrize;
 		this.playerCurrency.set(player, currency);
@@ -151,7 +151,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
-	function(player): void {
+	function(this: BoardPropertyGame, player): void {
 		const totalSpaces = this.board.leftColumn.length + this.board.topRow.length + this.board.rightColumn.length +
 			this.board.bottomRow.length;
 		const spacesMoved = this.random(totalSpaces - 1) + 1;
@@ -166,7 +166,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
-	function(player): void {
+	function(this: BoardPropertyGame, player): void {
 		this.playerLocations.set(player, this.getSpaceLocation(this.jailSpace)!);
 		this.playersInJail.push(player);
 		this.turnsInJail.set(player, 0);
