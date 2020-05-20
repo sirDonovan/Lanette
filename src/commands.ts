@@ -1690,7 +1690,7 @@ const commands: Dict<ICommandDefinition> = {
 				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
 			this.say('Randomly generated color: **' + Dex.data.colors[Tools.sampleOne(Object.keys(Dex.data.colors))] + '**');
 		},
-		aliases: ['rcolor'],
+		aliases: ['rcolor', 'randcolour', 'rcolour'],
 	},
 	randomegggroup: {
 		command(target, room, user) {
