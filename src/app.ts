@@ -1,12 +1,6 @@
 import * as tools from './tools';
 global.Tools = new tools.Tools();
 
-// PS compatability
-// @ts-expect-error
-global.toID = (input: string | number | {id: string} | undefined): string => {
-	return Tools.toId(input);
-};
-
 // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
 // @ts-ignore - generated after first run
 import * as config from './config';
