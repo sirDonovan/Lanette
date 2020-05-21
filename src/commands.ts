@@ -102,8 +102,14 @@ const commands: Dict<ICommandDefinition> = {
 			if (modules.includes('games')) Games.reloadInProgress = true;
 
 			this.say("Running ``tsc``...");
+
+			const buildOptions: Dict<boolean> = {
+				incrementalBuild: true,
+				offline: !modules.includes('dex'),
+			};
+
 			// eslint-disable-next-line @typescript-eslint/no-var-requires
-			await require(path.join(Tools.rootFolder, 'build.js'))({}, async() => {
+			await require(path.join(Tools.rootFolder, 'build.js'))(buildOptions, async() => {
 				for (const moduleId of modules) {
 					if (moduleId === 'client') {
 						const oldClient = global.Client;
