@@ -80,6 +80,8 @@ module.exports = async(inputOptions: Dict<string>): Promise<void> => {
 		mocha.run(failures => {
 			Games.unrefWorkers();
 			Storage.unrefWorkers();
+
+			process.exit(failures === 0 ? 0 : 1);
 		});
 	} catch (e) {
 		console.log(e);
