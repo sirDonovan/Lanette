@@ -4,6 +4,7 @@ import { Room } from "../rooms";
 import { IGameFile, GameCommandReturnType } from "../types/games";
 import { game as playingCardGame, IPlayingCard, PlayingCard } from './templates/playing-card';
 import { User } from "../users";
+import { PRNGSeed } from "../prng";
 
 class MurkrowsBlackjack extends PlayingCard {
 	readonly blackJackpots = new Map<Player, number>();
@@ -29,8 +30,8 @@ class MurkrowsBlackjack extends PlayingCard {
 
 	readonly wagerLimit: number;
 
-	constructor(room: Room | User, pmRoom?: Room) {
-		super(room, pmRoom);
+	constructor(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed) {
+		super(room, pmRoom, initialSeed);
 
 		this.wagerLimit = Math.floor((this.maxBits / this.maxBlackjackGames) / 2);
 	}
