@@ -13,15 +13,22 @@ import { IFormat, ITypeData } from "./types/dex";
 import { User } from "./users";
 import { UserHostStatus } from './types/storage';
 
-type ReloadableModule = 'client' | 'commandparser' | 'commands' | 'config' | 'dex' | 'games' | 'storage' | 'tools' | 'tournaments';
-const moduleOrder: ReloadableModule[] = ['tools', 'config', 'dex', 'client', 'commandparser', 'commands', 'games', 'storage',
-	'tournaments'];
+type ReloadableModule = 'client' | 'commandparser' | 'commands' | 'config' | 'dex' | 'games' | 'plugins' | 'storage' | 'tools' |
+	'tournaments';
+const moduleOrder: ReloadableModule[] = ['tools', 'config', 'dex', 'client', 'commandparser', 'storage', 'tournaments',
+	'plugins', 'commands', 'games'];
 
 const AWARDED_BOT_GREETING_DURATION = 60 * 24 * 60 * 60 * 1000;
 
 let reloadInProgress = false;
 
-/* eslint-disable @typescript-eslint/explicit-function-return-type,@typescript-eslint/no-unused-vars*/
+const reloadCommands = function(reloadedModules: ReloadableModule[]): void {
+	// eslint-disable-next-line @typescript-eslint/no-var-requires
+	global.Commands = CommandParser.loadBaseCommands(require('./commands'));
+	if (!reloadedModules.includes('games')) Games.loadFormatCommands();
+};
+
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 const commands: Dict<ICommandDefinition> = {
 	/**
@@ -125,9 +132,7 @@ const commands: Dict<ICommandDefinition> = {
 						global.CommandParser = new commandParser.CommandParser();
 					} else if (moduleId === 'commands') {
 						Tools.uncacheTree('./commands');
-						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						global.Commands = CommandParser.loadBaseCommands(require('./commands'));
-						if (!modules.includes('games')) Games.loadFormatCommands();
+						reloadCommands(modules);
 					} else if (moduleId === 'config') {
 						Tools.uncacheTree('./config');
 						Tools.uncacheTree('./config-loader');
@@ -151,6 +156,20 @@ const commands: Dict<ICommandDefinition> = {
 						const games = require('./games') as typeof import('./games');
 						global.Games = new games.Games();
 						Games.onReload(oldGames);
+					} else if (moduleId === 'plugins') {
+						if (Plugins) {
+							for (const plugin of Plugins) {
+								if (plugin.moduleName) {
+									// @ts-expect-error
+									delete global[plugin.moduleName];
+								}
+							}
+						}
+
+						Tools.uncacheTree('./plugins-loader');
+						// eslint-disable-next-line @typescript-eslint/no-var-requires
+						require('./plugins-loader').load();
+						reloadCommands(modules);
 					} else if (moduleId === 'storage') {
 						const oldStorage = global.Storage;
 						Storage.unrefWorkers();

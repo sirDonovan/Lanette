@@ -8,6 +8,7 @@ import { Storage } from './storage';
 import { Tools } from './tools';
 import { Tournaments } from './tournaments';
 import { Users } from './users';
+import { LoadedPlugin } from './types/plugins';
 
 /* eslint-disable no-redeclare, no-undef, @typescript-eslint/naming-convention */
 declare global {
@@ -18,11 +19,15 @@ declare global {
 	const Config: Partial<typeof config>;
 	const Dex: Dex;
 	const Games: Games;
+	const ParseMessagePlugins: string[] | undefined;
+	const Plugins: LoadedPlugin[] | undefined;
 	const Rooms: Rooms;
 	const Storage: Storage;
 	const tempConfig: boolean;
 	const Tools: Tools;
 	const Tournaments: Tournaments;
 	const Users: Users;
+
+	// define plugin modules here
 }
 /* eslint-enable */

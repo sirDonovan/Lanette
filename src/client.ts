@@ -9,6 +9,7 @@ import { ISeparatedCustomRules } from './types/dex';
 import { User } from './users';
 import { ITournamentCreateJson, ITournamentUpdateJson, ITournamentEndJson } from './types/tournaments';
 import { Player } from './room-activity';
+import { IParseMessagePlugin } from './types/plugins';
 
 export type GroupName = 'voice' | 'bot' | 'driver' | 'moderator' | 'roomowner' | 'muted' | 'locked';
 
@@ -336,7 +337,16 @@ export class Client {
 				message = '';
 			}
 		}
+
 		const messageParts = message.split("|");
+
+		if (ParseMessagePlugins) {
+			for (const pluginName of ParseMessagePlugins) {
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				if (((global as any)[pluginName] as IParseMessagePlugin).parseMessage(room, messageType, messageParts) === true) return;
+			}
+		}
+
 		switch (messageType) {
 		/**
 		 * Global messages

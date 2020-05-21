@@ -16,13 +16,6 @@ global.Client = new client.Client();
 import * as commandParser from './command-parser';
 global.CommandParser = new commandParser.CommandParser();
 
-import commands = require('./commands');
-global.Commands = CommandParser.loadBaseCommands(commands);
-global.BaseCommands = Tools.deepClone(global.Commands);
-
-import * as games from './games';
-global.Games = new games.Games();
-
 import * as rooms from './rooms';
 global.Rooms = new rooms.Rooms();
 
@@ -35,10 +28,19 @@ global.Tournaments = new tournaments.Tournaments();
 import * as users from './users';
 global.Users = new users.Users();
 
-module.exports = (async(): Promise<void> => {
-	await Dex.loadAllData();
+import * as PluginsLoader from './plugins-loader';
 
-	Tournaments.loadSchedules();
-	Games.loadFormats();
+import commands = require('./commands');
+
+import * as games from './games';
+global.Games = new games.Games();
+
+module.exports = (async(): Promise<void> => {
 	Storage.importDatabases();
+	Tournaments.loadSchedules();
+
+	await PluginsLoader.load();
+
+	global.Commands = CommandParser.loadBaseCommands(commands);
+	global.BaseCommands = Tools.deepClone(Commands);
 });

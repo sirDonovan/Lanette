@@ -76,3 +76,4 @@ local-utils/*
 Pokemon-Showdown/
 roomlogs/
 src/config.ts
+src/plugins/private.ts

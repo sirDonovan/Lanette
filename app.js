@@ -10,6 +10,9 @@ if (!fs.existsSync(configFile)) {
 require(path.join(__dirname, 'build.js'))({}, async() => {
 	await require(path.join(__dirname, 'built', 'app.js'))();
 
+	await Dex.loadAllData();
+	Games.loadFormats();
+
 	process.on('uncaughtException', error => {
 		console.log(error);
 	});

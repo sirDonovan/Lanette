@@ -11,11 +11,6 @@
         "node": true,
         "es6": true
     },
-    "globals": {
-        "BaseCommands": false, "Client": false, "CommandParser": false, "Commands": false, "Config": false,
-        "Dex": false, "Games": false, "Rooms": false, "Storage": false, "tempConfig": false,
-        "Tools": false, "Tournaments": false, "Users": false
-    },
     "plugins": [
         "@typescript-eslint"
     ],

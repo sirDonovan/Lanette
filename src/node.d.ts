@@ -8,11 +8,15 @@ declare namespace NodeJS {
 		Config: Partial<typeof import('./config-example')>;
 		Dex: import('./dex').Dex;
 		Games: import('./games').Games;
+		ParseMessagePlugins: string[] | undefined;
+		Plugins: import('./types/plugins').LoadedPlugin[] | undefined;
 		Rooms: import('./rooms').Rooms;
 		Storage: import('./storage').Storage;
 		tempConfig: boolean;
 		Tools: import('./tools').Tools;
 		Tournaments: import('./tournaments').Tournaments;
 		Users: import('./users').Users;
+
+		// define plugin modules here
 	}
 }

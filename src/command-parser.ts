@@ -166,7 +166,21 @@ export class CommandParser {
 	}
 
 	loadBaseCommands<T = undefined>(commands: Dict<ICommandDefinition<T>>): CommandsDict<T> {
-		return Object.assign(Object.create(null), this.loadCommands(commands)) as CommandsDict<T>;
+		const allPluginCommands: Dict<ICommandDefinition<T>> = {};
+		if (Plugins) {
+			for (const plugin of Plugins) {
+				if (plugin.commands) {
+					for (const i in plugin.commands) {
+						if (i in allPluginCommands) throw new Error("Plugin command '" + i + "' is defined in more than 1 plugin file.");
+					}
+
+					Object.assign(allPluginCommands, plugin.commands);
+				}
+			}
+		}
+
+		return Object.assign(Object.create(null),
+			Object.assign(this.loadCommands(commands), this.loadCommands(allPluginCommands))) as CommandsDict<T>;
 	}
 
 	isCommandMessage(message: string): boolean {
