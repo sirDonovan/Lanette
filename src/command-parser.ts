@@ -134,18 +134,32 @@ export class CommandParser {
 	// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
 	loadCommands<T = undefined, U = void>(commands: Dict<ICommandDefinition<T, U>>): CommandsDict<T, U> {
 		const dict: CommandsDict<T, U> = {};
+		const allAliases: CommandsDict<T, U> = {};
 		for (const i in commands) {
+			const id = Tools.toId(i);
+			if (id in dict) throw new Error("Command '" + i + "' is defined in more than 1 location");
+
 			const command = Object.assign({}, commands[i]);
-			if (command.chatOnly && command.pmOnly) throw new Error(i + " cannot be both a chat-only and a pm-only command");
-			if (command.chatOnly && command.pmGameCommand) throw new Error(i + " cannot be both a chat-only and a pm game command");
+			if (command.chatOnly && command.pmOnly) throw new Error("Command '" + i + "' cannot be both chat-only and pm-only");
+			if (command.chatOnly && command.pmGameCommand) {
+				throw new Error("Command '" + i + "' cannot be both chat-only and a pm game command");
+			}
 			if (command.aliases) {
 				const aliases = command.aliases.slice();
 				delete command.aliases;
 				for (const alias of aliases) {
-					dict[Tools.toId(alias)] = command;
+					const id = Tools.toId(alias);
+					if (id in dict) throw new Error("Command " + i + "'s alias '" + alias + "' is already a command");
+					if (id in allAliases) throw new Error("Command " + i + "'s alias '" + alias + "' is an alias for another command");
+					allAliases[id] = command;
 				}
 			}
-			dict[Tools.toId(i)] = command;
+
+			dict[id] = command;
+		}
+
+		for (const i in allAliases) {
+			dict[i] = allAliases[i];
 		}
 
 		return dict;
