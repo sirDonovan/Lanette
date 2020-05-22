@@ -74,6 +74,7 @@ export function load(config: typeof Config): typeof Config {
 	if (config.allowTournaments) config.allowTournaments = arrayToRoomIds(config.allowTournaments);
 	if (config.rankedTournaments) config.rankedTournaments = arrayToRoomIds(config.rankedTournaments);
 	if (config.rankedCustomTournaments) config.rankedCustomTournaments = arrayToRoomIds(config.rankedCustomTournaments);
+	if (config.manualRankedTournaments) config.manualRankedTournaments = arrayToRoomIds(config.manualRankedTournaments);
 	if (config.useDefaultUnrankedTournaments) config.useDefaultUnrankedTournaments = arrayToRoomIds(config.useDefaultUnrankedTournaments);
 	if (config.scheduledTournamentsMaxPlayerCap) {
 		config.scheduledTournamentsMaxPlayerCap = arrayToRoomIds(config.scheduledTournamentsMaxPlayerCap);

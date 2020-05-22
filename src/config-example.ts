@@ -88,6 +88,11 @@ export let rankedTournaments: string[] = [];
 export let rankedCustomTournaments: string[] = [];
 
 /**
+ * A list of rooms (roomids) where tournaments will only award leaderboard points if manually enabled
+ */
+export let manualRankedTournaments: string[] = [];
+
+/**
  * A list of rooms (roomids) where tournaments in default 'uncompetitive' formats will not leaderboard points
  */
 export let useDefaultUnrankedTournaments: string[] = [];

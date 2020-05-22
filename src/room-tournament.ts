@@ -96,13 +96,21 @@ export class Tournament extends Activity {
 	}
 
 	canAwardPoints(): boolean {
-		if (((this.format.customRules && Config.rankedCustomTournaments && Config.rankedCustomTournaments.includes(this.room.id)) ||
-		(!this.format.customRules && Config.rankedTournaments && Config.rankedTournaments.includes(this.room.id))) &&
-		!(this.format.unranked && Config.useDefaultUnrankedTournaments && Config.useDefaultUnrankedTournaments.includes(this.room.id))) {
-			return true;
+		if (Config.manualRankedTournaments && Config.manualRankedTournaments.includes(this.room.id) && !this.manuallyEnabledPoints) {
+			return false;
 		}
 
-		return false;
+		if (this.format.customRules) {
+			if (!Config.rankedCustomTournaments || !Config.rankedCustomTournaments.includes(this.room.id)) return false;
+		} else {
+			if (!Config.rankedTournaments || !Config.rankedTournaments.includes(this.room.id)) return false;
+		}
+
+		if (this.format.unranked && Config.useDefaultUnrankedTournaments && Config.useDefaultUnrankedTournaments.includes(this.room.id)) {
+			return false;
+		}
+
+		return true;
 	}
 
 	adjustCap(): void {
@@ -180,7 +188,7 @@ export class Tournament extends Activity {
 		}
 		const singleElimination = !this.isRoundRobin && this.generator === 1;
 		if (!winners.length || !runnersUp.length || (singleElimination && semiFinalists.length < 2)) return;
-		if (!this.canAwardPoints() && !this.manuallyEnabledPoints) {
+		if ((!this.canAwardPoints() && !this.manuallyEnabledPoints) || this.manuallyEnabledPoints === false) {
 			const text = ["runner" + (runnersUp.length > 1 ? "s" : "") + "-up " + Tools.joinList(runnersUp, '**'),
 				"winner" + (winners.length > 1 ? "s" : "") + " " + Tools.joinList(winners, '**')];
 			if (semiFinalists.length) {
