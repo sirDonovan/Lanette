@@ -32,7 +32,7 @@ export async function load(): Promise<void> {
 					"already exists in the global namespace");
 			}
 
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
 			(global as any)[moduleInstance.name] = moduleInstance;
 
 			if (moduleInstance.loadData) await moduleInstance.loadData();

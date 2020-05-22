@@ -293,7 +293,7 @@ export abstract class Card extends Game {
 	timeEnd(): void {
 		this.timeEnded = true;
 		this.say("Time is up!");
-		const winners = new Map();
+		const winners = new Map<Player, number>();
 		let leastCards = Infinity;
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
@@ -309,7 +309,7 @@ export abstract class Card extends Game {
 			}
 		}
 		winners.forEach((value, player) => {
-			player.finished = true;
+			player.frozen = true;
 		});
 		this.end();
 	}

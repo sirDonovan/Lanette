@@ -21,7 +21,9 @@ const categories = require(path.join(lanetteDataDir, 'categories.js')) as Dict<s
 const characters = require(path.join(lanetteDataDir, 'characters.js')) as string[];
 const formatLinks = require(path.join(lanetteDataDir, 'format-links.js')) as Dict<IFormatLinks | undefined>;
 const locations = require(path.join(lanetteDataDir, 'locations.js')) as string[];
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 const gifData = require(path.join(lanetteDataDir, 'pokedex-mini.js')).BattlePokemonSprites as Dict<IGifData | undefined>;
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 const gifDataBW = require(path.join(lanetteDataDir, 'pokedex-mini-bw.js')).BattlePokemonSpritesBW as Dict<IGifData | undefined>;
 const trainerClasses = require(path.join(lanetteDataDir, 'trainer-classes.js')) as string[];
 /* eslint-enable */
@@ -328,8 +330,7 @@ export class Dex {
 					for (const ability of batch.abilities) {
 						if (ability.id) {
 							this.abilityCache.set(ability.id, ability);
-							// @ts-expect-error
-							this.data.abilityKeys.push(ability.id);
+							(this.data.abilityKeys as string[]).push(ability.id);
 						}
 					}
 
@@ -430,8 +431,7 @@ export class Dex {
 
 						if (format.id) {
 							this.formatCache.set(format.id, format);
-							// @ts-expect-error
-							this.data.formatKeys.push(format.id);
+							(this.data.formatKeys as string[]).push(format.id);
 						}
 
 						if (format.aliases) {
@@ -473,8 +473,7 @@ export class Dex {
 				for (const item of batch.items) {
 					if (item.id) {
 						this.itemCache.set(item.id, item);
-						// @ts-expect-error
-						this.data.itemKeys.push(item.id);
+						(this.data.itemKeys as string[]).push(item.id);
 					}
 				}
 
@@ -505,8 +504,7 @@ export class Dex {
 					const id = Tools.toId(key);
 					if (!id) continue;
 					this.learnsetDataCache.set(id, batch.learnsets[key]);
-					// @ts-expect-error
-					this.data.learnsetDataKeys.push(id);
+					(this.data.learnsetDataKeys as string[]).push(id);
 				}
 
 				learnsetDataCurrentIndex = batch.endIndex;
@@ -528,8 +526,7 @@ export class Dex {
 					const id = move.realMove ? Tools.toId(move.name) : move.id;
 					if (id) {
 						this.moveCache.set(id, move);
-						// @ts-expect-error
-						this.data.moveKeys.push(id);
+						(this.data.moveKeys as string[]).push(id);
 					}
 				}
 
@@ -597,8 +594,7 @@ export class Dex {
 					}
 
 					this.pokemonCache.set(pokemon.id, pokemon);
-					// @ts-expect-error
-					this.data.pokemonKeys.push(pokemon.id);
+					(this.data.pokemonKeys as string[]).push(pokemon.id);
 
 					const formeId = Tools.toId(pokemon.forme);
 					if (formeId && formeId in formeNames) {
@@ -650,8 +646,7 @@ export class Dex {
 				for (const type of batch.types) {
 					if (type.id) {
 						this.typeCache.set(type.id, type);
-						// @ts-expect-error
-						this.data.typeKeys.push(type.id);
+						(this.data.typeKeys as string[]).push(type.id);
 					}
 				}
 
@@ -1282,6 +1277,7 @@ export class Dex {
 					const complexBan: ComplexBan = ruleSpec.slice(1) as ComplexBan;
 					ruleTable.addComplexBan(complexBan[0], complexBan[1], complexBan[2], complexBan[3]);
 				} else {
+					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 					throw new Error(`Unrecognized rule spec ${ruleSpec}`);
 				}
 				continue;
@@ -1320,6 +1316,7 @@ export class Dex {
 			ruleTable.set(subFormatId, '');
 			if (!subformat) continue;
 			if (depth > 16) {
+				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				throw new Error(`Excessive ruleTable recursion in ${format.name}: ${ruleSpec} of ${format.ruleset}`);
 			}
 			const subRuleTable = this.getRuleTable(subformat, depth + 1, repeals);

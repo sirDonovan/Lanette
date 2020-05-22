@@ -1,20 +1,76 @@
 import buffer = require('buffer');
 import path = require('path');
-// eslint-disable-next-line @typescript-eslint/camelcase
+// eslint-disable-next-line @typescript-eslint/naming-convention
 import worker_threads = require('worker_threads');
 
 import * as tools from '../../tools';
 import { IPokemonShowdownResponse, IPokemonShowdownWorkerData, PokemonShowdownId, IGetDataIdsOptions, IGetDataIdsMessage, IGetDataOptions, IGetDataMessage } from '../pokemon-showdown';
 import { IPokemon, ILearnsetData, IAbility, IFormat, IItem, IMove, ITypeData } from '../../types/dex';
 
+interface IPSAbility extends DeepWritable<IAbility> {
+	exists: boolean;
+}
+
+interface IPSFormat extends DeepWritable<IFormat> {
+	checkLearnset?: () => void;
+	exists: boolean;
+}
+
+interface IPSItem extends DeepWritable<IItem> {
+	exists: boolean;
+}
+
+interface IPSLearnsetData extends DeepWritable<ILearnsetData> {
+	exists: boolean;
+}
+
+interface IPSMove extends DeepWritable<IMove> {
+	basePowerCallback?: () => void;
+	exists: boolean;
+}
+
+interface IPSPokemon extends DeepWritable<IPokemon> {
+	exists: boolean;
+}
+
+interface IPSTypeData extends DeepWritable<ITypeData> {
+	exists: boolean;
+}
+
+interface IPokemonShowdownDex {
+	data: {
+		Aliases: Dict<string>;
+		Abilities: Dict<string>;
+		Items: Dict<string>;
+		Formats: Dict<string>;
+		Learnsets: Dict<string>;
+		Movedex: Dict<string>;
+		Pokedex: Dict<string>;
+		TypeChart: Dict<string>;
+	}
+	getAbility: (name: string) => IPSAbility;
+	getFormat: (name: string) => IPSFormat;
+	getItem: (name: string) => IPSItem;
+	getLearnsetData: (name: string) => IPSLearnsetData;
+	getMove: (name: string) => IPSMove;
+	getSpecies: (name: string) => IPSPokemon;
+	getType: (name: string) => IPSTypeData;
+	mod: (mod: string) => IPokemonShowdownDex;
+}
+
+interface IValidator {
+	checkLearnset: (move: IMove, pokemon: IPokemon) => boolean;
+	learnsetParent: (pokemon: IPokemon) => IPokemon | null;
+}
+
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const Tools = new tools.Tools();
-// eslint-disable-next-line @typescript-eslint/camelcase
+// eslint-disable-next-line @typescript-eslint/naming-convention
 const data = worker_threads.workerData as IPokemonShowdownWorkerData;
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const pokemonShowdownDex = new (require(path.join(Tools.pokemonShowdownFolder, ".sim-dist", "dex.js")).ModdedDex)();
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+const pokemonShowdownDex = new (require(path.join(Tools.pokemonShowdownFolder, ".sim-dist", "dex.js")).ModdedDex)() as IPokemonShowdownDex;
 const MAX_STRING_LENGTH = buffer.constants.MAX_STRING_LENGTH;
 
 function getPostMessage(messageNumber: string, id: string, response: string): string {
@@ -120,19 +176,19 @@ function getAliases(options: IGetDataIdsOptions): IPokemonShowdownResponse {
 }
 
 function getAllPossibleMoves(messageNumber: string, id: string, options: IGetDataOptions): IPokemonShowdownResponse {
-	const validator =
-		new (require(path.join(Tools.pokemonShowdownFolder, ".sim-dist", "team-validator.js")).TeamValidator)(options.mod + 'ou');
+	// eslint-disable-next-line max-len, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+	const validator = new (require(path.join(Tools.pokemonShowdownFolder, ".sim-dist", "team-validator.js")).TeamValidator)(options.mod + 'ou') as IValidator;
 	const dex = pokemonShowdownDex.mod(options.mod);
 
 	const allPossibleMoves: Dict<string[]> = {};
 	const length = options.keys.length;
 	for (let i = options.startIndex; i < length; i++) {
-		const pokemon = dex.getSpecies(options.keys[i]) as IPokemon;
+		const pokemon = dex.getSpecies(options.keys[i]);
 
 		let possibleMoves: string[] = [];
-		let learnsetParent = pokemon;
+		let learnsetParent: IPokemon | null = pokemon;
 		while (learnsetParent) {
-			const learnsetData = dex.getLearnsetData(learnsetParent.id) as ILearnsetData;
+			const learnsetData = dex.getLearnsetData(learnsetParent.id);
 			if (!learnsetData.learnset) {
 				if ((learnsetParent.changesFrom || learnsetParent.baseSpecies) !== learnsetParent.name) {
 					// forme without its own learnset
@@ -171,7 +227,7 @@ function getFormats(messageNumber: string, id: string, options: IGetDataOptions)
 		if (format.checkLearnset) format.hasCheckLearnset = true;
 
 		removeObjectFunctions(format);
-		formats.push(format);
+		formats.push(format as IFormat);
 	}
 
 	const responseKey = "formats";
@@ -348,7 +404,7 @@ function getTypeIds(options: IGetDataIdsOptions): IPokemonShowdownResponse {
 	return {data: JSON.stringify({keys: Object.keys(pokemonShowdownDex.mod(options.mod).data.TypeChart)})};
 }
 
-// eslint-disable-next-line @typescript-eslint/camelcase
+// eslint-disable-next-line @typescript-eslint/naming-convention
 worker_threads.parentPort!.on('message', (incommingMessage: string) => {
 	const parts = incommingMessage.split("|");
 	const messageNumber = parts[0];
@@ -405,7 +461,7 @@ worker_threads.parentPort!.on('message', (incommingMessage: string) => {
 		response = getTypeIds(options);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/camelcase
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	worker_threads.parentPort!.postMessage(getPostMessage(messageNumber, id, JSON.stringify(response!)));
 });
 /* eslint-enable */

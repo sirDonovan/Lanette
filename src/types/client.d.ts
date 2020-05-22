@@ -82,7 +82,7 @@ export interface IClientMessageTypes {
 		readonly type: RoomType;
 	};
 
-	deinit: {};
+	deinit: null;
 
 	/**
 	 * Groups list
@@ -256,7 +256,7 @@ export interface ITournamentMessageTypes {
 		readonly json: ITournamentUpdateJson;
 	};
 
-	updateEnd: {};
+	updateEnd: null;
 
 	/**
 	 * End JSON
@@ -265,9 +265,9 @@ export interface ITournamentMessageTypes {
 		readonly json: ITournamentEndJson;
 	};
 
-	forceend: {};
+	forceend: null;
 
-	start: {};
+	start: null;
 
 	/**
 	 * Username

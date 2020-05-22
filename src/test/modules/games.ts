@@ -69,7 +69,7 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 						await testData.test.call(this, game, testFormat, attributes);
 					} catch (e) {
 						console.log(e);
-						fail(e.message + " (initial seed = " + game.initialSeed + ")");
+						fail((e as Error).message + " (initial seed = " + game.initialSeed + ")");
 					}
 				});
 			} else {
@@ -79,7 +79,7 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 						testData.test.call(this, game, testFormat, attributes);
 					} catch (e) {
 						console.log(e);
-						fail(e.message + " (initial seed = " + game.initialSeed + ")");
+						fail((e as Error).message + " (initial seed = " + game.initialSeed + ")");
 					}
 				});
 			}
@@ -180,7 +180,7 @@ describe("Games", () => {
 				Games.createGame(room, format, room, false, initialSeed);
 			} catch (e) {
 				console.log(e);
-				fail(e.message + (room.game ? " (" + format.name + "; initial seed = " + room.game.initialSeed + ")" : ""));
+				fail((e as Error).message + (room.game ? " (" + format.name + "; initial seed = " + room.game.initialSeed + ")" : ""));
 			}
 			if (room.game) room.game.deallocate(true);
 		}
@@ -201,7 +201,8 @@ describe("Games", () => {
 					Games.createGame(room, format, room, false, initialSeed);
 				} catch (e) {
 					console.log(e);
-					fail(e.message + (room.game ? " (" + format.nameWithOptions + "; initial seed = " + room.game.initialSeed + ")" : ""));
+					fail((e as Error).message + (room.game ? " (" + format.nameWithOptions + "; initial seed = " +
+						room.game.initialSeed + ")" : ""));
 				}
 				if (room.game) room.game.deallocate(true);
 			}

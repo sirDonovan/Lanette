@@ -342,7 +342,7 @@ export class Client {
 
 		if (ParseMessagePlugins) {
 			for (const pluginName of ParseMessagePlugins) {
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
 				if (((global as any)[pluginName] as IParseMessagePlugin).parseMessage(room, messageType, messageParts) === true) return;
 			}
 		}

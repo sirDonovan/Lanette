@@ -1,6 +1,6 @@
 import fs = require('fs');
 import path = require('path');
-// eslint-disable-next-line @typescript-eslint/camelcase
+// eslint-disable-next-line @typescript-eslint/naming-convention
 import worker_threads = require('worker_threads');
 
 import * as tools from '../../tools';
@@ -8,7 +8,7 @@ import { ILogsResponse, ILogsSearchMessage, ILogsSearchOptions, ILogsWorkerData,
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const Tools = new tools.Tools();
-// eslint-disable-next-line @typescript-eslint/camelcase
+// eslint-disable-next-line @typescript-eslint/naming-convention
 const data = worker_threads.workerData as ILogsWorkerData;
 
 function search(options: ILogsSearchOptions): ILogsResponse {
@@ -136,7 +136,7 @@ function search(options: ILogsSearchOptions): ILogsResponse {
 	return {lines, totalLines};
 }
 
-// eslint-disable-next-line @typescript-eslint/camelcase
+// eslint-disable-next-line @typescript-eslint/naming-convention
 worker_threads.parentPort!.on('message', (incommingMessage: string) => {
 	const parts = incommingMessage.split("|");
 	const messageNumber = parts[0];
@@ -148,6 +148,6 @@ worker_threads.parentPort!.on('message', (incommingMessage: string) => {
 		response = search(options);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/camelcase
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	worker_threads.parentPort!.postMessage(messageNumber + "|" + id + "|" + JSON.stringify(response!));
 });

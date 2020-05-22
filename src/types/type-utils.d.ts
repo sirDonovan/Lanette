@@ -14,6 +14,7 @@ type PromiseResolve<T> = (value?: T | PromiseLike<T> | undefined) => void;
 
 type PrimitiveType = string | number | boolean | bigint | symbol | undefined | null;
 
+/* eslint-disable @typescript-eslint/ban-types */
 type DeepReadonly<T> =
 	T extends PrimitiveType | Function | Date
 	? T
@@ -41,6 +42,8 @@ type DeepWritable<T> =
 	: T extends {}
 	? { -readonly [K in keyof T]: DeepWritable<T[K]> }
 	: T;
+
+/* eslint-enable */
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface IWritableSet<V> extends Set<DeepWritable<V>> {}

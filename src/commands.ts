@@ -1,4 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/camelcase
+// eslint-disable-next-line @typescript-eslint/naming-convention
 import child_process = require('child_process');
 import fs = require('fs');
 import path = require('path');
@@ -39,8 +39,8 @@ const commands: Dict<ICommandDefinition> = {
 			try {
 				this.say(eval(target));
 			} catch (e) {
-				this.say(e.message);
-				console.log(e.stack);
+				this.say((e as Error).message);
+				console.log((e as Error).stack);
 			}
 		},
 		aliases: ['js'],
@@ -48,7 +48,7 @@ const commands: Dict<ICommandDefinition> = {
 	},
 	gitpull: {
 		command(target, room, user) {
-			// eslint-disable-next-line @typescript-eslint/camelcase
+			// eslint-disable-next-line @typescript-eslint/naming-convention
 			child_process.exec('git pull', {}, err => {
 				if (err) {
 					this.say("An error occurred while running ``git pull``: " + err.message);
@@ -115,7 +115,7 @@ const commands: Dict<ICommandDefinition> = {
 				offline: !modules.includes('dex'),
 			};
 
-			// eslint-disable-next-line @typescript-eslint/no-var-requires
+			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-call
 			await require(path.join(Tools.rootFolder, 'build.js'))(buildOptions, async() => {
 				for (const moduleId of modules) {
 					if (moduleId === 'client') {
@@ -137,7 +137,9 @@ const commands: Dict<ICommandDefinition> = {
 						Tools.uncacheTree('./config');
 						Tools.uncacheTree('./config-loader');
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const config = require('./config-loader').load(require('./config')) as typeof import('./config-example');
+						const configLoader = require('./config-loader') as typeof import('./config-loader');
+						// eslint-disable-next-line @typescript-eslint/no-var-requires
+						const config = configLoader.load(require('./config') as typeof import('./config-example'));
 						global.Config = config;
 						Rooms.checkLoggingConfigs();
 					} else if (moduleId === 'dex') {
@@ -168,7 +170,8 @@ const commands: Dict<ICommandDefinition> = {
 
 						Tools.uncacheTree('./plugins-loader');
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						require('./plugins-loader').load();
+						const pluginsLoader = require('./plugins-loader') as typeof import('./plugins-loader');
+						await pluginsLoader.load();
 						reloadCommands(modules);
 					} else if (moduleId === 'storage') {
 						const oldStorage = global.Storage;
@@ -2025,7 +2028,7 @@ const commands: Dict<ICommandDefinition> = {
 					try {
 						Dex.validateRule(rule, format);
 					} catch (e) {
-						return this.say(e.message);
+						return this.say((e as Error).message);
 					}
 					customRules.push(rule);
 				}

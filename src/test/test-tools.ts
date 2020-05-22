@@ -13,7 +13,7 @@ export function getBasePlayerName(): string {
 	return basePlayerName;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
 export function assert(condition: any, message?: string | Error | undefined): asserts condition {
 	nodeAssert(condition, message);
 }

@@ -1,5 +1,5 @@
 declare namespace NodeJS {
-	// eslint-disable-next-line @typescript-eslint/interface-name-prefix
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	interface Global {
 		BaseCommands: import('./command-parser').CommandsDict;
 		Client: import('./client').Client;

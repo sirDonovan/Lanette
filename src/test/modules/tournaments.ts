@@ -41,7 +41,7 @@ describe("Tournaments", () => {
 						Dex.validateFormat(schedule.months[month].formats[day]);
 						validated++;
 					} catch (e) {
-						errors.push(e.message + " on " + month + "/" + day + " in " + room);
+						errors.push((e as Error).message + " on " + month + "/" + day + " in " + room);
 					}
 				}
 			}

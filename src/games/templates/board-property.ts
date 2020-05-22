@@ -179,7 +179,8 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 	},
 ];
 
-export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends BoardGame {
 	abstract acquirePropertyAction: string;
 	abstract acquirePropertyActionPast: string;
 	abstract availablePropertyState: string;
@@ -195,7 +196,7 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 	abstract spaces: BoardSpaces;
 	abstract startingCurrency: number;
 
-	actionCards: BoardActionCard<BoardPropertyGame>[] = [];
+	actionCards: BoardActionCard<BoardPropertyGame<BoardSpaces>>[] = [];
 	canEscape: boolean = false;
 	canRoll: boolean = false;
 	canAcquire: boolean = false;
@@ -220,7 +221,7 @@ export abstract class BoardPropertyGame<BoardSpaces = {}> extends BoardGame {
 	// set once the game starts
 	startingSpace!: BoardSpace;
 
-	abstract getActionCards(): BoardActionCard<BoardPropertyGame>[];
+	abstract getActionCards(): BoardActionCard<BoardPropertyGame<BoardSpaces>>[];
 	abstract getPlayerPropertiesHtml(player: Player): string;
 	abstract onOwnedPropertySpace(space: BoardPropertySpace, player: Player): void;
 	abstract onAcquirePropertySpace(property: BoardPropertySpace, player: Player, cost: number): void;
@@ -709,14 +710,12 @@ const tests: GameFileTests<BoardPropertyGame> = {
 			const players = addPlayers(game);
 			game.start();
 			for (const i in game.spaces) {
-				// @ts-expect-error
-				const space = game.spaces[i] as BoardSpace;
+				const space = game.spaces[i];
 				if (space instanceof BoardPropertySpace) space.owner = players[0];
 			}
 			game.forceEnd(Users.self);
 			for (const i in game.spaces) {
-				// @ts-expect-error
-				const space = game.spaces[i] as BoardSpace;
+				const space = game.spaces[i];
 				if (space instanceof BoardPropertySpace) assertStrictEqual(space.owner, null);
 			}
 		},

@@ -44,7 +44,7 @@ module.exports = async(inputOptions: Dict<string>): Promise<void> => {
 	}
 
 	try {
-		// eslint-disable-next-line @typescript-eslint/no-var-requires
+		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-call
 		await require(path.join(rootFolder, 'built', 'app.js'))();
 		clearInterval(Storage.globalDatabaseExportInterval);
 

@@ -212,7 +212,7 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 		}
 	}
 
-	getActionCards(): BoardActionCard<BoardPropertyGame>[] {
+	getActionCards(): BoardActionCard<BoardPropertyGame<IBoardSpaces>>[] {
 		// @ts-expect-error
 		return this.sharedActionCards.concat(this.baseActionCards);
 	}

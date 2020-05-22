@@ -16,7 +16,7 @@ import { PortmanteausWorker } from './workers/portmanteaus';
 const DEFAULT_CATEGORY_COOLDOWN = 3;
 
 const gamesDirectory = path.join(__dirname, 'games');
-const userHosted = require(path.join(gamesDirectory, "internal", "user-hosted.js")).game as IUserHostedFile;
+const userHosted = (require(path.join(gamesDirectory, "internal", "user-hosted.js")) as typeof import('./games/internal/user-hosted')).game;
 const internalGamePaths: IInternalGames = {
 	eggtoss: path.join(gamesDirectory, "internal", "egg-toss.js"),
 	vote: path.join(gamesDirectory, "internal", "vote.js"),
@@ -165,6 +165,7 @@ export class Games {
 	loadFormats(): void {
 		const internalGameKeys = Object.keys(internalGamePaths) as (keyof IInternalGames)[];
 		for (const key of internalGameKeys) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			const file = require(internalGamePaths[key]).game as IGameFile;
 			if (!file) throw new Error("No game exported from " + internalGamePaths[key]);
 			const id = Tools.toId(file.name);
@@ -184,6 +185,7 @@ export class Games {
 		for (const fileName of modeFiles) {
 			if (!fileName.endsWith('.js')) continue;
 			const modePath = path.join(modesDirectory, fileName);
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			const file = require(modePath).mode as IGameModeFile;
 			if (!file) throw new Error("No mode exported from " + modePath);
 			const id = Tools.toId(file.name);
@@ -205,6 +207,7 @@ export class Games {
 		for (const fileName of gameFiles) {
 			if (!fileName.endsWith('.js')) continue;
 			const gamePath = path.join(gamesDirectory, fileName);
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			const file = require(gamePath).game as IGameFile;
 			if (!file) throw new Error("No game exported from " + gamePath);
 			const id = Tools.toId(file.name);

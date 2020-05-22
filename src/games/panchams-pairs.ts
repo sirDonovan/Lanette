@@ -185,7 +185,7 @@ class PanchamPairs extends Game {
 		// @ts-expect-error
 		for (const thing of usedData[nameA][paramName]) {
 			// @ts-expect-error
-			if (usedData[nameB][paramName].includes(thing)) {
+			if ((usedData[nameB][paramName] as string[]).includes(thing)) {
 				return [nameA, nameB];
 			}
 		}
