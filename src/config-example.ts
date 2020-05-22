@@ -113,6 +113,11 @@ export let scheduledTournamentsMaxPlayerCap: string[] = [];
 export let displayTournamentFormatInfo: string[] = [];
 
 /**
+ * A list of rooms (roomids) where results of unranked tournaments will be displayed
+ */
+export let displayUnrankedTournamentResults: string[] = [];
+
+/**
  * A list of rooms (roomids) where scouting in non-random tournaments will not be allowed
  */
 export let disallowTournamentScouting: string[] = [];

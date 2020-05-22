@@ -186,9 +186,13 @@ export class Tournament extends Activity {
 			if (this.info.results[1]) runnersUp = this.info.results[1];
 			if (this.info.results[2]) semiFinalists = this.info.results[2];
 		}
+
 		const singleElimination = !this.isRoundRobin && this.generator === 1;
 		if (!winners.length || !runnersUp.length || (singleElimination && semiFinalists.length < 2)) return;
+
 		if ((!this.canAwardPoints() && !this.manuallyEnabledPoints) || this.manuallyEnabledPoints === false) {
+			if (!Config.displayUnrankedTournamentResults || !Config.displayUnrankedTournamentResults.includes(this.room.id)) return;
+
 			const text = ["runner" + (runnersUp.length > 1 ? "s" : "") + "-up " + Tools.joinList(runnersUp, '**'),
 				"winner" + (winners.length > 1 ? "s" : "") + " " + Tools.joinList(winners, '**')];
 			if (semiFinalists.length) {

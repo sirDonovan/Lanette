@@ -80,6 +80,9 @@ export function load(config: typeof Config): typeof Config {
 		config.scheduledTournamentsMaxPlayerCap = arrayToRoomIds(config.scheduledTournamentsMaxPlayerCap);
 	}
 	if (config.displayTournamentFormatInfo) config.displayTournamentFormatInfo = arrayToRoomIds(config.displayTournamentFormatInfo);
+	if (config.displayUnrankedTournamentResults) {
+		config.displayUnrankedTournamentResults = arrayToRoomIds(config.displayUnrankedTournamentResults);
+	}
 	if (config.disallowTournamentScouting) config.disallowTournamentScouting = arrayToRoomIds(config.disallowTournamentScouting);
 	if (config.disallowTournamentScoutingFormats) {
 		config.disallowTournamentScoutingFormats = stringArrayObjectToIds(config.disallowTournamentScoutingFormats);
