@@ -1,8 +1,8 @@
-import { ICommandDefinition } from "../../command-parser";
-import { Player } from "../../room-activity";
+import type { ICommandDefinition } from "../../command-parser";
+import type { Player } from "../../room-activity";
 import { Game } from "../../room-game";
-import { Room } from "../../rooms";
-import { IGameFile, IGameFormat, GameCommandReturnType } from "../../types/games";
+import type { Room } from "../../rooms";
+import type { GameCommandReturnType, IGameFile, IGameFormat } from "../../types/games";
 
 const timeLimit = 30 * 1000;
 

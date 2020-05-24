@@ -1,4 +1,5 @@
 import path = require('path');
+
 import { WorkerBase } from './worker-base';
 
 interface ILogsIdKeys {

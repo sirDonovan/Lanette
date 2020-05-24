@@ -1,11 +1,14 @@
 import type { ICommandDefinition } from "../command-parser";
-import { Player } from "../room-activity";
-import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
-import { BoardActionCard, BoardSpace, IBoard } from "./templates/board";
-import { BoardActionSpace, BoardPropertyGame, BoardPropertyRentSpace, BoardRentSpace, game as boardPropertyGame, mountainPrefix } from "./templates/board-property";
-import { Room } from "../rooms";
-import { User } from "../users";
-import { PRNGSeed } from "../prng";
+import type { PRNGSeed } from "../prng";
+import type { Player } from "../room-activity";
+import type { Room } from "../rooms";
+import type { AchievementsDict, GameCommandReturnType, IGameFile } from "../types/games";
+import type { User } from "../users";
+import { BoardSpace } from "./templates/board";
+import type { BoardActionCard, IBoard } from "./templates/board";
+import {
+	BoardActionSpace, BoardPropertyGame, BoardPropertyRentSpace, BoardRentSpace, game as boardPropertyGame, mountainPrefix
+} from "./templates/board-property";
 
 const DONATE_ACTION_AMOUNT = 100;
 const BID_MULTIPLE = 5;

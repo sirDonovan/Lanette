@@ -1,5 +1,6 @@
 import path = require('path');
-import { PRNGSeed } from '../prng';
+
+import type { PRNGSeed } from '../prng';
 import { WorkerBase } from './worker-base';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

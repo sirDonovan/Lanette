@@ -1,14 +1,14 @@
 import { Client } from './client';
 import { CommandParser, CommandsDict } from './command-parser';
 import * as config from './config-example';
-import { Dex} from './dex';
+import { Dex } from './dex';
 import { Games } from './games';
 import { Rooms } from './rooms';
 import { Storage } from './storage';
 import { Tools } from './tools';
 import { Tournaments } from './tournaments';
-import { Users } from './users';
 import { LoadedPlugin } from './types/plugins';
+import { Users } from './users';
 
 /* eslint-disable no-redeclare, no-undef, @typescript-eslint/naming-convention */
 declare global {

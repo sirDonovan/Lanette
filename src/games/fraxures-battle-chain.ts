@@ -1,8 +1,8 @@
-import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
-import { IPokemon } from "../types/dex";
+import type { Room } from "../rooms";
+import type { IPokemon } from "../types/dex";
+import type { IGameFile } from "../types/games";
+import type { User } from "../users";
 import { Chain, game as chainGame } from "./templates/chain";
-import { User } from "../users";
 
 const data: {types: string[]} = {
 	types: [],

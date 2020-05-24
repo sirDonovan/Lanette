@@ -1,11 +1,11 @@
-import { GroupName } from "./client";
-import { UserHosted } from "./games/internal/user-hosted";
-import { Player } from "./room-activity";
-import { Game } from "./room-game";
-import { Tournament } from "./room-tournament";
-import { IUserHostedTournament } from "./types/tournaments";
-import { IRoomInfoResponse } from "./types/client";
-import { User } from "./users";
+import type { GroupName } from "./client";
+import type { UserHosted } from "./games/internal/user-hosted";
+import type { Player } from "./room-activity";
+import type { Game } from "./room-game";
+import type { Tournament } from "./room-tournament";
+import type { IRoomInfoResponse } from "./types/client";
+import type { IUserHostedTournament } from "./types/tournaments";
+import type { User } from "./users";
 
 export type RoomType = 'battle' | 'chat' | 'html';
 

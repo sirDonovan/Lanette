@@ -1,11 +1,11 @@
-import { ICommandDefinition } from "../command-parser";
-import { Player } from "../room-activity";
+import type { ICommandDefinition } from "../command-parser";
+import type { Player } from "../room-activity";
 import { Game } from "../room-game";
-import { Room } from "../rooms";
+import type { Room } from "../rooms";
 import { addPlayers, assert, runCommand } from "../test/test-tools";
-import { GameFileTests, IGameFile, GameCommandReturnType } from "../types/games";
-import { IPokemon } from "../types/dex";
-import { User } from "../users";
+import type { IPokemon } from "../types/dex";
+import type { GameCommandReturnType, GameFileTests, IGameFile } from "../types/games";
+import type { User } from "../users";
 
 const data: {'parameters': Dict<string[]>; 'pokemon': string[]} = {
 	"parameters": {},

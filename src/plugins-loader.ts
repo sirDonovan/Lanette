@@ -1,7 +1,7 @@
 import fs = require('fs');
 import path = require('path');
 
-import { IPluginFile, LoadedPlugin } from './types/plugins';
+import type { IPluginFile, LoadedPlugin } from './types/plugins';
 
 export async function load(): Promise<void> {
 	const plugins: LoadedPlugin[] = [];

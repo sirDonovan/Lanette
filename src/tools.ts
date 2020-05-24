@@ -4,9 +4,9 @@ import path = require('path');
 import url = require('url');
 import v8 = require('v8');
 
-import { PRNG } from './prng';
+import type { PRNG } from './prng';
 import type { HexColor, IHexColor } from './types/tools';
-import { IParam } from './workers/parameters';
+import type { IParam } from './workers/parameters';
 
 const ALPHA_NUMERIC_REGEX = /[^a-zA-Z0-9 ]/g;
 const ID_REGEX = /[^a-z0-9]/g;

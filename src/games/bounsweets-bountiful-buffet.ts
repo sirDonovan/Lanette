@@ -1,8 +1,8 @@
-import { ICommandDefinition } from "../command-parser";
-import { Player } from "../room-activity";
+import type { ICommandDefinition } from "../command-parser";
+import type { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { addPlayers, assertStrictEqual, runCommand } from "../test/test-tools";
-import { GameFileTests, IGameFile, GameCommandReturnType } from "../types/games";
+import type { GameCommandReturnType, GameFileTests, IGameFile } from "../types/games";
 
 const data: {'meals': string[]; 'aliases': Dict<string>} = {
 	meals: [],

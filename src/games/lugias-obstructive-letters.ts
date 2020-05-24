@@ -1,7 +1,7 @@
-import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
+import type { Room } from "../rooms";
+import type { IGameFile } from "../types/games";
+import type { User } from "../users";
 import { game as guessingGame, Guessing } from './templates/guessing';
-import { User } from "../users";
 
 const BASE_POINTS = 30;
 const BASE_TEAM_POINTS = 60;

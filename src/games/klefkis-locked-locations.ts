@@ -1,10 +1,13 @@
-import { Player } from "../room-activity";
-import { IGameFile, AchievementsDict } from "../types/games";
-import { BoardActionCard, BoardSpace, IBoard } from "./templates/board";
-import { BoardActionSpace, BoardEliminationSpace, BoardPropertyGame, BoardPropertyEliminationSpace, game as boardPropertyGame, mountainPrefix } from "./templates/board-property";
-import { Room } from "../rooms";
-import { User } from "../users";
-import { PRNGSeed } from "../prng";
+import type { PRNGSeed } from "../prng";
+import type { Player } from "../room-activity";
+import type { Room } from "../rooms";
+import type { AchievementsDict, IGameFile } from "../types/games";
+import type { User } from "../users";
+import { BoardSpace } from "./templates/board";
+import type { BoardActionCard, IBoard } from "./templates/board";
+import {
+	BoardActionSpace, BoardEliminationSpace, BoardPropertyEliminationSpace, BoardPropertyGame, game as boardPropertyGame, mountainPrefix
+} from "./templates/board-property";
 
 interface IBoardSpaces {
 	oakslab: BoardSpace;

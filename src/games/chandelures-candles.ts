@@ -1,7 +1,7 @@
-import { ICommandDefinition } from "../command-parser";
-import { Player } from "../room-activity";
+import type { ICommandDefinition } from "../command-parser";
+import type { Player } from "../room-activity";
 import { Game } from "../room-game";
-import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
+import type { AchievementsDict, GameCommandReturnType, IGameFile } from "../types/games";
 
 const puffAchievementAmount = 15;
 const achievements: AchievementsDict = {

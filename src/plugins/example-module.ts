@@ -1,6 +1,6 @@
-import { IPluginInterface } from "../types/plugins";
-import { IClientMessageTypes } from "../types/client";
-import { Room } from "../rooms";
+import type { Room } from "../rooms";
+import type { IClientMessageTypes } from "../types/client";
+import type { IPluginInterface } from "../types/plugins";
 
 // Note: plugin modules can also export commands
 

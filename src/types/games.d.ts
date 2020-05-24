@@ -1,9 +1,9 @@
-import { CommandsDict, ICommandDefinition } from "../command-parser";
-import { UserHosted } from "../games/internal/user-hosted";
-import { DefaultGameOption, Game, IGameOptionValues } from "../room-game";
-import { Room } from "../rooms";
-import { User } from "../users";
-import { PRNGSeed } from "../prng";
+import type { CommandsDict, ICommandDefinition } from "../command-parser";
+import type { UserHosted } from "../games/internal/user-hosted";
+import type { PRNGSeed } from "../prng";
+import type { DefaultGameOption, Game, IGameOptionValues } from "../room-game";
+import type { Room } from "../rooms";
+import type { User } from "../users";
 
 export type GameCommandReturnType = boolean;
 export type GameDifficulty = 'easy' | 'medium' | 'hard';

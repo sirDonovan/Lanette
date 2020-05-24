@@ -1,6 +1,7 @@
-import { Player } from "../../room-activity";
-import { IGameTemplateFile } from "../../types/games";
-import { game as mapGame, MapFloor, MapGame } from "./map";
+import type { Player } from "../../room-activity";
+import type { IGameTemplateFile } from "../../types/games";
+import { game as mapGame, MapGame } from "./map";
+import type { MapFloor } from "./map";
 
 export abstract class MapCurrencyGame extends MapGame {
 	abstract initialCurrencySpaces: number;

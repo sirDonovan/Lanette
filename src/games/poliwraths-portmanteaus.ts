@@ -1,10 +1,11 @@
-import { PRNG, PRNGSeed } from "../prng";
-import { Room } from "../rooms";
+import { PRNG } from "../prng";
+import type { PRNGSeed } from "../prng";
+import type { Room } from "../rooms";
 import { assert, assertStrictEqual } from '../test/test-tools';
-import { GameFileTests, IGameFile, IGameFormat } from "../types/games";
-import * as PortmanteausWorker from './../workers/portmanteaus';
+import type { GameFileTests, IGameFile, IGameFormat } from "../types/games";
+import type { User } from "../users";
+import type { PoolType } from './../workers/portmanteaus';
 import { game as guessingGame, Guessing } from './templates/guessing';
-import { User } from "../users";
 
 const BASE_NUMBER_OF_PORTS = 2;
 
@@ -12,7 +13,7 @@ export class PoliwrathsPortmanteaus extends Guessing {
 	answerParts: Dict<string[]> = {};
 	customPortCategories: string[] | null = null;
 	customPortDetails: string[] | null = null;
-	customPortTypes: PortmanteausWorker.PoolType[] | null = null;
+	customPortTypes: PoolType[] | null = null;
 	minLetters: number = 2;
 	maxLetters: number = 4;
 	ports: string[] = [];

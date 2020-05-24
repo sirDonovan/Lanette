@@ -1,10 +1,10 @@
-import { ICommandDefinition } from "../command-parser";
-import { Player } from "../room-activity";
+import type { ICommandDefinition } from "../command-parser";
+import type { PRNGSeed } from "../prng";
+import type { Player } from "../room-activity";
 import { Game } from "../room-game";
-import { Room } from "../rooms";
-import { IGameFile, GameCommandReturnType } from "../types/games";
-import { User } from "../users";
-import { PRNGSeed } from "../prng";
+import type { Room } from "../rooms";
+import type { GameCommandReturnType, IGameFile } from "../types/games";
+import type { User } from "../users";
 
 const GRID_SIZE = 4;
 

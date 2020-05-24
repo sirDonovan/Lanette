@@ -1,5 +1,5 @@
-import { IPastTournament } from "../../types/storage";
-import { IRoomTournamentSchedule } from "../../tournament-schedules";
+import type { IRoomTournamentSchedule } from "../../tournament-schedules";
+import type { IPastTournament } from "../../types/storage";
 import { assert, assertStrictEqual } from "../test-tools";
 
 /* eslint-env mocha */

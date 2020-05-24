@@ -1,10 +1,11 @@
-import { PRNG, PRNGSeed } from "../prng";
-import { Room } from "../rooms";
+import { PRNG } from "../prng";
+import type { PRNGSeed } from "../prng";
+import type { Room } from "../rooms";
 import { assert, assertStrictEqual } from "../test/test-tools";
-import { GameFileTests, IGameFile, IGameFormat } from "../types/games";
-import { IParam, IParametersResponse, ParamType } from '../workers/parameters';
+import type { GameFileTests, IGameFile, IGameFormat } from "../types/games";
+import type { User } from "../users";
+import type { IParam, IParametersResponse, ParamType } from '../workers/parameters';
 import { game as guessingGame, Guessing } from './templates/guessing';
-import { User } from "../users";
 
 const BASE_NUMBER_OF_PARAMS = 2;
 const MIN_GEN = 1;

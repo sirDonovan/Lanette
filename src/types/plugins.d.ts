@@ -1,6 +1,6 @@
-import { ICommandDefinition } from "../command-parser";
-import { IClientMessageTypes } from "../types/client";
-import { Room } from "../rooms";
+import type { ICommandDefinition } from "../command-parser";
+import type { Room } from "../rooms";
+import type { IClientMessageTypes } from "../types/client";
 
 export interface IPluginConstructor {
 	new (): IPluginInterface;

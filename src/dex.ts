@@ -1,7 +1,10 @@
 import path = require('path');
 
-import { Room } from './rooms';
-import { IAbility, IAbilityCopy, IDataTable, IFormat, IFormatData, IFormatLinks, IGifData, IItem, IItemCopy, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy, ISeparatedCustomRules, ILearnsetData, ITypeData } from './types/dex';
+import type { Room } from './rooms';
+import type {
+	IAbility, IAbilityCopy, IDataTable, IFormat, IFormatLinks, IGifData, IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature,
+	IPokemon, IPokemonCopy, ISeparatedCustomRules, ITypeData
+} from './types/dex';
 import { PokemonShowdownWorker } from './workers/pokemon-showdown';
 
 interface IDexWorkers {

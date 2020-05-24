@@ -1,4 +1,4 @@
-import { assert, assertStrictEqual} from './test-tools';
+import { assert, assertStrictEqual } from './test-tools';
 
 /* eslint-env mocha */
 describe("pokemon-showdown", () => {

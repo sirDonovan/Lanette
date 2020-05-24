@@ -1,7 +1,7 @@
-import { Game } from "./room-game";
-import { Room } from "./rooms";
-import { GameCommandReturnType } from "./types/games";
-import { User } from "./users";
+import type { Game } from "./room-game";
+import type { Room } from "./rooms";
+import type { GameCommandReturnType } from "./types/games";
+import type { User } from "./users";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface ICommandDefinition<T = undefined, U = T extends Game ? GameCommandReturnType : any> {

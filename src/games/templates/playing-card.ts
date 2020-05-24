@@ -1,8 +1,8 @@
-import { ICommandDefinition } from '../../command-parser';
-import { Player } from '../../room-activity';
+import type { ICommandDefinition } from '../../command-parser';
+import type { Player } from '../../room-activity';
 import { Game } from '../../room-game';
-import { Room } from '../../rooms';
-import { IGameTemplateFile } from '../../types/games';
+import type { Room } from '../../rooms';
+import type { IGameTemplateFile } from '../../types/games';
 
 export type IPlayingCardSuits = 'clubs' | 'diamonds' | 'hearts' | 'spades';
 export interface IPlayingCard {

@@ -1,8 +1,8 @@
-import { ICommandDefinition } from "../../command-parser";
-import { Player } from "../../room-activity";
+import type { ICommandDefinition } from "../../command-parser";
+import type { Player } from "../../room-activity";
 import { Game } from "../../room-game";
-import { IGameTemplateFile, GameCommandReturnType } from "../../types/games";
-import { IAbility, IItem, IMove, IPokemon } from "../../types/dex";
+import type { IAbility, IItem, IMove, IPokemon } from "../../types/dex";
+import type { GameCommandReturnType, IGameTemplateFile } from "../../types/games";
 
 export type Link = IPokemon | IMove | IItem | IAbility;
 

@@ -1,9 +1,9 @@
-import { ICommandDefinition } from "../command-parser";
-import { Player } from "../room-activity";
+import type { ICommandDefinition } from "../command-parser";
+import type { Player } from "../room-activity";
 import { Game } from "../room-game";
-import { Room } from "../rooms";
-import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
-import { User } from "../users";
+import type { Room } from "../rooms";
+import type { AchievementsDict, GameCommandReturnType, IGameFile } from "../types/games";
+import type { User } from "../users";
 
 interface ICaughtPokemon {
 	points: number;

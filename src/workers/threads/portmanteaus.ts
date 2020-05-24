@@ -1,9 +1,10 @@
 // eslint-disable-next-line @typescript-eslint/naming-convention
 import worker_threads = require('worker_threads');
 
-import { PRNG, PRNGSeed } from '../../prng';
+import { PRNG } from '../../prng';
+import type { PRNGSeed } from '../../prng';
 import * as tools from '../../tools';
-import { IPortmanteausResponse, IPortmanteausSearchMessage, IPortmanteausWorkerData, PoolType, PortmanteausId } from '../portmanteaus';
+import type { IPortmanteausResponse, IPortmanteausSearchMessage, IPortmanteausWorkerData, PoolType, PortmanteausId } from '../portmanteaus';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const Tools = new tools.Tools();

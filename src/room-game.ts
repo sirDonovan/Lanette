@@ -1,10 +1,12 @@
-import { CommandsDict } from "./command-parser";
-import { PRNG, PRNGSeed } from "./prng";
-import { Activity, Player, PlayerList, PlayerTeam } from "./room-activity";
-import { Room } from "./rooms";
-import { IGameAchievement, IGameFormat, IGameMode, IGameVariant, IUserHostedFormat } from "./types/games";
-import { IPokemonCopy } from "./types/dex";
-import { User } from "./users";
+import type { CommandsDict } from "./command-parser";
+import { PRNG } from "./prng";
+import type { PRNGSeed } from "./prng";
+import { Activity, PlayerTeam } from "./room-activity";
+import type { Player, PlayerList } from "./room-activity";
+import type { Room } from "./rooms";
+import type { IPokemonCopy } from "./types/dex";
+import type { IGameAchievement, IGameFormat, IGameMode, IGameVariant, IUserHostedFormat } from "./types/games";
+import type { User } from "./users";
 
 export type DefaultGameOption = 'points' | 'teams' | 'cards' | 'freejoin';
 export interface IGameOptionValues {

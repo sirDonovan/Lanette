@@ -1,8 +1,8 @@
-import { Player } from "../room-activity";
-import { Room } from "../rooms";
-import { IGameFile, AchievementsDict } from "../types/games";
+import type { Player } from "../room-activity";
+import type { Room } from "../rooms";
+import type { AchievementsDict, IGameFile } from "../types/games";
+import type { User } from "../users";
 import { game as guessingGame, Guessing } from "./templates/guessing";
-import { User } from "../users";
 
 const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
 	'Pokemon Items': string[]; 'Pokemon Moves': string[];} = {

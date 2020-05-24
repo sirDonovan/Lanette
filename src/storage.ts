@@ -1,9 +1,9 @@
 import fs = require('fs');
 import path = require('path');
 
-import { Room } from './rooms';
-import { IDatabase, IGlobalDatabase } from './types/storage';
-import { User } from './users';
+import type { Room } from './rooms';
+import type { IDatabase, IGlobalDatabase } from './types/storage';
+import type { User } from './users';
 import { LogsWorker } from './workers/logs';
 
 const MAX_QUEUED_OFFLINE_MESSAGES = 3;

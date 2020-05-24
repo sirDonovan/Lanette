@@ -1,7 +1,7 @@
-import { ICommandDefinition } from "../command-parser";
-import { Player } from "../room-activity";
+import type { ICommandDefinition } from "../command-parser";
+import type { Player } from "../room-activity";
 import { Game } from "../room-game";
-import { IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
+import type { AchievementsDict, GameCommandReturnType, IGameFile } from "../types/games";
 
 const colors: string[] = ['Blue', 'Green', 'Red', 'Yellow', 'Orange', 'Purple', 'Pink', 'Gray', 'Teal', 'Silver', 'Gold', 'Lavender',
 	'Crimson', 'Scarlet', 'Magenta', 'Apricot', 'Cerulean', 'Amber', 'Cyan', 'Peach', 'Lime'];

@@ -1,5 +1,5 @@
-import { GroupName } from "./client";
-import { GameDifficulty } from "./types/games";
+import type { GroupName } from "./client";
+import type { GameDifficulty } from "./types/games";
 
 /* eslint-disable prefer-const*/
 

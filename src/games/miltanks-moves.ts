@@ -1,8 +1,8 @@
-import { Room } from "../rooms";
-import { IGameFile } from "../types/games";
-import { IMove } from "../types/dex";
+import type { Room } from "../rooms";
+import type { IMove } from "../types/dex";
+import type { IGameFile } from "../types/games";
+import type { User } from "../users";
 import { game as guessingGame, Guessing } from "./templates/guessing";
-import { User } from "../users";
 
 const data: {'moves': Dict<Dict<string[]>>; 'pokemon': string[]} = {
 	moves: {},

@@ -1,5 +1,5 @@
-import { Room } from "./rooms";
-import { User } from "./users";
+import type { Room } from "./rooms";
+import type { User } from "./users";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type PlayerList = Dict<Player> | Player[] | Map<Player, any>;

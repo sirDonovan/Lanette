@@ -1,6 +1,7 @@
-import { Player } from "../room-activity";
-import { IGameFile, AchievementsDict } from "../types/games";
-import { game as mapGame, GameMap, MapFloor, MapFloorSpace, MapGame } from "./templates/map";
+import type { Player } from "../room-activity";
+import type { AchievementsDict, IGameFile } from "../types/games";
+import { game as mapGame, MapGame } from "./templates/map";
+import type { GameMap, MapFloor, MapFloorSpace } from "./templates/map";
 
 const currency = "wicks";
 const mazeRunnerPoints = 4000;

@@ -1,8 +1,8 @@
-import { Player } from "../../room-activity";
+import type { Player } from "../../room-activity";
 import { Game } from "../../room-game";
-import { Room } from "../../rooms";
-import { GameDifficulty, IUserHostedFile, IUserHostedFormat } from "../../types/games";
-import { User } from "../../users";
+import type { Room } from "../../rooms";
+import type { GameDifficulty, IUserHostedFile, IUserHostedFormat } from "../../types/games";
+import type { User } from "../../users";
 
 const FORCE_END_CREATE_TIMER = 60 * 1000;
 const HOST_TIME_LIMIT = 25 * 60 * 1000;

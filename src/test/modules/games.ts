@@ -1,9 +1,10 @@
-import { PRNGSeed, PRNG } from '../../prng';
-import { Game } from '../../room-game';
-import { GameFileTests, IGameFormat, IGameTestAttributes, IUserHostedFormat, IGameAchievementKeys } from '../../types/games';
-import { IPastGame } from '../../types/storage';
-import { assert, assertClientSendQueue, assertStrictEqual, testOptions } from '../test-tools';
 import { fail } from 'assert';
+import { PRNG } from '../../prng';
+import type { PRNGSeed } from '../../prng';
+import type { Game } from '../../room-game';
+import type { GameFileTests, IGameAchievementKeys, IGameFormat, IGameTestAttributes, IUserHostedFormat } from '../../types/games';
+import type { IPastGame } from '../../types/storage';
+import { assert, assertClientSendQueue, assertStrictEqual, testOptions } from '../test-tools';
 
 /* eslint-env mocha */
 

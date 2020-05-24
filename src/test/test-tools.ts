@@ -1,9 +1,9 @@
 import nodeAssert = require('assert');
 
-import { Player } from '../room-activity';
-import { Game } from '../room-game';
-import { Room } from '../rooms';
-import { User } from '../users';
+import type { Player } from '../room-activity';
+import type { Game } from '../room-game';
+import type { Room } from '../rooms';
+import type { User } from '../users';
 
 const basePlayerName = 'Mocha Player';
 

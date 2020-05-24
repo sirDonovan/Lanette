@@ -1,8 +1,8 @@
-import { ICommandDefinition } from "../../command-parser";
-import { Player } from "../../room-activity";
+import type { ICommandDefinition } from "../../command-parser";
+import type { Player } from "../../room-activity";
 import { Game } from "../../room-game";
-import { IGameTemplateFile, IGameAchievement, GameCommandReturnType } from "../../types/games";
-import { User } from "../../users";
+import type { GameCommandReturnType, IGameAchievement, IGameTemplateFile } from "../../types/games";
+import type { User } from "../../users";
 
 interface ISpaceAttributes {
 	achievement?: boolean;

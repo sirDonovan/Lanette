@@ -1,6 +1,6 @@
-import { GroupName } from "./client";
-import { Game } from "./room-game";
-import { Room } from "./rooms";
+import type { GroupName } from "./client";
+import type { Game } from "./room-game";
+import type { Room } from "./rooms";
 
 interface IUserRoomData {
 	lastChatMessage: number;

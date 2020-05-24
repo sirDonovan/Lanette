@@ -1,5 +1,5 @@
-import { IGameFile } from "../types/games";
-import { IMoveCard } from "./templates/card";
+import type { IGameFile } from "../types/games";
+import type { IMoveCard } from "./templates/card";
 import { CardHighLow, game as cardGame } from "./templates/card-high-low";
 
 class MewsMoveCards extends CardHighLow {

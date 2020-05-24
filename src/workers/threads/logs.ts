@@ -4,7 +4,7 @@ import path = require('path');
 import worker_threads = require('worker_threads');
 
 import * as tools from '../../tools';
-import { ILogsResponse, ILogsSearchMessage, ILogsSearchOptions, ILogsWorkerData, LogsId } from '../logs';
+import type { ILogsResponse, ILogsSearchMessage, ILogsSearchOptions, ILogsWorkerData, LogsId } from '../logs';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const Tools = new tools.Tools();

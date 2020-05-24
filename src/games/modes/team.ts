@@ -1,9 +1,9 @@
-import { CommandsDict } from "../../command-parser";
-import { Player, PlayerTeam } from "../../room-activity";
-import { DefaultGameOption, Game } from "../../room-game";
+import type { CommandsDict } from "../../command-parser";
+import type { Player, PlayerTeam } from "../../room-activity";
+import type { DefaultGameOption, Game } from "../../room-game";
 import { addPlayers, assert, assertStrictEqual, runCommand } from "../../test/test-tools";
-import { GameCommandReturnType, GameFileTests, IGameFormat, IGameModeFile } from "../../types/games";
-import { Guessing } from "../templates/guessing";
+import type { GameCommandReturnType, GameFileTests, IGameFormat, IGameModeFile } from "../../types/games";
+import type { Guessing } from "../templates/guessing";
 
 const BASE_POINTS = 20;
 

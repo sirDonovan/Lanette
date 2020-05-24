@@ -7,6 +7,7 @@
 		"noEmitOnError": true,
 		"module": "commonjs",
 		"moduleResolution": "node",
+		"importsNotUsedAsValues": "error",
 		"typeRoots": [
 		    "node_modules/@types"
 		],

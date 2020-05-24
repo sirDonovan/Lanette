@@ -1,9 +1,8 @@
-import { strictEqual as assertStrictEqual } from 'assert';
-import { ICommandDefinition } from "../command-parser";
-import { Player } from "../room-activity";
+import type { ICommandDefinition } from "../command-parser";
+import type { Player } from "../room-activity";
 import { Game } from "../room-game";
-import { addPlayers, runCommand } from '../test/test-tools';
-import { GameFileTests, IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
+import { addPlayers, runCommand, assertStrictEqual } from '../test/test-tools';
+import type { AchievementsDict, GameCommandReturnType, GameFileTests, IGameFile } from "../types/games";
 
 const doors: string[][] = [["Red", "Green", "Yellow"], ["Gold", "Silver", "Crystal"], ["Ruby", "Sapphire", "Emerald"],
 	["Diamond", "Pearl", "Platinum"], ["Land", "Sea", "Sky"], ["Time", "Space", "Distortion"], ["Creation", "Destruction", "Harmony"],

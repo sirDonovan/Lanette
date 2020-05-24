@@ -1,7 +1,8 @@
-import { Activity, Player } from "./room-activity";
-import { Room } from "./rooms";
-import { IFormat } from "./types/dex";
-import { IBattleData, ITournamentUpdateJson, ITournamentEndJson } from "./types/tournaments";
+import { Activity } from "./room-activity";
+import type { Player } from "./room-activity";
+import type { Room } from "./rooms";
+import type { IFormat } from "./types/dex";
+import type { IBattleData, ITournamentEndJson, ITournamentUpdateJson } from "./types/tournaments";
 
 interface ICurrentBattle {
 	readonly playerA: Player;

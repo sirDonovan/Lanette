@@ -1,9 +1,9 @@
-import { ICommandDefinition } from '../../command-parser';
-import { Player } from '../../room-activity';
+import type { ICommandDefinition } from '../../command-parser';
+import type { Player } from '../../room-activity';
 import { Game } from '../../room-game';
+import type { Room } from '../../rooms';
 import { assert, assertStrictEqual, getBasePlayerName, runCommand } from '../../test/test-tools';
-import { GameFileTests, IGameFormat, IGameTemplateFile, IGameAchievement, GameCommandReturnType } from '../../types/games';
-import { Room } from '../../rooms';
+import type { GameCommandReturnType, GameFileTests, IGameAchievement, IGameFormat, IGameTemplateFile } from '../../types/games';
 
 const MINIGAME_BITS = 25;
 

@@ -3,13 +3,16 @@ import querystring = require('querystring');
 import url = require('url');
 import websocket = require('websocket');
 
-import { Room, RoomType } from './rooms';
-import { IClientMessageTypes, IRoomInfoResponse, IServerGroup, ITournamentMessageTypes, IUserDetailsResponse, ServerGroupData, IRoomsResponse, QueryResponseType } from './types/client';
-import { ISeparatedCustomRules } from './types/dex';
-import { User } from './users';
-import { ITournamentCreateJson, ITournamentUpdateJson, ITournamentEndJson } from './types/tournaments';
-import { Player } from './room-activity';
-import { IParseMessagePlugin } from './types/plugins';
+import type { Player } from './room-activity';
+import type { Room, RoomType } from './rooms';
+import type {
+	IClientMessageTypes, IRoomInfoResponse, IRoomsResponse, IServerGroup, ITournamentMessageTypes, IUserDetailsResponse, QueryResponseType,
+	ServerGroupData
+} from './types/client';
+import type { ISeparatedCustomRules } from './types/dex';
+import type { IParseMessagePlugin } from './types/plugins';
+import type { ITournamentEndJson, ITournamentUpdateJson } from './types/tournaments';
+import type { User } from './users';
 
 export type GroupName = 'voice' | 'bot' | 'driver' | 'moderator' | 'roomowner' | 'muted' | 'locked';
 

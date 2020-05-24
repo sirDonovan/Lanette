@@ -1,15 +1,20 @@
 import fs = require('fs');
 import path = require('path');
 
-import { CommandErrorArray, ICommandDefinition } from './command-parser';
-import { UserHosted } from './games/internal/user-hosted';
-import { PRNGSeed } from './prng';
-import { DefaultGameOption, Game, IGameOptionValues } from "./room-game";
-import { Room } from "./rooms";
-import { GameCommandReturnType, IGameFile, IGameFormat, IGameFormatComputed, IGameFormatData, IGameMode, IGameModeFile, IGameTemplateFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFile, IUserHostedFormat, IUserHostedFormatComputed, UserHostedCustomizable, IGameAchievementKeys, IGameCategoryKeys } from './types/games';
-import { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/dex';
-import { IPastGame } from './types/storage';
-import { User } from './users';
+import type { CommandErrorArray, ICommandDefinition } from './command-parser';
+import type { UserHosted } from './games/internal/user-hosted';
+import type { PRNGSeed } from './prng';
+import { Game } from './room-game';
+import type { DefaultGameOption, IGameOptionValues } from "./room-game";
+import type { Room } from "./rooms";
+import type { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/dex';
+import type {
+	GameCommandReturnType, IGameAchievementKeys, IGameCategoryKeys, IGameFile, IGameFormat, IGameFormatComputed, IGameFormatData, IGameMode,
+	IGameModeFile, IGameTemplateFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFormat,
+	IUserHostedFormatComputed, UserHostedCustomizable
+} from './types/games';
+import type { IPastGame } from './types/storage';
+import type { User } from './users';
 import { ParametersWorker } from './workers/parameters';
 import { PortmanteausWorker } from './workers/portmanteaus';
 

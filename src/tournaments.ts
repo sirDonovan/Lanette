@@ -1,10 +1,10 @@
-import { GroupName } from "./client";
+import type { GroupName } from "./client";
 import { Tournament } from "./room-tournament";
-import { Room } from "./rooms";
+import type { Room } from "./rooms";
 import { tournamentSchedules } from './tournament-schedules';
-import { IFormat, ISeparatedCustomRules } from "./types/dex";
-import { IPastTournament } from "./types/storage";
-import { ITournamentCreateJson } from "./types/tournaments";
+import type { IFormat, ISeparatedCustomRules } from "./types/dex";
+import type { IPastTournament } from "./types/storage";
+import type { ITournamentCreateJson } from "./types/tournaments";
 
 interface IScheduledTournament {
 	format: string;

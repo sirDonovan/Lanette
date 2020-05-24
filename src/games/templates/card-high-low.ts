@@ -1,7 +1,8 @@
-import { ICommandDefinition } from '../../command-parser';
-import { Player } from '../../room-activity';
-import { GameCategory, IGameTemplateFile, GameCommandReturnType } from '../../types/games';
-import { Card, CardType, game as cardGame } from './card';
+import type { ICommandDefinition } from '../../command-parser';
+import type { Player } from '../../room-activity';
+import type { GameCategory, GameCommandReturnType, IGameTemplateFile } from '../../types/games';
+import { Card, game as cardGame } from './card';
+import type { CardType } from './card';
 
 type HighLow = 'high' | 'low';
 

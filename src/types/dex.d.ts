@@ -3,7 +3,7 @@
  * Pokemon Showdown - https://github.com/smogon/pokemon-showdown
  */
 
-import { RuleTable } from "../dex";
+import type { RuleTable } from "../dex";
 
 type GenderName = 'M' | 'F' | 'N' | '';
 type StatNameExceptHP = 'atk' | 'def' | 'spa' | 'spd' | 'spe';

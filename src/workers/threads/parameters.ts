@@ -1,9 +1,13 @@
 // eslint-disable-next-line @typescript-eslint/naming-convention
 import worker_threads = require('worker_threads');
 
-import { PRNG, PRNGSeed } from '../../prng';
+import { PRNG } from '../../prng';
+import type { PRNGSeed } from '../../prng';
 import * as tools from '../../tools';
-import { IParam, IParametersIntersectMessage, IParametersIntersectOptions, IParametersResponse, IParametersSearchMessage, IParametersSearchOptions, IParametersWorkerData, IParamTypeKeys, ParametersId, ParamType } from '../parameters';
+import type {
+	IParam, IParametersIntersectMessage, IParametersIntersectOptions, IParametersResponse, IParametersSearchMessage,
+	IParametersSearchOptions, IParametersWorkerData, IParamTypeKeys, ParametersId, ParamType
+} from '../parameters';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const Tools = new tools.Tools();

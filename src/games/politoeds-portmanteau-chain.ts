@@ -1,5 +1,6 @@
-import { IGameFile } from "../types/games";
-import { Chain, game as chainGame, Link } from "./templates/chain";
+import type { IGameFile } from "../types/games";
+import { Chain, game as chainGame } from "./templates/chain";
+import type { Link } from "./templates/chain";
 
 class PolitoedsPortmanteauChain extends Chain {
 	acceptsFormes: boolean = true;

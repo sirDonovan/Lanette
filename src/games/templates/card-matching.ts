@@ -1,8 +1,9 @@
-import { ICommandDefinition } from '../../command-parser';
-import { Player } from '../../room-activity';
-import { GameCategory, IGameTemplateFile, IGameAchievement, GameCommandReturnType, GameFileTests } from '../../types/games';
-import { Card, CardType, game as cardGame, IPokemonCard } from './card';
+import type { ICommandDefinition } from '../../command-parser';
+import type { Player } from '../../room-activity';
 import { addPlayers, assert } from '../../test/test-tools';
+import type { GameCategory, GameCommandReturnType, GameFileTests, IGameAchievement, IGameTemplateFile } from '../../types/games';
+import { Card, game as cardGame } from './card';
+import type { CardType, IPokemonCard } from './card';
 
 interface IPreviouslyPlayedCard {
 	card: string;

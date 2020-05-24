@@ -1,4 +1,4 @@
-import { IGameFile } from "../types/games";
+import type { IGameFile } from "../types/games";
 import { Chain, game as chainGame } from "./templates/chain";
 
 class UnownsPokemonChain extends Chain {}

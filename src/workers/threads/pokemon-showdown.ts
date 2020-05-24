@@ -4,8 +4,11 @@ import path = require('path');
 import worker_threads = require('worker_threads');
 
 import * as tools from '../../tools';
-import { IPokemonShowdownResponse, IPokemonShowdownWorkerData, PokemonShowdownId, IGetDataIdsOptions, IGetDataIdsMessage, IGetDataOptions, IGetDataMessage } from '../pokemon-showdown';
-import { IPokemon, ILearnsetData, IAbility, IFormat, IItem, IMove, ITypeData } from '../../types/dex';
+import type { IAbility, IFormat, IItem, ILearnsetData, IMove, IPokemon, ITypeData } from '../../types/dex';
+import type {
+	IGetDataIdsMessage, IGetDataIdsOptions, IGetDataMessage, IGetDataOptions, IPokemonShowdownResponse, IPokemonShowdownWorkerData,
+	PokemonShowdownId
+} from '../pokemon-showdown';
 
 interface IPSAbility extends DeepWritable<IAbility> {
 	exists: boolean;

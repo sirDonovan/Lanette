@@ -1,10 +1,11 @@
-import { ICommandDefinition } from "../command-parser";
-import { Player } from '../room-activity';
-import { Room } from "../rooms";
-import { IGameFile, GameCommandReturnType } from "../types/games";
-import { game as playingCardGame, IPlayingCard, PlayingCard } from './templates/playing-card';
-import { User } from "../users";
-import { PRNGSeed } from "../prng";
+import type { ICommandDefinition } from "../command-parser";
+import type { PRNGSeed } from "../prng";
+import type { Player } from '../room-activity';
+import type { Room } from "../rooms";
+import type { GameCommandReturnType, IGameFile } from "../types/games";
+import type { User } from "../users";
+import { game as playingCardGame, PlayingCard } from './templates/playing-card';
+import type { IPlayingCard } from './templates/playing-card';
 
 class MurkrowsBlackjack extends PlayingCard {
 	readonly blackJackpots = new Map<Player, number>();

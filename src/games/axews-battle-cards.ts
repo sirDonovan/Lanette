@@ -1,10 +1,10 @@
-import { Player } from "../room-activity";
-import { Room } from "../rooms";
-import { IGameFile, AchievementsDict } from "../types/games";
-import { IPokemon } from "../types/dex";
-import { CardType, IActionCardData, IMoveCard, IPokemonCard } from "./templates/card";
+import type { Player } from "../room-activity";
+import type { Room } from "../rooms";
+import type { IPokemon } from "../types/dex";
+import type { AchievementsDict, IGameFile } from "../types/games";
+import type { User } from "../users";
+import type { CardType, IActionCardData, IMoveCard, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
-import { User } from "../users";
 
 const types: Dict<string> = {};
 

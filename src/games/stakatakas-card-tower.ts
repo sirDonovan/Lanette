@@ -1,8 +1,8 @@
-import { ICommandDefinition } from "../command-parser";
-import { Player } from "../room-activity";
+import type { ICommandDefinition } from "../command-parser";
+import type { Player } from "../room-activity";
 import { addPlayers, assert, assertStrictEqual, runCommand } from "../test/test-tools";
-import { GameFileTests, IGameFile, AchievementsDict, GameCommandReturnType } from "../types/games";
-import { CardType, IActionCardData, IPokemonCard } from "./templates/card";
+import type { AchievementsDict, GameCommandReturnType, GameFileTests, IGameFile } from "../types/games";
+import type { CardType, IActionCardData, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 
 const achievements: AchievementsDict = {
