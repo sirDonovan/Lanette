@@ -319,5 +319,9 @@ describe("pokemon-showdown", () => {
 		assert(hyphenName);
 		assertStrictEqual(hyphenName.id, "kommoo");
 		assertStrictEqual(hyphenName.name, "Kommo-o");
+
+		const allPossibleMoves = Dex.getAllPossibleMoves(Dex.getExistingPokemon("Charizard"));
+		assert(allPossibleMoves);
+		assertStrictEqual(allPossibleMoves.filter(x => x === 'flamethrower').length, 1);
 	});
 });

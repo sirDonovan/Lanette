@@ -209,7 +209,7 @@ function getAllPossibleMoves(messageNumber: string, id: string, options: IGetDat
 		const checkedMoves: string[] = [];
 		for (const i of possibleMoves) {
 			const move = dex.getMove(i);
-			if (!validator.checkLearnset(move, pokemon)) checkedMoves.push(move.id);
+			if (!checkedMoves.includes(move.id) && !validator.checkLearnset(move, pokemon)) checkedMoves.push(move.id);
 		}
 
 		allPossibleMoves[pokemon.id] = checkedMoves;
