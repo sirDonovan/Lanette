@@ -67,7 +67,7 @@ class EmpoleonsEmpires extends Game {
 			});
 			this.say(text);
 		});
-		this.sayUhtml(uhtmlName, html);
+		this.sayUhtmlChange(uhtmlName, html);
 	}
 
 	onEnd(): void {

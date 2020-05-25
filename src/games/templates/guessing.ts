@@ -70,7 +70,9 @@ export abstract class Guessing extends Game {
 	}
 
 	async onNextRound(): Promise<void> {
+		let newAnswer = false;
 		if (!this.answers.length) {
+			newAnswer = true;
 			this.canGuess = false;
 			await this.setAnswers();
 			if (this.ended) return;
@@ -82,13 +84,18 @@ export abstract class Guessing extends Game {
 			if (this.ended) return;
 		}
 
-		const html = this.getHintHtml();
 		const hintUhtmlName = this.hintUhtmlName + '-round' + this.guessingRound;
+		const html = this.getHintHtml();
 		this.onUhtml(hintUhtmlName, html, () => {
 			if (this.ended) return;
 			this.onHintHtml();
 		});
-		this.sayUhtml(hintUhtmlName, html);
+
+		if (newAnswer) {
+			this.sayUhtml(hintUhtmlName, html);
+		} else {
+			this.sayUhtmlChange(hintUhtmlName, html);
+		}
 	}
 
 	async guessAnswer(player: Player, guess: string): Promise<string | false> {

@@ -384,7 +384,7 @@ export abstract class CardMatching extends Card {
 			}, this.turnTimeBeforeHighlight);
 		});
 
-		this.sayUhtml(uhtmlName, html);
+		this.sayUhtmlChange(uhtmlName, html);
 	}
 
 	onEnd(): void {
@@ -493,8 +493,8 @@ const commands: Dict<ICommandDefinition<CardMatching>> = {
 			if (!cards.length) {
 				player.frozen = true;
 				if (this.finitePlayerCards) {
-					this.sayUhtml(this.uhtmlBaseName + '-round', this.getNameSpan() + "<br /><center>" + this.getNameSpan() + "<br />" +
-						this.getTopCardHtml() + "</center>");
+					this.sayUhtmlChange(this.uhtmlBaseName + '-round', this.getNameSpan() + "<br /><center>" + this.getNameSpan() +
+						"<br />" + this.getTopCardHtml() + "</center>");
 					this.end();
 					return true;
 				}

@@ -78,7 +78,7 @@ class TrevenantsTrickOrTreat extends Game {
 			html += "<br />";
 		}
 		html += "<br /><br />" + this.getPlayerPoints() + "</center></div>";
-		this.sayUhtml(this.uhtmlBaseName + '-round-pokemon', html);
+		this.sayUhtmlChange(this.uhtmlBaseName + '-round-pokemon', html);
 	}
 }
 

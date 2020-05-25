@@ -129,7 +129,7 @@ class TapusTerrains extends Game {
 							// if (this.timeout) clearTimeout(this.timeout); // mocha tests
 							this.timeout = setTimeout(() => this.nextRound(), this.revealTime);
 						});
-						this.sayUhtml(uhtmlName, pokemonHtml);
+						this.sayUhtmlChange(uhtmlName, pokemonHtml);
 					}, this.revealTime);
 				});
 				this.timeout = setTimeout(() => this.sayUhtml(uhtmlName, terrainHtml), 5 * 1000);
@@ -143,7 +143,7 @@ class TapusTerrains extends Game {
 					// if (this.timeout) clearTimeout(this.timeout); // mocha tests
 					this.timeout = setTimeout(() => this.nextRound(), this.revealTime);
 				});
-				this.sayUhtml(uhtmlName, pokemonHtml);
+				this.sayUhtmlChange(uhtmlName, pokemonHtml);
 			}, this.revealTime);
 		}
 	}

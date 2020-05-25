@@ -101,7 +101,7 @@ export abstract class BoardGame extends Game {
 		}
 		html += "</table></font></div>";
 
-		this.sayUhtml(this.uhtmlBaseName + '-board', html);
+		this.sayUhtmlChange(this.uhtmlBaseName + '-board', html);
 	}
 
 	onStart(): void {
