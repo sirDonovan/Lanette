@@ -37,9 +37,9 @@ class PanchamPairs extends Game {
 	canPair: boolean = false;
 	dataType: DataTypes = 'Pokemon';
 	currentList: string[] = [];
-	currentListString: string = '';
 	paired = new Set<Player>();
 	pairRound: number = 0;
+	points = new Map<Player, number>();
 
 	static loadData(room: Room | User): void {
 		const pokemonList = Games.getPokemonList();
@@ -70,33 +70,55 @@ class PanchamPairs extends Game {
 		}
 	}
 
+	onSignups(): void {
+		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
+	}
+
 	onStart(): void {
 		this.nextRound();
 	}
 
 	listPossiblePairs(): void {
-		this.pairRound++;
-		if (this.pairRound >= 4) {
-			this.nextRound();
-			return;
+		if (!this.format.options.freejoin) {
+			this.pairRound++;
+			if (this.pairRound >= 4) {
+				this.nextRound();
+				return;
+			}
+
+			const players: string[] = [];
+			for (const i in this.players) {
+				if (this.players[i].eliminated) continue;
+				if (!this.paired.has(this.players[i])) players.push(this.players[i].name);
+			}
+			this.say("These players still have not paired: " + players.join(", "));
 		}
-		const players: string[] = [];
-		for (const i in this.players) {
-			if (this.players[i].eliminated) continue;
-			if (!this.paired.has(this.players[i])) players.push(this.players[i].name);
+
+		const dataHtml: string[] = [];
+		if (this.dataType === 'Pokemon') {
+			for (const name of this.currentList) {
+				const pokemon = Dex.getExistingPokemon(name);
+				dataHtml.push(Dex.getPSPokemonIcon(pokemon) + pokemon.name);
+			}
+		} else {
+			dataHtml.push(this.currentList.join(", "));
 		}
-		this.say("These players still have not paired! " + players.join(", "));
-		this.currentListString = "**Current " + this.dataType + "**: " + this.currentList.join(", ");
-		this.on(this.currentListString, () => {
-			this.timeout = setTimeout(() => this.listPossiblePairs(), 15 * 1000);
+
+		const uhtmlName = this.uhtmlBaseName + '-' + this.round + '-pokemon';
+		const html = "<div class='infobox'>" + this.getNameSpan(" - Pair 2 " + this.dataType + ":") + "<br /><br />" + dataHtml.join(", ") +
+			"</div>";
+		this.onUhtml(uhtmlName, html, () => {
+			if (!this.canPair) this.canPair = true;
+			if (!this.format.options.freejoin) this.timeout = setTimeout(() => this.listPossiblePairs(), 15 * 1000);
 		});
-		this.say(this.currentListString);
+		this.sayUhtml(uhtmlName, html);
 	}
 
 	onNextRound(): void {
 		this.canPair = false;
+
 		const eliminated: Player[] = [];
-		if (this.round > 1) {
+		if (this.round > 1 && !this.format.options.freejoin) {
 			for (const i in this.players) {
 				if (this.players[i].eliminated) continue;
 				const player = this.players[i];
@@ -106,56 +128,75 @@ class PanchamPairs extends Game {
 				}
 			}
 		}
-		const remainingPlayerCount = this.getRemainingPlayerCount();
-		if (remainingPlayerCount === 1) {
-			const winner = this.getFinalPlayer()!;
-			this.winners.set(winner, 1);
-			this.addBits(winner, 500);
-			if (eliminated.length === 1) this.addBits(eliminated[0], 250);
-			this.end();
-			return;
-		} else if (remainingPlayerCount === 0) {
-			this.end();
-			return;
+
+		let remainingPlayerCount: number;
+		if (this.format.options.freejoin) {
+			remainingPlayerCount = this.random(5) + 5;
+		} else {
+			remainingPlayerCount = this.getRemainingPlayerCount();
+			if (remainingPlayerCount === 1) {
+				const winner = this.getFinalPlayer()!;
+				this.winners.set(winner, 1);
+				this.addBits(winner, 500);
+				if (eliminated.length === 1) this.addBits(eliminated[0], 250);
+				this.end();
+				return;
+			} else if (remainingPlayerCount === 0) {
+				this.end();
+				return;
+			}
 		}
+
 		this.pairRound = 0;
 		this.paired.clear();
-		this.currentList = [];
 		const newList: string[] = [];
 		const pool = dataKeys[this.dataType];
 		let shuffled: string[] = [];
 		while (!newList.length) {
 			shuffled = this.shuffle(pool);
-			const base = shuffled.shift();
-			for (let i = 0, len = shuffled.length; i < len; i++) {
-				if (base && this.isPair(base, shuffled[i])) {
+			const base = shuffled[0];
+			shuffled.shift();
+			for (const item of shuffled) {
+				if (this.isPair(base, item)) {
 					newList.push(base);
-					newList.push(shuffled[i]);
-					shuffled.splice(i, 1);
+					newList.push(item);
 					break;
 				}
 			}
+		}
+
+		for (const item of newList) {
+			const index = shuffled.indexOf(item);
+			if (index !== -1) shuffled.splice(index, 1);
 		}
 
 		// eliminate 1 person per round
 		let additional = (2 * (remainingPlayerCount - 1)) - newList.length;
 		if (remainingPlayerCount === 2) additional--;
 		for (let i = 0; i < additional; i++) {
+			if (!shuffled[i]) break;
 			newList.push(shuffled[i]);
 		}
+		this.currentList = this.shuffle(newList);
 
-		const html = this.getRoundHtml(this.getPlayerNames);
-		const uhtmlName = this.uhtmlBaseName + '-round';
-		this.onUhtml(uhtmlName, html, () => {
-			this.canPair = true;
-			this.currentList = this.shuffle(newList);
-			this.listPossiblePairs();
-		});
-		this.sayUhtml(uhtmlName, html);
+		if (this.format.options.freejoin) {
+			this.timeout = setTimeout(() => this.listPossiblePairs(), 5000);
+		} else {
+			const html = this.getRoundHtml(this.format.options.freejoin ? this.getPlayerPoints : this.getPlayerNames);
+			const uhtmlName = this.uhtmlBaseName + '-round';
+			this.onUhtml(uhtmlName, html, () => {
+				this.timeout = setTimeout(() => this.listPossiblePairs(), 5000);
+			});
+			this.sayUhtml(uhtmlName, html);
+		}
 	}
 
 	onEnd(): void {
-		this.announceWinners();
+		if (this.format.options.freejoin) {
+			this.convertPointsToBits();
+		} else {
+			this.announceWinners();
+		}
 	}
 
 	isParamPair(inputA: string, inputB: string, paramName: keyof IMovePairData | keyof IPokemonPairData, inCurrent?: boolean):
@@ -193,8 +234,8 @@ class PanchamPairs extends Game {
 	}
 
 	isPair(inputA: string, inputB: string): boolean {
-		for (let i = 0, len = categories[this.dataType].length; i < len; i++) {
-			if (this.isParamPair(inputA, inputB, categories[this.dataType][i], false)) return true;
+		for (const param of categories[this.dataType]) {
+			if (this.isParamPair(inputA, inputB, param, false)) return true;
 		}
 		return false;
 	}
@@ -204,8 +245,18 @@ const commands: Dict<ICommandDefinition<PanchamPairs>> = {
 	pair: {
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canPair) return false;
+			if (this.format.options.freejoin) {
+				if (user.id in this.players) {
+					if (this.players[user.id].eliminated) return false;
+				} else {
+					this.createPlayer(user);
+				}
+			} else {
+				if (!(user.id in this.players) || this.players[user.id].eliminated) return false;
+			}
+
 			const player = this.players[user.id];
-			if (!player || player.eliminated || this.paired.has(player)) return false;
+			if (this.paired.has(player)) return false;
 			const split = target.split(",");
 			if (split.length !== 3) return false;
 			let param = Tools.toId(split[2]);
@@ -216,26 +267,45 @@ const commands: Dict<ICommandDefinition<PanchamPairs>> = {
 			}
 			const pair = this.isParamPair(split[0], split[1], param as keyof IPokemonPairData | keyof IMovePairData, true);
 			if (!pair) return false;
-			this.paired.add(player);
-			player.say("You have paired " + pair[0] + " & " + pair[1] + " and advanced to the next round!");
-			this.currentList.splice(this.currentList.indexOf(pair[0]), 1);
-			this.currentList.splice(this.currentList.indexOf(pair[1]), 1);
-			if (this.paired.size === this.getRemainingPlayerCount()) {
+			if (this.format.options.freejoin) {
+				let points = this.points.get(player) || 0;
+				points++;
+				this.points.set(player, points);
+				if (points === this.format.options.points) {
+					this.say("**" + player.name + "** wins" + (this.parentGame ? "" : " the game") + "! The final pair was __" + pair[0] +
+						" & " + pair[1] + " (" + param + ")__.");
+					for (const i in this.players) {
+						if (this.players[i] !== player) this.players[i].eliminated = true;
+					}
+					this.end();
+					return true;
+				} else {
+					this.say("**" + player.name + "** advances to **" + points + "** point" + (points > 1 ? "s" : "") + "! A possible " +
+						"pair was __" + pair[0] + " & " + pair[1] + " (" + param + ")__.");
+				}
 				this.nextRound();
 			} else {
-				let hasPair = false;
-				for (let i = 0, len = this.currentList.length; i < len; i++) {
-					for (let j = i + 1; j < len; j++) {
-						if (this.isPair(this.currentList[i], this.currentList[j])) {
-							hasPair = true;
-							break;
-						}
-					}
-					if (hasPair) break;
-				}
-				if (!hasPair) {
-					this.say("No pairs Left! Moving to next round!");
+				this.paired.add(player);
+				player.say("You have paired " + pair[0] + " & " + pair[1] + " and advanced to the next round!");
+				this.currentList.splice(this.currentList.indexOf(pair[0]), 1);
+				this.currentList.splice(this.currentList.indexOf(pair[1]), 1);
+				if (this.paired.size === this.getRemainingPlayerCount()) {
 					this.nextRound();
+				} else {
+					let hasPair = false;
+					for (let i = 0, len = this.currentList.length; i < len; i++) {
+						for (let j = i + 1; j < len; j++) {
+							if (this.isPair(this.currentList[i], this.currentList[j])) {
+								hasPair = true;
+								break;
+							}
+						}
+						if (hasPair) break;
+					}
+					if (!hasPair) {
+						this.say("No pairs Left! Moving to next round!");
+						this.nextRound();
+					}
 				}
 			}
 			return true;
@@ -249,6 +319,7 @@ export const game: IGameFile<PanchamPairs> = {
 	commandDescriptions: [Config.commandCharacter + "pair [name, name, param type]"],
 	commands,
 	class: PanchamPairs,
+	defaultOptions: ['freejoin', 'points'],
 	description: "Players try to pair the given Pokemon according to <code>/dexsearch</code> parameters! Valid parameter types include " +
 		"generation, color, type, and ability.",
 	name: "Pancham's Pairs",
