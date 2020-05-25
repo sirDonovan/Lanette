@@ -21,9 +21,10 @@ class PikachusMysteryPokemon extends Guessing {
 	answers: string[] = [];
 	canGuess: boolean = false;
 	hints: string[] = [];
-	hintsIndex: number = 0;
 	lastSpecies: string = '';
+	mysteryRound: number = -1;
 	points = new Map<Player, number>();
+	roundGuesses = new Map<Player, boolean>();
 
 	static loadData(room: Room | User): void {
 		const pokemonList = Games.getPokemonList(pokemon => !pokemon.forme);
@@ -47,6 +48,8 @@ class PikachusMysteryPokemon extends Guessing {
 				region = 'Kalos';
 			} else if (pokemon.gen === 7) {
 				region = 'Alola';
+			} else if (pokemon.gen === 8) {
+				region = 'Galar';
 			}
 			if (region) data.regions[pokemon.id] = region;
 
@@ -60,15 +63,9 @@ class PikachusMysteryPokemon extends Guessing {
 		}
 	}
 
-	onSignups(): void {
-		if (this.format.options.freejoin) {
-			this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
-		}
-	}
-
 	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
-		this.hintsIndex = 0;
+		this.mysteryRound = -1;
 		let species = this.sampleOne(data.pokedex);
 		while (this.lastSpecies === species) {
 			species = this.sampleOne(data.pokedex);
@@ -76,37 +73,40 @@ class PikachusMysteryPokemon extends Guessing {
 		this.lastSpecies = species;
 		const pokemon = Dex.getExistingPokemon(species);
 		const hints: string[] = [];
-		hints.push("**Type" + (data.types[species].includes('/') ? "s" : "") + "**: " + data.types[species]);
-		if (species in data.regions) hints.push("**Region**: " + data.regions[species]);
-		hints.push("**Color**: " + pokemon.color);
-		hints.push("**Egg group" + (data.eggGroups[species].includes(',') ? "s" : "") + "**: " + data.eggGroups[species]);
-		hints.push("**Ability**: " + this.sampleOne(data.abilities[species]));
+		hints.push("<b>Type" + (data.types[species].includes('/') ? "s" : "") + "</b>: " + data.types[species]);
+		if (species in data.regions) hints.push("<b>Region</b>: " + data.regions[species]);
+		hints.push("<b>Color</b>: " + pokemon.color);
+		hints.push("<b>Egg group" + (data.eggGroups[species].includes(',') ? "s" : "") + "</b>: " + data.eggGroups[species]);
+		hints.push("<b>Ability</b>: " + this.sampleOne(data.abilities[species]));
 		this.hints = this.shuffle(hints);
 		this.answers = [pokemon.name];
 	}
 
-	async onNextRound(): Promise<void> {
-		if (!this.answers.length) {
-			this.canGuess = false;
-			await this.setAnswers();
-		}
-		if (!this.hints[this.hintsIndex]) {
+	updateHint(): void {
+		this.mysteryRound++;
+		this.roundGuesses.clear();
+		const pastHints = this.hints.slice(0, this.mysteryRound);
+		this.hint = (pastHints.length ? pastHints.join("<br />") + "<br />" : "") + (this.hints[this.mysteryRound] ?
+			"<i>" + this.hints[this.mysteryRound] + "</i>" : "");
+	}
+
+	onHintHtml(): void {
+		if (!this.hints[this.mysteryRound]) {
 			const text = "All hints have been revealed! " + this.getAnswers('');
-			this.answers = [];
 			this.on(text, () => {
+				this.answers = [];
+				if (this.isMiniGame) {
+					this.end();
+					return;
+				}
 				this.timeout = setTimeout(() => this.nextRound(), 5000);
 			});
 			this.say(text);
 			return;
-		}
-		const text = "``[hint " + (this.hintsIndex + 1) + "]`` " + this.hints[this.hintsIndex];
-		this.hintsIndex++;
-		this.on(text, () => {
-			if (!this.answers.length) return;
+		} else {
 			if (!this.canGuess) this.canGuess = true;
-			this.timeout = setTimeout(() => this.nextRound(), 10000);
-		});
-		this.say(text);
+			this.timeout = setTimeout(() => this.nextRound(), 5000);
+		}
 	}
 }
 
@@ -122,4 +122,7 @@ export const game: IGameFile<PikachusMysteryPokemon> = Games.copyTemplatePropert
 	freejoin: true,
 	name: "Pikachu's Mystery Pokemon",
 	mascot: "Pikachu",
+	minigameCommand: "mysterypokemon",
+	minigameCommandAliases: ["mpokemon"],
+	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess a Pokemon as hints are revealed!",
 });
