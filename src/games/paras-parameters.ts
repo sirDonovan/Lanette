@@ -123,9 +123,9 @@ export class ParasParameters extends Guessing {
 	}
 
 	async intersect(parts: string[]): Promise<IParametersResponse> {
+		const params: IParam[] = [];
 		const mod = 'gen' + this.format.options.gen;
 		const paramTypePools = Games.workers.parameters.workerData!.pokemon.gens[mod].paramTypePools;
-		const params: IParam[] = [];
 		for (const part of parts) {
 			const id = Tools.toId(part);
 			let param: IParam | undefined;
@@ -135,9 +135,11 @@ export class ParasParameters extends Guessing {
 					break;
 				}
 			}
-			if (!param) return Promise.resolve({params: [], pokemon: []});
-			params.push(param);
+
+			if (param && !params.includes(param)) params.push(param);
 		}
+
+		if (params.length === 1 || params.length !== parts.length) return Promise.resolve({params: [], pokemon: []});
 
 		return Games.workers.parameters.intersect({
 			mod,
@@ -205,10 +207,28 @@ const tests: GameFileTests<ParasParameters> = {
 			assertStrictEqual(game.params[1].type, 'egggroup');
 			game.customParamTypes = null;
 
-			let intersection = await game.intersect(['rockclimb', 'steeltype']);
+			let intersection = await game.intersect(['steeltype']);
+			assertStrictEqual(intersection.params.length, 0);
+			assertStrictEqual(intersection.pokemon.length, 0);
+
+			intersection = await game.intersect(['steeltype', 'steeltype']);
+			assertStrictEqual(intersection.params.length, 0);
+			assertStrictEqual(intersection.pokemon.length, 0);
+
+			intersection = await game.intersect(['steeltype', 'rockclimb', 'steeltype']);
+			assertStrictEqual(intersection.params.length, 0);
+			assertStrictEqual(intersection.pokemon.length, 0);
+
+			intersection = await game.intersect(['steeltype', 'rockclimb']);
+			assertStrictEqual(intersection.params.length, 2);
 			assertStrictEqual(intersection.pokemon.join(","), "durant,excadrill,ferroseed,ferrothorn,steelix");
 
+			intersection = await game.intersect(['poisontype', 'poisontype', 'powerwhip']);
+			assertStrictEqual(intersection.params.length, 0);
+			assertStrictEqual(intersection.pokemon.length, 0);
+
 			intersection = await game.intersect(['poisontype', 'powerwhip']);
+			assertStrictEqual(intersection.params.length, 2);
 			assertStrictEqual(intersection.pokemon.join(","), "bellsprout,bulbasaur,ivysaur,roselia,roserade,venusaur,victreebel," +
 				"weepinbell");
 
