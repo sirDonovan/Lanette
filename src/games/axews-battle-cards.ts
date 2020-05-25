@@ -71,6 +71,8 @@ class AxewsBattleCards extends CardMatching {
 		const deck: CardType[] = [];
 		const minimumDeck = ((this.maxPlayers + 1) * this.format.options.cards);
 		for (const pokemon of pokedex) {
+			if (!this.usesActionCards && pokemon.types.join("") === "Normal") continue;
+
 			const weaknesses = Dex.getWeaknesses(pokemon).join(",");
 			if (weaknesses in weaknessCounts && weaknessCounts[weaknesses] >= this.format.options.cards) continue;
 			if (!(weaknesses in weaknessCounts)) weaknessCounts[weaknesses] = 0;
@@ -79,12 +81,14 @@ class AxewsBattleCards extends CardMatching {
 			if (this.rollForShinyPokemon()) pokemon.shiny = true;
 			deck.push(pokemon);
 		}
+
 		if (deck.length < minimumDeck) {
 			this.createDeck();
 			return;
 		}
+
 		const actionCardKeysLength = Object.keys(this.actionCards).length;
-		if (actionCardKeysLength) {
+		if (actionCardKeysLength && this.usesActionCards) {
 			let actionCardAmount = this.actionCardAmount;
 			let totalActionCards = actionCardKeysLength * actionCardAmount;
 			let maxPercentage = 0.15;
@@ -512,4 +516,13 @@ export const game: IGameFile<AxewsBattleCards> = Games.copyTemplateProperties(ca
 	name: "Axew's Battle Cards",
 	mascot: "Axew",
 	scriptedOnly: true,
+	variants: [
+		{
+			name: "No Action Axew's Battle Cards",
+			maxPlayers: 25,
+			variant: "No Action Cards",
+			variantAliases: ['No Action Card', 'No Actions'],
+			usesActionCards: false,
+		},
+	],
 });

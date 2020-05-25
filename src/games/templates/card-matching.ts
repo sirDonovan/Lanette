@@ -66,12 +66,14 @@ export abstract class CardMatching extends Card {
 			if (this.rollForShinyPokemon()) pokemon.shiny = true;
 			deck.push(pokemon);
 		}
+
 		if (deck.length < minimumDeck) {
 			this.createDeck();
 			return;
 		}
+
 		const actionCards = Object.keys(this.actionCards);
-		if (actionCards.length) {
+		if (actionCards.length && this.usesActionCards) {
 			let actionCardAmount = this.actionCardAmount;
 			let totalActionCards = actionCards.length * actionCardAmount;
 			while (totalActionCards / (deck.length + totalActionCards) > 0.2) {

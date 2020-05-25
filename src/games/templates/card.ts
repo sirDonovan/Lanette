@@ -55,6 +55,7 @@ export abstract class Card extends Game {
 	timeEnded: boolean = false;
 	timeLimit: number = 25 * 60 * 1000;
 	typesLimit: number = 0;
+	usesActionCards: boolean = true;
 	usesColors: boolean = false;
 	// usesLateJoinQueue: boolean = false;
 	usesMoves: boolean = false;
@@ -75,10 +76,11 @@ export abstract class Card extends Game {
 	createDeckPool(): void {
 		this.deckPool = [];
 		const pokemonList = Games.getPokemonCopyList(pokemon => {
-			if (pokemon.forme || pokemon.id in this.actionCards || !Dex.hasGifData(pokemon) ||
+			if (pokemon.forme || (this.usesActionCards && pokemon.id in this.actionCards) || !Dex.hasGifData(pokemon) ||
 				(this.filterPoolItem && this.filterPoolItem(pokemon))) return false;
 			return true;
 		});
+
 		for (const pokemon of pokemonList) {
 			const color = Tools.toId(pokemon.color);
 			if (!(color in this.colors)) this.colors[color] = pokemon.color;
