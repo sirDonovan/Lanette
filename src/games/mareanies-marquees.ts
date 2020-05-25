@@ -12,20 +12,21 @@ const data: {'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items'
 type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
 
+const LETTERS_TO_REVEAL = 4;
+
 class MareaniesMarquee extends Guessing {
 	lastAnswer: string = '';
 	letters: string[] = [];
 	currentIndex: number = -1;
 	hintUpdates: number = 0;
 	hintLimit: number = 0;
-	lettersToReveal: number = 4;
 	currentCategory: string = '';
 
 	static loadData(room: Room | User): void {
-		data["Pokemon"] = Games.getPokemonList().map(x => x.name);
-		data["Pokemon Abilities"] = Games.getAbilitiesList().map(x => x.name);
-		data["Pokemon Items"] = Games.getItemsList().map(x => x.name);
-		data["Pokemon Moves"] = Games.getMovesList().map(x => x.name);
+		data["Pokemon"] = Games.getPokemonList().map(x => x.name).filter(x => x.length > LETTERS_TO_REVEAL);
+		data["Pokemon Abilities"] = Games.getAbilitiesList().map(x => x.name).filter(x => x.length > LETTERS_TO_REVEAL);
+		data["Pokemon Items"] = Games.getItemsList().map(x => x.name).filter(x => x.length > LETTERS_TO_REVEAL);
+		data["Pokemon Moves"] = Games.getMovesList().map(x => x.name).filter(x => x.length > LETTERS_TO_REVEAL);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -39,8 +40,8 @@ class MareaniesMarquee extends Guessing {
 			answer = this.sampleOne(data[category]);
 			letters = answer.replace(" ", "").split("");
 			for (let i = 0; i < letters.length; i++) {
-				let part = letters.slice(i, i + this.lettersToReveal);
-				if (part.length < this.lettersToReveal) part = part.concat(letters.slice(0, this.lettersToReveal - part.length));
+				let part = letters.slice(i, i + LETTERS_TO_REVEAL);
+				if (part.length < LETTERS_TO_REVEAL) part = part.concat(letters.slice(0, LETTERS_TO_REVEAL - part.length));
 				if (Client.willBeFiltered(part.join(''), !this.isPm(this.room) ? this.room : undefined)) {
 					willBeFiltered = true;
 					break;
@@ -79,7 +80,7 @@ class MareaniesMarquee extends Guessing {
 		let index = this.currentIndex;
 		let hint = '';
 		const lastIndex = this.letters.length - 1;
-		for (let i = 0; i < this.lettersToReveal; i++) {
+		for (let i = 0; i < LETTERS_TO_REVEAL; i++) {
 			hint += this.letters[index];
 			index++;
 			if (index > lastIndex) index = 0;
