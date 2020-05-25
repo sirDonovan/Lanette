@@ -17,9 +17,10 @@ class SmearglesMysteryMoves extends Guessing {
 	answers: string[] = [];
 	canGuess: boolean = false;
 	hints: string[] = [];
-	hintsIndex: number = 0;
 	lastMove: string = '';
+	mysteryRound: number = -1;
 	points = new Map<Player, number>();
+	roundGuesses = new Map<Player, boolean>();
 
 	static loadData(room: Room | User): void {
 		const movesList = Games.getMovesList();
@@ -28,15 +29,9 @@ class SmearglesMysteryMoves extends Guessing {
 		}
 	}
 
-	onSignups(): void {
-		if (this.format.options.freejoin) {
-			this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
-		}
-	}
-
 	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
-		this.hintsIndex = 0;
+		this.mysteryRound = -1;
 		let name = this.sampleOne(data.moves);
 		while (this.lastMove === name) {
 			name = this.sampleOne(data.moves);
@@ -44,38 +39,41 @@ class SmearglesMysteryMoves extends Guessing {
 		this.lastMove = name;
 		const move = Dex.getExistingMove(name);
 		const hints: string[] = [];
-		hints.push("**Type**: " + move.type);
-		hints.push("**Base PP**: " + move.pp);
-		hints.push("**Category**: " + move.category);
-		hints.push("**Accuracy**: " + (move.accuracy === true ? "does not check" : move.accuracy + "%"));
-		if (move.category !== 'Status') hints.push("**Base power**: " + move.basePower);
-		hints.push("**Description**: " + move.shortDesc);
+		hints.push("<b>Type</b>: " + move.type);
+		hints.push("<b>Base PP</b>: " + move.pp);
+		hints.push("<b>Category</b>: " + move.category);
+		hints.push("<b>Accuracy</b>: " + (move.accuracy === true ? "does not check" : move.accuracy + "%"));
+		if (move.category !== 'Status') hints.push("<b>Base power</b>: " + move.basePower);
+		hints.push("<b>Description</b>: " + move.shortDesc);
 		this.hints = this.shuffle(hints);
 		this.answers = [move.name];
 	}
 
-	async onNextRound(): Promise<void> {
-		if (!this.answers.length) {
-			this.canGuess = false;
-			await this.setAnswers();
-		}
-		if (!this.hints[this.hintsIndex]) {
+	updateHint(): void {
+		this.mysteryRound++;
+		this.roundGuesses.clear();
+		const pastHints = this.hints.slice(0, this.mysteryRound);
+		this.hint = (pastHints.length ? pastHints.join("<br />") + "<br />" : "") + (this.hints[this.mysteryRound] ?
+			"<i>" + this.hints[this.mysteryRound] + "</i>" : "");
+	}
+
+	onHintHtml(): void {
+		if (!this.hints[this.mysteryRound]) {
 			const text = "All hints have been revealed! " + this.getAnswers('');
-			this.answers = [];
 			this.on(text, () => {
+				this.answers = [];
+				if (this.isMiniGame) {
+					this.end();
+					return;
+				}
 				this.timeout = setTimeout(() => this.nextRound(), 5000);
 			});
 			this.say(text);
 			return;
-		}
-		const text = "``[hint " + (this.hintsIndex + 1) + "]`` " + this.hints[this.hintsIndex];
-		this.hintsIndex++;
-		this.on(text, () => {
-			if (!this.answers.length) return;
+		} else {
 			if (!this.canGuess) this.canGuess = true;
-			this.timeout = setTimeout(() => this.nextRound(), 10000);
-		});
-		this.say(text);
+			this.timeout = setTimeout(() => this.nextRound(), 5000);
+		}
 	}
 }
 
@@ -91,4 +89,7 @@ export const game: IGameFile<SmearglesMysteryMoves> = Games.copyTemplateProperti
 	freejoin: true,
 	name: "Smeargle's Mystery Moves",
 	mascot: "Smeargle",
+	minigameCommand: "mysterymove",
+	minigameCommandAliases: ["mmove"],
+	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess a move as hints are revealed!",
 });
