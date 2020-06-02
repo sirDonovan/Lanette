@@ -425,9 +425,9 @@ export class Dex {
 
 						format.quickFormat = format.teamLength && format.teamLength.battle && format.teamLength.battle <= 2 ? true : false;
 						format.tournamentPlayable = !!(format.searchShow || format.challengeShow || format.tournamentShow);
-						format.unranked = format.rated === false || format.id.includes('customgame') ||
-							format.id.includes('challengecup') || format.id.includes('hackmonscup') || (format.team &&
-							(format.id.includes('1v1') || format.id.includes('monotype'))) || format.mod === 'seasonal' ||
+						format.unranked = format.rated === false || format.id.includes('customgame') || format.id.includes('hackmonscup') ||
+							format.id.includes('challengecup') || format.id.includes('metronomebattle') ||
+							(format.team && (format.id.includes('1v1') || format.id.includes('monotype'))) || format.mod === 'seasonal' ||
 							format.mod === 'ssb' ? true : false;
 
 						if (format.section === omotmSection) this.omotms.push(format.id);
