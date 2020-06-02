@@ -89,7 +89,10 @@ describe("pokemon-showdown", () => {
 			assertStrictEqual(typeof pokemon.baseStats['spe'], 'number');
 			assertStrictEqual(typeof pokemon.tier, 'string');
 			assertStrictEqual(typeof pokemon.prevo, 'string');
-			assertStrictEqual(typeof pokemon.nfe, 'boolean');
+			// @ts-expect-error
+			if (pokemon.nfe !== 0) {
+				assertStrictEqual(typeof pokemon.nfe, 'boolean');
+			}
 			if (pokemon.isNonstandard) assertStrictEqual(typeof pokemon.isNonstandard, 'string');
 			if (pokemon.forme) assertStrictEqual(typeof pokemon.forme, 'string');
 			if (pokemon.evoLevel) assertStrictEqual(typeof pokemon.evoLevel, 'number');
