@@ -591,7 +591,7 @@ export class Game extends Activity {
 
 	async tryCommand(target: string, room: Room | User, user: User, command: string): Promise<boolean> {
 		if (!(command in this.commands)) {
-			if (this.format.options.freejoin || user.id in this.players) {
+			if (command && (this.format.options.freejoin || (user.id in this.players && !this.players[user.id].eliminated))) {
 				user.say("'" + command + "' is not a command in " + this.format.nameWithOptions + ".");
 			}
 			return false;
