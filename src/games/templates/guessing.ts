@@ -3,7 +3,9 @@ import type { Player } from '../../room-activity';
 import { Game } from '../../room-game';
 import type { Room } from '../../rooms';
 import { assert, assertStrictEqual, getBasePlayerName, runCommand } from '../../test/test-tools';
-import type { GameCommandReturnType, GameFileTests, IGameAchievement, IGameFormat, IGameTemplateFile } from '../../types/games';
+import type {
+	GameCommandReturnType, GameFileTests, IGameAchievement, IGameFormat, IGameTemplateFile, IRandomGameAnswer
+} from '../../types/games';
 
 const MINIGAME_BITS = 25;
 
@@ -144,6 +146,12 @@ export abstract class Guessing extends Game {
 		}
 		answers += "__.";
 		return answers;
+	}
+
+	async getRandomAnswer(): Promise<IRandomGameAnswer> {
+		await this.setAnswers();
+		if (this.updateHint) this.updateHint();
+		return {answers: this.answers, hint: this.hint};
 	}
 
 	getForceEndMessage(): string {
@@ -329,6 +337,7 @@ const tests: GameFileTests<Guessing> = {
 };
 
 export const game: IGameTemplateFile<Guessing> = {
+	canGetRandomAnswer: true,
 	commandDescriptions: [Config.commandCharacter + 'g [answer]'],
 	commands,
 	tests,

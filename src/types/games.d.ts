@@ -129,9 +129,15 @@ type GameFileTests<T extends Game = Game> = Dict<{config?: IGameFileTestConfig; 
 
 export type AchievementsDict = PartialKeyedDict<IGameAchievementKeys, IGameAchievement>;
 
+export interface IRandomGameAnswer {
+	answers: string[];
+	hint: string;
+}
+
 interface IGameFileProperties<T extends Game = Game> {
 	achievements?: AchievementsDict;
 	aliases?: string[];
+	canGetRandomAnswer?: boolean;
 	category?: GameCategory;
 	commands?: Dict<ICommandDefinition<T>>;
 	commandDescriptions?: string[];

@@ -150,9 +150,17 @@ describe("Games", () => {
 						key + "'s description");
 				}
 			}
+
+			if (format.canGetRandomAnswer) {
+				const game = Games.createGame(room, format, room, false, initialSeed);
+				assert(game);
+				assertStrictEqual(typeof game.getRandomAnswer, 'function');
+			}
+
 			if (format.category) {
 				assert(!format.category.match(Tools.unsafeApiCharacterRegex), format.name + " category");
 			}
+
 			if (format.commandDescriptions) {
 				for (const command of format.commandDescriptions) {
 					assert(!command.match(Tools.unsafeApiCharacterRegex), format.name + " command descriptions");
@@ -293,7 +301,9 @@ describe("Games", () => {
 
 			const gameLog: string[] = [];
 			const game = Games.createGame(room, format);
-			assert(game);
+			assert(game, format.name);
+			assert(!game.signupsStarted, format.name);
+			assert(!game.started, format.name);
 			assertStrictEqual(game.format.name, format.name);
 			if (game.mascot) game.shinyMascot = true;
 			game.signups();
@@ -323,7 +333,9 @@ describe("Games", () => {
 
 			const gameLog: string[] = [];
 			const game = Games.createUserHostedGame(room, format, Users.self.name);
-			assert(game);
+			assert(game, format.name);
+			assert(!game.signupsStarted, format.name);
+			assert(!game.started, format.name);
 			assertStrictEqual(game.format.name, format.name);
 			if (game.mascot) game.shinyMascot = true;
 			game.signups();

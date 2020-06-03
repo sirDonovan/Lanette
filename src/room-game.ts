@@ -5,7 +5,7 @@ import { Activity, PlayerTeam } from "./room-activity";
 import type { Player, PlayerList } from "./room-activity";
 import type { Room } from "./rooms";
 import type { IPokemonCopy } from "./types/dex";
-import type { IGameAchievement, IGameFormat, IGameMode, IGameVariant, IUserHostedFormat } from "./types/games";
+import type { IGameAchievement, IGameFormat, IGameMode, IGameVariant, IUserHostedFormat, IRandomGameAnswer } from "./types/games";
 import type { User } from "./users";
 
 export type DefaultGameOption = 'points' | 'teams' | 'cards' | 'freejoin';
@@ -61,6 +61,7 @@ export class Game extends Activity {
 	notifyRankSignups: boolean = false;
 	parentGame: Game | null = null;
 	readonly round: number = 0;
+	signupsStarted: boolean = false;
 	signupsTime: number = 0;
 	usesWorkers: boolean = false;
 	readonly winnerPointsToBits: number = 50;
@@ -262,6 +263,7 @@ export class Game extends Activity {
 	}
 
 	signups(): void {
+		this.signupsStarted = true;
 		if (!this.isMiniGame && !this.internalGame) {
 			this.showSignupsHtml = true;
 			this.sayHtml(this.getSignupsHtml());
@@ -834,6 +836,7 @@ export class Game extends Activity {
 
 	getForceEndMessage?(): string;
 	getPlayerSummary?(player: Player): void;
+	async getRandomAnswer?(): Promise<IRandomGameAnswer>;
 	/** Return `false` to prevent a user from being added to the game (and send the reason to the user) */
 	onAddPlayer?(player: Player, lateJoin?: boolean): boolean | undefined;
 	onAfterDeallocate?(forceEnd: boolean): void;

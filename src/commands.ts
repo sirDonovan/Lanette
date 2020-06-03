@@ -1598,6 +1598,34 @@ const commands: Dict<ICommandDefinition> = {
 			this.say('!dt ' + target);
 		},
 	},
+	randomanswer: {
+		async asyncCommand(target, room, user, cmd) {
+			let pmRoom: Room | undefined;
+			if (!this.isPm(room) || room.game) return;
+			if (!target) return this.say("You must specify a game.");
+
+			user.rooms.forEach((rank, room) => {
+				if (!pmRoom && Config.allowScriptedGames && Config.allowScriptedGames.includes(room.id) &&
+					Users.self.hasRank(room, 'bot')) {
+					pmRoom = room;
+				}
+			});
+
+			if (!pmRoom) return this.say(CommandParser.getErrorText(['noPmGameRoom']));
+
+			const format = global.Games.getFormat(target, true);
+			if (Array.isArray(format)) return this.sayError(format);
+			if (global.Games.reloadInProgress) return this.sayError(['reloadInProgress']);
+			if (!format.canGetRandomAnswer) return this.say("This command cannot be used with " + format.name + ".");
+			delete format.inputOptions.points;
+			const game = global.Games.createGame(room, format, pmRoom);
+			const randomAnswer = await game.getRandomAnswer!();
+			this.sayHtml(game.getNameSpan(" - random") + "<br /><br />" + randomAnswer.hint + "<br /> " +
+				"<b>Answer" + (randomAnswer.answers.length > 1 ? "s" : "") + "</b>: " + randomAnswer.answers.join(', '), pmRoom);
+			game.deallocate(true);
+		},
+		aliases: ['randanswer', 'ranswer', 'randomhint', 'randhint', 'rhint'],
+	},
 	randompokemon: {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
