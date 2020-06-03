@@ -14,7 +14,7 @@ const INTEGER_REGEX = /^[0-9]*$/g;
 const FLOAT_REGEX = /^[.0-9]*$/g;
 const SPACE_REGEX = /[ ]*/g;
 const HTML_CHARACTER_REGEX = /[<>/'"]/g;
-const UNSAFE_API_CHARACTER_REGEX = /[^A-Za-z0-9 ,.%&'"!?()[\]`_<>/|:;=+-]/g;
+const UNSAFE_API_CHARACTER_REGEX = /[^A-Za-z0-9 ,.%&'"!?()[\]`_<>/|:;=+-@]/g;
 
 const maxMessageLength = 300;
 const maxUsernameLength = 18;
