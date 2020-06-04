@@ -277,6 +277,7 @@ const commands: Dict<ICommandDefinition<PanchamPairs>> = {
 					for (const i in this.players) {
 						if (this.players[i] !== player) this.players[i].eliminated = true;
 					}
+					this.winners.set(player, 1);
 					this.end();
 					return true;
 				} else {
