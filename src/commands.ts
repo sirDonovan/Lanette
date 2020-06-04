@@ -1327,7 +1327,7 @@ const commands: Dict<ICommandDefinition> = {
 				}
 			}
 			if (!users.length) return this.say("Please specify at least one user in the room.");
-			if (cmd === 'removepoints' || cmd === 'removepoint' || cmd === 'rpt') points *= -1;
+			if (cmd.startsWith('r')) points *= -1;
 			let reachedCap = 0;
 			for (const user of users) {
 				const player = room.userHostedGame.players[user.id] || room.userHostedGame.createPlayer(user);
@@ -1342,7 +1342,7 @@ const commands: Dict<ICommandDefinition> = {
 				user.say((reachedCap === 1 ? "A user has" : reachedCap + " users have") + " reached the score cap in your game.");
 			}
 		},
-		aliases: ['addpoint', 'removepoint', 'removepoints', 'apt', 'rpt'],
+		aliases: ['addpoint', 'removepoint', 'removepoints', 'apoint', 'apoints', 'rpoint', 'rpoints', 'apt', 'rpt'],
 	},
 	addpointall: {
 		async asyncCommand(target, room, user, cmd) {
@@ -2536,6 +2536,69 @@ const commands: Dict<ICommandDefinition> = {
 			}
 		},
 		aliases: ['abits', 'removebits', 'rbits'],
+	},
+	addsemifinalistpoints: {
+		command(target, room, user, cmd) {
+			if (this.isPm(room) || !Config.allowTournaments || !Config.allowTournaments.includes(room.id) ||
+				!user.hasRank(room, 'driver')) return;
+			const semiFinalist = cmd.includes('semi');
+			const runnerUp = !semiFinalist && cmd.includes('runner');
+			let placeName: string;
+			if (semiFinalist) {
+				placeName = "semi-finalist";
+			} else if (runnerUp) {
+				placeName = "runner-up";
+			} else {
+				placeName = "winner";
+			}
+
+			const targets = target.split(',');
+			if (targets.length !== 3 && targets.length !== 4) return this.say("Usage: ``" + Config.commandCharacter + cmd + " " +
+				"[" + placeName + "], [format], [players], [scheduled]``");
+
+			if (!Tools.isUsernameLength(targets[0])) return this.say("Please specify a valid username.");
+			const format = Dex.getFormat(targets[1]);
+			if (!format) return this.sayError(['invalidFormat', targets[1].trim()]);
+
+			const players = parseInt(targets[2]);
+			if (isNaN(players) || players <= 0) return this.say("Please specify a valid number of players in the tournament.");
+			if (players < Tournaments.minPlayerCap || players > Tournaments.maxPlayerCap) {
+				return this.say("Tournaments can only award points for between " + Tournaments.minPlayerCap + " and " +
+					Tournaments.maxPlayerCap + " players.");
+			}
+
+			const scheduledOption = Tools.toId(targets[3]);
+			const scheduled = scheduledOption === 'official' || scheduledOption === 'scheduled';
+			const multiplier = Tournaments.getPointsMultiplier(format, players, scheduled);
+
+			let basePoints: number;
+			if (semiFinalist) {
+				basePoints = Tournaments.semiFinalistPoints;
+			} else if (runnerUp) {
+				basePoints = Tournaments.runnerUpPoints;
+			} else {
+				basePoints = Tournaments.winnerPoints;
+			}
+
+			const points = Tournaments.getPointsValue(basePoints, multiplier);
+			const pointsString = points + " point" + (points > 1 ? "s" : "");
+
+			let targetUserName = targets[0].trim();
+			const targetUser = Users.get(targetUserName);
+			if (targetUser) targetUserName = targetUser.name;
+
+			Storage.addPoints(room, targetUserName, points, format.id);
+			this.say("Added " + pointsString + " for " + targetUserName + ".");
+			if (targetUser && targetUser.rooms.has(room)) {
+				targetUser.say("You were awarded " + pointsString + " for being " + (placeName === "semi-finalist" ? "a" : "the") + " " +
+					placeName + " in a " + (scheduled ? "scheduled " : "") + format.name + " tournament! To see your total amount, use " +
+					"this command: ``" + Config.commandCharacter + "rank " + room.title + "``.");
+			}
+
+			this.sayCommand("/modnote " + user.name + " awarded " + targetUserName + " " + placeName + " points (" + points + ") for a " +
+				(scheduled ? "scheduled " : "") + players + "-man " + format.name + " tournament");
+		},
+		aliases: ['addsemifinalpoints', 'addsemipoints', 'addrunneruppoints', 'addrunnerpoints', 'addwinnerpoints'],
 	},
 	leaderboard: {
 		command(target, room, user) {

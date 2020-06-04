@@ -16,6 +16,13 @@ const USER_HOSTED_TOURNAMENT_TIMEOUT = 5 * 60 * 1000;
 const USER_HOSTED_TOURNAMENT_RANK: GroupName = 'driver';
 
 export class Tournaments {
+	// exported constants
+	readonly maxPlayerCap: number = 128;
+	readonly minPlayerCap: number = 4;
+	readonly winnerPoints: number = 3;
+	readonly runnerUpPoints: number = 2;
+	readonly semiFinalistPoints: number = 1;
+
 	createListeners: Dict<{format: IFormat; scheduled: boolean}> = {};
 	readonly defaultCustomRules: Dict<Partial<ISeparatedCustomRules>> = {
 		tournaments: {
@@ -26,8 +33,6 @@ export class Tournaments {
 		},
 	};
 	readonly delayedScheduledTournamentTime: number = 15 * 1000;
-	readonly maxPlayerCap: number = 128;
-	readonly minPlayerCap: number = 4;
 	queuedTournamentTime: number = 5 * 60 * 1000;
 	nextScheduledTournaments: Dict<IScheduledTournament> = {};
 	scheduledTournaments: Dict<IScheduledTournament[]> = {};
@@ -227,6 +232,23 @@ export class Tournaments {
 				}
 			}
 		}
+	}
+
+	getPointsMultiplier(format: IFormat, players: number, scheduled: boolean): number {
+		let multiplier = 1;
+		if (!format.teamLength || !format.teamLength.battle || format.teamLength.battle > 2) {
+			if (players >= 32) {
+				multiplier += ((Math.floor(players / 32)) * 0.5);
+			}
+		}
+
+		if (scheduled) multiplier *= 2.5;
+
+		return multiplier;
+	}
+
+	getPointsValue(points: number, multiplier: number): number {
+		return Math.round(points * multiplier);
 	}
 
 	setScheduledTournament(room: Room): void {
