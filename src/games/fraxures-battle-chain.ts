@@ -55,9 +55,9 @@ export const game: IGameFile<FraxuresBattleChain> = Games.copyTemplateProperties
 	aliases: ["fraxures", "battlechain", "fbc"],
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],
 	class: FraxuresBattleChain,
-	defaultOptions: ['freejoin', 'points'],
 	description: "Players answer each round with a Pokemon whose type is super effective against the previous Pokemon (no formes or " +
 		"repeats in a round)!",
 	name: "Fraxure's Battle Chain",
 	mascot: "Fraxure",
+	scriptedOnly: true,
 });
