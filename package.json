@@ -21,9 +21,9 @@
   "homepage": "https://github.com/sirDonovan/Lanette#readme",
   "dependencies": {
     "@types/mocha": "7.0.2",
-    "@types/node": "12.12.41",
+    "@types/node": "12.12.44",
     "@types/websocket": "1.0.0",
-    "typescript": "3.9.3",
+    "typescript": "3.9.5",
     "websocket": "1.0.31"
   },
   "devDependencies": {
