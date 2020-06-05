@@ -60,6 +60,9 @@ export abstract class Card extends Game {
 	// usesLateJoinQueue: boolean = false;
 	usesMoves: boolean = false;
 
+	lives?: Map<Player, number>;
+	startingLives?: number;
+
 	// always truthy once the game starts
 	topCard!: CardType;
 
@@ -95,6 +98,11 @@ export abstract class Card extends Game {
 			this.playerOrder.push(player);
 			this.playerList.push(player);
 		}
+
+		if (this.lives) {
+			this.lives.set(player, this.startingLives!);
+		}
+
 		return true;
 	}
 
@@ -275,7 +283,8 @@ export abstract class Card extends Game {
 					this.timeEnd();
 					return null;
 				}
-				const html = this.getRoundHtml(this.showPlayerCards ? this.getPlayerCards : this.getPlayerNames,
+				const html = this.getRoundHtml(this.showPlayerCards ? this.getPlayerCards : this.lives ?
+					this.getPlayerLives : this.getPlayerNames,
 					this.getRemainingPlayers(this.playerOrder), "Round " + this.cardRound);
 				this.sayUhtml(this.uhtmlBaseName + '-round-html', html);
 			}

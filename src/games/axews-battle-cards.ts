@@ -31,11 +31,13 @@ class AxewsBattleCards extends CardMatching {
 		"topsyturvy": {name: "Topsy-Turvy", description: "Reverse the turn order"},
 	};
 	finitePlayerCards = false;
+	lives = new Map<Player, number>();
 	maxPlayers = 20;
 	playableCardDescription = "You must play a card that is super-effective against the top card";
 	roundDrawAmount: number = 1;
 	shinyCardAchievement = achievements.luckofthedraw;
 	showPlayerCards = false;
+	startingLives: number = 1;
 	usesColors = false;
 
 	static loadData(room: Room | User): void {
@@ -248,13 +250,23 @@ class AxewsBattleCards extends CardMatching {
 		let eliminateCount = 0;
 		let finalPlayer = false;
 		while (!playableCards.length) {
-			eliminateCount++;
-			this.eliminatePlayer(player, "You do not have a card to play!");
-			if (this.getRemainingPlayerCount() === 1) {
-				finalPlayer = true;
-				break;
+			let lives = this.lives.get(player)!;
+			lives--;
+			this.lives.set(player, lives);
+			if (!lives) {
+				eliminateCount++;
+				this.eliminatePlayer(player, "You do not have a card to play!");
+				if (this.getRemainingPlayerCount() === 1) {
+					finalPlayer = true;
+					break;
+				}
+				this.say(player.name + " " + eliminatedText);
+			} else {
+				this.say(player.name + " does not have a card to play and has lost a life!");
+				player.say("You do not have a card to play! You have " + lives + " " +
+					(lives === 1 ? "life" : "lives") + " remaining!");
 			}
-			this.say(player.name + " " + eliminatedText);
+
 			player = this.getNextPlayer();
 			if (!player) {
 				if (this.timeEnded) break;
@@ -520,6 +532,7 @@ export const game: IGameFile<AxewsBattleCards> = Games.copyTemplateProperties(ca
 		{
 			name: "No Action Axew's Battle Cards",
 			maxPlayers: 25,
+			startingLives: 2,
 			variant: "No Action Cards",
 			variantAliases: ['No Action Card', 'No Actions'],
 			usesActionCards: false,
