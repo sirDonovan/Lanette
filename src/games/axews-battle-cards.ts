@@ -24,9 +24,10 @@ class AxewsBattleCards extends CardMatching {
 		"batonpass": {name: "Baton Pass", description: "Replace top card & draw 2", requiredOtherCards: 1, requiredTarget: true},
 		"allyswitch": {name: "Ally Switch", description: "Swap with top card & draw 1", requiredOtherCards: 1, requiredTarget: true},
 		"conversion": {name: "Conversion", description: "Change to 1 type", requiredTarget: true},
-		"conversion2": {name: "Conversion2", description: "Change to 2 types", requiredTarget: true},
+		"conversion2": {name: "Conversion 2", description: "Change to 2 types", requiredTarget: true},
+		"conversionz": {name: "Conversion Z", description: "Change to 3 types", requiredTarget: true},
 		"transform": {name: "Transform", description: "Change the top card", requiredTarget: true},
-		"recycle": {name: "Recycle", description: "Draw 1 card"},
+		"protect": {name: "Protect", description: "Skip your turn"},
 		"teeterdance": {name: "Teeter Dance", description: "Shuffle the turn order"},
 		"topsyturvy": {name: "Topsy-Turvy", description: "Reverse the turn order"},
 	};
@@ -108,7 +109,14 @@ class AxewsBattleCards extends CardMatching {
 			for (const i in this.actionCards) {
 				const actionCard = this.actionCards[i];
 				for (let i = 0; i < actionCardAmount; i++) {
-					const card = Dex.getMoveCopy(actionCard.name) as IMoveCard;
+					let card: IMoveCard;
+					if (actionCard.name === "Conversion Z") {
+						card = Dex.getMoveCopy("Conversion 2");
+						card.name = "Conversion Z";
+						card.id = "conversionz";
+					} else {
+						card = Dex.getMoveCopy(actionCard.name);
+					}
 					card.action = actionCard;
 					deck.push(card);
 				}
@@ -345,7 +353,6 @@ class AxewsBattleCards extends CardMatching {
 	}
 
 	playActionCard(card: CardType, player: Player, targets: string[], cards: CardType[]): CardType[] | boolean {
-		let drawAmount = this.roundDrawAmount;
 		let firstTimeShiny = false;
 		let drawCards: CardType[] | null = null;
 		let cardDetail: string | undefined;
@@ -394,6 +401,29 @@ class AxewsBattleCards extends CardMatching {
 				}
 				this.topCard = topCard;
 			}
+		} else if (card.id === 'conversionz') {
+			const type1 = Tools.toId(targets[1]);
+			const type2 = Tools.toId(targets[2]);
+			const type3 = Tools.toId(targets[3]);
+			if (!type1 || !type2 || !type3) {
+				this.say("Usage: ``" + Config.commandCharacter + "play Conversion Z, [type 1], [type 2], [type 3]``");
+				return false;
+			}
+			if (!(type1 in types) || !(type2 in types) || !(type3 in types) || type1 === type2 || type1 === type3 ||
+				type2 === type3) {
+				this.say("Please enter three valid types.");
+				return false;
+			}
+			this.topCard.types = [types[type1], types[type2], types[type3]];
+			cardDetail = types[type1] + ", " + types[type2] + ", " + types[type3];
+			if (this.isStaleTopCard()) {
+				this.say(this.topCard.name + " no longer has any weaknesses!");
+				let topCard = this.getCard();
+				while (topCard.effectType === 'Move') {
+					topCard = this.getCard();
+				}
+				this.topCard = topCard;
+			}
 		} else if (card.id === 'trickortreat') {
 			if (this.topCard.types.includes('Ghost')) {
 				this.say(this.topCard.name + " is already " + (this.topCard.types.length > 1 ? "part " : "") + "Ghost-type!");
@@ -422,8 +452,6 @@ class AxewsBattleCards extends CardMatching {
 				}
 				this.topCard = topCard;
 			}
-		} else if (card.id === 'recycle') {
-			drawAmount = 2;
 		} else if (card.id === 'transform') {
 			if (!targets[1]) {
 				this.say("Usage: ``" + Config.commandCharacter + "play transform, [pokemon]``");
@@ -493,6 +521,7 @@ class AxewsBattleCards extends CardMatching {
 				}
 				return false;
 			}
+
 			const card1 = this.getCard();
 			const card2 = (card.id === 'batonpass' ? this.getCard() : this.topCard);
 			const newTopCard = cards[newIndex] as IPokemonCard;
@@ -509,9 +538,7 @@ class AxewsBattleCards extends CardMatching {
 		this.storePreviouslyPlayedCard({card: card.displayName || card.name, detail: cardDetail, shiny: firstTimeShiny});
 
 		if (!player.eliminated) {
-			if (drawAmount > 0) {
-				this.drawCard(player, drawAmount, drawCards);
-			}
+			this.drawCard(player, this.roundDrawAmount, drawCards);
 		}
 
 		return true;
