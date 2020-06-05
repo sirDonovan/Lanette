@@ -129,12 +129,14 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 	highestBidAmount: number = 0;
 	highestBidder: Player | null = null;
 	jailSpace: BoardSpace = spaces.pyritetownjail;
-	maxCurrency: number = 5000;
+	maxCurrency: number = 4000;
 	passingGoCurrency: number = 200;
 	rafflePrize: number = 200;
 	raffleRunner: string = "Jellicent";
 	spaces: IBoardSpaces = spaces;
 	startingCurrency: number = 1500;
+	timeLimit = 25 * 60 * 1000;
+	winCondition = 'currency' as const;
 
 	baseActionCards: BoardActionCard<JellicentsPhantomFinances>[];
 

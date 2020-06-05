@@ -123,6 +123,8 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 	raffleRunner: string = "Klefki";
 	spaces: IBoardSpaces = spaces;
 	startingCurrency: number = 3;
+	timeLimit = 25 * 60 * 1000;
+	winCondition = 'property' as const;
 
 	baseActionCards: BoardActionCard<KlefkisLockedLocations>[];
 

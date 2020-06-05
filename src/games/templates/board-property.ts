@@ -196,6 +196,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 	abstract raffleRunner: string;
 	abstract spaces: BoardSpaces;
 	abstract startingCurrency: number;
+	abstract winCondition: 'currency' | 'property';
 
 	actionCards: BoardActionCard<BoardPropertyGame<BoardSpaces>>[] = [];
 	canEscape: boolean = false;
@@ -588,6 +589,37 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 			this.timeout = setTimeout(() => this.end(), this.roundTime);
 		});
 		this.say(text);
+	}
+
+	onTimeLimit(): void {
+		if (this.winCondition === 'currency') {
+			let highestCurrency = 0;
+			this.playerCurrency.forEach((currency, player) => {
+				if (currency > highestCurrency) {
+					highestCurrency = currency;
+				}
+			});
+
+			for (const i in this.players) {
+				if (this.players[i].eliminated) continue;
+				const player = this.players[i];
+				if (this.playerCurrency.get(player)! < highestCurrency) player.eliminated = true;
+			}
+		} else if (this.winCondition === 'property') {
+			let mostProperties = 0;
+			this.properties.forEach((properties, player) => {
+				if (properties.length > mostProperties) {
+					mostProperties = properties.length;
+				}
+			});
+
+			for (const i in this.players) {
+				if (this.players[i].eliminated) continue;
+				const player = this.players[i];
+				const properties = this.properties.get(player) || [];
+				if (properties.length < mostProperties) player.eliminated = true;
+			}
+		}
 	}
 
 	onActionSpace(player: Player): void {
