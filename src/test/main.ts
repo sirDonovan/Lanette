@@ -8,21 +8,10 @@ import { testOptions } from './test-tools';
 const rootFolder = path.resolve(__dirname, '..', '..');
 const modulesDir = path.join(__dirname, 'modules');
 const moduleTests = fs.readdirSync(modulesDir);
-const configFile = path.join(rootFolder, 'built', 'config.js');
-const pokedexMiniFile = path.join(rootFolder, 'data', 'pokedex-mini.js');
-const pokedexMiniBWFile = path.join(rootFolder, 'data', 'pokedex-mini-bw.js');
 const pokemonShowdownTestFile = 'pokemon-showdown.js';
 
-// create needed files if running on Travis CI
-if (!fs.existsSync(configFile)) {
-	fs.writeFileSync(configFile, fs.readFileSync(path.join(rootFolder, 'built', 'config-example.js')));
-}
-if (!fs.existsSync(pokedexMiniFile)) {
-	fs.writeFileSync(pokedexMiniFile, fs.readFileSync(path.join(rootFolder, 'data', 'pokedex-mini-base.js')));
-}
-if (!fs.existsSync(pokedexMiniBWFile)) {
-	fs.writeFileSync(pokedexMiniBWFile, fs.readFileSync(path.join(rootFolder, 'data', 'pokedex-mini-bw-base.js')));
-}
+// create necessary files if running for the first time
+require(path.join(rootFolder, 'create-untracked-files.js'));
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noOp = (): void => {};

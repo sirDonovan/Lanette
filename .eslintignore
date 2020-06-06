@@ -9,6 +9,7 @@
 /src/config.ts
 app.js
 build.js
+create-untracked-files.js
 mocha.js
 tempConfig.js
 update-ps.js
