@@ -898,6 +898,8 @@ export class Client {
 		 * Chatroom messages
 		 */
 		case 'tournament': {
+			if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return;
+
 			const type = messageParts[0] as keyof ITournamentMessageTypes;
 			messageParts.shift();
 			switch (type) {

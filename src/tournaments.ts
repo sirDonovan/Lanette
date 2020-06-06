@@ -151,7 +151,6 @@ export class Tournaments {
 	}
 
 	createTournament(room: Room, json: ITournamentCreateJson): void {
-		if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return;
 		const format = json.teambuilderFormat ? Dex.getFormat(json.teambuilderFormat) : Dex.getFormat(json.format);
 		if (!format) return;
 		if (room.id in this.tournamentTimers) {
