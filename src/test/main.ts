@@ -10,9 +10,6 @@ const modulesDir = path.join(__dirname, 'modules');
 const moduleTests = fs.readdirSync(modulesDir);
 const pokemonShowdownTestFile = 'pokemon-showdown.js';
 
-// create necessary files if running for the first time
-require(path.join(rootFolder, 'create-untracked-files.js'));
-
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noOp = (): void => {};
 const methodsToNoOp = ['appendFile', 'chmod', 'rename', 'rmdir', 'symlink', 'unlink', 'watchFile', 'writeFile'];
