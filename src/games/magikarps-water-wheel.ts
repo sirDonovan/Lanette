@@ -194,6 +194,7 @@ class MagikarpsWaterWheel extends Game {
 }
 
 const commands: Dict<ICommandDefinition<MagikarpsWaterWheel>> = {
+	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	swim: {
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canSwim || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) {
@@ -256,6 +257,7 @@ const commands: Dict<ICommandDefinition<MagikarpsWaterWheel>> = {
 			return true;
 		},
 	},
+	/* eslint-enable */
 };
 
 export const game: IGameFile<MagikarpsWaterWheel> = {

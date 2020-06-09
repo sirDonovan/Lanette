@@ -168,6 +168,7 @@ export abstract class Guessing extends Game {
 
 const commands: Dict<ICommandDefinition<Guessing>> = {
 	guess: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async asyncCommand(target, room, user): Promise<GameCommandReturnType> {
 			if (!this.canGuess || !this.answers.length || (this.players[user.id] && this.players[user.id].eliminated) ||
 				(this.parentGame && (!this.players[user.id] || this.players[user.id].eliminated))) return false;
@@ -238,6 +239,7 @@ const commands: Dict<ICommandDefinition<Guessing>> = {
 };
 
 const tests: GameFileTests<Guessing> = {
+	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	'it should properly set answers and award points': {
 		config: {
 			async: true,
@@ -334,6 +336,7 @@ const tests: GameFileTests<Guessing> = {
 			Users.remove(user);
 		},
 	}
+	/* eslint-enable */
 };
 
 export const game: IGameTemplateFile<Guessing> = {

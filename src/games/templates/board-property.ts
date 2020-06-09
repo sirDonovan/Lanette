@@ -69,6 +69,7 @@ export class BoardRentSpace extends BoardSpace {
 export class BoardActionSpace extends BoardSpace {}
 
 const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
+	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	function(this: BoardPropertyGame, player): void {
 		this.playerLocations.set(player, this.getSpaceLocation(this.startingSpace)!);
 		const text = "They hop on the Flying Taxi and advance to " + this.startingSpace.name + "!";
@@ -178,6 +179,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
+	/* eslint-enable */
 ];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

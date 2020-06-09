@@ -150,6 +150,7 @@ class DelcattysHideAndSeek extends Game {
 }
 
 const commands: Dict<ICommandDefinition<DelcattysHideAndSeek>> = {
+	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	charm: {
 		command(target, room, user): GameCommandReturnType {
 			const player = this.players[user.id];
@@ -226,9 +227,11 @@ const commands: Dict<ICommandDefinition<DelcattysHideAndSeek>> = {
 		},
 		pmOnly: true,
 	},
+	/* eslint-enable */
 };
 
 const tests: GameFileTests<DelcattysHideAndSeek> = {
+	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	'should have parameters for all possible numbers of remaining players': {
 		test(game, format): void {
 			// 1 extra Pokemon can be added in onNextRound()
@@ -285,6 +288,7 @@ const tests: GameFileTests<DelcattysHideAndSeek> = {
 			assert(!selector.eliminated);
 		},
 	},
+	/* eslint-enable */
 };
 
 export const game: IGameFile<DelcattysHideAndSeek> = {

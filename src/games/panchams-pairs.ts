@@ -243,6 +243,7 @@ class PanchamPairs extends Game {
 
 const commands: Dict<ICommandDefinition<PanchamPairs>> = {
 	pair: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canPair) return false;
 			if (this.format.options.freejoin) {

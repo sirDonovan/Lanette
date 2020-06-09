@@ -83,6 +83,7 @@ class PonytasPinataParty extends Game {
 
 const commands: Dict<ICommandDefinition<PonytasPinataParty>> = {
 	hit: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canHit) return false;
 			const player = this.createPlayer(user) || this.players[user.id];

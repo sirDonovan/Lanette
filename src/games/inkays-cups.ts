@@ -166,6 +166,7 @@ class InkaysCups extends Game {
 
 const commands: Dict<ICommandDefinition<InkaysCups>> = {
 	grab: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canGrab || !(user.id in this.players) || this.players[user.id].eliminated) return false;
 			const player = this.players[user.id];

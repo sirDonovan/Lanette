@@ -89,6 +89,7 @@ class EmpoleonsEmpires extends Game {
 }
 
 const commands: Dict<ICommandDefinition<EmpoleonsEmpires>> = {
+	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	guess: {
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canGuess || !(user.id in this.players) || this.players[user.id] !== this.currentPlayer) return false;
@@ -214,6 +215,7 @@ const commands: Dict<ICommandDefinition<EmpoleonsEmpires>> = {
 		},
 		pmOnly: true,
 	},
+	/* eslint-enable */
 };
 
 export const game: IGameFile<EmpoleonsEmpires> = {

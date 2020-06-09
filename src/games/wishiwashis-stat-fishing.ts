@@ -150,6 +150,7 @@ class WishiwashisStatFishing extends Game {
 
 const commands: Dict<ICommandDefinition<WishiwashisStatFishing>> = {
 	reel: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (this.roundReels.has(player) || player.eliminated) return false;

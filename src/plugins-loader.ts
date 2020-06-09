@@ -16,6 +16,7 @@ export async function load(): Promise<void> {
 		if (!fileName.endsWith('.js')) continue;
 
 		const pluginPath = path.join(pluginsDirectory, fileName);
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
 		const file = require(pluginPath) as IPluginFile;
 		if (!file.commands && !file.Module) {
 			throw new Error("No support data is exported from " + fileName.substr(0, fileName.length - 3) + ".");

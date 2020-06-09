@@ -249,6 +249,7 @@ export abstract class BoardGame extends Game {
 }
 
 const tests: GameFileTests<BoardGame> = {
+	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	'it should have equal size columns and rows': {
 		test(game, format): void {
 			assertStrictEqual(game.board.leftColumn.length, game.board.rightColumn.length);
@@ -356,6 +357,7 @@ const tests: GameFileTests<BoardGame> = {
 			}
 		},
 	},
+	/* eslint-enable */
 };
 
 export const game: IGameTemplateFile<BoardGame> = {

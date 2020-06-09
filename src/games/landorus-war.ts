@@ -137,6 +137,7 @@ class LandorusWar extends Game {
 }
 
 const commands: Dict<ICommandDefinition<LandorusWar>> = {
+	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	use: {
 		command(target, room, user): GameCommandReturnType {
 			if (!this.started) return false;
@@ -271,6 +272,7 @@ const commands: Dict<ICommandDefinition<LandorusWar>> = {
 		},
 		pmGameCommand: true,
 	},
+	/* eslint-enable */
 };
 commands.summary = Tools.deepClone(Games.sharedCommands.summary);
 commands.summary.aliases = ['role'];

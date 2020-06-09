@@ -551,6 +551,7 @@ export abstract class MapGame extends Game {
 }
 
 const commands: Dict<ICommandDefinition<MapGame>> = {
+	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	up: {
 		command(target, room, user): GameCommandReturnType {
 			return this.move(target, user, 'up');
@@ -571,6 +572,7 @@ const commands: Dict<ICommandDefinition<MapGame>> = {
 			return this.move(target, user, 'right');
 		},
 	},
+	/* eslint-enable */
 };
 
 export const game: IGameTemplateFile<MapGame> = {

@@ -127,6 +127,7 @@ class BounsweetsBountifulBuffet extends Game {
 
 const commands: Dict<ICommandDefinition<BounsweetsBountifulBuffet>> = {
 	select: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
 			if (!(user.id in this.players) || this.players[user.id].eliminated || this.selectedMeals.has(this.players[user.id])) {
 				return false;
@@ -155,6 +156,7 @@ const commands: Dict<ICommandDefinition<BounsweetsBountifulBuffet>> = {
 };
 
 const tests: GameFileTests<BounsweetsBountifulBuffet> = {
+	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	'should give the same points for shared meals': {
 		config: {
 			async: true,
@@ -187,6 +189,7 @@ const tests: GameFileTests<BounsweetsBountifulBuffet> = {
 			assertStrictEqual(game.points.get(players[1]), expectedPointsB);
 		},
 	},
+	/* eslint-enable */
 };
 
 export const game: IGameFile<BounsweetsBountifulBuffet> = {

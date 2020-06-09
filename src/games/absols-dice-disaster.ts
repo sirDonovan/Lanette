@@ -92,6 +92,7 @@ class AbsolsDiceDisaster extends Game {
 
 const commands: Dict<ICommandDefinition<AbsolsDiceDisaster>> = {
 	bid: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canBid || !(user.id in this.players) || this.players[user.id].eliminated) return false;
 			const bid = parseInt(target);

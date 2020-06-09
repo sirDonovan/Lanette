@@ -142,6 +142,7 @@ class ShedinjasWonderTrials extends Game {
 
 const commands: Dict<ICommandDefinition<ShedinjasWonderTrials>> = {
 	use: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canUseMove || !this.currentPokemon || (this.players[user.id] && this.players[user.id].eliminated)) return false;
 			const player = this.createPlayer(user) || this.players[user.id];

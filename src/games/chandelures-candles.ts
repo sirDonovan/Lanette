@@ -106,6 +106,7 @@ class ChandeluresCandles extends Game {
 }
 
 const commands: Dict<ICommandDefinition<ChandeluresCandles>> = {
+	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	hide: {
 		command(target, room, user): GameCommandReturnType {
 			if (!(user.id in this.players) || this.players[user.id].eliminated || !this.roundTarget) return false;
@@ -160,6 +161,7 @@ const commands: Dict<ICommandDefinition<ChandeluresCandles>> = {
 			return true;
 		},
 	},
+	/* eslint-enable */
 };
 
 export const game: IGameFile<ChandeluresCandles> = {

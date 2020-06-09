@@ -252,6 +252,7 @@ class MismagiusFoulPlay extends Game {
 }
 
 const commands: Dict<ICommandDefinition<MismagiusFoulPlay>> = {
+	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	select: {
 		command(target, room, user): GameCommandReturnType {
 			if (!this.started || !(user.id in this.players) || this.players[user.id].eliminated) return false;
@@ -359,6 +360,7 @@ const commands: Dict<ICommandDefinition<MismagiusFoulPlay>> = {
 		},
 		pmOnly: true,
 	},
+	/* eslint-enable */
 };
 commands.summary = Tools.deepClone(Games.sharedCommands.summary);
 commands.summary.aliases = ['role'];

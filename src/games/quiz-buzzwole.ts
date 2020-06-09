@@ -169,6 +169,7 @@ class QuizBuzzwole extends Game {
 
 const commands: Dict<ICommandDefinition<QuizBuzzwole>> = {
 	fizz: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
 			if (!this.currentPlayer || this.players[user.id] !== this.currentPlayer) return false;
 			if (this.timeout) clearTimeout(this.timeout);

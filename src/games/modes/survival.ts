@@ -114,6 +114,7 @@ class Survival {
 
 const commands: CommandsDict<Survival & Guessing, GameCommandReturnType> = {
 	guess: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async asyncCommand(target, room, user): Promise<GameCommandReturnType> {
 			if (!this.canGuess || this.players[user.id] !== this.currentPlayer) return false;
 			const answer = await this.guessAnswer(this.players[user.id], target);
@@ -160,6 +161,7 @@ const initialize = (game: Game): void => {
 };
 
 const tests: GameFileTests<SurvivalThis> = {
+	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	'it should advance players who answer correctly': {
 		config: {
 			async: true,
@@ -201,6 +203,7 @@ const tests: GameFileTests<SurvivalThis> = {
 			assert(currentPlayer.eliminated);
 		},
 	},
+	/* eslint-enable */
 };
 
 export const mode: IGameModeFile<Survival, Guessing, SurvivalThis> = {

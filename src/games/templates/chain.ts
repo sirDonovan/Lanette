@@ -262,6 +262,7 @@ export abstract class Chain extends Game {
 
 const commands: Dict<ICommandDefinition<Chain>> = {
 	guess: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
 			if (this.format.options.freejoin) {
 				if ((!this.targetLinkStarts.length && !this.targetLinkEnds.length) || (this.players[user.id] &&

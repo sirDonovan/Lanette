@@ -166,6 +166,7 @@ export class Vote extends Game {
 }
 
 const commands: Dict<ICommandDefinition<Vote>> = {
+	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	vote: {
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canVote) return false;
@@ -225,6 +226,7 @@ const commands: Dict<ICommandDefinition<Vote>> = {
 		},
 		pmOnly: true,
 	},
+	/* eslint-enable */
 };
 
 export const game: IGameFile<Vote> = {

@@ -122,6 +122,7 @@ class DedennesAbilityBlitz extends Game {
 
 const commands: Dict<ICommandDefinition<DedennesAbilityBlitz>> = {
 	select: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canSelect) return false;
 			const player = this.createPlayer(user) || this.players[user.id];

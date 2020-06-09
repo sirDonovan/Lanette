@@ -141,6 +141,7 @@ class PluslesAdditiveParameters extends Game {
 
 const commands: Dict<ICommandDefinition<PluslesAdditiveParameters>> = {
 	add: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async asyncCommand(target, room, user): Promise<GameCommandReturnType> {
 			if (!this.canAdd || !target || this.players[user.id] !== this.currentPlayer) return false;
 			const params = this.getParam(target);

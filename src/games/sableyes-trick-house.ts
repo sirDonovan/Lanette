@@ -112,6 +112,7 @@ class SableyesTrickHouse extends Game {
 
 const commands: Dict<ICommandDefinition<SableyesTrickHouse>> = {
 	select: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canSelect || !(user.id in this.players) || this.players[user.id].eliminated) return false;
 			if (this.roundSelections.has(this.players[user.id])) return false;
@@ -145,6 +146,7 @@ const commands: Dict<ICommandDefinition<SableyesTrickHouse>> = {
 };
 
 const tests: GameFileTests<SableyesTrickHouse> = {
+	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	'should only allow one choice per round': {
 		config: {
 			async: true,
@@ -191,6 +193,7 @@ const tests: GameFileTests<SableyesTrickHouse> = {
 			assertStrictEqual(game.roundSelections.has(players[1]), true);
 		},
 	},
+	/* eslint-enable */
 };
 
 export const game: IGameFile<SableyesTrickHouse> = {

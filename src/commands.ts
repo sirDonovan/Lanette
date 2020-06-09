@@ -28,7 +28,7 @@ const reloadCommands = function(reloadedModules: ReloadableModule[]): void {
 	if (!reloadedModules.includes('games')) Games.loadFormatCommands();
 };
 
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types */
 
 const commands: Dict<ICommandDefinition> = {
 	/**

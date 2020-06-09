@@ -181,6 +181,7 @@ class Team {
 
 const commands: CommandsDict<Team & Guessing, GameCommandReturnType> = {
 	guess: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async asyncCommand(target, room, user): Promise<GameCommandReturnType> {
 			if (!this.canGuess || !this.answers.length || !(user.id in this.players)) return false;
 			const player = this.players[user.id];
@@ -288,6 +289,7 @@ const tests: GameFileTests<TeamThis> = {
 			async: true,
 			commands: [['guess'], ['g']],
 		},
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async test(game, format, attributes): Promise<void> {
 			this.timeout(15000);
 
