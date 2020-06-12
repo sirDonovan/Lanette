@@ -273,6 +273,7 @@ export class Client {
 	reconnect(): void {
 		Rooms.removeAll();
 		Users.removeAll();
+		this.sendQueue = [];
 
 		this.connectionAttempts = 0;
 		this.loggedIn = false;
