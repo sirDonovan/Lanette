@@ -196,7 +196,7 @@ class AxewsBattleCards extends CardMatching {
 					}
 				} else if (card.id === 'conversion') {
 					let type = Dex.getExistingType(this.sampleOne(Dex.data.typeKeys)).name;
-					while (type === this.topCard.types[0] && this.topCard.types.length === 1) {
+					while (this.topCard.types.length === 1 && type === this.topCard.types[0]) {
 						type = Dex.getExistingType(this.sampleOne(Dex.data.typeKeys)).name;
 					}
 					playableCards.push(card.name + ", " + type);
@@ -205,6 +205,14 @@ class AxewsBattleCards extends CardMatching {
 					if (this.topCard.types.length === 2) {
 						while (types.sort().join(",") === this.topCard.types.slice().sort().join(",")) {
 							types = this.sampleMany(Dex.data.typeKeys, 2).map(x => Dex.getExistingType(x).name);
+						}
+					}
+					playableCards.push(card.name + ", " + types.join(", "));
+				} else if (card.id === 'conversionz') {
+					let types = this.sampleMany(Dex.data.typeKeys, 3).map(x => Dex.getExistingType(x).name);
+					if (this.topCard.types.length === 3) {
+						while (types.sort().join(",") === this.topCard.types.slice().sort().join(",")) {
+							types = this.sampleMany(Dex.data.typeKeys, 3).map(x => Dex.getExistingType(x).name);
 						}
 					}
 					playableCards.push(card.name + ", " + types.join(", "));
