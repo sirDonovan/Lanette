@@ -1,6 +1,7 @@
 {
 	"eslint.options": {
-		"cache": true
+		"cache": true,
+		"extensions": [".ts"]
 	},
 	"typescript.tsdk": "node_modules/typescript/lib",
 	"search.exclude": {
