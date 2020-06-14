@@ -133,8 +133,7 @@ export abstract class CardMatching extends Card {
 			if (card.action && (card.action.requiredTarget || card.action.requiredOtherCards)) {
 				html += ' (play manually!)';
 			} else {
-				html += ' <button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter + 'pmplay ' +
-					card.name + '">Play!</button>';
+				html += Client.getPmSelfButton(Config.commandCharacter + "pmplay " + card.name, "Play!");
 			}
 		} else {
 			html += card.name;

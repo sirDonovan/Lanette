@@ -1246,6 +1246,14 @@ export class Client {
 		return html;
 	}
 
+	getPmUserButton(user: User, message: string, label: string): string {
+		return '<button class="button" name="send" value="/msg ' + user.name + ', ' + message + '">' + label + '</button>';
+	}
+
+	getPmSelfButton(message: string, label: string): string {
+		return this.getPmUserButton(Users.self, message, label);
+	}
+
 	send(message: string): void {
 		if (!message) return;
 		if (!this.connection || !this.connection.connected || this.sendTimeout) {

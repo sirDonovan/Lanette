@@ -272,11 +272,9 @@ export class Game extends Activity {
 			if (this.format.options.freejoin) {
 				joinLeaveHtml += "<b>This game is free-join!</b>";
 			} else {
-				joinLeaveHtml += "<button class='button' name='send' value='/pm " + Users.self.name + ", " + Config.commandCharacter +
-					"joingame " + this.room.id + "'>Join game</button>";
+				joinLeaveHtml += Client.getPmSelfButton(Config.commandCharacter + "joingame " + this.room.id, "Join game");
 				joinLeaveHtml += " | ";
-				joinLeaveHtml += "<button class='button' name='send' value='/pm " + Users.self.name + ", " + Config.commandCharacter +
-					"leavegame " + this.room.id + "'>Leave game</button>";
+				joinLeaveHtml += Client.getPmSelfButton(Config.commandCharacter + "leavegame " + this.room.id, "Leave game");
 			}
 			joinLeaveHtml += "</center>";
 			this.sayUhtml(this.joinLeaveButtonUhtmlName, joinLeaveHtml);

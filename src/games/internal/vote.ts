@@ -107,8 +107,7 @@ export class Vote extends Game {
 
 			const buttons: string[] = [];
 			for (const pick of this.picks) {
-				buttons.push('<button class="button" name="send" value="/pm ' + Users.self.name + ', ' +
-					Config.commandCharacter + 'pmvote ' + pick + '">' + pick + '</button>');
+				buttons.push(Client.getPmSelfButton(Config.commandCharacter + "pmvote " + pick, pick));
 			}
 			html += buttons.join(" | ");
 			html += "<br /><br />";

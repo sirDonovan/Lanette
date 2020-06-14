@@ -375,23 +375,19 @@ export class Tournaments {
 				if (reviewer) name = reviewer.name;
 				row += name;
 			} else {
-				row += '--- <button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter +
-					'reviewuserhostedtour ' + room.id + ', ' + link + '">Review</button>';
+				row += "--- " + Client.getPmSelfButton(Config.commandCharacter + "reviewuserhostedtour " + room.id + ", " + link, "Review");
 			}
 			row += '</center></td>';
 
 			row += '<td><center>';
 			if (tournament.approvalStatus === 'changes-requested') {
-				row += 'Changes requested | <button class="button" name="send" value="/pm ' + Users.self.name + ', ' +
-					Config.commandCharacter + 'removeuserhostedtour ' + room.id + ', ' + link + '">Remove</button> | ' +
-					'<button class="button" name="send" value="/pm ' + Users.self.name + ', .approveuserhostedtour ' + room.id + ',' +
-					link + '">Approve</button>';
+				row += 'Changes requested | ';
+				row += Client.getPmSelfButton(Config.commandCharacter + "removeuserhostedtour " + room.id + ", " + link, "Remove") + " | ";
+				row += Client.getPmSelfButton(Config.commandCharacter + "approveuserhostedtour " + room.id + ", " + link, "Approve");
 			} else {
-				row += '<button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter +
-					'approveuserhostedtour ' + room.id + ', ' + link + '">Approve</button>';
-				row += ' | ';
-				row += '<button class="button" name="send" value="/pm ' + Users.self.name + ', ' + Config.commandCharacter +
-					'rejectuserhostedtour ' + room.id + ', ' + link + '">Reject</button>';
+				row += Client.getPmSelfButton(Config.commandCharacter + "approveuserhostedtour " + room.id + ", " + link, "Approve") +
+					" | ";
+				row += Client.getPmSelfButton(Config.commandCharacter + "rejectuserhostedtour " + room.id + ", " + link, "Reject");
 			}
 			row += '</center></td>';
 
