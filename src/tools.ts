@@ -21,6 +21,9 @@ const maxUsernameLength = 18;
 const rootFolder = path.resolve(__dirname, '..');
 const githubApiThrottle = 2 * 1000;
 
+// eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-empty-function
+const TimeoutConstructor = setTimeout(() => {}, 1).constructor;
+
 const hexColorCodes: KeyedDict<IHexColor, {'background-color': string; 'background': string; 'border-color': string}> = {
 	"White": {'background-color': '#eeeeee', 'background': 'linear-gradient(#eeeeee, #dddddd)', 'border-color': '#222222'},
 	"Black": {'background-color': '#222222', 'background': 'linear-gradient(#222222, #111111)', 'border-color': '#eeeeee'},
@@ -261,10 +264,13 @@ export class Tools {
 		if (typeof input === 'string') return input;
 		if (typeof input === 'number' || typeof input === 'boolean') return '' + input;
 		if (Array.isArray(input)) return '[' + input.map(x => this.toString(x)).join(', ') + ']';
+		if (input instanceof TimeoutConstructor) return '[Timeout]';
+
 		for (const i in global) {
 			// @ts-expect-error
 			if (input === global[i]) return '[global ' + i + ']';
 		}
+
 		if (input.effectType && typeof input.effectType === 'string') {
 			return '[' + input.effectType.toLowerCase() + ' ' + input.name + ']';
 		} else if (input.activityType && typeof input.activityType === 'string') {
