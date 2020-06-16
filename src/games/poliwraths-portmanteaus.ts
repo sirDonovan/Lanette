@@ -145,7 +145,8 @@ const tests: GameFileTests<PoliwrathsPortmanteaus> = {
 			await game.onNextRound();
 			assert(game.answers.length);
 			assert(game.ports.length);
-			assertStrictEqual(game.answers.join(','), 'pelipperuption,swablueflare,pidoverheat,fletchinderuption');
+			assertStrictEqual(game.answers.join(','), 'pelipperuption,swablueflare,pidoverheat,fletchinderuption,' +
+				'oricoriosensunnyday,corviknightgmaxcentiferno,corviknightgmaxwildfire,corviknightgmaxflare');
 			for (const answer of game.answers) {
 				assert(answer in game.answerParts);
 			}
