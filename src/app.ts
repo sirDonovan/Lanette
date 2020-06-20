@@ -11,7 +11,7 @@ import * as dex from './dex';
 global.Dex = new dex.Dex();
 
 import * as client from './client';
-global.Client = new client.Client();
+client.instantiate();
 
 import * as commandParser from './command-parser';
 global.CommandParser = new commandParser.CommandParser();
