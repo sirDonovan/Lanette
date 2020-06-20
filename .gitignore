@@ -72,6 +72,7 @@ data/pokedex-mini-bw.js
 databases/*
 !databases/README.md
 design.txt
+*.heapsnapshot
 local-utils/*
 Pokemon-Showdown/
 pokemon-showdown/
