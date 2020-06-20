@@ -119,16 +119,17 @@ const commands: Dict<ICommandDefinition> = {
 			await require(path.join(Tools.rootFolder, 'build.js'))(buildOptions, async() => {
 				for (const moduleId of modules) {
 					if (moduleId === 'client') {
-						const oldClient = global.Client;
-						Tools.uncacheTree('./client');
+						const filename = "client";
+						Tools.uncacheTree('./' + filename);
+
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const client = require('./client') as typeof import('./client');
-						global.Client = new client.Client();
-						Client.onReload(oldClient);
+						const client = require('./' + filename) as typeof import('./client');
+						client.instantiate();
 					} else if (moduleId === 'commandparser') {
-						Tools.uncacheTree('./command-parser');
+						const filename = "command-parser";
+						Tools.uncacheTree('./' + filename);
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const commandParser = require('./command-parser') as typeof import('./command-parser');
+						const commandParser = require('./' + filename) as typeof import('./command-parser');
 						global.CommandParser = new commandParser.CommandParser();
 					} else if (moduleId === 'commands') {
 						Tools.uncacheTree('./commands');
@@ -143,19 +144,21 @@ const commands: Dict<ICommandDefinition> = {
 						global.Config = config;
 						Rooms.checkLoggingConfigs();
 					} else if (moduleId === 'dex') {
+						const filename = "dex";
 						const oldDex = global.Dex;
-						Tools.uncacheTree('./dex');
+						Tools.uncacheTree('./' + filename);
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const dex = require('./dex') as typeof import('./dex');
+						const dex = require('./' + filename) as typeof import('./dex');
 						global.Dex = new dex.Dex();
 						await Dex.onReload(oldDex);
 					} else if (moduleId === 'games') {
+						const filename = 'games';
 						const oldGames = global.Games;
 						Games.unrefWorkers();
-						Tools.uncacheTree('./games');
+						Tools.uncacheTree('./' + filename);
 						Tools.uncacheTree('./room-activity');
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const games = require('./games') as typeof import('./games');
+						const games = require('./' + filename) as typeof import('./games');
 						global.Games = new games.Games();
 						Games.onReload(oldGames);
 					} else if (moduleId === 'plugins') {
@@ -174,26 +177,29 @@ const commands: Dict<ICommandDefinition> = {
 						await pluginsLoader.load();
 						reloadCommands(modules);
 					} else if (moduleId === 'storage') {
+						const filename = "storage";
 						const oldStorage = global.Storage;
 						Storage.unrefWorkers();
-						Tools.uncacheTree('./storage');
+						Tools.uncacheTree('./' + filename);
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const storage = require('./storage') as typeof import('./storage');
+						const storage = require('./' + filename) as typeof import('./storage');
 						global.Storage = new storage.Storage();
 						Storage.onReload(oldStorage);
 					} else if (moduleId === 'tools') {
+						const filename = "tools";
 						const oldTools = global.Tools;
-						Tools.uncacheTree('./tools');
+						Tools.uncacheTree('./' + filename);
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const tools = require('./tools') as typeof import('./tools');
+						const tools = require('./' + filename) as typeof import('./tools');
 						global.Tools = new tools.Tools();
 						Tools.onReload(oldTools);
 					} else if (moduleId === 'tournaments') {
+						const filename = "tournaments";
 						const oldTournaments = global.Tournaments;
-						Tools.uncacheTree('./tournaments');
+						Tools.uncacheTree('./' + filename);
 						Tools.uncacheTree('./room-activity');
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const tournaments = require('./tournaments') as typeof import('./tournaments');
+						const tournaments = require('./' + filename) as typeof import('./tournaments');
 						global.Tournaments = new tournaments.Tournaments();
 						Tournaments.onReload(oldTournaments);
 					}

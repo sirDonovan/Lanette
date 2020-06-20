@@ -469,6 +469,15 @@ export class Tools {
 		} while (uncache.length > 0);
 	}
 
+	updateNodeModule(filepath: string, newNodeModule: NodeModule): void {
+		let rootModule = module;
+		while (rootModule.parent) {
+			rootModule = rootModule.parent;
+		}
+
+		this.updateChildNodeModules(rootModule, filepath, newNodeModule);
+	}
+
 	getHeapLimit(): number {
 		const heapStatistics: v8.HeapInfo = v8.getHeapStatistics();
 		return heapStatistics.heap_size_limit - heapStatistics.used_heap_size;
@@ -598,4 +607,17 @@ export class Tools {
 		await CommandParser.parse(user, user, Config.commandCharacter + 'reload dex');
 	}
 	*/
+
+	private updateChildNodeModules(nodeModule: NodeModule, filepath: string, newNodeModule: NodeModule): void {
+		if (nodeModule.children) {
+			for (let i = 0; i < nodeModule.children.length; i++) {
+				const child = nodeModule.children[i];
+				if (child.filename === filepath) {
+					nodeModule.children[i] = newNodeModule;
+				} else {
+					this.updateChildNodeModules(child, filepath, newNodeModule);
+				}
+			}
+		}
+	}
 }

@@ -146,6 +146,12 @@ function constructEvasionRegex(str: string): RegExp {
 	return new RegExp(buf, 'i');
 }
 
+let connectListener: (connection: websocket.connection) => void;
+let connectFailedListener: (error: Error) => void;
+let messageListener: (message: websocket.IMessage) => void;
+let errorListener: (error: Error) => void;
+let closeListener: (code: number, description: string) => void;
+
 export class Client {
 	botGreetingCooldowns: Dict<number> = {};
 	challstr: string = '';
@@ -156,10 +162,13 @@ export class Client {
 	evasionFilterRegularExpressions: RegExp[] | null = null;
 	filterRegularExpressions: RegExp[] | null = null;
 	groupSymbols: Dict<string> = {};
+	incomingMessageQueue: websocket.IMessage[] = [];
 	loggedIn: boolean = false;
 	loginTimeout: NodeJS.Timer | null = null;
+	processIncomingMessages: boolean = false;
 	publicChatRooms: string[] = [];
 	reconnectTime: number = Config.reconnectTime || 60 * 1000;
+	reloadInProgress: boolean = false;
 	sendQueue: string[] = [];
 	sendThrottle: number = Config.trustedUser ? TRUSTED_MESSAGE_THROTTLE : REGULAR_MESSAGE_THROTTLE;
 	sendTimeout: NodeJS.Timer | true | null = null;
@@ -169,37 +178,101 @@ export class Client {
 	serverTimeOffset: number = 0;
 
 	constructor() {
-		this.client.on('connect', connection => {
+		connectListener = connection => {
 			this.connection = connection;
 
-			this.connection.on('message', message => global.Client.onMessage(message));
-			this.connection.on('error', error => global.Client.onConnectionError(error));
-			this.connection.on('close', (code, description) => global.Client.onConnectionClose(code, description));
+			this.setConnectionListeners();
 
 			void this.onConnect();
-		});
-		this.client.on('connectFailed', error => global.Client.onConnectFail(error));
+		};
+		connectFailedListener = error => this.onConnectFail(error);
 
+		messageListener = (message: websocket.IMessage) => this.onMessage(message);
+		errorListener = (error: Error) => this.onConnectionError(error);
+		closeListener = (code: number, description: string) => this.onConnectionClose(code, description);
+
+		this.setClientListeners();
 		this.parseServerGroups(DEFAULT_SERVER_GROUPS);
 	}
 
+	setClientListeners(): void {
+		this.client.on('connect', connectListener);
+		this.client.on('connectFailed', connectFailedListener);
+	}
+
+	removeClientListeners(): void {
+		this.client.off('connect', connectListener);
+		this.client.off('connectFailed', connectFailedListener);
+	}
+
+	setConnectionListeners(): void {
+		this.connection!.on('message', messageListener);
+		this.connection!.on('error', errorListener);
+		this.connection!.on('close', closeListener);
+	}
+
+	removeConnectionListeners(): void {
+		this.connection!.off('message', messageListener);
+		this.connection!.off('error', errorListener);
+		this.connection!.off('close', closeListener);
+	}
+
 	onReload(previous: Partial<Client>): void {
-		if (previous.botGreetingCooldowns) this.botGreetingCooldowns = previous.botGreetingCooldowns;
+		if (previous.botGreetingCooldowns) Object.assign(this.botGreetingCooldowns, previous.botGreetingCooldowns);
 		if (previous.challstr) this.challstr = previous.challstr;
-		if (previous.client) this.client = previous.client;
-		if (previous.connection) this.connection = previous.connection;
-		if (previous.filterRegularExpressions) this.filterRegularExpressions = previous.filterRegularExpressions;
-		if (previous.evasionFilterRegularExpressions) this.evasionFilterRegularExpressions = previous.evasionFilterRegularExpressions;
-		if (previous.groupSymbols) this.groupSymbols = previous.groupSymbols;
+
+		if (previous.client) {
+			if (previous.removeClientListeners) previous.removeClientListeners();
+			this.removeClientListeners();
+			this.client = previous.client;
+		}
+
+		if (previous.sendQueue) this.sendQueue = previous.sendQueue.slice();
+
+		if (previous.connection) {
+			if (previous.removeConnectionListeners) previous.removeConnectionListeners();
+			this.connection = previous.connection;
+			this.setConnectionListeners();
+
+			if (previous.incomingMessageQueue) {
+				for (const message of previous.incomingMessageQueue.slice()) {
+					if (!this.incomingMessageQueue.includes(message)) this.onMessage(message);
+				}
+			}
+
+			this.processIncomingMessages = true;
+			if (this.incomingMessageQueue.length) {
+				for (const message of this.incomingMessageQueue) {
+					this.onMessage(message);
+				}
+
+				this.incomingMessageQueue = [];
+			}
+		}
+
+		if (previous.filterRegularExpressions) this.filterRegularExpressions = previous.filterRegularExpressions.slice();
+		if (previous.evasionFilterRegularExpressions) {
+			this.evasionFilterRegularExpressions = previous.evasionFilterRegularExpressions.slice();
+		}
+		if (previous.groupSymbols) Object.assign(this.groupSymbols, previous.groupSymbols);
 		if (previous.loggedIn) this.loggedIn = previous.loggedIn;
-		if (previous.publicChatRooms) this.publicChatRooms = previous.publicChatRooms;
-		if (previous.sendQueue) this.sendQueue = previous.sendQueue;
+		if (previous.publicChatRooms) this.publicChatRooms = previous.publicChatRooms.slice();
 		if (previous.sendThrottle) this.sendThrottle = previous.sendThrottle;
-		if (previous.sendTimeout) this.sendTimeout = previous.sendTimeout;
+
+		if (previous.sendTimeout) {
+			if (previous.sendTimeout !== true) clearTimeout(previous.sendTimeout);
+			if (!this.sendTimeout) this.sendTimeout = this.setSendTimeout();
+		}
+
 		if (previous.server) this.server = previous.server;
-		if (previous.serverGroups) this.serverGroups = previous.serverGroups;
+		if (previous.serverGroups) Object.assign(this.serverGroups, previous.serverGroups);
 		if (previous.serverId) this.serverId = previous.serverId;
 		if (previous.serverTimeOffset) this.serverTimeOffset = previous.serverTimeOffset;
+
+		for (const i in previous) {
+			// @ts-expect-error
+			delete previous[i];
+		}
 	}
 
 	onConnectFail(error?: Error): void {
@@ -226,7 +299,11 @@ export class Client {
 	}
 
 	async onConnect(): Promise<void> {
-		if (this.connectionTimeout) clearTimeout(this.connectionTimeout);
+		if (this.connectionTimeout) {
+			clearTimeout(this.connectionTimeout);
+			delete this.connectionTimeout;
+		}
+
 		console.log('Successfully connected');
 		await Dex.fetchClientData();
 	}
@@ -238,6 +315,7 @@ export class Client {
 			method: 'GET',
 		};
 
+		this.processIncomingMessages = true;
 		this.connectionTimeout = setTimeout(() => this.onConnectFail(), 30 * 1000);
 
 		console.log("Attempting to connect to the server " + this.server + "...");
@@ -281,6 +359,11 @@ export class Client {
 	}
 
 	onMessage(websocketMessage: websocket.IMessage): void {
+		if (!this.processIncomingMessages) {
+			this.incomingMessageQueue.push(websocketMessage);
+			return;
+		}
+
 		if (websocketMessage.type !== 'utf8' || !websocketMessage.utf8Data) return;
 		const lines = websocketMessage.utf8Data.split("\n");
 		let room: Room;
@@ -1263,14 +1346,23 @@ export class Client {
 
 		this.sendTimeout = true;
 		this.connection.send(message, () => {
-			global.Client.sendTimeout = setTimeout(() => {
-				global.Client.sendTimeout = null;
-				if (!global.Client.sendQueue.length) return;
-				const message = global.Client.sendQueue[0];
-				global.Client.sendQueue.shift();
-				global.Client.send(message);
-			}, global.Client.sendThrottle);
+			if (!this.reloadInProgress && this === global.Client) this.sendTimeout = this.setSendTimeout();
 		});
+	}
+
+	setSendTimeout(): NodeJS.Timeout {
+		return setTimeout(() => {
+			if (this.reloadInProgress) {
+				this.sendTimeout = true;
+				return;
+			}
+
+			delete this.sendTimeout;
+			if (!this.sendQueue.length) return;
+			const message = this.sendQueue[0];
+			this.sendQueue.shift();
+			this.send(message);
+		}, this.sendThrottle);
 	}
 
 	login(): void {
@@ -1341,6 +1433,12 @@ export class Client {
 							process.exit();
 						}
 					}
+
+					if (this.loginTimeout) {
+						clearTimeout(this.loginTimeout);
+						delete this.loginTimeout;
+					}
+
 					this.send('|/trn ' + Config.username + ',0,' + data);
 				}
 			});
@@ -1357,3 +1455,18 @@ export class Client {
 		request.end();
 	}
 }
+
+export const instantiate = (): void => {
+	const oldClient: Client | undefined = global.Client;
+	if (oldClient) {
+		oldClient.reloadInProgress = true;
+		oldClient.processIncomingMessages = false;
+	}
+
+	global.Client = new Client();
+
+	if (oldClient) {
+		global.Client.onReload(oldClient);
+		Tools.updateNodeModule(__filename, module);
+	}
+};
