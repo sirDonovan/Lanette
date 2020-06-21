@@ -252,6 +252,25 @@ const commands: Dict<ICommandDefinition> = {
 		},
 		aliases: ['steams'],
 	},
+	roomsampleteams: {
+		command(target, room, user) {
+			let samplesRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(Tools.toRoomId(target));
+				if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
+				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
+				samplesRoom = targetRoom;
+			} else {
+				if (!user.hasRank(room, 'voice')) return;
+				samplesRoom = room;
+			}
+
+			const database = Storage.getDatabase(samplesRoom);
+			if (!database.roomSampleTeamsLink) return this.say("No room sample teams link found for " + samplesRoom.title + ".");
+			this.sayHtml("<a href='" + database.roomSampleTeamsLink + "'>" + samplesRoom.title + " sample teams</a>", samplesRoom);
+		},
+		aliases: ['roomsamples'],
+	},
 	viabilityranking: {
 		command(target, room, user) {
 			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;

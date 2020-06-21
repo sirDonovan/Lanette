@@ -41,6 +41,7 @@ export interface IDatabase {
 	botGreetings?: Dict<IBotGreeting>;
 	eventInformation?: Dict<IEventInformation>;
 	gameAchievements?: Dict<string[]>;
+	gameCount?: number;
 	lastGameFormatTimes?: Dict<number>;
 	lastGameTime?: number;
 	lastTournamentFormatTimes?: Dict<number>;
@@ -52,7 +53,7 @@ export interface IDatabase {
 	pastTournaments?: IPastTournament[];
 	pastUserHostedGames?: IPastGame[];
 	queuedTournament?: {formatid: string; playerCap: number; scheduled: boolean; time: number};
-	gameCount?: number;
+	roomSampleTeamsLink?: string;
 	thcWinners?: Dict<string>;
 	userHostedGameCount?: number;
 	userHostedGameQueue?: IQueuedUserHostedGame[];
