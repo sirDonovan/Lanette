@@ -1,9 +1,8 @@
-import type { ICommandDefinition } from "../command-parser";
 import type { PRNGSeed } from "../prng";
 import type { Player } from "../room-activity";
 import { Game } from "../room-game";
 import type { Room } from "../rooms";
-import type { GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandReturnType, IGameCommandDefinition, IGameFile } from "../types/games";
 import type { User } from "../users";
 
 const GRID_SIZE = 4;
@@ -82,7 +81,7 @@ class TrevenantsTrickOrTreat extends Game {
 	}
 }
 
-const commands: Dict<ICommandDefinition<TrevenantsTrickOrTreat>> = {
+const commands: Dict<IGameCommandDefinition<TrevenantsTrickOrTreat>> = {
 	trick: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {

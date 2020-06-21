@@ -1,8 +1,7 @@
-import type { ICommandDefinition } from '../../command-parser';
 import type { Player } from '../../room-activity';
 import { Game } from '../../room-game';
 import type { IMoveCopy, IPokemon, IPokemonCopy } from '../../types/dex';
-import type { IGameTemplateFile } from '../../types/games';
+import type { IGameCommandDefinition, IGameTemplateFile } from '../../types/games';
 
 export interface IActionCardData {
 	readonly description: string;
@@ -339,7 +338,7 @@ export abstract class Card extends Game {
 	filterPoolItem?(pokemon: IPokemon): boolean;
 }
 
-const commands: Dict<ICommandDefinition<Card>> = {
+const commands: Dict<IGameCommandDefinition<Card>> = {
 	cards: Games.sharedCommands.summary,
 	hand: Games.sharedCommands.summary,
 };

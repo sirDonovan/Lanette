@@ -1,7 +1,8 @@
-import type { ICommandDefinition } from '../../command-parser';
 import type { Player } from '../../room-activity';
 import { addPlayers, assert } from '../../test/test-tools';
-import type { GameCategory, GameCommandReturnType, GameFileTests, IGameAchievement, IGameTemplateFile } from '../../types/games';
+import type {
+	GameCategory, GameCommandReturnType, GameFileTests, IGameAchievement, IGameCommandDefinition, IGameTemplateFile
+} from '../../types/games';
 import { Card, game as cardGame } from './card';
 import type { CardType, IPokemonCard } from './card';
 
@@ -456,7 +457,7 @@ export abstract class CardMatching extends Card {
 	}
 }
 
-const commands: Dict<ICommandDefinition<CardMatching>> = {
+const commands: Dict<IGameCommandDefinition<CardMatching>> = {
 	play: {
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].frozen ||

@@ -1,12 +1,9 @@
-import type { Game } from "./room-game";
 import type { Room } from "./rooms";
-import type { GameCommandReturnType } from "./types/games";
 import type { User } from "./users";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface ICommandDefinition<T = undefined, U = T extends Game ? GameCommandReturnType : any> {
-	asyncCommand?: (this: T extends undefined ? Command : T, target: string, room: Room | User, user: User, alias: string) => Promise<U>;
-	command?: (this: T extends undefined ? Command : T, target: string, room: Room | User, user: User, alias: string) => U;
+export interface ICommandDefinition<T, U> {
+	asyncCommand?: (this: T, target: string, room: Room | User, user: User, alias: string) => Promise<U>;
+	command?: (this: T, target: string, room: Room | User, user: User, alias: string) => U;
 	aliases?: string[];
 	readonly chatOnly?: boolean;
 	readonly developerOnly?: boolean;
@@ -14,8 +11,10 @@ export interface ICommandDefinition<T = undefined, U = T extends Game ? GameComm
 	readonly pmOnly?: boolean;
 }
 
+export type CommandsDict<T, U> = Dict<Omit<ICommandDefinition<T, U>, "aliases">>;
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type CommandsDict<T = undefined, U = T extends Game ? GameCommandReturnType : any> = Dict<Omit<ICommandDefinition<T, U>, "aliases">>;
+export type BaseCommandsDict = CommandsDict<Command, any>;
 
 type CommandErrorOptionalTarget = 'invalidBotRoom' | 'invalidFormat' | 'invalidGameFormat' | 'invalidTournamentFormat' |
 	'invalidUserHostedGameFormat' | 'tooManyGameModes' | 'tooManyGameVariants' | 'emptyUserHostedGameQueue';
@@ -129,8 +128,7 @@ export class Command {
 }
 
 export class CommandParser {
-	// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-	loadCommands<T = undefined, U = void>(commands: Dict<ICommandDefinition<T, U>>): CommandsDict<T, U> {
+	loadCommands<T, U>(commands: Dict<ICommandDefinition<T, U>>): CommandsDict<T, U> {
 		const dict: CommandsDict<T, U> = {};
 		const allAliases: CommandsDict<T, U> = {};
 		for (const i in commands) {
@@ -163,8 +161,10 @@ export class CommandParser {
 		return dict;
 	}
 
-	loadBaseCommands<T = undefined>(commands: Dict<ICommandDefinition<T>>): CommandsDict<T> {
-		const allPluginCommands: Dict<ICommandDefinition<T>> = {};
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	loadBaseCommands(commands: Dict<ICommandDefinition<Command, any>>): BaseCommandsDict {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const allPluginCommands: Dict<ICommandDefinition<Command, any>> = {};
 		if (Plugins) {
 			for (const plugin of Plugins) {
 				if (plugin.commands) {
@@ -178,7 +178,7 @@ export class CommandParser {
 		}
 
 		return Object.assign(Object.create(null),
-			Object.assign(this.loadCommands(commands), this.loadCommands(allPluginCommands))) as CommandsDict<T>;
+			Object.assign(this.loadCommands(commands), this.loadCommands(allPluginCommands))) as BaseCommandsDict;
 	}
 
 	isCommandMessage(message: string): boolean {

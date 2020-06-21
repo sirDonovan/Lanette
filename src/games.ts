@@ -1,7 +1,7 @@
 import fs = require('fs');
 import path = require('path');
 
-import type { CommandErrorArray, ICommandDefinition } from './command-parser';
+import type { CommandErrorArray, ICommandDefinition, CommandsDict } from './command-parser';
 import type { UserHosted } from './games/internal/user-hosted';
 import type { PRNGSeed } from './prng';
 import { Game } from './room-game';
@@ -21,8 +21,6 @@ import { PortmanteausWorker } from './workers/portmanteaus';
 const DEFAULT_CATEGORY_COOLDOWN = 3;
 
 const gamesDirectory = path.join(__dirname, 'games');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const userHosted = (require(path.join(gamesDirectory, "internal", "user-hosted.js")) as typeof import('./games/internal/user-hosted')).game;
 const internalGamePaths: IInternalGames = {
 	eggtoss: path.join(gamesDirectory, "internal", "egg-toss.js"),
 	vote: path.join(gamesDirectory, "internal", "vote.js"),
@@ -44,7 +42,7 @@ const categoryNames: KeyedDict<IGameCategoryKeys, string> = {
 	'speed': 'Speed',
 };
 
-const sharedCommandDefinitions: Dict<ICommandDefinition<Game>> = {
+const sharedCommandDefinitions: Dict<ICommandDefinition<Game, GameCommandReturnType>> = {
 	summary: {
 		// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 		command(target, room, user) {
@@ -76,18 +74,16 @@ const sharedCommandDefinitions: Dict<ICommandDefinition<Game>> = {
 	},
 };
 
-const sharedCommands = CommandParser.loadCommands(sharedCommandDefinitions);
-
 interface IGamesWorkers {
 	parameters: ParametersWorker;
 	portmanteaus: PortmanteausWorker;
 }
 
+type GameCommandsDict = CommandsDict<Game, GameCommandReturnType>;
+
 export class Games {
 	// exported constants
-	readonly sharedCommands: typeof sharedCommands = sharedCommands;
 	readonly gamesDirectory: typeof gamesDirectory = gamesDirectory;
-	readonly userHosted: typeof userHosted = userHosted;
 	readonly scriptedGameHighlight: string = "Hosting a scriptedgame of";
 	readonly userHostedGameHighlight: string = "is hosting a hostgame of";
 	readonly scriptedGameVoteHighlight: string = "Hosting a scriptedgamevote";
@@ -95,7 +91,6 @@ export class Games {
 	readonly achievementNames: Dict<string> = {};
 	readonly aliases: Dict<string> = {};
 	autoCreateTimers: Dict<NodeJS.Timer> = {};
-	readonly commands = Object.assign(Object.create(null), sharedCommands) as typeof sharedCommands;
 	readonly formats: Dict<DeepReadonly<IGameFormatData>> = {};
 	readonly freejoinFormatTargets: string[] = [];
 	gameCooldownMessageTimers: Dict<NodeJS.Timer> = {};
@@ -117,6 +112,20 @@ export class Games {
 		parameters: new ParametersWorker(),
 		portmanteaus: new PortmanteausWorker(),
 	};
+
+	readonly commands: GameCommandsDict;
+	readonly sharedCommands: GameCommandsDict;
+	readonly userHosted: typeof import('./games/internal/user-hosted').game;
+
+	constructor() {
+		const sharedCommands = CommandParser.loadCommands(sharedCommandDefinitions);
+		this.sharedCommands = sharedCommands;
+		this.commands = Object.assign(Object.create(null), sharedCommands) as GameCommandsDict;
+
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
+		this.userHosted = (require(path.join(gamesDirectory, "internal", "user-hosted.js")) as
+			typeof import('./games/internal/user-hosted')).game;
+	}
 
 	onReload(previous: Partial<Games>): void {
 		if (previous.autoCreateTimers) this.autoCreateTimers = previous.autoCreateTimers;
@@ -242,7 +251,7 @@ export class Games {
 			this.formats[id] = Object.assign({}, file, {commands, id, modes, variants});
 		}
 
-		for (const format of userHosted.formats) {
+		for (const format of this.userHosted.formats) {
 			const id = Tools.toId(format.name);
 			if (id in this.userHostedFormats) {
 				throw new Error("The name '" + format.name + "' is already used by another user-hosted format.");
@@ -263,7 +272,7 @@ export class Games {
 			}
 
 			this.userHostedFormats[id] = Object.assign({}, format, {
-				class: userHosted.class,
+				class: this.userHosted.class,
 				id,
 			});
 		}
@@ -573,7 +582,7 @@ export class Games {
 				if (scriptedFormat[0] !== 'invalidGameFormat') return scriptedFormat;
 			} else if (!scriptedFormat.scriptedOnly) {
 				formatData = Object.assign(Tools.deepClone(scriptedFormat), {
-					class: userHosted.class,
+					class: this.userHosted.class,
 					commands: null,
 					commandDescriptions: null,
 					mode: null,

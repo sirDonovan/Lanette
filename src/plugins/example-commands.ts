@@ -1,9 +1,11 @@
-import type { ICommandDefinition } from "../command-parser";
+import type { ICommandDefinition, Command } from "../command-parser";
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types */
 
 // commands are defined the same way as in src/commands.ts
-const commandsDict: Dict<ICommandDefinition> = {
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const commandsDict: Dict<ICommandDefinition<Command, any>> = {
 	pluginexample: {
 		command(target, room, user) {
 			this.say("This is an example plugin command.");

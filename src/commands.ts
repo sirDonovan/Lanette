@@ -3,7 +3,7 @@ import child_process = require('child_process');
 import fs = require('fs');
 import path = require('path');
 
-import type { ICommandDefinition } from "./command-parser";
+import type { ICommandDefinition, Command } from "./command-parser";
 import type { Player } from "./room-activity";
 import type { Game } from './room-game';
 import type { Room } from "./rooms";
@@ -31,7 +31,8 @@ const reloadCommands = function(reloadedModules: ReloadableModule[]): void {
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types */
 
-const commands: Dict<ICommandDefinition> = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const commands: Dict<ICommandDefinition<Command, any>> = {
 	/**
 	 * Developer commands
 	 */
@@ -129,6 +130,7 @@ const commands: Dict<ICommandDefinition> = {
 					} else if (moduleId === 'commandparser') {
 						const filename = "command-parser";
 						Tools.uncacheTree('./' + filename);
+
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
 						const commandParser = require('./' + filename) as typeof import('./command-parser');
 						commandParser.instantiate();

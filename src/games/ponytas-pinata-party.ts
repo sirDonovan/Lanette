@@ -1,7 +1,6 @@
-import type { ICommandDefinition } from "../command-parser";
 import type { Player } from "../room-activity";
 import { Game } from "../room-game";
-import type { GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandReturnType, IGameCommandDefinition, IGameFile } from "../types/games";
 
 class PonytasPinataParty extends Game {
 	canHit: boolean = false;
@@ -81,7 +80,7 @@ class PonytasPinataParty extends Game {
 	}
 }
 
-const commands: Dict<ICommandDefinition<PonytasPinataParty>> = {
+const commands: Dict<IGameCommandDefinition<PonytasPinataParty>> = {
 	hit: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {

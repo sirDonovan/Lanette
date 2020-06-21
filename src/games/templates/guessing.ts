@@ -1,10 +1,9 @@
-import type { ICommandDefinition } from '../../command-parser';
 import type { Player } from '../../room-activity';
 import { Game } from '../../room-game';
 import type { Room } from '../../rooms';
 import { assert, assertStrictEqual, getBasePlayerName, runCommand } from '../../test/test-tools';
 import type {
-	GameCommandReturnType, GameFileTests, IGameAchievement, IGameFormat, IGameTemplateFile, IRandomGameAnswer
+	GameCommandReturnType, GameFileTests, IGameAchievement, IGameCommandDefinition, IGameFormat, IGameTemplateFile, IRandomGameAnswer
 } from '../../types/games';
 
 const MINIGAME_BITS = 25;
@@ -166,7 +165,7 @@ export abstract class Guessing extends Game {
 	updateHint?(): void;
 }
 
-const commands: Dict<ICommandDefinition<Guessing>> = {
+const commands: Dict<IGameCommandDefinition<Guessing>> = {
 	guess: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async asyncCommand(target, room, user): Promise<GameCommandReturnType> {

@@ -1,8 +1,7 @@
-import type { ICommandDefinition } from '../../command-parser';
 import type { Player } from '../../room-activity';
 import { Game } from '../../room-game';
 import type { Room } from '../../rooms';
-import type { IGameTemplateFile } from '../../types/games';
+import type { IGameCommandDefinition, IGameTemplateFile } from '../../types/games';
 
 export type IPlayingCardSuits = 'clubs' | 'diamonds' | 'hearts' | 'spades';
 export interface IPlayingCard {
@@ -154,7 +153,7 @@ export abstract class PlayingCard extends Game {
 	getHandInfoHtml?(player: Player): string;
 }
 
-const commands: Dict<ICommandDefinition<PlayingCard>> = {
+const commands: Dict<IGameCommandDefinition<PlayingCard>> = {
 	cards: Games.sharedCommands.summary,
 	hand: Games.sharedCommands.summary,
 };

@@ -6,6 +6,9 @@ import type { Room } from "../rooms";
 import type { User } from "../users";
 
 export type GameCommandReturnType = boolean;
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface IGameCommandDefinition<T extends Game> extends ICommandDefinition<T, GameCommandReturnType> {}
+
 export type GameDifficulty = 'easy' | 'medium' | 'hard';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -139,7 +142,7 @@ interface IGameFileProperties<T extends Game = Game> {
 	aliases?: string[];
 	canGetRandomAnswer?: boolean;
 	category?: GameCategory;
-	commands?: Dict<ICommandDefinition<T>>;
+	commands?: Dict<IGameCommandDefinition<T>>;
 	commandDescriptions?: string[];
 	customizableOptions?: Dict<IGameOptionValues>;
 	defaultOptions?: DefaultGameOption[];
@@ -170,11 +173,11 @@ export interface IGameTemplateFile<T extends Game = Game> extends IGameFilePrope
 export interface IGameFileComputed<T extends Game = Game> {
 	id: string;
 
-	commands?: CommandsDict<T>;
+	commands?: CommandsDict<T, GameCommandReturnType>;
 }
 
 export interface IGameFormatData<T extends Game = Game> extends IGameFile<T>, IGameFileComputed<T> {
-	commands?: CommandsDict<T>;
+	commands?: CommandsDict<T, GameCommandReturnType>;
 }
 
 export interface IGameFormatComputed {

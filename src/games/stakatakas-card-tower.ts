@@ -1,7 +1,6 @@
-import type { ICommandDefinition } from "../command-parser";
 import type { Player } from "../room-activity";
 import { addPlayers, assert, assertStrictEqual, runCommand } from "../test/test-tools";
-import type { AchievementsDict, GameCommandReturnType, GameFileTests, IGameFile } from "../types/games";
+import type { AchievementsDict, GameCommandReturnType, GameFileTests, IGameCommandDefinition, IGameFile } from "../types/games";
 import type { CardType, IActionCardData, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 
@@ -166,7 +165,7 @@ class StakatakasCardTower extends CardMatching {
 	}
 }
 
-const commands: Dict<ICommandDefinition<StakatakasCardTower>> = {
+const commands: Dict<IGameCommandDefinition<StakatakasCardTower>> = {
 	draw: {
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen ||

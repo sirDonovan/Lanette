@@ -5,7 +5,9 @@ import { Activity, PlayerTeam } from "./room-activity";
 import type { Player, PlayerList } from "./room-activity";
 import type { Room } from "./rooms";
 import type { IPokemonCopy } from "./types/dex";
-import type { IGameAchievement, IGameFormat, IGameMode, IGameVariant, IUserHostedFormat, IRandomGameAnswer } from "./types/games";
+import type {
+	GameCommandReturnType, IGameAchievement, IGameFormat, IGameMode, IGameVariant, IRandomGameAnswer, IUserHostedFormat
+} from "./types/games";
 import type { User } from "./users";
 
 export type DefaultGameOption = 'points' | 'teams' | 'cards' | 'freejoin';
@@ -51,7 +53,7 @@ export class Game extends Activity {
 	readonly activityType: string = 'game';
 	awardedBits: boolean = false;
 	canLateJoin: boolean = false;
-	readonly commands = Object.assign(Object.create(null), Games.sharedCommands) as CommandsDict<Game>;
+	readonly commands = Object.assign(Object.create(null), Games.sharedCommands) as CommandsDict<Game, GameCommandReturnType>;
 	readonly commandsListeners: IGameCommandCountListener[] = [];
 	internalGame: boolean = false;
 	readonly isUserHosted: boolean = false;

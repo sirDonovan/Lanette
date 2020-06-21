@@ -1,7 +1,6 @@
-import type { ICommandDefinition } from "../../command-parser";
 import type { Player } from "../../room-activity";
 import { Game } from "../../room-game";
-import type { GameCommandReturnType, IGameAchievement, IGameTemplateFile } from "../../types/games";
+import type { GameCommandReturnType, IGameAchievement, IGameCommandDefinition, IGameTemplateFile } from "../../types/games";
 import type { User } from "../../users";
 
 interface ISpaceAttributes {
@@ -550,7 +549,7 @@ export abstract class MapGame extends Game {
 	onTrappedPlayerSpace?(player: Player, floor: MapFloor, space: MapFloorSpace): boolean | null;
 }
 
-const commands: Dict<ICommandDefinition<MapGame>> = {
+const commands: Dict<IGameCommandDefinition<MapGame>> = {
 	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	up: {
 		command(target, room, user): GameCommandReturnType {

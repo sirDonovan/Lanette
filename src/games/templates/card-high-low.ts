@@ -1,6 +1,5 @@
-import type { ICommandDefinition } from '../../command-parser';
 import type { Player } from '../../room-activity';
-import type { GameCategory, GameCommandReturnType, IGameTemplateFile } from '../../types/games';
+import type { GameCategory, GameCommandReturnType, IGameCommandDefinition, IGameTemplateFile } from '../../types/games';
 import { Card, game as cardGame } from './card';
 import type { CardType } from './card';
 
@@ -225,7 +224,7 @@ export abstract class CardHighLow extends Card {
 	}
 }
 
-const commands: Dict<ICommandDefinition<CardHighLow>> = {
+const commands: Dict<IGameCommandDefinition<CardHighLow>> = {
 	play: {
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].eliminated ||

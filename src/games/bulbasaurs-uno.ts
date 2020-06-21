@@ -1,7 +1,6 @@
-import type { ICommandDefinition } from "../command-parser";
 import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
-import type { AchievementsDict, GameCommandReturnType, IGameFile } from "../types/games";
+import type { AchievementsDict, GameCommandReturnType, IGameCommandDefinition, IGameFile } from "../types/games";
 import type { User } from "../users";
 import type { IActionCardData, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
@@ -245,7 +244,7 @@ class BulbasaursUno extends CardMatching {
 	}
 }
 
-const commands: Dict<ICommandDefinition<BulbasaursUno>> = {
+const commands: Dict<IGameCommandDefinition<BulbasaursUno>> = {
 	draw: {
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen ||

@@ -1,7 +1,6 @@
-import type { ICommandDefinition } from "../command-parser";
 import type { Player, PlayerTeam } from "../room-activity";
 import { Game } from "../room-game";
-import type { GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandReturnType, IGameCommandDefinition, IGameFile } from "../types/games";
 
 const BALL_POKEMON = "Igglybuff";
 
@@ -112,7 +111,7 @@ class JigglypuffsDodgeball extends Game {
 	}
 }
 
-const commands: Dict<ICommandDefinition<JigglypuffsDodgeball>> = {
+const commands: Dict<IGameCommandDefinition<JigglypuffsDodgeball>> = {
 	throw: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {

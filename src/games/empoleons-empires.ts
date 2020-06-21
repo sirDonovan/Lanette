@@ -1,8 +1,7 @@
-import type { ICommandDefinition } from "../command-parser";
 import type { Player } from "../room-activity";
 import { Game } from "../room-game";
 import type { Room } from "../rooms";
-import type { GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandReturnType, IGameCommandDefinition, IGameFile } from "../types/games";
 
 class EmpoleonsEmpires extends Game {
 	canGuess: boolean = false;
@@ -88,7 +87,7 @@ class EmpoleonsEmpires extends Game {
 	}
 }
 
-const commands: Dict<ICommandDefinition<EmpoleonsEmpires>> = {
+const commands: Dict<IGameCommandDefinition<EmpoleonsEmpires>> = {
 	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	guess: {
 		command(target, room, user): GameCommandReturnType {

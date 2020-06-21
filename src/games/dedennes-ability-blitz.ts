@@ -1,8 +1,7 @@
-import type { ICommandDefinition } from "../command-parser";
 import type { Player } from "../room-activity";
 import { Game } from "../room-game";
 import type { Room } from "../rooms";
-import type { GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandReturnType, IGameCommandDefinition, IGameFile } from "../types/games";
 import type { User } from "../users";
 
 interface IRoundAbility {
@@ -120,7 +119,7 @@ class DedennesAbilityBlitz extends Game {
 	}
 }
 
-const commands: Dict<ICommandDefinition<DedennesAbilityBlitz>> = {
+const commands: Dict<IGameCommandDefinition<DedennesAbilityBlitz>> = {
 	select: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {

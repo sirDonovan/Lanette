@@ -1,7 +1,6 @@
-import type { ICommandDefinition } from "../command-parser";
 import type { Player } from "../room-activity";
 import { Game } from "../room-game";
-import type { AchievementsDict, GameCommandReturnType, IGameFile } from "../types/games";
+import type { AchievementsDict, GameCommandReturnType, IGameCommandDefinition, IGameFile } from "../types/games";
 
 const hotPotatoHeroTime = 9000;
 const achievements: AchievementsDict = {
@@ -103,7 +102,7 @@ class ChanseysEggToss extends Game {
 	}
 }
 
-const commands: Dict<ICommandDefinition<ChanseysEggToss>> = {
+const commands: Dict<IGameCommandDefinition<ChanseysEggToss>> = {
 	toss: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {

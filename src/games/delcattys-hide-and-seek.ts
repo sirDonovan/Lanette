@@ -1,10 +1,9 @@
-import type { ICommandDefinition } from "../command-parser";
 import type { Player } from "../room-activity";
 import { Game } from "../room-game";
 import type { Room } from "../rooms";
 import { addPlayers, assert, runCommand } from "../test/test-tools";
 import type { IPokemon } from "../types/dex";
-import type { GameCommandReturnType, GameFileTests, IGameFile } from "../types/games";
+import type { GameCommandReturnType, GameFileTests, IGameCommandDefinition, IGameFile } from "../types/games";
 import type { User } from "../users";
 
 const data: {'parameters': Dict<string[]>; 'pokemon': string[]} = {
@@ -149,7 +148,7 @@ class DelcattysHideAndSeek extends Game {
 	}
 }
 
-const commands: Dict<ICommandDefinition<DelcattysHideAndSeek>> = {
+const commands: Dict<IGameCommandDefinition<DelcattysHideAndSeek>> = {
 	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	charm: {
 		command(target, room, user): GameCommandReturnType {

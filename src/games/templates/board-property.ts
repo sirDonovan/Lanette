@@ -1,7 +1,8 @@
-import type { ICommandDefinition } from "../../command-parser";
 import type { Player } from "../../room-activity";
 import { addPlayers, assertStrictEqual } from "../../test/test-tools";
-import type { GameCategory, GameCommandReturnType, GameFileTests, IGameAchievement, IGameTemplateFile } from "../../types/games";
+import type {
+	GameCategory, GameCommandReturnType, GameFileTests, IGameAchievement, IGameCommandDefinition, IGameTemplateFile
+} from "../../types/games";
 import type { HexColor } from "../../types/tools";
 import { BoardGame, BoardSpace, game as boardGame } from "./board";
 import type { BoardActionCard, BoardSide, IBoard, IMovedBoardLocation } from "./board";
@@ -675,7 +676,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 	}
 }
 
-const commands: Dict<ICommandDefinition<BoardPropertyGame>> = {
+const commands: Dict<IGameCommandDefinition<BoardPropertyGame>> = {
 	rolldice: {
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canRoll || !(user.id in this.players) || this.players[user.id] !== this.currentPlayer) return false;

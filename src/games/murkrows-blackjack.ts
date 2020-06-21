@@ -1,8 +1,7 @@
-import type { ICommandDefinition } from "../command-parser";
 import type { PRNGSeed } from "../prng";
 import type { Player } from '../room-activity';
 import type { Room } from "../rooms";
-import type { GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandReturnType, IGameCommandDefinition, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as playingCardGame, PlayingCard } from './templates/playing-card';
 import type { IPlayingCard } from './templates/playing-card';
@@ -214,7 +213,7 @@ class MurkrowsBlackjack extends PlayingCard {
 	}
 }
 
-const commands: Dict<ICommandDefinition<MurkrowsBlackjack>> = {
+const commands: Dict<IGameCommandDefinition<MurkrowsBlackjack>> = {
 	hit: {
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canHit || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) {

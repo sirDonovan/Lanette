@@ -1,5 +1,5 @@
 import { Client } from './client';
-import { CommandParser, CommandsDict } from './command-parser';
+import { BaseCommandsDict, CommandParser } from './command-parser';
 import * as config from './config-example';
 import { Dex } from './dex';
 import { Games } from './games';
@@ -12,10 +12,10 @@ import { Users } from './users';
 
 /* eslint-disable no-redeclare, no-undef, @typescript-eslint/naming-convention */
 declare global {
-	const BaseCommands: CommandsDict;
+	const BaseCommands: BaseCommandsDict;
 	const Client: Client;
 	const CommandParser: CommandParser;
-	const Commands: CommandsDict;
+	const Commands: BaseCommandsDict;
 	const Config: Partial<typeof config>;
 	const Dex: Dex;
 	const Games: Games;

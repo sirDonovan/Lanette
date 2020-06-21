@@ -1,8 +1,7 @@
-import type { ICommandDefinition } from "../command-parser";
 import type { PRNGSeed } from "../prng";
 import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
-import type { AchievementsDict, GameCommandReturnType, IGameFile } from "../types/games";
+import type { AchievementsDict, GameCommandReturnType, IGameCommandDefinition, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { BoardSpace } from "./templates/board";
 import type { BoardActionCard, IBoard } from "./templates/board";
@@ -282,7 +281,7 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 	}
 }
 
-const commands: Dict<ICommandDefinition<JellicentsPhantomFinances>> = {
+const commands: Dict<IGameCommandDefinition<JellicentsPhantomFinances>> = {
 	bid: {
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canBid || !(user.id in this.players) || this.players[user.id].eliminated) return false;

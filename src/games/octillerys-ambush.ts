@@ -1,7 +1,6 @@
-import type { ICommandDefinition } from "../command-parser";
 import type { Player } from "../room-activity";
 import { Game } from "../room-game";
-import type { AchievementsDict, GameCommandReturnType, IGameFile } from "../types/games";
+import type { AchievementsDict, GameCommandReturnType, IGameCommandDefinition, IGameFile } from "../types/games";
 
 const achievements: AchievementsDict = {
 	'quickdraw': {name: 'Quick Draw', type: 'first', bits: 1000, description: "be the first to successfully fire each round"},
@@ -78,7 +77,7 @@ class OctillerysAmbush extends Game {
 	}
 }
 
-const commands: Dict<ICommandDefinition<OctillerysAmbush>> = {
+const commands: Dict<IGameCommandDefinition<OctillerysAmbush>> = {
 	fire: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
