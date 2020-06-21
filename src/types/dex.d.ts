@@ -521,8 +521,9 @@ export interface IGifData {
 }
 
 export interface IDataTable {
-	readonly aliases: Readonly<Dict<string | undefined>>;
 	readonly abilityKeys: readonly string[];
+	readonly aliases: Readonly<Dict<string | undefined>>;
+	readonly alternateIconNumbers: Readonly<{left: Dict<number | undefined>, right: Dict<number | undefined>}>;
 	readonly badges: readonly string[];
 	readonly categories: Readonly<Dict<string | undefined>>;
 	readonly characters: readonly string[];

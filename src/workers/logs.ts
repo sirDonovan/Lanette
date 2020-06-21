@@ -31,15 +31,15 @@ export interface ILogsResponse {
 	totalLines: number;
 }
 
-let serverLogsViewer = Config.serverLogsViewer;
-if (serverLogsViewer && !serverLogsViewer.endsWith('/')) serverLogsViewer += '/';
-
 export class LogsWorker extends WorkerBase<ILogsWorkerData, LogsId, ILogsResponse> {
 	requestsByUserid: string[] = [];
 	threadPath: string = path.join(__dirname, 'threads', __filename.substr(__dirname.length + 1));
 
 	loadData(): ILogsWorkerData {
 		if (this.workerData) return this.workerData;
+
+		let serverLogsViewer = Config.serverLogsViewer;
+		if (serverLogsViewer && !serverLogsViewer.endsWith('/')) serverLogsViewer += '/';
 
 		const data: ILogsWorkerData = {
 			commandCharacter: Config.commandCharacter,

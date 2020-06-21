@@ -12,8 +12,6 @@ const OFFLINE_MESSAGE_EXPIRATION = 30 * 24 * 60 * 60 * 1000;
 
 const globalDatabaseId = 'globalDB';
 const hostingDatabaseSuffix = '-hostingDB';
-const archivedDatabasesDir = path.join(Tools.rootFolder, 'archived-databases');
-const databasesDir = path.join(Tools.rootFolder, 'databases');
 const baseOfflineMessageLength = '[28 Jun 2019, 00:00:00 GMT-0500] **** said: '.length;
 
 interface IStorageWorkers {
@@ -24,6 +22,7 @@ export class Storage {
 	chatLogFilePathCache: Dict<string> = {};
 	chatLogRolloverTimes: Dict<number> = {};
 	databases: Dict<IDatabase> = {};
+	databasesDir: string = path.join(Tools.rootFolder, 'databases');
 	lastSeenExpirationDuration = Tools.toDurationString(LAST_SEEN_EXPIRATION);
 	loadedDatabases: boolean = false;
 	reloadInProgress: boolean = false;
@@ -78,7 +77,7 @@ export class Storage {
 	exportDatabase(roomid: string): void {
 		if (!(roomid in this.databases) || roomid.startsWith('battle-') || roomid.startsWith('groupchat-')) return;
 		const contents = JSON.stringify(this.databases[roomid]);
-		Tools.safeWriteFileSync(path.join(databasesDir, roomid + '.json'), contents);
+		Tools.safeWriteFileSync(path.join(this.databasesDir, roomid + '.json'), contents);
 	}
 
 	archiveDatabase(roomid: string): void {
@@ -90,17 +89,17 @@ export class Storage {
 		const filename = roomid + '-' + year + '-' + (month < 10 ? '0' : '') + month + '-' + (day < 10 ? '0' : '') + day + '-at-' +
 			Tools.toTimestampString(date).split(' ')[1].split(':').join('-');
 		const contents = JSON.stringify(this.databases[roomid]);
-		Tools.safeWriteFileSync(path.join(archivedDatabasesDir, filename + '.json'), contents);
+		Tools.safeWriteFileSync(path.join(Tools.rootFolder, 'archived-databases', filename + '.json'), contents);
 	}
 
 	importDatabases(): void {
 		if (this.loadedDatabases) return;
 
-		const files = fs.readdirSync(databasesDir);
+		const files = fs.readdirSync(this.databasesDir);
 		for (const fileName of files) {
 			if (!fileName.endsWith('.json')) continue;
 			const id = fileName.substr(0, fileName.indexOf('.json'));
-			const file = fs.readFileSync(path.join(databasesDir, fileName)).toString();
+			const file = fs.readFileSync(path.join(this.databasesDir, fileName)).toString();
 			this.databases[id] = JSON.parse(file) as IDatabase;
 		}
 

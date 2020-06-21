@@ -107,7 +107,7 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 				if (hasModules[i]) modules.push(moduleOrder[i]);
 			}
 
-			if (modules.includes('games')) Games.reloadInProgress = true;
+			if (modules.includes('dex') || modules.includes('games')) Games.reloadInProgress = true;
 			if (modules.includes('storage')) Storage.reloadInProgress = true;
 
 			this.say("Running ``tsc``...");
@@ -148,12 +148,12 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 						Rooms.checkLoggingConfigs();
 					} else if (moduleId === 'dex') {
 						const filename = "dex";
-						const oldDex = global.Dex;
 						Tools.uncacheTree('./' + filename);
+
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
 						const dex = require('./' + filename) as typeof import('./dex');
-						global.Dex = new dex.Dex();
-						await Dex.onReload(oldDex);
+						await dex.instantiate();
+						if (!modules.includes('games')) Games.reloadInProgress = false;
 					} else if (moduleId === 'games') {
 						const filename = 'games';
 						const oldGames = global.Games;

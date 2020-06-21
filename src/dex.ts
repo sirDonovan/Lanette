@@ -14,22 +14,6 @@ interface IDexWorkers {
 const currentGen = 8;
 const currentGenString = 'gen' + currentGen;
 const omotmSection = 'OM of the Month';
-const formatsPath = path.join(Tools.pokemonShowdownFolder, 'config', 'formats.js');
-const lanetteDataDir = path.join(Tools.rootFolder, 'data');
-
-/* eslint-disable @typescript-eslint/no-var-requires */
-const alternateIconNumbers = require(path.join(lanetteDataDir, 'alternate-icon-numbers.js')) as {right: Dict<number>; left: Dict<number>};
-const badges = require(path.join(lanetteDataDir, 'badges.js')) as string[];
-const categories = require(path.join(lanetteDataDir, 'categories.js')) as Dict<string>;
-const characters = require(path.join(lanetteDataDir, 'characters.js')) as string[];
-const formatLinks = require(path.join(lanetteDataDir, 'format-links.js')) as Dict<IFormatLinks | undefined>;
-const locations = require(path.join(lanetteDataDir, 'locations.js')) as string[];
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-const gifData = require(path.join(lanetteDataDir, 'pokedex-mini.js')).BattlePokemonSprites as Dict<IGifData | undefined>;
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-const gifDataBW = require(path.join(lanetteDataDir, 'pokedex-mini-bw.js')).BattlePokemonSpritesBW as Dict<IGifData | undefined>;
-const trainerClasses = require(path.join(lanetteDataDir, 'trainer-classes.js')) as string[];
-/* eslint-enable */
 
 const natures: Dict<INature> = {
 	adamant: {name: "Adamant", plus: 'atk', minus: 'spa'},
@@ -198,7 +182,6 @@ export class Dex {
 	// exported constants
 	readonly currentGenString: typeof currentGenString = currentGenString;
 	dexes: Dict<Dex> = dexes;
-	readonly formatsPath: typeof formatsPath = formatsPath;
 	readonly omotms: string[] = [];
 	readonly tagNames: typeof tagNames = tagNames;
 
@@ -230,23 +213,27 @@ export class Dex {
 		this.gen = gen;
 		this.isBase = isBase;
 		this.data = {
-			aliases: {},
 			abilityKeys: [],
-			badges,
-			categories,
-			characters,
+			aliases: {},
+			alternateIconNumbers: {
+				left: {},
+				right: {},
+			},
+			badges: [],
+			categories: {},
+			characters: [],
 			colors: {},
 			eggGroups: {},
 			formatKeys: [],
-			gifData,
-			gifDataBW,
+			gifData: {},
+			gifDataBW: {},
 			itemKeys: [],
 			learnsetDataKeys: [],
-			locations,
+			locations: [],
 			moveKeys: [],
 			natures,
 			pokemonKeys: [],
-			trainerClasses,
+			trainerClasses: [],
 			typeKeys: [],
 		};
 		this.workers = {
@@ -256,6 +243,20 @@ export class Dex {
 
 	async onReload(previous: Partial<Dex>): Promise<void> {
 		await this.loadAllData();
+
+		for (const mod in previous.dexes) {
+			if (previous.dexes[mod] === previous) continue;
+			const dex = previous.dexes[mod];
+			for (const i in dex) {
+				// @ts-expect-error
+				delete dex[i];
+			}
+		}
+
+		for (const i in previous) {
+			// @ts-expect-error
+			delete previous[i];
+		}
 	}
 
 	unrefWorkers(): void {
@@ -290,6 +291,30 @@ export class Dex {
 	async loadData(): Promise<void> {
 		if (this.loadedData) return;
 		this.loadedData = true;
+
+		const lanetteDataDir = path.join(Tools.rootFolder, 'data');
+
+		/* eslint-disable @typescript-eslint/no-var-requires */
+		// @ts-expect-error
+		this.data.alternateIconNumbers = require(path.join(lanetteDataDir, 'alternate-icon-numbers.js')) as
+			{right: Dict<number>; left: Dict<number>};
+		// @ts-expect-error
+		this.data.badges = require(path.join(lanetteDataDir, 'badges.js')) as string[];
+		// @ts-expect-error
+		this.data.categories = require(path.join(lanetteDataDir, 'categories.js')) as Dict<string>;
+		// @ts-expect-error
+		this.data.characters = require(path.join(lanetteDataDir, 'characters.js')) as string[];
+		// @ts-expect-error
+		this.data.locations = require(path.join(lanetteDataDir, 'locations.js')) as string[];
+		// @ts-expect-error
+		this.data.gifData = require(path.join(lanetteDataDir, 'pokedex-mini.js')).BattlePokemonSprites as Dict<IGifData | undefined>; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+		// @ts-expect-error
+		this.data.gifDataBW = require(path.join(lanetteDataDir, 'pokedex-mini-bw.js')).BattlePokemonSpritesBW as Dict<IGifData | undefined>; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+		// @ts-expect-error
+		this.data.trainerClasses = require(path.join(lanetteDataDir, 'trainer-classes.js')) as string[];
+
+		const formatLinks = require(path.join(lanetteDataDir, 'format-links.js')) as Dict<IFormatLinks | undefined>;
+		/* eslint-enable */
 
 		const speciesList = Object.keys(this.data.categories);
 		for (const species of speciesList) {
@@ -665,7 +690,7 @@ export class Dex {
 			if (typeof file !== 'string') {
 				console.log(file);
 			} else if (file) {
-				await Tools.safeWriteFile(path.join(lanetteDataDir, fileName), file);
+				await Tools.safeWriteFile(path.join(Tools.rootFolder, 'data', fileName), file);
 			}
 		}
 	}
@@ -1093,14 +1118,14 @@ export class Dex {
 		}
 
 		if (facingLeft) {
-			if (alternateIconNumbers.left[pokemon.id]) num = alternateIconNumbers.left[pokemon.id];
+			if (this.data.alternateIconNumbers.left[pokemon.id]) num = this.data.alternateIconNumbers.left[pokemon.id]!;
 		} else if (pokemon.gender === 'F') {
 			if (pokemon.id === 'unfezant' || pokemon.id === 'frillish' || pokemon.id === 'jellicent' || pokemon.id === 'meowstic' ||
 				pokemon.id === 'pyroar') {
-				num = alternateIconNumbers.right[pokemon.id + 'f'];
+				num = this.data.alternateIconNumbers.right[pokemon.id + 'f']!;
 			}
 		} else {
-			if (alternateIconNumbers.right[pokemon.id]) num = alternateIconNumbers.right[pokemon.id];
+			if (this.data.alternateIconNumbers.right[pokemon.id]) num = this.data.alternateIconNumbers.right[pokemon.id]!;
 		}
 
 		const top = Math.floor(num / 12) * 30;
@@ -1649,3 +1674,14 @@ export class Dex {
 		return evolutionLines;
 	}
 }
+
+export const instantiate = async(): Promise<void> => {
+	const oldDex: Dex | undefined = global.Dex;
+
+	global.Dex = new Dex();
+
+	if (oldDex) {
+		await global.Dex.onReload(oldDex);
+		Tools.updateNodeModule(__filename, module);
+	}
+};
