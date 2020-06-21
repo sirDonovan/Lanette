@@ -129,8 +129,6 @@ export class Command {
 }
 
 export class CommandParser {
-	reloadInProgress: boolean = false;
-
 	// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
 	loadCommands<T = undefined, U = void>(commands: Dict<ICommandDefinition<T, U>>): CommandsDict<T, U> {
 		const dict: CommandsDict<T, U> = {};
@@ -259,7 +257,7 @@ export class CommandParser {
 		} else if (error[0] === 'invalidUsernameLength') {
 			return "You must specify a valid username (between 1 and " + Tools.maxUsernameLength + " characters).";
 		} else if (error[0] === 'reloadInProgress') {
-			return "You must wait for " + Users.self.name + " to finish updating.";
+			return Users.self.name + " is currently updating. Please try again shortly!";
 		} else if (error[0] === 'invalidHttpsLink') {
 			return "You must specify a valid HTTPS link.";
 		} else if (error[0] === 'noPmGameRoom') {
@@ -269,3 +267,13 @@ export class CommandParser {
 		return "";
 	}
 }
+
+export const instantiate = (): void => {
+	const oldCommandParser: CommandParser | undefined = global.CommandParser;
+
+	global.CommandParser = new CommandParser();
+
+	if (oldCommandParser) {
+		Tools.updateNodeModule(__filename, module);
+	}
+};

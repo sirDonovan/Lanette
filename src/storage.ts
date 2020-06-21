@@ -26,6 +26,7 @@ export class Storage {
 	databases: Dict<IDatabase> = {};
 	lastSeenExpirationDuration = Tools.toDurationString(LAST_SEEN_EXPIRATION);
 	loadedDatabases: boolean = false;
+	reloadInProgress: boolean = false;
 	workers: IStorageWorkers = {
 		logs: new LogsWorker(),
 	};

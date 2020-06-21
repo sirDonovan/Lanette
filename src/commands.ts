@@ -106,8 +106,8 @@ const commands: Dict<ICommandDefinition> = {
 				if (hasModules[i]) modules.push(moduleOrder[i]);
 			}
 
-			if (modules.includes('commandparser')) CommandParser.reloadInProgress = true;
 			if (modules.includes('games')) Games.reloadInProgress = true;
+			if (modules.includes('storage')) Storage.reloadInProgress = true;
 
 			this.say("Running ``tsc``...");
 
@@ -131,7 +131,7 @@ const commands: Dict<ICommandDefinition> = {
 						Tools.uncacheTree('./' + filename);
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
 						const commandParser = require('./' + filename) as typeof import('./command-parser');
-						global.CommandParser = new commandParser.CommandParser();
+						commandParser.instantiate();
 					} else if (moduleId === 'commands') {
 						Tools.uncacheTree('./commands');
 						reloadCommands(modules);
@@ -210,8 +210,8 @@ const commands: Dict<ICommandDefinition> = {
 			}, () => {
 				this.say("Failed to build files.");
 				reloadInProgress = false;
-				if (CommandParser.reloadInProgress) CommandParser.reloadInProgress = false;
 				if (Games.reloadInProgress) Games.reloadInProgress = false;
+				if (Storage.reloadInProgress) Storage.reloadInProgress = false;
 			});
 		},
 		aliases: ['hotpatch'],
@@ -3312,7 +3312,7 @@ const commands: Dict<ICommandDefinition> = {
 					if (phrase.length === 1) return this.say("You cannot search for a single character.");
 				}
 			}
-			if (CommandParser.reloadInProgress) return this.sayError(['reloadInProgress']);
+			if (Storage.reloadInProgress) return this.sayError(['reloadInProgress']);
 
 			const userId = user.id;
 			if (Storage.workers.logs.requestsByUserid.includes(userId)) return this.say("You can only perform 1 search at a time.");

@@ -14,7 +14,7 @@ import * as client from './client';
 client.instantiate();
 
 import * as commandParser from './command-parser';
-global.CommandParser = new commandParser.CommandParser();
+commandParser.instantiate();
 
 import * as rooms from './rooms';
 global.Rooms = new rooms.Rooms();
