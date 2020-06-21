@@ -6,6 +6,7 @@ import type { IFormat, ISeparatedCustomRules } from "./types/dex";
 import type { IPastTournament } from "./types/storage";
 import type { ITournamentCreateJson } from "./types/tournaments";
 
+export type TournamentPlace = 'semifinalist' | 'runnerup' | 'winner';
 interface IScheduledTournament {
 	format: string;
 	time: number;
@@ -231,6 +232,21 @@ export class Tournaments {
 				}
 			}
 		}
+	}
+
+	getPlacePoints(place: TournamentPlace, format: IFormat, players: number, scheduled: boolean): number {
+		const multiplier = this.getPointsMultiplier(format, players, scheduled);
+
+		let basePoints: number;
+		if (place === 'semifinalist') {
+			basePoints = this.semiFinalistPoints;
+		} else if (place === 'runnerup') {
+			basePoints = this.runnerUpPoints;
+		} else {
+			basePoints = this.winnerPoints;
+		}
+
+		return this.getPointsValue(basePoints, multiplier);
 	}
 
 	getPointsMultiplier(format: IFormat, players: number, scheduled: boolean): number {
