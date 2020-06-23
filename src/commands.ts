@@ -1896,7 +1896,7 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 				this.say("The " + room.tournament.name + " tournament will now award leaderboard points.");
 			} else {
 				if ((!room.tournament.canAwardPoints() && room.tournament.manuallyEnabledPoints === undefined) ||
-					!room.tournament.manuallyEnabledPoints) {
+					room.tournament.manuallyEnabledPoints === false) {
 					return this.say("The " + room.tournament.name + " tournament will already not award leaderboard points.");
 				}
 				room.tournament.manuallyEnabledPoints = false;
