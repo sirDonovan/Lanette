@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "eslint -c .eslintrc --ext .ts --cache .",
     "start": "node app.js",
-    "test": "npm run lint && node mocha.js",
+    "test": "npm run lint && node --enable-source-maps mocha.js",
     "tsc": "tsc"
   },
   "repository": {

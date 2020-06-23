@@ -4,6 +4,7 @@
 		"strict": true,
 		"incremental": true,
 		"outDir": "built",
+		"sourceMap": true,
 		"noEmitOnError": true,
 		"module": "commonjs",
 		"moduleResolution": "node",
