@@ -202,8 +202,13 @@ function getAllPossibleMoves(messageNumber: string, id: string, options: IGetDat
 				}
 				break;
 			}
+
 			possibleMoves = possibleMoves.concat(Object.keys(learnsetData.learnset));
+
+			const previousLearnsetParent: IPokemon = learnsetParent;
 			learnsetParent = validator.learnsetParent(learnsetParent);
+			// prevent recursion from calling validator.learnsetParent() directly
+			if (learnsetParent && learnsetParent === previousLearnsetParent) break;
 		}
 
 		const checkedMoves: string[] = [];

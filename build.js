@@ -214,7 +214,7 @@ module.exports = async (options, resolve, reject) => {
 			deleteFolderRecursive(pokemonShowdownData);
 
 			console.log("Running pokemon-showdown build script...");
-			const nodeBuildOutput = await exec('node build').catch(e => console.log(e));
+			const nodeBuildOutput = await exec('node build --force').catch(e => console.log(e));
 			if (!nodeBuildOutput || nodeBuildOutput.Error) {
 				await setToSha(currentSha);
 				reject();

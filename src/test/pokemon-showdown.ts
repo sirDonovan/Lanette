@@ -289,8 +289,9 @@ describe("pokemon-showdown", () => {
 		const otherForme = Dex.getPokemon("Venusaur");
 		assert(otherForme);
 		assert(Array.isArray(otherForme.otherFormes));
-		assertStrictEqual(otherForme.otherFormes.length, 1);
+		assertStrictEqual(otherForme.otherFormes.length, 2);
 		assertStrictEqual(otherForme.otherFormes[0], "Venusaur-Mega");
+		assertStrictEqual(otherForme.otherFormes[1], "Venusaur-Gmax");
 
 		const singleType = Dex.getPokemon("Charmander");
 		assert(singleType);
