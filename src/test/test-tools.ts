@@ -13,13 +13,37 @@ export function getBasePlayerName(): string {
 	return basePlayerName;
 }
 
+function getAdditionalInformation(message: string): string {
+	const roomInformation: string[] = [];
+	const room = Rooms.get('mocha');
+	if (room) {
+		if (room.game) {
+			roomInformation.push("Scripted game = " + room.game.name + "; initial seed = " + room.game.initialSeed);
+		}
+		if (room.userHostedGame) {
+			roomInformation.push("User-hosted game = " + room.userHostedGame.name + "; initial seed = " +
+				room.userHostedGame.initialSeed);
+		}
+		if (room.tournament) {
+			roomInformation.push("Tournament = " + room.tournament.name);
+		}
+	}
+
+	if (!roomInformation.length) return message;
+	return message + "\n\nAdditional information:\n" + roomInformation.join("\n") + "\n";
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
 export function assert(condition: any, message?: string | Error | undefined): asserts condition {
-	nodeAssert(condition, message);
+	if (!message) message = '';
+
+	nodeAssert(condition, typeof message === 'string' ? getAdditionalInformation(message) : message);
 }
 
 export function assertStrictEqual<T>(actual: T, expected: T, message?: string | Error | undefined): void {
-	nodeAssert.strictEqual(actual, expected, message);
+	if (!message) message = '';
+
+	nodeAssert.strictEqual(actual, expected, typeof message === 'string' ? getAdditionalInformation(message) : message);
 }
 
 function checkClientSendQueue(startingSendQueueIndex: number, input: readonly string[]): string[] {
