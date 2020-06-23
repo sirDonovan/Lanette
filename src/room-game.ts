@@ -309,7 +309,7 @@ export class Game extends Activity {
 			}
 		}
 
-		if (this.isMiniGame) {
+		if (this.isMiniGame && !this.internalGame) {
 			if ((this.format as IGameFormat).minigameDescription) this.say((this.format as IGameFormat).minigameDescription!);
 			this.nextRound();
 		}
