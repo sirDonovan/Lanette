@@ -431,7 +431,7 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
 			const targetUser = Users.get(target);
 			if (!targetUser) return this.say("You must specify a user.");
-			const game = Games.createGame(room, Games.getInternalFormat('eggtoss'));
+			const game = Games.createGame(room, Games.getInternalFormat('eggtoss'), room, true);
 			game.signups();
 			const canEgg = await this.run('toss') as boolean;
 			if (canEgg) {
