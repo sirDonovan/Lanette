@@ -95,6 +95,12 @@ export class ParasParameters extends Guessing {
 
 		if (this.ended) return;
 
+		if (result === null) {
+			this.say("An error occurred while generating parameters.");
+			this.deallocate(true);
+			return;
+		}
+
 		if (!result.pokemon.length) {
 			this.say("Invalid params specified.");
 			this.deallocate(true);
@@ -122,7 +128,7 @@ export class ParasParameters extends Guessing {
 		return "A possible set of parameters was __" + givenAnswer + "__.";
 	}
 
-	async intersect(parts: string[]): Promise<IParametersResponse> {
+	async intersect(parts: string[]): Promise<IParametersResponse | null> {
 		const params: IParam[] = [];
 		const mod = 'gen' + this.format.options.gen;
 		const paramTypePools = Games.workers.parameters.workerData!.pokemon.gens[mod].paramTypePools;
@@ -153,7 +159,16 @@ export class ParasParameters extends Guessing {
 		const parts = guess.split(',');
 		if (parts.length === this.currentNumberOfParams) {
 			const intersection = await this.intersect(parts);
-			if (intersection.pokemon.join(',') === this.pokemon.join(',')) return Tools.joinList(this.getParamNames(intersection.params));
+			if (!this.ended) {
+				if (intersection === null) {
+					this.say("An error occurred while intersecting parameters.");
+					this.deallocate(true);
+				} else {
+					if (intersection.pokemon.join(',') === this.pokemon.join(',')) {
+						return Tools.joinList(this.getParamNames(intersection.params));
+					}
+				}
+			}
 		}
 		return "";
 	}
@@ -208,55 +223,68 @@ const tests: GameFileTests<ParasParameters> = {
 			game.customParamTypes = null;
 
 			let intersection = await game.intersect(['steeltype']);
+			assert(intersection);
 			assertStrictEqual(intersection.params.length, 0);
 			assertStrictEqual(intersection.pokemon.length, 0);
 
 			intersection = await game.intersect(['steeltype', 'steeltype']);
+			assert(intersection);
 			assertStrictEqual(intersection.params.length, 0);
 			assertStrictEqual(intersection.pokemon.length, 0);
 
 			intersection = await game.intersect(['steeltype', 'rockclimb', 'steeltype']);
+			assert(intersection);
 			assertStrictEqual(intersection.params.length, 0);
 			assertStrictEqual(intersection.pokemon.length, 0);
 
 			intersection = await game.intersect(['steeltype', 'rockclimb']);
+			assert(intersection);
 			assertStrictEqual(intersection.params.length, 2);
 			assertStrictEqual(intersection.pokemon.join(","), "durant,excadrill,ferroseed,ferrothorn,steelix");
 
 			intersection = await game.intersect(['poisontype', 'poisontype', 'powerwhip']);
+			assert(intersection);
 			assertStrictEqual(intersection.params.length, 0);
 			assertStrictEqual(intersection.pokemon.length, 0);
 
 			intersection = await game.intersect(['poisontype', 'powerwhip']);
+			assert(intersection);
 			assertStrictEqual(intersection.params.length, 2);
 			assertStrictEqual(intersection.pokemon.join(","), "bellsprout,bulbasaur,ivysaur,roselia,roserade,venusaur,victreebel," +
 				"weepinbell");
 
 			intersection = await game.intersect(['gen1', 'psychic', 'psychictype']);
+			assert(intersection);
 			assertStrictEqual(intersection.pokemon.join(","), "abra,alakazam,drowzee,exeggcute,exeggutor,hypno,jynx,kadabra,mew,mewtwo," +
 				"mrmime,slowbro,slowpoke,starmie");
 
 			intersection = await game.intersect(['firetype', 'thunder']);
+			assert(intersection);
 			assertStrictEqual(intersection.pokemon.join(","), "arceusfire,castformsunny,groudonprimal,hooh,marowakalola," +
 				"marowakalolatotem,rotomheat,victini");
 
 			intersection = await game.intersect(['darktype', 'refresh']);
+			assert(intersection);
 			assertStrictEqual(intersection.pokemon.join(","), "arceusdark,carvanha,nuzleaf,sharpedo,shiftry,umbreon");
 
 			intersection = await game.intersect(['monstergroup', 'rockhead']);
+			assert(intersection);
 			assertStrictEqual(intersection.pokemon.join(","), "aggron,aron,cubone,lairon,marowak,marowakalola,rhydon,rhyhorn,tyrantrum");
 
 			intersection = await game.intersect(['gen6', 'resists ice', 'destiny bond']);
+			assert(intersection);
 			assertStrictEqual(intersection.pokemon.join(","), "aegislash,doublade,honedge,houndoommega,sharpedomega");
 
 			game.format.options.gen = 6;
 			intersection = await game.intersect(['Weak to Rock Type', 'Earthquake']);
+			assert(intersection);
 			assertStrictEqual(intersection.pokemon.join(","), "abomasnow,aerodactyl,altaria,arceusbug,arceusfire,arceusflying,arceusice," +
 				"archen,archeops,armaldo,aurorus,avalugg,charizard,crustle,darmanitan,dragonite,dwebble,glalie,gyarados,hooh,lugia," +
 				"magcargo,magmortar,mantine,mantyke,pineco,pinsir,rayquaza,regice,salamence,scolipede,sealeo,shuckle,spheal,torkoal," +
 				"tropius,typhlosion,volcanion,walrein");
 
 			intersection = await game.intersect(['Psycho Cut', 'Resists Fighting Type']);
+			assert(intersection);
 			assertStrictEqual(intersection.pokemon.join(","), "alakazam,cresselia,drowzee,gallade,hypno,kadabra,medicham,meditite,mewtwo");
 		},
 	},

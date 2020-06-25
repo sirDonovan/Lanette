@@ -3,7 +3,8 @@ import { Game } from '../../room-game';
 import type { Room } from '../../rooms';
 import { assert, assertStrictEqual, getBasePlayerName, runCommand } from '../../test/test-tools';
 import type {
-	GameCommandReturnType, GameFileTests, IGameAchievement, IGameCommandDefinition, IGameFormat, IGameTemplateFile, IRandomGameAnswer
+	GameCommandReturnType, GameFileTests, IGameAchievement, IGameCommandDefinition, IGameFormat, IGameTemplateFile,
+	IRandomGameAnswer
 } from '../../types/games';
 
 const MINIGAME_BITS = 25;
@@ -100,19 +101,24 @@ export abstract class Guessing extends Game {
 	}
 
 	async guessAnswer(player: Player, guess: string): Promise<string | false> {
-		if (!Tools.toId(guess)) return false;
-		if (this.filterGuess && this.filterGuess(guess)) return false;
+		if (!Tools.toId(guess) || this.filterGuess && this.filterGuess(guess)) return false;
+
 		if (this.roundGuesses) {
 			if (this.roundGuesses.has(player)) return false;
 			this.roundGuesses.set(player, true);
 		}
+
+		if (!this.answers.length) return false;
+
 		let answer = await this.checkAnswer(guess);
-		if (this.ended || !this.answers.length) return false;
+		if (this.ended) return false;
+
 		if (!answer) {
 			if (!this.onIncorrectGuess) return false;
 			answer = this.onIncorrectGuess(player, guess);
 			if (!answer) return false;
 		}
+
 		return answer;
 	}
 

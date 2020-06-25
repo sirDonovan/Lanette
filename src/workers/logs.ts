@@ -50,7 +50,7 @@ export class LogsWorker extends WorkerBase<ILogsWorkerData, LogsId, ILogsRespons
 		return data;
 	}
 
-	async search(options: ILogsSearchOptions): Promise<ILogsResponse> {
+	async search(options: ILogsSearchOptions): Promise<ILogsResponse | null> {
 		return this.sendMessage('search', JSON.stringify(options));
 	}
 }

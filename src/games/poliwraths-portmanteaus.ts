@@ -57,6 +57,12 @@ export class PoliwrathsPortmanteaus extends Guessing {
 
 		if (this.ended) return;
 
+		if (result === null) {
+			this.say("An error occurred while generating a portmanteau.");
+			this.deallocate(true);
+			return;
+		}
+
 		if (!result.answers.length) {
 			this.say("Invalid ports specified.");
 			this.deallocate(true);

@@ -61,67 +61,67 @@ export class PokemonShowdownWorker extends WorkerBase<IPokemonShowdownWorkerData
 		return {};
 	}
 
-	async getAbilities(options: IGetDataInput): Promise<IPokemonShowdownResponse> {
+	async getAbilities(options: IGetDataInput): Promise<IPokemonShowdownResponse | null> {
 		return this.sendMessage('getAbilities', JSON.stringify(Object.assign(options, {availableHeapSize: Tools.getHeapLimit()})));
 	}
 
-	async getAbilityIds(options: IGetDataIdsOptions): Promise<IPokemonShowdownResponse> {
+	async getAbilityIds(options: IGetDataIdsOptions): Promise<IPokemonShowdownResponse | null> {
 		return this.sendMessage('getAbilityIds', JSON.stringify(options));
 	}
 
-	async getAliases(options: IGetDataIdsOptions): Promise<IPokemonShowdownResponse> {
+	async getAliases(options: IGetDataIdsOptions): Promise<IPokemonShowdownResponse | null> {
 		return this.sendMessage('getAliases', JSON.stringify(options));
 	}
 
-	async getAllPossibleMoves(options: IGetDataInput): Promise<IPokemonShowdownResponse> {
+	async getAllPossibleMoves(options: IGetDataInput): Promise<IPokemonShowdownResponse | null> {
 		return this.sendMessage('getAllPossibleMoves', JSON.stringify(Object.assign(options, {availableHeapSize: Tools.getHeapLimit()})));
 	}
 
-	async getFormats(options: IGetDataInput): Promise<IPokemonShowdownResponse> {
+	async getFormats(options: IGetDataInput): Promise<IPokemonShowdownResponse | null> {
 		return this.sendMessage('getFormats', JSON.stringify(Object.assign(options, {availableHeapSize: Tools.getHeapLimit()})));
 	}
 
-	async getFormatIds(options: IGetDataIdsOptions): Promise<IPokemonShowdownResponse> {
+	async getFormatIds(options: IGetDataIdsOptions): Promise<IPokemonShowdownResponse | null> {
 		return this.sendMessage('getFormatIds', JSON.stringify(options));
 	}
 
-	async getItems(options: IGetDataInput): Promise<IPokemonShowdownResponse> {
+	async getItems(options: IGetDataInput): Promise<IPokemonShowdownResponse | null> {
 		return this.sendMessage('getItems', JSON.stringify(Object.assign(options, {availableHeapSize: Tools.getHeapLimit()})));
 	}
 
-	async getItemIds(options: IGetDataIdsOptions): Promise<IPokemonShowdownResponse> {
+	async getItemIds(options: IGetDataIdsOptions): Promise<IPokemonShowdownResponse | null> {
 		return this.sendMessage('getItemIds', JSON.stringify(options));
 	}
 
-	async getLearnsetData(options: IGetDataInput): Promise<IPokemonShowdownResponse> {
+	async getLearnsetData(options: IGetDataInput): Promise<IPokemonShowdownResponse | null> {
 		return this.sendMessage('getLearnsetData', JSON.stringify(Object.assign(options, {availableHeapSize: Tools.getHeapLimit()})));
 	}
 
-	async getLearnsetDataIds(options: IGetDataIdsOptions): Promise<IPokemonShowdownResponse> {
+	async getLearnsetDataIds(options: IGetDataIdsOptions): Promise<IPokemonShowdownResponse | null> {
 		return this.sendMessage('getLearnsetDataIds', JSON.stringify(options));
 	}
 
-	async getMoves(options: IGetDataInput): Promise<IPokemonShowdownResponse> {
+	async getMoves(options: IGetDataInput): Promise<IPokemonShowdownResponse | null> {
 		return this.sendMessage('getMoves', JSON.stringify(Object.assign(options, {availableHeapSize: Tools.getHeapLimit()})));
 	}
 
-	async getMoveIds(options: IGetDataIdsOptions): Promise<IPokemonShowdownResponse> {
+	async getMoveIds(options: IGetDataIdsOptions): Promise<IPokemonShowdownResponse | null> {
 		return this.sendMessage('getMoveIds', JSON.stringify(options));
 	}
 
-	async getSpecies(options: IGetDataInput): Promise<IPokemonShowdownResponse> {
+	async getSpecies(options: IGetDataInput): Promise<IPokemonShowdownResponse | null> {
 		return this.sendMessage('getSpecies', JSON.stringify(Object.assign(options, {availableHeapSize: Tools.getHeapLimit()})));
 	}
 
-	async getSpeciesIds(options: IGetDataIdsOptions): Promise<IPokemonShowdownResponse> {
+	async getSpeciesIds(options: IGetDataIdsOptions): Promise<IPokemonShowdownResponse | null> {
 		return this.sendMessage('getSpeciesIds', JSON.stringify(options));
 	}
 
-	async getTypes(options: IGetDataInput): Promise<IPokemonShowdownResponse> {
+	async getTypes(options: IGetDataInput): Promise<IPokemonShowdownResponse | null> {
 		return this.sendMessage('getTypes', JSON.stringify(Object.assign(options, {availableHeapSize: Tools.getHeapLimit()})));
 	}
 
-	async getTypeIds(options: IGetDataIdsOptions): Promise<IPokemonShowdownResponse> {
+	async getTypeIds(options: IGetDataIdsOptions): Promise<IPokemonShowdownResponse | null> {
 		return this.sendMessage('getTypeIds', JSON.stringify(options));
 	}
 }

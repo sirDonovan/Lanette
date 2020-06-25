@@ -62,6 +62,15 @@ class PluslesAdditiveParameters extends Game {
 				prngSeed: this.prng.seed.slice() as PRNGSeed,
 				searchType: 'pokemon',
 			});
+
+			if (this.ended) return;
+
+			if (result === null) {
+				this.say("An error occurred while generating parameters.");
+				this.deallocate(true);
+				return;
+			}
+
 			this.params = result.params;
 			this.pokemon = result.pokemon;
 			this.prng = new PRNG(result.prngSeed);
@@ -178,6 +187,14 @@ const commands: Dict<IGameCommandDefinition<PluslesAdditiveParameters>> = {
 				paramTypes,
 				searchType: 'pokemon',
 			});
+
+			if (this.ended) return false;
+
+			if (result === null) {
+				this.say("An error occurred while intersecting parameters.");
+				this.deallocate(true);
+				return false;
+			}
 
 			let eliminationReason = '';
 			if (result.pokemon.length <= 1) {

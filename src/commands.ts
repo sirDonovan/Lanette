@@ -4,9 +4,12 @@ import fs = require('fs');
 import path = require('path');
 
 import type { ICommandDefinition, Command } from "./command-parser";
+import type { IDexWorkers } from './dex';
+import type { IGamesWorkers } from './games';
 import type { Player } from "./room-activity";
 import type { Game } from './room-game';
 import type { Room } from "./rooms";
+import type { IStorageWorkers } from './storage';
 import type { IFormat } from "./types/dex";
 import type { GameDifficulty, IGameFormat } from "./types/games";
 import type { UserHostStatus } from './types/storage';
@@ -77,11 +80,21 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 			const targets = target.split(",");
 			for (const target of targets) {
 				const id = Tools.toId(target) as ReloadableModule;
-				if (id === 'commandparser') {
-					if (Storage.workers.logs.requestsByUserid.length) {
-						return this.say("You must wait for all logs requests to finish first.");
+				if (id === 'dex') {
+					const workers = Object.keys(Dex.workers) as (keyof IDexWorkers)[];
+					for (const worker of workers) {
+						if (Dex.workers[worker].isBusy) {
+							return this.say("You must wait for all " + worker + " requests to finish first.");
+						}
 					}
 				} else if (id === 'games') {
+					const workers = Object.keys(Games.workers) as (keyof IGamesWorkers)[];
+					for (const worker of workers) {
+						if (Games.workers[worker].isBusy) {
+							return this.say("You must wait for all " + worker + " requests to finish first.");
+						}
+					}
+
 					const workerGameRooms: Room[] = [];
 					Users.self.rooms.forEach((rank, room) => {
 						if (room.game && room.game.usesWorkers) workerGameRooms.push(room);
@@ -90,7 +103,15 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 						return this.say("You must wait for the game" + (workerGameRooms.length > 1 ? "s" : "") + " in " +
 							Tools.joinList(workerGameRooms.map(x => x.title)) + " to finish first.");
 					}
+				} else if (id === 'storage') {
+					const workers = Object.keys(Storage.workers) as (keyof IStorageWorkers)[];
+					for (const worker of workers) {
+						if (Storage.workers[worker].isBusy) {
+							return this.say("You must wait for all " + worker + " requests to finish first.");
+						}
+					}
 				}
+
 				const moduleIndex = moduleOrder.indexOf(id);
 				if (moduleIndex !== -1) {
 					hasModules[moduleIndex] = true;
@@ -3344,8 +3365,12 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 				userids,
 			});
 
-			this.sayHtml("<details><summary>Found <b>" + result.totalLines + "</b> line" + (result.totalLines === 1 ? "" : "s") +
-				":</summary><br>" + result.lines.join("<br />") + "</details>", targetRoom);
+			if (result === null) {
+				this.say("An error occurred while searching logs.");
+			} else {
+				this.sayHtml("<details><summary>Found <b>" + result.totalLines + "</b> line" + (result.totalLines === 1 ? "" : "s") +
+					":</summary><br>" + result.lines.join("<br />") + "</details>", targetRoom);
+			}
 
 			Storage.workers.logs.requestsByUserid.splice(Storage.workers.logs.requestsByUserid.indexOf(userId), 1);
 		},

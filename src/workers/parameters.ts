@@ -308,11 +308,11 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 		return data;
 	}
 
-	async search(options: IParametersSearchOptions): Promise<IParametersResponse> {
+	async search(options: IParametersSearchOptions): Promise<IParametersResponse | null> {
 		return this.sendMessage('search', JSON.stringify(options));
 	}
 
-	async intersect(options: IParametersIntersectOptions): Promise<IParametersResponse> {
+	async intersect(options: IParametersIntersectOptions): Promise<IParametersResponse | null> {
 		return this.sendMessage('intersect', JSON.stringify(options));
 	}
 }

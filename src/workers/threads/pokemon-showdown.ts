@@ -419,57 +419,61 @@ worker_threads.parentPort!.on('message', (incommingMessage: string) => {
 	const id = parts[1] as PokemonShowdownId;
 	const message = parts.slice(2).join("|");
 	let response: IPokemonShowdownResponse;
-	if (id === 'getAbilities') {
-		const options = JSON.parse(message) as IGetDataMessage;
-		response = getAbilities(messageNumber, id, options);
-	} else if (id === 'getAbilityIds') {
-		const options = JSON.parse(message) as IGetDataIdsMessage;
-		response = getAbilityIds(options);
-	} else if (id === 'getAliases') {
-		const options = JSON.parse(message) as IGetDataIdsMessage;
-		response = getAliases(options);
-	} else if (id === 'getAllPossibleMoves') {
-		const options = JSON.parse(message) as IGetDataMessage;
-		response = getAllPossibleMoves(messageNumber, id, options);
-	} else if (id === 'getFormats') {
-		const options = JSON.parse(message) as IGetDataMessage;
-		response = getFormats(messageNumber, id, options);
-	} else if (id === 'getFormatIds') {
-		const options = JSON.parse(message) as IGetDataIdsMessage;
-		response = getFormatIds(options);
-	} else if (id === 'getItems') {
-		const options = JSON.parse(message) as IGetDataMessage;
-		response = getItems(messageNumber, id, options);
-	} else if (id === 'getItemIds') {
-		const options = JSON.parse(message) as IGetDataIdsMessage;
-		response = getItemIds(options);
-	} else if (id === 'getLearnsetData') {
-		const options = JSON.parse(message) as IGetDataMessage;
-		response = getLearnsetData(messageNumber, id, options);
-	} else if (id === 'getLearnsetDataIds') {
-		const options = JSON.parse(message) as IGetDataIdsMessage;
-		response = getLearnsetDataIds(options);
-	} else if (id === 'getMoves') {
-		const options = JSON.parse(message) as IGetDataMessage;
-		response = getMoves(messageNumber, id, options);
-	} else if (id === 'getMoveIds') {
-		const options = JSON.parse(message) as IGetDataIdsMessage;
-		response = getMoveIds(options);
-	} else if (id === 'getSpecies') {
-		const options = JSON.parse(message) as IGetDataMessage;
-		response = getSpecies(messageNumber, id, options);
-	} else if (id === 'getSpeciesIds') {
-		const options = JSON.parse(message) as IGetDataIdsMessage;
-		response = getSpeciesIds(options);
-	} else if (id === 'getTypes') {
-		const options = JSON.parse(message) as IGetDataMessage;
-		response = getTypes(messageNumber, id, options);
-	} else if (id === 'getTypeIds') {
-		const options = JSON.parse(message) as IGetDataIdsMessage;
-		response = getTypeIds(options);
+	try {
+		if (id === 'getAbilities') {
+			const options = JSON.parse(message) as IGetDataMessage;
+			response = getAbilities(messageNumber, id, options);
+		} else if (id === 'getAbilityIds') {
+			const options = JSON.parse(message) as IGetDataIdsMessage;
+			response = getAbilityIds(options);
+		} else if (id === 'getAliases') {
+			const options = JSON.parse(message) as IGetDataIdsMessage;
+			response = getAliases(options);
+		} else if (id === 'getAllPossibleMoves') {
+			const options = JSON.parse(message) as IGetDataMessage;
+			response = getAllPossibleMoves(messageNumber, id, options);
+		} else if (id === 'getFormats') {
+			const options = JSON.parse(message) as IGetDataMessage;
+			response = getFormats(messageNumber, id, options);
+		} else if (id === 'getFormatIds') {
+			const options = JSON.parse(message) as IGetDataIdsMessage;
+			response = getFormatIds(options);
+		} else if (id === 'getItems') {
+			const options = JSON.parse(message) as IGetDataMessage;
+			response = getItems(messageNumber, id, options);
+		} else if (id === 'getItemIds') {
+			const options = JSON.parse(message) as IGetDataIdsMessage;
+			response = getItemIds(options);
+		} else if (id === 'getLearnsetData') {
+			const options = JSON.parse(message) as IGetDataMessage;
+			response = getLearnsetData(messageNumber, id, options);
+		} else if (id === 'getLearnsetDataIds') {
+			const options = JSON.parse(message) as IGetDataIdsMessage;
+			response = getLearnsetDataIds(options);
+		} else if (id === 'getMoves') {
+			const options = JSON.parse(message) as IGetDataMessage;
+			response = getMoves(messageNumber, id, options);
+		} else if (id === 'getMoveIds') {
+			const options = JSON.parse(message) as IGetDataIdsMessage;
+			response = getMoveIds(options);
+		} else if (id === 'getSpecies') {
+			const options = JSON.parse(message) as IGetDataMessage;
+			response = getSpecies(messageNumber, id, options);
+		} else if (id === 'getSpeciesIds') {
+			const options = JSON.parse(message) as IGetDataIdsMessage;
+			response = getSpeciesIds(options);
+		} else if (id === 'getTypes') {
+			const options = JSON.parse(message) as IGetDataMessage;
+			response = getTypes(messageNumber, id, options);
+		} else if (id === 'getTypeIds') {
+			const options = JSON.parse(message) as IGetDataIdsMessage;
+			response = getTypeIds(options);
+		}
+	} catch (e) {
+		console.log(e);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	worker_threads.parentPort!.postMessage(getPostMessage(messageNumber, id, JSON.stringify(response!)));
+	worker_threads.parentPort!.postMessage(getPostMessage(messageNumber, id, JSON.stringify(response! || "")));
 });
 /* eslint-enable */

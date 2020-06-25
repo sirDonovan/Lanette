@@ -14,7 +14,7 @@ const globalDatabaseId = 'globalDB';
 const hostingDatabaseSuffix = '-hostingDB';
 const baseOfflineMessageLength = '[28 Jun 2019, 00:00:00 GMT-0500] **** said: '.length;
 
-interface IStorageWorkers {
+export interface IStorageWorkers {
 	logs: LogsWorker;
 }
 

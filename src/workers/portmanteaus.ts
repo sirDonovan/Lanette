@@ -124,7 +124,7 @@ export class PortmanteausWorker extends WorkerBase<IPortmanteausWorkerData, Port
 		return data;
 	}
 
-	async search(options: IPortmanteausSearchOptions): Promise<IPortmanteausResponse> {
+	async search(options: IPortmanteausSearchOptions): Promise<IPortmanteausResponse | null> {
 		return this.sendMessage('search', JSON.stringify(options));
 	}
 }

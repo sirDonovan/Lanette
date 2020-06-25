@@ -82,12 +82,20 @@ class InkaysCups extends Game {
 				const name = this.sampleOne(paramTypeDexesKeys.pokemon[genString][paramType]);
 				params.push(Games.workers.parameters.workerData!.pokemon.gens[genString].paramTypePools[paramType][Tools.toId(name)]);
 			}
+
 			const intersection = await Games.workers.parameters.intersect({
 				mod: genString,
 				params,
 				paramTypes,
 				searchType: 'pokemon',
 			});
+
+			if (intersection === null) {
+				this.say("An error occurred while generating parameters.");
+				this.deallocate(true);
+				return;
+			}
+
 			mons = intersection.pokemon;
 			len = mons.length;
 		}

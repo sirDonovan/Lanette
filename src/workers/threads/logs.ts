@@ -143,11 +143,15 @@ worker_threads.parentPort!.on('message', (incommingMessage: string) => {
 	const id = parts[1] as LogsId;
 	const message = parts.slice(2).join("|");
 	let response: ILogsResponse;
-	if (id === 'search') {
-		const options = JSON.parse(message) as ILogsSearchMessage;
-		response = search(options);
+	try {
+		if (id === 'search') {
+			const options = JSON.parse(message) as ILogsSearchMessage;
+			response = search(options);
+		}
+	} catch (e) {
+		console.log(e);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	worker_threads.parentPort!.postMessage(messageNumber + "|" + id + "|" + JSON.stringify(response!));
+	worker_threads.parentPort!.postMessage(messageNumber + "|" + id + "|" + JSON.stringify(response! || ""));
 });

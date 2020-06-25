@@ -135,12 +135,16 @@ worker_threads.parentPort!.on('message', (incommingMessage: string) => {
 	const id = parts[1] as PortmanteausId;
 	const message = parts.slice(2).join("|");
 	let response: IPortmanteausResponse;
-	if (id === 'search') {
-		const options = JSON.parse(message) as IPortmanteausSearchMessage;
-		const prng = new PRNG(options.prngSeed);
-		response = search(options, prng);
+	try {
+		if (id === 'search') {
+			const options = JSON.parse(message) as IPortmanteausSearchMessage;
+			const prng = new PRNG(options.prngSeed);
+			response = search(options, prng);
+		}
+	} catch (e) {
+		console.log(e);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	worker_threads.parentPort!.postMessage(messageNumber + "|" + id + "|" + JSON.stringify(response!));
+	worker_threads.parentPort!.postMessage(messageNumber + "|" + id + "|" + JSON.stringify(response! || ""));
 });

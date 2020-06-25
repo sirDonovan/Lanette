@@ -11,6 +11,7 @@ interface IWorkerQueueItem<T> {
 export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse> {
 	abstract threadPath: string;
 
+	isBusy: boolean = false;
 	workerData: WorkerData | null = null;
 
 	// eslint-disable-next-line @typescript-eslint/naming-convention
@@ -18,15 +19,20 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse> {
 
 	private messageNumber: number = 0;
 	private messageQueue: IWorkerQueueItem<ThreadResponse>[] = [];
+	private sendMessages: boolean = true;
 	private unrefTimer: NodeJS.Timer | null = null;
 
 	abstract loadData(): WorkerData;
 
-	async sendMessage(id: MessageId, message: string): Promise<ThreadResponse> {
+	async sendMessage(id: MessageId, message: string): Promise<ThreadResponse | null> {
+		if (!this.sendMessages) return Promise.resolve(null);
+
 		this.init();
 
 		if (this.unrefTimer) clearTimeout(this.unrefTimer);
 		this.unrefTimer = setTimeout(() => this.unref(), UNREF_TIMER);
+
+		this.isBusy = true;
 
 		return (new Promise(resolve => {
 			this.messageNumber++;
@@ -47,10 +53,15 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse> {
 				for (let i = 0; i < this.messageQueue.length; i++) {
 					if (this.messageQueue[i].messageNumber === requestNumber) {
 						const request = this.messageQueue.splice(i, 1)[0];
-						request.resolve(JSON.parse(parts.slice(2).join("|")));
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+						let result = JSON.parse(parts.slice(2).join("|"));
+						if (result === "") result = null;
+						request.resolve(result);
 						break;
 					}
 				}
+
+				this.isBusy = !!this.messageQueue.length;
 			});
 
 			this.worker.on('error', e => console.log(e));
@@ -64,10 +75,24 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse> {
 	}
 
 	unref(): void {
-		if (this.unrefTimer) clearTimeout(this.unrefTimer);
+		this.sendMessages = false;
+
+		if (this.messageQueue.length) {
+			this.unrefTimer = setTimeout(() => this.unref(), 1000);
+			return;
+		}
+
+		if (this.unrefTimer) {
+			clearTimeout(this.unrefTimer);
+			delete this.unrefTimer;
+		}
+
 		if (this.worker) {
 			this.worker.unref();
-			this.worker = null;
+			delete this.worker;
 		}
+
+		delete this.messageQueue;
+		delete this.workerData;
 	}
 }

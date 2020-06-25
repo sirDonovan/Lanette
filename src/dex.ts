@@ -7,7 +7,7 @@ import type {
 } from './types/dex';
 import { PokemonShowdownWorker } from './workers/pokemon-showdown';
 
-interface IDexWorkers {
+export interface IDexWorkers {
 	pokemonShowdown: PokemonShowdownWorker;
 }
 
@@ -344,15 +344,20 @@ export class Dex {
 			// @ts-expect-error
 			this.data.abilityKeys = dexes['gen2'].data.abilityKeys.slice();
 		} else {
-			const abilityIds = JSON.parse((await this.workers.pokemonShowdown.getAbilityIds({mod})).data) as
-				{aliases: Dict<string>; keys: string[]};
+			const abilityIdsRequest = await this.workers.pokemonShowdown.getAbilityIds({mod});
+			if (abilityIdsRequest === null) throw new Error("An error occurred while getting ability IDs");
+
+			const abilityIds = JSON.parse(abilityIdsRequest.data) as {aliases: Dict<string>; keys: string[]};
 			const abilityKeys = abilityIds.keys;
 			if (abilityKeys.length) {
 				let abilitiesCurrentIndex = 0;
 				const abilitiesEndIndex = abilityKeys.length - 1;
 				while (abilitiesCurrentIndex < abilitiesEndIndex) {
-					const batch = JSON.parse((await this.workers.pokemonShowdown.getAbilities({mod, keys: abilityKeys,
-						startIndex: abilitiesCurrentIndex})).data) as {abilities: IAbility[]; endIndex: number};
+					const abilitiesRequest = await this.workers.pokemonShowdown.getAbilities({mod, keys: abilityKeys,
+						startIndex: abilitiesCurrentIndex});
+					if (abilitiesRequest === null) throw new Error("An error occurred while getting abilities");
+
+					const batch = JSON.parse(abilitiesRequest.data) as {abilities: IAbility[]; endIndex: number};
 					if (batch.endIndex === abilitiesCurrentIndex) throw new Error("Not enough memory to load abilities");
 
 					for (const ability of batch.abilities) {
@@ -376,8 +381,10 @@ export class Dex {
 
 		// formats
 		if (this.isBase) {
-			const formatIds = JSON.parse((await this.workers.pokemonShowdown.getFormatIds({mod})).data) as
-				{aliases: Dict<string>; keys: string[]};
+			const formatIdsRequest = await this.workers.pokemonShowdown.getFormatIds({mod});
+			if (formatIdsRequest === null) throw new Error("An error occurred while getting format IDs");
+
+			const formatIds = JSON.parse(formatIdsRequest.data) as {aliases: Dict<string>; keys: string[]};
 			const links: ('info' | 'np' | 'roleCompendium' | 'teams' | 'viability')[] = ['info', 'np', 'roleCompendium', 'teams',
 					'viability'];
 
@@ -386,8 +393,11 @@ export class Dex {
 				let formatsCurrentIndex = 0;
 				const formatsEndIndex = formatKeys.length - 1;
 				while (formatsCurrentIndex < formatsEndIndex) {
-					const batch = JSON.parse((await this.workers.pokemonShowdown.getFormats({mod, keys: formatKeys,
-						startIndex: formatsCurrentIndex})).data) as {formats: IFormat[]; endIndex: number};
+					const formatsRequest = await this.workers.pokemonShowdown.getFormats({mod, keys: formatKeys,
+						startIndex: formatsCurrentIndex});
+					if (formatsRequest === null) throw new Error("An error occurred while getting formats");
+
+					const batch = JSON.parse(formatsRequest.data) as {formats: IFormat[]; endIndex: number};
 					if (batch.endIndex === formatsCurrentIndex) throw new Error("Not enough memory to load formats");
 
 					for (const item of batch.formats) {
@@ -488,14 +498,19 @@ export class Dex {
 		}
 
 		// items
-		const itemIds = JSON.parse((await this.workers.pokemonShowdown.getItemIds({mod})).data) as {aliases: Dict<string>; keys: string[]};
+		const itemIdsRequest = await this.workers.pokemonShowdown.getItemIds({mod});
+		if (itemIdsRequest === null) throw new Error("An error occurred while getting item IDs");
+
+		const itemIds = JSON.parse(itemIdsRequest.data) as {aliases: Dict<string>; keys: string[]};
 		const itemKeys = itemIds.keys;
 		if (itemKeys.length) {
 			let itemsCurrentIndex = 0;
 			const itemsEndIndex = itemKeys.length - 1;
 			while (itemsCurrentIndex < itemsEndIndex) {
-				const batch = JSON.parse((await this.workers.pokemonShowdown.getItems({mod, keys: itemKeys,
-					startIndex: itemsCurrentIndex})).data) as {items: IItem[]; endIndex: number};
+				const itemsRequest = await this.workers.pokemonShowdown.getItems({mod, keys: itemKeys, startIndex: itemsCurrentIndex});
+				if (itemsRequest === null) throw new Error("An error occurred while getting items");
+
+				const batch = JSON.parse(itemsRequest.data) as {items: IItem[]; endIndex: number};
 				if (batch.endIndex === itemsCurrentIndex) throw new Error("Not enough memory to load items");
 
 				for (const item of batch.items) {
@@ -517,15 +532,20 @@ export class Dex {
 		}
 
 		// learnsets
-		const learnsetDataIds = JSON.parse((await this.workers.pokemonShowdown.getLearnsetDataIds({mod})).data) as
-			{aliases: Dict<string>; keys: string[]};
+		const learnsetDataIdsRequest = await this.workers.pokemonShowdown.getLearnsetDataIds({mod});
+		if (learnsetDataIdsRequest === null) throw new Error("An error occurred while getting learnset data IDs");
+
+		const learnsetDataIds = JSON.parse(learnsetDataIdsRequest.data) as {aliases: Dict<string>; keys: string[]};
 		const learnsetDataKeys = learnsetDataIds.keys;
 		if (learnsetDataKeys.length) {
 			let learnsetDataCurrentIndex = 0;
 			const learnsetDataEndIndex = learnsetDataKeys.length - 1;
 			while (learnsetDataCurrentIndex < learnsetDataEndIndex) {
-				const batch = JSON.parse((await this.workers.pokemonShowdown.getLearnsetData({mod, keys: learnsetDataKeys,
-					startIndex: learnsetDataCurrentIndex})).data) as {learnsets: Dict<ILearnsetData>; endIndex: number};
+				const learnsetDataRequest = await this.workers.pokemonShowdown.getLearnsetData({mod, keys: learnsetDataKeys,
+					startIndex: learnsetDataCurrentIndex});
+				if (learnsetDataRequest === null) throw new Error("An error occurred while getting learnset data");
+
+				const batch = JSON.parse(learnsetDataRequest.data) as {learnsets: Dict<ILearnsetData>; endIndex: number};
 				if (batch.endIndex === learnsetDataCurrentIndex) throw new Error("Not enough memory to load learnset data");
 
 				for (const key in batch.learnsets) {
@@ -540,14 +560,19 @@ export class Dex {
 		}
 
 		// moves
-		const moveIds = JSON.parse((await this.workers.pokemonShowdown.getMoveIds({mod})).data) as {aliases: Dict<string>; keys: string[]};
+		const moveIdsRequest = await this.workers.pokemonShowdown.getMoveIds({mod});
+		if (moveIdsRequest === null) throw new Error("An error occurred while getting move IDs");
+
+		const moveIds = JSON.parse(moveIdsRequest.data) as {aliases: Dict<string>; keys: string[]};
 		const moveKeys = moveIds.keys;
 		if (moveKeys.length) {
 			let movesCurrentIndex = 0;
 			const movesEndIndex = moveKeys.length - 1;
 			while (movesCurrentIndex < movesEndIndex) {
-				const batch = JSON.parse((await this.workers.pokemonShowdown.getMoves({mod, keys: moveKeys,
-					startIndex: movesCurrentIndex})).data) as {moves: IMove[]; endIndex: number};
+				const movesRequest = await this.workers.pokemonShowdown.getMoves({mod, keys: moveKeys, startIndex: movesCurrentIndex});
+				if (movesRequest === null) throw new Error("An error occurred while getting moves");
+
+				const batch = JSON.parse(movesRequest.data) as {moves: IMove[]; endIndex: number};
 				if (batch.endIndex === movesCurrentIndex) throw new Error("Not enough memory to load moves");
 
 				for (const move of batch.moves) {
@@ -570,8 +595,10 @@ export class Dex {
 		}
 
 		// pokemon
-		const pokemonIds = JSON.parse((await this.workers.pokemonShowdown.getSpeciesIds({mod})).data) as
-			{aliases: Dict<string>; keys: string[]};
+		const pokemonIdsRequest = await this.workers.pokemonShowdown.getSpeciesIds({mod});
+		if (pokemonIdsRequest === null) throw new Error("An error occurred while getting Pokemon IDs");
+
+		const pokemonIds = JSON.parse(pokemonIdsRequest.data) as {aliases: Dict<string>; keys: string[]};
 
 		const formeNames: Dict<string[]> = {
 			alola: ['a', 'alola', 'alolan'],
@@ -586,8 +613,11 @@ export class Dex {
 			let pokemonCurrentIndex = 0;
 			const pokemonEndIndex = pokemonKeys.length - 1;
 			while (pokemonCurrentIndex < pokemonEndIndex) {
-				const batch = JSON.parse((await this.workers.pokemonShowdown.getSpecies({mod, keys: pokemonKeys,
-					startIndex: pokemonCurrentIndex})).data) as {pokemon: IPokemon[]; endIndex: number};
+				const pokemonRequest = await this.workers.pokemonShowdown.getSpecies({mod, keys: pokemonKeys,
+					startIndex: pokemonCurrentIndex});
+				if (pokemonRequest === null) throw new Error("An error occurred while getting Pokemon");
+
+				const batch = JSON.parse(pokemonRequest.data) as {pokemon: IPokemon[]; endIndex: number};
 				if (batch.endIndex === pokemonCurrentIndex) throw new Error("Not enough memory to load Pokemon");
 
 				for (const pokemon of batch.pokemon) {
@@ -646,8 +676,11 @@ export class Dex {
 			let allPossibleMovesCurrentIndex = 0;
 			const allPossibleMovesEndIndex = pokemonKeys.length - 1;
 			while (allPossibleMovesCurrentIndex < allPossibleMovesEndIndex) {
-				const batch = JSON.parse((await this.workers.pokemonShowdown.getAllPossibleMoves({mod, keys: pokemonKeys,
-					startIndex: allPossibleMovesCurrentIndex})).data) as {allPossibleMoves: Dict<string[]>; endIndex: number};
+				const allPossibleMovesRequest = await this.workers.pokemonShowdown.getAllPossibleMoves({mod, keys: pokemonKeys,
+					startIndex: allPossibleMovesCurrentIndex});
+				if (allPossibleMovesRequest === null) throw new Error("An error occurred while getting all possible moves");
+
+				const batch = JSON.parse(allPossibleMovesRequest.data) as {allPossibleMoves: Dict<string[]>; endIndex: number};
 
 				if (batch.endIndex === allPossibleMovesCurrentIndex) throw new Error("Not enough memory to load all possible moves");
 
@@ -660,14 +693,19 @@ export class Dex {
 		}
 
 		// types
-		const typeIds = JSON.parse((await this.workers.pokemonShowdown.getTypeIds({mod})).data) as {aliases: Dict<string>; keys: string[]};
+		const typeIdsRequest = await this.workers.pokemonShowdown.getTypeIds({mod});
+		if (typeIdsRequest === null) throw new Error("An error occurred while getting type IDs");
+
+		const typeIds = JSON.parse(typeIdsRequest.data) as {aliases: Dict<string>; keys: string[]};
 		const typeKeys = typeIds.keys;
 		if (typeKeys.length) {
 			let typesCurrentIndex = 0;
 			const typesEndIndex = typeKeys.length - 1;
 			while (typesCurrentIndex < typesEndIndex) {
-				const batch = JSON.parse((await this.workers.pokemonShowdown.getTypes({mod, keys: typeKeys,
-					startIndex: typesCurrentIndex})).data) as {types: ITypeData[]; endIndex: number};
+				const typesRequest = await this.workers.pokemonShowdown.getTypes({mod, keys: typeKeys, startIndex: typesCurrentIndex});
+				if (typesRequest === null) throw new Error("An error occurred while getting types");
+
+				const batch = JSON.parse(typesRequest.data) as {types: ITypeData[]; endIndex: number};
 
 				if (batch.endIndex === typesCurrentIndex) throw new Error("Not enough memory to load types");
 

@@ -74,7 +74,7 @@ const sharedCommandDefinitions: Dict<ICommandDefinition<Game, GameCommandReturnT
 	},
 };
 
-interface IGamesWorkers {
+export interface IGamesWorkers {
 	parameters: ParametersWorker;
 	portmanteaus: PortmanteausWorker;
 }
