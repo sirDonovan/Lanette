@@ -24,7 +24,7 @@ module.exports = (async(): Promise<void> => {
 	global.Storage = new storage.Storage();
 	global.Tournaments = new tournaments.Tournaments();
 	global.Users = new users.Users();
-	global.Games = new games.Games();
+	games.instantiate();
 
 	Storage.importDatabases();
 	Tournaments.loadSchedules();

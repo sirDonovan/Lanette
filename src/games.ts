@@ -18,6 +18,8 @@ import type { User } from './users';
 import { ParametersWorker } from './workers/parameters';
 import { PortmanteausWorker } from './workers/portmanteaus';
 
+type AutoCreateTimerType = 'scripted' | 'userhosted';
+
 const DEFAULT_CATEGORY_COOLDOWN = 3;
 
 const gamesDirectory = path.join(__dirname, 'games');
@@ -91,9 +93,11 @@ export class Games {
 	readonly achievementNames: Dict<string> = {};
 	readonly aliases: Dict<string> = {};
 	autoCreateTimers: Dict<NodeJS.Timer> = {};
+	autoCreateTimerData: Dict<{endTime: number, type: AutoCreateTimerType}> = {};
 	readonly formats: Dict<DeepReadonly<IGameFormatData>> = {};
 	readonly freejoinFormatTargets: string[] = [];
 	gameCooldownMessageTimers: Dict<NodeJS.Timer> = {};
+	gameCooldownMessageTimerData: Dict<{endTime: number, minigameCooldownMinutes: number}> = {};
 	// @ts-expect-error - set in loadFormats()
 	readonly internalFormats: KeyedDict<IInternalGames, DeepReadonly<IGameFormatData>> = {};
 	lastGames: Dict<number> = {};
@@ -106,6 +110,8 @@ export class Games {
 	readonly modes: Dict<IGameMode> = {};
 	readonly modeAliases: Dict<string> = {};
 	reloadInProgress: boolean = false;
+	// @ts-expect-error - set in loadFormats()
+	readonly userHosted: typeof import('./games/internal/user-hosted').game;
 	readonly userHostedAliases: Dict<string> = {};
 	readonly userHostedFormats: Dict<IUserHostedComputed> = {};
 	readonly workers: IGamesWorkers = {
@@ -115,26 +121,58 @@ export class Games {
 
 	readonly commands: GameCommandsDict;
 	readonly sharedCommands: GameCommandsDict;
-	readonly userHosted: typeof import('./games/internal/user-hosted').game;
 
 	constructor() {
 		const sharedCommands = CommandParser.loadCommands(sharedCommandDefinitions);
 		this.sharedCommands = sharedCommands;
 		this.commands = Object.assign(Object.create(null), sharedCommands) as GameCommandsDict;
-
-		// eslint-disable-next-line @typescript-eslint/no-var-requires
-		this.userHosted = (require(path.join(gamesDirectory, "internal", "user-hosted.js")) as
-			typeof import('./games/internal/user-hosted')).game;
 	}
 
 	onReload(previous: Partial<Games>): void {
-		if (previous.autoCreateTimers) this.autoCreateTimers = previous.autoCreateTimers;
-		if (previous.gameCooldownMessageTimers) this.gameCooldownMessageTimers = previous.gameCooldownMessageTimers;
-		if (previous.lastGames) this.lastGames = previous.lastGames;
-		if (previous.lastMinigames) this.lastMinigames = previous.lastMinigames;
-		if (previous.lastScriptedGames) this.lastScriptedGames = previous.lastScriptedGames;
-		if (previous.lastUserHostedGames) this.lastUserHostedGames = previous.lastUserHostedGames;
-		if (previous.lastUserHostTimes) this.lastUserHostTimes = previous.lastUserHostTimes;
+		if (previous.autoCreateTimers) {
+			for (const i in previous.autoCreateTimers) {
+				clearTimeout(previous.autoCreateTimers[i]);
+				delete previous.autoCreateTimers[i];
+			}
+
+			for (const i in previous.autoCreateTimerData) {
+				const room = Rooms.get(i);
+				if (room) {
+					const data = previous.autoCreateTimerData[i];
+					let timer = data.endTime - Date.now();
+					if (timer < 5000) timer = 5000;
+					this.setAutoCreateTimer(room, data.type, timer);
+				}
+			}
+		}
+
+		if (previous.gameCooldownMessageTimers) {
+			for (const i in previous.gameCooldownMessageTimers) {
+				clearTimeout(previous.gameCooldownMessageTimers[i]);
+				delete previous.gameCooldownMessageTimers[i];
+			}
+
+			for (const i in previous.gameCooldownMessageTimerData) {
+				const room = Rooms.get(i);
+				if (room) {
+					const data = previous.gameCooldownMessageTimerData[i];
+					let timer = data.endTime - Date.now();
+					if (timer < 5000) timer = 5000;
+					this.setGameCooldownMessageTimer(room, data.minigameCooldownMinutes, timer);
+				}
+			}
+		}
+
+		if (previous.lastGames) Object.assign(this.lastGames, previous.lastGames);
+		if (previous.lastMinigames) Object.assign(this.lastMinigames, previous.lastMinigames);
+		if (previous.lastScriptedGames) Object.assign(this.lastScriptedGames, previous.lastScriptedGames);
+		if (previous.lastUserHostedGames) Object.assign(this.lastUserHostedGames, previous.lastUserHostedGames);
+		if (previous.lastUserHostTimes) Object.assign(this.lastUserHostTimes, previous.lastUserHostTimes);
+
+		for (const i in previous) {
+			// @ts-expect-error
+			delete previous[i];
+		}
 
 		this.loadFormats();
 		if (Config.gameCatalogGists) {
@@ -178,6 +216,10 @@ export class Games {
 	}
 
 	loadFormats(): void {
+		// @ts-expect-error
+		this.userHosted = (require(path.join(gamesDirectory, "internal", "user-hosted.js")) as // eslint-disable-line @typescript-eslint/no-var-requires
+			typeof import('./games/internal/user-hosted')).game;
+
 		const internalGameKeys = Object.keys(internalGamePaths) as (keyof IInternalGames)[];
 		for (const key of internalGameKeys) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires
@@ -771,7 +813,7 @@ export class Games {
 	}
 
 	createGame(room: Room | User, format: IGameFormat, pmRoom?: Room, isMinigame?: boolean, initialSeed?: PRNGSeed): Game {
-		if (!isMinigame && room.id in this.autoCreateTimers) clearTimeout(this.autoCreateTimers[room.id]);
+		if (!isMinigame) this.clearAutoCreateTimer(room as Room);
 
 		if (format.class.loadData && !format.class.loadedData) {
 			room.say("Loading data for " + Users.self.name + "'s first " + format.name + " game since updating...");
@@ -791,7 +833,7 @@ export class Games {
 	}
 
 	createUserHostedGame(room: Room, format: IUserHostedFormat, host: User | string): UserHosted {
-		if (room.id in this.autoCreateTimers) clearTimeout(this.autoCreateTimers[room.id]);
+		this.clearAutoCreateTimer(room);
 
 		room.userHostedGame = new format.class(room);
 		room.userHostedGame.initialize(format);
@@ -800,19 +842,40 @@ export class Games {
 		return room.userHostedGame;
 	}
 
-	setAutoCreateTimer(room: Room, type: 'scripted' | 'userhosted', timer: number): void {
-		if (room.id in this.autoCreateTimers) clearTimeout(this.autoCreateTimers[room.id]);
+	setAutoCreateTimer(room: Room, type: AutoCreateTimerType, timer: number): void {
+		this.clearAutoCreateTimer(room);
+
+		this.autoCreateTimerData[room.id] = {endTime: Date.now() + timer, type};
 		this.autoCreateTimers[room.id] = setTimeout(() => {
 			if (global.Games.reloadInProgress || (room.game && room.game.isMiniGame)) {
 				this.setAutoCreateTimer(room, type, 5 * 1000);
 				return;
 			}
+
+			delete this.autoCreateTimerData[room.id];
 			const database = Storage.getDatabase(room);
 			if (type === 'scripted' || !database.userHostedGameQueue || !database.userHostedGameQueue.length) {
 				void CommandParser.parse(room, Users.self, Config.commandCharacter + "startvote");
 			} else if (type === 'userhosted') {
 				void CommandParser.parse(room, Users.self, Config.commandCharacter + "nexthost");
 			}
+		}, timer);
+	}
+
+	clearAutoCreateTimer(room: Room): void {
+		if (room.id in this.autoCreateTimers) clearTimeout(this.autoCreateTimers[room.id]);
+		delete this.autoCreateTimerData[room.id];
+	}
+
+	setGameCooldownMessageTimer(room: Room, minigameCooldownMinutes: number, timer?: number): void {
+		if (!timer) timer = minigameCooldownMinutes * 60 * 1000;
+
+		this.gameCooldownMessageTimerData[room.id] = {endTime: Date.now() + timer, minigameCooldownMinutes};
+		this.gameCooldownMessageTimers[room.id] = setTimeout(() => {
+			delete this.gameCooldownMessageTimerData[room.id];
+			delete this.gameCooldownMessageTimers[room.id];
+			room.say("There " + (minigameCooldownMinutes === 1 ? "is **1 minute**" : "are **" + minigameCooldownMinutes +
+				" minutes**") + " of the game cooldown remaining so minigames can now be played!");
 		}, timer);
 	}
 
@@ -1055,3 +1118,14 @@ export class Games {
 			{[filename]: {content: document.join("\n").trim(), filename}});
 	}
 }
+
+export const instantiate = (): void => {
+	const oldGames: Games | undefined = global.Games;
+
+	global.Games = new Games();
+
+	if (oldGames) {
+		global.Games.onReload(oldGames);
+		Tools.updateNodeModule(__filename, module);
+	}
+};

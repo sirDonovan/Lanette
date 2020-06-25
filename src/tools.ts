@@ -614,6 +614,7 @@ export class Tools {
 				const child = nodeModule.children[i];
 				if (child.filename === filepath) {
 					nodeModule.children[i] = newNodeModule;
+					if (child !== newNodeModule) delete child.children;
 				} else {
 					this.updateChildNodeModules(child, filepath, newNodeModule);
 				}

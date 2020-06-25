@@ -177,14 +177,13 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 						if (!modules.includes('games')) Games.reloadInProgress = false;
 					} else if (moduleId === 'games') {
 						const filename = 'games';
-						const oldGames = global.Games;
 						Games.unrefWorkers();
 						Tools.uncacheTree('./' + filename);
 						Tools.uncacheTree('./room-activity');
+
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
 						const games = require('./' + filename) as typeof import('./games');
-						global.Games = new games.Games();
-						Games.onReload(oldGames);
+						games.instantiate();
 					} else if (moduleId === 'plugins') {
 						if (Plugins) {
 							for (const plugin of Plugins) {

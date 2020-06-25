@@ -68,7 +68,7 @@ export class UserHosted extends Game {
 	onDeallocate(): void {
 		if (this.gameTimer) clearTimeout(this.gameTimer);
 		if (this.hostTimeout) clearTimeout(this.hostTimeout);
-		this.room.userHostedGame = null;
+		delete this.room.userHostedGame;
 	}
 
 	onAfterDeallocate(forceEnd?: boolean): void {

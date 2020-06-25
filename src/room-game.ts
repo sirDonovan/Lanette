@@ -244,7 +244,7 @@ export class Game extends Activity {
 		if (!this.ended) this.ended = true;
 		this.cleanupMessageListeners();
 		if (this.onDeallocate) this.onDeallocate(forceEnd);
-		if (!this.isUserHosted) this.room.game = null;
+		if (!this.isUserHosted) delete this.room.game;
 
 		if (this.parentGame) {
 			this.room.game = this.parentGame;
@@ -418,13 +418,7 @@ export class Game extends Activity {
 			if (Config.gameCooldownTimers && this.room.id in Config.gameCooldownTimers) {
 				this.say("The **" + Config.gameCooldownTimers[this.room.id] + "-minute cooldown** until the next game starts now!");
 				const minigameCooldownMinutes = Config.gameCooldownTimers[this.room.id] / 2;
-				if (minigameCooldownMinutes >= 1) {
-					Games.gameCooldownMessageTimers[this.room.id] = setTimeout(() => {
-						delete Games.gameCooldownMessageTimers[this.room.id];
-						this.room.say("There " + (minigameCooldownMinutes === 1 ? "is **1 minute**" : "are **" + minigameCooldownMinutes +
-							" minutes**") + " of the game cooldown remaining so minigames can now be played!");
-					}, minigameCooldownMinutes * 60 * 1000);
-				}
+				if (minigameCooldownMinutes >= 1) Games.setGameCooldownMessageTimer(this.room, minigameCooldownMinutes);
 			}
 
 			if (Config.gameAutoCreateTimers && this.room.id in Config.gameAutoCreateTimers) {
