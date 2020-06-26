@@ -160,7 +160,7 @@ export abstract class CardHighLow extends Card {
 				this.timeout = setTimeout(() => this.nextRound(), 5000);
 			}
 		});
-		this.sayUhtmlChange(uhtmlName, html);
+		this.sayUhtml(uhtmlName, html);
 	}
 
 	onNextRound(): void {

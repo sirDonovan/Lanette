@@ -295,16 +295,21 @@ export class Game extends Activity {
 			this.startTime = Date.now();
 		} else if (!this.internalGame && !this.isUserHosted && !this.isMiniGame) {
 			if (Config.gameAutoStartTimers && this.room.id in Config.gameAutoStartTimers) {
-				const startTimer = Config.gameAutoStartTimers[this.room.id] * 60 * 1000;
+				const startTimer = (Config.gameAutoStartTimers[this.room.id] * 60 * 1000) / 2;
 				this.startTimer = setTimeout(() => {
-					if (!this.start()) {
-						this.startTimer = setTimeout(() => {
-							if (!this.start()) {
-								this.say("Ending the game due to a lack of players.");
-								this.deallocate(false);
-							}
-						}, startTimer);
-					}
+					if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
+					this.sayUhtml(this.signupsUhtmlName, this.getSignupsHtmlUpdate());
+
+					this.startTimer = setTimeout(() => {
+						if (!this.start()) {
+							this.startTimer = setTimeout(() => {
+								if (!this.start()) {
+									this.say("Ending the game due to a lack of players.");
+									this.deallocate(false);
+								}
+							}, startTimer);
+						}
+					}, startTimer);
 				}, startTimer);
 			}
 		}

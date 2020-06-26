@@ -78,7 +78,7 @@ class PluslesAdditiveParameters extends Game {
 			this.onUhtml(uhtmlName, html, () => {
 				this.timeout = setTimeout(() => this.nextRound(), 5000);
 			});
-			this.sayUhtmlChange(uhtmlName, html);
+			this.sayUhtml(uhtmlName, html);
 			return;
 		}
 
