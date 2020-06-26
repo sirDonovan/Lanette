@@ -1205,9 +1205,16 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 		},
 	},
 	gametimer: {
-		command(target, room, user) {
+		command(target, room, user, cmd) {
 			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
-			const id = Tools.toId(target);
+			let targets: string[];
+			if (target.includes(',')) {
+				targets = target.split(',');
+			} else {
+				targets = target.split(' ');
+			}
+
+			const id = Tools.toId(targets[0]);
 			if (id === 'off' || id === 'end') {
 				if (!room.userHostedGame.gameTimer) return this.say("There is no game timer running.");
 				clearTimeout(room.userHostedGame.gameTimer);
@@ -1215,23 +1222,41 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 				return this.say("The game timer has been turned off.");
 			}
 
+			const now = Date.now();
+			let seconds: boolean;
 			let time: number;
-			if (id.length === 1) {
-				time = parseInt(id) * 60;
+			if (cmd.includes('rand')) {
+				seconds = Tools.toId(targets[0]) === 'seconds';
+				if (seconds) {
+					time = room.userHostedGame.random(60) + 1;
+				} else {
+					time = room.userHostedGame.random(Math.floor((room.userHostedGame.endTime - now) / 60 / 1000) / 3) + 1;
+				}
 			} else {
-				time = parseInt(id);
+				seconds = Tools.toId(targets[1]) === 'seconds';
+				time = parseFloat(targets[0].trim());
 			}
-			if (isNaN(time) || time > 600 || time < 5) return this.say("Please enter an amount of time between 5 seconds and 10 minutes.");
-			time *= 1000;
+
+			if (seconds) {
+				if (isNaN(time) || time > 60 || time < 3) return this.say("Please enter an amount of seconds between 3 and 60.");
+				time *= 1000;
+			} else {
+				if (isNaN(time) || time < 1) return this.say("Please enter a valid amount of minutes (add `` seconds`` to use seconds).");
+				time *= 60 * 1000;
+			}
+
+			if (now + time > room.userHostedGame.endTime) {
+				return this.say("There are only " + Tools.toDurationString(room.userHostedGame.endTime - now) + " left in the game!");
+			}
 
 			if (room.userHostedGame.gameTimer) clearTimeout(room.userHostedGame.gameTimer);
 			room.userHostedGame.gameTimer = setTimeout(() => {
-				room.say("Time is up!");
+				room.say(user.name + ": time is up!");
 				room.userHostedGame!.gameTimer = null;
 			}, time);
 			this.say("Game timer set for: " + Tools.toDurationString(time) + ".");
 		},
-		aliases: ['gtimer'],
+		aliases: ['gtimer', 'randomgametimer', 'randomgtimer', 'randgametimer', 'randgtimer'],
 	},
 	gamecap: {
 		command(target, room, user) {
