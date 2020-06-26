@@ -1,8 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/naming-convention
 import worker_threads = require('worker_threads');
 
-const UNREF_TIMER = 30 * 60 * 1000;
-
 interface IWorkerQueueItem<T> {
 	resolve: PromiseResolve<T>;
 	messageNumber: number;
@@ -28,9 +26,6 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse> {
 		if (!this.sendMessages) return Promise.resolve(null);
 
 		this.init();
-
-		if (this.unrefTimer) clearTimeout(this.unrefTimer);
-		this.unrefTimer = setTimeout(() => this.unref(), UNREF_TIMER);
 
 		this.isBusy = true;
 
