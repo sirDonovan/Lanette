@@ -15,7 +15,7 @@ import * as tournaments from './tournaments';
 import * as users from './users';
 
 module.exports = (async(): Promise<void> => {
-	global.Tools = new tools.Tools();
+	tools.instantiate();
 	global.Config = ConfigLoader.load(config);
 	await dex.instantiate();
 	client.instantiate();

@@ -101,6 +101,11 @@ export class Tools {
 
 	onReload(previous: Partial<Tools>): void {
 		if (previous.lastGithubApiCall) this.lastGithubApiCall = previous.lastGithubApiCall;
+
+		for (const i in previous) {
+			// @ts-expect-error
+			delete previous[i];
+		}
 	}
 
 	random(limit?: number, prng?: PRNG): number {
@@ -622,3 +627,14 @@ export class Tools {
 		}
 	}
 }
+
+export const instantiate = (): void => {
+	const oldTools: Tools | undefined = global.Tools;
+
+	global.Tools = new Tools();
+
+	if (oldTools) {
+		global.Tools.onReload(oldTools);
+		global.Tools.updateNodeModule(__filename, module);
+	}
+};

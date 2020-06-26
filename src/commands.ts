@@ -209,12 +209,11 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 						storage.instantiate();
 					} else if (moduleId === 'tools') {
 						const filename = "tools";
-						const oldTools = global.Tools;
 						Tools.uncacheTree('./' + filename);
+
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
 						const tools = require('./' + filename) as typeof import('./tools');
-						global.Tools = new tools.Tools();
-						Tools.onReload(oldTools);
+						tools.instantiate();
 					} else if (moduleId === 'tournaments') {
 						const filename = "tournaments";
 						const oldTournaments = global.Tournaments;
