@@ -159,6 +159,7 @@ export class Users {
 		user.rooms.forEach((value, room) => {
 			if (room.game) room.game.renamePlayer(user, oldId);
 			if (room.tournament) room.tournament.renamePlayer(user, oldId);
+			if (room.userHostedGame) room.userHostedGame.renamePlayer(user, oldId);
 		});
 
 		return user;
