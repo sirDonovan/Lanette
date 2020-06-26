@@ -6,6 +6,7 @@ import type { GameCommandReturnType, IGameCommandDefinition, IGameFile } from ".
 import type { User } from "../users";
 
 const GRID_SIZE = 4;
+const LAST_MOVES_LIMIT = 2;
 
 const data: {allPossibleMoves: Dict<readonly string[]>; pokedex: string[]} = {
 	allPossibleMoves: {},
@@ -13,10 +14,10 @@ const data: {allPossibleMoves: Dict<readonly string[]>; pokedex: string[]} = {
 };
 
 class TrevenantsTrickOrTreat extends Game {
+	indicesToReplace = new Set();
+	lastMoves = new Map<Player, string[]>();
 	points = new Map<Player, number>();
 	pokemonGrid: string[][] = [];
-	hasAnswered = new Set<Player>();
-	indicesToReplace = new Set();
 	timeout: NodeJS.Timer | null = null;
 
 	pokemonList: string[];
@@ -91,8 +92,14 @@ const commands: Dict<IGameCommandDefinition<TrevenantsTrickOrTreat>> = {
 				user.say("'" + target + "' is not a valid move.");
 				return false;
 			}
+
 			const player = this.createPlayer(user) || this.players[user.id];
-			this.hasAnswered.add(player);
+			const lastMoves = this.lastMoves.get(player) || [];
+			if (lastMoves.includes(move.id)) {
+				user.say("You must use at least " + LAST_MOVES_LIMIT + " other moves before using " + move.name + " again.");
+				return false;
+			}
+
 			const indices: [number, number][] = [];
 			for (let i = 0; i < GRID_SIZE; i++) {
 				for (let j = 0; j < GRID_SIZE; j++) {
@@ -113,6 +120,10 @@ const commands: Dict<IGameCommandDefinition<TrevenantsTrickOrTreat>> = {
 					Tools.joinList(indices.map(index => this.pokemonGrid[index[0]][index[1]])) + ").");
 				return false;
 			}
+
+			if (lastMoves.length === LAST_MOVES_LIMIT) lastMoves.shift();
+			lastMoves.push(move.id);
+			this.lastMoves.set(player, lastMoves);
 
 			const points = this.points.get(player) || 0;
 			let earnedPoints = 0;
