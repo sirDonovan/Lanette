@@ -15,7 +15,6 @@ describe("Client", () => {
 
 		// close the room tab
 		Client.parseMessage(room, "|L|+Voice");
-		assert(!voiceUser.rooms.has(room));
 		assert(!Users.get('Voice'));
 
 		Client.parseMessage(room, "|J|+Voice");
@@ -24,8 +23,42 @@ describe("Client", () => {
 
 		// use /logout
 		Client.parseMessage(room, "|L|voice");
-		assert(!voiceUser.rooms.has(room));
 		assert(!Users.get('Voice'));
+	});
+	it('should support all rename scenarios', () => {
+		const room = Rooms.get('mocha')!;
+
+		// different name
+		Client.parseMessage(room, "|J| A");
+		let user = Users.get("A")!;
+		Client.parseMessage(room, "|N| B|a");
+		assertStrictEqual(Users.get("B"), user);
+		assertStrictEqual(user.name, "B");
+		Client.parseMessage(room, "|L| B");
+
+		// promotion
+		Client.parseMessage(room, "|J| A");
+		user = Users.get("A")!;
+		Client.parseMessage(room, "|N|+A|a");
+		assertStrictEqual(Users.get("A"), user);
+		assertStrictEqual(user.rooms.get(room)!.rank, "+");
+		Client.parseMessage(room, "|L|+A");
+
+		// same name
+		Client.parseMessage(room, "|J| Regular");
+		user = Users.get("Regular")!;
+		Client.parseMessage(room, "|N| REGULAR|regular");
+		assertStrictEqual(Users.get("REGULAR"), user);
+		assertStrictEqual(user.name, "REGULAR");
+		Client.parseMessage(room, "|L| REGULAR");
+
+		// merging users
+		Client.parseMessage(room, "|J| A");
+		user = Users.get("A")!;
+		Client.parseMessage(room, "|J| B");
+		Client.parseMessage(room, "|N| B|a");
+		assert(Users.get("B") !== user);
+		Client.parseMessage(room, "|L| B");
 	});
 	it('should properly parse PM messages', () => {
 		const room = Rooms.add('lobby');
