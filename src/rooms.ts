@@ -51,6 +51,10 @@ export class Room {
 		if (this.tournament && this.tournament.room === this) this.tournament.deallocate();
 		if (this.userHostedGame && this.userHostedGame.room === this) this.userHostedGame.deallocate(true);
 
+		for (const i in this.timers) {
+			clearTimeout(this.timers[i]);
+		}
+
 		this.users.forEach(user => {
 			user.rooms.delete(this);
 			if (!user.rooms.size) Users.remove(user);
@@ -159,7 +163,14 @@ export class Rooms {
 
 	remove(room: Room): void {
 		room.deInit();
-		delete this.rooms[room.id];
+
+		const id = room.id;
+		for (const i in room) {
+			// @ts-expect-error
+			delete room[i];
+		}
+
+		delete this.rooms[id];
 	}
 
 	removeAll(): void {
@@ -184,3 +195,13 @@ export class Rooms {
 		}
 	}
 }
+
+export const instantiate = (): void => {
+	const oldRooms: Rooms | undefined = global.Rooms;
+
+	global.Rooms = new Rooms();
+
+	if (oldRooms) {
+		Tools.updateNodeModule(__filename, module);
+	}
+};
