@@ -483,7 +483,7 @@ export class Game extends Activity {
 		if (!player) return;
 
 		if (!silent) {
-			player.say("You have left the " + this.name + " " + this.activityType + ".");
+			player.say("You have left " + (!this.isUserHosted ? "the " : "") + this.name + " " + this.activityType + ".");
 		}
 
 		if (this.format.options.freejoin) return;
