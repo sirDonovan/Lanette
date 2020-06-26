@@ -20,10 +20,10 @@ module.exports = (async(): Promise<void> => {
 	await dex.instantiate();
 	client.instantiate();
 	commandParser.instantiate();
-	global.Storage = new storage.Storage();
 	global.Tournaments = new tournaments.Tournaments();
 	global.Users = new users.Users();
 	rooms.instantiate();
+	storage.instantiate();
 	games.instantiate();
 
 	Storage.importDatabases();

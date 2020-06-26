@@ -201,13 +201,12 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 						reloadCommands(modules);
 					} else if (moduleId === 'storage') {
 						const filename = "storage";
-						const oldStorage = global.Storage;
 						Storage.unrefWorkers();
 						Tools.uncacheTree('./' + filename);
+
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
 						const storage = require('./' + filename) as typeof import('./storage');
-						global.Storage = new storage.Storage();
-						Storage.onReload(oldStorage);
+						storage.instantiate();
 					} else if (moduleId === 'tools') {
 						const filename = "tools";
 						const oldTools = global.Tools;

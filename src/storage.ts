@@ -33,17 +33,21 @@ export class Storage {
 	globalDatabaseExportInterval: NodeJS.Timer;
 
 	constructor() {
-		this.globalDatabaseExportInterval = this.setGlobalDatabaseExportInterval();
+		this.globalDatabaseExportInterval = setInterval(() => this.exportDatabase(globalDatabaseId), 15 * 60 * 1000);
 	}
 
 	onReload(previous: Partial<Storage>): void {
-		if (previous.chatLogFilePathCache) this.chatLogFilePathCache = previous.chatLogFilePathCache;
-		if (previous.chatLogRolloverTimes) this.chatLogRolloverTimes = previous.chatLogRolloverTimes;
-		if (previous.databases) this.databases = previous.databases;
-		if (previous.loadedDatabases) this.loadedDatabases = previous.loadedDatabases;
+		if (previous.chatLogFilePathCache) Object.assign(this.chatLogFilePathCache, previous.chatLogFilePathCache);
+		if (previous.chatLogRolloverTimes) Object.assign(this.chatLogRolloverTimes, previous.chatLogRolloverTimes);
+		if (previous.databases) Object.assign(this.databases, previous.databases);
+		if (previous.loadedDatabases) this.loadedDatabases = !!previous.loadedDatabases;
 
 		if (previous.globalDatabaseExportInterval) clearInterval(previous.globalDatabaseExportInterval);
-		this.globalDatabaseExportInterval = this.setGlobalDatabaseExportInterval();
+
+		for (const i in previous) {
+			// @ts-expect-error
+			delete previous[i];
+		}
 	}
 
 	unrefWorkers(): void {
@@ -52,10 +56,6 @@ export class Storage {
 			this.workers[worker].unref();
 			delete this.workers[worker];
 		}
-	}
-
-	setGlobalDatabaseExportInterval(): NodeJS.Timer {
-		return setInterval(() => this.exportDatabase(globalDatabaseId), 15 * 60 * 1000);
 	}
 
 	getDatabase(room: Room): IDatabase {
@@ -347,3 +347,14 @@ export class Storage {
 		database.lastSeen[user.id] = time;
 	}
 }
+
+export const instantiate = (): void => {
+	const oldStorage: Storage | undefined = global.Storage;
+
+	global.Storage = new Storage();
+
+	if (oldStorage) {
+		global.Storage.onReload(oldStorage);
+		Tools.updateNodeModule(__filename, module);
+	}
+};
