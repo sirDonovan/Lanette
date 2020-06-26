@@ -26,7 +26,7 @@ export class Storage {
 	lastSeenExpirationDuration = Tools.toDurationString(LAST_SEEN_EXPIRATION);
 	loadedDatabases: boolean = false;
 	reloadInProgress: boolean = false;
-	workers: IStorageWorkers = {
+	readonly workers: IStorageWorkers = {
 		logs: new LogsWorker(),
 	};
 
@@ -54,6 +54,7 @@ export class Storage {
 		const workers = Object.keys(this.workers) as (keyof IStorageWorkers)[];
 		for (const worker of workers) {
 			this.workers[worker].unref();
+			// @ts-expect-error
 			delete this.workers[worker];
 		}
 	}

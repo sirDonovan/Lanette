@@ -10,15 +10,15 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse> {
 	abstract threadPath: string;
 
 	isBusy: boolean = false;
-	workerData: WorkerData | null = null;
+	workerData: WorkerData | undefined = undefined;
 
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	protected worker: worker_threads.Worker | null = null;
+	protected worker: worker_threads.Worker | undefined = undefined;
 
 	private messageNumber: number = 0;
 	private messageQueue: IWorkerQueueItem<ThreadResponse>[] = [];
 	private sendMessages: boolean = true;
-	private unrefTimer: NodeJS.Timer | null = null;
+	private unrefTimer: NodeJS.Timer | undefined = undefined;
 
 	abstract loadData(): WorkerData;
 
@@ -87,6 +87,7 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse> {
 			delete this.worker;
 		}
 
+		// @ts-expect-error
 		delete this.messageQueue;
 		delete this.workerData;
 	}

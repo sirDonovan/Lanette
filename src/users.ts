@@ -11,7 +11,7 @@ const chatFormatting: string[] = ["*", "_", "`", "~", "^", "\\"];
 
 export class User {
 	away: boolean | null = null;
-	game: Game | null = null;
+	game: Game | undefined = undefined;
 	group: string | null = null;
 	rooms = new Map<Room, IUserRoomData>();
 	status: string | null = null;

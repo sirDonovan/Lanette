@@ -13,15 +13,15 @@ export class Room {
 	approvedUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
 	bannedWords: string[] | null = null;
 	bannedWordsRegex: RegExp | null = null;
-	game: Game | null = null;
+	game: Game | undefined = undefined;
 	readonly htmlMessageListeners: Dict<() => void> = {};
 	readonly messageListeners: Dict<() => void> = {};
 	modchat: string = 'off';
 	newUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
 	timers: Dict<NodeJS.Timer> | null = null;
-	tournament: Tournament | null = null;
+	tournament: Tournament | undefined = undefined;
 	readonly uhtmlMessageListeners: Dict<Dict<() => void>> = {};
-	userHostedGame: UserHosted | null = null;
+	userHostedGame: UserHosted | undefined = undefined;
 	readonly users = new Set<User>();
 
 	readonly id: string;

@@ -131,7 +131,7 @@ export class Tournament extends Activity {
 	deallocate(): void {
 		if (this.adjustCapTimer) clearTimeout(this.adjustCapTimer);
 		if (this.startTimer) clearTimeout(this.startTimer);
-		this.room.tournament = null;
+		delete this.room.tournament;
 	}
 
 	start(): void {

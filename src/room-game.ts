@@ -231,6 +231,7 @@ export class Game extends Activity {
 			this.mascot = Dex.getPokemonCopy(this.sampleOne(format.mascots));
 		}
 		if (format.variant) {
+			// @ts-expect-error
 			delete format.variant.name;
 			Object.assign(this, format.variant);
 		}
