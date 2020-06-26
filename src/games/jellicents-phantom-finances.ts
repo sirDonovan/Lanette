@@ -9,7 +9,7 @@ import {
 	BoardActionSpace, BoardPropertyGame, BoardPropertyRentSpace, BoardRentSpace, game as boardPropertyGame, mountainPrefix
 } from "./templates/board-property";
 
-const DONATE_ACTION_AMOUNT = 100;
+const DONATE_ACTION_MAX = 5;
 const BID_MULTIPLE = 5;
 const POKE_DOLLAR = "Poké";
 const JELLICENT_CARD = "Jellicent Card";
@@ -145,8 +145,9 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 		this.baseActionCards = [
 			function(this: JellicentsPhantomFinances, player): void {
 				const currency = this.playerCurrency.get(player)!;
+				const donationAmount = (this.random(DONATE_ACTION_MAX) + 1) * 100;
 				let text: string;
-				if (currency >= DONATE_ACTION_AMOUNT) {
+				if (currency >= donationAmount) {
 					const players = this.shufflePlayers();
 					let randomPlayer = players[0];
 					players.shift();
@@ -156,11 +157,11 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 					}
 
 					let randomPlayerCurrency = this.playerCurrency.get(randomPlayer)!;
-					randomPlayerCurrency += DONATE_ACTION_AMOUNT;
+					randomPlayerCurrency += donationAmount;
 					this.playerCurrency.set(randomPlayer, randomPlayerCurrency);
-					this.playerCurrency.set(player, currency - DONATE_ACTION_AMOUNT);
-					text = "They are feeling generous and donate **" + DONATE_ACTION_AMOUNT + " " + (DONATE_ACTION_AMOUNT > 1 ?
-						this.currencyPluralName : this.currencyName) + "** to **" + randomPlayer.name + "**!";
+					this.playerCurrency.set(player, currency - donationAmount);
+					text = "They are feeling generous and donate **" + donationAmount + " " + this.currencyPluralName + "** to **" +
+						randomPlayer.name + "**!";
 				} else {
 					text = "They were feeling generous but they do not have enough " + this.currencyPluralName + " to give any away!";
 				}
@@ -171,28 +172,8 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 				this.say(text);
 			},
 			function(this: JellicentsPhantomFinances, player): void {
-				const location = this.getSpaceLocation(this.spaces.ultraspace)!;
-				this.playerLocations.set(player, location);
-				const text = "They go through a strange portal and end up in " + this.spaces.ultraspace.name + "!";
-				this.on(text, () => {
-					this.timeout = setTimeout(() => this.onSpaceLanding(player, 0, Object.assign(location, {passedSpaces: []}), true),
-						this.roundTime);
-				});
-				this.say(text);
-			},
-			function(this: JellicentsPhantomFinances, player): void {
-				const location = this.getSpaceLocation(this.spaces.castelia)!;
-				this.playerLocations.set(player, location);
-				const text = "They travel to **" + this.spaces.castelia.name + "** to get a Casteliacone!";
-				this.on(text, () => {
-					this.timeout = setTimeout(() => this.onSpaceLanding(player, 0, Object.assign(location, {passedSpaces: []}), true),
-						this.roundTime);
-				});
-				this.say(text);
-			},
-			function(this: JellicentsPhantomFinances, player): void {
 				let text = "A Delibird appeared and used Present!";
-				if (this.random(2)) {
+				if (this.random(4)) {
 					text += " It didn't have any " + this.currencyPluralName + " to give!";
 				} else {
 					const amount = (this.random(5) + 1) * 100;
