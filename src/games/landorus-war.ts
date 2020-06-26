@@ -92,7 +92,8 @@ class LandorusWar extends Game {
 
 		let html = "<div class='infobox'>";
 		html += "<b>Remaining Pokemon</b>: " + this.pokemonList.join(", ") + "<br /><br />";
-		html += "<b>Remaining players (" + remainingPlayerCount + ")</b>: " + this.playerAliasesList.join(", ") + "<br /><br />";
+		html += "<b>Remaining players (" + remainingPlayerCount + ")</b>: " + this.shuffle(this.playerAliasesList).join(", ") +
+			"<br /><br />";
 		html += "Use <code>" + Config.commandCharacter + "use [move], [trainer]</code> and <code>" + Config.commandCharacter +
 			"suspect [trainer], [Pokemon]</code> in PMs!";
 		html += "</div>";
