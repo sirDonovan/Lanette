@@ -5,21 +5,48 @@ import type { GameCommandReturnType, IGameCommandDefinition, IGameFile } from ".
 import type { User } from "../users";
 
 const terrains = {
+	'Basic': 'Normal',
+	'Cavernous': 'Dragon',
+	'Cloudy': 'Flying',
+	'Electric': 'Electric',
+	'Grassy': 'Grass',
+	'Infested': 'Bug',
+	'Metallic': 'Steel',
+	'Misty': 'Fairy',
 	'Molten': 'Fire',
+	'Psychic': 'Psychic',
 	'Rocky': 'Rock',
 	'Sandy': 'Ground',
+	'Shady': 'Dark',
+	'Snowy': 'Ice',
+	'Spooky': 'Ghost',
 	'Swampy': 'Water',
+	'Venomous': 'Poison',
+	'Violent': 'Fighting',
 };
 type TerrainKey = keyof typeof terrains;
 const terrainKeys = Object.keys(terrains) as TerrainKey[];
-const data: {pokemon: KeyedDict<typeof terrains, string[]>; unusedPokemon: string[]} = {
+const data: {pokemon: KeyedDict<typeof terrains, string[]>} = {
 	pokemon: {
+		'Basic': [],
+		'Cavernous': [],
+		'Cloudy': [],
+		'Electric': [],
+		'Grassy': [],
+		'Infested': [],
+		'Metallic': [],
+		'Misty': [],
 		'Molten': [],
+		'Psychic': [],
 		'Rocky': [],
 		'Sandy': [],
+		'Shady': [],
+		'Snowy': [],
+		'Spooky': [],
 		'Swampy': [],
+		'Venomous': [],
+		'Violent': [],
 	},
-	unusedPokemon: [],
 };
 
 class TapusTerrains extends Game {
@@ -37,17 +64,14 @@ class TapusTerrains extends Game {
 	static loadData(room: Room | User): void {
 		const pokedex = Games.getPokemonList(x => Dex.hasGifData(x));
 		for (const pokemon of pokedex) {
-			let used = false;
 			for (const type of pokemon.types) {
 				for (const key of terrainKeys) {
 					if (type === terrains[key]) {
 						data.pokemon[key].push(pokemon.name);
-						if (!used) used = true;
 						break;
 					}
 				}
 			}
-			if (!used) data.unusedPokemon.push(pokemon.name);
 		}
 	}
 
@@ -100,11 +124,17 @@ class TapusTerrains extends Game {
 				return;
 			}
 		}
-		let targetPokemon: string;
+		let targetPokemon = '';
 		if (this.random(2)) {
 			targetPokemon = this.sampleOne(data.pokemon[this.currentTerrain]);
 		} else {
-			targetPokemon = this.sampleOne(data.unusedPokemon);
+			while (!targetPokemon || data.pokemon[this.currentTerrain].includes(targetPokemon)) {
+				let otherTerrain = this.sampleOne(terrainKeys);
+				while (otherTerrain === this.currentTerrain) {
+					otherTerrain = this.sampleOne(terrainKeys);
+				}
+				targetPokemon = this.sampleOne(data.pokemon[otherTerrain]);
+			}
 		}
 		this.targetPokemon = targetPokemon;
 		this.roundJumps.clear();
@@ -116,8 +146,8 @@ class TapusTerrains extends Game {
 			const roundHtml = this.getRoundHtml(this.getPlayerNames, null, "Round " + this.terrainRound);
 			const uhtmlName = this.uhtmlBaseName + '-round';
 			this.onUhtml(uhtmlName, roundHtml, () => {
-				const terrainHtml = '<div class="infobox"><center><br />The terrain is <b>' + this.currentTerrain + '</b> (jump on a <b>' +
-					terrains[this.currentTerrain!] + '</b> type)!<br />&nbsp;</center></div>';
+				const terrainHtml = '<div class="infobox"><center><br />The terrain is <b>' + this.currentTerrain + '</b> (jump on <b>' +
+					terrains[this.currentTerrain!] + '</b> type Pokemon)!<br />&nbsp;</center></div>';
 				const uhtmlName = this.uhtmlBaseName + '-terrain';
 				this.onUhtml(uhtmlName, terrainHtml, () => {
 					// if (this.timeout) clearTimeout(this.timeout); // mocha tests
