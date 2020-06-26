@@ -359,7 +359,8 @@ export class Tournaments {
 			playerCap = Config.defaultTournamentPlayerCaps[room.id];
 		}
 
-		this.setTournamentTimer(room, (minutes * 60 * 1000) + this.delayedScheduledTournamentTime, Tools.sampleOne(formats), playerCap);
+		this.setTournamentTimer(room, Date.now() + (minutes * 60 * 1000) + this.delayedScheduledTournamentTime, Tools.sampleOne(formats),
+			playerCap);
 	}
 
 	setTournamentTimer(room: Room, startTime: number, format: IFormat, cap: number, scheduled?: boolean): void {
