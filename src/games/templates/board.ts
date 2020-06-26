@@ -53,7 +53,6 @@ export abstract class BoardGame extends Game {
 	playerLetters = new Map<Player, string>();
 	playerOrder: Player[] = [];
 	currentPlayerReRoll: boolean = false;
-	roundTime: number = 5 * 1000;
 
 	timeLimit?: number;
 

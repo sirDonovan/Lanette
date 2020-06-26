@@ -202,8 +202,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 	abstract winCondition: 'currency' | 'property';
 
 	actionCards: BoardActionCard<BoardPropertyGame<BoardSpaces>>[] = [];
-	canEscape: boolean = false;
-	canRoll: boolean = false;
+	canRollOrEscapeJail: boolean = false;
 	canAcquire: boolean = false;
 	escapeFromJailCards = new Map<Player, number>();
 	maxPlayers: number = 25;
@@ -212,6 +211,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 	playerCurrency = new Map<Player, number>();
 	properties = new Map<Player, (BoardPropertyEliminationSpace | BoardPropertyRentSpace)[]>();
 	propertyToAcquire: BoardPropertyEliminationSpace | BoardPropertyRentSpace | null = null;
+	roundTime: number = 3 * 1000;
 	sharedActionCards: BoardActionCard<BoardPropertyGame>[] = sharedActionCards;
 	startingBoardSide: BoardSide = 'leftColumn';
 	startingBoardSideSpace: number = 0;
@@ -332,6 +332,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 			const currency = this.playerCurrency.get(player)!;
 			const escapeFromJailCards = this.escapeFromJailCards.get(player) || 0;
 			if (turnsInJail === 4) {
+				this.canRollOrEscapeJail = false;
 				if (escapeFromJailCards || currency >= this.currencyToEscapeJail) {
 					let text: string;
 					if (escapeFromJailCards) {
@@ -360,22 +361,21 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 				}
 			} else {
 				if (currency >= this.currencyToEscapeJail || escapeFromJailCards) {
+					this.canRollOrEscapeJail = true;
 					const text = "This is **" + player.name + "**'s " + Tools.toNumberOrderString(turnsInJail) + " turn in " +
 						this.jailSpace.name + ". They can either attempt to roll doubles (with ``" + Config.commandCharacter +
 						"rolldice``) or use " + (escapeFromJailCards ? "a " + this.escapeFromJailCard : this.currencyToEscapeJail + " " +
 						(this.currencyToEscapeJail > 1 ? this.currencyPluralName : this.currencyName)) + " to escape (with ``" +
 						Config.commandCharacter + "escape``)!";
-					this.canEscape = true;
-					this.canRoll = true;
 					this.on(text, () => {
 						this.timeout = setTimeout(() => {
-							this.canEscape = false;
-							this.canRoll = false;
+							this.canRollOrEscapeJail = false;
 							this.rollDice(player);
 						}, 30 * 1000);
 					});
 					this.say(text);
 				} else {
+					this.canRollOrEscapeJail = false;
 					const text = "This is **" + player.name + "**'s " + Tools.toNumberOrderString(turnsInJail) + " turn in " +
 						this.jailSpace.name + ", but they cannot escape so they must roll!";
 					this.on(text, () => {
@@ -679,9 +679,9 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 const commands: Dict<IGameCommandDefinition<BoardPropertyGame>> = {
 	rolldice: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canRoll || !(user.id in this.players) || this.players[user.id] !== this.currentPlayer) return false;
+			if (!this.canRollOrEscapeJail || !(user.id in this.players) || this.players[user.id] !== this.currentPlayer) return false;
 			if (this.timeout) clearTimeout(this.timeout);
-			this.canRoll = false;
+			this.canRollOrEscapeJail = false;
 			this.rollDice(this.players[user.id]);
 			return true;
 		},
@@ -716,10 +716,10 @@ const commands: Dict<IGameCommandDefinition<BoardPropertyGame>> = {
 	},
 	escape: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canEscape || !(user.id in this.players) || this.players[user.id] !== this.currentPlayer) return false;
+			if (!this.canRollOrEscapeJail || !(user.id in this.players) || this.players[user.id] !== this.currentPlayer) return false;
 			if (this.timeout) clearTimeout(this.timeout);
 			const player = this.players[user.id];
-			this.canEscape = false;
+			this.canRollOrEscapeJail = false;
 			const escapeFromJailCards = this.escapeFromJailCards.get(player);
 			let text: string = "They escaped from " + this.jailSpace.name + " using ";
 			if (escapeFromJailCards) {
