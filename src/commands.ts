@@ -161,6 +161,7 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 					} else if (moduleId === 'config') {
 						Tools.uncacheTree('./config');
 						Tools.uncacheTree('./config-loader');
+
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
 						const configLoader = require('./config-loader') as typeof import('./config-loader');
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -169,6 +170,7 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 						Rooms.checkLoggingConfigs();
 					} else if (moduleId === 'dex') {
 						const filename = "dex";
+						Dex.unrefWorkers();
 						Tools.uncacheTree('./' + filename);
 
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
