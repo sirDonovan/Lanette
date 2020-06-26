@@ -128,7 +128,15 @@ export class Users {
 	}
 
 	remove(user: User): void {
-		if (user !== this.self) delete this.users[user.id];
+		if (user === this.self) return;
+
+		const id = user.id;
+		for (const i in user) {
+			// @ts-expect-error
+			delete user[i];
+		}
+
+		delete this.users[id];
 	}
 
 	removeAll(): void {
@@ -140,9 +148,11 @@ export class Users {
 	rename(name: string, oldId: string): User {
 		const id = Tools.toId(name);
 		if (!(oldId in this.users)) return this.add(name, id);
+
 		const user = this.users[oldId];
-		this.remove(user);
+		delete this.users[oldId];
 		if (id in this.users) return this.users[id];
+
 		user.setName(name);
 		user.id = id;
 		this.users[id] = user;
@@ -150,6 +160,17 @@ export class Users {
 			if (room.game) room.game.renamePlayer(user, oldId);
 			if (room.tournament) room.tournament.renamePlayer(user, oldId);
 		});
+
 		return user;
 	}
 }
+
+export const instantiate = (): void => {
+	const oldUsers: Users | undefined = global.Users;
+
+	global.Users = new Users();
+
+	if (oldUsers) {
+		Tools.updateNodeModule(__filename, module);
+	}
+};
