@@ -38,15 +38,45 @@ export class Tournaments {
 	nextScheduledTournaments: Dict<IScheduledTournament> = {};
 	scheduledTournaments: Dict<IScheduledTournament[]> = {};
 	readonly schedules: typeof tournamentSchedules = tournamentSchedules;
+	tournamentTimerData: Dict<{cap: number, formatid: string, startTime: number, scheduled: boolean}> = {};
 	tournamentTimers: Dict<NodeJS.Timer> = {};
 	userHostedTournamentNotificationTimeouts: Dict<NodeJS.Timer> = {};
 
 	onReload(previous: Partial<Tournaments>): void {
-		if (previous.createListeners) this.createListeners = previous.createListeners;
-		if (previous.nextScheduledTournaments) this.nextScheduledTournaments = previous.nextScheduledTournaments;
-		if (previous.tournamentTimers) this.tournamentTimers = previous.tournamentTimers;
+		if (previous.createListeners) Object.assign(this.createListeners, previous.createListeners);
+		if (previous.nextScheduledTournaments) Object.assign(this.nextScheduledTournaments, previous.nextScheduledTournaments);
+
+		if (previous.tournamentTimerData) {
+			for (const i in previous.tournamentTimerData) {
+				const room = Rooms.get(i);
+				if (room) {
+					const data = previous.tournamentTimerData[i];
+					const format = Dex.getFormat(data.formatid);
+					if (format) this.setTournamentTimer(room, data.startTime, format, data.cap, data.scheduled);
+				}
+			}
+		}
+
+		if (previous.tournamentTimers) {
+			for (const i in previous.tournamentTimers) {
+				clearTimeout(previous.tournamentTimers[i]);
+				delete previous.tournamentTimers[i];
+			}
+		}
+
 		if (previous.userHostedTournamentNotificationTimeouts) {
-			this.userHostedTournamentNotificationTimeouts = previous.userHostedTournamentNotificationTimeouts;
+			for (const i in previous.userHostedTournamentNotificationTimeouts) {
+				clearTimeout(previous.userHostedTournamentNotificationTimeouts[i]);
+				delete previous.userHostedTournamentNotificationTimeouts[i];
+
+				const room = Rooms.get(i);
+				if (room) this.setUserHostedTournamentNotificationTimer(room);
+			}
+		}
+
+		for (const i in previous) {
+			// @ts-expect-error
+			delete previous[i];
 		}
 
 		this.loadSchedules();
@@ -157,6 +187,7 @@ export class Tournaments {
 		if (room.id in this.tournamentTimers) {
 			clearTimeout(this.tournamentTimers[room.id]);
 			delete this.tournamentTimers[room.id];
+			delete this.tournamentTimerData[room.id];
 		}
 		const tournament = new Tournament(room);
 		room.tournament = tournament;
@@ -300,44 +331,44 @@ export class Tournaments {
 	}
 
 	setRandomTournamentTimer(room: Room, minutes: number): void {
-		if (room.id in this.tournamentTimers) clearTimeout(this.tournamentTimers[room.id]);
-		this.tournamentTimers[room.id] = setTimeout(() => {
-			let scheduledFormat: IFormat | null = null;
-			if (room.id in this.nextScheduledTournaments) {
-				scheduledFormat = Dex.getExistingFormat(this.nextScheduledTournaments[room.id].format, true);
+		let scheduledFormat: IFormat | null = null;
+		if (room.id in this.nextScheduledTournaments) {
+			scheduledFormat = Dex.getExistingFormat(this.nextScheduledTournaments[room.id].format, true);
+		}
+		const database = Storage.getDatabase(room);
+		const pastTournamentIds: string[] = [];
+		if (database.pastTournaments) {
+			for (const pastTournament of database.pastTournaments) {
+				const format = Dex.getFormat(pastTournament.inputTarget);
+				pastTournamentIds.push(format ? format.id : Tools.toId(pastTournament.name));
 			}
-			const database = Storage.getDatabase(room);
-			const pastTournamentIds: string[] = [];
-			if (database.pastTournaments) {
-				for (const pastTournament of database.pastTournaments) {
-					const format = Dex.getFormat(pastTournament.inputTarget);
-					pastTournamentIds.push(format ? format.id : Tools.toId(pastTournament.name));
-				}
-			}
+		}
 
-			const formats: IFormat[] = [];
-			for (const i of Dex.data.formatKeys) {
-				const format = Dex.getExistingFormat(i);
-				if (!format.tournamentPlayable || format.unranked || format.mod !== 'gen7' ||
-					(scheduledFormat && scheduledFormat.id === format.id) || pastTournamentIds.includes(format.id)) continue;
-				formats.push(format);
-			}
+		const formats: IFormat[] = [];
+		for (const i of Dex.data.formatKeys) {
+			const format = Dex.getExistingFormat(i);
+			if (!format.tournamentPlayable || format.unranked || format.mod !== 'gen7' ||
+				(scheduledFormat && scheduledFormat.id === format.id) || pastTournamentIds.includes(format.id)) continue;
+			formats.push(format);
+		}
 
-			if (!formats.length) return;
+		if (!formats.length) return;
 
-			let playerCap: number = 0;
-			if (Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
-				playerCap = Config.defaultTournamentPlayerCaps[room.id];
-			}
+		let playerCap: number = 0;
+		if (Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
+			playerCap = Config.defaultTournamentPlayerCaps[room.id];
+		}
 
-			this.setTournamentTimer(room, 0, Tools.sampleOne(formats), playerCap);
-		}, minutes * 60 * 1000);
+		this.setTournamentTimer(room, (minutes * 60 * 1000) + this.delayedScheduledTournamentTime, Tools.sampleOne(formats), playerCap);
 	}
 
 	setTournamentTimer(room: Room, startTime: number, format: IFormat, cap: number, scheduled?: boolean): void {
+		if (room.id in this.tournamentTimers) clearTimeout(this.tournamentTimers[room.id]);
+
 		let timer = startTime - Date.now();
 		if (timer <= 0) timer = this.delayedScheduledTournamentTime;
-		if (room.id in this.tournamentTimers) clearTimeout(this.tournamentTimers[room.id]);
+
+		this.tournamentTimerData[room.id] = {cap, formatid: format.inputTarget, startTime, scheduled: scheduled || false};
 		this.tournamentTimers[room.id] = setTimeout(() => {
 			if (room.tournament) return;
 			this.createListeners[room.id] = {format, scheduled: scheduled || false};
@@ -457,15 +488,19 @@ export class Tournaments {
 			const message = 'There are new user-hosted tournaments in ' + room.title;
 			if (this.userHostedTournamentNotificationTimeouts[room.id]) return;
 			room.sayCommand('/notifyrank ' + Client.groupSymbols[rank] + ", " + title + ", " + message);
-			this.userHostedTournamentNotificationTimeouts[room.id] = setTimeout(() => {
-				delete this.userHostedTournamentNotificationTimeouts[room.id];
-				this.showUserHostedTournamentApprovals(room);
-			}, USER_HOSTED_TOURNAMENT_TIMEOUT);
+			this.setUserHostedTournamentNotificationTimer(room);
 		} else if (this.userHostedTournamentNotificationTimeouts[room.id]) {
 			clearTimeout(this.userHostedTournamentNotificationTimeouts[room.id]);
 			room.sayCommand('/notifyoffrank ' + Client.groupSymbols[rank]);
 			delete this.userHostedTournamentNotificationTimeouts[room.id];
 		}
+	}
+
+	setUserHostedTournamentNotificationTimer(room: Room): void {
+		this.userHostedTournamentNotificationTimeouts[room.id] = setTimeout(() => {
+			delete this.userHostedTournamentNotificationTimeouts[room.id];
+			this.showUserHostedTournamentApprovals(room);
+		}, USER_HOSTED_TOURNAMENT_TIMEOUT);
 	}
 
 	isInPastTournaments(room: Room, input: string, pastTournaments?: IPastTournament[]): boolean {
@@ -489,3 +524,14 @@ export class Tournaments {
 		return false;
 	}
 }
+
+export const instantiate = (): void => {
+	const oldTournaments: Tournaments | undefined = global.Tournaments;
+
+	global.Tournaments = new Tournaments();
+
+	if (oldTournaments) {
+		global.Tournaments.onReload(oldTournaments);
+		Tools.updateNodeModule(__filename, module);
+	}
+};

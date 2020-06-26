@@ -216,13 +216,12 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 						tools.instantiate();
 					} else if (moduleId === 'tournaments') {
 						const filename = "tournaments";
-						const oldTournaments = global.Tournaments;
 						Tools.uncacheTree('./' + filename);
 						Tools.uncacheTree('./room-activity');
+
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
 						const tournaments = require('./' + filename) as typeof import('./tournaments');
-						global.Tournaments = new tournaments.Tournaments();
-						Tournaments.onReload(oldTournaments);
+						tournaments.instantiate();
 					}
 				}
 				this.say("Successfully reloaded: " + modules.join(", "));
