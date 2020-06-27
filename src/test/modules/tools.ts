@@ -180,17 +180,6 @@ describe("Tools", () => {
 			assert(Tools.pokemonColorHexColors[i] in Tools.hexColorCodes, i);
 		}
 
-		for (const i of Dex.data.pokemonKeys) {
-			const pokemon = Dex.getExistingPokemon(i);
-			assert(pokemon.color in Tools.pokemonColorHexColors, pokemon.name + "'s color " + pokemon.color);
-			for (const type of pokemon.types) {
-				assert(type in Tools.typeHexColors, pokemon.name + "'s type " + type);
-			}
-		}
 
-		for (const i of Dex.data.moveKeys) {
-			const move = Dex.getExistingMove(i);
-			assert(move.type in Tools.typeHexColors, move.name);
-		}
 	});
 });

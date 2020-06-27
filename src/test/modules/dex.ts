@@ -232,4 +232,18 @@ describe("Dex", () => {
 		assert(pokemon.includes(Dex.getExistingPokemon('Charmander').name));
 		assert(pokemon.includes(Dex.getExistingPokemon('Slowpoke').name));
 	});
+	it('should have entries in Tools.pokemonColorHexColors for all Pokemon and moves', () => {
+		for (const i of Dex.data.pokemonKeys) {
+			const pokemon = Dex.getExistingPokemon(i);
+			assert(pokemon.color in Tools.pokemonColorHexColors, pokemon.name + "'s color " + pokemon.color);
+			for (const type of pokemon.types) {
+				assert(type in Tools.typeHexColors, pokemon.name + "'s type " + type);
+			}
+		}
+
+		for (const i of Dex.data.moveKeys) {
+			const move = Dex.getExistingMove(i);
+			assert(move.type in Tools.typeHexColors, move.name);
+		}
+	});
 });

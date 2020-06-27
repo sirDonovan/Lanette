@@ -45,7 +45,7 @@ module.exports = async(inputOptions: Dict<string>): Promise<void> => {
 		}
 
 		if (modulesToTest.includes('dex.js') || modulesToTest.includes('games.js') || modulesToTest.includes(pokemonShowdownTestFile) ||
-			modulesToTest.includes('tournaments.js') || modulesToTest.includes('tools.js')) {
+			modulesToTest.includes('tournaments.js')) {
 			await Dex.loadAllData();
 		}
 
