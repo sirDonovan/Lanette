@@ -102,6 +102,8 @@ module.exports = [
 	"Brycen",
 	"Iris",
 	"Drayden",
+	"Marlon",
+	"Roxie",
 
 	"Shauntal",
 	"Grimsley",
