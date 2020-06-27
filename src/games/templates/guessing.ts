@@ -139,18 +139,8 @@ export abstract class Guessing extends Game {
 	}
 
 	getAnswers(givenAnswer: string, finalAnswer?: boolean): string {
-		let len = this.answers.length;
-		let answers = "The" + (finalAnswer ? " final " : "") + " answer" + (len > 1 ? "s were" : " was") + " __";
-		if (len >= 3) {
-			len -= 1;
-			answers += this.answers.slice(0, len).join(", ") + " and " + this.answers[len];
-		} else if (len === 2) {
-			answers += this.answers.join(" and ");
-		} else {
-			answers += this.answers[0];
-		}
-		answers += "__.";
-		return answers;
+		return "The" + (finalAnswer ? " final " : "") + " answer" + (this.answers.length > 1 ? "s were" : " was") + " __" +
+			Tools.joinList(this.answers) + "__";
 	}
 
 	async getRandomAnswer(): Promise<IRandomGameAnswer> {

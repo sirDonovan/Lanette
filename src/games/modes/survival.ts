@@ -23,7 +23,7 @@ class Survival {
 	constructor(game: Game) {
 		if (game.id === 'abrasabilityswitch') {
 			this.roundTime = 7 * 1000;
-		} else if (game.id === 'parasparameters') {
+		} else if (game.id === 'parasparameters' || game.id === 'magnetonsmashups') {
 			this.roundTime = 15 * 1000;
 		} else {
 			this.roundTime = 9 * 1000;
@@ -41,7 +41,11 @@ class Survival {
 			delete format.customizableOptions[option];
 		}
 
-		if (format.id === 'parasparameters') delete format.customizableOptions.params;
+		if (format.id === 'parasparameters') {
+			delete format.customizableOptions.params;
+		} else if (format.id === 'magnetonsmashups') {
+			delete format.customizableOptions.names;
+		}
 	}
 
 	onStart(this: SurvivalThis): void {

@@ -488,6 +488,31 @@ export class Tools {
 		return heapStatistics.heap_size_limit - heapStatistics.used_heap_size;
 	}
 
+	getPermutations<T>(elements: T[]): T[][] {
+		const length = elements.length;
+		const permutations: T[][] = [];
+		const elementsInUse = new Set<T>();
+		const depthFirstSearch = (currentPermutation?: T[]) => {
+			if (!currentPermutation) currentPermutation = [];
+			if (currentPermutation.length === length) {
+				permutations.push(currentPermutation);
+				return;
+			}
+
+			for (let i = 0; i < length; i++){
+				if (!elementsInUse.has(elements[i])) {
+					elementsInUse.add(elements[i]);
+					depthFirstSearch(currentPermutation.concat(elements[i]));
+					elementsInUse.delete(elements[i]);
+				}
+			}
+		};
+
+		depthFirstSearch();
+
+		return permutations;
+	}
+
 	async fetchUrl(url: string): Promise<string | Error> {
 		return new Promise(resolve => {
 			let data = '';

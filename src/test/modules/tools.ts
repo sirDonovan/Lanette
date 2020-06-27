@@ -179,7 +179,28 @@ describe("Tools", () => {
 		for (const i in Tools.pokemonColorHexColors) {
 			assert(Tools.pokemonColorHexColors[i] in Tools.hexColorCodes, i);
 		}
+	});
+	it('should properly generate permutations', () => {
+		let permutations = Tools.getPermutations([]) as number[][];
+		assertStrictEqual(permutations.length, 1);
+		assertStrictEqual(JSON.stringify(permutations), '[[]]');
 
+		permutations = Tools.getPermutations([1]);
+		assertStrictEqual(permutations.length, 1);
+		assertStrictEqual(JSON.stringify(permutations), '[[1]]');
 
+		permutations = Tools.getPermutations([1, 2]);
+		assertStrictEqual(permutations.length, 2);
+		assertStrictEqual(JSON.stringify(permutations), '[[1,2],[2,1]]');
+
+		permutations = Tools.getPermutations([1, 2, 3]);
+		assertStrictEqual(permutations.length, 6);
+		assertStrictEqual(JSON.stringify(permutations), '[[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]');
+
+		permutations = Tools.getPermutations([1, 2, 3, 4]);
+		assertStrictEqual(permutations.length, 24);
+		assertStrictEqual(JSON.stringify(permutations), '[[1,2,3,4],[1,2,4,3],[1,3,2,4],[1,3,4,2],[1,4,2,3],[1,4,3,2],[2,1,3,4],' +
+			'[2,1,4,3],[2,3,1,4],[2,3,4,1],[2,4,1,3],[2,4,3,1],[3,1,2,4],[3,1,4,2],[3,2,1,4],[3,2,4,1],[3,4,1,2],[3,4,2,1],[4,1,2,3],' +
+			'[4,1,3,2],[4,2,1,3],[4,2,3,1],[4,3,1,2],[4,3,2,1]]');
 	});
 });

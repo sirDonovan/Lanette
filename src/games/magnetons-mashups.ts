@@ -1,8 +1,9 @@
 import type { Room } from "../rooms";
-import type { IGameFile } from "../types/games";
+import type { IGameFile, IGameFormat } from "../types/games";
 import type { User } from "../users";
 import { game as guessingGame, Guessing } from './templates/guessing';
 
+const BASE_NUMBER_OF_NAMES = 2;
 const data: {'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]; 'Pokemon': string[]} = {
 	'Pokemon Abilities': [],
 	'Pokemon Items': [],
@@ -13,6 +14,8 @@ type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
 
 class MagnetonsMashups extends Guessing {
+	roundTime: number = 30 * 1000;
+
 	static loadData(room: Room | User): void {
 		const abilities = Games.getAbilitiesList();
 		for (const ability of abilities) {
@@ -35,60 +38,91 @@ class MagnetonsMashups extends Guessing {
 		}
 	}
 
+	getAnswers(givenAnswer: string, finalAnswer?: boolean): string {
+		return "The" + (finalAnswer ? " final " : "") + " answer was __" + this.answers[0] + "__.";
+	}
+
 	// eslint-disable-next-line @typescript-eslint/require-await
 	async checkAnswer(guess: string): Promise<string> {
 		guess = Tools.toId(guess);
-		const answer = this.answers[0].split(" & ");
-		let match = '';
-		if (guess === Tools.toId(answer[0] + answer[1])) {
-			match = answer[0] + ' & ' + answer[1];
-		} else if (guess === Tools.toId(answer[1] + answer[0])) {
-			match = answer[1] + ' & ' + answer[0];
+		for (let i = 1; i < this.answers.length; i++) {
+			if (Tools.toId(this.answers[i]) === guess) return this.answers[0];
 		}
-		return match;
+		return "";
 	}
 
 	async setAnswers(): Promise<void> {
-		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
-		const answer = this.sampleMany(data[category], 2);
-		let indexA = 0;
-		let indexB = 0;
-		let mashup = "";
-		const lenA = answer[0].length;
-		const lenB = answer[1].length;
-		let countA = 0;
-		let countB = 0;
-		let chance = 2;
-		if (lenB > lenA) chance = 3;
-		while (indexA < lenA && indexB < lenB) {
-			if ((!this.random(chance) && countA < 3) || countB >= 3) {
-				mashup += answer[0][indexA];
-				indexA++;
-				countA++;
-				if (countB) countB = 0;
-			} else {
-				mashup += answer[1][indexB];
-				indexB++;
-				countB++;
-				if (countA) countA = 0;
+		let numberOfElements: number;
+		if (this.format.inputOptions.names) {
+			numberOfElements = this.format.options.names;
+		} else {
+			numberOfElements = BASE_NUMBER_OF_NAMES;
+			if ((this.format as IGameFormat).customizableOptions.names) {
+				numberOfElements += this.random((this.format as IGameFormat).customizableOptions.names.max - BASE_NUMBER_OF_NAMES + 1);
 			}
 		}
-		while (indexA < lenA) {
-			mashup += answer[0][indexA];
-			indexA++;
-		}
-		while (indexB < lenB) {
-			mashup += answer[1][indexB];
-			indexB++;
+
+		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
+		const elements = this.sampleMany(data[category], numberOfElements);
+
+		let mashup = "";
+		let totalLength = 0;
+
+		const elementIds: string[] = [];
+		const currentIndices: number[] = [];
+		const finalIndices: number[] = [];
+		for (let i = 0; i < numberOfElements; i++) {
+			const id = Tools.toId(elements[i]);
+			elementIds.push(id);
+
+			const length = id.length;
+			totalLength += length;
+
+			currentIndices.push(0);
+			finalIndices.push(length - 1);
 		}
 
-		mashup = Tools.toId(mashup);
+		const useOrder: number[] = [];
+		let lastIndex = -1;
+		while (mashup.length < totalLength) {
+			let index = this.random(numberOfElements);
+			while (currentIndices[index] > finalIndices[index]) {
+				index = this.random(numberOfElements);
+			}
+
+			if (index === lastIndex) {
+				let lastElement = true;
+				for (let i = 0; i < numberOfElements; i++) {
+					if (i !== index && currentIndices[i] < finalIndices[i]) {
+						lastElement = false;
+						break;
+					}
+				}
+
+				if (!lastElement) continue;
+			}
+
+			if (!useOrder.includes(index)) useOrder.push(index);
+
+			const characters = this.random(3) + (numberOfElements - 1);
+			for (let i = 0; i < characters; i++) {
+				mashup += elementIds[index][currentIndices[index]];
+				currentIndices[index]++;
+				if (currentIndices[index] > finalIndices[index]) break;
+			}
+
+			lastIndex = index;
+		}
+
 		if (Client.willBeFiltered(mashup, !this.isPm(this.room) ? this.room : undefined)) {
 			await this.setAnswers();
 			return;
 		}
-		this.answers = [answer[0] + ' & ' + answer[1]];
+
+		this.answers = Tools.getPermutations(elements).map(x => x.join(""));
+		this.answers.unshift(Tools.joinList(useOrder.map(x => elements[x]), undefined, undefined, "&"));
 		this.hint = "<b>" + category + "</b>: <i>" + mashup + "</i>";
+		this.additionalHintHeader = "- " + numberOfElements + " names";
 	}
 }
 
@@ -96,6 +130,9 @@ export const game: IGameFile<MagnetonsMashups> = Games.copyTemplateProperties(gu
 	aliases: ['magnetons'],
 	category: 'identification',
 	class: MagnetonsMashups,
+	customizableOptions: {
+		names: {min: 2, base: BASE_NUMBER_OF_NAMES, max: 4},
+	},
 	defaultOptions: ['points'],
 	description: "Players unscramble the two combined names each round!",
 	formerNames: ['Mashups'],

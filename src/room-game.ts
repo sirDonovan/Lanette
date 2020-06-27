@@ -157,6 +157,7 @@ export class Game extends Activity {
 		if (customizedOptions.gen) namePrefixes.unshift('Gen ' + customizedOptions.gen);
 		if (customizedOptions.ports) namePrefixes.unshift(customizedOptions.ports + '-port');
 		if (customizedOptions.params) namePrefixes.unshift(customizedOptions.params + '-param');
+		if (customizedOptions.names) namePrefixes.unshift(customizedOptions.names + '-name');
 
 		let nameWithOptions = '';
 		if (namePrefixes.length) nameWithOptions = namePrefixes.join(" ") + " ";
