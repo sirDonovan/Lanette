@@ -565,11 +565,11 @@ export const game: IGameFile<AxewsBattleCards> = Games.copyTemplateProperties(ca
 	scriptedOnly: true,
 	variants: [
 		{
-			name: "No Action Axew's Battle Cards",
+			name: "No Actions Axew's Battle Cards",
 			maxPlayers: 25,
 			startingLives: 2,
-			variant: "No Action Cards",
-			variantAliases: ['No Action Card', 'No Actions'],
+			variant: "No Actions",
+			variantAliases: ["No Action", "No Action Card", "No Action Cards"],
 			usesActionCards: false,
 		},
 	],

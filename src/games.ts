@@ -369,7 +369,10 @@ export class Games {
 						throw new Error(format.name + "'s variant '" + variant.name + "' is already an alias for " + this.aliases[id] +
 							".");
 					}
-					this.aliases[id] = format.name + "," + variant.variant;
+
+					const formatVariantTarget = format.name + "," + variant.variant;
+					this.aliases[id] = formatVariantTarget;
+
 					let variantIds: string[] = [Tools.toId(variant.variant)];
 					if (variant.variantAliases) {
 						variantIds = variantIds.concat(variant.variantAliases);
@@ -379,10 +382,13 @@ export class Games {
 						for (const variantId of variantIds) {
 							const alias = variantId + id;
 							if (alias in this.aliases) {
-								throw new Error(format.name + "'s variant " + variant.name + " variant alias '" + variantId + "' clashes " +
+								if (this.aliases[alias] === formatVariantTarget) continue;
+
+								throw new Error(variant.name + "'s variant alias '" + variantId + "' clashes " +
 									"with the alias for " + this.aliases[alias] + ".");
 							}
-							if (!(alias in this.aliases)) this.aliases[alias] = format.name + "," + variant.variant;
+
+							if (!(alias in this.aliases)) this.aliases[alias] = formatVariantTarget;
 						}
 					}
 				}

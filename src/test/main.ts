@@ -44,14 +44,18 @@ module.exports = async(inputOptions: Dict<string>): Promise<void> => {
 			modulesToTest = moduleTests.concat(pokemonShowdownTestFile);
 		}
 
-		if (modulesToTest.includes('dex.js') || modulesToTest.includes('games.js') || modulesToTest.includes(pokemonShowdownTestFile) ||
+		const loadGames = modulesToTest.includes('games.js');
+		if (loadGames) {
+			Games.loadFormats();
+		}
+
+		if (loadGames || modulesToTest.includes('dex.js') || modulesToTest.includes(pokemonShowdownTestFile) ||
 			modulesToTest.includes('tournaments.js')) {
 			await Dex.loadAllData();
 		}
 
-		if (modulesToTest.includes('games.js')) {
+		if (loadGames) {
 			console.log("Loading game data for tests...");
-			Games.loadFormats();
 			for (const i in Games.formats) {
 				const game = Games.createGame(mochaRoom, Games.getExistingFormat(i));
 				game.deallocate(true);
