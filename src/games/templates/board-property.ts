@@ -201,6 +201,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 	abstract startingCurrency: number;
 	abstract winCondition: 'currency' | 'property';
 
+	acquireProperties: boolean = true;
 	actionCards: BoardActionCard<BoardPropertyGame<BoardSpaces>>[] = [];
 	canRollOrEscapeJail: boolean = false;
 	canAcquire: boolean = false;
@@ -466,8 +467,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 			} else {
 				if (rollText) this.say(rollText);
 				const currency = this.playerCurrency.get(player)!;
-				if (currency >= space.cost) {
-					const currency = this.playerCurrency.get(player)!;
+				if (this.acquireProperties && currency >= space.cost) {
 					const text = "Would you like to " + this.acquirePropertyAction + " it using " + (currency > space.cost ? "**" +
 						space.cost + "** of your **" + currency + " " + this.currencyPluralName + "**" : "**your last " +
 						(currency === 1 ? this.currencyName : currency + " " + this.currencyPluralName) + "**") + "? Use ``" +

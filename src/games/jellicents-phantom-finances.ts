@@ -105,6 +105,7 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 	acquireAllPropertiesAchievement = achievements.realestatetycoon;
 	acquirePropertyAction: string = "buy";
 	acquirePropertyActionPast: string = "bought";
+	auctionUhtmlName: string = '';
 	availablePropertyState: string = "vacant";
 	board: IBoard = {
 		leftColumn: [spaces.oakslab, spaces.pallet, spaces.littleroot, spaces.action, spaces.twinleaf, spaces.mtmoon, spaces.action,
@@ -229,19 +230,27 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 	}
 
 	onInsufficientCurrencyToAcquire(property: BoardPropertyRentSpace, player: Player): void {
-		const text = "They do not have enough " + this.currencyPluralName + " so an auction will begin!";
-		this.on(text, () => {
+		if (this.acquireProperties) {
+			const text = "They do not have enough " + this.currencyPluralName + " so an auction will begin!";
+			this.on(text, () => {
+				this.timeout = setTimeout(() => {
+					this.propertyToAcquire = property;
+					this.beginAuction();
+				}, this.roundTime);
+			});
+			this.say(text);
+		} else {
 			this.timeout = setTimeout(() => {
 				this.propertyToAcquire = property;
 				this.beginAuction();
 			}, this.roundTime);
-		});
-		this.say(text);
+		}
 	}
 
 	beginAuction(): void {
 		this.highestBidAmount = 0;
 		this.highestBidder = null;
+		this.auctionUhtmlName = this.uhtmlBaseName + '-bid-' + Tools.toId(this.propertyToAcquire!.name);
 		this.say("Place your bids for **" + this.propertyToAcquire!.name + "** (cost: **" + this.propertyToAcquire!.cost + " " +
 			POKE_DOLLAR + "**) with ``" + Config.commandCharacter + "bid [amount]``!");
 		this.canBid = true;
@@ -281,7 +290,9 @@ const commands: Dict<IGameCommandDefinition<JellicentsPhantomFinances>> = {
 			this.highestBidder = player;
 			this.highestBidAmount = amount;
 			if (this.timeout) clearTimeout(this.timeout);
-			this.say("The new highest bid is **" + amount + " " + POKE_DOLLAR + "** from **" + player.name + "**!");
+			this.sayUhtml(this.auctionUhtmlName, "<b>Bidding for</b>: " + this.propertyToAcquire!.name + " (worth " +
+				this.propertyToAcquire!.cost + " " + POKE_DOLLAR +")<br /><br />The current highest bid is <b>" + amount + " " +
+				POKE_DOLLAR + "</b> from <b>" + player.name + "</b>!");
 			this.timeout = setTimeout(() => this.sellProperty(), 5 * 1000);
 			return true;
 		},
@@ -299,4 +310,12 @@ export const game: IGameFile<JellicentsPhantomFinances> = Games.copyTemplateProp
 	description: "Players travel around the board to buy properties and avoid paying all of their Poke as rent for others!",
 	mascot: "Jellicent",
 	name: "Jellicent's Phantom Finances",
+	variants: [
+		{
+			name: "Auction-only Jellicent's Phantom Finances",
+			variant: "Auction-only",
+			variantAliases: ['Auctions-only', 'auction', 'auctions'],
+			acquireProperties: false,
+		},
+	],
 });
