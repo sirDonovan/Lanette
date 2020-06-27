@@ -1223,17 +1223,18 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 			}
 
 			const now = Date.now();
+			const secondsArguments = ['seconds', 'secs'];
 			let seconds: boolean;
 			let time: number;
 			if (cmd.includes('rand')) {
-				seconds = Tools.toId(targets[0]) === 'seconds';
+				seconds = secondsArguments.includes(Tools.toId(targets[0]));
 				if (seconds) {
 					time = room.userHostedGame.random(60) + 1;
 				} else {
 					time = room.userHostedGame.random(Math.floor((room.userHostedGame.endTime - now) / 60 / 1000) / 3) + 1;
 				}
 			} else {
-				seconds = Tools.toId(targets[1]) === 'seconds';
+				seconds = secondsArguments.includes(Tools.toId(targets[1]));
 				time = parseFloat(targets[0].trim());
 			}
 
