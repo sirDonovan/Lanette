@@ -1495,8 +1495,9 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 		async asyncCommand(target, room, user, cmd) {
 			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			if (cmd === 'stored' || !target) {
-				if (!room.userHostedGame.storedMessage) return this.say("You must store a message first with ``" + Config.commandCharacter +
-					"store``.");
+				if (!room.userHostedGame.storedMessage) {
+					return this.say("You must store a message first with ``" + Config.commandCharacter + "store``.");
+				}
 				if (CommandParser.isCommandMessage(room.userHostedGame.storedMessage)) {
 					const parts = room.userHostedGame.storedMessage.split(" ");
 					await this.run(parts[0].substr(1), parts.slice(1).join(" "));
@@ -1505,12 +1506,20 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 				this.say(room.userHostedGame.storedMessage);
 				return;
 			}
+
 			target = target.trim();
-			if (target.startsWith('/') || (target.startsWith('!') && target.trim().split(" ")[0] !== '!pick')) {
-				return this.say("You cannot store a command.");
+			const possibleCommand = target.trim().split(" ")[0];
+
+			if (target.startsWith('/') || (target.startsWith('!') && possibleCommand !== '!pick')) {
+				return this.say("You cannot store a server command.");
 			}
+
+			if (CommandParser.isCommandMessage(target) && !(Tools.toId(possibleCommand) in BaseCommands)) {
+				return this.say("'" + possibleCommand + "' is not a valid command for " + Config.commandCharacter + "store.");
+			}
+
 			room.userHostedGame.storedMessage = target;
-			this.say("Your message has been stored. You can now repeat it with ``" + Config.commandCharacter + "stored``.");
+			this.say("Your message has been stored! You can now repeat it with ``" + Config.commandCharacter + "stored``.");
 		},
 		aliases: ['stored'],
 	},
