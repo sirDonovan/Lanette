@@ -282,7 +282,7 @@ const commands: Dict<IGameCommandDefinition<JellicentsPhantomFinances>> = {
 			this.highestBidAmount = amount;
 			if (this.timeout) clearTimeout(this.timeout);
 			this.say("The new highest bid is **" + amount + " " + POKE_DOLLAR + "** from **" + player.name + "**!");
-			this.timeout = setTimeout(() => this.sellProperty(), this.roundTime);
+			this.timeout = setTimeout(() => this.sellProperty(), 5 * 1000);
 			return true;
 		},
 	},
