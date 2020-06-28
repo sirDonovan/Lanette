@@ -96,7 +96,7 @@ export abstract class Guessing extends Game {
 		if (newAnswer) {
 			this.sayUhtml(hintUhtmlName, html);
 		} else {
-			this.sayUhtmlChange(hintUhtmlName, html);
+			this.sayUhtmlAuto(hintUhtmlName, html);
 		}
 	}
 

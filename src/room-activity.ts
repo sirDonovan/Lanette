@@ -181,6 +181,14 @@ export abstract class Activity {
 		this.room.sayUhtmlChange(name, html);
 	}
 
+	sayUhtmlAuto(name: string, html: string): void {
+		if (this.room.chatLog.length && this.room.chatLog[0].uhtmlName === Tools.toId(name)) {
+			this.sayUhtmlChange(name, html);
+		} else {
+			this.sayUhtml(name, html);
+		}
+	}
+
 	on(message: string, listener: () => void): void {
 		if (this.ended) return;
 		this.messageListeners.push(message);

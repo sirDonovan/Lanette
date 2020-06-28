@@ -714,7 +714,10 @@ export class Client {
 
 			if (user === Users.self) {
 				if (messageArguments.message.startsWith(HTML_CHAT_COMMAND)) {
-					const htmlId = Tools.toId(messageArguments.message.substr(HTML_CHAT_COMMAND.length));
+					const html = messageArguments.message.substr(HTML_CHAT_COMMAND.length);
+					room.addHtmlChatLog(html);
+
+					const htmlId = Tools.toId(html);
 					if (htmlId in room.htmlMessageListeners) {
 						room.htmlMessageListeners[htmlId]();
 						delete room.htmlMessageListeners[htmlId];
@@ -730,15 +733,20 @@ export class Client {
 					const commaIndex = uhtml.indexOf(',');
 					if (commaIndex !== -1) {
 						const name = uhtml.substr(0, commaIndex);
+						const html = uhtml.substr(commaIndex + 1);
+						room.addUhtmlChatLog(name, html);
+
 						const id = Tools.toId(name);
 						if (id in room.uhtmlMessageListeners) {
-							const htmlId = Tools.toId(uhtml.substr(commaIndex + 1));
+							const htmlId = Tools.toId(html);
 							if (htmlId in room.uhtmlMessageListeners[id]) {
 								room.uhtmlMessageListeners[id][htmlId]();
 								delete room.uhtmlMessageListeners[id][htmlId];
 							}
 						}
 					} else {
+						room.addChatLog(messageArguments.message);
+
 						const id = Tools.toId(messageArguments.message);
 						if (id in room.messageListeners) {
 							room.messageListeners[id]();
@@ -747,6 +755,7 @@ export class Client {
 					}
 				}
 			} else {
+				room.addChatLog(messageArguments.message);
 				void this.parseChatMessage(room, user, messageArguments.message);
 			}
 
@@ -800,11 +809,15 @@ export class Client {
 
 				const recipient = Users.add(messageArguments.recipientUsername, recipientId);
 				if (isUhtml || isUhtmlChange) {
+					const uhtml = messageArguments.message.substr(messageArguments.message.indexOf(" ") + 1);
+					const commaIndex = uhtml.indexOf(",");
+					const name = uhtml.substr(0, commaIndex);
+					const id = Tools.toId(name);
+					const html = uhtml.substr(commaIndex + 1);
+
+					user.addUhtmlChatLog(name, html);
+
 					if (recipient.uhtmlMessageListeners) {
-						const uhtml = messageArguments.message.substr(messageArguments.message.indexOf(" ") + 1);
-						const commaIndex = uhtml.indexOf(",");
-						const id = Tools.toId(uhtml.substr(0, commaIndex));
-						const html = uhtml.substr(commaIndex + 1);
 						if (id in recipient.uhtmlMessageListeners) {
 							const htmlId = Tools.toId(html);
 							if (htmlId in recipient.uhtmlMessageListeners[id]) {
@@ -814,14 +827,19 @@ export class Client {
 						}
 					}
 				} else if (isHtml) {
+					const html = messageArguments.message.substr(messageArguments.message.indexOf(" ") + 1);
+					user.addHtmlChatLog(html);
+
 					if (recipient.htmlMessageListeners) {
-						const htmlId = Tools.toId(messageArguments.message.substr(messageArguments.message.indexOf(" ") + 1));
+						const htmlId = Tools.toId(html);
 						if (htmlId in recipient.htmlMessageListeners) {
 							recipient.htmlMessageListeners[htmlId]();
 							delete recipient.htmlMessageListeners[htmlId];
 						}
 					}
 				} else {
+					user.addChatLog(messageArguments.message);
+
 					if (recipient.messageListeners) {
 						const id = Tools.toId(messageArguments.message);
 						if (id in recipient.messageListeners) {
@@ -830,8 +848,18 @@ export class Client {
 						}
 					}
 				}
-			} else if (!isHtml && !isUhtml && !isUhtmlChange && messageArguments.rank !== this.groupSymbols.locked) {
-				void CommandParser.parse(user, user, messageArguments.message);
+			} else {
+				if (isUhtml || isUhtmlChange) {
+					user.addUhtmlChatLog("", "html");
+				} else if (isHtml) {
+					user.addHtmlChatLog("html");
+				} else {
+					user.addChatLog(messageArguments.message);
+
+					if (messageArguments.rank !== this.groupSymbols.locked) {
+						void CommandParser.parse(user, user, messageArguments.message);
+					}
+				}
 			}
 			break;
 		}
@@ -858,6 +886,9 @@ export class Client {
 			const messageArguments: IClientMessageTypes['html'] = {
 				html: messageParts.join("|"),
 			};
+
+			room.addHtmlChatLog(messageArguments.html);
+
 			const htmlId = Tools.toId(messageArguments.html);
 			if (htmlId in room.htmlMessageListeners) {
 				room.htmlMessageListeners[htmlId]();
@@ -967,6 +998,9 @@ export class Client {
 				name: messageParts[0],
 				html: messageParts.slice(1).join("|"),
 			};
+
+			room.addUhtmlChatLog(messageArguments.name, messageArguments.html);
+
 			const id = Tools.toId(messageArguments.name);
 			if (id in room.uhtmlMessageListeners) {
 				const htmlId = Tools.toId(messageArguments.html);
@@ -1005,6 +1039,9 @@ export class Client {
 				const messageArguments: ITournamentMessageTypes['end'] = {
 					json: JSON.parse(messageParts.join("|")) as ITournamentEndJson,
 				};
+
+				room.addHtmlChatLog("tournament|end");
+
 				if (!room.tournament) Tournaments.createTournament(room, messageArguments.json);
 				if (room.tournament) {
 					room.tournament.update(messageArguments.json);
@@ -1046,16 +1083,22 @@ export class Client {
 			}
 
 			case 'forceend': {
+				room.addHtmlChatLog("tournament|forceend");
+
 				if (room.tournament) room.tournament.forceEnd();
 				break;
 			}
 
 			case 'start': {
+				room.addHtmlChatLog("tournament|start");
+
 				if (room.tournament) room.tournament.start();
 				break;
 			}
 
 			case 'join': {
+				room.addHtmlChatLog("tournament|join");
+
 				if (!room.tournament) return;
 
 				const messageArguments: ITournamentMessageTypes['join'] = {
@@ -1067,6 +1110,8 @@ export class Client {
 
 			case 'leave':
 			case 'disqualify': {
+				room.addHtmlChatLog("tournament|leave");
+
 				if (!room.tournament) return;
 
 				const messageArguments: ITournamentMessageTypes['leave'] = {
@@ -1077,6 +1122,8 @@ export class Client {
 			}
 
 			case 'battlestart': {
+				room.addHtmlChatLog("tournament|battlestart");
+
 				if (!room.tournament) return;
 
 				const messageArguments: ITournamentMessageTypes['battlestart'] = {
@@ -1089,6 +1136,8 @@ export class Client {
 			}
 
 			case 'battleend': {
+				room.addHtmlChatLog("tournament|battleend");
+
 				if (!room.tournament) return;
 
 				const messageArguments: ITournamentMessageTypes['battleend'] = {

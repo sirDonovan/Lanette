@@ -110,7 +110,7 @@ class PanchamPairs extends Game {
 			if (!this.canPair) this.canPair = true;
 			if (!this.format.options.freejoin) this.timeout = setTimeout(() => this.listPossiblePairs(), 15 * 1000);
 		});
-		this.sayUhtml(uhtmlName, html);
+		this.sayUhtmlAuto(uhtmlName, html);
 	}
 
 	onNextRound(): void {

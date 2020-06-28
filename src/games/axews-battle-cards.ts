@@ -333,7 +333,7 @@ class AxewsBattleCards extends CardMatching {
 			}, this.turnTimeBeforeHighlight);
 		});
 
-		this.sayUhtml(uhtmlName, html);
+		this.sayUhtmlAuto(uhtmlName, html);
 	}
 
 	onEnd(): void {

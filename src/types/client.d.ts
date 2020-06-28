@@ -45,6 +45,15 @@ export interface IUserDetailsResponse {
 	userid: string;
 }
 
+export type ChatLogType = 'chat' | 'html' | 'uhtml';
+
+export interface IChatLogEntry {
+	log: string;
+	type: ChatLogType;
+
+	uhtmlName?: string;
+}
+
 export interface IClientMessageTypes {
 	/**
 	 * Global messages

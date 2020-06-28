@@ -1,6 +1,7 @@
 import type { GroupName } from "./client";
 import type { Game } from "./room-game";
 import type { Room } from "./rooms";
+import type { IChatLogEntry } from "./types/client";
 
 interface IUserRoomData {
 	lastChatMessage: number;
@@ -11,6 +12,7 @@ const chatFormatting: string[] = ["*", "_", "`", "~", "^", "\\"];
 
 export class User {
 	away: boolean | null = null;
+	chatLog: IChatLogEntry[] = [];
 	game: Game | undefined = undefined;
 	group: string | null = null;
 	rooms = new Map<Room, IUserRoomData>();
@@ -27,6 +29,27 @@ export class User {
 		this.id = id;
 
 		this.setName(name);
+	}
+
+	addChatLog(log: string): void {
+		this.chatLog.unshift({log, type: 'chat'});
+		this.trimChatLog();
+	}
+
+	addHtmlChatLog(log: string): void {
+		this.chatLog.unshift({log, type: 'html'});
+		this.trimChatLog();
+	}
+
+	addUhtmlChatLog(uhtmlName: string, log: string): void {
+		this.chatLog.unshift({log, type: 'uhtml', uhtmlName});
+		this.trimChatLog();
+	}
+
+	trimChatLog(): void {
+		while (this.chatLog.length > 30) {
+			this.chatLog.pop();
+		}
 	}
 
 	setName(name: string): void {

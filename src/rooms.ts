@@ -3,7 +3,7 @@ import type { UserHosted } from "./games/internal/user-hosted";
 import type { Player } from "./room-activity";
 import type { Game } from "./room-game";
 import type { Tournament } from "./room-tournament";
-import type { IRoomInfoResponse } from "./types/client";
+import type { IChatLogEntry, IRoomInfoResponse } from "./types/client";
 import type { IUserHostedTournament } from "./types/tournaments";
 import type { User } from "./users";
 
@@ -13,6 +13,7 @@ export class Room {
 	approvedUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
 	bannedWords: string[] | null = null;
 	bannedWordsRegex: RegExp | null = null;
+	chatLog: IChatLogEntry[] = [];
 	game: Game | undefined = undefined;
 	readonly htmlMessageListeners: Dict<() => void> = {};
 	readonly messageListeners: Dict<() => void> = {};
@@ -67,6 +68,27 @@ export class Room {
 		this.unlinkTournamentReplays = Config.disallowTournamentBattleLinks && Config.disallowTournamentBattleLinks.includes(this.id) ?
 			true : false;
 		this.unlinkChallongeLinks = Config.allowUserHostedTournaments && Config.allowUserHostedTournaments.includes(this.id) ? true : false;
+	}
+
+	addChatLog(log: string): void {
+		this.chatLog.unshift({log, type: 'chat'});
+		this.trimChatLog();
+	}
+
+	addHtmlChatLog(log: string): void {
+		this.chatLog.unshift({log, type: 'html'});
+		this.trimChatLog();
+	}
+
+	addUhtmlChatLog(uhtmlName: string, log: string): void {
+		this.chatLog.unshift({log, type: 'uhtml', uhtmlName});
+		this.trimChatLog();
+	}
+
+	trimChatLog(): void {
+		while (this.chatLog.length > 30) {
+			this.chatLog.pop();
+		}
 	}
 
 	onRoomInfoResponse(response: IRoomInfoResponse): void {
