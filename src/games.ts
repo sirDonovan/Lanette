@@ -423,14 +423,15 @@ export class Games {
 						if (user.game) {
 							const result = await user.game.tryCommand(target, user, user, command);
 							if (result) returnedResult = result;
+						} else {
+							// eslint-disable-next-line @typescript-eslint/no-misused-promises, @typescript-eslint/space-before-function-paren
+							user.rooms.forEach(async (value, room) => {
+								if (room.game) {
+									const result = await room.game.tryCommand(target, user, user, command);
+									if (result) returnedResult = result;
+								}
+							});
 						}
-						// eslint-disable-next-line @typescript-eslint/no-misused-promises, @typescript-eslint/space-before-function-paren
-						user.rooms.forEach(async (value, room) => {
-							if (room.game) {
-								const result = await room.game.tryCommand(target, user, user, command);
-								if (result) returnedResult = result;
-							}
-						});
 					} else {
 						if (room.game) {
 							const result = await room.game.tryCommand(target, room, user, command);
