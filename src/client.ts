@@ -724,17 +724,19 @@ export class Client {
 					}
 				} else {
 					let uhtml = '';
+					let uhtmlChange = false;
 					if (messageArguments.message.startsWith(UHTML_CHAT_COMMAND)) {
 						uhtml = messageArguments.message.substr(UHTML_CHAT_COMMAND.length);
 					} else if (messageArguments.message.startsWith(UHTML_CHANGE_CHAT_COMMAND)) {
 						uhtml = messageArguments.message.substr(UHTML_CHANGE_CHAT_COMMAND.length);
+						uhtmlChange = true;
 					}
 
 					const commaIndex = uhtml.indexOf(',');
 					if (commaIndex !== -1) {
 						const name = uhtml.substr(0, commaIndex);
 						const html = uhtml.substr(commaIndex + 1);
-						room.addUhtmlChatLog(name, html);
+						if (!uhtmlChange) room.addUhtmlChatLog(name, html);
 
 						const id = Tools.toId(name);
 						if (id in room.uhtmlMessageListeners) {
@@ -815,7 +817,7 @@ export class Client {
 					const id = Tools.toId(name);
 					const html = uhtml.substr(commaIndex + 1);
 
-					user.addUhtmlChatLog(name, html);
+					if (!isUhtmlChange) user.addUhtmlChatLog(name, html);
 
 					if (recipient.uhtmlMessageListeners) {
 						if (id in recipient.uhtmlMessageListeners) {
