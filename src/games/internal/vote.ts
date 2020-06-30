@@ -18,7 +18,7 @@ export class Vote extends Game {
 	// hack for onSignups()
 	room!: Room;
 
-	updateVotesHtml(callback?: () => void): void {
+	updateVotesHtml(callback?: () => void, uhtmlAuto?: boolean): void {
 		let votesHtml = "<div class='infobox'><center>";
 		const ended = this.canVote === false;
 
@@ -60,7 +60,9 @@ export class Vote extends Game {
 			if (callback) callback();
 		});
 
-		if (ended) {
+		if (uhtmlAuto) {
+			this.sayUhtmlAuto(this.votesUhtmlName, votesHtml);
+		} else if (ended) {
 			this.sayUhtml(this.votesUhtmlName, votesHtml);
 		} else {
 			this.sayUhtmlChange(this.votesUhtmlName, votesHtml);
@@ -119,7 +121,12 @@ export class Vote extends Game {
 
 		this.onHtml(html, () => {
 			this.canVote = true;
-			this.timeout = setTimeout(() => this.endVoting(), timeLimit);
+			const updateTimer = timeLimit / 2;
+			this.timeout = setTimeout(() => {
+				this.updateVotesHtml(undefined, true);
+
+				this.timeout = setTimeout(() => this.endVoting(), updateTimer);
+			}, updateTimer);
 		});
 		this.sayHtml(html);
 
