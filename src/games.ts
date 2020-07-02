@@ -1114,7 +1114,7 @@ export class Games {
 		}
 
 		if (allowsUserHostedGames) {
-			const userHostedGames: string[] = ["", "## User-hosted games"];
+			const userHostedGames: string[] = ["## User-hosted games"];
 			for (const i in this.userHostedFormats) {
 				const format = this.getExistingUserHostedFormat(i);
 				userHostedGames.push("### " + format.name);
@@ -1133,6 +1133,26 @@ export class Games {
 			}
 
 			document = document.concat(userHostedGames);
+		}
+
+		if (Config.allowOneVsOneGames && Config.allowOneVsOneGames.includes(room.id)) {
+			const oneVsOneGames: string[] = ["## One vs. one challenges", "Commands:",
+				"* <code>.1v1c [user], [game]</code> - challenge [user] to a game of [game] (see list below)",
+				"* <code>.a1v1c</code> - accept a challenge",
+				"* <code>.r1v1c</code> - reject a challenge",
+				"* <code>.c1v1c</code> - cancel a challenge",
+				"* <code>.ccdown 1v1</code> - check your one vs. one challenge cooldown time",
+				"\n\nCompatible games:"
+			];
+			const keys = Object.keys(this.formats);
+			keys.sort();
+			for (const key of keys) {
+				const format = this.getExistingFormat(key);
+				if (format.disabled || format.noOneVsOne) continue;
+				oneVsOneGames.push("* " + format.name + "\n");
+			}
+
+			document = document.concat(oneVsOneGames);
 		}
 
 		const filename = Config.gameCatalogGists[room.id].files[0];
