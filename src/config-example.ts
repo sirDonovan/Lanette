@@ -193,6 +193,11 @@ export let allowScriptedGames: string[] = [];
 export let allowUserHostedGames: string[] = [];
 
 /**
+ * A list of rooms (roomids) where one vs. one challenges are allowed to be played
+ */
+export let allowOneVsOneGames: string[] = [];
+
+/**
  * A list of rooms (roomids) where games cannot be hosted back-to-back
  */
 export let disallowRepeatUserHostedGames: string[] = [];

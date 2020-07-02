@@ -375,6 +375,7 @@ export const game: IGameFile<MismagiusFoulPlay> = {
 		"try to help Mismagius identify the criminals in this murder mystery team game (one guess per round)! Parameters will be given " +
 		"as hints but they will be opposite for criminals.",
 	name: "Mismagius' Foul Play",
+	noOneVsOne: true,
 	mascot: "Mismagius",
 	scriptedOnly: true,
 };

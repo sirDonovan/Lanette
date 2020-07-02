@@ -5,13 +5,13 @@ import type { User } from "./users";
 export type PlayerList = Dict<Player> | Player[] | Map<Player, any>;
 
 export class Player {
-	active: boolean | null = null;
+	active: boolean | undefined;
 	/** The player either left or got eliminated during gameplay; can no longer perform any actions */
-	eliminated: boolean | null = null;
+	eliminated: boolean | undefined;
 	/** The player can temporarily not perform any actions */
-	frozen: boolean | null = null;
-	losses: number | null = null;
-	team: PlayerTeam | null = null;
+	frozen: boolean | undefined;
+	losses: number | undefined;
+	team: PlayerTeam | undefined;
 
 	id: string;
 	readonly activity: Activity;
@@ -26,6 +26,14 @@ export class Player {
 			this.name = user.name;
 		}
 		this.activity = activity;
+	}
+
+	reset(): void {
+		delete this.active;
+		delete this.eliminated;
+		delete this.frozen;
+		delete this.losses;
+		delete this.team;
 	}
 
 	say(message: string): void {

@@ -215,4 +215,5 @@ export const game: IGameFile<KlefkisLockedLocations> = Games.copyTemplatePropert
 	description: "Players travel around the board to unlock properties and avoid getting eliminated by others!",
 	mascot: "Klefki",
 	name: "Klefki's Locked Locations",
+	noOneVsOne: true,
 });

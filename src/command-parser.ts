@@ -23,7 +23,7 @@ type CommandErrorRequiredTarget = 'noPmHtmlRoom' | 'missingBotRankForFeatures' |
 	'disabledUserHostedGameFeatures' | 'disabledUserHostedTournamentFeatures' |'noRoomEventInformation' | 'invalidRoomEvent' |
 	'invalidGameOption' | 'disabledGameFormat';
 
-type CommandErrorNoTarget = 'invalidUsernameLength' | 'reloadInProgress' | 'invalidHttpsLink' | 'noPmGameRoom';
+type CommandErrorNoTarget = 'invalidUserInRoom' | 'invalidUsernameLength' | 'reloadInProgress' | 'invalidHttpsLink' | 'noPmGameRoom';
 
 export type CommandErrorArray = [CommandErrorOptionalTarget, string?] | [CommandErrorRequiredTarget, string] | [CommandErrorNoTarget];
 
@@ -254,6 +254,8 @@ export class CommandParser {
 			return "You must specify one of " + error[1].trim() + "'s events.";
 		} else if (error[0] === 'disabledGameFormat') {
 			return error[1].trim() + " is currently disabled.";
+		} else if (error[0] === 'invalidUserInRoom') {
+			return "You must specify a user currently in the room.";
 		} else if (error[0] === 'invalidUsernameLength') {
 			return "You must specify a valid username (between 1 and " + Tools.maxUsernameLength + " characters).";
 		} else if (error[0] === 'reloadInProgress') {

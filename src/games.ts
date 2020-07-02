@@ -25,6 +25,7 @@ const DEFAULT_CATEGORY_COOLDOWN = 3;
 const gamesDirectory = path.join(__dirname, 'games');
 const internalGamePaths: IInternalGames = {
 	eggtoss: path.join(gamesDirectory, "internal", "egg-toss.js"),
+	onevsone: path.join(gamesDirectory, "internal", "one-vs-one.js"),
 	vote: path.join(gamesDirectory, "internal", "vote.js"),
 };
 
@@ -102,6 +103,7 @@ export class Games {
 	readonly internalFormats: KeyedDict<IInternalGames, DeepReadonly<IGameFormatData>> = {};
 	lastGames: Dict<number> = {};
 	lastMinigames: Dict<number> = {};
+	lastOneVsOneChallengeTimes: Dict<Dict<number>> = {};
 	lastScriptedGames: Dict<number> = {};
 	lastUserHostedGames: Dict<number> = {};
 	lastUserHostTimes: Dict<Dict<number>> = {};
@@ -165,6 +167,7 @@ export class Games {
 
 		if (previous.lastGames) Object.assign(this.lastGames, previous.lastGames);
 		if (previous.lastMinigames) Object.assign(this.lastMinigames, previous.lastMinigames);
+		if (previous.lastOneVsOneChallengeTimes) Object.assign(this.lastOneVsOneChallengeTimes, previous.lastOneVsOneChallengeTimes);
 		if (previous.lastScriptedGames) Object.assign(this.lastScriptedGames, previous.lastScriptedGames);
 		if (previous.lastUserHostedGames) Object.assign(this.lastUserHostedGames, previous.lastUserHostedGames);
 		if (previous.lastUserHostTimes) Object.assign(this.lastUserHostTimes, previous.lastUserHostTimes);
@@ -679,7 +682,9 @@ export class Games {
 		return format;
 	}
 
-	getInternalFormat(id: InternalGameKey): IGameFormat {
+	getInternalFormat(id: InternalGameKey): IGameFormat | CommandErrorArray {
+		if (this.internalFormats[id].disabled) return ['disabledGameFormat', this.internalFormats[id].name];
+
 		const formatData = Tools.deepClone(this.internalFormats[id]);
 		const formatComputed: IGameFormatComputed = {
 			effectType: "GameFormat",
@@ -837,6 +842,17 @@ export class Games {
 		}
 
 		return room.game;
+	}
+
+	createChildGame(format: IGameFormat, parentGame: Game): Game {
+		const childGame = this.createGame(parentGame.room, format, parentGame.pmRoom, false, parentGame.prng.seed.slice() as PRNGSeed);
+		childGame.canLateJoin = false;
+		childGame.parentGame = parentGame;
+		Object.assign(childGame.players, parentGame.players);
+		childGame.playerCount = parentGame.playerCount;
+
+		parentGame.room.game = childGame;
+		return childGame;
 	}
 
 	createUserHostedGame(room: Room, format: IUserHostedFormat, host: User | string): UserHosted {

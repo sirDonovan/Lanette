@@ -16,6 +16,7 @@ import type { UserHostStatus } from './types/storage';
 import type { IBattleData } from './types/tournaments';
 import type { User } from "./users";
 import type { TournamentPlace } from './tournaments';
+import type { OneVsOne } from './games/internal/one-vs-one';
 
 type ReloadableModule = 'client' | 'commandparser' | 'commands' | 'config' | 'dex' | 'games' | 'plugins' | 'storage' | 'tools' |
 	'tournaments';
@@ -23,6 +24,7 @@ const moduleOrder: ReloadableModule[] = ['tools', 'config', 'dex', 'client', 'co
 	'plugins', 'commands', 'games'];
 
 const AWARDED_BOT_GREETING_DURATION = 60 * 24 * 60 * 60 * 1000;
+const ONE_VS_ONE_GAME_COOLDOWN = 2 * 60 * 60 * 1000;
 
 let reloadInProgress = false;
 
@@ -460,6 +462,112 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 				game.end();
 			}
 		},
+	},
+	'onevsonechallenge': {
+		command: function(target, room, user) {
+			if (this.isPm(room)) return;
+			if (!Config.allowOneVsOneGames || !Config.allowOneVsOneGames.includes(room.id)) {
+				user.say("One vs. one challenges are not allowed in " + room.title + ".");
+				return;
+			}
+			if (room.game) {
+				user.say("You must wait until the game of " + room.game.name + " ends.");
+				return;
+			}
+			if (Games.reloadInProgress) {
+				user.say(CommandParser.getErrorText(['reloadInProgress']));
+				return;
+			}
+
+			let hasRoomStaff = false;
+			room.users.forEach((rank, user) => {
+				if (!hasRoomStaff && user.hasRank(room, 'driver')) hasRoomStaff = true;
+			});
+			if (!hasRoomStaff) {
+				user.say("You must wait for a room driver or higher to join " + room.title + ".");
+				return;
+			}
+
+			if (room.id in Games.lastOneVsOneChallengeTimes && user.id in Games.lastOneVsOneChallengeTimes[room.id]) {
+				const cooldown = ONE_VS_ONE_GAME_COOLDOWN - (Date.now() - Games.lastOneVsOneChallengeTimes[room.id][user.id]);
+				if (cooldown > 1000) {
+					user.say("You must wait " + Tools.toDurationString(cooldown) + " before challenging another user.");
+					return;
+				}
+			}
+
+			const oneVsOneFormat = Games.getInternalFormat("onevsone");
+			if (Array.isArray(oneVsOneFormat)) {
+				user.say(CommandParser.getErrorText(oneVsOneFormat));
+				return;
+			}
+
+			const targets = target.split(",");
+			const targetUser = Users.get(targets[0]);
+			if (!targetUser || !targetUser.rooms.has(room) || targetUser.isBot(room)) {
+				user.say(CommandParser.getErrorText(["invalidUserInRoom"]));
+				return;
+			}
+			if (targetUser === user) {
+				user.say("You cannot challenge yourself.");
+				return;
+			}
+
+			const challengeFormat = Games.getFormat(targets.slice(1).join(","), true);
+			if (Array.isArray(challengeFormat)) {
+				user.say(CommandParser.getErrorText(challengeFormat));
+				return;
+			}
+
+			if (challengeFormat.noOneVsOne) {
+				user.say(challengeFormat.name + " does not allow one vs. one challenges.");
+				return;
+			}
+
+			delete challengeFormat.mode;
+			const game = Games.createGame(room, oneVsOneFormat) as OneVsOne;
+			if (!game) return;
+			game.challengeFormat = challengeFormat;
+			game.challenged = game.addPlayer(targetUser)!;
+			game.challenger = game.addPlayer(user)!;
+			game.minPlayers = 2;
+			this.say(user.name + " challenges " + targetUser.name + " to a one vs. one game of " + challengeFormat.name + "!");
+			game.name += " (" + challengeFormat.name + ")";
+			game.timeout = setTimeout(() => {
+				this.say(targetUser.name + " failed to accept the challenge in time!");
+				game.forceEnd(user);
+			}, 2 * 60 * 1000);
+		},
+		aliases: ['onevonechallenge', '1vs1challenge', '1v1challenge', '1vs1c', '1v1c'],
+	},
+	acceptonevsonechallenge: {
+		command: function(target, room, user) {
+			if (this.isPm(room)) return;
+			if (Games.reloadInProgress) {
+				user.say(CommandParser.getErrorText(['reloadInProgress']));
+				return;
+			}
+			if (!room.game || !room.game.acceptChallenge) return;
+			room.game.acceptChallenge(user);
+		},
+		aliases: ['acceptonevonechallenge', 'accept1vs1challenge', 'accept1v1challenge', 'accept1vs1c', 'accept1v1c', 'a1vs1c', 'a1v1c'],
+	},
+	rejectonevsonechallenge: {
+		command: function(target, room, user) {
+			if (this.isPm(room)) return;
+			if (!room.game || !room.game.rejectChallenge) return;
+			room.game.rejectChallenge(user);
+		},
+		aliases: ['rejectonevonechallenge', 'reject1vs1challenge', 'reject1v1challenge', 'reject1vs1c', 'reject1v1c', 'r1vs1c', 'r1v1c',
+			'denyonevonechallenge', 'deny1vs1challenge', 'deny1v1challenge', 'deny1vs1c', 'deny1v1c', 'd1vs1c', 'd1v1c'],
+	},
+	cancelonevsonechallenge: {
+		command: function(target, room, user) {
+			if (this.isPm(room)) return;
+			if (!room.game || !room.game.cancelChallenge) return;
+			room.game.cancelChallenge(user);
+		},
+		aliases: ['cancelonevonechallenge', 'cancel1vs1challenge', 'cancel1v1challenge', 'cancel1vs1c', 'cancel1v1c', 'c1vs1c', 'c1v1c'],
 	},
 	randomminigame: {
 		async asyncCommand(target, room, user, cmd) {

@@ -226,5 +226,6 @@ export const game: IGameFile<EmpoleonsEmpires> = {
 		"are incorrect, at which point it will be the guessed player's turn.",
 	formerNames: ["Empires"],
 	name: "Empoleon's Empires",
+	noOneVsOne: true,
 	mascot: "Empoleon",
 };

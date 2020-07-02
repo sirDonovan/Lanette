@@ -39,6 +39,7 @@ export const game: IGameFile<MewsMoveCards> = Games.copyTemplateProperties(cardG
 	class: MewsMoveCards,
 	description: "Players try to play the highest (or lowest) move card in the randomly chosen category each round!",
 	name: "Mew's Move Cards",
+	noOneVsOne: true,
 	mascot: "Mew",
 	scriptedOnly: true,
 });

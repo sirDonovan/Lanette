@@ -55,6 +55,7 @@ export function load(config: typeof Config): typeof Config {
 
 	if (config.allowScriptedGames) config.allowScriptedGames = arrayToRoomIds(config.allowScriptedGames);
 	if (config.allowUserHostedGames) config.allowUserHostedGames = arrayToRoomIds(config.allowUserHostedGames);
+	if (config.allowOneVsOneGames) config.allowOneVsOneGames = arrayToRoomIds(config.allowOneVsOneGames);
 	if (config.gameCategoryCooldowns) objectKeysToRoomId(config.gameCategoryCooldowns);
 	if (config.gameCooldownTimers) objectKeysToRoomId(config.gameCooldownTimers);
 	if (config.minigameCooldownTimers) objectKeysToRoomId(config.minigameCooldownTimers);

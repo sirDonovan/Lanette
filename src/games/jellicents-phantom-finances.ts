@@ -310,6 +310,7 @@ export const game: IGameFile<JellicentsPhantomFinances> = Games.copyTemplateProp
 	description: "Players travel around the board to buy properties and avoid paying all of their Poke as rent for others!",
 	mascot: "Jellicent",
 	name: "Jellicent's Phantom Finances",
+	noOneVsOne: true,
 	variants: [
 		{
 			name: "Auction-only Jellicent's Phantom Finances",

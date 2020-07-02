@@ -101,6 +101,7 @@ export interface IGameAchievement {
 
 export interface IInternalGames {
 	eggtoss: string;
+	onevsone: string;
 	vote: string;
 }
 
@@ -156,6 +157,7 @@ interface IGameFileProperties<T extends Game = Game> {
 	minigameCommandAliases?: string[];
 	minigameDescription?: string;
 	modes?: string[];
+	noOneVsOne?: boolean;
 	scriptedOnly?: boolean;
 	tests?: GameFileTests<T>;
 	variants?: (Partial<T> & IGameVariant)[];

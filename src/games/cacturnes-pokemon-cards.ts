@@ -30,6 +30,7 @@ export const game: IGameFile<CacturnesPokemonCards> = Games.copyTemplateProperti
 	class: CacturnesPokemonCards,
 	description: "Players try to play the highest (or lowest) Pokemon card in the randomly chosen category each round!",
 	name: "Cacturne's Pokemon Cards",
+	noOneVsOne: true,
 	mascot: "Cacturne",
 	scriptedOnly: true,
 });

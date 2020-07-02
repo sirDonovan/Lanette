@@ -149,6 +149,7 @@ export const game: IGameFile<CrustlesCrumblingBlocks> = {
 	description: "Players remove blocks from Crustle's pyramid until only one remains. The player forced to remove the final block is " +
 		"eliminated!",
 	name: "Crustle's Crumbling Blocks",
+	noOneVsOne: true,
 	mascot: "Crustle",
 	scriptedOnly: true,
 };

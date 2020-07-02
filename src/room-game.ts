@@ -61,7 +61,7 @@ export class Game extends Activity {
 	readonly maxBits: number = 1000;
 	minPlayers: number = 4;
 	notifyRankSignups: boolean = false;
-	parentGame: Game | null = null;
+	parentGame: Game | undefined;
 	readonly round: number = 0;
 	signupsStarted: boolean = false;
 	signupsTime: number = 0;
@@ -85,6 +85,7 @@ export class Game extends Activity {
 	mascot?: IPokemonCopy;
 	maxPlayers?: number;
 	maxRound?: number;
+	noForceEndMessage?: boolean;
 	playerCap?: number;
 	readonly points?: Map<Player, number>;
 	shinyMascot?: boolean;
@@ -249,7 +250,8 @@ export class Game extends Activity {
 		if (!this.isUserHosted) delete this.room.game;
 
 		if (this.parentGame) {
-			this.room.game = this.parentGame;
+			this.parentGame.room.game = this.parentGame;
+			this.parentGame.prng = new PRNG(this.prng.seed);
 			if (this.parentGame.onChildEnd) this.parentGame.onChildEnd(this.winners);
 		}
 
@@ -257,9 +259,11 @@ export class Game extends Activity {
 	}
 
 	forceEnd(user: User, reason?: string): void {
-		const forceEndMessage = this.getForceEndMessage ? this.getForceEndMessage() : "";
-		this.say((!this.isUserHosted ? "The " : "") + this.name + " " + this.activityType + " was forcibly ended!" +
-			(forceEndMessage ? " " + forceEndMessage : ""));
+		if (!this.noForceEndMessage) {
+			const forceEndMessage = this.getForceEndMessage ? this.getForceEndMessage() : "";
+			this.say((!this.isUserHosted ? "The " : "") + this.name + " " + this.activityType + " was forcibly ended!" +
+				(forceEndMessage ? " " + forceEndMessage : ""));
+		}
 
 		if (this.onForceEnd) this.onForceEnd(user, reason);
 		this.ended = true;
@@ -456,8 +460,10 @@ export class Game extends Activity {
 			return;
 		}
 
-		const bits = this.isUserHosted ? 0 : this.addBits(player, JOIN_BITS, true);
-		player.say("Thanks for joining the " + this.name + " " + this.activityType + "!" + (bits ? " Have some free bits!" : ""));
+		const bits = this.isUserHosted || this.internalGame ? 0 : this.addBits(player, JOIN_BITS, true);
+		if (!this.internalGame) {
+			player.say("Thanks for joining the " + this.name + " " + this.activityType + "!" + (bits ? " Have some free bits!" : ""));
+		}
 
 		if (this.showSignupsHtml && !this.started) {
 			if (!this.signupsHtmlTimeout) {
@@ -636,17 +642,9 @@ export class Game extends Activity {
 		return result;
 	}
 
-	getSignupsHtml(): string {
+	getDescriptionHtml(): string {
 		let html = "<center>";
 		if (this.mascot) {
-			if (this.shinyMascot === undefined) {
-				if (this.rollForShinyPokemon()) {
-					this.mascot.shiny = true;
-					this.shinyMascot = true;
-				} else {
-					this.shinyMascot = false;
-				}
-			}
 			const gif = Dex.getPokemonGif(this.mascot, "xy", this.isUserHosted ? 'back' : 'front');
 			if (gif) html += gif;
 		}
@@ -660,6 +658,21 @@ export class Game extends Activity {
 		}
 		html += "</center>";
 		return html;
+	}
+
+	getSignupsHtml(): string {
+		if (this.mascot) {
+			if (this.shinyMascot === undefined) {
+				if (this.rollForShinyPokemon()) {
+					this.mascot.shiny = true;
+					this.shinyMascot = true;
+				} else {
+					this.shinyMascot = false;
+				}
+			}
+		}
+
+		return this.getDescriptionHtml();
 	}
 
 	getSignupsHtmlUpdate(): string {
@@ -677,7 +690,7 @@ export class Game extends Activity {
 	}
 
 	addBits(user: User | Player, bits: number, noPm?: boolean): boolean {
-		if (bits <= 0 || this.isPm(this.room) || (this.parentGame && !this.parentGame.allowChildGameBits)) return false;
+		if (bits <= 0 || this.isPm(this.room) || (this.parentGame && this.parentGame.allowChildGameBits !== true)) return false;
 		if (this.shinyMascot) bits *= 2;
 		Storage.addPoints(this.room, user.name, bits, this.format.id);
 		if (!noPm) {
@@ -689,7 +702,7 @@ export class Game extends Activity {
 	}
 
 	removeBits(user: User | Player, bits: number, noPm?: boolean): boolean {
-		if (bits <= 0 || this.isPm(this.room) || (this.parentGame && !this.parentGame.allowChildGameBits)) return false;
+		if (bits <= 0 || this.isPm(this.room) || (this.parentGame && this.parentGame.allowChildGameBits !== true)) return false;
 		if (this.shinyMascot) bits *= 2;
 		Storage.removePoints(this.room, user.name, bits, this.format.id);
 		if (!noPm) {
@@ -700,7 +713,7 @@ export class Game extends Activity {
 	}
 
 	convertPointsToBits(winnerBits?: number, loserBits?: number): void {
-		if (this.parentGame && !this.parentGame.allowChildGameBits) return;
+		if (this.parentGame && this.parentGame.allowChildGameBits !== true) return;
 		if (!this.points) throw new Error(this.name + " called convertPointsToBits() with no points Map");
 		if (winnerBits === undefined) winnerBits = this.winnerPointsToBits;
 		if (loserBits === undefined) loserBits = this.loserPointsToBits;
@@ -835,6 +848,8 @@ export class Game extends Activity {
 		return output.join(" | ");
 	}
 
+	acceptChallenge?(user: User): boolean;
+	cancelChallenge?(user: User): boolean;
 	getForceEndMessage?(): string;
 	getPlayerSummary?(player: Player): void;
 	async getRandomAnswer?(): Promise<IRandomGameAnswer>;
@@ -850,5 +865,6 @@ export class Game extends Activity {
 	onSignups?(): void;
 	onStart?(): void;
 	parseChatMessage?(user: User, message: string): void;
+	rejectChallenge?(user: User): boolean;
 	repostInformation?(): void;
 }

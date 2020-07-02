@@ -136,5 +136,6 @@ export const game: IGameFile<JigglypuffsDodgeball> = {
 	class: JigglypuffsDodgeball,
 	description: "Players await Jigglypuff's <code>THROW</code> signal to eliminate the opposing team with their " + BALL_POKEMON + "!",
 	name: "Jigglypuff's Dodgeball",
+	noOneVsOne: true,
 	mascot: "Jigglypuff",
 };
