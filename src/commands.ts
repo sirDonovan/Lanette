@@ -417,6 +417,7 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 				return this.sayError(['disabledGameFeatures', room.title]);
 			}
 			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
+
 			const remainingGameCooldown = Games.getRemainingGameCooldown(room);
 			if (remainingGameCooldown > 1000) {
 				const durationString = Tools.toDurationString(remainingGameCooldown);
@@ -425,7 +426,13 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 				return;
 			}
 			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
-			const game = Games.createGame(room, Games.getInternalFormat('vote'));
+
+			const voteFormat = Games.getInternalFormat('vote');
+			if (Array.isArray(voteFormat)) {
+				return this.sayError(voteFormat);
+			}
+
+			const game = Games.createGame(room, voteFormat);
 			game.signups();
 		},
 		aliases: ['sv'],
@@ -442,6 +449,8 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 				return this.sayError(['disabledGameFeatures', room.title]);
 			}
 			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
+			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
+
 			const remainingGameCooldown = Games.getRemainingGameCooldown(room, true);
 			if (remainingGameCooldown > 1000) {
 				const durationString = Tools.toDurationString(remainingGameCooldown);
@@ -449,10 +458,16 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 					"cooldown remaining.");
 				return;
 			}
-			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
+
 			const targetUser = Users.get(target);
-			if (!targetUser) return this.say("You must specify a user.");
-			const game = Games.createGame(room, Games.getInternalFormat('eggtoss'), room, true);
+			if (!targetUser) return this.sayError(["invalidUserInRoom"]);
+
+			const eggTossFormat = Games.getInternalFormat('eggtoss');
+			if (Array.isArray(eggTossFormat)) {
+				return this.sayError(eggTossFormat);
+			}
+
+			const game = Games.createGame(room, eggTossFormat, room, true);
 			game.signups();
 			const canEgg = await this.run('toss') as boolean;
 			if (canEgg) {
@@ -1067,7 +1082,7 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 			if (this.isPm(room) || !user.hasRank(room, 'voice') || !room.userHostedGame) return;
 			const targetUser = Users.get(Tools.toId(target));
 			if (!targetUser || !targetUser.rooms.has(room) || targetUser.isBot(room)) {
-				return this.say("You must specify a user currently in the room.");
+				return this.sayError(["invalidUserInRoom"]);
 			}
 			if (room.userHostedGame.hostId === targetUser.id) return this.say(targetUser.name + " is already the game's host.");
 			if (room.userHostedGame.subHostId === targetUser.id) return this.say(targetUser.name + " is already the game's sub-host.");
