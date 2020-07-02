@@ -1346,7 +1346,7 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 			}
 
 			const now = Date.now();
-			const secondsArguments = ['seconds', 'secs'];
+			const secondsArguments = ['second', 'seconds', 'sec', 'secs'];
 			let seconds: boolean;
 			let time: number;
 			if (cmd.includes('rand')) {
