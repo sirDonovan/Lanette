@@ -1135,7 +1135,21 @@ export class Games {
 			document = document.concat(userHostedGames);
 		}
 
-		if (Config.allowOneVsOneGames && Config.allowOneVsOneGames.includes(room.id)) {
+		let allowOneVsOneGames = false;
+		if (Config.allowOneVsOneGames) {
+			if (Config.allowOneVsOneGames.includes(room.id)) {
+				allowOneVsOneGames = true;
+			} else if (Config.subRooms && room.id in Config.subRooms) {
+				for (const subRoom of Config.subRooms[room.id]) {
+					if (Config.allowOneVsOneGames.includes(subRoom)) {
+						allowOneVsOneGames = true;
+						break;
+					}
+				}
+			}
+		}
+
+		if (allowOneVsOneGames) {
 			const oneVsOneGames: string[] = ["## One vs. one challenges", "Commands:",
 				"* <code>.1v1c [user], [game]</code> - challenge [user] to a game of [game] (see list below)",
 				"* <code>.a1v1c</code> - accept a challenge",

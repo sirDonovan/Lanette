@@ -43,6 +43,11 @@ export let reconnectTime = 60 * 1000;
 export let rooms: string[] = [];
 
 /**
+ * For each room in the object, a list of its sub-rooms
+ */
+export let subRooms: Dict<string[]> = {};
+
+/**
  * Room aliases that can be used with user input
  */
 export let roomAliases: Dict<string> = {};

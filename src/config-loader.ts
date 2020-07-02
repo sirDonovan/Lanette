@@ -50,6 +50,7 @@ export function load(config: typeof Config): typeof Config {
 	if (config.developers) config.developers = config.developers.map(x => Tools.toId(x));
 
 	if (config.rooms) config.rooms = config.rooms.map(x => Tools.toRoomId(x));
+	if (config.subRooms) config.subRooms = objectKeysToRoomId(stringArrayObjectToRoomIds(config.subRooms));
 	if (config.disallowChatLogging) config.disallowChatLogging = arrayToRoomIds(config.disallowChatLogging);
 	if (config.roomAliases) config.roomAliases = objectKeysToRoomId(stringObjectToRoomIds(config.roomAliases));
 
@@ -99,7 +100,7 @@ export function load(config: typeof Config): typeof Config {
 	if (config.tournamentStartTimers) objectKeysToRoomId(config.tournamentStartTimers);
 	if (config.defaultTournamentPlayerCaps) objectKeysToRoomId(config.defaultTournamentPlayerCaps);
 	if (config.tournamentRoomAdvertisements) {
-		config.tournamentRoomAdvertisements = stringArrayObjectToRoomIds(config.tournamentRoomAdvertisements);
+		config.tournamentRoomAdvertisements = objectKeysToRoomId(stringArrayObjectToRoomIds(config.tournamentRoomAdvertisements));
 	}
 	if (config.randomTournamentTimers) objectKeysToRoomId(config.randomTournamentTimers);
 	if (config.allowUserHostedTournaments) config.allowUserHostedTournaments = arrayToRoomIds(config.allowUserHostedTournaments);
