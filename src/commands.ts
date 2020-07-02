@@ -478,6 +478,36 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 			}
 		},
 	},
+	'challengecooldown': {
+		command: function(target, room, user) {
+			const targets = target.split(',');
+			let gameRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				gameRoom = targetRoom;
+				targets.shift();
+			} else {
+				gameRoom = room;
+			}
+
+			const challenge = Tools.toId(targets[0]);
+			if (challenge === "onevsone" || challenge === "onevone" || challenge === "1vs1" || challenge === "1v1") {
+				let cooldown = 0;
+				if (gameRoom.id in Games.lastOneVsOneChallengeTimes && user.id in Games.lastOneVsOneChallengeTimes[gameRoom.id]) {
+					cooldown = ONE_VS_ONE_GAME_COOLDOWN - (Date.now() - Games.lastOneVsOneChallengeTimes[gameRoom.id][user.id]);
+				}
+
+				if (cooldown <= 1000) {
+					user.say("You are free to begin a one vs. one challenge in " + gameRoom.title + "!");
+				} else {
+					user.say("You can begin a one vs. one challenge in " + gameRoom.title + " in " +
+						Tools.toDurationString(cooldown) + ".");
+				}
+			}
+		},
+		aliases: ['chalcooldown', 'ccooldown', 'ccdown'],
+	},
 	'onevsonechallenge': {
 		command: function(target, room, user) {
 			if (this.isPm(room)) return;
