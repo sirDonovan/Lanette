@@ -1155,7 +1155,7 @@ export class Games {
 				"* <code>.a1v1c</code> - accept a challenge",
 				"* <code>.r1v1c</code> - reject a challenge",
 				"* <code>.c1v1c</code> - cancel a challenge",
-				"* <code>.ccdown 1v1</code> - check your one vs. one challenge cooldown time",
+				"* <code>.ccdown [room], 1v1</code> - check your one vs. one challenge cooldown time for [room] in PMs",
 				"\n\nCompatible games:"
 			];
 			const keys = Object.keys(this.formats);
