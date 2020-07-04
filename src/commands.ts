@@ -478,7 +478,7 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 			}
 		},
 	},
-	'challengecooldown': {
+	challengecooldown: {
 		command: function(target, room, user) {
 			const targets = target.split(',');
 			let gameRoom: Room;
@@ -508,7 +508,7 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 		},
 		aliases: ['chalcooldown', 'ccooldown', 'ccdown'],
 	},
-	'onevsonechallenge': {
+	onevsonechallenge: {
 		command: function(target, room, user) {
 			if (this.isPm(room)) return;
 			if (!Config.allowOneVsOneGames || !Config.allowOneVsOneGames.includes(room.id)) {
@@ -576,11 +576,11 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 			game.challenged = game.addPlayer(targetUser)!;
 			game.challenger = game.addPlayer(user)!;
 			game.minPlayers = 2;
-			this.say(user.name + " challenges " + targetUser.name + " to a one vs. one game of " + challengeFormat.name + "!");
+			this.say(user.name + " challenges " + targetUser.name + " to a one vs. one game of " + challengeFormat.nameWithOptions + "!");
 			game.name += " (" + challengeFormat.name + ")";
 			game.timeout = setTimeout(() => {
 				this.say(targetUser.name + " failed to accept the challenge in time!");
-				game.forceEnd(user);
+				game.forceEnd(Users.self);
 			}, 2 * 60 * 1000);
 		},
 		aliases: ['onevonechallenge', '1vs1challenge', '1v1challenge', '1vs1c', '1v1c'],
