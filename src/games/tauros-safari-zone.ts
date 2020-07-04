@@ -179,7 +179,7 @@ const commands: Dict<IGameCommandDefinition<TaurosSafariZone>> = {
 	catch: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canCatch || (user.id in this.players && this.players[user.id].eliminated)) return false;
+			if (!this.canCatch) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (this.roundCatches.has(player)) return false;
 			target = Tools.toId(target);

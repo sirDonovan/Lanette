@@ -264,8 +264,7 @@ const commands: Dict<IGameCommandDefinition<Chain>> = {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
 			if (this.format.options.freejoin) {
-				if ((!this.targetLinkStarts.length && !this.targetLinkEnds.length) || (this.players[user.id] &&
-					this.players[user.id].eliminated)) return false;
+				if (!this.targetLinkStarts.length && !this.targetLinkEnds.length) return false;
 			} else {
 				if (this.players[user.id] !== this.currentPlayer) return false;
 			}

@@ -151,8 +151,8 @@ const commands: Dict<IGameCommandDefinition<WishiwashisStatFishing>> = {
 	reel: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
+			if (this.roundReels.has(this.players[user.id])) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
-			if (this.roundReels.has(player) || player.eliminated) return false;
 			this.roundReels.set(player, true);
 			if (!this.canReel) return false;
 			this.queue.push(player);

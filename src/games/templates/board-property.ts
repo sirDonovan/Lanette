@@ -679,7 +679,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 const commands: Dict<IGameCommandDefinition<BoardPropertyGame>> = {
 	rolldice: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canRollOrEscapeJail || !(user.id in this.players) || this.players[user.id] !== this.currentPlayer) return false;
+			if (!this.canRollOrEscapeJail || this.players[user.id] !== this.currentPlayer) return false;
 			if (this.timeout) clearTimeout(this.timeout);
 			this.canRollOrEscapeJail = false;
 			this.rollDice(this.players[user.id]);
@@ -688,9 +688,7 @@ const commands: Dict<IGameCommandDefinition<BoardPropertyGame>> = {
 	},
 	unlock: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.propertyToAcquire || !this.canAcquire || !(user.id in this.players) || this.players[user.id] !== this.currentPlayer) {
-				return false;
-			}
+			if (!this.propertyToAcquire || !this.canAcquire || this.players[user.id] !== this.currentPlayer) return false;
 			this.acquirePropertySpace(this.propertyToAcquire, this.currentPlayer, this.propertyToAcquire.cost);
 			this.canAcquire = false;
 			if (this.timeout) clearTimeout(this.timeout);
@@ -705,9 +703,7 @@ const commands: Dict<IGameCommandDefinition<BoardPropertyGame>> = {
 	},
 	pass: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.propertyToAcquire || !this.canAcquire || !(user.id in this.players) || this.players[user.id] !== this.currentPlayer) {
-				return false;
-			}
+			if (!this.propertyToAcquire || !this.canAcquire || this.players[user.id] !== this.currentPlayer) return false;
 			this.canAcquire = false;
 			if (this.timeout) clearTimeout(this.timeout);
 			this.passOnPropertySpace(this.players[user.id]);
@@ -716,7 +712,7 @@ const commands: Dict<IGameCommandDefinition<BoardPropertyGame>> = {
 	},
 	escape: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canRollOrEscapeJail || !(user.id in this.players) || this.players[user.id] !== this.currentPlayer) return false;
+			if (!this.canRollOrEscapeJail || this.players[user.id] !== this.currentPlayer) return false;
 			if (this.timeout) clearTimeout(this.timeout);
 			const player = this.players[user.id];
 			this.canRollOrEscapeJail = false;

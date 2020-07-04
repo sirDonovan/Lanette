@@ -175,9 +175,8 @@ const commands: Dict<IGameCommandDefinition<InkaysCups>> = {
 	grab: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canGrab || !(user.id in this.players) || this.players[user.id].eliminated) return false;
+			if (!this.canGrab || this.roundGuesses.has(this.players[user.id])) return false;
 			const player = this.players[user.id];
-			if (this.roundGuesses.has(player)) return false;
 			const guess = Tools.toId(target);
 			if (!guess) return false;
 			const guessMega = (guess.substr(0, 4) === 'mega' ? guess.substr(4) + 'mega' : '');

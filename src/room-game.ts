@@ -55,6 +55,7 @@ export class Game extends Activity {
 	canLateJoin: boolean = false;
 	readonly commands = Object.assign(Object.create(null), Games.sharedCommands) as CommandsDict<Game, GameCommandReturnType>;
 	readonly commandsListeners: IGameCommandCountListener[] = [];
+	inheritedPlayers: boolean = false;
 	internalGame: boolean = false;
 	readonly isUserHosted: boolean = false;
 	readonly loserPointsToBits: number = 10;
@@ -597,13 +598,29 @@ export class Game extends Activity {
 	}
 
 	async tryCommand(target: string, room: Room | User, user: User, command: string): Promise<boolean> {
-		if (!(command in this.commands)) {
+		const commandDefinition = this.commands[command];
+		if (!this.started && !(commandDefinition && commandDefinition.signupsGameCommand)) return false;
+
+		if (!commandDefinition) {
 			if (command && (this.format.options.freejoin || (user.id in this.players && !this.players[user.id].eliminated))) {
 				user.say("'" + command + "' is not a command in " + this.format.nameWithOptions + ".");
 			}
 			return false;
 		}
-		const commandDefinition = this.commands[command];
+
+		if (!commandDefinition.staffGameCommand) {
+			if (this.format.options.freejoin) {
+				if (!this.inheritedPlayers && user.id in this.players && this.players[user.id].eliminated &&
+					!commandDefinition.eliminatedGameCommand) {
+					return false;
+				}
+			} else {
+				if (!(user.id in this.players) || (this.players[user.id].eliminated && !commandDefinition.eliminatedGameCommand)) {
+					return false;
+				}
+			}
+		}
+
 		const isPm = room === user;
 		if (isPm) {
 			if (!this.isPm(this.room) && !commandDefinition.pmGameCommand && !commandDefinition.pmOnly) return false;

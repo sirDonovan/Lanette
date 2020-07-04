@@ -90,7 +90,6 @@ const commands: Dict<IGameCommandDefinition<GolemsGalvanicMine>> = {
 	mine: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
-			if (!this.started || (user.id in this.players && this.players[user.id].eliminated)) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (this.roundMines.has(player)) return false;
 			const stone = Dex.getDex(gen).getItem(target);

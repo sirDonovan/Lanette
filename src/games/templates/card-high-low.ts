@@ -227,8 +227,7 @@ export abstract class CardHighLow extends Card {
 const commands: Dict<IGameCommandDefinition<CardHighLow>> = {
 	play: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].eliminated ||
-				this.roundPlays.has(this.players[user.id])) return false;
+			if (!this.canPlay || this.roundPlays.has(this.players[user.id])) return false;
 			const player = this.players[user.id];
 			const targets = target.split(",");
 			const id = Tools.toId(targets[0]);

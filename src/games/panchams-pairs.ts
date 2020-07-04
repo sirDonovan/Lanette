@@ -245,17 +245,7 @@ const commands: Dict<IGameCommandDefinition<PanchamPairs>> = {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canPair) return false;
-			if (this.format.options.freejoin) {
-				if (user.id in this.players) {
-					if (this.players[user.id].eliminated) return false;
-				} else {
-					this.createPlayer(user);
-				}
-			} else {
-				if (!(user.id in this.players) || this.players[user.id].eliminated) return false;
-			}
-
-			const player = this.players[user.id];
+			const player = this.createPlayer(user) || this.players[user.id];
 			if (this.paired.has(player)) return false;
 			const split = target.split(",");
 			if (split.length !== 3) return false;

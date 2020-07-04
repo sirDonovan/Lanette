@@ -692,8 +692,12 @@ export class Games {
 			inputTarget: id,
 			nameWithOptions: '',
 		};
-		return Object.assign({}, formatData, formatComputed, {customizableOptions: formatData.customizableOptions || {},
-			defaultOptions: formatData.defaultOptions || [], options: {}});
+
+		const format = Object.assign({}, formatData, formatComputed, {customizableOptions: formatData.customizableOptions || {},
+			defaultOptions: formatData.defaultOptions || []}) as IGameFormat;
+		format.options = Game.setOptions(format, undefined, undefined);
+
+		return format;
 	}
 
 	getRandomFormat(room: Room): IGameFormat {

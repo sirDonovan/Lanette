@@ -106,7 +106,7 @@ const commands: Dict<IGameCommandDefinition<ChanseysEggToss>> = {
 	toss: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canToss || !(user.id in this.players) || this.players[user.id].eliminated) return false;
+			if (!this.canToss) return false;
 			const player = this.players[user.id];
 			if (player !== this.currentHolder) {
 				player.say("You are not holding the egg!");

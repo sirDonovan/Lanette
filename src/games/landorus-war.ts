@@ -140,9 +140,7 @@ const commands: Dict<IGameCommandDefinition<LandorusWar>> = {
 	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	use: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.started) return false;
 			const player = this.players[user.id];
-			if (!player || player.eliminated) return false;
 			if (this.roundMoves.has(player)) {
 				player.say("You have already used a move this round!");
 				return false;
@@ -205,7 +203,6 @@ const commands: Dict<IGameCommandDefinition<LandorusWar>> = {
 	},
 	suspect: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.started || !(user.id in this.players) || this.players[user.id].eliminated) return false;
 			const player = this.players[user.id];
 			if (this.roundSuspects.has(player)) {
 				player.say("You have already suspected a trainer this round!");

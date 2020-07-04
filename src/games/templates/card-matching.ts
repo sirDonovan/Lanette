@@ -515,13 +515,10 @@ const commands: Dict<IGameCommandDefinition<CardMatching>> = {
 		},
 		pmOnly: true,
 	},
-	cards: {
-		command: Games.sharedCommands.summary.command,
-	},
-	hand: {
-		command: Games.sharedCommands.summary.command,
-	},
 };
+
+commands.summary = Tools.deepClone(Games.sharedCommands.summary);
+commands.summary.aliases = ['cards', 'hand'];
 
 const tests: GameFileTests<CardMatching> = {
 	'it should properly create a deck': {

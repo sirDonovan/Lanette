@@ -473,7 +473,7 @@ export abstract class MapGame extends Game {
 	}
 
 	move(target: string, user: User, cmd: string): boolean {
-		if (!this.canMove || !(user.id in this.players)) return false;
+		if (!this.canMove) return false;
 		const player = this.players[user.id];
 		if (this.roundActions && this.roundActions.has(player)) return false;
 		if (player.eliminated) {
@@ -555,21 +555,25 @@ const commands: Dict<IGameCommandDefinition<MapGame>> = {
 		command(target, room, user): GameCommandReturnType {
 			return this.move(target, user, 'up');
 		},
+		eliminatedGameCommand: true,
 	},
 	down: {
 		command(target, room, user): GameCommandReturnType {
 			return this.move(target, user, 'down');
 		},
+		eliminatedGameCommand: true,
 	},
 	left: {
 		command(target, room, user): GameCommandReturnType {
 			return this.move(target, user, 'left');
 		},
+		eliminatedGameCommand: true,
 	},
 	right: {
 		command(target, room, user): GameCommandReturnType {
 			return this.move(target, user, 'right');
 		},
+		eliminatedGameCommand: true,
 	},
 	/* eslint-enable */
 };

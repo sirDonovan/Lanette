@@ -274,7 +274,7 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 const commands: Dict<IGameCommandDefinition<JellicentsPhantomFinances>> = {
 	bid: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canBid || !(user.id in this.players) || this.players[user.id].eliminated) return false;
+			if (!this.canBid) return false;
 			const player = this.players[user.id];
 			const amount = parseInt(target);
 			const currency = this.playerCurrency.get(player)!;

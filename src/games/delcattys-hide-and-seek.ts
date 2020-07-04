@@ -25,11 +25,11 @@ class DelcattysHideAndSeek extends Game {
 		const pokemonList = Games.getPokemonList();
 		for (const pokemon of pokemonList) {
 			pokemonCategories[pokemon.id] = [];
-			for (let j = 0, len = pokemon.eggGroups.length; j < len; j++) {
-				pokemonCategories[pokemon.id].push(pokemon.eggGroups[j] + " Group");
+			for (const eggGroup of pokemon.eggGroups) {
+				pokemonCategories[pokemon.id].push(eggGroup + " Group");
 			}
-			for (let j = 0, len = pokemon.types.length; j < len; j++) {
-				pokemonCategories[pokemon.id].push(pokemon.types[j] + " Type");
+			for (const type of pokemon.types) {
+				pokemonCategories[pokemon.id].push(type + " Type");
 			}
 			pokemonCategories[pokemon.id].push("Generation " + pokemon.gen);
 			if (Games.isIncludedPokemonTier(pokemon.tier)) pokemonCategories[pokemon.id].push(pokemon.tier);
@@ -79,7 +79,7 @@ class DelcattysHideAndSeek extends Game {
 		if (remainingPlayerCount < 2) return this.end();
 
 		this.pokemonChoices.clear();
-		this.charmer = this.shufflePlayers()[0];
+		this.charmer = this.getRandomPlayer();
 		let requiredPokemon = remainingPlayerCount;
 		if (requiredPokemon > 2) requiredPokemon += this.random(3) - 1;
 
@@ -93,7 +93,7 @@ class DelcattysHideAndSeek extends Game {
 		}
 
 		const text = "**" + this.charmer.name + "** is the charmer! " + Tools.joinList(otherPlayers) + ", select a **" + param +
-			"** Pokemon with ``" + Config.commandCharacter +"select [Pokemon]`` in PMs!";
+			"** Pokemon with ``" + Config.commandCharacter + "select [Pokemon]`` in PMs!";
 		this.on(text, () => {
 			this.canSelect = true;
 			this.timeout = setTimeout(() => this.selectCharmedPokemon(), 60 * 1000);
@@ -152,8 +152,8 @@ const commands: Dict<IGameCommandDefinition<DelcattysHideAndSeek>> = {
 	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	charm: {
 		command(target, room, user): GameCommandReturnType {
+			if (this.players[user.id] !== this.charmer || !this.canCharm) return false;
 			const player = this.players[user.id];
-			if (player !== this.charmer || !this.canCharm) return false;
 			target = Tools.toId(target);
 			const pokemon = Dex.getPokemon(target);
 			if (!pokemon) {
@@ -161,11 +161,11 @@ const commands: Dict<IGameCommandDefinition<DelcattysHideAndSeek>> = {
 				return false;
 			}
 			if (!data.pokemon.includes(pokemon.id)) {
-				player.say(pokemon.name + " is not in this game.");
+				player.say(pokemon.name + " cannot be used in this game.");
 				return false;
 			}
 			if (!this.pokemonFitsParameters(pokemon)) {
-				player.say("**" + pokemon.name + "** does not follow the parameters.");
+				player.say(pokemon.name + " does not follow the parameters.");
 				return false;
 			}
 
@@ -196,8 +196,8 @@ const commands: Dict<IGameCommandDefinition<DelcattysHideAndSeek>> = {
 	},
 	select: {
 		command(target, room, user): GameCommandReturnType {
+			if (!this.canSelect) return false;
 			const player = this.players[user.id];
-			if (!this.canSelect || !player || player.eliminated) return false;
 			if (player === this.charmer) {
 				user.say("As the charmer, you cannot select a Pokemon.");
 				return false;
@@ -206,6 +206,7 @@ const commands: Dict<IGameCommandDefinition<DelcattysHideAndSeek>> = {
 				user.say("You have already selected your Pokemon!");
 				return false;
 			}
+
 			target = Tools.toId(target);
 			const pokemon = Dex.getPokemon(target);
 			if (!pokemon) {
@@ -213,13 +214,14 @@ const commands: Dict<IGameCommandDefinition<DelcattysHideAndSeek>> = {
 				return false;
 			}
 			if (!data.pokemon.includes(pokemon.id)) {
-				player.say(pokemon.name + " is not in this game.");
+				player.say(pokemon.name + " cannot be used in this game.");
 				return false;
 			}
 			if (!this.pokemonFitsParameters(pokemon)) {
-				player.say("**" + pokemon.name + "** does not follow the parameters!");
+				player.say(pokemon.name + " does not follow the parameters!");
 				return false;
 			}
+
 			this.pokemonChoices.set(player, pokemon.name);
 			player.say("You have selected **" + pokemon.name + "**!");
 			return true;

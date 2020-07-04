@@ -86,7 +86,7 @@ const commands: Dict<IGameCommandDefinition<TrevenantsTrickOrTreat>> = {
 	trick: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
-			if (!this.started || (user.id in this.players && this.players[user.id].eliminated)) return false;
+			if (!this.started) return false;
 			const move = Dex.getMove(target);
 			if (!move) {
 				user.say("'" + target + "' is not a valid move.");
@@ -116,8 +116,8 @@ const commands: Dict<IGameCommandDefinition<TrevenantsTrickOrTreat>> = {
 			}
 
 			if (indices.length > 1) {
-				player.say("**" + move.name + "** is learned by more than 1 Pokemon  (" +
-					Tools.joinList(indices.map(index => this.pokemonGrid[index[0]][index[1]])) + ").");
+				player.say("**" + move.name + "** is learned by more than 1 Pokemon (" +
+					Tools.joinList(indices.map(index => Dex.getExistingPokemon(this.pokemonGrid[index[0]][index[1]]).name)) + ").");
 				return false;
 			}
 

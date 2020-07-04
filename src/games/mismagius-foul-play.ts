@@ -254,7 +254,6 @@ const commands: Dict<IGameCommandDefinition<MismagiusFoulPlay>> = {
 	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	select: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.started || !(user.id in this.players) || this.players[user.id].eliminated) return false;
 			const player = this.players[user.id];
 			if (this.chosenPokemon.has(player)) {
 				user.say("You already have an assigned Pokemon.");
@@ -285,7 +284,6 @@ const commands: Dict<IGameCommandDefinition<MismagiusFoulPlay>> = {
 	},
 	suspect: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.started || !(user.id in this.players) || this.players[user.id].eliminated) return false;
 			const player = this.players[user.id];
 			if (this.roundGuesses.has(player)) {
 				player.say("You have already suspected a player this round!");
@@ -361,6 +359,7 @@ const commands: Dict<IGameCommandDefinition<MismagiusFoulPlay>> = {
 	},
 	/* eslint-enable */
 };
+
 commands.summary = Tools.deepClone(Games.sharedCommands.summary);
 commands.summary.aliases = ['role'];
 

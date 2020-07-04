@@ -175,7 +175,7 @@ const commands: Dict<IGameCommandDefinition<Vote>> = {
 	vote: {
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canVote) return false;
-			const player = this.players[user.id] || this.createPlayer(user);
+			const player = this.createPlayer(user) || this.players[user.id];
 			const targetId = Tools.toId(target);
 			let format: IGameFormat | undefined;
 			if (targetId === 'random' || targetId === 'randomgame') {
@@ -225,7 +225,7 @@ const commands: Dict<IGameCommandDefinition<Vote>> = {
 	pmvote: {
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canVote) return false;
-			const player = this.players[user.id] || this.createPlayer(user);
+			const player = this.createPlayer(user) || this.players[user.id];
 			player.useCommand('vote', target);
 			return true;
 		},

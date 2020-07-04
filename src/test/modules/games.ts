@@ -38,6 +38,7 @@ function testMascots(format: IGameFormat | IUserHostedFormat): void {
 
 function createIndividualTestGame(format: IGameFormat): Game {
 	const game = Games.createGame(room, format, room, false, initialSeed);
+	game.signups();
 	if (game.timeout) clearTimeout(game.timeout);
 
 	return game;

@@ -143,7 +143,7 @@ const commands: Dict<IGameCommandDefinition<ShedinjasWonderTrials>> = {
 	use: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canUseMove || !this.currentPokemon || (this.players[user.id] && this.players[user.id].eliminated)) return false;
+			if (!this.canUseMove || !this.currentPokemon) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (this.roundMoves.has(player)) return false;
 			const move = Dex.getMove(target);

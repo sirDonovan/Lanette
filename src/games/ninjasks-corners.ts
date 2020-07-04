@@ -95,16 +95,7 @@ const commands: Dict<IGameCommandDefinition<NinjasksCorners>> = {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canTravel) return false;
-			if (this.format.options.freejoin) {
-				if (user.id in this.players) {
-					if (this.players[user.id].eliminated) return false;
-				} else {
-					this.createPlayer(user);
-				}
-			} else {
-				if (!(user.id in this.players) || this.players[user.id].eliminated) return false;
-			}
-			const player = this.players[user.id];
+			const player = this.createPlayer(user) || this.players[user.id];
 			const color = Tools.toId(target);
 			if (!color) return false;
 			if (this.format.options.freejoin) {

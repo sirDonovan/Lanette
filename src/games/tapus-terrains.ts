@@ -194,9 +194,8 @@ const commands: Dict<IGameCommandDefinition<TapusTerrains>> = {
 	jump: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
-			if (!(user.id in this.players) || this.players[user.id].eliminated) return false;
+			if (this.roundJumps.has(this.players[user.id])) return false;
 			const player = this.players[user.id];
-			if (this.roundJumps.has(player)) return false;
 			this.roundJumps.set(player, true);
 			if (!this.canJump) return false;
 			this.queue.push(player);

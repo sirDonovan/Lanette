@@ -247,8 +247,7 @@ class BulbasaursUno extends CardMatching {
 const commands: Dict<IGameCommandDefinition<BulbasaursUno>> = {
 	draw: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen ||
-				this.currentPlayer !== this.players[user.id]) return false;
+			if (!this.canPlay || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
 			this.awaitingCurrentPlayerCard = false;
 			this.drawCard(this.players[user.id]);
 			this.currentPlayer = null; // prevent Draw Wizard from activating on a draw

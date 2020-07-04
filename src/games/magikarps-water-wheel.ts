@@ -196,10 +196,7 @@ const commands: Dict<IGameCommandDefinition<MagikarpsWaterWheel>> = {
 	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	swim: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canSwim || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) {
-				return false;
-			}
-			if (this.roundActions.has(this.players[user.id])) return false;
+			if (!this.canSwim || this.players[user.id].frozen || this.roundActions.has(this.players[user.id])) return false;
 			const player = this.players[user.id];
 			const wheel = this.playerWheels.get(player)!;
 			const direction = Tools.toId(target);
@@ -232,18 +229,14 @@ const commands: Dict<IGameCommandDefinition<MagikarpsWaterWheel>> = {
 	},
 	tread: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canSwim || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) {
-				return false;
-			}
+			if (!this.canSwim || this.players[user.id].frozen) return false;
 			this.roundActions.add(this.players[user.id]);
 			return true;
 		},
 	},
 	stay: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canSwim || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) {
-				return false;
-			}
+			if (!this.canSwim || this.players[user.id].frozen) return false;
 			const player = this.players[user.id];
 			const points = this.points.get(player);
 			if (!points) {

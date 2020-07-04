@@ -128,9 +128,7 @@ const commands: Dict<IGameCommandDefinition<BounsweetsBountifulBuffet>> = {
 	select: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
-			if (!(user.id in this.players) || this.players[user.id].eliminated || this.selectedMeals.has(this.players[user.id])) {
-				return false;
-			}
+			if (this.selectedMeals.has(this.players[user.id])) return false;
 			const player = this.players[user.id];
 			target = Tools.toId(target);
 			if (target in data.aliases) target = data.aliases[target];

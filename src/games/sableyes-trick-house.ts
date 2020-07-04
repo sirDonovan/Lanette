@@ -113,8 +113,7 @@ const commands: Dict<IGameCommandDefinition<SableyesTrickHouse>> = {
 	select: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canSelect || !(user.id in this.players) || this.players[user.id].eliminated) return false;
-			if (this.roundSelections.has(this.players[user.id])) return false;
+			if (!this.canSelect || this.roundSelections.has(this.players[user.id])) return false;
 			const player = this.players[user.id];
 			const choice = Tools.toId(target);
 			let match = -1;
@@ -151,7 +150,7 @@ const tests: GameFileTests<SableyesTrickHouse> = {
 			async: true,
 		},
 		async test(game): Promise<void> {
-			const players = addPlayers(game, 3);
+			const players = addPlayers(game, 4);
 			game.start();
 			game.nextRound();
 			game.canSelect = true;
@@ -165,7 +164,7 @@ const tests: GameFileTests<SableyesTrickHouse> = {
 			async: true,
 		},
 		async test(game): Promise<void> {
-			const players = addPlayers(game, 3);
+			const players = addPlayers(game, 4);
 			game.start();
 			game.nextRound();
 			game.offCommands(['select']);
@@ -182,7 +181,7 @@ const tests: GameFileTests<SableyesTrickHouse> = {
 			async: true,
 		},
 		async test(game): Promise<void> {
-			const players = addPlayers(game, 3);
+			const players = addPlayers(game, 4);
 			game.start();
 			game.nextRound();
 			game.canSelect = true;

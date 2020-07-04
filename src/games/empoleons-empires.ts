@@ -91,7 +91,7 @@ const commands: Dict<IGameCommandDefinition<EmpoleonsEmpires>> = {
 	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	guess: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canGuess || !(user.id in this.players) || this.players[user.id] !== this.currentPlayer) return false;
+			if (!this.canGuess || this.players[user.id] !== this.currentPlayer) return false;
 			const player = this.players[user.id];
 			const targets = target.split(",");
 			if (targets.length !== 2) {
@@ -148,7 +148,6 @@ const commands: Dict<IGameCommandDefinition<EmpoleonsEmpires>> = {
 	},
 	alias: {
 		command(target, room, user): GameCommandReturnType {
-			if (!(user.id in this.players) || this.players[user.id].eliminated) return false;
 			if (this.playerAliases.has(this.players[user.id])) {
 				user.say("You have already chosen your alias!");
 				return false;
@@ -191,7 +190,7 @@ const commands: Dict<IGameCommandDefinition<EmpoleonsEmpires>> = {
 	},
 	dqalias: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.started || !user.hasRank(this.room as Room, 'driver')) return false;
+			if (!user.hasRank(this.room as Room, 'driver')) return false;
 			let targetPlayer: Player | undefined;
 			const targetAlias = Tools.toId(target);
 			this.playerAliases.forEach((alias, player) => {
@@ -213,6 +212,7 @@ const commands: Dict<IGameCommandDefinition<EmpoleonsEmpires>> = {
 			return true;
 		},
 		pmOnly: true,
+		staffGameCommand: true,
 	},
 	/* eslint-enable */
 };

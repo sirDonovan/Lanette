@@ -108,7 +108,7 @@ const commands: Dict<IGameCommandDefinition<ChandeluresCandles>> = {
 	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	hide: {
 		command(target, room, user): GameCommandReturnType {
-			if (!(user.id in this.players) || this.players[user.id].eliminated || !this.roundTarget) return false;
+			if (!this.roundTarget) return false;
 			const player = this.players[user.id];
 			if (player !== this.roundTarget) {
 				let lives = this.lives.get(player)!;
@@ -127,9 +127,8 @@ const commands: Dict<IGameCommandDefinition<ChandeluresCandles>> = {
 	},
 	puff: {
 		command(target, room, user): GameCommandReturnType {
-			if (!(user.id in this.players) || this.players[user.id].eliminated || !this.roundTarget) return false;
+			if (!this.roundTarget || this.roundActions.has(this.players[user.id])) return false;
 			const player = this.players[user.id];
-			if (this.roundActions.has(player)) return false;
 			const id = Tools.toId(target);
 			if (!(id in this.players) || this.players[id].eliminated) return false;
 			const targetPlayer = this.players[id];

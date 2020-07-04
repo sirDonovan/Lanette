@@ -216,9 +216,7 @@ class MurkrowsBlackjack extends PlayingCard {
 const commands: Dict<IGameCommandDefinition<MurkrowsBlackjack>> = {
 	hit: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canHit || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) {
-				return false;
-			}
+			if (!this.canHit || this.players[user.id].frozen) return false;
 			const player = this.players[user.id];
 			if (this.roundActions.has(player)) return false;
 			const userCards = this.playerCards.get(player)!;
@@ -247,9 +245,7 @@ const commands: Dict<IGameCommandDefinition<MurkrowsBlackjack>> = {
 	},
 	stay: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.started || !(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id].frozen) {
-				return false;
-			}
+			if (!this.started || this.players[user.id].frozen) return false;
 			const player = this.players[user.id];
 			if (this.roundActions.has(player)) return false;
 			player.frozen = true;
@@ -269,7 +265,6 @@ const commands: Dict<IGameCommandDefinition<MurkrowsBlackjack>> = {
 	},
 	wager: {
 		command(target, room, user): GameCommandReturnType {
-			if (!(user.id in this.players)) return false;
 			if (!this.canWager) {
 				user.say("You must place your wager before the game starts.");
 				return false;
@@ -294,6 +289,7 @@ const commands: Dict<IGameCommandDefinition<MurkrowsBlackjack>> = {
 			user.say("Your wager for " + wager + " bits has been placed!");
 			return true;
 		},
+		signupsGameCommand: true,
 	},
 };
 

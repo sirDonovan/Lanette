@@ -153,10 +153,9 @@ export abstract class PlayingCard extends Game {
 	getHandInfoHtml?(player: Player): string;
 }
 
-const commands: Dict<IGameCommandDefinition<PlayingCard>> = {
-	cards: Games.sharedCommands.summary,
-	hand: Games.sharedCommands.summary,
-};
+const commands: Dict<IGameCommandDefinition<PlayingCard>> = {};
+commands.summary = Tools.deepClone(Games.sharedCommands.summary);
+commands.summary.aliases = ['cards', 'hand'];
 
 export const game: IGameTemplateFile<PlayingCard> = {
 	category: 'playing-card',

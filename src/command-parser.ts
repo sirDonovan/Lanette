@@ -6,9 +6,12 @@ export interface ICommandDefinition<T, U> {
 	command?: (this: T, target: string, room: Room | User, user: User, alias: string) => U;
 	aliases?: string[];
 	readonly chatOnly?: boolean;
+	readonly eliminatedGameCommand?: boolean;
 	readonly developerOnly?: boolean;
 	readonly pmGameCommand?: boolean;
 	readonly pmOnly?: boolean;
+	readonly signupsGameCommand?: boolean;
+	readonly staffGameCommand?: boolean;
 }
 
 export type CommandsDict<T, U> = Dict<Omit<ICommandDefinition<T, U>, "aliases">>;

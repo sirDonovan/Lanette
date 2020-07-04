@@ -165,8 +165,7 @@ const commands: Dict<IGameCommandDefinition<Guessing>> = {
 	guess: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async asyncCommand(target, room, user): Promise<GameCommandReturnType> {
-			if (!this.canGuess || !this.answers.length || (this.players[user.id] && this.players[user.id].eliminated) ||
-				(this.parentGame && (!this.players[user.id] || this.players[user.id].eliminated))) return false;
+			if (!this.canGuess || !this.answers.length) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (!player.active) player.active = true;
 

@@ -338,10 +338,9 @@ export abstract class Card extends Game {
 	filterPoolItem?(pokemon: IPokemon): boolean;
 }
 
-const commands: Dict<IGameCommandDefinition<Card>> = {
-	cards: Games.sharedCommands.summary,
-	hand: Games.sharedCommands.summary,
-};
+const commands: Dict<IGameCommandDefinition<Card>> = {};
+commands.summary = Tools.deepClone(Games.sharedCommands.summary);
+commands.summary.aliases = ['cards', 'hand'];
 
 export const game: IGameTemplateFile<Card> = {
 	commands,

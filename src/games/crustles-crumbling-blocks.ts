@@ -120,9 +120,7 @@ const commands: Dict<IGameCommandDefinition<CrustlesCrumblingBlocks>> = {
 	remove: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
-			if (!(user.id in this.players) || this.players[user.id].eliminated || this.players[user.id] !== this.currentPlayer) {
-				return false;
-			}
+			if (this.players[user.id] !== this.currentPlayer) return false;
 			const player = this.players[user.id];
 			const targetNumber = parseInt(target);
 			if (isNaN(targetNumber) || targetNumber > MAX_BLOCKS || targetNumber < MIN_BLOCKS) {
