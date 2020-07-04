@@ -30,6 +30,12 @@ interface IGameCategoryKeys {
 
 export type GameCategory = keyof IGameCategoryKeys;
 
+interface IGameChallengeKeys {
+	onevsone: any;
+}
+
+export type GameChallenge = keyof IGameChallengeKeys;
+
 interface IGameAchievementKeys {
 	quickdraw: any;
 	captainwordmaster: any;
@@ -143,6 +149,7 @@ interface IGameFileProperties<T extends Game = Game> {
 	aliases?: string[];
 	canGetRandomAnswer?: boolean;
 	category?: GameCategory;
+	challengePoints?: PartialKeyedDict<IGameChallengeKeys, number>;
 	commands?: Dict<IGameCommandDefinition<T>>;
 	commandDescriptions?: string[];
 	customizableOptions?: Dict<IGameOptionValues>;

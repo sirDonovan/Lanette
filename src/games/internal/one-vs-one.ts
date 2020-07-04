@@ -92,7 +92,9 @@ export class OneVsOne extends Game {
 		game.minPlayers = 2;
 
 		const format = game.format as IGameFormat;
-		if (format.customizableOptions.points) {
+		if (format.challengePoints && format.challengePoints.onevsone) {
+			format.options.points = format.challengePoints.onevsone;
+		} else if (format.customizableOptions.points) {
 			format.options.points = format.customizableOptions.points.max;
 		} else if (format.defaultOptions && format.defaultOptions.includes('points')) {
 			format.options.points = 10;
