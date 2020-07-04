@@ -1,3 +1,4 @@
+import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
 import type { IGameFile } from "../types/games";
 import type { User } from "../users";
@@ -9,20 +10,21 @@ const data: {stats: Dict<string[]>} = {
 const statsKeys: string[] = [];
 
 class ChimechosStatSchool extends Guessing {
+	readonly roundGuesses = new Map<Player, boolean>();
+
 	static loadData(room: Room | User): void {
 		const pokemonList = Games.getPokemonList();
 		for (const pokemon of pokemonList) {
 			const stats = Object.values(pokemon.baseStats).join(" / ");
 			if (!(stats in data.stats)) {
 				data.stats[stats] = [];
-				statsKeys.push(stats);
 			}
 			data.stats[stats].push(pokemon.name);
 		}
-	}
 
-	onSignups(): void {
-		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
+		for (const i in data.stats) {
+			if (data.stats[i].length === 1) statsKeys.push(i);
+		}
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

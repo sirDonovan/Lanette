@@ -78,6 +78,7 @@ export abstract class Guessing extends Game {
 			this.canGuess = false;
 			await this.setAnswers();
 			if (this.ended) return;
+			if (this.roundGuesses) this.roundGuesses.clear();
 			this.guessingRound++;
 		}
 
