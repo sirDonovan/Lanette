@@ -282,8 +282,8 @@ export abstract class Card extends Game {
 					this.timeEnd();
 					return null;
 				}
-				const html = this.getRoundHtml(this.showPlayerCards ? this.getPlayerCards : this.lives ?
-					this.getPlayerLives : this.getPlayerNames,
+				const html = this.getRoundHtml(this.showPlayerCards ? this.getPlayerCards : this.lives && this.startingLives &&
+					this.startingLives > 1 ? this.getPlayerLives : this.getPlayerNames,
 					this.getRemainingPlayers(this.playerOrder), "Round " + this.cardRound);
 				this.sayUhtml(this.uhtmlBaseName + '-round-html', html);
 			}
