@@ -1367,8 +1367,8 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 				targets = target.split(' ');
 			}
 
-			const id = Tools.toId(targets[0]);
-			if (id === 'off' || id === 'end') {
+			const offArguments = ['off', 'end', 'clear', 'cancel'];
+			if (offArguments.includes(Tools.toId(targets[0]))) {
 				if (!room.userHostedGame.gameTimer) return this.say("There is no game timer running.");
 				clearTimeout(room.userHostedGame.gameTimer);
 				room.userHostedGame.gameTimer = null;
@@ -1377,26 +1377,54 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 
 			const now = Date.now();
 			const secondsArguments = ['second', 'seconds', 'sec', 'secs'];
-			let seconds: boolean;
-			let time: number;
+			let time = 0;
 			if (cmd.includes('rand')) {
-				seconds = secondsArguments.includes(Tools.toId(targets[0]));
-				if (seconds) {
-					time = room.userHostedGame.random(60) + 1;
+				const isSeconds = secondsArguments.includes(Tools.toId(targets[0]));
+				let minimumTime: number;
+				let maximumTime: number;
+				const remainingMinutes = Math.floor((room.userHostedGame.endTime - now) / 60 / 1000);
+				if (isSeconds && targets.length === 3) {
+					minimumTime = parseInt(targets[1]);
+					maximumTime = parseInt(targets[2]);
+					if (isNaN(minimumTime) || minimumTime < 3) {
+						return this.say("Please enter a minimum amount of seconds no less than 3.");
+					}
+					if (isNaN(maximumTime) || maximumTime > 60) {
+						return this.say("Please enter a maximum amount of seconds no more than 60.");
+					}
+				} else if (targets.length === 2) {
+					minimumTime = parseInt(targets[0]);
+					maximumTime = parseInt(targets[1]);
+					if (isNaN(minimumTime) || minimumTime < 1) {
+						return this.say("Please enter a minimum amount of minutes no less than 1.");
+					}
+					if (isNaN(maximumTime) || maximumTime > remainingMinutes) {
+						return this.say("Please enter a maximum amount of minutes no more than " + remainingMinutes + ".");
+					}
 				} else {
-					time = room.userHostedGame.random(Math.floor((room.userHostedGame.endTime - now) / 60 / 1000) / 3) + 1;
+					if (isSeconds) {
+						minimumTime = 3;
+						maximumTime = 60;
+					} else {
+						minimumTime = 1;
+						maximumTime = remainingMinutes / 3;
+					}
+				}
+
+				while (time < minimumTime || time > maximumTime) {
+					time = room.userHostedGame.random(maximumTime) + 1;
 				}
 			} else {
-				seconds = secondsArguments.includes(Tools.toId(targets[1]));
 				time = parseFloat(targets[0].trim());
-			}
-
-			if (seconds) {
-				if (isNaN(time) || time > 60 || time < 3) return this.say("Please enter an amount of seconds between 3 and 60.");
-				time *= 1000;
-			} else {
-				if (isNaN(time) || time < 1) return this.say("Please enter a valid amount of minutes (add `` seconds`` to use seconds).");
-				time *= 60 * 1000;
+				if (secondsArguments.includes(Tools.toId(targets[1]))) {
+					if (isNaN(time) || time > 60 || time < 3) return this.say("Please enter an amount of seconds between 3 and 60.");
+					time *= 1000;
+				} else {
+					if (isNaN(time) || time < 1) {
+						return this.say("Please enter a valid amount of minutes (add `` seconds`` to use seconds).");
+					}
+					time *= 60 * 1000;
+				}
 			}
 
 			if (now + time > room.userHostedGame.endTime) {
