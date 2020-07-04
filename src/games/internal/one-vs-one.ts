@@ -88,6 +88,7 @@ export class OneVsOne extends Game {
 
 		const game = Games.createChildGame(this.challengeFormat, this);
 		game.internalGame = true;
+		game.inheritPlayers(this.players);
 		game.minPlayers = 2;
 
 		const format = game.format as IGameFormat;
@@ -98,11 +99,9 @@ export class OneVsOne extends Game {
 		}
 
 		game.sayHtml(game.getDescriptionHtml());
+		game.signups();
 
-		if (format.options.freejoin) {
-			game.signups();
-			delete format.options.freejoin;
-		} else {
+		if (!format.options.freejoin) {
 			this.timeout = setTimeout(() => game.start(), 5 * 1000);
 		}
 	}

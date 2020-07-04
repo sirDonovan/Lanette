@@ -852,8 +852,6 @@ export class Games {
 		const childGame = this.createGame(parentGame.room, format, parentGame.pmRoom, false, parentGame.prng.seed.slice() as PRNGSeed);
 		childGame.canLateJoin = false;
 		childGame.parentGame = parentGame;
-		Object.assign(childGame.players, parentGame.players);
-		childGame.playerCount = parentGame.playerCount;
 
 		parentGame.room.game = childGame;
 		return childGame;

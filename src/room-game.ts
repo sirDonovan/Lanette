@@ -447,6 +447,16 @@ export class Game extends Activity {
 		this.deallocate(false);
 	}
 
+	inheritPlayers(players: Dict<Player>): void {
+		this.inheritedPlayers = true;
+
+		for (const i in players) {
+			this.players[i] = players[i];
+			if (this.onAddPlayer && !this.format.options.freejoin) this.onAddPlayer(this.players[i]);
+			this.playerCount++;
+		}
+	}
+
 	addPlayer(user: User): Player | undefined {
 		if (this.format.options.freejoin || this.isMiniGame) {
 			user.say("This game does not require you to join.");
