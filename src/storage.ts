@@ -2,7 +2,7 @@ import fs = require('fs');
 import path = require('path');
 
 import type { Room } from './rooms';
-import type { IDatabase, IGlobalDatabase } from './types/storage';
+import type { IDatabase, IGlobalDatabase, IStorageWorkers } from './types/storage';
 import type { User } from './users';
 import { LogsWorker } from './workers/logs';
 
@@ -13,10 +13,6 @@ const OFFLINE_MESSAGE_EXPIRATION = 30 * 24 * 60 * 60 * 1000;
 const globalDatabaseId = 'globalDB';
 const hostingDatabaseSuffix = '-hostingDB';
 const baseOfflineMessageLength = '[28 Jun 2019, 00:00:00 GMT-0500] **** said: '.length;
-
-export interface IStorageWorkers {
-	logs: LogsWorker;
-}
 
 export class Storage {
 	chatLogFilePathCache: Dict<string> = {};

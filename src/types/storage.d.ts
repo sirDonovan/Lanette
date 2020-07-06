@@ -1,3 +1,9 @@
+import type { LogsWorker } from '../workers/logs';
+
+export interface IStorageWorkers {
+	logs: LogsWorker;
+}
+
 interface IEventInformation {
 	name: string;
 	link?: {description: string; url: string};
