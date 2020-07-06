@@ -6,29 +6,15 @@ import websocket = require('websocket');
 import type { Player } from './room-activity';
 import type { Room, RoomType } from './rooms';
 import type {
-	IClientMessageTypes, IRoomInfoResponse, IRoomsResponse, IServerGroup, ITournamentMessageTypes, IUserDetailsResponse, QueryResponseType,
+	GroupName, IClientMessageTypes,
+	ILoginOptions, IRoomInfoResponse, IRoomsResponse,
+	IServerConfig, IServerGroup, ITournamentMessageTypes, IUserDetailsResponse, QueryResponseType,
 	ServerGroupData
 } from './types/client';
 import type { ISeparatedCustomRules } from './types/dex';
 import type { IParseMessagePlugin } from './types/plugins';
 import type { ITournamentEndJson, ITournamentUpdateJson } from './types/tournaments';
 import type { User } from './users';
-
-export type GroupName = 'voice' | 'bot' | 'driver' | 'moderator' | 'roomowner' | 'muted' | 'locked';
-
-interface ILoginOptions {
-	hostname: string | undefined;
-	path: string | undefined;
-	agent: boolean;
-	method: string;
-	headers?: Dict<string | number>;
-}
-
-interface IServerConfig {
-	host?: string;
-	id?: string;
-	port?: number;
-}
 
 const MAIN_HOST = "sim3.psim.us";
 const RELOGIN_SECONDS = 60;

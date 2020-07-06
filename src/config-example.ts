@@ -1,4 +1,4 @@
-import type { GroupName } from "./client";
+import type { GroupName } from "./types/client";
 import type { GameDifficulty } from "./types/games";
 
 /* eslint-disable prefer-const*/

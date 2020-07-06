@@ -1,9 +1,8 @@
-import type { GroupName } from "./client";
 import type { UserHosted } from "./games/internal/user-hosted";
 import type { Player } from "./room-activity";
 import type { Game } from "./room-game";
 import type { Tournament } from "./room-tournament";
-import type { IChatLogEntry, IRoomInfoResponse } from "./types/client";
+import type { GroupName, IChatLogEntry, IRoomInfoResponse } from "./types/client";
 import type { IUserHostedTournament } from "./types/tournaments";
 import type { User } from "./users";
 

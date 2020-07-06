@@ -1,7 +1,6 @@
-import type { GroupName } from "./client";
 import type { Game } from "./room-game";
 import type { Room } from "./rooms";
-import type { IChatLogEntry } from "./types/client";
+import type { GroupName, IChatLogEntry } from "./types/client";
 
 interface IUserRoomData {
 	rank: string;

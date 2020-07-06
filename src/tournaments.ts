@@ -1,7 +1,7 @@
-import type { GroupName } from "./client";
 import { Tournament } from "./room-tournament";
 import type { Room } from "./rooms";
 import { tournamentSchedules } from './tournament-schedules';
+import type { GroupName } from "./types/client";
 import type { IFormat, ISeparatedCustomRules } from "./types/dex";
 import type { IPastTournament } from "./types/storage";
 import type { ITournamentCreateJson } from "./types/tournaments";
