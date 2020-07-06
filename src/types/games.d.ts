@@ -1,9 +1,9 @@
-import type { CommandsDict, ICommandDefinition } from "../command-parser";
 import type { UserHosted } from "../games/internal/user-hosted";
 import type { PRNGSeed } from "../prng";
 import type { DefaultGameOption, Game, IGameOptionValues } from "../room-game";
 import type { Room } from "../rooms";
 import type { User } from "../users";
+import type { CommandsDict, ICommandDefinition } from "./command-parser";
 
 export type GameCommandReturnType = boolean;
 // eslint-disable-next-line @typescript-eslint/no-empty-interface

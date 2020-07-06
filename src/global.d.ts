@@ -1,5 +1,5 @@
 import { Client } from './client';
-import { BaseCommandsDict, CommandParser } from './command-parser';
+import { CommandParser } from './command-parser';
 import * as config from './config-example';
 import { Dex } from './dex';
 import { Games } from './games';
@@ -7,6 +7,7 @@ import { Rooms } from './rooms';
 import { Storage } from './storage';
 import { Tools } from './tools';
 import { Tournaments } from './tournaments';
+import type { BaseCommandsDict } from "./types/command-parser";
 import { LoadedPlugin } from './types/plugins';
 import { Users } from './users';
 

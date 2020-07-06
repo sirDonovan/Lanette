@@ -1,4 +1,5 @@
-import type { ICommandDefinition, Command } from "../command-parser";
+import type { Command } from "../command-parser";
+import type { ICommandDefinition } from "../types/command-parser";
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types */
 

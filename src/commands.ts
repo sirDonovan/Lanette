@@ -3,20 +3,21 @@ import child_process = require('child_process');
 import fs = require('fs');
 import path = require('path');
 
-import type { ICommandDefinition, Command } from "./command-parser";
+import type { Command } from "./command-parser";
 import type { IDexWorkers } from './dex';
 import type { IGamesWorkers } from './games';
+import type { OneVsOne } from './games/internal/one-vs-one';
 import type { Player } from "./room-activity";
 import type { Game } from './room-game';
 import type { Room } from "./rooms";
 import type { IStorageWorkers } from './storage';
+import type { TournamentPlace } from './tournaments';
+import type { ICommandDefinition } from "./types/command-parser";
 import type { IFormat } from "./types/dex";
 import type { GameDifficulty, IGameFormat } from "./types/games";
 import type { UserHostStatus } from './types/storage';
 import type { IBattleData } from './types/tournaments';
 import type { User } from "./users";
-import type { TournamentPlace } from './tournaments';
-import type { OneVsOne } from './games/internal/one-vs-one';
 
 type ReloadableModule = 'client' | 'commandparser' | 'commands' | 'config' | 'dex' | 'games' | 'plugins' | 'storage' | 'tools' |
 	'tournaments';

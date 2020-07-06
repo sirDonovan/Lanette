@@ -1,12 +1,13 @@
-import type { CommandsDict } from "./command-parser";
 import { PRNG } from "./prng";
 import type { PRNGSeed } from "./prng";
 import { Activity, PlayerTeam } from "./room-activity";
 import type { Player, PlayerList } from "./room-activity";
 import type { Room } from "./rooms";
+import type { CommandsDict } from "./types/command-parser";
 import type { IPokemonCopy } from "./types/dex";
 import type {
-	GameCommandReturnType, IGameAchievement, IGameFormat, IGameMode, IGameVariant, IRandomGameAnswer, IUserHostedFormat
+	GameCommandReturnType, IGameAchievement, IGameFormat, IGameMode, IGameVariant, IRandomGameAnswer,
+	IUserHostedFormat
 } from "./types/games";
 import type { User } from "./users";
 

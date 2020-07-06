@@ -1,7 +1,7 @@
-import type { CommandsDict } from "../../command-parser";
 import type { Player } from "../../room-activity";
 import type { DefaultGameOption, Game } from "../../room-game";
 import { addPlayers, assert, runCommand } from "../../test/test-tools";
+import type { CommandsDict } from "../../types/command-parser";
 import type { GameCommandReturnType, GameFileTests, IGameFormat, IGameModeFile } from "../../types/games";
 import type { Guessing } from "../templates/guessing";
 

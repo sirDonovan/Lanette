@@ -1,12 +1,12 @@
 import fs = require('fs');
 import path = require('path');
 
-import type { CommandErrorArray, ICommandDefinition, CommandsDict } from './command-parser';
 import type { UserHosted } from './games/internal/user-hosted';
 import type { PRNGSeed } from './prng';
 import { Game } from './room-game';
 import type { DefaultGameOption, IGameOptionValues } from "./room-game";
 import type { Room } from "./rooms";
+import type { CommandErrorArray, CommandsDict, ICommandDefinition } from "./types/command-parser";
 import type { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/dex';
 import type {
 	GameCommandReturnType, IGameAchievementKeys, IGameCategoryKeys, IGameFile, IGameFormat, IGameFormatComputed, IGameFormatData, IGameMode,
