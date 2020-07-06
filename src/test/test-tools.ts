@@ -65,7 +65,7 @@ export function assertClientSendQueue(startingSendQueueIndex: number, input: rea
 export function addPlayer(game: Game, name: string): Player {
 	const user = Users.add(name, Tools.toId(name));
 	assert(user);
-	user.rooms.set(game.room as Room, {lastChatMessage: Date.now(), rank: ' '});
+	(game.room as Room).onUserJoin(user, ' ', Date.now());
 
 	const player = game.addPlayer(user);
 	assert(player);

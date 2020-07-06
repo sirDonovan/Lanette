@@ -6,21 +6,39 @@ import type { Room } from "../../rooms";
 
 export class OneVsOne extends Game {
 	challengerPromotedName: string = '';
-	challengedPromotedName: string = '';
+	defenderPromotedName: string = '';
 	internalGame: boolean = true;
 	noForceEndMessage: boolean = true;
 	originalModchat: string = '';
 	winner: Player | undefined;
 
 	challengeFormat!: IGameFormat;
-	challenged!: Player;
+	defender!: Player;
 	challenger!: Player;
 
 	room!: Room;
 
+	setupChallenge(challenger: User, defender: User, challengeFormat: IGameFormat): void {
+		this.challengeFormat = challengeFormat;
+		this.defender = this.createPlayer(defender)!;
+		this.challenger = this.createPlayer(challenger)!;
+		this.minPlayers = 2;
+		this.name += " (" + challengeFormat.name + ")";
+
+		const text = challenger.name + " challenges " + defender.name + " to a one vs. one game of " +
+			challengeFormat.nameWithOptions + "!";
+		this.on(text, () => {
+			this.timeout = setTimeout(() => {
+				this.say(defender.name + " failed to accept the challenge in time!");
+				this.forceEnd(Users.self);
+			}, 2 * 60 * 1000);
+		});
+		this.say(text);
+	}
+
 	acceptChallenge(user: User): boolean {
-		if (this.started || !this.challenged || !this.challenger) return false;
-		if (user.id !== this.challenged.id) {
+		if (this.started || !this.defender || !this.challenger) return false;
+		if (user.id !== this.defender.id) {
 			user.say("You are not the challenged user in the current one vs. one challenge.");
 			return false;
 		}
@@ -37,7 +55,7 @@ export class OneVsOne extends Game {
 		this.say("/modchat +");
 		if (!user.hasRank(this.room, 'voice')) {
 			this.say("/roomvoice " + user.name);
-			this.challengedPromotedName = user.id;
+			this.defenderPromotedName = user.id;
 		}
 		if (!challenger.hasRank(this.room, 'voice')) {
 			this.say("/roomvoice " + challenger.name);
@@ -50,7 +68,7 @@ export class OneVsOne extends Game {
 
 	rejectChallenge(user: User): boolean {
 		if (this.started) return false;
-		if (user.id !== this.challenged.id) {
+		if (user.id !== this.defender.id) {
 			user.say("You are not the challenged user in the current one vs. one challenge.");
 			return false;
 		}
@@ -75,8 +93,8 @@ export class OneVsOne extends Game {
 	}
 
 	onNextRound(): void {
-		if (this.challenged.eliminated) {
-			this.say(this.challenged.name + " has left the game!");
+		if (this.defender.eliminated) {
+			this.say(this.defender.name + " has left the game!");
 			this.timeout = setTimeout(() => this.end(), 5 * 1000);
 			return;
 		}
@@ -109,15 +127,15 @@ export class OneVsOne extends Game {
 	}
 
 	onChildEnd(winners: Map<Player, number>): void {
-		const challengedPoints = winners.get(this.challenged) || 0;
+		const defenderPoints = winners.get(this.defender) || 0;
 		const challengerPoints = winners.get(this.challenger) || 0;
-		this.challenged.reset();
+		this.defender.reset();
 		this.challenger.reset();
 
 		let winner;
-		if (challengedPoints > challengerPoints) {
-			winner = this.challenged;
-		} else if (challengerPoints > challengedPoints) {
+		if (defenderPoints > challengerPoints) {
+			winner = this.defender;
+		} else if (challengerPoints > defenderPoints) {
 			winner = this.challenger;
 		}
 
@@ -133,7 +151,7 @@ export class OneVsOne extends Game {
 	resetModchatAndRanks(): void {
 		this.say("/modchat " + this.originalModchat);
 		if (this.challengerPromotedName) this.say("/roomdeauth " + this.challengerPromotedName);
-		if (this.challengedPromotedName) this.say("/roomdeauth " + this.challengedPromotedName);
+		if (this.defenderPromotedName) this.say("/roomdeauth " + this.defenderPromotedName);
 	}
 
 	updateLastChallengeTime(): void {
@@ -142,9 +160,9 @@ export class OneVsOne extends Game {
 	}
 
 	onEnd(): void {
-		if (this.challenger.eliminated || this.challenged === this.winner) {
-			this.say(this.challenged.name + " has won the challenge!");
-		} else if (this.challenged.eliminated || this.challenger === this.winner) {
+		if (this.challenger.eliminated || this.defender === this.winner) {
+			this.say(this.defender.name + " has won the challenge!");
+		} else if (this.defender.eliminated || this.challenger === this.winner) {
 			this.say(this.challenger.name + " has won the challenge!");
 		}
 
@@ -163,5 +181,6 @@ export class OneVsOne extends Game {
 export const game: IGameFile<OneVsOne> = {
 	class: OneVsOne,
 	description: "Players compete one vs. one in a chosen format!",
+	freejoin: true,
 	name: "One vs. One",
 };

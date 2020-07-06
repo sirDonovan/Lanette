@@ -577,14 +577,13 @@ export class Client {
 				if (!id) continue;
 
 				const user = Users.add(username, id);
-				room.users.add(user);
+				room.onUserJoin(user, rank);
 				if (status || user.status) user.status = status;
 				if (away) {
 					user.away = true;
 				} else if (user.away) {
 					user.away = false;
 				}
-				user.rooms.set(room, {lastChatMessage: 0, rank});
 			}
 			break;
 		}
@@ -601,7 +600,7 @@ export class Client {
 			if (!id) return;
 
 			const user = Users.add(username, id);
-			room.users.add(user);
+			room.onUserJoin(user, messageArguments.rank);
 			if (status || user.status) user.status = status;
 			if (away) {
 				user.away = true;
@@ -609,7 +608,6 @@ export class Client {
 				user.away = false;
 			}
 
-			user.rooms.set(room, {lastChatMessage: 0, rank: messageArguments.rank});
 			if (user === Users.self && this.publicChatRooms.includes(room.id) && Users.self.hasRank(room, 'driver')) {
 				this.sendThrottle = TRUSTED_MESSAGE_THROTTLE;
 			}
@@ -651,9 +649,8 @@ export class Client {
 				if (roomData && roomData.rank) rank = roomData.rank;
 			}
 
-			room.users.delete(user);
-			user.rooms.delete(room);
-			if (!user.rooms.size) Users.remove(user);
+			room.onUserLeave(user);
+
 			const now = Date.now();
 			Storage.updateLastSeen(user, now);
 			if (room.logChatMessages) {
@@ -670,17 +667,19 @@ export class Client {
 				usernameText: messageParts[0].substr(1),
 				oldId: messageParts[1],
 			};
+
 			const {away, status, username} = Tools.parseUsernameText(messageArguments.usernameText);
 			const user = Users.rename(username, messageArguments.oldId);
-			room.users.add(user);
 			if (status || user.status) user.status = status;
 			if (away) {
 				user.away = true;
 			} else if (user.away) {
 				user.away = false;
 			}
+
 			const roomData = user.rooms.get(room);
-			user.rooms.set(room, {lastChatMessage: roomData ? roomData.lastChatMessage : 0, rank: messageArguments.rank});
+			room.onUserJoin(user, messageArguments.rank, roomData ? roomData.lastChatMessage : undefined);
+
 			Storage.updateLastSeen(user, Date.now());
 			break;
 		}

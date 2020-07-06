@@ -571,17 +571,8 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 
 			delete challengeFormat.mode;
 			const game = Games.createGame(room, oneVsOneFormat) as OneVsOne;
-			if (!game) return;
-			game.challengeFormat = challengeFormat;
-			game.challenged = game.addPlayer(targetUser)!;
-			game.challenger = game.addPlayer(user)!;
-			game.minPlayers = 2;
-			this.say(user.name + " challenges " + targetUser.name + " to a one vs. one game of " + challengeFormat.nameWithOptions + "!");
-			game.name += " (" + challengeFormat.name + ")";
-			game.timeout = setTimeout(() => {
-				this.say(targetUser.name + " failed to accept the challenge in time!");
-				game.forceEnd(Users.self);
-			}, 2 * 60 * 1000);
+			if (!game || !game.setupChallenge) return;
+			game.setupChallenge(user, targetUser, challengeFormat);
 		},
 		aliases: ['onevonechallenge', '1vs1challenge', '1v1challenge', '1vs1c', '1v1c'],
 	},

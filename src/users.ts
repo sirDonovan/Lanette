@@ -4,8 +4,8 @@ import type { Room } from "./rooms";
 import type { IChatLogEntry } from "./types/client";
 
 interface IUserRoomData {
-	lastChatMessage: number;
 	rank: string;
+	lastChatMessage?: number;
 }
 
 const chatFormatting: string[] = ["*", "_", "`", "~", "^", "\\"];

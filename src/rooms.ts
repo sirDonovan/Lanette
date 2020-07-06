@@ -96,6 +96,17 @@ export class Room {
 		this.title = response.title;
 	}
 
+	onUserJoin(user: User, rank: string, lastChatMessage?: number): void {
+		this.users.add(user);
+		user.rooms.set(this, {lastChatMessage, rank});
+	}
+
+	onUserLeave(user: User): void {
+		this.users.delete(user);
+		user.rooms.delete(this);
+		if (!user.rooms.size) Users.remove(user);
+	}
+
 	say(message: string, dontPrepare?: boolean, dontCheckFilter?: boolean): void {
 		if (!dontPrepare) message = Tools.prepareMessage(message);
 		if (!dontCheckFilter && Client.willBeFiltered(message, this)) return;

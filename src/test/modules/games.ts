@@ -5,6 +5,7 @@ import type { Game } from '../../room-game';
 import type { GameFileTests, IGameAchievementKeys, IGameFormat, IGameTestAttributes, IUserHostedFormat } from '../../types/games';
 import type { IPastGame } from '../../types/storage';
 import { assert, assertClientSendQueue, assertStrictEqual, testOptions } from '../test-tools';
+import type { OneVsOne } from '../../games/internal/one-vs-one';
 
 /* eslint-env mocha */
 
@@ -337,6 +338,51 @@ describe("Games", () => {
 
 			assertClientSendQueue(startingSendQueueIndex, gameLog);
 			game.deallocate(true);
+		}
+	});
+
+	it('should properly start one vs. one challenges', () => {
+		const challenger = Users.add("Challenger", "challenger");
+		const defender = Users.add("Defender", "defender");
+		room.onUserJoin(challenger, ' ' );
+		room.onUserJoin(defender, ' ' );
+
+		const oneVsOneFormat = Games.getInternalFormat('onevsone') as IGameFormat;
+
+		for (const format of formatsToTest) {
+			if (format.noOneVsOne) continue;
+
+			const parentGame = Games.createGame(room, oneVsOneFormat) as OneVsOne;
+			assert(parentGame, format.name);
+			assert(!parentGame.signupsStarted, format.name);
+			assert(!parentGame.started, format.name);
+			assertStrictEqual(parentGame.format.name, oneVsOneFormat.name);
+
+			parentGame.setupChallenge(challenger, defender, format);
+			const challengerPlayer = parentGame.challenger;
+			const defenderPlayer = parentGame.defender;
+			assert(challengerPlayer, format.name);
+			assert(defenderPlayer, format.name);
+			assertStrictEqual(parentGame.challengeFormat, format);
+			assert(!parentGame.started, format.name);
+
+			assert(!parentGame.cancelChallenge(defender), format.name);
+			assert(!parentGame.acceptChallenge(challenger), format.name);
+			assert(!parentGame.rejectChallenge(challenger), format.name);
+
+			assert(parentGame.acceptChallenge(defender), format.name);
+			assert(parentGame.started, format.name);
+			parentGame.nextRound();
+			const childGame = room.game;
+			assert(childGame, format.name);
+			assertStrictEqual(childGame.parentGame, parentGame);
+			assert(childGame.signupsStarted, format.name);
+			assertStrictEqual(childGame.players[challengerPlayer.id], challengerPlayer);
+			assertStrictEqual(childGame.players[defenderPlayer.id], defenderPlayer);
+			assert(childGame.inheritedPlayers, format.name);
+			if (!format.freejoin) childGame.start();
+
+			childGame.deallocate(true);
 		}
 	});
 

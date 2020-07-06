@@ -894,4 +894,5 @@ export class Game extends Activity {
 	parseChatMessage?(user: User, message: string): void;
 	rejectChallenge?(user: User): boolean;
 	repostInformation?(): void;
+	setupChallenge?(challenger: User, challenged: User, format: IGameFormat): void;
 }
