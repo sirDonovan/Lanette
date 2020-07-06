@@ -4,21 +4,19 @@ import path = require('path');
 import type { UserHosted } from './games/internal/user-hosted';
 import type { PRNGSeed } from './prng';
 import { Game } from './room-game';
-import type { DefaultGameOption, IGameOptionValues } from "./room-game";
 import type { Room } from "./rooms";
 import type { CommandErrorArray } from "./types/command-parser";
 import type { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/dex';
 import type {
-	GameCommandDefinitions, GameCommandReturnType, IGameAchievementKeys, IGameCategoryKeys, IGameFile, IGameFormat, IGameFormatComputed,
-	IGameFormatData, IGameMode, IGameModeFile, IGameTemplateFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed,
-	IUserHostedFormat, IUserHostedFormatComputed, LoadedGameCommands, UserHostedCustomizable
+	AutoCreateTimerType, DefaultGameOption, GameCommandDefinitions, GameCommandReturnType, IGameAchievementKeys, IGameCategoryKeys,
+	IGameFile, IGameFormat, IGameFormatComputed, IGameFormatData, IGameMode, IGameModeFile, IGameOptionValues, IGamesWorkers,
+	IGameTemplateFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFormat,
+	IUserHostedFormatComputed, LoadedGameCommands, UserHostedCustomizable
 } from './types/games';
 import type { IPastGame } from './types/storage';
 import type { User } from './users';
 import { ParametersWorker } from './workers/parameters';
 import { PortmanteausWorker } from './workers/portmanteaus';
-
-type AutoCreateTimerType = 'scripted' | 'userhosted';
 
 const DEFAULT_CATEGORY_COOLDOWN = 3;
 
@@ -76,11 +74,6 @@ const sharedCommandDefinitions: GameCommandDefinitions = {
 		chatOnly: true,
 	},
 };
-
-export interface IGamesWorkers {
-	parameters: ParametersWorker;
-	portmanteaus: PortmanteausWorker;
-}
 
 export class Games {
 	// exported constants

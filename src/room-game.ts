@@ -1,33 +1,14 @@
 import { PRNG } from "./prng";
 import type { PRNGSeed } from "./prng";
 import { Activity, PlayerTeam } from "./room-activity";
-import type { Player, PlayerList } from "./room-activity";
+import type { Player } from "./room-activity";
 import type { Room } from "./rooms";
 import type { IPokemonCopy } from "./types/dex";
 import type {
-	LoadedGameCommands, IGameAchievement, IGameFormat, IGameMode, IGameVariant, IRandomGameAnswer,
-	IUserHostedFormat
+	GameCommandListener, IGameAchievement, IGameCommandCountListener, IGameCommandCountOptions, IGameFormat, IGameMode, IGameOptionValues,
+	IGameVariant, IRandomGameAnswer, IUserHostedFormat, LoadedGameCommands, PlayerList
 } from "./types/games";
 import type { User } from "./users";
-
-export type DefaultGameOption = 'points' | 'teams' | 'cards' | 'freejoin';
-export interface IGameOptionValues {
-	min: number;
-	base: number;
-	max: number;
-}
-
-type GameCommandListener = (lastUserid: string) => void;
-interface IGameCommandCountOptions {
-	max: number;
-	remainingPlayersMax?: boolean;
-}
-interface IGameCommandCountListener extends IGameCommandCountOptions {
-	commands: string[];
-	count: number;
-	lastUserId: string;
-	listener: GameCommandListener;
-}
 
 const JOIN_BITS = 10;
 

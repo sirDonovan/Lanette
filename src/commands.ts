@@ -4,7 +4,6 @@ import fs = require('fs');
 import path = require('path');
 
 import type { CommandContext } from "./command-parser";
-import type { IGamesWorkers } from './games';
 import type { OneVsOne } from './games/internal/one-vs-one';
 import type { Player } from "./room-activity";
 import type { Game } from './room-game';
@@ -13,7 +12,7 @@ import type { IStorageWorkers } from './storage';
 import type { TournamentPlace } from './tournaments';
 import type { CommandDefinitions } from "./types/command-parser";
 import type { IDexWorkers, IFormat } from "./types/dex";
-import type { GameDifficulty, IGameFormat } from "./types/games";
+import type { GameDifficulty, IGameFormat, IGamesWorkers } from "./types/games";
 import type { UserHostStatus } from './types/storage';
 import type { IBattleData } from './types/tournaments';
 import type { User } from "./users";

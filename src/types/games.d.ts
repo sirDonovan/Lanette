@@ -1,15 +1,24 @@
 import type { UserHosted } from "../games/internal/user-hosted";
 import type { PRNGSeed } from "../prng";
-import type { DefaultGameOption, Game, IGameOptionValues } from "../room-game";
+import type { Player } from "../room-activity";
+import type { Game } from "../room-game";
 import type { Room } from "../rooms";
 import type { User } from "../users";
+import type { ParametersWorker } from '../workers/parameters';
+import type { PortmanteausWorker } from '../workers/portmanteaus';
 import type { CommandDefinitions, LoadedCommands } from "./command-parser";
+
+export interface IGamesWorkers {
+	parameters: ParametersWorker;
+	portmanteaus: PortmanteausWorker;
+}
 
 export type GameCommandReturnType = boolean;
 export type GameCommandDefinitions<T extends Game = Game> = CommandDefinitions<T, GameCommandReturnType>;
 export type LoadedGameCommands<T extends Game = Game> = LoadedCommands<T, GameCommandReturnType>;
 
 export type GameDifficulty = 'easy' | 'medium' | 'hard';
+export type AutoCreateTimerType = 'scripted' | 'userhosted';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 interface IGameCategoryKeys {
@@ -144,6 +153,27 @@ export interface IRandomGameAnswer {
 	hint: string;
 }
 
+export type DefaultGameOption = 'points' | 'teams' | 'cards' | 'freejoin';
+export interface IGameOptionValues {
+	min: number;
+	base: number;
+	max: number;
+}
+
+export type GameCommandListener = (lastUserid: string) => void;
+
+export interface IGameCommandCountOptions {
+	max: number;
+	remainingPlayersMax?: boolean;
+}
+
+export interface IGameCommandCountListener extends IGameCommandCountOptions {
+	commands: string[];
+	count: number;
+	lastUserId: string;
+	listener: GameCommandListener;
+}
+
 interface IGameFileProperties<T extends Game = Game> {
 	achievements?: AchievementsDict;
 	aliases?: string[];
@@ -268,3 +298,6 @@ export interface IGameModeFile<T = Game, U extends Game = Game, V extends Game =
 export interface IGameMode<T = Game, U extends Game = Game> extends IGameModeFile<T, U> {
 	id: string;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type PlayerList = Dict<Player> | Player[] | Map<Player, any>;

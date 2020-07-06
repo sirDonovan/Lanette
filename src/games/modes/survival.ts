@@ -1,7 +1,9 @@
 import type { Player } from "../../room-activity";
-import type { DefaultGameOption, Game } from "../../room-game";
+import type { Game } from "../../room-game";
 import { addPlayers, assert, runCommand } from "../../test/test-tools";
-import type { GameCommandReturnType, GameFileTests, IGameFormat, IGameModeFile, LoadedGameCommands } from "../../types/games";
+import type {
+	DefaultGameOption, GameCommandReturnType, GameFileTests, IGameFormat, IGameModeFile, LoadedGameCommands
+} from "../../types/games";
 import type { Guessing } from "../templates/guessing";
 
 const name = 'Survival';

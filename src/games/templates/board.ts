@@ -1,7 +1,7 @@
-import type { Player, PlayerList } from "../../room-activity";
+import type { Player } from "../../room-activity";
 import { Game } from "../../room-game";
 import { assert, assertStrictEqual } from "../../test/test-tools";
-import type { GameFileTests, IGameTemplateFile } from "../../types/games";
+import type { GameFileTests, IGameTemplateFile, PlayerList } from "../../types/games";
 import type { HexColor } from "../../types/tools";
 
 export class BoardSpace {
