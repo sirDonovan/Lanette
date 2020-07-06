@@ -460,8 +460,7 @@ export abstract class CardMatching extends Card {
 const commands: Dict<IGameCommandDefinition<CardMatching>> = {
 	play: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].frozen ||
-				this.currentPlayer !== this.players[user.id]) return false;
+			if (!this.canPlay || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
 			const targets = target.split(",");
 			const id = Tools.toId(targets[0]);
 			if (!id) return false;
@@ -505,11 +504,11 @@ const commands: Dict<IGameCommandDefinition<CardMatching>> = {
 			return true;
 		},
 		chatOnly: true,
+		eliminatedGameCommand: true,
 	},
 	pmplay: {
 		command(target, room, user): GameCommandReturnType {
-			if (!this.canPlay || !(user.id in this.players) || this.players[user.id].frozen ||
-				this.currentPlayer !== this.players[user.id]) return false;
+			if (!this.canPlay || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
 			this.players[user.id].useCommand('play', target);
 			return true;
 		},
