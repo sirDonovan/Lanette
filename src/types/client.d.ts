@@ -1,5 +1,5 @@
-import type { RoomType } from "../rooms";
 import type { IFormat } from "./dex";
+import type { RoomType } from "./rooms";
 import type { ITournamentEndJson, ITournamentUpdateJson } from "./tournaments";
 
 export type GroupName = 'voice' | 'bot' | 'driver' | 'moderator' | 'roomowner' | 'muted' | 'locked';

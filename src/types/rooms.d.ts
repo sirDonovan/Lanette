@@ -1,0 +1,1 @@
+export type RoomType = 'battle' | 'chat' | 'html';

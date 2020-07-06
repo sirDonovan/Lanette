@@ -4,7 +4,7 @@ import url = require('url');
 import websocket = require('websocket');
 
 import type { Player } from './room-activity';
-import type { Room, RoomType } from './rooms';
+import type { Room } from './rooms';
 import type {
 	GroupName, IClientMessageTypes,
 	ILoginOptions, IRoomInfoResponse, IRoomsResponse,
@@ -13,6 +13,7 @@ import type {
 } from './types/client';
 import type { ISeparatedCustomRules } from './types/dex';
 import type { IParseMessagePlugin } from './types/plugins';
+import type { RoomType } from './types/rooms';
 import type { ITournamentEndJson, ITournamentUpdateJson } from './types/tournaments';
 import type { User } from './users';
 

@@ -3,10 +3,9 @@ import type { Player } from "./room-activity";
 import type { Game } from "./room-game";
 import type { Tournament } from "./room-tournament";
 import type { GroupName, IChatLogEntry, IRoomInfoResponse } from "./types/client";
+import type { RoomType } from "./types/rooms";
 import type { IUserHostedTournament } from "./types/tournaments";
 import type { User } from "./users";
-
-export type RoomType = 'battle' | 'chat' | 'html';
 
 export class Room {
 	approvedUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
