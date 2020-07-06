@@ -1,11 +1,7 @@
 import type { Game } from "./room-game";
 import type { Room } from "./rooms";
 import type { GroupName, IChatLogEntry } from "./types/client";
-
-interface IUserRoomData {
-	rank: string;
-	lastChatMessage?: number;
-}
+import type { IUserRoomData } from "./types/users";
 
 const chatFormatting: string[] = ["*", "_", "`", "~", "^", "\\"];
 
