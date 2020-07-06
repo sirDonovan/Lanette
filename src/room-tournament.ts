@@ -1,14 +1,7 @@
 import { Activity } from "./room-activity";
-import type { Player } from "./room-activity";
 import type { Room } from "./rooms";
 import type { IFormat } from "./types/dex";
-import type { IBattleData, ITournamentEndJson, ITournamentUpdateJson } from "./types/tournaments";
-
-interface ICurrentBattle {
-	readonly playerA: Player;
-	readonly playerB: Player;
-	readonly roomid: string;
-}
+import type { IBattleData, ICurrentTournamentBattle, ITournamentEndJson, ITournamentUpdateJson } from "./types/tournaments";
 
 const generators: Dict<number> = {
 	"Single": 1,
@@ -25,7 +18,7 @@ export class Tournament extends Activity {
 	readonly battleData: Dict<IBattleData> = {};
 	readonly battleRooms: string[] = [];
 	readonly createTime: number = Date.now();
-	readonly currentBattles: ICurrentBattle[] = [];
+	readonly currentBattles: ICurrentTournamentBattle[] = [];
 	generator: number = 1;
 	readonly info: ITournamentUpdateJson & ITournamentEndJson = {
 		bracketData: {type: ''},

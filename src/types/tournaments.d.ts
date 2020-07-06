@@ -1,5 +1,21 @@
 import { Player } from "../room-activity";
 
+export type TournamentPlace = 'semifinalist' | 'runnerup' | 'winner';
+
+export interface IScheduledTournament {
+	format: string;
+	time: number;
+}
+
+export interface IMonthlyTournamentSchedule {
+	formats: Dict<string>;
+	times: [number, number][];
+}
+
+export interface IRoomTournamentSchedule {
+	months: Dict<IMonthlyTournamentSchedule>;
+}
+
 interface IBracketNode {
 	readonly result: string;
 	readonly state: 'available' | 'challenging' | 'inprogress' | 'finished' | 'unavailable';
@@ -72,4 +88,10 @@ export interface ITournamentCreateJson {
 	isStarted?: boolean;
 	playerCap?: number;
 	teambuilderFormat?: string;
+}
+
+interface ICurrentTournamentBattle {
+	readonly playerA: Player;
+	readonly playerB: Player;
+	readonly roomid: string;
 }

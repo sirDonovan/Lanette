@@ -9,12 +9,11 @@ import type { Player } from "./room-activity";
 import type { Game } from './room-game';
 import type { Room } from "./rooms";
 import type { IStorageWorkers } from './storage';
-import type { TournamentPlace } from './tournaments';
 import type { CommandDefinitions } from "./types/command-parser";
 import type { IDexWorkers, IFormat } from "./types/dex";
 import type { GameDifficulty, IGameFormat, IGamesWorkers } from "./types/games";
 import type { UserHostStatus } from './types/storage';
-import type { IBattleData } from './types/tournaments';
+import type { IBattleData, TournamentPlace } from './types/tournaments';
 import type { User } from "./users";
 
 type ReloadableModule = 'client' | 'commandparser' | 'commands' | 'config' | 'dex' | 'games' | 'plugins' | 'storage' | 'tools' |
