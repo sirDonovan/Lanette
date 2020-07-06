@@ -262,7 +262,7 @@ export class Tools {
 		return input.replace(ALPHA_NUMERIC_REGEX, '').trim();
 	}
 
-	toString(input: string | number | boolean | undefined | null | {activityType?: string; effectType?: string; name?: string;
+	toString(input: string | number | boolean | undefined | null | {activityType?: string; effectType?: string; name?: string; id?: string;
 		toString?: () => string;}): string {
 		if (input === undefined) return 'undefined';
 		if (input === null) return 'null';
@@ -277,9 +277,9 @@ export class Tools {
 		}
 
 		if (input.effectType && typeof input.effectType === 'string') {
-			return '[' + input.effectType.toLowerCase() + ' ' + input.name + ']';
+			return '[' + input.effectType.toLowerCase() + ' ' + (input.name || input.id) + ']';
 		} else if (input.activityType && typeof input.activityType === 'string') {
-			return '[' + input.activityType + ' ' + input.name + ']';
+			return '[' + input.activityType + ' ' + (input.name || input.id) + ']';
 		} else {
 			const properties: string[] = [];
 			for (const i in input) {

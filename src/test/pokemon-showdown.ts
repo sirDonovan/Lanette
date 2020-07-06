@@ -41,7 +41,9 @@ describe("pokemon-showdown", () => {
 		}
 
 		for (const i of Dex.data.learnsetDataKeys) {
-			assert(Dex.getLearnsetData(i), i);
+			const learnsetData = Dex.getLearnsetData(i);
+			assert(learnsetData, i);
+			assertStrictEqual(learnsetData.id, i);
 		}
 
 		for (const i of Dex.data.moveKeys) {

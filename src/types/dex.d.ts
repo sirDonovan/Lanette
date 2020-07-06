@@ -418,6 +418,7 @@ interface IPokemonCopy extends ISpeciesFormatsData {
 export interface IPokemon extends DeepReadonly<IPokemonCopy> {}
 
 interface ILearnsetData {
+	id: string;
 	learnset?: Dict<MoveSource[]>;
 	eventData?: IEventInfo[];
 	eventOnly?: boolean;

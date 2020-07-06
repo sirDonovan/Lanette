@@ -301,6 +301,7 @@ function getLearnsetData(messageNumber: string, id: string, options: IGetDataOpt
 	for (let i = options.startIndex; i < length; i++) {
 		const learnsetData = dex.getLearnsetData(options.keys[i]);
 		removeObjectFunctions(learnsetData);
+		learnsetData.id = options.keys[i];
 		learnsets[options.keys[i]] = learnsetData;
 	}
 
