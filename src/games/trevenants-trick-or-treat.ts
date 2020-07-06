@@ -32,7 +32,7 @@ class TrevenantsTrickOrTreat extends Game {
 		const pokedex = Games.getPokemonList(x => x.gen <= 5 && !x.forme && Dex.hasGifData(x, 'bw'));
 		for (const pokemon of pokedex) {
 			const allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
-			if (!allPossibleMoves.length) continue;
+			if (allPossibleMoves.length <= 1) continue;
 			data.pokedex.push(pokemon.id);
 			data.allPossibleMoves[pokemon.id] = allPossibleMoves;
 		}
