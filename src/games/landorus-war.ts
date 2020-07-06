@@ -2,7 +2,7 @@ import type { Player } from "../room-activity";
 import { Game } from "../room-game";
 import type { Room } from "../rooms";
 import type { IPokemon } from "../types/dex";
-import type { GameCommandReturnType, IGameCommandDefinition, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 import type { User } from "../users";
 
 const data: {learnsets: Dict<readonly string[]>; moves: string[]; pokemon: string[]} = {
@@ -136,7 +136,7 @@ class LandorusWar extends Game {
 	}
 }
 
-const commands: Dict<IGameCommandDefinition<LandorusWar>> = {
+const commands: GameCommandDefinitions<LandorusWar> = {
 	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	use: {
 		command(target, room, user): GameCommandReturnType {

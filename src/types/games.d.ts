@@ -3,11 +3,11 @@ import type { PRNGSeed } from "../prng";
 import type { DefaultGameOption, Game, IGameOptionValues } from "../room-game";
 import type { Room } from "../rooms";
 import type { User } from "../users";
-import type { CommandsDict, ICommandDefinition } from "./command-parser";
+import type { CommandDefinitions, LoadedCommands } from "./command-parser";
 
 export type GameCommandReturnType = boolean;
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface IGameCommandDefinition<T extends Game> extends ICommandDefinition<T, GameCommandReturnType> {}
+export type GameCommandDefinitions<T extends Game = Game> = CommandDefinitions<T, GameCommandReturnType>;
+export type LoadedGameCommands<T extends Game = Game> = LoadedCommands<T, GameCommandReturnType>;
 
 export type GameDifficulty = 'easy' | 'medium' | 'hard';
 
@@ -150,7 +150,7 @@ interface IGameFileProperties<T extends Game = Game> {
 	canGetRandomAnswer?: boolean;
 	category?: GameCategory;
 	challengePoints?: PartialKeyedDict<IGameChallengeKeys, number>;
-	commands?: Dict<IGameCommandDefinition<T>>;
+	commands?: GameCommandDefinitions<T>;
 	commandDescriptions?: string[];
 	customizableOptions?: Dict<IGameOptionValues>;
 	defaultOptions?: DefaultGameOption[];
@@ -182,11 +182,11 @@ export interface IGameTemplateFile<T extends Game = Game> extends IGameFilePrope
 export interface IGameFileComputed<T extends Game = Game> {
 	id: string;
 
-	commands?: CommandsDict<T, GameCommandReturnType>;
+	commands?: LoadedGameCommands<T>;
 }
 
 export interface IGameFormatData<T extends Game = Game> extends IGameFile<T>, IGameFileComputed<T> {
-	commands?: CommandsDict<T, GameCommandReturnType>;
+	commands?: LoadedGameCommands<T>;
 }
 
 export interface IGameFormatComputed {
@@ -260,7 +260,7 @@ export interface IGameModeFile<T = Game, U extends Game = Game, V extends Game =
 	naming: 'prefix' | 'suffix';
 
 	aliases?: string[];
-	commands?: CommandsDict<T & U, GameCommandReturnType>;
+	commands?: LoadedGameCommands<T & U>;
 	removedOptions?: string[];
 	tests?: GameFileTests<V>;
 }

@@ -1,7 +1,7 @@
 import type { Player } from "../../room-activity";
 import { addPlayers, assertStrictEqual } from "../../test/test-tools";
 import type {
-	GameCategory, GameCommandReturnType, GameFileTests, IGameAchievement, IGameCommandDefinition, IGameTemplateFile
+	GameCategory, GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameAchievement, IGameTemplateFile
 } from "../../types/games";
 import type { HexColor } from "../../types/tools";
 import { BoardGame, BoardSpace, game as boardGame } from "./board";
@@ -676,7 +676,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 	}
 }
 
-const commands: Dict<IGameCommandDefinition<BoardPropertyGame>> = {
+const commands: GameCommandDefinitions<BoardPropertyGame> = {
 	rolldice: {
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canRollOrEscapeJail || this.players[user.id] !== this.currentPlayer) return false;

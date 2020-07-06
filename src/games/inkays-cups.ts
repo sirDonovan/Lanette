@@ -1,7 +1,7 @@
 import type { Player } from "../room-activity";
 import { Game } from "../room-game";
 import type { Room } from "../rooms";
-import type { GameCommandReturnType, IGameCommandDefinition, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 import type { User } from "../users";
 import type { IParam, IParametersWorkerData } from './../workers/parameters';
 
@@ -171,7 +171,7 @@ class InkaysCups extends Game {
 	}
 }
 
-const commands: Dict<IGameCommandDefinition<InkaysCups>> = {
+const commands: GameCommandDefinitions<InkaysCups> = {
 	grab: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {

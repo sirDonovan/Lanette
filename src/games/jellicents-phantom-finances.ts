@@ -1,7 +1,7 @@
 import type { PRNGSeed } from "../prng";
 import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
-import type { AchievementsDict, GameCommandReturnType, IGameCommandDefinition, IGameFile } from "../types/games";
+import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { BoardSpace } from "./templates/board";
 import type { BoardActionCard, IBoard } from "./templates/board";
@@ -271,7 +271,7 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 	}
 }
 
-const commands: Dict<IGameCommandDefinition<JellicentsPhantomFinances>> = {
+const commands: GameCommandDefinitions<JellicentsPhantomFinances> = {
 	bid: {
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canBid) return false;

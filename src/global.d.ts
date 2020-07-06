@@ -7,16 +7,16 @@ import { Rooms } from './rooms';
 import { Storage } from './storage';
 import { Tools } from './tools';
 import { Tournaments } from './tournaments';
-import type { BaseCommandsDict } from "./types/command-parser";
+import type { BaseLoadedCommands } from "./types/command-parser";
 import { LoadedPlugin } from './types/plugins';
 import { Users } from './users';
 
 /* eslint-disable no-redeclare, no-undef, @typescript-eslint/naming-convention */
 declare global {
-	const BaseCommands: BaseCommandsDict;
+	const BaseCommands: BaseLoadedCommands;
 	const Client: Client;
 	const CommandParser: CommandParser;
-	const Commands: BaseCommandsDict;
+	const Commands: BaseLoadedCommands;
 	const Config: Partial<typeof config>;
 	const Dex: Dex;
 	const Games: Games;

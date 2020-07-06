@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import { Game } from "../room-game";
-import type { GameCommandReturnType, IGameCommandDefinition, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 
 const MIN_BLOCKS = 1;
 const MAX_BLOCKS = 5;
@@ -116,7 +116,7 @@ class CrustlesCrumblingBlocks extends Game {
 	}
 }
 
-const commands: Dict<IGameCommandDefinition<CrustlesCrumblingBlocks>> = {
+const commands: GameCommandDefinitions<CrustlesCrumblingBlocks> = {
 	remove: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {

@@ -1,7 +1,7 @@
 import type { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { addPlayers, assertStrictEqual, runCommand } from '../test/test-tools';
-import type { AchievementsDict, GameCommandReturnType, GameFileTests, IGameCommandDefinition, IGameFile } from "../types/games";
+import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFile } from "../types/games";
 
 const doors: string[][] = [["Red", "Green", "Yellow"], ["Gold", "Silver", "Crystal"], ["Ruby", "Sapphire", "Emerald"],
 	["Diamond", "Pearl", "Platinum"], ["Land", "Sea", "Sky"], ["Time", "Space", "Distortion"], ["Creation", "Destruction", "Harmony"],
@@ -109,7 +109,7 @@ class SableyesTrickHouse extends Game {
 	}
 }
 
-const commands: Dict<IGameCommandDefinition<SableyesTrickHouse>> = {
+const commands: GameCommandDefinitions<SableyesTrickHouse> = {
 	select: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {

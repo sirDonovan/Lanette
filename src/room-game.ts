@@ -3,10 +3,9 @@ import type { PRNGSeed } from "./prng";
 import { Activity, PlayerTeam } from "./room-activity";
 import type { Player, PlayerList } from "./room-activity";
 import type { Room } from "./rooms";
-import type { CommandsDict } from "./types/command-parser";
 import type { IPokemonCopy } from "./types/dex";
 import type {
-	GameCommandReturnType, IGameAchievement, IGameFormat, IGameMode, IGameVariant, IRandomGameAnswer,
+	LoadedGameCommands, IGameAchievement, IGameFormat, IGameMode, IGameVariant, IRandomGameAnswer,
 	IUserHostedFormat
 } from "./types/games";
 import type { User } from "./users";
@@ -54,7 +53,7 @@ export class Game extends Activity {
 	readonly activityType: string = 'game';
 	awardedBits: boolean = false;
 	canLateJoin: boolean = false;
-	readonly commands = Object.assign(Object.create(null), Games.sharedCommands) as CommandsDict<Game, GameCommandReturnType>;
+	readonly commands = Object.assign(Object.create(null), Games.sharedCommands) as LoadedGameCommands;
 	readonly commandsListeners: IGameCommandCountListener[] = [];
 	inheritedPlayers: boolean = false;
 	internalGame: boolean = false;

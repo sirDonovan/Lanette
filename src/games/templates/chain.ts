@@ -1,7 +1,7 @@
 import type { Player } from "../../room-activity";
 import { Game } from "../../room-game";
 import type { IAbility, IItem, IMove, IPokemon } from "../../types/dex";
-import type { GameCommandReturnType, IGameCommandDefinition, IGameTemplateFile } from "../../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameTemplateFile } from "../../types/games";
 
 export type Link = IPokemon | IMove | IItem | IAbility;
 
@@ -259,7 +259,7 @@ export abstract class Chain extends Game {
 	}
 }
 
-const commands: Dict<IGameCommandDefinition<Chain>> = {
+const commands: GameCommandDefinitions<Chain> = {
 	guess: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {

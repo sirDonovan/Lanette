@@ -3,7 +3,7 @@ import { Game } from '../../room-game';
 import type { Room } from '../../rooms';
 import { assert, assertStrictEqual, getBasePlayerName, runCommand } from '../../test/test-tools';
 import type {
-	GameCommandReturnType, GameFileTests, IGameAchievement, IGameCommandDefinition, IGameFormat, IGameTemplateFile,
+	GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameAchievement, IGameFormat, IGameTemplateFile,
 	IRandomGameAnswer
 } from '../../types/games';
 
@@ -162,7 +162,7 @@ export abstract class Guessing extends Game {
 	updateHint?(): void;
 }
 
-const commands: Dict<IGameCommandDefinition<Guessing>> = {
+const commands: GameCommandDefinitions<Guessing> = {
 	guess: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async asyncCommand(target, room, user): Promise<GameCommandReturnType> {

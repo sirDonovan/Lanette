@@ -1,7 +1,7 @@
 import type { Player } from '../../room-activity';
 import { Game } from '../../room-game';
 import type { Room } from '../../rooms';
-import type { IGameCommandDefinition, IGameTemplateFile } from '../../types/games';
+import type { GameCommandDefinitions, IGameTemplateFile } from '../../types/games';
 
 export type IPlayingCardSuits = 'clubs' | 'diamonds' | 'hearts' | 'spades';
 export interface IPlayingCard {
@@ -153,7 +153,7 @@ export abstract class PlayingCard extends Game {
 	getHandInfoHtml?(player: Player): string;
 }
 
-const commands: Dict<IGameCommandDefinition<PlayingCard>> = {};
+const commands: GameCommandDefinitions<PlayingCard> = {};
 commands.summary = Tools.deepClone(Games.sharedCommands.summary);
 commands.summary.aliases = ['cards', 'hand'];
 

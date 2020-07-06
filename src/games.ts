@@ -6,12 +6,12 @@ import type { PRNGSeed } from './prng';
 import { Game } from './room-game';
 import type { DefaultGameOption, IGameOptionValues } from "./room-game";
 import type { Room } from "./rooms";
-import type { CommandErrorArray, CommandsDict, ICommandDefinition } from "./types/command-parser";
+import type { CommandErrorArray } from "./types/command-parser";
 import type { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/dex';
 import type {
-	GameCommandReturnType, IGameAchievementKeys, IGameCategoryKeys, IGameFile, IGameFormat, IGameFormatComputed, IGameFormatData, IGameMode,
-	IGameModeFile, IGameTemplateFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFormat,
-	IUserHostedFormatComputed, UserHostedCustomizable
+	GameCommandDefinitions, GameCommandReturnType, IGameAchievementKeys, IGameCategoryKeys, IGameFile, IGameFormat, IGameFormatComputed,
+	IGameFormatData, IGameMode, IGameModeFile, IGameTemplateFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed,
+	IUserHostedFormat, IUserHostedFormatComputed, LoadedGameCommands, UserHostedCustomizable
 } from './types/games';
 import type { IPastGame } from './types/storage';
 import type { User } from './users';
@@ -45,7 +45,7 @@ const categoryNames: KeyedDict<IGameCategoryKeys, string> = {
 	'speed': 'Speed',
 };
 
-const sharedCommandDefinitions: Dict<ICommandDefinition<Game, GameCommandReturnType>> = {
+const sharedCommandDefinitions: GameCommandDefinitions = {
 	summary: {
 		// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 		command(target, room, user) {
@@ -81,8 +81,6 @@ export interface IGamesWorkers {
 	parameters: ParametersWorker;
 	portmanteaus: PortmanteausWorker;
 }
-
-type GameCommandsDict = CommandsDict<Game, GameCommandReturnType>;
 
 export class Games {
 	// exported constants
@@ -121,13 +119,13 @@ export class Games {
 		portmanteaus: new PortmanteausWorker(),
 	};
 
-	readonly commands: GameCommandsDict;
-	readonly sharedCommands: GameCommandsDict;
+	readonly commands: LoadedGameCommands;
+	readonly sharedCommands: LoadedGameCommands;
 
 	constructor() {
 		const sharedCommands = CommandParser.loadCommands(sharedCommandDefinitions);
 		this.sharedCommands = sharedCommands;
-		this.commands = Object.assign(Object.create(null), sharedCommands) as GameCommandsDict;
+		this.commands = Object.assign(Object.create(null), sharedCommands) as GameCommandDefinitions;
 	}
 
 	onReload(previous: Partial<Games>): void {

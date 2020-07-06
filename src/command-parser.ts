@@ -1,8 +1,8 @@
 import type { Room } from "./rooms";
-import type { BaseCommandsDict, CommandErrorArray, CommandsDict, ICommandDefinition } from "./types/command-parser";
+import type { BaseLoadedCommands, CommandErrorArray, CommandDefinitions, LoadedCommands } from "./types/command-parser";
 import type { User } from "./users";
 
-export class Command {
+export class CommandContext {
 	runningMultipleTargets: boolean | null = null;
 
 	readonly originalCommand: string;
@@ -103,9 +103,9 @@ export class Command {
 }
 
 export class CommandParser {
-	loadCommands<T, U>(commands: Dict<ICommandDefinition<T, U>>): CommandsDict<T, U> {
-		const dict: CommandsDict<T, U> = {};
-		const allAliases: CommandsDict<T, U> = {};
+	loadCommands<ThisContext, ReturnType>(commands: CommandDefinitions<ThisContext, ReturnType>): LoadedCommands<ThisContext, ReturnType> {
+		const dict: LoadedCommands<ThisContext, ReturnType> = {};
+		const allAliases: LoadedCommands<ThisContext, ReturnType> = {};
 		for (const i in commands) {
 			const id = Tools.toId(i);
 			if (id in dict) throw new Error("Command '" + i + "' is defined in more than 1 location");
@@ -136,10 +136,8 @@ export class CommandParser {
 		return dict;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	loadBaseCommands(commands: Dict<ICommandDefinition<Command, any>>): BaseCommandsDict {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const allPluginCommands: Dict<ICommandDefinition<Command, any>> = {};
+	loadBaseCommands(commands: CommandDefinitions<CommandContext>): BaseLoadedCommands {
+		const allPluginCommands: CommandDefinitions<CommandContext> = {};
 		if (Plugins) {
 			for (const plugin of Plugins) {
 				if (plugin.commands) {
@@ -153,7 +151,7 @@ export class CommandParser {
 		}
 
 		return Object.assign(Object.create(null),
-			Object.assign(this.loadCommands(commands), this.loadCommands(allPluginCommands))) as BaseCommandsDict;
+			Object.assign(this.loadCommands(commands), this.loadCommands(allPluginCommands))) as BaseLoadedCommands;
 	}
 
 	isCommandMessage(message: string): boolean {
@@ -184,7 +182,7 @@ export class CommandParser {
 		}
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return await (new Command(command, target, room, user)).run();
+		return await (new CommandContext(command, target, room, user)).run();
 	}
 
 	getErrorText(error: CommandErrorArray): string {

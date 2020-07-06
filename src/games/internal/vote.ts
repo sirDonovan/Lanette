@@ -1,7 +1,7 @@
 import type { Player } from "../../room-activity";
 import { Game } from "../../room-game";
 import type { Room } from "../../rooms";
-import type { GameCommandReturnType, IGameCommandDefinition, IGameFile, IGameFormat } from "../../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameFile, IGameFormat } from "../../types/games";
 
 const timeLimit = 30 * 1000;
 
@@ -170,7 +170,7 @@ export class Vote extends Game {
 	}
 }
 
-const commands: Dict<IGameCommandDefinition<Vote>> = {
+const commands: GameCommandDefinitions<Vote> = {
 	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	vote: {
 		command(target, room, user): GameCommandReturnType {

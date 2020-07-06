@@ -1,7 +1,7 @@
 import type { Player } from "../room-activity";
 import { Game } from "../room-game";
 import { addPlayers, assertStrictEqual, runCommand } from "../test/test-tools";
-import type { GameCommandReturnType, GameFileTests, IGameCommandDefinition, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFile } from "../types/games";
 
 const data: {'meals': string[]; 'aliases': Dict<string>} = {
 	meals: [],
@@ -124,7 +124,7 @@ class BounsweetsBountifulBuffet extends Game {
 	}
 }
 
-const commands: Dict<IGameCommandDefinition<BounsweetsBountifulBuffet>> = {
+const commands: GameCommandDefinitions<BounsweetsBountifulBuffet> = {
 	select: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
