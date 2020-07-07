@@ -103,6 +103,11 @@ export let manualRankedTournaments: string[] = [];
 export let useDefaultUnrankedTournaments: string[] = [];
 
 /**
+ * For each room in the object, a list of formats (full name including gen) for which leaderboard points will not be awarded
+ */
+export let unrankedTournamentFormats: Dict<string[]> = {};
+
+/**
  * The default player caps to use when creating tournaments
  */
 export let defaultTournamentPlayerCaps: Dict<number> = {};

@@ -78,6 +78,9 @@ export function load(config: typeof Config): typeof Config {
 	if (config.rankedCustomTournaments) config.rankedCustomTournaments = arrayToRoomIds(config.rankedCustomTournaments);
 	if (config.manualRankedTournaments) config.manualRankedTournaments = arrayToRoomIds(config.manualRankedTournaments);
 	if (config.useDefaultUnrankedTournaments) config.useDefaultUnrankedTournaments = arrayToRoomIds(config.useDefaultUnrankedTournaments);
+	if (config.unrankedTournamentFormats) {
+		config.unrankedTournamentFormats = objectKeysToRoomId(stringArrayObjectToIds(config.unrankedTournamentFormats));
+	}
 	if (config.scheduledTournamentsMaxPlayerCap) {
 		config.scheduledTournamentsMaxPlayerCap = arrayToRoomIds(config.scheduledTournamentsMaxPlayerCap);
 	}
@@ -87,7 +90,7 @@ export function load(config: typeof Config): typeof Config {
 	}
 	if (config.disallowTournamentScouting) config.disallowTournamentScouting = arrayToRoomIds(config.disallowTournamentScouting);
 	if (config.disallowTournamentScoutingFormats) {
-		config.disallowTournamentScoutingFormats = stringArrayObjectToIds(config.disallowTournamentScoutingFormats);
+		config.disallowTournamentScoutingFormats = objectKeysToRoomId(stringArrayObjectToIds(config.disallowTournamentScoutingFormats));
 	}
 	if (config.disallowTournamentModjoin) config.disallowTournamentModjoin = arrayToRoomIds(config.disallowTournamentModjoin);
 	if (config.disallowTournamentBattleLinks) config.disallowTournamentBattleLinks = arrayToRoomIds(config.disallowTournamentBattleLinks);
