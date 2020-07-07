@@ -1106,28 +1106,6 @@ export class Games {
 			document = document.concat(scriptedGames);
 		}
 
-		if (allowsUserHostedGames) {
-			const userHostedGames: string[] = ["## User-hosted games"];
-			for (const i in this.userHostedFormats) {
-				const format = this.getExistingUserHostedFormat(i);
-				userHostedGames.push("### " + format.name);
-				userHostedGames.push(format.description + "\n");
-
-				const hostingDifficulty = Config.userHostedGameHostDifficulties && format.id in Config.userHostedGameHostDifficulties ?
-					Config.userHostedGameHostDifficulties[format.id] : "medium";
-				userHostedGames.push("**Hosting difficulty**: " + hostingDifficulty + " | ");
-
-				const playingDifficulty = Config.userHostedGamePlayerDifficulties && format.id in Config.userHostedGamePlayerDifficulties ?
-					Config.userHostedGamePlayerDifficulties[format.id] : "medium";
-				userHostedGames.push("**Playing difficulty**: " + playingDifficulty + "\n");
-
-				userHostedGames.push("\n");
-				userHostedGames.push("---");
-			}
-
-			document = document.concat(userHostedGames);
-		}
-
 		let allowOneVsOneGames = false;
 		if (Config.allowOneVsOneGames) {
 			if (Config.allowOneVsOneGames.includes(room.id)) {
@@ -1160,6 +1138,96 @@ export class Games {
 			}
 
 			document = document.concat(oneVsOneGames);
+		}
+
+		if (allowsUserHostedGames) {
+			const userHostedGames: string[] = ["## User-hosted games"];
+			for (const i in this.userHostedFormats) {
+				const format = this.getExistingUserHostedFormat(i);
+				userHostedGames.push("### " + format.name);
+				userHostedGames.push(format.description + "\n");
+
+				const hostingDifficulty = Config.userHostedGameHostDifficulties && format.id in Config.userHostedGameHostDifficulties ?
+					Config.userHostedGameHostDifficulties[format.id] : "medium";
+				userHostedGames.push("**Hosting difficulty**: " + hostingDifficulty + " | ");
+
+				const playingDifficulty = Config.userHostedGamePlayerDifficulties && format.id in Config.userHostedGamePlayerDifficulties ?
+					Config.userHostedGamePlayerDifficulties[format.id] : "medium";
+				userHostedGames.push("**Playing difficulty**: " + playingDifficulty + "\n");
+
+				userHostedGames.push("\n");
+				userHostedGames.push("---");
+			}
+
+			document = document.concat(userHostedGames);
+
+			const userHostCommands: string[] = ["## User-host commands",
+				"Player management:",
+				"* <code>.apl [player a], [player b], [...]</code> - add the specified player(s) to the game",
+				"* <code>.rpl [player a], [player b], [...]</code> - remove the specified player(s) from the game",
+				"* <code>.pl</code> - display the player list",
+				"* <code>.shufflepl</code> - shuffle and display the player list",
+				"* <code>.clearpl</code> - clear the player list",
+
+				"\nPoints management:",
+				"* <code>.apt [player a], [player b], [...], [#]</code> - give [#] points to the specified player(s)",
+				"* <code>.rpt [player a], [player b], [...], [#]</code> - remove [#] points from the specified player(s)",
+				"* <code>.aptall [#]</code> - give [#] points to all players",
+				"* <code>.rptall [#]</code> - remove [#] points from all players",
+				"* <code>.mpt [player a], [player b], [#]</code> - move [#] or all of [player a]'s points to [player b]",
+
+				"\nGame management:",
+				"* <code>.gtimer [#], [seconds]</code> - set a timer for [#] minutes or seconds if specified",
+				"* <code>.randgtimer [seconds], [min], [max]</code> - set random timer between [min] and [max] minutes or seconds if " +
+					"specified",
+				"* <code>.gtimer off</code> - turn off the previously set timer",
+				"* <code>.store [message or command]</code> - store a message or command to be used throughout the game",
+				"* <code>.stored</code> - display a stored message or use a stored command",
+				"* <code>.twist [twist]</code> - set or view the twist for the game",
+				"* <code>.gcap [#]</code> - set or view the player cap for the game",
+				"* <code>.scorecap [#]</code> - set or view the score cap for the game",
+				"* <code>.savewinner [player a], [player b], [...]</code> - set the specified player(s) as the winner(s) and continue " +
+					"the game",
+				"* <code>.winner [player a], [player b], [...]</code> - set the specified player(s) as the winner(s) and end the game",
+
+				"\nIn-game data generators:",
+				"* <code>.rability [#]</code> - generate up to 6 abilities",
+				"* <code>.ritem [#]</code> - generate up to 6 items",
+				"* <code>.rmove [#]</code> - generate up to 6 moves",
+				"* <code>.rpoke [#]</code> - generate up to 6 Pokemon",
+				"* <code>.rtype</code> - generate a single or dual typing",
+				"* <code>.rextype</code> - generate a single or dual typing of an existing Pokemon",
+				"* <code>.rcolor</code> - generate a Pokedex color",
+				"* <code>.regg</code> - generate an egg group",
+				"* <code>.rnature</code> - generate a nature",
+				"* <code>.rcat</code> - generate a Pokedex category",
+
+				"\nOther generators:",
+				"* <code>.ranswer [game]</code> - in PMs, generate a hint and answer for the specified game",
+				"* <code>.rchar</code> - generate a character",
+				"* <code>.rloc</code> - generate a location",
+				"* <code>.rletter</code> - generate a letter",
+				"* <code>.rpick [option 1], [option 2], [...]</code> - generate one of the specified options",
+
+				"\nPS commands:",
+				"* <code>.starthangman [room], [answer], [hint]</code> - in PMs, start a PS hangman game",
+				"* <code>.endhangman [room]</code> - in PMs, end the current PS hangman game",
+				"* <code>.roll [arguments]</code> - use !roll with the specified arguments",
+				"* <code>.dt [arguments]</code> - use !dt with the specified arguments",
+
+				"\nPokemon display:",
+				"* <code>.showgif [room], [pokemon 1], [pokemon 2], [...]</code> - in PMs, display up to 5 Pokemon gifs",
+				"* <code>.showgif [room], bw, [pokemon 1], [pokemon 2], [...]</code> - in PMs, display up to 5 BW Pokemon gifs",
+				"* <code>.showrandgif [room], [typing], [#]</code> - in PMs, display up to 5 random Pokemon gifs, optionally matching " +
+					"the specified typing",
+				"* <code>.showrandgif [room], bw, [typing], [#]</code> - in PMs, display up to 5 random BW Pokemon gifs, optionally " +
+					"matching the specified typing",
+				"* <code>.showicon [room], [pokemon 1], [pokemon 2], [...]</code> - in PMs, display up to 30 Pokemon icons",
+				"* <code>.showrandicon [room], [type], [#]</code> - in PMs, display up to 30 random Pokemon icons, optionally matching " +
+					"the specified typing",
+			];
+
+			document = document.concat(userHostCommands);
 		}
 
 		const filename = Config.gameCatalogGists[room.id].files[0];
