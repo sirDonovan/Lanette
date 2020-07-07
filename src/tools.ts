@@ -299,6 +299,12 @@ export class Tools {
 		return numberString + "th";
 	}
 
+	unescapeHTML(input: string): string {
+		if (!input) return '';
+		return input.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+			.replace(/&apos;/g, "'").replace(/&#x2f;/g, '/').replace(/&#39;/g, "'").replace(/&#34;/g, '"');
+	}
+
 	stripHtmlCharacters(input: string): string {
 		return input.replace(HTML_CHARACTER_REGEX, '');
 	}

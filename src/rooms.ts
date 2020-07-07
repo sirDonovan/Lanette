@@ -17,6 +17,7 @@ export class Room {
 	readonly messageListeners: Dict<() => void> = {};
 	modchat: string = 'off';
 	newUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
+	serverHangman: boolean | undefined = undefined;
 	timers: Dict<NodeJS.Timer> | null = null;
 	tournament: Tournament | undefined = undefined;
 	readonly uhtmlMessageListeners: Dict<Dict<() => void>> = {};

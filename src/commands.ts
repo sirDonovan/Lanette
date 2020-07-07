@@ -1834,6 +1834,53 @@ const commands: CommandDefinitions<CommandContext> = {
 		},
 		aliases: ['autowin', 'win'],
 	},
+	starthangman: {
+		command(target, room, user) {
+			if (!this.isPm(room)) return;
+			const targets = target.split(',');
+			const gameRoom = Rooms.search(targets[0]);
+			if (!gameRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+			if (!gameRoom.userHostedGame || !gameRoom.userHostedGame.isHost(user)) return;
+			if (gameRoom.serverHangman) {
+				this.say("There is already a hangman game running in " + gameRoom.title + ".");
+				return;
+			}
+
+			const answer = targets[1].trim();
+			const hint = targets.slice(2).join(',').trim();
+			if (!Tools.toId(answer) || !Tools.toId(hint)) {
+				this.say("Please specify an answer and a hint for the hangman.");
+				return;
+			}
+
+			if (Client.willBeFiltered(answer, gameRoom)) {
+				this.say("Your answer contains a word banned in " + gameRoom.title + ".");
+				return;
+			}
+
+			if (Client.willBeFiltered(hint, gameRoom)) {
+				this.say("Your hint contains a word banned in " + gameRoom.title + ".");
+				return;
+			}
+
+			gameRoom.userHostedGame.sayCommand("/hangman create " + answer + ", " + hint);
+		},
+	},
+	endhangman: {
+		command(target, room, user) {
+			if (!this.isPm(room)) return;
+			const targets = target.split(',');
+			const gameRoom = Rooms.search(targets[0]);
+			if (!gameRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+			if (!gameRoom.userHostedGame || !gameRoom.userHostedGame.isHost(user)) return;
+			if (!gameRoom.serverHangman) {
+				this.say("There is no hangman game running in " + gameRoom.title + ".");
+				return;
+			}
+
+			gameRoom.userHostedGame.sayCommand("/hangman end");
+		},
+	},
 	roll: {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&

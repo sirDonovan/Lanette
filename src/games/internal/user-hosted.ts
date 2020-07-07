@@ -61,6 +61,13 @@ export class UserHosted extends Game {
 		return false;
 	}
 
+	useHostCommand(command: string, target?: string): void {
+		const user = Users.get(this.subHostName || this.hostName);
+		if (user) {
+			void CommandParser.parse(this.room, user, Config.commandCharacter + command + (target ? " " + target : ""));
+		}
+	}
+
 	onForceEnd(user?: User, reason?: string): void {
 		if (user) this.sayCommand("/modnote " + this.name + " was forcibly ended by " + user.name + (reason ? " (" + reason + ")" : ""));
 	}
@@ -68,6 +75,7 @@ export class UserHosted extends Game {
 	onDeallocate(): void {
 		if (this.gameTimer) clearTimeout(this.gameTimer);
 		if (this.hostTimeout) clearTimeout(this.hostTimeout);
+		if (this.room.serverHangman) this.sayCommand("/hangman end");
 		delete this.room.userHostedGame;
 	}
 
