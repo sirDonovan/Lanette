@@ -164,12 +164,14 @@ class BulbasaursUno extends CardMatching {
 				}
 				if (indexA === -1) {
 					const pokemon = Dex.getPokemon(idA);
-					player.say(pokemon ? "You do not have [ " + pokemon.name + " ]." : "'" + targets[1] + "' is not a valid Pokemon.");
+					player.say(pokemon ? "You do not have [ " + pokemon.name + " ]." : CommandParser.getErrorText(['invalidPokemon',
+						targets[1]]));
 					return false;
 				}
 				if (indexB === -1) {
 					const pokemon = Dex.getPokemon(idB);
-					player.say(pokemon ? "You do not have [ " + pokemon.name + " ]." : "'" + targets[2] + "' is not a valid Pokemon.");
+					player.say(pokemon ? "You do not have [ " + pokemon.name + " ]." : CommandParser.getErrorText(['invalidPokemon',
+						targets[2]]));
 					return false;
 				}
 				const cardA = cards[indexA];
@@ -213,7 +215,8 @@ class BulbasaursUno extends CardMatching {
 				}
 				if (indexA === -1) {
 					const pokemon = Dex.getPokemon(idA);
-					player.say(pokemon ? "You do not have [ " + pokemon.name + " ]." : "'" + targets[1] + "' is not a valid Pokemon.");
+					player.say(pokemon ? "You do not have [ " + pokemon.name + " ]." : CommandParser.getErrorText(['invalidPokemon',
+						targets[1]]));
 					return false;
 				}
 				const cardA = cards[indexA];

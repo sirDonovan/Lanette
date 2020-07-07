@@ -157,7 +157,7 @@ const commands: GameCommandDefinitions<DelcattysHideAndSeek> = {
 			target = Tools.toId(target);
 			const pokemon = Dex.getPokemon(target);
 			if (!pokemon) {
-				player.say("'" + target.trim() + "' is not a valid Pokemon.");
+				player.say(CommandParser.getErrorText(['invalidPokemon', target]));
 				return false;
 			}
 			if (!data.pokemon.includes(pokemon.id)) {
@@ -210,7 +210,7 @@ const commands: GameCommandDefinitions<DelcattysHideAndSeek> = {
 			target = Tools.toId(target);
 			const pokemon = Dex.getPokemon(target);
 			if (!pokemon) {
-				player.say("'" + target + "' is not a valid Pokemon.");
+				player.say(CommandParser.getErrorText(['invalidPokemon', target]));
 				return false;
 			}
 			if (!data.pokemon.includes(pokemon.id)) {

@@ -62,7 +62,7 @@ class StakatakasCardTower extends CardMatching {
 				if (pokemon) {
 					player.say("You do not have [ " + pokemon.name + " ].");
 				} else {
-					player.say("'" + targets[i] + "' is not a valid Pokemon.");
+					player.say(CommandParser.getErrorText(['invalidPokemon', targets[i]]));
 				}
 				return false;
 			}

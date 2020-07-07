@@ -189,12 +189,24 @@ export class CommandParser {
 		if (error[0] === 'invalidBotRoom') {
 			if (error[1]) return "'" + error[1].trim() + "' is not one of " + Users.self.name + "'s rooms.";
 			return "You must specify one of " + Users.self.name + "'s rooms.";
+		} else if (error[0] === 'invalidAbility') {
+			if (error[1]) return "'" + error[1].trim() + "' is not a valid ability.";
+			return "You must specify a valid ability.";
 		} else if (error[0] === 'invalidFormat') {
 			if (error[1]) return "'" + error[1].trim() + "' is not a valid format.";
 			return "You must specify a valid format.";
 		} else if (error[0] === 'invalidGameFormat') {
 			if (error[1]) return "'" + error[1].trim() + "' is not a valid game format.";
 			return "You must specify a valid game format.";
+		} else if (error[0] === 'invalidItem') {
+			if (error[1]) return "'" + error[1].trim() + "' is not a valid item.";
+			return "You must specify a valid item.";
+		} else if (error[0] === 'invalidMove') {
+			if (error[1]) return "'" + error[1].trim() + "' is not a valid move.";
+			return "You must specify a valid move.";
+		} else if (error[0] === 'invalidPokemon') {
+			if (error[1]) return "'" + error[1].trim() + "' is not a valid Pokemon.";
+			return "You must specify a valid Pokemon.";
 		} else if (error[0] === 'invalidTournamentFormat') {
 			if (error[1]) return "'" + error[1].trim() + "' is not a valid tournament format.";
 			return "You must specify a valid tournament format.";

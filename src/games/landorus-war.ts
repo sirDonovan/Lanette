@@ -154,7 +154,7 @@ const commands: GameCommandDefinitions<LandorusWar> = {
 
 			const move = Dex.getMove(targets[0]);
 			if (!move) {
-				player.say("'" + targets[0] + "' is not a valid move.");
+				player.say(CommandParser.getErrorText(['invalidMove', targets[0]]));
 				return false;
 			}
 			if (!data.moves.includes(move.id)) {
@@ -241,7 +241,7 @@ const commands: GameCommandDefinitions<LandorusWar> = {
 			if (!pokemonInUse) {
 				const pokemon = Dex.getPokemon(pokemonId);
 				if (!pokemon) {
-					player.say("'" + targets[1] + "' is not a valid Pokemon.");
+					player.say(CommandParser.getErrorText(['invalidPokemon', targets[1]]));
 				} else {
 					player.say("**" + pokemon.name + "** is not a Pokemon in this game.");
 				}

@@ -89,7 +89,7 @@ const commands: GameCommandDefinitions<TrevenantsTrickOrTreat> = {
 			if (!this.started) return false;
 			const move = Dex.getMove(target);
 			if (!move) {
-				user.say("'" + target + "' is not a valid move.");
+				user.say(CommandParser.getErrorText(['invalidMove', target]));
 				return false;
 			}
 

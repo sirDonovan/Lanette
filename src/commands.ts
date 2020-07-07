@@ -324,7 +324,7 @@ const commands: CommandDefinitions<CommandContext> = {
 		command(target, room, user) {
 			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
 			const pokemon = Dex.getPokemon(target);
-			if (!pokemon) return this.say("'" + target.trim() + "' is not a valid Pokemon.");
+			if (!pokemon) return this.sayError(['invalidPokemon', target]);
 			if (!pokemon.randomBattleMoves) return this.say("No Random Battle data found for " + pokemon.name + ".");
 			const data: string[] = [];
 			for (const move of pokemon.randomBattleMoves) {
@@ -338,7 +338,7 @@ const commands: CommandDefinitions<CommandContext> = {
 		command(target, room, user) {
 			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
 			const pokemon = Dex.getPokemon(target);
-			if (!pokemon) return this.say("'" + target.trim() + "' is not a valid Pokemon.");
+			if (!pokemon) return this.sayError(['invalidPokemon', target]);
 			if (!pokemon.randomDoubleBattleMoves) return this.say("No Random Doubles Battle data found for " + pokemon.name + ".");
 			const data: string[] = [];
 			for (const move of pokemon.randomDoubleBattleMoves) {

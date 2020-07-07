@@ -525,7 +525,7 @@ class AxewsBattleCards extends CardMatching {
 				if (pokemon) {
 					player.say("You do not have [ " + pokemon.name + " ].");
 				} else {
-					player.say("'" + targets[1] + "' is not a valid Pokemon.");
+					player.say(CommandParser.getErrorText(['invalidPokemon', targets[1]]));
 				}
 				return false;
 			}

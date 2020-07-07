@@ -148,7 +148,7 @@ const commands: GameCommandDefinitions<ShedinjasWonderTrials> = {
 			if (this.roundMoves.has(player)) return false;
 			const move = Dex.getMove(target);
 			if (!move) {
-				user.say("You must specify a valid move.");
+				user.say(CommandParser.getErrorText(['invalidMove', target]));
 				return false;
 			}
 			if (!data.moves.includes(move.name)) {
