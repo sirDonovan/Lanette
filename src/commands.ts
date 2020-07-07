@@ -1487,9 +1487,12 @@ const commands: CommandDefinitions<CommandContext> = {
 			for (const user of users) {
 				room.userHostedGame.destroyPlayer(user);
 			}
+
+			// @ts-expect-error
+			if (room.userHostedGame.started) room.userHostedGame.round++;
 			if (cmd !== 'silentelim' && cmd !== 'selim' && cmd !== 'srpl') await this.run('players');
 		},
-		aliases: ['srpl', 'rpl', 'silentelim', 'selim', 'elim', 'eliminate', 'eliminateplayer', 'removeplayers'],
+		aliases: ['removeplayers', 'srpl', 'rpl', 'silentelim', 'selim', 'elim', 'eliminate', 'eliminateplayer', 'eliminateplayers'],
 	},
 	shuffleplayers: {
 		async asyncCommand(target, room, user) {
@@ -1568,6 +1571,7 @@ const commands: CommandDefinitions<CommandContext> = {
 				}
 			}
 			if (!users.length) return this.say("Please specify at least one user in the room.");
+
 			if (cmd.startsWith('r')) points *= -1;
 			let reachedCap = 0;
 			for (const user of users) {
@@ -1578,6 +1582,9 @@ const commands: CommandDefinitions<CommandContext> = {
 				room.userHostedGame.points.set(player, total);
 				if (room.userHostedGame.scoreCap && total >= room.userHostedGame.scoreCap) reachedCap++;
 			}
+
+			// @ts-expect-error
+			room.userHostedGame.round++;
 			if (!this.runningMultipleTargets) await this.run('playerlist');
 			if (reachedCap) {
 				user.say((reachedCap === 1 ? "A user has" : reachedCap + " users have") + " reached the score cap in your game.");
@@ -1880,6 +1887,117 @@ const commands: CommandDefinitions<CommandContext> = {
 
 			gameRoom.userHostedGame.sayCommand("/hangman end");
 		},
+	},
+	showgifs: {
+		command(target, room, user, cmd) {
+			if (!this.isPm(room)) return;
+			const targets = target.split(',');
+			const gameRoom = Rooms.search(targets[0]);
+			if (!gameRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+			if (!gameRoom.userHostedGame || !gameRoom.userHostedGame.isHost(user)) return;
+			targets.shift();
+
+			const showIcon = cmd.startsWith('showicon');
+			const isBW = cmd.startsWith('showbw');
+			const generation = isBW ? "bw" : "xy";
+			const gifsOrIcons: string[] = [];
+
+			for (const target of targets) {
+				const pokemon = Dex.getPokemon(target);
+				if (!pokemon) return this.sayError(['invalidPokemon', target]);
+				if (!showIcon && !Dex.hasGifData(pokemon, generation)) {
+					return this.say(pokemon.name + " does not have a" + (isBW ? " BW" :"") + " gif.");
+				}
+				gifsOrIcons.push(showIcon ? Dex.getPSPokemonIcon(pokemon) + pokemon.name : Dex.getPokemonGif(pokemon, generation));
+			}
+
+			if (!gifsOrIcons.length) return this.say("You must specify at least 1 Pokemon.");
+
+			const max = showIcon ? 30 : 5;
+			if (gifsOrIcons.length > max) return this.say("Please specify between 1 and " + max + " Pokemon.");
+
+			const uhtmlName = gameRoom.userHostedGame.uhtmlBaseName + "-" + gameRoom.userHostedGame.round + "-" +
+				(showIcon ? "icon" : "gif");
+
+			let html = "<div class='infobox'>";
+			if (!showIcon) html += "<center>";
+			html += gifsOrIcons.join(showIcon ? ", " : "");
+			if (!showIcon) html += "</center>";
+			html += "</div>";
+
+			gameRoom.userHostedGame.sayUhtmlAuto(uhtmlName, html);
+		},
+		aliases: ['showgif', 'showbwgifs', 'showbwgif', 'showicons', 'showicon'],
+	},
+	showrandomgifs: {
+		command(target, room, user, cmd) {
+			if (!this.isPm(room)) return;
+			const targets = target.split(',');
+			const gameRoom = Rooms.search(targets[0]);
+			if (!gameRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+			if (!gameRoom.userHostedGame || !gameRoom.userHostedGame.isHost(user)) return;
+			targets.shift();
+
+			const showIcon = cmd.endsWith('icon') || cmd.endsWith('icons');
+			const isBW = cmd.startsWith('showrandombw') || cmd.startsWith('showrandbw');
+			const generation = isBW ? "bw" : "xy";
+			const gifsOrIcons: string[] = [];
+
+			let typing = '';
+			let dualType = false;
+			let amount: number;
+			if (!Tools.isInteger(targets[0].trim())) {
+				const types = targets[0].split("/").map(x => x.trim());
+				for (let i = 0; i < types.length; i++) {
+					const type = Dex.getType(types[i]);
+					if (!type) return this.say("'" + types[i] + "' is not a valid type.");
+					types[i] = type.name;
+				}
+				typing = types.sort().join("/");
+				dualType = types.length > 1;
+				targets.shift();
+			}
+
+			if (targets.length) {
+				const max = showIcon ? 30 : 5;
+				amount = parseInt(targets[0]);
+				if (isNaN(amount) || amount < 1 || amount > max) return this.say("Please specify a number of Pokemon between 1 and " +
+					max + ".");
+			} else {
+				amount = 1;
+			}
+
+			const pokemonList = gameRoom.userHostedGame.shuffle(Games.getPokemonList());
+			for (const pokemon of pokemonList) {
+				if (isBW && pokemon.gen > 5) continue;
+				if (!showIcon && !Dex.hasGifData(pokemon, generation)) continue;
+				if (typing) {
+					if (dualType) {
+						if (pokemon.types.slice().sort().join("/") !== typing) continue;
+					} else {
+						if (!pokemon.types.includes(typing)) continue;
+					}
+				}
+
+				gifsOrIcons.push(showIcon ? Dex.getPSPokemonIcon(pokemon) + pokemon.name : Dex.getPokemonGif(pokemon, generation));
+				if (gifsOrIcons.length === amount) break;
+			}
+
+			if (gifsOrIcons.length < amount) return this.say("Not enough Pokemon match the specified options.");
+
+			const uhtmlName = gameRoom.userHostedGame.uhtmlBaseName + "-" + gameRoom.userHostedGame.round + "-" +
+				(showIcon ? "icon" : "gif");
+
+			let html = "<div class='infobox'>";
+			if (!showIcon) html += "<center>";
+			html += gifsOrIcons.join(showIcon ? ", " : "");
+			if (!showIcon) html += "</center>";
+			html += "</div>";
+
+			gameRoom.userHostedGame.sayUhtmlAuto(uhtmlName, html);
+		},
+		aliases: ['showrandomgif', 'showrandombwgifs', 'showrandombwgif', 'showrandgif', 'showrandbwgifs', 'showrandbwgif',
+			'showrandomicons', 'showrandomicon', 'showrandicons', 'showrandicon'],
 	},
 	roll: {
 		command(target, room, user) {
