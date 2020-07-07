@@ -22,6 +22,7 @@ const moduleOrder: ReloadableModule[] = ['tools', 'config', 'dex', 'client', 'co
 
 const AWARDED_BOT_GREETING_DURATION = 60 * 24 * 60 * 60 * 1000;
 const ONE_VS_ONE_GAME_COOLDOWN = 2 * 60 * 60 * 1000;
+const RANDOM_GENERATOR_LIMIT = 6;
 
 let reloadInProgress = false;
 
@@ -2062,11 +2063,30 @@ const commands: CommandDefinitions<CommandContext> = {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
 				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
-			const move = Dex.getExistingMove(Tools.sampleOne(Dex.data.moveKeys)).name;
-			if (this.pm) {
-				this.say('Randomly generated move: **' + move + '**');
+
+			let amount: number;
+			if (target) {
+				amount = parseInt(target);
+				if (isNaN(amount) || amount < 1 || amount > RANDOM_GENERATOR_LIMIT) {
+					return this.say("Please specify a number of moves between 1 and " + RANDOM_GENERATOR_LIMIT + ".");
+				}
 			} else {
-				this.say('!dt ' + move);
+				amount = 1;
+			}
+
+			const movesList = Games.getMovesList().map(x => x.name);
+			let moves: string[];
+			if (!this.isPm(room) && room.userHostedGame) {
+				moves = room.userHostedGame.shuffle(movesList);
+			} else {
+				moves = Tools.shuffle(movesList);
+			}
+
+			const multiple = amount > 1;
+			if (this.pm || multiple) {
+				this.say("Randomly generated move" + (multiple ? "s" : "") + ": **" + Tools.joinList(moves.slice(0, amount)) + "**");
+			} else {
+				this.say('!dt ' + moves[0]);
 			}
 		},
 		aliases: ['rmove', 'randmove'],
@@ -2075,11 +2095,30 @@ const commands: CommandDefinitions<CommandContext> = {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
 				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
-			const item = Dex.getExistingItem(Tools.sampleOne(Dex.data.itemKeys)).name;
-			if (this.pm) {
-				this.say('Randomly generated item: **' + item + '**');
+
+			let amount: number;
+			if (target) {
+				amount = parseInt(target);
+				if (isNaN(amount) || amount < 1 || amount > RANDOM_GENERATOR_LIMIT) {
+					return this.say("Please specify a number of items between 1 and " + RANDOM_GENERATOR_LIMIT + ".");
+				}
 			} else {
-				this.say('!dt ' + item);
+				amount = 1;
+			}
+
+			const itemsList = Games.getItemsList().map(x => x.name);
+			let items: string[];
+			if (!this.isPm(room) && room.userHostedGame) {
+				items = room.userHostedGame.shuffle(itemsList);
+			} else {
+				items = Tools.shuffle(itemsList);
+			}
+
+			const multiple = amount > 1;
+			if (this.pm || multiple) {
+				this.say("Randomly generated item" + (multiple ? "s" : "") + ": **" + Tools.joinList(items.slice(0, amount)) + "**");
+			} else {
+				this.say('!dt ' + items[0]);
 			}
 		},
 		aliases: ['ritem', 'randitem'],
@@ -2088,14 +2127,31 @@ const commands: CommandDefinitions<CommandContext> = {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
 				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
-			let ability = Dex.getExistingAbility(Tools.sampleOne(Dex.data.abilityKeys));
-			while (ability.id === 'noability') {
-				ability = Dex.getExistingAbility(Tools.sampleOne(Dex.data.abilityKeys));
-			}
-			if (this.pm) {
-				this.say('Randomly generated ability: **' + ability.name + '**');
+
+			let amount: number;
+			if (target) {
+				amount = parseInt(target);
+				if (isNaN(amount) || amount < 1 || amount > RANDOM_GENERATOR_LIMIT) {
+					return this.say("Please specify a number of abilities between 1 and " + RANDOM_GENERATOR_LIMIT + ".");
+				}
 			} else {
-				this.say('!dt ' + ability.name);
+				amount = 1;
+			}
+
+			const abilitiesList = Games.getAbilitiesList().map(x => x.name);
+			let abilities: string[];
+			if (!this.isPm(room) && room.userHostedGame) {
+				abilities = room.userHostedGame.shuffle(abilitiesList);
+			} else {
+				abilities = Tools.shuffle(abilitiesList);
+			}
+
+			const multiple = amount > 1;
+			if (this.pm || multiple) {
+				this.say("Randomly generated " + (multiple ? "abilities" : "ability") + ": **" +
+					Tools.joinList(abilities.slice(0, amount)) + "**");
+			} else {
+				this.say('!dt ' + abilities[0]);
 			}
 		},
 		aliases: ['rability', 'randability'],
