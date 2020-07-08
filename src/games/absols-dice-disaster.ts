@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import { Game } from "../room-game";
-import type { GameCommandReturnType, IGameCommandDefinition, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 
 class AbsolsDiceDisaster extends Game {
 	bestPlayer: Player | null = null;
@@ -89,7 +89,7 @@ class AbsolsDiceDisaster extends Game {
 	}
 }
 
-const commands: Dict<IGameCommandDefinition<AbsolsDiceDisaster>> = {
+const commands: GameCommandDefinitions<AbsolsDiceDisaster> = {
 	bid: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {

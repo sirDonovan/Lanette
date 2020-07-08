@@ -2,14 +2,10 @@ import path = require('path');
 
 import type { Room } from './rooms';
 import type {
-	IAbility, IAbilityCopy, IDataTable, IFormat, IFormatLinks, IGifData, IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature,
-	IPokemon, IPokemonCopy, ISeparatedCustomRules, ITypeData
+	ComplexBan, ComplexTeamBan, IAbility, IAbilityCopy, IDataTable, IDexWorkers, IFormat, IFormatLinks, IGifData, IItem, IItemCopy,
+	ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy, ISeparatedCustomRules, ITypeData
 } from './types/dex';
 import { PokemonShowdownWorker } from './workers/pokemon-showdown';
-
-export interface IDexWorkers {
-	pokemonShowdown: PokemonShowdownWorker;
-}
 
 const currentGen = 8;
 const currentGenString = 'gen' + currentGen;
@@ -94,10 +90,6 @@ const gen2Items: string[] = ['berserkgene', 'berry', 'bitterberry', 'burntberry'
 	'mysteryberry', 'pinkbow', 'polkadotbow', 'przcureberry', 'psncureberry'];
 
 const dexes: Dict<Dex> = {};
-
-/** rule, source, limit, bans */
-export type ComplexBan = [string, string, number, string[]];
-export type ComplexTeamBan = ComplexBan;
 
 /**
  * A RuleTable keeps track of the rules that a format has. The key can be:

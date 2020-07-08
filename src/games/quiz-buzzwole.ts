@@ -1,7 +1,7 @@
 import type { Player } from "../room-activity";
 import { Game } from "../room-game";
 import type { Room } from "../rooms";
-import type { GameCommandReturnType, IGameCommandDefinition, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 import type { User } from "../users";
 
 type ExpectedMultiple = 'firstMultiple' | 'secondMultiple' | 'both' | number;
@@ -166,7 +166,7 @@ class QuizBuzzwole extends Game {
 	}
 }
 
-const commands: Dict<IGameCommandDefinition<QuizBuzzwole>> = {
+const commands: GameCommandDefinitions<QuizBuzzwole> = {
 	fizz: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {

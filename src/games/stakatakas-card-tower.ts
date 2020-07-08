@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import { addPlayers, assert, assertStrictEqual, runCommand } from "../test/test-tools";
-import type { AchievementsDict, GameCommandReturnType, GameFileTests, IGameCommandDefinition, IGameFile } from "../types/games";
+import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFile } from "../types/games";
 import type { CardType, IActionCardData, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 
@@ -62,7 +62,7 @@ class StakatakasCardTower extends CardMatching {
 				if (pokemon) {
 					player.say("You do not have [ " + pokemon.name + " ].");
 				} else {
-					player.say("'" + targets[i] + "' is not a valid Pokemon.");
+					player.say(CommandParser.getErrorText(['invalidPokemon', targets[i]]));
 				}
 				return false;
 			}
@@ -165,7 +165,7 @@ class StakatakasCardTower extends CardMatching {
 	}
 }
 
-const commands: Dict<IGameCommandDefinition<StakatakasCardTower>> = {
+const commands: GameCommandDefinitions<StakatakasCardTower> = {
 	draw: {
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canPlay || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;

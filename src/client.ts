@@ -4,31 +4,18 @@ import url = require('url');
 import websocket = require('websocket');
 
 import type { Player } from './room-activity';
-import type { Room, RoomType } from './rooms';
+import type { Room } from './rooms';
 import type {
-	IClientMessageTypes, IRoomInfoResponse, IRoomsResponse, IServerGroup, ITournamentMessageTypes, IUserDetailsResponse, QueryResponseType,
+	GroupName, IClientMessageTypes,
+	ILoginOptions, IRoomInfoResponse, IRoomsResponse,
+	IServerConfig, IServerGroup, ITournamentMessageTypes, IUserDetailsResponse, QueryResponseType,
 	ServerGroupData
 } from './types/client';
 import type { ISeparatedCustomRules } from './types/dex';
 import type { IParseMessagePlugin } from './types/plugins';
+import type { RoomType } from './types/rooms';
 import type { ITournamentEndJson, ITournamentUpdateJson } from './types/tournaments';
 import type { User } from './users';
-
-export type GroupName = 'voice' | 'bot' | 'driver' | 'moderator' | 'roomowner' | 'muted' | 'locked';
-
-interface ILoginOptions {
-	hostname: string | undefined;
-	path: string | undefined;
-	agent: boolean;
-	method: string;
-	headers?: Dict<string | number>;
-}
-
-interface IServerConfig {
-	host?: string;
-	id?: string;
-	port?: number;
-}
 
 const MAIN_HOST = "sim3.psim.us";
 const RELOGIN_SECONDS = 60;
@@ -38,6 +25,8 @@ const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const HTML_CHAT_COMMAND = '/raw ';
 const UHTML_CHAT_COMMAND = '/uhtml ';
 const UHTML_CHANGE_CHAT_COMMAND = '/uhtmlchange ';
+const HANGMAN_START_COMMAND = "/log A game of hangman was started by ";
+const HANGMAN_END_COMMAND = "/log (The game of hangman was ended by ";
 // const HOTPATCH_CHAT_COMMAND = ' used /hotpatch ';
 const DEFAULT_SERVER_GROUPS: ServerGroupData[] = [
 	{
@@ -766,15 +755,22 @@ export class Client {
 					messageArguments.message);
 			}
 
-			/*
-			if (messageArguments.message.startsWith('/log ') && messageArguments.message.includes(HOTPATCH_CHAT_COMMAND)) {
-				const hotpatched = messageArguments.message.substr(messageArguments.message.indexOf(HOTPATCH_CHAT_COMMAND) +
-					HOTPATCH_CHAT_COMMAND.length).trim();
-				if (hotpatched === 'formats' || hotpatched === 'battles') {
-					if (Config.autoUpdatePS) void Tools.runUpdatePS();
+			if (messageArguments.message.startsWith('/log ')) {
+				if (messageArguments.message.includes(HANGMAN_START_COMMAND)) {
+					room.serverHangman = true;
+				} else if (messageArguments.message.includes(HANGMAN_END_COMMAND)) {
+					delete room.serverHangman;
 				}
+				/*
+				if (messageArguments.message.includes(HOTPATCH_CHAT_COMMAND)) {
+					const hotpatched = messageArguments.message.substr(messageArguments.message.indexOf(HOTPATCH_CHAT_COMMAND) +
+						HOTPATCH_CHAT_COMMAND.length).trim();
+					if (hotpatched === 'formats' || hotpatched === 'battles') {
+						if (Config.autoUpdatePS) void Tools.runUpdatePS();
+					}
+				}
+				*/
 			}
-			*/
 
 			break;
 		}
@@ -923,6 +919,19 @@ export class Client {
 					room.tournament.format.separatedCustomRules = separatedCustomRules;
 					if (!room.tournament.manuallyNamed) room.tournament.setCustomFormatName();
 				}
+			} else if (messageArguments.html.startsWith('<div class="broadcast-green"><p style="text-align:left;font-weight:bold;' +
+				'font-size:10pt;margin:5px 0 0 15px">The word has been guessed. Congratulations!</p>')) {
+				if (room.userHostedGame) {
+					const winner = Tools.unescapeHTML(messageArguments.html.split('<br />Winner: ')[1]
+						.split('</td></tr></table></div>')[0].trim());
+					if (Tools.isUsernameLength(winner)) {
+						room.userHostedGame.useHostCommand("addpoint", winner);
+					}
+				}
+				delete room.serverHangman;
+			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><p style="text-align:left;font-weight:bold;' +
+				'font-size:10pt;margin:5px 0 0 15px">Too bad! The mon has been hanged.</p>')) {
+				delete room.serverHangman;
 			} else if (messageArguments.html === "<b>The tournament's custom rules were cleared.</b>") {
 				if (room.tournament) {
 					room.tournament.format.customRules = null;

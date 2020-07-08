@@ -2,7 +2,7 @@ import type { PRNGSeed } from "../prng";
 import type { Player } from "../room-activity";
 import { Game } from "../room-game";
 import type { Room } from "../rooms";
-import type { GameCommandReturnType, IGameCommandDefinition, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 import type { User } from "../users";
 
 const GRID_SIZE = 4;
@@ -82,14 +82,14 @@ class TrevenantsTrickOrTreat extends Game {
 	}
 }
 
-const commands: Dict<IGameCommandDefinition<TrevenantsTrickOrTreat>> = {
+const commands: GameCommandDefinitions<TrevenantsTrickOrTreat> = {
 	trick: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
 			if (!this.started) return false;
 			const move = Dex.getMove(target);
 			if (!move) {
-				user.say("'" + target + "' is not a valid move.");
+				user.say(CommandParser.getErrorText(['invalidMove', target]));
 				return false;
 			}
 

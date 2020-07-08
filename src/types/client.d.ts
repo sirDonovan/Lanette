@@ -1,6 +1,22 @@
-import type { RoomType } from "../rooms";
 import type { IFormat } from "./dex";
+import type { RoomType } from "./rooms";
 import type { ITournamentEndJson, ITournamentUpdateJson } from "./tournaments";
+
+export type GroupName = 'voice' | 'bot' | 'driver' | 'moderator' | 'roomowner' | 'muted' | 'locked';
+
+export interface ILoginOptions {
+	hostname: string | undefined;
+	path: string | undefined;
+	agent: boolean;
+	method: string;
+	headers?: Dict<string | number>;
+}
+
+export interface IServerConfig {
+	host?: string;
+	id?: string;
+	port?: number;
+}
 
 export interface IServerGroup {
 	name: string | null;

@@ -3,20 +3,17 @@ import child_process = require('child_process');
 import fs = require('fs');
 import path = require('path');
 
-import type { ICommandDefinition, Command } from "./command-parser";
-import type { IDexWorkers } from './dex';
-import type { IGamesWorkers } from './games';
+import type { CommandContext } from "./command-parser";
+import type { OneVsOne } from './games/internal/one-vs-one';
 import type { Player } from "./room-activity";
 import type { Game } from './room-game';
 import type { Room } from "./rooms";
-import type { IStorageWorkers } from './storage';
-import type { IFormat } from "./types/dex";
-import type { GameDifficulty, IGameFormat } from "./types/games";
-import type { UserHostStatus } from './types/storage';
-import type { IBattleData } from './types/tournaments';
+import type { CommandDefinitions } from "./types/command-parser";
+import type { IDexWorkers, IFormat } from "./types/dex";
+import type { GameDifficulty, IGameFormat, IGamesWorkers } from "./types/games";
+import type { IStorageWorkers, UserHostStatus } from './types/storage';
+import type { IBattleData, TournamentPlace } from './types/tournaments';
 import type { User } from "./users";
-import type { TournamentPlace } from './tournaments';
-import type { OneVsOne } from './games/internal/one-vs-one';
 
 type ReloadableModule = 'client' | 'commandparser' | 'commands' | 'config' | 'dex' | 'games' | 'plugins' | 'storage' | 'tools' |
 	'tournaments';
@@ -25,6 +22,7 @@ const moduleOrder: ReloadableModule[] = ['tools', 'config', 'dex', 'client', 'co
 
 const AWARDED_BOT_GREETING_DURATION = 60 * 24 * 60 * 60 * 1000;
 const ONE_VS_ONE_GAME_COOLDOWN = 2 * 60 * 60 * 1000;
+const RANDOM_GENERATOR_LIMIT = 6;
 
 let reloadInProgress = false;
 
@@ -36,8 +34,7 @@ const reloadCommands = function(reloadedModules: ReloadableModule[]): void {
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types */
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const commands: Dict<ICommandDefinition<Command, any>> = {
+const commands: CommandDefinitions<CommandContext> = {
 	/**
 	 * Developer commands
 	 */
@@ -328,7 +325,7 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 		command(target, room, user) {
 			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
 			const pokemon = Dex.getPokemon(target);
-			if (!pokemon) return this.say("'" + target.trim() + "' is not a valid Pokemon.");
+			if (!pokemon) return this.sayError(['invalidPokemon', target]);
 			if (!pokemon.randomBattleMoves) return this.say("No Random Battle data found for " + pokemon.name + ".");
 			const data: string[] = [];
 			for (const move of pokemon.randomBattleMoves) {
@@ -342,7 +339,7 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 		command(target, room, user) {
 			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
 			const pokemon = Dex.getPokemon(target);
-			if (!pokemon) return this.say("'" + target.trim() + "' is not a valid Pokemon.");
+			if (!pokemon) return this.sayError(['invalidPokemon', target]);
 			if (!pokemon.randomDoubleBattleMoves) return this.say("No Random Doubles Battle data found for " + pokemon.name + ".");
 			const data: string[] = [];
 			for (const move of pokemon.randomDoubleBattleMoves) {
@@ -1491,9 +1488,12 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 			for (const user of users) {
 				room.userHostedGame.destroyPlayer(user);
 			}
+
+			// @ts-expect-error
+			if (room.userHostedGame.started) room.userHostedGame.round++;
 			if (cmd !== 'silentelim' && cmd !== 'selim' && cmd !== 'srpl') await this.run('players');
 		},
-		aliases: ['srpl', 'rpl', 'silentelim', 'selim', 'elim', 'eliminate', 'eliminateplayer', 'removeplayers'],
+		aliases: ['removeplayers', 'srpl', 'rpl', 'silentelim', 'selim', 'elim', 'eliminate', 'eliminateplayer', 'eliminateplayers'],
 	},
 	shuffleplayers: {
 		async asyncCommand(target, room, user) {
@@ -1572,6 +1572,7 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 				}
 			}
 			if (!users.length) return this.say("Please specify at least one user in the room.");
+
 			if (cmd.startsWith('r')) points *= -1;
 			let reachedCap = 0;
 			for (const user of users) {
@@ -1582,6 +1583,9 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 				room.userHostedGame.points.set(player, total);
 				if (room.userHostedGame.scoreCap && total >= room.userHostedGame.scoreCap) reachedCap++;
 			}
+
+			// @ts-expect-error
+			room.userHostedGame.round++;
 			if (!this.runningMultipleTargets) await this.run('playerlist');
 			if (reachedCap) {
 				user.say((reachedCap === 1 ? "A user has" : reachedCap + " users have") + " reached the score cap in your game.");
@@ -1838,6 +1842,164 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 		},
 		aliases: ['autowin', 'win'],
 	},
+	starthangman: {
+		command(target, room, user) {
+			if (!this.isPm(room)) return;
+			const targets = target.split(',');
+			const gameRoom = Rooms.search(targets[0]);
+			if (!gameRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+			if (!gameRoom.userHostedGame || !gameRoom.userHostedGame.isHost(user)) return;
+			if (gameRoom.serverHangman) {
+				this.say("There is already a hangman game running in " + gameRoom.title + ".");
+				return;
+			}
+
+			const answer = targets[1].trim();
+			const hint = targets.slice(2).join(',').trim();
+			if (!Tools.toId(answer) || !Tools.toId(hint)) {
+				this.say("Please specify an answer and a hint for the hangman.");
+				return;
+			}
+
+			if (Client.willBeFiltered(answer, gameRoom)) {
+				this.say("Your answer contains a word banned in " + gameRoom.title + ".");
+				return;
+			}
+
+			if (Client.willBeFiltered(hint, gameRoom)) {
+				this.say("Your hint contains a word banned in " + gameRoom.title + ".");
+				return;
+			}
+
+			gameRoom.userHostedGame.sayCommand("/hangman create " + answer + ", " + hint);
+		},
+	},
+	endhangman: {
+		command(target, room, user) {
+			if (!this.isPm(room)) return;
+			const targets = target.split(',');
+			const gameRoom = Rooms.search(targets[0]);
+			if (!gameRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+			if (!gameRoom.userHostedGame || !gameRoom.userHostedGame.isHost(user)) return;
+			if (!gameRoom.serverHangman) {
+				this.say("There is no hangman game running in " + gameRoom.title + ".");
+				return;
+			}
+
+			gameRoom.userHostedGame.sayCommand("/hangman end");
+		},
+	},
+	showgifs: {
+		command(target, room, user, cmd) {
+			if (!this.isPm(room)) return;
+			const targets = target.split(',');
+			const gameRoom = Rooms.search(targets[0]);
+			if (!gameRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+			if (!gameRoom.userHostedGame || !gameRoom.userHostedGame.isHost(user)) return;
+			targets.shift();
+
+			const showIcon = cmd.startsWith('showicon');
+			const isBW = cmd.startsWith('showbw');
+			const generation = isBW ? "bw" : "xy";
+			const gifsOrIcons: string[] = [];
+
+			for (const target of targets) {
+				const pokemon = Dex.getPokemon(target);
+				if (!pokemon) return this.sayError(['invalidPokemon', target]);
+				if (!showIcon && !Dex.hasGifData(pokemon, generation)) {
+					return this.say(pokemon.name + " does not have a" + (isBW ? " BW" :"") + " gif.");
+				}
+				gifsOrIcons.push(showIcon ? Dex.getPSPokemonIcon(pokemon) + pokemon.name : Dex.getPokemonGif(pokemon, generation));
+			}
+
+			if (!gifsOrIcons.length) return this.say("You must specify at least 1 Pokemon.");
+
+			const max = showIcon ? 30 : 5;
+			if (gifsOrIcons.length > max) return this.say("Please specify between 1 and " + max + " Pokemon.");
+
+			const uhtmlName = gameRoom.userHostedGame.uhtmlBaseName + "-" + gameRoom.userHostedGame.round + "-" +
+				(showIcon ? "icon" : "gif");
+
+			let html = "<div class='infobox'>";
+			if (!showIcon) html += "<center>";
+			html += gifsOrIcons.join(showIcon ? ", " : "");
+			if (!showIcon) html += "</center>";
+			html += "</div>";
+
+			gameRoom.userHostedGame.sayUhtmlAuto(uhtmlName, html);
+		},
+		aliases: ['showgif', 'showbwgifs', 'showbwgif', 'showicons', 'showicon'],
+	},
+	showrandomgifs: {
+		command(target, room, user, cmd) {
+			if (!this.isPm(room)) return;
+			const targets = target.split(',');
+			const gameRoom = Rooms.search(targets[0]);
+			if (!gameRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+			if (!gameRoom.userHostedGame || !gameRoom.userHostedGame.isHost(user)) return;
+			targets.shift();
+
+			const showIcon = cmd.endsWith('icon') || cmd.endsWith('icons');
+			const isBW = cmd.startsWith('showrandombw') || cmd.startsWith('showrandbw');
+			const generation = isBW ? "bw" : "xy";
+			const gifsOrIcons: string[] = [];
+
+			let typing = '';
+			let dualType = false;
+			let amount: number;
+			if (!Tools.isInteger(targets[0].trim())) {
+				const types = targets[0].split("/").map(x => x.trim());
+				for (let i = 0; i < types.length; i++) {
+					const type = Dex.getType(types[i]);
+					if (!type) return this.say("'" + types[i] + "' is not a valid type.");
+					types[i] = type.name;
+				}
+				typing = types.sort().join("/");
+				dualType = types.length > 1;
+				targets.shift();
+			}
+
+			if (targets.length) {
+				const max = showIcon ? 30 : 5;
+				amount = parseInt(targets[0]);
+				if (isNaN(amount) || amount < 1 || amount > max) return this.say("Please specify a number of Pokemon between 1 and " +
+					max + ".");
+			} else {
+				amount = 1;
+			}
+
+			const pokemonList = gameRoom.userHostedGame.shuffle(Games.getPokemonList());
+			for (const pokemon of pokemonList) {
+				if (isBW && pokemon.gen > 5) continue;
+				if (!showIcon && !Dex.hasGifData(pokemon, generation)) continue;
+				if (typing) {
+					if (dualType) {
+						if (pokemon.types.slice().sort().join("/") !== typing) continue;
+					} else {
+						if (!pokemon.types.includes(typing)) continue;
+					}
+				}
+
+				gifsOrIcons.push(showIcon ? Dex.getPSPokemonIcon(pokemon) + pokemon.name : Dex.getPokemonGif(pokemon, generation));
+				if (gifsOrIcons.length === amount) break;
+			}
+
+			if (gifsOrIcons.length < amount) return this.say("Not enough Pokemon match the specified options.");
+
+			const uhtmlName = gameRoom.userHostedGame.uhtmlBaseName + "-" + gameRoom.userHostedGame.round + "-" +
+				(showIcon ? "icon" : "gif");
+
+			let html = "<div class='infobox'>";
+			if (!showIcon) html += "<center>";
+			html += gifsOrIcons.join(showIcon ? ", " : "");
+			if (!showIcon) html += "</center>";
+			html += "</div>";
+
+			gameRoom.userHostedGame.sayUhtmlAuto(uhtmlName, html);
+		},
+		aliases: ['showrandomgif', 'showrandombwgifs', 'showrandombwgif', 'showrandgif', 'showrandbwgifs', 'showrandbwgif',
+			'showrandomicons', 'showrandomicon', 'showrandicons', 'showrandicon'],
+	},
 	roll: {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
@@ -1901,11 +2063,30 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
 				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
-			const move = Dex.getExistingMove(Tools.sampleOne(Dex.data.moveKeys)).name;
-			if (this.pm) {
-				this.say('Randomly generated move: **' + move + '**');
+
+			let amount: number;
+			if (target) {
+				amount = parseInt(target);
+				if (isNaN(amount) || amount < 1 || amount > RANDOM_GENERATOR_LIMIT) {
+					return this.say("Please specify a number of moves between 1 and " + RANDOM_GENERATOR_LIMIT + ".");
+				}
 			} else {
-				this.say('!dt ' + move);
+				amount = 1;
+			}
+
+			const movesList = Games.getMovesList().map(x => x.name);
+			let moves: string[];
+			if (!this.isPm(room) && room.userHostedGame) {
+				moves = room.userHostedGame.shuffle(movesList);
+			} else {
+				moves = Tools.shuffle(movesList);
+			}
+
+			const multiple = amount > 1;
+			if (this.pm || multiple) {
+				this.say("Randomly generated move" + (multiple ? "s" : "") + ": **" + Tools.joinList(moves.slice(0, amount)) + "**");
+			} else {
+				this.say('!dt ' + moves[0]);
 			}
 		},
 		aliases: ['rmove', 'randmove'],
@@ -1914,11 +2095,30 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
 				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
-			const item = Dex.getExistingItem(Tools.sampleOne(Dex.data.itemKeys)).name;
-			if (this.pm) {
-				this.say('Randomly generated item: **' + item + '**');
+
+			let amount: number;
+			if (target) {
+				amount = parseInt(target);
+				if (isNaN(amount) || amount < 1 || amount > RANDOM_GENERATOR_LIMIT) {
+					return this.say("Please specify a number of items between 1 and " + RANDOM_GENERATOR_LIMIT + ".");
+				}
 			} else {
-				this.say('!dt ' + item);
+				amount = 1;
+			}
+
+			const itemsList = Games.getItemsList().map(x => x.name);
+			let items: string[];
+			if (!this.isPm(room) && room.userHostedGame) {
+				items = room.userHostedGame.shuffle(itemsList);
+			} else {
+				items = Tools.shuffle(itemsList);
+			}
+
+			const multiple = amount > 1;
+			if (this.pm || multiple) {
+				this.say("Randomly generated item" + (multiple ? "s" : "") + ": **" + Tools.joinList(items.slice(0, amount)) + "**");
+			} else {
+				this.say('!dt ' + items[0]);
 			}
 		},
 		aliases: ['ritem', 'randitem'],
@@ -1927,14 +2127,31 @@ const commands: Dict<ICommandDefinition<Command, any>> = {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
 				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
-			let ability = Dex.getExistingAbility(Tools.sampleOne(Dex.data.abilityKeys));
-			while (ability.id === 'noability') {
-				ability = Dex.getExistingAbility(Tools.sampleOne(Dex.data.abilityKeys));
-			}
-			if (this.pm) {
-				this.say('Randomly generated ability: **' + ability.name + '**');
+
+			let amount: number;
+			if (target) {
+				amount = parseInt(target);
+				if (isNaN(amount) || amount < 1 || amount > RANDOM_GENERATOR_LIMIT) {
+					return this.say("Please specify a number of abilities between 1 and " + RANDOM_GENERATOR_LIMIT + ".");
+				}
 			} else {
-				this.say('!dt ' + ability.name);
+				amount = 1;
+			}
+
+			const abilitiesList = Games.getAbilitiesList().map(x => x.name);
+			let abilities: string[];
+			if (!this.isPm(room) && room.userHostedGame) {
+				abilities = room.userHostedGame.shuffle(abilitiesList);
+			} else {
+				abilities = Tools.shuffle(abilitiesList);
+			}
+
+			const multiple = amount > 1;
+			if (this.pm || multiple) {
+				this.say("Randomly generated " + (multiple ? "abilities" : "ability") + ": **" +
+					Tools.joinList(abilities.slice(0, amount)) + "**");
+			} else {
+				this.say('!dt ' + abilities[0]);
 			}
 		},
 		aliases: ['rability', 'randability'],

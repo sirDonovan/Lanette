@@ -1,7 +1,7 @@
 import type { Player } from "../../room-activity";
 import { Game } from "../../room-game";
 import type { Room } from "../../rooms";
-import type { AchievementsDict, GameCommandReturnType, IGameCommandDefinition, IGameFile } from "../../types/games";
+import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../../types/games";
 import type { User } from "../../users";
 
 const achievements: AchievementsDict = {
@@ -56,7 +56,7 @@ class EggToss extends Game {
 	}
 }
 
-const commands: Dict<IGameCommandDefinition<EggToss>> = {
+const commands: GameCommandDefinitions<EggToss> = {
 	toss: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {

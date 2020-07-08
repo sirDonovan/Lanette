@@ -1,8 +1,9 @@
-import type { CommandsDict } from "../../command-parser";
 import type { Player } from "../../room-activity";
-import type { DefaultGameOption, Game } from "../../room-game";
+import type { Game } from "../../room-game";
 import { addPlayers, assert, runCommand } from "../../test/test-tools";
-import type { GameCommandReturnType, GameFileTests, IGameFormat, IGameModeFile } from "../../types/games";
+import type {
+	DefaultGameOption, GameCommandReturnType, GameFileTests, IGameFormat, IGameModeFile, LoadedGameCommands
+} from "../../types/games";
 import type { Guessing } from "../templates/guessing";
 
 const name = 'Survival';
@@ -116,7 +117,7 @@ class Survival {
 	}
 }
 
-const commands: CommandsDict<Survival & Guessing, GameCommandReturnType> = {
+const commands: LoadedGameCommands<SurvivalThis> = {
 	guess: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async asyncCommand(target, room, user): Promise<GameCommandReturnType> {

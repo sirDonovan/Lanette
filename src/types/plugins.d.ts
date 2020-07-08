@@ -1,6 +1,7 @@
-import type { ICommandDefinition, Command } from "../command-parser";
+import type { CommandContext } from "../command-parser";
 import type { Room } from "../rooms";
-import type { IClientMessageTypes } from "../types/client";
+import type { IClientMessageTypes } from "./client";
+import type { CommandDefinitions } from "./command-parser";
 
 export interface IPluginConstructor {
 	new (): IPluginInterface;
@@ -18,7 +19,7 @@ export interface IParseMessagePlugin {
 
 export interface IPluginFile {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	commands?: Dict<ICommandDefinition<Command, any>>;
+	commands?: CommandDefinitions<CommandContext>;
 	Module?: IPluginConstructor;
 }
 

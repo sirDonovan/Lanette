@@ -1,0 +1,40 @@
+import type { CommandContext } from "../command-parser";
+import type { Room } from "../rooms";
+import type { User } from "../users";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface ICommandDefinition<ThisContext, ReturnType = any> {
+	asyncCommand?: (this: ThisContext, target: string, room: Room | User, user: User, alias: string) => Promise<ReturnType>;
+	command?: (this: ThisContext, target: string, room: Room | User, user: User, alias: string) => ReturnType;
+	aliases?: string[];
+	readonly chatOnly?: boolean;
+	readonly eliminatedGameCommand?: boolean;
+	readonly developerOnly?: boolean;
+	readonly pmGameCommand?: boolean;
+	readonly pmOnly?: boolean;
+	readonly signupsGameCommand?: boolean;
+	readonly staffGameCommand?: boolean;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type LoadedCommand<ThisContext, ReturnType = any> = Omit<ICommandDefinition<ThisContext, ReturnType>, "aliases">;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type CommandDefinitions<ThisContext, ReturnType = any> = Dict<ICommandDefinition<ThisContext, ReturnType>>;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type LoadedCommands<ThisContext, ReturnType = any> = Dict<LoadedCommand<ThisContext, ReturnType>>;
+
+export type BaseLoadedCommands = LoadedCommands<CommandContext>;
+
+export type CommandErrorOptionalTarget = 'invalidBotRoom' | 'invalidAbility' | 'invalidFormat' | 'invalidGameFormat' | 'invalidItem' |
+	'invalidMove' | 'invalidPokemon' | 'invalidTournamentFormat' | 'invalidUserHostedGameFormat' | 'tooManyGameModes' |
+	'tooManyGameVariants' | 'emptyUserHostedGameQueue';
+
+export type CommandErrorRequiredTarget = 'noPmHtmlRoom' | 'missingBotRankForFeatures' | 'disabledTournamentFeatures' |
+	'disabledGameFeatures' | 'disabledUserHostedGameFeatures' | 'disabledUserHostedTournamentFeatures' |'noRoomEventInformation' |
+	'invalidRoomEvent' | 'invalidGameOption' | 'disabledGameFormat';
+
+export type CommandErrorNoTarget = 'invalidUserInRoom' | 'invalidUsernameLength' | 'reloadInProgress' | 'invalidHttpsLink' | 'noPmGameRoom';
+
+export type CommandErrorArray = [CommandErrorOptionalTarget, string?] | [CommandErrorRequiredTarget, string] | [CommandErrorNoTarget];

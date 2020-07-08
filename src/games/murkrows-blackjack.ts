@@ -1,7 +1,7 @@
 import type { PRNGSeed } from "../prng";
 import type { Player } from '../room-activity';
 import type { Room } from "../rooms";
-import type { GameCommandReturnType, IGameCommandDefinition, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as playingCardGame, PlayingCard } from './templates/playing-card';
 import type { IPlayingCard } from './templates/playing-card';
@@ -213,7 +213,7 @@ class MurkrowsBlackjack extends PlayingCard {
 	}
 }
 
-const commands: Dict<IGameCommandDefinition<MurkrowsBlackjack>> = {
+const commands: GameCommandDefinitions<MurkrowsBlackjack> = {
 	hit: {
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canHit || this.players[user.id].frozen) return false;

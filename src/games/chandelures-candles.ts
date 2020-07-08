@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import { Game } from "../room-game";
-import type { AchievementsDict, GameCommandReturnType, IGameCommandDefinition, IGameFile } from "../types/games";
+import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 
 const puffAchievementAmount = 15;
 const achievements: AchievementsDict = {
@@ -104,7 +104,7 @@ class ChandeluresCandles extends Game {
 	}
 }
 
-const commands: Dict<IGameCommandDefinition<ChandeluresCandles>> = {
+const commands: GameCommandDefinitions<ChandeluresCandles> = {
 	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	hide: {
 		command(target, room, user): GameCommandReturnType {

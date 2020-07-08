@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import { Game } from "../room-game";
-import type { AchievementsDict, GameCommandReturnType, IGameCommandDefinition, IGameFile } from "../types/games";
+import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 
 interface IWheel {
 	magikarpChance: number;
@@ -192,7 +192,7 @@ class MagikarpsWaterWheel extends Game {
 	}
 }
 
-const commands: Dict<IGameCommandDefinition<MagikarpsWaterWheel>> = {
+const commands: GameCommandDefinitions<MagikarpsWaterWheel> = {
 	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	swim: {
 		command(target, room, user): GameCommandReturnType {

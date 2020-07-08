@@ -1,7 +1,7 @@
 import type { Player } from '../../room-activity';
 import { Game } from '../../room-game';
 import type { IMoveCopy, IPokemon, IPokemonCopy } from '../../types/dex';
-import type { IGameCommandDefinition, IGameTemplateFile } from '../../types/games';
+import type { GameCommandDefinitions, IGameTemplateFile } from '../../types/games';
 
 export interface IActionCardData {
 	readonly description: string;
@@ -338,7 +338,7 @@ export abstract class Card extends Game {
 	filterPoolItem?(pokemon: IPokemon): boolean;
 }
 
-const commands: Dict<IGameCommandDefinition<Card>> = {};
+const commands: GameCommandDefinitions<Card> = {};
 commands.summary = Tools.deepClone(Games.sharedCommands.summary);
 commands.summary.aliases = ['cards', 'hand'];
 

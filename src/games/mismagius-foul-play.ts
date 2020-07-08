@@ -1,7 +1,7 @@
 import type { Player } from "../room-activity";
 import { Game } from "../room-game";
 import type { Room } from "../rooms";
-import type { AchievementsDict, GameCommandReturnType, IGameCommandDefinition, IGameFile } from "../types/games";
+import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 import type { User } from "../users";
 
 const data: {colors: Dict<string[]>; eggGroups: Dict<string[]>; moves: Dict<string[]>; pokemon: string[]; types: Dict<string[]>} = {
@@ -250,7 +250,7 @@ class MismagiusFoulPlay extends Game {
 	}
 }
 
-const commands: Dict<IGameCommandDefinition<MismagiusFoulPlay>> = {
+const commands: GameCommandDefinitions<MismagiusFoulPlay> = {
 	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	select: {
 		command(target, room, user): GameCommandReturnType {

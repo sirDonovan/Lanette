@@ -1,11 +1,4 @@
-export interface IMonthlyTournamentSchedule {
-	formats: Dict<string>;
-	times: [number, number][];
-}
-
-export interface IRoomTournamentSchedule {
-	months: Dict<IMonthlyTournamentSchedule>;
-}
+import type { IRoomTournamentSchedule } from "./types/tournaments";
 
 /**
  * Hours are in the same timezone as wherever Lanette is running

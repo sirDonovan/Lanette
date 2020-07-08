@@ -1,36 +1,8 @@
 import type { Room } from "./rooms";
+import type { BaseLoadedCommands, CommandErrorArray, CommandDefinitions, LoadedCommands } from "./types/command-parser";
 import type { User } from "./users";
 
-export interface ICommandDefinition<T, U> {
-	asyncCommand?: (this: T, target: string, room: Room | User, user: User, alias: string) => Promise<U>;
-	command?: (this: T, target: string, room: Room | User, user: User, alias: string) => U;
-	aliases?: string[];
-	readonly chatOnly?: boolean;
-	readonly eliminatedGameCommand?: boolean;
-	readonly developerOnly?: boolean;
-	readonly pmGameCommand?: boolean;
-	readonly pmOnly?: boolean;
-	readonly signupsGameCommand?: boolean;
-	readonly staffGameCommand?: boolean;
-}
-
-export type CommandsDict<T, U> = Dict<Omit<ICommandDefinition<T, U>, "aliases">>;
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type BaseCommandsDict = CommandsDict<Command, any>;
-
-type CommandErrorOptionalTarget = 'invalidBotRoom' | 'invalidFormat' | 'invalidGameFormat' | 'invalidTournamentFormat' |
-	'invalidUserHostedGameFormat' | 'tooManyGameModes' | 'tooManyGameVariants' | 'emptyUserHostedGameQueue';
-
-type CommandErrorRequiredTarget = 'noPmHtmlRoom' | 'missingBotRankForFeatures' | 'disabledTournamentFeatures' | 'disabledGameFeatures' |
-	'disabledUserHostedGameFeatures' | 'disabledUserHostedTournamentFeatures' |'noRoomEventInformation' | 'invalidRoomEvent' |
-	'invalidGameOption' | 'disabledGameFormat';
-
-type CommandErrorNoTarget = 'invalidUserInRoom' | 'invalidUsernameLength' | 'reloadInProgress' | 'invalidHttpsLink' | 'noPmGameRoom';
-
-export type CommandErrorArray = [CommandErrorOptionalTarget, string?] | [CommandErrorRequiredTarget, string] | [CommandErrorNoTarget];
-
-export class Command {
+export class CommandContext {
 	runningMultipleTargets: boolean | null = null;
 
 	readonly originalCommand: string;
@@ -131,9 +103,9 @@ export class Command {
 }
 
 export class CommandParser {
-	loadCommands<T, U>(commands: Dict<ICommandDefinition<T, U>>): CommandsDict<T, U> {
-		const dict: CommandsDict<T, U> = {};
-		const allAliases: CommandsDict<T, U> = {};
+	loadCommands<ThisContext, ReturnType>(commands: CommandDefinitions<ThisContext, ReturnType>): LoadedCommands<ThisContext, ReturnType> {
+		const dict: LoadedCommands<ThisContext, ReturnType> = {};
+		const allAliases: LoadedCommands<ThisContext, ReturnType> = {};
 		for (const i in commands) {
 			const id = Tools.toId(i);
 			if (id in dict) throw new Error("Command '" + i + "' is defined in more than 1 location");
@@ -164,10 +136,8 @@ export class CommandParser {
 		return dict;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	loadBaseCommands(commands: Dict<ICommandDefinition<Command, any>>): BaseCommandsDict {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const allPluginCommands: Dict<ICommandDefinition<Command, any>> = {};
+	loadBaseCommands(commands: CommandDefinitions<CommandContext>): BaseLoadedCommands {
+		const allPluginCommands: CommandDefinitions<CommandContext> = {};
 		if (Plugins) {
 			for (const plugin of Plugins) {
 				if (plugin.commands) {
@@ -181,7 +151,7 @@ export class CommandParser {
 		}
 
 		return Object.assign(Object.create(null),
-			Object.assign(this.loadCommands(commands), this.loadCommands(allPluginCommands))) as BaseCommandsDict;
+			Object.assign(this.loadCommands(commands), this.loadCommands(allPluginCommands))) as BaseLoadedCommands;
 	}
 
 	isCommandMessage(message: string): boolean {
@@ -212,19 +182,31 @@ export class CommandParser {
 		}
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return await (new Command(command, target, room, user)).run();
+		return await (new CommandContext(command, target, room, user)).run();
 	}
 
 	getErrorText(error: CommandErrorArray): string {
 		if (error[0] === 'invalidBotRoom') {
 			if (error[1]) return "'" + error[1].trim() + "' is not one of " + Users.self.name + "'s rooms.";
 			return "You must specify one of " + Users.self.name + "'s rooms.";
+		} else if (error[0] === 'invalidAbility') {
+			if (error[1]) return "'" + error[1].trim() + "' is not a valid ability.";
+			return "You must specify a valid ability.";
 		} else if (error[0] === 'invalidFormat') {
 			if (error[1]) return "'" + error[1].trim() + "' is not a valid format.";
 			return "You must specify a valid format.";
 		} else if (error[0] === 'invalidGameFormat') {
 			if (error[1]) return "'" + error[1].trim() + "' is not a valid game format.";
 			return "You must specify a valid game format.";
+		} else if (error[0] === 'invalidItem') {
+			if (error[1]) return "'" + error[1].trim() + "' is not a valid item.";
+			return "You must specify a valid item.";
+		} else if (error[0] === 'invalidMove') {
+			if (error[1]) return "'" + error[1].trim() + "' is not a valid move.";
+			return "You must specify a valid move.";
+		} else if (error[0] === 'invalidPokemon') {
+			if (error[1]) return "'" + error[1].trim() + "' is not a valid Pokemon.";
+			return "You must specify a valid Pokemon.";
 		} else if (error[0] === 'invalidTournamentFormat') {
 			if (error[1]) return "'" + error[1].trim() + "' is not a valid tournament format.";
 			return "You must specify a valid tournament format.";

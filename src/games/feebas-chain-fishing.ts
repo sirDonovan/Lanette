@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import { Game } from "../room-game";
-import type { AchievementsDict, GameCommandReturnType, IGameCommandDefinition, IGameFile } from "../types/games";
+import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 
 const rods: {rod: string; pokemon: {pokemon: string; points: number}[]}[] = [
 	{
@@ -131,7 +131,7 @@ class FeebasChainFishing extends Game {
 	}
 }
 
-const commands: Dict<IGameCommandDefinition<FeebasChainFishing>> = {
+const commands: GameCommandDefinitions<FeebasChainFishing> = {
 	reel: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {

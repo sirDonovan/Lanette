@@ -2,7 +2,7 @@ import type { Player } from "../room-activity";
 import { Game } from "../room-game";
 import type { Room } from "../rooms";
 import type { IPokemon } from "../types/dex";
-import type { AchievementsDict, GameCommandReturnType, IGameCommandDefinition, IGameFile } from "../types/games";
+import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 import type { User } from "../users";
 
 const data: {moves: string[]; pokedex: string[]} = {
@@ -139,7 +139,7 @@ class ShedinjasWonderTrials extends Game {
 	}
 }
 
-const commands: Dict<IGameCommandDefinition<ShedinjasWonderTrials>> = {
+const commands: GameCommandDefinitions<ShedinjasWonderTrials> = {
 	use: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
@@ -148,7 +148,7 @@ const commands: Dict<IGameCommandDefinition<ShedinjasWonderTrials>> = {
 			if (this.roundMoves.has(player)) return false;
 			const move = Dex.getMove(target);
 			if (!move) {
-				user.say("You must specify a valid move.");
+				user.say(CommandParser.getErrorText(['invalidMove', target]));
 				return false;
 			}
 			if (!data.moves.includes(move.name)) {

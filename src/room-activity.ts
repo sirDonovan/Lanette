@@ -1,8 +1,6 @@
 import type { Room } from "./rooms";
+import type { PlayerList } from "./types/games";
 import type { User } from "./users";
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type PlayerList = Dict<Player> | Player[] | Map<Player, any>;
 
 export class Player {
 	active: boolean | undefined;

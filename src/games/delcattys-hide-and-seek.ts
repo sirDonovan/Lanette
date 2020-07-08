@@ -3,7 +3,7 @@ import { Game } from "../room-game";
 import type { Room } from "../rooms";
 import { addPlayers, assert, runCommand } from "../test/test-tools";
 import type { IPokemon } from "../types/dex";
-import type { GameCommandReturnType, GameFileTests, IGameCommandDefinition, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFile } from "../types/games";
 import type { User } from "../users";
 
 const data: {'parameters': Dict<string[]>; 'pokemon': string[]} = {
@@ -148,7 +148,7 @@ class DelcattysHideAndSeek extends Game {
 	}
 }
 
-const commands: Dict<IGameCommandDefinition<DelcattysHideAndSeek>> = {
+const commands: GameCommandDefinitions<DelcattysHideAndSeek> = {
 	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	charm: {
 		command(target, room, user): GameCommandReturnType {
@@ -157,7 +157,7 @@ const commands: Dict<IGameCommandDefinition<DelcattysHideAndSeek>> = {
 			target = Tools.toId(target);
 			const pokemon = Dex.getPokemon(target);
 			if (!pokemon) {
-				player.say("'" + target.trim() + "' is not a valid Pokemon.");
+				player.say(CommandParser.getErrorText(['invalidPokemon', target]));
 				return false;
 			}
 			if (!data.pokemon.includes(pokemon.id)) {
@@ -210,7 +210,7 @@ const commands: Dict<IGameCommandDefinition<DelcattysHideAndSeek>> = {
 			target = Tools.toId(target);
 			const pokemon = Dex.getPokemon(target);
 			if (!pokemon) {
-				player.say("'" + target + "' is not a valid Pokemon.");
+				player.say(CommandParser.getErrorText(['invalidPokemon', target]));
 				return false;
 			}
 			if (!data.pokemon.includes(pokemon.id)) {

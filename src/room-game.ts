@@ -1,33 +1,14 @@
-import type { CommandsDict } from "./command-parser";
 import { PRNG } from "./prng";
 import type { PRNGSeed } from "./prng";
 import { Activity, PlayerTeam } from "./room-activity";
-import type { Player, PlayerList } from "./room-activity";
+import type { Player } from "./room-activity";
 import type { Room } from "./rooms";
 import type { IPokemonCopy } from "./types/dex";
 import type {
-	GameCommandReturnType, IGameAchievement, IGameFormat, IGameMode, IGameVariant, IRandomGameAnswer, IUserHostedFormat
+	GameCommandListener, IGameAchievement, IGameCommandCountListener, IGameCommandCountOptions, IGameFormat, IGameMode, IGameOptionValues,
+	IGameVariant, IRandomGameAnswer, IUserHostedFormat, LoadedGameCommands, PlayerList
 } from "./types/games";
 import type { User } from "./users";
-
-export type DefaultGameOption = 'points' | 'teams' | 'cards' | 'freejoin';
-export interface IGameOptionValues {
-	min: number;
-	base: number;
-	max: number;
-}
-
-type GameCommandListener = (lastUserid: string) => void;
-interface IGameCommandCountOptions {
-	max: number;
-	remainingPlayersMax?: boolean;
-}
-interface IGameCommandCountListener extends IGameCommandCountOptions {
-	commands: string[];
-	count: number;
-	lastUserId: string;
-	listener: GameCommandListener;
-}
 
 const JOIN_BITS = 10;
 
@@ -53,7 +34,7 @@ export class Game extends Activity {
 	readonly activityType: string = 'game';
 	awardedBits: boolean = false;
 	canLateJoin: boolean = false;
-	readonly commands = Object.assign(Object.create(null), Games.sharedCommands) as CommandsDict<Game, GameCommandReturnType>;
+	readonly commands = Object.assign(Object.create(null), Games.sharedCommands) as LoadedGameCommands;
 	readonly commandsListeners: IGameCommandCountListener[] = [];
 	inheritedPlayers: boolean = false;
 	internalGame: boolean = false;
