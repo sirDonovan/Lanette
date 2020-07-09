@@ -219,7 +219,6 @@ export class Games {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires
 			const file = require(internalGamePaths[key]).game as IGameFile;
 			if (!file) throw new Error("No game exported from " + internalGamePaths[key]);
-			const id = Tools.toId(file.name);
 			let commands;
 			if (file.commands) {
 				commands = CommandParser.loadCommands<Game, GameCommandReturnType>(Tools.deepClone(file.commands));
@@ -227,8 +226,10 @@ export class Games {
 					if (!(i in this.commands)) this.commands[i] = commands[i];
 				}
 			}
+
 			if (file.achievements) this.loadFileAchievements(file);
-			this.internalFormats[key] = Object.assign({}, file, {commands, id});
+
+			this.internalFormats[key] = Object.assign({}, file, {commands, id: Tools.toId(file.name)});
 		}
 
 		const modesDirectory = path.join(gamesDirectory, "modes");
@@ -241,6 +242,13 @@ export class Games {
 			if (!file) throw new Error("No mode exported from " + modePath);
 			const id = Tools.toId(file.name);
 			if (id in this.modes) throw new Error("The name '" + file.name + "' is already used by another mode.");
+
+			if (file.commands) {
+				for (const i in file.commands) {
+					if (!(i in this.commands)) this.commands[i] = file.commands[i];
+				}
+			}
+
 			if (file.aliases) {
 				for (const alias of file.aliases) {
 					const aliasId = Tools.toId(alias);
@@ -251,6 +259,7 @@ export class Games {
 					this.modeAliases[aliasId] = id;
 				}
 			}
+
 			this.modes[id] = Object.assign({}, file, {id});
 		}
 

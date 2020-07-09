@@ -110,7 +110,7 @@ export class CommandParser {
 			const id = Tools.toId(i);
 			if (id in dict) throw new Error("Command '" + i + "' is defined in more than 1 location");
 
-			const command = Object.assign({}, commands[i]);
+			const command = Tools.deepClone(commands[i]);
 			if (command.chatOnly && command.pmOnly) throw new Error("Command '" + i + "' cannot be both chat-only and pm-only");
 			if (command.chatOnly && command.pmGameCommand) {
 				throw new Error("Command '" + i + "' cannot be both chat-only and a pm game command");

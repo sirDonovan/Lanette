@@ -2,7 +2,8 @@ import type { Player, PlayerTeam } from "../../room-activity";
 import type { Game } from "../../room-game";
 import { addPlayers, assert, assertStrictEqual, runCommand } from "../../test/test-tools";
 import type {
-	DefaultGameOption, GameCommandReturnType, GameFileTests, IGameFormat, IGameModeFile, LoadedGameCommands
+	DefaultGameOption, GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFormat,
+	IGameModeFile
 } from "../../types/games";
 import type { Guessing } from "../templates/guessing";
 
@@ -180,7 +181,7 @@ class Team {
 	}
 }
 
-const commands: LoadedGameCommands<TeamThis> = {
+const commandDefinitions: GameCommandDefinitions<TeamThis> = {
 	guess: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async asyncCommand(target, room, user): Promise<GameCommandReturnType> {
@@ -254,11 +255,11 @@ const commands: LoadedGameCommands<TeamThis> = {
 			this.timeout = setTimeout(() => this.nextRound(), 5000);
 			return true;
 		},
+		aliases: ['g'],
 	},
 };
-commands.g = {
-	asyncCommand: commands.guess.asyncCommand,
-};
+
+const commands = CommandParser.loadCommands(commandDefinitions);
 
 const initialize = (game: Game): void => {
 	const mode = new Team();
@@ -268,20 +269,7 @@ const initialize = (game: Game): void => {
 		game[property] = mode[property];
 	}
 
-	for (const command in commands) {
-		if (command in game.commands) {
-			for (const i in game.commands) {
-				if ((game.commands[command].asyncCommand && game.commands[i].asyncCommand === game.commands[command].asyncCommand) ||
-					(game.commands[command].command && game.commands[i].command === game.commands[command].command)) {
-					// @ts-expect-error
-					game.commands[i] = commands[command];
-				}
-			}
-		} else {
-			// @ts-expect-error
-			game.commands[command] = commands[command];
-		}
-	}
+	game.loadModeCommands(commands);
 };
 
 const tests: GameFileTests<TeamThis> = {

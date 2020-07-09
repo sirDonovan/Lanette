@@ -222,6 +222,26 @@ export class Game extends Activity {
 		if (format.mode) format.mode.initialize(this);
 	}
 
+	loadModeCommands<T extends Game>(commands: LoadedGameCommands<T>): void {
+		for (const command in commands) {
+			const commandsToOverwrite: string[] = [command];
+			if (command in this.commands) {
+				for (const i in this.commands) {
+					if (i === command) continue;
+					if ((this.commands[command].asyncCommand && this.commands[i].asyncCommand === this.commands[command].asyncCommand) ||
+						(this.commands[command].command && this.commands[i].command === this.commands[command].command)) {
+						commandsToOverwrite.push(i);
+					}
+				}
+			}
+
+			for (const i of commandsToOverwrite) {
+				// @ts-expect-error
+				this.commands[i] = commands[command];
+			}
+		}
+	}
+
 	deallocate(forceEnd: boolean): void {
 		if (this.timeout) clearTimeout(this.timeout);
 		if (this.startTimer) clearTimeout(this.startTimer);
