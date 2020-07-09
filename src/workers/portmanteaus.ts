@@ -105,26 +105,26 @@ export class PortmanteausWorker extends WorkerBase<IPortmanteausWorkerData, Port
 				data.pool['Pokemon']['tier']['LC'].push(pokemon.name);
 			}
 			if (!(pokemon.color in data.pool['Pokemon']['color'])) data.pool['Pokemon']['color'][pokemon.color] = [];
-				if (!(pokemon.forme == "Gmax" || pokemon.forme == "Rapid-Strike-Gmax")) {
+				if (!(pokemon.forme === "Gmax" || pokemon.forme === "Rapid-Strike-Gmax")) {
 					data.pool['Pokemon']['color'][pokemon.color].push(pokemon.name);
 				}
 
 			if (!(pokemon.gen in data.pool['Pokemon']['gen'])) data.pool['Pokemon']['gen'][pokemon.gen] = [];
-				if (!(pokemon.forme == "Gmax" || pokemon.forme == "Rapid-Strike-Gmax")) {
+				if (!(pokemon.forme === "Gmax" || pokemon.forme === "Rapid-Strike-Gmax")) {
 					data.pool['Pokemon']['gen'][pokemon.gen].push(pokemon.name);
 				}
 
 
 			for (const type of pokemon.types) {
 				if (!(type in data.pool['Pokemon']['type'])) data.pool['Pokemon']['type'][type] = [];
-				if (!(pokemon.forme == "Gmax" || pokemon.forme == "Rapid-Strike-Gmax")) {
+				if (!(pokemon.forme === "Gmax" || pokemon.forme === "Rapid-Strike-Gmax")) {
 					data.pool['Pokemon']['type'][type].push(pokemon.name);
 				}
 			}
 
 			for (const eggGroup of pokemon.eggGroups) {
 				if (!(eggGroup in data.pool['Pokemon']['egggroup'])) data.pool['Pokemon']['egggroup'][eggGroup] = [];
-				if (!(pokemon.forme == "Gmax" || pokemon.forme == "Rapid-Strike-Gmax")) {
+				if (!(pokemon.forme === "Gmax" || pokemon.forme === "Rapid-Strike-Gmax")) {
 					data.pool['Pokemon']['egggroup'][eggGroup].push(pokemon.name);
 				}
 			}
