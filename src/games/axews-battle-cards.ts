@@ -1,10 +1,12 @@
 import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
 import type { IPokemon, IMove, IMoveCopy } from "../types/dex";
-import type { AchievementsDict, IGameFile } from "../types/games";
+import type { AchievementsDict, IGameFile, GameFileTests } from "../types/games";
 import type { User } from "../users";
 import type { ICard, IActionCardData, IMoveCard, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
+import { assert } from "console";
+import { assertStrictEqual } from "../test/test-tools";
 
 const types: Dict<string> = {};
 
@@ -540,16 +542,15 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 	}
 
 	isPlayableCard(card: IPokemonCard, otherCard?: IPokemonCard): boolean {
-		if (card === this.topCard) return false;
+		if (card === this.topCard || card === otherCard) return false;
 		if (!otherCard) otherCard = this.topCard;
 
-		const pokemon = Dex.getExistingPokemon(otherCard.name);
 		let valid = false;
 		for (const type of card.types) {
-			if (Dex.isImmune(type, pokemon)) {
+			if (Dex.isImmune(type, otherCard.types)) {
 				continue;
 			} else {
-				const effectiveness = Dex.getEffectiveness(type, pokemon);
+				const effectiveness = Dex.getEffectiveness(type, otherCard.types);
 				if (effectiveness > 0) {
 					valid = true;
 					break;
@@ -776,6 +777,30 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 	}
 }
 
+const tests: GameFileTests<AxewsBattleCards> = {
+	'it should use card types in isPlayableCard()': {
+		test(game, format): void {
+			const golem = game.pokemonToCard(Dex.getExistingPokemon("Golem"));
+			const squirtle = game.pokemonToCard(Dex.getExistingPokemon("Squirtle"));
+			const bulbasaur = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
+			const charmander = game.pokemonToCard(Dex.getExistingPokemon("Charmander"));
+			const pikachu = game.pokemonToCard(Dex.getExistingPokemon("Pikachu"));
+
+			assertStrictEqual(game.isPlayableCard(golem, golem), false);
+			assertStrictEqual(game.isPlayableCard(charmander, golem), false);
+			assertStrictEqual(game.isPlayableCard(pikachu, golem), false);
+			assertStrictEqual(game.isPlayableCard(squirtle, golem), true);
+			assertStrictEqual(game.isPlayableCard(bulbasaur, golem), true);
+
+			golem.types = ['Water'];
+			assertStrictEqual(game.isPlayableCard(charmander, golem), false);
+			assertStrictEqual(game.isPlayableCard(pikachu, golem), true);
+			assertStrictEqual(game.isPlayableCard(squirtle, golem), false);
+			assertStrictEqual(game.isPlayableCard(bulbasaur, golem), true);
+		},
+	},
+};
+
 export const game: IGameFile<AxewsBattleCards> = Games.copyTemplateProperties(cardGame, {
 	achievements,
 	aliases: ["axews", "abc", "battlecards"],
@@ -786,6 +811,7 @@ export const game: IGameFile<AxewsBattleCards> = Games.copyTemplateProperties(ca
 	name: "Axew's Battle Cards",
 	mascot: "Axew",
 	scriptedOnly: true,
+	tests,
 	variants: [
 		{
 			name: "No Actions Axew's Battle Cards",
