@@ -1,18 +1,47 @@
 import type { Player } from "../room-activity";
 import { addPlayers, assert, assertStrictEqual, runCommand } from "../test/test-tools";
 import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFile } from "../types/games";
-import type { CardType, IActionCardData, IPokemonCard } from "./templates/card";
+import type { ICard, IActionCardData, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 
 const achievements: AchievementsDict = {
 	"luckofthedraw": {name: "Luck of the Draw", type: 'shiny', bits: 1000, repeatBits: 250, description:'draw and play a shiny card'},
 };
 
-class StakatakasCardTower extends CardMatching {
-	actionCards: Dict<IActionCardData> = {
-		"manaphy": {name: "Shuffle 4", description: "Shuffle 4 of everyone's cards"},
-		"phione": {name: "Shuffle 2", description: "Shuffle 2 of everyone's cards"},
-		"pachirisu": {name: "Get pair", description: "Get a pair from the deck"},
+type ActionCardsType = Dict<IActionCardData<StakatakasCardTower>>;
+
+class StakatakasCardTower extends CardMatching<ActionCardsType> {
+	actionCards: ActionCardsType = {
+		"manaphy": {
+			name: "Manaphy",
+			description: "Shuffle 4 of everyone's cards",
+			getAutoPlayTarget(game, hand) {
+				return this.name;
+			},
+			isPlayableTarget(game, hand) {
+				return true;
+			},
+		},
+		"phione": {
+			name: "Phione",
+			description: "Shuffle 2 of everyone's cards",
+			getAutoPlayTarget(game, hand) {
+				return this.name;
+			},
+			isPlayableTarget(game, hand) {
+				return true;
+			},
+		},
+		"pachirisu": {
+			name: "Pachirisu",
+			description: "Get a pair from the deck",
+			getAutoPlayTarget(game, hand) {
+				return this.name;
+			},
+			isPlayableTarget(game, hand) {
+				return true;
+			},
+		},
 	};
 	autoFillHands: boolean = true;
 	colorsLimit: number = 20;
@@ -30,8 +59,8 @@ class StakatakasCardTower extends CardMatching {
 		const index = this.playerOrder.indexOf(player);
 		if (index > -1) this.playerOrder.splice(index, 1);
 		if (player === this.currentPlayer) {
-			if (this.topCard.action && this.topCard.action.name.startsWith('Draw')) {
-				this.topCard.action = null;
+			if (this.topCard.action && this.topCard.action.drawCards) {
+				delete this.topCard.action;
 			}
 			this.nextRound();
 		}
@@ -53,16 +82,15 @@ class StakatakasCardTower extends CardMatching {
 
 	playRegularCard(card: IPokemonCard, player: Player, targets: string[], cards: IPokemonCard[]): IPokemonCard[] | boolean {
 		const playedCards = [card];
-		for (let i = 1; i < targets.length; i++) {
-			const id = Tools.toId(targets[i]);
-			if (!id) return false;
+		for (const target of targets) {
+			const id = Tools.toId(target);
 			const index = this.getCardIndex(id, cards);
 			if (index < 0) {
 				const pokemon = Dex.getPokemon(id);
 				if (pokemon) {
 					player.say("You do not have [ " + pokemon.name + " ].");
 				} else {
-					player.say(CommandParser.getErrorText(['invalidPokemon', targets[i]]));
+					player.say(CommandParser.getErrorText(['invalidPokemon', target]));
 				}
 				return false;
 			}
@@ -106,14 +134,22 @@ class StakatakasCardTower extends CardMatching {
 	}
 
 	playActionCard(card: IPokemonCard, player: Player, targets: string[], cards: IPokemonCard[]): IPokemonCard[] | boolean {
-		if (card.action!.name.startsWith('Shuffle ')) {
-			const amount = parseInt(card.action!.name.split("Shuffle ")[1]);
+		if (!card.action) throw new Error("playActionCard called with a regular card");
+		if (!card.action.isPlayableTarget(this, targets, cards, player)) return false;
+
+		if (card.id === 'manaphy' || card.id === 'phione') {
+			let amount: number;
+			if (card.id === 'manaphy') {
+				amount = 4;
+			} else {
+				amount = 2;
+			}
 			cards.splice(cards.indexOf(card), 1);
 			this.say("Everyone shuffled " + amount + " of their card" + (amount > 1 ? "s" : "") + "!");
 			if (cards.length < this.minimumPlayedCards) this.drawCard(player, this.minimumPlayedCards - cards.length);
 
 			const playerCardAmounts: Dict<number> = {};
-			let cardPool: CardType[] = [];
+			let cardPool: ICard[] = [];
 			for (const i in this.players) {
 				if (this.players[i].eliminated) continue;
 				const player = this.players[i];
@@ -138,7 +174,7 @@ class StakatakasCardTower extends CardMatching {
 				}
 				if (this.players[i] !== player) this.dealHand(this.players[i]);
 			}
-		} else if (card.action!.name === 'Get pair') {
+		} else if (card.id === 'pachirisu') {
 			let pair: IPokemonCard | null = null;
 			while (!pair) {
 				const possiblePair = this.getCard() as IPokemonCard;
@@ -182,19 +218,20 @@ const tests: GameFileTests<StakatakasCardTower> = {
 	'it should properly detect possible chains': {
 		test(game, format): void {
 			addPlayers(game, 4);
-			game.topCard = Dex.getPokemonCopy("Pikachu");
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Pikachu"));
 			game.start();
 			const player = game.currentPlayer!;
-			const newCards = [Dex.getPokemonCopy("Charmander"), Dex.getPokemonCopy("Bulbasaur"), Dex.getPokemonCopy("Squirtle"),
-				Dex.getPokemonCopy("Eevee")];
+			const newCards = [game.pokemonToCard(Dex.getExistingPokemon("Charmander")),
+				game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur")), game.pokemonToCard(Dex.getExistingPokemon("Squirtle")),
+				game.pokemonToCard(Dex.getExistingPokemon("Eevee"))];
 			game.playerCards.set(player, newCards);
 			assert(!game.hasPlayableCard(player));
 			// beginning of chain behind
-			newCards.push(Dex.getPokemonCopy("Stunfisk"));
+			newCards.push(game.pokemonToCard(Dex.getExistingPokemon("Stunfisk")));
 			assert(game.hasPlayableCard(player));
 			// beginning of chain in front
 			newCards.pop();
-			newCards.unshift(Dex.getPokemonCopy("Stunfisk"));
+			newCards.unshift(game.pokemonToCard(Dex.getExistingPokemon("Stunfisk")));
 			assert(game.hasPlayableCard(player));
 		},
 	},
@@ -204,11 +241,13 @@ const tests: GameFileTests<StakatakasCardTower> = {
 		},
 		async test(game, format): Promise<void> {
 			addPlayers(game, 4);
-			game.topCard = Dex.getPokemonCopy("Pikachu");
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Pikachu"));
 			game.start();
 			const player = game.currentPlayer!;
-			const newCards = [Dex.getPokemonCopy("Charmander"), Dex.getPokemonCopy("Bulbasaur"), Dex.getPokemonCopy("Squirtle")];
-			const manaphyAction = Dex.getPokemonCopy("Manaphy") as IPokemonCard;
+			const newCards = [game.pokemonToCard(Dex.getExistingPokemon("Charmander")),
+				game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur")), game.pokemonToCard(Dex.getExistingPokemon("Squirtle"))];
+			const manaphyAction = game.pokemonToCard(Dex.getExistingPokemon("Manaphy"));
+			// @ts-expect-error
 			manaphyAction.action = game.actionCards.manaphy;
 			newCards.push(manaphyAction);
 			game.playerCards.set(player, newCards);
@@ -227,12 +266,14 @@ const tests: GameFileTests<StakatakasCardTower> = {
 		},
 		async test(game, format): Promise<void> {
 			addPlayers(game, 4);
-			game.topCard = Dex.getPokemonCopy("Pikachu");
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Pikachu"));
 			game.start();
 			const player = game.currentPlayer!;
-			const cards = [Dex.getPokemonCopy("Ampharos"), Dex.getPokemonCopy("Archen"), Dex.getPokemonCopy("Beautifly"),
-				Dex.getPokemonCopy("Squirtle")];
+			const cards = [game.pokemonToCard(Dex.getExistingPokemon("Ampharos")),
+				game.pokemonToCard(Dex.getExistingPokemon("Archen")), game.pokemonToCard(Dex.getExistingPokemon("Beautifly")),
+				game.pokemonToCard(Dex.getExistingPokemon("Squirtle"))];
 			game.playerCards.set(player, cards);
+			assert(!game.arePlayableCards([game.topCard].concat(cards)));
 			assert(game.hasPlayableCard(player));
 			game.canPlay = true;
 			await runCommand('play', 'Ampharos, Archen, Beautifly', game.room, player.name);
@@ -246,12 +287,14 @@ const tests: GameFileTests<StakatakasCardTower> = {
 		},
 		async test(game, format): Promise<void> {
 			addPlayers(game, 4);
-			game.topCard = Dex.getPokemonCopy("Pikachu");
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Pikachu"));
 			game.start();
 			const player = game.currentPlayer!;
-			const cards = [Dex.getPokemonCopy("Ampharos"), Dex.getPokemonCopy("Archen"), Dex.getPokemonCopy("Beautifly"),
-				Dex.getPokemonCopy("Beedrill")];
+			const cards = [game.pokemonToCard(Dex.getExistingPokemon("Ampharos")),
+				game.pokemonToCard(Dex.getExistingPokemon("Archen")), game.pokemonToCard(Dex.getExistingPokemon("Beautifly")),
+				game.pokemonToCard(Dex.getExistingPokemon("Beedrill"))];
 			game.playerCards.set(player, cards);
+			assert(game.arePlayableCards([game.topCard].concat(cards)));
 			assert(game.hasPlayableCard(player));
 			game.canPlay = true;
 			await runCommand('play', 'Ampharos, Archen, Beautifly, Beedrill', game.room, player.name);

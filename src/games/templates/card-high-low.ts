@@ -1,11 +1,12 @@
 import type { Player } from '../../room-activity';
 import type { GameCategory, GameCommandDefinitions, GameCommandReturnType, IGameTemplateFile } from '../../types/games';
 import { Card, game as cardGame } from './card';
-import type { CardType } from './card';
+import type { ICard } from './card';
 
 type HighLow = 'high' | 'low';
 
 export abstract class CardHighLow extends Card {
+	actionCards = {};
 	autoFillHands: boolean = true;
 	bitsPerRound: number = 100;
 	canPlay: boolean = false;
@@ -19,10 +20,10 @@ export abstract class CardHighLow extends Card {
 	maxPlayers: number = 20;
 	points = new Map<Player, number>();
 	roundDrawAmount: number = 1;
-	roundPlays = new Map<Player, CardType>();
+	roundPlays = new Map<Player, ICard>();
 	roundTimes: number[] = [15000, 16000, 17000, 18000, 19000, 20000, 21000, 22000, 23000, 24000, 25000];
 
-	abstract getCardDetail(card: CardType, detail: string): number;
+	abstract getCardDetail(card: ICard, detail: string): number;
 
 	createDeck(): void {
 		if (!this.deckPool.length) this.createDeckPool();
@@ -43,7 +44,7 @@ export abstract class CardHighLow extends Card {
 		this.nextRound();
 	}
 
-	getCardChatDetails(card: CardType): string {
+	getCardChatDetails(card: ICard): string {
 		return '<div style="display:inline-block;background-color:' + Tools.hexColorCodes['Black']['background-color'] + ';background:' +
 			Tools.hexColorCodes['Black']['background'] + ';border-color:' + Tools.hexColorCodes['Black']['border-color'] + ';border:' +
 			'1px solid #a99890;border-radius:3px;width:auto;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform:' +
@@ -51,9 +52,9 @@ export abstract class CardHighLow extends Card {
 			this.categoriesNames[this.currentCategory] + '</div>';
 	}
 
-	getCardsPmHtml(cards: CardType[], player: Player): string {
+	getCardsPmHtml(player: Player, cards: ICard[]): string {
 		let html = '';
-		const cardInfo: {card: CardType; detail: number}[] = [];
+		const cardInfo: {card: ICard; detail: number}[] = [];
 		for (const card of cards) {
 			cardInfo.push({card: card, detail: this.getCardDetail(card, this.currentCategory)});
 		}
@@ -108,7 +109,7 @@ export abstract class CardHighLow extends Card {
 
 	scoreRound(): void {
 		this.canPlay = false;
-		const hands: {player: Player; detail: number; card: CardType}[] = [];
+		const hands: {player: Player; detail: number; card: ICard}[] = [];
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
@@ -137,7 +138,7 @@ export abstract class CardHighLow extends Card {
 				}
 			}
 			len = winners.length;
-			const cards: CardType[] = [];
+			const cards: ICard[] = [];
 			const winnersNames: string[] = [];
 			for (let i = 0; i < len; i++) {
 				cards.push(winners[i].card);
