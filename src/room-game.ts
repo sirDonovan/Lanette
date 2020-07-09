@@ -673,7 +673,7 @@ export class Game extends Activity {
 	getDescriptionHtml(): string {
 		let html = "<center>";
 		if (this.mascot) {
-			const gif = Dex.getPokemonGif(this.mascot, "xy", this.isUserHosted ? 'back' : 'front');
+			const gif = Dex.getPokemonGif(this.mascot, "xy", this.isUserHosted ? 'back' : 'front', this.shinyMascot);
 			if (gif) html += gif;
 		}
 		html += "<h3>" + this.name + "</h3>" + this.description;
@@ -692,7 +692,6 @@ export class Game extends Activity {
 		if (this.mascot) {
 			if (this.shinyMascot === undefined) {
 				if (this.rollForShinyPokemon()) {
-					this.mascot.shiny = true;
 					this.shinyMascot = true;
 				} else {
 					this.shinyMascot = false;

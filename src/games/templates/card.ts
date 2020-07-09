@@ -210,8 +210,9 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Game
 					'text-transform: uppercase;font-size:8pt"><b>' + card.type + '</b></div></div>';
 				width += this.detailLabelWidth;
 			} else {
-				names.push(card.name + ((card as IPokemonCard).shiny ? ' \u2605' : ''));
-				image = Dex.getPokemonGif(Dex.getExistingPokemon(card.name));
+				const shinyPokemon = (card as IPokemonCard).shiny;
+				names.push(card.name + (shinyPokemon ? ' \u2605' : ''));
+				image = Dex.getPokemonGif(Dex.getExistingPokemon(card.name), undefined, undefined, shinyPokemon);
 				width += Dex.data.gifData[card.id]!.front!.w;
 			}
 

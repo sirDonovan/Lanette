@@ -1103,41 +1103,43 @@ export class Dex {
 		return false;
 	}
 
-	getPokemonGif(pokemon: IPokemon, generation?: 'xy' | 'bw', direction?: 'front' | 'back', width?: number, height?: number): string {
+	getPokemonGif(pokemon: IPokemon, generation?: 'xy' | 'bw', direction?: 'front' | 'back', shiny?: boolean): string {
 		if (!generation) generation = 'xy';
 		const bw = generation === 'bw';
 		if (bw && pokemon.gen > 5) return '';
+
 		let prefix = '//' + Tools.mainServer + '/sprites/' + generation + 'ani';
 		if (!direction) direction = 'front';
 		if (direction === 'front') {
-			if (pokemon.shiny) {
+			if (shiny) {
 				prefix += "-shiny";
 			}
 		} else {
-			if (pokemon.shiny) {
+			if (shiny) {
 				prefix += "-back-shiny";
 			} else {
 				prefix += "-back";
 			}
 		}
-		let gif = '<img src="' + prefix + '/' + pokemon.spriteid + '.gif" ';
-		if (!width || !height) {
-			let gifData: IGifData | undefined;
-			if (bw) {
-				if (Object.prototype.hasOwnProperty.call(this.data.gifDataBW, pokemon.id)) gifData = this.data.gifDataBW[pokemon.id]!;
-			} else {
-				if (Object.prototype.hasOwnProperty.call(this.data.gifData, pokemon.id)) gifData = this.data.gifData[pokemon.id]!;
-			}
-			if (gifData && gifData[direction]) {
-				if (!width) width = gifData[direction]!.w;
-				if (!height) height = gifData[direction]!.h;
-			} else if (bw) {
-				if (!width) width = 96;
-				if (!height) height = 96;
-			}
+
+		let gifData: IGifData | undefined;
+		if (bw) {
+			if (Object.prototype.hasOwnProperty.call(this.data.gifDataBW, pokemon.id)) gifData = this.data.gifDataBW[pokemon.id]!;
+		} else {
+			if (Object.prototype.hasOwnProperty.call(this.data.gifData, pokemon.id)) gifData = this.data.gifData[pokemon.id]!;
 		}
-		gif += 'width="' + width + '" height="' + height + '" />';
-		return gif;
+
+		let width: number;
+		let height: number;
+		if (gifData && gifData[direction]) {
+			width = gifData[direction]!.w;
+			height = gifData[direction]!.h;
+		} else {
+			width = 96;
+			height = 96;
+		}
+
+		return '<img src="' + prefix + '/' + pokemon.spriteid + '.gif" width="' + width + '" height="' + height + '" />';
 	}
 
 	getPokemonIcon(pokemon: IPokemon, facingLeft?: boolean): string {

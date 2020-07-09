@@ -71,18 +71,18 @@ class WishiwashisStatFishing extends Game {
 			return;
 		}
 
+		const consecutiveReels = this.consecutiveReels.get(firstPlayer);
+		const extraChance = consecutiveReels ? (consecutiveReels * 5) : 0;
+		const shinyPokemon = this.rollForShinyPokemon(extraChance);
+		const negative = !this.random(4);
+		const stat = this.sampleOne(this.stats);
+
 		let species = this.sampleOne(data.pokedex);
 		while (species === this.lastSpecies) {
 			species = this.sampleOne(data.pokedex);
 		}
 		const pokemon = Dex.getPokemonCopy(species);
-		const consecutiveReels = this.consecutiveReels.get(firstPlayer);
-		const extraChance = consecutiveReels ? (consecutiveReels * 5) : 0;
-		if (this.rollForShinyPokemon(extraChance)) {
-			pokemon.shiny = true;
-		}
-		const negative = !this.random(4);
-		const stat = this.sampleOne(this.stats);
+
 		let statPoints: number;
 		if (stat === 'bst') {
 			statPoints = data.baseStatTotals[pokemon.id];
@@ -95,9 +95,9 @@ class WishiwashisStatFishing extends Game {
 		const points = this.points.get(firstPlayer) || 0;
 		this.points.set(firstPlayer, points + statPoints);
 
-		const html = "<center>" + Dex.getPokemonGif(pokemon) + "<br>" + firstPlayer.name + " reeled in a <b>" + pokemon.name +
-			(pokemon.shiny ? ' \u2605' : '') + "</b> and " + (negative ? "lost" : "earned") + " its " + this.statNames[stat] +
-			" (" + statPoints + ")!</center>";
+		const html = "<center>" + Dex.getPokemonGif(pokemon, undefined, undefined, shinyPokemon) + "<br>" + firstPlayer.name + " reeled " +
+			"in a <b>" + pokemon.name + (shinyPokemon ? ' \u2605' : '') + "</b> and " + (negative ? "lost" : "earned") + " its " +
+			this.statNames[stat] + " (" + statPoints + ")!</center>";
 		this.onHtml(html, () => {
 			if (points >= this.maxPoints) {
 				this.timeout = setTimeout(() => this.end(), 5000);
@@ -106,7 +106,7 @@ class WishiwashisStatFishing extends Game {
 			}
 		});
 		this.sayHtml(html);
-		if (pokemon.shiny) this.unlockAchievement(firstPlayer, achievements.sunkentreasure!);
+		if (shinyPokemon) this.unlockAchievement(firstPlayer, achievements.sunkentreasure!);
 	}
 
 	onNextRound(): void {

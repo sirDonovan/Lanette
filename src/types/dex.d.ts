@@ -398,7 +398,6 @@ interface IPokemonCopy extends ISpeciesFormatsData {
 	nfe: boolean;
 	prevo: string;
 	requiredItems: string[] | undefined;
-	shiny: boolean;
 	speciesid: string;
 	spriteid: string;
 	tier: string;
