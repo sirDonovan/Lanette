@@ -213,6 +213,9 @@ export class CommandParser {
 		} else if (error[0] === 'invalidUserHostedGameFormat') {
 			if (error[1]) return "'" + error[1].trim() + "' is not a valid user-hosted game format.";
 			return "You must specify a valid user-hosted game format.";
+		} else if (error[0] === 'invalidType') {
+			if (error[1]) return "'" + error[1].trim() + "' is not a valid type.";
+			return "You must specify a valid type.";
 		} else if (error[0] === 'invalidGameOption') {
 			return "'" + error[1].trim() + "' is not a valid game variant or option.";
 		} else if (error[0] === 'tooManyGameModes') {

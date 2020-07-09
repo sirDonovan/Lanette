@@ -1,33 +1,44 @@
 import type { Player } from '../../room-activity';
 import { Game } from '../../room-game';
-import type { IMoveCopy, IPokemon, IPokemonCopy } from '../../types/dex';
+import type { IPokemon, IMove, StatsTable } from '../../types/dex';
 import type { GameCommandDefinitions, IGameTemplateFile } from '../../types/games';
 
-export interface IActionCardData {
+export interface IActionCardData<T extends Game = Game, U extends ICard = ICard> {
+	getRandomTarget?: (game: T, hand: U[]) => string | undefined;
+	getAutoPlayTarget: (game: T, hand: U[]) => string | undefined;
+	isPlayableTarget: (game: T, targets: string[], hand?: U[], player?: Player) => boolean;
 	readonly description: string;
 	readonly name: string;
-	readonly requiredOtherCards?: number;
+	drawCards?: number;
 	readonly requiredTarget?: boolean;
+	skipPlayers?: number;
 }
 
-export interface IMoveCard extends IMoveCopy {
-	action?: IActionCardData | null;
+export interface ICard {
+	effectType: 'move' | 'pokemon';
+	id: string;
+	name: string;
+	action?: IActionCardData;
+	displayName?: string;
+	played?: boolean;
+}
+
+export interface IMoveCard extends ICard {
+	type: string;
 	availability?: number;
-	displayName?: string;
-	played?: boolean;
 }
 
-export interface IPokemonCard extends IPokemonCopy {
-	action?: IActionCardData | null;
-	displayName?: string;
-	played?: boolean;
+export interface IPokemonCard extends ICard {
+	baseStats: StatsTable;
+	color: string;
+	types: readonly string[];
+	shiny?: boolean;
 }
 
-export type CardType = IMoveCard | IPokemonCard;
+export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Game {
+	abstract actionCards: ActionCardsType;
 
-export abstract class Card extends Game {
 	actionCardAmount: number = 0;
-	actionCards: Dict<IActionCardData> = {};
 	autoFillHands: boolean = false;
 	canLateJoin: boolean = true;
 	cardRound: number = 0;
@@ -35,8 +46,8 @@ export abstract class Card extends Game {
 	colors: Dict<string> = {};
 	colorsLimit: number = 0;
 	currentPlayer: Player | null = null;
-	deck: CardType[] = [];
-	deckPool: CardType[] = [];
+	deck: ICard[] = [];
+	deckPool: (IMoveCard | IPokemonCard)[] = [];
 	detailCategories: string[] = [];
 	detailLabelWidth: number = 75;
 	drawAmount: number = 1;
@@ -47,7 +58,7 @@ export abstract class Card extends Game {
 	maxPlayers: number = 20;
 	minimumPlayedCards: number = 1;
 	playableCardDescription: string = '';
-	playerCards = new Map<Player, CardType[]>();
+	playerCards = new Map<Player, ICard[]>();
 	playerList: Player[] = [];
 	playerOrder: Player[] = [];
 	showPlayerCards: boolean = false;
@@ -56,37 +67,61 @@ export abstract class Card extends Game {
 	typesLimit: number = 0;
 	usesActionCards: boolean = true;
 	usesColors: boolean = false;
-	// usesLateJoinQueue: boolean = false;
 	usesMoves: boolean = false;
 
 	lives?: Map<Player, number>;
 	startingLives?: number;
 
 	// always truthy once the game starts
-	topCard!: CardType;
+	topCard!: ICard;
 
 	abstract createDeck(): void;
-	abstract getCardChatDetails(card: CardType): string;
-	abstract getCardsPmHtml(cards: CardType[], player: Player): string;
+	abstract getCardChatDetails(card: ICard): string;
+	abstract getCardsPmHtml(player: Player, cards: ICard[]): string;
 	abstract onNextRound(): void;
 	abstract onStart(): void;
 
-	isMoveBased(card: CardType): card is IMoveCard {
-		return this.usesMoves;
+	isMoveCard(card: ICard): card is IMoveCard {
+		return card.effectType === 'move';
+	}
+
+	isPokemonCard(card: ICard): card is IPokemonCard {
+		return card.effectType === 'pokemon';
+	}
+
+	moveToCard(move: IMove, availability?: number): IMoveCard {
+		return {
+			availability,
+			effectType: 'move',
+			id: move.id,
+			name: move.name,
+			type: move.type,
+		};
+	}
+
+	pokemonToCard(pokemon: IPokemon): IPokemonCard {
+		return {
+			baseStats: pokemon.baseStats,
+			color: pokemon.color,
+			effectType: 'pokemon',
+			id: pokemon.id,
+			name: pokemon.name,
+			types: pokemon.types,
+		};
 	}
 
 	createDeckPool(): void {
 		this.deckPool = [];
-		const pokemonList = Games.getPokemonCopyList(pokemon => {
-			if (pokemon.forme || (this.usesActionCards && pokemon.id in this.actionCards) || !Dex.hasGifData(pokemon) ||
-				(this.filterPoolItem && this.filterPoolItem(pokemon))) return false;
+		const pokemonList = Games.getPokemonList(pokemon => {
+			if (pokemon.forme || (this.usesActionCards && pokemon.id in this.actionCards) ||
+				!Dex.hasGifData(pokemon) || (this.filterPoolItem && this.filterPoolItem(pokemon))) return false;
 			return true;
 		});
 
 		for (const pokemon of pokemonList) {
 			const color = Tools.toId(pokemon.color);
 			if (!(color in this.colors)) this.colors[color] = pokemon.color;
-			this.deckPool.push(pokemon);
+			this.deckPool.push(this.pokemonToCard(pokemon));
 		}
 	}
 
@@ -105,7 +140,7 @@ export abstract class Card extends Game {
 		return true;
 	}
 
-	getCard(): CardType {
+	getCard(): ICard {
 		let card = this.deck.shift();
 		if (!card) {
 			this.say("Shuffling the deck!");
@@ -116,7 +151,7 @@ export abstract class Card extends Game {
 		return card;
 	}
 
-	getCardIndex(name: string, cards: CardType[]): number {
+	getCardIndex(name: string, cards: ICard[]): number {
 		const id = Tools.toId(name);
 		let index = -1;
 		for (let i = 0; i < cards.length; i++) {
@@ -149,7 +184,7 @@ export abstract class Card extends Game {
 			'font-size:8pt;text-align:center"><b>' + card.color + '</b></div>';
 	}
 
-	getCardChatHtml(cards: CardType | CardType[]): string {
+	getCardChatHtml(cards: ICard | ICard[]): string {
 		if (!Array.isArray(cards)) cards = [cards];
 		let html = '';
 		let width = 0;
@@ -158,7 +193,7 @@ export abstract class Card extends Game {
 		let info = '';
 		for (const card of cards) {
 			let image = '';
-			if (this.isMoveBased(card)) {
+			if (this.isMoveCard(card)) {
 				names.push(card.name);
 				const colorData = Tools.hexColorCodes[Tools.typeHexColors[card.type]];
 				image = '<div style="display:inline-block;height:51px;width:' + (this.detailLabelWidth + 10) + '"><br /><div ' +
@@ -168,8 +203,8 @@ export abstract class Card extends Game {
 					'text-transform: uppercase;font-size:8pt"><b>' + card.type + '</b></div></div>';
 				width += this.detailLabelWidth;
 			} else {
-				names.push(card.name + (card.shiny ? ' \u2605' : ''));
-				image = Dex.getPokemonGif(card);
+				names.push(card.name + ((card as IPokemonCard).shiny ? ' \u2605' : ''));
+				image = Dex.getPokemonGif(Dex.getExistingPokemon(card.name));
 				width += Dex.data.gifData[card.id]!.front!.w;
 			}
 
@@ -184,14 +219,15 @@ export abstract class Card extends Game {
 		return html;
 	}
 
-	drawCard(player: Player, amount?: number | null, cards?: CardType[] | null, dontShow?: boolean): CardType[] {
+	drawCard(player: Player, amount?: number | null, cards?: ICard[] | null, dontShow?: boolean): ICard[] {
 		if (!amount) {
 			amount = this.drawAmount;
-			if (this.topCard.action && this.topCard.action.name.startsWith('Draw')) {
-				amount += parseInt(this.topCard.action.name.split('Draw ')[1].trim());
-				this.topCard.action = null;
+			if (this.topCard.action && this.topCard.action.drawCards) {
+				amount += this.topCard.action.drawCards;
+				delete this.topCard.action;
 			}
 		}
+
 		if (!cards) {
 			cards = [];
 			for (let i = 0; i < amount; i++) {
@@ -209,7 +245,7 @@ export abstract class Card extends Game {
 		return cards;
 	}
 
-	dealHand(player: Player, highlightedCards?: CardType[], action?: 'drawn' | 'autodrawn' | 'played'): CardType[] {
+	dealHand(player: Player, highlightedCards?: ICard[], action?: 'drawn' | 'autodrawn' | 'played'): ICard[] {
 		let playerCards = this.playerCards.get(player);
 		let handHtml = '';
 		let pmHeader = '';
@@ -226,7 +262,7 @@ export abstract class Card extends Game {
 			pmHeader = "<b>Here is your hand</b>:";
 		}
 
-		let shownPlayerCards: CardType[] = [];
+		let shownPlayerCards: ICard[] = [];
 		if (highlightedCards && action === 'autodrawn') {
 			for (const card of playerCards) {
 				if (!highlightedCards.includes(card)) shownPlayerCards.push(card);
@@ -234,7 +270,7 @@ export abstract class Card extends Game {
 		} else {
 			shownPlayerCards = playerCards;
 		}
-		if (!handHtml) handHtml = this.getCardsPmHtml(shownPlayerCards, player);
+		if (!handHtml) handHtml = this.getCardsPmHtml(player, shownPlayerCards);
 
 		let remainingCards = playerCards.length;
 		if (highlightedCards) {
@@ -259,7 +295,7 @@ export abstract class Card extends Game {
 			} else if (action === 'played') {
 				highlightedCardsHtml += "<u><b>Played card" + (highlightedCards.length > 1 ? "s" : "") + "</b></u>:<br />";
 			}
-			highlightedCardsHtml += this.getCardsPmHtml(highlightedCards, player);
+			highlightedCardsHtml += this.getCardsPmHtml(player, highlightedCards);
 		}
 		// no <br /> after last card
 		let html = '<div class="infobox" style="height:auto">';

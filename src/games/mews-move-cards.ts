@@ -16,14 +16,13 @@ class MewsMoveCards extends CardHighLow {
 			if (!move.basePower || !move.accuracy || !move.pp || isNaN(move.basePower) || move.basePower <= 0 || move.accuracy === true ||
 				isNaN(move.accuracy) || move.accuracy === 100 || isNaN(move.pp)) return false;
 			return true;
-		}) as IMoveCard[];
+		});
 
 		const pokedex = Games.getPokemonList();
 		for (const move of moves) {
 			const availability = Dex.getMoveAvailability(move, pokedex);
 			if (!availability) continue;
-			move.availability = availability;
-			this.deckPool.push(move);
+			this.deckPool.push(this.moveToCard(move, availability));
 		}
 	}
 

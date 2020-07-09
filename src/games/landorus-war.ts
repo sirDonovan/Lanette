@@ -90,19 +90,19 @@ class LandorusWar extends Game {
 		pokemonList.sort();
 		this.pokemonList = pokemonList;
 
-		let html = "<div class='infobox'>";
+		let html = "<div class='infobox'>" + this.getNameSpan(" - Round " + this.round) + "<br /><br />";
 		html += "<b>Remaining Pokemon</b>: " + this.pokemonList.join(", ") + "<br /><br />";
 		html += "<b>Remaining players (" + remainingPlayerCount + ")</b>: " + this.shuffle(this.playerAliasesList).join(", ") +
 			"<br /><br />";
-		html += "Use <code>" + Config.commandCharacter + "use [move], [trainer]</code> and <code>" + Config.commandCharacter +
-			"suspect [trainer], [Pokemon]</code> in PMs!";
+		html += "Use <code>" + Config.commandCharacter + "use [move], [trainer class]</code> and <code>" + Config.commandCharacter +
+			"suspect [trainer class], [Pokemon]</code> in PMs!";
 		html += "</div>";
 
 		const uhtmlName = this.uhtmlBaseName + '-pokemon';
 		this.onUhtml(uhtmlName, html, () => {
 			this.timeout = setTimeout(() => this.nextRound(), 30 * 1000);
 		});
-		this.sayUhtml(uhtmlName, html);
+		this.sayUhtmlAuto(uhtmlName, html);
 	}
 
 	onEnd(): void {
@@ -257,7 +257,10 @@ const commands: GameCommandDefinitions<LandorusWar> = {
 				const suspectedPlayers = this.suspectedPlayers.get(player) || 0;
 				this.suspectedPlayers.set(player, suspectedPlayers + 1);
 				if (this.getRemainingPlayerCount() < 2) {
-					this.end();
+					this.say("Only " + player.name + " the " + this.playerAliases.get(player) + " (" +
+						this.playerPokemon.get(player)!.name + ") remains!");
+					if (this.timeout) clearTimeout(this.timeout);
+					this.timeout = setTimeout(() => this.end(), 5000);
 					return true;
 				}
 			} else {
