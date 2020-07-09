@@ -1,7 +1,8 @@
 import type { Player } from '../../room-activity';
 import { Game } from '../../room-game';
 import type { IPokemon, IMove, StatsTable } from '../../types/dex';
-import type { GameCommandDefinitions, IGameTemplateFile } from '../../types/games';
+import type { GameCommandDefinitions, IGameTemplateFile, GameFileTests } from '../../types/games';
+import { assertStrictEqual, assert } from '../../test/test-tools';
 
 export interface IActionCardData<T extends Game = Game, U extends ICard = ICard> {
 	getRandomTarget?: (game: T, hand: U[]) => string | undefined;
@@ -24,6 +25,9 @@ export interface ICard {
 }
 
 export interface IMoveCard extends ICard {
+	accuracy: number;
+	basePower: number;
+	pp: number;
 	type: string;
 	availability?: number;
 }
@@ -91,10 +95,13 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Game
 
 	moveToCard(move: IMove, availability?: number): IMoveCard {
 		return {
+			accuracy: move.accuracy as number,
+			basePower: move.basePower,
 			availability,
 			effectType: 'move',
 			id: move.id,
 			name: move.name,
+			pp: move.pp,
 			type: move.type,
 		};
 	}
@@ -378,7 +385,36 @@ const commands: GameCommandDefinitions<Card> = {};
 commands.summary = Tools.deepClone(Games.sharedCommands.summary);
 commands.summary.aliases = ['cards', 'hand'];
 
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+const tests: GameFileTests<Card> = {
+	'it should have all required card properties': {
+		test(game, format): void {
+			const tackle = Dex.getExistingMove("Tackle");
+			const moveCard = game.moveToCard(tackle, Dex.getMoveAvailability(tackle, Games.getPokemonList()));
+
+			assertStrictEqual(typeof moveCard.accuracy, 'number');
+			assertStrictEqual(typeof moveCard.availability, 'number');
+			assertStrictEqual(typeof moveCard.basePower, 'number');
+			assertStrictEqual(typeof moveCard.id, 'string');
+			assertStrictEqual(typeof moveCard.name, 'string');
+			assertStrictEqual(typeof moveCard.pp, 'number');
+			assertStrictEqual(typeof moveCard.type, 'string');
+
+			const pokemonCard = game.pokemonToCard(Dex.getExistingPokemon("Pikachu"));
+
+			assert(pokemonCard.baseStats);
+			assertStrictEqual(typeof pokemonCard.baseStats, 'object');
+			assertStrictEqual(typeof pokemonCard.color, 'string');
+			assertStrictEqual(typeof pokemonCard.id, 'string');
+			assertStrictEqual(typeof pokemonCard.name, 'string');
+			assertStrictEqual(Array.isArray(pokemonCard.types), true);
+		},
+	},
+};
+/* eslint-enable */
+
 export const game: IGameTemplateFile<Card> = {
 	commands,
 	defaultOptions: ['cards'],
+	tests,
 };
