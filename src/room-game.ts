@@ -612,23 +612,28 @@ export class Game extends Activity {
 		const commandDefinition = this.commands[command];
 		if (!this.started && !(commandDefinition && commandDefinition.signupsGameCommand)) return false;
 
+		let canUseCommands = true;
+		if (this.inheritedPlayers) {
+			if (!(user.id in this.players) || this.players[user.id].eliminated) canUseCommands = false;
+		} else {
+			if (user.id in this.players) {
+				if (this.players[user.id].eliminated) canUseCommands = false;
+			} else {
+				if (!this.format.options.freejoin) canUseCommands = false;
+			}
+		}
+
 		if (!commandDefinition) {
-			if (command && (this.format.options.freejoin || (user.id in this.players && !this.players[user.id].eliminated))) {
+			if (command && canUseCommands) {
 				user.say("'" + command + "' is not a command in " + this.format.nameWithOptions + ".");
 			}
 			return false;
 		}
 
-		if (!commandDefinition.staffGameCommand) {
-			if (this.format.options.freejoin) {
-				if (!this.inheritedPlayers && user.id in this.players && this.players[user.id].eliminated &&
-					!commandDefinition.eliminatedGameCommand) {
-					return false;
-				}
-			} else {
-				if (!(user.id in this.players) || (this.players[user.id].eliminated && !commandDefinition.eliminatedGameCommand)) {
-					return false;
-				}
+		if (!(commandDefinition.staffGameCommand && !this.isPm(this.room) && user.hasRank(this.room, 'driver'))) {
+			if (!canUseCommands && !(user.id in this.players && this.players[user.id].eliminated &&
+				commandDefinition.eliminatedGameCommand)) {
+				return false;
 			}
 		}
 
