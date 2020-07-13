@@ -56,8 +56,7 @@ class TrevenantsTrickOrTreat extends Game {
 	onSignups(): void {
 		this.format.options.points = 1000;
 		this.say("Use ``" + Config.commandCharacter + "trick [move]`` in PMs to guess moves only one Pokemon in the grid can learn.");
-		this.generateNewDisplay();
-		this.timeout = setTimeout(() => this.generateNewDisplay(), 60 * 1000);
+		this.timeout = setTimeout(() => this.generateNewDisplay(), 10 * 1000);
 	}
 
 	onEnd(): void {
