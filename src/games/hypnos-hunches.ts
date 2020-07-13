@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
-import type { IGameFile } from "../types/games";
+import type { IGameFile, IGameFormat } from "../types/games";
 import type { User } from "../users";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 
@@ -21,6 +21,7 @@ class HypnosHunches extends Guessing {
 	guessLimit: number = 10;
 	guessedLetters: string[] = [];
 	hints: string[] = [];
+	incorrectGuessTimeout: number = 4000;
 	solvedLetters: string[] = [];
 	uniqueLetters: number = 0;
 	lastAnswer: string = '';
@@ -34,6 +35,15 @@ class HypnosHunches extends Guessing {
 		data["Pokemon Abilities"] = Games.getAbilitiesList().map(x => x.name);
 		data["Pokemon Items"] = Games.getItemsList().map(x => x.name);
 		data["Pokemon Moves"] = Games.getMovesList().map(x => x.name);
+	}
+
+	onSignups(): void {
+		super.onSignups();
+		const format = this.format as IGameFormat;
+		if (format.mode && format.mode.id === 'survival') {
+			this.guessLimit = 4;
+			this.incorrectGuessTimeout = 1000;
+		}
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -103,7 +113,7 @@ class HypnosHunches extends Guessing {
 	onIncorrectGuess(player: Player, guess: string): string {
 		guess = Tools.toId(guess);
 		if (!this.timeout) {
-			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+			this.timeout = setTimeout(() => this.nextRound(), this.incorrectGuessTimeout);
 		}
 		for (const letter of this.letters) {
 			if (Tools.toId(letter) === guess) {
@@ -133,6 +143,7 @@ export const game: IGameFile<HypnosHunches> = Games.copyTemplateProperties(guess
 	mascot: "Hypno",
 	minigameCommand: 'hunch',
 	minigameDescription: 'Use ``' + Config.commandCharacter + 'g`` to guess one letter per round or the answer (no blanks shown)!',
+	modes: ['survival', 'group'],
 	variants: [
 		{
 			name: "Hypno's Ability Hunches",

@@ -108,6 +108,7 @@ export const game: IGameFile<MareaniesMarquee> = Games.copyTemplateProperties(gu
 	mascot: "Mareanie",
 	minigameCommand: 'mmarquee',
 	minigameDescription: 'Use ``' + Config.commandCharacter + 'g`` to guess the answer as letters are cycled through 1 at a time!',
+	modes: ['survival', 'group'],
 	variants: [
 		{
 			name: "Mareanie's Pokemon Marquees",

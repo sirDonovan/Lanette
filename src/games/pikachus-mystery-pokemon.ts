@@ -125,4 +125,5 @@ export const game: IGameFile<PikachusMysteryPokemon> = Games.copyTemplatePropert
 	minigameCommand: "mysterypokemon",
 	minigameCommandAliases: ["mpokemon"],
 	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess a Pokemon as hints are revealed!",
+	modes: ['survival', 'group'],
 });

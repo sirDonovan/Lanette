@@ -24,7 +24,6 @@ class ZygardesOrders extends Guessing {
 	allLetters: number = 0;
 	currentCategory: string = '';
 	guessedLetters: string[] = [];
-	guessLimit: number = 10;
 	hints: string[] = [];
 	lastAnswer: string = '';
 	letters: string[] = [];
@@ -134,6 +133,7 @@ export const game: IGameFile<ZygardesOrders> = Games.copyTemplateProperties(gues
 	minigameCommand: 'order',
 	minigameDescription: 'Use ``' + Config.commandCharacter + 'g`` to guess the answer as letters are revealed one by one (one chance ' +
 		'to guess correctly)!',
+	modes: ['group'],
 	variants: [
 		{
 			name: "Zygarde's Ability Orders",

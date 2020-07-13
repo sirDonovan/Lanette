@@ -99,6 +99,7 @@ export const game: IGameFile<FeraligatrsLostLetters> = Games.copyTemplatePropert
 	minigameCommand: 'lostletter',
 	minigameCommandAliases: ['lletter'],
 	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess the answer after finding the missing vowels!",
+	modes: ['survival', 'team'],
 	variants: [
 		{
 			name: "Feraligatr's Ability Lost Letters",

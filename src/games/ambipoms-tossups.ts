@@ -102,6 +102,7 @@ export const game: IGameFile<AmbipomsTossups> = Games.copyTemplateProperties(gue
 	minigameCommand: 'tossup',
 	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess an answer as blanks are filled in (one chance to guess " +
 		"correctly)!",
+	modes: ['survival', 'group'],
 	variants: [
 		{
 			name: "Ambipom's Pokemon Tossups",
