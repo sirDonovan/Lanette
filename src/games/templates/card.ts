@@ -1,8 +1,8 @@
 import type { Player } from '../../room-activity';
 import { Game } from '../../room-game';
-import type { IPokemon, IMove, StatsTable } from '../../types/dex';
-import type { GameCommandDefinitions, IGameTemplateFile, GameFileTests } from '../../types/games';
-import { assertStrictEqual, assert } from '../../test/test-tools';
+import { assert, assertStrictEqual } from '../../test/test-tools';
+import type { IMove, IPokemon, StatsTable } from '../../types/dex';
+import type { GameCommandDefinitions, GameFileTests, IGameTemplateFile, PlayerList } from '../../types/games';
 
 export interface IActionCardData<T extends Game = Game, U extends ICard = ICard> {
 	getRandomTarget?: (game: T, hand: U[]) => string | undefined;
@@ -337,7 +337,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Game
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	getPlayerCards(players?: Dict<Player> | Player[] | Map<Player, any>): string {
+	getPlayerCards(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => {
 			const cards = this.playerCards.get(player);
 			return player.name + (cards ? " (" + cards.length + ")" : "");

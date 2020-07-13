@@ -476,16 +476,19 @@ export abstract class MapGame extends Game {
 		if (!this.canMove) return false;
 		const player = this.players[user.id];
 		if (this.roundActions && this.roundActions.has(player)) return false;
+
+		let eliminatedPlayer;
 		if (player.eliminated) {
 			if (this.escapedPlayers) {
 				if (!this.escapedPlayers.has(player)) return false;
 				this.escapedPlayers.delete(player);
 				player.eliminated = false;
-				this.increaseOnCommandsMax(this.moveCommands, 1);
+				eliminatedPlayer = true;
 			} else {
 				return false;
 			}
 		}
+
 		if (this.trappedPlayers && this.trappedPlayers.has(player)) {
 			player.say("You are trapped and cannot move!");
 			return false;
@@ -537,8 +540,11 @@ export abstract class MapGame extends Game {
 			}
 			playerCoordinates[1] = newPlayerCoordinate;
 		}
+
 		this.movePlayer(player, playerCoordinates);
 		if (this.roundActions) this.roundActions.set(player, true);
+		if (eliminatedPlayer) this.increaseOnCommandsMax(this.moveCommands, 1);
+
 		return true;
 	}
 
@@ -580,6 +586,6 @@ const commands: GameCommandDefinitions<MapGame> = {
 
 export const game: IGameTemplateFile<MapGame> = {
 	category: 'map',
-	commandDescriptions: [Config.commandCharacter + 'up/down/left/right'],
+	commandDescriptions: [Config.commandCharacter + 'up/down/left/right [spaces]'],
 	commands,
 };
