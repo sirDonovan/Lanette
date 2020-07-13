@@ -12,7 +12,7 @@ const data: {learnsets: Dict<readonly string[]>; moves: string[]; pokemon: strin
 };
 
 class LandorusWar extends Game {
-	fakePokemon: string[] = [];
+	decoyPokemon: string[] = [];
 	playerAliases = new Map<Player, string>();
 	playerAliasesList: string[] = [];
 	playerPokemon = new Map<Player, IPokemon>();
@@ -57,22 +57,30 @@ class LandorusWar extends Game {
 		const aliases = this.sampleMany(Dex.data.trainerClasses, this.getRemainingPlayerCount());
 		const pokemonList = this.shuffle(data.pokemon);
 		const playerAliases: string[] = [];
-		const fakes: string[] = [];
-		for (const i in this.players) {
-			const player = this.players[i];
+		const playerPokemon: string[] = [];
+		for (const id in this.players) {
+			const player = this.players[id];
 			const pokemon = Dex.getExistingPokemon(pokemonList[0]);
 			pokemonList.shift();
+			playerPokemon.push(pokemon.name);
+			this.playerPokemon.set(player, pokemon);
+
 			const alias = aliases[0];
 			aliases.shift();
 			playerAliases.push(alias);
-			fakes.push(Dex.getExistingPokemon(pokemonList[0]).name);
-			pokemonList.shift();
-			this.playerPokemon.set(player, pokemon);
 			this.playerAliases.set(player, alias);
-			player.say("You were assigned **" + pokemon.name + "** and the **" + alias + "** trainer class!");
+			player.say("You were assigned the **" + alias + "** trainer class and a **" + pokemon.name + "**!");
 		}
-		this.playerAliasesList = this.shuffle(playerAliases);
-		this.fakePokemon = fakes;
+
+		for (let i = 0; i < this.playerCount; i++) {
+			let decoy = Dex.getExistingPokemon(pokemonList[0]);
+			pokemonList.shift();
+			while (decoy.baseSpecies !== decoy.name && playerPokemon.includes(decoy.baseSpecies)) {
+				decoy = Dex.getExistingPokemon(pokemonList[0]);
+				pokemonList.shift();
+			}
+			this.decoyPokemon.push(decoy.name);
+		}
 
 		this.nextRound();
 	}
@@ -82,11 +90,12 @@ class LandorusWar extends Game {
 		if (remainingPlayerCount < 2) return this.end();
 		this.roundMoves.clear();
 		this.roundSuspects.clear();
+
 		let pokemonList: string[] = [];
 		for (const i in this.players) {
 			if (!this.players[i].eliminated) pokemonList.push(this.playerPokemon.get(this.players[i])!.name);
 		}
-		pokemonList = pokemonList.concat(this.fakePokemon);
+		pokemonList = pokemonList.concat(this.decoyPokemon);
 		pokemonList.sort();
 		this.pokemonList = pokemonList;
 
