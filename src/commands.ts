@@ -407,6 +407,36 @@ const commands: CommandDefinitions<CommandContext> = {
 		},
 		aliases: ['minigames'],
 	},
+	gamedescription: {
+		command(target, room, user) {
+			const targets = target.split(',');
+			let gameRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(Tools.toRoomId(targets[0]));
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
+				gameRoom = targetRoom;
+				targets.shift();
+			} else {
+				if (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
+				gameRoom = room;
+			}
+
+			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(gameRoom.id)) {
+				return this.sayError(['disabledGameFeatures', gameRoom.title]);
+			}
+			if (Games.getFormat(targets[0], true)) {
+				if (Array.isArray(Games.getFormat(targets[0], true))) {
+					const gameDesc = Games.getExistingUserHostedFormat(targets[0]).description;
+					this.say(Games.getExistingUserHostedFormat(targets[0]).name + ': ' + gameDesc);
+					return;
+				}
+				const gameDesc = Games.getExistingFormat(targets[0]).description;
+				this.say(Games.getExistingFormat(targets[0]).name + ': ' + gameDesc);
+			}
+		},
+		aliases: ['gamedesc', 'gdesc'],
+	},
 	startvote: {
 		command(target, room, user) {
 			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
