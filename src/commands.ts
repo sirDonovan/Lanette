@@ -546,7 +546,7 @@ const commands: CommandDefinitions<CommandContext> = {
 
 			const targets = target.split(",");
 			const targetUser = Users.get(targets[0]);
-			if (!targetUser || !targetUser.rooms.has(room) || targetUser.isBot(room)) {
+			if (!targetUser || !targetUser.rooms.has(room) || targetUser === Users.self || targetUser.isBot(room)) {
 				user.say(CommandParser.getErrorText(["invalidUserInRoom"]));
 				return;
 			}
