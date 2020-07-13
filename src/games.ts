@@ -1226,10 +1226,10 @@ export class Games {
 
 				"\nPokemon display:",
 				"* <code>.showgif [room], [pokemon 1], [pokemon 2], [...]</code> - in PMs, display up to 5 Pokemon gifs",
-				"* <code>.showgif [room], bw, [pokemon 1], [pokemon 2], [...]</code> - in PMs, display up to 5 BW Pokemon gifs",
+				"* <code>.showbwgif [room], [pokemon 1], [pokemon 2], [...]</code> - in PMs, display up to 5 BW Pokemon gifs",
 				"* <code>.showrandgif [room], [typing], [#]</code> - in PMs, display up to 5 random Pokemon gifs, optionally matching " +
 					"the specified typing",
-				"* <code>.showrandgif [room], bw, [typing], [#]</code> - in PMs, display up to 5 random BW Pokemon gifs, optionally " +
+				"* <code>.showrandbwgif [room], [typing], [#]</code> - in PMs, display up to 5 random BW Pokemon gifs, optionally " +
 					"matching the specified typing",
 				"* <code>.showicon [room], [pokemon 1], [pokemon 2], [...]</code> - in PMs, display up to 30 Pokemon icons",
 				"* <code>.showrandicon [room], [type], [#]</code> - in PMs, display up to 30 random Pokemon icons, optionally matching " +
