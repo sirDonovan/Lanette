@@ -10,7 +10,7 @@ import type { Guessing } from "../templates/guessing";
 const BASE_POINTS = 20;
 
 const name = 'Team';
-const description = 'Players will be split into teams once the game starts!';
+const description = 'One player from each team will be able to answer each round!';
 const removedOptions: string[] = ['points', 'freejoin'];
 
 type TeamThis = Guessing & Team;
@@ -80,12 +80,10 @@ class Team {
 
 	onStart(this: TeamThis): void {
 		this.setTeams();
-		this.timeout = setTimeout(() => this.nextRound(), 10000);
+		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
-	async onNextRound(this: TeamThis): Promise<void> {
-		this.canGuess = false;
-
+	beforeNextRound(this: TeamThis): boolean | string {
 		let largestTeamPlayersCycled = false;
 		let emptyTeams = 0;
 		for (const id in this.teams) {
@@ -118,42 +116,16 @@ class Team {
 			}
 
 			this.timeout = setTimeout(() => this.end(), 5000);
-			return;
+			return false;
 		}
-
-		await this.setAnswers();
-		if (this.ended) return;
-
-		const text = Tools.joinList(Object.values(this.currentPlayers).map(x => x.name)) + ", you are up!";
-		this.on(text, () => {
-			this.timeout = setTimeout(() => {
-				const html = this.getHintHtml();
-				const uhtmlName = this.uhtmlBaseName + '-hint-' + this.round;
-				this.onUhtml(uhtmlName, html, () => {
-					this.canGuess = true;
-					this.timeout = setTimeout(() => {
-						if (this.answers.length) {
-							this.say("Time is up! " + this.getAnswers(''));
-							this.answers = [];
-						}
-						this.nextRound();
-					}, this.roundTime);
-				});
-				this.sayUhtml(uhtmlName, html);
-			}, 5 * 1000);
-		});
 
 		if (largestTeamPlayersCycled) {
 			this.teamRound++;
 			const html = this.getRoundHtml(this.getTeamPoints, undefined, 'Round ' + this.teamRound, "Team standings");
-			const uhtmlName = this.uhtmlBaseName + '-round-html';
-			this.onUhtml(uhtmlName, html, () => {
-				this.timeout = setTimeout(() => this.say(text), 5 * 1000);
-			});
-			this.sayUhtml(uhtmlName, html);
-		} else {
-			this.say(text);
+			this.sayUhtml(this.uhtmlBaseName + '-round-html', html);
 		}
+
+		return Tools.joinList(Object.values(this.currentPlayers).map(x => x.name), "**", "**") + ", you are up!";
 	}
 
 	getTeamPoints(): string {

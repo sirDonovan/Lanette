@@ -72,6 +72,12 @@ export abstract class Guessing extends Game {
 	}
 
 	async onNextRound(): Promise<void> {
+		let roundText: boolean | string | undefined;
+		if (this.beforeNextRound) {
+			roundText = this.beforeNextRound();
+			if (roundText === false) return;
+		}
+
 		let newAnswer = false;
 		if (!this.answers.length) {
 			newAnswer = true;
@@ -94,10 +100,25 @@ export abstract class Guessing extends Game {
 			this.onHintHtml();
 		});
 
-		if (newAnswer) {
-			this.sayUhtml(hintUhtmlName, html);
+		const sayHint = () => {
+			if (newAnswer) {
+				this.sayUhtml(hintUhtmlName, html);
+			} else {
+				this.sayUhtmlAuto(hintUhtmlName, html);
+			}
+		};
+
+		if (typeof roundText === 'string') {
+			this.on(roundText, () => {
+				this.timeout = setTimeout(() => {
+					sayHint();
+					// clear for games like hangman
+					this.timeout = null;
+				}, 5000);
+			});
+			this.say(roundText);
 		} else {
-			this.sayUhtmlAuto(hintUhtmlName, html);
+			sayHint();
 		}
 	}
 
@@ -155,6 +176,7 @@ export abstract class Guessing extends Game {
 		return this.getAnswers("", !this.isMiniGame);
 	}
 
+	beforeNextRound?(): boolean | string;
 	filterGuess?(guess: string): boolean;
 	getPointsForAnswer?(answer: string): number;
 	onCorrectGuess?(player: Player, guess: string): void;
