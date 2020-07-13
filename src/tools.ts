@@ -212,6 +212,14 @@ export class Tools {
 		return true;
 	}
 
+	arraysContainArray(input: number[], arrays: number[][]): boolean {
+		for (const array of arrays) {
+			if (this.compareArrays(input, array)) return true;
+		}
+
+		return false;
+	}
+
 	intersectArrays<T>(arrayA: readonly T[], arrayB: readonly T[]): T[] {
 		const temp: T[] = [];
 		const arrayALen = arrayA.length;

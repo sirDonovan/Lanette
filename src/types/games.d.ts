@@ -204,6 +204,8 @@ export interface IGameFile<T extends Game = Game> extends DeepReadonly<IGameFile
 	readonly class: IGameClass<T>;
 	readonly description: string;
 	readonly name: string;
+
+	readonly additionalDescription?: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
