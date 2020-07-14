@@ -12,7 +12,7 @@ import type {
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const Tools = new tools.Tools();
 // eslint-disable-next-line @typescript-eslint/naming-convention
-const data = worker_threads.workerData as DeepReadonly<IParametersWorkerData>;
+const data = worker_threads.workerData as DeepImmutable<IParametersWorkerData>;
 const paramTypeDexesKeys: Dict<Dict<KeyedDict<IParamTypeKeys, readonly string[]>>> = {};
 const searchTypes: (keyof typeof data)[] = ['pokemon'];
 for (const searchType of searchTypes) {

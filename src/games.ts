@@ -86,12 +86,12 @@ export class Games {
 	readonly aliases: Dict<string> = {};
 	autoCreateTimers: Dict<NodeJS.Timer> = {};
 	autoCreateTimerData: Dict<{endTime: number, type: AutoCreateTimerType}> = {};
-	readonly formats: Dict<DeepReadonly<IGameFormatData>> = {};
+	readonly formats: Dict<DeepImmutable<IGameFormatData>> = {};
 	readonly freejoinFormatTargets: string[] = [];
 	gameCooldownMessageTimers: Dict<NodeJS.Timer> = {};
 	gameCooldownMessageTimerData: Dict<{endTime: number, minigameCooldownMinutes: number}> = {};
 	// @ts-expect-error - set in loadFormats()
-	readonly internalFormats: KeyedDict<IInternalGames, DeepReadonly<IGameFormatData>> = {};
+	readonly internalFormats: KeyedDict<IInternalGames, DeepImmutable<IGameFormatData>> = {};
 	lastGames: Dict<number> = {};
 	lastMinigames: Dict<number> = {};
 	lastOneVsOneChallengeTimes: Dict<Dict<number>> = {};
@@ -189,7 +189,7 @@ export class Games {
 		return Object.assign(Tools.deepClone(template), game);
 	}
 
-	loadFileAchievements(file: IGameFile): void {
+	loadFileAchievements(file: DeepImmutable<IGameFile>): void {
 		if (!file.achievements) return;
 		const keys = Object.keys(file.achievements) as (keyof IGameAchievementKeys)[];
 		for (const key of keys) {
@@ -217,7 +217,7 @@ export class Games {
 		const internalGameKeys = Object.keys(internalGamePaths) as (keyof IInternalGames)[];
 		for (const key of internalGameKeys) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires
-			const file = require(internalGamePaths[key]).game as IGameFile;
+			const file = require(internalGamePaths[key]).game as DeepImmutable<IGameFile>;
 			if (!file) throw new Error("No game exported from " + internalGamePaths[key]);
 			let commands;
 			if (file.commands) {
@@ -238,7 +238,7 @@ export class Games {
 			if (!fileName.endsWith('.js')) continue;
 			const modePath = path.join(modesDirectory, fileName);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires
-			const file = require(modePath).mode as IGameModeFile;
+			const file = require(modePath).mode as DeepImmutable<IGameModeFile>;
 			if (!file) throw new Error("No mode exported from " + modePath);
 			const id = Tools.toId(file.name);
 			if (id in this.modes) throw new Error("The name '" + file.name + "' is already used by another mode.");
@@ -260,7 +260,7 @@ export class Games {
 				}
 			}
 
-			this.modes[id] = Object.assign({}, file, {id});
+			this.modes[id] = Object.assign({}, file as IGameMode, {id});
 		}
 
 		const gameFiles = fs.readdirSync(gamesDirectory);
@@ -268,7 +268,7 @@ export class Games {
 			if (!fileName.endsWith('.js')) continue;
 			const gamePath = path.join(gamesDirectory, fileName);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires
-			const file = require(gamePath).game as IGameFile;
+			const file = require(gamePath).game as DeepImmutable<IGameFile>;
 			if (!file) throw new Error("No game exported from " + gamePath);
 			const id = Tools.toId(file.name);
 			if (id in this.formats) throw new Error("The name '" + file.name + "' is already used by another game.");
@@ -326,7 +326,9 @@ export class Games {
 			const format = this.formats[i];
 			const idsToAlias: string[] = [format.id];
 			if (format.formerNames) {
-				for (const name of format.formerNames) {
+				// eslint-disable-next-line @typescript-eslint/prefer-for-of
+				for (let i = 0; i < format.formerNames.length; i++) {
+					const name = format.formerNames[i];
 					const id = Tools.toId(name);
 					if (id in this.formats) throw new Error(format.name + "'s former name '" + name + "' is already used by another game.");
 					if (id in this.aliases) {
@@ -338,7 +340,9 @@ export class Games {
 			}
 
 			if (format.aliases) {
-				for (const alias of format.aliases) {
+				// eslint-disable-next-line @typescript-eslint/prefer-for-of
+				for (let i = 0; i < format.aliases.length; i++) {
+					const alias = format.aliases[i];
 					const aliasId = Tools.toId(alias);
 					if (aliasId in this.aliases) {
 						throw new Error(format.name + "'s alias '" + alias + "' is already an alias for " + this.aliases[aliasId] + ".");
@@ -366,7 +370,9 @@ export class Games {
 			}
 
 			if (format.variants) {
-				for (const variant of format.variants) {
+				// eslint-disable-next-line @typescript-eslint/prefer-for-of
+				for (let i = 0; i < format.variants.length; i++) {
+					const variant = format.variants[i];
 					const id = Tools.toId(variant.name);
 					if (id in this.aliases) {
 						throw new Error(format.name + "'s variant '" + variant.name + "' is already an alias for " + this.aliases[id] +
@@ -525,7 +531,9 @@ export class Games {
 			}
 			if (formatData.variants) {
 				let matchingVariant: IGameVariant | undefined;
-				for (const variant of formatData.variants) {
+				// eslint-disable-next-line @typescript-eslint/prefer-for-of
+				for (let i = 0; i < formatData.variants.length; i++) {
+					const variant = formatData.variants[i];
 					if (Tools.toId(variant.variant) === targetId || (variant.variantAliases && variant.variantAliases.includes(targetId))) {
 						matchingVariant = variant;
 						break;

@@ -10,33 +10,33 @@ import type {
 	PokemonShowdownId
 } from '../pokemon-showdown';
 
-interface IPSAbility extends DeepWritable<IAbility> {
+interface IPSAbility extends DeepMutable<IAbility> {
 	exists: boolean;
 }
 
-interface IPSFormat extends DeepWritable<IFormat> {
+interface IPSFormat extends DeepMutable<IFormat> {
 	checkLearnset?: () => void;
 	exists: boolean;
 }
 
-interface IPSItem extends DeepWritable<IItem> {
+interface IPSItem extends DeepMutable<IItem> {
 	exists: boolean;
 }
 
-interface IPSLearnsetData extends DeepWritable<ILearnsetData> {
+interface IPSLearnsetData extends DeepMutable<ILearnsetData> {
 	exists: boolean;
 }
 
-interface IPSMove extends DeepWritable<IMove> {
+interface IPSMove extends DeepMutable<IMove> {
 	basePowerCallback?: () => void;
 	exists: boolean;
 }
 
-interface IPSPokemon extends DeepWritable<IPokemon> {
+interface IPSPokemon extends DeepMutable<IPokemon> {
 	exists: boolean;
 }
 
-interface IPSTypeData extends DeepWritable<ITypeData> {
+interface IPSTypeData extends DeepMutable<ITypeData> {
 	exists: boolean;
 }
 

@@ -174,6 +174,8 @@ export interface IGameCommandCountListener extends IGameCommandCountOptions {
 	listener: GameCommandListener;
 }
 
+type IGameVariant<T extends Game = Game> = Partial<T> & IGameVariantProperties;
+
 interface IGameFileProperties<T extends Game = Game> {
 	achievements?: AchievementsDict;
 	aliases?: string[];
@@ -197,10 +199,10 @@ interface IGameFileProperties<T extends Game = Game> {
 	noOneVsOne?: boolean;
 	scriptedOnly?: boolean;
 	tests?: GameFileTests<T>;
-	variants?: (Partial<T> & IGameVariant)[];
+	variants?: IGameVariant<T>[];
 }
 
-export interface IGameFile<T extends Game = Game> extends DeepReadonly<IGameFileProperties<T>> {
+export interface IGameFile<T extends Game = Game> extends IGameFileProperties<T> {
 	readonly class: IGameClass<T>;
 	readonly description: string;
 	readonly name: string;
@@ -221,23 +223,24 @@ export interface IGameFormatData<T extends Game = Game> extends IGameFile<T>, IG
 	commands?: LoadedGameCommands<T>;
 }
 
-export interface IGameFormatComputed {
+export interface IGameFormatComputed<T extends Game = Game> {
 	effectType: 'GameFormat';
 	inputOptions: Dict<number>;
 	inputTarget: string;
 	nameWithOptions: string;
 
 	mode?: IGameMode;
-	variant?: IGameVariant;
+	variant?: IGameVariant<T>;
 }
 
-export interface IGameFormat<T extends Game = Game> extends DeepWritable<IGameFormatData<T>>, IGameFormatComputed {
+export interface IGameFormat<T extends Game = Game> extends IGameFormatData<T>, IGameFormatComputed<T> {
 	customizableOptions: Dict<IGameOptionValues>;
 	defaultOptions: DefaultGameOption[];
+	description: string;
 	options: Dict<number>;
 }
 
-export interface IGameVariant {
+export interface IGameVariantProperties {
 	name: string;
 	variant: string;
 
