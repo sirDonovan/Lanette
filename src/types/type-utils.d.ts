@@ -19,21 +19,21 @@ type Immutable<T> =
 	T extends PrimitiveTypes ? T :
 	T extends Array<infer U> ? ReadonlyArray<U> :
 	T extends Map<infer K, infer V> ? ReadonlyMap<K, V> :
-    T extends Set<infer U> ? ReadonlySet<U> :
-    Readonly<T>
+	T extends Set<infer U> ? ReadonlySet<U> :
+	Readonly<T>
 
 type DeepImmutable<T> =
 	T extends PrimitiveTypes ? T :
 	T extends Array<infer U> ? DeepImmutableArray<U> :
 	T extends Map<infer K, infer V> ? DeepImmutableMap<K, V> :
-    T extends Set<infer U> ? DeepImmutableSet<U> :
-    DeepImmutableObject<T>
+	T extends Set<infer U> ? DeepImmutableSet<U> :
+	DeepImmutableObject<T>
 
 interface DeepImmutableArray<T> extends ReadonlyArray<DeepImmutable<T>> {}
 interface DeepImmutableMap<K, V> extends ReadonlyMap<DeepImmutable<K>, DeepImmutable<V>> {}
 interface DeepImmutableSet<U> extends ReadonlySet<DeepImmutable<U>> {}
 type DeepImmutableObject<T> = {
-  readonly [K in keyof T]: DeepImmutable<T[K]>
+	readonly [K in keyof T]: DeepImmutable<T[K]>
 }
 
 type Mutable<T> =
@@ -41,14 +41,14 @@ type Mutable<T> =
 	T extends Immutable<infer U> ? U :
 	T extends ReadonlyArray<infer U> ? Array<U> :
 	T extends ReadonlyMap<infer K, infer V> ? Map<K, V> :
-    T extends ReadonlySet<infer U> ? Set<U> :
+	T extends ReadonlySet<infer U> ? Set<U> :
 	T
 
 type DeepMutable<T> =
 	T extends PrimitiveTypes ? T :
-    T extends DeepImmutableArray<infer U> ? Array<U> :
-    T extends DeepImmutableMap<infer K, infer V> ? Map<K, V> :
-    T extends DeepImmutableSet<infer U> ? Set<U> :
+	T extends DeepImmutableArray<infer U> ? Array<U> :
+	T extends DeepImmutableMap<infer K, infer V> ? Map<K, V> :
+	T extends DeepImmutableSet<infer U> ? Set<U> :
 	T extends ReadonlyArray<infer U> ? DeepMutableArray<U> :
 	T extends ReadonlyMap<infer K, infer V> ? DeepMutableMap<K, V> :
 	T extends ReadonlySet<infer U> ? DeepMutableSet<U> :
@@ -60,7 +60,9 @@ type DeepMutable<T> =
 interface DeepMutableArray<T> extends Array<DeepMutable<T>> {}
 interface DeepMutableMap<K, V> extends Map<DeepMutable<K>, DeepMutable<V>> {}
 interface DeepMutableSet<U> extends Set<DeepMutable<U>> {}
-type DeepMutableObject<T> = 
-	T extends DeepImmutableObject<infer U> ? {-readonly [K in keyof U]: DeepMutable<U[K]>} :
-	{ -readonly [K in keyof T]: DeepMutable<T[K]>}
+type DeepMutableObject<T> =
+	T extends DeepImmutableObject<infer U> ?
+		{ -readonly [K in keyof U]: DeepMutable<U[K]> }
+	:
+		{ -readonly [K in keyof T]: DeepMutable<T[K]> }
 /* eslint-enable */
