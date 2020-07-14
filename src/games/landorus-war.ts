@@ -2,8 +2,9 @@ import type { Player } from "../room-activity";
 import { Game } from "../room-game";
 import type { Room } from "../rooms";
 import type { IPokemon } from "../types/dex";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameFile, GameFileTests } from "../types/games";
 import type { User } from "../users";
+import { addPlayers, assertStrictEqual } from "../test/test-tools";
 
 const data: {learnsets: Dict<readonly string[]>; moves: string[]; pokemon: string[]} = {
 	learnsets: {},
@@ -69,6 +70,7 @@ class LandorusWar extends Game {
 			aliases.shift();
 			playerAliases.push(alias);
 			this.playerAliases.set(player, alias);
+			this.playerAliasesList.push(alias);
 			player.say("You were assigned the **" + alias + "** trainer class and a **" + pokemon.name + "**!");
 		}
 
@@ -286,6 +288,18 @@ const commands: GameCommandDefinitions<LandorusWar> = {
 commands.summary = Tools.deepClone(Games.sharedCommands.summary);
 commands.summary.aliases = ['role'];
 
+const tests: GameFileTests<LandorusWar> = {
+	'it should properly assign aliases and create decoys': {
+		test(game, format): void {
+			addPlayers(game, 4);
+			game.start();
+			assertStrictEqual(game.playerAliasesList.length, 4);
+			assertStrictEqual(game.playerPokemon.size, 4);
+			assertStrictEqual(game.decoyPokemon.length, 4);
+		},
+	},
+};
+
 export const game: IGameFile<LandorusWar> = {
 	aliases: ['landorus', 'lw'],
 	category: 'knowledge',
@@ -297,4 +311,5 @@ export const game: IGameFile<LandorusWar> = {
 	name: "Landorus' War",
 	mascot: "Landorus",
 	scriptedOnly: true,
+	tests,
 };
