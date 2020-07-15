@@ -3,8 +3,8 @@ import type { IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as guessingGame, Guessing } from './templates/guessing';
 
-const BASE_POINTS = 30;
-const BASE_TEAM_POINTS = 60;
+const BASE_POINTS = 50;
+const BASE_TEAM_POINTS = 100;
 
 const data: {'Pokemon': Dict<string>; 'Pokemon Abilities': Dict<string>; 'Pokemon Items': Dict<string>; 'Pokemon Moves': Dict<string>} = {
 	"Pokemon": {},
