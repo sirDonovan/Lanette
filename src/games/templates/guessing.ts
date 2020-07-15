@@ -12,6 +12,7 @@ const MINIGAME_BITS = 25;
 export abstract class Guessing extends Game {
 	additionalHintHeader: string = '';
 	answers: string[] = [];
+	answerTimeLimit: number | undefined;
 	canGuess: boolean = false;
 	firstAnswer: Player | false | undefined;
 	guessingRound: number = 0;
@@ -56,19 +57,21 @@ export abstract class Guessing extends Game {
 		this.sayUhtml(this.hintUhtmlName, this.getHintHtml());
 	}
 
+	onAnswerTimeLimit(): void {
+		if (this.answers.length) {
+			this.say("Time is up! " + this.getAnswers(''));
+			this.answers = [];
+			if (this.isMiniGame) {
+				this.end();
+				return;
+			}
+		}
+		this.nextRound();
+	}
+
 	onHintHtml(): void {
 		this.canGuess = true;
-		this.timeout = setTimeout(() => {
-			if (this.answers.length) {
-				this.say("Time is up! " + this.getAnswers(''));
-				this.answers = [];
-				if (this.isMiniGame) {
-					this.end();
-					return;
-				}
-			}
-			this.nextRound();
-		}, this.roundTime);
+		this.timeout = setTimeout(() => this.onAnswerTimeLimit(), this.roundTime);
 	}
 
 	async onNextRound(): Promise<void> {

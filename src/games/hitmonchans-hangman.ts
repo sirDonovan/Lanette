@@ -18,6 +18,7 @@ const categories = Object.keys(data) as DataKey[];
 
 class HitmonchansHangman extends Guessing {
 	allLetters: number = 0;
+	answerTimeLimit: number = 15 * 1000;
 	currentCategory: string = '';
 	guessedLetters: string[] = [];
 	guessLimit: number = 10;
@@ -81,6 +82,10 @@ class HitmonchansHangman extends Guessing {
 			}
 		} else {
 			if (!this.canGuess) this.canGuess = true;
+			if (this.answerTimeLimit) {
+				if (this.timeout) clearTimeout(this.timeout);
+				this.timeout = setTimeout(() => this.onAnswerTimeLimit(), this.answerTimeLimit);
+			}
 		}
 	}
 

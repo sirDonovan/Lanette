@@ -17,6 +17,7 @@ type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
 
 class HypnosHunches extends Guessing {
+	answerTimeLimit: number = 15 * 1000;
 	currentCategory: string = '';
 	guessLimit: number = 10;
 	guessedLetters: string[] = [];
@@ -92,6 +93,10 @@ class HypnosHunches extends Guessing {
 			return;
 		} else {
 			if (!this.canGuess) this.canGuess = true;
+			if (this.answerTimeLimit) {
+				if (this.timeout) clearTimeout(this.timeout);
+				this.timeout = setTimeout(() => this.onAnswerTimeLimit(), this.answerTimeLimit);
+			}
 		}
 	}
 
