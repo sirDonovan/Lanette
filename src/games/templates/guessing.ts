@@ -139,6 +139,8 @@ export abstract class Guessing extends Game {
 			if (!answer) return false;
 		}
 
+		if (this.answerTimeout) clearTimeout(this.answerTimeout);
+
 		return answer;
 	}
 
