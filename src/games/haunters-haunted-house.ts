@@ -1015,4 +1015,5 @@ export const game: IGameFile<HauntersHauntedHouse> = {
 		'<div style="display: inline-block;width: 10px;height: 10px;' +
 		'background-color: ' + Tools.hexColorCodes[tileColors.candy]['background-color'] + '">&nbsp;</div> - Candy<br /></details>',
 	noOneVsOne: true,
+	scriptedOnly: true,
 };
