@@ -346,7 +346,7 @@ export class Game extends Activity {
 			this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, "<div></div>");
 		}
 
-		this.say(this.name + " is starting! **Players (" + this.playerCount + ")**: " + this.getPlayerNames());
+		if (!this.internalGame) this.say(this.name + " is starting! **Players (" + this.playerCount + ")**: " + this.getPlayerNames());
 		if (this.onStart) this.onStart();
 		return true;
 	}
