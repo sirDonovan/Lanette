@@ -30,7 +30,9 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNa
 
 		if (workerNumber) {
 			if (!this.workerNames) throw new Error("Worker number passed to sendMessage() for a single worker");
-			if (workerNumber < 0 || workerNumber > this.workerNames.length - 1) throw new Error("Invalid worker number passed to sendMessage()");
+			if (workerNumber < 0 || workerNumber > this.workerNames.length - 1) {
+				throw new Error("Invalid worker number passed to sendMessage()");
+			}
 		} else {
 			workerNumber = this.workerNames ? Tools.random(this.workerNames.length) : 0;
 		}
