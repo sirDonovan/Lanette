@@ -86,6 +86,7 @@ class HypnosHunches extends Guessing {
 				this.end();
 			} else {
 				this.answers = [];
+				if (this.timeout) clearTimeout(this.timeout);
 				this.timeout = setTimeout(() => this.nextRound(), 5000);
 			}
 			return;

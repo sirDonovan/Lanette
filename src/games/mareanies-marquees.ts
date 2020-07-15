@@ -95,7 +95,8 @@ class MareaniesMarquee extends Guessing {
 
 	onHintHtml(): void {
 		if (!this.canGuess) this.canGuess = true;
-		this.timeout = setTimeout(() => this.nextRound(), 1500);
+		if (this.timeout) clearTimeout(this.timeout);
+		this.timeout = setTimeout(() => this.nextRound(), this.hintUpdateTime);
 	}
 }
 
