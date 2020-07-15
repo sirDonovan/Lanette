@@ -221,7 +221,12 @@ export class Game extends Activity {
 			delete format.variant.name;
 			Object.assign(this, format.variant);
 		}
-		if (format.mode) format.mode.initialize(this);
+		if (format.mode) {
+			if (format.modeProperties && format.mode.id in format.modeProperties) {
+				Object.assign(this, format.modeProperties[format.mode.id]);
+			}
+			format.mode.initialize(this);
+		}
 	}
 
 	loadModeCommands<T extends Game>(commands: LoadedGameCommands<T>): void {

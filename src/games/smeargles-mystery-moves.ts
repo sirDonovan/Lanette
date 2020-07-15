@@ -92,5 +92,5 @@ export const game: IGameFile<SmearglesMysteryMoves> = Games.copyTemplateProperti
 	minigameCommand: "mysterymove",
 	minigameCommandAliases: ["mmove"],
 	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess a move as hints are revealed!",
-	modes: ['survival', 'group'],
+	modes: ['group'],
 });

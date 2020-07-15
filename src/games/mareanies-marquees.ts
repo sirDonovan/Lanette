@@ -19,7 +19,9 @@ class MareaniesMarquee extends Guessing {
 	letters: string[] = [];
 	currentIndex: number = -1;
 	hintUpdates: number = 0;
-	hintLimit: number = 0;
+	hintUpdateLimit: number = 0;
+	hintUpdateLimitMultiplier: number = 2;
+	hintUpdateTime: number = 1500;
 	currentCategory: string = '';
 
 	static loadData(room: Room | User): void {
@@ -52,13 +54,13 @@ class MareaniesMarquee extends Guessing {
 		this.letters = letters;
 		this.currentIndex = -1;
 		this.hintUpdates = 0;
-		this.hintLimit = letters.length * 2;
+		this.hintUpdateLimit = letters.length * this.hintUpdateLimitMultiplier;
 		this.updateHint();
 	}
 
 	updateHint(): void {
 		this.hintUpdates++;
-		if (this.hintUpdates >= this.hintLimit) {
+		if (this.hintUpdates >= this.hintUpdateLimit) {
 			this.say("Time is up! " + this.getAnswers(''));
 			this.answers = [];
 			if (this.isMiniGame) {
@@ -109,6 +111,12 @@ export const game: IGameFile<MareaniesMarquee> = Games.copyTemplateProperties(gu
 	minigameCommand: 'mmarquee',
 	minigameDescription: 'Use ``' + Config.commandCharacter + 'g`` to guess the answer as letters are cycled through 1 at a time!',
 	modes: ['survival', 'group'],
+	modeProperties: {
+		'survival': {
+			hintUpdateLimitMultiplier: 1,
+			hintUpdateTime: 750,
+		},
+	},
 	variants: [
 		{
 			name: "Mareanie's Pokemon Marquees",

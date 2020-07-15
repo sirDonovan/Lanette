@@ -219,6 +219,7 @@ export class Games {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires
 			const file = require(internalGamePaths[key]).game as DeepImmutable<IGameFile>;
 			if (!file) throw new Error("No game exported from " + internalGamePaths[key]);
+
 			let commands;
 			if (file.commands) {
 				commands = CommandParser.loadCommands<Game, GameCommandReturnType>(Tools.deepClone(file.commands));
@@ -240,6 +241,7 @@ export class Games {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires
 			const file = require(modePath).mode as DeepImmutable<IGameModeFile>;
 			if (!file) throw new Error("No mode exported from " + modePath);
+
 			const id = Tools.toId(file.name);
 			if (id in this.modes) throw new Error("The name '" + file.name + "' is already used by another mode.");
 
@@ -270,10 +272,13 @@ export class Games {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires
 			const file = require(gamePath).game as DeepImmutable<IGameFile>;
 			if (!file) throw new Error("No game exported from " + gamePath);
+
 			const id = Tools.toId(file.name);
 			if (id in this.formats) throw new Error("The name '" + file.name + "' is already used by another game.");
+
 			let commands;
 			if (file.commands) commands = CommandParser.loadCommands<Game, GameCommandReturnType>(Tools.deepClone(file.commands));
+
 			let variants;
 			if (file.variants) {
 				variants = Tools.deepClone(file.variants);
@@ -283,6 +288,7 @@ export class Games {
 					}
 				}
 			}
+
 			let modes: string[] | undefined;
 			if (file.modes) {
 				modes = [];
@@ -292,7 +298,9 @@ export class Games {
 					modes.push(modeId);
 				}
 			}
+
 			if (file.achievements) this.loadFileAchievements(file);
+
 			this.formats[id] = Object.assign({}, file, {commands, id, modes, variants});
 		}
 
@@ -608,7 +616,7 @@ export class Games {
 			defaultOptions = formatData.defaultOptions || [];
 		}
 
-		const format = Object.assign(formatData, formatComputed, {customizableOptions, defaultOptions, options: {}});
+		const format = Object.assign(formatData, formatComputed, {customizableOptions, defaultOptions, options: {}}) as IGameFormat;
 		format.options = Game.setOptions(format, mode, variant);
 
 		return format;

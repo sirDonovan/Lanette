@@ -174,7 +174,7 @@ export interface IGameCommandCountListener extends IGameCommandCountOptions {
 	listener: GameCommandListener;
 }
 
-type IGameVariant<T extends Game = Game> = Partial<T> & IGameVariantProperties;
+type IGameVariant<T extends Game = Game> = Partial<T> & IGameVariantProperties<T>;
 
 interface IGameFileProperties<T extends Game = Game> {
 	achievements?: AchievementsDict;
@@ -195,6 +195,7 @@ interface IGameFileProperties<T extends Game = Game> {
 	minigameCommand?: string;
 	minigameCommandAliases?: string[];
 	minigameDescription?: string;
+	modeProperties?: Dict<Partial<T>>;
 	modes?: string[];
 	noOneVsOne?: boolean;
 	scriptedOnly?: boolean;
@@ -240,7 +241,7 @@ export interface IGameFormat<T extends Game = Game> extends IGameFormatData<T>, 
 	options: Dict<number>;
 }
 
-export interface IGameVariantProperties {
+export interface IGameVariantProperties<T extends Game = Game> {
 	name: string;
 	variant: string;
 
@@ -249,6 +250,8 @@ export interface IGameVariantProperties {
 	defaultOptions?: DefaultGameOption[];
 	description?: string;
 	freejoin?: boolean;
+	modeProperties?: Dict<Partial<T>>;
+	modes?: string[];
 	variantAliases?: string[];
 }
 

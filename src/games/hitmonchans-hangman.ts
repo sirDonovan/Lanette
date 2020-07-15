@@ -22,7 +22,7 @@ class HitmonchansHangman extends Guessing {
 	guessedLetters: string[] = [];
 	guessLimit: number = 10;
 	hints: string[] = [];
-	incorrectGuessTimeout: number = 4000;
+	incorrectGuessTime: number = 4000;
 	lastAnswer: string = '';
 	letters: string[] = [];
 	roundGuesses = new Map<Player, boolean>();
@@ -35,15 +35,6 @@ class HitmonchansHangman extends Guessing {
 		data["Pokemon Abilities"] = Games.getAbilitiesList().map(x => x.name);
 		data["Pokemon Items"] = Games.getItemsList().map(x => x.name);
 		data["Pokemon Moves"] = Games.getMovesList().map(x => x.name);
-	}
-
-	onSignups(): void {
-		super.onSignups();
-		const format = this.format as IGameFormat;
-		if (format.mode && format.mode.id === 'survival') {
-			this.guessLimit = 4;
-			this.incorrectGuessTimeout = 1000;
-		}
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -80,6 +71,7 @@ class HitmonchansHangman extends Guessing {
 
 	onHintHtml(): void {
 		if (this.guessedLetters.length >= this.guessLimit) {
+			if (this.timeout) clearTimeout(this.timeout);
 			this.say("All guesses have been used! The answer was __" + this.answers[0] + "__");
 			if (this.isMiniGame) {
 				this.end();
@@ -102,7 +94,7 @@ class HitmonchansHangman extends Guessing {
 	onIncorrectGuess(player: Player, guess: string): string {
 		guess = Tools.toId(guess);
 		if (!this.timeout) {
-			this.timeout = setTimeout(() => this.nextRound(), this.incorrectGuessTimeout);
+			this.timeout = setTimeout(() => this.nextRound(), this.incorrectGuessTime);
 		}
 		for (const letter of this.letters) {
 			if (Tools.toId(letter) === guess) {
@@ -131,6 +123,12 @@ export const game: IGameFile<HitmonchansHangman> = Games.copyTemplateProperties(
 	minigameCommand: 'hangman',
 	minigameDescription: 'Use ``' + Config.commandCharacter + 'g`` to guess one letter per round or the answer!',
 	modes: ['survival', 'group'],
+	modeProperties: {
+		'survival': {
+			guessLimit: 4,
+			incorrectGuessTime: 1000,
+		},
+	},
 	variants: [
 		{
 			name: "Hitmonchan's Ability Hangman",

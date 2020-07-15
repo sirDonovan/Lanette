@@ -19,8 +19,11 @@ class AmbipomsTossups extends Guessing {
 	lastAnswer: string = '';
 	letterCount: number = 0;
 	letters: string[] = [];
+	maxRevealedLetters: number | undefined;
 	revealedLetters: number = 0;
+	revealLetterTime: number = 5 * 1000;
 	readonly roundGuesses = new Map<Player, boolean>();
+	scaleMaxRevealedLetters: boolean = false;
 	tossupRound: number = 0;
 
 	static loadData(room: Room | User): void {
@@ -35,7 +38,7 @@ class AmbipomsTossups extends Guessing {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		this.currentCategory = category;
 		let answer = this.sampleOne(data[category]);
-		while (answer === this.lastAnswer) {
+		while (answer === this.lastAnswer || (this.maxRevealedLetters && answer.length < 7)) {
 			answer = this.sampleOne(data[category]);
 		}
 		this.answers = [answer];
@@ -45,6 +48,7 @@ class AmbipomsTossups extends Guessing {
 		const letters = answer.split("");
 		this.letters = letters;
 		this.letterCount = Tools.toId(answer).split("").length;
+		if (this.scaleMaxRevealedLetters) this.maxRevealedLetters = Math.floor(this.letterCount / 2);
 		this.hints = this.letters.slice();
 		for (let i = 0; i < this.hints.length; i++) {
 			this.hints[i] = (Tools.toId(this.hints[i]).length ? "_" : this.hints[i] === ' ' ? "/" : this.hints[i]);
@@ -66,8 +70,9 @@ class AmbipomsTossups extends Guessing {
 	}
 
 	onHintHtml(): void {
-		if (this.revealedLetters >= this.letterCount) {
-			const text = "All letters have been revealed! " + this.getAnswers('');
+		if (this.revealedLetters >= this.letterCount || (this.maxRevealedLetters && this.revealedLetters >= this.maxRevealedLetters)) {
+			const text = (this.maxRevealedLetters ? "The maximum number of" : "All possible") + " letters have been revealed! " +
+				this.getAnswers('');
 			this.on(text, () => {
 				this.answers = [];
 				if (this.isMiniGame) {
@@ -79,7 +84,7 @@ class AmbipomsTossups extends Guessing {
 			this.say(text);
 		} else {
 			if (!this.canGuess) this.canGuess = true;
-			this.timeout = setTimeout(() => this.nextRound(), 5000);
+			this.timeout = setTimeout(() => this.nextRound(), this.revealLetterTime);
 		}
 	}
 
@@ -103,6 +108,11 @@ export const game: IGameFile<AmbipomsTossups> = Games.copyTemplateProperties(gue
 	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess an answer as blanks are filled in (one chance to guess " +
 		"correctly)!",
 	modes: ['survival', 'group'],
+	modeProperties: {
+		'survival': {
+			scaleMaxRevealedLetters: true,
+		},
+	},
 	variants: [
 		{
 			name: "Ambipom's Pokemon Tossups",
