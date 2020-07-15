@@ -62,12 +62,11 @@ class Survival {
 			this.currentPlayer = null;
 		}
 
-		if (this.getRemainingPlayerCount() < 2) {
-			this.end();
-			return false;
-		}
-
 		if (!this.playerList.length || !this.getRemainingPlayerCount(this.playerList)) {
+			if (this.getRemainingPlayerCount() < 2) {
+				this.end();
+				return false;
+			}
 			this.survivalRound++;
 			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(this.getPlayerNames, null, "Round " + this.survivalRound));
 			this.playerList = this.shufflePlayers();
@@ -76,6 +75,7 @@ class Survival {
 
 		const currentPlayer = this.playerList[0];
 		this.playerList.shift();
+		if (currentPlayer.eliminated) return this.beforeNextRound();
 
 		this.currentPlayer = currentPlayer;
 		return "**" + this.currentPlayer.name + "** you are up!";
