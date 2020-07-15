@@ -112,7 +112,6 @@ class ZygardesOrders extends Guessing {
 			});
 			this.say(text);
 		} else {
-			if (!this.canGuess) this.canGuess = true;
 			this.timeout = setTimeout(() => this.nextRound(), this.revealLetterTime);
 		}
 	}

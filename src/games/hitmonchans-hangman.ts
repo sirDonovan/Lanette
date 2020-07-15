@@ -18,7 +18,6 @@ const categories = Object.keys(data) as DataKey[];
 
 class HitmonchansHangman extends Guessing {
 	allLetters: number = 0;
-	answerTimeLimit: number = 15 * 1000;
 	currentCategory: string = '';
 	guessedLetters: string[] = [];
 	guessLimit: number = 10;
@@ -27,6 +26,7 @@ class HitmonchansHangman extends Guessing {
 	lastAnswer: string = '';
 	letters: string[] = [];
 	roundGuesses = new Map<Player, boolean>();
+	roundTime: number = 15 * 1000;
 	solvedLetters: string[] = [];
 
 	static loadData(room: Room | User): void {
@@ -66,25 +66,19 @@ class HitmonchansHangman extends Guessing {
 		for (let i = 0; i < this.letters.length; i++) {
 			if (this.solvedLetters.includes(Tools.toId(this.letters[i]))) this.hints[i] = this.letters[i];
 		}
-		this.hint = "<b>" + this.currentCategory + "</b> | " + this.hints.join(" ") + (this.guessedLetters.length ? " | " +
-			this.guessedLetters.join(", ") : "");
+		this.hint = "<b>" + this.currentCategory + "</b> | " + this.hints.join(" ") + (this.guessedLetters.length ?
+			' | <font color="red">' + this.guessedLetters.join(", ") + '</font>' : "");
 	}
 
 	onHintHtml(): void {
 		if (this.guessedLetters.length >= this.guessLimit) {
-			if (this.timeout) clearTimeout(this.timeout);
 			this.say("All guesses have been used! The answer was __" + this.answers[0] + "__");
 			if (this.isMiniGame) {
 				this.end();
 			} else {
 				this.answers = [];
-				this.timeout = setTimeout(() => this.nextRound(), 5000);
-			}
-		} else {
-			if (!this.canGuess) this.canGuess = true;
-			if (this.answerTimeLimit) {
 				if (this.timeout) clearTimeout(this.timeout);
-				this.timeout = setTimeout(() => this.onAnswerTimeLimit(), this.answerTimeLimit);
+				this.timeout = setTimeout(() => this.nextRound(), 5000);
 			}
 		}
 	}

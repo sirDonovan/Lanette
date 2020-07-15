@@ -51,7 +51,6 @@ class Survival {
 	}
 
 	onStart(this: SurvivalThis): void {
-		if (this.answerTimeLimit) this.roundTime = this.answerTimeLimit;
 		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
@@ -71,10 +70,7 @@ class Survival {
 			this.survivalRound++;
 			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(this.getPlayerNames, null, "Round " + this.survivalRound));
 			this.playerList = this.shufflePlayers();
-			if (this.survivalRound > 1 && this.roundTime > 2000) {
-				this.roundTime -= 500;
-				if (this.answerTimeLimit) this.answerTimeLimit = this.roundTime;
-			}
+			if (this.survivalRound > 1 && this.roundTime > 2000) this.roundTime -= 500;
 		}
 
 		const currentPlayer = this.playerList[0];

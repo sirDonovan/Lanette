@@ -12,7 +12,8 @@ const MINIGAME_BITS = 25;
 export abstract class Guessing extends Game {
 	additionalHintHeader: string = '';
 	answers: string[] = [];
-	answerTimeLimit: number | undefined;
+	answerTimeout: NodeJS.Timer | undefined;
+	beforeNextRoundTime: number = 5 * 1000;
 	canGuess: boolean = false;
 	firstAnswer: Player | false | undefined;
 	guessingRound: number = 0;
@@ -69,11 +70,6 @@ export abstract class Guessing extends Game {
 		this.nextRound();
 	}
 
-	onHintHtml(): void {
-		this.canGuess = true;
-		this.timeout = setTimeout(() => this.onAnswerTimeLimit(), this.roundTime);
-	}
-
 	async onNextRound(): Promise<void> {
 		let roundText: boolean | string | undefined;
 		if (this.beforeNextRound) {
@@ -100,7 +96,10 @@ export abstract class Guessing extends Game {
 		const html = this.getHintHtml();
 		this.onUhtml(hintUhtmlName, html, () => {
 			if (this.ended) return;
-			this.onHintHtml();
+			if (!this.canGuess) this.canGuess = true;
+			if (this.answerTimeout) clearTimeout(this.answerTimeout);
+			this.answerTimeout = setTimeout(() => this.onAnswerTimeLimit(), this.roundTime);
+			if (this.onHintHtml) this.onHintHtml();
 		});
 
 		const sayHint = () => {
@@ -113,11 +112,7 @@ export abstract class Guessing extends Game {
 
 		if (typeof roundText === 'string') {
 			this.on(roundText, () => {
-				this.timeout = setTimeout(() => {
-					sayHint();
-					// clear for games like hangman
-					this.timeout = null;
-				}, 5000);
+				this.timeout = setTimeout(() => sayHint(), this.beforeNextRoundTime);
 			});
 			this.say(roundText);
 		} else {
@@ -183,6 +178,7 @@ export abstract class Guessing extends Game {
 	filterGuess?(guess: string): boolean;
 	getPointsForAnswer?(answer: string): number;
 	onCorrectGuess?(player: Player, guess: string): void;
+	onHintHtml?(): void;
 	onIncorrectGuess?(player: Player, guess: string): string;
 	updateHint?(): void;
 }

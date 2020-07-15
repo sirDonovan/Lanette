@@ -71,7 +71,6 @@ class SmearglesMysteryMoves extends Guessing {
 			this.say(text);
 			return;
 		} else {
-			if (!this.canGuess) this.canGuess = true;
 			this.timeout = setTimeout(() => this.nextRound(), 5000);
 		}
 	}

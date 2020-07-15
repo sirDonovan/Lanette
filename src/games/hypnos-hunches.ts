@@ -17,7 +17,6 @@ type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
 
 class HypnosHunches extends Guessing {
-	answerTimeLimit: number = 15 * 1000;
 	currentCategory: string = '';
 	guessLimit: number = 10;
 	guessedLetters: string[] = [];
@@ -28,6 +27,7 @@ class HypnosHunches extends Guessing {
 	lastAnswer: string = '';
 	letters: string[] = [];
 	roundGuesses = new Map<Player, boolean>();
+	roundTime: number = 15 * 1000;
 
 	static loadData(room: Room | User): void {
 		data["Characters"] = Dex.data.characters.slice();
@@ -68,8 +68,8 @@ class HypnosHunches extends Guessing {
 			const id = Tools.toId(this.letters[i]);
 			if (this.solvedLetters.includes(id)) this.hints[i] = id;
 		}
-		this.hint = "<b>" + this.currentCategory + "</b> | " + this.hints.join("") + (this.guessedLetters.length ? " | " +
-			this.guessedLetters.join(", ") : "");
+		this.hint = "<b>" + this.currentCategory + "</b> | " + this.hints.join("") + (this.guessedLetters.length ?
+			' | <font color="red">' + this.guessedLetters.join(", ") + '</font>' : "");
 	}
 
 	onHintHtml(): void {
@@ -91,12 +91,6 @@ class HypnosHunches extends Guessing {
 				this.timeout = setTimeout(() => this.nextRound(), 5000);
 			}
 			return;
-		} else {
-			if (!this.canGuess) this.canGuess = true;
-			if (this.answerTimeLimit) {
-				if (this.timeout) clearTimeout(this.timeout);
-				this.timeout = setTimeout(() => this.onAnswerTimeLimit(), this.answerTimeLimit);
-			}
 		}
 	}
 
