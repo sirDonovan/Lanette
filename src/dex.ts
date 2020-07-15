@@ -269,22 +269,6 @@ export class Dex {
 		if (this.loadedData || !this.isBase) return;
 		console.log("Loading dex data...");
 
-		await this.loadData();
-		for (let i = this.gen - 1; i >= 1; i--) {
-			const mod = 'gen' + i;
-			dexes[mod] = new Dex(i, mod);
-			await dexes[mod].loadData();
-		}
-
-		console.log("Loaded all dex data");
-
-		this.unrefWorkers();
-	}
-
-	async loadData(): Promise<void> {
-		if (this.loadedData) return;
-		this.loadedData = true;
-
 		const lanetteDataDir = path.join(Tools.rootFolder, 'data');
 
 		/* eslint-disable @typescript-eslint/no-var-requires */
@@ -305,8 +289,6 @@ export class Dex {
 		this.data.gifDataBW = require(path.join(lanetteDataDir, 'pokedex-mini-bw.js')).BattlePokemonSpritesBW as Dict<IGifData | undefined>; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
 		// @ts-expect-error
 		this.data.trainerClasses = require(path.join(lanetteDataDir, 'trainer-classes.js')) as string[];
-
-		const formatLinks = require(path.join(lanetteDataDir, 'format-links.js')) as Dict<IFormatLinks | undefined>;
 		/* eslint-enable */
 
 		const speciesList = Object.keys(this.data.categories);
@@ -319,280 +301,244 @@ export class Dex {
 			delete this.data.categories[species];
 		}
 
+		// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+		const promises: Promise<void[]>[] = [this.loadData()];
+		for (let i = this.gen - 1; i >= 1; i--) {
+			const mod = 'gen' + i;
+			dexes[mod] = new Dex(i, mod);
+
+			// @ts-expect-error
+			dexes[mod].data.alternateIconNumbers = this.data.alternateIconNumbers;
+			// @ts-expect-error
+			dexes[mod].data.badges = this.data.badges;
+			// @ts-expect-error
+			dexes[mod].data.categories = this.data.categories;
+			// @ts-expect-error
+			dexes[mod].data.characters = this.data.characters;
+			// @ts-expect-error
+			dexes[mod].data.locations = this.data.locations;
+			// @ts-expect-error
+			dexes[mod].data.gifData = this.data.gifData;
+			// @ts-expect-error
+			dexes[mod].data.gifDataBW = this.data.gifDataBW;
+			// @ts-expect-error
+			dexes[mod].data.trainerClasses = this.data.trainerClasses;
+
+			promises.push(dexes[mod].loadData());
+		}
+
+		await Promise.all(promises);
+
+		for (let i = this.gen - 1; i >= 1; i--) {
+			const mod = 'gen' + i;
+			// @ts-expect-error
+			dexes[mod].data.aliases = this.data.aliases;
+			// @ts-expect-error
+			dexes[mod].formatCache = new Map(this.formatCache);
+			// @ts-expect-error
+			dexes[mod].data.formatKeys = this.data.formatKeys.slice();
+
+			const workers = Object.keys(dexes[mod].workers) as (keyof IDexWorkers)[];
+			for (const worker of workers) {
+				// @ts-expect-error
+				delete dexes[mod].workers[worker];
+			}
+		}
+
+		// @ts-expect-error
+		dexes['gen1'].abilityCache = new Map(dexes['gen2'].abilityCache);
+		// @ts-expect-error
+		dexes['gen1'].data.abilityKeys = dexes['gen2'].data.abilityKeys.slice();
+
+		console.log("Loaded all dex data");
+
+		this.unrefWorkers();
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+	async loadData(): Promise<void[]> {
+		if (this.loadedData) return Promise.resolve([]);
+		this.loadedData = true;
+
 		const mod = 'gen' + this.gen;
+
+		const loadPromises: Promise<void>[] = [];
 
 		// aliases
 		if (this.isBase) {
-			// @ts-expect-error
-			this.data.aliases = JSON.parse((await this.workers.pokemonShowdown.getAliases({mod})).data) as Dict<string | undefined>;
-		} else {
-			// @ts-expect-error
-			this.data.aliases = dexes['base'].data.aliases;
+			loadPromises.push(this.workers.pokemonShowdown.getAliases(mod).then(response => {
+				if (response === null) throw new Error("An error occurred while getting aliases");
+				// @ts-expect-error
+				this.data.aliases = JSON.parse(response.data) as Dict<string>;
+			}));
 		}
 
 		// abilities
-		if (this.gen === 1) {
-			// @ts-expect-error
-			this.abilityCache = new Map(dexes['gen2'].abilityCache);
-			// @ts-expect-error
-			this.data.abilityKeys = dexes['gen2'].data.abilityKeys.slice();
-		} else {
-			const abilityIdsRequest = await this.workers.pokemonShowdown.getAbilityIds({mod});
-			if (abilityIdsRequest === null) throw new Error("An error occurred while getting ability IDs");
-
-			const abilityIds = JSON.parse(abilityIdsRequest.data) as {aliases: Dict<string>; keys: string[]};
-			const abilityKeys = abilityIds.keys;
-			if (abilityKeys.length) {
-				let abilitiesCurrentIndex = 0;
-				const abilitiesEndIndex = abilityKeys.length - 1;
-				while (abilitiesCurrentIndex < abilitiesEndIndex) {
-					const abilitiesRequest = await this.workers.pokemonShowdown.getAbilities({mod, keys: abilityKeys,
-						startIndex: abilitiesCurrentIndex});
-					if (abilitiesRequest === null) throw new Error("An error occurred while getting abilities");
-
-					const batch = JSON.parse(abilitiesRequest.data) as {abilities: IAbility[]; endIndex: number};
-					if (batch.endIndex === abilitiesCurrentIndex) throw new Error("Not enough memory to load abilities");
-
-					for (const ability of batch.abilities) {
-						if (ability.id) {
-							this.abilityCache.set(ability.id, ability);
-							(this.data.abilityKeys as string[]).push(ability.id);
-						}
+		if (this.gen > 1) {
+			loadPromises.push(this.workers.pokemonShowdown.getAbilities(mod).then(response => {
+				if (response === null) throw new Error("An error occurred while getting abilities");
+				for (const ability of response.abilities) {
+					if (ability.id) {
+						this.abilityCache.set(ability.id, ability);
+						(this.data.abilityKeys as string[]).push(ability.id);
 					}
-
-					abilitiesCurrentIndex = batch.endIndex;
 				}
 
-				for (const key in abilityIds.aliases) {
+				for (const key in response.aliases) {
 					const id = Tools.toId(key);
 					if (!id) continue;
-					const ability = this.abilityCache.get(abilityIds.aliases[key]);
+					const ability = this.abilityCache.get(response.aliases[key]);
 					if (ability) this.abilityCache.set(id, ability);
 				}
-			}
+			}));
 		}
 
 		// formats
 		if (this.isBase) {
-			const formatIdsRequest = await this.workers.pokemonShowdown.getFormatIds({mod});
-			if (formatIdsRequest === null) throw new Error("An error occurred while getting format IDs");
+			// eslint-disable-next-line @typescript-eslint/no-var-requires
+			const formatLinks = require(path.join(Tools.rootFolder, 'data', 'format-links.js')) as Dict<IFormatLinks | undefined>;
 
-			const formatIds = JSON.parse(formatIdsRequest.data) as {aliases: Dict<string>; keys: string[]};
 			const links: ('info' | 'np' | 'roleCompendium' | 'teams' | 'viability')[] = ['info', 'np', 'roleCompendium', 'teams',
 					'viability'];
-
-			const formatKeys = formatIds.keys;
-			if (formatKeys.length) {
-				let formatsCurrentIndex = 0;
-				const formatsEndIndex = formatKeys.length - 1;
-				while (formatsCurrentIndex < formatsEndIndex) {
-					const formatsRequest = await this.workers.pokemonShowdown.getFormats({mod, keys: formatKeys,
-						startIndex: formatsCurrentIndex});
-					if (formatsRequest === null) throw new Error("An error occurred while getting formats");
-
-					const batch = JSON.parse(formatsRequest.data) as {formats: IFormat[]; endIndex: number};
-					if (batch.endIndex === formatsCurrentIndex) throw new Error("Not enough memory to load formats");
-
-					for (const item of batch.formats) {
-						let format = item;
-						let viability: string | undefined;
-						let np: string | undefined;
-						let info: string | undefined;
-						if (format.threads) {
-							const threads = format.threads.slice();
-							for (let line of threads) {
-								line = line.trim();
-								if (line.startsWith('&bullet;')) {
-									const text = line.split('</a>')[0].split('">')[1];
-									if (!text) continue;
-									if (text.includes('Viability Ranking')) {
-										const link = line.split('<a href="');
-										if (link[1]) {
-											viability = link[1].split('/">')[0].split('/').pop()!;
-										}
-									} else if (text.startsWith("np:") || text.includes(format.name + " Stage")) {
-										const link = line.split('<a href="');
-										if (link[1]) {
-											np = link[1].split('/">')[0].split('/').pop()!;
-										}
-									} else if (Tools.toId(text) === format.id) {
-										const link = line.split('<a href="');
-										if (link[1]) {
-											info = link[1].split('/">')[0].split('/').pop()!;
-										}
+			loadPromises.push(this.workers.pokemonShowdown.getFormats(mod).then(response => {
+				if (response === null) throw new Error("An error occurred while getting formats");
+				for (let format of response.formats) {
+					let viability: string | undefined;
+					let np: string | undefined;
+					let info: string | undefined;
+					if (format.threads) {
+						const threads = format.threads.slice();
+						for (let line of threads) {
+							line = line.trim();
+							if (line.startsWith('&bullet;')) {
+								const text = line.split('</a>')[0].split('">')[1];
+								if (!text) continue;
+								if (text.includes('Viability Ranking')) {
+									const link = line.split('<a href="');
+									if (link[1]) {
+										viability = link[1].split('/">')[0].split('/').pop()!;
+									}
+								} else if (text.startsWith("np:") || text.includes(format.name + " Stage")) {
+									const link = line.split('<a href="');
+									if (link[1]) {
+										np = link[1].split('/">')[0].split('/').pop()!;
+									}
+								} else if (Tools.toId(text) === format.id) {
+									const link = line.split('<a href="');
+									if (link[1]) {
+										info = link[1].split('/">')[0].split('/').pop()!;
 									}
 								}
 							}
+						}
 
-							if (format.id in formatLinks) {
-								format = Object.assign(formatLinks[format.id], format, {
-									'info-official': info,
-									'np-official': np,
-									'viability-official': viability,
-								});
-							} else {
-								format.info = info;
-								format.np = np;
-								format.viability = viability;
-							}
+						if (format.id in formatLinks) {
+							format = Object.assign(formatLinks[format.id], format, {
+								'info-official': info,
+								'np-official': np,
+								'viability-official': viability,
+							});
+						} else {
+							format.info = info;
+							format.np = np;
+							format.viability = viability;
+						}
 
-							for (const id of links) {
-								const link = format[id];
-								if (!link) continue;
-								let num = parseInt(link.split("/")[0]);
-								if (isNaN(num)) continue;
+						for (const id of links) {
+							const link = format[id];
+							if (!link) continue;
+							let num = parseInt(link.split("/")[0]);
+							if (isNaN(num)) continue;
+							// @ts-expect-error
+							if (format[id + '-official']) {
 								// @ts-expect-error
-								if (format[id + '-official']) {
-									// @ts-expect-error
-									const officialNum = parseInt(format[id + '-official']);
-									if (!isNaN(officialNum) && officialNum > num) num = officialNum;
-								}
-								format[id] = 'http://www.smogon.com/forums/threads/' + num;
+								const officialNum = parseInt(format[id + '-official']);
+								if (!isNaN(officialNum) && officialNum > num) num = officialNum;
 							}
-						}
-
-						format.quickFormat = format.teamLength && format.teamLength.battle && format.teamLength.battle <= 2 ? true : false;
-						format.tournamentPlayable = !!(format.searchShow || format.challengeShow || format.tournamentShow);
-						format.unranked = format.rated === false || format.id.includes('customgame') || format.id.includes('hackmonscup') ||
-							format.id.includes('challengecup') || format.id.includes('metronomebattle') ||
-							(format.team && (format.id.includes('1v1') || format.id.includes('monotype'))) || format.mod === 'seasonal' ||
-							format.mod === 'ssb' ? true : false;
-
-						if (format.section === omotmSection) this.omotms.push(format.id);
-
-						if (format.id) {
-							this.formatCache.set(format.id, format);
-							(this.data.formatKeys as string[]).push(format.id);
-						}
-
-						if (format.aliases) {
-							for (const alias of format.aliases) {
-								const id = Tools.toId(alias);
-								if (id) this.formatCache.set(id, format);
-							}
+							format[id] = 'http://www.smogon.com/forums/threads/' + num;
 						}
 					}
 
-					formatsCurrentIndex = batch.endIndex;
+					format.quickFormat = format.teamLength && format.teamLength.battle && format.teamLength.battle <= 2 ? true : false;
+					format.tournamentPlayable = !!(format.searchShow || format.challengeShow || format.tournamentShow);
+					format.unranked = format.rated === false || format.id.includes('customgame') || format.id.includes('hackmonscup') ||
+						format.id.includes('challengecup') || format.id.includes('metronomebattle') ||
+						(format.team && (format.id.includes('1v1') || format.id.includes('monotype'))) || format.mod === 'seasonal' ||
+						format.mod === 'ssb' ? true : false;
+
+					if (format.section === omotmSection) this.omotms.push(format.id);
+
+					if (format.id) {
+						this.formatCache.set(format.id, format);
+						(this.data.formatKeys as string[]).push(format.id);
+					}
+
+					if (format.aliases) {
+						for (const alias of format.aliases) {
+							const id = Tools.toId(alias);
+							if (id) this.formatCache.set(id, format);
+						}
+					}
 				}
 
-				for (const key in formatIds.aliases) {
+				for (const key in response.aliases) {
 					const id = Tools.toId(key);
 					if (!id) continue;
-					const format = this.formatCache.get(formatIds.aliases[key]);
+					const format = this.formatCache.get(response.aliases[key]);
 					if (format) this.formatCache.set(id, format);
 				}
-			}
-		} else {
-			// @ts-expect-error
-			this.formatCache = new Map(dexes['base'].formatCache);
-			// @ts-expect-error
-			this.data.formatKeys = dexes['base'].data.formatKeys.slice();
+			}));
 		}
 
 		// items
-		const itemIdsRequest = await this.workers.pokemonShowdown.getItemIds({mod});
-		if (itemIdsRequest === null) throw new Error("An error occurred while getting item IDs");
-
-		const itemIds = JSON.parse(itemIdsRequest.data) as {aliases: Dict<string>; keys: string[]};
-		const itemKeys = itemIds.keys;
-		if (itemKeys.length) {
-			let itemsCurrentIndex = 0;
-			const itemsEndIndex = itemKeys.length - 1;
-			while (itemsCurrentIndex < itemsEndIndex) {
-				const itemsRequest = await this.workers.pokemonShowdown.getItems({mod, keys: itemKeys, startIndex: itemsCurrentIndex});
-				if (itemsRequest === null) throw new Error("An error occurred while getting items");
-
-				const batch = JSON.parse(itemsRequest.data) as {items: IItem[]; endIndex: number};
-				if (batch.endIndex === itemsCurrentIndex) throw new Error("Not enough memory to load items");
-
-				for (const item of batch.items) {
-					if (item.id) {
-						this.itemCache.set(item.id, item);
-						(this.data.itemKeys as string[]).push(item.id);
-					}
+		loadPromises.push(this.workers.pokemonShowdown.getItems(mod).then(response => {
+			if (response === null) throw new Error("An error occurred while getting items");
+			for (const item of response.items) {
+				if (item.id) {
+					this.itemCache.set(item.id, item);
+					(this.data.itemKeys as string[]).push(item.id);
 				}
-
-				itemsCurrentIndex = batch.endIndex;
 			}
 
-			for (const key in itemIds.aliases) {
+			for (const key in response.aliases) {
 				const id = Tools.toId(key);
 				if (!id) continue;
-				const item = this.itemCache.get(itemIds.aliases[key]);
+				const item = this.itemCache.get(response.aliases[key]);
 				if (item) this.itemCache.set(id, item);
 			}
-		}
+		}));
 
 		// learnsets
-		const learnsetDataIdsRequest = await this.workers.pokemonShowdown.getLearnsetDataIds({mod});
-		if (learnsetDataIdsRequest === null) throw new Error("An error occurred while getting learnset data IDs");
-
-		const learnsetDataIds = JSON.parse(learnsetDataIdsRequest.data) as {aliases: Dict<string>; keys: string[]};
-		const learnsetDataKeys = learnsetDataIds.keys;
-		if (learnsetDataKeys.length) {
-			let learnsetDataCurrentIndex = 0;
-			const learnsetDataEndIndex = learnsetDataKeys.length - 1;
-			while (learnsetDataCurrentIndex < learnsetDataEndIndex) {
-				const learnsetDataRequest = await this.workers.pokemonShowdown.getLearnsetData({mod, keys: learnsetDataKeys,
-					startIndex: learnsetDataCurrentIndex});
-				if (learnsetDataRequest === null) throw new Error("An error occurred while getting learnset data");
-
-				const batch = JSON.parse(learnsetDataRequest.data) as {learnsets: Dict<ILearnsetData>; endIndex: number};
-				if (batch.endIndex === learnsetDataCurrentIndex) throw new Error("Not enough memory to load learnset data");
-
-				for (const key in batch.learnsets) {
-					const id = Tools.toId(key);
-					if (!id) continue;
-					this.learnsetDataCache.set(id, batch.learnsets[key]);
-					(this.data.learnsetDataKeys as string[]).push(id);
-				}
-
-				learnsetDataCurrentIndex = batch.endIndex;
-			}
-		}
-
-		// moves
-		const moveIdsRequest = await this.workers.pokemonShowdown.getMoveIds({mod});
-		if (moveIdsRequest === null) throw new Error("An error occurred while getting move IDs");
-
-		const moveIds = JSON.parse(moveIdsRequest.data) as {aliases: Dict<string>; keys: string[]};
-		const moveKeys = moveIds.keys;
-		if (moveKeys.length) {
-			let movesCurrentIndex = 0;
-			const movesEndIndex = moveKeys.length - 1;
-			while (movesCurrentIndex < movesEndIndex) {
-				const movesRequest = await this.workers.pokemonShowdown.getMoves({mod, keys: moveKeys, startIndex: movesCurrentIndex});
-				if (movesRequest === null) throw new Error("An error occurred while getting moves");
-
-				const batch = JSON.parse(movesRequest.data) as {moves: IMove[]; endIndex: number};
-				if (batch.endIndex === movesCurrentIndex) throw new Error("Not enough memory to load moves");
-
-				for (const move of batch.moves) {
-					const id = move.realMove ? Tools.toId(move.name) : move.id;
-					if (id) {
-						this.moveCache.set(id, move);
-						(this.data.moveKeys as string[]).push(id);
-					}
-				}
-
-				movesCurrentIndex = batch.endIndex;
-			}
-
-			for (const key in moveIds.aliases) {
+		loadPromises.push(this.workers.pokemonShowdown.getLearnsetData(mod).then(learnsetData => {
+			if (learnsetData === null) throw new Error("An error occurred while getting learnset data");
+			for (const key in learnsetData) {
 				const id = Tools.toId(key);
 				if (!id) continue;
-				const move = this.moveCache.get(moveIds.aliases[key]);
+				this.learnsetDataCache.set(id, learnsetData[key]);
+				(this.data.learnsetDataKeys as string[]).push(id);
+			}
+		}));
+
+		// moves
+		loadPromises.push(this.workers.pokemonShowdown.getMoves(mod).then(response => {
+			if (response === null) throw new Error("An error occurred while getting moves");
+			for (const move of response.moves) {
+				const id = move.realMove ? Tools.toId(move.name) : move.id;
+				if (id) {
+					this.moveCache.set(id, move);
+					(this.data.moveKeys as string[]).push(id);
+				}
+			}
+
+			for (const key in response.aliases) {
+				const id = Tools.toId(key);
+				if (!id) continue;
+				const move = this.moveCache.get(response.aliases[key]);
 				if (move) this.moveCache.set(id, move);
 			}
-		}
+		}));
 
 		// pokemon
-		const pokemonIdsRequest = await this.workers.pokemonShowdown.getSpeciesIds({mod});
-		if (pokemonIdsRequest === null) throw new Error("An error occurred while getting Pokemon IDs");
-
-		const pokemonIds = JSON.parse(pokemonIdsRequest.data) as {aliases: Dict<string>; keys: string[]};
-
 		const formeNames: Dict<string[]> = {
 			alola: ['a', 'alola', 'alolan'],
 			galar: ['g', 'galar', 'galarian'],
@@ -601,117 +547,79 @@ export class Dex {
 			primal: ['p', 'primal'],
 		};
 
-		const pokemonKeys = pokemonIds.keys;
-		if (pokemonKeys.length) {
-			let pokemonCurrentIndex = 0;
-			const pokemonEndIndex = pokemonKeys.length - 1;
-			while (pokemonCurrentIndex < pokemonEndIndex) {
-				const pokemonRequest = await this.workers.pokemonShowdown.getSpecies({mod, keys: pokemonKeys,
-					startIndex: pokemonCurrentIndex});
-				if (pokemonRequest === null) throw new Error("An error occurred while getting Pokemon");
+		loadPromises.push(this.workers.pokemonShowdown.getSpecies(mod).then(response => {
+			if (response === null) throw new Error("An error occurred while getting pokemon");
+			for (const pokemon of response.pokemon) {
+				if (!pokemon.id) continue;
 
-				const batch = JSON.parse(pokemonRequest.data) as {pokemon: IPokemon[]; endIndex: number};
-				if (batch.endIndex === pokemonCurrentIndex) throw new Error("Not enough memory to load Pokemon");
-
-				for (const pokemon of batch.pokemon) {
-					if (!pokemon.id) continue;
-
-					if (pokemon.color) {
-						const id = Tools.toId(pokemon.color);
-						if (!(id in this.data.colors)) {
-							// @ts-expect-error
-							this.data.colors[id] = pokemon.color;
-						}
-					}
-
-					if (pokemon.tier) {
-						const id = Tools.toId(pokemon.tier);
-						if (!(id in tagNames)) tagNames[id] = pokemon.tier;
-					}
-
-					if (pokemon.eggGroups) {
-						for (const eggGroup of pokemon.eggGroups) {
-							const id = Tools.toId(eggGroup);
-							if (!(id in this.data.eggGroups)) {
-								// @ts-expect-error
-								this.data.eggGroups[id] = eggGroup;
-							}
-						}
-					}
-
-					if (pokemon.id in this.data.categories) {
+				if (pokemon.color) {
+					const id = Tools.toId(pokemon.color);
+					if (!(id in this.data.colors)) {
 						// @ts-expect-error
-						pokemon.category = this.data.categories[pokemon.id];
+						this.data.colors[id] = pokemon.color;
 					}
+				}
 
-					this.pokemonCache.set(pokemon.id, pokemon);
-					(this.data.pokemonKeys as string[]).push(pokemon.id);
+				if (pokemon.tier) {
+					const id = Tools.toId(pokemon.tier);
+					if (!(id in tagNames)) tagNames[id] = pokemon.tier;
+				}
 
-					const formeId = Tools.toId(pokemon.forme);
-					if (formeId && formeId in formeNames) {
-						for (const alias of formeNames[formeId]) {
-							this.pokemonCache.set(pokemon.id + alias, pokemon);
-							this.pokemonCache.set(alias + pokemon.id, pokemon);
+				if (pokemon.eggGroups) {
+					for (const eggGroup of pokemon.eggGroups) {
+						const id = Tools.toId(eggGroup);
+						if (!(id in this.data.eggGroups)) {
+							// @ts-expect-error
+							this.data.eggGroups[id] = eggGroup;
 						}
 					}
 				}
 
-				pokemonCurrentIndex = batch.endIndex;
+				if (pokemon.id in this.data.categories) {
+					// @ts-expect-error
+					pokemon.category = this.data.categories[pokemon.id];
+				}
+
+				this.pokemonCache.set(pokemon.id, pokemon);
+				(this.data.pokemonKeys as string[]).push(pokemon.id);
+
+				const formeId = Tools.toId(pokemon.forme);
+				if (formeId && formeId in formeNames) {
+					for (const alias of formeNames[formeId]) {
+						this.pokemonCache.set(pokemon.id + alias, pokemon);
+						this.pokemonCache.set(alias + pokemon.id, pokemon);
+					}
+				}
 			}
 
-			for (const key in pokemonIds.aliases) {
+			for (const key in response.aliases) {
 				const id = Tools.toId(key);
 				if (!id) continue;
-				const pokemon = this.pokemonCache.get(pokemonIds.aliases[key]);
+				const pokemon = this.pokemonCache.get(response.aliases[key]);
 				if (pokemon) this.pokemonCache.set(id, pokemon);
 			}
+		}));
 
-			let allPossibleMovesCurrentIndex = 0;
-			const allPossibleMovesEndIndex = pokemonKeys.length - 1;
-			while (allPossibleMovesCurrentIndex < allPossibleMovesEndIndex) {
-				const allPossibleMovesRequest = await this.workers.pokemonShowdown.getAllPossibleMoves({mod, keys: pokemonKeys,
-					startIndex: allPossibleMovesCurrentIndex});
-				if (allPossibleMovesRequest === null) throw new Error("An error occurred while getting all possible moves");
-
-				const batch = JSON.parse(allPossibleMovesRequest.data) as {allPossibleMoves: Dict<string[]>; endIndex: number};
-
-				if (batch.endIndex === allPossibleMovesCurrentIndex) throw new Error("Not enough memory to load all possible moves");
-
-				for (const id in batch.allPossibleMoves) {
-					this.allPossibleMovesCache.set(id, batch.allPossibleMoves[id]);
-				}
-
-				allPossibleMovesCurrentIndex = batch.endIndex;
+		// all possible moves
+		loadPromises.push(this.workers.pokemonShowdown.getAllPossibleMoves(mod).then(allPossibleMoves => {
+			if (allPossibleMoves === null) throw new Error("An error occurred while getting all possible moves");
+			for (const id in allPossibleMoves) {
+				this.allPossibleMovesCache.set(id, allPossibleMoves[id]);
 			}
-		}
+		}));
 
 		// types
-		const typeIdsRequest = await this.workers.pokemonShowdown.getTypeIds({mod});
-		if (typeIdsRequest === null) throw new Error("An error occurred while getting type IDs");
-
-		const typeIds = JSON.parse(typeIdsRequest.data) as {aliases: Dict<string>; keys: string[]};
-		const typeKeys = typeIds.keys;
-		if (typeKeys.length) {
-			let typesCurrentIndex = 0;
-			const typesEndIndex = typeKeys.length - 1;
-			while (typesCurrentIndex < typesEndIndex) {
-				const typesRequest = await this.workers.pokemonShowdown.getTypes({mod, keys: typeKeys, startIndex: typesCurrentIndex});
-				if (typesRequest === null) throw new Error("An error occurred while getting types");
-
-				const batch = JSON.parse(typesRequest.data) as {types: ITypeData[]; endIndex: number};
-
-				if (batch.endIndex === typesCurrentIndex) throw new Error("Not enough memory to load types");
-
-				for (const type of batch.types) {
-					if (type.id) {
-						this.typeCache.set(type.id, type);
-						(this.data.typeKeys as string[]).push(type.id);
-					}
+		loadPromises.push(this.workers.pokemonShowdown.getTypes(mod).then(types => {
+			if (types === null) throw new Error("An error occurred while getting types");
+			for (const type of types) {
+				if (type.id) {
+					this.typeCache.set(type.id, type);
+					(this.data.typeKeys as string[]).push(type.id);
 				}
-
-				typesCurrentIndex = batch.endIndex;
 			}
-		}
+		}));
+
+		return Promise.all(loadPromises);
 	}
 
 	async fetchClientData(): Promise<void> {
