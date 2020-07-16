@@ -154,6 +154,7 @@ class HauntersHauntedHouse extends Game {
 	canMove: boolean = false;
 	collectedCandy: number = 0;
 	eliminatedPlayers = new Set<Player>();
+	maxPlayers = 15;
 	mimikyuHaunt: boolean = false;
 	ghosts: Ghost[] = [];
 	playerLocations = new Map<Player, [number, number]>();
