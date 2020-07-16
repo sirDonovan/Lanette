@@ -200,10 +200,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			freejoin: true,
 		},
 		{
-			name: "Excluded",
-			description: "Players try to guess pokemon that are not excluded by the parameter.",
-		},
-		{
 			name: "Gameathlon",
 			description: "A series of Game Corner games in one! Players try to win each mini-game to earn points.",
 			freejoin: true,
