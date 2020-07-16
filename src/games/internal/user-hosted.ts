@@ -133,8 +133,22 @@ export class UserHosted extends Game {
 				"bits " + this.room.title + "``. Thanks for your efforts, we hope you host again soon!");
 		}
 
+		const now = Date.now();
 		if (!(this.room.id in Games.lastUserHostTimes)) Games.lastUserHostTimes[this.room.id] = {};
-		Games.lastUserHostTimes[this.room.id][this.hostId] = Date.now();
+		Games.lastUserHostTimes[this.room.id][this.hostId] = now;
+
+		if (!this.subHostName) {
+			const database = Storage.getDatabase(this.room);
+			if (!database.userHostedGameStats) database.userHostedGameStats = {};
+			if (!(this.hostId in database.userHostedGameStats)) database.userHostedGameStats[this.hostId] = [];
+			database.userHostedGameStats[this.hostId].push({
+				endTime: now,
+				format: this.format.name,
+				inputTarget: this.format.inputTarget,
+				playerCount: this.playerCount,
+				startTime: this.signupsTime,
+			});
+		}
 	}
 }
 
