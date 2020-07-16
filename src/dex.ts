@@ -763,15 +763,15 @@ export class Dex {
 
 	getMoveAvailability(move: IMove, pokedex?: IPokemon[]): number {
 		if (!pokedex) pokedex = this.getPokemonList();
-		const availability: string[] = [];
+
+		let availability = 0;
 		for (const pokemon of pokedex) {
-			if (this.getAllPossibleMoves(pokemon).includes(move.id) && !(pokemon.baseSpecies !== pokemon.name &&
-				availability.includes(pokemon.baseSpecies))) {
-				availability.push(pokemon.name);
+			if (this.getAllPossibleMoves(pokemon).includes(move.id)) {
+				availability++;
 			}
 		}
 
-		return availability.length;
+		return availability;
 	}
 
 	/*
@@ -1079,6 +1079,26 @@ export class Dex {
 
 	getPSPokemonIcon(pokemon: IPokemon): string {
 		return '<psicon pokemon="' + pokemon.id + '" style="vertical-align: -7px;margin: -2px" />';
+	}
+
+	getPokemonColorHtml(pokemon: IPokemon, width?: number): string {
+		if (!width) width = 75;
+
+		const colorData = Tools.hexColorCodes[Tools.pokemonColorHexColors[pokemon.color]];
+		return '<div style="display:inline-block;background-color:' + colorData['background-color'] + ';background:' +
+			colorData['background'] + ';border-color:' + colorData['border-color'] + ';border: 1px solid #a99890;border-radius:3px;' +
+			'width:' + width + 'px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;' +
+			'font-size:8pt;text-align:center"><b>' + pokemon.color + '</b></div>';
+	}
+
+	getTypeHtml(type: ITypeData, width?: number): string {
+		if (!width) width = 75;
+
+		const colorData = Tools.hexColorCodes[Tools.typeHexColors[type.name]];
+		return '<div style="display:inline-block;background-color:' + colorData['background-color'] + ';background:' +
+			colorData['background'] + ';border-color:' + colorData['border-color'] + ';border: 1px solid #a99890;border-radius:3px;' +
+			'width:' + width + 'px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;' +
+			'font-size:8pt;text-align:center"><b>' + type.name + '</b></div>';
 	}
 
 	/*
