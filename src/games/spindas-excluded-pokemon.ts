@@ -94,7 +94,7 @@ class SpindasExcludedPokemon extends Game {
 
 		if (!this.playerOrder.length || !this.getRemainingPlayerCount(this.playerOrder)) {
 			if (this.getRemainingPlayerCount() < 2) {
-				this.say("All players have been eliminated! The parameter was: __" + this.parameter + "__.");
+				this.say("Only 1 player remains! The parameter was: __" + this.parameter + "__.");
 				this.end();
 				return;
 			}
@@ -116,6 +116,11 @@ class SpindasExcludedPokemon extends Game {
 	}
 
 	onEnd(): void {
+		for (const id in this.players) {
+			if (this.players[id].eliminated) continue;
+			this.winners.set(this.players[id], 1);
+			this.addBits(this.players[id], 500);
+		}
 		this.announceWinners();
 	}
 }
@@ -167,8 +172,9 @@ const commands: GameCommandDefinitions<SpindasExcludedPokemon> = {
 			if (id === Tools.toId(this.parameter)) {
 				this.say(player.name + " correctly guessed the parameter (__" + this.parameter + "__)!");
 				if (this.timeout) clearTimeout(this.timeout);
-				this.winners.set(player, 1);
-				this.addBits(player, 500);
+				for (const id in this.players) {
+					if (this.players[id] !== player) this.players[id].eliminated = true;
+				}
 				this.end();
 			} else {
 				this.say(user.name + " guessed an incorrect parameter and has been eliminated from the game!");
