@@ -421,15 +421,20 @@ const commands: CommandDefinitions<CommandContext> = {
 				if (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
 				gameRoom = room;
 			}
-
 			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(gameRoom.id)) {
 				return this.sayError(['disabledGameFeatures', gameRoom.title]);
 			}
-			if (Games.getFormat(targets[0], true)) {
-				if (Array.isArray(Games.getFormat(targets[0], true))) {
-					const gameDesc = Games.getExistingUserHostedFormat(targets[0]).description;
-					this.say(Games.getExistingUserHostedFormat(targets[0]).name + ': ' + gameDesc);
-					return;
+			const format = Games.getFormat(targets[0], true);
+			if (format) {
+				if (Array.isArray(format)) {
+					if (Games.getUserHostedFormat(targets[0])){
+						if (Array.isArray(Games.getUserHostedFormat(targets[0]))) {
+							this.sayError(['invalidGameFormat', targets[0]]);
+						}
+						const gameDesc = Games.getExistingUserHostedFormat(targets[0]).description;
+						this.say(Games.getExistingUserHostedFormat(targets[0]).name + ': ' + gameDesc);
+						return;
+					}
 				}
 				const gameDesc = Games.getExistingFormat(targets[0]).description;
 				this.say(Games.getExistingFormat(targets[0]).name + ': ' + gameDesc);
