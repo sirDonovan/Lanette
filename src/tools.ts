@@ -212,6 +212,14 @@ export class Tools {
 		return true;
 	}
 
+	arraysContainArray(input: number[], arrays: number[][]): boolean {
+		for (const array of arrays) {
+			if (this.compareArrays(input, array)) return true;
+		}
+
+		return false;
+	}
+
 	intersectArrays<T>(arrayA: readonly T[], arrayB: readonly T[]): T[] {
 		const temp: T[] = [];
 		const arrayALen = arrayA.length;
@@ -443,11 +451,11 @@ export class Tools {
 		return id && id.length <= maxUsernameLength ? true : false;
 	}
 
-	deepClone<T>(obj: T): DeepWritable<T> {
-		if (obj === null || obj === undefined || typeof obj !== 'object') return obj as DeepWritable<T>;
+	deepClone<T>(obj: T): DeepMutable<T> {
+		if (obj === null || obj === undefined || typeof obj !== 'object') return obj as DeepMutable<T>;
 		if (Array.isArray(obj)) {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const clone = obj.slice() as DeepWritable<T & any[]>;
+			const clone = obj.slice() as DeepMutable<T & any[]>;
 			for (let i = 0; i < obj.length; i++) {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				clone[i] = this.deepClone(obj[i]);
@@ -455,7 +463,7 @@ export class Tools {
 			return clone;
 		}
 
-		const clone = Object.create(Object.getPrototypeOf(obj)) as DeepWritable<T>;
+		const clone = Object.create(Object.getPrototypeOf(obj)) as DeepMutable<T>;
 		const keys = Object.keys(obj) as (keyof T)[];
 		for (const key of keys) {
 			// @ts-expect-error

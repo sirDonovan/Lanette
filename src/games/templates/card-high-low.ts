@@ -259,6 +259,7 @@ const commands: GameCommandDefinitions<CardHighLow> = {
 export const game: IGameTemplateFile<CardHighLow> = Object.assign(Tools.deepClone(cardGame), {
 	category: 'card-high-low' as GameCategory,
 	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
+	modeProperties: undefined,
 	tests: undefined,
 	variants: undefined,
 });

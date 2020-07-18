@@ -12,6 +12,8 @@ const MINIGAME_BITS = 25;
 export abstract class Guessing extends Game {
 	additionalHintHeader: string = '';
 	answers: string[] = [];
+	answerTimeout: NodeJS.Timer | undefined;
+	beforeNextRoundTime: number = 5 * 1000;
 	canGuess: boolean = false;
 	firstAnswer: Player | false | undefined;
 	guessingRound: number = 0;
@@ -56,22 +58,25 @@ export abstract class Guessing extends Game {
 		this.sayUhtml(this.hintUhtmlName, this.getHintHtml());
 	}
 
-	onHintHtml(): void {
-		this.canGuess = true;
-		this.timeout = setTimeout(() => {
-			if (this.answers.length) {
-				this.say("Time is up! " + this.getAnswers(''));
-				this.answers = [];
-				if (this.isMiniGame) {
-					this.end();
-					return;
-				}
+	onAnswerTimeLimit(): void {
+		if (this.answers.length) {
+			this.say("Time is up! " + this.getAnswers(''));
+			this.answers = [];
+			if (this.isMiniGame) {
+				this.end();
+				return;
 			}
-			this.nextRound();
-		}, this.roundTime);
+		}
+		this.nextRound();
 	}
 
 	async onNextRound(): Promise<void> {
+		let roundText: boolean | string | undefined;
+		if (this.beforeNextRound) {
+			roundText = this.beforeNextRound();
+			if (roundText === false) return;
+		}
+
 		let newAnswer = false;
 		if (!this.answers.length) {
 			newAnswer = true;
@@ -91,13 +96,27 @@ export abstract class Guessing extends Game {
 		const html = this.getHintHtml();
 		this.onUhtml(hintUhtmlName, html, () => {
 			if (this.ended) return;
-			this.onHintHtml();
+			if (!this.canGuess) this.canGuess = true;
+			if (this.answerTimeout) clearTimeout(this.answerTimeout);
+			this.answerTimeout = setTimeout(() => this.onAnswerTimeLimit(), this.roundTime);
+			if (this.onHintHtml) this.onHintHtml();
 		});
 
-		if (newAnswer) {
-			this.sayUhtml(hintUhtmlName, html);
+		const sayHint = () => {
+			if (newAnswer) {
+				this.sayUhtml(hintUhtmlName, html);
+			} else {
+				this.sayUhtmlAuto(hintUhtmlName, html);
+			}
+		};
+
+		if (typeof roundText === 'string') {
+			this.on(roundText, () => {
+				this.timeout = setTimeout(() => sayHint(), this.beforeNextRoundTime);
+			});
+			this.say(roundText);
 		} else {
-			this.sayUhtmlAuto(hintUhtmlName, html);
+			sayHint();
 		}
 	}
 
@@ -119,6 +138,8 @@ export abstract class Guessing extends Game {
 			answer = this.onIncorrectGuess(player, guess);
 			if (!answer) return false;
 		}
+
+		if (this.answerTimeout) clearTimeout(this.answerTimeout);
 
 		return answer;
 	}
@@ -155,9 +176,11 @@ export abstract class Guessing extends Game {
 		return this.getAnswers("", !this.isMiniGame);
 	}
 
+	beforeNextRound?(): boolean | string;
 	filterGuess?(guess: string): boolean;
 	getPointsForAnswer?(answer: string): number;
 	onCorrectGuess?(player: Player, guess: string): void;
+	onHintHtml?(): void;
 	onIncorrectGuess?(player: Player, guess: string): string;
 	updateHint?(): void;
 }

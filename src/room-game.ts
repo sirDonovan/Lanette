@@ -60,6 +60,7 @@ export class Game extends Activity {
 	signupsUhtmlName!: string;
 	joinLeaveButtonUhtmlName!: string;
 
+	additionalDescription?: string;
 	allowChildGameBits?: boolean;
 	commandDescriptions?: string[];
 	isMiniGame?: boolean;
@@ -209,6 +210,7 @@ export class Game extends Activity {
 		const format = this.format as IGameFormat;
 		if (format.commands) Object.assign(this.commands, format.commands);
 		if (format.commandDescriptions) this.commandDescriptions = format.commandDescriptions;
+		if (format.additionalDescription) this.additionalDescription = format.additionalDescription;
 		if (format.mascot) {
 			this.mascot = Dex.getPokemonCopy(format.mascot);
 		} else if (format.mascots) {
@@ -219,7 +221,12 @@ export class Game extends Activity {
 			delete format.variant.name;
 			Object.assign(this, format.variant);
 		}
-		if (format.mode) format.mode.initialize(this);
+		if (format.mode) {
+			if (format.modeProperties && format.mode.id in format.modeProperties) {
+				Object.assign(this, format.modeProperties[format.mode.id]);
+			}
+			format.mode.initialize(this);
+		}
 	}
 
 	loadModeCommands<T extends Game>(commands: LoadedGameCommands<T>): void {
@@ -339,7 +346,7 @@ export class Game extends Activity {
 			this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, "<div></div>");
 		}
 
-		this.say(this.name + " is starting! **Players (" + this.playerCount + ")**: " + this.getPlayerNames());
+		if (!this.internalGame) this.say(this.name + " is starting! **Players (" + this.playerCount + ")**: " + this.getPlayerNames());
 		if (this.onStart) this.onStart();
 		return true;
 	}
@@ -682,6 +689,7 @@ export class Game extends Activity {
 			if (gif) html += gif;
 		}
 		html += "<h3>" + this.name + "</h3>" + this.description;
+		if (this.additionalDescription) html += "<br /><br />" + this.additionalDescription;
 		let commandDescriptions: string[] = [];
 		if (this.getPlayerSummary) commandDescriptions.push(Config.commandCharacter + "summary");
 		if (this.commandDescriptions) commandDescriptions = commandDescriptions.concat(this.commandDescriptions);

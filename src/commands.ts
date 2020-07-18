@@ -11,7 +11,7 @@ import type { Room } from "./rooms";
 import type { CommandDefinitions } from "./types/command-parser";
 import type { IDexWorkers, IFormat } from "./types/dex";
 import type { GameDifficulty, IGameFormat, IGamesWorkers } from "./types/games";
-import type { IStorageWorkers, UserHostStatus } from './types/storage';
+import type { IStorageWorkers, UserHostStatus, IUserHostedGameStats } from './types/storage';
 import type { IBattleData, TournamentPlace } from './types/tournaments';
 import type { User } from "./users";
 
@@ -576,7 +576,7 @@ const commands: CommandDefinitions<CommandContext> = {
 
 			const targets = target.split(",");
 			const targetUser = Users.get(targets[0]);
-			if (!targetUser || !targetUser.rooms.has(room) || targetUser.isBot(room)) {
+			if (!targetUser || !targetUser.rooms.has(room) || targetUser === Users.self || targetUser.isBot(room)) {
 				user.say(CommandParser.getErrorText(["invalidUserInRoom"]));
 				return;
 			}
@@ -1328,6 +1328,64 @@ const commands: CommandDefinitions<CommandContext> = {
 			}
 		},
 		aliases: ['hstatuslist'],
+	},
+	hoststats: {
+		command(target, room, user) {
+			const targets = target.split(',');
+			let gameRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				gameRoom = targetRoom;
+				targets.shift();
+			} else {
+				gameRoom = room;
+			}
+
+			if (!user.hasRank(gameRoom, 'driver')) return;
+
+			let hostName = targets.length ? targets[0].trim() : "";
+			let hostId: string;
+			const targetUser = Users.get(hostName);
+			if (targetUser) {
+				hostName = targetUser.name;
+				hostId = targetUser.id;
+			} else {
+				hostId = Tools.toId(hostName);
+			}
+
+			if (!hostId) return this.say("Please specify a user.");
+
+			const database = Storage.getDatabase(gameRoom);
+			if (!database.userHostedGameStats || !(hostId in database.userHostedGameStats)) {
+				return this.say(hostName + " has not hosted yet this cycle.");
+			}
+
+			let html = "<b>" + hostName + "'s cycle host stats</b>:<br />";
+			const stats: Dict<IUserHostedGameStats[]> = {};
+			for (const game of database.userHostedGameStats[hostId]) {
+				const date = new Date(game.startTime);
+				const key = (date.getMonth() + 1) + '/' + date.getDate();
+				if (!(key in stats)) stats[key] = [];
+				stats[key].push(game);
+			}
+
+			for (const day in stats) {
+				let dayHtml = "<details><summary>" + day + "</summary>";
+				const dayStats: string[] = [];
+				for (const stat of stats[day]) {
+					const format = Games.getUserHostedFormat(stat.inputTarget);
+					const name = Array.isArray(format) ? stat.format : format.name;
+					dayStats.push("<b>" + name + "</b>: " + stat.playerCount + " players; " +
+						Tools.toDurationString(stat.endTime - stat.startTime));
+				}
+				dayHtml += dayStats.join("<br />") + "</details>";
+				html += dayHtml;
+			}
+
+			this.sayHtml(html, gameRoom);
+		},
+		aliases: ['hstats'],
 	},
 	randompick: {
 		command(target, room, user) {

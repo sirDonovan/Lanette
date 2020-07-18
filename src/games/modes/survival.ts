@@ -51,54 +51,34 @@ class Survival {
 	}
 
 	onStart(this: SurvivalThis): void {
-		this.nextRound();
+		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
-	async onNextRound(this: SurvivalThis): Promise<void> {
-		this.canGuess = false;
+	beforeNextRound(this: SurvivalThis): boolean | string {
+		if (this.answers.length) return true;
 		if (this.currentPlayer) {
-			this.say("Time is up! " + this.getAnswers(''));
 			this.eliminatePlayer(this.currentPlayer, "You did not guess the answer in time!");
 			this.playerRounds.set(this.currentPlayer, this.survivalRound);
 			this.currentPlayer = null;
 		}
 
-		if (!this.playerList.length) {
+		if (!this.playerList.length || !this.getRemainingPlayerCount(this.playerList)) {
 			if (this.getRemainingPlayerCount() < 2) {
 				this.end();
-				return;
+				return false;
 			}
 			this.survivalRound++;
 			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(this.getPlayerNames, null, "Round " + this.survivalRound));
 			this.playerList = this.shufflePlayers();
-			if (this.survivalRound > 1 && this.roundTime > 1000) this.roundTime -= 500;
-		}
-		let currentPlayer = this.playerList.shift();
-		while (currentPlayer && currentPlayer.eliminated) {
-			currentPlayer = this.playerList.shift();
-		}
-		if (!currentPlayer || currentPlayer.eliminated) {
-			await this.onNextRound();
-			return;
+			if (this.survivalRound > 1 && this.roundTime > 2000) this.roundTime -= 500;
 		}
 
-		await this.setAnswers();
-		if (this.ended) return;
+		const currentPlayer = this.playerList[0];
+		this.playerList.shift();
+		if (currentPlayer.eliminated) return this.beforeNextRound();
 
 		this.currentPlayer = currentPlayer;
-		const text = "**" + this.currentPlayer.name + "** you are up!";
-		this.on(text, () => {
-			this.timeout = setTimeout(() => {
-				const html = this.getHintHtml();
-				const uhtmlName = this.uhtmlBaseName + '-hint-' + this.round;
-				this.onUhtml(uhtmlName, html, () => {
-					this.canGuess = true;
-					this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
-				});
-				this.sayUhtml(uhtmlName, html);
-			}, 5 * 1000);
-		});
-		this.say(text);
+		return "**" + this.currentPlayer.name + "** you are up!";
 	}
 
 	onEnd(this: SurvivalThis): void {
@@ -132,6 +112,7 @@ const commandDefinitions: GameCommandDefinitions<SurvivalThis> = {
 				return true;
 			}
 			this.say('**' + user.name + '** advances to the next round! ' + this.getAnswers(answer));
+			this.answers = [];
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 			return true;
 		},
@@ -192,6 +173,8 @@ const tests: GameFileTests<SurvivalThis> = {
 			assert(currentPlayer);
 			game.canGuess = true;
 			await runCommand(attributes.commands![0], 'mocha', game.room, currentPlayer.name);
+			// answers cleared when time runs out
+			game.answers = [];
 			await game.onNextRound();
 			assert(currentPlayer.eliminated);
 		},

@@ -1,8 +1,8 @@
 import type { Player } from '../../room-activity';
 import { Game } from '../../room-game';
-import type { IPokemon, IMove, StatsTable } from '../../types/dex';
-import type { GameCommandDefinitions, IGameTemplateFile, GameFileTests } from '../../types/games';
-import { assertStrictEqual, assert } from '../../test/test-tools';
+import { assert, assertStrictEqual } from '../../test/test-tools';
+import type { IMove, IPokemon, StatsTable } from '../../types/dex';
+import type { GameCommandDefinitions, GameFileTests, IGameTemplateFile, PlayerList } from '../../types/games';
 
 export interface IActionCardData<T extends Game = Game, U extends ICard = ICard> {
 	getRandomTarget?: (game: T, hand: U[]) => string | undefined;
@@ -173,22 +173,13 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Game
 	getChatTypeLabel(card: IPokemonCard): string {
 		const types = [];
 		for (const type of card.types) {
-			const colorData = Tools.hexColorCodes[Tools.typeHexColors[type]];
-			types.push('<div style="display:inline-block;background-color:' + colorData['background-color'] + ';background:' +
-				colorData['background'] + ';border-color:' + colorData['border-color'] + ';border: 1px solid #a99890;border-radius:3px;' +
-				'width:' + this.detailLabelWidth + 'px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;' +
-				'font-size:8pt;text-align:center"><b>' + type + '</b></div>'
-			);
+			types.push(Dex.getTypeHtml(Dex.getExistingType(type), this.detailLabelWidth));
 		}
 		return types.join("&nbsp;/&nbsp;");
 	}
 
 	getChatColorLabel(card: IPokemonCard): string {
-		const colorData = Tools.hexColorCodes[Tools.pokemonColorHexColors[card.color]];
-		return '<div style="display:inline-block;background-color:' + colorData['background-color'] + ';background:' +
-			colorData['background'] + ';border-color:' + colorData['border-color'] + ';border: 1px solid #a99890;border-radius:3px;' +
-			'width:' + this.detailLabelWidth + 'px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;' +
-			'font-size:8pt;text-align:center"><b>' + card.color + '</b></div>';
+		return Dex.getPokemonColorHtml(Dex.getExistingPokemon(card.name), this.detailLabelWidth);
 	}
 
 	getCardChatHtml(cards: ICard | ICard[]): string {
@@ -337,7 +328,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Game
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	getPlayerCards(players?: Dict<Player> | Player[] | Map<Player, any>): string {
+	getPlayerCards(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => {
 			const cards = this.playerCards.get(player);
 			return player.name + (cards ? " (" + cards.length + ")" : "");

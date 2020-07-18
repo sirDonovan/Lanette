@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
-import type { IGameFile } from "../types/games";
+import type { IGameFile, IGameFormat } from "../types/games";
 import type { User } from "../users";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 
@@ -21,11 +21,13 @@ class HypnosHunches extends Guessing {
 	guessLimit: number = 10;
 	guessedLetters: string[] = [];
 	hints: string[] = [];
+	incorrectGuessTime: number = 4000;
 	solvedLetters: string[] = [];
 	uniqueLetters: number = 0;
 	lastAnswer: string = '';
 	letters: string[] = [];
 	roundGuesses = new Map<Player, boolean>();
+	roundTime: number = 15 * 1000;
 
 	static loadData(room: Room | User): void {
 		data["Characters"] = Dex.data.characters.slice();
@@ -66,8 +68,8 @@ class HypnosHunches extends Guessing {
 			const id = Tools.toId(this.letters[i]);
 			if (this.solvedLetters.includes(id)) this.hints[i] = id;
 		}
-		this.hint = "<b>" + this.currentCategory + "</b> | " + this.hints.join("") + (this.guessedLetters.length ? " | " +
-			this.guessedLetters.join(", ") : "");
+		this.hint = "<b>" + this.currentCategory + "</b> | " + this.hints.join("") + (this.guessedLetters.length ?
+			' | <font color="red">' + this.guessedLetters.join(", ") + '</font>' : "");
 	}
 
 	onHintHtml(): void {
@@ -85,11 +87,10 @@ class HypnosHunches extends Guessing {
 				this.end();
 			} else {
 				this.answers = [];
+				if (this.timeout) clearTimeout(this.timeout);
 				this.timeout = setTimeout(() => this.nextRound(), 5000);
 			}
 			return;
-		} else {
-			if (!this.canGuess) this.canGuess = true;
 		}
 	}
 
@@ -103,7 +104,7 @@ class HypnosHunches extends Guessing {
 	onIncorrectGuess(player: Player, guess: string): string {
 		guess = Tools.toId(guess);
 		if (!this.timeout) {
-			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+			this.timeout = setTimeout(() => this.nextRound(), this.incorrectGuessTime);
 		}
 		for (const letter of this.letters) {
 			if (Tools.toId(letter) === guess) {
@@ -133,6 +134,13 @@ export const game: IGameFile<HypnosHunches> = Games.copyTemplateProperties(guess
 	mascot: "Hypno",
 	minigameCommand: 'hunch',
 	minigameDescription: 'Use ``' + Config.commandCharacter + 'g`` to guess one letter per round or the answer (no blanks shown)!',
+	modes: ['survival', 'group'],
+	modeProperties: {
+		'survival': {
+			guessLimit: 4,
+			incorrectGuessTime: 1000,
+		},
+	},
 	variants: [
 		{
 			name: "Hypno's Ability Hunches",

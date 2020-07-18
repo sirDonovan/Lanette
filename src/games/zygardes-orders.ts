@@ -24,13 +24,15 @@ class ZygardesOrders extends Guessing {
 	allLetters: number = 0;
 	currentCategory: string = '';
 	guessedLetters: string[] = [];
-	guessLimit: number = 10;
 	hints: string[] = [];
 	lastAnswer: string = '';
 	letters: string[] = [];
+	maxRevealedLetters: number | undefined;
 	orderRound: number = 0;
 	revealedLetters: number = 0;
+	revealLetterTime: number = 5 * 1000;
 	roundGuesses = new Map<Player, boolean>();
+	scaleMaxRevealedLetters: boolean = false;
 	solvedLetters: string[] = [];
 
 	static loadData(room: Room | User): void {
@@ -47,7 +49,7 @@ class ZygardesOrders extends Guessing {
 		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		this.currentCategory = category;
 		let answer = this.sampleOne(data[category]);
-		while (answer === this.lastAnswer) {
+		while (answer === this.lastAnswer || (this.maxRevealedLetters && answer.length < 7)) {
 			answer = this.sampleOne(data[category]);
 		}
 		this.lastAnswer = answer;
@@ -56,6 +58,7 @@ class ZygardesOrders extends Guessing {
 		this.roundGuesses.clear();
 		this.letters = Tools.toId(answer).split("");
 		this.allLetters = this.letters.length;
+		if (this.scaleMaxRevealedLetters) this.maxRevealedLetters = Math.floor(this.allLetters / 2) + 2;
 		this.hints = this.letters.slice();
 		for (let i = 0; i < this.hints.length; i++) {
 			this.hints[i] = '';
@@ -96,8 +99,9 @@ class ZygardesOrders extends Guessing {
 	}
 
 	onHintHtml(): void {
-		if (this.revealedLetters >= this.allLetters) {
-			const text = "All possible letters have been revealed! " + this.getAnswers('');
+		if (this.revealedLetters >= this.allLetters || (this.maxRevealedLetters && this.revealedLetters >= this.maxRevealedLetters)) {
+			const text = (this.maxRevealedLetters ? "The maximum number of" : "All possible") + " letters have been revealed! " +
+				this.getAnswers('');
 			this.on(text, () => {
 				this.answers = [];
 				if (this.isMiniGame) {
@@ -108,8 +112,7 @@ class ZygardesOrders extends Guessing {
 			});
 			this.say(text);
 		} else {
-			if (!this.canGuess) this.canGuess = true;
-			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+			this.timeout = setTimeout(() => this.nextRound(), this.revealLetterTime);
 		}
 	}
 
@@ -134,6 +137,12 @@ export const game: IGameFile<ZygardesOrders> = Games.copyTemplateProperties(gues
 	minigameCommand: 'order',
 	minigameDescription: 'Use ``' + Config.commandCharacter + 'g`` to guess the answer as letters are revealed one by one (one chance ' +
 		'to guess correctly)!',
+	modes: ['survival', 'group'],
+	modeProperties: {
+		'survival': {
+			scaleMaxRevealedLetters: true,
+		},
+	},
 	variants: [
 		{
 			name: "Zygarde's Ability Orders",

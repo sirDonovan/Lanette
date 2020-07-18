@@ -129,7 +129,7 @@ interface IAbilityCopy extends IBasicEffect {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface IAbility extends DeepReadonly<IAbilityCopy> {}
+export interface IAbility extends DeepImmutable<IAbilityCopy> {}
 
 interface IFlingData {
 	basePower: number;
@@ -168,7 +168,7 @@ export interface IItemCopy extends IBasicEffect {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface IItem extends DeepReadonly<IItemCopy> {}
+export interface IItem extends DeepImmutable<IItemCopy> {}
 
 interface IHitEffect {
 	// set pokemon conditions
@@ -336,7 +336,7 @@ export interface IMoveCopy extends IBasicEffect {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface IMove extends DeepReadonly<IMoveCopy> {}
+export interface IMove extends DeepImmutable<IMoveCopy> {}
 
 interface ISpeciesAbility {
 	0: string;
@@ -424,7 +424,7 @@ interface IPokemonCopy extends ISpeciesFormatsData {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface IPokemon extends DeepReadonly<IPokemonCopy> {}
+export interface IPokemon extends DeepImmutable<IPokemonCopy> {}
 
 interface ILearnsetData {
 	id: string;

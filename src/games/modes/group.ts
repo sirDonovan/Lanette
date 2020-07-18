@@ -1,32 +1,26 @@
 import type { Player, PlayerTeam } from "../../room-activity";
 import type { Game } from "../../room-game";
-import { addPlayers, assert, assertStrictEqual, runCommand } from "../../test/test-tools";
 import type {
-	DefaultGameOption, GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFormat,
+	DefaultGameOption, GameCommandDefinitions, GameCommandReturnType, IGameFormat,
 	IGameModeFile
 } from "../../types/games";
 import type { Guessing } from "../templates/guessing";
 
 const BASE_POINTS = 20;
 
-const name = 'Team';
-const description = 'One player from each team will be able to answer each round!';
+const name = 'Group';
+const description = 'Players will be split into teams but everyone can answer each round!';
 const removedOptions: string[] = ['points', 'freejoin'];
 
-type TeamThis = Guessing & Team;
+type GroupThis = Guessing & Group;
 
-class Team {
-	currentPlayers: Dict<Player> = {};
+class Group {
 	firstAnswers: Dict<Player | false> = {};
 	minPlayers: number = 4;
 	playerOrders: Dict<Player[]> = {};
-	playerLists: Dict<Player[]> = {};
 	teamPoints: Dict<number> = {};
 	teamRound: number = 0;
 	teams: Dict<PlayerTeam> = {};
-
-	// set in onStart()
-	largestTeam!: PlayerTeam;
 
 	static setOptions<T extends Game>(format: IGameFormat<T>, namePrefixes: string[], nameSuffixes: string[]): void {
 		if (!format.name.includes(name)) namePrefixes.unshift(name);
@@ -50,17 +44,14 @@ class Team {
 		}
 	}
 
-	setTeams(this: TeamThis): void {
+	setTeams(this: GroupThis): void {
 		this.teams = this.generateTeams(this.format.options.teams);
 
 		const teamIds = Object.keys(this.teams);
-		this.largestTeam = this.teams[teamIds[0]];
 
 		for (const teamId of teamIds) {
 			const team = this.teams[teamId];
-			if (team.players.length > this.largestTeam.players.length) this.largestTeam = team;
 			this.playerOrders[team.id] = [];
-			this.playerLists[team.id] = [];
 		}
 
 		for (const i in this.players) {
@@ -69,38 +60,31 @@ class Team {
 			this.playerOrders[player.team!.id].push(player);
 		}
 
-		for (const team in this.playerOrders) {
-			this.playerOrders[team] = this.shuffle(this.playerOrders[team]);
-		}
-
 		for (const team in this.teams) {
 			this.say("**Team " + this.teams[team].name + "**: " + Tools.joinList(this.teams[team].getPlayerNames()));
 		}
 	}
 
-	onStart(this: TeamThis): void {
+	onStart(this: GroupThis): void {
 		this.setTeams();
 		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
-	beforeNextRound(this: TeamThis): boolean | string {
-		let largestTeamPlayersCycled = false;
+	getTeamPoints(): string {
+		const points: string[] = [];
+		for (const i in this.teams) {
+			points.push("<b>" + this.teams[i].name + "</b>: " + this.teams[i].points);
+		}
+
+		return points.join(" | ");
+	}
+
+	beforeNextRound(this: GroupThis): boolean {
 		let emptyTeams = 0;
 		for (const id in this.teams) {
 			const team = this.teams[id];
 			if (!this.getRemainingPlayerCount(this.playerOrders[team.id])) {
-				delete this.currentPlayers[team.id];
 				emptyTeams++;
-			} else {
-				let player = this.playerLists[team.id].shift();
-				while (!player || player.eliminated) {
-					if (!this.playerLists[team.id].length) {
-						if (team === this.largestTeam) largestTeamPlayersCycled = true;
-						this.playerLists[team.id] = this.shuffle(this.playerOrders[team.id]);
-					}
-					player = this.playerLists[team.id].shift();
-				}
-				this.currentPlayers[team.id] = player;
 			}
 		}
 
@@ -117,27 +101,12 @@ class Team {
 
 			this.timeout = setTimeout(() => this.end(), 5000);
 			return false;
+		} else {
+			return true;
 		}
-
-		if (largestTeamPlayersCycled) {
-			this.teamRound++;
-			const html = this.getRoundHtml(this.getTeamPoints, undefined, 'Round ' + this.teamRound, "Team standings");
-			this.sayUhtml(this.uhtmlBaseName + '-round-html', html);
-		}
-
-		return Tools.joinList(Object.values(this.currentPlayers).map(x => x.name), "**", "**") + ", you are up!";
 	}
 
-	getTeamPoints(): string {
-		const points: string[] = [];
-		for (const i in this.teams) {
-			points.push("<b>" + this.teams[i].name + "</b>: " + this.teams[i].points);
-		}
-
-		return points.join(" | ");
-	}
-
-	onEnd(this: TeamThis): void {
+	onEnd(this: GroupThis): void {
 		this.winners.forEach((value, player) => {
 			const points = this.points.get(player);
 			let earnings = 250;
@@ -153,19 +122,12 @@ class Team {
 	}
 }
 
-const commandDefinitions: GameCommandDefinitions<TeamThis> = {
+const commandDefinitions: GameCommandDefinitions<GroupThis> = {
 	guess: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async asyncCommand(target, room, user): Promise<GameCommandReturnType> {
-			if (!this.canGuess || !this.answers.length || !(user.id in this.players)) return false;
+			if (!this.canGuess || !this.answers.length) return false;
 			const player = this.players[user.id];
-			let currentPlayer = false;
-			for (const team in this.currentPlayers) {
-				if (this.currentPlayers[team] === player) {
-					currentPlayer = true;
-				}
-			}
-			if (!currentPlayer) return false;
 
 			if (!player.active) player.active = true;
 			const answer = await this.guessAnswer(player, target);
@@ -225,6 +187,7 @@ const commandDefinitions: GameCommandDefinitions<TeamThis> = {
 
 			this.answers = [];
 			this.timeout = setTimeout(() => this.nextRound(), 5000);
+
 			return true;
 		},
 		aliases: ['g'],
@@ -234,8 +197,8 @@ const commandDefinitions: GameCommandDefinitions<TeamThis> = {
 const commands = CommandParser.loadCommands(commandDefinitions);
 
 const initialize = (game: Game): void => {
-	const mode = new Team();
-	const propertiesToOverride = Object.getOwnPropertyNames(mode).concat(Object.getOwnPropertyNames(Team.prototype)) as (keyof Team)[];
+	const mode = new Group();
+	const propertiesToOverride = Object.getOwnPropertyNames(mode).concat(Object.getOwnPropertyNames(Group.prototype)) as (keyof Group)[];
 	for (const property of propertiesToOverride) {
 		// @ts-expect-error
 		game[property] = mode[property];
@@ -244,41 +207,13 @@ const initialize = (game: Game): void => {
 	game.loadModeCommands(commands);
 };
 
-const tests: GameFileTests<TeamThis> = {
-	'it should advance players who answer correctly': {
-		config: {
-			async: true,
-			commands: [['guess'], ['g']],
-		},
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		async test(game, format, attributes): Promise<void> {
-			this.timeout(15000);
-
-			const players = addPlayers(game);
-			game.start();
-			if (game.timeout) clearTimeout(game.timeout);
-			await game.onNextRound();
-			assert(game.answers.length);
-			const team = players[0].team!;
-			const currentPlayer = game.currentPlayers[team.id];
-			assert(currentPlayer);
-			game.canGuess = true;
-			const expectedPoints = game.getPointsForAnswer ? game.getPointsForAnswer(game.answers[0]) : 1;
-			await runCommand(attributes.commands![0], game.answers[0], game.room, currentPlayer.name);
-			assertStrictEqual(game.points.get(currentPlayer), expectedPoints);
-			assertStrictEqual(team.points, expectedPoints);
-		},
-	},
-};
-
-export const mode: IGameModeFile<Team, Guessing, TeamThis> = {
-	aliases: ['teams'],
-	class: Team,
+export const mode: IGameModeFile<Group, Guessing, GroupThis> = {
+	aliases: ['groups'],
+	class: Group,
 	commands,
 	description,
 	initialize,
 	name,
 	naming: 'prefix',
 	removedOptions,
-	tests,
 };

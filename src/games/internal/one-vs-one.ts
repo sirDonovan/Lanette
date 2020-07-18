@@ -25,11 +25,11 @@ export class OneVsOne extends Game {
 		this.minPlayers = 2;
 		this.name += " (" + challengeFormat.name + ")";
 
-		const text = challenger.name + " challenges " + defender.name + " to a one vs. one game of " +
+		const text = this.challenger.name + " challenges " + this.defender.name + " to a one vs. one game of " +
 			challengeFormat.nameWithOptions + "!";
 		this.on(text, () => {
 			this.timeout = setTimeout(() => {
-				this.say(defender.name + " failed to accept the challenge in time!");
+				this.say(this.defender.name + " failed to accept the challenge in time!");
 				this.forceEnd(Users.self);
 			}, 2 * 60 * 1000);
 		});
@@ -39,7 +39,7 @@ export class OneVsOne extends Game {
 	acceptChallenge(user: User): boolean {
 		if (this.started || !this.defender || !this.challenger) return false;
 		if (user.id !== this.defender.id) {
-			user.say("You are not the challenged user in the current one vs. one challenge.");
+			user.say("You are not the defender in the current one vs. one challenge.");
 			return false;
 		}
 
@@ -69,7 +69,7 @@ export class OneVsOne extends Game {
 	rejectChallenge(user: User): boolean {
 		if (this.started) return false;
 		if (user.id !== this.defender.id) {
-			user.say("You are not the challenged user in the current one vs. one challenge.");
+			user.say("You are not the defender in the current one vs. one challenge.");
 			return false;
 		}
 		this.say(user.name + " rejected the challenge!");

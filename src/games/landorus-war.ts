@@ -2,8 +2,9 @@ import type { Player } from "../room-activity";
 import { Game } from "../room-game";
 import type { Room } from "../rooms";
 import type { IPokemon } from "../types/dex";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameFile, GameFileTests } from "../types/games";
 import type { User } from "../users";
+import { addPlayers, assertStrictEqual } from "../test/test-tools";
 
 const data: {learnsets: Dict<readonly string[]>; moves: string[]; pokemon: string[]} = {
 	learnsets: {},
@@ -12,7 +13,7 @@ const data: {learnsets: Dict<readonly string[]>; moves: string[]; pokemon: strin
 };
 
 class LandorusWar extends Game {
-	fakePokemon: string[] = [];
+	decoyPokemon: string[] = [];
 	playerAliases = new Map<Player, string>();
 	playerAliasesList: string[] = [];
 	playerPokemon = new Map<Player, IPokemon>();
@@ -57,22 +58,31 @@ class LandorusWar extends Game {
 		const aliases = this.sampleMany(Dex.data.trainerClasses, this.getRemainingPlayerCount());
 		const pokemonList = this.shuffle(data.pokemon);
 		const playerAliases: string[] = [];
-		const fakes: string[] = [];
-		for (const i in this.players) {
-			const player = this.players[i];
+		const playerPokemon: string[] = [];
+		for (const id in this.players) {
+			const player = this.players[id];
 			const pokemon = Dex.getExistingPokemon(pokemonList[0]);
 			pokemonList.shift();
+			playerPokemon.push(pokemon.name);
+			this.playerPokemon.set(player, pokemon);
+
 			const alias = aliases[0];
 			aliases.shift();
 			playerAliases.push(alias);
-			fakes.push(Dex.getExistingPokemon(pokemonList[0]).name);
-			pokemonList.shift();
-			this.playerPokemon.set(player, pokemon);
 			this.playerAliases.set(player, alias);
-			player.say("You were assigned **" + pokemon.name + "** and the **" + alias + "** trainer class!");
+			this.playerAliasesList.push(alias);
+			player.say("You were assigned the **" + alias + "** trainer class and a **" + pokemon.name + "**!");
 		}
-		this.playerAliasesList = this.shuffle(playerAliases);
-		this.fakePokemon = fakes;
+
+		for (let i = 0; i < this.playerCount; i++) {
+			let decoy = Dex.getExistingPokemon(pokemonList[0]);
+			pokemonList.shift();
+			while (decoy.baseSpecies !== decoy.name && playerPokemon.includes(decoy.baseSpecies)) {
+				decoy = Dex.getExistingPokemon(pokemonList[0]);
+				pokemonList.shift();
+			}
+			this.decoyPokemon.push(decoy.name);
+		}
 
 		this.nextRound();
 	}
@@ -82,11 +92,12 @@ class LandorusWar extends Game {
 		if (remainingPlayerCount < 2) return this.end();
 		this.roundMoves.clear();
 		this.roundSuspects.clear();
+
 		let pokemonList: string[] = [];
 		for (const i in this.players) {
 			if (!this.players[i].eliminated) pokemonList.push(this.playerPokemon.get(this.players[i])!.name);
 		}
-		pokemonList = pokemonList.concat(this.fakePokemon);
+		pokemonList = pokemonList.concat(this.decoyPokemon);
 		pokemonList.sort();
 		this.pokemonList = pokemonList;
 
@@ -277,6 +288,19 @@ const commands: GameCommandDefinitions<LandorusWar> = {
 commands.summary = Tools.deepClone(Games.sharedCommands.summary);
 commands.summary.aliases = ['role'];
 
+const tests: GameFileTests<LandorusWar> = {
+	'it should properly assign aliases and create decoys': {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		test(game, format): void {
+			addPlayers(game, 4);
+			game.start();
+			assertStrictEqual(game.playerAliasesList.length, 4);
+			assertStrictEqual(game.playerPokemon.size, 4);
+			assertStrictEqual(game.decoyPokemon.length, 4);
+		},
+	},
+};
+
 export const game: IGameFile<LandorusWar> = {
 	aliases: ['landorus', 'lw'],
 	category: 'knowledge',
@@ -288,4 +312,5 @@ export const game: IGameFile<LandorusWar> = {
 	name: "Landorus' War",
 	mascot: "Landorus",
 	scriptedOnly: true,
+	tests,
 };

@@ -41,6 +41,14 @@ export interface IPastGame {
 	time: number;
 }
 
+export interface IUserHostedGameStats {
+	endTime: number;
+	format: string;
+	inputTarget: string;
+	playerCount: number;
+	startTime: number;
+}
+
 export type UserHostStatus = 'unapproved' | 'novice' | 'approved';
 
 export interface IDatabase {
@@ -62,6 +70,7 @@ export interface IDatabase {
 	roomSampleTeamsLink?: string;
 	thcWinners?: Dict<string>;
 	userHostedGameCount?: number;
+	userHostedGameStats?: Dict<IUserHostedGameStats[]>;
 	userHostedGameQueue?: IQueuedUserHostedGame[];
 	userHostStatuses?: Dict<UserHostStatus>;
 }

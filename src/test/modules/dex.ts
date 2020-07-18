@@ -87,7 +87,10 @@ describe("Dex", () => {
 		}
 
 		const categoryKeys = Object.keys(Dex.data.categories);
-		assertStrictEqual(Dex.getExistingPokemon('Pikachu').category, 'Mouse');
+		for (let i = Dex.gen; i >= 1; i--) {
+			assertStrictEqual(Dex.getDex('gen' + i).getExistingPokemon('Pikachu').category, 'Mouse');
+		}
+
 		for (let i = 0; i < categoryKeys.length; i++) {
 			assert(Tools.toId(categoryKeys[i]) === categoryKeys[i], categoryKeys[i] + " should be an ID in categories.js");
 			assert(categoryKeys.indexOf(categoryKeys[i]) === i, "Duplicate category for " + categoryKeys[i]);

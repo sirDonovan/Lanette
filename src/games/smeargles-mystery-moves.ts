@@ -71,7 +71,6 @@ class SmearglesMysteryMoves extends Guessing {
 			this.say(text);
 			return;
 		} else {
-			if (!this.canGuess) this.canGuess = true;
 			this.timeout = setTimeout(() => this.nextRound(), 5000);
 		}
 	}
@@ -92,4 +91,5 @@ export const game: IGameFile<SmearglesMysteryMoves> = Games.copyTemplateProperti
 	minigameCommand: "mysterymove",
 	minigameCommandAliases: ["mmove"],
 	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess a move as hints are revealed!",
+	modes: ['group'],
 });
