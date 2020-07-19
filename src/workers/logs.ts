@@ -2,11 +2,7 @@ import path = require('path');
 
 import { WorkerBase } from './worker-base';
 
-interface ILogsIdKeys {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	search: any;
-}
-export type LogsId = keyof ILogsIdKeys;
+export type LogsId = 'search';
 
 export interface ILogsWorkerData {
 	commandCharacter: string | undefined;

@@ -17,7 +17,7 @@ interface IWheels {
 
 type WheelsKey = keyof IWheels;
 
-const colorCodes: KeyedDict<IWheels, {'background-color': string; 'background': string; 'border-color': string}> = {
+const colorCodes: KeyedDict<WheelsKey, {'background-color': string; 'background': string; 'border-color': string}> = {
 	"purple": {'background-color': '#A040A0', 'background': 'linear-gradient(#A040A0,#803380)', 'border-color': '#662966'},
 	"blue": {'background-color': '#6890F0', 'background': 'linear-gradient(#6890F0,#386CEB)', 'border-color': '#1753E3'},
 	"green": {'background-color': '#78C850', 'background': 'linear-gradient(#78C850,#5CA935)', 'border-color': '#4A892B'},

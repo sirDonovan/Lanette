@@ -24,7 +24,7 @@ const mapKey: {currency: string; empty: string; exit: string; player: string; tr
 export class MapFloorSpace {
 	attributes: ISpaceAttributes = {};
 	players = new Set<Player>();
-	traversedAttributes: PartialKeyedDict<ISpaceAttributes, Set<Player>> = {};
+	traversedAttributes: PartialKeyedDict<keyof ISpaceAttributes, Set<Player>> = {};
 
 	coordinates: string;
 

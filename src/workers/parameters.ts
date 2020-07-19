@@ -3,27 +3,9 @@ import path = require('path');
 import type { PRNGSeed } from '../prng';
 import { WorkerBase } from './worker-base';
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-interface IParametersIdKeys {
-	search: any;
-	intersect: any;
-}
-export type ParametersId = keyof IParametersIdKeys;
+export type ParametersId = 'search' | 'intersect';
 
-export interface IParamTypeKeys {
-	ability: any;
-	color: any;
-	egggroup: any;
-	gen: any;
-	letter: any;
-	move: any;
-	resistance: any;
-	tier: any;
-	type: any;
-	weakness: any;
-}
-export type ParamType = keyof IParamTypeKeys;
-/* eslint-enable */
+export type ParamType = 'ability' | 'color' | 'egggroup' | 'gen' | 'letter' | 'move' | 'resistance' | 'tier' | 'type' | 'weakness';
 
 export interface IParam {
 	type: string;
@@ -33,8 +15,8 @@ export interface IParam {
 export interface IParametersGenData {
 	readonly evolutionLines: string[];
 	readonly formes: Dict<string>;
-	readonly paramTypePools: KeyedDict<IParamTypeKeys, Dict<IParam>>;
-	readonly paramTypeDexes: KeyedDict<IParamTypeKeys, Dict<string[]>>;
+	readonly paramTypePools: KeyedDict<ParamType, Dict<IParam>>;
+	readonly paramTypeDexes: KeyedDict<ParamType, Dict<string[]>>;
 	readonly otherFormes: Dict<string>;
 }
 

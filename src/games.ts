@@ -8,7 +8,7 @@ import type { Room } from "./rooms";
 import type { CommandErrorArray } from "./types/command-parser";
 import type { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/dex';
 import type {
-	AutoCreateTimerType, DefaultGameOption, GameCommandDefinitions, GameCommandReturnType, IGameAchievementKeys, IGameCategoryKeys,
+	AutoCreateTimerType, DefaultGameOption, GameAchievements, GameCategory, GameCommandDefinitions, GameCommandReturnType,
 	IGameFile, IGameFormat, IGameFormatComputed, IGameFormatData, IGameMode, IGameModeFile, IGameOptionValues, IGamesWorkers,
 	IGameTemplateFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFormat,
 	IUserHostedFormatComputed, LoadedGameCommands, UserHostedCustomizable
@@ -27,7 +27,7 @@ const internalGamePaths: IInternalGames = {
 	vote: path.join(gamesDirectory, "internal", "vote.js"),
 };
 
-const categoryNames: KeyedDict<IGameCategoryKeys, string> = {
+const categoryNames: KeyedDict<GameCategory, string> = {
 	'board': 'Board',
 	'board-property': 'Board (property)',
 	'card': 'Card',
@@ -91,7 +91,7 @@ export class Games {
 	gameCooldownMessageTimers: Dict<NodeJS.Timer> = {};
 	gameCooldownMessageTimerData: Dict<{endTime: number, minigameCooldownMinutes: number}> = {};
 	// @ts-expect-error - set in loadFormats()
-	readonly internalFormats: KeyedDict<IInternalGames, DeepImmutable<IGameFormatData>> = {};
+	readonly internalFormats: KeyedDict<InternalGameKey, DeepImmutable<IGameFormatData>> = {};
 	lastGames: Dict<number> = {};
 	lastMinigames: Dict<number> = {};
 	lastOneVsOneChallengeTimes: Dict<Dict<number>> = {};
@@ -191,7 +191,7 @@ export class Games {
 
 	loadFileAchievements(file: DeepImmutable<IGameFile>): void {
 		if (!file.achievements) return;
-		const keys = Object.keys(file.achievements) as (keyof IGameAchievementKeys)[];
+		const keys = Object.keys(file.achievements) as GameAchievements[];
 		for (const key of keys) {
 			const achievement = file.achievements[key]!;
 			if (Tools.toId(achievement.name) !== key) {
@@ -1088,7 +1088,7 @@ export class Games {
 
 				if (format.achievements) {
 					info.push("**Achievements**:");
-					const keys = Object.keys(format.achievements) as (keyof IGameAchievementKeys)[];
+					const keys = Object.keys(format.achievements) as GameAchievements[];
 					for (const key of keys) {
 						info.push("* " + format.achievements[key]!.name + ": " + format.achievements[key]!.description);
 					}

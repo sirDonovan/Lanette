@@ -5,7 +5,7 @@ import url = require('url');
 import v8 = require('v8');
 
 import type { PRNG } from './prng';
-import type { HexColor, IHexColor } from './types/tools';
+import type { HexColor } from './types/tools';
 import type { IParam } from './workers/parameters';
 
 const ALPHA_NUMERIC_REGEX = /[^a-zA-Z0-9 ]/g;
@@ -24,7 +24,7 @@ const githubApiThrottle = 2 * 1000;
 // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-empty-function
 const TimeoutConstructor = setTimeout(() => {}, 1).constructor;
 
-const hexColorCodes: KeyedDict<IHexColor, {'background-color': string; 'background': string; 'border-color': string}> = {
+const hexColorCodes: KeyedDict<HexColor, {'background-color': string; 'background': string; 'border-color': string}> = {
 	"White": {'background-color': '#eeeeee', 'background': 'linear-gradient(#eeeeee, #dddddd)', 'border-color': '#222222'},
 	"Black": {'background-color': '#222222', 'background': 'linear-gradient(#222222, #111111)', 'border-color': '#eeeeee'},
 	"Dark Yellow": {'background-color': '#8A8A59', 'background': 'linear-gradient(#A8A878,#8A8A59)', 'border-color': '#79794E'},

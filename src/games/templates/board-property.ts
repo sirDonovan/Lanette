@@ -277,7 +277,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 		this.properties.set(player, []);
 	}
 
-	getSpaceHtml(side: BoardSide, space: number, playerLocations: KeyedDict<IBoard, Dict<Player[]>>): string {
+	getSpaceHtml(side: BoardSide, space: number, playerLocations: KeyedDict<BoardSide, Dict<Player[]>>): string {
 		const boardSpace = this.board[side][space];
 		let html = '<td style=background-color:' + Tools.hexColorCodes[boardSpace.color]["background-color"] +
 			' width="20px" height="20px"; align="center">';

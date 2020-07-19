@@ -10,7 +10,7 @@ const data: {"Pokemon Abilities": Dict<string[]>; "Pokemon Items": Dict<string[]
 };
 type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
-const categoryKeys: KeyedDict<typeof data, string[]> = {
+const categoryKeys: KeyedDict<DataKey, string[]> = {
 	"Pokemon Abilities": [],
 	"Pokemon Items": [],
 	"Pokemon Moves": [],

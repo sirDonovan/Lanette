@@ -4,31 +4,20 @@ import { game as mapGame, MapGame } from "./templates/map";
 import type { GameMap, MapFloor, MapFloorSpace } from "./templates/map";
 import { addPlayers, assertStrictEqual, assert } from "../test/test-tools";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-interface IShadowTraps {
-	shadowcolumn: any;
-	shadowpit: any;
-	dreamvision: any;
-	shadowspike: any;
-	shadowsphere: any;
-	shadowrow: any;
-}
-/* eslint-enable */
-
 interface IShadowTrapData {
 	name: string;
 	damage?: number;
 	uses?: number;
 }
 
-type ShadowTrap = keyof IShadowTraps;
+type ShadowTrap = 'dreamvision' | 'shadowcolumn' | 'shadowpit' | 'shadowspike' | 'shadowsphere' | 'shadowrow';
 
 interface IPlacedShadowTrap {
 	player: Player;
 	type: ShadowTrap;
 }
 
-const shadowTraps: KeyedDict<IShadowTraps, IShadowTrapData> = {
+const shadowTraps: KeyedDict<ShadowTrap, IShadowTrapData> = {
 	shadowcolumn: {
 		damage: 1,
 		name: "Shadow Column",
@@ -66,7 +55,7 @@ class DarkraisLair extends MapGame {
 	minDimensions: number = 8;
 	maxRound = 20;
 	placedShadowTraps: Dict<IPlacedShadowTrap> = {};
-	playerUsedShadowTraps = new Map<Player, PartialKeyedDict<IShadowTraps, number>>();
+	playerUsedShadowTraps = new Map<Player, PartialKeyedDict<ShadowTrap, number>>();
 	roundActions = new Map<Player, boolean>();
 	roundShadowTraps = new Set<Player>();
 	shadowPits: Dict<Player> = {};
