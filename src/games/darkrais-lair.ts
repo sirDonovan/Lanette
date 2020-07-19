@@ -460,8 +460,15 @@ const tests: GameFileTests<DarkraisLair> = {
 			const players = addPlayers(game, 4);
 			game.start();
 			game.nextRound();
-			game.canMove = true;
+
+			const map = game.getMap(players[0]);
+			const floorIndex = game.getFloorIndex(players[0]);
+			const floor = map.floors[floorIndex];
 			const coordinates = [0, 0];
+			const space = floor.spaces[game.coordinatesToString(coordinates[0], coordinates[1])];
+			delete space.attributes.currency;
+
+			game.canMove = true;
 			game.playerCoordinates.set(players[0], coordinates);
 			players[0].useCommand("shadowspike");
 			const coordinatesString = game.coordinatesToString(coordinates[0], coordinates[1]);
@@ -487,8 +494,15 @@ const tests: GameFileTests<DarkraisLair> = {
 			const players = addPlayers(game, 4);
 			game.start();
 			game.nextRound();
-			game.canMove = true;
+
+			const map = game.getMap(players[0]);
+			const floorIndex = game.getFloorIndex(players[0]);
+			const floor = map.floors[floorIndex];
 			const coordinates = [0, 0];
+			const space = floor.spaces[game.coordinatesToString(coordinates[0], coordinates[1])];
+			delete space.attributes.currency;
+
+			game.canMove = true;
 			game.playerCoordinates.set(players[0], coordinates);
 			players[0].useCommand("shadowrow");
 			const coordinatesString = game.coordinatesToString(coordinates[0], coordinates[1]);
@@ -517,8 +531,15 @@ const tests: GameFileTests<DarkraisLair> = {
 			const players = addPlayers(game, 4);
 			game.start();
 			game.nextRound();
-			game.canMove = true;
+
+			const map = game.getMap(players[0]);
+			const floorIndex = game.getFloorIndex(players[0]);
+			const floor = map.floors[floorIndex];
 			const coordinates = [0, 0];
+			const space = floor.spaces[game.coordinatesToString(coordinates[0], coordinates[1])];
+			delete space.attributes.currency;
+
+			game.canMove = true;
 			game.playerCoordinates.set(players[0], coordinates);
 			players[0].useCommand("shadowcolumn");
 			const coordinatesString = game.coordinatesToString(coordinates[0], coordinates[1]);
@@ -547,8 +568,15 @@ const tests: GameFileTests<DarkraisLair> = {
 			const players = addPlayers(game, 4);
 			game.start();
 			game.nextRound();
-			game.canMove = true;
+
+			const map = game.getMap(players[0]);
+			const floorIndex = game.getFloorIndex(players[0]);
+			const floor = map.floors[floorIndex];
 			const coordinates = [2, 2];
+			const space = floor.spaces[game.coordinatesToString(coordinates[0], coordinates[1])];
+			delete space.attributes.currency;
+
+			game.canMove = true;
 			game.playerCoordinates.set(players[0], coordinates);
 			players[0].useCommand("shadowsphere");
 			const coordinatesString = game.coordinatesToString(coordinates[0], coordinates[1]);
@@ -577,8 +605,15 @@ const tests: GameFileTests<DarkraisLair> = {
 			const players = addPlayers(game, 4);
 			game.start();
 			game.nextRound();
-			game.canMove = true;
+
+			const map = game.getMap(players[0]);
+			const floorIndex = game.getFloorIndex(players[0]);
+			const floor = map.floors[floorIndex];
 			const coordinates = [0, 0];
+			const space = floor.spaces[game.coordinatesToString(coordinates[0], coordinates[1])];
+			delete space.attributes.currency;
+
+			game.canMove = true;
 			game.playerCoordinates.set(players[0], coordinates);
 			players[0].useCommand("shadowpit");
 			const coordinatesString = game.coordinatesToString(coordinates[0], coordinates[1]);
