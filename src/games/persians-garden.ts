@@ -95,7 +95,6 @@ class PersiansGarden extends MapCurrencyGame {
 				if (!earnings) continue;
 				earnings = Math.round(earnings / 6);
 			}
-			if (earnings > this.maxBits) earnings = this.maxBits;
 			this.addBits(player, earnings);
 		}
 

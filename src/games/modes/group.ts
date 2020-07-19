@@ -112,7 +112,6 @@ class Group {
 			let earnings = 250;
 			if (points) {
 				earnings += (50 * points);
-				if (earnings > this.maxBits) earnings = this.maxBits;
 			}
 			this.addBits(player, earnings);
 		});

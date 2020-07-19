@@ -731,6 +731,7 @@ export class Game extends Activity {
 
 	addBits(user: User | Player, bits: number, noPm?: boolean): boolean {
 		if (bits <= 0 || this.isPm(this.room) || (this.parentGame && this.parentGame.allowChildGameBits !== true)) return false;
+		if (bits > this.maxBits) bits = this.maxBits;
 		if (this.shinyMascot) bits *= 2;
 		Storage.addPoints(this.room, user.name, bits, this.format.id);
 		if (!noPm) {
@@ -765,7 +766,6 @@ export class Game extends Activity {
 			} else {
 				winnings = Math.floor(loserBits! * points);
 			}
-			if (winnings > this.maxBits) winnings = this.maxBits;
 			if (winnings) this.addBits(player, winnings);
 		});
 	}

@@ -294,9 +294,7 @@ class DarkraisLair extends MapGame {
 					this.winners.set(player, 1);
 					let earnings = this.points.get(player) || 0;
 					earnings = Math.floor(earnings / 4);
-					if (earnings > this.maxBits) {
-						earnings = this.maxBits;
-					} else if (earnings < 250) {
+					if (earnings < 250) {
 						earnings = 250;
 					}
 					this.addBits(player, earnings);
@@ -308,9 +306,7 @@ class DarkraisLair extends MapGame {
 					const player = this.players[id];
 					let earnings = this.points.get(player) || 0;
 					earnings = Math.floor(earnings / 2);
-					if (earnings > this.maxBits) {
-						earnings = this.maxBits;
-					} else if (earnings < 250) {
+					if (earnings < 250) {
 						earnings = 250;
 					}
 					this.addBits(player, earnings);

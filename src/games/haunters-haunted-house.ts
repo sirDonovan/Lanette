@@ -739,13 +739,12 @@ class HauntersHauntedHouse extends Game {
 	onEnd(): void {
 		this.announceWinners();
 
-		let numBits = Math.floor(this.collectedCandy / 6);
-		if (numBits > 500) numBits = 500;
+		const bits = Math.floor(this.collectedCandy / 6);
 		for (const id in this.players) {
 			const player = this.players[id];
 			if (player.eliminated && !this.eliminatedPlayers.has(player)) continue;
 			this.winners.set(this.players[id], 1);
-			this.addBits(this.players[id], numBits);
+			this.addBits(this.players[id], bits);
 		}
 	}
 

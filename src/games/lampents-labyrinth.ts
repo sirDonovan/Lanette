@@ -107,9 +107,7 @@ class LampentsLabyrinth extends MapGame  {
 			if (!earnings) return;
 			if (earnings >= mazeRunnerPoints) unlockedMazeRunner.push(player);
 			earnings = Math.round(earnings / 4);
-			if (earnings > this.maxBits) {
-				earnings = this.maxBits;
-			} else if (earnings < 250) {
+			if (earnings < 250) {
 				earnings = 250;
 			}
 			this.addBits(player, earnings);

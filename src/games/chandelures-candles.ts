@@ -75,10 +75,7 @@ class ChandeluresCandles extends Game {
 			this.winners.set(winner, 1);
 			const puffs = this.puffs.get(winner) || 0;
 			let bits = 500;
-			if (puffs > 5) {
-				bits += (puffs * 50);
-				if (bits > 1000) bits = 1000;
-			}
+			if (puffs > 5) bits += (puffs * 50);
 			this.addBits(winner, bits);
 		} else {
 			this.say("Chandelure extinguished the remaining candles!");
@@ -94,7 +91,6 @@ class ChandeluresCandles extends Game {
 					bits = puffs * 50;
 				} else {
 					bits = puffs * 100;
-					if (bits > 1000) bits = 1000;
 				}
 				this.addBits(player, bits);
 			}
