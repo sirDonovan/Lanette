@@ -257,13 +257,13 @@ export abstract class MapGame extends Game {
 			mapHtml += '<br>';
 		}
 		let html = '<div class="infobox">';
-		let legend = '<b>Map legend</b>:<br>';
-		legend += '<b>' + mapKey.player + '</b>: your current location<br>';
-		legend += '<b>' + mapKey.unknown + '</b>: an unknown space<br>';
-		if (currency) legend += '<b>' + mapKey.currency + '</b>: ' + this.currency + ' that you have discovered<br>';
-		if (empty) legend += '<b>' + mapKey.empty + '</b>: an empty space<br>';
-		if (exit) legend += '<b>' + mapKey.exit + '</b>: an exit that you have discovered<br>';
-		if (trap) legend += '<b>' + mapKey.trap + '</b>: a trap that you have discovered<br>';
+		let legend = '<b>Map legend</b>:<br />';
+		legend += '<b>' + mapKeys.player + '</b>: your current location<br />';
+		legend += '<b>' + mapKeys.unknown + '</b>: an unknown space<br />';
+		if (currency) legend += '<b>' + mapKeys.currency + '</b>: ' + this.currency + ' that you have discovered<br />';
+		if (empty) legend += '<b>' + mapKeys.empty + '</b>: an empty space<br />';
+		if (exit) legend += '<b>' + mapKeys.exit + '</b>: an exit that you have discovered<br />';
+		if (trap) legend += '<b>' + mapKeys.trap + '</b>: a trap that you have discovered<br />';
 		html += legend + '<br />';
 		html += mapHtml;
 		html += '</div>';

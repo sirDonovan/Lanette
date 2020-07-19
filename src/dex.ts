@@ -1161,7 +1161,7 @@ export class Dex {
 	getFormatInfoDisplay(format: IFormat): string {
 		let html = '';
 		if (format.desc) {
-			html += '<br>&nbsp; - ' + format.desc;
+			html += '<br />&nbsp; - ' + format.desc;
 			if (format.info && !format.team) {
 				html += ' More info ';
 				if (format.userHosted) {
@@ -1174,23 +1174,24 @@ export class Dex {
 			}
 		} else if (format.info) {
 			if (format.userHosted) {
-				html += '<br>&nbsp; - Description and more info on the <a href="' + format.info + '">official page</a>.';
+				html += '<br />&nbsp; - Description and more info on the <a href="' + format.info + '">official page</a>.';
 				if (format.generator) {
-					html += '<br>&nbsp; - Use our <a href="' + format.generator + '">random generator</a> to ease the hosting process.';
+					html += '<br />&nbsp; - Use our <a href="' + format.generator + '">random generator</a> to ease the hosting process.';
 				}
 			} else {
-				html += '<br>&nbsp; - Description and more info ' + (format.info.startsWith('https://www.smogon.com/dex/') ? 'on the ' +
+				html += '<br />&nbsp; - Description and more info ' + (format.info.startsWith('https://www.smogon.com/dex/') ? 'on the ' +
 					'<a href="' + format.info + '">dex page' : 'in the  <a href="' + format.info + '">discussion thread') + '</a>.';
 			}
 		}
 		if (format.teams) {
-			html += '<br>&nbsp; - Need to borrow a team? Check out the <a href="' + format.teams + '">sample teams thread</a>.';
+			html += '<br />&nbsp; - Need to borrow a team? Check out the <a href="' + format.teams + '">sample teams thread</a>.';
 		}
 		if (format.viability) {
-			html += '<br>&nbsp; - See how viable each Pokemon is in the <a href="' + format.viability + '">viability rankings thread</a>.';
+			html += '<br />&nbsp; - See how viable each Pokemon is in the <a href="' + format.viability + '">viability rankings ' +
+				'thread</a>.';
 		}
 		if (format.roleCompendium) {
-			html += '<br>&nbsp; - Check the common role that each Pokemon plays in the <a href="' + format.roleCompendium + '">role ' +
+			html += '<br />&nbsp; - Check the common role that each Pokemon plays in the <a href="' + format.roleCompendium + '">role ' +
 				'compendium thread</a>.';
 		}
 		return html;

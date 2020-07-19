@@ -45,7 +45,7 @@ class EmpoleonsEmpires extends Game {
 		}
 		const uhtmlName = this.uhtmlBaseName + '-aliases';
 		const html = "<div class='infobox'><b>Remaining players (" + this.getRemainingPlayerCount() + ")</b>: " +
-			this.getPlayerNames(this.getRemainingPlayers()) + "<br><br><b>Remaining aliases</b>: " + Tools.shuffle(aliases).join(", ") +
+			this.getPlayerNames(this.getRemainingPlayers()) + "<br /><br /><b>Remaining aliases</b>: " + Tools.shuffle(aliases).join(", ") +
 			".</div>";
 		this.onUhtml(uhtmlName, html, () => {
 			if (!this.currentPlayer) this.currentPlayer = this.getRandomPlayer();

@@ -1159,7 +1159,7 @@ const commands: CommandDefinitions<CommandContext> = {
 				html.push("<b>" + (i + 1) + "</b>: " + name + " (" +
 					Games.getExistingUserHostedFormat(database.userHostedGameQueue[i].format).name + ")");
 			}
-			this.sayHtml("<b>Host queue</b>:<br><br>" + html.join("<br>"), gameRoom);
+			this.sayHtml("<b>Host queue</b>:<br /><br />" + html.join("<br />"), gameRoom);
 		},
 		aliases: ['hq'],
 	},
@@ -3849,7 +3849,7 @@ const commands: CommandDefinitions<CommandContext> = {
 				this.say("An error occurred while searching logs.");
 			} else {
 				this.sayHtml("<details><summary>Found <b>" + result.totalLines + "</b> line" + (result.totalLines === 1 ? "" : "s") +
-					":</summary><br>" + result.lines.join("<br />") + "</details>", targetRoom);
+					":</summary>" + result.lines.join("<br />") + "</details>", targetRoom);
 			}
 
 			Storage.workers.logs.requestsByUserid.splice(Storage.workers.logs.requestsByUserid.indexOf(userId), 1);

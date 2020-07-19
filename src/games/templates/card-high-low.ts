@@ -149,7 +149,7 @@ export abstract class CardHighLow extends Card {
 				if (!ended && points >= this.format.options.points) ended = true;
 			}
 			html += '<center>' + this.getCardChatHtml(cards) + '</center>';
-			html += "<br><b>" + Tools.joinList(winnersNames) + " had the " + (this.highOrLow === 'low' ? "lowest" : "highest") + " card" +
+			html += "<br /><b>" + Tools.joinList(winnersNames) + " had the " + (this.highOrLow === 'low' ? "lowest" : "highest") + " card" +
 				(len > 1 ? "s" : "") + "</b>!";
 		}
 		html += "</center>";
