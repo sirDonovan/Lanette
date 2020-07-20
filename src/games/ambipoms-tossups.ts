@@ -23,14 +23,15 @@ class AmbipomsTossups extends Guessing {
 	revealedLetters: number = 0;
 	revealLetterTime: number = 5 * 1000;
 	readonly roundGuesses = new Map<Player, boolean>();
+	roundTime = 90 * 1000;
 	scaleMaxRevealedLetters: boolean = false;
 	tossupRound: number = 0;
 
 	static loadData(room: Room | User): void {
-		data["Pokemon"] = Games.getPokemonList().map(x => x.name);
-		data["Pokemon Abilities"] = Games.getAbilitiesList().map(x => x.name);
-		data["Pokemon Items"] = Games.getItemsList().map(x => x.name);
-		data["Pokemon Moves"] = Games.getMovesList().map(x => x.name);
+		data["Pokemon"] = Games.getPokemonList().filter(x => x.name.length < 18).map(x => x.name);
+		data["Pokemon Abilities"] = Games.getAbilitiesList().filter(x => x.name.length < 18).map(x => x.name);
+		data["Pokemon Items"] = Games.getItemsList().filter(x => x.name.length < 18).map(x => x.name);
+		data["Pokemon Moves"] = Games.getMovesList().filter(x => x.name.length < 18).map(x => x.name);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

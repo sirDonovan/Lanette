@@ -25,6 +25,7 @@ class PikachusMysteryPokemon extends Guessing {
 	mysteryRound: number = -1;
 	points = new Map<Player, number>();
 	roundGuesses = new Map<Player, boolean>();
+	roundTime = 30 * 1000;
 
 	static loadData(room: Room | User): void {
 		const pokemonList = Games.getPokemonList(pokemon => !pokemon.forme);

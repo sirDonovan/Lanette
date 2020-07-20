@@ -25,6 +25,7 @@ const achievements: AchievementsDict = {
 class SlowkingsTrivia extends Guessing {
 	allAnswersAchievement = achievements.knowitall;
 	allAnswersTeamAchievement = achievements.captainknowitall;
+	roundTime = 15 * 1000;
 
 	static loadData(room: Room | User): void {
 		const abilities = Games.getAbilitiesList();

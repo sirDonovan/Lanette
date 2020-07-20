@@ -15,14 +15,15 @@ const categories = Object.keys(data) as DataKey[];
 const LETTERS_TO_REVEAL = 4;
 
 class MareaniesMarquee extends Guessing {
-	lastAnswer: string = '';
-	letters: string[] = [];
+	currentCategory: string = '';
 	currentIndex: number = -1;
 	hintUpdates: number = 0;
 	hintUpdateLimit: number = 0;
 	hintUpdateLimitMultiplier: number = 2;
 	hintUpdateTime: number = 1500;
-	currentCategory: string = '';
+	lastAnswer: string = '';
+	letters: string[] = [];
+	roundTime = 60 * 1000;
 
 	static loadData(room: Room | User): void {
 		data["Pokemon"] = Games.getPokemonList().map(x => x.name).filter(x => x.length > LETTERS_TO_REVEAL);
