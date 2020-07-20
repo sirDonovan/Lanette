@@ -25,12 +25,12 @@ const minimumMoveAvailability = 30;
 const maximumMoveAvailability = 500;
 
 class SpindasExcludedPokemon extends Game {
-	parameter: string = '';
 	currentPlayer: Player | null = null;
 	excludedRound: number = 0;
-	playerOrder: Player[] = [];
+	firstSpecies: string = '';
 	guessedPokemon: string[] = [];
-	guessed: boolean = false;
+	parameter: string = '';
+	playerOrder: Player[] = [];
 
 	// set in onStart()
 	category!: IPokemonCategory;
@@ -74,10 +74,10 @@ class SpindasExcludedPokemon extends Game {
 		this.on(text, () => {
 			this.timeout = setTimeout(() => {
 				const species = this.sampleOne(data.keys);
+				this.firstSpecies = species;
 				this.category = this.sampleOne(categories);
 				this.parameter = this.sampleOne(data.pokemon[species][this.category]);
 
-				this.say("A randomly chosen Pokemon that fits the parameter is **" + species + "**!");
 				this.nextRound();
 			}, 5 * 1000);
 		});
@@ -101,6 +101,7 @@ class SpindasExcludedPokemon extends Game {
 			this.excludedRound++;
 			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(this.getPlayerNames, null, "Round " + this.excludedRound));
 			this.playerOrder = this.shufflePlayers();
+			if (this.excludedRound === 1) this.say("A randomly chosen Pokemon that fits the parameter is **" + this.firstSpecies + "**!");
 		}
 
 		const currentPlayer = this.playerOrder[0];
