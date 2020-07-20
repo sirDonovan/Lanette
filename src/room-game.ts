@@ -730,6 +730,7 @@ export class Game extends Activity {
 	}
 
 	addBits(user: User | Player, bits: number, noPm?: boolean): boolean {
+		bits = Math.floor(bits);
 		if (bits <= 0 || this.isPm(this.room) || (this.parentGame && this.parentGame.allowChildGameBits !== true)) return false;
 		if (bits > this.maxBits) bits = this.maxBits;
 		if (this.shinyMascot) bits *= 2;
@@ -743,6 +744,7 @@ export class Game extends Activity {
 	}
 
 	removeBits(user: User | Player, bits: number, noPm?: boolean): boolean {
+		bits = Math.floor(bits);
 		if (bits <= 0 || this.isPm(this.room) || (this.parentGame && this.parentGame.allowChildGameBits !== true)) return false;
 		if (this.shinyMascot) bits *= 2;
 		Storage.removePoints(this.room, user.name, bits, this.format.id);
