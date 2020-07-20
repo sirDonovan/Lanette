@@ -749,6 +749,11 @@ const commands: CommandDefinitions<CommandContext> = {
 				const chatRoom = Rooms.search(Tools.toRoomId(target));
 				if (!chatRoom) return;
 
+				if (room.game) {
+					this.say("You cannot join a room game while you are playing a PM minigame.");
+					return;
+				}
+
 				const userData = user.rooms.get(chatRoom);
 				if (userData && userData.rank === Client.groupSymbols.muted) return this.say("You cannot join games while you are muted.");
 
