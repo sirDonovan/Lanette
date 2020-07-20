@@ -83,4 +83,9 @@ export const game: IGameFile<AbrasAbilitySwitch> = Games.copyTemplateProperties(
 	minigameCommandAliases: ['aswitch'],
 	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess a Pokemon with the chosen ability!",
 	modes: ["survival", "team"],
+	modeProperties: {
+		'survival': {
+			roundTime: 8 * 1000,
+		},
+	},
 });

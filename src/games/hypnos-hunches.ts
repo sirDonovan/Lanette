@@ -27,7 +27,7 @@ class HypnosHunches extends Guessing {
 	lastAnswer: string = '';
 	letters: string[] = [];
 	roundGuesses = new Map<Player, boolean>();
-	roundTime: number = 15 * 1000;
+	roundTime: number = 30 * 1000;
 
 	static loadData(room: Room | User): void {
 		data["Characters"] = Dex.data.characters.slice();
@@ -138,6 +138,7 @@ export const game: IGameFile<HypnosHunches> = Games.copyTemplateProperties(guess
 		'survival': {
 			guessLimit: 4,
 			incorrectGuessTime: 1000,
+			roundTime: 20 * 1000,
 		},
 	},
 	variants: [

@@ -114,7 +114,7 @@ export const game: IGameFile<MareaniesMarquee> = Games.copyTemplateProperties(gu
 	modeProperties: {
 		'survival': {
 			hintUpdateLimitMultiplier: 1,
-			hintUpdateTime: 750,
+			hintUpdateTime: 1000,
 		},
 	},
 	variants: [

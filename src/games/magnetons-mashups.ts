@@ -142,6 +142,11 @@ export const game: IGameFile<MagnetonsMashups> = Games.copyTemplateProperties(gu
 	minigameCommand: 'mashup',
 	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess the two unscrambled names!",
 	modes: ["survival", "team"],
+	modeProperties: {
+		'survival': {
+			roundTime: 15 * 1000,
+		},
+	},
 	variants: [
 		{
 			name: "Magneton's Ability Mashups",

@@ -26,7 +26,7 @@ class HitmonchansHangman extends Guessing {
 	lastAnswer: string = '';
 	letters: string[] = [];
 	roundGuesses = new Map<Player, boolean>();
-	roundTime: number = 15 * 1000;
+	roundTime: number = 30 * 1000;
 	solvedLetters: string[] = [];
 
 	static loadData(room: Room | User): void {
@@ -125,6 +125,7 @@ export const game: IGameFile<HitmonchansHangman> = Games.copyTemplateProperties(
 		'survival': {
 			guessLimit: 4,
 			incorrectGuessTime: 1000,
+			roundTime: 20 * 1000,
 		},
 	},
 	variants: [

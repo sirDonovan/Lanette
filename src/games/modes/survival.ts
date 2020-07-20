@@ -20,18 +20,6 @@ class Survival {
 	readonly playerRounds = new Map<Player, number>();
 	survivalRound: number = 0;
 
-	roundTime: number;
-
-	constructor(game: Game) {
-		if (game.id === 'abrasabilityswitch') {
-			this.roundTime = 7 * 1000;
-		} else if (game.id === 'parasparameters' || game.id === 'magnetonsmashups') {
-			this.roundTime = 15 * 1000;
-		} else {
-			this.roundTime = 9 * 1000;
-		}
-	}
-
 	static setOptions<T extends Game>(format: IGameFormat<T>, namePrefixes: string[], nameSuffixes: string[]): void {
 		if (!format.name.includes(name)) nameSuffixes.unshift(name);
 		format.description += ' ' + description;
@@ -70,7 +58,7 @@ class Survival {
 			this.survivalRound++;
 			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(this.getPlayerNames, null, "Round " + this.survivalRound));
 			this.playerList = this.shufflePlayers();
-			if (this.survivalRound > 1 && this.roundTime > 2000) this.roundTime -= 500;
+			if (this.survivalRound > 1 && this.roundTime > 2000) this.roundTime = Math.max(2000, this.roundTime - 1000);
 		}
 
 		const currentPlayer = this.playerList[0];
@@ -123,7 +111,7 @@ const commandDefinitions: GameCommandDefinitions<SurvivalThis> = {
 const commands = CommandParser.loadCommands(commandDefinitions);
 
 const initialize = (game: Game): void => {
-	const mode = new Survival(game);
+	const mode = new Survival();
 	const propertiesToOverride = Object.getOwnPropertyNames(mode)
 		.concat(Object.getOwnPropertyNames(Survival.prototype)) as (keyof Survival)[];
 	for (const property of propertiesToOverride) {
