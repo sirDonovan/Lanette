@@ -215,10 +215,27 @@ class DarkraisLair extends MapGame {
 		this.say("Now sending coordinates in PMs!");
 		this.map = this.generateMap(this.playerCount);
 		this.positionPlayers();
-		this.nextRound();
+		this.timeout = setTimeout(() => this.nextRound(), 5000);
 	}
 
 	onNextRound(): void {
+		if (this.round > 1) {
+			for (const id in this.players) {
+				if (this.players[id].eliminated) continue;
+				const player = this.players[id];
+				if (!this.roundActions.has(player)) {
+					let lives = this.lives.get(player)!;
+					lives--;
+					this.lives.set(player, lives);
+					if (lives === 0) {
+						this.eliminatePlayer(player, "You did not move in the previous round and lost your last life!");
+					} else {
+						player.say("You did not move in the previous round and lost 1 life! You have " + lives + " remaining.");
+					}
+				}
+			}
+		}
+
 		let emptyTeams = 0;
 		for (const team in this.teams) {
 			if (!this.getRemainingPlayerCount(this.teams[team].players)) {
@@ -297,7 +314,6 @@ class DarkraisLair extends MapGame {
 					this.addBits(player, earnings);
 				}
 			} else {
-				this.say("All players fall into nightmares!");
 				for (const id in this.players) {
 					if (this.players[id].eliminated) continue;
 					const player = this.players[id];
@@ -310,6 +326,8 @@ class DarkraisLair extends MapGame {
 				}
 			}
 		}
+
+		this.announceWinners();
 	}
 
 	layShadowTrap(player: Player, shadowTrap: ShadowTrap): boolean {
