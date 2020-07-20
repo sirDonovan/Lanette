@@ -1,6 +1,6 @@
 import type { Player, PlayerTeam } from "../room-activity";
 import type { GameCommandDefinitions, IGameFile, GameFileTests } from "../types/games";
-import { game as mapGame, MapGame } from "./templates/map";
+import { game as mapGame, MapGame, ISpaceDisplayData } from "./templates/map";
 import type { GameMap, MapFloor, MapFloorSpace } from "./templates/map";
 import { addPlayers, assertStrictEqual, assert } from "../test/test-tools";
 
@@ -193,6 +193,14 @@ class DarkraisLair extends MapGame {
 				delete this.placedShadowTraps[space.coordinates];
 			}
 			break;
+		}
+	}
+
+	getSpaceDisplay(player: Player, floor: MapFloor, space: MapFloorSpace): ISpaceDisplayData | undefined {
+		if (!(space.coordinates in floor.traversedCoordinates) || !floor.traversedCoordinates[space.coordinates].has(player)) return;
+		if (space.coordinates in this.placedShadowTraps &&
+			player.team!.players.includes(this.placedShadowTraps[space.coordinates].player)) {
+			return {description: "a trap that your team has placed", symbol: 'T'};
 		}
 	}
 

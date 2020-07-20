@@ -8,11 +8,17 @@ interface ISpaceAttributes {
 	currency?: boolean;
 	event?: string;
 	exit?: boolean;
-	fragments?: number;
 	trap?: boolean;
 }
 
-const mapKey: {currency: string; empty: string; exit: string; player: string; trap: string; unknown: string} = {
+type MapKeys = 'currency' | 'empty' | 'exit' | 'player' | 'trap' | 'unknown';
+
+export interface ISpaceDisplayData {
+	description: string;
+	symbol: string;
+}
+
+const mapKeys: KeyedDict<MapKeys, string> = {
 	currency: 'o',
 	empty: '-',
 	exit: '[]',
@@ -229,6 +235,10 @@ export abstract class MapGame extends Game {
 		let empty = false;
 		let exit = false;
 		let trap = false;
+		const legend: Dict<string> = {
+			[mapKeys.player]: 'your current location',
+			[mapKeys.unknown]: 'an unknown space',
+		};
 		let mapHtml = '';
 		for (let y = startY; y > endY; y--) {
 			for (let x = startX; x < endX; x++) {
@@ -236,37 +246,49 @@ export abstract class MapGame extends Game {
 				const space = floor.spaces[coordinates];
 				mapHtml += '<span title="' + coordinates + '">';
 				if (coordinates === playerStringCoordinates) {
-					mapHtml += '<div style="float: left; width: ' + width + '%"><blink>*</blink></div>';
-				} else if (space.traversedAttributes.currency && space.traversedAttributes.currency.has(player)) {
-					mapHtml += '<div style="float: left; width: ' + width + '%">' + mapKey.currency + '</div>';
+					mapHtml += '<div style="float: left; width: ' + width + '%"><blink>*</blink></div></span>';
+					continue;
+				}
+
+				if (this.getSpaceDisplay) {
+					const spaceDisplay = this.getSpaceDisplay(player, floor, space);
+					if (spaceDisplay) {
+						mapHtml += '<div style="float: left; width: ' + width + '%">' + spaceDisplay.symbol + '</div></span>';
+						if (!(spaceDisplay.symbol in legend)) legend[spaceDisplay.symbol] = spaceDisplay.description;
+						continue;
+					}
+				}
+
+				if (space.traversedAttributes.currency && space.traversedAttributes.currency.has(player)) {
+					mapHtml += '<div style="float: left; width: ' + width + '%">' + mapKeys.currency + '</div>';
 					if (!currency) currency = true;
 				} else if (space.traversedAttributes.exit && space.traversedAttributes.exit.has(player)) {
-					mapHtml += '<div style="float: left; width: ' + width + '%">' + mapKey.exit + '</div>';
+					mapHtml += '<div style="float: left; width: ' + width + '%">' + mapKeys.exit + '</div>';
 					if (!exit) exit = true;
 				} else if (space.traversedAttributes.trap && space.traversedAttributes.trap.has(player)) {
-					mapHtml += '<div style="float: left; width: ' + width + '%">' + mapKey.trap + '</div>';
+					mapHtml += '<div style="float: left; width: ' + width + '%">' + mapKeys.trap + '</div>';
 					if (!trap) trap = true;
 				} else if (coordinates in floor.traversedCoordinates && floor.traversedCoordinates[coordinates].has(player)) {
-					mapHtml += '<div style="float: left; width: ' + width + '%">' + mapKey.empty + '</div>';
+					mapHtml += '<div style="float: left; width: ' + width + '%">' + mapKeys.empty + '</div>';
 					if (!empty) empty = true;
 				} else {
-					mapHtml += '<div style="float: left; width: ' + width + '%">' + mapKey.unknown + '</div>';
+					mapHtml += '<div style="float: left; width: ' + width + '%">' + mapKeys.unknown + '</div>';
 				}
 				mapHtml += "</span>";
 			}
-			mapHtml += '<br>';
+			mapHtml += '<br />';
 		}
-		let html = '<div class="infobox">';
-		let legend = '<b>Map legend</b>:<br />';
-		legend += '<b>' + mapKeys.player + '</b>: your current location<br />';
-		legend += '<b>' + mapKeys.unknown + '</b>: an unknown space<br />';
-		if (currency) legend += '<b>' + mapKeys.currency + '</b>: ' + this.currency + ' that you have discovered<br />';
-		if (empty) legend += '<b>' + mapKeys.empty + '</b>: an empty space<br />';
-		if (exit) legend += '<b>' + mapKeys.exit + '</b>: an exit that you have discovered<br />';
-		if (trap) legend += '<b>' + mapKeys.trap + '</b>: a trap that you have discovered<br />';
-		html += legend + '<br />';
-		html += mapHtml;
-		html += '</div>';
+
+		if (currency) legend[mapKeys.currency] = this.currency + ' that you have discovered';
+		if (empty) legend[mapKeys.empty] = 'an empty space';
+		if (exit) legend[mapKeys.exit] = 'an exit that you have discovered';
+		if (trap) legend[mapKeys.trap] = 'a trap that you have discovered';
+
+		let html = '<div class="infobox"><b>Map legend</b>:<br />';
+		for (const mapSymbol in legend) {
+			html += '<b>' + mapSymbol + '</b>: ' + legend[mapSymbol] + '<br />';
+		}
+		html += "<br />" + mapHtml + '</div>';
 
 		player.sayUhtml(html, this.uhtmlBaseName + "-map");
 	}
@@ -547,6 +569,7 @@ export abstract class MapGame extends Game {
 		return true;
 	}
 
+	getSpaceDisplay?(player: Player, floor: MapFloor, space: MapFloorSpace): ISpaceDisplayData | undefined;
 	onAchievementSpace?(player: Player, floor: MapFloor, space: MapFloorSpace): void;
 	onEventSpace?(player: Player, floor: MapFloor, space: MapFloorSpace): boolean | null;
 	onGenerateMap?(map: GameMap): void;
