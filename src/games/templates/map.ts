@@ -268,7 +268,7 @@ export abstract class MapGame extends Game {
 		html += mapHtml;
 		html += '</div>';
 
-		player.sayUhtml(html, "map");
+		player.sayUhtml(html, this.uhtmlBaseName + "-map");
 	}
 
 	onRegularSpace(player: Player, floor: MapFloor, space: MapFloorSpace): void {

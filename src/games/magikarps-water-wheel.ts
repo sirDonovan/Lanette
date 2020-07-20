@@ -116,7 +116,7 @@ class MagikarpsWaterWheel extends Game {
 		}
 
 		html += '</center></div>';
-		player.sayUhtml(html, 'spin');
+		player.sayUhtml(html, this.uhtmlBaseName + '-spin');
 
 		if (magikarp) {
 			this.eliminatePlayer(player, "The wheel landed on a Magikarp!");
