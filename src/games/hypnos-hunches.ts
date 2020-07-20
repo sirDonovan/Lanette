@@ -91,6 +91,8 @@ class HypnosHunches extends Guessing {
 				this.timeout = setTimeout(() => this.nextRound(), 5000);
 			}
 			return;
+		} else {
+			this.timeout = setTimeout(() => this.nextRound(), this.incorrectGuessTime);
 		}
 	}
 
@@ -103,9 +105,6 @@ class HypnosHunches extends Guessing {
 
 	onIncorrectGuess(player: Player, guess: string): string {
 		guess = Tools.toId(guess);
-		if (!this.timeout) {
-			this.timeout = setTimeout(() => this.nextRound(), this.incorrectGuessTime);
-		}
 		for (const letter of this.letters) {
 			if (Tools.toId(letter) === guess) {
 				if (!this.solvedLetters.includes(guess)) {

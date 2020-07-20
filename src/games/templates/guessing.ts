@@ -19,6 +19,7 @@ export abstract class Guessing extends Game {
 	guessingRound: number = 0;
 	hint: string = '';
 	readonly points = new Map<Player, number>();
+	previousHint: string = '';
 	roundTime: number = 10 * 1000;
 
 	allAnswersAchievement?: IGameAchievement;
@@ -39,6 +40,10 @@ export abstract class Guessing extends Game {
 		if (!format.options.points && !(format.mode && format.mode.removedOptions && format.mode.removedOptions.includes('points'))) {
 			throw new Error("Guessing games must include default or customizable points options");
 		}
+	}
+
+	onForceEnd(): void {
+		if (this.answerTimeout) clearTimeout(this.answerTimeout);
 	}
 
 	onSignups(): void {
@@ -77,9 +82,12 @@ export abstract class Guessing extends Game {
 			if (roundText === false) return;
 		}
 
+		this.previousHint = this.hint;
+
 		let newAnswer = false;
 		if (!this.answers.length) {
 			newAnswer = true;
+			if (this.answerTimeout) clearTimeout(this.answerTimeout);
 			this.canGuess = false;
 			await this.setAnswers();
 			if (this.ended) return;
@@ -92,21 +100,28 @@ export abstract class Guessing extends Game {
 			if (this.ended) return;
 		}
 
-		const hintUhtmlName = this.hintUhtmlName + '-round' + this.guessingRound;
-		const html = this.getHintHtml();
-		this.onUhtml(hintUhtmlName, html, () => {
-			if (this.ended) return;
-			if (!this.canGuess) this.canGuess = true;
-			if (this.answerTimeout) clearTimeout(this.answerTimeout);
-			this.answerTimeout = setTimeout(() => this.onAnswerTimeLimit(), this.roundTime);
-			if (this.onHintHtml) this.onHintHtml();
-		});
-
 		const sayHint = () => {
-			if (newAnswer) {
-				this.sayUhtml(hintUhtmlName, html);
+			const onHintHtml = () => {
+				if (this.ended) return;
+				if (!this.canGuess) this.canGuess = true;
+				if (newAnswer) {
+					this.answerTimeout = setTimeout(() => this.onAnswerTimeLimit(), this.roundTime);
+				}
+				if (this.onHintHtml) this.onHintHtml();
+			};
+
+			if (!newAnswer && this.previousHint && this.previousHint === this.hint) {
+				onHintHtml();
 			} else {
-				this.sayUhtmlAuto(hintUhtmlName, html);
+				const hintUhtmlName = this.hintUhtmlName + '-round' + this.guessingRound;
+				const html = this.getHintHtml();
+				this.onUhtml(hintUhtmlName, html, onHintHtml);
+
+				if (newAnswer) {
+					this.sayUhtml(hintUhtmlName, html);
+				} else {
+					this.sayUhtmlAuto(hintUhtmlName, html);
+				}
 			}
 		};
 
