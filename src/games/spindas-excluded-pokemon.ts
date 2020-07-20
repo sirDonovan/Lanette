@@ -12,10 +12,16 @@ interface IPokemonData {
 }
 type IPokemonCategory = keyof IPokemonData;
 
-const data: {pokemon: Dict<IPokemonData>, keys: string[], usableMoves: string[]}= {
+const data: {pokemon: Dict<IPokemonData>, keys: string[], usableMoves: string[], allParameters: KeyedDict<IPokemonCategory, string[]>}= {
 	pokemon: {},
 	keys: [],
 	usableMoves: [],
+	allParameters: {
+		color: [],
+		generation: [],
+		moves: [],
+		type: [],
+	},
 };
 
 const categories: IPokemonCategory[] = ['type', 'color', 'moves', 'generation'];
@@ -57,11 +63,23 @@ class SpindasExcludedPokemon extends Game {
 			}
 			if (!usableMoves.length) continue;
 
+			for (const type of pokemon.types) {
+				const typeId = Tools.toId(type);
+				if (!data.allParameters.type.includes(typeId)) data.allParameters.type.push(typeId);
+			}
+
+			const colorId = Tools.toId(pokemon.color);
+			if (!data.allParameters.color.includes(colorId)) data.allParameters.color.push(colorId);
+
+			const generation = "Gen " + pokemon.gen;
+			const generationId = Tools.toId(generation);
+			if (!data.allParameters.generation.includes(generationId)) data.allParameters.generation.push(generationId);
+
 			data.pokemon[pokemon.name] = {
 				type: pokemon.types,
 				color: [pokemon.color],
 				moves: usableMoves,
-				generation: ["Gen " + pokemon.gen],
+				generation: [generation],
 			};
 			data.keys.push(pokemon.name);
 		}
@@ -94,7 +112,7 @@ class SpindasExcludedPokemon extends Game {
 
 		if (!this.playerOrder.length || !this.getRemainingPlayerCount(this.playerOrder)) {
 			if (this.getRemainingPlayerCount() < 2) {
-				this.say("Only 1 player remains! The parameter was: __" + this.parameter + "__.");
+				this.say("The parameter was: __" + this.parameter + "__!");
 				this.end();
 				return;
 			}
@@ -169,6 +187,23 @@ const commands: GameCommandDefinitions<SpindasExcludedPokemon> = {
 			let id = Tools.toId(target);
 			if (!isNaN(parseInt(id))) id = "gen" + id;
 			if (id in typeAliases) id = Tools.toId(typeAliases[id]);
+
+			let validParam = false;
+			if (data.usableMoves.includes(id)) {
+				validParam = true;
+			} else {
+				for (const category of categories) {
+					if (data.allParameters[category].includes(id)) {
+						validParam = true;
+						break;
+					}
+				}
+			}
+
+			if (!validParam) {
+				player.say("'" + target.trim() + "' is not a valid parameter.");
+				return false;
+			}
 
 			if (id === Tools.toId(this.parameter)) {
 				this.say(player.name + " correctly guessed the parameter (__" + this.parameter + "__)!");
