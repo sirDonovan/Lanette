@@ -766,7 +766,8 @@ export class Dex {
 
 		let availability = 0;
 		for (const pokemon of pokedex) {
-			if (this.getAllPossibleMoves(pokemon).includes(move.id)) {
+			const learnsetData = this.getLearnsetData(pokemon.name);
+			if (learnsetData && this.getAllPossibleMoves(pokemon).includes(move.id)) {
 				availability++;
 			}
 		}
