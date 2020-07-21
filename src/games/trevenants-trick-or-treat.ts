@@ -135,8 +135,8 @@ const commands: GameCommandDefinitions<TrevenantsTrickOrTreat> = {
 			if (totalPoints >= this.format.options.points) {
 				this.winners.set(player, totalPoints);
 				for (const i in this.players) {
-					if (this.players[i].eliminated) continue;
-					this.addBits(this.players[i], this.points.get(player)! / 2);
+					if (this.players[i].eliminated || !this.points.has(this.players[i])) continue;
+					this.addBits(this.players[i], this.points.get(this.players[i])! / 2);
 				}
 				this.end();
 				return true;
