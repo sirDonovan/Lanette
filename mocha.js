@@ -1,6 +1,6 @@
 const path = require('path');
 
-const optionNames = ['incrementalBuild', 'modules', 'games', 'gameSeed'];
+const optionNames = ['offline', 'incrementalBuild', 'modules', 'games', 'gameSeed'];
 const options = {};
 for (let i = process.argv.indexOf(__filename) + 1; i < process.argv.length; i++) {
 	if (!process.argv[i].startsWith('--')) continue;
