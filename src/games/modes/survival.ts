@@ -1,6 +1,6 @@
 import type { Player } from "../../room-activity";
 import type { Game } from "../../room-game";
-import { addPlayers, assert, runCommand } from "../../test/test-tools";
+import { addPlayers, assert, runCommand, assertStrictEqual } from "../../test/test-tools";
 import type {
 	DefaultGameOption, GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFormat,
 	IGameModeFile
@@ -16,6 +16,7 @@ type SurvivalThis = Guessing & Survival;
 class Survival {
 	currentPlayer: Player | null = null;
 	readonly maxPlayers: number = 20;
+	maxSurvivalRound: number = 10;
 	playerList: Player[] = [];
 	readonly playerRounds = new Map<Player, number>();
 	survivalRound: number = 0;
@@ -56,9 +57,14 @@ class Survival {
 				return false;
 			}
 			this.survivalRound++;
+			if (this.survivalRound > this.maxSurvivalRound) {
+				this.say("Time is up!");
+				this.end();
+				return false;
+			}
 			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(this.getPlayerNames, null, "Round " + this.survivalRound));
 			this.playerList = this.shufflePlayers();
-			if (this.survivalRound > 1 && this.roundTime > 2000) this.roundTime = Math.max(2000, this.roundTime - 1000);
+			if (this.survivalRound > 1) this.increaseDifficulty();
 		}
 
 		const currentPlayer = this.playerList[0];
@@ -90,7 +96,7 @@ const commandDefinitions: GameCommandDefinitions<SurvivalThis> = {
 	guess: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async asyncCommand(target, room, user): Promise<GameCommandReturnType> {
-			if (!this.canGuess || this.players[user.id] !== this.currentPlayer) return false;
+			if (!this.canGuess || !this.answers.length || this.players[user.id] !== this.currentPlayer) return false;
 			const answer = await this.guessAnswer(this.players[user.id], target);
 			if (!answer) return false;
 			if (this.timeout) clearTimeout(this.timeout);
@@ -124,6 +130,21 @@ const initialize = (game: Game): void => {
 
 const tests: GameFileTests<SurvivalThis> = {
 	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+	'it should have the necessary methods': {
+		config: {
+			async: true,
+		},
+		async test(game, format, attributes): Promise<void> {
+			this.timeout(15000);
+
+			addPlayers(game);
+			game.start();
+			await game.onNextRound();
+			assert(game.answers.length);
+			game.increaseDifficulty();
+			await game.onNextRound();
+		},
+	},
 	'it should advance players who answer correctly': {
 		config: {
 			async: true,

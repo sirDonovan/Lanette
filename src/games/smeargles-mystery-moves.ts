@@ -18,10 +18,12 @@ class SmearglesMysteryMoves extends Guessing {
 	canGuess: boolean = false;
 	hints: string[] = [];
 	lastMove: string = '';
+	multiRoundHints = true;
 	mysteryRound: number = -1;
 	points = new Map<Player, number>();
 	roundGuesses = new Map<Player, boolean>();
-	roundTime = 30 * 1000;
+	roundTime = 0;
+	updateHintTime = 5 * 1000;
 
 	static loadData(room: Room | User): void {
 		const movesList = Games.getMovesList();
@@ -72,7 +74,7 @@ class SmearglesMysteryMoves extends Guessing {
 			this.say(text);
 			return;
 		} else {
-			this.timeout = setTimeout(() => this.nextRound(), 5000);
+			this.timeout = setTimeout(() => this.nextRound(), this.updateHintTime);
 		}
 	}
 }

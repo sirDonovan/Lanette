@@ -28,13 +28,14 @@ class ZygardesOrders extends Guessing {
 	lastAnswer: string = '';
 	letters: string[] = [];
 	maxRevealedLetters: number | undefined;
+	multiRoundHints = true;
 	orderRound: number = 0;
 	revealedLetters: number = 0;
-	revealLetterTime: number = 5 * 1000;
 	roundGuesses = new Map<Player, boolean>();
-	roundTime = 90 * 1000;
+	roundTime = 0;
 	scaleMaxRevealedLetters: boolean = false;
 	solvedLetters: string[] = [];
+	updateHintTime = 5 * 1000;
 
 	static loadData(room: Room | User): void {
 		data["Characters"] = Dex.data.characters.slice().filter(x => x.length < 18);
@@ -113,12 +114,16 @@ class ZygardesOrders extends Guessing {
 			});
 			this.say(text);
 		} else {
-			this.timeout = setTimeout(() => this.nextRound(), this.revealLetterTime);
+			this.timeout = setTimeout(() => this.nextRound(), this.updateHintTime);
 		}
 	}
 
 	onCorrectGuess(player: Player, answer: string): void {
 		if (this.revealedLetters === 1) this.unlockAchievement(player, achievements.tallorder!);
+	}
+
+	increaseDifficulty(): void {
+		this.updateHintTime = Math.max(1000, this.updateHintTime - 500);
 	}
 }
 
@@ -142,6 +147,7 @@ export const game: IGameFile<ZygardesOrders> = Games.copyTemplateProperties(gues
 	modeProperties: {
 		'survival': {
 			scaleMaxRevealedLetters: true,
+			updateHintTime: 3000,
 		},
 	},
 	variants: [

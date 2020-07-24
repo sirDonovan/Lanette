@@ -20,10 +20,11 @@ class MareaniesMarquee extends Guessing {
 	hintUpdates: number = 0;
 	hintUpdateLimit: number = 0;
 	hintUpdateLimitMultiplier: number = 2;
-	hintUpdateTime: number = 1500;
 	lastAnswer: string = '';
 	letters: string[] = [];
-	roundTime = 60 * 1000;
+	multiRoundHints = true;
+	roundTime = 0;
+	updateHintTime = 1500;
 
 	static loadData(room: Room | User): void {
 		data["Pokemon"] = Games.getPokemonList().map(x => x.name).filter(x => x.length > LETTERS_TO_REVEAL);
@@ -96,7 +97,11 @@ class MareaniesMarquee extends Guessing {
 
 	onHintHtml(): void {
 		if (this.timeout) clearTimeout(this.timeout);
-		this.timeout = setTimeout(() => this.nextRound(), this.hintUpdateTime);
+		this.timeout = setTimeout(() => this.nextRound(), this.updateHintTime);
+	}
+
+	increaseDifficulty(): void {
+		this.updateHintTime = Math.max(400, this.updateHintTime - 100);
 	}
 }
 
@@ -115,7 +120,7 @@ export const game: IGameFile<MareaniesMarquee> = Games.copyTemplateProperties(gu
 	modeProperties: {
 		'survival': {
 			hintUpdateLimitMultiplier: 1,
-			hintUpdateTime: 1000,
+			updateHintTime: 1000,
 		},
 	},
 	variants: [

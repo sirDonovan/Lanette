@@ -22,12 +22,13 @@ class HitmonchansHangman extends Guessing {
 	guessedLetters: string[] = [];
 	guessLimit: number = 10;
 	hints: string[] = [];
-	incorrectGuessTime: number = 4000;
 	lastAnswer: string = '';
 	letters: string[] = [];
+	multiRoundHints = true;
 	roundGuesses = new Map<Player, boolean>();
-	roundTime: number = 30 * 1000;
+	roundTime = 30 * 1000;
 	solvedLetters: string[] = [];
+	updateHintTime = 3000;
 
 	static loadData(room: Room | User): void {
 		data["Characters"] = Dex.data.characters.slice();
@@ -81,7 +82,7 @@ class HitmonchansHangman extends Guessing {
 				this.timeout = setTimeout(() => this.nextRound(), 5000);
 			}
 		} else {
-			this.timeout = setTimeout(() => this.nextRound(), this.incorrectGuessTime);
+			this.timeout = setTimeout(() => this.nextRound(), this.updateHintTime);
 		}
 	}
 
@@ -106,6 +107,10 @@ class HitmonchansHangman extends Guessing {
 		this.guessedLetters.push(guess);
 		return '';
 	}
+
+	increaseDifficulty(): void {
+		this.roundTime = Math.max(5000, this.roundTime - 2000);
+	}
 }
 
 export const game: IGameFile<HitmonchansHangman> = Games.copyTemplateProperties(guessingGame, {
@@ -124,8 +129,8 @@ export const game: IGameFile<HitmonchansHangman> = Games.copyTemplateProperties(
 	modeProperties: {
 		'survival': {
 			guessLimit: 4,
-			incorrectGuessTime: 1000,
 			roundTime: 20 * 1000,
+			updateHintTime: 500,
 		},
 	},
 	variants: [

@@ -20,12 +20,13 @@ class AmbipomsTossups extends Guessing {
 	letterCount: number = 0;
 	letters: string[] = [];
 	maxRevealedLetters: number | undefined;
+	multiRoundHints = true;
 	revealedLetters: number = 0;
-	revealLetterTime: number = 5 * 1000;
 	readonly roundGuesses = new Map<Player, boolean>();
-	roundTime = 90 * 1000;
+	roundTime = 0;
 	scaleMaxRevealedLetters: boolean = false;
 	tossupRound: number = 0;
+	updateHintTime: number = 5 * 1000;
 
 	static loadData(room: Room | User): void {
 		data["Pokemon"] = Games.getPokemonList().filter(x => x.name.length < 18).map(x => x.name);
@@ -49,7 +50,7 @@ class AmbipomsTossups extends Guessing {
 		const letters = answer.split("");
 		this.letters = letters;
 		this.letterCount = Tools.toId(answer).split("").length;
-		if (this.scaleMaxRevealedLetters) this.maxRevealedLetters = Math.floor(this.letterCount / 2);
+		if (this.scaleMaxRevealedLetters) this.maxRevealedLetters = Math.floor(this.letterCount / 2) + 1;
 		this.hints = this.letters.slice();
 		for (let i = 0; i < this.hints.length; i++) {
 			this.hints[i] = (Tools.toId(this.hints[i]).length ? "_" : this.hints[i] === ' ' ? "/" : this.hints[i]);
@@ -84,13 +85,17 @@ class AmbipomsTossups extends Guessing {
 			});
 			this.say(text);
 		} else {
-			this.timeout = setTimeout(() => this.nextRound(), this.revealLetterTime);
+			this.timeout = setTimeout(() => this.nextRound(), this.updateHintTime);
 		}
 	}
 
 	filterGuess(guess: string): boolean {
 		if (Tools.toId(guess).length > this.answers[0].length) return true;
 		return false;
+	}
+
+	increaseDifficulty(): void {
+		this.updateHintTime = Math.max(1000, this.updateHintTime - 500);
 	}
 }
 
@@ -111,6 +116,7 @@ export const game: IGameFile<AmbipomsTossups> = Games.copyTemplateProperties(gue
 	modeProperties: {
 		'survival': {
 			scaleMaxRevealedLetters: true,
+			updateHintTime: 3000,
 		},
 	},
 	variants: [

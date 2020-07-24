@@ -21,13 +21,14 @@ class HypnosHunches extends Guessing {
 	guessLimit: number = 10;
 	guessedLetters: string[] = [];
 	hints: string[] = [];
-	incorrectGuessTime: number = 4000;
 	solvedLetters: string[] = [];
 	uniqueLetters: number = 0;
 	lastAnswer: string = '';
 	letters: string[] = [];
+	multiRoundHints = true;
 	roundGuesses = new Map<Player, boolean>();
 	roundTime: number = 30 * 1000;
+	updateHintTime = 4000;
 
 	static loadData(room: Room | User): void {
 		data["Characters"] = Dex.data.characters.slice();
@@ -92,7 +93,7 @@ class HypnosHunches extends Guessing {
 			}
 			return;
 		} else {
-			this.timeout = setTimeout(() => this.nextRound(), this.incorrectGuessTime);
+			this.timeout = setTimeout(() => this.nextRound(), this.updateHintTime);
 		}
 	}
 
@@ -117,6 +118,10 @@ class HypnosHunches extends Guessing {
 		this.guessedLetters.push(guess);
 		return '';
 	}
+
+	increaseDifficulty(): void {
+		this.roundTime = Math.max(5000, this.roundTime - 2000);
+	}
 }
 
 export const game: IGameFile<HypnosHunches> = Games.copyTemplateProperties(guessingGame, {
@@ -137,8 +142,8 @@ export const game: IGameFile<HypnosHunches> = Games.copyTemplateProperties(guess
 	modeProperties: {
 		'survival': {
 			guessLimit: 4,
-			incorrectGuessTime: 1000,
 			roundTime: 20 * 1000,
+			updateHintTime: 500,
 		},
 	},
 	variants: [
