@@ -793,17 +793,18 @@ export class Game extends Activity {
 	}
 
 	unlockAchievement(players: Player | Player[], achievement: IGameAchievement): void {
-		if (this.isMiniGame || this.isPm(this.room)) return;
+		if ((this.isMiniGame && !this.internalGame) || this.isPm(this.room)) return;
 		const format = this.format as IGameFormat;
 		if (format.mode && format.mode.id !== achievement.mode) return;
 
 		const database = Storage.getDatabase(this.room);
 		if (!database.gameAchievements) database.gameAchievements = {};
 
-		const unlocked: Player[] = [];
-		if (!Array.isArray(players)) players = [players];
-
 		const achievementId = Tools.toId(achievement.name);
+		const firstUnlock: Player[] = [];
+		const repeatUnlock: Player[] = [];
+
+		if (!Array.isArray(players)) players = [players];
 		for (const player of players) {
 			let repeat = false;
 			if (player.id in database.gameAchievements) {
@@ -817,13 +818,22 @@ export class Game extends Activity {
 				database.gameAchievements[player.id] = [achievementId];
 			}
 
-			unlocked.push(player);
-			this.addBits(player, repeat ? achievement.repeatBits! : achievement.bits);
+			if (repeat) {
+				repeatUnlock.push(player);
+				this.addBits(player, achievement.repeatBits!);
+			} else {
+				firstUnlock.push(player);
+				this.addBits(player, achievement.bits);
+			}
 		}
 
-		if (!unlocked.length) return;
-
-		this.say(Tools.joinList(unlocked.map(x => x.name), "**") + " unlocked the **" + achievement.name + "** achievement!");
+		if (firstUnlock.length) {
+			this.say(Tools.joinList(firstUnlock.map(x => x.name), "**") + " unlocked the **" + achievement.name + "** achievement!");
+		}
+	
+		if (repeatUnlock.length) {
+			this.say(Tools.joinList(repeatUnlock.map(x => x.name), "**") + " re-unlocked the **" + achievement.name + "** achievement!");
+		}
 	}
 
 	rollForShinyPokemon(extraChance?: number): boolean {
