@@ -28,20 +28,22 @@ class ZygardesOrders extends Guessing {
 	lastAnswer: string = '';
 	letters: string[] = [];
 	maxRevealedLetters: number | undefined;
+	multiRoundHints = true;
 	orderRound: number = 0;
 	revealedLetters: number = 0;
-	revealLetterTime: number = 5 * 1000;
 	roundGuesses = new Map<Player, boolean>();
+	roundTime = 0;
 	scaleMaxRevealedLetters: boolean = false;
 	solvedLetters: string[] = [];
+	updateHintTime = 5 * 1000;
 
 	static loadData(room: Room | User): void {
-		data["Characters"] = Dex.data.characters.slice();
-		data["Locations"] = Dex.data.locations.slice();
-		data["Pokemon"] = Games.getPokemonList().map(x => x.name);
-		data["Pokemon Abilities"] = Games.getAbilitiesList().map(x => x.name);
-		data["Pokemon Items"] = Games.getItemsList().map(x => x.name);
-		data["Pokemon Moves"] = Games.getMovesList().map(x => x.name);
+		data["Characters"] = Dex.data.characters.slice().filter(x => x.length < 18);
+		data["Locations"] = Dex.data.locations.slice().filter(x => x.length < 18);
+		data["Pokemon"] = Games.getPokemonList().filter(x => x.name.length < 18).map(x => x.name);
+		data["Pokemon Abilities"] = Games.getAbilitiesList().filter(x => x.name.length < 18).map(x => x.name);
+		data["Pokemon Items"] = Games.getItemsList().filter(x => x.name.length < 18).map(x => x.name);
+		data["Pokemon Moves"] = Games.getMovesList().filter(x => x.name.length < 18).map(x => x.name);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -112,12 +114,16 @@ class ZygardesOrders extends Guessing {
 			});
 			this.say(text);
 		} else {
-			this.timeout = setTimeout(() => this.nextRound(), this.revealLetterTime);
+			this.timeout = setTimeout(() => this.nextRound(), this.updateHintTime);
 		}
 	}
 
 	onCorrectGuess(player: Player, answer: string): void {
 		if (this.revealedLetters === 1) this.unlockAchievement(player, achievements.tallorder!);
+	}
+
+	increaseDifficulty(): void {
+		this.updateHintTime = Math.max(1000, this.updateHintTime - 500);
 	}
 }
 
@@ -141,6 +147,7 @@ export const game: IGameFile<ZygardesOrders> = Games.copyTemplateProperties(gues
 	modeProperties: {
 		'survival': {
 			scaleMaxRevealedLetters: true,
+			updateHintTime: 3000,
 		},
 	},
 	variants: [

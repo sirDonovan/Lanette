@@ -49,7 +49,7 @@ class ElectrodesMinefield extends MapDamageGame {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
 			const playerCoordindates = this.playerCoordinates.get(player)!;
-			if (!blastCoordinates.includes(this.toStringCoordindates(playerCoordindates[0], playerCoordindates[1]))) continue;
+			if (!blastCoordinates.includes(this.coordinatesToString(playerCoordindates[0], playerCoordindates[1]))) continue;
 			let lives = this.lives.get(player)!;
 			lives -= 1;
 			const eliminated = lives === 0;
@@ -78,9 +78,7 @@ class ElectrodesMinefield extends MapDamageGame {
 			if (!earnings) continue;
 			if (earnings >= minesweeperPoints) unlockedMinesweeper.push(player);
 			earnings = Math.round(earnings / 4);
-			if (earnings > this.maxBits) {
-				earnings = this.maxBits;
-			} else if (earnings < 250) {
+			if (earnings < 250) {
 				earnings = 250;
 			}
 			this.addBits(player, earnings);

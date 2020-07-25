@@ -12,6 +12,7 @@ const MIN_GEN = 1;
 const MAX_GEN = 7;
 
 const allParamTypes: ParamType[] = ['move', 'tier', 'color', 'type', 'resistance', 'weakness', 'egggroup', 'ability', 'gen'];
+const modeParamTypes: ParamType[] = ['tier', 'color', 'type', 'egggroup', 'ability', 'gen'];
 
 export class ParasParameters extends Guessing {
 	currentNumberOfParams: number = 0;
@@ -26,18 +27,6 @@ export class ParasParameters extends Guessing {
 
 	static loadData(room: Room | User): void {
 		Games.workers.parameters.loadData();
-	}
-
-	onInitialize(): void {
-		super.onInitialize();
-
-		const format = this.format as IGameFormat;
-		if (format.mode) {
-			if (format.mode.id === 'team') this.roundTime = 60 * 1000;
-			if (format.mode.id === 'survival' || format.mode.id === 'team') {
-				this.paramTypes = ['tier', 'color', 'type', 'egggroup', 'ability', 'gen'];
-			}
-		}
 	}
 
 	onSignups(): void {
@@ -319,5 +308,15 @@ export const game: IGameFile<ParasParameters> = Games.copyTemplateProperties(gue
 	minigameCommand: 'parameter',
 	minigameCommandAliases: ['param'],
 	modes: ['survival', 'team'],
+	modeProperties: {
+		'survival': {
+			paramTypes: modeParamTypes,
+			roundTime: 15 * 1000,
+		},
+		'team': {
+			paramTypes: modeParamTypes,
+			roundTime: 60 * 1000,
+		},
+	},
 	tests: Object.assign({}, guessingGame.tests, tests),
 });

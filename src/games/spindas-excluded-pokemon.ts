@@ -12,10 +12,16 @@ interface IPokemonData {
 }
 type IPokemonCategory = keyof IPokemonData;
 
-const data: {pokemon: Dict<IPokemonData>, keys: string[], usableMoves: string[]}= {
+const data: {pokemon: Dict<IPokemonData>, keys: string[], usableMoves: string[], allParameters: KeyedDict<IPokemonCategory, string[]>}= {
 	pokemon: {},
 	keys: [],
 	usableMoves: [],
+	allParameters: {
+		color: [],
+		generation: [],
+		moves: [],
+		type: [],
+	},
 };
 
 const categories: IPokemonCategory[] = ['type', 'color', 'moves', 'generation'];
@@ -25,12 +31,12 @@ const minimumMoveAvailability = 30;
 const maximumMoveAvailability = 500;
 
 class SpindasExcludedPokemon extends Game {
-	parameter: string = '';
 	currentPlayer: Player | null = null;
 	excludedRound: number = 0;
-	playerOrder: Player[] = [];
+	firstSpecies: string = '';
 	guessedPokemon: string[] = [];
-	guessed: boolean = false;
+	parameter: string = '';
+	playerOrder: Player[] = [];
 
 	// set in onStart()
 	category!: IPokemonCategory;
@@ -57,11 +63,23 @@ class SpindasExcludedPokemon extends Game {
 			}
 			if (!usableMoves.length) continue;
 
+			for (const type of pokemon.types) {
+				const typeId = Tools.toId(type);
+				if (!data.allParameters.type.includes(typeId)) data.allParameters.type.push(typeId);
+			}
+
+			const colorId = Tools.toId(pokemon.color);
+			if (!data.allParameters.color.includes(colorId)) data.allParameters.color.push(colorId);
+
+			const generation = "Gen " + pokemon.gen;
+			const generationId = Tools.toId(generation);
+			if (!data.allParameters.generation.includes(generationId)) data.allParameters.generation.push(generationId);
+
 			data.pokemon[pokemon.name] = {
 				type: pokemon.types,
 				color: [pokemon.color],
 				moves: usableMoves,
-				generation: ["Gen " + pokemon.gen],
+				generation: [generation],
 			};
 			data.keys.push(pokemon.name);
 		}
@@ -74,10 +92,10 @@ class SpindasExcludedPokemon extends Game {
 		this.on(text, () => {
 			this.timeout = setTimeout(() => {
 				const species = this.sampleOne(data.keys);
+				this.firstSpecies = species;
 				this.category = this.sampleOne(categories);
 				this.parameter = this.sampleOne(data.pokemon[species][this.category]);
 
-				this.say("A randomly chosen Pokemon that fits the parameter is **" + species + "**!");
 				this.nextRound();
 			}, 5 * 1000);
 		});
@@ -94,13 +112,14 @@ class SpindasExcludedPokemon extends Game {
 
 		if (!this.playerOrder.length || !this.getRemainingPlayerCount(this.playerOrder)) {
 			if (this.getRemainingPlayerCount() < 2) {
-				this.say("All players have been eliminated! The parameter was: __" + this.parameter + "__.");
+				this.say("The parameter was: __" + this.parameter + "__!");
 				this.end();
 				return;
 			}
 			this.excludedRound++;
 			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(this.getPlayerNames, null, "Round " + this.excludedRound));
 			this.playerOrder = this.shufflePlayers();
+			if (this.excludedRound === 1) this.say("A randomly chosen Pokemon that fits the parameter is **" + this.firstSpecies + "**!");
 		}
 
 		const currentPlayer = this.playerOrder[0];
@@ -116,6 +135,11 @@ class SpindasExcludedPokemon extends Game {
 	}
 
 	onEnd(): void {
+		for (const id in this.players) {
+			if (this.players[id].eliminated) continue;
+			this.winners.set(this.players[id], 1);
+			this.addBits(this.players[id], 500);
+		}
 		this.announceWinners();
 	}
 }
@@ -164,11 +188,29 @@ const commands: GameCommandDefinitions<SpindasExcludedPokemon> = {
 			if (!isNaN(parseInt(id))) id = "gen" + id;
 			if (id in typeAliases) id = Tools.toId(typeAliases[id]);
 
+			let validParam = false;
+			if (data.usableMoves.includes(id)) {
+				validParam = true;
+			} else {
+				for (const category of categories) {
+					if (data.allParameters[category].includes(id)) {
+						validParam = true;
+						break;
+					}
+				}
+			}
+
+			if (!validParam) {
+				player.say("'" + target.trim() + "' is not a valid parameter.");
+				return false;
+			}
+
 			if (id === Tools.toId(this.parameter)) {
 				this.say(player.name + " correctly guessed the parameter (__" + this.parameter + "__)!");
 				if (this.timeout) clearTimeout(this.timeout);
-				this.winners.set(player, 1);
-				this.addBits(player, 500);
+				for (const id in this.players) {
+					if (this.players[id] !== player) this.players[id].eliminated = true;
+				}
 				this.end();
 			} else {
 				this.say(user.name + " guessed an incorrect parameter and has been eliminated from the game!");

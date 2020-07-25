@@ -6,14 +6,14 @@ import type { PRNGSeed } from '../../prng';
 import * as tools from '../../tools';
 import type {
 	IParam, IParametersIntersectMessage, IParametersIntersectOptions, IParametersResponse, IParametersSearchMessage,
-	IParametersSearchOptions, IParametersWorkerData, IParamTypeKeys, ParametersId, ParamType
+	IParametersSearchOptions, IParametersWorkerData, ParametersId, ParamType
 } from '../parameters';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const Tools = new tools.Tools();
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const data = worker_threads.workerData as DeepImmutable<IParametersWorkerData>;
-const paramTypeDexesKeys: Dict<Dict<KeyedDict<IParamTypeKeys, readonly string[]>>> = {};
+const paramTypeDexesKeys: Dict<Dict<KeyedDict<ParamType, readonly string[]>>> = {};
 const searchTypes: (keyof typeof data)[] = ['pokemon'];
 for (const searchType of searchTypes) {
 	paramTypeDexesKeys[searchType] = {};

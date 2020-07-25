@@ -8,18 +8,9 @@ import type { IParam, IParametersWorkerData } from './../workers/parameters';
 const gen = 7;
 const genString = 'gen' + gen;
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-interface IParamType {
-	'color': any;
-	'letter': any;
-	'tier': any;
-	'type': any;
-}
-/* eslint-enable */
-
-type ParamType = keyof IParamType;
+type ParamType = 'color' | 'letter' | 'tier' | 'type';
 const paramTypes: ParamType[] = ['color', 'letter', 'tier', 'type'];
-const paramTypeDexesKeys: Dict<Dict<KeyedDict<IParamType, string[]>>> = {};
+const paramTypeDexesKeys: Dict<Dict<KeyedDict<ParamType, string[]>>> = {};
 
 const searchTypes: (keyof IParametersWorkerData)[] = ['pokemon'];
 

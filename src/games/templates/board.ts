@@ -56,12 +56,12 @@ export abstract class BoardGame extends Game {
 
 	timeLimit?: number;
 
-	abstract getSpaceHtml(side: BoardSide, space: number, playerLocations: KeyedDict<IBoard, Dict<Player[]>>): string;
+	abstract getSpaceHtml(side: BoardSide, space: number, playerLocations: KeyedDict<BoardSide, Dict<Player[]>>): string;
 	abstract onNextPlayer(player: Player): void;
 	abstract onSpaceLanding(player: Player, spacesMoved: number, location: IMovedBoardLocation, teleported?: boolean): void;
 
 	displayBoard(): void {
-		const playerLocations: KeyedDict<IBoard, Dict<Player[]>> = {
+		const playerLocations: KeyedDict<BoardSide, Dict<Player[]>> = {
 			leftColumn: {},
 			rightColumn: {},
 			topRow: {},

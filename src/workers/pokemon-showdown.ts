@@ -3,27 +3,9 @@ import path = require('path');
 import { WorkerBase } from './worker-base';
 import type { IAbility, IFormat, IItem, ILearnsetData, IMove, IPokemon, ITypeData } from '../types/dex';
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-interface IPokemonShowdownIdKeys {
-	getAbilities: any;
-	getAbilityIds: any;
-	getAliases: any;
-	getAllPossibleMoves: any;
-	getFormats: any;
-	getFormatIds: any;
-	getItems: any;
-	getItemIds: any;
-	getLearnsetData: any;
-	getLearnsetDataIds: any;
-	getMoves: any;
-	getMoveIds: any;
-	getSpecies: any;
-	getSpeciesIds: any;
-	getTypes: any;
-	getTypeIds: any;
-}
-/* eslint-enable */
-export type PokemonShowdownId = keyof IPokemonShowdownIdKeys;
+export type PokemonShowdownId = 'getAbilities' | 'getAbilityIds' | 'getAliases' | 'getAllPossibleMoves' | 'getFormats' | 'getFormatIds' |
+	'getItems' | 'getItemIds' | 'getLearnsetData' | 'getLearnsetDataIds' | 'getMoves' | 'getMoveIds' | 'getSpecies' | 'getSpeciesIds' |
+	'getTypes' | 'getTypeIds';
 
 /* eslint-disable @typescript-eslint/no-empty-interface */
 export interface IPokemonShowdownWorkerData {}

@@ -77,7 +77,7 @@ class TrevenantsTrickOrTreat extends Game {
 			html += "<br />";
 		}
 		html += "<br /><br />" + this.getPlayerPoints() + "</center></div>";
-		this.sayUhtmlChange(this.uhtmlBaseName + '-round-pokemon', html);
+		this.sayUhtmlAuto(this.uhtmlBaseName + '-round-pokemon', html);
 	}
 }
 
@@ -135,10 +135,8 @@ const commands: GameCommandDefinitions<TrevenantsTrickOrTreat> = {
 			if (totalPoints >= this.format.options.points) {
 				this.winners.set(player, totalPoints);
 				for (const i in this.players) {
-					if (this.players[i].eliminated) continue;
-					const player = this.players[i];
-					const points = this.points.get(player);
-					if (points) this.addBits(player, points);
+					if (this.players[i].eliminated || !this.points.has(this.players[i])) continue;
+					this.addBits(this.players[i], this.points.get(this.players[i])! / 2);
 				}
 				this.end();
 				return true;

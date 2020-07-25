@@ -10,7 +10,7 @@ const data: {"Pokemon Abilities": Dict<string[]>; "Pokemon Items": Dict<string[]
 };
 type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
-const categoryKeys: KeyedDict<typeof data, string[]> = {
+const categoryKeys: KeyedDict<DataKey, string[]> = {
 	"Pokemon Abilities": [],
 	"Pokemon Items": [],
 	"Pokemon Moves": [],
@@ -25,6 +25,7 @@ const achievements: AchievementsDict = {
 class SlowkingsTrivia extends Guessing {
 	allAnswersAchievement = achievements.knowitall;
 	allAnswersTeamAchievement = achievements.captainknowitall;
+	roundTime = 15 * 1000;
 
 	static loadData(room: Room | User): void {
 		const abilities = Games.getAbilitiesList();

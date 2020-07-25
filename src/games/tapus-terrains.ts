@@ -26,7 +26,7 @@ const terrains = {
 };
 type TerrainKey = keyof typeof terrains;
 const terrainKeys = Object.keys(terrains) as TerrainKey[];
-const data: {pokemon: KeyedDict<typeof terrains, string[]>} = {
+const data: {pokemon: KeyedDict<TerrainKey, string[]>} = {
 	pokemon: {
 		'Basic': [],
 		'Cavernous': [],

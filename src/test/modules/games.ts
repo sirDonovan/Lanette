@@ -1,11 +1,11 @@
 import { fail } from 'assert';
+import type { OneVsOne } from '../../games/internal/one-vs-one';
 import { PRNG } from '../../prng';
 import type { PRNGSeed } from '../../prng';
 import type { Game } from '../../room-game';
-import type { GameFileTests, IGameAchievementKeys, IGameFormat, IGameTestAttributes, IUserHostedFormat } from '../../types/games';
+import type { GameAchievements, GameFileTests, IGameFormat, IGameTestAttributes, IUserHostedFormat } from '../../types/games';
 import type { IPastGame } from '../../types/storage';
 import { assert, assertClientSendQueue, assertStrictEqual, testOptions } from '../test-tools';
-import type { OneVsOne } from '../../games/internal/one-vs-one';
 
 /* eslint-env mocha */
 
@@ -135,7 +135,7 @@ describe("Games", () => {
 			assert(!format.description.match(Tools.unsafeApiCharacterRegex), format.name + " description");
 
 			if (format.achievements) {
-				const keys = Object.keys(format.achievements) as (keyof IGameAchievementKeys)[];
+				const keys = Object.keys(format.achievements) as GameAchievements[];
 				for (const key of keys) {
 					assert(!format.achievements[key]!.name.match(Tools.unsafeApiCharacterRegex), format.name + " achievement " + key);
 					assert(!format.achievements[key]!.description.match(Tools.unsafeApiCharacterRegex), format.name + " achievement " +

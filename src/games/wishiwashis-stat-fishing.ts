@@ -95,8 +95,8 @@ class WishiwashisStatFishing extends Game {
 		const points = this.points.get(firstPlayer) || 0;
 		this.points.set(firstPlayer, points + statPoints);
 
-		const html = "<center>" + Dex.getPokemonGif(pokemon, undefined, undefined, shinyPokemon) + "<br>" + firstPlayer.name + " reeled " +
-			"in a <b>" + pokemon.name + (shinyPokemon ? ' \u2605' : '') + "</b> and " + (negative ? "lost" : "earned") + " its " +
+		const html = "<center>" + Dex.getPokemonGif(pokemon, undefined, undefined, shinyPokemon) + "<br />" + firstPlayer.name + " " +
+			"reeled in a <b>" + pokemon.name + (shinyPokemon ? ' \u2605' : '') + "</b> and " + (negative ? "lost" : "earned") + " its " +
 			this.statNames[stat] + " (" + statPoints + ")!</center>";
 		this.onHtml(html, () => {
 			if (points >= this.maxPoints) {

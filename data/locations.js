@@ -110,7 +110,6 @@ module.exports = [
 	"Mt. Coronet",
 	"Spear Pillar",
 	"Valley Windworks",
-	"Veilstone Galactic Building",
 
 	// Unova
 	"Accumula",

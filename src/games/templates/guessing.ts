@@ -18,27 +18,32 @@ export abstract class Guessing extends Game {
 	firstAnswer: Player | false | undefined;
 	guessingRound: number = 0;
 	hint: string = '';
+	hintUhtmlName: string = '';
+	lastHintHtml: string = '';
+	multiRoundHints: boolean = false;
 	readonly points = new Map<Player, number>();
+	previousHint: string = '';
 	roundTime: number = 10 * 1000;
 
 	allAnswersAchievement?: IGameAchievement;
 	allAnswersTeamAchievement?: IGameAchievement;
 	roundCategory?: string;
 	readonly roundGuesses?: Map<Player, boolean>;
-
-	// set in intialize()
-	hintUhtmlName!: string;
+	updateHintTime?: number;
 
 	abstract async setAnswers(): Promise<void>;
 
 	onInitialize(): void {
 		super.onInitialize();
 
-		this.hintUhtmlName = this.uhtmlBaseName + '-hint';
 		const format = (this.format as IGameFormat);
 		if (!format.options.points && !(format.mode && format.mode.removedOptions && format.mode.removedOptions.includes('points'))) {
 			throw new Error("Guessing games must include default or customizable points options");
 		}
+	}
+
+	onForceEnd(): void {
+		if (this.answerTimeout) clearTimeout(this.answerTimeout);
 	}
 
 	onSignups(): void {
@@ -77,9 +82,12 @@ export abstract class Guessing extends Game {
 			if (roundText === false) return;
 		}
 
+		this.previousHint = this.hint;
+
 		let newAnswer = false;
 		if (!this.answers.length) {
 			newAnswer = true;
+			if (this.answerTimeout) clearTimeout(this.answerTimeout);
 			this.canGuess = false;
 			await this.setAnswers();
 			if (this.ended) return;
@@ -92,21 +100,30 @@ export abstract class Guessing extends Game {
 			if (this.ended) return;
 		}
 
-		const hintUhtmlName = this.hintUhtmlName + '-round' + this.guessingRound;
-		const html = this.getHintHtml();
-		this.onUhtml(hintUhtmlName, html, () => {
-			if (this.ended) return;
-			if (!this.canGuess) this.canGuess = true;
-			if (this.answerTimeout) clearTimeout(this.answerTimeout);
-			this.answerTimeout = setTimeout(() => this.onAnswerTimeLimit(), this.roundTime);
-			if (this.onHintHtml) this.onHintHtml();
-		});
-
 		const sayHint = () => {
-			if (newAnswer) {
-				this.sayUhtml(hintUhtmlName, html);
+			const onHintHtml = () => {
+				if (this.ended) return;
+				if (!this.canGuess) this.canGuess = true;
+				if (newAnswer && this.roundTime) {
+					if (this.answerTimeout) clearTimeout(this.answerTimeout);
+					this.answerTimeout = setTimeout(() => this.onAnswerTimeLimit(), this.roundTime);
+				}
+				if (this.onHintHtml) this.onHintHtml();
+			};
+
+			if (!newAnswer && this.previousHint && this.previousHint === this.hint) {
+				onHintHtml();
 			} else {
-				this.sayUhtmlAuto(hintUhtmlName, html);
+				this.hintUhtmlName = this.uhtmlBaseName + '-hint-round' + this.guessingRound;
+				const html = this.getHintHtml();
+				this.lastHintHtml = html;
+				this.onUhtml(this.hintUhtmlName, html, onHintHtml);
+
+				if (newAnswer) {
+					this.sayUhtml(this.hintUhtmlName, html);
+				} else {
+					this.sayUhtmlAuto(this.hintUhtmlName, html);
+				}
 			}
 		};
 
@@ -118,6 +135,11 @@ export abstract class Guessing extends Game {
 		} else {
 			sayHint();
 		}
+	}
+
+	increaseDifficulty(): void {
+		if (!this.roundTime) throw new Error("increaseDifficulty() needs to be implemented in the child class");
+		this.roundTime = Math.max(2000, this.roundTime - 1000);
 	}
 
 	async guessAnswer(player: Player, guess: string): Promise<string | false> {
@@ -140,6 +162,7 @@ export abstract class Guessing extends Game {
 		}
 
 		if (this.answerTimeout) clearTimeout(this.answerTimeout);
+		this.offUhtml(this.hintUhtmlName, this.lastHintHtml);
 
 		return answer;
 	}
@@ -273,11 +296,35 @@ const tests: GameFileTests<Guessing> = {
 
 			await game.onNextRound();
 			assert(game.answers.length);
+			assert(game.hint);
 			const expectedPoints = game.getPointsForAnswer ? game.getPointsForAnswer(game.answers[0]) : 1;
 			game.canGuess = true;
 			await runCommand('guess', game.answers[0], game.room, name);
 			assert(id in game.players);
 			assertStrictEqual(game.points.get(game.players[id]), expectedPoints);
+			assert(!game.answers.length);
+		},
+	},
+	'it should give enough time each round for full hints': {
+		config: {
+			async: true,
+		},
+		async test(game, format): Promise<void> {
+			this.timeout(15000);
+
+			await game.onNextRound();
+			const previousAnswers = game.answers;
+			const previousHint = game.hint;
+			game.canGuess = true;
+			const name = getBasePlayerName() + " 1";
+			await runCommand('guess', "a", game.room, name);
+
+			await game.onNextRound();
+			assertStrictEqual(game.answers, previousAnswers);
+			if (game.hint !== previousHint) {
+				assert(game.updateHintTime);
+				if (game.roundTime) assert(game.updateHintTime < game.roundTime);
+			}
 		},
 	},
 	'it should end the game when the maximum points are reached': {

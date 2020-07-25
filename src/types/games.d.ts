@@ -7,6 +7,7 @@ import type { User } from "../users";
 import type { ParametersWorker } from '../workers/parameters';
 import type { PortmanteausWorker } from '../workers/portmanteaus';
 import type { CommandDefinitions, LoadedCommands } from "./command-parser";
+import type { IPokemon } from "./dex";
 
 export interface IGamesWorkers {
 	parameters: ParametersWorker;
@@ -20,87 +21,19 @@ export type LoadedGameCommands<T extends Game = Game> = LoadedCommands<T, GameCo
 export type GameDifficulty = 'easy' | 'medium' | 'hard';
 export type AutoCreateTimerType = 'scripted' | 'userhosted';
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-interface IGameCategoryKeys {
-	'board': any;
-	'board-property': any;
-	'card': any;
-	'card-high-low': any;
-	'card-matching': any;
-	'chain': any;
-	'identification': any;
-	'knowledge': any;
-	'map': any;
-	'playing-card': any;
-	'puzzle': any;
-	'reaction': any;
-	'speed': any;
-}
+export type GameCategory = 'board' | 'board-property' | 'card' | 'card-high-low' | 'card-matching' | 'chain' | 'identification' |
+	'knowledge' | 'map' | 'playing-card' | 'puzzle' | 'reaction' | 'speed';
 
-export type GameCategory = keyof IGameCategoryKeys;
+export type GameChallenge = 'onevsone';
 
-interface IGameChallengeKeys {
-	onevsone: any;
-}
-
-export type GameChallenge = keyof IGameChallengeKeys;
-
-interface IGameAchievementKeys {
-	quickdraw: any;
-	captainwordmaster: any;
-	wordmaster: any;
-	knowitall: any;
-	captainknowitall: any;
-	fishoutofwater: any;
-	goldenmagikarp: any;
-	hightidesurvivor: any;
-	mazerunner: any;
-	kingofthecastle: any;
-	minesweeper: any;
-	voltorbsfuse: any;
-	litwicksflame: any;
-	klinksgear: any;
-	recklessadventurer: any;
-	bankrupt: any;
-	achillesheel: any;
-	captainachilles: any;
-	pokemonprofessor: any;
-	moverelearner: any;
-	quickrod: any;
-	sunkentreasure: any;
-	pokemonranger: any;
-	rainbowwing: any;
-	meowthscoin: any;
-	payday: any;
-	berrymaster: any;
-	skillswapper: any;
-	captainskillswapper: any;
-	garbagecollector: any;
-	technician: any;
-	eggthesystem: any;
-	luckofthedraw: any;
-	drawwizard: any;
-	criminalmind: any;
-	truedetective: any;
-	tallorder: any;
-	escapeartist: any;
-	movesearchhero: any;
-	hotpotatohero: any;
-	speedbooster: any;
-	cheapskate: any;
-	ohbabyatriple: any;
-	realestatetycoon: any;
-	locksmith: any;
-	mountainmover: any;
-	spectralsnuffer: any;
-	proteaneye: any;
-	captainproteaneye: any;
-	wonderguardwarrior: any;
-	trumpcard: any;
-}
-/* eslint-enable */
-
-export type GameAchievements = keyof IGameAchievementKeys;
+export type GameAchievements = 'quickdraw' | 'captainwordmaster' | 'wordmaster' | 'knowitall' | 'captainknowitall' | 'fishoutofwater' |
+	'goldenmagikarp' | 'hightidesurvivor' | 'mazerunner' | 'kingofthecastle' | 'minesweeper' | 'voltorbsfuse' | 'litwicksflame' |
+	'klinksgear' | 'recklessadventurer' | 'bankrupt' | 'achillesheel' | 'captainachilles' | 'pokemonprofessor' | 'moverelearner' |
+	'quickrod' | 'sunkentreasure' | 'pokemonranger' | 'rainbowwing' | 'meowthscoin' | 'payday' | 'berrymaster' | 'skillswapper' |
+	'captainskillswapper' | 'garbagecollector' | 'technician' | 'eggthesystem' | 'luckofthedraw' | 'drawwizard' | 'criminalmind' |
+	'truedetective' | 'tallorder' | 'escapeartist' | 'movesearchhero' | 'hotpotatohero' | 'speedbooster' | 'cheapskate' | 'ohbabyatriple' |
+	'realestatetycoon' | 'locksmith' | 'mountainmover' | 'spectralsnuffer' | 'proteaneye' | 'captainproteaneye' | 'wonderguardwarrior' |
+	'trumpcard';
 
 type GameAchievementType = 'first' | 'all-answers' | 'all-answers-team' | 'points' | 'shiny' | 'special';
 
@@ -146,7 +79,7 @@ export interface IGameTestAttributes {
 type GameFileTests<T extends Game = Game> = Dict<{config?: IGameFileTestConfig; test: ((this: Mocha.Context, game: T,
 	format: IGameFormat<T>, attributes: IGameTestAttributes) => void);}>;
 
-export type AchievementsDict = PartialKeyedDict<IGameAchievementKeys, IGameAchievement>;
+export type AchievementsDict = PartialKeyedDict<GameAchievements, IGameAchievement>;
 
 export interface IRandomGameAnswer {
 	answers: string[];
@@ -181,7 +114,7 @@ interface IGameFileProperties<T extends Game = Game> {
 	aliases?: string[];
 	canGetRandomAnswer?: boolean;
 	category?: GameCategory;
-	challengePoints?: PartialKeyedDict<IGameChallengeKeys, number>;
+	challengePoints?: PartialKeyedDict<GameChallenge, number>;
 	commands?: GameCommandDefinitions<T>;
 	commandDescriptions?: string[];
 	customizableOptions?: Dict<IGameOptionValues>;
@@ -309,3 +242,9 @@ export interface IGameMode<T = Game, U extends Game = Game> extends IGameModeFil
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type PlayerList = Dict<Player> | Player[] | Map<Player, any>;
+
+export interface IPokemonUhtml {
+	pokemon: IPokemon[];
+	type: 'gif' | 'icon';
+	uhtmlName: string;
+}

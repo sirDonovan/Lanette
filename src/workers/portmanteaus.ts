@@ -3,23 +3,13 @@ import path = require('path');
 import type { PRNGSeed } from '../prng';
 import { WorkerBase } from './worker-base';
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-interface IPortmanteausIdKeys {
-	search: any;
-}
-export type PortmanteausId = keyof IPortmanteausIdKeys;
+export type PortmanteausId = 'search';
 
-interface IPoolType {
-	// Item: any;
-	Move: any;
-	Pokemon: any;
-}
-export type PoolType = keyof IPoolType;
-/* eslint-enable */
+export type PoolType = 'Move' | 'Pokemon';
 
 export interface IPortmanteausWorkerData {
-	pool: KeyedDict<IPoolType, Dict<Dict<string[]>>>;
-	portCategories: KeyedDict<IPoolType, string[]>;
+	pool: KeyedDict<PoolType, Dict<Dict<string[]>>>;
+	portCategories: KeyedDict<PoolType, string[]>;
 }
 
 export interface IPortmanteausSearchOptions {

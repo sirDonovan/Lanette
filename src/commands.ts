@@ -9,7 +9,7 @@ import type { Player } from "./room-activity";
 import type { Game } from './room-game';
 import type { Room } from "./rooms";
 import type { CommandDefinitions } from "./types/command-parser";
-import type { IDexWorkers, IFormat } from "./types/dex";
+import type { IDexWorkers, IFormat, IPokemon } from "./types/dex";
 import type { GameDifficulty, IGameFormat, IGamesWorkers } from "./types/games";
 import type { IStorageWorkers, UserHostStatus, IUserHostedGameStats } from './types/storage';
 import type { IBattleData, TournamentPlace } from './types/tournaments';
@@ -782,6 +782,11 @@ const commands: CommandDefinitions<CommandContext> = {
 				const chatRoom = Rooms.search(Tools.toRoomId(target));
 				if (!chatRoom) return;
 
+				if (room.game) {
+					this.say("You cannot join a room game while you are playing a PM minigame.");
+					return;
+				}
+
 				const userData = user.rooms.get(chatRoom);
 				if (userData && userData.rank === Client.groupSymbols.muted) return this.say("You cannot join games while you are muted.");
 
@@ -1192,7 +1197,7 @@ const commands: CommandDefinitions<CommandContext> = {
 				html.push("<b>" + (i + 1) + "</b>: " + name + " (" +
 					Games.getExistingUserHostedFormat(database.userHostedGameQueue[i].format).name + ")");
 			}
-			this.sayHtml("<b>Host queue</b>:<br><br>" + html.join("<br>"), gameRoom);
+			this.sayHtml("<b>Host queue</b>:<br /><br />" + html.join("<br />"), gameRoom);
 		},
 		aliases: ['hq'],
 	},
@@ -1993,6 +1998,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			const isBW = cmd.startsWith('showbw');
 			const generation = isBW ? "bw" : "xy";
 			const gifsOrIcons: string[] = [];
+			const pokemonList: IPokemon[] = [];
 
 			for (const target of targets) {
 				const pokemon = Dex.getPokemon(target);
@@ -2000,6 +2006,7 @@ const commands: CommandDefinitions<CommandContext> = {
 				if (!showIcon && !Dex.hasGifData(pokemon, generation)) {
 					return this.say(pokemon.name + " does not have a" + (isBW ? " BW" :"") + " gif.");
 				}
+				pokemonList.push(pokemon);
 				gifsOrIcons.push(showIcon ? Dex.getPSPokemonIcon(pokemon) + pokemon.name : Dex.getPokemonGif(pokemon, generation));
 			}
 
@@ -2017,7 +2024,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			if (!showIcon) html += "</center>";
 			html += "</div>";
 
-			gameRoom.userHostedGame.sayUhtmlAuto(uhtmlName, html);
+			gameRoom.userHostedGame.sayPokemonUhtml(pokemonList, showIcon ? 'icon' : 'gif', uhtmlName, html);
 		},
 		aliases: ['showgif', 'showbwgifs', 'showbwgif', 'showicons', 'showicon'],
 	},
@@ -2060,6 +2067,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			}
 
 			const pokemonList = gameRoom.userHostedGame.shuffle(Games.getPokemonList());
+			const usedPokemon: IPokemon[] = [];
 			for (const pokemon of pokemonList) {
 				if (isBW && pokemon.gen > 5) continue;
 				if (!showIcon && !Dex.hasGifData(pokemon, generation)) continue;
@@ -2071,6 +2079,7 @@ const commands: CommandDefinitions<CommandContext> = {
 					}
 				}
 
+				usedPokemon.push(pokemon);
 				gifsOrIcons.push(showIcon ? Dex.getPSPokemonIcon(pokemon) + pokemon.name : Dex.getPokemonGif(pokemon, generation));
 				if (gifsOrIcons.length === amount) break;
 			}
@@ -2086,9 +2095,9 @@ const commands: CommandDefinitions<CommandContext> = {
 			if (!showIcon) html += "</center>";
 			html += "</div>";
 
-			gameRoom.userHostedGame.sayUhtmlAuto(uhtmlName, html);
+			gameRoom.userHostedGame.sayPokemonUhtml(usedPokemon, showIcon ? 'icon' : 'gif', uhtmlName, html);
 		},
-		aliases: ['showrandomgif', 'showrandombwgifs', 'showrandombwgif', 'showrandgif', 'showrandbwgifs', 'showrandbwgif',
+		aliases: ['showrandomgif', 'showrandombwgifs', 'showrandombwgif', 'showrandgifs', 'showrandgif', 'showrandbwgifs', 'showrandbwgif',
 			'showrandomicons', 'showrandomicon', 'showrandicons', 'showrandicon'],
 	},
 	roll: {
@@ -3882,7 +3891,7 @@ const commands: CommandDefinitions<CommandContext> = {
 				this.say("An error occurred while searching logs.");
 			} else {
 				this.sayHtml("<details><summary>Found <b>" + result.totalLines + "</b> line" + (result.totalLines === 1 ? "" : "s") +
-					":</summary><br>" + result.lines.join("<br />") + "</details>", targetRoom);
+					":</summary>" + result.lines.join("<br />") + "</details>", targetRoom);
 			}
 
 			Storage.workers.logs.requestsByUserid.splice(Storage.workers.logs.requestsByUserid.indexOf(userId), 1);

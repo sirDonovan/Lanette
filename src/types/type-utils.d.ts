@@ -1,8 +1,8 @@
 type Dict<T> = {[k: string]: T};
 
-type KeyedDict<T, U> = {[K in keyof T]: U};
+type KeyedDict<T extends string | number | symbol, U> = {[K in T]: U };
 
-type PartialKeyedDict<T, U> = {[K in keyof T]?: U};
+type PartialKeyedDict<T extends string | number | symbol, U> = {[K in T]?: U };
 
 type PromiseResolve<T> = (value?: T | PromiseLike<T> | undefined) => void;
 

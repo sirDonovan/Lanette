@@ -199,9 +199,7 @@ class MurkrowsBlackjack extends PlayingCard {
 			const wager = this.wagers.get(user);
 			let bits = (wager ? (wager * 2) : 100);
 			bits *= wins;
-			if (bits > this.maxBits) {
-				bits = this.maxBits;
-			} else if (bits < 100) {
+			if (bits < 100) {
 				bits = 100;
 			}
 			const blackJackpots = this.blackJackpots.get(user);

@@ -302,7 +302,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Game
 		html += handHtml;
 		if (highlightedCardsHtml) html += highlightedCardsHtml;
 		html += "</div>";
-		player.sayUhtml(html, 'hand');
+		player.sayUhtml(html, this.uhtmlBaseName + '-hand');
 		return playerCards;
 	}
 

@@ -22,7 +22,7 @@ const data: IEkansEdgesData = {
 };
 type DataKey = keyof IEkansEdgesData;
 const categories = Object.keys(data) as DataKey[];
-const dataKeys: KeyedDict<IEkansEdgesData, string[]> = {
+const dataKeys: KeyedDict<DataKey, string[]> = {
 	"Characters": [],
 	"Locations": [],
 	"Pokemon": [],

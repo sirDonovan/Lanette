@@ -3,10 +3,10 @@ import type { PRNGSeed } from "./prng";
 import { Activity, PlayerTeam } from "./room-activity";
 import type { Player } from "./room-activity";
 import type { Room } from "./rooms";
-import type { IPokemonCopy } from "./types/dex";
+import type { IPokemonCopy, IPokemon } from "./types/dex";
 import type {
 	GameCommandListener, IGameAchievement, IGameCommandCountListener, IGameCommandCountOptions, IGameFormat, IGameMode, IGameOptionValues,
-	IGameVariant, IRandomGameAnswer, IUserHostedFormat, LoadedGameCommands, PlayerList
+	IGameVariant, IRandomGameAnswer, IUserHostedFormat, LoadedGameCommands, PlayerList, IPokemonUhtml
 } from "./types/games";
 import type { User } from "./users";
 
@@ -64,6 +64,7 @@ export class Game extends Activity {
 	allowChildGameBits?: boolean;
 	commandDescriptions?: string[];
 	isMiniGame?: boolean;
+	lastPokemonUhtml?: IPokemonUhtml;
 	readonly lives?: Map<Player, number>;
 	mascot?: IPokemonCopy;
 	maxPlayers?: number;
@@ -192,6 +193,25 @@ export class Game extends Activity {
 		this.uhtmlBaseName = gameType + '-' + gameCount + '-' + this.id;
 		this.signupsUhtmlName = this.uhtmlBaseName + "-signups";
 		this.joinLeaveButtonUhtmlName = this.uhtmlBaseName + "-join-leave";
+	}
+
+	sayPokemonUhtml(pokemon: IPokemon[], type: 'gif' | 'icon', uhtmlName: string, html: string): void {
+		if (this.lastPokemonUhtml) {
+			const center = this.lastPokemonUhtml.type === 'gif';
+			let html = "<div class='infobox'>";
+			if (center) html += "<center>";
+			html += "(" + this.lastPokemonUhtml.pokemon.map(x => x.name).join(", ") + ")";
+			if (center) html += "</center>";
+			html += "</div>";
+			this.sayUhtmlChange(this.lastPokemonUhtml.uhtmlName, html);
+		}
+
+		this.sayUhtmlAuto(uhtmlName, html);
+		this.lastPokemonUhtml = {
+			pokemon,
+			type,
+			uhtmlName,
+		};
 	}
 
 	initialize(format: IGameFormat | IUserHostedFormat): void {
@@ -730,7 +750,9 @@ export class Game extends Activity {
 	}
 
 	addBits(user: User | Player, bits: number, noPm?: boolean): boolean {
+		bits = Math.floor(bits);
 		if (bits <= 0 || this.isPm(this.room) || (this.parentGame && this.parentGame.allowChildGameBits !== true)) return false;
+		if (bits > this.maxBits) bits = this.maxBits;
 		if (this.shinyMascot) bits *= 2;
 		Storage.addPoints(this.room, user.name, bits, this.format.id);
 		if (!noPm) {
@@ -742,6 +764,7 @@ export class Game extends Activity {
 	}
 
 	removeBits(user: User | Player, bits: number, noPm?: boolean): boolean {
+		bits = Math.floor(bits);
 		if (bits <= 0 || this.isPm(this.room) || (this.parentGame && this.parentGame.allowChildGameBits !== true)) return false;
 		if (this.shinyMascot) bits *= 2;
 		Storage.removePoints(this.room, user.name, bits, this.format.id);
@@ -765,7 +788,6 @@ export class Game extends Activity {
 			} else {
 				winnings = Math.floor(loserBits! * points);
 			}
-			if (winnings > this.maxBits) winnings = this.maxBits;
 			if (winnings) this.addBits(player, winnings);
 		});
 	}
