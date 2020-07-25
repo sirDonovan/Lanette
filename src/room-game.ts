@@ -793,7 +793,7 @@ export class Game extends Activity {
 	}
 
 	unlockAchievement(players: Player | Player[], achievement: IGameAchievement): void {
-		if (this.isMiniGame || this.isPm(this.room)) return;
+		if ((this.isMiniGame && !this.internalGame) || this.isPm(this.room)) return;
 		const format = this.format as IGameFormat;
 		if (format.mode && format.mode.id !== achievement.mode) return;
 
