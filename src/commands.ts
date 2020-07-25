@@ -421,22 +421,25 @@ const commands: CommandDefinitions<CommandContext> = {
 				if (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
 				gameRoom = room;
 			}
-			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(gameRoom.id)) {
+
+			if ((!Config.allowScriptedGames || !Config.allowScriptedGames.includes(gameRoom.id)) &&
+				(!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(gameRoom.id))) {
 				return this.sayError(['disabledGameFeatures', gameRoom.title]);
 			}
-			const format = Games.getFormat(targets[0], true);
-				if (Array.isArray(format)) {
-					const userHostedFormat = Games.getUserHostedFormat(targets[0]);
-					if (Array.isArray(userHostedFormat)) {
-						this.sayError(['invalidGameFormat', targets[0]]);
-						return;
-					}
-					const gameDesc = userHostedFormat.description;
-					this.say(userHostedFormat.name + ': ' + gameDesc);
+
+			const inputTarget = targets.join(',');
+			const format = Games.getFormat(inputTarget);
+			if (Array.isArray(format)) {
+				const userHostedFormat = Games.getUserHostedFormat(inputTarget);
+				if (Array.isArray(userHostedFormat)) {
+					this.sayError(['invalidGameFormat', inputTarget]);
 					return;
 				}
-				const gameDesc = format.description;
-				this.say(format.name + ': ' + gameDesc);
+				this.sayHtml("<b>" + userHostedFormat.name + "</b>: " + userHostedFormat.description, gameRoom);
+				return;
+			}
+
+			this.sayHtml("<b>" + format.nameWithOptions + "</b>: " + format.description, gameRoom);
 		},
 		aliases: ['gamedesc', 'gdesc'],
 	},
