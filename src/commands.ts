@@ -425,20 +425,18 @@ const commands: CommandDefinitions<CommandContext> = {
 				return this.sayError(['disabledGameFeatures', gameRoom.title]);
 			}
 			const format = Games.getFormat(targets[0], true);
-			if (format) {
 				if (Array.isArray(format)) {
-					if (Games.getUserHostedFormat(targets[0])){
-						if (Array.isArray(Games.getUserHostedFormat(targets[0]))) {
-							this.sayError(['invalidGameFormat', targets[0]]);
-						}
-						const gameDesc = Games.getExistingUserHostedFormat(targets[0]).description;
-						this.say(Games.getExistingUserHostedFormat(targets[0]).name + ': ' + gameDesc);
+					const userHostedFormat = Games.getUserHostedFormat(targets[0]);
+					if (Array.isArray(userHostedFormat)) {
+						this.sayError(['invalidGameFormat', targets[0]]);
 						return;
 					}
+					const gameDesc = userHostedFormat.description;
+					this.say(userHostedFormat.name + ': ' + gameDesc);
+					return;
 				}
-				const gameDesc = Games.getExistingFormat(targets[0]).description;
-				this.say(Games.getExistingFormat(targets[0]).name + ': ' + gameDesc);
-			}
+				const gameDesc = format.description;
+				this.say(format.name + ': ' + gameDesc);
 		},
 		aliases: ['gamedesc', 'gdesc'],
 	},
