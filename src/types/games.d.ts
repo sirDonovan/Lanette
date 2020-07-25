@@ -7,6 +7,7 @@ import type { User } from "../users";
 import type { ParametersWorker } from '../workers/parameters';
 import type { PortmanteausWorker } from '../workers/portmanteaus';
 import type { CommandDefinitions, LoadedCommands } from "./command-parser";
+import type { IPokemon } from "./dex";
 
 export interface IGamesWorkers {
 	parameters: ParametersWorker;
@@ -241,3 +242,9 @@ export interface IGameMode<T = Game, U extends Game = Game> extends IGameModeFil
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type PlayerList = Dict<Player> | Player[] | Map<Player, any>;
+
+export interface IPokemonUhtml {
+	pokemon: IPokemon[];
+	type: 'gif' | 'icon';
+	uhtmlName: string;
+}

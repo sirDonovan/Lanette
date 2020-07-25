@@ -9,7 +9,7 @@ import type { Player } from "./room-activity";
 import type { Game } from './room-game';
 import type { Room } from "./rooms";
 import type { CommandDefinitions } from "./types/command-parser";
-import type { IDexWorkers, IFormat } from "./types/dex";
+import type { IDexWorkers, IFormat, IPokemon } from "./types/dex";
 import type { GameDifficulty, IGameFormat, IGamesWorkers } from "./types/games";
 import type { IStorageWorkers, UserHostStatus, IUserHostedGameStats } from './types/storage';
 import type { IBattleData, TournamentPlace } from './types/tournaments';
@@ -1965,6 +1965,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			const isBW = cmd.startsWith('showbw');
 			const generation = isBW ? "bw" : "xy";
 			const gifsOrIcons: string[] = [];
+			const pokemonList: IPokemon[] = [];
 
 			for (const target of targets) {
 				const pokemon = Dex.getPokemon(target);
@@ -1972,6 +1973,7 @@ const commands: CommandDefinitions<CommandContext> = {
 				if (!showIcon && !Dex.hasGifData(pokemon, generation)) {
 					return this.say(pokemon.name + " does not have a" + (isBW ? " BW" :"") + " gif.");
 				}
+				pokemonList.push(pokemon);
 				gifsOrIcons.push(showIcon ? Dex.getPSPokemonIcon(pokemon) + pokemon.name : Dex.getPokemonGif(pokemon, generation));
 			}
 
@@ -1989,7 +1991,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			if (!showIcon) html += "</center>";
 			html += "</div>";
 
-			gameRoom.userHostedGame.sayUhtmlAuto(uhtmlName, html);
+			gameRoom.userHostedGame.sayPokemonUhtml(pokemonList, showIcon ? 'icon' : 'gif', uhtmlName, html);
 		},
 		aliases: ['showgif', 'showbwgifs', 'showbwgif', 'showicons', 'showicon'],
 	},
@@ -2032,6 +2034,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			}
 
 			const pokemonList = gameRoom.userHostedGame.shuffle(Games.getPokemonList());
+			const usedPokemon: IPokemon[] = [];
 			for (const pokemon of pokemonList) {
 				if (isBW && pokemon.gen > 5) continue;
 				if (!showIcon && !Dex.hasGifData(pokemon, generation)) continue;
@@ -2043,6 +2046,7 @@ const commands: CommandDefinitions<CommandContext> = {
 					}
 				}
 
+				usedPokemon.push(pokemon);
 				gifsOrIcons.push(showIcon ? Dex.getPSPokemonIcon(pokemon) + pokemon.name : Dex.getPokemonGif(pokemon, generation));
 				if (gifsOrIcons.length === amount) break;
 			}
@@ -2058,9 +2062,9 @@ const commands: CommandDefinitions<CommandContext> = {
 			if (!showIcon) html += "</center>";
 			html += "</div>";
 
-			gameRoom.userHostedGame.sayUhtmlAuto(uhtmlName, html);
+			gameRoom.userHostedGame.sayPokemonUhtml(usedPokemon, showIcon ? 'icon' : 'gif', uhtmlName, html);
 		},
-		aliases: ['showrandomgif', 'showrandombwgifs', 'showrandombwgif', 'showrandgif', 'showrandbwgifs', 'showrandbwgif',
+		aliases: ['showrandomgif', 'showrandombwgifs', 'showrandombwgif', 'showrandgifs', 'showrandgif', 'showrandbwgifs', 'showrandbwgif',
 			'showrandomicons', 'showrandomicon', 'showrandicons', 'showrandicon'],
 	},
 	roll: {
