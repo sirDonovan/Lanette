@@ -830,7 +830,7 @@ export class Game extends Activity {
 		if (firstUnlock.length) {
 			this.say(Tools.joinList(firstUnlock.map(x => x.name), "**") + " unlocked the **" + achievement.name + "** achievement!");
 		}
-	
+
 		if (repeatUnlock.length) {
 			this.say(Tools.joinList(repeatUnlock.map(x => x.name), "**") + " re-unlocked the **" + achievement.name + "** achievement!");
 		}
