@@ -1994,7 +1994,12 @@ const commands: CommandDefinitions<CommandContext> = {
 			const targets = target.split(',');
 			const gameRoom = Rooms.search(targets[0]);
 			if (!gameRoom) return this.sayError(['invalidBotRoom', targets[0]]);
-			if (!gameRoom.userHostedGame || !gameRoom.userHostedGame.isHost(user)) return;
+			if (!Users.self.hasRank(gameRoom, 'bot')) return this.sayError(['missingBotRankForFeatures', 'game']);
+			if (gameRoom.userHostedGame) {
+				if (!gameRoom.userHostedGame.isHost(user)) return;
+			} else {
+				if (gameRoom.game || !user.hasRank(gameRoom, 'driver')) return;
+			}
 			targets.shift();
 
 			const showIcon = cmd.startsWith('showicon');
@@ -2018,16 +2023,20 @@ const commands: CommandDefinitions<CommandContext> = {
 			const max = showIcon ? 30 : 5;
 			if (gifsOrIcons.length > max) return this.say("Please specify between 1 and " + max + " Pokemon.");
 
-			const uhtmlName = gameRoom.userHostedGame.uhtmlBaseName + "-" + gameRoom.userHostedGame.round + "-" +
-				(showIcon ? "icon" : "gif");
-
-			let html = "<div class='infobox'>";
+			let html = "";
 			if (!showIcon) html += "<center>";
 			html += gifsOrIcons.join(showIcon ? ", " : "");
 			if (!showIcon) html += "</center>";
-			html += "</div>";
 
-			gameRoom.userHostedGame.sayPokemonUhtml(pokemonList, showIcon ? 'icon' : 'gif', uhtmlName, html);
+			if (gameRoom.userHostedGame) {
+				const uhtmlName = gameRoom.userHostedGame.uhtmlBaseName + "-" + gameRoom.userHostedGame.round + "-" +
+					(showIcon ? "icon" : "gif");
+				gameRoom.userHostedGame.sayPokemonUhtml(pokemonList, showIcon ? 'icon' : 'gif', uhtmlName,
+					"<div class='infobox'>" + html + "</div>");
+			} else {
+				html += '<div style="float:right;color:#888;font-size:8pt">[' + user.name + ']</div><div style="clear:both"></div>';
+				gameRoom.sayHtml(html);
+			}
 		},
 		aliases: ['showgif', 'showbwgifs', 'showbwgif', 'showicons', 'showicon'],
 	},
@@ -2037,7 +2046,13 @@ const commands: CommandDefinitions<CommandContext> = {
 			const targets = target.split(',');
 			const gameRoom = Rooms.search(targets[0]);
 			if (!gameRoom) return this.sayError(['invalidBotRoom', targets[0]]);
-			if (!gameRoom.userHostedGame || !gameRoom.userHostedGame.isHost(user)) return;
+			if (!Users.self.hasRank(gameRoom, 'bot')) return this.sayError(['missingBotRankForFeatures', 'game']);
+			if (gameRoom.userHostedGame) {
+				if (!gameRoom.userHostedGame.isHost(user)) return;
+			} else {
+				if (gameRoom.game || !user.hasRank(gameRoom, 'driver')) return;
+			}
+
 			targets.shift();
 
 			const showIcon = cmd.endsWith('icon') || cmd.endsWith('icons');
@@ -2048,7 +2063,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			let typing = '';
 			let dualType = false;
 			let amount: number;
-			if (!Tools.isInteger(targets[0].trim())) {
+			if (targets.length && !Tools.isInteger(targets[0].trim())) {
 				const types = targets[0].split("/").map(x => x.trim());
 				for (let i = 0; i < types.length; i++) {
 					const type = Dex.getType(types[i]);
@@ -2069,7 +2084,12 @@ const commands: CommandDefinitions<CommandContext> = {
 				amount = 1;
 			}
 
-			const pokemonList = gameRoom.userHostedGame.shuffle(Games.getPokemonList());
+			let pokemonList = Games.getPokemonList();
+			if (gameRoom.userHostedGame) {
+				pokemonList = gameRoom.userHostedGame.shuffle(pokemonList);
+			} else {
+				pokemonList = Tools.shuffle(pokemonList);
+			}
 			const usedPokemon: IPokemon[] = [];
 			for (const pokemon of pokemonList) {
 				if (isBW && pokemon.gen > 5) continue;
@@ -2089,16 +2109,20 @@ const commands: CommandDefinitions<CommandContext> = {
 
 			if (gifsOrIcons.length < amount) return this.say("Not enough Pokemon match the specified options.");
 
-			const uhtmlName = gameRoom.userHostedGame.uhtmlBaseName + "-" + gameRoom.userHostedGame.round + "-" +
-				(showIcon ? "icon" : "gif");
-
-			let html = "<div class='infobox'>";
+			let html = "";
 			if (!showIcon) html += "<center>";
 			html += gifsOrIcons.join(showIcon ? ", " : "");
 			if (!showIcon) html += "</center>";
-			html += "</div>";
 
-			gameRoom.userHostedGame.sayPokemonUhtml(usedPokemon, showIcon ? 'icon' : 'gif', uhtmlName, html);
+			if (gameRoom.userHostedGame) {
+				const uhtmlName = gameRoom.userHostedGame.uhtmlBaseName + "-" + gameRoom.userHostedGame.round + "-" +
+					(showIcon ? "icon" : "gif");
+				gameRoom.userHostedGame.sayPokemonUhtml(usedPokemon, showIcon ? 'icon' : 'gif', uhtmlName,
+					"<div class='infobox'>" + html + "</div>");
+			} else {
+				html += '<div style="float:right;color:#888;font-size:8pt">[' + user.name + ']</div><div style="clear:both"></div>';
+				gameRoom.sayHtml(html);
+			}
 		},
 		aliases: ['showrandomgif', 'showrandombwgifs', 'showrandombwgif', 'showrandgifs', 'showrandgif', 'showrandbwgifs', 'showrandbwgif',
 			'showrandomicons', 'showrandomicon', 'showrandicons', 'showrandicon'],
