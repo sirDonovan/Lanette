@@ -209,7 +209,7 @@ const commands: GameCommandDefinitions<Vote> = {
 			}
 
 			this.votes.set(player, format.inputTarget);
-			user.say("Your vote for " + format.name + " has been cast!");
+			user.say("Your vote for " + format.nameWithOptions + " has been cast!");
 
 			if (!this.updateVotesHtmlTimeout) {
 				this.updateVotesHtmlTimeout = setTimeout(() => {
