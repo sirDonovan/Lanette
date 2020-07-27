@@ -83,19 +83,20 @@ const commands: GameCommandDefinitions<EggToss> = {
 				return false;
 			}
 			if (targetUser.isBot(this.room) && targetUser !== Users.self) {
-				this.say("You cannot egg another bot.");
+				this.say("You cannot egg a bot that is not " + Users.self.name + ".");
 				return false;
 			}
+
 			this.lastHolder = this.currentHolder;
 			this.currentHolder = this.createPlayer(targetUser) || this.players[targetUser.id];
 			if (targetUser.id === Users.self.id) {
-				const selectedUser = this.selectUser();
-				if (selectedUser) {
-					this.timeout = setTimeout(() => {
+				this.timeout = setTimeout(() => {
+					const selectedUser = this.selectUser();
+					if (selectedUser) {
 						this.say(Config.commandCharacter + "pass " + selectedUser.name);
 						this.currentHolder = this.createPlayer(selectedUser) || this.players[selectedUser.id];
-					}, this.sampleOne([500, 1000, 1500]));
-				}
+					}
+				}, this.sampleOne([500, 1000, 1500]));
 			}
 			return true;
 		},
