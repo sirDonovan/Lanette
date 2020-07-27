@@ -26,7 +26,7 @@ class HitmonchansHangman extends Guessing {
 	letters: string[] = [];
 	multiRoundHints = true;
 	roundGuesses = new Map<Player, boolean>();
-	roundTime = 30 * 1000;
+	roundTime = 45 * 1000;
 	solvedLetters: string[] = [];
 	updateHintTime = 3000;
 

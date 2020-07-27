@@ -27,8 +27,8 @@ class HypnosHunches extends Guessing {
 	letters: string[] = [];
 	multiRoundHints = true;
 	roundGuesses = new Map<Player, boolean>();
-	roundTime: number = 30 * 1000;
-	updateHintTime = 4000;
+	roundTime: number = 45 * 1000;
+	updateHintTime = 3000;
 
 	static loadData(room: Room | User): void {
 		data["Characters"] = Dex.data.characters.slice();
