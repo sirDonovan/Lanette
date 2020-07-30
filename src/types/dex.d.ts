@@ -23,7 +23,7 @@ type SparseStatsTable = Partial<StatsTable>;
 type BoostName = StatNameExceptHP | 'accuracy' | 'evasion';
 type BoostsTable = {[boost in BoostName]: number };
 type SparseBoostsTable = Partial<BoostsTable>;
-type Nonstandard = 'Past' | 'Future' | 'Unobtainable' | 'CAP' | 'LGPE' | 'Custom';
+type Nonstandard = 'Past' | 'Future' | 'Unobtainable' | 'CAP' | 'LGPE' | 'Custom' | 'Gigantamax';
 
 /**
  * Describes the acceptable target(s) of a move.
@@ -508,6 +508,7 @@ export interface IFormat extends IBasicEffect, IFormatData, IFormatLinks {
 	desc: string;
 	inputTarget: string;
 	ruleTable?: RuleTable;
+	usablePokemon?: string[];
 }
 
 interface ITypeData {

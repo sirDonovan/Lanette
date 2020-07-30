@@ -8,6 +8,7 @@ import type { ParametersWorker } from '../workers/parameters';
 import type { PortmanteausWorker } from '../workers/portmanteaus';
 import type { CommandDefinitions, LoadedCommands } from "./command-parser";
 import type { IPokemon } from "./dex";
+import type { IBattleData } from "./tournaments";
 
 export interface IGamesWorkers {
 	parameters: ParametersWorker;
@@ -21,8 +22,8 @@ export type LoadedGameCommands<T extends Game = Game> = LoadedCommands<T, GameCo
 export type GameDifficulty = 'easy' | 'medium' | 'hard';
 export type AutoCreateTimerType = 'scripted' | 'userhosted';
 
-export type GameCategory = 'board' | 'board-property' | 'card' | 'card-high-low' | 'card-matching' | 'chain' | 'identification' |
-	'knowledge' | 'map' | 'playing-card' | 'puzzle' | 'reaction' | 'speed';
+export type GameCategory = 'board' | 'board-property' | 'card' | 'card-high-low' | 'card-matching' | 'chain' | 'elimination-tournament' |
+	'identification' | 'knowledge' | 'map' | 'playing-card' | 'puzzle' | 'reaction' | 'speed';
 
 export type GameChallenge = 'onevsone';
 
@@ -243,8 +244,19 @@ export interface IGameMode<T = Game, U extends Game = Game> extends IGameModeFil
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type PlayerList = Dict<Player> | Player[] | Map<Player, any>;
 
+export type LoadedGameFile = DeepImmutable<IGameFormatData>;
+
 export interface IPokemonUhtml {
 	pokemon: IPokemon[];
 	type: 'gif' | 'icon';
 	uhtmlName: string;
+}
+
+export interface IBattleGameData extends IBattleData {
+	pokemonCounts: Dict<number>;
+	pokemon: Dict<string[]>;
+	pokemonLeft: Dict<number>;
+	nicknames: Dict<Dict<string>>;
+	wrongTeam: Map<Player, boolean>;
+	faintedCloakedPokemon: Dict<number>;
 }

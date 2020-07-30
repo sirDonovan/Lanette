@@ -11,7 +11,7 @@ import type {
 	AutoCreateTimerType, DefaultGameOption, GameAchievements, GameCategory, GameCommandDefinitions, GameCommandReturnType,
 	IGameFile, IGameFormat, IGameFormatComputed, IGameFormatData, IGameMode, IGameModeFile, IGameOptionValues, IGamesWorkers,
 	IGameTemplateFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFormat,
-	IUserHostedFormatComputed, LoadedGameCommands, UserHostedCustomizable
+	IUserHostedFormatComputed, LoadedGameCommands, LoadedGameFile, UserHostedCustomizable
 } from './types/games';
 import type { IPastGame } from './types/storage';
 import type { User } from './users';
@@ -34,6 +34,7 @@ const categoryNames: KeyedDict<GameCategory, string> = {
 	'card-high-low': 'Card (high-low)',
 	'card-matching': 'Card (matching)',
 	'chain': 'Chain',
+	'elimination-tournament': 'Elimination tournament',
 	'identification': 'Identification',
 	'knowledge': 'Knowledge',
 	'map': 'Map',
@@ -86,12 +87,12 @@ export class Games {
 	readonly aliases: Dict<string> = {};
 	autoCreateTimers: Dict<NodeJS.Timer> = {};
 	autoCreateTimerData: Dict<{endTime: number, type: AutoCreateTimerType}> = {};
-	readonly formats: Dict<DeepImmutable<IGameFormatData>> = {};
+	readonly formats: Dict<LoadedGameFile> = {};
 	readonly freejoinFormatTargets: string[] = [];
 	gameCooldownMessageTimers: Dict<NodeJS.Timer> = {};
 	gameCooldownMessageTimerData: Dict<{endTime: number, minigameCooldownMinutes: number}> = {};
 	// @ts-expect-error - set in loadFormats()
-	readonly internalFormats: KeyedDict<InternalGameKey, DeepImmutable<IGameFormatData>> = {};
+	readonly internalFormats: KeyedDict<InternalGameKey, LoadedGameFile> = {};
 	lastGames: Dict<number> = {};
 	lastMinigames: Dict<number> = {};
 	lastOneVsOneChallengeTimes: Dict<Dict<number>> = {};
@@ -103,6 +104,8 @@ export class Games {
 	readonly modes: Dict<IGameMode> = {};
 	readonly modeAliases: Dict<string> = {};
 	reloadInProgress: boolean = false;
+	readonly tournamentAliases: Dict<string> = {};
+	readonly tournamentFormats: Dict<LoadedGameFile> = {};
 	// @ts-expect-error - set in loadFormats()
 	readonly userHosted: typeof import('./games/internal/user-hosted').game;
 	readonly userHostedAliases: Dict<string> = {};
@@ -304,6 +307,34 @@ export class Games {
 			this.formats[id] = Object.assign({}, file, {commands, id, modes, variants});
 		}
 
+		const tournamentGamesDirectory = path.join(gamesDirectory, "tournaments");
+		const tournamentGameFiles = fs.readdirSync(tournamentGamesDirectory);
+		for (const fileName of tournamentGameFiles) {
+			if (!fileName.endsWith('.js')) continue;
+			const gamePath = path.join(tournamentGamesDirectory, fileName);
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires
+			const file = require(gamePath).game as DeepImmutable<IGameFile>;
+			if (!file) throw new Error("No game exported from " + gamePath);
+
+			const id = Tools.toId(file.name);
+			if (id in this.formats) throw new Error("The name '" + file.name + "' is already used by another game.");
+
+			let commands;
+			if (file.commands) commands = CommandParser.loadCommands<Game, GameCommandReturnType>(Tools.deepClone(file.commands));
+
+			let variants;
+			if (file.variants) {
+				variants = Tools.deepClone(file.variants);
+				for (const variant of variants) {
+					if (variant.variantAliases) {
+						variant.variantAliases = variant.variantAliases.map(x => Tools.toId(x));
+					}
+				}
+			}
+
+			this.tournamentFormats[id] = Object.assign({}, file, {commands, id, variants});
+		}
+
 		for (const format of this.userHosted.formats) {
 			const id = Tools.toId(format.name);
 			if (id in this.userHostedFormats) {
@@ -330,19 +361,35 @@ export class Games {
 			});
 		}
 
+		const formatsToCheck: LoadedGameFile[] = [];
 		for (const i in this.formats) {
-			const format = this.formats[i];
+			formatsToCheck.push(this.formats[i]);
+		}
+		for (const i in this.tournamentFormats) {
+			formatsToCheck.push(this.tournamentFormats[i]);
+		}
+
+		for (const format of formatsToCheck) {
+			let aliases: Dict<string>;
+			if (format.id in this.formats) {
+				aliases = this.aliases;
+			} else {
+				aliases = this.tournamentAliases;
+			}
+
 			const idsToAlias: string[] = [format.id];
 			if (format.formerNames) {
 				// eslint-disable-next-line @typescript-eslint/prefer-for-of
 				for (let i = 0; i < format.formerNames.length; i++) {
 					const name = format.formerNames[i];
 					const id = Tools.toId(name);
-					if (id in this.formats) throw new Error(format.name + "'s former name '" + name + "' is already used by another game.");
-					if (id in this.aliases) {
-						throw new Error(format.name + "'s former name '" + name + "' is already an alias for " + this.aliases[id] + ".");
+					if (id in this.formats || id in this.tournamentFormats) {
+						throw new Error(format.name + "'s former name '" + name + "' is already used by another game.");
 					}
-					this.aliases[id] = format.name;
+					if (id in aliases) {
+						throw new Error(format.name + "'s former name '" + name + "' is already an alias for " + aliases[id] + ".");
+					}
+					aliases[id] = format.name;
 					idsToAlias.push(id);
 				}
 			}
@@ -352,10 +399,10 @@ export class Games {
 				for (let i = 0; i < format.aliases.length; i++) {
 					const alias = format.aliases[i];
 					const aliasId = Tools.toId(alias);
-					if (aliasId in this.aliases) {
-						throw new Error(format.name + "'s alias '" + alias + "' is already an alias for " + this.aliases[aliasId] + ".");
+					if (aliasId in aliases) {
+						throw new Error(format.name + "'s alias '" + alias + "' is already an alias for " + aliases[aliasId] + ".");
 					}
-					this.aliases[aliasId] = format.name;
+					aliases[aliasId] = format.name;
 					idsToAlias.push(aliasId);
 				}
 			}
@@ -382,13 +429,12 @@ export class Games {
 				for (let i = 0; i < format.variants.length; i++) {
 					const variant = format.variants[i];
 					const id = Tools.toId(variant.name);
-					if (id in this.aliases) {
-						throw new Error(format.name + "'s variant '" + variant.name + "' is already an alias for " + this.aliases[id] +
-							".");
+					if (id in aliases) {
+						throw new Error(format.name + "'s variant '" + variant.name + "' is already an alias for " + aliases[id] + ".");
 					}
 
 					const formatVariantTarget = format.name + "," + variant.variant;
-					this.aliases[id] = formatVariantTarget;
+					aliases[id] = formatVariantTarget;
 
 					let variantIds: string[] = [Tools.toId(variant.variant)];
 					if (variant.variantAliases) {
@@ -398,23 +444,25 @@ export class Games {
 					for (const id of idsToAlias) {
 						for (const variantId of variantIds) {
 							const alias = variantId + id;
-							if (alias in this.aliases) {
-								if (this.aliases[alias] === formatVariantTarget) continue;
+							if (alias in aliases) {
+								if (aliases[alias] === formatVariantTarget) continue;
 
 								throw new Error(variant.name + "'s variant alias '" + variantId + "' clashes " +
-									"with the alias for " + this.aliases[alias] + ".");
+									"with the alias for " + aliases[alias] + ".");
 							}
 
-							if (!(alias in this.aliases)) this.aliases[alias] = formatVariantTarget;
+							if (!(alias in aliases)) aliases[alias] = formatVariantTarget;
 						}
 					}
 				}
 			}
 
-			if (format.freejoin) {
-				this.freejoinFormatTargets.push(format.id);
-			} else if (format.defaultOptions && format.defaultOptions.includes('freejoin')) {
-				this.freejoinFormatTargets.push(format.id + ",freejoin");
+			if (format.id in this.formats) {
+				if (format.freejoin) {
+					this.freejoinFormatTargets.push(format.id);
+				} else if (format.defaultOptions && format.defaultOptions.includes('freejoin')) {
+					this.freejoinFormatTargets.push(format.id + ",freejoin");
+				}
 			}
 		}
 
@@ -522,110 +570,30 @@ export class Games {
 		if (id in this.aliases) return this.getFormat(this.aliases[id] + (targets.length ? "," + targets.join(",") : ""), checkDisabled);
 		if (!(id in this.formats)) return ['invalidGameFormat', name];
 		if (checkDisabled && this.formats[id].disabled) return ['disabledGameFormat', this.formats[id].name];
-		const formatData = Tools.deepClone(this.formats[id]);
-		const inputOptions: Dict<number> = {};
-		let mode: IGameMode | undefined;
-		let variant: IGameVariant | undefined;
-		for (const target of targets) {
-			const targetId = Tools.toId(target);
-			if (!targetId) continue;
-			if (formatData.modes) {
-				const modeId = targetId in this.modeAliases ? this.modeAliases[targetId] : targetId;
-				if (formatData.modes.includes(modeId)) {
-					if (mode) return ['tooManyGameModes'];
-					mode = this.modes[modeId];
-					continue;
-				}
-			}
-			if (formatData.variants) {
-				let matchingVariant: IGameVariant | undefined;
-				// eslint-disable-next-line @typescript-eslint/prefer-for-of
-				for (let i = 0; i < formatData.variants.length; i++) {
-					const variant = formatData.variants[i];
-					if (Tools.toId(variant.variant) === targetId || (variant.variantAliases && variant.variantAliases.includes(targetId))) {
-						matchingVariant = variant;
-						break;
-					}
-				}
-				if (matchingVariant) {
-					if (variant) return ['tooManyGameVariants'];
-					variant = matchingVariant;
-					continue;
-				}
-			}
-			const option = target.trim();
-			let name = '';
-			let optionNumber = 0;
-			if (option.includes(":")) {
-				const parts = option.split(":");
-				name = Tools.toId(parts[0]);
-				optionNumber = parseInt(parts[1].trim());
-			} else {
-				const optionId = Tools.toId(option);
-				if (optionId === 'freejoin' || optionId === 'fj') {
-					name = 'freejoin';
-					optionNumber = 1;
-				} else {
-					const firstSpaceIndex = option.indexOf(" ");
-					if (firstSpaceIndex !== -1) {
-						const lastSpaceIndex = option.lastIndexOf(" ");
-						name = option.substr(0, firstSpaceIndex);
-						if (Tools.isInteger(name)) {
-							optionNumber = parseInt(name);
-							name = option.substr(firstSpaceIndex + 1);
-						} else {
-							if (lastSpaceIndex !== firstSpaceIndex) {
-								name = option.substr(0, lastSpaceIndex);
-								optionNumber = parseInt(option.substr(lastSpaceIndex + 1));
-							} else {
-								optionNumber = parseInt(option.substr(firstSpaceIndex + 1));
-							}
-						}
-						name = Tools.toId(name);
-					}
-				}
-			}
-
-			if (!name || isNaN(optionNumber)) return ['invalidGameOption', option];
-
-			if (name === 'firstto') name = 'points';
-			if (name === 'points' && mode && mode.id === 'team') name = 'teamPoints';
-			inputOptions[name] = optionNumber;
-		}
-
-		const formatComputed: IGameFormatComputed = {
-			effectType: "GameFormat",
-			inputOptions,
-			inputTarget,
-			mode,
-			nameWithOptions: '',
-			variant,
-		};
-
-		let customizableOptions: Dict<IGameOptionValues>;
-		if (variant && variant.customizableOptions) {
-			customizableOptions = variant.customizableOptions;
-		} else {
-			customizableOptions = formatData.customizableOptions || {};
-		}
-
-		let defaultOptions: DefaultGameOption[];
-		if (variant && variant.defaultOptions) {
-			defaultOptions = variant.defaultOptions;
-		} else {
-			defaultOptions = formatData.defaultOptions || [];
-		}
-
-		const format = Object.assign(formatData, formatComputed, {customizableOptions, defaultOptions, options: {}}) as IGameFormat;
-		format.options = Game.setOptions(format, mode, variant);
-
-		return format;
+		return this.getFormatWithOptions(inputTarget, targets, Tools.deepClone(this.formats[id]));
 	}
 
 	getExistingFormat(target: string): IGameFormat {
 		const format = this.getFormat(target);
 		if (Array.isArray(format)) throw new Error(format.join(": "));
 		return format;
+	}
+
+	/**
+	 * Returns a copy of the format
+	 */
+	getTournamentFormat(target: string, checkDisabled?: boolean): IGameFormat | CommandErrorArray {
+		const inputTarget = target;
+		const targets = target.split(",");
+		const name = targets[0];
+		targets.shift();
+		const id = Tools.toId(name);
+		if (id in this.tournamentAliases) {
+			return this.getTournamentFormat(this.tournamentAliases[id] + (targets.length ? "," + targets.join(",") : ""), checkDisabled);
+		}
+		if (!(id in this.tournamentFormats)) return ['invalidGameFormat', name];
+		if (checkDisabled && this.tournamentFormats[id].disabled) return ['disabledGameFormat', this.tournamentFormats[id].name];
+		return this.getFormatWithOptions(inputTarget, targets, Tools.deepClone(this.tournamentFormats[id]));
 	}
 
 	/**
@@ -1259,6 +1227,108 @@ export class Games {
 
 		Tools.editGist(Config.gameCatalogGists[room.id].id, Config.gameCatalogGists[room.id].description,
 			{[filename]: {content: document.join("\n").trim(), filename}});
+	}
+
+	private getFormatWithOptions(inputTarget: string, targets: string[], formatData: DeepMutable<IGameFormatData<Game>>):
+		IGameFormat | CommandErrorArray {
+		const inputOptions: Dict<number> = {};
+		let mode: IGameMode | undefined;
+		let variant: IGameVariant | undefined;
+		for (const target of targets) {
+			const targetId = Tools.toId(target);
+			if (!targetId) continue;
+			if (formatData.modes) {
+				const modeId = targetId in this.modeAliases ? this.modeAliases[targetId] : targetId;
+				if (formatData.modes.includes(modeId)) {
+					if (mode) return ['tooManyGameModes'];
+					mode = this.modes[modeId];
+					continue;
+				}
+			}
+			if (formatData.variants) {
+				let matchingVariant: IGameVariant | undefined;
+				// eslint-disable-next-line @typescript-eslint/prefer-for-of
+				for (let i = 0; i < formatData.variants.length; i++) {
+					const variant = formatData.variants[i];
+					if (Tools.toId(variant.variant) === targetId || (variant.variantAliases && variant.variantAliases.includes(targetId))) {
+						matchingVariant = variant;
+						break;
+					}
+				}
+				if (matchingVariant) {
+					if (variant) return ['tooManyGameVariants'];
+					variant = matchingVariant;
+					continue;
+				}
+			}
+
+			const option = target.trim();
+			let name = '';
+			let optionNumber = 0;
+			if (option.includes(":")) {
+				const parts = option.split(":");
+				name = Tools.toId(parts[0]);
+				optionNumber = parseInt(parts[1].trim());
+			} else {
+				const optionId = Tools.toId(option);
+				if (optionId === 'freejoin' || optionId === 'fj') {
+					name = 'freejoin';
+					optionNumber = 1;
+				} else {
+					const firstSpaceIndex = option.indexOf(" ");
+					if (firstSpaceIndex !== -1) {
+						const lastSpaceIndex = option.lastIndexOf(" ");
+						name = option.substr(0, firstSpaceIndex);
+						if (Tools.isInteger(name)) {
+							optionNumber = parseInt(name);
+							name = option.substr(firstSpaceIndex + 1);
+						} else {
+							if (lastSpaceIndex !== firstSpaceIndex) {
+								name = option.substr(0, lastSpaceIndex);
+								optionNumber = parseInt(option.substr(lastSpaceIndex + 1));
+							} else {
+								optionNumber = parseInt(option.substr(firstSpaceIndex + 1));
+							}
+						}
+						name = Tools.toId(name);
+					}
+				}
+			}
+
+			if (!name || isNaN(optionNumber)) return ['invalidGameOption', option];
+
+			if (name === 'firstto') name = 'points';
+			if (name === 'points' && mode && mode.id === 'team') name = 'teamPoints';
+			inputOptions[name] = optionNumber;
+		}
+
+		const formatComputed: IGameFormatComputed = {
+			effectType: "GameFormat",
+			inputOptions,
+			inputTarget,
+			mode,
+			nameWithOptions: '',
+			variant,
+		};
+
+		let customizableOptions: Dict<IGameOptionValues>;
+		if (variant && variant.customizableOptions) {
+			customizableOptions = variant.customizableOptions;
+		} else {
+			customizableOptions = formatData.customizableOptions || {};
+		}
+
+		let defaultOptions: DefaultGameOption[];
+		if (variant && variant.defaultOptions) {
+			defaultOptions = variant.defaultOptions;
+		} else {
+			defaultOptions = formatData.defaultOptions || [];
+		}
+
+		const format = Object.assign(formatData, formatComputed, {customizableOptions, defaultOptions, options: {}}) as IGameFormat;
+		format.options = Game.setOptions(format, mode, variant);
+
+		return format;
 	}
 }
 

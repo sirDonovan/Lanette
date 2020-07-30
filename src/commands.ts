@@ -638,6 +638,34 @@ const commands: CommandDefinitions<CommandContext> = {
 		},
 		aliases: ['cancelonevonechallenge', 'cancel1vs1challenge', 'cancel1v1challenge', 'cancel1vs1c', 'cancel1v1c', 'c1vs1c', 'c1v1c'],
 	},
+	createtournamentgame: {
+		command(target, room, user) {
+			if (this.isPm(room)) return;
+			if (!user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
+			if (!Config.allowTournamentGames || !Config.allowTournamentGames.includes(room.id)) {
+				return this.sayError(['disabledGameFeatures', room.title]);
+			}
+			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
+			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
+
+			const remainingGameCooldown = Games.getRemainingGameCooldown(room, true);
+			if (remainingGameCooldown > 1000) {
+				const durationString = Tools.toDurationString(remainingGameCooldown);
+				this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the minigame " +
+					"cooldown remaining.");
+				return;
+			}
+
+			const format = Games.getTournamentFormat(target, true);
+			if (Array.isArray(format)) {
+				return this.sayError(format);
+			}
+
+			const game = Games.createGame(room, format, room);
+			game.signups();
+		},
+		aliases: ['createtourgame', 'ctourgame', 'ctg'],
+	},
 	randomminigame: {
 		async asyncCommand(target, room, user, cmd) {
 			let gameRoom: Room | undefined;

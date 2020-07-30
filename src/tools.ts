@@ -502,15 +502,18 @@ export class Tools {
 		return heapStatistics.heap_size_limit - heapStatistics.used_heap_size;
 	}
 
-	getPermutations<T>(elements: T[]): T[][] {
+	getPermutations<T>(elements: T[], minimumLength?: number): T[][] {
 		const length = elements.length;
+		if (minimumLength === undefined) minimumLength = length;
+
 		const permutations: T[][] = [];
 		const elementsInUse = new Set<T>();
 		const depthFirstSearch = (currentPermutation?: T[]) => {
 			if (!currentPermutation) currentPermutation = [];
-			if (currentPermutation.length === length) {
+			const currentLength = currentPermutation.length;
+			if (currentLength >= minimumLength!) {
 				permutations.push(currentPermutation);
-				return;
+				if (currentLength === length) return;
 			}
 
 			for (let i = 0; i < length; i++){
@@ -542,6 +545,19 @@ export class Tools {
 				resolve(error);
 			});
 		});
+	}
+
+	getBattleUrl(message: string): string | null {
+		if (!message) return null;
+		message = message.trim();
+		const serverLink = Client.server + (Client.server.endsWith("/") ? "" : "/");
+		const serverLinkIndex = message.indexOf(serverLink);
+		if (serverLinkIndex !== -1) {
+			message = message.substr(serverLinkIndex + serverLink.length);
+		}
+
+		if (message.startsWith('battle-')) return message.split(" ")[0].trim();
+		return null;
 	}
 
 	getChallongeUrl(input: string): string | undefined {

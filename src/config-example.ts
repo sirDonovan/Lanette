@@ -33,6 +33,13 @@ export let trustedUser = false;
 export let server = '';
 
 /**
+ * The address used to check for and moderate replay links
+ *
+ * Leave blank to use the main replay address
+ */
+export let replayServer = '';
+
+/**
  * The base amount of time (in milliseconds) between connection attempts
  */
 export let reconnectTime = 60 * 1000;
@@ -201,6 +208,11 @@ export let allowScriptedGames: string[] = [];
  * A list of rooms (roomids) where games are allowed to be hosted
  */
 export let allowUserHostedGames: string[] = [];
+
+/**
+ * A list of rooms (roomids) where tournament games are allowed to be played
+ */
+export let allowTournamentGames: string[] = [];
 
 /**
  * A list of rooms (roomids) where one vs. one challenges are allowed to be played

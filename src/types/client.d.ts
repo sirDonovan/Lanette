@@ -109,6 +109,8 @@ export interface IClientMessageTypes {
 
 	deinit: null;
 
+	noinit: null;
+
 	/**
 	 * Groups list
 	 */
@@ -226,10 +228,6 @@ export interface IClientMessageTypes {
 	uhtmlchange: IClientMessageTypes['uhtml'];
 
 	/**
-	 * Chatroom messages
-	 */
-
-	/**
 	 * Message type|(Rest)
 	 */
 	tournament: {
@@ -256,12 +254,44 @@ export interface IClientMessageTypes {
 		size: number;
 	};
 
+	teampreview: null;
+
+	start: null;
+
+	/**
+	 * Slot|Species+level|item
+	 */
+	poke: {
+		slot: string;
+		details: string;
+		item: boolean
+	};
+
+	/**
+	 * Slot+name|Species+level|hp status
+	 */
+	switch: {
+		pokemon: string;
+		details: string;
+		hpStatus: [string, string];
+	};
+	drag: IClientMessageTypes['switch'];
+
 	/**
 	 * Slot+name
 	 */
 	faint: {
-		details: string;
+		pokemon: string;
 	};
+
+	/**
+	 * Username of winner
+	 */
+	win: {
+		username: string
+	};
+
+	expire: null;
 }
 
 export interface ITournamentMessageTypes {

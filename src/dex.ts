@@ -1495,6 +1495,104 @@ export class Dex {
 		return ruleName;
 	}
 
+	ruleTableBansSpecies(ruleTable: RuleTable, species: IPokemon): string | null {
+		const setHas: Dict<true> = {};
+
+		setHas['pokemon:' + species.id] = true;
+		setHas['basepokemon:' + Tools.toId(species.baseSpecies)] = true;
+
+		const tier = species.tier === '(PU)' ? 'ZU' : species.tier === '(NU)' ? 'PU' : species.tier;
+		const tierTag = 'pokemontag:' + Tools.toId(tier);
+		setHas[tierTag] = true;
+
+		const doublesTier = species.doublesTier === '(DUU)' ? 'DNU' : species.doublesTier;
+		const doublesTierTag = 'pokemontag:' + Tools.toId(doublesTier);
+		setHas[doublesTierTag] = true;
+
+		let banReason = ruleTable.check('pokemon:' + species.id);
+		if (banReason) {
+			return `${species.name} is ${banReason}.`;
+		}
+		if (banReason === '') return null;
+
+		banReason = ruleTable.check('basepokemon:' + Tools.toId(species.baseSpecies));
+		if (banReason) {
+			return `${species.name} is ${banReason}.`;
+		}
+		if (banReason === '') {
+			// don't allow nonstandard speciess when whitelisting standard base species
+			// i.e. unbanning Pichu doesn't mean allowing Pichu-Spiky-Eared outside of Gen 4
+			const baseSpecies = this.getExistingPokemon(species.baseSpecies);
+			if (baseSpecies.isNonstandard === species.isNonstandard) {
+				return null;
+			}
+		}
+
+		banReason = ruleTable.check(tierTag) || (tier === 'AG' ? ruleTable.check('pokemontag:uber') : null);
+		if (banReason) {
+			return `${species.name} is in ${tier}, which is ${banReason}.`;
+		}
+		if (banReason === '') return null;
+
+		banReason = ruleTable.check(doublesTierTag);
+		if (banReason) {
+			return `${species.name} is in ${doublesTier}, which is ${banReason}.`;
+		}
+		if (banReason === '') return null;
+
+		banReason = ruleTable.check('pokemontag:allpokemon');
+		if (banReason) {
+			return `${species.name} is not in the list of allowed pokemon.`;
+		}
+
+		// obtainability
+		if (species.isNonstandard) {
+			banReason = ruleTable.check('pokemontag:' + Tools.toId(species.isNonstandard));
+			if (banReason) {
+				if (species.isNonstandard === 'Unobtainable') {
+					return `${species.name} is not obtainable without hacking or glitches.`;
+				}
+				return `${species.name} is tagged ${species.isNonstandard}, which is ${banReason}.`;
+			}
+			if (banReason === '') return null;
+		}
+
+		if (species.isNonstandard && species.isNonstandard !== 'Unobtainable') {
+			banReason = ruleTable.check('nonexistent', setHas);
+			if (banReason) {
+				if (['Past', 'Future'].includes(species.isNonstandard)) {
+					return `${species.name} does not exist in Gen ${this.gen}.`;
+				}
+				return `${species.name} does not exist in this game.`;
+			}
+			if (banReason === '') return null;
+		}
+
+		return null;
+	}
+
+	getUsablePokemon(format: IFormat): string[] {
+		if (format.usablePokemon) return format.usablePokemon;
+		if (!format.ruleTable) format.ruleTable = this.getRuleTable(format);
+
+		const formatGen = format.mod in dexes ? dexes[format.mod].gen : this.gen;
+		const littleCup = format.ruleTable.has("littlecup");
+		const usablePokemon: string[] = [];
+		for (const i of this.data.pokemonKeys) {
+			const pokemon = this.getExistingPokemon(i);
+			if (pokemon.requiredAbility || pokemon.requiredItem || pokemon.requiredItems || pokemon.requiredMove ||
+				this.ruleTableBansSpecies(format.ruleTable, pokemon)) continue;
+			if (littleCup) {
+				if ((pokemon.prevo && this.getExistingPokemon(pokemon.prevo).gen <= formatGen || !pokemon.nfe)) continue;
+			}
+
+			usablePokemon.push(pokemon.name);
+		}
+
+		format.usablePokemon = usablePokemon;
+		return usablePokemon;
+	}
+
 	combineCustomRules(separatedCustomRules: ISeparatedCustomRules): string[] {
 		const customRules: string[] = [];
 		for (const ban of separatedCustomRules.bans) {
@@ -1614,6 +1712,157 @@ export class Dex {
 			html.push("&nbsp;&nbsp;&nbsp;&nbsp;<b>Removed rules</b>: " + format.separatedCustomRules.removedrules.join(", "));
 		}
 		return html.join("<br />");
+	}
+
+	getPossibleTeams(previousTeams: IPokemon[][], pool: IPokemon[] | string[], additions?: number, evolutions?: number,
+		requiredAddition?: boolean, requiredEvolution?: boolean): IPokemon[][] {
+		if (!additions) additions = 0;
+		if (!evolutions) evolutions = 0;
+
+		const newPokemon: IPokemon[] = [];
+		for (const name of pool) {
+			const pokemon = typeof name === 'string' ? this.getPokemon(name) : name;
+			if (!pokemon) continue;
+			newPokemon.push(pokemon);
+		}
+
+		if (additions > newPokemon.length) additions = newPokemon.length;
+		const permutations = Tools.getPermutations(newPokemon, 1);
+		const possiblePokemon: IPokemon[][] = [];
+		for (const permutation of permutations) {
+			if (permutation.length <= additions) possiblePokemon.push(permutation);
+		}
+
+		let baseTeams: IPokemon[][];
+		if (requiredAddition) {
+			baseTeams = [];
+		} else {
+			// not adding Pokemon
+			baseTeams = previousTeams.slice();
+		}
+
+		for (const pokemon of possiblePokemon) {
+			for (const previousTeam of previousTeams) {
+				let team = previousTeam.slice();
+				team = team.concat(pokemon);
+				if (team.length > 6) continue;
+				baseTeams.push(team);
+			}
+		}
+
+		let finalTeams: IPokemon[][];
+		if (requiredEvolution) {
+			finalTeams = [];
+		} else {
+			// not evolving Pokemon
+			finalTeams = baseTeams.slice();
+		}
+
+		let currentTeams = baseTeams.slice();
+		const nextTeams: IPokemon[][] = [];
+		if (evolutions > 0) {
+			while (evolutions > 0) {
+				for (const team of currentTeams) {
+					let availableEvolutions = false;
+					for (let i = 0; i < team.length; i++) {
+						if (!team[i].nfe) continue;
+						const pokemon = team[i];
+						const pokemonSlot = i;
+						for (const evo of pokemon.evos) {
+							const evolution = this.getExistingPokemon(evo);
+							if (evolution.forme) continue;
+							availableEvolutions = true;
+							const newTeam = team.slice();
+							newTeam[pokemonSlot] = evolution;
+							finalTeams.push(newTeam);
+							nextTeams.push(newTeam);
+						}
+					}
+					if (!availableEvolutions) finalTeams.push(team);
+				}
+				currentTeams = nextTeams;
+				evolutions--;
+			}
+		} else if (evolutions < 0) {
+			// check that there are evolutions left
+			while (evolutions < 0) {
+				for (const team of currentTeams) {
+					let availableEvolutions = false;
+					for (let i = 0; i < team.length; i++) {
+						const pokemon = team[i];
+						if (!pokemon.prevo) continue;
+						const pokemonSlot = i;
+						const prevo = this.getExistingPokemon(pokemon.prevo);
+						if (prevo.forme) continue;
+						availableEvolutions = true;
+						const newTeam = team.slice();
+						newTeam[pokemonSlot] = prevo;
+						finalTeams.push(newTeam);
+						nextTeams.push(newTeam);
+					}
+					if (!availableEvolutions) finalTeams.push(team);
+				}
+				currentTeams = nextTeams;
+				evolutions++;
+			}
+		}
+
+		for (const team of finalTeams) {
+			team.sort((a, b) => a.num - b.num);
+		}
+
+		finalTeams.sort((a, b) => {
+			const diff = a.length - b.length;
+			if (diff !== 0) return diff;
+
+			for (let i = 0; i < a.length; i++) {
+				const diff = a[i].num - b[i].num;
+				if (diff !== 0) return diff;
+			}
+
+			return 0;
+		});
+
+		return finalTeams;
+	}
+
+	includesPokemon(team: IPokemon[] | string[], requiredPokemon: IPokemon[] | string[]): boolean {
+		const pokemonList: string[] = [];
+		for (const pokemon of team) {
+			pokemonList.push(typeof pokemon === 'string' ? this.getExistingPokemon(pokemon).name : pokemon.name);
+		}
+
+		let includes = true;
+		for (const pokemon of requiredPokemon) {
+			if (!pokemonList.includes(typeof pokemon === 'string' ? this.getExistingPokemon(pokemon).name : pokemon.name)) {
+				includes = false;
+				break;
+			}
+		}
+
+		return includes;
+	}
+
+	isPossibleTeam(team: IPokemon[] | string[], possibleTeams: IPokemon[][]): boolean {
+		const names: string[] = [];
+		for (const pokemon of team) {
+			names.push(typeof pokemon === 'string' ? this.getExistingPokemon(pokemon).name : pokemon.name);
+		}
+
+		names.sort();
+		possibleTeams = possibleTeams.slice().sort((a, b) => b.length - a.length);
+
+		let isPossible = false;
+		for (const possibleTeam of possibleTeams) {
+			const possibleNames = possibleTeam.map(x => x.name);
+			possibleNames.sort();
+			if (Tools.compareArrays(possibleNames, names)) {
+				isPossible = true;
+				break;
+			}
+		}
+
+		return isPossible;
 	}
 
 	private getAllEvolutionLines(pokemon: IPokemon, prevoList?: string[], evolutionLines?: string[][]): string[][] {

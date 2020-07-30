@@ -14,6 +14,7 @@ export class Room {
 	chatLog: IChatLogEntry[] = [];
 	game: Game | undefined = undefined;
 	readonly htmlMessageListeners: Dict<() => void> = {};
+	inviteOnlyBattle: boolean | null = null;
 	readonly messageListeners: Dict<() => void> = {};
 	modchat: string = 'off';
 	newUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
@@ -154,6 +155,10 @@ export class Room {
 
 	pmUhtmlChange(user: User | Player, uhtmlName: string, html: string): void {
 		this.say("/pmuhtmlchange " + user.id + "," + uhtmlName + "," + html, true);
+	}
+
+	sendHtmlPage(user: User | Player, title: string, html: string): void {
+		this.say("/sendhtmlpage " + user.id + "," + title + "," + html, true);
 	}
 
 	on(message: string, listener: () => void): void {

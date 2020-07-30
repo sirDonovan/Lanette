@@ -18,10 +18,12 @@ import type { ITournamentEndJson, ITournamentUpdateJson } from './types/tourname
 import type { User } from './users';
 
 const MAIN_HOST = "sim3.psim.us";
+const REPLAY_SERVER_ADDRESS = "replay.pokemonshowdown.com";
 const RELOGIN_SECONDS = 60;
 const REGULAR_MESSAGE_THROTTLE = 600;
 const TRUSTED_MESSAGE_THROTTLE = 100;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
+const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
 const UHTML_CHAT_COMMAND = '/uhtml ';
 const UHTML_CHANGE_CHAT_COMMAND = '/uhtmlchange ';
@@ -158,6 +160,7 @@ export class Client {
 	publicChatRooms: string[] = [];
 	reconnectTime: number = Config.reconnectTime || 60 * 1000;
 	reloadInProgress: boolean = false;
+	replayServerAddress: string = Config.replayServer || REPLAY_SERVER_ADDRESS;
 	sendQueue: string[] = [];
 	sendThrottle: number = Config.trustedUser ? TRUSTED_MESSAGE_THROTTLE : REGULAR_MESSAGE_THROTTLE;
 	sendTimeout: NodeJS.Timer | true | undefined = undefined;
@@ -536,6 +539,7 @@ export class Client {
 			break;
 		}
 
+		case 'noinit':
 		case 'deinit': {
 			Rooms.remove(room);
 			break;
@@ -611,6 +615,7 @@ export class Client {
 			if (room.logChatMessages) {
 				Storage.logChatMessage(room, now, 'J', messageArguments.rank + user.name);
 			}
+			if (room.game && room.game.onUserJoinRoom) room.game.onUserJoinRoom(room, user);
 			break;
 		}
 
@@ -795,9 +800,9 @@ export class Client {
 			const id = Tools.toId(messageArguments.username);
 			if (!id) return;
 
-			const isHtml = messageArguments.message.startsWith("/raw ") || messageArguments.message.startsWith("/html ");
-			const isUhtml = !isHtml && messageArguments.message.startsWith("/uhtml ");
-			const isUhtmlChange = !isHtml && !isUhtml && messageArguments.message.startsWith("/uhtmlchange ");
+			const isHtml = messageArguments.message.startsWith(HTML_CHAT_COMMAND) || messageArguments.message.startsWith("/html ");
+			const isUhtml = !isHtml && messageArguments.message.startsWith(UHTML_CHAT_COMMAND);
+			const isUhtmlChange = !isHtml && !isUhtml && messageArguments.message.startsWith(UHTML_CHANGE_CHAT_COMMAND);
 
 			const user = Users.add(messageArguments.username, id);
 			if (user === Users.self) {
@@ -853,8 +858,18 @@ export class Client {
 				} else {
 					user.addChatLog(messageArguments.message);
 
+					let commandMessage = messageArguments.message;
+					if (commandMessage.startsWith(INVITE_COMMAND)) {
+						const battleUrl = Tools.getBattleUrl(commandMessage.substr(INVITE_COMMAND.length));
+						if (battleUrl) {
+							commandMessage = Config.commandCharacter + 'check ' + battleUrl;
+						} else {
+							return;
+						}
+					}
+
 					if (messageArguments.rank !== this.groupSymbols.locked) {
-						void CommandParser.parse(user, user, messageArguments.message);
+						void CommandParser.parse(user, user, commandMessage);
 					}
 				}
 			}
@@ -895,6 +910,8 @@ export class Client {
 			if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
 				room.modchat = messageArguments.html.split('<div class="broadcast-red"><strong>Moderated chat was set to ')[1]
 					.split('!</strong>')[0];
+			} else if (messageArguments.html.startsWith('|raw|<div class="broadcast-red"><strong>This battle is invite-only!</strong>')) {
+				room.inviteOnlyBattle = true;
 			} else if (messageArguments.html.startsWith('<div class="broadcast-blue"><strong>Moderated chat was disabled!</strong>')) {
 				room.modchat = 'off';
 			} else if (messageArguments.html.startsWith("<div class='infobox infobox-limited'>This tournament includes:<br />")) {
@@ -1023,7 +1040,7 @@ export class Client {
 		}
 
 		/**
-		 * Chatroom messages
+		 * Tournament messages
 		 */
 		case 'tournament': {
 			if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return;
@@ -1174,6 +1191,7 @@ export class Client {
 				slot: messageParts[0],
 				username: messageParts[1],
 			};
+
 			if (room.tournament) {
 				const player = room.tournament.players[Tools.toId(messageArguments.username)];
 				if (player) {
@@ -1186,6 +1204,10 @@ export class Client {
 					room.tournament.battleData[room.id].slots.set(player, messageArguments.slot);
 				}
 			}
+
+			if (room.game) {
+				if (room.game.onBattlePlayer) room.game.onBattlePlayer(room, messageArguments.slot, messageArguments.username);
+			}
 			break;
 		}
 
@@ -1194,19 +1216,102 @@ export class Client {
 				slot: messageParts[0],
 				size: parseInt(messageParts[1]),
 			};
+
 			if (room.tournament) {
 				room.tournament.battleData[room.id].remainingPokemon[messageArguments.slot] = messageArguments.size;
+			}
+
+			if (room.game) {
+				if (room.game.onBattleTeamSize && !room.game.onBattleTeamSize(room, messageArguments.slot, messageArguments.size)) {
+					room.sayCommand("/leave");
+				}
+			}
+			break;
+		}
+
+		case 'teampreview': {
+			if (room.game) {
+				if (room.game.onBattleTeamPreview && !room.game.onBattleTeamPreview(room)) {
+					room.sayCommand("/leave");
+				}
+			}
+			break;
+		}
+
+		case 'start': {
+			if (room.game) {
+				if (room.game.onBattleStart && !room.game.onBattleStart(room)) {
+					room.sayCommand("/leave");
+				}
+			}
+			break;
+		}
+
+		case 'poke': {
+			const messageArguments: IClientMessageTypes['poke'] = {
+				slot: messageParts[0],
+				details: messageParts[1],
+				item: messageParts[2] === 'item'
+			};
+
+			if (room.game) {
+				if (room.game.onBattlePokemon && !room.game.onBattlePokemon(room, messageArguments.slot, messageArguments.details,
+					messageArguments.item)) {
+					room.sayCommand("/leave");
+				}
 			}
 			break;
 		}
 
 		case 'faint': {
 			const messageArguments: IClientMessageTypes['faint'] = {
-				details: messageParts[0],
+				pokemon: messageParts[0],
 			};
+
 			if (room.tournament) {
-				room.tournament.battleData[room.id].remainingPokemon[messageArguments.details.substr(0, 2)]--;
+				room.tournament.battleData[room.id].remainingPokemon[messageArguments.pokemon.substr(0, 2)]--;
 			}
+
+			if (room.game) {
+				if (room.game.onBattleFaint && !room.game.onBattleFaint(room, messageArguments.pokemon)) {
+					room.sayCommand("/leave");
+				}
+			}
+			break;
+		}
+
+		case 'drag':
+		case 'switch': {
+			const messageArguments: IClientMessageTypes['switch'] = {
+				pokemon: messageParts[0],
+				details: messageParts[1],
+				hpStatus: messageParts[2].split(" ") as [string, string],
+			};
+
+			if (room.game) {
+				if (room.game.onBattleSwitch && !room.game.onBattleSwitch(room, messageArguments.pokemon, messageArguments.details,
+					messageArguments.hpStatus)) {
+					room.sayCommand("/leave");
+				}
+			}
+			break;
+		}
+
+		case 'win': {
+			const messageArguments: IClientMessageTypes['win'] = {
+				username: messageParts[0],
+			};
+
+			if (room.game) {
+				if (room.game.onBattleWin) room.game.onBattleWin(room, messageArguments.username);
+				room.sayCommand("/leave");
+			}
+
+			break;
+		}
+
+		case 'expire': {
+			if (room.game && room.game.onBattleExpire) room.game.onBattleExpire(room);
 			break;
 		}
 		}
@@ -1219,12 +1324,36 @@ export class Client {
 
 		// unlink tournament battle replays
 		if (room.unlinkTournamentReplays && !user.hasRank(room, 'voice') && room.tournament && !room.tournament.format.team &&
-			lowerCaseMessage.includes("replay.pokemonshowdown.com/")) {
-			let battle = lowerCaseMessage.split("replay.pokemonshowdown.com/")[1];
+			lowerCaseMessage.includes(this.replayServerAddress)) {
+			let battle = lowerCaseMessage.split(this.replayServerAddress)[1].trim();
+			if (battle.startsWith('/')) battle = battle.substr(1);
+			if (this.serverId !== 'showdown' && battle.startsWith(this.serverId + "-")) battle = battle.substr(this.serverId.length + 1);
 			if (battle) {
 				battle = 'battle-' + battle.split(" ")[0].trim();
 				if (room.tournament.battleRooms.includes(battle)) {
 					room.sayCommand("/warn " + user.name + ", Please do not link replays to tournament battles");
+				}
+			}
+		}
+
+		// unlink game battles
+		if (room.game && room.game.battleData && room.game.battleRooms && !user.hasRank(room, 'voice')) {
+			let replay = false;
+			let battle = '';
+			if (lowerCaseMessage.includes(this.replayServerAddress)) {
+				replay = true;
+				battle = lowerCaseMessage.split(this.replayServerAddress)[1].trim();
+			} else if (lowerCaseMessage.includes(this.server)) {
+				battle = lowerCaseMessage.split(this.server)[1].trim();
+			}
+
+			if (battle.startsWith('/')) battle = battle.substr(1);
+			if (this.serverId !== 'showdown' && battle.startsWith(this.serverId + "-")) battle = battle.substr(this.serverId.length + 1);
+			if (battle) {
+				battle = battle.split(" ")[0].trim();
+				if (!battle.startsWith('battle-')) battle = 'battle-' + battle;
+				if (room.game.battleRooms.includes(battle)) {
+					room.sayCommand("/warn " + user.name + ", Please do not link " + (replay ? "replays " : "") + "to game battles");
 				}
 			}
 		}

@@ -6,7 +6,7 @@ import type { Room } from "./rooms";
 import type { IPokemonCopy, IPokemon } from "./types/dex";
 import type {
 	GameCommandListener, IGameAchievement, IGameCommandCountListener, IGameCommandCountOptions, IGameFormat, IGameMode, IGameOptionValues,
-	IGameVariant, IRandomGameAnswer, IUserHostedFormat, LoadedGameCommands, PlayerList, IPokemonUhtml
+	IGameVariant, IRandomGameAnswer, IUserHostedFormat, LoadedGameCommands, PlayerList, IPokemonUhtml, IBattleGameData
 } from "./types/games";
 import type { User } from "./users";
 
@@ -62,6 +62,8 @@ export class Game extends Activity {
 
 	additionalDescription?: string;
 	allowChildGameBits?: boolean;
+	readonly battleData?: Dict<IBattleGameData>;
+	readonly battleRooms?: string[];
 	commandDescriptions?: string[];
 	isMiniGame?: boolean;
 	lastPokemonUhtml?: IPokemonUhtml;
@@ -225,6 +227,7 @@ export class Game extends Activity {
 	}
 
 	onInitialize(): void {
+		this.baseHtmlPageTitle = this.room.id + "-" + this.format.id;
 		this.setUhtmlBaseName('scripted');
 
 		const format = this.format as IGameFormat;
@@ -247,6 +250,11 @@ export class Game extends Activity {
 			}
 			format.mode.initialize(this);
 		}
+
+		let htmlPageHeader = "";
+		if (this.mascot) htmlPageHeader += Dex.getPokemonGif(this.mascot, undefined, undefined, this.shinyMascot);
+		htmlPageHeader += "<h3>" + (this.format.nameWithOptions || this.format.name) + "</h3>";
+		this.htmlPageHeader = htmlPageHeader;
 	}
 
 	loadModeCommands<T extends Game>(commands: LoadedGameCommands<T>): void {
@@ -928,6 +936,21 @@ export class Game extends Activity {
 	/** Return `false` to prevent a user from being added to the game (and send the reason to the user) */
 	onAddPlayer?(player: Player, lateJoin?: boolean): boolean | undefined;
 	onAfterDeallocate?(forceEnd: boolean): void;
+	onBattleExpire?(room: Room): void;
+	/** Return `false` to signal that the battle should be left */
+	onBattleFaint?(room: Room, slot: string): boolean;
+	onBattlePlayer?(room: Room, slot: string, username: string): void;
+	/** Return `false` to signal that the battle should be left */
+	onBattlePokemon?(room: Room, slot: string, details: string, item: boolean): boolean;
+	/** Return `false` to signal that the battle should be left */
+	onBattleTeamSize?(room: Room, slot: string, size: number): boolean;
+	/** Return `false` to signal that the battle should be left */
+	onBattleTeamPreview?(room: Room): boolean;
+	/** Return `false` to signal that the battle should be left */
+	onBattleStart?(room: Room): boolean;
+	/** Return `false` to signal that the battle should be left */
+	onBattleSwitch?(room: Room, pokemon: string, details: string, hpStatus: [string, string]): boolean;
+	onBattleWin?(room: Room, winner: string): void;
 	onChildEnd?(winners: Map<Player, number>): void;
 	onDeallocate?(forceEnd: boolean): void;
 	onEliminatePlayer?(player: Player, eliminationCause?: string | null, eliminator?: Player | null): void;
@@ -936,6 +959,7 @@ export class Game extends Activity {
 	onRemovePlayer?(player: Player): void;
 	onSignups?(): void;
 	onStart?(): void;
+	onUserJoinRoom?(room: Room, user: User): void;
 	parseChatMessage?(user: User, message: string): void;
 	rejectChallenge?(user: User): boolean;
 	repostInformation?(): void;

@@ -9,6 +9,7 @@ export class Player {
 	/** The player can temporarily not perform any actions */
 	frozen: boolean | undefined;
 	losses: number | undefined;
+	round: number | undefined;
 	team: PlayerTeam | undefined;
 
 	id: string;
@@ -31,6 +32,7 @@ export class Player {
 		delete this.eliminated;
 		delete this.frozen;
 		delete this.losses;
+		delete this.round;
 		delete this.team;
 	}
 
@@ -49,6 +51,10 @@ export class Player {
 
 	sayUhtmlChange(html: string, name?: string): void {
 		this.activity.pmRoom.pmUhtmlChange(this, name || this.activity.uhtmlBaseName, html);
+	}
+
+	sendHtmlPage(html: string, title?: string): void {
+		this.activity.pmRoom.sendHtmlPage(this, title || this.activity.baseHtmlPageTitle, this.activity.htmlPageHeader + html);
 	}
 
 	useCommand(command: string, target?: string): void {
@@ -86,10 +92,13 @@ export class PlayerTeam {
 
 export abstract class Activity {
 	readonly activityType: string = '';
+	baseHtmlPageTitle: string = '';
 	readonly createTime: number = Date.now();
 	ended: boolean = false;
 	htmlMessageListeners: string[] = [];
+	htmlPageHeader: string = '';
 	messageListeners: string[] = [];
+	pastPlayers: Dict<Player> = {};
 	playerCount: number = 0;
 	players: Dict<Player> = {};
 	showSignupsHtml: boolean = false;
@@ -127,18 +136,32 @@ export abstract class Activity {
 	createPlayer(user: User | string): Player | undefined {
 		const id = Tools.toId(user);
 		if (id in this.players) return;
-		const player = new Player(user, this);
+		const player = this.pastPlayers[id] || new Player(user, this);
 		this.players[id] = player;
+		if (id in this.pastPlayers) delete this.pastPlayers[id];
 		this.playerCount++;
 		return player;
 	}
 
 	renamePlayer(user: User, oldId: string): void {
-		if (!(oldId in this.players) || (user.id in this.players && oldId !== user.id)) return;
-		const player = this.players[oldId];
+		let pastPlayer = false;
+		if (oldId in this.players) {
+			if (user.id in this.players && oldId !== user.id) return;
+		} else {
+			if (!(oldId in this.pastPlayers)) return;
+			pastPlayer = true;
+		}
+
+		const player = this.players[oldId] || this.pastPlayers[oldId];
 		player.name = user.name;
 		if (player.id === user.id) return;
 		player.id = user.id;
+
+		if (pastPlayer) {
+			this.pastPlayers[player.id] = player;
+			return;
+		}
+
 		delete this.players[oldId];
 		this.players[player.id] = player;
 		if (this.onRenamePlayer) this.onRenamePlayer(player, oldId);
@@ -151,6 +174,7 @@ export abstract class Activity {
 		if (this.started && !forceDelete) {
 			this.players[id].eliminated = true;
 		} else {
+			this.pastPlayers[id] = player;
 			delete this.players[id];
 			this.playerCount--;
 		}
