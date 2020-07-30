@@ -57,9 +57,6 @@ describe("Dex", () => {
 		pokemon = Dex.getExistingPokemon('Pikachu-Gmax');
 		allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
 		assert(allPossibleMoves.length > 1);
-		learnsetData = Dex.getLearnsetData(pokemon.id);
-		assert(learnsetData && learnsetData.learnset);
-		assert(allPossibleMoves.length > Object.keys(learnsetData.learnset).length, pokemon.name);
 
 		const houndour = Dex.getExistingPokemon('Houndour');
 		const houndoomMega = Dex.getExistingPokemon('Houndoom-Mega');

@@ -47,7 +47,7 @@ interface IPokemonShowdownDex {
 		Items: Dict<string>;
 		Formats: Dict<string>;
 		Learnsets: Dict<string>;
-		Movedex: Dict<string>;
+		Moves: Dict<string>;
 		Pokedex: Dict<string>;
 		TypeChart: Dict<string>;
 	}
@@ -159,6 +159,7 @@ function getAbilities(messageNumber: string, id: string, options: IGetDataOption
 
 function getAbilityIds(options: IGetDataIdsOptions): IPokemonShowdownResponse {
 	const dex = pokemonShowdownDex.mod(options.mod);
+	if (!dex.data.Abilities) throw new Error("No PS abilities dex");
 	const keys: string[] = [];
 	for (const i in dex.data.Abilities) {
 		const ability = dex.getAbility(i);
@@ -246,6 +247,7 @@ function getFormats(messageNumber: string, id: string, options: IGetDataOptions)
 
 function getFormatIds(options: IGetDataIdsOptions): IPokemonShowdownResponse {
 	const dex = pokemonShowdownDex.mod(options.mod);
+	if (!dex.data.Formats) throw new Error("No PS formats dex");
 	const keys: string[] = [];
 	for (const i in dex.data.Formats) {
 		const format = dex.getFormat(i);
@@ -279,6 +281,7 @@ function getItems(messageNumber: string, id: string, options: IGetDataOptions): 
 
 function getItemIds(options: IGetDataIdsOptions): IPokemonShowdownResponse {
 	const dex = pokemonShowdownDex.mod(options.mod);
+	if (!dex.data.Items) throw new Error("No PS items dex");
 	const keys: string[] = [];
 	for (const i in dex.data.Items) {
 		const item = dex.getItem(i);
@@ -313,6 +316,7 @@ function getLearnsetData(messageNumber: string, id: string, options: IGetDataOpt
 
 function getLearnsetDataIds(options: IGetDataIdsOptions): IPokemonShowdownResponse {
 	const dex = pokemonShowdownDex.mod(options.mod);
+	if (!dex.data.Learnsets) throw new Error("No PS learnsets dex");
 	const keys: string[] = [];
 	for (const i in dex.data.Learnsets) {
 		const id = Tools.toId(i);
@@ -343,8 +347,9 @@ function getMoves(messageNumber: string, id: string, options: IGetDataOptions): 
 
 function getMoveIds(options: IGetDataIdsOptions): IPokemonShowdownResponse {
 	const dex = pokemonShowdownDex.mod(options.mod);
+	if (!dex.data.Moves) throw new Error("No PS moves dex");
 	const keys: string[] = [];
-	for (const i in dex.data.Movedex) {
+	for (const i in dex.data.Moves) {
 		const move = dex.getMove(i);
 		if (move.exists) keys.push(move.realMove ? Tools.toId(move.name) : move.id);
 	}
@@ -378,6 +383,7 @@ function getSpecies(messageNumber: string, id: string, options: IGetDataOptions)
 
 function getSpeciesIds(options: IGetDataIdsOptions): IPokemonShowdownResponse {
 	const dex = pokemonShowdownDex.mod(options.mod);
+	if (!dex.data.Pokedex) throw new Error("No PS pokemon dex");
 	const keys: string[] = [];
 	for (const i in dex.data.Pokedex) {
 		const species = dex.getSpecies(i);
@@ -410,7 +416,9 @@ function getTypes(messageNumber: string, id: string, options: IGetDataOptions): 
 }
 
 function getTypeIds(options: IGetDataIdsOptions): IPokemonShowdownResponse {
-	return {data: JSON.stringify({keys: Object.keys(pokemonShowdownDex.mod(options.mod).data.TypeChart)})};
+	const dex = pokemonShowdownDex.mod(options.mod);
+	if (!dex.data.TypeChart) throw new Error("No PS types dex");
+	return {data: JSON.stringify({keys: Object.keys(dex.data.TypeChart)})};
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
