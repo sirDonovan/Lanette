@@ -109,7 +109,7 @@ export abstract class EliminationTournament extends Game {
 
 	activityDQTimeout: number = 2 * 60 * 1000;
 	activityTimers = new Map<EliminationNode<Player>, NodeJS.Timer>();
-	activityWarnTimeout: number = 5 * 60 * 1000;
+	activityWarnTimeout: number = 3 * 60 * 1000;
 	additionsPerRound: number = 0;
 	advertisementInterval: NodeJS.Timer | null = null;
 	allowsScouting: boolean = false;
@@ -121,6 +121,7 @@ export abstract class EliminationTournament extends Game {
 	bracketHtml: string = '';
 	canRejoin: boolean = false;
 	canReroll: boolean = false;
+	checkChallengesTimers = new Map<EliminationNode<Player>, NodeJS.Timer>();
 	cloakedPokemon: string[] | null = null;
 	color: string | null = null;
 	defaultTier: string = 'ou';
@@ -148,6 +149,7 @@ export abstract class EliminationTournament extends Game {
 	teamChanges = new Map<Player, ITeamChange[]>();
 	totalAdvertisementTime: number = 0;
 	tournamentDescription: string = '';
+	tournamentEnded: boolean = false;
 	tournamentName: string = '';
 	tournamentPlayers = new Set<Player>();
 	tournamentRules: string[] = [];
@@ -348,22 +350,21 @@ export abstract class EliminationTournament extends Game {
 				} else {
 					html += !column ? "&nbsp;" : placeholderName;
 				}
-				html += "</div>";
 
-				html += "</div>";
+				html += "</div></div>";
 			}
+
 			html += "</div>";
 		}
+
 		html += "</div></div>";
 
 		return html;
 	}
 
-	getMatchesByDepth(treeRoot?: EliminationNode<Player>): Dict<EliminationNode<Player>[]> {
-		if (!treeRoot) treeRoot = this.treeRoot;
-
+	getMatchesByDepth(): Dict<EliminationNode<Player>[]> {
 		const matchesByDepth: Dict<EliminationNode<Player>[]> = {};
-		const queue = [{node: treeRoot, depth: 0}];
+		const queue = [{node: this.treeRoot, depth: 0}];
 		let item;
 		while ((item = queue.shift())) {
 			if (!item.node.children) continue;
@@ -374,6 +375,7 @@ export abstract class EliminationTournament extends Game {
 			queue.push({node: item.node.children[0], depth: item.depth + 1});
 			queue.push({node: item.node.children[1], depth: item.depth + 1});
 		}
+
 		return matchesByDepth;
 	}
 
@@ -485,8 +487,10 @@ export abstract class EliminationTournament extends Game {
 				result + ")");
 		}
 
-		const timer = this.activityTimers.get(targetNode);
-		if (timer) clearTimeout(timer);
+		const activityTimer = this.activityTimers.get(targetNode);
+		if (activityTimer) clearTimeout(activityTimer);
+		const checkChallengesTimer = this.checkChallengesTimers.get(targetNode);
+		if (checkChallengesTimer) clearTimeout(checkChallengesTimer);
 
 		this.playerOpponents.delete(p1);
 		this.playerOpponents.delete(p2);
@@ -495,12 +499,9 @@ export abstract class EliminationTournament extends Game {
 		targetNode.result = result;
 		targetNode.score = score.slice();
 
-		const winner = targetNode.children[result === 'win' ? 0 : 1].user;
-		const loser = targetNode.children[result === 'loss' ? 0 : 1].user;
+		const winner = targetNode.children[result === 'win' ? 0 : 1].user!;
+		const loser = targetNode.children[result === 'loss' ? 0 : 1].user!;
 		targetNode.user = winner;
-		if (!winner || !loser) {
-			throw new Error("Player node not found in setMatchResult([" + players.map(x => x.name).join(', ') + "], " + result + ")");
-		}
 
 		if (!winner.round) winner.round = 0;
 		winner.round++;
@@ -543,7 +544,7 @@ export abstract class EliminationTournament extends Game {
 				});
 
 				let possibleTeams = this.possibleTeams.get(winner)!;
-				possibleTeams = Dex.getPossibleTeams(possibleTeams, loserTeam, this.additionsPerRound, this.evolutionsPerRound,
+				possibleTeams = Dex.getPossibleTeams(possibleTeams, loserTeam, additions, this.evolutionsPerRound,
 					this.requiredAddition, this.requiredEvolution);
 				this.possibleTeams.set(winner, possibleTeams);
 			}
@@ -585,9 +586,9 @@ export abstract class EliminationTournament extends Game {
 			opponent.say(newOpponentPM);
 
 			const playerFirstBattle = !this.startedFirstBattle.has(player);
-			if (playerFirstBattle) this.startedFirstBattle.add(player);
+			this.startedFirstBattle.add(player);
 			const opponentFirstBattle = !this.startedFirstBattle.has(opponent);
-			if (opponentFirstBattle) this.startedFirstBattle.add(opponent);
+			this.startedFirstBattle.add(opponent);
 
 			let activityWarning = this.activityWarnTimeout;
 			if (playerFirstBattle && opponentFirstBattle) {
@@ -610,7 +611,7 @@ export abstract class EliminationTournament extends Game {
 					if (inactivePlayers.length) {
 						this.eliminateInactivePlayers(player, opponent, inactivePlayers);
 					} else {
-						this.checkChallenges(player, opponent);
+						this.checkChallenges(node, player, opponent);
 					}
 				}, this.activityDQTimeout);
 				this.activityTimers.set(node, timeout);
@@ -637,21 +638,24 @@ export abstract class EliminationTournament extends Game {
 	}
 
 	getPlayerHtmlPage(player: Player): string {
-		let html = "<b>Bracket</b>:";
-		html += "<br /><br />" + (this.bracketHtml || "(TBD)");
-
-		if (this.started) {
-			html += "<br /><br /><b>Round " + (player.round || 1) + " opponent:</b><br />";
+		let html = "";
+		if (this.tournamentEnded) {
+			if (player === this.getFinalPlayer()) {
+				html += "<b>Congratulations! You won the final battle of the tournament</b>.<hr /><br />";
+			}
+		} else if (this.started) {
+			html += "<b>Round " + (player.round || 1) + "</b>:<br />";
 			const opponent = this.playerOpponents.get(player);
 			if (opponent) {
 				html += "You may now battle <strong class='username'>" + opponent.name + "</strong>! Please challenge in " +
-					this.battleFormat.name + " and send " + Users.self.name + " the link to the battle.";
+					this.battleFormat.name + " and send " + Users.self.name + " the link to the battle or use <code>/invite " +
+					Users.self.name + "</code> in the battle chat.";
 			} else {
 				html += "Your next opponent has not been decided yet!";
 			}
+			html += "<hr /><br />";
 		}
 
-		html += "<br /><br />";
 		const starterPokemon = this.starterPokemon.get(player)!;
 		if (this.cloakedPokemon) {
 			html += "<b>The Pokemon you must protect " + (this.cloakedPokemon.length === 1 ? "is" : "are") + "</b>:";
@@ -673,39 +677,42 @@ export abstract class EliminationTournament extends Game {
 		const teamChanges = this.teamChanges.get(player);
 		if (teamChanges) {
 			const rounds: string[] = [];
-			for (const teamChange of teamChanges) {
-				let roundHtml = '';
+			for (let i = 0; i < teamChanges.length; i++) {
+				const teamChange = teamChanges[i];
+				let roundChanges = '';
 				if (teamChange.additions >= 1) {
-					roundHtml += "<li>You " + (this.requiredAddition ? "must" : "may");
+					roundChanges += "<li>You " + (this.requiredAddition ? "must" : "may");
 					if (teamChange.choices.length <= teamChange.additions) {
-						roundHtml += " add the following to your team:";
+						roundChanges += " add the following to your team:";
 					} else {
-						roundHtml += " choose " + teamChange.additions + " of the following to add to your team:";
+						roundChanges += " choose " + teamChange.additions + " of the following to add to your team:";
 					}
-					roundHtml += "<br />" + teamChange.choices.join(", ") + "</li>";
+					roundChanges += "<br />" + Tools.joinList(this.getPokemonIcons(teamChange.choices), undefined, undefined, "or") +
+						"</li>";
 				} else if (teamChange.additions <= -1) {
 					const amount = teamChange.additions * -1;
-					roundHtml += "<li>You " + (this.requiredAddition ? "must" : "may") + " remove " + amount + " " +
+					roundChanges += "<li>You " + (this.requiredAddition ? "must" : "may") + " remove " + amount + " " +
 						"member" + (amount > 1 ? "s" : "") + " from your team</li>";
 				}
 
 				if (teamChange.evolutions) {
 					const amount = Math.abs(teamChange.evolutions);
-					roundHtml += "<li>You " + (this.requiredEvolution ? "must" : "may") + " choose " + amount + " member" +
-						(amount > 1 ? "s" : "") + " of your team to " + (teamChange.evolutions >= 1 ? "evolve" : "devolve") + "</li>";
+					roundChanges += "<li>You " + (this.requiredEvolution ? "must" : "may") + " choose " + amount + " member" +
+						(amount > 1 ? "s" : "") + " of your " + (teamChange.additions ? "updated " : "") + "team to " +
+						(teamChange.evolutions >= 1 ? "evolve" : "de-volve") + "</li>";
 				}
 
-				if (roundHtml) {
-					roundHtml += "</ul>";
-					rounds.push(roundHtml);
+				if (roundChanges) {
+					rounds.push("Round " + (i + 1) + "<br /><ul>" + roundChanges + "</ul>");
 				}
 			}
 
 			if (rounds.length) {
-				html += "<br /><br /><b>Recap of your team changes</b>:<br />" + rounds.join("<br /><br />");
+				html += "<br /><br /><b>Your team changes by round are</b>:<br />" + rounds.join("<br /><br />");
 			}
 		}
 
+		html += "<hr /><br />" + (this.bracketHtml || "<b>Bracket</b>:<br /><br />(TBD)");
 		return html;
 	}
 
@@ -718,32 +725,35 @@ export abstract class EliminationTournament extends Game {
 			'.</div>', () => {
 			this.eliminateInactivePlayers(player, opponent, [opponent]);
 			this.removeCheckChallengesListeners(player, opponent);
-		});
+		}, true);
 		this.onHtml('<div class="infobox">' + opponent.name + ' is challenging ' + player.name + ' in ' + this.battleFormat.name +
 			'.</div>', () => {
 			this.eliminateInactivePlayers(player, opponent, [player]);
 			this.removeCheckChallengesListeners(player, opponent);
-		});
+		}, true);
 		this.onHtml('<div class="infobox">' + player.name + ' and ' + opponent.name + ' are not challenging each other.</div>', () => {
 			this.eliminateInactivePlayers(player, opponent, [player, opponent]);
 			this.removeCheckChallengesListeners(player, opponent);
-		});
+		}, true);
 		this.onHtml('<div class="infobox">' + opponent.name + ' and ' + player.name + ' are not challenging each other.</div>', () => {
 			this.eliminateInactivePlayers(player, opponent, [player, opponent]);
 			this.removeCheckChallengesListeners(player, opponent);
-		});
+		}, true);
 	}
 
 	removeCheckChallengesListeners(player: Player, opponent: Player): void {
 		this.offHtml('<div class="infobox">' + player.name + ' is challenging ' + opponent.name + ' in ' + this.battleFormat.name +
-			'.</div>');
+			'.</div>', true);
 		this.offHtml('<div class="infobox">' + opponent.name + ' is challenging ' + player.name + ' in ' + this.battleFormat.name +
-			'.</div>');
-		this.offHtml('<div class="infobox">' + player.name + ' and ' + opponent.name + ' are not challenging each other.</div>');
-		this.offHtml('<div class="infobox">' + opponent.name + ' and ' + player.name + ' are not challenging each other.</div>');
+			'.</div>', true);
+		this.offHtml('<div class="infobox">' + player.name + ' and ' + opponent.name + ' are not challenging each other.</div>', true);
+		this.offHtml('<div class="infobox">' + opponent.name + ' and ' + player.name + ' are not challenging each other.</div>', true);
 	}
 
-	checkChallenges(player: Player, opponent: Player): void {
+	checkChallenges(node: EliminationNode<Player>, player: Player, opponent: Player): void {
+		const timeout = setTimeout(() => this.eliminateInactivePlayers(player, opponent, [player, opponent]), 30 * 1000);
+		this.checkChallengesTimers.set(node, timeout);
+
 		this.setCheckChallengesListeners(player, opponent);
 		this.say("!checkchallenges " + player.name + ", " + opponent.name);
 	}
@@ -793,6 +803,8 @@ export abstract class EliminationTournament extends Game {
 			minimumPokemon = this.startingTeamsLength;
 		} else {
 			minimumPokemon = minimumPlayers * this.startingTeamsLength;
+			// potential byes
+			if (this.additionsPerRound >= 1) minimumPokemon += ((minimumPlayers - 2) * this.additionsPerRound);
 		}
 
 		let pokedex: IPokemon[];
@@ -926,7 +938,6 @@ export abstract class EliminationTournament extends Game {
 
 		this.generateBracket();
 
-		let newPokemonPM: Player[] = [];
 		const matchesByDepth = this.getMatchesByDepth();
 		const depths = Object.keys(matchesByDepth).reverse();
 		for (const depth of depths) {
@@ -936,7 +947,6 @@ export abstract class EliminationTournament extends Game {
 					if (child.user) byes.push(child.user);
 				}
 
-				if (this.additionsPerRound || this.evolutionsPerRound) newPokemonPM = newPokemonPM.concat(byes);
 				for (const bye of byes) {
 					bye.round!++;
 					if (this.additionsPerRound) {
@@ -962,10 +972,6 @@ export abstract class EliminationTournament extends Game {
 					}
 				}
 			}
-		}
-
-		for (const i in this.players) {
-			if (couldReroll || newPokemonPM.includes(this.players[i])) this.updatePlayerHtmlPage(this.players[i]);
 		}
 
 		this.updateMatches();
@@ -1085,17 +1091,15 @@ export abstract class EliminationTournament extends Game {
 	}
 
 	findAvailableMatchNode(player: Player, opponent: Player): EliminationNode<Player> | null {
-		let node: EliminationNode<Player> | null = null;
 		for (const availableMatchNode of this.availableMatchNodes) {
 			const playerA = availableMatchNode.children![0].user!;
 			const playerB = availableMatchNode.children![1].user!;
 			if ((playerA === player && playerB === opponent) || (playerA === opponent && playerB === player)) {
-				node = availableMatchNode;
-				break;
+				return availableMatchNode;
 			}
 		}
 
-		return node;
+		return null;
 	}
 
 	onUserJoinRoom(room: Room, user: User): void {
@@ -1107,7 +1111,7 @@ export abstract class EliminationTournament extends Game {
 	}
 
 	getPlayersFromBattleData(room: Room): [Player, Player] | null {
-		if (!(room.id in this.battleData) || this.battleData[room.id].slots.size !== 2) return null;
+		if (!(room.id in this.battleData) || this.battleData[room.id].slots.size < 2) return null;
 
 		const players = this.battleData[room.id].slots.keys();
 		const p1 = players.next().value as Player;
@@ -1137,15 +1141,10 @@ export abstract class EliminationTournament extends Game {
 		this.battleData[room.id].slots.set(player, slot);
 	}
 
-	onBattleTeamSize(room: Room, slot: string, size: number): boolean {
-		if (!(room.id in this.battleData)) return false;
-		this.battleData[room.id].remainingPokemon[slot] = size;
-		return true;
-	}
-
 	onBattlePokemon(room: Room, slot: string, details: string, item: boolean): boolean {
 		if (!(room.id in this.battleData)) return false;
 
+		if (!(slot in this.battleData[room.id].remainingPokemon)) this.battleData[room.id].remainingPokemon[slot] = 0;
 		this.battleData[room.id].remainingPokemon[slot]++;
 		const pokemon = Dex.getPokemon(details.split(',')[0]);
 		if (!pokemon) return false;
@@ -1212,8 +1211,10 @@ export abstract class EliminationTournament extends Game {
 		const node = this.findAvailableMatchNode(players[0], players[1]);
 		if (!node) throw new Error(this.name + ": no available match for " + players[0].name + " and " + players[1].name);
 
-		const timer = this.activityTimers.get(node);
-		if (timer) clearTimeout(timer);
+		const activityTimer = this.activityTimers.get(node);
+		if (activityTimer) clearTimeout(activityTimer);
+		const checkChallengesTimer = this.checkChallengesTimers.get(node);
+		if (checkChallengesTimer) clearTimeout(checkChallengesTimer);
 
 		if (!this.battleRooms.includes(room.id)) this.battleRooms.push(room.id);
 
@@ -1297,7 +1298,6 @@ export abstract class EliminationTournament extends Game {
 		this.teamChanges.set(winner, (this.teamChanges.get(winner) || []).concat(teamChanges));
 
 		if (!this.ended) {
-			this.updatePlayerHtmlPage(winner);
 			this.updateMatches();
 		}
 	}
@@ -1312,6 +1312,7 @@ export abstract class EliminationTournament extends Game {
 			clearTimeout(timeout);
 		});
 
+		this.tournamentEnded = true;
 		this.bracketHtml = this.getBracketHtml();
 		this.updatePlayerHtmlPages();
 
