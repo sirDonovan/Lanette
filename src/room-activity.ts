@@ -225,10 +225,10 @@ export abstract class Activity {
 		this.room.on(message, listener);
 	}
 
-	onHtml(html: string, listener: () => void): void {
+	onHtml(html: string, listener: () => void, serverHtml?: boolean): void {
 		if (this.ended) return;
 		this.htmlMessageListeners.push(html);
-		this.room.onHtml(html, listener);
+		this.room.onHtml(html, listener, serverHtml);
 	}
 
 	onUhtml(name: string, html: string, listener: () => void): void {
@@ -243,8 +243,8 @@ export abstract class Activity {
 		this.room.off(message);
 	}
 
-	offHtml(html: string): void {
-		this.room.offHtml(html);
+	offHtml(html: string, serverHtml?: boolean): void {
+		this.room.offHtml(html, serverHtml);
 	}
 
 	offUhtml(name: string, html: string): void {

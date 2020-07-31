@@ -165,8 +165,8 @@ export class Room {
 		this.messageListeners[Tools.toId(Tools.prepareMessage(message))] = listener;
 	}
 
-	onHtml(html: string, listener: () => void): void {
-		this.htmlMessageListeners[Tools.toId(Client.getListenerHtml(html))] = listener;
+	onHtml(html: string, listener: () => void, serverHtml?: boolean): void {
+		this.htmlMessageListeners[Tools.toId(serverHtml ? html : Client.getListenerHtml(html))] = listener;
 	}
 
 	onUhtml(name: string, html: string, listener: () => void): void {
@@ -179,8 +179,8 @@ export class Room {
 		delete this.messageListeners[Tools.toId(Tools.prepareMessage(message))];
 	}
 
-	offHtml(html: string): void {
-		delete this.htmlMessageListeners[Tools.toId(Client.getListenerHtml(html))];
+	offHtml(html: string, serverHtml?: boolean): void {
+		delete this.htmlMessageListeners[Tools.toId(serverHtml ? html : Client.getListenerHtml(html))];
 	}
 
 	offUhtml(name: string, html: string): void {
