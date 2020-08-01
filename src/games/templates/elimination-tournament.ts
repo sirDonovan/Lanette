@@ -146,6 +146,7 @@ export abstract class EliminationTournament extends Game {
 	requiredTier: string | null = null;
 	requiredPokemon: string[] | null = null;
 	sharedTeams: boolean = false;
+	spectatorPlayers = new Set<Player>();
 	starterPokemon = new Map<Player, string[]>();
 	startingTeamsLength: number = 6;
 	teamChanges = new Map<Player, ITeamChange[]>();
@@ -154,7 +155,6 @@ export abstract class EliminationTournament extends Game {
 	tournamentEnded: boolean = false;
 	tournamentName: string = '';
 	tournamentPlayers = new Set<Player>();
-	tournamentRules: string[] = [];
 	type: string | null = null;
 	usesCloakedPokemon: boolean = false;
 	validateTeams: boolean = true;
@@ -383,6 +383,7 @@ export abstract class EliminationTournament extends Game {
 
 		for (const player of players) {
 			player.eliminated = true;
+			this.spectatorPlayers.add(player);
 			this.disqualifiedPlayers.add(player);
 
 			/**
@@ -421,10 +422,7 @@ export abstract class EliminationTournament extends Game {
 				}
 
 				const teamChanges = this.setMatchResult(found.match, found.result, found.score);
-				if (!this.ended) {
-					this.teamChanges.set(winner, (this.teamChanges.get(winner) || []).concat(teamChanges));
-					if (!players.includes(winner)) this.updatePlayerHtmlPage(winner);
-				}
+				this.teamChanges.set(winner, (this.teamChanges.get(winner) || []).concat(teamChanges));
 			}
 		}
 
@@ -433,18 +431,18 @@ export abstract class EliminationTournament extends Game {
 
 	eliminateInactivePlayers(player: Player, opponent: Player, inactivePlayers: Player[]): void {
 		if (inactivePlayers.includes(player) && inactivePlayers.includes(opponent)) {
-			player.sayUhtmlChange("<div class='infobox'>You have been disqualified from the " + this.name + " tournament for failing " +
-				"to battle " + opponent.name + " in time.</div>", 'opponent');
-			opponent.sayUhtmlChange("<div class='infobox'>You have been disqualified from the " + this.name + " tournament for failing " +
-				"to battle " + player.name + " in time.</div>", 'opponent');
+			player.say("You have been disqualified from the " + this.name + " tournament for failing " +
+				"to battle " + opponent.name + " in time.");
+			opponent.say("You have been disqualified from the " + this.name + " tournament for failing " +
+				"to battle " + player.name + " in time.");
 			this.disqualifyPlayers([player, opponent]);
 		} else if (inactivePlayers.includes(player)) {
-			player.sayUhtmlChange("<div class='infobox'>You have been disqualified from the " + this.name + " tournament for failing " +
-				"to battle " + opponent.name + " in time.</div>", 'opponent');
+			player.say("You have been disqualified from the " + this.name + " tournament for failing " +
+				"to battle " + opponent.name + " in time.");
 			this.disqualifyPlayers([player]);
 		} else if (inactivePlayers.includes(opponent)) {
-			opponent.sayUhtmlChange("<div class='infobox'>You have been disqualified from the " + this.name + " tournament for failing " +
-				"to battle " + player.name + " in time.</div>", 'opponent');
+			opponent.say("You have been disqualified from the " + this.name + " tournament for failing " +
+				"to battle " + player.name + " in time.");
 			this.disqualifyPlayers([opponent]);
 		}
 	}
@@ -506,6 +504,7 @@ export abstract class EliminationTournament extends Game {
 		winner.round++;
 
 		loser.eliminated = true;
+		this.spectatorPlayers.add(loser);
 
 		let winnerTeamChanges: ITeamChange[] = [];
 		if (this.getRemainingPlayerCount() > 1 && (this.additionsPerRound || this.evolutionsPerRound)) {
@@ -622,52 +621,74 @@ export abstract class EliminationTournament extends Game {
 		}
 	}
 
-	updatePlayerHtmlPages(): void {
-		for (const i in this.players) {
-			if (this.players[i].eliminated) continue;
-			this.updatePlayerHtmlPage(this.players[i]);
-		}
-	}
-
 	getPokemonIcons(pokemon: string[]): string[] {
 		return pokemon.map(x => Dex.getPokemonIcon(Dex.getExistingPokemon(x)) + x);
 	}
 
 	getPlayerHtmlPage(player: Player): string {
 		let html = "";
+
 		if (this.tournamentEnded) {
 			if (player === this.getFinalPlayer()) {
 				html += "<h3>Congratulations! You won the final battle of the tournament.</h3><hr />";
-			}
-		} else if (this.started) {
-			html += "<h3>Opponent (round " + (player.round || 1) + ")</h3><div style='margin-left: 15px'>";
-			const opponent = this.playerOpponents.get(player);
-			if (opponent) {
-				html += "Your next opponent is <strong class='username'>" + opponent.name + "</strong> (click their name and then " +
-					"\"Challenge\")! Once the battle starts, send " + Users.self.name + " the link or type <code>/invite " +
-					Users.self.name + "</code> into the battle chat.";
 			} else {
-				html += "Your next opponent has not been decided yet!";
+				html += "<h3>The tournament has ended!</h3><hr />";
 			}
-			html += "</div><hr />";
+		} else {
+			html += "<h3>Rules</h3><ul>";
+			html += "<li>All Pokemon (including formes), moves, abilities, and items not banned in " + this.battleFormat.name + " can " +
+				"be used</li>";
+			if (!this.allowsScouting) html += "<li>Scouting is not allowed</li>";
+			html += "</ul><hr />";
+		}
+
+		if (this.started && !this.tournamentEnded) {
+			if (player.eliminated) {
+				html += "<h3>You were eliminated!</h3><div style='margin-left: 15px'>";
+				if (this.spectatorPlayers.has(player)) {
+					html += "You are currently still receiving updates for this tournament. " +
+						Client.getPmSelfButton(Config.commandCharacter + "stoptournamentupdates", "Stop updates");
+				} else {
+					html += "You will no longer receive updates for this tournament. " +
+						Client.getPmSelfButton(Config.commandCharacter + "resumetournamentupdates", "Resume updates");
+				}
+				html += "</div>";
+			} else {
+				html += "<h3>Opponent (round " + (player.round || 1) + ")</h3><div style='margin-left: 15px'>";
+				const opponent = this.playerOpponents.get(player);
+				if (opponent) {
+					html += "Your next opponent is <strong class='username'>" + opponent.name + "</strong> (click their name and then " +
+						"\"Challenge\")! Once the battle starts, send " + Users.self.name + " the link or type <code>/invite " +
+						Users.self.name + "</code> into the battle chat.";
+				} else {
+					html += "Your next opponent has not been decided yet!";
+				}
+				html += "</div>";
+			}
+			html += "<hr />";
 		}
 
 		html += "<h3>Pokemon</h3><div style='margin-left: 15px'>";
 		const starterPokemon = this.starterPokemon.get(player)!;
 		if (this.cloakedPokemon) {
-			html += "<b>The Pokemon you must protect " + (this.cloakedPokemon.length === 1 ? "is" : "are") + "</b>:";
-			html += "<br />" + this.getPokemonIcons(this.cloakedPokemon).join("<br />");
-			if (this.cloakedPokemon.length < 6) {
+			html += "<b>The Pokemon to protect in battle ";
+			if (this.tournamentEnded) {
+				html += (this.cloakedPokemon.length === 1 ? "was" : "were");
+			} else {
+				html += (this.cloakedPokemon.length === 1 ? "is" : "are");
+			}
+			html += "</b>:<br />" + this.getPokemonIcons(this.cloakedPokemon).join("<br />");
+			if (!this.tournamentEnded && this.cloakedPokemon.length < 6) {
 				html += "<br />You may add any Pokemon to fill your team as long as they are usable in " + this.battleFormat.name + ".";
 			}
 		} else {
 			html += "<b>" + (this.sharedTeams ? "The" : "Your") + " " +
 				(this.additionsPerRound || this.evolutionsPerRound ? "starting " : "") +
-				(this.startingTeamsLength === 1 ? "Pokemon" : "team") + " is</b>:";
+				(this.startingTeamsLength === 1 ? "Pokemon" : "team") + " " + (this.tournamentEnded ? "was" : "is") + "</b>:";
 			html += "<br />" + this.getPokemonIcons(starterPokemon).join("<br />");
 			if (this.canReroll && !this.rerolls.has(player)) {
-				html += "<br />If you are not satisfied, you may use the <code>" + Config.commandCharacter + "reroll</code> " +
-					"command but you must keep your new " + (this.startingTeamsLength === 1 ? "Pokemon" : "team") + ".";
+				html += "<br />If you are not satisfied, you have 1 chance to reroll but you must keep what you receive!" +
+					Client.getPmSelfButton(Config.commandCharacter + "reroll", "Reroll Pokemon");
 			}
 		}
 
@@ -678,39 +699,40 @@ export abstract class EliminationTournament extends Game {
 				const teamChange = teamChanges[i];
 				let roundChanges = '';
 				if (teamChange.additions >= 1) {
-					roundChanges += "<li>You " + (this.requiredAddition ? "<b>must</b>" : "may");
+					roundChanges += "<li>";
 					if (teamChange.choices.length <= teamChange.additions) {
-						roundChanges += " add the following to your team:";
+						roundChanges += (this.tournamentEnded ? "Added" : "Add") + " the following to your team:";
 					} else {
-						roundChanges += " choose " + teamChange.additions + " of the following to add to your team:";
+						roundChanges += (this.tournamentEnded ? "Chose" : "Choose") + " " + teamChange.additions + " of the following " +
+							"to add to your team:";
 					}
 					roundChanges += "<br />" + Tools.joinList(this.getPokemonIcons(teamChange.choices), undefined, undefined, "or") +
 						"</li>";
 				} else if (teamChange.additions <= -1) {
 					const amount = teamChange.additions * -1;
-					roundChanges += "<li>You " + (this.requiredAddition ? "<b>must</b>" : "may") + " remove " + amount + " " +
+					roundChanges += "<li>" + (this.tournamentEnded ? "Removed" : "Remove") + " " + amount + " " +
 						"member" + (amount > 1 ? "s" : "") + " from your team</li>";
 				}
 
 				if (teamChange.evolutions) {
 					const amount = Math.abs(teamChange.evolutions);
-					roundChanges += "<li>You " + (this.requiredEvolution ? "<b>must</b>" : "may") + " choose " + amount + " member" +
-						(amount > 1 ? "s" : "") + " of your " + (teamChange.additions ? "updated " : "") + "team to " +
+					roundChanges += "<li>" + (this.tournamentEnded ? "Chose" : "Choose") + " " + amount + " " +
+						"member" + (amount > 1 ? "s" : "") + " of your " + (teamChange.additions ? "updated " : "") + "team to " +
 						(teamChange.evolutions >= 1 ? "evolve" : "de-volve") + "</li>";
 				}
 
 				if (roundChanges) {
-					rounds.push("Round " + (i + 1) + " -<br /><ul>" + roundChanges + "</ul>");
+					rounds.push("<b>Round " + (i + 1) + " changes</b>:<ul>" + roundChanges + "</ul>");
 				}
 			}
 
 			if (rounds.length) {
 				html += "<br /><br />";
-				if (player.round === 2 && this.firstRoundByes.has(player)) {
+				if (!player.eliminated && !this.tournamentEnded && player.round === 2 && this.firstRoundByes.has(player)) {
 					html += "<b>NOTE</b>: you were given a first round bye so you must follow the team changes below for your first " +
 						"battle!<br /><br />";
 				}
-				html += "<b>Your team changes by round are</b>:<br />" + rounds.join("<br />");
+				html += rounds.join("");
 			}
 		}
 		html += "</div><hr />";
@@ -723,6 +745,13 @@ export abstract class EliminationTournament extends Game {
 
 	updatePlayerHtmlPage(player: Player): void {
 		player.sendHtmlPage(this.getPlayerHtmlPage(player));
+	}
+
+	updatePlayerHtmlPages(): void {
+		for (const i in this.players) {
+			if (this.players[i].eliminated && !this.spectatorPlayers.has(this.players[i])) continue;
+			this.updatePlayerHtmlPage(this.players[i]);
+		}
 	}
 
 	setCheckChallengesListeners(player: Player, opponent: Player): void {
@@ -798,7 +827,7 @@ export abstract class EliminationTournament extends Game {
 	}
 
 	postSignups(): void {
-		this.sayUhtml(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
+		this.sayUhtmlAuto(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
 	}
 
 	onSignups(): void {
@@ -880,7 +909,6 @@ export abstract class EliminationTournament extends Game {
 		}
 
 		this.pokedex = this.shuffle(pokedex);
-		this.baseHtmlPageTitle = this.format.id;
 		this.htmlPageHeader = "<h2>" + this.room.title + "'s " + this.tournamentName + "</h2>";
 
 		if (this.usesCloakedPokemon) {
@@ -921,8 +949,12 @@ export abstract class EliminationTournament extends Game {
 	endAdvertisements(): void {
 		if (this.advertisementInterval) clearInterval(this.advertisementInterval);
 		if (this.playerCount < this.minPlayers) {
-			this.sayUhtml(this.uhtmlBaseName + '-signups', "<b>The " + this.name + " tournament is cancelled due to a lack of players" +
+			this.sayUhtmlAuto(this.uhtmlBaseName + '-signups', "<b>The " + this.name + " tournament is cancelled due to a lack of players" +
 				"</b>");
+			for (const i in this.players) {
+				if (this.players[i].eliminated) continue;
+				this.players[i].sendHtmlPage("<h3>The tournament was cancelled due to a lack of players!</h3>");
+			}
 			this.deallocate(true);
 			return;
 		}
@@ -931,7 +963,6 @@ export abstract class EliminationTournament extends Game {
 
 	onStart(): void {
 		if (this.advertisementInterval) clearInterval(this.advertisementInterval);
-		const couldReroll = this.canReroll;
 		this.canReroll = false;
 		this.canRejoin = false; // disable rejoins to prevent remainingPlayers from being wrong
 
@@ -993,15 +1024,9 @@ export abstract class EliminationTournament extends Game {
 
 		player.round = 1;
 		this.tournamentPlayers.add(player);
-		let html = "Thanks for joining the " + this.name + " tournament!";
-		if (this.tournamentRules) {
-			html += " Make sure you are familiar with the rules:<br /><br /><details><summary>Rules (click to toggle)</summary><br />" +
-				this.tournamentRules.join("<br />") + "</details>";
-		}
-		html += "<br /><br />If you would like to leave the tournament at any time, you may use the command <code>" +
-			Config.commandCharacter + "leavegame " + this.room.title + "</code> command.";
 
-		player.sayHtml(html);
+		player.say("Thanks for joining the " + this.name + " tournament! If you would like to leave the tournament at any time, you may " +
+			"use the command ``" + Config.commandCharacter + "leavegame " + this.room.title + "``.");
 
 		if (!this.started && !this.signupsHtmlTimeout) {
 			this.sayUhtmlChange(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
@@ -1414,6 +1439,26 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 		pmOnly: true,
 		signupsGameCommand: true,
 	},
+	resumetournamentupdates: {
+		command(target, room, user) {
+			if (!this.players[user.id].eliminated || this.spectatorPlayers.has(this.players[user.id])) return false;
+			this.spectatorPlayers.add(this.players[user.id]);
+			this.updatePlayerHtmlPage(this.players[user.id]);
+			return true;
+		},
+		pmOnly: true,
+		eliminatedGameCommand: true,
+	},
+	stoptournamentupdates: {
+		command(target, room, user) {
+			if (!this.players[user.id].eliminated || !this.spectatorPlayers.has(this.players[user.id])) return false;
+			this.spectatorPlayers.delete(this.players[user.id]);
+			this.updatePlayerHtmlPage(this.players[user.id]);
+			return true;
+		},
+		pmOnly: true,
+		eliminatedGameCommand: true,
+	}
 	/* eslint-enable */
 };
 

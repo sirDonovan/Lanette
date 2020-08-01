@@ -12,11 +12,6 @@ class CatchAndDevolve extends EliminationTournament {
 	requiredEvolution = true;
 	baseTournamentName = name;
 	tournamentDescription = description;
-	tournamentRules = [
-		"- All moves, abilities, and items are allowed",
-		"- Mega evolutions and regional formes are allowed",
-		"- Scouting is NOT allowed",
-	];
 }
 
 export const game: IGameFile<CatchAndDevolve> = Games.copyTemplateProperties(eliminationTournamentGame, {

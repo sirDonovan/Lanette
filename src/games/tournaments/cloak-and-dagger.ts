@@ -15,11 +15,6 @@ class CloakAndDagger extends EliminationTournament {
 	canRejoin = true;
 	firstRoundExtraTime = 5 * 60 * 1000;
 	requiredTier = "OU";
-	tournamentRules = [
-		"- All moves, abilities, and items are allowed",
-		"- Mega evolutions and regional formes are allowed",
-		"- Scouting is NOT allowed",
-	];
 	usesCloakedPokemon = true;
 
 	getStartingTeam(): IPokemon[] {

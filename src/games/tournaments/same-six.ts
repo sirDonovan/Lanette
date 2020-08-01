@@ -15,11 +15,6 @@ class SameSix extends EliminationTournament {
 	sharedTeams = true;
 	canRejoin = true;
 	firstRoundExtraTime = 10 * 60 * 1000;
-	tournamentRules = [
-		"- All moves, abilities, and items are allowed",
-		"- Mega evolutions and regional formes are allowed",
-		"- Scouting is NOT allowed",
-	];
 
 	getStartingTeam(): IPokemon[] {
 		return this.pokedex.slice(0, this.startingTeamsLength);

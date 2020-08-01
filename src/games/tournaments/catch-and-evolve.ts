@@ -13,11 +13,6 @@ class CatchAndEvolve extends EliminationTournament {
 	tournamentDescription = description;
 	banlist = ['Burmy', 'Caterpie', 'Combee', 'Kricketot', 'Magikarp', 'Scatterbug', 'Sunkern', 'Tynamo', 'Type: Null', 'Weedle',
 		'Wurmple', 'Cosmog', 'Blipbug', 'Snom'];
-	tournamentRules = [
-		"- All moves, abilities, and items are allowed",
-		"- Mega evolutions and regional formes are allowed",
-		"- Scouting is NOT allowed",
-	];
 }
 
 export const game: IGameFile<CatchAndEvolve> = Games.copyTemplateProperties(eliminationTournamentGame, {
