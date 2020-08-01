@@ -940,7 +940,8 @@ export abstract class EliminationTournament extends Game {
 
 		const matchesByDepth = this.getMatchesByDepth();
 		const depths = Object.keys(matchesByDepth).reverse();
-		for (const depth of depths) {
+		for (let i = 1; i < depths.length; i++) {
+			const depth = depths[i]
 			for (const match of matchesByDepth[depth]) {
 				const byes: Player[] = [];
 				for (const child of match.children!) {
