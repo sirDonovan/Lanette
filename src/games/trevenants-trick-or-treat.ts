@@ -18,7 +18,6 @@ class TrevenantsTrickOrTreat extends Game {
 	lastMoves = new Map<Player, string[]>();
 	points = new Map<Player, number>();
 	pokemonGrid: string[][] = [];
-	timeout: NodeJS.Timer | null = null;
 
 	pokemonList: string[];
 

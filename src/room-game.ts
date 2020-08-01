@@ -275,11 +275,13 @@ export class Game extends Activity {
 	}
 
 	deallocate(forceEnd: boolean): void {
+		this.cleanupMessageListeners();
+		if (this.cleanupTimers) this.cleanupTimers();
 		if (this.timeout) clearTimeout(this.timeout);
 		if (this.startTimer) clearTimeout(this.startTimer);
+
 		if ((!this.started || this.format.options.freejoin) && this.notifyRankSignups) this.sayCommand("/notifyoffrank all");
 		if (!this.ended) this.ended = true;
-		this.cleanupMessageListeners();
 		if (this.onDeallocate) this.onDeallocate(forceEnd);
 		if (!this.isUserHosted && this.room.game === this) delete this.room.game;
 
@@ -927,6 +929,7 @@ export class Game extends Activity {
 
 	acceptChallenge?(user: User): boolean;
 	cancelChallenge?(user: User): boolean;
+	cleanupTimers?(): void;
 	getForceEndMessage?(): string;
 	getPlayerSummary?(player: Player): void;
 	async getRandomAnswer?(): Promise<IRandomGameAnswer>;

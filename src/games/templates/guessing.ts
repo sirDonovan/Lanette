@@ -42,8 +42,11 @@ export abstract class Guessing extends Game {
 		}
 	}
 
-	onForceEnd(): void {
-		if (this.answerTimeout) clearTimeout(this.answerTimeout);
+	cleanupTimers(): void {
+		if (this.answerTimeout) {
+			clearTimeout(this.answerTimeout);
+			delete this.answerTimeout;
+		}
 	}
 
 	onSignups(): void {
@@ -150,10 +153,8 @@ export abstract class Guessing extends Game {
 			this.roundGuesses.set(player, true);
 		}
 
-		if (!this.answers.length) return false;
-
 		let answer = await this.checkAnswer(guess);
-		if (this.ended) return false;
+		if (this.ended || !this.answers.length) return false;
 
 		if (!answer) {
 			if (!this.onIncorrectGuess) return false;
@@ -161,7 +162,11 @@ export abstract class Guessing extends Game {
 			if (!answer) return false;
 		}
 
-		if (this.answerTimeout) clearTimeout(this.answerTimeout);
+		if (this.answerTimeout) {
+			clearTimeout(this.answerTimeout);
+			delete this.answerTimeout;
+		}
+
 		this.offUhtml(this.hintUhtmlName, this.lastHintHtml);
 
 		return answer;
@@ -324,6 +329,56 @@ const tests: GameFileTests<Guessing> = {
 			if (game.hint !== previousHint) {
 				assert(game.updateHintTime);
 				if (game.roundTime) assert(game.updateHintTime < game.roundTime);
+			}
+		},
+	},
+	'it should clear the answer timeout after guessing correctly': {
+		config: {
+			async: true,
+		},
+		async test(game, format): Promise<void> {
+			this.timeout(15000);
+
+			if (game.roundTime) {
+				const name = getBasePlayerName() + " 1";
+				const id = Tools.toId(name);
+				await game.onNextRound();
+				game.answerTimeout = setTimeout(() => game.onAnswerTimeLimit(), game.roundTime);
+				game.canGuess = true;
+				await runCommand('guess', game.answers[0], game.room, name);
+				assert(id in game.players);
+				assert(game.points.has(game.players[id]));
+				assert(!game.answerTimeout);
+			}
+		},
+	},
+	'it should clear the answer timeout when the game ends': {
+		config: {
+			async: true,
+		},
+		async test(game, format): Promise<void> {
+			this.timeout(15000);
+
+			if (game.roundTime) {
+				await game.onNextRound();
+				game.answerTimeout = setTimeout(() => game.onAnswerTimeLimit(), game.roundTime);
+				game.end();
+				assert(!game.answerTimeout);
+			}
+		},
+	},
+	'it should clear the answer timeout when the game is force-ended': {
+		config: {
+			async: true,
+		},
+		async test(game, format): Promise<void> {
+			this.timeout(15000);
+
+			if (game.roundTime) {
+				await game.onNextRound();
+				game.answerTimeout = setTimeout(() => game.onAnswerTimeLimit(), game.roundTime);
+				game.forceEnd(Users.self);
+				assert(!game.answerTimeout);
 			}
 		},
 	},

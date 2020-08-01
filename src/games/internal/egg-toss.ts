@@ -12,7 +12,6 @@ class EggToss extends Game {
 	currentHolder: Player | null = null;
 	internalGame: boolean = true;
 	lastHolder: Player | null = null;
-	tossTimeout: NodeJS.Timer | null = null;
 
 	// hack for selectUser()
 	room!: Room;
@@ -22,7 +21,6 @@ class EggToss extends Game {
 	}
 
 	explodeEgg(): void {
-		if (this.tossTimeout) clearTimeout(this.tossTimeout);
 		if (this.currentHolder) {
 			this.say("**BOOOOM**! The egg exploded on **" + this.currentHolder.name + "**!");
 			if (this.lastHolder && this.currentHolder.id === Users.self.id) {

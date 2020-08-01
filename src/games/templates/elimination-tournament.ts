@@ -1307,11 +1307,15 @@ export abstract class EliminationTournament extends Game {
 		if (players) this.disqualifyPlayers(players);
 	}
 
-	onEnd(): void {
+	cleanupTimers(): void {
+		if (this.advertisementInterval) clearInterval(this.advertisementInterval);
+
 		this.activityTimers.forEach((timeout, match) => {
 			clearTimeout(timeout);
 		});
+	}
 
+	onEnd(): void {
 		this.tournamentEnded = true;
 		this.bracketHtml = this.getBracketHtml();
 		this.updatePlayerHtmlPages();
@@ -1325,11 +1329,6 @@ export abstract class EliminationTournament extends Game {
 	}
 
 	onForceEnd(): void {
-		if (this.advertisementInterval) clearInterval(this.advertisementInterval);
-		this.activityTimers.forEach((timeout, match) => {
-			clearTimeout(timeout);
-		});
-
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			this.players[i].sendHtmlPage("<h3>The tournament was forcibly ended!</h3>");

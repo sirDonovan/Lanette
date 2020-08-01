@@ -14,7 +14,6 @@ class SerperiorLengthyChains extends Game {
 	bestPlayer: Player | null = null;
 	category: string = '';
 	points = new Map<Player, number>();
-	timeout: NodeJS.Timer | null = null;
 
 	static loadData(room: Room | User): void {
 		const pokemonList = Games.getPokemonList();

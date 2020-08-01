@@ -162,7 +162,6 @@ class HauntersHauntedHouse extends Game {
 	playerRemainingTurnMoves = new Map<Player, number>();
 	remainingGhostMoves: number = 0;
 	turnsWithoutHaunting: number = 0;
-	timeout: NodeJS.Timer | null = null;
 
 	onSignups(): void {
 		const tiles = this.setupBoardTiles();
