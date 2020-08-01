@@ -127,9 +127,12 @@ export abstract class EliminationTournament extends Game {
 	defaultTier: string = 'ou';
 	disqualifiedPlayers = new Set<Player>();
 	evolutionsPerRound: number = 0;
+	firstRoundByes = new Set<Player>();
 	firstRoundExtraTime: number = 0;
+	firstRoundTime: number = 0;
 	fullyEvolved: boolean = false;
 	gen: number | null = null;
+	givenFirstRoundExtraTime = new Set<Player>();
 	internalGame = true;
 	maxPlayers: number = 32;
 	minPlayers: number = 4;
@@ -143,7 +146,6 @@ export abstract class EliminationTournament extends Game {
 	requiredTier: string | null = null;
 	requiredPokemon: string[] | null = null;
 	sharedTeams: boolean = false;
-	startedFirstBattle = new Set<Player>();
 	starterPokemon = new Map<Player, string[]>();
 	startingTeamsLength: number = 6;
 	teamChanges = new Map<Player, ITeamChange[]>();
@@ -171,6 +173,8 @@ export abstract class EliminationTournament extends Game {
 			formatName = this.variant;
 		}
 		this.battleFormat = Dex.getExistingFormat(formatName);
+
+		this.firstRoundTime = this.activityWarnTimeout + this.activityDQTimeout + this.firstRoundExtraTime;
 	}
 
 	getMaxPlayers(pokemon: number): number {
@@ -284,12 +288,7 @@ export abstract class EliminationTournament extends Game {
 		const nodeMarginTop = 20;
 
 		let html = "<div class='infobox'>";
-		if (this.ended) {
-			html += "Final bracket:";
-		} else {
-			html += "Bracket:";
-		}
-		html += "<br /><br /><div style='overflow: auto;width: " + ((totalNodeWidth * depths.length) +
+		html += "<div style='overflow: auto;width: " + ((totalNodeWidth * depths.length) +
 			(nodeMarginLeft * (depths.length - 1))) + "px;'>";
 
 		let firstMarginTop = 0;
@@ -585,15 +584,12 @@ export abstract class EliminationTournament extends Game {
 			player.say(newOpponentPM);
 			opponent.say(newOpponentPM);
 
-			const playerFirstBattle = !this.startedFirstBattle.has(player);
-			this.startedFirstBattle.add(player);
-			const opponentFirstBattle = !this.startedFirstBattle.has(opponent);
-			this.startedFirstBattle.add(opponent);
-
 			let activityWarning = this.activityWarnTimeout;
-			if (playerFirstBattle && opponentFirstBattle) {
+			if (!this.givenFirstRoundExtraTime.has(player) && !this.givenFirstRoundExtraTime.has(opponent)) {
 				if (this.firstRoundExtraTime) activityWarning += this.firstRoundExtraTime;
 			}
+			this.givenFirstRoundExtraTime.add(player);
+			this.givenFirstRoundExtraTime.add(opponent);
 
 			const timeout = setTimeout(() => {
 				const reminderPM = "You still need to battle your new opponent for the " + this.name + " tournament in " +
@@ -641,21 +637,22 @@ export abstract class EliminationTournament extends Game {
 		let html = "";
 		if (this.tournamentEnded) {
 			if (player === this.getFinalPlayer()) {
-				html += "<b>Congratulations! You won the final battle of the tournament</b>.<hr /><br />";
+				html += "<h3>Congratulations! You won the final battle of the tournament.</h3><hr />";
 			}
 		} else if (this.started) {
-			html += "<b>Round " + (player.round || 1) + "</b>:<br />";
+			html += "<h3>Opponent (round " + (player.round || 1) + ")</h3><div style='margin-left: 15px'>";
 			const opponent = this.playerOpponents.get(player);
 			if (opponent) {
-				html += "You may now battle <strong class='username'>" + opponent.name + "</strong>! Please challenge in " +
-					this.battleFormat.name + " and send " + Users.self.name + " the link to the battle or use <code>/invite " +
-					Users.self.name + "</code> in the battle chat.";
+				html += "Your next opponent is <strong class='username'>" + opponent.name + "</strong> (click their name and then " +
+					"\"Challenge\")! Once the battle starts, send " + Users.self.name + " the link or type <code>/invite " +
+					Users.self.name + "</code> into the battle chat.";
 			} else {
 				html += "Your next opponent has not been decided yet!";
 			}
-			html += "<hr /><br />";
+			html += "</div><hr />";
 		}
 
+		html += "<h3>Pokemon</h3><div style='margin-left: 15px'>";
 		const starterPokemon = this.starterPokemon.get(player)!;
 		if (this.cloakedPokemon) {
 			html += "<b>The Pokemon you must protect " + (this.cloakedPokemon.length === 1 ? "is" : "are") + "</b>:";
@@ -681,7 +678,7 @@ export abstract class EliminationTournament extends Game {
 				const teamChange = teamChanges[i];
 				let roundChanges = '';
 				if (teamChange.additions >= 1) {
-					roundChanges += "<li>You " + (this.requiredAddition ? "must" : "may");
+					roundChanges += "<li>You " + (this.requiredAddition ? "<b>must</b>" : "may");
 					if (teamChange.choices.length <= teamChange.additions) {
 						roundChanges += " add the following to your team:";
 					} else {
@@ -691,28 +688,36 @@ export abstract class EliminationTournament extends Game {
 						"</li>";
 				} else if (teamChange.additions <= -1) {
 					const amount = teamChange.additions * -1;
-					roundChanges += "<li>You " + (this.requiredAddition ? "must" : "may") + " remove " + amount + " " +
+					roundChanges += "<li>You " + (this.requiredAddition ? "<b>must</b>" : "may") + " remove " + amount + " " +
 						"member" + (amount > 1 ? "s" : "") + " from your team</li>";
 				}
 
 				if (teamChange.evolutions) {
 					const amount = Math.abs(teamChange.evolutions);
-					roundChanges += "<li>You " + (this.requiredEvolution ? "must" : "may") + " choose " + amount + " member" +
+					roundChanges += "<li>You " + (this.requiredEvolution ? "<b>must</b>" : "may") + " choose " + amount + " member" +
 						(amount > 1 ? "s" : "") + " of your " + (teamChange.additions ? "updated " : "") + "team to " +
 						(teamChange.evolutions >= 1 ? "evolve" : "de-volve") + "</li>";
 				}
 
 				if (roundChanges) {
-					rounds.push("Round " + (i + 1) + "<br /><ul>" + roundChanges + "</ul>");
+					rounds.push("Round " + (i + 1) + " -<br /><ul>" + roundChanges + "</ul>");
 				}
 			}
 
 			if (rounds.length) {
-				html += "<br /><br /><b>Your team changes by round are</b>:<br />" + rounds.join("<br /><br />");
+				html += "<br /><br />";
+				if (player.round === 2 && this.firstRoundByes.has(player)) {
+					html += "<b>NOTE</b>: you were given a first round bye so you must follow the team changes below for your first " +
+						"battle!<br /><br />";
+				}
+				html += "<b>Your team changes by round are</b>:<br />" + rounds.join("<br />");
 			}
 		}
+		html += "</div><hr />";
 
-		html += "<hr /><br />" + (this.bracketHtml || "<b>Bracket</b>:<br /><br />(TBD)");
+		html += "<h3>" + (this.tournamentEnded ? "Final bracket" : "Bracket") + "</h3><div style='margin-left: 15px'>" +
+			(this.bracketHtml || "(TBD)") + "</div>";
+
 		return html;
 	}
 
@@ -875,7 +880,8 @@ export abstract class EliminationTournament extends Game {
 		}
 
 		this.pokedex = this.shuffle(pokedex);
-		this.htmlPageHeader = "<h3>" + Users.self.name + "'s " + this.tournamentName + "</h3>";
+		this.baseHtmlPageTitle = this.format.id;
+		this.htmlPageHeader = "<h2>" + this.room.title + "'s " + this.tournamentName + "</h2>";
 
 		if (this.usesCloakedPokemon) {
 			this.cloakedPokemon = this.pokedex.slice(0, this.startingTeamsLength).map(x => x.name);
@@ -930,10 +936,12 @@ export abstract class EliminationTournament extends Game {
 		this.canRejoin = false; // disable rejoins to prevent remainingPlayers from being wrong
 
 		this.sayUhtmlChange(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
-		let html = Users.self.name + "'s " + this.name + " tournament has started! Please check your PMs for your first opponents. " +
-			"Battles must be played in <b>" + this.battleFormat.name + "</b>.";
-		html += "<br /><br /><b>You must PM " + Users.self.name + " the link to each battle</b>! If you cannot copy the link, you can " +
-			"use <code>/invite " + Users.self.name + "</code> in the battle chat.";
+
+		let html = Users.self.name + "'s " + this.name + " tournament has started! You have " +
+			Tools.toDurationString(this.firstRoundTime) + " to build your team and start the first battle. Please refer to the " +
+			"tournament page on the left for your opponents.";
+		html += "<br /><br /><b>Remember that you must PM " + Users.self.name + " the link to each battle</b>! If you cannot copy the " +
+			"link, type <code>/invite " + Users.self.name + "</code> into the battle chat.";
 		this.sayHtml(html);
 
 		this.generateBracket();
@@ -941,39 +949,38 @@ export abstract class EliminationTournament extends Game {
 		const matchesByDepth = this.getMatchesByDepth();
 		const depths = Object.keys(matchesByDepth).reverse();
 		for (let i = 1; i < depths.length; i++) {
-			const depth = depths[i]
+			const depth = depths[i];
 			for (const match of matchesByDepth[depth]) {
-				const byes: Player[] = [];
 				for (const child of match.children!) {
-					if (child.user) byes.push(child.user);
-				}
-
-				for (const bye of byes) {
-					bye.round!++;
-					if (this.additionsPerRound) {
-						const pokemon: IPokemon[] = [];
-						const additions = Math.abs(this.additionsPerRound);
-						for (let i = 0; i < additions; i++) {
-							const mon = this.pokedex.shift();
-							if (!mon) throw new Error("Not enough Pokemon for byes (" + bye.name + ")");
-							pokemon.push(mon);
-						}
-
-						const teamChange: ITeamChange = {
-							additions: this.additionsPerRound,
-							choices: pokemon.map(x => x.name),
-							evolutions: this.evolutionsPerRound,
-						};
-						this.teamChanges.set(bye, (this.teamChanges.get(bye) || []).concat(teamChange));
-
-						let possibleTeams = this.possibleTeams.get(bye)!;
-						possibleTeams = Dex.getPossibleTeams(possibleTeams, pokemon, this.additionsPerRound, this.evolutionsPerRound,
-							this.requiredAddition, this.requiredEvolution);
-						this.possibleTeams.set(bye, possibleTeams);
-					}
+					if (child.user) this.firstRoundByes.add(child.user);
 				}
 			}
 		}
+
+		this.firstRoundByes.forEach(player => {
+			player.round!++;
+			if (this.additionsPerRound) {
+				const pokemon: IPokemon[] = [];
+				const additions = Math.abs(this.additionsPerRound);
+				for (let i = 0; i < additions; i++) {
+					const mon = this.pokedex.shift();
+					if (!mon) throw new Error("Not enough Pokemon for first round bye (" + player.name + ")");
+					pokemon.push(mon);
+				}
+
+				const teamChange: ITeamChange = {
+					additions: this.additionsPerRound,
+					choices: pokemon.map(x => x.name),
+					evolutions: this.evolutionsPerRound,
+				};
+				this.teamChanges.set(player, (this.teamChanges.get(player) || []).concat(teamChange));
+
+				let possibleTeams = this.possibleTeams.get(player)!;
+				possibleTeams = Dex.getPossibleTeams(possibleTeams, pokemon, this.additionsPerRound, this.evolutionsPerRound,
+					this.requiredAddition, this.requiredEvolution);
+				this.possibleTeams.set(player, possibleTeams);
+			}
+		});
 
 		this.updateMatches();
 	}

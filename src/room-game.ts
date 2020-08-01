@@ -250,7 +250,7 @@ export class Game extends Activity {
 
 		let htmlPageHeader = "";
 		if (this.mascot) htmlPageHeader += Dex.getPokemonGif(this.mascot, undefined, undefined, this.shinyMascot);
-		htmlPageHeader += "<h3>" + (this.format.nameWithOptions || this.format.name) + "</h3>";
+		htmlPageHeader += "<h2>" + (this.format.nameWithOptions || this.format.name) + "</h2>";
 		this.htmlPageHeader = htmlPageHeader;
 	}
 
