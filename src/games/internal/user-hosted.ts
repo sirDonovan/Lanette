@@ -76,7 +76,8 @@ export class UserHosted extends Game {
 		if (this.gameTimer) clearTimeout(this.gameTimer);
 		if (this.hostTimeout) clearTimeout(this.hostTimeout);
 		if (this.room.serverHangman) this.sayCommand("/hangman end");
-		delete this.room.userHostedGame;
+
+		if (this.room.userHostedGame === this) delete this.room.userHostedGame;
 	}
 
 	onAfterDeallocate(forceEnd?: boolean): void {

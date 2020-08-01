@@ -281,7 +281,7 @@ export class Game extends Activity {
 		if (!this.ended) this.ended = true;
 		this.cleanupMessageListeners();
 		if (this.onDeallocate) this.onDeallocate(forceEnd);
-		if (!this.isUserHosted) delete this.room.game;
+		if (!this.isUserHosted && this.room.game === this) delete this.room.game;
 
 		if (this.parentGame) {
 			this.parentGame.room.game = this.parentGame;
