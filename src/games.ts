@@ -23,6 +23,7 @@ const DEFAULT_CATEGORY_COOLDOWN = 3;
 const gamesDirectory = path.join(__dirname, 'games');
 const internalGamePaths: IInternalGames = {
 	eggtoss: path.join(gamesDirectory, "internal", "egg-toss.js"),
+	headtohead: path.join(gamesDirectory, "internal", "head-to-head.js"),
 	onevsone: path.join(gamesDirectory, "internal", "one-vs-one.js"),
 	vote: path.join(gamesDirectory, "internal", "vote.js"),
 };

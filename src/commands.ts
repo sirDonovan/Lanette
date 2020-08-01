@@ -638,6 +638,59 @@ const commands: CommandDefinitions<CommandContext> = {
 		},
 		aliases: ['cancelonevonechallenge', 'cancel1vs1challenge', 'cancel1v1challenge', 'cancel1vs1c', 'cancel1v1c', 'c1vs1c', 'c1v1c'],
 	},
+	headtoheadgame: {
+		command: function(target, room, user) {
+			if (this.isPm(room) || !user.hasRank(room, 'driver')) return;
+			if (!Config.allowOneVsOneGames || !Config.allowOneVsOneGames.includes(room.id)) {
+				this.say("Head to head games are not allowed in " + room.title + ".");
+				return;
+			}
+			if (room.game) {
+				this.say("You must wait until the game of " + room.game.name + " ends.");
+				return;
+			}
+			if (Games.reloadInProgress) {
+				this.say(CommandParser.getErrorText(['reloadInProgress']));
+				return;
+			}
+
+			const headToHeadFormat = Games.getInternalFormat("headtohead");
+			if (Array.isArray(headToHeadFormat)) {
+				this.say(CommandParser.getErrorText(headToHeadFormat));
+				return;
+			}
+
+			const targets = target.split(",");
+			const leftUser = Users.get(targets[0]);
+			const rightUser = Users.get(targets[1]);
+			if (!leftUser || !rightUser || !leftUser.rooms.has(room) || !rightUser.rooms.has(room) || leftUser === Users.self ||
+				rightUser === Users.self || leftUser.isBot(room) || rightUser.isBot(room)) {
+				this.say(CommandParser.getErrorText(["invalidUserInRoom"]));
+				return;
+			}
+			if (leftUser === rightUser) {
+				this.say("You must specify 2 different users.");
+				return;
+			}
+
+			const challengeFormat = Games.getFormat(targets.slice(2).join(","), true);
+			if (Array.isArray(challengeFormat)) {
+				this.say(CommandParser.getErrorText(challengeFormat));
+				return;
+			}
+
+			if (challengeFormat.noOneVsOne) {
+				this.say(challengeFormat.name + " does not allow head to head games.");
+				return;
+			}
+
+			delete challengeFormat.mode;
+			const game = Games.createGame(room, headToHeadFormat) as OneVsOne;
+			if (!game || !game.setupChallenge) return;
+			game.setupChallenge(leftUser, rightUser, challengeFormat);
+		},
+		aliases: ['hthgame', 'hthg'],
+	},
 	createtournamentgame: {
 		command(target, room, user) {
 			if (this.isPm(room)) return;

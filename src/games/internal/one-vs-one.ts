@@ -145,7 +145,7 @@ export class OneVsOne extends Game {
 			this.say("No one wins!");
 		}
 
-		this.timeout = setTimeout(() => this.end(), 5000);
+		this.end();
 	}
 
 	resetModchatAndRanks(): void {

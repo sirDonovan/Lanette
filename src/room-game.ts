@@ -122,20 +122,17 @@ export class Game extends Activity {
 
 		const customizedOptions: Dict<number> = {};
 		for (const i in format.inputOptions) {
-			if (!(i in format.customizableOptions)) {
-				delete format.inputOptions[i];
-				continue;
-			}
-			if (format.inputOptions[i] === format.customizableOptions[i].base) continue;
+			if (!(i in format.customizableOptions) || format.inputOptions[i] === format.customizableOptions[i].base) continue;
 
-			if (format.inputOptions[i] < format.customizableOptions[i].min) {
-				format.inputOptions[i] = format.customizableOptions[i].min;
-			} else if (format.inputOptions[i] > format.customizableOptions[i].max) {
-				format.inputOptions[i] = format.customizableOptions[i].max;
+			let optionValue = format.inputOptions[i];
+			if (optionValue < format.customizableOptions[i].min) {
+				optionValue = format.customizableOptions[i].min;
+			} else if (optionValue > format.customizableOptions[i].max) {
+				optionValue = format.customizableOptions[i].max;
 			}
 
-			options[i] = format.inputOptions[i];
-			customizedOptions[i] = format.inputOptions[i];
+			options[i] = optionValue;
+			customizedOptions[i] = optionValue;
 		}
 
 		if (customizedOptions.points) nameSuffixes.push(" (first to " + customizedOptions.points + ")");

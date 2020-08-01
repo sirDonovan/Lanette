@@ -50,6 +50,7 @@ export interface IGameAchievement {
 
 export interface IInternalGames {
 	eggtoss: string;
+	headtohead: string;
 	onevsone: string;
 	vote: string;
 }
