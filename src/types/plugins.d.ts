@@ -18,7 +18,6 @@ export interface IParseMessagePlugin {
 }
 
 export interface IPluginFile {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	commands?: CommandDefinitions<CommandContext>;
 	Module?: IPluginConstructor;
 }

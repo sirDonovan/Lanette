@@ -327,7 +327,6 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Game
 		return player;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	getPlayerCards(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => {
 			const cards = this.playerCards.get(player);

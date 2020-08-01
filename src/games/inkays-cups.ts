@@ -144,8 +144,7 @@ class InkaysCups extends Game {
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
 			if (this.timeout) clearTimeout(this.timeout);
-			// eslint-disable-next-line @typescript-eslint/no-misused-promises, @typescript-eslint/promise-function-async
-			this.timeout = setTimeout(() => this.generateCups(), 5000);
+			this.timeout = setTimeout(() => void this.generateCups(), 5000);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}

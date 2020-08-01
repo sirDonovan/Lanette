@@ -32,7 +32,7 @@ const reloadCommands = function(reloadedModules: ReloadableModule[]): void {
 	if (!reloadedModules.includes('games')) Games.loadFormatCommands();
 };
 
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 const commands: CommandDefinitions<CommandContext> = {
 	/**
@@ -4009,4 +4009,4 @@ const commands: CommandDefinitions<CommandContext> = {
 
 export = commands;
 
-/* eslint-enable @typescript-eslint/explicit-function-return-type,@typescript-eslint/no-unused-vars*/
+/* eslint-enable */

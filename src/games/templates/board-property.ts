@@ -183,7 +183,6 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 	/* eslint-enable */
 ];
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends BoardGame {
 	abstract acquirePropertyAction: string;
 	abstract acquirePropertyActionPast: string;

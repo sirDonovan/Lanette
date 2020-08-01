@@ -47,7 +47,6 @@ const categoryNames: KeyedDict<GameCategory, string> = {
 
 const sharedCommandDefinitions: GameCommandDefinitions = {
 	summary: {
-		// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 		command(target, room, user) {
 			if (!(user.id in this.players)) return false;
 			if (!this.started) {
@@ -67,7 +66,6 @@ const sharedCommandDefinitions: GameCommandDefinitions = {
 		pmOnly: true,
 	},
 	repost: {
-		// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 		command(target, room, user) {
 			if (!user.hasRank(this.room as Room, 'voice')) return false;
 			if (this.repostInformation) this.repostInformation();
@@ -380,15 +378,13 @@ export class Games {
 
 			const idsToAlias: string[] = [format.id];
 			if (format.formerNames) {
-				// eslint-disable-next-line @typescript-eslint/prefer-for-of
-				for (let i = 0; i < format.formerNames.length; i++) {
-					const name = format.formerNames[i];
-					const id = Tools.toId(name);
+				for (const formerName of format.formerNames) {
+					const id = Tools.toId(formerName);
 					if (id in this.formats || id in this.tournamentFormats) {
-						throw new Error(format.name + "'s former name '" + name + "' is already used by another game.");
+						throw new Error(format.name + "'s former name '" + formerName + "' is already used by another game.");
 					}
 					if (id in aliases) {
-						throw new Error(format.name + "'s former name '" + name + "' is already an alias for " + aliases[id] + ".");
+						throw new Error(format.name + "'s former name '" + formerName + "' is already an alias for " + aliases[id] + ".");
 					}
 					aliases[id] = format.name;
 					idsToAlias.push(id);
@@ -396,9 +392,7 @@ export class Games {
 			}
 
 			if (format.aliases) {
-				// eslint-disable-next-line @typescript-eslint/prefer-for-of
-				for (let i = 0; i < format.aliases.length; i++) {
-					const alias = format.aliases[i];
+				for (const alias of format.aliases) {
 					const aliasId = Tools.toId(alias);
 					if (aliasId in aliases) {
 						throw new Error(format.name + "'s alias '" + alias + "' is already an alias for " + aliases[aliasId] + ".");
@@ -426,9 +420,7 @@ export class Games {
 			}
 
 			if (format.variants) {
-				// eslint-disable-next-line @typescript-eslint/prefer-for-of
-				for (let i = 0; i < format.variants.length; i++) {
-					const variant = format.variants[i];
+				for (const variant of format.variants) {
 					const id = Tools.toId(variant.name);
 					if (id in aliases) {
 						throw new Error(format.name + "'s variant '" + variant.name + "' is already an alias for " + aliases[id] + ".");
@@ -482,7 +474,6 @@ export class Games {
 	loadFormatCommands(): void {
 		for (const i in this.commands) {
 			Commands[i] = {
-				// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 				async asyncCommand(target, room, user, command) {
 					let returnedResult: boolean = false;
 					if (this.isPm(room)) {
@@ -515,7 +506,6 @@ export class Games {
 			if (name in BaseCommands) throw new Error(formatName + " minigame command '" + name + "' is already a command.");
 
 			Commands[name] = {
-				// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 				command(target, room, user) {
 					let pmRoom: Room | undefined;
 					if (this.isPm(room)) {
