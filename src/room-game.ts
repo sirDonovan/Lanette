@@ -657,11 +657,10 @@ export class Game extends Activity {
 		}
 
 		const commandDefinition = this.commands[command];
-		if (!(commandDefinition.staffGameCommand && !this.isPm(this.room) && user.hasRank(this.room, 'driver'))) {
-			if (!canUseCommands && !(user.id in this.players && this.players[user.id].eliminated &&
-				commandDefinition.eliminatedGameCommand)) {
-				return false;
-			}
+		if (!canUseCommands && !(!(user.id in this.players) && commandDefinition.spectatorGameCommand) &&
+			!(user.id in this.players && this.players[user.id].eliminated && commandDefinition.eliminatedGameCommand) &&
+			!(commandDefinition.staffGameCommand && !this.isPm(this.room) && user.hasRank(this.room, 'driver'))) {
+			return false;
 		}
 
 		const isPm = room === user;

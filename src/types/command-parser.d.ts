@@ -13,6 +13,7 @@ export interface ICommandDefinition<ThisContext, ReturnType = any> {
 	readonly pmGameCommand?: boolean;
 	readonly pmOnly?: boolean;
 	readonly signupsGameCommand?: boolean;
+	readonly spectatorGameCommand?: boolean;
 	readonly staffGameCommand?: boolean;
 }
 

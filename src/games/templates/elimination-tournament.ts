@@ -147,6 +147,7 @@ export abstract class EliminationTournament extends Game {
 	requiredPokemon: string[] | null = null;
 	sharedTeams: boolean = false;
 	spectatorPlayers = new Set<Player>();
+	spectatorUsers = new Set<string>();
 	starterPokemon = new Map<Player, string[]>();
 	startingTeamsLength: number = 6;
 	teamChanges = new Map<Player, ITeamChange[]>();
@@ -617,7 +618,7 @@ export abstract class EliminationTournament extends Game {
 		const bracketHtml = this.getBracketHtml();
 		if (bracketHtml !== this.bracketHtml) {
 			this.bracketHtml = bracketHtml;
-			this.updatePlayerHtmlPages();
+			this.updateHtmlPages();
 		}
 	}
 
@@ -752,6 +753,58 @@ export abstract class EliminationTournament extends Game {
 			if (this.players[i].eliminated && !this.spectatorPlayers.has(this.players[i])) continue;
 			this.updatePlayerHtmlPage(this.players[i]);
 		}
+	}
+
+	getSpectatorHtmlPage(user: User): string {
+		let html = "";
+
+		if (this.tournamentEnded) {
+			html += "<h3>The tournament has ended!</h3><hr />";
+		} else {
+			html += "<h3>Rules</h3><ul>";
+			html += "<li>All Pokemon (including formes), moves, abilities, and items not banned in " + this.battleFormat.name + " can " +
+				"be used</li>";
+			if (!this.allowsScouting) html += "<li>Scouting is not allowed</li>";
+			html += "</ul><hr />";
+		}
+
+		if (this.started && !this.tournamentEnded) {
+			html += "<h3>Spectating</h3><div style='margin-left: 15px'>";
+			if (this.spectatorUsers.has(user.id)) {
+				html += "You are currently receiving updates for this tournament. " +
+					Client.getPmSelfButton(Config.commandCharacter + "stoptournamentupdates", "Stop updates");
+			} else {
+				html += "You will no longer receive updates for this tournament. " +
+					Client.getPmSelfButton(Config.commandCharacter + "resumetournamentupdates", "Resume updates");
+			}
+			html += "</div><hr />";
+		}
+
+		html += "<h3>" + (this.tournamentEnded ? "Final bracket" : "Bracket") + "</h3><div style='margin-left: 15px'>" +
+			(this.bracketHtml || "(TBD)") + "</div>";
+
+		return html;
+	}
+
+	updateSpectatorHtmlPage(user: User): void {
+		this.room.sendHtmlPage(user, this.baseHtmlPageTitle, this.htmlPageHeader + this.getSpectatorHtmlPage(user));
+	}
+
+	updateSpectatorHtmlPages(): void {
+		const users = Array.from(this.spectatorUsers.keys());
+		for (const id of users) {
+			const user = Users.get(id);
+			if (!user) {
+				this.spectatorUsers.delete(id);
+				continue;
+			}
+			this.updateSpectatorHtmlPage(user);
+		};
+	}
+
+	updateHtmlPages(): void {
+		this.updatePlayerHtmlPages();
+		this.updateSpectatorHtmlPages();
 	}
 
 	setCheckChallengesListeners(player: Player, opponent: Player): void {
@@ -1351,7 +1404,7 @@ export abstract class EliminationTournament extends Game {
 	onEnd(): void {
 		this.tournamentEnded = true;
 		this.bracketHtml = this.getBracketHtml();
-		this.updatePlayerHtmlPages();
+		this.updateHtmlPages();
 
 		const winner = this.getFinalPlayer();
 		if (winner) {
@@ -1441,23 +1494,38 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 	},
 	resumetournamentupdates: {
 		command(target, room, user) {
-			if (!this.players[user.id].eliminated || this.spectatorPlayers.has(this.players[user.id])) return false;
-			this.spectatorPlayers.add(this.players[user.id]);
-			this.updatePlayerHtmlPage(this.players[user.id]);
+			if (user.id in this.players) {
+				if (!this.players[user.id].eliminated || this.spectatorPlayers.has(this.players[user.id])) return false;
+				this.spectatorPlayers.add(this.players[user.id]);
+				this.updatePlayerHtmlPage(this.players[user.id]);
+			} else {
+				if (this.spectatorUsers.has(user.id)) return false;
+				this.spectatorUsers.add(user.id);
+				this.updateSpectatorHtmlPage(user);
+			}
 			return true;
 		},
+		aliases: ['spectatetournament', 'spectatetour'],
 		pmOnly: true,
 		eliminatedGameCommand: true,
+		spectatorGameCommand: true,
 	},
 	stoptournamentupdates: {
 		command(target, room, user) {
-			if (!this.players[user.id].eliminated || !this.spectatorPlayers.has(this.players[user.id])) return false;
-			this.spectatorPlayers.delete(this.players[user.id]);
-			this.updatePlayerHtmlPage(this.players[user.id]);
+			if (user.id in this.players) {
+				if (!this.players[user.id].eliminated || !this.spectatorPlayers.has(this.players[user.id])) return false;
+				this.spectatorPlayers.delete(this.players[user.id]);
+				this.updatePlayerHtmlPage(this.players[user.id]);
+			} else {
+				if (!this.spectatorUsers.has(user.id)) return false;
+				this.spectatorUsers.delete(user.id);
+				this.updateSpectatorHtmlPage(user);
+			}
 			return true;
 		},
 		pmOnly: true,
 		eliminatedGameCommand: true,
+		spectatorGameCommand: true,
 	}
 	/* eslint-enable */
 };
