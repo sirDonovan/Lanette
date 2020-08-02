@@ -643,8 +643,7 @@ export class Game extends Activity {
 	}
 
 	async tryCommand(target: string, room: Room | User, user: User, command: string): Promise<boolean> {
-		const commandDefinition = this.commands[command];
-		if (!this.started && !(commandDefinition && commandDefinition.signupsGameCommand)) return false;
+		if (!(command in this.commands) || (!this.started && !this.commands[command].signupsGameCommand)) return false;
 
 		let canUseCommands = true;
 		if (this.inheritedPlayers) {
@@ -657,13 +656,7 @@ export class Game extends Activity {
 			}
 		}
 
-		if (!commandDefinition) {
-			if (command && canUseCommands) {
-				user.say("'" + command + "' is not a command in " + this.format.nameWithOptions + ".");
-			}
-			return false;
-		}
-
+		const commandDefinition = this.commands[command];
 		if (!(commandDefinition.staffGameCommand && !this.isPm(this.room) && user.hasRank(this.room, 'driver'))) {
 			if (!canUseCommands && !(user.id in this.players && this.players[user.id].eliminated &&
 				commandDefinition.eliminatedGameCommand)) {
