@@ -561,7 +561,7 @@ export class Game extends Activity {
 		}
 
 		if (this.onRemovePlayer) this.onRemovePlayer(player);
-		this.removeBits(player, JOIN_BITS, silent);
+		if (!this.internalGame) this.removeBits(player, JOIN_BITS, silent);
 	}
 
 	eliminatePlayer(player: Player, eliminationCause?: string | null, eliminator?: Player | null): void {
