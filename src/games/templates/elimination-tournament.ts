@@ -799,7 +799,7 @@ export abstract class EliminationTournament extends Game {
 				continue;
 			}
 			this.updateSpectatorHtmlPage(user);
-		};
+		}
 	}
 
 	updateHtmlPages(): void {
