@@ -89,6 +89,29 @@ const clauseNicknames: Dict<string> = {
 const gen2Items: string[] = ['berserkgene', 'berry', 'bitterberry', 'burntberry', 'goldberry', 'iceberry', 'mintberry', 'miracleberry',
 	'mysteryberry', 'pinkbow', 'polkadotbow', 'przcureberry', 'psncureberry'];
 
+const customRuleFormats: Dict<string> = {
+	uubl: 'UU@@@+UUBL',
+	rubl: 'RU@@@+RUBL',
+	nubl: 'NU@@@+NUBL',
+	publ: 'PU@@@+PUBL',
+};
+
+const customRuleAliases: Dict<string[]> = {
+	uu: ['-All pokemon', '+LC', '+LC Uber', '+NFE', '+ZU', '+PU', '+PUBL', '+NU', '+NUBL', '+RU', '+RUBL', '+UU'],
+	ru: ['-All pokemon', '+LC', '+LC Uber', '+NFE', '+ZU', '+PU', '+PUBL', '+NU', '+NUBL', '+RU'],
+	nu: ['-All pokemon', '+LC', '+LC Uber', '+NFE', '+ZU', '+PU', '+PUBL', '+NU'],
+	pu: ['-All pokemon', '+LC', '+LC Uber', '+NFE', '+ZU', '+PU'],
+	cap: ['+CAP', '+CAP NFE', '+CAP LC'],
+	monotype: ['Same Type Clause'],
+	aaa: ['!Obtainable Abilities', '-Wonder Guard', '-Shadow Tag'],
+	stabmons: ['STABmons Move Legality'],
+	camomons: ['[Gen 8] Camomons'],
+	inverse: ['Inverse Mod'],
+	'350cup': ['350 Cup Mod'],
+	flipped: ['Flipped Mod'],
+	scalemons: ['Scalemons Mod'],
+};
+
 const dexes: Dict<Dex> = {};
 
 /**
@@ -1106,28 +1129,57 @@ export class Dex {
 		Formats
 	*/
 
-	getFormat(name: string, isTrusted?: boolean): IFormat | undefined {
+	getFormat(name: string, isValidated?: boolean): IFormat | undefined {
 		let id = Tools.toId(name);
 		if (!id) return;
-		const inputTarget = name;
 
-		let supplementaryAttributes: {customRules?: string[]; searchShow?: boolean} = {};
+		const inputTarget = name;
+		let customRules: string[] | undefined;
+		if (!this.formatCache.has(id)) {
+			if (id in customRuleFormats) {
+				name = customRuleFormats[id];
+			} else {
+				const aliasedCustomRules: string[] = [];
+				const [formatAlias, customRulesString] = name.split('@@@', 2);
+				const parts = formatAlias.split(" ");
+				let formatNameIndex = parts.length - 1;
+				for (let i = 0; i < parts.length - 1; i++) {
+					const id = Tools.toId(parts[i]);
+					if (id in customRuleAliases) {
+						for (const rule of customRuleAliases[id]) {
+							if (!aliasedCustomRules.includes(rule)) aliasedCustomRules.push(rule);
+						}
+					} else {
+						formatNameIndex = i;
+						break;
+					}
+				}
+
+				if (aliasedCustomRules.length) {
+					customRules = (customRules || []).concat(aliasedCustomRules);
+					name = parts.slice(formatNameIndex).join(" ") + (customRulesString ? "@@@" + customRulesString : "");
+					id = Tools.toId(name);
+				}
+			}
+		}
+
 		if (name.includes('@@@')) {
-			if (!isTrusted) {
+			if (!isValidated) {
 				try {
 					name = this.validateFormat(name);
-					isTrusted = true;
+					isValidated = true;
 				// eslint-disable-next-line no-empty
 				} catch (e) {}
 			}
 			const [newName, customRulesString] = name.split('@@@', 2);
 			name = newName;
 			id = Tools.toId(name);
-			if (isTrusted && customRulesString) {
-				supplementaryAttributes = {
-					customRules: customRulesString.split(','),
-					searchShow: false,
-				};
+			if (isValidated && customRulesString) {
+				if (!customRules) customRules = [];
+				const rules = customRulesString.split(',');
+				for (const rule of rules) {
+					if (!customRules.includes(rule)) customRules.push(rule);
+				}
 			}
 		}
 
@@ -1144,13 +1196,16 @@ export class Dex {
 		if (!this.formatCache.has(id)) {
 			for (let i = currentGen; i >= 1; i--) {
 				const genId = 'gen' + i + id;
-				if (this.formatCache.has(genId)) return this.getFormat(genId, isTrusted);
+				if (this.formatCache.has(genId)) {
+					id = genId;
+					break;
+				}
 			}
 		}
 
 		const format = this.formatCache.get(id);
 
-		return format ? Object.assign(Tools.deepClone(format), supplementaryAttributes, {inputTarget}) as IFormat : undefined;
+		return format ? Object.assign(Tools.deepClone(format), {customRules}, {inputTarget}) as IFormat : undefined;
 	}
 
 	getExistingFormat(name: string, isTrusted?: boolean): IFormat {

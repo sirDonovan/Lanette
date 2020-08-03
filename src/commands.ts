@@ -2739,7 +2739,7 @@ const commands: CommandDefinitions<CommandContext> = {
 					}
 					customRules.push(rule);
 				}
-				format = Dex.getExistingFormat(format.name + "@@@" + customRules.join(','), true);
+				format = Dex.getExistingFormat(format.inputTarget + "@@@" + customRules.join(','), true);
 			}
 
 			let time: number = 0;
