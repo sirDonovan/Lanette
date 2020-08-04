@@ -1092,6 +1092,10 @@ export abstract class EliminationTournament extends Game {
 		return true;
 	}
 
+	onAddExistingPlayer(player: Player): void {
+		if (!this.started) this.updatePlayerHtmlPage(player);
+	}
+
 	onRemovePlayer(player: Player): void {
 		if (!this.started) {
 			const starterPokemon = this.starterPokemon.get(player);

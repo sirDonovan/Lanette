@@ -499,7 +499,11 @@ export class Game extends Activity {
 		}
 
 		const player = this.createPlayer(user);
-		if (!player) return;
+		if (!player) {
+			if (this.onAddExistingPlayer) this.onAddExistingPlayer(this.players[user.id]);
+			return;
+		}
+
 		if ((this.started && (!this.canLateJoin || (this.playerCap && this.playerCount >= this.playerCap))) ||
 			(this.onAddPlayer && !this.onAddPlayer(player, this.started))) {
 			this.destroyPlayer(user, true);
@@ -927,6 +931,7 @@ export class Game extends Activity {
 	async getRandomAnswer?(): Promise<IRandomGameAnswer>;
 	/** Return `false` to prevent a user from being added to the game (and send the reason to the user) */
 	onAddPlayer?(player: Player, lateJoin?: boolean): boolean | undefined;
+	onAddExistingPlayer?(player: Player): void;
 	onAfterDeallocate?(forceEnd: boolean): void;
 	onBattleExpire?(room: Room): void;
 	/** Return `false` to signal that the battle should be left */
