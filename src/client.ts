@@ -859,13 +859,15 @@ export class Client {
 					user.addChatLog(messageArguments.message);
 
 					let commandMessage = messageArguments.message;
+					let battleUrl;
 					if (commandMessage.startsWith(INVITE_COMMAND)) {
-						const battleUrl = Tools.getBattleUrl(commandMessage.substr(INVITE_COMMAND.length));
-						if (battleUrl) {
-							commandMessage = Config.commandCharacter + 'check ' + battleUrl;
-						} else {
-							return;
-						}
+						battleUrl = Tools.getBattleUrl(commandMessage.substr(INVITE_COMMAND.length));
+					} else {
+						battleUrl = Tools.getBattleUrl(commandMessage);
+					}
+
+					if (battleUrl) {
+						commandMessage = Config.commandCharacter + 'check ' + battleUrl;
 					}
 
 					if (messageArguments.rank !== this.groupSymbols.locked) {
