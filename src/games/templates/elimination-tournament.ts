@@ -659,7 +659,7 @@ export abstract class EliminationTournament extends Game {
 				const opponent = this.playerOpponents.get(player);
 				if (opponent) {
 					html += "Your next opponent is <strong class='username'>" + opponent.name + "</strong>! To send a challenge, click " +
-						"their name, click \"Challenge\", select the " + this.battleFormat.name + " as the format, and select your team " +
+						"their name, click \"Challenge\", select " + this.battleFormat.name + " as the format, and select your team " +
 						"for this tournament. Once the battle starts, send " + Users.self.name + " the link or type <code>/invite " +
 						Users.self.name + "</code> into the battle chat!";
 				} else {
@@ -671,10 +671,11 @@ export abstract class EliminationTournament extends Game {
 		}
 
 		html += "<h3>Pokemon</h3><div style='margin-left: 15px'>";
+		const pastTense = this.tournamentEnded || player.eliminated;
 		const starterPokemon = this.starterPokemon.get(player)!;
 		if (this.cloakedPokemon) {
 			html += "<b>The Pokemon to protect in battle ";
-			if (this.tournamentEnded) {
+			if (pastTense) {
 				html += (this.cloakedPokemon.length === 1 ? "was" : "were");
 			} else {
 				html += (this.cloakedPokemon.length === 1 ? "is" : "are");
@@ -686,10 +687,10 @@ export abstract class EliminationTournament extends Game {
 		} else {
 			html += "<b>" + (this.sharedTeams ? "The" : "Your") + " " +
 				(this.additionsPerRound || this.evolutionsPerRound ? "starting " : "") +
-				(this.startingTeamsLength === 1 ? "Pokemon" : "team") + " " + (this.tournamentEnded ? "was" : "is") + "</b>:";
+				(this.startingTeamsLength === 1 ? "Pokemon" : "team") + " " + (pastTense ? "was" : "is") + "</b>:";
 			html += "<br />" + this.getPokemonIcons(starterPokemon).join("<br />");
 			if (this.canReroll && !this.rerolls.has(player)) {
-				html += "<br />If you are not satisfied, you have 1 chance to reroll but you must keep what you receive!" +
+				html += "<br /><br />If you are not satisfied, you have 1 chance to reroll but you must keep whatever you receive! " +
 					Client.getPmSelfButton(Config.commandCharacter + "reroll", "Reroll Pokemon");
 			}
 		}
@@ -703,22 +704,22 @@ export abstract class EliminationTournament extends Game {
 				if (teamChange.additions >= 1) {
 					roundChanges += "<li>";
 					if (teamChange.choices.length <= teamChange.additions) {
-						roundChanges += (this.tournamentEnded ? "Added" : "Add") + " the following to your team:";
+						roundChanges += (pastTense ? "Added" : "Add") + " the following to your team:";
 					} else {
-						roundChanges += (this.tournamentEnded ? "Chose" : "Choose") + " " + teamChange.additions + " of the following " +
+						roundChanges += (pastTense ? "Chose" : "Choose") + " " + teamChange.additions + " of the following " +
 							"to add to your team:";
 					}
 					roundChanges += "<br />" + Tools.joinList(this.getPokemonIcons(teamChange.choices), undefined, undefined, "or") +
 						"</li>";
 				} else if (teamChange.additions <= -1) {
 					const amount = teamChange.additions * -1;
-					roundChanges += "<li>" + (this.tournamentEnded ? "Removed" : "Remove") + " " + amount + " " +
+					roundChanges += "<li>" + (pastTense ? "Removed" : "Remove") + " " + amount + " " +
 						"member" + (amount > 1 ? "s" : "") + " from your team</li>";
 				}
 
 				if (teamChange.evolutions) {
 					const amount = Math.abs(teamChange.evolutions);
-					roundChanges += "<li>" + (this.tournamentEnded ? "Chose" : "Choose") + " " + amount + " " +
+					roundChanges += "<li>" + (pastTense ? "Chose" : "Choose") + " " + amount + " " +
 						"member" + (amount > 1 ? "s" : "") + " of your " + (teamChange.additions ? "updated " : "") + "team to " +
 						(teamChange.evolutions >= 1 ? "evolve" : "de-volve") + "</li>";
 				}
