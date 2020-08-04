@@ -9,6 +9,7 @@ class CatchAndEvolve extends EliminationTournament {
 	additionsPerRound = 1;
 	evolutionsPerRound = 1;
 	startingTeamsLength = 1;
+	canReroll = true;
 	baseTournamentName = name;
 	tournamentDescription = description;
 	banlist = ['Burmy', 'Caterpie', 'Combee', 'Kricketot', 'Magikarp', 'Scatterbug', 'Sunkern', 'Tynamo', 'Type: Null', 'Weedle',

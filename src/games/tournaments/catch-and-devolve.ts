@@ -10,6 +10,7 @@ class CatchAndDevolve extends EliminationTournament {
 	evolutionsPerRound = -1;
 	startingTeamsLength = 1;
 	requiredEvolution = true;
+	canReroll = true;
 	baseTournamentName = name;
 	tournamentDescription = description;
 }
