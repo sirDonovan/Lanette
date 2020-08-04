@@ -658,9 +658,10 @@ export abstract class EliminationTournament extends Game {
 				html += "<h3>Opponent (round " + (player.round || 1) + ")</h3><div style='margin-left: 15px'>";
 				const opponent = this.playerOpponents.get(player);
 				if (opponent) {
-					html += "Your next opponent is <strong class='username'>" + opponent.name + "</strong> (click their name and then " +
-						"\"Challenge\")! Once the battle starts, send " + Users.self.name + " the link or type <code>/invite " +
-						Users.self.name + "</code> into the battle chat.";
+					html += "Your next opponent is <strong class='username'>" + opponent.name + "</strong>! To send a challenge, click " +
+						"their name, click \"Challenge\", select the " + this.battleFormat.name + " as the format, and select your team " +
+						"for this tournament. Once the battle starts, send " + Users.self.name + " the link or type <code>/invite " +
+						Users.self.name + "</code> into the battle chat!";
 				} else {
 					html += "Your next opponent has not been decided yet!";
 				}
