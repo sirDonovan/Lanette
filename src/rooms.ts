@@ -3,7 +3,7 @@ import type { Player } from "./room-activity";
 import type { Game } from "./room-game";
 import type { Tournament } from "./room-tournament";
 import type { GroupName, IChatLogEntry, IRoomInfoResponse } from "./types/client";
-import type { RoomType } from "./types/rooms";
+import type { RoomType, IRepeatedMessage } from "./types/rooms";
 import type { IUserHostedTournament } from "./types/tournaments";
 import type { User } from "./users";
 
@@ -18,6 +18,7 @@ export class Room {
 	readonly messageListeners: Dict<() => void> = {};
 	modchat: string = 'off';
 	newUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
+	repeatedMessages: Dict<IRepeatedMessage> | undefined = undefined;
 	serverHangman: boolean | undefined = undefined;
 	timers: Dict<NodeJS.Timer> | null = null;
 	tournament: Tournament | undefined = undefined;
@@ -51,6 +52,10 @@ export class Room {
 		if (this.game && this.game.room === this) this.game.deallocate(true);
 		if (this.tournament && this.tournament.room === this) this.tournament.deallocate();
 		if (this.userHostedGame && this.userHostedGame.room === this) this.userHostedGame.deallocate(true);
+
+		for (const i in this.repeatedMessages) {
+			clearInterval(this.repeatedMessages[i].timer);
+		}
 
 		for (const i in this.timers) {
 			clearTimeout(this.timers[i]);

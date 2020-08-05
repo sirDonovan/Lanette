@@ -1525,6 +1525,87 @@ const commands: CommandDefinitions<CommandContext> = {
 			this.say("Your timer has been set for: " + Tools.toDurationString(time) + ".");
 		},
 	},
+	repeatmessage: {
+		command(target, room, user, cmd) {
+			const targets = target.split(',');
+			let repeatSummary = !target;
+			let repeatRoom: Room | undefined;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
+				repeatRoom = targetRoom;
+				repeatSummary = true;
+			} else {
+				repeatRoom = room;
+			}
+
+			if (!user.hasRank(repeatRoom, 'driver')) return;
+
+			if (repeatSummary) {
+				if (!repeatRoom.repeatedMessages) return this.say("There are currently no repeated messages in this room.");
+				let html = "<b>Repeated messages</b>:<ul>";
+				for (const i in repeatRoom.repeatedMessages) {
+					const repeatedMessage = repeatRoom.repeatedMessages[i];
+					html += "<li><b>" + repeatedMessage.name + "</b>: every " +
+						Tools.toDurationString(repeatedMessage.interval) + " with the text <code>" +
+						repeatedMessage.message + "</code> (" + repeatedMessage.user + ")</li>";
+				}
+				html += "</ul>";
+				return this.sayHtml(html, repeatRoom);
+			}
+
+			const action = Tools.toId(targets[0]);
+			if (action === 'off' || action === 'end' || action === 'stop' || action === 'delete' || action === 'remove') {
+				const messageId = Tools.toId(targets[1]);
+				if (!repeatRoom.repeatedMessages || !(messageId in repeatRoom.repeatedMessages)) {
+					return this.say("There is no repeating message with the name '" + targets[1].trim() + "'.");
+				}
+				clearInterval(repeatRoom.repeatedMessages[messageId].timer);
+				const name = repeatRoom.repeatedMessages[messageId].name;
+				delete repeatRoom.repeatedMessages[messageId];
+				if (!Object.keys(repeatRoom.repeatedMessages).length) delete repeatRoom.repeatedMessages;
+				return this.say("The repeating message with the name '" + name + "' has been stopped.");
+			}
+
+			if (action !== 'add' || targets.length < 4) {
+				return this.say("Usage: ``" + Config.commandCharacter + "" + cmd + " add, [name], [interval in minutes], message``.");
+			}
+
+			const messageName = targets[1].trim();
+			const messageId = Tools.toId(messageName);
+			if (!messageId) return this.say("Please specify a valid message name.");
+
+			if (repeatRoom.repeatedMessages && messageId in repeatRoom.repeatedMessages) {
+				return this.say("There is already a repeating message with the name '" + messageName + "'.");
+			}
+
+			const minutes = parseInt(targets[2].trim());
+			const maxHours = 6;
+			if (isNaN(minutes) || minutes < 5 || minutes > (maxHours * 60)) {
+				return this.say("Please specify an interval between 5 minutes and " + maxHours + " hours.");
+			}
+			const interval = minutes * 60 * 1000;
+
+			const message = this.sanitizeResponse(targets.slice(3).join(',').trim());
+			if (!Tools.toId(message).length) return this.say("Please specify a valid message.");
+
+			if (!repeatRoom.repeatedMessages) repeatRoom.repeatedMessages = {};
+			repeatRoom.repeatedMessages[messageId] = {
+				timer: setInterval(() => repeatRoom!.say(message), interval),
+				message,
+				interval,
+				name: messageName,
+				user: user.name,
+			};
+
+			const duration = Tools.toDurationString(interval);
+			this.say("The message with the name '" + messageName + "' has been set to repeat every " + duration + ".");
+			repeatRoom.sayCommand("/modnote " + user.name + " set a message to repeat every " + duration + " with the text '" +
+				message + "'");
+		},
+		aliases: ['repeatm', 'repeatmessages'],
+	},
 	gametimer: {
 		command(target, room, user, cmd) {
 			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
