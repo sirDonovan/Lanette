@@ -1868,7 +1868,7 @@ export class Dex {
 						if (!pokemon.prevo) continue;
 						const pokemonSlot = i;
 						const prevo = this.getExistingPokemon(pokemon.prevo);
-						if (prevo.forme) continue;
+						if (prevo.forme && !prevo.evos.includes(pokemon.name)) continue;
 						availableEvolutions = true;
 						const newTeam = team.slice();
 						newTeam[pokemonSlot] = prevo;

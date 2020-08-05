@@ -423,6 +423,20 @@ describe("Dex", () => {
 			.map(x => x.map(y => y.name).join(','));
 		assert(possibleTeams.includes('Charmander,Vileplume'));
 		assert(possibleTeams.includes('Charmander,Bellossom'));
+
+		// forme evolutions
+		possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Mr. Mime")]], ["Charmander"], 1, 1)
+			.map(x => x.map(y => y.name).join(','));
+		assert(!possibleTeams.includes('Charmander,Mr. Rime'));
+
+		possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Mr. Mime-Galar")]], ["Charmander"], 1, 1)
+			.map(x => x.map(y => y.name).join(','));
+		assert(possibleTeams.includes('Charmander,Mr. Rime'));
+
+		possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Mr. Rime")]], ["Charmander"], 1, -1)
+			.map(x => x.map(y => y.name).join(','));
+		assert(possibleTeams.includes('Charmander,Mr. Mime-Galar'));
+		assert(!possibleTeams.includes('Charmander,Mr. Mime'));
 	});
 	it('should return proper values from getList methods', () => {
 		const abilities = Dex.getAbilitiesList().map(x => x.name);
