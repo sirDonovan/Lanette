@@ -425,6 +425,11 @@ describe("Dex", () => {
 		assert(possibleTeams.includes('Charmander,Bellossom'));
 
 		// forme evolutions
+		possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Pikachu")]], ["Charmander"], 1, 1)
+			.map(x => x.map(y => y.name).join(','));
+		assert(possibleTeams.includes('Charmander,Raichu'));
+		assert(possibleTeams.includes('Charmander,Raichu-Alola'));
+
 		possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Mr. Mime")]], ["Charmander"], 1, 1)
 			.map(x => x.map(y => y.name).join(','));
 		assert(!possibleTeams.includes('Charmander,Mr. Rime'));
