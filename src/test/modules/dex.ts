@@ -148,6 +148,43 @@ describe("Dex", () => {
 			assertStrictEqual(typeof format.unranked, 'boolean');
 		}
 	});
+	it('should return proper values from isImmune()', () => {
+		assertStrictEqual(Dex.isImmune('Normal', 'Ghost'), true);
+		assertStrictEqual(Dex.isImmune('Normal', ['Ghost']), true);
+		assertStrictEqual(Dex.isImmune('Normal', Dex.getExistingPokemon('Duskull')), true);
+		assertStrictEqual(Dex.isImmune(Dex.getExistingMove('Tackle'), 'Ghost'), true);
+		assertStrictEqual(Dex.isImmune(Dex.getExistingMove('Tackle'), ['Ghost']), true);
+		assertStrictEqual(Dex.isImmune(Dex.getExistingMove('Tackle'), Dex.getExistingPokemon('Duskull')), true);
+
+		assertStrictEqual(Dex.isImmune('Water', 'Fire'), false);
+		assertStrictEqual(Dex.isImmune('Water', ['Fire']), false);
+		assertStrictEqual(Dex.isImmune('Water', Dex.getExistingPokemon("Charmander")), false);
+		assertStrictEqual(Dex.isImmune(Dex.getExistingMove("Surf"), 'Fire'), false);
+		assertStrictEqual(Dex.isImmune(Dex.getExistingMove("Surf"), ['Fire']), false);
+		assertStrictEqual(Dex.isImmune(Dex.getExistingMove("Surf"), Dex.getExistingPokemon("Charmander")), false);
+	});
+	it('should return proper values from getEffectiveness()', () => {
+		assertStrictEqual(Dex.getEffectiveness('Water', 'Fire'), 1);
+		assertStrictEqual(Dex.getEffectiveness('Water', ['Fire']), 1);
+		assertStrictEqual(Dex.getEffectiveness('Water', Dex.getExistingPokemon('Charmander')), 1);
+		assertStrictEqual(Dex.getEffectiveness(Dex.getExistingMove('Surf'), 'Fire'), 1);
+		assertStrictEqual(Dex.getEffectiveness(Dex.getExistingMove('Surf'), ['Fire']), 1);
+		assertStrictEqual(Dex.getEffectiveness(Dex.getExistingMove('Surf'), Dex.getExistingPokemon('Charmander')), 1);
+
+		assertStrictEqual(Dex.getEffectiveness('Fire', 'Water'), -1);
+		assertStrictEqual(Dex.getEffectiveness('Fire', ['Water']), -1);
+		assertStrictEqual(Dex.getEffectiveness('Fire', Dex.getExistingPokemon('Squirtle')), -1);
+		assertStrictEqual(Dex.getEffectiveness(Dex.getExistingMove('Ember'), 'Water'), -1);
+		assertStrictEqual(Dex.getEffectiveness(Dex.getExistingMove('Ember'), ['Water']), -1);
+		assertStrictEqual(Dex.getEffectiveness(Dex.getExistingMove('Ember'), Dex.getExistingPokemon('Squirtle')), -1);
+
+		assertStrictEqual(Dex.getEffectiveness('Normal', 'Ghost'), 0);
+		assertStrictEqual(Dex.getEffectiveness('Normal', ['Ghost']), 0);
+		assertStrictEqual(Dex.getEffectiveness('Normal', Dex.getExistingPokemon('Duskull')), 0);
+		assertStrictEqual(Dex.getEffectiveness(Dex.getExistingMove('Tackle'), 'Ghost'), 0);
+		assertStrictEqual(Dex.getEffectiveness(Dex.getExistingMove('Tackle'), ['Ghost']), 0);
+		assertStrictEqual(Dex.getEffectiveness(Dex.getExistingMove('Tackle'), Dex.getExistingPokemon('Duskull')), 0);
+	});
 	it('should return proper values from getEvolutionLines()', () => {
 		const pokemonList = ['Charmander', 'Charmeleon', 'Charizard'];
 		for (const pokemon of pokemonList) {
@@ -176,6 +213,26 @@ describe("Dex", () => {
 		assertStrictEqual(evolutionLines[0].join(","), 'Tyrogue,Hitmonlee');
 		assertStrictEqual(evolutionLines[1].join(","), 'Tyrogue,Hitmonchan');
 		assertStrictEqual(evolutionLines[2].join(","), 'Tyrogue,Hitmontop');
+
+		evolutionLines = Dex.getEvolutionLines(Dex.getExistingPokemon('Zigzagoon'));
+		assertStrictEqual(evolutionLines.length, 1);
+		assertStrictEqual(evolutionLines[0].join(","), 'Zigzagoon,Linoone');
+		evolutionLines = Dex.getEvolutionLines(Dex.getExistingPokemon('Linoone'));
+		assertStrictEqual(evolutionLines.length, 1);
+		assertStrictEqual(evolutionLines[0].join(","), 'Zigzagoon,Linoone');
+		evolutionLines = Dex.getEvolutionLines(Dex.getExistingPokemon('Zigzagoon'), ['Zigzagoon-Galar']);
+		assertStrictEqual(evolutionLines.length, 2);
+		assertStrictEqual(evolutionLines[0].join(","), 'Zigzagoon,Linoone');
+		assertStrictEqual(evolutionLines[1].join(","), 'Zigzagoon-Galar,Linoone-Galar,Obstagoon');
+		evolutionLines = Dex.getEvolutionLines(Dex.getExistingPokemon('Zigzagoon-Galar'));
+		assertStrictEqual(evolutionLines.length, 1);
+		assertStrictEqual(evolutionLines[0].join(","), 'Zigzagoon-Galar,Linoone-Galar,Obstagoon');
+		evolutionLines = Dex.getEvolutionLines(Dex.getExistingPokemon('Linoone-Galar'));
+		assertStrictEqual(evolutionLines.length, 1);
+		assertStrictEqual(evolutionLines[0].join(","), 'Zigzagoon-Galar,Linoone-Galar,Obstagoon');
+		evolutionLines = Dex.getEvolutionLines(Dex.getExistingPokemon('Obstagoon'));
+		assertStrictEqual(evolutionLines.length, 1);
+		assertStrictEqual(evolutionLines[0].join(","), 'Zigzagoon-Galar,Linoone-Galar,Obstagoon');
 	});
 	it('should return proper values from isEvolutionFamily()', () => {
 		assert(Dex.isEvolutionFamily(['Charmander', 'Charmeleon', 'Charizard']));
@@ -194,6 +251,149 @@ describe("Dex", () => {
 		assert(Dex.isEvolutionFamily(['Oddish', 'Gloom', 'Bellossom']));
 		assert(Dex.isEvolutionFamily(['Oddish', 'Vileplume']));
 		assert(Dex.isEvolutionFamily(['Oddish', 'Bellossom']));
+	});
+	it('should return proper values from includesPokemon()', () => {
+		assert(Dex.includesPokemon(['Pikachu'], ['Pikachu']));
+		assert(Dex.includesPokemon(['Pikachu', 'Charmander'], ['Pikachu']));
+		assert(Dex.includesPokemon([Dex.getExistingPokemon('Pikachu')], ['Pikachu']));
+		assert(Dex.includesPokemon([Dex.getExistingPokemon('Pikachu'), Dex.getExistingPokemon('Charmander')], ['Pikachu']));
+
+		assert(!Dex.includesPokemon(['Pikachu'], ['Pikachu', 'Charmander']));
+		assert(!Dex.includesPokemon(['Pikachu'], ['Charmander']));
+		assert(!Dex.includesPokemon([Dex.getExistingPokemon('Pikachu')], ['Pikachu', 'Charmander']));
+		assert(!Dex.includesPokemon([Dex.getExistingPokemon('Pikachu')], ['Charmander']));
+	});
+	it('should return proper values from isPossibleTeam()', () => {
+		let teams = [[Dex.getExistingPokemon('Charmander'), Dex.getExistingPokemon('Squirtle')]];
+		assert(Dex.isPossibleTeam(['Charmander', 'Squirtle'], teams));
+		assert(!Dex.isPossibleTeam(['Charmander'], teams));
+		assert(!Dex.isPossibleTeam(['Squirtle'], teams));
+
+		teams = [[Dex.getExistingPokemon('Squirtle'), Dex.getExistingPokemon('Charmander')]];
+		assert(Dex.isPossibleTeam(['Charmander', 'Squirtle'], teams));
+		assert(!Dex.isPossibleTeam(['Charmander'], teams));
+		assert(!Dex.isPossibleTeam(['Squirtle'], teams));
+	});
+	it('should return proper values from getPossibleTeams()', () => {
+		// catch and evolve
+
+		// 1 optional addition and 1 optional evolution
+		let possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Pikachu")]], ["Charmander"], 1, 1)
+			.map(x => x.map(y => y.name).join(','));
+		assert(possibleTeams.includes('Pikachu'));
+		assert(possibleTeams.includes('Raichu'));
+		assert(possibleTeams.includes('Charmander,Pikachu'));
+		assert(possibleTeams.includes('Charmeleon,Pikachu'));
+		assert(possibleTeams.includes('Charmander,Raichu'));
+		assert(!possibleTeams.includes('Charmeleon,Raichu'));
+
+		// 1 required addition and 1 optional evolution
+		possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Pikachu")]], ["Charmander"], 1, 1, true)
+			.map(x => x.map(y => y.name).join(','));
+		assert(!possibleTeams.includes('Pikachu'));
+		assert(!possibleTeams.includes('Raichu'));
+		assert(possibleTeams.includes('Charmander,Pikachu'));
+		assert(possibleTeams.includes('Charmeleon,Pikachu'));
+		assert(possibleTeams.includes('Charmander,Raichu'));
+		assert(!possibleTeams.includes('Charmeleon,Raichu'));
+
+		// 1 required addition and 1 required evolution
+		possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Pikachu")]], ["Charmander"], 1, 1, true, true)
+			.map(x => x.map(y => y.name).join(','));
+		assert(!possibleTeams.includes('Pikachu'));
+		assert(!possibleTeams.includes('Raichu'));
+		assert(!possibleTeams.includes('Charmander,Pikachu'));
+		assert(possibleTeams.includes('Charmeleon,Pikachu'));
+		assert(possibleTeams.includes('Charmander,Raichu'));
+		assert(!possibleTeams.includes('Charmeleon,Raichu'));
+
+		// 1 optional addition and 1 required evolution
+		possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Pikachu")]], ["Charmander"], 1, 1, false, true)
+			.map(x => x.map(y => y.name).join(','));
+		assert(!possibleTeams.includes('Pikachu'));
+		assert(possibleTeams.includes('Raichu'));
+		assert(!possibleTeams.includes('Charmander,Pikachu'));
+		assert(possibleTeams.includes('Charmeleon,Pikachu'));
+		assert(possibleTeams.includes('Charmander,Raichu'));
+		assert(!possibleTeams.includes('Charmeleon,Raichu'));
+
+
+		// catch and de-volve
+
+		// 1 optional addition and 1 optional de-volution
+		possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Raichu")]], ["Charizard"], 1, -1)
+			.map(x => x.map(y => y.name).join(','));
+		assert(possibleTeams.includes('Raichu'));
+		assert(possibleTeams.includes('Pikachu'));
+		assert(possibleTeams.includes('Charizard,Raichu'));
+		assert(possibleTeams.includes('Charizard,Pikachu'));
+		assert(possibleTeams.includes('Charmeleon,Raichu'));
+		assert(!possibleTeams.includes('Charmeleon,Pikachu'));
+
+		// 1 required addition and 1 optional de-volution
+		possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Raichu")]], ["Charizard"], 1, -1, true)
+			.map(x => x.map(y => y.name).join(','));
+		assert(!possibleTeams.includes('Raichu'));
+		assert(!possibleTeams.includes('Pikachu'));
+		assert(possibleTeams.includes('Charizard,Raichu'));
+		assert(possibleTeams.includes('Charizard,Pikachu'));
+		assert(possibleTeams.includes('Charmeleon,Raichu'));
+		assert(!possibleTeams.includes('Charmeleon,Pikachu'));
+
+		// 1 required addition and 1 required de-volution
+		possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Raichu")]], ["Charizard"], 1, -1, true, true)
+			.map(x => x.map(y => y.name).join(','));
+		assert(!possibleTeams.includes('Raichu'));
+		assert(!possibleTeams.includes('Pikachu'));
+		assert(!possibleTeams.includes('Charizard,Raichu'));
+		assert(possibleTeams.includes('Charizard,Pikachu'));
+		assert(possibleTeams.includes('Charmeleon,Raichu'));
+		assert(!possibleTeams.includes('Charmeleon,Pikachu'));
+
+		// 1 optional addition and 1 required de-volution
+		possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Raichu")]], ["Charizard"], 1, -1, false, true)
+			.map(x => x.map(y => y.name).join(','));
+		assert(!possibleTeams.includes('Raichu'));
+		assert(possibleTeams.includes('Pikachu'));
+		assert(!possibleTeams.includes('Charizard,Raichu'));
+		assert(possibleTeams.includes('Charizard,Pikachu'));
+		assert(possibleTeams.includes('Charmeleon,Raichu'));
+		assert(!possibleTeams.includes('Charmeleon,Pikachu'));
+
+		// no evolutions left
+		let initialTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Pikachu")]], ["Charizard"], 1, 1, false, true);
+		initialTeams = Dex.getPossibleTeams(initialTeams, ["Blastoise"], 1, 1, false, true);
+		possibleTeams = Dex.getPossibleTeams(initialTeams, ["Venusaur"], 1, 1, false, true).map(x => x.map(y => y.name).join(','));
+		assert(possibleTeams.includes('Raichu'));
+		assert(possibleTeams.includes('Charizard,Raichu'));
+		assert(possibleTeams.includes('Charizard,Blastoise,Raichu'));
+		assert(possibleTeams.includes('Venusaur,Charizard,Blastoise,Raichu'));
+
+		assert(!possibleTeams.includes('Pikachu'));
+		assert(!possibleTeams.includes('Charizard,Pikachu'));
+		assert(!possibleTeams.includes('Charizard,Blastoise,Pikachu'));
+		assert(!possibleTeams.includes('Venusaur,Charizard,Blastoise,Pikachu'));
+
+		// no de-volutions are left
+		initialTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Pikachu")]], ["Charmander"], 1, -1, false, true);
+		initialTeams = Dex.getPossibleTeams(initialTeams, ["Squirtle"], 1, -1, false, true);
+		possibleTeams = Dex.getPossibleTeams(initialTeams, ["Bulbasaur"], 1, -1, false, true)
+			.map(x => x.map(y => y.name).join(','));
+		assert(possibleTeams.includes('Pichu'));
+		assert(possibleTeams.includes('Charmander,Pichu'));
+		assert(possibleTeams.includes('Charmander,Squirtle,Pichu'));
+		assert(possibleTeams.includes('Bulbasaur,Charmander,Squirtle,Pichu'));
+
+		assert(!possibleTeams.includes('Pikachu'));
+		assert(!possibleTeams.includes('Charmander,Pikachu'));
+		assert(!possibleTeams.includes('Charmander,Squirtle,Pikachu'));
+		assert(!possibleTeams.includes('Bulbasaur,Charmander,Squirtle,Pikachu'));
+
+		// split evolutions
+		possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Gloom")]], ["Charmander"], 1, 1)
+			.map(x => x.map(y => y.name).join(','));
+		assert(possibleTeams.includes('Charmander,Vileplume'));
+		assert(possibleTeams.includes('Charmander,Bellossom'));
 	});
 	it('should return proper values from getList methods', () => {
 		const abilities = Dex.getAbilitiesList().map(x => x.name);

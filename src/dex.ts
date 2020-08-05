@@ -852,13 +852,33 @@ export class Dex {
 		return this.getPokemonList(filter).map(x => this.getPokemonCopy(x));
 	}
 
-	getEvolutionLines(pokemon: IPokemon): string[][] {
-		const allEvolutionLines = this.getAllEvolutionLines(pokemon);
-		const evolutionLines: string[][] = [];
-		for (const line of allEvolutionLines) {
-			if (line.includes(pokemon.name)) evolutionLines.push(line);
+	getEvolutionLines(pokemon: IPokemon, includedFormes?: string[]): string[][] {
+		const potentialEvolutionLines: string[][] = this.getAllEvolutionLines(pokemon);
+		const formesToCheck: string[] = [pokemon.name];
+		if (includedFormes) {
+			for (const includedForme of includedFormes) {
+				const forme = this.getExistingPokemon(includedForme);
+				const formeEvolutionLines = this.getAllEvolutionLines(forme);
+				for (const line of formeEvolutionLines) {
+					if (!Tools.arraysContainArray(line, potentialEvolutionLines)) {
+						potentialEvolutionLines.push(line);
+					}
+				}
+
+				formesToCheck.push(forme.name);
+			}
 		}
-		return evolutionLines;
+
+		const matchingEvolutionLines: string[][] = [];
+		for (const line of potentialEvolutionLines) {
+			for (const forme of formesToCheck) {
+				if (line.includes(forme)) {
+					matchingEvolutionLines.push(line);
+					break;
+				}
+			}
+		}
+		return matchingEvolutionLines;
 	}
 
 	isEvolutionFamily(speciesList: string[]): boolean {
@@ -1881,7 +1901,7 @@ export class Dex {
 		return finalTeams;
 	}
 
-	includesPokemon(team: IPokemon[] | string[], requiredPokemon: IPokemon[] | string[]): boolean {
+	includesPokemon(team: IPokemon[] | string[], requiredPokemon: string[]): boolean {
 		const pokemonList: string[] = [];
 		for (const pokemon of team) {
 			pokemonList.push(typeof pokemon === 'string' ? this.getExistingPokemon(pokemon).name : pokemon.name);
@@ -1889,7 +1909,7 @@ export class Dex {
 
 		let includes = true;
 		for (const pokemon of requiredPokemon) {
-			if (!pokemonList.includes(typeof pokemon === 'string' ? this.getExistingPokemon(pokemon).name : pokemon.name)) {
+			if (!pokemonList.includes(this.getExistingPokemon(pokemon).name)) {
 				includes = false;
 				break;
 			}

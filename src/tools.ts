@@ -212,7 +212,7 @@ export class Tools {
 		return true;
 	}
 
-	arraysContainArray(input: number[], arrays: number[][]): boolean {
+	arraysContainArray<T>(input: T[], arrays: T[][]): boolean {
 		for (const array of arrays) {
 			if (this.compareArrays(input, array)) return true;
 		}
