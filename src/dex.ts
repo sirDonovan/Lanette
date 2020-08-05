@@ -1484,14 +1484,14 @@ export class Dex {
 			}
 		}
 		const ruleid = id;
-		if (Object.prototype.hasOwnProperty.call(this.data.aliases, id)) id = Tools.toId(this.data.aliases[id]);
+		if (Object.prototype.hasOwnProperty.call(dexes['base'].data.aliases, id)) id = Tools.toId(dexes['base'].data.aliases[id]);
 		for (const matchType of matchTypes) {
 			let table: readonly string[];
 			switch (matchType) {
-			case 'pokemon': table = this.data.pokemonKeys; break;
-			case 'move': table = this.data.moveKeys; break;
-			case 'item': table = this.data.itemKeys; break;
-			case 'ability': table = this.data.abilityKeys; break;
+			case 'pokemon': table = dexes['base'].data.pokemonKeys; break;
+			case 'move': table = dexes['base'].data.moveKeys; break;
+			case 'item': table = dexes['base'].data.itemKeys; break;
+			case 'ability': table = dexes['base'].data.abilityKeys; break;
 			case 'pokemontag': {
 				// valid pokemontags
 				const validTags = [
@@ -1515,7 +1515,7 @@ export class Dex {
 			}
 			if (table.includes(id)) {
 				if (matchType === 'pokemon') {
-					const species = this.pokemonCache.get(id) as IPokemon;
+					const species = dexes['base'].pokemonCache.get(id) as IPokemon;
 					if (species.otherFormes && ruleid !== species.id + Tools.toId(species.baseForme)) {
 						matches.push('basepokemon:' + id);
 						continue;
@@ -1553,13 +1553,13 @@ export class Dex {
 		const tag = ruleName.substr(0, index);
 		ruleName = ruleName.substr(index + 1);
 		if (tag === 'ability') {
-			ruleName = this.getExistingAbility(ruleName).name;
+			ruleName = dexes['base'].getExistingAbility(ruleName).name;
 		} else if (tag === 'item') {
-			ruleName = this.getExistingItem(ruleName).name;
+			ruleName = dexes['base'].getExistingItem(ruleName).name;
 		} else if (tag === 'move') {
-			ruleName = this.getExistingMove(ruleName).name;
+			ruleName = dexes['base'].getExistingMove(ruleName).name;
 		} else if (tag === 'pokemon' || tag === 'basepokemon') {
-			ruleName = this.getExistingPokemon(ruleName).name;
+			ruleName = dexes['base'].getExistingPokemon(ruleName).name;
 		} else if (tag === 'pokemontag') {
 			ruleName = tagNames[ruleName];
 		} else {
@@ -1944,7 +1944,8 @@ export class Dex {
 		if (!prevoList || !evolutionLines) {
 			let firstStage = pokemon;
 			while (firstStage.prevo) {
-				firstStage = this.getExistingPokemon(firstStage.prevo);
+				const prevo = this.getPokemon(firstStage.prevo);
+				if (prevo) firstStage = prevo;
 			}
 			return this.getAllEvolutionLines(firstStage, [], []);
 		}
@@ -1954,8 +1955,9 @@ export class Dex {
 		if (!pokemon.evos.length) {
 			evolutionLines.push(prevoList);
 		} else {
-			for (const evo of pokemon.evos) {
-				this.getAllEvolutionLines(this.getExistingPokemon(evo), prevoList, evolutionLines);
+			for (const name of pokemon.evos) {
+				const evolution = this.getPokemon(name);
+				if (evolution) this.getAllEvolutionLines(evolution, prevoList, evolutionLines);
 			}
 		}
 		return evolutionLines;

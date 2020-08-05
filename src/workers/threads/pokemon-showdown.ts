@@ -51,6 +51,7 @@ interface IPokemonShowdownDex {
 		Pokedex: Dict<string>;
 		TypeChart: Dict<string>;
 	}
+	gen: number;
 	getAbility: (name: string) => IPSAbility;
 	getFormat: (name: string) => IPSFormat;
 	getItem: (name: string) => IPSItem;
@@ -163,13 +164,15 @@ function getAbilityIds(options: IGetDataIdsOptions): IPokemonShowdownResponse {
 	const keys: string[] = [];
 	for (const i in dex.data.Abilities) {
 		const ability = dex.getAbility(i);
-		if (ability.exists) keys.push(ability.id);
+		if (!ability.exists || (ability.gen && ability.gen > dex.gen)) continue;
+		keys.push(ability.id);
 	}
 
 	const aliases: Dict<string> = {};
 	for (const i in dex.data.Aliases) {
 		const ability = dex.getAbility(dex.data.Aliases[i]);
-		if (ability.exists) aliases[i] = ability.id;
+		if (!ability.exists || (ability.gen && ability.gen > dex.gen)) continue;
+		aliases[i] = ability.id;
 	}
 
 	return {data: JSON.stringify({aliases, keys})};
@@ -285,13 +288,15 @@ function getItemIds(options: IGetDataIdsOptions): IPokemonShowdownResponse {
 	const keys: string[] = [];
 	for (const i in dex.data.Items) {
 		const item = dex.getItem(i);
-		if (item.exists) keys.push(item.id);
+		if (!item.exists || (item.gen && item.gen > dex.gen)) continue;
+		keys.push(item.id);
 	}
 
 	const aliases: Dict<string> = {};
 	for (const i in dex.data.Aliases) {
 		const item = dex.getItem(dex.data.Aliases[i]);
-		if (item.exists) aliases[i] = item.id;
+		if (!item.exists || (item.gen && item.gen > dex.gen)) continue;
+		aliases[i] = item.id;
 	}
 
 	return {data: JSON.stringify({aliases, keys})};
@@ -319,6 +324,9 @@ function getLearnsetDataIds(options: IGetDataIdsOptions): IPokemonShowdownRespon
 	if (!dex.data.Learnsets) throw new Error("No PS learnsets dex");
 	const keys: string[] = [];
 	for (const i in dex.data.Learnsets) {
+		const species = dex.getSpecies(i);
+		if (!species.exists || (species.gen && species.gen > dex.gen)) continue;
+
 		const id = Tools.toId(i);
 		const learnsetData = dex.getLearnsetData(id);
 		if (learnsetData.exists) keys.push(id);
@@ -351,13 +359,15 @@ function getMoveIds(options: IGetDataIdsOptions): IPokemonShowdownResponse {
 	const keys: string[] = [];
 	for (const i in dex.data.Moves) {
 		const move = dex.getMove(i);
-		if (move.exists) keys.push(move.realMove ? Tools.toId(move.name) : move.id);
+		if (!move.exists || (move.gen && move.gen > dex.gen)) continue;
+		keys.push(move.realMove ? Tools.toId(move.name) : move.id);
 	}
 
 	const aliases: Dict<string> = {};
 	for (const i in dex.data.Aliases) {
 		const move = dex.getMove(dex.data.Aliases[i]);
-		if (move.exists) aliases[i] = move.realMove ? Tools.toId(move.name) : move.id;
+		if (!move.exists || (move.gen && move.gen > dex.gen)) continue;
+		aliases[i] = move.realMove ? Tools.toId(move.name) : move.id;
 	}
 
 	return {data: JSON.stringify({aliases, keys})};
@@ -387,13 +397,15 @@ function getSpeciesIds(options: IGetDataIdsOptions): IPokemonShowdownResponse {
 	const keys: string[] = [];
 	for (const i in dex.data.Pokedex) {
 		const species = dex.getSpecies(i);
-		if (species.exists) keys.push(species.id);
+		if (!species.exists || (species.gen && species.gen > dex.gen)) continue;
+		keys.push(species.id);
 	}
 
 	const aliases: Dict<string> = {};
 	for (const i in dex.data.Aliases) {
 		const species = dex.getSpecies(dex.data.Aliases[i]);
-		if (species.exists) aliases[i] = species.id;
+		if (!species.exists || (species.gen && species.gen > dex.gen)) continue;
+		aliases[i] = species.id;
 	}
 
 	return {data: JSON.stringify({aliases, keys})};
@@ -418,7 +430,15 @@ function getTypes(messageNumber: string, id: string, options: IGetDataOptions): 
 function getTypeIds(options: IGetDataIdsOptions): IPokemonShowdownResponse {
 	const dex = pokemonShowdownDex.mod(options.mod);
 	if (!dex.data.TypeChart) throw new Error("No PS types dex");
-	return {data: JSON.stringify({keys: Object.keys(dex.data.TypeChart)})};
+
+	const keys: string[] = [];
+	for (const i in dex.data.TypeChart) {
+		const type = dex.getType(i);
+		if (!type.exists || (type.gen && type.gen > dex.gen)) continue;
+		keys.push(type.id);
+	}
+
+	return {data: JSON.stringify({keys})};
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention

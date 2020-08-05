@@ -148,6 +148,35 @@ describe("Dex", () => {
 			assertStrictEqual(typeof format.unranked, 'boolean');
 		}
 	});
+	it('should support getting RuleTables in all gens', () => {
+		const gen7 = Dex.getExistingFormat("gen7ou@@@-Grookey");
+		assert(gen7.customRules);
+		assert(Dex.getRuleTable(gen7));
+
+		const gen6 = Dex.getExistingFormat("gen6ou@@@-Rowlet");
+		assert(gen6.customRules);
+		assert(Dex.getRuleTable(gen6));
+
+		const gen5 = Dex.getExistingFormat("gen5ou@@@-Chespin");
+		assert(gen5.customRules);
+		assert(Dex.getRuleTable(gen5));
+
+		const gen4 = Dex.getExistingFormat("gen4ou@@@-Snivy");
+		assert(gen4.customRules);
+		assert(Dex.getRuleTable(gen4));
+
+		const gen3 = Dex.getExistingFormat("gen3ou@@@-Turtwig");
+		assert(gen3.customRules);
+		assert(Dex.getRuleTable(gen3));
+
+		const gen2 = Dex.getExistingFormat("gen2ou@@@-Treecko");
+		assert(gen2.customRules);
+		assert(Dex.getRuleTable(gen2));
+
+		const gen1 = Dex.getExistingFormat("gen1ou@@@-Chikorita");
+		assert(gen1.customRules);
+		assert(Dex.getRuleTable(gen1));
+	});
 	it('should return proper values from isImmune()', () => {
 		assertStrictEqual(Dex.isImmune('Normal', 'Ghost'), true);
 		assertStrictEqual(Dex.isImmune('Normal', ['Ghost']), true);
