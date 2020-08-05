@@ -710,7 +710,7 @@ export class Client {
 					const html = messageArguments.message.substr(HTML_CHAT_COMMAND.length);
 					room.addHtmlChatLog(html);
 
-					const htmlId = Tools.toId(html);
+					const htmlId = Tools.toId(Tools.unescapeHTML(html));
 					if (htmlId in room.htmlMessageListeners) {
 						room.htmlMessageListeners[htmlId]();
 						delete room.htmlMessageListeners[htmlId];
@@ -733,7 +733,7 @@ export class Client {
 
 						const id = Tools.toId(name);
 						if (id in room.uhtmlMessageListeners) {
-							const htmlId = Tools.toId(html);
+							const htmlId = Tools.toId(Tools.unescapeHTML(html));
 							if (htmlId in room.uhtmlMessageListeners[id]) {
 								room.uhtmlMessageListeners[id][htmlId]();
 								delete room.uhtmlMessageListeners[id][htmlId];
@@ -821,7 +821,7 @@ export class Client {
 
 					if (recipient.uhtmlMessageListeners) {
 						if (id in recipient.uhtmlMessageListeners) {
-							const htmlId = Tools.toId(html);
+							const htmlId = Tools.toId(Tools.unescapeHTML(html));
 							if (htmlId in recipient.uhtmlMessageListeners[id]) {
 								recipient.uhtmlMessageListeners[id][htmlId]();
 								delete recipient.uhtmlMessageListeners[id][htmlId];
@@ -833,7 +833,7 @@ export class Client {
 					user.addHtmlChatLog(html);
 
 					if (recipient.htmlMessageListeners) {
-						const htmlId = Tools.toId(html);
+						const htmlId = Tools.toId(Tools.unescapeHTML(html));
 						if (htmlId in recipient.htmlMessageListeners) {
 							recipient.htmlMessageListeners[htmlId]();
 							delete recipient.htmlMessageListeners[htmlId];
@@ -903,7 +903,7 @@ export class Client {
 
 			room.addHtmlChatLog(messageArguments.html);
 
-			const htmlId = Tools.toId(messageArguments.html);
+			const htmlId = Tools.toId(Tools.unescapeHTML(messageArguments.html));
 			if (htmlId in room.htmlMessageListeners) {
 				room.htmlMessageListeners[htmlId]();
 				delete room.htmlMessageListeners[htmlId];
@@ -1032,7 +1032,7 @@ export class Client {
 
 			const id = Tools.toId(messageArguments.name);
 			if (id in room.uhtmlMessageListeners) {
-				const htmlId = Tools.toId(messageArguments.html);
+				const htmlId = Tools.toId(Tools.unescapeHTML(messageArguments.html));
 				if (htmlId in room.uhtmlMessageListeners[id]) {
 					room.uhtmlMessageListeners[id][htmlId]();
 					delete room.uhtmlMessageListeners[id][htmlId];
