@@ -1269,7 +1269,7 @@ export abstract class EliminationTournament extends Game {
 		if (!pokemon) return false;
 
 		if (!(slot in this.battleData[room.id].pokemon)) this.battleData[room.id].pokemon[slot] = [];
-		this.battleData[room.id].pokemon[slot].push(pokemon.baseSpecies || pokemon.name);
+		this.battleData[room.id].pokemon[slot].push(pokemon.name);
 		return true;
 	}
 
