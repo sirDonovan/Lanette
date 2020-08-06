@@ -1079,7 +1079,6 @@ export class Client {
 				}
 				const database = Storage.getDatabase(room);
 				const now = Date.now();
-				database.lastTournamentTime = now;
 
 				// delayed scheduled tournament
 				if (room.id in Tournaments.nextScheduledTournaments && Tournaments.nextScheduledTournaments[room.id].time <= now) {

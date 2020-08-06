@@ -139,15 +139,17 @@ export class Tournament extends Activity {
 	}
 
 	onEnd(): void {
+		const now = Date.now();
 		const database = Storage.getDatabase(this.room);
 		if (!database.pastTournaments) database.pastTournaments = [];
-		database.pastTournaments.unshift({inputTarget: this.format.inputTarget, name: this.format.name, time: Date.now()});
+		database.pastTournaments.unshift({inputTarget: this.format.inputTarget, name: this.format.name, time: now});
 		while (database.pastTournaments.length > 8) {
 			database.pastTournaments.pop();
 		}
 
+		database.lastTournamentTime = now;
 		if (!database.lastTournamentFormatTimes) database.lastTournamentFormatTimes = {};
-		database.lastTournamentFormatTimes[this.format.id] = Date.now();
+		database.lastTournamentFormatTimes[this.format.id] = now;
 
 		let winners: string[] = [];
 		let runnersUp: string[] = [];
@@ -234,7 +236,6 @@ export class Tournament extends Activity {
 				this.room.title + '``.';
 			for (const winner of winners) {
 				Storage.addPoints(this.room, winner, winnerPoints, this.format.id);
-				// Client.outgoingPms[Tools.toId(winner)] = winnerPm;
 				const user = Users.get(winner);
 				if (user) user.say(winnerPm);
 			}
@@ -243,7 +244,6 @@ export class Tournament extends Activity {
 				'the') + ' runner-up in the tournament! To see your total amount, use this command: ``.rank ' + this.room.title + '``.';
 			for (const runnerUp of runnersUp) {
 				Storage.addPoints(this.room, runnerUp, runnerUpPoints, this.format.id);
-				// Client.outgoingPms[Tools.toId(runnerUp)] = runnerUpPm;
 				const user = Users.get(runnerUp);
 				if (user) user.say(runnerUpPm);
 			}
@@ -253,7 +253,6 @@ export class Tournament extends Activity {
 				'amount, use this command: ``.rank ' + this.room.title + '``.';
 			for (const semiFinalist of semiFinalists) {
 				Storage.addPoints(this.room, semiFinalist, semiFinalistPoints, this.format.id);
-				// Client.outgoingPms[Tools.toId(semiFinalist)] = semiFinalistPm;
 				const user = Users.get(semiFinalist);
 				if (user) user.say(semiFinalistPm);
 			}
