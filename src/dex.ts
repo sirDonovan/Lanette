@@ -1658,7 +1658,7 @@ export class Dex {
 			if (pokemon.requiredAbility || pokemon.requiredItem || pokemon.requiredItems || pokemon.requiredMove ||
 				this.ruleTableBansSpecies(format.ruleTable, pokemon)) continue;
 			if (littleCup) {
-				if ((pokemon.prevo && this.getExistingPokemon(pokemon.prevo).gen <= formatGen || !pokemon.nfe)) continue;
+				if ((pokemon.prevo && this.getExistingPokemon(pokemon.prevo).gen <= formatGen) || !pokemon.nfe) continue;
 			}
 
 			usablePokemon.push(pokemon.name);

@@ -9,6 +9,7 @@ class SameSix extends EliminationTournament {
 	additionsPerRound = 0;
 	evolutionsPerRound = 0;
 	startingTeamsLength = 6;
+	maxPlayers = 16;
 	baseTournamentName = name;
 	tournamentDescription = description;
 	fullyEvolved = true;

@@ -22,6 +22,14 @@ export const game: IGameFile<CatchAndDevolve> = Games.copyTemplateProperties(eli
 	name,
 	variants: [
 		{
+			name: "Monotype Catch and De-volve",
+			variant: "monotype",
+		},
+		{
+			name: "Monoregion Catch and De-volve",
+			variant: "monoregion",
+		},
+		{
 			name: "Catch and De-volve Ubers",
 			variant: "ubers",
 		},
@@ -40,6 +48,10 @@ export const game: IGameFile<CatchAndDevolve> = Games.copyTemplateProperties(eli
 		{
 			name: "Catch and De-volve PU",
 			variant: "pu",
+		},
+		{
+			name: "Catch and De-volve ZU",
+			variant: "zu",
 		},
 	],
 });

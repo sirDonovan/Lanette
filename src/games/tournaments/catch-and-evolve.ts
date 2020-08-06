@@ -23,6 +23,15 @@ export const game: IGameFile<CatchAndEvolve> = Games.copyTemplateProperties(elim
 	name,
 	variants: [
 		{
+			name: "Monotype Catch and Evolve",
+			variant: "monotype",
+		},
+		{
+			name: "Monoregion Catch and Evolve",
+			variant: "monoregion",
+			variantAliases: ["monogen"],
+		},
+		{
 			name: "Catch and Evolve Ubers",
 			variant: "ubers",
 		},
@@ -41,6 +50,10 @@ export const game: IGameFile<CatchAndEvolve> = Games.copyTemplateProperties(elim
 		{
 			name: "Catch and Evolve PU",
 			variant: "pu",
+		},
+		{
+			name: "Catch and Evolve ZU",
+			variant: "zu",
 		},
 	],
 });

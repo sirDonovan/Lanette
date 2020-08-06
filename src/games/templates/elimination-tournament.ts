@@ -5,8 +5,21 @@ import type { User } from "../../users";
 import type { Room } from "../../rooms";
 import type { GameCategory, IGameTemplateFile, GameCommandDefinitions, IBattleGameData } from "../../types/games";
 
+interface IEliminationTree<T> {
+	root: EliminationNode<T>;
+	currentLayerLeafNodes: EliminationNode<T>[];
+	nextLayerLeafNodes: EliminationNode<T>[];
+}
+
+interface ITeamChange {
+	additions: number;
+	choices: string[];
+	evolutions: number;
+}
+
 const SIGNUPS_HTML_DELAY = 2 * 1000;
 const ADVERTISEMENT_TIME = 20 * 60 * 1000;
+const POTENTIAL_MAX_PLAYERS: number[] = [12, 16, 24, 32, 48, 64, 80, 96, 112, 128];
 
 /**
  * There are two types of elim nodes, player nodes
@@ -92,24 +105,12 @@ class EliminationNode<T> {
 	}
 }
 
-interface IEliminationTree<T> {
-	root: EliminationNode<T>;
-	currentLayerLeafNodes: EliminationNode<T>[];
-	nextLayerLeafNodes: EliminationNode<T>[];
-}
-
-interface ITeamChange {
-	additions: number;
-	choices: string[];
-	evolutions: number;
-}
-
 export abstract class EliminationTournament extends Game {
 	abstract baseTournamentName: string;
 
 	activityDQTimeout: number = 2 * 60 * 1000;
 	activityTimers = new Map<EliminationNode<Player>, NodeJS.Timer>();
-	activityWarnTimeout: number = 3 * 60 * 1000;
+	activityWarnTimeout: number = 5 * 60 * 1000;
 	additionsPerRound: number = 0;
 	advertisementInterval: NodeJS.Timer | null = null;
 	allowsScouting: boolean = false;
@@ -178,12 +179,30 @@ export abstract class EliminationTournament extends Game {
 		this.firstRoundTime = this.activityWarnTimeout + this.activityDQTimeout + this.firstRoundExtraTime;
 	}
 
-	getMaxPlayers(pokemon: number): number {
-		if (this.additionsPerRound && this.additionsPerRound >= 1) {
-			return Math.floor(pokemon / (this.startingTeamsLength + this.additionsPerRound));
+	getMinimumPokemonForPlayers(players: number): number {
+		if (this.sharedTeams || this.usesCloakedPokemon) {
+			return this.startingTeamsLength;
+		} else if (this.additionsPerRound >= 1) {
+			const rounds = Math.ceil(Math.log(players) / Math.log(2));
+			if (Math.pow(2, rounds) > players) {
+				const maxSecondRoundPlayers = Math.pow(2, rounds - 1) - 1;
+				return (players * this.startingTeamsLength) + (maxSecondRoundPlayers * this.additionsPerRound);
+			}
 		}
 
-		return Math.floor(pokemon / this.startingTeamsLength);
+		return players * this.startingTeamsLength;
+	}
+
+	getMaxPlayers(pokemon: number): number {
+		let maxPlayers = 0;
+		for (const players of POTENTIAL_MAX_PLAYERS) {
+			if (this.getMinimumPokemonForPlayers(players - 1) > pokemon || this.getMinimumPokemonForPlayers(players) > pokemon) {
+				break;
+			}
+			maxPlayers = players;
+		}
+
+		return maxPlayers;
 	}
 
 	createPokedex(): IPokemon[] {
@@ -194,11 +213,13 @@ export abstract class EliminationTournament extends Game {
 		const pokedex: IPokemon[] = [];
 		for (const name of Dex.data.pokemonKeys) {
 			const pokemon = Dex.getExistingPokemon(name);
-			if (pokemon.forme || !this.battleFormat.usablePokemon.includes(pokemon.name)) continue;
+			if (pokemon.battleOnly || this.banlist.includes(pokemon.name) ||
+				!this.battleFormat.usablePokemon.includes(pokemon.name)) continue;
 
-			// gens and colors only enforced for the first stage
 			if (this.gen && pokemon.gen !== this.gen) continue;
 			if (this.color && pokemon.color !== this.color) continue;
+			if (this.type && !pokemon.types.includes(this.type)) continue;
+
 			if (this.requiredTier) {
 				if (pokemon.tier !== this.requiredTier) continue;
 			} else if (fullyEvolved) {
@@ -207,23 +228,32 @@ export abstract class EliminationTournament extends Game {
 				if (pokemon.prevo || !pokemon.nfe) continue;
 			}
 
-			const evolutionLines = checkEvolutions ? Dex.getEvolutionLines(pokemon) : [[pokemon.name]];
-			let validEvolutions = evolutionLines.length;
-			for (const line of evolutionLines) {
-				for (const stage of line) {
-					const evolution = Dex.getExistingPokemon(stage);
-					if (this.banlist.includes(evolution.name) || !this.battleFormat.usablePokemon.includes(evolution.name) ||
-						(this.type && !evolution.types.includes(this.type))) {
-						validEvolutions--;
-						break;
+			if (checkEvolutions) {
+				const evolutionLines = Dex.getEvolutionLines(pokemon);
+				let validEvolutionLines = evolutionLines.length;
+				for (const line of evolutionLines) {
+					let validLine = true;
+					for (const stage of line) {
+						const evolution = Dex.getExistingPokemon(stage);
+						if (evolution === pokemon) continue;
+						if (this.banlist.includes(evolution.name) || !this.battleFormat.usablePokemon.includes(evolution.name) ||
+							(this.type && !evolution.types.includes(this.type))) {
+							validEvolutionLines--;
+							validLine = false;
+							break;
+						}
 					}
+
+					if (validLine) break;
 				}
+
+				if (!validEvolutionLines) continue;
 			}
-			if (!validEvolutions) continue;
 
 			pokedex.push(pokemon);
 		}
-		return pokedex;
+
+		return pokedex.filter(x => !(x.forme && pokedex.includes(Dex.getExistingPokemon(x.baseSpecies))));
 	}
 
 	generateBracket(): void {
@@ -886,15 +916,9 @@ export abstract class EliminationTournament extends Game {
 	}
 
 	onSignups(): void {
-		const minimumPlayers = 16;
-		let minimumPokemon: number;
-		if (this.sharedTeams || this.usesCloakedPokemon) {
-			minimumPokemon = this.startingTeamsLength;
-		} else {
-			minimumPokemon = minimumPlayers * this.startingTeamsLength;
-			// potential byes
-			if (this.additionsPerRound >= 1) minimumPokemon += ((minimumPlayers - 2) * this.additionsPerRound);
-		}
+		const minimumPlayers = POTENTIAL_MAX_PLAYERS[0];
+		const minimumPokemon = Math.max(this.getMinimumPokemonForPlayers(minimumPlayers - 1),
+			this.getMinimumPokemonForPlayers(minimumPlayers));
 
 		let pokedex: IPokemon[];
 		if (this.variant === 'monocolor') {
@@ -902,7 +926,7 @@ export abstract class EliminationTournament extends Game {
 			this.color = colors[0];
 			colors.shift();
 			pokedex = this.createPokedex();
-			while (pokedex.length < minimumPokemon || this.getMaxPlayers(pokedex.length) < minimumPlayers) {
+			while (this.getMaxPlayers(pokedex.length) < minimumPlayers) {
 				if (!colors.length) throw new Error("No color has at least " + minimumPokemon + " Pokemon");
 				this.color = colors[0];
 				colors.shift();
@@ -914,7 +938,7 @@ export abstract class EliminationTournament extends Game {
 			this.type = Dex.getExistingType(types[0]).name;
 			types.shift();
 			pokedex = this.createPokedex();
-			while (pokedex.length < minimumPokemon || this.getMaxPlayers(pokedex.length) < minimumPlayers) {
+			while (this.getMaxPlayers(pokedex.length) < minimumPlayers) {
 				if (!types.length) throw new Error("No type has at least " + minimumPokemon + " Pokemon");
 				this.type = Dex.getExistingType(types[0]).name;
 				types.shift();
@@ -931,7 +955,7 @@ export abstract class EliminationTournament extends Game {
 			this.gen = gens[0];
 			gens.shift();
 			pokedex = this.createPokedex();
-			while (pokedex.length < minimumPokemon || this.getMaxPlayers(pokedex.length) < minimumPlayers) {
+			while (this.getMaxPlayers(pokedex.length) < minimumPlayers) {
 				if (!gens.length) throw new Error("No gen has at least " + minimumPokemon + " Pokemon");
 				this.gen = gens[0];
 				gens.shift();
@@ -960,6 +984,9 @@ export abstract class EliminationTournament extends Game {
 			this.tournamentName = "Mono-" + region + " " + this.baseTournamentName;
 		} else {
 			pokedex = this.createPokedex();
+			if (this.getMaxPlayers(pokedex.length) < minimumPlayers) {
+				throw new Error(this.battleFormat.name + " does not have at least " + minimumPokemon + " Pokemon");
+			}
 			this.tournamentName = this.format.nameWithOptions || this.format.name;
 		}
 
