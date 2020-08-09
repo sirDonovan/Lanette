@@ -57,7 +57,7 @@ function pruneBuiltFiles() {
 	const builtFiles = listFilesRecursive(builtFolder);
 	const srcFiles = listFilesRecursive(srcFolder);
 	for (let i = 0; i < builtFiles.length; i++) {
-		if (!builtFiles[i].endsWith('.js')) {
+		if (!builtFiles[i].endsWith('.js') && !builtFiles[i].endsWith('.js.map')) {
 			if (fs.lstatSync(builtFiles[i]).isDirectory()) {
 				if (!srcFiles.includes(path.join(srcFolder, builtFiles[i].substr(builtFolder.length + 1)))) {
 					fs.rmdirSync(builtFiles[i]);
