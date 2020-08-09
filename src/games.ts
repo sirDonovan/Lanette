@@ -636,6 +636,16 @@ export class Games {
 
 		return formats;
 	}
+
+	getTournamentFormatList(): IGameFormat[] {
+		const formats: IGameFormat[] = [];
+		for (const i in this.formats) {
+			const format = this.getExistingFormat(i);
+			if (format.disabled || !format.tournamentGame) continue;
+			formats.push(format);
+		}
+
+		return formats;
 	}
 
 	/**

@@ -692,7 +692,7 @@ const commands: CommandDefinitions<CommandContext> = {
 		aliases: ['hthgame', 'hthg'],
 	},
 	createtournamentgame: {
-		command(target, room, user) {
+		command(target, room, user, cmd) {
 			if (this.isPm(room)) return;
 			if (!user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
 			if (!Config.allowTournamentGames || !Config.allowTournamentGames.includes(room.id)) {
@@ -709,15 +709,28 @@ const commands: CommandDefinitions<CommandContext> = {
 				return;
 			}
 
-			const format = Games.getTournamentFormat(target, true);
-			if (Array.isArray(format)) {
-				return this.sayError(format);
+			let format: IGameFormat | undefined;
+			if (cmd === 'createrandomtournamentgame' || cmd === 'createrandomtourgame' || cmd === 'randomtourgame' || cmd === 'crtg') {
+				const formats = Tools.shuffle(Games.getTournamentFormatList());
+				for (const randomFormat of formats) {
+					if (Games.canCreateGame(room, randomFormat) === true) {
+						format = randomFormat;
+						break;
+					}
+				}
+				if (!format) return this.say("A random tournament could not be chosen.");
+			} else {
+				const inputFormat = Games.getFormat(target, true);
+				if (Array.isArray(inputFormat)) return this.sayError(inputFormat);
+				const canCreateGame = Games.canCreateGame(room, inputFormat);
+				if (canCreateGame !== true) return this.say(canCreateGame + " Please choose a different tournament!");
+				format = inputFormat;
 			}
 
 			const game = Games.createGame(room, format, room);
 			game.signups();
 		},
-		aliases: ['createtourgame', 'ctourgame', 'ctg'],
+		aliases: ['createtourgame', 'ctourgame', 'ctg', 'createrandomtournamentgame', 'createrandomtourgame', 'randomtourgame', 'crtg'],
 	},
 	randomminigame: {
 		async asyncCommand(target, room, user, cmd) {
