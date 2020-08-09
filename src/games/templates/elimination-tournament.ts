@@ -3,7 +3,8 @@ import { Game } from "../../room-game";
 import type { IFormat, IPokemon } from "../../types/dex";
 import type { User } from "../../users";
 import type { Room } from "../../rooms";
-import type { GameCategory, IGameTemplateFile, GameCommandDefinitions, IBattleGameData } from "../../types/games";
+import type { GameCategory, IGameTemplateFile, GameCommandDefinitions, IBattleGameData, GameFileTests } from "../../types/games";
+import { assert, addPlayers, assertStrictEqual } from "../../test/test-tools";
 
 interface IEliminationTree<T> {
 	root: EliminationNode<T>;
@@ -135,7 +136,7 @@ export abstract class EliminationTournament extends Game {
 	gen: number | null = null;
 	givenFirstRoundExtraTime = new Set<Player>();
 	internalGame = true;
-	maxPlayers: number = 32;
+	maxPlayers: number = POTENTIAL_MAX_PLAYERS[POTENTIAL_MAX_PLAYERS.length - 1];
 	minPlayers: number = 4;
 	playerCap: number = 0;
 	playerOpponents = new Map<Player, Player>();
@@ -923,12 +924,12 @@ export abstract class EliminationTournament extends Game {
 		let pokedex: IPokemon[];
 		if (this.variant === 'monocolor') {
 			const colors = this.shuffle(Object.keys(Dex.data.colors));
-			this.color = colors[0];
+			this.color = Dex.data.colors[colors[0]];
 			colors.shift();
 			pokedex = this.createPokedex();
 			while (this.getMaxPlayers(pokedex.length) < minimumPlayers) {
 				if (!colors.length) throw new Error("No color has at least " + minimumPokemon + " Pokemon");
-				this.color = colors[0];
+				this.color = Dex.data.colors[colors[0]];
 				colors.shift();
 				pokedex = this.createPokedex();
 			}
@@ -1578,10 +1579,35 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 	/* eslint-enable */
 };
 
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+const tests: GameFileTests<EliminationTournament> = {
+	'should generate a Pokedex': {
+		test(game, format) {
+			assert(game.pokedex.length);
+		}
+	},
+	'should generate an even bracket for 2^n player count': {
+		test(game, format) {
+			addPlayers(game, 4);
+			game.start();
+			assert(!game.firstRoundByes.size);
+		}
+	},
+	'should generate a bracket with byes if not 2^n player count': {
+		test(game, format) {
+			addPlayers(game, 6);
+			game.start();
+			assertStrictEqual(2, game.firstRoundByes.size);
+		}
+	}
+};
+/* eslint-enable */
+
 export const game: IGameTemplateFile<EliminationTournament> = {
 	category: 'elimination-tournament' as GameCategory,
 	commandDescriptions: [Config.commandCharacter + 'check [battle link]'],
 	commands,
 	noOneVsOne: true,
+	tests,
 	tournamentGame: true,
 };
