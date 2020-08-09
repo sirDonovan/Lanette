@@ -80,9 +80,11 @@ export abstract class BoardGame extends Game {
 		const topCorner = this.board.leftColumn.length - 1;
 		const rightColumnOffset = this.board.rightColumn.length - 1;
 
-		let html = '<div class="infobox"><b><font color="black"><table align="center"; border="2"; style=text-align:center>';
+		let html = '<div class="infobox"><table align="center" border="2" ' +
+			'style="color: black;font-weight: bold;text-align: center;table-layout: fixed;width: ' +
+			(25 * (this.board.topRow.length + 2)) + 'px">';
 		for (let i = this.board.leftColumn.length - 1; i >= 0; i--) {
-			html += "<tr style=height:24px>";
+			html += "<tr style='height:25px'>";
 			html += this.getSpaceHtml('leftColumn', i, playerLocations);
 			if (i === topCorner) {
 				for (let i = 0; i < this.board.topRow.length; i++) {
@@ -100,7 +102,7 @@ export abstract class BoardGame extends Game {
 			html += this.getSpaceHtml('rightColumn', rightColumnOffset - i, playerLocations);
 			html += "</tr>";
 		}
-		html += "</table></font></b></div>";
+		html += "</table></div>";
 
 		this.sayUhtml(this.uhtmlBaseName + '-board', html);
 	}
