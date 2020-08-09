@@ -96,8 +96,19 @@ export class CommandContext {
 		return this.pm;
 	}
 
-	sanitizeResponse(response: string): string {
-		if (response.startsWith('/') || response.startsWith('!')) return response.substr(1);
+	sanitizeResponse(response: string, allowedCommands?: string[]): string {
+		response = response.trim();
+		if (response.startsWith('/')) {
+			while (response.startsWith('/')) {
+				response = response.substr(1);
+			}
+			return response;
+		}
+
+		if (response.startsWith('!')) {
+			if (!allowedCommands || !allowedCommands.includes(Tools.toId(response.split(" ")[0]))) return response.substr(1);
+		}
+
 		return response;
 	}
 }
