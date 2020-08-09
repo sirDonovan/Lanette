@@ -235,6 +235,11 @@ export let gameCategoryCooldowns: Dict<number> = {};
 export let gameCooldownTimers: Dict<number> = {};
 
 /**
+ * The number of minutes that must pass before starting consecutive scripted tournament games
+ */
+export let tournamentGameCooldownTimers: Dict<number> = {};
+
+/**
  * The number of seconds that must pass before starting consecutive minigames
  */
 export let minigameCooldownTimers: Dict<number> = {};
@@ -245,6 +250,13 @@ export let minigameCooldownTimers: Dict<number> = {};
  * Compounds with gameCooldownTimers
  */
 export let gameAutoCreateTimers: Dict<number> = {};
+
+/**
+ * The number of minutes that must pass before a scripted tournament game is automatically created
+ *
+ * Compounds with tournamentGameCooldownTimers
+ */
+export let tournamentGameAutoCreateTimers: Dict<number> = {};
 
 /**
  * The number of minutes that must pass before a scripted game is automatically started

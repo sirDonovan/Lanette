@@ -1445,6 +1445,21 @@ export abstract class EliminationTournament extends Game {
 		} else {
 			this.say("Both finalists were disqualified so no one wins the " + this.name + " tournament!");
 		}
+
+		Games.lastGames[this.room.id] = Date.now();
+
+		if (Config.tournamentGameCooldownTimers && this.room.id in Config.tournamentGameCooldownTimers) {
+			this.say("The **" + Config.tournamentGameCooldownTimers[this.room.id] + "-minute cooldown** until the next tournament " +
+				"starts now!");
+		}
+
+		if (Config.tournamentGameAutoCreateTimers && this.room.id in Config.tournamentGameAutoCreateTimers) {
+			let autoCreateTimer = Config.tournamentGameAutoCreateTimers[this.room.id];
+			if (Config.tournamentGameCooldownTimers && this.room.id in Config.tournamentGameCooldownTimers) {
+				autoCreateTimer += Config.tournamentGameCooldownTimers[this.room.id];
+			}
+			Games.setAutoCreateTimer(this.room, 'tournament', autoCreateTimer * 60 * 1000);
+		}
 	}
 
 	onForceEnd(): void {
