@@ -80,7 +80,7 @@ export abstract class BoardGame extends Game {
 		const topCorner = this.board.leftColumn.length - 1;
 		const rightColumnOffset = this.board.rightColumn.length - 1;
 
-		let html = '<b><div class="infobox"><font color="black"><table align="center"; border="2">';
+		let html = '<div class="infobox"><b><font color="black"><table align="center"; border="2"; style=text-align:center>';
 		for (let i = this.board.leftColumn.length - 1; i >= 0; i--) {
 			html += "<tr style=height:24px>";
 			html += this.getSpaceHtml('leftColumn', i, playerLocations);
