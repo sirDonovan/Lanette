@@ -86,8 +86,23 @@ for (const format of formatsToTest) {
 			afterEach(() => {
 				if (room.game) room.game.deallocate(true);
 			});
+
 			createIndividualTests(format, format.tests!);
 		});
+
+		if (format.variants) {
+			for (const variant of format.variants) {
+				const variantFormat = Games.getExistingFormat(format.inputTarget + "," + variant.variant);
+				describe(variantFormat.nameWithOptions + " individual tests", () => {
+					afterEach(() => {
+						if (room.game) room.game.deallocate(true);
+					});
+
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+					createIndividualTests(variantFormat as IGameFormat, format.tests!);
+				});
+			}
+		}
 	}
 }
 
