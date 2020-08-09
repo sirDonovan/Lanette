@@ -1016,15 +1016,23 @@ export abstract class EliminationTournament extends Game {
 		this.advertisementInterval = setInterval(() => {
 			this.totalAdvertisementTime += intervalTime;
 			if (this.totalAdvertisementTime === halfAdvertisementTime) {
-				const cap = Math.floor(this.playerCap / 2);
-				if (this.playerCount >= cap) {
+				let closestCap = 0;
+				for (const players of POTENTIAL_MAX_PLAYERS) {
+					if (this.playerCount <= players) {
+						closestCap = players;
+						break;
+					}
+				}
+
+				if (this.playerCount >= closestCap) {
 					return this.endAdvertisements();
-				} else if (cap >= 8) {
-					this.playerCap = cap;
+				} else {
+					this.playerCap = closestCap;
 				}
 			} else if (this.totalAdvertisementTime >= ADVERTISEMENT_TIME) {
 				return this.endAdvertisements();
 			}
+
 			this.postSignups();
 		}, intervalTime);
 	}
