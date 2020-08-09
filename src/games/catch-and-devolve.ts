@@ -1,5 +1,5 @@
-import { EliminationTournament, game as eliminationTournamentGame } from '../templates/elimination-tournament';
-import type { IGameFile } from '../../types/games';
+import { EliminationTournament, game as eliminationTournamentGame } from './templates/elimination-tournament';
+import type { IGameFile } from '../types/games';
 
 const name = "Catch and De-volve";
 const description = "Every player is given a randomly generated Pokemon to use as their starter. Each battle that you win, you " +
@@ -9,6 +9,7 @@ class CatchAndDevolve extends EliminationTournament {
 	additionsPerRound = 1;
 	evolutionsPerRound = -1;
 	startingTeamsLength = 1;
+	maxPlayers = 64;
 	requiredEvolution = true;
 	canReroll = true;
 	baseTournamentName = name;

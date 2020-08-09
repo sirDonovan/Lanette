@@ -17,9 +17,7 @@ const formatsToTest: IGameFormat[] = [];
 if (testOptions.games) {
 	const games = testOptions.games.split(',');
 	for (const game of games) {
-		const format = Games.getFormat(game);
-		if (Array.isArray(format)) throw new Error("Unknown game format '" + game + "'");
-		formatsToTest.push(format);
+		formatsToTest.push(Games.getExistingFormat(game));
 	}
 } else {
 	for (const i in Games.formats) {
@@ -57,7 +55,7 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 		const numberOfTests = Math.max(formats.length, commands ? commands.length : 0);
 		for (let i = 0; i < numberOfTests; i++) {
 			let testFormat: IGameFormat;
-			if (formats[i]) {
+			if (formats[i] && formats[i] !== format.inputTarget) {
 				testFormat = Games.getExistingFormat(formats[i]);
 			} else {
 				testFormat = format;
@@ -304,8 +302,9 @@ describe("Games", () => {
 	it('should start signups for scripted games', () => {
 		const roomPrefix = room.id + "|";
 		for (const format of formatsToTest) {
-			const startingSendQueueIndex = Client.sendQueue.length;
+			if (format.tournamentGame) continue;
 
+			const startingSendQueueIndex = Client.sendQueue.length;
 			const gameLog: string[] = [];
 			const game = Games.createGame(room, format);
 			assert(game, format.name);

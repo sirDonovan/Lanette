@@ -20,7 +20,7 @@ export type GameCommandDefinitions<T extends Game = Game> = CommandDefinitions<T
 export type LoadedGameCommands<T extends Game = Game> = LoadedCommands<T, GameCommandReturnType>;
 
 export type GameDifficulty = 'easy' | 'medium' | 'hard';
-export type AutoCreateTimerType = 'scripted' | 'userhosted';
+export type AutoCreateTimerType = 'scripted' | 'tournament' | 'userhosted';
 
 export type GameCategory = 'board' | 'board-property' | 'card' | 'card-high-low' | 'card-matching' | 'chain' | 'elimination-tournament' |
 	'identification' | 'knowledge' | 'map' | 'playing-card' | 'puzzle' | 'reaction' | 'speed';
@@ -135,6 +135,7 @@ interface IGameFileProperties<T extends Game = Game> {
 	noOneVsOne?: boolean;
 	scriptedOnly?: boolean;
 	tests?: GameFileTests<T>;
+	tournamentGame?: boolean;
 	variants?: IGameVariant<T>[];
 }
 

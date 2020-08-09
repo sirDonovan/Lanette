@@ -1,6 +1,6 @@
-import { EliminationTournament, game as eliminationTournamentGame } from '../templates/elimination-tournament';
-import type { IGameFile } from '../../types/games';
-import type { IPokemon } from '../../types/dex';
+import { EliminationTournament, game as eliminationTournamentGame } from './templates/elimination-tournament';
+import type { IGameFile } from '../types/games';
+import type { IPokemon } from '../types/dex';
 
 const name = "Same Six";
 const description = "Every player battles with the same randomly generated team!";

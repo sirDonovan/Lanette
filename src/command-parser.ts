@@ -232,6 +232,8 @@ export class CommandParser {
 			return "Tournament features are not enabled for " + error[1].trim() + ".";
 		} else if (error[0] === 'disabledGameFeatures') {
 			return "Scripted game features are not enabled for " + error[1].trim() + ".";
+		} else if (error[0] === 'disabledTournamentGameFeatures') {
+			return "Scripted tournament game features are not enabled for " + error[1].trim() + ".";
 		} else if (error[0] === 'disabledUserHostedGameFeatures') {
 			return "User-hosted game features are not enabled for " + error[1].trim() + ".";
 		} else if (error[0] === 'disabledUserHostedTournamentFeatures') {

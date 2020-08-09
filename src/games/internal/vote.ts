@@ -89,7 +89,7 @@ export class Vote extends Game {
 		let possiblePicks: string[] = [];
 		for (const i in Games.formats) {
 			const format = Games.getExistingFormat(i);
-			if (format.disabled) continue;
+			if (format.disabled || format.tournamentGame) continue;
 			formats.push(format.name);
 			if (Games.canCreateGame(this.room, format) === true) possiblePicks.push(format.name);
 		}
@@ -179,9 +179,8 @@ const commands: GameCommandDefinitions<Vote> = {
 			const targetId = Tools.toId(target);
 			let format: IGameFormat | undefined;
 			if (targetId === 'random' || targetId === 'randomgame') {
-				const formats = Tools.shuffle(Object.keys(Games.formats));
-				for (const formatId of formats) {
-					const randomFormat = Games.getExistingFormat(formatId);
+				const formats = Tools.shuffle(Games.getFormatList());
+				for (const randomFormat of formats) {
 					if (Games.canCreateGame(this.room, randomFormat) === true) {
 						format = randomFormat;
 						break;
@@ -196,6 +195,11 @@ const commands: GameCommandDefinitions<Vote> = {
 				const targetFormat = Games.getFormat(target, true);
 				if (Array.isArray(targetFormat)) {
 					user.say(CommandParser.getErrorText(targetFormat));
+					return false;
+				}
+
+				if (targetFormat.tournamentGame) {
+					user.say("Tournament formats cannot be chosen. Please vote for a different game!");
 					return false;
 				}
 

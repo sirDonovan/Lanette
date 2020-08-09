@@ -696,15 +696,15 @@ const commands: CommandDefinitions<CommandContext> = {
 			if (this.isPm(room)) return;
 			if (!user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
 			if (!Config.allowTournamentGames || !Config.allowTournamentGames.includes(room.id)) {
-				return this.sayError(['disabledGameFeatures', room.title]);
+				return this.sayError(['disabledTournamentGameFeatures', room.title]);
 			}
 			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
 			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
 
-			const remainingGameCooldown = Games.getRemainingGameCooldown(room, true);
+			const remainingGameCooldown = Games.getRemainingTournamentGameCooldown(room, true);
 			if (remainingGameCooldown > 1000) {
 				const durationString = Tools.toDurationString(remainingGameCooldown);
-				this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the minigame " +
+				this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the tournament " +
 					"cooldown remaining.");
 				return;
 			}
@@ -791,22 +791,14 @@ const commands: CommandDefinitions<CommandContext> = {
 				let formats: string[];
 				if (option === 'freejoin' || option === 'fj') {
 					formats = Games.freejoinFormatTargets;
-				} else if (option) {
-					formats = [];
-					for (const i in Games.formats) {
-						const format = Games.getExistingFormat(i);
-						if (format.disabled) continue;
-						if (Tools.toId(format.category) === option) {
-							formats.push(i);
-						}
-					}
-
-					if (!formats.length) return this.say("There are no games in the category '" + target.trim() + "'.");
 				} else {
-					formats = Object.keys(Games.formats);
+					let filter;
+					if (option) filter = (format: IGameFormat) => Tools.toId(format.category) === option;
+					formats = Games.getFormatList(filter).map(x => x.name);
+					if (!formats.length) return this.say("There are no games in the category '" + target.trim() + "'.");
 				}
-				formats = Tools.shuffle(formats);
 
+				formats = Tools.shuffle(formats);
 				for (const formatId of formats) {
 					const randomFormat = Games.getExistingFormat(formatId);
 					if (Games.canCreateGame(room, randomFormat) === true) {
@@ -818,6 +810,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			} else {
 				const inputFormat = Games.getFormat(target, true);
 				if (Array.isArray(inputFormat)) return this.sayError(inputFormat);
+				if (inputFormat.tournamentGame) return this.say("You must use the ``" + Config.commandCharacter + "ctg`` command.");
 				const canCreateGame = Games.canCreateGame(room, inputFormat);
 				if (canCreateGame !== true) return this.say(canCreateGame + " Please choose a different game!");
 				format = inputFormat;

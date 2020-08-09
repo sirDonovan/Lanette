@@ -1,6 +1,6 @@
-import { EliminationTournament, game as eliminationTournamentGame } from '../templates/elimination-tournament';
-import type { IGameFile } from '../../types/games';
-import type { IPokemon } from '../../types/dex';
+import { EliminationTournament, game as eliminationTournamentGame } from './templates/elimination-tournament';
+import type { IGameFile } from '../types/games';
+import type { IPokemon } from '../types/dex';
 
 const name = "Cloak and Dagger";
 const description = "Every player is given the same randomly generated Pokemon that they have to protect from fainting each battle! You " +
