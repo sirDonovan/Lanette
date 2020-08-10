@@ -98,17 +98,15 @@ export class CommandContext {
 
 	sanitizeResponse(response: string, allowedCommands?: string[]): string {
 		response = response.trim();
-		if (response.startsWith('/')) {
-			while (response.startsWith('/')) {
-				response = response.substr(1);
-			}
-			return response;
+
+		const serverCommand = response.startsWith('!');
+		while (response.startsWith('/') || response.startsWith('!')) {
+			response = response.substr(1).trim();
 		}
 
-		if (response.startsWith('!')) {
-			if (!allowedCommands || !allowedCommands.includes(Tools.toId(response.split(" ")[0]))) return response.substr(1);
+		if (serverCommand && allowedCommands && allowedCommands.includes(Tools.toId(response.split(" ")[0]))) {
+			return '!' + response;
 		}
-
 		return response;
 	}
 }
