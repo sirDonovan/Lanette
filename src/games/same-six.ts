@@ -17,7 +17,7 @@ class SameSix extends EliminationTournament {
 	canRejoin = true;
 	firstRoundExtraTime = 10 * 60 * 1000;
 
-	getStartingTeam(): IPokemon[] {
+	getStartingTeam(): string[] {
 		return this.pokedex.slice(0, this.startingTeamsLength);
 	}
 }

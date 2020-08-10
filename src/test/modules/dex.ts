@@ -293,12 +293,12 @@ describe("Dex", () => {
 		assert(!Dex.includesPokemon([Dex.getExistingPokemon('Pikachu')], ['Charmander']));
 	});
 	it('should return proper values from isPossibleTeam()', () => {
-		let teams = [[Dex.getExistingPokemon('Charmander'), Dex.getExistingPokemon('Squirtle')]];
+		let teams = [['Charmander', 'Squirtle']];
 		assert(Dex.isPossibleTeam(['Charmander', 'Squirtle'], teams));
 		assert(!Dex.isPossibleTeam(['Charmander'], teams));
 		assert(!Dex.isPossibleTeam(['Squirtle'], teams));
 
-		teams = [[Dex.getExistingPokemon('Squirtle'), Dex.getExistingPokemon('Charmander')]];
+		teams = [['Squirtle', 'Charmander']];
 		assert(Dex.isPossibleTeam(['Charmander', 'Squirtle'], teams));
 		assert(!Dex.isPossibleTeam(['Charmander'], teams));
 		assert(!Dex.isPossibleTeam(['Squirtle'], teams));
@@ -307,8 +307,7 @@ describe("Dex", () => {
 		// catch and evolve
 
 		// 1 optional addition and 1 optional evolution
-		let possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Pikachu")]], ["Charmander"], 1, 1)
-			.map(x => x.map(y => y.name).join(','));
+		let possibleTeams = Dex.getPossibleTeams([["Pikachu"]], ["Charmander"], 1, 1).map(x => x.join(','));
 		assert(possibleTeams.includes('Pikachu'));
 		assert(possibleTeams.includes('Raichu'));
 		assert(possibleTeams.includes('Charmander,Pikachu'));
@@ -317,8 +316,7 @@ describe("Dex", () => {
 		assert(!possibleTeams.includes('Charmeleon,Raichu'));
 
 		// 1 required addition and 1 optional evolution
-		possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Pikachu")]], ["Charmander"], 1, 1, true)
-			.map(x => x.map(y => y.name).join(','));
+		possibleTeams = Dex.getPossibleTeams([["Pikachu"]], ["Charmander"], 1, 1, true).map(x => x.join(','));
 		assert(!possibleTeams.includes('Pikachu'));
 		assert(!possibleTeams.includes('Raichu'));
 		assert(possibleTeams.includes('Charmander,Pikachu'));
@@ -327,8 +325,7 @@ describe("Dex", () => {
 		assert(!possibleTeams.includes('Charmeleon,Raichu'));
 
 		// 1 required addition and 1 required evolution
-		possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Pikachu")]], ["Charmander"], 1, 1, true, true)
-			.map(x => x.map(y => y.name).join(','));
+		possibleTeams = Dex.getPossibleTeams([["Pikachu"]], ["Charmander"], 1, 1, true, true).map(x => x.join(','));
 		assert(!possibleTeams.includes('Pikachu'));
 		assert(!possibleTeams.includes('Raichu'));
 		assert(!possibleTeams.includes('Charmander,Pikachu'));
@@ -337,8 +334,7 @@ describe("Dex", () => {
 		assert(!possibleTeams.includes('Charmeleon,Raichu'));
 
 		// 1 optional addition and 1 required evolution
-		possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Pikachu")]], ["Charmander"], 1, 1, false, true)
-			.map(x => x.map(y => y.name).join(','));
+		possibleTeams = Dex.getPossibleTeams([["Pikachu"]], ["Charmander"], 1, 1, false, true).map(x => x.join(','));
 		assert(!possibleTeams.includes('Pikachu'));
 		assert(possibleTeams.includes('Raichu'));
 		assert(!possibleTeams.includes('Charmander,Pikachu'));
@@ -350,8 +346,7 @@ describe("Dex", () => {
 		// catch and de-volve
 
 		// 1 optional addition and 1 optional de-volution
-		possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Raichu")]], ["Charizard"], 1, -1)
-			.map(x => x.map(y => y.name).join(','));
+		possibleTeams = Dex.getPossibleTeams([["Raichu"]], ["Charizard"], 1, -1).map(x => x.join(','));
 		assert(possibleTeams.includes('Raichu'));
 		assert(possibleTeams.includes('Pikachu'));
 		assert(possibleTeams.includes('Charizard,Raichu'));
@@ -360,8 +355,7 @@ describe("Dex", () => {
 		assert(!possibleTeams.includes('Charmeleon,Pikachu'));
 
 		// 1 required addition and 1 optional de-volution
-		possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Raichu")]], ["Charizard"], 1, -1, true)
-			.map(x => x.map(y => y.name).join(','));
+		possibleTeams = Dex.getPossibleTeams([["Raichu"]], ["Charizard"], 1, -1, true).map(x => x.join(','));
 		assert(!possibleTeams.includes('Raichu'));
 		assert(!possibleTeams.includes('Pikachu'));
 		assert(possibleTeams.includes('Charizard,Raichu'));
@@ -370,8 +364,7 @@ describe("Dex", () => {
 		assert(!possibleTeams.includes('Charmeleon,Pikachu'));
 
 		// 1 required addition and 1 required de-volution
-		possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Raichu")]], ["Charizard"], 1, -1, true, true)
-			.map(x => x.map(y => y.name).join(','));
+		possibleTeams = Dex.getPossibleTeams([["Raichu"]], ["Charizard"], 1, -1, true, true).map(x => x.join(','));
 		assert(!possibleTeams.includes('Raichu'));
 		assert(!possibleTeams.includes('Pikachu'));
 		assert(!possibleTeams.includes('Charizard,Raichu'));
@@ -380,8 +373,7 @@ describe("Dex", () => {
 		assert(!possibleTeams.includes('Charmeleon,Pikachu'));
 
 		// 1 optional addition and 1 required de-volution
-		possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Raichu")]], ["Charizard"], 1, -1, false, true)
-			.map(x => x.map(y => y.name).join(','));
+		possibleTeams = Dex.getPossibleTeams([["Raichu"]], ["Charizard"], 1, -1, false, true).map(x => x.join(','));
 		assert(!possibleTeams.includes('Raichu'));
 		assert(possibleTeams.includes('Pikachu'));
 		assert(!possibleTeams.includes('Charizard,Raichu'));
@@ -390,56 +382,50 @@ describe("Dex", () => {
 		assert(!possibleTeams.includes('Charmeleon,Pikachu'));
 
 		// no evolutions left
-		let initialTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Pikachu")]], ["Charizard"], 1, 1, false, true);
+		let initialTeams = Dex.getPossibleTeams([["Pikachu"]], ["Charizard"], 1, 1, false, true);
 		initialTeams = Dex.getPossibleTeams(initialTeams, ["Blastoise"], 1, 1, false, true);
-		possibleTeams = Dex.getPossibleTeams(initialTeams, ["Venusaur"], 1, 1, false, true).map(x => x.map(y => y.name).join(','));
+		possibleTeams = Dex.getPossibleTeams(initialTeams, ["Venusaur"], 1, 1, false, true).map(x => x.join(','));
 		assert(possibleTeams.includes('Raichu'));
 		assert(possibleTeams.includes('Charizard,Raichu'));
-		assert(possibleTeams.includes('Charizard,Blastoise,Raichu'));
-		assert(possibleTeams.includes('Venusaur,Charizard,Blastoise,Raichu'));
+		assert(possibleTeams.includes('Blastoise,Charizard,Raichu'));
+		assert(possibleTeams.includes('Blastoise,Charizard,Raichu,Venusaur'));
 
 		assert(!possibleTeams.includes('Pikachu'));
 		assert(!possibleTeams.includes('Charizard,Pikachu'));
-		assert(!possibleTeams.includes('Charizard,Blastoise,Pikachu'));
-		assert(!possibleTeams.includes('Venusaur,Charizard,Blastoise,Pikachu'));
+		assert(!possibleTeams.includes('Blastoise,Charizard,Pikachu'));
+		assert(!possibleTeams.includes('Blastoise,Charizard,Pikachu,Venusaur'));
 
 		// no de-volutions are left
-		initialTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Pikachu")]], ["Charmander"], 1, -1, false, true);
+		initialTeams = Dex.getPossibleTeams([["Pikachu"]], ["Charmander"], 1, -1, false, true);
 		initialTeams = Dex.getPossibleTeams(initialTeams, ["Squirtle"], 1, -1, false, true);
-		possibleTeams = Dex.getPossibleTeams(initialTeams, ["Bulbasaur"], 1, -1, false, true)
-			.map(x => x.map(y => y.name).join(','));
+		possibleTeams = Dex.getPossibleTeams(initialTeams, ["Bulbasaur"], 1, -1, false, true).map(x => x.join(','));
 		assert(possibleTeams.includes('Pichu'));
 		assert(possibleTeams.includes('Charmander,Pichu'));
-		assert(possibleTeams.includes('Charmander,Squirtle,Pichu'));
-		assert(possibleTeams.includes('Bulbasaur,Charmander,Squirtle,Pichu'));
+		assert(possibleTeams.includes('Charmander,Pichu,Squirtle'));
+		assert(possibleTeams.includes('Bulbasaur,Charmander,Pichu,Squirtle'));
 
 		assert(!possibleTeams.includes('Pikachu'));
 		assert(!possibleTeams.includes('Charmander,Pikachu'));
-		assert(!possibleTeams.includes('Charmander,Squirtle,Pikachu'));
-		assert(!possibleTeams.includes('Bulbasaur,Charmander,Squirtle,Pikachu'));
+		assert(!possibleTeams.includes('Charmander,Pikachu,Squirtle'));
+		assert(!possibleTeams.includes('Bulbasaur,Charmander,Pikachu,Squirtle'));
 
 		// split evolutions
-		possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Gloom")]], ["Charmander"], 1, 1)
-			.map(x => x.map(y => y.name).join(','));
+		possibleTeams = Dex.getPossibleTeams([["Gloom"]], ["Charmander"], 1, 1).map(x => x.join(','));
 		assert(possibleTeams.includes('Charmander,Vileplume'));
-		assert(possibleTeams.includes('Charmander,Bellossom'));
+		assert(possibleTeams.includes('Bellossom,Charmander'));
 
 		// forme evolutions
-		possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Pikachu")]], ["Charmander"], 1, 1)
-			.map(x => x.map(y => y.name).join(','));
+		possibleTeams = Dex.getPossibleTeams([["Pikachu"]], ["Charmander"], 1, 1).map(x => x.join(','));
 		assert(possibleTeams.includes('Charmander,Raichu'));
 		assert(possibleTeams.includes('Charmander,Raichu-Alola'));
 
-		possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Mr. Mime")]], ["Charmander"], 1, 1)
-			.map(x => x.map(y => y.name).join(','));
+		possibleTeams = Dex.getPossibleTeams([["Mr. Mime"]], ["Charmander"], 1, 1).map(x => x.join(','));
 		assert(!possibleTeams.includes('Charmander,Mr. Rime'));
 
-		possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Mr. Mime-Galar")]], ["Charmander"], 1, 1)
-			.map(x => x.map(y => y.name).join(','));
+		possibleTeams = Dex.getPossibleTeams([["Mr. Mime-Galar"]], ["Charmander"], 1, 1).map(x => x.join(','));
 		assert(possibleTeams.includes('Charmander,Mr. Rime'));
 
-		possibleTeams = Dex.getPossibleTeams([[Dex.getExistingPokemon("Mr. Rime")]], ["Charmander"], 1, -1)
-			.map(x => x.map(y => y.name).join(','));
+		possibleTeams = Dex.getPossibleTeams([["Mr. Rime"]], ["Charmander"], 1, -1).map(x => x.join(','));
 		assert(possibleTeams.includes('Charmander,Mr. Mime-Galar'));
 		assert(!possibleTeams.includes('Charmander,Mr. Mime'));
 	});

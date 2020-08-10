@@ -17,7 +17,7 @@ class CloakAndDagger extends EliminationTournament {
 	requiredTier = "OU";
 	usesCloakedPokemon = true;
 
-	getStartingTeam(): IPokemon[] {
+	getStartingTeam(): string[] {
 		return this.pokedex.slice(0, this.startingTeamsLength);
 	}
 }

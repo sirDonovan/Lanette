@@ -140,8 +140,8 @@ export abstract class EliminationTournament extends Game {
 	minPlayers: number = 4;
 	playerCap: number = 0;
 	playerOpponents = new Map<Player, Player>();
-	pokedex: IPokemon[] = [];
-	possibleTeams = new Map<Player, IPokemon[][]>();
+	pokedex: string[] = [];
+	possibleTeams = new Map<Player, string[][]>();
 	requiredAddition: boolean = false;
 	requiredEvolution: boolean = false;
 	rerolls = new Map<Player, boolean>();
@@ -206,7 +206,7 @@ export abstract class EliminationTournament extends Game {
 		return maxPlayers;
 	}
 
-	createPokedex(): IPokemon[] {
+	createPokedex(): string[] {
 		const fullyEvolved = this.fullyEvolved || (this.evolutionsPerRound < 1 && !this.usesCloakedPokemon);
 		const checkEvolutions = this.evolutionsPerRound !== 0;
 		if (!this.battleFormat.usablePokemon) this.battleFormat.usablePokemon = Dex.getUsablePokemon(this.battleFormat);
@@ -254,7 +254,7 @@ export abstract class EliminationTournament extends Game {
 			pokedex.push(pokemon);
 		}
 
-		return pokedex.filter(x => !(x.forme && pokedex.includes(Dex.getExistingPokemon(x.baseSpecies))));
+		return pokedex.filter(x => !(x.forme && pokedex.includes(Dex.getExistingPokemon(x.baseSpecies)))).map(x => x.name);
 	}
 
 	generateBracket(): void {
@@ -553,10 +553,10 @@ export abstract class EliminationTournament extends Game {
 
 			if (!this.additionsPerRound || (addingPokemon && currentTeamLength < 6) || (droppingPokemon && currentTeamLength > 1)) {
 				if (!loserTeam) {
-					loserTeam = this.getRandomTeam(loser).map(x => x.name);
+					loserTeam = this.getRandomTeam(loser);
 				} else {
 					if ((addingPokemon || droppingPokemon) && loserTeam.length < currentTeamLength) {
-						loserTeam = this.getRandomTeamIncluding(loser, loserTeam).map(x => x.name);
+						loserTeam = this.getRandomTeamIncluding(loser, loserTeam);
 					}
 				}
 
@@ -831,6 +831,7 @@ export abstract class EliminationTournament extends Game {
 				this.spectatorUsers.delete(id);
 				continue;
 			}
+
 			this.updateSpectatorHtmlPage(user);
 		}
 	}
@@ -878,8 +879,8 @@ export abstract class EliminationTournament extends Game {
 		this.say("!checkchallenges " + player.name + ", " + opponent.name);
 	}
 
-	getStartingTeam(): IPokemon[] {
-		const team: IPokemon[] = [];
+	getStartingTeam(): string[] {
+		const team: string[] = [];
 		for (let i = 0; i < this.startingTeamsLength; i++) {
 			const pokemon = this.pokedex.shift();
 			if (!pokemon) break;
@@ -893,8 +894,7 @@ export abstract class EliminationTournament extends Game {
 		if (team.length < this.startingTeamsLength) throw new Error("Out of Pokemon to give (" + player.name + ")");
 
 		this.possibleTeams.set(player, [team]);
-		const teamSpecies = team.map(x => x.name);
-		this.starterPokemon.set(player, teamSpecies);
+		this.starterPokemon.set(player, team);
 		this.updatePlayerHtmlPage(player);
 	}
 
@@ -921,7 +921,7 @@ export abstract class EliminationTournament extends Game {
 		const minimumPokemon = Math.max(this.getMinimumPokemonForPlayers(minimumPlayers - 1),
 			this.getMinimumPokemonForPlayers(minimumPlayers));
 
-		let pokedex: IPokemon[];
+		let pokedex: string[];
 		if (this.variant === 'monocolor') {
 			const colors = this.shuffle(Object.keys(Dex.data.colors));
 			this.color = Dex.data.colors[colors[0]];
@@ -995,7 +995,7 @@ export abstract class EliminationTournament extends Game {
 		this.htmlPageHeader = "<h2>" + this.room.title + "'s " + this.tournamentName + "</h2>";
 
 		if (this.usesCloakedPokemon) {
-			this.cloakedPokemon = this.pokedex.slice(0, this.startingTeamsLength).map(x => x.name);
+			this.cloakedPokemon = this.pokedex.slice(0, this.startingTeamsLength);
 			this.requiredPokemon = this.cloakedPokemon.slice();
 		} else {
 			const maxPlayers = this.getMaxPlayers(this.pokedex.length);
@@ -1082,7 +1082,7 @@ export abstract class EliminationTournament extends Game {
 		this.firstRoundByes.forEach(player => {
 			player.round!++;
 			if (this.additionsPerRound) {
-				const pokemon: IPokemon[] = [];
+				const pokemon: string[] = [];
 				const additions = Math.abs(this.additionsPerRound);
 				for (let i = 0; i < additions; i++) {
 					const mon = this.pokedex.shift();
@@ -1092,10 +1092,10 @@ export abstract class EliminationTournament extends Game {
 
 				const teamChange: ITeamChange = {
 					additions: this.additionsPerRound,
-					choices: pokemon.map(x => x.name),
+					choices: pokemon,
 					evolutions: this.evolutionsPerRound,
 				};
-				this.teamChanges.set(player, (this.teamChanges.get(player) || []).concat(teamChange));
+				this.teamChanges.set(player, (this.teamChanges.get(player) || []).concat([teamChange]));
 
 				let possibleTeams = this.possibleTeams.get(player)!;
 				possibleTeams = Dex.getPossibleTeams(possibleTeams, pokemon, this.additionsPerRound, this.evolutionsPerRound,
@@ -1139,7 +1139,7 @@ export abstract class EliminationTournament extends Game {
 			const starterPokemon = this.starterPokemon.get(player);
 			if (starterPokemon) {
 				for (const pokemon of starterPokemon) {
-					this.pokedex.push(Dex.getExistingPokemon(pokemon));
+					this.pokedex.push(pokemon);
 				}
 			}
 			return;
@@ -1148,10 +1148,10 @@ export abstract class EliminationTournament extends Game {
 		this.disqualifyPlayers([player]);
 	}
 
-	getTeamEvolutionScore(team: IPokemon[]): number {
+	getTeamEvolutionScore(team: string[]): number {
 		let score = 0;
 		for (const pokemon of team) {
-			let evolution = pokemon;
+			let evolution = Dex.getExistingPokemon(pokemon);
 			while (evolution.nfe) {
 				score++;
 				evolution = Dex.getExistingPokemon(evolution.evos[0]);
@@ -1161,19 +1161,19 @@ export abstract class EliminationTournament extends Game {
 		return score;
 	}
 
-	getRandomTeam(player: Player): IPokemon[] {
+	getRandomTeam(player: Player): string[] {
 		const possibleTeams = this.possibleTeams.get(player)!;
 		possibleTeams.sort((a, b) => b.length - a.length);
 
 		const largestLen = possibleTeams[0].length;
-		let bestTeams: IPokemon[][] = [];
+		let bestTeams: string[][] = [];
 		for (const team of possibleTeams) {
 			if (team.length < largestLen) break;
 			bestTeams.push(team);
 		}
 
 		if (bestTeams.length > 1) {
-			const evolutionScores = new Map<IPokemon[], number>();
+			const evolutionScores = new Map<string[], number>();
 			for (const team of bestTeams) {
 				evolutionScores.set(team, this.getTeamEvolutionScore(team));
 			}
@@ -1183,7 +1183,7 @@ export abstract class EliminationTournament extends Game {
 				bestTeams.sort((a, b) => evolutionScores.get(a)! - evolutionScores.get(b)!);
 			}
 
-			const teams: IPokemon[][] = [bestTeams[0]];
+			const teams: string[][] = [bestTeams[0]];
 			const bestScore = evolutionScores.get(bestTeams[0])!;
 			for (const team of bestTeams) {
 				const score = evolutionScores.get(team)!;
@@ -1195,15 +1195,14 @@ export abstract class EliminationTournament extends Game {
 		return this.sampleOne(bestTeams);
 	}
 
-	getRandomTeamIncluding(player: Player, pokemonList: string[]): IPokemon[] {
+	getRandomTeamIncluding(player: Player, pokemonList: string[]): string[] {
 		const possibleTeams = this.possibleTeams.get(player)!;
 		possibleTeams.sort((a, b) => b.length - a.length);
-		let team: IPokemon[] | undefined;
+		let team: string[] | undefined;
 		for (const possibleTeam of possibleTeams) {
 			let includes = true;
-			const currentTeam = possibleTeam.map(x => x.name);
 			for (const pokemon of pokemonList) {
-				if (!currentTeam.includes(pokemon)) {
+				if (!possibleTeam.includes(pokemon)) {
 					includes = false;
 					break;
 				}
@@ -1214,7 +1213,7 @@ export abstract class EliminationTournament extends Game {
 			}
 		}
 
-		if (!team) return pokemonList.map(x => Dex.getExistingPokemon(x));
+		if (!team) return pokemonList;
 		return team;
 	}
 
@@ -1540,7 +1539,7 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 			const starterPokemon = this.starterPokemon.get(player);
 			if (!starterPokemon) return false;
 			for (const pokemon of starterPokemon) {
-				this.pokedex.push(Dex.getExistingPokemon(pokemon));
+				this.pokedex.push(pokemon);
 			}
 			this.rerolls.set(player, true);
 			this.giveStartingTeam(player);

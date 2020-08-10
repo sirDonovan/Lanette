@@ -1789,26 +1789,26 @@ export class Dex {
 		return html.join("<br />");
 	}
 
-	getPossibleTeams(previousTeams: IPokemon[][], pool: IPokemon[] | string[], additions?: number, evolutions?: number,
-		requiredAddition?: boolean, requiredEvolution?: boolean): IPokemon[][] {
+	getPossibleTeams(previousTeams: string[][], pool: IPokemon[] | string[], additions?: number, evolutions?: number,
+		requiredAddition?: boolean, requiredEvolution?: boolean): string[][] {
 		if (!additions) additions = 0;
 		if (!evolutions) evolutions = 0;
 
-		const newPokemon: IPokemon[] = [];
+		const newPokemon: string[] = [];
 		for (const name of pool) {
 			const pokemon = typeof name === 'string' ? this.getPokemon(name) : name;
 			if (!pokemon) continue;
-			newPokemon.push(pokemon);
+			newPokemon.push(pokemon.name);
 		}
 
 		if (additions > newPokemon.length) additions = newPokemon.length;
 		const permutations = Tools.getPermutations(newPokemon, 1);
-		const possiblePokemon: IPokemon[][] = [];
+		const possiblePokemon: string[][] = [];
 		for (const permutation of permutations) {
 			if (permutation.length <= additions) possiblePokemon.push(permutation);
 		}
 
-		let baseTeams: IPokemon[][];
+		let baseTeams: string[][];
 		if (requiredAddition) {
 			baseTeams = [];
 		} else {
@@ -1825,7 +1825,7 @@ export class Dex {
 			}
 		}
 
-		let finalTeams: IPokemon[][];
+		let finalTeams: string[][];
 		if (requiredEvolution) {
 			finalTeams = [];
 		} else {
@@ -1834,20 +1834,20 @@ export class Dex {
 		}
 
 		let currentTeams = baseTeams.slice();
-		const nextTeams: IPokemon[][] = [];
+		const nextTeams: string[][] = [];
 		if (evolutions > 0) {
 			while (evolutions > 0) {
 				for (const team of currentTeams) {
 					let availableEvolutions = false;
 					for (let i = 0; i < team.length; i++) {
-						if (!team[i].nfe) continue;
-						const pokemon = team[i];
+						const pokemon = this.getExistingPokemon(team[i]);
+						if (!pokemon.nfe) continue;
 						const pokemonSlot = i;
 						for (const evo of pokemon.evos) {
 							const evolution = this.getExistingPokemon(evo);
 							availableEvolutions = true;
 							const newTeam = team.slice();
-							newTeam[pokemonSlot] = evolution;
+							newTeam[pokemonSlot] = evolution.name;
 							finalTeams.push(newTeam);
 							nextTeams.push(newTeam);
 						}
@@ -1863,13 +1863,13 @@ export class Dex {
 				for (const team of currentTeams) {
 					let availableEvolutions = false;
 					for (let i = 0; i < team.length; i++) {
-						const pokemon = team[i];
+						const pokemon = this.getExistingPokemon(team[i]);
 						if (!pokemon.prevo) continue;
 						const pokemonSlot = i;
 						const prevo = this.getExistingPokemon(pokemon.prevo);
 						availableEvolutions = true;
 						const newTeam = team.slice();
-						newTeam[pokemonSlot] = prevo;
+						newTeam[pokemonSlot] = prevo.name;
 						finalTeams.push(newTeam);
 						nextTeams.push(newTeam);
 					}
@@ -1881,20 +1881,10 @@ export class Dex {
 		}
 
 		for (const team of finalTeams) {
-			team.sort((a, b) => a.num - b.num);
+			team.sort();
 		}
 
-		finalTeams.sort((a, b) => {
-			const diff = a.length - b.length;
-			if (diff !== 0) return diff;
-
-			for (let i = 0; i < a.length; i++) {
-				const diff = a[i].num - b[i].num;
-				if (diff !== 0) return diff;
-			}
-
-			return 0;
-		});
+		finalTeams.sort((a, b) => a.length - b.length);
 
 		return finalTeams;
 	}
@@ -1916,7 +1906,7 @@ export class Dex {
 		return includes;
 	}
 
-	isPossibleTeam(team: IPokemon[] | string[], possibleTeams: IPokemon[][]): boolean {
+	isPossibleTeam(team: IPokemon[] | string[], possibleTeams: DeepImmutable<string[][]>): boolean {
 		const names: string[] = [];
 		for (const pokemon of team) {
 			names.push(typeof pokemon === 'string' ? this.getExistingPokemon(pokemon).name : pokemon.name);
@@ -1927,9 +1917,9 @@ export class Dex {
 
 		let isPossible = false;
 		for (const possibleTeam of possibleTeams) {
-			const possibleNames = possibleTeam.map(x => x.name);
-			possibleNames.sort();
-			if (Tools.compareArrays(possibleNames, names)) {
+			const team = possibleTeam.slice();
+			team.sort();
+			if (Tools.compareArrays(team, names)) {
 				isPossible = true;
 				break;
 			}
