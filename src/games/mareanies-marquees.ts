@@ -62,16 +62,6 @@ class MareaniesMarquee extends Guessing {
 
 	updateHint(): void {
 		this.hintUpdates++;
-		if (this.hintUpdates >= this.hintUpdateLimit) {
-			this.say("Time is up! " + this.getAnswers(''));
-			this.answers = [];
-			if (this.isMiniGame) {
-				this.end();
-				return;
-			}
-			this.nextRound();
-			return;
-		}
 
 		if (this.currentIndex === -1) {
 			let index = this.random(this.letters.length);
@@ -97,6 +87,18 @@ class MareaniesMarquee extends Guessing {
 
 	onHintHtml(): void {
 		if (this.timeout) clearTimeout(this.timeout);
+
+		if (this.hintUpdates >= this.hintUpdateLimit) {
+			this.say("Time is up! " + this.getAnswers(''));
+			this.answers = [];
+			if (this.isMiniGame) {
+				this.end();
+				return;
+			}
+			this.nextRound();
+			return;
+		}
+
 		this.timeout = setTimeout(() => this.nextRound(), this.updateHintTime);
 	}
 
