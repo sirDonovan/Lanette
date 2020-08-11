@@ -21,6 +21,7 @@ interface ITeamChange {
 const SIGNUPS_HTML_DELAY = 2 * 1000;
 const ADVERTISEMENT_TIME = 20 * 60 * 1000;
 const POTENTIAL_MAX_PLAYERS: number[] = [12, 16, 24, 32, 48, 64, 80, 96, 112, 128];
+const TEAM_PREVIEW_HIDDEN_FORMES: string[] = ['Arceus', 'Gourgeist', 'Genesect', 'Pumpkaboo', 'Silvally', 'Urshifu'];
 
 /**
  * There are two types of elim nodes, player nodes
@@ -206,6 +207,16 @@ export abstract class EliminationTournament extends Game {
 		return maxPlayers;
 	}
 
+	meetsPokemonCriteria(pokemon: IPokemon): boolean {
+		if (pokemon.battleOnly || !this.battleFormat.usablePokemon!.includes(pokemon.name) || this.banlist.includes(pokemon.name) ||
+			(this.type && !pokemon.types.includes(this.type)) || TEAM_PREVIEW_HIDDEN_FORMES.includes(pokemon.name) ||
+			(pokemon.forme && TEAM_PREVIEW_HIDDEN_FORMES.includes(pokemon.baseSpecies))) {
+			return false;
+		}
+
+		return true;
+	}
+
 	createPokedex(): string[] {
 		const fullyEvolved = this.fullyEvolved || (this.evolutionsPerRound < 1 && !this.usesCloakedPokemon);
 		const checkEvolutions = this.evolutionsPerRound !== 0;
@@ -214,12 +225,10 @@ export abstract class EliminationTournament extends Game {
 		const pokedex: IPokemon[] = [];
 		for (const name of Dex.data.pokemonKeys) {
 			const pokemon = Dex.getExistingPokemon(name);
-			if (pokemon.battleOnly || this.banlist.includes(pokemon.name) ||
-				!this.battleFormat.usablePokemon.includes(pokemon.name)) continue;
+			if (!this.meetsPokemonCriteria(pokemon)) continue;
 
 			if (this.gen && pokemon.gen !== this.gen) continue;
 			if (this.color && pokemon.color !== this.color) continue;
-			if (this.type && !pokemon.types.includes(this.type)) continue;
 
 			if (this.requiredTier) {
 				if (pokemon.tier !== this.requiredTier) continue;
@@ -237,8 +246,7 @@ export abstract class EliminationTournament extends Game {
 					for (const stage of line) {
 						const evolution = Dex.getExistingPokemon(stage);
 						if (evolution === pokemon) continue;
-						if (this.banlist.includes(evolution.name) || !this.battleFormat.usablePokemon.includes(evolution.name) ||
-							(this.type && !evolution.types.includes(this.type))) {
+						if (!this.meetsPokemonCriteria(evolution)) {
 							validEvolutionLines--;
 							validLine = false;
 							break;
