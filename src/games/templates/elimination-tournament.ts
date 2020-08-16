@@ -155,6 +155,7 @@ export abstract class EliminationTournament extends Game {
 	startingTeamsLength: number = 6;
 	teamChanges = new Map<Player, ITeamChange[]>();
 	totalAdvertisementTime: number = 0;
+	totalRounds: number = 0;
 	tournamentDescription: string = '';
 	tournamentEnded: boolean = false;
 	tournamentName: string = '';
@@ -181,11 +182,15 @@ export abstract class EliminationTournament extends Game {
 		this.firstRoundTime = this.activityWarnTimeout + this.activityDQTimeout + this.firstRoundExtraTime;
 	}
 
+	getNumberOfRounds(players: number): number {
+		return Math.ceil(Math.log(players) / Math.log(2));
+	}
+
 	getMinimumPokemonForPlayers(players: number): number {
 		if (this.sharedTeams || this.usesCloakedPokemon) {
 			return this.startingTeamsLength;
 		} else if (this.additionsPerRound >= 1) {
-			const rounds = Math.ceil(Math.log(players) / Math.log(2));
+			const rounds = this.getNumberOfRounds(players);
 			if (Math.pow(2, rounds) > players) {
 				const maxSecondRoundPlayers = Math.pow(2, rounds - 1) - 1;
 				return (players * this.startingTeamsLength) + (maxSecondRoundPlayers * this.additionsPerRound);
@@ -304,118 +309,112 @@ export abstract class EliminationTournament extends Game {
 
 		this.treeRoot = tree.root;
 		this.bracketGenerated = true;
+		this.totalRounds = this.getNumberOfRounds(players.length);
 	}
 
 	getBracketHtml(): string {
-		const matchesByDepth = this.getMatchesByDepth();
-		const depths = Object.keys(matchesByDepth).reverse();
+		const matchesByRound = this.getMatchesByRound();
+		const matchRounds = Object.keys(matchesByRound).sort();
+
+		const tableWidth = this.totalRounds * 180;
+		let html = '<table style="border-collapse: collapse;border: none;table-layout: fixed;width: ' + tableWidth + 'px">';
+
+		html += '<tr style="height: 32px">';
+		for (let i = 1; i <= this.totalRounds - 2; i++) {
+			html += '<th style="text-align:center;">Round ' + i + '</th>';
+		}
+		html += '<th style="text-align:center;">Semifinals</th>';
+		html += '<th style="text-align:center;">Finals</th>';
+		html += '</tr>';
 
 		const placeholderName = "(undecided)";
-		let longestName = placeholderName.length;
-		for (const i in this.players) {
-			const name = this.players[i].name.length;
-			if (name > longestName) longestName = name;
-		}
-
-		const nodeWidth = Math.ceil((150 / 18) * longestName);
-		const nodeMarginLeft = 10;
-		const nodePaddingLeft = 10;
-		const nodeBorder = 1;
-		const totalNodeWidth = nodeWidth + nodeMarginLeft + nodePaddingLeft + (nodeBorder * 2);
-		const nodeHeight = 20;
-		const totalNodeHeight = nodeHeight + (nodeBorder * 2);
-		const nodePairHeight = totalNodeHeight * 2;
-		const nodeMarginTop = 20;
-
-		let html = "<div class='infobox'>";
-		html += "<div style='overflow: auto;width: " + ((totalNodeWidth * depths.length) +
-			(nodeMarginLeft * (depths.length - 1))) + "px;'>";
-
-		let firstMarginTop = 0;
-		let restMarginTop = nodeMarginTop;
-		for (let i = 0; i < depths.length; i++) {
-			const column = i;
-			const matches = matchesByDepth[depths[i]];
-			html += "<div style='display: inline-block;vertical-align:top;" + (column ? "margin-left: " + nodeMarginLeft + "px;" : "") +
-				"'>";
-
-			if (column) {
-				const columnMatches = matches.length;
-				const previousColumnMatches = matchesByDepth[depths[column - 1]].length;
-				const previousColumnHeight = (previousColumnMatches * nodePairHeight) + ((previousColumnMatches - 1) * restMarginTop);
-
-				firstMarginTop += ((nodePairHeight + restMarginTop) / 2);
-				if (previousColumnMatches > columnMatches) {
-					restMarginTop = Math.floor((previousColumnHeight - firstMarginTop - (nodePairHeight * (columnMatches - 1))) /
-						columnMatches);
-				}
-			}
-
-			for (let i = 0; i < matches.length; i++) {
-				const match = matches[i];
+		const playerNamesByRound: Dict<string[]> = {};
+		const winnersByRound: Dict<string[]> = {};
+		for (let i = 0; i < matchRounds.length; i++) {
+			const round = matchRounds[i];
+			playerNamesByRound[round] = [];
+			winnersByRound[round] = [];
+			for (const match of matchesByRound[round]) {
 				if (!match.children || !match.children.length) continue;
-				let marginTop;
-				if (i === 0) {
-					marginTop = firstMarginTop;
-				} else {
-					marginTop = restMarginTop;
-				}
-				html += "<div style='width: " + totalNodeWidth + "px;" + (marginTop ? "margin-top: " + marginTop + "px;" : "") + "'>";
+				let playerA = placeholderName;
+				let playerB = placeholderName;
+				if (match.children[0].user) playerA = match.children[0].user.name;
+				if (match.children[1].user) playerB = match.children[1].user.name;
 
-				html += "<div style='height: " + nodeHeight + "px; width: " + nodeWidth + "px;border: " + nodeBorder +
-					"px solid #AAA;padding-left: " + nodePaddingLeft + "px;border-radius: 5px 5px 0 0;'>";
+				if (match.user) winnersByRound[round].push(match.user.name);
 
-				const playerA = match.children[0].user;
-				const playerB = match.children[1].user;
-				const winner = match.user;
-				if (playerA) {
-					const isWinner = winner === playerA;
-					if (isWinner) html += "<i>";
-					html += "<strong class='username'>" + playerA.name + "</strong>";
-					if (isWinner) html += "</i>";
-				} else {
-					html += !column ? "&nbsp;" : placeholderName;
-				}
-				html += "</div>";
+				playerNamesByRound[round].push(playerA);
 
-				html += "<div style='height: " + nodeHeight + "px; width: " + nodeWidth + "px;border: " + nodeBorder +
-					"px solid #AAA;padding-left: " + nodePaddingLeft + "px;border-radius: 0 0 5px 5px;'>";
-
-				if (playerB) {
-					const isWinner = winner === playerB;
-					if (isWinner) html += "<i>";
-					html += "<strong class='username'>" + playerB.name + "</strong>";
-					if (isWinner) html += "</i>";
-				} else {
-					html += !column ? "&nbsp;" : placeholderName;
+				for (let j = 0; j < (Math.pow(2, i) - 1); j++) {
+					playerNamesByRound[round].push("");
 				}
 
-				html += "</div></div>";
+				playerNamesByRound[round].push(playerB);
+
+				for (let j = 0; j < (Math.pow(2, i) - 1); j++) {
+					playerNamesByRound[round].push("");
+				}
 			}
-
-			html += "</div>";
 		}
 
-		html += "</div></div>";
+		const fullFirstRoundPlayers = Math.pow(2, this.totalRounds);
+		for (let i = 0; i < fullFirstRoundPlayers; i++) {
+			html += '<tr style="height: 32px">';
+
+			for (let i = 0; i < matchRounds.length; i++) {
+				const round = matchRounds[i];
+				if (!playerNamesByRound[round].length) {
+					if (i === 0) {
+						html += "<td>&nbsp;</td>";
+					}
+					continue;
+				}
+
+				if (playerNamesByRound[round][0]) {
+					html += '<td' + (i > 0 ? ' rowspan="' + (Math.pow(2, i)) + '"' : '') + ' style="margin: 0;padding: 5px;">' +
+						'<p style="border-bottom: solid 1px;margin: 0;padding: 1px;">';
+					const playerName = playerNamesByRound[round][0];
+					if (playerName === placeholderName) {
+						html += playerName;
+					} else {
+						const winner = winnersByRound[round].includes(playerName);
+						if (winner) html += '<i>';
+						html += '<strong class="username">' + playerName + '</strong>';
+						if (winner) html += '</i>';
+					}
+					html += '</p></td>';
+				}
+
+				playerNamesByRound[round].shift();
+			}
+
+			html += '</tr>';
+		}
+
+		html += '</table>';
 
 		return html;
 	}
 
-	getMatchesByDepth(): Dict<EliminationNode<Player>[]> {
-		const matchesByDepth: Dict<EliminationNode<Player>[]> = {};
-		const queue = [{node: this.treeRoot, depth: 0}];
-		let item;
-		while ((item = queue.shift())) {
-			if (!item.node.children) continue;
-
-			if (!matchesByDepth[item.depth]) matchesByDepth[item.depth] = [];
-			matchesByDepth[item.depth].push(item.node);
-
-			queue.push({node: item.node.children[0], depth: item.depth + 1});
-			queue.push({node: item.node.children[1], depth: item.depth + 1});
+	getMatchesByRound(): Dict<EliminationNode<Player>[]> {
+		const matchesByRound: Dict<EliminationNode<Player>[]> = {};
+		for (let i = 1; i <= this.totalRounds; i++) {
+			matchesByRound[i] = [];
 		}
 
-		return matchesByDepth;
+		const queue: {node: EliminationNode<Player>, round: number}[] = [{node: this.treeRoot, round: this.totalRounds}];
+		let item;
+		while (queue.length) {
+			item = queue.shift();
+			if (!item || !item.node.children) continue;
+
+			matchesByRound[item.round].push(item.node);
+
+			queue.push({node: item.node.children[0], round: item.round - 1});
+			queue.push({node: item.node.children[1], round: item.round - 1});
+		}
+
+		return matchesByRound;
 	}
 
 	disqualifyPlayers(players: Player[]): void {
@@ -1076,11 +1075,11 @@ export abstract class EliminationTournament extends Game {
 
 		this.generateBracket();
 
-		const matchesByDepth = this.getMatchesByDepth();
-		const depths = Object.keys(matchesByDepth).reverse();
-		for (let i = 1; i < depths.length; i++) {
-			const depth = depths[i];
-			for (const match of matchesByDepth[depth]) {
+		const matchesByRound = this.getMatchesByRound();
+		const matchRounds = Object.keys(matchesByRound).sort();
+		for (let i = 1; i < matchRounds.length; i++) {
+			const depth = matchRounds[i];
+			for (const match of matchesByRound[depth]) {
 				for (const child of match.children!) {
 					if (child.user) this.firstRoundByes.add(child.user);
 				}
@@ -1613,6 +1612,147 @@ const tests: GameFileTests<EliminationTournament> = {
 			addPlayers(game, 6);
 			game.start();
 			assertStrictEqual(2, game.firstRoundByes.size);
+		}
+	},
+	'should properly list matches by round - 4 players': {
+		test(game, format) {
+			addPlayers(game, 4);
+			game.start();
+			const matchesByRound = game.getMatchesByRound();
+			const matchRounds = Object.keys(matchesByRound).sort();
+			assertStrictEqual(matchRounds.length, 2);
+			assertStrictEqual(matchRounds[0], '1');
+			assertStrictEqual(matchRounds[1], '2');
+			assertStrictEqual(matchesByRound['1'].length, 2);
+			assertStrictEqual(matchesByRound['2'].length, 1);
+			for (let i = 0; i < 2; i++) {
+				assert(matchesByRound['1'][i].children);
+				assert(matchesByRound['1'][i].children![0].user);
+				assert(matchesByRound['1'][i].children![1].user);
+			}
+			assert(matchesByRound['2'][0].children);
+			assert(!matchesByRound['2'][0].children[0].user);
+			assert(!matchesByRound['2'][0].children[1].user);
+		}
+	},
+	'should properly list matches by round - 5 players': {
+		test(game, format) {
+			addPlayers(game, 5);
+			game.start();
+			const matchesByRound = game.getMatchesByRound();
+			const matchRounds = Object.keys(matchesByRound).sort();
+			assertStrictEqual(matchRounds.length, 3);
+			assertStrictEqual(matchRounds[0], '1');
+			assertStrictEqual(matchRounds[1], '2');
+			assertStrictEqual(matchRounds[2], '3');
+			assertStrictEqual(matchesByRound['1'].length, 1);
+			assertStrictEqual(matchesByRound['2'].length, 2);
+			assertStrictEqual(matchesByRound['3'].length, 1);
+			assert(matchesByRound['1'][0].children);
+			assert(matchesByRound['1'][0].children[0].user);
+			assert(matchesByRound['1'][0].children[1].user);
+			assert(matchesByRound['2'][0].children);
+			assert(!matchesByRound['2'][0].children[0].user);
+			assert(matchesByRound['2'][0].children[1].user);
+			assert(matchesByRound['2'][1].children);
+			assert(matchesByRound['2'][1].children[0].user);
+			assert(matchesByRound['2'][1].children[1].user);
+			assert(matchesByRound['3'][0].children);
+			assert(!matchesByRound['3'][0].children[0].user);
+			assert(!matchesByRound['3'][0].children[1].user);
+		}
+	},
+	'should properly list matches by round - 6 players': {
+		test(game, format) {
+			addPlayers(game, 6);
+			game.start();
+			const matchesByRound = game.getMatchesByRound();
+			const matchRounds = Object.keys(matchesByRound).sort();
+			assertStrictEqual(matchRounds.length, 3);
+			assertStrictEqual(matchRounds[0], '1');
+			assertStrictEqual(matchRounds[1], '2');
+			assertStrictEqual(matchRounds[2], '3');
+			assertStrictEqual(matchesByRound['1'].length, 2);
+			assertStrictEqual(matchesByRound['2'].length, 2);
+			assertStrictEqual(matchesByRound['3'].length, 1);
+
+			for (let i = 0; i < 2; i++) {
+				assert(matchesByRound['1'][i].children);
+				assert(matchesByRound['1'][i].children![0].user);
+				assert(matchesByRound['1'][i].children![1].user);
+			}
+
+			assert(matchesByRound['2'][0].children);
+			assert(!matchesByRound['2'][0].children[0].user);
+			assert(!matchesByRound['2'][0].children[1].user);
+			assert(matchesByRound['2'][1].children);
+			assert(matchesByRound['2'][1].children[0].user);
+			assert(matchesByRound['2'][1].children[1].user);
+			assert(matchesByRound['3'][0].children);
+			assert(!matchesByRound['3'][0].children[0].user);
+			assert(!matchesByRound['3'][0].children[1].user);
+		}
+	},
+	'should properly list matches by round - 7 players': {
+		test(game, format) {
+			addPlayers(game, 7);
+			game.start();
+			const matchesByRound = game.getMatchesByRound();
+			const matchRounds = Object.keys(matchesByRound).sort();
+			assertStrictEqual(matchRounds.length, 3);
+			assertStrictEqual(matchRounds[0], '1');
+			assertStrictEqual(matchRounds[1], '2');
+			assertStrictEqual(matchRounds[2], '3');
+			assertStrictEqual(matchesByRound['1'].length, 3);
+			assertStrictEqual(matchesByRound['2'].length, 2);
+			assertStrictEqual(matchesByRound['3'].length, 1);
+
+			for (let i = 0; i < 3; i++) {
+				assert(matchesByRound['1'][i].children);
+				assert(matchesByRound['1'][i].children![0].user);
+				assert(matchesByRound['1'][i].children![1].user);
+			}
+
+			assert(matchesByRound['2'][0].children);
+			assert(!matchesByRound['2'][0].children[0].user);
+			assert(!matchesByRound['2'][0].children[1].user);
+			assert(matchesByRound['2'][1].children);
+			assert(!matchesByRound['2'][1].children[0].user);
+			assert(matchesByRound['2'][1].children[1].user);
+			assert(matchesByRound['3'][0].children);
+			assert(!matchesByRound['3'][0].children[0].user);
+			assert(!matchesByRound['3'][0].children[1].user);
+		}
+	},
+	'should properly list matches by round - 8 players': {
+		test(game, format) {
+			addPlayers(game, 8);
+			game.start();
+			const matchesByRound = game.getMatchesByRound();
+			const matchRounds = Object.keys(matchesByRound).sort();
+			assertStrictEqual(matchRounds.length, 3);
+			assertStrictEqual(matchRounds[0], '1');
+			assertStrictEqual(matchRounds[1], '2');
+			assertStrictEqual(matchRounds[2], '3');
+			assertStrictEqual(matchesByRound['1'].length, 4);
+			assertStrictEqual(matchesByRound['2'].length, 2);
+			assertStrictEqual(matchesByRound['3'].length, 1);
+
+			for (let i = 0; i < 4; i++) {
+				assert(matchesByRound['1'][i].children);
+				assert(matchesByRound['1'][i].children![0].user);
+				assert(matchesByRound['1'][i].children![1].user);
+			}
+
+			for (let i = 0; i < 2; i++) {
+				assert(matchesByRound['2'][i].children);
+				assert(!matchesByRound['2'][i].children![0].user);
+				assert(!matchesByRound['2'][i].children![1].user);
+			}
+
+			assert(matchesByRound['3'][0].children);
+			assert(!matchesByRound['3'][0].children[0].user);
+			assert(!matchesByRound['3'][0].children[1].user);
 		}
 	}
 };
