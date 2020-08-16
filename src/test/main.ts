@@ -56,10 +56,19 @@ module.exports = async(inputOptions: Dict<string>): Promise<void> => {
 
 		if (loadGames) {
 			console.log("Loading game data for tests...");
-			for (const i in Games.formats) {
+			let formats: string[];
+			if (testOptions.games) {
+				formats = testOptions.games.split(',');
+			} else {
+				formats = Object.keys(Games.formats);
+			}
+
+			for (const i of formats) {
 				const game = Games.createGame(mochaRoom, Games.getExistingFormat(i));
 				game.deallocate(true);
 			}
+
+			console.log("Loaded game data");
 		}
 
 		const mocha = new Mocha({
