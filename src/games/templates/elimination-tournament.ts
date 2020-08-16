@@ -539,9 +539,6 @@ export abstract class EliminationTournament extends Game {
 		const loser = targetNode.children[result === 'loss' ? 0 : 1].user!;
 		targetNode.user = winner;
 
-		if (!winner.round) winner.round = 0;
-		winner.round++;
-
 		loser.eliminated = true;
 		this.spectatorPlayers.add(loser);
 
@@ -551,9 +548,9 @@ export abstract class EliminationTournament extends Game {
 			const addingPokemon = this.additionsPerRound >= 1;
 			const droppingPokemon = this.additionsPerRound <= -1;
 			if (addingPokemon) {
-				currentTeamLength = Math.min(6, this.startingTeamsLength + ((winner.round - 1) * this.additionsPerRound));
+				currentTeamLength = Math.min(6, this.startingTeamsLength + ((winner.round! - 1) * this.additionsPerRound));
 			} else if (droppingPokemon) {
-				currentTeamLength = Math.min(1, this.startingTeamsLength + ((winner.round - 1) * this.additionsPerRound));
+				currentTeamLength = Math.min(1, this.startingTeamsLength + ((winner.round! - 1) * this.additionsPerRound));
 			} else {
 				currentTeamLength = this.startingTeamsLength;
 			}
@@ -586,6 +583,8 @@ export abstract class EliminationTournament extends Game {
 				this.possibleTeams.set(winner, possibleTeams);
 			}
 		}
+
+		winner.round!++;
 
 		if (targetNode.parent) {
 			const userA = targetNode.parent.children![0].user;
@@ -693,7 +692,7 @@ export abstract class EliminationTournament extends Game {
 				}
 				html += "</div>";
 			} else {
-				html += "<h3>Opponent (round " + (player.round || 1) + ")</h3><div style='margin-left: 15px'>";
+				html += "<h3>Opponent (round " + player.round + ")</h3><div style='margin-left: 15px'>";
 				const opponent = this.playerOpponents.get(player);
 				if (opponent) {
 					html += "Your next opponent is <strong class='username'>" + opponent.name + "</strong>! To send a challenge, click " +
@@ -1078,8 +1077,8 @@ export abstract class EliminationTournament extends Game {
 		const matchesByRound = this.getMatchesByRound();
 		const matchRounds = Object.keys(matchesByRound).sort();
 		for (let i = 1; i < matchRounds.length; i++) {
-			const depth = matchRounds[i];
-			for (const match of matchesByRound[depth]) {
+			const round = matchRounds[i];
+			for (const match of matchesByRound[round]) {
 				for (const child of match.children!) {
 					if (child.user) this.firstRoundByes.add(child.user);
 				}
@@ -1597,6 +1596,8 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 const tests: GameFileTests<EliminationTournament> = {
 	'should generate a Pokedex': {
 		test(game, format) {
+			addPlayers(game, game.maxPlayers);
+			assert(game.started);
 			assert(game.pokedex.length);
 		}
 	},
@@ -1611,7 +1612,12 @@ const tests: GameFileTests<EliminationTournament> = {
 		test(game, format) {
 			addPlayers(game, 6);
 			game.start();
-			assertStrictEqual(2, game.firstRoundByes.size);
+			assertStrictEqual(game.firstRoundByes.size, 2);
+			if (game.additionsPerRound || game.evolutionsPerRound) {
+				game.firstRoundByes.forEach(player => {
+					assertStrictEqual(game.teamChanges.get(player)!.length, 1);
+				});
+			}
 		}
 	},
 	'should properly list matches by round - 4 players': {
@@ -1727,7 +1733,7 @@ const tests: GameFileTests<EliminationTournament> = {
 	'should properly list matches by round - 8 players': {
 		test(game, format) {
 			addPlayers(game, 8);
-			game.start();
+			if (!game.started) game.start();
 			const matchesByRound = game.getMatchesByRound();
 			const matchRounds = Object.keys(matchesByRound).sort();
 			assertStrictEqual(matchRounds.length, 3);
@@ -1754,7 +1760,29 @@ const tests: GameFileTests<EliminationTournament> = {
 			assert(!matchesByRound['3'][0].children[0].user);
 			assert(!matchesByRound['3'][0].children[1].user);
 		}
-	}
+	},
+	'should give team changes until players have a full team - additionsPerRound >= 1': {
+		test(game, format) {
+			if (game.additionsPerRound < 1 || game.maxPlayers < 64) return;
+
+			addPlayers(game, 64);
+			if (!game.started) game.start();
+
+			let matchesByRound = game.getMatchesByRound();
+			const matchRounds = Object.keys(matchesByRound).sort();
+			for (let i = 1; i <= ((6 - game.startingTeamsLength) / game.additionsPerRound); i++) {
+				const round = matchRounds[(i - 1)];
+				if (!round) break;
+				const player = matchesByRound[round][0].children![0].user!;
+				for (const match of matchesByRound[round]) {
+					game.removePlayer(match.children![1].user!.name);
+				}
+
+				assertStrictEqual(game.teamChanges.get(player)!.length, i);
+				matchesByRound = game.getMatchesByRound();
+			}
+		}
+	},
 };
 /* eslint-enable */
 
