@@ -23,7 +23,7 @@ class SameSix extends EliminationTournament {
 }
 
 export const game: IGameFile<SameSix> = Games.copyTemplateProperties(eliminationTournamentGame, {
-	aliases: ['ss'],
+	aliases: ['ssix'],
 	class: SameSix,
 	description,
 	name,
