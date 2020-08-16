@@ -66,6 +66,7 @@ export interface IDatabase {
 	pastGames?: IPastGame[];
 	pastTournaments?: IPastTournament[];
 	pastUserHostedGames?: IPastGame[];
+	previousUserHostedGameStats?: Dict<IUserHostedGameStats[]>;
 	queuedTournament?: {formatid: string; playerCap: number; scheduled: boolean; time: number};
 	roomSampleTeamsLink?: string;
 	thcWinners?: Dict<string>;

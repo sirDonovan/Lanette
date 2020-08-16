@@ -146,7 +146,13 @@ export class Storage {
 			}
 			user.sources = {};
 		}
+
+		if (this.databases[roomid].userHostedGameStats) {
+			this.databases[roomid].previousUserHostedGameStats = this.databases[roomid].userHostedGameStats;
+		}
+
 		if (roomid + hostingDatabaseSuffix in this.databases) this.clearLeaderboard(roomid + hostingDatabaseSuffix);
+
 		this.exportDatabase(roomid);
 		return true;
 	}
