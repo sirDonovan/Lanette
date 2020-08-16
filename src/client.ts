@@ -1376,12 +1376,6 @@ export class Client {
 			const authOrTHC = user.hasRank(room, rank) || (database.thcWinners && user.id in database.thcWinners);
 			outer:
 			for (const link of links) {
-				/*
-				if (database.hostingBlacklist && user.id in database.hostingBlacklist) {
-					room.sayCommand("/warn " + user.name + ", You are currently banned from hosting");
-					break;
-				}
-				*/
 				// hasOwnLink = true;
 				if (room.approvedUserHostedTournaments) {
 					for (const i in room.approvedUserHostedTournaments) {
