@@ -212,11 +212,21 @@ export abstract class EliminationTournament extends Game {
 		return maxPlayers;
 	}
 
-	meetsPokemonCriteria(pokemon: IPokemon): boolean {
+	meetsPokemonCriteria(pokemon: IPokemon, type: 'starter' | 'evolution'): boolean {
 		if (pokemon.battleOnly || !this.battleFormat.usablePokemon!.includes(pokemon.name) || this.banlist.includes(pokemon.name) ||
 			(this.type && !pokemon.types.includes(this.type)) || TEAM_PREVIEW_HIDDEN_FORMES.includes(pokemon.name) ||
 			(pokemon.forme && TEAM_PREVIEW_HIDDEN_FORMES.includes(pokemon.baseSpecies))) {
 			return false;
+		}
+
+		if (type === 'starter') {
+			if (this.meetsStarterCriteria && this.meetsStarterCriteria(pokemon) === false) {
+				return false;
+			}
+		} else {
+			if (this.meetsEvolutionCriteria && this.meetsEvolutionCriteria(pokemon) === false) {
+				return false;
+			}
 		}
 
 		return true;
@@ -230,7 +240,7 @@ export abstract class EliminationTournament extends Game {
 		const pokedex: IPokemon[] = [];
 		for (const name of Dex.data.pokemonKeys) {
 			const pokemon = Dex.getExistingPokemon(name);
-			if (!this.meetsPokemonCriteria(pokemon)) continue;
+			if (!this.meetsPokemonCriteria(pokemon, 'starter')) continue;
 
 			if (this.gen && pokemon.gen !== this.gen) continue;
 			if (this.color && pokemon.color !== this.color) continue;
@@ -251,7 +261,7 @@ export abstract class EliminationTournament extends Game {
 					for (const stage of line) {
 						const evolution = Dex.getExistingPokemon(stage);
 						if (evolution === pokemon) continue;
-						if (!this.meetsPokemonCriteria(evolution)) {
+						if (!this.meetsPokemonCriteria(evolution, 'evolution')) {
 							validEvolutionLines--;
 							validLine = false;
 							break;
@@ -1482,6 +1492,9 @@ export abstract class EliminationTournament extends Game {
 			this.players[i].sendHtmlPage("<h3>The tournament was forcibly ended!</h3>");
 		}
 	}
+
+	meetsStarterCriteria?(pokemon: IPokemon): boolean;
+	meetsEvolutionCriteria?(pokemon: IPokemon): boolean;
 }
 
 const commands: GameCommandDefinitions<EliminationTournament> = {
