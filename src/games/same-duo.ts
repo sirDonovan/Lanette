@@ -13,7 +13,7 @@ class SameDuo extends EliminationTournament {
 	fullyEvolved = true;
 	sharedTeams = true;
 	canRejoin = true;
-	firstRoundExtraTime = 4 * 60 * 1000;
+	firstRoundExtraTime = 2 * 60 * 1000;
 	defaultTier = '2v2 Doubles';
 
 	getStartingTeam(): string[] {

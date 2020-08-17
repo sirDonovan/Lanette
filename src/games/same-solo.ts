@@ -13,7 +13,6 @@ class SameSolo extends EliminationTournament {
 	fullyEvolved = true;
 	sharedTeams = true;
 	canRejoin = true;
-	firstRoundExtraTime = 2 * 60 * 1000;
 	defaultTier = '1v1';
 
 	getStartingTeam(): string[] {
