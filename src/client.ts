@@ -912,7 +912,7 @@ export class Client {
 			if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
 				room.modchat = messageArguments.html.split('<div class="broadcast-red"><strong>Moderated chat was set to ')[1]
 					.split('!</strong>')[0];
-			} else if (messageArguments.html.startsWith('|raw|<div class="broadcast-red"><strong>This battle is invite-only!</strong>')) {
+			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>This battle is invite-only!</strong>')) {
 				room.inviteOnlyBattle = true;
 			} else if (messageArguments.html.startsWith('<div class="broadcast-blue"><strong>Moderated chat was disabled!</strong>')) {
 				room.modchat = 'off';
