@@ -20,8 +20,8 @@ import type { User } from './users';
 const MAIN_HOST = "sim3.psim.us";
 const REPLAY_SERVER_ADDRESS = "replay.pokemonshowdown.com";
 const RELOGIN_SECONDS = 60;
-const REGULAR_MESSAGE_THROTTLE = 600;
-const TRUSTED_MESSAGE_THROTTLE = 100;
+const REGULAR_MESSAGE_THROTTLE = 750;
+const TRUSTED_MESSAGE_THROTTLE = 250;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const INVITE_COMMAND = '/invite ';
@@ -155,6 +155,7 @@ export class Client {
 	filterRegularExpressions: RegExp[] | null = null;
 	groupSymbols: Dict<string> = {};
 	incomingMessageQueue: websocket.IMessage[] = [];
+	lastSentMessage: string = '';
 	loggedIn: boolean = false;
 	loginTimeout: NodeJS.Timer | undefined = undefined;
 	processIncomingMessages: boolean = false;
@@ -910,7 +911,11 @@ export class Client {
 				delete room.htmlMessageListeners[htmlId];
 			}
 
-			if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
+			if (messageArguments.html === '<strong class="message-throttle-notice">Your message was not sent because you\'ve been ' +
+				'typing too quickly.</strong>') {
+				this.sendThrottle += 100;
+				this.send(this.lastSentMessage);
+			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
 				room.modchat = messageArguments.html.split('<div class="broadcast-red"><strong>Moderated chat was set to ')[1]
 					.split('!</strong>')[0];
 			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>This battle is invite-only!</strong>')) {
@@ -1534,7 +1539,10 @@ export class Client {
 
 		this.sendTimeout = true;
 		this.connection.send(message, () => {
-			if (!this.reloadInProgress && this === global.Client) this.sendTimeout = this.setSendTimeout();
+			if (!this.reloadInProgress && this === global.Client) {
+				this.lastSentMessage = message;
+				this.sendTimeout = this.setSendTimeout();
+			}
 		});
 	}
 
