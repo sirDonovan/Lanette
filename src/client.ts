@@ -22,6 +22,7 @@ const REPLAY_SERVER_ADDRESS = "replay.pokemonshowdown.com";
 const RELOGIN_SECONDS = 60;
 const REGULAR_MESSAGE_THROTTLE = 600;
 const TRUSTED_MESSAGE_THROTTLE = 100;
+const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
@@ -1525,6 +1526,10 @@ export class Client {
 		if (!this.connection || !this.connection.connected || this.sendTimeout) {
 			this.sendQueue.push(message);
 			return;
+		}
+
+		if (message.length > MAX_MESSAGE_SIZE) {
+			throw new Error("Message exceeds server size limit of 100KB: " + message);
 		}
 
 		this.sendTimeout = true;
