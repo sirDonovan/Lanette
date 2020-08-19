@@ -434,6 +434,7 @@ export abstract class EliminationTournament extends Game {
 		for (const player of players) {
 			player.eliminated = true;
 			this.disqualifiedPlayers.add(player);
+			this.awaitingBracketUpdate.add(player);
 
 			/**
 			 * The user either has a single available battle or no available battles
@@ -472,7 +473,8 @@ export abstract class EliminationTournament extends Game {
 
 				const teamChanges = this.setMatchResult(found.match, found.result, found.score);
 				this.teamChanges.set(winner, (this.teamChanges.get(winner) || []).concat(teamChanges));
-				if (!players.includes(winner)) this.awaitingBracketUpdate.add(winner);
+
+				this.awaitingBracketUpdate.add(winner);
 			}
 		}
 
@@ -1449,7 +1451,9 @@ export abstract class EliminationTournament extends Game {
 		const teamChanges = this.setMatchResult([node.children![0].user!, node.children![1].user!], result, win ? [1, 0] : [0, 1],
 			loserTeam);
 		this.teamChanges.set(winner, (this.teamChanges.get(winner) || []).concat(teamChanges));
+
 		this.awaitingBracketUpdate.add(winner);
+		this.awaitingBracketUpdate.add(loser);
 
 		if (!this.ended) {
 			this.updateMatches();
