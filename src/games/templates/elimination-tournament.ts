@@ -117,6 +117,7 @@ export abstract class EliminationTournament extends Game {
 	advertisementInterval: NodeJS.Timer | null = null;
 	allowsScouting: boolean = false;
 	availableMatchNodes: EliminationNode<Player>[] = [];
+	awaitingBracketUpdate = new Set<Player>();
 	banlist: string[] = [];
 	readonly battleData: Dict<IBattleGameData> = {};
 	readonly battleRooms: string[] = [];
@@ -432,7 +433,6 @@ export abstract class EliminationTournament extends Game {
 
 		for (const player of players) {
 			player.eliminated = true;
-			this.spectatorPlayers.add(player);
 			this.disqualifiedPlayers.add(player);
 
 			/**
@@ -550,7 +550,6 @@ export abstract class EliminationTournament extends Game {
 		targetNode.user = winner;
 
 		loser.eliminated = true;
-		this.spectatorPlayers.add(loser);
 
 		let winnerTeamChanges: ITeamChange[] = [];
 		if (this.getRemainingPlayerCount() > 1 && (this.additionsPerRound || this.evolutionsPerRound)) {
@@ -624,8 +623,11 @@ export abstract class EliminationTournament extends Game {
 			this.availableMatchNodes.push(node);
 			const player = node.children![0].user!;
 			const opponent = node.children![1].user!;
+
 			this.playerOpponents.set(player, opponent);
 			this.playerOpponents.set(opponent, player);
+			this.awaitingBracketUpdate.add(player);
+			this.awaitingBracketUpdate.add(opponent);
 
 			const newOpponentPM = "You have a new opponent for the " + this.name + " tournament in " + this.room.title + "!";
 			player.say(newOpponentPM);
@@ -640,8 +642,7 @@ export abstract class EliminationTournament extends Game {
 
 			const timeout = setTimeout(() => {
 				const reminderPM = "You still need to battle your new opponent for the " + this.name + " tournament in " +
-					this.room.title + "! Please send me the link to the battle or leave your pending challenge up. Activity will be " +
-					"checked again in " + Tools.toDurationString(this.activityDQTimeout) + ".";
+					this.room.title + "! Please send me the link to the battle or leave your pending challenge up.";
 
 				player.say(reminderPM);
 				opponent.say(reminderPM);
@@ -795,12 +796,19 @@ export abstract class EliminationTournament extends Game {
 
 	updatePlayerHtmlPage(player: Player): void {
 		player.sendHtmlPage(this.getPlayerHtmlPage(player));
+		this.awaitingBracketUpdate.delete(player);
 	}
 
 	updatePlayerHtmlPages(): void {
 		for (const i in this.players) {
-			if (this.players[i].eliminated && !this.spectatorPlayers.has(this.players[i])) continue;
-			this.updatePlayerHtmlPage(this.players[i]);
+			const player = this.players[i];
+			if (player.eliminated) {
+				if (!this.spectatorPlayers.has(player)) continue;
+			} else {
+				if (!this.tournamentEnded && !this.awaitingBracketUpdate.has(player)) continue;
+			}
+
+			this.updatePlayerHtmlPage(player);
 		}
 	}
 
@@ -1096,8 +1104,9 @@ export abstract class EliminationTournament extends Game {
 		}
 
 		this.firstRoundByes.forEach(player => {
+			this.awaitingBracketUpdate.add(player);
 			player.round!++;
-			if (this.additionsPerRound) {
+			if (this.additionsPerRound || this.evolutionsPerRound) {
 				const pokemon: string[] = [];
 				const additions = Math.abs(this.additionsPerRound);
 				for (let i = 0; i < additions; i++) {
