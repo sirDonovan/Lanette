@@ -1688,7 +1688,7 @@ const commands: CommandDefinitions<CommandContext> = {
 
 			if (room.userHostedGame.gameTimer) clearTimeout(room.userHostedGame.gameTimer);
 			room.userHostedGame.gameTimer = setTimeout(() => {
-				room.say(user.name + ": time is up!");
+				if (user.id === room.userHostedGame!.hostId) room.say(room.userHostedGame!.hostName + ": time is up!");
 				room.userHostedGame!.gameTimer = null;
 			}, time);
 			this.say("Game timer set for: " + Tools.toDurationString(time) + ".");
