@@ -138,7 +138,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			};
 
 			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-call
-			await require(path.join(Tools.rootFolder, 'build.js'))(buildOptions, async() => {
+			await require(path.join(Tools.rootFolder, 'build.js'))(async() => {
 				for (const moduleId of modules) {
 					if (moduleId === 'client') {
 						const filename = "client";
@@ -232,7 +232,7 @@ const commands: CommandDefinitions<CommandContext> = {
 				reloadInProgress = false;
 				if (Games.reloadInProgress) Games.reloadInProgress = false;
 				if (Storage.reloadInProgress) Storage.reloadInProgress = false;
-			});
+			}, buildOptions);
 		},
 		aliases: ['hotpatch'],
 		developerOnly: true,

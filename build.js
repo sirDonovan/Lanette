@@ -76,7 +76,9 @@ async function setToSha(sha) {
 	return await exec('git reset --hard ' + sha).catch(e => console.log(e));
 }
 
-module.exports = async (options, resolve, reject) => {
+module.exports = async (resolve, reject, options) => {
+	if (options === undefined) options = require('./get-options.js')();
+
 	if (!options.noBuild) {
 		console.log("Preparing to build files...");
 		if (options.incrementalBuild) {

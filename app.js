@@ -2,7 +2,7 @@ const path = require('path');
 
 require(path.join(__dirname, 'create-untracked-files.js'));
 
-require(path.join(__dirname, 'build.js'))({}, async() => {
+require(path.join(__dirname, 'build.js'))(async() => {
 	await require(path.join(__dirname, 'built', 'app.js'))();
 
 	await Dex.loadAllData();
