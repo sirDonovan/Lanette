@@ -40,6 +40,11 @@ export let server = '';
 export let replayServer = '';
 
 /**
+ * Whether the configured server address has permessage-deflate enabled
+ */
+export let perMessageDeflate = false;
+
+/**
  * The base amount of time (in milliseconds) between connection attempts
  */
 export let reconnectTime = 60 * 1000;

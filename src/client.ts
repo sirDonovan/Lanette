@@ -1,7 +1,7 @@
 import https = require('https');
 import querystring = require('querystring');
 import url = require('url');
-import websocket = require('websocket');
+import ws = require('ws');
 
 import type { Player } from './room-activity';
 import type { Room } from './rooms';
@@ -20,8 +20,8 @@ import type { User } from './users';
 const MAIN_HOST = "sim3.psim.us";
 const REPLAY_SERVER_ADDRESS = "replay.pokemonshowdown.com";
 const RELOGIN_SECONDS = 60;
-const REGULAR_MESSAGE_THROTTLE = 750;
-const TRUSTED_MESSAGE_THROTTLE = 250;
+const REGULAR_MESSAGE_THROTTLE = 600;
+const TRUSTED_MESSAGE_THROTTLE = 100;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const INVITE_COMMAND = '/invite ';
@@ -138,23 +138,21 @@ function constructEvasionRegex(str: string): RegExp {
 	return new RegExp(buf, 'i');
 }
 
-let connectListener: (connection: websocket.connection) => void;
-let connectFailedListener: (error: Error) => void;
-let messageListener: (message: websocket.IMessage) => void;
+let connectListener: () => void;
+let messageListener: (message: ws.Data) => void;
 let errorListener: (error: Error) => void;
-let closeListener: (code: number, description: string) => void;
+let closeListener: (code: number, reason: string) => void;
 
 export class Client {
 	botGreetingCooldowns: Dict<number> = {};
 	challstr: string = '';
-	client: websocket.client = new websocket.client({maxReceivedFrameSize: 0x400000});
-	connection: websocket.connection | null = null;
+	connected: boolean = false;
 	connectionAttempts: number = 0;
 	connectionTimeout: NodeJS.Timer | undefined = undefined;
 	evasionFilterRegularExpressions: RegExp[] | null = null;
 	filterRegularExpressions: RegExp[] | null = null;
 	groupSymbols: Dict<string> = {};
-	incomingMessageQueue: websocket.IMessage[] = [];
+	incomingMessageQueue: ws.Data[] = [];
 	lastSentMessage: string = '';
 	loggedIn: boolean = false;
 	loginTimeout: NodeJS.Timer | undefined = undefined;
@@ -170,63 +168,46 @@ export class Client {
 	serverGroups: Dict<IServerGroup> = {};
 	serverId: string = 'showdown';
 	serverTimeOffset: number = 0;
+	webSocket: ws | null = null;
 
 	constructor() {
-		connectListener = connection => {
-			this.connection = connection;
-
-			this.setConnectionListeners();
-
+		connectListener = () => {
+			this.connected = true;
 			void this.onConnect();
 		};
-		connectFailedListener = error => this.onConnectFail(error);
 
-		messageListener = (message: websocket.IMessage) => this.onMessage(message);
+		messageListener = (message: ws.Data) => this.onMessage(message);
 		errorListener = (error: Error) => this.onConnectionError(error);
 		closeListener = (code: number, description: string) => this.onConnectionClose(code, description);
 
-		this.setClientListeners();
 		this.parseServerGroups(DEFAULT_SERVER_GROUPS);
 	}
 
 	setClientListeners(): void {
-		this.client.on('connect', connectListener);
-		this.client.on('connectFailed', connectFailedListener);
+		if (!this.webSocket) return;
+
+		this.webSocket.on('open', connectListener);
+		this.webSocket.on('message', messageListener);
+		this.webSocket.on('error', errorListener);
+		this.webSocket.on('close', closeListener);
 	}
 
 	removeClientListeners(): void {
-		this.client.off('connect', connectListener);
-		this.client.off('connectFailed', connectFailedListener);
-	}
+		if (!this.webSocket) return;
 
-	setConnectionListeners(): void {
-		this.connection!.on('message', messageListener);
-		this.connection!.on('error', errorListener);
-		this.connection!.on('close', closeListener);
-	}
-
-	removeConnectionListeners(): void {
-		this.connection!.off('message', messageListener);
-		this.connection!.off('error', errorListener);
-		this.connection!.off('close', closeListener);
+		this.webSocket.off('open', connectListener);
+		this.webSocket.off('message', messageListener);
+		this.webSocket.off('error', errorListener);
+		this.webSocket.off('close', closeListener);
 	}
 
 	onReload(previous: Partial<Client>): void {
-		if (previous.botGreetingCooldowns) Object.assign(this.botGreetingCooldowns, previous.botGreetingCooldowns);
-		if (previous.challstr) this.challstr = previous.challstr;
-
-		if (previous.client) {
-			if (previous.removeClientListeners) previous.removeClientListeners();
-			this.removeClientListeners();
-			this.client = previous.client;
-		}
-
 		if (previous.sendQueue) this.sendQueue = previous.sendQueue.slice();
-
-		if (previous.connection) {
-			if (previous.removeConnectionListeners) previous.removeConnectionListeners();
-			this.connection = previous.connection;
-			this.setConnectionListeners();
+		if (previous.webSocket) {
+			if (previous.removeClientListeners) previous.removeClientListeners();
+			this.webSocket = previous.webSocket;
+			this.setClientListeners();
+			this.connected = true;
 
 			if (previous.incomingMessageQueue) {
 				for (const message of previous.incomingMessageQueue.slice()) {
@@ -244,6 +225,8 @@ export class Client {
 			}
 		}
 
+		if (previous.botGreetingCooldowns) Object.assign(this.botGreetingCooldowns, previous.botGreetingCooldowns);
+		if (previous.challstr) this.challstr = previous.challstr;
 		if (previous.filterRegularExpressions) this.filterRegularExpressions = previous.filterRegularExpressions.slice();
 		if (previous.evasionFilterRegularExpressions) {
 			this.evasionFilterRegularExpressions = previous.evasionFilterRegularExpressions.slice();
@@ -281,14 +264,19 @@ export class Client {
 
 	onConnectionError(error: Error): void {
 		console.log('Connection error: ' + error.stack);
+		this.connected = false;
 		// 'close' is emitted directly after 'error' so reconnecting is handled in onConnectionClose
 	}
 
-	onConnectionClose(code: number, description: string): void {
+	onConnectionClose(code: number, reason: string): void {
 		if (this.connectionTimeout) clearTimeout(this.connectionTimeout);
 		if (this.loginTimeout) clearTimeout(this.loginTimeout);
-		console.log('Connection closed: ' + description + ' (' + code + ')');
+
+		console.log('Connection closed: ' + reason + ' (' + code + ')');
 		console.log('Reconnecting in ' + (this.reconnectTime /  1000) + ' seconds');
+
+		this.removeClientListeners();
+		this.connected = false;
 		this.connectionTimeout = setTimeout(() => this.reconnect(), this.reconnectTime);
 	}
 
@@ -327,11 +315,21 @@ export class Client {
 					if (typeof config === 'string') config = JSON.parse(config) as IServerConfig;
 					if (config.host) {
 						if (config.id) this.serverId = config.id;
+
+						let address: string;
 						if (config.host === 'showdown') {
-							this.client.connect('wss://' + MAIN_HOST + ':' + (config.port || 443) + '/showdown/websocket');
+							address = 'wss://' + MAIN_HOST + ':' + (config.port || 443) + '/showdown/websocket';
 						} else {
-							this.client.connect('ws://' + config.host + ':' + (config.port || 8000) + '/showdown/websocket');
+							address = 'ws://' + config.host + ':' + (config.port || 8000) + '/showdown/websocket';
 						}
+
+						const options: ws.ClientOptions = {
+							perMessageDeflate: Config.perMessageDeflate || false,
+						};
+
+						this.webSocket = new ws(address, options);
+						this.setClientListeners();
+
 						return;
 					}
 				}
@@ -352,14 +350,15 @@ export class Client {
 		this.connect();
 	}
 
-	onMessage(websocketMessage: websocket.IMessage): void {
+	onMessage(webSocketData: ws.Data): void {
+		if (!webSocketData || typeof webSocketData !== 'string') return;
+
 		if (!this.processIncomingMessages) {
-			this.incomingMessageQueue.push(websocketMessage);
+			this.incomingMessageQueue.push(webSocketData);
 			return;
 		}
 
-		if (websocketMessage.type !== 'utf8' || !websocketMessage.utf8Data) return;
-		const lines = websocketMessage.utf8Data.split("\n");
+		const lines = webSocketData.split("\n");
 		let room: Room;
 		if (lines[0].startsWith('>')) {
 			room = Rooms.add(lines[0].substr(1));
@@ -1528,7 +1527,7 @@ export class Client {
 
 	send(message: string): void {
 		if (!message) return;
-		if (!this.connection || !this.connection.connected || this.sendTimeout) {
+		if (!this.webSocket || !this.connected || this.sendTimeout) {
 			this.sendQueue.push(message);
 			return;
 		}
@@ -1538,7 +1537,7 @@ export class Client {
 		}
 
 		this.sendTimeout = true;
-		this.connection.send(message, () => {
+		this.webSocket.send(message, () => {
 			if (!this.reloadInProgress && this === global.Client) {
 				this.lastSentMessage = message;
 				this.sendTimeout = this.setSendTimeout();
