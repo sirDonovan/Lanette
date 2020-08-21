@@ -22,8 +22,10 @@ const REPLAY_SERVER_ADDRESS = "replay.pokemonshowdown.com";
 const RELOGIN_SECONDS = 60;
 const REGULAR_MESSAGE_THROTTLE = 600;
 const TRUSTED_MESSAGE_THROTTLE = 100;
+const TEMPORARY_MESSAGE_THROTTLE = 250;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
+const TEMPORARY_THROTTLED_MESSAGE_COOLDOWN = 5 * 60 * 1000;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
 const UHTML_CHAT_COMMAND = '/uhtml ';
@@ -168,6 +170,8 @@ export class Client {
 	serverGroups: Dict<IServerGroup> = {};
 	serverId: string = 'showdown';
 	serverTimeOffset: number = 0;
+	throttledMessageCount: number = 0;
+	throttledMessageTimeout: NodeJS.Timer | null = null;
 	webSocket: ws | null = null;
 
 	constructor() {
@@ -202,6 +206,13 @@ export class Client {
 	}
 
 	onReload(previous: Partial<Client>): void {
+		if (previous.throttledMessageTimeout) clearTimeout(previous.throttledMessageTimeout);
+
+		if (previous.throttledMessageCount) {
+			this.throttledMessageCount = previous.throttledMessageCount;
+			this.setThrottledMessageTimeout();
+		}
+
 		if (previous.sendQueue) this.sendQueue = previous.sendQueue.slice();
 		if (previous.webSocket) {
 			if (previous.removeClientListeners) previous.removeClientListeners();
@@ -238,7 +249,7 @@ export class Client {
 
 		if (previous.sendTimeout) {
 			if (previous.sendTimeout !== true) clearTimeout(previous.sendTimeout);
-			if (!this.sendTimeout) this.sendTimeout = this.setSendTimeout();
+			if (!this.sendTimeout) this.sendTimeout = this.setSendTimeout(this.getSendThrottle());
 		}
 
 		if (previous.server) this.server = previous.server;
@@ -912,8 +923,19 @@ export class Client {
 
 			if (messageArguments.html === '<strong class="message-throttle-notice">Your message was not sent because you\'ve been ' +
 				'typing too quickly.</strong>') {
-				this.sendThrottle += 100;
-				this.send(this.lastSentMessage);
+				if (this.sendTimeout) {
+					if (this.sendTimeout === true) {
+						delete this.sendTimeout;
+					} else {
+						clearTimeout(this.sendTimeout);
+					}
+				}
+
+				this.throttledMessageCount++;
+				this.setThrottledMessageTimeout();
+
+				this.sendQueue.unshift(this.lastSentMessage);
+				this.sendTimeout = this.setSendTimeout(this.getSendThrottle() * 2);
 			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
 				room.modchat = messageArguments.html.split('<div class="broadcast-red"><strong>Moderated chat was set to ')[1]
 					.split('!</strong>')[0];
@@ -1538,14 +1560,21 @@ export class Client {
 
 		this.sendTimeout = true;
 		this.webSocket.send(message, () => {
-			if (!this.reloadInProgress && this === global.Client) {
+			if (this.sendTimeout === true && !this.reloadInProgress && this === global.Client) {
 				this.lastSentMessage = message;
-				this.sendTimeout = this.setSendTimeout();
+				this.sendTimeout = this.setSendTimeout(this.getSendThrottle());
 			}
 		});
 	}
 
-	setSendTimeout(): NodeJS.Timeout {
+	getSendThrottle(): number {
+		let throttle = this.sendThrottle;
+		if (this.throttledMessageCount) throttle += (this.throttledMessageCount * TEMPORARY_MESSAGE_THROTTLE);
+
+		return throttle;
+	}
+
+	setSendTimeout(timer: number): NodeJS.Timeout {
 		return setTimeout(() => {
 			if (this.reloadInProgress) {
 				this.sendTimeout = true;
@@ -1557,7 +1586,14 @@ export class Client {
 			const message = this.sendQueue[0];
 			this.sendQueue.shift();
 			this.send(message);
-		}, this.sendThrottle);
+		}, timer);
+	}
+
+	setThrottledMessageTimeout(): void {
+		this.throttledMessageTimeout = setTimeout(() => {
+			this.throttledMessageCount--;
+			if (this.throttledMessageCount) this.setThrottledMessageTimeout();
+		}, TEMPORARY_THROTTLED_MESSAGE_COOLDOWN);
 	}
 
 	login(): void {
