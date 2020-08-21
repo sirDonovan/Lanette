@@ -550,7 +550,7 @@ const tests: GameFileTests<CardMatching> = {
 };
 
 export const game: IGameTemplateFile<CardMatching> = Object.assign(Tools.deepClone(cardGame), {
-	category: 'card-matching' as GameCategory,
+	category: 'luck' as GameCategory,
 	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
 	modes: undefined,
 	modeProperties: undefined,

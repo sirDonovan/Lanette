@@ -752,7 +752,7 @@ const tests: GameFileTests<BoardPropertyGame> = {
 };
 
 export const game: IGameTemplateFile<BoardPropertyGame> = Object.assign(Tools.deepClone(boardGame), {
-	category: 'board-property' as GameCategory,
+	category: 'luck' as GameCategory,
 	commands,
 	modeProperties: undefined,
 	tests: Object.assign({}, boardGame.tests, tests),
