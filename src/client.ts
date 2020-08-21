@@ -25,6 +25,7 @@ const TRUSTED_MESSAGE_THROTTLE = 100;
 const TEMPORARY_MESSAGE_THROTTLE = 250;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
+const SERVER_PING_INTERVAL = 5 * 60 * 1000;
 const TEMPORARY_THROTTLED_MESSAGE_COOLDOWN = 5 * 60 * 1000;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
@@ -146,6 +147,7 @@ let errorListener: (error: Error) => void;
 let closeListener: (code: number, reason: string) => void;
 
 export class Client {
+	averageServerLatency: number = 0;
 	botGreetingCooldowns: Dict<number> = {};
 	challstr: string = '';
 	connected: boolean = false;
@@ -158,6 +160,7 @@ export class Client {
 	lastSentMessage: string = '';
 	loggedIn: boolean = false;
 	loginTimeout: NodeJS.Timer | undefined = undefined;
+	nextServerPing: NodeJS.Timer | null = null;
 	processIncomingMessages: boolean = false;
 	publicChatRooms: string[] = [];
 	reconnectTime: number = Config.reconnectTime || 60 * 1000;
@@ -169,7 +172,10 @@ export class Client {
 	server: string = Config.server || Tools.mainServer;
 	serverGroups: Dict<IServerGroup> = {};
 	serverId: string = 'showdown';
+	serverLatencyTimes: number[] = [];
+	serverLatencyTimeCount: number = 5;
 	serverTimeOffset: number = 0;
+	startServerPingsTimeout: NodeJS.Timer | null = null;
 	throttledMessageCount: number = 0;
 	throttledMessageTimeout: NodeJS.Timer | null = null;
 	webSocket: ws | null = null;
@@ -205,9 +211,49 @@ export class Client {
 		this.webSocket.off('close', closeListener);
 	}
 
+	setStartServerPingsTimeout(): void {
+		this.startServerPingsTimeout = setTimeout(() => {
+			this.serverLatencyTimes = [];
+			this.pingServer();
+		}, SERVER_PING_INTERVAL);
+	}
+
+	pingServer(): void {
+		if (!this.webSocket) return;
+
+		let startTime: number;
+		const pongListener = () => {
+			const latency = Date.now() - startTime;
+			this.webSocket!.off('pong', pongListener);
+
+			if (this.reloadInProgress || this !== global.Client) return;
+
+			this.serverLatencyTimes.push(latency);
+
+			if (this.serverLatencyTimes.length === this.serverLatencyTimeCount) {
+				let totalLatency = 0;
+				for (const time of this.serverLatencyTimes) {
+					totalLatency += time;
+				}
+				this.averageServerLatency = totalLatency ? Math.floor(totalLatency / this.serverLatencyTimes.length) : 0;
+				this.setStartServerPingsTimeout();
+			} else {
+				this.nextServerPing = setTimeout(() => this.pingServer(), 2 * 1000);
+			}
+		};
+
+		this.webSocket.on('pong', pongListener);
+		this.webSocket.ping('', undefined, () => {
+			startTime = Date.now();
+		});
+	}
+
 	onReload(previous: Partial<Client>): void {
+		if (previous.startServerPingsTimeout) clearTimeout(previous.startServerPingsTimeout);
+		if (previous.nextServerPing) clearTimeout(previous.nextServerPing);
 		if (previous.throttledMessageTimeout) clearTimeout(previous.throttledMessageTimeout);
 
+		if (previous.averageServerLatency) this.averageServerLatency = previous.averageServerLatency;
 		if (previous.throttledMessageCount) {
 			this.throttledMessageCount = previous.throttledMessageCount;
 			this.setThrottledMessageTimeout();
@@ -234,6 +280,8 @@ export class Client {
 
 				this.incomingMessageQueue = [];
 			}
+
+			this.setStartServerPingsTimeout();
 		}
 
 		if (previous.botGreetingCooldowns) Object.assign(this.botGreetingCooldowns, previous.botGreetingCooldowns);
@@ -298,6 +346,7 @@ export class Client {
 		}
 
 		console.log('Successfully connected');
+		this.setStartServerPingsTimeout();
 		await Dex.fetchClientData();
 	}
 
@@ -1569,6 +1618,7 @@ export class Client {
 
 	getSendThrottle(): number {
 		let throttle = this.sendThrottle;
+		if (this.averageServerLatency) throttle += this.averageServerLatency;
 		if (this.throttledMessageCount) throttle += (this.throttledMessageCount * TEMPORARY_MESSAGE_THROTTLE);
 
 		return throttle;
