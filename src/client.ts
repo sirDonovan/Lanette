@@ -297,7 +297,7 @@ export class Client {
 
 		if (previous.sendTimeout) {
 			if (previous.sendTimeout !== true) clearTimeout(previous.sendTimeout);
-			if (!this.sendTimeout) this.sendTimeout = this.setSendTimeout(this.getSendThrottle());
+			if (!this.sendTimeout) this.setSendTimeout(this.getSendThrottle());
 		}
 
 		if (previous.server) this.server = previous.server;
@@ -984,7 +984,7 @@ export class Client {
 				this.setThrottledMessageTimeout();
 
 				this.sendQueue.unshift(this.lastSentMessage);
-				this.sendTimeout = this.setSendTimeout(this.getSendThrottle() * 2);
+				this.setSendTimeout(this.getSendThrottle() * 2);
 			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
 				room.modchat = messageArguments.html.split('<div class="broadcast-red"><strong>Moderated chat was set to ')[1]
 					.split('!</strong>')[0];
@@ -1611,7 +1611,7 @@ export class Client {
 		this.webSocket.send(message, () => {
 			if (this.sendTimeout === true && !this.reloadInProgress && this === global.Client) {
 				this.lastSentMessage = message;
-				this.sendTimeout = this.setSendTimeout(this.getSendThrottle());
+				this.setSendTimeout(this.getSendThrottle());
 			}
 		});
 	}
@@ -1624,8 +1624,9 @@ export class Client {
 		return throttle;
 	}
 
-	setSendTimeout(timer: number): NodeJS.Timeout {
-		return setTimeout(() => {
+	setSendTimeout(timer: number): void {
+		if (this.sendTimeout && this.sendTimeout !== true) clearTimeout(this.sendTimeout);
+		this.sendTimeout = setTimeout(() => {
 			if (this.reloadInProgress) {
 				this.sendTimeout = true;
 				return;
@@ -1640,6 +1641,7 @@ export class Client {
 	}
 
 	setThrottledMessageTimeout(): void {
+		if (this.throttledMessageTimeout) clearTimeout(this.throttledMessageTimeout);
 		this.throttledMessageTimeout = setTimeout(() => {
 			this.throttledMessageCount--;
 			if (this.throttledMessageCount) this.setThrottledMessageTimeout();
