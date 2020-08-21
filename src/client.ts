@@ -235,7 +235,7 @@ export class Client {
 				for (const time of this.serverLatencyTimes) {
 					totalLatency += time;
 				}
-				this.averageServerLatency = totalLatency ? Math.floor(totalLatency / this.serverLatencyTimes.length) : 0;
+				this.averageServerLatency = totalLatency ? Math.ceil(totalLatency / this.serverLatencyTimes.length) : 0;
 				this.setStartServerPingsTimeout();
 			} else {
 				this.nextServerPing = setTimeout(() => this.pingServer(), 2 * 1000);
