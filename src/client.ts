@@ -223,7 +223,7 @@ export class Client {
 
 		let startTime: number;
 		const pongListener = () => {
-			const latency = Date.now() - startTime;
+			const latency = Math.ceil((Date.now() - startTime) / 2);
 			this.webSocket!.off('pong', pongListener);
 
 			if (this.reloadInProgress || this !== global.Client) return;
