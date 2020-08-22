@@ -469,7 +469,7 @@ export interface IFormatData {
 	maxForcedLevel?: number;
 	rated?: boolean;
 	minSourceGen?: number;
-	restricted?: string[];
+	restricted: string[];
 	searchShow?: boolean;
 	team?: string;
 	teamLength?: {validate?: [number, number]; battle?: number};
@@ -498,8 +498,9 @@ export interface IFormatLinks {
 }
 
 export interface ISeparatedCustomRules {
-	bans: string[];
-	unbans: string[];
+	addedbans: string[];
+	removedbans: string[];
+	addedrestrictions: string[];
 	addedrules: string[];
 	removedrules: string[];
 }

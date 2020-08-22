@@ -994,15 +994,18 @@ export class Client {
 				room.modchat = 'off';
 			} else if (messageArguments.html.startsWith("<div class='infobox infobox-limited'>This tournament includes:<br />")) {
 				if (room.tournament) {
-					const separatedCustomRules: ISeparatedCustomRules = {bans: [], unbans: [], addedrules: [], removedrules: []};
+					const separatedCustomRules: ISeparatedCustomRules = {
+						addedbans: [], removedbans: [], addedrestrictions: [], addedrules: [], removedrules: [],
+					};
 					const lines = messageArguments.html.substr(0, messageArguments.html.length - 6)
 						.split("<div class='infobox infobox-limited'>This tournament includes:<br />")[1].split('<br />');
-					let currentCategory: 'bans' | 'unbans' | 'addedrules' | 'removedrules' = 'bans';
+					let currentCategory: 'addedbans' | 'removedbans' | 'addedrestrictions' | 'addedrules' | 'removedrules' = 'addedbans';
 					for (let line of lines) {
 						line = line.trim();
 						if (line.startsWith('<b>')) {
 							const category = Tools.toId(line.split('<b>')[1].split('</b>')[0]);
-							if (category === 'bans' || category === 'unbans' || category === 'addedrules' || category === 'removedrules') {
+							if (category === 'addedbans' || category === 'removedbans' ||
+								category === 'addedrestrictions' || category === 'addedrules' || category === 'removedrules') {
 								currentCategory = category;
 							}
 						}

@@ -2816,7 +2816,7 @@ const commands: CommandDefinitions<CommandContext> = {
 				const customRules: string[] = [];
 				for (let i = 2; i < targets.length; i++) {
 					const rule = targets[i].trim();
-					if (format.team && (rule.startsWith('+') || rule.startsWith('-'))) {
+					if (format.team && (rule.startsWith('+') || rule.startsWith('-') || rule.startsWith('*'))) {
 						return this.say("You currently cannot specify bans or unbans for formats with generated teams.");
 					}
 					try {

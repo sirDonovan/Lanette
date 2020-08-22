@@ -145,6 +145,39 @@ export class RuleTable extends Map<string, string> {
 		return this.has(`-${thing}`);
 	}
 
+	isBannedPokemon(pokemon: IPokemon): boolean {
+		if (this.has(`+pokemon:${pokemon.id}`)) return false;
+		if (this.has(`-pokemon:${pokemon.id}`)) return true;
+		if (this.has(`+basepokemon:${Tools.toId(pokemon.baseSpecies)}`)) return false;
+		if (this.has(`-basepokemon:${Tools.toId(pokemon.baseSpecies)}`)) return true;
+		const tier = pokemon.tier === '(PU)' ? 'ZU' : pokemon.tier === '(NU)' ? 'PU' : pokemon.tier;
+		if (this.has(`+pokemontag:${Tools.toId(tier)}`)) return false;
+		if (this.has(`-pokemontag:${Tools.toId(tier)}`)) return true;
+		const doublesTier = pokemon.doublesTier === '(DUU)' ? 'DNU' : pokemon.doublesTier;
+		if (this.has(`+pokemontag:${Tools.toId(doublesTier)}`)) return false;
+		if (this.has(`-pokemontag:${Tools.toId(doublesTier)}`)) return true;
+		return this.has(`-pokemontag:allpokemon`);
+	}
+
+	isRestricted(thing: string): boolean {
+		if (this.has(`+${thing}`)) return false;
+		return this.has(`*${thing}`);
+	}
+
+	isRestrictedPokemon(pokemon: IPokemon): boolean {
+		if (this.has(`+pokemon:${pokemon.id}`)) return false;
+		if (this.has(`*pokemon:${pokemon.id}`)) return true;
+		if (this.has(`+basepokemon:${Tools.toId(pokemon.baseSpecies)}`)) return false;
+		if (this.has(`*basepokemon:${Tools.toId(pokemon.baseSpecies)}`)) return true;
+		const tier = pokemon.tier === '(PU)' ? 'ZU' : pokemon.tier === '(NU)' ? 'PU' : pokemon.tier;
+		if (this.has(`+pokemontag:${Tools.toId(tier)}`)) return false;
+		if (this.has(`*pokemontag:${Tools.toId(tier)}`)) return true;
+		const doublesTier = pokemon.doublesTier === '(DUU)' ? 'DNU' : pokemon.doublesTier;
+		if (this.has(`+pokemontag:${Tools.toId(doublesTier)}`)) return false;
+		if (this.has(`*pokemontag:${Tools.toId(doublesTier)}`)) return true;
+		return this.has(`*pokemontag:allpokemon`);
+	}
+
 	check(thing: string, setHas: {[id: string]: true} | null = null): string | null {
 		if (this.has(`+${thing}`)) return '';
 		if (setHas) setHas[thing] = true;
@@ -1306,6 +1339,9 @@ export class Dex {
 		for (const ban of format.banlist) {
 			ruleset.push('-' + ban);
 		}
+		for (const ban of format.restricted) {
+			ruleset.push('*' + ban);
+		}
 		for (const ban of format.unbanlist) {
 			ruleset.push('+' + ban);
 		}
@@ -1359,13 +1395,12 @@ export class Dex {
 				continue;
 			}
 
-			if ("+-".includes(ruleSpec.charAt(0))) {
-				if (ruleSpec.startsWith('+')) ruleTable.delete('-' + ruleSpec.slice(1));
-				if (ruleSpec.startsWith('-')) ruleTable.delete('+' + ruleSpec.slice(1));
+			if ("+*-".includes(ruleSpec.charAt(0))) {
 				if (ruleTable.has(ruleSpec)) {
 					throw new Error(`Rule "${rule}" was added by "${format.name}" but already exists in "${ruleTable.get(ruleSpec) ||
 						format.name}"`);
 				}
+				for (const prefix of "-*+") ruleTable.delete(prefix + ruleSpec.slice(1));
 				ruleTable.set(ruleSpec, '');
 				continue;
 			}
@@ -1433,6 +1468,7 @@ export class Dex {
 	validateRule(rule: string, format: IFormat | null = null): [string, string, string, number, string[]] | string {
 		switch (rule.charAt(0)) {
 		case '-':
+		case '*':
 		case '+': {
 			if (format && format.team) throw new Error(`We don't currently support bans in generated teams`);
 			if (rule.slice(1).includes('>') || rule.slice(1).includes('+')) {
@@ -1670,11 +1706,14 @@ export class Dex {
 
 	combineCustomRules(separatedCustomRules: ISeparatedCustomRules): string[] {
 		const customRules: string[] = [];
-		for (const ban of separatedCustomRules.bans) {
+		for (const ban of separatedCustomRules.addedbans) {
 			customRules.push('-' + ban);
 		}
-		for (const unban of separatedCustomRules.unbans) {
+		for (const unban of separatedCustomRules.removedbans) {
 			customRules.push('+' + unban);
+		}
+		for (const restriction of separatedCustomRules.addedrestrictions) {
+			customRules.push('*' + restriction);
 		}
 		for (const addedRule of separatedCustomRules.addedrules) {
 			customRules.push(addedRule);
@@ -1687,8 +1726,9 @@ export class Dex {
 	}
 
 	separateCustomRules(customRules: string[]): ISeparatedCustomRules {
-		const bans: string[] = [];
-		const unbans: string[] = [];
+		const addedbans: string[] = [];
+		const removedbans: string[] = [];
+		const addedrestrictions: string[] = [];
 		const addedrules: string[] = [];
 		const removedrules: string[] = [];
 		for (const ruleString of customRules) {
@@ -1698,9 +1738,11 @@ export class Dex {
 				const ruleName = this.getValidatedRuleName(rule);
 
 				if (type === '+') {
-					unbans.push(ruleName);
+					addedbans.push(ruleName);
 				} else if (type === '-') {
-					bans.push(ruleName);
+					removedbans.push(ruleName);
+				} else if (type === '*') {
+					addedrestrictions.push(ruleName);
 				} else if (type === '!') {
 					removedrules.push(ruleName);
 				} else {
@@ -1709,14 +1751,14 @@ export class Dex {
 			} else {
 				const complexBans = rule[4].map(x => this.getValidatedRuleName(x));
 				if (rule[0] === 'complexTeamBan') {
-					bans.push(complexBans.join(' ++ '));
+					addedbans.push(complexBans.join(' ++ '));
 				} else {
-					bans.push(complexBans.join(' + '));
+					addedbans.push(complexBans.join(' + '));
 				}
 			}
 		}
 
-		return {bans, unbans, addedrules, removedrules};
+		return {addedbans, removedbans, addedrestrictions, addedrules, removedrules};
 	}
 
 	getCustomFormatName(format: IFormat, room?: Room, showAll?: boolean): string {
@@ -1724,8 +1766,9 @@ export class Dex {
 		if (!format.separatedCustomRules) format.separatedCustomRules = this.separateCustomRules(format.customRules);
 		const defaultCustomRules: Partial<ISeparatedCustomRules> = room && room.id in Tournaments.defaultCustomRules ?
 			Tournaments.defaultCustomRules[room.id] : {};
-		const bansLength = format.separatedCustomRules.bans.length;
-		const unbansLength = format.separatedCustomRules.unbans.length;
+		const bansLength = format.separatedCustomRules.addedbans.length;
+		const unbansLength = format.separatedCustomRules.removedbans.length;
+		const restrictionsLength = format.separatedCustomRules.addedrestrictions.length;
 		const addedRulesLength = format.separatedCustomRules.addedrules.length;
 		const removedRulesLength = format.separatedCustomRules.removedrules.length;
 
@@ -1734,13 +1777,17 @@ export class Dex {
 		let suffixes: string[] = [];
 
 		if (showAll || (bansLength <= 2 && unbansLength <= 2 && addedRulesLength <= 2 && removedRulesLength <= 2)) {
-			if (bansLength && (!defaultCustomRules.bans ||
-				format.separatedCustomRules.bans.join(",") !== defaultCustomRules.bans.join(","))) {
-				prefixesRemoved = prefixesRemoved.concat(format.separatedCustomRules.bans);
+			if (bansLength && (!defaultCustomRules.addedbans ||
+				format.separatedCustomRules.addedbans.join(",") !== defaultCustomRules.addedbans.join(","))) {
+				prefixesRemoved = prefixesRemoved.concat(format.separatedCustomRules.addedbans);
 			}
-			if (unbansLength && (!defaultCustomRules.unbans ||
-				format.separatedCustomRules.unbans.join(",") !== defaultCustomRules.unbans.join(","))) {
-				suffixes = suffixes.concat(format.separatedCustomRules.unbans);
+			if (unbansLength && (!defaultCustomRules.removedbans ||
+				format.separatedCustomRules.removedbans.join(",") !== defaultCustomRules.removedbans.join(","))) {
+				suffixes = suffixes.concat(format.separatedCustomRules.removedbans);
+			}
+			if (restrictionsLength && (!defaultCustomRules.addedrestrictions ||
+				format.separatedCustomRules.addedrestrictions.join(",") !== defaultCustomRules.addedrestrictions.join(","))) {
+				suffixes = suffixes.concat(format.separatedCustomRules.addedrestrictions);
 			}
 			if (addedRulesLength && (!defaultCustomRules.addedrules ||
 				format.separatedCustomRules.addedrules.join(",") !== defaultCustomRules.addedrules.join(","))) {
@@ -1774,11 +1821,14 @@ export class Dex {
 	getCustomRulesHtml(format: IFormat): string {
 		if (!format.separatedCustomRules) format.separatedCustomRules = this.separateCustomRules(format.customRules!);
 		const html: string[] = [];
-		if (format.separatedCustomRules.bans.length) {
-			html.push("&nbsp;&nbsp;&nbsp;&nbsp;<b>Bans</b>: " + format.separatedCustomRules.bans.join(", "));
+		if (format.separatedCustomRules.addedbans.length) {
+			html.push("&nbsp;&nbsp;&nbsp;&nbsp;<b>Added bans</b>: " + format.separatedCustomRules.addedbans.join(", "));
 		}
-		if (format.separatedCustomRules.unbans.length) {
-			html.push("&nbsp;&nbsp;&nbsp;&nbsp;<b>Unbans</b>: " + format.separatedCustomRules.unbans.join(", "));
+		if (format.separatedCustomRules.removedbans.length) {
+			html.push("&nbsp;&nbsp;&nbsp;&nbsp;<b>Removed bans</b>: " + format.separatedCustomRules.removedbans.join(", "));
+		}
+		if (format.separatedCustomRules.addedrestrictions.length) {
+			html.push("&nbsp;&nbsp;&nbsp;&nbsp;<b>Added restrictions</b>: " + format.separatedCustomRules.addedrestrictions.join(", "));
 		}
 		if (format.separatedCustomRules.addedrules.length) {
 			html.push("&nbsp;&nbsp;&nbsp;&nbsp;<b>Added rules</b>: " + format.separatedCustomRules.addedrules.join(", "));
