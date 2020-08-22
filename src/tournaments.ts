@@ -21,10 +21,10 @@ export class Tournaments {
 	createListeners: Dict<{format: IFormat; scheduled: boolean}> = {};
 	readonly defaultCustomRules: Dict<Partial<ISeparatedCustomRules>> = {
 		tournaments: {
-			bans: ['Leppa Berry'],
+			addedbans: ['Leppa Berry'],
 		},
 		toursplaza: {
-			bans: ['Leppa Berry'],
+			addedbans: ['Leppa Berry'],
 		},
 	};
 	readonly delayedScheduledTournamentTime: number = 15 * 1000;
