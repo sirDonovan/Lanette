@@ -25,6 +25,9 @@ describe("pokemon-showdown", () => {
 			assert(Array.isArray(format.unbanlist));
 			if (format.unbanlist.length) assertStrictEqual(typeof format.unbanlist[0], 'string');
 
+			assert(Array.isArray(format.restricted));
+			if (format.restricted.length) assertStrictEqual(typeof format.restricted[0], 'string');
+
 			assert(Array.isArray(format.ruleset));
 			if (format.ruleset.length) assertStrictEqual(typeof format.ruleset[0], 'string');
 		}
