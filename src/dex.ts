@@ -1339,11 +1339,11 @@ export class Dex {
 		for (const ban of format.banlist) {
 			ruleset.push('-' + ban);
 		}
+		for (const ban of format.restricted) {
+			ruleset.push('*' + ban);
+		}
 		for (const ban of format.unbanlist) {
 			ruleset.push('+' + ban);
-		}
-		for (const restriction of format.restricted) {
-			ruleset.push('*' + restriction);
 		}
 		if (format.customRules) {
 			ruleset.push(...format.customRules);
