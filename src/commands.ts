@@ -1185,6 +1185,11 @@ const commands: CommandDefinitions<CommandContext> = {
 				}
 			}
 
+			if (Config.maxQueuedUserHostedGames && room.id in Config.maxQueuedUserHostedGames && database.userHostedGameQueue &&
+				database.userHostedGameQueue.length >= Config.maxQueuedUserHostedGames[room.id]) {
+				return this.say("The host queue is full.");
+			}
+
 			const otherUsersQueued = database.userHostedGameQueue && database.userHostedGameQueue.length;
 			const remainingGameCooldown = Games.getRemainingGameCooldown(room);
 			const inCooldown = remainingGameCooldown > 1000;
@@ -1192,20 +1197,22 @@ const commands: CommandDefinitions<CommandContext> = {
 			if (room.game || room.userHostedGame || otherUsersQueued || inCooldown || requiresScriptedGame) {
 				if (database.userHostedGameQueue) {
 					for (const game of database.userHostedGameQueue) {
-						if (Tools.toId(game.name) === host.id) {
-							if (Games.getExistingUserHostedFormat(game.format).name === format.name && !format.inputTarget.includes(',')) {
+						const alreadyQueued = Games.getExistingUserHostedFormat(game.format).name === format.name;
+						if (game.id === host.id) {
+							if (alreadyQueued && !format.inputTarget.includes(',')) {
 								return this.say(host.name + " is already in the host queue for " + format.name + ".");
 							}
 							game.format = format.inputTarget;
 							return this.say(host.name + "'s game was changed to " + format.name + ".");
+						} else {
+							if (alreadyQueued) {
+								return this.say("Another host is currently queued for " + format.name + ". " + host.name + " please " +
+									"choose a different game!");
+							}
 						}
 					}
 				} else {
 					database.userHostedGameQueue = [];
-				}
-				if (Config.maxQueuedUserHostedGames && room.id in Config.maxQueuedUserHostedGames &&
-					database.userHostedGameQueue.length >= Config.maxQueuedUserHostedGames[room.id]) {
-					return this.say("The host queue is full.");
 				}
 
 				let reason = '';
