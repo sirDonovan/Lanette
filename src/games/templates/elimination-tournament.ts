@@ -115,6 +115,7 @@ export abstract class EliminationTournament extends Game {
 	activityWarnTimeout: number = 5 * 60 * 1000;
 	additionsPerRound: number = 0;
 	advertisementInterval: NodeJS.Timer | null = null;
+	allowsFormes: boolean = true;
 	allowsScouting: boolean = false;
 	availableMatchNodes: EliminationNode<Player>[] = [];
 	awaitingBracketUpdate = new Set<Player>();
@@ -590,8 +591,8 @@ export abstract class EliminationTournament extends Game {
 				});
 
 				let possibleTeams = this.possibleTeams.get(winner)!;
-				possibleTeams = Dex.getPossibleTeams(possibleTeams, loserTeam, additions, this.evolutionsPerRound,
-					this.requiredAddition, this.requiredEvolution);
+				possibleTeams = Dex.getPossibleTeams(possibleTeams, loserTeam, {additions, evolutions: this.evolutionsPerRound,
+					requiredAddition: this.requiredAddition, requiredEvolution: this.requiredEvolution, allowFormes: this.allowsFormes});
 				this.possibleTeams.set(winner, possibleTeams);
 			}
 		}
@@ -920,7 +921,7 @@ export abstract class EliminationTournament extends Game {
 		const team = this.getStartingTeam();
 		if (team.length < this.startingTeamsLength) throw new Error("Out of Pokemon to give (" + player.name + ")");
 
-		this.possibleTeams.set(player, [team]);
+		this.possibleTeams.set(player, Dex.getFormeCombinations(team));
 		this.starterPokemon.set(player, team);
 		this.updatePlayerHtmlPage(player);
 	}
@@ -1126,8 +1127,9 @@ export abstract class EliminationTournament extends Game {
 				this.teamChanges.set(player, (this.teamChanges.get(player) || []).concat([teamChange]));
 
 				let possibleTeams = this.possibleTeams.get(player)!;
-				possibleTeams = Dex.getPossibleTeams(possibleTeams, pokemon, this.additionsPerRound, this.evolutionsPerRound,
-					this.requiredAddition, this.requiredEvolution);
+				possibleTeams = Dex.getPossibleTeams(possibleTeams, pokemon, {additions: this.additionsPerRound,
+					evolutions: this.evolutionsPerRound, requiredAddition: this.requiredAddition,
+					requiredEvolution: this.requiredEvolution, allowFormes: this.allowsFormes});
 				this.possibleTeams.set(player, possibleTeams);
 			}
 		});

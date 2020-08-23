@@ -530,6 +530,28 @@ export class Tools {
 		return permutations;
 	}
 
+	getCombinations<T>(...input: T[][]): T[][] {
+		const combinations: T[][] = [];
+		const maxIndex = input.length - 1;
+
+		function combine(current: T[], index: number) {
+			for (let i = 0, j = input[index].length; i < j; i++) {
+				const clone = current.slice();
+				clone.push(input[index][i]);
+
+				if (index === maxIndex) {
+					combinations.push(clone);
+				} else {
+					combine(clone, index + 1);
+				}
+			}
+		}
+
+		if (input.length) combine([], 0);
+
+		return combinations;
+	}
+
 	async fetchUrl(url: string): Promise<string | Error> {
 		return new Promise(resolve => {
 			let data = '';

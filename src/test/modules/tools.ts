@@ -213,4 +213,29 @@ describe("Tools", () => {
 		assertStrictEqual(JSON.stringify(permutations), '[[1],[1,2],[1,2,3],[1,3],[1,3,2],[2],[2,1],[2,1,3],[2,3],[2,3,1],[3],[3,1],' +
 			'[3,1,2],[3,2],[3,2,1]]');
 	});
+	it('should properly generate combinations', () => {
+		let combinations = Tools.getCombinations();
+		assertStrictEqual(combinations.length, 0);
+		assertStrictEqual(JSON.stringify(combinations), '[]');
+
+		combinations = Tools.getCombinations([1]);
+		assertStrictEqual(combinations.length, 1);
+		assertStrictEqual(JSON.stringify(combinations), '[[1]]');
+
+		combinations = Tools.getCombinations([1], [2]);
+		assertStrictEqual(combinations.length, 1);
+		assertStrictEqual(JSON.stringify(combinations), '[[1,2]]');
+
+		combinations = Tools.getCombinations([1], [2], [3]);
+		assertStrictEqual(combinations.length, 1);
+		assertStrictEqual(JSON.stringify(combinations), '[[1,2,3]]');
+
+		combinations = Tools.getCombinations([1, 2], [3]);
+		assertStrictEqual(combinations.length, 2);
+		assertStrictEqual(JSON.stringify(combinations), '[[1,3],[2,3]]');
+
+		combinations = Tools.getCombinations([1, 2, 3], [4, 5], [6]);
+		assertStrictEqual(combinations.length, 6);
+		assertStrictEqual(JSON.stringify(combinations), '[[1,4,6],[1,5,6],[2,4,6],[2,5,6],[3,4,6],[3,5,6]]');
+	});
 });

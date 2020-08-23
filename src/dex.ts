@@ -2,8 +2,8 @@ import path = require('path');
 
 import type { Room } from './rooms';
 import type {
-	ComplexBan, ComplexTeamBan, IAbility, IAbilityCopy, IDataTable, IDexWorkers, IFormat, IFormatLinks, IGifData, IItem, IItemCopy,
-	ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy, ISeparatedCustomRules, ITypeData
+	ComplexBan, ComplexTeamBan, IAbility, IAbilityCopy, IDataTable, IDexWorkers, IFormat, IFormatLinks, IGetPossibleTeamsOptions, IGifData,
+	IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy, ISeparatedCustomRules, ITypeData
 } from './types/dex';
 import { PokemonShowdownWorker } from './workers/pokemon-showdown';
 
@@ -1839,34 +1839,69 @@ export class Dex {
 		return html.join("<br />");
 	}
 
-	getPossibleTeams(previousTeams: string[][], pool: IPokemon[] | string[], additions?: number, evolutions?: number,
-		requiredAddition?: boolean, requiredEvolution?: boolean): string[][] {
-		if (!additions) additions = 0;
-		if (!evolutions) evolutions = 0;
-
-		const newPokemon: string[] = [];
+	getFormeCombinations(pool: IPokemon[] | string[]): string[][] {
+		const poolByFormes: string[][] = [];
 		for (const name of pool) {
-			const pokemon = typeof name === 'string' ? this.getPokemon(name) : name;
-			if (!pokemon) continue;
-			newPokemon.push(pokemon.name);
+			const pokemon = typeof name === 'string' ? this.getExistingPokemon(name) : name;
+			const baseSpecies = this.getExistingPokemon(pokemon.baseSpecies);
+			const formes: string[] = [baseSpecies.name];
+			if (baseSpecies.otherFormes) {
+				for (const otherForme of baseSpecies.otherFormes) {
+					const forme = this.getExistingPokemon(otherForme);
+					if (!forme.battleOnly) formes.push(forme.name);
+				}
+			}
+
+			poolByFormes.push(formes);
 		}
 
-		if (additions > newPokemon.length) additions = newPokemon.length;
-		const permutations = Tools.getPermutations(newPokemon, 1);
-		const possiblePokemon: string[][] = [];
-		for (const permutation of permutations) {
-			if (permutation.length <= additions) possiblePokemon.push(permutation);
+		return Tools.getCombinations(...poolByFormes);
+	}
+
+	getPossibleTeams(previousTeams: string[][], pool: IPokemon[] | string[], options: IGetPossibleTeamsOptions): string[][] {
+		const additions = options.additions || 0;
+		let evolutions = options.evolutions || 0;
+
+		let combinations: string[][];
+		if (options.allowFormes) {
+			combinations = this.getFormeCombinations(pool);
+		} else {
+			const names: string[] = [];
+			for (const pokemon of pool) {
+				if (typeof pokemon === 'string') {
+					names.push(this.getExistingPokemon(pokemon).name);
+				} else {
+					names.push(pokemon.name);
+				}
+			}
+
+			combinations = [names];
+		}
+
+		const possibleAdditions: string[][] = [];
+		const checkedPermutations: Dict<boolean> = {};
+		for (const combination of combinations) {
+			const permutations = Tools.getPermutations(combination, 1);
+			for (const permutation of permutations) {
+				const sorted = permutation.slice();
+				sorted.sort();
+				const key = sorted.join(',');
+				if (key in checkedPermutations) continue;
+				checkedPermutations[key] = true;
+
+				if (permutation.length <= additions) possibleAdditions.push(permutation);
+			}
 		}
 
 		let baseTeams: string[][];
-		if (requiredAddition) {
+		if (options.requiredAddition) {
 			baseTeams = [];
 		} else {
 			// not adding Pokemon
 			baseTeams = previousTeams.slice();
 		}
 
-		for (const pokemon of possiblePokemon) {
+		for (const pokemon of possibleAdditions) {
 			for (const previousTeam of previousTeams) {
 				let team = previousTeam.slice();
 				team = team.concat(pokemon);
@@ -1876,7 +1911,7 @@ export class Dex {
 		}
 
 		let finalTeams: string[][];
-		if (requiredEvolution) {
+		if (options.requiredEvolution) {
 			finalTeams = [];
 		} else {
 			// not evolving Pokemon
@@ -1895,6 +1930,7 @@ export class Dex {
 						const pokemonSlot = i;
 						for (const evo of pokemon.evos) {
 							const evolution = this.getExistingPokemon(evo);
+							if (evolution.forme && !options.allowFormes) continue;
 							availableEvolutions = true;
 							const newTeam = team.slice();
 							newTeam[pokemonSlot] = evolution.name;
@@ -1915,13 +1951,29 @@ export class Dex {
 					for (let i = 0; i < team.length; i++) {
 						const pokemon = this.getExistingPokemon(team[i]);
 						if (!pokemon.prevo) continue;
+						availableEvolutions = true;
 						const pokemonSlot = i;
 						const prevo = this.getExistingPokemon(pokemon.prevo);
-						availableEvolutions = true;
-						const newTeam = team.slice();
-						newTeam[pokemonSlot] = prevo.name;
-						finalTeams.push(newTeam);
-						nextTeams.push(newTeam);
+						let prevos: string[];
+						if (options.allowFormes) {
+							const basePrevo = this.getExistingPokemon(prevo.baseSpecies);
+							prevos = [basePrevo.name];
+							if (basePrevo.otherFormes) {
+								for (const otherForme of basePrevo.otherFormes) {
+									const forme = this.getExistingPokemon(otherForme);
+									if (!forme.battleOnly) prevos.push(forme.name);
+								}
+							}
+						} else {
+							prevos = [prevo.name];
+						}
+
+						for (const name of prevos) {
+							const newTeam = team.slice();
+							newTeam[pokemonSlot] = name;
+							finalTeams.push(newTeam);
+							nextTeams.push(newTeam);
+						}
 					}
 					if (!availableEvolutions) finalTeams.push(team);
 				}

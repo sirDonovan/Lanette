@@ -553,3 +553,11 @@ export interface IDataTable {
 	readonly trainerClasses: readonly string[];
 	readonly typeKeys: readonly string[];
 }
+
+export interface IGetPossibleTeamsOptions {
+	additions?: number;
+	evolutions?: number;
+	allowFormes?: boolean;
+	requiredAddition?: boolean;
+	requiredEvolution?: boolean;
+}
