@@ -16,7 +16,7 @@ class SameDuo extends EliminationTournament {
 	firstRoundExtraTime = 2 * 60 * 1000;
 	defaultTier = '2v2 Doubles';
 
-	getStartingTeam(): string[] {
+	getStartingTeam(): readonly string[] {
 		return this.pokedex.slice(0, this.startingTeamsLength);
 	}
 }

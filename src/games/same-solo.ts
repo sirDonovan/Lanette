@@ -15,7 +15,7 @@ class SameSolo extends EliminationTournament {
 	canRejoin = true;
 	defaultTier = '1v1';
 
-	getStartingTeam(): string[] {
+	getStartingTeam(): readonly string[] {
 		return this.pokedex.slice(0, this.startingTeamsLength);
 	}
 }

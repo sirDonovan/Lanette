@@ -153,7 +153,7 @@ export abstract class EliminationTournament extends Game {
 	sharedTeams: boolean = false;
 	spectatorPlayers = new Set<Player>();
 	spectatorUsers = new Set<string>();
-	starterPokemon = new Map<Player, string[]>();
+	starterPokemon = new Map<Player, readonly string[]>();
 	startingTeamsLength: number = 6;
 	teamChanges = new Map<Player, ITeamChange[]>();
 	totalAdvertisementTime: number = 0;
@@ -674,7 +674,7 @@ export abstract class EliminationTournament extends Game {
 		}
 	}
 
-	getPokemonIcons(pokemon: string[]): string[] {
+	getPokemonIcons(pokemon: readonly string[]): string[] {
 		return pokemon.map(x => Dex.getPokemonIcon(Dex.getExistingPokemon(x)) + x);
 	}
 
@@ -724,26 +724,28 @@ export abstract class EliminationTournament extends Game {
 
 		html += "<h3>Pokemon</h3><div style='margin-left: 15px'>";
 		const pastTense = this.tournamentEnded || player.eliminated;
-		const starterPokemon = this.starterPokemon.get(player)!;
-		if (this.cloakedPokemon) {
-			html += "<b>The Pokemon to protect in battle ";
-			if (pastTense) {
-				html += (this.cloakedPokemon.length === 1 ? "was" : "were");
+		const starterPokemon = this.starterPokemon.get(player);
+		if (starterPokemon) {
+			if (this.cloakedPokemon) {
+				html += "<b>The Pokemon to protect in battle ";
+				if (pastTense) {
+					html += (this.cloakedPokemon.length === 1 ? "was" : "were");
+				} else {
+					html += (this.cloakedPokemon.length === 1 ? "is" : "are");
+				}
+				html += "</b>:<br />" + this.getPokemonIcons(this.cloakedPokemon).join("<br />");
+				if (!this.tournamentEnded && this.cloakedPokemon.length < 6) {
+					html += "<br />You may add any Pokemon to fill your team as long as they are usable in " + this.battleFormat.name + ".";
+				}
 			} else {
-				html += (this.cloakedPokemon.length === 1 ? "is" : "are");
-			}
-			html += "</b>:<br />" + this.getPokemonIcons(this.cloakedPokemon).join("<br />");
-			if (!this.tournamentEnded && this.cloakedPokemon.length < 6) {
-				html += "<br />You may add any Pokemon to fill your team as long as they are usable in " + this.battleFormat.name + ".";
-			}
-		} else {
-			html += "<b>" + (this.sharedTeams ? "The" : "Your") + " " +
-				(this.additionsPerRound || this.evolutionsPerRound ? "starting " : "") +
-				(this.startingTeamsLength === 1 ? "Pokemon" : "team") + " " + (pastTense ? "was" : "is") + "</b>:";
-			html += "<br />" + this.getPokemonIcons(starterPokemon).join("<br />");
-			if (this.canReroll && !this.rerolls.has(player)) {
-				html += "<br /><br />If you are not satisfied, you have 1 chance to reroll but you must keep whatever you receive! " +
-					Client.getPmSelfButton(Config.commandCharacter + "reroll", "Reroll Pokemon");
+				html += "<b>" + (this.sharedTeams ? "The" : "Your") + " " +
+					(this.additionsPerRound || this.evolutionsPerRound ? "starting " : "") +
+					(this.startingTeamsLength === 1 ? "Pokemon" : "team") + " " + (pastTense ? "was" : "is") + "</b>:";
+				html += "<br />" + this.getPokemonIcons(starterPokemon).join("<br />");
+				if (this.canReroll && !this.rerolls.has(player)) {
+					html += "<br /><br />If you are not satisfied, you have 1 chance to reroll but you must keep whatever you receive! " +
+						Client.getPmSelfButton(Config.commandCharacter + "reroll", "Reroll Pokemon");
+				}
 			}
 		}
 
@@ -907,7 +909,7 @@ export abstract class EliminationTournament extends Game {
 		this.say("!checkchallenges " + player.name + ", " + opponent.name);
 	}
 
-	getStartingTeam(): string[] {
+	getStartingTeam(): readonly string[] {
 		const team: string[] = [];
 		for (let i = 0; i < this.startingTeamsLength; i++) {
 			const pokemon = this.pokedex.shift();

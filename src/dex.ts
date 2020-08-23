@@ -1839,7 +1839,7 @@ export class Dex {
 		return html.join("<br />");
 	}
 
-	getFormeCombinations(pool: IPokemon[] | string[]): string[][] {
+	getFormeCombinations(pool: readonly IPokemon[] | readonly string[]): string[][] {
 		const poolByFormes: string[][] = [];
 		for (const name of pool) {
 			const pokemon = typeof name === 'string' ? this.getExistingPokemon(name) : name;
@@ -1858,7 +1858,8 @@ export class Dex {
 		return Tools.getCombinations(...poolByFormes);
 	}
 
-	getPossibleTeams(previousTeams: string[][], pool: IPokemon[] | string[], options: IGetPossibleTeamsOptions): string[][] {
+	getPossibleTeams(previousTeams: readonly string[][], pool: readonly IPokemon[] | readonly string[], options: IGetPossibleTeamsOptions):
+		string[][] {
 		const additions = options.additions || 0;
 		let evolutions = options.evolutions || 0;
 
