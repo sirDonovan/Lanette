@@ -1177,7 +1177,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			if (Config.userHostFormatCooldownTimers && room.id in Config.userHostFormatCooldownTimers &&
 				room.id in Games.lastUserHostFormatTimes && format.id in Games.lastUserHostFormatTimes[room.id]) {
 				const formatCooldown = (Config.userHostFormatCooldownTimers[room.id] * 60 * 1000) -
-					(Date.now() - Games.lastUserHostTimes[room.id][host.id]);
+					(Date.now() - Games.lastUserHostFormatTimes[room.id][format.id]);
 				if (formatCooldown > 1000) {
 					const durationString = Tools.toDurationString(formatCooldown);
 					return this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the " +
