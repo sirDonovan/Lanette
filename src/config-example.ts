@@ -294,9 +294,14 @@ export let maxUserHostedGameWinners: Dict<number> = {};
 export let maxQueuedUserHostedGames: Dict<number> = {};
 
 /**
- * The number of minutes that must pass before a user can host another game
+ * The number of minutes that must pass before a user can host another game in each specified room
  */
 export let userHostCooldownTimers: Dict<number> = {};
+
+/**
+ * The number of minutes that must pass before a format can be hosted again in each specified room
+ */
+export let userHostFormatCooldownTimers: Dict<number> = {};
 
 /**
  * A list of rooms (roomids) where formats on the past games list cannot be created

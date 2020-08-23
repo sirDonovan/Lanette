@@ -138,6 +138,10 @@ export class UserHosted extends Game {
 		if (!(this.room.id in Games.lastUserHostTimes)) Games.lastUserHostTimes[this.room.id] = {};
 		Games.lastUserHostTimes[this.room.id][this.hostId] = now;
 
+		if (!(this.room.id in Games.lastUserHostFormatTimes)) Games.lastUserHostFormatTimes[this.room.id] = {};
+		// possibly customized name attribute
+		Games.lastUserHostFormatTimes[this.room.id][Tools.toId(this.format.name)] = now;
+
 		if (!this.subHostName) {
 			const database = Storage.getDatabase(this.room);
 			if (!database.userHostedGameStats) database.userHostedGameStats = {};

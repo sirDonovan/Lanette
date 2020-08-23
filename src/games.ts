@@ -99,6 +99,7 @@ export class Games {
 	lastScriptedGames: Dict<number> = {};
 	lastUserHostedGames: Dict<number> = {};
 	lastUserHostTimes: Dict<Dict<number>> = {};
+	lastUserHostFormatTimes: Dict<Dict<number>> = {};
 	readonly maxMoveAvailability: number = 500;
 	readonly minigameCommandNames: Dict<{aliases: string[]; format: string}> = {};
 	readonly modes: Dict<IGameMode> = {};
@@ -163,6 +164,7 @@ export class Games {
 		if (previous.lastScriptedGames) Object.assign(this.lastScriptedGames, previous.lastScriptedGames);
 		if (previous.lastUserHostedGames) Object.assign(this.lastUserHostedGames, previous.lastUserHostedGames);
 		if (previous.lastUserHostTimes) Object.assign(this.lastUserHostTimes, previous.lastUserHostTimes);
+		if (previous.lastUserHostFormatTimes) Object.assign(this.lastUserHostFormatTimes, previous.lastUserHostFormatTimes);
 
 		for (const i in previous) {
 			// @ts-expect-error

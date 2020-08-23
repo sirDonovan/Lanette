@@ -1174,6 +1174,17 @@ const commands: CommandDefinitions<CommandContext> = {
 				}
 			}
 
+			if (Config.userHostFormatCooldownTimers && room.id in Config.userHostFormatCooldownTimers &&
+				room.id in Games.lastUserHostFormatTimes && format.id in Games.lastUserHostFormatTimes[room.id]) {
+				const formatCooldown = (Config.userHostFormatCooldownTimers[room.id] * 60 * 1000) -
+					(Date.now() - Games.lastUserHostTimes[room.id][host.id]);
+				if (formatCooldown > 1000) {
+					const durationString = Tools.toDurationString(formatCooldown);
+					return this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the " +
+						format.name + " user-host cooldown remaining.");
+				}
+			}
+
 			const otherUsersQueued = database.userHostedGameQueue && database.userHostedGameQueue.length;
 			const remainingGameCooldown = Games.getRemainingGameCooldown(room);
 			const inCooldown = remainingGameCooldown > 1000;
