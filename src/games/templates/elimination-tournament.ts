@@ -714,6 +714,8 @@ export abstract class EliminationTournament extends Game {
 						"their name, click \"Challenge\", select " + this.battleFormat.name + " as the format, and select your team " +
 						"for this tournament. Once the battle starts, send " + Users.self.name + " the link or type <code>/invite " +
 						Users.self.name + "</code> into the battle chat!";
+					html += "<br /><br /><b>If " + opponent.name + " goes offline or does not accept your challenge, you will be " +
+						"advanced automatically after some time!</b>";
 				} else {
 					html += "Your next opponent has not been decided yet!";
 				}
