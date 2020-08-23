@@ -147,7 +147,7 @@ let errorListener: (error: Error) => void;
 let closeListener: (code: number, reason: string) => void;
 
 export class Client {
-	averageServerLatency: number = 0;
+	averageServerLatency: number = 1;
 	botGreetingCooldowns: Dict<number> = {};
 	challstr: string = '';
 	connected: boolean = false;
@@ -235,7 +235,7 @@ export class Client {
 				for (const time of this.serverLatencyTimes) {
 					totalLatency += time;
 				}
-				this.averageServerLatency = totalLatency ? Math.ceil(totalLatency / this.serverLatencyTimes.length) : 0;
+				this.averageServerLatency = totalLatency ? Math.ceil(totalLatency / this.serverLatencyTimes.length) : 1;
 				this.setStartServerPingsTimeout();
 			} else {
 				this.nextServerPing = setTimeout(() => this.pingServer(), 2 * 1000);
