@@ -1282,7 +1282,6 @@ export abstract class EliminationTournament extends Game {
 		const id = Tools.toId(username);
 		if (!(id in this.players)) return;
 
-		const player = this.players[id];
 		if (!(room.id in this.battleData)) {
 			this.battleData[room.id] = {
 				remainingPokemon: {},
@@ -1295,7 +1294,20 @@ export abstract class EliminationTournament extends Game {
 				faintedCloakedPokemon: {},
 			};
 		}
+
+		const player = this.players[id];
 		this.battleData[room.id].slots.set(player, slot);
+
+		const players = this.getPlayersFromBattleData(room);
+		if (players) {
+			const node = this.findAvailableMatchNode(players[0], players[1]);
+			if (!node) throw new Error(this.name + ": no available match for " + players[0].name + " and " + players[1].name);
+
+			const activityTimer = this.activityTimers.get(node);
+			if (activityTimer) clearTimeout(activityTimer);
+			const checkChallengesTimer = this.checkChallengesTimers.get(node);
+			if (checkChallengesTimer) clearTimeout(checkChallengesTimer);
+		}
 	}
 
 	onBattlePokemon(room: Room, slot: string, details: string, item: boolean): boolean {
@@ -1364,14 +1376,6 @@ export abstract class EliminationTournament extends Game {
 	onBattleStart(room: Room): boolean {
 		const players = this.getPlayersFromBattleData(room);
 		if (!players) return false;
-
-		const node = this.findAvailableMatchNode(players[0], players[1]);
-		if (!node) throw new Error(this.name + ": no available match for " + players[0].name + " and " + players[1].name);
-
-		const activityTimer = this.activityTimers.get(node);
-		if (activityTimer) clearTimeout(activityTimer);
-		const checkChallengesTimer = this.checkChallengesTimers.get(node);
-		if (checkChallengesTimer) clearTimeout(checkChallengesTimer);
 
 		if (!this.battleRooms.includes(room.id)) this.battleRooms.push(room.id);
 
