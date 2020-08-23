@@ -144,7 +144,7 @@ export abstract class EliminationTournament extends Game {
 	playerCap: number = 0;
 	playerOpponents = new Map<Player, Player>();
 	pokedex: string[] = [];
-	possibleTeams = new Map<Player, string[][]>();
+	possibleTeams = new Map<Player, readonly string[][]>();
 	requiredAddition: boolean = false;
 	requiredEvolution: boolean = false;
 	rerolls = new Map<Player, boolean>();
@@ -792,6 +792,8 @@ export abstract class EliminationTournament extends Game {
 						"battle!<br /><br />";
 				}
 				html += rounds.join("");
+
+				html += "<br /><b>Example of a valid team</b>:<br />" + Tools.joinList(this.getPokemonIcons(this.getRandomTeam(player)));
 			}
 		}
 		html += "</div><hr />";
@@ -1183,6 +1185,8 @@ export abstract class EliminationTournament extends Game {
 	}
 
 	getTeamEvolutionScore(team: string[]): number {
+		if (!this.evolutionsPerRound) return 0;
+
 		let score = 0;
 		for (const pokemon of team) {
 			let evolution = Dex.getExistingPokemon(pokemon);
@@ -1196,42 +1200,39 @@ export abstract class EliminationTournament extends Game {
 	}
 
 	getRandomTeam(player: Player): string[] {
-		const possibleTeams = this.possibleTeams.get(player)!;
+		const possibleTeams = this.possibleTeams.get(player)!.slice();
 		possibleTeams.sort((a, b) => b.length - a.length);
 
-		const largestLen = possibleTeams[0].length;
-		let bestTeams: string[][] = [];
+		const largestSize = possibleTeams[0].length;
+		const largestTeams: string[][] = [];
 		for (const team of possibleTeams) {
-			if (team.length < largestLen) break;
-			bestTeams.push(team);
+			if (team.length < largestSize) break;
+			largestTeams.push(team);
 		}
 
-		if (bestTeams.length > 1) {
-			const evolutionScores = new Map<string[], number>();
-			for (const team of bestTeams) {
-				evolutionScores.set(team, this.getTeamEvolutionScore(team));
-			}
-			if (this.evolutionsPerRound < 0) {
-				bestTeams.sort((a, b) => evolutionScores.get(b)! - evolutionScores.get(a)!);
-			} else {
-				bestTeams.sort((a, b) => evolutionScores.get(a)! - evolutionScores.get(b)!);
-			}
+		if (largestTeams.length === 1) return largestTeams[0];
 
-			const teams: string[][] = [bestTeams[0]];
-			const bestScore = evolutionScores.get(bestTeams[0])!;
-			for (const team of bestTeams) {
-				const score = evolutionScores.get(team)!;
-				if (score > bestScore) break;
-				teams.push(team);
-			}
-			bestTeams = teams;
+		const evolutionScores = new Map<string[], number>();
+		for (const team of largestTeams) {
+			evolutionScores.set(team, this.getTeamEvolutionScore(team));
 		}
-		return this.sampleOne(bestTeams);
+		largestTeams.sort((a, b) => evolutionScores.get(a)! - evolutionScores.get(b)!);
+
+		const mostEvolvedTeams: string[][] = [largestTeams[0]];
+		const bestScore = evolutionScores.get(largestTeams[0])!;
+		for (const team of largestTeams) {
+			const score = evolutionScores.get(team)!;
+			if (score > bestScore) break;
+			mostEvolvedTeams.push(team);
+		}
+
+		return this.sampleOne(mostEvolvedTeams);
 	}
 
 	getRandomTeamIncluding(player: Player, pokemonList: string[]): string[] {
-		const possibleTeams = this.possibleTeams.get(player)!;
+		const possibleTeams = this.possibleTeams.get(player)!.slice();
 		possibleTeams.sort((a, b) => b.length - a.length);
+
 		let team: string[] | undefined;
 		for (const possibleTeam of possibleTeams) {
 			let includes = true;
