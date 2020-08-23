@@ -283,6 +283,7 @@ export const game: IUserHostedFile<UserHosted> = {
 			name: "Necturna's Move Tutor",
 			description: "Each round, players create a move of a type chosen by the host. Entries are judged on creativity and " +
 				"viability based on base power, PP, and secondary effects.",
+			freejoin: true,
 		},
 		{
 			name: "Nickgames",
