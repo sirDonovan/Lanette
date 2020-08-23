@@ -1131,7 +1131,7 @@ export class Dex {
 		let num = pokemon.num;
 		if (num < 0) {
 			num = 0;
-		} else if (num > 809) {
+		} else if (num > 893) {
 			num = 0;
 		}
 
@@ -1150,7 +1150,7 @@ export class Dex {
 		const left = (num % 12) * 40;
 		const facingLeftStyle = facingLeft ? "transform:scaleX(-1);webkit-transform:scaleX(-1);" : "";
 		return '<span style="display: inline-block;width: 40px;height: 30px;image-rendering: pixelated;' +
-			'background:transparent url(https://' + Tools.mainServer + '/sprites/pokemonicons-sheet.png?g8) no-repeat scroll -' + left +
+			'background:transparent url(https://' + Tools.mainServer + '/sprites/pokemonicons-sheet.png?v2) no-repeat scroll -' + left +
 			'px -' + top + 'px;' + facingLeftStyle + '"></span>';
 	}
 
