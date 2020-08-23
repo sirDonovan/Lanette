@@ -255,6 +255,12 @@ export interface IPokemonUhtml {
 	user: string;
 }
 
+export interface ITrainerUhtml {
+	trainerList: string[];
+	uhtmlName: string;
+	user: string;
+}
+
 export interface IBattleGameData extends IBattleData {
 	pokemonCounts: Dict<number>;
 	pokemon: Dict<string[]>;

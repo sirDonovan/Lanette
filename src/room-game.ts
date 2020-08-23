@@ -6,7 +6,7 @@ import type { Room } from "./rooms";
 import type { IPokemonCopy, IPokemon } from "./types/dex";
 import type {
 	GameCommandListener, IGameAchievement, IGameCommandCountListener, IGameCommandCountOptions, IGameFormat, IGameMode, IGameOptionValues,
-	IGameVariant, IRandomGameAnswer, IUserHostedFormat, LoadedGameCommands, PlayerList, IPokemonUhtml, IBattleGameData
+	IGameVariant, IRandomGameAnswer, IUserHostedFormat, LoadedGameCommands, PlayerList, IPokemonUhtml, ITrainerUhtml, IBattleGameData
 } from "./types/games";
 import type { User } from "./users";
 
@@ -67,6 +67,7 @@ export class Game extends Activity {
 	commandDescriptions?: string[];
 	isMiniGame?: boolean;
 	lastPokemonUhtml?: IPokemonUhtml;
+	lastTrainerUhtml?: ITrainerUhtml;
 	readonly lives?: Map<Player, number>;
 	mascot?: IPokemonCopy;
 	maxPlayers?: number;
@@ -217,6 +218,27 @@ export class Game extends Activity {
 		this.lastPokemonUhtml = {
 			pokemon: pokemon.map(x => x.name),
 			type,
+			uhtmlName,
+			user: user.name,
+		};
+	}
+
+	sayTrainerUhtml(trainerList: string[], uhtmlName: string, html: string, user: User): void {
+		if (this.lastTrainerUhtml) {
+			let html = "<div class='infobox'><center>(trainer" + (this.lastTrainerUhtml.trainerList.length > 1 ? "s" : "") + ": " +
+				this.lastTrainerUhtml.trainerList.join(", ") + ")</center>";
+
+			html += '<div style="float:right;color:#888;font-size:8pt">[' + this.lastTrainerUhtml.user + ']</div>' +
+				'<div style="clear:both"></div>';
+
+			html += "</div>";
+
+			this.sayUhtmlChange(this.lastTrainerUhtml.uhtmlName, html);
+		}
+
+		this.sayUhtmlAuto(uhtmlName, html);
+		this.lastTrainerUhtml = {
+			trainerList,
 			uhtmlName,
 			user: user.name,
 		};

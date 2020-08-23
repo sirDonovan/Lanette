@@ -2315,6 +2315,48 @@ const commands: CommandDefinitions<CommandContext> = {
 		aliases: ['showrandomgif', 'showrandombwgifs', 'showrandombwgif', 'showrandgifs', 'showrandgif', 'showrandbwgifs', 'showrandbwgif',
 			'showrandomicons', 'showrandomicon', 'showrandicons', 'showrandicon'],
 	},
+	showtrainersprites: {
+		command(target, room, user, cmd) {
+			if (!this.isPm(room)) return;
+			const targets = target.split(',');
+			const gameRoom = Rooms.search(targets[0]);
+			if (!gameRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+			if (!Users.self.hasRank(gameRoom, 'bot')) return this.sayError(['missingBotRankForFeatures', 'game']);
+			if (gameRoom.userHostedGame) {
+				if (!gameRoom.userHostedGame.isHost(user)) return;
+			} else {
+				if (gameRoom.game || !user.hasRank(gameRoom, 'driver')) return;
+			}
+			targets.shift();
+
+			const trainerList: string[] = [];
+
+			for (const target of targets) {
+				const id = Tools.toId(target);
+				if (!(id in Dex.data.trainerSprites)) {
+					return this.say("There is no trainer sprite for '" + target.trim() + "'.");
+				}
+				trainerList.push(Dex.data.trainerSprites[id]);
+			}
+
+			if (!trainerList.length) return this.say("You must specify at least 1 Pokemon.");
+
+			const max = 5;
+			if (trainerList.length > max) return this.say("Please specify between 1 and " + max + " trainers.");
+
+			let html = "<center>" + trainerList.map(x => Dex.getTrainerSprite(x)).join("") + "</center>";
+
+			html += '<div style="float:right;color:#888;font-size:8pt">[' + user.name + ']</div><div style="clear:both"></div>';
+
+			if (gameRoom.userHostedGame) {
+				const uhtmlName = gameRoom.userHostedGame.uhtmlBaseName + "-" + gameRoom.userHostedGame.round + "-trainer";
+				gameRoom.userHostedGame.sayTrainerUhtml(trainerList, uhtmlName, "<div class='infobox'>" + html + "</div>", user);
+			} else {
+				gameRoom.sayHtml(html);
+			}
+		},
+		aliases: ['showtrainersprite', 'showtrainers', 'showtrainer'],
+	},
 	roll: {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
