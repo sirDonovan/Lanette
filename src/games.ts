@@ -1260,7 +1260,7 @@ export class Games {
 				"* <code>.roll [arguments]</code> - use !roll with the specified arguments",
 				"* <code>.dt [arguments]</code> - use !dt with the specified arguments",
 
-				"\nPokemon display:",
+				"\nDisplay sprites:",
 				"* <code>.showgif [room], [pokemon 1], [pokemon 2], [...]</code> - in PMs, display up to 5 Pokemon gifs",
 				"* <code>.showbwgif [room], [pokemon 1], [pokemon 2], [...]</code> - in PMs, display up to 5 BW Pokemon gifs",
 				"* <code>.showrandgif [room], [typing], [#]</code> - in PMs, display up to 5 random Pokemon gifs, optionally matching " +
@@ -1270,6 +1270,7 @@ export class Games {
 				"* <code>.showicon [room], [pokemon 1], [pokemon 2], [...]</code> - in PMs, display up to 30 Pokemon icons",
 				"* <code>.showrandicon [room], [type], [#]</code> - in PMs, display up to 30 random Pokemon icons, optionally matching " +
 					"the specified typing",
+				"* <code>.showtrainer [room], [trainer 1], [trainer 2], [...]</code> - in PMs, display up to 5 trainer sprites",
 			];
 
 			document = document.concat(userHostCommands);
