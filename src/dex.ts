@@ -282,6 +282,7 @@ export class Dex {
 			natures,
 			pokemonKeys: [],
 			trainerClasses: [],
+			trainerSprites: {},
 			typeKeys: [],
 		};
 		this.workers = {
@@ -345,6 +346,12 @@ export class Dex {
 		this.data.gifDataBW = require(path.join(lanetteDataDir, 'pokedex-mini-bw.js')).BattlePokemonSpritesBW as Dict<IGifData | undefined>; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
 		// @ts-expect-error
 		this.data.trainerClasses = require(path.join(lanetteDataDir, 'trainer-classes.js')) as string[];
+
+		const trainerSprites = require(path.join(lanetteDataDir, 'trainer-sprites.js')) as string[];
+		for (const trainer of trainerSprites) {
+			// @ts-expect-error
+			this.data.trainerSprites[Tools.toId(trainer)] = trainer;
+		}
 		/* eslint-enable */
 
 		const speciesList = Object.keys(this.data.categories);
@@ -379,6 +386,8 @@ export class Dex {
 			dexes[mod].data.gifDataBW = this.data.gifDataBW;
 			// @ts-expect-error
 			dexes[mod].data.trainerClasses = this.data.trainerClasses;
+			// @ts-expect-error
+			dexes[mod].data.trainerSprites = this.data.trainerSprites;
 
 			promises.push(dexes[mod].loadData());
 		}
@@ -1166,6 +1175,10 @@ export class Dex {
 			colorData['background'] + ';border-color:' + colorData['border-color'] + ';border: 1px solid #a99890;border-radius:3px;' +
 			'width:' + width + 'px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;' +
 			'font-size:8pt;text-align:center"><b>' + pokemon.color + '</b></div>';
+	}
+
+	getTrainerSprite(id: string): string {
+		return '<img src="//' + Tools.mainServer + '/sprites/trainers/' + id + '.png" width=80px height=80px />';
 	}
 
 	getTypeHtml(type: ITypeData, width?: number): string {

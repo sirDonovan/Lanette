@@ -551,6 +551,7 @@ export interface IDataTable {
 	readonly natures: Readonly<Dict<INature | undefined>>;
 	readonly pokemonKeys: readonly string[];
 	readonly trainerClasses: readonly string[];
+	readonly trainerSprites: Readonly<Dict<string>>;
 	readonly typeKeys: readonly string[];
 }
 
