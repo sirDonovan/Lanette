@@ -2156,7 +2156,7 @@ const commands: CommandDefinitions<CommandContext> = {
 				return;
 			}
 
-			gameRoom.userHostedGame.sayCommand("/hangman create " + answer + ", " + hint);
+			gameRoom.userHostedGame.sayCommand("/hangman create " + answer + ", " + hint + " [" + user.name + "]");
 		},
 	},
 	endhangman: {
@@ -2214,13 +2214,14 @@ const commands: CommandDefinitions<CommandContext> = {
 			html += gifsOrIcons.join(showIcon ? ", " : "");
 			if (!showIcon) html += "</center>";
 
+			html += '<div style="float:right;color:#888;font-size:8pt">[' + user.name + ']</div><div style="clear:both"></div>';
+
 			if (gameRoom.userHostedGame) {
 				const uhtmlName = gameRoom.userHostedGame.uhtmlBaseName + "-" + gameRoom.userHostedGame.round + "-" +
 					(showIcon ? "icon" : "gif");
 				gameRoom.userHostedGame.sayPokemonUhtml(pokemonList, showIcon ? 'icon' : 'gif', uhtmlName,
-					"<div class='infobox'>" + html + "</div>");
+					"<div class='infobox'>" + html + "</div>", user);
 			} else {
-				html += '<div style="float:right;color:#888;font-size:8pt">[' + user.name + ']</div><div style="clear:both"></div>';
 				gameRoom.sayHtml(html);
 			}
 		},
@@ -2300,13 +2301,14 @@ const commands: CommandDefinitions<CommandContext> = {
 			html += gifsOrIcons.join(showIcon ? ", " : "");
 			if (!showIcon) html += "</center>";
 
+			html += '<div style="float:right;color:#888;font-size:8pt">[' + user.name + ']</div><div style="clear:both"></div>';
+
 			if (gameRoom.userHostedGame) {
 				const uhtmlName = gameRoom.userHostedGame.uhtmlBaseName + "-" + gameRoom.userHostedGame.round + "-" +
 					(showIcon ? "icon" : "gif");
 				gameRoom.userHostedGame.sayPokemonUhtml(usedPokemon, showIcon ? 'icon' : 'gif', uhtmlName,
-					"<div class='infobox'>" + html + "</div>");
+					"<div class='infobox'>" + html + "</div>", user);
 			} else {
-				html += '<div style="float:right;color:#888;font-size:8pt">[' + user.name + ']</div><div style="clear:both"></div>';
 				gameRoom.sayHtml(html);
 			}
 		},

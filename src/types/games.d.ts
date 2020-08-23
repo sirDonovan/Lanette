@@ -249,9 +249,10 @@ export type PlayerList = Dict<Player> | Player[] | Map<Player, any>;
 export type LoadedGameFile = DeepImmutable<IGameFormatData>;
 
 export interface IPokemonUhtml {
-	pokemon: IPokemon[];
+	pokemon: string[];
 	type: 'gif' | 'icon';
 	uhtmlName: string;
+	user: string;
 }
 
 export interface IBattleGameData extends IBattleData {

@@ -194,22 +194,31 @@ export class Game extends Activity {
 		this.joinLeaveButtonUhtmlName = this.uhtmlBaseName + "-join-leave";
 	}
 
-	sayPokemonUhtml(pokemon: IPokemon[], type: 'gif' | 'icon', uhtmlName: string, html: string): void {
+	sayPokemonUhtml(pokemon: IPokemon[], type: 'gif' | 'icon', uhtmlName: string, html: string, user: User): void {
 		if (this.lastPokemonUhtml) {
-			const center = this.lastPokemonUhtml.type === 'gif';
 			let html = "<div class='infobox'>";
-			if (center) html += "<center>";
-			html += "(" + this.lastPokemonUhtml.pokemon.map(x => x.name).join(", ") + ")";
-			if (center) html += "</center>";
+			if (this.lastPokemonUhtml.type === 'gif') {
+				html += "<center>(gif" + (this.lastPokemonUhtml.pokemon.length > 1 ? "s" : "") + ": " +
+					this.lastPokemonUhtml.pokemon.join(", ") + ")</center>";
+			} else {
+				html += "(icon" + (this.lastPokemonUhtml.pokemon.length > 1 ? "s" : "") + ": " +
+					this.lastPokemonUhtml.pokemon.join(", ") + ")";
+			}
+
+			html += '<div style="float:right;color:#888;font-size:8pt">[' + this.lastPokemonUhtml.user + ']</div>' +
+				'<div style="clear:both"></div>';
+
 			html += "</div>";
+
 			this.sayUhtmlChange(this.lastPokemonUhtml.uhtmlName, html);
 		}
 
 		this.sayUhtmlAuto(uhtmlName, html);
 		this.lastPokemonUhtml = {
-			pokemon,
+			pokemon: pokemon.map(x => x.name),
 			type,
 			uhtmlName,
+			user: user.name,
 		};
 	}
 
