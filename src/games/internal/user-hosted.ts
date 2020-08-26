@@ -229,7 +229,7 @@ export const game: IUserHostedFile<UserHosted> = {
 			approvedHostOnly: true,
 		},
 		{
-			name: "Jynx's Klutsy Kissing",
+			name: "Jynx's Klutzy Kissing",
 			mascot: "Jynx",
 			aliases: ['JKK'],
 			description: "Kiss the Pokemon with gender differences to win! Use the command <code>" + Config.commandCharacter + "kiss" +
