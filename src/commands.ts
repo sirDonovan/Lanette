@@ -2533,7 +2533,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
 				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
 			let type = '';
-			const pokedex = Dex.getPokemonList();
+			const pokedex = Tools.shuffle(Dex.getPokemonList());
 			for (const pokemon of pokedex) {
 				if (!pokemon.forme) {
 					type = pokemon.types.join('/');
