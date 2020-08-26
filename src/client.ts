@@ -1591,12 +1591,13 @@ export class Client {
 		return html;
 	}
 
-	getPmUserButton(user: User, message: string, label: string): string {
-		return '<button class="button" name="send" value="/msg ' + user.name + ', ' + message + '">' + label + '</button>';
+	getPmUserButton(user: User, message: string, label: string, disabled?: boolean): string {
+		return '<button class="button' + (disabled ? " disabled" : "") +'" name="send" value="/msg ' + user.name + ', ' + message + '">' +
+			label + '</button>';
 	}
 
-	getPmSelfButton(message: string, label: string): string {
-		return this.getPmUserButton(Users.self, message, label);
+	getPmSelfButton(message: string, label: string, disabled?: boolean): string {
+		return this.getPmUserButton(Users.self, message, label, disabled);
 	}
 
 	send(message: string): void {
