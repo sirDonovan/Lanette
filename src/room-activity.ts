@@ -54,7 +54,8 @@ export class Player {
 	}
 
 	sendHtmlPage(html: string, title?: string): void {
-		this.activity.pmRoom.sendHtmlPage(this, title || this.activity.baseHtmlPageTitle, this.activity.htmlPageHeader + html);
+		const page = "<div style='margin-top: 5px;margin-left: 10px'>" + this.activity.htmlPageHeader + html + "</div>";
+		this.activity.pmRoom.sendHtmlPage(this, title || this.activity.baseHtmlPageTitle, page);
 	}
 
 	useCommand(command: string, target?: string): void {

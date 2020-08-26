@@ -697,7 +697,7 @@ export abstract class EliminationTournament extends Game {
 
 		if (this.started && !this.tournamentEnded) {
 			if (player.eliminated) {
-				html += "<h3>You were eliminated!</h3><div style='margin-left: 15px'>";
+				html += "<h3>You were eliminated!</h3>";
 				if (this.spectatorPlayers.has(player)) {
 					html += "You are currently still receiving updates for this tournament. " +
 						Client.getPmSelfButton(Config.commandCharacter + "stoptournamentupdates", "Stop updates");
@@ -705,9 +705,8 @@ export abstract class EliminationTournament extends Game {
 					html += "You will no longer receive updates for this tournament. " +
 						Client.getPmSelfButton(Config.commandCharacter + "resumetournamentupdates", "Resume updates");
 				}
-				html += "</div>";
 			} else {
-				html += "<h3>Opponent (round " + player.round + ")</h3><div style='margin-left: 15px'>";
+				html += "<h3>Opponent (round " + player.round + ")</h3>";
 				const opponent = this.playerOpponents.get(player);
 				if (opponent) {
 					html += "Your next opponent is <strong class='username'>" + opponent.name + "</strong>! To send a challenge, click " +
@@ -719,12 +718,11 @@ export abstract class EliminationTournament extends Game {
 				} else {
 					html += "Your next opponent has not been decided yet!";
 				}
-				html += "</div>";
 			}
 			html += "<hr />";
 		}
 
-		html += "<h3>Pokemon</h3><div style='margin-left: 15px'>";
+		html += "<h3>Pokemon</h3>";
 		const pastTense = this.tournamentEnded || player.eliminated;
 		const starterPokemon = this.starterPokemon.get(player);
 		if (starterPokemon) {
@@ -796,10 +794,9 @@ export abstract class EliminationTournament extends Game {
 				html += "<br /><b>Example of a valid team</b>:<br />" + Tools.joinList(this.getPokemonIcons(this.getRandomTeam(player)));
 			}
 		}
-		html += "</div><hr />";
+		html += "<hr />";
 
-		html += "<h3>" + (this.tournamentEnded ? "Final bracket" : "Bracket") + "</h3><div style='margin-left: 15px'>" +
-			(this.bracketHtml || "(TBD)") + "</div>";
+		html += "<h3>" + (this.tournamentEnded ? "Final bracket" : "Bracket") + "</h3>" + (this.bracketHtml || "(TBD)");
 
 		return html;
 	}
@@ -836,7 +833,7 @@ export abstract class EliminationTournament extends Game {
 		}
 
 		if (this.started && !this.tournamentEnded) {
-			html += "<h3>Spectating</h3><div style='margin-left: 15px'>";
+			html += "<h3>Spectating</h3>";
 			if (this.spectatorUsers.has(user.id)) {
 				html += "You are currently receiving updates for this tournament. " +
 					Client.getPmSelfButton(Config.commandCharacter + "stoptournamentupdates", "Stop updates");
@@ -844,11 +841,10 @@ export abstract class EliminationTournament extends Game {
 				html += "You will no longer receive updates for this tournament. " +
 					Client.getPmSelfButton(Config.commandCharacter + "resumetournamentupdates", "Resume updates");
 			}
-			html += "</div><hr />";
+			html += "<hr />";
 		}
 
-		html += "<h3>" + (this.tournamentEnded ? "Final bracket" : "Bracket") + "</h3><div style='margin-left: 15px'>" +
-			(this.bracketHtml || "(TBD)") + "</div>";
+		html += "<h3>" + (this.tournamentEnded ? "Final bracket" : "Bracket") + "</h3>" + (this.bracketHtml || "(TBD)");
 
 		return html;
 	}
