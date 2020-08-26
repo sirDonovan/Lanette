@@ -4,8 +4,6 @@ import { game as mapGame, MapGame } from "./map";
 import type { MapFloor } from "./map";
 
 export abstract class MapDamageGame extends MapGame {
-	abstract startingLives: number;
-
 	canLateJoin: boolean = true;
 	roundActions = new Map<Player, boolean>();
 
@@ -21,12 +19,10 @@ export abstract class MapDamageGame extends MapGame {
 			if (this.round > 1) return false;
 			this.positionPlayer(player);
 		}
-		this.lives.set(player, this.startingLives);
 		return true;
 	}
 
 	onStart(): void {
-		this.say("Now sending coordinates in PMs!");
 		this.maxDimensions = this.playerCount;
 		this.positionPlayers();
 		this.nextRound();
@@ -45,6 +41,8 @@ export abstract class MapDamageGame extends MapGame {
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
 			if (this.round === 1) this.canMove = true;
+			this.updatePlayerHtmlPages();
+			this.resetPlayerMovementDetails();
 			this.timeout = setTimeout(() => this.damagePlayers(), 30 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);

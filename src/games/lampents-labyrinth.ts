@@ -47,9 +47,16 @@ class LampentsLabyrinth extends MapGame  {
 
 	onAchievementSpace(player: Player, floor: MapFloor, space: MapFloorSpace): void {
 		delete space.attributes.achievement;
-		player.say("You arrived safely at (" + space.coordinates + ") and were greeted by a Litwick. Its flame illuminated a small coin " +
-			"on the ground!");
-		this.unlockAchievement(player, achievements.litwicksflame!);
+		const achievementResult = this.unlockAchievement(player, achievements.litwicksflame!);
+		const repeatUnlock = achievementResult && achievementResult.includes(player);
+		let currency = 0;
+		if (repeatUnlock) {
+			currency = this.getRandomCurrency();
+			this.points.set(player, (this.points.get(player) || 0) + currency);
+		}
+		this.playerRoundInfo.get(player)!.push("You arrived at (" + space.coordinates + ") and were greeted by a Litwick. Its " +
+			"flame illuminated a small coin on the ground" + (repeatUnlock ? " worth " + currency + " " + this.currency + "! Your total " +
+			"is now " + this.points.get(player) + "." : "!"));
 	}
 
 	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
@@ -62,7 +69,6 @@ class LampentsLabyrinth extends MapGame  {
 	}
 
 	onStart(): void {
-		this.say("Now sending coordinates in PMs!");
 		this.positionPlayers();
 		this.nextRound();
 	}
@@ -85,6 +91,8 @@ class LampentsLabyrinth extends MapGame  {
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
 			if (this.round === 1) this.canMove = true;
+			this.updatePlayerHtmlPages();
+			this.resetPlayerMovementDetails();
 			this.timeout = setTimeout(() => this.nextRound(), 30 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);

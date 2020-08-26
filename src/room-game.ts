@@ -47,6 +47,7 @@ export class Game extends Activity {
 	readonly round: number = 0;
 	signupsStarted: boolean = false;
 	signupsTime: number = 0;
+	usesHtmlPage: boolean = false;
 	usesWorkers: boolean = false;
 	readonly winnerPointsToBits: number = 50;
 	readonly winners = new Map<Player, number>();
@@ -279,9 +280,9 @@ export class Game extends Activity {
 			format.mode.initialize(this);
 		}
 
-		let htmlPageHeader = "";
-		if (this.mascot) htmlPageHeader += Dex.getPokemonGif(this.mascot, undefined, undefined, this.shinyMascot);
-		htmlPageHeader += "<h2>" + (this.format.nameWithOptions || this.format.name) + "</h2>";
+		let htmlPageHeader = "<h2>";
+		if (this.mascot) htmlPageHeader += Dex.getPokemonIcon(this.mascot);
+		htmlPageHeader += (this.format.nameWithOptions || this.format.name) + "</h2>";
 		this.htmlPageHeader = htmlPageHeader;
 	}
 
@@ -330,6 +331,13 @@ export class Game extends Activity {
 			const forceEndMessage = this.getForceEndMessage ? this.getForceEndMessage() : "";
 			this.say((!this.isUserHosted ? "The " : "") + this.name + " " + this.activityType + " was forcibly ended!" +
 				(forceEndMessage ? " " + forceEndMessage : ""));
+
+			if (this.usesHtmlPage) {
+				for (const i in this.players) {
+					if (this.players[i].eliminated) continue;
+					this.players[i].sendHtmlPage("<h3>The " + this.activityType + " was forcibly ended!</h3>");
+				}
+			}
 		}
 
 		if (this.onForceEnd) this.onForceEnd(user, reason);

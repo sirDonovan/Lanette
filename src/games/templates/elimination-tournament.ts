@@ -164,6 +164,7 @@ export abstract class EliminationTournament extends Game {
 	tournamentPlayers = new Set<Player>();
 	type: string | null = null;
 	usesCloakedPokemon: boolean = false;
+	usesHtmlPage = true;
 	validateTeams: boolean = true;
 
 	// set on start
@@ -1505,13 +1506,6 @@ export abstract class EliminationTournament extends Game {
 				autoCreateTimer += Config.tournamentGameCooldownTimers[this.room.id];
 			}
 			Games.setAutoCreateTimer(this.room, 'tournament', autoCreateTimer * 60 * 1000);
-		}
-	}
-
-	onForceEnd(): void {
-		for (const i in this.players) {
-			if (this.players[i].eliminated) continue;
-			this.players[i].sendHtmlPage("<h3>The tournament was forcibly ended!</h3>");
 		}
 	}
 

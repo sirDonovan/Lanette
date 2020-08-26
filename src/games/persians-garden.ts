@@ -42,9 +42,16 @@ class PersiansGarden extends MapCurrencyGame {
 
 	onAchievementSpace(player: Player, floor: MapFloor, space: MapFloorSpace): void {
 		delete space.attributes.achievement;
-		player.say("You arrived at (" + space.coordinates + ") and were greeted by a Meowth. It scratched at a hedge and revealed a " +
-			"small coin!");
-		this.unlockAchievement(player, achievements.meowthscoin!);
+		const achievementResult = this.unlockAchievement(player, achievements.meowthscoin!);
+		const repeatUnlock = achievementResult && achievementResult.includes(player);
+		let currency = 0;
+		if (repeatUnlock) {
+			currency = this.getRandomCurrency();
+			this.points.set(player, (this.points.get(player) || 0) + currency);
+		}
+		this.playerRoundInfo.get(player)!.push("You arrived at (" + space.coordinates + ") and were greeted by a Meowth. It " +
+			"scratched at a hedge and revealed a small coin" + (repeatUnlock ? " worth " + currency + " " + this.currency +
+			"! Your total is now " + this.points.get(player) + "." : "!"));
 	}
 
 	eliminatePlayers(): void {
@@ -67,8 +74,11 @@ class PersiansGarden extends MapCurrencyGame {
 		const eliminated = coins.splice(0, playersToEliminate);
 		const names: string[] = [];
 		for (let i = 0; i < playersToEliminate; i++) {
-			this.eliminatePlayer(eliminated[i].player, "Persian used Fury Swipes and knocked you out of the garden!");
-			names.push(eliminated[i].player.name);
+			const player = eliminated[i].player;
+			this.playerRoundInfo.get(player)!.push("Persian used Fury Swipes and knocked you out of the garden!");
+			this.eliminatePlayer(player, "You didn't collect enough " + this.currency + "!");
+			this.updatePlayerHtmlPage(player);
+			names.push(player.name);
 		}
 		this.say("The player" + (playersToEliminate > 1 ? "s" : "") + " with the least amount of " + this.currency + " " +
 			(playersToEliminate > 1 ? "were" : "was") + " **" + names.join(", ") + "**!");

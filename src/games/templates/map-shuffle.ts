@@ -33,7 +33,6 @@ export abstract class MapShuffleGame extends MapGame {
 	}
 
 	onStart(): void {
-		this.say("Now sending coordinates in PMs!");
 		this.positionPlayers();
 		this.nextRound();
 	}
@@ -41,7 +40,13 @@ export abstract class MapShuffleGame extends MapGame {
 	onNextRound(): void {
 		const len = this.getRemainingPlayerCount();
 		if (!len) return this.end();
-		if (this.round > 1 && (this.round - 1) % 5 === 0) this.shuffleMap();
+
+		if (this.round > 1 && (this.round - 1) % 5 === 0) {
+			this.shuffleMap();
+			this.escapedPlayers.forEach((value, player) => {
+				this.playerRoundInfo.set(player, []);
+			});
+		}
 		this.roundActions.clear();
 		this.onCommands(this.moveCommands, {max: len, remainingPlayersMax: true}, () => this.nextRound());
 
@@ -49,6 +54,8 @@ export abstract class MapShuffleGame extends MapGame {
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
 			if (this.round === 1) this.canMove = true;
+			this.updatePlayerHtmlPages();
+			this.resetPlayerMovementDetails();
 			this.timeout = setTimeout(() => this.nextRound(), 30 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);

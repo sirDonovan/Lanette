@@ -89,12 +89,15 @@ class DarkraisLair extends MapGame {
 			lives = Math.max(0, lives - damage);
 			this.lives.set(player, lives);
 			if (lives > 0) {
-				player.say("You were caught in the " + shadowTraps[shadowTrap.type].name + " and lost " + damage + " " +
-					(damage === 1 ? "life" : "lives") + "! You have " + lives + " remaining.");
+				this.playerRoundInfo.get(player)!.push("You were caught in the " + shadowTraps[shadowTrap.type].name + " and lost " +
+					damage + " " + (damage === 1 ? "life" : "lives") + "! You have " + lives + " remaining.");
 			} else {
+				this.playerRoundInfo.get(player)!.push("You were caught in the " + shadowTraps[shadowTrap.type].name + " and lost " +
+					"your last life.");
 				this.eliminatePlayer(player, "You were caught in the " + shadowTraps[shadowTrap.type].name + " and " +
 					" lost your last life!");
 			}
+			this.updatePlayerHtmlPage(player);
 		}
 
 		return affected;
@@ -106,22 +109,27 @@ class DarkraisLair extends MapGame {
 			const source = this.trappedPlayers.get(freedPlayer);
 			this.trappedPlayers.delete(freedPlayer);
 			if (!freedPlayer.eliminated) {
-				freedPlayer.say("You were freed from the " + source + " by " + player.name + "!");
-				player.say("You arrived at (" + space.coordinates + ") and freed " + freedPlayer.name + "!");
+				this.playerRoundInfo.get(freedPlayer)!.push("You were freed from the " + source + " by " + player.name + "!");
+				this.playerRoundInfo.get(player)!.push("You arrived at (" + space.coordinates + ") and freed " + freedPlayer.name +
+					"!");
 			}
 
 			delete this.shadowPits[space.coordinates];
 		}
 
-		if (!(space.coordinates in this.placedShadowTraps)) return;
+		if (!(space.coordinates in this.placedShadowTraps)) {
+			this.playerRoundInfo.get(player)!.push("You travelled safely to (" + space.coordinates + ").");
+			return;
+		}
 
 		const spaceShadowTrap = this.placedShadowTraps[space.coordinates];
 		switch (spaceShadowTrap.type) {
 		case 'shadowpit':
 			if (player.team !== spaceShadowTrap.player.team) {
-				player.say("You arrived at (" + space.coordinates + ") and fell into a " + shadowTraps[spaceShadowTrap.type].name + " " +
-					"trap! You must wait for a teammate to release you.");
-				spaceShadowTrap.player.say(player.name + " fell into your " + shadowTraps[spaceShadowTrap.type].name + " trap!");
+				this.playerRoundInfo.get(player)!.push("You arrived at (" + space.coordinates + ") and fell into a " +
+					shadowTraps[spaceShadowTrap.type].name + " trap! You must wait for a teammate to release you.");
+				this.playerRoundInfo.get(spaceShadowTrap.player)!.push(player.name + " fell into your " +
+					shadowTraps[spaceShadowTrap.type].name + " trap!");
 				this.shadowPits[space.coordinates] = player;
 				this.trappedPlayers.set(player, shadowTraps[spaceShadowTrap.type].name);
 				delete this.placedShadowTraps[space.coordinates];
@@ -129,12 +137,12 @@ class DarkraisLair extends MapGame {
 			break;
 		case 'shadowsphere':
 			if (player.team !== spaceShadowTrap.player.team) {
-				player.say("You arrived at (" + space.coordinates + ") and stepped on a " + shadowTraps[spaceShadowTrap.type].name + " " +
-					"trap!");
+				this.playerRoundInfo.get(player)!.push("You arrived at (" + space.coordinates + ") and stepped on a " +
+					shadowTraps[spaceShadowTrap.type].name + " trap!");
 				const sphereCoordinates = this.radiateFromCoordinates(this.stringToCoordinates(space.coordinates), 1);
 				const affected = this.distributeShadowTrapDamage(spaceShadowTrap, sphereCoordinates, 1);
-				spaceShadowTrap.player.say("Your " + shadowTraps[spaceShadowTrap.type].name + " trap damaged " +
-					Tools.joinList(affected.map(x => x.name)) + "!");
+				this.playerRoundInfo.get(spaceShadowTrap.player)!.push("Your " + shadowTraps[spaceShadowTrap.type].name + " trap " +
+					"damaged " + Tools.joinList(affected.map(x => x.name)) + "!");
 
 				delete this.placedShadowTraps[space.coordinates];
 				if (this.getRemainingPlayerCount() < 2) this.end();
@@ -142,8 +150,8 @@ class DarkraisLair extends MapGame {
 			break;
 		case 'shadowcolumn':
 			if (player.team !== spaceShadowTrap.player.team) {
-				player.say("You arrived at (" + space.coordinates + ") and stepped on a " + shadowTraps[spaceShadowTrap.type].name + " " +
-					"trap!");
+				this.playerRoundInfo.get(player)!.push("You arrived at (" + space.coordinates + ") and stepped on a " +
+					shadowTraps[spaceShadowTrap.type].name + " trap!");
 				const spaceCoordinates = this.stringToCoordinates(space.coordinates);
 				const x = parseInt(spaceCoordinates[0]);
 				const columnCoordinates: string[] = [];
@@ -151,8 +159,8 @@ class DarkraisLair extends MapGame {
 					columnCoordinates.push(this.coordinatesToString(x, i));
 				}
 				const affected = this.distributeShadowTrapDamage(spaceShadowTrap, columnCoordinates, 1);
-				spaceShadowTrap.player.say("Your " + shadowTraps[spaceShadowTrap.type].name + " trap damaged " +
-					Tools.joinList(affected.map(x => x.name)) + "!");
+				this.playerRoundInfo.get(spaceShadowTrap.player)!.push("Your " + shadowTraps[spaceShadowTrap.type].name + " trap " +
+					"damaged " + Tools.joinList(affected.map(x => x.name)) + "!");
 
 				delete this.placedShadowTraps[space.coordinates];
 				if (this.getRemainingPlayerCount() < 2) this.end();
@@ -160,8 +168,8 @@ class DarkraisLair extends MapGame {
 			break;
 		case 'shadowrow':
 			if (player.team !== spaceShadowTrap.player.team) {
-				player.say("You arrived at (" + space.coordinates + ") and stepped on a " + shadowTraps[spaceShadowTrap.type].name + " " +
-					"trap!");
+				this.playerRoundInfo.get(player)!.push("You arrived at (" + space.coordinates + ") and stepped on a " +
+					shadowTraps[spaceShadowTrap.type].name + " trap!");
 				const spaceCoordinates = this.stringToCoordinates(space.coordinates);
 				const y = parseInt(spaceCoordinates[1]);
 				const rowCoordinates: string[] = [];
@@ -169,8 +177,8 @@ class DarkraisLair extends MapGame {
 					rowCoordinates.push(this.coordinatesToString(i, y));
 				}
 				const affected = this.distributeShadowTrapDamage(spaceShadowTrap, rowCoordinates, 1);
-				spaceShadowTrap.player.say("Your " + shadowTraps[spaceShadowTrap.type].name + " trap damaged " +
-					Tools.joinList(affected.map(x => x.name)) + "!");
+				this.playerRoundInfo.get(spaceShadowTrap.player)!.push("Your " + shadowTraps[spaceShadowTrap.type].name + " trap " +
+					"damaged " + Tools.joinList(affected.map(x => x.name)) + "!");
 
 				delete this.placedShadowTraps[space.coordinates];
 				if (this.getRemainingPlayerCount() < 2) this.end();
@@ -178,14 +186,15 @@ class DarkraisLair extends MapGame {
 			break;
 		case 'shadowspike':
 			if (player.team !== spaceShadowTrap.player.team) {
-				player.say("You arrived at (" + space.coordinates + ") and stepped on a " + shadowTraps[spaceShadowTrap.type].name + " " +
-					"trap!");
-				spaceShadowTrap.player.say("Your " + shadowTraps[spaceShadowTrap.type].name + " trap damaged " + player.name + "!");
+				this.playerRoundInfo.get(player)!.push("You arrived at (" + space.coordinates + ") and stepped on a " +
+					shadowTraps[spaceShadowTrap.type].name + " trap!");
+				this.playerRoundInfo.get(spaceShadowTrap.player)!.push("Your " + shadowTraps[spaceShadowTrap.type].name + " trap " +
+					"damaged " + player.name + "!");
 				let lives = this.lives.get(player)!;
 				lives = Math.max(0, lives - 2);
 				this.lives.set(player, lives);
 				if (lives > 0) {
-					player.say("You lost 2 lives! You have " + lives + " remaining.");
+					this.playerRoundInfo.get(player)!.push("You lost 2 lives! You have " + lives + " remaining.");
 				} else {
 					this.eliminatePlayer(player, "You lost your last life!");
 				}
@@ -212,10 +221,41 @@ class DarkraisLair extends MapGame {
 
 	onStart(): void {
 		this.teams = this.generateTeams(this.teamCount);
-		this.say("Now sending coordinates in PMs!");
 		this.map = this.generateMap(this.playerCount);
 		this.positionPlayers();
-		this.timeout = setTimeout(() => this.nextRound(), 5000);
+		this.nextRound();
+	}
+
+	getPlayerControlsHtml(map: GameMap, floor: MapFloor, player: Player): string {
+		let html = this.getPlayerMovementControlsHtml(map, floor, player);
+		if (player.eliminated) return html;
+
+		html += "<br /><b>Shadow traps</b>:<br />";
+
+		const playerCoordinates = this.playerCoordinates.get(player)!;
+		const coordinateString = this.coordinatesToString(playerCoordinates[0], playerCoordinates[1]);
+		const usedShadowTraps = this.playerUsedShadowTraps.get(player)!;
+		const keys = Object.keys(shadowTraps) as ShadowTrap[];
+		let cannotLayTrap = this.roundShadowTraps.has(player);
+		for (const key of keys) {
+			let remainingUses = Infinity;
+			if (shadowTraps[key].uses) {
+				remainingUses = shadowTraps[key].uses!;
+				if (key in usedShadowTraps) {
+					remainingUses -= usedShadowTraps[key]!;
+				}
+			}
+
+			if (!cannotLayTrap) {
+				cannotLayTrap = !remainingUses || coordinateString in this.shadowPits ||
+					(key !== 'dreamvision' && coordinateString in this.placedShadowTraps) ||
+					(this.trappedPlayers.has(player) && !this.inPlaceShadowTraps.includes(key));
+			}
+
+			html += Client.getPmSelfButton(Config.commandCharacter + key, shadowTraps[key].name +
+				(remainingUses && remainingUses !== Infinity ? " x" + remainingUses : ""), cannotLayTrap) + "&nbsp;";
+		}
+		return html;
 	}
 
 	onNextRound(): void {
@@ -228,17 +268,30 @@ class DarkraisLair extends MapGame {
 					lives--;
 					this.lives.set(player, lives);
 					if (lives === 0) {
+						this.playerRoundInfo.get(player)!.push("You did not move in the previous round and lost your last life.");
 						this.eliminatePlayer(player, "You did not move in the previous round and lost your last life!");
 					} else {
-						player.say("You did not move in the previous round and lost 1 life! You have " + lives + " remaining.");
+						this.playerRoundInfo.get(player)!.push("You did not move in the previous round and lost 1 life! You have " +
+							lives + " remaining.");
 					}
+					this.updatePlayerHtmlPage(player);
 				}
 			}
 		}
 
 		let emptyTeams = 0;
 		for (const team in this.teams) {
-			if (!this.getRemainingPlayerCount(this.teams[team].players)) {
+			const remainingTeamPlayers = this.getRemainingPlayers(this.teams[team].players);
+			let allInShadowPit = true;
+			for (const i in remainingTeamPlayers) {
+				const playerCoordinates = this.playerCoordinates.get(remainingTeamPlayers[i])!;
+				const coordinateString = this.coordinatesToString(playerCoordinates[0], playerCoordinates[1]);
+				if (coordinateString in this.shadowPits) continue;
+				allInShadowPit = false;
+				break;
+			}
+
+			if (allInShadowPit || !this.getRemainingPlayerCount(remainingTeamPlayers)) {
 				emptyTeams++;
 			}
 		}
@@ -265,6 +318,8 @@ class DarkraisLair extends MapGame {
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
 			if (!this.canMove) this.canMove = true;
+			this.updatePlayerHtmlPages();
+			this.resetPlayerMovementDetails();
 			this.timeout = setTimeout(() => this.nextRound(), 30 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);
@@ -392,12 +447,14 @@ class DarkraisLair extends MapGame {
 				text += " You have " + (remainingShadowTraps === 0 ? "no" : remainingShadowTraps) + " use" +
 					(remainingShadowTraps === 1 ? "" : "s") + " remaining.";
 			}
-			player.say(text);
+			this.playerRoundInfo.get(player)!.push(text);
 		}
 
 		if (!(shadowTrap in usedShadowTraps)) usedShadowTraps[shadowTrap] = 0;
 		usedShadowTraps[shadowTrap]!++;
 		this.roundShadowTraps.add(player);
+		this.updatePlayerHtmlPage(player);
+
 		return true;
 	}
 }
@@ -408,36 +465,42 @@ const commands: GameCommandDefinitions<DarkraisLair> = {
 			return this.layShadowTrap(this.players[user.id], "shadowcolumn");
 		},
 		aliases: ["scolumn"],
+		pmGameCommand: true,
 	},
 	shadowspike: {
 		command(target, room, user) {
 			return this.layShadowTrap(this.players[user.id], "shadowspike");
 		},
 		aliases: ["sspike"],
+		pmGameCommand: true,
 	},
 	shadowsphere: {
 		command(target, room, user) {
 			return this.layShadowTrap(this.players[user.id], "shadowsphere");
 		},
 		aliases: ["ssphere"],
+		pmGameCommand: true,
 	},
 	shadowrow: {
 		command(target, room, user) {
 			return this.layShadowTrap(this.players[user.id], "shadowrow");
 		},
 		aliases: ["srow"],
+		pmGameCommand: true,
 	},
 	shadowpit: {
 		command(target, room, user) {
 			return this.layShadowTrap(this.players[user.id], "shadowpit");
 		},
 		aliases: ["spit"],
+		pmGameCommand: true,
 	},
 	dreamvision: {
 		command(target, room, user) {
 			return this.layShadowTrap(this.players[user.id], "dreamvision");
 		},
 		aliases: ["dvision"],
+		pmGameCommand: true,
 	},
 };
 
@@ -446,7 +509,6 @@ const tests: GameFileTests<DarkraisLair> = {
 		test(game, format) {
 			const players = addPlayers(game, 4);
 			game.start();
-			game.nextRound();
 			game.canMove = true;
 			const coordinates = [0, 0];
 			game.playerCoordinates.set(players[0], coordinates);
@@ -458,7 +520,6 @@ const tests: GameFileTests<DarkraisLair> = {
 		test(game, format) {
 			const players = addPlayers(game, 4);
 			game.start();
-			game.nextRound();
 			game.canMove = true;
 			game.playerCoordinates.set(players[0], [0, 0]);
 			players[0].useCommand('up');
@@ -470,7 +531,6 @@ const tests: GameFileTests<DarkraisLair> = {
 		test(game, format) {
 			const players = addPlayers(game, 4);
 			game.start();
-			game.nextRound();
 
 			const map = game.getMap(players[0]);
 			const floorIndex = game.getFloorIndex(players[0]);
@@ -504,7 +564,6 @@ const tests: GameFileTests<DarkraisLair> = {
 		test(game, format) {
 			const players = addPlayers(game, 4);
 			game.start();
-			game.nextRound();
 
 			const map = game.getMap(players[0]);
 			const floorIndex = game.getFloorIndex(players[0]);
@@ -541,7 +600,6 @@ const tests: GameFileTests<DarkraisLair> = {
 		test(game, format) {
 			const players = addPlayers(game, 4);
 			game.start();
-			game.nextRound();
 
 			const map = game.getMap(players[0]);
 			const floorIndex = game.getFloorIndex(players[0]);
@@ -578,7 +636,6 @@ const tests: GameFileTests<DarkraisLair> = {
 		test(game, format) {
 			const players = addPlayers(game, 4);
 			game.start();
-			game.nextRound();
 
 			const map = game.getMap(players[0]);
 			const floorIndex = game.getFloorIndex(players[0]);
@@ -615,7 +672,6 @@ const tests: GameFileTests<DarkraisLair> = {
 		test(game, format) {
 			const players = addPlayers(game, 4);
 			game.start();
-			game.nextRound();
 
 			const map = game.getMap(players[0]);
 			const floorIndex = game.getFloorIndex(players[0]);

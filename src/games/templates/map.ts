@@ -102,8 +102,10 @@ export abstract class MapGame extends Game {
 	minMovement: number = 1;
 	moveCommands: string[] = ['up', 'down', 'left', 'right'];
 	playerCoordinates = new Map<Player, number[]>();
+	playerRoundInfo = new Map<Player, string[]>();
 	points = new Map<Player, number>();
 	roundsWithoutCurrency = new Map<Player, number>();
+	usesHtmlPage = true;
 
 	escapedPlayers?: Map<Player, boolean> | null = null;
 	noCurrencyAchievement?: IGameAchievement;
@@ -195,8 +197,7 @@ export abstract class MapGame extends Game {
 		if (!(stringCoordinates in floor.traversedCoordinates)) floor.traversedCoordinates[stringCoordinates] = new Set();
 		floor.traversedCoordinates[stringCoordinates].add(player);
 		floor.spaces[stringCoordinates].addPlayer(player);
-		player.say("You were teleported to (" + coordinates + ").");
-		this.displayMap(player);
+		this.playerRoundInfo.set(player, ["You were teleported to (" + coordinates + ")."]);
 	}
 
 	positionPlayers(): void {
@@ -206,30 +207,50 @@ export abstract class MapGame extends Game {
 		}
 	}
 
-	displayMap(player: Player): void {
+	resetPlayerMovementDetails(): void {
+		for (const i in this.players) {
+			this.playerRoundInfo.set(this.players[i], []);
+		}
+	}
+
+	updatePlayerHtmlPage(player: Player): void {
+		player.sendHtmlPage(this.getPlayerHtmlPage(player));
+	}
+
+	updatePlayerHtmlPages(): void {
+		for (const i in this.players) {
+			const player = this.players[i];
+			if (player.eliminated && !(this.escapedPlayers && this.escapedPlayers.has(player))) continue;
+			this.updatePlayerHtmlPage(player);
+		}
+	}
+
+	getPlayerHtmlPage(player: Player): string {
 		const map = this.getMap(player);
 		const floorIndex = this.getFloorIndex(player);
 		const floor = map.floors[floorIndex];
-		const displayDimensions = Math.min(floor.y, Math.min(floor.x, 8));
-		const width = 100 / displayDimensions;
+		let html = this.getMapHtml(map, floor, player);
+
+		html += "<br /><center><b>Round " + this.round + "</b>:<br />";
+		const movementDetails = this.playerRoundInfo.get(player);
+		if (movementDetails && movementDetails.length) {
+			for (const detail of movementDetails) {
+				html += detail + "<br />";
+			}
+		}
+
+		html += "<br />";
+
+		html += this.getPlayerControlsHtml(map, floor, player);
+
+		html += "</center>";
+
+		return html;
+	}
+
+	getMapHtml(map: GameMap, floor: MapFloor, player: Player): string {
 		const playerCoordindates = this.playerCoordinates.get(player)!;
 		const playerStringCoordinates = this.coordinatesToString(playerCoordindates[0], playerCoordindates[1]);
-
-		let endX: number;
-		if (playerCoordindates[0] > displayDimensions - 1) {
-			endX = playerCoordindates[0] + 1;
-		} else {
-			endX = displayDimensions;
-		}
-		const startX = endX - displayDimensions;
-
-		let startY: number;
-		if (playerCoordindates[1] > displayDimensions - 1) {
-			startY = playerCoordindates[1];
-		} else {
-			startY = displayDimensions - 1;
-		}
-		const endY = startY - displayDimensions;
 
 		let currency = false;
 		let empty = false;
@@ -239,62 +260,122 @@ export abstract class MapGame extends Game {
 			[mapKeys.player]: 'your current location',
 			[mapKeys.unknown]: 'an unknown space',
 		};
-		let mapHtml = '';
-		for (let y = startY; y > endY; y--) {
-			for (let x = startX; x < endX; x++) {
+
+		let mapHtml = '<table align="center" border="2" ' +
+			'style="color: black;font-weight: bold;text-align: center;table-layout: fixed;width: ' +
+			(25 * floor.x) + 'px">';
+		for (let y = floor.y - 1; y >= 0; y--) {
+			mapHtml += '<tr>';
+			for (let x = 0; x < floor.x; x++) {
+				mapHtml += "<td style='background: " + Tools.hexColorCodes['White']["background-color"] + "'>";
 				const coordinates = this.coordinatesToString(x, y);
 				const space = floor.spaces[coordinates];
 				mapHtml += '<span title="' + coordinates + '">';
 				if (coordinates === playerStringCoordinates) {
-					mapHtml += '<div style="float: left; width: ' + width + '%"><blink>*</blink></div></span>';
+					mapHtml += '<blink>*</blink></span></td>';
 					continue;
 				}
 
 				if (this.getSpaceDisplay) {
 					const spaceDisplay = this.getSpaceDisplay(player, floor, space);
 					if (spaceDisplay) {
-						mapHtml += '<div style="float: left; width: ' + width + '%">' + spaceDisplay.symbol + '</div></span>';
+						mapHtml += spaceDisplay.symbol + '</span></td>';
 						if (!(spaceDisplay.symbol in legend)) legend[spaceDisplay.symbol] = spaceDisplay.description;
 						continue;
 					}
 				}
 
 				if (space.traversedAttributes.currency && space.traversedAttributes.currency.has(player)) {
-					mapHtml += '<div style="float: left; width: ' + width + '%">' + mapKeys.currency + '</div>';
+					mapHtml += mapKeys.currency;
 					if (!currency) currency = true;
 				} else if (space.traversedAttributes.exit && space.traversedAttributes.exit.has(player)) {
-					mapHtml += '<div style="float: left; width: ' + width + '%">' + mapKeys.exit + '</div>';
+					mapHtml += mapKeys.exit;
 					if (!exit) exit = true;
 				} else if (space.traversedAttributes.trap && space.traversedAttributes.trap.has(player)) {
-					mapHtml += '<div style="float: left; width: ' + width + '%">' + mapKeys.trap + '</div>';
+					mapHtml += mapKeys.trap;
 					if (!trap) trap = true;
 				} else if (coordinates in floor.traversedCoordinates && floor.traversedCoordinates[coordinates].has(player)) {
-					mapHtml += '<div style="float: left; width: ' + width + '%">' + mapKeys.empty + '</div>';
+					mapHtml += mapKeys.empty;
 					if (!empty) empty = true;
 				} else {
-					mapHtml += '<div style="float: left; width: ' + width + '%">' + mapKeys.unknown + '</div>';
+					mapHtml += mapKeys.unknown;
 				}
-				mapHtml += "</span>";
+				mapHtml += "</span></td>";
 			}
-			mapHtml += '<br />';
+			mapHtml += "</tr>";
 		}
+		mapHtml += "</table>";
 
 		if (currency) legend[mapKeys.currency] = this.currency + ' that you have discovered';
 		if (empty) legend[mapKeys.empty] = 'an empty space';
 		if (exit) legend[mapKeys.exit] = 'an exit that you have discovered';
 		if (trap) legend[mapKeys.trap] = 'a trap that you have discovered';
 
-		let html = '<div class="infobox"><b>Map legend</b>:<br />';
+		let html = '<b>Map legend</b>:<br />';
 		for (const mapSymbol in legend) {
 			html += '<b>' + mapSymbol + '</b>: ' + legend[mapSymbol] + '<br />';
 		}
-		html += "<br />" + mapHtml + '</div>';
 
-		player.sayUhtml(html, this.uhtmlBaseName + "-map");
+		html += "<br />" + mapHtml;
+
+		return html;
+	}
+
+	getPlayerMovementControlsHtml(map: GameMap, floor: MapFloor, player: Player): string {
+		const playerCoordindates = this.playerCoordinates.get(player)!;
+		const playerUpMovement = floor.y - 1 - playerCoordindates[1];
+		const playerRightMovement = floor.x - 1 - playerCoordindates[0];
+		let html = '';
+
+		if (this.trappedPlayers && this.trappedPlayers.has(player)) {
+			html += "<b>You are trapped and cannot move!</b>";
+		} else if (this.canMove && (!player.eliminated || (this.escapedPlayers && this.escapedPlayers.has(player)))) {
+			const cannotMove = this.roundActions && this.roundActions.has(player) ? true : false;
+			html += "<b>Controls</b>:<br /><table>";
+			html += "<tr><td>&nbsp;</td><td>" +
+				Client.getPmSelfButton(Config.commandCharacter + "up 3", "Up 3", cannotMove || playerUpMovement < 3) +
+				"</td><td>" + Client.getPmSelfButton(Config.commandCharacter + "up 2", "Up 2", cannotMove || playerUpMovement < 2) +
+				"</td><td>" +Client.getPmSelfButton(Config.commandCharacter + "up 1", "Up 1", cannotMove || playerUpMovement < 1) +
+				"</td><td>&nbsp;</td></tr>";
+
+			html += "<tr><td>" +
+				Client.getPmSelfButton(Config.commandCharacter + "left 3", "Left 3", cannotMove || playerCoordindates[0] < 3) +
+				"</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>" +
+				Client.getPmSelfButton(Config.commandCharacter + "right 3", "Right 3", cannotMove || playerRightMovement < 3) +
+				"</td></tr>";
+
+			html += "<tr><td>" +
+				Client.getPmSelfButton(Config.commandCharacter + "left 2", "Left 2", cannotMove || playerCoordindates[0] < 2) +
+				"</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>" +
+				Client.getPmSelfButton(Config.commandCharacter + "right 2", "Right 2", cannotMove || playerRightMovement < 2) +
+				"</td></tr>";
+
+			html += "<tr><td>" +
+				Client.getPmSelfButton(Config.commandCharacter + "left 1", "Left 1", cannotMove || playerCoordindates[0] < 1) +
+				"</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>" +
+				Client.getPmSelfButton(Config.commandCharacter + "right 1", "Right 1", cannotMove || playerRightMovement < 1) +
+				"</td></tr>";
+
+			html += "<tr><td>&nbsp;</td><td>" +
+				Client.getPmSelfButton(Config.commandCharacter + "down 3", "Down 3", cannotMove || playerCoordindates[1] < 3) +
+				"</td><td>" +
+				Client.getPmSelfButton(Config.commandCharacter + "down 2", "Down 2", cannotMove || playerCoordindates[1] < 2) +
+				"</td><td>" +
+				Client.getPmSelfButton(Config.commandCharacter + "down 1", "Down 1", cannotMove || playerCoordindates[1] < 1) +
+				"</td><td>&nbsp;</td></tr>";
+			html += '</table>';
+		}
+
+		return html;
+	}
+
+	getPlayerControlsHtml(map: GameMap, floor: MapFloor, player: Player): string {
+		return this.getPlayerMovementControlsHtml(map, floor, player);
 	}
 
 	onRegularSpace(player: Player, floor: MapFloor, space: MapFloorSpace): void {
-		player.say("You travelled" + (floor.attributes.trap ? " safely" : "") + " to (" + space.coordinates + ").");
+		this.playerRoundInfo.get(player)!.push("You travelled" + (floor.attributes.trap ? " safely" : "") + " to (" +
+			space.coordinates + ").");
 	}
 
 	checkCurrencySpace(player: Player, floor: MapFloor, space: MapFloorSpace): boolean {
@@ -304,15 +385,19 @@ export abstract class MapGame extends Game {
 		return true;
 	}
 
+	getRandomCurrency(): number {
+		return ((Math.floor(Math.random() * 7) + 1) * 100) + ((Math.floor(Math.random() * 9) + 1) * 10) +
+		(Math.floor(Math.random() * 9) + 1);
+	}
+
 	onCurrencySpace(player: Player, floor: MapFloor, space: MapFloorSpace): number {
 		if (!this.checkCurrencySpace(player, floor, space)) return 0;
 		let points = this.points.get(player) || 0;
-		const amount = ((Math.floor(Math.random() * 7) + 1) * 100) + ((Math.floor(Math.random() * 9) + 1) * 10) +
-			(Math.floor(Math.random() * 9) + 1);
+		const amount = this.getRandomCurrency();
 		points += amount;
 		this.points.set(player, points);
-		player.say("You arrived at (" + space.coordinates + ") and found **" + amount + " " + this.currency + "**! Your collection " +
-			"is now " + points + ".");
+		this.playerRoundInfo.get(player)!.push("You arrived at (" + space.coordinates + ") and found <b>" + amount + " " +
+			this.currency + "</b>! Your collection is now " + points + ".");
 		return amount;
 	}
 
@@ -324,25 +409,26 @@ export abstract class MapGame extends Game {
 		if (!space.traversedAttributes.trap) space.traversedAttributes.trap = new Set();
 		space.traversedAttributes.trap.add(player);
 		if (!lives) {
-			player.say("You arrived at (" + space.coordinates + ") and fell into a trap!");
+			this.playerRoundInfo.get(player)!.push("You arrived at (" + space.coordinates + ") and fell into a trap! You lost " +
+				"your last life.");
 			this.eliminatePlayer(player, "You ran out of lives!");
 			if (this.recklessAdventurerAchievement && this.round === this.recklessAdventurerRound) {
 				this.unlockAchievement(player, this.recklessAdventurerAchievement);
 			}
 			return false;
 		} else {
-			player.say("You arrived at (" + space.coordinates + ") and fell into a trap! You have **" + lives + " " + (lives > 1 ?
-				"lives" : "life") + "** left.");
+			this.playerRoundInfo.get(player)!.push("You arrived at (" + space.coordinates + ") and fell into a trap! You have <b>" +
+				lives + " " + (lives > 1 ? "lives" : "life") + "</b> left.");
 		}
 		return true;
 	}
 
 	onExitSpace(player: Player, floor: MapFloor, space: MapFloorSpace): void {
-		player.say("You arrived at (" + space.coordinates + ") and found an exit! You are now safe and will earn your bits at the end " +
-			"of the game.");
+		this.playerRoundInfo.get(player)!.push("You arrived at (" + space.coordinates + ") and found an exit! You are now safe " +
+			"and will earn your bits at the end of the game.");
 		if (this.round < this.maxRound) {
-			player.say("If you are brave, you may continue travelling to collect more " + this.currency + " but **you must find your way " +
-				"to an exit** before time is up!");
+			this.playerRoundInfo.get(player)!.push("If you are willing to risk it, you may continue travelling to collect more " +
+				this.currency + " <b>but you must find your way to an exit before time is up</b>!");
 		}
 		if (this.escapedPlayers) this.escapedPlayers.set(player, true);
 		player.eliminated = true;
@@ -393,8 +479,6 @@ export abstract class MapGame extends Game {
 			regularSpace = true;
 		}
 		if (regularSpace) this.onRegularSpace(player, floor, space);
-
-		this.displayMap(player);
 
 		if (!currencySpace && this.noCurrencyAchievement) {
 			let roundsWithoutCurrency = this.roundsWithoutCurrency.get(player) || 0;
@@ -564,6 +648,8 @@ export abstract class MapGame extends Game {
 
 		this.movePlayer(player, playerCoordinates);
 		if (this.roundActions) this.roundActions.set(player, true);
+		this.updatePlayerHtmlPage(player);
+
 		if (eliminatedPlayer) this.increaseOnCommandsMax(this.moveCommands, 1);
 
 		return true;
@@ -583,24 +669,28 @@ const commands: GameCommandDefinitions<MapGame> = {
 			return this.move(target, user, 'up');
 		},
 		eliminatedGameCommand: true,
+		pmGameCommand: true,
 	},
 	down: {
 		command(target, room, user): GameCommandReturnType {
 			return this.move(target, user, 'down');
 		},
 		eliminatedGameCommand: true,
+		pmGameCommand: true,
 	},
 	left: {
 		command(target, room, user): GameCommandReturnType {
 			return this.move(target, user, 'left');
 		},
 		eliminatedGameCommand: true,
+		pmGameCommand: true,
 	},
 	right: {
 		command(target, room, user): GameCommandReturnType {
 			return this.move(target, user, 'right');
 		},
 		eliminatedGameCommand: true,
+		pmGameCommand: true,
 	},
 	/* eslint-enable */
 };
