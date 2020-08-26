@@ -1593,7 +1593,7 @@ export class Dex {
 		if (rule === 'nonexistent') return 'Non-existent';
 		const type = rule.charAt(0);
 		let ruleName: string;
-		if (type === '+' || type === '-' || type === '!') {
+		if (type === '+' || type === '-' || type === '*' || type === '!') {
 			ruleName = rule.substr(1);
 		} else {
 			ruleName = rule;
@@ -1751,9 +1751,9 @@ export class Dex {
 				const ruleName = this.getValidatedRuleName(rule);
 
 				if (type === '+') {
-					addedbans.push(ruleName);
-				} else if (type === '-') {
 					removedbans.push(ruleName);
+				} else if (type === '-') {
+					addedbans.push(ruleName);
 				} else if (type === '*') {
 					addedrestrictions.push(ruleName);
 				} else if (type === '!') {

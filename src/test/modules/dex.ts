@@ -1,3 +1,4 @@
+import type { ISeparatedCustomRules } from '../../types/dex';
 import { assert, assertStrictEqual } from './../test-tools';
 
 /* eslint-env mocha */
@@ -176,6 +177,20 @@ describe("Dex", () => {
 		const gen1 = Dex.getExistingFormat("gen1ou@@@-Chikorita");
 		assert(gen1.customRules);
 		assert(Dex.getRuleTable(gen1));
+	});
+	it('should properly parse custom rules in separateCustomRules()', () => {
+		const customRules: string[] = ["-Pikachu", "+Charizard", "*Kubfu", "Same Type Clause", "!Team Preview"];
+		const separatedCustomRules: ISeparatedCustomRules = Dex.separateCustomRules(customRules);
+		assertStrictEqual(separatedCustomRules.addedbans.length, 1);
+		assertStrictEqual(separatedCustomRules.addedbans[0], "Pikachu");
+		assertStrictEqual(separatedCustomRules.removedbans.length, 1);
+		assertStrictEqual(separatedCustomRules.removedbans[0], "Charizard");
+		assertStrictEqual(separatedCustomRules.addedrestrictions.length, 1);
+		assertStrictEqual(separatedCustomRules.addedrestrictions[0], "Kubfu");
+		assertStrictEqual(separatedCustomRules.addedrules.length, 1);
+		assertStrictEqual(separatedCustomRules.addedrules[0], "Same Type Clause");
+		assertStrictEqual(separatedCustomRules.removedrules.length, 1);
+		assertStrictEqual(separatedCustomRules.removedrules[0], "Team Preview");
 	});
 	it('should return proper values from isImmune()', () => {
 		assertStrictEqual(Dex.isImmune('Normal', 'Ghost'), true);
