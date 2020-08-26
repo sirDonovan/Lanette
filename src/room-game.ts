@@ -659,7 +659,7 @@ export class Game extends Activity {
 		}
 		if (commandListener) {
 			commandListener.max -= decrement;
-			if (commandListener.count === commandListener.max) {
+			if (commandListener.count >= commandListener.max) {
 				commandListener.listener(commandListener.lastUserId);
 				this.commandsListeners.splice(this.commandsListeners.indexOf(commandListener, 1));
 			}
@@ -721,7 +721,7 @@ export class Game extends Activity {
 				commandListener.count++;
 				commandListener.lastUserId = user.id;
 
-				if (commandListener.count === commandListener.max) {
+				if (commandListener.count >= commandListener.max) {
 					commandListener.listener(commandListener.lastUserId);
 					triggeredListeners.push(commandListener);
 				}
