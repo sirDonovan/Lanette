@@ -826,7 +826,8 @@ export class Game extends Activity {
 		});
 	}
 
-	unlockAchievement(players: Player | Player[], achievement: IGameAchievement): void {
+	/**Returns an array of players who re-unlocked the achievement, if any */
+	unlockAchievement(players: Player | Player[], achievement: IGameAchievement): Player[] | undefined {
 		if ((this.isMiniGame && !this.internalGame) || this.isPm(this.room)) return;
 		const format = this.format as IGameFormat;
 		if (format.mode && format.mode.id !== achievement.mode) return;
@@ -868,6 +869,8 @@ export class Game extends Activity {
 		if (repeatUnlock.length) {
 			this.say(Tools.joinList(repeatUnlock.map(x => x.name), "**") + " re-unlocked the **" + achievement.name + "** achievement!");
 		}
+
+		return repeatUnlock;
 	}
 
 	rollForShinyPokemon(extraChance?: number): boolean {
