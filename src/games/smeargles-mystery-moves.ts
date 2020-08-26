@@ -21,7 +21,7 @@ class SmearglesMysteryMoves extends Guessing {
 	multiRoundHints = true;
 	mysteryRound: number = -1;
 	points = new Map<Player, number>();
-	roundGuesses = new Map<Player, boolean>();
+	roundGuesses: Map<Player, boolean> | undefined = new Map();
 	roundTime = 0;
 	updateHintTime = 5 * 1000;
 
@@ -54,7 +54,7 @@ class SmearglesMysteryMoves extends Guessing {
 
 	updateHint(): void {
 		this.mysteryRound++;
-		this.roundGuesses.clear();
+		if (this.roundGuesses) this.roundGuesses.clear();
 		const pastHints = this.hints.slice(0, this.mysteryRound);
 		this.hint = (pastHints.length ? pastHints.join("<br />") + "<br />" : "") + (this.hints[this.mysteryRound] ?
 			"<i>" + this.hints[this.mysteryRound] + "</i>" : "");
@@ -86,7 +86,7 @@ export const game: IGameFile<SmearglesMysteryMoves> = Games.copyTemplateProperti
 	commandDescriptions: [Config.commandCharacter + "g [move]"],
 	class: SmearglesMysteryMoves,
 	defaultOptions: ['points'],
-	description: "Players guess moves based on the given hints!",
+	description: "Players guess moves based on the given hints (one guess per hint)!",
 	formerNames: ["What's That Move"],
 	freejoin: true,
 	name: "Smeargle's Mystery Moves",
@@ -95,4 +95,13 @@ export const game: IGameFile<SmearglesMysteryMoves> = Games.copyTemplateProperti
 	minigameCommandAliases: ["mmove"],
 	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess a move as hints are revealed!",
 	modes: ['group'],
+	variants: [
+		{
+			name: "Smeargle's Mystery Moves Unlimited",
+			description: "Players guess moves based on the given hints (unlimited guesses)!",
+			variant: "unlimited",
+			variantAliases: ["unlimited guess", "unlimited guesses"],
+			roundGuesses: undefined,
+		}
+	],
 });
