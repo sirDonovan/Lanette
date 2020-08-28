@@ -50,6 +50,13 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	abstract onRemovePlayer(player: Player): void;
 	abstract playActionCard(card: ICard, player: Player, targets: string[], cards: ICard[]): ICard[] | boolean;
 
+	filterForme(forme: IPokemon): boolean {
+		const baseSpecies = Dex.getExistingPokemon(forme.baseSpecies);
+		if ((baseSpecies.color !== forme.color || !Tools.compareArrays(baseSpecies.types, forme.types)) &&
+			!(baseSpecies.name === "Arceus" || baseSpecies.name === "Silvally")) return true;
+		return false;
+	}
+
 	createDeck(): void {
 		const colorCounts: Dict<number> = {};
 		const typeCounts: Dict<number> = {};

@@ -444,6 +444,13 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		return false;
 	}
 
+	filterForme(forme: IPokemon): boolean {
+		const baseSpecies = Dex.getExistingPokemon(forme.baseSpecies);
+		if (!Tools.compareArrays(baseSpecies.types, forme.types) &&
+			!(baseSpecies.name === "Arceus" || baseSpecies.name === "Silvally")) return true;
+		return false;
+	}
+
 	createDeck(): void {
 		const weaknessCounts: Dict<number> = {};
 		if (!this.deckPool.length) this.createDeckPool();

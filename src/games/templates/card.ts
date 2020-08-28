@@ -111,8 +111,9 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Game
 	createDeckPool(): void {
 		this.deckPool = [];
 		const pokemonList = Games.getPokemonList(pokemon => {
-			if (pokemon.forme || (this.usesActionCards && pokemon.id in this.actionCards) ||
-				!Dex.hasGifData(pokemon) || (this.filterPoolItem && this.filterPoolItem(pokemon))) return false;
+			if ((pokemon.forme && (!this.filterForme || !this.filterForme(pokemon))) ||
+				(this.usesActionCards && pokemon.id in this.actionCards) || !Dex.hasGifData(pokemon) ||
+				(this.filterPoolItem && this.filterPoolItem(pokemon))) return false;
 			return true;
 		});
 
@@ -356,6 +357,8 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Game
 		this.announceWinners();
 	}
 
+	/**Return `false` to filter `forme` out of the deck pool */
+	filterForme?(forme: IPokemon): boolean;
 	filterPoolItem?(pokemon: IPokemon): boolean;
 	splitCardsByPlayable?(cards: ICard[]): ICardsSplitByPlayable;
 }
