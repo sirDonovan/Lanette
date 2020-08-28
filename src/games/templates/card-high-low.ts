@@ -3,20 +3,18 @@ import type { GameCategory, GameCommandDefinitions, GameCommandReturnType, IGame
 import { Card, game as cardGame } from './card';
 import type { ICard } from './card';
 
-type HighLow = 'high' | 'low';
-
 export abstract class CardHighLow extends Card {
+	abstract categoryAbbreviations: Dict<string>;
+	abstract categoryNames: Dict<string>;
+	abstract detailCategories: string[];
+
 	actionCards = {};
 	autoFillHands: boolean = true;
 	bitsPerRound: number = 100;
 	canPlay: boolean = false;
 	categoryList: string[] = [];
-	categoriesNames: Dict<string> = {hp: 'HP', atk: 'Atk', attack: 'Atk', def: 'Def', defense: 'Def', spa: 'SpA', specialattack: 'SpA',
-		spd: 'SpD', specialdefense: 'SpD', spe: 'Spe', speed: 'Spe', bst: 'BST', basestattotal: 'BST',
-	};
 	currentCategory: string = '';
-	detailCategories: string[] = [];
-	highOrLow: HighLow = 'high';
+	highOrLow: 'High' | 'Low' = 'High';
 	maxPlayers: number = 20;
 	points = new Map<Player, number>();
 	roundDrawAmount: number = 1;
@@ -39,7 +37,8 @@ export abstract class CardHighLow extends Card {
 		this.createDeck();
 		this.say("Now PMing cards!");
 		for (const i in this.players) {
-			this.playerCards.set(this.players[i], this.dealHand(this.players[i]));
+			this.giveStartingCards(this.players[i]);
+			this.updatePlayerHtmlPage(this.players[i]);
 		}
 		this.nextRound();
 	}
@@ -47,64 +46,91 @@ export abstract class CardHighLow extends Card {
 	getCardChatDetails(card: ICard): string {
 		return '<div style="display:inline-block;background-color:' + Tools.hexColorCodes['Black']['background-color'] + ';background:' +
 			Tools.hexColorCodes['Black']['background'] + ';border-color:' + Tools.hexColorCodes['Black']['border-color'] + ';border:' +
-			'1px solid #a99890;border-radius:3px;width:auto;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform:' +
-			'uppercase;text-align:center;font-size:8pt">' + this.getCardDetail(card, this.currentCategory) + ' ' +
-			this.categoriesNames[this.currentCategory] + '</div>';
+			'1px solid #a99890;border-radius:3px;width:auto;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;' +
+			'text-align:center;font-size:8pt">' + this.getCardDetail(card, this.currentCategory) + ' ' +
+			this.categoryAbbreviations[this.currentCategory] + '</div>';
 	}
 
-	getCardsPmHtml(player: Player, cards: ICard[]): string {
-		let html = '';
+	getCardsPmHtml(cards: ICard[], player?: Player): string {
+		const borderSize = 1;
+		const paddingSize = 1;
+		const categoryWidth = 72;
+		const totalCategories = this.detailCategories.length;
+		const currentCategoryWidth = (categoryWidth * (totalCategories - 1)) +
+			(((borderSize * 2) + (paddingSize * 2)) * (totalCategories - 2));
+		const cardWidth = categoryWidth * (totalCategories + 1);
 		const cardInfo: {card: ICard; detail: number}[] = [];
 		for (const card of cards) {
 			cardInfo.push({card: card, detail: this.getCardDetail(card, this.currentCategory)});
 		}
-		const sorted = cardInfo.slice().sort((a, b) => b.detail - a.detail);
+
+		const sortHigh = this.highOrLow === 'High';
+		const sorted = cardInfo.slice().sort((a, b) => {
+			if (sortHigh) return b.detail - a.detail;
+			return a.detail - b.detail;
+		});
+
+		const canPlay = this.currentCategory && player && !this.roundPlays.has(player);
 		let bestDetail = -1;
-		if (this.highOrLow && !this.roundPlays.has(player)) {
-			bestDetail = (this.highOrLow === 'high' ? sorted[0].detail : sorted[sorted.length - 1].detail);
+		if (this.highOrLow && canPlay) {
+			bestDetail = sorted[0].detail;
 		}
+
 		const cardsHtml: string[] = [];
-		const notPlayed = !this.roundPlays.has(player);
-		for (const info of cardInfo) {
+		for (const info of sorted) {
 			const card = info.card;
-			let cardHtml = '<div style="height:auto">';
-			const bolded = notPlayed && info.detail === bestDetail;
+			let cardHtml = '<div class="infobox" style="width:' + cardWidth + 'px">';
+			if (Dex.data.pokemonKeys.includes(card.id)) {
+				cardHtml += Dex.getPokemonIcon(Dex.getExistingPokemon(card.id));
+			}
+
+			const bolded = canPlay && info.detail === bestDetail;
 			if (bolded) {
 				cardHtml += '<b>' + card.name + '</b>';
 			} else {
 				cardHtml += card.name + '';
 			}
+
+			if (canPlay) {
+				cardHtml += '&nbsp;' + Client.getPmSelfButton(Config.commandCharacter + "play " + card.name, "Play!");
+			}
+			cardHtml += '<br />';
+
+			cardHtml += "<center>";
 			if (this.currentCategory) {
-				cardHtml += ':&nbsp;<div style="display:inline-block;background-color:' + Tools.hexColorCodes['Black']['background-color'] +
+				cardHtml += '<div style="background-color:' + Tools.hexColorCodes['Black']['background-color'] +
 					';background:' + Tools.hexColorCodes['Black']['background'] + ';border-color:' +
-					Tools.hexColorCodes['Black']['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:auto;padding:1px;' +
-					'color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;text-align:center;font-size:8pt">';
+					Tools.hexColorCodes['Black']['border-color'] + ';border:' + borderSize + 'px solid #a99890;border-radius:3px;' +
+					'padding:' + paddingSize + 'px;color:#fff;text-shadow:1px 1px 1px #333;width:' + currentCategoryWidth + 'px">';
 				if (bolded) {
-					cardHtml += '<b>' + info.detail + ' ' + this.categoriesNames[this.currentCategory] + '</b>';
+					cardHtml += '<b>' + info.detail + ' <span title="' + this.categoryNames[this.currentCategory] + '">' +
+						this.categoryAbbreviations[this.currentCategory] + '</span></b>';
 				} else {
-					cardHtml += info.detail + ' ' + this.categoriesNames[this.currentCategory];
+					cardHtml += info.detail + ' <span title="' + this.categoryNames[this.currentCategory] + '">' +
+						this.categoryAbbreviations[this.currentCategory] + '</span>';
 				}
 				cardHtml += '</div>';
 
 				cardHtml += '<div>';
-				for (let i = 0; i < this.detailCategories.length; i++) {
-					if (this.detailCategories[i] === this.currentCategory) continue;
-					const detail = '' + this.getCardDetail(card, this.detailCategories[i]);
-					if (i !== 0) cardHtml += '&nbsp;';
+				for (const category of this.detailCategories) {
+					if (category === this.currentCategory) continue;
+					const detail = '' + this.getCardDetail(card, category);
 					cardHtml += '<div style="display:inline-block;background-color:' + Tools.hexColorCodes['Black']['background-color'] +
 						';background:' + Tools.hexColorCodes['Black']['background'] + ';border-color:' +
-						Tools.hexColorCodes['Black']['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:auto;' +
-						'padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;text-align:center;font-size:6pt">';
-					cardHtml += detail + '&nbsp;<span style="font-size:6pt">' + this.categoriesNames[this.detailCategories[i]] + "</span>";
-					cardHtml += '</div>';
+						Tools.hexColorCodes['Black']['border-color'] + ';border:' + borderSize + 'px solid #a99890;border-radius:3px;' +
+						'padding:' + paddingSize + 'px;color:#fff;text-shadow:1px 1px 1px #333;text-align:center;width:' +
+						categoryWidth + 'px">' + detail + ' <span title="' + this.categoryNames[category] + '">' +
+							this.categoryAbbreviations[category] + "</span></div>";
 				}
 				cardHtml += '</div>';
 			}
-			cardHtml += '</div>';
+
+			cardHtml += '</center></div>';
+
 			cardsHtml.push(cardHtml);
 		}
-		html += cardsHtml.join("<br />");
-		return html;
+
+		return cardsHtml.join("<br />");
 	}
 
 	scoreRound(): void {
@@ -123,7 +149,7 @@ export abstract class CardHighLow extends Card {
 		if (!len) {
 			html += "No cards were played! Moving to the next round.";
 		} else {
-			if (this.highOrLow === 'high') {
+			if (this.highOrLow === 'High') {
 				hands.sort((a, b) => b.detail - a.detail);
 			} else {
 				hands.sort((a, b) => a.detail - b.detail);
@@ -149,8 +175,8 @@ export abstract class CardHighLow extends Card {
 				if (!ended && points >= this.format.options.points) ended = true;
 			}
 			html += '<center>' + this.getCardChatHtml(cards) + '</center>';
-			html += "<br /><b>" + Tools.joinList(winnersNames) + " had the " + (this.highOrLow === 'low' ? "lowest" : "highest") + " card" +
-				(len > 1 ? "s" : "") + "</b>!";
+			html += "<br /><b>" + Tools.joinList(winnersNames) + " had the " + (this.highOrLow === 'High' ? "highest" : "lowest") + " " +
+				"card" + (len > 1 ? "s" : "") + "</b>!";
 		}
 		html += "</center>";
 		const uhtmlName = this.uhtmlBaseName + '-round-score';
@@ -171,7 +197,7 @@ export abstract class CardHighLow extends Card {
 			return;
 		}
 		if (remainingPlayers === 1) return this.end();
-		this.highOrLow = this.random(2) ? 'high' : 'low';
+		this.highOrLow = this.random(2) ? 'High' : 'Low';
 		if (!this.categoryList.length) this.categoryList = this.shuffle(this.detailCategories);
 		const category = this.categoryList[0];
 		this.categoryList.shift();
@@ -180,7 +206,8 @@ export abstract class CardHighLow extends Card {
 		const html = this.getRoundHtml(this.getPlayerPoints);
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
-			const text = "The randomly chosen category is **" + this.categoriesNames[category] + "** (" + this.highOrLow + ")!";
+			const text = "The randomly chosen category is **" + this.highOrLow + " " + this.categoryAbbreviations[category] + " (" +
+				this.categoryNames[category] + ")**!";
 			this.on(text, () => {
 				this.canPlay = true;
 				this.timeout = setTimeout(() => {
@@ -189,7 +216,7 @@ export abstract class CardHighLow extends Card {
 			});
 			this.say(text);
 			for (const i in this.players) {
-				if (!this.players[i].eliminated) this.dealHand(this.players[i]);
+				if (!this.players[i].eliminated) this.updatePlayerHtmlPage(this.players[i]);
 			}
 		});
 		this.sayUhtml(uhtmlName, html);
@@ -219,7 +246,7 @@ export abstract class CardHighLow extends Card {
 
 	getPlayerSummary(player: Player): void {
 		if (player.eliminated) return;
-		this.dealHand(player);
+		this.updatePlayerHtmlPage(player);
 	}
 }
 
@@ -229,20 +256,21 @@ const commands: GameCommandDefinitions<CardHighLow> = {
 			if (!this.canPlay || this.roundPlays.has(this.players[user.id])) return false;
 			const player = this.players[user.id];
 			const targets = target.split(",");
-			const id = Tools.toId(targets[0]);
+			const cardName = targets[0].trim();
+			const id = Tools.toId(cardName);
 			if (!id) return false;
 			const cards = this.playerCards.get(player);
 			if (!cards || !cards.length) return false;
 			const index = this.getCardIndex(id, cards);
 			if (index < 0) {
-				const pokemon = Dex.getPokemon(id);
-				const move = Dex.getMove(id);
+				const pokemon = Dex.data.pokemonKeys.includes(id);
+				const move = Dex.data.moveKeys.includes(id);
 				if (pokemon) {
-					user.say("You do not have [ " + pokemon.name + " ].");
+					user.say("You do not have [ " + Dex.getExistingPokemon(cardName).name + " ].");
 				} else if (move) {
-					user.say("You do not have [ " + move.name + " ].");
+					user.say("You do not have [ " + Dex.getExistingMove(cardName).name + " ].");
 				} else {
-					user.say("'" + targets[0] + "' is not a valid Pokemon or move.");
+					user.say("'" + cardName + "' is not a valid Pokemon or move.");
 				}
 				return false;
 			}
@@ -251,6 +279,8 @@ const commands: GameCommandDefinitions<CardHighLow> = {
 			this.drawCard(player, this.roundDrawAmount);
 			return true;
 		},
+		aliases: ['pmplay'],
+		pmGameCommand: true,
 	},
 };
 

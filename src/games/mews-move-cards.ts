@@ -4,10 +4,11 @@ import { CardHighLow, game as cardGame } from "./templates/card-high-low";
 
 class MewsMoveCards extends CardHighLow {
 	canLateJoin: boolean = true;
-	categoriesNames: Dict<string> = {'basePower': 'Base Power', 'pp': 'PP', 'accuracy': 'Accuracy', 'availability': 'Availability'};
+	categoryAbbreviations: Dict<string> = {'basePower': 'BP', 'pp': 'PP', 'accuracy': 'ACC', 'availability': 'AVAL'};
+	categoryNames: Dict<string> = {'basePower': 'Base Power', 'pp': 'Power Points', 'accuracy': 'Accuracy',
+		'availability': 'Availability'};
 	detailCategories: string[] = ['basePower', 'pp', 'accuracy', 'availability'];
 	maxPlayers: number = 15;
-	usesMoves: boolean = true;
 
 	createDeckPool(): void {
 		this.deckPool = [];

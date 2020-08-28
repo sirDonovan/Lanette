@@ -4,8 +4,9 @@ import { CardHighLow, game as cardGame } from "./templates/card-high-low";
 
 class CacturnesPokemonCards extends CardHighLow {
 	canLateJoin: boolean = true;
-	categoriesNames: Dict<string> = {hp: 'HP', atk: 'Atk', attack: 'Atk', def: 'Def', defense: 'Def', spa: 'SpA', specialattack: 'SpA',
-		spd: 'SpD', specialdefense: 'SpD', spe: 'Spe', speed: 'Spe', bst: 'BST', basestattotal: 'BST',
+	categoryAbbreviations: Dict<string> = {hp: 'HP', atk: 'Atk', def: 'Def', spa: 'SpA', spd: 'SpD', spe: 'Spe', bst: 'BST'};
+	categoryNames: Dict<string> = {hp: 'HP', atk: 'Attack', def: 'Defense', spa: 'Special Attack', spd: 'Special Defense', spe: 'Speed',
+		bst: 'Base Stat Total',
 	};
 	detailCategories: string[] = ['hp', 'atk', 'def', 'spa', 'spd', 'spe', 'bst'];
 

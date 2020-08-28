@@ -1167,16 +1167,6 @@ export class Dex {
 		return '<psicon pokemon="' + pokemon.id + '" style="vertical-align: -7px;margin: -2px" />';
 	}
 
-	getPokemonColorHtml(pokemon: IPokemon, width?: number): string {
-		if (!width) width = 75;
-
-		const colorData = Tools.hexColorCodes[Tools.pokemonColorHexColors[pokemon.color]];
-		return '<div style="display:inline-block;background-color:' + colorData['background-color'] + ';background:' +
-			colorData['background'] + ';border-color:' + colorData['border-color'] + ';border: 1px solid #a99890;border-radius:3px;' +
-			'width:' + width + 'px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;' +
-			'font-size:8pt;text-align:center"><b>' + pokemon.color + '</b></div>';
-	}
-
 	getTrainerSprite(id: string): string {
 		return '<img src="//' + Tools.mainServer + '/sprites/trainers/' + id + '.png" width=80px height=80px />';
 	}

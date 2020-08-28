@@ -641,7 +641,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 
 			this.awaitingCurrentPlayerCard = true;
 			this.canPlay = true;
-			this.dealHand(player!);
+			this.updatePlayerHtmlPage(player!);
 
 			this.timeout = setTimeout(() => {
 				this.say(player!.name + " it is your turn!");
@@ -770,6 +770,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		this.storePreviouslyPlayedCard({card: card.displayName || card.name, detail: cardDetail, shiny: firstTimeShiny});
 
 		if (!player.eliminated) {
+			this.currentPlayer = null;
 			this.drawCard(player, this.roundDrawAmount, drawCards);
 		}
 

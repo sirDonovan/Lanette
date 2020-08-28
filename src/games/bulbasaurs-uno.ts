@@ -379,12 +379,13 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 		if (cards.includes(card)) cards.splice(cards.indexOf(card), 1);
 
 		this.storePreviouslyPlayedCard({card: card.displayName || card.name, detail: cardDetail, shiny: firstTimeShiny});
+		this.currentPlayer = null;
 
 		if (drawCards > 0) {
 			if (!player.eliminated) this.drawCard(player, drawCards);
 			if (this.topCard.action && this.topCard.action.drawCards) delete this.topCard.action;
 		} else {
-			if (!player.eliminated && cards.length) this.dealHand(player);
+			if (!player.eliminated && cards.length) this.updatePlayerHtmlPage(player);
 		}
 
 		return true;

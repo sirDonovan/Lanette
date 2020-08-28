@@ -121,6 +121,7 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 		this.storePreviouslyPlayedCard({card: player.name + "'s " + card.name + " ( + " + names.join(" + ") + ")",
 			shiny: card.shiny && !card.played});
 		this.setTopCard(card, player);
+		this.currentPlayer = null;
 
 		let drewCards = false;
 		if (this.autoFillHands && !player.eliminated) {
@@ -129,7 +130,7 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 				this.drawCard(player, this.minimumPlayedCards - cards.length);
 			}
 		}
-		if (!drewCards && !player.eliminated && cards.length) this.dealHand(player);
+		if (!drewCards && !player.eliminated && cards.length) this.updatePlayerHtmlPage(player);
 		return playedCards;
 	}
 
@@ -172,7 +173,7 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 					cards.push(cardPool[0]);
 					cardPool.shift();
 				}
-				if (this.players[i] !== player) this.dealHand(this.players[i]);
+				if (this.players[i] !== player) this.updatePlayerHtmlPage(this.players[i]);
 			}
 		} else if (card.id === 'pachirisu') {
 			let pair: IPokemonCard | null = null;
@@ -194,8 +195,9 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 		if (cards.includes(card)) cards.splice(cards.indexOf(card), 1);
 
 		this.storePreviouslyPlayedCard({card: card.displayName || card.name});
+		this.currentPlayer = null;
 
-		if (!player.eliminated && cards.length) this.dealHand(player);
+		if (!player.eliminated && cards.length) this.updatePlayerHtmlPage(player);
 
 		return true;
 	}

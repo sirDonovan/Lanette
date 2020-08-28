@@ -4,6 +4,11 @@ import { assert, assertStrictEqual } from '../../test/test-tools';
 import type { IMove, IPokemon, StatsTable } from '../../types/dex';
 import type { GameCommandDefinitions, GameFileTests, IGameTemplateFile, PlayerList } from '../../types/games';
 
+export interface ICardsSplitByPlayable {
+	playable: ICard[];
+	other: ICard[];
+}
+
 export interface IActionCardData<T extends Game = Game, U extends ICard = ICard> {
 	getRandomTarget?: (game: T, hand: U[]) => string | undefined;
 	getAutoPlayTarget: (game: T, hand: U[]) => string | undefined;
@@ -42,46 +47,32 @@ export interface IPokemonCard extends ICard {
 export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Game {
 	abstract actionCards: ActionCardsType;
 
-	actionCardAmount: number = 0;
-	autoFillHands: boolean = false;
 	canLateJoin: boolean = true;
 	cardRound: number = 0;
-	categoriesNames: Dict<string> = {};
 	colors: Dict<string> = {};
-	colorsLimit: number = 0;
 	currentPlayer: Player | null = null;
 	deck: ICard[] = [];
 	deckPool: (IMoveCard | IPokemonCard)[] = [];
-	detailCategories: string[] = [];
 	detailLabelWidth: number = 75;
 	drawAmount: number = 1;
 	finitePlayerCards: boolean = false;
-	inactivePlayerCounts = new Map<Player, number>();
-	inactivePlayerLimit: number = 0;
 	maxCardRounds: number = 0;
 	maxPlayers: number = 20;
-	minimumPlayedCards: number = 1;
-	playableCardDescription: string = '';
 	playerCards = new Map<Player, ICard[]>();
 	playerList: Player[] = [];
 	playerOrder: Player[] = [];
 	showPlayerCards: boolean = false;
 	timeEnded: boolean = false;
-	timeLimit: number = 25 * 60 * 1000;
-	typesLimit: number = 0;
 	usesActionCards: boolean = true;
-	usesColors: boolean = false;
-	usesMoves: boolean = false;
+	usesHtmlPage = true;
 
 	lives?: Map<Player, number>;
 	startingLives?: number;
-
-	// always truthy once the game starts
-	topCard!: ICard;
+	topCard?: ICard;
 
 	abstract createDeck(): void;
 	abstract getCardChatDetails(card: ICard): string;
-	abstract getCardsPmHtml(player: Player, cards: ICard[]): string;
+	abstract getCardsPmHtml(cards: ICard[], player?: Player, playableCards?: boolean): string;
 	abstract onNextRound(): void;
 	abstract onStart(): void;
 
@@ -132,10 +123,18 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Game
 		}
 	}
 
+	giveStartingCards(player: Player): void {
+		const cards: ICard[] = [];
+		for (let i = 0; i < this.format.options.cards; i++) {
+			cards.push(this.getCard());
+		}
+		this.playerCards.set(player, cards);
+	}
+
 	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
 		if (lateJoin) {
-			const cards = this.dealHand(player);
-			this.playerCards.set(player, cards);
+			this.giveStartingCards(player);
+			this.updatePlayerHtmlPage(player);
 			this.playerOrder.push(player);
 			this.playerList.push(player);
 		}
@@ -179,7 +178,11 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Game
 	}
 
 	getChatColorLabel(card: IPokemonCard): string {
-		return Dex.getPokemonColorHtml(Dex.getExistingPokemon(card.name), this.detailLabelWidth);
+		const colorData = Tools.hexColorCodes[Tools.pokemonColorHexColors[card.color]];
+		return '<div style="display:inline-block;background-color:' + colorData['background-color'] + ';background:' +
+			colorData['background'] + ';border-color:' + colorData['border-color'] + ';border: 1px solid #a99890;border-radius:3px;' +
+			'width:' + this.detailLabelWidth + 'px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;' +
+			'font-size:8pt;text-align:center"><b>' + card.color + '</b></div>';
 	}
 
 	getCardChatHtml(cards: ICard | ICard[]): string {
@@ -212,7 +215,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Game
 		}
 		width *= 1.5;
 		if (width < 250) width = 250;
-		html += '<div class="infobox" style="display:inline-block;width:' + (width + 10) + 'px;"><div class="infobox" style="width:' +
+		html += '<div class="infobox" style="width:' + (width + 10) + 'px;"><div class="infobox" style="width:' +
 			width + 'px">' + names.join(", ") + '</div>';
 		html += images.join("") + '<div class="infobox" style="width:' + width + 'px;">' + info + '</div></div>';
 		return html;
@@ -221,7 +224,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Game
 	drawCard(player: Player, amount?: number | null, cards?: ICard[] | null, dontShow?: boolean): ICard[] {
 		if (!amount) {
 			amount = this.drawAmount;
-			if (this.topCard.action && this.topCard.action.drawCards) {
+			if (this.topCard && this.topCard.action && this.topCard.action.drawCards) {
 				amount += this.topCard.action.drawCards;
 				delete this.topCard.action;
 			}
@@ -233,77 +236,61 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Game
 				cards.push(this.getCard());
 			}
 		}
+
 		if (dontShow) {
 			const playerCards = this.playerCards.get(player)!;
 			for (const card of cards) {
 				playerCards.push(card);
 			}
 		} else {
-			this.dealHand(player, cards, 'drawn');
+			this.updatePlayerHtmlPage(player, cards);
 		}
+
 		return cards;
 	}
 
-	dealHand(player: Player, highlightedCards?: ICard[], action?: 'drawn' | 'autodrawn' | 'played'): ICard[] {
-		let playerCards = this.playerCards.get(player);
-		let handHtml = '';
-		let pmHeader = '';
-		if (playerCards) {
-			if (!playerCards.length) {
-				handHtml = "You do not have any cards.";
+	updatePlayerHtmlPage(player: Player, drawnCards?: ICard[]): void {
+		const playerCards = this.playerCards.get(player)!;
+
+		let drawnCardsMessage = '';
+		if (drawnCards) {
+			for (const card of drawnCards) {
+				if (!playerCards.includes(card)) playerCards.push(card);
 			}
-		} else {
-			playerCards = [];
-			for (let i = 0; i < this.format.options.cards; i++) {
-				const card = this.getCard();
-				playerCards.push(card);
+			drawnCardsMessage = "You drew: " + Tools.joinList(drawnCards.map(x => x.name), "<b>", "</b>");
+		}
+
+		const isCurrentPlayer = this.currentPlayer === player;
+		let html = '';
+		if (this.topCard && isCurrentPlayer) {
+			html += '<b>Top card</b>:<br /><center>' + this.getCardsPmHtml([this.topCard]) + '</center><br /><br />';
+		}
+
+		if (drawnCardsMessage) html += drawnCardsMessage + '<br /><br />';
+		if (this.splitCardsByPlayable && isCurrentPlayer) {
+			const split = this.splitCardsByPlayable(playerCards);
+			if (split.playable.length) {
+				html += '<b>Playable cards</b>:<br />';
+				html += this.getCardsPmHtml(split.playable, player, true);
 			}
-			pmHeader = "<b>Here is your hand</b>:";
-		}
-
-		let shownPlayerCards: ICard[] = [];
-		if (highlightedCards && action === 'autodrawn') {
-			for (const card of playerCards) {
-				if (!highlightedCards.includes(card)) shownPlayerCards.push(card);
-			}
-		} else {
-			shownPlayerCards = playerCards;
-		}
-		if (!handHtml) handHtml = this.getCardsPmHtml(player, shownPlayerCards);
-
-		let remainingCards = playerCards.length;
-		if (highlightedCards) {
-			if (action === 'drawn') remainingCards += highlightedCards.length;
-		}
-		if (!pmHeader && this.finitePlayerCards) {
-			pmHeader = '<b>' + remainingCards + ' card' + (remainingCards > 1 ? 's' : '') + ' remaining</b>:';
-		}
-
-		let highlightedCardsHtml = '';
-		if (highlightedCards) {
-			highlightedCardsHtml += '<br />';
-			if (action === 'drawn') {
-				highlightedCardsHtml += "<u><b>Newest card" + (highlightedCards.length > 1 ? "s" : "") + "</b></u>:<br />";
-
-				// add to player's hand after generating playerCards HTML
-				for (const card of highlightedCards) {
-					playerCards.push(card);
+			if (split.other.length) {
+				if (split.playable.length) {
+					html += '<br /><b>Other cards</b>:<br />';
+				} else {
+					html += '<b>Your cards</b>:<br />';
 				}
-			} else if (action === 'autodrawn') {
-				highlightedCardsHtml += "<u><b>Newest card" + (highlightedCards.length > 1 ? "s" : "") + "</b></u>:<br />";
-			} else if (action === 'played') {
-				highlightedCardsHtml += "<u><b>Played card" + (highlightedCards.length > 1 ? "s" : "") + "</b></u>:<br />";
+				html += this.getCardsPmHtml(split.other, player);
 			}
-			highlightedCardsHtml += this.getCardsPmHtml(player, highlightedCards);
+		} else {
+			if (!playerCards.length) {
+				html += '<b>You do not have any cards</b>!';
+			} else {
+				html += '<b>Your cards' + (this.finitePlayerCards ? " (" + playerCards.length + ")" : "") + '</b>:<br />';
+				html += this.getCardsPmHtml(playerCards, player);
+			}
 		}
-		// no <br /> after last card
-		let html = '<div class="infobox" style="height:auto">';
-		if (pmHeader) html += '<u>' + pmHeader + '</u>';
-		html += handHtml;
-		if (highlightedCardsHtml) html += highlightedCardsHtml;
-		html += "</div>";
-		player.sayUhtml(html, this.uhtmlBaseName + '-hand');
-		return playerCards;
+
+		player.sendHtmlPage(html);
 	}
 
 	getNextPlayer(): Player | null {
@@ -370,6 +357,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Game
 	}
 
 	filterPoolItem?(pokemon: IPokemon): boolean;
+	splitCardsByPlayable?(cards: ICard[]): ICardsSplitByPlayable;
 }
 
 const commands: GameCommandDefinitions<Card> = {};
