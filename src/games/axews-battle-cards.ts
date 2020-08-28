@@ -513,6 +513,24 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		this.deck = this.shuffle(deck);
 	}
 
+	getHackmonsTyping(): readonly string[] {
+		const typeKeys = this.shuffle(Dex.data.typeKeys.slice());
+		if (this.random(2)) {
+			return [Dex.getExistingType(typeKeys[0]).name, Dex.getExistingType(typeKeys[1]).name];
+		} else {
+			return [Dex.getExistingType(typeKeys[0]).name];
+		}
+	}
+
+	getCard(): ICard {
+		const card = super.getCard() as IPokemonCard;
+		if (!card.action && this.variant === 'Hackmons') {
+			card.types = this.getHackmonsTyping();
+		}
+
+		return card;
+	}
+
 	getCardChatDetails(card: IPokemonCard): string {
 		return this.getChatTypeLabel(card);
 	}
@@ -732,6 +750,9 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			this.checkTopCardStaleness();
 		} else if (card.id === 'transform') {
 			const newTopCard = this.pokemonToCard(Dex.getExistingPokemon(targets[0]));
+			if (this.variant === 'Hackmons') {
+				newTopCard.types = this.getHackmonsTyping();
+			}
 			if (this.rollForShinyPokemon()) {
 				newTopCard.shiny = true;
 				firstTimeShiny = true;
@@ -788,6 +809,8 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 const tests: GameFileTests<AxewsBattleCards> = {
 	'it should use card types in isPlayableCard()': {
 		test(game, format): void {
+			if (game.variant === 'hackmons') return;
+
 			const golem = game.pokemonToCard(Dex.getExistingPokemon("Golem"));
 			const squirtle = game.pokemonToCard(Dex.getExistingPokemon("Squirtle"));
 			const bulbasaur = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
@@ -828,6 +851,11 @@ export const game: IGameFile<AxewsBattleCards> = Games.copyTemplateProperties(ca
 			variant: "No Actions",
 			variantAliases: ["No Action", "No Action Card", "No Action Cards"],
 			usesActionCards: false,
+		},
+		{
+			name: "Hackmons Axew's Battle Cards",
+			variant: "Hackmons",
+			variantAliases: ["Hackmons Cup"],
 		},
 	],
 });
