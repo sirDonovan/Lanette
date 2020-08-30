@@ -1044,7 +1044,7 @@ export abstract class EliminationTournament extends Game {
 
 		this.startAdvertisements();
 		this.sayCommand("/notifyrank all, " + this.room.title + " " + Users.self.name + " tournament," + this.name + "," + Users.self.name +
-			" is hosting a " + this.name + " tournament");
+			" is hosting a tournament");
 	}
 
 	startAdvertisements(): void {
