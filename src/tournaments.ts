@@ -482,7 +482,8 @@ export class Tournaments {
 			const title = 'Unreviewed user-hosted tournaments!';
 			const message = 'There are new user-hosted tournaments in ' + room.title;
 			if (this.userHostedTournamentNotificationTimeouts[room.id]) return;
-			room.sayCommand('/notifyrank ' + Client.groupSymbols[rank] + ", " + title + ", " + message);
+			room.sayCommand('/notifyrank ' + Client.groupSymbols[rank] + ", " + title + ", " + message +
+				", New Challonge tournament to review");
 			this.setUserHostedTournamentNotificationTimer(room);
 		} else if (this.userHostedTournamentNotificationTimeouts[room.id]) {
 			clearTimeout(this.userHostedTournamentNotificationTimeouts[room.id]);
