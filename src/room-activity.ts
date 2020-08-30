@@ -54,7 +54,7 @@ export class Player {
 	}
 
 	sendHtmlPage(html: string, title?: string): void {
-		const page = "<div style='margin-top: 5px;margin-left: 10px'>" + this.activity.htmlPageHeader + html + "</div>";
+		const page = "<div class='chat' style='margin-top: 5px;margin-left: 10px'>" + this.activity.htmlPageHeader + html + "</div>";
 		this.activity.pmRoom.sendHtmlPage(this, title || this.activity.baseHtmlPageTitle, page);
 	}
 

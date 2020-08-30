@@ -280,9 +280,9 @@ export class Game extends Activity {
 			format.mode.initialize(this);
 		}
 
-		let htmlPageHeader = "<h2>";
+		let htmlPageHeader = "<h3>";
 		if (this.mascot) htmlPageHeader += Dex.getPokemonIcon(this.mascot);
-		htmlPageHeader += (this.format.nameWithOptions || this.format.name) + "</h2>";
+		htmlPageHeader += (this.format.nameWithOptions || this.format.name) + "</h3>";
 		this.htmlPageHeader = htmlPageHeader;
 	}
 

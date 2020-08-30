@@ -54,7 +54,7 @@ export abstract class CardHighLow extends Card {
 	getCardsPmHtml(cards: ICard[], player?: Player): string {
 		const borderSize = 1;
 		const paddingSize = 1;
-		const categoryWidth = 72;
+		const categoryWidth = 64;
 		const totalCategories = this.detailCategories.length;
 		const currentCategoryWidth = (categoryWidth * (totalCategories - 1)) +
 			(((borderSize * 2) + (paddingSize * 2)) * (totalCategories - 2));

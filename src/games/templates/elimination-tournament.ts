@@ -325,7 +325,7 @@ export abstract class EliminationTournament extends Game {
 		this.totalRounds = this.getNumberOfRounds(players.length);
 	}
 
-	getBracketHtml(): string {
+	updateBracketHtml(): void {
 		const matchesByRound = this.getMatchesByRound();
 		const matchRounds = Object.keys(matchesByRound).sort();
 
@@ -406,7 +406,7 @@ export abstract class EliminationTournament extends Game {
 
 		html += '</table>';
 
-		return html;
+		this.bracketHtml = html;
 	}
 
 	getMatchesByRound(): Dict<EliminationNode<Player>[]> {
@@ -668,15 +668,31 @@ export abstract class EliminationTournament extends Game {
 			this.activityTimers.set(node, timeout);
 		}
 
-		const bracketHtml = this.getBracketHtml();
-		if (bracketHtml !== this.bracketHtml) {
-			this.bracketHtml = bracketHtml;
+		const oldBracketHtml = this.bracketHtml;
+		this.updateBracketHtml();
+		if (this.bracketHtml !== oldBracketHtml) {
 			this.updateHtmlPages();
 		}
 	}
 
 	getPokemonIcons(pokemon: readonly string[]): string[] {
 		return pokemon.map(x => Dex.getPokemonIcon(Dex.getExistingPokemon(x)) + x);
+	}
+
+	getRulesHtml(): string {
+		let html = "<u><b>Rules</b></u><ul>";
+		html += "<li>Battles must be played in <b>" + this.battleFormat.name + "</b></li>";
+		html += "<li>All Pokemon (including formes), moves, abilities, and items not banned in " + this.battleFormat.name + " can " +
+			"be used</li>";
+		if (!this.allowsScouting) html += "<li>Scouting is not allowed</li>";
+		html += "</ul>";
+
+		return html;
+	}
+
+	getBracketHtml(): string {
+		return "<u><b>" + (this.tournamentEnded ? "Final bracket" : "Bracket") + "</b></u><br />" +
+			(this.bracketHtml || "<br />The bracket will be created once the tournament starts.");
 	}
 
 	getPlayerHtmlPage(player: Player): string {
@@ -689,16 +705,12 @@ export abstract class EliminationTournament extends Game {
 				html += "<h3>The tournament has ended!</h3><hr />";
 			}
 		} else {
-			html += "<h3>Rules</h3><ul>";
-			html += "<li>All Pokemon (including formes), moves, abilities, and items not banned in " + this.battleFormat.name + " can " +
-				"be used</li>";
-			if (!this.allowsScouting) html += "<li>Scouting is not allowed</li>";
-			html += "</ul><hr />";
+			html += this.getRulesHtml();
 		}
 
 		if (this.started && !this.tournamentEnded) {
 			if (player.eliminated) {
-				html += "<h3>You were eliminated!</h3>";
+				html += "<br /><u><b>You were eliminated!</b></u><br /><br />";
 				if (this.spectatorPlayers.has(player)) {
 					html += "You are currently still receiving updates for this tournament. " +
 						Client.getPmSelfButton(Config.commandCharacter + "stoptournamentupdates", "Stop updates");
@@ -707,7 +719,7 @@ export abstract class EliminationTournament extends Game {
 						Client.getPmSelfButton(Config.commandCharacter + "resumetournamentupdates", "Resume updates");
 				}
 			} else {
-				html += "<h3>Opponent (round " + player.round + ")</h3>";
+				html += "<br /><u><b>Opponent</b></u> (round " + player.round + ")<br /><br />";
 				const opponent = this.playerOpponents.get(player);
 				if (opponent) {
 					html += "Your next opponent is <strong class='username'>" + opponent.name + "</strong>! To send a challenge, click " +
@@ -720,10 +732,10 @@ export abstract class EliminationTournament extends Game {
 					html += "Your next opponent has not been decided yet!";
 				}
 			}
-			html += "<hr />";
+			html += "<br /><br />";
 		}
 
-		html += "<h3>Pokemon</h3>";
+		html += "<br /><u><b>Pokemon</b></u><br /><br />";
 		const pastTense = this.tournamentEnded || player.eliminated;
 		const starterPokemon = this.starterPokemon.get(player);
 		if (starterPokemon) {
@@ -734,7 +746,7 @@ export abstract class EliminationTournament extends Game {
 				} else {
 					html += (this.cloakedPokemon.length === 1 ? "is" : "are");
 				}
-				html += "</b>:<br />" + this.getPokemonIcons(this.cloakedPokemon).join("<br />");
+				html += "</b>:<br />" + this.getPokemonIcons(this.cloakedPokemon).join("");
 				if (!this.tournamentEnded && this.cloakedPokemon.length < 6) {
 					html += "<br />You may add any Pokemon to fill your team as long as they are usable in " + this.battleFormat.name + ".";
 				}
@@ -742,7 +754,7 @@ export abstract class EliminationTournament extends Game {
 				html += "<b>" + (this.sharedTeams ? "The" : "Your") + " " +
 					(this.additionsPerRound || this.evolutionsPerRound ? "starting " : "") +
 					(this.startingTeamsLength === 1 ? "Pokemon" : "team") + " " + (pastTense ? "was" : "is") + "</b>:";
-				html += "<br />" + this.getPokemonIcons(starterPokemon).join("<br />");
+				html += "<br />" + this.getPokemonIcons(starterPokemon).join("");
 				if (this.canReroll && !this.rerolls.has(player)) {
 					html += "<br /><br />If you are not satisfied, you have 1 chance to reroll but you must keep whatever you receive! " +
 						Client.getPmSelfButton(Config.commandCharacter + "reroll", "Reroll Pokemon");
@@ -795,9 +807,8 @@ export abstract class EliminationTournament extends Game {
 				html += "<br /><b>Example of a valid team</b>:<br />" + Tools.joinList(this.getPokemonIcons(this.getRandomTeam(player)));
 			}
 		}
-		html += "<hr />";
 
-		html += "<h3>" + (this.tournamentEnded ? "Final bracket" : "Bracket") + "</h3>" + (this.bracketHtml || "(TBD)");
+		html += "<br /><br /><br />" + this.getBracketHtml();
 
 		return html;
 	}
@@ -826,15 +837,11 @@ export abstract class EliminationTournament extends Game {
 		if (this.tournamentEnded) {
 			html += "<h3>The tournament has ended!</h3><hr />";
 		} else {
-			html += "<h3>Rules</h3><ul>";
-			html += "<li>All Pokemon (including formes), moves, abilities, and items not banned in " + this.battleFormat.name + " can " +
-				"be used</li>";
-			if (!this.allowsScouting) html += "<li>Scouting is not allowed</li>";
-			html += "</ul><hr />";
+			html += this.getRulesHtml();
 		}
 
 		if (this.started && !this.tournamentEnded) {
-			html += "<h3>Spectating</h3>";
+			html += "<br /><u><b>Spectating</b></u><br /><br />";
 			if (this.spectatorUsers.has(user.id)) {
 				html += "You are currently receiving updates for this tournament. " +
 					Client.getPmSelfButton(Config.commandCharacter + "stoptournamentupdates", "Stop updates");
@@ -842,10 +849,10 @@ export abstract class EliminationTournament extends Game {
 				html += "You will no longer receive updates for this tournament. " +
 					Client.getPmSelfButton(Config.commandCharacter + "resumetournamentupdates", "Resume updates");
 			}
-			html += "<hr />";
+			html += "<br /><br />";
 		}
 
-		html += "<h3>" + (this.tournamentEnded ? "Final bracket" : "Bracket") + "</h3>" + (this.bracketHtml || "(TBD)");
+		html += "<br /><u><b>" + this.getBracketHtml();
 
 		return html;
 	}
@@ -1023,7 +1030,7 @@ export abstract class EliminationTournament extends Game {
 		}
 
 		this.pokedex = this.shuffle(pokedex);
-		this.htmlPageHeader = "<h2>" + this.room.title + "'s " + this.tournamentName + "</h2>";
+		this.htmlPageHeader = "<h3>" + this.room.title + "'s " + this.tournamentName + "</h3>";
 
 		if (this.usesCloakedPokemon) {
 			this.cloakedPokemon = this.pokedex.slice(0, this.startingTeamsLength);
@@ -1483,7 +1490,7 @@ export abstract class EliminationTournament extends Game {
 
 	onEnd(): void {
 		this.tournamentEnded = true;
-		this.bracketHtml = this.getBracketHtml();
+		this.updateBracketHtml();
 		this.updateHtmlPages();
 
 		const winner = this.getFinalPlayer();
