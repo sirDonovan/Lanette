@@ -20,7 +20,6 @@ class Team {
 	firstAnswers: Dict<Player | false> = {};
 	minPlayers: number = 4;
 	playerOrders: Dict<Player[]> = {};
-	playerLists: Dict<Player[]> = {};
 	teamPoints: Dict<number> = {};
 	teamRound: number = 0;
 	teams: Dict<PlayerTeam> = {};
@@ -52,30 +51,41 @@ class Team {
 
 	setTeams(this: TeamThis): void {
 		this.teams = this.generateTeams(this.format.options.teams);
+		this.setLargestTeam();
 
+		for (const id in this.teams) {
+			const team = this.teams[id];
+			this.playerOrders[team.id] = [];
+			this.say("**Team " + team.name + "**: " + Tools.joinList(team.getPlayerNames()));
+		}
+	}
+
+	setLargestTeam(this: TeamThis): void {
 		const teamIds = Object.keys(this.teams);
 		this.largestTeam = this.teams[teamIds[0]];
 
-		for (const teamId of teamIds) {
-			const team = this.teams[teamId];
+		for (let i = 1; i < teamIds.length; i++) {
+			const team = this.teams[teamIds[i]];
 			if (team.players.length > this.largestTeam.players.length) this.largestTeam = team;
-			this.playerOrders[team.id] = [];
-			this.playerLists[team.id] = [];
+		}
+	}
+
+	setTeamPlayerOrder(this: TeamThis, team: PlayerTeam): void {
+		this.playerOrders[team.id] = [];
+		for (const player of team.players) {
+			if (!player.eliminated) this.playerOrders[team.id].push(player);
 		}
 
-		for (const i in this.players) {
-			const player = this.players[i];
-			if (player.eliminated) continue;
-			this.playerOrders[player.team!.id].push(player);
-		}
+		this.playerOrders[team.id] = this.shuffle(this.playerOrders[team.id]);
+	}
 
-		for (const team in this.playerOrders) {
-			this.playerOrders[team] = this.shuffle(this.playerOrders[team]);
-		}
+	onRemovePlayer(this: TeamThis, player: Player): void {
+		if (!this.started) return;
 
-		for (const team in this.teams) {
-			this.say("**Team " + this.teams[team].name + "**: " + Tools.joinList(this.teams[team].getPlayerNames()));
-		}
+		const playerOrderIndex = this.playerOrders[player.team!.id].indexOf(player);
+		if (playerOrderIndex !== -1) this.playerOrders[player.team!.id].splice(playerOrderIndex, 1);
+
+		this.setLargestTeam();
 	}
 
 	onStart(this: TeamThis): void {
@@ -84,34 +94,23 @@ class Team {
 	}
 
 	beforeNextRound(this: TeamThis): boolean | string {
-		let largestTeamPlayersCycled = false;
 		let emptyTeams = 0;
-		for (const id in this.teams) {
+		const teamIds = Object.keys(this.teams);
+		for (const id of teamIds) {
 			const team = this.teams[id];
-			if (!this.getRemainingPlayerCount(this.playerOrders[team.id])) {
+			if (!this.getRemainingPlayerCount(team.players)) {
+				delete this.teams[id];
 				delete this.currentPlayers[team.id];
 				emptyTeams++;
-			} else {
-				let player = this.playerLists[team.id].shift();
-				while (!player || player.eliminated) {
-					if (!this.playerLists[team.id].length) {
-						if (team === this.largestTeam) largestTeamPlayersCycled = true;
-						this.playerLists[team.id] = this.shuffle(this.playerOrders[team.id]);
-					}
-					player = this.playerLists[team.id].shift();
-				}
-				this.currentPlayers[team.id] = player;
 			}
 		}
 
 		if (emptyTeams >= this.format.options.teams - 1) {
-			this.say("Only one team remains!");
-			for (const team in this.teams) {
-				if (this.getRemainingPlayerCount(this.playerOrders[team])) {
-					for (const player of this.teams[team].players) {
-						this.winners.set(player, 1);
-					}
-					break;
+			this.say("There are not enough teams left!");
+			for (const id in this.teams) {
+				const team = this.teams[id];
+				for (const player of team.players) {
+					this.winners.set(player, 1);
 				}
 			}
 
@@ -119,10 +118,26 @@ class Team {
 			return false;
 		}
 
-		if (largestTeamPlayersCycled) {
+		if (!this.playerOrders[this.largestTeam.id].length) {
+			for (const id in this.teams) {
+				const team = this.teams[id];
+				this.setTeamPlayerOrder(team);
+				this.currentPlayers[team.id] = this.playerOrders[team.id].shift()!;
+			}
+
 			this.teamRound++;
 			const html = this.getRoundHtml(this.getTeamPoints, undefined, 'Round ' + this.teamRound, "Team standings");
 			this.sayUhtml(this.uhtmlBaseName + '-round-html', html);
+		} else {
+			for (const id in this.teams) {
+				const team = this.teams[id];
+				let player = this.playerOrders[team.id].shift();
+				if (!player) {
+					this.setTeamPlayerOrder(team);
+					player = this.playerOrders[team.id].shift()!;
+				}
+				this.currentPlayers[team.id] = player;
+			}
 		}
 
 		return Tools.joinList(Object.values(this.currentPlayers).map(x => x.name), "**", "**") + ", you are up!";
