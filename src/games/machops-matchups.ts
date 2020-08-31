@@ -155,6 +155,7 @@ const commands: GameCommandDefinitions<MachopsMatchups> = {
 
 			return true;
 		},
+		aliases: ['fight'],
 	},
 };
 
