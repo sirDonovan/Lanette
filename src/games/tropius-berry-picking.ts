@@ -18,6 +18,8 @@ const data: {moves: string[]} = {
 	moves: [],
 };
 
+const noEffect: IRoundEffect = {effect: '', type: ''};
+
 const berries: Dict<IBerry> = {
 	// status
 	'cheriberry': {name: 'Cheri', effect: 'par'},
@@ -86,7 +88,7 @@ class TropiusBerryPicking extends Game {
 	lastMove: string = '';
 	points = new Map<Player, number>();
 	roundBerries = new Map<Player, IBerry>();
-	roundEffect: IRoundEffect = {effect: '', type: ''};
+	roundEffect: IRoundEffect = noEffect;
 	roundLimit: number = 20;
 	roundTime: number = 10 * 1000;
 
@@ -113,10 +115,25 @@ class TropiusBerryPicking extends Game {
 
 	onNextRound(): void {
 		this.canEat = false;
-		if (!this.format.options.freejoin) {
+
+		const answers: string[] = [];
+		for (const i in berries) {
+			if (berries[i].effect === this.roundEffect.effect) {
+				answers.push(berries[i].name);
+			}
+		}
+
+		if (this.format.options.freejoin) {
+			if (this.round > 1 && this.roundEffect !== noEffect) {
+				this.say("Time is up! The " + (answers.length > 1 ? "possible answers were" : "answer was") + " __" +
+					Tools.joinList(answers) + "__.");
+			}
+		} else {
 			if (this.round > 1) {
 				if (this.canLateJoin) this.canLateJoin = false;
 				if (this.roundTime > 3000) this.roundTime -= 500;
+
+				this.say("The correct " + (answers.length > 1 ? "answers were" : "answer was") + " __" + Tools.joinList(answers) + "__.");
 				for (const i in this.players) {
 					if (this.players[i].eliminated) continue;
 					if (!this.roundBerries.has(this.players[i])) this.eliminatePlayer(this.players[i], "You did not eat a berry!");
@@ -249,6 +266,7 @@ const commands: GameCommandDefinitions<TropiusBerryPicking> = {
 				}
 				this.say('**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '! A possible ' +
 					'answer was __' + berry.name + '__.');
+				this.roundEffect = noEffect;
 				this.nextRound();
 			} else {
 				if (this.roundBerries.has(player)) return false;
