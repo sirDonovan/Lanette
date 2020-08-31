@@ -24,21 +24,24 @@ const data: {pokemon: Dict<IPokemonData>, keys: string[], usableMoves: string[],
 	},
 };
 
-const categories: IPokemonCategory[] = ['type', 'color', 'moves', 'generation'];
+const categories: IPokemonCategory[] = ['type', 'color', 'moves', 'moves', 'generation'];
 const typeAliases: Dict<string> = {};
 
+const basePoints = 3;
 const minimumMoveAvailability = 30;
 const maximumMoveAvailability = 500;
 
 class SpindasExcludedPokemon extends Game {
 	currentPlayer: Player | null = null;
+	excludedHint: string = '';
 	excludedRound: number = 0;
-	firstSpecies: string = '';
 	guessedPokemon: string[] = [];
 	parameter: string = '';
 	playerOrder: Player[] = [];
+	points = new Map<Player, number>();
+	roundPlayerOrder: Player[] = [];
 
-	// set in onStart()
+	// set before the first round
 	category!: IPokemonCategory;
 
 	static loadData(room: Room | User): void {
@@ -90,17 +93,17 @@ class SpindasExcludedPokemon extends Game {
 			"the parameter with ``" + Config.commandCharacter + "g [parameter]``!";
 
 		this.on(text, () => {
-			this.timeout = setTimeout(() => {
-				const species = this.sampleOne(data.keys);
-				this.firstSpecies = species;
-				this.category = this.sampleOne(categories);
-				this.parameter = this.sampleOne(data.pokemon[species][this.category]);
-
-				this.nextRound();
-			}, 5 * 1000);
+			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 		});
 
 		this.say(text);
+	}
+
+	setParameter(): void {
+		const species = this.shuffle(data.keys)[0];
+		this.category = this.sampleOne(categories);
+		this.parameter = this.sampleOne(data.pokemon[species][this.category]);
+		this.excludedHint = species;
 	}
 
 	onNextRound(): void {
@@ -110,21 +113,36 @@ class SpindasExcludedPokemon extends Game {
 			this.currentPlayer = null;
 		}
 
-		if (!this.playerOrder.length || !this.getRemainingPlayerCount(this.playerOrder)) {
+		if (!this.parameter) {
+			for (const i in this.players) {
+				this.players[i].frozen = false;
+			}
 			if (this.getRemainingPlayerCount() < 2) {
-				this.say("The parameter was: __" + this.parameter + "__!");
 				this.end();
 				return;
 			}
+			this.roundPlayerOrder = this.shufflePlayers();
 			this.excludedRound++;
-			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(this.getPlayerNames, null, "Round " + this.excludedRound));
-			this.playerOrder = this.shufflePlayers();
-			if (this.excludedRound === 1) this.say("A randomly chosen Pokemon that fits the parameter is **" + this.firstSpecies + "**!");
+			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(this.getPlayerPoints, null, "Round " +
+				this.excludedRound));
+			this.setParameter();
+			this.say("A randomly chosen Pokemon that **is** excluded is **" + this.excludedHint + "**!");
+		}
+
+		if (!this.playerOrder.length || !this.getRemainingPlayerCount(this.playerOrder)) {
+			if (this.getRemainingPlayerCount() < 2) {
+				this.say("The parameter was __" + this.parameter + "__.");
+				this.parameter = '';
+				this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+				return;
+			}
+
+			this.playerOrder = this.roundPlayerOrder.filter(x => !x.frozen);
 		}
 
 		const currentPlayer = this.playerOrder[0];
 		this.playerOrder.shift();
-		if (currentPlayer.eliminated) return this.onNextRound();
+		if (currentPlayer.eliminated || currentPlayer.frozen) return this.onNextRound();
 
 		const text = "**" + currentPlayer.name + "** you are up!";
 		this.on(text, () => {
@@ -148,7 +166,7 @@ const commands: GameCommandDefinitions<SpindasExcludedPokemon> = {
 	exclude: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
-			if (this.players[user.id] !== this.currentPlayer) return false;
+			if (!this.parameter || this.players[user.id] !== this.currentPlayer) return false;
 			const player = this.players[user.id];
 			const pokemon = Dex.getPokemon(target);
 			if (!pokemon) {
@@ -161,7 +179,7 @@ const commands: GameCommandDefinitions<SpindasExcludedPokemon> = {
 			}
 
 			if (this.guessedPokemon.includes(pokemon.name)) {
-				this.say(pokemon.name + " has already been guessed! Please choose another Pokemon.");
+				this.say(pokemon.name + " has already been used! Please choose another Pokemon.");
 				return false;
 			}
 
@@ -169,8 +187,8 @@ const commands: GameCommandDefinitions<SpindasExcludedPokemon> = {
 			if (!data.pokemon[pokemon.name][this.category].includes(this.parameter)) {
 				this.say(pokemon.name + " is **not** excluded!");
 			} else {
-				this.say(pokemon.name + " **is** excluded! " + player.name + " has been eliminated.");
-				this.eliminatePlayer(player, "You guessed a Pokemon that is excluded by the parameter.");
+				this.say(pokemon.name + " **is** excluded! " + player.name + " can no longer guess this round.");
+				player.frozen = true;
 			}
 
 			this.currentPlayer = null;
@@ -181,7 +199,7 @@ const commands: GameCommandDefinitions<SpindasExcludedPokemon> = {
 	guess: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
-			if (this.players[user.id] !== this.currentPlayer) return false;
+			if (!this.parameter || this.players[user.id] !== this.currentPlayer) return false;
 			const player = this.players[user.id];
 
 			let id = Tools.toId(target);
@@ -205,17 +223,26 @@ const commands: GameCommandDefinitions<SpindasExcludedPokemon> = {
 				return false;
 			}
 
+			if (this.timeout) clearTimeout(this.timeout);
+			this.currentPlayer = null;
+
 			if (id === Tools.toId(this.parameter)) {
-				this.say(player.name + " correctly guessed the parameter (__" + this.parameter + "__)!");
-				if (this.timeout) clearTimeout(this.timeout);
-				for (const id in this.players) {
-					if (this.players[id] !== player) this.players[id].eliminated = true;
+				let points = this.points.get(player) || 0;
+				points++;
+				this.points.set(player, points);
+
+				if (points === this.format.options.points) {
+					this.say(player.name + " wins the game! The final parameter was __" + this.parameter + "__.");
+					this.end();
+				} else {
+					this.say(player.name + " advances to **" + points +"** point" + (points > 1 ? "s" : "") + "! The parameter was __" +
+						this.parameter + "__.");
+					this.parameter = '';
+					this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 				}
-				this.end();
 			} else {
-				this.say(user.name + " guessed an incorrect parameter and has been eliminated from the game!");
-				this.eliminatePlayer(this.currentPlayer, "You guessed an incorrect parameter!");
-				this.currentPlayer = null;
+				this.say("Incorrect! " + player.name + " can no longer guess this round.");
+				player.frozen = true;
 				this.nextRound();
 			}
 
@@ -230,6 +257,9 @@ export const game: IGameFile<SpindasExcludedPokemon> = {
 	class: SpindasExcludedPokemon,
 	commands,
 	commandDescriptions: [Config.commandCharacter + 'exclude [Pokemon]', Config.commandCharacter + 'g [parameter]'],
+	customizableOptions: {
+		points: {min: basePoints, base: basePoints, max: basePoints},
+	},
 	description: "Players try to guess Pokemon that are not excluded by the randomly chosen parameter!",
 	formerNames: ["Excluded"],
 	name: "Spinda's Excluded Pokemon",
