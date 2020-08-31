@@ -77,6 +77,7 @@ local-utils/*
 Pokemon-Showdown/
 pokemon-showdown/
 pokemon-showdown-lkg.txt
+private-data/
 roomlogs/
 src/config.ts
 src/plugins/private.ts
