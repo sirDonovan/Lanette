@@ -852,7 +852,7 @@ export abstract class EliminationTournament extends Game {
 			html += "<br /><br />";
 		}
 
-		html += "<br /><u><b>" + this.getBracketHtml();
+		html += "<br />" + this.getBracketHtml();
 
 		return html;
 	}
