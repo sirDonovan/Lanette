@@ -597,12 +597,11 @@ const commands: CommandDefinitions<CommandContext> = {
 				return;
 			}
 
-			if (challengeFormat.noOneVsOne) {
-				user.say(challengeFormat.name + " does not allow one vs. one challenges.");
+			if (challengeFormat.noOneVsOne || challengeFormat.mode) {
+				user.say(challengeFormat.nameWithOptions + " does not allow one vs. one challenges.");
 				return;
 			}
 
-			delete challengeFormat.mode;
 			const game = Games.createGame(room, oneVsOneFormat) as OneVsOne;
 			if (!game || !game.setupChallenge) return;
 			game.setupChallenge(user, targetUser, challengeFormat);
@@ -679,12 +678,11 @@ const commands: CommandDefinitions<CommandContext> = {
 				return;
 			}
 
-			if (challengeFormat.noOneVsOne) {
-				this.say(challengeFormat.name + " does not allow head to head games.");
+			if (challengeFormat.noOneVsOne || challengeFormat.mode) {
+				this.say(challengeFormat.nameWithOptions + " does not allow head to head games.");
 				return;
 			}
 
-			delete challengeFormat.mode;
 			const game = Games.createGame(room, headToHeadFormat) as OneVsOne;
 			if (!game || !game.setupChallenge) return;
 			game.setupChallenge(leftUser, rightUser, challengeFormat);
