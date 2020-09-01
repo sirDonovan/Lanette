@@ -422,8 +422,10 @@ const commands: CommandDefinitions<CommandContext> = {
 				gameRoom = room;
 			}
 
-			if ((!Config.allowScriptedGames || !Config.allowScriptedGames.includes(gameRoom.id)) &&
-				(!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(gameRoom.id))) {
+			const allowsScripted = Config.allowScriptedGames && Config.allowScriptedGames.includes(gameRoom.id);
+			const allowsTournament = Config.allowTournamentGames && Config.allowTournamentGames.includes(gameRoom.id);
+			const allowsUserHosted = Config.allowUserHostedGames && Config.allowUserHostedGames.includes(gameRoom.id);
+			if (!allowsScripted && !allowsTournament && !allowsUserHosted) {
 				return this.sayError(['disabledGameFeatures', gameRoom.title]);
 			}
 
@@ -431,11 +433,16 @@ const commands: CommandDefinitions<CommandContext> = {
 			const format = Games.getFormat(inputTarget);
 			if (Array.isArray(format)) {
 				const userHostedFormat = Games.getUserHostedFormat(inputTarget);
-				if (Array.isArray(userHostedFormat)) {
+				if (!allowsUserHosted || Array.isArray(userHostedFormat)) {
 					this.sayError(['invalidGameFormat', inputTarget]);
 					return;
 				}
 				this.sayHtml("<b>" + userHostedFormat.name + "</b>: " + userHostedFormat.description, gameRoom);
+				return;
+			}
+
+			if ((format.tournamentGame && !allowsTournament) || (!format.tournamentGame && !allowsScripted)) {
+				this.sayError(['invalidGameFormat', inputTarget]);
 				return;
 			}
 
