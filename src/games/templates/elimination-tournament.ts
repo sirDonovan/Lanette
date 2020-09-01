@@ -1302,7 +1302,7 @@ export abstract class EliminationTournament extends Game {
 					if (storedSlot === slot) originalPlayer = player;
 				});
 
-				if (originalPlayer) {
+				if (originalPlayer && originalPlayer.id !== id) {
 					originalPlayer.say("You have been disqualified for leaving your battle!");
 					this.disqualifyPlayers([originalPlayer]);
 					room.say("/leave");
