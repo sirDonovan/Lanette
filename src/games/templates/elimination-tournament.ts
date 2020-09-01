@@ -484,6 +484,9 @@ export abstract class EliminationTournament extends Game {
 	}
 
 	eliminateInactivePlayers(player: Player, opponent: Player, inactivePlayers: Player[]): void {
+		const node = this.findAvailableMatchNode(player, opponent);
+		if (node) this.clearNodeTimers(node);
+
 		if (inactivePlayers.includes(player) && inactivePlayers.includes(opponent)) {
 			player.say("You have been disqualified from the " + this.name + " tournament for failing " +
 				"to battle " + opponent.name + " in time.");
@@ -1311,11 +1314,7 @@ export abstract class EliminationTournament extends Game {
 		if (players) {
 			const node = this.findAvailableMatchNode(players[0], players[1]);
 			if (!node) throw new Error(this.name + ": no available match for " + players[0].name + " and " + players[1].name);
-
-			const activityTimer = this.activityTimers.get(node);
-			if (activityTimer) clearTimeout(activityTimer);
-			const checkChallengesTimer = this.checkChallengesTimers.get(node);
-			if (checkChallengesTimer) clearTimeout(checkChallengesTimer);
+			this.clearNodeTimers(node);
 		}
 	}
 
@@ -1478,6 +1477,14 @@ export abstract class EliminationTournament extends Game {
 	onBattleExpire(room: Room): void {
 		const players = this.getPlayersFromBattleData(room);
 		if (players) this.disqualifyPlayers(players);
+	}
+
+	clearNodeTimers(node: EliminationNode<Player>): void {
+		const activityTimer = this.activityTimers.get(node);
+		if (activityTimer) clearTimeout(activityTimer);
+
+		const checkChallengesTimer = this.checkChallengesTimers.get(node);
+		if (checkChallengesTimer) clearTimeout(checkChallengesTimer);
 	}
 
 	cleanupTimers(): void {
