@@ -126,6 +126,7 @@ export abstract class EliminationTournament extends Game {
 	bracketHtml: string = '';
 	canRejoin: boolean = false;
 	canReroll: boolean = false;
+	checkedBattleRooms: string[] = [];
 	checkChallengesTimers = new Map<EliminationNode<Player>, NodeJS.Timer>();
 	cloakedPokemon: string[] | null = null;
 	color: string | null = null;
@@ -1292,7 +1293,23 @@ export abstract class EliminationTournament extends Game {
 
 	onBattlePlayer(room: Room, slot: string, username: string): void {
 		const id = Tools.toId(username);
-		if (!(id in this.players)) return;
+
+		// non-tournament battle, a player left the battle, or /addplayer was used
+		if (!(id in this.players) || (room.id in this.battleData && this.getPlayersFromBattleData(room))) {
+			if (room.id in this.battleData) {
+				let originalPlayer: Player | undefined;
+				this.battleData[room.id].slots.forEach((storedSlot, player) => {
+					if (storedSlot === slot) originalPlayer = player;
+				});
+
+				if (originalPlayer) {
+					originalPlayer.say("You have been disqualified for leaving your battle!");
+					this.disqualifyPlayers([originalPlayer]);
+					room.say("/leave");
+				}
+			}
+			return;
+		}
 
 		if (!(room.id in this.battleData)) {
 			this.battleData[room.id] = {
@@ -1365,6 +1382,8 @@ export abstract class EliminationTournament extends Game {
 			});
 		}
 
+		if (!this.battleRooms.includes(room.id)) this.battleRooms.push(room.id);
+
 		if (winner && loser) {
 			loser.say("You used an illegal team and have been disqualified.");
 			if (winnerIllegalTeam) {
@@ -1375,8 +1394,6 @@ export abstract class EliminationTournament extends Game {
 			}
 			return false;
 		}
-
-		if (!this.battleRooms.includes(room.id)) this.battleRooms.push(room.id);
 
 		return true;
 	}
@@ -1545,7 +1562,7 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 				user.say("Please specify a valid battle link.");
 				return false;
 			}
-			if (battle in this.battleData) {
+			if (this.checkedBattleRooms.includes(battle)) {
 				user.say("The specified battle has already been checked.");
 				return false;
 			}
@@ -1556,6 +1573,7 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 				return false;
 			}
 
+			this.checkedBattleRooms.push(battle);
 			const battleRoom = Rooms.add(battle);
 			battleRoom.game = this;
 			this.say('/join ' + battle);
