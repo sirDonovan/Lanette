@@ -121,7 +121,10 @@ class SpindasExcludedPokemon extends Game {
 				this.end();
 				return;
 			}
+
+			this.guessedPokemon = [];
 			this.roundPlayerOrder = this.shufflePlayers();
+			this.playerOrder = this.roundPlayerOrder.slice();
 			this.excludedRound++;
 			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(this.getPlayerPoints, null, "Round " +
 				this.excludedRound));
@@ -129,7 +132,7 @@ class SpindasExcludedPokemon extends Game {
 			this.say("A randomly chosen Pokemon that **is** excluded is **" + this.excludedHint + "**!");
 		}
 
-		if (!this.playerOrder.length || !this.getRemainingPlayerCount(this.playerOrder)) {
+		if (!this.playerOrder.length) {
 			if (this.getRemainingPlayerCount() < 2) {
 				this.say("The parameter was __" + this.parameter + "__.");
 				this.parameter = '';
@@ -155,9 +158,16 @@ class SpindasExcludedPokemon extends Game {
 	onEnd(): void {
 		for (const id in this.players) {
 			if (this.players[id].eliminated) continue;
-			this.winners.set(this.players[id], 1);
-			this.addBits(this.players[id], 500);
+			const player = this.players[id];
+			const points = this.points.get(player);
+			if (points === this.format.options.points) {
+				this.winners.set(player, 1);
+				this.addBits(player, 500);
+			} else if (points) {
+				this.addBits(player, 100 * points);
+			}
 		}
+
 		this.announceWinners();
 	}
 }
