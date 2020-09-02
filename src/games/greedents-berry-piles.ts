@@ -10,14 +10,15 @@ interface IBerryPile {
 
 const mysteryBerryAmount = 11;
 
-class GreedentsPiles extends Game {
-	readonly perfectForageBonuses = new Map<Player, number>();
+class GreedentsBerryPiles extends Game {
 	berryPiles: IBerryPile[] = [];
 	canGrab: boolean = false;
 	canLateJoin: boolean = true;
 	greedentTotalForaged: number = 0;
 	readonly maxSubGames: number = 5;
 	readonly maxBerryTotal: number = 21;
+	readonly minGreedentFirstForage: number = 17;
+	readonly perfectForageBonuses = new Map<Player, number>();
 	readonly playerBerryPiles = new Map<Player, IBerryPile[]>();
 	readonly playerTotals = new Map<Player, number>();
 	readonly roundActions = new Set<Player>();
@@ -46,26 +47,26 @@ class GreedentsPiles extends Game {
 		return this.berryPiles;
 	}
 
-	getPile(): IBerryPile {
+	getBerryPile(): IBerryPile {
 		if (!this.berryPiles.length) this.createBerryPiles();
-		const pile = this.berryPiles[0];
+		const berryPile = this.berryPiles[0];
 		this.berryPiles.shift();
-		return pile;
+		return berryPile;
 	}
 
-	getPiles(amount: number): IBerryPile[] {
-		const piles: IBerryPile[] = [];
+	getBerryPiles(amount: number): IBerryPile[] {
+		const berryPiles: IBerryPile[] = [];
 		for (let i = 0; i < amount; i++) {
-			piles.push(this.getPile());
+			berryPiles.push(this.getBerryPile());
 		}
 
-		return piles;
+		return berryPiles;
 	}
 
-	getPileHtml(pile: IBerryPile): string {
+	getBerryPileHtml(berryPile: IBerryPile): string {
 		let html = '<div class="infobox">';
-		html += Dex.getItemIcon(Dex.getExistingItem(pile.name + " Berry")) + pile.amount + ' ' + pile.name + ' ' +
-			(pile.amount === 1 ? 'Berry' : 'Berries');
+		html += Dex.getItemIcon(Dex.getExistingItem(berryPile.name + " Berry")) + berryPile.amount + ' ' + berryPile.name + ' ' +
+			(berryPile.amount === 1 ? 'Berry' : 'Berries');
 		html += '</div>';
 		return html;
 	}
@@ -84,17 +85,17 @@ class GreedentsPiles extends Game {
 			this.playerTotals.clear();
 		}
 
-		const piles = this.getPiles(2);
-		if (piles[0].name === 'Mystery' && piles[1].name === 'Mystery') piles[0].amount = 1;
-		this.greedentFirstForage = piles[0];
-		this.greedentTotalForaged = piles[0].amount + piles[1].amount;
-		while (this.greedentTotalForaged < 17) {
-			piles.push(this.getPile());
+		const berryPiles = this.getBerryPiles(2);
+		if (berryPiles[0].name === 'Mystery' && berryPiles[1].name === 'Mystery') berryPiles[0].amount = 1;
+		this.greedentFirstForage = berryPiles[0];
+		this.greedentTotalForaged = berryPiles[0].amount + berryPiles[1].amount;
+		while (this.greedentTotalForaged < this.minGreedentFirstForage) {
+			berryPiles.push(this.getBerryPile());
 			let total = 0;
 			const lumBerries = [];
-			for (const pile of piles) {
-				total += pile.amount;
-				if (pile.name === 'Mystery') lumBerries.push(pile);
+			for (const berryPile of berryPiles) {
+				total += berryPile.amount;
+				if (berryPile.name === 'Mystery') lumBerries.push(berryPile);
 			}
 
 			let lumBerry = lumBerries.shift();
@@ -112,18 +113,18 @@ class GreedentsPiles extends Game {
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			this.giveStartingBerries(this.players[i]);
-			this.showPiles(this.players[i]);
+			this.showBerryPiles(this.players[i]);
 		}
 		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
 	giveStartingBerries(player: Player): void {
-		const piles = this.getPiles(this.startingPiles);
+		const berryPiles = this.getBerryPiles(this.startingPiles);
 		let total = 0;
 		const lumBerries: IBerryPile[] = [];
-		for (const pile of piles) {
-			total += pile.amount;
-			if (pile.name === 'Mystery') lumBerries.push(pile);
+		for (const berryPile of berryPiles) {
+			total += berryPile.amount;
+			if (berryPile.name === 'Mystery') lumBerries.push(berryPile);
 		}
 
 		while (this.maxBerryTotal && total > this.maxBerryTotal && lumBerries.length) {
@@ -132,20 +133,20 @@ class GreedentsPiles extends Game {
 			total -= (mysteryBerryAmount - 1);
 		}
 
-		this.playerBerryPiles.set(player, piles);
+		this.playerBerryPiles.set(player, berryPiles);
 		this.playerTotals.set(player, total);
 	}
 
-	showPiles(player: Player): void {
+	showBerryPiles(player: Player): void {
 		let html = '<div class="infobox"><center><b>You have grabbed</b>:<br />';
 
-		const pilesHtml: string[] = [];
-		const piles = this.playerBerryPiles.get(player)!;
-		for (const pile of piles) {
-			pilesHtml.push(this.getPileHtml(pile));
+		const berryPilesHtml: string[] = [];
+		const berryPiles = this.playerBerryPiles.get(player)!;
+		for (const berryPile of berryPiles) {
+			berryPilesHtml.push(this.getBerryPileHtml(berryPile));
 		}
 
-		html += pilesHtml.join("<br />");
+		html += berryPilesHtml.join("<br />");
 
 		html += '<br />';
 		const total = this.playerTotals.get(player)!;
@@ -164,9 +165,9 @@ class GreedentsPiles extends Game {
 
 	getPlayerSummary(player: Player): void {
 		if (player.eliminated) return;
-		const piles = this.playerBerryPiles.get(player);
-		if (!piles || !piles.length) return player.say("You have not grabbed any berries yet.");
-		this.showPiles(player);
+		const berryPiles = this.playerBerryPiles.get(player);
+		if (!berryPiles || !berryPiles.length) return player.say("You have not grabbed any berries yet.");
+		this.showBerryPiles(player);
 	}
 
 	nextSubGame(): void {
@@ -189,8 +190,8 @@ class GreedentsPiles extends Game {
 			const autoFreeze = this.subGameRound > 3;
 			for (const i in this.getRemainingPlayers()) {
 				const player = this.players[i];
-				const piles = this.playerBerryPiles.get(player);
-				if (!piles || (autoFreeze && piles.length === 2)) {
+				const berryPiles = this.playerBerryPiles.get(player);
+				if (!berryPiles || (autoFreeze && berryPiles.length === 2)) {
 					player.frozen = true;
 					continue;
 				}
@@ -288,19 +289,19 @@ class GreedentsPiles extends Game {
 }
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-const commands: GameCommandDefinitions<GreedentsPiles> = {
+const commands: GameCommandDefinitions<GreedentsBerryPiles> = {
 	grab: {
 		command(target, room, user): GameCommandReturnType {
 			if (!this.canGrab || this.players[user.id].frozen) return false;
 			const player = this.players[user.id];
 			if (this.roundActions.has(player)) return false;
-			const piles = this.playerBerryPiles.get(player)!;
-			piles.push(this.getPile());
+			const berryPiles = this.playerBerryPiles.get(player)!;
+			berryPiles.push(this.getBerryPile());
 			let total = 0;
 			const lumBerries = [];
-			for (const pile of piles) {
-				total += pile.amount;
-				if (pile.amount === mysteryBerryAmount) lumBerries.push(pile);
+			for (const berryPile of berryPiles) {
+				total += berryPile.amount;
+				if (berryPile.amount === mysteryBerryAmount) lumBerries.push(berryPile);
 			}
 
 			let lumBerry = lumBerries.shift();
@@ -314,7 +315,7 @@ const commands: GameCommandDefinitions<GreedentsPiles> = {
 				this.players[user.id].frozen = true;
 			}
 			this.playerTotals.set(player, total);
-			this.showPiles(player);
+			this.showBerryPiles(player);
 			this.roundActions.add(player);
 			return true;
 		},
@@ -326,7 +327,7 @@ const commands: GameCommandDefinitions<GreedentsPiles> = {
 			const player = this.players[user.id];
 			if (this.roundActions.has(player)) return false;
 			player.frozen = true;
-			this.showPiles(player);
+			this.showBerryPiles(player);
 			this.roundActions.add(player);
 			return true;
 		},
@@ -338,14 +339,14 @@ const commands: GameCommandDefinitions<GreedentsPiles> = {
 commands.summary = Tools.deepClone(Games.sharedCommands.summary);
 commands.summary.aliases = ['berries'];
 
-export const game: IGameFile<GreedentsPiles> = {
-	aliases: ["greedents", "piles", "gp"],
+export const game: IGameFile<GreedentsBerryPiles> = {
+	aliases: ["greedents", "berrypiles", "gbp"],
 	category: 'luck' as GameCategory,
 	commandDescriptions: [Config.commandCharacter + "grab", Config.commandCharacter + "run"],
 	commands,
-	class: GreedentsPiles,
-	description: "Players try to grab more berries from the piles than Greedent can forage!",
-	name: "Greedent's Piles",
+	class: GreedentsBerryPiles,
+	description: "Players try to grab more berries from the berry piles than Greedent can forage!",
+	name: "Greedent's Berry Piles",
 	mascot: "Greedent",
 	scriptedOnly: true,
 };
