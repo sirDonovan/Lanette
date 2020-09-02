@@ -364,12 +364,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			freejoin: true,
 		},
 		{
-			name: "Russian Rowlet",
-			mascot: "Rowlet",
-			aliases: ['RR', 'Rowlets'],
-			description: "Players pick a number between 1-7 and gain points based on what number they pick. First to 15 points wins!",
-		},
-		{
 			name: "Scizor's Clock Tower",
 			mascot: "Scizor",
 			aliases: ['Clock Tower', 'Scizors'],

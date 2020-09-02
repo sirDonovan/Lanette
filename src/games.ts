@@ -40,7 +40,6 @@ const categoryNames: KeyedDict<GameCategory, string> = {
 	'knowledge': 'Knowledge',
 	'luck': 'Luck',
 	'map': 'Map',
-	'playing-card': 'Playing card',
 	'puzzle': 'Puzzle',
 	'reaction': 'Reaction',
 	'speed': 'Speed',
