@@ -1155,16 +1155,35 @@ export class Dex {
 			if (this.data.alternateIconNumbers.right[pokemon.id]) num = this.data.alternateIconNumbers.right[pokemon.id]!;
 		}
 
-		const top = Math.floor(num / 12) * 30;
-		const left = (num % 12) * 40;
+		const height = 30;
+		const width = 40;
+		const top = Math.floor(num / 12) * height;
+		const left = (num % 12) * width;
 		const facingLeftStyle = facingLeft ? "transform:scaleX(-1);webkit-transform:scaleX(-1);" : "";
-		return '<span style="display: inline-block;width: 40px;height: 30px;image-rendering: pixelated;' +
+		return '<span style="display: inline-block;height: ' + height + 'px;width: ' + width + 'px;image-rendering: pixelated;' +
 			'background:transparent url(https://' + Tools.mainServer + '/sprites/pokemonicons-sheet.png?v2) no-repeat scroll -' + left +
 			'px -' + top + 'px;' + facingLeftStyle + '"></span>';
 	}
 
 	getPSPokemonIcon(pokemon: IPokemon): string {
 		return '<psicon pokemon="' + pokemon.id + '" style="vertical-align: -7px;margin: -2px" />';
+	}
+
+	getItemIcon(item: IItem): string {
+		let num = 0;
+		if (item.spritenum) num = item.spritenum;
+
+		const height = 24;
+		const width = 24;
+		const top = Math.floor(num / 16) * height;
+		const left = (num % 16) * width;
+		return '<span style="display: inline-block;height: ' + height + 'px;width: ' + width + 'px;image-rendering: pixelated;' +
+			'background:transparent url(https://' + Tools.mainServer + '/sprites/itemicons-sheet.png?g8) no-repeat scroll -' + left +
+			'px -' + top + 'px;"></span>';
+	}
+
+	getPSItemIcon(item: IItem): string {
+		return '<psicon item="' + item.id + '" style="vertical-align: -7px;margin: -2px" />';
 	}
 
 	getTrainerSprite(id: string): string {
