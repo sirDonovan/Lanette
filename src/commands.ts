@@ -1565,7 +1565,7 @@ const commands: CommandDefinitions<CommandContext> = {
 				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
 				targets.shift();
 				repeatRoom = targetRoom;
-				repeatSummary = true;
+				repeatSummary = !targets.length;
 			} else {
 				repeatRoom = room;
 			}
