@@ -1616,7 +1616,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			}
 			const interval = minutes * 60 * 1000;
 
-			const message = this.sanitizeResponse(targets.slice(3).join(',').trim(), ['daily', 'roomfaq', 'rfaq']);
+			const message = this.sanitizeResponse(targets.slice(3).join(',').trim(), ['daily', 'roomfaq', 'rfaq', 'roomevents', 'events']);
 			if (!Tools.toId(message).length) return this.say("Please specify a valid message.");
 
 			if (!repeatRoom.repeatedMessages) repeatRoom.repeatedMessages = {};
