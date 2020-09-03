@@ -1563,6 +1563,7 @@ const commands: CommandDefinitions<CommandContext> = {
 				const targetRoom = Rooms.search(targets[0]);
 				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
+				targets.shift();
 				repeatRoom = targetRoom;
 				repeatSummary = true;
 			} else {
