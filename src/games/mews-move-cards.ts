@@ -19,9 +19,8 @@ class MewsMoveCards extends CardHighLow {
 			return true;
 		});
 
-		const pokedex = Games.getPokemonList();
 		for (const move of moves) {
-			const availability = Dex.getMoveAvailability(move, pokedex);
+			const availability = Dex.getMoveAvailability(move);
 			if (!availability) continue;
 			this.deckPool.push(this.moveToCard(move, availability));
 		}

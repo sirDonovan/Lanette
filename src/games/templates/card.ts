@@ -372,7 +372,7 @@ const tests: GameFileTests<Card> = {
 	'it should have all required card properties': {
 		test(game, format): void {
 			const tackle = Dex.getExistingMove("Tackle");
-			const moveCard = game.moveToCard(tackle, Dex.getMoveAvailability(tackle, Games.getPokemonList()));
+			const moveCard = game.moveToCard(tackle, Dex.getMoveAvailability(tackle));
 
 			assertStrictEqual(typeof moveCard.accuracy, 'number');
 			assertStrictEqual(typeof moveCard.availability, 'number');

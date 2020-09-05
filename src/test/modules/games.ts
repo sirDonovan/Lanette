@@ -299,7 +299,8 @@ describe("Games", () => {
 		assertStrictEqual(nameUserHostedFormat[1], name);
 	});
 
-	it('should start signups for scripted games', () => {
+	it('should start signups for scripted games', function(this: Mocha.Context) {
+		this.timeout(0);
 		const roomPrefix = room.id + "|";
 		for (const format of formatsToTest) {
 			if (format.tournamentGame) continue;
@@ -355,7 +356,8 @@ describe("Games", () => {
 		}
 	});
 
-	it('should properly start one vs. one challenges', () => {
+	it('should properly start one vs. one challenges', function(this: Mocha.Context) {
+		this.timeout(0);
 		const challenger = Users.add("Challenger", "challenger");
 		const defender = Users.add("Defender", "defender");
 		room.onUserJoin(challenger, ' ' );

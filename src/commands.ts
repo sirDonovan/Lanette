@@ -9,7 +9,7 @@ import type { Player } from "./room-activity";
 import type { Game } from './room-game';
 import type { Room } from "./rooms";
 import type { CommandDefinitions } from "./types/command-parser";
-import type { IDexWorkers, IFormat, IPokemon } from "./types/dex";
+import type { IFormat, IPokemon } from "./types/dex";
 import type { GameDifficulty, IGameFormat, IGamesWorkers } from "./types/games";
 import type { IStorageWorkers, UserHostStatus, IUserHostedGameStats } from './types/storage';
 import type { IBattleData, TournamentPlace } from './types/tournaments';
@@ -79,14 +79,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			const targets = target.split(",");
 			for (const target of targets) {
 				const id = Tools.toId(target) as ReloadableModule;
-				if (id === 'dex') {
-					const workers = Object.keys(Dex.workers) as (keyof IDexWorkers)[];
-					for (const worker of workers) {
-						if (Dex.workers[worker].isBusy) {
-							return this.say("You must wait for all " + worker + " requests to finish first.");
-						}
-					}
-				} else if (id === 'games') {
+				if (id === 'games') {
 					const workers = Object.keys(Games.workers) as (keyof IGamesWorkers)[];
 					for (const worker of workers) {
 						if (Games.workers[worker].isBusy) {
@@ -169,12 +162,11 @@ const commands: CommandDefinitions<CommandContext> = {
 						Rooms.checkLoggingConfigs();
 					} else if (moduleId === 'dex') {
 						const filename = "dex";
-						Dex.unrefWorkers();
 						Tools.uncacheTree('./' + filename);
 
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
 						const dex = require('./' + filename) as typeof import('./dex');
-						await dex.instantiate();
+						dex.instantiate();
 						if (!modules.includes('games')) Games.reloadInProgress = false;
 					} else if (moduleId === 'games') {
 						const filename = 'games';
@@ -2881,20 +2873,14 @@ const commands: CommandDefinitions<CommandContext> = {
 					if (format.customRules) return this.say("You cannot alter the custom rules of scheduled tournaments.");
 					return this.say("You cannot add custom rules to scheduled tournaments.");
 				}
-				const customRules: string[] = [];
-				for (let i = 2; i < targets.length; i++) {
-					const rule = targets[i].trim();
-					if (format.team && (rule.startsWith('+') || rule.startsWith('-') || rule.startsWith('*'))) {
-						return this.say("You currently cannot specify bans or unbans for formats with generated teams.");
-					}
-					try {
-						Dex.validateRule(rule, format);
-					} catch (e) {
-						return this.say((e as Error).message);
-					}
-					customRules.push(rule);
+				const customRules: string[] = targets.slice(2).map(x => x.trim());
+				const formatid = format.inputTarget + "@@@" + customRules.join(',');
+				try {
+					Dex.validateFormat(formatid);
+				} catch (e) {
+					return this.say((e as Error).message);
 				}
-				format = Dex.getExistingFormat(format.inputTarget + "@@@" + customRules.join(','), true);
+				format = Dex.getExistingFormat(formatid, true);
 			}
 
 			let time: number = 0;

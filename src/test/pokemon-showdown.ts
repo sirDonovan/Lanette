@@ -2,7 +2,7 @@ import { assert, assertStrictEqual } from './test-tools';
 
 /* eslint-env mocha */
 describe("pokemon-showdown", () => {
-	it("should properly interface with Lanette through worker", () => {
+	it("should properly interface with Lanette", () => {
 		for (const i of Dex.data.abilityKeys) {
 			const ability = Dex.getAbility(i);
 			assert(ability, i);
@@ -44,9 +44,7 @@ describe("pokemon-showdown", () => {
 		}
 
 		for (const i of Dex.data.learnsetDataKeys) {
-			const learnsetData = Dex.getLearnsetData(i);
-			assert(learnsetData, i);
-			assertStrictEqual(learnsetData.id, i);
+			assert(Dex.getLearnsetData(i), i);
 		}
 
 		for (const i of Dex.data.moveKeys) {
@@ -211,7 +209,7 @@ describe("pokemon-showdown", () => {
 
 		const basePowerCallback = Dex.getMove("Acrobatics");
 		assert(basePowerCallback);
-		assertStrictEqual(basePowerCallback.hasBasePowerCallback, true);
+		assert(basePowerCallback.basePowerCallback);
 
 		const critRatio = Dex.getMove("Aeroblast");
 		assert(critRatio);

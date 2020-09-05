@@ -2,14 +2,17 @@ import path = require('path');
 
 import type { Room } from './rooms';
 import type {
-	ComplexBan, ComplexTeamBan, IAbility, IAbilityCopy, IDataTable, IDexWorkers, IFormat, IFormatLinks, IGetPossibleTeamsOptions, IGifData,
-	IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy, ISeparatedCustomRules, ITypeData
+	IAbility, IAbilityCopy, IDataTable, IFormat, IFormatLinks, IGetPossibleTeamsOptions, IGifData,
+	IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy, ISeparatedCustomRules, ITypeData,
+	IPokemonShowdownDex, IValidator
 } from './types/dex';
-import { PokemonShowdownWorker } from './workers/pokemon-showdown';
+
+let pokemonShowdownDexBase: IPokemonShowdownDex;
+let pokemonShowdownTeamValidator: IValidator;
+let formatLinks: Dict<IFormatLinks | undefined>;
 
 const currentGen = 8;
 const currentGenString = 'gen' + currentGen;
-const omotmSection = 'OM of the Month';
 
 const natures: Dict<INature> = {
 	adamant: {name: "Adamant", plus: 'atk', minus: 'spa'},
@@ -114,118 +117,6 @@ const customRuleAliases: Dict<string[]> = {
 
 const dexes: Dict<Dex> = {};
 
-/**
- * A RuleTable keeps track of the rules that a format has. The key can be:
- * - '[ruleid]' the ID of a rule in effect
- * - '-[thing]' or '-[category]:[thing]' ban a thing
- * - '+[thing]' or '+[category]:[thing]' allow a thing (override a ban)
- * [category] is one of: item, move, ability, species, basespecies
- *
- * The value is the name of the parent rule (blank for the active format).
- */
-export class RuleTable extends Map<string, string> {
-	complexBans: ComplexBan[];
-	complexTeamBans: ComplexTeamBan[];
-	checkLearnset: [boolean, string] | null;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	timer: [Partial<any>, string] | null;
-	minSourceGen: [number, string] | null;
-
-	constructor() {
-		super();
-		this.complexBans = [];
-		this.complexTeamBans = [];
-		this.checkLearnset = null;
-		this.timer = null;
-		this.minSourceGen = null;
-	}
-
-	isBanned(thing: string): boolean {
-		if (this.has(`+${thing}`)) return false;
-		return this.has(`-${thing}`);
-	}
-
-	isBannedPokemon(pokemon: IPokemon): boolean {
-		if (this.has(`+pokemon:${pokemon.id}`)) return false;
-		if (this.has(`-pokemon:${pokemon.id}`)) return true;
-		if (this.has(`+basepokemon:${Tools.toId(pokemon.baseSpecies)}`)) return false;
-		if (this.has(`-basepokemon:${Tools.toId(pokemon.baseSpecies)}`)) return true;
-		const tier = pokemon.tier === '(PU)' ? 'ZU' : pokemon.tier === '(NU)' ? 'PU' : pokemon.tier;
-		if (this.has(`+pokemontag:${Tools.toId(tier)}`)) return false;
-		if (this.has(`-pokemontag:${Tools.toId(tier)}`)) return true;
-		const doublesTier = pokemon.doublesTier === '(DUU)' ? 'DNU' : pokemon.doublesTier;
-		if (this.has(`+pokemontag:${Tools.toId(doublesTier)}`)) return false;
-		if (this.has(`-pokemontag:${Tools.toId(doublesTier)}`)) return true;
-		return this.has(`-pokemontag:allpokemon`);
-	}
-
-	isRestricted(thing: string): boolean {
-		if (this.has(`+${thing}`)) return false;
-		return this.has(`*${thing}`);
-	}
-
-	isRestrictedPokemon(pokemon: IPokemon): boolean {
-		if (this.has(`+pokemon:${pokemon.id}`)) return false;
-		if (this.has(`*pokemon:${pokemon.id}`)) return true;
-		if (this.has(`+basepokemon:${Tools.toId(pokemon.baseSpecies)}`)) return false;
-		if (this.has(`*basepokemon:${Tools.toId(pokemon.baseSpecies)}`)) return true;
-		const tier = pokemon.tier === '(PU)' ? 'ZU' : pokemon.tier === '(NU)' ? 'PU' : pokemon.tier;
-		if (this.has(`+pokemontag:${Tools.toId(tier)}`)) return false;
-		if (this.has(`*pokemontag:${Tools.toId(tier)}`)) return true;
-		const doublesTier = pokemon.doublesTier === '(DUU)' ? 'DNU' : pokemon.doublesTier;
-		if (this.has(`+pokemontag:${Tools.toId(doublesTier)}`)) return false;
-		if (this.has(`*pokemontag:${Tools.toId(doublesTier)}`)) return true;
-		return this.has(`*pokemontag:allpokemon`);
-	}
-
-	check(thing: string, setHas: {[id: string]: true} | null = null): string | null {
-		if (this.has(`+${thing}`)) return '';
-		if (setHas) setHas[thing] = true;
-		return this.getReason(`-${thing}`);
-	}
-
-	getReason(key: string): string | null {
-		const source = this.get(key);
-		if (source === undefined) return null;
-		if (key === '-nonexistent' || key.startsWith('obtainable')) {
-			return 'not obtainable';
-		}
-		return source ? `banned by ${source}` : `banned`;
-	}
-
-	getComplexBanIndex(complexBans: ComplexBan[], rule: string): number {
-		const ruleId = Tools.toId(rule);
-		let complexBanIndex = -1;
-		for (let i = 0; i < complexBans.length; i++) {
-			if (Tools.toId(complexBans[i][0]) === ruleId) {
-				complexBanIndex = i;
-				break;
-			}
-		}
-		return complexBanIndex;
-	}
-
-	addComplexBan(rule: string, source: string, limit: number, bans: string[]): void {
-		const complexBanIndex = this.getComplexBanIndex(this.complexBans, rule);
-		if (complexBanIndex !== -1) {
-			if (this.complexBans[complexBanIndex][2] === Infinity) return;
-			this.complexBans[complexBanIndex] = [rule, source, limit, bans];
-		} else {
-			this.complexBans.push([rule, source, limit, bans]);
-		}
-	}
-
-	addComplexTeamBan(rule: string, source: string, limit: number, bans: string[]): void {
-		const complexBanTeamIndex = this.getComplexBanIndex(this.complexTeamBans, rule);
-		if (complexBanTeamIndex !== -1) {
-			if (this.complexTeamBans[complexBanTeamIndex][2] === Infinity) return;
-			this.complexTeamBans[complexBanTeamIndex] = [rule, source, limit, bans];
-		} else {
-			this.complexTeamBans.push([rule, source, limit, bans]);
-		}
-	}
-}
-
 export class Dex {
 	// exported constants
 	readonly currentGenString: typeof currentGenString = currentGenString;
@@ -233,21 +124,27 @@ export class Dex {
 	readonly omotms: string[] = [];
 	readonly tagNames: typeof tagNames = tagNames;
 
+	dataCache: IDataTable | null = null;
+
 	readonly abilityCache = new Map<string, IAbility>();
 	readonly allPossibleMovesCache = new Map<string, string[]>();
 	readonly formatCache = new Map<string, IFormat>();
 	readonly itemCache = new Map<string, IItem>();
 	readonly learnsetDataCache = new Map<string, ILearnsetData>();
-	loadedData: boolean = false;
 	readonly moveCache = new Map<string, IMove>();
+	readonly moveAvailbilityCache = new Map<string, number>();
 	readonly pokemonCache = new Map<string, IPokemon>();
 	readonly typeCache = new Map<string, ITypeData>();
 
 	readonly currentMod: string;
-	readonly data: IDataTable;
 	readonly gen: number;
 	readonly isBase: boolean;
-	workers: IDexWorkers;
+	readonly pokemonShowdownDex: IPokemonShowdownDex;
+
+	private abilitiesList: readonly IAbility[] | null = null;
+	private itemsList: readonly IItem[] | null = null;
+	private movesList: readonly IMove[] | null = null;
+	private pokemonList: readonly IPokemon[] | null = null;
 
 	constructor(gen?: number, mod?: string) {
 		if (!gen) gen = currentGen;
@@ -256,42 +153,18 @@ export class Dex {
 		if (isBase) {
 			dexes['base'] = this;
 			dexes[currentGenString] = this;
+			this.pokemonShowdownDex = pokemonShowdownDexBase;
+		} else {
+			this.pokemonShowdownDex = pokemonShowdownDexBase.mod(mod);
 		}
+
 		this.currentMod = mod;
 		this.gen = gen;
 		this.isBase = isBase;
-		this.data = {
-			abilityKeys: [],
-			aliases: {},
-			alternateIconNumbers: {
-				left: {},
-				right: {},
-			},
-			badges: [],
-			categories: {},
-			characters: [],
-			colors: {},
-			eggGroups: {},
-			formatKeys: [],
-			gifData: {},
-			gifDataBW: {},
-			itemKeys: [],
-			learnsetDataKeys: [],
-			locations: [],
-			moveKeys: [],
-			natures,
-			pokemonKeys: [],
-			trainerClasses: [],
-			trainerSprites: {},
-			typeKeys: [],
-		};
-		this.workers = {
-			pokemonShowdown: isBase ? new PokemonShowdownWorker() : dexes['base'].workers.pokemonShowdown,
-		};
 	}
 
-	async onReload(previous: Partial<Dex>): Promise<void> {
-		await this.loadAllData();
+	onReload(previous: Partial<Dex>): void {
+		this.loadData();
 
 		for (const mod in previous.dexes) {
 			if (previous.dexes[mod] === previous) continue;
@@ -308,383 +181,142 @@ export class Dex {
 		}
 	}
 
-	unrefWorkers(): void {
-		const workers = Object.keys(this.workers) as (keyof IDexWorkers)[];
-		for (const worker of workers) {
-			this.workers[worker].unref();
-			// @ts-expect-error
-			delete this.workers[worker];
-		}
-	}
-
 	getDex(mod?: string): Dex {
 		if (!mod) mod = currentGenString;
 		return dexes[mod];
 	}
 
-	async loadAllData(): Promise<void> {
-		if (this.loadedData || !this.isBase) return;
-		console.log("Loading dex data...");
+	get data(): IDataTable {
+		if (!this.dataCache) this.loadData();
+		return this.dataCache!;
+	}
+
+	loadData(): void {
+		if (this.dataCache) return;
+
+		if (this.isBase) {
+			console.log("Loading dex data...");
+			this.pokemonShowdownDex.includeModData();
+		}
 
 		const lanetteDataDir = path.join(Tools.rootFolder, 'data');
 
-		/* eslint-disable @typescript-eslint/no-var-requires */
-		// @ts-expect-error
-		this.data.alternateIconNumbers = require(path.join(lanetteDataDir, 'alternate-icon-numbers.js')) as
-			{right: Dict<number>; left: Dict<number>};
-		// @ts-expect-error
-		this.data.badges = require(path.join(lanetteDataDir, 'badges.js')) as string[];
-		// @ts-expect-error
-		this.data.categories = require(path.join(lanetteDataDir, 'categories.js')) as Dict<string>;
-		// @ts-expect-error
-		this.data.characters = require(path.join(lanetteDataDir, 'characters.js')) as string[];
-		// @ts-expect-error
-		this.data.locations = require(path.join(lanetteDataDir, 'locations.js')) as string[];
-		// @ts-expect-error
-		this.data.gifData = require(path.join(lanetteDataDir, 'pokedex-mini.js')).BattlePokemonSprites as Dict<IGifData | undefined>; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
-		// @ts-expect-error
-		this.data.gifDataBW = require(path.join(lanetteDataDir, 'pokedex-mini-bw.js')).BattlePokemonSpritesBW as Dict<IGifData | undefined>; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
-		// @ts-expect-error
-		this.data.trainerClasses = require(path.join(lanetteDataDir, 'trainer-classes.js')) as string[];
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
+		formatLinks = require(path.join(lanetteDataDir, 'format-links.js')) as Dict<IFormatLinks | undefined>;
 
-		const trainerSprites = require(path.join(lanetteDataDir, 'trainer-sprites.js')) as string[];
-		for (const trainer of trainerSprites) {
-			// @ts-expect-error
-			this.data.trainerSprites[Tools.toId(trainer)] = trainer;
+		/* eslint-disable @typescript-eslint/no-var-requires */
+		const alternateIconNumbers = require(path.join(lanetteDataDir, 'alternate-icon-numbers.js')) as
+			{right: Dict<number>; left: Dict<number>};
+		const badges = require(path.join(lanetteDataDir, 'badges.js')) as string[];
+		const categories = require(path.join(lanetteDataDir, 'categories.js')) as Dict<string>;
+		const characters = require(path.join(lanetteDataDir, 'characters.js')) as string[];
+		const locations = require(path.join(lanetteDataDir, 'locations.js')) as string[];
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+		const gifData = require(path.join(lanetteDataDir, 'pokedex-mini.js')).BattlePokemonSprites as Dict<IGifData | undefined>;
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+		const gifDataBW = require(path.join(lanetteDataDir, 'pokedex-mini-bw.js')).BattlePokemonSpritesBW as Dict<IGifData | undefined>;
+		const trainerClasses = require(path.join(lanetteDataDir, 'trainer-classes.js')) as string[];
+
+		const trainerSpriteList = require(path.join(lanetteDataDir, 'trainer-sprites.js')) as string[];
+		const trainerSprites: Dict<string> = {};
+		for (const trainer of trainerSpriteList) {
+			trainerSprites[Tools.toId(trainer)] = trainer;
 		}
 		/* eslint-enable */
 
-		const speciesList = Object.keys(this.data.categories);
+		const speciesList = Object.keys(categories);
 		for (const species of speciesList) {
 			const id = Tools.toId(species);
 			if (id === species) continue;
-			// @ts-expect-error
-			this.data.categories[id] = this.data.categories[species];
-			// @ts-expect-error
-			delete this.data.categories[species];
+			categories[id] = categories[species];
+			delete categories[species];
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-		const promises: Promise<void[]>[] = [this.loadData()];
-		for (let i = this.gen - 1; i >= 1; i--) {
-			const mod = 'gen' + i;
-			dexes[mod] = new Dex(i, mod);
+		const abilityKeys = Object.keys(this.pokemonShowdownDex.data.Abilities);
+		const filteredAbilityKeys: string[] = [];
+		for (const key of abilityKeys) {
+			const ability = this.getAbility(key)!;
+			if (ability.gen > this.gen) continue;
 
-			// @ts-expect-error
-			dexes[mod].data.alternateIconNumbers = this.data.alternateIconNumbers;
-			// @ts-expect-error
-			dexes[mod].data.badges = this.data.badges;
-			// @ts-expect-error
-			dexes[mod].data.categories = this.data.categories;
-			// @ts-expect-error
-			dexes[mod].data.characters = this.data.characters;
-			// @ts-expect-error
-			dexes[mod].data.locations = this.data.locations;
-			// @ts-expect-error
-			dexes[mod].data.gifData = this.data.gifData;
-			// @ts-expect-error
-			dexes[mod].data.gifDataBW = this.data.gifDataBW;
-			// @ts-expect-error
-			dexes[mod].data.trainerClasses = this.data.trainerClasses;
-			// @ts-expect-error
-			dexes[mod].data.trainerSprites = this.data.trainerSprites;
-
-			promises.push(dexes[mod].loadData());
+			filteredAbilityKeys.push(key);
 		}
 
-		await Promise.all(promises);
+		const itemKeys = Object.keys(this.pokemonShowdownDex.data.Items);
+		const filteredItemKeys: string[] = [];
+		for (const key of itemKeys) {
+			const item = this.getItem(key)!;
+			if (item.gen > this.gen) continue;
 
-		for (let i = this.gen - 1; i >= 1; i--) {
-			const mod = 'gen' + i;
-			// @ts-expect-error
-			dexes[mod].data.aliases = this.data.aliases;
-			// @ts-expect-error
-			dexes[mod].formatCache = new Map(this.formatCache);
-			// @ts-expect-error
-			dexes[mod].data.formatKeys = this.data.formatKeys.slice();
+			filteredItemKeys.push(key);
+		}
 
-			const workers = Object.keys(dexes[mod].workers) as (keyof IDexWorkers)[];
-			for (const worker of workers) {
-				// @ts-expect-error
-				delete dexes[mod].workers[worker];
+		const colors: Dict<string> = {};
+		const eggGroups: Dict<string> = {};
+
+		const validator = new pokemonShowdownTeamValidator("gen" + this.gen + "ou", dexes['base'].pokemonShowdownDex);
+		const pokemonKeys = Object.keys(this.pokemonShowdownDex.data.Pokedex);
+		const filteredPokemonKeys: string[] = [];
+		const moveAvailbilityPokemonList: IPokemon[] = [];
+		for (const key of pokemonKeys) {
+			const pokemon = this.getPokemon(key)!;
+			if (pokemon.gen > this.gen) continue;
+
+			this.cacheAllPossibleMoves(validator, pokemon);
+			filteredPokemonKeys.push(key);
+			moveAvailbilityPokemonList.push(pokemon);
+
+			if (pokemon.color) {
+				const id = Tools.toId(pokemon.color);
+				if (!(id in colors)) {
+					colors[id] = pokemon.color;
+				}
 			}
-		}
 
-		// @ts-expect-error
-		dexes['gen1'].abilityCache = new Map(dexes['gen2'].abilityCache);
-		// @ts-expect-error
-		dexes['gen1'].data.abilityKeys = dexes['gen2'].data.abilityKeys.slice();
-
-		console.log("Loaded all dex data");
-
-		this.unrefWorkers();
-	}
-
-	// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-	async loadData(): Promise<void[]> {
-		if (this.loadedData) return Promise.resolve([]);
-		this.loadedData = true;
-
-		const mod = 'gen' + this.gen;
-
-		const loadPromises: Promise<void>[] = [];
-
-		// aliases
-		if (this.isBase) {
-			loadPromises.push(this.workers.pokemonShowdown.getAliases(mod).then(response => {
-				if (response === null) throw new Error("An error occurred while getting aliases");
-				// @ts-expect-error
-				this.data.aliases = JSON.parse(response.data) as Dict<string>;
-			}));
-		}
-
-		// abilities
-		if (this.gen > 1) {
-			loadPromises.push(this.workers.pokemonShowdown.getAbilities(mod).then(response => {
-				if (response === null) throw new Error("An error occurred while getting abilities");
-				for (const ability of response.abilities) {
-					if (ability.id) {
-						this.abilityCache.set(ability.id, ability);
-						(this.data.abilityKeys as string[]).push(ability.id);
+			if (pokemon.eggGroups) {
+				for (const eggGroup of pokemon.eggGroups) {
+					const id = Tools.toId(eggGroup);
+					if (!(id in eggGroups)) {
+						eggGroups[id] = eggGroup;
 					}
 				}
-
-				for (const key in response.aliases) {
-					const id = Tools.toId(key);
-					if (!id) continue;
-					const ability = this.abilityCache.get(response.aliases[key]);
-					if (ability) this.abilityCache.set(id, ability);
-				}
-			}));
+			}
 		}
 
-		// formats
-		if (this.isBase) {
-			// eslint-disable-next-line @typescript-eslint/no-var-requires
-			const formatLinks = require(path.join(Tools.rootFolder, 'data', 'format-links.js')) as Dict<IFormatLinks | undefined>;
+		const moveKeys = Object.keys(this.pokemonShowdownDex.data.Moves);
+		const filteredMoveKeys: string[] = [];
+		for (const key of moveKeys) {
+			const move = this.getMove(key)!;
+			if (move.gen > this.gen) continue;
 
-			const links: ('info' | 'np' | 'roleCompendium' | 'teams' | 'viability')[] = ['info', 'np', 'roleCompendium', 'teams',
-					'viability'];
-			loadPromises.push(this.workers.pokemonShowdown.getFormats(mod).then(response => {
-				if (response === null) throw new Error("An error occurred while getting formats");
-				for (let format of response.formats) {
-					let viability: string | undefined;
-					let np: string | undefined;
-					let info: string | undefined;
-					if (format.threads) {
-						const threads = format.threads.slice();
-						for (let line of threads) {
-							line = line.trim();
-							if (line.startsWith('&bullet;')) {
-								const text = line.split('</a>')[0].split('">')[1];
-								if (!text) continue;
-								if (text.includes('Viability Ranking')) {
-									const link = line.split('<a href="');
-									if (link[1]) {
-										viability = link[1].split('/">')[0].split('/').pop()!;
-									}
-								} else if (text.startsWith("np:") || text.includes(format.name + " Stage")) {
-									const link = line.split('<a href="');
-									if (link[1]) {
-										np = link[1].split('/">')[0].split('/').pop()!;
-									}
-								} else if (Tools.toId(text) === format.id) {
-									const link = line.split('<a href="');
-									if (link[1]) {
-										info = link[1].split('/">')[0].split('/').pop()!;
-									}
-								}
-							}
-						}
-
-						if (format.id in formatLinks) {
-							format = Object.assign(formatLinks[format.id], format, {
-								'info-official': info,
-								'np-official': np,
-								'viability-official': viability,
-							});
-						} else {
-							format.info = info;
-							format.np = np;
-							format.viability = viability;
-						}
-
-						for (const id of links) {
-							const link = format[id];
-							if (!link) continue;
-							let num = parseInt(link.split("/")[0]);
-							if (isNaN(num)) continue;
-							// @ts-expect-error
-							if (format[id + '-official']) {
-								// @ts-expect-error
-								const officialNum = parseInt(format[id + '-official']);
-								if (!isNaN(officialNum) && officialNum > num) num = officialNum;
-							}
-							format[id] = 'http://www.smogon.com/forums/threads/' + num;
-						}
-					}
-
-					format.quickFormat = format.teamLength && format.teamLength.battle && format.teamLength.battle <= 2 ? true : false;
-					format.tournamentPlayable = !!(format.searchShow || format.challengeShow || format.tournamentShow);
-					format.unranked = format.rated === false || format.id.includes('customgame') || format.id.includes('hackmonscup') ||
-						format.id.includes('challengecup') || format.id.includes('metronomebattle') ||
-						(format.team && (format.id.includes('1v1') || format.id.includes('monotype'))) || format.mod === 'seasonal' ||
-						format.mod === 'ssb' ? true : false;
-
-					if (format.section === omotmSection) this.omotms.push(format.id);
-
-					if (format.id) {
-						this.formatCache.set(format.id, format);
-						(this.data.formatKeys as string[]).push(format.id);
-					}
-
-					if (format.aliases) {
-						for (const alias of format.aliases) {
-							const id = Tools.toId(alias);
-							if (id) this.formatCache.set(id, format);
-						}
-					}
-				}
-
-				for (const key in response.aliases) {
-					const id = Tools.toId(key);
-					if (!id) continue;
-					const format = this.formatCache.get(response.aliases[key]);
-					if (format) this.formatCache.set(id, format);
-				}
-			}));
+			this.cacheMoveAvailability(move, moveAvailbilityPokemonList);
+			filteredMoveKeys.push(key);
 		}
 
-		// items
-		loadPromises.push(this.workers.pokemonShowdown.getItems(mod).then(response => {
-			if (response === null) throw new Error("An error occurred while getting items");
-			for (const item of response.items) {
-				if (item.id) {
-					this.itemCache.set(item.id, item);
-					(this.data.itemKeys as string[]).push(item.id);
-				}
-			}
-
-			for (const key in response.aliases) {
-				const id = Tools.toId(key);
-				if (!id) continue;
-				const item = this.itemCache.get(response.aliases[key]);
-				if (item) this.itemCache.set(id, item);
-			}
-		}));
-
-		// learnsets
-		loadPromises.push(this.workers.pokemonShowdown.getLearnsetData(mod).then(learnsetData => {
-			if (learnsetData === null) throw new Error("An error occurred while getting learnset data");
-			for (const key in learnsetData) {
-				const id = Tools.toId(key);
-				if (!id) continue;
-				this.learnsetDataCache.set(id, learnsetData[key]);
-				(this.data.learnsetDataKeys as string[]).push(id);
-			}
-		}));
-
-		// moves
-		loadPromises.push(this.workers.pokemonShowdown.getMoves(mod).then(response => {
-			if (response === null) throw new Error("An error occurred while getting moves");
-			for (const move of response.moves) {
-				const id = move.realMove ? Tools.toId(move.name) : move.id;
-				if (id) {
-					this.moveCache.set(id, move);
-					(this.data.moveKeys as string[]).push(id);
-				}
-			}
-
-			for (const key in response.aliases) {
-				const id = Tools.toId(key);
-				if (!id) continue;
-				const move = this.moveCache.get(response.aliases[key]);
-				if (move) this.moveCache.set(id, move);
-			}
-		}));
-
-		// pokemon
-		const formeNames: Dict<string[]> = {
-			alola: ['a', 'alola', 'alolan'],
-			galar: ['g', 'galar', 'galarian'],
-			gmax: ['gigantamax', 'gmax'],
-			mega: ['m', 'mega'],
-			primal: ['p', 'primal'],
+		const data: IDataTable = {
+			abilityKeys: filteredAbilityKeys,
+			formatKeys: Object.keys(this.pokemonShowdownDex.data.Formats),
+			itemKeys: filteredItemKeys,
+			learnsetDataKeys: Object.keys(this.pokemonShowdownDex.data.Learnsets),
+			moveKeys: filteredMoveKeys,
+			pokemonKeys: filteredPokemonKeys,
+			typeKeys: Object.keys(this.pokemonShowdownDex.data.TypeChart).map(x => Tools.toId(x)),
+			alternateIconNumbers,
+			badges,
+			categories,
+			characters,
+			colors,
+			eggGroups,
+			gifData,
+			gifDataBW,
+			locations,
+			natures,
+			trainerClasses,
+			trainerSprites,
 		};
 
-		loadPromises.push(this.workers.pokemonShowdown.getSpecies(mod).then(response => {
-			if (response === null) throw new Error("An error occurred while getting pokemon");
-			for (const pokemon of response.pokemon) {
-				if (!pokemon.id) continue;
+		if (this.isBase) console.log("Loaded dex data");
 
-				if (pokemon.color) {
-					const id = Tools.toId(pokemon.color);
-					if (!(id in this.data.colors)) {
-						// @ts-expect-error
-						this.data.colors[id] = pokemon.color;
-					}
-				}
-
-				if (pokemon.tier) {
-					const id = Tools.toId(pokemon.tier);
-					if (!(id in tagNames)) tagNames[id] = pokemon.tier;
-				}
-
-				if (pokemon.eggGroups) {
-					for (const eggGroup of pokemon.eggGroups) {
-						const id = Tools.toId(eggGroup);
-						if (!(id in this.data.eggGroups)) {
-							// @ts-expect-error
-							this.data.eggGroups[id] = eggGroup;
-						}
-					}
-				}
-
-				if (pokemon.id in this.data.categories) {
-					// @ts-expect-error
-					pokemon.category = this.data.categories[pokemon.id];
-				}
-
-				this.pokemonCache.set(pokemon.id, pokemon);
-				(this.data.pokemonKeys as string[]).push(pokemon.id);
-
-				const formeId = Tools.toId(pokemon.forme);
-				if (formeId && formeId in formeNames) {
-					for (const alias of formeNames[formeId]) {
-						this.pokemonCache.set(pokemon.id + alias, pokemon);
-						this.pokemonCache.set(alias + pokemon.id, pokemon);
-					}
-				}
-			}
-
-			for (const key in response.aliases) {
-				const id = Tools.toId(key);
-				if (!id) continue;
-				const pokemon = this.pokemonCache.get(response.aliases[key]);
-				if (pokemon) this.pokemonCache.set(id, pokemon);
-			}
-		}));
-
-		// all possible moves
-		loadPromises.push(this.workers.pokemonShowdown.getAllPossibleMoves(mod).then(allPossibleMoves => {
-			if (allPossibleMoves === null) throw new Error("An error occurred while getting all possible moves");
-			for (const id in allPossibleMoves) {
-				this.allPossibleMovesCache.set(id, allPossibleMoves[id]);
-			}
-		}));
-
-		// types
-		loadPromises.push(this.workers.pokemonShowdown.getTypes(mod).then(types => {
-			if (types === null) throw new Error("An error occurred while getting types");
-			for (const type of types) {
-				if (type.id) {
-					this.typeCache.set(type.id, type);
-					(this.data.typeKeys as string[]).push(type.id);
-				}
-			}
-		}));
-
-		return Promise.all(loadPromises);
+		this.dataCache = data;
 	}
 
 	async fetchClientData(): Promise<void> {
@@ -704,7 +336,15 @@ export class Dex {
 	*/
 
 	getAbility(name: string): IAbility | undefined {
-		return this.abilityCache.get(Tools.toId(name));
+		const id = Tools.toId(name);
+		const cached = this.abilityCache.get(id);
+		if (cached) return cached;
+
+		const ability = this.pokemonShowdownDex.getAbility(name);
+		if (!ability.exists) return undefined;
+
+		this.abilityCache.set(id, ability);
+		return ability;
 	}
 
 	getExistingAbility(name: string): IAbility {
@@ -745,7 +385,15 @@ export class Dex {
 	*/
 
 	getItem(name: string): IItem | undefined {
-		return this.itemCache.get(Tools.toId(name));
+		const id = Tools.toId(name);
+		const cached = this.itemCache.get(id);
+		if (cached) return cached;
+
+		const item = this.pokemonShowdownDex.getItem(name);
+		if (!item.exists) return undefined;
+
+		this.itemCache.set(id, item);
+		return item;
 	}
 
 	getExistingItem(name: string): IItem {
@@ -782,7 +430,15 @@ export class Dex {
 	}
 
 	getLearnsetData(name: string): ILearnsetData | undefined {
-		return this.learnsetDataCache.get(Tools.toId(name));
+		const id = Tools.toId(name);
+		const cached = this.learnsetDataCache.get(id);
+		if (cached) return cached;
+
+		const learnsetData = this.pokemonShowdownDex.getLearnsetData(id);
+		if (!learnsetData.exists) return undefined;
+
+		this.learnsetDataCache.set(id, learnsetData);
+		return learnsetData;
 	}
 
 	/*
@@ -790,7 +446,15 @@ export class Dex {
 	*/
 
 	getMove(name: string): IMove | undefined {
-		return this.moveCache.get(Tools.toId(name));
+		const id = Tools.toId(name);
+		const cached = this.moveCache.get(id);
+		if (cached) return cached;
+
+		const move = this.pokemonShowdownDex.getMove(name);
+		if (!move.exists) return undefined;
+
+		this.moveCache.set(id, move);
+		return move;
 	}
 
 	getExistingMove(name: string): IMove {
@@ -826,18 +490,9 @@ export class Dex {
 		return this.getMovesList(filter).map(x => this.getMoveCopy(x));
 	}
 
-	getMoveAvailability(move: IMove, pokedex?: IPokemon[]): number {
-		if (!pokedex) pokedex = this.getPokemonList();
-
-		let availability = 0;
-		for (const pokemon of pokedex) {
-			const learnsetData = this.getLearnsetData(pokemon.name);
-			if (learnsetData && this.getAllPossibleMoves(pokemon).includes(move.id)) {
-				availability++;
-			}
-		}
-
-		return availability;
+	getMoveAvailability(move: IMove): number {
+		if (move.gen > this.gen) throw new Error("Dex.getMoveAvailability called for " + move.name + " in gen " + this.gen);
+		return this.moveAvailbilityCache.get(move.id)!;
 	}
 
 	/*
@@ -845,20 +500,21 @@ export class Dex {
 	*/
 
 	getPokemon(name: string): IPokemon | undefined {
-		let id = Tools.toId(name);
-		if (id === 'nidoran') {
-			if (name.endsWith('♀')) {
-				id = 'nidoranf';
-			} else if (name.endsWith('♂')) {
-				id = 'nidoranm';
-			}
+		const id = Tools.toId(name);
+		const cached = this.pokemonCache.get(id);
+		if (cached) return cached;
+
+		const pokemon = Tools.deepClone(this.pokemonShowdownDex.getSpecies(name));
+		if (!pokemon.exists) return undefined;
+
+		if (pokemon.tier === '(NU)') {
+			pokemon.tier = 'PU';
+		} else if (pokemon.tier === '(PU)') {
+			pokemon.tier = 'ZU';
 		}
 
-		return this.pokemonCache.get(id);
-	}
-
-	getAllPossibleMoves(pokemon: IPokemon): string[] {
-		return this.allPossibleMovesCache.get(pokemon.id) || [];
+		this.pokemonCache.set(id, pokemon);
+		return pokemon;
 	}
 
 	getExistingPokemon(name: string): IPokemon {
@@ -886,12 +542,13 @@ export class Dex {
 		return pokedex;
 	}
 
-	/** Returns a list of existing, copied Pokemon
-	 *
-	 * filterPokemon: Return `false` to filter `pokemon` out of the list
-	 */
-	getPokemonCopyList(filter?: (pokemon: IPokemon) => boolean): IPokemonCopy[] {
-		return this.getPokemonList(filter).map(x => this.getPokemonCopy(x));
+	getPokemonCategory(pokemon: IPokemon): string {
+		return this.data.categories[pokemon.id] || '';
+	}
+
+	getAllPossibleMoves(pokemon: IPokemon): string[] {
+		if (pokemon.gen > this.gen) throw new Error("Dex.getAllPossibleMoves() called on " + pokemon.name + " in gen " + this.gen);
+		return this.allPossibleMovesCache.get(pokemon.id)!;
 	}
 
 	getEvolutionLines(pokemon: IPokemon, includedFormes?: string[]): string[][] {
@@ -958,7 +615,16 @@ export class Dex {
 	}
 
 	getType(name: string): ITypeData | undefined {
-		return this.typeCache.get(Tools.toId(name));
+		const id = Tools.toId(name);
+		const cached = this.typeCache.get(id);
+		if (cached) return cached;
+
+		const type = this.pokemonShowdownDex.getType(name);
+		if (!type.exists) return undefined;
+
+		if (!type.id) type.id = Tools.toId(type.name);
+		this.typeCache.set(id, type);
+		return type;
 	}
 
 	getExistingType(name: string): ITypeData {
@@ -1205,82 +871,116 @@ export class Dex {
 	*/
 
 	getFormat(name: string, isValidated?: boolean): IFormat | undefined {
-		let id = Tools.toId(name);
+		const id = Tools.toId(name);
 		if (!id) return;
 
 		const inputTarget = name;
 		let customRules: string[] | undefined;
-		if (!this.formatCache.has(id)) {
+		let format = this.pokemonShowdownDex.getFormat(name, isValidated);
+		if (!format.exists) {
 			if (id in customRuleFormats) {
 				name = customRuleFormats[id];
 			} else {
-				const aliasedCustomRules: string[] = [];
 				const [formatAlias, customRulesString] = name.split('@@@', 2);
+				customRules = customRulesString ? customRulesString.split(',') : [];
 				const parts = formatAlias.split(" ");
-				let formatNameIndex = parts.length - 1;
-				for (let i = 0; i < parts.length - 1; i++) {
-					const id = Tools.toId(parts[i]);
-					if (id in customRuleAliases) {
-						for (const rule of customRuleAliases[id]) {
-							if (!aliasedCustomRules.includes(rule)) aliasedCustomRules.push(rule);
+				if (parts.length > 1) {
+					let formatNameIndex = parts.length - 1;
+					for (let i = 0; i < parts.length - 1; i++) {
+						const id = Tools.toId(parts[i]);
+						if (id in customRuleAliases) {
+							for (const rule of customRuleAliases[id]) {
+								if (!customRules.includes(rule)) customRules.push(rule);
+							}
+						} else {
+							formatNameIndex = i;
+							break;
 						}
-					} else {
-						formatNameIndex = i;
-						break;
+					}
+
+					name = parts.slice(formatNameIndex).join(" ") + (customRules.length ? "@@@" + customRules.join(',') : "");
+				}
+			}
+
+			format = this.pokemonShowdownDex.getFormat(name, isValidated);
+
+			if (!format.exists) {
+				for (let i = currentGen - 1; i >= 1; i--) {
+					format = this.pokemonShowdownDex.getFormat('gen' + i + name, isValidated);
+					if (format.exists) break;
+				}
+			}
+		}
+
+		if (!format.exists) return undefined;
+
+		format.inputTarget = inputTarget;
+		format.quickFormat = format.teamLength && format.teamLength.battle && format.teamLength.battle <= 2 ? true : false;
+		format.tournamentPlayable = !!(format.searchShow || format.challengeShow || format.tournamentShow);
+		format.unranked = format.rated === false || format.id.includes('customgame') || format.id.includes('hackmonscup') ||
+			format.id.includes('challengecup') || format.id.includes('metronomebattle') ||
+			(format.team && (format.id.includes('1v1') || format.id.includes('monotype'))) || format.mod === 'seasonal' ||
+			format.mod === 'ssb' ? true : false;
+
+		let viability: string | undefined;
+		let np: string | undefined;
+		let info: string | undefined;
+		if (format.threads) {
+			const threads = format.threads.slice();
+			for (let line of threads) {
+				line = line.trim();
+				if (line.startsWith('&bullet;')) {
+					const text = line.split('</a>')[0].split('">')[1];
+					if (!text) continue;
+					if (text.includes('Viability Ranking')) {
+						const link = line.split('<a href="');
+						if (link[1]) {
+							viability = link[1].split('/">')[0].split('/').pop()!;
+						}
+					} else if (text.startsWith("np:") || text.includes(format.name + " Stage")) {
+						const link = line.split('<a href="');
+						if (link[1]) {
+							np = link[1].split('/">')[0].split('/').pop()!;
+						}
+					} else if (Tools.toId(text) === format.id) {
+						const link = line.split('<a href="');
+						if (link[1]) {
+							info = link[1].split('/">')[0].split('/').pop()!;
+						}
 					}
 				}
-
-				if (aliasedCustomRules.length) {
-					customRules = (customRules || []).concat(aliasedCustomRules);
-					name = parts.slice(formatNameIndex).join(" ") + (customRulesString ? "@@@" + customRulesString : "");
-					id = Tools.toId(name);
-				}
 			}
-		}
 
-		if (name.includes('@@@')) {
-			if (!isValidated) {
-				try {
-					name = this.validateFormat(name);
-					isValidated = true;
-				// eslint-disable-next-line no-empty
-				} catch (e) {}
-			}
-			const [newName, customRulesString] = name.split('@@@', 2);
-			name = newName;
-			id = Tools.toId(name);
-			if (isValidated && customRulesString) {
-				if (!customRules) customRules = [];
-				const rules = customRulesString.split(',');
-				for (const rule of rules) {
-					if (!customRules.includes(rule)) customRules.push(rule);
-				}
-			}
-		}
-
-		if (id.startsWith('omotm')) {
-			let index: number;
-			if (id === 'omotm') {
-				index = 1;
+			if (format.id in formatLinks) {
+				format = Object.assign(formatLinks[format.id], format, {
+					'info-official': info,
+					'np-official': np,
+					'viability-official': viability,
+				});
 			} else {
-				index = parseInt(id.substr(5));
+				format.info = info;
+				format.np = np;
+				format.viability = viability;
 			}
-			if (!isNaN(index) && index <= this.omotms.length) id = this.omotms[index - 1];
-		}
 
-		if (!this.formatCache.has(id)) {
-			for (let i = currentGen; i >= 1; i--) {
-				const genId = 'gen' + i + id;
-				if (this.formatCache.has(genId)) {
-					id = genId;
-					break;
+			const links: ('info' | 'np' | 'roleCompendium' | 'teams' | 'viability')[] = ['info', 'np', 'roleCompendium', 'teams',
+					'viability'];
+			for (const id of links) {
+				const link = format[id];
+				if (!link) continue;
+				let num = parseInt(link.split("/")[0]);
+				if (isNaN(num)) continue;
+				// @ts-expect-error
+				if (format[id + '-official']) {
+					// @ts-expect-error
+					const officialNum = parseInt(format[id + '-official']);
+					if (!isNaN(officialNum) && officialNum > num) num = officialNum;
 				}
+				format[id] = 'http://www.smogon.com/forums/threads/' + num;
 			}
 		}
 
-		const format = this.formatCache.get(id);
-
-		return format ? Object.assign(Tools.deepClone(format), {customRules}, {inputTarget}) as IFormat : undefined;
+		return format;
 	}
 
 	getExistingFormat(name: string, isTrusted?: boolean): IFormat {
@@ -1332,268 +1032,7 @@ export class Dex {
 	 * Returns a sanitized format ID if valid, or throws if invalid.
 	 */
 	validateFormat(name: string): string {
-		const [formatName, customRulesString] = name.split('@@@', 2);
-		const format = this.getFormat(formatName);
-		if (!format) throw new Error(`Unrecognized format "${formatName}"`);
-		if (!customRulesString) return format.id;
-		const ruleTable = this.getRuleTable(format);
-		const customRules = customRulesString.split(',').map(rule => {
-			const ruleSpec = this.validateRule(rule);
-			if (typeof ruleSpec === 'string' && ruleTable.has(ruleSpec)) return null;
-			return rule.replace(/[\r\n|]*/g, '').trim();
-		}).filter(rule => rule);
-		if (!customRules.length) throw new Error(`The format already has your custom rules`);
-		const validatedFormatid = format.id + '@@@' + customRules.join(',');
-		const moddedFormat = this.getFormat(validatedFormatid, true)!;
-		this.getRuleTable(moddedFormat);
-		return validatedFormatid;
-	}
-
-	getRuleTable(format: IFormat, depth = 1, repeals?: Map<string, number>): RuleTable {
-		if (format.ruleTable && !repeals) return format.ruleTable;
-		if (depth === 1 && dexes[format.mod || 'base'] !== this) {
-			// throw new Error(`${format.mod} ${this.currentMod}`);
-			return this.getDex(format.mod).getRuleTable(format, depth + 1);
-		}
-		const ruleTable = new RuleTable();
-
-		const ruleset = format.ruleset.slice();
-		for (const ban of format.banlist) {
-			ruleset.push('-' + ban);
-		}
-		for (const ban of format.restricted) {
-			ruleset.push('*' + ban);
-		}
-		for (const ban of format.unbanlist) {
-			ruleset.push('+' + ban);
-		}
-		if (format.customRules) {
-			ruleset.push(...format.customRules);
-		}
-		if (format.hasCheckLearnset) {
-			ruleTable.checkLearnset = [true, format.name];
-		}
-		if (format.timer) {
-			ruleTable.timer = [format.timer, format.name];
-		}
-		if (format.minSourceGen) {
-			ruleTable.minSourceGen = [format.minSourceGen, format.name];
-		}
-
-		// apply rule repeals before other rules
-		// repeals is a ruleid:depth map
-		for (const rule of ruleset) {
-			if (rule.startsWith('!')) {
-				const ruleSpec = this.validateRule(rule, format) as string;
-				if (!repeals) repeals = new Map();
-				repeals.set(ruleSpec.slice(1), depth);
-			}
-		}
-
-		for (const rule of ruleset) {
-			const ruleSpec = this.validateRule(rule, format);
-
-			if (typeof ruleSpec !== 'string') {
-				if (ruleSpec[0] === 'complexTeamBan') {
-					const complexTeamBan: ComplexTeamBan = ruleSpec.slice(1) as ComplexTeamBan;
-					ruleTable.addComplexTeamBan(complexTeamBan[0], complexTeamBan[1], complexTeamBan[2], complexTeamBan[3]);
-				} else if (ruleSpec[0] === 'complexBan') {
-					const complexBan: ComplexBan = ruleSpec.slice(1) as ComplexBan;
-					ruleTable.addComplexBan(complexBan[0], complexBan[1], complexBan[2], complexBan[3]);
-				} else {
-					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-					throw new Error(`Unrecognized rule spec ${ruleSpec}`);
-				}
-				continue;
-			}
-
-			if (rule.startsWith('!')) {
-				const repealDepth = repeals!.get(ruleSpec.slice(1));
-				if (repealDepth === undefined) throw new Error(`Multiple "${rule}" rules in ${format.name}`);
-				if (repealDepth === depth) {
-					throw new Error(`Rule "${rule}" did nothing because "${rule.slice(1)}" is not in effect`);
-				}
-				if (repealDepth === -depth) repeals!.delete(ruleSpec.slice(1));
-				continue;
-			}
-
-			if ("+*-".includes(ruleSpec.charAt(0))) {
-				if (ruleTable.has(ruleSpec)) {
-					throw new Error(`Rule "${rule}" was added by "${format.name}" but already exists in "${ruleTable.get(ruleSpec) ||
-						format.name}"`);
-				}
-				for (const prefix of "-*+") ruleTable.delete(prefix + ruleSpec.slice(1));
-				ruleTable.set(ruleSpec, '');
-				continue;
-			}
-			const subformat = this.getFormat(ruleSpec);
-			const subFormatId = subformat ? subformat.id: Tools.toId(ruleSpec);
-			if (repeals && repeals.has(subFormatId)) {
-				repeals.set(subFormatId, -Math.abs(repeals.get(subFormatId)!));
-				continue;
-			}
-			if (ruleTable.has(subFormatId)) {
-				throw new Error(`Rule "${rule}" was added by "${format.name}" but already exists in "${ruleTable.get(subFormatId) ||
-					format.name}"`);
-			}
-			ruleTable.set(subFormatId, '');
-			if (!subformat) continue;
-			if (depth > 16) {
-				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-				throw new Error(`Excessive ruleTable recursion in ${format.name}: ${ruleSpec} of ${format.ruleset}`);
-			}
-			const subRuleTable = this.getRuleTable(subformat, depth + 1, repeals);
-			for (const [k, v] of subRuleTable) {
-				// don't check for "already exists" here; multiple inheritance is allowed
-				if (!repeals || !repeals.has(k)) {
-					ruleTable.set(k, v || subformat.name);
-				}
-			}
-			for (const [subRule, source, limit, bans] of subRuleTable.complexBans) {
-				ruleTable.addComplexBan(subRule, source || subformat.name, limit, bans);
-			}
-			for (const [subRule, source, limit, bans] of subRuleTable.complexTeamBans) {
-				ruleTable.addComplexTeamBan(subRule, source || subformat.name, limit, bans);
-			}
-			if (subRuleTable.checkLearnset) {
-				if (ruleTable.checkLearnset) {
-					throw new Error(
-						`"${format.name}" has conflicting move validation rules from ` +
-						`"${ruleTable.checkLearnset[1]}" and "${subRuleTable.checkLearnset[1]}"`
-					);
-				}
-				ruleTable.checkLearnset = subRuleTable.checkLearnset;
-			}
-			if (subRuleTable.timer) {
-				if (ruleTable.timer) {
-					throw new Error(`"${format.name}" has conflicting timer validation rules from "${ruleTable.timer[1]}" and ` +
-						`"${subRuleTable.timer[1]}"`);
-				}
-				ruleTable.timer = subRuleTable.timer;
-			}
-			// minSourceGen is automatically ignored if higher than current gen
-			// this helps the common situation where Standard has a minSourceGen in the
-			// latest gen but not in any past gens
-			if (subRuleTable.minSourceGen && subRuleTable.minSourceGen[0] <= this.gen) {
-				if (ruleTable.minSourceGen) {
-					throw new Error(`"${format.name}" has conflicting minSourceGen from "${ruleTable.minSourceGen[1]}" and ` +
-						`"${subRuleTable.minSourceGen[1]}"`);
-				}
-				ruleTable.minSourceGen = subRuleTable.minSourceGen;
-			}
-		}
-
-		format.ruleTable = ruleTable;
-		return ruleTable;
-	}
-
-	validateRule(rule: string, format: IFormat | null = null): [string, string, string, number, string[]] | string {
-		switch (rule.charAt(0)) {
-		case '-':
-		case '*':
-		case '+': {
-			if (format && format.team) throw new Error(`We don't currently support bans in generated teams`);
-			if (rule.slice(1).includes('>') || rule.slice(1).includes('+')) {
-				let buf = rule.slice(1);
-				const gtIndex = buf.lastIndexOf('>');
-				let limit = rule.startsWith('+') ? Infinity : 0;
-				if (gtIndex >= 0 && /^[0-9]+$/.test(buf.slice(gtIndex + 1).trim())) {
-					if (limit === 0) limit = parseInt(buf.slice(gtIndex + 1));
-					buf = buf.slice(0, gtIndex);
-				}
-				let checkTeam = buf.includes('++');
-				const banNames = buf.split(checkTeam ? '++' : '+').map(v => v.trim());
-				if (banNames.length === 1 && limit > 0) checkTeam = true;
-				const innerRule = banNames.join(checkTeam ? ' ++ ' : ' + ');
-				const bans = banNames.map(v => this.validateBanRule(v));
-
-				if (checkTeam) {
-					return ['complexTeamBan', innerRule, '', limit, bans];
-				}
-				if (bans.length > 1 || limit > 0) {
-					return ['complexBan', innerRule, '', limit, bans];
-				}
-				throw new Error(`Confusing rule ${rule}`);
-			}
-			return rule.charAt(0) + this.validateBanRule(rule.slice(1));
-		}
-		default: {
-			const id = Tools.toId(rule);
-			if (!this.data.formatKeys.includes(id)) {
-				throw new Error(`Unrecognized rule "${rule}"`);
-			}
-			if (rule.startsWith('!')) return `!${id}`;
-			return id;
-		}
-		}
-	}
-
-	validateBanRule(rule: string): string {
-		let id = Tools.toId(rule);
-		if (id === 'unreleased') return 'unreleased';
-		if (id === 'nonexistent') return 'nonexistent';
-		const matches = [];
-		let matchTypes = ['pokemon', 'move', 'ability', 'item', 'pokemontag'];
-		for (const matchType of matchTypes) {
-			if (rule.startsWith(matchType + ':')) {
-				matchTypes = [matchType];
-				id = id.slice(matchType.length);
-				break;
-			}
-		}
-		const ruleid = id;
-		if (Object.prototype.hasOwnProperty.call(dexes['base'].data.aliases, id)) id = Tools.toId(dexes['base'].data.aliases[id]);
-		for (const matchType of matchTypes) {
-			let table: readonly string[];
-			switch (matchType) {
-			case 'pokemon': table = dexes['base'].data.pokemonKeys; break;
-			case 'move': table = dexes['base'].data.moveKeys; break;
-			case 'item': table = dexes['base'].data.itemKeys; break;
-			case 'ability': table = dexes['base'].data.abilityKeys; break;
-			case 'pokemontag': {
-				// valid pokemontags
-				const validTags = [
-					// singles tiers
-					'uber', 'ou', 'uubl', 'uu', 'rubl', 'ru', 'nubl', 'nu', 'publ', 'pu', 'zu', 'nfe', 'lcuber', 'lc', 'cap', 'caplc',
-					'capnfe', 'ag',
-					// doubles tiers
-					'duber', 'dou', 'dbl', 'duu', 'dnu',
-					// custom tags
-					'mega',
-					// illegal/nonstandard reasons
-					'past', 'future', 'unobtainable', 'lgpe', 'custom',
-					// all
-					'allpokemon', 'allitems', 'allmoves', 'allabilities',
-				];
-				if (validTags.includes(ruleid)) matches.push('pokemontag:' + ruleid);
-				continue;
-			}
-			default:
-				throw new Error(`Unrecognized match type.`);
-			}
-			if (table.includes(id)) {
-				if (matchType === 'pokemon') {
-					const species = dexes['base'].pokemonCache.get(id) as IPokemon;
-					if (species.otherFormes && ruleid !== species.id + Tools.toId(species.baseForme)) {
-						matches.push('basepokemon:' + id);
-						continue;
-					}
-				}
-				matches.push(matchType + ':' + id);
-			} else if (matchType === 'pokemon' && id.endsWith('base')) {
-				id = id.slice(0, -4);
-				if (table.includes(id)) {
-					matches.push('pokemon:' + id);
-				}
-			}
-		}
-		if (matches.length > 1) {
-			throw new Error(`More than one thing matches "${rule}"; please specify one of: ` + matches.join(', '));
-		}
-		if (matches.length < 1) {
-			throw new Error(`Nothing matches "${rule}"`);
-		}
-		return matches[0];
+		return this.pokemonShowdownDex.validateFormat(name);
 	}
 
 	getValidatedRuleName(rule: string): string {
@@ -1628,93 +1067,18 @@ export class Dex {
 		return ruleName;
 	}
 
-	ruleTableBansSpecies(ruleTable: RuleTable, species: IPokemon): string | null {
-		const setHas: Dict<true> = {};
-
-		setHas['pokemon:' + species.id] = true;
-		setHas['basepokemon:' + Tools.toId(species.baseSpecies)] = true;
-
-		const tier = species.tier === '(PU)' ? 'ZU' : species.tier === '(NU)' ? 'PU' : species.tier;
-		const tierTag = 'pokemontag:' + Tools.toId(tier);
-		setHas[tierTag] = true;
-
-		const doublesTier = species.doublesTier === '(DUU)' ? 'DNU' : species.doublesTier;
-		const doublesTierTag = 'pokemontag:' + Tools.toId(doublesTier);
-		setHas[doublesTierTag] = true;
-
-		let banReason = ruleTable.check('pokemon:' + species.id);
-		if (banReason) {
-			return `${species.name} is ${banReason}.`;
-		}
-		if (banReason === '') return null;
-
-		banReason = ruleTable.check('basepokemon:' + Tools.toId(species.baseSpecies));
-		if (banReason) {
-			return `${species.name} is ${banReason}.`;
-		}
-		if (banReason === '') {
-			// don't allow nonstandard speciess when whitelisting standard base species
-			// i.e. unbanning Pichu doesn't mean allowing Pichu-Spiky-Eared outside of Gen 4
-			const baseSpecies = this.getExistingPokemon(species.baseSpecies);
-			if (baseSpecies.isNonstandard === species.isNonstandard) {
-				return null;
-			}
-		}
-
-		banReason = ruleTable.check(tierTag) || (tier === 'AG' ? ruleTable.check('pokemontag:uber') : null);
-		if (banReason) {
-			return `${species.name} is in ${tier}, which is ${banReason}.`;
-		}
-		if (banReason === '') return null;
-
-		banReason = ruleTable.check(doublesTierTag);
-		if (banReason) {
-			return `${species.name} is in ${doublesTier}, which is ${banReason}.`;
-		}
-		if (banReason === '') return null;
-
-		banReason = ruleTable.check('pokemontag:allpokemon');
-		if (banReason) {
-			return `${species.name} is not in the list of allowed pokemon.`;
-		}
-
-		// obtainability
-		if (species.isNonstandard) {
-			banReason = ruleTable.check('pokemontag:' + Tools.toId(species.isNonstandard));
-			if (banReason) {
-				if (species.isNonstandard === 'Unobtainable') {
-					return `${species.name} is not obtainable without hacking or glitches.`;
-				}
-				return `${species.name} is tagged ${species.isNonstandard}, which is ${banReason}.`;
-			}
-			if (banReason === '') return null;
-		}
-
-		if (species.isNonstandard && species.isNonstandard !== 'Unobtainable') {
-			banReason = ruleTable.check('nonexistent', setHas);
-			if (banReason) {
-				if (['Past', 'Future'].includes(species.isNonstandard)) {
-					return `${species.name} does not exist in Gen ${this.gen}.`;
-				}
-				return `${species.name} does not exist in this game.`;
-			}
-			if (banReason === '') return null;
-		}
-
-		return null;
-	}
-
 	getUsablePokemon(format: IFormat): string[] {
 		if (format.usablePokemon) return format.usablePokemon;
-		if (!format.ruleTable) format.ruleTable = this.getRuleTable(format);
+		if (!format.ruleTable) format.ruleTable = this.pokemonShowdownDex.getRuleTable(format);
 
 		const formatGen = format.mod in dexes ? dexes[format.mod].gen : this.gen;
 		const littleCup = format.ruleTable.has("littlecup");
 		const usablePokemon: string[] = [];
 		for (const i of this.data.pokemonKeys) {
-			const pokemon = this.getExistingPokemon(i);
+			// use PS tier in isBannedSpecies()
+			const pokemon = this.pokemonShowdownDex.getSpecies(i);
 			if (pokemon.requiredAbility || pokemon.requiredItem || pokemon.requiredItems || pokemon.requiredMove ||
-				this.ruleTableBansSpecies(format.ruleTable, pokemon)) continue;
+				format.ruleTable.isBannedSpecies(pokemon)) continue;
 			if (littleCup) {
 				if ((pokemon.prevo && this.getExistingPokemon(pokemon.prevo).gen <= formatGen) || !pokemon.nfe) continue;
 			}
@@ -1754,7 +1118,7 @@ export class Dex {
 		const addedrules: string[] = [];
 		const removedrules: string[] = [];
 		for (const ruleString of customRules) {
-			const rule = this.validateRule(ruleString);
+			const rule = this.pokemonShowdownDex.validateRule(ruleString);
 			if (typeof rule === 'string') {
 				const type = rule.charAt(0);
 				const ruleName = this.getValidatedRuleName(rule);
@@ -2053,6 +1417,60 @@ export class Dex {
 		return isPossible;
 	}
 
+	private cacheAllPossibleMoves(validator: IValidator, pokemon: IPokemon): void {
+		let possibleMoves: string[] = [];
+		let learnsetParent: IPokemon | null = pokemon;
+		while (learnsetParent && learnsetParent.gen <= this.gen) {
+			const learnsetData = this.getLearnsetData(learnsetParent.id);
+			if (!learnsetData || !learnsetData.learnset) {
+				let forme: string | undefined;
+				if (learnsetParent.changesFrom) {
+					forme = typeof learnsetParent.changesFrom === 'string' ? learnsetParent.changesFrom : learnsetParent.changesFrom[0];
+				} else {
+					forme = learnsetParent.baseSpecies;
+				}
+
+				if (forme && forme !== learnsetParent.name) {
+					// forme without its own learnset
+					learnsetParent = this.getPokemon(forme)!;
+					// warning: formes with their own learnset, like Wormadam, should NOT
+					// inherit from their base forme unless they're freely switchable
+					continue;
+				}
+				break;
+			}
+
+			if (learnsetData && learnsetData.learnset) possibleMoves = possibleMoves.concat(Object.keys(learnsetData.learnset));
+
+			const previousLearnsetParent: IPokemon = learnsetParent;
+			learnsetParent = validator.learnsetParent(learnsetParent);
+
+			// prevent recursion from calling validator.learnsetParent() directly
+			if (learnsetParent && learnsetParent === previousLearnsetParent) break;
+		}
+
+		const checkedMoves: string[] = [];
+		for (const i of possibleMoves) {
+			const move = this.getMove(i)!;
+			if (!checkedMoves.includes(move.id) && move.gen <= this.gen && !validator.checkLearnset(move, pokemon)) {
+				checkedMoves.push(move.id);
+			}
+		}
+
+		this.allPossibleMovesCache.set(pokemon.id, checkedMoves);
+	}
+
+	private cacheMoveAvailability(move: IMove, pokedex: IPokemon[]): void {
+		let availability = 0;
+		for (const pokemon of pokedex) {
+			if (this.getAllPossibleMoves(pokemon).includes(move.id)) {
+				availability++;
+			}
+		}
+
+		this.moveAvailbilityCache.set(move.id, availability);
+	}
+
 	private getAllEvolutionLines(pokemon: IPokemon, prevoList?: string[], evolutionLines?: string[][]): string[][] {
 		if (!prevoList || !evolutionLines) {
 			let firstStage = pokemon;
@@ -2077,13 +1495,22 @@ export class Dex {
 	}
 }
 
-export const instantiate = async(): Promise<void> => {
+export const instantiate = (): void => {
 	const oldDex: Dex | undefined = global.Dex;
 
+	// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
+	pokemonShowdownDexBase = require(path.join(Tools.pokemonShowdownFolder, ".sim-dist", "dex.js")).Dex as IPokemonShowdownDex;
+	// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+	pokemonShowdownTeamValidator = require(path.join(Tools.pokemonShowdownFolder, ".sim-dist", "team-validator.js")).TeamValidator;
+
 	global.Dex = new Dex();
+	for (let i = currentGen - 1; i >= 1; i--) {
+		const mod = 'gen' + i;
+		dexes[mod] = new Dex(i, mod);
+	}
 
 	if (oldDex) {
-		await global.Dex.onReload(oldDex);
+		global.Dex.onReload(oldDex);
 		Tools.updateNodeModule(__filename, module);
 	}
 };

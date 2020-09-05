@@ -10,13 +10,15 @@ const categoryKeys: string[] = [];
 
 class SudowoodosSpeciesScramble extends Guessing {
 	static loadData(room: Room | User): void {
-		const pokemonList = Games.getPokemonList(pokemon => !!pokemon.category);
+		const pokemonList = Games.getPokemonList();
 		for (const pokemon of pokemonList) {
-			if (!(pokemon.category in data.categories)) {
-				data.categories[pokemon.category] = [];
-				categoryKeys.push(pokemon.category);
+			const category = Dex.getPokemonCategory(pokemon);
+			if (!category) continue;
+			if (!(category in data.categories)) {
+				data.categories[category] = [];
+				categoryKeys.push(category);
 			}
-			data.categories[pokemon.category].push(pokemon.name);
+			data.categories[category].push(pokemon.name);
 		}
 	}
 

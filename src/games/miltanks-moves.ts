@@ -11,15 +11,15 @@ const data: {'moves': Dict<Dict<string[]>>; 'pokemon': string[]} = {
 
 class MiltanksMoves extends Guessing {
 	static loadData(room: Room | User): void {
-		const pokedex = Games.getPokemonList(x => x.baseSpecies === x.name && !!Dex.getAllPossibleMoves(x).length);
 		const moves = Games.getMovesList();
 		const bannedMoves: string[] = [];
 		for (const move of moves) {
-			const availability = Dex.getMoveAvailability(move, pokedex);
+			const availability = Dex.getMoveAvailability(move);
 			if (availability >= Games.maxMoveAvailability) bannedMoves.push(move.id);
 		}
 
 		const moveCache: Dict<IMove> = {};
+		const pokedex = Games.getPokemonList(x => x.baseSpecies === x.name && !!Dex.getAllPossibleMoves(x).length);
 		for (const pokemon of pokedex) {
 			const allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
 			for (const possibleMove of allPossibleMoves) {

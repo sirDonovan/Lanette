@@ -4,7 +4,9 @@ import { assert, assertStrictEqual } from './../test-tools';
 /* eslint-env mocha */
 
 describe("Dex", () => {
-	it('should properly load data', () => {
+	it('should properly load data', function(this: Mocha.Context) {
+		this.timeout(0);
+
 		assert(Dex.data.abilityKeys.length > 1);
 		assert(Dex.data.formatKeys.length > 1);
 		assert(Dex.data.itemKeys.length > 1);
@@ -18,20 +20,12 @@ describe("Dex", () => {
 		assert(Dex.data.locations.length > 1);
 		assert(Dex.data.trainerClasses.length > 1);
 
-		assert(Object.keys(Dex.data.aliases).length > 1);
 		assert(Object.keys(Dex.data.categories).length > 1);
 		assert(Object.keys(Dex.data.colors).length > 1);
 		assert(Object.keys(Dex.data.eggGroups).length > 1);
 		assert(Object.keys(Dex.data.gifData).length > 1);
 		assert(Object.keys(Dex.data.gifDataBW).length > 1);
 		assert(Object.keys(Dex.data.natures).length > 1);
-
-		// aliases
-		assert(Dex.abilityCache.size > Dex.data.abilityKeys.length);
-		assert(Dex.formatCache.size > Dex.data.formatKeys.length);
-		assert(Dex.itemCache.size > Dex.data.itemKeys.length);
-		assert(Dex.moveCache.size > Dex.data.moveKeys.length);
-		assert(Dex.pokemonCache.size > Dex.data.pokemonKeys.length);
 
 		// allPossibleMoves
 		let pokemon = Dex.getExistingPokemon('Charizard');
@@ -84,11 +78,12 @@ describe("Dex", () => {
 			assert(Dex.data.characters.indexOf(Dex.data.characters[i]) === i, "Duplicate character " + Dex.data.characters[i]);
 		}
 
-		const categoryKeys = Object.keys(Dex.data.categories);
 		for (let i = Dex.gen; i >= 1; i--) {
-			assertStrictEqual(Dex.getDex('gen' + i).getExistingPokemon('Pikachu').category, 'Mouse');
+			const dex = Dex.getDex('gen' + i);
+			assertStrictEqual(dex.getPokemonCategory(dex.getExistingPokemon('Pikachu')), 'Mouse');
 		}
 
+		const categoryKeys = Object.keys(Dex.data.categories);
 		for (let i = 0; i < categoryKeys.length; i++) {
 			assert(Tools.toId(categoryKeys[i]) === categoryKeys[i], categoryKeys[i] + " should be an ID in categories.js");
 			assert(categoryKeys.indexOf(categoryKeys[i]) === i, "Duplicate category for " + categoryKeys[i]);
@@ -137,10 +132,6 @@ describe("Dex", () => {
 			assertStrictEqual(Dex.getLearnsetData(variant), learnsetData);
 		}
 	});
-	it('should support OMoTM# aliases', () => {
-		assert(Dex.getFormat('omotm'));
-		if (Dex.omotms.length > 1) assert(Dex.getFormat('omotm2'));
-	});
 	it('should set custom attributes for formats', () => {
 		for (const i of Dex.data.formatKeys) {
 			const format = Dex.getExistingFormat(i);
@@ -148,35 +139,6 @@ describe("Dex", () => {
 			assertStrictEqual(typeof format.tournamentPlayable, 'boolean');
 			assertStrictEqual(typeof format.unranked, 'boolean');
 		}
-	});
-	it('should support getting RuleTables in all gens', () => {
-		const gen7 = Dex.getExistingFormat("gen7ou@@@-Grookey");
-		assert(gen7.customRules);
-		assert(Dex.getRuleTable(gen7));
-
-		const gen6 = Dex.getExistingFormat("gen6ou@@@-Rowlet");
-		assert(gen6.customRules);
-		assert(Dex.getRuleTable(gen6));
-
-		const gen5 = Dex.getExistingFormat("gen5ou@@@-Chespin");
-		assert(gen5.customRules);
-		assert(Dex.getRuleTable(gen5));
-
-		const gen4 = Dex.getExistingFormat("gen4ou@@@-Snivy");
-		assert(gen4.customRules);
-		assert(Dex.getRuleTable(gen4));
-
-		const gen3 = Dex.getExistingFormat("gen3ou@@@-Turtwig");
-		assert(gen3.customRules);
-		assert(Dex.getRuleTable(gen3));
-
-		const gen2 = Dex.getExistingFormat("gen2ou@@@-Treecko");
-		assert(gen2.customRules);
-		assert(Dex.getRuleTable(gen2));
-
-		const gen1 = Dex.getExistingFormat("gen1ou@@@-Chikorita");
-		assert(gen1.customRules);
-		assert(Dex.getRuleTable(gen1));
 	});
 	it('should properly parse custom rules in separateCustomRules()', () => {
 		const customRules: string[] = ["-Pikachu", "+Charizard", "*Kubfu", "Same Type Clause", "!Team Preview"];

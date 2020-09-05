@@ -17,7 +17,7 @@ import * as users from './users';
 module.exports = (async(): Promise<void> => {
 	tools.instantiate();
 	global.Config = ConfigLoader.load(config);
-	await dex.instantiate();
+	dex.instantiate();
 	client.instantiate();
 	commandParser.instantiate();
 	rooms.instantiate();

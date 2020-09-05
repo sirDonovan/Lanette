@@ -50,14 +50,14 @@ class SpindasExcludedPokemon extends Game {
 			typeAliases[type.id + 'type'] = type.name;
 		}
 
-		const pokemonList = Games.getPokemonList();
 		const moves = Games.getMovesList(x => !x.id.includes('hiddenpower'));
 		for (const move of moves) {
-			const availability = Dex.getMoveAvailability(move, pokemonList);
+			const availability = Dex.getMoveAvailability(move);
 			if (!availability || availability < minimumMoveAvailability || availability > maximumMoveAvailability) continue;
 			data.usableMoves.push(move.id);
 		}
 
+		const pokemonList = Games.getPokemonList();
 		for (const pokemon of pokemonList) {
 			const allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
 			const usableMoves: string[] = [];

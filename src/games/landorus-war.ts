@@ -24,7 +24,7 @@ class LandorusWar extends Game {
 
 	static loadData(room: Room | User): void {
 		const moveList = Games.getMovesList(x => {
-			if (x.id === 'hiddenpower' || (!x.basePower && !x.hasBasePowerCallback)) return false;
+			if (x.id === 'hiddenpower' || (!x.basePower && !x.basePowerCallback)) return false;
 			return true;
 		});
 

@@ -162,7 +162,7 @@ export const tournamentSchedules: Dict<IRoomTournamentSchedule> = {
 					'17': 'ubers@@@350cupmod,-Eviolite,-Light Ball,-Pawniard,-Abra',
 					'18': 'gen7lc@@@STABmons move legality,-gastly,*acupressure,*belly drum,*extreme speed,*shell smash,*shift gear,' +
 						'*spore',
-					'19': 'ubers',
+					'19': 'gen5ubers@@@-Drought,-Drizzle,-Dark Void',
 					'20': 'gen3uu@@@-Spikes',
 					'21': 'gen2ou@@@Same Type Clause,-Snorlax',
 					'22': 'cap@@@-U-turn,-Volt Switch,-Teleport,-Flip Turn',

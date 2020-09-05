@@ -3,13 +3,6 @@
  * Pokemon Showdown - https://github.com/smogon/pokemon-showdown
  */
 
-import type { RuleTable } from "../dex";
-import type { PokemonShowdownWorker } from '../workers/pokemon-showdown';
-
-export interface IDexWorkers {
-	pokemonShowdown: PokemonShowdownWorker;
-}
-
 /** rule, source, limit, bans */
 export type ComplexBan = [string, string, number, string[]];
 export type ComplexTeamBan = ComplexBan;
@@ -332,7 +325,8 @@ export interface IMoveCopy extends IBasicEffect {
 	stallingMove?: boolean;
 	baseMove?: string;
 
-	hasBasePowerCallback?: boolean;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	basePowerCallback?: (this: any, pokemon: any, target: any, move: any) => number | false | null;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -379,8 +373,7 @@ interface IPokemonCopy extends ISpeciesFormatsData {
 	baseForme: string;
 	baseSpecies: string;
 	battleOnly?: string | string[];
-	category: string;
-	changesFrom?: string;
+	changesFrom?: string | string[];
 	color: string;
 	doublesTier: string;
 	effectType: "Pokemon";
@@ -427,7 +420,6 @@ interface IPokemonCopy extends ISpeciesFormatsData {
 export interface IPokemon extends DeepImmutable<IPokemonCopy> {}
 
 interface ILearnsetData {
-	id: string;
 	learnset?: Dict<MoveSource[]>;
 	eventData?: IEventInfo[];
 	eventOnly?: boolean;
@@ -478,7 +470,8 @@ export interface IFormatData {
 	tournamentShow?: boolean;
 	section?: string;
 	column?: number;
-	hasCheckLearnset?: boolean;
+
+	checkLearnset?: (this: any, move: any, species: any, setSources: any, set: any) => {type: string, [any: string]: any} | null;
 }
 /* eslint-enable */
 
@@ -503,6 +496,26 @@ export interface ISeparatedCustomRules {
 	addedrestrictions: string[];
 	addedrules: string[];
 	removedrules: string[];
+}
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export interface RuleTable extends Map<string, string> {
+	complexBans: ComplexBan[];
+	complexTeamBans: ComplexTeamBan[];
+	checkLearnset: [() => void, string] | null;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	timer: [Partial<any>, string] | null;
+	minSourceGen: [number, string] | null;
+
+	isBanned: (thing: string) => boolean;
+	isBannedSpecies: (species: IPokemon) => boolean;
+	isRestricted: (thing: string) => boolean;
+	isRestrictedSpecies: (species: IPokemon) => boolean;
+	check: (thing: string, setHas?: {[id: string]: true} | null) => string | null;
+	getReason: (key: string) => string | null;
+	getComplexBanIndex: (complexBans: ComplexBan[], rule: string) => number;
+	addComplexBan: (rule: string, source: string, limit: number, bans: string[]) => void;
+	addComplexTeamBan: (rule: string, source: string, limit: number, bans: string[]) => void;
 }
 
 export interface IFormat extends IBasicEffect, IFormatData, IFormatLinks {
@@ -534,7 +547,6 @@ export interface IGifData {
 
 export interface IDataTable {
 	readonly abilityKeys: readonly string[];
-	readonly aliases: Readonly<Dict<string | undefined>>;
 	readonly alternateIconNumbers: Readonly<{left: Dict<number | undefined>, right: Dict<number | undefined>}>;
 	readonly badges: readonly string[];
 	readonly categories: Readonly<Dict<string | undefined>>;
@@ -561,4 +573,65 @@ export interface IGetPossibleTeamsOptions {
 	allowFormes?: boolean;
 	requiredAddition?: boolean;
 	requiredEvolution?: boolean;
+}
+
+export interface IPSAbility extends IAbility {
+	exists: boolean;
+}
+
+export interface IPSFormat extends IFormat {
+	exists: boolean;
+}
+
+export interface IPSItem extends IItem {
+	exists: boolean;
+}
+
+export interface IPSLearnsetData extends ILearnsetData {
+	exists: boolean;
+}
+
+export interface IPSMove extends IMove {
+	exists: boolean;
+}
+
+export interface IPSPokemon extends IPokemon {
+	exists: boolean;
+}
+
+export interface IPSTypeData extends ITypeData {
+	exists: boolean;
+}
+
+export interface IPokemonShowdownDex {
+	data: {
+		Aliases: Dict<string>;
+		Abilities: Dict<string>;
+		Items: Dict<string>;
+		Formats: Dict<string>;
+		Learnsets: Dict<string>;
+		Moves: Dict<string>;
+		Pokedex: Dict<string>;
+		TypeChart: Dict<string>;
+	}
+	gen: number;
+	getAbility: (name: string) => IPSAbility;
+	getFormat: (name: string, isVaidated?: boolean) => IPSFormat;
+	getItem: (name: string) => IPSItem;
+	getLearnsetData: (name: string) => IPSLearnsetData;
+	getMove: (name: string) => IPSMove;
+	getRuleTable: (format: IFormat) => RuleTable;
+	getSpecies: (name: string) => IPSPokemon;
+	getType: (name: string) => IPSTypeData;
+	includeModData: () => void;
+	mod: (mod: string) => IPokemonShowdownDex;
+	validateFormat: (name: string) => string;
+	validateRule: (rule: string) => [string, string, string, number, string[]] | string;
+}
+
+export interface IValidator {
+	// eslint-disable-next-line @typescript-eslint/no-misused-new
+	new(format: string | IFormat, dex: IPokemonShowdownDex): IValidator;
+	checkLearnset: (move: IMove, pokemon: IPokemon) => boolean;
+	learnsetParent: (pokemon: IPokemon) => IPokemon | null;
 }

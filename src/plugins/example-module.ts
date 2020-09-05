@@ -34,10 +34,7 @@ export class Module implements IPluginInterface {
 	}
 
 	async loadData(): Promise<void> {
-		// perform any loading required by the module
-
-		// if the module requires Dex or Games data, those must be loaded here, e.g.
-		// await Dex.loadAllData();
+		// load all data required by the module
 
 		return Promise.resolve();
 	}
