@@ -182,7 +182,8 @@ module.exports = async (resolve, reject, options) => {
 			}
 		}
 
-		const pokemonShowdownData = path.join(pokemonShowdown, ".data-dist");
+		const pokemonShowdownDist = [path.join(pokemonShowdown, ".config-dist"), path.join(pokemonShowdown, ".data-dist"),
+			path.join(pokemonShowdown, ".lib-dist"), path.join(pokemonShowdown, ".server-dist"), path.join(pokemonShowdown, ".sim-dist")];
 		let buildPokemonShowdown = false;
 		if (setToLanetteSha) {
 			buildPokemonShowdown = true;
@@ -201,7 +202,12 @@ module.exports = async (resolve, reject, options) => {
 				return;
 			}
 
-			if (!fs.existsSync(pokemonShowdownData)) buildPokemonShowdown = true;
+			for (const dist of pokemonShowdownDist) {
+				if (!fs.existsSync(dist)) {
+					buildPokemonShowdown = true;
+					break;
+				}
+			}
 		}
 
 		if (buildPokemonShowdown) {
@@ -213,7 +219,9 @@ module.exports = async (resolve, reject, options) => {
 				return;
 			}
 
-			deleteFolderRecursive(pokemonShowdownData);
+			for (const dist of pokemonShowdownDist) {
+				deleteFolderRecursive(dist);
+			}
 
 			console.log("Running pokemon-showdown build script...");
 			const nodeBuildOutput = await exec('node build --force').catch(e => console.log(e));
