@@ -318,5 +318,6 @@ export const game: IGameFile<ParasParameters> = Games.copyTemplateProperties(gue
 			roundTime: 60 * 1000,
 		},
 	},
+	nonTrivialLoadData: true,
 	tests: Object.assign({}, guessingGame.tests, tests),
 });

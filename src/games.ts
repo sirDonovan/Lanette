@@ -872,7 +872,7 @@ export class Games {
 		if (!isMinigame) this.clearAutoCreateTimer(room as Room);
 
 		if (format.class.loadData && !format.class.loadedData) {
-			if (!format.nonTrivialLoadData) {
+			if (format.nonTrivialLoadData) {
 				room.say("Loading data for " + Users.self.name + "'s first " + format.name + " game since updating...");
 			}
 			format.class.loadData(room);

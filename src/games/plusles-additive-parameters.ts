@@ -234,4 +234,5 @@ export const game: IGameFile<PluslesAdditiveParameters> = {
 	formerNames: ["Pumpkaboo's Parameters"],
 	name: "Plusle's Additive Parameters",
 	mascot: "Plusle",
+	nonTrivialLoadData: true,
 };
