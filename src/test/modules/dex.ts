@@ -166,6 +166,17 @@ describe("Dex", () => {
 		assertStrictEqual(split[1][0], '+Lunala');
 		assertStrictEqual(split[1][1], '+Solgaleo');
 	});
+	it('should have valid custom rule and format aliases', () => {
+		for (const i in Dex.customRuleAliases) {
+			for (const rule of Dex.customRuleAliases[i]) {
+				assert(Dex.validateRule(rule), i);
+			}
+		}
+
+		for (const i in Dex.customRuleFormats) {
+			assert(Dex.validateFormat(Dex.customRuleFormats[i]), i);
+		}
+	});
 	it('should support all types of custom rule aliases', () => {
 		let format = Dex.getExistingFormat("ou@@@+Lunala");
 		assert(format.customRules);

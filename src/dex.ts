@@ -120,6 +120,8 @@ const dexes: Dict<Dex> = {};
 export class Dex {
 	// exported constants
 	readonly currentGenString: typeof currentGenString = currentGenString;
+	readonly customRuleAliases: typeof customRuleAliases = customRuleAliases;
+	readonly customRuleFormats: typeof customRuleFormats = customRuleFormats;
 	dexes: Dict<Dex> = dexes;
 	readonly omotms: string[] = [];
 	readonly tagNames: typeof tagNames = tagNames;
@@ -1118,6 +1120,13 @@ export class Dex {
 	 */
 	validateFormat(name: string): string {
 		return this.pokemonShowdownDex.validateFormat(name);
+	}
+
+	/**
+	 * Validates a custom rule (throws if invalid).
+	 */
+	validateRule(rule: string): [string, string, string, number, string[]] | string {
+		return this.pokemonShowdownDex.validateRule(rule);
 	}
 
 	getValidatedRuleName(rule: string): string {
