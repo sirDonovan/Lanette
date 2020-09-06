@@ -116,6 +116,13 @@ export class Games {
 	readonly commands: LoadedGameCommands;
 	readonly sharedCommands: LoadedGameCommands;
 
+	/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+	private abilitiesLists: Dict<readonly IAbility[]> = Object.create(null);
+	private itemsLists: Dict<readonly IItem[]> = Object.create(null);
+	private movesLists: Dict<readonly IMove[]> = Object.create(null);
+	private pokemonLists: Dict<readonly IPokemon[]> = Object.create(null);
+	/* eslint-enable */
+
 	constructor() {
 		const sharedCommands = CommandParser.loadCommands(sharedCommandDefinitions);
 		this.sharedCommands = sharedCommands;
@@ -943,25 +950,37 @@ export class Games {
 	 *
 	 * filterAbility: Return `false` to filter `ability` out of the list
 	 */
-	getAbilitiesList(filter?: (ability: IAbility) => boolean, gen?: string): IAbility[] {
-		let dex = Dex;
-		if (gen) dex = Dex.getDex(gen);
-		const baseList = dex.getAbilitiesList(filter);
-		const list: IAbility[] = [];
-		for (const ability of baseList) {
-			if (!ability.name) continue;
-			list.push(ability);
+	getAbilitiesList(filter?: (ability: IAbility) => boolean, gen?: number): readonly IAbility[] {
+		if (!gen) gen = Dex.gen;
+		const mod = 'gen' + gen;
+		if (!Object.prototype.hasOwnProperty.call(this.abilitiesLists, mod)) {
+			const baseList = Dex.getDex(mod).getAbilitiesList();
+			const list: IAbility[] = [];
+			for (const ability of baseList) {
+				if (!ability.name) continue;
+				list.push(ability);
+			}
+			this.abilitiesLists[mod] = list;
 		}
-		return list;
+
+		if (!filter) return this.abilitiesLists[mod];
+
+		const filteredList: IAbility[] = [];
+		for (const ability of this.abilitiesLists[mod]) {
+			if (!filter(ability)) continue;
+			filteredList.push(ability);
+		}
+
+		return filteredList;
 	}
 
 	/** Returns a list of copied standard abilities for games
 	 *
 	 * filterAbility: Return `false` to filter `ability` out of the list
 	 */
-	getAbilitiesCopyList(filter?: (ability: IAbility) => boolean, gen?: string): IAbilityCopy[] {
-		let dex = Dex;
-		if (gen) dex = Dex.getDex(gen);
+	getAbilitiesCopyList(filter?: (ability: IAbility) => boolean, gen?: number): IAbilityCopy[] {
+		if (!gen) gen = Dex.gen;
+		const dex = Dex.getDex('gen' + gen);
 		return this.getAbilitiesList(filter, gen).map(x => dex.getAbilityCopy(x));
 	}
 
@@ -969,25 +988,37 @@ export class Games {
 	 *
 	 * filterItem: Return `false` to filter `item` out of the list
 	 */
-	getItemsList(filter?: (item: IItem) => boolean, gen?: string): IItem[] {
-		let dex = Dex;
-		if (gen) dex = Dex.getDex(gen);
-		const baseList = dex.getItemsList(filter);
-		const list: IItem[] = [];
-		for (const item of baseList) {
-			if (!item.name || (item.id.substr(0, 2) === 'tr' && !isNaN(parseInt(item.id.substr(2))))) continue;
-			list.push(item);
+	getItemsList(filter?: (item: IItem) => boolean, gen?: number): readonly IItem[] {
+		if (!gen) gen = Dex.gen;
+		const mod = 'gen' + gen;
+		if (!Object.prototype.hasOwnProperty.call(this.itemsLists, mod)) {
+			const baseList = Dex.getDex(mod).getItemsList();
+			const list: IItem[] = [];
+			for (const item of baseList) {
+				if (!item.name) continue;
+				list.push(item);
+			}
+			this.itemsLists[mod] = list;
 		}
-		return list;
+
+		if (!filter) return this.itemsLists[mod];
+
+		const filteredList: IItem[] = [];
+		for (const item of this.itemsLists[mod]) {
+			if (!filter(item)) continue;
+			filteredList.push(item);
+		}
+
+		return filteredList;
 	}
 
 	/** Returns a list of copied standard items for games
 	 *
 	 * filterItem: Return `false` to filter `item` out of the list
 	 */
-	getItemsCopyList(filter?: (item: IItem) => boolean, gen?: string): IItemCopy[] {
-		let dex = Dex;
-		if (gen) dex = Dex.getDex(gen);
+	getItemsCopyList(filter?: (item: IItem) => boolean, gen?: number): IItemCopy[] {
+		if (!gen) gen = Dex.gen;
+		const dex = Dex.getDex('gen' + gen);
 		return this.getItemsList(filter, gen).map(x => dex.getItemCopy(x));
 	}
 
@@ -995,25 +1026,37 @@ export class Games {
 	 *
 	 * filterItem: Return `false` to filter `move` out of the list
 	 */
-	getMovesList(filter?: (move: IMove) => boolean, gen?: string): IMove[] {
-		let dex = Dex;
-		if (gen) dex = Dex.getDex(gen);
-		const baseList = dex.getMovesList(filter);
-		const list: IMove[] = [];
-		for (const move of baseList) {
-			if (!move.name) continue;
-			list.push(move);
+	getMovesList(filter?: (move: IMove) => boolean, gen?: number): readonly IMove[] {
+		if (!gen) gen = Dex.gen;
+		const mod = 'gen' + gen;
+		if (!Object.prototype.hasOwnProperty.call(this.movesLists, mod)) {
+			const baseList = Dex.getDex(mod).getMovesList();
+			const list: IMove[] = [];
+			for (const move of baseList) {
+				if (!move.name) continue;
+				list.push(move);
+			}
+			this.movesLists[mod] = list;
 		}
-		return list;
+
+		if (!filter) return this.movesLists[mod];
+
+		const filteredList: IMove[] = [];
+		for (const move of this.movesLists[mod]) {
+			if (!filter(move)) continue;
+			filteredList.push(move);
+		}
+
+		return filteredList;
 	}
 
 	/** Returns a list of copied standard moves for games
 	 *
 	 * filterItem: Return `false` to filter `move` out of the list
 	 */
-	getMovesCopyList(filter?: (move: IMove) => boolean, gen?: string): IMoveCopy[] {
-		let dex = Dex;
-		if (gen) dex = Dex.getDex(gen);
+	getMovesCopyList(filter?: (move: IMove) => boolean, gen?: number): IMoveCopy[] {
+		if (!gen) gen = Dex.gen;
+		const dex = Dex.getDex('gen' + gen);
 		return this.getMovesList(filter, gen).map(x => dex.getMoveCopy(x));
 	}
 
@@ -1021,25 +1064,37 @@ export class Games {
 	 *
 	 * filterItem: Return `false` to filter `pokemon` out of the list
 	 */
-	getPokemonList(filter?: (pokemon: IPokemon) => boolean, gen?: string): IPokemon[] {
-		let dex = Dex;
-		if (gen) dex = Dex.getDex(gen);
-		const baseList = dex.getPokemonList(filter);
-		const list: IPokemon[] = [];
-		for (const pokemon of baseList) {
-			if (!pokemon.name) continue;
-			list.push(pokemon);
+	getPokemonList(filter?: (pokemon: IPokemon) => boolean, gen?: number): readonly IPokemon[] {
+		if (!gen) gen = Dex.gen;
+		const mod = 'gen' + gen;
+		if (!Object.prototype.hasOwnProperty.call(this.pokemonLists, mod)) {
+			const baseList = Dex.getDex(mod).getPokemonList();
+			const list: IPokemon[] = [];
+			for (const pokemon of baseList) {
+				if (!pokemon.name) continue;
+				list.push(pokemon);
+			}
+			this.pokemonLists[mod] = list;
 		}
-		return list;
+
+		if (!filter) return this.pokemonLists[mod];
+
+		const filteredList: IPokemon[] = [];
+		for (const pokemon of this.pokemonLists[mod]) {
+			if (!filter(pokemon)) continue;
+			filteredList.push(pokemon);
+		}
+
+		return filteredList;
 	}
 
 	/** Returns a list of copied standard Pokemon for games
 	 *
 	 * filterItem: Return `false` to filter `pokemon` out of the list
 	 */
-	getPokemonCopyList(filter?: (pokemon: IPokemon) => boolean, gen?: string): IPokemonCopy[] {
-		let dex = Dex;
-		if (gen) dex = Dex.getDex(gen);
+	getPokemonCopyList(filter?: (pokemon: IPokemon) => boolean, gen?: number): IPokemonCopy[] {
+		if (!gen) gen = Dex.gen;
+		const dex = Dex.getDex('gen' + gen);
 		return this.getPokemonList(filter, gen).map(x => dex.getPokemonCopy(x));
 	}
 
