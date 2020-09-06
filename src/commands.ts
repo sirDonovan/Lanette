@@ -2873,13 +2873,20 @@ const commands: CommandDefinitions<CommandContext> = {
 					if (format.customRules) return this.say("You cannot alter the custom rules of scheduled tournaments.");
 					return this.say("You cannot add custom rules to scheduled tournaments.");
 				}
-				const customRules: string[] = targets.slice(2).map(x => x.trim());
-				const formatid = format.inputTarget + "@@@" + customRules.join(',');
+
+				let customRules = format.customRules ? format.customRules.slice() : [];
+				for (let i = 2; i < targets.length; i++) {
+					const trimmed = targets[i].trim();
+					if (!customRules.includes(trimmed)) customRules.push(trimmed);
+				}
+
+				let formatid = format.name + '@@@' + customRules.join(',');
 				try {
-					Dex.validateFormat(formatid);
+					formatid = Dex.validateFormat(formatid);
 				} catch (e) {
 					return this.say((e as Error).message);
 				}
+
 				format = Dex.getExistingFormat(formatid, true);
 			}
 
