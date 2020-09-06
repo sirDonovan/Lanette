@@ -1008,11 +1008,19 @@ export class Dex {
 			}
 
 			if (format.id in formatLinks) {
-				format = Object.assign(formatLinks[format.id], format, {
-					'info-official': info,
-					'np-official': np,
-					'viability-official': viability,
-				});
+				const links = formatLinks[format.id]!;
+				if (links.info) {
+					format['info-official'] = info;
+					format.info = links.info;
+				}
+				if (links.np) {
+					format['np-official'] = np;
+					format.np = links.np;
+				}
+				if (links.viability) {
+					format['viability-official'] = viability;
+					format.viability = links.viability;
+				}
 			} else {
 				format.info = info;
 				format.np = np;
@@ -1125,6 +1133,9 @@ export class Dex {
 
 	getUsablePokemon(format: IFormat): string[] {
 		if (format.usablePokemon) return format.usablePokemon;
+
+		const formatid = format.name + (format.customRules ? "@@@" + format.customRules.join(',') : "");
+		const validator = new pokemonShowdownTeamValidator(formatid, dexes['base'].pokemonShowdownDex);
 		if (!format.ruleTable) format.ruleTable = this.pokemonShowdownDex.getRuleTable(format);
 
 		const formatGen = format.mod in dexes ? dexes[format.mod].gen : this.gen;
@@ -1134,7 +1145,7 @@ export class Dex {
 			// use PS tier in isBannedSpecies()
 			const pokemon = this.pokemonShowdownDex.getSpecies(i);
 			if (pokemon.requiredAbility || pokemon.requiredItem || pokemon.requiredItems || pokemon.requiredMove ||
-				format.ruleTable.isBannedSpecies(pokemon)) continue;
+				validator.checkSpecies({}, pokemon, pokemon, {})) continue;
 			if (littleCup) {
 				if ((pokemon.prevo && this.getExistingPokemon(pokemon.prevo).gen <= formatGen) || !pokemon.nfe) continue;
 			}

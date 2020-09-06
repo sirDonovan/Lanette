@@ -140,6 +140,16 @@ describe("Dex", () => {
 			assertStrictEqual(typeof format.unranked, 'boolean');
 		}
 	});
+	it('should properly cache data', () => {
+		assert(Dex.getExistingAbility("Air Lock") === Dex.getExistingAbility("Air Lock"));
+		assert(Dex.getExistingItem("Burn Drive") === Dex.getExistingItem("Burn Drive"));
+		assert(Dex.getExistingMove("Acid Armor") === Dex.getExistingMove("Acid Armor"));
+		assert(Dex.getExistingPokemon("Mr. Mime") === Dex.getExistingPokemon("Mr. Mime"));
+		assert(Dex.getLearnsetData("Mr. Mime") === Dex.getLearnsetData("Mr. Mime"));
+
+		assert(Dex.getExistingFormat("[Gen 8] OU") !== Dex.getExistingFormat("[Gen 8] OU"));
+		assert(Dex.getExistingFormat("[Gen 8] OU") !== Dex.getExistingFormat("[Gen 8] OU@@@+Lunala"));
+	});
 	it('should properly parse custom rules in separateCustomRules()', () => {
 		const customRules: string[] = ["-Pikachu", "+Charizard", "*Kubfu", "Same Type Clause", "!Team Preview"];
 		const separatedCustomRules: ISeparatedCustomRules = Dex.separateCustomRules(customRules);
@@ -268,6 +278,28 @@ describe("Dex", () => {
 		assert(!Dex.includesPokemon(['Pikachu'], ['Charmander']));
 		assert(!Dex.includesPokemon([Dex.getExistingPokemon('Pikachu')], ['Pikachu', 'Charmander']));
 		assert(!Dex.includesPokemon([Dex.getExistingPokemon('Pikachu')], ['Charmander']));
+	});
+	it('should return proper values from getUsablePokemon()', () => {
+		let usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("ou"));
+		assert(usablePokemon.includes(Dex.getExistingPokemon('Pikachu').name));
+		assert(!usablePokemon.includes(Dex.getExistingPokemon('Lunala').name));
+		assert(!usablePokemon.includes(Dex.getExistingPokemon('Voodoom').name));
+		assert(!usablePokemon.includes(Dex.getExistingPokemon('Missingno.').name));
+		assert(!usablePokemon.includes(Dex.getExistingPokemon('Pokestar Smeargle').name));
+
+		usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("uber"));
+		assert(usablePokemon.includes(Dex.getExistingPokemon('Pikachu').name));
+		assert(usablePokemon.includes(Dex.getExistingPokemon('Lunala').name));
+		assert(!usablePokemon.includes(Dex.getExistingPokemon('Voodoom').name));
+		assert(!usablePokemon.includes(Dex.getExistingPokemon('Missingno.').name));
+		assert(!usablePokemon.includes(Dex.getExistingPokemon('Pokestar Smeargle').name));
+
+		usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("ou@@@+Lunala"));
+		assert(usablePokemon.includes(Dex.getExistingPokemon('Pikachu').name));
+		assert(usablePokemon.includes(Dex.getExistingPokemon('Lunala').name));
+		assert(!usablePokemon.includes(Dex.getExistingPokemon('Voodoom').name));
+		assert(!usablePokemon.includes(Dex.getExistingPokemon('Missingno.').name));
+		assert(!usablePokemon.includes(Dex.getExistingPokemon('Pokestar Smeargle').name));
 	});
 	it('should return proper values from isPossibleTeam()', () => {
 		let teams = [['Charmander', 'Squirtle']];

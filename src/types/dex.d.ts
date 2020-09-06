@@ -633,5 +633,7 @@ export interface IValidator {
 	// eslint-disable-next-line @typescript-eslint/no-misused-new
 	new(format: string | IFormat, dex: IPokemonShowdownDex): IValidator;
 	checkLearnset: (move: IMove, pokemon: IPokemon) => boolean;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	checkSpecies: (set: Dict<any>, pokemon: IPokemon, tierPokemon: IPokemon, setHas: Dict<boolean>) => string | null;
 	learnsetParent: (pokemon: IPokemon) => IPokemon | null;
 }
