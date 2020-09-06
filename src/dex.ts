@@ -926,37 +926,58 @@ export class Dex {
 		Formats
 	*/
 
+	splitNameAndCustomRules(input: string): [string, string[]] {
+		let customRules: string[] = [];
+		const [name, customRulesString] = input.split('@@@', 2);
+		if (customRulesString) customRules = customRulesString.split(',');
+
+		return [name, customRules];
+	}
+
 	getFormat(name: string, isValidated?: boolean): IFormat | undefined {
-		const id = Tools.toId(name);
+		let id = Tools.toId(name);
 		if (!id) return;
 
 		const inputTarget = name;
-		let customRules: string[] | undefined;
 		let format = this.pokemonShowdownDex.getFormat(name, isValidated);
 		if (!format.exists) {
-			if (id in customRuleFormats) {
-				name = customRuleFormats[id];
-			} else {
-				const [formatAlias, customRulesString] = name.split('@@@', 2);
-				customRules = customRulesString ? customRulesString.split(',') : [];
-				const parts = formatAlias.split(" ");
-				if (parts.length > 1) {
-					let formatNameIndex = parts.length - 1;
-					for (let i = 0; i < parts.length - 1; i++) {
-						const id = Tools.toId(parts[i]);
-						if (id in customRuleAliases) {
-							for (const rule of customRuleAliases[id]) {
-								if (!customRules.includes(rule)) customRules.push(rule);
-							}
-						} else {
-							formatNameIndex = i;
-							break;
+			let allCustomRules: string[] = [];
+			const split = this.splitNameAndCustomRules(name);
+			allCustomRules = allCustomRules.concat(split[1]);
+			const parts = split[0].split(" ");
+			if (parts.length > 1) {
+				let formatNameIndex = parts.length - 1;
+				for (let i = 0; i < parts.length - 1; i++) {
+					const id = Tools.toId(parts[i]);
+					if (id in customRuleAliases) {
+						for (const rule of customRuleAliases[id]) {
+							allCustomRules.push(rule);
 						}
+					} else {
+						formatNameIndex = i;
+						break;
 					}
-
-					name = parts.slice(formatNameIndex).join(" ") + (customRules.length ? "@@@" + customRules.join(',') : "");
 				}
+
+				name = parts.slice(formatNameIndex).join(" ");
+			} else {
+				name = split[0];
 			}
+
+			id = name;
+			if (id in customRuleFormats) {
+				const split = this.splitNameAndCustomRules(customRuleFormats[id]);
+				name = split[0];
+				allCustomRules = allCustomRules.concat(split[1]);
+			}
+
+			const uniqueCustomRules: string[] = [];
+			for (const rule of allCustomRules) {
+				const trimmed = rule.trim();
+				if (!uniqueCustomRules.includes(trimmed)) uniqueCustomRules.push(trimmed);
+			}
+
+			if (uniqueCustomRules.length) name += "@@@" + uniqueCustomRules.join(',');
 
 			format = this.pokemonShowdownDex.getFormat(name, isValidated);
 

@@ -150,6 +150,50 @@ describe("Dex", () => {
 		assert(Dex.getExistingFormat("[Gen 8] OU") !== Dex.getExistingFormat("[Gen 8] OU"));
 		assert(Dex.getExistingFormat("[Gen 8] OU") !== Dex.getExistingFormat("[Gen 8] OU@@@+Lunala"));
 	});
+	it('should return proper values from splitNameAndCustomRules()', () => {
+		let split = Dex.splitNameAndCustomRules("ou");
+		assertStrictEqual(split[0], "ou");
+		assertStrictEqual(split[1].length, 0);
+
+		split = Dex.splitNameAndCustomRules("ou@@@+Lunala");
+		assertStrictEqual(split[0], "ou");
+		assertStrictEqual(split[1].length, 1);
+		assertStrictEqual(split[1][0], '+Lunala');
+
+		split = Dex.splitNameAndCustomRules("ou@@@+Lunala,+Solgaleo");
+		assertStrictEqual(split[0], "ou");
+		assertStrictEqual(split[1].length, 2);
+		assertStrictEqual(split[1][0], '+Lunala');
+		assertStrictEqual(split[1][1], '+Solgaleo');
+	});
+	it('should support all types of custom rule aliases', () => {
+		let format = Dex.getExistingFormat("ou@@@+Lunala");
+		assert(format.customRules);
+		assertStrictEqual(format.customRules.length, 1);
+		assertStrictEqual(format.customRules[0], '+Lunala');
+
+		format = Dex.getExistingFormat("uubl");
+		assert(format.customRules);
+		assertStrictEqual(format.customRules.length, 1);
+		assertStrictEqual(format.customRules[0], '+UUBL');
+
+		format = Dex.getExistingFormat("uubl@@@+Lunala");
+		assert(format.customRules);
+		assertStrictEqual(format.customRules.length, 2);
+		assertStrictEqual(format.customRules[0], '+Lunala');
+		assertStrictEqual(format.customRules[1], '+UUBL');
+
+		format = Dex.getExistingFormat("monotype uu");
+		assert(format.customRules);
+		assertStrictEqual(format.customRules.length, 1);
+		assertStrictEqual(format.customRules[0], 'Same Type Clause');
+
+		format = Dex.getExistingFormat("monotype uubl");
+		assert(format.customRules);
+		assertStrictEqual(format.customRules.length, 2);
+		assertStrictEqual(format.customRules[0], 'Same Type Clause');
+		assertStrictEqual(format.customRules[1], '+UUBL');
+	});
 	it('should properly parse custom rules in separateCustomRules()', () => {
 		const customRules: string[] = ["-Pikachu", "+Charizard", "*Kubfu", "Same Type Clause", "!Team Preview"];
 		const separatedCustomRules: ISeparatedCustomRules = Dex.separateCustomRules(customRules);
