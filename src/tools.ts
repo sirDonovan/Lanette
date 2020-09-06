@@ -18,8 +18,12 @@ const UNSAFE_API_CHARACTER_REGEX = /[^A-Za-z0-9 ,.%&'"!?()[\]`_<>/|:;=+-@]/g;
 
 const maxMessageLength = 300;
 const maxUsernameLength = 18;
-const rootFolder = path.resolve(__dirname, '..');
 const githubApiThrottle = 2 * 1000;
+const rootFolder = path.resolve(__dirname, '..');
+const pokemonShowdownFolder = path.join(rootFolder, 'pokemon-showdown');
+const pokemonShowdownDists = [path.join(pokemonShowdownFolder, ".config-dist"), path.join(pokemonShowdownFolder, ".data-dist"),
+	path.join(pokemonShowdownFolder, ".lib-dist"), path.join(pokemonShowdownFolder, ".server-dist"),
+	path.join(pokemonShowdownFolder, ".sim-dist")];
 
 // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-empty-function
 const TimeoutConstructor = setTimeout(() => {}, 1).constructor;
@@ -694,6 +698,16 @@ export class Tools {
 		if (nodeModule.children) {
 			for (let i = 0; i < nodeModule.children.length; i++) {
 				const child = nodeModule.children[i];
+
+				let pokemonShowdownModule = false;
+				for (const dist of pokemonShowdownDists) {
+					if (child.filename.startsWith(dist)) {
+						pokemonShowdownModule = true;
+						break;
+					}
+				}
+				if (pokemonShowdownModule) continue;
+
 				if (child.filename === filepath) {
 					nodeModule.children[i] = newNodeModule;
 					if (child !== newNodeModule) {
