@@ -28,24 +28,21 @@ class SlowkingsTrivia extends Guessing {
 	roundTime = 15 * 1000;
 
 	static loadData(room: Room | User): void {
-		const abilities = Games.getAbilitiesList();
-		for (const ability of abilities) {
+		for (const ability of Games.getAbilitiesList()) {
 			const desc = ability.desc || ability.shortDesc;
 			if (!desc) continue;
 			if (!(desc in data["Pokemon Abilities"])) data["Pokemon Abilities"][desc] = [];
 			data["Pokemon Abilities"][desc].push(ability.name);
 		}
 
-		const items = Games.getItemsList();
-		for (const item of items) {
+		for (const item of Games.getItemsList()) {
 			const desc = item.desc || item.shortDesc;
 			if (!desc) continue;
 			if (!(desc in data["Pokemon Items"])) data["Pokemon Items"][desc] = [];
 			data["Pokemon Items"][desc].push(item.name);
 		}
 
-		const moves = Games.getMovesList();
-		for (const move of moves) {
+		for (const move of Games.getMovesList()) {
 			const desc = move.desc || move.shortDesc;
 			if (!desc) continue;
 			if (!(desc in data["Pokemon Moves"])) data["Pokemon Moves"][desc] = [];

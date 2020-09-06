@@ -26,14 +26,8 @@ class ShedinjasWonderTrials extends Game {
 	usedMoves: string[] = [];
 
 	static loadData(room: Room | User): void {
-		const movesList = Games.getMovesList(x => x.id !== 'hiddenpower' && x.category !== 'Status');
-		for (const move of movesList) {
-			data.moves.push(move.name);
-		}
-		const pokemonList = Games.getPokemonList(x => x.baseSpecies === x.name);
-		for (const pokemon of pokemonList) {
-			data.pokedex.push(pokemon.name);
-		}
+		data.moves = Games.getMovesList(x => x.id !== 'hiddenpower' && x.category !== 'Status').map(x => x.name);
+		data.pokedex = Games.getPokemonList(x => x.baseSpecies === x.name).map(x => x.name);
 	}
 
 	onSignups(): void {

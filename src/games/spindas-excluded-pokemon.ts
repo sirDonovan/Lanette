@@ -57,8 +57,7 @@ class SpindasExcludedPokemon extends Game {
 			data.usableMoves.push(move.id);
 		}
 
-		const pokemonList = Games.getPokemonList();
-		for (const pokemon of pokemonList) {
+		for (const pokemon of Games.getPokemonList()) {
 			const allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
 			const usableMoves: string[] = [];
 			for (const move of allPossibleMoves) {
@@ -274,4 +273,5 @@ export const game: IGameFile<SpindasExcludedPokemon> = {
 	formerNames: ["Excluded"],
 	name: "Spinda's Excluded Pokemon",
 	mascot: "Spinda",
+	nonTrivialLoadData: true,
 };

@@ -14,8 +14,7 @@ class BeheeyemsMassEffect extends Guessing {
 	roundTime: number = 20 * 1000;
 
 	static loadData(room: Room | User): void {
-		const pokemonList = Games.getPokemonList();
-		for (const pokemon of pokemonList) {
+		for (const pokemon of Games.getPokemonList()) {
 			const typing = pokemon.types.slice().sort().join('/');
 			if (!(typing in data.types)) data.types[typing] = [];
 			data.types[typing].push(pokemon.name);
@@ -92,4 +91,5 @@ export const game: IGameFile<BeheeyemsMassEffect> = Games.copyTemplateProperties
 	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess a Pokemon whose type effectiveness matches the given " +
 		"parameters.",
 	modes: ['survival', 'team'],
+	nonTrivialLoadData: true,
 });

@@ -17,10 +17,7 @@ class GolemsGalvanicMine extends Game {
 	roundTime: number = 7000;
 
 	static loadData(room: Room | User): void {
-		const items = Games.getItemsList(undefined, gen);
-		for (const item of items) {
-			if (item.megaStone || item.zMove) data.stones.push(item.name);
-		}
+		data.stones = Games.getItemsList(x => !!(x.megaStone || x.zMove), gen).map(x => x.name);
 	}
 
 	onSignups(): void {

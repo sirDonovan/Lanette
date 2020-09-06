@@ -41,8 +41,7 @@ class PanchamPairs extends Game {
 	points = new Map<Player, number>();
 
 	static loadData(room: Room | User): void {
-		const pokemonList = Games.getPokemonList();
-		for (const pokemon of pokemonList) {
+		for (const pokemon of Games.getPokemonList()) {
 			dataKeys['Pokemon'].push(pokemon.name);
 			const abilities: string[] = [];
 			for (const i in pokemon.abilities) {

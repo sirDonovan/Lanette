@@ -4,6 +4,8 @@ import type { Room } from "../rooms";
 import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 import type { User } from "../users";
 
+const minimumParameterPokemon = 16;
+
 const data: {parameters: Dict<string[]>; parameterKeys: string[]} = {
 	parameters: {},
 	parameterKeys: [],
@@ -16,8 +18,7 @@ class SerperiorLengthyChains extends Game {
 	points = new Map<Player, number>();
 
 	static loadData(room: Room | User): void {
-		const pokemonList = Games.getPokemonList();
-		for (const pokemon of pokemonList) {
+		for (const pokemon of Games.getPokemonList()) {
 			const pokemonParameters: string[] = ["Generation " + pokemon.gen, pokemon.color];
 			if (Games.isIncludedPokemonTier(pokemon.tier)) pokemonParameters.push(pokemon.tier);
 			for (const eggGroup of pokemon.eggGroups) {
@@ -36,7 +37,9 @@ class SerperiorLengthyChains extends Game {
 		const len = parametersKeys.length;
 		for (let i = 0; i < len; i++) {
 			for (let j = 0; j < len; j++) {
-				if (i === j) continue;
+				if (i === j || data.parameters[parametersKeys[i]].length < minimumParameterPokemon ||
+					data.parameters[parametersKeys[j]].length < minimumParameterPokemon) continue;
+
 				const paramA = parametersKeys[i];
 				const paramB = parametersKeys[j];
 				const combined = paramA + ", " + paramB;
@@ -50,7 +53,7 @@ class SerperiorLengthyChains extends Game {
 		}
 
 		for (const param in data.parameters) {
-			if (data.parameters[param].length < 16) {
+			if (data.parameters[param].length < minimumParameterPokemon) {
 				delete data.parameters[param];
 			} else {
 				data.parameterKeys.push(param);
@@ -142,4 +145,5 @@ export const game: IGameFile<SerperiorLengthyChains> = {
 	freejoin: true,
 	name: "Serperior's Lengthy Chains",
 	mascot: "Serperior",
+	nonTrivialLoadData: true,
 };

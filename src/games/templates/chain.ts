@@ -47,8 +47,7 @@ export abstract class Chain extends Game {
 		const keys: string[] = [];
 		if (this.variant) {
 			if (this.variant === 'moves') {
-				const moves = Games.getMovesList();
-				for (const move of moves) {
+				for (const move of Games.getMovesList()) {
 					if (this.letterBased) {
 						if (move.id === 'hiddenpower') continue;
 						if (!this.getLinkStarts(move).length || !this.getLinkEnds(move).length) continue;
@@ -58,16 +57,14 @@ export abstract class Chain extends Game {
 				}
 				this.linksType = 'move';
 			} else if (this.variant === 'items') {
-				const items = Games.getItemsList();
-				for (const item of items) {
+				for (const item of Games.getItemsList()) {
 					if (this.letterBased && (!this.getLinkStarts(item).length || !this.getLinkEnds(item).length)) continue;
 					pool[item.id] = item;
 					keys.push(item.id);
 				}
 				this.linksType = 'item';
 			} else if (this.variant === 'abilities') {
-				const abilities = Games.getAbilitiesList();
-				for (const ability of abilities) {
+				for (const ability of Games.getAbilitiesList()) {
 					if (this.letterBased && (!this.getLinkStarts(ability).length || !this.getLinkEnds(ability).length)) continue;
 					pool[ability.id] = ability;
 					keys.push(ability.id);
@@ -77,8 +74,7 @@ export abstract class Chain extends Game {
 				throw new Error("Game variation'" + this.variant + "' has no pool");
 			}
 		} else {
-			const pokedex = Games.getPokemonList();
-			for (const pokemon of pokedex) {
+			for (const pokemon of Games.getPokemonList()) {
 				if (pokemon.forme && !this.acceptsFormes) continue;
 				if (this.letterBased && (!this.getLinkStarts(pokemon).length || !this.getLinkEnds(pokemon).length)) continue;
 				pool[pokemon.id] = pokemon;

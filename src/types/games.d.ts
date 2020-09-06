@@ -133,6 +133,7 @@ interface IGameFileProperties<T extends Game = Game> {
 	modeProperties?: Dict<Partial<T>>;
 	modes?: string[];
 	noOneVsOne?: boolean;
+	nonTrivialLoadData?: boolean;
 	scriptedOnly?: boolean;
 	tests?: GameFileTests<T>;
 	tournamentGame?: boolean;

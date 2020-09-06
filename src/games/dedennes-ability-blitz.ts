@@ -26,10 +26,7 @@ class DedennesAbilityBlitz extends Game {
 	highestCatch: Player | null = null;
 
 	static loadData(room: Room | User): void {
-		const abilities = Games.getAbilitiesList();
-		for (const ability of abilities) {
-			data.abilities.push(ability.name);
-		}
+		data.abilities = Games.getAbilitiesList().map(x => x.name);
 	}
 
 	onSignups(): void {

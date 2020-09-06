@@ -6,6 +6,7 @@ import type { GameCommandDefinitions, GameCommandReturnType, IGameFile, GameFile
 import type { User } from "../users";
 import { addPlayers, assertStrictEqual } from "../test/test-tools";
 
+const minimumMoves = 20;
 const data: {learnsets: Dict<readonly string[]>; moves: string[]; pokemon: string[]} = {
 	learnsets: {},
 	moves: [],
@@ -23,23 +24,21 @@ class LandorusWar extends Game {
 	suspectedPlayers = new Map<Player, number>();
 
 	static loadData(room: Room | User): void {
-		const moveList = Games.getMovesList(x => {
+		data.moves = Games.getMovesList(x => {
 			if (x.id === 'hiddenpower' || (!x.basePower && !x.basePowerCallback)) return false;
 			return true;
-		});
+		}).map(x => x.id);
 
-		for (const move of moveList) {
-			data.moves.push(move.id);
-		}
-
-		const pokemonList = Games.getPokemonList();
-		for (const pokemon of pokemonList) {
+		for (const pokemon of Games.getPokemonList()) {
 			let moves = 0;
 			const allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
 			for (const move of allPossibleMoves) {
-				if (data.moves.includes(move)) moves++;
+				if (data.moves.includes(move)) {
+					moves++;
+					if (moves === minimumMoves) break;
+				}
 			}
-			if (moves < 20) continue;
+			if (moves < minimumMoves) continue;
 			data.learnsets[pokemon.id] = allPossibleMoves;
 			data.pokemon.push(pokemon.id);
 		}

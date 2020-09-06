@@ -21,27 +21,24 @@ class DelcattysHideAndSeek extends Game {
 	charmer!: Player;
 
 	static loadData(room: Room | User): void {
-		const pokemonCategories: Dict<string[]> = {};
-		const pokemonList = Games.getPokemonList();
-		for (const pokemon of pokemonList) {
-			pokemonCategories[pokemon.id] = [];
+		for (const pokemon of Games.getPokemonList()) {
+			const params: string[] = [];
 			for (const eggGroup of pokemon.eggGroups) {
-				pokemonCategories[pokemon.id].push(eggGroup + " Group");
+				params.push(eggGroup + " Group");
 			}
-			for (const type of pokemon.types) {
-				pokemonCategories[pokemon.id].push(type + " Type");
-			}
-			pokemonCategories[pokemon.id].push("Generation " + pokemon.gen);
-			if (Games.isIncludedPokemonTier(pokemon.tier)) pokemonCategories[pokemon.id].push(pokemon.tier);
-			pokemonCategories[pokemon.id].push(pokemon.color);
-			data.pokemon.push(pokemon.id);
-		}
 
-		for (const i in pokemonCategories) {
-			for (const param of pokemonCategories[i]) {
-				if (!(param in data.parameters)) data.parameters[param] = [];
-				data.parameters[param].push(i);
+			for (const type of pokemon.types) {
+				params.push(type + " Type");
 			}
+			params.push("Generation " + pokemon.gen);
+			if (Games.isIncludedPokemonTier(pokemon.tier)) params.push(pokemon.tier);
+			params.push(pokemon.color);
+
+			for (const param of params) {
+				if (!(param in data.parameters)) data.parameters[param] = [];
+				data.parameters[param].push(pokemon.id);
+			}
+			data.pokemon.push(pokemon.id);
 		}
 
 		const parameterKeys = Object.keys(data.parameters);
@@ -302,5 +299,6 @@ export const game: IGameFile<DelcattysHideAndSeek> = {
 	name: "Delcatty's Hide and Seek",
 	noOneVsOne: true,
 	mascot: "Delcatty",
+	nonTrivialLoadData: true,
 	tests,
 };

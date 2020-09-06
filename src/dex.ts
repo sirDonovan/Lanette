@@ -540,12 +540,12 @@ export class Dex {
 		return this.data.categories[pokemon.id] || '';
 	}
 
-	getAllPossibleMoves(pokemon: IPokemon): string[] {
+	getAllPossibleMoves(pokemon: IPokemon): readonly string[] {
 		if (pokemon.gen > this.gen) throw new Error("Dex.getAllPossibleMoves() called on " + pokemon.name + " in gen " + this.gen);
 		return this.allPossibleMovesCache[pokemon.id];
 	}
 
-	getEvolutionLines(pokemon: IPokemon, includedFormes?: readonly string[]): string[][] {
+	getEvolutionLines(pokemon: IPokemon, includedFormes?: readonly string[]): readonly string[][] {
 		let sortedFormes: string[] | undefined;
 		let cacheKey: string | undefined;
 		if (includedFormes) {
@@ -603,7 +603,7 @@ export class Dex {
 		const cacheKey = speciesList.slice().sort().join(',');
 		if (Object.prototype.hasOwnProperty.call(this.isEvolutionFamilyCache, cacheKey)) return this.isEvolutionFamilyCache[cacheKey];
 
-		const evolutionLines: string[][][] = [];
+		const evolutionLines: (readonly string[][])[] = [];
 
 		for (const species of speciesList) {
 			evolutionLines.push(this.getEvolutionLines(this.getExistingPokemon(species)));
@@ -788,7 +788,7 @@ export class Dex {
 		}
 	}
 
-	getWeaknesses(pokemon: IPokemon): string[] {
+	getWeaknesses(pokemon: IPokemon): readonly string[] {
 		const cacheKey = pokemon.types.slice().sort().join(',');
 		if (Object.prototype.hasOwnProperty.call(this.weaknessesCache, cacheKey)) return this.weaknessesCache[cacheKey];
 

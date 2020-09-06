@@ -103,7 +103,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 				if (type) typeChartKeys.push(type.name);
 			}
 
-			const allPossibleMoves: Dict<string[]> = {};
+			const allPossibleMoves: Dict<readonly string[]> = {};
 			const pokedex = Games.getPokemonList(undefined, i);
 			for (const pokemon of pokedex) {
 				allPossibleMoves[pokemon.id] = dex.getAllPossibleMoves(pokemon);

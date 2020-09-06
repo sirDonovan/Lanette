@@ -11,23 +11,22 @@ const data: {'moves': Dict<Dict<string[]>>; 'pokemon': string[]} = {
 
 class MiltanksMoves extends Guessing {
 	static loadData(room: Room | User): void {
-		const moves = Games.getMovesList();
 		const bannedMoves: string[] = [];
-		for (const move of moves) {
+		for (const move of Games.getMovesList()) {
 			const availability = Dex.getMoveAvailability(move);
 			if (availability >= Games.maxMoveAvailability) bannedMoves.push(move.id);
 		}
 
 		const moveCache: Dict<IMove> = {};
-		const pokedex = Games.getPokemonList(x => x.baseSpecies === x.name && !!Dex.getAllPossibleMoves(x).length);
+		const pokedex = Games.getPokemonList(x => x.baseSpecies === x.name);
 		for (const pokemon of pokedex) {
 			const allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
 			for (const possibleMove of allPossibleMoves) {
+				if (bannedMoves.includes(possibleMove)) continue;
 				if (!(possibleMove in moveCache)) {
 					moveCache[possibleMove] = Dex.getExistingMove(possibleMove);
 				}
 				const move = moveCache[possibleMove];
-				if (bannedMoves.includes(move.id)) continue;
 				if (!(pokemon.name in data.moves)) {
 					data.moves[pokemon.name] = {};
 					data.pokemon.push(pokemon.name);
@@ -68,4 +67,5 @@ export const game: IGameFile<MiltanksMoves> = Games.copyTemplateProperties(guess
 	name: "Miltank's Moves",
 	mascot: "Miltank",
 	modes: ['survival', 'team'],
+	nonTrivialLoadData: true,
 });

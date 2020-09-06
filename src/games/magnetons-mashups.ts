@@ -17,25 +17,10 @@ class MagnetonsMashups extends Guessing {
 	roundTime: number = 30 * 1000;
 
 	static loadData(room: Room | User): void {
-		const abilities = Games.getAbilitiesList();
-		for (const ability of abilities) {
-			data['Pokemon Abilities'].push(ability.name);
-		}
-
-		const items = Games.getItemsList();
-		for (const item of items) {
-			data['Pokemon Items'].push(item.name);
-		}
-
-		const moves = Games.getMovesList();
-		for (const move of moves) {
-			data['Pokemon Moves'].push(move.name);
-		}
-
-		const pokedex = Games.getPokemonList();
-		for (const pokemon of pokedex) {
-			data['Pokemon'].push(pokemon.name);
-		}
+		data["Pokemon"] = Games.getPokemonList().map(x => x.name);
+		data["Pokemon Abilities"] = Games.getAbilitiesList().map(x => x.name);
+		data["Pokemon Items"] = Games.getItemsList().map(x => x.name);
+		data["Pokemon Moves"] = Games.getMovesList().map(x => x.name);
 	}
 
 	getAnswers(givenAnswer: string, finalAnswer?: boolean): string {

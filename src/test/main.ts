@@ -9,6 +9,7 @@ const rootFolder = path.resolve(__dirname, '..', '..');
 const modulesDir = path.join(__dirname, 'modules');
 const moduleTests = fs.readdirSync(modulesDir).filter(x => x.endsWith('.js'));
 const pokemonShowdownTestFile = 'pokemon-showdown.js';
+const nonTrivialGameLoadTime = 100;
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noOp = (): void => {};
@@ -65,9 +66,27 @@ module.exports = async(inputOptions: Dict<string>): Promise<void> => {
 				formats = Object.keys(Games.formats);
 			}
 
+			const unflaggedGames: string[] = [];
 			for (const i of formats) {
-				const game = Games.createGame(mochaRoom, Games.getExistingFormat(i));
-				game.deallocate(true);
+				const format = Games.getExistingFormat(i);
+				if (format.class.loadData) {
+					const start = process.hrtime();
+					format.class.loadData(mochaRoom);
+					const end = process.hrtime(start);
+					const loadTime = (end[0] * 1000000000 + end[1]) / 1000000;
+					if (loadTime > nonTrivialGameLoadTime && !format.nonTrivialLoadData) {
+						unflaggedGames.push("Format " + format.name + " should be flagged 'nonTrivialLoadData' (" +
+							loadTime + "ms load time)");
+					}
+					format.class.loadedData = true;
+				}
+			}
+
+			if (unflaggedGames.length) {
+				for (const game of unflaggedGames) {
+					console.log(game);
+				}
+				throw new Error("Missing 'nonTrivialLoadData' flag" + (unflaggedGames.length > 1 ? "s" : ""));
 			}
 
 			console.log("Loaded game data");

@@ -47,29 +47,25 @@ class EkansEdges extends Guessing {
 			data["Locations"][edge].push(location);
 		}
 
-		const pokemonList = Games.getPokemonList();
-		for (const pokemon of pokemonList) {
+		for (const pokemon of Games.getPokemonList()) {
 			const edge = pokemon.name.charAt(0) + " - " + pokemon.name.substr(-1);
 			if (!data["Pokemon"][edge]) data["Pokemon"][edge] = [];
 			data["Pokemon"][edge].push(pokemon.name);
 		}
 
-		const abilities = Games.getAbilitiesList();
-		for (const ability of abilities) {
+		for (const ability of Games.getAbilitiesList()) {
 			const edge = ability.name.charAt(0) + " - " + ability.name.substr(-1);
 			if (!data["Pokemon Abilities"][edge]) data["Pokemon Abilities"][edge] = [];
 			data["Pokemon Abilities"][edge].push(ability.name);
 		}
 
-		const items = Games.getItemsList();
-		for (const item of items) {
+		for (const item of Games.getItemsList()) {
 			const edge = item.name.charAt(0) + " - " + item.name.substr(-1);
 			if (!data["Pokemon Items"][edge]) data["Pokemon Items"][edge] = [];
 			data["Pokemon Items"][edge].push(item.name);
 		}
 
-		const moves = Games.getMovesList();
-		for (const move of moves) {
+		for (const move of Games.getMovesList()) {
 			const edge = move.name.charAt(0) + " - " + move.name.substr(-1);
 			if (!data["Pokemon Moves"][edge]) data["Pokemon Moves"][edge] = [];
 			data["Pokemon Moves"][edge].push(move.name);
