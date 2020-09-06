@@ -4,7 +4,7 @@ import type { Room } from './rooms';
 import type {
 	IAbility, IAbilityCopy, IDataTable, IFormat, IFormatLinks, IGetPossibleTeamsOptions, IGifData,
 	IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy, ISeparatedCustomRules, ITypeData,
-	IPokemonShowdownDex, IValidator
+	IPokemonShowdownDex, IValidator, IPSFormat
 } from './types/dex';
 
 let pokemonShowdownDexBase: IPokemonShowdownDex;
@@ -124,27 +124,34 @@ export class Dex {
 	readonly omotms: string[] = [];
 	readonly tagNames: typeof tagNames = tagNames;
 
-	dataCache: IDataTable | null = null;
-
-	readonly abilityCache = new Map<string, IAbility>();
-	readonly allPossibleMovesCache = new Map<string, string[]>();
-	readonly formatCache = new Map<string, IFormat>();
-	readonly itemCache = new Map<string, IItem>();
-	readonly learnsetDataCache = new Map<string, ILearnsetData>();
-	readonly moveCache = new Map<string, IMove>();
-	readonly moveAvailbilityCache = new Map<string, number>();
-	readonly pokemonCache = new Map<string, IPokemon>();
-	readonly typeCache = new Map<string, ITypeData>();
-
 	readonly currentMod: string;
 	readonly gen: number;
 	readonly isBase: boolean;
 	readonly pokemonShowdownDex: IPokemonShowdownDex;
 
+	/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 	private abilitiesList: readonly IAbility[] | null = null;
+	private readonly abilityCache: Dict<IAbility> = Object.create(null);
+	private readonly allPossibleMovesCache: Dict<string[]> = Object.create(null);
+	private readonly dataCache: IDataTable | null = null;
+	private readonly effectivenessCache: Dict<Dict<number>> = Object.create(null);
+	private readonly evolutionLinesCache: Dict<string[][]> = Object.create(null);
+	private readonly evolutionLinesFormesCache: Dict<Dict<string[][]>> = Object.create(null);
+	private readonly formatCache: Dict<IFormat> = Object.create(null);
+	private readonly immunityCache: Dict<Dict<boolean>> = Object.create(null);
+	private readonly itemCache: Dict<IItem> = Object.create(null);
 	private itemsList: readonly IItem[] | null = null;
+	private readonly isEvolutionFamilyCache: Dict<boolean> = Object.create(null);
+	private readonly learnsetDataCache: Dict<ILearnsetData> = Object.create(null);
+	private readonly moveCache: Dict<IMove> = Object.create(null);
 	private movesList: readonly IMove[] | null = null;
+	private readonly moveAvailbilityCache: Dict<number> = Object.create(null);
+	private readonly pokemonCache: Dict<IPokemon> = Object.create(null);
 	private pokemonList: readonly IPokemon[] | null = null;
+	private readonly pseudoLCPokemonCache: Dict<boolean> = Object.create(null);
+	private readonly typeCache: Dict<ITypeData> = Object.create(null);
+	private readonly weaknessesCache: Dict<string[]> = Object.create(null);
+	/* eslint-enable */
 
 	constructor(gen?: number, mod?: string) {
 		if (!gen) gen = currentGen;
@@ -164,8 +171,6 @@ export class Dex {
 	}
 
 	onReload(previous: Partial<Dex>): void {
-		this.loadData();
-
 		for (const mod in previous.dexes) {
 			if (previous.dexes[mod] === previous) continue;
 			const dex = previous.dexes[mod];
@@ -179,6 +184,8 @@ export class Dex {
 			// @ts-expect-error
 			delete previous[i];
 		}
+
+		this.loadAllData();
 	}
 
 	getDex(mod?: string): Dex {
@@ -191,13 +198,16 @@ export class Dex {
 		return this.dataCache!;
 	}
 
+	loadAllData(): void {
+		for (const mod in dexes) {
+			dexes[mod].loadData();
+		}
+	}
+
 	loadData(): void {
 		if (this.dataCache) return;
 
-		if (this.isBase) {
-			console.log("Loading dex data...");
-			this.pokemonShowdownDex.includeModData();
-		}
+		if (this.isBase) this.pokemonShowdownDex.includeModData();
 
 		const lanetteDataDir = path.join(Tools.rootFolder, 'data');
 
@@ -250,10 +260,19 @@ export class Dex {
 			filteredItemKeys.push(key);
 		}
 
+		const learnsetDataKeys = Object.keys(this.pokemonShowdownDex.data.Learnsets);
+		const filteredLearnsetDataKeys: string[] = [];
+		for (const key of learnsetDataKeys) {
+			const pokemon = this.getPokemon(key)!;
+			if (pokemon.gen > this.gen) continue;
+			filteredLearnsetDataKeys.push(key);
+		}
+
 		const colors: Dict<string> = {};
 		const eggGroups: Dict<string> = {};
 
 		const validator = new pokemonShowdownTeamValidator("gen" + this.gen + "ou", dexes['base'].pokemonShowdownDex);
+		const lcFormat = this.pokemonShowdownDex.getFormat("gen" + this.gen + "lc");
 		const pokemonKeys = Object.keys(this.pokemonShowdownDex.data.Pokedex);
 		const filteredPokemonKeys: string[] = [];
 		const moveAvailbilityPokemonList: IPokemon[] = [];
@@ -262,6 +281,7 @@ export class Dex {
 			if (pokemon.gen > this.gen) continue;
 
 			this.cacheAllPossibleMoves(validator, pokemon);
+			this.cacheIsPseudoLCPokemon(pokemon, lcFormat);
 			filteredPokemonKeys.push(key);
 			moveAvailbilityPokemonList.push(pokemon);
 
@@ -296,7 +316,7 @@ export class Dex {
 			abilityKeys: filteredAbilityKeys,
 			formatKeys: Object.keys(this.pokemonShowdownDex.data.Formats),
 			itemKeys: filteredItemKeys,
-			learnsetDataKeys: Object.keys(this.pokemonShowdownDex.data.Learnsets),
+			learnsetDataKeys: filteredLearnsetDataKeys,
 			moveKeys: filteredMoveKeys,
 			pokemonKeys: filteredPokemonKeys,
 			typeKeys: Object.keys(this.pokemonShowdownDex.data.TypeChart).map(x => Tools.toId(x)),
@@ -314,8 +334,7 @@ export class Dex {
 			trainerSprites,
 		};
 
-		if (this.isBase) console.log("Loaded dex data");
-
+		// @ts-expect-error
 		this.dataCache = data;
 	}
 
@@ -337,13 +356,12 @@ export class Dex {
 
 	getAbility(name: string): IAbility | undefined {
 		const id = Tools.toId(name);
-		const cached = this.abilityCache.get(id);
-		if (cached) return cached;
+		if (Object.prototype.hasOwnProperty.call(this.abilityCache, id)) return this.abilityCache[id];
 
 		const ability = this.pokemonShowdownDex.getAbility(name);
 		if (!ability.exists) return undefined;
 
-		this.abilityCache.set(id, ability);
+		this.abilityCache[id] = ability;
 		return ability;
 	}
 
@@ -357,27 +375,20 @@ export class Dex {
 		return Tools.deepClone(typeof name === 'string' ? this.getExistingAbility(name) : name);
 	}
 
-	/** Returns a list of existing abilities
-	 *
-	 * filterAbility: Return `false` to filter `ability` out of the list
-	 */
-	getAbilitiesList(filter?: (ability: IAbility) => boolean): IAbility[] {
+	/** Returns a list of existing abilities */
+	getAbilitiesList(): readonly IAbility[] {
+		if (this.abilitiesList) return this.abilitiesList;
+
 		const abilities: IAbility[] = [];
 		for (const i of this.data.abilityKeys) {
 			const ability = this.getExistingAbility(i);
 			if (ability.isNonstandard === 'CAP' || ability.isNonstandard === 'LGPE' || ability.isNonstandard === 'Custom' ||
-				ability.id === 'noability' || ability.gen > this.gen || (filter && !filter(ability))) continue;
+				ability.id === 'noability' || ability.gen > this.gen) continue;
 			abilities.push(ability);
 		}
-		return abilities;
-	}
 
-	/** Returns a list of existing, copied abilities
-	 *
-	 * filterMove: Return `false` to filter `ability` out of the list
-	 */
-	getAbilitiesCopyList(filter?: (ability: IAbility) => boolean): IAbilityCopy[] {
-		return this.getAbilitiesList(filter).map(x => this.getAbilityCopy(x));
+		this.abilitiesList = abilities;
+		return abilities;
 	}
 
 	/*
@@ -386,13 +397,12 @@ export class Dex {
 
 	getItem(name: string): IItem | undefined {
 		const id = Tools.toId(name);
-		const cached = this.itemCache.get(id);
-		if (cached) return cached;
+		if (Object.prototype.hasOwnProperty.call(this.itemCache, id)) return this.itemCache[id];
 
 		const item = this.pokemonShowdownDex.getItem(name);
 		if (!item.exists) return undefined;
 
-		this.itemCache.set(id, item);
+		this.itemCache[id] = item;
 		return item;
 	}
 
@@ -406,38 +416,30 @@ export class Dex {
 		return Tools.deepClone(typeof name === 'string' ? this.getExistingItem(name) : name);
 	}
 
-	/** Returns a list of existing items
-	 *
-	 * filterItem: Return `false` to filter `item` out of the list
-	 */
-	getItemsList(filter?: (item: IItem) => boolean): IItem[] {
+	/** Returns a list of existing items */
+	getItemsList(): readonly IItem[] {
+		if (this.itemsList) return this.itemsList;
+
 		const items: IItem[] = [];
 		for (const i of this.data.itemKeys) {
 			const item = this.getExistingItem(i);
 			if (item.isNonstandard === 'CAP' || item.isNonstandard === 'LGPE' || item.isNonstandard === 'Custom' || item.gen > this.gen ||
-				(this.gen !== 2 && gen2Items.includes(item.id)) || (filter && !filter(item))) continue;
+				(this.gen !== 2 && gen2Items.includes(item.id))) continue;
 			items.push(item);
 		}
-		return items;
-	}
 
-	/** Returns a list of existing, copied items
-	 *
-	 * filterMove: Return `false` to filter `item` out of the list
-	 */
-	getItemsCopyList(filter?: (item: IItem) => boolean): IItemCopy[] {
-		return this.getItemsList(filter).map(x => this.getItemCopy(x));
+		this.itemsList = items;
+		return items;
 	}
 
 	getLearnsetData(name: string): ILearnsetData | undefined {
 		const id = Tools.toId(name);
-		const cached = this.learnsetDataCache.get(id);
-		if (cached) return cached;
+		if (Object.prototype.hasOwnProperty.call(this.learnsetDataCache, id)) return this.learnsetDataCache[id];
 
 		const learnsetData = this.pokemonShowdownDex.getLearnsetData(id);
 		if (!learnsetData.exists) return undefined;
 
-		this.learnsetDataCache.set(id, learnsetData);
+		this.learnsetDataCache[id] = learnsetData;
 		return learnsetData;
 	}
 
@@ -447,13 +449,12 @@ export class Dex {
 
 	getMove(name: string): IMove | undefined {
 		const id = Tools.toId(name);
-		const cached = this.moveCache.get(id);
-		if (cached) return cached;
+		if (Object.prototype.hasOwnProperty.call(this.moveCache, id)) return this.moveCache[id];
 
 		const move = this.pokemonShowdownDex.getMove(name);
 		if (!move.exists) return undefined;
 
-		this.moveCache.set(id, move);
+		this.moveCache[id] = move;
 		return move;
 	}
 
@@ -467,32 +468,25 @@ export class Dex {
 		return Tools.deepClone(typeof name === 'string' ? this.getExistingMove(name) : name) as IMoveCopy;
 	}
 
-	/** Returns a list of existing moves
-	 *
-	 * filterMove: Return `false` to filter `move` out of the list
-	 */
-	getMovesList(filter?: (move: IMove) => boolean): IMove[] {
+	/** Returns a list of existing moves */
+	getMovesList(): readonly IMove[] {
+		if (this.movesList) return this.movesList;
+
 		const moves: IMove[] = [];
 		for (const i of this.data.moveKeys) {
 			const move = this.getExistingMove(i);
-			if (move.isNonstandard === 'CAP' || move.isNonstandard === 'LGPE' || move.isNonstandard === 'Custom' || move.gen > this.gen ||
-				(filter && !filter(move))) continue;
+			if (move.isNonstandard === 'CAP' || move.isNonstandard === 'LGPE' || move.isNonstandard === 'Custom' ||
+				move.gen > this.gen) continue;
 			moves.push(move);
 		}
-		return moves;
-	}
 
-	/** Returns a list of existing, copied moves
-	 *
-	 * filterMove: Return `false` to filter `move` out of the list
-	 */
-	getMovesCopyList(filter?: (move: IMove) => boolean): IMoveCopy[] {
-		return this.getMovesList(filter).map(x => this.getMoveCopy(x));
+		this.movesList = moves;
+		return moves;
 	}
 
 	getMoveAvailability(move: IMove): number {
 		if (move.gen > this.gen) throw new Error("Dex.getMoveAvailability called for " + move.name + " in gen " + this.gen);
-		return this.moveAvailbilityCache.get(move.id)!;
+		return this.moveAvailbilityCache[move.id];
 	}
 
 	/*
@@ -501,8 +495,7 @@ export class Dex {
 
 	getPokemon(name: string): IPokemon | undefined {
 		const id = Tools.toId(name);
-		const cached = this.pokemonCache.get(id);
-		if (cached) return cached;
+		if (Object.prototype.hasOwnProperty.call(this.pokemonCache, id)) return this.pokemonCache[id];
 
 		const pokemon = Tools.deepClone(this.pokemonShowdownDex.getSpecies(name));
 		if (!pokemon.exists) return undefined;
@@ -513,7 +506,7 @@ export class Dex {
 			pokemon.tier = 'ZU';
 		}
 
-		this.pokemonCache.set(id, pokemon);
+		this.pokemonCache[id] = pokemon;
 		return pokemon;
 	}
 
@@ -527,18 +520,19 @@ export class Dex {
 		return Tools.deepClone(typeof name === 'string' ? this.getExistingPokemon(name) : name) as IPokemonCopy;
 	}
 
-	/** Returns a list of existing Pokemon
-	 *
-	 * filterPokemon: Return `false` to filter `pokemon` out of the list
-	 */
-	getPokemonList(filter?: (pokemon: IPokemon) => boolean): IPokemon[] {
+	/** Returns a list of existing Pokemon */
+	getPokemonList(): readonly IPokemon[] {
+		if (this.pokemonList) return this.pokemonList;
+
 		const pokedex: IPokemon[] = [];
 		for (const i of this.data.pokemonKeys) {
 			const pokemon = this.getExistingPokemon(i);
 			if (pokemon.isNonstandard === 'CAP' || pokemon.isNonstandard === 'LGPE' || pokemon.isNonstandard === 'Custom' ||
-				pokemon.gen > this.gen || (filter && !filter(pokemon))) continue;
+				pokemon.gen > this.gen) continue;
 			pokedex.push(pokemon);
 		}
+
+		this.pokemonList = pokedex;
 		return pokedex;
 	}
 
@@ -548,15 +542,28 @@ export class Dex {
 
 	getAllPossibleMoves(pokemon: IPokemon): string[] {
 		if (pokemon.gen > this.gen) throw new Error("Dex.getAllPossibleMoves() called on " + pokemon.name + " in gen " + this.gen);
-		return this.allPossibleMovesCache.get(pokemon.id)!;
+		return this.allPossibleMovesCache[pokemon.id];
 	}
 
-	getEvolutionLines(pokemon: IPokemon, includedFormes?: string[]): string[][] {
+	getEvolutionLines(pokemon: IPokemon, includedFormes?: readonly string[]): string[][] {
+		let sortedFormes: string[] | undefined;
+		let cacheKey: string | undefined;
+		if (includedFormes) {
+			sortedFormes = includedFormes.slice().sort();
+			cacheKey = sortedFormes.join(',');
+			if (Object.prototype.hasOwnProperty.call(this.evolutionLinesFormesCache, pokemon.id) &&
+				Object.prototype.hasOwnProperty.call(this.evolutionLinesFormesCache[pokemon.id], cacheKey)) {
+				return this.evolutionLinesFormesCache[pokemon.id][cacheKey];
+			}
+		} else {
+			if (Object.prototype.hasOwnProperty.call(this.evolutionLinesCache, pokemon.id)) return this.evolutionLinesCache[pokemon.id];
+		}
+
 		const potentialEvolutionLines: string[][] = this.getAllEvolutionLines(pokemon);
 		const formesToCheck: string[] = [pokemon.name];
-		if (includedFormes) {
-			for (const includedForme of includedFormes) {
-				const forme = this.getExistingPokemon(includedForme);
+		if (sortedFormes) {
+			for (const name of sortedFormes) {
+				const forme = this.getExistingPokemon(name);
 				const formeEvolutionLines = this.getAllEvolutionLines(forme);
 				for (const line of formeEvolutionLines) {
 					if (!Tools.arraysContainArray(line, potentialEvolutionLines)) {
@@ -577,18 +584,29 @@ export class Dex {
 				}
 			}
 		}
+
+		if (sortedFormes) {
+			if (!Object.prototype.hasOwnProperty.call(this.evolutionLinesFormesCache, pokemon.id)) {
+				this.evolutionLinesFormesCache[pokemon.id] = {};
+			}
+			this.evolutionLinesFormesCache[pokemon.id][cacheKey!] = matchingEvolutionLines;
+		} else {
+			this.evolutionLinesCache[pokemon.id] = matchingEvolutionLines;
+		}
+
 		return matchingEvolutionLines;
 	}
 
-	isEvolutionFamily(speciesList: string[]): boolean {
+	isEvolutionFamily(speciesList: readonly string[]): boolean {
 		if (speciesList.length < 2) return true;
+
+		const cacheKey = speciesList.slice().sort().join(',');
+		if (Object.prototype.hasOwnProperty.call(this.isEvolutionFamilyCache, cacheKey)) return this.isEvolutionFamilyCache[cacheKey];
 
 		const evolutionLines: string[][][] = [];
 
 		for (const species of speciesList) {
-			const pokemon = this.getPokemon(species);
-			if (!pokemon) return false;
-			evolutionLines.push(this.getEvolutionLines(pokemon));
+			evolutionLines.push(this.getEvolutionLines(this.getExistingPokemon(species)));
 		}
 
 		evolutionLines.sort((a, b) => a.length - b.length);
@@ -608,22 +626,25 @@ export class Dex {
 				}
 			}
 
-			if (!sharedEvolutionLine) return false;
+			if (!sharedEvolutionLine) {
+				this.isEvolutionFamilyCache[cacheKey] = false;
+				return false;
+			}
 		}
 
+		this.isEvolutionFamilyCache[cacheKey] = true;
 		return true;
 	}
 
 	getType(name: string): ITypeData | undefined {
 		const id = Tools.toId(name);
-		const cached = this.typeCache.get(id);
-		if (cached) return cached;
+		if (Object.prototype.hasOwnProperty.call(this.typeCache, id)) return this.typeCache[id];
 
 		const type = this.pokemonShowdownDex.getType(name);
 		if (!type.exists) return undefined;
 
 		if (!type.id) type.id = Tools.toId(type.name);
-		this.typeCache.set(id, type);
+		this.typeCache[id] = type;
 		return type;
 	}
 
@@ -649,53 +670,49 @@ export class Dex {
 		} else if (Array.isArray(target)) {
 			targetType = target;
 		} else {
-			// @ts-expect-error
-			targetType = target.types as string[];
+			targetType = (target as IPokemon).types;
 		}
+
 		if (Array.isArray(targetType)) {
-			for (const type of targetType) {
-				if (this.isImmune(sourceType, type)) return true;
+			const cacheKey = targetType.join(',');
+			if (!Object.prototype.hasOwnProperty.call(this.immunityCache, sourceType)) {
+				this.immunityCache[sourceType] = {};
+			} else if (Object.prototype.hasOwnProperty.call(this.immunityCache[sourceType], cacheKey)) {
+				return this.immunityCache[sourceType][cacheKey];
 			}
+
+			for (const type of targetType) {
+				if (this.isImmune(sourceType, type)) {
+					this.immunityCache[sourceType][cacheKey] = true;
+					return true;
+				}
+			}
+
+			this.immunityCache[sourceType][cacheKey] = false;
 			return false;
 		} else {
 			targetType = targetType as string;
+			if (!Object.prototype.hasOwnProperty.call(this.immunityCache, sourceType)) {
+				this.immunityCache[sourceType] = {};
+			} else if (Object.prototype.hasOwnProperty.call(this.immunityCache[sourceType], targetType)) {
+				return this.immunityCache[sourceType][targetType];
+			}
+
 			const typeData = this.getType(targetType);
-			if (typeData && typeData.damageTaken[sourceType] === 3) return true;
+			if (typeData && typeData.damageTaken[sourceType] === 3) {
+				this.immunityCache[sourceType][targetType] = true;
+				return true;
+			}
+
+			this.immunityCache[sourceType][targetType] = false;
+			return false;
 		}
-		return false;
 	}
 
+	/** LC handling, checks for LC Pokemon in higher tiers that need to be handled separately, as well as event-only Pokemon that are not eligible for LC despite being the first stage */
 	isPseudoLCPokemon(pokemon: IPokemon): boolean {
-		// LC handling, checks for LC Pokemon in higher tiers that need to be handled separately,
-		// as well as event-only Pokemon that are not eligible for LC despite being the first stage
-		if (pokemon.tier === 'LC' || pokemon.prevo) return false;
-
-		const lcFormat = this.getFormat('lc');
-		if (lcFormat && (lcFormat.banlist.includes(pokemon.name) || lcFormat.banlist.includes(pokemon.name + "-Base"))) return false;
-
-		let invalidEvent = true;
-		const learnsetData = this.getLearnsetData(pokemon.id);
-		if (learnsetData && learnsetData.eventData && learnsetData.eventOnly) {
-			for (const event of learnsetData.eventData) {
-				if (event.level && event.level <= 5)  {
-					invalidEvent = false;
-					break;
-				}
-			}
-		}
-
-		let nfe = false;
-		if (!invalidEvent && pokemon.evos.length) {
-			for (const evo of pokemon.evos) {
-				const evolution = this.getPokemon(evo);
-				if (evolution && evolution.gen <= this.gen) {
-					nfe = true;
-					break;
-				}
-			}
-		}
-
-		return !invalidEvent && nfe;
+		if (pokemon.gen > this.gen) throw new Error("Dex.isPseudoLCPokemon() called for " + pokemon.name + " in gen " + this.gen);
+		return this.pseudoLCPokemonCache[pokemon.id];
 	}
 
 	/**
@@ -703,7 +720,7 @@ export class Dex {
 	 */
 	getEffectiveness(source: IMove | string, target: IPokemon | string | readonly string[]): number {
 		const sourceType = (typeof source === 'string' ? source : source.type);
-		let targetType;
+		let targetType: string | readonly string[];
 		if (typeof target === 'string') {
 			const pokemon = this.getPokemon(target);
 			if (pokemon) {
@@ -714,30 +731,67 @@ export class Dex {
 		} else if (Array.isArray(target)) {
 			targetType = target;
 		} else {
-			// @ts-expect-error
-			targetType = target.types as string[];
+			targetType = (target as IPokemon).types;
 		}
+
 		if (Array.isArray(targetType)) {
+			const cacheKey = targetType.join(',');
+			if (!Object.prototype.hasOwnProperty.call(this.effectivenessCache, sourceType)) {
+				this.effectivenessCache[sourceType] = {};
+			} else if (Object.prototype.hasOwnProperty.call(this.effectivenessCache[sourceType], cacheKey)) {
+				return this.effectivenessCache[sourceType][cacheKey];
+			}
+
 			let totalTypeMod = 0;
 			for (const type of targetType) {
 				totalTypeMod += this.getEffectiveness(sourceType, type);
 			}
+
+			this.effectivenessCache[sourceType][cacheKey] = totalTypeMod;
 			return totalTypeMod;
 		} else {
 			targetType = targetType as string;
-			const typeData = this.getType(targetType);
-			if (!typeData) return 0;
-			switch (typeData.damageTaken[sourceType]) {
-			case 1: return 1; // super-effective
-			case 2: return -1; // resist
-			// in case of weird situations like Gravity, immunity is
-			// handled elsewhere
-			default: return 0;
+			if (!Object.prototype.hasOwnProperty.call(this.effectivenessCache, sourceType)) {
+				this.effectivenessCache[sourceType] = {};
+			} else if (Object.prototype.hasOwnProperty.call(this.effectivenessCache[sourceType], targetType)) {
+				return this.effectivenessCache[sourceType][targetType];
 			}
+
+			const typeData = this.getType(targetType);
+			let effectiveness: number;
+			if (typeData) {
+				switch (typeData.damageTaken[sourceType]) {
+				// super-effective
+				case 1: {
+					effectiveness = 1;
+					break;
+				}
+
+				// resist
+				case 2: {
+					effectiveness = -1;
+					break;
+				}
+
+				// in case of weird situations like Gravity, immunity is
+				// handled elsewhere
+				default: {
+					effectiveness = 0;
+				}
+				}
+			} else {
+				effectiveness = 0;
+			}
+
+			this.effectivenessCache[sourceType][targetType] = effectiveness;
+			return effectiveness;
 		}
 	}
 
 	getWeaknesses(pokemon: IPokemon): string[] {
+		const cacheKey = pokemon.types.slice().sort().join(',');
+		if (Object.prototype.hasOwnProperty.call(this.weaknessesCache, cacheKey)) return this.weaknessesCache[cacheKey];
+
 		const weaknesses: string[] = [];
 		for (const key of this.data.typeKeys) {
 			const type = this.getExistingType(key);
@@ -745,6 +799,8 @@ export class Dex {
 			const effectiveness = this.getEffectiveness(type.name, pokemon);
 			if (!isImmune && effectiveness >= 1) weaknesses.push(type.name);
 		}
+
+		this.weaknessesCache[cacheKey] = weaknesses;
 		return weaknesses;
 	}
 
@@ -1457,7 +1513,43 @@ export class Dex {
 			}
 		}
 
-		this.allPossibleMovesCache.set(pokemon.id, checkedMoves);
+		this.allPossibleMovesCache[pokemon.id] = checkedMoves;
+	}
+
+	private cacheIsPseudoLCPokemon(pokemon: IPokemon, lc: IPSFormat): void {
+		if (pokemon.tier === 'LC' || pokemon.prevo) {
+			this.pseudoLCPokemonCache[pokemon.id] = false;
+			return;
+		}
+
+		if (lc.exists && (lc.banlist.includes(pokemon.name) || lc.banlist.includes(pokemon.name + "-Base"))) {
+			this.pseudoLCPokemonCache[pokemon.id] = false;
+			return;
+		}
+
+		let invalidEvent = true;
+		const learnsetData = this.getLearnsetData(pokemon.id);
+		if (learnsetData && learnsetData.eventData && learnsetData.eventOnly) {
+			for (const event of learnsetData.eventData) {
+				if (event.level && event.level <= 5)  {
+					invalidEvent = false;
+					break;
+				}
+			}
+		}
+
+		let nfe = false;
+		if (!invalidEvent && pokemon.evos.length) {
+			for (const evo of pokemon.evos) {
+				const evolution = this.getPokemon(evo);
+				if (evolution && evolution.gen <= this.gen) {
+					nfe = true;
+					break;
+				}
+			}
+		}
+
+		this.pseudoLCPokemonCache[pokemon.id] = !invalidEvent && nfe;
 	}
 
 	private cacheMoveAvailability(move: IMove, pokedex: IPokemon[]): void {
@@ -1468,7 +1560,7 @@ export class Dex {
 			}
 		}
 
-		this.moveAvailbilityCache.set(move.id, availability);
+		this.moveAvailbilityCache[move.id] = availability;
 	}
 
 	private getAllEvolutionLines(pokemon: IPokemon, prevoList?: string[], evolutionLines?: string[][]): string[][] {

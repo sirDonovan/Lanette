@@ -26,7 +26,7 @@ class PluslesAdditiveParameters extends Game {
 	roundTime: number = 15 * 1000;
 
 	static loadData(room: Room | User): void {
-		Games.workers.parameters.loadData();
+		Games.workers.parameters.init();
 	}
 
 	onStart(): void {

@@ -23,7 +23,7 @@ class InkaysCups extends Game {
 	usesWorkers: boolean = true;
 
 	static loadData(room: Room | User): void {
-		const parametersData = Games.workers.parameters.loadData();
+		const parametersData = Games.workers.parameters.getData();
 
 		for (const searchType of searchTypes) {
 			paramTypeDexesKeys[searchType] = {};

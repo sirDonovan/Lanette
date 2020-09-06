@@ -46,6 +46,11 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNa
 		}));
 	}
 
+	getData(): WorkerData {
+		this.init();
+		return this.workerData!;
+	}
+
 	init(): void {
 		if (!this.workerData) this.workerData = this.loadData();
 		if (!this.workers) {

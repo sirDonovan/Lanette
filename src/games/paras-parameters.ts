@@ -26,7 +26,7 @@ export class ParasParameters extends Guessing {
 	usesWorkers: boolean = true;
 
 	static loadData(room: Room | User): void {
-		Games.workers.parameters.loadData();
+		Games.workers.parameters.init();
 	}
 
 	onSignups(): void {
@@ -164,7 +164,7 @@ export class ParasParameters extends Guessing {
 }
 
 const tests: GameFileTests<ParasParameters> = {
-	'should return proper values from Portmanteaus worker': {
+	'should return proper values from Parameters worker': {
 		config: {
 			async: true,
 		},

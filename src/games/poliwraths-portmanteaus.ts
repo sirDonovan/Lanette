@@ -21,7 +21,7 @@ export class PoliwrathsPortmanteaus extends Guessing {
 	usesWorkers: boolean = true;
 
 	static loadData(room: Room | User): void {
-		Games.workers.portmanteaus.loadData();
+		Games.workers.portmanteaus.init();
 	}
 
 	onInitialize(): void {

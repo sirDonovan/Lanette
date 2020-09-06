@@ -68,8 +68,8 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 		};
 
 		for (let i = 1; i <= 7; i++) {
-			const genString = 'gen' + i;
-			const dex = Dex.getDex(genString);
+			const mod = 'gen' + i;
+			const dex = Dex.getDex(mod);
 
 			const evolutionLines: string[] = [];
 			const formes: Dict<string> = {};
@@ -104,7 +104,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 			}
 
 			const allPossibleMoves: Dict<string[]> = {};
-			const pokedex = Games.getPokemonList(undefined, genString);
+			const pokedex = Games.getPokemonList(undefined, i);
 			for (const pokemon of pokedex) {
 				allPossibleMoves[pokemon.id] = dex.getAllPossibleMoves(pokemon);
 
@@ -236,7 +236,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 
 			tiers['ubers'] = tiers['uber'];
 
-			const movesList = Games.getMovesList(undefined, genString);
+			const movesList = Games.getMovesList(undefined, i);
 			for (const move of movesList) {
 				const moveParam = {type: 'move', param: move.name};
 				if (move.id.startsWith('hiddenpower')) {
@@ -256,7 +256,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 				}
 			}
 
-			data.pokemon.gens[genString] = {
+			data.pokemon.gens[mod] = {
 				evolutionLines,
 				formes,
 				paramTypePools: {

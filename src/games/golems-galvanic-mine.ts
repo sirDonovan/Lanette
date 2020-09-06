@@ -4,7 +4,8 @@ import type { Room } from "../rooms";
 import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 import type { User } from "../users";
 
-const gen = 'gen7';
+const gen = 7;
+const mod = 'gen' + gen;
 const data: {stones: string[]} = {
 	stones: [],
 };
@@ -92,7 +93,7 @@ const commands: GameCommandDefinitions<GolemsGalvanicMine> = {
 		command(target, room, user): GameCommandReturnType {
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (this.roundMines.has(player)) return false;
-			const stone = Dex.getDex(gen).getItem(target);
+			const stone = Dex.getDex(mod).getItem(target);
 			if (!stone || !data.stones.includes(stone.name)) {
 				user.say("'" + target + "' is not a valid Z or Mega stone.");
 				return false;

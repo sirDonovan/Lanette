@@ -1,6 +1,7 @@
 import type { Player } from "../room-activity";
 import { Game } from "../room-game";
 import type { Room } from "../rooms";
+import type { IPokemon } from "../types/dex";
 import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 import type { User } from "../users";
 
@@ -36,17 +37,17 @@ class TaurosSafariZone extends Game {
 	static loadData(room: Room | User): void {
 		const pokemonList = Games.getPokemonList(pokemon => Dex.hasGifData(pokemon) && pokemon.id !== 'voltorb' &&
 			pokemon.id !== 'electrode');
-		const copy = pokemonList.slice();
-		for (const pokemon of copy) {
+		const listWithFormes = pokemonList.slice();
+		for (const pokemon of pokemonList) {
 			if (pokemon.otherFormes) {
 				for (const name of pokemon.otherFormes) {
 					const forme = Dex.getExistingPokemon(name);
-					if (Dex.hasGifData(forme)) pokemonList.push(forme);
+					if (Dex.hasGifData(forme)) listWithFormes.push(forme);
 				}
 			}
 		}
 
-		for (const pokemon of pokemonList) {
+		for (const pokemon of listWithFormes) {
 			data.pokedex.push(pokemon.id);
 			let bst = 0;
 			for (const stat in pokemon.baseStats) {
