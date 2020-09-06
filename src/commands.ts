@@ -2874,7 +2874,7 @@ const commands: CommandDefinitions<CommandContext> = {
 					return this.say("You cannot add custom rules to scheduled tournaments.");
 				}
 
-				let customRules = format.customRules ? format.customRules.slice() : [];
+				const customRules = format.customRules ? format.customRules.slice() : [];
 				for (let i = 2; i < targets.length; i++) {
 					const trimmed = targets[i].trim();
 					if (!customRules.includes(trimmed)) customRules.push(trimmed);
