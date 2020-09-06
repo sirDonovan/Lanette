@@ -997,7 +997,7 @@ export class Games {
 			const baseList = Dex.getDex(mod).getItemsList();
 			const list: IItem[] = [];
 			for (const item of baseList) {
-				if (!item.name) continue;
+				if (!item.name || (item.id.substr(0, 2) === 'tr' && !isNaN(parseInt(item.id.substr(2))))) continue;
 				list.push(item);
 			}
 			this.itemsLists[mod] = list;

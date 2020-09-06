@@ -452,6 +452,7 @@ describe("Games", () => {
 
 		assert(abilities.includes(Dex.getExistingAbility('Intimidate').name));
 
+		assert(!items.includes(Dex.getExistingItem('TR01').name));
 		assert(items.includes(Dex.getExistingItem('Abomasite').name));
 		assert(items.includes(Dex.getExistingItem('Choice Scarf').name));
 		assert(items.includes(Dex.getExistingItem('Custap Berry').name));
