@@ -270,11 +270,5 @@ export class CommandParser {
 }
 
 export const instantiate = (): void => {
-	const oldCommandParser: CommandParser | undefined = global.CommandParser;
-
 	global.CommandParser = new CommandParser();
-
-	if (oldCommandParser) {
-		Tools.updateNodeModule(__filename, module);
-	}
 };

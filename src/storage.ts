@@ -358,6 +358,5 @@ export const instantiate = (): void => {
 
 	if (oldStorage) {
 		global.Storage.onReload(oldStorage);
-		Tools.updateNodeModule(__filename, module);
 	}
 };

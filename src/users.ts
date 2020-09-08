@@ -185,11 +185,5 @@ export class Users {
 }
 
 export const instantiate = (): void => {
-	const oldUsers: Users | undefined = global.Users;
-
 	global.Users = new Users();
-
-	if (oldUsers) {
-		Tools.updateNodeModule(__filename, module);
-	}
 };

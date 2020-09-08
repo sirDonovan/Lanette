@@ -614,6 +614,7 @@ export interface IPokemonShowdownDex {
 		Pokedex: Dict<string>;
 		TypeChart: Dict<string>;
 	}
+	dexes: Dict<IPokemonShowdownDex>;
 	gen: number;
 	getAbility: (name: string) => IPSAbility;
 	getFormat: (name: string, isVaidated?: boolean) => IPSFormat;
@@ -629,9 +630,9 @@ export interface IPokemonShowdownDex {
 	validateRule: (rule: string) => [string, string, string, number, string[]] | string;
 }
 
-export interface IValidator {
+export interface IPokemonShowdownValidator {
 	// eslint-disable-next-line @typescript-eslint/no-misused-new
-	new(format: string | IFormat, dex: IPokemonShowdownDex): IValidator;
+	new(format: string | IFormat, dex: IPokemonShowdownDex): IPokemonShowdownValidator;
 	checkLearnset: (move: IMove, pokemon: IPokemon) => boolean;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	checkSpecies: (set: Dict<any>, pokemon: IPokemon, tierPokemon: IPokemon, setHas: Dict<boolean>) => string | null;

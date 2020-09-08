@@ -10,27 +10,14 @@ import type { Game } from './room-game';
 import type { Room } from "./rooms";
 import type { CommandDefinitions } from "./types/command-parser";
 import type { IFormat, IPokemon } from "./types/dex";
-import type { GameDifficulty, IGameFormat, IGamesWorkers } from "./types/games";
-import type { IStorageWorkers, UserHostStatus, IUserHostedGameStats } from './types/storage';
+import type { GameDifficulty, IGameFormat } from "./types/games";
+import type { UserHostStatus, IUserHostedGameStats } from './types/storage';
 import type { IBattleData, TournamentPlace } from './types/tournaments';
 import type { User } from "./users";
-
-type ReloadableModule = 'client' | 'commandparser' | 'commands' | 'config' | 'dex' | 'games' | 'plugins' | 'storage' | 'tools' |
-	'tournaments';
-const moduleOrder: ReloadableModule[] = ['tools', 'config', 'dex', 'client', 'commandparser', 'storage', 'tournaments',
-	'plugins', 'commands', 'games'];
 
 const AWARDED_BOT_GREETING_DURATION = 60 * 24 * 60 * 60 * 1000;
 const ONE_VS_ONE_GAME_COOLDOWN = 2 * 60 * 60 * 1000;
 const RANDOM_GENERATOR_LIMIT = 6;
-
-let reloadInProgress = false;
-
-const reloadCommands = function(reloadedModules: ReloadableModule[]): void {
-	// eslint-disable-next-line @typescript-eslint/no-var-requires
-	global.Commands = CommandParser.loadBaseCommands(require('./commands'));
-	if (!reloadedModules.includes('games')) Games.loadFormatCommands();
-};
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
@@ -73,158 +60,11 @@ const commands: CommandDefinitions<CommandContext> = {
 	},
 	*/
 	reload: {
-		async asyncCommand(target, room, user) {
+		command(target, room, user) {
 			if (!target) return;
-			const hasModules: boolean[] = moduleOrder.slice().map(x => false);
-			const targets = target.split(",");
-			for (const target of targets) {
-				const id = Tools.toId(target) as ReloadableModule;
-				if (id === 'games') {
-					const workers = Object.keys(Games.workers) as (keyof IGamesWorkers)[];
-					for (const worker of workers) {
-						if (Games.workers[worker].isBusy) {
-							return this.say("You must wait for all " + worker + " requests to finish first.");
-						}
-					}
+			if (__reloadInProgress) return this.say("You must wait for the current reload to finish.");
 
-					const workerGameRooms: Room[] = [];
-					Users.self.rooms.forEach((rank, room) => {
-						if (room.game && room.game.usesWorkers) workerGameRooms.push(room);
-					});
-					if (workerGameRooms.length) {
-						return this.say("You must wait for the game" + (workerGameRooms.length > 1 ? "s" : "") + " in " +
-							Tools.joinList(workerGameRooms.map(x => x.title)) + " to finish first.");
-					}
-				} else if (id === 'storage') {
-					const workers = Object.keys(Storage.workers) as (keyof IStorageWorkers)[];
-					for (const worker of workers) {
-						if (Storage.workers[worker].isBusy) {
-							return this.say("You must wait for all " + worker + " requests to finish first.");
-						}
-					}
-				}
-
-				const moduleIndex = moduleOrder.indexOf(id);
-				if (moduleIndex !== -1) {
-					hasModules[moduleIndex] = true;
-				} else {
-					return this.say("'" + target.trim() + "' is not a module or cannot be reloaded.");
-				}
-			}
-
-			if (reloadInProgress) return this.say("You must wait for the current reload to finish.");
-			reloadInProgress = true;
-
-			const modules: ReloadableModule[] = [];
-			for (let i = 0; i < hasModules.length; i++) {
-				if (hasModules[i]) modules.push(moduleOrder[i]);
-			}
-
-			if (modules.includes('dex') || modules.includes('games')) Games.reloadInProgress = true;
-			if (modules.includes('storage')) Storage.reloadInProgress = true;
-
-			this.say("Running ``tsc``...");
-
-			const buildOptions: Dict<boolean> = {
-				incrementalBuild: true,
-				offline: !modules.includes('dex'),
-			};
-
-			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-call
-			await require(path.join(Tools.rootFolder, 'build.js'))(async() => {
-				for (const moduleId of modules) {
-					if (moduleId === 'client') {
-						const filename = "client";
-						Tools.uncacheTree('./' + filename);
-
-						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const client = require('./' + filename) as typeof import('./client');
-						client.instantiate();
-					} else if (moduleId === 'commandparser') {
-						const filename = "command-parser";
-						Tools.uncacheTree('./' + filename);
-
-						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const commandParser = require('./' + filename) as typeof import('./command-parser');
-						commandParser.instantiate();
-					} else if (moduleId === 'commands') {
-						Tools.uncacheTree('./commands');
-						reloadCommands(modules);
-					} else if (moduleId === 'config') {
-						Tools.uncacheTree('./config');
-						Tools.uncacheTree('./config-loader');
-
-						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const configLoader = require('./config-loader') as typeof import('./config-loader');
-						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const config = configLoader.load(require('./config') as typeof import('./config-example'));
-						global.Config = config;
-						Rooms.checkLoggingConfigs();
-					} else if (moduleId === 'dex') {
-						const filename = "dex";
-						Tools.uncacheTree('./' + filename);
-
-						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const dex = require('./' + filename) as typeof import('./dex');
-						dex.instantiate();
-						if (!modules.includes('games')) Games.reloadInProgress = false;
-					} else if (moduleId === 'games') {
-						const filename = 'games';
-						Games.unrefWorkers();
-						Tools.uncacheTree('./' + filename);
-						Tools.uncacheTree('./room-activity');
-
-						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const games = require('./' + filename) as typeof import('./games');
-						games.instantiate();
-					} else if (moduleId === 'plugins') {
-						if (Plugins) {
-							for (const plugin of Plugins) {
-								if (plugin.moduleName) {
-									// @ts-expect-error
-									delete global[plugin.moduleName];
-								}
-							}
-						}
-
-						Tools.uncacheTree('./plugins-loader');
-						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const pluginsLoader = require('./plugins-loader') as typeof import('./plugins-loader');
-						await pluginsLoader.load();
-						reloadCommands(modules);
-					} else if (moduleId === 'storage') {
-						const filename = "storage";
-						Storage.unrefWorkers();
-						Tools.uncacheTree('./' + filename);
-
-						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const storage = require('./' + filename) as typeof import('./storage');
-						storage.instantiate();
-					} else if (moduleId === 'tools') {
-						const filename = "tools";
-						Tools.uncacheTree('./' + filename);
-
-						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const tools = require('./' + filename) as typeof import('./tools');
-						tools.instantiate();
-					} else if (moduleId === 'tournaments') {
-						const filename = "tournaments";
-						Tools.uncacheTree('./' + filename);
-						Tools.uncacheTree('./room-activity');
-
-						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const tournaments = require('./' + filename) as typeof import('./tournaments');
-						tournaments.instantiate();
-					}
-				}
-				this.say("Successfully reloaded: " + modules.join(", "));
-				reloadInProgress = false;
-			}, () => {
-				this.say("Failed to build files.");
-				reloadInProgress = false;
-				if (Games.reloadInProgress) Games.reloadInProgress = false;
-				if (Storage.reloadInProgress) Storage.reloadInProgress = false;
-			}, buildOptions);
+			void __reloadModules(user.name, target.split(","));
 		},
 		aliases: ['hotpatch'],
 		developerOnly: true,

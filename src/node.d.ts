@@ -10,6 +10,8 @@ declare namespace NodeJS {
 		Games: import('./games').Games;
 		ParseMessagePlugins: string[] | undefined;
 		Plugins: import('./types/plugins').LoadedPlugin[] | undefined;
+		__reloadInProgress: boolean;
+		__reloadModules: (username: string, modules: string[]) => Promise<void>;
 		Rooms: import('./rooms').Rooms;
 		Storage: import('./storage').Storage;
 		tempConfig: boolean;

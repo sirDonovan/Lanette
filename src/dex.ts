@@ -4,11 +4,9 @@ import type { Room } from './rooms';
 import type {
 	IAbility, IAbilityCopy, IDataTable, IFormat, IFormatLinks, IGetPossibleTeamsOptions, IGifData,
 	IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy, ISeparatedCustomRules, ITypeData,
-	IPokemonShowdownDex, IValidator, IPSFormat
+	IPokemonShowdownDex, IPokemonShowdownValidator, IPSFormat
 } from './types/dex';
 
-let pokemonShowdownDexBase: IPokemonShowdownDex;
-let pokemonShowdownTeamValidator: IValidator;
 let formatLinks: Dict<IFormatLinks | undefined>;
 
 const currentGen = 8;
@@ -130,6 +128,7 @@ export class Dex {
 	readonly gen: number;
 	readonly isBase: boolean;
 	readonly pokemonShowdownDex: IPokemonShowdownDex;
+	readonly pokemonShowdownValidator: IPokemonShowdownValidator;
 
 	/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 	private abilitiesList: readonly IAbility[] | null = null;
@@ -158,13 +157,23 @@ export class Dex {
 	constructor(gen?: number, mod?: string) {
 		if (!gen) gen = currentGen;
 		if (!mod) mod = 'base';
+
+		const simDist = ".sim-dist";
+		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
+		const pokemonShowdownDexBase = require(path.join(Tools.pokemonShowdownFolder, simDist, "dex.js")).Dex as IPokemonShowdownDex;
+
 		const isBase = mod === 'base';
 		if (isBase) {
 			dexes['base'] = this;
 			dexes[currentGenString] = this;
 			this.pokemonShowdownDex = pokemonShowdownDexBase;
+
+			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+			this.pokemonShowdownValidator = require(path.join(Tools.pokemonShowdownFolder, simDist, "team-validator.js"))
+				.TeamValidator as IPokemonShowdownValidator;
 		} else {
 			this.pokemonShowdownDex = pokemonShowdownDexBase.mod(mod);
+			this.pokemonShowdownValidator = dexes['base'].pokemonShowdownValidator;
 		}
 
 		this.currentMod = mod;
@@ -173,13 +182,28 @@ export class Dex {
 	}
 
 	onReload(previous: Partial<Dex>): void {
-		for (const mod in previous.dexes) {
-			if (previous.dexes[mod] === previous) continue;
-			const dex = previous.dexes[mod];
-			for (const i in dex) {
-				// @ts-expect-error
-				delete dex[i];
+		if (previous.pokemonShowdownDex) {
+			const pokemonShowdownDexes = previous.pokemonShowdownDex.dexes;
+			for (const mod in pokemonShowdownDexes) {
+				const dex = pokemonShowdownDexes[mod];
+				for (const i in dex) {
+					// @ts-expect-error
+					delete dex[i];
+				}
+
+				delete pokemonShowdownDexes[mod];
 			}
+		}
+
+		for (const mod in previous.dexes) {
+			if (previous.dexes[mod] !== previous) {
+				const dex = previous.dexes[mod];
+				for (const i in dex) {
+					// @ts-expect-error
+					delete dex[i];
+				}
+			}
+			delete previous.dexes[mod];
 		}
 
 		for (const i in previous) {
@@ -273,7 +297,7 @@ export class Dex {
 		const colors: Dict<string> = {};
 		const eggGroups: Dict<string> = {};
 
-		const validator = new pokemonShowdownTeamValidator("gen" + this.gen + "ou", dexes['base'].pokemonShowdownDex);
+		const validator = new this.pokemonShowdownValidator("gen" + this.gen + "ou", dexes['base'].pokemonShowdownDex);
 		const lcFormat = this.pokemonShowdownDex.getFormat("gen" + this.gen + "lc");
 		const pokemonKeys = Object.keys(this.pokemonShowdownDex.data.Pokedex);
 		const filteredPokemonKeys: string[] = [];
@@ -1165,7 +1189,7 @@ export class Dex {
 		if (format.usablePokemon) return format.usablePokemon;
 
 		const formatid = format.name + (format.customRules ? "@@@" + format.customRules.join(',') : "");
-		const validator = new pokemonShowdownTeamValidator(formatid, dexes['base'].pokemonShowdownDex);
+		const validator = new this.pokemonShowdownValidator(formatid, dexes['base'].pokemonShowdownDex);
 		if (!format.ruleTable) format.ruleTable = this.pokemonShowdownDex.getRuleTable(format);
 
 		const formatGen = format.mod in dexes ? dexes[format.mod].gen : this.gen;
@@ -1514,7 +1538,7 @@ export class Dex {
 		return isPossible;
 	}
 
-	private cacheAllPossibleMoves(validator: IValidator, pokemon: IPokemon): void {
+	private cacheAllPossibleMoves(validator: IPokemonShowdownValidator, pokemon: IPokemon): void {
 		let possibleMoves: string[] = [];
 		let learnsetParent: IPokemon | null = pokemon;
 		while (learnsetParent && learnsetParent.gen <= this.gen) {
@@ -1631,11 +1655,6 @@ export class Dex {
 export const instantiate = (): void => {
 	const oldDex: Dex | undefined = global.Dex;
 
-	// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
-	pokemonShowdownDexBase = require(path.join(Tools.pokemonShowdownFolder, ".sim-dist", "dex.js")).Dex as IPokemonShowdownDex;
-	// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-	pokemonShowdownTeamValidator = require(path.join(Tools.pokemonShowdownFolder, ".sim-dist", "team-validator.js")).TeamValidator;
-
 	global.Dex = new Dex();
 	for (let i = currentGen - 1; i >= 1; i--) {
 		const mod = 'gen' + i;
@@ -1644,6 +1663,5 @@ export const instantiate = (): void => {
 
 	if (oldDex) {
 		global.Dex.onReload(oldDex);
-		Tools.updateNodeModule(__filename, module);
 	}
 };

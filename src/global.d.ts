@@ -9,7 +9,7 @@ import { Tools } from './tools';
 import { Tournaments } from './tournaments';
 import type { BaseLoadedCommands } from "./types/command-parser";
 import { LoadedPlugin } from './types/plugins';
-import { Users } from './users';
+import { User, Users } from './users';
 
 /* eslint-disable no-redeclare, no-undef, @typescript-eslint/naming-convention */
 declare global {
@@ -22,6 +22,8 @@ declare global {
 	const Games: Games;
 	const ParseMessagePlugins: string[] | undefined;
 	const Plugins: LoadedPlugin[] | undefined;
+	const __reloadInProgress: boolean;
+	const __reloadModules: (username: string, modules: string[]) => Promise<void>;
 	const Rooms: Rooms;
 	const Storage: Storage;
 	const tempConfig: boolean;

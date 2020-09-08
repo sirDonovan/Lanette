@@ -528,6 +528,5 @@ export const instantiate = (): void => {
 
 	if (oldTournaments) {
 		global.Tournaments.onReload(oldTournaments);
-		Tools.updateNodeModule(__filename, module);
 	}
 };

@@ -239,11 +239,5 @@ export class Rooms {
 }
 
 export const instantiate = (): void => {
-	const oldRooms: Rooms | undefined = global.Rooms;
-
 	global.Rooms = new Rooms();
-
-	if (oldRooms) {
-		Tools.updateNodeModule(__filename, module);
-	}
 };

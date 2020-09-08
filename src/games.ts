@@ -1346,6 +1346,5 @@ export const instantiate = (): void => {
 
 	if (oldGames) {
 		global.Games.onReload(oldGames);
-		Tools.updateNodeModule(__filename, module);
 	}
 };

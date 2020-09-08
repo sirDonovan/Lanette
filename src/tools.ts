@@ -2,7 +2,6 @@ import fs = require('fs');
 import https = require('https');
 import path = require('path');
 import url = require('url');
-import v8 = require('v8');
 
 import type { PRNG } from './prng';
 import type { HexColor } from './types/tools';
@@ -20,10 +19,6 @@ const maxMessageLength = 300;
 const maxUsernameLength = 18;
 const githubApiThrottle = 2 * 1000;
 const rootFolder = path.resolve(__dirname, '..');
-const pokemonShowdownFolder = path.join(rootFolder, 'pokemon-showdown');
-const pokemonShowdownDists = [path.join(pokemonShowdownFolder, ".config-dist"), path.join(pokemonShowdownFolder, ".data-dist"),
-	path.join(pokemonShowdownFolder, ".lib-dist"), path.join(pokemonShowdownFolder, ".server-dist"),
-	path.join(pokemonShowdownFolder, ".sim-dist")];
 
 // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-empty-function
 const TimeoutConstructor = setTimeout(() => {}, 1).constructor;
@@ -477,33 +472,26 @@ export class Tools {
 	}
 
 	uncacheTree(root: string): void {
-		let uncache = [require.resolve(root)];
-		do {
-			const newuncache: string[] = [];
-			for (const target of uncache) {
-				if (require.cache[target]) {
-					// eslint-disable-next-line prefer-spread
-					newuncache.push.apply(newuncache, require.cache[target].children
-						.filter(cachedModule => !cachedModule.id.endsWith('.node')).map(cachedModule => cachedModule.id));
-					delete require.cache[target];
+		const filepaths = [require.resolve(root)];
+		while (filepaths.length) {
+			const filepath = filepaths[0];
+			filepaths.shift();
+			if (filepath in require.cache) {
+				const cachedModule = require.cache[filepath];
+				for (const child of cachedModule.children) {
+					if (!child.id.endsWith('.node')) filepaths.push(child.filename);
 				}
+
+				cachedModule.exports = {};
+				cachedModule.children = [];
+				if (cachedModule.parent) {
+					const index = cachedModule.parent.children.indexOf(cachedModule);
+					if (index !== -1) cachedModule.parent.children.splice(index, 1);
+				}
+
+				delete require.cache[filepath];
 			}
-			uncache = newuncache;
-		} while (uncache.length > 0);
-	}
-
-	updateNodeModule(filepath: string, newNodeModule: NodeModule): void {
-		let rootModule = module;
-		while (rootModule.parent) {
-			rootModule = rootModule.parent;
 		}
-
-		this.updateChildNodeModules(rootModule, filepath, newNodeModule);
-	}
-
-	getHeapLimit(): number {
-		const heapStatistics: v8.HeapInfo = v8.getHeapStatistics();
-		return heapStatistics.heap_size_limit - heapStatistics.used_heap_size;
 	}
 
 	getPermutations<T>(elements: T[], minimumLength?: number): T[][] {
@@ -693,33 +681,6 @@ export class Tools {
 		await CommandParser.parse(user, user, Config.commandCharacter + 'reload dex');
 	}
 	*/
-
-	private updateChildNodeModules(nodeModule: NodeModule, filepath: string, newNodeModule: NodeModule): void {
-		if (nodeModule.children) {
-			for (let i = 0; i < nodeModule.children.length; i++) {
-				const child = nodeModule.children[i];
-
-				let pokemonShowdownModule = false;
-				for (const dist of pokemonShowdownDists) {
-					if (child.filename.startsWith(dist)) {
-						pokemonShowdownModule = true;
-						break;
-					}
-				}
-				if (pokemonShowdownModule) continue;
-
-				if (child.filename === filepath) {
-					nodeModule.children[i] = newNodeModule;
-					if (child !== newNodeModule) {
-						// @ts-expect-error
-						delete child.children;
-					}
-				} else {
-					this.updateChildNodeModules(child, filepath, newNodeModule);
-				}
-			}
-		}
-	}
 }
 
 export const instantiate = (): void => {
@@ -729,6 +690,5 @@ export const instantiate = (): void => {
 
 	if (oldTools) {
 		global.Tools.onReload(oldTools);
-		global.Tools.updateNodeModule(__filename, module);
 	}
 };

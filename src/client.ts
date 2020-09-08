@@ -1,8 +1,8 @@
 import https = require('https');
 import querystring = require('querystring');
 import url = require('url');
-import ws = require('ws');
 
+import type { ClientOptions, Data } from 'ws';
 import type { Player } from './room-activity';
 import type { Room } from './rooms';
 import type {
@@ -136,10 +136,10 @@ function constructEvasionRegex(str: string): RegExp {
 	return new RegExp(buf, 'i');
 }
 
-let connectListener: () => void;
-let messageListener: (message: ws.Data) => void;
-let errorListener: (error: Error) => void;
-let closeListener: (code: number, reason: string) => void;
+let connectListener: (() => void) | null;
+let messageListener: ((message: Data) => void) | null;
+let errorListener: ((error: Error) => void) | null;
+let closeListener: ((code: number, reason: string) => void) | null;
 
 export class Client {
 	averageServerLatency: number = 1;
@@ -151,7 +151,7 @@ export class Client {
 	evasionFilterRegularExpressions: RegExp[] | null = null;
 	filterRegularExpressions: RegExp[] | null = null;
 	groupSymbols: Dict<string> = {};
-	incomingMessageQueue: ws.Data[] = [];
+	incomingMessageQueue: Data[] = [];
 	lastSentMessage: string = '';
 	loggedIn: boolean = false;
 	loginTimeout: NodeJS.Timer | undefined = undefined;
@@ -173,7 +173,7 @@ export class Client {
 	startServerPingsTimeout: NodeJS.Timer | null = null;
 	throttledMessageCount: number = 0;
 	throttledMessageTimeout: NodeJS.Timer | null = null;
-	webSocket: ws | null = null;
+	webSocket: import('ws') | null = null;
 
 	constructor() {
 		connectListener = () => {
@@ -181,7 +181,7 @@ export class Client {
 			void this.onConnect();
 		};
 
-		messageListener = (message: ws.Data) => this.onMessage(message);
+		messageListener = (message: Data) => this.onMessage(message);
 		errorListener = (error: Error) => this.onConnectionError(error);
 		closeListener = (code: number, description: string) => this.onConnectionClose(code, description);
 
@@ -191,19 +191,34 @@ export class Client {
 	setClientListeners(): void {
 		if (!this.webSocket) return;
 
-		this.webSocket.on('open', connectListener);
-		this.webSocket.on('message', messageListener);
-		this.webSocket.on('error', errorListener);
-		this.webSocket.on('close', closeListener);
+		this.webSocket.on('open', connectListener!);
+		this.webSocket.on('message', messageListener!);
+		this.webSocket.on('error', errorListener!);
+		this.webSocket.on('close', closeListener!);
 	}
 
 	removeClientListeners(): void {
 		if (!this.webSocket) return;
 
-		this.webSocket.off('open', connectListener);
-		this.webSocket.off('message', messageListener);
-		this.webSocket.off('error', errorListener);
-		this.webSocket.off('close', closeListener);
+		if (connectListener) {
+			this.webSocket.off('open', connectListener);
+			connectListener = null;
+		}
+
+		if (messageListener) {
+			this.webSocket.off('message', messageListener);
+			messageListener = null;
+		}
+
+		if (errorListener) {
+			this.webSocket.off('error', errorListener);
+			errorListener = null;
+		}
+
+		if (closeListener) {
+			this.webSocket.off('close', closeListener);
+			closeListener = null;
+		}
 	}
 
 	setStartServerPingsTimeout(): void {
@@ -378,10 +393,12 @@ export class Client {
 							address = 'ws://' + config.host + ':' + (config.port || 8000) + '/showdown/websocket';
 						}
 
-						const options: ws.ClientOptions = {
+						const options: ClientOptions = {
 							perMessageDeflate: Config.perMessageDeflate || false,
 						};
 
+						// eslint-disable-next-line @typescript-eslint/no-var-requires
+						const ws = require('ws') as typeof import('ws');
 						this.webSocket = new ws(address, options);
 						this.setClientListeners();
 
@@ -405,7 +422,7 @@ export class Client {
 		this.connect();
 	}
 
-	onMessage(webSocketData: ws.Data): void {
+	onMessage(webSocketData: Data): void {
 		if (!webSocketData || typeof webSocketData !== 'string') return;
 
 		if (!this.processIncomingMessages) {
@@ -1749,6 +1766,5 @@ export const instantiate = (): void => {
 
 	if (oldClient) {
 		global.Client.onReload(oldClient);
-		Tools.updateNodeModule(__filename, module);
 	}
 };

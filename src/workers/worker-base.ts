@@ -117,9 +117,8 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNa
 			delete this.workers;
 		}
 
-		// @ts-expect-error
-		delete this.messageQueue;
-		delete this.workerData;
-		delete this.workerNames;
+		for (const i in this) {
+			delete this[i];
+		}
 	}
 }
