@@ -25,7 +25,9 @@ const TRUSTED_MESSAGE_THROTTLE = 100;
 const TEMPORARY_MESSAGE_THROTTLE = 250;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
-const SERVER_PING_INTERVAL = 5 * 60 * 1000;
+const SERVER_PING_TARGET_SAMPLE = 30 * 1000;
+const SERVER_PING_INTERVAL = 5 * 1000;
+const START_SERVER_PINGS_TIMEOUT = 5 * 60 * 1000;
 const TEMPORARY_THROTTLED_MESSAGE_COOLDOWN = 5 * 60 * 1000;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
@@ -168,7 +170,7 @@ export class Client {
 	serverGroups: Dict<IServerGroup> = {};
 	serverId: string = 'showdown';
 	serverLatencyTimes: number[] = [];
-	serverLatencyTimeCount: number = 5;
+	serverLatencyTimeCount: number = SERVER_PING_TARGET_SAMPLE / SERVER_PING_INTERVAL;
 	serverTimeOffset: number = 0;
 	startServerPingsTimeout: NodeJS.Timer | null = null;
 	throttledMessageCount: number = 0;
@@ -225,7 +227,7 @@ export class Client {
 		this.startServerPingsTimeout = setTimeout(() => {
 			this.serverLatencyTimes = [];
 			this.pingServer();
-		}, SERVER_PING_INTERVAL);
+		}, START_SERVER_PINGS_TIMEOUT);
 	}
 
 	pingServer(): void {
@@ -248,7 +250,7 @@ export class Client {
 				this.averageServerLatency = totalLatency ? Math.ceil(totalLatency / this.serverLatencyTimes.length) : 1;
 				this.setStartServerPingsTimeout();
 			} else {
-				this.nextServerPing = setTimeout(() => this.pingServer(), 2 * 1000);
+				this.nextServerPing = setTimeout(() => this.pingServer(), SERVER_PING_INTERVAL);
 			}
 		};
 
