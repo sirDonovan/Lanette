@@ -199,27 +199,27 @@ export class Client {
 		this.webSocket.on('close', closeListener!);
 	}
 
-	removeClientListeners(): void {
+	removeClientListeners(previousClient?: boolean): void {
 		if (!this.webSocket) return;
 
 		if (connectListener) {
 			this.webSocket.off('open', connectListener);
-			connectListener = null;
+			if (previousClient) connectListener = null;
 		}
 
 		if (messageListener) {
 			this.webSocket.off('message', messageListener);
-			messageListener = null;
+			if (previousClient) messageListener = null;
 		}
 
 		if (errorListener) {
 			this.webSocket.off('error', errorListener);
-			errorListener = null;
+			if (previousClient) errorListener = null;
 		}
 
 		if (closeListener) {
 			this.webSocket.off('close', closeListener);
-			closeListener = null;
+			if (previousClient) closeListener = null;
 		}
 	}
 
@@ -273,7 +273,7 @@ export class Client {
 
 		if (previous.sendQueue) this.sendQueue = previous.sendQueue.slice();
 		if (previous.webSocket) {
-			if (previous.removeClientListeners) previous.removeClientListeners();
+			if (previous.removeClientListeners) previous.removeClientListeners(true);
 			this.webSocket = previous.webSocket;
 			this.setClientListeners();
 			this.connected = true;
