@@ -1117,6 +1117,7 @@ export class Games {
 	updateGameCatalog(room: Room): void {
 		if (!Config.gameCatalogGists || !(room.id in Config.gameCatalogGists)) return;
 
+		const commandCharacter = Config.commandCharacter;
 		const allowsScriptedGames = Config.allowScriptedGames && Config.allowScriptedGames.includes(room.id);
 		const allowsUserHostedGames = Config.allowUserHostedGames && Config.allowUserHostedGames.includes(room.id);
 
@@ -1137,7 +1138,6 @@ export class Games {
 		document.push(subHeader);
 
 		if (allowsUserHostedGames) {
-			const commandCharacter = Config.commandCharacter;
 			const userHostCommands: string[] = ["## User-host commands",
 				"Player management:",
 				"* <code>" + commandCharacter + "apl [player a], [player b], [...]</code> - add the specified player(s) to the game",
@@ -1241,11 +1241,12 @@ export class Games {
 
 		if (allowOneVsOneGames) {
 			const oneVsOneGames: string[] = ["## One vs. one challenges", "Commands:",
-				"* <code>.1v1c [user], [game]</code> - challenge [user] to a game of [game] (see list below)",
-				"* <code>.a1v1c</code> - accept a challenge",
-				"* <code>.r1v1c</code> - reject a challenge",
-				"* <code>.c1v1c</code> - cancel a challenge",
-				"* <code>.ccdown [room], 1v1</code> - check your one vs. one challenge cooldown time for [room] in PMs",
+				"* <code>" + commandCharacter + "1v1c [user], [game]</code> - challenge [user] to a game of [game] (see list below)",
+				"* <code>" + commandCharacter + "a1v1c</code> - accept a challenge",
+				"* <code>" + commandCharacter + "r1v1c</code> - reject a challenge",
+				"* <code>" + commandCharacter + "c1v1c</code> - cancel a challenge",
+				"* <code>" + commandCharacter + "ccdown [room], 1v1</code> - check your one vs. one challenge cooldown time for " +
+					"[room] in PMs",
 				"\n\nCompatible games:"
 			];
 			const keys = Object.keys(this.formats);
