@@ -68,6 +68,11 @@ export class UserHosted extends Game {
 		}
 	}
 
+	setStartTimer(minutes: number): void {
+		if (this.startTimer) clearTimeout(this.startTimer);
+		this.startTimer = setTimeout(() => this.useHostCommand('startgame'), minutes * 60 * 1000);
+	}
+
 	onForceEnd(user?: User, reason?: string): void {
 		if (user) this.sayCommand("/modnote " + this.name + " was forcibly ended by " + user.name + (reason ? " (" + reason + ")" : ""));
 	}

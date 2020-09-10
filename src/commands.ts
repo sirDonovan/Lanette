@@ -1564,6 +1564,24 @@ const commands: CommandDefinitions<CommandContext> = {
 		},
 		aliases: ['gtimer', 'randomgametimer', 'randomgtimer', 'randgametimer', 'randgtimer'],
 	},
+	startgametimer: {
+		command(target, room, user) {
+			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
+			const id = Tools.toId(target);
+			if (id === 'off' || id === 'end' || id === 'stop') {
+				if (!room.userHostedGame.startTimer) return this.say("There is no game start timer set.");
+				clearTimeout(room.userHostedGame.startTimer);
+				delete room.userHostedGame.startTimer;
+				return this.say("The game start timer has been turned off.");
+			}
+
+			const minutes = parseInt(target.trim());
+			if (isNaN(minutes) || minutes < 2 || minutes > 5) return this.say("You must specify a number of minutes between 2 and 5.");
+			room.userHostedGame.setStartTimer(minutes);
+			this.say("The game will start in " + minutes + " minutes.");
+		},
+		aliases: ['sgtimer'],
+	},
 	gamecap: {
 		command(target, room, user) {
 			if (this.isPm(room)) return;
