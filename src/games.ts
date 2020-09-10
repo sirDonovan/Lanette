@@ -1137,78 +1137,89 @@ export class Games {
 		document.push(subHeader);
 
 		if (allowsUserHostedGames) {
+			const commandCharacter = Config.commandCharacter;
 			const userHostCommands: string[] = ["## User-host commands",
 				"Player management:",
-				"* <code>.apl [player a], [player b], [...]</code> - add the specified player(s) to the game",
-				"* <code>.rpl [player a], [player b], [...]</code> - remove the specified player(s) from the game",
-				"* <code>.pl</code> - display the player list",
-				"* <code>.shufflepl</code> - shuffle and display the player list",
-				"* <code>.clearpl</code> - clear the player list",
+				"* <code>" + commandCharacter + "apl [player a], [player b], [...]</code> - add the specified player(s) to the game",
+				"* <code>" + commandCharacter + "rpl [player a], [player b], [...]</code> - remove the specified player(s) from the game",
+				"* <code>" + commandCharacter + "pl</code> - display the player list",
+				"* <code>" + commandCharacter + "shufflepl</code> - shuffle and display the player list",
+				"* <code>" + commandCharacter + "clearpl</code> - clear the player list",
 
 				"\nTeam management:",
-				"* <code>.splitpl [#], [team a], [team b]</code> - split the player list into [#] teams with team names if specified",
-				"* <code>.unsplitpl</code> - remove the previously set teams",
-				"* <code>.atpl [team], [player a], [player b], [...]</code> - add or move the specified player(s) to the specified team",
+				"* <code>" + commandCharacter + "splitpl [#], [team a], [team b]</code> - split the player list into [#] teams with " +
+					"team names if specified",
+				"* <code>" + commandCharacter + "unsplitpl</code> - remove the previously set teams",
+				"* <code>" + commandCharacter + "atpl [team], [player a], [player b], [...]</code> - add or move the specified " +
+					"player(s) to the specified team",
 
 				"\nPoints management:",
-				"* <code>.apt [...], [#]</code> - give [#] points to the specified player(s) or team(s)",
-				"* <code>.rpt [...], [#]</code> - remove [#] points from the specified player(s) or team(s)",
-				"* <code>.aptall [#]</code> - give [#] points to all players",
-				"* <code>.rptall [#]</code> - remove [#] points from all players",
-				"* <code>.mpt [player a], [player b], [#]</code> - move [#] or all of [player a]'s points to [player b]",
+				"* <code>" + commandCharacter + "apt [...], [#]</code> - give [#] points to the specified player(s) or team(s)",
+				"* <code>" + commandCharacter + "rpt [...], [#]</code> - remove [#] points from the specified player(s) or team(s)",
+				"* <code>" + commandCharacter + "aptall [#]</code> - give [#] points to all players",
+				"* <code>" + commandCharacter + "rptall [#]</code> - remove [#] points from all players",
+				"* <code>" + commandCharacter + "mpt [player a], [player b], [#]</code> - move [#] or all of [player a]'s points " +
+					"to [player b]",
 
 				"\nGame management:",
-				"* <code>.sgtimer [#], [minutes]</code> - set a timer for the game to start in [#] minutes",
-				"* <code>.gtimer [#], [minutes or seconds]</code> - set a timer for [#] minutes or seconds if specified",
-				"* <code>.randgtimer [seconds], [min], [max]</code> - set random timer between [min] and [max] minutes or seconds if " +
-					"specified",
-				"* <code>.gtimer off</code> - turn off the previously set timer",
-				"* <code>.store [message or command]</code> - store a message or command to be used throughout the game",
-				"* <code>.stored</code> - display a stored message or use a stored command",
-				"* <code>.twist [twist]</code> - set or view the twist for the game",
-				"* <code>.gcap [#]</code> - set or view the player cap for the game",
-				"* <code>.scorecap [#]</code> - set or view the score cap for the game",
-				"* <code>.savewinner [player a], [player b], [...]</code> - set the specified player(s) as the winner(s) and continue " +
-					"the game",
-				"* <code>.winner [player a], [player b], [...]</code> - set the specified player(s) as the winner(s) and end the game",
+				"* <code>" + commandCharacter + "sgtimer [#], [minutes]</code> - set a timer for the game to start in [#] minutes",
+				"* <code>" + commandCharacter + "gtimer [#], [minutes or seconds]</code> - set a timer for [#] minutes or seconds " +
+					"if specified",
+				"* <code>" + commandCharacter + "randgtimer [seconds], [min], [max]</code> - set random timer between [min] and " +
+					"[max] minutes or seconds if specified",
+				"* <code>" + commandCharacter + "gtimer off</code> - turn off the previously set timer",
+				"* <code>" + commandCharacter + "store [message or command]</code> - store a message or command to be used " +
+					"throughout the game",
+				"* <code>" + commandCharacter + "stored</code> - display a stored message or use a stored command",
+				"* <code>" + commandCharacter + "twist [twist]</code> - set or view the twist for the game",
+				"* <code>" + commandCharacter + "gcap [#]</code> - set or view the player cap for the game",
+				"* <code>" + commandCharacter + "scorecap [#]</code> - set or view the score cap for the game",
+				"* <code>" + commandCharacter + "savewinner [player a], [player b], [...]</code> - set the specified player(s) as " +
+					"the winner(s) and continue the game",
+				"* <code>" + commandCharacter + "winner [player a], [player b], [...]</code> - set the specified player(s) as the " +
+					"winner(s) and end the game",
 
 				"\nIn-game data generators:",
-				"* <code>.rability [#]</code> - generate up to 6 abilities",
-				"* <code>.ritem [#]</code> - generate up to 6 items",
-				"* <code>.rmove [#]</code> - generate up to 6 moves",
-				"* <code>.rpoke [#]</code> - generate up to 6 Pokemon",
-				"* <code>.rtype</code> - generate a single or dual typing",
-				"* <code>.rextype</code> - generate a single or dual typing of an existing Pokemon",
-				"* <code>.rcolor</code> - generate a Pokedex color",
-				"* <code>.regg</code> - generate an egg group",
-				"* <code>.rnature</code> - generate a nature",
-				"* <code>.rcat</code> - generate a Pokedex category",
+				"* <code>" + commandCharacter + "rability [#]</code> - generate up to 6 abilities",
+				"* <code>" + commandCharacter + "ritem [#]</code> - generate up to 6 items",
+				"* <code>" + commandCharacter + "rmove [#]</code> - generate up to 6 moves",
+				"* <code>" + commandCharacter + "rpoke [#]</code> - generate up to 6 Pokemon",
+				"* <code>" + commandCharacter + "rtype</code> - generate a single or dual typing",
+				"* <code>" + commandCharacter + "rextype</code> - generate a single or dual typing of an existing Pokemon",
+				"* <code>" + commandCharacter + "rcolor</code> - generate a Pokedex color",
+				"* <code>" + commandCharacter + "regg</code> - generate an egg group",
+				"* <code>" + commandCharacter + "rnature</code> - generate a nature",
+				"* <code>" + commandCharacter + "rcat</code> - generate a Pokedex category",
 
 				"\nOther generators:",
-				"* <code>.ranswer [game]</code> - in PMs, generate a hint and answer for the specified game",
-				"* <code>.rchar</code> - generate a character",
-				"* <code>.rloc</code> - generate a location",
-				"* <code>.rletter</code> - generate a letter",
-				"* <code>.rpick [option 1], [option 2], [...]</code> - generate one of the specified options",
-				"* <code>.rorder [option 1], [option 2], [...]</code> - shuffle the specified options",
+				"* <code>" + commandCharacter + "ranswer [game]</code> - in PMs, generate a hint and answer for the specified game",
+				"* <code>" + commandCharacter + "rchar</code> - generate a character",
+				"* <code>" + commandCharacter + "rloc</code> - generate a location",
+				"* <code>" + commandCharacter + "rletter</code> - generate a letter",
+				"* <code>" + commandCharacter + "rpick [option 1], [option 2], [...]</code> - generate one of the specified options",
+				"* <code>" + commandCharacter + "rorder [option 1], [option 2], [...]</code> - shuffle the specified options",
 
 				"\nPS commands:",
-				"* <code>.starthangman [room], [answer], [hint]</code> - in PMs, start a PS hangman game",
-				"* <code>.endhangman [room]</code> - in PMs, end the current PS hangman game",
-				"* <code>.roll [arguments]</code> - use !roll with the specified arguments",
-				"* <code>.dt [arguments]</code> - use !dt with the specified arguments",
+				"* <code>" + commandCharacter + "starthangman [room], [answer], [hint]</code> - in PMs, start a PS hangman game",
+				"* <code>" + commandCharacter + "endhangman [room]</code> - in PMs, end the current PS hangman game",
+				"* <code>" + commandCharacter + "roll [arguments]</code> - use !roll with the specified arguments",
+				"* <code>" + commandCharacter + "dt [arguments]</code> - use !dt with the specified arguments",
 
 				"\nDisplay sprites:",
-				"* <code>.showgif [room], [pokemon 1], [pokemon 2], [...]</code> - in PMs, display up to 5 Pokemon gifs",
-				"* <code>.showbwgif [room], [pokemon 1], [pokemon 2], [...]</code> - in PMs, display up to 5 BW Pokemon gifs",
-				"* <code>.showrandgif [room], [typing], [#]</code> - in PMs, display up to 5 random Pokemon gifs, optionally matching " +
-					"the specified typing",
-				"* <code>.showrandbwgif [room], [typing], [#]</code> - in PMs, display up to 5 random BW Pokemon gifs, optionally " +
-					"matching the specified typing",
-				"* <code>.showicon [room], [pokemon 1], [pokemon 2], [...]</code> - in PMs, display up to 30 Pokemon icons",
-				"* <code>.showrandicon [room], [type], [#]</code> - in PMs, display up to 30 random Pokemon icons, optionally matching " +
-					"the specified typing",
-				"* <code>.showtrainer [room], [trainer 1], [trainer 2], [...]</code> - in PMs, display up to 5 trainer sprites",
+				"* <code>" + commandCharacter + "showgif [room], [pokemon 1], [pokemon 2], [...]</code> - in PMs, display up to 5 " +
+					"Pokemon gifs",
+				"* <code>" + commandCharacter + "showbwgif [room], [pokemon 1], [pokemon 2], [...]</code> - in PMs, display up to 5 " +
+					"BW Pokemon gifs",
+				"* <code>" + commandCharacter + "showrandgif [room], [typing], [#]</code> - in PMs, display up to 5 random Pokemon " +
+					"gifs, optionally matching the specified typing",
+				"* <code>" + commandCharacter + "showrandbwgif [room], [typing], [#]</code> - in PMs, display up to 5 random BW " +
+					"Pokemon gifs, optionally matching the specified typing",
+				"* <code>" + commandCharacter + "showicon [room], [pokemon 1], [pokemon 2], [...]</code> - in PMs, display up to " +
+					"30 Pokemon icons",
+				"* <code>" + commandCharacter + "showrandicon [room], [type], [#]</code> - in PMs, display up to 30 random Pokemon " +
+					"icons, optionally matching the specified typing",
+				"* <code>" + commandCharacter + "showtrainer [room], [trainer 1], [trainer 2], [...]</code> - in PMs, display up to " +
+					"5 trainer sprites",
 			];
 
 			document = document.concat(userHostCommands);
