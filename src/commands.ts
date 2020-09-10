@@ -1605,25 +1605,36 @@ const commands: CommandDefinitions<CommandContext> = {
 	addplayer: {
 		command(target, room, user) {
 			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
-			const users = [];
+
+			const targetUsers: User[] = [];
+			const usersNotInRoom: string[] = [];
 			const targets = target.split(",");
 			for (const target of targets) {
-				const user = Users.get(target.trim());
-				if (!user) continue;
-				if (!room.userHostedGame.players[user.id] || (room.userHostedGame.players[user.id] &&
-					room.userHostedGame.players[user.id].eliminated)) {
-						users.push(user);
+				const targetUser = Users.get(target);
+				if (!targetUser || !targetUser.rooms.has(room)) {
+					usersNotInRoom.push(target.trim());
+					continue;
+				}
+
+				if (!(targetUser.id in room.userHostedGame.players) || room.userHostedGame.players[targetUser.id].eliminated) {
+					targetUsers.push(targetUser);
 				}
 			}
-			if (!users.length) return this.say("Please specify at least one user who is not already in the game.");
-			for (const user of users) {
-				if (room.userHostedGame.players[user.id]) {
-					room.userHostedGame.players[user.id].eliminated = false;
+
+			if (usersNotInRoom.length) {
+				return this.say(Tools.joinList(usersNotInRoom) + " " + (usersNotInRoom.length > 1 ? "are" : "is") + " not in the room.");
+			}
+			if (!targetUsers.length) return this.say("You must specify at least one user who is not already in the game.");
+
+			for (const targetUser of targetUsers) {
+				if (room.userHostedGame.players[targetUser.id]) {
+					room.userHostedGame.players[targetUser.id].eliminated = false;
 				} else {
-					room.userHostedGame.createPlayer(user);
+					room.userHostedGame.createPlayer(targetUser);
 				}
 			}
-			this.say("Added " + Tools.joinList(users.map(x => x.name)) + " to the player list.");
+
+			this.say("Added " + Tools.joinList(targetUsers.map(x => x.name)) + " to the player list.");
 		},
 		aliases: ['apl', 'addplayers'],
 	},
@@ -1649,19 +1660,113 @@ const commands: CommandDefinitions<CommandContext> = {
 		},
 		aliases: ['removeplayers', 'srpl', 'rpl', 'silentelim', 'selim', 'elim', 'eliminate', 'eliminateplayer', 'eliminateplayers'],
 	},
+	addteamplayer: {
+		command(target, room, user) {
+			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
+			if (!room.userHostedGame.teams) return this.say("Teams have not yet been formed.");
+
+			const targets = target.split(",");
+			const teamId = Tools.toId(targets[0]);
+			if (!(teamId in room.userHostedGame.teams)) return this.say("'" + targets[0].trim() + "' is not a team.");
+
+			const team = room.userHostedGame.teams[teamId];
+			const targetUsers: User[] = [];
+			const usersNotInRoom: string[] = [];
+			for (const target of targets) {
+				const targetUser = Users.get(target);
+				if (!targetUser || !targetUser.rooms.has(room)) {
+					usersNotInRoom.push(target.trim());
+					continue;
+				}
+
+				if (!(targetUser.id in room.userHostedGame.players) || room.userHostedGame.players[targetUser.id].eliminated) {
+					targetUsers.push(targetUser);
+				}
+			}
+
+			if (usersNotInRoom.length) {
+				return this.say(Tools.joinList(usersNotInRoom) + " " + (usersNotInRoom.length > 1 ? "are" : "is") + " not in the room.");
+			}
+			if (!targetUsers.length) return this.say("You must specify at least one user who is not already in the game.");
+
+			for (const targetUser of targetUsers) {
+				if (room.userHostedGame.players[targetUser.id]) {
+					room.userHostedGame.players[targetUser.id].eliminated = false;
+				} else {
+					room.userHostedGame.createPlayer(targetUser);
+				}
+
+				room.userHostedGame.changePlayerTeam(room.userHostedGame.players[targetUser.id], team);
+			}
+
+			this.say("Added " + Tools.joinList(targetUsers.map(x => x.name)) + " to Team " + team.name + ".");
+		},
+		aliases: ['atpl', 'addteamplayers'],
+	},
 	shuffleplayers: {
 		async asyncCommand(target, room, user) {
 			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
-			const temp: {[k: string]: Player} = {};
-			const players = room.userHostedGame.shufflePlayers();
-			if (!players.length) return this.say("The player list is empty.");
-			for (const player of players) {
-				temp[player.id] = player;
+			if (room.userHostedGame.teams) {
+				for (const i in room.userHostedGame.teams) {
+					const team = room.userHostedGame.teams[i];
+					team.players = room.userHostedGame.shuffle(team.players);
+				}
+			} else {
+				const temp: Dict<Player> = {};
+				const players = room.userHostedGame.shufflePlayers();
+				if (!players.length) return this.say("The player list is empty.");
+				for (const player of players) {
+					temp[player.id] = player;
+				}
+				room.userHostedGame.players = temp;
 			}
-			room.userHostedGame.players = temp;
 			await this.run('playerlist');
 		},
-		aliases: ['shufflepl', 'shuffle'],
+		aliases: ['shufflepl'],
+	},
+	splitplayers: {
+		async asyncCommand(target, room, user) {
+			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
+			if (room.userHostedGame.teams) {
+				return this.say("Teams have already been formed. To create new teams, first use ``" + Config.commandCharacter +
+					"unsplitpl``.");
+			}
+
+			const targets = target.split(',');
+			let teams = 2;
+			if (targets[0]) {
+				teams = parseInt(targets[0].trim());
+				if (isNaN(teams) || teams < 2 || teams > 4) return this.say("You must specify a number of teams between 2 and 4.");
+			}
+
+			if (room.userHostedGame.getRemainingPlayerCount() < (teams * 2)) {
+				return this.say("There are not enough players to form" + (teams > 2 ? " " + teams : "") + " teams.");
+			}
+
+			let teamNames: string[] | undefined;
+			if (targets.length > 1) {
+				teamNames = [];
+				for (let i = 1; i < targets.length; i++) {
+					if (Tools.toId(targets[i])) teamNames.push(targets[i].trim());
+				}
+			}
+
+			if (teamNames && teamNames.length !== teams) return this.say("You must specify all " + teams + " team names or none.");
+
+			room.userHostedGame.splitPlayers(teams, teamNames);
+			await this.run('playerlist');
+		},
+		aliases: ['splitpl'],
+	},
+	unsplitplayers: {
+		async asyncCommand(target, room, user) {
+			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
+			if (!room.userHostedGame.teams) return this.say("Teams have not yet been formed.");
+
+			room.userHostedGame.unSplitPlayers();
+			await this.run('playerlist');
+		},
+		aliases: ['unsplitpl'],
 	},
 	playerlist: {
 		command(target, room, user) {
@@ -1674,11 +1779,10 @@ const commands: CommandDefinitions<CommandContext> = {
 				if (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
 				gameRoom = room;
 			}
+
 			const game = gameRoom.game || gameRoom.userHostedGame;
 			if (!game) return;
-			const remainingPlayers = game.getRemainingPlayerCount();
-			if (!remainingPlayers) return this.say("**Players**: none");
-			this.say("**Players (" + remainingPlayers + ")**: " + (game.points ? game.getPlayerPoints() : game.getPlayerNames()));
+			this.say(game.getPlayersDisplay());
 		},
 		aliases: ['players', 'pl'],
 	},
@@ -1704,45 +1808,87 @@ const commands: CommandDefinitions<CommandContext> = {
 				await this.runMultipleTargets("|");
 				return;
 			}
+
 			const users: User[] = [];
+			const usersNotOnTeams: string[] = [];
+			const usersNotInRoom: string[] = [];
+			const savedWinners: string[] = [];
+			const teamNames: string[] = [];
+
 			let points = 1;
 			const targets = target.split(",");
 			for (const target of targets) {
 				const id = Tools.toId(target);
 				if (!id) continue;
-				let user = Users.get(id);
+
 				if (Tools.isInteger(id)) {
 					points = Math.round(parseInt(id));
 					if (points < 1) points = 1;
 				} else {
-					user = Users.get(target);
-					if (user && user.rooms.has(room)) {
-						if (room.userHostedGame.players[user.id] && room.userHostedGame.savedWinners &&
-							room.userHostedGame.savedWinners.includes(room.userHostedGame.players[user.id])) {
-							return this.say("You cannot use this command on a saved winner.");
-						}
-						users.push(user);
+					if (id in room.userHostedGame.players && room.userHostedGame.savedWinners.includes(room.userHostedGame.players[id])) {
+						savedWinners.push(room.userHostedGame.players[id].name);
+						continue;
 					}
+
+					const targetUser = Users.get(target);
+					if (!targetUser || !targetUser.rooms.has(room)) {
+						if (!targetUser && room.userHostedGame.teams && id in room.userHostedGame.teams) {
+							teamNames.push(id);
+						} else {
+							usersNotInRoom.push(targetUser ? targetUser.name : target.trim());
+						}
+						continue;
+					}
+					if (room.userHostedGame.teams && !(targetUser.id in room.userHostedGame.players)) {
+						usersNotOnTeams.push(targetUser.name);
+						continue;
+					}
+
+					users.push(targetUser);
 				}
 			}
-			if (!users.length) return this.say("Please specify at least one user in the room.");
+
+			if (usersNotInRoom.length) {
+				return this.say(Tools.joinList(usersNotInRoom) + " " + (usersNotInRoom.length > 1 ? "are" : "is") + " not in the room.");
+			}
+			if (usersNotOnTeams.length) {
+				return this.say(Tools.joinList(usersNotOnTeams) + " " + (usersNotOnTeams.length > 1 ? "are" : "is") + " not on a team. " +
+					"You must use ``" + Config.commandCharacter + "addteamplayer [team], [player]`` first.");
+			}
+			if (savedWinners.length) {
+				return this.say(Tools.joinList(savedWinners) + " " + (usersNotInRoom.length > 1 ? "are" : "is") + " already on the " +
+					"saved winners list.");
+			}
+
+			if (teamNames.length) {
+				await this.run('addteampoint', target);
+				return;
+			}
+
+			if (!users.length) return this.say("Please specify at least one user.");
 
 			if (cmd.startsWith('r')) points *= -1;
 			let reachedCap = 0;
 			for (const user of users) {
 				const player = room.userHostedGame.players[user.id] || room.userHostedGame.createPlayer(user);
 				if (player.eliminated) player.eliminated = false;
-				let total = room.userHostedGame.points.get(player) || 0;
-				total += points;
-				room.userHostedGame.points.set(player, total);
-				if (room.userHostedGame.scoreCap && total >= room.userHostedGame.scoreCap) reachedCap++;
+				const total = room.userHostedGame.addPoints(player, points);
+				if (room.userHostedGame.scoreCap) {
+					if (room.userHostedGame.teams) {
+						if (player.team!.points >= room.userHostedGame.scoreCap) reachedCap++;
+					} else {
+						if (total >= room.userHostedGame.scoreCap) reachedCap++;
+					}
+				}
 			}
 
 			// @ts-expect-error
 			room.userHostedGame.round++;
 			if (!this.runningMultipleTargets) await this.run('playerlist');
 			if (reachedCap) {
-				user.say((reachedCap === 1 ? "A user has" : reachedCap + " users have") + " reached the score cap in your game.");
+				const reached = room.userHostedGame.teams ? "team" : "user";
+				user.say((reachedCap === 1 ? "A " + reached + " has" : reachedCap + " " + reached + "s have") + " reached the score " +
+					"cap in your game.");
 			}
 		},
 		aliases: ['addpoint', 'removepoint', 'removepoints', 'apoint', 'apoints', 'rpoint', 'rpoints', 'apt', 'rpt'],
@@ -1774,15 +1920,42 @@ const commands: CommandDefinitions<CommandContext> = {
 		},
 		aliases: ['aptall', 'rptall', 'removepointall'],
 	},
+	addteampoints: {
+		async asyncCommand(target, room, user, cmd) {
+			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
+			if (!room.userHostedGame.teams) return this.say("You must first forme teams with ``" + Config.commandCharacter + "splitpl``.");
+
+			const targets = target.split(',');
+			const teamId = Tools.toId(targets[0]);
+			if (!(teamId in room.userHostedGame.teams)) {
+				return this.say("'" + targets[0].trim() + "' is not one of the teams in the game.");
+			}
+
+			let points = 1;
+			if (targets.length > 1) {
+				points = parseInt(targets[1].trim());
+				if (isNaN(points)) return this.say("You must specify a valid number of points.");
+			}
+
+			const remainingPlayers = room.userHostedGame.teams[teamId].players.filter(x => !x.eliminated);
+			if (!remainingPlayers.length) {
+				return this.say("Team " + room.userHostedGame.teams[teamId].name + " does not have any players remaining.");
+			}
+			const player = room.userHostedGame.sampleOne(remainingPlayers);
+			await this.run((cmd.startsWith('r') ? 'removepoint' : 'addpoint'), player.name + ',' + points);
+		},
+		aliases: ['addteampoint', 'removeteampoint', 'removeteampoints', 'atpt', 'rtpt'],
+	},
 	movepoint: {
 		command(target, room, user) {
 			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			const targets = target.split(",");
-			const from = Users.get(targets[0]);
-			const to = Users.get(targets[1]);
-			if (!from || !to || from === to) return this.say("You must specify 2 users.");
-			if (!(from.id in room.userHostedGame.players)) return this.say(from.name + " is not in the game.");
-			let fromPoints = room.userHostedGame.points.get(room.userHostedGame.players[from.id]);
+			const fromUser = Users.get(targets[0]);
+			const toUser = Users.get(targets[1]);
+			if (!fromUser || !toUser || fromUser === toUser) return this.say("You must specify 2 users.");
+			if (!(fromUser.id in room.userHostedGame.players)) return this.say(fromUser.name + " is not in the game.");
+			const from = room.userHostedGame.players[fromUser.id];
+			const fromPoints = room.userHostedGame.points.get(room.userHostedGame.players[from.id]);
 			if (!fromPoints) return this.say(from.name + " does not have any points.");
 			let amount: number;
 			if (targets.length === 3) {
@@ -1792,19 +1965,13 @@ const commands: CommandDefinitions<CommandContext> = {
 			} else {
 				amount = fromPoints;
 			}
-			const allPoints = amount === fromPoints;
-			fromPoints -= amount;
-			if (!fromPoints) {
-				room.userHostedGame.points.delete(room.userHostedGame.players[from.id]);
-			} else {
-				room.userHostedGame.points.set(room.userHostedGame.players[from.id], fromPoints);
-			}
-			room.userHostedGame.createPlayer(to);
-			let toPoints = room.userHostedGame.points.get(room.userHostedGame.players[to.id]) || 0;
-			toPoints += amount;
-			room.userHostedGame.points.set(room.userHostedGame.players[to.id], toPoints);
-			this.say((allPoints ? "" : amount + " of ") + from.name + "'s points have been moved to " + to.name + ". Their total is now " +
-				toPoints + ".");
+
+			room.userHostedGame.addPoints(from, amount * -1);
+
+			const to = room.userHostedGame.players[toUser.id] || room.userHostedGame.createPlayer(toUser);
+			const toPoints = room.userHostedGame.addPoints(to, amount);
+			this.say((amount === fromPoints ? "" : amount + " of ") + from.name + "'s points have been moved to " + to.name + ". Their " +
+				"total is now " + toPoints + ".");
 		},
 		aliases: ['mpt'],
 	},
@@ -1879,9 +2046,9 @@ const commands: CommandDefinitions<CommandContext> = {
 	},
 	savewinner: {
 		async asyncCommand(target, room, user) {
-			if (this.isPm(room)) return;
-			if (!room.userHostedGame || !room.userHostedGame.isHost(user)) return;
-			if (!room.userHostedGame.savedWinners) room.userHostedGame.savedWinners = [];
+			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
+			if (room.userHostedGame.teams) return this.say("You cannot store winners once teams have been formed.");
+
 			const targets = target.split(",");
 			if (Config.maxUserHostedGameWinners && room.id in Config.maxUserHostedGameWinners) {
 				const totalStored = room.userHostedGame.savedWinners.length + targets.length;
@@ -1892,7 +2059,8 @@ const commands: CommandDefinitions<CommandContext> = {
 					return this.say("You will reach the maximum amount of winners. Please use ``" + Config.commandCharacter + "win``.");
 				}
 			}
-			const stored = [];
+
+			const stored: string[] = [];
 			for (const target of targets) {
 				const id = Tools.toId(target);
 				if (!(id in room.userHostedGame.players)) return this.say(this.sanitizeResponse(target.trim() + " is not in the game."));
@@ -1901,11 +2069,13 @@ const commands: CommandDefinitions<CommandContext> = {
 				}
 				stored.push(id);
 			}
+
 			for (const id of stored) {
 				room.userHostedGame.savedWinners.push(room.userHostedGame.players[id]);
 				room.userHostedGame.points.delete(room.userHostedGame.players[id]);
 				room.userHostedGame.players[id].eliminated = true;
 			}
+
 			await this.run('playerlist');
 		},
 		aliases: ['savewinners', 'storewinner', 'storewinners'],
@@ -1916,7 +2086,6 @@ const commands: CommandDefinitions<CommandContext> = {
 			if (!room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			const id = Tools.toId(target);
 			if (!(id in room.userHostedGame.players)) return this.say(this.sanitizeResponse(target.trim() + " is not in the game."));
-			if (!room.userHostedGame.savedWinners) room.userHostedGame.savedWinners = [];
 			const index = room.userHostedGame.savedWinners.indexOf(room.userHostedGame.players[id]);
 			if (index === -1) return this.say(this.sanitizeResponse(target.trim() + " has not been saved as a winner."));
 			room.userHostedGame.savedWinners.splice(index, 1);
@@ -1941,12 +2110,21 @@ const commands: CommandDefinitions<CommandContext> = {
 				}
 
 				const usersByPoints: Dict<Player[]> = {};
-				for (const i in room.userHostedGame.players) {
-					const player = room.userHostedGame.players[i];
-					if (player.eliminated || !room.userHostedGame.points.has(player)) continue;
-					const points = '' + room.userHostedGame.points.get(player);
-					if (!(points in usersByPoints)) usersByPoints[points] = [];
-					usersByPoints[points].push(player);
+				if (room.userHostedGame.teams) {
+					for (const i in room.userHostedGame.teams) {
+						const team = room.userHostedGame.teams[i];
+						if (!team.points) continue;
+						if (!(team.points in usersByPoints)) usersByPoints[team.points] = [];
+						usersByPoints[team.points] = usersByPoints[team.points].concat(team.players.filter(x => !x.eliminated));
+					}
+				} else {
+					for (const i in room.userHostedGame.players) {
+						const player = room.userHostedGame.players[i];
+						if (player.eliminated || !room.userHostedGame.points.has(player)) continue;
+						const points = '' + room.userHostedGame.points.get(player);
+						if (!(points in usersByPoints)) usersByPoints[points] = [];
+						usersByPoints[points].push(player);
+					}
 				}
 
 				const sortedPoints = Object.keys(usersByPoints).sort((a, b) => parseInt(b) - parseInt(a));
@@ -1958,15 +2136,25 @@ const commands: CommandDefinitions<CommandContext> = {
 				for (const target of targets) {
 					const id = Tools.toId(target);
 					if (!id) continue;
-					if (id in room.userHostedGame.players) {
-						const player = room.userHostedGame.players[id];
-						if (!players.includes(player) && !(savedWinners && savedWinners.includes(player))) players.push(player);
+					if (room.userHostedGame.teams) {
+						if (!(id in room.userHostedGame.teams)) continue;
+						for (const player of room.userHostedGame.teams[id].players) {
+							if (!players.includes(player)) players.push(player);
+						}
+					} else {
+						if (id in room.userHostedGame.players) {
+							const player = room.userHostedGame.players[id];
+							if (!players.includes(player) && !(savedWinners && savedWinners.includes(player))) players.push(player);
+						}
 					}
 				}
 			}
 
 			if (savedWinners) players = players.concat(savedWinners);
-			if (!players.length) return this.say(autoWin ? "No one has any points in this game." : "Please specify at least 1 player.");
+			if (!players.length) {
+				return this.say(autoWin ? "No one has any points in this game." : "Please specify at least 1 " +
+					(room.userHostedGame.teams ? "team": "player") + ".");
+			}
 
 			let playerDifficulty: GameDifficulty;
 			if (Config.userHostedGamePlayerDifficulties && room.userHostedGame.format.id in Config.userHostedGamePlayerDifficulties) {
@@ -1991,7 +2179,7 @@ const commands: CommandDefinitions<CommandContext> = {
 				player.say("You were awarded " + playerBits + " bits! To see your total amount, use this command: ``" +
 					Config.commandCharacter + "bits " + room.title + "``");
 			}
-			this.say("The winner" + (players.length === 1 ? " is" : "s are") + " " + players.map(x => x.name).join(", ") + "!");
+			this.say("The winner" + (players.length === 1 ? " is" : "s are") + " " + Tools.joinList(players.map(x => x.name)) + "!");
 			room.userHostedGame.end();
 		},
 		aliases: ['autowin', 'win'],

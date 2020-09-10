@@ -686,10 +686,13 @@ export class Games {
 		}
 		if (!formatData) return ['invalidUserHostedGameFormat', name];
 
+		let teamGame = false;
 		for (const target of targets) {
 			const id = Tools.toId(target);
 			if (id === 'freejoin' || id === 'fj') {
 				formatData.freejoin = true;
+			} else if (id === 'team' || id === 'teams') {
+				if (!formatData.teamGame) teamGame = true;
 			} else if (formatData.customizableAttributes) {
 				const colonIndex = target.indexOf(':');
 				if (colonIndex === -1) continue;
@@ -706,6 +709,11 @@ export class Games {
 					formatData[attribute] = value;
 				}
 			}
+		}
+
+		if (teamGame) {
+			formatData.name = "Team " + formatData.name;
+			if (formatData.freejoin) formatData.freejoin = false;
 		}
 
 		const formatComputed: IUserHostedFormatComputed = {

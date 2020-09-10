@@ -47,6 +47,7 @@ export class Game extends Activity {
 	readonly round: number = 0;
 	signupsStarted: boolean = false;
 	signupsTime: number = 0;
+	teams: Dict<PlayerTeam> | null = null;
 	usesHtmlPage: boolean = false;
 	usesWorkers: boolean = false;
 	readonly winnerPointsToBits: number = 50;
@@ -911,10 +912,10 @@ export class Game extends Activity {
 		return this.players[this.sampleOne(Object.keys(this.getRemainingPlayers(players)))];
 	}
 
-	generateTeams(numberOfTeams: number, players?: PlayerList): Dict<PlayerTeam> {
+	generateTeams(numberOfTeams: number, teamNames?: string[]): Dict<PlayerTeam> {
 		const teams: Dict<PlayerTeam> = {};
-		const playerList = this.shufflePlayers(players);
-		const teamNames = this.sampleOne(teamNameLists['' + numberOfTeams]);
+		const playerList = this.shufflePlayers();
+		if (!teamNames) teamNames = this.sampleOne(teamNameLists['' + numberOfTeams]);
 		const teamIds: string[] = [];
 
 		for (let i = 0; i < numberOfTeams; i++) {
@@ -933,6 +934,41 @@ export class Game extends Activity {
 		}
 
 		return teams;
+	}
+
+	changePlayerTeam(player: Player, newTeam: PlayerTeam): void {
+		let points: number | undefined;
+		if (player.team) {
+			const oldTeam = player.team;
+			oldTeam.players.splice(oldTeam.players.indexOf(player), 1);
+
+			if (this.points) {
+				points = this.points.get(player);
+				if (points) oldTeam.points -= points;
+			}
+		}
+
+		player.team = newTeam;
+		newTeam.players.push(player);
+		if (points) newTeam.points += points;
+	}
+
+	getPlayersDisplay(): string {
+		const remainingPlayers = this.getRemainingPlayerCount();
+		if (!remainingPlayers) return "**Players**: none";
+
+		if (this.teams) {
+			const teamDisplays: string[] = [];
+			for (const i in this.teams) {
+				const team = this.teams[i];
+				teamDisplays.push(team.name + (team.points ? " (" + team.points + ")" : "") + ": " +
+					team.players.filter(x => !x.eliminated).map(x => x.name).join(", "));
+			}
+
+			return "**Teams** | " + teamDisplays.join(" | ");
+		}
+
+		return "**Players (" + remainingPlayers + ")**: " + (this.points ? this.getPlayerPoints() : this.getPlayerNames());
 	}
 
 	getPlayerLives(players?: PlayerList): string {

@@ -210,6 +210,7 @@ interface IUserHosted {
 	link?: string;
 	mascot?: string;
 	mascots?: string[];
+	teamGame?: boolean;
 }
 
 export interface IUserHostedComputed<T extends UserHosted = UserHosted> extends IUserHosted {

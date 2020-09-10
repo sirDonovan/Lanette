@@ -1,4 +1,4 @@
-import type { Player } from "../../room-activity";
+import type { Player, PlayerTeam } from "../../room-activity";
 import { Game } from "../../room-game";
 import type { Room } from "../../rooms";
 import type { GameDifficulty, IUserHostedFile, IUserHostedFormat } from "../../types/games";
@@ -15,7 +15,7 @@ export class UserHosted extends Game {
 	hostTimeout: NodeJS.Timer | null = null;
 	isUserHosted = true;
 	readonly points = new Map<Player, number>();
-	savedWinners: Player[] | null = null;
+	savedWinners: Player[] = [];
 	scoreCap: number = 0;
 	storedMessage: string | null = null;
 	subHostId: string | null = null;
@@ -66,6 +66,28 @@ export class UserHosted extends Game {
 		if (user) {
 			void CommandParser.parse(this.room, user, Config.commandCharacter + command + (target ? " " + target : ""));
 		}
+	}
+
+	splitPlayers(teams: number, teamNames?: string[]): void {
+		this.teams = this.generateTeams(teams, teamNames);
+		for (const i in this.teams) {
+			const team = this.teams[i];
+			for (const player of team.players) {
+				const points = this.points.get(player);
+				if (points) team.points += points;
+			}
+		}
+	}
+
+	unSplitPlayers(): void {
+		for (const i in this.teams) {
+			const team = this.teams[i];
+			for (const player of team.players) {
+				delete player.team;
+			}
+		}
+
+		this.teams = null;
 	}
 
 	setStartTimer(minutes: number): void {
