@@ -817,6 +817,22 @@ export class Game extends Activity {
 		return true;
 	}
 
+	addPoints(player: Player, awardedPoints: number): number {
+		if (!this.points) throw new Error(this.name + " called addPoints with no points Map");
+
+		let points = this.points.get(player) || 0;
+		points += awardedPoints;
+		if (points) {
+			this.points.set(player, points);
+		} else {
+			this.points.delete(player);
+		}
+
+		if (player.team) player.team.points += awardedPoints;
+
+		return points;
+	}
+
 	convertPointsToBits(winnerBits?: number, loserBits?: number): void {
 		if (this.parentGame && this.parentGame.allowChildGameBits !== true) return;
 		if (!this.points) throw new Error(this.name + " called convertPointsToBits() with no points Map");

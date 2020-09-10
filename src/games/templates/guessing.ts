@@ -236,9 +236,7 @@ const commands: GameCommandDefinitions<Guessing> = {
 			if (this.onCorrectGuess) this.onCorrectGuess(player, answer);
 
 			const awardedPoints = this.getPointsForAnswer ? this.getPointsForAnswer(answer) : 1;
-			let points = this.points.get(player) || 0;
-			points += awardedPoints;
-			this.points.set(player, points);
+			const points = this.addPoints(player, awardedPoints);
 
 			if (this.allAnswersAchievement) {
 				if (this.firstAnswer === undefined) {

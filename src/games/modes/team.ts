@@ -20,7 +20,6 @@ class Team {
 	firstAnswers: Dict<Player | false> = {};
 	minPlayers: number = 4;
 	playerOrders: Dict<Player[]> = {};
-	teamPoints: Dict<number> = {};
 	teamRound: number = 0;
 	teams: Dict<PlayerTeam> = {};
 
@@ -190,10 +189,7 @@ const commandDefinitions: GameCommandDefinitions<TeamThis> = {
 			if (this.onCorrectGuess) this.onCorrectGuess(player, answer);
 
 			const awardedPoints = this.getPointsForAnswer ? this.getPointsForAnswer(answer) : 1;
-			let points = this.points.get(player) || 0;
-			points += awardedPoints;
-			this.points.set(player, points);
-			player.team!.points += awardedPoints;
+			this.addPoints(player, awardedPoints);
 
 			if (this.allAnswersTeamAchievement) {
 				if (player.team!.id in this.firstAnswers) {
