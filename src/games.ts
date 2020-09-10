@@ -92,6 +92,7 @@ export class Games {
 	gameCooldownMessageTimerData: Dict<{endTime: number, minigameCooldownMinutes: number}> = {};
 	// @ts-expect-error - set in loadFormats()
 	readonly internalFormats: KeyedDict<InternalGameKey, LoadedGameFile> = {};
+	lastCatalogUpdates: Dict<string> = {};
 	lastGames: Dict<number> = {};
 	lastMinigames: Dict<number> = {};
 	lastOneVsOneChallengeTimes: Dict<Dict<number>> = {};
@@ -164,6 +165,7 @@ export class Games {
 			}
 		}
 
+		if (previous.lastCatalogUpdates) Object.assign(this.lastCatalogUpdates, previous.lastCatalogUpdates);
 		if (previous.lastGames) Object.assign(this.lastGames, previous.lastGames);
 		if (previous.lastMinigames) Object.assign(this.lastMinigames, previous.lastMinigames);
 		if (previous.lastOneVsOneChallengeTimes) Object.assign(this.lastOneVsOneChallengeTimes, previous.lastOneVsOneChallengeTimes);
@@ -1134,6 +1136,115 @@ export class Games {
 		subHeader += " games that can be played in the " + room.title + " room.";
 		document.push(subHeader);
 
+		if (allowsUserHostedGames) {
+			const userHostCommands: string[] = ["## User-host commands",
+				"Player management:",
+				"* <code>.apl [player a], [player b], [...]</code> - add the specified player(s) to the game",
+				"* <code>.rpl [player a], [player b], [...]</code> - remove the specified player(s) from the game",
+				"* <code>.splitpl [#], [team a], [team b]</code> - split the player list into [#] teams with team names if specified",
+				"* <code>.unsplitpl</code> - remove the previously set teams",
+				"* <code>.pl</code> - display the player list",
+				"* <code>.shufflepl</code> - shuffle and display the player list",
+				"* <code>.clearpl</code> - clear the player list",
+
+				"\nPoints management:",
+				"* <code>.apt [player a], [player b], [...], [#]</code> - give [#] points to the specified player(s)",
+				"* <code>.rpt [player a], [player b], [...], [#]</code> - remove [#] points from the specified player(s)",
+				"* <code>.aptall [#]</code> - give [#] points to all players",
+				"* <code>.rptall [#]</code> - remove [#] points from all players",
+				"* <code>.mpt [player a], [player b], [#]</code> - move [#] or all of [player a]'s points to [player b]",
+
+				"\nGame management:",
+				"* <code>.sgtimer [#], [minutes]</code> - set a timer for the game to start in [#] minutes",
+				"* <code>.gtimer [#], [minutes or seconds]</code> - set a timer for [#] minutes or seconds if specified",
+				"* <code>.randgtimer [seconds], [min], [max]</code> - set random timer between [min] and [max] minutes or seconds if " +
+					"specified",
+				"* <code>.gtimer off</code> - turn off the previously set timer",
+				"* <code>.store [message or command]</code> - store a message or command to be used throughout the game",
+				"* <code>.stored</code> - display a stored message or use a stored command",
+				"* <code>.twist [twist]</code> - set or view the twist for the game",
+				"* <code>.gcap [#]</code> - set or view the player cap for the game",
+				"* <code>.scorecap [#]</code> - set or view the score cap for the game",
+				"* <code>.savewinner [player a], [player b], [...]</code> - set the specified player(s) as the winner(s) and continue " +
+					"the game",
+				"* <code>.winner [player a], [player b], [...]</code> - set the specified player(s) as the winner(s) and end the game",
+
+				"\nIn-game data generators:",
+				"* <code>.rability [#]</code> - generate up to 6 abilities",
+				"* <code>.ritem [#]</code> - generate up to 6 items",
+				"* <code>.rmove [#]</code> - generate up to 6 moves",
+				"* <code>.rpoke [#]</code> - generate up to 6 Pokemon",
+				"* <code>.rtype</code> - generate a single or dual typing",
+				"* <code>.rextype</code> - generate a single or dual typing of an existing Pokemon",
+				"* <code>.rcolor</code> - generate a Pokedex color",
+				"* <code>.regg</code> - generate an egg group",
+				"* <code>.rnature</code> - generate a nature",
+				"* <code>.rcat</code> - generate a Pokedex category",
+
+				"\nOther generators:",
+				"* <code>.ranswer [game]</code> - in PMs, generate a hint and answer for the specified game",
+				"* <code>.rchar</code> - generate a character",
+				"* <code>.rloc</code> - generate a location",
+				"* <code>.rletter</code> - generate a letter",
+				"* <code>.rpick [option 1], [option 2], [...]</code> - generate one of the specified options",
+				"* <code>.rorder [option 1], [option 2], [...]</code> - shuffle the specified options",
+
+				"\nPS commands:",
+				"* <code>.starthangman [room], [answer], [hint]</code> - in PMs, start a PS hangman game",
+				"* <code>.endhangman [room]</code> - in PMs, end the current PS hangman game",
+				"* <code>.roll [arguments]</code> - use !roll with the specified arguments",
+				"* <code>.dt [arguments]</code> - use !dt with the specified arguments",
+
+				"\nDisplay sprites:",
+				"* <code>.showgif [room], [pokemon 1], [pokemon 2], [...]</code> - in PMs, display up to 5 Pokemon gifs",
+				"* <code>.showbwgif [room], [pokemon 1], [pokemon 2], [...]</code> - in PMs, display up to 5 BW Pokemon gifs",
+				"* <code>.showrandgif [room], [typing], [#]</code> - in PMs, display up to 5 random Pokemon gifs, optionally matching " +
+					"the specified typing",
+				"* <code>.showrandbwgif [room], [typing], [#]</code> - in PMs, display up to 5 random BW Pokemon gifs, optionally " +
+					"matching the specified typing",
+				"* <code>.showicon [room], [pokemon 1], [pokemon 2], [...]</code> - in PMs, display up to 30 Pokemon icons",
+				"* <code>.showrandicon [room], [type], [#]</code> - in PMs, display up to 30 random Pokemon icons, optionally matching " +
+					"the specified typing",
+				"* <code>.showtrainer [room], [trainer 1], [trainer 2], [...]</code> - in PMs, display up to 5 trainer sprites",
+			];
+
+			document = document.concat(userHostCommands);
+		}
+
+		let allowOneVsOneGames = false;
+		if (Config.allowOneVsOneGames) {
+			if (Config.allowOneVsOneGames.includes(room.id)) {
+				allowOneVsOneGames = true;
+			} else if (Config.subRooms && room.id in Config.subRooms) {
+				for (const subRoom of Config.subRooms[room.id]) {
+					if (Config.allowOneVsOneGames.includes(subRoom)) {
+						allowOneVsOneGames = true;
+						break;
+					}
+				}
+			}
+		}
+
+		if (allowOneVsOneGames) {
+			const oneVsOneGames: string[] = ["## One vs. one challenges", "Commands:",
+				"* <code>.1v1c [user], [game]</code> - challenge [user] to a game of [game] (see list below)",
+				"* <code>.a1v1c</code> - accept a challenge",
+				"* <code>.r1v1c</code> - reject a challenge",
+				"* <code>.c1v1c</code> - cancel a challenge",
+				"* <code>.ccdown [room], 1v1</code> - check your one vs. one challenge cooldown time for [room] in PMs",
+				"\n\nCompatible games:"
+			];
+			const keys = Object.keys(this.formats);
+			keys.sort();
+			for (const key of keys) {
+				const format = this.getExistingFormat(key);
+				if (format.disabled || format.tournamentGame || format.noOneVsOne) continue;
+				oneVsOneGames.push("* " + format.name + "\n");
+			}
+
+			document = document.concat(oneVsOneGames);
+		}
+
 		const defaultCategory = "Uncategorized";
 		if (allowsScriptedGames) {
 			const categories: Dict<string[]> = {};
@@ -1215,40 +1326,6 @@ export class Games {
 			document = document.concat(scriptedGames);
 		}
 
-		let allowOneVsOneGames = false;
-		if (Config.allowOneVsOneGames) {
-			if (Config.allowOneVsOneGames.includes(room.id)) {
-				allowOneVsOneGames = true;
-			} else if (Config.subRooms && room.id in Config.subRooms) {
-				for (const subRoom of Config.subRooms[room.id]) {
-					if (Config.allowOneVsOneGames.includes(subRoom)) {
-						allowOneVsOneGames = true;
-						break;
-					}
-				}
-			}
-		}
-
-		if (allowOneVsOneGames) {
-			const oneVsOneGames: string[] = ["## One vs. one challenges", "Commands:",
-				"* <code>.1v1c [user], [game]</code> - challenge [user] to a game of [game] (see list below)",
-				"* <code>.a1v1c</code> - accept a challenge",
-				"* <code>.r1v1c</code> - reject a challenge",
-				"* <code>.c1v1c</code> - cancel a challenge",
-				"* <code>.ccdown [room], 1v1</code> - check your one vs. one challenge cooldown time for [room] in PMs",
-				"\n\nCompatible games:"
-			];
-			const keys = Object.keys(this.formats);
-			keys.sort();
-			for (const key of keys) {
-				const format = this.getExistingFormat(key);
-				if (format.disabled || format.tournamentGame || format.noOneVsOne) continue;
-				oneVsOneGames.push("* " + format.name + "\n");
-			}
-
-			document = document.concat(oneVsOneGames);
-		}
-
 		if (allowsUserHostedGames) {
 			const userHostedGames: string[] = ["## User-hosted games"];
 			for (const i in this.userHostedFormats) {
@@ -1269,81 +1346,16 @@ export class Games {
 			}
 
 			document = document.concat(userHostedGames);
-
-			const userHostCommands: string[] = ["## User-host commands",
-				"Player management:",
-				"* <code>.apl [player a], [player b], [...]</code> - add the specified player(s) to the game",
-				"* <code>.rpl [player a], [player b], [...]</code> - remove the specified player(s) from the game",
-				"* <code>.pl</code> - display the player list",
-				"* <code>.shufflepl</code> - shuffle and display the player list",
-				"* <code>.clearpl</code> - clear the player list",
-
-				"\nPoints management:",
-				"* <code>.apt [player a], [player b], [...], [#]</code> - give [#] points to the specified player(s)",
-				"* <code>.rpt [player a], [player b], [...], [#]</code> - remove [#] points from the specified player(s)",
-				"* <code>.aptall [#]</code> - give [#] points to all players",
-				"* <code>.rptall [#]</code> - remove [#] points from all players",
-				"* <code>.mpt [player a], [player b], [#]</code> - move [#] or all of [player a]'s points to [player b]",
-
-				"\nGame management:",
-				"* <code>.gtimer [#], [seconds]</code> - set a timer for [#] minutes or seconds if specified",
-				"* <code>.randgtimer [seconds], [min], [max]</code> - set random timer between [min] and [max] minutes or seconds if " +
-					"specified",
-				"* <code>.gtimer off</code> - turn off the previously set timer",
-				"* <code>.store [message or command]</code> - store a message or command to be used throughout the game",
-				"* <code>.stored</code> - display a stored message or use a stored command",
-				"* <code>.twist [twist]</code> - set or view the twist for the game",
-				"* <code>.gcap [#]</code> - set or view the player cap for the game",
-				"* <code>.scorecap [#]</code> - set or view the score cap for the game",
-				"* <code>.savewinner [player a], [player b], [...]</code> - set the specified player(s) as the winner(s) and continue " +
-					"the game",
-				"* <code>.winner [player a], [player b], [...]</code> - set the specified player(s) as the winner(s) and end the game",
-
-				"\nIn-game data generators:",
-				"* <code>.rability [#]</code> - generate up to 6 abilities",
-				"* <code>.ritem [#]</code> - generate up to 6 items",
-				"* <code>.rmove [#]</code> - generate up to 6 moves",
-				"* <code>.rpoke [#]</code> - generate up to 6 Pokemon",
-				"* <code>.rtype</code> - generate a single or dual typing",
-				"* <code>.rextype</code> - generate a single or dual typing of an existing Pokemon",
-				"* <code>.rcolor</code> - generate a Pokedex color",
-				"* <code>.regg</code> - generate an egg group",
-				"* <code>.rnature</code> - generate a nature",
-				"* <code>.rcat</code> - generate a Pokedex category",
-
-				"\nOther generators:",
-				"* <code>.ranswer [game]</code> - in PMs, generate a hint and answer for the specified game",
-				"* <code>.rchar</code> - generate a character",
-				"* <code>.rloc</code> - generate a location",
-				"* <code>.rletter</code> - generate a letter",
-				"* <code>.rpick [option 1], [option 2], [...]</code> - generate one of the specified options",
-
-				"\nPS commands:",
-				"* <code>.starthangman [room], [answer], [hint]</code> - in PMs, start a PS hangman game",
-				"* <code>.endhangman [room]</code> - in PMs, end the current PS hangman game",
-				"* <code>.roll [arguments]</code> - use !roll with the specified arguments",
-				"* <code>.dt [arguments]</code> - use !dt with the specified arguments",
-
-				"\nDisplay sprites:",
-				"* <code>.showgif [room], [pokemon 1], [pokemon 2], [...]</code> - in PMs, display up to 5 Pokemon gifs",
-				"* <code>.showbwgif [room], [pokemon 1], [pokemon 2], [...]</code> - in PMs, display up to 5 BW Pokemon gifs",
-				"* <code>.showrandgif [room], [typing], [#]</code> - in PMs, display up to 5 random Pokemon gifs, optionally matching " +
-					"the specified typing",
-				"* <code>.showrandbwgif [room], [typing], [#]</code> - in PMs, display up to 5 random BW Pokemon gifs, optionally " +
-					"matching the specified typing",
-				"* <code>.showicon [room], [pokemon 1], [pokemon 2], [...]</code> - in PMs, display up to 30 Pokemon icons",
-				"* <code>.showrandicon [room], [type], [#]</code> - in PMs, display up to 30 random Pokemon icons, optionally matching " +
-					"the specified typing",
-				"* <code>.showtrainer [room], [trainer 1], [trainer 2], [...]</code> - in PMs, display up to 5 trainer sprites",
-			];
-
-			document = document.concat(userHostCommands);
 		}
+
+		const content = document.join("\n").trim();
+		if (room.id in this.lastCatalogUpdates && this.lastCatalogUpdates[room.id] === content) return;
+		this.lastCatalogUpdates[room.id] = content;
 
 		const filename = Config.gameCatalogGists[room.id].files[0];
 
 		Tools.editGist(Config.gameCatalogGists[room.id].id, Config.gameCatalogGists[room.id].description,
-			{[filename]: {content: document.join("\n").trim(), filename}});
+			{[filename]: {content, filename}});
 	}
 }
 
