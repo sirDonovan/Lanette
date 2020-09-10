@@ -1349,9 +1349,22 @@ const commands: CommandDefinitions<CommandContext> = {
 				if (Tools.toId(target)) choices.push(target.trim());
 			}
 			if (choices.length < 2) return this.say("You must specify at least 2 choices.");
-			this.say("**Random pick:** " + Tools.sampleOne(choices));
+			this.say("**Random pick**: " + Tools.sampleOne(choices));
 		},
 		aliases: ['rpick'],
+	},
+	randomorder: {
+		command(target, room, user) {
+			if (!this.isPm(room) && !user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
+			const choices: string[] = [];
+			const targets = target.split(',');
+			for (const target of targets) {
+				if (Tools.toId(target)) choices.push(target.trim());
+			}
+			if (choices.length < 2) return this.say("You must specify at least 2 items.");
+			this.say("**Random order**: " + Tools.shuffle(choices).join(', '));
+		},
+		aliases: ['rorder', 'shuffle'],
 	},
 	timer: {
 		command(target, room, user) {
