@@ -438,12 +438,6 @@ export const game: IUserHostedFile<UserHosted> = {
 				"the other players try to discover the spy.",
 		},
 		{
-			name: "Test Your Abilities",
-			aliases: ['tya'],
-			description: "Each round, players must guess Pokemon based on the initials of their abilities!",
-			freejoin: true,
-		},
-		{
 			name: "The Chosen One",
 			description: "The host PMs a selected player three words. A timer is set and all players have a conversation in the chat, in " +
 				"which the selected player must use all three words. After the timer ends, all players PM the host who they think was " +
