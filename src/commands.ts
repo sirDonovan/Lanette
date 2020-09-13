@@ -1668,6 +1668,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			const targets = target.split(",");
 			const teamId = Tools.toId(targets[0]);
 			if (!(teamId in room.userHostedGame.teams)) return this.say("'" + targets[0].trim() + "' is not a team.");
+			targets.shift();
 
 			const team = room.userHostedGame.teams[teamId];
 			const targetUsers: User[] = [];
