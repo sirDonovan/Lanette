@@ -39,6 +39,7 @@ describe("Tournaments", () => {
 					const day = '' + i;
 					try {
 						Dex.validateFormat(schedule.months[month].formats[day]);
+						Dex.getExistingFormat(schedule.months[month].formats[day], true);
 						validated++;
 					} catch (e) {
 						errors.push((e as Error).message + " on " + month + "/" + day + " in " + room);
@@ -55,7 +56,7 @@ describe("Tournaments", () => {
 		const month = date.getMonth() + 1;
 		const lastDayOfMonth = Tools.getLastDayOfMonth(date);
 
-		const formats: Dict<string> = {1: "ou", 2: "uu", 3: "ru"};
+		const formats: Dict<string> = {1: "gen8ou", 2: "gen8uu", 3: "gen8ru"};
 		const schedule: IRoomTournamentSchedule = {months: {}};
 
 		// 4 officials on 1 day
