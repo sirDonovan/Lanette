@@ -232,13 +232,6 @@ export const game: IUserHostedFile<UserHosted> = {
 			freejoin: true,
 		},
 		{
-			name: "Falinks' Formations",
-			mascot: "Falinks",
-			aliases: ['ff', 'falinks'],
-			description: "Players guess how many Falinks will be in the formation each round and gain points based on what number they " +
-				"pick. First to 15 points wins!",
-		},
-		{
 			name: "Gameathlon",
 			description: "A series of Game Corner games in one! Players try to win each mini-game to earn points.",
 			freejoin: true,
