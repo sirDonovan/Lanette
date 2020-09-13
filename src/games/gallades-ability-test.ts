@@ -50,5 +50,8 @@ export const game: IGameFile<GalladesAbilityTest> = Games.copyTemplateProperties
 	freejoin: true,
 	name: "Gallade's Ability Test",
 	mascot: "Gallade",
+	minigameCommand: 'abilitytest',
+	minigameCommandAliases: ['atest', 'gatest'],
+	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess a Pokemon based on the initials of its abilities!",
 	modes: ["survival", "team"],
 });
