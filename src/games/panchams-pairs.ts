@@ -314,6 +314,7 @@ export const game: IGameFile<PanchamPairs> = {
 		"generation, color, type, and ability.",
 	name: "Pancham's Pairs",
 	mascot: "Pancham",
+	nonTrivialLoadData: true,
 	variants: [
 		{
 			name: "Pancham's Move Pairs",
