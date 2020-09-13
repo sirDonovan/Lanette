@@ -9,7 +9,7 @@ import { game as guessingGame, Guessing } from './templates/guessing';
 
 const BASE_NUMBER_OF_PARAMS = 2;
 const MIN_GEN = 1;
-const MAX_GEN = 7;
+const MAX_GEN = 8;
 
 const allParamTypes: ParamType[] = ['move', 'tier', 'color', 'type', 'resistance', 'weakness', 'egggroup', 'ability', 'gen'];
 const modeParamTypes: ParamType[] = ['tier', 'color', 'type', 'egggroup', 'ability', 'gen'];
@@ -32,7 +32,7 @@ export class ParasParameters extends Guessing {
 	onSignups(): void {
 		super.onSignups();
 		if (this.isMiniGame) {
-			const dexsearchCommand = "``/ds" + this.format.options.gen + "``";
+			const dexsearchCommand = "``/" + (this.format.options.gen === 8 ? "nds" : "ds" + this.format.options.gen) + "``";
 			(this.format as IGameFormat).minigameDescription = "Use " + dexsearchCommand + " to search for and then ``" +
 				Config.commandCharacter + "g`` to guess " + dexsearchCommand + " parameters that give the following Pokemon!";
 		}
@@ -201,7 +201,7 @@ const tests: GameFileTests<ParasParameters> = {
 			delete format.inputOptions.params;
 			delete game.format.options.params;
 
-			game.format.options.gen = 7;
+			game.format.options.gen = 8;
 			game.customParamTypes = ['move', 'egggroup'];
 			game.answers = [];
 			await game.onNextRound();
@@ -226,15 +226,16 @@ const tests: GameFileTests<ParasParameters> = {
 			assertStrictEqual(intersection.params.length, 0);
 			assertStrictEqual(intersection.pokemon.length, 0);
 
-			intersection = await game.intersect(['steeltype', 'rockclimb']);
-			assert(intersection);
-			assertStrictEqual(intersection.params.length, 2);
-			assertStrictEqual(intersection.pokemon.join(","), "durant,excadrill,ferroseed,ferrothorn,steelix");
-
 			intersection = await game.intersect(['poisontype', 'poisontype', 'powerwhip']);
 			assert(intersection);
 			assertStrictEqual(intersection.params.length, 0);
 			assertStrictEqual(intersection.pokemon.length, 0);
+
+			intersection = await game.intersect(['steeltype', 'rockclimb']);
+			assert(intersection);
+			assertStrictEqual(intersection.params.length, 2);
+			assertStrictEqual(intersection.pokemon.join(","), "aggron,arceussteel,durant,empoleon,excadrill,ferroseed,ferrothorn," +
+				"heatran,registeel,steelix");
 
 			intersection = await game.intersect(['poisontype', 'powerwhip']);
 			assert(intersection);
@@ -264,7 +265,30 @@ const tests: GameFileTests<ParasParameters> = {
 			assert(intersection);
 			assertStrictEqual(intersection.pokemon.join(","), "aegislash,doublade,honedge,houndoommega,sharpedomega");
 
+			intersection = await game.intersect(['Weak to Rock Type', 'Earthquake']);
+			assert(intersection);
+			assertStrictEqual(intersection.pokemon.join(","), "abomasnow,aerodactyl,altaria,arceusbug,arceusfire,arceusflying,arceusice," +
+				"archen,archeops,armaldo,aurorus,avalugg,charizard,coalossal,crustle,darmanitan,dragonite,dwebble,glalie,gyarados,hooh," +
+				"incineroar,lugia,magcargo,magmortar,mantine,mantyke,marowakalola,marowakalolatotem,minior,pineco,pinsir,rayquaza," +
+				"regice,salamence,scolipede,sealeo,shuckle,spheal,torkoal,tropius,turtonator,typhlosion,volcanion,walrein");
+
+			intersection = await game.intersect(['Psycho Cut', 'Resists Fighting Type']);
+			assert(intersection);
+			assertStrictEqual(intersection.pokemon.join(","), "aegislash,alakazam,celebi,cresselia,decidueye,doublade,drowzee," +
+				"exeggutor,gallade,hatterene,honedge,hypno,kadabra,lunala,medicham,meditite,mew,mewtwo,necrozma,orbeetle," +
+				"rapidashgalar,scyther,sigilyph,starmie,swoobat,woobat,zacian");
+
+			// past gen
+
+			game.format.options.gen = 7;
+
+			intersection = await game.intersect(['steeltype', 'rockclimb']);
+			assert(intersection);
+			assertStrictEqual(intersection.params.length, 2);
+			assertStrictEqual(intersection.pokemon.join(","), "durant,excadrill,ferroseed,ferrothorn,steelix");
+
 			game.format.options.gen = 6;
+
 			intersection = await game.intersect(['Weak to Rock Type', 'Earthquake']);
 			assert(intersection);
 			assertStrictEqual(intersection.pokemon.join(","), "abomasnow,aerodactyl,altaria,arceusbug,arceusfire,arceusflying,arceusice," +

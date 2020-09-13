@@ -7,7 +7,7 @@ import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from ".
 import type { User } from "../users";
 import type { IParam, ParamType } from "../workers/parameters";
 
-const GEN = 7;
+const GEN = 8;
 const GEN_STRING = 'gen' + GEN;
 
 const paramTypes: ParamType[] = ['move', 'tier', 'color', 'type', 'egggroup', 'ability', 'gen'];
@@ -228,7 +228,7 @@ export const game: IGameFile<PluslesAdditiveParameters> = {
 	class: PluslesAdditiveParameters,
 	commandDescriptions: [Config.commandCharacter + "add [parameter]"],
 	commands,
-	description: "Players add <code>/ds" + GEN + "</code> parameters (no weaknesses or resistances) that result in at least 2 Pokemon of " +
+	description: "Players add <code>/nds</code> parameters (no weaknesses or resistances) that result in at least 2 Pokemon of " +
 		"different evolution lines in the given list!",
 	disabled: true,
 	formerNames: ["Pumpkaboo's Parameters"],

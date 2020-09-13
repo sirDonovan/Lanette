@@ -5,7 +5,7 @@ import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from ".
 import type { User } from "../users";
 import type { IParam, IParametersWorkerData } from './../workers/parameters';
 
-const gen = 7;
+const gen = 8;
 const genString = 'gen' + gen;
 
 type ParamType = 'color' | 'letter' | 'tier' | 'type';
@@ -51,7 +51,7 @@ class InkaysCups extends Game {
 	}
 
 	onStart(): void {
-		const text = "The game will be played in Gen " + gen + "!";
+		const text = "The game will be played in Gen " + gen + " (use ``/nds``)!";
 		this.on(text, () => {
 			this.timeout = setTimeout(() => this.nextRound(), 5000);
 		});

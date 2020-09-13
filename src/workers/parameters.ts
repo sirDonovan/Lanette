@@ -67,7 +67,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 			},
 		};
 
-		for (let i = 1; i <= 7; i++) {
+		for (let i = 1; i <= Dex.gen; i++) {
 			const mod = 'gen' + i;
 			const dex = Dex.getDex(mod);
 
