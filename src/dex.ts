@@ -526,7 +526,9 @@ export class Dex {
 		const pokemon = Tools.deepClone(this.pokemonShowdownDex.getSpecies(name));
 		if (!pokemon.exists) return undefined;
 
-		if (pokemon.tier === '(NU)') {
+		if (pokemon.tier === '(Uber)') {
+			pokemon.tier = 'Uber';
+		} else if (pokemon.tier === '(NU)') {
 			pokemon.tier = 'PU';
 		} else if (pokemon.tier === '(PU)') {
 			pokemon.tier = 'ZU';
