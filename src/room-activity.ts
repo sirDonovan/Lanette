@@ -8,7 +8,7 @@ export class Player {
 	eliminated: boolean | undefined;
 	/** The player can temporarily not perform any actions */
 	frozen: boolean | undefined;
-	losses: number | undefined;
+	inactiveRounds: number | undefined;
 	round: number | undefined;
 	team: PlayerTeam | undefined;
 
@@ -31,7 +31,7 @@ export class Player {
 		delete this.active;
 		delete this.eliminated;
 		delete this.frozen;
-		delete this.losses;
+		delete this.inactiveRounds;
 		delete this.round;
 		delete this.team;
 	}

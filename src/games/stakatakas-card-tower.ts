@@ -46,7 +46,7 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 	autoFillHands: boolean = true;
 	colorsLimit: number = 20;
 	finitePlayerCards: boolean = true;
-	inactivePlayerLimit = 2;
+	playerInactiveRoundLimit = 2;
 	maxCardRounds: number = 50;
 	minimumPlayedCards: number = 2;
 	shinyCardAchievement = achievements.luckofthedraw;

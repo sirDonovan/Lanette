@@ -21,8 +21,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	canPlay: boolean = false;
 	colorsLimit: number = 0;
 	deckPool: IPokemonCard[] = [];
-	inactivePlayerCounts = new Map<Player, number>();
-	inactivePlayerLimit: number = 3;
+	playerInactiveRoundLimit: number = 3;
 	lastPlayer: Player | null = null;
 	maxCardRounds: number = 30;
 	maxPlayers: number = 15;
@@ -413,13 +412,10 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 
 				this.timeout = setTimeout(() => {
 					if (!player!.eliminated) {
-						let inactivePlayerCount = this.inactivePlayerCounts.get(player!) || 0;
-						inactivePlayerCount++;
-						if (!(this.parentGame && this.parentGame.id === '1v1challenge') &&
-							inactivePlayerCount >= this.inactivePlayerLimit) {
+						if (this.addPlayerInactiveRound(player!) && !(this.parentGame && this.parentGame.id === '1v1challenge')) {
 							this.say(player!.name + " DQed for inactivity!");
 							// nextRound() called in onRemovePlayer
-							this.eliminatePlayer(player!, "You did not play a card for " + this.inactivePlayerLimit + " rounds!");
+							this.eliminatePlayer(player!, "You did not play a card for " + this.playerInactiveRoundLimit + " rounds!");
 
 							const remainingPlayers: Player[] = [];
 							for (const i in this.players) {
@@ -430,7 +426,6 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 							this.onRemovePlayer(player!);
 						} else {
 							player!.useCommand('draw');
-							this.inactivePlayerCounts.set(player!, inactivePlayerCount);
 						}
 					} else {
 						this.nextRound();

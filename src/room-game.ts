@@ -76,6 +76,7 @@ export class Game extends Activity {
 	maxRound?: number;
 	noForceEndMessage?: boolean;
 	playerCap?: number;
+	playerInactiveRoundLimit?: number;
 	readonly points?: Map<Player, number>;
 	shinyMascot?: boolean;
 	startingLives?: number;
@@ -611,6 +612,15 @@ export class Game extends Activity {
 
 		if (this.onRemovePlayer) this.onRemovePlayer(player);
 		if (!this.internalGame) this.removeBits(player, JOIN_BITS, silent);
+	}
+
+	/** Returns `true` if the player has been inactive for the game's inactive round limit */
+	addPlayerInactiveRound(player: Player): boolean {
+		if (!player.inactiveRounds) player.inactiveRounds = 0;
+		player.inactiveRounds++;
+
+		if (this.playerInactiveRoundLimit && player.inactiveRounds >= this.playerInactiveRoundLimit) return true;
+		return false;
 	}
 
 	eliminatePlayer(player: Player, eliminationCause?: string | null, eliminator?: Player | null): void {

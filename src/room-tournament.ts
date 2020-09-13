@@ -1,4 +1,4 @@
-import { Activity } from "./room-activity";
+import { Activity, Player } from "./room-activity";
 import type { Room } from "./rooms";
 import type { IFormat } from "./types/dex";
 import type { IBattleData, ICurrentTournamentBattle, ITournamentEndJson, ITournamentUpdateJson } from "./types/tournaments";
@@ -38,6 +38,7 @@ export class Tournament extends Activity {
 	manuallyNamed: boolean = false;
 	manuallyEnabledPoints: boolean | undefined = undefined;
 	originalFormat: string = '';
+	playerLosses = new Map<Player, number>();
 	scheduled: boolean = false;
 	totalPlayers: number = 0;
 	updates: Partial<ITournamentUpdateJson> = {};
@@ -349,9 +350,10 @@ export class Tournament extends Activity {
 		for (const i in players) {
 			const player = this.createPlayer(players[i]) || this.players[i];
 			if (player.eliminated) continue;
-			if (losses[i] && losses[i] !== player.losses) {
-				player.losses = losses[i];
-				if (player.losses >= this.generator) {
+			const playerLosses = this.playerLosses.get(player);
+			if (losses[i] && losses[i] !== playerLosses) {
+				this.playerLosses.set(player, losses[i]);
+				if (losses[i] >= this.generator) {
 					player.eliminated = true;
 				}
 			}
