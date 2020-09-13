@@ -287,6 +287,10 @@ export class Game extends Activity {
 		this.htmlPageHeader = htmlPageHeader;
 	}
 
+	getDescription(): string {
+		return this.description;
+	}
+
 	loadModeCommands<T extends Game>(commands: LoadedGameCommands<T>): void {
 		for (const command in commands) {
 			const commandsToOverwrite: string[] = [command];
@@ -751,7 +755,7 @@ export class Game extends Activity {
 			const gif = Dex.getPokemonGif(this.mascot, "xy", this.isUserHosted ? 'back' : 'front', this.shinyMascot);
 			if (gif) html += gif;
 		}
-		html += "<h3>" + this.name + "</h3>" + this.description;
+		html += "<h3>" + this.name + "</h3>" + this.getDescription();
 		if (this.additionalDescription) html += "<br /><br />" + this.additionalDescription;
 		let commandDescriptions: string[] = [];
 		if (this.getPlayerSummary) commandDescriptions.push(Config.commandCharacter + "summary");

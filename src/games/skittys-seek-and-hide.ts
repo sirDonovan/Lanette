@@ -240,7 +240,7 @@ export const game: IGameFile<SkittysSeekAndHide> = {
 	class: SkittysSeekAndHide,
 	commandDescriptions: [Config.commandCharacter + "select [Pokemon]"],
 	commands,
-	description: "Each round, the host will give a param that determines Pokemon players can hide behind (by PMing the host). " +
+	description: "Each round, players choose Pokemon to hide behind based on the given parameters." +
 		"The Pokemon that the most players hide behind will steal 1 life!",
 	name: "Skitty's Seek and Hide",
 	noOneVsOne: true,

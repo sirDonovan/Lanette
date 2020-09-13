@@ -29,6 +29,12 @@ export class ParasParameters extends Guessing {
 		Games.workers.parameters.init();
 	}
 
+	getDescription(): string {
+		if (this.format.options.gen === 8) return this.description;
+		return "Players search for possible <code>/ds" + this.format.options.gen + "</code> parameters that result in the given " +
+			"Pokemon list!";
+	}
+
 	onSignups(): void {
 		super.onSignups();
 		if (this.isMiniGame) {
@@ -324,7 +330,7 @@ export const game: IGameFile<ParasParameters> = Games.copyTemplateProperties(gue
 		points: {min: 5, base: 5, max: 10},
 		teamPoints: {min: 10, base: 10, max: 10},
 	},
-	description: "Players search for possible <code>/dexsearch</code> parameters that result in the given Pokemon list!",
+	description: "Players search for possible <code>/nds</code> parameters that result in the given Pokemon list!",
 	formerNames: ["Parameters"],
 	freejoin: true,
 	name: "Paras' Parameters",
