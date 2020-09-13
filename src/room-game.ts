@@ -355,6 +355,7 @@ export class Game extends Activity {
 		if (!this.isMiniGame && !this.internalGame) {
 			this.showSignupsHtml = true;
 			this.sayHtml(this.getSignupsHtml());
+			this.sayUhtml(this.signupsUhtmlName, this.getSignupsHtmlUpdate());
 
 			let joinLeaveHtml = "<center>";
 			if (this.format.options.freejoin) {
