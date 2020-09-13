@@ -108,10 +108,9 @@ class MagikarpsWaterWheel extends Game {
 			} else {
 				const spin = this.sampleOne(wheelStats.slots);
 				points += spin;
-				this.points.set(player, points);
-
 				html += '<br /><br />The wheel landed on <b>' + spin + ' points</b>!';
 			}
+			this.points.set(player, points);
 			html += '<br /><br />Your total is now <b>' + points + '</b>.';
 		}
 
