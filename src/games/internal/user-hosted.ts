@@ -418,14 +418,6 @@ export const game: IUserHostedFile<UserHosted> = {
 				"eliminated.",
 		},
 		{
-			name: "Skitty's Seek and Hide",
-			mascot: "Skitty",
-			description: "Each round, the host will give a param that determines Pokemon players can hide behind (by PMing the host). " +
-				"The pokemon that the most people hide behind turns evil and steals a life away from them! Can you keep yourself from " +
-				"being eliminated?",
-			aliases: ['skittys', 'ssh'],
-		},
-		{
 			name: "Spot The Reference",
 			description: "Players must identify the source (who said it, movie/tv show title, etc.) of a quote",
 			aliases: ['str'],

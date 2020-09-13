@@ -1,0 +1,250 @@
+import type { Player } from "../room-activity";
+import { Game } from "../room-game";
+import { addPlayers, assert, runCommand } from "../test/test-tools";
+import type { IPokemon } from "../types/dex";
+import type { GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFile } from "../types/games";
+
+const data: {'parameters': Dict<string[]>; 'pokemon': string[]} = {
+	"parameters": {},
+	"pokemon": [],
+};
+
+class SkittysSeekAndHide extends Game {
+	canCharm: boolean = false;
+	canSelect: boolean = false;
+	categories: string[] = [];
+	maxPlayers: number = 15;
+	lives = new Map<Player, number>();
+	pokemonChoices = new Map<Player, string>();
+	startingLives: number = 3;
+
+	static loadData(): void {
+		const parameters: Dict<IPokemon[]> = {};
+
+		for (const pokemon of Games.getPokemonList()) {
+			const params: string[] = [];
+			for (const eggGroup of pokemon.eggGroups) {
+				params.push(eggGroup + " Group");
+			}
+
+			for (const type of pokemon.types) {
+				params.push(type + " Type");
+			}
+			params.push("Generation " + pokemon.gen);
+			if (Games.isIncludedPokemonTier(pokemon.tier)) params.push(pokemon.tier);
+			params.push(pokemon.color);
+
+			for (const param of params) {
+				if (!(param in parameters)) parameters[param] = [];
+				parameters[param].push(pokemon);
+			}
+		}
+
+		const parameterKeys = Object.keys(parameters);
+		for (let i = 0, len = parameterKeys.length; i < len; i++) {
+			for (let j = 0; j < len; j++) {
+				if (i === j) continue;
+				const paramA = parameterKeys[i];
+				const paramB = parameterKeys[j];
+				const parameter = paramA + ", " + paramB;
+				const parameterList: IPokemon[] = [];
+				data.parameters[parameter] = [];
+				for (const pokemon of parameters[paramA]) {
+					if (parameters[paramB].includes(pokemon)) {
+						parameterList.push(pokemon);
+					}
+				}
+
+				data.parameters[parameter] = parameterList
+					.filter(x => !(x.forme && parameterList.includes(Dex.getExistingPokemon(x.baseSpecies))))
+					.map(x => {
+						if (!data.pokemon.includes(x.id)) data.pokemon.push(x.id);
+						return x.id;
+					});
+			}
+		}
+	}
+
+	onAddPlayer(player: Player): boolean {
+		this.lives.set(player, this.startingLives);
+		return true;
+	}
+
+	onStart(): void {
+		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+	}
+
+	onNextRound(): void {
+		this.canSelect = false;
+
+		const remainingPlayerCount = this.getRemainingPlayerCount();
+		if (remainingPlayerCount < 3) return this.end();
+
+		this.pokemonChoices.clear();
+		const requiredPokemon = Math.max(2, remainingPlayerCount - 1);
+
+		const param = this.sampleOne(Object.keys(data.parameters).filter(x => data.parameters[x].length === requiredPokemon));
+		this.categories = param.split(", ");
+
+		const players: string[] = [];
+		for (const i in this.players) {
+			if (this.players[i].eliminated) continue;
+			players.push(this.players[i].name);
+		}
+
+		const uhtmlName = this.uhtmlBaseName + '-round-html';
+		const html = this.getRoundHtml(this.getPlayerLives);
+		this.onUhtml(uhtmlName, html, () => {
+			const text = "Select a **" + param + "** Pokemon with ``" + Config.commandCharacter + "select [Pokemon]`` in PMs!";
+			this.on(text, () => {
+				this.canSelect = true;
+				this.timeout = setTimeout(() => this.tallySelectedPokemon(), 60 * 1000);
+			});
+			this.onCommands(['select'], {max: this.getRemainingPlayerCount(), remainingPlayersMax: true},
+				() => this.tallySelectedPokemon());
+
+			this.timeout = setTimeout(() => this.say(text), 5 * 1000);
+		});
+		this.sayUhtml(uhtmlName, html);
+	}
+
+	tallySelectedPokemon(): void {
+		if (this.timeout) clearTimeout(this.timeout);
+
+		this.canSelect = false;
+
+		const selectedPokemon: Dict<Player[]> = {};
+		for (const id in this.players) {
+			if (this.players[id].eliminated) continue;
+			const player = this.players[id];
+			const pokemon = this.pokemonChoices.get(player);
+			if (!pokemon) {
+				this.eliminatePlayer(player, "You did not select a Pokemon!");
+				continue;
+			}
+
+			if (!(pokemon in selectedPokemon)) selectedPokemon[pokemon] = [];
+			selectedPokemon[pokemon].push(player);
+		}
+
+		if (!this.getRemainingPlayerCount()) {
+			this.say("No one chose a valid Pokemon!");
+			this.end();
+			return;
+		}
+
+		const sortedKeys = Object.keys(selectedPokemon).sort((a, b) => selectedPokemon[b].length - selectedPokemon[a].length);
+		const highestPlayers = selectedPokemon[sortedKeys[0]].length;
+		const mostSelected = sortedKeys.filter(x => selectedPokemon[x].length === highestPlayers);
+		const damaged: string[] = [];
+		for (const pokemon of mostSelected) {
+			for (const player of selectedPokemon[pokemon]) {
+				damaged.push(player.name);
+				let lives = this.lives.get(player)!;
+				lives--;
+				this.lives.set(player, lives);
+				if (!lives) {
+					this.eliminatePlayer(player, "You lost your last life!");
+				} else {
+					player.say("You lost 1 life! You have " + lives + " remaining.");
+				}
+			}
+		}
+
+		const text = "**" + Tools.joinList(mostSelected) + "** " + (mostSelected.length > 1 ? "were" : "was") +
+			" hiding the most players (" + Tools.joinList(damaged) + ")!";
+		this.on(text, () => {
+			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+		});
+		this.say(text);
+	}
+
+	pokemonFitsParameters(pokemon: IPokemon): boolean {
+		return data.parameters[this.categories.join(', ')].includes(pokemon.id);
+	}
+
+	onEnd(): void {
+		for (const i in this.players) {
+			if (this.players[i].eliminated) continue;
+			this.winners.set(this.players[i], 1);
+			this.addBits(this.players[i], 500);
+		}
+
+		this.announceWinners();
+	}
+}
+
+const commands: GameCommandDefinitions<SkittysSeekAndHide> = {
+	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+	select: {
+		command(target, room, user): GameCommandReturnType {
+			if (!this.canSelect) return false;
+			const player = this.players[user.id];
+			if (this.pokemonChoices.has(player)) {
+				user.say("You have already selected your Pokemon!");
+				return false;
+			}
+
+			target = Tools.toId(target);
+			const pokemon = Dex.getPokemon(target);
+			if (!pokemon) {
+				player.say(CommandParser.getErrorText(['invalidPokemon', target]));
+				return false;
+			}
+			if (!data.pokemon.includes(pokemon.id)) {
+				player.say(pokemon.name + " cannot be used in this game.");
+				return false;
+			}
+			if (!this.pokemonFitsParameters(pokemon)) {
+				if (pokemon.forme && this.pokemonFitsParameters(Dex.getExistingPokemon(pokemon.baseSpecies))) {
+					player.say("You must use " + pokemon.name + "'s base forme for the current parameters!");
+				} else {
+					player.say(pokemon.name + " does not follow the parameters!");
+				}
+				return false;
+			}
+
+			this.pokemonChoices.set(player, pokemon.name);
+			player.say("You have selected **" + pokemon.name + "**!");
+			return true;
+		},
+		pmOnly: true,
+	},
+	/* eslint-enable */
+};
+
+const tests: GameFileTests<SkittysSeekAndHide> = {
+	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+	'should have parameters for all possible numbers of remaining players': {
+		test(game, format): void {
+			const minPlayers = Math.max(2, game.minPlayers - 1);
+			const maxPlayers = game.maxPlayers - 1;
+			const parameterKeys = Object.keys(data.parameters);
+			for (let i = minPlayers; i < maxPlayers; i++) {
+				let hasParameters = false;
+				for (const key of parameterKeys) {
+					if (data.parameters[key].length === i) {
+						hasParameters = true;
+						break;
+					}
+				}
+				assert(hasParameters);
+			}
+		},
+	},
+	/* eslint-enable */
+};
+
+export const game: IGameFile<SkittysSeekAndHide> = {
+	aliases: ['skittys', 'ssh'],
+	class: SkittysSeekAndHide,
+	commandDescriptions: [Config.commandCharacter + "select [Pokemon]"],
+	commands,
+	description: "Each round, the host will give a param that determines Pokemon players can hide behind (by PMing the host). " +
+		"The Pokemon that the most players hide behind will steal 1 life!",
+	name: "Skitty's Seek and Hide",
+	noOneVsOne: true,
+	mascot: "Skitty",
+	nonTrivialLoadData: true,
+	tests,
+};
