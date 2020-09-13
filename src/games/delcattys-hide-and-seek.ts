@@ -21,6 +21,8 @@ class DelcattysHideAndSeek extends Game {
 	charmer!: Player;
 
 	static loadData(room: Room | User): void {
+		const parameters: Dict<IPokemon[]> = {};
+
 		for (const pokemon of Games.getPokemonList()) {
 			const params: string[] = [];
 			for (const eggGroup of pokemon.eggGroups) {
@@ -35,25 +37,32 @@ class DelcattysHideAndSeek extends Game {
 			params.push(pokemon.color);
 
 			for (const param of params) {
-				if (!(param in data.parameters)) data.parameters[param] = [];
-				data.parameters[param].push(pokemon.id);
+				if (!(param in parameters)) parameters[param] = [];
+				parameters[param].push(pokemon);
 			}
-			data.pokemon.push(pokemon.id);
 		}
 
-		const parameterKeys = Object.keys(data.parameters);
+		const parameterKeys = Object.keys(parameters);
 		for (let i = 0, len = parameterKeys.length; i < len; i++) {
 			for (let j = 0; j < len; j++) {
 				if (i === j) continue;
 				const paramA = parameterKeys[i];
 				const paramB = parameterKeys[j];
 				const parameter = paramA + ", " + paramB;
+				const parameterList: IPokemon[] = [];
 				data.parameters[parameter] = [];
-				for (const pokemon of data.parameters[paramA]) {
-					if (data.parameters[paramB].includes(pokemon)) {
-						data.parameters[parameter].push(pokemon);
+				for (const pokemon of parameters[paramA]) {
+					if (parameters[paramB].includes(pokemon)) {
+						parameterList.push(pokemon);
 					}
 				}
+
+				data.parameters[parameter] = parameterList
+					.filter(x => !(x.forme && parameterList.includes(Dex.getExistingPokemon(x.baseSpecies))))
+					.map(x => {
+						if (!data.pokemon.includes(x.id)) data.pokemon.push(x.id);
+						return x.id;
+					});
 			}
 		}
 	}
@@ -132,7 +141,7 @@ class DelcattysHideAndSeek extends Game {
 	}
 
 	pokemonFitsParameters(pokemon: IPokemon): boolean {
-		return data.parameters[this.categories.join(', ')].includes(Tools.toId(pokemon.name));
+		return data.parameters[this.categories.join(', ')].includes(pokemon.id);
 	}
 
 	onEnd(): void {
@@ -162,7 +171,11 @@ const commands: GameCommandDefinitions<DelcattysHideAndSeek> = {
 				return false;
 			}
 			if (!this.pokemonFitsParameters(pokemon)) {
-				player.say(pokemon.name + " does not follow the parameters.");
+				if (pokemon.forme && this.pokemonFitsParameters(Dex.getExistingPokemon(pokemon.baseSpecies))) {
+					player.say("You must use " + pokemon.name + "'s base forme for the current parameters!");
+				} else {
+					player.say(pokemon.name + " does not follow the parameters!");
+				}
 				return false;
 			}
 
@@ -215,7 +228,11 @@ const commands: GameCommandDefinitions<DelcattysHideAndSeek> = {
 				return false;
 			}
 			if (!this.pokemonFitsParameters(pokemon)) {
-				player.say(pokemon.name + " does not follow the parameters!");
+				if (pokemon.forme && this.pokemonFitsParameters(Dex.getExistingPokemon(pokemon.baseSpecies))) {
+					player.say("You must use " + pokemon.name + "'s base forme for the current parameters!");
+				} else {
+					player.say(pokemon.name + " does not follow the parameters!");
+				}
 				return false;
 			}
 
