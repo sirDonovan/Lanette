@@ -19,53 +19,52 @@ export class Vote extends Game {
 	room!: Room;
 
 	updateVotesHtml(callback?: () => void, uhtmlAuto?: boolean): void {
-		let votesHtml = "<div class='infobox'><center>";
+		let html = "<div class='infobox'><center>";
 		const ended = this.canVote === false;
 
-		if (this.votes.size) {
-			const formatCounts: Dict<number> = {};
-			this.votes.forEach((formatid, player) => {
-				const format = Games.getExistingFormat(formatid);
-				const name = format.nameWithOptions;
-				if (!(name in formatCounts)) formatCounts[name] = 0;
-				formatCounts[name]++;
-			});
+		const formatCounts: Dict<number> = {};
+		this.votes.forEach((formatid, player) => {
+			const format = Games.getExistingFormat(formatid);
+			const name = format.nameWithOptions;
+			if (!(name in formatCounts)) formatCounts[name] = 0;
+			formatCounts[name]++;
+		});
 
-			if (ended) {
-				votesHtml += "<h3>Voting for the next scripted game has ended!</h3><b>Final votes</b>:";
-				const formats = Object.keys(formatCounts).sort((a, b) => formatCounts[b] - formatCounts[a]);
-				const formatsByVotes: Dict<string[]> = {};
-				for (const format of formats) {
-					const votes = formatCounts[format];
-					if (!(votes in formatsByVotes)) formatsByVotes[votes] = [];
-					formatsByVotes[votes].push(format);
-				}
-
-				const sortedVotes = Object.keys(formatsByVotes).map(x => parseInt(x)).sort((a, b) => b - a);
-				for (const vote of sortedVotes) {
-					let percentage = "" + ((vote / this.votes.size) * 100);
-					if (percentage.length > 4) percentage = percentage.substr(0, 4);
-					votesHtml += "<br /><b>" + vote + " vote" + (vote > 1 ? "s" : "") + "</b> <i>(" + percentage + "% chance" +
-						(formatsByVotes[vote].length > 1 ? " each" : "") + ")</i>: " + formatsByVotes[vote].join(", ");
-				}
-			} else {
-				votesHtml += "<b>Current votes</b>:<br />" + Object.keys(formatCounts).map(x => x + " <i>(" + formatCounts[x] +
-					" vote" + (formatCounts[x] > 1 ? "s" : "") + ")</i>").join(", ");
+		if (ended) {
+			html += "<h3>Voting for the next scripted game has ended!</h3><b>Final votes</b>:";
+			const formats = Object.keys(formatCounts).sort((a, b) => formatCounts[b] - formatCounts[a]);
+			const formatsByVotes: Dict<string[]> = {};
+			for (const format of formats) {
+				const votes = formatCounts[format];
+				if (!(votes in formatsByVotes)) formatsByVotes[votes] = [];
+				formatsByVotes[votes].push(format);
 			}
+
+			const sortedVotes = Object.keys(formatsByVotes).map(x => parseInt(x)).sort((a, b) => b - a);
+			for (const vote of sortedVotes) {
+				let percentage = "" + ((vote / this.votes.size) * 100);
+				if (percentage.length > 4) percentage = percentage.substr(0, 4);
+				html += "<br /><b>" + vote + " vote" + (vote > 1 ? "s" : "") + "</b> <i>(" + percentage + "% chance" +
+					(formatsByVotes[vote].length > 1 ? " each" : "") + ")</i>: " + formatsByVotes[vote].join(", ");
+			}
+		} else {
+			const votesHtml = Object.keys(formatCounts).map(x => x + " <i>(" + formatCounts[x] + " vote" +
+				(formatCounts[x] > 1 ? "s" : "") + ")</i>").join(", ");
+			html += "<b>Current votes</b>:" + (votesHtml ? "<br />" + votesHtml : " (none)");
 		}
 
-		votesHtml += "</center></div>";
+		html += "</center></div>";
 
-		this.onUhtml(this.votesUhtmlName, votesHtml, () => {
+		this.onUhtml(this.votesUhtmlName, html, () => {
 			if (callback) callback();
 		});
 
 		if (uhtmlAuto) {
-			this.sayUhtmlAuto(this.votesUhtmlName, votesHtml);
+			this.sayUhtmlAuto(this.votesUhtmlName, html);
 		} else if (ended) {
-			this.sayUhtml(this.votesUhtmlName, votesHtml);
+			this.sayUhtml(this.votesUhtmlName, html);
 		} else {
-			this.sayUhtmlChange(this.votesUhtmlName, votesHtml);
+			this.sayUhtmlChange(this.votesUhtmlName, html);
 		}
 	}
 
@@ -129,6 +128,7 @@ export class Vote extends Game {
 			}, updateTimer);
 		});
 		this.sayHtml(html);
+		this.updateVotesHtml(undefined, true);
 
 		this.notifyRankSignups = true;
 		this.sayCommand("/notifyrank all, " + this.room.title + " game vote,Help decide the next scripted game!," +
