@@ -5,26 +5,27 @@ import type { User } from "../users";
 import type { GameCommandDefinitions, IGameFile } from "../types/games";
 
 interface IPokemonData {
-	type: readonly string[];
 	color: string[];
+	eggGroup: string[];
+	generation: string[];
 	moves: string[];
-	generation: string[]
+	type: readonly string[];
 }
 type IPokemonCategory = keyof IPokemonData;
 
-const data: {pokemon: Dict<IPokemonData>, keys: string[], usableMoves: string[], allParameters: KeyedDict<IPokemonCategory, string[]>}= {
+const data: {pokemon: Dict<IPokemonData>, keys: string[], allParameters: KeyedDict<IPokemonCategory, string[]>}= {
 	pokemon: {},
 	keys: [],
-	usableMoves: [],
 	allParameters: {
 		color: [],
+		eggGroup: [],
 		generation: [],
 		moves: [],
 		type: [],
 	},
 };
 
-const categories: IPokemonCategory[] = ['type', 'color', 'moves', 'moves', 'generation'];
+const categories: IPokemonCategory[] = ['color', 'eggGroup', 'generation', 'moves', 'moves', 'type'];
 const typeAliases: Dict<string> = {};
 
 const basePoints = 3;
@@ -37,6 +38,7 @@ class SpindasExcludedPokemon extends Game {
 	excludedRound: number = 0;
 	guessedPokemon: string[] = [];
 	parameter: string = '';
+	playerInactiveRoundLimit = 2;
 	playerOrder: Player[] = [];
 	points = new Map<Player, number>();
 	roundPlayerOrder: Player[] = [];
@@ -50,18 +52,37 @@ class SpindasExcludedPokemon extends Game {
 			typeAliases[type.id + 'type'] = type.name;
 		}
 
+		const includedMoves: string[] = [];
 		const moves = Games.getMovesList(x => !x.id.includes('hiddenpower'));
 		for (const move of moves) {
 			const availability = Dex.getMoveAvailability(move);
 			if (!availability || availability < minimumMoveAvailability || availability > maximumMoveAvailability) continue;
-			data.usableMoves.push(move.id);
+			includedMoves.push(move.id);
 		}
 
 		for (const pokemon of Games.getPokemonList()) {
+			const colorId = Tools.toId(pokemon.color);
+			if (!data.allParameters.color.includes(colorId)) data.allParameters.color.push(colorId);
+
+			const generation = "Gen " + pokemon.gen;
+			const generationId = Tools.toId(generation);
+			if (!data.allParameters.generation.includes(generationId)) data.allParameters.generation.push(generationId);
+
+			const eggGroups: string[] = [];
+			for (const name of pokemon.eggGroups) {
+				const eggGroup = name + " Group";
+				const eggGroupId = Tools.toId(eggGroup);
+				if (!data.allParameters.eggGroup.includes(eggGroupId)) data.allParameters.eggGroup.push(eggGroupId);
+				eggGroups.push(eggGroup);
+			}
+
 			const allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
 			const usableMoves: string[] = [];
 			for (const move of allPossibleMoves) {
-				if (data.usableMoves.includes(move)) usableMoves.push(Dex.getExistingMove(move).name);
+				if (includedMoves.includes(move)) {
+					if (!data.allParameters.moves.includes(move)) data.allParameters.moves.push(move);
+					usableMoves.push(Dex.getExistingMove(move).name);
+				}
 			}
 			if (!usableMoves.length) continue;
 
@@ -70,18 +91,12 @@ class SpindasExcludedPokemon extends Game {
 				if (!data.allParameters.type.includes(typeId)) data.allParameters.type.push(typeId);
 			}
 
-			const colorId = Tools.toId(pokemon.color);
-			if (!data.allParameters.color.includes(colorId)) data.allParameters.color.push(colorId);
-
-			const generation = "Gen " + pokemon.gen;
-			const generationId = Tools.toId(generation);
-			if (!data.allParameters.generation.includes(generationId)) data.allParameters.generation.push(generationId);
-
 			data.pokemon[pokemon.name] = {
-				type: pokemon.types,
 				color: [pokemon.color],
-				moves: usableMoves,
+				eggGroup: eggGroups,
 				generation: [generation],
+				moves: usableMoves,
+				type: pokemon.types,
 			};
 			data.keys.push(pokemon.name);
 		}
@@ -107,8 +122,15 @@ class SpindasExcludedPokemon extends Game {
 
 	onNextRound(): void {
 		if (this.currentPlayer) {
-			this.say(this.currentPlayer.name + " did not exclude a Pokemon or guess the parameter and has been eliminated from the game!");
-			this.eliminatePlayer(this.currentPlayer, "You did not exclude a Pokemon or guess the parameter!");
+			if (this.addPlayerInactiveRound(this.currentPlayer)) {
+				this.say(this.currentPlayer.name + " did not exclude a Pokemon or guess the parameter and has been eliminated from " +
+					"the game!");
+				this.eliminatePlayer(this.currentPlayer, "You did not exclude a Pokemon or guess the parameter!");
+			} else {
+				this.say(this.currentPlayer.name + " did not exclude a Pokemon or guess the parameter and can no longer guess " +
+					"this round.");
+				this.currentPlayer.frozen = true;
+			}
 			this.currentPlayer = null;
 		}
 
@@ -216,14 +238,10 @@ const commands: GameCommandDefinitions<SpindasExcludedPokemon> = {
 			if (id in typeAliases) id = Tools.toId(typeAliases[id]);
 
 			let validParam = false;
-			if (data.usableMoves.includes(id)) {
-				validParam = true;
-			} else {
-				for (const category of categories) {
-					if (data.allParameters[category].includes(id)) {
-						validParam = true;
-						break;
-					}
+			for (const category of categories) {
+				if (data.allParameters[category].includes(id)) {
+					validParam = true;
+					break;
 				}
 			}
 
@@ -269,7 +287,7 @@ export const game: IGameFile<SpindasExcludedPokemon> = {
 	customizableOptions: {
 		points: {min: basePoints, base: basePoints, max: basePoints},
 	},
-	description: "Players try to guess Pokemon that are not excluded by the randomly chosen parameter!",
+	description: "Players try to guess the randomly chosen parameters by excluding Pokemon each round!",
 	formerNames: ["Excluded"],
 	name: "Spinda's Excluded Pokemon",
 	mascot: "Spinda",
