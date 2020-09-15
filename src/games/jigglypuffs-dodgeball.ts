@@ -35,30 +35,34 @@ class JigglypuffsDodgeball extends Game {
 		this.throwTime = false;
 		if (this.round > 1) {
 			this.shields.clear();
-			let caughtBall = false;
+			const successfulThrows: {source: Player, target: Player}[] = [];
 			for (const slot of this.queue) {
 				const player = slot.source;
 				const targetPlayer = slot.target;
-				if (player.team === targetPlayer.team) continue;
 				this.shields.set(player, true);
-				if (this.shields.has(targetPlayer) || targetPlayer.eliminated) continue;
-				if (!caughtBall && !this.random(4)) {
+				if (this.shields.has(targetPlayer) || targetPlayer.eliminated || targetPlayer.frozen) continue;
+				successfulThrows.push(slot);
+			}
+
+			let revivedPlayer: Player | undefined;
+			let caughtBall = false;
+			for (const successfulThrow of this.shuffle(successfulThrows)) {
+				if (successfulThrow.target.frozen || successfulThrow.target === revivedPlayer) continue;
+
+				if (!caughtBall && this.random(4)) {
+					let text = successfulThrow.target.name + " caught " + successfulThrow.source.name + "'s " + BALL_POKEMON;
+					const eliminatedTeammates = successfulThrow.target.team!.players.filter(x => x.frozen);
+					if (eliminatedTeammates.length) {
+						revivedPlayer = this.sampleOne(eliminatedTeammates);
+						revivedPlayer.frozen = false;
+						text += " and brought " + revivedPlayer.name + " back into the game";
+					}
+
+					this.say(text + "!");
 					caughtBall = true;
-					const eliminatedTeammates: Player[] = [];
-					for (const teamMember of targetPlayer.team!.players) {
-						if (teamMember.eliminated && !this.renameDQs.includes(teamMember)) {
-							eliminatedTeammates.push(teamMember);
-						}
-					}
-					const revived = eliminatedTeammates.length ? this.sampleOne(eliminatedTeammates) : null;
-					if (revived) {
-						revived.eliminated = false;
-					}
-					this.say(targetPlayer.name + " caught " + player.name + "'s " + BALL_POKEMON + (revived ? " and brought " +
-						revived.name + " back into the game" : "") + "!");
-					this.shields.set(targetPlayer, true);
 				} else {
-					this.eliminatePlayer(targetPlayer, "You were hit by " + player.name + "'s " + BALL_POKEMON + "!");
+					successfulThrow.target.frozen = true;
+					successfulThrow.target.say("You were hit by " + successfulThrow.source.name + "'s " + BALL_POKEMON + "!");
 				}
 			}
 
@@ -81,7 +85,7 @@ class JigglypuffsDodgeball extends Game {
 			const text = "**THROW**";
 			this.on(text, () => {
 				this.throwTime = true;
-				this.timeout = setTimeout(() => this.nextRound(), (3 * 1000) + time);
+				this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 			});
 			this.timeout = setTimeout(() => this.say(text), time);
 		});
@@ -99,12 +103,10 @@ class JigglypuffsDodgeball extends Game {
 		if (team) {
 			for (const player of team.players) {
 				this.winners.set(player, 1);
-			}
-			this.winners.forEach((value, player) => {
 				let earnings = 250;
 				if (!player.eliminated) earnings *= 2;
 				this.addBits(player, earnings);
-			});
+			}
 		}
 
 		this.announceWinners();
@@ -120,7 +122,8 @@ const commands: GameCommandDefinitions<JigglypuffsDodgeball> = {
 			this.roundActions.set(player, true);
 			if (!this.throwTime) return false;
 			const targetPlayer = this.players[Tools.toId(target)];
-			if (!targetPlayer || targetPlayer === player) return false;
+			if (!targetPlayer || targetPlayer === player || targetPlayer.eliminated || targetPlayer.frozen ||
+				targetPlayer.team === player.team) return false;
 			this.queue.push({"target": targetPlayer, "source": player});
 			return true;
 		},
