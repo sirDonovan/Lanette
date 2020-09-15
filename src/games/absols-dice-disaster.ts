@@ -2,6 +2,12 @@ import type { Player } from "../room-activity";
 import { Game } from "../room-game";
 import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 
+const senseRolls: KeyedDict<'disaster' | 'stillness' | 'fortune', number> = {
+	disaster: 25,
+	stillness: 50,
+	fortune: 100,
+};
+
 class AbsolsDiceDisaster extends Game {
 	bestPlayer: Player | null = null;
 	bestBid: number = -1;
@@ -31,9 +37,9 @@ class AbsolsDiceDisaster extends Game {
 		this.onUhtml(uhtmlName, html, () => {
 			this.roundDiceRoll = Math.floor(Math.random() * this.maxBid) + 1;
 			let absolSense: string = "Absol senses ";
-			if (this.roundDiceRoll <= 25) {
+			if (this.roundDiceRoll <= senseRolls.disaster) {
 				absolSense += "an impending disaster!";
-			} else if (this.roundDiceRoll <= 75) {
+			} else if (this.roundDiceRoll <= senseRolls.stillness) {
 				absolSense += "a stillness in the air.";
 			} else {
 				absolSense += "a good fortune!";
@@ -120,6 +126,10 @@ export const game: IGameFile<AbsolsDiceDisaster> = {
 	description: "Each round, players bid numbers based on Absol's sense of disaster. Once time is up, dice will be rolled for the " +
 		"player with the highest bid. If the result is greater than or equal to the bid then the player wins, otherwise the player is " +
 		"eliminated!",
+	additionalDescription: "<b>Absol's senses</b>:<br /><br />" +
+		"<b>Disaster</b>: rolls will be between 1 and " + senseRolls.disaster + "<br />" +
+		"<b>Stillness</b>: rolls will be between 1 and " + senseRolls.stillness + "<br />" +
+		"<b>Fortune</b>: rolls will be between 1 and " + senseRolls.fortune + "<br />",
 	name: "Absol's Dice Disaster",
 	mascot: "Absol",
 };
