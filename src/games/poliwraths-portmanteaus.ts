@@ -155,6 +155,16 @@ const tests: GameFileTests<PoliwrathsPortmanteaus> = {
 			for (const answer of game.answers) {
 				assert(answer in game.answerParts);
 			}
+
+			game.customPortTypes = ['Pokemon', 'Pokemon'];
+			game.customPortCategories = ['color', 'type'];
+			game.customPortDetails = ['Brown', 'Ground'];
+			game.answers = [];
+			await game.onNextRound();
+			assert(game.answers.length);
+			assert(game.ports.length);
+			assert(game.answers.includes('teddiursandaconda'));
+			assert(!game.answers.includes('teddiursandacondagmax'));
 		},
 	},
 };

@@ -87,37 +87,32 @@ export class PortmanteausWorker extends WorkerBase<IPortmanteausWorkerData, Port
 		const disallowedFormes: string[] = ["Gmax", "Rapid-Strike-Gmax", "Low-Key-Gmax", "Eternamax"];
 		const pokedex = Games.getPokemonList();
 		for (const pokemon of pokedex) {
+			if (pokemon.forme && disallowedFormes.includes(pokemon.forme)) continue;
+
 			if (Games.isIncludedPokemonTier(pokemon.tier)) {
 				if (!(pokemon.tier in data.pool['Pokemon']['tier'])) data.pool['Pokemon']['tier'][pokemon.tier] = [];
 				data.pool['Pokemon']['tier'][pokemon.tier].push(pokemon.name);
 			}
+
 			if (Dex.isPseudoLCPokemon(pokemon)) {
 				if (!('LC' in data.pool['Pokemon']['tier'])) data.pool['Pokemon']['tier']['LC'] = [];
 				data.pool['Pokemon']['tier']['LC'].push(pokemon.name);
 			}
+
 			if (!(pokemon.color in data.pool['Pokemon']['color'])) data.pool['Pokemon']['color'][pokemon.color] = [];
-				if (!pokemon.forme || !disallowedFormes.includes(pokemon.forme)) {
-					data.pool['Pokemon']['color'][pokemon.color].push(pokemon.name);
-				}
+			data.pool['Pokemon']['color'][pokemon.color].push(pokemon.name);
 
 			if (!(pokemon.gen in data.pool['Pokemon']['gen'])) data.pool['Pokemon']['gen'][pokemon.gen] = [];
-				if (!pokemon.forme || !disallowedFormes.includes(pokemon.forme)) {
-					data.pool['Pokemon']['gen'][pokemon.gen].push(pokemon.name);
-				}
-
+			data.pool['Pokemon']['gen'][pokemon.gen].push(pokemon.name);
 
 			for (const type of pokemon.types) {
 				if (!(type in data.pool['Pokemon']['type'])) data.pool['Pokemon']['type'][type] = [];
-				if (!pokemon.forme || !disallowedFormes.includes(pokemon.forme)) {
-					data.pool['Pokemon']['type'][type].push(pokemon.name);
-				}
+				data.pool['Pokemon']['type'][type].push(pokemon.name);
 			}
 
 			for (const eggGroup of pokemon.eggGroups) {
 				if (!(eggGroup in data.pool['Pokemon']['egggroup'])) data.pool['Pokemon']['egggroup'][eggGroup] = [];
-				if (!pokemon.forme || !disallowedFormes.includes(pokemon.forme)) {
-					data.pool['Pokemon']['egggroup'][eggGroup].push(pokemon.name);
-				}
+				data.pool['Pokemon']['egggroup'][eggGroup].push(pokemon.name);
 			}
 		}
 
