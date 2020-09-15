@@ -25,8 +25,10 @@ const data: {pokemon: Dict<IPokemonData>, keys: string[], allParameters: KeyedDi
 	},
 };
 
-const categories: IPokemonCategory[] = ['color', 'eggGroup', 'generation', 'moves', 'moves', 'type'];
-const typeAliases: Dict<string> = {};
+const categories: IPokemonCategory[] = ['color', 'eggGroup', 'generation', 'moves', 'type'];
+const generationPrefix = "Gen ";
+const eggGroupSuffix = " Group";
+const typeSuffix = " Type";
 
 const basePoints = 3;
 const minimumMoveAvailability = 30;
@@ -47,11 +49,6 @@ class SpindasExcludedPokemon extends Game {
 	category!: IPokemonCategory;
 
 	static loadData(room: Room | User): void {
-		for (const key of Dex.data.typeKeys) {
-			const type = Dex.getExistingType(key);
-			typeAliases[type.id + 'type'] = type.name;
-		}
-
 		const includedMoves: string[] = [];
 		const moves = Games.getMovesList(x => !x.id.includes('hiddenpower'));
 		for (const move of moves) {
@@ -61,21 +58,6 @@ class SpindasExcludedPokemon extends Game {
 		}
 
 		for (const pokemon of Games.getPokemonList()) {
-			const colorId = Tools.toId(pokemon.color);
-			if (!data.allParameters.color.includes(colorId)) data.allParameters.color.push(colorId);
-
-			const generation = "Gen " + pokemon.gen;
-			const generationId = Tools.toId(generation);
-			if (!data.allParameters.generation.includes(generationId)) data.allParameters.generation.push(generationId);
-
-			const eggGroups: string[] = [];
-			for (const name of pokemon.eggGroups) {
-				const eggGroup = name + " Group";
-				const eggGroupId = Tools.toId(eggGroup);
-				if (!data.allParameters.eggGroup.includes(eggGroupId)) data.allParameters.eggGroup.push(eggGroupId);
-				eggGroups.push(eggGroup);
-			}
-
 			const allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
 			const usableMoves: string[] = [];
 			for (const move of allPossibleMoves) {
@@ -86,17 +68,43 @@ class SpindasExcludedPokemon extends Game {
 			}
 			if (!usableMoves.length) continue;
 
-			for (const type of pokemon.types) {
-				const typeId = Tools.toId(type);
-				if (!data.allParameters.type.includes(typeId)) data.allParameters.type.push(typeId);
+			const colorId = Tools.toId(pokemon.color);
+			if (!data.allParameters.color.includes(colorId)) data.allParameters.color.push(colorId);
+
+			const generations: string[] = [];
+			const generationParameters: string[] = ["" + pokemon.gen, generationPrefix + pokemon.gen];
+			for (const generation of generationParameters) {
+				const generationId = Tools.toId(generation);
+				if (!data.allParameters.generation.includes(generationId)) data.allParameters.generation.push(generationId);
+				generations.push(generation);
+			}
+
+			const eggGroups: string[] = [];
+			for (const name of pokemon.eggGroups) {
+				const eggGroupParameters: string[] = [name, name + eggGroupSuffix];
+				for (const eggGroup of eggGroupParameters) {
+					const eggGroupId = Tools.toId(eggGroup);
+					if (!data.allParameters.eggGroup.includes(eggGroupId)) data.allParameters.eggGroup.push(eggGroupId);
+					eggGroups.push(eggGroup);
+				}
+			}
+
+			const types: string[] = [];
+			for (const name of pokemon.types) {
+				const typeParameters: string[] = [name, name + typeSuffix];
+				for (const type of typeParameters) {
+					const typeId = Tools.toId(type);
+					if (!data.allParameters.type.includes(typeId)) data.allParameters.type.push(typeId);
+					types.push(type);
+				}
 			}
 
 			data.pokemon[pokemon.name] = {
 				color: [pokemon.color],
 				eggGroup: eggGroups,
-				generation: [generation],
+				generation: generations,
 				moves: usableMoves,
-				type: pokemon.types,
+				type: types,
 			};
 			data.keys.push(pokemon.name);
 		}
@@ -115,9 +123,19 @@ class SpindasExcludedPokemon extends Game {
 
 	setParameter(): void {
 		const species = this.shuffle(data.keys)[0];
-		this.category = this.sampleOne(categories);
-		this.parameter = this.sampleOne(data.pokemon[species][this.category]);
 		this.excludedHint = species;
+
+		this.category = this.sampleOne(categories);
+		if (this.category !== 'moves' && !this.random(categories.length)) this.category = 'moves';
+
+		this.parameter = this.sampleOne(data.pokemon[species][this.category]);
+		if (this.category === 'generation') {
+			if (!this.parameter.startsWith(generationPrefix)) this.parameter = generationPrefix + this.parameter;
+		} else if (this.category === 'eggGroup') {
+			if (!this.parameter.endsWith(eggGroupSuffix)) this.parameter += eggGroupSuffix;
+		} else if (this.category === 'type') {
+			if (!this.parameter.endsWith(typeSuffix)) this.parameter += typeSuffix;
+		}
 	}
 
 	onNextRound(): void {
@@ -232,28 +250,39 @@ const commands: GameCommandDefinitions<SpindasExcludedPokemon> = {
 		command(target, room, user) {
 			if (!this.parameter || this.players[user.id] !== this.currentPlayer) return false;
 			const player = this.players[user.id];
+			const id = Tools.toId(target);
 
-			let id = Tools.toId(target);
-			if (!isNaN(parseInt(id))) id = "gen" + id;
-			if (id in typeAliases) id = Tools.toId(typeAliases[id]);
-
-			let validParam = false;
+			let validCategory = 0;
 			for (const category of categories) {
 				if (data.allParameters[category].includes(id)) {
-					validParam = true;
-					break;
+					validCategory++;
 				}
 			}
-
-			if (!validParam) {
+			if (!validCategory) {
 				player.say("'" + target.trim() + "' is not a valid parameter.");
+				return false;
+			}
+			if (validCategory > 1) {
+				player.say("'" + target.trim() + "' is a parameter in multiple categories so you must use the full name.");
 				return false;
 			}
 
 			if (this.timeout) clearTimeout(this.timeout);
 			this.currentPlayer = null;
 
-			if (id === Tools.toId(this.parameter)) {
+			const parameterId = Tools.toId(this.parameter);
+			let match = id === parameterId;
+			if (!match) {
+				if (this.category === 'generation') {
+					match = Tools.toId(generationPrefix + id) === parameterId;
+				} else if (this.category === 'eggGroup') {
+					match = Tools.toId(id + eggGroupSuffix) === parameterId;
+				} else if (this.category === 'type') {
+					match = Tools.toId(id + typeSuffix) === parameterId;
+				}
+			}
+
+			if (match) {
 				let points = this.points.get(player) || 0;
 				points++;
 				this.points.set(player, points);
