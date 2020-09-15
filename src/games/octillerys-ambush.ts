@@ -86,7 +86,7 @@ const commands: GameCommandDefinitions<OctillerysAmbush> = {
 			this.roundActions.set(player, true);
 			if (!this.fireTime) return false;
 			const targetPlayer = this.players[Tools.toId(target)];
-			if (!targetPlayer || targetPlayer === player) return false;
+			if (!targetPlayer || targetPlayer === player || targetPlayer.eliminated) return false;
 			this.queue.push({"target": targetPlayer, "source": player});
 			return true;
 		},
