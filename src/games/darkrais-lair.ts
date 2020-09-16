@@ -85,10 +85,8 @@ class DarkraisLair extends MapGame {
 			const playerCoordinates = this.playerCoordinates.get(player)!;
 			if (!damageCoordinates.includes(this.coordinatesToString(playerCoordinates[0], playerCoordinates[1]))) continue;
 			affected.push(player);
-			let lives = this.lives.get(player)!;
-			lives = Math.max(0, lives - damage);
-			this.lives.set(player, lives);
-			if (lives > 0) {
+			const lives = this.addLives(player, -damage);
+			if (lives) {
 				this.playerRoundInfo.get(player)!.push("You were caught in the " + shadowTraps[shadowTrap.type].name + " and lost " +
 					damage + " " + (damage === 1 ? "life" : "lives") + "! You have " + lives + " remaining.");
 			} else {
@@ -190,11 +188,10 @@ class DarkraisLair extends MapGame {
 					shadowTraps[spaceShadowTrap.type].name + " trap!");
 				this.playerRoundInfo.get(spaceShadowTrap.player)!.push("Your " + shadowTraps[spaceShadowTrap.type].name + " trap " +
 					"damaged " + player.name + "!");
-				let lives = this.lives.get(player)!;
-				lives = Math.max(0, lives - 2);
-				this.lives.set(player, lives);
-				if (lives > 0) {
-					this.playerRoundInfo.get(player)!.push("You lost 2 lives! You have " + lives + " remaining.");
+				const lives = this.addLives(player, -shadowTraps[spaceShadowTrap.type].damage!);
+				if (lives) {
+					this.playerRoundInfo.get(player)!.push("You lost " + shadowTraps[spaceShadowTrap.type].damage + " lives! You have " +
+						lives + " remaining.");
 				} else {
 					this.eliminatePlayer(player, "You lost your last life!");
 				}
@@ -264,9 +261,7 @@ class DarkraisLair extends MapGame {
 				if (this.players[id].eliminated) continue;
 				const player = this.players[id];
 				if (!this.roundActions.has(player)) {
-					let lives = this.lives.get(player)!;
-					lives--;
-					this.lives.set(player, lives);
+					const lives = this.addLives(player, -1);
 					if (lives === 0) {
 						this.playerRoundInfo.get(player)!.push("You did not move in the previous round and lost your last life.");
 						this.eliminatePlayer(player, "You did not move in the previous round and lost your last life!");

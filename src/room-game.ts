@@ -833,6 +833,23 @@ export class Game extends Activity {
 		return true;
 	}
 
+	convertPointsToBits(winnerBits?: number, loserBits?: number): void {
+		if (this.parentGame && this.parentGame.allowChildGameBits !== true) return;
+		if (!this.points) throw new Error(this.name + " called convertPointsToBits() with no points Map");
+		if (winnerBits === undefined) winnerBits = this.winnerPointsToBits;
+		if (loserBits === undefined) loserBits = this.loserPointsToBits;
+		this.points.forEach((points, player) => {
+			if (points <= 0) return;
+			let winnings = 0;
+			if (this.winners.has(player)) {
+				winnings = Math.floor(winnerBits! * points);
+			} else {
+				winnings = Math.floor(loserBits! * points);
+			}
+			if (winnings) this.addBits(player, winnings);
+		});
+	}
+
 	addPoints(player: Player, awardedPoints: number): number {
 		if (!this.points) throw new Error(this.name + " called addPoints with no points Map");
 
@@ -849,21 +866,16 @@ export class Game extends Activity {
 		return points;
 	}
 
-	convertPointsToBits(winnerBits?: number, loserBits?: number): void {
-		if (this.parentGame && this.parentGame.allowChildGameBits !== true) return;
-		if (!this.points) throw new Error(this.name + " called convertPointsToBits() with no points Map");
-		if (winnerBits === undefined) winnerBits = this.winnerPointsToBits;
-		if (loserBits === undefined) loserBits = this.loserPointsToBits;
-		this.points.forEach((points, player) => {
-			if (points <= 0) return;
-			let winnings = 0;
-			if (this.winners.has(player)) {
-				winnings = Math.floor(winnerBits! * points);
-			} else {
-				winnings = Math.floor(loserBits! * points);
-			}
-			if (winnings) this.addBits(player, winnings);
-		});
+	addLives(player: Player, addedLives: number): number {
+		if (!this.lives) throw new Error(this.name + " called addLives with no lives Map");
+
+		let lives = this.lives.get(player) || 0;
+		lives = Math.max(0, lives + addedLives);
+		this.lives.set(player, lives);
+
+		if (!lives) player.eliminated = true;
+
+		return lives;
 	}
 
 	/**Returns an array of players who re-unlocked the achievement, if any */

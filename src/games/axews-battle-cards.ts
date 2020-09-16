@@ -614,9 +614,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		let eliminateCount = 0;
 		let finalPlayer = false;
 		while (!playableCards.length) {
-			let lives = this.lives.get(player)!;
-			lives--;
-			this.lives.set(player, lives);
+			const lives = this.addLives(player, -1);
 			if (!lives) {
 				eliminateCount++;
 				this.eliminatePlayer(player, "You do not have a card to play!");

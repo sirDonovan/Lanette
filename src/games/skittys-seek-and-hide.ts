@@ -140,9 +140,7 @@ class SkittysSeekAndHide extends Game {
 		for (const pokemon of mostSelected) {
 			for (const player of selectedPokemon[pokemon]) {
 				damaged.push(player.name);
-				let lives = this.lives.get(player)!;
-				lives--;
-				this.lives.set(player, lives);
+				const lives = this.addLives(player, -1);
 				if (!lives) {
 					this.eliminatePlayer(player, "You lost your last life!");
 				} else {

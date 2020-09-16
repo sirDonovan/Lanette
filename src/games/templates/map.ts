@@ -403,9 +403,7 @@ export abstract class MapGame extends Game {
 
 	/** Returns `false` if the player gets eliminated by the trap */
 	onTrapSpace(player: Player, floor: MapFloor, space: MapFloorSpace): boolean {
-		let lives = this.lives.get(player)!;
-		lives -= 1;
-		this.lives.set(player, lives);
+		const lives = this.addLives(player, -1);
 		if (!space.traversedAttributes.trap) space.traversedAttributes.trap = new Set();
 		space.traversedAttributes.trap.add(player);
 		if (!lives) {

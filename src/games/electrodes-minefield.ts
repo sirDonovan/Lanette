@@ -66,10 +66,8 @@ class ElectrodesMinefield extends MapDamageGame {
 			const player = this.players[i];
 			const playerCoordindates = this.playerCoordinates.get(player)!;
 			if (!blastCoordinates.includes(this.coordinatesToString(playerCoordindates[0], playerCoordindates[1]))) continue;
-			let lives = this.lives.get(player)!;
-			lives -= 1;
+			const lives = this.addLives(player, -1);
 			const eliminated = lives === 0;
-			this.lives.set(player, lives);
 			this.playerRoundInfo.get(player)!.push("You were hit by the explosion and lost 1 life!" + (!eliminated ? " You have " +
 				lives + " " + (lives > 1 ? "lives" : "life") + " left." : ""));
 			if (eliminated) {

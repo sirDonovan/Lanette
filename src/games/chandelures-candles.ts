@@ -107,11 +107,9 @@ const commands: GameCommandDefinitions<ChandeluresCandles> = {
 			if (!this.roundTarget) return false;
 			const player = this.players[user.id];
 			if (player !== this.roundTarget) {
-				let lives = this.lives.get(player)!;
-				lives -= 1;
 				user.say("Your candle was not exposed! Your movement used up one of your lives.");
-				this.lives.set(player, lives);
-				if (lives < 1) this.eliminatePlayer(player, "You ran out of lives!");
+				const lives = this.addLives(player, -1);
+				if (!lives) this.eliminatePlayer(player, "You ran out of lives!");
 				return false;
 			}
 			if (this.timeout) clearTimeout(this.timeout);
@@ -129,23 +127,20 @@ const commands: GameCommandDefinitions<ChandeluresCandles> = {
 			if (!(id in this.players) || this.players[id].eliminated) return false;
 			const targetPlayer = this.players[id];
 			if (targetPlayer !== this.roundTarget) {
-				let lives = this.lives.get(player)!;
-				lives -= 1;
 				player.say("You aimed at the wrong person! Your puff used up one of your lives.");
-				if (lives < 1) this.eliminatePlayer(player, "You ran out of lives!");
-				this.lives.set(player, lives);
+				const lives = this.addLives(player, -1);
+				if (!lives) this.eliminatePlayer(player, "You ran out of lives!");
 				return false;
 			}
+
 			this.roundActions.set(player, true);
-			let targetLives = this.lives.get(targetPlayer)!;
-			if (targetLives === 0) return false;
-			targetLives -= 1;
-			this.lives.set(targetPlayer, targetLives);
+			if (targetPlayer.eliminated) return false;
 			let puffs = this.puffs.get(player) || 0;
 			puffs++;
 			this.puffs.set(player, puffs);
 			if (puffs === puffAchievementAmount) this.unlockAchievement(player, achievements.spectralsnuffer!);
-			if (targetLives < 1) {
+			const targetLives = this.addLives(targetPlayer, -1);
+			if (!targetLives) {
 				if (this.timeout) clearTimeout(this.timeout);
 				this.say(targetPlayer.name + " has been eliminated from the game!");
 				this.eliminatePlayer(targetPlayer, "You ran out of lives!");
