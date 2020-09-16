@@ -544,7 +544,7 @@ describe("Dex", () => {
 
 		assert(!abilities.includes(Dex.getExistingAbility('No Ability').name));
 
-		// LGPE/CAP/Glitch/Pokestar
+		// LGPE/CAP/Glitch/Pokestar/Unobtainable
 		assert(!abilities.includes(Dex.getExistingAbility('Mountaineer').name));
 		assert(!items.includes(Dex.getExistingItem('Crucibellite').name));
 		assert(!moves.includes(Dex.getExistingMove('Baddy Bad').name));
@@ -553,6 +553,7 @@ describe("Dex", () => {
 		assert(!pokemon.includes(Dex.getExistingPokemon('Voodoom').name));
 		assert(!pokemon.includes(Dex.getExistingPokemon('Missingno.').name));
 		assert(!pokemon.includes(Dex.getExistingPokemon('Pokestar Smeargle').name));
+		assert(!pokemon.includes(Dex.getExistingPokemon('Melmetal-Gmax').name));
 
 		assert(abilities.includes(Dex.getExistingAbility('Intimidate').name));
 
@@ -567,6 +568,11 @@ describe("Dex", () => {
 		assert(pokemon.includes(Dex.getExistingPokemon('Bulbasaur').name));
 		assert(pokemon.includes(Dex.getExistingPokemon('Charmander').name));
 		assert(pokemon.includes(Dex.getExistingPokemon('Slowpoke').name));
+
+		// past gen
+
+		const dex = Dex.getDex("gen1");
+		assert(!dex.getPokemonList().map(x => x.name).includes(dex.getExistingPokemon('Missingno.').name));
 	});
 	it('should have entries in Tools.pokemonColorHexColors for all Pokemon and moves', () => {
 		for (const i of Dex.data.pokemonKeys) {

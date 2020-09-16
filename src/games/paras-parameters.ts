@@ -305,6 +305,14 @@ const tests: GameFileTests<ParasParameters> = {
 			intersection = await game.intersect(['Psycho Cut', 'Resists Fighting Type']);
 			assert(intersection);
 			assertStrictEqual(intersection.pokemon.join(","), "alakazam,cresselia,drowzee,gallade,hypno,kadabra,medicham,meditite,mewtwo");
+
+			game.format.options.gen = 1;
+
+			intersection = await game.intersect(['Resists Ghost Type', 'Normal Type']);
+			assert(intersection);
+			assertStrictEqual(intersection.pokemon.join(","), "chansey,clefable,clefairy,ditto,dodrio,doduo,eevee,farfetchd,fearow," +
+				"jigglypuff,kangaskhan,lickitung,meowth,persian,pidgeot,pidgeotto,pidgey,porygon,raticate,rattata,snorlax,spearow," +
+				"tauros,wigglytuff");
 		},
 	},
 	'should use proper paramTypes for modes': {

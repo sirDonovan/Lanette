@@ -556,7 +556,7 @@ export class Dex {
 		for (const i of this.data.pokemonKeys) {
 			const pokemon = this.getExistingPokemon(i);
 			if (pokemon.isNonstandard === 'CAP' || pokemon.isNonstandard === 'LGPE' || pokemon.isNonstandard === 'Custom' ||
-				pokemon.gen > this.gen) continue;
+				pokemon.isNonstandard === 'Unobtainable' || pokemon.gen > this.gen) continue;
 			pokedex.push(pokemon);
 		}
 
