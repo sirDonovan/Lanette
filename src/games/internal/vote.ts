@@ -192,6 +192,10 @@ const commands: GameCommandDefinitions<Vote> = {
 					return false;
 				}
 			} else {
+				if (targetId === 'leastplayed' || targetId === 'lpgame') {
+					target = Games.getLeastPlayedFormat(this.room).name;
+				}
+
 				const targetFormat = Games.getFormat(target, true);
 				if (Array.isArray(targetFormat)) {
 					user.say(CommandParser.getErrorText(targetFormat));

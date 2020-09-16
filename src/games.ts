@@ -658,6 +658,17 @@ export class Games {
 		return formats;
 	}
 
+	getLeastPlayedFormat(room: Room): IGameFormat {
+		const database = Storage.getDatabase(room);
+		const lastGameFormatTimes = database.lastGameFormatTimes || {};
+
+		return this.getFormatList().sort((a, b) => {
+			const lastGameA = lastGameFormatTimes[a.id] || 0;
+			const lastGameB = lastGameFormatTimes[b.id] || 0;
+			return lastGameA - lastGameB;
+		})[0];
+	}
+
 	/**
 	 * Returns a copy of the format
 	 */

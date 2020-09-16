@@ -658,6 +658,10 @@ const commands: CommandDefinitions<CommandContext> = {
 				}
 				if (!format) return this.say("A random game could not be chosen.");
 			} else {
+				const targetId = Tools.toId(target);
+				if (targetId === 'leastplayed' || targetId === 'lpgame') {
+					target = Games.getLeastPlayedFormat(room).name;
+				}
 				const inputFormat = Games.getFormat(target, true);
 				if (Array.isArray(inputFormat)) return this.sayError(inputFormat);
 				if (inputFormat.tournamentGame) return this.say("You must use the ``" + Config.commandCharacter + "ctg`` command.");
