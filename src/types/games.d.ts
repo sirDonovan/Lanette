@@ -23,7 +23,7 @@ export type GameDifficulty = 'easy' | 'medium' | 'hard';
 export type AutoCreateTimerType = 'scripted' | 'tournament' | 'userhosted';
 
 export type GameCategory = 'board' | 'board-property' | 'card' | 'card-high-low' | 'card-matching' | 'chain' | 'elimination-tournament' |
-	'identification' | 'knowledge' | 'luck' | 'map' | 'puzzle' | 'reaction' | 'speed';
+	'identification' | 'knowledge' | 'luck' | 'map' | 'puzzle' | 'reaction' | 'speed' | 'strategy';
 
 export type GameChallenge = 'onevsone';
 

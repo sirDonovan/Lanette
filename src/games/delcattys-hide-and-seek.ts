@@ -308,6 +308,7 @@ const tests: GameFileTests<DelcattysHideAndSeek> = {
 
 export const game: IGameFile<DelcattysHideAndSeek> = {
 	aliases: ['delcattys', 'dhs'],
+	category: 'strategy',
 	class: DelcattysHideAndSeek,
 	commandDescriptions: [Config.commandCharacter + "select [Pokemon]", Config.commandCharacter + "charm [Pokemon]"],
 	commands,

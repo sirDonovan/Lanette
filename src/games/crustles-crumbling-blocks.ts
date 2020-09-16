@@ -141,6 +141,7 @@ const commands: GameCommandDefinitions<CrustlesCrumblingBlocks> = {
 
 export const game: IGameFile<CrustlesCrumblingBlocks> = {
 	aliases: ['crustles', 'ccb'],
+	category: 'strategy',
 	class: CrustlesCrumblingBlocks,
 	commandDescriptions: [Config.commandCharacter + "remove [number of blocks]"],
 	commands,
