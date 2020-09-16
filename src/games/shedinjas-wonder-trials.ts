@@ -26,7 +26,7 @@ class ShedinjasWonderTrials extends Game {
 	usedMoves: string[] = [];
 
 	static loadData(room: Room | User): void {
-		data.moves = Games.getMovesList(x => x.id !== 'hiddenpower' && x.category !== 'Status').map(x => x.name);
+		data.moves = Games.getMovesList(x => x.id !== 'hiddenpower' && x.category !== 'Status' && !x.isMax).map(x => x.name);
 		data.pokedex = Games.getPokemonList(x => x.baseSpecies === x.name).map(x => x.name);
 	}
 
