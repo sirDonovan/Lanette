@@ -660,8 +660,15 @@ const commands: CommandDefinitions<CommandContext> = {
 			} else {
 				const targetId = Tools.toId(target);
 				if (targetId === 'leastplayed' || targetId === 'lpgame') {
-					target = Games.getLeastPlayedFormat(room).name;
+					const formats = Games.getLeastPlayedFormats(room);
+					for (const format of formats) {
+						if (Games.canCreateGame(room, format) === true) {
+							target = format.name;
+							break;
+						}
+					}
 				}
+
 				const inputFormat = Games.getFormat(target, true);
 				if (Array.isArray(inputFormat)) return this.sayError(inputFormat);
 				if (inputFormat.tournamentGame) return this.say("You must use the ``" + Config.commandCharacter + "ctg`` command.");

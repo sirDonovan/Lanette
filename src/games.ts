@@ -658,7 +658,7 @@ export class Games {
 		return formats;
 	}
 
-	getLeastPlayedFormat(room: Room): IGameFormat {
+	getLeastPlayedFormats(room: Room): IGameFormat[] {
 		const database = Storage.getDatabase(room);
 		const lastGameFormatTimes = database.lastGameFormatTimes || {};
 
@@ -666,7 +666,7 @@ export class Games {
 			const lastGameA = lastGameFormatTimes[a.id] || 0;
 			const lastGameB = lastGameFormatTimes[b.id] || 0;
 			return lastGameA - lastGameB;
-		})[0];
+		});
 	}
 
 	/**
