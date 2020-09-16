@@ -22,6 +22,14 @@ class ElectrodesMinefield extends MapDamageGame {
 	roundActions = new Map<Player, boolean>();
 	startingLives: number = 3;
 
+	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
+		if (lateJoin) {
+			this.lives.set(player, this.startingLives);
+		}
+
+		return true;
+	}
+
 	onStart(): void {
 		super.onStart();
 
