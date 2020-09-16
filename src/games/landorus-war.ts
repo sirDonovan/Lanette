@@ -310,6 +310,7 @@ export const game: IGameFile<LandorusWar> = {
 		"type. Players may only use moves of which the Pokemon they have been randomly assigned to is able to learn.",
 	name: "Landorus' War",
 	mascot: "Landorus",
+	nonTrivialLoadData: true,
 	scriptedOnly: true,
 	tests,
 };
