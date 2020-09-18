@@ -746,6 +746,10 @@ export class Client {
 				user.away = false;
 			}
 
+			if (!user.away && Config.allowMail && messageArguments.rank !== this.groupSymbols.locked) {
+				Storage.retrieveOfflineMessages(user);
+			}
+
 			const roomData = user.rooms.get(room);
 			room.onUserJoin(user, messageArguments.rank, roomData ? roomData.lastChatMessage : undefined);
 
