@@ -3324,7 +3324,9 @@ const commands: CommandDefinitions<CommandContext> = {
 			if (!Config.allowMail) return this.say("Offline messages are not enabled.");
 			const targets = target.split(',');
 			if (targets.length < 2) return this.say("You must specify a user and a message to send.");
-			if (Users.get(targets[0])) return this.say("You can only send messages to offline users.");
+			const targetUser = Users.get(targets[0]);
+			if (targetUser && !targetUser.isIdleStatus()) return this.say("You can only send messages to offline users.");
+
 			const recipient = targets[0].trim();
 			const recipientId = Tools.toId(recipient);
 			if (recipientId === 'constructor') return;
@@ -3334,6 +3336,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			}
 			const message = targets.slice(1).join(',').trim();
 			if (!message.length) return this.say("You must specify a message to send.");
+
 			const maxMessageLength = Storage.getMaxOfflineMessageLength(user);
 			if (message.length > maxMessageLength) return this.say("Your message cannot exceed " + maxMessageLength + " characters.");
 			if (!Storage.storeOfflineMessage(user.name, recipientId, message)) return this.say("Sorry, you have too many messages queued " +
