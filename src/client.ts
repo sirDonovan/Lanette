@@ -1059,7 +1059,7 @@ export class Client {
 				let filterRegularExpressions: RegExp[] | null = null;
 				let evasionFilterRegularExpressions: RegExp[] | null = null;
 				const messageArguments: IClientMessageTypes['pagehtml'] = {
-					html: messageParts.join("|"),
+					html: Tools.unescapeHTML(messageParts.join("|")),
 				};
 				if (messageArguments.html.includes('<table>')) {
 					const table = messageArguments.html.split('<table>')[1].split('</table>')[0];
