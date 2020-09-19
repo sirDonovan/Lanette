@@ -308,8 +308,14 @@ export class Tools {
 
 	unescapeHTML(input: string): string {
 		if (!input) return '';
-		return input.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
-			.replace(/&apos;/g, "'").replace(/&#x2f;/g, '/').replace(/&#39;/g, "'").replace(/&#34;/g, '"');
+		return input
+			.replace(/&amp;/g, '&').replace(/&#38;/g, '&')
+			.replace(/&lt;/g, '<').replace(/&#60;/g, '<')
+			.replace(/&gt;/g, '>').replace(/&#62;/g, '>')
+			.replace(/&quot;/g, '"').replace(/&#34;/g, '"')
+			.replace(/&apos;/g, "'").replace(/&#39;/g, "'")
+			.replace(/&#x2f;/g, '/').replace(/&#47;/g, '/')
+			.replace(/&#92;/g, '\\');
 	}
 
 	stripHtmlCharacters(input: string): string {
