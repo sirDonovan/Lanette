@@ -1,5 +1,0 @@
-dist: bionic
-language: node_js
-node_js:
-  - "lts/*"
-cache: npm

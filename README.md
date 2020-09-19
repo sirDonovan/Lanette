@@ -1,5 +1,5 @@
 # Lanette
-[![Build Status](https://api.travis-ci.com/sirDonovan/Lanette.svg?branch=master)](https://travis-ci.com/sirDonovan/Lanette)
+[![Build Status](https://github.com/sirDonovan/Lanette/workflows/Node.js%20CI/badge.svg)](https://github.com/sirDonovan/Lanette/actions?query=workflow%3A%22Node.js+CI%22)
 
 A bot for [Pokemon Showdown](https://github.com/Zarel/Pokemon-Showdown) written in [TypeScript](https://www.typescriptlang.org/).
 
