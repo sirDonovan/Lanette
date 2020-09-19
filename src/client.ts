@@ -1078,13 +1078,8 @@ export class Client {
 							currentHeader = row.split('<th colspan="2"><h3>')[1].split('</h3>')[0].split(' <span ')[0];
 							shortener = currentHeader === 'URL Shorteners';
 							evasion = currentHeader === 'Filter Evasion Detection';
-						} else if (row.startsWith('<td><abbr title="') && currentHeader !== 'Whitelisted names') {
-							let word = row.split('<td><abbr title="')[1].split('</abbr>')[0].trim();
-							const titleEndIndex = word.indexOf('">');
-							if (titleEndIndex !== -1) word = word.substr(titleEndIndex + 2);
-							if (word.startsWith('<code>') && word.endsWith('</code>')) {
-								word = word.split('<code>')[1].split('</code>')[0].trim();
-							}
+						} else if (row.startsWith('<td><abbr') && currentHeader !== 'Whitelisted names') {
+							const word = row.split('<code>')[1].split('</code>')[0].trim();
 
 							let replacementWord = row.split("</abbr>")[1];
 							const reasonIndex = replacementWord.indexOf('</small>');
