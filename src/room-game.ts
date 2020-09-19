@@ -288,6 +288,10 @@ export class Game extends Activity {
 		this.htmlPageHeader = htmlPageHeader;
 	}
 
+	getMinigameDescription(): string | undefined {
+		return (this.format as IGameFormat).minigameDescription;
+	}
+
 	getDescription(): string {
 		return this.description;
 	}
@@ -403,7 +407,8 @@ export class Game extends Activity {
 		}
 
 		if (this.isMiniGame && !this.internalGame) {
-			if ((this.format as IGameFormat).minigameDescription) this.say((this.format as IGameFormat).minigameDescription!);
+			const minigameDescription = this.getMinigameDescription();
+			if (minigameDescription) this.say(minigameDescription);
 			this.nextRound();
 		}
 	}

@@ -29,19 +29,16 @@ export class ParasParameters extends Guessing {
 		Games.workers.parameters.init();
 	}
 
+	getMinigameDescription(): string {
+		const dexsearchCommand = "``/" + (this.format.options.gen === 8 ? "nds" : "ds" + this.format.options.gen) + "``";
+		return "Use " + dexsearchCommand + " to search for and then ``" + Config.commandCharacter + "g`` to guess " +
+			dexsearchCommand + " parameters that give the following Pokemon!";
+	}
+
 	getDescription(): string {
 		if (this.format.options.gen === 8) return this.description;
 		return "Players search for possible <code>/ds" + this.format.options.gen + "</code> parameters that result in the given " +
 			"Pokemon list!";
-	}
-
-	onSignups(): void {
-		super.onSignups();
-		if (this.isMiniGame) {
-			const dexsearchCommand = "``/" + (this.format.options.gen === 8 ? "nds" : "ds" + this.format.options.gen) + "``";
-			(this.format as IGameFormat).minigameDescription = "Use " + dexsearchCommand + " to search for and then ``" +
-				Config.commandCharacter + "g`` to guess " + dexsearchCommand + " parameters that give the following Pokemon!";
-		}
 	}
 
 	getParamNames(params: IParam[]): string[] {
