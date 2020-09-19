@@ -20,7 +20,7 @@ class ElectrodesMinefield extends MapDamageGame {
 	maxDimensions: number = 10;
 	minDimensions: number = 8;
 	roundActions = new Map<Player, boolean>();
-	startingLives: number = 3;
+	startingLives: number = 5;
 
 	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
 		if (lateJoin) {
