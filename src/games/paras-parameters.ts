@@ -243,47 +243,6 @@ const tests: GameFileTests<ParasParameters> = {
 			assertStrictEqual(intersection.pokemon.join(","), "aggron,arceussteel,durant,empoleon,excadrill,ferroseed,ferrothorn," +
 				"heatran,registeel,steelix");
 
-			intersection = await game.intersect(['poisontype', 'powerwhip']);
-			assert(intersection);
-			assertStrictEqual(intersection.params.length, 2);
-			assertStrictEqual(intersection.pokemon.join(","), "bellsprout,bulbasaur,ivysaur,roselia,roserade,venusaur,victreebel," +
-				"weepinbell");
-
-			intersection = await game.intersect(['gen1', 'psychic', 'psychictype']);
-			assert(intersection);
-			assertStrictEqual(intersection.pokemon.join(","), "abra,alakazam,drowzee,exeggcute,exeggutor,hypno,jynx,kadabra,mew,mewtwo," +
-				"mrmime,slowbro,slowpoke,starmie");
-
-			intersection = await game.intersect(['firetype', 'thunder']);
-			assert(intersection);
-			assertStrictEqual(intersection.pokemon.join(","), "arceusfire,castformsunny,groudonprimal,hooh,marowakalola," +
-				"marowakalolatotem,rotomheat,victini");
-
-			intersection = await game.intersect(['darktype', 'refresh']);
-			assert(intersection);
-			assertStrictEqual(intersection.pokemon.join(","), "arceusdark,carvanha,nuzleaf,sharpedo,shiftry,umbreon");
-
-			intersection = await game.intersect(['monstergroup', 'rockhead']);
-			assert(intersection);
-			assertStrictEqual(intersection.pokemon.join(","), "aggron,aron,cubone,lairon,marowak,marowakalola,rhydon,rhyhorn,tyrantrum");
-
-			intersection = await game.intersect(['gen6', 'resists ice', 'destiny bond']);
-			assert(intersection);
-			assertStrictEqual(intersection.pokemon.join(","), "aegislash,doublade,honedge,houndoommega,sharpedomega");
-
-			intersection = await game.intersect(['Weak to Rock Type', 'Earthquake']);
-			assert(intersection);
-			assertStrictEqual(intersection.pokemon.join(","), "abomasnow,aerodactyl,altaria,arceusbug,arceusfire,arceusflying,arceusice," +
-				"archen,archeops,armaldo,aurorus,avalugg,charizard,coalossal,crustle,darmanitan,dragonite,dwebble,glalie,gyarados,hooh," +
-				"incineroar,lugia,magcargo,magmortar,mantine,mantyke,marowakalola,marowakalolatotem,minior,pineco,pinsir,rayquaza," +
-				"regice,salamence,scolipede,sealeo,shuckle,spheal,torkoal,tropius,turtonator,typhlosion,volcanion,walrein");
-
-			intersection = await game.intersect(['Psycho Cut', 'Resists Fighting Type']);
-			assert(intersection);
-			assertStrictEqual(intersection.pokemon.join(","), "aegislash,alakazam,celebi,cresselia,decidueye,doublade,drowzee," +
-				"exeggutor,gallade,hatterene,honedge,hypno,kadabra,lunala,medicham,meditite,mew,mewtwo,necrozma,orbeetle," +
-				"rapidashgalar,scyther,sigilyph,starmie,swoobat,woobat,zacian");
-
 			// past gen
 
 			game.format.options.gen = 7;
@@ -292,27 +251,6 @@ const tests: GameFileTests<ParasParameters> = {
 			assert(intersection);
 			assertStrictEqual(intersection.params.length, 2);
 			assertStrictEqual(intersection.pokemon.join(","), "durant,excadrill,ferroseed,ferrothorn,steelix");
-
-			game.format.options.gen = 6;
-
-			intersection = await game.intersect(['Weak to Rock Type', 'Earthquake']);
-			assert(intersection);
-			assertStrictEqual(intersection.pokemon.join(","), "abomasnow,aerodactyl,altaria,arceusbug,arceusfire,arceusflying,arceusice," +
-				"archen,archeops,armaldo,aurorus,avalugg,charizard,crustle,darmanitan,dragonite,dwebble,glalie,gyarados,hooh,lugia," +
-				"magcargo,magmortar,mantine,mantyke,pineco,pinsir,rayquaza,regice,salamence,scolipede,sealeo,shuckle,spheal,torkoal," +
-				"tropius,typhlosion,volcanion,walrein");
-
-			intersection = await game.intersect(['Psycho Cut', 'Resists Fighting Type']);
-			assert(intersection);
-			assertStrictEqual(intersection.pokemon.join(","), "alakazam,cresselia,drowzee,gallade,hypno,kadabra,medicham,meditite,mewtwo");
-
-			game.format.options.gen = 1;
-
-			intersection = await game.intersect(['Resists Ghost Type', 'Normal Type']);
-			assert(intersection);
-			assertStrictEqual(intersection.pokemon.join(","), "chansey,clefable,clefairy,ditto,dodrio,doduo,eevee,farfetchd,fearow," +
-				"jigglypuff,kangaskhan,lickitung,meowth,persian,pidgeot,pidgeotto,pidgey,porygon,raticate,rattata,snorlax,spearow," +
-				"tauros,wigglytuff");
 		},
 	},
 	'should use proper paramTypes for modes': {

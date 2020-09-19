@@ -50,11 +50,19 @@ module.exports = async(inputOptions: Dict<string>): Promise<void> => {
 			Games.loadFormats();
 		}
 
-		if (loadGames || modulesToTest.includes('dex.js') || modulesToTest.includes(pokemonShowdownTestFile) ||
+		const loadWorkers = modulesToTest.includes('workers.js');
+		if (loadGames || loadWorkers || modulesToTest.includes('dex.js') || modulesToTest.includes(pokemonShowdownTestFile) ||
 			modulesToTest.includes('tournaments.js')) {
 			console.log("Loading dex data for tests...");
 			Dex.loadAllData();
 			console.log("Loaded dex data");
+		}
+
+		if (!loadGames && loadWorkers) {
+			console.log("Loading worker data for tests...");
+			Games.workers.parameters.init();
+			Games.workers.portmanteaus.init();
+			console.log("Loaded worker data");
 		}
 
 		if (loadGames) {

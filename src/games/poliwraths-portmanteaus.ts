@@ -126,13 +126,7 @@ const tests: GameFileTests<PoliwrathsPortmanteaus> = {
 		},
 		async test(game, format): Promise<void> {
 			this.timeout(15000);
-			const portmanteausData = Games.workers.portmanteaus.loadData();
 
-			const tiers = Object.keys(portmanteausData.pool['Pokemon']['tier']);
-			assert(tiers.length);
-			for (const tier of tiers) {
-				assert(!tier.startsWith('('));
-			}
 			for (let i = format.customizableOptions.ports.min; i <= format.customizableOptions.ports.max; i++) {
 				game.format.options.ports = i;
 				game.answers = [];
@@ -155,16 +149,6 @@ const tests: GameFileTests<PoliwrathsPortmanteaus> = {
 			for (const answer of game.answers) {
 				assert(answer in game.answerParts);
 			}
-
-			game.customPortTypes = ['Pokemon', 'Pokemon'];
-			game.customPortCategories = ['color', 'type'];
-			game.customPortDetails = ['Brown', 'Ground'];
-			game.answers = [];
-			await game.onNextRound();
-			assert(game.answers.length);
-			assert(game.ports.length);
-			assert(game.answers.includes('teddiursandaconda'));
-			assert(!game.answers.includes('teddiursandacondagmax'));
 		},
 	},
 };
