@@ -36,60 +36,81 @@ const UHTML_CHANGE_CHAT_COMMAND = '/uhtmlchange ';
 const HANGMAN_START_COMMAND = "/log A game of hangman was started by ";
 const HANGMAN_END_COMMAND = "/log (The game of hangman was ended by ";
 // const HOTPATCH_CHAT_COMMAND = ' used /hotpatch ';
+
+const DEFAULT_GROUP_SYMBOLS: KeyedDict<GroupName, string> = {
+	'administrator': '&',
+	'roomowner': '#',
+	'host': '\u2605',
+	'moderator': '@',
+	'driver': '%',
+	'bot': '*',
+	'player': '\u2606',
+	'voice': '+',
+	'prizewinner': '^',
+	'regularuser': ' ',
+	'muted': '!',
+	'locked': '\u203d',
+};
+
 const DEFAULT_SERVER_GROUPS: ServerGroupData[] = [
 	{
-		"symbol": "&",
+		"symbol": DEFAULT_GROUP_SYMBOLS.administrator,
 		"name": "Administrator",
 		"type": "leadership",
 	},
 	{
-		"symbol": "#",
+		"symbol": DEFAULT_GROUP_SYMBOLS.roomowner,
 		"name": "Room Owner",
 		"type": "leadership",
 	},
 	{
-		"symbol": "★",
+		"symbol": DEFAULT_GROUP_SYMBOLS.host,
 		"name": "Host",
 		"type": "leadership",
 	},
 	{
-		"symbol": "@",
+		"symbol": DEFAULT_GROUP_SYMBOLS.moderator,
 		"name": "Moderator",
 		"type": "staff",
 	},
 	{
-		"symbol": "%",
+		"symbol": DEFAULT_GROUP_SYMBOLS.driver,
 		"name": "Driver",
 		"type": "staff",
 	},
 	{
-		"symbol": "☆",
-		"name": "Player",
-		"type": "normal",
-	},
-	{
-		"symbol": "*",
+		"symbol": DEFAULT_GROUP_SYMBOLS.bot,
 		"name": "Bot",
 		"type": "normal",
 	},
 	{
-		"symbol": "+",
+		"symbol": DEFAULT_GROUP_SYMBOLS.player,
+		"name": "Player",
+		"type": "normal",
+	},
+	{
+		"symbol": DEFAULT_GROUP_SYMBOLS.voice,
 		"name": "Voice",
 		"type": "normal",
 	},
 	{
-		"symbol": " ",
+		"symbol": DEFAULT_GROUP_SYMBOLS.prizewinner,
+		"name": "Prize Winner",
+		"type": "normal",
+	},
+	{
+		"symbol": DEFAULT_GROUP_SYMBOLS.regularuser,
 		"name": null,
 		"type": "normal",
 	},
 	{
-		"symbol": "‽",
-		"name": "Locked",
+		"symbol": DEFAULT_GROUP_SYMBOLS.muted,
+		"name": "Muted",
 		"type": "punishment",
 	},
 	{
-		"symbol": "!",
-		"name": "Muted",
+		"symbol": DEFAULT_GROUP_SYMBOLS.locked,
+		"name": "Locked",
 		"type": "punishment",
 	},
 ];
@@ -152,7 +173,7 @@ export class Client {
 	connectionTimeout: NodeJS.Timer | undefined = undefined;
 	evasionFilterRegularExpressions: RegExp[] | null = null;
 	filterRegularExpressions: RegExp[] | null = null;
-	groupSymbols: Dict<string> = {};
+	groupSymbols: KeyedDict<GroupName, string> = DEFAULT_GROUP_SYMBOLS;
 	incomingMessageQueue: Data[] = [];
 	lastSentMessage: string = '';
 	loggedIn: boolean = false;
@@ -168,6 +189,7 @@ export class Client {
 	sendTimeout: NodeJS.Timer | true | undefined = undefined;
 	server: string = Config.server || Tools.mainServer;
 	serverGroups: Dict<IServerGroup> = {};
+	serverGroupsResponse: ServerGroupData[] = DEFAULT_SERVER_GROUPS;
 	serverId: string = 'showdown';
 	serverLatencyTimes: number[] = [];
 	serverLatencyTimeCount: number = SERVER_PING_TARGET_SAMPLE / SERVER_PING_INTERVAL;
@@ -187,7 +209,7 @@ export class Client {
 		errorListener = (error: Error) => this.onConnectionError(error);
 		closeListener = (code: number, description: string) => this.onConnectionClose(code, description);
 
-		this.parseServerGroups(DEFAULT_SERVER_GROUPS);
+		this.parseServerGroups();
 	}
 
 	setClientListeners(): void {
@@ -313,7 +335,12 @@ export class Client {
 		}
 
 		if (previous.server) this.server = previous.server;
-		if (previous.serverGroups) Object.assign(this.serverGroups, previous.serverGroups);
+		if (previous.serverGroupsResponse) {
+			this.serverGroupsResponse = previous.serverGroupsResponse.slice();
+			this.parseServerGroups();
+		} else if (previous.serverGroups) {
+			Object.assign(this.serverGroups, previous.serverGroups);
+		}
 		if (previous.serverId) this.serverId = previous.serverId;
 		if (previous.serverTimeOffset) this.serverTimeOffset = previous.serverTimeOffset;
 
@@ -624,7 +651,9 @@ export class Client {
 			const messageArguments: IClientMessageTypes['customgroups'] = {
 				groups: JSON.parse(messageParts[0]) as ServerGroupData[],
 			};
-			this.parseServerGroups(messageArguments.groups);
+
+			this.serverGroupsResponse = messageArguments.groups;
+			this.parseServerGroups();
 			break;
 		}
 
@@ -1419,8 +1448,8 @@ export class Client {
 		const lowerCaseMessage = message.toLowerCase();
 
 		// unlink tournament battle replays
-		if (room.unlinkTournamentReplays && !user.hasRank(room, 'voice') && room.tournament && !room.tournament.format.team &&
-			lowerCaseMessage.includes(this.replayServerAddress)) {
+		if (room.unlinkTournamentReplays && room.tournament && !room.tournament.format.team &&
+			lowerCaseMessage.includes(this.replayServerAddress) && !user.hasRank(room, 'voice')) {
 			let battle = lowerCaseMessage.split(this.replayServerAddress)[1].trim();
 			if (battle.startsWith('/')) battle = battle.substr(1);
 			if (this.serverId !== 'showdown' && battle.startsWith(this.serverId + "-")) battle = battle.substr(this.serverId.length + 1);
@@ -1462,7 +1491,7 @@ export class Client {
 				const link = Tools.getChallongeUrl(possibleLink);
 				if (link) links.push(link);
 			}
-			// let hasOwnLink = false;
+
 			const database = Storage.getDatabase(room);
 			let rank: GroupName = 'voice';
 			if (Config.userHostedTournamentRanks && room.id in Config.userHostedTournamentRanks) {
@@ -1471,7 +1500,6 @@ export class Client {
 			const authOrTHC = user.hasRank(room, rank) || (database.thcWinners && user.id in database.thcWinners);
 			outer:
 			for (const link of links) {
-				// hasOwnLink = true;
 				if (room.approvedUserHostedTournaments) {
 					for (const i in room.approvedUserHostedTournaments) {
 						if (room.approvedUserHostedTournaments[i].urls.includes(link)) {
@@ -1516,49 +1544,25 @@ export class Client {
 					break;
 				}
 			}
-
-			// if (hasOwnLink) Tournaments.setTournamentGameTimer(room);
 		}
 
 		// per-game parsing
 		if (room.game && room.game.parseChatMessage) room.game.parseChatMessage(user, message);
 	}
 
-	parseServerGroups(groups: ServerGroupData[]): void {
+	parseServerGroups(): void {
 		this.serverGroups = {};
-		// Bot is below Driver on the user list but above Moderator in terms of permissions
-		let botIndex = -1;
-		let moderatorIndex = -1;
-		for (let i = 0; i < groups.length; i++) {
-			if (groups[i].name === 'Bot') {
-				botIndex = i;
-			} else if ((groups[i].type === 'leadership' || groups[i].type === 'staff') && groups[i].name === 'Moderator') {
-				moderatorIndex = i;
-			}
-		}
-		if (botIndex !== -1 && moderatorIndex !== -1) {
-			const bot = groups.splice(botIndex, 1);
-			groups.splice(moderatorIndex, 0, bot[0]);
-		}
 
-		let ranking = groups.length;
-		for (const group of groups) {
+		let ranking = this.serverGroupsResponse.length;
+		for (const group of this.serverGroupsResponse) {
 			this.serverGroups[group.symbol] = Object.assign({ranking}, group);
-			if (group.name === 'Bot') this.groupSymbols.bot = group.symbol;
-			if (group.type === 'leadership' || group.type === 'staff') {
-				if (group.name === 'Room Owner' || group.name === 'Moderator' || group.name === 'Driver') {
-					this.groupSymbols[Tools.toId(group.name as string)] = group.symbol;
-				}
-			} else if (group.type === 'normal' && group.name === 'Voice') {
-				this.groupSymbols.voice = group.symbol;
-			} else if (group.type === 'punishment') {
-				if (group.name === 'Locked') {
-					this.groupSymbols.locked = group.symbol;
-				} else if (group.name === 'Muted') {
-					this.groupSymbols.muted = group.symbol;
-				}
-			}
 			ranking--;
+
+			if (group.name === null) {
+				this.groupSymbols.regularuser = group.symbol;
+			} else {
+				this.groupSymbols[Tools.toId(group.name) as GroupName] = group.symbol;
+			}
 		}
 	}
 

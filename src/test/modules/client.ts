@@ -1,8 +1,34 @@
+import type { GroupName } from '../../types/client';
 import { assert, assertStrictEqual } from './../test-tools';
 
 /* eslint-env mocha */
 
 describe("Client", () => {
+	it('should load default server groups', () => {
+		const rankings: KeyedDict<GroupName, number> = {
+			'administrator': Client.serverGroups[Client.groupSymbols.administrator].ranking,
+			'roomowner': Client.serverGroups[Client.groupSymbols.roomowner].ranking,
+			'host': Client.serverGroups[Client.groupSymbols.host].ranking,
+			'moderator': Client.serverGroups[Client.groupSymbols.moderator].ranking,
+			'driver': Client.serverGroups[Client.groupSymbols.driver].ranking,
+			'bot': Client.serverGroups[Client.groupSymbols.bot].ranking,
+			'player': Client.serverGroups[Client.groupSymbols.player].ranking,
+			'voice': Client.serverGroups[Client.groupSymbols.voice].ranking,
+			'prizewinner': Client.serverGroups[Client.groupSymbols.prizewinner].ranking,
+			'regularuser': Client.serverGroups[Client.groupSymbols.regularuser].ranking,
+			'muted': Client.serverGroups[Client.groupSymbols.muted].ranking,
+			'locked': Client.serverGroups[Client.groupSymbols.locked].ranking,
+		};
+
+		const ranks = Object.keys(rankings) as GroupName[];
+		for (const rank of ranks) {
+			assertStrictEqual(typeof rankings[rank], 'number');
+		}
+
+		for (let i = 1; i < ranks.length; i++) {
+			assert(rankings[ranks[i]] < rankings[ranks[i - 1]]);
+		}
+	});
 	it('should support all join and leave message types', () => {
 		const room = Rooms.get('mocha')!;
 

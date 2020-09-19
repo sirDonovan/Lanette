@@ -2,7 +2,8 @@ import type { IFormat } from "./dex";
 import type { RoomType } from "./rooms";
 import type { ITournamentEndJson, ITournamentUpdateJson } from "./tournaments";
 
-export type GroupName = 'voice' | 'bot' | 'driver' | 'moderator' | 'roomowner' | 'muted' | 'locked';
+export type GroupName = 'locked' | 'muted' | 'regularuser' | 'prizewinner' | 'voice' | 'player' | 'bot' | 'driver' | 'moderator' | 'host' |
+	'roomowner' | 'administrator';
 
 export interface ILoginOptions {
 	hostname: string | undefined;
