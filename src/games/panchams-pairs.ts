@@ -68,8 +68,20 @@ class PanchamPairs extends Game {
 		}
 	}
 
+	getMinigameDescription(): string {
+		if (this.dataType === "Pokemon") {
+			return "Use ``" + Config.commandCharacter + "pair [name, name, parameter type]`` to pair the given Pokemon! Valid parameter " +
+				"types are: " + Tools.joinList(categories.Pokemon) + ".";
+		} else {
+			return "Use ``" + Config.commandCharacter + "pair [name, name, parameter type]`` to pair the given moves! Valid parameter " +
+			"types are: " + Tools.joinList(categories.moves) + ".";
+		}
+	}
+
 	onSignups(): void {
-		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
+		if (this.format.options.freejoin && !this.isMiniGame) {
+			this.timeout = setTimeout(() => this.nextRound(), 5000);
+		}
 	}
 
 	onStart(): void {
@@ -107,9 +119,42 @@ class PanchamPairs extends Game {
 			"</div>";
 		this.onUhtml(uhtmlName, html, () => {
 			if (!this.canPair) this.canPair = true;
-			if (!this.format.options.freejoin) this.timeout = setTimeout(() => this.listPossiblePairs(), 15 * 1000);
+			if (this.isMiniGame) {
+				this.timeout = setTimeout(() => {
+					this.say("Time is up! " + this.getAnswers(""));
+					this.end();
+				}, 15 * 1000);
+			} else if (!this.format.options.freejoin) {
+				this.timeout = setTimeout(() => this.listPossiblePairs(), 15 * 1000);
+			}
 		});
 		this.sayUhtmlAuto(uhtmlName, html);
+	}
+
+	getRandomPair(): [string, string, string] | undefined {
+		for (let i = 0; i < this.currentList.length; i++) {
+			for (let j = 0; j < this.currentList.length; j++) {
+				if (i === j) continue;
+				for (const parameter of categories[this.dataType]) {
+					if (this.isParamPair(this.currentList[i], this.currentList[j], parameter)) {
+						return [this.currentList[i], this.currentList[j], parameter];
+					}
+				}
+			}
+		}
+	}
+
+	getAnswers(givenAnswer: string, finalAnswer?: boolean): string {
+		if (!givenAnswer) {
+			const randomPair = this.getRandomPair()!;
+			givenAnswer = randomPair[0] + " & " + randomPair[1] + " (" + randomPair[2] + ")";
+		}
+
+		return "A possible pair was __" + givenAnswer + "__.";
+	}
+
+	getForceEndMessage(): string {
+		return this.getAnswers("");
 	}
 
 	onNextRound(): void {
@@ -177,7 +222,9 @@ class PanchamPairs extends Game {
 		}
 		this.currentList = this.shuffle(newList);
 
-		if (this.format.options.freejoin) {
+		if (this.isMiniGame) {
+			this.listPossiblePairs();
+		} else if (this.format.options.freejoin) {
 			this.timeout = setTimeout(() => this.listPossiblePairs(), 5000);
 		} else {
 			const html = this.getRoundHtml(this.format.options.freejoin ? this.getPlayerPoints : this.getPlayerNames);
@@ -248,21 +295,32 @@ const commands: GameCommandDefinitions<PanchamPairs> = {
 			if (this.paired.has(player)) return false;
 			const split = target.split(",");
 			if (split.length !== 3) return false;
+
 			let param = Tools.toId(split[2]);
 			if (param === 'gen') {
 				param = 'generation';
 			} else if (param === 'colour') {
 				param = 'color';
 			}
+
 			const pair = this.isParamPair(split[0], split[1], param as keyof IPokemonPairData | keyof IMovePairData, true);
 			if (!pair) return false;
+
+			if (this.isMiniGame) {
+				this.say((this.pm ? "You are" : "**" + user.name + "** is") + " correct! " + this.getAnswers(pair[0] + " & " +
+					pair[1] + " (" + param + ")"));
+				this.addBits(user, Games.minigameBits);
+				this.end();
+				return true;
+			}
+
 			if (this.format.options.freejoin) {
 				let points = this.points.get(player) || 0;
 				points++;
 				this.points.set(player, points);
 				if (points === this.format.options.points) {
-					this.say("**" + player.name + "** wins" + (this.parentGame ? "" : " the game") + "! The final pair was __" + pair[0] +
-						" & " + pair[1] + " (" + param + ")__.");
+					this.say("**" + player.name + "** wins" + (this.parentGame ? "" : " the game") + "! " +
+						this.getAnswers(pair[0] + " & " + pair[1] + " (" + param + ")"));
 					for (const i in this.players) {
 						if (this.players[i] !== player) this.players[i].eliminated = true;
 					}
@@ -270,8 +328,8 @@ const commands: GameCommandDefinitions<PanchamPairs> = {
 					this.end();
 					return true;
 				} else {
-					this.say("**" + player.name + "** advances to **" + points + "** point" + (points > 1 ? "s" : "") + "! A possible " +
-						"pair was __" + pair[0] + " & " + pair[1] + " (" + param + ")__.");
+					this.say("**" + player.name + "** advances to **" + points + "** point" + (points > 1 ? "s" : "") + "! " +
+						this.getAnswers(pair[0] + " & " + pair[1] + " (" + param + ")"));
 				}
 				this.nextRound();
 			} else {
@@ -314,6 +372,8 @@ export const game: IGameFile<PanchamPairs> = {
 		"generation, color, type, and ability.",
 	name: "Pancham's Pairs",
 	mascot: "Pancham",
+	minigameCommand: 'panchampair',
+	minigameCommandAliases: ['ppair'],
 	nonTrivialLoadData: true,
 	variants: [
 		{

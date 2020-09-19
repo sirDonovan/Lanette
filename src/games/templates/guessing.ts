@@ -7,8 +7,6 @@ import type {
 	IRandomGameAnswer
 } from '../../types/games';
 
-const MINIGAME_BITS = 25;
-
 export abstract class Guessing extends Game {
 	additionalHintHeader: string = '';
 	answers: string[] = [];
@@ -228,7 +226,7 @@ const commands: GameCommandDefinitions<Guessing> = {
 
 			if (this.isMiniGame) {
 				this.say((this.pm ? "You are" : "**" + user.name + "** is") + " correct! " + this.getAnswers(answer));
-				this.addBits(user, MINIGAME_BITS);
+				this.addBits(user, Games.minigameBits);
 				this.end();
 				return true;
 			}

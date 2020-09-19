@@ -102,6 +102,7 @@ export class Games {
 	lastUserHostTimes: Dict<Dict<number>> = {};
 	lastUserHostFormatTimes: Dict<Dict<number>> = {};
 	readonly maxMoveAvailability: number = 500;
+	readonly minigameBits: number = 25;
 	readonly minigameCommandNames: Dict<{aliases: string[]; format: string}> = {};
 	readonly modes: Dict<IGameMode> = {};
 	readonly modeAliases: Dict<string> = {};
@@ -907,6 +908,7 @@ export class Games {
 		if (isMinigame) {
 			room.game.isMiniGame = true;
 			if (format.options.points) format.options.points = 1;
+			if (!format.freejoin && format.customizableOptions.freejoin) format.options.freejoin = 1;
 		}
 
 		return room.game;
