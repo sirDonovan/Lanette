@@ -1080,20 +1080,23 @@ export class Client {
 							evasion = currentHeader === 'Filter Evasion Detection';
 						} else if (row.startsWith('<td><abbr title="') && currentHeader !== 'Whitelisted names') {
 							let word = row.split('<td><abbr title="')[1].split('</abbr>')[0].trim();
-							let filterTo = false;
 							const titleEndIndex = word.indexOf('">');
 							if (titleEndIndex !== -1) word = word.substr(titleEndIndex + 2);
 							if (word.startsWith('<code>') && word.endsWith('</code>')) {
 								word = word.split('<code>')[1].split('</code>')[0].trim();
-								filterTo = true;
 							}
+
+							let replacementWord = row.split("</abbr>")[1];
+							const reasonIndex = replacementWord.indexOf('</small>');
+							if (reasonIndex !== -1) replacementWord = replacementWord.substr(reasonIndex + 8);
+							const hasReplacement = replacementWord.includes(" &rArr; ");
 
 							let regularExpression: RegExp | undefined;
 							try {
 								if (evasion) {
 									regularExpression = constructEvasionRegex(word);
 								} else {
-									regularExpression = new RegExp(shortener ? '\\b' + word : word, filterTo ? 'ig' : 'i');
+									regularExpression = new RegExp(shortener ? '\\b' + word : word, hasReplacement ? 'ig' : 'i');
 								}
 							} catch (e) {
 								console.log(e);
