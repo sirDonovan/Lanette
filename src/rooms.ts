@@ -151,19 +151,19 @@ export class Room {
 	}
 
 	pmHtml(user: User | Player, html: string): void {
-		this.say("/pminfobox " + user.id + "," + html, true);
+		this.say("/pminfobox " + user.id + "," + html, true, true);
 	}
 
 	pmUhtml(user: User | Player, uhtmlName: string, html: string): void {
-		this.say("/pmuhtml " + user.id + "," + uhtmlName + "," + html, true);
+		this.say("/pmuhtml " + user.id + "," + uhtmlName + "," + html, true, true);
 	}
 
 	pmUhtmlChange(user: User | Player, uhtmlName: string, html: string): void {
-		this.say("/pmuhtmlchange " + user.id + "," + uhtmlName + "," + html, true);
+		this.say("/pmuhtmlchange " + user.id + "," + uhtmlName + "," + html, true, true);
 	}
 
 	sendHtmlPage(user: User | Player, title: string, html: string): void {
-		this.say("/sendhtmlpage " + user.id + "," + title + "," + html, true);
+		this.say("/sendhtmlpage " + user.id + "," + title + "," + html, true, true);
 	}
 
 	on(message: string, listener: () => void): void {
