@@ -26,7 +26,7 @@ class SmearglesMysteryMoves extends Guessing {
 	updateHintTime = 5 * 1000;
 
 	static loadData(room: Room | User): void {
-		data.moves = Games.getMovesList().map(x => x.name);
+		data.moves = Games.getMovesList().map(x => x.name && x.shortDesc);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
