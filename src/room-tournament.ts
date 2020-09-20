@@ -226,10 +226,6 @@ export class Tournament extends Activity {
 					(semiFinalistPoints > 1 ? "s" : ""));
 			}
 
-			const formatLeaderboard = Tournaments.getFormatLeaderboardHtml(this.room, this.format);
-			this.sayHtml("<div class='infobox-limited'>Congratulations to " + Tools.joinList(pointsHtml) + "!" + (formatLeaderboard ?
-				"<br /><br />" + formatLeaderboard : "") + "</div>");
-
 			const winnerPm = 'You were awarded **' + winnerPoints + ' ' + pointsName + 's** for being ' +
 				(winners.length > 1 ? 'a' : 'the') + ' tournament winner! To see your total amount, use this command: ``.rank ' +
 				this.room.title + '``.';
@@ -255,6 +251,10 @@ export class Tournament extends Activity {
 				const user = Users.get(semiFinalist);
 				if (user) user.say(semiFinalistPm);
 			}
+
+			const formatLeaderboard = Tournaments.getFormatLeaderboardHtml(this.room, this.format);
+			this.sayHtml("<div class='infobox-limited'>Congratulations to " + Tools.joinList(pointsHtml) + "!" + (formatLeaderboard ?
+				"<br /><br />" + formatLeaderboard : "") + "</div>");
 		}
 
 		Storage.exportDatabase(this.room.id);
