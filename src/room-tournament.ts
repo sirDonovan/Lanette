@@ -226,11 +226,9 @@ export class Tournament extends Activity {
 					(semiFinalistPoints > 1 ? "s" : ""));
 			}
 
-			const playerStatsHtml = '';
-			// if (showPlayerStats) playerStatsHtml = Tournaments.getPlayerStatsHtml(this.room, this.format);
-
-			this.sayHtml("<div class='infobox-limited'>Congratulations to " + Tools.joinList(pointsHtml) + "!" + (playerStatsHtml ?
-				"<br /><br />" + playerStatsHtml : "") + "</div>");
+			const formatLeaderboard = Tournaments.getFormatLeaderboardHtml(this.room, this.format);
+			this.sayHtml("<div class='infobox-limited'>Congratulations to " + Tools.joinList(pointsHtml) + "!" + (formatLeaderboard ?
+				"<br /><br />" + formatLeaderboard : "") + "</div>");
 
 			const winnerPm = 'You were awarded **' + winnerPoints + ' ' + pointsName + 's** for being ' +
 				(winners.length > 1 ? 'a' : 'the') + ' tournament winner! To see your total amount, use this command: ``.rank ' +

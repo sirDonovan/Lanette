@@ -293,6 +293,41 @@ export class Tournaments {
 		return Math.round(points * multiplier);
 	}
 
+	getFormatLeaderboardHtml(room: Room, format: IFormat): string {
+		const database = Storage.getDatabase(room);
+		if (!database.leaderboard) return "";
+
+		const players: string[] = [];
+		for (const i in database.leaderboard) {
+			if (format.id in database.leaderboard[i].sources) {
+				players.push(i);
+			}
+		}
+
+		if (!players.length) return "";
+
+		players.sort((a, b) => database.leaderboard![b].sources[format.id] - database.leaderboard![a].sources[format.id]);
+
+		let html = "<center><b>" + format.name + " leaderboard</b><br /><br /><table border='2' style='table-layout: fixed;width: 500px'>" +
+			"<tr><th>Place</th><th>Name</th><th>Points</th></tr>";
+		for (let i = 0; i < players.length; i++) {
+			const id = players[i];
+			let place = Tools.toNumberOrderString(i + 1);
+			let name = database.leaderboard[id].name;
+			let points = "" + database.leaderboard[id].sources[format.id];
+			if (i === 0) {
+				place = "<b>" + place + "</b>";
+				name = "<b>" + name + "</b>";
+				points = "<b>" + points + "</b>";
+			}
+
+			html += "<tr><td>" + place + "</td><td>" + name + "</td><td>" + points + "</td></tr>";
+		}
+
+		html += "</table></center>";
+		return html;
+	}
+
 	setScheduledTournament(room: Room): void {
 		if (!(room.id in this.scheduledTournaments)) return;
 		delete this.nextScheduledTournaments[room.id];
