@@ -128,9 +128,7 @@ export const game: IGameFile<HypnosHunches> = Games.copyTemplateProperties(guess
 	aliases: ["hypnos"],
 	category: 'identification',
 	class: HypnosHunches,
-	customizableOptions: {
-		points: {min: 5, base: 5, max: 5},
-	},
+	defaultOptions: ['points'],
 	description: "Players guess letters to reveal the answers without being shown any blanks!",
 	formerNames: ["Hunches"],
 	freejoin: true,

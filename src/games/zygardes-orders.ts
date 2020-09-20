@@ -132,9 +132,7 @@ export const game: IGameFile<ZygardesOrders> = Games.copyTemplateProperties(gues
 	aliases: ["zygardes", "zo"],
 	category: 'identification',
 	class: ZygardesOrders,
-	customizableOptions: {
-		points: {min: 5, base: 5, max: 5},
-	},
+	defaultOptions: ['points'],
 	description: "Players guess answers as letters are revealed one by one (one guess per round)!",
 	formerNames: ["Orders"],
 	freejoin: true,
