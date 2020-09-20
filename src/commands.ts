@@ -2151,7 +2151,7 @@ const commands: CommandDefinitions<CommandContext> = {
 					if (room.userHostedGame.teams) {
 						if (!(id in room.userHostedGame.teams)) continue;
 						for (const player of room.userHostedGame.teams[id].players) {
-							if (!players.includes(player)) players.push(player);
+							if (!player.eliminated && !players.includes(player)) players.push(player);
 						}
 					} else {
 						if (id in room.userHostedGame.players) {
