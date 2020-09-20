@@ -113,18 +113,27 @@ export class Tournament extends Activity {
 		return true;
 	}
 
-	adjustCap(): void {
-		if (this.playerCount % 8 === 0) {
-			this.sayCommand("/tour start");
-			return;
-		}
-		let newCap = this.playerCount + 1;
-		while (newCap % 8 !== 0) {
-			newCap += 1;
+	adjustCap(cap?: number): void {
+		if (!cap) {
+			if (this.playerCount % 8 === 0) {
+				this.sayCommand("/tour start");
+				return;
+			}
+
+			let newCap = this.playerCount + 1;
+			while (newCap % 8 !== 0) {
+				newCap += 1;
+			}
+
+			if (this.playerCap && newCap >= this.playerCap) return;
+			cap = newCap;
 		}
 
-		if (this.playerCap && newCap >= this.playerCap) return;
-		void CommandParser.parse(this.room, Users.self, Config.commandCharacter + "tournamentcap " + newCap);
+		if (this.adjustCapTimer) clearTimeout(this.adjustCapTimer);
+
+		this.sayCommand("/tour cap " + cap);
+		if (!this.playerCap) this.sayCommand("/tour autostart on");
+		this.say("The tournament's player cap is now **" + cap + "**.");
 	}
 
 	deallocate(): void {

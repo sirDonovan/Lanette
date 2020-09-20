@@ -2742,10 +2742,7 @@ const commands: CommandDefinitions<CommandContext> = {
 				return this.say("The tournament's player cap must be between " + Tournaments.minPlayerCap + " and " +
 					Tournaments.maxPlayerCap + ".");
 			}
-			if (room.tournament.adjustCapTimer) clearTimeout(room.tournament.adjustCapTimer);
-			this.sayCommand("/tour cap " + cap);
-			if (!room.tournament.playerCap) this.sayCommand("/tour autostart on");
-			this.say("The tournament's player cap is now **" + cap + "**.");
+			room.tournament.adjustCap(cap);
 		},
 		aliases: ['tcap'],
 	},
