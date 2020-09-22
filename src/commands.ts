@@ -547,7 +547,8 @@ const commands: CommandDefinitions<CommandContext> = {
 			}
 
 			let format: IGameFormat | undefined;
-			if (cmd === 'createrandomtournamentgame' || cmd === 'createrandomtourgame' || cmd === 'randomtourgame' || cmd === 'crtg') {
+			if (cmd === 'createrandomtournamentgame' || cmd === 'createrandomtourgame' || cmd === 'randomtourgame' || cmd === 'crtg' ||
+				Tools.toId(target) === 'random') {
 				const formats = Tools.shuffle(Games.getTournamentFormatList());
 				for (const randomFormat of formats) {
 					if (Games.canCreateGame(room, randomFormat) === true) {
@@ -635,8 +636,9 @@ const commands: CommandDefinitions<CommandContext> = {
 			}
 			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
 
+			const targetId = Tools.toId(target);
 			let format: IGameFormat | undefined;
-			if (cmd === 'createrandomgame' || cmd === 'crg' || cmd === 'randomgame') {
+			if (cmd === 'createrandomgame' || cmd === 'crg' || cmd === 'randomgame' || targetId === 'random') {
 				const option = Tools.toId(target);
 				let formats: string[];
 				if (option === 'freejoin' || option === 'fj') {
@@ -658,7 +660,6 @@ const commands: CommandDefinitions<CommandContext> = {
 				}
 				if (!format) return this.say("A random game could not be chosen.");
 			} else {
-				const targetId = Tools.toId(target);
 				if (targetId === 'leastplayed' || targetId === 'lpgame') {
 					const formats = Games.getLeastPlayedFormats(room);
 					for (const format of formats) {
