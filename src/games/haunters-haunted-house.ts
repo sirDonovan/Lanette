@@ -157,65 +157,12 @@ class HauntersHauntedHouse extends Game {
 	maxPlayers = 15;
 	mimikyuHaunt: boolean = false;
 	ghosts: Ghost[] = [];
+	ghostFrenzies: number = 0;
 	playerLocations = new Map<Player, [number, number]>();
 	playerNumbers = new Map<Player, number>();
 	playerRemainingTurnMoves = new Map<Player, number>();
 	remainingGhostMoves: number = 0;
 	turnsWithoutHaunting: number = 0;
-
-	onSignups(): void {
-		const tiles = this.setupBoardTiles();
-		const switchLocations: {door: [number, number], tile: [number, number]}[] = [];
-		for (let i = 0; i < boardSize; i++) {
-			this.board.push([]);
-			for (let j = 0; j < boardSize; j++) {
-				const tile = tiles[i][j];
-				if (tile === tileValues.haunter) {
-					this.ghosts.push(this.createHaunter(i, j));
-					this.board[i].push(this.createBlankLocation());
-				} else if (tile === tileValues.gengar) {
-					this.ghosts.push(this.createGengar(i, j));
-					this.board[i].push(this.createBlankLocation());
-				} else if (tile === tileValues.mimikyu) {
-					this.ghosts.push(this.createMimikyu(i, j));
-					this.board[i].push(this.createBlankLocation());
-				} else if (tile === tileValues.dusclops) {
-					this.ghosts.push(this.createDusclops(i, j));
-					this.board[i].push(this.createBlankLocation());
-				} else if (tile === tileValues.candy) {
-					const candyLocation = new CandyLocation();
-					this.candyLocations.push(candyLocation);
-					this.board[i].push(candyLocation);
-				} else if (tile === tileValues.wall) {
-					this.board[i].push(this.createWall());
-				} else if (tile >= 100) {
-					this.board[i].push(new Door(tile - 99));
-				} else if (tile <= -100) {
-					for (let row = 0; row < boardSize; row++) {
-						for (let column = 0; column < boardSize; column++) {
-							if (tiles[row][column] === (tile * -1)) {
-								switchLocations.push({door: [row, column], tile: [i, j]});
-								this.board[i].push(this.createBlankLocation());
-								break;
-							}
-						}
-					}
-				} else {
-					this.board[i].push(this.createBlankLocation());
-				}
-			}
-		}
-
-		for (const location of switchLocations) {
-			this.board[location.tile[0]][location.tile[1]] = new Switch(this.board[location.door[0]][location.door[1]] as Door);
-		}
-
-		this.ghosts.sort((a, b) => {
-			if (a.name > b.name) return 1;
-			if (b.name > a.name) return -1;
-			return 0;
-		}).reverse();
-	}
 
 	createHaunter(row: number, column: number): Ghost {
 		return new Ghost("Haunter", row, column, 1, false);
@@ -666,26 +613,100 @@ class HauntersHauntedHouse extends Game {
 		this.sayUhtml(this.uhtmlBaseName + '-board', html);
 	}
 
-	onStart(): void {
-		this.setCandyLocations();
+	setupBoard(): void {
+		this.board = [];
+		this.candyLocations = [];
+		this.ghosts = [];
 
-		const startingLocation: [number, number] = [lastRowIndex, Math.floor(lastColumnIndex / 2)];
-		while (!this.board[startingLocation[0]][startingLocation[1]].canMoveThrough) {
-			startingLocation[1] = startingLocation[1] + 1;
-			if (startingLocation[1] > lastColumnIndex) {
-				startingLocation[0] = startingLocation[0] - 1;
-				startingLocation[1] = 0;
+		const tiles = this.setupBoardTiles();
+		const switchLocations: {door: [number, number], tile: [number, number]}[] = [];
+		for (let i = 0; i < boardSize; i++) {
+			this.board.push([]);
+			for (let j = 0; j < boardSize; j++) {
+				const tile = tiles[i][j];
+				if (tile === tileValues.haunter) {
+					this.ghosts.push(this.createHaunter(i, j));
+					this.board[i].push(this.createBlankLocation());
+				} else if (tile === tileValues.gengar) {
+					this.ghosts.push(this.createGengar(i, j));
+					this.board[i].push(this.createBlankLocation());
+				} else if (tile === tileValues.mimikyu) {
+					this.ghosts.push(this.createMimikyu(i, j));
+					this.board[i].push(this.createBlankLocation());
+				} else if (tile === tileValues.dusclops) {
+					this.ghosts.push(this.createDusclops(i, j));
+					this.board[i].push(this.createBlankLocation());
+				} else if (tile === tileValues.candy) {
+					const candyLocation = new CandyLocation();
+					this.candyLocations.push(candyLocation);
+					this.board[i].push(candyLocation);
+				} else if (tile === tileValues.wall) {
+					this.board[i].push(this.createWall());
+				} else if (tile >= 100) {
+					this.board[i].push(new Door(tile - 99));
+				} else if (tile <= -100) {
+					for (let row = 0; row < boardSize; row++) {
+						for (let column = 0; column < boardSize; column++) {
+							if (tiles[row][column] === (tile * -1)) {
+								switchLocations.push({door: [row, column], tile: [i, j]});
+								this.board[i].push(this.createBlankLocation());
+								break;
+							}
+						}
+					}
+				} else {
+					this.board[i].push(this.createBlankLocation());
+				}
 			}
 		}
 
+		for (const location of switchLocations) {
+			this.board[location.tile[0]][location.tile[1]] = new Switch(this.board[location.door[0]][location.door[1]] as Door);
+		}
+
+		this.ghosts.sort((a, b) => {
+			if (a.name > b.name) return 1;
+			if (b.name > a.name) return -1;
+			return 0;
+		}).reverse();
+	}
+
+	onStart(): void {
 		let playerNumber = 1;
 		const players = this.shufflePlayers();
 		for (const player of players) {
-			this.playerLocations.set(player, startingLocation.slice() as [number, number]);
 			this.playerNumbers.set(player, playerNumber);
-			player.say("You will play as **P" + playerNumber + "** and start at (" + startingLocation[0] +
-				", " + startingLocation[1] + ") for " + this.name + "!");
 			playerNumber++;
+		}
+
+		let startingLocation: [number, number] = [0, 0];
+		while (!this.remainingGhostMoves) {
+			this.setupBoard();
+			this.setCandyLocations();
+
+			startingLocation = [lastRowIndex, Math.floor(lastColumnIndex / 2)];
+			while (!this.board[startingLocation[0]][startingLocation[1]].canMoveThrough) {
+				startingLocation[1] = startingLocation[1] + 1;
+				if (startingLocation[1] > lastColumnIndex) {
+					startingLocation[0] = startingLocation[0] - 1;
+					startingLocation[1] = 0;
+				}
+			}
+
+			for (const player of players) {
+				this.playerLocations.set(player, startingLocation.slice() as [number, number]);
+			}
+
+			for (const ghost of this.ghosts) {
+				this.moveGhost(ghost, true);
+			}
+		}
+
+		this.remainingGhostMoves = 0;
+
+		for (const player of players) {
+			player.say("You will play as **P" + this.playerNumbers.get(player) + "** and start at (" + startingLocation[0] +
+				", " + startingLocation[1] + ") for " + this.name + "!");
 		}
 
 		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
@@ -710,10 +731,12 @@ class HauntersHauntedHouse extends Game {
 			return;
 		}
 
-		if (this.turnsWithoutHaunting % 10 === 0 && this.turnsWithoutHaunting > 0) {
-			this.say("The ghosts have whipped into a frenzy! They can now move an additional space each turn.");
-			for (let i = 0, len = this.ghosts.length; i < len; i++) {
-				this.ghosts[i].turnMoves++;
+		if (this.turnsWithoutHaunting && this.turnsWithoutHaunting % 10 === 0) {
+			this.ghostFrenzies++;
+			this.say("The ghosts have whipped into their **" + Tools.toNumberOrderString(this.ghostFrenzies) + " frenzy**! They can " +
+				"now move **" + this.ghostFrenzies + " extra space" + (this.ghostFrenzies > 1 ? "s" : "") + "** each turn.");
+			for (const ghost of this.ghosts) {
+				ghost.turnMoves++;
 			}
 		}
 
@@ -778,7 +801,7 @@ class HauntersHauntedHouse extends Game {
 		return copy;
 	}
 
-	moveGhost(ghost: Ghost): void {
+	moveGhost(ghost: Ghost, movementCheck?: boolean): void {
 		const boardCopy = this.copyBoard(this.board);
 		const frontierPaths: number[][][] = [[]];
 		const frontierLocations: number[][] = [[ghost.row, ghost.column]];
@@ -797,15 +820,17 @@ class HauntersHauntedHouse extends Game {
 					const players = this.getPlayersOnTile(locationCopy[0], locationCopy[1]);
 					if (players.length) {
 						this.remainingGhostMoves++;
-						path.push(direction);
-						let k;
-						for (k = 0; k < Math.min(path.length, ghost.turnMoves + (this.mimikyuHaunt ? 1 : 0)); k++) {
-							const direction = path[k];
-							ghost.row += direction[0];
-							ghost.column += direction[1];
-						}
-						if (ghost.name === "Mimikyu" && k === path.length) {
-							this.mimikyuHaunt = true;
+						if (!movementCheck) {
+							path.push(direction);
+							let k;
+							for (k = 0; k < Math.min(path.length, ghost.turnMoves + (this.mimikyuHaunt ? 1 : 0)); k++) {
+								const direction = path[k];
+								ghost.row += direction[0];
+								ghost.column += direction[1];
+							}
+							if (ghost.name === "Mimikyu" && k === path.length) {
+								this.mimikyuHaunt = true;
+							}
 						}
 						return;
 					}
@@ -840,12 +865,15 @@ class HauntersHauntedHouse extends Game {
 					this.eliminatedPlayers.add(player);
 					this.say("**" + player.name + "** was haunted by **" + ghost.name + "**!");
 					this.eliminatePlayer(player, "You were haunted by " + ghost.name + "!");
-					if (this.turnsWithoutHaunting >= 10) {
-						this.say("The ghosts have calmed down.");
+
+					if (this.ghostFrenzies) {
+						this.say("The ghosts have calmed down and can no longer move any extra spaces.");
 						for (const ghost of this.ghosts) {
-							ghost.turnMoves -= Math.floor(this.turnsWithoutHaunting / 10);
+							ghost.turnMoves -= this.ghostFrenzies;
 						}
+						this.ghostFrenzies = 0;
 					}
+
 					this.turnsWithoutHaunting = 0;
 				}
 			}
