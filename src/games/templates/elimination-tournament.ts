@@ -1277,6 +1277,10 @@ export abstract class EliminationTournament extends Game {
 	}
 
 	onUserJoinRoom(room: Room, user: User): void {
+		if (user === Users.self) {
+			this.checkedBattleRooms.push(room.id);
+		}
+
 		if (this.allowsScouting || !(user.id in this.players) || this.players[user.id].eliminated || !(room.id in this.battleData)) return;
 		if (this.battleData[room.id].slots.size === 2 && !this.battleData[room.id].slots.has(this.players[user.id])) {
 			this.players[user.id].say("You have been disqualified for scouting another " + this.name + " battle.");
@@ -1577,7 +1581,6 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 				return false;
 			}
 
-			this.checkedBattleRooms.push(battle);
 			const battleRoom = Rooms.add(battle);
 			battleRoom.game = this;
 			this.say('/join ' + battle);
