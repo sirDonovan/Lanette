@@ -689,6 +689,10 @@ export abstract class EliminationTournament extends Game {
 		html += "<li>All Pokemon (including formes), moves, abilities, and items not banned in " + this.battleFormat.name + " can " +
 			"be used</li>";
 		if (!this.allowsScouting) html += "<li>Scouting is not allowed</li>";
+		if (!this.cloakedPokemon && !this.sharedTeams) {
+			html += "<li><b>Do not reveal your or your opponents' " + (this.startingTeamsLength === 1 ? "starters" : "teams") + " in " +
+				"the chat!</b></li>";
+		}
 		html += "</ul>";
 
 		return html;
