@@ -9,6 +9,8 @@ import type {
 
 let formatLinks: Dict<IFormatLinks | undefined>;
 
+const MAX_CUSTOM_NAME_LENGTH = 100;
+const DEFAULT_CUSTOM_RULES_NAME = " (with custom rules)";
 const CURRENT_GEN = 8;
 const CURRENT_GEN_STRING = 'gen' + CURRENT_GEN;
 
@@ -120,7 +122,9 @@ export class Dex {
 	readonly currentGenString: typeof CURRENT_GEN_STRING = CURRENT_GEN_STRING;
 	readonly customRuleAliases: typeof customRuleAliases = customRuleAliases;
 	readonly customRuleFormats: typeof customRuleFormats = customRuleFormats;
+	readonly defaultCustomRulesName: typeof DEFAULT_CUSTOM_RULES_NAME = DEFAULT_CUSTOM_RULES_NAME;
 	dexes: Dict<Dex> = dexes;
+	formatNamesByCustomRules: Dict<string> = {};
 	readonly omotms: string[] = [];
 	readonly tagNames: typeof tagNames = tagNames;
 
@@ -1270,61 +1274,73 @@ export class Dex {
 		return {addedbans, removedbans, addedrestrictions, addedrules, removedrules};
 	}
 
-	getCustomFormatName(format: IFormat, room?: Room, showAll?: boolean): string {
+	getCustomFormatNameKey(format: IFormat): string {
+		if (!format.customRules || !format.customRules.length) return format.id;
+		return format.id + '@@@' + format.customRules.slice().sort().join(',');
+	}
+
+	getCustomFormatName(format: IFormat, fullName?: boolean): string {
 		if (!format.customRules || !format.customRules.length) return format.name;
+
+		const key = this.getCustomFormatNameKey(format);
+		if (!fullName) {
+			if (key in this.formatNamesByCustomRules) return this.formatNamesByCustomRules[key];
+		}
+
 		if (!format.separatedCustomRules) format.separatedCustomRules = this.separateCustomRules(format.customRules);
-		const defaultCustomRules: Partial<ISeparatedCustomRules> = room && room.id in Tournaments.defaultCustomRules ?
-			Tournaments.defaultCustomRules[room.id] : {};
-		const bansLength = format.separatedCustomRules.addedbans.length;
-		const unbansLength = format.separatedCustomRules.removedbans.length;
-		const restrictionsLength = format.separatedCustomRules.addedrestrictions.length;
-		const addedRulesLength = format.separatedCustomRules.addedrules.length;
-		const removedRulesLength = format.separatedCustomRules.removedrules.length;
 
 		const prefixesAdded: string[] = [];
 		let prefixesRemoved: string[] = [];
 		let suffixes: string[] = [];
 
-		if (showAll || (bansLength <= 2 && unbansLength <= 2 && addedRulesLength <= 2 && removedRulesLength <= 2)) {
-			if (bansLength && (!defaultCustomRules.addedbans ||
-				format.separatedCustomRules.addedbans.join(",") !== defaultCustomRules.addedbans.join(","))) {
-				prefixesRemoved = prefixesRemoved.concat(format.separatedCustomRules.addedbans);
-			}
-			if (unbansLength && (!defaultCustomRules.removedbans ||
-				format.separatedCustomRules.removedbans.join(",") !== defaultCustomRules.removedbans.join(","))) {
-				suffixes = suffixes.concat(format.separatedCustomRules.removedbans);
-			}
-			if (restrictionsLength && (!defaultCustomRules.addedrestrictions ||
-				format.separatedCustomRules.addedrestrictions.join(",") !== defaultCustomRules.addedrestrictions.join(","))) {
-				suffixes = suffixes.concat(format.separatedCustomRules.addedrestrictions);
-			}
-			if (addedRulesLength && (!defaultCustomRules.addedrules ||
-				format.separatedCustomRules.addedrules.join(",") !== defaultCustomRules.addedrules.join(","))) {
-				for (const addedRule of format.separatedCustomRules.addedrules) {
-					let rule = addedRule;
-					const subFormat = this.getFormat(rule);
-					if (subFormat && subFormat.effectType === 'Format' && subFormat.name.startsWith('[Gen')) {
-						rule = subFormat.name.substr(subFormat.name.indexOf(']') + 2);
-					} else if (rule in clauseNicknames) {
-						rule = clauseNicknames[rule];
-					}
-					prefixesAdded.push(rule);
+		const removedBansLength = format.separatedCustomRules.removedbans.length;
+		const addedRestrictionsLength = format.separatedCustomRules.addedrestrictions.length;
+
+		const addedBans = format.separatedCustomRules.addedbans.slice();
+		let onlySuffix = false;
 				}
 			}
-			if (removedRulesLength && (!defaultCustomRules.removedrules ||
-				format.separatedCustomRules.removedrules.join(",") !== defaultCustomRules.removedrules.join(","))) {
-				prefixesRemoved = prefixesRemoved.concat(format.separatedCustomRules.removedrules.map(x => clauseNicknames[x] || x));
-			}
-
-			let name = '';
-			if (prefixesRemoved.length) name += "(No " + Tools.joinList(prefixesRemoved, null, null, "or") + ") ";
-			if (prefixesAdded.length) name += prefixesAdded.join("-") + " ";
-			name += format.name;
-			if (suffixes.length) name += " (Plus " + Tools.joinList(suffixes) + ")";
-			return name;
-		} else {
-			return format.name;
+		if (addedBans.length) {
+			prefixesRemoved = prefixesRemoved.concat(format.separatedCustomRules.addedbans);
 		}
+
+		if (removedBansLength && !onlySuffix) {
+			suffixes = suffixes.concat(format.separatedCustomRules.removedbans);
+		}
+
+		if (addedRestrictionsLength) {
+			suffixes = suffixes.concat(format.separatedCustomRules.addedrestrictions);
+		}
+
+		if (format.separatedCustomRules.addedrules.length) {
+			for (const addedRule of format.separatedCustomRules.addedrules) {
+				let rule = addedRule;
+				const subFormat = this.getFormat(rule);
+				if (subFormat && subFormat.effectType === 'Format' && subFormat.name.startsWith('[Gen')) {
+					rule = subFormat.name.substr(subFormat.name.indexOf(']') + 2);
+				} else if (rule in clauseNicknames) {
+					rule = clauseNicknames[rule];
+				}
+				prefixesAdded.push(rule);
+			}
+		}
+
+		if (format.separatedCustomRules.removedrules.length) {
+			prefixesRemoved = prefixesRemoved.concat(format.separatedCustomRules.removedrules.map(x => clauseNicknames[x] || x));
+		}
+
+		let name = '';
+		if (prefixesRemoved.length) name += "(No " + Tools.joinList(prefixesRemoved, null, null, "or") + ") ";
+		if (prefixesAdded.length) name += prefixesAdded.join(" ") + " ";
+		name += format.name;
+		if (suffixes.length) name += " (" + (!onlySuffix ? "Plus " : "") + Tools.joinList(suffixes) + ")";
+
+		if (!fullName) {
+			if (name.length > MAX_CUSTOM_NAME_LENGTH) name = format.name + DEFAULT_CUSTOM_RULES_NAME;
+			this.formatNamesByCustomRules[key] = name;
+		}
+
+		return name;
 	}
 
 	getCustomRulesHtml(format: IFormat): string {

@@ -80,13 +80,7 @@ export class Tournament extends Activity {
 
 	setCustomFormatName(): void {
 		const previousName = this.name;
-		const customFormatName = Dex.getCustomFormatName(this.format, this.room);
-		if (this.format.customRules && (customFormatName === this.format.name || customFormatName.length > 100)) {
-			this.name = this.format.name + " (custom rules)";
-		} else {
-			this.name = customFormatName;
-		}
-
+		this.name = Dex.getCustomFormatName(this.format);
 		if (this.name !== previousName) this.sayCommand("/tour name " + this.name);
 	}
 
@@ -299,7 +293,9 @@ export class Tournament extends Activity {
 				if (format.name === this.originalFormat) this.manuallyNamed = false;
 			} else {
 				this.name = this.updates.format;
-				this.manuallyNamed = true;
+				if (this.name !== (this.format.name + Dex.defaultCustomRulesName) && this.name !== Dex.getCustomFormatName(this.format)) {
+					this.manuallyNamed = true;
+				}
 			}
 		}
 

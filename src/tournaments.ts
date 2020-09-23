@@ -19,14 +19,6 @@ export class Tournaments {
 	readonly semiFinalistPoints: number = 1;
 
 	createListeners: Dict<{format: IFormat; scheduled: boolean}> = {};
-	readonly defaultCustomRules: Dict<Partial<ISeparatedCustomRules>> = {
-		tournaments: {
-			addedbans: ['Leppa Berry'],
-		},
-		toursplaza: {
-			addedbans: ['Leppa Berry'],
-		},
-	};
 	readonly delayedScheduledTournamentTime: number = 15 * 1000;
 	queuedTournamentTime: number = 5 * 60 * 1000;
 	nextScheduledTournaments: Dict<IScheduledTournament> = {};
@@ -427,7 +419,7 @@ export class Tournaments {
 		}
 		for (let i = 1; i < lastDay; i++) {
 			html += "<td style='padding: 4px'><b>" + i + "</b> - " +
-				Dex.getCustomFormatName(Dex.getExistingFormat(schedule.months[month].formats[i]), room, true) + "</td>";
+				Dex.getCustomFormatName(Dex.getExistingFormat(schedule.months[month].formats[i]), true) + "</td>";
 			currentDay++;
 			if (currentDay === 7) {
 				html += "</tr><tr>";

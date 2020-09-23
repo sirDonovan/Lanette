@@ -3070,7 +3070,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			const now = Date.now();
 			for (const pastTournament of database.pastTournaments) {
 				const format = Dex.getFormat(pastTournament.inputTarget);
-				let tournament = format ? Dex.getCustomFormatName(format, tournamentRoom) : pastTournament.name;
+				let tournament = format ? Dex.getCustomFormatName(format) : pastTournament.name;
 
 				if (displayTimes) {
 					let duration = now - pastTournament.time;

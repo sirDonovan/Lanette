@@ -1061,7 +1061,7 @@ export class Client {
 					}
 
 					room.tournament.format.customRules = Dex.combineCustomRules(separatedCustomRules);
-					room.tournament.format.separatedCustomRules = separatedCustomRules;
+					room.tournament.format.separatedCustomRules = null;
 					if (!room.tournament.manuallyNamed) room.tournament.setCustomFormatName();
 				}
 			} else if (messageArguments.html.startsWith('<div class="broadcast-green"><p style="text-align:left;font-weight:bold;' +
