@@ -142,7 +142,6 @@ export class Dex {
 	private readonly effectivenessCache: Dict<Dict<number>> = Object.create(null);
 	private readonly evolutionLinesCache: Dict<string[][]> = Object.create(null);
 	private readonly evolutionLinesFormesCache: Dict<Dict<string[][]>> = Object.create(null);
-	private readonly formatCache: Dict<IFormat> = Object.create(null);
 	private readonly immunityCache: Dict<Dict<boolean>> = Object.create(null);
 	private readonly itemCache: Dict<IItem> = Object.create(null);
 	private itemsList: readonly IItem[] | null = null;
@@ -1272,6 +1271,10 @@ export class Dex {
 		}
 
 		return {addedbans, removedbans, addedrestrictions, addedrules, removedrules};
+	}
+
+	getCustomRulesForPokemonList(pokemon: string[]): string[] {
+		return ["-All Pokemon"].concat(pokemon.map(x => "+" + x));
 	}
 
 	getCustomFormatNameKey(format: IFormat): string {

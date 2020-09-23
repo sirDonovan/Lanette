@@ -2889,6 +2889,7 @@ const commands: CommandDefinitions<CommandContext> = {
 				return this.sayError(['disabledTournamentFeatures', room.title]);
 			}
 			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'tournament']);
+
 			const database = Storage.getDatabase(room);
 			if (database.queuedTournament && !cmd.startsWith('force')) {
 				const format = Dex.getFormat(database.queuedTournament.formatid, true);
@@ -2898,12 +2899,17 @@ const commands: CommandDefinitions<CommandContext> = {
 					delete database.queuedTournament;
 				}
 			}
+
 			if (target.includes('@@@')) {
 				return this.say("You must specify custom rules separately (``" + Config.commandCharacter + cmd + " format, cap, custom " +
 					"rules``).");
 			}
+
 			const targets = target.split(',');
 			const id = Tools.toId(targets[0]);
+			targets.shift();
+
+			const samePokemon: string[] = [];
 			let scheduled = false;
 			let format: IFormat | undefined;
 			if (id === 'scheduled' || id === 'official') {
@@ -2914,8 +2920,50 @@ const commands: CommandDefinitions<CommandContext> = {
 				if (room.id in Tournaments.nextScheduledTournaments && Date.now() > Tournaments.nextScheduledTournaments[room.id].time) {
 					return this.say("The scheduled tournament is delayed so you must wait until after it starts.");
 				}
-				format = Dex.getFormat(targets[0]);
-				if (!format || !format.tournamentPlayable) return this.sayError(['invalidTournamentFormat', format ? format.name : target]);
+
+				if (id === 'samesolo') {
+					format = Dex.getFormat('1v1');
+					const pokemon = Dex.getPokemon(targets[0]);
+					if (!pokemon) return this.sayError(['invalidPokemon', targets[0]]);
+					if (pokemon.battleOnly) return this.say("You cannot specify battle-only formes.");
+					samePokemon.push(pokemon.name);
+					targets.shift();
+				} else if (id === 'sameduo') {
+					if (targets.length < 2) return this.say("You must specify the 2 Pokemon of the duo.");
+					format = Dex.getFormat('2v2 Doubles');
+					for (let i = 0; i < 2; i++) {
+						const pokemon = Dex.getPokemon(targets[0]);
+						if (!pokemon) return this.sayError(['invalidPokemon', targets[0]]);
+						if (pokemon.battleOnly) return this.say("You cannot specify battle-only formes.");
+						if (samePokemon.includes(pokemon.name) || (pokemon.forme && samePokemon.includes(pokemon.baseSpecies))) {
+							return this.say("The duo already includes " + pokemon.name + "!");
+						}
+						samePokemon.push(pokemon.name);
+						targets.shift();
+					}
+				} else if (id === 'samesix') {
+					format = Dex.getFormat(targets[0]);
+					if (!format || !format.tournamentPlayable) {
+						return this.say("You must specify a valid format for the Same Six tournament.");
+					}
+					targets.shift();
+
+					if (targets.length < 6) return this.say("You must specify the 6 Pokemon of the team.");
+
+					for (let i = 0; i < 6; i++) {
+						const pokemon = Dex.getPokemon(targets[0]);
+						if (!pokemon) return this.sayError(['invalidPokemon', targets[0]]);
+						if (pokemon.battleOnly) return this.say("You cannot specify battle-only formes.");
+						if (samePokemon.includes(pokemon.name) || (pokemon.forme && samePokemon.includes(pokemon.baseSpecies))) {
+							return this.say("The team already includes " + pokemon.name + "!");
+						}
+						samePokemon.push(pokemon.name);
+						targets.shift();
+					}
+				} else {
+					format = Dex.getFormat(id);
+				}
+				if (!format || !format.tournamentPlayable) return this.sayError(['invalidTournamentFormat', format ? format.name : id]);
 				if (Tournaments.isInPastTournaments(room, format.inputTarget)) return this.say(format.name + " is on the past " +
 					"tournaments list and cannot be queued.");
 			}
@@ -2925,38 +2973,50 @@ const commands: CommandDefinitions<CommandContext> = {
 				if (Config.scheduledTournamentsMaxPlayerCap && Config.scheduledTournamentsMaxPlayerCap.includes(room.id)) {
 					playerCap = Tournaments.maxPlayerCap;
 				}
-			} else if (targets.length > 1) {
-				playerCap = parseInt(targets[1]);
-				if (isNaN(playerCap)) return this.say("You must specify a valid number for the player cap.");
-				if (playerCap && (playerCap < Tournaments.minPlayerCap || playerCap > Tournaments.maxPlayerCap)) {
-					return this.say("You must specify a player cap between " + Tournaments.minPlayerCap + " and " +
-						Tournaments.maxPlayerCap + ".");
-				}
-			}
-			if (!playerCap && Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
-				playerCap = Config.defaultTournamentPlayerCaps[room.id];
 			}
 
-			if (targets.length > 2) {
+			if (targets.length || samePokemon.length) {
 				if (scheduled) {
-					if (format.customRules) return this.say("You cannot alter the custom rules of scheduled tournaments.");
-					return this.say("You cannot add custom rules to scheduled tournaments.");
+					return this.say("You cannot alter the player cap or custom rules of scheduled tournaments.");
 				}
 
 				const customRules = format.customRules ? format.customRules.slice() : [];
-				for (let i = 2; i < targets.length; i++) {
-					const trimmed = targets[i].trim();
-					if (!customRules.includes(trimmed)) customRules.push(trimmed);
+				const existingCustomRules = customRules.length;
+				if (samePokemon.length) {
+					const customRulesForPokemonList = Dex.getCustomRulesForPokemonList(samePokemon);
+					for (const rule of customRulesForPokemonList) {
+						if (!customRules.includes(rule)) customRules.push(rule);
+					}
 				}
 
-				let formatid = format.name + '@@@' + customRules.join(',');
-				try {
-					formatid = Dex.validateFormat(formatid);
-				} catch (e) {
-					return this.say((e as Error).message);
+				for (const target of targets) {
+					const trimmed = target.trim();
+					const possiblePlayerCap = parseInt(trimmed);
+					if (isNaN(possiblePlayerCap)) {
+						if (!customRules.includes(trimmed)) customRules.push(trimmed);
+					} else {
+						playerCap = possiblePlayerCap;
+						if (playerCap < Tournaments.minPlayerCap || playerCap > Tournaments.maxPlayerCap) {
+							return this.say("You must specify a player cap between " + Tournaments.minPlayerCap + " and " +
+								Tournaments.maxPlayerCap + ".");
+						}
+					}
 				}
 
-				format = Dex.getExistingFormat(formatid, true);
+				if (customRules.length > existingCustomRules) {
+					let formatid = format.name + '@@@' + customRules.join(',');
+					try {
+						formatid = Dex.validateFormat(formatid);
+					} catch (e) {
+						return this.say((e as Error).message);
+					}
+
+					format = Dex.getExistingFormat(formatid, true);
+				}
+			}
+
+			if (!playerCap && Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
+				playerCap = Config.defaultTournamentPlayerCaps[room.id];
 			}
 
 			let time: number = 0;
@@ -2982,6 +3042,7 @@ const commands: CommandDefinitions<CommandContext> = {
 				scheduled,
 				time,
 			};
+
 			if (scheduled) {
 				Tournaments.setScheduledTournamentTimer(room);
 			} else if (time) {
@@ -3022,8 +3083,10 @@ const commands: CommandDefinitions<CommandContext> = {
 				Storage.exportDatabase(tournamentRoom.id);
 				return this.say(errorText);
 			}
-			let html = "<b>Queued" + (this.pm ? " " + tournamentRoom.title : "") + " tournament</b>: " + format.name +
-				(database.queuedTournament.scheduled ? " <i>(scheduled)</i>" : "") + "<br />";
+
+			let html = "<div class='infobox infobox-limited'><b>Queued" + (this.pm ? " " + tournamentRoom.title : "") + " " +
+				"tournament</b>: " + Dex.getCustomFormatName(format) + (database.queuedTournament.scheduled ? " <i>(scheduled)</i>" : "") +
+				"<br />";
 			if (database.queuedTournament.time) {
 				const now = Date.now();
 				if (now > database.queuedTournament.time) {
@@ -3037,6 +3100,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			}
 
 			if (format.customRules) html += "<br /><b>Custom rules:</b><br />" + Dex.getCustomRulesHtml(format);
+			html += "</div>";
 			this.sayHtml(html, tournamentRoom);
 		},
 		aliases: ['queuedtour', 'nexttournament', 'nexttour'],
