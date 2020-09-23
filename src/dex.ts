@@ -1298,8 +1298,38 @@ export class Dex {
 
 		const addedBans = format.separatedCustomRules.addedbans.slice();
 		let onlySuffix = false;
+		if (addedBans.length && removedBansLength && !addedRestrictionsLength) {
+			if (addedBans.includes(tagNames.allabilities) && !addedBans.map(x => this.getAbility(x)).filter(x => x).length) {
+				const abilities = format.separatedCustomRules.removedbans.map(x => this.getAbility(x)).filter(x => x);
+				if (abilities.length === removedBansLength) {
+					onlySuffix = true;
+					addedBans.splice(addedBans.indexOf(tagNames.allabilities), 1);
+					suffixes.push("Only " + Tools.joinList(abilities.map(x => x!.name)));
+				}
+			} else if (addedBans.includes(tagNames.allitems) && !addedBans.map(x => this.getItem(x)).filter(x => x).length) {
+				const items = format.separatedCustomRules.removedbans.map(x => this.getItem(x)).filter(x => x);
+				if (items.length === removedBansLength) {
+					onlySuffix = true;
+					addedBans.splice(addedBans.indexOf(tagNames.allitems), 1);
+					suffixes.push("Only " + Tools.joinList(items.map(x => x!.name)));
+				}
+			} else if (addedBans.includes(tagNames.allmoves) && !addedBans.map(x => this.getMove(x)).filter(x => x).length) {
+				const moves = format.separatedCustomRules.removedbans.map(x => this.getMove(x)).filter(x => x);
+				if (moves.length === removedBansLength) {
+					onlySuffix = true;
+					addedBans.splice(addedBans.indexOf(tagNames.allmoves), 1);
+					suffixes.push("Only " + Tools.joinList(moves.map(x => x!.name)));
+				}
+			} else if (addedBans.includes(tagNames.allpokemon) && !addedBans.map(x => this.getPokemon(x)).filter(x => x).length) {
+				const pokemon = format.separatedCustomRules.removedbans.map(x => this.getPokemon(x)).filter(x => x);
+				if (pokemon.length === removedBansLength) {
+					onlySuffix = true;
+					addedBans.splice(addedBans.indexOf(tagNames.allpokemon), 1);
+					suffixes.push("Only " + Tools.joinList(pokemon.map(x => x!.name)));
 				}
 			}
+		}
+
 		if (addedBans.length) {
 			prefixesRemoved = prefixesRemoved.concat(format.separatedCustomRules.addedbans);
 		}
