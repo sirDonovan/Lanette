@@ -3,7 +3,7 @@ import type { Room } from "./rooms";
 import type { IFormat } from "./types/dex";
 import type { IBattleData, ICurrentTournamentBattle, ITournamentEndJson, ITournamentUpdateJson } from "./types/tournaments";
 
-const generators: Dict<number> = {
+const GENERATORS: Dict<number> = {
 	"Single": 1,
 	"Double": 2,
 	"Triple": 3,
@@ -69,8 +69,8 @@ export class Tournament extends Activity {
 
 	setGenerator(generator: string): void {
 		const generatorName = generator.split(" ")[0];
-		if (generatorName in generators) {
-			this.generator = generators[generatorName];
+		if (generatorName in GENERATORS) {
+			this.generator = GENERATORS[generatorName];
 		} else {
 			const generatorNumber = parseInt(generator.split("-tuple")[0]);
 			if (!isNaN(generatorNumber)) this.generator = generatorNumber;
