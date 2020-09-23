@@ -9,8 +9,8 @@ import type {
 
 let formatLinks: Dict<IFormatLinks | undefined>;
 
-const currentGen = 8;
-const currentGenString = 'gen' + currentGen;
+const CURRENT_GEN = 8;
+const CURRENT_GEN_STRING = 'gen' + CURRENT_GEN;
 
 const natures: Dict<INature> = {
 	adamant: {name: "Adamant", plus: 'atk', minus: 'spa'},
@@ -117,7 +117,7 @@ const dexes: Dict<Dex> = {};
 
 export class Dex {
 	// exported constants
-	readonly currentGenString: typeof currentGenString = currentGenString;
+	readonly currentGenString: typeof CURRENT_GEN_STRING = CURRENT_GEN_STRING;
 	readonly customRuleAliases: typeof customRuleAliases = customRuleAliases;
 	readonly customRuleFormats: typeof customRuleFormats = customRuleFormats;
 	dexes: Dict<Dex> = dexes;
@@ -155,7 +155,7 @@ export class Dex {
 	/* eslint-enable */
 
 	constructor(gen?: number, mod?: string) {
-		if (!gen) gen = currentGen;
+		if (!gen) gen = CURRENT_GEN;
 		if (!mod) mod = 'base';
 
 		const simDist = ".sim-dist";
@@ -165,7 +165,7 @@ export class Dex {
 		const isBase = mod === 'base';
 		if (isBase) {
 			dexes['base'] = this;
-			dexes[currentGenString] = this;
+			dexes[CURRENT_GEN_STRING] = this;
 			this.pokemonShowdownDex = pokemonShowdownDexBase;
 
 			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
@@ -215,7 +215,7 @@ export class Dex {
 	}
 
 	getDex(mod?: string): Dex {
-		if (!mod) mod = currentGenString;
+		if (!mod) mod = CURRENT_GEN_STRING;
 		return dexes[mod];
 	}
 
@@ -1010,7 +1010,7 @@ export class Dex {
 			format = this.pokemonShowdownDex.getFormat(name, isValidated);
 
 			if (!format.exists) {
-				for (let i = currentGen - 1; i >= 1; i--) {
+				for (let i = CURRENT_GEN - 1; i >= 1; i--) {
 					format = this.pokemonShowdownDex.getFormat('gen' + i + name, isValidated);
 					if (format.exists) break;
 				}
@@ -1658,7 +1658,7 @@ export const instantiate = (): void => {
 	const oldDex: Dex | undefined = global.Dex;
 
 	global.Dex = new Dex();
-	for (let i = currentGen - 1; i >= 1; i--) {
+	for (let i = CURRENT_GEN - 1; i >= 1; i--) {
 		const mod = 'gen' + i;
 		dexes[mod] = new Dex(i, mod);
 	}
