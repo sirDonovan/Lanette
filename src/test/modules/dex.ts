@@ -496,6 +496,19 @@ describe("Dex", () => {
 
 		// misc
 
+		// reversing previousTeams and pool
+		possibleTeams = Dex.getPossibleTeams([["Pikachu"]], ["Charmander"],
+			{additions: 1, evolutions: 1, requiredAddition: true, requiredEvolution: true}).map(x => x.join(','));
+		assertStrictEqual(possibleTeams.length, 2);
+		assert(possibleTeams.includes('Charmander,Raichu'));
+		assert(possibleTeams.includes('Charmeleon,Pikachu'));
+
+		possibleTeams = Dex.getPossibleTeams([["Charmander"]], ["Pikachu"],
+			{additions: 1, evolutions: 1, requiredAddition: true, requiredEvolution: true}).map(x => x.join(','));
+		assertStrictEqual(possibleTeams.length, 2);
+		assert(possibleTeams.includes('Charmander,Raichu'));
+		assert(possibleTeams.includes('Charmeleon,Pikachu'));
+
 		// split evolutions
 		possibleTeams = Dex.getPossibleTeams([["Gloom"]], ["Charmander"],
 			{additions: 1, evolutions: 1, requiredAddition: true, requiredEvolution: true}).map(x => x.join(','));
@@ -511,6 +524,13 @@ describe("Dex", () => {
 		assert(possibleTeams.includes('Charmander,Raichu'));
 		assert(possibleTeams.includes('Charmander,Raichu-Alola'));
 		assert(possibleTeams.includes('Charmeleon,Pikachu'));
+
+		possibleTeams = Dex.getPossibleTeams([["Charmander"]], ["Cutiefly"],
+			{additions: 1, evolutions: 1, allowFormes: true, requiredAddition: true, requiredEvolution: true}).map(x => x.join(','));
+		assertStrictEqual(possibleTeams.length, 3);
+		assert(possibleTeams.includes('Charmander,Ribombee'));
+		assert(possibleTeams.includes('Charmander,Ribombee-Totem'));
+		assert(possibleTeams.includes('Charmeleon,Cutiefly'));
 
 		possibleTeams = Dex.getPossibleTeams([["Charmander"]], ["Mr. Mime"],
 			{additions: 1, evolutions: 1, allowFormes: true, requiredAddition: true, requiredEvolution: true}).map(x => x.join(','));

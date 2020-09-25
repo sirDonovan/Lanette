@@ -1479,6 +1479,7 @@ export class Dex {
 
 		let currentTeams = baseTeams.slice();
 		const nextTeams: string[][] = [];
+		const checkedTeams: string[] = [];
 		if (evolutions > 0) {
 			while (evolutions > 0) {
 				for (const team of currentTeams) {
@@ -1487,14 +1488,35 @@ export class Dex {
 						const pokemon = this.getExistingPokemon(team[i]);
 						if (!pokemon.nfe) continue;
 						const pokemonSlot = i;
+						const evos: string[] = [];
 						for (const evo of pokemon.evos) {
 							const evolution = this.getExistingPokemon(evo);
-							if (evolution.forme && !options.allowFormes) continue;
-							availableEvolutions = true;
+							if (options.allowFormes) {
+								const baseEvolution = this.getExistingPokemon(evolution.baseSpecies);
+								evos.push(baseEvolution.name);
+								if (baseEvolution.otherFormes) {
+									for (const otherForme of baseEvolution.otherFormes) {
+										const forme = this.getExistingPokemon(otherForme);
+										if (!forme.battleOnly) evos.push(forme.name);
+									}
+								}
+							} else {
+								if (!evolution.forme) evos.push(evolution.name);
+							}
+						}
+
+						for (const name of evos) {
+
+							if (!availableEvolutions) availableEvolutions = true;
 							const newTeam = team.slice();
-							newTeam[pokemonSlot] = evolution.name;
+							newTeam[pokemonSlot] = name;
+
+							const key = newTeam.slice().sort().join(',');
+							if (checkedTeams.includes(key)) continue;
+
 							finalTeams.push(newTeam);
 							nextTeams.push(newTeam);
+							checkedTeams.push(key);
 						}
 					}
 					if (!availableEvolutions) finalTeams.push(team);
@@ -1510,13 +1532,12 @@ export class Dex {
 					for (let i = 0; i < team.length; i++) {
 						const pokemon = this.getExistingPokemon(team[i]);
 						if (!pokemon.prevo) continue;
-						availableEvolutions = true;
 						const pokemonSlot = i;
 						const prevo = this.getExistingPokemon(pokemon.prevo);
-						let prevos: string[];
+						const prevos: string[] = [];
 						if (options.allowFormes) {
 							const basePrevo = this.getExistingPokemon(prevo.baseSpecies);
-							prevos = [basePrevo.name];
+							prevos.push(basePrevo.name);
 							if (basePrevo.otherFormes) {
 								for (const otherForme of basePrevo.otherFormes) {
 									const forme = this.getExistingPokemon(otherForme);
@@ -1524,14 +1545,21 @@ export class Dex {
 								}
 							}
 						} else {
-							prevos = [prevo.name];
+							if (!prevo.forme) prevos.push(prevo.name);
 						}
 
 						for (const name of prevos) {
+
+							if (!availableEvolutions) availableEvolutions = true;
 							const newTeam = team.slice();
 							newTeam[pokemonSlot] = name;
+
+							const key = newTeam.slice().sort().join(',');
+							if (checkedTeams.includes(key)) continue;
+
 							finalTeams.push(newTeam);
 							nextTeams.push(newTeam);
+							checkedTeams.push(key);
 						}
 					}
 					if (!availableEvolutions) finalTeams.push(team);
