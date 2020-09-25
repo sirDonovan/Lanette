@@ -1301,6 +1301,7 @@ export abstract class EliminationTournament extends Game {
 
 	onBattlePlayer(room: Room, slot: string, username: string): void {
 		const id = Tools.toId(username);
+		if (!id) return;
 
 		// non-tournament battle, a player left the battle, or /addplayer was used
 		if (!(id in this.players) || (room.id in this.battleData && this.getPlayersFromBattleData(room))) {
