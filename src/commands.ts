@@ -2996,15 +2996,14 @@ const commands: CommandDefinitions<CommandContext> = {
 
 				for (const target of targets) {
 					const trimmed = target.trim();
-					const possiblePlayerCap = parseInt(trimmed);
-					if (isNaN(possiblePlayerCap)) {
-						if (!customRules.includes(trimmed)) customRules.push(trimmed);
-					} else {
-						playerCap = possiblePlayerCap;
+					if (Tools.isInteger(trimmed)) {
+						playerCap = parseInt(trimmed);
 						if (playerCap < Tournaments.minPlayerCap || playerCap > Tournaments.maxPlayerCap) {
 							return this.say("You must specify a player cap between " + Tournaments.minPlayerCap + " and " +
 								Tournaments.maxPlayerCap + ".");
 						}
+					} else {
+						if (!customRules.includes(trimmed)) customRules.push(trimmed);
 					}
 				}
 
