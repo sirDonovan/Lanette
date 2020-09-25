@@ -11,7 +11,7 @@ const data: {"categories": string[]; "categoryPools": Dict<string[]>} = {
 	"categoryPools": {},
 };
 
-class QuizBuzzwole extends Game {
+class BuzzwolesFizzBuzz extends Game {
 	maxPlayers: number = 20;
 	playerOrder: Player[] = [];
 	playerList: Player[] = [];
@@ -166,7 +166,7 @@ class QuizBuzzwole extends Game {
 	}
 }
 
-const commands: GameCommandDefinitions<QuizBuzzwole> = {
+const commands: GameCommandDefinitions<BuzzwolesFizzBuzz> = {
 	fizz: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user): GameCommandReturnType {
@@ -310,16 +310,16 @@ const commands: GameCommandDefinitions<QuizBuzzwole> = {
 	},
 };
 
-export const game: IGameFile<QuizBuzzwole> = {
+export const game: IGameFile<BuzzwolesFizzBuzz> = {
 	aliases: ['buzzwoles', 'qb'],
 	category: 'knowledge',
-	class: QuizBuzzwole,
+	class: BuzzwolesFizzBuzz,
 	commandDescriptions: [Config.commandCharacter + "fizz [number or item]"],
 	commands,
 	description: "Players take turns counting and replace certain multiples with items in the chosen categories " +
 		"(no repeats in a round). <a href='https://www.tapatalk.com/groups/ps_game_corner/quiz-buzz-t110.html'>More info</a>",
-	formerNames: ["Quiz Buzz"],
-	name: "Quiz Buzzwole",
+	formerNames: ["Quiz Buzz", "Quiz Buzzwole"],
+	name: "Buzzwole's Fizz Buzz",
 	mascot: "Buzzwole",
 	scriptedOnly: true,
 };
