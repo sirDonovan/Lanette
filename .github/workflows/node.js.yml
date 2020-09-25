@@ -44,6 +44,9 @@ jobs:
     - name: Lint project
       run: npm run lint
 
+    - name: Create default config
+      run: cp src/config-example.ts src/config.ts
+
     - name: Build project
       run: npm run tsc
 
