@@ -25,13 +25,19 @@ if (testOptions.games) {
 	}
 }
 
+function testMascotPrefix(format: IGameFormat | IUserHostedFormat): void {
+	assert(format.name.startsWith(Games.getFormatMascotPrefix(format) + " "), format.name);
+}
+
 function testMascots(format: IGameFormat | IUserHostedFormat): void {
 	if (format.mascot) {
 		assert(Dex.getPokemon(format.mascot), format.name);
+		testMascotPrefix(format);
 	} else if (format.mascots) {
 		for (const mascot of format.mascots) {
 			assert(Dex.getPokemon(mascot), format.name);
 		}
+		testMascotPrefix(format);
 	}
 }
 

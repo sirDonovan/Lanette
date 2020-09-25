@@ -190,6 +190,7 @@ export const game: IUserHostedFile<UserHosted> = {
 		{
 			name: "Floette's Forum Game",
 			mascot: "Floette-eternal",
+			mascotPrefix: "Floette's",
 			description: "A game from Game Corner's official forum.",
 			aliases: ['ffg'],
 			customizableAttributes: ['name', 'link'],
@@ -386,6 +387,7 @@ export const game: IUserHostedFile<UserHosted> = {
 		{
 			name: "Rotom-Dex's Trivia",
 			mascot: "Rotom",
+			mascotPrefix: "Rotom-Dex's",
 			description: "A dex entry of a Pokemon will be posted and players have to be first to guess the Pokemon correctly!",
 			aliases: ['RDT', 'rotomdexs'],
 			freejoin: true,

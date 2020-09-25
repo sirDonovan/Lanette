@@ -127,6 +127,7 @@ interface IGameFileProperties<T extends Game = Game> {
 	formerNames?: string[];
 	mascot?: string;
 	mascots?: string[];
+	mascotPrefix?: string;
 	minigameCommand?: string;
 	minigameCommandAliases?: string[];
 	minigameDescription?: string;
@@ -210,6 +211,7 @@ interface IUserHosted {
 	link?: string;
 	mascot?: string;
 	mascots?: string[];
+	mascotPrefix?: string;
 	teamGame?: boolean;
 }
 

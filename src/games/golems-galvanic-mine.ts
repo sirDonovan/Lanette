@@ -115,4 +115,5 @@ export const game: IGameFile<GolemsGalvanicMine> = {
 	freejoin: true,
 	name: "Golem's Galvanic Mine",
 	mascot: "Golem-Alola",
+	mascotPrefix: "Golem's",
 };

@@ -346,6 +346,11 @@ export class Games {
 		for (const i in this.formats) {
 			const format = this.formats[i];
 
+			if (format.mascot && format.mascots) throw new Error(format.name + " has both a single and randomized mascots.");
+			if (format.mascots && !format.mascotPrefix) {
+				throw new Error(format.name + " has randomized mascots so it needs a mascotPrefix.");
+			}
+
 			const idsToAlias: string[] = [format.id];
 			if (format.formerNames) {
 				for (const formerName of format.formerNames) {
@@ -515,6 +520,18 @@ export class Games {
 				Commands[alias] = Commands[name];
 			}
 		}
+	}
+
+	getFormatMascotPrefix(format: IGameFormat | IUserHostedFormat): string {
+		if (format.mascotPrefix) return format.mascotPrefix;
+
+		if (format.mascot) {
+			const mascot = Dex.getExistingPokemon(format.mascot);
+			if (mascot.name.endsWith('s')) return mascot.name + "'";
+			return mascot.name + "'s";
+		}
+
+		return "";
 	}
 
 	/**
