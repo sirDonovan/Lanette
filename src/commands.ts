@@ -3101,7 +3101,7 @@ const commands: CommandDefinitions<CommandContext> = {
 
 			if (format.customRules) html += "<br /><b>Custom rules:</b><br />" + Dex.getCustomRulesHtml(format);
 			html += "</div>";
-			this.sayHtml(html, tournamentRoom);
+			this.sayUhtml(room.id + "-queued-tournament", html, tournamentRoom);
 		},
 		aliases: ['queuedtour', 'nexttournament', 'nexttour'],
 	},
