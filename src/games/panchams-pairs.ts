@@ -56,7 +56,7 @@ class PanchamPairs extends Game {
 			};
 		}
 
-		const movesList = Games.getMovesList(x => !!x.basePower);
+		const movesList = Games.getMovesList(x => !x.isMax && !x.isZ && !!x.basePower);
 		for (const move of movesList) {
 			dataKeys.moves.push(move.name);
 			data.moves[move.name] = {
