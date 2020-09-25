@@ -1,3 +1,5 @@
+/.github/**
+/.vscode/**
 /archived-databases/**
 /built/**
 /data/**
@@ -5,11 +7,12 @@
 /local-utils/**
 /node_modules/**
 /pokemon-showdown/**
+/private-data/**
 /roomlogs/**
 /src/config.ts
 app.js
 build.js
 create-untracked-files.js
+get-options.js
 mocha.js
 tempConfig.js
-update-ps.js
