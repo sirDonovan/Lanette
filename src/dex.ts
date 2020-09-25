@@ -969,6 +969,7 @@ export class Dex {
 		let id = Tools.toId(name);
 		if (!id) return;
 
+		name = name.trim();
 		const inputTarget = name;
 		let format = this.pokemonShowdownDex.getFormat(name, isValidated);
 		if (!format.exists) {

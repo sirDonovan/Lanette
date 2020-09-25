@@ -2906,7 +2906,8 @@ const commands: CommandDefinitions<CommandContext> = {
 			}
 
 			const targets = target.split(',');
-			const id = Tools.toId(targets[0]);
+			const formatName = targets[0];
+			const id = Tools.toId(formatName);
 			targets.shift();
 
 			const samePokemon: string[] = [];
@@ -2961,11 +2962,15 @@ const commands: CommandDefinitions<CommandContext> = {
 						targets.shift();
 					}
 				} else {
-					format = Dex.getFormat(id);
+					format = Dex.getFormat(formatName);
 				}
-				if (!format || !format.tournamentPlayable) return this.sayError(['invalidTournamentFormat', format ? format.name : id]);
-				if (Tournaments.isInPastTournaments(room, format.inputTarget)) return this.say(format.name + " is on the past " +
-					"tournaments list and cannot be queued.");
+
+				if (!format || !format.tournamentPlayable) {
+					return this.sayError(['invalidTournamentFormat', format ? format.name : formatName]);
+				}
+				if (Tournaments.isInPastTournaments(room, format.inputTarget)) {
+					return this.say(format.name + " is on the past tournaments list and cannot be queued.");
+				}
 			}
 
 			let playerCap: number = 0;

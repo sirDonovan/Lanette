@@ -182,28 +182,39 @@ describe("Dex", () => {
 		assert(format.customRules);
 		assertStrictEqual(format.customRules.length, 1);
 		assertStrictEqual(format.customRules[0], '+Lunala');
+		assertStrictEqual(format.id, 'gen' + Dex.gen + 'ou');
 
 		format = Dex.getExistingFormat("uubl");
 		assert(format.customRules);
 		assertStrictEqual(format.customRules.length, 1);
 		assertStrictEqual(format.customRules[0], '+UUBL');
+		assertStrictEqual(format.id, 'gen' + Dex.gen + 'uu');
 
 		format = Dex.getExistingFormat("uubl@@@+Lunala");
 		assert(format.customRules);
 		assertStrictEqual(format.customRules.length, 2);
 		assertStrictEqual(format.customRules[0], '+Lunala');
 		assertStrictEqual(format.customRules[1], '+UUBL');
+		assertStrictEqual(format.id, 'gen' + Dex.gen + 'uu');
 
 		format = Dex.getExistingFormat("monotype uu");
 		assert(format.customRules);
 		assertStrictEqual(format.customRules.length, 1);
 		assertStrictEqual(format.customRules[0], 'Same Type Clause');
+		assertStrictEqual(format.id, 'gen' + Dex.gen + 'uu');
 
 		format = Dex.getExistingFormat("monotype uubl");
 		assert(format.customRules);
 		assertStrictEqual(format.customRules.length, 2);
 		assertStrictEqual(format.customRules[0], 'Same Type Clause');
 		assertStrictEqual(format.customRules[1], '+UUBL');
+		assertStrictEqual(format.id, 'gen' + Dex.gen + 'uu');
+
+		format = Dex.getExistingFormat("monotype doubles ou");
+		assert(format.customRules);
+		assertStrictEqual(format.customRules.length, 1);
+		assertStrictEqual(format.customRules[0], 'Same Type Clause');
+		assertStrictEqual(format.id, 'gen' + Dex.gen + 'doublesou');
 	});
 	it('should properly parse custom rules in separateCustomRules()', () => {
 		const customRules: string[] = ["-Pikachu", "+Charizard", "*Kubfu", "Same Type Clause", "!Team Preview"];
