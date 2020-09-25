@@ -573,6 +573,7 @@ export interface IGetPossibleTeamsOptions {
 	allowFormes?: boolean;
 	requiredAddition?: boolean;
 	requiredEvolution?: boolean;
+	usablePokemon?: string[];
 }
 
 export interface IPSAbility extends IAbility {

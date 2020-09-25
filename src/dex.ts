@@ -1447,6 +1447,9 @@ export class Dex {
 				const key = sorted.join(',');
 				if (key in checkedPermutations) continue;
 				checkedPermutations[key] = true;
+				if (options.usablePokemon) {
+					if (permutation.map(x => options.usablePokemon!.includes(x)).length < permutation.length) continue;
+				}
 
 				if (permutation.length <= additions) possibleAdditions.push(permutation);
 			}
@@ -1506,6 +1509,7 @@ export class Dex {
 						}
 
 						for (const name of evos) {
+							if (options.usablePokemon && !options.usablePokemon.includes(name)) continue;
 
 							if (!availableEvolutions) availableEvolutions = true;
 							const newTeam = team.slice();
@@ -1549,6 +1553,7 @@ export class Dex {
 						}
 
 						for (const name of prevos) {
+							if (options.usablePokemon && !options.usablePokemon.includes(name)) continue;
 
 							if (!availableEvolutions) availableEvolutions = true;
 							const newTeam = team.slice();

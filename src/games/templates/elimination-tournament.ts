@@ -181,8 +181,9 @@ export abstract class EliminationTournament extends Game {
 		if (this.variant && !(this.variant === 'monocolor' || this.variant === 'monoregion')) {
 			formatName = this.variant;
 		}
-		this.battleFormat = Dex.getExistingFormat(formatName);
 
+		this.battleFormat = Dex.getExistingFormat(formatName);
+		this.battleFormat.usablePokemon = Dex.getUsablePokemon(this.battleFormat);
 		this.firstRoundTime = this.activityWarnTimeout + this.activityDQTimeout + this.firstRoundExtraTime;
 	}
 
@@ -239,7 +240,6 @@ export abstract class EliminationTournament extends Game {
 	createPokedex(): string[] {
 		const fullyEvolved = this.fullyEvolved || (this.evolutionsPerRound < 1 && !this.usesCloakedPokemon);
 		const checkEvolutions = this.evolutionsPerRound !== 0;
-		if (!this.battleFormat.usablePokemon) this.battleFormat.usablePokemon = Dex.getUsablePokemon(this.battleFormat);
 
 		const pokedex: IPokemon[] = [];
 		for (const name of Dex.data.pokemonKeys) {
@@ -597,7 +597,8 @@ export abstract class EliminationTournament extends Game {
 
 				let possibleTeams = this.possibleTeams.get(winner)!;
 				possibleTeams = Dex.getPossibleTeams(possibleTeams, loserTeam, {additions, evolutions: this.evolutionsPerRound,
-					requiredAddition: this.requiredAddition, requiredEvolution: this.requiredEvolution, allowFormes: this.allowsFormes});
+					requiredAddition: this.requiredAddition, requiredEvolution: this.requiredEvolution, allowFormes: this.allowsFormes,
+					usablePokemon: this.battleFormat.usablePokemon});
 				this.possibleTeams.set(winner, possibleTeams);
 			}
 		}
@@ -1147,7 +1148,8 @@ export abstract class EliminationTournament extends Game {
 				let possibleTeams = this.possibleTeams.get(player)!;
 				possibleTeams = Dex.getPossibleTeams(possibleTeams, pokemon, {additions: this.additionsPerRound,
 					evolutions: this.evolutionsPerRound, requiredAddition: this.requiredAddition,
-					requiredEvolution: this.requiredEvolution, allowFormes: this.allowsFormes});
+					requiredEvolution: this.requiredEvolution, allowFormes: this.allowsFormes,
+					usablePokemon: this.battleFormat.usablePokemon});
 				this.possibleTeams.set(player, possibleTeams);
 			}
 		});
