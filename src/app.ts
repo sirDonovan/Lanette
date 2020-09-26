@@ -164,15 +164,6 @@ module.exports = (async(): Promise<void> => {
 					const games = require('./' + moduleFilenames[moduleId]) as typeof import('./games');
 					games.instantiate();
 				} else if (moduleId === 'plugins') {
-					if (Plugins) {
-						for (const plugin of Plugins) {
-							if (plugin.moduleName) {
-								// @ts-expect-error
-								delete global[plugin.moduleName];
-							}
-						}
-					}
-
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
 					const pluginsLoader = require('./plugins-loader') as typeof import('./plugins-loader');
 					await pluginsLoader.load();

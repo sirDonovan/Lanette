@@ -10,6 +10,7 @@ export interface IPluginConstructor {
 export interface IPluginInterface {
 	name: string;
 	loadData?: () => Promise<void>;
+	onReload?: (previous: Partial<IPluginInterface>) => void;
 	parseMessage?: (room: Room, messageType: keyof IClientMessageTypes, messageParts: string[]) => true | undefined;
 }
 

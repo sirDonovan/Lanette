@@ -16,21 +16,39 @@ export async function load(): Promise<void> {
 		if (!fileName.endsWith('.js')) continue;
 
 		const pluginPath = path.join(pluginsDirectory, fileName);
+		const pluginName = fileName.substr(0, fileName.length - 3);
+
 		// eslint-disable-next-line @typescript-eslint/no-var-requires
 		const file = require(pluginPath) as IPluginFile;
 		if (!file.commands && !file.Module) {
-			throw new Error("No support data is exported from " + fileName.substr(0, fileName.length - 3) + ".");
+			throw new Error("No support data is exported from " + pluginName + ".");
 		}
 
 		if (file.Module) {
 			const moduleInstance = new file.Module();
 			if (!moduleInstance.name) {
-				throw new Error("The module exported from " + fileName.substr(0, fileName.length - 3) + " is missing a name.");
+				throw new Error("The module exported from " + pluginName + " is missing a name.");
 			}
 
 			if (moduleInstance.name in global) {
-				throw new Error("Module '" + moduleInstance.name + "' exported from " + fileName.substr(0, fileName.length - 3) + " " +
-					"already exists in the global namespace");
+				let previousInstance = false;
+				if (global.Plugins) {
+					for (const plugin of global.Plugins) {
+						if (plugin.moduleName === moduleInstance.name) {
+							if (moduleInstance.onReload) {
+								// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+								moduleInstance.onReload((global as any)[moduleInstance.name]);
+							}
+							previousInstance = true;
+							break;
+						}
+					}
+				}
+
+				if (!previousInstance) {
+					throw new Error("Module '" + moduleInstance.name + "' exported from " + pluginName + " already exists in the " +
+						"global namespace");
+				}
 			}
 
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access

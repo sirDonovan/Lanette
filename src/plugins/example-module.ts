@@ -8,6 +8,16 @@ import type { IPluginInterface } from "../types/plugins";
 export class Module implements IPluginInterface {
 	name: string = "PluginTest";
 
+	onReload(previous: Partial<Module>): void {
+		// clone any persistent data to the new instance and cleanup any timers
+
+		// cleanup memory of the previous instance
+		for (const i in previous) {
+			// @ts-expect-error
+			delete previous[i];
+		}
+	}
+
 	// return 'true' from a plugin's parseMessage method to prevent the default parsing behavior in Client for that messageType
 	parseMessage(room: Room, messageType: keyof IClientMessageTypes, messageParts: string[]): true | undefined {
 		switch (messageType) {
