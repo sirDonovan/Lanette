@@ -1,6 +1,5 @@
 import path = require('path');
 
-import type { Room } from './rooms';
 import type {
 	IAbility, IAbilityCopy, IDataTable, IFormat, IFormatLinks, IGetPossibleTeamsOptions, IGifData,
 	IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy, ISeparatedCustomRules, ITypeData,
@@ -106,18 +105,18 @@ const clauseNicknames: Dict<string> = {
 const gen2Items: string[] = ['berserkgene', 'berry', 'bitterberry', 'burntberry', 'goldberry', 'iceberry', 'mintberry', 'miracleberry',
 	'mysteryberry', 'pinkbow', 'polkadotbow', 'przcureberry', 'psncureberry'];
 
-const customRuleFormats: Dict<string> = {
-	uubl: 'UU@@@+UUBL',
-	rubl: 'RU@@@+RUBL',
-	nubl: 'NU@@@+NUBL',
-	publ: 'PU@@@+PUBL',
+const customRuleFormats: Dict<{banlist: string, format: string}> = {
+	uubl: {banlist: '+UUBL', format: 'UU'},
+	rubl: {banlist: '+RUBL', format: 'RU'},
+	nubl: {banlist: '+NUBL', format: 'NU'},
+	publ: {banlist: '+PUBL', format: 'PU'},
 };
 
 const customRuleAliases: Dict<string[]> = {
-	uu: ['-All pokemon', '+LC', '+LC Uber', '+NFE', '+ZU', '+PU', '+PUBL', '+NU', '+NUBL', '+RU', '+RUBL', '+UU'],
-	ru: ['-All pokemon', '+LC', '+LC Uber', '+NFE', '+ZU', '+PU', '+PUBL', '+NU', '+NUBL', '+RU'],
-	nu: ['-All pokemon', '+LC', '+LC Uber', '+NFE', '+ZU', '+PU', '+PUBL', '+NU'],
-	pu: ['-All pokemon', '+LC', '+LC Uber', '+NFE', '+ZU', '+PU'],
+	uu: ['-All Pokemon', '+LC', '+LC Uber', '+NFE', '+ZU', '+PU', '+PUBL', '+NU', '+NUBL', '+RU', '+RUBL', '+UU'],
+	ru: ['-All Pokemon', '+LC', '+LC Uber', '+NFE', '+ZU', '+PU', '+PUBL', '+NU', '+NUBL', '+RU'],
+	nu: ['-All Pokemon', '+LC', '+LC Uber', '+NFE', '+ZU', '+PU', '+PUBL', '+NU'],
+	pu: ['-All Pokemon', '+LC', '+LC Uber', '+NFE', '+ZU', '+PU'],
 	cap: ['+CAP', '+CAP NFE', '+CAP LC'],
 	monotype: ['Same Type Clause'],
 	aaa: ['!Obtainable Abilities', '-Wonder Guard', '-Shadow Tag'],
@@ -250,7 +249,23 @@ export class Dex {
 	loadData(): void {
 		if (this.dataCache) return;
 
-		if (this.isBase) this.pokemonShowdownDex.includeModData();
+		if (this.isBase) {
+			this.pokemonShowdownDex.includeModData();
+
+			const baseCustomRuleFormats = Object.keys(customRuleFormats);
+			for (let i = CURRENT_GEN; i > 0; i--) {
+				const gen = 'gen' + i;
+				for (const name of baseCustomRuleFormats) {
+					const format = gen + customRuleFormats[name].format;
+					if (!this.pokemonShowdownDex.getFormat(format).exists) continue;
+
+					customRuleFormats[gen + name] = {
+						banlist: customRuleFormats[name].banlist,
+						format,
+					};
+				}
+			}
+		}
 
 		const lanetteDataDir = path.join(Tools.rootFolder, 'data');
 
@@ -1012,7 +1027,7 @@ export class Dex {
 
 			id = name;
 			if (id in customRuleFormats) {
-				const split = this.splitNameAndCustomRules(customRuleFormats[id]);
+				const split = this.splitNameAndCustomRules(customRuleFormats[id].format + '@@@' + customRuleFormats[id].banlist);
 				name = split[0];
 				allCustomRules = allCustomRules.concat(split[1]);
 			}

@@ -174,7 +174,7 @@ describe("Dex", () => {
 		}
 
 		for (const i in Dex.customRuleFormats) {
-			assert(Dex.validateFormat(Dex.customRuleFormats[i]), i);
+			assert(Dex.validateFormat(Dex.customRuleFormats[i].format + '@@@' + Dex.customRuleFormats[i].banlist), i);
 		}
 	});
 	it('should support all types of custom rule aliases', () => {
@@ -197,6 +197,19 @@ describe("Dex", () => {
 		assertStrictEqual(format.customRules[1], '+UUBL');
 		assertStrictEqual(format.id, 'gen' + Dex.gen + 'uu');
 
+		format = Dex.getExistingFormat("gen7uubl");
+		assert(format.customRules);
+		assertStrictEqual(format.customRules.length, 1);
+		assertStrictEqual(format.customRules[0], '+UUBL');
+		assertStrictEqual(format.id, 'gen7uu');
+
+		format = Dex.getExistingFormat("gen7uubl@@@+Lugia");
+		assert(format.customRules);
+		assertStrictEqual(format.customRules.length, 2);
+		assertStrictEqual(format.customRules[0], '+Lugia');
+		assertStrictEqual(format.customRules[1], '+UUBL');
+		assertStrictEqual(format.id, 'gen7uu');
+
 		format = Dex.getExistingFormat("monotype uu");
 		assert(format.customRules);
 		assertStrictEqual(format.customRules.length, 1);
@@ -209,6 +222,19 @@ describe("Dex", () => {
 		assertStrictEqual(format.customRules[0], 'Same Type Clause');
 		assertStrictEqual(format.customRules[1], '+UUBL');
 		assertStrictEqual(format.id, 'gen' + Dex.gen + 'uu');
+
+		format = Dex.getExistingFormat("monotype gen7uu");
+		assert(format.customRules);
+		assertStrictEqual(format.customRules.length, 1);
+		assertStrictEqual(format.customRules[0], 'Same Type Clause');
+		assertStrictEqual(format.id, 'gen7uu');
+
+		format = Dex.getExistingFormat("monotype gen7uubl");
+		assert(format.customRules);
+		assertStrictEqual(format.customRules.length, 2);
+		assertStrictEqual(format.customRules[0], 'Same Type Clause');
+		assertStrictEqual(format.customRules[1], '+UUBL');
+		assertStrictEqual(format.id, 'gen7uu');
 
 		format = Dex.getExistingFormat("monotype doubles ou");
 		assert(format.customRules);
