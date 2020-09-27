@@ -110,6 +110,7 @@ interface ITileColors {
 	wall: HexColor;
 	candy: HexColor;
 	ghost: HexColor;
+	ghostFrenzy: HexColor;
 	door: HexColor;
 	unlockedDoor: HexColor;
 	switch: HexColor;
@@ -130,6 +131,7 @@ const tileColors: ITileColors = {
 	wall: "Light Gray",
 	candy: "Light Pink",
 	ghost: "Light Purple",
+	ghostFrenzy: "Yellow",
 	door: "Orange",
 	unlockedDoor: "Light Green",
 	switch: "Yellow",
@@ -558,7 +560,7 @@ class HauntersHauntedHouse extends Game {
 	}
 
 	displayBoard(): void {
-		let html = '<div class=\'infobox\'><font color="black"><table align="center" border="2">';
+		let html = '<div class="infobox"><font color="black"><table align="center" border="2">';
 		const playerLocations: Dict<Player[]> = {};
 		for (const id in this.players) {
 			const player = this.players[id];
@@ -586,7 +588,11 @@ class HauntersHauntedHouse extends Game {
 				const coordinates = this.getTileCoordinates(i, j);
 				if (coordinates in ghostLocations) {
 					tileText = ghostLocations[coordinates];
-					tileColor = Tools.hexColorCodes[tileColors.ghost]['background-color'];
+					if (this.ghostFrenzies) {
+						tileColor = Tools.hexColorCodes[tileColors.ghostFrenzy]['background-color'];
+					} else {
+						tileColor = Tools.hexColorCodes[tileColors.ghost]['background-color'];
+					}
 				} else if (coordinates in playerLocations) {
 					tileText = '<span title="' + playerLocations[coordinates].map(x => x.name).join(", ") + '">';
 					if (playerLocations[coordinates].length === 1) {
