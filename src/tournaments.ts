@@ -2,11 +2,12 @@ import { Tournament } from "./room-tournament";
 import type { Room } from "./rooms";
 import { tournamentSchedules } from './tournament-schedules';
 import type { GroupName } from "./types/client";
-import type { IFormat, ISeparatedCustomRules } from "./types/dex";
+import type { IFormat } from "./types/dex";
 import type { IPastTournament } from "./types/storage";
 import type { IScheduledTournament, ITournamentCreateJson, TournamentPlace } from "./types/tournaments";
 
 const SCHEDULED_TOURNAMENT_BUFFER_TIME = 90 * 60 * 1000;
+const SCHEDULED_TOURNAMENT_QUICK_BUFFER_TIME = 30 * 60 * 1000;
 const USER_HOSTED_TOURNAMENT_TIMEOUT = 5 * 60 * 1000;
 const USER_HOSTED_TOURNAMENT_RANK: GroupName = 'driver';
 
@@ -353,7 +354,12 @@ export class Tournaments {
 		return this.nextScheduledTournaments[room.id].time - Date.now() > SCHEDULED_TOURNAMENT_BUFFER_TIME;
 	}
 
-	setRandomTournamentTimer(room: Room, minutes: number): void {
+	canSetRandomQuickTournament(room: Room): boolean {
+		if (!(room.id in this.nextScheduledTournaments)) return true;
+		return this.nextScheduledTournaments[room.id].time - Date.now() > SCHEDULED_TOURNAMENT_QUICK_BUFFER_TIME;
+	}
+
+	setRandomTournamentTimer(room: Room, minutes: number, quickFormat?: boolean): void {
 		let scheduledFormat: IFormat | null = null;
 		if (room.id in this.nextScheduledTournaments) {
 			scheduledFormat = Dex.getExistingFormat(this.nextScheduledTournaments[room.id].format, true);
@@ -371,7 +377,14 @@ export class Tournaments {
 		for (const i of Dex.data.formatKeys) {
 			const format = Dex.getExistingFormat(i);
 			if (!format.tournamentPlayable || format.unranked || format.mod !== Dex.currentGenString ||
-				(scheduledFormat && scheduledFormat.id === format.id) || pastTournamentIds.includes(format.id)) continue;
+				(scheduledFormat && scheduledFormat.id === format.id)) continue;
+
+			if (quickFormat) {
+				if (!format.quickFormat) continue;
+			} else {
+				if (format.quickFormat || pastTournamentIds.includes(format.id)) continue;
+			}
+
 			formats.push(format);
 		}
 

@@ -1223,10 +1223,17 @@ export class Client {
 					}
 
 					if (!queuedTournament) {
-						if (Config.randomTournamentTimers && room.id in Config.randomTournamentTimers &&
-							Tournaments.canSetRandomTournament(room)) {
-							Tournaments.setRandomTournamentTimer(room, Config.randomTournamentTimers[room.id]);
-						} else if (room.id in Tournaments.scheduledTournaments) {
+						let setRandomTournament = false;
+						if (Config.randomTournamentTimers && room.id in Config.randomTournamentTimers) {
+							if (Tournaments.canSetRandomTournament(room)) {
+								Tournaments.setRandomTournamentTimer(room, Config.randomTournamentTimers[room.id]);
+								setRandomTournament = true;
+							} else if (Tournaments.canSetRandomQuickTournament(room)) {
+								Tournaments.setRandomTournamentTimer(room, Config.randomTournamentTimers[room.id], true);
+								setRandomTournament = true;
+							}
+						}
+						if (!setRandomTournament && room.id in Tournaments.scheduledTournaments) {
 							Tournaments.setScheduledTournamentTimer(room);
 						}
 					}
