@@ -57,9 +57,10 @@ class TapusTerrains extends Game {
 	isElimination: boolean = false;
 	points = new Map<Player, number>();
 	queue: Player[] = [];
-	revealTime: number = 3.5 * 1000;
+	revealTime: number = 4 * 1000;
 	roundJumps = new Map<Player, boolean>();
 	targetPokemon: string | null = null;
+	terrainDisplayTime: number = 5 * 1000;
 	terrainRound: number = 0;
 
 	static loadData(room: Room | User): void {
@@ -85,7 +86,11 @@ class TapusTerrains extends Game {
 	}
 
 	onSignups(): void {
-		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
+		if (this.format.options.freejoin) {
+			this.revealTime = 3 * 1000;
+			this.terrainDisplayTime = 3 * 1000;
+			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+		}
 	}
 
 	onStart(): void {
@@ -166,18 +171,16 @@ class TapusTerrains extends Game {
 					terrains[this.currentTerrain!] + '</b> type Pokemon)!<br />&nbsp;</center></div>';
 				const uhtmlName = this.uhtmlBaseName + '-terrain';
 				this.onUhtml(uhtmlName, terrainHtml, () => {
-					// if (this.timeout) clearTimeout(this.timeout); // mocha tests
 					this.timeout = setTimeout(() => {
 						const uhtmlName = this.uhtmlBaseName + '-pokemon';
 						this.onUhtml(uhtmlName, pokemonHtml, () => {
 							this.canJump = true;
-							// if (this.timeout) clearTimeout(this.timeout); // mocha tests
 							this.timeout = setTimeout(() => this.nextRound(), this.revealTime);
 						});
 						this.sayUhtml(uhtmlName, pokemonHtml);
 					}, this.revealTime);
 				});
-				this.timeout = setTimeout(() => this.sayUhtml(uhtmlName, terrainHtml), 5 * 1000);
+				this.timeout = setTimeout(() => this.sayUhtml(uhtmlName, terrainHtml), this.terrainDisplayTime);
 			});
 			this.sayUhtml(uhtmlName, roundHtml);
 		} else {
@@ -185,7 +188,6 @@ class TapusTerrains extends Game {
 				const uhtmlName = this.uhtmlBaseName + '-pokemon';
 				this.onUhtml(uhtmlName, pokemonHtml, () => {
 					this.canJump = true;
-					// if (this.timeout) clearTimeout(this.timeout); // mocha tests
 					this.timeout = setTimeout(() => this.nextRound(), this.revealTime);
 				});
 				this.sayUhtmlAuto(uhtmlName, pokemonHtml);
@@ -194,6 +196,8 @@ class TapusTerrains extends Game {
 	}
 
 	onEnd(): void {
+		this.convertPointsToBits(0, 10);
+
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
@@ -230,7 +234,7 @@ const commands: GameCommandDefinitions<TapusTerrains> = {
 						this.timeout = setTimeout(() => {
 							this.roundJumps.clear();
 							this.nextRound();
-						}, 5000);
+						}, 3 * 1000);
 					}
 				}
 			} else {
