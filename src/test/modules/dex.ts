@@ -5,8 +5,6 @@ import { assert, assertStrictEqual } from './../test-tools';
 
 describe("Dex", () => {
 	it('should properly load data', function(this: Mocha.Context) {
-		this.timeout(0);
-
 		assert(Dex.data.abilityKeys.length > 1);
 		assert(Dex.data.formatKeys.length > 1);
 		assert(Dex.data.itemKeys.length > 1);

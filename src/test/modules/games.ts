@@ -194,7 +194,6 @@ describe("Games", () => {
 	});
 
 	it('should create games properly', function(this: Mocha.Context) {
-		this.timeout(30000);
 		for (const format of formatsToTest) {
 			try {
 				Games.createGame(room, format, room, false, initialSeed);
@@ -230,8 +229,6 @@ describe("Games", () => {
 	});
 
 	it('should support setting the initial PRNG seed', function(this: Mocha.Context) {
-		this.timeout(30000);
-
 		const prng = new PRNG();
 		for (const format of formatsToTest) {
 			const game = Games.createGame(room, format, room, false, prng.initialSeed.slice() as PRNGSeed);
@@ -306,7 +303,6 @@ describe("Games", () => {
 	});
 
 	it('should start signups for scripted games', function(this: Mocha.Context) {
-		this.timeout(0);
 		const roomPrefix = room.id + "|";
 		for (const format of formatsToTest) {
 			if (format.tournamentGame) continue;
@@ -363,7 +359,6 @@ describe("Games", () => {
 	});
 
 	it('should properly start one vs. one challenges', function(this: Mocha.Context) {
-		this.timeout(0);
 		const challenger = Users.add("Challenger", "challenger");
 		const defender = Users.add("Defender", "defender");
 		room.onUserJoin(challenger, ' ' );
