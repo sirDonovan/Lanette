@@ -131,7 +131,7 @@ const tileColors: ITileColors = {
 	wall: "Light Gray",
 	candy: "Light Pink",
 	ghost: "Light Purple",
-	ghostFrenzy: "Yellow",
+	ghostFrenzy: "Red",
 	door: "Orange",
 	unlockedDoor: "Light Green",
 	switch: "Yellow",
