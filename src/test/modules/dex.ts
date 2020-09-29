@@ -148,6 +148,13 @@ describe("Dex", () => {
 		assert(Dex.getExistingFormat("[Gen 8] OU") !== Dex.getExistingFormat("[Gen 8] OU"));
 		assert(Dex.getExistingFormat("[Gen 8] OU") !== Dex.getExistingFormat("[Gen 8] OU@@@+Lunala"));
 	});
+	it('should return property trainer sprite ids', () => {
+		assertStrictEqual(Dex.getTrainerSpriteId("Ace Trainer"), "acetrainer");
+		assertStrictEqual(Dex.getTrainerSpriteId("acetrainer"), "acetrainer");
+		assertStrictEqual(Dex.getTrainerSpriteId("acetrainer-gen4"), "acetrainer-gen4");
+		assertStrictEqual(Dex.getTrainerSpriteId("agatha"), "agatha-gen3");
+		assertStrictEqual(Dex.getTrainerSpriteId("agatha-gen3"), "agatha-gen3");
+	});
 	it('should return proper values from splitNameAndCustomRules()', () => {
 		let split = Dex.splitNameAndCustomRules("ou");
 		assertStrictEqual(split[0], "ou");

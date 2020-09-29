@@ -968,6 +968,16 @@ export class Dex {
 		return '<psicon item="' + item.id + '" style="vertical-align: -7px;margin: -2px" />';
 	}
 
+	getTrainerSpriteId(name: string): string | undefined {
+		const id = Tools.toId(name);
+		if (Object.prototype.hasOwnProperty.call(this.data.trainerSprites, id)) return this.data.trainerSprites[id];
+
+		for (let i = this.gen; i > 0; i--) {
+			const oldGenId = id + 'gen' + i;
+			if (Object.prototype.hasOwnProperty.call(this.data.trainerSprites, oldGenId)) return this.data.trainerSprites[oldGenId];
+		}
+	}
+
 	getTrainerSprite(id: string): string {
 		return '<img src="//' + Tools.mainServer + '/sprites/trainers/' + id + '.png" width=80px height=80px />';
 	}

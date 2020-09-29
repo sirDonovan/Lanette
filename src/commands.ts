@@ -2402,11 +2402,9 @@ const commands: CommandDefinitions<CommandContext> = {
 			const trainerList: string[] = [];
 
 			for (const target of targets) {
-				const id = Tools.toId(target);
-				if (!(id in Dex.data.trainerSprites)) {
-					return this.say("There is no trainer sprite for '" + target.trim() + "'.");
-				}
-				trainerList.push(Dex.data.trainerSprites[id]);
+				const id = Dex.getTrainerSpriteId(target);
+				if (!id) return this.say("There is no trainer sprite for '" + target.trim() + "'.");
+				trainerList.push(id);
 			}
 
 			if (!trainerList.length) return this.say("You must specify at least 1 Pokemon.");

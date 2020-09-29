@@ -40,7 +40,7 @@ export function assert(condition: any, message?: string | Error | undefined): as
 	nodeAssert(condition, typeof message === 'string' ? getAdditionalInformation(message) : message);
 }
 
-export function assertStrictEqual<T>(actual: T, expected: T, message?: string | Error | undefined): void {
+export function assertStrictEqual<T>(actual: T, expected: T, message?: string | Error | undefined): asserts actual is T {
 	if (!message) message = '';
 
 	nodeAssert.strictEqual(actual, expected, typeof message === 'string' ? getAdditionalInformation(message) : message);
