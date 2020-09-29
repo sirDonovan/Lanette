@@ -1834,7 +1834,7 @@ const tests: GameFileTests<EliminationTournament> = {
 	},
 	'should give team changes until players have a full team - additionsPerRound >= 1': {
 		test(game, format) {
-			this.timeout(15000);
+			this.timeout(30000);
 			if (game.additionsPerRound < 1 || game.maxPlayers < 64) return;
 
 			addPlayers(game, 64);
