@@ -50,7 +50,7 @@ describe("Tournaments", () => {
 
 		assert(validated === scheduled, "\n\t" + errors.join("\n\t"));
 	});
-	it('should properly set scheduled formats according to configured timed', () => {
+	it('should properly set scheduled formats according to configured times', () => {
 		const room = Rooms.get('mocha')!;
 		const date = new Date();
 		const month = date.getMonth() + 1;
