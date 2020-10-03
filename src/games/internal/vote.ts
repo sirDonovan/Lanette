@@ -228,7 +228,7 @@ const commands: GameCommandDefinitions<Vote> = {
 			if (!this.updateVotesHtmlTimeout) {
 				this.updateVotesHtmlTimeout = setTimeout(() => {
 					this.updateVotesHtmlTimeout = null;
-					this.updateVotesHtml();
+					if (this.canVote) this.updateVotesHtml();
 				}, 500);
 			}
 
