@@ -1,7 +1,11 @@
 import type { Room } from "../rooms";
-import type { IGameFile } from "../types/games";
+import type { AchievementsDict, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as guessingGame, Guessing } from "./templates/guessing";
+
+const achievements: AchievementsDict = {
+	'alphabetsweep': {name: "Alphabet Sweep", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+};
 
 const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
 	'Pokemon Items': string[]; 'Pokemon Moves': string[];} = {
@@ -17,6 +21,7 @@ const categories = Object.keys(data) as DataKey[];
 const vowels: string[] = ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'];
 
 class FeraligatrsLostLetters extends Guessing {
+	allAnswersAchievement = achievements.alphabetsweep;
 	categoryList: DataKey[] = categories.slice();
 	roundTime: number = 10 * 1000;
 

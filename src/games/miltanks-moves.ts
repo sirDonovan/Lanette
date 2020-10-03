@@ -1,8 +1,12 @@
 import type { Room } from "../rooms";
 import type { IMove } from "../types/dex";
-import type { IGameFile } from "../types/games";
+import type { AchievementsDict, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as guessingGame, Guessing } from "./templates/guessing";
+
+const achievements: AchievementsDict = {
+	'mootronome': {name: "Mootronome", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+};
 
 const data: {'moves': Dict<Dict<string[]>>; 'pokemon': string[]} = {
 	moves: {},
@@ -10,6 +14,8 @@ const data: {'moves': Dict<Dict<string[]>>; 'pokemon': string[]} = {
 };
 
 class MiltanksMoves extends Guessing {
+	allAnswersAchievement = achievements.mootronome;
+
 	static loadData(room: Room | User): void {
 		const bannedMoves: string[] = [];
 		for (const move of Games.getMovesList()) {

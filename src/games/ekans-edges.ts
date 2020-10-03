@@ -1,5 +1,5 @@
 import type { Room } from "../rooms";
-import type { IGameFile } from "../types/games";
+import type { AchievementsDict, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as guessingGame, Guessing } from './templates/guessing';
 
@@ -11,6 +11,10 @@ interface IEkansEdgesData {
 	'Pokemon Items': Dict<string[]>;
 	'Pokemon Moves': Dict<string[]>;
 }
+
+const achievements: AchievementsDict = {
+	'livingontheedge': {name: "Living on the Edge", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+};
 
 const data: IEkansEdgesData = {
 	"Characters": {},
@@ -32,6 +36,7 @@ const dataKeys: KeyedDict<DataKey, string[]> = {
 };
 
 class EkansEdges extends Guessing {
+	allAnswersAchievement = achievements.livingontheedge;
 	lastEdge: string = '';
 
 	static loadData(room: Room | User): void {

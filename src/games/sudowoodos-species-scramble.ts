@@ -1,7 +1,11 @@
 import type { Room } from "../rooms";
-import type { IGameFile } from "../types/games";
+import type { AchievementsDict, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as guessingGame, Guessing } from "./templates/guessing";
+
+const achievements: AchievementsDict = {
+	'genusgenius': {name: "Genus Genius", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+};
 
 const data: {categories: Dict<string[]>} = {
 	categories: {},
@@ -9,6 +13,8 @@ const data: {categories: Dict<string[]>} = {
 const categoryKeys: string[] = [];
 
 class SudowoodosSpeciesScramble extends Guessing {
+	allAnswersAchievement = achievements.genusgenius;
+
 	static loadData(room: Room | User): void {
 		const pokemonList = Games.getPokemonList();
 		for (const pokemon of pokemonList) {

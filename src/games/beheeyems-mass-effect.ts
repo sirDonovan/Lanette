@@ -1,7 +1,11 @@
 import type { Room } from "../rooms";
-import type { IGameFile } from "../types/games";
+import type { AchievementsDict, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as guessingGame, Guessing } from "./templates/guessing";
+
+const achievements: AchievementsDict = {
+	'cognitivecerebrum': {name: "Cognitive Cerebrum", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+};
 
 const data: {types: Dict<string[]>} = {
 	types: {},
@@ -10,6 +14,7 @@ const effectivenessLists: Dict<string[]> = {};
 const effectivenessListsKeys: string[] = [];
 
 class BeheeyemsMassEffect extends Guessing {
+	allAnswersAchievement = achievements.cognitivecerebrum;
 	lastEffectiveness: string = '';
 	roundTime: number = 20 * 1000;
 

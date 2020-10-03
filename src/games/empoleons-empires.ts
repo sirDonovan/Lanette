@@ -1,7 +1,11 @@
 import type { Player } from "../room-activity";
 import { Game } from "../room-game";
 import type { Room } from "../rooms";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+
+const achievements: AchievementsDict = {
+	"privateinvestigator": {name: "Private Investigator", type: 'special', bits: 1000, description: 'successfully guess 5 aliases'},
+};
 
 class EmpoleonsEmpires extends Game {
 	canGuess: boolean = false;
@@ -11,7 +15,7 @@ class EmpoleonsEmpires extends Game {
 	maxPlayers: number = 15;
 	minPlayers: number = 4;
 	points = new Map<Player, number>();
-	successiveSuspects = new Map<Player, number>();
+	totalSuspects = new Map<Player, number>();
 
 	onRemovePlayer(player: Player): void {
 		if (this.started) {
@@ -125,20 +129,19 @@ const commands: GameCommandDefinitions<EmpoleonsEmpires> = {
 				return false;
 			}
 			this.canGuess = false;
-			let successiveSuspects = this.successiveSuspects.get(player) || 0;
+			let totalSuspects = this.totalSuspects.get(player) || 0;
 			if (guessedAlias === Tools.toId(this.playerAliases.get(attackedPlayer))) {
 				this.say("Correct! " + attackedPlayer.name + " has been eliminated from the game.");
 				this.eliminatePlayer(attackedPlayer, "Your alias was guessed by " + player.name + "!");
 				let points = this.points.get(player) || 0;
 				points++;
 				this.points.set(player, points);
-				successiveSuspects++;
-				this.successiveSuspects.set(player, successiveSuspects);
-				// if (successiveSuspects === 5) Games.unlockAchievement(this.room, player, "Great Detective", this);
+				totalSuspects++;
+				this.totalSuspects.set(player, totalSuspects);
+				if (totalSuspects === 5) this.unlockAchievement(player, achievements.privateinvestigator!);
 			} else {
 				this.say("Incorrect.");
 				this.currentPlayer = attackedPlayer;
-				this.successiveSuspects.set(player, 0);
 			}
 			if (this.timeout) clearTimeout(this.timeout);
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);

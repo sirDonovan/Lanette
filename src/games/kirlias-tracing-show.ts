@@ -1,7 +1,11 @@
 import type { Room } from "../rooms";
-import type { IGameFile } from "../types/games";
+import type { AchievementsDict, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as guessingGame, Guessing } from './templates/guessing';
+
+const achievements: AchievementsDict = {
+	'thegreatestshowman': {name: "The Greatest Showman", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+};
 
 const data: {abilities: Dict<string>; pokedex: string[]} = {
 	abilities: {},
@@ -9,6 +13,7 @@ const data: {abilities: Dict<string>; pokedex: string[]} = {
 };
 
 class KirliasTracingShow extends Guessing {
+	allAnswersAchievement = achievements.thegreatestshowman;
 	lastAbilities: string = '';
 	lastPokemon: string = '';
 

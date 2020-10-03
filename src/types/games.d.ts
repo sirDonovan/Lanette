@@ -34,7 +34,8 @@ export type GameAchievements = 'quickdraw' | 'captainwordmaster' | 'wordmaster' 
 	'captainskillswapper' | 'garbagecollector' | 'technician' | 'eggthesystem' | 'luckofthedraw' | 'drawwizard' | 'criminalmind' |
 	'truedetective' | 'tallorder' | 'escapeartist' | 'movesearchhero' | 'hotpotatohero' | 'speedbooster' | 'cheapskate' | 'ohbabyatriple' |
 	'realestatetycoon' | 'locksmith' | 'mountainmover' | 'spectralsnuffer' | 'proteaneye' | 'captainproteaneye' | 'wonderguardwarrior' |
-	'trumpcard';
+	'trumpcard' | 'swiftplacing' | 'alphabetsweep' | 'livingontheedge' | 'splittersplatter' | 'mnemonicmaster' | 'thegreatestshowman' |
+	'mootronome' | 'genusgenius' | 'cognitivecerebrum' | 'privateinvestigator';
 
 type GameAchievementType = 'first' | 'all-answers' | 'all-answers-team' | 'points' | 'shiny' | 'special';
 

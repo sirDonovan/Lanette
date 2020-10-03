@@ -1,5 +1,9 @@
-import type { IGameFile } from "../types/games";
+import type { AchievementsDict, IGameFile } from "../types/games";
 import { game as guessingGame, Guessing } from "./templates/guessing";
+
+const achievements: AchievementsDict = {
+	'mnemonicmaster': {name: "Mnemonic Master", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+};
 
 const data: {abilities: Dict<string[]>} = {
 	abilities: {},
@@ -7,6 +11,7 @@ const data: {abilities: Dict<string[]>} = {
 const keys: string[] = [];
 
 class GalladesAbilityTest extends Guessing {
+	allAnswersAchievement = achievements.mnemonicmaster;
 	roundTime: number = 20 * 1000;
 
 	static loadData(): void {

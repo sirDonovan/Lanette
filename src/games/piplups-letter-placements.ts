@@ -1,7 +1,11 @@
 import type { Room } from "../rooms";
-import type { IGameFile } from "../types/games";
+import type { AchievementsDict, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as guessingGame, Guessing } from "./templates/guessing";
+
+const achievements: AchievementsDict = {
+	'swiftplacing': {name: "Swift Placing", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+};
 
 const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
 	'Pokemon Items': string[]; 'Pokemon Moves': string[];} = {
@@ -16,6 +20,7 @@ type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
 
 class PiplupsLetterPlacements extends Guessing {
+	allAnswersAchievement = achievements.swiftplacing;
 	lastAnswer: string = '';
 
 	static loadData(room: Room | User): void {
