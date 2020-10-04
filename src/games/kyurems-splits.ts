@@ -1,7 +1,7 @@
 import type { Room } from "../rooms";
 import type { AchievementsDict, IGameFile } from "../types/games";
 import type { User } from "../users";
-import { game as guessingGame, Guessing } from './templates/guessing';
+import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const achievements: AchievementsDict = {
 	'splittersplatter': {name: "Splitter Splatter", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
@@ -19,7 +19,7 @@ const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[];
 type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
 
-class KyuremsSplits extends Guessing {
+class KyuremsSplits extends QuestionAndAnswer {
 	allAnswersAchievement = achievements.splittersplatter;
 
 	static loadData(room: Room | User): void {
@@ -69,7 +69,7 @@ class KyuremsSplits extends Guessing {
 	}
 }
 
-export const game: IGameFile<KyuremsSplits> = Games.copyTemplateProperties(guessingGame, {
+export const game: IGameFile<KyuremsSplits> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['kyurems'],
 	category: 'identification',
 	class: KyuremsSplits,

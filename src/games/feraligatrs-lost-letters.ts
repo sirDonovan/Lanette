@@ -1,7 +1,7 @@
 import type { Room } from "../rooms";
 import type { AchievementsDict, IGameFile } from "../types/games";
 import type { User } from "../users";
-import { game as guessingGame, Guessing } from "./templates/guessing";
+import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 const achievements: AchievementsDict = {
 	'alphabetsweep': {name: "Alphabet Sweep", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
@@ -20,7 +20,7 @@ type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
 const vowels: string[] = ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'];
 
-class FeraligatrsLostLetters extends Guessing {
+class FeraligatrsLostLetters extends QuestionAndAnswer {
 	allAnswersAchievement = achievements.alphabetsweep;
 	categoryList: DataKey[] = categories.slice();
 	roundTime: number = 10 * 1000;
@@ -91,7 +91,7 @@ class FeraligatrsLostLetters extends Guessing {
 	}
 }
 
-export const game: IGameFile<FeraligatrsLostLetters> = Games.copyTemplateProperties(guessingGame, {
+export const game: IGameFile<FeraligatrsLostLetters> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['feraligatrs', 'fll', 'll'],
 	category: 'identification',
 	class: FeraligatrsLostLetters,

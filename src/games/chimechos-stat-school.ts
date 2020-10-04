@@ -2,14 +2,14 @@ import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
 import type { IGameFile } from "../types/games";
 import type { User } from "../users";
-import { game as guessingGame, Guessing } from './templates/guessing';
+import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const data: {stats: Dict<string[]>} = {
 	stats: {},
 };
 const statsKeys: string[] = [];
 
-class ChimechosStatSchool extends Guessing {
+class ChimechosStatSchool extends QuestionAndAnswer {
 	readonly roundGuesses = new Map<Player, boolean>();
 
 	static loadData(room: Room | User): void {
@@ -35,7 +35,7 @@ class ChimechosStatSchool extends Guessing {
 	}
 }
 
-export const game: IGameFile<ChimechosStatSchool> = Games.copyTemplateProperties(guessingGame, {
+export const game: IGameFile<ChimechosStatSchool> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['chimechos', 'css', 'statschool'],
 	category: 'knowledge',
 	class: ChimechosStatSchool,

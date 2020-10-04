@@ -7,20 +7,20 @@ import type {
 	IRandomGameAnswer
 } from '../../types/games';
 
-export abstract class Guessing extends ScriptedGame {
+export abstract class QuestionAndAnswer extends ScriptedGame {
 	additionalHintHeader: string = '';
 	answers: string[] = [];
 	answerTimeout: NodeJS.Timer | undefined;
 	beforeNextRoundTime: number = 5 * 1000;
 	canGuess: boolean = false;
 	firstAnswer: Player | false | undefined;
-	guessingRound: number = 0;
 	hint: string = '';
 	hintUhtmlName: string = '';
 	lastHintHtml: string = '';
 	multiRoundHints: boolean = false;
 	readonly points = new Map<Player, number>();
 	previousHint: string = '';
+	questionAndAnswerRound: number = 0;
 	roundTime: number = 10 * 1000;
 
 	allAnswersAchievement?: IGameAchievement;
@@ -35,7 +35,7 @@ export abstract class Guessing extends ScriptedGame {
 		super.onInitialize(format);
 
 		if (!format.options.points && !(format.mode && format.mode.removedOptions && format.mode.removedOptions.includes('points'))) {
-			throw new Error("Guessing games must include default or customizable points options");
+			throw new Error("Question and Answer games must include default or customizable points options");
 		}
 	}
 
@@ -92,7 +92,7 @@ export abstract class Guessing extends ScriptedGame {
 			await this.setAnswers();
 			if (this.ended) return;
 			if (this.roundGuesses) this.roundGuesses.clear();
-			this.guessingRound++;
+			this.questionAndAnswerRound++;
 		}
 
 		if (this.updateHint) {
@@ -114,7 +114,7 @@ export abstract class Guessing extends ScriptedGame {
 			if (!newAnswer && this.previousHint && this.previousHint === this.hint) {
 				onHintHtml();
 			} else {
-				this.hintUhtmlName = this.uhtmlBaseName + '-hint-round' + this.guessingRound;
+				this.hintUhtmlName = this.uhtmlBaseName + '-hint-round' + this.questionAndAnswerRound;
 				const html = this.getHintHtml();
 				this.lastHintHtml = html;
 				this.onUhtml(this.hintUhtmlName, html, onHintHtml);
@@ -210,7 +210,7 @@ export abstract class Guessing extends ScriptedGame {
 	updateHint?(): void;
 }
 
-const commands: GameCommandDefinitions<Guessing> = {
+const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 	guess: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async asyncCommand(target, room, user): Promise<GameCommandReturnType> {
@@ -279,7 +279,7 @@ const commands: GameCommandDefinitions<Guessing> = {
 	},
 };
 
-const tests: GameFileTests<Guessing> = {
+const tests: GameFileTests<QuestionAndAnswer> = {
 	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	'it should properly set answers and award points': {
 		config: {
@@ -414,7 +414,7 @@ const tests: GameFileTests<Guessing> = {
 			game.deallocate(true);
 
 			const minigame = Games.createGame(game.room,
-				(format as unknown) as IGameFormat<ScriptedGame>, game.room as Room, true) as Guessing;
+				(format as unknown) as IGameFormat<ScriptedGame>, game.room as Room, true) as QuestionAndAnswer;
 			minigame.signups();
 			if (minigame.timeout) clearTimeout(minigame.timeout);
 			await minigame.onNextRound();
@@ -439,7 +439,7 @@ const tests: GameFileTests<Guessing> = {
 			const id = Tools.toId(name);
 			const user = Users.add(name, id);
 			const pmMinigame = Games.createGame(user,
-				(format as unknown) as IGameFormat<ScriptedGame>, game.room as Room, true) as Guessing;
+				(format as unknown) as IGameFormat<ScriptedGame>, game.room as Room, true) as QuestionAndAnswer;
 
 			pmMinigame.signups();
 			if (pmMinigame.timeout) clearTimeout(pmMinigame.timeout);
@@ -456,7 +456,7 @@ const tests: GameFileTests<Guessing> = {
 	/* eslint-enable */
 };
 
-export const game: IGameTemplateFile<Guessing> = {
+export const game: IGameTemplateFile<QuestionAndAnswer> = {
 	canGetRandomAnswer: true,
 	commandDescriptions: [Config.commandCharacter + 'g [answer]'],
 	commands,

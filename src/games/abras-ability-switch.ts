@@ -1,7 +1,7 @@
 import type { Room } from "../rooms";
 import type { AchievementsDict, IGameFile } from "../types/games";
 import type { User } from "../users";
-import { game as guessingGame, Guessing } from './templates/guessing';
+import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const data: {abilities: Dict<string[]>; pokedex: string[]} = {
 	"abilities": {},
@@ -14,7 +14,7 @@ const achievements: AchievementsDict = {
 		'your team and win the game'},
 };
 
-class AbrasAbilitySwitch extends Guessing {
+class AbrasAbilitySwitch extends QuestionAndAnswer {
 	allAnswersAchievement = achievements.skillswapper;
 	allAnswersTeamAchievement = achievements.captainskillswapper;
 	lastAbility: string = '';
@@ -63,11 +63,11 @@ class AbrasAbilitySwitch extends Guessing {
 	}
 }
 
-const commands = Tools.deepClone(guessingGame.commands!);
+const commands = Tools.deepClone(questionAndAnswerGame.commands!);
 if (!commands.guess.aliases) commands.guess.aliases = [];
 commands.guess.aliases.push('switch');
 
-export const game: IGameFile<AbrasAbilitySwitch> = Games.copyTemplateProperties(guessingGame, {
+export const game: IGameFile<AbrasAbilitySwitch> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	achievements,
 	aliases: ['aas', 'abras'],
 	category: 'knowledge',

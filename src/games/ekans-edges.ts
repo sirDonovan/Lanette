@@ -1,7 +1,7 @@
 import type { Room } from "../rooms";
 import type { AchievementsDict, IGameFile } from "../types/games";
 import type { User } from "../users";
-import { game as guessingGame, Guessing } from './templates/guessing';
+import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 interface IEkansEdgesData {
 	'Characters': Dict<string[]>;
@@ -35,7 +35,7 @@ const dataKeys: KeyedDict<DataKey, string[]> = {
 	"Pokemon Moves": [],
 };
 
-class EkansEdges extends Guessing {
+class EkansEdges extends QuestionAndAnswer {
 	allAnswersAchievement = achievements.livingontheedge;
 	lastEdge: string = '';
 
@@ -100,7 +100,7 @@ class EkansEdges extends Guessing {
 	}
 }
 
-export const game: IGameFile<EkansEdges> = Games.copyTemplateProperties(guessingGame, {
+export const game: IGameFile<EkansEdges> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['ekans', 'ee'],
 	category: 'identification',
 	class: EkansEdges,

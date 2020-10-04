@@ -5,11 +5,11 @@ import { assert, assertStrictEqual } from '../test/test-tools';
 import type { GameFileTests, IGameFile, IGameFormat } from "../types/games";
 import type { User } from "../users";
 import type { PoolType } from './../workers/portmanteaus';
-import { game as guessingGame, Guessing } from './templates/guessing';
+import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const BASE_NUMBER_OF_PORTS = 2;
 
-export class PoliwrathsPortmanteaus extends Guessing {
+export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 	answerParts: Dict<string[]> = {};
 	customPortCategories: string[] | null = null;
 	customPortDetails: string[] | null = null;
@@ -152,7 +152,7 @@ const tests: GameFileTests<PoliwrathsPortmanteaus> = {
 	},
 };
 
-export const game: IGameFile<PoliwrathsPortmanteaus> = Games.copyTemplateProperties(guessingGame, {
+export const game: IGameFile<PoliwrathsPortmanteaus> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['poliwraths', 'ports'],
 	category: 'puzzle',
 	challengePoints: {
@@ -174,5 +174,5 @@ export const game: IGameFile<PoliwrathsPortmanteaus> = Games.copyTemplatePropert
 	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess a portmanteau (sharing 2-4 letters) that fits the given " +
 		"parameters!",
 	modes: ['team'],
-	tests: Object.assign({}, guessingGame.tests, tests),
+	tests: Object.assign({}, questionAndAnswerGame.tests, tests),
 });

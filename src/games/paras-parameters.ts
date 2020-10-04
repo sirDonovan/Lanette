@@ -5,7 +5,7 @@ import { assert, assertStrictEqual } from "../test/test-tools";
 import type { GameFileTests, IGameFile } from "../types/games";
 import type { User } from "../users";
 import type { IParam, IParametersResponse, ParamType } from '../workers/parameters';
-import { game as guessingGame, Guessing } from './templates/guessing';
+import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const BASE_NUMBER_OF_PARAMS = 2;
 const MIN_GEN = 1;
@@ -14,7 +14,7 @@ const MAX_GEN = 8;
 const allParamTypes: ParamType[] = ['move', 'tier', 'color', 'type', 'resistance', 'weakness', 'egggroup', 'ability', 'gen'];
 const modeParamTypes: ParamType[] = ['tier', 'color', 'type', 'egggroup', 'ability', 'gen'];
 
-export class ParasParameters extends Guessing {
+export class ParasParameters extends QuestionAndAnswer {
 	currentNumberOfParams: number = 0;
 	customParamTypes: ParamType[] | null = null;
 	minimumResults: number = 3;
@@ -260,7 +260,7 @@ const tests: GameFileTests<ParasParameters> = {
 	},
 };
 
-export const game: IGameFile<ParasParameters> = Games.copyTemplateProperties(guessingGame, {
+export const game: IGameFile<ParasParameters> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['paras', 'params'],
 	category: 'puzzle',
 	challengePoints: {
@@ -292,5 +292,5 @@ export const game: IGameFile<ParasParameters> = Games.copyTemplateProperties(gue
 		},
 	},
 	nonTrivialLoadData: true,
-	tests: Object.assign({}, guessingGame.tests, tests),
+	tests: Object.assign({}, questionAndAnswerGame.tests, tests),
 });

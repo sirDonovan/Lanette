@@ -2,7 +2,7 @@ import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
 import type { AchievementsDict, IGameFile } from "../types/games";
 import type { User } from "../users";
-import { game as guessingGame, Guessing } from "./templates/guessing";
+import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 const data: {moves: string[]} = {
 	moves: [],
@@ -12,7 +12,7 @@ const achievements: AchievementsDict = {
 	"moverelearner": {name: "Move Relearner", type: 'all-answers', bits: 1000, description: 'get every answer in one game'},
 };
 
-class SmearglesMysteryMoves extends Guessing {
+class SmearglesMysteryMoves extends QuestionAndAnswer {
 	allAnswersAchievement = achievements.moverelearner;
 	answers: string[] = [];
 	canGuess: boolean = false;
@@ -76,7 +76,7 @@ class SmearglesMysteryMoves extends Guessing {
 	}
 }
 
-export const game: IGameFile<SmearglesMysteryMoves> = Games.copyTemplateProperties(guessingGame, {
+export const game: IGameFile<SmearglesMysteryMoves> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	achievements,
 	aliases: ["smeargles", "mysterymoves", "smm", "wtm"],
 	category: 'knowledge',

@@ -2,7 +2,7 @@ import type { Room } from "../rooms";
 import type { IMove } from "../types/dex";
 import type { AchievementsDict, IGameFile } from "../types/games";
 import type { User } from "../users";
-import { game as guessingGame, Guessing } from "./templates/guessing";
+import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 const achievements: AchievementsDict = {
 	'mootronome': {name: "Mootronome", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
@@ -13,7 +13,7 @@ const data: {'moves': Dict<Dict<string[]>>; 'pokemon': string[]} = {
 	pokemon: [],
 };
 
-class MiltanksMoves extends Guessing {
+class MiltanksMoves extends QuestionAndAnswer {
 	allAnswersAchievement = achievements.mootronome;
 
 	static loadData(room: Room | User): void {
@@ -63,7 +63,7 @@ class MiltanksMoves extends Guessing {
 	}
 }
 
-export const game: IGameFile<MiltanksMoves> = Games.copyTemplateProperties(guessingGame, {
+export const game: IGameFile<MiltanksMoves> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['miltanks', 'mm'],
 	category: 'knowledge',
 	class: MiltanksMoves,

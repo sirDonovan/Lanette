@@ -4,7 +4,7 @@ import type {
 	DefaultGameOption, GameCommandDefinitions, GameCommandReturnType, IGameFormat,
 	IGameModeFile
 } from "../../types/games";
-import type { Guessing } from "../templates/guessing";
+import type { QuestionAndAnswer } from "../templates/question-and-answer";
 
 const BASE_POINTS = 20;
 
@@ -12,7 +12,7 @@ const name = 'Group';
 const description = 'Players will be split into teams but everyone can answer each round!';
 const removedOptions: string[] = ['points', 'freejoin'];
 
-type GroupThis = Guessing & Group;
+type GroupThis = QuestionAndAnswer & Group;
 
 class Group {
 	firstAnswers: Dict<Player | false> = {};
@@ -206,7 +206,7 @@ const initialize = (game: ScriptedGame): void => {
 	game.loadModeCommands(commands);
 };
 
-export const mode: IGameModeFile<Group, Guessing, GroupThis> = {
+export const mode: IGameModeFile<Group, QuestionAndAnswer, GroupThis> = {
 	aliases: ['groups'],
 	class: Group,
 	commands,

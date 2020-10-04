@@ -1,7 +1,7 @@
 import type { Room } from "../rooms";
 import type { AchievementsDict, IGameFile } from "../types/games";
 import type { User } from "../users";
-import { game as guessingGame, Guessing } from "./templates/guessing";
+import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 const achievements: AchievementsDict = {
 	'swiftplacing': {name: "Swift Placing", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
@@ -19,7 +19,7 @@ const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[];
 type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
 
-class PiplupsLetterPlacements extends Guessing {
+class PiplupsLetterPlacements extends QuestionAndAnswer {
 	allAnswersAchievement = achievements.swiftplacing;
 	lastAnswer: string = '';
 
@@ -55,7 +55,7 @@ class PiplupsLetterPlacements extends Guessing {
 	}
 }
 
-export const game: IGameFile<PiplupsLetterPlacements> = Games.copyTemplateProperties(guessingGame, {
+export const game: IGameFile<PiplupsLetterPlacements> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ["piplups", "plp"],
 	category: 'identification',
 	class: PiplupsLetterPlacements,

@@ -1,7 +1,7 @@
 import type { Room } from "../rooms";
 import type { AchievementsDict, IGameFile } from "../types/games";
 import type { User } from "../users";
-import { game as guessingGame, Guessing } from './templates/guessing';
+import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const achievements: AchievementsDict = {
 	'thegreatestshowman': {name: "The Greatest Showman", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
@@ -12,7 +12,7 @@ const data: {abilities: Dict<string>; pokedex: string[]} = {
 	pokedex: [],
 };
 
-class KirliasTracingShow extends Guessing {
+class KirliasTracingShow extends QuestionAndAnswer {
 	allAnswersAchievement = achievements.thegreatestshowman;
 	lastAbilities: string = '';
 	lastPokemon: string = '';
@@ -49,11 +49,11 @@ class KirliasTracingShow extends Guessing {
 	}
 }
 
-const commands = Tools.deepClone(guessingGame.commands!);
+const commands = Tools.deepClone(questionAndAnswerGame.commands!);
 if (!commands.guess.aliases) commands.guess.aliases = [];
 commands.guess.aliases.push('trace');
 
-export const game: IGameFile<KirliasTracingShow> = Games.copyTemplateProperties(guessingGame, {
+export const game: IGameFile<KirliasTracingShow> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['kirlias', 'kts'],
 	category: 'knowledge',
 	class: KirliasTracingShow,

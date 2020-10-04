@@ -1,7 +1,7 @@
 import type { Room } from "../rooms";
 import type { AchievementsDict, IGameFile } from "../types/games";
 import type { User } from "../users";
-import { game as guessingGame, Guessing } from './templates/guessing';
+import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const data: {"Pokemon Abilities": Dict<string[]>; "Pokemon Items": Dict<string[]>; "Pokemon Moves": Dict<string[]>} = {
 	"Pokemon Abilities": {},
@@ -22,7 +22,7 @@ const achievements: AchievementsDict = {
 		"team and win the game"},
 };
 
-class SlowkingsTrivia extends Guessing {
+class SlowkingsTrivia extends QuestionAndAnswer {
 	allAnswersAchievement = achievements.knowitall;
 	allAnswersTeamAchievement = achievements.captainknowitall;
 	roundTime = 15 * 1000;
@@ -63,7 +63,7 @@ class SlowkingsTrivia extends Guessing {
 	}
 }
 
-export const game: IGameFile<SlowkingsTrivia> = Games.copyTemplateProperties(guessingGame, {
+export const game: IGameFile<SlowkingsTrivia> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	achievements,
 	aliases: ['slowkings', 'triv', 'st'],
 	category: 'knowledge',

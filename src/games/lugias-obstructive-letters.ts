@@ -1,7 +1,7 @@
 import type { Room } from "../rooms";
 import type { IGameFile } from "../types/games";
 import type { User } from "../users";
-import { game as guessingGame, Guessing } from './templates/guessing';
+import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const BASE_POINTS = 50;
 const BASE_TEAM_POINTS = 100;
@@ -23,7 +23,7 @@ const dataKeys: KeyedDict<DataKey, string[]> = {
 
 const letters = Tools.letters.split("");
 
-class LugiasObstructiveLetters extends Guessing {
+class LugiasObstructiveLetters extends QuestionAndAnswer {
 	loserPointsToBits: number = 2;
 	roundTime: number = 30 * 1000;
 	winnerPointsToBits: number = 10;
@@ -90,7 +90,7 @@ class LugiasObstructiveLetters extends Guessing {
 	}
 }
 
-export const game: IGameFile<LugiasObstructiveLetters> = Games.copyTemplateProperties(guessingGame, {
+export const game: IGameFile<LugiasObstructiveLetters> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['lugias', 'lol'],
 	category: 'identification',
 	class: LugiasObstructiveLetters,

@@ -1,7 +1,7 @@
 import type { Room } from "../rooms";
 import type { AchievementsDict, IGameFile } from "../types/games";
 import type { User } from "../users";
-import { game as guessingGame, Guessing } from "./templates/guessing";
+import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 const achievements: AchievementsDict = {
 	'genusgenius': {name: "Genus Genius", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
@@ -12,7 +12,7 @@ const data: {categories: Dict<string[]>} = {
 };
 const categoryKeys: string[] = [];
 
-class SudowoodosSpeciesScramble extends Guessing {
+class SudowoodosSpeciesScramble extends QuestionAndAnswer {
 	allAnswersAchievement = achievements.genusgenius;
 
 	static loadData(room: Room | User): void {
@@ -40,7 +40,7 @@ class SudowoodosSpeciesScramble extends Guessing {
 	}
 }
 
-export const game: IGameFile<SudowoodosSpeciesScramble> = Games.copyTemplateProperties(guessingGame, {
+export const game: IGameFile<SudowoodosSpeciesScramble> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ["sudowoodos", "sss", "speciesscramble"],
 	category: 'knowledge',
 	class: SudowoodosSpeciesScramble,

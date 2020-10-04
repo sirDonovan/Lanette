@@ -2,7 +2,7 @@ import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
 import type { AchievementsDict, IGameFile } from "../types/games";
 import type { User } from "../users";
-import { game as guessingGame, Guessing } from "./templates/guessing";
+import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 const data: {abilities: Dict<string[]>; eggGroups: Dict<string>; pokedex: string[]; regions: Dict<string>; types: Dict<string>} = {
 	abilities: {},
@@ -16,7 +16,7 @@ const achievements: AchievementsDict = {
 	"pokemonprofessor": {name: "Pokemon Professor", type: 'all-answers', bits: 1000, description: 'get every answer in one game'},
 };
 
-class PikachusMysteryPokemon extends Guessing {
+class PikachusMysteryPokemon extends QuestionAndAnswer {
 	allAnswersAchievement = achievements.pokemonprofessor;
 	answers: string[] = [];
 	canGuess: boolean = false;
@@ -112,7 +112,7 @@ class PikachusMysteryPokemon extends Guessing {
 	}
 }
 
-export const game: IGameFile<PikachusMysteryPokemon> = Games.copyTemplateProperties(guessingGame, {
+export const game: IGameFile<PikachusMysteryPokemon> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	achievements,
 	aliases: ["pikachus", "mysterypokemon", "pmp", "wtp"],
 	category: 'knowledge',

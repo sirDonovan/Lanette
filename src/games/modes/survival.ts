@@ -5,13 +5,13 @@ import type {
 	DefaultGameOption, GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFormat,
 	IGameModeFile
 } from "../../types/games";
-import type { Guessing } from "../templates/guessing";
+import type { QuestionAndAnswer } from "../templates/question-and-answer";
 
 const name = 'Survival';
 const description = 'Answer within the time limit to survive each round!';
 const removedOptions: string[] = ['points', 'freejoin'];
 
-type SurvivalThis = Guessing & Survival;
+type SurvivalThis = QuestionAndAnswer & Survival;
 
 class Survival {
 	currentPlayer: Player | null = null;
@@ -191,7 +191,7 @@ const tests: GameFileTests<SurvivalThis> = {
 	/* eslint-enable */
 };
 
-export const mode: IGameModeFile<Survival, Guessing, SurvivalThis> = {
+export const mode: IGameModeFile<Survival, QuestionAndAnswer, SurvivalThis> = {
 	aliases: ['surv'],
 	class: Survival,
 	commands,

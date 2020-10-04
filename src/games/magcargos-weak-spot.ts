@@ -2,7 +2,7 @@ import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
 import type { AchievementsDict, IGameFile } from "../types/games";
 import type { User } from "../users";
-import { game as guessingGame, Guessing } from "./templates/guessing";
+import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 const data: {pokedex: string[]; inverseTypeKeys: string[]; inverseTypeWeaknesses: Dict<string[]>; typeKeys: string[];
 	typeWeaknesses: Dict<string[]>;} = {
@@ -19,7 +19,7 @@ const achievements: AchievementsDict = {
 		'and win the game'},
 };
 
-class MagcargosWeakSpot extends Guessing {
+class MagcargosWeakSpot extends QuestionAndAnswer {
 	allAnswersAchievement = achievements.achillesheel;
 	allAnswersTeamAchievement = achievements.captainachilles;
 	inverseTypes: boolean = false;
@@ -98,7 +98,7 @@ class MagcargosWeakSpot extends Guessing {
 	}
 }
 
-export const game: IGameFile<MagcargosWeakSpot> = Games.copyTemplateProperties(guessingGame, {
+export const game: IGameFile<MagcargosWeakSpot> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	achievements,
 	aliases: ["Magcargos", "ws"],
 	category: 'knowledge',

@@ -2,7 +2,7 @@ import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
 import type { IGameFile } from "../types/games";
 import type { User } from "../users";
-import { game as guessingGame, Guessing } from "./templates/guessing";
+import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
 	'Pokemon Items': string[]; 'Pokemon Moves': string[];} = {
@@ -16,7 +16,7 @@ const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[];
 type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
 
-class HypnosHunches extends Guessing {
+class HypnosHunches extends QuestionAndAnswer {
 	currentCategory: string = '';
 	guessLimit: number = 10;
 	guessedLetters: string[] = [];
@@ -124,7 +124,7 @@ class HypnosHunches extends Guessing {
 	}
 }
 
-export const game: IGameFile<HypnosHunches> = Games.copyTemplateProperties(guessingGame, {
+export const game: IGameFile<HypnosHunches> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ["hypnos"],
 	category: 'identification',
 	class: HypnosHunches,

@@ -2,7 +2,7 @@ import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
 import type { IGameFile } from "../types/games";
 import type { User } from "../users";
-import { game as guessingGame, Guessing } from './templates/guessing';
+import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const data: {'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]} = {
 	"Pokemon": [],
@@ -13,7 +13,7 @@ const data: {'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items'
 type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
 
-class AmbipomsTossups extends Guessing {
+class AmbipomsTossups extends QuestionAndAnswer {
 	currentCategory: string = '';
 	hints: string[] = [];
 	lastAnswer: string = '';
@@ -99,7 +99,7 @@ class AmbipomsTossups extends Guessing {
 	}
 }
 
-export const game: IGameFile<AmbipomsTossups> = Games.copyTemplateProperties(guessingGame, {
+export const game: IGameFile<AmbipomsTossups> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['ambipoms', 'at'],
 	category: 'identification',
 	class: AmbipomsTossups,

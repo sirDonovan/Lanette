@@ -1,7 +1,7 @@
 import type { Room } from "../rooms";
 import type { AchievementsDict, IGameFile } from "../types/games";
 import type { User } from "../users";
-import { game as guessingGame, Guessing } from './templates/guessing';
+import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const data: {pokedex: string[]; reverseTypes: Dict<string>; species: Dict<string>; types: Dict<string>} = {
 	pokedex: [],
@@ -16,7 +16,7 @@ const achievements: AchievementsDict = {
 		"answer for your team and win the game"},
 };
 
-class GreninjasTypings extends Guessing {
+class GreninjasTypings extends QuestionAndAnswer {
 	allAnswersAchievement = achievements.proteaneye;
 	allAnswersTeamAchievement = achievements.captainproteaneye;
 	lastPokemon: string = '';
@@ -55,7 +55,7 @@ class GreninjasTypings extends Guessing {
 	}
 }
 
-export const game: IGameFile<GreninjasTypings> = Games.copyTemplateProperties(guessingGame, {
+export const game: IGameFile<GreninjasTypings> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	achievements,
 	aliases: ['greninjas'],
 	category: 'knowledge',

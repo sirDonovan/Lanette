@@ -1,7 +1,7 @@
 import type { Room } from "../rooms";
 import type { AchievementsDict, IGameFile } from "../types/games";
 import type { User } from "../users";
-import { game as guessingGame, Guessing } from './templates/guessing';
+import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
 	'Pokemon Items': string[]; 'Pokemon Moves': string[];} = {
@@ -21,7 +21,7 @@ const achievements: AchievementsDict = {
 		"for your team and win the game"},
 };
 
-class MetangsAnagrams extends Guessing {
+class MetangsAnagrams extends QuestionAndAnswer {
 	allAnswersAchievement = achievements.wordmaster;
 	allAnswersTeamAchievement = achievements.captainwordmaster;
 	lastAnswer: string = '';
@@ -53,7 +53,7 @@ class MetangsAnagrams extends Guessing {
 	}
 }
 
-export const game: IGameFile<MetangsAnagrams> = Games.copyTemplateProperties(guessingGame, {
+export const game: IGameFile<MetangsAnagrams> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	achievements,
 	aliases: ['metangs', 'anags', 'ma'],
 	category: 'identification',

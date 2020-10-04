@@ -1,5 +1,5 @@
 import type { AchievementsDict, IGameFile } from "../types/games";
-import { game as guessingGame, Guessing } from "./templates/guessing";
+import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 const achievements: AchievementsDict = {
 	'mnemonicmaster': {name: "Mnemonic Master", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
@@ -10,7 +10,7 @@ const data: {abilities: Dict<string[]>} = {
 };
 const keys: string[] = [];
 
-class GalladesAbilityTest extends Guessing {
+class GalladesAbilityTest extends QuestionAndAnswer {
 	allAnswersAchievement = achievements.mnemonicmaster;
 	roundTime: number = 20 * 1000;
 
@@ -45,7 +45,7 @@ class GalladesAbilityTest extends Guessing {
 	}
 }
 
-export const game: IGameFile<GalladesAbilityTest> = Games.copyTemplateProperties(guessingGame, {
+export const game: IGameFile<GalladesAbilityTest> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['gallades', 'gat', 'abilitytest', 'tya'],
 	category: 'knowledge',
 	class: GalladesAbilityTest,

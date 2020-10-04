@@ -5,7 +5,7 @@ import type {
 	DefaultGameOption, GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFormat,
 	IGameModeFile
 } from "../../types/games";
-import type { Guessing } from "../templates/guessing";
+import type { QuestionAndAnswer } from "../templates/question-and-answer";
 
 const BASE_POINTS = 20;
 
@@ -13,7 +13,7 @@ const name = 'Team';
 const description = 'One player from each team will be able to answer each round!';
 const removedOptions: string[] = ['points', 'freejoin'];
 
-type TeamThis = Guessing & Team;
+type TeamThis = QuestionAndAnswer & Team;
 
 class Team {
 	currentPlayers: Dict<Player> = {};
@@ -281,7 +281,7 @@ const tests: GameFileTests<TeamThis> = {
 	},
 };
 
-export const mode: IGameModeFile<Team, Guessing, TeamThis> = {
+export const mode: IGameModeFile<Team, QuestionAndAnswer, TeamThis> = {
 	aliases: ['teams'],
 	class: Team,
 	commands,

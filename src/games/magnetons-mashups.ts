@@ -1,7 +1,7 @@
 import type { Room } from "../rooms";
 import type { IGameFile } from "../types/games";
 import type { User } from "../users";
-import { game as guessingGame, Guessing } from './templates/guessing';
+import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const BASE_NUMBER_OF_NAMES = 2;
 const data: {'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]; 'Pokemon': string[]} = {
@@ -13,7 +13,7 @@ const data: {'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon 
 type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
 
-class MagnetonsMashups extends Guessing {
+class MagnetonsMashups extends QuestionAndAnswer {
 	roundTime: number = 30 * 1000;
 
 	static loadData(room: Room | User): void {
@@ -111,7 +111,7 @@ class MagnetonsMashups extends Guessing {
 	}
 }
 
-export const game: IGameFile<MagnetonsMashups> = Games.copyTemplateProperties(guessingGame, {
+export const game: IGameFile<MagnetonsMashups> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['magnetons'],
 	category: 'identification',
 	class: MagnetonsMashups,

@@ -1,7 +1,7 @@
 import type { Room } from "../rooms";
 import type { IGameFile } from "../types/games";
 import type { User } from "../users";
-import { game as guessingGame, Guessing } from './templates/guessing';
+import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const data: {'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]} = {
 	"Pokemon": [],
@@ -14,7 +14,7 @@ const categories = Object.keys(data) as DataKey[];
 
 const LETTERS_TO_REVEAL = 4;
 
-class MareaniesMarquee extends Guessing {
+class MareaniesMarquee extends QuestionAndAnswer {
 	currentCategory: string = '';
 	currentIndex: number = -1;
 	hintUpdates: number = 0;
@@ -107,7 +107,7 @@ class MareaniesMarquee extends Guessing {
 	}
 }
 
-export const game: IGameFile<MareaniesMarquee> = Games.copyTemplateProperties(guessingGame, {
+export const game: IGameFile<MareaniesMarquee> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['mareanies', 'marquees'],
 	category: 'identification',
 	class: MareaniesMarquee,

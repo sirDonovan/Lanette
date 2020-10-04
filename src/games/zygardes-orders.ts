@@ -2,7 +2,7 @@ import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
 import type { AchievementsDict, IGameFile } from "../types/games";
 import type { User } from "../users";
-import { game as guessingGame, Guessing } from "./templates/guessing";
+import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
 	'Pokemon Items': string[]; 'Pokemon Moves': string[];} = {
@@ -20,7 +20,7 @@ const achievements: AchievementsDict = {
 	"tallorder": {name: "Tall Order", type: 'special', bits: 1000, description: "guess the answer with only 1 letter revealed"},
 };
 
-class ZygardesOrders extends Guessing {
+class ZygardesOrders extends QuestionAndAnswer {
 	allLetters: number = 0;
 	currentCategory: string = '';
 	guessedLetters: string[] = [];
@@ -127,7 +127,7 @@ class ZygardesOrders extends Guessing {
 	}
 }
 
-export const game: IGameFile<ZygardesOrders> = Games.copyTemplateProperties(guessingGame, {
+export const game: IGameFile<ZygardesOrders> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	achievements,
 	aliases: ["zygardes", "zo"],
 	category: 'identification',
