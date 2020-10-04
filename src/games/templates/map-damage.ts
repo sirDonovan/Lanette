@@ -1,7 +1,7 @@
 import type { Player } from "../../room-activity";
 import type { IGameTemplateFile } from "../../types/games";
-import { game as mapGame, MapGame } from "./map";
 import type { MapFloor } from "./map";
+import { game as mapGame, MapGame } from "./map";
 
 export abstract class MapDamageGame extends MapGame {
 	canLateJoin: boolean = true;

@@ -4,8 +4,8 @@ import type {
 	GameCategory, GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameAchievement, IGameTemplateFile
 } from "../../types/games";
 import type { HexColor } from "../../types/tools";
-import { BoardGame, BoardSpace, game as boardGame } from "./board";
 import type { BoardActionCard, BoardSide, IBoard, IMovedBoardLocation } from "./board";
+import { BoardGame, BoardSpace, game as boardGame } from "./board";
 
 type BoardEliminationType = 'random' | number;
 type BoardRentType = 'random' | number;
@@ -243,7 +243,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 		}
 	}
 
-	onAfterDeallocate(forceEnd: boolean): void {
+	onDeallocate(forceEnd: boolean): void {
 		const spaceKeys = Object.keys(this.spaces) as (keyof BoardSpaces)[];
 		for (const key of spaceKeys) {
 			const space = this.spaces[key];

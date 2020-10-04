@@ -1,5 +1,5 @@
 import type { Player } from '../room-activity';
-import { Game } from '../room-game';
+import { ScriptedGame } from '../room-game-scripted';
 import type { GameCategory, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 
 type BerryType = 'Cheri' | 'Chesto' | 'Pecha' | 'Rawst' | 'Mystery';
@@ -10,7 +10,7 @@ interface IBerryPile {
 
 const mysteryBerryAmount = 11;
 
-class GreedentsBerryPiles extends Game {
+class GreedentsBerryPiles extends ScriptedGame {
 	berryPiles: IBerryPile[] = [];
 	canGrab: boolean = false;
 	canLateJoin: boolean = true;

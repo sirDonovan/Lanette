@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
-import type { IGameFile, IGameFormat } from "../types/games";
+import type { IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as guessingGame, Guessing } from "./templates/guessing";
 

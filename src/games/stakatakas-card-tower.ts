@@ -1,7 +1,7 @@
 import type { Player } from "../room-activity";
 import { addPlayers, assert, assertStrictEqual, runCommand } from "../test/test-tools";
 import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFile } from "../types/games";
-import type { ICard, IActionCardData, IPokemonCard } from "./templates/card";
+import type { IActionCardData, ICard, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 
 const achievements: AchievementsDict = {

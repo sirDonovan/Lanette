@@ -3,8 +3,8 @@ import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
 import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 import type { User } from "../users";
-import { BoardSpace } from "./templates/board";
 import type { BoardActionCard, IBoard } from "./templates/board";
+import { BoardSpace } from "./templates/board";
 import {
 	BoardActionSpace, BoardPropertyGame, BoardPropertyRentSpace, BoardRentSpace, game as boardPropertyGame, mountainPrefix
 } from "./templates/board-property";

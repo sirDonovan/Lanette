@@ -1,6 +1,6 @@
-import { EliminationTournament, game as eliminationTournamentGame } from './templates/elimination-tournament';
-import type { IGameFile } from '../types/games';
 import type { IPokemon } from '../types/dex';
+import type { IGameFile } from '../types/games';
+import { EliminationTournament, game as eliminationTournamentGame } from './templates/elimination-tournament';
 
 const name = "Catch and Evolve";
 const description = "Every player is given a randomly generated Pokemon to use as their starter. Each battle that you win, you " +

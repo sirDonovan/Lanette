@@ -1,11 +1,11 @@
 import type { Player } from "../../room-activity";
-import { Game } from "../../room-game";
+import { ScriptedGame } from "../../room-game-scripted";
 import type { IAbility, IItem, IMove, IPokemon } from "../../types/dex";
 import type { GameCommandDefinitions, GameCommandReturnType, IGameTemplateFile } from "../../types/games";
 
 export type Link = IPokemon | IMove | IItem | IAbility;
 
-export abstract class Chain extends Game {
+export abstract class Chain extends ScriptedGame {
 	acceptsFormes: boolean = false;
 	canReverseLinks: boolean = false;
 	currentPlayer: Player | null = null;

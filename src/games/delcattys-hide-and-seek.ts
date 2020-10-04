@@ -1,5 +1,5 @@
 import type { Player } from "../room-activity";
-import { Game } from "../room-game";
+import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
 import { addPlayers, assert, runCommand } from "../test/test-tools";
 import type { IPokemon } from "../types/dex";
@@ -11,7 +11,7 @@ const data: {'parameters': Dict<string[]>; 'pokemon': string[]} = {
 	"pokemon": [],
 };
 
-class DelcattysHideAndSeek extends Game {
+class DelcattysHideAndSeek extends ScriptedGame {
 	canCharm: boolean = false;
 	canSelect: boolean = false;
 	categories: string[] = [];

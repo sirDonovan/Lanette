@@ -1,9 +1,9 @@
-import type { UserHosted } from "./games/internal/user-hosted";
 import type { Player } from "./room-activity";
-import type { Game } from "./room-game";
+import type { ScriptedGame } from "./room-game-scripted";
+import type { UserHostedGame } from "./room-game-user-hosted";
 import type { Tournament } from "./room-tournament";
 import type { GroupName, IChatLogEntry, IRoomInfoResponse } from "./types/client";
-import type { RoomType, IRepeatedMessage } from "./types/rooms";
+import type { IRepeatedMessage, RoomType } from "./types/rooms";
 import type { IUserHostedTournament } from "./types/tournaments";
 import type { User } from "./users";
 
@@ -12,7 +12,7 @@ export class Room {
 	bannedWords: string[] | null = null;
 	bannedWordsRegex: RegExp | null = null;
 	chatLog: IChatLogEntry[] = [];
-	game: Game | undefined = undefined;
+	game: ScriptedGame | undefined = undefined;
 	readonly htmlMessageListeners: Dict<() => void> = {};
 	inviteOnlyBattle: boolean | null = null;
 	readonly messageListeners: Dict<() => void> = {};
@@ -23,7 +23,7 @@ export class Room {
 	timers: Dict<NodeJS.Timer> | null = null;
 	tournament: Tournament | undefined = undefined;
 	readonly uhtmlMessageListeners: Dict<Dict<() => void>> = {};
-	userHostedGame: UserHosted | undefined = undefined;
+	userHostedGame: UserHostedGame | undefined = undefined;
 	readonly users = new Set<User>();
 
 	readonly id: string;

@@ -1,12 +1,12 @@
 import type { Player } from '../../room-activity';
 import { addPlayers, assert } from '../../test/test-tools';
+import type { IPokemon } from '../../types/dex';
 import type {
 	GameCategory, GameCommandDefinitions, GameCommandReturnType, GameFileTests,
 	IGameAchievement, IGameTemplateFile
 } from '../../types/games';
-import { Card, game as cardGame, IActionCardData, ICardsSplitByPlayable } from './card';
 import type { ICard, IPokemonCard } from './card';
-import type { IPokemon } from '../../types/dex';
+import { Card, game as cardGame, IActionCardData, ICardsSplitByPlayable } from './card';
 
 interface IPreviouslyPlayedCard {
 	card: string;

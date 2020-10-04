@@ -1,7 +1,6 @@
 import type { Player } from "../room-activity";
-import { Game } from "../room-game";
+import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
-import type { IPokemon } from "../types/dex";
 import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 import type { User } from "../users";
 
@@ -19,7 +18,7 @@ const achievements: AchievementsDict = {
 	"pokemonranger": {name: "Pokemon Ranger", type: 'first', bits: 1000, description: 'catch first in every round'},
 };
 
-class TaurosSafariZone extends Game {
+class TaurosSafariZone extends ScriptedGame {
 	canCatch: boolean = false;
 	caughtPokemon = new Map<Player, number>();
 	firstCatch: Player | false | undefined;

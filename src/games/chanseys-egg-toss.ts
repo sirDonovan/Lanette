@@ -1,5 +1,5 @@
 import type { Player } from "../room-activity";
-import { Game } from "../room-game";
+import { ScriptedGame } from "../room-game-scripted";
 import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 
 const hotPotatoHeroTime = 9000;
@@ -8,7 +8,7 @@ const achievements: AchievementsDict = {
 		(hotPotatoHeroTime/ 1000) + ' seconds'},
 };
 
-class ChanseysEggToss extends Game {
+class ChanseysEggToss extends ScriptedGame {
 	canToss: boolean = false;
 	currentHolder: Player | null = null;
 	maxPlayers: number = 20;

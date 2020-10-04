@@ -1,5 +1,5 @@
 import type { Player } from '../../room-activity';
-import { Game } from '../../room-game';
+import { ScriptedGame } from '../../room-game-scripted';
 import { assert, assertStrictEqual } from '../../test/test-tools';
 import type { IMove, IPokemon, StatsTable } from '../../types/dex';
 import type { GameCommandDefinitions, GameFileTests, IGameTemplateFile, PlayerList } from '../../types/games';
@@ -9,7 +9,7 @@ export interface ICardsSplitByPlayable {
 	other: ICard[];
 }
 
-export interface IActionCardData<T extends Game = Game, U extends ICard = ICard> {
+export interface IActionCardData<T extends ScriptedGame = ScriptedGame, U extends ICard = ICard> {
 	getRandomTarget?: (game: T, hand: U[]) => string | undefined;
 	getAutoPlayTarget: (game: T, hand: U[]) => string | undefined;
 	isPlayableTarget: (game: T, targets: string[], hand?: U[], player?: Player) => boolean;
@@ -44,7 +44,7 @@ export interface IPokemonCard extends ICard {
 	shiny?: boolean;
 }
 
-export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Game {
+export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends ScriptedGame {
 	abstract actionCards: ActionCardsType;
 
 	canLateJoin: boolean = true;

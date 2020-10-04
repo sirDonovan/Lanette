@@ -1,5 +1,5 @@
 import type { Player } from "../../room-activity";
-import { Game } from "../../room-game";
+import { ScriptedGame } from "../../room-game-scripted";
 import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameTemplateFile } from "../../types/games";
 import type { User } from "../../users";
 
@@ -86,7 +86,7 @@ export class GameMap {
 	}
 }
 
-export abstract class MapGame extends Game {
+export abstract class MapGame extends ScriptedGame {
 	abstract currency: string = '';
 	abstract maxDimensions: number;
 	abstract minDimensions: number;

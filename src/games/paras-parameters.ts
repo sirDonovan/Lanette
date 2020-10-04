@@ -1,8 +1,8 @@
-import { PRNG } from "../prng";
 import type { PRNGSeed } from "../prng";
+import { PRNG } from "../prng";
 import type { Room } from "../rooms";
 import { assert, assertStrictEqual } from "../test/test-tools";
-import type { GameFileTests, IGameFile, IGameFormat } from "../types/games";
+import type { GameFileTests, IGameFile } from "../types/games";
 import type { User } from "../users";
 import type { IParam, IParametersResponse, ParamType } from '../workers/parameters';
 import { game as guessingGame, Guessing } from './templates/guessing';
@@ -69,8 +69,8 @@ export class ParasParameters extends Guessing {
 			numberOfParams = this.format.options.params;
 		} else {
 			numberOfParams = BASE_NUMBER_OF_PARAMS;
-			if ((this.format as IGameFormat).customizableOptions.params) {
-				numberOfParams += this.random((this.format as IGameFormat).customizableOptions.params.max - BASE_NUMBER_OF_PARAMS + 1);
+			if (this.format.customizableOptions.params) {
+				numberOfParams += this.random(this.format.customizableOptions.params.max - BASE_NUMBER_OF_PARAMS + 1);
 			}
 		}
 		this.currentNumberOfParams = numberOfParams;

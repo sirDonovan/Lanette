@@ -1,5 +1,5 @@
 import type { Player } from "../room-activity";
-import { Game } from "../room-game";
+import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
 import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 import type { User } from "../users";
@@ -13,7 +13,7 @@ const data: {abilities: string[]} = {
 	abilities: [],
 };
 
-class DedennesAbilityBlitz extends Game {
+class DedennesAbilityBlitz extends ScriptedGame {
 	canSelect: boolean = false;
 	firstType: Player | null = null;
 	maxPoints: number = 1000;

@@ -1,5 +1,5 @@
 import type { Player } from "../room-activity";
-import { Game } from "../room-game";
+import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
 import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 import type { User } from "../users";
@@ -11,7 +11,7 @@ const data: {parameters: Dict<string[]>; parameterKeys: string[]} = {
 	parameterKeys: [],
 };
 
-class SerperiorLengthyChains extends Game {
+class SerperiorLengthyChains extends ScriptedGame {
 	bestChain: string[] = [];
 	bestPlayer: Player | null = null;
 	category: string = '';

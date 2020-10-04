@@ -1,5 +1,5 @@
 import type { Player } from '../../room-activity';
-import { Game } from '../../room-game';
+import { ScriptedGame } from '../../room-game-scripted';
 import type { Room } from '../../rooms';
 import { assert, assertStrictEqual, getBasePlayerName, runCommand } from '../../test/test-tools';
 import type {
@@ -7,7 +7,7 @@ import type {
 	IRandomGameAnswer
 } from '../../types/games';
 
-export abstract class Guessing extends Game {
+export abstract class Guessing extends ScriptedGame {
 	additionalHintHeader: string = '';
 	answers: string[] = [];
 	answerTimeout: NodeJS.Timer | undefined;
@@ -31,10 +31,9 @@ export abstract class Guessing extends Game {
 
 	abstract async setAnswers(): Promise<void>;
 
-	onInitialize(): void {
-		super.onInitialize();
+	onInitialize(format: IGameFormat): void {
+		super.onInitialize(format);
 
-		const format = (this.format as IGameFormat);
 		if (!format.options.points && !(format.mode && format.mode.removedOptions && format.mode.removedOptions.includes('points'))) {
 			throw new Error("Guessing games must include default or customizable points options");
 		}
@@ -414,7 +413,8 @@ const tests: GameFileTests<Guessing> = {
 			this.timeout(15000);
 			game.deallocate(true);
 
-			const minigame = Games.createGame(game.room, (format as unknown) as IGameFormat<Game>, game.room as Room, true) as Guessing;
+			const minigame = Games.createGame(game.room,
+				(format as unknown) as IGameFormat<ScriptedGame>, game.room as Room, true) as Guessing;
 			minigame.signups();
 			if (minigame.timeout) clearTimeout(minigame.timeout);
 			await minigame.onNextRound();
@@ -438,7 +438,8 @@ const tests: GameFileTests<Guessing> = {
 			const name = getBasePlayerName() + " 1";
 			const id = Tools.toId(name);
 			const user = Users.add(name, id);
-			const pmMinigame = Games.createGame(user, (format as unknown) as IGameFormat<Game>, game.room as Room, true) as Guessing;
+			const pmMinigame = Games.createGame(user,
+				(format as unknown) as IGameFormat<ScriptedGame>, game.room as Room, true) as Guessing;
 
 			pmMinigame.signups();
 			if (pmMinigame.timeout) clearTimeout(pmMinigame.timeout);

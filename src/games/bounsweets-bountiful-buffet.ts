@@ -1,5 +1,5 @@
 import type { Player } from "../room-activity";
-import { Game } from "../room-game";
+import { ScriptedGame } from "../room-game-scripted";
 import { addPlayers, assertStrictEqual, runCommand } from "../test/test-tools";
 import type { GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFile } from "../types/games";
 
@@ -29,7 +29,7 @@ for (const meal of meals) {
 	}
 }
 
-class BounsweetsBountifulBuffet extends Game {
+class BounsweetsBountifulBuffet extends ScriptedGame {
 	canLateJoin: boolean = true;
 	canSelect: boolean = false;
 	mealPoints: number[] = [];

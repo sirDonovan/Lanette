@@ -1,4 +1,4 @@
-import type { Game } from "./room-game";
+import type { ScriptedGame } from "./room-game-scripted";
 import type { Room } from "./rooms";
 import type { GroupName, IChatLogEntry } from "./types/client";
 import type { IUserRoomData } from "./types/users";
@@ -8,7 +8,7 @@ const chatFormatting: string[] = ["*", "_", "`", "~", "^", "\\"];
 export class User {
 	away: boolean | null = null;
 	chatLog: IChatLogEntry[] = [];
-	game: Game | undefined = undefined;
+	game: ScriptedGame | undefined = undefined;
 	group: string | null = null;
 	rooms = new Map<Room, IUserRoomData>();
 	status: string | null = null;

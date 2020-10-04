@@ -1,5 +1,5 @@
 import type { Player } from "../room-activity";
-import { Game } from "../room-game";
+import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
 import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 import type { User } from "../users";
@@ -49,7 +49,7 @@ const data: {pokemon: KeyedDict<TerrainKey, string[]>} = {
 	},
 };
 
-class TapusTerrains extends Game {
+class TapusTerrains extends ScriptedGame {
 	canJump: boolean = false;
 	canLateJoin: boolean = true;
 	currentTerrain: TerrainKey | null = null;

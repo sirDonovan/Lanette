@@ -1,5 +1,5 @@
 import type { Player } from "../room-activity";
-import { Game } from "../room-game";
+import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
 import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 import type { User } from "../users";
@@ -14,7 +14,7 @@ const paramTypeDexesKeys: Dict<Dict<KeyedDict<ParamType, string[]>>> = {};
 
 const searchTypes: (keyof IParametersWorkerData)[] = ['pokemon'];
 
-class InkaysCups extends Game {
+class InkaysCups extends ScriptedGame {
 	answers: string[] = [];
 	canGrab: boolean = false;
 	canLateJoin: boolean = true;

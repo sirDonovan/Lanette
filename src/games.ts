@@ -1,15 +1,15 @@
 import fs = require('fs');
 import path = require('path');
 
-import type { UserHosted } from './games/internal/user-hosted';
 import type { PRNGSeed } from './prng';
-import { Game } from './room-game';
+import { ScriptedGame } from './room-game-scripted';
+import type { UserHostedGame } from './room-game-user-hosted';
 import type { Room } from "./rooms";
 import type { CommandErrorArray } from "./types/command-parser";
 import type { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/dex';
 import type {
 	AutoCreateTimerType, DefaultGameOption, GameAchievements, GameCategory, GameCommandDefinitions, GameCommandReturnType,
-	IGameFile, IGameFormat, IGameFormatComputed, IGameFormatData, IGameMode, IGameModeFile, IGameOptionValues, IGamesWorkers,
+	IGameFile, IGameFormat, IGameFormatComputed, IGameMode, IGameModeFile, IGameOptionValues, IGamesWorkers,
 	IGameTemplateFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFormat,
 	IUserHostedFormatComputed, LoadedGameCommands, LoadedGameFile, UserHostedCustomizable
 } from './types/games';
@@ -107,8 +107,6 @@ export class Games {
 	readonly modes: Dict<IGameMode> = {};
 	readonly modeAliases: Dict<string> = {};
 	reloadInProgress: boolean = false;
-	// @ts-expect-error - set in loadFormats()
-	readonly userHosted: typeof import('./games/internal/user-hosted').game;
 	readonly userHostedAliases: Dict<string> = {};
 	readonly userHostedFormats: Dict<IUserHostedComputed> = {};
 	readonly workers: IGamesWorkers = {
@@ -118,6 +116,9 @@ export class Games {
 
 	readonly commands: LoadedGameCommands;
 	readonly sharedCommands: LoadedGameCommands;
+
+	// set in loadFormats()
+	readonly userHosted!: typeof import('./room-game-user-hosted').game;
 
 	/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 	private abilitiesLists: Dict<readonly IAbility[]> = Object.create(null);
@@ -198,7 +199,8 @@ export class Games {
 		}
 	}
 
-	copyTemplateProperties<T extends Game, U extends Game>(template: IGameTemplateFile<T>, game: IGameFile<U>): IGameFile<U> {
+	copyTemplateProperties<T extends ScriptedGame, U extends ScriptedGame>(template: IGameTemplateFile<T>, game: IGameFile<U>):
+		IGameFile<U> {
 		return Object.assign(Tools.deepClone(template), game);
 	}
 
@@ -224,8 +226,8 @@ export class Games {
 
 	loadFormats(): void {
 		// @ts-expect-error
-		this.userHosted = (require(path.join(gamesDirectory, "internal", "user-hosted.js")) as // eslint-disable-line @typescript-eslint/no-var-requires
-			typeof import('./games/internal/user-hosted')).game;
+		this.userHosted = (require(path.join(Tools.rootFolder, "built", "room-game-user-hosted.js")) as // eslint-disable-line @typescript-eslint/no-var-requires
+			typeof import('./room-game-user-hosted')).game;
 
 		const internalGameKeys = Object.keys(internalGamePaths) as (keyof IInternalGames)[];
 		for (const key of internalGameKeys) {
@@ -235,7 +237,7 @@ export class Games {
 
 			let commands;
 			if (file.commands) {
-				commands = CommandParser.loadCommands<Game, GameCommandReturnType>(Tools.deepClone(file.commands));
+				commands = CommandParser.loadCommands<ScriptedGame, GameCommandReturnType>(Tools.deepClone(file.commands));
 				for (const i in commands) {
 					if (!(i in this.commands)) this.commands[i] = commands[i];
 				}
@@ -290,7 +292,7 @@ export class Games {
 			if (id in this.formats) throw new Error("The name '" + file.name + "' is already used by another game.");
 
 			let commands;
-			if (file.commands) commands = CommandParser.loadCommands<Game, GameCommandReturnType>(Tools.deepClone(file.commands));
+			if (file.commands) commands = CommandParser.loadCommands<ScriptedGame, GameCommandReturnType>(Tools.deepClone(file.commands));
 
 			let variants;
 			if (file.variants) {
@@ -643,7 +645,7 @@ export class Games {
 		}
 
 		const format = Object.assign(formatData, formatComputed, {customizableOptions, defaultOptions, options: {}}) as IGameFormat;
-		format.options = Game.setOptions(format, mode, variant);
+		format.options = ScriptedGame.setOptions(format, mode, variant);
 
 		return format;
 	}
@@ -778,7 +780,7 @@ export class Games {
 
 		const format = Object.assign({}, formatData, formatComputed, {customizableOptions: formatData.customizableOptions || {},
 			defaultOptions: formatData.defaultOptions || []}) as IGameFormat;
-		format.options = Game.setOptions(format, undefined, undefined);
+		format.options = ScriptedGame.setOptions(format, undefined, undefined);
 
 		return format;
 	}
@@ -908,7 +910,7 @@ export class Games {
 		return false;
 	}
 
-	createGame(room: Room | User, format: IGameFormat, pmRoom?: Room, isMinigame?: boolean, initialSeed?: PRNGSeed): Game {
+	createGame(room: Room | User, format: IGameFormat, pmRoom?: Room, isMinigame?: boolean, initialSeed?: PRNGSeed): ScriptedGame {
 		if (!isMinigame) this.clearAutoCreateTimer(room as Room);
 
 		if (format.class.loadData && !format.class.loadedData) {
@@ -931,7 +933,7 @@ export class Games {
 		return room.game;
 	}
 
-	createChildGame(format: IGameFormat, parentGame: Game): Game {
+	createChildGame(format: IGameFormat, parentGame: ScriptedGame): ScriptedGame {
 		const childGame = this.createGame(parentGame.room, format, parentGame.pmRoom, false, parentGame.prng.seed.slice() as PRNGSeed);
 		childGame.canLateJoin = false;
 		childGame.parentGame = parentGame;
@@ -940,7 +942,7 @@ export class Games {
 		return childGame;
 	}
 
-	createUserHostedGame(room: Room, format: IUserHostedFormat, host: User | string): UserHosted {
+	createUserHostedGame(room: Room, format: IUserHostedFormat, host: User | string): UserHostedGame {
 		this.clearAutoCreateTimer(room);
 
 		room.userHostedGame = new format.class(room);

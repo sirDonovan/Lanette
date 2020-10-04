@@ -1,5 +1,5 @@
 import type { Player } from "../../room-activity";
-import { Game } from "../../room-game";
+import { ScriptedGame } from "../../room-game-scripted";
 import { assert, assertStrictEqual } from "../../test/test-tools";
 import type { GameFileTests, IGameTemplateFile, PlayerList } from "../../types/games";
 import type { HexColor } from "../../types/tools";
@@ -37,7 +37,7 @@ export type BoardActionCard<T extends BoardGame = BoardGame> = (this: T, player:
 // needs to be in order for getLocationAfterMovement
 const boardSides: readonly BoardSide[] = ['leftColumn', 'topRow', 'rightColumn', 'bottomRow'];
 
-export abstract class BoardGame extends Game {
+export abstract class BoardGame extends ScriptedGame {
 	abstract board: IBoard;
 	abstract numberOfDice: number;
 	abstract startingBoardSide: BoardSide;

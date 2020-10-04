@@ -1,5 +1,5 @@
 import type { Player } from "../room-activity";
-import { Game } from "../room-game";
+import { ScriptedGame } from "../room-game-scripted";
 import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 
 interface IWheel {
@@ -36,7 +36,7 @@ const goldenMagikarpPoints = 1000;
 const highTideSurvivorWheel: WheelsKey = 'red';
 const highTideSurvivorSpins = 5;
 
-class MagikarpsWaterWheel extends Game {
+class MagikarpsWaterWheel extends ScriptedGame {
 	actionCommands: string[] = ['swim', 'tread', 'stay'];
 	canLateJoin: boolean = true;
 	canSwim: boolean = false;

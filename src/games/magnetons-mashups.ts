@@ -1,5 +1,5 @@
 import type { Room } from "../rooms";
-import type { IGameFile, IGameFormat } from "../types/games";
+import type { IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as guessingGame, Guessing } from './templates/guessing';
 
@@ -42,8 +42,8 @@ class MagnetonsMashups extends Guessing {
 			numberOfElements = this.format.options.names;
 		} else {
 			numberOfElements = BASE_NUMBER_OF_NAMES;
-			if ((this.format as IGameFormat).customizableOptions.names) {
-				numberOfElements += this.random((this.format as IGameFormat).customizableOptions.names.max - BASE_NUMBER_OF_NAMES + 1);
+			if (this.format.customizableOptions.names) {
+				numberOfElements += this.random(this.format.customizableOptions.names.max - BASE_NUMBER_OF_NAMES + 1);
 			}
 		}
 

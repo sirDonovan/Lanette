@@ -1,5 +1,5 @@
 import type { Player } from "../room-activity";
-import { Game } from "../room-game";
+import { ScriptedGame } from "../room-game-scripted";
 import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 
 const colors: string[] = ['Blue', 'Green', 'Red', 'Yellow', 'Orange', 'Purple', 'Pink', 'Gray', 'Teal', 'Silver', 'Gold', 'Lavender',
@@ -9,7 +9,7 @@ const achievements: AchievementsDict = {
 	"speedbooster": {name: "Speed Booster", type: 'first', bits: 1000, description: 'travel first every round'},
 };
 
-class NinjasksCorners extends Game {
+class NinjasksCorners extends ScriptedGame {
 	canTravel: boolean = false;
 	color: string = '';
 	firstTravel: Player | false | undefined;

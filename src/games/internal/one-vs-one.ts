@@ -1,10 +1,10 @@
 import type { Player } from "../../room-activity";
-import { Game } from "../../room-game";
-import type { User } from "../../users";
-import type { IGameFormat, IGameFile } from "../../types/games";
+import { ScriptedGame } from "../../room-game-scripted";
 import type { Room } from "../../rooms";
+import type { IGameFile, IGameFormat } from "../../types/games";
+import type { User } from "../../users";
 
-export class OneVsOne extends Game {
+export class OneVsOne extends ScriptedGame {
 	challengerPromotedName: string = '';
 	defenderPromotedName: string = '';
 	internalGame: boolean = true;
@@ -109,19 +109,18 @@ export class OneVsOne extends Game {
 		game.inheritPlayers(this.players);
 		game.minPlayers = 2;
 
-		const format = game.format as IGameFormat;
-		if (format.challengePoints && format.challengePoints.onevsone) {
-			format.options.points = format.challengePoints.onevsone;
-		} else if (format.customizableOptions.points) {
-			format.options.points = format.customizableOptions.points.max;
-		} else if (format.defaultOptions && format.defaultOptions.includes('points')) {
-			format.options.points = 10;
+		if (game.format.challengePoints && game.format.challengePoints.onevsone) {
+			game.format.options.points = game.format.challengePoints.onevsone;
+		} else if (game.format.customizableOptions.points) {
+			game.format.options.points = game.format.customizableOptions.points.max;
+		} else if (game.format.defaultOptions && game.format.defaultOptions.includes('points')) {
+			game.format.options.points = 10;
 		}
 
 		game.sayHtml(game.getDescriptionHtml());
 		game.signups();
 
-		if (!format.options.freejoin) {
+		if (!game.format.options.freejoin) {
 			this.timeout = setTimeout(() => game.start(), 5 * 1000);
 		}
 	}

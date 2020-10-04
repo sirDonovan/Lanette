@@ -1,5 +1,5 @@
-import { Game } from "../room-game";
 import type { Player } from "../room-activity";
+import { ScriptedGame } from "../room-game-scripted";
 import type { GameCommandDefinitions, IGameFile, PlayerList } from "../types/games";
 import type { HexColor } from "../types/tools";
 
@@ -149,7 +149,7 @@ const tileValues: ITileValues = {
 
 const canMoveThroughSymbol = "-";
 
-class HauntersHauntedHouse extends Game {
+class HauntersHauntedHouse extends ScriptedGame {
 	actionCommands: string[] = ['up', 'down', 'left', 'right', 'wait'];
 	board: Location[][] = [];
 	candyLocations: CandyLocation[] = [];

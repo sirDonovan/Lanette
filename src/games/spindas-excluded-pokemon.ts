@@ -1,8 +1,8 @@
 import type { Player } from "../room-activity";
+import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
-import { Game } from '../room-game';
-import type { User } from "../users";
 import type { GameCommandDefinitions, IGameFile } from "../types/games";
+import type { User } from "../users";
 
 interface IPokemonData {
 	color: string[];
@@ -34,7 +34,7 @@ const basePoints = 3;
 const minimumMoveAvailability = 30;
 const maximumMoveAvailability = 500;
 
-class SpindasExcludedPokemon extends Game {
+class SpindasExcludedPokemon extends ScriptedGame {
 	currentPlayer: Player | null = null;
 	excludedHint: string = '';
 	excludedRound: number = 0;

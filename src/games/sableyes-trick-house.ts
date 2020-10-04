@@ -1,5 +1,5 @@
 import type { Player } from "../room-activity";
-import { Game } from "../room-game";
+import { ScriptedGame } from "../room-game-scripted";
 import { addPlayers, assertStrictEqual, runCommand } from '../test/test-tools';
 import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFile } from "../types/games";
 
@@ -11,7 +11,7 @@ const achievements: AchievementsDict = {
 	"escapeartist": {name: "Escape Artist", type: 'first', bits: 1000, description: "select a door first every round and win"},
 };
 
-class SableyesTrickHouse extends Game {
+class SableyesTrickHouse extends ScriptedGame {
 	canLateJoin: boolean = true;
 	canSelect: boolean = false;
 	firstSelection: Player | false | undefined;

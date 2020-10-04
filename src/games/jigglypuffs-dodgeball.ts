@@ -1,10 +1,10 @@
 import type { Player, PlayerTeam } from "../room-activity";
-import { Game } from "../room-game";
+import { ScriptedGame } from "../room-game-scripted";
 import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 
 const BALL_POKEMON = "Igglybuff";
 
-class JigglypuffsDodgeball extends Game {
+class JigglypuffsDodgeball extends ScriptedGame {
 	throwTime: boolean = false;
 	queue: {source: Player; target: Player}[] = [];
 	renameDQs: Player[] = [];

@@ -1,5 +1,5 @@
-import { PRNG } from "../prng";
 import type { PRNGSeed } from "../prng";
+import { PRNG } from "../prng";
 import type { Room } from "../rooms";
 import { assert, assertStrictEqual } from '../test/test-tools';
 import type { GameFileTests, IGameFile, IGameFormat } from "../types/games";
@@ -24,10 +24,9 @@ export class PoliwrathsPortmanteaus extends Guessing {
 		Games.workers.portmanteaus.init();
 	}
 
-	onInitialize(): void {
-		super.onInitialize();
+	onInitialize(format: IGameFormat): void {
+		super.onInitialize(format);
 
-		const format = this.format as IGameFormat;
 		if (format.mode) {
 			if (format.mode.id === 'team') this.roundTime = 60 * 1000;
 		}
@@ -41,8 +40,8 @@ export class PoliwrathsPortmanteaus extends Guessing {
 			numberOfPorts = this.format.options.ports;
 		} else {
 			numberOfPorts = BASE_NUMBER_OF_PORTS;
-			if ((this.format as IGameFormat).customizableOptions.ports) {
-				numberOfPorts += this.random((this.format as IGameFormat).customizableOptions.ports.max - BASE_NUMBER_OF_PORTS + 1);
+			if (this.format.customizableOptions.ports) {
+				numberOfPorts += this.random(this.format.customizableOptions.ports.max - BASE_NUMBER_OF_PORTS + 1);
 			}
 		}
 		const result = await Games.workers.portmanteaus.search({

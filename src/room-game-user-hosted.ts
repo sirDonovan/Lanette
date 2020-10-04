@@ -1,44 +1,34 @@
-import type { Player, PlayerTeam } from "../../room-activity";
-import { Game } from "../../room-game";
-import type { Room } from "../../rooms";
-import type { GameDifficulty, IUserHostedFile, IUserHostedFormat } from "../../types/games";
-import type { User } from "../../users";
+import type { Player } from "./room-activity";
+import { Game } from "./room-game";
+import type { Room } from "./rooms";
+import type { GameDifficulty, IUserHostedFile, IUserHostedFormat } from "./types/games";
+import type { User } from "./users";
 
 const FORCE_END_CREATE_TIMER = 60 * 1000;
 const HOST_TIME_LIMIT = 25 * 60 * 1000;
 
-export class UserHosted extends Game {
+export class UserHostedGame extends Game {
 	endTime: number = 0;
 	gameTimer: NodeJS.Timer | null = null;
 	hostId: string = '';
 	hostName: string = '';
 	hostTimeout: NodeJS.Timer | null = null;
-	isUserHosted = true;
+	notifyRankSignups: boolean = true;
 	readonly points = new Map<Player, number>();
 	savedWinners: Player[] = [];
 	scoreCap: number = 0;
+	showSignupsHtml = true;
 	storedMessage: string | null = null;
 	subHostId: string | null = null;
 	subHostName: string | null = null;
 	twist: string | null = null;
 
-	// set immediately in initialize()
+	// set in onInitialize()
 	format!: IUserHostedFormat;
 
-	// type hack for onDeallocate
 	room!: Room;
 
-	onInitialize(): void {
-		this.setUhtmlBaseName('userhosted');
-
-		this.endTime = Date.now() + HOST_TIME_LIMIT;
-		if (this.format.link) this.description += "<br /><br /><b><a href='" + this.format.link + "'>More info</a></b>";
-		if (this.format.freejoin) {
-			this.format.options.freejoin = 1;
-			this.minPlayers = 0;
-		}
-	}
-
+	// Host
 	setHost(host: User | string): void {
 		if (typeof host === 'string') {
 			this.hostId = Tools.toId(host);
@@ -68,6 +58,59 @@ export class UserHosted extends Game {
 		}
 	}
 
+	setStartTimer(minutes: number): void {
+		if (this.startTimer) clearTimeout(this.startTimer);
+		this.startTimer = setTimeout(() => this.useHostCommand('startgame'), minutes * 60 * 1000);
+	}
+
+	// Players
+	addPlayer(user: User): Player | undefined {
+		if (this.format.options.freejoin) {
+			user.say("This game does not require you to join.");
+			return;
+		}
+
+		if (this.started) return;
+
+		const player = this.createPlayer(user);
+		if (!player) return;
+
+		player.say("Thanks for joining " + this.name + " " + this.activityType + "!");
+
+		if (!this.started) {
+			if (!this.signupsHtmlTimeout) {
+				this.signupsHtmlTimeout = setTimeout(() => {
+					this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsHtmlUpdate());
+					this.signupsHtmlTimeout = null;
+				}, Client.getSendThrottle() * 2);
+			}
+		}
+
+		if (this.playerCap && this.playerCount >= this.playerCap) this.start();
+
+		return player;
+	}
+
+	removePlayer(user: User | string, silent?: boolean): void {
+		const player = this.destroyPlayer(user);
+		if (!player) return;
+
+		if (!silent) {
+			player.say("You have left " + this.name + " " + this.activityType + ".");
+		}
+
+		if (this.format.options.freejoin) return;
+
+		if (!this.started) {
+			if (!this.signupsHtmlTimeout) {
+				this.signupsHtmlTimeout = setTimeout(() => {
+					this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsHtmlUpdate());
+					this.signupsHtmlTimeout = null;
+				}, Client.getSendThrottle() * 2);
+			}
+		}
+	}
+
 	splitPlayers(teams: number, teamNames?: string[]): void {
 		this.teams = this.generateTeams(teams, teamNames);
 		for (const i in this.teams) {
@@ -90,31 +133,47 @@ export class UserHosted extends Game {
 		this.teams = null;
 	}
 
-	setStartTimer(minutes: number): void {
-		if (this.startTimer) clearTimeout(this.startTimer);
-		this.startTimer = setTimeout(() => this.useHostCommand('startgame'), minutes * 60 * 1000);
-	}
+	// Game lifecycle
+	onInitialize(format: IUserHostedFormat): void {
+		this.format = format;
+		this.setUhtmlBaseName('userhosted');
 
-	onForceEnd(user?: User, reason?: string): void {
-		if (user) this.sayCommand("/modnote " + this.name + " was forcibly ended by " + user.name + (reason ? " (" + reason + ")" : ""));
-	}
-
-	onDeallocate(): void {
-		if (this.gameTimer) clearTimeout(this.gameTimer);
-		if (this.hostTimeout) clearTimeout(this.hostTimeout);
-		if (this.room.serverHangman) this.sayCommand("/hangman end");
-
-		if (this.room.userHostedGame === this) delete this.room.userHostedGame;
-	}
-
-	onAfterDeallocate(forceEnd?: boolean): void {
-		if (forceEnd && Config.gameAutoCreateTimers && this.room.id in Config.gameAutoCreateTimers) {
-			Games.setAutoCreateTimer(this.room, 'userhosted', FORCE_END_CREATE_TIMER);
+		this.endTime = Date.now() + HOST_TIME_LIMIT;
+		if (this.format.link) this.description += "<br /><br /><b><a href='" + this.format.link + "'>More info</a></b>";
+		if (this.format.freejoin) {
+			this.format.options.freejoin = 1;
+			this.minPlayers = 0;
 		}
 	}
 
-	onSignups(): void {
-		this.notifyRankSignups = true;
+	getSignupsHtml(): string {
+		let html = "<center>";
+		if (this.mascot) {
+			const gif = Dex.getPokemonGif(this.mascot, "xy", 'back');
+			if (gif) html += gif;
+		}
+		html += "<h3>" + this.name + "</h3>" + this.getDescription();
+		html += "</center>";
+		return html;
+	}
+
+	signups(): void {
+		this.signupsTime = Date.now();
+		this.signupsStarted = true;
+		this.sayHtml(this.getSignupsHtml());
+		if (!this.format.options.freejoin) this.sayUhtml(this.signupsUhtmlName, this.getSignupsHtmlUpdate());
+
+		let joinLeaveHtml = "<center>";
+		if (this.format.options.freejoin) {
+			joinLeaveHtml += "<b>This game is free-join!</b>";
+		} else {
+			joinLeaveHtml += Client.getPmSelfButton(Config.commandCharacter + "joingame " + this.room.id, "Join game");
+			joinLeaveHtml += " | ";
+			joinLeaveHtml += Client.getPmSelfButton(Config.commandCharacter + "leavegame " + this.room.id, "Leave game");
+		}
+		joinLeaveHtml += "</center>";
+		this.sayUhtml(this.joinLeaveButtonUhtmlName, joinLeaveHtml);
+
 		this.sayCommand("/notifyrank all, " + this.room.title + " user-hosted game," + this.name + "," + this.hostName + " " +
 			Games.userHostedGameHighlight + " " + this.name, true);
 		const firstWarning = 5 * 60 * 1000;
@@ -130,9 +189,29 @@ export class UserHosted extends Game {
 				}, secondWarning);
 			}, firstWarning - secondWarning);
 		}, HOST_TIME_LIMIT - firstWarning);
+
+		if (this.format.options.freejoin) {
+			this.started = true;
+			this.startTime = Date.now();
+		}
 	}
 
-	onEnd(): void {
+	start(isAuth?: boolean): boolean {
+		if (this.minPlayers && !isAuth && this.playerCount < this.minPlayers) return false;
+
+		if (this.startTimer) clearTimeout(this.startTimer);
+		if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
+
+		this.started = true;
+		this.startTime = Date.now();
+		this.sayCommand("/notifyoffrank all");
+		this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, "<div></div>");
+		this.say(this.name + " is starting! **Players (" + this.playerCount + ")**: " + this.getPlayerNames());
+
+		return true;
+	}
+
+	end(): void {
 		let hostDifficulty: GameDifficulty;
 		if (Config.userHostedGameHostDifficulties && this.format.id in Config.userHostedGameHostDifficulties) {
 			hostDifficulty = Config.userHostedGameHostDifficulties[this.format.id];
@@ -146,19 +225,11 @@ export class UserHosted extends Game {
 		} else if (hostDifficulty === 'hard') {
 			hostBits = 500;
 		}
-		if (this.shinyMascot) hostBits *= 2;
 
 		let hostName = this.hostName;
 		if (this.subHostName) {
 			hostName = this.subHostName;
 			hostBits /= 2;
-		}
-
-		Storage.addPoints(this.room, hostName, hostBits, 'userhosted');
-		const user = Users.get(hostName);
-		if (user) {
-			user.say("You were awarded " + hostBits + " bits! To see your total amount, use this command: ``" + Config.commandCharacter +
-				"bits " + this.room.title + "``. Thanks for your efforts, we hope you host again soon!");
 		}
 
 		const now = Date.now();
@@ -169,8 +240,8 @@ export class UserHosted extends Game {
 		// possibly customized name attribute
 		Games.lastUserHostFormatTimes[this.room.id][Tools.toId(this.format.name)] = now;
 
+		const database = Storage.getDatabase(this.room);
 		if (!this.subHostName) {
-			const database = Storage.getDatabase(this.room);
 			if (!database.userHostedGameStats) database.userHostedGameStats = {};
 			if (!(this.hostId in database.userHostedGameStats)) database.userHostedGameStats[this.hostId] = [];
 			database.userHostedGameStats[this.hostId].push({
@@ -181,11 +252,60 @@ export class UserHosted extends Game {
 				startTime: this.signupsTime,
 			});
 		}
+
+		Games.lastGames[this.room.id] = now;
+		Games.lastUserHostedGames[this.room.id] = now;
+		database.lastUserHostedGameTime = now;
+
+		if (!database.lastUserHostedGameFormatTimes) database.lastUserHostedGameFormatTimes = {};
+		database.lastUserHostedGameFormatTimes[this.format.id] = now;
+
+		if (!database.pastUserHostedGames) database.pastUserHostedGames = [];
+		database.pastUserHostedGames.unshift({inputTarget: this.format.inputTarget, name: this.name, time: now});
+		while (database.pastUserHostedGames.length > 8) {
+			database.pastUserHostedGames.pop();
+		}
+
+		Storage.addPoints(this.room, hostName, hostBits, 'userhosted');
+		const user = Users.get(hostName);
+		if (user) {
+			user.say("You were awarded " + hostBits + " bits! To see your total amount, use this command: ``" + Config.commandCharacter +
+				"bits " + this.room.title + "``. Thanks for your efforts, we hope you host again soon!");
+		}
+
+		this.setGamesTimers('userhosted');
+
+		this.deallocate(false);
+	}
+
+	forceEnd(user: User, reason?: string): void {
+		this.say(this.name + " " + this.activityType + " was forcibly ended!");
+		this.sayCommand("/modnote " + this.name + " was forcibly ended by " + user.name + (reason ? " (" + reason + ")" : ""));
+		this.deallocate(true);
+	}
+
+	deallocate(forceEnd: boolean): void {
+		if (!this.ended) this.ended = true;
+
+		this.cleanupMessageListeners();
+		if (this.timeout) clearTimeout(this.timeout);
+		if (this.startTimer) clearTimeout(this.startTimer);
+		if (this.gameTimer) clearTimeout(this.gameTimer);
+		if (this.hostTimeout) clearTimeout(this.hostTimeout);
+
+		if (this.room.userHostedGame === this) delete this.room.userHostedGame;
+
+		if (this.room.serverHangman) this.sayCommand("/hangman end");
+		if (!this.started || this.format.options.freejoin) this.sayCommand("/notifyoffrank all");
+
+		if (forceEnd && Config.gameAutoCreateTimers && this.room.id in Config.gameAutoCreateTimers) {
+			Games.setAutoCreateTimer(this.room, 'userhosted', FORCE_END_CREATE_TIMER);
+		}
 	}
 }
 
-export const game: IUserHostedFile<UserHosted> = {
-	class: UserHosted,
+export const game: IUserHostedFile<UserHostedGame> = {
+	class: UserHostedGame,
 	formats: [
 		{
 			name: "Floette's Forum Game",

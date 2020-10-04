@@ -1,5 +1,5 @@
 import type { Player } from "../room-activity";
-import { Game } from "../room-game";
+import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
 import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 import type { User } from "../users";
@@ -25,7 +25,7 @@ const achievements: AchievementsDict = {
 	"truedetective": {name: "True Detective", type: 'special', bits: 1000, description: "win as the only detective remaining"},
 };
 
-class MismagiusFoulPlay extends Game {
+class MismagiusFoulPlay extends ScriptedGame {
 	chosenPokemon = new Map<Player, string>();
 	criminalCount: number = 0;
 	criminals: Player[] = [];

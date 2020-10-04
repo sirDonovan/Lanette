@@ -1,13 +1,12 @@
-import type { UserHosted } from "../games/internal/user-hosted";
 import type { PRNGSeed } from "../prng";
 import type { Player } from "../room-activity";
-import type { Game } from "../room-game";
+import type { ScriptedGame } from "../room-game-scripted";
+import type { UserHostedGame } from "../room-game-user-hosted";
 import type { Room } from "../rooms";
 import type { User } from "../users";
 import type { ParametersWorker } from '../workers/parameters';
 import type { PortmanteausWorker } from '../workers/portmanteaus';
 import type { CommandDefinitions, LoadedCommands } from "./command-parser";
-import type { IPokemon } from "./dex";
 import type { IBattleData } from "./tournaments";
 
 export interface IGamesWorkers {
@@ -16,8 +15,8 @@ export interface IGamesWorkers {
 }
 
 export type GameCommandReturnType = boolean;
-export type GameCommandDefinitions<T extends Game = Game> = CommandDefinitions<T, GameCommandReturnType>;
-export type LoadedGameCommands<T extends Game = Game> = LoadedCommands<T, GameCommandReturnType>;
+export type GameCommandDefinitions<T extends ScriptedGame = ScriptedGame> = CommandDefinitions<T, GameCommandReturnType>;
+export type LoadedGameCommands<T extends ScriptedGame = ScriptedGame> = LoadedCommands<T, GameCommandReturnType>;
 
 export type GameDifficulty = 'easy' | 'medium' | 'hard';
 export type AutoCreateTimerType = 'scripted' | 'tournament' | 'userhosted';
@@ -58,15 +57,15 @@ export interface IInternalGames {
 
 export type InternalGameKey = keyof IInternalGames;
 
-interface IGameClass<T extends Game = Game> {
+interface IGameClass<T extends ScriptedGame = ScriptedGame> {
 	new(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed): T;
 	loadData?: (room: Room | User, extendedClass?: boolean) => void;
 	loadedData?: boolean;
 }
 
-interface IModeClass<T, U extends Game = Game> {
+interface IModeClass<T, U extends ScriptedGame = ScriptedGame> {
 	new(game: U): T;
-	setOptions: <V extends Game>(format: IGameFormat<V>, namePrefixes: string[], nameSuffixes: string[]) => void;
+	setOptions: <V extends ScriptedGame>(format: IGameFormat<V>, namePrefixes: string[], nameSuffixes: string[]) => void;
 }
 
 interface IGameFileTestConfig {
@@ -79,7 +78,7 @@ export interface IGameTestAttributes {
 	commands?: readonly string[];
 }
 
-type GameFileTests<T extends Game = Game> = Dict<{config?: IGameFileTestConfig; test: ((this: Mocha.Context, game: T,
+type GameFileTests<T extends ScriptedGame = ScriptedGame> = Dict<{config?: IGameFileTestConfig; test: ((this: Mocha.Context, game: T,
 	format: IGameFormat<T>, attributes: IGameTestAttributes) => void);}>;
 
 export type AchievementsDict = PartialKeyedDict<GameAchievements, IGameAchievement>;
@@ -110,9 +109,9 @@ export interface IGameCommandCountListener extends IGameCommandCountOptions {
 	listener: GameCommandListener;
 }
 
-type IGameVariant<T extends Game = Game> = Partial<T> & IGameVariantProperties<T>;
+type IGameVariant<T extends ScriptedGame = ScriptedGame> = Partial<T> & IGameVariantProperties<T>;
 
-interface IGameFileProperties<T extends Game = Game> {
+interface IGameFileProperties<T extends ScriptedGame = ScriptedGame> {
 	achievements?: AchievementsDict;
 	aliases?: string[];
 	canGetRandomAnswer?: boolean;
@@ -142,7 +141,7 @@ interface IGameFileProperties<T extends Game = Game> {
 	variants?: IGameVariant<T>[];
 }
 
-export interface IGameFile<T extends Game = Game> extends IGameFileProperties<T> {
+export interface IGameFile<T extends ScriptedGame = ScriptedGame> extends IGameFileProperties<T> {
 	readonly class: IGameClass<T>;
 	readonly description: string;
 	readonly name: string;
@@ -151,19 +150,19 @@ export interface IGameFile<T extends Game = Game> extends IGameFileProperties<T>
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface IGameTemplateFile<T extends Game = Game> extends IGameFileProperties<T> {}
+export interface IGameTemplateFile<T extends ScriptedGame = ScriptedGame> extends IGameFileProperties<T> {}
 
-export interface IGameFileComputed<T extends Game = Game> {
+export interface IGameFileComputed<T extends ScriptedGame = ScriptedGame> {
 	id: string;
 
 	commands?: LoadedGameCommands<T>;
 }
 
-export interface IGameFormatData<T extends Game = Game> extends IGameFile<T>, IGameFileComputed<T> {
+export interface IGameFormatData<T extends ScriptedGame = ScriptedGame> extends IGameFile<T>, IGameFileComputed<T> {
 	commands?: LoadedGameCommands<T>;
 }
 
-export interface IGameFormatComputed<T extends Game = Game> {
+export interface IGameFormatComputed<T extends ScriptedGame = ScriptedGame> {
 	effectType: 'GameFormat';
 	inputOptions: Dict<number>;
 	inputTarget: string;
@@ -173,14 +172,14 @@ export interface IGameFormatComputed<T extends Game = Game> {
 	variant?: IGameVariant<T>;
 }
 
-export interface IGameFormat<T extends Game = Game> extends IGameFormatData<T>, IGameFormatComputed<T> {
+export interface IGameFormat<T extends ScriptedGame = ScriptedGame> extends IGameFormatData<T>, IGameFormatComputed<T> {
 	customizableOptions: Dict<IGameOptionValues>;
 	defaultOptions: DefaultGameOption[];
 	description: string;
 	options: Dict<number>;
 }
 
-export interface IGameVariantProperties<T extends Game = Game> {
+export interface IGameVariantProperties<T extends ScriptedGame = ScriptedGame> {
 	name: string;
 	variant: string;
 
@@ -194,8 +193,12 @@ export interface IGameVariantProperties<T extends Game = Game> {
 	variantAliases?: string[];
 }
 
-export interface IUserHostedFile<T extends UserHosted = UserHosted> {
-	class: IGameClass<T>;
+interface IUserHostedGameClass<T extends UserHostedGame = UserHostedGame> {
+	new(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed): T;
+}
+
+export interface IUserHostedFile<T extends UserHostedGame = UserHostedGame> {
+	class: IUserHostedGameClass<T>;
 	formats: IUserHosted[];
 }
 
@@ -216,8 +219,8 @@ interface IUserHosted {
 	teamGame?: boolean;
 }
 
-export interface IUserHostedComputed<T extends UserHosted = UserHosted> extends IUserHosted {
-	class: IGameClass<T>;
+export interface IUserHostedComputed<T extends UserHostedGame = UserHostedGame> extends IUserHosted {
+	class: IUserHostedGameClass<T>;
 	id: string;
 }
 
@@ -229,9 +232,9 @@ export interface IUserHostedFormatComputed {
 	options: Dict<number>;
 }
 
-export interface IUserHostedFormat<T extends UserHosted = UserHosted> extends IUserHostedComputed<T>, IUserHostedFormatComputed {}
+export interface IUserHostedFormat<T extends UserHostedGame = UserHostedGame> extends IUserHostedComputed<T>, IUserHostedFormatComputed {}
 
-export interface IGameModeFile<T = Game, U extends Game = Game, V extends Game = Game> {
+export interface IGameModeFile<T = ScriptedGame, U extends ScriptedGame = ScriptedGame, V extends ScriptedGame = ScriptedGame> {
 	class: IModeClass<T, U>;
 	description: string;
 	initialize: (game: U) => void;
@@ -244,7 +247,7 @@ export interface IGameModeFile<T = Game, U extends Game = Game, V extends Game =
 	tests?: GameFileTests<V>;
 }
 
-export interface IGameMode<T = Game, U extends Game = Game> extends IGameModeFile<T, U> {
+export interface IGameMode<T = ScriptedGame, U extends ScriptedGame = ScriptedGame> extends IGameModeFile<T, U> {
 	id: string;
 }
 

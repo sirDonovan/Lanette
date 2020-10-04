@@ -1,9 +1,9 @@
 import type { Player } from "../room-activity";
+import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
-import { Game } from '../room-game';
-import type { User } from "../users";
-import type { GameCommandDefinitions, IGameFile } from "../types/games";
 import type { IPokemon } from "../types/dex";
+import type { GameCommandDefinitions, IGameFile } from "../types/games";
+import type { User } from "../users";
 
 const data: {pokemon: Dict<readonly string[]>} = {
 	pokemon: {},
@@ -11,7 +11,7 @@ const data: {pokemon: Dict<readonly string[]>} = {
 
 const banlist = ['giratina'];
 
-class MachopsMatchups extends Game {
+class MachopsMatchups extends ScriptedGame {
 	canAttack: boolean = false;
 	canLateJoin = true;
 	maxPoints: number = 10;

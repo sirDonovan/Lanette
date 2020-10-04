@@ -1,5 +1,5 @@
 import type { Player } from "../room-activity";
-import { Game } from "../room-game";
+import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
 import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 import type { User } from "../users";
@@ -13,7 +13,7 @@ const achievements: AchievementsDict = {
 	"sunkentreasure": {name: "Sunken Treasure", type: 'shiny', bits: 1000, repeatBits: 250, description: 'reel in a shiny Pokemon'},
 };
 
-class WishiwashisStatFishing extends Game {
+class WishiwashisStatFishing extends ScriptedGame {
 	canReel: boolean = false;
 	consecutiveReels = new Map<Player, number>();
 	// firstReel: Player | null;

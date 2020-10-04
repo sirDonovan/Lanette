@@ -1,11 +1,11 @@
 import type { Player } from "../../room-activity";
-import { Game } from "../../room-game";
+import { ScriptedGame } from "../../room-game-scripted";
 import type { Room } from "../../rooms";
 import type { GameCommandDefinitions, GameCommandReturnType, IGameFile, IGameFormat } from "../../types/games";
 
 const timeLimit = 30 * 1000;
 
-export class Vote extends Game {
+export class Vote extends ScriptedGame {
 	canVote: boolean | undefined;
 	chosenFormat: string = '';
 	endedVoting: boolean = false;
@@ -163,7 +163,7 @@ export class Vote extends Game {
 			"ended!</h3></center></div>");
 	}
 
-	onAfterDeallocate(forceEnd: boolean): void {
+	onDeallocate(forceEnd: boolean): void {
 		if (!forceEnd && this.chosenFormat) {
 			void CommandParser.parse(this.room, Users.self, Config.commandCharacter + "creategame " + this.chosenFormat);
 		}

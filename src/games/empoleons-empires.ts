@@ -1,5 +1,5 @@
 import type { Player } from "../room-activity";
-import { Game } from "../room-game";
+import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
 import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 
@@ -7,7 +7,7 @@ const achievements: AchievementsDict = {
 	"privateinvestigator": {name: "Private Investigator", type: 'special', bits: 1000, description: 'successfully guess 5 aliases'},
 };
 
-class EmpoleonsEmpires extends Game {
+class EmpoleonsEmpires extends ScriptedGame {
 	canGuess: boolean = false;
 	playerAliases = new Map<Player, string>();
 	aliasIds: string[] = [];

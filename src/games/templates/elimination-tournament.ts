@@ -1,10 +1,12 @@
 import type { Player } from "../../room-activity";
-import { Game } from "../../room-game";
-import type { IFormat, IPokemon } from "../../types/dex";
-import type { User } from "../../users";
+import { ScriptedGame } from "../../room-game-scripted";
 import type { Room } from "../../rooms";
-import type { GameCategory, IGameTemplateFile, GameCommandDefinitions, IBattleGameData, GameFileTests } from "../../types/games";
-import { assert, addPlayers, assertStrictEqual } from "../../test/test-tools";
+import { addPlayers, assert, assertStrictEqual } from "../../test/test-tools";
+import type { IFormat, IPokemon } from "../../types/dex";
+import type {
+	GameCategory, GameCommandDefinitions, GameFileTests, IBattleGameData, IGameFormat, IGameTemplateFile
+} from "../../types/games";
+import type { User } from "../../users";
 
 interface IEliminationTree<T> {
 	root: EliminationNode<T>;
@@ -107,7 +109,7 @@ class EliminationNode<T> {
 	}
 }
 
-export abstract class EliminationTournament extends Game {
+export abstract class EliminationTournament extends ScriptedGame {
 	abstract baseTournamentName: string;
 
 	activityDQTimeout: number = 2 * 60 * 1000;
@@ -174,8 +176,8 @@ export abstract class EliminationTournament extends Game {
 
 	room!: Room;
 
-	onInitialize(): void {
-		super.onInitialize();
+	onInitialize(format: IGameFormat): void {
+		super.onInitialize(format);
 
 		let formatName = this.defaultTier;
 		if (this.variant && !(this.variant === 'monocolor' || this.variant === 'monoregion')) {

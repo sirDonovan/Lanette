@@ -1,5 +1,5 @@
 import type { Player } from "../room-activity";
-import { Game } from "../room-game";
+import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
 import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 import type { User } from "../users";
@@ -10,7 +10,7 @@ const data: {stones: string[]} = {
 	stones: [],
 };
 
-class GolemsGalvanicMine extends Game {
+class GolemsGalvanicMine extends ScriptedGame {
 	points = new Map<Player, number>();
 	roundMines = new Map<Player, number>();
 	roundStones: Dict<number> = {};

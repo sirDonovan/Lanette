@@ -1,5 +1,5 @@
 import type { Player } from "../room-activity";
-import { Game } from "../room-game";
+import { ScriptedGame } from "../room-game-scripted";
 import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 
 const senseRolls: KeyedDict<'disaster' | 'stillness' | 'fortune', number> = {
@@ -8,7 +8,7 @@ const senseRolls: KeyedDict<'disaster' | 'stillness' | 'fortune', number> = {
 	fortune: 100,
 };
 
-class AbsolsDiceDisaster extends Game {
+class AbsolsDiceDisaster extends ScriptedGame {
 	bestPlayer: Player | null = null;
 	bestBid: number = -1;
 	canBid: boolean = false;

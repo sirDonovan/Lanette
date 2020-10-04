@@ -1,10 +1,10 @@
 import type { Player } from "../room-activity";
-import { Game } from "../room-game";
+import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
-import type { IPokemon } from "../types/dex";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameFile, GameFileTests } from "../types/games";
-import type { User } from "../users";
 import { addPlayers, assertStrictEqual } from "../test/test-tools";
+import type { IPokemon } from "../types/dex";
+import type { GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFile } from "../types/games";
+import type { User } from "../users";
 
 const minimumMoves = 20;
 const data: {learnsets: Dict<readonly string[]>; moves: string[]; pokemon: string[]} = {
@@ -13,7 +13,7 @@ const data: {learnsets: Dict<readonly string[]>; moves: string[]; pokemon: strin
 	pokemon: [],
 };
 
-class LandorusWar extends Game {
+class LandorusWar extends ScriptedGame {
 	decoyPokemon: string[] = [];
 	playerAliases = new Map<Player, string>();
 	playerAliasesList: string[] = [];

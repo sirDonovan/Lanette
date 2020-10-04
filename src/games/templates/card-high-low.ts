@@ -1,7 +1,7 @@
 import type { Player } from '../../room-activity';
 import type { GameCategory, GameCommandDefinitions, GameCommandReturnType, IGameTemplateFile } from '../../types/games';
-import { Card, game as cardGame } from './card';
 import type { ICard } from './card';
+import { Card, game as cardGame } from './card';
 
 export abstract class CardHighLow extends Card {
 	abstract categoryAbbreviations: Dict<string>;

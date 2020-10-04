@@ -1,7 +1,7 @@
 import type { Player } from "../room-activity";
 import type { AchievementsDict, IGameFile } from "../types/games";
-import { game as mapGame } from "./templates/map";
 import type { GameMap, MapFloor, MapFloorSpace } from "./templates/map";
+import { game as mapGame } from "./templates/map";
 import { MapCurrencyGame } from "./templates/map-currency";
 
 const currency = "coins";

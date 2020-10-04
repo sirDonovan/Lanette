@@ -1,5 +1,5 @@
 import type { Player } from "../room-activity";
-import { Game } from "../room-game";
+import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
 import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 import type { User } from "../users";
@@ -81,7 +81,7 @@ const achievements: AchievementsDict = {
 	"berrymaster": {name: "Berry Master", type: 'first', bits: 1000, description: 'eat first in every round'},
 };
 
-class TropiusBerryPicking extends Game {
+class TropiusBerryPicking extends ScriptedGame {
 	canEat: boolean = false;
 	canLateJoin: boolean = true;
 	firstEat: Player | false | undefined;

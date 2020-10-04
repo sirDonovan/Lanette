@@ -1,8 +1,8 @@
 import { fail } from 'assert';
 import type { OneVsOne } from '../../games/internal/one-vs-one';
-import { PRNG } from '../../prng';
 import type { PRNGSeed } from '../../prng';
-import type { Game } from '../../room-game';
+import { PRNG } from '../../prng';
+import type { ScriptedGame } from '../../room-game-scripted';
 import type { GameAchievements, GameFileTests, IGameFormat, IGameTestAttributes, IUserHostedFormat } from '../../types/games';
 import type { IPastGame } from '../../types/storage';
 import { assert, assertClientSendQueue, assertStrictEqual, testOptions } from '../test-tools';
@@ -41,7 +41,7 @@ function testMascots(format: IGameFormat | IUserHostedFormat): void {
 	}
 }
 
-function createIndividualTestGame(format: IGameFormat): Game {
+function createIndividualTestGame(format: IGameFormat): ScriptedGame {
 	const game = Games.createGame(room, format, room, false, initialSeed);
 	game.signups();
 	if (game.timeout) clearTimeout(game.timeout);
@@ -346,10 +346,8 @@ describe("Games", () => {
 			assert(!game.signupsStarted, format.name);
 			assert(!game.started, format.name);
 			assertStrictEqual(game.format.name, format.name);
-			if (game.mascot) game.shinyMascot = true;
 			game.signups();
 			gameLog.push(roomPrefix + "/addhtmlbox " + game.getSignupsHtml());
-			if (game.mascot) gameLog.push(roomPrefix + game.mascot.name + " is shiny so bits will be doubled!");
 			gameLog.push(roomPrefix + "/notifyrank all, Mocha user-hosted game," + game.name + "," + game.hostName + " " +
 				Games.userHostedGameHighlight + " " + game.name);
 

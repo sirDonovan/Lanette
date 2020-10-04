@@ -1,11 +1,11 @@
 import type { Player } from "../room-activity";
-import { Game } from "../room-game";
+import { ScriptedGame } from "../room-game-scripted";
 import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 
 const MIN_BLOCKS = 1;
 const MAX_BLOCKS = 5;
 
-class CrustlesCrumblingBlocks extends Game {
+class CrustlesCrumblingBlocks extends ScriptedGame {
 	blocks: number = 0;
 	currentPlayer: Player | null = null;
 	minPlayers: number = 4;

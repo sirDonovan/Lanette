@@ -1,5 +1,5 @@
 import type { Player, PlayerTeam } from "../../room-activity";
-import type { Game } from "../../room-game";
+import type { ScriptedGame } from "../../room-game-scripted";
 import type {
 	DefaultGameOption, GameCommandDefinitions, GameCommandReturnType, IGameFormat,
 	IGameModeFile
@@ -22,7 +22,7 @@ class Group {
 	teamRound: number = 0;
 	teams: Dict<PlayerTeam> = {};
 
-	static setOptions<T extends Game>(format: IGameFormat<T>, namePrefixes: string[], nameSuffixes: string[]): void {
+	static setOptions<T extends ScriptedGame>(format: IGameFormat<T>, namePrefixes: string[], nameSuffixes: string[]): void {
 		if (!format.name.includes(name)) namePrefixes.unshift(name);
 		format.description += ' ' + description;
 
@@ -195,7 +195,7 @@ const commandDefinitions: GameCommandDefinitions<GroupThis> = {
 
 const commands = CommandParser.loadCommands(commandDefinitions);
 
-const initialize = (game: Game): void => {
+const initialize = (game: ScriptedGame): void => {
 	const mode = new Group();
 	const propertiesToOverride = Object.getOwnPropertyNames(mode).concat(Object.getOwnPropertyNames(Group.prototype)) as (keyof Group)[];
 	for (const property of propertiesToOverride) {

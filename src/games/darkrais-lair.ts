@@ -1,8 +1,8 @@
 import type { Player, PlayerTeam } from "../room-activity";
-import type { GameCommandDefinitions, IGameFile, GameFileTests } from "../types/games";
-import { game as mapGame, MapGame, ISpaceDisplayData } from "./templates/map";
+import { addPlayers, assert, assertStrictEqual } from "../test/test-tools";
+import type { GameCommandDefinitions, GameFileTests, IGameFile } from "../types/games";
 import type { GameMap, MapFloor, MapFloorSpace } from "./templates/map";
-import { addPlayers, assertStrictEqual, assert } from "../test/test-tools";
+import { game as mapGame, ISpaceDisplayData, MapGame } from "./templates/map";
 
 interface IShadowTrapData {
 	name: string;

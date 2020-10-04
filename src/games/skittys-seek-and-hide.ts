@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
-import { Game } from "../room-game";
-import { addPlayers, assert, runCommand } from "../test/test-tools";
+import { ScriptedGame } from "../room-game-scripted";
+import { assert } from "../test/test-tools";
 import type { IPokemon } from "../types/dex";
 import type { GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFile } from "../types/games";
 
@@ -9,7 +9,7 @@ const data: {'parameters': Dict<string[]>; 'pokemon': string[]} = {
 	"pokemon": [],
 };
 
-class SkittysSeekAndHide extends Game {
+class SkittysSeekAndHide extends ScriptedGame {
 	canCharm: boolean = false;
 	canSelect: boolean = false;
 	categories: string[] = [];

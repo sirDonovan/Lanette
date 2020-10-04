@@ -1,5 +1,5 @@
 import type { Player } from "../room-activity";
-import { Game } from "../room-game";
+import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
 import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 import type { User } from "../users";
@@ -32,7 +32,7 @@ const categories: {'Pokemon': (keyof IPokemonPairData)[]; moves: (keyof IMovePai
 };
 type DataTypes = keyof typeof categories;
 
-class PanchamPairs extends Game {
+class PanchamPairs extends ScriptedGame {
 	canPair: boolean = false;
 	dataType: DataTypes = 'Pokemon';
 	currentList: string[] = [];

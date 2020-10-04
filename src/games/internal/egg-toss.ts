@@ -1,5 +1,5 @@
 import type { Player } from "../../room-activity";
-import { Game } from "../../room-game";
+import { ScriptedGame } from "../../room-game-scripted";
 import type { Room } from "../../rooms";
 import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../../types/games";
 import type { User } from "../../users";
@@ -8,7 +8,7 @@ const achievements: AchievementsDict = {
 	"eggthesystem": {name: "Egg the System", type: 'special', bits: 500, description: 'explode the egg on Lady Monita'},
 };
 
-class EggToss extends Game {
+class EggToss extends ScriptedGame {
 	currentHolder: Player | null = null;
 	internalGame: boolean = true;
 	lastHolder: Player | null = null;

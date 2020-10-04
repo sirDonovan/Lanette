@@ -1,6 +1,6 @@
 import type { Player } from "../../room-activity";
-import type { Game } from "../../room-game";
-import { addPlayers, assert, runCommand, assertStrictEqual } from "../../test/test-tools";
+import type { ScriptedGame } from "../../room-game-scripted";
+import { addPlayers, assert, runCommand } from "../../test/test-tools";
 import type {
 	DefaultGameOption, GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFormat,
 	IGameModeFile
@@ -21,7 +21,7 @@ class Survival {
 	readonly playerRounds = new Map<Player, number>();
 	survivalRound: number = 0;
 
-	static setOptions<T extends Game>(format: IGameFormat<T>, namePrefixes: string[], nameSuffixes: string[]): void {
+	static setOptions<T extends ScriptedGame>(format: IGameFormat<T>, namePrefixes: string[], nameSuffixes: string[]): void {
 		if (!format.name.includes(name)) nameSuffixes.unshift(name);
 		format.description += ' ' + description;
 
@@ -116,7 +116,7 @@ const commandDefinitions: GameCommandDefinitions<SurvivalThis> = {
 
 const commands = CommandParser.loadCommands(commandDefinitions);
 
-const initialize = (game: Game): void => {
+const initialize = (game: ScriptedGame): void => {
 	const mode = new Survival();
 	const propertiesToOverride = Object.getOwnPropertyNames(mode)
 		.concat(Object.getOwnPropertyNames(Survival.prototype)) as (keyof Survival)[];

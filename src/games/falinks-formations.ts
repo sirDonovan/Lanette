@@ -1,12 +1,12 @@
 import type { Player } from "../room-activity";
-import { Game } from "../room-game";
+import { ScriptedGame } from "../room-game-scripted";
 import type { GameCommandDefinitions, IGameFile } from "../types/games";
 
 const minGuess = 1;
 const maxGuess = 6;
 const basePoints = 10;
 
-class FalinksFormations extends Game {
+class FalinksFormations extends ScriptedGame {
 	points = new Map<Player, number>();
 	playerList: Player[] = [];
 	currentPlayer: Player | null = null;

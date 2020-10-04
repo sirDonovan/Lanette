@@ -6,12 +6,13 @@ import path = require('path');
 import type { CommandContext } from "./command-parser";
 import type { OneVsOne } from './games/internal/one-vs-one';
 import type { Player } from "./room-activity";
-import type { Game } from './room-game';
+import type { ScriptedGame } from './room-game-scripted';
+import type { UserHostedGame } from './room-game-user-hosted';
 import type { Room } from "./rooms";
 import type { CommandDefinitions } from "./types/command-parser";
 import type { IFormat, IPokemon } from "./types/dex";
 import type { GameDifficulty, IGameFormat } from "./types/games";
-import type { UserHostStatus, IUserHostedGameStats } from './types/storage';
+import type { IUserHostedGameStats, UserHostStatus } from './types/storage';
 import type { IBattleData, TournamentPlace } from './types/tournaments';
 import type { User } from "./users";
 
@@ -1597,7 +1598,7 @@ const commands: CommandDefinitions<CommandContext> = {
 	gamecap: {
 		command(target, room, user) {
 			if (this.isPm(room)) return;
-			let game: Game | undefined;
+			let game: ScriptedGame | UserHostedGame | undefined;
 			const cap = parseInt(target);
 			if (room.game) {
 				if (!user.hasRank(room, 'voice')) return;
@@ -2184,8 +2185,6 @@ const commands: CommandDefinitions<CommandContext> = {
 			} else if (playerDifficulty === 'hard') {
 				playerBits = 500;
 			}
-
-			if (room.userHostedGame.shinyMascot) playerBits *= 2;
 
 			for (const player of players) {
 				Storage.addPoints(room, player.name, playerBits, 'userhosted');

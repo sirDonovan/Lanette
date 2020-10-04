@@ -1,7 +1,7 @@
 import nodeAssert = require('assert');
 
 import type { Player } from '../room-activity';
-import type { Game } from '../room-game';
+import type { ScriptedGame } from '../room-game-scripted';
 import type { Room } from '../rooms';
 import type { User } from '../users';
 
@@ -62,7 +62,7 @@ export function assertClientSendQueue(startingSendQueueIndex: number, input: rea
 	assert(expected.length === 0, "Not found in Client's send queue:\n\n" + expected.join("\n"));
 }
 
-export function addPlayer(game: Game, name: string): Player {
+export function addPlayer(game: ScriptedGame, name: string): Player {
 	const user = Users.add(name, Tools.toId(name));
 	assert(user);
 	(game.room as Room).onUserJoin(user, ' ', Date.now());
@@ -73,7 +73,7 @@ export function addPlayer(game: Game, name: string): Player {
 	return player;
 }
 
-export function addPlayers(game: Game, numberOrNames?: number | string[]): Player[] {
+export function addPlayers(game: ScriptedGame, numberOrNames?: number | string[]): Player[] {
 	const players: Player[] = [];
 	if (Array.isArray(numberOrNames)) {
 		for (const name of numberOrNames) {

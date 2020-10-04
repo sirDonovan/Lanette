@@ -1,8 +1,8 @@
 import type { Player } from "../room-activity";
-import { Game } from "../room-game";
+import { ScriptedGame } from "../room-game-scripted";
 import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 
-class PonytasPinataParty extends Game {
+class PonytasPinataParty extends ScriptedGame {
 	canHit: boolean = false;
 	maxRound: number = 10;
 	pinataHits: number = 0;

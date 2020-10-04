@@ -1,5 +1,5 @@
 import type { Player } from "../room-activity";
-import { Game } from "../room-game";
+import { ScriptedGame } from "../room-game-scripted";
 import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 
 const puffAchievementAmount = 15;
@@ -8,7 +8,7 @@ const achievements: AchievementsDict = {
 		puffAchievementAmount + ' times'},
 };
 
-class ChandeluresCandles extends Game {
+class ChandeluresCandles extends ScriptedGame {
 	lastTarget: Player | null = null;
 	lives = new Map<Player, number>();
 	puffs = new Map<Player, number>();

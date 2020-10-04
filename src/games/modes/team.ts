@@ -1,5 +1,5 @@
 import type { Player, PlayerTeam } from "../../room-activity";
-import type { Game } from "../../room-game";
+import type { ScriptedGame } from "../../room-game-scripted";
 import { addPlayers, assert, assertStrictEqual, runCommand } from "../../test/test-tools";
 import type {
 	DefaultGameOption, GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFormat,
@@ -26,7 +26,7 @@ class Team {
 	// set in onStart()
 	largestTeam!: PlayerTeam;
 
-	static setOptions<T extends Game>(format: IGameFormat<T>, namePrefixes: string[], nameSuffixes: string[]): void {
+	static setOptions<T extends ScriptedGame>(format: IGameFormat<T>, namePrefixes: string[], nameSuffixes: string[]): void {
 		if (!format.name.includes(name)) namePrefixes.unshift(name);
 		format.description += ' ' + description;
 
@@ -243,7 +243,7 @@ const commandDefinitions: GameCommandDefinitions<TeamThis> = {
 
 const commands = CommandParser.loadCommands(commandDefinitions);
 
-const initialize = (game: Game): void => {
+const initialize = (game: ScriptedGame): void => {
 	const mode = new Team();
 	const propertiesToOverride = Object.getOwnPropertyNames(mode).concat(Object.getOwnPropertyNames(Team.prototype)) as (keyof Team)[];
 	for (const property of propertiesToOverride) {
