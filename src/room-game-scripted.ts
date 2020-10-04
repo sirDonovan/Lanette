@@ -359,7 +359,7 @@ export class ScriptedGame extends Game {
 				database.pastGames.pop();
 			}
 
-			this.setGamesTimers('scripted');
+			this.setCooldownAndAutoCreate('userhosted');
 		}
 
 		if (this.awardedBits || usedDatabase) Storage.exportDatabase(this.room.id);

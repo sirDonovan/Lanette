@@ -273,7 +273,7 @@ export class UserHostedGame extends Game {
 				"bits " + this.room.title + "``. Thanks for your efforts, we hope you host again soon!");
 		}
 
-		this.setGamesTimers('userhosted');
+		this.setCooldownAndAutoCreate('scripted');
 
 		this.deallocate(false);
 	}

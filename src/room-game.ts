@@ -91,7 +91,7 @@ export abstract class Game extends Activity {
 		}
 	}
 
-	setGamesTimers(gameType: 'scripted' | 'userhosted'): void {
+	setCooldownAndAutoCreate(nextGameType: 'scripted' | 'userhosted'): void {
 		if (this.isPm(this.room)) return;
 
 		if (Config.gameCooldownTimers && this.room.id in Config.gameCooldownTimers) {
@@ -105,7 +105,7 @@ export abstract class Game extends Activity {
 			if (Config.gameCooldownTimers && this.room.id in Config.gameCooldownTimers) {
 				autoCreateTimer += Config.gameCooldownTimers[this.room.id];
 			}
-			Games.setAutoCreateTimer(this.room, gameType, autoCreateTimer * 60 * 1000);
+			Games.setAutoCreateTimer(this.room, nextGameType, autoCreateTimer * 60 * 1000);
 		}
 	}
 
