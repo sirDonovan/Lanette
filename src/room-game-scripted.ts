@@ -177,6 +177,17 @@ export class ScriptedGame extends Game {
 		}
 	}
 
+	getMascotAndNameHtml(additionalText?: string): string {
+		let minigameDescription: string | undefined;
+		if (this.isMiniGame) {
+			minigameDescription = this.getMinigameDescription();
+		}
+
+		const mascot = this.mascot ? Dex.getPokemonIcon(this.mascot) : '';
+		return mascot + "<b>" + (this.isMiniGame ? "Mini " : "") + this.name + (additionalText || "") + "</b>" +
+			(minigameDescription ? "<br />" + minigameDescription : "");
+	}
+
 	getDescriptionHtml(): string {
 		let html = "<center>";
 		if (this.mascot) {
@@ -266,8 +277,6 @@ export class ScriptedGame extends Game {
 		}
 
 		if (this.isMiniGame && !this.internalGame) {
-			const minigameDescription = this.getMinigameDescription();
-			if (minigameDescription) this.say(minigameDescription);
 			this.nextRound();
 		}
 	}
@@ -309,7 +318,7 @@ export class ScriptedGame extends Game {
 		let additionalSpanText = '';
 		if (this.subGameNumber) additionalSpanText += " - Game " + this.subGameNumber;
 		additionalSpanText += " - " + (roundText || "Round " + this.round);
-		let html = '<div class="infobox">' + this.getNameSpan(additionalSpanText);
+		let html = '<div class="infobox">' + this.getMascotAndNameHtml(additionalSpanText);
 
 		if (!players) players = this.getRemainingPlayers();
 		const attributes = getAttributes.call(this, players);

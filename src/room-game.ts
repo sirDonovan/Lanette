@@ -49,6 +49,7 @@ export abstract class Game extends Activity {
 		this.initialSeed = this.prng.initialSeed.slice() as PRNGSeed;
 	}
 
+	abstract getMascotAndNameHtml(additionalText?: string): string;
 	abstract onInitialize(format: IGameFormat | IUserHostedFormat): void;
 
 	random(m: number): number {
@@ -113,13 +114,8 @@ export abstract class Game extends Activity {
 		return this.description;
 	}
 
-	getNameSpan(additionalText?: string): string {
-		const mascot = this.mascot ? Dex.getPokemonIcon(this.mascot) : '';
-		return mascot + "<span style='color: #999999'>" + this.name + (additionalText || "") + "</span>";
-	}
-
 	getSignupsHtmlUpdate(): string {
-		return "<div class='infobox'>" + this.getNameSpan(" - signups (join with " + Config.commandCharacter + "joingame!)") +
+		return "<div class='infobox'>" + this.getMascotAndNameHtml(" - signups (join with " + Config.commandCharacter + "joingame!)") +
 			"<br /><br /><b>Players (" + this.playerCount + ")</b>: " + this.getPlayerNames() + "</div>";
 	}
 

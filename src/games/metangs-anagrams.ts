@@ -65,7 +65,7 @@ export const game: IGameFile<MetangsAnagrams> = Games.copyTemplateProperties(que
 	name: "Metang's Anagrams",
 	mascot: "Metang",
 	minigameCommand: 'anagram',
-	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess the answer after unscrambling the letters!",
+	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess the answer after unscrambling the letters!",
 	modes: ["survival", "team"],
 	variants: [
 		{

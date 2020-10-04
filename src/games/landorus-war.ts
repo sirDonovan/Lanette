@@ -100,7 +100,7 @@ class LandorusWar extends ScriptedGame {
 		pokemonList.sort();
 		this.pokemonList = pokemonList;
 
-		let html = "<div class='infobox'>" + this.getNameSpan(" - Round " + this.round) + "<br /><br />";
+		let html = "<div class='infobox'>" + this.getMascotAndNameHtml(" - Round " + this.round) + "<br /><br />";
 		html += "<b>Remaining Pokemon</b>: " + this.pokemonList.join(", ") + "<br /><br />";
 		html += "<b>Remaining players (" + remainingPlayerCount + ")</b>: " + this.shuffle(this.playerAliasesList).join(", ") +
 			"<br /><br />";
@@ -310,7 +310,6 @@ export const game: IGameFile<LandorusWar> = {
 		"type. Players may only use moves of which the Pokemon they have been randomly assigned to is able to learn.",
 	name: "Landorus' War",
 	mascot: "Landorus",
-	nonTrivialLoadData: true,
 	scriptedOnly: true,
 	tests,
 };

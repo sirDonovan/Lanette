@@ -139,8 +139,8 @@ export const game: IGameFile<ZygardesOrders> = Games.copyTemplateProperties(ques
 	name: "Zygarde's Orders",
 	mascot: "Zygarde",
 	minigameCommand: 'order',
-	minigameDescription: 'Use ``' + Config.commandCharacter + 'g`` to guess the answer as letters are revealed one by one (one chance ' +
-		'to guess correctly)!',
+	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess the answer as letters are revealed one by one " +
+		"(one chance to guess correctly)!",
 	modes: ['survival', 'group'],
 	modeProperties: {
 		'survival': {

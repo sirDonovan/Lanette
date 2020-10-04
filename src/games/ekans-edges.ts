@@ -111,7 +111,7 @@ export const game: IGameFile<EkansEdges> = Games.copyTemplateProperties(question
 	name: "Ekans' Edges",
 	mascot: "Ekans",
 	minigameCommand: 'edge',
-	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess an answer with the given starting and ending letters!",
+	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess an answer with the given starting and ending letters!",
 	modes: ["survival", "team"],
 	variants: [
 		{

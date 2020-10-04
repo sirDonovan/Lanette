@@ -9,7 +9,7 @@ const rootFolder = path.resolve(__dirname, '..', '..');
 const modulesDir = path.join(__dirname, 'modules');
 const moduleTests = fs.readdirSync(modulesDir).filter(x => x.endsWith('.js'));
 const pokemonShowdownTestFile = 'pokemon-showdown.js';
-const nonTrivialGameLoadTime = 100;
+const nonTrivialGameLoadTime = 200;
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noOp = (): void => {};

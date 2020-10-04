@@ -28,6 +28,12 @@ export class UserHostedGame extends Game {
 
 	room!: Room;
 
+	// Display
+	getMascotAndNameHtml(additionalText?: string): string {
+		const mascot = this.mascot ? Dex.getPokemonIcon(this.mascot) : '';
+		return mascot + "<b>" + this.name + (additionalText || "") + "</b>";
+	}
+
 	// Host
 	setHost(host: User | string): void {
 		if (typeof host === 'string') {

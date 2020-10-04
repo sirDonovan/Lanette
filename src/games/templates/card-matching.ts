@@ -393,7 +393,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		// needs to be set outside of on() for tests
 		this.currentPlayer = player;
 
-		const html = this.getNameSpan() + "<br /><center>" + this.getTopCardHtml() + "<br /><br /><b>" + player!.name + "</b>'s " +
+		const html = this.getMascotAndNameHtml() + "<br /><center>" + this.getTopCardHtml() + "<br /><br /><b>" + player!.name + "</b>'s " +
 			"turn!</center>";
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
@@ -554,8 +554,8 @@ const commands: GameCommandDefinitions<CardMatching> = {
 			if (!cards.length) {
 				player.frozen = true;
 				if (this.finitePlayerCards) {
-					this.sayUhtmlAuto(this.uhtmlBaseName + '-round', this.getNameSpan() + "<br /><center><br />" + this.getTopCardHtml() +
-						"</center>");
+					this.sayUhtmlAuto(this.uhtmlBaseName + '-round', this.getMascotAndNameHtml() + "<br /><center><br />" +
+						this.getTopCardHtml() + "</center>");
 					this.end();
 					return true;
 				}

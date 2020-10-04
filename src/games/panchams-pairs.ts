@@ -70,11 +70,11 @@ class PanchamPairs extends ScriptedGame {
 
 	getMinigameDescription(): string {
 		if (this.dataType === "Pokemon") {
-			return "Use ``" + Config.commandCharacter + "pair [name, name, parameter type]`` to pair the given Pokemon! Valid parameter " +
-				"types are: " + Tools.joinList(categories.Pokemon) + ".";
+			return "Use <code>" + Config.commandCharacter + "pair [name, name, parameter type]</code> to pair the given Pokemon! " +
+				"Valid parameter types are: " + Tools.joinList(categories.Pokemon) + ".";
 		} else {
-			return "Use ``" + Config.commandCharacter + "pair [name, name, parameter type]`` to pair the given moves! Valid parameter " +
-			"types are: " + Tools.joinList(categories.moves) + ".";
+			return "Use <code>" + Config.commandCharacter + "pair [name, name, parameter type]</code> to pair the given moves! " +
+				"Valid parameter types are: " + Tools.joinList(categories.moves) + ".";
 		}
 	}
 
@@ -104,19 +104,26 @@ class PanchamPairs extends ScriptedGame {
 			this.say("These players still have not paired: " + players.join(", "));
 		}
 
-		const dataHtml: string[] = [];
+		const dataHtmlParts: string[] = [];
 		if (this.dataType === 'Pokemon') {
 			for (const name of this.currentList) {
 				const pokemon = Dex.getExistingPokemon(name);
-				dataHtml.push(Dex.getPSPokemonIcon(pokemon) + pokemon.name);
+				dataHtmlParts.push(Dex.getPSPokemonIcon(pokemon) + pokemon.name);
 			}
 		} else {
-			dataHtml.push(this.currentList.join(", "));
+			dataHtmlParts.push(this.currentList.join(", "));
 		}
 
 		const uhtmlName = this.uhtmlBaseName + '-' + this.round + '-pokemon';
-		const html = "<div class='infobox'>" + this.getNameSpan(" - Pair 2 " + this.dataType + ":") + "<br /><br />" + dataHtml.join(", ") +
-			"</div>";
+		const dataHtml = dataHtmlParts.join(", ");
+		let html = this.getMascotAndNameHtml(" - Pair 2 " + this.dataType + ":") + "<br /><br />";
+		if (this.isMiniGame) {
+			html += "<div class='infobox'>" + dataHtml + "</div>";
+		} else {
+			html += dataHtml;
+			html = "<div class='infobox'>" + html + "</div>";
+		}
+
 		this.onUhtml(uhtmlName, html, () => {
 			if (!this.canPair) this.canPair = true;
 			if (this.isMiniGame) {
@@ -374,7 +381,6 @@ export const game: IGameFile<PanchamPairs> = {
 	mascot: "Pancham",
 	minigameCommand: 'panchampair',
 	minigameCommandAliases: ['ppair'],
-	nonTrivialLoadData: true,
 	variants: [
 		{
 			name: "Pancham's Move Pairs",

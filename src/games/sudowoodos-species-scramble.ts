@@ -51,6 +51,6 @@ export const game: IGameFile<SudowoodosSpeciesScramble> = Games.copyTemplateProp
 	mascot: "Sudowoodo",
 	minigameCommand: 'sudowoodospecies',
 	minigameCommandAliases: ['sspecies'],
-	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess a Pokemon based on the given category!",
+	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess a Pokemon based on the given category!",
 	modes: ['survival', 'team'],
 });

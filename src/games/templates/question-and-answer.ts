@@ -53,8 +53,8 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	}
 
 	getHintHtml(): string {
-		return "<div style='padding-bottom:8px'>" + this.getNameSpan((this.isMiniGame ? " (minigame)" : "") +
-			(this.additionalHintHeader ? " " + this.additionalHintHeader : "")) + "<br /><br />" + this.hint + "</div>";
+		return "<div style='padding-bottom:5px'>" + this.getMascotAndNameHtml((this.additionalHintHeader ? " " + this.additionalHintHeader :
+			"")) + "<br /><br />" + this.hint + "</div>";
 	}
 
 	repostInformation(): void {

@@ -30,8 +30,8 @@ export class ParasParameters extends QuestionAndAnswer {
 	}
 
 	getMinigameDescription(): string {
-		const dexsearchCommand = "``/" + (this.format.options.gen === 8 ? "nds" : "ds" + this.format.options.gen) + "``";
-		return "Use " + dexsearchCommand + " to search for and then ``" + Config.commandCharacter + "g`` to guess " +
+		const dexsearchCommand = "<code>/" + (this.format.options.gen === 8 ? "nds" : "ds" + this.format.options.gen) + "</code>";
+		return "Use " + dexsearchCommand + " to search for and then <code>" + Config.commandCharacter + "g</code> to guess " +
 			dexsearchCommand + " parameters that give the following Pokemon!";
 	}
 

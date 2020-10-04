@@ -124,7 +124,7 @@ export const game: IGameFile<HitmonchansHangman> = Games.copyTemplateProperties(
 	name: "Hitmonchan's Hangman",
 	mascot: "Hitmonchan",
 	minigameCommand: 'hangman',
-	minigameDescription: 'Use ``' + Config.commandCharacter + 'g`` to guess one letter per round or the answer!',
+	minigameDescription: 'Use <code>' + Config.commandCharacter + 'g</code> to guess one letter per round or the answer!',
 	modes: ['survival', 'group'],
 	modeProperties: {
 		'survival': {

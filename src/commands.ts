@@ -2460,7 +2460,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			delete format.inputOptions.points;
 			const game = global.Games.createGame(room, format, pmRoom);
 			const randomAnswer = await game.getRandomAnswer!();
-			this.sayHtml(game.getNameSpan(" - random") + "<br /><br />" + randomAnswer.hint + "<br /> " +
+			this.sayHtml(game.getMascotAndNameHtml(" - random") + "<br /><br />" + randomAnswer.hint + "<br /> " +
 				"<b>Answer" + (randomAnswer.answers.length > 1 ? "s" : "") + "</b>: " + randomAnswer.answers.join(', '), pmRoom);
 			game.deallocate(true);
 		},

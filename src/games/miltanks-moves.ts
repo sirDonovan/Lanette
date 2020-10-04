@@ -73,5 +73,4 @@ export const game: IGameFile<MiltanksMoves> = Games.copyTemplateProperties(quest
 	name: "Miltank's Moves",
 	mascot: "Miltank",
 	modes: ['survival', 'team'],
-	nonTrivialLoadData: true,
 });

@@ -66,7 +66,8 @@ export const game: IGameFile<PiplupsLetterPlacements> = Games.copyTemplateProper
 	mascot: "Piplup",
 	modes: ['survival', 'team'],
 	minigameCommand: 'placement',
-	minigameDescription: 'Use ``' + Config.commandCharacter + 'g`` to guess an answer that contains the given letters back-to-back!',
+	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess an answer that contains the given letters " +
+		"back-to-back!",
 	variants: [
 		{
 			name: "Piplup's Ability Letter Placements",

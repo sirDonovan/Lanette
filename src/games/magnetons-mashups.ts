@@ -125,7 +125,7 @@ export const game: IGameFile<MagnetonsMashups> = Games.copyTemplateProperties(qu
 	name: "Magneton's Mashups",
 	mascot: "Magneton",
 	minigameCommand: 'mashup',
-	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess the unscrambled names!",
+	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess the unscrambled names!",
 	modes: ["survival", "team"],
 	modeProperties: {
 		'survival': {

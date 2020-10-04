@@ -171,8 +171,8 @@ export const game: IGameFile<PoliwrathsPortmanteaus> = Games.copyTemplatePropert
 	mascot: "Poliwrath",
 	minigameCommand: 'portmanteau',
 	minigameCommandAliases: ['port'],
-	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess a portmanteau (sharing 2-4 letters) that fits the given " +
-		"parameters!",
+	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess a portmanteau (sharing 2-4 letters) that fits the " +
+		"given parameters!",
 	modes: ['team'],
 	tests: Object.assign({}, questionAndAnswerGame.tests, tests),
 });

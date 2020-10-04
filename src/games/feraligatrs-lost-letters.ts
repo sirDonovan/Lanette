@@ -34,6 +34,11 @@ class FeraligatrsLostLetters extends QuestionAndAnswer {
 		data["Pokemon Moves"] = Games.getMovesList().map(x => x.name);
 	}
 
+	getMinigameDescription(): string {
+		return "Use <code>" + Config.commandCharacter + "g</code> to guess the answer after finding the missing " +
+			(this.variant === 'inverse' ? "consonants" : "vowels") + "!";
+	}
+
 	onSignups(): void {
 		super.onSignups();
 		if (this.variant === 'inverse') {
@@ -103,7 +108,6 @@ export const game: IGameFile<FeraligatrsLostLetters> = Games.copyTemplatePropert
 	mascot: "Feraligatr",
 	minigameCommand: 'lostletter',
 	minigameCommandAliases: ['lletter'],
-	minigameDescription: "Use ``" + Config.commandCharacter + "g`` to guess the answer after finding the missing vowels!",
 	modes: ['team'],
 	variants: [
 		{
