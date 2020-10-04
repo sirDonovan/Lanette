@@ -403,6 +403,8 @@ export class ScriptedGame extends Game {
 			this.parentGame.prng = new PRNG(this.prng.seed);
 			if (this.parentGame.onChildEnd) this.parentGame.onChildEnd(this.winners);
 		}
+
+		if (this.onAfterDeallocate) this.onAfterDeallocate(forceEnd);
 	}
 
 	inheritPlayers(players: Dict<Player>): void {
@@ -752,6 +754,7 @@ export class ScriptedGame extends Game {
 	/** Return `false` to prevent a user from being added to the game (and send the reason to the user) */
 	onAddPlayer?(player: Player, lateJoin?: boolean): boolean | undefined;
 	onAddExistingPlayer?(player: Player): void;
+	onAfterDeallocate?(forceEnd: boolean): void;
 	onBattleExpire?(room: Room): void;
 	/** Return `false` to signal that the battle should be left */
 	onBattleFaint?(room: Room, slot: string): boolean;
