@@ -45,6 +45,7 @@ export interface IGameAchievement {
 	bits: number;
 
 	repeatBits?: number;
+	minigame?: boolean;
 	mode?: string;
 }
 

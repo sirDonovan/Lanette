@@ -710,8 +710,12 @@ export class ScriptedGame extends Game {
 
 	/**Returns an array of players who re-unlocked the achievement, if any */
 	unlockAchievement(players: Player | Player[], achievement: IGameAchievement): Player[] | undefined {
-		if ((this.isMiniGame && !this.internalGame) || this.isPm(this.room)) return;
-		if (this.format.mode && this.format.mode.id !== achievement.mode) return;
+		if (this.isPm(this.room) || (this.format.mode && this.format.mode.id !== achievement.mode)) return;
+		if (this.isMiniGame) {
+			if (!achievement.minigame) return;
+		} else {
+			if (achievement.minigame) return;
+		}
 
 		const database = Storage.getDatabase(this.room);
 		if (!database.gameAchievements) database.gameAchievements = {};

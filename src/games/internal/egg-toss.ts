@@ -5,7 +5,7 @@ import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, I
 import type { User } from "../../users";
 
 const achievements: AchievementsDict = {
-	"eggthesystem": {name: "Egg the System", type: 'special', bits: 500, description: 'explode the egg on Lady Monita'},
+	"eggthesystem": {name: "Egg the System", type: 'special', bits: 500, minigame: true, description: 'explode the egg on Lady Monita'},
 };
 
 class EggToss extends ScriptedGame {
