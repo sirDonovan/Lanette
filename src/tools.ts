@@ -11,7 +11,8 @@ const ALPHA_NUMERIC_REGEX = /[^a-zA-Z0-9 ]/g;
 const ID_REGEX = /[^a-z0-9]/g;
 const INTEGER_REGEX = /^[0-9]*$/g;
 const FLOAT_REGEX = /^[.0-9]*$/g;
-const SPACE_REGEX = /[ ]*/g;
+const SPACE_REGEX = /\s/g;
+const APOSTROPHE_REGEX = /[/']/g;
 const HTML_CHARACTER_REGEX = /[<>/'"]/g;
 const UNSAFE_API_CHARACTER_REGEX = /[^A-Za-z0-9 ,.%&'"!?()[\]`_<>/|:;=+-@]/g;
 
@@ -304,6 +305,11 @@ export class Tools {
 		if (numberString.endsWith('2')) return numberString + "nd";
 		if (numberString.endsWith('3')) return numberString + "rd";
 		return numberString + "th";
+	}
+
+	toMarkdownAnchor(name: string, linkPrefix?: string): string {
+		return "[" + name + "](#" + (linkPrefix ? linkPrefix : "") + name.toLowerCase().replace(APOSTROPHE_REGEX, "")
+			.replace(SPACE_REGEX, "-") + ")";
 	}
 
 	unescapeHTML(input: string): string {

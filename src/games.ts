@@ -789,6 +789,12 @@ export class Games {
 		return format;
 	}
 
+	getExistingInternalFormat(id: InternalGameKey): IGameFormat {
+		const format = this.getInternalFormat(id);
+		if (Array.isArray(format)) throw new Error(format.join(": "));
+		return format;
+	}
+
 	getRemainingGameCooldown(room: Room, isMinigame?: boolean): number {
 		const now = Date.now();
 		if (Config.gameCooldownTimers && room.id in Config.gameCooldownTimers && room.id in this.lastGames) {
@@ -1334,11 +1340,12 @@ export class Games {
 					info.push("\n");
 				}
 
-					info.push("**Achievements**:");
 				if (allowsGameAchievements && format.class.achievements) {
+					const achievements: string[] = [];
 					for (const key in format.class.achievements) {
-						info.push("* " + format.class.achievements[key].name + ": " + format.class.achievements[key].description);
+						achievements.push(Tools.toMarkdownAnchor(format.class.achievements[key].name));
 					}
+					info.push("**Achievements**: " + Tools.joinList(achievements));
 					info.push("\n");
 				}
 
@@ -1376,6 +1383,42 @@ export class Games {
 			}
 
 			document = document.concat(scriptedGames);
+		}
+
+		if (allowsGameAchievements) {
+			const internalFormatKeys = Object.keys(this.internalFormats) as InternalGameKey[];
+			internalFormatKeys.sort();
+
+			const formatKeys = Object.keys(this.formats);
+			formatKeys.sort();
+
+			const achievements: string[] = ["## Scripted game achievements"];
+			const achievementKeys = Object.keys(this.achievements);
+			achievementKeys.sort();
+
+			for (const achievementKey of achievementKeys) {
+				const achievement = this.achievements[achievementKey];
+				achievements.push("### " + achievement.name);
+				achievements.push("**Description**: " + achievement.description + "\n");
+
+				const games: string[] = [];
+				for (const formatKey of formatKeys) {
+					const format = this.getExistingFormat(formatKey);
+					if (format.class.achievements && achievementKey in format.class.achievements) {
+						games.push(Tools.toMarkdownAnchor(format.name, (format.mascot ? "-" : "")));
+					}
+				}
+				for (const formatKey of internalFormatKeys) {
+					const format = this.getExistingInternalFormat(formatKey);
+					if (format.class.achievements && achievementKey in format.class.achievements) games.push(format.name);
+				}
+
+				achievements.push("**Unlockable in**: " + Tools.joinList(games) + "\n");
+				achievements.push("\n");
+				achievements.push("---");
+			}
+
+			document = document.concat(achievements);
 		}
 
 		if (allowsUserHostedGames) {
