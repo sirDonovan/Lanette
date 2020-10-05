@@ -60,6 +60,7 @@ export type InternalGameKey = keyof IInternalGames;
 
 interface IGameClass<T extends ScriptedGame = ScriptedGame> {
 	new(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed): T;
+	achievements?: Dict<IGameAchievement>;
 	loadData?: (room: Room | User, extendedClass?: boolean) => void;
 	loadedData?: boolean;
 }
@@ -81,8 +82,6 @@ export interface IGameTestAttributes {
 
 type GameFileTests<T extends ScriptedGame = ScriptedGame> = Dict<{config?: IGameFileTestConfig; test: ((this: Mocha.Context, game: T,
 	format: IGameFormat<T>, attributes: IGameTestAttributes) => void);}>;
-
-export type AchievementsDict = PartialKeyedDict<GameAchievements, IGameAchievement>;
 
 export interface IRandomGameAnswer {
 	answers: string[];
@@ -113,7 +112,6 @@ export interface IGameCommandCountListener extends IGameCommandCountOptions {
 type IGameVariant<T extends ScriptedGame = ScriptedGame> = Partial<T> & IGameVariantProperties<T>;
 
 interface IGameFileProperties<T extends ScriptedGame = ScriptedGame> {
-	achievements?: AchievementsDict;
 	aliases?: string[];
 	canGetRandomAnswer?: boolean;
 	category?: GameCategory;

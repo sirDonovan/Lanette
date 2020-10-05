@@ -3856,7 +3856,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			const unlockedAchievements: string[] = [];
 			if (database.gameAchievements && id in database.gameAchievements) {
 				for (const achievement of database.gameAchievements[id]) {
-					if (achievement in Games.achievementNames) unlockedAchievements.push(Games.achievementNames[achievement]);
+					if (achievement in Games.achievements) unlockedAchievements.push(Games.achievements[achievement].name);
 				}
 			}
 			if (!unlockedAchievements.length) {

@@ -1,19 +1,21 @@
 import type { Player } from "../room-activity";
-import type { AchievementsDict, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import type { GameMap, MapFloor, MapFloorSpace } from "./templates/map";
 import { game as mapGame } from "./templates/map";
 import { MapShuffleGame } from "./templates/map-shuffle";
 
+type AchievementNames = "kingofthecastle" | "klinksgear";
+
 const currency = "gears";
 const kingOfTheCastlePoints = 4000;
 
-const achievements: AchievementsDict = {
-	"kingofthecastle": {name: "King of the Castle", type: 'points', bits: 1000, description: 'collect at least ' +
-		kingOfTheCastlePoints + ' ' + currency},
-	"klinksgear": {name: "Klink's Gear", type: 'special', bits: 1000, description: 'get lucky and find Klink in the castle'},
-};
-
 class KlinklangsCastle extends MapShuffleGame {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"kingofthecastle": {name: "King of the Castle", type: 'points', bits: 1000, description: 'collect at least ' +
+			kingOfTheCastlePoints + ' ' + currency},
+		"klinksgear": {name: "Klink's Gear", type: 'special', bits: 1000, description: 'get lucky and find Klink in the castle'},
+	};
+
 	canLateJoin: boolean = true;
 	currency: string = currency;
 	escapedPlayers = new Map<Player, boolean>();
@@ -41,7 +43,7 @@ class KlinklangsCastle extends MapShuffleGame {
 
 	onAchievementSpace(player: Player, floor: MapFloor, space: MapFloorSpace): void {
 		delete space.attributes.achievement;
-		const achievementResult = this.unlockAchievement(player, achievements.klinksgear!);
+		const achievementResult = this.unlockAchievement(player, KlinklangsCastle.achievements.klinksgear);
 		const repeatUnlock = achievementResult && achievementResult.includes(player);
 		let currency = 0;
 		if (repeatUnlock) {
@@ -84,14 +86,13 @@ class KlinklangsCastle extends MapShuffleGame {
 			this.addBits(player, earnings);
 		});
 
-		if (unlockedKingOfTheCastle.length) this.unlockAchievement(unlockedKingOfTheCastle, achievements.kingofthecastle!);
+		if (unlockedKingOfTheCastle.length) this.unlockAchievement(unlockedKingOfTheCastle, KlinklangsCastle.achievements.kingofthecastle);
 
 		this.announceWinners();
 	}
 }
 
 export const game: IGameFile<KlinklangsCastle> = Games.copyTemplateProperties(mapGame, {
-	achievements,
 	aliases: ["klinklangs", "kcastle"],
 	class: KlinklangsCastle,
 	description: "Players must find a path out of the shifting castle without falling into traps! You may travel once per turn " +

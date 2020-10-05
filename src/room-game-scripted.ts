@@ -710,7 +710,9 @@ export class ScriptedGame extends Game {
 
 	/**Returns an array of players who re-unlocked the achievement, if any */
 	unlockAchievement(players: Player | Player[], achievement: IGameAchievement): Player[] | undefined {
-		if (this.isPm(this.room) || (this.format.mode && this.format.mode.id !== achievement.mode)) return;
+		if (this.isPm(this.room) || !Config.allowGameAchievements || !Config.allowGameAchievements.includes(this.room.id) ||
+			(this.format.mode && this.format.mode.id !== achievement.mode)) return;
+
 		if (this.isMiniGame) {
 			if (!achievement.minigame) return;
 		} else {

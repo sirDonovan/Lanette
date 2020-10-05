@@ -1,8 +1,10 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
-import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
+
+type AchievementNames = "criminalmind" | "truedetective";
 
 const data: {colors: Dict<string[]>; eggGroups: Dict<string[]>; moves: Dict<string[]>; pokemon: string[]; types: Dict<string[]>} = {
 	colors: {},
@@ -20,12 +22,12 @@ const dataKeys: {colors: string[]; eggGroups: string[]; moves: string[]; types: 
 };
 const categories: Category[] = ["colors", "eggGroups", "moves", "types"];
 
-const achievements: AchievementsDict = {
-	"criminalmind": {name: "Criminal Mind", type: 'special', bits: 1000, description: "win as the only criminal remaining"},
-	"truedetective": {name: "True Detective", type: 'special', bits: 1000, description: "win as the only detective remaining"},
-};
-
 class MismagiusFoulPlay extends ScriptedGame {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"criminalmind": {name: "Criminal Mind", type: 'special', bits: 1000, description: "win as the only criminal remaining"},
+		"truedetective": {name: "True Detective", type: 'special', bits: 1000, description: "win as the only detective remaining"},
+	};
+
 	chosenPokemon = new Map<Player, string>();
 	criminalCount: number = 0;
 	criminals: Player[] = [];
@@ -229,7 +231,8 @@ class MismagiusFoulPlay extends ScriptedGame {
 		}
 
 		if (this.winners.size === 1) {
-			this.unlockAchievement(this.getFinalPlayer()!, detectiveWin ? achievements.truedetective! : achievements.criminalmind!);
+			this.unlockAchievement(this.getFinalPlayer()!, detectiveWin ? MismagiusFoulPlay.achievements.truedetective :
+				MismagiusFoulPlay.achievements.criminalmind);
 		}
 
 		this.announceWinners();
@@ -364,7 +367,6 @@ commands.summary = Tools.deepClone(Games.sharedCommands.summary);
 commands.summary.aliases = ['role'];
 
 export const game: IGameFile<MismagiusFoulPlay> = {
-	achievements,
 	aliases: ['mismagius', 'mfp'],
 	category: 'strategy',
 	class: MismagiusFoulPlay,

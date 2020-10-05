@@ -2,20 +2,22 @@ import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
 import type { IPokemon } from "../types/dex";
-import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
+
+type AchievementNames = "wonderguardwarrior";
 
 const data: {moves: string[]; pokedex: string[]} = {
 	moves: [],
 	pokedex: [],
 };
 
-const achievements: AchievementsDict = {
-	'wonderguardwarrior': {name: "Wonder Guard Warrior", type: 'special', bits: 1000, description: "use a move first every round that " +
-		"is super-effective"},
-};
-
 class ShedinjasWonderTrials extends ScriptedGame {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		'wonderguardwarrior': {name: "Wonder Guard Warrior", type: 'special', bits: 1000, description: "use a move first every round " +
+			"that is super-effective"},
+	};
+
 	canUseMove: boolean = false;
 	currentPokemon: IPokemon | null = null;
 	firstMove: Player | false | undefined;
@@ -125,7 +127,7 @@ class ShedinjasWonderTrials extends ScriptedGame {
 			if (points && points >= this.maxPoints) {
 				this.winners.set(player, 1);
 				this.addBits(player, 500);
-				if (this.firstMove === player) this.unlockAchievement(player, achievements.wonderguardwarrior!);
+				if (this.firstMove === player) this.unlockAchievement(player, ShedinjasWonderTrials.achievements.wonderguardwarrior);
 			}
 		}
 
@@ -208,7 +210,6 @@ const commands: GameCommandDefinitions<ShedinjasWonderTrials> = {
 };
 
 export const game: IGameFile<ShedinjasWonderTrials> = {
-	achievements,
 	aliases: ["shedinjas", "swt", "wondertrials"],
 	category: 'knowledge',
 	commandDescriptions: [Config.commandCharacter + "use [move]"],

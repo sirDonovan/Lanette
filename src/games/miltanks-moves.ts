@@ -1,12 +1,10 @@
 import type { Room } from "../rooms";
 import type { IMove } from "../types/dex";
-import type { AchievementsDict, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
-const achievements: AchievementsDict = {
-	'mootronome': {name: "Mootronome", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
-};
+type AchievementNames = "mootronome";
 
 const data: {'moves': Dict<Dict<string[]>>; 'pokemon': string[]} = {
 	moves: {},
@@ -14,7 +12,11 @@ const data: {'moves': Dict<Dict<string[]>>; 'pokemon': string[]} = {
 };
 
 class MiltanksMoves extends QuestionAndAnswer {
-	allAnswersAchievement = achievements.mootronome;
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		'mootronome': {name: "Mootronome", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+	};
+
+	allAnswersAchievement = MiltanksMoves.achievements.mootronome;
 
 	static loadData(room: Room | User): void {
 		const bannedMoves: string[] = [];

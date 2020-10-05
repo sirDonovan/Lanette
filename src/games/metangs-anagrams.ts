@@ -1,7 +1,9 @@
 import type { Room } from "../rooms";
-import type { AchievementsDict, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
+
+type AchievementNames = "wordmaster" | "captainwordmaster";
 
 const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
 	'Pokemon Items': string[]; 'Pokemon Moves': string[];} = {
@@ -15,15 +17,15 @@ const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[];
 type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
 
-const achievements: AchievementsDict = {
-	'wordmaster': {name: "Wordmaster", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
-	'captainwordmaster': {name: "Captain Wordmaster", type: 'all-answers-team', bits: 1000, mode: 'team', description: "get every answer " +
-		"for your team and win the game"},
-};
-
 class MetangsAnagrams extends QuestionAndAnswer {
-	allAnswersAchievement = achievements.wordmaster;
-	allAnswersTeamAchievement = achievements.captainwordmaster;
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		'wordmaster': {name: "Wordmaster", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+		'captainwordmaster': {name: "Captain Wordmaster", type: 'all-answers-team', bits: 1000, mode: 'team', description: "get every " +
+			"answer for your team and win the game"},
+	};
+
+	allAnswersAchievement = MetangsAnagrams.achievements.wordmaster;
+	allAnswersTeamAchievement = MetangsAnagrams.achievements.captainwordmaster;
 	lastAnswer: string = '';
 
 	static loadData(room: Room | User): void {
@@ -54,7 +56,6 @@ class MetangsAnagrams extends QuestionAndAnswer {
 }
 
 export const game: IGameFile<MetangsAnagrams> = Games.copyTemplateProperties(questionAndAnswerGame, {
-	achievements,
 	aliases: ['metangs', 'anags', 'ma'],
 	category: 'identification',
 	class: MetangsAnagrams,

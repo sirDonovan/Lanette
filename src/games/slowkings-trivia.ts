@@ -1,7 +1,9 @@
 import type { Room } from "../rooms";
-import type { AchievementsDict, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
+
+type AchievementNames = "knowitall" | "captainknowitall";
 
 const data: {"Pokemon Abilities": Dict<string[]>; "Pokemon Items": Dict<string[]>; "Pokemon Moves": Dict<string[]>} = {
 	"Pokemon Abilities": {},
@@ -16,15 +18,15 @@ const categoryKeys: KeyedDict<DataKey, string[]> = {
 	"Pokemon Moves": [],
 };
 
-const achievements: AchievementsDict = {
-	'knowitall': {name: "Know-It-All", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
-	'captainknowitall': {name: "Captain Know-It-All", type: 'all-answers-team', bits: 1000, description: "get every answer for your " +
-		"team and win the game"},
-};
-
 class SlowkingsTrivia extends QuestionAndAnswer {
-	allAnswersAchievement = achievements.knowitall;
-	allAnswersTeamAchievement = achievements.captainknowitall;
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		'knowitall': {name: "Know-It-All", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+		'captainknowitall': {name: "Captain Know-It-All", type: 'all-answers-team', bits: 1000, description: "get every answer for your " +
+			"team and win the game"},
+	};
+
+	allAnswersAchievement = SlowkingsTrivia.achievements.knowitall;
+	allAnswersTeamAchievement = SlowkingsTrivia.achievements.captainknowitall;
 	roundTime = 15 * 1000;
 
 	static loadData(room: Room | User): void {
@@ -64,7 +66,6 @@ class SlowkingsTrivia extends QuestionAndAnswer {
 }
 
 export const game: IGameFile<SlowkingsTrivia> = Games.copyTemplateProperties(questionAndAnswerGame, {
-	achievements,
 	aliases: ['slowkings', 'triv', 'st'],
 	category: 'knowledge',
 	class: SlowkingsTrivia,

@@ -225,6 +225,11 @@ export let allowTournamentGames: string[] = [];
 export let allowOneVsOneGames: string[] = [];
 
 /**
+ * A list of rooms (roomids) where game achievements are able to be unlocked
+ */
+export let allowGameAchievements: string[] = [];
+
+/**
  * A list of rooms (roomids) where games cannot be hosted back-to-back
  */
 export let disallowRepeatUserHostedGames: string[] = [];

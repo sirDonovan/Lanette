@@ -1,8 +1,10 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
-import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
+
+type AchievementNames = "pokemonranger";
 
 interface ICaughtPokemon {
 	points: number;
@@ -14,11 +16,11 @@ const data: {baseStatTotals: Dict<number>; pokedex: string[]} = {
 	pokedex: [],
 };
 
-const achievements: AchievementsDict = {
-	"pokemonranger": {name: "Pokemon Ranger", type: 'first', bits: 1000, description: 'catch first in every round'},
-};
-
 class TaurosSafariZone extends ScriptedGame {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"pokemonranger": {name: "Pokemon Ranger", type: 'first', bits: 1000, description: 'catch first in every round'},
+	};
+
 	canCatch: boolean = false;
 	caughtPokemon = new Map<Player, number>();
 	firstCatch: Player | false | undefined;
@@ -167,7 +169,7 @@ class TaurosSafariZone extends ScriptedGame {
 			const player = this.players[i];
 			const points = this.points.get(player);
 			if (points && points >= this.maxPoints) this.winners.set(player, 1);
-			if (this.firstCatch && player === this.firstCatch) this.unlockAchievement(player, achievements.pokemonranger!);
+			if (this.firstCatch && player === this.firstCatch) this.unlockAchievement(player, TaurosSafariZone.achievements.pokemonranger);
 		}
 
 		this.convertPointsToBits(0.5, 0.1);
@@ -194,7 +196,6 @@ const commands: GameCommandDefinitions<TaurosSafariZone> = {
 };
 
 export const game: IGameFile<TaurosSafariZone> = {
-	achievements,
 	aliases: ["tauros", "tsz", "ctp", "safarizone"],
 	category: 'speed',
 	commandDescriptions: [Config.commandCharacter + "catch [Pokemon]"],

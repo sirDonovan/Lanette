@@ -1,19 +1,21 @@
 import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
-import type { AchievementsDict, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
+
+type AchievementNames = "moverelearner";
 
 const data: {moves: string[]} = {
 	moves: [],
 };
 
-const achievements: AchievementsDict = {
-	"moverelearner": {name: "Move Relearner", type: 'all-answers', bits: 1000, description: 'get every answer in one game'},
-};
-
 class SmearglesMysteryMoves extends QuestionAndAnswer {
-	allAnswersAchievement = achievements.moverelearner;
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"moverelearner": {name: "Move Relearner", type: 'all-answers', bits: 1000, description: 'get every answer in one game'},
+	};
+
+	allAnswersAchievement = SmearglesMysteryMoves.achievements.moverelearner;
 	answers: string[] = [];
 	canGuess: boolean = false;
 	hints: string[] = [];
@@ -77,7 +79,6 @@ class SmearglesMysteryMoves extends QuestionAndAnswer {
 }
 
 export const game: IGameFile<SmearglesMysteryMoves> = Games.copyTemplateProperties(questionAndAnswerGame, {
-	achievements,
 	aliases: ["smeargles", "mysterymoves", "smm", "wtm"],
 	category: 'knowledge',
 	commandDescriptions: [Config.commandCharacter + "g [move]"],

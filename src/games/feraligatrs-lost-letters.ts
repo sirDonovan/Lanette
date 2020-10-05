@@ -1,11 +1,9 @@
 import type { Room } from "../rooms";
-import type { AchievementsDict, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
-const achievements: AchievementsDict = {
-	'alphabetsweep': {name: "Alphabet Sweep", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
-};
+type AchievementNames = "alphabetsweep";
 
 const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
 	'Pokemon Items': string[]; 'Pokemon Moves': string[];} = {
@@ -21,7 +19,11 @@ const categories = Object.keys(data) as DataKey[];
 const vowels: string[] = ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'];
 
 class FeraligatrsLostLetters extends QuestionAndAnswer {
-	allAnswersAchievement = achievements.alphabetsweep;
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		'alphabetsweep': {name: "Alphabet Sweep", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+	};
+
+	allAnswersAchievement = FeraligatrsLostLetters.achievements.alphabetsweep;
 	categoryList: DataKey[] = categories.slice();
 	roundTime: number = 10 * 1000;
 

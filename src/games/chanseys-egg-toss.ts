@@ -1,14 +1,17 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../types/games";
+
+type AchievementNames = "hotpotatohero";
 
 const hotPotatoHeroTime = 9000;
-const achievements: AchievementsDict = {
-	"hotpotatohero": {name: "Hot Potato Hero", type: 'special', bits: 1000, description: 'hold the egg for ' +
-		(hotPotatoHeroTime/ 1000) + ' seconds'},
-};
 
 class ChanseysEggToss extends ScriptedGame {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"hotpotatohero": {name: "Hot Potato Hero", type: 'special', bits: 1000, description: 'hold the egg for ' +
+			(hotPotatoHeroTime/ 1000) + ' seconds'},
+	};
+
 	canToss: boolean = false;
 	currentHolder: Player | null = null;
 	maxPlayers: number = 20;
@@ -123,7 +126,7 @@ const commands: GameCommandDefinitions<ChanseysEggToss> = {
 				return false;
 			}
 
-			if (Date.now() - this.holdTime >= hotPotatoHeroTime) this.unlockAchievement(player, achievements.hotpotatohero!);
+			if (Date.now() - this.holdTime >= hotPotatoHeroTime) this.unlockAchievement(player, ChanseysEggToss.achievements.hotpotatohero);
 			this.giveEgg(targetPlayer);
 			return true;
 		},
@@ -132,7 +135,6 @@ const commands: GameCommandDefinitions<ChanseysEggToss> = {
 };
 
 export const game: IGameFile<ChanseysEggToss> = {
-	achievements,
 	aliases: ['chanseys', 'eggtoss'],
 	category: 'reaction',
 	class: ChanseysEggToss,

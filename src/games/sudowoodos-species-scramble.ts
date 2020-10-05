@@ -1,11 +1,9 @@
 import type { Room } from "../rooms";
-import type { AchievementsDict, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
-const achievements: AchievementsDict = {
-	'genusgenius': {name: "Genus Genius", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
-};
+type AchievementNames = "genusgenius";
 
 const data: {categories: Dict<string[]>} = {
 	categories: {},
@@ -13,7 +11,11 @@ const data: {categories: Dict<string[]>} = {
 const categoryKeys: string[] = [];
 
 class SudowoodosSpeciesScramble extends QuestionAndAnswer {
-	allAnswersAchievement = achievements.genusgenius;
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		'genusgenius': {name: "Genus Genius", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+	};
+
+	allAnswersAchievement = SudowoodosSpeciesScramble.achievements.genusgenius;
 
 	static loadData(room: Room | User): void {
 		const pokemonList = Games.getPokemonList();

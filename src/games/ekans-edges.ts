@@ -1,7 +1,9 @@
 import type { Room } from "../rooms";
-import type { AchievementsDict, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
+
+type AchievementNames = "livingontheedge";
 
 interface IEkansEdgesData {
 	'Characters': Dict<string[]>;
@@ -11,10 +13,6 @@ interface IEkansEdgesData {
 	'Pokemon Items': Dict<string[]>;
 	'Pokemon Moves': Dict<string[]>;
 }
-
-const achievements: AchievementsDict = {
-	'livingontheedge': {name: "Living on the Edge", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
-};
 
 const data: IEkansEdgesData = {
 	"Characters": {},
@@ -36,7 +34,11 @@ const dataKeys: KeyedDict<DataKey, string[]> = {
 };
 
 class EkansEdges extends QuestionAndAnswer {
-	allAnswersAchievement = achievements.livingontheedge;
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		'livingontheedge': {name: "Living on the Edge", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+	};
+
+	allAnswersAchievement = EkansEdges.achievements.livingontheedge;
 	lastEdge: string = '';
 
 	static loadData(room: Room | User): void {

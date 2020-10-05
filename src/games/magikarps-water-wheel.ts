@@ -1,6 +1,8 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../types/games";
+
+type AchievementNames = "fishoutofwater" | "goldenmagikarp" | "hightidesurvivor";
 
 interface IWheel {
 	magikarpChance: number;
@@ -25,18 +27,18 @@ const colorCodes: KeyedDict<WheelsKey, {'background-color': string; 'background'
 	"red": {'background-color': '#C03028', 'background': 'linear-gradient(#C03028,#9D2721)', 'border-color': '#82211B'},
 };
 
-const achievements: AchievementsDict = {
-	'fishoutofwater': {name: "Fish out of Water", type: 'points', bits: 1000, description: "get at least 4000 points"},
-	'goldenmagikarp': {name: "Golden Magikarp", type: 'special', bits: 1000, description: "get lucky and find the golden Magikarp"},
-	'hightidesurvivor': {name: "High Tide Survivor", type: 'special', bits: 1000, description: "survive 5 rounds in the red wheel"},
-};
-
 const fishOutOfWaterPoints = 4000;
 const goldenMagikarpPoints = 1000;
 const highTideSurvivorWheel: WheelsKey = 'red';
 const highTideSurvivorSpins = 5;
 
 class MagikarpsWaterWheel extends ScriptedGame {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		'fishoutofwater': {name: "Fish out of Water", type: 'points', bits: 1000, description: "get at least 4000 points"},
+		'goldenmagikarp': {name: "Golden Magikarp", type: 'special', bits: 1000, description: "get lucky and find the golden Magikarp"},
+		'hightidesurvivor': {name: "High Tide Survivor", type: 'special', bits: 1000, description: "survive 5 rounds in the red wheel"},
+	};
+
 	actionCommands: string[] = ['swim', 'tread', 'stay'];
 	canLateJoin: boolean = true;
 	canSwim: boolean = false;
@@ -124,10 +126,10 @@ class MagikarpsWaterWheel extends ScriptedGame {
 			consecutiveWheels++;
 			this.consecutiveWheelSpins.set(player, consecutiveWheels);
 			if (wheel === highTideSurvivorWheel && consecutiveWheels === highTideSurvivorSpins) {
-				this.unlockAchievement(player, achievements.hightidesurvivor!);
+				this.unlockAchievement(player, MagikarpsWaterWheel.achievements.hightidesurvivor);
 			}
 
-			if (goldenMagikarp) this.unlockAchievement(player, achievements.goldenmagikarp!);
+			if (goldenMagikarp) this.unlockAchievement(player, MagikarpsWaterWheel.achievements.goldenmagikarp);
 		}
 	}
 
@@ -185,7 +187,9 @@ class MagikarpsWaterWheel extends ScriptedGame {
 			}
 		});
 
-		if (reachedAchievementPoints.length) this.unlockAchievement(reachedAchievementPoints, achievements.fishoutofwater!);
+		if (reachedAchievementPoints.length) {
+			this.unlockAchievement(reachedAchievementPoints, MagikarpsWaterWheel.achievements.fishoutofwater);
+		}
 
 		this.announceWinners();
 	}
@@ -252,7 +256,6 @@ const commands: GameCommandDefinitions<MagikarpsWaterWheel> = {
 };
 
 export const game: IGameFile<MagikarpsWaterWheel> = {
-	achievements,
 	aliases: ['magikarps', 'mww', 'waterwheel', 'pyl'],
 	class: MagikarpsWaterWheel,
 	commandDescriptions: [Config.commandCharacter + "swim [up/down]", Config.commandCharacter + "tread", Config.commandCharacter + "stay"],

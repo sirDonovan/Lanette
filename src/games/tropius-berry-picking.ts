@@ -1,8 +1,10 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
-import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
+
+type AchievementNames = "berrymaster";
 
 interface IBerry {
 	effect: string;
@@ -77,11 +79,11 @@ const effectDescriptions: Dict<string> = {
 const stats: string[] = ['Attack', 'Defense', 'Special Attack', 'Special Defense', 'Speed'];
 const evs: string[] = ['HP', 'Attack', 'Defense', 'Special Attack', 'Special Defense', 'Speed'];
 
-const achievements: AchievementsDict = {
-	"berrymaster": {name: "Berry Master", type: 'first', bits: 1000, description: 'eat first in every round'},
-};
-
 class TropiusBerryPicking extends ScriptedGame {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"berrymaster": {name: "Berry Master", type: 'first', bits: 1000, description: 'eat first in every round'},
+	};
+
 	canEat: boolean = false;
 	canLateJoin: boolean = true;
 	firstEat: Player | false | undefined;
@@ -230,7 +232,7 @@ class TropiusBerryPicking extends ScriptedGame {
 			const player = this.players[i];
 			this.winners.set(player, 1);
 			this.addBits(player, base);
-			if (this.firstEat === player && this.round >= 5) this.unlockAchievement(player, achievements.berrymaster!);
+			if (this.firstEat === player && this.round >= 5) this.unlockAchievement(player, TropiusBerryPicking.achievements.berrymaster);
 		}
 
 		this.announceWinners();
@@ -276,7 +278,6 @@ const commands: GameCommandDefinitions<TropiusBerryPicking> = {
 };
 
 export const game: IGameFile<TropiusBerryPicking> = {
-	achievements,
 	aliases: ["tropius", "berrypicking", "berries", "tbp"],
 	category: 'knowledge',
 	commandDescriptions: [Config.commandCharacter + "eat [berry]"],

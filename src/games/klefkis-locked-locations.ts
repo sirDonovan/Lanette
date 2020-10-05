@@ -1,13 +1,15 @@
 import type { PRNGSeed } from "../prng";
 import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
-import type { AchievementsDict, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 import type { BoardActionCard, IBoard } from "./templates/board";
 import { BoardSpace } from "./templates/board";
 import {
 	BoardActionSpace, BoardEliminationSpace, BoardPropertyEliminationSpace, BoardPropertyGame, game as boardPropertyGame, mountainPrefix
 } from "./templates/board-property";
+
+type AchievementNames = "ohbabyatriple" | "locksmith" | "mountainmover";
 
 interface IBoardSpaces {
 	oakslab: BoardSpace;
@@ -86,16 +88,17 @@ const spaces: IBoardSpaces = {
 };
 
 const doublesRollsAchievementAmount = 3;
-const achievements: AchievementsDict = {
-	"ohbabyatriple": {name: "Oh Baby A Triple", type: 'special', bits: 1000, description: 'roll doubles ' +
-		doublesRollsAchievementAmount + ' times in one round'},
-	"locksmith": {name: "Locksmith", type: 'special', bits: 1000, description: "unlock every property on the board"},
-	"mountainmover": {name: "Mountain Mover", type: 'special', bits: 1000, description: "unlock every mountain on the board"},
-};
 
 class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
-	acquireAllMountainsAchievement = achievements.mountainmover;
-	acquireAllPropertiesAchievement = achievements.locksmith;
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"ohbabyatriple": {name: "Oh Baby A Triple", type: 'special', bits: 1000, description: 'roll doubles ' +
+			doublesRollsAchievementAmount + ' times in one round'},
+		"locksmith": {name: "Locksmith", type: 'special', bits: 1000, description: "unlock every property on the board"},
+		"mountainmover": {name: "Mountain Mover", type: 'special', bits: 1000, description: "acquire every mountain on the board"},
+	};
+
+	acquireAllMountainsAchievement = KlefkisLockedLocations.achievements.mountainmover;
+	acquireAllPropertiesAchievement = KlefkisLockedLocations.achievements.locksmith;
 	acquirePropertyAction: string = "unlock";
 	acquirePropertyActionPast: string = "unlocked";
 	availablePropertyState: string = "locked";
@@ -114,7 +117,7 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 	currencyName: string = "key";
 	currencyPluralName: string = "keys";
 	currencyToEscapeJail: number = 1;
-	doublesRollsAchievement = achievements.ohbabyatriple;
+	doublesRollsAchievement = KlefkisLockedLocations.achievements.ohbabyatriple;
 	doublesRollsAchievementAmount = doublesRollsAchievementAmount;
 	escapeFromJailCard: string = "Klefki Card";
 	jailSpace: BoardSpace = spaces.pyritetownjail;
@@ -207,7 +210,6 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 }
 
 export const game: IGameFile<KlefkisLockedLocations> = Games.copyTemplateProperties(boardPropertyGame, {
-	achievements,
 	aliases: ["klefkis", "lockedlocations", "kll"],
 	class: KlefkisLockedLocations,
 	commandDescriptions: [Config.commandCharacter + "unlock", Config.commandCharacter + "pass", Config.commandCharacter + "rolldice",

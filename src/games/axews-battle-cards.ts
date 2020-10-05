@@ -2,23 +2,25 @@ import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
 import { assertStrictEqual } from "../test/test-tools";
 import type { IMoveCopy, IPokemon } from "../types/dex";
-import type { AchievementsDict, GameFileTests, IGameFile } from "../types/games";
+import type { GameFileTests, IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 import type { IActionCardData, ICard, IMoveCard, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 
+type AchievementNames = "luckofthedraw" | "trumpcard";
+type ActionCardsType = Dict<IActionCardData<AxewsBattleCards>>;
+
 const types: Dict<string> = {};
 
 const trumpCardEliminations = 5;
-const achievements: AchievementsDict = {
-	"luckofthedraw": {name: "Luck of the Draw", type: 'shiny', bits: 1000, repeatBits: 250, description: 'draw and play a shiny card'},
-	"trumpcard": {name: "Trump Card", type: 'special', bits: 1000, description: 'play a card that eliminates ' +
-		trumpCardEliminations + ' or more players'},
-};
-
-type ActionCardsType = Dict<IActionCardData<AxewsBattleCards>>;
 
 class AxewsBattleCards extends CardMatching<ActionCardsType> {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"luckofthedraw": {name: "Luck of the Draw", type: 'shiny', bits: 1000, repeatBits: 250, description: 'draw and play a shiny card'},
+		"trumpcard": {name: "Trump Card", type: 'special', bits: 1000, description: 'play a card that eliminates ' +
+			trumpCardEliminations + ' or more players'},
+	};
+
 	actionCards: ActionCardsType = {
 		"soak": {
 			name: "Soak",
@@ -417,7 +419,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 	maxPlayers = 20;
 	playableCardDescription = "You must play a card that is super-effective against the top card";
 	roundDrawAmount: number = 1;
-	shinyCardAchievement = achievements.luckofthedraw;
+	shinyCardAchievement = AxewsBattleCards.achievements.luckofthedraw;
 	showPlayerCards = false;
 	startingLives: number = 1;
 	usesColors = false;
@@ -637,7 +639,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		}
 
 		if (this.lastPlayer && eliminateCount >= trumpCardEliminations && !this.lastPlayer.eliminated) {
-			this.unlockAchievement(this.lastPlayer, achievements.trumpcard!);
+			this.unlockAchievement(this.lastPlayer, AxewsBattleCards.achievements.trumpcard);
 		}
 
 		if (this.timeEnded) return;
@@ -830,7 +832,6 @@ const tests: GameFileTests<AxewsBattleCards> = {
 };
 
 export const game: IGameFile<AxewsBattleCards> = Games.copyTemplateProperties(cardGame, {
-	achievements,
 	aliases: ["axews", "abc", "battlecards"],
 	commandDescriptions: [Config.commandCharacter + "play [Pokemon or move]"],
 	class: AxewsBattleCards,

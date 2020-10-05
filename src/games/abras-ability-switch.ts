@@ -1,22 +1,24 @@
 import type { Room } from "../rooms";
-import type { AchievementsDict, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
+
+type AchievementNames = "skillswapper" | "captainskillswapper";
 
 const data: {abilities: Dict<string[]>; pokedex: string[]} = {
 	"abilities": {},
 	"pokedex": [],
 };
 
-const achievements: AchievementsDict = {
-	"skillswapper": {name: "Skill Swapper", type: 'all-answers', bits: 1000, description: 'get every answer in one game'},
-	"captainskillswapper": {name: "Captain Skill Swapper", type: 'all-answers-team', bits: 1000, description: 'get every answer for ' +
-		'your team and win the game'},
-};
-
 class AbrasAbilitySwitch extends QuestionAndAnswer {
-	allAnswersAchievement = achievements.skillswapper;
-	allAnswersTeamAchievement = achievements.captainskillswapper;
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"skillswapper": {name: "Skill Swapper", type: 'all-answers', bits: 1000, description: 'get every answer in one game'},
+		"captainskillswapper": {name: "Captain Skill Swapper", type: 'all-answers-team', bits: 1000, description: 'get every answer for ' +
+			'your team and win the game'},
+	};
+
+	allAnswersAchievement = AbrasAbilitySwitch.achievements.skillswapper;
+	allAnswersTeamAchievement = AbrasAbilitySwitch.achievements.captainskillswapper;
 	lastAbility: string = '';
 	lastPokemon: string = '';
 
@@ -68,7 +70,6 @@ if (!commands.guess.aliases) commands.guess.aliases = [];
 commands.guess.aliases.push('switch');
 
 export const game: IGameFile<AbrasAbilitySwitch> = Games.copyTemplateProperties(questionAndAnswerGame, {
-	achievements,
 	aliases: ['aas', 'abras'],
 	category: 'knowledge',
 	class: AbrasAbilitySwitch,

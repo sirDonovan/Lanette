@@ -1,19 +1,21 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
-import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
+
+type AchievementNames = "sunkentreasure";
 
 const data: {baseStatTotals: Dict<number>; pokedex: string[]} = {
 	baseStatTotals: {},
 	pokedex: [],
 };
 
-const achievements: AchievementsDict = {
-	"sunkentreasure": {name: "Sunken Treasure", type: 'shiny', bits: 1000, repeatBits: 250, description: 'reel in a shiny Pokemon'},
-};
-
 class WishiwashisStatFishing extends ScriptedGame {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"sunkentreasure": {name: "Sunken Treasure", type: 'shiny', bits: 1000, repeatBits: 250, description: 'reel in a shiny Pokemon'},
+	};
+
 	canReel: boolean = false;
 	consecutiveReels = new Map<Player, number>();
 	// firstReel: Player | null;
@@ -106,7 +108,7 @@ class WishiwashisStatFishing extends ScriptedGame {
 			}
 		});
 		this.sayHtml(html);
-		if (shinyPokemon) this.unlockAchievement(firstPlayer, achievements.sunkentreasure!);
+		if (shinyPokemon) this.unlockAchievement(firstPlayer, WishiwashisStatFishing.achievements.sunkentreasure);
 	}
 
 	onNextRound(): void {
@@ -162,7 +164,6 @@ const commands: GameCommandDefinitions<WishiwashisStatFishing> = {
 };
 
 export const game: IGameFile<WishiwashisStatFishing> = {
-	achievements,
 	aliases: ["wishiwashis", "wsf", "sf"],
 	category: 'reaction',
 	commandDescriptions: [Config.commandCharacter + "reel"],

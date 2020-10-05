@@ -1,12 +1,14 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../types/games";
 
-const achievements: AchievementsDict = {
-	'quickdraw': {name: 'Quick Draw', type: 'first', bits: 1000, description: "be the first to successfully fire each round"},
-};
+type AchievementNames = "quickdraw";
 
 class OctillerysAmbush extends ScriptedGame {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		'quickdraw': {name: 'Quick Draw', type: 'first', bits: 1000, description: "be the first to successfully fire each round"},
+	};
+
 	fireTime: boolean = false;
 	firstFire: Player | false | undefined;
 	queue: {source: Player; target: Player}[] = [];
@@ -70,7 +72,7 @@ class OctillerysAmbush extends ScriptedGame {
 		if (winner) {
 			this.winners.set(winner, 1);
 			this.addBits(winner, 250);
-			if (this.firstFire === winner) this.unlockAchievement(winner, achievements.quickdraw!);
+			if (this.firstFire === winner) this.unlockAchievement(winner, OctillerysAmbush.achievements.quickdraw);
 		}
 
 		this.announceWinners();
@@ -94,7 +96,6 @@ const commands: GameCommandDefinitions<OctillerysAmbush> = {
 };
 
 export const game: IGameFile<OctillerysAmbush> = {
-	achievements,
 	aliases: ["octillerys", "oa"],
 	category: 'reaction',
 	commandDescriptions: [Config.commandCharacter + "fire [player]"],

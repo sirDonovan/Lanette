@@ -1,22 +1,24 @@
 import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
-import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 import type { IActionCardData, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 
+type AchievementNames = "drawwizard" | "luckofthedraw";
+type ActionCardsType = Dict<IActionCardData<BulbasaursUno>>;
+
 const types: Dict<string> = {};
 
 const drawWizardAmount = 6;
-const achievements: AchievementsDict = {
-	"drawwizard": {name: "Draw Wizard", type: 'special', bits: 1000, description: 'play a card that forces the next ' +
-		drawWizardAmount + ' or more players to draw a card'},
-	"luckofthedraw": {name: "Luck of the Draw", type: 'shiny', bits: 1000, repeatBits: 250, description:'draw and play a shiny card'},
-};
-
-type ActionCardsType = Dict<IActionCardData<BulbasaursUno>>;
 
 class BulbasaursUno extends CardMatching<ActionCardsType> {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"drawwizard": {name: "Draw Wizard", type: 'special', bits: 1000, description: 'play a card that forces the next ' +
+			drawWizardAmount + ' or more players to draw a card'},
+		"luckofthedraw": {name: "Luck of the Draw", type: 'shiny', bits: 1000, repeatBits: 250, description:'draw and play a shiny card'},
+	};
+
 	actionCards: ActionCardsType = {
 		"greninja": {
 			name: "Greninja",
@@ -253,11 +255,11 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 		},
 	};
 	colorsLimit: number = 20;
-	drawAchievement = achievements.drawwizard;
+	drawAchievement = BulbasaursUno.achievements.drawwizard;
 	drawAchievementAmount = drawWizardAmount;
 	finitePlayerCards: boolean = true;
 	playerCards = new Map<Player, IPokemonCard[]>();
-	shinyCardAchievement = achievements.luckofthedraw;
+	shinyCardAchievement = BulbasaursUno.achievements.luckofthedraw;
 	typesLimit: number = 20;
 
 	static loadData(room: Room | User): void {
@@ -407,7 +409,6 @@ const commands: GameCommandDefinitions<BulbasaursUno> = {
 };
 
 export const game: IGameFile<BulbasaursUno> = Games.copyTemplateProperties(cardGame, {
-	achievements,
 	aliases: ["bulbasaurs", "uno", "bu"],
 	commandDescriptions: [Config.commandCharacter + "play [Pokemon]", Config.commandCharacter + "draw"],
 	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),

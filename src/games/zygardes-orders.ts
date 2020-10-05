@@ -1,8 +1,10 @@
 import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
-import type { AchievementsDict, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
+
+type AchievementNames = "tallorder";
 
 const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
 	'Pokemon Items': string[]; 'Pokemon Moves': string[];} = {
@@ -16,11 +18,11 @@ const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[];
 type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
 
-const achievements: AchievementsDict = {
-	"tallorder": {name: "Tall Order", type: 'special', bits: 1000, description: "guess the answer with only 1 letter revealed"},
-};
-
 class ZygardesOrders extends QuestionAndAnswer {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"tallorder": {name: "Tall Order", type: 'special', bits: 1000, description: "guess the answer with only 1 letter revealed"},
+	};
+
 	allLetters: number = 0;
 	currentCategory: string = '';
 	guessedLetters: string[] = [];
@@ -119,7 +121,7 @@ class ZygardesOrders extends QuestionAndAnswer {
 	}
 
 	onCorrectGuess(player: Player, answer: string): void {
-		if (this.revealedLetters === 1) this.unlockAchievement(player, achievements.tallorder!);
+		if (this.revealedLetters === 1) this.unlockAchievement(player, ZygardesOrders.achievements.tallorder);
 	}
 
 	increaseDifficulty(): void {
@@ -128,7 +130,6 @@ class ZygardesOrders extends QuestionAndAnswer {
 }
 
 export const game: IGameFile<ZygardesOrders> = Games.copyTemplateProperties(questionAndAnswerGame, {
-	achievements,
 	aliases: ["zygardes", "zo"],
 	category: 'identification',
 	class: ZygardesOrders,

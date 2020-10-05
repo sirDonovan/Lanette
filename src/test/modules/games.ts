@@ -153,12 +153,11 @@ describe("Games", () => {
 			assert(!format.name.match(Tools.unsafeApiCharacterRegex), format.name + " name");
 			assert(!format.description.match(Tools.unsafeApiCharacterRegex), format.name + " description");
 
-			if (format.achievements) {
-				const keys = Object.keys(format.achievements) as GameAchievements[];
-				for (const key of keys) {
-					assert(!format.achievements[key]!.name.match(Tools.unsafeApiCharacterRegex), format.name + " achievement " + key);
-					assert(!format.achievements[key]!.description.match(Tools.unsafeApiCharacterRegex), format.name + " achievement " +
-						key + "'s description");
+			if (format.class.achievements) {
+				for (const i in format.class.achievements) {
+					assert(!format.class.achievements[i].name.match(Tools.unsafeApiCharacterRegex), format.name + " achievement " + i);
+					assert(!format.class.achievements[i].description.match(Tools.unsafeApiCharacterRegex), format.name + " achievement " +
+						i + "'s description");
 				}
 			}
 

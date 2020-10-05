@@ -1,14 +1,16 @@
 import type { Player } from "../../room-activity";
 import { ScriptedGame } from "../../room-game-scripted";
 import type { Room } from "../../rooms";
-import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../../types/games";
 import type { User } from "../../users";
 
-const achievements: AchievementsDict = {
-	"eggthesystem": {name: "Egg the System", type: 'special', bits: 500, minigame: true, description: 'explode the egg on Lady Monita'},
-};
+type AchievementNames = "eggthesystem";
 
 class EggToss extends ScriptedGame {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"eggthesystem": {name: "Egg the System", type: 'special', bits: 500, minigame: true, description: 'explode the egg on Lady Monita'},
+	};
+
 	currentHolder: Player | null = null;
 	internalGame: boolean = true;
 	lastHolder: Player | null = null;
@@ -24,7 +26,7 @@ class EggToss extends ScriptedGame {
 		if (this.currentHolder) {
 			this.say("**BOOOOM**! The egg exploded on **" + this.currentHolder.name + "**!");
 			if (this.lastHolder && this.currentHolder.id === Users.self.id) {
-				this.unlockAchievement(this.lastHolder, achievements.eggthesystem!);
+				this.unlockAchievement(this.lastHolder, EggToss.achievements.eggthesystem!);
 			}
 		}
 		this.end();
@@ -103,7 +105,6 @@ const commands: GameCommandDefinitions<EggToss> = {
 };
 
 export const game: IGameFile<EggToss> = {
-	achievements,
 	class: EggToss,
 	commands,
 	description: "Players try to get rid of the egg before it explodes!",

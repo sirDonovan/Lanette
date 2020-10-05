@@ -1,13 +1,15 @@
 import type { PRNGSeed } from "../prng";
 import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
-import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 import type { BoardActionCard, IBoard } from "./templates/board";
 import { BoardSpace } from "./templates/board";
 import {
 	BoardActionSpace, BoardPropertyGame, BoardPropertyRentSpace, BoardRentSpace, game as boardPropertyGame, mountainPrefix
 } from "./templates/board-property";
+
+type AchievementNames = "ohbabyatriple" | "cheapskate" | "realestatetycoon" | "mountainmover";
 
 const DONATE_ACTION_MAX = 5;
 const BID_MULTIPLE = 5;
@@ -91,18 +93,19 @@ const spaces: IBoardSpaces = {
 };
 
 const doublesRollsAchievementAmount = 3;
-const achievements: AchievementsDict = {
-	"ohbabyatriple": {name: "Oh Baby A Triple", type: 'special', bits: 1000, description: 'roll doubles ' +
-		doublesRollsAchievementAmount + ' times in one round'},
-	"cheapskate": {name: "Cheapskate", type: 'special', bits: 1000, description: 'win a property auction with a bid of ' +
-		BID_MULTIPLE + ' Poke'},
-	"realestatetycoon": {name: "Real Estate Tycoon", type: 'special', bits: 1000, description: "buy every property on the board"},
-	"mountainmover": {name: "Mountain Mover", type: 'special', bits: 1000, description: "buy every mountain on the board"},
-};
 
 class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
-	acquireAllMountainsAchievement = achievements.mountainmover;
-	acquireAllPropertiesAchievement = achievements.realestatetycoon;
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"ohbabyatriple": {name: "Oh Baby A Triple", type: 'special', bits: 1000, description: 'roll doubles ' +
+			doublesRollsAchievementAmount + ' times in one round'},
+		"cheapskate": {name: "Cheapskate", type: 'special', bits: 1000, description: 'win a property auction with a bid of ' +
+			BID_MULTIPLE + ' Poke'},
+		"realestatetycoon": {name: "Real Estate Tycoon", type: 'special', bits: 1000, description: "buy every property on the board"},
+		"mountainmover": {name: "Mountain Mover", type: 'special', bits: 1000, description: "acquire every mountain on the board"},
+	};
+
+	acquireAllMountainsAchievement = JellicentsPhantomFinances.achievements.mountainmover;
+	acquireAllPropertiesAchievement = JellicentsPhantomFinances.achievements.realestatetycoon;
 	acquirePropertyAction: string = "buy";
 	acquirePropertyActionPast: string = "bought";
 	auctionUhtmlName: string = '';
@@ -123,7 +126,7 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 	currencyName: string = POKE_DOLLAR;
 	currencyPluralName: string = POKE_DOLLAR;
 	currencyToEscapeJail: number = 100;
-	doublesRollsAchievement = achievements.ohbabyatriple;
+	doublesRollsAchievement = JellicentsPhantomFinances.achievements.ohbabyatriple;
 	doublesRollsAchievementAmount = doublesRollsAchievementAmount;
 	escapeFromJailCard: string = JELLICENT_CARD;
 	highestBidAmount: number = 0;
@@ -262,7 +265,9 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 		if (this.highestBidder) {
 			this.say("**" + this.propertyToAcquire!.name + "** is sold to **" + this.highestBidder.name + "** for **" +
 				this.highestBidAmount + " " + POKE_DOLLAR + "**!");
-			if (this.highestBidAmount === BID_MULTIPLE) this.unlockAchievement(this.highestBidder, achievements.cheapskate!);
+			if (this.highestBidAmount === BID_MULTIPLE) {
+				this.unlockAchievement(this.highestBidder, JellicentsPhantomFinances.achievements.cheapskate);
+			}
 			this.acquirePropertySpace(this.propertyToAcquire!, this.highestBidder, this.highestBidAmount);
 		} else {
 			this.say("No one bid for **" + this.propertyToAcquire!.name + "**!");
@@ -300,7 +305,6 @@ const commands: GameCommandDefinitions<JellicentsPhantomFinances> = {
 };
 
 export const game: IGameFile<JellicentsPhantomFinances> = Games.copyTemplateProperties(boardPropertyGame, {
-	achievements,
 	aliases: ["jellicents", "phantomfinances", "jpf"],
 	class: JellicentsPhantomFinances,
 	commandDescriptions: [Config.commandCharacter + "buy", Config.commandCharacter + "pass", Config.commandCharacter + "bid [amount]",

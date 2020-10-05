@@ -1,15 +1,17 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../types/games";
+
+type AchievementNames = "speedbooster";
 
 const colors: string[] = ['Blue', 'Green', 'Red', 'Yellow', 'Orange', 'Purple', 'Pink', 'Gray', 'Teal', 'Silver', 'Gold', 'Lavender',
 	'Crimson', 'Scarlet', 'Magenta', 'Apricot', 'Cerulean', 'Amber', 'Cyan', 'Peach', 'Lime'];
 
-const achievements: AchievementsDict = {
-	"speedbooster": {name: "Speed Booster", type: 'first', bits: 1000, description: 'travel first every round'},
-};
-
 class NinjasksCorners extends ScriptedGame {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"speedbooster": {name: "Speed Booster", type: 'first', bits: 1000, description: 'travel first every round'},
+	};
+
 	canTravel: boolean = false;
 	color: string = '';
 	firstTravel: Player | false | undefined;
@@ -79,7 +81,7 @@ class NinjasksCorners extends ScriptedGame {
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
-			if (player === this.firstTravel) this.unlockAchievement(player, achievements.speedbooster!);
+			if (player === this.firstTravel) this.unlockAchievement(player, NinjasksCorners.achievements.speedbooster);
 			this.winners.set(player, 1);
 			this.addBits(player, 250);
 		}
@@ -123,7 +125,6 @@ const commands: GameCommandDefinitions<NinjasksCorners> = {
 };
 
 export const game: IGameFile<NinjasksCorners> = {
-	achievements,
 	aliases: ["ninjasks", "nc"],
 	category: 'speed',
 	commandDescriptions: [Config.commandCharacter + "travel [color]"],

@@ -1,11 +1,9 @@
 import type { Room } from "../rooms";
-import type { AchievementsDict, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
-const achievements: AchievementsDict = {
-	'swiftplacing': {name: "Swift Placing", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
-};
+type AchievementNames = "swiftplacing";
 
 const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
 	'Pokemon Items': string[]; 'Pokemon Moves': string[];} = {
@@ -20,7 +18,11 @@ type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
 
 class PiplupsLetterPlacements extends QuestionAndAnswer {
-	allAnswersAchievement = achievements.swiftplacing;
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		'swiftplacing': {name: "Swift Placing", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+	};
+
+	allAnswersAchievement = PiplupsLetterPlacements.achievements.swiftplacing;
 	lastAnswer: string = '';
 
 	static loadData(room: Room | User): void {

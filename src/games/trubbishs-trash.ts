@@ -1,8 +1,10 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
-import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
+
+type AchievementNames = "garbagecollector" | "technician";
 
 interface ITrashedMove {
 	name: string;
@@ -13,14 +15,15 @@ const data: {movePoints: Dict<number>; moves: string[]} = {
 	movePoints: {},
 	moves: [],
 };
+
 let highestBasePower: number = 0;
 
-const achievements: AchievementsDict = {
-	"garbagecollector": {name: "Garbage Collector", type: 'first', bits: 1000, description: 'trash first in every round'},
-	"technician": {name: "Technician", type: 'special', bits: 1000, description: 'trash the weakest move in every round'},
-};
-
 class TrubbishsTrash extends ScriptedGame {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"garbagecollector": {name: "Garbage Collector", type: 'first', bits: 1000, description: 'trash first in every round'},
+		"technician": {name: "Technician", type: 'special', bits: 1000, description: 'trash the weakest move in every round'},
+	};
+
 	canTrash: boolean = false;
 	firstTrash: Player | false | undefined;
 	maxPoints: number = 1000;
@@ -143,8 +146,8 @@ class TrubbishsTrash extends ScriptedGame {
 			const points = this.points.get(player);
 			if (points && points >= this.maxPoints) {
 				this.winners.set(player, 1);
-				if (this.firstTrash === player) this.unlockAchievement(player, achievements.garbagecollector!);
-				if (this.weakestTrash === player) this.unlockAchievement(player, achievements.technician!);
+				if (this.firstTrash === player) this.unlockAchievement(player, TrubbishsTrash.achievements.garbagecollector);
+				if (this.weakestTrash === player) this.unlockAchievement(player, TrubbishsTrash.achievements.technician);
 			}
 		}
 
@@ -171,7 +174,6 @@ const commands: GameCommandDefinitions<TrubbishsTrash> = {
 };
 
 export const game: IGameFile<TrubbishsTrash> = {
-	achievements,
 	aliases: ["trubbishs", "tt"],
 	category: 'speed',
 	commandDescriptions: [Config.commandCharacter + "trash [move]"],

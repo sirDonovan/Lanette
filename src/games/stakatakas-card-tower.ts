@@ -1,16 +1,18 @@
 import type { Player } from "../room-activity";
 import { addPlayers, assert, assertStrictEqual, runCommand } from "../test/test-tools";
-import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameAchievement, IGameFile } from "../types/games";
 import type { IActionCardData, ICard, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 
-const achievements: AchievementsDict = {
-	"luckofthedraw": {name: "Luck of the Draw", type: 'shiny', bits: 1000, repeatBits: 250, description:'draw and play a shiny card'},
-};
+type AchievementNames = "luckofthedraw";
 
 type ActionCardsType = Dict<IActionCardData<StakatakasCardTower>>;
 
 class StakatakasCardTower extends CardMatching<ActionCardsType> {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"luckofthedraw": {name: "Luck of the Draw", type: 'shiny', bits: 1000, repeatBits: 250, description:'draw and play a shiny card'},
+	};
+
 	actionCards: ActionCardsType = {
 		"manaphy": {
 			name: "Manaphy",
@@ -49,7 +51,7 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 	playerInactiveRoundLimit = 2;
 	maxCardRounds: number = 50;
 	minimumPlayedCards: number = 2;
-	shinyCardAchievement = achievements.luckofthedraw;
+	shinyCardAchievement = StakatakasCardTower.achievements.luckofthedraw;
 	showPlayerCards: boolean = true;
 	turnTimeBeforeHighlight: number = 25 * 1000;
 	turnTimeAfterHighlight: number = 50 * 1000;
@@ -307,7 +309,6 @@ const tests: GameFileTests<StakatakasCardTower> = {
 };
 
 export const game: IGameFile<StakatakasCardTower> = Games.copyTemplateProperties(cardGame, {
-	achievements,
 	aliases: ["stakatakas", "cardtower", "sct"],
 	commandDescriptions: [Config.commandCharacter + "play [Pokemon], [Pokemon], [...]", Config.commandCharacter + "draw"],
 	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),

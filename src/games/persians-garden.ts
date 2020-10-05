@@ -1,21 +1,23 @@
 import type { Player } from "../room-activity";
-import type { AchievementsDict, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import type { GameMap, MapFloor, MapFloorSpace } from "./templates/map";
 import { game as mapGame } from "./templates/map";
 import { MapCurrencyGame } from "./templates/map-currency";
+
+type AchievementNames = "payday" | "meowthscoin" | "bankrupt";
 
 const currency = "coins";
 const payDayPoints = 7000;
 const bankruptRounds = 5;
 
-const achievements: AchievementsDict = {
-	"payday": {name: "Pay Day", type: 'points', bits: 1000, description: 'collect at least ' + payDayPoints + ' ' + currency},
-	"meowthscoin": {name: "Meowth's Coin", type: 'special', bits: 1000, description: 'get lucky and find Meowth in the garden'},
-	"bankrupt": {name: "Bankrupt", type: 'special', bits: 1000, description: 'go ' + bankruptRounds + ' rounds without finding any ' +
-		currency},
-};
-
 class PersiansGarden extends MapCurrencyGame {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"payday": {name: "Pay Day", type: 'points', bits: 1000, description: 'collect at least ' + payDayPoints + ' ' + currency},
+		"meowthscoin": {name: "Meowth's Coin", type: 'special', bits: 1000, description: 'get lucky and find Meowth in the garden'},
+		"bankrupt": {name: "Bankrupt", type: 'special', bits: 1000, description: 'go ' + bankruptRounds + ' rounds without finding any ' +
+			currency},
+	};
+
 	canLateJoin: boolean = true;
 	currency: string = currency;
 	initialCurrencySpaces: number = 40;
@@ -42,7 +44,7 @@ class PersiansGarden extends MapCurrencyGame {
 
 	onAchievementSpace(player: Player, floor: MapFloor, space: MapFloorSpace): void {
 		delete space.attributes.achievement;
-		const achievementResult = this.unlockAchievement(player, achievements.meowthscoin!);
+		const achievementResult = this.unlockAchievement(player, PersiansGarden.achievements.meowthscoin);
 		const repeatUnlock = achievementResult && achievementResult.includes(player);
 		let currency = 0;
 		if (repeatUnlock) {
@@ -108,14 +110,13 @@ class PersiansGarden extends MapCurrencyGame {
 			this.addBits(player, earnings);
 		}
 
-		if (unlockedPayDay.length) this.unlockAchievement(unlockedPayDay, achievements.payday!);
+		if (unlockedPayDay.length) this.unlockAchievement(unlockedPayDay, PersiansGarden.achievements.payday);
 
 		this.announceWinners();
 	}
 }
 
 export const game: IGameFile<PersiansGarden> = Games.copyTemplateProperties(mapGame, {
-	achievements,
 	aliases: ["persians", "pgarden"],
 	class: PersiansGarden,
 	description: "Players must collect coins throughout the garden to stay alive! You may travel once per turn (up to 3 paces).",

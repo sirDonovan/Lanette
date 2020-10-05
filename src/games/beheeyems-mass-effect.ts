@@ -1,11 +1,9 @@
 import type { Room } from "../rooms";
-import type { AchievementsDict, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
-const achievements: AchievementsDict = {
-	'cognitivecerebrum': {name: "Cognitive Cerebrum", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
-};
+type AchievementNames = "cognitivecerebrum";
 
 const data: {types: Dict<string[]>} = {
 	types: {},
@@ -14,7 +12,11 @@ const effectivenessLists: Dict<string[]> = {};
 const effectivenessListsKeys: string[] = [];
 
 class BeheeyemsMassEffect extends QuestionAndAnswer {
-	allAnswersAchievement = achievements.cognitivecerebrum;
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		'cognitivecerebrum': {name: "Cognitive Cerebrum", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+	};
+
+	allAnswersAchievement = BeheeyemsMassEffect.achievements.cognitivecerebrum;
 	lastEffectiveness: string = '';
 	roundTime: number = 20 * 1000;
 

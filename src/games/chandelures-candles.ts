@@ -1,14 +1,17 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../types/games";
+
+type AchievementNames = "spectralsnuffer";
 
 const puffAchievementAmount = 15;
-const achievements: AchievementsDict = {
-	"spectralsnuffer": {name: "Spectral Snuffer", type: 'special', bits: 1000, description: 'puff candles ' +
-		puffAchievementAmount + ' times'},
-};
 
 class ChandeluresCandles extends ScriptedGame {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"spectralsnuffer": {name: "Spectral Snuffer", type: 'special', bits: 1000, description: 'puff candles ' +
+			puffAchievementAmount + ' times'},
+	};
+
 	lastTarget: Player | null = null;
 	lives = new Map<Player, number>();
 	puffs = new Map<Player, number>();
@@ -138,7 +141,7 @@ const commands: GameCommandDefinitions<ChandeluresCandles> = {
 			let puffs = this.puffs.get(player) || 0;
 			puffs++;
 			this.puffs.set(player, puffs);
-			if (puffs === puffAchievementAmount) this.unlockAchievement(player, achievements.spectralsnuffer!);
+			if (puffs === puffAchievementAmount) this.unlockAchievement(player, ChandeluresCandles.achievements.spectralsnuffer);
 			const targetLives = this.addLives(targetPlayer, -1);
 			if (!targetLives) {
 				if (this.timeout) clearTimeout(this.timeout);
@@ -154,7 +157,6 @@ const commands: GameCommandDefinitions<ChandeluresCandles> = {
 };
 
 export const game: IGameFile<ChandeluresCandles> = {
-	achievements,
 	aliases: ["chandelures", "candles", "cc"],
 	category: 'reaction',
 	commandDescriptions: [Config.commandCharacter + "hide", Config.commandCharacter + "puff [player]"],

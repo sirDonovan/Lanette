@@ -1,11 +1,9 @@
 import type { Room } from "../rooms";
-import type { AchievementsDict, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
-const achievements: AchievementsDict = {
-	'thegreatestshowman': {name: "The Greatest Showman", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
-};
+type AchievementNames = "thegreatestshowman";
 
 const data: {abilities: Dict<string>; pokedex: string[]} = {
 	abilities: {},
@@ -13,7 +11,11 @@ const data: {abilities: Dict<string>; pokedex: string[]} = {
 };
 
 class KirliasTracingShow extends QuestionAndAnswer {
-	allAnswersAchievement = achievements.thegreatestshowman;
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		'thegreatestshowman': {name: "The Greatest Showman", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+	};
+
+	allAnswersAchievement = KirliasTracingShow.achievements.thegreatestshowman;
 	lastAbilities: string = '';
 	lastPokemon: string = '';
 

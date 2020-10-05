@@ -1,19 +1,21 @@
 import type { Player } from "../room-activity";
-import type { AchievementsDict, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import type { GameMap, MapFloor, MapFloorSpace } from "./templates/map";
 import { game as mapGame } from "./templates/map";
 import { MapDamageGame } from "./templates/map-damage";
 
+type AchievementNames = "minesweeper" | "voltorbsfuse";
+
 const currency = "fragments";
 const minesweeperPoints = 4000;
 
-const achievements: AchievementsDict = {
-	"minesweeper": {name: "Minesweeper", type: 'points', bits: 1000, description: 'collect at least ' + minesweeperPoints + ' ' +
-		currency},
-	"voltorbsfuse": {name: "Voltorb's Fuse", type: 'special', bits: 1000, description: 'get lucky and find Voltorb in the minefield'},
-};
-
 class ElectrodesMinefield extends MapDamageGame {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"minesweeper": {name: "Minesweeper", type: 'points', bits: 1000, description: 'collect at least ' + minesweeperPoints + ' ' +
+			currency},
+		"voltorbsfuse": {name: "Voltorb's Fuse", type: 'special', bits: 1000, description: 'get lucky and find Voltorb in the minefield'},
+	};
+
 	currency: string = currency;
 	canLateJoin: boolean = true;
 	map: GameMap | null = null;
@@ -50,7 +52,7 @@ class ElectrodesMinefield extends MapDamageGame {
 
 	onAchievementSpace(player: Player, floor: MapFloor, space: MapFloorSpace): void {
 		delete space.attributes.achievement;
-		const achievementResult = this.unlockAchievement(player, achievements.voltorbsfuse!);
+		const achievementResult = this.unlockAchievement(player, ElectrodesMinefield.achievements.voltorbsfuse);
 		const repeatUnlock = achievementResult && achievementResult.includes(player);
 		let currency = 0;
 		if (repeatUnlock) {
@@ -107,14 +109,13 @@ class ElectrodesMinefield extends MapDamageGame {
 			this.addBits(player, earnings);
 		}
 
-		if (unlockedMinesweeper.length) this.unlockAchievement(unlockedMinesweeper, achievements.minesweeper!);
+		if (unlockedMinesweeper.length) this.unlockAchievement(unlockedMinesweeper, ElectrodesMinefield.achievements.minesweeper);
 
 		this.announceWinners();
 	}
 }
 
 export const game: IGameFile<ElectrodesMinefield> = Games.copyTemplateProperties(mapGame, {
-	achievements,
 	aliases: ["electrodes", "eminefield"],
 	class: ElectrodesMinefield,
 	description: "Players must try to survive the Electrode explosions each round (blasts are in a radius)! You may travel once per " +

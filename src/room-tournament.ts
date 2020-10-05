@@ -378,9 +378,10 @@ export class Tournament extends Activity {
 
 		this.battleRooms.push(roomid);
 
-		if (this.generator === 1 && this.getRemainingPlayerCount() === 2) {
+		if (this.generator === 1 && this.totalPlayers >= 4 && this.getRemainingPlayerCount() === 2) {
 			this.sayCommand("/wall Final battle of the " + this.name + " " + this.activityType + ": <<" + roomid + ">>!");
 		}
+
 		if (this.joinBattles) {
 			const battleRoom = Rooms.add(roomid);
 			battleRoom.tournament = this;

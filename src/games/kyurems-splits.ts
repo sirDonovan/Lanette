@@ -1,11 +1,9 @@
 import type { Room } from "../rooms";
-import type { AchievementsDict, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
-const achievements: AchievementsDict = {
-	'splittersplatter': {name: "Splitter Splatter", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
-};
+type AchievementNames = "splittersplatter";
 
 const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
 	'Pokemon Items': string[]; 'Pokemon Moves': string[];} = {
@@ -20,7 +18,11 @@ type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
 
 class KyuremsSplits extends QuestionAndAnswer {
-	allAnswersAchievement = achievements.splittersplatter;
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		'splittersplatter': {name: "Splitter Splatter", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+	};
+
+	allAnswersAchievement = KyuremsSplits.achievements.splittersplatter;
 
 	static loadData(room: Room | User): void {
 		data["Characters"] = Dex.data.characters.slice();

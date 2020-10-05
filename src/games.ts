@@ -9,6 +9,7 @@ import type { CommandErrorArray } from "./types/command-parser";
 import type { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/dex';
 import type {
 	AutoCreateTimerType, DefaultGameOption, GameAchievements, GameCategory, GameCommandDefinitions, GameCommandReturnType,
+	IGameAchievement,
 	IGameFile, IGameFormat, IGameFormatComputed, IGameMode, IGameModeFile, IGameOptionValues, IGamesWorkers,
 	IGameTemplateFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFormat,
 	IUserHostedFormatComputed, LoadedGameCommands, LoadedGameFile, UserHostedCustomizable
@@ -83,7 +84,7 @@ export class Games {
 	readonly userHostedGameHighlight: string = "is hosting a hostgame of";
 	readonly scriptedGameVoteHighlight: string = "Hosting a scriptedgamevote";
 
-	readonly achievementNames: Dict<string> = {};
+	readonly achievements: Dict<IGameAchievement> = {};
 	readonly aliases: Dict<string> = {};
 	autoCreateTimers: Dict<NodeJS.Timer> = {};
 	autoCreateTimerData: Dict<{endTime: number, type: AutoCreateTimerType}> = {};
@@ -205,22 +206,25 @@ export class Games {
 	}
 
 	loadFileAchievements(file: DeepImmutable<IGameFile>): void {
-		if (!file.achievements) return;
-		const keys = Object.keys(file.achievements) as GameAchievements[];
-		for (const key of keys) {
-			const achievement = file.achievements[key]!;
+		if (!file.class.achievements) return;
+		for (const key in file.class.achievements) {
+			const achievement = file.class.achievements[key]!;
 			if (Tools.toId(achievement.name) !== key) {
 				throw new Error(file.name + "'s achievement " + achievement.name + " needs to have the key '" +
 					Tools.toId(achievement.name) + "'");
 			}
-			if (key in this.achievementNames) {
-				if (this.achievementNames[key] !== achievement.name) {
-					throw new Error(file.name + "'s achievement '" + key + "' has the name " + this.achievementNames[key] +
-						" in another game.");
+			if (key in this.achievements) {
+				if (this.achievements[key].name !== achievement.name) {
+					throw new Error(file.name + "'s achievement '" + key + "' has the name '" + this.achievements[key].name +
+						"' in another game.");
+				}
+				if (this.achievements[key].description !== achievement.description) {
+					throw new Error(file.name + "'s achievement '" + key + "' has the description '" + this.achievements[key].description +
+						"' in another game.");
 				}
 				continue;
 			}
-			this.achievementNames[key] = achievement.name;
+			this.achievements[key] = achievement;
 		}
 	}
 
@@ -243,7 +247,7 @@ export class Games {
 				}
 			}
 
-			if (file.achievements) this.loadFileAchievements(file);
+			if (file.class.achievements) this.loadFileAchievements(file);
 
 			this.internalFormats[key] = Object.assign({}, file, {commands, id: Tools.toId(file.name)});
 		}
@@ -314,7 +318,7 @@ export class Games {
 				}
 			}
 
-			if (file.achievements) this.loadFileAchievements(file);
+			if (file.class.achievements) this.loadFileAchievements(file);
 
 			this.formats[id] = Object.assign({}, file, {commands, id, modes, variants});
 		}
@@ -1153,6 +1157,7 @@ export class Games {
 		const commandCharacter = Config.commandCharacter;
 		const allowsScriptedGames = Config.allowScriptedGames && Config.allowScriptedGames.includes(room.id);
 		const allowsUserHostedGames = Config.allowUserHostedGames && Config.allowUserHostedGames.includes(room.id);
+		const allowsGameAchievements = Config.allowGameAchievements && Config.allowGameAchievements.includes(room.id);
 
 		if (!allowsScriptedGames && !allowsUserHostedGames) return;
 
@@ -1329,11 +1334,10 @@ export class Games {
 					info.push("\n");
 				}
 
-				if (format.achievements) {
 					info.push("**Achievements**:");
-					const keys = Object.keys(format.achievements) as GameAchievements[];
-					for (const key of keys) {
-						info.push("* " + format.achievements[key]!.name + ": " + format.achievements[key]!.description);
+				if (allowsGameAchievements && format.class.achievements) {
+					for (const key in format.class.achievements) {
+						info.push("* " + format.class.achievements[key].name + ": " + format.class.achievements[key].description);
 					}
 					info.push("\n");
 				}

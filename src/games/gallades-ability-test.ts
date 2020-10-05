@@ -1,9 +1,7 @@
-import type { AchievementsDict, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
-const achievements: AchievementsDict = {
-	'mnemonicmaster': {name: "Mnemonic Master", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
-};
+type AchievementNames = "mnemonicmaster";
 
 const data: {abilities: Dict<string[]>} = {
 	abilities: {},
@@ -11,7 +9,11 @@ const data: {abilities: Dict<string[]>} = {
 const keys: string[] = [];
 
 class GalladesAbilityTest extends QuestionAndAnswer {
-	allAnswersAchievement = achievements.mnemonicmaster;
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		'mnemonicmaster': {name: "Mnemonic Master", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+	};
+
+	allAnswersAchievement = GalladesAbilityTest.achievements.mnemonicmaster;
 	roundTime: number = 20 * 1000;
 
 	static loadData(): void {

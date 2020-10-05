@@ -1,8 +1,10 @@
 import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
-import type { AchievementsDict, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
+
+type AchievementNames = "achillesheel" | "captainachilles";
 
 const data: {pokedex: string[]; inverseTypeKeys: string[]; inverseTypeWeaknesses: Dict<string[]>; typeKeys: string[];
 	typeWeaknesses: Dict<string[]>;} = {
@@ -13,15 +15,15 @@ const data: {pokedex: string[]; inverseTypeKeys: string[]; inverseTypeWeaknesses
 	typeWeaknesses: {},
 };
 
-const achievements: AchievementsDict = {
-	"achillesheel": {name: "Achilles Heel", type: 'all-answers', bits: 1000, description: 'get every answer in one game'},
-	"captainachilles": {name: "Captain Achilles", type: 'all-answers-team', bits: 1000, description: 'get every answer for your team ' +
-		'and win the game'},
-};
-
 class MagcargosWeakSpot extends QuestionAndAnswer {
-	allAnswersAchievement = achievements.achillesheel;
-	allAnswersTeamAchievement = achievements.captainachilles;
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"achillesheel": {name: "Achilles Heel", type: 'all-answers', bits: 1000, description: 'get every answer in one game'},
+		"captainachilles": {name: "Captain Achilles", type: 'all-answers-team', bits: 1000, description: 'get every answer for your team ' +
+			'and win the game'},
+	};
+
+	allAnswersAchievement = MagcargosWeakSpot.achievements.achillesheel;
+	allAnswersTeamAchievement = MagcargosWeakSpot.achievements.captainachilles;
 	inverseTypes: boolean = false;
 	lastAnswers: string[] = [];
 	lastPokemon: string = '';
@@ -99,7 +101,6 @@ class MagcargosWeakSpot extends QuestionAndAnswer {
 }
 
 export const game: IGameFile<MagcargosWeakSpot> = Games.copyTemplateProperties(questionAndAnswerGame, {
-	achievements,
 	aliases: ["Magcargos", "ws"],
 	category: 'knowledge',
 	class: MagcargosWeakSpot,

@@ -1,17 +1,19 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import { addPlayers, assertStrictEqual, runCommand } from '../test/test-tools';
-import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameAchievement, IGameFile } from "../types/games";
+
+type AchievementNames = "escapeartist";
 
 const doors: string[][] = [["Red", "Green", "Yellow"], ["Gold", "Silver", "Crystal"], ["Ruby", "Sapphire", "Emerald"],
 	["Diamond", "Pearl", "Platinum"], ["Land", "Sea", "Sky"], ["Time", "Space", "Distortion"], ["Creation", "Destruction", "Harmony"],
 	["Sun", "Earth", "Moon"]];
 
-const achievements: AchievementsDict = {
-	"escapeartist": {name: "Escape Artist", type: 'first', bits: 1000, description: "select a door first every round and win"},
-};
-
 class SableyesTrickHouse extends ScriptedGame {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"escapeartist": {name: "Escape Artist", type: 'first', bits: 1000, description: "select a door first every round and win"},
+	};
+
 	canLateJoin: boolean = true;
 	canSelect: boolean = false;
 	firstSelection: Player | false | undefined;
@@ -102,7 +104,7 @@ class SableyesTrickHouse extends ScriptedGame {
 		const winner = this.getFinalPlayer();
 		if (winner) {
 			this.winners.set(winner, 1);
-			if (this.firstSelection === winner) this.unlockAchievement(winner, achievements.escapeartist!);
+			if (this.firstSelection === winner) this.unlockAchievement(winner, SableyesTrickHouse.achievements.escapeartist);
 			this.addBits(winner, 500);
 		}
 		this.announceWinners();
@@ -195,7 +197,6 @@ const tests: GameFileTests<SableyesTrickHouse> = {
 };
 
 export const game: IGameFile<SableyesTrickHouse> = {
-	achievements,
 	aliases: ["sableyes", "th"],
 	commandDescriptions: [Config.commandCharacter + "select [door]"],
 	commands,

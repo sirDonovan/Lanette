@@ -1,8 +1,10 @@
 import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
-import type { AchievementsDict, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
+
+type AchievementNames = "pokemonprofessor";
 
 const data: {abilities: Dict<string[]>; eggGroups: Dict<string>; pokedex: string[]; regions: Dict<string>; types: Dict<string>} = {
 	abilities: {},
@@ -12,12 +14,12 @@ const data: {abilities: Dict<string[]>; eggGroups: Dict<string>; pokedex: string
 	types: {},
 };
 
-const achievements: AchievementsDict = {
-	"pokemonprofessor": {name: "Pokemon Professor", type: 'all-answers', bits: 1000, description: 'get every answer in one game'},
-};
-
 class PikachusMysteryPokemon extends QuestionAndAnswer {
-	allAnswersAchievement = achievements.pokemonprofessor;
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"pokemonprofessor": {name: "Pokemon Professor", type: 'all-answers', bits: 1000, description: 'get every answer in one game'},
+	};
+
+	allAnswersAchievement = PikachusMysteryPokemon.achievements.pokemonprofessor;
 	answers: string[] = [];
 	canGuess: boolean = false;
 	hints: string[] = [];
@@ -113,7 +115,6 @@ class PikachusMysteryPokemon extends QuestionAndAnswer {
 }
 
 export const game: IGameFile<PikachusMysteryPokemon> = Games.copyTemplateProperties(questionAndAnswerGame, {
-	achievements,
 	aliases: ["pikachus", "mysterypokemon", "pmp", "wtp"],
 	category: 'knowledge',
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],

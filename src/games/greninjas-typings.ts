@@ -1,7 +1,9 @@
 import type { Room } from "../rooms";
-import type { AchievementsDict, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
+
+type AchievementNames = "proteaneye" | "captainproteaneye";
 
 const data: {pokedex: string[]; reverseTypes: Dict<string>; species: Dict<string>; types: Dict<string>} = {
 	pokedex: [],
@@ -10,15 +12,15 @@ const data: {pokedex: string[]; reverseTypes: Dict<string>; species: Dict<string
 	types: {},
 };
 
-const achievements: AchievementsDict = {
-	'proteaneye': {name: "Protean Eye", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
-	'captainproteaneye': {name: "Captain Protean Eye", type: 'all-answers-team', bits: 1000, mode: 'team', description: "get every " +
-		"answer for your team and win the game"},
-};
-
 class GreninjasTypings extends QuestionAndAnswer {
-	allAnswersAchievement = achievements.proteaneye;
-	allAnswersTeamAchievement = achievements.captainproteaneye;
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		'proteaneye': {name: "Protean Eye", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+		'captainproteaneye': {name: "Captain Protean Eye", type: 'all-answers-team', bits: 1000, mode: 'team', description: "get every " +
+			"answer for your team and win the game"},
+	};
+
+	allAnswersAchievement = GreninjasTypings.achievements.proteaneye;
+	allAnswersTeamAchievement = GreninjasTypings.achievements.captainproteaneye;
 	lastPokemon: string = '';
 	lastTyping: string = '';
 	noOrder: boolean = false;
@@ -56,7 +58,6 @@ class GreninjasTypings extends QuestionAndAnswer {
 }
 
 export const game: IGameFile<GreninjasTypings> = Games.copyTemplateProperties(questionAndAnswerGame, {
-	achievements,
 	aliases: ['greninjas'],
 	category: 'knowledge',
 	class: GreninjasTypings,

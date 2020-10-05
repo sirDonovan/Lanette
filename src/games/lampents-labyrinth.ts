@@ -1,27 +1,30 @@
 import type { Player } from "../room-activity";
-import type { AchievementsDict, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import type { GameMap, MapFloor, MapFloorSpace } from "./templates/map";
 import { game as mapGame, MapGame } from "./templates/map";
+
+type AchievementNames = "mazerunner" | "litwicksflame" | "recklessadventurer";
 
 const currency = "wicks";
 const mazeRunnerPoints = 4000;
 const recklessAdventurerRound = 3;
 
-const achievements: AchievementsDict = {
-	"mazerunner": {name: "Maze Runner", type: 'points', bits: 1000, description: 'collect at least ' + mazeRunnerPoints + ' ' + currency},
-	"litwicksflame": {name: "Litwick's Flame", type: 'special', bits: 1000, description: 'get lucky and find Litwick in the labyrinth'},
-	"recklessadventurer": {name: "Reckless Adventurer", type: 'special', bits: 1000, description: 'get eliminated by traps in the ' +
-		'first ' + recklessAdventurerRound + ' rounds'},
-};
-
 class LampentsLabyrinth extends MapGame  {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"mazerunner": {name: "Maze Runner", type: 'points', bits: 1000, description: 'collect at least ' + mazeRunnerPoints + ' ' +
+			currency},
+		"litwicksflame": {name: "Litwick's Flame", type: 'special', bits: 1000, description: 'get lucky and find Litwick in the labyrinth'},
+		"recklessadventurer": {name: "Reckless Adventurer", type: 'special', bits: 1000, description: 'get eliminated by traps in the ' +
+			'first ' + recklessAdventurerRound + ' rounds'},
+	};
+
 	canLateJoin: boolean = true;
 	currency: string = currency;
 	escapedPlayers = new Map<Player, boolean>();
 	floors = new Map<Player, number>();
 	maxDimensions: number = 10;
 	minDimensions: number = 5;
-	recklessAdventurerAchievement = achievements.recklessadventurer;
+	recklessAdventurerAchievement = LampentsLabyrinth.achievements.recklessadventurer;
 	recklessAdventurerRound = recklessAdventurerRound;
 	roundActions = new Map<Player, boolean>();
 	userMaps = new Map<Player, GameMap>();
@@ -47,7 +50,7 @@ class LampentsLabyrinth extends MapGame  {
 
 	onAchievementSpace(player: Player, floor: MapFloor, space: MapFloorSpace): void {
 		delete space.attributes.achievement;
-		const achievementResult = this.unlockAchievement(player, achievements.litwicksflame!);
+		const achievementResult = this.unlockAchievement(player, LampentsLabyrinth.achievements.litwicksflame);
 		const repeatUnlock = achievementResult && achievementResult.includes(player);
 		let currency = 0;
 		if (repeatUnlock) {
@@ -121,14 +124,13 @@ class LampentsLabyrinth extends MapGame  {
 			this.addBits(player, earnings);
 		});
 
-		if (unlockedMazeRunner.length) this.unlockAchievement(unlockedMazeRunner, achievements.mazerunner!);
+		if (unlockedMazeRunner.length) this.unlockAchievement(unlockedMazeRunner, LampentsLabyrinth.achievements.mazerunner);
 
 		this.announceWinners();
 	}
 }
 
 export const game: IGameFile<LampentsLabyrinth> = Games.copyTemplateProperties(mapGame, {
-	achievements,
 	aliases: ["lampents", "llabyrinth"],
 	class: LampentsLabyrinth,
 	description: "Players must find a path out of the labyrinth without falling into traps! You may travel once per turn (up to 3 paces).",

@@ -1,13 +1,15 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
-import type { AchievementsDict, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../types/games";
 
-const achievements: AchievementsDict = {
-	"privateinvestigator": {name: "Private Investigator", type: 'special', bits: 1000, description: 'successfully guess 5 aliases'},
-};
+type AchievementNames = "privateinvestigator";
 
 class EmpoleonsEmpires extends ScriptedGame {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"privateinvestigator": {name: "Private Investigator", type: 'special', bits: 1000, description: 'successfully guess 5 aliases'},
+	};
+
 	canGuess: boolean = false;
 	playerAliases = new Map<Player, string>();
 	aliasIds: string[] = [];
@@ -138,7 +140,7 @@ const commands: GameCommandDefinitions<EmpoleonsEmpires> = {
 				this.points.set(player, points);
 				totalSuspects++;
 				this.totalSuspects.set(player, totalSuspects);
-				if (totalSuspects === 5) this.unlockAchievement(player, achievements.privateinvestigator!);
+				if (totalSuspects === 5) this.unlockAchievement(player, EmpoleonsEmpires.achievements.privateinvestigator);
 			} else {
 				this.say("Incorrect.");
 				this.currentPlayer = attackedPlayer;
