@@ -22,7 +22,7 @@ const REPLAY_SERVER_ADDRESS = "replay.pokemonshowdown.com";
 const RELOGIN_SECONDS = 60;
 const REGULAR_MESSAGE_THROTTLE = 700;
 const TRUSTED_MESSAGE_THROTTLE = 200;
-const TEMPORARY_MESSAGE_THROTTLE = 250;
+const SERVER_THROTTLE_BUFFER_LIMIT = 6;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const SERVER_PING_TARGET_SAMPLE = 30 * 1000;
@@ -1031,7 +1031,7 @@ export class Client {
 				this.setThrottledMessageTimeout();
 
 				this.sendQueue.unshift(this.lastSentMessage);
-				this.setSendTimeout(this.getSendThrottle() * 2);
+				this.setSendTimeout(this.getSendThrottle() * SERVER_THROTTLE_BUFFER_LIMIT);
 			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
 				room.modchat = messageArguments.html.split('<div class="broadcast-red"><strong>Moderated chat was set to ')[1]
 					.split('!</strong>')[0];
@@ -1650,7 +1650,7 @@ export class Client {
 	getSendThrottle(): number {
 		let throttle = this.sendThrottle;
 		if (this.averageServerLatency) throttle += this.averageServerLatency;
-		if (this.throttledMessageCount) throttle += (this.throttledMessageCount * TEMPORARY_MESSAGE_THROTTLE);
+		if (this.throttledMessageCount) throttle += (this.throttledMessageCount * throttle);
 
 		return throttle;
 	}
