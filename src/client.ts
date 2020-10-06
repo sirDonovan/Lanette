@@ -173,6 +173,7 @@ export class Client {
 	filterRegularExpressions: RegExp[] | null = null;
 	groupSymbols: KeyedDict<GroupName, string> = DEFAULT_GROUP_SYMBOLS;
 	incomingMessageQueue: Data[] = [];
+	lastSendTimeoutTime: number = 0;
 	lastSentMessage: string = '';
 	loggedIn: boolean = false;
 	loginTimeout: NodeJS.Timer | undefined = undefined;
@@ -265,10 +266,12 @@ export class Client {
 			this.serverLatency = Math.ceil((Date.now() - startTime) / 2) || 1;
 			this.pauseOutgoingMessages = false;
 			this.waitingOnServerPong = false;
+			this.setSendTimeout(this.lastSendTimeoutTime);
 		};
 
 		this.webSocket.on('pong', pongListener);
 		this.webSocket.ping('', undefined, () => {
+			this.clearSendTimeout();
 			this.pauseOutgoingMessages = true;
 			this.waitingOnServerPong = true;
 			startTime = Date.now();
@@ -280,6 +283,8 @@ export class Client {
 		if (previous.nextServerPing) clearTimeout(previous.nextServerPing);
 		if (previous.throttledMessageTimeout) clearTimeout(previous.throttledMessageTimeout);
 
+		if (previous.lastSendTimeoutTime) this.lastSendTimeoutTime = previous.lastSendTimeoutTime;
+		if (previous.lastSentMessage) this.lastSentMessage = previous.lastSentMessage;
 		if (previous.serverLatency) this.serverLatency = previous.serverLatency;
 		if (previous.throttledMessageCount) {
 			this.throttledMessageCount = previous.throttledMessageCount;
@@ -325,7 +330,7 @@ export class Client {
 
 		if (previous.sendTimeout) {
 			if (previous.sendTimeout !== true) clearTimeout(previous.sendTimeout);
-			if (!this.sendTimeout) this.setSendTimeout(this.getSendThrottle());
+			if (!this.sendTimeout) this.setSendTimeout(this.lastSendTimeoutTime);
 		}
 
 		if (previous.server) this.server = previous.server;
@@ -1636,7 +1641,7 @@ export class Client {
 		this.webSocket.send(message, () => {
 			if (this.sendTimeout === true && !this.reloadInProgress && this === global.Client) {
 				this.lastSentMessage = message;
-				this.setSendTimeout(this.getSendThrottle());
+				this.setSendTimeout();
 			}
 		});
 	}
@@ -1648,8 +1653,15 @@ export class Client {
 		return throttle;
 	}
 
-	setSendTimeout(timer: number): void {
+	clearSendTimeout(): void {
 		if (this.sendTimeout && this.sendTimeout !== true) clearTimeout(this.sendTimeout);
+	}
+
+	setSendTimeout(time?: number): void {
+		this.clearSendTimeout();
+
+		if (!time) time = this.getSendThrottle();
+		this.lastSendTimeoutTime = time;
 		this.sendTimeout = setTimeout(() => {
 			if (this.reloadInProgress) {
 				this.sendTimeout = true;
@@ -1661,7 +1673,7 @@ export class Client {
 			const message = this.sendQueue[0];
 			this.sendQueue.shift();
 			this.send(message);
-		}, timer);
+		}, time);
 	}
 
 	setThrottledMessageTimeout(): void {
