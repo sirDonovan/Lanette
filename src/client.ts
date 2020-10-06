@@ -179,7 +179,8 @@ export class Client {
 	loggedIn: boolean = false;
 	loginTimeout: NodeJS.Timer | undefined = undefined;
 	nextServerPing: NodeJS.Timer | null = null;
-	processIncomingMessages: boolean = false;
+	pauseIncomingMessages: boolean = true;
+	pauseOutgoingMessages: boolean = false;
 	publicChatRooms: string[] = [];
 	reconnectTime: number = Config.reconnectTime || 60 * 1000;
 	reloadInProgress: boolean = false;
@@ -306,7 +307,7 @@ export class Client {
 				}
 			}
 
-			this.processIncomingMessages = true;
+			this.pauseIncomingMessages = false;
 			if (this.incomingMessageQueue.length) {
 				for (const message of this.incomingMessageQueue) {
 					this.onMessage(message);
@@ -396,7 +397,7 @@ export class Client {
 			method: 'GET',
 		};
 
-		this.processIncomingMessages = true;
+		this.pauseIncomingMessages = false;
 		this.connectionTimeout = setTimeout(() => this.onConnectFail(), 30 * 1000);
 
 		console.log("Attempting to connect to the server " + this.server + "...");
@@ -454,7 +455,7 @@ export class Client {
 	onMessage(webSocketData: Data): void {
 		if (!webSocketData || typeof webSocketData !== 'string') return;
 
-		if (!this.processIncomingMessages) {
+		if (this.pauseIncomingMessages) {
 			this.incomingMessageQueue.push(webSocketData);
 			return;
 		}
@@ -1629,13 +1630,13 @@ export class Client {
 
 	send(message: string): void {
 		if (!message) return;
-		if (!this.webSocket || !this.connected || this.sendTimeout) {
+		if (!this.webSocket || !this.connected || this.sendTimeout || this.pauseOutgoingMessages) {
 			this.sendQueue.push(message);
 			return;
 		}
 
 		if (message.length > MAX_MESSAGE_SIZE) {
-			throw new Error("Message exceeds server size limit of 100KB: " + message);
+			throw new Error("Message exceeds server size limit of " + (MAX_MESSAGE_SIZE / 1024) + "KB: " + message);
 		}
 
 		this.sendTimeout = true;
@@ -1774,7 +1775,7 @@ export const instantiate = (): void => {
 	const oldClient: Client | undefined = global.Client;
 	if (oldClient) {
 		oldClient.reloadInProgress = true;
-		oldClient.processIncomingMessages = false;
+		oldClient.pauseIncomingMessages = true;
 	}
 
 	global.Client = new Client();
