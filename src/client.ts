@@ -25,9 +25,7 @@ const TRUSTED_MESSAGE_THROTTLE = 200;
 const SERVER_THROTTLE_BUFFER_LIMIT = 6;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
-const SERVER_PING_TARGET_SAMPLE = 30 * 1000;
-const SERVER_PING_INTERVAL = 5 * 1000;
-const START_SERVER_PINGS_TIMEOUT = 5 * 60 * 1000;
+const SERVER_LATENCY_INTERVAL = 60 * 1000;
 const TEMPORARY_THROTTLED_MESSAGE_COOLDOWN = 5 * 60 * 1000;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
@@ -163,9 +161,9 @@ let connectListener: (() => void) | null;
 let messageListener: ((message: Data) => void) | null;
 let errorListener: ((error: Error) => void) | null;
 let closeListener: ((code: number, reason: string) => void) | null;
+let pongListener: (() => void) | null;
 
 export class Client {
-	averageServerLatency: number = 1;
 	botGreetingCooldowns: Dict<number> = {};
 	challstr: string = '';
 	connected: boolean = false;
@@ -192,12 +190,12 @@ export class Client {
 	serverGroups: Dict<IServerGroup> = {};
 	serverGroupsResponse: ServerGroupData[] = DEFAULT_SERVER_GROUPS;
 	serverId: string = 'showdown';
-	serverLatencyTimes: number[] = [];
-	serverLatencyTimeCount: number = SERVER_PING_TARGET_SAMPLE / SERVER_PING_INTERVAL;
+	serverLatency: number = 1;
 	serverTimeOffset: number = 0;
-	startServerPingsTimeout: NodeJS.Timer | null = null;
+	serverLatencyInterval: NodeJS.Timer | null = null;
 	throttledMessageCount: number = 0;
 	throttledMessageTimeout: NodeJS.Timer | null = null;
+	waitingOnServerPong: boolean = false;
 	webSocket: import('ws') | null = null;
 
 	constructor() {
@@ -244,51 +242,45 @@ export class Client {
 			this.webSocket.off('close', closeListener);
 			if (previousClient) closeListener = null;
 		}
+
+		if (pongListener) {
+			this.webSocket.off('pong', pongListener);
+			if (previousClient) pongListener = null;
+		}
 	}
 
-	setStartServerPingsTimeout(): void {
-		this.startServerPingsTimeout = setTimeout(() => {
-			this.serverLatencyTimes = [];
-			this.pingServer();
-		}, START_SERVER_PINGS_TIMEOUT);
+	setServerLatencyInterval(): void {
+		this.serverLatencyInterval = setInterval(() => this.pingServer(), SERVER_LATENCY_INTERVAL);
 	}
 
 	pingServer(): void {
-		if (!this.webSocket) return;
+		if (!this.webSocket || this.waitingOnServerPong) return;
 
 		let startTime: number;
-		const pongListener = () => {
-			const latency = Math.ceil((Date.now() - startTime) / 2);
-			this.webSocket!.off('pong', pongListener);
+		pongListener = () => {
+			this.webSocket!.off('pong', pongListener!);
 
 			if (this.reloadInProgress || this !== global.Client) return;
 
-			this.serverLatencyTimes.push(latency);
-
-			if (this.serverLatencyTimes.length === this.serverLatencyTimeCount) {
-				let totalLatency = 0;
-				for (const time of this.serverLatencyTimes) {
-					totalLatency += time;
-				}
-				this.averageServerLatency = totalLatency ? Math.ceil(totalLatency / this.serverLatencyTimes.length) : 1;
-				this.setStartServerPingsTimeout();
-			} else {
-				this.nextServerPing = setTimeout(() => this.pingServer(), SERVER_PING_INTERVAL);
-			}
+			this.serverLatency = Math.ceil((Date.now() - startTime) / 2) || 1;
+			this.pauseOutgoingMessages = false;
+			this.waitingOnServerPong = false;
 		};
 
 		this.webSocket.on('pong', pongListener);
 		this.webSocket.ping('', undefined, () => {
+			this.pauseOutgoingMessages = true;
+			this.waitingOnServerPong = true;
 			startTime = Date.now();
 		});
 	}
 
 	onReload(previous: Partial<Client>): void {
-		if (previous.startServerPingsTimeout) clearTimeout(previous.startServerPingsTimeout);
+		if (previous.serverLatencyInterval) clearInterval(previous.serverLatencyInterval);
 		if (previous.nextServerPing) clearTimeout(previous.nextServerPing);
 		if (previous.throttledMessageTimeout) clearTimeout(previous.throttledMessageTimeout);
 
-		if (previous.averageServerLatency) this.averageServerLatency = previous.averageServerLatency;
+		if (previous.serverLatency) this.serverLatency = previous.serverLatency;
 		if (previous.throttledMessageCount) {
 			this.throttledMessageCount = previous.throttledMessageCount;
 			this.setThrottledMessageTimeout();
@@ -297,6 +289,7 @@ export class Client {
 		if (previous.sendQueue) this.sendQueue = previous.sendQueue.slice();
 		if (previous.webSocket) {
 			if (previous.removeClientListeners) previous.removeClientListeners(true);
+
 			this.webSocket = previous.webSocket;
 			this.setClientListeners();
 			this.connected = true;
@@ -316,7 +309,7 @@ export class Client {
 				this.incomingMessageQueue = [];
 			}
 
-			this.setStartServerPingsTimeout();
+			this.setServerLatencyInterval();
 		}
 
 		if (previous.botGreetingCooldowns) Object.assign(this.botGreetingCooldowns, previous.botGreetingCooldowns);
@@ -386,7 +379,7 @@ export class Client {
 		}
 
 		console.log('Successfully connected');
-		this.setStartServerPingsTimeout();
+		this.setServerLatencyInterval();
 		await Dex.fetchClientData();
 	}
 
@@ -1649,8 +1642,7 @@ export class Client {
 	}
 
 	getSendThrottle(): number {
-		let throttle = this.sendThrottle;
-		if (this.averageServerLatency) throttle += this.averageServerLatency;
+		let throttle = this.sendThrottle + this.serverLatency;
 		if (this.throttledMessageCount) throttle += (this.throttledMessageCount * throttle);
 
 		return throttle;
