@@ -163,6 +163,10 @@ export class Users {
 		}
 	}
 
+	getUserIds(): string[] {
+		return Object.keys(this.users);
+	}
+
 	rename(name: string, oldId: string): User {
 		const id = Tools.toId(name);
 		if (!(oldId in this.users)) return this.add(name, id);

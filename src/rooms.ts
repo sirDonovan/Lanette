@@ -225,6 +225,10 @@ export class Rooms {
 		return this.rooms[id];
 	}
 
+	getRoomIds(): string[] {
+		return Object.keys(this.rooms);
+	}
+
 	search(input: string): Room | undefined {
 		let id = Tools.toRoomId(input);
 		if (Config.roomAliases && !(id in this.rooms) && Config.roomAliases[id]) id = Config.roomAliases[id];

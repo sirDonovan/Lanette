@@ -4,6 +4,8 @@ import url = require('url');
 
 import type { ClientOptions, Data } from 'ws';
 import type { Player } from './room-activity';
+import type { ScriptedGame } from './room-game-scripted';
+import type { UserHostedGame } from './room-game-user-hosted';
 import type { Room } from './rooms';
 import type {
 	GroupName, IClientMessageTypes,
@@ -25,7 +27,7 @@ const TRUSTED_MESSAGE_THROTTLE = 200;
 const SERVER_THROTTLE_BUFFER_LIMIT = 6;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
-const SERVER_LATENCY_INTERVAL = 60 * 1000;
+const SERVER_LATENCY_INTERVAL = 30 * 1000;
 const TEMPORARY_THROTTLED_MESSAGE_COOLDOWN = 5 * 60 * 1000;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
@@ -170,6 +172,7 @@ export class Client {
 	connectionAttempts: number = 0;
 	connectionTimeout: NodeJS.Timer | undefined = undefined;
 	evasionFilterRegularExpressions: RegExp[] | null = null;
+	failedPingTimeout: NodeJS.Timer | null = null;
 	filterRegularExpressions: RegExp[] | null = null;
 	groupSymbols: KeyedDict<GroupName, string> = DEFAULT_GROUP_SYMBOLS;
 	incomingMessageQueue: Data[] = [];
@@ -177,13 +180,14 @@ export class Client {
 	lastSentMessage: string = '';
 	loggedIn: boolean = false;
 	loginTimeout: NodeJS.Timer | undefined = undefined;
-	nextServerPing: NodeJS.Timer | null = null;
 	pauseIncomingMessages: boolean = true;
 	pauseOutgoingMessages: boolean = false;
 	publicChatRooms: string[] = [];
+	reconnectRoomMessages: Dict<string[]> = {};
 	reconnectTime: number = Config.reconnectTime || 60 * 1000;
 	reloadInProgress: boolean = false;
 	replayServerAddress: string = Config.replayServer || REPLAY_SERVER_ADDRESS;
+	roomsToRejoin: string[] = [];
 	sendQueue: string[] = [];
 	sendThrottle: number = Config.trustedUser ? TRUSTED_MESSAGE_THROTTLE : REGULAR_MESSAGE_THROTTLE;
 	sendTimeout: NodeJS.Timer | true | undefined = undefined;
@@ -251,6 +255,7 @@ export class Client {
 	}
 
 	setServerLatencyInterval(): void {
+		if (this.serverLatencyInterval) clearInterval(this.serverLatencyInterval);
 		this.serverLatencyInterval = setInterval(() => this.pingServer(), SERVER_LATENCY_INTERVAL);
 	}
 
@@ -259,7 +264,7 @@ export class Client {
 
 		let startTime: number;
 		pongListener = () => {
-			this.webSocket!.off('pong', pongListener!);
+			if (this.failedPingTimeout) clearTimeout(this.failedPingTimeout);
 
 			if (this.reloadInProgress || this !== global.Client) return;
 
@@ -269,18 +274,23 @@ export class Client {
 			this.setSendTimeout(this.lastSendTimeoutTime);
 		};
 
-		this.webSocket.on('pong', pongListener);
+		this.webSocket.once('pong', pongListener);
 		this.webSocket.ping('', undefined, () => {
 			this.clearSendTimeout();
 			this.pauseOutgoingMessages = true;
 			this.waitingOnServerPong = true;
+			this.setFailedPingTimeout();
 			startTime = Date.now();
 		});
 	}
 
+	setFailedPingTimeout(): void {
+		this.failedPingTimeout = setTimeout(() => this.reconnect(), SERVER_LATENCY_INTERVAL + 1000);
+	}
+
 	onReload(previous: Partial<Client>): void {
 		if (previous.serverLatencyInterval) clearInterval(previous.serverLatencyInterval);
-		if (previous.nextServerPing) clearTimeout(previous.nextServerPing);
+		if (previous.failedPingTimeout) clearTimeout(previous.failedPingTimeout);
 		if (previous.throttledMessageTimeout) clearTimeout(previous.throttledMessageTimeout);
 
 		if (previous.lastSendTimeoutTime) this.lastSendTimeoutTime = previous.lastSendTimeoutTime;
@@ -292,12 +302,12 @@ export class Client {
 		}
 
 		if (previous.sendQueue) this.sendQueue = previous.sendQueue.slice();
+		if (previous.connected) this.connected = previous.connected;
 		if (previous.webSocket) {
 			if (previous.removeClientListeners) previous.removeClientListeners(true);
 
 			this.webSocket = previous.webSocket;
 			this.setClientListeners();
-			this.connected = true;
 
 			if (previous.incomingMessageQueue) {
 				for (const message of previous.incomingMessageQueue.slice()) {
@@ -374,7 +384,7 @@ export class Client {
 
 		this.removeClientListeners();
 		this.connected = false;
-		this.connectionTimeout = setTimeout(() => this.reconnect(), this.reconnectTime);
+		this.connectionTimeout = setTimeout(() => this.reconnect(true), this.reconnectTime);
 	}
 
 	async onConnect(): Promise<void> {
@@ -384,6 +394,8 @@ export class Client {
 		}
 
 		console.log('Successfully connected');
+
+		this.pauseOutgoingMessages = false;
 		this.setServerLatencyInterval();
 		await Dex.fetchClientData();
 	}
@@ -440,13 +452,48 @@ export class Client {
 		});
 	}
 
-	reconnect(): void {
-		Rooms.removeAll();
-		Users.removeAll();
-		this.sendQueue = [];
+	reconnect(serverRestart?: boolean): void {
+		this.removeClientListeners();
+		this.pauseOutgoingMessages = true;
 
-		this.connectionAttempts = 0;
+		if (serverRestart) {
+			Rooms.removeAll();
+			Users.removeAll();
+			this.sendQueue = [];
+		} else {
+			if (this.webSocket) this.webSocket.terminate();
+
+			this.roomsToRejoin = Rooms.getRoomIds();
+			if (Config.rooms && !Config.rooms.includes('lobby')) {
+				const index = this.roomsToRejoin.indexOf('lobby');
+				if (index !== -1) this.roomsToRejoin.splice(index, 1);
+			}
+
+			for (const id of this.roomsToRejoin) {
+				const room = Rooms.get(id)!;
+				let game: ScriptedGame | UserHostedGame | undefined;
+				if (room.game && room.game.started) {
+					game = room.game;
+				} else if (room.userHostedGame && room.userHostedGame.started) {
+					game = room.userHostedGame;
+				}
+
+				if (game) {
+					this.reconnectRoomMessages[room.id] = [Users.self.name + " had to reconnect to the server so the game was " +
+						"forcibly ended."];
+					game.deallocate(true);
+				}
+			}
+
+			for (const id of Users.getUserIds()) {
+				const user = Users.get(id)!;
+				if (user.game) user.game.deallocate(true);
+			}
+		}
+
+		this.connected = false;
 		this.loggedIn = false;
+		this.connectionAttempts = 0;
 		this.connect();
 	}
 
@@ -492,6 +539,7 @@ export class Client {
 							}
 						}
 					}
+
 					if (page || chat) return;
 				}
 			} catch (e) {
@@ -566,20 +614,30 @@ export class Client {
 					console.log('Failed to log in');
 					process.exit();
 				}
+
 				console.log('Successfully logged in');
 				this.loggedIn = true;
 				this.send('|/blockchallenges');
 				this.send('|/cmd rooms');
+
 				if (rank) {
 					Users.self.group = rank;
 				} else {
 					this.send('|/cmd userdetails ' + Users.self.id);
 				}
-				if (Config.rooms) {
+
+				if (this.roomsToRejoin.length) {
+					for (const room of this.roomsToRejoin) {
+						this.send('|/join ' + room);
+					}
+
+					this.roomsToRejoin = [];
+				} else if (Config.rooms) {
 					for (const room of Config.rooms) {
 						this.send('|/join ' + room);
 					}
 				}
+
 				if (Config.avatar) this.send('|/avatar ' + Config.avatar);
 			}
 			break;
@@ -626,12 +684,20 @@ export class Client {
 			const messageArguments: IClientMessageTypes['init'] = {
 				type: messageParts[0] as RoomType,
 			};
+
 			room.init(messageArguments.type);
 			if (room.type === 'chat') {
 				console.log("Joined room: " + room.id);
 				if (room.id === 'staff') room.sayCommand('/filters view');
 				room.sayCommand('/cmd roominfo ' + room.id);
 				room.sayCommand('/banword list');
+
+				if (room.id in this.reconnectRoomMessages) {
+					for (const message of this.reconnectRoomMessages[room.id]) {
+						room.say(message);
+					}
+					delete this.reconnectRoomMessages[room.id];
+				}
 
 				if (room.id in Tournaments.schedules) {
 					Tournaments.setScheduledTournament(room);
@@ -665,6 +731,8 @@ export class Client {
 			};
 
 			if (messageArguments.userlist === '0') return;
+
+			const addedUsers = new Set<User>();
 			const users = messageArguments.userlist.split(",");
 			for (let i = 1; i < users.length; i++) {
 				const rank = users[i].charAt(0);
@@ -673,6 +741,8 @@ export class Client {
 				if (!id) continue;
 
 				const user = Users.add(username, id);
+				addedUsers.add(user);
+
 				room.onUserJoin(user, rank);
 				if (status || user.status) user.status = status;
 				if (away) {
@@ -681,6 +751,13 @@ export class Client {
 					user.away = false;
 				}
 			}
+
+			// prune users after reconnecting
+			for (const id of Users.getUserIds()) {
+				const user = Users.get(id)!;
+				if (user.rooms.has(room) && !addedUsers.has(user)) room.onUserLeave(user);
+			}
+
 			break;
 		}
 
