@@ -22,12 +22,12 @@ import type { User } from './users';
 const MAIN_HOST = "sim3.psim.us";
 const REPLAY_SERVER_ADDRESS = "replay.pokemonshowdown.com";
 const RELOGIN_SECONDS = 60;
-const REGULAR_MESSAGE_THROTTLE = 700;
-const TRUSTED_MESSAGE_THROTTLE = 200;
+const REGULAR_MESSAGE_THROTTLE = 600;
+const TRUSTED_MESSAGE_THROTTLE = 100;
 const SERVER_THROTTLE_BUFFER_LIMIT = 6;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
-const SERVER_LATENCY_INTERVAL = 30 * 1000;
+const SERVER_LATENCY_INTERVAL = 10 * 1000;
 const TEMPORARY_THROTTLED_MESSAGE_COOLDOWN = 5 * 60 * 1000;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
@@ -285,12 +285,13 @@ export class Client {
 
 		pongListener = newPongListener;
 
+		this.setFailedPingTimeout();
+
 		this.webSocket.once('pong', pongListener);
 		this.webSocket.ping('', undefined, () => {
 			this.clearSendTimeout();
 			this.pauseOutgoingMessages = true;
 			this.waitingOnServerPong = true;
-			this.setFailedPingTimeout();
 			startTime = Date.now();
 		});
 	}
