@@ -27,7 +27,8 @@ const TRUSTED_MESSAGE_THROTTLE = 200;
 const SERVER_THROTTLE_BUFFER_LIMIT = 6;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
-const SERVER_LATENCY_INTERVAL = 30 * 1000;
+const SERVER_LATENCY_INTERVAL = 5 * 60 * 1000;
+const FAILED_PING_TIMEOUT = 30 * 1000;
 const TEMPORARY_THROTTLED_MESSAGE_COOLDOWN = 5 * 60 * 1000;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
@@ -285,7 +286,7 @@ export class Client {
 	}
 
 	setFailedPingTimeout(): void {
-		this.failedPingTimeout = setTimeout(() => this.reconnect(), SERVER_LATENCY_INTERVAL + 1000);
+		this.failedPingTimeout = setTimeout(() => this.reconnect(), FAILED_PING_TIMEOUT);
 	}
 
 	onReload(previous: Partial<Client>): void {
