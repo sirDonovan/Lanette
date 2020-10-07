@@ -249,10 +249,7 @@ export class Client {
 			if (previousClient) closeListener = null;
 		}
 
-		if (pongListener) {
-			this.webSocket.off('pong', pongListener);
-			if (previousClient) pongListener = null;
-		}
+		this.clearServerLatencyInterval(previousClient);
 	}
 
 	setServerLatencyInterval(): void {
@@ -260,20 +257,33 @@ export class Client {
 		this.serverLatencyInterval = setInterval(() => this.pingServer(), SERVER_LATENCY_INTERVAL);
 	}
 
+	clearServerLatencyInterval(previousClient?: boolean): void {
+		if (this.serverLatencyInterval) clearInterval(this.serverLatencyInterval);
+		if (this.failedPingTimeout) clearTimeout(this.failedPingTimeout);
+		this.waitingOnServerPong = false;
+
+		if (pongListener) {
+			if (this.webSocket) this.webSocket.off('pong', pongListener);
+			if (previousClient) pongListener = null;
+		}
+	}
+
 	pingServer(): void {
 		if (!this.webSocket || this.waitingOnServerPong) return;
 
 		let startTime: number;
-		pongListener = () => {
+		const newPongListener = () => {
 			if (this.failedPingTimeout) clearTimeout(this.failedPingTimeout);
 
-			if (this.reloadInProgress || this !== global.Client) return;
+			if (this.reloadInProgress || this !== global.Client || pongListener !== newPongListener) return;
 
 			this.serverLatency = Math.ceil((Date.now() - startTime) / 2) || 1;
 			this.pauseOutgoingMessages = false;
 			this.waitingOnServerPong = false;
 			this.setSendTimeout(this.lastSendTimeoutTime);
 		};
+
+		pongListener = newPongListener;
 
 		this.webSocket.once('pong', pongListener);
 		this.webSocket.ping('', undefined, () => {
