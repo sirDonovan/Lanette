@@ -395,7 +395,6 @@ export class Client {
 
 		console.log('Successfully connected');
 
-		this.pauseOutgoingMessages = false;
 		this.setServerLatencyInterval();
 		await Dex.fetchClientData();
 	}
@@ -440,6 +439,7 @@ export class Client {
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
 						const ws = require('ws') as typeof import('ws');
 						this.webSocket = new ws(address, options);
+						this.pauseOutgoingMessages = false;
 						this.setClientListeners();
 
 						return;
