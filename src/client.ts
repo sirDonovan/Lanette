@@ -269,18 +269,28 @@ export class Client {
 	}
 
 	pingServer(): void {
-		if (!this.webSocket || this.waitingOnServerPong) return;
+		if (!this.webSocket || this.waitingOnServerPong || this.reloadInProgress) return;
 
-		let startTime: number;
+		let receivedPong = false;
+		let pingTime = 0;
 		const newPongListener = () => {
 			if (this.failedPingTimeout) clearTimeout(this.failedPingTimeout);
 
+			receivedPong = true;
+			this.waitingOnServerPong = false;
+
 			if (this.reloadInProgress || this !== global.Client || pongListener !== newPongListener) return;
 
-			this.serverLatency = Math.ceil((Date.now() - startTime) / 2) || 1;
-			this.pauseOutgoingMessages = false;
-			this.waitingOnServerPong = false;
-			this.setSendTimeout(this.lastSendTimeoutTime);
+			if (pingTime) {
+				this.serverLatency = Math.ceil((Date.now() - pingTime) / 2) || 1;
+			} else {
+				this.serverLatency = 1;
+			}
+
+			if (this.pauseOutgoingMessages) {
+				this.pauseOutgoingMessages = false;
+				this.setSendTimeout(this.lastSendTimeoutTime);
+			}
 		};
 
 		pongListener = newPongListener;
@@ -292,9 +302,11 @@ export class Client {
 
 		this.webSocket.once('pong', pongListener);
 		this.webSocket.ping('', undefined, () => {
-			this.clearSendTimeout();
-			this.pauseOutgoingMessages = true;
-			startTime = Date.now();
+			if (!receivedPong) {
+				this.clearSendTimeout();
+				this.pauseOutgoingMessages = true;
+				pingTime = Date.now();
+			}
 		});
 	}
 
