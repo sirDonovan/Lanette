@@ -27,8 +27,7 @@ const TRUSTED_MESSAGE_THROTTLE = 200;
 const SERVER_THROTTLE_BUFFER_LIMIT = 6;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
-const SERVER_LATENCY_INTERVAL = 5 * 60 * 1000;
-const FAILED_PING_TIMEOUT = 30 * 1000;
+const SERVER_LATENCY_INTERVAL = 30 * 1000;
 const TEMPORARY_THROTTLED_MESSAGE_COOLDOWN = 5 * 60 * 1000;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
@@ -186,6 +185,7 @@ export class Client {
 	publicChatRooms: string[] = [];
 	reconnectRoomMessages: Dict<string[]> = {};
 	reconnectTime: number = Config.reconnectTime || 60 * 1000;
+	reloginTimeout: NodeJS.Timer | null = null;
 	reloadInProgress: boolean = false;
 	replayServerAddress: string = Config.replayServer || REPLAY_SERVER_ADDRESS;
 	roomsToRejoin: string[] = [];
@@ -286,12 +286,13 @@ export class Client {
 	}
 
 	setFailedPingTimeout(): void {
-		this.failedPingTimeout = setTimeout(() => this.reconnect(), FAILED_PING_TIMEOUT);
+		this.failedPingTimeout = setTimeout(() => this.reconnect(), SERVER_LATENCY_INTERVAL + 1000);
 	}
 
 	onReload(previous: Partial<Client>): void {
 		if (previous.serverLatencyInterval) clearInterval(previous.serverLatencyInterval);
 		if (previous.failedPingTimeout) clearTimeout(previous.failedPingTimeout);
+		if (previous.reloginTimeout) clearTimeout(previous.reloginTimeout);
 		if (previous.throttledMessageTimeout) clearTimeout(previous.throttledMessageTimeout);
 
 		if (previous.lastSendTimeoutTime) this.lastSendTimeoutTime = previous.lastSendTimeoutTime;
@@ -396,6 +397,7 @@ export class Client {
 
 		console.log('Successfully connected');
 
+		if (this.challstr) this.reloginTimeout = setTimeout(() => this.login(), RELOGIN_SECONDS);
 		this.setServerLatencyInterval();
 		await Dex.fetchClientData();
 	}
@@ -1763,6 +1765,8 @@ export class Client {
 	}
 
 	login(): void {
+		if (this.reloginTimeout) clearTimeout(this.reloginTimeout);
+
 		const action = url.parse('https://' + Tools.mainServer + '/~~' + this.serverId + '/action.php');
 		if (!action.hostname || !action.pathname) {
 			console.log("Failed to parse login URL");
