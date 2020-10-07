@@ -285,19 +285,17 @@ export class Client {
 
 		pongListener = newPongListener;
 
-		this.setFailedPingTimeout();
+		if (this.failedPingTimeout) clearTimeout(this.failedPingTimeout);
+		this.failedPingTimeout = setTimeout(() => this.reconnect(), SERVER_LATENCY_INTERVAL + 1000);
+
+		this.waitingOnServerPong = true;
 
 		this.webSocket.once('pong', pongListener);
 		this.webSocket.ping('', undefined, () => {
 			this.clearSendTimeout();
 			this.pauseOutgoingMessages = true;
-			this.waitingOnServerPong = true;
 			startTime = Date.now();
 		});
-	}
-
-	setFailedPingTimeout(): void {
-		this.failedPingTimeout = setTimeout(() => this.reconnect(), SERVER_LATENCY_INTERVAL + 1000);
 	}
 
 	onReload(previous: Partial<Client>): void {
