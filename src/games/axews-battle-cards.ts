@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
-import { assertStrictEqual } from "../test/test-tools";
+import { assert, assertStrictEqual } from "../test/test-tools";
 import type { IMoveCopy, IPokemon } from "../types/dex";
 import type { GameFileTests, IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
@@ -99,7 +99,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			getRandomTarget(game, hand) {
 				const cards = game.shuffle(hand);
 				for (const card of cards) {
-					if (!card.action && this.isPlayableTarget(game, [card.name])) {
+					if (!card.action && this.isPlayableTarget(game, [card.name], hand)) {
 						return this.name + ", " + card.name;
 					}
 				}
@@ -108,6 +108,11 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 				return this.getRandomTarget!(game, hand);
 			},
 			isPlayableTarget(game, targets, hand, player) {
+				if (targets.length !== 1) {
+					if (player) player.say("You must specify 1 Pokemon.");
+					return false;
+				}
+
 				const id = Tools.toId(targets[0]);
 				if (!id) {
 					if (player) player.say("Usage: ``" + Config.commandCharacter + "play " + this.name + ", [Pokemon]``");
@@ -150,7 +155,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			getRandomTarget(game, hand) {
 				const cards = game.shuffle(hand);
 				for (const card of cards) {
-					if (!card.action && this.isPlayableTarget(game, [card.name])) {
+					if (!card.action && this.isPlayableTarget(game, [card.name], hand)) {
 						return this.name + ", " + card.name;
 					}
 				}
@@ -159,6 +164,11 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 				return this.getRandomTarget!(game, hand);
 			},
 			isPlayableTarget(game, targets, hand, player) {
+				if (targets.length !== 1) {
+					if (player) player.say("You must specify 1 Pokemon.");
+					return false;
+				}
+
 				const id = Tools.toId(targets[0]);
 				if (!id) {
 					if (player) player.say("Usage: ``" + Config.commandCharacter + "play " + this.name + ", [Pokemon]``");
@@ -210,6 +220,11 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 				return this.getRandomTarget!(game, hand);
 			},
 			isPlayableTarget(game, targets, hand, player) {
+				if (targets.length !== 1) {
+					if (player) player.say("You must specify 1 type.");
+					return false;
+				}
+
 				const type = Tools.toId(targets[0]);
 				if (!type) {
 					if (player) player.say("Usage: ``" + Config.commandCharacter + "play " + this.name + ", [type]``");
@@ -245,6 +260,11 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 				return this.getRandomTarget!(game, hand);
 			},
 			isPlayableTarget(game, targets, hand, player) {
+				if (targets.length !== 2) {
+					if (player) player.say("You must specify 2 types.");
+					return false;
+				}
+
 				const type1 = Tools.toId(targets[0]);
 				const type2 = Tools.toId(targets[1]);
 				if (!type1 || !type2) {
@@ -294,6 +314,11 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 				return this.getRandomTarget!(game, hand);
 			},
 			isPlayableTarget(game, targets, hand, player) {
+				if (targets.length !== 3) {
+					if (player) player.say("You must specify 3 types.");
+					return false;
+				}
+
 				const type1 = Tools.toId(targets[0]);
 				const type2 = Tools.toId(targets[1]);
 				const type3 = Tools.toId(targets[2]);
@@ -324,7 +349,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 					return false;
 				}
 
-				if (game.topCard.types.length === 2) {
+				if (game.topCard.types.length === 3) {
 					const typesList = [types[type1], types[type2], types[type3]];
 					if (game.topCard.types.slice().sort().join(",") === typesList.sort().join(",")) {
 						if (player) player.say("The top card already " + typesList.join("/") + " type.");
@@ -827,6 +852,232 @@ const tests: GameFileTests<AxewsBattleCards> = {
 			assertStrictEqual(game.isPlayableCard(pikachu, golem), true);
 			assertStrictEqual(game.isPlayableCard(squirtle, golem), false);
 			assertStrictEqual(game.isPlayableCard(bulbasaur, golem), true);
+		},
+	},
+	'action cards - soak': {
+		test(game, format): void {
+			if (game.variant) return;
+
+			const soak = game.actionCards.soak;
+			assert(soak);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
+			assert(soak.getAutoPlayTarget(game, []));
+			assertStrictEqual(soak.isPlayableTarget(game, []), true);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Poliwrath"));
+			assert(soak.getAutoPlayTarget(game, []));
+			assertStrictEqual(soak.isPlayableTarget(game, []), true);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Squirtle"));
+			assert(!soak.getAutoPlayTarget(game, []));
+			assertStrictEqual(soak.isPlayableTarget(game, []), false);
+		},
+	},
+	'action cards - trickortreat': {
+		test(game, format): void {
+			if (game.variant) return;
+
+			const trickortreat = game.actionCards.trickortreat;
+			assert(trickortreat);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
+			assert(trickortreat.getAutoPlayTarget(game, []));
+			assertStrictEqual(trickortreat.isPlayableTarget(game, []), true);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Gastly"));
+			assert(!trickortreat.getAutoPlayTarget(game, []));
+			assertStrictEqual(trickortreat.isPlayableTarget(game, []), false);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Duskull"));
+			assert(!trickortreat.getAutoPlayTarget(game, []));
+			assertStrictEqual(trickortreat.isPlayableTarget(game, []), false);
+		},
+	},
+	'action cards - forestscurse': {
+		test(game, format): void {
+			if (game.variant) return;
+
+			const forestscurse = game.actionCards.forestscurse;
+			assert(forestscurse);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Squirtle"));
+			assert(forestscurse.getAutoPlayTarget(game, []));
+			assertStrictEqual(forestscurse.isPlayableTarget(game, []), true);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
+			assert(!forestscurse.getAutoPlayTarget(game, []));
+			assertStrictEqual(forestscurse.isPlayableTarget(game, []), false);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Tangela"));
+			assert(!forestscurse.getAutoPlayTarget(game, []));
+			assertStrictEqual(forestscurse.isPlayableTarget(game, []), false);
+		},
+	},
+	'action cards - magicpowder': {
+		test(game, format): void {
+			if (game.variant) return;
+
+			const magicpowder = game.actionCards.magicpowder;
+			assert(magicpowder);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
+			assert(magicpowder.getAutoPlayTarget(game, []));
+			assertStrictEqual(magicpowder.isPlayableTarget(game, []), true);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Slowpoke"));
+			assert(magicpowder.getAutoPlayTarget(game, []));
+			assertStrictEqual(magicpowder.isPlayableTarget(game, []), true);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Abra"));
+			assert(!magicpowder.getAutoPlayTarget(game, []));
+			assertStrictEqual(magicpowder.isPlayableTarget(game, []), false);
+		},
+	},
+	'action cards - batonpass': {
+		test(game, format): void {
+			if (game.variant) return;
+
+			const batonpass = game.actionCards.batonpass;
+			assert(batonpass);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
+			let hand = [game.pokemonToCard(Dex.getExistingPokemon("Squirtle"))];
+			assert(batonpass.getAutoPlayTarget(game, hand));
+			assertStrictEqual(batonpass.isPlayableTarget(game, ["Squirtle"], hand), true);
+			assertStrictEqual(batonpass.isPlayableTarget(game, ["Charmander"], hand), false);
+			assertStrictEqual(batonpass.isPlayableTarget(game, [""], hand), false);
+
+			hand = [game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"))];
+			assert(!batonpass.getAutoPlayTarget(game, hand));
+			assertStrictEqual(batonpass.isPlayableTarget(game, ["Bulbasaur"], hand), false);
+		},
+	},
+	'action cards - allyswitch': {
+		test(game, format): void {
+			if (game.variant) return;
+
+			const allyswitch = game.actionCards.allyswitch;
+			assert(allyswitch);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
+			let hand = [game.pokemonToCard(Dex.getExistingPokemon("Squirtle"))];
+			assert(allyswitch.getAutoPlayTarget(game, hand));
+			assertStrictEqual(allyswitch.isPlayableTarget(game, ["Squirtle"], hand), true);
+			assertStrictEqual(allyswitch.isPlayableTarget(game, ["Charmander"], hand), false);
+			assertStrictEqual(allyswitch.isPlayableTarget(game, [""], hand), false);
+
+			hand = [game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"))];
+			assert(!allyswitch.getAutoPlayTarget(game, hand));
+			assertStrictEqual(allyswitch.isPlayableTarget(game, ["Bulbasaur"], hand), false);
+		},
+	},
+	'action cards - conversion': {
+		test(game, format): void {
+			if (game.variant) return;
+
+			const conversion = game.actionCards.conversion;
+			assert(conversion);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
+			assert(conversion.getAutoPlayTarget(game, []));
+			assertStrictEqual(conversion.isPlayableTarget(game, ["Grass"]), true);
+			assertStrictEqual(conversion.isPlayableTarget(game, ["Poison"]), true);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Squirtle"));
+			assert(conversion.getAutoPlayTarget(game, []));
+			assertStrictEqual(conversion.isPlayableTarget(game, ["Grass"]), true);
+			assertStrictEqual(conversion.isPlayableTarget(game, ["Water"]), false);
+			assertStrictEqual(conversion.isPlayableTarget(game, [""]), false);
+			assertStrictEqual(conversion.isPlayableTarget(game, ["Grass", "Fire"]), false);
+		},
+	},
+	'action cards - conversion2': {
+		test(game, format): void {
+			if (game.variant) return;
+
+			const conversion2 = game.actionCards['conversion2'];
+			assert(conversion2);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
+			assert(conversion2.getAutoPlayTarget(game, []));
+			assertStrictEqual(conversion2.isPlayableTarget(game, ["Water", "Fire"]), true);
+			assertStrictEqual(conversion2.isPlayableTarget(game, ["Grass", "Poison"]), false);
+			assertStrictEqual(conversion2.isPlayableTarget(game, ["Poison", "Grass"]), false);
+			assertStrictEqual(conversion2.isPlayableTarget(game, ["Water"]), false);
+			assertStrictEqual(conversion2.isPlayableTarget(game, [""]), false);
+		},
+	},
+	'action cards - conversionz': {
+		test(game, format): void {
+			if (game.variant) return;
+
+			const conversionz = game.actionCards.conversionz;
+			assert(conversionz);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Squirtle"));
+			assert(conversionz.getAutoPlayTarget(game, []));
+			assertStrictEqual(conversionz.isPlayableTarget(game, ["Water", "Fire", "Flying"]), true);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
+			game.topCard.types = ["Grass", "Poison", "Ghost"];
+			assert(conversionz.getAutoPlayTarget(game, []));
+			assertStrictEqual(conversionz.isPlayableTarget(game, ["Water", "Fire", "Flying"]), true);
+			assertStrictEqual(conversionz.isPlayableTarget(game, [""]), false);
+			assertStrictEqual(conversionz.isPlayableTarget(game, ["Water"]), false);
+			assertStrictEqual(conversionz.isPlayableTarget(game, ["Water", "Fire"]), false);
+			assertStrictEqual(conversionz.isPlayableTarget(game, ["Grass", "Poison", "Ghost"]), false);
+		},
+	},
+	'action cards - transform': {
+		test(game, format): void {
+			if (game.variant) return;
+			game.createDeckPool();
+
+			const transform = game.actionCards.transform;
+			assert(transform);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
+			assert(transform.getAutoPlayTarget(game, []));
+			assertStrictEqual(transform.isPlayableTarget(game, ["Squirtle"]), true);
+			assertStrictEqual(transform.isPlayableTarget(game, ["Bulbasaur"]), false);
+			assertStrictEqual(transform.isPlayableTarget(game, [""]), false);
+		},
+	},
+	'action cards - protect': {
+		test(game, format): void {
+			if (game.variant) return;
+
+			const protect = game.actionCards.protect;
+			assert(protect);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
+			assert(protect.getAutoPlayTarget(game, []));
+			assertStrictEqual(protect.isPlayableTarget(game, []), true);
+		},
+	},
+	'action cards - teeterdance': {
+		test(game, format): void {
+			if (game.variant) return;
+
+			const teeterdance = game.actionCards.teeterdance;
+			assert(teeterdance);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
+			assert(teeterdance.getAutoPlayTarget(game, []));
+			assertStrictEqual(teeterdance.isPlayableTarget(game, []), true);
+		},
+	},
+	'action cards - topsyturvy': {
+		test(game, format): void {
+			if (game.variant) return;
+
+			const topsyturvy = game.actionCards.topsyturvy;
+			assert(topsyturvy);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
+			assert(topsyturvy.getAutoPlayTarget(game, []));
+			assertStrictEqual(topsyturvy.isPlayableTarget(game, []), true);
 		},
 	},
 };
