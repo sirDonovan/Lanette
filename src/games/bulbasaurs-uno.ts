@@ -1,6 +1,7 @@
 import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../types/games";
+import { assert, assertStrictEqual } from "../test/test-tools";
+import type { GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 import type { IActionCardData, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
@@ -36,6 +37,11 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 				return this.getRandomTarget!(game, hand);
 			},
 			isPlayableTarget(game, targets, hand, player) {
+				if (targets.length !== 1) {
+					if (player) player.say("You must specify 1 type.");
+					return false;
+				}
+
 				const type = Tools.toId(targets[0]);
 				if (!type) {
 					if (player) player.say("Usage: ``" + Config.commandCharacter + "play " + this.name + ", [type]``");
@@ -71,6 +77,11 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 				return this.getRandomTarget!(game, hand);
 			},
 			isPlayableTarget(game, targets, hand, player) {
+				if (targets.length !== 1) {
+					if (player) player.say("You must specify 1 color.");
+					return false;
+				}
+
 				const color = Tools.toId(targets[0]);
 				if (!color) {
 					if (player) player.say("Usage: ``" + Config.commandCharacter + "play " + this.name + ", [color]``");
@@ -98,18 +109,17 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 				if (hand.length >= 3) {
 					for (const cardA of hand) {
 						for (const cardB of hand) {
-							if (cardA === cardB || cardA.action || cardB.action || !game.isPokemonCard(cardA) ||
-								!game.isPokemonCard(cardB)) continue;
-							if (game.isCardPair(cardA, cardB) && (game.isCardPair(cardA, game.topCard) ||
-								game.isCardPair(cardB, game.topCard))) {
+							if (cardA === cardB) continue;
+							if (this.isPlayableTarget(game, [cardA.name, cardB.name], hand)) {
 								return this.name + ", " + cardA.name + ", " + cardB.name;
 							}
 						}
 					}
 				} else {
 					for (const card of hand) {
-						if (card.action) continue;
-						return this.name + ", " + card.name;
+						if (this.isPlayableTarget(game, [card.name], hand)) {
+							return this.name + ", " + card.name;
+						}
 					}
 				}
 			},
@@ -118,8 +128,8 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 			},
 			isPlayableTarget(game, targets, hand, player) {
 				if (hand!.length >= 3) {
-					if (targets.length < 2) {
-						if (player) player.say("Please include the 2 cards you want to pair.");
+					if (targets.length != 2) {
+						if (player) player.say("You must specify 2 other Pokemon to pair.");
 						return false;
 					}
 					const idA = Tools.toId(targets[0]);
@@ -170,8 +180,8 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 						return false;
 					}
 				} else {
-					if (!targets.length) {
-						if (player) player.say("Please include another card.");
+					if (targets.length != 1) {
+						if (player) player.say("You must include your other card.");
 						return false;
 					}
 					const idA = Tools.toId(targets[0]);
@@ -408,6 +418,136 @@ const commands: GameCommandDefinitions<BulbasaursUno> = {
 	},
 };
 
+const tests: GameFileTests<BulbasaursUno> = {
+	'action cards - greninja': {
+		test(game, format): void {
+			if (game.variant) return;
+
+			const greninja = game.actionCards.greninja;
+			assert(greninja);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
+			assert(greninja.getAutoPlayTarget(game, []));
+			assertStrictEqual(greninja.isPlayableTarget(game, ["Grass"]), true);
+			assertStrictEqual(greninja.isPlayableTarget(game, ["Poison"]), true);
+			assertStrictEqual(greninja.isPlayableTarget(game, ["Water", "Fire"]), false);
+			assertStrictEqual(greninja.isPlayableTarget(game, [""]), false);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Squirtle"));
+			assert(greninja.getAutoPlayTarget(game, []));
+			assertStrictEqual(game.actionCards.greninja.isPlayableTarget(game, ["Water"]), false);
+			assertStrictEqual(game.actionCards.greninja.isPlayableTarget(game, ["Fire"]), true);
+		},
+	},
+	'action cards - kecleon': {
+		test(game, format): void {
+			if (game.variant) return;
+
+			const kecleon = game.actionCards.kecleon;
+			assert(kecleon);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
+			assert(kecleon.getAutoPlayTarget(game, []));
+			assertStrictEqual(kecleon.isPlayableTarget(game, ["Red"]), true);
+			assertStrictEqual(kecleon.isPlayableTarget(game, ["Green"]), false);
+			assertStrictEqual(kecleon.isPlayableTarget(game, ["Red", "Yellow"]), false);
+			assertStrictEqual(kecleon.isPlayableTarget(game, [""]), false);
+		},
+	},
+	'action cards - magnemite': {
+		test(game, format): void {
+			if (game.variant) return;
+
+			const magnemite = game.actionCards.magnemite;
+			assert(magnemite);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
+			let hand = [game.pokemonToCard(Dex.getExistingPokemon("Magnemite")), game.pokemonToCard(Dex.getExistingPokemon("Ivysaur"))];
+			assert(magnemite.getAutoPlayTarget(game, hand));
+			assertStrictEqual(game.actionCards.magnemite.isPlayableTarget(game, ["Ivysaur"], hand), true);
+
+			hand = [game.pokemonToCard(Dex.getExistingPokemon("Magnemite")), game.pokemonToCard(Dex.getExistingPokemon("Squirtle"))];
+			assert(!magnemite.getAutoPlayTarget(game, hand));
+			assertStrictEqual(game.actionCards.magnemite.isPlayableTarget(game, ["Squirtle"], hand), false);
+
+			hand = [game.pokemonToCard(Dex.getExistingPokemon("Magnemite")), game.pokemonToCard(Dex.getExistingPokemon("Ivysaur")),
+				game.pokemonToCard(Dex.getExistingPokemon("Venusaur"))];
+			assert(magnemite.getAutoPlayTarget(game, hand));
+			assertStrictEqual(game.actionCards.magnemite.isPlayableTarget(game, ["Ivysaur", "Venusaur"], hand), true);
+
+			hand = [game.pokemonToCard(Dex.getExistingPokemon("Magnemite")), game.pokemonToCard(Dex.getExistingPokemon("Squirtle")),
+				game.pokemonToCard(Dex.getExistingPokemon("Charmander"))];
+			assert(!magnemite.getAutoPlayTarget(game, hand));
+			assertStrictEqual(game.actionCards.magnemite.isPlayableTarget(game, ["Ivysaur", "Venusaur"], hand), false);
+
+			hand = [game.pokemonToCard(Dex.getExistingPokemon("Magnemite")), game.pokemonToCard(Dex.getExistingPokemon("Ivysaur")),
+				game.pokemonToCard(Dex.getExistingPokemon("Squirtle"))];
+			assert(!magnemite.getAutoPlayTarget(game, hand));
+			assertStrictEqual(game.actionCards.magnemite.isPlayableTarget(game, ["Ivysaur", "Squirtle"], hand), false);
+		},
+	},
+	'action cards - doduo': {
+		test(game, format): void {
+			if (game.variant) return;
+
+			const doduo = game.actionCards.doduo;
+			assert(doduo);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
+			assert(doduo.getAutoPlayTarget(game, []));
+			assertStrictEqual(doduo.isPlayableTarget(game, []), true);
+		},
+	},
+	'action cards - machamp': {
+		test(game, format): void {
+			if (game.variant) return;
+
+			const machamp = game.actionCards.machamp;
+			assert(machamp);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
+			assert(machamp.getAutoPlayTarget(game, []));
+			assertStrictEqual(machamp.isPlayableTarget(game, []), true);
+		},
+	},
+	'action cards - inkay': {
+		test(game, format): void {
+			if (game.variant) return;
+
+			const inkay = game.actionCards.inkay;
+			assert(inkay);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
+			assert(inkay.getAutoPlayTarget(game, []));
+			assertStrictEqual(inkay.isPlayableTarget(game, []), true);
+		},
+	},
+	'action cards - slaking': {
+		test(game, format): void {
+			if (game.variant) return;
+
+			const slaking = game.actionCards.slaking;
+			assert(slaking);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
+			assert(slaking.getAutoPlayTarget(game, []));
+			assertStrictEqual(slaking.isPlayableTarget(game, []), true);
+		},
+	},
+	'action cards - spinda': {
+		test(game, format): void {
+			if (game.variant) return;
+
+			const spinda = game.actionCards.spinda;
+			assert(spinda);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
+			assert(spinda.getAutoPlayTarget(game, []));
+			assertStrictEqual(spinda.isPlayableTarget(game, []), true);
+		},
+	},
+};
+
 export const game: IGameFile<BulbasaursUno> = Games.copyTemplateProperties(cardGame, {
 	aliases: ["bulbasaurs", "uno", "bu"],
 	commandDescriptions: [Config.commandCharacter + "play [Pokemon]", Config.commandCharacter + "draw"],
@@ -419,4 +559,5 @@ export const game: IGameFile<BulbasaursUno> = Games.copyTemplateProperties(cardG
 	name: "Bulbasaur's Uno",
 	mascot: "Bulbasaur",
 	scriptedOnly: true,
+	tests,
 });
