@@ -419,6 +419,7 @@ export class Client {
 		console.log('Successfully connected');
 
 		if (this.challstr) this.reloginTimeout = setTimeout(() => this.login(), RELOGIN_SECONDS * 1000);
+		this.pingServer();
 		this.setServerLatencyInterval();
 		await Dex.fetchClientData();
 	}
