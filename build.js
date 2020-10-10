@@ -183,7 +183,8 @@ module.exports = async (resolve, reject, options) => {
 		}
 
 		const pokemonShowdownDist = [path.join(pokemonShowdown, ".config-dist"), path.join(pokemonShowdown, ".data-dist"),
-			path.join(pokemonShowdown, ".lib-dist"), path.join(pokemonShowdown, ".server-dist"), path.join(pokemonShowdown, ".sim-dist")];
+			path.join(pokemonShowdown, ".lib-dist"), path.join(pokemonShowdown, ".server-dist"), path.join(pokemonShowdown, ".sim-dist"),
+			path.join(pokemonShowdown, ".translations-dist")];
 		let buildPokemonShowdown = false;
 		if (setToLanetteSha) {
 			buildPokemonShowdown = true;
