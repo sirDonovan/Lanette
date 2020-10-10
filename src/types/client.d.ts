@@ -2,6 +2,21 @@ import type { IFormat } from "./dex";
 import type { RoomType } from "./rooms";
 import type { ITournamentEndJson, ITournamentUpdateJson } from "./tournaments";
 
+export interface ISendQueueItem {
+	message: string;
+	messageToMeasure?: IMessageToMeasure;
+}
+
+export type IMessageTypes = 'chat' | 'html' | 'uhtml' | 'pm' | 'pmhtml' | 'pmuhtml';
+export interface IMessageToMeasure {
+	type: IMessageTypes;
+	html?: string;
+	message?: string;
+	sentTime?: number;
+	uhtmlName?: string;
+	user?: string;
+}
+
 export type GroupName = 'locked' | 'muted' | 'regularuser' | 'prizewinner' | 'voice' | 'player' | 'bot' | 'driver' | 'moderator' | 'host' |
 	'roomowner' | 'administrator';
 

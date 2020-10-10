@@ -9,7 +9,8 @@ import type { UserHostedGame } from './room-game-user-hosted';
 import type { Room } from './rooms';
 import type {
 	GroupName, IClientMessageTypes,
-	ILoginOptions, IRoomInfoResponse, IRoomsResponse,
+	ILoginOptions, IMessageToMeasure, IRoomInfoResponse, IRoomsResponse,
+	ISendQueueItem,
 	IServerConfig, IServerGroup, ITournamentMessageTypes, IUserDetailsResponse, QueryResponseType,
 	ServerGroupData
 } from './types/client';
@@ -27,8 +28,9 @@ const TRUSTED_MESSAGE_THROTTLE = 100;
 const SERVER_THROTTLE_BUFFER_LIMIT = 6;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
-const SERVER_LATENCY_INTERVAL = 10 * 1000;
-const TEMPORARY_THROTTLED_MESSAGE_COOLDOWN = 5 * 60 * 1000;
+const SERVER_LATENCY_INTERVAL = 30 * 1000;
+const ASSUMED_SERVER_LATENCY = 1;
+const ASSUMED_SERVER_PROCESSING_TIME = 1;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
 const UHTML_CHAT_COMMAND = '/uhtml ';
@@ -176,6 +178,7 @@ export class Client {
 	filterRegularExpressions: RegExp[] | null = null;
 	groupSymbols: KeyedDict<GroupName, string> = DEFAULT_GROUP_SYMBOLS;
 	incomingMessageQueue: Data[] = [];
+	lastMessageToMeasure: IMessageToMeasure | null = null;
 	lastSendTimeoutTime: number = 0;
 	lastSentMessage: string = '';
 	loggedIn: boolean = false;
@@ -189,18 +192,17 @@ export class Client {
 	reloadInProgress: boolean = false;
 	replayServerAddress: string = Config.replayServer || REPLAY_SERVER_ADDRESS;
 	roomsToRejoin: string[] = [];
-	sendQueue: string[] = [];
+	sendQueue: ISendQueueItem[] = [];
 	sendThrottle: number = Config.trustedUser ? TRUSTED_MESSAGE_THROTTLE : REGULAR_MESSAGE_THROTTLE;
 	sendTimeout: NodeJS.Timer | true | undefined = undefined;
 	server: string = Config.server || Tools.mainServer;
 	serverGroups: Dict<IServerGroup> = {};
 	serverGroupsResponse: ServerGroupData[] = DEFAULT_SERVER_GROUPS;
 	serverId: string = 'showdown';
-	serverLatency: number = 1;
-	serverTimeOffset: number = 0;
+	serverLatency: number = ASSUMED_SERVER_LATENCY;
 	serverLatencyInterval: NodeJS.Timer | null = null;
-	throttledMessageCount: number = 0;
-	throttledMessageTimeout: NodeJS.Timer | null = null;
+	serverTimeOffset: number = 0;
+	serverProcessingTime: number = ASSUMED_SERVER_PROCESSING_TIME;
 	waitingOnServerPong: boolean = false;
 	webSocket: import('ws') | null = null;
 
@@ -282,9 +284,9 @@ export class Client {
 			if (this.reloadInProgress || this !== global.Client || pongListener !== newPongListener) return;
 
 			if (pingTime) {
-				this.serverLatency = Math.ceil((Date.now() - pingTime) / 2) || 1;
+				this.serverLatency = Math.ceil((Date.now() - pingTime) / 2) || ASSUMED_SERVER_LATENCY;
 			} else {
-				this.serverLatency = 1;
+				this.serverLatency = ASSUMED_SERVER_LATENCY;
 			}
 
 			if (this.pauseOutgoingMessages) {
@@ -314,15 +316,11 @@ export class Client {
 		if (previous.serverLatencyInterval) clearInterval(previous.serverLatencyInterval);
 		if (previous.failedPingTimeout) clearTimeout(previous.failedPingTimeout);
 		if (previous.reloginTimeout) clearTimeout(previous.reloginTimeout);
-		if (previous.throttledMessageTimeout) clearTimeout(previous.throttledMessageTimeout);
 
 		if (previous.lastSendTimeoutTime) this.lastSendTimeoutTime = previous.lastSendTimeoutTime;
 		if (previous.lastSentMessage) this.lastSentMessage = previous.lastSentMessage;
 		if (previous.serverLatency) this.serverLatency = previous.serverLatency;
-		if (previous.throttledMessageCount) {
-			this.throttledMessageCount = previous.throttledMessageCount;
-			this.setThrottledMessageTimeout();
-		}
+		if (previous.serverProcessingTime) this.serverProcessingTime = previous.serverProcessingTime;
 
 		if (previous.sendQueue) this.sendQueue = previous.sendQueue.slice();
 		if (previous.connected) this.connected = previous.connected;
@@ -530,6 +528,7 @@ export class Client {
 			return;
 		}
 
+		const now = Date.now();
 		const lines = webSocketData.split("\n");
 		let room: Room;
 		if (lines[0].startsWith('>')) {
@@ -541,22 +540,22 @@ export class Client {
 		for (let i = 0; i < lines.length; i++) {
 			if (!lines[i]) continue;
 			try {
-				this.parseMessage(room, lines[i]);
+				this.parseMessage(room, lines[i], now);
 				if (lines[i].startsWith('|init|')) {
 					const page = room.type === 'html';
 					const chat = !page && room.type === 'chat';
 					for (let j = i + 1; j < lines.length; j++) {
 						if (page) {
 							if (lines[j].startsWith('|pagehtml|')) {
-								this.parseMessage(room, lines[j]);
+								this.parseMessage(room, lines[j], now);
 								break;
 							}
 						} else if (chat) {
 							if (lines[j].startsWith('|users|')) {
-								this.parseMessage(room, lines[j]);
+								this.parseMessage(room, lines[j], now);
 								for (let k = j + 1; k < lines.length; k++) {
 									if (lines[k].startsWith('|:|')) {
-										this.parseMessage(room, lines[k]);
+										this.parseMessage(room, lines[k], now);
 										break;
 									}
 								}
@@ -573,7 +572,7 @@ export class Client {
 		}
 	}
 
-	parseMessage(room: Room, rawMessage: string): void {
+	parseMessage(room: Room, rawMessage: string, now: number): void {
 		let message: string;
 		let messageType: keyof IClientMessageTypes;
 		if (!rawMessage.startsWith("|")) {
@@ -810,7 +809,6 @@ export class Client {
 				this.sendThrottle = TRUSTED_MESSAGE_THROTTLE;
 			}
 
-			const now = Date.now();
 			Storage.updateLastSeen(user, now);
 			if (Config.allowMail && messageArguments.rank !== this.groupSymbols.locked) Storage.retrieveOfflineMessages(user);
 			if ((!room.game || room.game.isMiniGame) && !room.userHostedGame && (!(user.id in this.botGreetingCooldowns) ||
@@ -850,7 +848,6 @@ export class Client {
 
 			room.onUserLeave(user);
 
-			const now = Date.now();
 			Storage.updateLastSeen(user, now);
 			if (room.logChatMessages) {
 				Storage.logChatMessage(room, now, 'L', (rank ? rank : "") + user.name);
@@ -917,6 +914,10 @@ export class Client {
 			if (user === Users.self) {
 				if (messageArguments.message.startsWith(HTML_CHAT_COMMAND)) {
 					const html = messageArguments.message.substr(HTML_CHAT_COMMAND.length);
+					if (this.lastMessageToMeasure && this.lastMessageToMeasure.type === 'html' && this.lastMessageToMeasure.html === html) {
+						this.calculateServerProcessingTime(now);
+					}
+
 					room.addHtmlChatLog(html);
 
 					const htmlId = Tools.toId(Tools.unescapeHTML(html));
@@ -938,6 +939,11 @@ export class Client {
 					if (commaIndex !== -1) {
 						const name = uhtml.substr(0, commaIndex);
 						const html = uhtml.substr(commaIndex + 1);
+						if (this.lastMessageToMeasure && this.lastMessageToMeasure.type === 'uhtml' &&
+							Tools.toId(this.lastMessageToMeasure.uhtmlName) === name && this.lastMessageToMeasure.html === html) {
+							this.calculateServerProcessingTime(now);
+						}
+
 						if (!uhtmlChange) room.addUhtmlChatLog(name, html);
 
 						const id = Tools.toId(name);
@@ -949,6 +955,11 @@ export class Client {
 							}
 						}
 					} else {
+						if (this.lastMessageToMeasure && this.lastMessageToMeasure.type === 'chat' &&
+							this.lastMessageToMeasure.message === messageArguments.message) {
+							this.calculateServerProcessingTime(now);
+						}
+
 						room.addChatLog(messageArguments.message);
 
 						const id = Tools.toId(messageArguments.message);
@@ -1026,6 +1037,12 @@ export class Client {
 					const id = Tools.toId(name);
 					const html = uhtml.substr(commaIndex + 1);
 
+					if (this.lastMessageToMeasure && this.lastMessageToMeasure.type === 'pmuhtml' &&
+						this.lastMessageToMeasure.user === recipient.id && Tools.toId(this.lastMessageToMeasure.uhtmlName) === name &&
+						this.lastMessageToMeasure.html === html) {
+						this.calculateServerProcessingTime(now);
+					}
+
 					if (!isUhtmlChange) user.addUhtmlChatLog(name, html);
 
 					if (recipient.uhtmlMessageListeners) {
@@ -1039,6 +1056,11 @@ export class Client {
 					}
 				} else if (isHtml) {
 					const html = messageArguments.message.substr(messageArguments.message.indexOf(" ") + 1);
+					if (this.lastMessageToMeasure && this.lastMessageToMeasure.type === 'pmhtml' &&
+						this.lastMessageToMeasure.user === recipient.id && this.lastMessageToMeasure.html === html) {
+						this.calculateServerProcessingTime(now);
+					}
+
 					user.addHtmlChatLog(html);
 
 					if (recipient.htmlMessageListeners) {
@@ -1049,6 +1071,11 @@ export class Client {
 						}
 					}
 				} else {
+					if (this.lastMessageToMeasure && this.lastMessageToMeasure.type === 'pm' &&
+						this.lastMessageToMeasure.user === recipient.id && this.lastMessageToMeasure.message === messageArguments.message) {
+						this.calculateServerProcessingTime(now);
+					}
+
 					user.addChatLog(messageArguments.message);
 
 					if (recipient.messageListeners) {
@@ -1120,18 +1147,8 @@ export class Client {
 
 			if (messageArguments.html === '<strong class="message-throttle-notice">Your message was not sent because you\'ve been ' +
 				'typing too quickly.</strong>') {
-				if (this.sendTimeout) {
-					if (this.sendTimeout === true) {
-						delete this.sendTimeout;
-					} else {
-						clearTimeout(this.sendTimeout);
-					}
-				}
-
-				this.throttledMessageCount++;
-				this.setThrottledMessageTimeout();
-
-				this.sendQueue.unshift(this.lastSentMessage);
+				this.clearSendTimeout();
+				this.sendQueue.unshift({message: this.lastSentMessage});
 				this.setSendTimeout(this.getSendThrottle() * SERVER_THROTTLE_BUFFER_LIMIT);
 			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
 				room.modchat = messageArguments.html.split('<div class="broadcast-red"><strong>Moderated chat was set to ')[1]
@@ -1303,7 +1320,6 @@ export class Client {
 					room.tournament.end();
 				}
 				const database = Storage.getDatabase(room);
-				const now = Date.now();
 
 				// delayed scheduled tournament
 				if (room.id in Tournaments.nextScheduledTournaments && Tournaments.nextScheduledTournaments[room.id].time <= now) {
@@ -1728,10 +1744,10 @@ export class Client {
 		return this.getPmUserButton(Users.self, message, label, disabled);
 	}
 
-	send(message: string): void {
+	send(message: string, messageToMeasure?: IMessageToMeasure): void {
 		if (!message) return;
 		if (!this.webSocket || !this.connected || this.sendTimeout || this.pauseOutgoingMessages) {
-			this.sendQueue.push(message);
+			this.sendQueue.push({message, messageToMeasure});
 			return;
 		}
 
@@ -1742,17 +1758,25 @@ export class Client {
 		this.sendTimeout = true;
 		this.webSocket.send(message, () => {
 			if (this.sendTimeout === true && !this.reloadInProgress && this === global.Client) {
+				if (messageToMeasure) {
+					messageToMeasure.sentTime = Date.now();
+					this.lastMessageToMeasure = messageToMeasure;
+				}
 				this.lastSentMessage = message;
 				this.setSendTimeout();
 			}
 		});
 	}
 
-	getSendThrottle(): number {
-		let throttle = this.sendThrottle + this.serverLatency;
-		if (this.throttledMessageCount) throttle += (this.throttledMessageCount * throttle);
+	calculateServerProcessingTime(responseTime: number): void {
+		let serverProcessingTime = responseTime - this.lastMessageToMeasure!.sentTime! - this.serverLatency;
+		if (serverProcessingTime < ASSUMED_SERVER_PROCESSING_TIME) serverProcessingTime = ASSUMED_SERVER_PROCESSING_TIME;
+		this.serverProcessingTime = serverProcessingTime;
+		this.lastMessageToMeasure = null;
+	}
 
-		return throttle;
+	getSendThrottle(): number {
+		return this.sendThrottle + this.serverLatency + this.serverProcessingTime;
 	}
 
 	clearSendTimeout(): void {
@@ -1772,18 +1796,10 @@ export class Client {
 
 			delete this.sendTimeout;
 			if (!this.sendQueue.length) return;
-			const message = this.sendQueue[0];
+			const item = this.sendQueue[0];
 			this.sendQueue.shift();
-			this.send(message);
+			this.send(item.message, item.messageToMeasure);
 		}, time);
-	}
-
-	setThrottledMessageTimeout(): void {
-		if (this.throttledMessageTimeout) clearTimeout(this.throttledMessageTimeout);
-		this.throttledMessageTimeout = setTimeout(() => {
-			this.throttledMessageCount--;
-			if (this.throttledMessageCount) this.setThrottledMessageTimeout();
-		}, TEMPORARY_THROTTLED_MESSAGE_COOLDOWN);
 	}
 
 	login(): void {

@@ -2,8 +2,8 @@ import type { Player } from "./room-activity";
 import type { ScriptedGame } from "./room-game-scripted";
 import type { UserHostedGame } from "./room-game-user-hosted";
 import type { Tournament } from "./room-tournament";
-import type { GroupName, IChatLogEntry, IRoomInfoResponse } from "./types/client";
-import type { IRepeatedMessage, RoomType } from "./types/rooms";
+import type { GroupName, IChatLogEntry, IMessageToMeasure, IRoomInfoResponse } from "./types/client";
+import type { IRepeatedMessage, IRoomMessageOptions, RoomType } from "./types/rooms";
 import type { IUserHostedTournament } from "./types/tournaments";
 import type { User } from "./users";
 
@@ -112,58 +112,80 @@ export class Room {
 		if (!user.rooms.size) Users.remove(user);
 	}
 
-	say(message: string, dontPrepare?: boolean, dontCheckFilter?: boolean): void {
-		if (!dontPrepare) message = Tools.prepareMessage(message);
-		if (!dontCheckFilter && Client.willBeFiltered(message, this)) return;
-		Client.send(this.sendId + "|" + message);
+	say(message: string, options?: IRoomMessageOptions): void {
+		if (!(options && options.dontPrepare)) message = Tools.prepareMessage(message);
+		if (!(options && options.dontCheckFilter) && Client.willBeFiltered(message, this)) return;
+
+		let messageToMeasure: IMessageToMeasure | undefined;
+		if (!(options && options.dontMeasure)) {
+			messageToMeasure = {
+				type: options && options.type ? options.type : 'chat',
+			};
+
+			if (options && options.html) {
+				messageToMeasure.html = options.html;
+				if (options.uhtmlName) messageToMeasure.uhtmlName = options.uhtmlName;
+			} else {
+				messageToMeasure.message = message;
+			}
+		}
+
+		Client.send(this.sendId + "|" + message, messageToMeasure);
 	}
 
 	sayCommand(command: string, dontCheckFilter?: boolean): void {
-		this.say(command, true, dontCheckFilter);
+		this.say(command, {dontCheckFilter, dontPrepare: true, dontMeasure: true});
 	}
 
 	sayHtml(html: string): void {
-		this.say("/addhtmlbox " + html, true, true);
+		this.say("/addhtmlbox " + html, {html: Client.getListenerHtml(html), dontCheckFilter: true, dontPrepare: true, type: 'html'});
 	}
 
 	sayUhtml(uhtmlName: string, html: string): void {
-		this.say("/adduhtml " + uhtmlName + ", " + html, true, true);
+		this.say("/adduhtml " + uhtmlName + ", " + html,
+			{uhtmlName, html: Client.getListenerUhtml(html), dontCheckFilter: true, dontPrepare: true, type: 'uhtml'});
 	}
 
 	sayUhtmlChange(uhtmlName: string, html: string): void {
-		this.say("/changeuhtml " + uhtmlName + ", " + html, true, true);
+		this.say("/changeuhtml " + uhtmlName + ", " + html,
+			{uhtmlName, html: Client.getListenerUhtml(html), dontCheckFilter: true, dontPrepare: true, type: 'uhtml'});
 	}
 
 	sayAuthUhtml(uhtmlName: string, html: string): void {
-		this.say("/addrankuhtml +, " + uhtmlName + ", " + html, true, true);
+		this.say("/addrankuhtml +, " + uhtmlName + ", " + html, {dontCheckFilter: true, dontPrepare: true, dontMeasure: true});
 	}
 
 	sayAuthUhtmlChange(uhtmlName: string, html: string): void {
-		this.say("/changerankuhtml +, " + uhtmlName + ", " + html, true, true);
+		this.say("/changerankuhtml +, " + uhtmlName + ", " + html,
+			{dontCheckFilter: true, dontPrepare: true, dontMeasure: true});
 	}
 
 	sayModUhtml(uhtmlName: string, html: string, rank: GroupName): void {
-		this.say("/addrankuhtml " + Client.groupSymbols[rank] + ", " + uhtmlName + ", " + html, true, true);
+		this.say("/addrankuhtml " + Client.groupSymbols[rank] + ", " + uhtmlName + ", " + html,
+			{dontCheckFilter: true, dontPrepare: true, dontMeasure: true});
 	}
 
 	sayModUhtmlChange(uhtmlName: string, html: string, rank: GroupName): void {
-		this.say("/changerankuhtml " + Client.groupSymbols[rank] + ", " + uhtmlName + ", " + html, true, true);
+		this.say("/changerankuhtml " + Client.groupSymbols[rank] + ", " + uhtmlName + ", " + html,
+			{dontCheckFilter: true, dontPrepare: true, dontMeasure: true});
 	}
 
 	pmHtml(user: User | Player, html: string): void {
-		this.say("/pminfobox " + user.id + "," + html, true, true);
+		this.say("/pminfobox " + user.id + "," + html, {html, dontCheckFilter: true, dontPrepare: true, type: 'pmhtml', user: user.id});
 	}
 
 	pmUhtml(user: User | Player, uhtmlName: string, html: string): void {
-		this.say("/pmuhtml " + user.id + "," + uhtmlName + "," + html, true, true);
+		this.say("/pmuhtml " + user.id + "," + uhtmlName + "," + html,
+			{uhtmlName, html, dontCheckFilter: true, dontPrepare: true, type: 'pmuhtml', user: user.id});
 	}
 
 	pmUhtmlChange(user: User | Player, uhtmlName: string, html: string): void {
-		this.say("/pmuhtmlchange " + user.id + "," + uhtmlName + "," + html, true, true);
+		this.say("/pmuhtmlchange " + user.id + "," + uhtmlName + "," + html,
+			{uhtmlName, html, dontCheckFilter: true, dontPrepare: true, type: 'pmuhtml', user: user.id});
 	}
 
 	sendHtmlPage(user: User | Player, title: string, html: string): void {
-		this.say("/sendhtmlpage " + user.id + "," + title + "," + html, true, true);
+		this.say("/sendhtmlpage " + user.id + "," + title + "," + html, {dontCheckFilter: true, dontPrepare: true, dontMeasure: true});
 	}
 
 	on(message: string, listener: () => void): void {

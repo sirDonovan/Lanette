@@ -21,7 +21,7 @@ export class CommandContext {
 	}
 
 	say(message: string, dontPrepare?: boolean, dontCheckFilter?: boolean): void {
-		this.room.say(message, dontPrepare, dontCheckFilter);
+		this.room.say(message, {dontPrepare, dontCheckFilter});
 	}
 
 	sayCommand(message: string, dontCheckFilter?: boolean): void {

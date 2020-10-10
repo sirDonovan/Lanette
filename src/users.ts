@@ -1,7 +1,7 @@
 import type { ScriptedGame } from "./room-game-scripted";
 import type { Room } from "./rooms";
 import type { GroupName, IChatLogEntry } from "./types/client";
-import type { IUserRoomData } from "./types/users";
+import type { IUserMessageOptions, IUserRoomData } from "./types/users";
 
 const chatFormatting: string[] = ["*", "_", "`", "~", "^", "\\"];
 
@@ -80,14 +80,16 @@ export class User {
 		return !(status === 'busy' || status === 'idle' || status === 'away');
 	}
 
-	say(message: string, dontPrepare?: boolean, dontCheckFilter?: boolean): void {
-		if (!dontPrepare) message = Tools.prepareMessage(message);
-		if (!dontCheckFilter && Client.willBeFiltered(message)) return;
-		Client.send("|/pm " + this.name + ", " + message);
+	say(message: string, options?: IUserMessageOptions): void {
+		if (!(options && options.dontPrepare)) message = Tools.prepareMessage(message);
+		if (!(options && options.dontCheckFilter) && Client.willBeFiltered(message)) return;
+
+		Client.send("|/pm " + this.name + ", " + message, options && options.dontMeasure ? undefined :
+			{message, type: 'pm', user: this.id});
 	}
 
 	sayCommand(command: string, dontCheckFilter?: boolean): void {
-		this.say(command, true, dontCheckFilter);
+		this.say(command, {dontCheckFilter, dontPrepare: true, dontMeasure: true});
 	}
 
 	on(message: string, listener: () => void): void {
