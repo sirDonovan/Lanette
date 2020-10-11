@@ -20,6 +20,7 @@ const defaultOptionValues: Dict<IGameOptionValues> = {
 };
 
 export class ScriptedGame extends Game {
+	autoCloseHtmlPage: boolean = true;
 	awardedBits: boolean = false;
 	canLateJoin: boolean = false;
 	readonly commands = Object.assign(Object.create(null), Games.sharedCommands) as LoadedGameCommands;
@@ -128,7 +129,7 @@ export class ScriptedGame extends Game {
 
 	onInitialize(format: IGameFormat): void {
 		this.format = format;
-		this.baseHtmlPageTitle = this.room.id + "-" + this.format.id;
+		this.baseHtmlPageId = this.room.id + "-" + this.format.id;
 		this.setUhtmlBaseName('scripted');
 
 		if (format.commands) Object.assign(this.commands, format.commands);
@@ -344,6 +345,12 @@ export class ScriptedGame extends Game {
 			return;
 		}
 
+		if (this.usesHtmlPage && this.autoCloseHtmlPage) {
+			for (const i in this.players) {
+				this.players[i].closeHtmlPage();
+			}
+		}
+
 		if (this.onEnd) this.onEnd();
 
 		const now = Date.now();
@@ -381,12 +388,11 @@ export class ScriptedGame extends Game {
 			const forceEndMessage = this.getForceEndMessage ? this.getForceEndMessage() : "";
 			this.say("The " + this.name + " " + this.activityType + " was forcibly ended!" + (forceEndMessage ? " " +
 				forceEndMessage : ""));
+		}
 
-			if (this.usesHtmlPage) {
-				for (const i in this.players) {
-					if (this.players[i].eliminated) continue;
-					this.players[i].sendHtmlPage("<h3>The " + this.activityType + " was forcibly ended!</h3>");
-				}
+		if (this.usesHtmlPage && this.autoCloseHtmlPage) {
+			for (const i in this.players) {
+				this.players[i].closeHtmlPage();
 			}
 		}
 

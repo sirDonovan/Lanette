@@ -119,6 +119,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	advertisementInterval: NodeJS.Timer | null = null;
 	allowsFormes: boolean = true;
 	allowsScouting: boolean = false;
+	autoCloseHtmlPage = false;
 	availableMatchNodes: EliminationNode<Player>[] = [];
 	awaitingBracketUpdate = new Set<Player>();
 	banlist: string[] = [];
@@ -869,7 +870,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	updateSpectatorHtmlPage(user: User): void {
-		this.room.sendHtmlPage(user, this.baseHtmlPageTitle, this.htmlPageHeader + this.getSpectatorHtmlPage(user));
+		this.room.sendHtmlPage(user, this.baseHtmlPageId, this.htmlPageHeader + this.getSpectatorHtmlPage(user));
 	}
 
 	updateSpectatorHtmlPages(): void {

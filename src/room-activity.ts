@@ -53,9 +53,13 @@ export class Player {
 		this.activity.pmRoom.pmUhtmlChange(this, name || this.activity.uhtmlBaseName, html);
 	}
 
-	sendHtmlPage(html: string, title?: string): void {
+	sendHtmlPage(html: string, pageId?: string): void {
 		const page = "<div class='chat' style='margin-top: 5px;margin-left: 10px'>" + this.activity.htmlPageHeader + html + "</div>";
-		this.activity.pmRoom.sendHtmlPage(this, title || this.activity.baseHtmlPageTitle, page);
+		this.activity.pmRoom.sendHtmlPage(this, pageId || this.activity.baseHtmlPageId, page);
+	}
+
+	closeHtmlPage(pageId?: string): void {
+		this.activity.pmRoom.sendHtmlPage(this, pageId || this.activity.baseHtmlPageId, "|deinit|");
 	}
 
 	useCommand(command: string, target?: string): void {
@@ -93,7 +97,7 @@ export class PlayerTeam {
 
 export abstract class Activity {
 	readonly activityType: string = '';
-	baseHtmlPageTitle: string = '';
+	baseHtmlPageId: string = '';
 	readonly createTime: number = Date.now();
 	ended: boolean = false;
 	htmlMessageListeners: string[] = [];

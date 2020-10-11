@@ -184,8 +184,8 @@ export class Room {
 			{uhtmlName, html, dontCheckFilter: true, dontPrepare: true, type: 'pmuhtml', user: user.id});
 	}
 
-	sendHtmlPage(user: User | Player, title: string, html: string): void {
-		this.say("/sendhtmlpage " + user.id + "," + title + "," + html, {dontCheckFilter: true, dontPrepare: true, dontMeasure: true});
+	sendHtmlPage(user: User | Player, pageId: string, html: string): void {
+		this.say("/sendhtmlpage " + user.id + "," + pageId + "," + html, {dontCheckFilter: true, dontPrepare: true, dontMeasure: true});
 	}
 
 	on(message: string, listener: () => void): void {
