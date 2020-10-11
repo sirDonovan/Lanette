@@ -506,9 +506,10 @@ export class Tools {
 		}
 	}
 
-	getPermutations<T>(elements: T[], minimumLength?: number): T[][] {
+	getPermutations<T>(elements: T[], minimumLength?: number, maximumLength?: number): T[][] {
 		const length = elements.length;
 		if (minimumLength === undefined) minimumLength = length;
+		if (maximumLength === undefined) maximumLength = length;
 
 		const permutations: T[][] = [];
 		const elementsInUse = new Set<T>();
@@ -517,7 +518,7 @@ export class Tools {
 			const currentLength = currentPermutation.length;
 			if (currentLength >= minimumLength!) {
 				permutations.push(currentPermutation);
-				if (currentLength === length) return;
+				if (currentLength === maximumLength) return;
 			}
 
 			for (let i = 0; i < length; i++){
