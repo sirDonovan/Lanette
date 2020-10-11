@@ -165,6 +165,7 @@ export class Dex {
 	private readonly moveAvailbilityCache: Dict<number> = Object.create(null);
 	private readonly pokemonCache: Dict<IPokemon> = Object.create(null);
 	private pokemonList: readonly IPokemon[] | null = null;
+	private readonly pokemonFormesCache: Dict<string[]> = Object.create(null);
 	private readonly pseudoLCPokemonCache: Dict<boolean> = Object.create(null);
 	private readonly typeCache: Dict<ITypeData> = Object.create(null);
 	private readonly weaknessesCache: Dict<string[]> = Object.create(null);
@@ -598,6 +599,30 @@ export class Dex {
 
 	getPokemonCategory(pokemon: IPokemon): string {
 		return this.data.categories[pokemon.id] || '';
+	}
+
+	getPokemonFormes(pokemon: IPokemon): string[] {
+		if (Object.prototype.hasOwnProperty.call(this.pokemonFormesCache, pokemon.name)) return this.pokemonFormesCache[pokemon.name];
+
+		const baseSpecies = this.getExistingPokemon(pokemon.baseSpecies);
+		const formes: string[] = [baseSpecies.name];
+
+		if (baseSpecies.otherFormes) {
+			for (const otherForme of baseSpecies.otherFormes) {
+				const forme = this.getExistingPokemon(otherForme);
+				if (!forme.battleOnly) formes.push(forme.name);
+			}
+		}
+
+		if (baseSpecies.cosmeticFormes) {
+			for (const cosmeticForme of baseSpecies.cosmeticFormes) {
+				const forme = this.getExistingPokemon(cosmeticForme);
+				if (!forme.battleOnly) formes.push(forme.name);
+			}
+		}
+
+		this.pokemonFormesCache[pokemon.name] = formes;
+		return formes;
 	}
 
 	getAllPossibleMoves(pokemon: IPokemon): readonly string[] {
@@ -1237,19 +1262,21 @@ export class Dex {
 		const validator = new this.pokemonShowdownValidator(formatid, dexes['base'].pokemonShowdownDex);
 		if (!format.ruleTable) format.ruleTable = this.pokemonShowdownDex.getRuleTable(format);
 
-		const formatGen = format.mod in dexes ? dexes[format.mod].gen : this.gen;
+		const formatDex = format.mod in dexes ? dexes[format.mod] : this;
 		const littleCup = format.ruleTable.has("littlecup");
 		const usablePokemon: string[] = [];
-		for (const i of this.data.pokemonKeys) {
-			// use PS tier in isBannedSpecies()
-			const pokemon = this.pokemonShowdownDex.getSpecies(i);
-			if (pokemon.requiredAbility || pokemon.requiredItem || pokemon.requiredItems || pokemon.requiredMove ||
-				validator.checkSpecies({}, pokemon, pokemon, {})) continue;
-			if (littleCup) {
-				if ((pokemon.prevo && this.getExistingPokemon(pokemon.prevo).gen <= formatGen) || !pokemon.nfe) continue;
-			}
+		for (const i of formatDex.data.pokemonKeys) {
+			const formes = formatDex.getPokemonFormes(formatDex.getExistingPokemon(i));
+			for (const forme of formes) {
+				// use PS tier in isBannedSpecies()
+				const pokemon = formatDex.pokemonShowdownDex.getSpecies(forme);
+				if (pokemon.requiredAbility || pokemon.requiredItem || pokemon.requiredItems || pokemon.requiredMove ||
+					validator.checkSpecies({}, pokemon, pokemon, {})) continue;
 
-			usablePokemon.push(pokemon.name);
+			if (littleCup && !(pokemon.tier === 'LC' || formatDex.isPseudoLCPokemon(pokemon))) continue;
+
+				usablePokemon.push(pokemon.name);
+			}
 		}
 
 		format.usablePokemon = usablePokemon;

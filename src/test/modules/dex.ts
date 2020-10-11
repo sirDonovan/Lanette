@@ -385,6 +385,12 @@ describe("Dex", () => {
 	it('should return proper values from getUsablePokemon()', () => {
 		let usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("ou"));
 		assert(usablePokemon.includes(Dex.getExistingPokemon('Pikachu').name));
+		assert(usablePokemon.includes(Dex.getExistingPokemon('Pikachu-Sinnoh').name));
+		assert(usablePokemon.includes(Dex.getExistingPokemon('Gastrodon').name));
+		assert(usablePokemon.includes(Dex.getExistingPokemon('Gastrodon-East').name));
+		assert(usablePokemon.includes(Dex.getExistingPokemon('Meowth').name));
+		assert(usablePokemon.includes(Dex.getExistingPokemon('Meowth-Alola').name));
+		assert(usablePokemon.includes(Dex.getExistingPokemon('Meowth-Galar').name));
 		assert(!usablePokemon.includes(Dex.getExistingPokemon('Lunala').name));
 		assert(!usablePokemon.includes(Dex.getExistingPokemon('Voodoom').name));
 		assert(!usablePokemon.includes(Dex.getExistingPokemon('Missingno.').name));
@@ -403,6 +409,11 @@ describe("Dex", () => {
 		assert(!usablePokemon.includes(Dex.getExistingPokemon('Voodoom').name));
 		assert(!usablePokemon.includes(Dex.getExistingPokemon('Missingno.').name));
 		assert(!usablePokemon.includes(Dex.getExistingPokemon('Pokestar Smeargle').name));
+
+		usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("lc"));
+		assert(usablePokemon.includes(Dex.getExistingPokemon('Pawniard').name));
+		assert(usablePokemon.includes(Dex.getExistingPokemon('Pichu').name));
+		assert(!usablePokemon.includes(Dex.getExistingPokemon('Pikachu').name));
 	});
 	it('should return proper values from isPossibleTeam()', () => {
 		let teams = [['Charmander', 'Squirtle']];
@@ -414,6 +425,28 @@ describe("Dex", () => {
 		assert(Dex.isPossibleTeam(['Charmander', 'Squirtle'], teams));
 		assert(!Dex.isPossibleTeam(['Charmander'], teams));
 		assert(!Dex.isPossibleTeam(['Squirtle'], teams));
+	});
+	it('should return proper values from getPokemonFormes()', () => {
+		let formes = Dex.getPokemonFormes(Dex.getExistingPokemon('Bulbasaur'));
+		assertStrictEqual(formes.length, 1);
+		assert(formes.includes("Bulbasaur"));
+
+		formes = Dex.getPokemonFormes(Dex.getExistingPokemon('Meowth'));
+		assertStrictEqual(formes.length, 3);
+		assert(formes.includes("Meowth"));
+		assert(formes.includes("Meowth-Alola"));
+		assert(formes.includes("Meowth-Galar"));
+
+		formes = Dex.getPokemonFormes(Dex.getExistingPokemon('Meowth-Alola'));
+		assertStrictEqual(formes.length, 3);
+		assert(formes.includes("Meowth"));
+		assert(formes.includes("Meowth-Alola"));
+		assert(formes.includes("Meowth-Galar"));
+
+		formes = Dex.getPokemonFormes(Dex.getExistingPokemon('Gastrodon'));
+		assertStrictEqual(formes.length, 2);
+		assert(formes.includes("Gastrodon"));
+		assert(formes.includes("Gastrodon-East"));
 	});
 	it('should return proper values from getFormeCombinations()', () => {
 		let combinations = Dex.getFormeCombinations(['Bulbasaur']).map(x => x.join(","));
