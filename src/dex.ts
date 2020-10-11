@@ -1464,33 +1464,33 @@ export class Dex {
 		return html.join("<br />");
 	}
 
-	getFormeCombinations(pool: readonly IPokemon[] | readonly string[]): string[][] {
+	getFormeCombinations(pool: readonly string[], usablePokemon?: readonly string[]): string[][] {
 		const poolByFormes: string[][] = [];
 		for (const name of pool) {
-			const pokemon = typeof name === 'string' ? this.getExistingPokemon(name) : name;
-			const baseSpecies = this.getExistingPokemon(pokemon.baseSpecies);
-			const formes: string[] = [baseSpecies.name];
-			if (baseSpecies.otherFormes) {
-				for (const otherForme of baseSpecies.otherFormes) {
-					const forme = this.getExistingPokemon(otherForme);
-					if (!forme.battleOnly) formes.push(forme.name);
+			const formes = this.getPokemonFormes(this.getExistingPokemon(name));
+			let filteredFormes: string[] = [];
+			if (usablePokemon) {
+				for (const forme of formes) {
+					if (usablePokemon.includes(forme)) filteredFormes.push(forme);
 				}
+			} else {
+				filteredFormes = formes;
 			}
 
-			poolByFormes.push(formes);
+			poolByFormes.push(filteredFormes);
 		}
 
 		return Tools.getCombinations(...poolByFormes);
 	}
 
-	getPossibleTeams(previousTeams: readonly string[][], pool: readonly IPokemon[] | readonly string[], options: IGetPossibleTeamsOptions):
+	getPossibleTeams(previousTeams: readonly string[][], pool: readonly string[], options: IGetPossibleTeamsOptions):
 		string[][] {
 		const additions = options.additions || 0;
 		let evolutions = options.evolutions || 0;
 
 		let combinations: string[][];
 		if (options.allowFormes) {
-			combinations = this.getFormeCombinations(pool);
+			combinations = this.getFormeCombinations(pool, options.usablePokemon);
 		} else {
 			const names: string[] = [];
 			for (const pokemon of pool) {

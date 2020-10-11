@@ -943,7 +943,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 		const team = this.getStartingTeam();
 		if (team.length < this.startingTeamsLength) throw new Error("Out of Pokemon to give (" + player.name + ")");
 
-		this.possibleTeams.set(player, Dex.getFormeCombinations(team));
+		this.possibleTeams.set(player, Dex.getFormeCombinations(team, this.battleFormat.usablePokemon));
 		this.starterPokemon.set(player, team);
 		this.updatePlayerHtmlPage(player);
 	}

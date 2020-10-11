@@ -453,6 +453,22 @@ describe("Dex", () => {
 		assertStrictEqual(combinations.length, 1);
 		assert(combinations.includes("Bulbasaur"));
 
+		combinations = Dex.getFormeCombinations(['Meowth']).map(x => x.join(","));
+		assertStrictEqual(combinations.length, 3);
+		assert(combinations.includes("Meowth"));
+		assert(combinations.includes("Meowth-Alola"));
+		assert(combinations.includes("Meowth-Galar"));
+
+		combinations = Dex.getFormeCombinations(['Meowth'], ['Meowth', 'Meowth-Alola']).map(x => x.join(","));
+		assertStrictEqual(combinations.length, 2);
+		assert(combinations.includes("Meowth"));
+		assert(combinations.includes("Meowth-Alola"));
+
+		combinations = Dex.getFormeCombinations(['Gastrodon']).map(x => x.join(","));
+		assertStrictEqual(combinations.length, 2);
+		assert(combinations.includes("Gastrodon"));
+		assert(combinations.includes("Gastrodon-East"));
+
 		combinations = Dex.getFormeCombinations(['Bulbasaur', 'Meowth']).map(x => x.join(","));
 		assertStrictEqual(combinations.length, 3);
 		assert(combinations.includes("Bulbasaur,Meowth"));
