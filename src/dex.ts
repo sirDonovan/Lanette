@@ -1485,40 +1485,36 @@ export class Dex {
 
 	getPossibleTeams(previousTeams: readonly string[][], pool: readonly string[], options: IGetPossibleTeamsOptions):
 		string[][] {
-		const additions = options.additions || 0;
+		let additions = options.additions || 0;
 		let evolutions = options.evolutions || 0;
+
+		const filteredPool: string[] = [];
+		for (const item of pool) {
+			let name = item;
+			if (options.allowFormes) {
+				name = this.getExistingPokemon(name).baseSpecies;
+			}
+
+			if (!options.usablePokemon || options.usablePokemon.includes(name)) filteredPool.push(name);
+		}
+		additions = Math.min(additions, filteredPool.length);
 
 		let combinations: string[][];
 		if (options.allowFormes) {
-			combinations = this.getFormeCombinations(pool, options.usablePokemon);
+			combinations = this.getFormeCombinations(filteredPool, options.usablePokemon);
 		} else {
-			const names: string[] = [];
-			for (const pokemon of pool) {
-				if (typeof pokemon === 'string') {
-					names.push(this.getExistingPokemon(pokemon).name);
-				} else {
-					names.push(pokemon.name);
-				}
-			}
-
-			combinations = [names];
+			combinations = [filteredPool];
 		}
 
-		const possibleAdditions: string[][] = [];
+		const additionChoices: string[][] = [];
 		const checkedPermutations: Dict<boolean> = {};
 		for (const combination of combinations) {
-			const permutations = Tools.getPermutations(combination, 1);
+			const permutations = Tools.getPermutations(combination, 1, additions);
 			for (const permutation of permutations) {
-				const sorted = permutation.slice();
-				sorted.sort();
-				const key = sorted.join(',');
+				const key = permutation.slice().sort().join(',');
 				if (key in checkedPermutations) continue;
 				checkedPermutations[key] = true;
-				if (options.usablePokemon) {
-					if (permutation.map(x => options.usablePokemon!.includes(x)).length < permutation.length) continue;
-				}
-
-				if (permutation.length <= additions) possibleAdditions.push(permutation);
+				if (permutation.length <= additions) additionChoices.push(permutation);
 			}
 		}
 
@@ -1530,7 +1526,7 @@ export class Dex {
 			baseTeams = previousTeams.slice();
 		}
 
-		for (const pokemon of possibleAdditions) {
+		for (const pokemon of additionChoices) {
 			for (const previousTeam of previousTeams) {
 				let team = previousTeam.slice();
 				team = team.concat(pokemon);
@@ -1539,17 +1535,17 @@ export class Dex {
 			}
 		}
 
-		let finalTeams: string[][];
+		let teamsAfterEvolutions: string[][];
 		if (options.requiredEvolution) {
-			finalTeams = [];
+			teamsAfterEvolutions = [];
 		} else {
 			// not evolving Pokemon
-			finalTeams = baseTeams.slice();
+			teamsAfterEvolutions = baseTeams.slice();
 		}
 
 		let currentTeams = baseTeams.slice();
 		const nextTeams: string[][] = [];
-		const checkedTeams: string[] = [];
+		const checkedTeams: Dict<boolean> = {};
 		if (evolutions > 0) {
 			while (evolutions > 0) {
 				for (const team of currentTeams) {
@@ -1578,19 +1574,20 @@ export class Dex {
 						for (const name of evos) {
 							if (options.usablePokemon && !options.usablePokemon.includes(name)) continue;
 
-							if (!availableEvolutions) availableEvolutions = true;
 							const newTeam = team.slice();
 							newTeam[pokemonSlot] = name;
 
 							const key = newTeam.slice().sort().join(',');
-							if (checkedTeams.includes(key)) continue;
+							if (key in checkedTeams) continue;
+							checkedTeams[key] = true;
 
-							finalTeams.push(newTeam);
+							teamsAfterEvolutions.push(newTeam);
 							nextTeams.push(newTeam);
-							checkedTeams.push(key);
+							if (!availableEvolutions) availableEvolutions = true;
 						}
 					}
-					if (!availableEvolutions) finalTeams.push(team);
+
+					if (!availableEvolutions) teamsAfterEvolutions.push(team);
 				}
 				currentTeams = nextTeams;
 				evolutions--;
@@ -1622,32 +1619,33 @@ export class Dex {
 						for (const name of prevos) {
 							if (options.usablePokemon && !options.usablePokemon.includes(name)) continue;
 
-							if (!availableEvolutions) availableEvolutions = true;
 							const newTeam = team.slice();
 							newTeam[pokemonSlot] = name;
 
 							const key = newTeam.slice().sort().join(',');
-							if (checkedTeams.includes(key)) continue;
+							if (key in checkedTeams) continue;
+							checkedTeams[key] = true;
 
-							finalTeams.push(newTeam);
+							teamsAfterEvolutions.push(newTeam);
 							nextTeams.push(newTeam);
-							checkedTeams.push(key);
+							if (!availableEvolutions) availableEvolutions = true;
 						}
 					}
-					if (!availableEvolutions) finalTeams.push(team);
+
+					if (!availableEvolutions) teamsAfterEvolutions.push(team);
 				}
 				currentTeams = nextTeams;
 				evolutions++;
 			}
 		}
 
-		for (const team of finalTeams) {
+		for (const team of teamsAfterEvolutions) {
 			team.sort();
 		}
 
-		finalTeams.sort((a, b) => a.length - b.length);
+		teamsAfterEvolutions.sort((a, b) => a.length - b.length);
 
-		return finalTeams;
+		return teamsAfterEvolutions;
 	}
 
 	includesPokemon(team: IPokemon[] | string[], requiredPokemon: string[]): boolean {
