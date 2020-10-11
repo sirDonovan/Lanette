@@ -298,6 +298,12 @@ describe("Dex", () => {
 		assertStrictEqual(Dex.getEffectiveness(Dex.getExistingMove('Tackle'), ['Ghost']), 0);
 		assertStrictEqual(Dex.getEffectiveness(Dex.getExistingMove('Tackle'), Dex.getExistingPokemon('Duskull')), 0);
 	});
+	it('should return proper values from isPseudoLCPokemon()', () => {
+		assertStrictEqual(Dex.isPseudoLCPokemon(Dex.getExistingPokemon('Pichu')), false);
+		assertStrictEqual(Dex.isPseudoLCPokemon(Dex.getExistingPokemon('Pikachu')), false);
+		assertStrictEqual(Dex.isPseudoLCPokemon(Dex.getExistingPokemon('Raichu')), false);
+		assertStrictEqual(Dex.isPseudoLCPokemon(Dex.getExistingPokemon('Pawniard')), true);
+	});
 	it('should return proper values from getEvolutionLines()', () => {
 		const pokemonList = ['Charmander', 'Charmeleon', 'Charizard'];
 		for (const pokemon of pokemonList) {

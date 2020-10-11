@@ -1716,9 +1716,10 @@ export class Dex {
 			return;
 		}
 
-		let invalidEvent = true;
+		let invalidEvent: boolean | undefined;
 		const learnsetData = this.getLearnsetData(pokemon.id);
 		if (learnsetData && learnsetData.eventData && learnsetData.eventOnly) {
+			invalidEvent = true;
 			for (const event of learnsetData.eventData) {
 				if (event.level && event.level <= 5)  {
 					invalidEvent = false;
