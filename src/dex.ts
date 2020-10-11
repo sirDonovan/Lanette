@@ -1273,7 +1273,7 @@ export class Dex {
 				if (pokemon.requiredAbility || pokemon.requiredItem || pokemon.requiredItems || pokemon.requiredMove ||
 					validator.checkSpecies({}, pokemon, pokemon, {})) continue;
 
-			if (littleCup && !(pokemon.tier === 'LC' || formatDex.isPseudoLCPokemon(pokemon))) continue;
+				if (littleCup && !(pokemon.tier === 'LC' || formatDex.isPseudoLCPokemon(pokemon))) continue;
 
 				usablePokemon.push(pokemon.name);
 			}
@@ -1722,7 +1722,13 @@ export class Dex {
 				break;
 			}
 
-			if (learnsetData && learnsetData.learnset) possibleMoves = possibleMoves.concat(Object.keys(learnsetData.learnset));
+			if (learnsetData && learnsetData.learnset) {
+				if (learnsetData.learnset.sketch) {
+					possibleMoves = Object.keys(this.pokemonShowdownDex.data.Moves);
+					break;
+				}
+				possibleMoves = possibleMoves.concat(Object.keys(learnsetData.learnset));
+			}
 
 			const previousLearnsetParent: IPokemon = learnsetParent;
 			learnsetParent = validator.learnsetParent(learnsetParent);

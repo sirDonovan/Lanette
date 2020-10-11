@@ -240,6 +240,11 @@ const tests: GameFileTests<ParasParameters> = {
 			assertStrictEqual(intersection.pokemon.join(","), "aggron,arceussteel,durant,empoleon,excadrill,ferroseed,ferrothorn," +
 				"heatran,registeel,steelix");
 
+			intersection = await game.intersect(['rockclimb', 'fly']);
+			assert(intersection);
+			assertStrictEqual(intersection.params.length, 2);
+			assertStrictEqual(intersection.pokemon.join(","), "arceus,giratina,smeargle");
+
 			// past gen
 
 			game.format.options.gen = 7;

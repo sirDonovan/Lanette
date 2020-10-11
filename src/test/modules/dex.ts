@@ -47,6 +47,10 @@ describe("Dex", () => {
 		assert(learnsetData && learnsetData.learnset);
 		assert(allPossibleMoves.length > Object.keys(learnsetData.learnset).length, pokemon.name);
 
+		pokemon = Dex.getExistingPokemon('Smeargle');
+		allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
+		assertStrictEqual(allPossibleMoves.length, 689);
+
 		pokemon = Dex.getExistingPokemon('Pikachu-Gmax');
 		allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
 		assert(allPossibleMoves.length > 1);
