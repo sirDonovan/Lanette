@@ -539,6 +539,18 @@ describe("Dex", () => {
 			.map(x => x.join(','));
 		assertStrictEqual(possibleTeams.length, 11);
 
+		possibleTeams = Dex.getPossibleTeams([["Bulbasaur"]], ["Shellos"], {additions: 1, evolutions: 1, allowFormes: true})
+			.map(x => x.join(','));
+		assertStrictEqual(possibleTeams.length, 8);
+		assert(possibleTeams.includes('Bulbasaur'));
+		assert(possibleTeams.includes('Ivysaur'));
+		assert(possibleTeams.includes('Bulbasaur,Shellos'));
+		assert(possibleTeams.includes('Bulbasaur,Gastrodon'));
+		assert(possibleTeams.includes('Bulbasaur,Shellos-East'));
+		assert(possibleTeams.includes('Bulbasaur,Gastrodon-East'));
+		assert(possibleTeams.includes('Ivysaur,Shellos'));
+		assert(possibleTeams.includes('Ivysaur,Shellos-East'));
+
 		// catch and de-volve
 
 		// 1 optional addition and 1 optional de-volution
@@ -590,6 +602,18 @@ describe("Dex", () => {
 		assert(possibleTeams.includes('Ivysaur,Mr. Rime'));
 		assert(possibleTeams.includes('Mr. Mime-Galar,Venusaur'));
 		assert(possibleTeams.includes('Mr. Mime,Venusaur'));
+
+		possibleTeams = Dex.getPossibleTeams([["Venusaur"]], ["Gastrodon"], {additions: 1, evolutions: -1, allowFormes: true})
+			.map(x => x.join(','));
+		assertStrictEqual(possibleTeams.length, 8);
+		assert(possibleTeams.includes('Venusaur'));
+		assert(possibleTeams.includes('Ivysaur'));
+		assert(possibleTeams.includes('Gastrodon,Venusaur'));
+		assert(possibleTeams.includes('Gastrodon,Ivysaur'));
+		assert(possibleTeams.includes('Gastrodon-East,Venusaur'));
+		assert(possibleTeams.includes('Gastrodon-East,Ivysaur'));
+		assert(possibleTeams.includes('Shellos,Venusaur'));
+		assert(possibleTeams.includes('Shellos-East,Venusaur'));
 
 		// misc
 

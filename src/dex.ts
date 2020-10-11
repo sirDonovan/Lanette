@@ -1566,6 +1566,12 @@ export class Dex {
 										if (!forme.battleOnly) evos.push(forme.name);
 									}
 								}
+								if (baseEvolution.cosmeticFormes) {
+									for (const cosmeticForme of baseEvolution.cosmeticFormes) {
+										const forme = this.getExistingPokemon(cosmeticForme);
+										if (!forme.battleOnly) evos.push(forme.name);
+									}
+								}
 							} else {
 								if (!evolution.forme) evos.push(evolution.name);
 							}
@@ -1609,6 +1615,12 @@ export class Dex {
 							if (basePrevo.otherFormes) {
 								for (const otherForme of basePrevo.otherFormes) {
 									const forme = this.getExistingPokemon(otherForme);
+									if (!forme.battleOnly) prevos.push(forme.name);
+								}
+							}
+							if (basePrevo.cosmeticFormes) {
+								for (const cosmeticForme of basePrevo.cosmeticFormes) {
+									const forme = this.getExistingPokemon(cosmeticForme);
 									if (!forme.battleOnly) prevos.push(forme.name);
 								}
 							}
