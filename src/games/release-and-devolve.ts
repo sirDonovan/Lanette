@@ -13,6 +13,7 @@ class ReleaseAndDevolve extends EliminationTournament {
 	requiredDrop = true;
 	requiredEvolution = true;
 	canReroll = true;
+	firstRoundExtraTime = 10 * 60 * 1000;
 	baseTournamentName = name;
 	tournamentDescription = description;
 }
