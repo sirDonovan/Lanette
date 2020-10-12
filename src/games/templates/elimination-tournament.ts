@@ -576,13 +576,13 @@ export abstract class EliminationTournament extends ScriptedGame {
 			if (addingPokemon) {
 				currentTeamLength = Math.min(6, this.startingTeamsLength + (previousRounds * roundTeamLengthChange));
 			} else if (droppingPokemon) {
-				currentTeamLength = Math.min(1, this.startingTeamsLength + (previousRounds * roundTeamLengthChange));
+				currentTeamLength = Math.max(1, this.startingTeamsLength - (previousRounds * roundTeamLengthChange));
 			} else {
 				currentTeamLength = this.startingTeamsLength;
 			}
 
 			const dropsThisRound = Math.min(this.dropsPerRound, currentTeamLength - (this.additionsPerRound ? 0 : 1));
-			const additionsThisRound = Math.min(this.additionsPerRound, 6 - currentTeamLength - dropsThisRound);
+			const additionsThisRound = Math.min(this.additionsPerRound, 6 - (currentTeamLength - dropsThisRound));
 
 			if (additionsThisRound || dropsThisRound || this.evolutionsPerRound) {
 				if (!loserTeam) {
@@ -1144,7 +1144,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 			player.round!++;
 			if (this.additionsPerRound || this.dropsPerRound || this.evolutionsPerRound) {
 				const dropsThisRound = Math.min(this.dropsPerRound, this.startingTeamsLength - (this.additionsPerRound ? 0 : 1));
-				const additionsThisRound = Math.min(this.additionsPerRound, 6 - this.startingTeamsLength - dropsThisRound);
+				const additionsThisRound = Math.min(this.additionsPerRound, 6 - (this.startingTeamsLength - dropsThisRound));
 
 				const pokemon: string[] = [];
 				for (let i = 0; i < additionsThisRound; i++) {
