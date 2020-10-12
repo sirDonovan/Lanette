@@ -71,13 +71,23 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 			if (testConfig.async) {
 				it(test, async function(this: Mocha.Context) {
 					const game = createIndividualTestGame(testFormat);
-					// eslint-disable-next-line @typescript-eslint/await-thenable
-					await testData.test.call(this, game, testFormat, attributes);
+					try {
+						// eslint-disable-next-line @typescript-eslint/await-thenable
+						await testData.test.call(this, game, testFormat, attributes);
+					} catch (e) {
+						console.log(e);
+						fail((e as Error).message + " (" + testFormat.name + "; initial seed = " + game.initialSeed + ")");
+					}
 				});
 			} else {
 				it(test, function(this: Mocha.Context) {
 					const game = createIndividualTestGame(testFormat);
-					testData.test.call(this, game, testFormat, attributes);
+					try {
+						testData.test.call(this, game, testFormat, attributes);
+					} catch (e) {
+						console.log(e);
+						fail((e as Error).message + " (" + testFormat.name + "; initial seed = " + game.initialSeed + ")");
+					}
 				});
 			}
 		}
