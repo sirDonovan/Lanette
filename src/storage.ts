@@ -72,13 +72,13 @@ export class Storage {
 	}
 
 	exportDatabase(roomid: string): void {
-		if (!(roomid in this.databases) || roomid.startsWith('battle-') || roomid.startsWith('groupchat-')) return;
+		if (!(roomid in this.databases) || roomid.startsWith(Tools.battleRoomPrefix) || roomid.startsWith(Tools.groupchatPrefix)) return;
 		const contents = JSON.stringify(this.databases[roomid]);
 		Tools.safeWriteFileSync(path.join(this.databasesDir, roomid + '.json'), contents);
 	}
 
 	archiveDatabase(roomid: string): void {
-		if (!(roomid in this.databases) || roomid.startsWith('battle-') || roomid.startsWith('groupchat-')) return;
+		if (!(roomid in this.databases) || roomid.startsWith(Tools.battleRoomPrefix) || roomid.startsWith(Tools.groupchatPrefix)) return;
 		const date = new Date();
 		const year = date.getFullYear();
 		const month = date.getMonth() + 1;

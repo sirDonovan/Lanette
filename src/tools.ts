@@ -16,6 +16,8 @@ const APOSTROPHE_REGEX = /[/']/g;
 const HTML_CHARACTER_REGEX = /[<>/'"]/g;
 const UNSAFE_API_CHARACTER_REGEX = /[^A-Za-z0-9 ,.%&'"!?()[\]`_<>/|:;=+-@]/g;
 
+const BATTLE_ROOM_PREFIX = 'battle-';
+const GROUPCHAT_PREFIX = 'groupchat-';
 const maxMessageLength = 300;
 const maxUsernameLength = 18;
 const githubApiThrottle = 2 * 1000;
@@ -96,6 +98,8 @@ export class Tools {
 	readonly pokemonShowdownFolder: string = path.join(rootFolder, 'pokemon-showdown');
 	readonly letters: string = "abcdefghijklmnopqrstuvwxyz";
 	readonly unsafeApiCharacterRegex: RegExp = UNSAFE_API_CHARACTER_REGEX;
+	readonly battleRoomPrefix: string = BATTLE_ROOM_PREFIX;
+	readonly groupchatPrefix: string = GROUPCHAT_PREFIX;
 
 	lastGithubApiCall: number = 0;
 
@@ -260,7 +264,7 @@ export class Tools {
 
 	toRoomId(name: string): string {
 		const id = name.trim().toLowerCase();
-		if (id.startsWith('battle-') || id.startsWith('groupchat-')) return id.replace(SPACE_REGEX, '');
+		if (id.startsWith(BATTLE_ROOM_PREFIX) || id.startsWith(GROUPCHAT_PREFIX)) return id.replace(SPACE_REGEX, '');
 		return this.toId(name);
 	}
 
