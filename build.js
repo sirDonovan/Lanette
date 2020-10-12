@@ -65,8 +65,16 @@ function pruneBuiltFiles() {
 			}
 			continue;
 		}
-		const file = builtFiles[i].substr(builtFolder.length + 1);
-		if (!srcFiles.includes(path.join(srcFolder, file.substr(0, file.length - 3) + '.ts'))) {
+
+		const filepath = builtFiles[i].substr(builtFolder.length + 1);
+		let filename;
+		if (filepath.endsWith('.js.map')) {
+			filename = filepath.substr(0, filepath.length - 7);
+		} else {
+			filename = filepath.substr(0, filepath.length - 3);
+		}
+
+		if (!srcFiles.includes(path.join(srcFolder, filename + '.ts'))) {
 			fs.unlinkSync(builtFiles[i]);
 		}
 	}
