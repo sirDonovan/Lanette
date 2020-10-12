@@ -3,7 +3,7 @@ import { EliminationTournament, game as eliminationTournamentGame } from './temp
 
 const name = "Catch and De-volve";
 const description = "Every player is given a randomly generated Pokemon to use as their starter. Each battle that you win, you " +
-	"may 'catch' 1 of your opponent's Pokemon (add it to your team) and then de-volve 1 Pokemon on your team.";
+	"must 'catch' 1 of your opponent's Pokemon (add it to your team) and then de-volve 1 Pokemon on your team.";
 
 class CatchAndDevolve extends EliminationTournament {
 	additionsPerRound = 1;

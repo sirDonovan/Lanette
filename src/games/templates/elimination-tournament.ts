@@ -1689,9 +1689,9 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 const tests: GameFileTests<EliminationTournament> = {
 	'should generate a Pokedex': {
 		test(game, format) {
+			assert(game.pokedex.length);
 			addPlayers(game, game.maxPlayers);
 			assert(game.started);
-			assert(game.pokedex.length);
 		}
 	},
 	'should generate an even bracket for 2^n player count': {

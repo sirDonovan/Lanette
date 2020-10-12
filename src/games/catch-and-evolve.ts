@@ -4,7 +4,7 @@ import { EliminationTournament, game as eliminationTournamentGame } from './temp
 
 const name = "Catch and Evolve";
 const description = "Every player is given a randomly generated Pokemon to use as their starter. Each battle that you win, you " +
-	"may 'catch' 1 of your opponent's Pokemon (add it to your team) and then evolve 1 Pokemon on your team.";
+	"must 'catch' 1 of your opponent's Pokemon (add it to your team) and then evolve 1 Pokemon on your team.";
 const bannedTiers: string[] = ['Uber', 'OU', 'UU', 'UUBL', 'RU', 'RUBL', 'NU', 'NUBL', 'PU', 'PUBL'];
 
 class CatchAndEvolve extends EliminationTournament {
