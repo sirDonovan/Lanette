@@ -14,6 +14,7 @@ class DoublesCatchAndEvolve extends EliminationTournament {
 	requiredAddition = true;
 	requiredEvolution = true;
 	canReroll = true;
+	firstRoundExtraTime = 2 * 60 * 1000;
 	baseTournamentName = name;
 	tournamentDescription = description;
 }
