@@ -1483,69 +1483,100 @@ export class Dex {
 		return Tools.getCombinations(...poolByFormes);
 	}
 
-	getPossibleTeams(previousTeams: readonly string[][], pool: readonly string[], options: IGetPossibleTeamsOptions):
-		string[][] {
-		let additions = options.additions || 0;
-		let evolutions = options.evolutions || 0;
+	getPossibleTeamKey(team: readonly string[]): string {
+		return team.slice().sort().join(',');
+	}
 
-		const filteredPool: string[] = [];
-		for (const item of pool) {
-			let name = item;
-			if (options.allowFormes) {
-				name = this.getExistingPokemon(name).baseSpecies;
-			}
-
-			if (!options.usablePokemon || options.usablePokemon.includes(name)) filteredPool.push(name);
-		}
-		additions = Math.min(additions, filteredPool.length);
-
-		let combinations: string[][];
-		if (options.allowFormes) {
-			combinations = this.getFormeCombinations(filteredPool, options.usablePokemon);
-		} else {
-			combinations = [filteredPool];
-		}
-
-		const additionChoices: string[][] = [];
-		const checkedPermutations: Dict<boolean> = {};
-		for (const combination of combinations) {
-			const permutations = Tools.getPermutations(combination, 1, additions);
-			for (const permutation of permutations) {
-				const key = permutation.slice().sort().join(',');
-				if (key in checkedPermutations) continue;
-				checkedPermutations[key] = true;
-				if (permutation.length <= additions) additionChoices.push(permutation);
-			}
-		}
-
-		let baseTeams: string[][];
-		if (options.requiredAddition) {
-			baseTeams = [];
-		} else {
-			// not adding Pokemon
-			baseTeams = previousTeams.slice();
-		}
-
-		for (const pokemon of additionChoices) {
+	getPossibleTeams(previousTeams: readonly string[][], pool: readonly string[], options: IGetPossibleTeamsOptions): string[][] {
+		const includedTeamsAfterDrops: Dict<boolean> = {};
+		const teamsAfterDrops: string[][] = [];
+		if (!options.requiredDrop) {
 			for (const previousTeam of previousTeams) {
-				let team = previousTeam.slice();
-				team = team.concat(pokemon);
-				if (team.length > 6) continue;
-				baseTeams.push(team);
+				includedTeamsAfterDrops[this.getPossibleTeamKey(previousTeam)] = true;
+				teamsAfterDrops.push(previousTeam.slice());
 			}
 		}
+
+		let drops = options.drops || 0;
+		if (drops) {
+			let largestTeamLength = 0;
+			for (const previousTeam of previousTeams) {
+				const previousTeamLength = previousTeam.length;
+				if (previousTeamLength > largestTeamLength) largestTeamLength = previousTeamLength;
+
+				const permutations = Tools.getPermutations(previousTeam, options.additions ? 0 : 1,
+					Math.min(1, previousTeamLength - drops));
+				for (const permutation of permutations) {
+					const key = this.getPossibleTeamKey(permutation);
+					if (key in includedTeamsAfterDrops) continue;
+					includedTeamsAfterDrops[key] = true;
+					teamsAfterDrops.push(permutation);
+				}
+			}
+
+			drops = Math.min(drops, largestTeamLength - 1);
+		}
+
+		let teamsAfterAdditions: string[][] = [];
+		if (!options.requiredAddition) teamsAfterAdditions = teamsAfterDrops.slice();
+		let additions = options.additions || 0;
+		if (additions) {
+			const filteredPool: string[] = [];
+			for (const item of pool) {
+				let name = item;
+				if (options.allowFormes) {
+					name = this.getExistingPokemon(name).baseSpecies;
+				}
+
+				if (!options.usablePokemon || options.usablePokemon.includes(name)) filteredPool.push(name);
+			}
+
+			additions = Math.min(additions, filteredPool.length);
+
+			let combinations: string[][];
+			if (options.allowFormes) {
+				combinations = this.getFormeCombinations(filteredPool, options.usablePokemon);
+			} else {
+				combinations = [filteredPool];
+			}
+
+			const additionChoices: string[][] = [];
+			const checkedPermutations: Dict<boolean> = {};
+			for (const combination of combinations) {
+				const permutations = Tools.getPermutations(combination, 1, additions);
+				for (const permutation of permutations) {
+					const key = this.getPossibleTeamKey(permutation);
+					if (key in checkedPermutations) continue;
+					checkedPermutations[key] = true;
+					additionChoices.push(permutation);
+				}
+			}
+
+			for (const pokemon of additionChoices) {
+				for (const team of teamsAfterDrops) {
+					let teamAfterAddition = team.slice();
+					teamAfterAddition = teamAfterAddition.concat(pokemon);
+					if (teamAfterAddition.length > 6) continue;
+					teamsAfterAdditions.push(teamAfterAddition);
+				}
+			}
+		}
+
+		teamsAfterAdditions = teamsAfterAdditions.filter(x => x.length);
 
 		let teamsAfterEvolutions: string[][];
 		if (options.requiredEvolution) {
 			teamsAfterEvolutions = [];
 		} else {
 			// not evolving Pokemon
-			teamsAfterEvolutions = baseTeams.slice();
+			teamsAfterEvolutions = teamsAfterAdditions.slice();
 		}
 
-		let currentTeams = baseTeams.slice();
+		let currentTeams = teamsAfterAdditions.slice();
 		const nextTeams: string[][] = [];
 		const checkedTeams: Dict<boolean> = {};
+
+		let evolutions = options.evolutions || 0;
 		if (evolutions > 0) {
 			while (evolutions > 0) {
 				for (const team of currentTeams) {
@@ -1583,7 +1614,7 @@ export class Dex {
 							const newTeam = team.slice();
 							newTeam[pokemonSlot] = name;
 
-							const key = newTeam.slice().sort().join(',');
+							const key = this.getPossibleTeamKey(newTeam);
 							if (key in checkedTeams) continue;
 							checkedTeams[key] = true;
 
@@ -1634,7 +1665,7 @@ export class Dex {
 							const newTeam = team.slice();
 							newTeam[pokemonSlot] = name;
 
-							const key = newTeam.slice().sort().join(',');
+							const key = this.getPossibleTeamKey(newTeam);
 							if (key in checkedTeams) continue;
 							checkedTeams[key] = true;
 

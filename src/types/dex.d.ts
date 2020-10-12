@@ -569,9 +569,11 @@ export interface IDataTable {
 
 export interface IGetPossibleTeamsOptions {
 	additions?: number;
+	drops?: number;
 	evolutions?: number;
 	allowFormes?: boolean;
 	requiredAddition?: boolean;
+	requiredDrop?: boolean;
 	requiredEvolution?: boolean;
 	usablePokemon?: string[];
 }
