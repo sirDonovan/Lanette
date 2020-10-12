@@ -17,6 +17,7 @@ interface IEliminationTree<T> {
 interface ITeamChange {
 	additions: number;
 	choices: string[];
+	drops: number;
 	evolutions: number;
 }
 
@@ -135,6 +136,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	color: string | null = null;
 	defaultTier: string = 'ou';
 	disqualifiedPlayers = new Set<Player>();
+	dropsPerRound: number = 0;
 	evolutionsPerRound: number = 0;
 	firstRoundByes = new Set<Player>();
 	firstRoundExtraTime: number = 0;
@@ -150,6 +152,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	pokedex: string[] = [];
 	possibleTeams = new Map<Player, readonly string[][]>();
 	requiredAddition: boolean = false;
+	requiredDrop: boolean = false;
 	requiredEvolution: boolean = false;
 	rerolls = new Map<Player, boolean>();
 	requiredTier: string | null = null;
@@ -197,7 +200,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	getMinimumPokemonForPlayers(players: number): number {
 		if (this.sharedTeams || this.usesCloakedPokemon) {
 			return this.startingTeamsLength;
-		} else if (this.additionsPerRound >= 1) {
+		} else if (this.additionsPerRound) {
 			const rounds = this.getNumberOfRounds(players);
 			if (Math.pow(2, rounds) > players) {
 				const maxSecondRoundPlayers = Math.pow(2, rounds - 1) - 1;
@@ -564,19 +567,24 @@ export abstract class EliminationTournament extends ScriptedGame {
 		loser.eliminated = true;
 
 		let winnerTeamChanges: ITeamChange[] = [];
-		if (this.getRemainingPlayerCount() > 1 && (this.additionsPerRound || this.evolutionsPerRound)) {
+		if (this.getRemainingPlayerCount() > 1 && (this.additionsPerRound || this.dropsPerRound || this.evolutionsPerRound)) {
 			let currentTeamLength: number;
-			const addingPokemon = this.additionsPerRound >= 1;
-			const droppingPokemon = this.additionsPerRound <= -1;
+			const roundTeamLengthChange = this.additionsPerRound + this.dropsPerRound;
+			const addingPokemon = roundTeamLengthChange > 0;
+			const droppingPokemon = roundTeamLengthChange < 0;
+			const previousRounds = winner.round! - 1;
 			if (addingPokemon) {
-				currentTeamLength = Math.min(6, this.startingTeamsLength + ((winner.round! - 1) * this.additionsPerRound));
+				currentTeamLength = Math.min(6, this.startingTeamsLength + (previousRounds * roundTeamLengthChange));
 			} else if (droppingPokemon) {
-				currentTeamLength = Math.min(1, this.startingTeamsLength + ((winner.round! - 1) * this.additionsPerRound));
+				currentTeamLength = Math.min(1, this.startingTeamsLength + (previousRounds * roundTeamLengthChange));
 			} else {
 				currentTeamLength = this.startingTeamsLength;
 			}
 
-			if (!this.additionsPerRound || (addingPokemon && currentTeamLength < 6) || (droppingPokemon && currentTeamLength > 1)) {
+			const dropsThisRound = Math.min(this.dropsPerRound, currentTeamLength - (this.additionsPerRound ? 0 : 1));
+			const additionsThisRound = Math.min(this.additionsPerRound, 6 - currentTeamLength - dropsThisRound);
+
+			if (additionsThisRound || dropsThisRound || this.evolutionsPerRound) {
 				if (!loserTeam) {
 					loserTeam = this.getRandomTeam(loser);
 				} else {
@@ -585,23 +593,24 @@ export abstract class EliminationTournament extends ScriptedGame {
 					}
 				}
 
-				let additions = 0;
-				if (addingPokemon) {
-					additions = Math.min(6 - currentTeamLength, this.additionsPerRound);
-				} else if (droppingPokemon) {
-					additions = Math.max(1 - currentTeamLength, this.additionsPerRound);
-				}
-
 				winnerTeamChanges.push({
-					additions,
+					additions: additionsThisRound,
 					choices: loserTeam,
+					drops: dropsThisRound,
 					evolutions: this.evolutionsPerRound,
 				});
 
 				let possibleTeams = this.possibleTeams.get(winner)!;
-				possibleTeams = Dex.getPossibleTeams(possibleTeams, loserTeam, {additions, evolutions: this.evolutionsPerRound,
-					requiredAddition: this.requiredAddition, requiredEvolution: this.requiredEvolution, allowFormes: this.allowsFormes,
-					usablePokemon: this.battleFormat.usablePokemon});
+				possibleTeams = Dex.getPossibleTeams(possibleTeams, loserTeam, {
+					additions: this.additionsPerRound,
+					drops: this.dropsPerRound,
+					evolutions: this.evolutionsPerRound,
+					requiredAddition: this.requiredAddition,
+					requiredDrop: this.requiredDrop,
+					requiredEvolution: this.requiredEvolution,
+					allowFormes: this.allowsFormes,
+					usablePokemon: this.battleFormat.usablePokemon,
+				});
 				this.possibleTeams.set(winner, possibleTeams);
 			}
 		}
@@ -764,7 +773,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 				}
 			} else {
 				html += "<b>" + (this.sharedTeams ? "The" : "Your") + " " +
-					(this.additionsPerRound || this.evolutionsPerRound ? "starting " : "") +
+					(this.additionsPerRound || this.dropsPerRound || this.evolutionsPerRound ? "starting " : "") +
 					(this.startingTeamsLength === 1 ? "Pokemon" : "team") + " " + (pastTense ? "was" : "is") + "</b>:";
 				html += "<br />" + this.getPokemonIcons(starterPokemon).join("");
 				if (this.canReroll && !this.rerolls.has(player)) {
@@ -780,7 +789,12 @@ export abstract class EliminationTournament extends ScriptedGame {
 			for (let i = 0; i < teamChanges.length; i++) {
 				const teamChange = teamChanges[i];
 				let roundChanges = '';
-				if (teamChange.additions >= 1) {
+				if (teamChange.drops) {
+					roundChanges += "<li>" + (pastTense ? "Removed" : "Remove") + " " + teamChange.drops + " " +
+						"member" + (teamChange.drops > 1 ? "s" : "") + " from your team</li>";
+				}
+
+				if (teamChange.additions) {
 					roundChanges += "<li>";
 					if (teamChange.choices.length <= teamChange.additions) {
 						roundChanges += (pastTense ? "Added" : "Add") + " the following to your team:";
@@ -790,17 +804,13 @@ export abstract class EliminationTournament extends ScriptedGame {
 					}
 					roundChanges += "<br />" + Tools.joinList(this.getPokemonIcons(teamChange.choices), undefined, undefined, "or") +
 						"</li>";
-				} else if (teamChange.additions <= -1) {
-					const amount = teamChange.additions * -1;
-					roundChanges += "<li>" + (pastTense ? "Removed" : "Remove") + " " + amount + " " +
-						"member" + (amount > 1 ? "s" : "") + " from your team</li>";
 				}
 
 				if (teamChange.evolutions) {
 					const amount = Math.abs(teamChange.evolutions);
 					roundChanges += "<li>" + (pastTense ? "Chose" : "Choose") + " " + amount + " " +
-						"member" + (amount > 1 ? "s" : "") + " of your " + (teamChange.additions ? "updated " : "") + "team to " +
-						(teamChange.evolutions >= 1 ? "evolve" : "de-volve") + "</li>";
+						"member" + (amount > 1 ? "s" : "") + " of your " + (teamChange.additions || teamChange.drops ? "updated " : "") +
+						"team to " + (teamChange.evolutions >= 1 ? "evolve" : "de-volve") + "</li>";
 				}
 
 				if (roundChanges) {
@@ -1132,27 +1142,36 @@ export abstract class EliminationTournament extends ScriptedGame {
 		this.firstRoundByes.forEach(player => {
 			this.awaitingBracketUpdate.add(player);
 			player.round!++;
-			if (this.additionsPerRound || this.evolutionsPerRound) {
+			if (this.additionsPerRound || this.dropsPerRound || this.evolutionsPerRound) {
+				const dropsThisRound = Math.min(this.dropsPerRound, this.startingTeamsLength - (this.additionsPerRound ? 0 : 1));
+				const additionsThisRound = Math.min(this.additionsPerRound, 6 - this.startingTeamsLength - dropsThisRound);
+
 				const pokemon: string[] = [];
-				const additions = Math.abs(this.additionsPerRound);
-				for (let i = 0; i < additions; i++) {
+				for (let i = 0; i < additionsThisRound; i++) {
 					const mon = this.pokedex.shift();
 					if (!mon) throw new Error("Not enough Pokemon for first round bye (" + player.name + ")");
 					pokemon.push(mon);
 				}
 
 				const teamChange: ITeamChange = {
-					additions: this.additionsPerRound,
+					additions: additionsThisRound,
 					choices: pokemon,
+					drops: dropsThisRound,
 					evolutions: this.evolutionsPerRound,
 				};
 				this.teamChanges.set(player, (this.teamChanges.get(player) || []).concat([teamChange]));
 
 				let possibleTeams = this.possibleTeams.get(player)!;
-				possibleTeams = Dex.getPossibleTeams(possibleTeams, pokemon, {additions: this.additionsPerRound,
-					evolutions: this.evolutionsPerRound, requiredAddition: this.requiredAddition,
-					requiredEvolution: this.requiredEvolution, allowFormes: this.allowsFormes,
-					usablePokemon: this.battleFormat.usablePokemon});
+				possibleTeams = Dex.getPossibleTeams(possibleTeams, pokemon, {
+					additions: this.additionsPerRound,
+					drops: this.dropsPerRound,
+					evolutions: this.evolutionsPerRound,
+					requiredAddition: this.requiredAddition,
+					requiredDrop: this.requiredDrop,
+					requiredEvolution: this.requiredEvolution,
+					allowFormes: this.allowsFormes,
+					usablePokemon: this.battleFormat.usablePokemon,
+				});
 				this.possibleTeams.set(player, possibleTeams);
 			}
 		});
@@ -1687,7 +1706,7 @@ const tests: GameFileTests<EliminationTournament> = {
 			addPlayers(game, 6);
 			game.start();
 			assertStrictEqual(game.firstRoundByes.size, 2);
-			if (game.additionsPerRound || game.evolutionsPerRound) {
+			if (game.additionsPerRound || game.dropsPerRound || game.evolutionsPerRound) {
 				game.firstRoundByes.forEach(player => {
 					assertStrictEqual(game.teamChanges.get(player)!.length, 1);
 				});
@@ -1835,10 +1854,10 @@ const tests: GameFileTests<EliminationTournament> = {
 			assert(!matchesByRound['3'][0].children[1].user);
 		}
 	},
-	'should give team changes until players have a full team - additionsPerRound >= 1': {
+	'should give team changes until players have a full team - additionsPerRound': {
 		test(game, format) {
-			this.timeout(30000);
-			if (game.additionsPerRound < 1 || game.maxPlayers < 64) return;
+			this.timeout(15000);
+			if (!game.additionsPerRound || game.dropsPerRound || game.maxPlayers < 64) return;
 
 			addPlayers(game, 64);
 			if (!game.started) game.start();
@@ -1846,6 +1865,29 @@ const tests: GameFileTests<EliminationTournament> = {
 			let matchesByRound = game.getMatchesByRound();
 			const matchRounds = Object.keys(matchesByRound).sort();
 			for (let i = 1; i <= ((6 - game.startingTeamsLength) / game.additionsPerRound); i++) {
+				const round = matchRounds[(i - 1)];
+				if (!round) break;
+				const player = matchesByRound[round][0].children![0].user!;
+				for (const match of matchesByRound[round]) {
+					game.removePlayer(match.children![1].user!.name);
+				}
+
+				assertStrictEqual(game.teamChanges.get(player)!.length, i);
+				matchesByRound = game.getMatchesByRound();
+			}
+		}
+	},
+	'should give team changes until players have a full team - dropsPerRound': {
+		test(game, format) {
+			this.timeout(15000);
+			if (!game.dropsPerRound || game.additionsPerRound || game.maxPlayers < 64) return;
+
+			addPlayers(game, 64);
+			if (!game.started) game.start();
+
+			let matchesByRound = game.getMatchesByRound();
+			const matchRounds = Object.keys(matchesByRound).sort();
+			for (let i = 1; i <= ((game.startingTeamsLength - 1) / game.additionsPerRound); i++) {
 				const round = matchRounds[(i - 1)];
 				if (!round) break;
 				const player = matchesByRound[round][0].children![0].user!;
