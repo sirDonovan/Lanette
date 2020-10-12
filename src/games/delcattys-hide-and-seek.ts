@@ -249,10 +249,10 @@ const tests: GameFileTests<DelcattysHideAndSeek> = {
 	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	'should have parameters for all possible numbers of remaining players': {
 		test(game, format): void {
-			// 1 extra Pokemon can be added in onNextRound()
+			// potentially +/- 1 Pokemon each round
 			const maxPlayers = game.maxPlayers + 1;
 			const parameterKeys = Object.keys(data.parameters);
-			for (let i = game.minPlayers; i < maxPlayers; i++) {
+			for (let i = game.minPlayers - 1; i < maxPlayers; i++) {
 				let hasParameters = false;
 				for (const key of parameterKeys) {
 					if (data.parameters[key].length === i) {
