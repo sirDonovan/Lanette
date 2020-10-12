@@ -109,4 +109,46 @@ describe("Client", () => {
 		assert(voiceUser);
 		Users.remove(voiceUser);
 	});
+	it('should properly extract battle ids', () => {
+		const battleId = Tools.battleRoomPrefix + "gen8ou-12345";
+
+		const badReplayLinks: string[] = ["", "/"];
+		const goodReplayLinks: string[] = ["/" + battleId, "/gen8ou-12345"];
+		const badBattleLinks: string[] = ["", "/", "/gen8ou-12345"];
+		const goodBattleLinks: string[] = ["/" + battleId];
+		const badBattleRooms: string[] = ["", "gen8ou-12345"];
+		const goodBattleRooms: string[] = [battleId];
+
+		for (const badReplayLink of badReplayLinks) {
+			assertStrictEqual(Client.extractBattleId(Client.replayServerAddress + badReplayLink), null);
+			assertStrictEqual(Client.extractBattleId("http://" + Client.replayServerAddress + badReplayLink), null);
+			assertStrictEqual(Client.extractBattleId("https://" + Client.replayServerAddress + badReplayLink), null);
+		}
+
+		for (const goodReplayLink of goodReplayLinks) {
+			assertStrictEqual(Client.extractBattleId(Client.replayServerAddress + goodReplayLink), battleId);
+			assertStrictEqual(Client.extractBattleId("http://" + Client.replayServerAddress + goodReplayLink), battleId);
+			assertStrictEqual(Client.extractBattleId("https://" + Client.replayServerAddress + goodReplayLink), battleId);
+		}
+
+		for (const badBattleLink of badBattleLinks) {
+			assertStrictEqual(Client.extractBattleId(Client.server + badBattleLink), null);
+			assertStrictEqual(Client.extractBattleId("http://" + Client.server + badBattleLink), null);
+			assertStrictEqual(Client.extractBattleId("https://" + Client.server + badBattleLink), null);
+		}
+
+		for (const goodBattleLink of goodBattleLinks) {
+			assertStrictEqual(Client.extractBattleId(Client.server + goodBattleLink), battleId);
+			assertStrictEqual(Client.extractBattleId("http://" + Client.server + goodBattleLink), battleId);
+			assertStrictEqual(Client.extractBattleId("https://" + Client.server + goodBattleLink), battleId);
+		}
+
+		for (const badBattleRoom of badBattleRooms) {
+			assertStrictEqual(Client.extractBattleId(badBattleRoom), null);
+		}
+
+		for (const goodBattleRoom of goodBattleRooms) {
+			assertStrictEqual(Client.extractBattleId(goodBattleRoom), battleId);
+		}
+	});
 });

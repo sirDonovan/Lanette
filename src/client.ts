@@ -1095,7 +1095,7 @@ export class Client {
 					user.addChatLog(messageArguments.message);
 
 					let commandMessage = messageArguments.message;
-					const battleUrl = this.getBattleIdFromUrl(commandMessage.startsWith(INVITE_COMMAND) ?
+					const battleUrl = this.extractBattleId(commandMessage.startsWith(INVITE_COMMAND) ?
 						commandMessage.substr(INVITE_COMMAND.length) : commandMessage);
 					if (battleUrl) {
 						commandMessage = Config.commandCharacter + 'check ' + battleUrl;
@@ -1569,7 +1569,7 @@ export class Client {
 		// unlink tournament battle replays
 		if (room.unlinkTournamentReplays && room.tournament && !room.tournament.format.team &&
 			lowerCaseMessage.includes(this.replayServerAddress) && !user.hasRank(room, 'voice')) {
-			const battle = this.getBattleIdFromUrl(lowerCaseMessage);
+			const battle = this.extractBattleId(lowerCaseMessage);
 			if (battle && room.tournament.battleRooms.includes(battle)) {
 				room.sayCommand("/warn " + user.name + ", Please do not link to tournament battles");
 			}
@@ -1578,7 +1578,7 @@ export class Client {
 		// unlink game battles
 		if (room.game && room.game.battleData && room.game.battleRooms && (lowerCaseMessage.includes(this.replayServerAddress) ||
 			lowerCaseMessage.includes(this.server)) && !user.hasRank(room, 'voice')) {
-			const battle = this.getBattleIdFromUrl(lowerCaseMessage);
+			const battle = this.extractBattleId(lowerCaseMessage);
 			if (battle && room.game.battleRooms.includes(battle)) {
 				room.sayCommand("/warn " + user.name + ", Please do not link to game battles");
 			}
@@ -1721,8 +1721,8 @@ export class Client {
 		return this.getPmUserButton(Users.self, message, label, disabled);
 	}
 
-	getBattleIdFromUrl(url: string): string | null {
-		return Tools.getBattleIdFromUrl(url, this.replayServerAddress, this.server, this.serverId);
+	extractBattleId(url: string): string | null {
+		return Tools.extractBattleId(url, this.replayServerAddress, this.server, this.serverId);
 	}
 
 	send(message: string, messageToMeasure?: IMessageToMeasure): void {

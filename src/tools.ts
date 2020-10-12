@@ -578,7 +578,7 @@ export class Tools {
 		});
 	}
 
-	getBattleIdFromUrl(message: string, replayServerAddress: string, serverAddress: string, serverId: string): string | null {
+	extractBattleId(message: string, replayServerAddress: string, serverAddress: string, serverId: string): string | null {
 		message = message.trim();
 		if (!message) return null;
 
@@ -586,16 +586,22 @@ export class Tools {
 		const replayServerLinkIndex = message.indexOf(replayServerLink);
 		if (replayServerLinkIndex !== -1) {
 			message = message.substr(replayServerLinkIndex + replayServerLink.length).trim();
-			if (serverId !== 'showdown' && message.startsWith(serverId + "-")) message = message.substr(serverId.length + 1);
-			return "battle-" + message;
-		} else {
-			const serverLink = serverAddress + (serverAddress.endsWith("/") ? "" : "/");
-			const serverLinkIndex = message.indexOf(serverLink);
-			if (serverLinkIndex !== -1) {
-				message = message.substr(serverLinkIndex + serverLink.length).trim();
-				if (message.startsWith('battle-')) return message;
+			if (message) {
+				if (serverId !== 'showdown' && message.startsWith(serverId + "-")) message = message.substr(serverId.length + 1);
+				return message.startsWith(BATTLE_ROOM_PREFIX) ? message : BATTLE_ROOM_PREFIX + message;
 			}
+			return null;
 		}
+
+		const serverLink = serverAddress + (serverAddress.endsWith("/") ? "" : "/");
+		const serverLinkIndex = message.indexOf(serverLink);
+		if (serverLinkIndex !== -1) {
+			message = message.substr(serverLinkIndex + serverLink.length).trim();
+			if (message.startsWith(BATTLE_ROOM_PREFIX)) return message;
+			return null;
+		}
+
+		if (message.startsWith(BATTLE_ROOM_PREFIX)) return message;
 
 		return null;
 	}

@@ -1590,7 +1590,7 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 				return false;
 			}
 
-			const battle = Client.getBattleIdFromUrl(target);
+			const battle = Client.extractBattleId(target);
 			if (!battle) {
 				user.say("Please specify a valid battle link.");
 				return false;
