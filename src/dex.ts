@@ -1504,8 +1504,10 @@ export class Dex {
 				const previousTeamLength = previousTeam.length;
 				if (previousTeamLength > largestTeamLength) largestTeamLength = previousTeamLength;
 
-				const permutations = Tools.getPermutations(previousTeam, options.additions ? 0 : 1,
-					Math.min(1, previousTeamLength - drops));
+				const maximumDropTeamLength = Math.max(options.additions ? 0 : 1, previousTeamLength - drops);
+				const minimumDropTeamLength = options.requiredDrop ? maximumDropTeamLength : Math.max(options.additions ? 0 : 1,
+					previousTeamLength - 1);
+				const permutations = Tools.getPermutations(previousTeam, maximumDropTeamLength, minimumDropTeamLength);
 				for (const permutation of permutations) {
 					const key = this.getPossibleTeamKey(permutation);
 					if (key in includedTeamsAfterDrops) continue;
