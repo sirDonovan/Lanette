@@ -698,6 +698,11 @@ describe("Dex", () => {
 			{evolutions: 1}).map(x => x.join(','));
 		assertStrictEqual(possibleTeams.length, 1);
 
+		// 2 required additions
+		possibleTeams = Dex.getPossibleTeams([["Bulbasaur"]], ["Charmander", "Squirtle", "Chikorita", "Cyndaquil", "Totodile"],
+			{additions: 2, requiredAddition: true}).map(x => x.join(','));
+		assertStrictEqual(possibleTeams.length, 10);
+
 		// reversing previousTeams and pool
 		possibleTeams = Dex.getPossibleTeams([["Pikachu"]], ["Charmander"],
 			{additions: 1, evolutions: 1, requiredAddition: true, requiredEvolution: true}).map(x => x.join(','));

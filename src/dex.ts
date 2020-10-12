@@ -1543,7 +1543,7 @@ export class Dex {
 			const additionChoices: string[][] = [];
 			const checkedPermutations: Dict<boolean> = {};
 			for (const combination of combinations) {
-				const permutations = Tools.getPermutations(combination, 1, additions);
+				const permutations = Tools.getPermutations(combination, options.requiredAddition ? additions : 1, additions);
 				for (const permutation of permutations) {
 					const key = this.getPossibleTeamKey(permutation);
 					if (key in checkedPermutations) continue;
