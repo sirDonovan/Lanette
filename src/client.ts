@@ -1095,13 +1095,8 @@ export class Client {
 					user.addChatLog(messageArguments.message);
 
 					let commandMessage = messageArguments.message;
-					let battleUrl;
-					if (commandMessage.startsWith(INVITE_COMMAND)) {
-						battleUrl = Tools.getBattleUrl(commandMessage.substr(INVITE_COMMAND.length));
-					} else {
-						battleUrl = Tools.getBattleUrl(commandMessage);
-					}
-
+					const battleUrl = this.getBattleIdFromUrl(commandMessage.startsWith(INVITE_COMMAND) ?
+						commandMessage.substr(INVITE_COMMAND.length) : commandMessage);
 					if (battleUrl) {
 						commandMessage = Config.commandCharacter + 'check ' + battleUrl;
 					}
@@ -1574,36 +1569,18 @@ export class Client {
 		// unlink tournament battle replays
 		if (room.unlinkTournamentReplays && room.tournament && !room.tournament.format.team &&
 			lowerCaseMessage.includes(this.replayServerAddress) && !user.hasRank(room, 'voice')) {
-			let battle = lowerCaseMessage.split(this.replayServerAddress)[1].trim();
-			if (battle.startsWith('/')) battle = battle.substr(1);
-			if (this.serverId !== 'showdown' && battle.startsWith(this.serverId + "-")) battle = battle.substr(this.serverId.length + 1);
-			if (battle) {
-				battle = 'battle-' + battle.split(" ")[0].trim();
-				if (room.tournament.battleRooms.includes(battle)) {
-					room.sayCommand("/warn " + user.name + ", Please do not link replays to tournament battles");
-				}
+			const battle = this.getBattleIdFromUrl(lowerCaseMessage);
+			if (battle && room.tournament.battleRooms.includes(battle)) {
+				room.sayCommand("/warn " + user.name + ", Please do not link to tournament battles");
 			}
 		}
 
 		// unlink game battles
-		if (room.game && room.game.battleData && room.game.battleRooms && !user.hasRank(room, 'voice')) {
-			let replay = false;
-			let battle = '';
-			if (lowerCaseMessage.includes(this.replayServerAddress)) {
-				replay = true;
-				battle = lowerCaseMessage.split(this.replayServerAddress)[1].trim();
-			} else if (lowerCaseMessage.includes(this.server)) {
-				battle = lowerCaseMessage.split(this.server)[1].trim();
-			}
-
-			if (battle.startsWith('/')) battle = battle.substr(1);
-			if (this.serverId !== 'showdown' && battle.startsWith(this.serverId + "-")) battle = battle.substr(this.serverId.length + 1);
-			if (battle) {
-				battle = battle.split(" ")[0].trim();
-				if (!battle.startsWith('battle-')) battle = 'battle-' + battle;
-				if (room.game.battleRooms.includes(battle)) {
-					room.sayCommand("/warn " + user.name + ", Please do not link " + (replay ? "replays " : "") + "to game battles");
-				}
+		if (room.game && room.game.battleData && room.game.battleRooms && (lowerCaseMessage.includes(this.replayServerAddress) ||
+			lowerCaseMessage.includes(this.server)) && !user.hasRank(room, 'voice')) {
+			const battle = this.getBattleIdFromUrl(lowerCaseMessage);
+			if (battle && room.game.battleRooms.includes(battle)) {
+				room.sayCommand("/warn " + user.name + ", Please do not link to game battles");
 			}
 		}
 
@@ -1742,6 +1719,10 @@ export class Client {
 
 	getPmSelfButton(message: string, label: string, disabled?: boolean): string {
 		return this.getPmUserButton(Users.self, message, label, disabled);
+	}
+
+	getBattleIdFromUrl(url: string): string | null {
+		return Tools.getBattleIdFromUrl(url, this.replayServerAddress, this.server, this.serverId);
 	}
 
 	send(message: string, messageToMeasure?: IMessageToMeasure): void {

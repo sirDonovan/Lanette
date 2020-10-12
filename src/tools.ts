@@ -574,16 +574,25 @@ export class Tools {
 		});
 	}
 
-	getBattleUrl(message: string): string | null {
-		if (!message) return null;
+	getBattleIdFromUrl(message: string, replayServerAddress: string, serverAddress: string, serverId: string): string | null {
 		message = message.trim();
-		const serverLink = Client.server + (Client.server.endsWith("/") ? "" : "/");
-		const serverLinkIndex = message.indexOf(serverLink);
-		if (serverLinkIndex !== -1) {
-			message = message.substr(serverLinkIndex + serverLink.length);
+		if (!message) return null;
+
+		const replayServerLink = replayServerAddress + (replayServerAddress.endsWith("/") ? "" : "/");
+		const replayServerLinkIndex = message.indexOf(replayServerLink);
+		if (replayServerLinkIndex !== -1) {
+			message = message.substr(replayServerLinkIndex + replayServerLink.length).trim();
+			if (serverId !== 'showdown' && message.startsWith(serverId + "-")) message = message.substr(serverId.length + 1);
+			return "battle-" + message;
+		} else {
+			const serverLink = serverAddress + (serverAddress.endsWith("/") ? "" : "/");
+			const serverLinkIndex = message.indexOf(serverLink);
+			if (serverLinkIndex !== -1) {
+				message = message.substr(serverLinkIndex + serverLink.length).trim();
+				if (message.startsWith('battle-')) return message;
+			}
 		}
 
-		if (message.startsWith('battle-')) return message.split(" ")[0].trim();
 		return null;
 	}
 
