@@ -589,7 +589,7 @@ describe("Dex", () => {
 		assert(possibleTeams.includes('Charizard,Ivysaur'));
 		assert(possibleTeams.includes('Charmeleon,Venusaur'));
 
-		// no de-volutions are left
+		// no de-volutions left
 		possibleTeams = Dex.getPossibleTeams([["Bulbasaur"]], ["Charmander"], {additions: 1, evolutions: -1, requiredEvolution: true})
 			.map(x => x.join(','));
 		assertStrictEqual(possibleTeams.length, 2);
@@ -692,6 +692,11 @@ describe("Dex", () => {
 		assert(possibleTeams.includes('Charizard,Ivysaur'));
 
 		// misc
+
+		// no changes
+		possibleTeams = Dex.getPossibleTeams([["Venusaur", "Charizard", "Blastoise", "Meganium", "Typhlosion", "Feraligatr"]], [],
+			{evolutions: 1}).map(x => x.join(','));
+		assertStrictEqual(possibleTeams.length, 1);
 
 		// reversing previousTeams and pool
 		possibleTeams = Dex.getPossibleTeams([["Pikachu"]], ["Charmander"],

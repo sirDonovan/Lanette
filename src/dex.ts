@@ -1565,16 +1565,19 @@ export class Dex {
 		teamsAfterAdditions = teamsAfterAdditions.filter(x => x.length);
 
 		let teamsAfterEvolutions: string[][];
+		const includedInFinalTeams: Dict<boolean> = {};
 		if (options.requiredEvolution) {
 			teamsAfterEvolutions = [];
 		} else {
 			// not evolving Pokemon
 			teamsAfterEvolutions = teamsAfterAdditions.slice();
+			for (const team of teamsAfterEvolutions) {
+				includedInFinalTeams[this.getPossibleTeamKey(team)] = true;
+			}
 		}
 
 		let currentTeams = teamsAfterAdditions.slice();
 		const nextTeams: string[][] = [];
-		const checkedTeams: Dict<boolean> = {};
 
 		let evolutions = options.evolutions || 0;
 		if (evolutions > 0) {
@@ -1615,8 +1618,8 @@ export class Dex {
 							newTeam[pokemonSlot] = name;
 
 							const key = this.getPossibleTeamKey(newTeam);
-							if (key in checkedTeams) continue;
-							checkedTeams[key] = true;
+							if (key in includedInFinalTeams) continue;
+							includedInFinalTeams[key] = true;
 
 							teamsAfterEvolutions.push(newTeam);
 							nextTeams.push(newTeam);
@@ -1624,7 +1627,13 @@ export class Dex {
 						}
 					}
 
-					if (!availableEvolutions) teamsAfterEvolutions.push(team);
+					if (!availableEvolutions) {
+						const key = this.getPossibleTeamKey(team);
+						if (!(key in includedInFinalTeams)) {
+							includedInFinalTeams[key] = true;
+							teamsAfterEvolutions.push(team);
+						}
+					}
 				}
 				currentTeams = nextTeams;
 				evolutions--;
@@ -1666,8 +1675,8 @@ export class Dex {
 							newTeam[pokemonSlot] = name;
 
 							const key = this.getPossibleTeamKey(newTeam);
-							if (key in checkedTeams) continue;
-							checkedTeams[key] = true;
+							if (key in includedInFinalTeams) continue;
+							includedInFinalTeams[key] = true;
 
 							teamsAfterEvolutions.push(newTeam);
 							nextTeams.push(newTeam);
@@ -1675,7 +1684,13 @@ export class Dex {
 						}
 					}
 
-					if (!availableEvolutions) teamsAfterEvolutions.push(team);
+					if (!availableEvolutions) {
+						const key = this.getPossibleTeamKey(team);
+						if (!(key in includedInFinalTeams)) {
+							includedInFinalTeams[key] = true;
+							teamsAfterEvolutions.push(team);
+						}
+					}
 				}
 				currentTeams = nextTeams;
 				evolutions++;
