@@ -35,7 +35,7 @@ export abstract class CardHighLow extends Card {
 
 	onStart(): void {
 		this.createDeck();
-		this.say("Now PMing cards!");
+		this.say("Now sending out cards!");
 		for (const i in this.players) {
 			this.giveStartingCards(this.players[i]);
 			this.updatePlayerHtmlPage(this.players[i]);

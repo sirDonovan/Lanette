@@ -214,7 +214,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	onStart(): void {
 		this.createDeck();
 		this.playerOrder = this.shufflePlayers();
-		this.say("Now PMing cards!");
+		this.say("Now sending out cards!");
 		for (const i in this.players) {
 			this.giveStartingCards(this.players[i]);
 			this.updatePlayerHtmlPage(this.players[i]);
