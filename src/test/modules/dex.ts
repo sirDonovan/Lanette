@@ -743,13 +743,13 @@ describe("Dex", () => {
 		assert(possibleTeams.includes('Charmander,Ribombee-Totem'));
 		assert(possibleTeams.includes('Charmeleon,Cutiefly'));
 
-		// usablePokemon + forme
-		possibleTeams = Dex.getPossibleTeams([["Charmander"]], ["Cutiefly"],
-			{additions: 1, evolutions: 1, allowFormes: true, requiredAddition: true, requiredEvolution: true,
-			usablePokemon: ['Charmander', 'Charmeleon', 'Cutiefly', 'Ribombee']}).map(x => x.join(','));
-		assertStrictEqual(possibleTeams.length, 2);
-		assert(possibleTeams.includes('Charmander,Ribombee'));
-		assert(possibleTeams.includes('Charmeleon,Cutiefly'));
+		possibleTeams = Dex.getPossibleTeams([["Venusaur"]], ["Charizard"],
+			{additions: 1, drops: 1, evolutions: -1, requiredEvolution: true}).map(x => x.join(','));
+		assertStrictEqual(possibleTeams.length, 4);
+		assert(possibleTeams.includes('Ivysaur'));
+		assert(possibleTeams.includes('Charmeleon'));
+		assert(possibleTeams.includes('Charmeleon,Venusaur'));
+		assert(possibleTeams.includes('Charizard,Ivysaur'));
 
 		possibleTeams = Dex.getPossibleTeams([["Charmander"]], ["Mr. Mime"],
 			{additions: 1, evolutions: 1, allowFormes: true, requiredAddition: true, requiredEvolution: true}).map(x => x.join(','));
@@ -769,6 +769,23 @@ describe("Dex", () => {
 		assertStrictEqual(possibleTeams.length, 2);
 		assert(possibleTeams.includes('Charmander,Mr. Mime'));
 		assert(possibleTeams.includes('Charmander,Mr. Mime-Galar'));
+
+		// usablePokemon + forme
+		possibleTeams = Dex.getPossibleTeams([["Charmander"]], ["Cutiefly"],
+			{additions: 1, evolutions: 1, allowFormes: true, requiredAddition: true, requiredEvolution: true,
+			usablePokemon: ['Charmander', 'Charmeleon', 'Cutiefly', 'Ribombee']}).map(x => x.join(','));
+		assertStrictEqual(possibleTeams.length, 2);
+		assert(possibleTeams.includes('Charmander,Ribombee'));
+		assert(possibleTeams.includes('Charmeleon,Cutiefly'));
+
+		// forme + base species not in usablePokemon
+		possibleTeams = Dex.getPossibleTeams([["Mr. Mime"], ["Mr. Mime-Galar"]], ["Lycanroc-Midnight"],
+			{additions: 1, evolutions: -1, allowFormes: true, requiredAddition: true, requiredEvolution: true,
+			usablePokemon: Dex.getUsablePokemon(Dex.getExistingFormat("nu"))}).map(x => x.join(','));
+		assertStrictEqual(possibleTeams.length, 3);
+		assert(possibleTeams.includes('Lycanroc-Midnight,Mime Jr.'));
+		assert(possibleTeams.includes('Mr. Mime,Rockruff'));
+		assert(possibleTeams.includes('Mr. Mime-Galar,Rockruff'));
 	});
 	it('should return proper values from getList methods', () => {
 		const abilities = Dex.getAbilitiesList().map(x => x.name);

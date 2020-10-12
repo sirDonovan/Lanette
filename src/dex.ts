@@ -1528,7 +1528,7 @@ export class Dex {
 					name = this.getExistingPokemon(name).baseSpecies;
 				}
 
-				if (!options.usablePokemon || options.usablePokemon.includes(name)) filteredPool.push(name);
+				filteredPool.push(name);
 			}
 
 			additions = Math.min(additions, filteredPool.length);
