@@ -165,7 +165,7 @@ export class Dex {
 	private readonly moveAvailbilityCache: Dict<number> = Object.create(null);
 	private readonly pokemonCache: Dict<IPokemon> = Object.create(null);
 	private pokemonList: readonly IPokemon[] | null = null;
-	private readonly pokemonFormesCache: Dict<string[]> = Object.create(null);
+	private readonly formesCache: Dict<string[]> = Object.create(null);
 	private readonly pseudoLCPokemonCache: Dict<boolean> = Object.create(null);
 	private readonly typeCache: Dict<ITypeData> = Object.create(null);
 	private readonly weaknessesCache: Dict<string[]> = Object.create(null);
@@ -601,8 +601,8 @@ export class Dex {
 		return this.data.categories[pokemon.id] || '';
 	}
 
-	getPokemonFormes(pokemon: IPokemon): string[] {
-		if (Object.prototype.hasOwnProperty.call(this.pokemonFormesCache, pokemon.name)) return this.pokemonFormesCache[pokemon.name];
+	getFormes(pokemon: IPokemon): string[] {
+		if (Object.prototype.hasOwnProperty.call(this.formesCache, pokemon.name)) return this.formesCache[pokemon.name];
 
 		const baseSpecies = this.getExistingPokemon(pokemon.baseSpecies);
 		const formes: string[] = [baseSpecies.name];
@@ -621,7 +621,7 @@ export class Dex {
 			}
 		}
 
-		this.pokemonFormesCache[pokemon.name] = formes;
+		this.formesCache[pokemon.name] = formes;
 		return formes;
 	}
 
@@ -1266,7 +1266,7 @@ export class Dex {
 		const littleCup = format.ruleTable.has("littlecup");
 		const usablePokemon: string[] = [];
 		for (const i of formatDex.data.pokemonKeys) {
-			const formes = formatDex.getPokemonFormes(formatDex.getExistingPokemon(i));
+			const formes = formatDex.getFormes(formatDex.getExistingPokemon(i));
 			for (const forme of formes) {
 				// use PS tier in isBannedSpecies()
 				const pokemon = formatDex.pokemonShowdownDex.getSpecies(forme);
@@ -1467,7 +1467,7 @@ export class Dex {
 	getFormeCombinations(pool: readonly string[], usablePokemon?: readonly string[]): string[][] {
 		const poolByFormes: string[][] = [];
 		for (const name of pool) {
-			const formes = this.getPokemonFormes(this.getExistingPokemon(name));
+			const formes = this.getFormes(this.getExistingPokemon(name));
 			let filteredFormes: string[] = [];
 			if (usablePokemon) {
 				for (const forme of formes) {

@@ -430,24 +430,24 @@ describe("Dex", () => {
 		assert(!Dex.isPossibleTeam(['Charmander'], teams));
 		assert(!Dex.isPossibleTeam(['Squirtle'], teams));
 	});
-	it('should return proper values from getPokemonFormes()', () => {
-		let formes = Dex.getPokemonFormes(Dex.getExistingPokemon('Bulbasaur'));
+	it('should return proper values from getFormes()', () => {
+		let formes = Dex.getFormes(Dex.getExistingPokemon('Bulbasaur'));
 		assertStrictEqual(formes.length, 1);
 		assert(formes.includes("Bulbasaur"));
 
-		formes = Dex.getPokemonFormes(Dex.getExistingPokemon('Meowth'));
+		formes = Dex.getFormes(Dex.getExistingPokemon('Meowth'));
 		assertStrictEqual(formes.length, 3);
 		assert(formes.includes("Meowth"));
 		assert(formes.includes("Meowth-Alola"));
 		assert(formes.includes("Meowth-Galar"));
 
-		formes = Dex.getPokemonFormes(Dex.getExistingPokemon('Meowth-Alola'));
+		formes = Dex.getFormes(Dex.getExistingPokemon('Meowth-Alola'));
 		assertStrictEqual(formes.length, 3);
 		assert(formes.includes("Meowth"));
 		assert(formes.includes("Meowth-Alola"));
 		assert(formes.includes("Meowth-Galar"));
 
-		formes = Dex.getPokemonFormes(Dex.getExistingPokemon('Gastrodon'));
+		formes = Dex.getFormes(Dex.getExistingPokemon('Gastrodon'));
 		assertStrictEqual(formes.length, 2);
 		assert(formes.includes("Gastrodon"));
 		assert(formes.includes("Gastrodon-East"));
