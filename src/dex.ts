@@ -342,20 +342,23 @@ export class Dex {
 			this.cacheAllPossibleMoves(validator, pokemon);
 			this.cacheIsPseudoLCPokemon(pokemon, lcFormat);
 			filteredPokemonKeys.push(key);
-			moveAvailbilityPokemonList.push(pokemon);
 
-			if (pokemon.color) {
-				const id = Tools.toId(pokemon.color);
-				if (!(id in colors)) {
-					colors[id] = pokemon.color;
+			if (pokemon.isNonstandard !== 'CAP' && pokemon.isNonstandard !== 'LGPE' && pokemon.isNonstandard !== 'Custom') {
+				moveAvailbilityPokemonList.push(pokemon);
+
+				if (pokemon.color) {
+					const id = Tools.toId(pokemon.color);
+					if (!(id in colors)) {
+						colors[id] = pokemon.color;
+					}
 				}
-			}
 
-			if (pokemon.eggGroups) {
-				for (const eggGroup of pokemon.eggGroups) {
-					const id = Tools.toId(eggGroup);
-					if (!(id in eggGroups)) {
-						eggGroups[id] = eggGroup;
+				if (pokemon.eggGroups) {
+					for (const eggGroup of pokemon.eggGroups) {
+						const id = Tools.toId(eggGroup);
+						if (!(id in eggGroups)) {
+							eggGroups[id] = eggGroup;
+						}
 					}
 				}
 			}

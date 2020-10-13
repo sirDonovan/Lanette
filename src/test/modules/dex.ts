@@ -71,6 +71,9 @@ describe("Dex", () => {
 			assert(allPossibleMovesRaticateAlola.includes(move));
 		}
 
+		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Tackle")), 384);
+		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Aeroblast")), 2);
+
 		// other in-game data
 		for (let i = 0; i < Dex.data.badges.length; i++) {
 			assert(Dex.data.badges.indexOf(Dex.data.badges[i]) === i, "Duplicate badge " + Dex.data.badges[i]);
