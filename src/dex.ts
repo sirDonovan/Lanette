@@ -1578,124 +1578,96 @@ export class Dex {
 			}
 		}
 
-		let currentTeams = teamsAfterAdditions.slice();
-		const nextTeams: string[][] = [];
-
-		let evolutions = options.evolutions || 0;
-		if (evolutions > 0) {
-			while (evolutions > 0) {
-				for (const team of currentTeams) {
-					let availableEvolutions = false;
-					for (let i = 0; i < team.length; i++) {
-						const pokemon = this.getExistingPokemon(team[i]);
-						if (!pokemon.nfe) continue;
-						const pokemonSlot = i;
-						const evos: string[] = [];
-						for (const evo of pokemon.evos) {
-							const evolution = this.getExistingPokemon(evo);
-							if (options.allowFormes) {
-								const baseEvolution = this.getExistingPokemon(evolution.baseSpecies);
-								evos.push(baseEvolution.name);
-								if (baseEvolution.otherFormes) {
-									for (const otherForme of baseEvolution.otherFormes) {
-										const forme = this.getExistingPokemon(otherForme);
-										if (!forme.battleOnly) evos.push(forme.name);
-									}
+		if (options.evolutions) {
+			const evolve = options.evolutions > 0;
+			for (const teamAfterAddition of teamsAfterAdditions) {
+				const pokemonEvolutions: Dict<string[]> = {};
+				const pokemonWithEvolutions: string[] = [];
+				const restOfTeam: string[][] = [];
+				for (const name of teamAfterAddition) {
+					const pokemon = this.getExistingPokemon(name);
+					let evolutionFormes: string[] = [];
+					if (evolve) {
+						if (pokemon.evos.length) {
+							for (const evoName of pokemon.evos) {
+								const evo = this.getExistingPokemon(evoName);
+								let evos: string[];
+								if (options.allowFormes) {
+									evos = this.getFormes(evo);
+								} else {
+									if (evo.forme) continue;
+									evos = [evo.name];
 								}
-								if (baseEvolution.cosmeticFormes) {
-									for (const cosmeticForme of baseEvolution.cosmeticFormes) {
-										const forme = this.getExistingPokemon(cosmeticForme);
-										if (!forme.battleOnly) evos.push(forme.name);
+
+								if (options.usablePokemon) {
+									for (const forme of evos) {
+										if (options.usablePokemon.includes(forme)) {
+											evolutionFormes.push(forme);
+										}
+									}
+								} else {
+									evolutionFormes = evolutionFormes.concat(evos);
+								}
+							}
+						}
+					} else {
+						if (pokemon.prevo) {
+							const prevo = this.getExistingPokemon(pokemon.prevo);
+							let prevos: string[] = [];
+							if (options.allowFormes) {
+								prevos = this.getFormes(prevo);
+							} else {
+								if (!prevo.forme) prevos = [prevo.name];
+							}
+
+							if (options.usablePokemon) {
+								for (const forme of prevos) {
+									if (options.usablePokemon.includes(forme)) {
+										evolutionFormes.push(forme);
 									}
 								}
 							} else {
-								if (!evolution.forme) evos.push(evolution.name);
+								evolutionFormes = evolutionFormes.concat(prevos);
+							}
+						}
+					}
+
+					if (evolutionFormes.length) {
+						pokemonWithEvolutions.push(name);
+						pokemonEvolutions[name] = evolutionFormes;
+					} else {
+						restOfTeam.push([name]);
+					}
+				}
+
+				if (pokemonWithEvolutions.length) {
+					const evolutions = Math.min(pokemonWithEvolutions.length, Math.abs(options.evolutions));
+					const evolutionChoices = Tools.getPermutations(pokemonWithEvolutions,
+						options.requiredEvolution ? evolutions : 1, evolutions);
+					for (const choice of evolutionChoices) {
+						const notEvolvingPokemon = restOfTeam.slice();
+						if (choice.length < pokemonWithEvolutions.length) {
+							for (const pokemon of pokemonWithEvolutions) {
+								if (!choice.includes(pokemon)) notEvolvingPokemon.push([pokemon]);
 							}
 						}
 
-						for (const name of evos) {
-							if (options.usablePokemon && !options.usablePokemon.includes(name)) continue;
-
-							const newTeam = team.slice();
-							newTeam[pokemonSlot] = name;
-
-							const key = this.getPossibleTeamKey(newTeam);
+						const combinations = Tools.getCombinations(...(notEvolvingPokemon.concat(choice.map(x => pokemonEvolutions[x]))));
+						for (const combination of combinations) {
+							const key = this.getPossibleTeamKey(combination);
 							if (key in includedInFinalTeams) continue;
 							includedInFinalTeams[key] = true;
 
-							teamsAfterEvolutions.push(newTeam);
-							nextTeams.push(newTeam);
-							if (!availableEvolutions) availableEvolutions = true;
+							teamsAfterEvolutions.push(combination);
 						}
 					}
+				} else {
+					const key = this.getPossibleTeamKey(teamAfterAddition);
+					if (key in includedInFinalTeams) continue;
+					includedInFinalTeams[key] = true;
 
-					if (!availableEvolutions) {
-						const key = this.getPossibleTeamKey(team);
-						if (!(key in includedInFinalTeams)) {
-							includedInFinalTeams[key] = true;
-							teamsAfterEvolutions.push(team);
-						}
-					}
+					teamsAfterEvolutions.push(teamAfterAddition);
 				}
-				currentTeams = nextTeams;
-				evolutions--;
-			}
-		} else if (evolutions < 0) {
-			// check that there are evolutions left
-			while (evolutions < 0) {
-				for (const team of currentTeams) {
-					let availableEvolutions = false;
-					for (let i = 0; i < team.length; i++) {
-						const pokemon = this.getExistingPokemon(team[i]);
-						if (!pokemon.prevo) continue;
-						const pokemonSlot = i;
-						const prevo = this.getExistingPokemon(pokemon.prevo);
-						const prevos: string[] = [];
-						if (options.allowFormes) {
-							const basePrevo = this.getExistingPokemon(prevo.baseSpecies);
-							prevos.push(basePrevo.name);
-							if (basePrevo.otherFormes) {
-								for (const otherForme of basePrevo.otherFormes) {
-									const forme = this.getExistingPokemon(otherForme);
-									if (!forme.battleOnly) prevos.push(forme.name);
-								}
-							}
-							if (basePrevo.cosmeticFormes) {
-								for (const cosmeticForme of basePrevo.cosmeticFormes) {
-									const forme = this.getExistingPokemon(cosmeticForme);
-									if (!forme.battleOnly) prevos.push(forme.name);
-								}
-							}
-						} else {
-							if (!prevo.forme) prevos.push(prevo.name);
-						}
-
-						for (const name of prevos) {
-							if (options.usablePokemon && !options.usablePokemon.includes(name)) continue;
-
-							const newTeam = team.slice();
-							newTeam[pokemonSlot] = name;
-
-							const key = this.getPossibleTeamKey(newTeam);
-							if (key in includedInFinalTeams) continue;
-							includedInFinalTeams[key] = true;
-
-							teamsAfterEvolutions.push(newTeam);
-							nextTeams.push(newTeam);
-							if (!availableEvolutions) availableEvolutions = true;
-						}
-					}
-
-					if (!availableEvolutions) {
-						const key = this.getPossibleTeamKey(team);
-						if (!(key in includedInFinalTeams)) {
-							includedInFinalTeams[key] = true;
-							teamsAfterEvolutions.push(team);
-						}
-					}
-				}
-				currentTeams = nextTeams;
-				evolutions++;
 			}
 		}
 

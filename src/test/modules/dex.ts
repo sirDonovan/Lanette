@@ -685,6 +685,60 @@ describe("Dex", () => {
 		assertStrictEqual(possibleTeams.length, 1);
 		assert(possibleTeams.includes('Bulbasaur'));
 
+		// doubles catch and evolve
+
+		// 2 optional additions and 2 optional evolutions
+		possibleTeams = Dex.getPossibleTeams([["Bulbasaur", "Charmander"]], ["Squirtle", "Chikorita"],
+			{additions: 2, evolutions: 2}).map(x => x.join(','));
+		assertStrictEqual(possibleTeams.length, 29);
+
+		// 2 required additions and 2 optional evolutions
+		possibleTeams = Dex.getPossibleTeams([["Bulbasaur", "Charmander"]], ["Squirtle", "Chikorita"],
+			{additions: 2, evolutions: 2, requiredAddition: true}).map(x => x.join(','));
+		assertStrictEqual(possibleTeams.length, 11);
+
+		// 2 required additions and 2 required evolutions
+		possibleTeams = Dex.getPossibleTeams([["Bulbasaur", "Charmander"]], ["Squirtle", "Chikorita"],
+			{additions: 2, evolutions: 2, requiredAddition: true, requiredEvolution: true}).map(x => x.join(','));
+		assertStrictEqual(possibleTeams.length, 6);
+
+		// 2 optional additions and 2 required evolutions
+		possibleTeams = Dex.getPossibleTeams([["Bulbasaur", "Charmander"]], ["Squirtle", "Chikorita"],
+			{additions: 2, evolutions: 2, requiredEvolution: true}).map(x => x.join(','));
+		assertStrictEqual(possibleTeams.length, 13);
+
+		// no evolutions left
+		possibleTeams = Dex.getPossibleTeams([["Venusaur", "Charizard"]], ["Blastoise", "Meganium"],
+			{additions: 2, evolutions: 2, requiredEvolution: true}).map(x => x.join(','));
+		assertStrictEqual(possibleTeams.length, 4);
+
+		// doubles catch and de-volve
+
+		// 2 optional additions and 2 optional de-volutions
+		possibleTeams = Dex.getPossibleTeams([["Venusaur", "Charizard"]], ["Blastoise", "Meganium"],
+			{additions: 2, evolutions: -2}).map(x => x.join(','));
+		assertStrictEqual(possibleTeams.length, 29);
+
+		// 2 required additions and 2 optional de-volutions
+		possibleTeams = Dex.getPossibleTeams([["Venusaur", "Charizard"]], ["Blastoise", "Meganium"],
+			{additions: 2, evolutions: -2, requiredAddition: true}).map(x => x.join(','));
+		assertStrictEqual(possibleTeams.length, 11);
+
+		// 2 required additions and 2 required de-volutions
+		possibleTeams = Dex.getPossibleTeams([["Venusaur", "Charizard"]], ["Blastoise", "Meganium"],
+			{additions: 2, evolutions: -2, requiredAddition: true, requiredEvolution: true}).map(x => x.join(','));
+		assertStrictEqual(possibleTeams.length, 6);
+
+		// 2 optional additions and 2 required de-volutions
+		possibleTeams = Dex.getPossibleTeams([["Venusaur", "Charizard"]], ["Blastoise", "Meganium"],
+			{additions: 2, evolutions: -2, requiredEvolution: true}).map(x => x.join(','));
+		assertStrictEqual(possibleTeams.length, 13);
+
+		// no de-volutions left
+		possibleTeams = Dex.getPossibleTeams([["Bulbasaur", "Charmander"]], ["Squirtle", "Chikorita"],
+			{additions: 2, evolutions: -2, requiredEvolution: true}).map(x => x.join(','));
+		assertStrictEqual(possibleTeams.length, 4);
+
 		// misc
 
 		// no changes
