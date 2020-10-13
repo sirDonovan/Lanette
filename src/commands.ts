@@ -2751,6 +2751,9 @@ const commands: CommandDefinitions<CommandContext> = {
 				Config.rankedCustomTournaments.includes(room.id)))) {
 				return this.say("A tournament leaderboard is not enabled for this room.");
 			}
+
+			if (!room.tournament.isSingleElimination) return this.say("Only single elimination tournaments award points.");
+
 			if (cmd === 'tournamentenablepoints' || cmd === 'tourenablepoints') {
 				if ((room.tournament.canAwardPoints() && room.tournament.manuallyEnabledPoints === undefined) ||
 					room.tournament.manuallyEnabledPoints) {

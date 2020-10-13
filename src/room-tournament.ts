@@ -35,6 +35,7 @@ export class Tournament extends Activity {
 		teambuilderFormat: '',
 	};
 	isRoundRobin: boolean = false;
+	isSingleElimination: boolean = false;
 	manuallyNamed: boolean = false;
 	manuallyEnabledPoints: boolean | undefined = undefined;
 	originalFormat: string = '';
@@ -75,7 +76,9 @@ export class Tournament extends Activity {
 			const generatorNumber = parseInt(generator.split("-tuple")[0]);
 			if (!isNaN(generatorNumber)) this.generator = generatorNumber;
 		}
+
 		this.isRoundRobin = Tools.toId(generator).includes('roundrobin');
+		this.isSingleElimination = !this.isRoundRobin && this.generator === 1;
 	}
 
 	setCustomFormatName(): void {
@@ -192,8 +195,7 @@ export class Tournament extends Activity {
 			if (this.info.results[2]) semiFinalists = this.info.results[2];
 		}
 
-		const singleElimination = !this.isRoundRobin && this.generator === 1;
-		if (!winners.length || !runnersUp.length || (singleElimination && semiFinalists.length < 2)) return;
+		if (!winners.length || !runnersUp.length || (this.isSingleElimination && semiFinalists.length < 2)) return;
 
 		if ((!this.canAwardPoints() && !this.manuallyEnabledPoints) || this.manuallyEnabledPoints === false) {
 			if (!Config.displayUnrankedTournamentResults || !Config.displayUnrankedTournamentResults.includes(this.room.id)) return;
