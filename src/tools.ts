@@ -512,8 +512,18 @@ export class Tools {
 
 	getPermutations<T>(elements: T[], minimumLength?: number, maximumLength?: number): T[][] {
 		const length = elements.length;
-		if (minimumLength === undefined) minimumLength = length;
-		if (maximumLength === undefined) maximumLength = length;
+
+		if (minimumLength === undefined) {
+			minimumLength = length;
+		} else if (minimumLength < 0) {
+			throw new Error("Invalid minimum length");
+		}
+
+		if (maximumLength === undefined) {
+			maximumLength = length;
+		} else if (maximumLength > length) {
+			throw new Error("Invalid maximum length");
+		}
 
 		const permutations: T[][] = [];
 		const elementsInUse = new Set<T>();
