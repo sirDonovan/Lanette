@@ -132,7 +132,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 	canReroll: boolean = false;
 	checkedBattleRooms: string[] = [];
 	checkChallengesTimers = new Map<EliminationNode<Player>, NodeJS.Timer>();
-	cloakedPokemon: string[] | null = null;
 	color: string | null = null;
 	defaultTier: string = 'ou';
 	disqualifiedPlayers = new Set<Player>();
@@ -149,6 +148,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	minPlayers: number = 4;
 	playerCap: number = 0;
 	playerOpponents = new Map<Player, Player>();
+	playerRequiredPokemon = new Map<Player, readonly string[]>();
 	pokedex: string[] = [];
 	possibleTeams = new Map<Player, readonly string[][]>();
 	requiredAddition: boolean = false;
@@ -156,7 +156,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 	requiredEvolution: boolean = false;
 	rerolls = new Map<Player, boolean>();
 	requiredTier: string | null = null;
-	requiredPokemon: string[] | null = null;
 	sharedTeams: boolean = false;
 	spectatorPlayers = new Set<Player>();
 	spectatorUsers = new Set<string>();
@@ -198,7 +197,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	getMinimumPokemonForPlayers(players: number): number {
-		if (this.sharedTeams || this.usesCloakedPokemon) {
+		if (this.sharedTeams) {
 			return this.startingTeamsLength;
 		} else if (this.additionsPerRound) {
 			const rounds = this.getNumberOfRounds(players);
@@ -691,7 +690,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 		html += "<li>All Pokemon (including formes), moves, abilities, and items not banned in " + this.battleFormat.name + " can " +
 			"be used</li>";
 		if (!this.allowsScouting) html += "<li>Scouting is not allowed</li>";
-		if (!this.cloakedPokemon && !this.sharedTeams) {
+		if (!this.usesCloakedPokemon && !this.sharedTeams) {
 			html += "<li><b>Do not reveal your or your opponents' " + (this.startingTeamsLength === 1 ? "starters" : "teams") + " in " +
 				"the chat!</b></li>";
 		}
@@ -749,15 +748,15 @@ export abstract class EliminationTournament extends ScriptedGame {
 		const pastTense = this.tournamentEnded || player.eliminated;
 		const starterPokemon = this.starterPokemon.get(player);
 		if (starterPokemon) {
-			if (this.cloakedPokemon) {
+			if (this.usesCloakedPokemon) {
 				html += "<b>The Pokemon to protect in battle ";
 				if (pastTense) {
-					html += (this.cloakedPokemon.length === 1 ? "was" : "were");
+					html += (starterPokemon.length === 1 ? "was" : "were");
 				} else {
-					html += (this.cloakedPokemon.length === 1 ? "is" : "are");
+					html += (starterPokemon.length === 1 ? "is" : "are");
 				}
-				html += "</b>:<br />" + this.getPokemonIcons(this.cloakedPokemon).join("");
-				if (!this.tournamentEnded && this.cloakedPokemon.length < 6) {
+				html += "</b>:<br />" + this.getPokemonIcons(starterPokemon).join("");
+				if (!this.tournamentEnded && starterPokemon.length < 6) {
 					html += "<br />You may add any Pokemon to fill your team as long as they are usable in " + this.battleFormat.name + ".";
 				}
 			} else {
@@ -939,10 +938,15 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	giveStartingTeam(player: Player): void {
-		const team = this.getStartingTeam();
+		const team = this.getStartingTeam().filter(x => !!x);
 		if (team.length < this.startingTeamsLength) throw new Error("Out of Pokemon to give (" + player.name + ")");
 
-		this.possibleTeams.set(player, Dex.getFormeCombinations(team, this.battleFormat.usablePokemon));
+		if (this.usesCloakedPokemon) {
+			this.playerRequiredPokemon.set(player, team);
+		} else {
+			this.possibleTeams.set(player, Dex.getFormeCombinations(team, this.battleFormat.usablePokemon));
+		}
+
 		this.starterPokemon.set(player, team);
 		this.updatePlayerHtmlPage(player);
 	}
@@ -1056,13 +1060,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 		this.pokedex = this.shuffle(pokedex);
 		this.htmlPageHeader = "<h3>" + this.room.title + "'s " + this.tournamentName + "</h3>";
 
-		if (this.usesCloakedPokemon) {
-			this.cloakedPokemon = this.pokedex.slice(0, this.startingTeamsLength);
-			this.requiredPokemon = this.cloakedPokemon.slice();
-		} else {
-			const maxPlayers = this.getMaxPlayers(this.pokedex.length);
-			if (maxPlayers < this.maxPlayers) this.maxPlayers = maxPlayers;
-		}
+		const maxPlayers = this.getMaxPlayers(this.pokedex.length);
+		if (maxPlayers < this.maxPlayers) this.maxPlayers = maxPlayers;
 
 		this.playerCap = this.maxPlayers;
 
@@ -1385,8 +1384,9 @@ export abstract class EliminationTournament extends ScriptedGame {
 				if (!team) throw new Error(player.name + " (" + slot + ") does not have a team in " + room.id);
 
 				let illegalTeam = false;
-				if (this.requiredPokemon) {
-					illegalTeam = !Dex.includesPokemon(team, this.requiredPokemon);
+				const requiredPokemon = this.playerRequiredPokemon.get(player);
+				if (requiredPokemon) {
+					illegalTeam = !Dex.includesPokemon(team, requiredPokemon);
 				} else {
 					const possibleTeams = this.possibleTeams.get(player);
 					if (!possibleTeams) throw new Error(player.name + " (" + slot + ") does not have possible teams");
@@ -1451,7 +1451,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 		const players = this.getPlayersFromBattleData(room);
 		if (!players) return false;
 
-		if (!this.cloakedPokemon) return true;
+		if (!this.usesCloakedPokemon) return true;
 
 		const slot = pokemonArgument.substr(0, 2);
 		const name = pokemonArgument.substr(5);
@@ -1460,23 +1460,26 @@ export abstract class EliminationTournament extends ScriptedGame {
 			pokemon = Dex.getPokemon(this.battleData[room.id].nicknames[slot][name]);
 		}
 
-		if (pokemon && this.cloakedPokemon.includes(pokemon.name)) {
-			if (!(slot in this.battleData[room.id].faintedCloakedPokemon)) this.battleData[room.id].faintedCloakedPokemon[slot] = 0;
-			this.battleData[room.id].faintedCloakedPokemon[slot]++;
-			if (this.battleData[room.id].faintedCloakedPokemon[slot] === this.cloakedPokemon.length) {
-				let winner: Player;
-				let loser: Player;
-				if (this.battleData[room.id].slots.get(players[0]) === slot) {
-					loser = players[0];
-					winner = players[1];
-				} else {
-					loser = players[1];
-					winner = players[0];
-				}
+		if (pokemon) {
+			let player: Player;
+			let opponent: Player;
+			if (this.battleData[room.id].slots.get(players[0]) === slot) {
+				player = players[0];
+				opponent = players[1];
+			} else {
+				player = players[1];
+				opponent = players[0];
+			}
 
-				room.say(loser.name + " your cloaked Pokemon " + (this.cloakedPokemon.length > 1 ? "have" : "has") + " fainted!");
-				this.onBattleWin(room, winner.name);
-				return false;
+			const cloakedPokemon = this.starterPokemon.get(player)!;
+			if (cloakedPokemon.includes(pokemon.name)) {
+				if (!(slot in this.battleData[room.id].faintedCloakedPokemon)) this.battleData[room.id].faintedCloakedPokemon[slot] = 0;
+				this.battleData[room.id].faintedCloakedPokemon[slot]++;
+				if (this.battleData[room.id].faintedCloakedPokemon[slot] === cloakedPokemon.length) {
+					room.say(player.name + " your cloaked Pokemon " + (cloakedPokemon.length > 1 ? "have" : "has") + " fainted!");
+					this.onBattleWin(room, opponent.name);
+					return false;
+				}
 			}
 		}
 
@@ -1685,25 +1688,6 @@ const tests: GameFileTests<EliminationTournament> = {
 			assert(game.started);
 		}
 	},
-	'should generate an even bracket for 2^n player count': {
-		test(game, format) {
-			addPlayers(game, 4);
-			game.start();
-			assert(!game.firstRoundByes.size);
-		}
-	},
-	'should generate a bracket with byes if not 2^n player count': {
-		test(game, format) {
-			addPlayers(game, 6);
-			game.start();
-			assertStrictEqual(game.firstRoundByes.size, 2);
-			if (game.additionsPerRound || game.dropsPerRound || game.evolutionsPerRound) {
-				game.firstRoundByes.forEach(player => {
-					assertStrictEqual(game.teamChanges.get(player)!.length, 1);
-				});
-			}
-		}
-	},
 	'should properly list matches by round - 4 players': {
 		test(game, format) {
 			addPlayers(game, 4);
@@ -1733,10 +1717,13 @@ const tests: GameFileTests<EliminationTournament> = {
 			addPlayers(game, 5);
 			game.start();
 
-			assert(game.firstRoundByes.size);
-			game.firstRoundByes.forEach(player => {
-				assert(game.possibleTeams.get(player)!.length);
-			});
+			assertStrictEqual(game.firstRoundByes.size, 3);
+			if (game.additionsPerRound || game.dropsPerRound || game.evolutionsPerRound) {
+				game.firstRoundByes.forEach(player => {
+					assert(game.possibleTeams.get(player)!.length);
+					assertStrictEqual(game.teamChanges.get(player)!.length, 1);
+				});
+			}
 
 			const matchesByRound = game.getMatchesByRound();
 			const matchRounds = Object.keys(matchesByRound).sort();
@@ -1766,10 +1753,13 @@ const tests: GameFileTests<EliminationTournament> = {
 			addPlayers(game, 6);
 			game.start();
 
-			assert(game.firstRoundByes.size);
-			game.firstRoundByes.forEach(player => {
-				assert(game.possibleTeams.get(player)!.length);
-			});
+			assertStrictEqual(game.firstRoundByes.size, 2);
+			if (game.additionsPerRound || game.dropsPerRound || game.evolutionsPerRound) {
+				game.firstRoundByes.forEach(player => {
+					assert(game.possibleTeams.get(player)!.length);
+					assertStrictEqual(game.teamChanges.get(player)!.length, 1);
+				});
+			}
 
 			const matchesByRound = game.getMatchesByRound();
 			const matchRounds = Object.keys(matchesByRound).sort();
@@ -1803,10 +1793,13 @@ const tests: GameFileTests<EliminationTournament> = {
 			addPlayers(game, 7);
 			game.start();
 
-			assert(game.firstRoundByes.size);
-			game.firstRoundByes.forEach(player => {
-				assert(game.possibleTeams.get(player)!.length);
-			});
+			assertStrictEqual(game.firstRoundByes.size, 1);
+			if (game.additionsPerRound || game.dropsPerRound || game.evolutionsPerRound) {
+				game.firstRoundByes.forEach(player => {
+					assert(game.possibleTeams.get(player)!.length);
+					assertStrictEqual(game.teamChanges.get(player)!.length, 1);
+				});
+			}
 
 			const matchesByRound = game.getMatchesByRound();
 			const matchRounds = Object.keys(matchesByRound).sort();
@@ -1888,7 +1881,9 @@ const tests: GameFileTests<EliminationTournament> = {
 				for (const match of matchesByRound[round]) {
 					const winner = match.children![0].user!;
 					game.removePlayer(match.children![1].user!.name);
-					assert(game.possibleTeams.get(winner)!.length);
+					if (game.additionsPerRound || game.dropsPerRound || game.evolutionsPerRound) {
+						assert(game.possibleTeams.get(winner)!.length);
+					}
 				}
 
 				assertStrictEqual(game.teamChanges.get(player)!.length, i);
@@ -1915,7 +1910,9 @@ const tests: GameFileTests<EliminationTournament> = {
 				for (const match of matchesByRound[round]) {
 					const winner = match.children![0].user!;
 					game.removePlayer(match.children![1].user!.name);
-					assert(game.possibleTeams.get(winner)!.length);
+					if (game.additionsPerRound || game.dropsPerRound || game.evolutionsPerRound) {
+						assert(game.possibleTeams.get(winner)!.length);
+					}
 				}
 
 				assertStrictEqual(game.teamChanges.get(player)!.length, i);

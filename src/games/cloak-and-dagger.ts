@@ -2,12 +2,10 @@ import type { IGameFile } from '../types/games';
 import { EliminationTournament, game as eliminationTournamentGame } from './templates/elimination-tournament';
 
 const name = "Cloak and Dagger";
-const description = "Every player is given the same randomly generated Pokemon that they have to protect from fainting each battle! You " +
-	"may choose any other 5 Pokemon to complete your team.";
+const description = "Every player is given a different randomly generated Pokemon that they have to protect from fainting each battle! " +
+	"Any other 5 Pokemon can be chosen to complete a team.";
 
 class CloakAndDagger extends EliminationTournament {
-	additionsPerRound = 0;
-	evolutionsPerRound = 0;
 	startingTeamsLength = 1;
 	baseTournamentName = name;
 	tournamentDescription = description;
@@ -15,10 +13,6 @@ class CloakAndDagger extends EliminationTournament {
 	firstRoundExtraTime = 5 * 60 * 1000;
 	requiredTier = "OU";
 	usesCloakedPokemon = true;
-
-	getStartingTeam(): readonly string[] {
-		return this.pokedex.slice(0, this.startingTeamsLength);
-	}
 }
 
 export const game: IGameFile<CloakAndDagger> = Games.copyTemplateProperties(eliminationTournamentGame, {
@@ -27,10 +21,6 @@ export const game: IGameFile<CloakAndDagger> = Games.copyTemplateProperties(elim
 	description,
 	name,
 	variants: [
-		{
-			name: "Monotype Cloak and Dagger",
-			variant: "monotype",
-		},
 		{
 			name: "Cloak and Dagger Ubers",
 			variant: "ubers",
