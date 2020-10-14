@@ -1495,7 +1495,11 @@ export class Dex {
 			if (!options.additions) throw new Error("Cannot require 0 additions");
 			if (!pool.length) throw new Error("Cannot require " + options.additions + " additions from empty pool");
 		}
+		if (options.additions && options.additions < 1) throw new Error("Use options.drops instead of negative additions");
+
 		if (options.requiredDrop && !options.drops) throw new Error("Cannot require 0 drops");
+		if (options.drops && options.drops < 1) throw new Error("Use options.additions & pool instead of negative drops");
+
 		if (options.requiredEvolution && !options.evolutions) throw new Error("Cannot require 0 evolutions");
 
 		const includedTeamsAfterDrops: Dict<boolean> = {};
