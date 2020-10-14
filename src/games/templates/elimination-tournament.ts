@@ -600,18 +600,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 					evolutions: this.evolutionsPerRound,
 				});
 
-				let possibleTeams = this.possibleTeams.get(winner)!;
-				possibleTeams = Dex.getPossibleTeams(possibleTeams, loserTeam, {
-					additions: this.additionsPerRound,
-					drops: this.dropsPerRound,
-					evolutions: this.evolutionsPerRound,
-					requiredAddition: this.requiredAddition,
-					requiredDrop: this.requiredDrop,
-					requiredEvolution: this.requiredEvolution,
-					allowFormes: this.allowsFormes,
-					usablePokemon: this.battleFormat.usablePokemon,
-				});
-				this.possibleTeams.set(winner, possibleTeams);
+				this.updatePossibleTeams(winner, loserTeam);
 			}
 		}
 
@@ -958,6 +947,19 @@ export abstract class EliminationTournament extends ScriptedGame {
 		this.updatePlayerHtmlPage(player);
 	}
 
+	updatePossibleTeams(player: Player, additions: string[]): void {
+		this.possibleTeams.set(player, Dex.getPossibleTeams(this.possibleTeams.get(player)!, additions, {
+			additions: this.additionsPerRound,
+			drops: this.dropsPerRound,
+			evolutions: this.evolutionsPerRound,
+			requiredAddition: this.requiredAddition,
+			requiredDrop: this.requiredDrop,
+			requiredEvolution: this.requiredEvolution,
+			allowFormes: this.allowsFormes,
+			usablePokemon: this.battleFormat.usablePokemon,
+		}));
+	}
+
 	getSignupsHtml(): string {
 		let html = "<div class='infobox'><b>" + Users.self.name + " is hosting a " + this.name + " tournament!</b>";
 		if (this.tournamentDescription) html += "<br />" + this.tournamentDescription;
@@ -1161,18 +1163,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 				};
 				this.teamChanges.set(player, (this.teamChanges.get(player) || []).concat([teamChange]));
 
-				let possibleTeams = this.possibleTeams.get(player)!;
-				possibleTeams = Dex.getPossibleTeams(possibleTeams, pokemon, {
-					additions: this.additionsPerRound,
-					drops: this.dropsPerRound,
-					evolutions: this.evolutionsPerRound,
-					requiredAddition: this.requiredAddition,
-					requiredDrop: this.requiredDrop,
-					requiredEvolution: this.requiredEvolution,
-					allowFormes: this.allowsFormes,
-					usablePokemon: this.battleFormat.usablePokemon,
-				});
-				this.possibleTeams.set(player, possibleTeams);
+				this.updatePossibleTeams(player, pokemon);
 			}
 		});
 
@@ -1717,6 +1708,9 @@ const tests: GameFileTests<EliminationTournament> = {
 		test(game, format) {
 			addPlayers(game, 4);
 			game.start();
+
+			assert(!game.firstRoundByes.size);
+
 			const matchesByRound = game.getMatchesByRound();
 			const matchRounds = Object.keys(matchesByRound).sort();
 			assertStrictEqual(matchRounds.length, 2);
@@ -1738,6 +1732,12 @@ const tests: GameFileTests<EliminationTournament> = {
 		test(game, format) {
 			addPlayers(game, 5);
 			game.start();
+
+			assert(game.firstRoundByes.size);
+			game.firstRoundByes.forEach(player => {
+				assert(game.possibleTeams.get(player)!.length);
+			});
+
 			const matchesByRound = game.getMatchesByRound();
 			const matchRounds = Object.keys(matchesByRound).sort();
 			assertStrictEqual(matchRounds.length, 3);
@@ -1765,6 +1765,12 @@ const tests: GameFileTests<EliminationTournament> = {
 		test(game, format) {
 			addPlayers(game, 6);
 			game.start();
+
+			assert(game.firstRoundByes.size);
+			game.firstRoundByes.forEach(player => {
+				assert(game.possibleTeams.get(player)!.length);
+			});
+
 			const matchesByRound = game.getMatchesByRound();
 			const matchRounds = Object.keys(matchesByRound).sort();
 			assertStrictEqual(matchRounds.length, 3);
@@ -1796,6 +1802,12 @@ const tests: GameFileTests<EliminationTournament> = {
 		test(game, format) {
 			addPlayers(game, 7);
 			game.start();
+
+			assert(game.firstRoundByes.size);
+			game.firstRoundByes.forEach(player => {
+				assert(game.possibleTeams.get(player)!.length);
+			});
+
 			const matchesByRound = game.getMatchesByRound();
 			const matchRounds = Object.keys(matchesByRound).sort();
 			assertStrictEqual(matchRounds.length, 3);
@@ -1827,6 +1839,9 @@ const tests: GameFileTests<EliminationTournament> = {
 		test(game, format) {
 			addPlayers(game, 8);
 			if (!game.started) game.start();
+
+			assert(!game.firstRoundByes.size);
+
 			const matchesByRound = game.getMatchesByRound();
 			const matchRounds = Object.keys(matchesByRound).sort();
 			assertStrictEqual(matchRounds.length, 3);
@@ -1862,6 +1877,8 @@ const tests: GameFileTests<EliminationTournament> = {
 			addPlayers(game, 64);
 			if (!game.started) game.start();
 
+			assert(!game.firstRoundByes.size);
+
 			let matchesByRound = game.getMatchesByRound();
 			const matchRounds = Object.keys(matchesByRound).sort();
 			for (let i = 1; i <= ((6 - game.startingTeamsLength) / game.additionsPerRound); i++) {
@@ -1869,7 +1886,9 @@ const tests: GameFileTests<EliminationTournament> = {
 				if (!round) break;
 				const player = matchesByRound[round][0].children![0].user!;
 				for (const match of matchesByRound[round]) {
+					const winner = match.children![0].user!;
 					game.removePlayer(match.children![1].user!.name);
+					assert(game.possibleTeams.get(winner)!.length);
 				}
 
 				assertStrictEqual(game.teamChanges.get(player)!.length, i);
@@ -1885,6 +1904,8 @@ const tests: GameFileTests<EliminationTournament> = {
 			addPlayers(game, 64);
 			if (!game.started) game.start();
 
+			assert(!game.firstRoundByes.size);
+
 			let matchesByRound = game.getMatchesByRound();
 			const matchRounds = Object.keys(matchesByRound).sort();
 			for (let i = 1; i <= ((game.startingTeamsLength - 1) / game.additionsPerRound); i++) {
@@ -1892,7 +1913,9 @@ const tests: GameFileTests<EliminationTournament> = {
 				if (!round) break;
 				const player = matchesByRound[round][0].children![0].user!;
 				for (const match of matchesByRound[round]) {
+					const winner = match.children![0].user!;
 					game.removePlayer(match.children![1].user!.name);
+					assert(game.possibleTeams.get(winner)!.length);
 				}
 
 				assertStrictEqual(game.teamChanges.get(player)!.length, i);
