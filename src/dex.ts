@@ -1491,6 +1491,13 @@ export class Dex {
 	}
 
 	getPossibleTeams(previousTeams: readonly string[][], pool: readonly string[], options: IGetPossibleTeamsOptions): string[][] {
+		if (options.requiredAddition) {
+			if (!options.additions) throw new Error("Cannot require 0 additions");
+			if (!pool.length) throw new Error("Cannot require " + options.additions + " additions from empty pool");
+		}
+		if (options.requiredDrop && !options.drops) throw new Error("Cannot require 0 drops");
+		if (options.requiredEvolution && !options.evolutions) throw new Error("Cannot require 0 evolutions");
+
 		const includedTeamsAfterDrops: Dict<boolean> = {};
 		const teamsAfterDrops: string[][] = [];
 		if (!options.requiredDrop) {
@@ -1523,7 +1530,18 @@ export class Dex {
 		}
 
 		let teamsAfterAdditions: string[][] = [];
-		if (!options.requiredAddition) teamsAfterAdditions = teamsAfterDrops.slice();
+		if (options.requiredAddition) {
+			// teams with no room for additions
+			for (const teamAfterDrops of teamsAfterDrops) {
+				if (teamAfterDrops.length === 6) {
+					teamsAfterAdditions.push(teamAfterDrops.slice());
+				}
+			}
+		} else {
+			// not adding Pokemon
+			teamsAfterAdditions = teamsAfterDrops.slice();
+		}
+
 		let additions = options.additions || 0;
 		if (additions) {
 			const filteredPool: string[] = [];
