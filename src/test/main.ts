@@ -38,7 +38,7 @@ module.exports = async(inputOptions: Dict<string>): Promise<void> => {
 		const mochaRoom = Rooms.add('mocha');
 		mochaRoom.title = 'Mocha';
 
-		let modulesToTest: string[] | undefined;
+		let modulesToTest: string[];
 		if (testOptions.modules) {
 			modulesToTest = testOptions.modules.split(',').map(x => x.trim() + '.js');
 		} else {
@@ -100,8 +100,11 @@ module.exports = async(inputOptions: Dict<string>): Promise<void> => {
 			console.log("Loaded game data");
 		}
 
+		const mochaRunsOption = testOptions.mochaRuns ? parseInt(testOptions.mochaRuns) : 0;
+		const maxMochaRuns = !isNaN(mochaRunsOption) ? Math.max(1, mochaRunsOption) : 1;
+
 		const mocha = new Mocha({
-			reporter: 'dot',
+			reporter: maxMochaRuns === 1 ? 'dot' : 'min',
 			ui: 'bdd',
 		});
 
@@ -111,12 +114,25 @@ module.exports = async(inputOptions: Dict<string>): Promise<void> => {
 			if (modulesToTest.includes(moduleTest)) mocha.addFile(path.join(modulesDir, moduleTest));
 		}
 
-		mocha.run(failures => {
-			Games.unrefWorkers();
-			Storage.unrefWorkers();
+		let mochaRuns = 0;
 
-			process.exit(failures === 0 ? 0 : 1);
-		});
+		const runMocha = () => {
+			mocha.run(failures => {
+				if (failures) process.exit(1);
+
+				mochaRuns++;
+				if (mochaRuns === maxMochaRuns) {
+					Games.unrefWorkers();
+					Storage.unrefWorkers();
+					process.exit(failures ? 1 : 0);
+				}
+
+				mocha.unloadFiles();
+				runMocha();
+			});
+		};
+
+		runMocha();
 	} catch (e) {
 		console.log(e);
 		process.exit(1);
