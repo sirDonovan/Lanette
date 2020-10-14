@@ -136,7 +136,6 @@ const commands: GameCommandDefinitions<ChanseysEggToss> = {
 
 export const game: IGameFile<ChanseysEggToss> = {
 	aliases: ['chanseys', 'eggtoss'],
-	category: 'reaction',
 	class: ChanseysEggToss,
 	commands,
 	commandDescriptions: [Config.commandCharacter + 'toss [player]'],

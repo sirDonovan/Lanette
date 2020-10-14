@@ -310,6 +310,7 @@ const commands: GameCommandDefinitions<SpindasExcludedPokemon> = {
 
 export const game: IGameFile<SpindasExcludedPokemon> = {
 	aliases: ["sep", "spindas"],
+	category: 'puzzle',
 	class: SpindasExcludedPokemon,
 	commands,
 	commandDescriptions: [Config.commandCharacter + 'exclude [Pokemon]', Config.commandCharacter + 'g [parameter]'],

@@ -257,6 +257,7 @@ const commands: GameCommandDefinitions<MagikarpsWaterWheel> = {
 
 export const game: IGameFile<MagikarpsWaterWheel> = {
 	aliases: ['magikarps', 'mww', 'waterwheel', 'pyl'],
+	category: 'luck',
 	class: MagikarpsWaterWheel,
 	commandDescriptions: [Config.commandCharacter + "swim [up/down]", Config.commandCharacter + "tread", Config.commandCharacter + "stay"],
 	commands,

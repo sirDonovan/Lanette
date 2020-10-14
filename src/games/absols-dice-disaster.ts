@@ -120,6 +120,7 @@ const commands: GameCommandDefinitions<AbsolsDiceDisaster> = {
 
 export const game: IGameFile<AbsolsDiceDisaster> = {
 	aliases: ['absols', 'dicedisaster', 'ddice', 'dd'],
+	category: 'luck',
 	class: AbsolsDiceDisaster,
 	commandDescriptions: [Config.commandCharacter + "bid [number]"],
 	commands,
