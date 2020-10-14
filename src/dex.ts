@@ -1587,75 +1587,101 @@ export class Dex {
 
 		teamsAfterAdditions = teamsAfterAdditions.filter(x => x.length);
 
-		let teamsAfterEvolutions: string[][];
-		const includedInFinalTeams: Dict<boolean> = {};
-		if (options.requiredEvolution) {
-			teamsAfterEvolutions = [];
-		} else {
-			// not evolving Pokemon
-			teamsAfterEvolutions = teamsAfterAdditions.slice();
-			for (const team of teamsAfterEvolutions) {
-				includedInFinalTeams[this.getPossibleTeamKey(team)] = true;
-			}
-		}
-
+		const teamEvolutionFormes: Dict<string[]> = {};
+		// build teamEvolutionFormes cache
 		if (options.evolutions) {
 			const evolve = options.evolutions > 0;
-			for (const teamAfterAddition of teamsAfterAdditions) {
-				const pokemonEvolutions: Dict<string[]> = {};
-				const pokemonWithEvolutions: string[] = [];
-				const restOfTeam: string[][] = [];
-				for (const name of teamAfterAddition) {
-					const pokemon = this.getExistingPokemon(name);
-					let evolutionFormes: string[] = [];
-					if (evolve) {
-						if (pokemon.evos.length) {
-							for (const evoName of pokemon.evos) {
-								const evo = this.getExistingPokemon(evoName);
-								let evos: string[];
+			for (const teamAfterAdditions of teamsAfterAdditions) {
+				for (const name of teamAfterAdditions) {
+					if (!(name in teamEvolutionFormes)) {
+						const pokemon = this.getExistingPokemon(name);
+						let evolutionFormes: string[] = [];
+						if (evolve) {
+							if (pokemon.evos.length) {
+								for (const evoName of pokemon.evos) {
+									const evo = this.getExistingPokemon(evoName);
+									let evos: string[];
+									if (options.allowFormes) {
+										evos = this.getFormes(evo);
+									} else {
+										if (evo.forme) continue;
+										evos = [evo.name];
+									}
+
+									if (options.usablePokemon) {
+										for (const forme of evos) {
+											if (options.usablePokemon.includes(forme)) {
+												evolutionFormes.push(forme);
+											}
+										}
+									} else {
+										evolutionFormes = evolutionFormes.concat(evos);
+									}
+								}
+							}
+						} else {
+							if (pokemon.prevo) {
+								const prevo = this.getExistingPokemon(pokemon.prevo);
+								let prevos: string[] = [];
 								if (options.allowFormes) {
-									evos = this.getFormes(evo);
+									prevos = this.getFormes(prevo);
 								} else {
-									if (evo.forme) continue;
-									evos = [evo.name];
+									if (!prevo.forme) prevos = [prevo.name];
 								}
 
 								if (options.usablePokemon) {
-									for (const forme of evos) {
+									for (const forme of prevos) {
 										if (options.usablePokemon.includes(forme)) {
 											evolutionFormes.push(forme);
 										}
 									}
 								} else {
-									evolutionFormes = evolutionFormes.concat(evos);
+									evolutionFormes = evolutionFormes.concat(prevos);
 								}
 							}
 						}
-					} else {
-						if (pokemon.prevo) {
-							const prevo = this.getExistingPokemon(pokemon.prevo);
-							let prevos: string[] = [];
-							if (options.allowFormes) {
-								prevos = this.getFormes(prevo);
-							} else {
-								if (!prevo.forme) prevos = [prevo.name];
-							}
 
-							if (options.usablePokemon) {
-								for (const forme of prevos) {
-									if (options.usablePokemon.includes(forme)) {
-										evolutionFormes.push(forme);
-									}
-								}
-							} else {
-								evolutionFormes = evolutionFormes.concat(prevos);
-							}
-						}
+						teamEvolutionFormes[name] = evolutionFormes;
 					}
+				}
+			}
+		}
 
-					if (evolutionFormes.length) {
+		let teamsAfterEvolutions: string[][] = [];
+		const includedTeamsAfterEvolutions: Dict<boolean> = {};
+		if (options.requiredEvolution) {
+			// teams with no evolutions left
+			for (const teamAfterAdditions of teamsAfterAdditions) {
+				let teamHasEvolutions = false;
+				for (const name of teamAfterAdditions) {
+					if (teamEvolutionFormes[name].length) {
+						teamHasEvolutions = true;
+						break;
+					}
+				}
+
+				if (!teamHasEvolutions) {
+					teamsAfterEvolutions.push(teamAfterAdditions.slice());
+				}
+			}
+		} else {
+			// not evolving Pokemon
+			teamsAfterEvolutions = teamsAfterAdditions.slice();
+		}
+
+		for (const teamAfterEvolutions of teamsAfterEvolutions) {
+			includedTeamsAfterEvolutions[this.getPossibleTeamKey(teamAfterEvolutions)] = true;
+		}
+
+		if (options.evolutions) {
+			for (const teamAfterAdditions of teamsAfterAdditions) {
+				const pokemonEvolutions: Dict<string[]> = {};
+				const pokemonWithEvolutions: string[] = [];
+				const restOfTeam: string[][] = [];
+				for (const name of teamAfterAdditions) {
+					if (teamEvolutionFormes[name].length) {
 						pokemonWithEvolutions.push(name);
-						pokemonEvolutions[name] = evolutionFormes;
+						pokemonEvolutions[name] = teamEvolutionFormes[name];
 					} else {
 						restOfTeam.push([name]);
 					}
@@ -1676,24 +1702,24 @@ export class Dex {
 						const combinations = Tools.getCombinations(...(notEvolvingPokemon.concat(choice.map(x => pokemonEvolutions[x]))));
 						for (const combination of combinations) {
 							const key = this.getPossibleTeamKey(combination);
-							if (key in includedInFinalTeams) continue;
-							includedInFinalTeams[key] = true;
+							if (key in includedTeamsAfterEvolutions) continue;
+							includedTeamsAfterEvolutions[key] = true;
 
 							teamsAfterEvolutions.push(combination);
 						}
 					}
 				} else {
-					const key = this.getPossibleTeamKey(teamAfterAddition);
-					if (key in includedInFinalTeams) continue;
-					includedInFinalTeams[key] = true;
+					const key = this.getPossibleTeamKey(teamAfterAdditions);
+					if (key in includedTeamsAfterEvolutions) continue;
+					includedTeamsAfterEvolutions[key] = true;
 
-					teamsAfterEvolutions.push(teamAfterAddition);
+					teamsAfterEvolutions.push(teamAfterAdditions);
 				}
 			}
 		}
 
-		for (const team of teamsAfterEvolutions) {
-			team.sort();
+		for (const teamAfterEvolutions of teamsAfterEvolutions) {
+			teamAfterEvolutions.sort();
 		}
 
 		teamsAfterEvolutions.sort((a, b) => a.length - b.length);
