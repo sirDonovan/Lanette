@@ -3684,7 +3684,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			}
 
 			users = users.filter(x => pointsCache[x] !== 0).sort((a, b) => pointsCache[b] - pointsCache[a]);
-			if (!users.length) return this.say("The " + leaderboardRoom.title + " leaderboard is empty.");
+			if (!users.length) return this.say("The " + (source ? source.name : "") + " leaderboard for " + leaderboardRoom.title + " room is empty.");
 
 			const output: string[] = [];
 			const positions = 10;
