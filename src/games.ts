@@ -20,6 +20,7 @@ import { ParametersWorker } from './workers/parameters';
 import { PortmanteausWorker } from './workers/portmanteaus';
 
 const DEFAULT_CATEGORY_COOLDOWN = 3;
+const IMMUNE_MATCHUP_SCORE = 0.001;
 
 const gamesDirectory = path.join(__dirname, 'games');
 const internalGamePaths: IInternalGames = {
@@ -1151,6 +1152,55 @@ export class Games {
 		if (!gen) gen = Dex.gen;
 		const dex = Dex.getDex('gen' + gen);
 		return this.getPokemonList(filter, gen).map(x => dex.getPokemonCopy(x));
+	}
+
+	getEffectivenessScore(source: string | IMove, target: string | readonly string[] | IPokemon): number {
+		if (Dex.isImmune(source, target)) {
+			return IMMUNE_MATCHUP_SCORE;
+		}
+
+		const effectiveness = Dex.getEffectiveness(source, target);
+		if (effectiveness === -2) {
+			return 0.25;
+		} else if (effectiveness === -1) {
+			return 0.5;
+		} else if (effectiveness === 1) {
+			return 2;
+		} else if (effectiveness === 2) {
+			return 4;
+		}
+
+		return 1;
+	}
+
+	getCombinedEffectivenessScore(attacker: IPokemon, defender: string | readonly string[] | IPokemon): number {
+		let combinedScore = 1;
+		for (const type of attacker.types) {
+			const score = this.getEffectivenessScore(type, defender);
+			if (score === IMMUNE_MATCHUP_SCORE) {
+				combinedScore = IMMUNE_MATCHUP_SCORE;
+				break;
+			}
+
+			combinedScore *= score;
+		}
+
+		return combinedScore;
+	}
+
+	getMatchupWinner(attacker: IPokemon, defender: IPokemon): IPokemon | null {
+		const matchupScore = this.getCombinedEffectivenessScore(attacker, defender) /
+			this.getCombinedEffectivenessScore(defender, attacker);
+
+		if (matchupScore > 1) {
+			return attacker;
+		}
+
+		if (matchupScore < 1) {
+			return defender;
+		}
+
+		return null;
 	}
 
 	isIncludedPokemonTier(tier: string): boolean {

@@ -97,29 +97,6 @@ class MachopsMatchups extends ScriptedGame {
 
 		this.announceWinners();
 	}
-
-	getCombinedEffectiveness(attacker: IPokemon, defender: IPokemon): number {
-		let combinedEffectiveness = 1;
-		for (const type of attacker.types) {
-			if (Dex.isImmune(type, defender)) {
-				combinedEffectiveness = 0.001;
-				break;
-			}
-
-			const effectiveness = Dex.getEffectiveness(type, defender);
-			if (effectiveness === -2) {
-				combinedEffectiveness *= 0.25;
-			} else if (effectiveness === -1) {
-				combinedEffectiveness *= 0.5;
-			} else if (effectiveness === 1) {
-				combinedEffectiveness *= 2;
-			} else if (effectiveness === 2) {
-				combinedEffectiveness *= 4;
-			}
-		}
-
-		return combinedEffectiveness;
-	}
 }
 
 const commands: GameCommandDefinitions<MachopsMatchups> = {
@@ -131,10 +108,9 @@ const commands: GameCommandDefinitions<MachopsMatchups> = {
 			this.roundActions.add(player);
 			const pokemon = this.playerPokemon.get(player)!;
 
-			const outcome = this.getCombinedEffectiveness(pokemon, this.currentPokemon) /
-				this.getCombinedEffectiveness(this.currentPokemon, pokemon);
+			const winner = Games.getMatchupWinner(pokemon, this.currentPokemon);
 
-			if (outcome > 1) {
+			if (winner === pokemon) {
 				let points = this.points.get(player) || 0;
 				points += 1;
 				this.points.set(player, points);
@@ -143,7 +119,7 @@ const commands: GameCommandDefinitions<MachopsMatchups> = {
 				if (points >= this.maxPoints) {
 					this.winners.set(player, points);
 				}
-			} else if (outcome < 1) {
+			} else if (winner === this.currentPokemon) {
 				let points = this.points.get(player) || 0;
 				points -= 1;
 				this.points.set(player, points);
