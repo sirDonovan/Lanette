@@ -137,6 +137,37 @@ describe("Dex", () => {
 			assertStrictEqual(Dex.getLearnsetData(variant), learnsetData);
 		}
 	});
+	it('should properly determine data types', () => {
+		const ability = Dex.getExistingAbility("Air Lock");
+		const item = Dex.getExistingItem("Burn Drive");
+		const move = Dex.getExistingMove("Acid Armor");
+		const pokemon = Dex.getExistingPokemon("Mr. Mime");
+		const fake = {effectType: "Fake", name: "Fake"};
+
+		assertStrictEqual(Dex.isAbility(ability), true);
+		assertStrictEqual(Dex.isAbility(item), false);
+		assertStrictEqual(Dex.isAbility(move), false);
+		assertStrictEqual(Dex.isAbility(pokemon), false);
+		assertStrictEqual(Dex.isAbility(fake), false);
+
+		assertStrictEqual(Dex.isItem(item), true);
+		assertStrictEqual(Dex.isItem(ability), false);
+		assertStrictEqual(Dex.isItem(move), false);
+		assertStrictEqual(Dex.isItem(pokemon), false);
+		assertStrictEqual(Dex.isItem(fake), false);
+
+		assertStrictEqual(Dex.isMove(move), true);
+		assertStrictEqual(Dex.isMove(ability), false);
+		assertStrictEqual(Dex.isMove(item), false);
+		assertStrictEqual(Dex.isMove(pokemon), false);
+		assertStrictEqual(Dex.isMove(fake), false);
+
+		assertStrictEqual(Dex.isPokemon(pokemon), true);
+		assertStrictEqual(Dex.isPokemon(ability), false);
+		assertStrictEqual(Dex.isPokemon(item), false);
+		assertStrictEqual(Dex.isPokemon(move), false);
+		assertStrictEqual(Dex.isPokemon(fake), false);
+	});
 	it('should set custom attributes for formats', () => {
 		for (const i of Dex.data.formatKeys) {
 			const format = Dex.getExistingFormat(i);
