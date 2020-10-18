@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, IGameFile } from "../types/games";
 
 class PonytasPinataParty extends ScriptedGame {
 	canHit: boolean = false;
@@ -83,7 +83,7 @@ class PonytasPinataParty extends ScriptedGame {
 const commands: GameCommandDefinitions<PonytasPinataParty> = {
 	hit: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		command(target, room, user): GameCommandReturnType {
+		command(target, room, user) {
 			if (!this.canHit) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (this.roundHits.has(player)) return false;

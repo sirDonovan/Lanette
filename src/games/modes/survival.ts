@@ -129,11 +129,11 @@ const initialize = (game: ScriptedGame): void => {
 };
 
 const tests: GameFileTests<SurvivalThis> = {
-	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	'it should have the necessary methods': {
 		config: {
 			async: true,
 		},
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async test(game, format, attributes): Promise<void> {
 			this.timeout(15000);
 
@@ -150,6 +150,7 @@ const tests: GameFileTests<SurvivalThis> = {
 			async: true,
 			commands: [['guess'], ['g']],
 		},
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async test(game, format, attributes): Promise<void> {
 			this.timeout(15000);
 
@@ -171,6 +172,7 @@ const tests: GameFileTests<SurvivalThis> = {
 			async: true,
 			commands: [['guess'], ['g']],
 		},
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async test(game, format, attributes): Promise<void> {
 			this.timeout(15000);
 
@@ -188,7 +190,6 @@ const tests: GameFileTests<SurvivalThis> = {
 			assert(currentPlayer.eliminated);
 		},
 	},
-	/* eslint-enable */
 };
 
 export const mode: IGameModeFile<Survival, QuestionAndAnswer, SurvivalThis> = {

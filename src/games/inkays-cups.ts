@@ -1,7 +1,7 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, IGameFile } from "../types/games";
 import type { User } from "../users";
 import type { IParam, IParametersWorkerData } from './../workers/parameters';
 
@@ -164,7 +164,7 @@ class InkaysCups extends ScriptedGame {
 const commands: GameCommandDefinitions<InkaysCups> = {
 	grab: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		command(target, room, user): GameCommandReturnType {
+		command(target, room, user) {
 			if (!this.canGrab || this.roundGuesses.has(this.players[user.id])) return false;
 			const player = this.players[user.id];
 			const guess = Tools.toId(target);

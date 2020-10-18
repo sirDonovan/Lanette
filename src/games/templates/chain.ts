@@ -1,7 +1,7 @@
 import type { Player } from "../../room-activity";
 import { ScriptedGame } from "../../room-game-scripted";
 import type { IAbility, IItem, IMove, IPokemon } from "../../types/dex";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameTemplateFile } from "../../types/games";
+import type { GameCommandDefinitions, IGameTemplateFile } from "../../types/games";
 
 export type Link = IPokemon | IMove | IItem | IAbility;
 
@@ -258,7 +258,7 @@ export abstract class Chain extends ScriptedGame {
 const commands: GameCommandDefinitions<Chain> = {
 	guess: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		command(target, room, user): GameCommandReturnType {
+		command(target, room, user) {
 			if (this.format.options.freejoin) {
 				if (!this.targetLinkStarts.length && !this.targetLinkEnds.length) return false;
 			} else {

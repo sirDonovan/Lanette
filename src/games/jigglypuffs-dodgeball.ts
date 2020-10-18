@@ -1,6 +1,6 @@
 import type { Player, PlayerTeam } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, IGameFile } from "../types/games";
 
 const BALL_POKEMON = "Igglybuff";
 
@@ -111,7 +111,7 @@ class JigglypuffsDodgeball extends ScriptedGame {
 const commands: GameCommandDefinitions<JigglypuffsDodgeball> = {
 	throw: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		command(target, room, user): GameCommandReturnType {
+		command(target, room, user) {
 			const player = this.players[user.id];
 			if (this.roundActions.has(player)) return false;
 			this.roundActions.set(player, true);

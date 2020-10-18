@@ -1,7 +1,7 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import { addPlayers, assertStrictEqual, runCommand } from "../test/test-tools";
-import type { GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameFileTests, IGameFile } from "../types/games";
 
 const data: {'meals': string[]; 'aliases': Dict<string>} = {
 	meals: [],
@@ -127,7 +127,7 @@ class BounsweetsBountifulBuffet extends ScriptedGame {
 const commands: GameCommandDefinitions<BounsweetsBountifulBuffet> = {
 	select: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		command(target, room, user): GameCommandReturnType {
+		command(target, room, user) {
 			if (this.selectedMeals.has(this.players[user.id])) return false;
 			const player = this.players[user.id];
 			target = Tools.toId(target);
@@ -153,11 +153,11 @@ const commands: GameCommandDefinitions<BounsweetsBountifulBuffet> = {
 };
 
 const tests: GameFileTests<BounsweetsBountifulBuffet> = {
-	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	'should give the same points for shared meals': {
 		config: {
 			async: true,
 		},
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async test(game, format): Promise<void> {
 			const players = addPlayers(game, 2);
 			game.minPlayers = 2;
@@ -174,6 +174,7 @@ const tests: GameFileTests<BounsweetsBountifulBuffet> = {
 		config: {
 			async: true,
 		},
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async test(game, format): Promise<void> {
 			const players = addPlayers(game, 2);
 			game.minPlayers = 2;
@@ -186,7 +187,6 @@ const tests: GameFileTests<BounsweetsBountifulBuffet> = {
 			assertStrictEqual(game.points.get(players[1]), expectedPointsB);
 		},
 	},
-	/* eslint-enable */
 };
 
 export const game: IGameFile<BounsweetsBountifulBuffet> = {

@@ -1,6 +1,6 @@
 import type { Player } from '../room-activity';
 import { ScriptedGame } from '../room-game-scripted';
-import type { GameCategory, GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCategory, GameCommandDefinitions, IGameFile } from "../types/games";
 
 type BerryType = 'Cheri' | 'Chesto' | 'Pecha' | 'Rawst' | 'Mystery';
 interface IBerryPile {
@@ -288,10 +288,10 @@ class GreedentsBerryPiles extends ScriptedGame {
 	}
 }
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 const commands: GameCommandDefinitions<GreedentsBerryPiles> = {
 	grab: {
-		command(target, room, user): GameCommandReturnType {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
 			if (!this.canGrab || this.players[user.id].frozen) return false;
 			const player = this.players[user.id];
 			if (this.roundActions.has(player)) return false;
@@ -322,7 +322,8 @@ const commands: GameCommandDefinitions<GreedentsBerryPiles> = {
 		pmGameCommand: true,
 	},
 	run: {
-		command(target, room, user): GameCommandReturnType {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
 			if (this.players[user.id].frozen) return false;
 			const player = this.players[user.id];
 			if (this.roundActions.has(player)) return false;
@@ -334,7 +335,6 @@ const commands: GameCommandDefinitions<GreedentsBerryPiles> = {
 		pmGameCommand: true,
 	},
 };
-/* eslint-enable */
 
 commands.summary = Tools.deepClone(Games.sharedCommands.summary);
 commands.summary.aliases = ['berries'];

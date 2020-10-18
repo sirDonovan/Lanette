@@ -1,7 +1,7 @@
 import type { Player } from "../../room-activity";
 import { addPlayers, assertStrictEqual } from "../../test/test-tools";
 import type {
-	GameCategory, GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameAchievement, IGameTemplateFile
+	GameCategory, GameCommandDefinitions, GameFileTests, IGameAchievement, IGameTemplateFile
 } from "../../types/games";
 import type { HexColor } from "../../types/tools";
 import type { BoardActionCard, BoardSide, IBoard, IMovedBoardLocation } from "./board";
@@ -70,7 +70,7 @@ export class BoardRentSpace extends BoardSpace {
 export class BoardActionSpace extends BoardSpace {}
 
 const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
-	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 	function(this: BoardPropertyGame, player): void {
 		this.playerLocations.set(player, this.getSpaceLocation(this.startingSpace)!);
 		const text = "They hop on the Flying Taxi and advance to " + this.startingSpace.name + "!";
@@ -79,6 +79,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
+	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 	function(this: BoardPropertyGame, player): void {
 		const getOutOfJailCards = this.escapeFromJailCards.get(player) || 0;
 		this.escapeFromJailCards.set(player, getOutOfJailCards + 1);
@@ -88,6 +89,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
+	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 	function(this: BoardPropertyGame, player): void {
 		const location = this.playerLocations.get(player)!;
 		const spaces = -1 * (this.random(3) + 1);
@@ -101,6 +103,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
+	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 	function(this: BoardPropertyGame, player): void {
 		const location = this.playerLocations.get(player)!;
 		let locationAfterMovement = this.getLocationAfterMovement(location, 1);
@@ -139,6 +142,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
+	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 	function(this: BoardPropertyGame, player): void {
 		let currency = this.playerCurrency.get(player)!;
 		currency += this.rafflePrize;
@@ -154,6 +158,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
+	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 	function(this: BoardPropertyGame, player): void {
 		const totalSpaces = this.board.leftColumn.length + this.board.topRow.length + this.board.rightColumn.length +
 			this.board.bottomRow.length;
@@ -169,6 +174,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
+	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 	function(this: BoardPropertyGame, player): void {
 		this.playerLocations.set(player, this.getSpaceLocation(this.jailSpace)!);
 		this.playersInJail.push(player);
@@ -180,7 +186,6 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
-	/* eslint-enable */
 ];
 
 export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends BoardGame {
@@ -675,7 +680,8 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 
 const commands: GameCommandDefinitions<BoardPropertyGame> = {
 	rolldice: {
-		command(target, room, user): GameCommandReturnType {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
 			if (!this.canRollOrEscapeJail || this.players[user.id] !== this.currentPlayer) return false;
 			if (this.timeout) clearTimeout(this.timeout);
 			this.canRollOrEscapeJail = false;
@@ -684,7 +690,8 @@ const commands: GameCommandDefinitions<BoardPropertyGame> = {
 		},
 	},
 	unlock: {
-		command(target, room, user): GameCommandReturnType {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
 			if (!this.propertyToAcquire || !this.canAcquire || this.players[user.id] !== this.currentPlayer) return false;
 			this.acquirePropertySpace(this.propertyToAcquire, this.currentPlayer, this.propertyToAcquire.cost);
 			this.canAcquire = false;
@@ -699,7 +706,8 @@ const commands: GameCommandDefinitions<BoardPropertyGame> = {
 		aliases: ['buy'],
 	},
 	pass: {
-		command(target, room, user): GameCommandReturnType {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
 			if (!this.propertyToAcquire || !this.canAcquire || this.players[user.id] !== this.currentPlayer) return false;
 			this.canAcquire = false;
 			if (this.timeout) clearTimeout(this.timeout);
@@ -708,7 +716,8 @@ const commands: GameCommandDefinitions<BoardPropertyGame> = {
 		},
 	},
 	escape: {
-		command(target, room, user): GameCommandReturnType {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
 			if (!this.canRollOrEscapeJail || this.players[user.id] !== this.currentPlayer) return false;
 			if (this.timeout) clearTimeout(this.timeout);
 			const player = this.players[user.id];

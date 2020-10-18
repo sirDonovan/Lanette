@@ -367,9 +367,9 @@ const commands: GameCommandDefinitions<Card> = {};
 commands.summary = Tools.deepClone(Games.sharedCommands.summary);
 commands.summary.aliases = ['cards', 'hand'];
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 const tests: GameFileTests<Card> = {
 	'it should have all required card properties': {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game, format): void {
 			const tackle = Dex.getExistingMove("Tackle");
 			const moveCard = game.moveToCard(tackle, Dex.getMoveAvailability(tackle));
@@ -393,7 +393,6 @@ const tests: GameFileTests<Card> = {
 		},
 	},
 };
-/* eslint-enable */
 
 export const game: IGameTemplateFile<Card> = {
 	commands,

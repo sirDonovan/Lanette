@@ -2,7 +2,7 @@ import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
 import type { IPokemon } from "../types/dex";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 
 type AchievementNames = "wonderguardwarrior";
@@ -138,7 +138,7 @@ class ShedinjasWonderTrials extends ScriptedGame {
 const commands: GameCommandDefinitions<ShedinjasWonderTrials> = {
 	use: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		command(target, room, user): GameCommandReturnType {
+		command(target, room, user) {
 			if (!this.canUseMove || !this.currentPokemon) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (this.roundMoves.has(player)) return false;

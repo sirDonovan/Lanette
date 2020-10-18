@@ -1,7 +1,7 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import { addPlayers, assertStrictEqual, runCommand } from '../test/test-tools';
-import type { GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameAchievement, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameFileTests, IGameAchievement, IGameFile } from "../types/games";
 
 type AchievementNames = "escapeartist";
 
@@ -114,7 +114,7 @@ class SableyesTrickHouse extends ScriptedGame {
 const commands: GameCommandDefinitions<SableyesTrickHouse> = {
 	select: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		command(target, room, user): GameCommandReturnType {
+		command(target, room, user) {
 			if (!this.canSelect || this.roundSelections.has(this.players[user.id])) return false;
 			const player = this.players[user.id];
 			const choice = Tools.toId(target);
@@ -146,11 +146,11 @@ const commands: GameCommandDefinitions<SableyesTrickHouse> = {
 };
 
 const tests: GameFileTests<SableyesTrickHouse> = {
-	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	'should only allow one choice per round': {
 		config: {
 			async: true,
 		},
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async test(game): Promise<void> {
 			const players = addPlayers(game, 4);
 			game.start();
@@ -165,6 +165,7 @@ const tests: GameFileTests<SableyesTrickHouse> = {
 		config: {
 			async: true,
 		},
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async test(game): Promise<void> {
 			const players = addPlayers(game, 4);
 			game.start();
@@ -182,6 +183,7 @@ const tests: GameFileTests<SableyesTrickHouse> = {
 		config: {
 			async: true,
 		},
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async test(game): Promise<void> {
 			const players = addPlayers(game, 4);
 			game.start();
@@ -193,7 +195,6 @@ const tests: GameFileTests<SableyesTrickHouse> = {
 			assertStrictEqual(game.roundSelections.has(players[1]), true);
 		},
 	},
-	/* eslint-enable */
 };
 
 export const game: IGameFile<SableyesTrickHouse> = {

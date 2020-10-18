@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, IGameAchievement, IGameFile } from "../types/games";
 
 type AchievementNames = "fishoutofwater" | "goldenmagikarp" | "hightidesurvivor";
 
@@ -196,9 +196,9 @@ class MagikarpsWaterWheel extends ScriptedGame {
 }
 
 const commands: GameCommandDefinitions<MagikarpsWaterWheel> = {
-	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	swim: {
-		command(target, room, user): GameCommandReturnType {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
 			if (!this.canSwim || this.players[user.id].frozen || this.roundActions.has(this.players[user.id])) return false;
 			const player = this.players[user.id];
 			const wheel = this.playerWheels.get(player)!;
@@ -231,14 +231,16 @@ const commands: GameCommandDefinitions<MagikarpsWaterWheel> = {
 		},
 	},
 	tread: {
-		command(target, room, user): GameCommandReturnType {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
 			if (!this.canSwim || this.players[user.id].frozen) return false;
 			this.roundActions.add(this.players[user.id]);
 			return true;
 		},
 	},
 	stay: {
-		command(target, room, user): GameCommandReturnType {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
 			if (!this.canSwim || this.players[user.id].frozen) return false;
 			const player = this.players[user.id];
 			const points = this.points.get(player);
@@ -252,7 +254,6 @@ const commands: GameCommandDefinitions<MagikarpsWaterWheel> = {
 			return true;
 		},
 	},
-	/* eslint-enable */
 };
 
 export const game: IGameFile<MagikarpsWaterWheel> = {

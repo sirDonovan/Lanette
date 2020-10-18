@@ -1,7 +1,7 @@
 import type { PRNGSeed } from "../prng";
 import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 import type { BoardActionCard, IBoard } from "./templates/board";
 import { BoardSpace } from "./templates/board";
@@ -278,7 +278,8 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 
 const commands: GameCommandDefinitions<JellicentsPhantomFinances> = {
 	bid: {
-		command(target, room, user): GameCommandReturnType {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
 			if (!this.canBid) return false;
 			const player = this.players[user.id];
 			const amount = parseInt(target);

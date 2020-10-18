@@ -1,7 +1,7 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, IGameFile } from "../types/games";
 import type { User } from "../users";
 
 type ExpectedMultiple = 'firstMultiple' | 'secondMultiple' | 'both' | number;
@@ -169,7 +169,7 @@ class BuzzwolesFizzBuzz extends ScriptedGame {
 const commands: GameCommandDefinitions<BuzzwolesFizzBuzz> = {
 	fizz: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		command(target, room, user): GameCommandReturnType {
+		command(target, room, user) {
 			if (!this.currentPlayer || this.players[user.id] !== this.currentPlayer) return false;
 			if (this.timeout) clearTimeout(this.timeout);
 			const guess = Tools.toId(target);

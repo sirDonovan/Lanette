@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, IGameFile } from "../types/games";
 
 const MIN_BLOCKS = 1;
 const MAX_BLOCKS = 5;
@@ -119,7 +119,7 @@ class CrustlesCrumblingBlocks extends ScriptedGame {
 const commands: GameCommandDefinitions<CrustlesCrumblingBlocks> = {
 	remove: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		command(target, room, user): GameCommandReturnType {
+		command(target, room, user) {
 			if (this.players[user.id] !== this.currentPlayer) return false;
 			const player = this.players[user.id];
 			const targetNumber = parseInt(target);

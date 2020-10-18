@@ -1,7 +1,7 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, IGameAchievement, IGameFile } from "../types/games";
 
 type AchievementNames = "privateinvestigator";
 
@@ -94,9 +94,9 @@ class EmpoleonsEmpires extends ScriptedGame {
 }
 
 const commands: GameCommandDefinitions<EmpoleonsEmpires> = {
-	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	guess: {
-		command(target, room, user): GameCommandReturnType {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
 			if (!this.canGuess || this.players[user.id] !== this.currentPlayer) return false;
 			const player = this.players[user.id];
 			const targets = target.split(",");
@@ -152,7 +152,8 @@ const commands: GameCommandDefinitions<EmpoleonsEmpires> = {
 		aliases: ['g'],
 	},
 	alias: {
-		command(target, room, user): GameCommandReturnType {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
 			if (this.playerAliases.has(this.players[user.id])) {
 				user.say("You have already chosen your alias!");
 				return false;
@@ -194,7 +195,8 @@ const commands: GameCommandDefinitions<EmpoleonsEmpires> = {
 		pmOnly: true,
 	},
 	dqalias: {
-		command(target, room, user): GameCommandReturnType {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
 			if (!user.hasRank(this.room as Room, 'driver')) return false;
 			let targetPlayer: Player | undefined;
 			const targetAlias = Tools.toId(target);
@@ -219,7 +221,6 @@ const commands: GameCommandDefinitions<EmpoleonsEmpires> = {
 		pmOnly: true,
 		staffGameCommand: true,
 	},
-	/* eslint-enable */
 };
 
 export const game: IGameFile<EmpoleonsEmpires> = {
