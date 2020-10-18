@@ -773,12 +773,7 @@ export class Dex {
 		const sourceType = (typeof source === 'string' ? source : source.type);
 		let targetType: string | readonly string[];
 		if (typeof target === 'string') {
-			const pokemon = this.getPokemon(target);
-			if (pokemon) {
-				targetType = pokemon.types;
-			} else {
-				targetType = target;
-			}
+			targetType = target;
 		} else if (Array.isArray(target)) {
 			targetType = target;
 		} else {
@@ -834,12 +829,7 @@ export class Dex {
 		const sourceType = (typeof source === 'string' ? source : source.type);
 		let targetType: string | readonly string[];
 		if (typeof target === 'string') {
-			const pokemon = this.getPokemon(target);
-			if (pokemon) {
-				targetType = pokemon.types;
-			} else {
-				targetType = target;
-			}
+			targetType = target;
 		} else if (Array.isArray(target)) {
 			targetType = target;
 		} else {
