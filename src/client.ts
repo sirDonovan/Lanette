@@ -462,6 +462,9 @@ export class Client {
 
 						const options: ClientOptions = {
 							perMessageDeflate: Config.perMessageDeflate || false,
+							headers: {
+								"User-Agent": "ws",
+							},
 						};
 
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
