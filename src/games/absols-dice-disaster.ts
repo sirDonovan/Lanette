@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, IGameFile } from "../types/games";
 
 const senseRolls: KeyedDict<'disaster' | 'stillness' | 'fortune', number> = {
 	disaster: 25,
@@ -98,7 +98,7 @@ class AbsolsDiceDisaster extends ScriptedGame {
 const commands: GameCommandDefinitions<AbsolsDiceDisaster> = {
 	bid: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		command(target, room, user): GameCommandReturnType {
+		command(target, room, user) {
 			if (!this.canBid) return false;
 			const bid = parseInt(target);
 			if (isNaN(bid) || bid > this.maxBid || bid < this.minBid) {

@@ -980,9 +980,9 @@ class HauntersHauntedHouse extends ScriptedGame {
 	}
 }
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 const commands: GameCommandDefinitions<HauntersHauntedHouse> = {
 	up: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			const player = this.players[user.id];
 			this.movePlayer(player, target, 'up');
@@ -990,6 +990,7 @@ const commands: GameCommandDefinitions<HauntersHauntedHouse> = {
 		},
 	},
 	down: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			const player = this.players[user.id];
 			this.movePlayer(player, target, 'down');
@@ -997,6 +998,7 @@ const commands: GameCommandDefinitions<HauntersHauntedHouse> = {
 		},
 	},
 	left: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			const player = this.players[user.id];
 			this.movePlayer(player, target, 'left');
@@ -1004,6 +1006,7 @@ const commands: GameCommandDefinitions<HauntersHauntedHouse> = {
 		},
 	},
 	right: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			const player = this.players[user.id];
 			this.movePlayer(player, target, 'right');
@@ -1011,6 +1014,7 @@ const commands: GameCommandDefinitions<HauntersHauntedHouse> = {
 		},
 	},
 	wait: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			const player = this.players[user.id];
 			const remainingTurnMoves = this.playerRemainingTurnMoves.get(player);
@@ -1021,7 +1025,6 @@ const commands: GameCommandDefinitions<HauntersHauntedHouse> = {
 		},
 	},
 };
-/* eslint-enable */
 
 export const game: IGameFile<HauntersHauntedHouse> = {
 	category: 'board',

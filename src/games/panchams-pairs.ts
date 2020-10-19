@@ -1,7 +1,7 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, IGameFile } from "../types/games";
 import type { User } from "../users";
 
 interface IPokemonPairData {
@@ -296,7 +296,7 @@ class PanchamPairs extends ScriptedGame {
 const commands: GameCommandDefinitions<PanchamPairs> = {
 	pair: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		command(target, room, user): GameCommandReturnType {
+		command(target, room, user) {
 			if (!this.canPair) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (this.paired.has(player)) return false;

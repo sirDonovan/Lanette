@@ -19,7 +19,9 @@ const teamNameLists: Dict<string[][]> = {
 
 export abstract class Game extends Activity {
 	readonly activityType: string = 'game';
+	largestTeam: PlayerTeam | null = null;
 	minPlayers: number = 4;
+	playerOrders: Dict<Player[]> | null = null;
 	readonly round: number = 0;
 	signupsStarted: boolean = false;
 	signupsTime: number = 0;
@@ -254,6 +256,61 @@ export abstract class Game extends Activity {
 		if (points) newTeam.points += points;
 	}
 
+	setLargestTeam(): void {
+		if (!this.teams) throw new Error("setLargestTeam() called without teams");
+		const teamIds = Object.keys(this.teams);
+		this.largestTeam = this.teams[teamIds[0]];
+
+		for (let i = 1; i < teamIds.length; i++) {
+			const team = this.teams[teamIds[i]];
+			if (team.players.length > this.largestTeam.players.length) this.largestTeam = team;
+		}
+	}
+
+	setTeamPlayerOrders(): void {
+		if (!this.teams) throw new Error("setTeamPlayerOrders() called without teams");
+
+		for (const i in this.teams) {
+			this.setTeamPlayerOrder(this.teams[i]);
+		}
+	}
+
+	setTeamPlayerOrder(team: PlayerTeam): void {
+		if (!this.playerOrders) throw new Error("setTeamPlayerOrder() called without playerOrders");
+
+		this.playerOrders[team.id] = [];
+		for (const player of team.players) {
+			if (!player.eliminated) this.playerOrders[team.id].push(player);
+		}
+
+		this.playerOrders[team.id] = this.shuffle(this.playerOrders[team.id]);
+	}
+
+	getEmptyTeams(): PlayerTeam[] {
+		if (!this.teams) throw new Error("getEmptyTeams() called without teams");
+		const emptyTeams: PlayerTeam[] = [];
+		const teamIds = Object.keys(this.teams);
+		for (const id of teamIds) {
+			if (!this.getRemainingPlayerCount(this.teams[id].players)) {
+				emptyTeams.push(this.teams[id]);
+			}
+		}
+
+		return emptyTeams;
+	}
+
+	getFinalTeam(): PlayerTeam | undefined {
+		if (!this.teams) throw new Error("getFinalTeam() called without teams");
+		const remainingTeams: PlayerTeam[] = [];
+		for (const team in this.teams) {
+			if (this.getRemainingPlayerCount(this.teams[team].players)) {
+				remainingTeams.push(this.teams[team]);
+			}
+		}
+
+		return remainingTeams.length === 1 ? remainingTeams[0] : undefined;
+	}
+
 	getPlayersDisplay(): string {
 		const remainingPlayers = this.getRemainingPlayerCount();
 		if (!remainingPlayers) return "**Players**: none";
@@ -286,11 +343,13 @@ export abstract class Game extends Activity {
 		}, players).join(', ');
 	}
 
-	getTeamPlayers(teams: Dict<PlayerTeam>, players?: PlayerList): Dict<string[]> {
+	getTeamPlayers(players?: PlayerList): Dict<string[]> {
+		if (!this.teams) throw new Error("getTeamPlayers() called without teams");
+
 		players = this.getPlayerList(players);
 		const teamPlayers: Dict<string[]> = {};
-		for (const i in teams) {
-			const team = teams[i];
+		for (const i in this.teams) {
+			const team = this.teams[i];
 			teamPlayers[team.id] = [];
 			for (const player of team.players) {
 				if (players.includes(player)) teamPlayers[team.id].push(player.name);
@@ -300,13 +359,14 @@ export abstract class Game extends Activity {
 		return teamPlayers;
 	}
 
-	getTeamPlayerNames(teams: Dict<PlayerTeam>, players?: PlayerList): string {
-		const teamPlayers = this.getTeamPlayers(teams, players);
+	getTeamPlayerNames(players?: PlayerList): string {
+		if (!this.teams) throw new Error("getTeamPlayers() called without teams");
 
+		const teamPlayers = this.getTeamPlayers(players);
 		const output: string[] = [];
-		const teamKeys = Object.keys(teams).sort();
+		const teamKeys = Object.keys(this.teams).sort();
 		for (const key of teamKeys) {
-			output.push("<b>" + teams[key].name + "</b>: " + Tools.joinList(teamPlayers[key]));
+			output.push("<b>" + this.teams[key].name + "</b>: " + Tools.joinList(teamPlayers[key]));
 		}
 		return output.join(" | ");
 	}

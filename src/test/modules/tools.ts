@@ -10,6 +10,10 @@ const month = 31 * day;
 const year = 365 * day;
 
 describe("Tools", () => {
+	it('should export the correct constant values', () => {
+		assertStrictEqual(Tools.mainServer, "play.pokemonshowdown.com");
+		assertStrictEqual(Tools.letters, "abcdefghijklmnopqrstuvwxyz");
+	});
 	it('should return proper values from deepClone()', () => {
 		const array = ['a'];
 		const arrayClone = Tools.deepClone(array);

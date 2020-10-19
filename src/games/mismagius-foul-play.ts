@@ -1,7 +1,7 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 
 type AchievementNames = "criminalmind" | "truedetective";
@@ -254,9 +254,9 @@ class MismagiusFoulPlay extends ScriptedGame {
 }
 
 const commands: GameCommandDefinitions<MismagiusFoulPlay> = {
-	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	select: {
-		command(target, room, user): GameCommandReturnType {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
 			const player = this.players[user.id];
 			if (this.chosenPokemon.has(player)) {
 				user.say("You already have an assigned Pokemon.");
@@ -286,7 +286,8 @@ const commands: GameCommandDefinitions<MismagiusFoulPlay> = {
 		pmOnly: true,
 	},
 	suspect: {
-		command(target, room, user): GameCommandReturnType {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
 			const player = this.players[user.id];
 			if (this.roundGuesses.has(player)) {
 				player.say("You have already suspected a player this round!");
@@ -360,7 +361,6 @@ const commands: GameCommandDefinitions<MismagiusFoulPlay> = {
 		},
 		pmOnly: true,
 	},
-	/* eslint-enable */
 };
 
 commands.summary = Tools.deepClone(Games.sharedCommands.summary);

@@ -1,7 +1,7 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 
 type AchievementNames = "sunkentreasure";
@@ -152,7 +152,7 @@ class WishiwashisStatFishing extends ScriptedGame {
 const commands: GameCommandDefinitions<WishiwashisStatFishing> = {
 	reel: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		command(target, room, user): GameCommandReturnType {
+		command(target, room, user) {
 			if (this.roundReels.has(this.players[user.id])) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 			this.roundReels.set(player, true);

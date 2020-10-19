@@ -1,6 +1,6 @@
 import type { Player } from "../../room-activity";
 import { ScriptedGame } from "../../room-game-scripted";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameTemplateFile } from "../../types/games";
+import type { GameCommandDefinitions, IGameAchievement, IGameTemplateFile } from "../../types/games";
 import type { User } from "../../users";
 
 interface ISpaceAttributes {
@@ -661,36 +661,38 @@ export abstract class MapGame extends ScriptedGame {
 }
 
 const commands: GameCommandDefinitions<MapGame> = {
-	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	up: {
-		command(target, room, user): GameCommandReturnType {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
 			return this.move(target, user, 'up');
 		},
 		eliminatedGameCommand: true,
 		pmGameCommand: true,
 	},
 	down: {
-		command(target, room, user): GameCommandReturnType {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
 			return this.move(target, user, 'down');
 		},
 		eliminatedGameCommand: true,
 		pmGameCommand: true,
 	},
 	left: {
-		command(target, room, user): GameCommandReturnType {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
 			return this.move(target, user, 'left');
 		},
 		eliminatedGameCommand: true,
 		pmGameCommand: true,
 	},
 	right: {
-		command(target, room, user): GameCommandReturnType {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
 			return this.move(target, user, 'right');
 		},
 		eliminatedGameCommand: true,
 		pmGameCommand: true,
 	},
-	/* eslint-enable */
 };
 
 export const game: IGameTemplateFile<MapGame> = {

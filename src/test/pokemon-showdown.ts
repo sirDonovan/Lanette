@@ -1,5 +1,7 @@
 import { assert, assertStrictEqual } from './test-tools';
 
+const formatEffectTypes: string[] = ['Format', 'Rule', 'ValidatorRule'];
+
 /* eslint-env mocha */
 describe("pokemon-showdown", () => {
 	it("should properly interface with Lanette", () => {
@@ -7,6 +9,7 @@ describe("pokemon-showdown", () => {
 			const ability = Dex.getAbility(i);
 			assert(ability, i);
 			assertStrictEqual(ability.id, i);
+			assertStrictEqual(ability.effectType, "Ability");
 			assertStrictEqual(typeof ability.name, 'string');
 			assertStrictEqual(typeof ability.id, 'string');
 			assertStrictEqual(typeof ability.gen, 'number');
@@ -18,6 +21,7 @@ describe("pokemon-showdown", () => {
 			const format = Dex.getFormat(i);
 			assert(format, i);
 			assertStrictEqual(format.id, i);
+			assert(formatEffectTypes.includes(format.effectType));
 			assertStrictEqual(typeof format.name, 'string');
 			assert(Array.isArray(format.banlist));
 			if (format.banlist.length) assertStrictEqual(typeof format.banlist[0], 'string');
@@ -36,6 +40,7 @@ describe("pokemon-showdown", () => {
 			const item = Dex.getItem(i);
 			assert(item, i);
 			assertStrictEqual(item.id, i);
+			assertStrictEqual(item.effectType, "Item");
 			assertStrictEqual(typeof item.name, 'string');
 			assertStrictEqual(typeof item.gen, 'number');
 			if (item.desc) assertStrictEqual(typeof item.desc, 'string');
@@ -56,6 +61,7 @@ describe("pokemon-showdown", () => {
 			} else {
 				assertStrictEqual(move.id, i);
 			}
+			assertStrictEqual(move.effectType, "Move");
 			assertStrictEqual(typeof move.name, 'string');
 			assertStrictEqual(typeof move.gen, 'number');
 			assertStrictEqual(typeof move.type, 'string');
@@ -68,6 +74,7 @@ describe("pokemon-showdown", () => {
 			const pokemon = Dex.getPokemon(i);
 			assert(pokemon, i);
 			assertStrictEqual(pokemon.id, i);
+			assertStrictEqual(pokemon.effectType, "Pokemon");
 			assertStrictEqual(typeof pokemon.name, 'string');
 			assertStrictEqual(typeof pokemon.baseSpecies, 'string');
 			assertStrictEqual(typeof pokemon.gen, 'number');

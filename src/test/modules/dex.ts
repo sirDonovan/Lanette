@@ -137,6 +137,37 @@ describe("Dex", () => {
 			assertStrictEqual(Dex.getLearnsetData(variant), learnsetData);
 		}
 	});
+	it('should properly determine data types', () => {
+		const ability = Dex.getExistingAbility("Air Lock");
+		const item = Dex.getExistingItem("Burn Drive");
+		const move = Dex.getExistingMove("Acid Armor");
+		const pokemon = Dex.getExistingPokemon("Mr. Mime");
+		const fake = {effectType: "Fake", name: "Fake"};
+
+		assertStrictEqual(Dex.isAbility(ability), true);
+		assertStrictEqual(Dex.isAbility(item), false);
+		assertStrictEqual(Dex.isAbility(move), false);
+		assertStrictEqual(Dex.isAbility(pokemon), false);
+		assertStrictEqual(Dex.isAbility(fake), false);
+
+		assertStrictEqual(Dex.isItem(item), true);
+		assertStrictEqual(Dex.isItem(ability), false);
+		assertStrictEqual(Dex.isItem(move), false);
+		assertStrictEqual(Dex.isItem(pokemon), false);
+		assertStrictEqual(Dex.isItem(fake), false);
+
+		assertStrictEqual(Dex.isMove(move), true);
+		assertStrictEqual(Dex.isMove(ability), false);
+		assertStrictEqual(Dex.isMove(item), false);
+		assertStrictEqual(Dex.isMove(pokemon), false);
+		assertStrictEqual(Dex.isMove(fake), false);
+
+		assertStrictEqual(Dex.isPokemon(pokemon), true);
+		assertStrictEqual(Dex.isPokemon(ability), false);
+		assertStrictEqual(Dex.isPokemon(item), false);
+		assertStrictEqual(Dex.isPokemon(move), false);
+		assertStrictEqual(Dex.isPokemon(fake), false);
+	});
 	it('should set custom attributes for formats', () => {
 		for (const i of Dex.data.formatKeys) {
 			const format = Dex.getExistingFormat(i);
@@ -155,7 +186,7 @@ describe("Dex", () => {
 		assert(Dex.getExistingFormat("[Gen 8] OU") !== Dex.getExistingFormat("[Gen 8] OU"));
 		assert(Dex.getExistingFormat("[Gen 8] OU") !== Dex.getExistingFormat("[Gen 8] OU@@@+Lunala"));
 	});
-	it('should return property trainer sprite ids', () => {
+	it('should return proper trainer sprite ids', () => {
 		assertStrictEqual(Dex.getTrainerSpriteId("Ace Trainer"), "acetrainer");
 		assertStrictEqual(Dex.getTrainerSpriteId("acetrainer"), "acetrainer");
 		assertStrictEqual(Dex.getTrainerSpriteId("acetrainer-gen4"), "acetrainer-gen4");
@@ -269,41 +300,89 @@ describe("Dex", () => {
 		assertStrictEqual(separatedCustomRules.removedrules[0], "Team Preview");
 	});
 	it('should return proper values from isImmune()', () => {
+		const normalTypeMove = Dex.getExistingMove('Tackle');
+		const ghostTypePokemon = Dex.getExistingPokemon('Duskull');
+
 		assertStrictEqual(Dex.isImmune('Normal', 'Ghost'), true);
 		assertStrictEqual(Dex.isImmune('Normal', ['Ghost']), true);
-		assertStrictEqual(Dex.isImmune('Normal', Dex.getExistingPokemon('Duskull')), true);
-		assertStrictEqual(Dex.isImmune(Dex.getExistingMove('Tackle'), 'Ghost'), true);
-		assertStrictEqual(Dex.isImmune(Dex.getExistingMove('Tackle'), ['Ghost']), true);
-		assertStrictEqual(Dex.isImmune(Dex.getExistingMove('Tackle'), Dex.getExistingPokemon('Duskull')), true);
+		assertStrictEqual(Dex.isImmune('Normal', ghostTypePokemon), true);
+		assertStrictEqual(Dex.isImmune(normalTypeMove, 'Ghost'), true);
+		assertStrictEqual(Dex.isImmune(normalTypeMove, ['Ghost']), true);
+		assertStrictEqual(Dex.isImmune(normalTypeMove, ghostTypePokemon), true);
+
+		const fireTypePokemon = Dex.getExistingPokemon('Charmander');
+
+		assertStrictEqual(Dex.isImmune('Normal', 'Fire'), false);
+		assertStrictEqual(Dex.isImmune('Normal', ['Fire']), false);
+		assertStrictEqual(Dex.isImmune('Normal', fireTypePokemon), false);
+		assertStrictEqual(Dex.isImmune(normalTypeMove, 'Fire'), false);
+		assertStrictEqual(Dex.isImmune(normalTypeMove, ['Fire']), false);
+		assertStrictEqual(Dex.isImmune(normalTypeMove, fireTypePokemon), false);
+
+		const waterTypeMove = Dex.getExistingMove('Surf');
 
 		assertStrictEqual(Dex.isImmune('Water', 'Fire'), false);
 		assertStrictEqual(Dex.isImmune('Water', ['Fire']), false);
-		assertStrictEqual(Dex.isImmune('Water', Dex.getExistingPokemon("Charmander")), false);
-		assertStrictEqual(Dex.isImmune(Dex.getExistingMove("Surf"), 'Fire'), false);
-		assertStrictEqual(Dex.isImmune(Dex.getExistingMove("Surf"), ['Fire']), false);
-		assertStrictEqual(Dex.isImmune(Dex.getExistingMove("Surf"), Dex.getExistingPokemon("Charmander")), false);
+		assertStrictEqual(Dex.isImmune('Water', fireTypePokemon), false);
+		assertStrictEqual(Dex.isImmune(waterTypeMove, 'Fire'), false);
+		assertStrictEqual(Dex.isImmune(waterTypeMove, ['Fire']), false);
+		assertStrictEqual(Dex.isImmune(waterTypeMove, fireTypePokemon), false);
+
+		const fireTypeMove = Dex.getExistingMove('Ember');
+		const waterTypePokemon = Dex.getExistingPokemon('Squirtle');
+
+		assertStrictEqual(Dex.isImmune('Fire', 'Water'), false);
+		assertStrictEqual(Dex.isImmune('Fire', ['Water']), false);
+		assertStrictEqual(Dex.isImmune('Fire', waterTypePokemon), false);
+		assertStrictEqual(Dex.isImmune(fireTypeMove, 'Water'), false);
+		assertStrictEqual(Dex.isImmune(fireTypeMove, ['Water']), false);
+		assertStrictEqual(Dex.isImmune(fireTypeMove, waterTypePokemon), false);
 	});
 	it('should return proper values from getEffectiveness()', () => {
+		const waterTypeMove = Dex.getExistingMove('Surf');
+		const fireTypePokemon = Dex.getExistingPokemon('Charmander');
+
 		assertStrictEqual(Dex.getEffectiveness('Water', 'Fire'), 1);
 		assertStrictEqual(Dex.getEffectiveness('Water', ['Fire']), 1);
-		assertStrictEqual(Dex.getEffectiveness('Water', Dex.getExistingPokemon('Charmander')), 1);
-		assertStrictEqual(Dex.getEffectiveness(Dex.getExistingMove('Surf'), 'Fire'), 1);
-		assertStrictEqual(Dex.getEffectiveness(Dex.getExistingMove('Surf'), ['Fire']), 1);
-		assertStrictEqual(Dex.getEffectiveness(Dex.getExistingMove('Surf'), Dex.getExistingPokemon('Charmander')), 1);
+		assertStrictEqual(Dex.getEffectiveness('Water', fireTypePokemon), 1);
+		assertStrictEqual(Dex.getEffectiveness(waterTypeMove, 'Fire'), 1);
+		assertStrictEqual(Dex.getEffectiveness(waterTypeMove, ['Fire']), 1);
+		assertStrictEqual(Dex.getEffectiveness(waterTypeMove, fireTypePokemon), 1);
+
+		assertStrictEqual(Dex.getEffectiveness('Water', ['Rock', 'Ground']), 2);
+		assertStrictEqual(Dex.getEffectiveness('Water', Dex.getExistingPokemon('Golem')), 2);
+		assertStrictEqual(Dex.getEffectiveness(waterTypeMove, ['Rock', 'Ground']), 2);
+		assertStrictEqual(Dex.getEffectiveness(waterTypeMove, Dex.getExistingPokemon('Golem')), 2);
+
+		const fireTypeMove = Dex.getExistingMove('Ember');
+		const waterTypePokemon = Dex.getExistingPokemon('Squirtle');
 
 		assertStrictEqual(Dex.getEffectiveness('Fire', 'Water'), -1);
 		assertStrictEqual(Dex.getEffectiveness('Fire', ['Water']), -1);
-		assertStrictEqual(Dex.getEffectiveness('Fire', Dex.getExistingPokemon('Squirtle')), -1);
-		assertStrictEqual(Dex.getEffectiveness(Dex.getExistingMove('Ember'), 'Water'), -1);
-		assertStrictEqual(Dex.getEffectiveness(Dex.getExistingMove('Ember'), ['Water']), -1);
-		assertStrictEqual(Dex.getEffectiveness(Dex.getExistingMove('Ember'), Dex.getExistingPokemon('Squirtle')), -1);
+		assertStrictEqual(Dex.getEffectiveness('Fire', waterTypePokemon), -1);
+		assertStrictEqual(Dex.getEffectiveness(fireTypeMove, 'Water'), -1);
+		assertStrictEqual(Dex.getEffectiveness(fireTypeMove, ['Water']), -1);
+		assertStrictEqual(Dex.getEffectiveness(fireTypeMove, waterTypePokemon), -1);
+
+		assertStrictEqual(Dex.getEffectiveness('Fire', ['Rock', 'Fire']), -2);
+		assertStrictEqual(Dex.getEffectiveness('Fire', Dex.getExistingPokemon('Magcargo')), -2);
+		assertStrictEqual(Dex.getEffectiveness(fireTypeMove, ['Rock', 'Fire']), -2);
+		assertStrictEqual(Dex.getEffectiveness(fireTypeMove, Dex.getExistingPokemon('Magcargo')), -2);
+
+		const normalTypeMove = Dex.getExistingMove('Tackle');
+		const ghostTypePokemon = Dex.getExistingPokemon('Duskull');
 
 		assertStrictEqual(Dex.getEffectiveness('Normal', 'Ghost'), 0);
 		assertStrictEqual(Dex.getEffectiveness('Normal', ['Ghost']), 0);
-		assertStrictEqual(Dex.getEffectiveness('Normal', Dex.getExistingPokemon('Duskull')), 0);
-		assertStrictEqual(Dex.getEffectiveness(Dex.getExistingMove('Tackle'), 'Ghost'), 0);
-		assertStrictEqual(Dex.getEffectiveness(Dex.getExistingMove('Tackle'), ['Ghost']), 0);
-		assertStrictEqual(Dex.getEffectiveness(Dex.getExistingMove('Tackle'), Dex.getExistingPokemon('Duskull')), 0);
+		assertStrictEqual(Dex.getEffectiveness('Normal', ghostTypePokemon), 0);
+		assertStrictEqual(Dex.getEffectiveness(normalTypeMove, 'Ghost'), 0);
+		assertStrictEqual(Dex.getEffectiveness(normalTypeMove, ['Ghost']), 0);
+		assertStrictEqual(Dex.getEffectiveness(normalTypeMove, ghostTypePokemon), 0);
+
+		assertStrictEqual(Dex.getEffectiveness('Normal', ['Ghost', 'Dark']), 0);
+		assertStrictEqual(Dex.getEffectiveness('Normal', Dex.getExistingPokemon('Spiritomb')), 0);
+		assertStrictEqual(Dex.getEffectiveness(normalTypeMove, ['Ghost', 'Dark']), 0);
+		assertStrictEqual(Dex.getEffectiveness(normalTypeMove, Dex.getExistingPokemon('Spiritomb')), 0);
 	});
 	it('should return proper values from isPseudoLCPokemon()', () => {
 		assertStrictEqual(Dex.isPseudoLCPokemon(Dex.getExistingPokemon('Pichu')), false);

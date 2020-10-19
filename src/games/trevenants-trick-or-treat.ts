@@ -2,7 +2,7 @@ import type { PRNGSeed } from "../prng";
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, IGameFile } from "../types/games";
 import type { User } from "../users";
 
 const GRID_SIZE = 4;
@@ -83,7 +83,7 @@ class TrevenantsTrickOrTreat extends ScriptedGame {
 const commands: GameCommandDefinitions<TrevenantsTrickOrTreat> = {
 	trick: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		command(target, room, user): GameCommandReturnType {
+		command(target, room, user) {
 			if (!this.started) return false;
 			const move = Dex.getMove(target);
 			if (!move) {

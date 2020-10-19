@@ -12,7 +12,7 @@ type PromiseResolve<T> = (value?: T | PromiseLike<T> | undefined) => void;
 * https://github.com/microsoft/TypeScript/issues/13923#issuecomment-402901005
 */
 
-/* eslint-disable */
+/* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/array-type, @typescript-eslint/naming-convention, @typescript-eslint/no-empty-interface*/
 type PrimitiveTypes = undefined | null | boolean | string | number | Function;
 
 type Immutable<T> =
@@ -20,21 +20,21 @@ type Immutable<T> =
 	T extends Array<infer U> ? ReadonlyArray<U> :
 	T extends Map<infer K, infer V> ? ReadonlyMap<K, V> :
 	T extends Set<infer U> ? ReadonlySet<U> :
-	Readonly<T>
+	Readonly<T>;
 
 type DeepImmutable<T> =
 	T extends PrimitiveTypes ? T :
 	T extends Array<infer U> ? DeepImmutableArray<U> :
 	T extends Map<infer K, infer V> ? DeepImmutableMap<K, V> :
 	T extends Set<infer U> ? DeepImmutableSet<U> :
-	DeepImmutableObject<T>
+	DeepImmutableObject<T>;
 
 interface DeepImmutableArray<T> extends ReadonlyArray<DeepImmutable<T>> {}
 interface DeepImmutableMap<K, V> extends ReadonlyMap<DeepImmutable<K>, DeepImmutable<V>> {}
 interface DeepImmutableSet<U> extends ReadonlySet<DeepImmutable<U>> {}
 type DeepImmutableObject<T> = {
 	readonly [K in keyof T]: DeepImmutable<T[K]>
-}
+};
 
 type Mutable<T> =
 	T extends PrimitiveTypes ? T :
@@ -42,7 +42,7 @@ type Mutable<T> =
 	T extends ReadonlyArray<infer U> ? Array<U> :
 	T extends ReadonlyMap<infer K, infer V> ? Map<K, V> :
 	T extends ReadonlySet<infer U> ? Set<U> :
-	T
+	T;
 
 type DeepMutable<T> =
 	T extends PrimitiveTypes ? T :
@@ -55,7 +55,7 @@ type DeepMutable<T> =
 	T extends Array<infer U> ? DeepMutableArray<U> :
 	T extends Map<infer K, infer V> ? DeepMutableMap<K, V> :
 	T extends Set<infer U> ? DeepMutableSet<U> :
-	DeepMutableObject<T>
+	DeepMutableObject<T>;
 
 interface DeepMutableArray<T> extends Array<DeepMutable<T>> {}
 interface DeepMutableMap<K, V> extends Map<DeepMutable<K>, DeepMutable<V>> {}
@@ -64,5 +64,5 @@ type DeepMutableObject<T> =
 	T extends DeepImmutableObject<infer U> ?
 		{ -readonly [K in keyof U]: DeepMutable<U[K]> }
 	:
-		{ -readonly [K in keyof T]: DeepMutable<T[K]> }
+		{ -readonly [K in keyof T]: DeepMutable<T[K]> };
 /* eslint-enable */

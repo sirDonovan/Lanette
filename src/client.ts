@@ -211,11 +211,16 @@ export class Client {
 			this.connected = true;
 			void this.onConnect();
 		};
-
 		messageListener = (message: Data) => this.onMessage(message);
 		errorListener = (error: Error) => this.onConnectionError(error);
 		closeListener = (code: number, description: string) => this.onConnectionClose(code, description);
 
+		if (this.server.startsWith('https://')) {
+			this.server = this.server.substr(8);
+		} else if (this.server.startsWith('http://')) {
+			this.server = this.server.substr(7);
+		}
+		if (this.server.endsWith('/')) this.server = this.server.substr(0, this.server.length - 1);
 		this.parseServerGroups();
 	}
 
@@ -457,6 +462,9 @@ export class Client {
 
 						const options: ClientOptions = {
 							perMessageDeflate: Config.perMessageDeflate || false,
+							headers: {
+								"User-Agent": "ws",
+							},
 						};
 
 						// eslint-disable-next-line @typescript-eslint/no-var-requires

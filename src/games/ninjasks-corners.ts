@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, IGameAchievement, IGameFile } from "../types/games";
 
 type AchievementNames = "speedbooster";
 
@@ -95,7 +95,7 @@ class NinjasksCorners extends ScriptedGame {
 const commands: GameCommandDefinitions<NinjasksCorners> = {
 	travel: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		command(target, room, user): GameCommandReturnType {
+		command(target, room, user) {
 			if (!this.canTravel) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 			const color = Tools.toId(target);

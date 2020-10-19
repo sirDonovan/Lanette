@@ -3,7 +3,7 @@ import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
 import { addPlayers, assertStrictEqual } from "../test/test-tools";
 import type { IPokemon } from "../types/dex";
-import type { GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameFileTests, IGameFile } from "../types/games";
 import type { User } from "../users";
 
 const minimumMoves = 20;
@@ -147,9 +147,9 @@ class LandorusWar extends ScriptedGame {
 }
 
 const commands: GameCommandDefinitions<LandorusWar> = {
-	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	use: {
-		command(target, room, user): GameCommandReturnType {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
 			const player = this.players[user.id];
 			if (this.roundMoves.has(player)) {
 				player.say("You have already used a move this round!");
@@ -212,7 +212,8 @@ const commands: GameCommandDefinitions<LandorusWar> = {
 		pmGameCommand: true,
 	},
 	suspect: {
-		command(target, room, user): GameCommandReturnType {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
 			const player = this.players[user.id];
 			if (this.roundSuspects.has(player)) {
 				player.say("You have already suspected a trainer this round!");
@@ -282,7 +283,6 @@ const commands: GameCommandDefinitions<LandorusWar> = {
 		},
 		pmGameCommand: true,
 	},
-	/* eslint-enable */
 };
 commands.summary = Tools.deepClone(Games.sharedCommands.summary);
 commands.summary.aliases = ['role'];

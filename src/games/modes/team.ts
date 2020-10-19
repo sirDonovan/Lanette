@@ -59,25 +59,6 @@ class Team {
 		}
 	}
 
-	setLargestTeam(this: TeamThis): void {
-		const teamIds = Object.keys(this.teams);
-		this.largestTeam = this.teams[teamIds[0]];
-
-		for (let i = 1; i < teamIds.length; i++) {
-			const team = this.teams[teamIds[i]];
-			if (team.players.length > this.largestTeam.players.length) this.largestTeam = team;
-		}
-	}
-
-	setTeamPlayerOrder(this: TeamThis, team: PlayerTeam): void {
-		this.playerOrders[team.id] = [];
-		for (const player of team.players) {
-			if (!player.eliminated) this.playerOrders[team.id].push(player);
-		}
-
-		this.playerOrders[team.id] = this.shuffle(this.playerOrders[team.id]);
-	}
-
 	onRemovePlayer(this: TeamThis, player: Player): void {
 		if (!this.started) return;
 
@@ -93,24 +74,17 @@ class Team {
 	}
 
 	beforeNextRound(this: TeamThis): boolean | string {
-		let emptyTeams = 0;
-		const teamIds = Object.keys(this.teams);
-		for (const id of teamIds) {
-			const team = this.teams[id];
-			if (!this.getRemainingPlayerCount(team.players)) {
-				delete this.teams[id];
-				delete this.currentPlayers[team.id];
-				emptyTeams++;
-			}
+		const emptyTeams = this.getEmptyTeams();
+		for (const team of emptyTeams) {
+			delete this.teams[team.id];
+			delete this.currentPlayers[team.id];
 		}
 
-		if (emptyTeams >= this.format.options.teams - 1) {
+		if (emptyTeams.length >= this.format.options.teams - 1) {
 			this.say("There are not enough teams left!");
-			for (const id in this.teams) {
-				const team = this.teams[id];
-				for (const player of team.players) {
-					this.winners.set(player, 1);
-				}
+			const winningTeam = this.getFinalTeam()!;
+			for (const player of winningTeam.players) {
+				this.winners.set(player, 1);
 			}
 
 			this.timeout = setTimeout(() => this.end(), 5000);

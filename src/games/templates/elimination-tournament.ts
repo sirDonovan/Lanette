@@ -23,7 +23,7 @@ interface ITeamChange {
 
 const SIGNUPS_HTML_DELAY = 2 * 1000;
 const ADVERTISEMENT_TIME = 20 * 60 * 1000;
-const POTENTIAL_MAX_PLAYERS: number[] = [12, 16, 24, 32, 48, 64, 80, 96, 112, 128];
+const POTENTIAL_MAX_PLAYERS: number[] = [12, 16, 24, 32, 48, 64];
 const TEAM_PREVIEW_HIDDEN_FORMES: string[] = ['Arceus', 'Gourgeist', 'Genesect', 'Pumpkaboo', 'Silvally', 'Urshifu'];
 
 /**
@@ -122,7 +122,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 	allowsScouting: boolean = false;
 	autoCloseHtmlPage = false;
 	availableMatchNodes: EliminationNode<Player>[] = [];
-	awaitingBracketUpdate = new Set<Player>();
 	banlist: string[] = [];
 	readonly battleData: Dict<IBattleGameData> = {};
 	readonly battleRooms: string[] = [];
@@ -442,7 +441,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 		for (const player of players) {
 			player.eliminated = true;
 			this.disqualifiedPlayers.add(player);
-			this.awaitingBracketUpdate.add(player);
 
 			/**
 			 * The user either has a single available battle or no available battles
@@ -481,8 +479,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 				const teamChanges = this.setMatchResult(found.match, found.result, found.score);
 				this.teamChanges.set(winner, (this.teamChanges.get(winner) || []).concat(teamChanges));
-
-				this.awaitingBracketUpdate.add(winner);
 			}
 		}
 
@@ -636,8 +632,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 			this.playerOpponents.set(player, opponent);
 			this.playerOpponents.set(opponent, player);
-			this.awaitingBracketUpdate.add(player);
-			this.awaitingBracketUpdate.add(opponent);
 
 			const newOpponentPM = "You have a new opponent for the " + this.name + " tournament in " + this.room.title + "!";
 			player.say(newOpponentPM);
@@ -825,19 +819,12 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 	updatePlayerHtmlPage(player: Player): void {
 		player.sendHtmlPage(this.getPlayerHtmlPage(player));
-		this.awaitingBracketUpdate.delete(player);
 	}
 
 	updatePlayerHtmlPages(): void {
 		for (const i in this.players) {
-			const player = this.players[i];
-			if (player.eliminated) {
-				if (!this.spectatorPlayers.has(player)) continue;
-			} else {
-				if (!this.tournamentEnded && !this.awaitingBracketUpdate.has(player)) continue;
-			}
-
-			this.updatePlayerHtmlPage(player);
+			if (this.players[i].eliminated && !this.spectatorPlayers.has(this.players[i])) continue;
+			this.updatePlayerHtmlPage(this.players[i]);
 		}
 	}
 
@@ -1141,7 +1128,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 		}
 
 		this.firstRoundByes.forEach(player => {
-			this.awaitingBracketUpdate.add(player);
 			player.round!++;
 			if (this.additionsPerRound || this.dropsPerRound || this.evolutionsPerRound) {
 				const dropsThisRound = Math.min(this.dropsPerRound, this.startingTeamsLength - (this.additionsPerRound ? 0 : 1));
@@ -1510,9 +1496,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 			loserTeam);
 		this.teamChanges.set(winner, (this.teamChanges.get(winner) || []).concat(teamChanges));
 
-		this.awaitingBracketUpdate.add(winner);
-		this.awaitingBracketUpdate.add(loser);
-
 		if (!this.ended) {
 			this.updateMatches();
 		}
@@ -1572,8 +1555,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 }
 
 const commands: GameCommandDefinitions<EliminationTournament> = {
-	/* eslint-disable  @typescript-eslint/explicit-module-boundary-types */
 	check: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.playerOpponents.has(this.players[user.id])) {
 				user.say("You do not have a current opponent.");
@@ -1608,6 +1591,7 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 		pmOnly: true,
 	},
 	starter: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!(user.id in this.players)) return false;
 			const player = this.players[user.id];
@@ -1625,6 +1609,7 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 		aliases: ['team'],
 	},
 	reroll: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canReroll || !(user.id in this.players)) return false;
 			const player = this.players[user.id];
@@ -1642,6 +1627,7 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 		signupsGameCommand: true,
 	},
 	resumetournamentupdates: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (user.id in this.players) {
 				if (!this.players[user.id].eliminated || this.spectatorPlayers.has(this.players[user.id])) return false;
@@ -1660,6 +1646,7 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 		spectatorGameCommand: true,
 	},
 	stoptournamentupdates: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (user.id in this.players) {
 				if (!this.players[user.id].eliminated || !this.spectatorPlayers.has(this.players[user.id])) return false;
@@ -1672,16 +1659,16 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 			}
 			return true;
 		},
+		aliases: ['unspectatetournament', 'unspectatetour'],
 		pmOnly: true,
 		eliminatedGameCommand: true,
 		spectatorGameCommand: true,
 	}
-	/* eslint-enable */
 };
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 const tests: GameFileTests<EliminationTournament> = {
 	'should generate a Pokedex': {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game, format) {
 			assert(game.pokedex.length);
 			addPlayers(game, game.maxPlayers);
@@ -1689,6 +1676,7 @@ const tests: GameFileTests<EliminationTournament> = {
 		}
 	},
 	'should properly list matches by round - 4 players': {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game, format) {
 			addPlayers(game, 4);
 			game.start();
@@ -1713,6 +1701,7 @@ const tests: GameFileTests<EliminationTournament> = {
 		}
 	},
 	'should properly list matches by round - 5 players': {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game, format) {
 			addPlayers(game, 5);
 			game.start();
@@ -1749,6 +1738,7 @@ const tests: GameFileTests<EliminationTournament> = {
 		}
 	},
 	'should properly list matches by round - 6 players': {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game, format) {
 			addPlayers(game, 6);
 			game.start();
@@ -1789,6 +1779,7 @@ const tests: GameFileTests<EliminationTournament> = {
 		}
 	},
 	'should properly list matches by round - 7 players': {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game, format) {
 			addPlayers(game, 7);
 			game.start();
@@ -1829,6 +1820,7 @@ const tests: GameFileTests<EliminationTournament> = {
 		}
 	},
 	'should properly list matches by round - 8 players': {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game, format) {
 			addPlayers(game, 8);
 			if (!game.started) game.start();
@@ -1863,6 +1855,7 @@ const tests: GameFileTests<EliminationTournament> = {
 		}
 	},
 	'should give team changes until players have a full team - additionsPerRound': {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game, format) {
 			this.timeout(15000);
 			if (!game.additionsPerRound || game.dropsPerRound || game.maxPlayers < 64) return;
@@ -1892,6 +1885,7 @@ const tests: GameFileTests<EliminationTournament> = {
 		}
 	},
 	'should give team changes until players have a full team - dropsPerRound': {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game, format) {
 			this.timeout(15000);
 			if (!game.dropsPerRound || game.additionsPerRound || game.maxPlayers < 64) return;
@@ -1921,7 +1915,6 @@ const tests: GameFileTests<EliminationTournament> = {
 		}
 	},
 };
-/* eslint-enable */
 
 export const game: IGameTemplateFile<EliminationTournament> = {
 	category: 'elimination-tournament' as GameCategory,

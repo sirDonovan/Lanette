@@ -54,6 +54,7 @@ class DarkraisLair extends MapGame {
 	maxDimensions: number = 10;
 	minDimensions: number = 8;
 	maxRound = 20;
+	minPlayers = 4;
 	placedShadowTraps: Dict<IPlacedShadowTrap> = {};
 	playerUsedShadowTraps = new Map<Player, PartialKeyedDict<ShadowTrap, number>>();
 	roundActions = new Map<Player, boolean>();
@@ -293,13 +294,9 @@ class DarkraisLair extends MapGame {
 
 		if (emptyTeams >= this.teamCount - 1) {
 			this.say("Only one team remains!");
-			for (const team in this.teams) {
-				if (this.getRemainingPlayerCount(this.teams[team].players)) {
-					for (const player of this.teams[team].players) {
-						this.winners.set(player, 1);
-					}
-					break;
-				}
+			const winningTeam = this.getFinalTeam()!;
+			for (const player of winningTeam.players) {
+				this.winners.set(player, 1);
 			}
 
 			this.timeout = setTimeout(() => this.end(), 5000);
@@ -342,19 +339,10 @@ class DarkraisLair extends MapGame {
 		if (!this.getRemainingPlayerCount()) {
 			this.say("All players were eliminated!");
 		} else {
-			let remainingTeam: PlayerTeam | false | undefined;
-			for (const team in this.teams) {
-				if (this.getRemainingPlayerCount(this.teams[team].players)) {
-					if (remainingTeam === undefined) {
-						remainingTeam = this.teams[team];
-					} else {
-						remainingTeam = false;
-					}
-				}
-			}
-			if (remainingTeam) {
-				this.say("**Team " + remainingTeam.name + "** wins the game!");
-				for (const player of remainingTeam.players) {
+			const winningTeam = this.getFinalTeam();
+			if (winningTeam) {
+				this.say("**Team " + winningTeam.name + "** wins the game!");
+				for (const player of winningTeam.players) {
 					this.winners.set(player, 1);
 					let earnings = this.points.get(player) || 0;
 					earnings = Math.floor(earnings / 4);

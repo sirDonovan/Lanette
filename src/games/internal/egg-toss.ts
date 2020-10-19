@@ -1,7 +1,7 @@
 import type { Player } from "../../room-activity";
 import { ScriptedGame } from "../../room-game-scripted";
 import type { Room } from "../../rooms";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../../types/games";
+import type { GameCommandDefinitions, IGameAchievement, IGameFile } from "../../types/games";
 import type { User } from "../../users";
 
 type AchievementNames = "eggthesystem";
@@ -59,7 +59,7 @@ class EggToss extends ScriptedGame {
 const commands: GameCommandDefinitions<EggToss> = {
 	toss: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		command(target, room, user): GameCommandReturnType {
+		command(target, room, user) {
 			if (!this.currentHolder) {
 				this.currentHolder = this.createPlayer(user) || this.players[user.id];
 			} else {

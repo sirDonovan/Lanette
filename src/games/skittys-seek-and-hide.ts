@@ -2,7 +2,7 @@ import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import { assert } from "../test/test-tools";
 import type { IPokemon } from "../types/dex";
-import type { GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameFileTests, IGameFile } from "../types/games";
 
 const data: {'parameters': Dict<string[]>; 'pokemon': string[]} = {
 	"parameters": {},
@@ -173,9 +173,9 @@ class SkittysSeekAndHide extends ScriptedGame {
 }
 
 const commands: GameCommandDefinitions<SkittysSeekAndHide> = {
-	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	select: {
-		command(target, room, user): GameCommandReturnType {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
 			if (!this.canSelect) return false;
 			const player = this.players[user.id];
 			if (this.pokemonChoices.has(player)) {
@@ -208,12 +208,11 @@ const commands: GameCommandDefinitions<SkittysSeekAndHide> = {
 		},
 		pmOnly: true,
 	},
-	/* eslint-enable */
 };
 
 const tests: GameFileTests<SkittysSeekAndHide> = {
-	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	'should have parameters for all possible numbers of remaining players': {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game, format): void {
 			const minPlayers = Math.max(2, game.minPlayers - 1);
 			const maxPlayers = game.maxPlayers - 1;
@@ -230,7 +229,6 @@ const tests: GameFileTests<SkittysSeekAndHide> = {
 			}
 		},
 	},
-	/* eslint-enable */
 };
 
 export const game: IGameFile<SkittysSeekAndHide> = {

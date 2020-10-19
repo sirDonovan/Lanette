@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, IGameAchievement, IGameFile } from "../types/games";
 
 type AchievementNames = "quickdraw";
 
@@ -82,7 +82,7 @@ class OctillerysAmbush extends ScriptedGame {
 const commands: GameCommandDefinitions<OctillerysAmbush> = {
 	fire: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		command(target, room, user): GameCommandReturnType {
+		command(target, room, user) {
 			const player = this.players[user.id];
 			if (this.roundActions.has(player)) return false;
 			this.roundActions.set(player, true);

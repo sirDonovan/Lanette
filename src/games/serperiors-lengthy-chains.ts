@@ -1,7 +1,7 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, IGameFile } from "../types/games";
 import type { User } from "../users";
 
 const minimumParameterPokemon = 16;
@@ -118,7 +118,7 @@ class SerperiorLengthyChains extends ScriptedGame {
 const commands: GameCommandDefinitions<SerperiorLengthyChains> = {
 	guess: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		command(target, room, user): GameCommandReturnType {
+		command(target, room, user) {
 			if (!this.category) return false;
 			const guess = Tools.toId(target);
 			if (!guess) return false;

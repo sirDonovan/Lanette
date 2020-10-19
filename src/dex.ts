@@ -453,6 +453,12 @@ export class Dex {
 		return abilities;
 	}
 
+	isAbility(object: {effectType: string, name: string}): object is IAbility {
+		const ability = this.getAbility(object.name);
+		if (!ability || ability.effectType !== object.effectType) return false;
+		return true;
+	}
+
 	/*
 		Items
 	*/
@@ -492,6 +498,12 @@ export class Dex {
 
 		this.itemsList = items;
 		return items;
+	}
+
+	isItem(object: {effectType: string, name: string}): object is IItem {
+		const item = this.getItem(object.name);
+		if (!item || item.effectType !== object.effectType) return false;
+		return true;
 	}
 
 	getLearnsetData(name: string): ILearnsetData | undefined {
@@ -546,6 +558,12 @@ export class Dex {
 		return moves;
 	}
 
+	isMove(object: {effectType: string, name: string}): object is IMove {
+		const move = this.getMove(object.name);
+		if (!move || move.effectType !== object.effectType) return false;
+		return true;
+	}
+
 	getMoveAvailability(move: IMove): number {
 		if (move.gen > this.gen) throw new Error("Dex.getMoveAvailability called for " + move.name + " in gen " + this.gen);
 		return this.moveAvailbilityCache[move.id];
@@ -598,6 +616,12 @@ export class Dex {
 
 		this.pokemonList = pokedex;
 		return pokedex;
+	}
+
+	isPokemon(object: {effectType: string, name: string}): object is IPokemon {
+		const pokemon = this.getPokemon(object.name);
+		if (!pokemon || pokemon.effectType !== object.effectType) return false;
+		return true;
 	}
 
 	getPokemonCategory(pokemon: IPokemon): string {
@@ -749,12 +773,7 @@ export class Dex {
 		const sourceType = (typeof source === 'string' ? source : source.type);
 		let targetType: string | readonly string[];
 		if (typeof target === 'string') {
-			const pokemon = this.getPokemon(target);
-			if (pokemon) {
-				targetType = pokemon.types;
-			} else {
-				targetType = target;
-			}
+			targetType = target;
 		} else if (Array.isArray(target)) {
 			targetType = target;
 		} else {
@@ -810,12 +829,7 @@ export class Dex {
 		const sourceType = (typeof source === 'string' ? source : source.type);
 		let targetType: string | readonly string[];
 		if (typeof target === 'string') {
-			const pokemon = this.getPokemon(target);
-			if (pokemon) {
-				targetType = pokemon.types;
-			} else {
-				targetType = target;
-			}
+			targetType = target;
 		} else if (Array.isArray(target)) {
 			targetType = target;
 		} else {
@@ -1495,7 +1509,11 @@ export class Dex {
 			if (!options.additions) throw new Error("Cannot require 0 additions");
 			if (!pool.length) throw new Error("Cannot require " + options.additions + " additions from empty pool");
 		}
+		if (options.additions && options.additions < 1) throw new Error("Use options.drops instead of negative additions");
+
 		if (options.requiredDrop && !options.drops) throw new Error("Cannot require 0 drops");
+		if (options.drops && options.drops < 1) throw new Error("Use options.additions & pool instead of negative drops");
+
 		if (options.requiredEvolution && !options.evolutions) throw new Error("Cannot require 0 evolutions");
 
 		const includedTeamsAfterDrops: Dict<boolean> = {};

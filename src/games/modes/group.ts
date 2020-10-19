@@ -80,23 +80,16 @@ class Group {
 	}
 
 	beforeNextRound(this: GroupThis): boolean {
-		let emptyTeams = 0;
-		for (const id in this.teams) {
-			const team = this.teams[id];
-			if (!this.getRemainingPlayerCount(this.playerOrders[team.id])) {
-				emptyTeams++;
-			}
+		const emptyTeams = this.getEmptyTeams();
+		for (const team of emptyTeams) {
+			delete this.teams[team.id];
 		}
 
-		if (emptyTeams >= this.format.options.teams - 1) {
+		if (emptyTeams.length >= this.format.options.teams - 1) {
 			this.say("Only one team remains!");
-			for (const team in this.teams) {
-				if (this.getRemainingPlayerCount(this.playerOrders[team])) {
-					for (const player of this.teams[team].players) {
-						this.winners.set(player, 1);
-					}
-					break;
-				}
+			const winningTeam = this.getFinalTeam()!;
+			for (const player of winningTeam.players) {
+				this.winners.set(player, 1);
 			}
 
 			this.timeout = setTimeout(() => this.end(), 5000);

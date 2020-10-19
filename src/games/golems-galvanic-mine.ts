@@ -1,7 +1,7 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, IGameFile } from "../types/games";
 import type { User } from "../users";
 
 const gen = 7;
@@ -87,7 +87,7 @@ class GolemsGalvanicMine extends ScriptedGame {
 const commands: GameCommandDefinitions<GolemsGalvanicMine> = {
 	mine: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		command(target, room, user): GameCommandReturnType {
+		command(target, room, user) {
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (this.roundMines.has(player)) return false;
 			const stone = Dex.getDex(mod).getItem(target);

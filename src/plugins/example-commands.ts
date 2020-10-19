@@ -1,12 +1,11 @@
 import type { CommandContext } from "../command-parser";
 import type { CommandDefinitions } from "../types/command-parser";
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 // commands are defined the same way as in src/commands.ts
 
 const commandsDict: CommandDefinitions<CommandContext> = {
 	pluginexample: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			this.say("This is an example plugin command.");
 		},
@@ -15,5 +14,3 @@ const commandsDict: CommandDefinitions<CommandContext> = {
 };
 
 export const commands = commandsDict;
-
-/* eslint-enable */

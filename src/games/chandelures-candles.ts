@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, IGameAchievement, IGameFile } from "../types/games";
 
 type AchievementNames = "spectralsnuffer";
 
@@ -104,9 +104,9 @@ class ChandeluresCandles extends ScriptedGame {
 }
 
 const commands: GameCommandDefinitions<ChandeluresCandles> = {
-	/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 	hide: {
-		command(target, room, user): GameCommandReturnType {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
 			if (!this.roundTarget) return false;
 			const player = this.players[user.id];
 			if (player !== this.roundTarget) {
@@ -123,7 +123,8 @@ const commands: GameCommandDefinitions<ChandeluresCandles> = {
 		},
 	},
 	puff: {
-		command(target, room, user): GameCommandReturnType {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
 			if (!this.roundTarget || this.roundActions.has(this.players[user.id])) return false;
 			const player = this.players[user.id];
 			const id = Tools.toId(target);
@@ -153,7 +154,6 @@ const commands: GameCommandDefinitions<ChandeluresCandles> = {
 			return true;
 		},
 	},
-	/* eslint-enable */
 };
 
 export const game: IGameFile<ChandeluresCandles> = {

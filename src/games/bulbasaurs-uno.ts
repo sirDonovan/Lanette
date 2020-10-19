@@ -1,7 +1,7 @@
 import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
 import { assert, assertStrictEqual } from "../test/test-tools";
-import type { GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameAchievement, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, GameFileTests, IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
 import type { IActionCardData, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
@@ -406,7 +406,8 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 
 const commands: GameCommandDefinitions<BulbasaursUno> = {
 	draw: {
-		command(target, room, user): GameCommandReturnType {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
 			if (!this.canPlay || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
 			this.awaitingCurrentPlayerCard = false;
 			this.drawCard(this.players[user.id]);
