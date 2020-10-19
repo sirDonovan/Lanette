@@ -178,6 +178,7 @@ class DragapultsDangerZone extends ScriptedGame {
 		const winningTeam = this.getFinalTeam();
 		if (winningTeam) {
 			for (const player of winningTeam.players) {
+				if (!this.playerLocations.has(player)) continue;
 				this.winners.set(player, 1);
 				let earnings = 150;
 				if (!player.eliminated) earnings *= 2;
