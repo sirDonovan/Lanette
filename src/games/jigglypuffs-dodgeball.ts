@@ -5,12 +5,13 @@ import type { GameCommandDefinitions, IGameFile } from "../types/games";
 const BALL_POKEMON = "Igglybuff";
 
 class JigglypuffsDodgeball extends ScriptedGame {
-	throwTime: boolean = false;
+	minPlayers = 4;
 	queue: {source: Player; target: Player}[] = [];
 	renameDQs: Player[] = [];
 	roundActions = new Map<Player, boolean>();
 	shields = new Map<Player, boolean>();
 	teams: Dict<PlayerTeam> = {};
+	throwTime: boolean = false;
 
 	onRenamePlayer(player: Player, oldId: string): void {
 		if (!this.started || player.eliminated) return;
@@ -61,19 +62,13 @@ class JigglypuffsDodgeball extends ScriptedGame {
 				}
 			}
 
-			if (this.getRemainingPlayerCount() === 1) return this.end();
-
-			let remainingTeams = 0;
-			for (const i in this.teams) {
-				if (this.getRemainingPlayerCount(this.teams[i].players) >= 1) remainingTeams++;
-			}
-			if (remainingTeams === 1) return this.end();
+			if (this.getFinalTeam()) return this.end();
 		}
 
 		this.roundActions.clear();
 		this.queue = [];
 
-		const html = this.getRoundHtml(() => this.getTeamPlayerNames(this.teams), undefined, undefined, "Remaining team players");
+		const html = this.getRoundHtml(this.getTeamPlayerNames, undefined, undefined, "Remaining team players");
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			const time = this.sampleOne([8000, 9000, 10000]);
