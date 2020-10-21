@@ -158,6 +158,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 	eliminatedPlayers = new Set<Player>();
 	maxPlayers = 15;
 	mimikyuHaunt: boolean = false;
+	mimikyuTrapped: boolean = false;
 	ghosts: Ghost[] = [];
 	ghostFrenzies: number = 0;
 	playerLocations = new Map<Player, [number, number]>();
@@ -834,8 +835,12 @@ class HauntersHauntedHouse extends ScriptedGame {
 								ghost.row += direction[0];
 								ghost.column += direction[1];
 							}
-							if (ghost.name === "Mimikyu" && k === path.length) {
-								this.mimikyuHaunt = true;
+							if (ghost.name === "Mimikyu") {
+								if (this.remainingGhostMoves === 1) this.mimikyuTrapped = true;
+								if (k === path.length) this.mimikyuHaunt = true;
+							}
+							else {
+								this.mimikyuTrapped = false;
 							}
 						}
 						return;
@@ -913,7 +918,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 		}
 
 		const atCandyLimit = this.collectedCandy >= candyLimit;
-		if (atCandyLimit || (this.remainingGhostMoves === 0 && this.getRemainingPlayerCount() > 0)) {
+		if (atCandyLimit || ((this.remainingGhostMoves === 0 || this.mimikyuTrapped) && this.getRemainingPlayerCount() > 0)) {
 			this.say("Since " + (atCandyLimit ? "the players have collected " + candyLimit + " candy" : "all remaining players are safe " +
 				"from the ghosts") + ", the players win!");
 			this.collectedCandy = (atCandyLimit ? candyLimit : Math.max(1200, this.collectedCandy));
