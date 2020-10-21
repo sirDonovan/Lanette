@@ -2,17 +2,14 @@ import type { IFormat } from "./dex";
 import type { RoomType } from "./rooms";
 import type { ITournamentEndJson, ITournamentUpdateJson } from "./tournaments";
 
-export interface ISendQueueItem {
+export type IMessageTypes = 'command' | 'chat' | 'html' | 'uhtml' | 'pm' | 'pmhtml' | 'pmuhtml';
+export interface IOutgoingMessage {
 	message: string;
-	messageToMeasure?: IMessageToMeasure;
-}
-
-export type IMessageTypes = 'chat' | 'html' | 'uhtml' | 'pm' | 'pmhtml' | 'pmuhtml';
-export interface IMessageToMeasure {
 	type: IMessageTypes;
 	html?: string;
-	message?: string;
+	measure?: boolean;
 	sentTime?: number;
+	text?: string;
 	uhtmlName?: string;
 	user?: string;
 }

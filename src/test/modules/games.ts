@@ -316,7 +316,7 @@ describe("Games", () => {
 		for (const format of formatsToTest) {
 			if (format.tournamentGame) continue;
 
-			const startingSendQueueIndex = Client.sendQueue.length;
+			const startingSendQueueIndex = Client.outgoingMessageQueue.length;
 			const gameLog: string[] = [];
 			const game = Games.createGame(room, format);
 			assert(game, format.name);
@@ -347,7 +347,7 @@ describe("Games", () => {
 		}
 
 		for (const format of userHostedFormats) {
-			const startingSendQueueIndex = Client.sendQueue.length;
+			const startingSendQueueIndex = Client.outgoingMessageQueue.length;
 
 			const gameLog: string[] = [];
 			const game = Games.createUserHostedGame(room, format, Users.self.name);
