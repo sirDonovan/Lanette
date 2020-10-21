@@ -838,8 +838,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 							if (ghost.name === "Mimikyu") {
 								if (this.remainingGhostMoves === 1) this.mimikyuTrapped = true;
 								if (k === path.length) this.mimikyuHaunt = true;
-							}
-							else {
+							} else {
 								this.mimikyuTrapped = false;
 							}
 						}
