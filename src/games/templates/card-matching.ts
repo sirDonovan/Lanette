@@ -96,26 +96,21 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 				actionCardAmount--;
 				totalActionCards = actionCards.length * actionCardAmount;
 			}
+
 			if (actionCardAmount < 2) {
 				this.createDeck();
 				return;
 			}
+
 			this.actionCardAmount = actionCardAmount;
 			for (const action of actionCards) {
-				const pokemon = Dex.getPokemon(action);
 				for (let i = 0; i < actionCardAmount; i++) {
-					let card: ICard;
-					if (pokemon) {
-						card = this.pokemonToCard(pokemon);
-					} else {
-						card = this.moveToCard(Dex.getExistingMove(action));
-					}
 					// @ts-expect-error
-					card.action = this.actionCards[action]; // eslint-disable-line @typescript-eslint/no-unsafe-assignment
-					deck.push(card);
+					deck.push((this.actionCards[action] as IActionCardData).getCard(this));
 				}
 			}
 		}
+
 		this.deck = this.shuffle(deck);
 	}
 
@@ -581,6 +576,20 @@ const tests: GameFileTests<CardMatching> = {
 			addPlayers(game, 4);
 			game.start();
 			assert(game.deck.length);
+		},
+	},
+	'it should create unique action cards': {
+		test(game, format): void {
+			addPlayers(game, 4);
+			game.start();
+			const actionCards = Object.keys(game.actionCards);
+			for (const actionCard of actionCards) {
+				const cardData = game.actionCards[actionCard];
+				assert(cardData);
+				const card = cardData.getCard(game);
+				assert(card);
+				assert(card !== cardData.getCard(game));
+			}
 		},
 	},
 };

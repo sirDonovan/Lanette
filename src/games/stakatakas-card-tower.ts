@@ -17,6 +17,9 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 		"manaphy": {
 			name: "Manaphy",
 			description: "Shuffle 4 of everyone's cards",
+			getCard(game) {
+				return game.pokemonToActionCard(this);
+			},
 			getAutoPlayTarget(game, hand) {
 				return this.name;
 			},
@@ -27,6 +30,9 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 		"phione": {
 			name: "Phione",
 			description: "Shuffle 2 of everyone's cards",
+			getCard(game) {
+				return game.pokemonToActionCard(this);
+			},
 			getAutoPlayTarget(game, hand) {
 				return this.name;
 			},
@@ -37,6 +43,9 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 		"pachirisu": {
 			name: "Pachirisu",
 			description: "Get a pair from the deck",
+			getCard(game) {
+				return game.pokemonToActionCard(this);
+			},
 			getAutoPlayTarget(game, hand) {
 				return this.name;
 			},

@@ -25,6 +25,9 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 			name: "Greninja",
 			description: "Change to 1 type",
 			requiredTarget: true,
+			getCard(game) {
+				return game.pokemonToActionCard(this);
+			},
 			getRandomTarget(game, hand) {
 				let targets: string[] = [Dex.getExistingType(game.sampleOne(Dex.data.typeKeys)).name];
 				while (!this.isPlayableTarget(game, targets)) {
@@ -65,6 +68,9 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 			name: "Kecleon",
 			description: "Change color",
 			requiredTarget: true,
+			getCard(game) {
+				return game.pokemonToActionCard(this);
+			},
 			getRandomTarget(game, hand) {
 				let targets: string[] = [Dex.data.colors[game.sampleOne(Object.keys(Dex.data.colors))]];
 				while (!this.isPlayableTarget(game, targets)) {
@@ -105,6 +111,9 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 			name: "Magnemite",
 			description: "Pair and play 2 Pokemon",
 			requiredTarget: true,
+			getCard(game) {
+				return game.pokemonToActionCard(this);
+			},
 			getRandomTarget(game, hand) {
 				if (hand.length >= 3) {
 					for (const cardA of hand) {
@@ -214,6 +223,9 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 			name: "Doduo",
 			description: "Make the next player draw 2",
 			drawCards: 2,
+			getCard(game) {
+				return game.pokemonToActionCard(this);
+			},
 			getAutoPlayTarget(game, hand) {
 				return this.name;
 			},
@@ -225,6 +237,9 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 			name: "Machamp",
 			description: "Make the next player draw 4",
 			drawCards: 4,
+			getCard(game) {
+				return game.pokemonToActionCard(this);
+			},
 			getAutoPlayTarget(game, hand) {
 				return this.name;
 			},
@@ -235,6 +250,9 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 		"inkay": {
 			name: "Inkay",
 			description: "Reverse the turn order",
+			getCard(game) {
+				return game.pokemonToActionCard(this);
+			},
 			getAutoPlayTarget(game, hand) {
 				return this.name;
 			},
@@ -246,6 +264,9 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 			name: "Slaking",
 			description: "Skip the next player's turn",
 			skipPlayers: 1,
+			getCard(game) {
+				return game.pokemonToActionCard(this);
+			},
 			getAutoPlayTarget(game, hand) {
 				return this.name;
 			},
@@ -256,6 +277,9 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 		"spinda": {
 			name: "Spinda",
 			description: "Shuffle the player order",
+			getCard(game) {
+				return game.pokemonToActionCard(this);
+			},
 			getAutoPlayTarget(game, hand) {
 				return this.name;
 			},

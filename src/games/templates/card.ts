@@ -10,6 +10,7 @@ export interface ICardsSplitByPlayable {
 }
 
 export interface IActionCardData<T extends ScriptedGame = ScriptedGame, U extends ICard = ICard> {
+	getCard: (game: T) => ICard;
 	getRandomTarget?: (game: T, hand: U[]) => string | undefined;
 	getAutoPlayTarget: (game: T, hand: U[]) => string | undefined;
 	isPlayableTarget: (game: T, targets: string[], hand?: U[], player?: Player) => boolean;
@@ -97,6 +98,13 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 		};
 	}
 
+	moveToActionCard<T extends ScriptedGame = ScriptedGame>(action: IActionCardData<T>): IMoveCard {
+		const card = this.moveToCard(Dex.getExistingMove(action.name));
+		// @ts-expect-error
+		card.action = Object.assign({}, action);
+		return card;
+	}
+
 	pokemonToCard(pokemon: IPokemon): IPokemonCard {
 		return {
 			baseStats: pokemon.baseStats,
@@ -106,6 +114,13 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 			name: pokemon.name,
 			types: pokemon.types,
 		};
+	}
+
+	pokemonToActionCard<T extends ScriptedGame = ScriptedGame>(action: IActionCardData<T>): IPokemonCard {
+		const card = this.pokemonToCard(Dex.getExistingPokemon(action.name));
+		// @ts-expect-error
+		card.action = Object.assign({}, action);
+		return card;
 	}
 
 	createDeckPool(): void {
