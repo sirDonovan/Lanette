@@ -1,6 +1,6 @@
 import type { ScriptedGame } from "./room-game-scripted";
 import type { Room } from "./rooms";
-import type { GroupName, IChatLogEntry } from "./types/client";
+import type { GroupName, IChatLogEntry, IOutgoingMessage } from "./types/client";
 import type { IUserMessageOptions, IUserRoomData } from "./types/users";
 
 const chatFormatting: string[] = ["*", "_", "`", "~", "^", "\\"];
@@ -84,8 +84,7 @@ export class User {
 		if (!(options && options.dontPrepare)) message = Tools.prepareMessage(message);
 		if (!(options && options.dontCheckFilter) && Client.willBeFiltered(message)) return;
 
-		Client.send("|/pm " + this.name + ", " + message, options && options.dontMeasure ? undefined :
-			{message, type: 'pm', user: this.id});
+		Client.send({message: "|/pm " + this.name + ", " + message, type: 'pm', user: this.id, measure: !(options && options.dontMeasure)});
 	}
 
 	sayCommand(command: string, dontCheckFilter?: boolean): void {
