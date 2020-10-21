@@ -1769,7 +1769,13 @@ export class Client {
 	}
 
 	clearSendTimeout(): void {
-		if (this.sendTimeout && this.sendTimeout !== true) clearTimeout(this.sendTimeout);
+		if (this.sendTimeout) {
+			if (this.sendTimeout === true) {
+				delete this.sendTimeout;
+			} else {
+				clearTimeout(this.sendTimeout);
+			}
+		}
 	}
 
 	setSendTimeout(time?: number): void {
