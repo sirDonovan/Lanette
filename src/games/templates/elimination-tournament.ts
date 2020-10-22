@@ -170,6 +170,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	type: string | null = null;
 	usesCloakedPokemon: boolean = false;
 	usesHtmlPage = true;
+	updateHtmlPagesTimeout: NodeJS.Timer | null = null;
 	validateTeams: boolean = true;
 
 	// set on start
@@ -821,13 +822,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 		player.sendHtmlPage(this.getPlayerHtmlPage(player));
 	}
 
-	updatePlayerHtmlPages(): void {
-		for (const i in this.players) {
-			if (this.players[i].eliminated && !this.spectatorPlayers.has(this.players[i])) continue;
-			this.updatePlayerHtmlPage(this.players[i]);
-		}
-	}
-
 	getSpectatorHtmlPage(user: User): string {
 		let html = "";
 
@@ -858,22 +852,21 @@ export abstract class EliminationTournament extends ScriptedGame {
 		this.room.sendHtmlPage(user, this.baseHtmlPageId, this.htmlPageHeader + this.getSpectatorHtmlPage(user));
 	}
 
-	updateSpectatorHtmlPages(): void {
-		const users = Array.from(this.spectatorUsers.keys());
-		for (const id of users) {
-			const user = Users.get(id);
-			if (!user) {
-				this.spectatorUsers.delete(id);
-				continue;
+	updateHtmlPages(): void {
+		if (this.updateHtmlPagesTimeout) clearTimeout(this.updateHtmlPagesTimeout);
+
+		this.updateHtmlPagesTimeout = setTimeout(() => {
+			for (const i in this.players) {
+				if (this.players[i].eliminated && !this.spectatorPlayers.has(this.players[i])) continue;
+				this.updatePlayerHtmlPage(this.players[i]);
 			}
 
-			this.updateSpectatorHtmlPage(user);
-		}
-	}
-
-	updateHtmlPages(): void {
-		this.updatePlayerHtmlPages();
-		this.updateSpectatorHtmlPages();
+			const users = Array.from(this.spectatorUsers.keys());
+			for (const id of users) {
+				const user = Users.get(id);
+				if (user) this.updateSpectatorHtmlPage(user);
+			}
+		}, 5 * 1000);
 	}
 
 	setCheckChallengesListeners(player: Player, opponent: Player): void {

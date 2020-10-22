@@ -62,6 +62,10 @@ export class Player {
 		this.activity.pmRoom.sendHtmlPage(this, pageId || this.activity.baseHtmlPageId, "|deinit|");
 	}
 
+	sendHighlightPage(notificationTitle: string, pageId?: string, highlightPhrase?: string): void {
+		this.activity.pmRoom.sendHighlightPage(this, pageId || this.activity.baseHtmlPageId, notificationTitle, highlightPhrase);
+	}
+
 	useCommand(command: string, target?: string): void {
 		let expiredUser = false;
 		let user = Users.get(this.name);

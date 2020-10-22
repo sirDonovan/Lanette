@@ -25,6 +25,9 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		"soak": {
 			name: "Soak",
 			description: "Make pure Water type",
+			getCard(game) {
+				return game.moveToActionCard(this);
+			},
 			getAutoPlayTarget(game, hand) {
 				if (this.isPlayableTarget(game, [])) {
 					return this.name;
@@ -41,6 +44,9 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		"trickortreat": {
 			name: "Trick-or-Treat",
 			description: "Add Ghost type",
+			getCard(game) {
+				return game.moveToActionCard(this);
+			},
 			getAutoPlayTarget(game, hand) {
 				if (this.isPlayableTarget(game, [])) {
 					return this.name;
@@ -60,6 +66,9 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		"forestscurse": {
 			name: "Forest's Curse",
 			description: "Add Grass type",
+			getCard(game) {
+				return game.moveToActionCard(this);
+			},
 			getAutoPlayTarget(game, hand) {
 				if (this.isPlayableTarget(game, [])) {
 					return this.name;
@@ -79,6 +88,9 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		"magicpowder": {
 			name: "Magic Powder",
 			description: "Make pure Psychic type",
+			getCard(game) {
+				return game.moveToActionCard(this);
+			},
 			getAutoPlayTarget(game, hand) {
 				if (this.isPlayableTarget(game, [])) {
 					return this.name;
@@ -96,6 +108,9 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			name: "Baton Pass",
 			description: "Replace top card & draw 2",
 			requiredTarget: true,
+			getCard(game) {
+				return game.moveToActionCard(this);
+			},
 			getRandomTarget(game, hand) {
 				const cards = game.shuffle(hand);
 				for (const card of cards) {
@@ -152,6 +167,9 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			name: "Ally Switch",
 			description: "Swap with top card & draw 1",
 			requiredTarget: true,
+			getCard(game) {
+				return game.moveToActionCard(this);
+			},
 			getRandomTarget(game, hand) {
 				const cards = game.shuffle(hand);
 				for (const card of cards) {
@@ -208,6 +226,9 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			name: "Conversion",
 			description: "Change to 1 type",
 			requiredTarget: true,
+			getCard(game) {
+				return game.moveToActionCard(this);
+			},
 			getRandomTarget(game, hand) {
 				let targets: string[] = [Dex.getExistingType(game.sampleOne(Dex.data.typeKeys)).name];
 				while (!this.isPlayableTarget(game, targets)) {
@@ -248,6 +269,9 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			name: "Conversion 2",
 			description: "Change to 2 types",
 			requiredTarget: true,
+			getCard(game) {
+				return game.moveToActionCard(this);
+			},
 			getRandomTarget(game, hand) {
 				let types = game.sampleMany(Dex.data.typeKeys, 2).map(x => Dex.getExistingType(x).name);
 				while (!this.isPlayableTarget(game, types)) {
@@ -302,6 +326,9 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			name: "Conversion Z",
 			description: "Change to 3 types",
 			requiredTarget: true,
+			getCard(game) {
+				return game.moveToActionCard(this);
+			},
 			getRandomTarget(game, hand) {
 				let types = game.sampleMany(Dex.data.typeKeys, 3).map(x => Dex.getExistingType(x).name);
 				while (!this.isPlayableTarget(game, types)) {
@@ -364,6 +391,9 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			name: "Transform",
 			description: "Change the top card",
 			requiredTarget: true,
+			getCard(game) {
+				return game.moveToActionCard(this);
+			},
 			getRandomTarget(game, hand) {
 				let targets = [game.sampleOne(game.deckPool).name];
 				while (!this.isPlayableTarget(game, targets)) {
@@ -411,6 +441,9 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		"protect": {
 			name: "Protect",
 			description: "Skip your turn",
+			getCard(game) {
+				return game.moveToActionCard(this);
+			},
 			getAutoPlayTarget() {
 				return this.name;
 			},
@@ -421,6 +454,9 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		"teeterdance": {
 			name: "Teeter Dance",
 			description: "Shuffle the turn order",
+			getCard(game) {
+				return game.moveToActionCard(this);
+			},
 			getAutoPlayTarget() {
 				return this.name;
 			},
@@ -431,6 +467,9 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		"topsyturvy": {
 			name: "Topsy-Turvy",
 			description: "Reverse the turn order",
+			getCard(game) {
+				return game.moveToActionCard(this);
+			},
 			getAutoPlayTarget() {
 				return this.name;
 			},
@@ -627,11 +666,14 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			this.lastPlayer = this.currentPlayer;
 			this.currentPlayer = null;
 		}
+
 		if (Date.now() - this.startTime! > this.timeLimit) return this.timeEnd();
 		if (this.getRemainingPlayerCount() <= 1) {
 			this.end();
 			return;
 		}
+
+		const currentRound = this.round;
 		let player = this.getNextPlayer();
 		if (!player || this.timeEnded) return;
 
@@ -639,6 +681,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		let playableCards = this.getPlayableCards(player);
 		let eliminateCount = 0;
 		let finalPlayer = false;
+		const useUhtmlAuto = this.round === currentRound && !!playableCards.length;
 		while (!playableCards.length) {
 			const lives = this.addLives(player, -1);
 			if (!lives) {
@@ -691,21 +734,22 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			this.awaitingCurrentPlayerCard = true;
 			this.canPlay = true;
 			this.updatePlayerHtmlPage(player!);
+			player!.sendHighlightPage("It is your turn!");
 
 			this.timeout = setTimeout(() => {
-				this.say(player!.name + " it is your turn!");
-
-				this.timeout = setTimeout(() => {
-					if (!player!.eliminated) {
-						this.autoPlay(player!, playableCards);
-					} else {
-						this.nextRound();
-					}
-				}, this.turnTimeAfterHighlight);
-			}, this.turnTimeBeforeHighlight);
+				if (!player!.eliminated) {
+					this.autoPlay(player!, playableCards);
+				} else {
+					this.nextRound();
+				}
+			}, this.turnTimeLimit);
 		});
 
-		this.sayUhtmlAuto(uhtmlName, html);
+		if (useUhtmlAuto) {
+			this.sayUhtmlAuto(uhtmlName, html);
+		} else {
+			this.sayUhtml(uhtmlName, html);
+		}
 	}
 
 	onEnd(): void {
@@ -823,7 +867,8 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 
 		if (!player.eliminated) {
 			this.currentPlayer = null;
-			this.drawCard(player, this.roundDrawAmount, drawCards);
+			const drawnCards = this.drawCard(player, this.roundDrawAmount, drawCards);
+			this.updatePlayerHtmlPage(player, drawnCards);
 		}
 
 		return true;

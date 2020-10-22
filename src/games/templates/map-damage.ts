@@ -7,7 +7,7 @@ export abstract class MapDamageGame extends MapGame {
 	canLateJoin: boolean = true;
 	roundActions = new Map<Player, boolean>();
 
-	abstract damagePlayers(): void;
+	abstract onDamagePlayers(): void;
 
 	onGenerateMapFloor(floor: MapFloor): void {
 		this.setCurrencyCoordinates(floor);
@@ -28,14 +28,17 @@ export abstract class MapDamageGame extends MapGame {
 		this.nextRound();
 	}
 
+	damagePlayers(): void {
+		if (this.timeout) clearTimeout(this.timeout);
+		this.offCommands(this.moveCommands);
+		this.onDamagePlayers();
+	}
+
 	onNextRound(): void {
 		const len = this.getRemainingPlayerCount();
 		if (!len) return this.end();
 		this.roundActions.clear();
-		this.onCommands(this.moveCommands, {max: len, remainingPlayersMax: true}, () => {
-			if (this.timeout) clearTimeout(this.timeout);
-			this.damagePlayers();
-		});
+		this.onCommands(this.moveCommands, {max: len, remainingPlayersMax: true}, () => this.damagePlayers());
 
 		const html = this.getRoundHtml(this.getPlayerLives);
 		const uhtmlName = this.uhtmlBaseName + '-round';

@@ -187,6 +187,11 @@ export class Room {
 			{dontCheckFilter: true, dontPrepare: true, dontMeasure: true, type: 'command'});
 	}
 
+	sendHighlightPage(user: User | Player, pageId: string, notificationTitle?: string, highlightPhrase?: string): void {
+		this.say("/highlighthtmlpage " + user.id + "," + pageId + "," + notificationTitle + (highlightPhrase ? "," + highlightPhrase : ""),
+			{dontCheckFilter: true, dontPrepare: true, dontMeasure: true, type: 'command'});
+	}
+
 	on(message: string, listener: () => void): void {
 		this.messageListeners[Tools.toId(Tools.prepareMessage(message))] = listener;
 	}

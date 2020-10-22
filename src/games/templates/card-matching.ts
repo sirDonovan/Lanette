@@ -32,8 +32,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	roundDrawAmount: number = 0;
 	showPlayerCards: boolean = true;
 	timeLimit: number = 25 * 60 * 1000;
-	turnTimeBeforeHighlight: number = 15 * 1000;
-	turnTimeAfterHighlight: number = 30 * 1000;
+	turnTimeLimit: number = 30 * 1000;
 	typesLimit: number = 0;
 	usesColors: boolean = true;
 
@@ -96,26 +95,21 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 				actionCardAmount--;
 				totalActionCards = actionCards.length * actionCardAmount;
 			}
+
 			if (actionCardAmount < 2) {
 				this.createDeck();
 				return;
 			}
+
 			this.actionCardAmount = actionCardAmount;
 			for (const action of actionCards) {
-				const pokemon = Dex.getPokemon(action);
 				for (let i = 0; i < actionCardAmount; i++) {
-					let card: ICard;
-					if (pokemon) {
-						card = this.pokemonToCard(pokemon);
-					} else {
-						card = this.moveToCard(Dex.getExistingMove(action));
-					}
 					// @ts-expect-error
-					card.action = this.actionCards[action]; // eslint-disable-line @typescript-eslint/no-unsafe-assignment
-					deck.push(card);
+					deck.push((this.actionCards[action] as IActionCardData).getCard(this));
 				}
 			}
 		}
+
 		this.deck = this.shuffle(deck);
 	}
 
@@ -343,11 +337,16 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			this.lastPlayer = this.currentPlayer;
 			this.currentPlayer = null;
 		}
+
 		if (Date.now() - this.startTime! > this.timeLimit) return this.timeEnd();
 		if (this.getRemainingPlayerCount() <= 1) {
+			const finalPlayer = this.getFinalPlayer();
+			if (finalPlayer) finalPlayer.frozen = true;
 			this.end();
 			return;
 		}
+
+		const currentRound = this.round;
 		let player = this.getNextPlayer();
 		if (!player || this.timeEnded) return;
 
@@ -357,12 +356,13 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			if (!this.topCard.action.skipPlayers) delete this.topCard.action;
 			return this.nextRound();
 		}
+
 		const autoDraws = new Map<Player, ICard[]>();
 		let hasCard = this.hasPlayableCard(player);
 		let drawCount = 0;
 		while (!hasCard) {
 			drawCount++;
-			const cards = this.drawCard(player, null, null, true);
+			const cards = this.drawCard(player);
 			let drawnCards = autoDraws.get(player) || [];
 			drawnCards = drawnCards.concat(cards);
 			autoDraws.set(player, drawnCards);
@@ -380,7 +380,10 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		}
 
 		if (this.timeEnded) return;
+
+		let useUhtmlAuto = this.round === currentRound;
 		if (autoDraws.size) {
+			if (useUhtmlAuto) useUhtmlAuto = false;
 			const names: string[] = [];
 			autoDraws.forEach((cards, player) => {
 				if (player.eliminated) return;
@@ -406,35 +409,36 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			this.awaitingCurrentPlayerCard = true;
 			this.canPlay = true;
 			this.updatePlayerHtmlPage(player!);
+			player!.sendHighlightPage("It is your turn!");
 
 			this.timeout = setTimeout(() => {
-				this.say(player!.name + " it is your turn!");
+				if (!player!.eliminated) {
+					if (this.addPlayerInactiveRound(player!) && !(this.parentGame && this.parentGame.id === '1v1challenge')) {
+						this.say(player!.name + " DQed for inactivity!");
+						// nextRound() called in onRemovePlayer
+						this.eliminatePlayer(player!, "You did not play a card for " + this.playerInactiveRoundLimit + " rounds!");
 
-				this.timeout = setTimeout(() => {
-					if (!player!.eliminated) {
-						if (this.addPlayerInactiveRound(player!) && !(this.parentGame && this.parentGame.id === '1v1challenge')) {
-							this.say(player!.name + " DQed for inactivity!");
-							// nextRound() called in onRemovePlayer
-							this.eliminatePlayer(player!, "You did not play a card for " + this.playerInactiveRoundLimit + " rounds!");
-
-							const remainingPlayers: Player[] = [];
-							for (const i in this.players) {
-								if (!this.players[i].eliminated) remainingPlayers.push(this.players[i]);
-							}
-							if (remainingPlayers.length === 1) remainingPlayers[0].frozen = true;
-
-							this.onRemovePlayer(player!);
-						} else {
-							player!.useCommand('draw');
+						const remainingPlayers: Player[] = [];
+						for (const i in this.players) {
+							if (!this.players[i].eliminated) remainingPlayers.push(this.players[i]);
 						}
+						if (remainingPlayers.length === 1) remainingPlayers[0].frozen = true;
+
+						this.onRemovePlayer(player!);
 					} else {
-						this.nextRound();
+						player!.useCommand('draw');
 					}
-				}, this.turnTimeAfterHighlight);
-			}, this.turnTimeBeforeHighlight);
+				} else {
+					this.nextRound();
+				}
+			}, this.turnTimeLimit);
 		});
 
-		this.sayUhtmlAuto(uhtmlName, html);
+		if (useUhtmlAuto) {
+			this.sayUhtmlAuto(uhtmlName, html);
+		} else {
+			this.sayUhtml(uhtmlName, html);
+		}
 	}
 
 	onEnd(): void {
@@ -493,15 +497,19 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		}
 
 		this.awaitingCurrentPlayerCard = false;
-		this.storePreviouslyPlayedCard({card: card.displayName || card.name, shiny: card.shiny && !card.played});
-		this.setTopCard(card, player);
 		this.currentPlayer = null;
 		cards.splice(cards.indexOf(card), 1);
-		if (drawCards > 0) {
-			if (!player.eliminated) this.drawCard(player, drawCards);
-		} else {
-			if (!player.eliminated && cards.length) this.updatePlayerHtmlPage(player);
+
+		if (!player.eliminated) {
+			let drawnCards: ICard[] | undefined;
+			if (drawCards > 0) {
+				drawnCards = this.drawCard(player, drawCards);
+			}
+			this.updatePlayerHtmlPage(player, drawnCards);
 		}
+
+		this.storePreviouslyPlayedCard({card: card.displayName || card.name, shiny: card.shiny && !card.played});
+		this.setTopCard(card, player);
 		return true;
 	}
 
@@ -581,6 +589,20 @@ const tests: GameFileTests<CardMatching> = {
 			addPlayers(game, 4);
 			game.start();
 			assert(game.deck.length);
+		},
+	},
+	'it should create unique action cards': {
+		test(game, format): void {
+			addPlayers(game, 4);
+			game.start();
+			const actionCards = Object.keys(game.actionCards);
+			for (const actionCard of actionCards) {
+				const cardData = game.actionCards[actionCard];
+				assert(cardData);
+				const card = cardData.getCard(game);
+				assert(card);
+				assert(card !== cardData.getCard(game));
+			}
 		},
 	},
 };

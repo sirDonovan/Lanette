@@ -475,19 +475,23 @@ export interface IFormatData {
 }
 /* eslint-enable */
 
-export interface IFormatLinks {
+export interface IFormatDataLinks {
 	aliases?: string[];
 	desc?: string;
 	generator?: string;
 	info?: string;
 	'info-official'?: string;
-	np?: string;
-	'np-official'?: string;
 	roleCompendium?: string;
 	teams?: string;
+	'teams-official'?: string;
 	userHosted?: boolean;
 	viability?: string;
 	'viability-official'?: string;
+}
+
+export interface IFormatThread {
+	description: string;
+	id: string;
 }
 
 export interface ISeparatedCustomRules {
@@ -518,7 +522,7 @@ export interface RuleTable extends Map<string, string> {
 	addComplexTeamBan: (rule: string, source: string, limit: number, bans: string[]) => void;
 }
 
-export interface IFormat extends IBasicEffect, IFormatData, IFormatLinks {
+export interface IFormat extends IBasicEffect, IFormatData, IFormatDataLinks {
 	desc: string;
 	inputTarget: string;
 	ruleTable?: RuleTable;
