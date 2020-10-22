@@ -1135,14 +1135,22 @@ export class Dex {
 				if (links.info) {
 					format['info-official'] = info;
 					format.info = links.info;
+				} else {
+					format.info = info;
 				}
+
 				if (links.teams) {
 					format['teams-official'] = teams;
 					format.teams = links.teams;
+				} else {
+					format.teams = teams;
 				}
+
 				if (links.viability) {
 					format['viability-official'] = viability;
 					format.viability = links.viability;
+				} else {
+					format.viability = viability;
 				}
 			} else {
 				format.info = info;
