@@ -504,6 +504,7 @@ export class ScriptedGame extends Game {
 
 		if (this.onRemovePlayer) this.onRemovePlayer(player);
 		if (!this.internalGame) this.removeBits(player, JOIN_BITS, silent);
+		if (this.usesHtmlPage) player.closeHtmlPage();
 	}
 
 	/** Returns `true` if the player has been inactive for the game's inactive round limit */
