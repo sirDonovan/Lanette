@@ -337,11 +337,16 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			this.lastPlayer = this.currentPlayer;
 			this.currentPlayer = null;
 		}
+
 		if (Date.now() - this.startTime! > this.timeLimit) return this.timeEnd();
 		if (this.getRemainingPlayerCount() <= 1) {
+			const finalPlayer = this.getFinalPlayer();
+			if (finalPlayer) finalPlayer.frozen = true;
 			this.end();
 			return;
 		}
+
+		const currentRound = this.round;
 		let player = this.getNextPlayer();
 		if (!player || this.timeEnded) return;
 
@@ -351,12 +356,13 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			if (!this.topCard.action.skipPlayers) delete this.topCard.action;
 			return this.nextRound();
 		}
+
 		const autoDraws = new Map<Player, ICard[]>();
 		let hasCard = this.hasPlayableCard(player);
 		let drawCount = 0;
 		while (!hasCard) {
 			drawCount++;
-			const cards = this.drawCard(player, null, null, true);
+			const cards = this.drawCard(player);
 			let drawnCards = autoDraws.get(player) || [];
 			drawnCards = drawnCards.concat(cards);
 			autoDraws.set(player, drawnCards);
@@ -374,7 +380,10 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		}
 
 		if (this.timeEnded) return;
+
+		let useUhtmlAuto = this.round === currentRound;
 		if (autoDraws.size) {
+			if (useUhtmlAuto) useUhtmlAuto = false;
 			const names: string[] = [];
 			autoDraws.forEach((cards, player) => {
 				if (player.eliminated) return;
@@ -425,7 +434,11 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			}, this.turnTimeLimit);
 		});
 
-		this.sayUhtmlAuto(uhtmlName, html);
+		if (useUhtmlAuto) {
+			this.sayUhtmlAuto(uhtmlName, html);
+		} else {
+			this.sayUhtml(uhtmlName, html);
+		}
 	}
 
 	onEnd(): void {
@@ -484,15 +497,19 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		}
 
 		this.awaitingCurrentPlayerCard = false;
-		this.storePreviouslyPlayedCard({card: card.displayName || card.name, shiny: card.shiny && !card.played});
-		this.setTopCard(card, player);
 		this.currentPlayer = null;
 		cards.splice(cards.indexOf(card), 1);
-		if (drawCards > 0) {
-			if (!player.eliminated) this.drawCard(player, drawCards);
-		} else {
-			if (!player.eliminated && cards.length) this.updatePlayerHtmlPage(player);
+
+		if (!player.eliminated) {
+			let drawnCards: ICard[] | undefined;
+			if (drawCards > 0) {
+				drawnCards = this.drawCard(player, drawCards);
+			}
+			this.updatePlayerHtmlPage(player, drawnCards);
 		}
+
+		this.storePreviouslyPlayedCard({card: card.displayName || card.name, shiny: card.shiny && !card.played});
+		this.setTopCard(card, player);
 		return true;
 	}
 
