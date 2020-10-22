@@ -277,7 +277,8 @@ const commands: GameCommandDefinitions<CardHighLow> = {
 			}
 			this.roundPlays.set(player, cards[index]);
 			cards.splice(index, 1);
-			this.drawCard(player, this.roundDrawAmount);
+			const drawnCards = this.drawCard(player, this.roundDrawAmount);
+			this.updatePlayerHtmlPage(player, drawnCards);
 			return true;
 		},
 		aliases: ['pmplay'],

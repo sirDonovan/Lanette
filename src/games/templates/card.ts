@@ -237,7 +237,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 		return html;
 	}
 
-	drawCard(player: Player, amount?: number | null, cards?: ICard[] | null, dontShow?: boolean): ICard[] {
+	drawCard(player: Player, amount?: number | null, cards?: ICard[] | null): ICard[] {
 		if (!amount) {
 			amount = this.drawAmount;
 			if (this.topCard && this.topCard.action && this.topCard.action.drawCards) {
@@ -253,13 +253,9 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 			}
 		}
 
-		if (dontShow) {
-			const playerCards = this.playerCards.get(player)!;
-			for (const card of cards) {
-				playerCards.push(card);
-			}
-		} else {
-			this.updatePlayerHtmlPage(player, cards);
+		const playerCards = this.playerCards.get(player)!;
+		for (const card of cards) {
+			playerCards.push(card);
 		}
 
 		return cards;

@@ -3,7 +3,7 @@ import type { Room } from "../rooms";
 import { assert, assertStrictEqual } from "../test/test-tools";
 import type { GameCommandDefinitions, GameFileTests, IGameAchievement, IGameFile } from "../types/games";
 import type { User } from "../users";
-import type { IActionCardData, IPokemonCard } from "./templates/card";
+import type { IActionCardData, ICard, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 
 type AchievementNames = "drawwizard" | "luckofthedraw";
@@ -417,12 +417,13 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 		this.storePreviouslyPlayedCard({card: card.displayName || card.name, detail: cardDetail, shiny: firstTimeShiny});
 		this.currentPlayer = null;
 
+		let drawnCards: ICard[] | undefined;
 		if (drawCards > 0) {
-			if (!player.eliminated) this.drawCard(player, drawCards);
+			if (!player.eliminated) drawnCards = this.drawCard(player, drawCards);
 			if (this.topCard.action && this.topCard.action.drawCards) delete this.topCard.action;
-		} else {
-			if (!player.eliminated && cards.length) this.updatePlayerHtmlPage(player);
 		}
+
+		if (!player.eliminated) this.updatePlayerHtmlPage(player, drawnCards);
 
 		return true;
 	}
@@ -434,8 +435,9 @@ const commands: GameCommandDefinitions<BulbasaursUno> = {
 		command(target, room, user) {
 			if (!this.canPlay || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
 			this.awaitingCurrentPlayerCard = false;
-			this.drawCard(this.players[user.id]);
 			this.currentPlayer = null; // prevent Draw Wizard from activating on a draw
+			const drawnCards = this.drawCard(this.players[user.id]);
+			this.updatePlayerHtmlPage(this.players[user.id], drawnCards);
 			this.nextRound();
 			return true;
 		},

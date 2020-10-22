@@ -666,11 +666,14 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			this.lastPlayer = this.currentPlayer;
 			this.currentPlayer = null;
 		}
+
 		if (Date.now() - this.startTime! > this.timeLimit) return this.timeEnd();
 		if (this.getRemainingPlayerCount() <= 1) {
 			this.end();
 			return;
 		}
+
+		const currentRound = this.round;
 		let player = this.getNextPlayer();
 		if (!player || this.timeEnded) return;
 
@@ -678,6 +681,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		let playableCards = this.getPlayableCards(player);
 		let eliminateCount = 0;
 		let finalPlayer = false;
+		const useUhtmlAuto = this.round === currentRound && !!playableCards.length;
 		while (!playableCards.length) {
 			const lives = this.addLives(player, -1);
 			if (!lives) {
@@ -741,7 +745,11 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			}, this.turnTimeLimit);
 		});
 
-		this.sayUhtmlAuto(uhtmlName, html);
+		if (useUhtmlAuto) {
+			this.sayUhtmlAuto(uhtmlName, html);
+		} else {
+			this.sayUhtml(uhtmlName, html);
+		}
 	}
 
 	onEnd(): void {
@@ -859,7 +867,8 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 
 		if (!player.eliminated) {
 			this.currentPlayer = null;
-			this.drawCard(player, this.roundDrawAmount, drawCards);
+			const drawnCards = this.drawCard(player, this.roundDrawAmount, drawCards);
+			this.updatePlayerHtmlPage(player, drawnCards);
 		}
 
 		return true;

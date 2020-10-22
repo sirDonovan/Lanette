@@ -62,8 +62,7 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 	minimumPlayedCards: number = 2;
 	shinyCardAchievement = StakatakasCardTower.achievements.luckofthedraw;
 	showPlayerCards: boolean = true;
-	turnTimeBeforeHighlight: number = 25 * 1000;
-	turnTimeAfterHighlight: number = 50 * 1000;
+	turnTimeLimit: number = 50 * 1000;
 	typesLimit: number = 20;
 
 	onRemovePlayer(player: Player): void {
@@ -134,14 +133,14 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 		this.setTopCard(card, player);
 		this.currentPlayer = null;
 
-		let drewCards = false;
-		if (this.autoFillHands && !player.eliminated) {
-			if (cards.length && cards.length < this.minimumPlayedCards) {
-				drewCards = true;
-				this.drawCard(player, this.minimumPlayedCards - cards.length);
+		if (!player.eliminated) {
+			let drawnCards: ICard[] | undefined;
+			if (this.autoFillHands && cards.length && cards.length < this.minimumPlayedCards) {
+				drawnCards = this.drawCard(player, this.minimumPlayedCards - cards.length);
 			}
+
+			this.updatePlayerHtmlPage(player, drawnCards);
 		}
-		if (!drewCards && !player.eliminated && cards.length) this.updatePlayerHtmlPage(player);
 		return playedCards;
 	}
 
@@ -208,7 +207,7 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 		this.storePreviouslyPlayedCard({card: card.displayName || card.name});
 		this.currentPlayer = null;
 
-		if (!player.eliminated && cards.length) this.updatePlayerHtmlPage(player);
+		if (!player.eliminated) this.updatePlayerHtmlPage(player);
 
 		return true;
 	}
@@ -219,8 +218,9 @@ const commands: GameCommandDefinitions<StakatakasCardTower> = {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canPlay || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
-			this.drawCard(this.players[user.id]);
-			this.currentPlayer = null; // prevent Draw Wizard from activating on a draw
+			this.currentPlayer = null;
+			const drawnCards = this.drawCard(this.players[user.id]);
+			this.updatePlayerHtmlPage(this.players[user.id], drawnCards);
 			this.nextRound();
 			return true;
 		},
