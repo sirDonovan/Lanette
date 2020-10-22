@@ -1,12 +1,12 @@
 import path = require('path');
 
 import type {
-	IAbility, IAbilityCopy, IDataTable, IFormat, IFormatLinks, IGetPossibleTeamsOptions, IGifData,
+	IAbility, IAbilityCopy, IDataTable, IFormat, IFormatDataLinks, IGetPossibleTeamsOptions, IGifData,
 	IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy, ISeparatedCustomRules, ITypeData,
-	IPokemonShowdownDex, IPokemonShowdownValidator, IPSFormat
+	IPokemonShowdownDex, IPokemonShowdownValidator, IPSFormat, IFormatThread
 } from './types/dex';
 
-let formatLinks: Dict<IFormatLinks | undefined>;
+let formatLinks: Dict<IFormatDataLinks | undefined>;
 
 const MAX_CUSTOM_NAME_LENGTH = 100;
 const DEFAULT_CUSTOM_RULES_NAME = " (with custom rules)";
@@ -271,7 +271,7 @@ export class Dex {
 		const lanetteDataDir = path.join(Tools.rootFolder, 'data');
 
 		// eslint-disable-next-line @typescript-eslint/no-var-requires
-		formatLinks = require(path.join(lanetteDataDir, 'format-links.js')) as Dict<IFormatLinks | undefined>;
+		formatLinks = require(path.join(lanetteDataDir, 'format-links.js')) as Dict<IFormatDataLinks | undefined>;
 
 		/* eslint-disable @typescript-eslint/no-var-requires */
 		const alternateIconNumbers = require(path.join(lanetteDataDir, 'alternate-icon-numbers.js')) as
@@ -1112,32 +1112,21 @@ export class Dex {
 			(format.team && (format.id.includes('1v1') || format.id.includes('monotype'))) || format.mod === 'seasonal' ||
 			format.mod === 'ssb' ? true : false;
 
-		let viability: string | undefined;
-		let np: string | undefined;
 		let info: string | undefined;
+		let teams: string | undefined;
+		let viability: string | undefined;
+
+		const idWithoutGen = format.name.includes("[Gen ") ? Tools.toId(format.name.substr(format.name.indexOf(']') + 1)) : format.id;
 		if (format.threads) {
 			const threads = format.threads.slice();
-			for (let line of threads) {
-				line = line.trim();
-				if (line.startsWith('&bullet;')) {
-					const text = line.split('</a>')[0].split('">')[1];
-					if (!text) continue;
-					if (text.includes('Viability Ranking')) {
-						const link = line.split('<a href="');
-						if (link[1]) {
-							viability = link[1].split('/">')[0].split('/').pop()!;
-						}
-					} else if (text.startsWith("np:") || text.includes(format.name + " Stage")) {
-						const link = line.split('<a href="');
-						if (link[1]) {
-							np = link[1].split('/">')[0].split('/').pop()!;
-						}
-					} else if (Tools.toId(text) === format.id) {
-						const link = line.split('<a href="');
-						if (link[1]) {
-							info = link[1].split('/">')[0].split('/').pop()!;
-						}
-					}
+			for (const thread of threads) {
+				const parsedThread = this.parseFormatThread(thread);
+				if (parsedThread.description.includes('Viability Rankings')) {
+					viability = parsedThread.id;
+				} else if (parsedThread.description.includes('Sample Teams')) {
+					teams = parsedThread.id;
+				} else if (Tools.toId(parsedThread.description) === idWithoutGen) {
+					info = parsedThread.id;
 				}
 			}
 
@@ -1147,9 +1136,9 @@ export class Dex {
 					format['info-official'] = info;
 					format.info = links.info;
 				}
-				if (links.np) {
-					format['np-official'] = np;
-					format.np = links.np;
+				if (links.teams) {
+					format['teams-official'] = teams;
+					format.teams = links.teams;
 				}
 				if (links.viability) {
 					format['viability-official'] = viability;
@@ -1157,12 +1146,11 @@ export class Dex {
 				}
 			} else {
 				format.info = info;
-				format.np = np;
+				format.teams = teams;
 				format.viability = viability;
 			}
 
-			const links: ('info' | 'np' | 'roleCompendium' | 'teams' | 'viability')[] = ['info', 'np', 'roleCompendium', 'teams',
-					'viability'];
+			const links: ('info' | 'roleCompendium' | 'teams' | 'viability')[] = ['info', 'roleCompendium', 'teams', 'viability'];
 			for (const id of links) {
 				const link = format[id];
 				if (!link) continue;
@@ -1185,6 +1173,18 @@ export class Dex {
 		const format = this.getFormat(name, isTrusted);
 		if (!format) throw new Error("No format returned for '" + name + "'");
 		return format;
+	}
+
+	parseFormatThread(thread: string): IFormatThread {
+		const parsedThread: IFormatThread = {description: '', id: ''};
+		if (thread.startsWith('&bullet;') && thread.includes('<a href="')) {
+			parsedThread.description = thread.split('</a>')[0].split('">')[1].trim();
+
+			let id = thread.split('<a href="')[1].split('">')[0].trim();
+			if (id.endsWith('/')) id = id.substr(0, id.length - 1);
+			parsedThread.id = id.split('/').pop()!;
+		}
+		return parsedThread;
 	}
 
 	getFormatInfoDisplay(format: IFormat): string {
@@ -1212,6 +1212,7 @@ export class Dex {
 					'<a href="' + format.info + '">dex page' : 'in the  <a href="' + format.info + '">discussion thread') + '</a>.';
 			}
 		}
+
 		if (format.teams) {
 			html += '<br />&nbsp; - Need to borrow a team? Check out the <a href="' + format.teams + '">sample teams thread</a>.';
 		}
@@ -1223,6 +1224,7 @@ export class Dex {
 			html += '<br />&nbsp; - Check the common role that each Pokemon plays in the <a href="' + format.roleCompendium + '">role ' +
 				'compendium thread</a>.';
 		}
+
 		return html;
 	}
 
