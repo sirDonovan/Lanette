@@ -32,8 +32,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	roundDrawAmount: number = 0;
 	showPlayerCards: boolean = true;
 	timeLimit: number = 25 * 60 * 1000;
-	turnTimeBeforeHighlight: number = 15 * 1000;
-	turnTimeAfterHighlight: number = 30 * 1000;
+	turnTimeLimit: number = 30 * 1000;
 	typesLimit: number = 0;
 	usesColors: boolean = true;
 
@@ -401,32 +400,29 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			this.awaitingCurrentPlayerCard = true;
 			this.canPlay = true;
 			this.updatePlayerHtmlPage(player!);
+			player!.sendHighlightPage("It is your turn!");
 
 			this.timeout = setTimeout(() => {
-				this.say(player!.name + " it is your turn!");
+				if (!player!.eliminated) {
+					if (this.addPlayerInactiveRound(player!) && !(this.parentGame && this.parentGame.id === '1v1challenge')) {
+						this.say(player!.name + " DQed for inactivity!");
+						// nextRound() called in onRemovePlayer
+						this.eliminatePlayer(player!, "You did not play a card for " + this.playerInactiveRoundLimit + " rounds!");
 
-				this.timeout = setTimeout(() => {
-					if (!player!.eliminated) {
-						if (this.addPlayerInactiveRound(player!) && !(this.parentGame && this.parentGame.id === '1v1challenge')) {
-							this.say(player!.name + " DQed for inactivity!");
-							// nextRound() called in onRemovePlayer
-							this.eliminatePlayer(player!, "You did not play a card for " + this.playerInactiveRoundLimit + " rounds!");
-
-							const remainingPlayers: Player[] = [];
-							for (const i in this.players) {
-								if (!this.players[i].eliminated) remainingPlayers.push(this.players[i]);
-							}
-							if (remainingPlayers.length === 1) remainingPlayers[0].frozen = true;
-
-							this.onRemovePlayer(player!);
-						} else {
-							player!.useCommand('draw');
+						const remainingPlayers: Player[] = [];
+						for (const i in this.players) {
+							if (!this.players[i].eliminated) remainingPlayers.push(this.players[i]);
 						}
+						if (remainingPlayers.length === 1) remainingPlayers[0].frozen = true;
+
+						this.onRemovePlayer(player!);
 					} else {
-						this.nextRound();
+						player!.useCommand('draw');
 					}
-				}, this.turnTimeAfterHighlight);
-			}, this.turnTimeBeforeHighlight);
+				} else {
+					this.nextRound();
+				}
+			}, this.turnTimeLimit);
 		});
 
 		this.sayUhtmlAuto(uhtmlName, html);

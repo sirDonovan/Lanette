@@ -730,18 +730,15 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			this.awaitingCurrentPlayerCard = true;
 			this.canPlay = true;
 			this.updatePlayerHtmlPage(player!);
+			player!.sendHighlightPage("It is your turn!");
 
 			this.timeout = setTimeout(() => {
-				this.say(player!.name + " it is your turn!");
-
-				this.timeout = setTimeout(() => {
-					if (!player!.eliminated) {
-						this.autoPlay(player!, playableCards);
-					} else {
-						this.nextRound();
-					}
-				}, this.turnTimeAfterHighlight);
-			}, this.turnTimeBeforeHighlight);
+				if (!player!.eliminated) {
+					this.autoPlay(player!, playableCards);
+				} else {
+					this.nextRound();
+				}
+			}, this.turnTimeLimit);
 		});
 
 		this.sayUhtmlAuto(uhtmlName, html);
