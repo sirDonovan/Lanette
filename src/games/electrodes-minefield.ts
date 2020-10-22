@@ -64,7 +64,7 @@ class ElectrodesMinefield extends MapDamageGame {
 			"! Your total is now " + this.points.get(player) + "." : "!"));
 	}
 
-	damagePlayers(): void {
+	onDamagePlayers(): void {
 		const map  = this.getMap();
 		const floor = map.floors[this.getFloorIndex()];
 		const x = this.random(floor.x);
