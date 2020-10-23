@@ -1741,6 +1741,9 @@ const commands: CommandDefinitions<CommandContext> = {
 	splitplayers: {
 		async asyncCommand(target, room, user) {
 			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
+			if (!room.userHostedGame.started) {
+				return this.say("You must first start the game with ``" + Config.commandCharacter + "startgame``.");
+			}
 			if (room.userHostedGame.teams) {
 				return this.say("Teams have already been formed. To create new teams, first use ``" + Config.commandCharacter +
 					"unsplitpl``.");
