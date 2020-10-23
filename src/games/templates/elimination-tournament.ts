@@ -634,9 +634,9 @@ export abstract class EliminationTournament extends ScriptedGame {
 			this.playerOpponents.set(player, opponent);
 			this.playerOpponents.set(opponent, player);
 
-			const newOpponentPM = "You have a new opponent for the " + this.name + " tournament in " + this.room.title + "!";
-			player.say(newOpponentPM);
-			opponent.say(newOpponentPM);
+			const notificationTitle = "New " + this.name + " opponent!";
+			player.sendHighlightPage(notificationTitle);
+			opponent.sendHighlightPage(notificationTitle);
 
 			let activityWarning = this.activityWarnTimeout;
 			if (!this.givenFirstRoundExtraTime.has(player) && !this.givenFirstRoundExtraTime.has(opponent)) {
