@@ -2,9 +2,8 @@ import fs = require('fs');
 import path = require('path');
 
 import type { Room } from './rooms';
-import type { IDatabase, IGlobalDatabase, IStorageWorkers } from './types/storage';
+import type { IDatabase, IGlobalDatabase } from './types/storage';
 import type { User } from './users';
-import { LogsWorker } from './workers/logs';
 
 const MAX_QUEUED_OFFLINE_MESSAGES = 3;
 const LAST_SEEN_EXPIRATION = 30 * 24 * 60 * 60 * 1000;
@@ -15,16 +14,11 @@ const hostingDatabaseSuffix = '-hostingDB';
 const baseOfflineMessageLength = '[28 Jun 2019, 00:00:00 GMT-0500] **** said: '.length;
 
 export class Storage {
-	chatLogFilePathCache: Dict<string> = {};
-	chatLogRolloverTimes: Dict<number> = {};
 	databases: Dict<IDatabase> = {};
 	databasesDir: string = path.join(Tools.rootFolder, 'databases');
 	lastSeenExpirationDuration = Tools.toDurationString(LAST_SEEN_EXPIRATION);
 	loadedDatabases: boolean = false;
 	reloadInProgress: boolean = false;
-	readonly workers: IStorageWorkers = {
-		logs: new LogsWorker(),
-	};
 
 	globalDatabaseExportInterval: NodeJS.Timer;
 
@@ -33,8 +27,6 @@ export class Storage {
 	}
 
 	onReload(previous: Partial<Storage>): void {
-		if (previous.chatLogFilePathCache) Object.assign(this.chatLogFilePathCache, previous.chatLogFilePathCache);
-		if (previous.chatLogRolloverTimes) Object.assign(this.chatLogRolloverTimes, previous.chatLogRolloverTimes);
 		if (previous.databases) Object.assign(this.databases, previous.databases);
 		if (previous.loadedDatabases) this.loadedDatabases = !!previous.loadedDatabases;
 
@@ -43,15 +35,6 @@ export class Storage {
 		for (const i in previous) {
 			// @ts-expect-error
 			delete previous[i];
-		}
-	}
-
-	unrefWorkers(): void {
-		const workers = Object.keys(this.workers) as (keyof IStorageWorkers)[];
-		for (const worker of workers) {
-			this.workers[worker].unref();
-			// @ts-expect-error
-			delete this.workers[worker];
 		}
 	}
 
@@ -247,27 +230,6 @@ export class Storage {
 
 		if (roomid + hostingDatabaseSuffix in this.databases) this.transferData(roomid + hostingDatabaseSuffix, source, destination);
 		return true;
-	}
-
-	logChatMessage(room: Room, time: number, messageType: string, message: string): void {
-		const date = new Date(time);
-		if (!this.chatLogRolloverTimes[room.id] || time >= this.chatLogRolloverTimes[room.id]) {
-			const midnight = new Date();
-			midnight.setHours(24, 0, 0, 0);
-			this.chatLogRolloverTimes[room.id] = midnight.getTime();
-			const year = date.getFullYear();
-			const month = date.getMonth() + 1;
-			const day = date.getDate();
-			const directory = path.join(Tools.roomLogsFolder, room.id, '' + year);
-			try {
-				fs.mkdirSync(directory, {recursive: true});
-			// eslint-disable-next-line no-empty
-			} catch {}
-			const filename = year + '-' + (month < 10 ? '0' : '') + month + '-' + (day < 10 ? '0' : '') + day + '.txt';
-			this.chatLogFilePathCache[room.id] = path.join(directory, filename);
-		}
-		fs.appendFileSync(this.chatLogFilePathCache[room.id], Tools.toTimestampString(date).split(" ")[1] + ' |' + messageType + '|' +
-			message + "\n");
 	}
 
 	getMaxOfflineMessageLength(sender: User): number {

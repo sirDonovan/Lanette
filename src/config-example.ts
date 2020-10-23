@@ -334,16 +334,6 @@ export let limitGamesByMode: string[] = [];
 export let limitGamesByCategory: string[] = [];
 
 /**
- * A list of rooms (roomids) where messages will not be logged
- */
-export let disallowChatLogging: string[] = [];
-
-/**
- * A link to the server's log viewer
- */
-export let serverLogsViewer: string = '';
-
-/**
  * For each room in the object, the length of time in which an awarded bot greeting will last
  */
 export let awardedBotGreetingDurations: Dict<number> = {};

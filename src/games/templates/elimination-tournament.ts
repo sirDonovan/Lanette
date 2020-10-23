@@ -398,7 +398,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 					} else {
 						const winner = winnersByRound[round].includes(playerName);
 						if (winner) html += '<i>';
-						html += '<strong class="username">' + playerName + '</strong>';
+						html += '<strong class="username"><username>' + playerName + '</username></strong>';
 						if (winner) html += '</i>';
 					}
 					html += '</p></td>';
@@ -634,9 +634,9 @@ export abstract class EliminationTournament extends ScriptedGame {
 			this.playerOpponents.set(player, opponent);
 			this.playerOpponents.set(opponent, player);
 
-			const newOpponentPM = "You have a new opponent for the " + this.name + " tournament in " + this.room.title + "!";
-			player.say(newOpponentPM);
-			opponent.say(newOpponentPM);
+			const notificationTitle = "New " + this.name + " opponent!";
+			player.sendHighlightPage(notificationTitle);
+			opponent.sendHighlightPage(notificationTitle);
 
 			let activityWarning = this.activityWarnTimeout;
 			if (!this.givenFirstRoundExtraTime.has(player) && !this.givenFirstRoundExtraTime.has(opponent)) {
@@ -726,10 +726,10 @@ export abstract class EliminationTournament extends ScriptedGame {
 				html += "<br /><u><b>Opponent</b></u> (round " + player.round + ")<br /><br />";
 				const opponent = this.playerOpponents.get(player);
 				if (opponent) {
-					html += "Your next opponent is <strong class='username'>" + opponent.name + "</strong>! To send a challenge, click " +
-						"their name, click \"Challenge\", select " + this.battleFormat.name + " as the format, and select your team " +
-						"for this tournament. Once the battle starts, send " + Users.self.name + " the link or type <code>/invite " +
-						Users.self.name + "</code> into the battle chat!";
+					html += "Your next opponent is <strong class='username'><username>" + opponent.name + "</username></strong>! To send " +
+						"a challenge, click their name, click \"Challenge\", select " + this.battleFormat.name + " as the format, and " +
+						"select your team for this tournament. Once the battle starts, send " + Users.self.name + " the link or type " +
+						"<code>/invite " + Users.self.name + "</code> into the battle chat!";
 					html += "<br /><br /><b>If " + opponent.name + " goes offline or does not accept your challenge, you will be " +
 						"advanced automatically after some time!</b>";
 				} else {

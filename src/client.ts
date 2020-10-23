@@ -822,9 +822,6 @@ export class Client {
 				now - this.botGreetingCooldowns[user.id] >= BOT_GREETING_COOLDOWN)) {
 				if (Storage.checkBotGreeting(room, user, now)) this.botGreetingCooldowns[user.id] = now;
 			}
-			if (room.logChatMessages) {
-				Storage.logChatMessage(room, now, 'J', messageArguments.rank + user.name);
-			}
 			if (room.game && room.game.onUserJoinRoom) room.game.onUserJoinRoom(room, user);
 			break;
 		}
@@ -856,9 +853,6 @@ export class Client {
 			room.onUserLeave(user);
 
 			Storage.updateLastSeen(user, now);
-			if (room.logChatMessages) {
-				Storage.logChatMessage(room, now, 'L', (rank ? rank : "") + user.name);
-			}
 			break;
 		}
 
@@ -982,10 +976,6 @@ export class Client {
 			}
 
 			Storage.updateLastSeen(user, messageArguments.timestamp);
-			if (room.logChatMessages) {
-				Storage.logChatMessage(room, messageArguments.timestamp, 'c', messageArguments.rank + user.name + '|' +
-					messageArguments.message);
-			}
 
 			if (messageArguments.message.startsWith('/log ')) {
 				if (messageArguments.message.includes(HANGMAN_START_COMMAND)) {

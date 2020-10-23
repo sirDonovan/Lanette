@@ -110,9 +110,10 @@ class DragapultsDangerZone extends ScriptedGame {
 
 		this.displayMap();
 
-		const text = "Please choose your location on the map in PMs with the command ``" + Config.commandCharacter + "hide [location]``!";
+		const text = "Please choose your location on the map in PMs with the command ``" +
+			Config.commandCharacter + "hide [location]`` (letter-number)!";
 		this.on(text, () => {
-			this.timeout = setTimeout(() => this.checkPlayerLocations(), 30 * 1000);
+			this.timeout = setTimeout(() => this.checkPlayerLocations(), 60 * 1000);
 		});
 		this.say(text);
 	}
@@ -274,7 +275,7 @@ class DragapultsDangerZone extends ScriptedGame {
 	}
 
 	getMapLocation(target: string, team?: PlayerTeam): string | undefined {
-		const parts = target.trim().split("");
+		const parts = Tools.toId(target).split("");
 		const letter = parts[0].toUpperCase();
 		if (!this.columnLetters.includes(letter) || (team && !this.teamColumnLetters.get(team)!.includes(letter))) return;
 

@@ -51,7 +51,6 @@ export function load(config: typeof Config): typeof Config {
 
 	if (config.rooms) config.rooms = config.rooms.map(x => Tools.toRoomId(x));
 	if (config.subRooms) config.subRooms = objectKeysToRoomId(stringArrayObjectToRoomIds(config.subRooms));
-	if (config.disallowChatLogging) config.disallowChatLogging = arrayToRoomIds(config.disallowChatLogging);
 	if (config.roomAliases) config.roomAliases = objectKeysToRoomId(stringObjectToRoomIds(config.roomAliases));
 
 	if (config.allowScriptedGames) config.allowScriptedGames = arrayToRoomIds(config.allowScriptedGames);
