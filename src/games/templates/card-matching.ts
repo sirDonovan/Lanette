@@ -396,8 +396,8 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		// needs to be set outside of on() for tests
 		this.currentPlayer = player;
 
-		const html = this.getMascotAndNameHtml() + "<br /><center>" + this.getTopCardHtml() + "<br /><br /><b>" + player!.name + "</b>'s " +
-			"turn!</center>";
+		const html = this.getMascotAndNameHtml() + "<br /><center>" + this.getTopCardHtml() + "<br /><br /><b><username>" + player!.name +
+			"</username></b>'s turn!</center>";
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
 			// left before text appeared
