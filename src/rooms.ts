@@ -32,7 +32,6 @@ export class Room {
 	type!: RoomType;
 
 	// set immediately in checkConfigSettings()
-	logChatMessages!: boolean;
 	unlinkTournamentReplays!: boolean;
 	unlinkChallongeLinks!: boolean;
 
@@ -68,8 +67,6 @@ export class Room {
 	}
 
 	checkConfigSettings(): void {
-		this.logChatMessages = !this.id.startsWith(Tools.battleRoomPrefix) && !this.id.startsWith(Tools.groupchatPrefix) &&
-			!(Config.disallowChatLogging && Config.disallowChatLogging.includes(this.id));
 		this.unlinkTournamentReplays = Config.disallowTournamentBattleLinks && Config.disallowTournamentBattleLinks.includes(this.id) ?
 			true : false;
 		this.unlinkChallongeLinks = Config.allowUserHostedTournaments && Config.allowUserHostedTournaments.includes(this.id) ? true : false;

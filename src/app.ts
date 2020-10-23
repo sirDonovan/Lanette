@@ -14,7 +14,6 @@ import * as tools from './tools';
 import * as tournaments from './tournaments';
 import type { ReloadableModule } from './types/app';
 import type { IGamesWorkers } from './types/games';
-import type { IStorageWorkers } from './types/storage';
 import * as users from './users';
 
 const moduleOrder: ReloadableModule[] = ['tools', 'config', 'dex', 'client', 'commandparser', 'storage', 'tournaments',
@@ -84,14 +83,6 @@ module.exports = (async(): Promise<void> => {
 					if (user) user.say("You must wait for the game" + (workerGameRooms.length > 1 ? "s" : "") + " in " +
 						Tools.joinList(workerGameRooms.map(x => x.title)) + " to finish first.");
 					return;
-				}
-			} else if (id === 'storage') {
-				const workers = Object.keys(Storage.workers) as (keyof IStorageWorkers)[];
-				for (const worker of workers) {
-					if (Storage.workers[worker].isBusy) {
-						if (user) user.say("You must wait for all " + worker + " requests to finish first.");
-						return;
-					}
 				}
 			}
 
@@ -169,8 +160,6 @@ module.exports = (async(): Promise<void> => {
 					await pluginsLoader.load();
 					reloadCommands(modules);
 				} else if (moduleId === 'storage') {
-					Storage.unrefWorkers();
-
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
 					const storage = require('./' + moduleFilenames[moduleId]) as typeof import('./storage');
 					storage.instantiate();

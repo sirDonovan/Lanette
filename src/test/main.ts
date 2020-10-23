@@ -123,7 +123,6 @@ module.exports = async(inputOptions: Dict<string>): Promise<void> => {
 				mochaRuns++;
 				if (mochaRuns === maxMochaRuns) {
 					Games.unrefWorkers();
-					Storage.unrefWorkers();
 					process.exit(failures ? 1 : 0);
 				}
 
