@@ -1170,6 +1170,7 @@ export class Client {
 							}
 						}
 						if (line.includes('</b> - ')) line = line.split('</b> - ')[1];
+						if (line.endsWith('</div>')) line = line.substr(0, line.length - 6);
 						separatedCustomRules[currentCategory] = line.split(",").map(x => x.trim());
 					}
 
