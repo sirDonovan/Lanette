@@ -237,13 +237,12 @@ const tests: GameFileTests<ParasParameters> = {
 			intersection = await game.intersect(['steeltype', 'rockclimb']);
 			assert(intersection);
 			assertStrictEqual(intersection.params.length, 2);
-			assertStrictEqual(intersection.pokemon.join(","), "aggron,arceussteel,durant,empoleon,excadrill,ferroseed,ferrothorn," +
-				"heatran,registeel,steelix");
+			assertStrictEqual(intersection.pokemon.join(","), "arceussteel,durant,empoleon,excadrill,ferroseed,ferrothorn,steelix");
 
 			intersection = await game.intersect(['rockclimb', 'fly']);
 			assert(intersection);
 			assertStrictEqual(intersection.params.length, 2);
-			assertStrictEqual(intersection.pokemon.join(","), "arceus,giratina,smeargle");
+			assertStrictEqual(intersection.pokemon.join(","), "arceus,smeargle");
 
 			// past gen
 

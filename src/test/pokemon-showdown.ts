@@ -184,7 +184,7 @@ describe("pokemon-showdown", () => {
 		assertStrictEqual(megaStone.itemUser.length, 1);
 		assertStrictEqual(megaStone.itemUser[0], "Abomasnow");
 
-		const pastItem = Dex.getItem("Adamant Orb");
+		const pastItem = Dex.getItem("Armor Fossil");
 		assert(pastItem);
 		assertStrictEqual(pastItem.isNonstandard, "Past");
 
@@ -192,7 +192,7 @@ describe("pokemon-showdown", () => {
 		assert(capMegaStone);
 		assertStrictEqual(capMegaStone.isNonstandard, "CAP");
 
-		const unObtainableItem = Dex.getItem("Custap Berry");
+		const unObtainableItem = Dex.getItem("Micle Berry");
 		assert(unObtainableItem);
 		assertStrictEqual(unObtainableItem.isNonstandard, "Unobtainable");
 

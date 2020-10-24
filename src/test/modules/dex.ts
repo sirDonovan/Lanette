@@ -71,7 +71,7 @@ describe("Dex", () => {
 			assert(allPossibleMovesRaticateAlola.includes(move));
 		}
 
-		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Tackle")), 384);
+		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Tackle")), 394);
 		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Aeroblast")), 2);
 
 		// other in-game data
