@@ -17,7 +17,6 @@ class ElectrodesMinefield extends MapDamageGame {
 	};
 
 	currency: string = currency;
-	canLateJoin: boolean = true;
 	map: GameMap | null = null;
 	maxDimensions: number = 10;
 	minDimensions: number = 8;

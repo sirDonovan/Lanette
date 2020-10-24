@@ -4,7 +4,6 @@ import type { MapFloor } from "./map";
 import { game as mapGame, MapGame } from "./map";
 
 export abstract class MapDamageGame extends MapGame {
-	canLateJoin: boolean = true;
 	roundActions = new Map<Player, boolean>();
 
 	abstract onDamagePlayers(): void;
