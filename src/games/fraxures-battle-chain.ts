@@ -1,6 +1,6 @@
 import type { Room } from "../rooms";
-import type { IPokemon } from "../types/dex";
 import type { IGameFile } from "../types/games";
+import type { IPokemon } from "../types/pokemon-showdown";
 import type { User } from "../users";
 import { Chain, game as chainGame } from "./templates/chain";
 

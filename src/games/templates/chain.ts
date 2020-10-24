@@ -1,7 +1,7 @@
 import type { Player } from "../../room-activity";
 import { ScriptedGame } from "../../room-game-scripted";
-import type { IAbility, IItem, IMove, IPokemon } from "../../types/dex";
 import type { GameCommandDefinitions, IGameTemplateFile } from "../../types/games";
+import type { IAbility, IItem, IMove, IPokemon } from "../../types/pokemon-showdown";
 
 export type Link = IPokemon | IMove | IItem | IAbility;
 

@@ -1,10 +1,10 @@
 import type { Player } from '../../room-activity';
 import { addPlayers, assert } from '../../test/test-tools';
-import type { IPokemon } from '../../types/dex';
 import type {
 	GameCategory, GameCommandDefinitions, GameFileTests,
 	IGameAchievement, IGameTemplateFile
 } from '../../types/games';
+import type { IPokemon } from '../../types/pokemon-showdown';
 import type { ICard, IPokemonCard } from './card';
 import { Card, game as cardGame, IActionCardData, ICardsSplitByPlayable } from './card';
 

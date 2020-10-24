@@ -1,5 +1,5 @@
-import type { IPokemon } from '../types/dex';
 import type { IGameFile } from '../types/games';
+import type { IPokemon } from '../types/pokemon-showdown';
 import { EliminationTournament, game as eliminationTournamentGame } from './templates/elimination-tournament';
 
 const name = "Catch and Evolve";

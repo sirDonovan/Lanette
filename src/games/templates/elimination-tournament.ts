@@ -2,10 +2,10 @@ import type { Player } from "../../room-activity";
 import { ScriptedGame } from "../../room-game-scripted";
 import type { Room } from "../../rooms";
 import { addPlayers, assert, assertStrictEqual } from "../../test/test-tools";
-import type { IFormat, IPokemon } from "../../types/dex";
 import type {
 	GameCategory, GameCommandDefinitions, GameFileTests, IBattleGameData, IGameFormat, IGameTemplateFile
 } from "../../types/games";
+import type { IFormat, IPokemon } from "../../types/pokemon-showdown";
 import type { User } from "../../users";
 
 interface IEliminationTree<T> {

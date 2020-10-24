@@ -1,8 +1,8 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import { assert } from "../test/test-tools";
-import type { IPokemon } from "../types/dex";
 import type { GameCommandDefinitions, GameFileTests, IGameFile } from "../types/games";
+import type { IPokemon } from "../types/pokemon-showdown";
 
 const data: {'parameters': Dict<string[]>; 'pokemon': string[]} = {
 	"parameters": {},

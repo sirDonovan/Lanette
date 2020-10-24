@@ -1,6 +1,6 @@
 import { Activity, Player } from "./room-activity";
 import type { Room } from "./rooms";
-import type { IFormat } from "./types/dex";
+import type { IFormat } from "./types/pokemon-showdown";
 import type { IBattleData, ICurrentTournamentBattle, ITournamentEndJson, ITournamentUpdateJson } from "./types/tournaments";
 
 const GENERATORS: Dict<number> = {

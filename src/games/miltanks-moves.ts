@@ -1,6 +1,6 @@
 import type { Room } from "../rooms";
-import type { IMove } from "../types/dex";
 import type { IGameAchievement, IGameFile } from "../types/games";
+import type { IMove } from "../types/pokemon-showdown";
 import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 

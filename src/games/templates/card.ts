@@ -1,8 +1,8 @@
 import type { Player } from '../../room-activity';
 import { ScriptedGame } from '../../room-game-scripted';
 import { assert, assertStrictEqual } from '../../test/test-tools';
-import type { IMove, IPokemon, StatsTable } from '../../types/dex';
 import type { GameCommandDefinitions, GameFileTests, IGameTemplateFile, PlayerList } from '../../types/games';
+import type { IMove, IPokemon, StatsTable } from '../../types/pokemon-showdown';
 
 export interface ICardsSplitByPlayable {
 	playable: ICard[];

@@ -1,8 +1,8 @@
 import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
 import { assert, assertStrictEqual } from "../test/test-tools";
-import type { IMoveCopy, IPokemon } from "../types/dex";
 import type { GameFileTests, IGameAchievement, IGameFile } from "../types/games";
+import type { IMoveCopy, IPokemon } from "../types/pokemon-showdown";
 import type { User } from "../users";
 import type { IActionCardData, ICard, IMoveCard, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";

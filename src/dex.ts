@@ -1,10 +1,11 @@
 import path = require('path');
 
+import type { IDataTable, IFormatDataLinks, IFormatThread, IGetPossibleTeamsOptions, IGifData, ISeparatedCustomRules } from './types/dex';
 import type {
-	IAbility, IAbilityCopy, IDataTable, IFormat, IFormatDataLinks, IGetPossibleTeamsOptions, IGifData,
-	IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy, ISeparatedCustomRules, ITypeData,
-	IPokemonShowdownDex, IPokemonShowdownValidator, IPSFormat, IFormatThread
-} from './types/dex';
+	IAbility, IAbilityCopy, IFormat,
+	IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy,
+	IPokemonShowdownDex, IPokemonShowdownValidator, IPSFormat, ITypeData
+} from './types/pokemon-showdown';
 
 let formatLinks: Dict<IFormatDataLinks | undefined>;
 

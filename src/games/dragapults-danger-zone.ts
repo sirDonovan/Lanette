@@ -1,7 +1,7 @@
 import type { Player, PlayerTeam } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { IPokemon } from "../types/dex";
 import type { GameCommandDefinitions, IGameFile } from "../types/games";
+import type { IPokemon } from "../types/pokemon-showdown";
 import type { HexColor } from "../types/tools";
 
 type TeamIds = 'red' | 'blue';

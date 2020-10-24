@@ -3,8 +3,8 @@ import { PRNG } from "./prng";
 import type { Player } from "./room-activity";
 import { Activity, PlayerTeam } from "./room-activity";
 import type { Room } from "./rooms";
-import type { IPokemon, IPokemonCopy } from "./types/dex";
 import type { IGameFormat, IPokemonUhtml, ITrainerUhtml, IUserHostedFormat, PlayerList } from "./types/games";
+import type { IPokemon, IPokemonCopy } from "./types/pokemon-showdown";
 import type { User } from "./users";
 
 const teamNameLists: Dict<string[][]> = {
