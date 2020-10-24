@@ -1146,8 +1146,8 @@ export class Client {
 				}
 				this.setSendTimeout(this.getSendThrottle() * SERVER_THROTTLE_BUFFER_LIMIT);
 			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
-				room.modchat = messageArguments.html.split('<div class="broadcast-red"><strong>Moderated chat was set to ')[1]
-					.split('!</strong>')[0];
+				room.modchat = Tools.unescapeHTML(messageArguments.html).split('<div class="broadcast-red">' +
+					'<strong>Moderated chat was set to ')[1].split('!</strong>')[0];
 			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>This battle is invite-only!</strong>')) {
 				room.inviteOnlyBattle = true;
 			} else if (messageArguments.html.startsWith('<div class="broadcast-blue"><strong>Moderated chat was disabled!</strong>')) {
@@ -1157,7 +1157,7 @@ export class Client {
 					const separatedCustomRules: ISeparatedCustomRules = {
 						addedbans: [], removedbans: [], addedrestrictions: [], addedrules: [], removedrules: [],
 					};
-					const lines = messageArguments.html.substr(0, messageArguments.html.length - 6)
+					const lines = Tools.unescapeHTML(messageArguments.html).substr(0, messageArguments.html.length - 6)
 						.split('<div class="infobox infobox-limited">This tournament includes:<br />')[1].split('<br />');
 					let currentCategory: 'addedbans' | 'removedbans' | 'addedrestrictions' | 'addedrules' | 'removedrules' = 'addedbans';
 					for (let line of lines) {
