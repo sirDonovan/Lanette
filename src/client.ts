@@ -1157,7 +1157,8 @@ export class Client {
 					const separatedCustomRules: ISeparatedCustomRules = {
 						addedbans: [], removedbans: [], addedrestrictions: [], addedrules: [], removedrules: [],
 					};
-					const lines = Tools.unescapeHTML(messageArguments.html).substr(0, messageArguments.html.length - 6)
+					const unescapedHtml = Tools.unescapeHTML(messageArguments.html);
+					const lines = unescapedHtml.substr(0, unescapedHtml.length - 6)
 						.split('<div class="infobox infobox-limited">This tournament includes:<br />')[1].split('<br />');
 					let currentCategory: 'addedbans' | 'removedbans' | 'addedrestrictions' | 'addedrules' | 'removedrules' = 'addedbans';
 					for (let line of lines) {
@@ -1169,8 +1170,7 @@ export class Client {
 								currentCategory = category;
 							}
 						}
-						if (line.includes('</b> - ')) line = line.split('</b> - ')[1];
-						if (line.endsWith('</div>')) line = line.substr(0, line.length - 6);
+						if (line.includes('</b> - ')) line = line.split('</b> - ')[1].trim();
 						separatedCustomRules[currentCategory] = line.split(",").map(x => x.trim());
 					}
 
