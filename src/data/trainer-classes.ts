@@ -1,4 +1,6 @@
-module.exports = [
+import type { TrainerClassData } from "../types/dex";
+
+export const trainerClasses: TrainerClassData = [
 	"Beauty",
 	"Biker",
 	"Bird Keeper",

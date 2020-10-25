@@ -40,8 +40,8 @@ class ZygardesOrders extends QuestionAndAnswer {
 	updateHintTime = 5 * 1000;
 
 	static loadData(room: Room | User): void {
-		data["Characters"] = Dex.data.characters.slice().filter(x => x.length < 18);
-		data["Locations"] = Dex.data.locations.slice().filter(x => x.length < 18);
+		data["Characters"] = Dex.getCharacters().filter(x => x.length < 18);
+		data["Locations"] = Dex.getLocations().filter(x => x.length < 18);
 		data["Pokemon"] = Games.getPokemonList().filter(x => x.name.length < 18).map(x => x.name);
 		data["Pokemon Abilities"] = Games.getAbilitiesList().filter(x => x.name.length < 18).map(x => x.name);
 		data["Pokemon Items"] = Games.getItemsList().filter(x => x.name.length < 18).map(x => x.name);

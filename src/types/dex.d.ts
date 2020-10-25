@@ -1,15 +1,26 @@
 import type { INature } from "./pokemon-showdown";
 
+export interface IAlternateIconNumbers {
+	left: Dict<number | undefined>;
+	right: Dict<number | undefined>;
+}
+
+export type BadgeData = Dict<string[]>;
+export type CategoryData = Dict<string>;
+export type CharacterData = Dict<string[]>;
+export type LocationData = Dict<string[]>;
+export type TrainerClassData = string[];
+
 export interface IFormatDataLinks {
+	name: string;
 	aliases?: string[];
 	desc?: string;
-	generator?: string;
+	genGuide?: string;
 	info?: string;
 	'info-official'?: string;
 	roleCompendium?: string;
 	teams?: string;
 	'teams-official'?: string;
-	userHosted?: boolean;
 	viability?: string;
 	'viability-official'?: string;
 }
@@ -45,10 +56,10 @@ export interface IGetPossibleTeamsOptions {
 
 export interface IDataTable {
 	readonly abilityKeys: readonly string[];
-	readonly alternateIconNumbers: Readonly<{left: Dict<number | undefined>, right: Dict<number | undefined>}>;
-	readonly badges: readonly string[];
+	readonly alternateIconNumbers: Readonly<IAlternateIconNumbers>;
+	readonly badges: Readonly<BadgeData>;
 	readonly categories: Readonly<Dict<string | undefined>>;
-	readonly characters: readonly string[];
+	readonly characters: Readonly<CharacterData>;
 	readonly colors: Readonly<Dict<string>>;
 	readonly eggGroups: Readonly<Dict<string>>;
 	readonly formatKeys: readonly string[];
@@ -56,11 +67,11 @@ export interface IDataTable {
 	readonly gifDataBW: Readonly<Dict<IGifData | undefined>>;
 	readonly itemKeys: readonly string[];
 	readonly learnsetDataKeys: readonly string[];
-	readonly locations: readonly string[];
+	readonly locations: Readonly<LocationData>;
 	readonly moveKeys: readonly string[];
 	readonly natures: Readonly<Dict<INature | undefined>>;
 	readonly pokemonKeys: readonly string[];
-	readonly trainerClasses: readonly string[];
+	readonly trainerClasses: Readonly<TrainerClassData>;
 	readonly trainerSprites: Readonly<Dict<string>>;
 	readonly typeKeys: readonly string[];
 }

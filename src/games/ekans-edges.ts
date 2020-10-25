@@ -42,16 +42,20 @@ class EkansEdges extends QuestionAndAnswer {
 	lastEdge: string = '';
 
 	static loadData(room: Room | User): void {
-		for (const character of Dex.data.characters) {
-			const edge = character.charAt(0) + " - " + character.substr(-1);
-			if (!data["Characters"][edge]) data["Characters"][edge] = [];
-			data["Characters"][edge].push(character);
+		for (const i in Dex.data.characters) {
+			for (const character of Dex.data.characters[i]) {
+				const edge = character.charAt(0) + " - " + character.substr(-1);
+				if (!data["Characters"][edge]) data["Characters"][edge] = [];
+				data["Characters"][edge].push(character);
+			}
 		}
 
-		for (const location of Dex.data.locations) {
-			const edge = location.charAt(0) + " - " + location.substr(-1);
-			if (!data["Locations"][edge]) data["Locations"][edge] = [];
-			data["Locations"][edge].push(location);
+		for (const i in Dex.data.locations) {
+			for (const location of Dex.data.locations[i]) {
+				const edge = location.charAt(0) + " - " + location.substr(-1);
+				if (!data["Locations"][edge]) data["Locations"][edge] = [];
+				data["Locations"][edge].push(location);
+			}
 		}
 
 		for (const pokemon of Games.getPokemonList()) {

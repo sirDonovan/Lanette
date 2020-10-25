@@ -25,8 +25,8 @@ class KyuremsSplits extends QuestionAndAnswer {
 	allAnswersAchievement = KyuremsSplits.achievements.splittersplatter;
 
 	static loadData(room: Room | User): void {
-		data["Characters"] = Dex.data.characters.slice();
-		data["Locations"] = Dex.data.locations.slice();
+		data["Characters"] = Dex.getCharacters();
+		data["Locations"] = Dex.getLocations();
 
 		data["Pokemon"] = Games.getPokemonList().map(x => x.name);
 		data["Pokemon Abilities"] = Games.getAbilitiesList().map(x => x.name);

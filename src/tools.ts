@@ -18,6 +18,7 @@ const UNSAFE_API_CHARACTER_REGEX = /[^A-Za-z0-9 ,.%&'"!?()[\]`_<>/|:;=+-@]/g;
 
 const BATTLE_ROOM_PREFIX = 'battle-';
 const GROUPCHAT_PREFIX = 'groupchat-';
+const SMOGON_DEX_PREFIX = 'https://www.smogon.com/dex/';
 const maxMessageLength = 300;
 const maxUsernameLength = 18;
 const githubApiThrottle = 2 * 1000;
@@ -99,6 +100,7 @@ export class Tools {
 	readonly unsafeApiCharacterRegex: RegExp = UNSAFE_API_CHARACTER_REGEX;
 	readonly battleRoomPrefix: string = BATTLE_ROOM_PREFIX;
 	readonly groupchatPrefix: string = GROUPCHAT_PREFIX;
+	readonly smogonDexPrefix: string = SMOGON_DEX_PREFIX;
 
 	lastGithubApiCall: number = 0;
 

@@ -26,8 +26,8 @@ class PiplupsLetterPlacements extends QuestionAndAnswer {
 	lastAnswer: string = '';
 
 	static loadData(room: Room | User): void {
-		data["Characters"] = Dex.data.characters.filter(x => x.length > 3);
-		data["Locations"] = Dex.data.locations.filter(x => x.length > 3);
+		data["Characters"] = Dex.getCharacters().filter(x => x.length > 3);
+		data["Locations"] = Dex.getLocations().filter(x => x.length > 3);
 		data["Pokemon"] = Games.getPokemonList(x => x.name.length > 3).map(x => x.name);
 		data["Pokemon Abilities"] = Games.getAbilitiesList(x => x.name.length > 3).map(x => x.name);
 		data["Pokemon Items"] = Games.getItemsList(x => x.name.length > 3).map(x => x.name);

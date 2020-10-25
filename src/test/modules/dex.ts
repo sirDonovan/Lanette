@@ -13,9 +13,33 @@ describe("Dex", () => {
 		assert(Dex.data.pokemonKeys.length > 1);
 		assert(Dex.data.typeKeys.length > 1);
 
-		assert(Dex.data.badges.length > 1);
-		assert(Dex.data.characters.length > 1);
-		assert(Dex.data.locations.length > 1);
+		const badges: string[] = [];
+		for (const i in Dex.data.badges) {
+			const region = Dex.data.badges[i];
+			assert(region.length > 1);
+			for (const badge of region) {
+				badges.push(badge);
+			}
+		}
+
+		const characters: string[] = [];
+		for (const i in Dex.data.characters) {
+			const region = Dex.data.characters[i];
+			assert(region.length > 1);
+			for (const character of region) {
+				characters.push(character);
+			}
+		}
+
+		const locations: string[] = [];
+		for (const i in Dex.data.locations) {
+			const region = Dex.data.locations[i];
+			assert(region.length > 1);
+			for (const location of region) {
+				locations.push(location);
+			}
+		}
+
 		assert(Dex.data.trainerClasses.length > 1);
 
 		assert(Object.keys(Dex.data.categories).length > 1);
@@ -75,12 +99,16 @@ describe("Dex", () => {
 		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Aeroblast")), 2);
 
 		// other in-game data
-		for (let i = 0; i < Dex.data.badges.length; i++) {
-			assert(Dex.data.badges.indexOf(Dex.data.badges[i]) === i, "Duplicate badge " + Dex.data.badges[i]);
+		for (let i = 0; i < badges.length; i++) {
+			assert(badges.indexOf(badges[i]) === i, "Duplicate badge " + badges[i]);
 		}
 
-		for (let i = 0; i < Dex.data.characters.length; i++) {
-			assert(Dex.data.characters.indexOf(Dex.data.characters[i]) === i, "Duplicate character " + Dex.data.characters[i]);
+		for (let i = 0; i < characters.length; i++) {
+			assert(characters.indexOf(characters[i]) === i, "Duplicate character " + characters[i]);
+		}
+
+		for (let i = 0; i < locations.length; i++) {
+			assert(locations.indexOf(locations[i]) === i, "Duplicate location " + locations[i]);
 		}
 
 		for (let i = Dex.gen; i >= 1; i--) {

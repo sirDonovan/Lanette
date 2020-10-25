@@ -2618,7 +2618,15 @@ const commands: CommandDefinitions<CommandContext> = {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
 				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
-			this.say('Randomly generated character: **' + Tools.sampleOne(Dex.data.characters).trim() + '**');
+			let region = Tools.toId(target);
+			if (region) {
+				if (!(region in Dex.data.characters)) return this.say("'" + target.trim() + "' is not a valid character region.");
+			} else {
+				region = Tools.sampleOne(Object.keys(Dex.data.characters));
+			}
+
+			this.say('Randomly generated' + (target ? ' ' + region.charAt(0).toUpperCase() + region.substr(1) : '') + ' character: ' +
+				'**' + Tools.sampleOne(Dex.data.characters[region]).trim() + '**');
 		},
 		aliases: ['rchar', 'rcharacter', 'randchar', 'randcharacter'],
 	},
@@ -2626,7 +2634,15 @@ const commands: CommandDefinitions<CommandContext> = {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
 				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
-			this.say('Randomly generated location: **' + Tools.sampleOne(Dex.data.locations).trim() + '**');
+			let region = Tools.toId(target);
+			if (region) {
+				if (!(region in Dex.data.locations)) return this.say("'" + target.trim() + "' is not a valid location region.");
+			} else {
+				region = Tools.sampleOne(Object.keys(Dex.data.locations));
+			}
+
+			this.say('Randomly generated' + (target ? ' ' + region.charAt(0).toUpperCase() + region.substr(1) : '') + ' location: ' +
+				'**' + Tools.sampleOne(Dex.data.locations[region]).trim() + '**');
 		},
 		aliases: ['rlocation', 'rloc', 'randloc', 'randlocation'],
 	},

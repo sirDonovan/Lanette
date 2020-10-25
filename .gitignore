@@ -67,6 +67,8 @@ desktop.ini
 archived-databases/*
 !archived-databases/README.md
 built/
+client-data/pokedex-mini.js
+client-data/pokedex-mini-bw.js
 data/pokedex-mini.js
 data/pokedex-mini-bw.js
 databases/*
