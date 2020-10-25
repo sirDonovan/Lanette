@@ -13,32 +13,14 @@ describe("Dex", () => {
 		assert(Dex.data.pokemonKeys.length > 1);
 		assert(Dex.data.typeKeys.length > 1);
 
-		const badges: string[] = [];
-		for (const i in Dex.data.badges) {
-			const region = Dex.data.badges[i];
-			assert(region.length > 1);
-			for (const badge of region) {
-				badges.push(badge);
-			}
-		}
+		const badges = Dex.getBadges();
+		assert(badges.length > 1);
 
-		const characters: string[] = [];
-		for (const i in Dex.data.characters) {
-			const region = Dex.data.characters[i];
-			assert(region.length > 1);
-			for (const character of region) {
-				characters.push(character);
-			}
-		}
+		const characters = Dex.getCharacters();
+		assert(characters.length > 1);
 
-		const locations: string[] = [];
-		for (const i in Dex.data.locations) {
-			const region = Dex.data.locations[i];
-			assert(region.length > 1);
-			for (const location of region) {
-				locations.push(location);
-			}
-		}
+		const locations = Dex.getLocations();
+		assert(locations.length > 1);
 
 		assert(Dex.data.trainerClasses.length > 1);
 

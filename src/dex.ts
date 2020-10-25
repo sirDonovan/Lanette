@@ -9,7 +9,7 @@ import { locations } from './data/locations';
 import { trainerClasses } from './data/trainer-classes';
 import type {
 	CategoryData, IDataTable, IGetPossibleTeamsOptions,
-	IGifData, ISeparatedCustomRules
+	IGifData, ISeparatedCustomRules, LocationTypes
 } from './types/dex';
 import type {
 	IAbility, IAbilityCopy, IFormat,
@@ -791,9 +791,12 @@ export class Dex {
 
 	getLocations(): string[] {
 		const locations: string[] = [];
-		for (const i in this.data.locations) {
-			for (const location of this.data.locations[i]) {
-				locations.push(location);
+		for (const region in this.data.locations) {
+			const types = Object.keys(this.data.locations[region]) as LocationTypes[];
+			for (const type of types) {
+				for (const location of this.data.locations[region][type]) {
+					locations.push(location);
+				}
 			}
 		}
 

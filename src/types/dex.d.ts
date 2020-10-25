@@ -8,7 +8,9 @@ export interface IAlternateIconNumbers {
 export type BadgeData = Dict<string[]>;
 export type CategoryData = Dict<string>;
 export type CharacterData = Dict<string[]>;
-export type LocationData = Dict<string[]>;
+
+export type LocationTypes = 'town' | 'city' | 'cave' | 'forest' | 'mountain' | 'other';
+export type LocationData = Dict<KeyedDict<LocationTypes, string[]>>;
 export type TrainerClassData = string[];
 
 export interface IFormatDataLinks {
