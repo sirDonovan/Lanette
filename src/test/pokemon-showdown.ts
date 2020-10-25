@@ -192,7 +192,7 @@ describe("pokemon-showdown", () => {
 		assert(capMegaStone);
 		assertStrictEqual(capMegaStone.isNonstandard, "CAP");
 
-		const unObtainableItem = Dex.getItem("Micle Berry");
+		const unObtainableItem = Dex.getItem("Draco Plate");
 		assert(unObtainableItem);
 		assertStrictEqual(unObtainableItem.isNonstandard, "Unobtainable");
 
