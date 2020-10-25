@@ -221,19 +221,6 @@ describe("Dex", () => {
 		assertStrictEqual(Dex.getTrainerSpriteId("agatha"), "agatha-gen3");
 		assertStrictEqual(Dex.getTrainerSpriteId("agatha-gen3"), "agatha-gen3");
 	});
-	it('should return proper values from parseFormatThread()', () => {
-		let parsedThread = Dex.parseFormatThread("");
-		assertStrictEqual(parsedThread.description, '');
-		assertStrictEqual(parsedThread.id, '');
-
-		parsedThread = Dex.parseFormatThread('&bullet; <a href="https://www.smogon.com/forums/threads/3666247/">OU Sample Teams</a>');
-		assertStrictEqual(parsedThread.description, 'OU Sample Teams');
-		assertStrictEqual(parsedThread.id, '3666247');
-
-		parsedThread = Dex.parseFormatThread('&bullet; <a href="https://www.smogon.com/forums/threads/3666247">OU Sample Teams</a>');
-		assertStrictEqual(parsedThread.description, 'OU Sample Teams');
-		assertStrictEqual(parsedThread.id, '3666247');
-	});
 	it('should return proper values from splitNameAndCustomRules()', () => {
 		let split = Dex.splitNameAndCustomRules("ou");
 		assertStrictEqual(split[0], "ou");

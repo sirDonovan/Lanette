@@ -4,6 +4,7 @@ import path = require('path');
 import url = require('url');
 
 import type { PRNG } from './prng';
+import type { IFormatThread } from './types/dex';
 import type { HexColor } from './types/tools';
 import type { IParam } from './workers/parameters';
 
@@ -19,6 +20,8 @@ const UNSAFE_API_CHARACTER_REGEX = /[^A-Za-z0-9 ,.%&'"!?()[\]`_<>/|:;=+-@]/g;
 const BATTLE_ROOM_PREFIX = 'battle-';
 const GROUPCHAT_PREFIX = 'groupchat-';
 const SMOGON_DEX_PREFIX = 'https://www.smogon.com/dex/';
+const SMOGON_FORUM_PREFIX = 'https://www.smogon.com/forums/threads/';
+const SMOGON_FORUM_POST_PREFIX = "#post-";
 const maxMessageLength = 300;
 const maxUsernameLength = 18;
 const githubApiThrottle = 2 * 1000;
@@ -101,6 +104,8 @@ export class Tools {
 	readonly battleRoomPrefix: string = BATTLE_ROOM_PREFIX;
 	readonly groupchatPrefix: string = GROUPCHAT_PREFIX;
 	readonly smogonDexPrefix: string = SMOGON_DEX_PREFIX;
+	readonly smogonForumPrefix: string = SMOGON_FORUM_PREFIX;
+	readonly smogonForumPostPrefix: string = SMOGON_FORUM_POST_PREFIX;
 
 	lastGithubApiCall: number = 0;
 
@@ -331,22 +336,6 @@ export class Tools {
 
 	stripHtmlCharacters(input: string): string {
 		return input.replace(HTML_CHARACTER_REGEX, '');
-	}
-
-	parseUsernameText(usernameText: string): {away: boolean; status: string; username: string} {
-		let away = false;
-		let status = '';
-		let username = '';
-		const atIndex = usernameText.indexOf('@');
-		if (atIndex !== -1) {
-			username = usernameText.substr(0, atIndex);
-			status = usernameText.substr(atIndex + 1);
-			away = status.startsWith('!');
-		} else {
-			username = usernameText;
-		}
-
-		return {away, status, username};
 	}
 
 	joinList(list: string[], preFormatting?: string | null, postFormatting?: string | null, conjunction?: string): string {
@@ -587,6 +576,56 @@ export class Tools {
 				resolve(error);
 			});
 		});
+	}
+
+	parseUsernameText(usernameText: string): {away: boolean; status: string; username: string} {
+		let away = false;
+		let status = '';
+		let username = '';
+		const atIndex = usernameText.indexOf('@');
+		if (atIndex !== -1) {
+			username = usernameText.substr(0, atIndex);
+			status = usernameText.substr(atIndex + 1);
+			away = status.startsWith('!');
+		} else {
+			username = usernameText;
+		}
+
+		return {away, status, username};
+	}
+
+	parseFormatThread(thread: string): IFormatThread {
+		const parsedThread: IFormatThread = {description: '', id: ''};
+		if (thread.startsWith('&bullet;') && thread.includes('<a href="')) {
+			parsedThread.description = thread.split('</a>')[0].split('">')[1].trim();
+
+			let id = thread.split('<a href="')[1].split('">')[0].trim();
+			if (id.endsWith('/')) id = id.substr(0, id.length - 1);
+			const parts = id.split('/');
+			const lastPart = parts[parts.length - 1];
+			if (lastPart.startsWith(SMOGON_FORUM_POST_PREFIX)) {
+				parsedThread.id = parts[parts.length - 2] + '/' + lastPart;
+			} else {
+				parsedThread.id = lastPart;
+			}
+		}
+		return parsedThread;
+	}
+
+	getNewerForumThread(baseLink: string, officialLink?: string): string {
+		if (!baseLink) return "";
+
+		const baseNumber = parseInt(baseLink.split("/")[0]);
+		if (isNaN(baseNumber)) {
+			return "";
+		}
+
+		if (officialLink) {
+			const officialNum = parseInt(officialLink.split("/")[0]);
+			if (!isNaN(officialNum) && officialNum > baseNumber) return SMOGON_FORUM_PREFIX + officialLink;
+		}
+
+		return SMOGON_FORUM_PREFIX + baseLink;
 	}
 
 	extractBattleId(message: string, replayServerAddress: string, serverAddress: string, serverId: string): string | null {

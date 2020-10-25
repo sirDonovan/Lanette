@@ -1154,7 +1154,7 @@ export class Dex {
 		if (format.threads) {
 			const threads = format.threads.slice();
 			for (const thread of threads) {
-				const parsedThread = this.parseFormatThread(thread);
+				const parsedThread = Tools.parseFormatThread(thread);
 				if (parsedThread.description.includes('Viability Rankings')) {
 					viability = parsedThread.id;
 				} else if (parsedThread.description.includes('Sample Teams')) {
@@ -1194,17 +1194,11 @@ export class Dex {
 
 			const links = ['info', 'roleCompendium', 'teams', 'viability', 'genGuide'] as const;
 			for (const id of links) {
-				const link = format[id];
-				if (!link) continue;
-				let num = parseInt(link.split("/")[0]);
-				if (isNaN(num)) continue;
-				// @ts-expect-error
-				if (format[id + '-official']) {
+				if (format[id]) {
 					// @ts-expect-error
-					const officialNum = parseInt(format[id + '-official']);
-					if (!isNaN(officialNum) && officialNum > num) num = officialNum;
+					const officialLink = format[id + '-official'] as string;
+					format[id] = Tools.getNewerForumThread(format[id] as string, officialLink);
 				}
-				format[id] = 'http://www.smogon.com/forums/threads/' + num;
 			}
 		}
 
@@ -1215,18 +1209,6 @@ export class Dex {
 		const format = this.getFormat(name, isTrusted);
 		if (!format) throw new Error("No format returned for '" + name + "'");
 		return format;
-	}
-
-	parseFormatThread(thread: string): IFormatThread {
-		const parsedThread: IFormatThread = {description: '', id: ''};
-		if (thread.startsWith('&bullet;') && thread.includes('<a href="')) {
-			parsedThread.description = thread.split('</a>')[0].split('">')[1].trim();
-
-			let id = thread.split('<a href="')[1].split('">')[0].trim();
-			if (id.endsWith('/')) id = id.substr(0, id.length - 1);
-			parsedThread.id = id.split('/').pop()!;
-		}
-		return parsedThread;
 	}
 
 	getFormatInfoDisplay(format: IFormat): string {
@@ -1246,15 +1228,20 @@ export class Dex {
 				'<a href="' + format.info + '">dex page' : 'in the  <a href="' + format.info + '">discussion thread') + '</a>.';
 		}
 
+		if (format.genGuide) {
+			html += '<br />&nbsp; - Unfamiliar with Gen ' + format.gen + '? Review the <a href="' + format.genGuide + '">mechanics ' +
+				'differences</a> before battling.';
 		}
 
 		if (format.teams) {
 			html += '<br />&nbsp; - Need to borrow a team? Check out the <a href="' + format.teams + '">sample teams thread</a>.';
 		}
+
 		if (format.viability) {
 			html += '<br />&nbsp; - See how viable each Pokemon is in the <a href="' + format.viability + '">viability rankings ' +
 				'thread</a>.';
 		}
+
 		if (format.roleCompendium) {
 			html += '<br />&nbsp; - Check the common role that each Pokemon plays in the <a href="' + format.roleCompendium + '">role ' +
 				'compendium thread</a>.';
