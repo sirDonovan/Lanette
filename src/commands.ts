@@ -2614,6 +2614,22 @@ const commands: CommandDefinitions<CommandContext> = {
 		},
 		aliases: ['rextype', 'randextype', 'rexistingtype', 'randexistingtype'],
 	},
+	randombadge: {
+		command(target, room, user) {
+			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
+				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
+			let region = Tools.toId(target);
+			if (region) {
+				if (!(region in Dex.data.badges)) return this.say("'" + target.trim() + "' is not a valid badge region.");
+			} else {
+				region = Tools.sampleOne(Object.keys(Dex.data.badges));
+			}
+
+			this.say('Randomly generated' + (target ? ' ' + region.charAt(0).toUpperCase() + region.substr(1) : '') + ' badge: ' +
+				'**' + Tools.sampleOne(Dex.data.badges[region]).trim() + '**');
+		},
+		aliases: ['rbadge', 'randbadge'],
+	},
 	randomcharacter: {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
