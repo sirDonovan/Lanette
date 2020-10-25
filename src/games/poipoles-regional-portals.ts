@@ -24,10 +24,12 @@ class PoipolesRegionalPortals extends ScriptedGame {
 	canTravel: boolean = false;
 	lastRegion: string = '';
 	lastType: string = '';
+	loserPointsToBits: number = 5;
 	maxTravelersPerRound: number = BASE_TRAVELERS_PER_ROUND;
 	points = new Map<Player, number>();
 	roundLocations: string[] = [];
 	roundTravels = new Set<Player>();
+	winnerPointsToBits: number = 25;
 
 	static loadData(): void {
 		for (const region in Dex.data.locations) {
@@ -115,6 +117,10 @@ const commands: GameCommandDefinitions<PoipolesRegionalPortals> = {
 			let points = this.points.get(player) || 0;
 			points += (BASE_TRAVELERS_PER_ROUND - this.roundTravels.size);
 			this.points.set(player, points);
+
+			this.roundTravels.add(player);
+			this.say(player.name + " is the **" + Tools.toNumberOrderString(this.roundTravels.size) + "** traveler!");
+
 			if (points >= this.format.options.points) {
 				this.winners.set(player, 1);
 				this.announceWinners();
@@ -123,8 +129,6 @@ const commands: GameCommandDefinitions<PoipolesRegionalPortals> = {
 				return true;
 			}
 
-			this.roundTravels.add(player);
-			this.say(player.name + " is the **" + Tools.toNumberOrderString(this.roundTravels.size) + "** traveler!");
 			if (this.roundTravels.size === this.maxTravelersPerRound) this.nextRound();
 			return true;
 		},
