@@ -162,8 +162,8 @@ export const characters: CharacterData = {
 		"Molayne",
 
 		"Professor Kukui",
-		"Sun",
-		"Moon",
+		"Elio",
+		"Selene",
 		"Hau",
 		"Lillie",
 		"Gladion",
