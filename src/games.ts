@@ -1287,8 +1287,10 @@ export class Games {
 
 				"\nOther generators:",
 				"* <code>" + commandCharacter + "ranswer [game]</code> - in PMs, generate a hint and answer for the specified game",
-				"* <code>" + commandCharacter + "rchar</code> - generate a character",
-				"* <code>" + commandCharacter + "rloc</code> - generate a location",
+				"* <code>" + commandCharacter + "rbadge [region]</code> - generate a badge, optionally from the specified region",
+				"* <code>" + commandCharacter + "rchar [region]</code> - generate a character, optionally from the specified region",
+				"* <code>" + commandCharacter + "rloc [region], [location type]</code> - generate a location, optionally from the " +
+					"specified region and of the specified type",
 				"* <code>" + commandCharacter + "rletter</code> - generate a letter",
 				"* <code>" + commandCharacter + "rpick [option 1], [option 2], [...]</code> - generate one of the specified options",
 				"* <code>" + commandCharacter + "rorder [option 1], [option 2], [...]</code> - shuffle the specified options",
