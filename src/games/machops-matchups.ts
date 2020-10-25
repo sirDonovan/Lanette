@@ -144,4 +144,5 @@ export const game: IGameFile<MachopsMatchups> = {
 		"matchups!",
 	name: "Machop's Matchups",
 	mascot: "Machop",
+	scriptedOnly: true,
 };
