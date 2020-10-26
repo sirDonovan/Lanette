@@ -22,6 +22,7 @@ interface ITeamChange {
 }
 
 const SIGNUPS_HTML_DELAY = 2 * 1000;
+const UPDATE_HTML_PAGE_DELAY = 2 * 1000;
 const ADVERTISEMENT_TIME = 20 * 60 * 1000;
 const POTENTIAL_MAX_PLAYERS: number[] = [12, 16, 24, 32, 48, 64];
 const TEAM_PREVIEW_HIDDEN_FORMES: string[] = ['Arceus', 'Gourgeist', 'Genesect', 'Pumpkaboo', 'Silvally', 'Urshifu'];
@@ -376,6 +377,11 @@ export abstract class EliminationTournament extends ScriptedGame {
 			}
 		}
 
+		const eliminatedPlayers: string[] = [];
+		for (const i in this.players) {
+			if (this.players[i].eliminated) eliminatedPlayers.push(this.players[i].name);
+		}
+
 		const fullFirstRoundPlayers = Math.pow(2, this.totalRounds);
 		for (let i = 0; i < fullFirstRoundPlayers; i++) {
 			html += '<tr style="height: 32px">';
@@ -398,7 +404,13 @@ export abstract class EliminationTournament extends ScriptedGame {
 					} else {
 						const winner = winnersByRound[round].includes(playerName);
 						if (winner) html += '<i>';
-						html += '<strong class="username"><username>' + playerName + '</username></strong>';
+						html += '<strong class="username">';
+						if (eliminatedPlayers.includes(playerName)) {
+							html += '<span style="color: #999999">' + playerName + '</span>';
+						} else {
+							html += '<username>' + playerName + '</username>';
+						}
+						html += '</strong>';
 						if (winner) html += '</i>';
 					}
 					html += '</p></td>';
@@ -680,14 +692,13 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	getRulesHtml(): string {
-		let html = "<u><b>Rules</b></u><ul>";
-		html += "<li>Battles must be played in <b>" + this.battleFormat.name + "</b></li>";
-		html += "<li>All Pokemon (including formes), moves, abilities, and items not banned in " + this.battleFormat.name + " can " +
-			"be used</li>";
-		if (!this.allowsScouting) html += "<li>Scouting is not allowed</li>";
+		let html = "<h3><u>Rules</u></h3><ul>";
+		html += "<li>Battles must be played in <b>" + this.battleFormat.name + "</b> (all Pokemon, formes, moves, abilities, and items " +
+			"not banned can be used).</li>";
+		if (!this.allowsScouting) html += "<li>Do not join other tournament battles!</li>";
 		if (!this.usesCloakedPokemon && !this.sharedTeams) {
-			html += "<li><b>Do not reveal your or your opponents' " + (this.startingTeamsLength === 1 ? "starters" : "teams") + " in " +
-				"the chat!</b></li>";
+			html += "<li>Do not reveal your or your opponents' " + (this.startingTeamsLength === 1 ? "starters" : "teams") + " in " +
+				"the chat!</li>";
 		}
 		html += "</ul>";
 
@@ -695,8 +706,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	getBracketHtml(): string {
-		return "<u><b>" + (this.tournamentEnded ? "Final bracket" : "Bracket") + "</b></u><br />" +
-			(this.bracketHtml || "<br />The bracket will be created once the tournament starts.");
+		return "<h3><u>" + (this.tournamentEnded ? "Final bracket" : "Bracket") + "</u></h3>" +
+			(this.bracketHtml || "The bracket will be created once the tournament starts.");
 	}
 
 	getPlayerHtmlPage(player: Player): string {
@@ -704,17 +715,19 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 		if (this.tournamentEnded) {
 			if (player === this.getFinalPlayer()) {
-				html += "<h3>Congratulations! You won the final battle of the tournament.</h3><hr />";
+				html += "<h3>Congratulations! You won the tournament.</h3>";
 			} else {
-				html += "<h3>The tournament has ended!</h3><hr />";
+				html += "<h3>The tournament has ended!</h3>";
 			}
+			html += "<br />";
 		} else {
 			html += this.getRulesHtml();
 		}
 
 		if (this.started && !this.tournamentEnded) {
 			if (player.eliminated) {
-				html += "<br /><u><b>You were eliminated!</b></u><br /><br />";
+				html += "<h3><u>Updates</u></h3>";
+				html += "You were eliminated! ";
 				if (this.spectatorPlayers.has(player)) {
 					html += "You are currently still receiving updates for this tournament. " +
 						Client.getPmSelfButton(Config.commandCharacter + "stoptournamentupdates", "Stop updates");
@@ -723,23 +736,25 @@ export abstract class EliminationTournament extends ScriptedGame {
 						Client.getPmSelfButton(Config.commandCharacter + "resumetournamentupdates", "Resume updates");
 				}
 			} else {
-				html += "<br /><u><b>Opponent</b></u> (round " + player.round + ")<br /><br />";
+				html += "<h3><u>Opponent</u></h3>";
 				const opponent = this.playerOpponents.get(player);
 				if (opponent) {
-					html += "Your next opponent is <strong class='username'><username>" + opponent.name + "</username></strong>! To send " +
-						"a challenge, click their name, click \"Challenge\", select " + this.battleFormat.name + " as the format, and " +
-						"select your team for this tournament. Once the battle starts, send " + Users.self.name + " the link or type " +
-						"<code>/invite " + Users.self.name + "</code> into the battle chat!";
-					html += "<br /><br /><b>If " + opponent.name + " goes offline or does not accept your challenge, you will be " +
-						"advanced automatically after some time!</b>";
+					html += "Your round " + player.round + " opponent is <strong class='username'><username>" + opponent.name +
+						"</username></strong>!<br /><br />";
+					html += "To challenge them, click their username, click \"Challenge\", select " +
+						this.battleFormat.name + " as the format, and select the team you built for this tournament. Once the battle " +
+						"starts, send <strong class='username'><username>" + Users.self.name + "</username></strong> the link or type " +
+						"<code>/invite " + Users.self.name + "</code> into the battle chat!<br /><br />";
+					html += "If " + opponent.name + " is offline or not accepting your challenge, you will be " +
+						"advanced automatically after some time!";
 				} else {
 					html += "Your next opponent has not been decided yet!";
 				}
 			}
-			html += "<br /><br />";
+			html += "<br />";
 		}
 
-		html += "<br /><u><b>Pokemon</b></u><br /><br />";
+		html += "<h3><u>Your Team</u></h3>";
 		const pastTense = this.tournamentEnded || player.eliminated;
 		const starterPokemon = this.starterPokemon.get(player);
 		if (starterPokemon) {
@@ -755,9 +770,9 @@ export abstract class EliminationTournament extends ScriptedGame {
 					html += "<br />You may add any Pokemon to fill your team as long as they are usable in " + this.battleFormat.name + ".";
 				}
 			} else {
-				html += "<b>" + (this.sharedTeams ? "The" : "Your") + " " +
+				html += (this.sharedTeams ? "The" : "Your") + " " +
 					(this.additionsPerRound || this.dropsPerRound || this.evolutionsPerRound ? "starting " : "") +
-					(this.startingTeamsLength === 1 ? "Pokemon" : "team") + " " + (pastTense ? "was" : "is") + "</b>:";
+					(this.startingTeamsLength === 1 ? "Pokemon" : "team") + " " + (pastTense ? "was" : "is") + ":";
 				html += "<br />" + this.getPokemonIcons(starterPokemon).join("");
 				if (this.canReroll && !this.rerolls.has(player)) {
 					html += "<br /><br />If you are not satisfied, you have 1 chance to reroll but you must keep whatever you receive! " +
@@ -797,7 +812,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 				}
 
 				if (roundChanges) {
-					rounds.push("<b>Round " + (i + 1) + " changes</b>:<ul>" + roundChanges + "</ul>");
+					rounds.push("Round " + (i + 1) + " result:<ul>" + roundChanges + "</ul>");
 				}
 			}
 
@@ -809,11 +824,13 @@ export abstract class EliminationTournament extends ScriptedGame {
 				}
 				html += rounds.join("");
 
-				html += "<br /><b>Example of a valid team</b>:<br />" + Tools.joinList(this.getPokemonIcons(this.getRandomTeam(player)));
+				if (!this.tournamentEnded) {
+					html += "<br /><b>Example valid team</b>:<br />" + Tools.joinList(this.getPokemonIcons(this.getRandomTeam(player)));
+				}
 			}
 		}
 
-		html += "<br /><br /><br />" + this.getBracketHtml();
+		html += "<br />" + this.getBracketHtml();
 
 		return html;
 	}
@@ -832,7 +849,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 		}
 
 		if (this.started && !this.tournamentEnded) {
-			html += "<br /><u><b>Spectating</b></u><br /><br />";
+			html += "<h3><u>Updates</u></h3>";
 			if (this.spectatorUsers.has(user.id)) {
 				html += "You are currently receiving updates for this tournament. " +
 					Client.getPmSelfButton(Config.commandCharacter + "stoptournamentupdates", "Stop updates");
@@ -840,10 +857,10 @@ export abstract class EliminationTournament extends ScriptedGame {
 				html += "You will no longer receive updates for this tournament. " +
 					Client.getPmSelfButton(Config.commandCharacter + "resumetournamentupdates", "Resume updates");
 			}
-			html += "<br /><br />";
+			html += "<br />";
 		}
 
-		html += "<br />" + this.getBracketHtml();
+		html += this.getBracketHtml();
 
 		return html;
 	}
@@ -867,7 +884,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 				const user = Users.get(id);
 				if (user) this.updateSpectatorHtmlPage(user);
 			}
-		}, 5 * 1000);
+		}, UPDATE_HTML_PAGE_DELAY);
 	}
 
 	setCheckChallengesListeners(player: Player, opponent: Player): void {
@@ -1039,7 +1056,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 		}
 
 		this.pokedex = this.shuffle(pokedex);
-		this.htmlPageHeader = "<h3>" + this.room.title + "'s " + this.tournamentName + "</h3>";
+		this.htmlPageHeader = "<h2>" + this.room.title + "'s " + this.tournamentName + "</h2><hr />";
 
 		const maxPlayers = this.getMaxPlayers(this.pokedex.length);
 		if (maxPlayers < this.maxPlayers) this.maxPlayers = maxPlayers;
