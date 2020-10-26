@@ -863,6 +863,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 			const users = Array.from(this.spectatorUsers.keys());
 			for (const id of users) {
+				if (id in this.players) continue;
 				const user = Users.get(id);
 				if (user) this.updateSpectatorHtmlPage(user);
 			}
@@ -1600,6 +1601,23 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 		pmOnly: true,
 		signupsGameCommand: true,
 		aliases: ['team'],
+	},
+	tournamentpage: {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		command(target, room, user) {
+			if (user.id in this.players) {
+				this.updatePlayerHtmlPage(this.players[user.id]);
+			} else {
+				this.spectatorUsers.add(user.id);
+				this.updateSpectatorHtmlPage(user);
+			}
+			return true;
+		},
+		aliases: ['tourpage', 'tournamenttab', 'tourtab'],
+		pmOnly: true,
+		eliminatedGameCommand: true,
+		spectatorGameCommand: true,
+		signupsGameCommand: true,
 	},
 	reroll: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
