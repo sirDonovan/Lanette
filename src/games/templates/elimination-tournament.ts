@@ -23,6 +23,7 @@ interface ITeamChange {
 
 const SIGNUPS_HTML_DELAY = 2 * 1000;
 const UPDATE_HTML_PAGE_DELAY = 2 * 1000;
+const CHECK_CHALLENGES_INACTIVE_DELAY = 30 * 1000;
 const ADVERTISEMENT_TIME = 20 * 60 * 1000;
 const POTENTIAL_MAX_PLAYERS: number[] = [12, 16, 24, 32, 48, 64];
 const TEAM_PREVIEW_HIDDEN_FORMES: string[] = ['Arceus', 'Gourgeist', 'Genesect', 'Pumpkaboo', 'Silvally', 'Urshifu'];
@@ -131,6 +132,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	canReroll: boolean = false;
 	checkedBattleRooms: string[] = [];
 	checkChallengesTimers = new Map<EliminationNode<Player>, NodeJS.Timer>();
+	checkChallengesInactiveTimers = new Map<EliminationNode<Player>, NodeJS.Timer>();
 	color: string | null = null;
 	defaultTier: string = 'ou';
 	disqualifiedPlayers = new Set<Player>();
@@ -887,42 +889,68 @@ export abstract class EliminationTournament extends ScriptedGame {
 		}, UPDATE_HTML_PAGE_DELAY);
 	}
 
-	setCheckChallengesListeners(player: Player, opponent: Player): void {
-		this.onHtml('<div class="infobox">' + player.name + ' is challenging ' + opponent.name + ' in ' + this.battleFormat.name +
-			'.</div>', () => {
-			this.eliminateInactivePlayers(player, opponent, [opponent]);
+	getCheckChallengesPlayerHtml(player: Player, opponent: Player): string {
+		return '<div class="infobox">' + player.name + ' is challenging ' + opponent.name + ' in ' + this.battleFormat.name + '.</div>';
+	}
+
+	getCheckChallengesOpponentHtml(player: Player, opponent: Player): string {
+		return '<div class="infobox">' + opponent.name + ' is challenging ' + player.name + ' in ' + this.battleFormat.name + '.</div>';
+	}
+
+	getCheckChallengesNeitherHtml(player: Player, opponent: Player): [string, string] {
+		return [
+			'<div class="infobox">' + player.name + ' and ' + opponent.name + ' are not challenging each other.</div>',
+			'<div class="infobox">' + opponent.name + ' and ' + player.name + ' are not challenging each other.</div>',
+		];
+	}
+
+	setCheckChallengesInactiveTimeout(node: EliminationNode<Player>, player: Player, opponent: Player, inactive: Player[]): void {
+		const timeout = setTimeout(() => this.eliminateInactivePlayers(player, opponent, inactive), CHECK_CHALLENGES_INACTIVE_DELAY);
+		this.checkChallengesInactiveTimers.set(node, timeout);
+	}
+
+	setCheckChallengesListeners(node: EliminationNode<Player>, player: Player, opponent: Player): void {
+		this.onHtml(this.getCheckChallengesPlayerHtml(player, opponent), () => {
 			this.removeCheckChallengesListeners(player, opponent);
+			this.setCheckChallengesInactiveTimeout(node, player, opponent, [opponent]);
 		}, true);
-		this.onHtml('<div class="infobox">' + opponent.name + ' is challenging ' + player.name + ' in ' + this.battleFormat.name +
-			'.</div>', () => {
-			this.eliminateInactivePlayers(player, opponent, [player]);
+
+		this.onHtml(this.getCheckChallengesOpponentHtml(player, opponent), () => {
 			this.removeCheckChallengesListeners(player, opponent);
+			this.setCheckChallengesInactiveTimeout(node, player, opponent, [player]);
 		}, true);
-		this.onHtml('<div class="infobox">' + player.name + ' and ' + opponent.name + ' are not challenging each other.</div>', () => {
-			this.eliminateInactivePlayers(player, opponent, [player, opponent]);
-			this.removeCheckChallengesListeners(player, opponent);
-		}, true);
-		this.onHtml('<div class="infobox">' + opponent.name + ' and ' + player.name + ' are not challenging each other.</div>', () => {
-			this.eliminateInactivePlayers(player, opponent, [player, opponent]);
-			this.removeCheckChallengesListeners(player, opponent);
-		}, true);
+
+		const neitherHtml = this.getCheckChallengesNeitherHtml(player, opponent);
+		for (const html of neitherHtml) {
+			this.onHtml(html, () => {
+				this.removeCheckChallengesListeners(player, opponent);
+				this.setCheckChallengesInactiveTimeout(node, player, opponent, [player, opponent]);
+			}, true);
+		}
 	}
 
 	removeCheckChallengesListeners(player: Player, opponent: Player): void {
-		this.offHtml('<div class="infobox">' + player.name + ' is challenging ' + opponent.name + ' in ' + this.battleFormat.name +
-			'.</div>', true);
-		this.offHtml('<div class="infobox">' + opponent.name + ' is challenging ' + player.name + ' in ' + this.battleFormat.name +
-			'.</div>', true);
-		this.offHtml('<div class="infobox">' + player.name + ' and ' + opponent.name + ' are not challenging each other.</div>', true);
-		this.offHtml('<div class="infobox">' + opponent.name + ' and ' + player.name + ' are not challenging each other.</div>', true);
+		this.offHtml(this.getCheckChallengesPlayerHtml(player, opponent), true);
+		this.offHtml(this.getCheckChallengesOpponentHtml(player, opponent), true);
+		const neitherHtml = this.getCheckChallengesNeitherHtml(player, opponent);
+		for (const html of neitherHtml) {
+			this.offHtml(html, true);
+		}
 	}
 
 	checkChallenges(node: EliminationNode<Player>, player: Player, opponent: Player): void {
-		const timeout = setTimeout(() => this.eliminateInactivePlayers(player, opponent, [player, opponent]), 30 * 1000);
-		this.checkChallengesTimers.set(node, timeout);
+		this.setCheckChallengesListeners(node, player, opponent);
 
-		this.setCheckChallengesListeners(player, opponent);
-		this.say("!checkchallenges " + player.name + ", " + opponent.name);
+		const text = "!checkchallenges " + player.name + ", " + opponent.name;
+		this.on(text, () => {
+			const timeout = setTimeout(() => {
+				this.removeCheckChallengesListeners(player, opponent);
+				this.eliminateInactivePlayers(player, opponent, [player, opponent]);
+			}, 30 * 1000);
+
+			this.checkChallengesTimers.set(node, timeout);
+		});
+		this.say(text);
 	}
 
 	getStartingTeam(): readonly string[] {
@@ -1523,6 +1551,9 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 		const checkChallengesTimer = this.checkChallengesTimers.get(node);
 		if (checkChallengesTimer) clearTimeout(checkChallengesTimer);
+
+		const checkChallengesInactiveTimer = this.checkChallengesInactiveTimers.get(node);
+		if (checkChallengesInactiveTimer) clearTimeout(checkChallengesInactiveTimer);
 	}
 
 	cleanupTimers(): void {
