@@ -126,7 +126,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 	banlist: string[] = [];
 	readonly battleData: Dict<IBattleGameData> = {};
 	readonly battleRooms: string[] = [];
-	bracketGenerated: boolean = false;
 	bracketHtml: string = '';
 	canRejoin: boolean = false;
 	canReroll: boolean = false;
@@ -168,15 +167,15 @@ export abstract class EliminationTournament extends ScriptedGame {
 	tournamentEnded: boolean = false;
 	tournamentName: string = '';
 	tournamentPlayers = new Set<Player>();
+	treeRoot: EliminationNode<Player> | null = null;
 	type: string | null = null;
 	usesCloakedPokemon: boolean = false;
 	usesHtmlPage = true;
 	updateHtmlPagesTimeout: NodeJS.Timer | null = null;
 	validateTeams: boolean = true;
 
-	// set on start
+	// set in onInitialize
 	battleFormat!: IFormat;
-	treeRoot!: EliminationNode<Player>;
 
 	room!: Room;
 
@@ -328,7 +327,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 		});
 
 		this.treeRoot = tree.root;
-		this.bracketGenerated = true;
 		this.totalRounds = this.getNumberOfRounds(players.length);
 	}
 
@@ -428,6 +426,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	getMatchesByRound(): Dict<EliminationNode<Player>[]> {
+		if (!this.treeRoot) throw new Error("getMatchesByRound() called before bracket generated");
+
 		const matchesByRound: Dict<EliminationNode<Player>[]> = {};
 		for (let i = 1; i <= this.totalRounds; i++) {
 			matchesByRound[i] = [];
@@ -449,7 +449,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	disqualifyPlayers(players: Player[]): void {
-		if (!this.bracketGenerated) throw new Error("disqualifyUsers() called before bracket generated");
+		if (!this.treeRoot) throw new Error("disqualifyUsers() called before bracket generated");
 
 		for (const player of players) {
 			player.eliminated = true;
@@ -520,7 +520,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	getAvailableMatchNodes(): EliminationNode<Player>[] {
-		if (!this.bracketGenerated) throw new Error("getAvailableMatchNodes() called before bracket generated");
+		if (!this.treeRoot) throw new Error("getAvailableMatchNodes() called before bracket generated");
 
 		const nodes: EliminationNode<Player>[] = [];
 		this.treeRoot.traverse(node => {
@@ -533,7 +533,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	setMatchResult(players: [Player, Player], result: 'win' | 'loss', score: [number, number], loserTeam?: string[]): ITeamChange[] {
-		if (!this.bracketGenerated) {
+		if (!this.treeRoot) {
 			throw new Error("setMatchResult() called before bracket generated ([" + players.map(x => x.name).join(', ') + "], " +
 				result + ")");
 		}
@@ -1528,9 +1528,11 @@ export abstract class EliminationTournament extends ScriptedGame {
 	cleanupTimers(): void {
 		if (this.advertisementInterval) clearInterval(this.advertisementInterval);
 
-		this.activityTimers.forEach((timeout, match) => {
-			clearTimeout(timeout);
-		});
+		if (this.treeRoot) {
+			this.treeRoot.traverse(node => {
+				this.clearNodeTimers(node);
+			});
+		}
 	}
 
 	onEnd(): void {
