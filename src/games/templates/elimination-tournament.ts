@@ -943,10 +943,11 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 		const text = "!checkchallenges " + player.name + ", " + opponent.name;
 		this.on(text, () => {
+			// backup timer in case a player is challenging in the wrong format
 			const timeout = setTimeout(() => {
 				this.removeCheckChallengesListeners(player, opponent);
 				this.eliminateInactivePlayers(player, opponent, [player, opponent]);
-			}, 30 * 1000);
+			}, CHECK_CHALLENGES_INACTIVE_DELAY * 2);
 
 			this.checkChallengesTimers.set(node, timeout);
 		});
