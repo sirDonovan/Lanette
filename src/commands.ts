@@ -2666,7 +2666,7 @@ const commands: CommandDefinitions<CommandContext> = {
 				if (!Dex.data.locations[region][type].length) return this.say("There are no " + type + " locations in " + regionName + ".");
 			} else {
 				type = Tools.sampleOne(LOCATION_TYPES);
-				while (!Dex.data.locations[region][type]) {
+				while (!Dex.data.locations[region][type].length) {
 					type = Tools.sampleOne(LOCATION_TYPES);
 				}
 			}
