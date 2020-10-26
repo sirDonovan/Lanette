@@ -54,8 +54,7 @@ export class Player {
 	}
 
 	sendHtmlPage(html: string, pageId?: string): void {
-		const page = "<div class='chat' style='margin-top: 5px;margin-left: 10px'>" + this.activity.htmlPageHeader + html + "</div>";
-		this.activity.pmRoom.sendHtmlPage(this, pageId || this.activity.baseHtmlPageId, page);
+		this.activity.pmRoom.sendHtmlPage(this, pageId || this.activity.baseHtmlPageId, this.activity.getHtmlPageWithHeader(html));
 	}
 
 	closeHtmlPage(pageId?: string): void {
@@ -195,6 +194,10 @@ export abstract class Activity {
 		if (this.onEnd) this.onEnd();
 		this.ended = true;
 		this.deallocate(false);
+	}
+
+	getHtmlPageWithHeader(html: string): string {
+		return "<div class='chat' style='margin-top: 5px;margin-left: 10px'>" + this.htmlPageHeader + html + "</div>";
 	}
 
 	say(message: string): void {

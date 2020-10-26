@@ -849,7 +849,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	updateSpectatorHtmlPage(user: User): void {
-		this.room.sendHtmlPage(user, this.baseHtmlPageId, this.htmlPageHeader + this.getSpectatorHtmlPage(user));
+		this.room.sendHtmlPage(user, this.baseHtmlPageId, this.getHtmlPageWithHeader(this.getSpectatorHtmlPage(user)));
 	}
 
 	updateHtmlPages(): void {
