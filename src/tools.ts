@@ -386,7 +386,7 @@ export class Tools {
 		const roundingBoundaries = [6, 15, 12, 30, 30];
 		const unitNames = ["year", "month", "day", "hour", "minute", "second"];
 		const positiveIndex = parts.findIndex(elem => elem > 0);
-		const precision = (options && options.precision ? options.precision : parts.length);
+		const precision = options && options.precision ? options.precision : parts.length;
 		if (options && options.hhmmss) {
 			const joined = parts.slice(positiveIndex).map(value => value < 10 ? "0" + value : "" + value).join(":");
 			return joined.length === 2 ? "00:" + joined : joined;
@@ -561,10 +561,10 @@ export class Tools {
 		return combinations;
 	}
 
-	async fetchUrl(url: string): Promise<string | Error> {
+	async fetchUrl(urlToFetch: string): Promise<string | Error> {
 		return new Promise(resolve => {
 			let data = '';
-			const request = https.get(url, res => {
+			const request = https.get(urlToFetch, res => {
 				res.setEncoding('utf8');
 				res.on('data', chunk => data += chunk);
 				res.on('end', () => {
@@ -674,8 +674,8 @@ export class Tools {
 
 		const formatting: string[] = ["**", "__", "``"];
 		for (const format of formatting) {
-			const index = challongeLink.lastIndexOf(format);
-			if (index !== -1) challongeLink = challongeLink.substr(0, index);
+			const formatIndex = challongeLink.lastIndexOf(format);
+			if (formatIndex !== -1) challongeLink = challongeLink.substr(0, formatIndex);
 		}
 
 		while (challongeLink.endsWith('!') || challongeLink.endsWith('.') || challongeLink.endsWith("'") || challongeLink.endsWith('"') ||
@@ -687,7 +687,7 @@ export class Tools {
 
 	editGist(gistId: string, description: string, files: Dict<{filename: string; content: string}>): void {
 		if (this.lastGithubApiCall && (Date.now() - this.lastGithubApiCall) < githubApiThrottle) return;
-		if (!Config.githubApiCredentials || !Config.githubApiCredentials.gist) return;
+		if (!Config.githubApiCredentials || !('gist' in Config.githubApiCredentials)) return;
 
 		const patchData = JSON.stringify({
 			description,
@@ -766,7 +766,7 @@ export class Tools {
 }
 
 export const instantiate = (): void => {
-	const oldTools: Tools | undefined = global.Tools;
+	const oldTools = global.Tools as Tools | undefined;
 
 	global.Tools = new Tools();
 

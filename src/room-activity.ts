@@ -144,7 +144,7 @@ export abstract class Activity {
 	createPlayer(user: User | string): Player | undefined {
 		const id = Tools.toId(user);
 		if (id in this.players) return;
-		const player = this.pastPlayers[id] || new Player(user, this);
+		const player = id in this.pastPlayers ? this.pastPlayers[id] : new Player(user, this);
 		this.players[id] = player;
 		if (id in this.pastPlayers) delete this.pastPlayers[id];
 		this.playerCount++;
@@ -160,7 +160,7 @@ export abstract class Activity {
 			pastPlayer = true;
 		}
 
-		const player = this.players[oldId] || this.pastPlayers[oldId];
+		const player = this.players[oldId] || this.pastPlayers[oldId]; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 		player.name = user.name;
 		if (player.id === user.id) return;
 		player.id = user.id;

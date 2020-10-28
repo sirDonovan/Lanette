@@ -143,7 +143,7 @@ describe("Portmanteaus Worker", () => {
 			numberOfPorts: 2,
 			minLetters: 2,
 			maxLetters: 4,
-			prngSeed: (new PRNG()).initialSeed,
+			prngSeed: new PRNG().initialSeed,
 		});
 
 		assert(result);
@@ -161,7 +161,7 @@ describe("Portmanteaus Worker", () => {
 			numberOfPorts: 2,
 			minLetters: 2,
 			maxLetters: 4,
-			prngSeed: (new PRNG()).initialSeed,
+			prngSeed: new PRNG().initialSeed,
 		});
 
 		assert(result);

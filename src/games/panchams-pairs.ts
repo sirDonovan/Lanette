@@ -1,8 +1,6 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { Room } from "../rooms";
 import type { GameCommandDefinitions, IGameFile } from "../types/games";
-import type { User } from "../users";
 
 interface IPokemonPairData {
 	type: readonly string[];
@@ -40,7 +38,7 @@ class PanchamPairs extends ScriptedGame {
 	pairRound: number = 0;
 	points = new Map<Player, number>();
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		for (const pokemon of Games.getPokemonList()) {
 			dataKeys['Pokemon'].push(pokemon.name);
 			const abilities: string[] = [];
@@ -151,7 +149,7 @@ class PanchamPairs extends ScriptedGame {
 		}
 	}
 
-	getAnswers(givenAnswer: string, finalAnswer?: boolean): string {
+	getAnswers(givenAnswer: string): string {
 		if (!givenAnswer) {
 			const randomPair = this.getRandomPair()!;
 			givenAnswer = randomPair[0] + " & " + randomPair[1] + " (" + randomPair[2] + ")";
@@ -234,7 +232,8 @@ class PanchamPairs extends ScriptedGame {
 		} else if (this.format.options.freejoin) {
 			this.timeout = setTimeout(() => this.listPossiblePairs(), 5000);
 		} else {
-			const html = this.getRoundHtml(this.format.options.freejoin ? this.getPlayerPoints : this.getPlayerNames);
+			const html = this.getRoundHtml(players => this.format.options.freejoin ? this.getPlayerPoints(players) :
+				this.getPlayerNames(players));
 			const uhtmlName = this.uhtmlBaseName + '-round';
 			this.onUhtml(uhtmlName, html, () => {
 				this.timeout = setTimeout(() => this.listPossiblePairs(), 5000);

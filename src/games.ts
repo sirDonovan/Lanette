@@ -7,11 +7,10 @@ import type { UserHostedGame } from './room-game-user-hosted';
 import type { Room } from "./rooms";
 import type { CommandErrorArray } from "./types/command-parser";
 import type {
-	AutoCreateTimerType, DefaultGameOption, GameCategory, GameCommandDefinitions, GameCommandReturnType,
-	IGameAchievement,
-	IGameFile, IGameFormat, IGameFormatComputed, IGameMode, IGameModeFile, IGameOptionValues, IGamesWorkers,
-	IGameTemplateFile, IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFormat,
-	IUserHostedFormatComputed, LoadedGameCommands, LoadedGameFile, UserHostedCustomizable
+	AutoCreateTimerType, DefaultGameOption, GameCategory, GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile,
+	IGameFormat, IGameFormatComputed, IGameMode, IGameModeFile, IGameOptionValues, IGamesWorkers, IGameTemplateFile, IGameVariant,
+	IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFormat, IUserHostedFormatComputed, LoadedGameCommands,
+	LoadedGameFile, UserHostedCustomizable
 } from './types/games';
 import type { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/pokemon-showdown';
 import type { IPastGame } from './types/storage';
@@ -237,7 +236,7 @@ export class Games {
 		const internalGameKeys = Object.keys(internalGamePaths) as (keyof IInternalGames)[];
 		for (const key of internalGameKeys) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires
-			const file = require(internalGamePaths[key]).game as DeepImmutable<IGameFile>;
+			const file = require(internalGamePaths[key]).game as DeepImmutable<IGameFile> | undefined;
 			if (!file) throw new Error("No game exported from " + internalGamePaths[key]);
 
 			let commands;
@@ -259,7 +258,7 @@ export class Games {
 			if (!fileName.endsWith('.js')) continue;
 			const modePath = path.join(modesDirectory, fileName);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires
-			const file = require(modePath).mode as DeepImmutable<IGameModeFile>;
+			const file = require(modePath).mode as DeepImmutable<IGameModeFile> | undefined;
 			if (!file) throw new Error("No mode exported from " + modePath);
 
 			const id = Tools.toId(file.name);
@@ -290,7 +289,7 @@ export class Games {
 			if (!fileName.endsWith('.js')) continue;
 			const gamePath = path.join(gamesDirectory, fileName);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires
-			const file = require(gamePath).game as DeepImmutable<IGameFile>;
+			const file = require(gamePath).game as DeepImmutable<IGameFile> | undefined;
 			if (!file) throw new Error("No game exported from " + gamePath);
 
 			const id = Tools.toId(file.name);
@@ -348,8 +347,8 @@ export class Games {
 			});
 		}
 
-		for (const i in this.formats) {
-			const format = this.formats[i];
+		for (const formatId in this.formats) {
+			const format = this.formats[formatId];
 
 			if (format.mascot && format.mascots) throw new Error(format.name + " has both a single and randomized mascots.");
 			if (format.mascots && !format.mascotPrefix) {
@@ -384,9 +383,11 @@ export class Games {
 			}
 
 			if (format.commands) {
-				for (const i in format.commands) {
-					if (i in BaseCommands) throw new Error(format.name + " command '" + i + "' already exists as a regular command.");
-					if (!(i in this.commands)) this.commands[i] = format.commands[i];
+				for (const command in format.commands) {
+					if (command in BaseCommands) {
+						throw new Error(format.name + " command '" + command + "' already exists as a regular command.");
+					}
+					if (!(command in this.commands)) this.commands[command] = format.commands[command];
 				}
 			}
 
@@ -454,11 +455,11 @@ export class Games {
 			}
 		}
 
-		for (const i in this.modes) {
-			const mode = this.modes[i];
+		for (const modeId in this.modes) {
+			const mode = this.modes[modeId];
 			if (mode.commands) {
-				for (const i in mode.commands) {
-					if (!(i in this.commands)) this.commands[i] = mode.commands[i];
+				for (const command in mode.commands) {
+					if (!(command in this.commands)) this.commands[command] = mode.commands[command];
 				}
 			}
 		}
@@ -477,9 +478,9 @@ export class Games {
 							if (result) returnedResult = result;
 						} else {
 							// eslint-disable-next-line @typescript-eslint/no-misused-promises, @typescript-eslint/space-before-function-paren
-							user.rooms.forEach(async (value, room) => {
-								if (room.game) {
-									const result = await room.game.tryCommand(target, user, user, command);
+							user.rooms.forEach(async (value, userRoom) => {
+								if (userRoom.game) {
+									const result = await userRoom.game.tryCommand(target, user, user, command);
 									if (result) returnedResult = result;
 								}
 							});
@@ -506,10 +507,10 @@ export class Games {
 					if (this.isPm(room)) {
 						if (room.game) return;
 
-						user.rooms.forEach((rank, room) => {
-							if (!pmRoom && Config.allowScriptedGames && Config.allowScriptedGames.includes(room.id) &&
-								Users.self.hasRank(room, 'bot')) {
-								pmRoom = room;
+						user.rooms.forEach((rank, userRoom) => {
+							if (!pmRoom && Config.allowScriptedGames && Config.allowScriptedGames.includes(userRoom.id) &&
+								Users.self.hasRank(userRoom, 'bot')) {
+								pmRoom = userRoom;
 							}
 						});
 
@@ -557,9 +558,8 @@ export class Games {
 	/**
 	 * Returns a copy of the format
 	 */
-	getFormat(target: string, checkDisabled?: boolean): IGameFormat | CommandErrorArray {
-		const inputTarget = target;
-		const targets = target.split(",");
+	getFormat(inputTarget: string, checkDisabled?: boolean): IGameFormat | CommandErrorArray {
+		const targets = inputTarget.split(",");
 		const name = targets[0];
 		targets.shift();
 		const id = Tools.toId(name);
@@ -599,43 +599,43 @@ export class Games {
 			}
 
 			const option = target.trim();
-			let name = '';
+			let optionName = '';
 			let optionNumber = 0;
 			if (option.includes(":")) {
 				const parts = option.split(":");
-				name = Tools.toId(parts[0]);
+				optionName = Tools.toId(parts[0]);
 				optionNumber = parseInt(parts[1].trim());
 			} else {
 				const optionId = Tools.toId(option);
 				if (optionId === 'freejoin' || optionId === 'fj') {
-					name = 'freejoin';
+					optionName = 'freejoin';
 					optionNumber = 1;
 				} else {
 					const firstSpaceIndex = option.indexOf(" ");
 					if (firstSpaceIndex !== -1) {
 						const lastSpaceIndex = option.lastIndexOf(" ");
-						name = option.substr(0, firstSpaceIndex);
-						if (Tools.isInteger(name)) {
-							optionNumber = parseInt(name);
-							name = option.substr(firstSpaceIndex + 1);
+						optionName = option.substr(0, firstSpaceIndex);
+						if (Tools.isInteger(optionName)) {
+							optionNumber = parseInt(optionName);
+							optionName = option.substr(firstSpaceIndex + 1);
 						} else {
 							if (lastSpaceIndex !== firstSpaceIndex) {
-								name = option.substr(0, lastSpaceIndex);
+								optionName = option.substr(0, lastSpaceIndex);
 								optionNumber = parseInt(option.substr(lastSpaceIndex + 1));
 							} else {
 								optionNumber = parseInt(option.substr(firstSpaceIndex + 1));
 							}
 						}
-						name = Tools.toId(name);
+						optionName = Tools.toId(optionName);
 					}
 				}
 			}
 
-			if (!name || isNaN(optionNumber)) return ['invalidGameOption', option];
+			if (!optionName || isNaN(optionNumber)) return ['invalidGameOption', option];
 
-			if (name === 'firstto') name = 'points';
-			if (name === 'points' && mode && mode.id === 'team') name = 'teamPoints';
-			inputOptions[name] = optionNumber;
+			if (optionName === 'firstto') optionName = 'points';
+			if (optionName === 'points' && mode && mode.id === 'team') optionName = 'teamPoints';
+			inputOptions[optionName] = optionNumber;
 		}
 
 		const formatComputed: IGameFormatComputed = {
@@ -677,7 +677,7 @@ export class Games {
 		const formats: IGameFormat[] = [];
 		for (const i in this.formats) {
 			const format = this.getExistingFormat(i);
-			if (format.disabled || format.tournamentGame || (filter && filter(format) === false)) continue;
+			if (format.disabled || format.tournamentGame || (filter && !filter(format))) continue;
 			formats.push(format);
 		}
 
@@ -709,9 +709,8 @@ export class Games {
 	/**
 	 * Returns a copy of the format
 	 */
-	getUserHostedFormat(target: string, user?: User): IUserHostedFormat | CommandErrorArray {
-		const inputTarget = target;
-		const targets = target.split(",");
+	getUserHostedFormat(inputTarget: string, user?: User): IUserHostedFormat | CommandErrorArray {
+		const targets = inputTarget.split(",");
 		const name = targets[0];
 		targets.shift();
 		const id = Tools.toId(name);
@@ -739,10 +738,10 @@ export class Games {
 
 		let teamGame = false;
 		for (const target of targets) {
-			const id = Tools.toId(target);
-			if (id === 'freejoin' || id === 'fj') {
+			const targetId = Tools.toId(target);
+			if (targetId === 'freejoin' || targetId === 'fj') {
 				formatData.freejoin = true;
-			} else if (id === 'team' || id === 'teams') {
+			} else if (targetId === 'team' || targetId === 'teams') {
 				if (!formatData.teamGame) teamGame = true;
 			} else if (formatData.customizableAttributes) {
 				const colonIndex = target.indexOf(':');
@@ -823,7 +822,7 @@ export class Games {
 		return 0;
 	}
 
-	getRemainingTournamentGameCooldown(room: Room, isMinigame?: boolean): number {
+	getRemainingTournamentGameCooldown(room: Room): number {
 		const now = Date.now();
 		if (Config.tournamentGameCooldownTimers && room.id in Config.tournamentGameCooldownTimers && room.id in this.lastGames) {
 			return (Config.tournamentGameCooldownTimers[room.id] * 60 * 1000) - (now - this.lastGames[room.id]);
@@ -857,7 +856,6 @@ export class Games {
 		}
 
 		if (Config.disallowCreatingPreviousUserHostedGame && Config.disallowCreatingPreviousUserHostedGame.includes(room.id)) {
-			const database = Storage.getDatabase(room);
 			if (database.pastUserHostedGames && database.pastUserHostedGames.length) {
 				const pastUserHostedFormat = this.getUserHostedFormat(database.pastUserHostedGames[0].inputTarget);
 				const id = Array.isArray(pastUserHostedFormat) ? Tools.toId(database.pastUserHostedGames[0].name) : pastUserHostedFormat.id;
@@ -946,7 +944,7 @@ export class Games {
 		if (isMinigame) {
 			room.game.isMiniGame = true;
 			if (format.options.points) format.options.points = 1;
-			if (!format.freejoin && format.customizableOptions.freejoin) format.options.freejoin = 1;
+			if (!format.freejoin && 'freejoin' in format.customizableOptions) format.options.freejoin = 1;
 		}
 
 		return room.game;
@@ -987,7 +985,7 @@ export class Games {
 				void CommandParser.parse(room, Users.self, Config.commandCharacter + "createrandomtournamentgame");
 			} else if (type === 'scripted' || !database.userHostedGameQueue || !database.userHostedGameQueue.length) {
 				void CommandParser.parse(room, Users.self, Config.commandCharacter + "startvote");
-			} else if (type === 'userhosted') {
+			} else if (type === 'userhosted') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 				void CommandParser.parse(room, Users.self, Config.commandCharacter + "nexthost");
 			}
 		}, timer);
@@ -1351,7 +1349,7 @@ export class Games {
 				"* <code>" + commandCharacter + "c1v1c</code> - cancel a challenge",
 				"* <code>" + commandCharacter + "ccdown [room], 1v1</code> - check your one vs. one challenge cooldown time for " +
 					"[room] in PMs",
-				"\n\nCompatible games:"
+				"\n\nCompatible games:",
 			];
 			const keys = Object.keys(this.formats);
 			keys.sort();
@@ -1402,8 +1400,8 @@ export class Games {
 
 				if (allowsGameAchievements && format.class.achievements) {
 					const achievements: string[] = [];
-					for (const key in format.class.achievements) {
-						achievements.push(Tools.toMarkdownAnchor(format.class.achievements[key].name));
+					for (const achievementKey in format.class.achievements) {
+						achievements.push(Tools.toMarkdownAnchor(format.class.achievements[achievementKey].name));
 					}
 					info.push("**Achievements**: " + Tools.joinList(achievements));
 					info.push("\n");
@@ -1418,10 +1416,10 @@ export class Games {
 						Config.userHostedGameHostDifficulties[format.id] : "medium";
 					info.push("**Hosting difficulty**: " + hostingDifficulty + " | ");
 
-					const playingDifficulty = Config.userHostedGamePlayerDifficulties &&
+					const userHostedPlayingDifficulty = Config.userHostedGamePlayerDifficulties &&
 						format.id in Config.userHostedGamePlayerDifficulties ? Config.userHostedGamePlayerDifficulties[format.id] :
 						"medium";
-					info.push("**User-hosted playing difficulty**: " + playingDifficulty + "\n");
+					info.push("**User-hosted playing difficulty**: " + userHostedPlayingDifficulty + "\n");
 				}
 
 				info.push("\n");
@@ -1465,7 +1463,7 @@ export class Games {
 				for (const formatKey of formatKeys) {
 					const format = this.getExistingFormat(formatKey);
 					if (format.class.achievements && achievementKey in format.class.achievements) {
-						games.push(Tools.toMarkdownAnchor(format.name, (format.mascot ? "-" : "")));
+						games.push(Tools.toMarkdownAnchor(format.name, format.mascot ? "-" : ""));
 					}
 				}
 				for (const formatKey of internalFormatKeys) {
@@ -1515,7 +1513,7 @@ export class Games {
 }
 
 export const instantiate = (): void => {
-	const oldGames: Games | undefined = global.Games;
+	const oldGames = global.Games as Games | undefined;
 
 	global.Games = new Games();
 

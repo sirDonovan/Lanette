@@ -37,7 +37,7 @@ export const tournamentSchedules: Dict<IRoomTournamentSchedule> = {
 					'27': 'uu',
 					'28': 'lc',
 					'29': 'ou',
-					'30': 'pu'
+					'30': 'pu',
 				},
 				times: [[20, 30], [2, 30], [9, 30], [15, 30]],
 			},

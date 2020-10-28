@@ -1,12 +1,11 @@
 import type { Player } from '../../room-activity';
 import { addPlayers, assert } from '../../test/test-tools';
 import type {
-	GameCategory, GameCommandDefinitions, GameFileTests,
-	IGameAchievement, IGameTemplateFile
+	GameCategory, GameCommandDefinitions, GameFileTests, IGameAchievement, IGameTemplateFile
 } from '../../types/games';
 import type { IPokemon } from '../../types/pokemon-showdown';
-import type { ICard, IPokemonCard } from './card';
-import { Card, game as cardGame, IActionCardData, ICardsSplitByPlayable } from './card';
+import type { IActionCardData, ICard, ICardsSplitByPlayable, IPokemonCard } from './card';
+import { Card, game as cardGame } from './card';
 
 interface IPreviouslyPlayedCard {
 	card: string;
@@ -61,7 +60,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		if (!this.deckPool.length) this.createDeckPool();
 		const pokedex = this.shuffle(this.deckPool);
 		const deck: ICard[] = [];
-		const minimumDeck = ((this.maxPlayers + 1) * this.format.options.cards);
+		const minimumDeck = (this.maxPlayers + 1) * this.format.options.cards;
 		outer:
 		for (const pokemon of pokedex) {
 			if (this.colorsLimit && pokemon.color in colorCounts && colorCounts[pokemon.color] >= this.colorsLimit) continue;
@@ -215,7 +214,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		}
 
 		// may be set in tests
-		if (!this.topCard) {
+		if (!this.topCard) { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 			let topCard = this.deck.shift();
 			while (topCard && topCard.action) {
 				this.deck.push(topCard);
@@ -368,7 +367,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			autoDraws.set(player, drawnCards);
 			player = this.getNextPlayer();
 			if (!player) {
-				if (this.timeEnded) break;
+				if (this.timeEnded) break; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 				throw new Error("No player given by Game.getNextPlayer");
 			}
 			hasCard = this.hasPlayableCard(player);
@@ -379,16 +378,16 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			this.unlockAchievement(this.lastPlayer, this.drawAchievement);
 		}
 
-		if (this.timeEnded) return;
+		if (this.timeEnded) return; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 
 		let useUhtmlAuto = this.round === currentRound;
 		if (autoDraws.size) {
 			if (useUhtmlAuto) useUhtmlAuto = false;
 			const names: string[] = [];
-			autoDraws.forEach((cards, player) => {
-				if (player.eliminated) return;
-				this.updatePlayerHtmlPage(player, cards);
-				names.push("__" + player.name + "__");
+			autoDraws.forEach((cards, autoDrawPlayer) => {
+				if (autoDrawPlayer.eliminated) return;
+				this.updatePlayerHtmlPage(autoDrawPlayer, cards);
+				names.push("__" + autoDrawPlayer.name + "__");
 			});
 			this.say("Automatically drawing for: " + names.join(", "));
 		}
@@ -453,7 +452,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	}
 
 	isCardPair(card: IPokemonCard, otherCard: IPokemonCard): boolean {
-		if (!card || !otherCard || (card !== this.topCard && card.action) || (otherCard !== this.topCard && otherCard.action)) {
+		if ((card !== this.topCard && card.action) || (otherCard !== this.topCard && otherCard.action)) {
 			return false;
 		}
 		if (card.color === otherCard.color) return true;
@@ -585,14 +584,14 @@ commands.summary.aliases = ['cards', 'hand'];
 
 const tests: GameFileTests<CardMatching> = {
 	'it should properly create a deck': {
-		test(game, format): void {
+		test(game): void {
 			addPlayers(game, 4);
 			game.start();
 			assert(game.deck.length);
 		},
 	},
 	'it should create unique action cards': {
-		test(game, format): void {
+		test(game): void {
 			addPlayers(game, 4);
 			game.start();
 			const actionCards = Object.keys(game.actionCards);

@@ -79,25 +79,27 @@ class EliminationNode<T> {
 
 	traverse(callback: (node: EliminationNode<T>) => void) {
 		const queue: EliminationNode<T>[] = [this];
-		let node;
-		while ((node = queue.shift())) {
+		let node = queue.shift();
+		while (node) {
 			// eslint-disable-next-line callback-return
 			callback(node);
 			if (node.children) queue.push(...node.children);
+			node = queue.shift();
 		}
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
 	find<U>(callback: (node: EliminationNode<T>) => (U | void)) {
 		const queue: EliminationNode<T>[] = [this];
-		let node;
-		while ((node = queue.shift())) {
+		let node = queue.shift();
+		while (node) {
 			// eslint-disable-next-line callback-return
 			const value = callback(node);
 			if (value) {
 				return value;
 			}
 			if (node.children) queue.push(...node.children);
+			node = queue.shift();
 		}
 		return undefined;
 	}
@@ -230,11 +232,11 @@ export abstract class EliminationTournament extends ScriptedGame {
 		}
 
 		if (type === 'starter') {
-			if (this.meetsStarterCriteria && this.meetsStarterCriteria(pokemon) === false) {
+			if (this.meetsStarterCriteria && !this.meetsStarterCriteria(pokemon)) {
 				return false;
 			}
 		} else {
-			if (this.meetsEvolutionCriteria && this.meetsEvolutionCriteria(pokemon) === false) {
+			if (this.meetsEvolutionCriteria && !this.meetsEvolutionCriteria(pokemon)) {
 				return false;
 			}
 		}
@@ -290,7 +292,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	generateBracket(): void {
-		let tree: IEliminationTree<Player> = null!;
+		let tree: IEliminationTree<Player> | null = null;
 
 		const players = this.shufflePlayers();
 		for (const player of players) {
@@ -320,13 +322,13 @@ export abstract class EliminationTournament extends ScriptedGame {
 			}
 		}
 
-		tree.root.traverse(node => {
+		tree!.root.traverse(node => {
 			if (node.children && node.children[0].user && node.children[1].user) {
 				node.state = 'available';
 			}
 		});
 
-		this.treeRoot = tree.root;
+		this.treeRoot = tree!.root;
 		this.totalRounds = this.getNumberOfRounds(players.length);
 	}
 
@@ -353,7 +355,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 			playerNamesByRound[round] = [];
 			winnersByRound[round] = [];
 			for (const match of matchesByRound[round]) {
-				if (!match.children || !match.children.length) continue;
+				if (!match.children) continue;
 				let playerA = placeholderName;
 				let playerB = placeholderName;
 				if (match.children[0].user) playerA = match.children[0].user.name;
@@ -384,17 +386,17 @@ export abstract class EliminationTournament extends ScriptedGame {
 		for (let i = 0; i < fullFirstRoundPlayers; i++) {
 			html += '<tr style="height: 32px">';
 
-			for (let i = 0; i < matchRounds.length; i++) {
-				const round = matchRounds[i];
+			for (let j = 0; j < matchRounds.length; j++) {
+				const round = matchRounds[j];
 				if (!playerNamesByRound[round].length) {
-					if (i === 0) {
+					if (j === 0) {
 						html += "<td>&nbsp;</td>";
 					}
 					continue;
 				}
 
 				if (playerNamesByRound[round][0]) {
-					html += '<td' + (i > 0 ? ' rowspan="' + (Math.pow(2, i)) + '"' : '') + ' style="margin: 0;padding: 5px;">' +
+					html += '<td' + (j > 0 ? ' rowspan="' + Math.pow(2, j) + '"' : '') + ' style="margin: 0;padding: 5px;">' +
 						'<p style="border-bottom: solid 1px;margin: 0;padding: 1px;">';
 					const playerName = playerNamesByRound[round][0];
 					if (playerName === placeholderName) {
@@ -657,13 +659,13 @@ export abstract class EliminationTournament extends ScriptedGame {
 			this.givenFirstRoundExtraTime.add(player);
 			this.givenFirstRoundExtraTime.add(opponent);
 
-			const timeout = setTimeout(() => {
+			const warningTimeout = setTimeout(() => {
 				const reminderPM = "You still need to battle your new opponent for the " + this.name + " tournament in " +
 					this.room.title + "! Please send me the link to the battle or leave your pending challenge up.";
 
 				player.say(reminderPM);
 				opponent.say(reminderPM);
-				const timeout = setTimeout(() => {
+				const dqTimeout = setTimeout(() => {
 					const inactivePlayers: Player[] = [];
 					const playerA = Users.get(player.name);
 					if (!playerA || !playerA.rooms.has(this.room)) inactivePlayers.push(player);
@@ -675,9 +677,9 @@ export abstract class EliminationTournament extends ScriptedGame {
 						this.checkChallenges(node, player, opponent);
 					}
 				}, this.activityDQTimeout);
-				this.activityTimers.set(node, timeout);
+				this.activityTimers.set(node, dqTimeout);
 			}, activityWarning);
-			this.activityTimers.set(node, timeout);
+			this.activityTimers.set(node, warningTimeout);
 		}
 
 		const oldBracketHtml = this.bracketHtml;
@@ -761,9 +763,9 @@ export abstract class EliminationTournament extends ScriptedGame {
 			if (this.usesCloakedPokemon) {
 				html += "<b>The Pokemon to protect in battle ";
 				if (pastTense) {
-					html += (starterPokemon.length === 1 ? "was" : "were");
+					html += starterPokemon.length === 1 ? "was" : "were";
 				} else {
-					html += (starterPokemon.length === 1 ? "is" : "are");
+					html += starterPokemon.length === 1 ? "is" : "are";
 				}
 				html += "</b>:<br />" + this.getPokemonIcons(starterPokemon).join("");
 				if (!this.tournamentEnded && starterPokemon.length < 6) {
@@ -1382,7 +1384,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 		}
 	}
 
-	onBattlePokemon(room: Room, slot: string, details: string, item: boolean): boolean {
+	onBattlePokemon(room: Room, slot: string, details: string): boolean {
 		if (!(room.id in this.battleData)) return false;
 
 		if (!(slot in this.battleData[room.id].remainingPokemon)) this.battleData[room.id].remainingPokemon[slot] = 0;
@@ -1404,8 +1406,11 @@ export abstract class EliminationTournament extends ScriptedGame {
 		let winnerIllegalTeam = false;
 		if (this.validateTeams) {
 			this.battleData[room.id].slots.forEach((slot, player) => {
+				if (!(slot in this.battleData[room.id].pokemon)) {
+					throw new Error(player.name + " (" + slot + ") does not have a team in " + room.id);
+				}
+
 				const team = this.battleData[room.id].pokemon[slot];
-				if (!team) throw new Error(player.name + " (" + slot + ") does not have a team in " + room.id);
 
 				let illegalTeam = false;
 				const requiredPokemon = this.playerRequiredPokemon.get(player);
@@ -1434,7 +1439,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 		if (winner && loser) {
 			loser.say("You used an illegal team and have been disqualified.");
-			if (winnerIllegalTeam) {
+			if (winnerIllegalTeam) { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 				winner.say("You used an illegal team and have been disqualified.");
 				this.disqualifyPlayers([loser, winner]);
 			} else {
@@ -1459,7 +1464,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 		return true;
 	}
 
-	onBattleSwitch(room: Room, pokemon: string, details: string, hpStatus: [string, string]): boolean {
+	onBattleSwitch(room: Room, pokemon: string, details: string): boolean {
 		if (!(room.id in this.battleData)) return false;
 		const slot = pokemon.substr(0, 2);
 		const name = pokemon.substr(5).trim();
@@ -1518,12 +1523,13 @@ export abstract class EliminationTournament extends ScriptedGame {
 		if (!players.includes(winner)) return;
 
 		const loser = players[0] === winner ? players[1] : players[0];
-		const loserTeam = this.battleData[room.id].pokemon[this.battleData[room.id].slots.get(loser)!];
-		if (!loserTeam) {
+		const loserSlot = this.battleData[room.id].slots.get(loser);
+		if (!loserSlot || !(loserSlot in this.battleData[room.id].pokemon)) {
 			throw new Error(loser.name + " (" + this.battleData[room.id].slots.get(loser) + ") does not have a team in " +
 				room.id);
 		}
 
+		const loserTeam = this.battleData[room.id].pokemon[loserSlot];
 		const node = this.findAvailableMatchNode(winner, loser);
 		if (!node) throw new Error("No available match for " + winner.name + " and " + loser.name);
 
@@ -1723,21 +1729,21 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 		pmOnly: true,
 		eliminatedGameCommand: true,
 		spectatorGameCommand: true,
-	}
+	},
 };
 
 const tests: GameFileTests<EliminationTournament> = {
 	'should generate a Pokedex': {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		test(game, format) {
+		test(game) {
 			assert(game.pokedex.length);
 			addPlayers(game, game.maxPlayers);
 			assert(game.started);
-		}
+		},
 	},
 	'should properly list matches by round - 4 players': {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		test(game, format) {
+		test(game) {
 			addPlayers(game, 4);
 			game.start();
 
@@ -1758,11 +1764,11 @@ const tests: GameFileTests<EliminationTournament> = {
 			assert(matchesByRound['2'][0].children);
 			assert(!matchesByRound['2'][0].children[0].user);
 			assert(!matchesByRound['2'][0].children[1].user);
-		}
+		},
 	},
 	'should properly list matches by round - 5 players': {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		test(game, format) {
+		test(game) {
 			addPlayers(game, 5);
 			game.start();
 
@@ -1795,11 +1801,11 @@ const tests: GameFileTests<EliminationTournament> = {
 			assert(matchesByRound['3'][0].children);
 			assert(!matchesByRound['3'][0].children[0].user);
 			assert(!matchesByRound['3'][0].children[1].user);
-		}
+		},
 	},
 	'should properly list matches by round - 6 players': {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		test(game, format) {
+		test(game) {
 			addPlayers(game, 6);
 			game.start();
 
@@ -1836,11 +1842,11 @@ const tests: GameFileTests<EliminationTournament> = {
 			assert(matchesByRound['3'][0].children);
 			assert(!matchesByRound['3'][0].children[0].user);
 			assert(!matchesByRound['3'][0].children[1].user);
-		}
+		},
 	},
 	'should properly list matches by round - 7 players': {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		test(game, format) {
+		test(game) {
 			addPlayers(game, 7);
 			game.start();
 
@@ -1877,11 +1883,11 @@ const tests: GameFileTests<EliminationTournament> = {
 			assert(matchesByRound['3'][0].children);
 			assert(!matchesByRound['3'][0].children[0].user);
 			assert(!matchesByRound['3'][0].children[1].user);
-		}
+		},
 	},
 	'should properly list matches by round - 8 players': {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		test(game, format) {
+		test(game) {
 			addPlayers(game, 8);
 			if (!game.started) game.start();
 
@@ -1912,11 +1918,11 @@ const tests: GameFileTests<EliminationTournament> = {
 			assert(matchesByRound['3'][0].children);
 			assert(!matchesByRound['3'][0].children[0].user);
 			assert(!matchesByRound['3'][0].children[1].user);
-		}
+		},
 	},
 	'should give team changes until players have a full team - additionsPerRound': {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		test(game, format) {
+		test(game) {
 			this.timeout(15000);
 			if (!game.additionsPerRound || game.dropsPerRound || game.maxPlayers < 64) return;
 
@@ -1928,7 +1934,7 @@ const tests: GameFileTests<EliminationTournament> = {
 			let matchesByRound = game.getMatchesByRound();
 			const matchRounds = Object.keys(matchesByRound).sort();
 			for (let i = 1; i <= ((6 - game.startingTeamsLength) / game.additionsPerRound); i++) {
-				const round = matchRounds[(i - 1)];
+				const round = matchRounds[i - 1];
 				if (!round) break;
 				const player = matchesByRound[round][0].children![0].user!;
 				for (const match of matchesByRound[round]) {
@@ -1942,11 +1948,11 @@ const tests: GameFileTests<EliminationTournament> = {
 				assertStrictEqual(game.teamChanges.get(player)!.length, i);
 				matchesByRound = game.getMatchesByRound();
 			}
-		}
+		},
 	},
 	'should give team changes until players have a full team - dropsPerRound': {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		test(game, format) {
+		test(game) {
 			this.timeout(15000);
 			if (!game.dropsPerRound || game.additionsPerRound || game.maxPlayers < 64) return;
 
@@ -1958,7 +1964,7 @@ const tests: GameFileTests<EliminationTournament> = {
 			let matchesByRound = game.getMatchesByRound();
 			const matchRounds = Object.keys(matchesByRound).sort();
 			for (let i = 1; i <= ((game.startingTeamsLength - 1) / game.additionsPerRound); i++) {
-				const round = matchRounds[(i - 1)];
+				const round = matchRounds[i - 1];
 				if (!round) break;
 				const player = matchesByRound[round][0].children![0].user!;
 				for (const match of matchesByRound[round]) {
@@ -1972,7 +1978,7 @@ const tests: GameFileTests<EliminationTournament> = {
 				assertStrictEqual(game.teamChanges.get(player)!.length, i);
 				matchesByRound = game.getMatchesByRound();
 			}
-		}
+		},
 	},
 };
 

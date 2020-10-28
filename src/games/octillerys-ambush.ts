@@ -20,7 +20,7 @@ class OctillerysAmbush extends ScriptedGame {
 		this.nextRound();
 	}
 
-	onRenamePlayer(player: Player, oldId: string): void {
+	onRenamePlayer(player: Player): void {
 		if (!this.started || player.eliminated) return;
 		this.removePlayer(player.name, true);
 		this.say(player.name + " was DQed for changing names!");
@@ -53,7 +53,7 @@ class OctillerysAmbush extends ScriptedGame {
 		}
 		this.roundActions.clear();
 		this.queue = [];
-		const html = this.getRoundHtml(this.getPlayerNames);
+		const html = this.getRoundHtml(players => this.getPlayerNames(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			const time = this.sampleOne([8000, 9000, 10000]);
@@ -87,8 +87,12 @@ const commands: GameCommandDefinitions<OctillerysAmbush> = {
 			if (this.roundActions.has(player)) return false;
 			this.roundActions.set(player, true);
 			if (!this.fireTime) return false;
-			const targetPlayer = this.players[Tools.toId(target)];
-			if (!targetPlayer || targetPlayer === player || targetPlayer.eliminated) return false;
+
+			const id = Tools.toId(target);
+			if (!(id in this.players)) return false;
+
+			const targetPlayer = this.players[id];
+			if (targetPlayer === player || targetPlayer.eliminated) return false;
 			this.queue.push({"target": targetPlayer, "source": player});
 			return true;
 		},

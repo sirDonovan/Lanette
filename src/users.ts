@@ -1,6 +1,6 @@
 import type { ScriptedGame } from "./room-game-scripted";
 import type { Room } from "./rooms";
-import type { GroupName, IChatLogEntry, IOutgoingMessage } from "./types/client";
+import type { GroupName, IChatLogEntry } from "./types/client";
 import type { IUserMessageOptions, IUserRoomData } from "./types/users";
 
 const chatFormatting: string[] = ["*", "_", "`", "~", "^", "\\"];

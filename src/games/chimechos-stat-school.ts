@@ -1,7 +1,5 @@
 import type { Player } from "../room-activity";
-import type { Room } from "../rooms";
 import type { IGameFile } from "../types/games";
-import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const data: {stats: Dict<string[]>} = {
@@ -12,7 +10,7 @@ const statsKeys: string[] = [];
 class ChimechosStatSchool extends QuestionAndAnswer {
 	readonly roundGuesses = new Map<Player, boolean>();
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		const pokemonList = Games.getPokemonList();
 		for (const pokemon of pokemonList) {
 			const stats = Object.values(pokemon.baseStats).join(" / ");

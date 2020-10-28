@@ -1,6 +1,4 @@
-import type { Room } from "../rooms";
 import type { IGameAchievement, IGameFile } from "../types/games";
-import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 type AchievementNames = "skillswapper" | "captainskillswapper";
@@ -22,7 +20,7 @@ class AbrasAbilitySwitch extends QuestionAndAnswer {
 	lastAbility: string = '';
 	lastPokemon: string = '';
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		const pokedex = Games.getPokemonList();
 		for (const pokemon of pokedex) {
 			const abilities: string[] = [];

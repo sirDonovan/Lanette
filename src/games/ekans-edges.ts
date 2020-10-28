@@ -1,6 +1,4 @@
-import type { Room } from "../rooms";
 import type { IGameAchievement, IGameFile } from "../types/games";
-import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 type AchievementNames = "livingontheedge";
@@ -41,42 +39,42 @@ class EkansEdges extends QuestionAndAnswer {
 	allAnswersAchievement = EkansEdges.achievements.livingontheedge;
 	lastEdge: string = '';
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		const characters = Dex.getCharacters();
 		for (const character of characters) {
 			const edge = character.charAt(0) + " - " + character.substr(-1);
-			if (!data["Characters"][edge]) data["Characters"][edge] = [];
+			if (!(edge in data["Characters"])) data["Characters"][edge] = [];
 			data["Characters"][edge].push(character);
 		}
 
 		const locations = Dex.getLocations();
 		for (const location of locations) {
 			const edge = location.charAt(0) + " - " + location.substr(-1);
-			if (!data["Locations"][edge]) data["Locations"][edge] = [];
+			if (!(edge in data["Locations"])) data["Locations"][edge] = [];
 			data["Locations"][edge].push(location);
 		}
 
 		for (const pokemon of Games.getPokemonList()) {
 			const edge = pokemon.name.charAt(0) + " - " + pokemon.name.substr(-1);
-			if (!data["Pokemon"][edge]) data["Pokemon"][edge] = [];
+			if (!(edge in data["Pokemon"])) data["Pokemon"][edge] = [];
 			data["Pokemon"][edge].push(pokemon.name);
 		}
 
 		for (const ability of Games.getAbilitiesList()) {
 			const edge = ability.name.charAt(0) + " - " + ability.name.substr(-1);
-			if (!data["Pokemon Abilities"][edge]) data["Pokemon Abilities"][edge] = [];
+			if (!(edge in data["Pokemon Abilities"])) data["Pokemon Abilities"][edge] = [];
 			data["Pokemon Abilities"][edge].push(ability.name);
 		}
 
 		for (const item of Games.getItemsList()) {
 			const edge = item.name.charAt(0) + " - " + item.name.substr(-1);
-			if (!data["Pokemon Items"][edge]) data["Pokemon Items"][edge] = [];
+			if (!(edge in data["Pokemon Items"])) data["Pokemon Items"][edge] = [];
 			data["Pokemon Items"][edge].push(item.name);
 		}
 
 		for (const move of Games.getMovesList()) {
 			const edge = move.name.charAt(0) + " - " + move.name.substr(-1);
-			if (!data["Pokemon Moves"][edge]) data["Pokemon Moves"][edge] = [];
+			if (!(edge in data["Pokemon Moves"])) data["Pokemon Moves"][edge] = [];
 			data["Pokemon Moves"][edge].push(move.name);
 		}
 

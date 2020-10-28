@@ -2,9 +2,7 @@ import type { PRNGSeed } from "../prng";
 import { PRNG } from "../prng";
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { Room } from "../rooms";
 import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
-import type { User } from "../users";
 import type { IParam, ParamType } from "../workers/parameters";
 
 const GEN = 8;
@@ -25,7 +23,7 @@ class PluslesAdditiveParameters extends ScriptedGame {
 	pokemon: string[] = [];
 	roundTime: number = 15 * 1000;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		Games.workers.parameters.init();
 	}
 
@@ -50,7 +48,7 @@ class PluslesAdditiveParameters extends ScriptedGame {
 			this.parametersRound++;
 			this.playerOrder = this.shufflePlayers(this.getRemainingPlayers());
 			this.playerList = this.playerOrder.slice();
-			const html = this.getRoundHtml(this.getPlayerNames, this.playerOrder, "Round " + this.parametersRound);
+			const html = this.getRoundHtml(players => this.getPlayerNames(players), this.playerOrder, "Round " + this.parametersRound);
 			const uhtmlName = this.uhtmlBaseName + "-round";
 			const result = await Games.workers.parameters.search({
 				customParamTypes: null,

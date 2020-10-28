@@ -1,8 +1,8 @@
 import type { Player, PlayerTeam } from "../room-activity";
 import { addPlayers, assert, assertStrictEqual } from "../test/test-tools";
 import type { GameCommandDefinitions, GameFileTests, IGameFile } from "../types/games";
-import type { GameMap, MapFloor, MapFloorSpace } from "./templates/map";
-import { game as mapGame, ISpaceDisplayData, MapGame } from "./templates/map";
+import type { GameMap, ISpaceDisplayData, MapFloor, MapFloorSpace } from "./templates/map";
+import { game as mapGame, MapGame } from "./templates/map";
 
 interface IShadowTrapData {
 	name: string;
@@ -65,12 +65,12 @@ class DarkraisLair extends MapGame {
 	teams: Dict<PlayerTeam> = {};
 	trappedPlayers = new Map<Player, string>();
 
-	getMap(player?: Player): GameMap {
+	getMap(): GameMap {
 		if (!this.map) this.map = this.generateMap(this.playerCount);
 		return this.map;
 	}
 
-	getFloorIndex(player?: Player): number {
+	getFloorIndex(): number {
 		return this.currentFloor - 1;
 	}
 
@@ -152,10 +152,10 @@ class DarkraisLair extends MapGame {
 				this.playerRoundInfo.get(player)!.push("You arrived at (" + space.coordinates + ") and stepped on a " +
 					shadowTraps[spaceShadowTrap.type].name + " trap!");
 				const spaceCoordinates = this.stringToCoordinates(space.coordinates);
-				const x = parseInt(spaceCoordinates[0]);
+				const xCoordinate = parseInt(spaceCoordinates[0]);
 				const columnCoordinates: string[] = [];
 				for (let i = 0; i < this.maxDimensions; i++) {
-					columnCoordinates.push(this.coordinatesToString(x, i));
+					columnCoordinates.push(this.coordinatesToString(xCoordinate, i));
 				}
 				const affected = this.distributeShadowTrapDamage(spaceShadowTrap, columnCoordinates, 1);
 				this.playerRoundInfo.get(spaceShadowTrap.player)!.push("Your " + shadowTraps[spaceShadowTrap.type].name + " trap " +
@@ -306,7 +306,7 @@ class DarkraisLair extends MapGame {
 		this.roundActions.clear();
 		this.roundShadowTraps.clear();
 
-		const html = this.getRoundHtml(this.getTeamLives);
+		const html = this.getRoundHtml(() => this.getTeamLives());
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
 			if (!this.canMove) this.canMove = true;
@@ -376,7 +376,7 @@ class DarkraisLair extends MapGame {
 		let remainingShadowTraps: number | undefined;
 		if (data.uses) {
 			limitedUses = true;
-			remainingShadowTraps = (data.uses - 1);
+			remainingShadowTraps = data.uses - 1;
 			if (shadowTrap in usedShadowTraps) {
 				if (usedShadowTraps[shadowTrap]! >= data.uses) {
 					player.say("You have already used " + data.name + " " + data.uses + " times! Please choose another shadow trap to " +
@@ -489,7 +489,7 @@ const commands: GameCommandDefinitions<DarkraisLair> = {
 
 const tests: GameFileTests<DarkraisLair> = {
 	'should not allow movement outside of the map': {
-		test(game, format) {
+		test(game) {
 			const players = addPlayers(game, 4);
 			game.start();
 			game.canMove = true;
@@ -500,7 +500,7 @@ const tests: GameFileTests<DarkraisLair> = {
 		},
 	},
 	'should allow one movement per round': {
-		test(game, format) {
+		test(game) {
 			const players = addPlayers(game, 4);
 			game.start();
 			game.canMove = true;
@@ -511,12 +511,12 @@ const tests: GameFileTests<DarkraisLair> = {
 		},
 	},
 	'should properly handle Shadow Spike': {
-		test(game, format) {
+		test(game) {
 			const players = addPlayers(game, 4);
 			game.start();
 
-			const map = game.getMap(players[0]);
-			const floorIndex = game.getFloorIndex(players[0]);
+			const map = game.getMap();
+			const floorIndex = game.getFloorIndex();
 			const floor = map.floors[floorIndex];
 			const coordinates = [0, 0];
 			const space = floor.spaces[game.coordinatesToString(coordinates[0], coordinates[1])];
@@ -544,12 +544,12 @@ const tests: GameFileTests<DarkraisLair> = {
 		},
 	},
 	'should properly handle Shadow Row': {
-		test(game, format) {
+		test(game) {
 			const players = addPlayers(game, 4);
 			game.start();
 
-			const map = game.getMap(players[0]);
-			const floorIndex = game.getFloorIndex(players[0]);
+			const map = game.getMap();
+			const floorIndex = game.getFloorIndex();
 			const floor = map.floors[floorIndex];
 			const coordinates = [0, 0];
 			const space = floor.spaces[game.coordinatesToString(coordinates[0], coordinates[1])];
@@ -580,12 +580,12 @@ const tests: GameFileTests<DarkraisLair> = {
 		},
 	},
 	'should properly handle Shadow Column': {
-		test(game, format) {
+		test(game) {
 			const players = addPlayers(game, 4);
 			game.start();
 
-			const map = game.getMap(players[0]);
-			const floorIndex = game.getFloorIndex(players[0]);
+			const map = game.getMap();
+			const floorIndex = game.getFloorIndex();
 			const floor = map.floors[floorIndex];
 			const coordinates = [0, 0];
 			const space = floor.spaces[game.coordinatesToString(coordinates[0], coordinates[1])];
@@ -616,12 +616,12 @@ const tests: GameFileTests<DarkraisLair> = {
 		},
 	},
 	'should properly handle Shadow Sphere': {
-		test(game, format) {
+		test(game) {
 			const players = addPlayers(game, 4);
 			game.start();
 
-			const map = game.getMap(players[0]);
-			const floorIndex = game.getFloorIndex(players[0]);
+			const map = game.getMap();
+			const floorIndex = game.getFloorIndex();
 			const floor = map.floors[floorIndex];
 			const coordinates = [2, 2];
 			const space = floor.spaces[game.coordinatesToString(coordinates[0], coordinates[1])];
@@ -652,12 +652,12 @@ const tests: GameFileTests<DarkraisLair> = {
 		},
 	},
 	'should properly handle Shadow Pit': {
-		test(game, format) {
+		test(game) {
 			const players = addPlayers(game, 4);
 			game.start();
 
-			const map = game.getMap(players[0]);
-			const floorIndex = game.getFloorIndex(players[0]);
+			const map = game.getMap();
+			const floorIndex = game.getFloorIndex();
 			const floor = map.floors[floorIndex];
 			const coordinates = [0, 0];
 			const space = floor.spaces[game.coordinatesToString(coordinates[0], coordinates[1])];

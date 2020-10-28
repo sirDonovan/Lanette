@@ -20,10 +20,10 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.pokemonToActionCard(this);
 			},
-			getAutoPlayTarget(game, hand) {
+			getAutoPlayTarget() {
 				return this.name;
 			},
-			isPlayableTarget(game, hand) {
+			isPlayableTarget() {
 				return true;
 			},
 		},
@@ -33,10 +33,10 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.pokemonToActionCard(this);
 			},
-			getAutoPlayTarget(game, hand) {
+			getAutoPlayTarget() {
 				return this.name;
 			},
-			isPlayableTarget(game, hand) {
+			isPlayableTarget() {
 				return true;
 			},
 		},
@@ -46,10 +46,10 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.pokemonToActionCard(this);
 			},
-			getAutoPlayTarget(game, hand) {
+			getAutoPlayTarget() {
 				return this.name;
 			},
-			isPlayableTarget(game, hand) {
+			isPlayableTarget() {
 				return true;
 			},
 		},
@@ -161,26 +161,26 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 
 			const playerCardAmounts: Dict<number> = {};
 			let cardPool: ICard[] = [];
-			for (const i in this.players) {
-				if (this.players[i].eliminated) continue;
-				const player = this.players[i];
-				const cards = this.playerCards.get(player)!;
+			for (const id in this.players) {
+				if (this.players[id].eliminated) continue;
+				const otherPlayer = this.players[id];
+				const otherPlayerCards = this.playerCards.get(otherPlayer)!;
 				let shuffled = 0;
 				for (let i = 0; i < amount; i++) {
-					if (!cards.length) break;
-					const random = this.sampleOne(cards);
+					if (!otherPlayerCards.length) break;
+					const random = this.sampleOne(otherPlayerCards);
 					cardPool.push(random);
-					cards.splice(cards.indexOf(random), 1);
+					otherPlayerCards.splice(otherPlayerCards.indexOf(random), 1);
 					shuffled++;
 				}
-				playerCardAmounts[player.id] = shuffled;
+				playerCardAmounts[otherPlayer.id] = shuffled;
 			}
 			cardPool = this.shuffle(cardPool);
 			for (const i in playerCardAmounts) {
-				const cards = this.playerCards.get(this.players[i])!;
+				const otherPlayerCards = this.playerCards.get(this.players[i])!;
 				// don't create a new array; messes with other methods
 				for (let j = 0; j < playerCardAmounts[i]; j++) {
-					cards.push(cardPool[0]);
+					otherPlayerCards.push(cardPool[0]);
 					cardPool.shift();
 				}
 				if (this.players[i] !== player) this.updatePlayerHtmlPage(this.players[i]);
@@ -189,8 +189,8 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 			let pair: IPokemonCard | null = null;
 			while (!pair) {
 				const possiblePair = this.getCard() as IPokemonCard;
-				for (const card of cards) {
-					if (this.isPlayableCard(possiblePair, card)) {
+				for (const possibleCard of cards) {
+					if (this.isPlayableCard(possiblePair, possibleCard)) {
 						pair = possiblePair;
 						break;
 					}
@@ -230,7 +230,7 @@ const commands: GameCommandDefinitions<StakatakasCardTower> = {
 
 const tests: GameFileTests<StakatakasCardTower> = {
 	'it should properly detect possible chains': {
-		test(game, format): void {
+		test(game): void {
 			addPlayers(game, 4);
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Pikachu"));
 			game.start();
@@ -253,7 +253,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 		config: {
 			async: true,
 		},
-		async test(game, format): Promise<void> {
+		async test(game): Promise<void> {
 			addPlayers(game, 4);
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Pikachu"));
 			game.start();
@@ -278,7 +278,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 		config: {
 			async: true,
 		},
-		async test(game, format): Promise<void> {
+		async test(game): Promise<void> {
 			addPlayers(game, 4);
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Pikachu"));
 			game.start();
@@ -299,7 +299,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 		config: {
 			async: true,
 		},
-		async test(game, format): Promise<void> {
+		async test(game): Promise<void> {
 			addPlayers(game, 4);
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Pikachu"));
 			game.start();

@@ -1,6 +1,4 @@
-import type { Room } from "../rooms";
 import type { IGameFile } from "../types/games";
-import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const BASE_NUMBER_OF_NAMES = 2;
@@ -16,7 +14,7 @@ const categories = Object.keys(data) as DataKey[];
 class MagnetonsMashups extends QuestionAndAnswer {
 	roundTime: number = 30 * 1000;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		data["Pokemon"] = Games.getPokemonList().map(x => x.name);
 		data["Pokemon Abilities"] = Games.getAbilitiesList().map(x => x.name);
 		data["Pokemon Items"] = Games.getItemsList().map(x => x.name);
@@ -42,7 +40,7 @@ class MagnetonsMashups extends QuestionAndAnswer {
 			numberOfElements = this.format.options.names;
 		} else {
 			numberOfElements = BASE_NUMBER_OF_NAMES;
-			if (this.format.customizableOptions.names) {
+			if ('names' in this.format.customizableOptions) {
 				numberOfElements += this.random(this.format.customizableOptions.names.max - BASE_NUMBER_OF_NAMES + 1);
 			}
 		}

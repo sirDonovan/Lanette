@@ -85,13 +85,13 @@ export abstract class Chain extends ScriptedGame {
 		for (const i in pool) {
 			const starts = this.getLinkStarts(pool[i]);
 			for (const start of starts) {
-				if (!linkStartsByName[start]) linkStartsByName[start] = [];
+				if (!(start in linkStartsByName)) linkStartsByName[start] = [];
 				if (!linkStartsByName[start].includes(pool[i].id)) linkStartsByName[start].push(pool[i].id);
 			}
 			if (this.canReverseLinks) {
 				const ends = this.getLinkEnds(pool[i]);
 				for (const end of ends) {
-					if (!linkEndsByName[end]) linkEndsByName[end] = [];
+					if (!(end in linkEndsByName)) linkEndsByName[end] = [];
 					if (!linkEndsByName[end].includes(pool[i].id)) linkEndsByName[end].push(pool[i].id);
 				}
 			}
@@ -193,7 +193,7 @@ export abstract class Chain extends ScriptedGame {
 				if (this.survivalRound > 1 && this.roundTime > 3000) this.roundTime -= 500;
 				this.resetLinkCounts();
 				this.setLink();
-				const html = this.getRoundHtml(this.getPlayerNames, null, "Round " + this.survivalRound);
+				const html = this.getRoundHtml(players => this.getPlayerNames(players), null, "Round " + this.survivalRound);
 				const uhtmlName = this.uhtmlBaseName + '-round-html';
 				this.onUhtml(uhtmlName, html, () => {
 					this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
@@ -262,7 +262,7 @@ const commands: GameCommandDefinitions<Chain> = {
 			}
 			const guess = Tools.toId(target);
 			if (this.roundLinks[guess]) return false;
-			const possibleLink: Link | undefined = this.pool[guess];
+			const possibleLink = this.pool[guess] as Link | undefined;
 			if (!possibleLink) {
 				if (!this.format.options.freejoin) this.say("'" + guess + "' is not a valid " + this.linksType + ".");
 				return false;

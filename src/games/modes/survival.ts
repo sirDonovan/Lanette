@@ -2,8 +2,7 @@ import type { Player } from "../../room-activity";
 import type { ScriptedGame } from "../../room-game-scripted";
 import { addPlayers, assert, runCommand } from "../../test/test-tools";
 import type {
-	DefaultGameOption, GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFormat,
-	IGameModeFile
+	DefaultGameOption, GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFormat, IGameModeFile
 } from "../../types/games";
 import type { QuestionAndAnswer } from "../templates/question-and-answer";
 
@@ -62,7 +61,8 @@ class Survival {
 				this.end();
 				return false;
 			}
-			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(this.getPlayerNames, null, "Round " + this.survivalRound));
+			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(players => this.getPlayerNames(players), null,
+				"Round " + this.survivalRound));
 			this.playerList = this.shufflePlayers();
 			if (this.survivalRound > 1) this.increaseDifficulty();
 		}
@@ -134,7 +134,7 @@ const tests: GameFileTests<SurvivalThis> = {
 			async: true,
 		},
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		async test(game, format, attributes): Promise<void> {
+		async test(game): Promise<void> {
 			this.timeout(15000);
 
 			addPlayers(game);

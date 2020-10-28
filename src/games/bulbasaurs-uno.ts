@@ -1,8 +1,6 @@
 import type { Player } from "../room-activity";
-import type { Room } from "../rooms";
 import { assert, assertStrictEqual } from "../test/test-tools";
 import type { GameCommandDefinitions, GameFileTests, IGameAchievement, IGameFile } from "../types/games";
-import type { User } from "../users";
 import type { IActionCardData, ICard, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 
@@ -28,7 +26,7 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.pokemonToActionCard(this);
 			},
-			getRandomTarget(game, hand) {
+			getRandomTarget(game) {
 				let targets: string[] = [Dex.getExistingType(game.sampleOne(Dex.data.typeKeys)).name];
 				while (!this.isPlayableTarget(game, targets)) {
 					targets = [Dex.getExistingType(game.sampleOne(Dex.data.typeKeys)).name];
@@ -71,7 +69,7 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.pokemonToActionCard(this);
 			},
-			getRandomTarget(game, hand) {
+			getRandomTarget(game) {
 				let targets: string[] = [Dex.data.colors[game.sampleOne(Object.keys(Dex.data.colors))]];
 				while (!this.isPlayableTarget(game, targets)) {
 					targets = [Dex.data.colors[game.sampleOne(Object.keys(Dex.data.colors))]];
@@ -226,10 +224,10 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.pokemonToActionCard(this);
 			},
-			getAutoPlayTarget(game, hand) {
+			getAutoPlayTarget() {
 				return this.name;
 			},
-			isPlayableTarget(game, hand) {
+			isPlayableTarget() {
 				return true;
 			},
 		},
@@ -240,10 +238,10 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.pokemonToActionCard(this);
 			},
-			getAutoPlayTarget(game, hand) {
+			getAutoPlayTarget() {
 				return this.name;
 			},
-			isPlayableTarget(game, hand) {
+			isPlayableTarget() {
 				return true;
 			},
 		},
@@ -253,10 +251,10 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.pokemonToActionCard(this);
 			},
-			getAutoPlayTarget(game, hand) {
+			getAutoPlayTarget() {
 				return this.name;
 			},
-			isPlayableTarget(game, hand) {
+			isPlayableTarget() {
 				return true;
 			},
 		},
@@ -267,10 +265,10 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.pokemonToActionCard(this);
 			},
-			getAutoPlayTarget(game, hand) {
+			getAutoPlayTarget() {
 				return this.name;
 			},
-			isPlayableTarget(game, hand) {
+			isPlayableTarget() {
 				return true;
 			},
 		},
@@ -280,10 +278,10 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.pokemonToActionCard(this);
 			},
-			getAutoPlayTarget(game, hand) {
+			getAutoPlayTarget() {
 				return this.name;
 			},
-			isPlayableTarget(game, hand) {
+			isPlayableTarget() {
 				return true;
 			},
 		},
@@ -296,7 +294,7 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 	shinyCardAchievement = BulbasaursUno.achievements.luckofthedraw;
 	typesLimit: number = 20;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		for (const key of Dex.data.typeKeys) {
 			const type = Dex.getExistingType(key);
 			types[type.id] = type.name;
@@ -319,7 +317,7 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 		return this.isCardPair(card, otherCard);
 	}
 
-	arePlayableCards(cards: IPokemonCard[]): boolean {
+	arePlayableCards(): boolean {
 		return true;
 	}
 

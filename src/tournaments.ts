@@ -196,8 +196,8 @@ export class Tournaments {
 				}
 				const database = Storage.getDatabase(room);
 				if (database.queuedTournament) {
-					const format = Dex.getFormat(database.queuedTournament.formatid, true);
-					if (!format || tournament.format.id === format.id) {
+					const queuedFormat = Dex.getFormat(database.queuedTournament.formatid, true);
+					if (!queuedFormat || tournament.format.id === queuedFormat.id) {
 						delete database.queuedTournament;
 						Storage.exportDatabase(room.id);
 					}
@@ -273,7 +273,7 @@ export class Tournaments {
 		let multiplier = 1;
 		if (!format.teamLength || !format.teamLength.battle || format.teamLength.battle > 2) {
 			if (players >= 32) {
-				multiplier += ((Math.floor(players / 32)) * 0.5);
+				multiplier += Math.floor(players / 32) * 0.5;
 			}
 		}
 
@@ -329,7 +329,6 @@ export class Tournaments {
 		let nextScheduledIndex = -1;
 
 		for (let i = 0; i < this.scheduledTournaments[room.id].length; i++) {
-			const date = new Date(this.scheduledTournaments[room.id][i].time);
 			if (this.scheduledTournaments[room.id][i].time >= now) {
 				nextScheduledIndex = i;
 				break;
@@ -497,7 +496,7 @@ export class Tournaments {
 			} else {
 				room.sayModUhtmlChange("userhosted-tournament-approvals", "<div></div>", rank);
 			}
-			if (this.userHostedTournamentNotificationTimeouts[room.id]) {
+			if (room.id in this.userHostedTournamentNotificationTimeouts) {
 				clearTimeout(this.userHostedTournamentNotificationTimeouts[room.id]);
 				room.sayCommand('/notifyoffrank ' + Client.groupSymbols[rank]);
 				delete this.userHostedTournamentNotificationTimeouts[room.id];
@@ -523,11 +522,11 @@ export class Tournaments {
 		if (unreviewed) {
 			const title = 'Unreviewed user-hosted tournaments!';
 			const message = 'There are new user-hosted tournaments in ' + room.title;
-			if (this.userHostedTournamentNotificationTimeouts[room.id]) return;
+			if (room.id in this.userHostedTournamentNotificationTimeouts) return;
 			room.sayCommand('/notifyrank ' + Client.groupSymbols[rank] + ", " + title + ", " + message +
 				", New Challonge tournament to review");
 			this.setUserHostedTournamentNotificationTimer(room);
-		} else if (this.userHostedTournamentNotificationTimeouts[room.id]) {
+		} else if (room.id in this.userHostedTournamentNotificationTimeouts) {
 			clearTimeout(this.userHostedTournamentNotificationTimeouts[room.id]);
 			room.sayCommand('/notifyoffrank ' + Client.groupSymbols[rank]);
 			delete this.userHostedTournamentNotificationTimeouts[room.id];
@@ -564,7 +563,7 @@ export class Tournaments {
 }
 
 export const instantiate = (): void => {
-	const oldTournaments: Tournaments | undefined = global.Tournaments;
+	const oldTournaments = global.Tournaments as Tournaments | undefined;
 
 	global.Tournaments = new Tournaments();
 

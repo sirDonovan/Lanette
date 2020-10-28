@@ -23,7 +23,7 @@ class SableyesTrickHouse extends ScriptedGame {
 	roundDoors: string[] = [];
 	trapChosen: boolean = false;
 
-	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
+	onAddPlayer(player: Player): boolean {
 		if (this.trapChosen || this.round > 1) {
 			player.say("Sorry, the late-join period has ended.");
 			return false;
@@ -87,7 +87,7 @@ class SableyesTrickHouse extends ScriptedGame {
 			this.timeout = setTimeout(() => this.revealTrap(), 5 * 1000);
 		});
 
-		const html = this.getRoundHtml(this.getPlayerNames);
+		const html = this.getRoundHtml(players => this.getPlayerNames(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			const text = "You enter room #" + this.round + " and see the following doors: **" + Tools.joinList(this.roundDoors) + "**";

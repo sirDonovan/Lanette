@@ -6,17 +6,17 @@ import { MapDamageGame } from "./templates/map-damage";
 
 type AchievementNames = "minesweeper" | "voltorbsfuse";
 
-const currency = "fragments";
+const currencyName = "fragments";
 const minesweeperPoints = 4000;
 
 class ElectrodesMinefield extends MapDamageGame {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
 		"minesweeper": {name: "Minesweeper", type: 'points', bits: 1000, description: 'collect at least ' + minesweeperPoints + ' ' +
-			currency},
+			currencyName},
 		"voltorbsfuse": {name: "Voltorb's Fuse", type: 'special', bits: 1000, description: 'get lucky and find Voltorb in the minefield'},
 	};
 
-	currency: string = currency;
+	currency: string = currencyName;
 	map: GameMap | null = null;
 	maxDimensions: number = 10;
 	minDimensions: number = 8;
@@ -40,12 +40,12 @@ class ElectrodesMinefield extends MapDamageGame {
 		}
 	}
 
-	getMap(player?: Player): GameMap {
+	getMap(): GameMap {
 		if (!this.map) this.map = this.generateMap(this.playerCount);
 		return this.map;
 	}
 
-	getFloorIndex(player?: Player): number {
+	getFloorIndex(): number {
 		return this.currentFloor - 1;
 	}
 
@@ -69,7 +69,7 @@ class ElectrodesMinefield extends MapDamageGame {
 		const x = this.random(floor.x);
 		const y = this.random(floor.y);
 		this.say("An Electrode exploded on **(" + x + ", " + y + ")**!");
-		const blastCoordinates = this.radiateFromCoordinates(['' + x, '' + y], (floor.y >= 7 ? 2 : 1));
+		const blastCoordinates = this.radiateFromCoordinates(['' + x, '' + y], floor.y >= 7 ? 2 : 1);
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];

@@ -116,8 +116,8 @@ export class CommandParser {
 		const dict: LoadedCommands<ThisContext, ReturnType> = {};
 		const allAliases: LoadedCommands<ThisContext, ReturnType> = {};
 		for (const i in commands) {
-			const id = Tools.toId(i);
-			if (id in dict) throw new Error("Command '" + i + "' is defined in more than 1 location");
+			const commandId = Tools.toId(i);
+			if (commandId in dict) throw new Error("Command '" + i + "' is defined in more than 1 location");
 
 			const command = Tools.deepClone(commands[i]);
 			if (command.chatOnly && command.pmOnly) throw new Error("Command '" + i + "' cannot be both chat-only and pm-only");
@@ -128,14 +128,14 @@ export class CommandParser {
 				const aliases = command.aliases.slice();
 				delete command.aliases;
 				for (const alias of aliases) {
-					const id = Tools.toId(alias);
-					if (id in dict) throw new Error("Command " + i + "'s alias '" + alias + "' is already a command");
-					if (id in allAliases) throw new Error("Command " + i + "'s alias '" + alias + "' is an alias for another command");
-					allAliases[id] = command;
+					const aliasId = Tools.toId(alias);
+					if (aliasId in dict) throw new Error("Command " + i + "'s alias '" + alias + "' is already a command");
+					if (aliasId in allAliases) throw new Error("Command " + i + "'s alias '" + alias + "' is an alias for another command");
+					allAliases[aliasId] = command;
 				}
 			}
 
-			dict[id] = command;
+			dict[commandId] = command;
 		}
 
 		for (const i in allAliases) {
@@ -191,7 +191,7 @@ export class CommandParser {
 		}
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return await (new CommandContext(command, target, room, user)).run();
+		return await new CommandContext(command, target, room, user).run();
 	}
 
 	getErrorText(error: CommandErrorArray): string {
@@ -261,7 +261,7 @@ export class CommandParser {
 			return Users.self.name + " is currently updating. Please try again shortly!";
 		} else if (error[0] === 'invalidHttpsLink') {
 			return "You must specify a valid HTTPS link.";
-		} else if (error[0] === 'noPmGameRoom') {
+		} else if (error[0] === 'noPmGameRoom') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 			return "You must be in a room that has enabled scripted games and where " + Users.self.name + " has Bot rank (*).";
 		}
 

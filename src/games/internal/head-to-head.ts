@@ -5,7 +5,9 @@ import type { IGameFile, IGameFormat } from "../../types/games";
 import type { User } from "../../users";
 
 export class HeadToHead extends ScriptedGame {
+	leftPlayer: Player | null = null;
 	leftPromotedName: string = '';
+	rightPlayer: Player | null = null;
 	rightPromotedName: string = '';
 	internalGame: boolean = true;
 	noForceEndMessage: boolean = true;
@@ -13,18 +15,16 @@ export class HeadToHead extends ScriptedGame {
 	winner: Player | undefined;
 
 	challengeFormat!: IGameFormat;
-	leftPlayer!: Player;
-	rightPlayer!: Player;
 
 	room!: Room;
 
 	setupChallenge(leftUser: User, rightUser: User, challengeFormat: IGameFormat): void {
 		if (challengeFormat.inputOptions.points) {
-			if (!challengeFormat.customizableOptions.points) {
+			if (!('points' in challengeFormat.customizableOptions)) {
 				challengeFormat.customizableOptions.points = {
 					min: 3,
 					base: 0,
-					max: 20
+					max: 20,
 				};
 			} else {
 				challengeFormat.customizableOptions.points.min = 3;
@@ -54,6 +54,8 @@ export class HeadToHead extends ScriptedGame {
 	}
 
 	onStart(): void {
+		if (!this.leftPlayer || !this.rightPlayer) throw new Error("start() called without left and right players");
+
 		const text = this.leftPlayer.name + " and " + this.rightPlayer.name + " are going head to head in a game of " +
 			this.challengeFormat.nameWithOptions + "!";
 		this.on(text, () => {
@@ -63,6 +65,8 @@ export class HeadToHead extends ScriptedGame {
 	}
 
 	onNextRound(): void {
+		if (!this.leftPlayer || !this.rightPlayer) throw new Error("nextRound() called without left and right players");
+
 		if (this.leftPlayer.eliminated) {
 			this.say(this.leftPlayer.name + " has left the game!");
 			this.timeout = setTimeout(() => this.end(), 5 * 1000);
@@ -82,9 +86,9 @@ export class HeadToHead extends ScriptedGame {
 		if (!game.format.inputOptions.points) {
 			if (game.format.challengePoints && game.format.challengePoints.onevsone) {
 				game.format.options.points = game.format.challengePoints.onevsone;
-			} else if (game.format.customizableOptions.points) {
+			} else if ('points' in game.format.customizableOptions) {
 				game.format.options.points = game.format.customizableOptions.points.max;
-			} else if (game.format.defaultOptions && game.format.defaultOptions.includes('points')) {
+			} else if (game.format.defaultOptions.includes('points')) {
 				game.format.options.points = 10;
 			}
 		}
@@ -98,6 +102,8 @@ export class HeadToHead extends ScriptedGame {
 	}
 
 	onChildEnd(winners: Map<Player, number>): void {
+		if (!this.leftPlayer || !this.rightPlayer) throw new Error("onChildEnd() called without left and right players");
+
 		const leftPlayerPoints = winners.get(this.leftPlayer) || 0;
 		const rightPlayerPoints = winners.get(this.rightPlayer) || 0;
 		this.leftPlayer.reset();
@@ -126,6 +132,8 @@ export class HeadToHead extends ScriptedGame {
 	}
 
 	onEnd(): void {
+		if (!this.leftPlayer || !this.rightPlayer) throw new Error("end() called without left and right players");
+
 		if (this.rightPlayer.eliminated || this.leftPlayer === this.winner) {
 			this.say(this.leftPlayer.name + " has won the matchup!");
 		} else if (this.leftPlayer.eliminated || this.rightPlayer === this.winner) {

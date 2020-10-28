@@ -228,11 +228,11 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 		this.playerCurrency.set(player, this.playerCurrency.get(player)! - amount);
 	}
 
-	onPassOnPropertySpace(player: Player): void {
+	onPassOnPropertySpace(): void {
 		this.beginAuction();
 	}
 
-	onInsufficientCurrencyToAcquire(property: BoardPropertyRentSpace, player: Player): void {
+	onInsufficientCurrencyToAcquire(property: BoardPropertyRentSpace): void {
 		if (this.acquireProperties) {
 			const text = "They do not have enough " + this.currencyPluralName + " so an auction will begin!";
 			this.on(text, () => {
@@ -297,7 +297,7 @@ const commands: GameCommandDefinitions<JellicentsPhantomFinances> = {
 			this.highestBidAmount = amount;
 			if (this.timeout) clearTimeout(this.timeout);
 			this.sayUhtml(this.auctionUhtmlName, "<b>Bidding for</b>: " + this.propertyToAcquire!.name + " (worth " +
-				this.propertyToAcquire!.cost + " " + POKE_DOLLAR +")<br /><br />The current highest bid is <b>" + amount + " " +
+				this.propertyToAcquire!.cost + " " + POKE_DOLLAR + ")<br /><br />The current highest bid is <b>" + amount + " " +
 				POKE_DOLLAR + "</b> from <b>" + player.name + "</b>!");
 			this.timeout = setTimeout(() => this.sellProperty(), 5 * 1000);
 			return true;

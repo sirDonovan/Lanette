@@ -72,7 +72,7 @@ export abstract class CardHighLow extends Card {
 
 		const canPlay = this.currentCategory && player && !this.roundPlays.has(player);
 		let bestDetail = -1;
-		if (this.highOrLow && canPlay) {
+		if (canPlay) {
 			bestDetail = sorted[0].detail;
 		}
 
@@ -197,13 +197,15 @@ export abstract class CardHighLow extends Card {
 			return;
 		}
 		if (remainingPlayers === 1) return this.end();
+
 		this.highOrLow = this.random(2) ? 'High' : 'Low';
 		if (!this.categoryList.length) this.categoryList = this.shuffle(this.detailCategories);
 		const category = this.categoryList[0];
 		this.categoryList.shift();
 		this.currentCategory = category;
 		this.roundPlays.clear();
-		const html = this.getRoundHtml(this.getPlayerPoints);
+
+		const html = this.getRoundHtml(players => this.getPlayerPoints(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			const text = "The randomly chosen category is **" + this.highOrLow + " " + this.categoryAbbreviations[category] + " (" +

@@ -1,6 +1,4 @@
-import type { Room } from "../rooms";
 import type { IGameFile } from "../types/games";
-import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const data: {'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]} = {
@@ -26,7 +24,7 @@ class MareaniesMarquee extends QuestionAndAnswer {
 	roundTime = 0;
 	updateHintTime = 1500;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		data["Pokemon"] = Games.getPokemonList().map(x => x.name).filter(x => x.length > LETTERS_TO_REVEAL);
 		data["Pokemon Abilities"] = Games.getAbilitiesList().map(x => x.name).filter(x => x.length > LETTERS_TO_REVEAL);
 		data["Pokemon Items"] = Games.getItemsList().map(x => x.name).filter(x => x.length > LETTERS_TO_REVEAL);

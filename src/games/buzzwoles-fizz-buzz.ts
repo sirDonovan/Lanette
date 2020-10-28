@@ -1,8 +1,6 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { Room } from "../rooms";
 import type { GameCommandDefinitions, IGameFile } from "../types/games";
-import type { User } from "../users";
 
 type ExpectedMultiple = 'firstMultiple' | 'secondMultiple' | 'both' | number;
 
@@ -25,7 +23,7 @@ class BuzzwolesFizzBuzz extends ScriptedGame {
 	roundCategories: {'firstMultiple': string; 'secondMultiple': string} = {firstMultiple: '', secondMultiple: ''};
 	expectedMultiples: {'firstMultiple': string[]; 'secondMultiple': string[]} = {firstMultiple: [], secondMultiple: []};
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		for (const key of Dex.data.typeKeys) {
 			data.categories.push(Dex.getExistingType(key).name + " type Pokemon");
 		}
@@ -94,7 +92,7 @@ class BuzzwolesFizzBuzz extends ScriptedGame {
 		this.expectedMultiples['secondMultiple'] = data.categoryPools[Tools.toId(secondCategory)].slice();
 		this.quizRound++;
 
-		const html = this.getRoundHtml(this.getPlayerNames, undefined, "Round " + this.quizRound);
+		const html = this.getRoundHtml(players => this.getPlayerNames(players), undefined, "Round " + this.quizRound);
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			this.timeout = setTimeout(() => {
@@ -122,7 +120,7 @@ class BuzzwolesFizzBuzz extends ScriptedGame {
 		if (!this.playerList.length) this.playerList = this.playerOrder.slice();
 		let player = this.playerList[0];
 		this.playerList.shift();
-		while (player && player.eliminated) {
+		while (player.eliminated) {
 			if (!this.playerList.length) {
 				this.playerList = this.playerOrder.slice();
 			}

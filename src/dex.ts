@@ -1,19 +1,15 @@
 import path = require('path');
 
 import { alternateIconNumbers } from './data/alternate-icon-numbers';
-import { badges } from './data/badges';
-import { categories } from './data/categories';
-import { characters } from './data/characters';
+import { badges as badgeData } from './data/badges';
+import { categories as categoryData } from './data/categories';
+import { characters as characterData } from './data/characters';
 import { formatLinks } from './data/format-links';
-import { locations } from './data/locations';
+import { locations as locationData } from './data/locations';
 import { trainerClasses } from './data/trainer-classes';
+import type { CategoryData, IDataTable, IGetPossibleTeamsOptions, IGifData, ISeparatedCustomRules, LocationTypes } from './types/dex';
 import type {
-	CategoryData, IDataTable, IGetPossibleTeamsOptions,
-	IGifData, ISeparatedCustomRules, LocationTypes
-} from './types/dex';
-import type {
-	IAbility, IAbilityCopy, IFormat,
-	IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy,
+	IAbility, IAbilityCopy, IFormat, IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy,
 	IPokemonShowdownDex, IPokemonShowdownValidator, IPSFormat, ITypeData
 } from './types/pokemon-showdown';
 
@@ -293,7 +289,7 @@ export class Dex {
 		}
 		/* eslint-enable */
 
-		const parsedCategories: CategoryData = categories;
+		const parsedCategories: CategoryData = categoryData;
 		const speciesList = Object.keys(parsedCategories);
 		for (const species of speciesList) {
 			const id = Tools.toId(species);
@@ -354,12 +350,10 @@ export class Dex {
 					}
 				}
 
-				if (pokemon.eggGroups) {
-					for (const eggGroup of pokemon.eggGroups) {
-						const id = Tools.toId(eggGroup);
-						if (!(id in eggGroups)) {
-							eggGroups[id] = eggGroup;
-						}
+				for (const eggGroup of pokemon.eggGroups) {
+					const id = Tools.toId(eggGroup);
+					if (!(id in eggGroups)) {
+						eggGroups[id] = eggGroup;
 					}
 				}
 			}
@@ -384,14 +378,14 @@ export class Dex {
 			pokemonKeys: filteredPokemonKeys,
 			typeKeys: Object.keys(this.pokemonShowdownDex.data.TypeChart).map(x => Tools.toId(x)),
 			alternateIconNumbers,
-			badges,
+			badges: badgeData,
 			categories: parsedCategories,
-			characters,
+			characters: characterData,
 			colors,
 			eggGroups,
 			gifData,
 			gifDataBW,
-			locations,
+			locations: locationData,
 			natures,
 			trainerClasses,
 			trainerSprites,
@@ -807,7 +801,7 @@ export class Dex {
 	 * Returns true if target is immune to source
 	 */
 	isImmune(source: IMove | string, target: string | readonly string[] | IPokemon): boolean {
-		const sourceType = (typeof source === 'string' ? source : source.type);
+		const sourceType = typeof source === 'string' ? source : source.type;
 		let targetType: string | readonly string[];
 		if (typeof target === 'string') {
 			targetType = target;
@@ -863,7 +857,7 @@ export class Dex {
 	 * Returns >=1 if super-effective, <=1 if not very effective
 	 */
 	getEffectiveness(source: IMove | string, target: IPokemon | string | readonly string[]): number {
-		const sourceType = (typeof source === 'string' ? source : source.type);
+		const sourceType = typeof source === 'string' ? source : source.type;
 		let targetType: string | readonly string[];
 		if (typeof target === 'string') {
 			targetType = target;
@@ -1084,8 +1078,8 @@ export class Dex {
 	}
 
 	getFormat(name: string, isValidated?: boolean): IFormat | undefined {
-		let id = Tools.toId(name);
-		if (!id) return;
+		let formatId = Tools.toId(name);
+		if (!formatId) return;
 
 		name = name.trim();
 		const inputTarget = name;
@@ -1114,11 +1108,12 @@ export class Dex {
 				name = split[0];
 			}
 
-			id = name;
-			if (id in customRuleFormats) {
-				const split = this.splitNameAndCustomRules(customRuleFormats[id].format + '@@@' + customRuleFormats[id].banlist);
-				name = split[0];
-				allCustomRules = allCustomRules.concat(split[1]);
+			formatId = name;
+			if (formatId in customRuleFormats) {
+				const customRuleSplit = this.splitNameAndCustomRules(customRuleFormats[formatId].format + '@@@' +
+					customRuleFormats[formatId].banlist);
+				name = customRuleSplit[0];
+				allCustomRules = allCustomRules.concat(customRuleSplit[1]);
 			}
 
 			const uniqueCustomRules: string[] = [];
@@ -1744,7 +1739,7 @@ export class Dex {
 							}
 						}
 
-						const combinations = Tools.getCombinations(...(notEvolvingPokemon.concat(choice.map(x => pokemonEvolutions[x]))));
+						const combinations = Tools.getCombinations(...notEvolvingPokemon.concat(choice.map(x => pokemonEvolutions[x])));
 						for (const combination of combinations) {
 							const key = this.getPossibleTeamKey(combination);
 							if (key in includedTeamsAfterEvolutions) continue;
@@ -1800,9 +1795,9 @@ export class Dex {
 
 		let isPossible = false;
 		for (const possibleTeam of possibleTeams) {
-			const team = possibleTeam.slice();
-			team.sort();
-			if (Tools.compareArrays(team, names)) {
+			const copy = possibleTeam.slice();
+			copy.sort();
+			if (Tools.compareArrays(copy, names)) {
 				isPossible = true;
 				break;
 			}
@@ -1834,13 +1829,11 @@ export class Dex {
 				break;
 			}
 
-			if (learnsetData && learnsetData.learnset) {
-				if (learnsetData.learnset.sketch) {
-					possibleMoves = Object.keys(this.pokemonShowdownDex.data.Moves);
-					break;
-				}
-				possibleMoves = possibleMoves.concat(Object.keys(learnsetData.learnset));
+			if ('sketch' in learnsetData.learnset) {
+				possibleMoves = Object.keys(this.pokemonShowdownDex.data.Moves);
+				break;
 			}
+			possibleMoves = possibleMoves.concat(Object.keys(learnsetData.learnset));
 
 			const previousLearnsetParent: IPokemon = learnsetParent;
 			learnsetParent = validator.learnsetParent(learnsetParent);
@@ -1933,7 +1926,7 @@ export class Dex {
 }
 
 export const instantiate = (): void => {
-	const oldDex: Dex | undefined = global.Dex;
+	const oldDex = global.Dex as Dex | undefined;
 
 	global.Dex = new Dex();
 	for (let i = CURRENT_GEN - 1; i >= 1; i--) {

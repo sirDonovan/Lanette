@@ -1,6 +1,4 @@
-import type { Room } from "../rooms";
 import type { IGameAchievement, IGameFile } from "../types/games";
-import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 type AchievementNames = "alphabetsweep";
@@ -28,7 +26,7 @@ class FeraligatrsLostLetters extends QuestionAndAnswer {
 	inverseLostLetters: boolean = false;
 	roundTime: number = 10 * 1000;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		data["Characters"] = Dex.getCharacters();
 		data["Locations"] = Dex.getLocations();
 		data["Pokemon"] = Games.getPokemonList().map(x => x.name);

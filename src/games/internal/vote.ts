@@ -23,7 +23,7 @@ export class Vote extends ScriptedGame {
 		const ended = this.canVote === false;
 
 		const formatCounts: Dict<number> = {};
-		this.votes.forEach((formatid, player) => {
+		this.votes.forEach((formatid) => {
 			const format = Games.getExistingFormat(formatid);
 			const name = format.nameWithOptions;
 			if (!(name in formatCounts)) formatCounts[name] = 0;
@@ -194,9 +194,9 @@ const commands: GameCommandDefinitions<Vote> = {
 			} else {
 				if (targetId === 'leastplayed' || targetId === 'lpgame') {
 					const formats = Games.getLeastPlayedFormats(this.room);
-					for (const format of formats) {
-						if (Games.canCreateGame(this.room, format) === true) {
-							target = format.name;
+					for (const leastPlayedFormat of formats) {
+						if (Games.canCreateGame(this.room, leastPlayedFormat) === true) {
+							target = leastPlayedFormat.name;
 							break;
 						}
 					}

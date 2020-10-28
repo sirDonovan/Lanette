@@ -72,7 +72,7 @@ export abstract class BoardGame extends ScriptedGame {
 			const player = this.players[id];
 			if (!player.eliminated) {
 				const location = this.playerLocations.get(player)!;
-				if (!playerLocations[location.side][location.space]) playerLocations[location.side][location.space] = [];
+				if (!(location.space in playerLocations[location.side])) playerLocations[location.side][location.space] = [];
 				playerLocations[location.side][location.space].push(player);
 			}
 		}
@@ -87,14 +87,15 @@ export abstract class BoardGame extends ScriptedGame {
 			html += "<tr style='height:25px'>";
 			html += this.getSpaceHtml('leftColumn', i, playerLocations);
 			if (i === topCorner) {
-				for (let i = 0; i < this.board.topRow.length; i++) {
-					html += this.getSpaceHtml('topRow', i, playerLocations);
+				for (let j = 0; j < this.board.topRow.length; j++) {
+					html += this.getSpaceHtml('topRow', j, playerLocations);
 				}
 			} else if (i === 0) {
-				for (let i = this.board.bottomRow.length - 1; i >= 0; i--) {
-					html += this.getSpaceHtml('bottomRow', i, playerLocations);
+				for (let j = this.board.bottomRow.length - 1; j >= 0; j--) {
+					html += this.getSpaceHtml('bottomRow', j, playerLocations);
 				}
 			} else {
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
 				for (const space of this.board.bottomRow) {
 					html += "<td>&nbsp;</td>";
 				}
@@ -134,7 +135,8 @@ export abstract class BoardGame extends ScriptedGame {
 			this.boardRound++;
 			this.playerList = this.playerOrder.slice();
 			const uhtmlName = this.uhtmlBaseName + '-round';
-			const html = this.getRoundHtml(this.getPlayerLetters, this.getRemainingPlayers(this.playerOrder), "Round " + this.boardRound);
+			const html = this.getRoundHtml(players => this.getPlayerLetters(players), this.getRemainingPlayers(this.playerOrder),
+				"Round " + this.boardRound);
 			this.onUhtml(uhtmlName, html, () => {
 				this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 			});
@@ -252,14 +254,14 @@ export abstract class BoardGame extends ScriptedGame {
 const tests: GameFileTests<BoardGame> = {
 	'it should have equal size columns and rows': {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		test(game, format): void {
+		test(game): void {
 			assertStrictEqual(game.board.leftColumn.length, game.board.rightColumn.length);
 			assertStrictEqual(game.board.topRow.length, game.board.bottomRow.length);
 		},
 	},
 	'it should properly determine space order in getLocationAfterMovement': {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		test(game, format): void {
+		test(game): void {
 			// forward movement
 			let locationAfterMovement = game.getLocationAfterMovement({side: 'leftColumn', space: 0}, 1);
 			assertStrictEqual(locationAfterMovement.side, 'leftColumn');
@@ -345,7 +347,7 @@ const tests: GameFileTests<BoardGame> = {
 	},
 	'it should have properly initialized board spaces': {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		test(game, format): void {
+		test(game): void {
 			let location: IMovedBoardLocation = {side: 'leftColumn', space: 0, passedSpaces: []};
 			let spaceId = location.side + ": " + location.space;
 			let space = game.board[location.side][location.space];

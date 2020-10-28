@@ -1,9 +1,7 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { Room } from "../rooms";
 import type { GameCommandDefinitions, IGameFile } from "../types/games";
 import type { IPokemon } from "../types/pokemon-showdown";
-import type { User } from "../users";
 
 const data: {pokemon: Dict<readonly string[]>} = {
 	pokemon: {},
@@ -23,7 +21,7 @@ class MachopsMatchups extends ScriptedGame {
 	// set once the game starts
 	currentPokemon!: IPokemon;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		const pokemonList = Games.getPokemonList(x => !x.forme && !banlist.includes(x.id) && Dex.hasGifData(x) && x.types.length > 1 &&
 			!x.types.includes('Steel') && !x.types.includes('Normal'));
 
@@ -72,22 +70,22 @@ class MachopsMatchups extends ScriptedGame {
 
 		this.currentPokemon = Dex.getExistingPokemon(this.sampleOne(Object.keys(data.pokemon)));
 		this.roundActions.clear();
-		const html = this.getRoundHtml(this.getPlayerPoints);
-		const uhtmlName = this.uhtmlBaseName + '-round-html';
-		this.onUhtml(uhtmlName, html, () => {
+		const roundHtml = this.getRoundHtml(players => this.getPlayerPoints(players));
+		const roundUhtmlName = this.uhtmlBaseName + '-round-html';
+		this.onUhtml(roundUhtmlName, roundHtml, () => {
 			this.timeout = setTimeout(() => {
-				const html = "<center>" + Dex.getPokemonGif(this.currentPokemon) + "<br /><b>" + this.currentPokemon.name + "</b><br />" +
-					Dex.getTypeHtml(Dex.getExistingType(this.currentPokemon.types[0])) + "&nbsp;/&nbsp;" +
+				const pokemonHtml = "<center>" + Dex.getPokemonGif(this.currentPokemon) + "<br /><b>" + this.currentPokemon.name +
+					"</b><br />" + Dex.getTypeHtml(Dex.getExistingType(this.currentPokemon.types[0])) + "&nbsp;/&nbsp;" +
 					Dex.getTypeHtml(Dex.getExistingType(this.currentPokemon.types[1])) + "</center>";
-				const uhtmlName = this.uhtmlBaseName + '-pokemon';
-				this.onUhtml(uhtmlName, html, () => {
+				const pokemonUhtmlName = this.uhtmlBaseName + '-pokemon';
+				this.onUhtml(pokemonUhtmlName, pokemonHtml, () => {
 					this.canAttack = true;
 					this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 				});
-				this.sayUhtml(uhtmlName, html);
+				this.sayUhtml(pokemonUhtmlName, pokemonHtml);
 			}, 5 * 1000);
 		});
-		this.sayUhtml(uhtmlName, html);
+		this.sayUhtml(roundUhtmlName, roundHtml);
 	}
 
 	onEnd(): void {

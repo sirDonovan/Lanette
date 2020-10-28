@@ -53,8 +53,8 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	}
 
 	getHintHtml(): string {
-		return "<div style='padding-bottom:5px'>" + this.getMascotAndNameHtml((this.additionalHintHeader ? " " + this.additionalHintHeader :
-			"")) + "<br /><br />" + this.hint + "</div>";
+		return "<div style='padding-bottom:5px'>" + this.getMascotAndNameHtml(this.additionalHintHeader ? " " + this.additionalHintHeader :
+			"") + "<br /><br />" + this.hint + "</div>";
 	}
 
 	repostInformation(): void {
@@ -173,8 +173,8 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	async checkAnswer(guess: string): Promise<string> {
 		guess = Tools.toId(guess);
 		let match = '';
-		const guessMega = (guess.substr(0, 4) === 'mega' ? guess.substr(4) + 'mega' : '');
-		const guessPrimal = (guess.substr(0, 6) === 'primal' ? guess.substr(6) + 'primal' : '');
+		const guessMega = guess.substr(0, 4) === 'mega' ? guess.substr(4) + 'mega' : '';
+		const guessPrimal = guess.substr(0, 6) === 'primal' ? guess.substr(6) + 'primal' : '';
 		for (const answer of this.answers) {
 			const id = Tools.toId(answer);
 			if (id === guess || (guessMega && id === guessMega) || (guessPrimal && id === guessPrimal)) {
@@ -285,7 +285,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			async: true,
 		},
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		async test(game, format): Promise<void> {
+		async test(game): Promise<void> {
 			this.timeout(15000);
 
 			assert(!game.canGuess);
@@ -310,7 +310,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			async: true,
 		},
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		async test(game, format): Promise<void> {
+		async test(game): Promise<void> {
 			this.timeout(15000);
 
 			await game.onNextRound();
@@ -333,7 +333,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			async: true,
 		},
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		async test(game, format): Promise<void> {
+		async test(game): Promise<void> {
 			this.timeout(15000);
 
 			if (game.roundTime) {
@@ -354,7 +354,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			async: true,
 		},
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		async test(game, format): Promise<void> {
+		async test(game): Promise<void> {
 			this.timeout(15000);
 
 			if (game.roundTime) {
@@ -370,7 +370,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			async: true,
 		},
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		async test(game, format): Promise<void> {
+		async test(game): Promise<void> {
 			this.timeout(15000);
 
 			if (game.roundTime) {
@@ -386,7 +386,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			async: true,
 		},
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		async test(game, format): Promise<void> {
+		async test(game): Promise<void> {
 			this.timeout(15000);
 
 			const name = getBasePlayerName() + " 1";
@@ -420,7 +420,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			game.deallocate(true);
 
 			const minigame = Games.createGame(game.room,
-				(format as unknown) as IGameFormat<ScriptedGame>, game.room as Room, true) as QuestionAndAnswer;
+				(format as unknown) as IGameFormat, game.room as Room, true) as QuestionAndAnswer;
 			minigame.signups();
 			if (minigame.timeout) clearTimeout(minigame.timeout);
 			await minigame.onNextRound();
@@ -446,7 +446,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			const id = Tools.toId(name);
 			const user = Users.add(name, id);
 			const pmMinigame = Games.createGame(user,
-				(format as unknown) as IGameFormat<ScriptedGame>, game.room as Room, true) as QuestionAndAnswer;
+				(format as unknown) as IGameFormat, game.room as Room, true) as QuestionAndAnswer;
 
 			pmMinigame.signups();
 			if (pmMinigame.timeout) clearTimeout(pmMinigame.timeout);
@@ -459,7 +459,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			pmMinigame.deallocate(true);
 			Users.remove(user);
 		},
-	}
+	},
 };
 
 export const game: IGameTemplateFile<QuestionAndAnswer> = {

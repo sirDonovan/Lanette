@@ -91,5 +91,5 @@ export const trainerClasses: TrainerClassData = [
 	"Rich Boy",
 	"Ruin Maniac",
 	"Triathlete",
-	"Tuber"
+	"Tuber",
 ];

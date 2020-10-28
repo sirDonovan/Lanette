@@ -5,7 +5,7 @@ import type { CommandDefinitions } from "../types/command-parser";
 
 const commandsDict: CommandDefinitions<CommandContext> = {
 	pluginexample: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-unused-vars
 		command(target, room, user) {
 			this.say("This is an example plugin command.");
 		},

@@ -33,7 +33,7 @@ class AbsolsDiceDisaster extends ScriptedGame {
 		this.bestPlayer = null;
 		this.bestBid = -1;
 		const uhtmlName = this.uhtmlBaseName + '-round';
-		const html = this.getRoundHtml(this.getPlayerNames);
+		const html = this.getRoundHtml(players => this.getPlayerNames(players));
 		this.onUhtml(uhtmlName, html, () => {
 			this.roundDiceRoll = Math.floor(Math.random() * this.maxBid) + 1;
 			let absolSense: string = "Absol senses ";
@@ -63,12 +63,12 @@ class AbsolsDiceDisaster extends ScriptedGame {
 			return;
 		}
 
-		const text = "**" + this.bestPlayer.name + "** has the highest bid of " + this.bestBid + "!";
-		this.on(text, () => {
+		const bidText = "**" + this.bestPlayer.name + "** has the highest bid of " + this.bestBid + "!";
+		this.on(bidText, () => {
 			this.timeout = setTimeout(() => {
-				const text = "The dice landed on " + this.roundDiceRoll + "!";
+				const diceText = "The dice landed on " + this.roundDiceRoll + "!";
 				if (this.roundDiceRoll >= this.bestBid) {
-					this.say(text);
+					this.say(diceText);
 					for (const i in this.players) {
 						if (this.players[i] === this.bestPlayer!) continue;
 						this.players[i].eliminated = true;
@@ -76,13 +76,13 @@ class AbsolsDiceDisaster extends ScriptedGame {
 					this.end();
 					return;
 				} else {
-					this.say(text + " **" + this.bestPlayer!.name + "** has been eliminated from the game.");
+					this.say(diceText + " **" + this.bestPlayer!.name + "** has been eliminated from the game.");
 					this.bestPlayer!.eliminated = true;
 					this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 				}
 			}, 5 * 1000);
 		});
-		this.say(text);
+		this.say(bidText);
 	}
 
 	onEnd(): void {

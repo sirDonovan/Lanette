@@ -5,7 +5,9 @@ import type { IGameFile, IGameFormat } from "../../types/games";
 import type { User } from "../../users";
 
 export class OneVsOne extends ScriptedGame {
+	challenger: Player | null = null;
 	challengerPromotedName: string = '';
+	defender: Player | null = null;
 	defenderPromotedName: string = '';
 	internalGame: boolean = true;
 	noForceEndMessage: boolean = true;
@@ -13,8 +15,6 @@ export class OneVsOne extends ScriptedGame {
 	winner: Player | undefined;
 
 	challengeFormat!: IGameFormat;
-	defender!: Player;
-	challenger!: Player;
 
 	room!: Room;
 
@@ -29,7 +29,7 @@ export class OneVsOne extends ScriptedGame {
 			challengeFormat.nameWithOptions + "!";
 		this.on(text, () => {
 			this.timeout = setTimeout(() => {
-				this.say(this.defender.name + " failed to accept the challenge in time!");
+				this.say(this.defender!.name + " failed to accept the challenge in time!");
 				this.forceEnd(Users.self);
 			}, 2 * 60 * 1000);
 		});
@@ -67,7 +67,7 @@ export class OneVsOne extends ScriptedGame {
 	}
 
 	rejectChallenge(user: User): boolean {
-		if (this.started) return false;
+		if (this.started || !this.defender) return false;
 		if (user.id !== this.defender.id) {
 			user.say("You are not the defender in the current one vs. one challenge.");
 			return false;
@@ -78,7 +78,7 @@ export class OneVsOne extends ScriptedGame {
 	}
 
 	cancelChallenge(user: User): boolean {
-		if (this.started) return false;
+		if (this.started || !this.challenger) return false;
 		if (user.id !== this.challenger.id) {
 			user.say("You are not the challenger in the current one vs. one challenge.");
 			return false;
@@ -93,6 +93,8 @@ export class OneVsOne extends ScriptedGame {
 	}
 
 	onNextRound(): void {
+		if (!this.challenger || !this.defender) throw new Error("nextRound() called without challenger and defender");
+
 		if (this.defender.eliminated) {
 			this.say(this.defender.name + " has left the game!");
 			this.timeout = setTimeout(() => this.end(), 5 * 1000);
@@ -111,9 +113,9 @@ export class OneVsOne extends ScriptedGame {
 
 		if (game.format.challengePoints && game.format.challengePoints.onevsone) {
 			game.format.options.points = game.format.challengePoints.onevsone;
-		} else if (game.format.customizableOptions.points) {
+		} else if ('points' in game.format.customizableOptions) {
 			game.format.options.points = game.format.customizableOptions.points.max;
-		} else if (game.format.defaultOptions && game.format.defaultOptions.includes('points')) {
+		} else if (game.format.defaultOptions.includes('points')) {
 			game.format.options.points = 10;
 		}
 
@@ -126,6 +128,8 @@ export class OneVsOne extends ScriptedGame {
 	}
 
 	onChildEnd(winners: Map<Player, number>): void {
+		if (!this.challenger || !this.defender) throw new Error("onChildEnd() called without challenger and defender");
+
 		const defenderPoints = winners.get(this.defender) || 0;
 		const challengerPoints = winners.get(this.challenger) || 0;
 		this.defender.reset();
@@ -154,11 +158,15 @@ export class OneVsOne extends ScriptedGame {
 	}
 
 	updateLastChallengeTime(): void {
+		if (!this.challenger) return;
+
 		if (!(this.room.id in Games.lastOneVsOneChallengeTimes)) Games.lastOneVsOneChallengeTimes[this.room.id] = {};
 		Games.lastOneVsOneChallengeTimes[this.room.id][this.challenger.id] = Date.now();
 	}
 
 	onEnd(): void {
+		if (!this.challenger || !this.defender) throw new Error("onEnd() called without challenger and defender");
+
 		if (this.challenger.eliminated || this.defender === this.winner) {
 			this.say(this.defender.name + " has won the challenge!");
 		} else if (this.defender.eliminated || this.challenger === this.winner) {
@@ -171,7 +179,7 @@ export class OneVsOne extends ScriptedGame {
 
 	onForceEnd(user?: User): void {
 		this.resetModchatAndRanks();
-		if (user && user.id === this.challenger.id) {
+		if (user && this.challenger && user.id === this.challenger.id) {
 			this.updateLastChallengeTime();
 		}
 	}

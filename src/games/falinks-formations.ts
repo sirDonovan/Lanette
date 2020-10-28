@@ -36,7 +36,7 @@ class FalinksFormations extends ScriptedGame {
 
 			this.formationsRound++;
 			this.sayUhtml(this.uhtmlBaseName + '-round-html',
-				this.getRoundHtml(this.getPlayerPoints, null, "Round " + this.formationsRound));
+				this.getRoundHtml(players => this.getPlayerPoints(players), null, "Round " + this.formationsRound));
 			this.playerList = this.shufflePlayers();
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 			return;

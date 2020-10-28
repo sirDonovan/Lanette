@@ -1,7 +1,5 @@
 import type { Player } from "../room-activity";
-import type { Room } from "../rooms";
 import type { IGameAchievement, IGameFile } from "../types/games";
-import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 type AchievementNames = "moverelearner";
@@ -27,7 +25,7 @@ class SmearglesMysteryMoves extends QuestionAndAnswer {
 	roundTime = 0;
 	updateHintTime = 5 * 1000;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		data.moves = Games.getMovesList(x => !!x.shortDesc).map(x => x.name);
 	}
 
@@ -99,6 +97,6 @@ export const game: IGameFile<SmearglesMysteryMoves> = Games.copyTemplateProperti
 			description: "Players guess moves based on the given hints (unlimited guesses)!",
 			variantAliases: ["unlimited", "unlimited guess", "unlimited guesses"],
 			roundGuesses: undefined,
-		}
+		},
 	],
 });

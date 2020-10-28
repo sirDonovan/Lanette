@@ -82,7 +82,7 @@ class PoipolesRegionalPortals extends ScriptedGame {
 		}
 		this.roundTravels.clear();
 
-		const html = this.getRoundHtml(this.getPlayerPoints);
+		const html = this.getRoundHtml(players => this.getPlayerPoints(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			this.timeout = setTimeout(() => {
@@ -115,7 +115,7 @@ const commands: GameCommandDefinitions<PoipolesRegionalPortals> = {
 			this.roundLocations.splice(index, 1);
 
 			let points = this.points.get(player) || 0;
-			points += (BASE_TRAVELERS_PER_ROUND - this.roundTravels.size);
+			points += BASE_TRAVELERS_PER_ROUND - this.roundTravels.size;
 			this.points.set(player, points);
 
 			this.roundTravels.add(player);

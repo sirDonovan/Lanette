@@ -2,8 +2,7 @@ import type { Player, PlayerTeam } from "../../room-activity";
 import type { ScriptedGame } from "../../room-game-scripted";
 import { addPlayers, assert, assertStrictEqual, runCommand } from "../../test/test-tools";
 import type {
-	DefaultGameOption, GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFormat,
-	IGameModeFile
+	DefaultGameOption, GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFormat, IGameModeFile
 } from "../../types/games";
 import type { QuestionAndAnswer } from "../templates/question-and-answer";
 
@@ -26,7 +25,7 @@ class Team {
 	// set in onStart()
 	largestTeam!: PlayerTeam;
 
-	static setOptions<T extends ScriptedGame>(format: IGameFormat<T>, namePrefixes: string[], nameSuffixes: string[]): void {
+	static setOptions<T extends ScriptedGame>(format: IGameFormat<T>, namePrefixes: string[]): void {
 		if (!format.name.includes(name)) namePrefixes.unshift(name);
 		format.description += ' ' + description;
 
@@ -39,7 +38,7 @@ class Team {
 			delete format.customizableOptions[option];
 		}
 
-		if (!format.customizableOptions.teamPoints) {
+		if (!('teamPoints' in format.customizableOptions)) {
 			format.customizableOptions.teamPoints = {
 				min: BASE_POINTS,
 				base: BASE_POINTS,
@@ -99,7 +98,7 @@ class Team {
 			}
 
 			this.teamRound++;
-			const html = this.getRoundHtml(this.getTeamPoints, undefined, 'Round ' + this.teamRound, "Team standings");
+			const html = this.getRoundHtml(() => this.getTeamPoints(), undefined, 'Round ' + this.teamRound, "Team standings");
 			this.sayUhtml(this.uhtmlBaseName + '-round-html', html);
 		} else {
 			for (const id in this.teams) {
@@ -130,7 +129,7 @@ class Team {
 			const points = this.points.get(player);
 			let earnings = 250;
 			if (points) {
-				earnings += (50 * points);
+				earnings += 50 * points;
 			}
 			this.addBits(player, earnings);
 		});

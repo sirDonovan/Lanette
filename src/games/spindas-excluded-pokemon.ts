@@ -1,8 +1,6 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { Room } from "../rooms";
 import type { GameCommandDefinitions, IGameFile } from "../types/games";
-import type { User } from "../users";
 
 interface IPokemonData {
 	color: string[];
@@ -13,7 +11,7 @@ interface IPokemonData {
 }
 type IPokemonCategory = keyof IPokemonData;
 
-const data: {pokemon: Dict<IPokemonData>, keys: string[], allParameters: KeyedDict<IPokemonCategory, string[]>}= {
+const data: {pokemon: Dict<IPokemonData>, keys: string[], allParameters: KeyedDict<IPokemonCategory, string[]>} = {
 	pokemon: {},
 	keys: [],
 	allParameters: {
@@ -48,7 +46,7 @@ class SpindasExcludedPokemon extends ScriptedGame {
 	// set before the first round
 	category!: IPokemonCategory;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		const includedMoves: string[] = [];
 		const moves = Games.getMovesList(x => !x.id.includes('hiddenpower'));
 		for (const move of moves) {
@@ -165,7 +163,7 @@ class SpindasExcludedPokemon extends ScriptedGame {
 			this.roundPlayerOrder = this.shufflePlayers();
 			this.playerOrder = this.roundPlayerOrder.slice();
 			this.excludedRound++;
-			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(this.getPlayerPoints, null, "Round " +
+			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(players => this.getPlayerPoints(players), null, "Round " +
 				this.excludedRound));
 			this.setParameter();
 			this.say("A randomly chosen Pokemon that **is** excluded is **" + this.excludedHint + "**!");
@@ -291,7 +289,7 @@ const commands: GameCommandDefinitions<SpindasExcludedPokemon> = {
 					this.say(player.name + " wins the game! The final parameter was __" + this.parameter + "__.");
 					this.end();
 				} else {
-					this.say(player.name + " advances to **" + points +"** point" + (points > 1 ? "s" : "") + "! The parameter was __" +
+					this.say(player.name + " advances to **" + points + "** point" + (points > 1 ? "s" : "") + "! The parameter was __" +
 						this.parameter + "__.");
 					this.parameter = '';
 					this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);

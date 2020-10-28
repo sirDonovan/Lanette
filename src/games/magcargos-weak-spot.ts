@@ -1,7 +1,5 @@
 import type { Player } from "../room-activity";
-import type { Room } from "../rooms";
 import type { IGameAchievement, IGameFile } from "../types/games";
-import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 type AchievementNames = "achillesheel" | "captainachilles";
@@ -30,7 +28,7 @@ class MagcargosWeakSpot extends QuestionAndAnswer {
 	lastType: string = '';
 	roundGuesses = new Map<Player, boolean>();
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		const types: string[] = [];
 		for (const key of Dex.data.typeKeys) {
 			types.push(Dex.getExistingType(key).name);

@@ -105,7 +105,7 @@ describe("Tournaments", () => {
 
 		day = lastDayOfMonth;
 		date.setDate(day);
-		let startIndex = (times.length * (day - 1));
+		let startIndex = times.length * (day - 1);
 		let endIndex = startIndex + times.length;
 		let timesIndex = 0;
 		for (let i = startIndex; i < endIndex; i++) {

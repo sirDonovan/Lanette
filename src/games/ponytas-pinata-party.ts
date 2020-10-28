@@ -21,7 +21,7 @@ class PonytasPinataParty extends ScriptedGame {
 	onNextRound(): void {
 		this.roundHits.clear();
 		this.pinataHits = 0;
-		const html = this.getRoundHtml(this.getPlayerPoints);
+		const html = this.getRoundHtml(players => this.getPlayerPoints(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			this.timeout = setTimeout(() => {

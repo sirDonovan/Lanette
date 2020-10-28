@@ -1,7 +1,5 @@
 import type { Player } from "../room-activity";
-import type { Room } from "../rooms";
 import type { IGameFile } from "../types/games";
-import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
@@ -30,7 +28,7 @@ class HypnosHunches extends QuestionAndAnswer {
 	roundTime: number = 45 * 1000;
 	updateHintTime = 3000;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		data["Characters"] = Dex.getCharacters();
 		data["Locations"] = Dex.getLocations();
 		data["Pokemon"] = Games.getPokemonList().map(x => x.name);

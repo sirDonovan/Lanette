@@ -72,6 +72,6 @@ export const badges: BadgeData = {
 		"Rock",
 		"Ice",
 		"Dark",
-		"Dragon"
+		"Dragon",
 	],
 };

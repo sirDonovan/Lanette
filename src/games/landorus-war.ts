@@ -1,10 +1,8 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { Room } from "../rooms";
 import { addPlayers, assertStrictEqual } from "../test/test-tools";
 import type { GameCommandDefinitions, GameFileTests, IGameFile } from "../types/games";
 import type { IPokemon } from "../types/pokemon-showdown";
-import type { User } from "../users";
 
 const minimumMoves = 20;
 const data: {learnsets: Dict<readonly string[]>; moves: string[]; pokemon: string[]} = {
@@ -23,7 +21,7 @@ class LandorusWar extends ScriptedGame {
 	roundSuspects = new Set<Player>();
 	suspectedPlayers = new Map<Player, number>();
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		data.moves = Games.getMovesList(x => {
 			if (x.id === 'hiddenpower' || (!x.basePower && !x.basePowerCallback)) return false;
 			return true;
@@ -290,7 +288,7 @@ commands.summary.aliases = ['role'];
 const tests: GameFileTests<LandorusWar> = {
 	'it should properly assign aliases and create decoys': {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		test(game, format): void {
+		test(game): void {
 			addPlayers(game, 4);
 			game.start();
 			assertStrictEqual(game.playerAliasesList.length, 4);

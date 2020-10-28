@@ -13,7 +13,7 @@ class JigglypuffsDodgeball extends ScriptedGame {
 	teams: Dict<PlayerTeam> = {};
 	throwTime: boolean = false;
 
-	onRenamePlayer(player: Player, oldId: string): void {
+	onRenamePlayer(player: Player): void {
 		if (!this.started || player.eliminated) return;
 		this.removePlayer(player.name, true);
 		this.say(player.name + " was DQed for changing names!");
@@ -68,7 +68,7 @@ class JigglypuffsDodgeball extends ScriptedGame {
 		this.roundActions.clear();
 		this.queue = [];
 
-		const html = this.getRoundHtml(this.getTeamPlayerNames, undefined, undefined, "Remaining team players");
+		const html = this.getRoundHtml(players => this.getTeamPlayerNames(players), undefined, undefined, "Remaining team players");
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			const time = this.sampleOne([8000, 9000, 10000]);
@@ -111,8 +111,12 @@ const commands: GameCommandDefinitions<JigglypuffsDodgeball> = {
 			if (this.roundActions.has(player)) return false;
 			this.roundActions.set(player, true);
 			if (!this.throwTime) return false;
-			const targetPlayer = this.players[Tools.toId(target)];
-			if (!targetPlayer || targetPlayer === player || targetPlayer.eliminated || targetPlayer.frozen ||
+
+			const id = Tools.toId(target);
+			if (!(id in this.players)) return false;
+
+			const targetPlayer = this.players[id];
+			if (targetPlayer === player || targetPlayer.eliminated || targetPlayer.frozen ||
 				targetPlayer.team === player.team) return false;
 			this.queue.push({"target": targetPlayer, "source": player});
 			return true;

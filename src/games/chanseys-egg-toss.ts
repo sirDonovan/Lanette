@@ -9,7 +9,7 @@ const hotPotatoHeroTime = 9000;
 class ChanseysEggToss extends ScriptedGame {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
 		"hotpotatohero": {name: "Hot Potato Hero", type: 'special', bits: 1000, description: 'hold the egg for ' +
-			(hotPotatoHeroTime/ 1000) + ' seconds'},
+			(hotPotatoHeroTime / 1000) + ' seconds'},
 	};
 
 	canToss: boolean = false;
@@ -18,7 +18,7 @@ class ChanseysEggToss extends ScriptedGame {
 	holdTime: number = 0;
 	roundTimes: number[] = [7000, 8000, 9000, 10000];
 
-	onRenamePlayer(player: Player, oldId: string): void {
+	onRenamePlayer(player: Player): void {
 		if (!this.started || player.eliminated) return;
 		this.removePlayer(player.name);
 		const text = player.name + " was DQed for changing names!";
@@ -64,13 +64,13 @@ class ChanseysEggToss extends ScriptedGame {
 			this.roundTimes = [5000, 6000, 7000, 8000];
 		}
 
-		const html = this.getRoundHtml(this.getPlayerNames);
+		const html = this.getRoundHtml(players => this.getPlayerNames(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			this.timeout = setTimeout(() => {
 				const holder = this.shufflePlayers()[0];
-				const text = "Chansey handed the egg to **" + holder.name + "**!";
-				this.on(text, () => {
+				const eggText = "Chansey handed the egg to **" + holder.name + "**!";
+				this.on(eggText, () => {
 					let time: number;
 					if (remainingPlayerCount === 2) {
 						time = 5000;
@@ -80,15 +80,15 @@ class ChanseysEggToss extends ScriptedGame {
 					this.giveEgg(holder);
 					this.canToss = true;
 					this.timeout = setTimeout(() => {
-						const text = "**BOOOOOM**";
-						this.on(text, () => {
+						const boomText = "**BOOOOOM**";
+						this.on(boomText, () => {
 							this.canToss = false;
 							this.timeout = setTimeout(() => this.explodeEgg(), 3000);
 						});
-						this.say(text);
+						this.say(boomText);
 					}, time);
 				});
-				this.say(text);
+				this.say(eggText);
 			}, 5000);
 		});
 		this.sayUhtml(uhtmlName, html);
@@ -116,18 +116,18 @@ const commands: GameCommandDefinitions<ChanseysEggToss> = {
 				return false;
 			}
 
-			const targetPlayer = this.players[Tools.toId(target)];
-			if (!targetPlayer || targetPlayer.eliminated) {
+			const id = Tools.toId(target);
+			if (!(id in this.players) || this.players[id].eliminated) {
 				player.say("You must pass the egg to someone currently in the game!");
 				return false;
 			}
-			if (player === targetPlayer) {
+			if (player === this.players[id]) {
 				player.say("You cannot pass the egg to yourself!");
 				return false;
 			}
 
 			if (Date.now() - this.holdTime >= hotPotatoHeroTime) this.unlockAchievement(player, ChanseysEggToss.achievements.hotpotatohero);
-			this.giveEgg(targetPlayer);
+			this.giveEgg(this.players[id]);
 			return true;
 		},
 		aliases: ['pass'],

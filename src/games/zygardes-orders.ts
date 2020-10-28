@@ -1,7 +1,5 @@
 import type { Player } from "../room-activity";
-import type { Room } from "../rooms";
 import type { IGameAchievement, IGameFile } from "../types/games";
-import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 type AchievementNames = "tallorder";
@@ -39,7 +37,7 @@ class ZygardesOrders extends QuestionAndAnswer {
 	solvedLetters: string[] = [];
 	updateHintTime = 5 * 1000;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		data["Characters"] = Dex.getCharacters().filter(x => x.length < 18);
 		data["Locations"] = Dex.getLocations().filter(x => x.length < 18);
 		data["Pokemon"] = Games.getPokemonList().filter(x => x.name.length < 18).map(x => x.name);
@@ -120,7 +118,7 @@ class ZygardesOrders extends QuestionAndAnswer {
 		}
 	}
 
-	onCorrectGuess(player: Player, answer: string): void {
+	onCorrectGuess(player: Player): void {
 		if (this.revealedLetters === 1) this.unlockAchievement(player, ZygardesOrders.achievements.tallorder);
 	}
 

@@ -144,21 +144,21 @@ export abstract class Game extends Activity {
 
 	sayPokemonUhtml(pokemon: IPokemon[], type: 'gif' | 'icon', uhtmlName: string, html: string, user: User): void {
 		if (this.lastPokemonUhtml) {
-			let html = "<div class='infobox'>";
+			let lastHtml = "<div class='infobox'>";
 			if (this.lastPokemonUhtml.type === 'gif') {
-				html += "<center>(gif" + (this.lastPokemonUhtml.pokemon.length > 1 ? "s" : "") + ": " +
+				lastHtml += "<center>(gif" + (this.lastPokemonUhtml.pokemon.length > 1 ? "s" : "") + ": " +
 					this.lastPokemonUhtml.pokemon.join(", ") + ")</center>";
 			} else {
-				html += "(icon" + (this.lastPokemonUhtml.pokemon.length > 1 ? "s" : "") + ": " +
+				lastHtml += "(icon" + (this.lastPokemonUhtml.pokemon.length > 1 ? "s" : "") + ": " +
 					this.lastPokemonUhtml.pokemon.join(", ") + ")";
 			}
 
-			html += '<div style="float:right;color:#888;font-size:8pt">[' + this.lastPokemonUhtml.user + ']</div>' +
+			lastHtml += '<div style="float:right;color:#888;font-size:8pt">[' + this.lastPokemonUhtml.user + ']</div>' +
 				'<div style="clear:both"></div>';
 
-			html += "</div>";
+			lastHtml += "</div>";
 
-			this.sayUhtmlChange(this.lastPokemonUhtml.uhtmlName, html);
+			this.sayUhtmlChange(this.lastPokemonUhtml.uhtmlName, lastHtml);
 		}
 
 		this.sayUhtmlAuto(uhtmlName, html);
@@ -172,15 +172,15 @@ export abstract class Game extends Activity {
 
 	sayTrainerUhtml(trainerList: string[], uhtmlName: string, html: string, user: User): void {
 		if (this.lastTrainerUhtml) {
-			let html = "<div class='infobox'><center>(trainer" + (this.lastTrainerUhtml.trainerList.length > 1 ? "s" : "") + ": " +
+			let lastHtml = "<div class='infobox'><center>(trainer" + (this.lastTrainerUhtml.trainerList.length > 1 ? "s" : "") + ": " +
 				this.lastTrainerUhtml.trainerList.join(", ") + ")</center>";
 
-			html += '<div style="float:right;color:#888;font-size:8pt">[' + this.lastTrainerUhtml.user + ']</div>' +
+			lastHtml += '<div style="float:right;color:#888;font-size:8pt">[' + this.lastTrainerUhtml.user + ']</div>' +
 				'<div style="clear:both"></div>';
 
-			html += "</div>";
+			lastHtml += "</div>";
 
-			this.sayUhtmlChange(this.lastTrainerUhtml.uhtmlName, html);
+			this.sayUhtmlChange(this.lastTrainerUhtml.uhtmlName, lastHtml);
 		}
 
 		this.sayUhtmlAuto(uhtmlName, html);

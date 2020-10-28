@@ -6,18 +6,18 @@ import { MapShuffleGame } from "./templates/map-shuffle";
 
 type AchievementNames = "kingofthecastle" | "klinksgear";
 
-const currency = "gears";
+const currencyName = "gears";
 const kingOfTheCastlePoints = 4000;
 
 class KlinklangsCastle extends MapShuffleGame {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
 		"kingofthecastle": {name: "King of the Castle", type: 'points', bits: 1000, description: 'collect at least ' +
-			kingOfTheCastlePoints + ' ' + currency},
+			kingOfTheCastlePoints + ' ' + currencyName},
 		"klinksgear": {name: "Klink's Gear", type: 'special', bits: 1000, description: 'get lucky and find Klink in the castle'},
 	};
 
 	canLateJoin: boolean = true;
-	currency: string = currency;
+	currency: string = currencyName;
 	escapedPlayers = new Map<Player, boolean>();
 	map: GameMap | null = null;
 	maxDimensions: number = 10;
@@ -25,12 +25,12 @@ class KlinklangsCastle extends MapShuffleGame {
 	roundActions = new Map<Player, boolean>();
 	startingLives: number = 3;
 
-	getMap(player?: Player): GameMap {
+	getMap(): GameMap {
 		if (!this.map) this.map = this.generateMap(this.playerCount);
 		return this.map;
 	}
 
-	getFloorIndex(player?: Player): number {
+	getFloorIndex(): number {
 		return this.currentFloor - 1;
 	}
 

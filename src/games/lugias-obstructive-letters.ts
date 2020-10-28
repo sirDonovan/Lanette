@@ -1,6 +1,4 @@
-import type { Room } from "../rooms";
 import type { IGameFile } from "../types/games";
-import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const BASE_POINTS = 50;
@@ -28,7 +26,7 @@ class LugiasObstructiveLetters extends QuestionAndAnswer {
 	roundTime: number = 30 * 1000;
 	winnerPointsToBits: number = 10;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		const pokemonList = Games.getPokemonList();
 		for (const pokemon of pokemonList) {
 			data["Pokemon"][pokemon.id] = pokemon.name;

@@ -1,6 +1,4 @@
-import type { Room } from "../rooms";
 import type { IGameAchievement, IGameFile } from "../types/games";
-import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 type AchievementNames = "splittersplatter";
@@ -24,7 +22,7 @@ class KyuremsSplits extends QuestionAndAnswer {
 
 	allAnswersAchievement = KyuremsSplits.achievements.splittersplatter;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		data["Characters"] = Dex.getCharacters();
 		data["Locations"] = Dex.getLocations();
 
@@ -49,16 +47,16 @@ class KyuremsSplits extends QuestionAndAnswer {
 		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		let hint = '';
 		while (!this.answers.length || this.answers.length > 15 || Client.willBeFiltered(hint)) {
-			const answer = Tools.toId(this.sampleOne(data[category]));
+			const randomAnswer = Tools.toId(this.sampleOne(data[category]));
 			const validIndices: number[] = [];
-			for (let i = 1; i < answer.length; i++) {
+			for (let i = 1; i < randomAnswer.length; i++) {
 				validIndices.push(i);
 			}
 			const numberOfLetters = Math.min(5, Math.max(2, Math.floor(validIndices.length * (Math.random() * 0.4 + 0.3))));
 			const chosenIndices = this.sampleMany(validIndices, numberOfLetters);
 			hint = '';
 			for (const index of chosenIndices) {
-				hint += answer[index];
+				hint += randomAnswer[index];
 			}
 			this.answers = [];
 			for (const answer of data[category]) {

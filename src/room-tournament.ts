@@ -1,4 +1,5 @@
-import { Activity, Player } from "./room-activity";
+import type { Player } from "./room-activity";
+import { Activity } from "./room-activity";
 import type { Room } from "./rooms";
 import type { IFormat } from "./types/pokemon-showdown";
 import type { IBattleData, ICurrentTournamentBattle, ITournamentEndJson, ITournamentUpdateJson } from "./types/tournaments";
@@ -334,11 +335,11 @@ export class Tournament extends Activity {
 				}
 
 				node.children.forEach(child => {
-					if (child) queue.push(child);
+					queue.push(child);
 				});
 			}
 		} else if (this.info.bracketData.type === 'table') {
-			if (!this.info.bracketData.tableHeaders || !this.info.bracketData.tableHeaders.cols) return;
+			if (!this.info.bracketData.tableHeaders || !('cols' in this.info.bracketData.tableHeaders)) return;
 			for (const name of this.info.bracketData.tableHeaders.cols) {
 				const id = Tools.toId(name);
 				if (!players[id]) players[id] = name;

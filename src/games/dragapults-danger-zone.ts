@@ -144,12 +144,12 @@ class DragapultsDangerZone extends ScriptedGame {
 			return this.end();
 		}
 
-		if (this.currentTeam === this.largestTeam.id && (!this.playerOrders[this.largestTeam.id] ||
+		if (this.currentTeam === this.largestTeam.id && (!(this.largestTeam.id in this.playerOrders) ||
 			!this.playerOrders[this.largestTeam.id].length)) {
 			this.setTeamPlayerOrders();
 
 			this.teamRound++;
-			const html = this.getRoundHtml(this.getTeamPlayerNames, undefined, 'Round ' + this.teamRound);
+			const html = this.getRoundHtml(players => this.getTeamPlayerNames(players), undefined, 'Round ' + this.teamRound);
 			const uhtmlName = this.uhtmlBaseName + '-round-html';
 			this.onUhtml(uhtmlName, html, () => {
 				this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
@@ -343,14 +343,14 @@ const commands: GameCommandDefinitions<DragapultsDangerZone> = {
 				return false;
 			}
 
-			let emptyLocation = true;
+			let usedLocation: boolean | undefined;
 			this.playerLocations.forEach((otherLocation, otherPlayer) => {
-				if (emptyLocation && otherLocation === location) {
-					emptyLocation = false;
+				if (!usedLocation && otherLocation === location) {
+					usedLocation = true;
 					player.say(otherPlayer.name + " is already hiding at " + location + "!");
 				}
 			});
-			if (!emptyLocation) return false;
+			if (usedLocation) return false;
 
 			player.say("You have hid at " + location + "!");
 			this.playerLocations.set(player, location);
@@ -375,7 +375,7 @@ const commands: GameCommandDefinitions<DragapultsDangerZone> = {
 
 			this.fireDreepy(player, location);
 			return true;
-		}
+		},
 	},
 	select: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
@@ -398,7 +398,7 @@ const commands: GameCommandDefinitions<DragapultsDangerZone> = {
 			return true;
 		},
 		pmOnly: true,
-	}
+	},
 };
 
 export const game: IGameFile<DragapultsDangerZone> = {
@@ -412,5 +412,5 @@ export const game: IGameFile<DragapultsDangerZone> = {
 	name: "Dragapult's Danger Zone",
 	mascot: "Dragapult",
 	noOneVsOne: true,
-	scriptedOnly: true
+	scriptedOnly: true,
 };

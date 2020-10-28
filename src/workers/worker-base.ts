@@ -39,11 +39,11 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNa
 
 		this.isBusy = true;
 
-		return (new Promise(resolve => {
+		return new Promise(resolve => {
 			this.messageNumber++;
 			this.messageQueue.push({resolve, messageNumber: this.messageNumber});
 			this.workers![workerNumber!].postMessage(this.messageNumber + "|" + id + "|" + message);
-		}));
+		});
 	}
 
 	getData(): WorkerData {
@@ -70,9 +70,9 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNa
 				worker.on('message', (message: string) => {
 					const parts = message.split("|");
 					const requestNumber = parseInt(parts[0]);
-					for (let i = 0; i < this.messageQueue.length; i++) {
-						if (this.messageQueue[i].messageNumber === requestNumber) {
-							const request = this.messageQueue.splice(i, 1)[0];
+					for (let j = 0; j < this.messageQueue.length; j++) {
+						if (this.messageQueue[j].messageNumber === requestNumber) {
+							const request = this.messageQueue.splice(j, 1)[0];
 							// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 							let result = JSON.parse(parts.slice(2).join("|"));
 							if (result === "") result = null;

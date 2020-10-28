@@ -1,6 +1,4 @@
-import type { Room } from "../rooms";
 import type { IGameAchievement, IGameFile } from "../types/games";
-import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 type AchievementNames = "genusgenius";
@@ -17,7 +15,7 @@ class SudowoodosSpeciesScramble extends QuestionAndAnswer {
 
 	allAnswersAchievement = SudowoodosSpeciesScramble.achievements.genusgenius;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		const pokemonList = Games.getPokemonList();
 		for (const pokemon of pokemonList) {
 			const category = Dex.getPokemonCategory(pokemon);

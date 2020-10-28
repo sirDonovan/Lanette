@@ -1,12 +1,10 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { Room } from "../rooms";
 import type { GameCommandDefinitions, IGameFile } from "../types/games";
-import type { User } from "../users";
 import type { IParam, IParametersWorkerData } from './../workers/parameters';
 
-const gen = 8;
-const genString = 'gen' + gen;
+const gameGen = 8;
+const genString = 'gen' + gameGen;
 
 type ParamType = 'color' | 'letter' | 'tier' | 'type';
 const paramTypes: ParamType[] = ['color', 'letter', 'tier', 'type'];
@@ -22,7 +20,7 @@ class InkaysCups extends ScriptedGame {
 	roundTime: number = 15 * 1000;
 	usesWorkers: boolean = true;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		const parametersData = Games.workers.parameters.getData();
 
 		for (const searchType of searchTypes) {
@@ -51,7 +49,7 @@ class InkaysCups extends ScriptedGame {
 	}
 
 	onStart(): void {
-		const text = "The game will be played in Gen " + gen + " (use ``/nds``)!";
+		const text = "The game will be played in Gen " + gameGen + " (use ``/nds``)!";
 		this.on(text, () => {
 			this.timeout = setTimeout(() => this.nextRound(), 5000);
 		});
@@ -140,7 +138,7 @@ class InkaysCups extends ScriptedGame {
 			}
 		}
 		if (this.getRemainingPlayerCount() < 2) return this.end();
-		const html = this.getRoundHtml(this.getPlayerNames);
+		const html = this.getRoundHtml(players => this.getPlayerNames(players));
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
 			if (this.timeout) clearTimeout(this.timeout);
@@ -169,8 +167,8 @@ const commands: GameCommandDefinitions<InkaysCups> = {
 			const player = this.players[user.id];
 			const guess = Tools.toId(target);
 			if (!guess) return false;
-			const guessMega = (guess.substr(0, 4) === 'mega' ? guess.substr(4) + 'mega' : '');
-			const guessPrimal = (guess.substr(0, 6) === 'primal' ? guess.substr(6) + 'primal' : '');
+			const guessMega = guess.substr(0, 4) === 'mega' ? guess.substr(4) + 'mega' : '';
+			const guessPrimal = guess.substr(0, 6) === 'primal' ? guess.substr(6) + 'primal' : '';
 			let answerIndex = -1;
 			for (let i = 0; i < this.answers.length; i++) {
 				const answer = Tools.toId(this.answers[i]);

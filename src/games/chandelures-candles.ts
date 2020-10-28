@@ -27,7 +27,7 @@ class ChandeluresCandles extends ScriptedGame {
 		this.nextRound();
 	}
 
-	onRenamePlayer(player: Player, oldId: string): void {
+	onRenamePlayer(player: Player): void {
 		if (!this.started || player.eliminated) return;
 		this.removePlayer(player.name, true);
 		const text = player.name + " was DQed for changing names!";
@@ -64,7 +64,7 @@ class ChandeluresCandles extends ScriptedGame {
 			return;
 		}
 		if (this.round > this.roundLimit) return this.end();
-		const html = this.getRoundHtml(this.getPlayerLives);
+		const html = this.getRoundHtml(players => this.getPlayerLives(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			this.timeout = setTimeout(() => this.exposeCandle(), 5 * 1000);
@@ -78,7 +78,7 @@ class ChandeluresCandles extends ScriptedGame {
 			this.winners.set(winner, 1);
 			const puffs = this.puffs.get(winner) || 0;
 			let bits = 500;
-			if (puffs > 5) bits += (puffs * 50);
+			if (puffs > 5) bits += puffs * 50;
 			this.addBits(winner, bits);
 		} else {
 			this.say("Chandelure extinguished the remaining candles!");

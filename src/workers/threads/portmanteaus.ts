@@ -136,7 +136,7 @@ worker_threads.parentPort!.on('message', (incommingMessage: string) => {
 	const message = parts.slice(2).join("|");
 	let response: IPortmanteausResponse;
 	try {
-		if (id === 'search') {
+		if (id === 'search') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 			const options = JSON.parse(message) as IPortmanteausSearchMessage;
 			const prng = new PRNG(options.prngSeed);
 			response = search(options, prng);
@@ -145,6 +145,6 @@ worker_threads.parentPort!.on('message', (incommingMessage: string) => {
 		console.log(e);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/naming-convention
+	// eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unnecessary-condition
 	worker_threads.parentPort!.postMessage(messageNumber + "|" + id + "|" + JSON.stringify(response! || ""));
 });

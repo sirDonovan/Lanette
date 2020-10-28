@@ -8,11 +8,8 @@ import type { ScriptedGame } from './room-game-scripted';
 import type { UserHostedGame } from './room-game-user-hosted';
 import type { Room } from './rooms';
 import type {
-	GroupName, IClientMessageTypes,
-	ILoginOptions, IRoomInfoResponse, IRoomsResponse, IOutgoingMessage,
-
-	IServerConfig, IServerGroup, ITournamentMessageTypes, IUserDetailsResponse, QueryResponseType,
-	ServerGroupData
+	GroupName, IClientMessageTypes, ILoginOptions, IOutgoingMessage, IRoomInfoResponse, IRoomsResponse, IServerConfig, IServerGroup,
+	ITournamentMessageTypes, IUserDetailsResponse, QueryResponseType, ServerGroupData
 } from './types/client';
 import type { ISeparatedCustomRules } from './types/dex';
 import type { IParseMessagePlugin } from './types/plugins';
@@ -390,7 +387,7 @@ export class Client {
 		if (error) console.log(error.stack);
 		this.connectionAttempts++;
 		const reconnectTime = this.reconnectTime * this.connectionAttempts;
-		console.log('Retrying in ' + (reconnectTime / 1000) + ' seconds');
+		console.log('Retrying in ' + reconnectTime / 1000 + ' seconds');
 		this.connectionTimeout = setTimeout(() => this.connect(), reconnectTime);
 	}
 
@@ -405,7 +402,7 @@ export class Client {
 		if (this.loginTimeout) clearTimeout(this.loginTimeout);
 
 		console.log('Connection closed: ' + reason + ' (' + code + ')');
-		console.log('Reconnecting in ' + (this.reconnectTime /  1000) + ' seconds');
+		console.log('Reconnecting in ' + this.reconnectTime /  1000 + ' seconds');
 
 		this.removeClientListeners();
 		this.connected = false;
@@ -427,7 +424,7 @@ export class Client {
 	}
 
 	connect(): void {
-		const options = {
+		const httpsOptions = {
 			hostname: Tools.mainServer,
 			path: '/crossdomain.php?' + querystring.stringify({host: this.server, path: ''}),
 			method: 'GET',
@@ -437,7 +434,7 @@ export class Client {
 		this.connectionTimeout = setTimeout(() => this.onConnectFail(), 30 * 1000);
 
 		console.log("Attempting to connect to the server " + this.server + "...");
-		https.get(options, response => {
+		https.get(httpsOptions, response => {
 			response.setEncoding('utf8');
 			let data = '';
 			response.on('data', chunk => {
@@ -459,7 +456,7 @@ export class Client {
 							address = 'ws://' + config.host + ':' + (config.port || 8000) + '/showdown/websocket';
 						}
 
-						const options: ClientOptions = {
+						const wsOptions: ClientOptions = {
 							perMessageDeflate: Config.perMessageDeflate || false,
 							headers: {
 								"User-Agent": "ws",
@@ -468,7 +465,7 @@ export class Client {
 
 						// eslint-disable-next-line @typescript-eslint/no-var-requires
 						const ws = require('ws') as typeof import('ws');
-						this.webSocket = new ws(address, options);
+						this.webSocket = new ws(address, wsOptions);
 						this.pauseOutgoingMessages = false;
 						this.setClientListeners();
 
@@ -658,14 +655,14 @@ export class Client {
 				}
 
 				if (this.roomsToRejoin.length) {
-					for (const room of this.roomsToRejoin) {
-						this.send({message: '|/join ' + room, type: 'command'});
+					for (const roomId of this.roomsToRejoin) {
+						this.send({message: '|/join ' + roomId, type: 'command'});
 					}
 
 					this.roomsToRejoin = [];
 				} else if (Config.rooms) {
-					for (const room of Config.rooms) {
-						this.send({message: '|/join ' + room, type: 'command'});
+					for (const roomId of Config.rooms) {
+						this.send({message: '|/join ' + roomId, type: 'command'});
 					}
 				}
 
@@ -683,26 +680,26 @@ export class Client {
 			if (messageArguments.type === 'roominfo') {
 				if (messageArguments.response && messageArguments.response !== 'null') {
 					const response = JSON.parse(messageArguments.response) as IRoomInfoResponse;
-					const room = Rooms.get(response.id);
-					if (room) {
-						room.onRoomInfoResponse(response);
-						Games.updateGameCatalog(room);
+					const responseRoom = Rooms.get(response.id);
+					if (responseRoom) {
+						responseRoom.onRoomInfoResponse(response);
+						Games.updateGameCatalog(responseRoom);
 					}
 				}
 			} else if (messageArguments.type === 'rooms') {
 				if (messageArguments.response && messageArguments.response !== 'null') {
 					const response = JSON.parse(messageArguments.response) as IRoomsResponse;
-					for (const room of response.chat) {
-						this.publicChatRooms.push(Tools.toRoomId(room.title));
+					for (const chatRoom of response.chat) {
+						this.publicChatRooms.push(Tools.toRoomId(chatRoom.title));
 					}
-					for (const room of response.official) {
-						this.publicChatRooms.push(Tools.toRoomId(room.title));
+					for (const officialRoom of response.official) {
+						this.publicChatRooms.push(Tools.toRoomId(officialRoom.title));
 					}
-					for (const room of response.pspl) {
-						this.publicChatRooms.push(Tools.toRoomId(room.title));
+					for (const psplRoom of response.pspl) {
+						this.publicChatRooms.push(Tools.toRoomId(psplRoom.title));
 					}
 				}
-			} else if (messageArguments.type === 'userdetails') {
+			} else if (messageArguments.type === 'userdetails') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 				if (messageArguments.response && messageArguments.response !== 'null') {
 					const response = JSON.parse(messageArguments.response) as IUserDetailsResponse;
 					if (response.userid === Users.self.id) Users.self.group = response.group;
@@ -724,8 +721,8 @@ export class Client {
 				room.sayCommand('/banword list');
 
 				if (room.id in this.reconnectRoomMessages) {
-					for (const message of this.reconnectRoomMessages[room.id]) {
-						room.say(message);
+					for (const reconnectMessage of this.reconnectRoomMessages[room.id]) {
+						room.say(reconnectMessage);
 					}
 					delete this.reconnectRoomMessages[room.id];
 				}
@@ -905,10 +902,10 @@ export class Client {
 				};
 			}
 
-			const id = Tools.toId(messageArguments.username);
-			if (!id) return;
+			const userId = Tools.toId(messageArguments.username);
+			if (!userId) return;
 
-			const user = Users.add(messageArguments.username, id);
+			const user = Users.add(messageArguments.username, userId);
 			const roomData = user.rooms.get(room);
 			if (roomData) roomData.lastChatMessage = messageArguments.timestamp;
 
@@ -947,12 +944,12 @@ export class Client {
 
 						if (!uhtmlChange) room.addUhtmlChatLog(name, html);
 
-						const id = Tools.toId(name);
-						if (id in room.uhtmlMessageListeners) {
+						const uhtmlId = Tools.toId(name);
+						if (uhtmlId in room.uhtmlMessageListeners) {
 							const htmlId = Tools.toId(Tools.unescapeHTML(html));
-							if (htmlId in room.uhtmlMessageListeners[id]) {
-								room.uhtmlMessageListeners[id][htmlId]();
-								delete room.uhtmlMessageListeners[id][htmlId];
+							if (htmlId in room.uhtmlMessageListeners[uhtmlId]) {
+								room.uhtmlMessageListeners[uhtmlId][htmlId]();
+								delete room.uhtmlMessageListeners[uhtmlId][htmlId];
 							}
 						}
 					} else {
@@ -963,10 +960,10 @@ export class Client {
 
 						room.addChatLog(messageArguments.message);
 
-						const id = Tools.toId(messageArguments.message);
-						if (id in room.messageListeners) {
-							room.messageListeners[id]();
-							delete room.messageListeners[id];
+						const messageId = Tools.toId(messageArguments.message);
+						if (messageId in room.messageListeners) {
+							room.messageListeners[messageId]();
+							delete room.messageListeners[messageId];
 						}
 					}
 				}
@@ -1014,14 +1011,14 @@ export class Client {
 				message: messageParts.slice(2).join("|"),
 			};
 
-			const id = Tools.toId(messageArguments.username);
-			if (!id) return;
+			const userId = Tools.toId(messageArguments.username);
+			if (!userId) return;
 
 			const isHtml = messageArguments.message.startsWith(HTML_CHAT_COMMAND) || messageArguments.message.startsWith("/html ");
 			const isUhtml = !isHtml && messageArguments.message.startsWith(UHTML_CHAT_COMMAND);
 			const isUhtmlChange = !isHtml && !isUhtml && messageArguments.message.startsWith(UHTML_CHANGE_CHAT_COMMAND);
 
-			const user = Users.add(messageArguments.username, id);
+			const user = Users.add(messageArguments.username, userId);
 			if (user === Users.self) {
 				const recipientId = Tools.toId(messageArguments.recipientUsername);
 				if (!recipientId) return;
@@ -1031,7 +1028,7 @@ export class Client {
 					const uhtml = messageArguments.message.substr(messageArguments.message.indexOf(" ") + 1);
 					const commaIndex = uhtml.indexOf(",");
 					const name = uhtml.substr(0, commaIndex);
-					const id = Tools.toId(name);
+					const uhtmlId = Tools.toId(name);
 					const html = uhtml.substr(commaIndex + 1);
 
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'pmuhtml' &&
@@ -1043,11 +1040,11 @@ export class Client {
 					if (!isUhtmlChange) user.addUhtmlChatLog(name, html);
 
 					if (recipient.uhtmlMessageListeners) {
-						if (id in recipient.uhtmlMessageListeners) {
+						if (uhtmlId in recipient.uhtmlMessageListeners) {
 							const htmlId = Tools.toId(Tools.unescapeHTML(html));
-							if (htmlId in recipient.uhtmlMessageListeners[id]) {
-								recipient.uhtmlMessageListeners[id][htmlId]();
-								delete recipient.uhtmlMessageListeners[id][htmlId];
+							if (htmlId in recipient.uhtmlMessageListeners[uhtmlId]) {
+								recipient.uhtmlMessageListeners[uhtmlId][htmlId]();
+								delete recipient.uhtmlMessageListeners[uhtmlId][htmlId];
 							}
 						}
 					}
@@ -1076,10 +1073,10 @@ export class Client {
 					user.addChatLog(messageArguments.message);
 
 					if (recipient.messageListeners) {
-						const id = Tools.toId(messageArguments.message);
-						if (id in recipient.messageListeners) {
-							recipient.messageListeners[id]();
-							delete recipient.messageListeners[id];
+						const messageId = Tools.toId(messageArguments.message);
+						if (messageId in recipient.messageListeners) {
+							recipient.messageListeners[messageId]();
+							delete recipient.messageListeners[messageId];
 						}
 					}
 				}
@@ -1116,8 +1113,8 @@ export class Client {
 				const roomId = subMessage.substr(0, colonIndex);
 				subMessage = subMessage.substr(colonIndex + 2);
 				if (subMessage) {
-					const room = Rooms.get(roomId);
-					if (room) room.bannedWords = subMessage.split(', ');
+					const bannedWordsRoom = Rooms.get(roomId);
+					if (bannedWordsRoom) bannedWordsRoom.bannedWords = subMessage.split(', ');
 				}
 			}
 			break;
@@ -1438,15 +1435,15 @@ export class Client {
 			};
 
 			if (room.tournament) {
-				const player = room.tournament.players[Tools.toId(messageArguments.username)];
-				if (player) {
+				const userId = Tools.toId(messageArguments.username);
+				if (userId in room.tournament.players) {
 					if (!(room.id in room.tournament.battleData)) {
 						room.tournament.battleData[room.id] = {
 							remainingPokemon: {},
 							slots: new Map<Player, string>(),
 						};
 					}
-					room.tournament.battleData[room.id].slots.set(player, messageArguments.slot);
+					room.tournament.battleData[room.id].slots.set(room.tournament.players[userId], messageArguments.slot);
 				}
 			}
 
@@ -1496,7 +1493,7 @@ export class Client {
 			const messageArguments: IClientMessageTypes['poke'] = {
 				slot: messageParts[0],
 				details: messageParts[1],
-				item: messageParts[2] === 'item'
+				item: messageParts[2] === 'item',
 			};
 
 			if (room.game) {
@@ -1599,6 +1596,7 @@ export class Client {
 			if (Config.userHostedTournamentRanks && room.id in Config.userHostedTournamentRanks) {
 				rank = Config.userHostedTournamentRanks[room.id].review;
 			}
+
 			const authOrTHC = user.hasRank(room, rank) || (database.thcWinners && user.id in database.thcWinners);
 			outer:
 			for (const link of links) {
@@ -1689,7 +1687,7 @@ export class Client {
 
 		if (room && room.bannedWords) {
 			if (!room.bannedWordsRegex) {
-				room.bannedWordsRegex = new RegExp('(?:\\b|(?!\\w))(?:' + room.bannedWords.join('|') +')(?:\\b|\\B(?!\\w))', 'gi');
+				room.bannedWordsRegex = new RegExp('(?:\\b|(?!\\w))(?:' + room.bannedWords.join('|') + ')(?:\\b|\\B(?!\\w))', 'gi');
 			}
 			if (message.match(room.bannedWordsRegex)) return true;
 		}
@@ -1714,7 +1712,7 @@ export class Client {
 	}
 
 	getPmUserButton(user: User, message: string, label: string, disabled?: boolean): string {
-		return '<button class="button' + (disabled ? " disabled" : "") +'" name="send" value="/msg ' + user.name + ', ' + message + '">' +
+		return '<button class="button' + (disabled ? " disabled" : "") + '" name="send" value="/msg ' + user.name + ', ' + message + '">' +
 			label + '</button>';
 	}
 
@@ -1722,12 +1720,12 @@ export class Client {
 		return this.getPmUserButton(Users.self, message, label, disabled);
 	}
 
-	extractBattleId(url: string): string | null {
-		return Tools.extractBattleId(url, this.replayServerAddress, this.server, this.serverId);
+	extractBattleId(source: string): string | null {
+		return Tools.extractBattleId(source, this.replayServerAddress, this.server, this.serverId);
 	}
 
 	send(outgoingMessage: IOutgoingMessage): void {
-		if (!outgoingMessage || !outgoingMessage.message) return;
+		if (!outgoingMessage.message) return;
 		if (!this.webSocket || !this.connected || this.sendTimeout || this.pauseOutgoingMessages) {
 			this.outgoingMessageQueue.push(outgoingMessage);
 			return;
@@ -1885,7 +1883,7 @@ export class Client {
 }
 
 export const instantiate = (): void => {
-	const oldClient: Client | undefined = global.Client;
+	const oldClient = global.Client as Client | undefined;
 	if (oldClient) {
 		oldClient.reloadInProgress = true;
 		oldClient.pauseIncomingMessages = true;

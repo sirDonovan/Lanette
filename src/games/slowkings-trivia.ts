@@ -1,6 +1,4 @@
-import type { Room } from "../rooms";
 import type { IGameAchievement, IGameFile } from "../types/games";
-import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 type AchievementNames = "knowitall" | "captainknowitall";
@@ -29,7 +27,7 @@ class SlowkingsTrivia extends QuestionAndAnswer {
 	allAnswersTeamAchievement = SlowkingsTrivia.achievements.captainknowitall;
 	roundTime = 15 * 1000;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		for (const ability of Games.getAbilitiesList()) {
 			const desc = ability.desc || ability.shortDesc;
 			if (!desc) continue;

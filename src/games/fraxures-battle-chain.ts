@@ -1,7 +1,5 @@
-import type { Room } from "../rooms";
 import type { IGameFile } from "../types/games";
 import type { IPokemon } from "../types/pokemon-showdown";
-import type { User } from "../users";
 import { Chain, game as chainGame } from "./templates/chain";
 
 const data: {types: string[]} = {
@@ -11,7 +9,7 @@ const data: {types: string[]} = {
 class FraxuresBattleChain extends Chain {
 	linkEndCache: Dict<string[]> = {};
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		for (let i = 0; i < Dex.data.typeKeys.length; i++) {
 			const outerType = Dex.getExistingType(Dex.data.typeKeys[i]).name;
 			data.types.push(outerType);
@@ -28,8 +26,9 @@ class FraxuresBattleChain extends Chain {
 	}
 
 	getLinkEnds(link: IPokemon): string[] {
-		const type = link.types.slice().sort().join(",");
-		if (type in this.linkEndCache) return this.linkEndCache[type].slice();
+		const typeKey = link.types.slice().sort().join(",");
+		if (typeKey in this.linkEndCache) return this.linkEndCache[typeKey].slice();
+
 		const ends: string[] = [];
 		for (const typeString of data.types) {
 			const types = typeString.split(",");
@@ -46,7 +45,7 @@ class FraxuresBattleChain extends Chain {
 			if (superEffective) ends.push(typeString);
 		}
 
-		this.linkEndCache[type] = ends;
+		this.linkEndCache[typeKey] = ends;
 		return ends;
 	}
 }
