@@ -1214,7 +1214,8 @@ export class Games {
 	}
 
 	updateGameCatalog(room: Room): void {
-		if (!Config.gameCatalogGists || !(room.id in Config.gameCatalogGists)) return;
+		if (!Config.githubApiCredentials || !('gist' in Config.githubApiCredentials) || !Config.gameCatalogGists ||
+			!(room.id in Config.gameCatalogGists)) return;
 
 		const commandCharacter = Config.commandCharacter;
 		const allowsScriptedGames = Config.allowScriptedGames && Config.allowScriptedGames.includes(room.id);
@@ -1507,8 +1508,8 @@ export class Games {
 
 		const filename = Config.gameCatalogGists[room.id].files[0];
 
-		Tools.editGist(Config.gameCatalogGists[room.id].id, Config.gameCatalogGists[room.id].description,
-			{[filename]: {content, filename}});
+		Tools.editGist(Config.githubApiCredentials.gist.username, Config.githubApiCredentials.gist.token,
+			Config.gameCatalogGists[room.id].id, Config.gameCatalogGists[room.id].description, {[filename]: {content, filename}});
 	}
 }
 

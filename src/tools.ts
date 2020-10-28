@@ -685,9 +685,8 @@ export class Tools {
 		return challongeLink;
 	}
 
-	editGist(gistId: string, description: string, files: Dict<{filename: string; content: string}>): void {
+	editGist(username: string, token: string, gistId: string, description: string, files: Dict<{filename: string; content: string}>): void {
 		if (this.lastGithubApiCall && (Date.now() - this.lastGithubApiCall) < githubApiThrottle) return;
-		if (!Config.githubApiCredentials || !('gist' in Config.githubApiCredentials)) return;
 
 		const patchData = JSON.stringify({
 			description,
@@ -708,8 +707,8 @@ export class Tools {
 				'Accept': 'application/vnd.github.v3+json',
 				'Content-Type': 'application/json; charset=utf-8',
 				'Content-Length': patchData.length,
-				'User-Agent': Config.githubApiCredentials.gist.username,
-				'Authorization': 'token ' + Config.githubApiCredentials.gist.token,
+				'User-Agent': username,
+				'Authorization': 'token ' + token,
 			},
 		};
 
@@ -753,16 +752,6 @@ export class Tools {
 		fs.writeFileSync(tempFilepath, data);
 		fs.renameSync(tempFilepath, filepath);
 	}
-
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	/*
-	async runUpdatePS(user?: User): Promise<any> {
-		await exec('node update-ps.js --hotpatch');
-
-		if (!user) user = Users.self;
-		await CommandParser.parse(user, user, Config.commandCharacter + 'reload dex');
-	}
-	*/
 }
 
 export const instantiate = (): void => {
