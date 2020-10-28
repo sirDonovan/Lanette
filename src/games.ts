@@ -424,8 +424,24 @@ export class Games {
 				}
 			}
 
+			if (format.modes) {
+				for (const mode of format.modes) {
+					const modeAliases: string[] = [mode];
+					for (const i in this.modeAliases) {
+						if (this.modeAliases[i] === mode) modeAliases.push(i);
+					}
 
+					for (const modeAlias of modeAliases) {
+						for (const id of idsToAlias) {
+							const aliases = [id + modeAlias, modeAlias + id];
+							for (const alias of aliases) {
+								if (alias in this.aliases) {
+									throw new Error(format.name + "'s mode alias '" + modeAlias + "' clashes " +
+										"with the alias for " + this.aliases[alias] + ".");
+								}
 
+								this.aliases[alias] = format.id + "," + mode;
+							}
 						}
 					}
 				}
