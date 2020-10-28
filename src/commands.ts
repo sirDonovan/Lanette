@@ -1542,13 +1542,30 @@ const commands: CommandDefinitions<CommandContext> = {
 						minimumTime = 3;
 						maximumTime = 60;
 					} else {
+						const divider = 3;
+						if (remainingMinutes <= divider) {
+							return this.say("You cannot generate a random minutes timer when there are less than " + divider + " minutes " +
+								"remaining.");
+						}
 						minimumTime = 1;
-						maximumTime = remainingMinutes / 3;
+						maximumTime = Math.ceil(remainingMinutes / divider);
 					}
+				}
+
+				if (minimumTime > maximumTime) {
+					const larger = minimumTime;
+					minimumTime = maximumTime;
+					maximumTime = larger;
 				}
 
 				while (time < minimumTime || time > maximumTime) {
 					time = room.userHostedGame.random(maximumTime) + 1;
+				}
+
+				if (isSeconds) {
+					time *= 1000;
+				} else {
+					time *= 60 * 1000;
 				}
 			} else {
 				time = parseFloat(targets[0].trim());
