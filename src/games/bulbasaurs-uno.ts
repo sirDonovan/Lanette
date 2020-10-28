@@ -447,9 +447,7 @@ const commands: GameCommandDefinitions<BulbasaursUno> = {
 
 const tests: GameFileTests<BulbasaursUno> = {
 	'action cards - greninja': {
-		test(game, format): void {
-			if (game.variant) return;
-
+		test(game): void {
 			const greninja = game.actionCards.greninja;
 			assert(greninja);
 
@@ -467,9 +465,7 @@ const tests: GameFileTests<BulbasaursUno> = {
 		},
 	},
 	'action cards - kecleon': {
-		test(game, format): void {
-			if (game.variant) return;
-
+		test(game): void {
 			const kecleon = game.actionCards.kecleon;
 			assert(kecleon);
 
@@ -482,9 +478,7 @@ const tests: GameFileTests<BulbasaursUno> = {
 		},
 	},
 	'action cards - magnemite': {
-		test(game, format): void {
-			if (game.variant) return;
-
+		test(game): void {
 			const magnemite = game.actionCards.magnemite;
 			assert(magnemite);
 
@@ -514,9 +508,7 @@ const tests: GameFileTests<BulbasaursUno> = {
 		},
 	},
 	'action cards - doduo': {
-		test(game, format): void {
-			if (game.variant) return;
-
+		test(game): void {
 			const doduo = game.actionCards.doduo;
 			assert(doduo);
 
@@ -526,9 +518,7 @@ const tests: GameFileTests<BulbasaursUno> = {
 		},
 	},
 	'action cards - machamp': {
-		test(game, format): void {
-			if (game.variant) return;
-
+		test(game): void {
 			const machamp = game.actionCards.machamp;
 			assert(machamp);
 
@@ -538,9 +528,7 @@ const tests: GameFileTests<BulbasaursUno> = {
 		},
 	},
 	'action cards - inkay': {
-		test(game, format): void {
-			if (game.variant) return;
-
+		test(game): void {
 			const inkay = game.actionCards.inkay;
 			assert(inkay);
 
@@ -550,9 +538,7 @@ const tests: GameFileTests<BulbasaursUno> = {
 		},
 	},
 	'action cards - slaking': {
-		test(game, format): void {
-			if (game.variant) return;
-
+		test(game): void {
 			const slaking = game.actionCards.slaking;
 			assert(slaking);
 
@@ -562,9 +548,7 @@ const tests: GameFileTests<BulbasaursUno> = {
 		},
 	},
 	'action cards - spinda': {
-		test(game, format): void {
-			if (game.variant) return;
-
+		test(game): void {
 			const spinda = game.actionCards.spinda;
 			assert(spinda);
 

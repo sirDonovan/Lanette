@@ -97,8 +97,7 @@ export const game: IGameFile<SmearglesMysteryMoves> = Games.copyTemplateProperti
 		{
 			name: "Smeargle's Mystery Moves Unlimited",
 			description: "Players guess moves based on the given hints (unlimited guesses)!",
-			variant: "unlimited",
-			variantAliases: ["unlimited guess", "unlimited guesses"],
+			variantAliases: ["unlimited", "unlimited guess", "unlimited guesses"],
 			roundGuesses: undefined,
 		}
 	],

@@ -15,7 +15,7 @@ class SameDuo extends EliminationTournament {
 	fullyEvolved = true;
 	sharedTeams = true;
 	canRejoin = true;
-	defaultTier = '2v2 Doubles';
+	battleFormatId = '2v2 Doubles';
 
 	getStartingTeam(): readonly string[] {
 		return this.pokedex.slice(0, this.startingTeamsLength);

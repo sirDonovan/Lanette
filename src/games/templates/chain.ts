@@ -45,34 +45,30 @@ export abstract class Chain extends ScriptedGame {
 	onSignups(): void {
 		const pool: Dict<Link> = {};
 		const keys: string[] = [];
-		if (this.variant) {
-			if (this.variant === 'moves') {
-				for (const move of Games.getMovesList()) {
-					if (this.letterBased) {
-						if (move.id === 'hiddenpower') continue;
-						if (!this.getLinkStarts(move).length || !this.getLinkEnds(move).length) continue;
-					}
-					pool[move.id] = move;
-					keys.push(move.id);
+		if (this.linksType === 'move') {
+			for (const move of Games.getMovesList()) {
+				if (this.letterBased) {
+					if (move.id === 'hiddenpower') continue;
+					if (!this.getLinkStarts(move).length || !this.getLinkEnds(move).length) continue;
 				}
-				this.linksType = 'move';
-			} else if (this.variant === 'items') {
-				for (const item of Games.getItemsList()) {
-					if (this.letterBased && (!this.getLinkStarts(item).length || !this.getLinkEnds(item).length)) continue;
-					pool[item.id] = item;
-					keys.push(item.id);
-				}
-				this.linksType = 'item';
-			} else if (this.variant === 'abilities') {
-				for (const ability of Games.getAbilitiesList()) {
-					if (this.letterBased && (!this.getLinkStarts(ability).length || !this.getLinkEnds(ability).length)) continue;
-					pool[ability.id] = ability;
-					keys.push(ability.id);
-				}
-				this.linksType = 'ability';
-			} else {
-				throw new Error("Game variation'" + this.variant + "' has no pool");
+				pool[move.id] = move;
+				keys.push(move.id);
 			}
+			this.linksType = 'move';
+		} else if (this.linksType === 'item') {
+			for (const item of Games.getItemsList()) {
+				if (this.letterBased && (!this.getLinkStarts(item).length || !this.getLinkEnds(item).length)) continue;
+				pool[item.id] = item;
+				keys.push(item.id);
+			}
+			this.linksType = 'item';
+		} else if (this.linksType === 'ability') {
+			for (const ability of Games.getAbilitiesList()) {
+				if (this.letterBased && (!this.getLinkStarts(ability).length || !this.getLinkEnds(ability).length)) continue;
+				pool[ability.id] = ability;
+				keys.push(ability.id);
+			}
+			this.linksType = 'ability';
 		} else {
 			for (const pokemon of Games.getPokemonList()) {
 				if (pokemon.forme && !this.acceptsFormes) continue;

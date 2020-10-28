@@ -41,7 +41,7 @@ class HypnosHunches extends QuestionAndAnswer {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
-		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
+		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		this.currentCategory = category;
 		let answer = this.sampleOne(data[category]);
 		while (answer === this.lastAnswer) {
@@ -147,32 +147,33 @@ export const game: IGameFile<HypnosHunches> = Games.copyTemplateProperties(quest
 	variants: [
 		{
 			name: "Hypno's Ability Hunches",
-			variant: "Pokemon Abilities",
-			variantAliases: ['ability', 'abilities'],
+			roundCategory: "Pokemon Abilities",
+			variantAliases: ['ability', 'abilities', 'pokemon abilities'],
 		},
 		{
 			name: "Hypno's Character Hunches",
-			variant: "Characters",
-			variantAliases: ['character'],
+			roundCategory: "Characters",
+			variantAliases: ['character', 'characters'],
 		},
 		{
 			name: "Hypno's Item Hunches",
-			variant: "Pokemon Items",
-			variantAliases: ['item', 'items'],
+			roundCategory: "Pokemon Items",
+			variantAliases: ['item', 'items', 'pokemon items'],
 		},
 		{
 			name: "Hypno's Location Hunches",
-			variant: "Locations",
-			variantAliases: ['location'],
+			roundCategory: "Locations",
+			variantAliases: ['location', 'locations'],
 		},
 		{
 			name: "Hypno's Move Hunches",
-			variant: "Pokemon Moves",
-			variantAliases: ['move', 'moves'],
+			roundCategory: "Pokemon Moves",
+			variantAliases: ['move', 'moves', 'pokemon moves'],
 		},
 		{
 			name: "Hypno's Pokemon Hunches",
-			variant: "Pokemon",
+			roundCategory: "Pokemon",
+			variantAliases: ['pokemon'],
 		},
 	],
 });

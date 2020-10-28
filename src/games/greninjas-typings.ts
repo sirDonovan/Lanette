@@ -76,7 +76,7 @@ export const game: IGameFile<GreninjasTypings> = Games.copyTemplateProperties(qu
 			name: "Greninja's No Order Typings",
 			description: "Players guess Pokemon that match the given typing (order not important)!",
 			noOrder: true,
-			variant: "noorder",
+			variantAliases: ['no order'],
 		},
 	],
 });

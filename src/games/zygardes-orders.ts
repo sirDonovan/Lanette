@@ -50,7 +50,7 @@ class ZygardesOrders extends QuestionAndAnswer {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
-		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
+		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		this.currentCategory = category;
 		let answer = this.sampleOne(data[category]);
 		while (answer === this.lastAnswer || (this.maxRevealedLetters && answer.length < 7)) {
@@ -152,32 +152,33 @@ export const game: IGameFile<ZygardesOrders> = Games.copyTemplateProperties(ques
 	variants: [
 		{
 			name: "Zygarde's Ability Orders",
-			variant: "Pokemon Abilities",
-			variantAliases: ['ability', 'abilities'],
+			roundCategory: "Pokemon Abilities",
+			variantAliases: ['ability', 'abilities', 'pokemon abilities'],
 		},
 		{
 			name: "Zygarde's Character Orders",
-			variant: "Characters",
-			variantAliases: ['character'],
+			roundCategory: "Characters",
+			variantAliases: ['character', 'characters'],
 		},
 		{
 			name: "Zygarde's Item Orders",
-			variant: "Pokemon Items",
-			variantAliases: ['item', 'items'],
+			roundCategory: "Pokemon Items",
+			variantAliases: ['item', 'items', 'pokemon items'],
 		},
 		{
 			name: "Zygarde's Location Orders",
-			variant: "Locations",
-			variantAliases: ['location'],
+			roundCategory: "Locations",
+			variantAliases: ['location', 'locations'],
 		},
 		{
 			name: "Zygarde's Move Orders",
-			variant: "Pokemon Moves",
-			variantAliases: ['move', 'moves'],
+			roundCategory: "Pokemon Moves",
+			variantAliases: ['move', 'moves', 'pokemon moves'],
 		},
 		{
 			name: "Zygarde's Pokemon Orders",
-			variant: "Pokemon",
+			roundCategory: "Pokemon",
+			variantAliases: ['pokemon'],
 		},
 	],
 });

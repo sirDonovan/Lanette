@@ -39,7 +39,7 @@ class MetangsAnagrams extends QuestionAndAnswer {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
-		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
+		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		let answer = this.sampleOne(data[category]);
 		while (answer === this.lastAnswer) {
 			answer = this.sampleOne(data[category]);
@@ -71,32 +71,33 @@ export const game: IGameFile<MetangsAnagrams> = Games.copyTemplateProperties(que
 	variants: [
 		{
 			name: "Metangs's Ability Anagrams",
-			variant: "Pokemon Abilities",
-			variantAliases: ['ability', 'abilities'],
+			roundCategory: "Pokemon Abilities",
+			variantAliases: ['ability', 'abilities', 'pokemon abilities'],
 		},
 		{
 			name: "Metangs's Character Anagrams",
-			variant: "Characters",
-			variantAliases: ['character'],
+			roundCategory: "Characters",
+			variantAliases: ['character', 'characters'],
 		},
 		{
 			name: "Metangs's Item Anagrams",
-			variant: "Pokemon Items",
-			variantAliases: ['item', 'items'],
+			roundCategory: "Pokemon Items",
+			variantAliases: ['item', 'items', 'pokemon items'],
 		},
 		{
 			name: "Metangs's Location Anagrams",
-			variant: "Locations",
-			variantAliases: ['location'],
+			roundCategory: "Locations",
+			variantAliases: ['location', 'locations'],
 		},
 		{
 			name: "Metangs's Move Anagrams",
-			variant: "Pokemon Moves",
-			variantAliases: ['move', 'moves'],
+			roundCategory: "Pokemon Moves",
+			variantAliases: ['move', 'moves', 'pokemon moves'],
 		},
 		{
 			name: "Metangs's Pokemon Anagrams",
-			variant: "Pokemon",
+			roundCategory: "Pokemon",
+			variantAliases: ['pokemon'],
 		},
 	],
 });

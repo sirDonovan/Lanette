@@ -94,7 +94,7 @@ class EkansEdges extends QuestionAndAnswer {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
-		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
+		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		let edge = this.sampleOne(dataKeys[category]);
 		while (edge === this.lastEdge) {
 			edge = this.sampleOne(dataKeys[category]);
@@ -120,32 +120,33 @@ export const game: IGameFile<EkansEdges> = Games.copyTemplateProperties(question
 	variants: [
 		{
 			name: "Ekans' Ability Edges",
-			variant: "Pokemon Abilities",
-			variantAliases: ['ability', 'abilities'],
+			roundCategory: "Pokemon Abilities",
+			variantAliases: ['ability', 'abilities', 'pokemon abilities'],
 		},
 		{
 			name: "Ekans' Character Edges",
-			variant: "Characters",
-			variantAliases: ['character'],
+			roundCategory: "Characters",
+			variantAliases: ['character', 'characters'],
 		},
 		{
 			name: "Ekans' Item Edges",
-			variant: "Pokemon Items",
-			variantAliases: ['item', 'items'],
+			roundCategory: "Pokemon Items",
+			variantAliases: ['item', 'items', 'pokemon items'],
 		},
 		{
 			name: "Ekans' Location Edges",
-			variant: "Locations",
-			variantAliases: ['location'],
+			roundCategory: "Locations",
+			variantAliases: ['location', 'locations'],
 		},
 		{
 			name: "Ekans' Move Edges",
-			variant: "Pokemon Moves",
-			variantAliases: ['move', 'moves'],
+			roundCategory: "Pokemon Moves",
+			variantAliases: ['move', 'moves', 'pokemon moves'],
 		},
 		{
 			name: "Ekans' Pokemon Edges",
-			variant: "Pokemon",
+			roundCategory: "Pokemon",
+			variantAliases: ['pokemon'],
 		},
 	],
 });

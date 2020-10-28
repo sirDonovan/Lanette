@@ -18,16 +18,16 @@ export const game: IGameFile<UnownsPokemonChain> = Games.copyTemplateProperties(
 			description: "Players answer each round with an ability that starts with the last letter of the previous ability (no repeats " +
 				"in a round)!",
 			commandDescriptions: [Config.commandCharacter + "g [ability]"],
-			variant: "abilities",
-			variantAliases: ['ability'],
+			linksType: 'ability',
+			variantAliases: ['ability', 'abilities'],
 		},
 		{
 			name: "Unown's Move Chain",
 			description: "Players answer each round with a move that starts with the last letter of the previous move (no repeats in " +
 				"a round)!",
 			commandDescriptions: [Config.commandCharacter + "g [move]"],
-			variant: "moves",
-			variantAliases: ['move'],
+			linksType: 'move',
+			variantAliases: ['move', 'moves'],
 		},
 	],
 });

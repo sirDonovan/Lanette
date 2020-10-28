@@ -387,8 +387,7 @@ export const game: IGameFile<PanchamPairs> = {
 			dataType: 'moves',
 			description: "Players try to pair the given moves according to <code>/movesearch</code> parameters! Valid parameter types " +
 				"include type, base power, PP, and generation.",
-			variant: "Moves",
-			variantAliases: ['move', 'Pokemon Moves'],
+			variantAliases: ['move', 'moves', 'Pokemon Moves'],
 		},
 	],
 };

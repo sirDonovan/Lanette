@@ -35,10 +35,10 @@ class PiplupsLetterPlacements extends QuestionAndAnswer {
 	}
 
 	async setAnswers(): Promise<void> {
-		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
 		let answer = Tools.toId(this.sampleOne(data[category]));
 		while (answer === this.lastAnswer) {
 			answer = Tools.toId(this.sampleOne(data[category]));
+		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		}
 		this.lastAnswer = answer;
 		const startingPosition = this.random(answer.length - 2);
@@ -73,13 +73,13 @@ export const game: IGameFile<PiplupsLetterPlacements> = Games.copyTemplateProper
 	variants: [
 		{
 			name: "Piplup's Ability Letter Placements",
-			variant: "Pokemon Abilities",
-			variantAliases: ['ability', 'abilities'],
+			roundCategory: "Pokemon Abilities",
+			variantAliases: ['ability', 'abilities', 'pokemon abilities'],
 		},
 		{
 			name: "Piplup's Character Letter Placements",
-			variant: "Characters",
-			variantAliases: ['character'],
+			roundCategory: "Characters",
+			variantAliases: ['character', 'characters'],
 		},
 		{
 			name: "Piplup's Item Letter Placements",
@@ -88,17 +88,18 @@ export const game: IGameFile<PiplupsLetterPlacements> = Games.copyTemplateProper
 		},
 		{
 			name: "Piplup's Location Letter Placements",
-			variant: "Locations",
-			variantAliases: ['location'],
+			roundCategory: "Locations",
+			variantAliases: ['location', 'locations'],
 		},
 		{
 			name: "Piplup's Move Letter Placements",
-			variant: "Pokemon Moves",
-			variantAliases: ['move', 'moves'],
+			roundCategory: "Pokemon Moves",
+			variantAliases: ['move', 'moves', 'pokemon moves'],
 		},
 		{
 			name: "Piplup's Pokemon Letter Placements",
-			variant: "Pokemon",
+			roundCategory: "Pokemon",
+			variantAliases: ['pokemon'],
 		},
 	],
 });

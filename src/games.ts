@@ -303,9 +303,7 @@ export class Games {
 			if (file.variants) {
 				variants = Tools.deepClone(file.variants);
 				for (const variant of variants) {
-					if (variant.variantAliases) {
-						variant.variantAliases = variant.variantAliases.map(x => Tools.toId(x));
-					}
+					variant.variantAliases = variant.variantAliases.map(x => Tools.toId(x));
 				}
 			}
 
@@ -404,31 +402,30 @@ export class Games {
 
 			if (format.variants) {
 				for (const variant of format.variants) {
-					const id = Tools.toId(variant.name);
-					if (id in this.aliases) {
+					const variantId = Tools.toId(variant.name);
+					if (variantId in this.aliases) {
 						throw new Error(format.name + "'s variant '" + variant.name + "' is already an alias for " +
-							this.aliases[id] + ".");
+							this.aliases[variantId] + ".");
 					}
 
-					const formatVariantTarget = format.name + "," + variant.variant;
-					this.aliases[id] = formatVariantTarget;
+					for (const variantAlias of variant.variantAliases) {
+						for (const id of idsToAlias) {
+							const aliases = [id + variantAlias, variantAlias + id];
+							for (const alias of aliases) {
+								if (alias in this.aliases) {
+									throw new Error(variant.name + "'s variant alias '" + variantId + "' clashes " +
+										"with the alias for " + this.aliases[alias] + ".");
+								}
 
-					let variantIds: string[] = [Tools.toId(variant.variant)];
-					if (variant.variantAliases) {
-						variantIds = variantIds.concat(variant.variantAliases);
-					}
-
-					for (const id of idsToAlias) {
-						for (const variantId of variantIds) {
-							const alias = variantId + id;
-							if (alias in this.aliases) {
-								if (this.aliases[alias] === formatVariantTarget) continue;
-
-								throw new Error(variant.name + "'s variant alias '" + variantId + "' clashes " +
-									"with the alias for " + this.aliases[alias] + ".");
+								this.aliases[alias] = format.id + "," + variantAlias;
 							}
+						}
+					}
+				}
+			}
 
-							if (!(alias in this.aliases)) this.aliases[alias] = formatVariantTarget;
+
+
 						}
 					}
 				}
@@ -573,9 +570,8 @@ export class Games {
 				let matchingVariant: IGameVariant | undefined;
 				// eslint-disable-next-line @typescript-eslint/prefer-for-of
 				for (let i = 0; i < formatData.variants.length; i++) {
-					const variant = formatData.variants[i];
-					if (Tools.toId(variant.variant) === targetId || (variant.variantAliases && variant.variantAliases.includes(targetId))) {
-						matchingVariant = variant;
+					if (formatData.variants[i].variantAliases.includes(targetId)) {
+						matchingVariant = formatData.variants[i];
 						break;
 					}
 				}
@@ -860,7 +856,6 @@ export class Games {
 			}
 		}
 
-		const limitVariants = format.variant && Config.limitGamesByVariant && Config.limitGamesByVariant.includes(room.id) ? true : false;
 		const limitModes = format.mode && Config.limitGamesByMode && Config.limitGamesByMode.includes(room.id) ? true : false;
 		const limitCategories = format.category && Config.limitGamesByCategory && Config.limitGamesByCategory.includes(room.id) ? true :
 			false;
@@ -874,9 +869,6 @@ export class Games {
 				continue;
 			}
 
-			if (limitVariants && format.variant && pastFormat.variant && format.variant.variant === pastFormat.variant.variant) {
-				return "There is another " + format.variant.variant + "-variant game on the past games list.";
-			}
 			if (limitModes && format.mode && pastFormat.mode && format.mode.id === pastFormat.mode.id) {
 				return "There is another " + format.mode.name + "-mode game on the past games list.";
 			}

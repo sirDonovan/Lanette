@@ -319,8 +319,7 @@ export const game: IGameFile<JellicentsPhantomFinances> = Games.copyTemplateProp
 	variants: [
 		{
 			name: "Auction-only Jellicent's Phantom Finances",
-			variant: "Auction-only",
-			variantAliases: ['Auctions-only', 'auction', 'auctions'],
+			variantAliases: ['Auction-only', 'Auctions-only', 'auction', 'auctions'],
 			acquireProperties: false,
 		},
 	],

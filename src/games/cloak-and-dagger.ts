@@ -23,33 +23,39 @@ export const game: IGameFile<CloakAndDagger> = Games.copyTemplateProperties(elim
 	variants: [
 		{
 			name: "Cloak and Dagger Ubers",
-			variant: "ubers",
+			battleFormatId: "ubers",
 			requiredTier: "Uber",
+			variantAliases: ["ubers"],
 		},
 		{
 			name: "Cloak and Dagger UU",
-			variant: "uu",
+			battleFormatId: "uu",
 			requiredTier: "UU",
+			variantAliases: ["uu"],
 		},
 		{
 			name: "Cloak and Dagger RU",
-			variant: "ru",
+			battleFormatId: "ru",
 			requiredTier: "RU",
+			variantAliases: ["ru"],
 		},
 		{
 			name: "Cloak and Dagger NU",
-			variant: "nu",
+			battleFormatId: "nu",
 			requiredTier: "NU",
+			variantAliases: ["nu"],
 		},
 		{
 			name: "Cloak and Dagger PU",
-			variant: "pu",
+			battleFormatId: "pu",
 			requiredTier: "PU",
+			variantAliases: ["pu"],
 		},
 		{
 			name: "Cloak and Dagger ZU",
-			variant: "zu",
+			battleFormatId: "zu",
 			requiredTier: "ZU",
+			variantAliases: ["zu"],
 		},
 	],
 });

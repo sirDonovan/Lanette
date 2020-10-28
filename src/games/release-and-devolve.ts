@@ -26,19 +26,23 @@ export const game: IGameFile<ReleaseAndDevolve> = Games.copyTemplateProperties(e
 	variants: [
 		{
 			name: "Release and De-volve Ubers",
-			variant: "ubers",
+			battleFormatId: "ubers",
+			variantAliases: ["ubers"],
 		},
 		{
 			name: "Release and De-volve UU",
-			variant: "uu",
+			battleFormatId: "uu",
+			variantAliases: ["uu"],
 		},
 		{
 			name: "Release and De-volve RU",
-			variant: "ru",
+			battleFormatId: "ru",
+			variantAliases: ["ru"],
 		},
 		{
 			name: "Release and De-volve NU",
-			variant: "nu",
+			battleFormatId: "nu",
+			variantAliases: ["nu"],
 		},
 	],
 });

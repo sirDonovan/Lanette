@@ -46,7 +46,7 @@ class KyuremsSplits extends QuestionAndAnswer {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
-		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
+		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		let hint = '';
 		while (!this.answers.length || this.answers.length > 15 || Client.willBeFiltered(hint)) {
 			const answer = Tools.toId(this.sampleOne(data[category]));
@@ -88,32 +88,33 @@ export const game: IGameFile<KyuremsSplits> = Games.copyTemplateProperties(quest
 	variants: [
 		{
 			name: "Kyurem's Ability Splits",
-			variant: "Pokemon Abilities",
-			variantAliases: ['ability', 'abilities'],
+			roundCategory: "Pokemon Abilities",
+			variantAliases: ['ability', 'abilities', 'pokemon abilities'],
 		},
 		{
 			name: "Kyurem's Character Splits",
-			variant: "Characters",
-			variantAliases: ['character'],
+			roundCategory: "Characters",
+			variantAliases: ['character', 'characters'],
 		},
 		{
 			name: "Kyurem's Item Splits",
-			variant: "Pokemon Items",
-			variantAliases: ['item', 'items'],
+			roundCategory: "Pokemon Items",
+			variantAliases: ['item', 'items', 'pokemon items'],
 		},
 		{
 			name: "Kyurem's Location Splits",
-			variant: "Locations",
-			variantAliases: ['location'],
+			roundCategory: "Locations",
+			variantAliases: ['location', 'locations'],
 		},
 		{
 			name: "Kyurem's Move Splits",
-			variant: "Pokemon Moves",
-			variantAliases: ['move', 'moves'],
+			roundCategory: "Pokemon Moves",
+			variantAliases: ['move', 'moves', 'pokemon moves'],
 		},
 		{
 			name: "Kyurem's Pokemon Splits",
-			variant: "Pokemon",
+			roundCategory: "Pokemon",
+			variantAliases: ['pokemon'],
 		},
 	],
 });

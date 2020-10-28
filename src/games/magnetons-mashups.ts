@@ -47,7 +47,7 @@ class MagnetonsMashups extends QuestionAndAnswer {
 			}
 		}
 
-		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
+		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		const elements = this.sampleMany(data[category], numberOfElements);
 
 		let mashup = "";
@@ -135,22 +135,23 @@ export const game: IGameFile<MagnetonsMashups> = Games.copyTemplateProperties(qu
 	variants: [
 		{
 			name: "Magneton's Ability Mashups",
-			variant: "Pokemon Abilities",
-			variantAliases: ['ability', 'abilities'],
+			roundCategory: "Pokemon Abilities",
+			variantAliases: ['ability', 'abilities', 'pokemon abilities'],
 		},
 		{
 			name: "Magneton's Item Mashups",
-			variant: "Pokemon Items",
-			variantAliases: ['item', 'items'],
+			roundCategory: "Pokemon Items",
+			variantAliases: ['item', 'items', 'pokemon items'],
 		},
 		{
 			name: "Magneton's Move Mashups",
-			variant: "Pokemon Moves",
-			variantAliases: ['move', 'moves'],
+			roundCategory: "Pokemon Moves",
+			variantAliases: ['move', 'moves', 'pokemon moves'],
 		},
 		{
 			name: "Magneton's Pokemon Mashups",
-			variant: "Pokemon",
+			roundCategory: "Pokemon",
+			variantAliases: ['pokemon'],
 		},
 	],
 });

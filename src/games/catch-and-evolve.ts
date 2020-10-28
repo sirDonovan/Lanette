@@ -34,36 +34,43 @@ export const game: IGameFile<CatchAndEvolve> = Games.copyTemplateProperties(elim
 	variants: [
 		{
 			name: "Monotype Catch and Evolve",
-			variant: "monotype",
+			monoType: true,
+			variantAliases: ["monotype"],
 		},
 		{
 			name: "Monoregion Catch and Evolve",
-			variant: "monoregion",
-			variantAliases: ["monogen"],
+			monoRegion: true,
+			variantAliases: ["monoregion", "monogen"],
 		},
 		{
 			name: "Catch and Evolve Ubers",
-			variant: "ubers",
+			battleFormatId: "ubers",
+			variantAliases: ["ubers"],
 		},
 		{
 			name: "Catch and Evolve UU",
-			variant: "uu",
+			battleFormatId: "uu",
+			variantAliases: ["uu"],
 		},
 		{
 			name: "Catch and Evolve RU",
-			variant: "ru",
+			battleFormatId: "ru",
+			variantAliases: ["ru"],
 		},
 		{
 			name: "Catch and Evolve NU",
-			variant: "nu",
+			battleFormatId: "nu",
+			variantAliases: ["nu"],
 		},
 		{
 			name: "Catch and Evolve PU",
-			variant: "pu",
+			battleFormatId: "pu",
+			variantAliases: ["pu"],
 		},
 		{
 			name: "Catch and Evolve ZU",
-			variant: "zu",
+			battleFormatId: "zu",
+			variantAliases: ["zu"],
 		},
 	],
 });

@@ -3,7 +3,7 @@ import type { OneVsOne } from '../../games/internal/one-vs-one';
 import type { PRNGSeed } from '../../prng';
 import { PRNG } from '../../prng';
 import type { ScriptedGame } from '../../room-game-scripted';
-import type { GameAchievements, GameFileTests, IGameFormat, IGameTestAttributes, IUserHostedFormat } from '../../types/games';
+import type { GameFileTests, IGameFormat, IGameTestAttributes, IUserHostedFormat } from '../../types/games';
 import type { IPastGame } from '../../types/storage';
 import { assert, assertClientSendQueue, assertStrictEqual, testOptions } from '../test-tools';
 
@@ -106,7 +106,7 @@ for (const format of formatsToTest) {
 
 		if (format.variants) {
 			for (const variant of format.variants) {
-				const variantFormat = Games.getExistingFormat(format.inputTarget + "," + variant.variant);
+				const variantFormat = Games.getExistingFormat(format.inputTarget + "," + variant.variantAliases[0]);
 				describe(variantFormat.nameWithOptions + " individual tests", () => {
 					afterEach(() => {
 						if (room.game) room.game.deallocate(true);
@@ -288,8 +288,8 @@ describe("Games", () => {
 		for (const formatId of formats) {
 			const formatData = Games.formats[formatId];
 			if (formatData.variants && formatData.variants.length >= 2) {
-				const variantsFormat = Games.getFormat(formatId + "," + formatData.variants[0].variant + "," +
-					formatData.variants[1].variant);
+				const variantsFormat = Games.getFormat(formatId + "," + formatData.variants[0].variantAliases[0] + "," +
+					formatData.variants[1].variantAliases[0]);
 				assert(Array.isArray(variantsFormat));
 				assertStrictEqual(variantsFormat[0], 'tooManyGameVariants');
 				assertStrictEqual(variantsFormat[1], undefined);

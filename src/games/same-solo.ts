@@ -15,7 +15,7 @@ class SameSolo extends EliminationTournament {
 	fullyEvolved = true;
 	sharedTeams = true;
 	canRejoin = true;
-	defaultTier = '1v1';
+	battleFormatId = '1v1';
 
 	getStartingTeam(): readonly string[] {
 		return this.pokedex.slice(0, this.startingTeamsLength);

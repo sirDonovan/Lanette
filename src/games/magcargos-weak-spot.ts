@@ -116,7 +116,7 @@ export const game: IGameFile<MagcargosWeakSpot> = Games.copyTemplateProperties(q
 			name: "Magcargo's Inverse Weak Spot",
 			description: "Using an inverted type chart, players guess the weakness(es) that the given Pokemon share!",
 			inverseTypes: true,
-			variant: "inverse",
+			variantAliases: ['inverse'],
 		},
 	],
 });

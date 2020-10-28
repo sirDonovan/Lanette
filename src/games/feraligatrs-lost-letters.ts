@@ -25,6 +25,7 @@ class FeraligatrsLostLetters extends QuestionAndAnswer {
 
 	allAnswersAchievement = FeraligatrsLostLetters.achievements.alphabetsweep;
 	categoryList: DataKey[] = categories.slice();
+	inverseLostLetters: boolean = false;
 	roundTime: number = 10 * 1000;
 
 	static loadData(room: Room | User): void {
@@ -38,22 +39,22 @@ class FeraligatrsLostLetters extends QuestionAndAnswer {
 
 	getMinigameDescription(): string {
 		return "Use <code>" + Config.commandCharacter + "g</code> to guess the answer after finding the missing " +
-			(this.variant === 'inverse' ? "consonants" : "vowels") + "!";
+			(this.inverseLostLetters ? "consonants" : "vowels") + "!";
 	}
 
 	onSignups(): void {
 		super.onSignups();
-		if (this.variant === 'inverse') {
+		if (this.inverseLostLetters) {
 			this.roundTime = 15 * 1000;
 			this.categoryList.splice(this.categoryList.indexOf('Characters'), 1);
 		}
 	}
 
-	removeLetters(letters: string[], isInverse: boolean): string {
+	removeLetters(letters: string[]): string {
 		const newLetters: string[] = [];
 		for (const letter of letters) {
 			if (letter === ' ') continue;
-			if (isInverse) {
+			if (this.inverseLostLetters) {
 				if (vowels.includes(letter)) {
 					newLetters.push(letter);
 				}
@@ -69,12 +70,9 @@ class FeraligatrsLostLetters extends QuestionAndAnswer {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
-		const isInverse = this.variant === 'inverse';
 		let category: DataKey;
 		if (this.roundCategory) {
 			category = this.roundCategory as DataKey;
-		} else if (this.variant && !isInverse) {
-			category = this.variant as DataKey;
 		} else {
 			category = this.sampleOne(this.categoryList);
 		}
@@ -84,7 +82,7 @@ class FeraligatrsLostLetters extends QuestionAndAnswer {
 			let name = this.sampleOne(data[category]);
 			if (!name || name.endsWith('-Mega')) continue;
 			name = name.trim();
-			hint = this.removeLetters(name.split(''), isInverse);
+			hint = this.removeLetters(name.split(''));
 			if (hint.length === name.length || Client.willBeFiltered(hint)) continue;
 			answer = name;
 		}
@@ -92,7 +90,7 @@ class FeraligatrsLostLetters extends QuestionAndAnswer {
 		for (let name of data[category]) {
 			name = name.trim();
 			if (name === answer) continue;
-			if (this.removeLetters(name.split(''), isInverse) === hint) this.answers.push(name);
+			if (this.removeLetters(name.split('')) === hint) this.answers.push(name);
 		}
 		this.hint = '<b>' + category + '</b>: <i>' + hint + '</i>';
 	}
@@ -114,37 +112,39 @@ export const game: IGameFile<FeraligatrsLostLetters> = Games.copyTemplatePropert
 	variants: [
 		{
 			name: "Feraligatr's Ability Lost Letters",
-			variant: "Pokemon Abilities",
-			variantAliases: ['ability', 'abilities'],
+			roundCategory: "Pokemon Abilities",
+			variantAliases: ['ability', 'abilities', 'pokemon abilities'],
 		},
 		{
 			name: "Feraligatr's Character Lost Letters",
-			variant: "Characters",
-			variantAliases: ['character'],
+			roundCategory: "Characters",
+			variantAliases: ['character', 'characters'],
 		},
 		{
 			name: "Feraligatr's Inverse Lost Letters",
 			description: "Players guess the missing consonants to find the answers!",
-			variant: "inverse",
+			inverseLostLetters: true,
+			variantAliases: ['inverse'],
 		},
 		{
 			name: "Feraligatr's Item Lost Letters",
-			variant: "Pokemon Items",
-			variantAliases: ['item', 'items'],
+			roundCategory: "Pokemon Items",
+			variantAliases: ['item', 'items', 'pokemon items'],
 		},
 		{
 			name: "Feraligatr's Location Lost Letters",
-			variant: "Locations",
-			variantAliases: ['location'],
+			roundCategory: "Locations",
+			variantAliases: ['location', 'locations'],
 		},
 		{
 			name: "Feraligatr's Move Lost Letters",
-			variant: "Pokemon Moves",
-			variantAliases: ['move', 'moves'],
+			roundCategory: "Pokemon Moves",
+			variantAliases: ['move', 'moves', 'pokemon moves'],
 		},
 		{
 			name: "Feraligatr's Pokemon Lost Letters",
-			variant: "Pokemon",
+			roundCategory: "Pokemon",
+			variantAliases: ['pokemon'],
 		},
 	],
 });

@@ -60,7 +60,7 @@ class LugiasObstructiveLetters extends QuestionAndAnswer {
 		let category: DataKey;
 		let unavailableLetters: string[] = [];
 		while (!answers.length || answers.length > 20) {
-			category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
+			category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 			const id = this.sampleOne(dataKeys[category]);
 			const availableLetters: string[] = [];
 			for (const letter of letters) {

@@ -37,7 +37,7 @@ class AmbipomsTossups extends QuestionAndAnswer {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
-		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
+		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		this.currentCategory = category;
 		let answer = this.sampleOne(data[category]);
 		while (answer === this.lastAnswer || (this.maxRevealedLetters && answer.length < 7)) {
@@ -122,21 +122,22 @@ export const game: IGameFile<AmbipomsTossups> = Games.copyTemplateProperties(que
 	variants: [
 		{
 			name: "Ambipom's Pokemon Tossups",
-			variant: "Pokemon",
+			roundCategory: "Pokemon",
+			variantAliases: ['pokemon'],
 		},
 		{
 			name: "Ambipom's Ability Tossups",
-			variant: "Pokemon Abilities",
+			roundCategory: "Pokemon Abilities",
 			variantAliases: ['ability', 'abilities'],
 		},
 		{
 			name: "Ambipom's Item Tossups",
-			variant: "Pokemon Items",
+			roundCategory: "Pokemon Items",
 			variantAliases: ['item', 'items'],
 		},
 		{
 			name: "Ambipom's Move Tossups",
-			variant: "Pokemon Moves",
+			roundCategory: "Pokemon Moves",
 			variantAliases: ['move', 'moves'],
 		},
 	],

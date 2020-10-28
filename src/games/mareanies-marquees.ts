@@ -35,7 +35,7 @@ class MareaniesMarquee extends QuestionAndAnswer {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
-		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
+		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		this.currentCategory = category;
 		let answer = '';
 		let letters: string[] = [];
@@ -127,23 +127,24 @@ export const game: IGameFile<MareaniesMarquee> = Games.copyTemplateProperties(qu
 	},
 	variants: [
 		{
-			name: "Mareanie's Pokemon Marquees",
-			variant: "Pokemon",
-		},
-		{
 			name: "Mareanie's Ability Marquees",
-			variant: "Pokemon Abilities",
-			variantAliases: ['ability', 'abilities'],
+			roundCategory: "Pokemon Abilities",
+			variantAliases: ['ability', 'abilities', 'pokemon abilities'],
 		},
 		{
 			name: "Mareanie's Item Marquees",
-			variant: "Pokemon Items",
-			variantAliases: ['item', 'items'],
+			roundCategory: "Pokemon Items",
+			variantAliases: ['item', 'items', 'pokemon items'],
 		},
 		{
 			name: "Mareanie's Move Marquees",
-			variant: "Pokemon Moves",
-			variantAliases: ['move', 'moves'],
+			roundCategory: "Pokemon Moves",
+			variantAliases: ['move', 'moves', 'pokemon moves'],
+		},
+		{
+			name: "Mareanie's Pokemon Marquees",
+			roundCategory: "Pokemon",
+			variantAliases: ['pokemon'],
 		},
 	],
 });

@@ -25,35 +25,43 @@ export const game: IGameFile<CatchAndDevolve> = Games.copyTemplateProperties(eli
 	variants: [
 		{
 			name: "Monotype Catch and De-volve",
-			variant: "monotype",
+			monoType: true,
+			variantAliases: ["monotype"],
 		},
 		{
 			name: "Monoregion Catch and De-volve",
-			variant: "monoregion",
+			monoRegion: true,
+			variantAliases: ["monoregion", "monogen"],
 		},
 		{
 			name: "Catch and De-volve Ubers",
-			variant: "ubers",
+			battleFormatId: "ubers",
+			variantAliases: ["ubers"],
 		},
 		{
 			name: "Catch and De-volve UU",
-			variant: "uu",
+			battleFormatId: "uu",
+			variantAliases: ["uu"],
 		},
 		{
 			name: "Catch and De-volve RU",
-			variant: "ru",
+			battleFormatId: "ru",
+			variantAliases: ["ru"],
 		},
 		{
 			name: "Catch and De-volve NU",
-			variant: "nu",
+			battleFormatId: "nu",
+			variantAliases: ["nu"],
 		},
 		{
 			name: "Catch and De-volve PU",
-			variant: "pu",
+			battleFormatId: "pu",
+			variantAliases: ["pu"],
 		},
 		{
 			name: "Catch and De-volve ZU",
-			variant: "zu",
+			battleFormatId: "zu",
+			variantAliases: ["zu"],
 		},
 	],
 });

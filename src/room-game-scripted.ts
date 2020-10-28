@@ -51,7 +51,6 @@ export class ScriptedGame extends Game {
 	shinyMascot?: boolean;
 	startingLives?: number;
 	subGameNumber?: number;
-	readonly variant?: string;
 
 	constructor(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed) {
 		super(room, pmRoom, initialSeed);

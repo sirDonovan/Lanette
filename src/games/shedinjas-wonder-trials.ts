@@ -21,6 +21,7 @@ class ShedinjasWonderTrials extends ScriptedGame {
 	canUseMove: boolean = false;
 	currentPokemon: IPokemon | null = null;
 	firstMove: Player | false | undefined;
+	inverseTypes: boolean = false;
 	lastTyping: string = '';
 	maxPoints: number = 1500;
 	points = new Map<Player, number>();
@@ -187,7 +188,7 @@ const commands: GameCommandDefinitions<ShedinjasWonderTrials> = {
 				}
 			}
 
-			if (this.variant === 'inverse') {
+			if (this.inverseTypes) {
 				if (effectiveness === Infinity) {
 					effectiveness = 1;
 				} else {
@@ -226,7 +227,8 @@ export const game: IGameFile<ShedinjasWonderTrials> = {
 			name: "Shedinja's Inverse Wonder Trials",
 			description: "Using an inverted type chart, Players must use damaging moves that are super-effective against each Pokemon " +
 				"that Shedinja summons (no repeats in a round)!",
-			variant: "inverse",
+			inverseTypes: true,
+			variantAliases: ["inverse"],
 		},
 	],
 };

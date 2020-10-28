@@ -58,7 +58,7 @@ class SlowkingsTrivia extends QuestionAndAnswer {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
-		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
+		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		const description = this.sampleOne(categoryKeys[category]);
 		this.answers = data[category][description];
 		this.hint = "<b>" + category + "</b>: <i>" + description + "</i>";
@@ -81,18 +81,18 @@ export const game: IGameFile<SlowkingsTrivia> = Games.copyTemplateProperties(que
 	variants: [
 		{
 			name: "Slowking's Ability Trivia",
-			variant: "Pokemon Abilities",
-			variantAliases: ['ability', 'abilities'],
+			roundCategory: "Pokemon Abilities",
+			variantAliases: ['ability', 'abilities', 'pokemon abilities'],
 		},
 		{
 			name: "Slowking's Item Trivia",
-			variant: "Pokemon Items",
-			variantAliases: ['item', 'items'],
+			roundCategory: "Pokemon Items",
+			variantAliases: ['item', 'items', 'pokemon items'],
 		},
 		{
 			name: "Slowking's Move Trivia",
-			variant: "Pokemon Moves",
-			variantAliases: ['move', 'moves'],
+			roundCategory: "Pokemon Moves",
+			variantAliases: ['move', 'moves', 'pokemon moves'],
 		},
 	],
 });

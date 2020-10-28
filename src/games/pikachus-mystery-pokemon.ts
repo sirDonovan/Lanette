@@ -133,8 +133,7 @@ export const game: IGameFile<PikachusMysteryPokemon> = Games.copyTemplatePropert
 		{
 			name: "Pikachu's Mystery Pokemon Unlimited",
 			description: "Players guess Pokemon based on the given hints (unlimited guesses)!",
-			variant: "unlimited",
-			variantAliases: ["unlimited guess", "unlimited guesses"],
+			variantAliases: ["unlimited", "unlimited guess", "unlimited guesses"],
 			roundGuesses: undefined,
 		}
 	],

@@ -125,6 +125,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	autoCloseHtmlPage = false;
 	availableMatchNodes: EliminationNode<Player>[] = [];
 	banlist: string[] = [];
+	battleFormatId: string = 'ou';
 	readonly battleData: Dict<IBattleGameData> = {};
 	readonly battleRooms: string[] = [];
 	bracketHtml: string = '';
@@ -134,7 +135,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 	checkChallengesTimers = new Map<EliminationNode<Player>, NodeJS.Timer>();
 	checkChallengesInactiveTimers = new Map<EliminationNode<Player>, NodeJS.Timer>();
 	color: string | null = null;
-	defaultTier: string = 'ou';
 	disqualifiedPlayers = new Set<Player>();
 	dropsPerRound: number = 0;
 	evolutionsPerRound: number = 0;
@@ -147,6 +147,9 @@ export abstract class EliminationTournament extends ScriptedGame {
 	internalGame = true;
 	maxPlayers: number = POTENTIAL_MAX_PLAYERS[POTENTIAL_MAX_PLAYERS.length - 1];
 	minPlayers: number = 4;
+	monoColor: boolean = false;
+	monoRegion: boolean = false;
+	monoType: boolean = false;
 	playerCap: number = 0;
 	playerOpponents = new Map<Player, Player>();
 	playerRequiredPokemon = new Map<Player, readonly string[]>();
@@ -184,12 +187,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	onInitialize(format: IGameFormat): void {
 		super.onInitialize(format);
 
-		let formatName = this.defaultTier;
-		if (this.variant && !(this.variant === 'monocolor' || this.variant === 'monoregion')) {
-			formatName = this.variant;
-		}
-
-		this.battleFormat = Dex.getExistingFormat(formatName);
+		this.battleFormat = Dex.getExistingFormat(this.battleFormatId);
 		this.battleFormat.usablePokemon = Dex.getUsablePokemon(this.battleFormat);
 		this.firstRoundTime = this.activityWarnTimeout + this.activityDQTimeout + this.firstRoundExtraTime;
 	}
@@ -1015,7 +1013,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 			this.getMinimumPokemonForPlayers(minimumPlayers));
 
 		let pokedex: string[];
-		if (this.variant === 'monocolor') {
+		if (this.monoColor) {
 			const colors = this.shuffle(Object.keys(Dex.data.colors));
 			this.color = Dex.data.colors[colors[0]];
 			colors.shift();
@@ -1027,7 +1025,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 				pokedex = this.createPokedex();
 			}
 			this.tournamentName = "Mono-" + this.color + " " + this.baseTournamentName;
-		} else if (this.variant === 'monotype') {
+		} else if (this.monoType) {
 			const types = this.shuffle(Dex.data.typeKeys);
 			this.type = Dex.getExistingType(types[0]).name;
 			types.shift();
@@ -1039,7 +1037,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 				pokedex = this.createPokedex();
 			}
 			this.tournamentName = "Mono-" + this.type + " " + this.baseTournamentName;
-		} else if (this.variant === 'monoregion') {
+		} else if (this.monoRegion) {
 			let gens: number[] = [];
 			for (let i = 1; i <= Dex.gen; i++) {
 				gens.push(i);
