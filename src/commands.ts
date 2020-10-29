@@ -2722,7 +2722,7 @@ const commands: CommandDefinitions<CommandContext> = {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
 				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
-			this.say('Randomly generated nature: **' + Dex.data.natures[Tools.sampleOne(Object.keys(Dex.data.natures))]!.name + '**');
+			this.say('Randomly generated nature: **' + Dex.getExistingNature(Tools.sampleOne(Dex.data.natureKeys)).name + '**');
 		},
 		aliases: ['rnature'],
 	},

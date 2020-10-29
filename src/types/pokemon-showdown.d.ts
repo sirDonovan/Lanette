@@ -100,7 +100,7 @@ interface IEventInfo {
 	from?: string;
 }
 
-type EffectType = 'Effect' | 'Pokemon' | 'Move' | 'Item' | 'Ability' | 'Format' | 'Ruleset' | 'Weather' | 'Status' | 'Rule' |
+type EffectType = 'Effect' | 'Pokemon' | 'Move' | 'Item' | 'Ability' | 'Format' | 'Ruleset' | 'Nature' | 'Weather' | 'Status' | 'Rule' |
 	'ValidatorRule';
 
 interface IBasicEffect {
@@ -428,6 +428,16 @@ interface ILearnsetData {
 	encounters?: IEventInfo[];
 }
 
+export interface INatureCopy extends IBasicEffect {
+	gen: number;
+	name: string;
+	plus?: StatNameExceptHP;
+	minus?: StatNameExceptHP;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface INature extends DeepImmutable<INatureCopy> {}
+
 export type FormatEffectType = 'Format' | 'Ruleset' | 'Rule' | 'ValidatorRule';
 type GameType = 'singles' | 'doubles' | 'triples' | 'rotation' | 'multi' | 'free-for-all';
 type SideID = 'p1' | 'p2' | 'p3' | 'p4';
@@ -513,12 +523,6 @@ interface ITypeData {
 	name: string;
 }
 
-export interface INature {
-	name: string;
-	plus?: string;
-	minus?: string;
-}
-
 export interface IPSAbility extends IAbility {
 	exists: boolean;
 }
@@ -539,6 +543,10 @@ export interface IPSMove extends IMove {
 	exists: boolean;
 }
 
+export interface IPSNature extends INature {
+	exists: boolean;
+}
+
 export interface IPSPokemon extends IPokemon {
 	exists: boolean;
 }
@@ -549,14 +557,15 @@ export interface IPSTypeData extends ITypeData {
 
 export interface IPokemonShowdownDex {
 	data: {
-		Aliases: Dict<string>;
-		Abilities: Dict<string>;
-		Items: Dict<string>;
-		Formats: Dict<string>;
-		Learnsets: Dict<string>;
-		Moves: Dict<string>;
-		Pokedex: Dict<string>;
-		TypeChart: Dict<string>;
+		Aliases: Dict<unknown>;
+		Abilities: Dict<unknown>;
+		Items: Dict<unknown>;
+		Formats: Dict<unknown>;
+		Learnsets: Dict<unknown>;
+		Moves: Dict<unknown>;
+		Natures: Dict<unknown>;
+		Pokedex: Dict<unknown>;
+		TypeChart: Dict<unknown>;
 	}
 	dexes: Dict<IPokemonShowdownDex>;
 	gen: number;
@@ -565,6 +574,7 @@ export interface IPokemonShowdownDex {
 	getItem: (name: string) => IPSItem;
 	getLearnsetData: (name: string) => IPSLearnsetData;
 	getMove: (name: string) => IPSMove;
+	getNature: (name: string) => IPSNature;
 	getRuleTable: (format: IFormat) => RuleTable;
 	getSpecies: (name: string) => IPSPokemon;
 	getType: (name: string) => IPSTypeData;
