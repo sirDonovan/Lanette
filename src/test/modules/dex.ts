@@ -10,6 +10,7 @@ describe("Dex", () => {
 		assert(Dex.data.itemKeys.length > 1);
 		assert(Dex.data.learnsetDataKeys.length > 1);
 		assert(Dex.data.moveKeys.length > 1);
+		assert(Dex.data.natureKeys.length > 1);
 		assert(Dex.data.pokemonKeys.length > 1);
 		assert(Dex.data.typeKeys.length > 1);
 
@@ -29,7 +30,6 @@ describe("Dex", () => {
 		assert(Object.keys(Dex.data.eggGroups).length > 1);
 		assert(Object.keys(Dex.data.gifData).length > 1);
 		assert(Object.keys(Dex.data.gifDataBW).length > 1);
-		assert(Object.keys(Dex.data.natures).length > 1);
 
 		// allPossibleMoves
 		let pokemon = Dex.getExistingPokemon('Charizard');
@@ -133,6 +133,13 @@ describe("Dex", () => {
 			assertStrictEqual(Dex.getMove(variant), move);
 		}
 
+		const nature = Dex.getNature("Adamant");
+		assert(nature);
+		variants = ["adamant", "ADAMANT"];
+		for (const variant of variants) {
+			assertStrictEqual(Dex.getNature(variant), nature);
+		}
+
 		const pokemon = Dex.getPokemon("Mr. Mime");
 		assert(pokemon);
 		variants = ["mrmime", "mr mime", "Mr mime", "mr Mime", "MRMIME", "MR MIME", "mr.mime", "mr. mime", "Mr. mime", "mr. Mime",
@@ -190,6 +197,7 @@ describe("Dex", () => {
 		assert(Dex.getExistingAbility("Air Lock") === Dex.getExistingAbility("Air Lock"));
 		assert(Dex.getExistingItem("Burn Drive") === Dex.getExistingItem("Burn Drive"));
 		assert(Dex.getExistingMove("Acid Armor") === Dex.getExistingMove("Acid Armor"));
+		assert(Dex.getExistingNature("Adamant") === Dex.getExistingNature("Adamant"));
 		assert(Dex.getExistingPokemon("Mr. Mime") === Dex.getExistingPokemon("Mr. Mime"));
 		assert(Dex.getLearnsetData("Mr. Mime") === Dex.getLearnsetData("Mr. Mime"));
 

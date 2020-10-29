@@ -1,5 +1,3 @@
-import type { INature } from "./pokemon-showdown";
-
 export interface IAlternateIconNumbers {
 	left: Dict<number | undefined>;
 	right: Dict<number | undefined>;
@@ -71,7 +69,7 @@ export interface IDataTable {
 	readonly learnsetDataKeys: readonly string[];
 	readonly locations: Readonly<LocationData>;
 	readonly moveKeys: readonly string[];
-	readonly natures: Readonly<Dict<INature | undefined>>;
+	readonly natureKeys: readonly string[];
 	readonly pokemonKeys: readonly string[];
 	readonly trainerClasses: Readonly<TrainerClassData>;
 	readonly trainerSprites: Readonly<Dict<string>>;

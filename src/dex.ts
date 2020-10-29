@@ -18,34 +18,6 @@ const DEFAULT_CUSTOM_RULES_NAME = " (with custom rules)";
 const CURRENT_GEN = 8;
 const CURRENT_GEN_STRING = 'gen' + CURRENT_GEN;
 
-const natures: Dict<INature> = {
-	adamant: {name: "Adamant", plus: 'atk', minus: 'spa'},
-	bashful: {name: "Bashful"},
-	bold: {name: "Bold", plus: 'def', minus: 'atk'},
-	brave: {name: "Brave", plus: 'atk', minus: 'spe'},
-	calm: {name: "Calm", plus: 'spd', minus: 'atk'},
-	careful: {name: "Careful", plus: 'spd', minus: 'spa'},
-	docile: {name: "Docile"},
-	gentle: {name: "Gentle", plus: 'spd', minus: 'def'},
-	hardy: {name: "Hardy"},
-	hasty: {name: "Hasty", plus: 'spe', minus: 'def'},
-	impish: {name: "Impish", plus: 'def', minus: 'spa'},
-	jolly: {name: "Jolly", plus: 'spe', minus: 'spa'},
-	lax: {name: "Lax", plus: 'def', minus: 'spd'},
-	lonely: {name: "Lonely", plus: 'atk', minus: 'def'},
-	mild: {name: "Mild", plus: 'spa', minus: 'def'},
-	modest: {name: "Modest", plus: 'spa', minus: 'atk'},
-	naive: {name: "Naive", plus: 'spe', minus: 'spd'},
-	naughty: {name: "Naughty", plus: 'atk', minus: 'spd'},
-	quiet: {name: "Quiet", plus: 'spa', minus: 'spe'},
-	quirky: {name: "Quirky"},
-	rash: {name: "Rash", plus: 'spa', minus: 'spd'},
-	relaxed: {name: "Relaxed", plus: 'def', minus: 'spe'},
-	sassy: {name: "Sassy", plus: 'spd', minus: 'spe'},
-	serious: {name: "Serious"},
-	timid: {name: "Timid", plus: 'spe', minus: 'atk'},
-};
-
 const tagNames: Dict<string> = {
 	'uber': 'Uber',
 	'ou': 'OU',
@@ -169,6 +141,7 @@ export class Dex {
 	private readonly moveCache: Dict<IMove> = Object.create(null);
 	private movesList: readonly IMove[] | null = null;
 	private readonly moveAvailbilityCache: Dict<number> = Object.create(null);
+	private readonly natureCache: Dict<INature> = Object.create(null);
 	private readonly pokemonCache: Dict<IPokemon> = Object.create(null);
 	private pokemonList: readonly IPokemon[] | null = null;
 	private readonly formesCache: Dict<string[]> = Object.create(null);
@@ -369,12 +342,21 @@ export class Dex {
 			filteredMoveKeys.push(key);
 		}
 
+		const natureKeys = Object.keys(this.pokemonShowdownDex.data.Natures);
+		const filteredNatureKeys: string[] = [];
+		for (const key of natureKeys) {
+			const nature = this.getNature(key)!;
+			if (nature.gen > this.gen) continue;
+			filteredNatureKeys.push(key);
+		}
+
 		const data: IDataTable = {
 			abilityKeys: filteredAbilityKeys,
 			formatKeys: Object.keys(this.pokemonShowdownDex.data.Formats),
 			itemKeys: filteredItemKeys,
 			learnsetDataKeys: filteredLearnsetDataKeys,
 			moveKeys: filteredMoveKeys,
+			natureKeys: filteredNatureKeys,
 			pokemonKeys: filteredPokemonKeys,
 			typeKeys: Object.keys(this.pokemonShowdownDex.data.TypeChart).map(x => Tools.toId(x)),
 			alternateIconNumbers,
@@ -386,7 +368,6 @@ export class Dex {
 			gifData,
 			gifDataBW,
 			locations: locationData,
-			natures,
 			trainerClasses,
 			trainerSprites,
 		};
@@ -759,6 +740,23 @@ export class Dex {
 		const type = this.getType(name);
 		if (!type) throw new Error("No type returned for '" + name + "'");
 		return type;
+	}
+
+	getNature(name: string): INature | undefined {
+		const id = Tools.toId(name);
+		if (Object.prototype.hasOwnProperty.call(this.natureCache, id)) return this.natureCache[id];
+
+		const nature = this.pokemonShowdownDex.getNature(name);
+		if (!nature.exists) return undefined;
+
+		this.natureCache[id] = nature;
+		return nature;
+	}
+
+	getExistingNature(name: string): INature {
+		const nature = this.getNature(name);
+		if (!nature) throw new Error("No nature returned for '" + name + "'");
+		return nature;
 	}
 
 	getBadges(): string[] {
@@ -1282,6 +1280,8 @@ export class Dex {
 			ruleName = dexes['base'].getExistingItem(ruleName).name;
 		} else if (tag === 'move') {
 			ruleName = dexes['base'].getExistingMove(ruleName).name;
+		} else if (tag === 'nature') {
+			ruleName = dexes['base'].getExistingNature(ruleName).name;
 		} else if (tag === 'pokemon' || tag === 'basepokemon') {
 			ruleName = dexes['base'].getExistingPokemon(ruleName).name;
 		} else if (tag === 'pokemontag') {

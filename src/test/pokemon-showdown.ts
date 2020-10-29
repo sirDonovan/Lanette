@@ -70,6 +70,17 @@ describe("pokemon-showdown", () => {
 			if (move.isNonstandard) assertStrictEqual(typeof move.isNonstandard, 'string');
 		}
 
+		for (const i of Dex.data.natureKeys) {
+			const nature = Dex.getNature(i);
+			assert(nature, i);
+			assertStrictEqual(nature.id, i);
+			assertStrictEqual(nature.effectType, "Nature");
+			assertStrictEqual(typeof nature.name, 'string');
+			assertStrictEqual(typeof nature.gen, 'number');
+			if (nature.plus) assertStrictEqual(typeof nature.plus, 'string');
+			if (nature.minus) assertStrictEqual(typeof nature.minus, 'string');
+		}
+
 		for (const i of Dex.data.pokemonKeys) {
 			const pokemon = Dex.getPokemon(i);
 			assert(pokemon, i);
