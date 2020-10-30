@@ -859,30 +859,35 @@ class HauntersHauntedHouse extends ScriptedGame {
 			this.moveGhost(ghost);
 		}
 
+		let hauntedPlayer = false;
 		for (const id in this.players) {
 			const player = this.players[id];
 			if (player.eliminated) continue;
 			const location = this.playerLocations.get(player)!;
 			for (const ghost of this.ghosts) {
+				if (ghost.name === "Mimikyu") continue;
 				const xDifference = Math.abs(location[0] - ghost.row);
 				const yDifference = Math.abs(location[1] - ghost.column);
-				if (((xDifference === 0 && yDifference === 0) || (ghost.hauntNextTurn && xDifference <= 1 && yDifference <= 1)) &&
-					ghost.name !== "Mimikyu") {
+				if ((xDifference === 0 && yDifference === 0) || (ghost.hauntNextTurn && xDifference <= 1 && yDifference <= 1)) {
 					this.eliminatedPlayers.add(player);
 					this.say("**" + player.name + "** was haunted by **" + ghost.name + "**!");
 					this.eliminatePlayer(player, "You were haunted by " + ghost.name + "!");
-
-					if (this.ghostFrenzies) {
-						this.say("The ghosts have calmed down and can no longer move any extra spaces.");
-						for (const otherGhost of this.ghosts) {
-							otherGhost.turnMoves -= this.ghostFrenzies;
-						}
-						this.ghostFrenzies = 0;
-					}
-
-					this.turnsWithoutHaunting = 0;
+					hauntedPlayer = true;
+					break;
 				}
 			}
+		}
+
+		if (hauntedPlayer) {
+			if (this.ghostFrenzies) {
+				this.say("The ghosts have calmed down and can no longer move any extra spaces.");
+				for (const otherGhost of this.ghosts) {
+					otherGhost.turnMoves -= this.ghostFrenzies;
+				}
+				this.ghostFrenzies = 0;
+			}
+
+			this.turnsWithoutHaunting = 0;
 		}
 
 		this.checkPlayerLocations();
