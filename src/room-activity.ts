@@ -54,8 +54,7 @@ export class Player {
 	}
 
 	sendHtmlPage(html: string, pageId?: string): void {
-		const page = "<div class='chat' style='margin-top: 5px;margin-left: 10px'>" + this.activity.htmlPageHeader + html + "</div>";
-		this.activity.pmRoom.sendHtmlPage(this, pageId || this.activity.baseHtmlPageId, page);
+		this.activity.pmRoom.sendHtmlPage(this, pageId || this.activity.baseHtmlPageId, this.activity.getHtmlPageWithHeader(html));
 	}
 
 	closeHtmlPage(pageId?: string): void {
@@ -145,7 +144,7 @@ export abstract class Activity {
 	createPlayer(user: User | string): Player | undefined {
 		const id = Tools.toId(user);
 		if (id in this.players) return;
-		const player = this.pastPlayers[id] || new Player(user, this);
+		const player = id in this.pastPlayers ? this.pastPlayers[id] : new Player(user, this);
 		this.players[id] = player;
 		if (id in this.pastPlayers) delete this.pastPlayers[id];
 		this.playerCount++;
@@ -161,7 +160,7 @@ export abstract class Activity {
 			pastPlayer = true;
 		}
 
-		const player = this.players[oldId] || this.pastPlayers[oldId];
+		const player = this.players[oldId] || this.pastPlayers[oldId]; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 		player.name = user.name;
 		if (player.id === user.id) return;
 		player.id = user.id;
@@ -195,6 +194,10 @@ export abstract class Activity {
 		if (this.onEnd) this.onEnd();
 		this.ended = true;
 		this.deallocate(false);
+	}
+
+	getHtmlPageWithHeader(html: string): string {
+		return "<div class='chat' style='margin-top: 5px;margin-left: 10px'>" + this.htmlPageHeader + html + "</div>";
 	}
 
 	say(message: string): void {

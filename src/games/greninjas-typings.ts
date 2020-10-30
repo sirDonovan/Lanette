@@ -1,6 +1,4 @@
-import type { Room } from "../rooms";
 import type { IGameAchievement, IGameFile } from "../types/games";
-import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 type AchievementNames = "proteaneye" | "captainproteaneye";
@@ -25,7 +23,7 @@ class GreninjasTypings extends QuestionAndAnswer {
 	lastTyping: string = '';
 	noOrder: boolean = false;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		const pokedex = Games.getPokemonList(x => !x.name.startsWith('Arceus-') && !x.name.startsWith('Silvally-'));
 		for (const pokemon of pokedex) {
 			data.pokedex.push(pokemon.id);
@@ -46,9 +44,9 @@ class GreninjasTypings extends QuestionAndAnswer {
 			reverseTyping = data.reverseTypes[pokemon];
 		}
 		const answers: string[] = [];
-		for (const pokemon of data.pokedex) {
-			if (typing === data.types[pokemon] || (this.noOrder && typing === data.reverseTypes[pokemon])) {
-				answers.push(data.species[pokemon]);
+		for (const otherPokemon of data.pokedex) {
+			if (typing === data.types[otherPokemon] || (this.noOrder && typing === data.reverseTypes[otherPokemon])) {
+				answers.push(data.species[otherPokemon]);
 			}
 		}
 		this.lastTyping = typing;
@@ -76,7 +74,7 @@ export const game: IGameFile<GreninjasTypings> = Games.copyTemplateProperties(qu
 			name: "Greninja's No Order Typings",
 			description: "Players guess Pokemon that match the given typing (order not important)!",
 			noOrder: true,
-			variant: "noorder",
+			variantAliases: ['no order'],
 		},
 	],
 });

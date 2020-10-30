@@ -46,7 +46,7 @@ class CrustlesCrumblingBlocks extends ScriptedGame {
 		this.currentPlayer = this.playerList[0];
 		this.playerList.shift();
 
-		const html = this.getRoundHtml(this.getPlayerNames);
+		const html = this.getRoundHtml(players => this.getPlayerNames(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			this.timeout = setTimeout(() => {
@@ -70,18 +70,16 @@ class CrustlesCrumblingBlocks extends ScriptedGame {
 		}
 
 		this.currentPlayer = null;
+
 		if (!this.playerList.length) this.playerList = this.order.slice();
 		let currentPlayer = this.playerList[0];
 		this.playerList.shift();
-		while (currentPlayer && currentPlayer.eliminated) {
+		while (currentPlayer.eliminated) {
 			if (!this.playerList.length) this.playerList = this.order.slice();
 			currentPlayer = this.playerList[0];
 			this.playerList.shift();
 		}
-		if (!currentPlayer || currentPlayer.eliminated) {
-			this.nextRound();
-			return;
-		}
+
 		if (this.blocks - MIN_BLOCKS <= 0) {
 			this.removeLastBlock(currentPlayer);
 			return;

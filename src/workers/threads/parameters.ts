@@ -40,6 +40,7 @@ for (const searchType of searchTypes) {
 function intersect(options: IParametersIntersectOptions): string[] {
 	let intersection = Tools.intersectParams(options.params, data[options.searchType].gens[options.mod].paramTypeDexes);
 
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 	if (options.searchType === 'pokemon') {
 		const filtered: string[] = [];
 		for (const slice of intersection) {
@@ -69,7 +70,7 @@ function search(options: IParametersSearchOptions, prng: PRNG): IParametersRespo
 	let maxAttempts = 0;
 	let possibleParamsLen = 0;
 	let paramCombinationsLen = 0;
-	const searchingPokemon = options.searchType === 'pokemon';
+	const searchingPokemon = options.searchType === 'pokemon'; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 	let validParams = false;
 
 	while (!validParams) {
@@ -84,7 +85,7 @@ function search(options: IParametersSearchOptions, prng: PRNG): IParametersRespo
 
 		possibleKeys = {};
 		for (const paramType of paramTypes) {
-			if (!possibleKeys[paramType]) {
+			if (!(paramType in possibleKeys)) {
 				const keys = paramTypeDexesKeys[options.searchType][options.mod][paramType];
 				const possible: string[] = [];
 				for (const key of keys) {
@@ -183,7 +184,7 @@ worker_threads.parentPort!.on('message', (incommingMessage: string) => {
 			const options = JSON.parse(message) as IParametersSearchMessage;
 			const prng = new PRNG(options.prngSeed);
 			response = search(options, prng);
-		} else if (id === 'intersect') {
+		} else if (id === 'intersect') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 			const options = JSON.parse(message) as IParametersIntersectMessage;
 			response = {params: options.params, pokemon: intersect(options)};
 		}
@@ -191,6 +192,6 @@ worker_threads.parentPort!.on('message', (incommingMessage: string) => {
 		console.log(e);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/naming-convention
+	// eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unnecessary-condition
 	worker_threads.parentPort!.postMessage(messageNumber + "|" + id + "|" + JSON.stringify(response! || ""));
 });

@@ -1,6 +1,4 @@
-import type { Room } from "../rooms";
 import type { IGameAchievement, IGameFile } from "../types/games";
-import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 type AchievementNames = "cognitivecerebrum";
@@ -20,7 +18,7 @@ class BeheeyemsMassEffect extends QuestionAndAnswer {
 	lastEffectiveness: string = '';
 	roundTime: number = 20 * 1000;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		for (const pokemon of Games.getPokemonList()) {
 			const typing = pokemon.types.slice().sort().join('/');
 			if (!(typing in data.types)) data.types[typing] = [];

@@ -1,8 +1,8 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import { assert } from "../test/test-tools";
-import type { IPokemon } from "../types/dex";
 import type { GameCommandDefinitions, GameFileTests, IGameFile } from "../types/games";
+import type { IPokemon } from "../types/pokemon-showdown";
 
 const data: {'parameters': Dict<string[]>; 'pokemon': string[]} = {
 	"parameters": {},
@@ -86,14 +86,8 @@ class SkittysSeekAndHide extends ScriptedGame {
 		const param = this.sampleOne(Object.keys(data.parameters).filter(x => data.parameters[x].length === requiredPokemon));
 		this.categories = param.split(", ");
 
-		const players: string[] = [];
-		for (const i in this.players) {
-			if (this.players[i].eliminated) continue;
-			players.push(this.players[i].name);
-		}
-
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
-		const html = this.getRoundHtml(this.getPlayerLives);
+		const html = this.getRoundHtml(players => this.getPlayerLives(players));
 		this.onUhtml(uhtmlName, html, () => {
 			const text = "Select a **" + param + "** Pokemon with ``" + Config.commandCharacter + "select [Pokemon]`` in PMs!";
 			this.on(text, () => {
@@ -213,7 +207,7 @@ const commands: GameCommandDefinitions<SkittysSeekAndHide> = {
 const tests: GameFileTests<SkittysSeekAndHide> = {
 	'should have parameters for all possible numbers of remaining players': {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		test(game, format): void {
+		test(game): void {
 			const minPlayers = Math.max(2, game.minPlayers - 1);
 			const maxPlayers = game.maxPlayers - 1;
 			const parameterKeys = Object.keys(data.parameters);

@@ -1,7 +1,7 @@
 import type { Player } from "../../room-activity";
 import { ScriptedGame } from "../../room-game-scripted";
-import type { IAbility, IItem, IMove, IPokemon } from "../../types/dex";
 import type { GameCommandDefinitions, IGameTemplateFile } from "../../types/games";
+import type { IAbility, IItem, IMove, IPokemon } from "../../types/pokemon-showdown";
 
 export type Link = IPokemon | IMove | IItem | IAbility;
 
@@ -45,34 +45,30 @@ export abstract class Chain extends ScriptedGame {
 	onSignups(): void {
 		const pool: Dict<Link> = {};
 		const keys: string[] = [];
-		if (this.variant) {
-			if (this.variant === 'moves') {
-				for (const move of Games.getMovesList()) {
-					if (this.letterBased) {
-						if (move.id === 'hiddenpower') continue;
-						if (!this.getLinkStarts(move).length || !this.getLinkEnds(move).length) continue;
-					}
-					pool[move.id] = move;
-					keys.push(move.id);
+		if (this.linksType === 'move') {
+			for (const move of Games.getMovesList()) {
+				if (this.letterBased) {
+					if (move.id === 'hiddenpower') continue;
+					if (!this.getLinkStarts(move).length || !this.getLinkEnds(move).length) continue;
 				}
-				this.linksType = 'move';
-			} else if (this.variant === 'items') {
-				for (const item of Games.getItemsList()) {
-					if (this.letterBased && (!this.getLinkStarts(item).length || !this.getLinkEnds(item).length)) continue;
-					pool[item.id] = item;
-					keys.push(item.id);
-				}
-				this.linksType = 'item';
-			} else if (this.variant === 'abilities') {
-				for (const ability of Games.getAbilitiesList()) {
-					if (this.letterBased && (!this.getLinkStarts(ability).length || !this.getLinkEnds(ability).length)) continue;
-					pool[ability.id] = ability;
-					keys.push(ability.id);
-				}
-				this.linksType = 'ability';
-			} else {
-				throw new Error("Game variation'" + this.variant + "' has no pool");
+				pool[move.id] = move;
+				keys.push(move.id);
 			}
+			this.linksType = 'move';
+		} else if (this.linksType === 'item') {
+			for (const item of Games.getItemsList()) {
+				if (this.letterBased && (!this.getLinkStarts(item).length || !this.getLinkEnds(item).length)) continue;
+				pool[item.id] = item;
+				keys.push(item.id);
+			}
+			this.linksType = 'item';
+		} else if (this.linksType === 'ability') {
+			for (const ability of Games.getAbilitiesList()) {
+				if (this.letterBased && (!this.getLinkStarts(ability).length || !this.getLinkEnds(ability).length)) continue;
+				pool[ability.id] = ability;
+				keys.push(ability.id);
+			}
+			this.linksType = 'ability';
 		} else {
 			for (const pokemon of Games.getPokemonList()) {
 				if (pokemon.forme && !this.acceptsFormes) continue;
@@ -89,13 +85,13 @@ export abstract class Chain extends ScriptedGame {
 		for (const i in pool) {
 			const starts = this.getLinkStarts(pool[i]);
 			for (const start of starts) {
-				if (!linkStartsByName[start]) linkStartsByName[start] = [];
+				if (!(start in linkStartsByName)) linkStartsByName[start] = [];
 				if (!linkStartsByName[start].includes(pool[i].id)) linkStartsByName[start].push(pool[i].id);
 			}
 			if (this.canReverseLinks) {
 				const ends = this.getLinkEnds(pool[i]);
 				for (const end of ends) {
-					if (!linkEndsByName[end]) linkEndsByName[end] = [];
+					if (!(end in linkEndsByName)) linkEndsByName[end] = [];
 					if (!linkEndsByName[end].includes(pool[i].id)) linkEndsByName[end].push(pool[i].id);
 				}
 			}
@@ -197,7 +193,7 @@ export abstract class Chain extends ScriptedGame {
 				if (this.survivalRound > 1 && this.roundTime > 3000) this.roundTime -= 500;
 				this.resetLinkCounts();
 				this.setLink();
-				const html = this.getRoundHtml(this.getPlayerNames, null, "Round " + this.survivalRound);
+				const html = this.getRoundHtml(players => this.getPlayerNames(players), null, "Round " + this.survivalRound);
 				const uhtmlName = this.uhtmlBaseName + '-round-html';
 				this.onUhtml(uhtmlName, html, () => {
 					this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
@@ -266,7 +262,7 @@ const commands: GameCommandDefinitions<Chain> = {
 			}
 			const guess = Tools.toId(target);
 			if (this.roundLinks[guess]) return false;
-			const possibleLink: Link | undefined = this.pool[guess];
+			const possibleLink = this.pool[guess] as Link | undefined;
 			if (!possibleLink) {
 				if (!this.format.options.freejoin) this.say("'" + guess + "' is not a valid " + this.linksType + ".");
 				return false;

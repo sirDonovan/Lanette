@@ -4,6 +4,7 @@ import path = require('path');
 import url = require('url');
 
 import type { PRNG } from './prng';
+import type { IFormatThread } from './types/dex';
 import type { HexColor } from './types/tools';
 import type { IParam } from './workers/parameters';
 
@@ -18,6 +19,9 @@ const UNSAFE_API_CHARACTER_REGEX = /[^A-Za-z0-9 ,.%&'"!?()[\]`_<>/|:;=+-@]/g;
 
 const BATTLE_ROOM_PREFIX = 'battle-';
 const GROUPCHAT_PREFIX = 'groupchat-';
+const SMOGON_DEX_PREFIX = 'https://www.smogon.com/dex/';
+const SMOGON_FORUM_PREFIX = 'https://www.smogon.com/forums/threads/';
+const SMOGON_FORUM_POST_PREFIX = "#post-";
 const maxMessageLength = 300;
 const maxUsernameLength = 18;
 const githubApiThrottle = 2 * 1000;
@@ -99,6 +103,9 @@ export class Tools {
 	readonly unsafeApiCharacterRegex: RegExp = UNSAFE_API_CHARACTER_REGEX;
 	readonly battleRoomPrefix: string = BATTLE_ROOM_PREFIX;
 	readonly groupchatPrefix: string = GROUPCHAT_PREFIX;
+	readonly smogonDexPrefix: string = SMOGON_DEX_PREFIX;
+	readonly smogonForumPrefix: string = SMOGON_FORUM_PREFIX;
+	readonly smogonForumPostPrefix: string = SMOGON_FORUM_POST_PREFIX;
 
 	lastGithubApiCall: number = 0;
 
@@ -331,22 +338,6 @@ export class Tools {
 		return input.replace(HTML_CHARACTER_REGEX, '');
 	}
 
-	parseUsernameText(usernameText: string): {away: boolean; status: string; username: string} {
-		let away = false;
-		let status = '';
-		let username = '';
-		const atIndex = usernameText.indexOf('@');
-		if (atIndex !== -1) {
-			username = usernameText.substr(0, atIndex);
-			status = usernameText.substr(atIndex + 1);
-			away = status.startsWith('!');
-		} else {
-			username = usernameText;
-		}
-
-		return {away, status, username};
-	}
-
 	joinList(list: string[], preFormatting?: string | null, postFormatting?: string | null, conjunction?: string): string {
 		let len = list.length;
 		if (!len) return "";
@@ -395,7 +386,7 @@ export class Tools {
 		const roundingBoundaries = [6, 15, 12, 30, 30];
 		const unitNames = ["year", "month", "day", "hour", "minute", "second"];
 		const positiveIndex = parts.findIndex(elem => elem > 0);
-		const precision = (options && options.precision ? options.precision : parts.length);
+		const precision = options && options.precision ? options.precision : parts.length;
 		if (options && options.hhmmss) {
 			const joined = parts.slice(positiveIndex).map(value => value < 10 ? "0" + value : "" + value).join(":");
 			return joined.length === 2 ? "00:" + joined : joined;
@@ -570,10 +561,10 @@ export class Tools {
 		return combinations;
 	}
 
-	async fetchUrl(url: string): Promise<string | Error> {
+	async fetchUrl(urlToFetch: string): Promise<string | Error> {
 		return new Promise(resolve => {
 			let data = '';
-			const request = https.get(url, res => {
+			const request = https.get(urlToFetch, res => {
 				res.setEncoding('utf8');
 				res.on('data', chunk => data += chunk);
 				res.on('end', () => {
@@ -585,6 +576,56 @@ export class Tools {
 				resolve(error);
 			});
 		});
+	}
+
+	parseUsernameText(usernameText: string): {away: boolean; status: string; username: string} {
+		let away = false;
+		let status = '';
+		let username = '';
+		const atIndex = usernameText.indexOf('@');
+		if (atIndex !== -1) {
+			username = usernameText.substr(0, atIndex);
+			status = usernameText.substr(atIndex + 1);
+			away = status.startsWith('!');
+		} else {
+			username = usernameText;
+		}
+
+		return {away, status, username};
+	}
+
+	parseFormatThread(thread: string): IFormatThread {
+		const parsedThread: IFormatThread = {description: '', id: ''};
+		if (thread.startsWith('&bullet;') && thread.includes('<a href="')) {
+			parsedThread.description = thread.split('</a>')[0].split('">')[1].trim();
+
+			let id = thread.split('<a href="')[1].split('">')[0].trim();
+			if (id.endsWith('/')) id = id.substr(0, id.length - 1);
+			const parts = id.split('/');
+			const lastPart = parts[parts.length - 1];
+			if (lastPart.startsWith(SMOGON_FORUM_POST_PREFIX)) {
+				parsedThread.id = parts[parts.length - 2] + '/' + lastPart;
+			} else {
+				parsedThread.id = lastPart;
+			}
+		}
+		return parsedThread;
+	}
+
+	getNewerForumThread(baseLink: string, officialLink?: string): string {
+		if (!baseLink) return "";
+
+		const baseNumber = parseInt(baseLink.split("/")[0]);
+		if (isNaN(baseNumber)) {
+			return "";
+		}
+
+		if (officialLink) {
+			const officialNum = parseInt(officialLink.split("/")[0]);
+			if (!isNaN(officialNum) && officialNum > baseNumber) return SMOGON_FORUM_PREFIX + officialLink;
+		}
+
+		return SMOGON_FORUM_PREFIX + baseLink;
 	}
 
 	extractBattleId(message: string, replayServerAddress: string, serverAddress: string, serverId: string): string | null {
@@ -633,8 +674,8 @@ export class Tools {
 
 		const formatting: string[] = ["**", "__", "``"];
 		for (const format of formatting) {
-			const index = challongeLink.lastIndexOf(format);
-			if (index !== -1) challongeLink = challongeLink.substr(0, index);
+			const formatIndex = challongeLink.lastIndexOf(format);
+			if (formatIndex !== -1) challongeLink = challongeLink.substr(0, formatIndex);
 		}
 
 		while (challongeLink.endsWith('!') || challongeLink.endsWith('.') || challongeLink.endsWith("'") || challongeLink.endsWith('"') ||
@@ -644,9 +685,8 @@ export class Tools {
 		return challongeLink;
 	}
 
-	editGist(gistId: string, description: string, files: Dict<{filename: string; content: string}>): void {
+	editGist(username: string, token: string, gistId: string, description: string, files: Dict<{filename: string; content: string}>): void {
 		if (this.lastGithubApiCall && (Date.now() - this.lastGithubApiCall) < githubApiThrottle) return;
-		if (!Config.githubApiCredentials || !Config.githubApiCredentials.gist) return;
 
 		const patchData = JSON.stringify({
 			description,
@@ -667,8 +707,8 @@ export class Tools {
 				'Accept': 'application/vnd.github.v3+json',
 				'Content-Type': 'application/json; charset=utf-8',
 				'Content-Length': patchData.length,
-				'User-Agent': Config.githubApiCredentials.gist.username,
-				'Authorization': 'token ' + Config.githubApiCredentials.gist.token,
+				'User-Agent': username,
+				'Authorization': 'token ' + token,
 			},
 		};
 
@@ -712,20 +752,10 @@ export class Tools {
 		fs.writeFileSync(tempFilepath, data);
 		fs.renameSync(tempFilepath, filepath);
 	}
-
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	/*
-	async runUpdatePS(user?: User): Promise<any> {
-		await exec('node update-ps.js --hotpatch');
-
-		if (!user) user = Users.self;
-		await CommandParser.parse(user, user, Config.commandCharacter + 'reload dex');
-	}
-	*/
 }
 
 export const instantiate = (): void => {
-	const oldTools: Tools | undefined = global.Tools;
+	const oldTools = global.Tools as Tools | undefined;
 
 	global.Tools = new Tools();
 

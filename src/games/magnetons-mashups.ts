@@ -1,6 +1,4 @@
-import type { Room } from "../rooms";
 import type { IGameFile } from "../types/games";
-import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const BASE_NUMBER_OF_NAMES = 2;
@@ -16,7 +14,7 @@ const categories = Object.keys(data) as DataKey[];
 class MagnetonsMashups extends QuestionAndAnswer {
 	roundTime: number = 30 * 1000;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		data["Pokemon"] = Games.getPokemonList().map(x => x.name);
 		data["Pokemon Abilities"] = Games.getAbilitiesList().map(x => x.name);
 		data["Pokemon Items"] = Games.getItemsList().map(x => x.name);
@@ -42,12 +40,12 @@ class MagnetonsMashups extends QuestionAndAnswer {
 			numberOfElements = this.format.options.names;
 		} else {
 			numberOfElements = BASE_NUMBER_OF_NAMES;
-			if (this.format.customizableOptions.names) {
+			if ('names' in this.format.customizableOptions) {
 				numberOfElements += this.random(this.format.customizableOptions.names.max - BASE_NUMBER_OF_NAMES + 1);
 			}
 		}
 
-		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
+		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		const elements = this.sampleMany(data[category], numberOfElements);
 
 		let mashup = "";
@@ -135,22 +133,23 @@ export const game: IGameFile<MagnetonsMashups> = Games.copyTemplateProperties(qu
 	variants: [
 		{
 			name: "Magneton's Ability Mashups",
-			variant: "Pokemon Abilities",
-			variantAliases: ['ability', 'abilities'],
+			roundCategory: "Pokemon Abilities",
+			variantAliases: ['ability', 'abilities', 'pokemon abilities'],
 		},
 		{
 			name: "Magneton's Item Mashups",
-			variant: "Pokemon Items",
-			variantAliases: ['item', 'items'],
+			roundCategory: "Pokemon Items",
+			variantAliases: ['item', 'items', 'pokemon items'],
 		},
 		{
 			name: "Magneton's Move Mashups",
-			variant: "Pokemon Moves",
-			variantAliases: ['move', 'moves'],
+			roundCategory: "Pokemon Moves",
+			variantAliases: ['move', 'moves', 'pokemon moves'],
 		},
 		{
 			name: "Magneton's Pokemon Mashups",
-			variant: "Pokemon",
+			roundCategory: "Pokemon",
+			variantAliases: ['pokemon'],
 		},
 	],
 });

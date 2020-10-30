@@ -246,4 +246,56 @@ describe("Tools", () => {
 		assertStrictEqual(combinations.length, 6);
 		assertStrictEqual(JSON.stringify(combinations), '[[1,4,6],[1,5,6],[2,4,6],[2,5,6],[3,4,6],[3,5,6]]');
 	});
+	it('should return proper values from parseFormatThread()', () => {
+		let parsedThread = Tools.parseFormatThread("");
+		assertStrictEqual(parsedThread.description, '');
+		assertStrictEqual(parsedThread.id, '');
+
+		const threadId = '123';
+		const description = "OU Sample Teams";
+		parsedThread = Tools.parseFormatThread('&bullet; <a href="' + Tools.smogonForumPrefix + threadId + '">' + description + '</a>');
+		assertStrictEqual(parsedThread.description, description);
+		assertStrictEqual(parsedThread.id, threadId);
+
+		parsedThread = Tools.parseFormatThread('&bullet; <a href="' + Tools.smogonForumPrefix + threadId + '/">' + description + '</a>');
+		assertStrictEqual(parsedThread.description, description);
+		assertStrictEqual(parsedThread.id, threadId);
+
+		const postId = Tools.smogonForumPostPrefix + '456';
+		parsedThread = Tools.parseFormatThread('&bullet; <a href="' +
+			Tools.smogonForumPrefix + threadId + '/' + postId + '">' + description + '</a>');
+		assertStrictEqual(parsedThread.description, description);
+		assertStrictEqual(parsedThread.id, threadId + '/' + postId);
+
+		parsedThread = Tools.parseFormatThread('&bullet; <a href="' +
+			Tools.smogonForumPrefix + threadId + '/' + postId + '/">' + description + '</a>');
+		assertStrictEqual(parsedThread.description, description);
+		assertStrictEqual(parsedThread.id, threadId + '/' + postId);
+	});
+	it('should return proper values from getNewerForumThread()', () => {
+		const oldThreadId = "123";
+		const newThreadId = "456";
+		const postId = Tools.smogonForumPostPrefix + "789";
+		const newThreadIdPost = newThreadId + "/" + postId;
+		const newThread = Tools.smogonForumPrefix + newThreadId;
+		const newThreadPost = Tools.smogonForumPrefix + newThreadIdPost;
+
+		let newerThread = Tools.getNewerForumThread("");
+		assertStrictEqual(newerThread, "");
+
+		newerThread = Tools.getNewerForumThread(oldThreadId, newThreadId);
+		assertStrictEqual(newerThread, newThread);
+
+		newerThread = Tools.getNewerForumThread(newThreadId, oldThreadId);
+		assertStrictEqual(newerThread, newThread);
+
+		newerThread = Tools.getNewerForumThread(oldThreadId, newThreadIdPost);
+		assertStrictEqual(newerThread, newThreadPost);
+
+		newerThread = Tools.getNewerForumThread(newThreadIdPost, oldThreadId);
+		assertStrictEqual(newerThread, newThreadPost);
+
+		newerThread = Tools.getNewerForumThread(oldThreadId + "/" + postId, newThreadIdPost);
+		assertStrictEqual(newerThread, newThreadPost);
+	});
 });

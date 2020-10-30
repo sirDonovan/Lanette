@@ -248,7 +248,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 		}
 	}
 
-	onDeallocate(forceEnd: boolean): void {
+	onDeallocate(): void {
 		const spaceKeys = Object.keys(this.spaces) as (keyof BoardSpaces)[];
 		for (const key of spaceKeys) {
 			const space = this.spaces[key];
@@ -284,8 +284,8 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 	getSpaceHtml(side: BoardSide, space: number, playerLocations: KeyedDict<BoardSide, Dict<Player[]>>): string {
 		const boardSpace = this.board[side][space];
 		let html = "<td style='background: " + Tools.hexColorCodes[boardSpace.color]["background-color"] + "'>";
-		if (playerLocations[side][space]) {
-			html += (playerLocations[side][space].length > 1 ? "*" : this.playerLetters.get(playerLocations[side][space][0]));
+		if (space in playerLocations[side]) {
+			html += playerLocations[side][space].length > 1 ? "*" : this.playerLetters.get(playerLocations[side][space][0]);
 		} else if (boardSpace instanceof BoardPropertySpace && boardSpace.owner) {
 			html += this.playerLetters.get(boardSpace.owner)!.toLowerCase();
 		}
@@ -316,11 +316,9 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 	beforeNextRound(): void {
 		if (this.currentPlayer && this.currentPlayerReRoll) {
 			this.rollDice(this.currentPlayer);
-			if (this.currentPlayerReRoll) {
-				this.doubleRolls++;
-				if (this.doublesRollsAchievement && this.doubleRolls === this.doublesRollsAchievementAmount) {
-					this.unlockAchievement(this.currentPlayer, this.doublesRollsAchievement);
-				}
+			this.doubleRolls++;
+			if (this.doublesRollsAchievement && this.doubleRolls === this.doublesRollsAchievementAmount) {
+				this.unlockAchievement(this.currentPlayer, this.doublesRollsAchievement);
 			}
 		} else {
 			this.nextRound();
@@ -599,7 +597,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 	onTimeLimit(): void {
 		if (this.winCondition === 'currency') {
 			let highestCurrency = 0;
-			this.playerCurrency.forEach((currency, player) => {
+			this.playerCurrency.forEach((currency) => {
 				if (currency > highestCurrency) {
 					highestCurrency = currency;
 				}
@@ -610,9 +608,9 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 				const player = this.players[i];
 				if (this.playerCurrency.get(player)! < highestCurrency) player.eliminated = true;
 			}
-		} else if (this.winCondition === 'property') {
+		} else if (this.winCondition === 'property') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 			let mostProperties = 0;
-			this.properties.forEach((properties, player) => {
+			this.properties.forEach((properties) => {
 				if (properties.length > mostProperties) {
 					mostProperties = properties.length;
 				}
@@ -744,7 +742,7 @@ const commands: GameCommandDefinitions<BoardPropertyGame> = {
 
 const tests: GameFileTests<BoardPropertyGame> = {
 	'it should clear property owners once the game ends': {
-		test(game, format): void {
+		test(game): void {
 			const players = addPlayers(game);
 			game.start();
 			for (const i in game.spaces) {

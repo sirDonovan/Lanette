@@ -70,6 +70,17 @@ describe("pokemon-showdown", () => {
 			if (move.isNonstandard) assertStrictEqual(typeof move.isNonstandard, 'string');
 		}
 
+		for (const i of Dex.data.natureKeys) {
+			const nature = Dex.getNature(i);
+			assert(nature, i);
+			assertStrictEqual(nature.id, i);
+			assertStrictEqual(nature.effectType, "Nature");
+			assertStrictEqual(typeof nature.name, 'string');
+			assertStrictEqual(typeof nature.gen, 'number');
+			if (nature.plus) assertStrictEqual(typeof nature.plus, 'string');
+			if (nature.minus) assertStrictEqual(typeof nature.minus, 'string');
+		}
+
 		for (const i of Dex.data.pokemonKeys) {
 			const pokemon = Dex.getPokemon(i);
 			assert(pokemon, i);
@@ -184,7 +195,7 @@ describe("pokemon-showdown", () => {
 		assertStrictEqual(megaStone.itemUser.length, 1);
 		assertStrictEqual(megaStone.itemUser[0], "Abomasnow");
 
-		const pastItem = Dex.getItem("Adamant Orb");
+		const pastItem = Dex.getItem("Armor Fossil");
 		assert(pastItem);
 		assertStrictEqual(pastItem.isNonstandard, "Past");
 
@@ -192,7 +203,7 @@ describe("pokemon-showdown", () => {
 		assert(capMegaStone);
 		assertStrictEqual(capMegaStone.isNonstandard, "CAP");
 
-		const unObtainableItem = Dex.getItem("Custap Berry");
+		const unObtainableItem = Dex.getItem("Draco Plate");
 		assert(unObtainableItem);
 		assertStrictEqual(unObtainableItem.isNonstandard, "Unobtainable");
 

@@ -1,6 +1,4 @@
-import type { Room } from "../rooms";
 import type { IGameAchievement, IGameFile } from "../types/games";
-import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 type AchievementNames = "knowitall" | "captainknowitall";
@@ -29,7 +27,7 @@ class SlowkingsTrivia extends QuestionAndAnswer {
 	allAnswersTeamAchievement = SlowkingsTrivia.achievements.captainknowitall;
 	roundTime = 15 * 1000;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		for (const ability of Games.getAbilitiesList()) {
 			const desc = ability.desc || ability.shortDesc;
 			if (!desc) continue;
@@ -58,7 +56,7 @@ class SlowkingsTrivia extends QuestionAndAnswer {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
-		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
+		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		const description = this.sampleOne(categoryKeys[category]);
 		this.answers = data[category][description];
 		this.hint = "<b>" + category + "</b>: <i>" + description + "</i>";
@@ -81,18 +79,18 @@ export const game: IGameFile<SlowkingsTrivia> = Games.copyTemplateProperties(que
 	variants: [
 		{
 			name: "Slowking's Ability Trivia",
-			variant: "Pokemon Abilities",
-			variantAliases: ['ability', 'abilities'],
+			roundCategory: "Pokemon Abilities",
+			variantAliases: ['ability', 'abilities', 'pokemon abilities'],
 		},
 		{
 			name: "Slowking's Item Trivia",
-			variant: "Pokemon Items",
-			variantAliases: ['item', 'items'],
+			roundCategory: "Pokemon Items",
+			variantAliases: ['item', 'items', 'pokemon items'],
 		},
 		{
 			name: "Slowking's Move Trivia",
-			variant: "Pokemon Moves",
-			variantAliases: ['move', 'moves'],
+			roundCategory: "Pokemon Moves",
+			variantAliases: ['move', 'moves', 'pokemon moves'],
 		},
 	],
 });

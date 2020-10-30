@@ -1,9 +1,11 @@
 {
 	"typescript.tsdk": "node_modules/typescript/lib",
 	"search.exclude": {
+		"**/.github": true,
 		"**/.vscode": true,
 		"**/archived-databases": true,
 		"**/built": true,
+		"**/client-data": true,
 		"**/data": true,
 		"**/databases": true,
 		"**/node_modules": true,
@@ -17,7 +19,6 @@
 		"package-lock.json": true,
 		"package.json": true,
 		"README.md": true,
-		"tsconfig.json": true,
-		"tslint.json": true
+		"tsconfig.json": true
 	}
 }

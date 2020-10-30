@@ -1,8 +1,8 @@
 import type { Player } from '../../room-activity';
 import { ScriptedGame } from '../../room-game-scripted';
 import { assert, assertStrictEqual } from '../../test/test-tools';
-import type { IMove, IPokemon, StatsTable } from '../../types/dex';
 import type { GameCommandDefinitions, GameFileTests, IGameTemplateFile, PlayerList } from '../../types/games';
+import type { IMove, IPokemon, StatsTable } from '../../types/pokemon-showdown';
 
 export interface ICardsSplitByPlayable {
 	playable: ICard[];
@@ -316,8 +316,8 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 					this.timeEnd();
 					return null;
 				}
-				const html = this.getRoundHtml(this.showPlayerCards ? this.getPlayerCards : this.lives && this.startingLives &&
-					this.startingLives > 1 ? this.getPlayerLives : this.getPlayerNames,
+				const html = this.getRoundHtml(players => this.showPlayerCards ? this.getPlayerCards(players) : this.lives &&
+					this.startingLives && this.startingLives > 1 ? this.getPlayerLives(players) : this.getPlayerNames(players),
 					this.getRemainingPlayers(this.playerOrder), "Round " + this.cardRound);
 				this.sayUhtml(this.uhtmlBaseName + '-round-html', html);
 			}
@@ -381,7 +381,7 @@ commands.summary.aliases = ['cards', 'hand'];
 const tests: GameFileTests<Card> = {
 	'it should have all required card properties': {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		test(game, format): void {
+		test(game): void {
 			const tackle = Dex.getExistingMove("Tackle");
 			const moveCard = game.moveToCard(tackle, Dex.getMoveAvailability(tackle));
 

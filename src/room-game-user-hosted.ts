@@ -83,13 +83,11 @@ export class UserHostedGame extends Game {
 
 		player.say("Thanks for joining " + this.name + " " + this.activityType + "!");
 
-		if (!this.started) {
-			if (!this.signupsHtmlTimeout) {
-				this.signupsHtmlTimeout = setTimeout(() => {
-					this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsHtmlUpdate());
-					this.signupsHtmlTimeout = null;
-				}, Client.getSendThrottle() * 2);
-			}
+		if (!this.signupsHtmlTimeout) {
+			this.signupsHtmlTimeout = setTimeout(() => {
+				this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsHtmlUpdate());
+				this.signupsHtmlTimeout = null;
+			}, Client.getSendThrottle() * 2);
 		}
 
 		if (this.playerCap && this.playerCount >= this.playerCap) this.start();
@@ -310,7 +308,7 @@ export class UserHostedGame extends Game {
 	}
 }
 
-export const game: IUserHostedFile<UserHostedGame> = {
+export const game: IUserHostedFile = {
 	class: UserHostedGame,
 	formats: [
 		{

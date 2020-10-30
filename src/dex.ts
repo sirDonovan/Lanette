@@ -1,45 +1,22 @@
 import path = require('path');
 
+import { alternateIconNumbers } from './data/alternate-icon-numbers';
+import { badges as badgeData } from './data/badges';
+import { categories as categoryData } from './data/categories';
+import { characters as characterData } from './data/characters';
+import { formatLinks } from './data/format-links';
+import { locations as locationData } from './data/locations';
+import { trainerClasses } from './data/trainer-classes';
+import type { CategoryData, IDataTable, IGetPossibleTeamsOptions, IGifData, ISeparatedCustomRules, LocationTypes } from './types/dex';
 import type {
-	IAbility, IAbilityCopy, IDataTable, IFormat, IFormatDataLinks, IGetPossibleTeamsOptions, IGifData,
-	IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy, ISeparatedCustomRules, ITypeData,
-	IPokemonShowdownDex, IPokemonShowdownValidator, IPSFormat, IFormatThread
-} from './types/dex';
-
-let formatLinks: Dict<IFormatDataLinks | undefined>;
+	IAbility, IAbilityCopy, IFormat, IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy,
+	IPokemonShowdownDex, IPokemonShowdownValidator, IPSFormat, ITypeData
+} from './types/pokemon-showdown';
 
 const MAX_CUSTOM_NAME_LENGTH = 100;
 const DEFAULT_CUSTOM_RULES_NAME = " (with custom rules)";
 const CURRENT_GEN = 8;
 const CURRENT_GEN_STRING = 'gen' + CURRENT_GEN;
-
-const natures: Dict<INature> = {
-	adamant: {name: "Adamant", plus: 'atk', minus: 'spa'},
-	bashful: {name: "Bashful"},
-	bold: {name: "Bold", plus: 'def', minus: 'atk'},
-	brave: {name: "Brave", plus: 'atk', minus: 'spe'},
-	calm: {name: "Calm", plus: 'spd', minus: 'atk'},
-	careful: {name: "Careful", plus: 'spd', minus: 'spa'},
-	docile: {name: "Docile"},
-	gentle: {name: "Gentle", plus: 'spd', minus: 'def'},
-	hardy: {name: "Hardy"},
-	hasty: {name: "Hasty", plus: 'spe', minus: 'def'},
-	impish: {name: "Impish", plus: 'def', minus: 'spa'},
-	jolly: {name: "Jolly", plus: 'spe', minus: 'spa'},
-	lax: {name: "Lax", plus: 'def', minus: 'spd'},
-	lonely: {name: "Lonely", plus: 'atk', minus: 'def'},
-	mild: {name: "Mild", plus: 'spa', minus: 'def'},
-	modest: {name: "Modest", plus: 'spa', minus: 'atk'},
-	naive: {name: "Naive", plus: 'spe', minus: 'spd'},
-	naughty: {name: "Naughty", plus: 'atk', minus: 'spd'},
-	quiet: {name: "Quiet", plus: 'spa', minus: 'spe'},
-	quirky: {name: "Quirky"},
-	rash: {name: "Rash", plus: 'spa', minus: 'spd'},
-	relaxed: {name: "Relaxed", plus: 'def', minus: 'spe'},
-	sassy: {name: "Sassy", plus: 'spd', minus: 'spe'},
-	serious: {name: "Serious"},
-	timid: {name: "Timid", plus: 'spe', minus: 'atk'},
-};
 
 const tagNames: Dict<string> = {
 	'uber': 'Uber',
@@ -141,6 +118,7 @@ export class Dex {
 	readonly omotms: string[] = [];
 	readonly tagNames: typeof tagNames = tagNames;
 
+	readonly clientDataDirectory: string;
 	readonly currentMod: string;
 	readonly gen: number;
 	readonly isBase: boolean;
@@ -163,6 +141,7 @@ export class Dex {
 	private readonly moveCache: Dict<IMove> = Object.create(null);
 	private movesList: readonly IMove[] | null = null;
 	private readonly moveAvailbilityCache: Dict<number> = Object.create(null);
+	private readonly natureCache: Dict<INature> = Object.create(null);
 	private readonly pokemonCache: Dict<IPokemon> = Object.create(null);
 	private pokemonList: readonly IPokemon[] | null = null;
 	private readonly formesCache: Dict<string[]> = Object.create(null);
@@ -193,6 +172,7 @@ export class Dex {
 			this.pokemonShowdownValidator = dexes['base'].pokemonShowdownValidator;
 		}
 
+		this.clientDataDirectory = path.join(Tools.rootFolder, 'client-data');
 		this.currentMod = mod;
 		this.gen = gen;
 		this.isBase = isBase;
@@ -268,37 +248,27 @@ export class Dex {
 			}
 		}
 
-		const lanetteDataDir = path.join(Tools.rootFolder, 'data');
-
-		// eslint-disable-next-line @typescript-eslint/no-var-requires
-		formatLinks = require(path.join(lanetteDataDir, 'format-links.js')) as Dict<IFormatDataLinks | undefined>;
-
 		/* eslint-disable @typescript-eslint/no-var-requires */
-		const alternateIconNumbers = require(path.join(lanetteDataDir, 'alternate-icon-numbers.js')) as
-			{right: Dict<number>; left: Dict<number>};
-		const badges = require(path.join(lanetteDataDir, 'badges.js')) as string[];
-		const categories = require(path.join(lanetteDataDir, 'categories.js')) as Dict<string>;
-		const characters = require(path.join(lanetteDataDir, 'characters.js')) as string[];
-		const locations = require(path.join(lanetteDataDir, 'locations.js')) as string[];
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-		const gifData = require(path.join(lanetteDataDir, 'pokedex-mini.js')).BattlePokemonSprites as Dict<IGifData | undefined>;
+		const gifData = require(path.join(this.clientDataDirectory, 'pokedex-mini.js')).BattlePokemonSprites as Dict<IGifData | undefined>;
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-		const gifDataBW = require(path.join(lanetteDataDir, 'pokedex-mini-bw.js')).BattlePokemonSpritesBW as Dict<IGifData | undefined>;
-		const trainerClasses = require(path.join(lanetteDataDir, 'trainer-classes.js')) as string[];
+		const gifDataBW = require(path.join(this.clientDataDirectory, 'pokedex-mini-bw.js'))
+			.BattlePokemonSpritesBW as Dict<IGifData | undefined>;
 
-		const trainerSpriteList = require(path.join(lanetteDataDir, 'trainer-sprites.js')) as string[];
+		const trainerSpriteList = require(path.join(this.clientDataDirectory, 'trainer-sprites.js')) as string[];
 		const trainerSprites: Dict<string> = {};
 		for (const trainer of trainerSpriteList) {
 			trainerSprites[Tools.toId(trainer)] = trainer;
 		}
 		/* eslint-enable */
 
-		const speciesList = Object.keys(categories);
+		const parsedCategories: CategoryData = categoryData;
+		const speciesList = Object.keys(parsedCategories);
 		for (const species of speciesList) {
 			const id = Tools.toId(species);
 			if (id === species) continue;
-			categories[id] = categories[species];
-			delete categories[species];
+			parsedCategories[id] = parsedCategories[species];
+			delete parsedCategories[species];
 		}
 
 		const abilityKeys = Object.keys(this.pokemonShowdownDex.data.Abilities);
@@ -353,12 +323,10 @@ export class Dex {
 					}
 				}
 
-				if (pokemon.eggGroups) {
-					for (const eggGroup of pokemon.eggGroups) {
-						const id = Tools.toId(eggGroup);
-						if (!(id in eggGroups)) {
-							eggGroups[id] = eggGroup;
-						}
+				for (const eggGroup of pokemon.eggGroups) {
+					const id = Tools.toId(eggGroup);
+					if (!(id in eggGroups)) {
+						eggGroups[id] = eggGroup;
 					}
 				}
 			}
@@ -374,24 +342,32 @@ export class Dex {
 			filteredMoveKeys.push(key);
 		}
 
+		const natureKeys = Object.keys(this.pokemonShowdownDex.data.Natures);
+		const filteredNatureKeys: string[] = [];
+		for (const key of natureKeys) {
+			const nature = this.getNature(key)!;
+			if (nature.gen > this.gen) continue;
+			filteredNatureKeys.push(key);
+		}
+
 		const data: IDataTable = {
 			abilityKeys: filteredAbilityKeys,
 			formatKeys: Object.keys(this.pokemonShowdownDex.data.Formats),
 			itemKeys: filteredItemKeys,
 			learnsetDataKeys: filteredLearnsetDataKeys,
 			moveKeys: filteredMoveKeys,
+			natureKeys: filteredNatureKeys,
 			pokemonKeys: filteredPokemonKeys,
 			typeKeys: Object.keys(this.pokemonShowdownDex.data.TypeChart).map(x => Tools.toId(x)),
 			alternateIconNumbers,
-			badges,
-			categories,
-			characters,
+			badges: badgeData,
+			categories: parsedCategories,
+			characters: characterData,
 			colors,
 			eggGroups,
 			gifData,
 			gifDataBW,
-			locations,
-			natures,
+			locations: locationData,
 			trainerClasses,
 			trainerSprites,
 		};
@@ -407,7 +383,7 @@ export class Dex {
 			if (typeof file !== 'string') {
 				console.log(file);
 			} else if (file) {
-				await Tools.safeWriteFile(path.join(Tools.rootFolder, 'data', fileName), file);
+				await Tools.safeWriteFile(path.join(this.clientDataDirectory, fileName), file);
 			}
 		}
 	}
@@ -766,11 +742,64 @@ export class Dex {
 		return type;
 	}
 
+	getNature(name: string): INature | undefined {
+		const id = Tools.toId(name);
+		if (Object.prototype.hasOwnProperty.call(this.natureCache, id)) return this.natureCache[id];
+
+		const nature = this.pokemonShowdownDex.getNature(name);
+		if (!nature.exists) return undefined;
+
+		this.natureCache[id] = nature;
+		return nature;
+	}
+
+	getExistingNature(name: string): INature {
+		const nature = this.getNature(name);
+		if (!nature) throw new Error("No nature returned for '" + name + "'");
+		return nature;
+	}
+
+	getBadges(): string[] {
+		const badges: string[] = [];
+		for (const i in this.data.badges) {
+			for (const badge of this.data.badges[i]) {
+				badges.push(badge);
+			}
+		}
+
+		return badges;
+	}
+
+	getCharacters(): string[] {
+		const characters: string[] = [];
+		for (const i in this.data.characters) {
+			for (const character of this.data.characters[i]) {
+				characters.push(character);
+			}
+		}
+
+		return characters;
+	}
+
+	getLocations(): string[] {
+		const locations: string[] = [];
+		for (const region in this.data.locations) {
+			const types = Object.keys(this.data.locations[region]) as LocationTypes[];
+			for (const type of types) {
+				for (const location of this.data.locations[region][type]) {
+					locations.push(location);
+				}
+			}
+		}
+
+		return locations;
+	}
+
 	/**
 	 * Returns true if target is immune to source
 	 */
 	isImmune(source: IMove | string, target: string | readonly string[] | IPokemon): boolean {
-		const sourceType = (typeof source === 'string' ? source : source.type);
+		const sourceType = typeof source === 'string' ? source : source.type;
 		let targetType: string | readonly string[];
 		if (typeof target === 'string') {
 			targetType = target;
@@ -826,7 +855,7 @@ export class Dex {
 	 * Returns >=1 if super-effective, <=1 if not very effective
 	 */
 	getEffectiveness(source: IMove | string, target: IPokemon | string | readonly string[]): number {
-		const sourceType = (typeof source === 'string' ? source : source.type);
+		const sourceType = typeof source === 'string' ? source : source.type;
 		let targetType: string | readonly string[];
 		if (typeof target === 'string') {
 			targetType = target;
@@ -1047,8 +1076,8 @@ export class Dex {
 	}
 
 	getFormat(name: string, isValidated?: boolean): IFormat | undefined {
-		let id = Tools.toId(name);
-		if (!id) return;
+		let formatId = Tools.toId(name);
+		if (!formatId) return;
 
 		name = name.trim();
 		const inputTarget = name;
@@ -1077,11 +1106,12 @@ export class Dex {
 				name = split[0];
 			}
 
-			id = name;
-			if (id in customRuleFormats) {
-				const split = this.splitNameAndCustomRules(customRuleFormats[id].format + '@@@' + customRuleFormats[id].banlist);
-				name = split[0];
-				allCustomRules = allCustomRules.concat(split[1]);
+			formatId = name;
+			if (formatId in customRuleFormats) {
+				const customRuleSplit = this.splitNameAndCustomRules(customRuleFormats[formatId].format + '@@@' +
+					customRuleFormats[formatId].banlist);
+				name = customRuleSplit[0];
+				allCustomRules = allCustomRules.concat(customRuleSplit[1]);
 			}
 
 			const uniqueCustomRules: string[] = [];
@@ -1120,7 +1150,7 @@ export class Dex {
 		if (format.threads) {
 			const threads = format.threads.slice();
 			for (const thread of threads) {
-				const parsedThread = this.parseFormatThread(thread);
+				const parsedThread = Tools.parseFormatThread(thread);
 				if (parsedThread.description.includes('Viability Rankings')) {
 					viability = parsedThread.id;
 				} else if (parsedThread.description.includes('Sample Teams')) {
@@ -1158,19 +1188,13 @@ export class Dex {
 				format.viability = viability;
 			}
 
-			const links: ('info' | 'roleCompendium' | 'teams' | 'viability')[] = ['info', 'roleCompendium', 'teams', 'viability'];
+			const links = ['info', 'roleCompendium', 'teams', 'viability', 'genGuide'] as const;
 			for (const id of links) {
-				const link = format[id];
-				if (!link) continue;
-				let num = parseInt(link.split("/")[0]);
-				if (isNaN(num)) continue;
-				// @ts-expect-error
-				if (format[id + '-official']) {
+				if (format[id]) {
 					// @ts-expect-error
-					const officialNum = parseInt(format[id + '-official']);
-					if (!isNaN(officialNum) && officialNum > num) num = officialNum;
+					const officialLink = format[id + '-official'] as string;
+					format[id] = Tools.getNewerForumThread(format[id] as string, officialLink);
 				}
-				format[id] = 'http://www.smogon.com/forums/threads/' + num;
 			}
 		}
 
@@ -1183,51 +1207,37 @@ export class Dex {
 		return format;
 	}
 
-	parseFormatThread(thread: string): IFormatThread {
-		const parsedThread: IFormatThread = {description: '', id: ''};
-		if (thread.startsWith('&bullet;') && thread.includes('<a href="')) {
-			parsedThread.description = thread.split('</a>')[0].split('">')[1].trim();
-
-			let id = thread.split('<a href="')[1].split('">')[0].trim();
-			if (id.endsWith('/')) id = id.substr(0, id.length - 1);
-			parsedThread.id = id.split('/').pop()!;
-		}
-		return parsedThread;
-	}
-
 	getFormatInfoDisplay(format: IFormat): string {
 		let html = '';
 		if (format.desc) {
 			html += '<br />&nbsp; - ' + format.desc;
-			if (format.info && !format.team) {
+			if (format.info) {
 				html += ' More info ';
-				if (format.userHosted) {
-					html += 'on the <a href="' + format.info + '">official page</a>';
-				} else if (format.info.startsWith('https://www.smogon.com/dex/')) {
-					html += 'on the  <a href="' + format.info + '">dex page</a>';
+				if (format.info.startsWith(Tools.smogonDexPrefix)) {
+					html += 'on the <a href="' + format.info + '">dex page</a>';
 				} else {
-					html += 'in the  <a href="' + format.info + '">discussion thread</a>';
+					html += 'in the <a href="' + format.info + '">discussion thread</a>';
 				}
 			}
 		} else if (format.info) {
-			if (format.userHosted) {
-				html += '<br />&nbsp; - Description and more info on the <a href="' + format.info + '">official page</a>.';
-				if (format.generator) {
-					html += '<br />&nbsp; - Use our <a href="' + format.generator + '">random generator</a> to ease the hosting process.';
-				}
-			} else {
-				html += '<br />&nbsp; - Description and more info ' + (format.info.startsWith('https://www.smogon.com/dex/') ? 'on the ' +
-					'<a href="' + format.info + '">dex page' : 'in the  <a href="' + format.info + '">discussion thread') + '</a>.';
-			}
+			html += '<br />&nbsp; - Description and more info ' + (format.info.startsWith(Tools.smogonDexPrefix) ? 'on the ' +
+				'<a href="' + format.info + '">dex page' : 'in the  <a href="' + format.info + '">discussion thread') + '</a>.';
+		}
+
+		if (format.genGuide) {
+			html += '<br />&nbsp; - Unfamiliar with Gen ' + format.gen + '? Review the <a href="' + format.genGuide + '">mechanics ' +
+				'differences</a> before battling.';
 		}
 
 		if (format.teams) {
 			html += '<br />&nbsp; - Need to borrow a team? Check out the <a href="' + format.teams + '">sample teams thread</a>.';
 		}
+
 		if (format.viability) {
 			html += '<br />&nbsp; - See how viable each Pokemon is in the <a href="' + format.viability + '">viability rankings ' +
 				'thread</a>.';
 		}
+
 		if (format.roleCompendium) {
 			html += '<br />&nbsp; - Check the common role that each Pokemon plays in the <a href="' + format.roleCompendium + '">role ' +
 				'compendium thread</a>.';
@@ -1270,6 +1280,8 @@ export class Dex {
 			ruleName = dexes['base'].getExistingItem(ruleName).name;
 		} else if (tag === 'move') {
 			ruleName = dexes['base'].getExistingMove(ruleName).name;
+		} else if (tag === 'nature') {
+			ruleName = dexes['base'].getExistingNature(ruleName).name;
 		} else if (tag === 'pokemon' || tag === 'basepokemon') {
 			ruleName = dexes['base'].getExistingPokemon(ruleName).name;
 		} else if (tag === 'pokemontag') {
@@ -1727,7 +1739,7 @@ export class Dex {
 							}
 						}
 
-						const combinations = Tools.getCombinations(...(notEvolvingPokemon.concat(choice.map(x => pokemonEvolutions[x]))));
+						const combinations = Tools.getCombinations(...notEvolvingPokemon.concat(choice.map(x => pokemonEvolutions[x])));
 						for (const combination of combinations) {
 							const key = this.getPossibleTeamKey(combination);
 							if (key in includedTeamsAfterEvolutions) continue;
@@ -1783,9 +1795,9 @@ export class Dex {
 
 		let isPossible = false;
 		for (const possibleTeam of possibleTeams) {
-			const team = possibleTeam.slice();
-			team.sort();
-			if (Tools.compareArrays(team, names)) {
+			const copy = possibleTeam.slice();
+			copy.sort();
+			if (Tools.compareArrays(copy, names)) {
 				isPossible = true;
 				break;
 			}
@@ -1817,13 +1829,11 @@ export class Dex {
 				break;
 			}
 
-			if (learnsetData && learnsetData.learnset) {
-				if (learnsetData.learnset.sketch) {
-					possibleMoves = Object.keys(this.pokemonShowdownDex.data.Moves);
-					break;
-				}
-				possibleMoves = possibleMoves.concat(Object.keys(learnsetData.learnset));
+			if ('sketch' in learnsetData.learnset) {
+				possibleMoves = Object.keys(this.pokemonShowdownDex.data.Moves);
+				break;
 			}
+			possibleMoves = possibleMoves.concat(Object.keys(learnsetData.learnset));
 
 			const previousLearnsetParent: IPokemon = learnsetParent;
 			learnsetParent = validator.learnsetParent(learnsetParent);
@@ -1916,7 +1926,7 @@ export class Dex {
 }
 
 export const instantiate = (): void => {
-	const oldDex: Dex | undefined = global.Dex;
+	const oldDex = global.Dex as Dex | undefined;
 
 	global.Dex = new Dex();
 	for (let i = CURRENT_GEN - 1; i >= 1; i--) {

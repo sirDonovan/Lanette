@@ -1,9 +1,7 @@
 import type { PRNGSeed } from "../prng";
 import { PRNG } from "../prng";
-import type { Room } from "../rooms";
 import { assert, assertStrictEqual } from "../test/test-tools";
 import type { GameFileTests, IGameFile } from "../types/games";
-import type { User } from "../users";
 import type { IParam, IParametersResponse, ParamType } from '../workers/parameters';
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
@@ -25,7 +23,7 @@ export class ParasParameters extends QuestionAndAnswer {
 	roundTime: number = 5 * 60 * 1000;
 	usesWorkers: boolean = true;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		Games.workers.parameters.init();
 	}
 
@@ -69,7 +67,7 @@ export class ParasParameters extends QuestionAndAnswer {
 			numberOfParams = this.format.options.params;
 		} else {
 			numberOfParams = BASE_NUMBER_OF_PARAMS;
-			if (this.format.customizableOptions.params) {
+			if ('params' in this.format.customizableOptions) {
 				numberOfParams += this.random(this.format.customizableOptions.params.max - BASE_NUMBER_OF_PARAMS + 1);
 			}
 		}
@@ -115,7 +113,7 @@ export class ParasParameters extends QuestionAndAnswer {
 		}
 	}
 
-	getAnswers(givenAnswer: string, finalAnswer?: boolean): string {
+	getAnswers(givenAnswer: string): string {
 		if (!givenAnswer) givenAnswer = Tools.joinList(this.answers[0].split(','));
 		return "A possible set of parameters was __" + givenAnswer + "__.";
 	}
@@ -190,9 +188,9 @@ const tests: GameFileTests<ParasParameters> = {
 
 			for (let i = MIN_GEN; i <= MAX_GEN; i++) {
 				const gen = i;
-				for (let i = format.customizableOptions.params.min; i <= format.customizableOptions.params.max; i++) {
-					format.inputOptions.params = i;
-					game.format.options.params = i;
+				for (let j = format.customizableOptions.params.min; j <= format.customizableOptions.params.max; j++) {
+					format.inputOptions.params = j;
+					game.format.options.params = j;
 					format.inputOptions.gen = gen;
 					game.format.options.gen = gen;
 					game.answers = [];
@@ -237,13 +235,12 @@ const tests: GameFileTests<ParasParameters> = {
 			intersection = await game.intersect(['steeltype', 'rockclimb']);
 			assert(intersection);
 			assertStrictEqual(intersection.params.length, 2);
-			assertStrictEqual(intersection.pokemon.join(","), "aggron,arceussteel,durant,empoleon,excadrill,ferroseed,ferrothorn," +
-				"heatran,registeel,steelix");
+			assertStrictEqual(intersection.pokemon.join(","), "arceussteel,durant,empoleon,excadrill,ferroseed,ferrothorn,steelix");
 
 			intersection = await game.intersect(['rockclimb', 'fly']);
 			assert(intersection);
 			assertStrictEqual(intersection.params.length, 2);
-			assertStrictEqual(intersection.pokemon.join(","), "arceus,giratina,smeargle");
+			assertStrictEqual(intersection.pokemon.join(","), "arceus,smeargle");
 
 			// past gen
 
@@ -259,7 +256,7 @@ const tests: GameFileTests<ParasParameters> = {
 		config: {
 			inputTargets: ['params, survival', 'params, team'],
 		},
-		test(game, format): void {
+		test(game): void {
 			assertStrictEqual(game.paramTypes.join(','), 'tier,color,type,egggroup,ability,gen');
 		},
 	},

@@ -1,10 +1,8 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { Room } from "../rooms";
 import { addPlayers, assert, runCommand } from "../test/test-tools";
-import type { IPokemon } from "../types/dex";
 import type { GameCommandDefinitions, GameFileTests, IGameFile } from "../types/games";
-import type { User } from "../users";
+import type { IPokemon } from "../types/pokemon-showdown";
 
 const data: {'parameters': Dict<string[]>; 'pokemon': string[]} = {
 	"parameters": {},
@@ -20,7 +18,7 @@ class DelcattysHideAndSeek extends ScriptedGame {
 
 	charmer!: Player;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		const parameters: Dict<IPokemon[]> = {};
 
 		for (const pokemon of Games.getPokemonList()) {
@@ -184,10 +182,10 @@ const commands: GameCommandDefinitions<DelcattysHideAndSeek> = {
 			const eliminatedPlayers: string[] = [];
 			for (const i in this.players) {
 				if (this.players[i].eliminated) continue;
-				const player = this.players[i];
-				if (this.pokemonChoices.get(player) === pokemon.name) {
-					this.eliminatePlayer(player, "Your Pokemon was charmed!");
-					eliminatedPlayers.push(player.name);
+				const otherPlayer = this.players[i];
+				if (this.pokemonChoices.get(otherPlayer) === pokemon.name) {
+					this.eliminatePlayer(otherPlayer, "Your Pokemon was charmed!");
+					eliminatedPlayers.push(otherPlayer.name);
 				}
 			}
 			if (!eliminatedPlayers.length) {
@@ -248,7 +246,7 @@ const commands: GameCommandDefinitions<DelcattysHideAndSeek> = {
 const tests: GameFileTests<DelcattysHideAndSeek> = {
 	'should have parameters for all possible numbers of remaining players': {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		test(game, format): void {
+		test(game): void {
 			// potentially +/- 1 Pokemon each round
 			const maxPlayers = game.maxPlayers + 1;
 			const parameterKeys = Object.keys(data.parameters);
@@ -269,7 +267,7 @@ const tests: GameFileTests<DelcattysHideAndSeek> = {
 			async: true,
 		},
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		async test(game, format): Promise<void> {
+		async test(game): Promise<void> {
 			const players = addPlayers(game, 2);
 			game.minPlayers = 2;
 			game.start();
@@ -291,7 +289,7 @@ const tests: GameFileTests<DelcattysHideAndSeek> = {
 			async: true,
 		},
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		async test(game, format): Promise<void> {
+		async test(game): Promise<void> {
 			const players = addPlayers(game, 2);
 			game.minPlayers = 2;
 			game.start();

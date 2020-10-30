@@ -1,7 +1,5 @@
-import type { Room } from "../rooms";
-import type { IMove } from "../types/dex";
 import type { IGameAchievement, IGameFile } from "../types/games";
-import type { User } from "../users";
+import type { IMove } from "../types/pokemon-showdown";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 type AchievementNames = "mootronome";
@@ -18,7 +16,7 @@ class MiltanksMoves extends QuestionAndAnswer {
 
 	allAnswersAchievement = MiltanksMoves.achievements.mootronome;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		const bannedMoves: string[] = [];
 		for (const move of Games.getMovesList()) {
 			const availability = Dex.getMoveAvailability(move);

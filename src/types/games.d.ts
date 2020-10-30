@@ -180,7 +180,7 @@ export interface IGameFormat<T extends ScriptedGame = ScriptedGame> extends IGam
 
 export interface IGameVariantProperties<T extends ScriptedGame = ScriptedGame> {
 	name: string;
-	variant: string;
+	variantAliases: string[];
 
 	commandDescriptions?: string[];
 	customizableOptions?: Dict<IGameOptionValues>;
@@ -189,7 +189,6 @@ export interface IGameVariantProperties<T extends ScriptedGame = ScriptedGame> {
 	freejoin?: boolean;
 	modeProperties?: Dict<Partial<T>>;
 	modes?: string[];
-	variantAliases?: string[];
 }
 
 interface IUserHostedGameClass<T extends UserHostedGame = UserHostedGame> {

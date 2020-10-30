@@ -1,4 +1,6 @@
-module.exports = {
+import type { CategoryData } from "../types/dex";
+
+export const categories: CategoryData = {
 	Bulbasaur: 'Seed',
 	Ivysaur: 'Seed',
 	Venusaur: 'Seed',
@@ -896,6 +898,10 @@ module.exports = {
 	Eternatus: 'Gigantic',
 	Kubfu: 'Wushu',
 	Urshifu: 'Wushu',
-	Calyrex: 'King',
 	Zarude: 'Rogue Monkey',
-}
+	Regieleki: 'Electron',
+	Regidrago: 'Dragon Orb',
+	Glastrier: 'Wild Horse',
+	Spectrier: 'Swift Horse',
+	Calyrex: 'King',
+};

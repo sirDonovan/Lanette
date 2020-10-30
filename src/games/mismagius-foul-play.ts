@@ -1,8 +1,6 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { Room } from "../rooms";
 import type { GameCommandDefinitions, IGameAchievement, IGameFile } from "../types/games";
-import type { User } from "../users";
 
 type AchievementNames = "criminalmind" | "truedetective";
 
@@ -40,7 +38,7 @@ class MismagiusFoulPlay extends ScriptedGame {
 	previousParams: string[] = [];
 	roundGuesses = new Map<Player, boolean>();
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		const pokemonList = Games.getPokemonList(x => x.baseSpecies === x.name);
 		for (const pokemon of pokemonList) {
 			const learnsetData = Dex.getLearnsetData(pokemon.id);
@@ -97,7 +95,7 @@ class MismagiusFoulPlay extends ScriptedGame {
 
 	chooseCriminals(): void {
 		const keys = this.shuffle(data.pokemon);
-		this.chosenPokemon.forEach((species, player) => {
+		this.chosenPokemon.forEach((species) => {
 			keys.splice(keys.indexOf(species), 1);
 		});
 		for (const i in this.players) {
@@ -271,14 +269,16 @@ const commands: GameCommandDefinitions<MismagiusFoulPlay> = {
 				user.say(pokemon.name + " cannot be used in this game.");
 				return false;
 			}
-			let chosen = false;
-			this.chosenPokemon.forEach((species, player) => {
+
+			let chosen: boolean | undefined;
+			this.chosenPokemon.forEach((species) => {
 				if (species === pokemon.name) chosen = true;
 			});
 			if (chosen) {
 				user.say(pokemon.name + " is already assigned to another player.");
 				return false;
 			}
+
 			user.say("You have chosen " + pokemon.name + "!");
 			this.chosenPokemon.set(player, pokemon.name);
 			return true;

@@ -1,8 +1,6 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { Room } from "../rooms";
 import type { GameCommandDefinitions, IGameFile } from "../types/games";
-import type { User } from "../users";
 
 const gen = 7;
 const mod = 'gen' + gen;
@@ -16,7 +14,7 @@ class GolemsGalvanicMine extends ScriptedGame {
 	roundStones: Dict<number> = {};
 	roundTime: number = 7000;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		data.stones = Games.getItemsList(x => !!(x.megaStone || x.zMove), gen).map(x => x.name);
 	}
 
@@ -28,7 +26,7 @@ class GolemsGalvanicMine extends ScriptedGame {
 	onNextRound(): void {
 		this.roundStones = {};
 		this.roundMines.clear();
-		const html = this.getRoundHtml(this.getPlayerPoints);
+		const html = this.getRoundHtml(players => this.getPlayerPoints(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			this.timeout = setTimeout(() => this.displayStones(), 5000);
@@ -60,7 +58,7 @@ class GolemsGalvanicMine extends ScriptedGame {
 	}
 
 	tallyPoints(): void {
-		let reachedMaxPoints = false;
+		let reachedMaxPoints: boolean | undefined;
 		this.roundMines.forEach((value, player) => {
 			let points = this.points.get(player) || 0;
 			points += value;

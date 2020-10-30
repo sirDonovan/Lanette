@@ -1,8 +1,6 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { Room } from "../rooms";
 import type { GameCommandDefinitions, IGameFile } from "../types/games";
-import type { User } from "../users";
 
 const terrains = {
 	'Basic': 'Normal',
@@ -63,7 +61,7 @@ class TapusTerrains extends ScriptedGame {
 	terrainDisplayTime: number = 5 * 1000;
 	terrainRound: number = 0;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		const pokedex = Games.getPokemonList(x => Dex.hasGifData(x));
 		for (const pokemon of pokedex) {
 			for (const type of pokemon.types) {
@@ -77,7 +75,7 @@ class TapusTerrains extends ScriptedGame {
 		}
 	}
 
-	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
+	onAddPlayer(player: Player): boolean {
 		if (this.terrainRound > 1) {
 			player.say("Sorry, the late-join period has ended.");
 			return false;
@@ -163,26 +161,26 @@ class TapusTerrains extends ScriptedGame {
 		const pokemonHtml = '<div class="infobox"><center>' + Dex.getPokemonGif(Dex.getExistingPokemon(this.targetPokemon)) +
 			'<br />A wild <b>' + this.targetPokemon + '</b> appeared!</center></div>';
 		if (newTerrain) {
-			const roundHtml = this.getRoundHtml(this.format.options.freejoin ? this.getPlayerPoints : this.getPlayerNames, null,
-				"Round " + this.terrainRound);
-			const uhtmlName = this.uhtmlBaseName + '-round';
-			this.onUhtml(uhtmlName, roundHtml, () => {
+			const roundHtml = this.getRoundHtml(players => this.format.options.freejoin ? this.getPlayerPoints(players) :
+				this.getPlayerNames(players), null, "Round " + this.terrainRound);
+			const roundUhtmlName = this.uhtmlBaseName + '-round';
+			this.onUhtml(roundUhtmlName, roundHtml, () => {
 				const terrainHtml = '<div class="infobox"><center><br />The terrain is <b>' + this.currentTerrain + '</b> (jump on <b>' +
 					terrains[this.currentTerrain!] + '</b> type Pokemon)!<br />&nbsp;</center></div>';
-				const uhtmlName = this.uhtmlBaseName + '-terrain';
-				this.onUhtml(uhtmlName, terrainHtml, () => {
+				const terrainUhtmlName = this.uhtmlBaseName + '-terrain';
+				this.onUhtml(terrainUhtmlName, terrainHtml, () => {
 					this.timeout = setTimeout(() => {
-						const uhtmlName = this.uhtmlBaseName + '-pokemon';
-						this.onUhtml(uhtmlName, pokemonHtml, () => {
+						const pokemonUhtmlName = this.uhtmlBaseName + '-pokemon';
+						this.onUhtml(pokemonUhtmlName, pokemonHtml, () => {
 							this.canJump = true;
 							this.timeout = setTimeout(() => this.nextRound(), this.revealTime);
 						});
-						this.sayUhtml(uhtmlName, pokemonHtml);
+						this.sayUhtml(pokemonUhtmlName, pokemonHtml);
 					}, this.revealTime);
 				});
-				this.timeout = setTimeout(() => this.sayUhtml(uhtmlName, terrainHtml), this.terrainDisplayTime);
+				this.timeout = setTimeout(() => this.sayUhtml(terrainUhtmlName, terrainHtml), this.terrainDisplayTime);
 			});
-			this.sayUhtml(uhtmlName, roundHtml);
+			this.sayUhtml(roundUhtmlName, roundHtml);
 		} else {
 			this.timeout = setTimeout(() => {
 				const uhtmlName = this.uhtmlBaseName + '-pokemon';
@@ -261,7 +259,7 @@ export const game: IGameFile<TapusTerrains> = {
 		{
 			name: "Tapus' Terrains Elimination",
 			isElimination: true,
-			variant: "elimination",
+			variantAliases: ["elimination"],
 		},
 	],
 };

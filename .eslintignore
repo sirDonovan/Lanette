@@ -2,6 +2,7 @@
 /.vscode/**
 /archived-databases/**
 /built/**
+/client-data/**
 /data/**
 /databases/**
 /local-utils/**

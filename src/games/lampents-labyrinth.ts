@@ -5,21 +5,21 @@ import { game as mapGame, MapGame } from "./templates/map";
 
 type AchievementNames = "mazerunner" | "litwicksflame" | "recklessadventurer";
 
-const currency = "wicks";
+const currencyName = "wicks";
 const mazeRunnerPoints = 4000;
 const recklessAdventurerRound = 3;
 
 class LampentsLabyrinth extends MapGame  {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
 		"mazerunner": {name: "Maze Runner", type: 'points', bits: 1000, description: 'collect at least ' + mazeRunnerPoints + ' ' +
-			currency},
+			currencyName},
 		"litwicksflame": {name: "Litwick's Flame", type: 'special', bits: 1000, description: 'get lucky and find Litwick in the labyrinth'},
 		"recklessadventurer": {name: "Reckless Adventurer", type: 'special', bits: 1000, description: 'get eliminated by traps in the ' +
 			'first ' + recklessAdventurerRound + ' rounds'},
 	};
 
 	canLateJoin: boolean = true;
-	currency: string = currency;
+	currency: string = currencyName;
 	escapedPlayers = new Map<Player, boolean>();
 	floors = new Map<Player, number>();
 	maxDimensions: number = 10;
@@ -90,7 +90,7 @@ class LampentsLabyrinth extends MapGame  {
 			this.nextRound();
 		});
 
-		const html = this.getRoundHtml(this.getPlayerNames);
+		const html = this.getRoundHtml(players => this.getPlayerNames(players));
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
 			if (this.round === 1) this.canMove = true;

@@ -68,7 +68,6 @@ export function load(config: typeof Config): typeof Config {
 	if (config.disallowCreatingPreviousUserHostedGame) {
 		config.disallowCreatingPreviousUserHostedGame = arrayToRoomIds(config.disallowCreatingPreviousUserHostedGame);
 	}
-	if (config.limitGamesByVariant) config.limitGamesByVariant = arrayToRoomIds(config.limitGamesByVariant);
 	if (config.limitGamesByMode) config.limitGamesByMode = arrayToRoomIds(config.limitGamesByMode);
 	if (config.limitGamesByCategory) config.limitGamesByCategory = arrayToRoomIds(config.limitGamesByCategory);
 	if (config.awardedBotGreetingDurations) objectKeysToRoomId(config.awardedBotGreetingDurations);

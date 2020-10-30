@@ -101,7 +101,7 @@ class GreedentsBerryPiles extends ScriptedGame {
 			let lumBerry = lumBerries.shift();
 			while (total > this.maxBerryTotal && lumBerry) {
 				lumBerry.amount = 1;
-				total -= (mysteryBerryAmount - 1);
+				total -= mysteryBerryAmount - 1;
 				lumBerry = lumBerries.shift();
 			}
 
@@ -109,7 +109,7 @@ class GreedentsBerryPiles extends ScriptedGame {
 		}
 
 		this.canLateJoin = false;
-		this.say("Giving " + (this.subGameNumber > 1 ? "new ": "") + " starting berries in PMs!");
+		this.say("Giving " + (this.subGameNumber > 1 ? "new " : "") + " starting berries in PMs!");
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			this.giveStartingBerries(this.players[i]);
@@ -130,7 +130,7 @@ class GreedentsBerryPiles extends ScriptedGame {
 		while (this.maxBerryTotal && total > this.maxBerryTotal && lumBerries.length) {
 			lumBerries[0].amount = 1;
 			lumBerries.shift();
-			total -= (mysteryBerryAmount - 1);
+			total -= mysteryBerryAmount - 1;
 		}
 
 		this.playerBerryPiles.set(player, berryPiles);
@@ -200,29 +200,29 @@ class GreedentsBerryPiles extends ScriptedGame {
 		}
 
 		if (!playersLeft || this.subGameRound > this.roundLimit) {
-			const text = "All players have finished their turns!";
-			this.on(text, () => {
+			const finishedText = "All players have finished their turns!";
+			this.on(finishedText, () => {
 				this.canLateJoin = true;
 				this.timeout = setTimeout(() => {
-					let text: string;
+					let greedentText: string;
 					if (this.greedentTotalForaged > this.maxBerryTotal) {
-						text = "Greedent foraged too many berries and dropped them all!";
+						greedentText = "Greedent foraged too many berries and dropped them all!";
 					} else {
-						text = "Greedent foraged " + this.greedentTotalForaged + " berries!";
+						greedentText = "Greedent foraged " + this.greedentTotalForaged + " berries!";
 					}
 
-					this.on(text, () => {
+					this.on(greedentText, () => {
 						this.timeout = setTimeout(() => this.endSubGame(), 5 * 1000);
 					});
-					this.say(text);
+					this.say(greedentText);
 				}, 5000);
 			});
-			this.say(text);
+			this.say(finishedText);
 			return;
 		}
 
 		this.roundActions.clear();
-		const html = this.getRoundHtml(this.getPlayerWins, null, "Round " + this.subGameRound);
+		const html = this.getRoundHtml(players => this.getPlayerWins(players), null, "Round " + this.subGameRound);
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			this.canGrab = true;
@@ -307,7 +307,7 @@ const commands: GameCommandDefinitions<GreedentsBerryPiles> = {
 			let lumBerry = lumBerries.shift();
 			while (total > this.maxBerryTotal && lumBerry) {
 				lumBerry.amount = 1;
-				total -= (mysteryBerryAmount - 1);
+				total -= mysteryBerryAmount - 1;
 				lumBerry = lumBerries.shift();
 			}
 

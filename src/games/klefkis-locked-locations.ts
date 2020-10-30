@@ -141,7 +141,7 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 					text += " It didn't have any " + this.currencyPluralName + " to give!";
 				} else {
 					const amount = 1;
-					text += " It gave them " + amount + " " + (amount > 1 ? this.currencyPluralName : this.currencyName) + "!";
+					text += " It gave them " + amount + " " + this.currencyName + "!";
 					this.playerCurrency.set(player, this.playerCurrency.get(player)! + amount);
 				}
 				this.on(text, () => {
@@ -192,11 +192,11 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 		this.playerCurrency.set(player, this.playerCurrency.get(player)! - amount);
 	}
 
-	onPassOnPropertySpace(player: Player): void {
+	onPassOnPropertySpace(): void {
 		this.beforeNextRound();
 	}
 
-	onInsufficientCurrencyToAcquire(property: BoardPropertyEliminationSpace, player: Player): void {
+	onInsufficientCurrencyToAcquire(property: BoardPropertyEliminationSpace): void {
 		const text = "They do not have enough " + this.currencyPluralName + " so **" + property.name + "** will remain locked!";
 		this.on(text, () => {
 			this.timeout = setTimeout(() => this.beforeNextRound(), this.roundTime);

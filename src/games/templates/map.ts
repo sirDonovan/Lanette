@@ -335,7 +335,7 @@ export abstract class MapGame extends ScriptedGame {
 			html += "<tr><td>&nbsp;</td><td>" +
 				Client.getPmSelfButton(Config.commandCharacter + "up 3", "Up 3", cannotMove || playerUpMovement < 3) +
 				"</td><td>" + Client.getPmSelfButton(Config.commandCharacter + "up 2", "Up 2", cannotMove || playerUpMovement < 2) +
-				"</td><td>" +Client.getPmSelfButton(Config.commandCharacter + "up 1", "Up 1", cannotMove || playerUpMovement < 1) +
+				"</td><td>" + Client.getPmSelfButton(Config.commandCharacter + "up 1", "Up 1", cannotMove || playerUpMovement < 1) +
 				"</td><td>&nbsp;</td></tr>";
 
 			html += "<tr><td>" +
@@ -511,7 +511,7 @@ export abstract class MapGame extends ScriptedGame {
 	}
 
 	setCurrencyCoordinates(floor: MapFloor, currencySpaces?: number): void {
-		if (!currencySpaces) currencySpaces = (floor.y >= 10 ? 25 : Math.round(floor.y * 2));
+		if (!currencySpaces) currencySpaces = floor.y >= 10 ? 25 : Math.round(floor.y * 2);
 		for (let i = 0; i < currencySpaces; i++) {
 			const space = this.findOpenFloorSpace(floor);
 			if (!space) continue;

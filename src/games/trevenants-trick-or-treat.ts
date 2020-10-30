@@ -27,7 +27,7 @@ class TrevenantsTrickOrTreat extends ScriptedGame {
 		this.pokemonList = this.shuffle(data.pokedex);
 	}
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		const pokedex = Games.getPokemonList(x => x.gen <= 5 && !x.forme && Dex.hasGifData(x, 'bw'));
 		for (const pokemon of pokedex) {
 			const allPossibleMoves = Dex.getAllPossibleMoves(pokemon);

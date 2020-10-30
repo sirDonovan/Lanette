@@ -1,8 +1,6 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { Room } from "../rooms";
 import type { GameCommandDefinitions, IGameAchievement, IGameFile } from "../types/games";
-import type { User } from "../users";
 
 type AchievementNames = "pokemonranger";
 
@@ -35,7 +33,7 @@ class TaurosSafariZone extends ScriptedGame {
 	roundTime: number = 5 * 1000;
 	winners = new Map<Player, number>();
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		const pokemonList = Games.getPokemonList(pokemon => Dex.hasGifData(pokemon) && pokemon.id !== 'voltorb' &&
 			pokemon.id !== 'electrode');
 		const listWithFormes = pokemonList.slice();
@@ -69,14 +67,14 @@ class TaurosSafariZone extends ScriptedGame {
 
 	generatePokemon(): void {
 		const pokemonList = this.sampleMany(data.pokedex, 3).map(x => Dex.getExistingPokemon(x));
-		let hasVoltorb = false;
-		let hasElectrode = false;
+		let hasVoltorb: boolean | undefined;
+		let hasElectrode: boolean | undefined;
 		const baseStatTotals: {pokemon: string; bst: number}[] = [];
 		for (let i = 0; i < pokemonList.length; i++) {
 			let currentPokemon = pokemonList[i];
 			const chance = this.random(100);
 			if (chance < 25 && !hasVoltorb && !hasElectrode) {
-				if (chance < 10 && !hasElectrode) {
+				if (chance < 10) {
 					hasElectrode = true;
 					currentPokemon = Dex.getExistingPokemon('electrode');
 					pokemonList[i] = currentPokemon;
@@ -89,7 +87,7 @@ class TaurosSafariZone extends ScriptedGame {
 				}
 			} else {
 				baseStatTotals.push({pokemon: currentPokemon.name, bst: data.baseStatTotals[currentPokemon.id]});
-				const points = 100 + Math.round((data.baseStatTotals[pokemonList[i].id] / 12));
+				const points = 100 + Math.round(data.baseStatTotals[pokemonList[i].id] / 12);
 				this.roundPokemon.set(Tools.toId(currentPokemon.name), {species: currentPokemon.name, points});
 			}
 		}
@@ -154,7 +152,7 @@ class TaurosSafariZone extends ScriptedGame {
 				return;
 			}
 		}
-		const html = this.getRoundHtml(this.getPlayerPoints);
+		const html = this.getRoundHtml(players => this.getPlayerPoints(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			this.timeout = setTimeout(() => this.generatePokemon(), this.revealTime);
@@ -163,7 +161,6 @@ class TaurosSafariZone extends ScriptedGame {
 	}
 
 	onEnd(): void {
-		const totalRounds = this.round - 1;
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];

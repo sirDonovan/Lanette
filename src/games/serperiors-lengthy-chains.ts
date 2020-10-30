@@ -1,8 +1,6 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { Room } from "../rooms";
 import type { GameCommandDefinitions, IGameFile } from "../types/games";
-import type { User } from "../users";
 
 const minimumParameterPokemon = 16;
 
@@ -17,7 +15,7 @@ class SerperiorLengthyChains extends ScriptedGame {
 	category: string = '';
 	points = new Map<Player, number>();
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		for (const pokemon of Games.getPokemonList()) {
 			const pokemonParameters: string[] = ["Generation " + pokemon.gen, pokemon.color];
 			if (Games.isIncludedPokemonTier(pokemon.tier)) pokemonParameters.push(pokemon.tier);
@@ -108,7 +106,7 @@ class SerperiorLengthyChains extends ScriptedGame {
 				const curChain = chainSoFar.slice();
 				curChain.push(pokemon.name);
 				chain = this.getChain(guess.substr(i), curChain);
-				if (chain) return chain;
+				if (chain.length) return chain;
 			}
 		}
 		return [];

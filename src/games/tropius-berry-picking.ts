@@ -1,8 +1,6 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { Room } from "../rooms";
 import type { GameCommandDefinitions, IGameAchievement, IGameFile } from "../types/games";
-import type { User } from "../users";
 
 type AchievementNames = "berrymaster";
 
@@ -94,7 +92,7 @@ class TropiusBerryPicking extends ScriptedGame {
 	roundLimit: number = 20;
 	roundTime: number = 10 * 1000;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		const types: string[] = [];
 		for (const key of Dex.data.typeKeys) {
 			types.push(Dex.getExistingType(key).name);
@@ -155,7 +153,7 @@ class TropiusBerryPicking extends ScriptedGame {
 					}
 					lastPlayer = player;
 				});
-				if (lastPlayer && this.getRemainingPlayerCount() > 1) {
+				if (lastPlayer && this.getRemainingPlayerCount() > 1) { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 					this.eliminatePlayer(lastPlayer, "You were the last player to eat a berry!");
 				}
 			}
@@ -215,7 +213,7 @@ class TropiusBerryPicking extends ScriptedGame {
 		if (this.format.options.freejoin) {
 			this.timeout = setTimeout(() => this.say(smeargleText), 5000);
 		} else {
-			const html = this.getRoundHtml(this.getPlayerNames);
+			const html = this.getRoundHtml(players => this.getPlayerNames(players));
 			const uhtmlName = this.uhtmlBaseName + '-round-html';
 			this.onUhtml(uhtmlName, html, () => {
 				this.timeout = setTimeout(() => this.say(smeargleText), 5000);
@@ -246,7 +244,7 @@ const commands: GameCommandDefinitions<TropiusBerryPicking> = {
 			if (!this.canEat) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 			const id = Tools.toId(target);
-			const berry = berries[id] || berries[id + 'berry'];
+			const berry = id in berries ? berries[id] : berries[id + 'berry'] as IBerry | undefined;
 			if (!berry) return false;
 			if (this.format.options.freejoin) {
 				if (berry.effect !== this.roundEffect.effect) return false;

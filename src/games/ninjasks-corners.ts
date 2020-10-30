@@ -62,7 +62,8 @@ class NinjasksCorners extends ScriptedGame {
 		this.lastColor = color;
 		this.roundTravels.clear();
 		if (!this.format.options.freejoin && this.roundTime > this.minRoundTime) this.roundTime -= 250;
-		const html = this.getRoundHtml(this.format.options.freejoin ? this.getPlayerPoints : this.getPlayerNames);
+		const html = this.getRoundHtml(players => this.format.options.freejoin ? this.getPlayerPoints(players) :
+			this.getPlayerNames(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			this.timeout = setTimeout(() => {

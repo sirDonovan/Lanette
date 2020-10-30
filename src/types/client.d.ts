@@ -1,4 +1,4 @@
-import type { IFormat } from "./dex";
+import type { IFormat } from "./pokemon-showdown";
 import type { RoomType } from "./rooms";
 import type { ITournamentEndJson, ITournamentUpdateJson } from "./tournaments";
 

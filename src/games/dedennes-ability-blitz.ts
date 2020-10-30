@@ -1,8 +1,6 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { Room } from "../rooms";
 import type { GameCommandDefinitions, IGameFile } from "../types/games";
-import type { User } from "../users";
 
 interface IRoundAbility {
 	name: string;
@@ -25,7 +23,7 @@ class DedennesAbilityBlitz extends ScriptedGame {
 	roundTime: number = 3 * 1000;
 	highestCatch: Player | null = null;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		data.abilities = Games.getAbilitiesList().map(x => x.name);
 	}
 
@@ -90,7 +88,7 @@ class DedennesAbilityBlitz extends ScriptedGame {
 				return;
 			}
 		}
-		const html = this.getRoundHtml(this.getPlayerPoints);
+		const html = this.getRoundHtml(players => this.getPlayerPoints(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			this.timeout = setTimeout(() => this.generateAbilities(), this.revealTime);

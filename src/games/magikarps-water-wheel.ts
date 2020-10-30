@@ -147,7 +147,7 @@ class MagikarpsWaterWheel extends ScriptedGame {
 		this.roundActions.clear();
 		this.roundCarp = false;
 		const uhtmlName = this.uhtmlBaseName + '-round';
-		const html = this.getRoundHtml(this.getPlayerPoints);
+		const html = this.getRoundHtml(players => this.getPlayerPoints(players));
 		this.onUhtml(uhtmlName, html, () => {
 			this.canSwim = true;
 			this.onCommands(this.actionCommands, {max: len, remainingPlayersMax: true}, () => {

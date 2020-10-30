@@ -413,7 +413,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 			const rightTile = board[x][y + 1] as number | undefined;
 			const leftTile = board[x][y - 1] as number | undefined;
 			const aboveTile = board[x - 1] ? board[x - 1][y] : undefined;
-			const belowTile = board[x + 1] ? board[x + 1][y]: undefined;
+			const belowTile = board[x + 1] ? board[x + 1][y] : undefined;
 
 			if (aboveTile && belowTile && rightTile === tileValues.wall && leftTile === tileValues.wall && belowTile >= 1 &&
 				aboveTile >= 1 && !Tools.arraysContainArray(this.getMinMaxCoordinates(belowTile, aboveTile), minMaxCoordinates)) {
@@ -752,8 +752,8 @@ class HauntersHauntedHouse extends ScriptedGame {
 		}
 
 		const uhtmlName = this.uhtmlBaseName + '-round';
-		const html = this.getRoundHtml(this.getPlayerNumbers, undefined, "Round " + this.round + " - Collected candy: " +
-			this.collectedCandy);
+		const html = this.getRoundHtml(players => this.getPlayerNumbers(players), undefined, "Round " + this.round +
+			" - Collected candy: " + this.collectedCandy);
 		this.onUhtml(uhtmlName, html, () => {
 			this.onCommands(this.actionCommands, {max: this.getRemainingPlayerCount(), remainingPlayersMax: true}, () => {
 				if (this.timeout) clearTimeout(this.timeout);
@@ -818,17 +818,17 @@ class HauntersHauntedHouse extends ScriptedGame {
 			if (!location || !path) return;
 
 			const shuffledDirections = this.shuffle(directions);
-			for (const direction of shuffledDirections) {
+			for (const shuffledDirection of shuffledDirections) {
 				const locationCopy = location.slice();
-				locationCopy[0] += direction[0];
-				locationCopy[1] += direction[1];
+				locationCopy[0] += shuffledDirection[0];
+				locationCopy[1] += shuffledDirection[1];
 				if (locationCopy[0] >= 0 && locationCopy[1] >= 0 && locationCopy[0] <= lastRowIndex && locationCopy[1] <= lastColumnIndex &&
 					boardCopy[locationCopy[0]][locationCopy[1]] === canMoveThroughSymbol) {
 					const players = this.getPlayersOnTile(locationCopy[0], locationCopy[1]);
 					if (players.length) {
 						this.remainingGhostMoves++;
 						if (!movementCheck) {
-							path.push(direction);
+							path.push(shuffledDirection);
 							let k;
 							for (k = 0; k < Math.min(path.length, ghost.turnMoves + (this.mimikyuHaunt ? 1 : 0)); k++) {
 								const direction = path[k];
@@ -846,7 +846,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 					}
 
 					const newPath = path.slice();
-					newPath.push(direction);
+					newPath.push(shuffledDirection);
 					frontierPaths.push(newPath);
 					frontierLocations.push(locationCopy);
 					boardCopy[locationCopy[0]][locationCopy[1]] = "";
@@ -863,30 +863,35 @@ class HauntersHauntedHouse extends ScriptedGame {
 			this.moveGhost(ghost);
 		}
 
+		let hauntedPlayer = false;
 		for (const id in this.players) {
 			const player = this.players[id];
 			if (player.eliminated) continue;
 			const location = this.playerLocations.get(player)!;
 			for (const ghost of this.ghosts) {
+				if (ghost.name === "Mimikyu") continue;
 				const xDifference = Math.abs(location[0] - ghost.row);
 				const yDifference = Math.abs(location[1] - ghost.column);
-				if (!player.eliminated && ((xDifference === 0 && yDifference === 0) || (ghost.hauntNextTurn && xDifference <= 1 &&
-					yDifference <= 1)) && ghost.name !== "Mimikyu") {
+				if ((xDifference === 0 && yDifference === 0) || (ghost.hauntNextTurn && xDifference <= 1 && yDifference <= 1)) {
 					this.eliminatedPlayers.add(player);
 					this.say("**" + player.name + "** was haunted by **" + ghost.name + "**!");
 					this.eliminatePlayer(player, "You were haunted by " + ghost.name + "!");
-
-					if (this.ghostFrenzies) {
-						this.say("The ghosts have calmed down and can no longer move any extra spaces.");
-						for (const ghost of this.ghosts) {
-							ghost.turnMoves -= this.ghostFrenzies;
-						}
-						this.ghostFrenzies = 0;
-					}
-
-					this.turnsWithoutHaunting = 0;
+					hauntedPlayer = true;
+					break;
 				}
 			}
+		}
+
+		if (hauntedPlayer) {
+			if (this.ghostFrenzies) {
+				this.say("The ghosts have calmed down and can no longer move any extra spaces.");
+				for (const otherGhost of this.ghosts) {
+					otherGhost.turnMoves -= this.ghostFrenzies;
+				}
+				this.ghostFrenzies = 0;
+			}
+
+			this.turnsWithoutHaunting = 0;
 		}
 
 		this.checkPlayerLocations();
@@ -920,7 +925,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 		if (atCandyLimit || ((this.remainingGhostMoves === 0 || this.mimikyuTrapped) && this.getRemainingPlayerCount() > 0)) {
 			this.say("Since " + (atCandyLimit ? "the players have collected " + candyLimit + " candy" : "all remaining players are safe " +
 				"from the ghosts") + ", the players win!");
-			this.collectedCandy = (atCandyLimit ? candyLimit : Math.max(1200, this.collectedCandy));
+			this.collectedCandy = atCandyLimit ? candyLimit : Math.max(1200, this.collectedCandy);
 			for (const id in this.players) {
 				if (!this.players[id].eliminated) this.winners.set(this.players[id], 1);
 			}
@@ -971,7 +976,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 					"board!");
 				return;
 			} else if (!this.board[location[0]][location[1]].canMoveThrough) {
-				player.say("Something is in your way and preventing you from moving " + direction + " "  +spaces + " space" +
+				player.say("Something is in your way and preventing you from moving " + direction + " " + spaces + " space" +
 					(spaces > 1 ? "s" : ""));
 				return;
 			}

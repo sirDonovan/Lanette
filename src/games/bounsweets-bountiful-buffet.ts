@@ -102,21 +102,21 @@ class BounsweetsBountifulBuffet extends ScriptedGame {
 			mealNames.push("<b>" + this.meals[i] + "</b>: " + this.mealPoints[i]);
 		}
 
-		const html = this.getRoundHtml(this.getPlayerPoints);
-		const uhtmlName = this.uhtmlBaseName + '-round-html';
-		this.onUhtml(uhtmlName, html, () => {
+		const roundHtml = this.getRoundHtml(players => this.getPlayerPoints(players));
+		const roundUhtmlName = this.uhtmlBaseName + '-round-html';
+		this.onUhtml(roundUhtmlName, roundHtml, () => {
 			this.timeout = setTimeout(() => {
-				const html = "<div class='infobox'><center><h3>Current meals</h3>" + mealNames.join(" | ") + "</center></div>";
-				const uhtmlName = this.uhtmlBaseName + '-round-meals';
-				this.onUhtml(uhtmlName, html, () => {
+				const mealsHtml = "<div class='infobox'><center><h3>Current meals</h3>" + mealNames.join(" | ") + "</center></div>";
+				const mealsUhtmlName = this.uhtmlBaseName + '-round-meals';
+				this.onUhtml(mealsUhtmlName, mealsHtml, () => {
 					this.canSelect = true;
 					this.timeout = setTimeout(() => this.nextRound(), 30 * 1000);
 				});
-				this.sayUhtml(uhtmlName, html);
+				this.sayUhtml(mealsUhtmlName, mealsHtml);
 			}, 5000);
 		});
 		this.onCommands(['select'], {max: this.getRemainingPlayerCount(), remainingPlayersMax: true}, () => this.nextRound());
-		this.sayUhtml(uhtmlName, html);
+		this.sayUhtml(roundUhtmlName, roundHtml);
 	}
 
 	onEnd(): void {
@@ -158,7 +158,7 @@ const tests: GameFileTests<BounsweetsBountifulBuffet> = {
 			async: true,
 		},
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		async test(game, format): Promise<void> {
+		async test(game): Promise<void> {
 			const players = addPlayers(game, 2);
 			game.minPlayers = 2;
 			game.start();
@@ -175,7 +175,7 @@ const tests: GameFileTests<BounsweetsBountifulBuffet> = {
 			async: true,
 		},
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		async test(game, format): Promise<void> {
+		async test(game): Promise<void> {
 			const players = addPlayers(game, 2);
 			game.minPlayers = 2;
 			game.start();

@@ -1,6 +1,4 @@
-import type { Room } from "../rooms";
 import type { IGameAchievement, IGameFile } from "../types/games";
-import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 type AchievementNames = "livingontheedge";
@@ -41,40 +39,42 @@ class EkansEdges extends QuestionAndAnswer {
 	allAnswersAchievement = EkansEdges.achievements.livingontheedge;
 	lastEdge: string = '';
 
-	static loadData(room: Room | User): void {
-		for (const character of Dex.data.characters) {
+	static loadData(): void {
+		const characters = Dex.getCharacters();
+		for (const character of characters) {
 			const edge = character.charAt(0) + " - " + character.substr(-1);
-			if (!data["Characters"][edge]) data["Characters"][edge] = [];
+			if (!(edge in data["Characters"])) data["Characters"][edge] = [];
 			data["Characters"][edge].push(character);
 		}
 
-		for (const location of Dex.data.locations) {
+		const locations = Dex.getLocations();
+		for (const location of locations) {
 			const edge = location.charAt(0) + " - " + location.substr(-1);
-			if (!data["Locations"][edge]) data["Locations"][edge] = [];
+			if (!(edge in data["Locations"])) data["Locations"][edge] = [];
 			data["Locations"][edge].push(location);
 		}
 
 		for (const pokemon of Games.getPokemonList()) {
 			const edge = pokemon.name.charAt(0) + " - " + pokemon.name.substr(-1);
-			if (!data["Pokemon"][edge]) data["Pokemon"][edge] = [];
+			if (!(edge in data["Pokemon"])) data["Pokemon"][edge] = [];
 			data["Pokemon"][edge].push(pokemon.name);
 		}
 
 		for (const ability of Games.getAbilitiesList()) {
 			const edge = ability.name.charAt(0) + " - " + ability.name.substr(-1);
-			if (!data["Pokemon Abilities"][edge]) data["Pokemon Abilities"][edge] = [];
+			if (!(edge in data["Pokemon Abilities"])) data["Pokemon Abilities"][edge] = [];
 			data["Pokemon Abilities"][edge].push(ability.name);
 		}
 
 		for (const item of Games.getItemsList()) {
 			const edge = item.name.charAt(0) + " - " + item.name.substr(-1);
-			if (!data["Pokemon Items"][edge]) data["Pokemon Items"][edge] = [];
+			if (!(edge in data["Pokemon Items"])) data["Pokemon Items"][edge] = [];
 			data["Pokemon Items"][edge].push(item.name);
 		}
 
 		for (const move of Games.getMovesList()) {
 			const edge = move.name.charAt(0) + " - " + move.name.substr(-1);
-			if (!data["Pokemon Moves"][edge]) data["Pokemon Moves"][edge] = [];
+			if (!(edge in data["Pokemon Moves"])) data["Pokemon Moves"][edge] = [];
 			data["Pokemon Moves"][edge].push(move.name);
 		}
 
@@ -92,7 +92,7 @@ class EkansEdges extends QuestionAndAnswer {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
-		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
+		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		let edge = this.sampleOne(dataKeys[category]);
 		while (edge === this.lastEdge) {
 			edge = this.sampleOne(dataKeys[category]);
@@ -118,32 +118,33 @@ export const game: IGameFile<EkansEdges> = Games.copyTemplateProperties(question
 	variants: [
 		{
 			name: "Ekans' Ability Edges",
-			variant: "Pokemon Abilities",
-			variantAliases: ['ability', 'abilities'],
+			roundCategory: "Pokemon Abilities",
+			variantAliases: ['ability', 'abilities', 'pokemon abilities'],
 		},
 		{
 			name: "Ekans' Character Edges",
-			variant: "Characters",
-			variantAliases: ['character'],
+			roundCategory: "Characters",
+			variantAliases: ['character', 'characters'],
 		},
 		{
 			name: "Ekans' Item Edges",
-			variant: "Pokemon Items",
-			variantAliases: ['item', 'items'],
+			roundCategory: "Pokemon Items",
+			variantAliases: ['item', 'items', 'pokemon items'],
 		},
 		{
 			name: "Ekans' Location Edges",
-			variant: "Locations",
-			variantAliases: ['location'],
+			roundCategory: "Locations",
+			variantAliases: ['location', 'locations'],
 		},
 		{
 			name: "Ekans' Move Edges",
-			variant: "Pokemon Moves",
-			variantAliases: ['move', 'moves'],
+			roundCategory: "Pokemon Moves",
+			variantAliases: ['move', 'moves', 'pokemon moves'],
 		},
 		{
 			name: "Ekans' Pokemon Edges",
-			variant: "Pokemon",
+			roundCategory: "Pokemon",
+			variantAliases: ['pokemon'],
 		},
 	],
 });

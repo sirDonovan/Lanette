@@ -29,40 +29,48 @@ export const game: IGameFile<SameSix> = Games.copyTemplateProperties(elimination
 	variants: [
 		{
 			name: "Monocolor Same Six",
-			variant: "monocolor",
+			monoColor: true,
+			variantAliases: ["monocolor"],
 		},
 		{
 			name: "Monotype Same Six",
-			variant: "monotype",
+			monoType: true,
+			variantAliases: ["monotype"],
 		},
 		{
 			name: "Monoregion Same Six",
-			variant: "monoregion",
-			variantAliases: ["monogen"],
+			monoRegion: true,
+			variantAliases: ["monoregion", "monogen"],
 		},
 		{
 			name: "Same Six Ubers",
-			variant: "ubers",
+			battleFormatId: "ubers",
+			variantAliases: ["ubers"],
 		},
 		{
 			name: "Same Six UU",
-			variant: "uu",
+			battleFormatId: "uu",
+			variantAliases: ["uu"],
 		},
 		{
 			name: "Same Six RU",
-			variant: "ru",
+			battleFormatId: "ru",
+			variantAliases: ["ru"],
 		},
 		{
 			name: "Same Six NU",
-			variant: "nu",
+			battleFormatId: "nu",
+			variantAliases: ["nu"],
 		},
 		{
 			name: "Same Six PU",
-			variant: "pu",
+			battleFormatId: "pu",
+			variantAliases: ["pu"],
 		},
 		{
 			name: "Same Six ZU",
-			variant: "zu",
+			battleFormatId: "zu",
+			variantAliases: ["zu"],
 		},
 	],
 });

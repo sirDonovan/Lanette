@@ -1,6 +1,4 @@
-import type { Room } from "../rooms";
 import type { IGameAchievement, IGameFile } from "../types/games";
-import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 type AchievementNames = "splittersplatter";
@@ -24,9 +22,9 @@ class KyuremsSplits extends QuestionAndAnswer {
 
 	allAnswersAchievement = KyuremsSplits.achievements.splittersplatter;
 
-	static loadData(room: Room | User): void {
-		data["Characters"] = Dex.data.characters.slice();
-		data["Locations"] = Dex.data.locations.slice();
+	static loadData(): void {
+		data["Characters"] = Dex.getCharacters();
+		data["Locations"] = Dex.getLocations();
 
 		data["Pokemon"] = Games.getPokemonList().map(x => x.name);
 		data["Pokemon Abilities"] = Games.getAbilitiesList().map(x => x.name);
@@ -46,19 +44,19 @@ class KyuremsSplits extends QuestionAndAnswer {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
-		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
+		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		let hint = '';
 		while (!this.answers.length || this.answers.length > 15 || Client.willBeFiltered(hint)) {
-			const answer = Tools.toId(this.sampleOne(data[category]));
+			const randomAnswer = Tools.toId(this.sampleOne(data[category]));
 			const validIndices: number[] = [];
-			for (let i = 1; i < answer.length; i++) {
+			for (let i = 1; i < randomAnswer.length; i++) {
 				validIndices.push(i);
 			}
 			const numberOfLetters = Math.min(5, Math.max(2, Math.floor(validIndices.length * (Math.random() * 0.4 + 0.3))));
 			const chosenIndices = this.sampleMany(validIndices, numberOfLetters);
 			hint = '';
 			for (const index of chosenIndices) {
-				hint += answer[index];
+				hint += randomAnswer[index];
 			}
 			this.answers = [];
 			for (const answer of data[category]) {
@@ -88,32 +86,33 @@ export const game: IGameFile<KyuremsSplits> = Games.copyTemplateProperties(quest
 	variants: [
 		{
 			name: "Kyurem's Ability Splits",
-			variant: "Pokemon Abilities",
-			variantAliases: ['ability', 'abilities'],
+			roundCategory: "Pokemon Abilities",
+			variantAliases: ['ability', 'abilities', 'pokemon abilities'],
 		},
 		{
 			name: "Kyurem's Character Splits",
-			variant: "Characters",
-			variantAliases: ['character'],
+			roundCategory: "Characters",
+			variantAliases: ['character', 'characters'],
 		},
 		{
 			name: "Kyurem's Item Splits",
-			variant: "Pokemon Items",
-			variantAliases: ['item', 'items'],
+			roundCategory: "Pokemon Items",
+			variantAliases: ['item', 'items', 'pokemon items'],
 		},
 		{
 			name: "Kyurem's Location Splits",
-			variant: "Locations",
-			variantAliases: ['location'],
+			roundCategory: "Locations",
+			variantAliases: ['location', 'locations'],
 		},
 		{
 			name: "Kyurem's Move Splits",
-			variant: "Pokemon Moves",
-			variantAliases: ['move', 'moves'],
+			roundCategory: "Pokemon Moves",
+			variantAliases: ['move', 'moves', 'pokemon moves'],
 		},
 		{
 			name: "Kyurem's Pokemon Splits",
-			variant: "Pokemon",
+			roundCategory: "Pokemon",
+			variantAliases: ['pokemon'],
 		},
 	],
 });

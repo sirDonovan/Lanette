@@ -1,8 +1,7 @@
 import type { Player, PlayerTeam } from "../../room-activity";
 import type { ScriptedGame } from "../../room-game-scripted";
 import type {
-	DefaultGameOption, GameCommandDefinitions, GameCommandReturnType, IGameFormat,
-	IGameModeFile
+	DefaultGameOption, GameCommandDefinitions, GameCommandReturnType, IGameFormat, IGameModeFile
 } from "../../types/games";
 import type { QuestionAndAnswer } from "../templates/question-and-answer";
 
@@ -22,7 +21,7 @@ class Group {
 	teamRound: number = 0;
 	teams: Dict<PlayerTeam> = {};
 
-	static setOptions<T extends ScriptedGame>(format: IGameFormat<T>, namePrefixes: string[], nameSuffixes: string[]): void {
+	static setOptions<T extends ScriptedGame>(format: IGameFormat<T>, namePrefixes: string[]): void {
 		if (!format.name.includes(name)) namePrefixes.unshift(name);
 		format.description += ' ' + description;
 
@@ -35,7 +34,7 @@ class Group {
 			delete format.customizableOptions[option];
 		}
 
-		if (!format.customizableOptions.teamPoints) {
+		if (!('teamPoints' in format.customizableOptions)) {
 			format.customizableOptions.teamPoints = {
 				min: BASE_POINTS,
 				base: BASE_POINTS,
@@ -104,7 +103,7 @@ class Group {
 			const points = this.points.get(player);
 			let earnings = 250;
 			if (points) {
-				earnings += (50 * points);
+				earnings += 50 * points;
 			}
 			this.addBits(player, earnings);
 		});

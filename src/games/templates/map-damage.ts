@@ -4,7 +4,6 @@ import type { MapFloor } from "./map";
 import { game as mapGame, MapGame } from "./map";
 
 export abstract class MapDamageGame extends MapGame {
-	canLateJoin: boolean = true;
 	roundActions = new Map<Player, boolean>();
 
 	abstract onDamagePlayers(): void;
@@ -40,7 +39,7 @@ export abstract class MapDamageGame extends MapGame {
 		this.roundActions.clear();
 		this.onCommands(this.moveCommands, {max: len, remainingPlayersMax: true}, () => this.damagePlayers());
 
-		const html = this.getRoundHtml(this.getPlayerLives);
+		const html = this.getRoundHtml(players => this.getPlayerLives(players));
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
 			if (this.round === 1) this.canMove = true;

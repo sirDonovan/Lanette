@@ -39,7 +39,7 @@ const reloadCommands = function(reloadedModules: ReloadableModule[]): void {
 	if (!reloadedModules.includes('games')) Games.loadFormatCommands();
 };
 
-module.exports = (async(): Promise<void> => {
+module.exports = async(): Promise<void> => {
 	tools.instantiate();
 	global.Config = ConfigLoader.load(config);
 	dex.instantiate();
@@ -61,8 +61,8 @@ module.exports = (async(): Promise<void> => {
 
 	global.__reloadInProgress = false;
 	global.__reloadModules = async(username: string, targets: string[]): Promise<void> => {
-		const user = Users.get(username);
-		const hasModules: boolean[] = moduleOrder.slice().map(x => false);
+		let user = Users.get(username);
+		const hasModules: boolean[] = moduleOrder.slice().map(() => false);
 
 		for (const target of targets) {
 			const id = Tools.toId(target) as ReloadableModule;
@@ -128,32 +128,32 @@ module.exports = (async(): Promise<void> => {
 			for (const moduleId of modules) {
 				if (moduleId === 'client') {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
-					const client = require('./' + moduleFilenames[moduleId]) as typeof import('./client');
-					client.instantiate();
+					const newClient = require('./' + moduleFilenames[moduleId]) as typeof import('./client');
+					newClient.instantiate();
 				} else if (moduleId === 'commandparser') {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
-					const commandParser = require('./' + moduleFilenames[moduleId]) as typeof import('./command-parser');
-					commandParser.instantiate();
+					const newCommandParser = require('./' + moduleFilenames[moduleId]) as typeof import('./command-parser');
+					newCommandParser.instantiate();
 				} else if (moduleId === 'commands') {
 					reloadCommands(modules);
 				} else if (moduleId === 'config') {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
 					const configLoader = require('./config-loader') as typeof import('./config-loader');
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
-					const config = configLoader.load(require('./config') as typeof import('./config-example'));
-					global.Config = config;
+					const newConfig = configLoader.load(require('./config') as typeof import('./config-example'));
+					global.Config = newConfig;
 					Rooms.checkLoggingConfigs();
 				} else if (moduleId === 'dex') {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
-					const dex = require('./' + moduleFilenames[moduleId]) as typeof import('./dex');
-					dex.instantiate();
+					const newDex = require('./' + moduleFilenames[moduleId]) as typeof import('./dex');
+					newDex.instantiate();
 					if (!modules.includes('games')) Games.reloadInProgress = false;
 				} else if (moduleId === 'games') {
 					Games.unrefWorkers();
 
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
-					const games = require('./' + moduleFilenames[moduleId]) as typeof import('./games');
-					games.instantiate();
+					const newGames = require('./' + moduleFilenames[moduleId]) as typeof import('./games');
+					newGames.instantiate();
 				} else if (moduleId === 'plugins') {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
 					const pluginsLoader = require('./plugins-loader') as typeof import('./plugins-loader');
@@ -161,30 +161,30 @@ module.exports = (async(): Promise<void> => {
 					reloadCommands(modules);
 				} else if (moduleId === 'storage') {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
-					const storage = require('./' + moduleFilenames[moduleId]) as typeof import('./storage');
-					storage.instantiate();
+					const newStorage = require('./' + moduleFilenames[moduleId]) as typeof import('./storage');
+					newStorage.instantiate();
 				} else if (moduleId === 'tools') {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
-					const tools = require('./' + moduleFilenames[moduleId]) as typeof import('./tools');
-					tools.instantiate();
-				} else if (moduleId === 'tournaments') {
+					const newTools = require('./' + moduleFilenames[moduleId]) as typeof import('./tools');
+					newTools.instantiate();
+				} else if (moduleId === 'tournaments') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
-					const tournaments = require('./' + moduleFilenames[moduleId]) as typeof import('./tournaments');
-					tournaments.instantiate();
+					const newTournaments = require('./' + moduleFilenames[moduleId]) as typeof import('./tournaments');
+					newTournaments.instantiate();
 				}
 			}
 
 			global.__reloadInProgress = false;
 
-			const user = Users.get(username);
+			user = Users.get(username);
 			if (user) user.say("Successfully reloaded " + Tools.joinList(modules) + ".");
 		}, () => {
 			global.__reloadInProgress = false;
 			if (Games.reloadInProgress) Games.reloadInProgress = false;
 			if (Storage.reloadInProgress) Storage.reloadInProgress = false;
 
-			const user = Users.get(username);
+			user = Users.get(username);
 			if (user) user.say("Failed to build files");
 		}, buildOptions);
 	};
-});
+};

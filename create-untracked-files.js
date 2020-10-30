@@ -7,12 +7,14 @@ if (!fs.existsSync(configFile)) {
 	fs.writeFileSync(configFile, fs.readFileSync(path.join(__dirname, 'src', 'config-example.ts')));
 }
 
-const pokedexMiniFile = path.join(__dirname, 'data', 'pokedex-mini.js');
+const clientDataDirectory = path.join(__dirname, 'client-data');
+
+const pokedexMiniFile = path.join(clientDataDirectory, 'pokedex-mini.js');
 if (!fs.existsSync(pokedexMiniFile)) {
-	fs.writeFileSync(pokedexMiniFile, fs.readFileSync(path.join(__dirname, 'data', 'pokedex-mini-base.js')));
+	fs.writeFileSync(pokedexMiniFile, fs.readFileSync(path.join(clientDataDirectory, 'pokedex-mini-base.js')));
 }
 
-const pokedexMiniBWFile = path.join(__dirname, 'data', 'pokedex-mini-bw.js');
+const pokedexMiniBWFile = path.join(clientDataDirectory, 'pokedex-mini-bw.js');
 if (!fs.existsSync(pokedexMiniBWFile)) {
-	fs.writeFileSync(pokedexMiniBWFile, fs.readFileSync(path.join(__dirname, 'data', 'pokedex-mini-bw-base.js')));
+	fs.writeFileSync(pokedexMiniBWFile, fs.readFileSync(path.join(clientDataDirectory, 'pokedex-mini-bw-base.js')));
 }

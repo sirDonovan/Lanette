@@ -1,16 +1,14 @@
 import type { Player } from "../room-activity";
-import type { Room } from "../rooms";
 import { assert, assertStrictEqual } from "../test/test-tools";
-import type { IMoveCopy, IPokemon } from "../types/dex";
 import type { GameFileTests, IGameAchievement, IGameFile } from "../types/games";
-import type { User } from "../users";
+import type { IMoveCopy, IPokemon } from "../types/pokemon-showdown";
 import type { IActionCardData, ICard, IMoveCard, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 
 type AchievementNames = "luckofthedraw" | "trumpcard";
 type ActionCardsType = Dict<IActionCardData<AxewsBattleCards>>;
 
-const types: Dict<string> = {};
+const usableTypes: Dict<string> = {};
 
 const trumpCardEliminations = 5;
 
@@ -28,7 +26,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.moveToActionCard(this);
 			},
-			getAutoPlayTarget(game, hand) {
+			getAutoPlayTarget(game) {
 				if (this.isPlayableTarget(game, [])) {
 					return this.name;
 				}
@@ -47,7 +45,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.moveToActionCard(this);
 			},
-			getAutoPlayTarget(game, hand) {
+			getAutoPlayTarget(game) {
 				if (this.isPlayableTarget(game, [])) {
 					return this.name;
 				}
@@ -69,7 +67,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.moveToActionCard(this);
 			},
-			getAutoPlayTarget(game, hand) {
+			getAutoPlayTarget(game) {
 				if (this.isPlayableTarget(game, [])) {
 					return this.name;
 				}
@@ -91,7 +89,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.moveToActionCard(this);
 			},
-			getAutoPlayTarget(game, hand) {
+			getAutoPlayTarget(game) {
 				if (this.isPlayableTarget(game, [])) {
 					return this.name;
 				}
@@ -229,7 +227,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.moveToActionCard(this);
 			},
-			getRandomTarget(game, hand) {
+			getRandomTarget(game) {
 				let targets: string[] = [Dex.getExistingType(game.sampleOne(Dex.data.typeKeys)).name];
 				while (!this.isPlayableTarget(game, targets)) {
 					targets = [Dex.getExistingType(game.sampleOne(Dex.data.typeKeys)).name];
@@ -252,13 +250,13 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 					return false;
 				}
 
-				if (!(type in types)) {
+				if (!(type in usableTypes)) {
 					if (player) player.say(CommandParser.getErrorText(['invalidType', targets[0]]));
 					return false;
 				}
 
-				if (game.topCard.types.length === 1 && types[type] === game.topCard.types[0]) {
-					if (player) player.say("The top card is already " + types[type] + " type.");
+				if (game.topCard.types.length === 1 && usableTypes[type] === game.topCard.types[0]) {
+					if (player) player.say("The top card is already " + usableTypes[type] + " type.");
 					return false;
 				}
 
@@ -272,7 +270,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.moveToActionCard(this);
 			},
-			getRandomTarget(game, hand) {
+			getRandomTarget(game) {
 				let types = game.sampleMany(Dex.data.typeKeys, 2).map(x => Dex.getExistingType(x).name);
 				while (!this.isPlayableTarget(game, types)) {
 					types = game.sampleMany(Dex.data.typeKeys, 2).map(x => Dex.getExistingType(x).name);
@@ -296,12 +294,12 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 					return false;
 				}
 
-				if (!(type1 in types)) {
+				if (!(type1 in usableTypes)) {
 					if (player) player.say(CommandParser.getErrorText(['invalidType', targets[0]]));
 					return false;
 				}
 
-				if (!(type2 in types)) {
+				if (!(type2 in usableTypes)) {
 					if (player) player.say(CommandParser.getErrorText(['invalidType', targets[1]]));
 					return false;
 				}
@@ -312,7 +310,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 				}
 
 				if (game.topCard.types.length === 2) {
-					const typesList = [types[type1], types[type2]];
+					const typesList = [usableTypes[type1], usableTypes[type2]];
 					if (game.topCard.types.slice().sort().join(",") === typesList.sort().join(",")) {
 						if (player) player.say("The top card already " + typesList.join("/") + " type.");
 						return false;
@@ -329,7 +327,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.moveToActionCard(this);
 			},
-			getRandomTarget(game, hand) {
+			getRandomTarget(game) {
 				let types = game.sampleMany(Dex.data.typeKeys, 3).map(x => Dex.getExistingType(x).name);
 				while (!this.isPlayableTarget(game, types)) {
 					types = game.sampleMany(Dex.data.typeKeys, 3).map(x => Dex.getExistingType(x).name);
@@ -356,17 +354,17 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 					return false;
 				}
 
-				if (!(type1 in types)) {
+				if (!(type1 in usableTypes)) {
 					if (player) player.say(CommandParser.getErrorText(['invalidType', targets[0]]));
 					return false;
 				}
 
-				if (!(type2 in types)) {
+				if (!(type2 in usableTypes)) {
 					if (player) player.say(CommandParser.getErrorText(['invalidType', targets[1]]));
 					return false;
 				}
 
-				if (!(type3 in types)) {
+				if (!(type3 in usableTypes)) {
 					if (player) player.say(CommandParser.getErrorText(['invalidType', targets[2]]));
 					return false;
 				}
@@ -377,7 +375,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 				}
 
 				if (game.topCard.types.length === 3) {
-					const typesList = [types[type1], types[type2], types[type3]];
+					const typesList = [usableTypes[type1], usableTypes[type2], usableTypes[type3]];
 					if (game.topCard.types.slice().sort().join(",") === typesList.sort().join(",")) {
 						if (player) player.say("The top card already " + typesList.join("/") + " type.");
 						return false;
@@ -394,7 +392,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.moveToActionCard(this);
 			},
-			getRandomTarget(game, hand) {
+			getRandomTarget(game) {
 				let targets = [game.sampleOne(game.deckPool).name];
 				while (!this.isPlayableTarget(game, targets)) {
 					targets = [game.sampleOne(game.deckPool).name];
@@ -479,6 +477,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		},
 	};
 	finitePlayerCards = false;
+	hackmonsTypes: boolean = false;
 	lives = new Map<Player, number>();
 	maxPlayers = 20;
 	playableCardDescription = "You must play a card that is super-effective against the top card";
@@ -488,11 +487,11 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 	startingLives: number = 1;
 	usesColors = false;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		for (const key of Dex.data.typeKeys) {
 			const type = Dex.getExistingType(key);
-			types[type.id] = type.name;
-			types[type.id + 'type'] = type.name;
+			usableTypes[type.id] = type.name;
+			usableTypes[type.id + 'type'] = type.name;
 		}
 	}
 
@@ -521,7 +520,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		if (!this.deckPool.length) this.createDeckPool();
 		const deckPool = this.shuffle(this.deckPool);
 		const deck: ICard[] = [];
-		const minimumDeck = ((this.maxPlayers + 1) * this.format.options.cards);
+		const minimumDeck = (this.maxPlayers + 1) * this.format.options.cards;
 		for (const card of deckPool) {
 			if (!this.usesActionCards && card.types.join("") === "Normal") continue;
 
@@ -555,8 +554,8 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 				return;
 			}
 			this.actionCardAmount = actionCardAmount;
-			for (const i in this.actionCards) {
-				const actionCard = this.actionCards[i];
+			for (const actionCardId in this.actionCards) {
+				const actionCard = this.actionCards[actionCardId];
 				for (let i = 0; i < actionCardAmount; i++) {
 					let move: IMoveCopy;
 					if (actionCard.name === "Conversion Z") {
@@ -578,19 +577,32 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		this.deck = this.shuffle(deck);
 	}
 
-	getHackmonsTyping(): readonly string[] {
-		const typeKeys = this.shuffle(Dex.data.typeKeys.slice());
-		if (this.random(2)) {
-			return [Dex.getExistingType(typeKeys[0]).name, Dex.getExistingType(typeKeys[1]).name];
-		} else {
-			return [Dex.getExistingType(typeKeys[0]).name];
+	getTypingKey(types: readonly string[]): string {
+		return types.slice().sort().join(',');
+	}
+
+	getHackmonsTyping(originalTypes: readonly string[]): readonly string[] {
+		const originalKey = this.getTypingKey(originalTypes);
+		const typeKeys = this.shuffle(Dex.data.typeKeys);
+
+		let newTypes: string[] = [];
+		let newKey = '';
+		while (!newKey || newKey === originalKey) {
+			if (this.random(2)) {
+				newTypes = [Dex.getExistingType(typeKeys[0]).name, Dex.getExistingType(typeKeys[1]).name];
+			} else {
+				newTypes = [Dex.getExistingType(typeKeys[0]).name];
+			}
+			newKey = this.getTypingKey(newTypes);
 		}
+
+		return newTypes;
 	}
 
 	getCard(): ICard {
 		const card = super.getCard() as IPokemonCard;
-		if (!card.action && this.variant === 'Hackmons') {
-			card.types = this.getHackmonsTyping();
+		if (!card.action && this.hackmonsTypes) {
+			card.types = this.getHackmonsTyping(card.types);
 		}
 
 		return card;
@@ -651,7 +663,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		return valid;
 	}
 
-	arePlayableCards(cards: IPokemonCard[]): boolean {
+	arePlayableCards(): boolean {
 		return true;
 	}
 
@@ -700,7 +712,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 
 			player = this.getNextPlayer();
 			if (!player) {
-				if (this.timeEnded) break;
+				if (this.timeEnded) break; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 				throw new Error("No player given by Game.getNextPlayer");
 			}
 			playableCards = this.getPlayableCards(player);
@@ -710,7 +722,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			this.unlockAchievement(this.lastPlayer, AxewsBattleCards.achievements.trumpcard);
 		}
 
-		if (this.timeEnded) return;
+		if (this.timeEnded) return; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 
 		// needs to be set outside of on() for tests
 		this.currentPlayer = player;
@@ -789,21 +801,21 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			this.topCard.types = ['Psychic'];
 		} else if (card.id === 'conversion') {
 			const type = Tools.toId(targets[0]);
-			this.topCard.types = [types[type]];
-			cardDetail = types[type];
+			this.topCard.types = [usableTypes[type]];
+			cardDetail = usableTypes[type];
 		} else if (card.id === 'conversion2') {
 			const type1 = Tools.toId(targets[0]);
 			const type2 = Tools.toId(targets[1]);
-			this.topCard.types = [types[type1], types[type2]];
-			cardDetail = types[type1] + ", " + types[type2];
+			this.topCard.types = [usableTypes[type1], usableTypes[type2]];
+			cardDetail = usableTypes[type1] + ", " + usableTypes[type2];
 
 			this.checkTopCardStaleness();
 		} else if (card.id === 'conversionz') {
 			const type1 = Tools.toId(targets[0]);
 			const type2 = Tools.toId(targets[1]);
 			const type3 = Tools.toId(targets[2]);
-			this.topCard.types = [types[type1], types[type2], types[type3]];
-			cardDetail = types[type1] + ", " + types[type2] + ", " + types[type3];
+			this.topCard.types = [usableTypes[type1], usableTypes[type2], usableTypes[type3]];
+			cardDetail = usableTypes[type1] + ", " + usableTypes[type2] + ", " + usableTypes[type3];
 
 			this.checkTopCardStaleness();
 		} else if (card.id === 'trickortreat') {
@@ -818,8 +830,8 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			this.checkTopCardStaleness();
 		} else if (card.id === 'transform') {
 			const newTopCard = this.pokemonToCard(Dex.getExistingPokemon(targets[0]));
-			if (this.variant === 'Hackmons') {
-				newTopCard.types = this.getHackmonsTyping();
+			if (this.hackmonsTypes) {
+				newTopCard.types = this.getHackmonsTyping(newTopCard.types);
 			}
 			if (this.rollForShinyPokemon()) {
 				newTopCard.shiny = true;
@@ -851,7 +863,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			}
 
 			const card1 = this.getCard();
-			const card2 = (card.id === 'batonpass' ? this.getCard() : this.topCard);
+			const card2 = card.id === 'batonpass' ? this.getCard() : this.topCard;
 			const newTopCard = cards[newIndex] as IPokemonCard;
 			if (newTopCard.shiny && !newTopCard.played) firstTimeShiny = true;
 			this.setTopCard(newTopCard, player);
@@ -877,8 +889,8 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 
 const tests: GameFileTests<AxewsBattleCards> = {
 	'it should use card types in isPlayableCard()': {
-		test(game, format): void {
-			if (game.variant === 'hackmons') return;
+		test(game): void {
+			if (game.hackmonsTypes) return;
 
 			const golem = game.pokemonToCard(Dex.getExistingPokemon("Golem"));
 			const squirtle = game.pokemonToCard(Dex.getExistingPokemon("Squirtle"));
@@ -900,8 +912,8 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - soak': {
-		test(game, format): void {
-			if (game.variant) return;
+		test(game): void {
+			if (game.hackmonsTypes) return;
 
 			const soak = game.actionCards.soak;
 			assert(soak);
@@ -920,8 +932,8 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - trickortreat': {
-		test(game, format): void {
-			if (game.variant) return;
+		test(game): void {
+			if (game.hackmonsTypes) return;
 
 			const trickortreat = game.actionCards.trickortreat;
 			assert(trickortreat);
@@ -940,8 +952,8 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - forestscurse': {
-		test(game, format): void {
-			if (game.variant) return;
+		test(game): void {
+			if (game.hackmonsTypes) return;
 
 			const forestscurse = game.actionCards.forestscurse;
 			assert(forestscurse);
@@ -960,8 +972,8 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - magicpowder': {
-		test(game, format): void {
-			if (game.variant) return;
+		test(game): void {
+			if (game.hackmonsTypes) return;
 
 			const magicpowder = game.actionCards.magicpowder;
 			assert(magicpowder);
@@ -980,8 +992,8 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - batonpass': {
-		test(game, format): void {
-			if (game.variant) return;
+		test(game): void {
+			if (game.hackmonsTypes) return;
 
 			const batonpass = game.actionCards.batonpass;
 			assert(batonpass);
@@ -999,8 +1011,8 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - allyswitch': {
-		test(game, format): void {
-			if (game.variant) return;
+		test(game): void {
+			if (game.hackmonsTypes) return;
 
 			const allyswitch = game.actionCards.allyswitch;
 			assert(allyswitch);
@@ -1018,8 +1030,8 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - conversion': {
-		test(game, format): void {
-			if (game.variant) return;
+		test(game): void {
+			if (game.hackmonsTypes) return;
 
 			const conversion = game.actionCards.conversion;
 			assert(conversion);
@@ -1038,8 +1050,8 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - conversion2': {
-		test(game, format): void {
-			if (game.variant) return;
+		test(game): void {
+			if (game.hackmonsTypes) return;
 
 			const conversion2 = game.actionCards['conversion2'];
 			assert(conversion2);
@@ -1054,8 +1066,8 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - conversionz': {
-		test(game, format): void {
-			if (game.variant) return;
+		test(game): void {
+			if (game.hackmonsTypes) return;
 
 			const conversionz = game.actionCards.conversionz;
 			assert(conversionz);
@@ -1075,8 +1087,8 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - transform': {
-		test(game, format): void {
-			if (game.variant) return;
+		test(game): void {
+			if (game.hackmonsTypes) return;
 			game.createDeckPool();
 
 			const transform = game.actionCards.transform;
@@ -1090,8 +1102,8 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - protect': {
-		test(game, format): void {
-			if (game.variant) return;
+		test(game): void {
+			if (game.hackmonsTypes) return;
 
 			const protect = game.actionCards.protect;
 			assert(protect);
@@ -1102,8 +1114,8 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - teeterdance': {
-		test(game, format): void {
-			if (game.variant) return;
+		test(game): void {
+			if (game.hackmonsTypes) return;
 
 			const teeterdance = game.actionCards.teeterdance;
 			assert(teeterdance);
@@ -1114,8 +1126,8 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - topsyturvy': {
-		test(game, format): void {
-			if (game.variant) return;
+		test(game): void {
+			if (game.hackmonsTypes) return;
 
 			const topsyturvy = game.actionCards.topsyturvy;
 			assert(topsyturvy);
@@ -1142,14 +1154,13 @@ export const game: IGameFile<AxewsBattleCards> = Games.copyTemplateProperties(ca
 			name: "No Actions Axew's Battle Cards",
 			maxPlayers: 25,
 			startingLives: 2,
-			variant: "No Actions",
-			variantAliases: ["No Action", "No Action Card", "No Action Cards"],
+			variantAliases: ["No Actions", "No Action", "No Action Card", "No Action Cards"],
 			usesActionCards: false,
 		},
 		{
 			name: "Hackmons Axew's Battle Cards",
-			variant: "Hackmons",
-			variantAliases: ["Hackmons Cup"],
+			variantAliases: ["Hackmons", "Hackmons Cup"],
+			hackmonsTypes: true,
 		},
 	],
 });

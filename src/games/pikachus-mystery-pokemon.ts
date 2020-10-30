@@ -1,7 +1,5 @@
 import type { Player } from "../room-activity";
-import type { Room } from "../rooms";
 import type { IGameAchievement, IGameFile } from "../types/games";
-import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 type AchievementNames = "pokemonprofessor";
@@ -31,7 +29,7 @@ class PikachusMysteryPokemon extends QuestionAndAnswer {
 	roundTime = 0;
 	updateHintTime = 5 * 1000;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		const pokemonList = Games.getPokemonList(pokemon => !pokemon.forme);
 		for (const pokemon of pokemonList) {
 			data.pokedex.push(pokemon.id);
@@ -133,9 +131,8 @@ export const game: IGameFile<PikachusMysteryPokemon> = Games.copyTemplatePropert
 		{
 			name: "Pikachu's Mystery Pokemon Unlimited",
 			description: "Players guess Pokemon based on the given hints (unlimited guesses)!",
-			variant: "unlimited",
-			variantAliases: ["unlimited guess", "unlimited guesses"],
+			variantAliases: ["unlimited", "unlimited guess", "unlimited guesses"],
 			roundGuesses: undefined,
-		}
+		},
 	],
 });

@@ -21,8 +21,7 @@ describe("Parameters Worker", () => {
 			{params: [paramTypePools.type.steeltype, paramTypePools.move.rockclimb]}));
 		assert(intersection);
 		assertStrictEqual(intersection.params.length, 2);
-		assertStrictEqual(intersection.pokemon.join(","), "aggron,arceussteel,durant,empoleon,excadrill,ferroseed,ferrothorn," +
-			"heatran,registeel,steelix");
+		assertStrictEqual(intersection.pokemon.join(","), "arceussteel,durant,empoleon,excadrill,ferroseed,ferrothorn,steelix");
 
 		intersection = await Games.workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.type.poisontype, paramTypePools.move.powerwhip]}));
@@ -69,9 +68,9 @@ describe("Parameters Worker", () => {
 		intersection = await Games.workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.move.psychocut, paramTypePools.resistance.resistsfighting]}));
 		assert(intersection);
-		assertStrictEqual(intersection.pokemon.join(","), "aegislash,alakazam,celebi,cresselia,decidueye,doublade,drowzee," +
-			"exeggutor,gallade,hatterene,honedge,hypno,kadabra,lunala,medicham,meditite,mew,mewtwo,necrozma,orbeetle," +
-			"rapidashgalar,scyther,sigilyph,starmie,swoobat,woobat,zacian");
+		assertStrictEqual(intersection.pokemon.join(","), "aegislash,alakazam,articunogalar,azelf,calyrexshadow,celebi,cresselia," +
+			"decidueye,doublade,drowzee,exeggutor,gallade,hatterene,honedge,hypno,kadabra,latias,latios,lunala,medicham,meditite," +
+			"mesprit,mew,mewtwo,necrozma,orbeetle,rapidashgalar,scyther,sigilyph,spectrier,starmie,swoobat,tapulele,uxie,woobat,zacian");
 
 		mod = 'gen7';
 		paramTypePools = Games.workers.parameters.workerData!.pokemon.gens[mod].paramTypePools;
@@ -144,7 +143,7 @@ describe("Portmanteaus Worker", () => {
 			numberOfPorts: 2,
 			minLetters: 2,
 			maxLetters: 4,
-			prngSeed: (new PRNG()).initialSeed,
+			prngSeed: new PRNG().initialSeed,
 		});
 
 		assert(result);
@@ -162,7 +161,7 @@ describe("Portmanteaus Worker", () => {
 			numberOfPorts: 2,
 			minLetters: 2,
 			maxLetters: 4,
-			prngSeed: (new PRNG()).initialSeed,
+			prngSeed: new PRNG().initialSeed,
 		});
 
 		assert(result);

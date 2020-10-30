@@ -1,9 +1,7 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { Room } from "../rooms";
-import type { IPokemon } from "../types/dex";
 import type { GameCommandDefinitions, IGameAchievement, IGameFile } from "../types/games";
-import type { User } from "../users";
+import type { IPokemon } from "../types/pokemon-showdown";
 
 type AchievementNames = "wonderguardwarrior";
 
@@ -21,13 +19,14 @@ class ShedinjasWonderTrials extends ScriptedGame {
 	canUseMove: boolean = false;
 	currentPokemon: IPokemon | null = null;
 	firstMove: Player | false | undefined;
+	inverseTypes: boolean = false;
 	lastTyping: string = '';
 	maxPoints: number = 1500;
 	points = new Map<Player, number>();
 	roundMoves = new Map<Player, string>();
 	usedMoves: string[] = [];
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		data.moves = Games.getMovesList(x => x.id !== 'hiddenpower' && x.category !== 'Status' && !x.isMax && !x.isZ).map(x => x.name);
 		data.pokedex = Games.getPokemonList(x => x.baseSpecies === x.name).map(x => x.name);
 	}
@@ -50,16 +49,16 @@ class ShedinjasWonderTrials extends ScriptedGame {
 		this.usedMoves = [];
 		this.roundMoves.clear();
 
-		const text = "Shedinja summoned **" + this.currentPokemon.name + "**!";
-		this.on(text, () => {
+		const summonText = "Shedinja summoned **" + this.currentPokemon.name + "**!";
+		this.on(summonText, () => {
 			this.canUseMove = true;
 			this.timeout = setTimeout(() => {
-				const text = this.currentPokemon!.name + " fled!";
-				this.on(text, () => this.nextRound());
-				this.say(text);
+				const fledText = this.currentPokemon!.name + " fled!";
+				this.on(fledText, () => this.nextRound());
+				this.say(fledText);
 			}, 5 * 1000);
 		});
-		this.say(text);
+		this.say(summonText);
 	}
 
 	onNextRound(): void {
@@ -111,7 +110,7 @@ class ShedinjasWonderTrials extends ScriptedGame {
 				return;
 			}
 		}
-		const html = this.getRoundHtml(this.getPlayerPoints);
+		const html = this.getRoundHtml(players => this.getPlayerPoints(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			this.timeout = setTimeout(() => this.generatePokemon(), 5 * 1000);
@@ -187,7 +186,7 @@ const commands: GameCommandDefinitions<ShedinjasWonderTrials> = {
 				}
 			}
 
-			if (this.variant === 'inverse') {
+			if (this.inverseTypes) {
 				if (effectiveness === Infinity) {
 					effectiveness = 1;
 				} else {
@@ -226,7 +225,8 @@ export const game: IGameFile<ShedinjasWonderTrials> = {
 			name: "Shedinja's Inverse Wonder Trials",
 			description: "Using an inverted type chart, Players must use damaging moves that are super-effective against each Pokemon " +
 				"that Shedinja summons (no repeats in a round)!",
-			variant: "inverse",
+			inverseTypes: true,
+			variantAliases: ["inverse"],
 		},
 	],
 };

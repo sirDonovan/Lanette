@@ -1,8 +1,6 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { Room } from "../rooms";
 import type { GameCommandDefinitions, IGameAchievement, IGameFile } from "../types/games";
-import type { User } from "../users";
 
 type AchievementNames = "sunkentreasure";
 
@@ -28,7 +26,7 @@ class WishiwashisStatFishing extends ScriptedGame {
 	statNames: Dict<string> = {hp: 'HP', atk: 'Atk', def: 'Def', spa: 'SpA', spd: 'SpD', spe: 'Spe', bst: 'BST'};
 	stats: string[] = ['hp', 'atk', 'def', 'spa', 'spd', 'spe', 'bst'];
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		const pokemonList = Games.getPokemonList(x => x.types.includes("Water") && Dex.hasGifData(x));
 		for (const pokemon of pokemonList) {
 			let bst = 0;
@@ -74,7 +72,7 @@ class WishiwashisStatFishing extends ScriptedGame {
 		}
 
 		const consecutiveReels = this.consecutiveReels.get(firstPlayer);
-		const extraChance = consecutiveReels ? (consecutiveReels * 5) : 0;
+		const extraChance = consecutiveReels ? consecutiveReels * 5 : 0;
 		const shinyPokemon = this.rollForShinyPokemon(extraChance);
 		const negative = !this.random(4);
 		const stat = this.sampleOne(this.stats);
@@ -115,18 +113,18 @@ class WishiwashisStatFishing extends ScriptedGame {
 		if (this.round > this.roundLimit) return this.end();
 		this.roundReels.clear();
 		this.queue = [];
-		const html = this.getRoundHtml(this.getPlayerPoints);
+		const roundHtml = this.getRoundHtml(players => this.getPlayerPoints(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
-		this.onUhtml(uhtmlName, html, () => {
-			const html = "<center><blink><font size='3'><b>[ ! ]</b></font></blink></center>";
-			this.onHtml(html, () => {
+		this.onUhtml(uhtmlName, roundHtml, () => {
+			const reelHtml = "<center><blink><font size='3'><b>[ ! ]</b></font></blink></center>";
+			this.onHtml(reelHtml, () => {
 				this.canReel = true;
 				this.timeout = setTimeout(() => this.scoreRound(), 5 * 1000);
 			});
 			const time = this.sampleOne([7000, 8000, 9000, 10000, 11000]);
-			this.timeout = setTimeout(() => this.sayHtml(html), time);
+			this.timeout = setTimeout(() => this.sayHtml(reelHtml), time);
 		});
-		this.sayUhtml(uhtmlName, html);
+		this.sayUhtml(uhtmlName, roundHtml);
 	}
 
 	onEnd(): void {

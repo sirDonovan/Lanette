@@ -96,19 +96,19 @@ class FeebasChainFishing extends ScriptedGame {
 		}
 		this.roundReels.clear();
 		this.queue = [];
-		const html = this.getRoundHtml(this.getPlayerPoints);
-		const uhtmlName = this.uhtmlBaseName + '-round-html';
-		this.onUhtml(uhtmlName, html, () => {
-			const html = "<div class='infobox'><center><blink><font size='3'><b>[ ! ]</b></font></blink></center></div>";
-			const uhtmlName = this.uhtmlBaseName + '-reel';
-			this.onUhtml(uhtmlName, html, () => {
+		const roundHtml = this.getRoundHtml(players => this.getPlayerPoints(players));
+		const roundUhtmlName = this.uhtmlBaseName + '-round-html';
+		this.onUhtml(roundUhtmlName, roundHtml, () => {
+			const reelHtml = "<div class='infobox'><center><blink><font size='3'><b>[ ! ]</b></font></blink></center></div>";
+			const reelUhtmlName = this.uhtmlBaseName + '-reel';
+			this.onUhtml(reelUhtmlName, reelHtml, () => {
 				this.canReel = true;
 				this.timeout = setTimeout(() => this.nextRound(), 5000);
 			});
 			const time = this.sampleOne([8000, 9000, 10000]);
-			this.timeout = setTimeout(() => this.sayUhtml(uhtmlName, html), time);
+			this.timeout = setTimeout(() => this.sayUhtml(reelUhtmlName, reelHtml), time);
 		});
-		this.sayUhtml(uhtmlName, html);
+		this.sayUhtml(roundUhtmlName, roundHtml);
 	}
 
 	onEnd(): void {

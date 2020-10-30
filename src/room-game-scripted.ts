@@ -4,8 +4,8 @@ import type { Player } from "./room-activity";
 import { Game } from "./room-game";
 import type { Room } from "./rooms";
 import type {
-	GameCommandListener, IBattleGameData, IGameAchievement, IGameCommandCountListener, IGameCommandCountOptions, IGameFormat, IGameMode,
-	IGameOptionValues, IGameVariant, IRandomGameAnswer, LoadedGameCommands, PlayerList
+	GameCommandListener, GameCommandReturnType, IBattleGameData, IGameAchievement, IGameCommandCountListener, IGameCommandCountOptions,
+	IGameFormat, IGameMode, IGameOptionValues, IGameVariant, IRandomGameAnswer, LoadedGameCommands, PlayerList
 } from "./types/games";
 import type { User } from "./users";
 
@@ -51,7 +51,6 @@ export class ScriptedGame extends Game {
 	shinyMascot?: boolean;
 	startingLives?: number;
 	subGameNumber?: number;
-	readonly variant?: string;
 
 	constructor(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed) {
 		super(room, pmRoom, initialSeed);
@@ -68,7 +67,7 @@ export class ScriptedGame extends Game {
 				max: 1,
 			};
 		}
-		if (mode && mode.class.setOptions) mode.class.setOptions(format, namePrefixes, nameSuffixes);
+		if (mode) mode.class.setOptions(format, namePrefixes, nameSuffixes);
 
 		for (const defaultOption of format.defaultOptions) {
 			if (defaultOption in format.customizableOptions) continue;
@@ -622,14 +621,14 @@ export class ScriptedGame extends Game {
 			if (commandDefinition.pmOnly) return false;
 		}
 
-		let result: boolean;
+		let result: GameCommandReturnType;
 		if (commandDefinition.asyncCommand) {
 			result = await commandDefinition.asyncCommand.call(this, target, room, user, command);
 		} else {
 			result = commandDefinition.command!.call(this, target, room, user, command);
 		}
 
-		if (result === false) return false;
+		if (!result) return false;
 
 		const triggeredListeners: IGameCommandCountListener[] = [];
 		for (const commandListener of this.commandsListeners) {

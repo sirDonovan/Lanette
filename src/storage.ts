@@ -189,14 +189,14 @@ export class Storage {
 		}
 	}
 
-	transferData(roomid: string, source: string, destination: string): boolean {
+	transferData(roomid: string, sourceName: string, destinationName: string): boolean {
 		if (!(roomid in this.databases)) return false;
-		const sourceId = Tools.toId(source);
-		const destinationId = Tools.toId(destination);
+		const sourceId = Tools.toId(sourceName);
+		const destinationId = Tools.toId(destinationName);
 		if (!sourceId || !destinationId || sourceId === destinationId) return false;
 		const database = this.databases[roomid];
 		if (database.leaderboard && sourceId in database.leaderboard) {
-			if (!(destinationId in database.leaderboard)) this.createLeaderboardEntry(database, destination, destinationId);
+			if (!(destinationId in database.leaderboard)) this.createLeaderboardEntry(database, destinationName, destinationId);
 			for (const source in database.leaderboard[sourceId].sources) {
 				if (source in database.leaderboard[destinationId].sources) {
 					database.leaderboard[destinationId].sources[source] += database.leaderboard[sourceId].sources[source];
@@ -228,7 +228,9 @@ export class Storage {
 			}
 		}
 
-		if (roomid + hostingDatabaseSuffix in this.databases) this.transferData(roomid + hostingDatabaseSuffix, source, destination);
+		if (roomid + hostingDatabaseSuffix in this.databases) {
+			this.transferData(roomid + hostingDatabaseSuffix, sourceName, destinationName);
+		}
 		return true;
 	}
 
@@ -242,8 +244,8 @@ export class Storage {
 		if (recipientId in database.offlineMessages) {
 			const senderId = Tools.toId(sender);
 			let queuedMessages = 0;
-			for (const message of database.offlineMessages[recipientId]) {
-				if (!message.readTime && Tools.toId(message.sender) === senderId) queuedMessages++;
+			for (const offlineMessage of database.offlineMessages[recipientId]) {
+				if (!offlineMessage.readTime && Tools.toId(offlineMessage.sender) === senderId) queuedMessages++;
 			}
 			if (queuedMessages > MAX_QUEUED_OFFLINE_MESSAGES) return false;
 		} else {
@@ -314,7 +316,7 @@ export class Storage {
 }
 
 export const instantiate = (): void => {
-	const oldStorage: Storage | undefined = global.Storage;
+	const oldStorage = global.Storage as Storage | undefined;
 
 	global.Storage = new Storage();
 

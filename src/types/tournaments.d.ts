@@ -1,4 +1,4 @@
-import { Player } from "../room-activity";
+import type { Player } from "../room-activity";
 
 export type TournamentPlace = 'semifinalist' | 'runnerup' | 'winner';
 

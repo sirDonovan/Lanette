@@ -1,7 +1,10 @@
-import type { IGameAchievement, IGameFile } from "../types/games";
+import { assert } from "../test/test-tools";
+import type { GameFileTests, IGameAchievement, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 type AchievementNames = "mnemonicmaster";
+
+const STANDARD_ABILITY_CHARACTERS_REGEX = /[^a-zA-Z0-9\- ]/g;
 
 const data: {abilities: Dict<string[]>} = {
 	abilities: {},
@@ -24,7 +27,7 @@ class GalladesAbilityTest extends QuestionAndAnswer {
 			for (const i in pokemon.abilities) {
 				// @ts-expect-error
 				const ability = pokemon.abilities[i] as string;
-				const key = ability.split(" ").map(x => x[0]).join("");
+				const key = ability.replace(STANDARD_ABILITY_CHARACTERS_REGEX, "").split(" ").map(x => x[0]).join("");
 				if (i === 'H') {
 					hiddenAbility = key;
 				} else {
@@ -47,6 +50,15 @@ class GalladesAbilityTest extends QuestionAndAnswer {
 	}
 }
 
+const tests: GameFileTests<GalladesAbilityTest> = {
+	'should remove parentheses from keys': {
+		test(): void {
+			assert(Object.keys(data.abilities).length);
+			assert(!("AO(" in data.abilities));
+		},
+	},
+};
+
 export const game: IGameFile<GalladesAbilityTest> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['gallades', 'gat', 'abilitytest', 'tya'],
 	category: 'knowledge',
@@ -61,4 +73,5 @@ export const game: IGameFile<GalladesAbilityTest> = Games.copyTemplateProperties
 	minigameCommandAliases: ['atest', 'gatest'],
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess a Pokemon based on the initials of its abilities!",
 	modes: ["survival", "team"],
+	tests: Object.assign({}, questionAndAnswerGame.tests, tests),
 });

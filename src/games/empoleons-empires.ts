@@ -30,7 +30,7 @@ class EmpoleonsEmpires extends ScriptedGame {
 		this.say("Now requesting aliases!");
 		for (const i in this.players) {
 			if (!this.playerAliases.has(this.players[i])) {
-				this.players[i].say("Please select an alias to use with ``" +Config.commandCharacter + "alias [alias]``!");
+				this.players[i].say("Please select an alias to use with ``" + Config.commandCharacter + "alias [alias]``!");
 			}
 		}
 		this.timeout = setTimeout(() => {
@@ -104,11 +104,13 @@ const commands: GameCommandDefinitions<EmpoleonsEmpires> = {
 				this.say("Usage: ``" + Config.commandCharacter + "guess [player], [alias]``");
 				return false;
 			}
-			const attackedPlayer = this.players[Tools.toId(targets[0])];
-			if (!attackedPlayer) {
+
+			const id = Tools.toId(targets[0]);
+			if (!(id in this.players)) {
 				this.say("You must specify a player in the game.");
 				return false;
 			}
+			const attackedPlayer = this.players[id];
 			if (attackedPlayer === player) {
 				this.say("You cannot guess your own alias.");
 				return false;

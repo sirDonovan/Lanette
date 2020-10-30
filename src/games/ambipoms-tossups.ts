@@ -1,7 +1,5 @@
 import type { Player } from "../room-activity";
-import type { Room } from "../rooms";
 import type { IGameFile } from "../types/games";
-import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const data: {'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]} = {
@@ -28,7 +26,7 @@ class AmbipomsTossups extends QuestionAndAnswer {
 	tossupRound: number = 0;
 	updateHintTime: number = 5 * 1000;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		data["Pokemon"] = Games.getPokemonList().filter(x => x.name.length < 18).map(x => x.name);
 		data["Pokemon Abilities"] = Games.getAbilitiesList().filter(x => x.name.length < 18).map(x => x.name);
 		data["Pokemon Items"] = Games.getItemsList().filter(x => x.name.length < 18).map(x => x.name);
@@ -37,7 +35,7 @@ class AmbipomsTossups extends QuestionAndAnswer {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
-		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
+		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		this.currentCategory = category;
 		let answer = this.sampleOne(data[category]);
 		while (answer === this.lastAnswer || (this.maxRevealedLetters && answer.length < 7)) {
@@ -53,7 +51,7 @@ class AmbipomsTossups extends QuestionAndAnswer {
 		if (this.scaleMaxRevealedLetters) this.maxRevealedLetters = Math.floor(this.letterCount / 2) + 1;
 		this.hints = this.letters.slice();
 		for (let i = 0; i < this.hints.length; i++) {
-			this.hints[i] = (Tools.toId(this.hints[i]).length ? "_" : this.hints[i] === ' ' ? "/" : this.hints[i]);
+			this.hints[i] = Tools.toId(this.hints[i]).length ? "_" : this.hints[i] === ' ' ? "/" : this.hints[i];
 		}
 	}
 
@@ -122,21 +120,22 @@ export const game: IGameFile<AmbipomsTossups> = Games.copyTemplateProperties(que
 	variants: [
 		{
 			name: "Ambipom's Pokemon Tossups",
-			variant: "Pokemon",
+			roundCategory: "Pokemon",
+			variantAliases: ['pokemon'],
 		},
 		{
 			name: "Ambipom's Ability Tossups",
-			variant: "Pokemon Abilities",
+			roundCategory: "Pokemon Abilities",
 			variantAliases: ['ability', 'abilities'],
 		},
 		{
 			name: "Ambipom's Item Tossups",
-			variant: "Pokemon Items",
+			roundCategory: "Pokemon Items",
 			variantAliases: ['item', 'items'],
 		},
 		{
 			name: "Ambipom's Move Tossups",
-			variant: "Pokemon Moves",
+			roundCategory: "Pokemon Moves",
 			variantAliases: ['move', 'moves'],
 		},
 	],

@@ -1,9 +1,7 @@
 import type { PRNGSeed } from "../prng";
 import { PRNG } from "../prng";
-import type { Room } from "../rooms";
 import { assert, assertStrictEqual } from '../test/test-tools';
 import type { GameFileTests, IGameFile, IGameFormat } from "../types/games";
-import type { User } from "../users";
 import type { PoolType } from './../workers/portmanteaus';
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
@@ -20,7 +18,7 @@ export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 	roundTime: number = 5 * 60 * 1000;
 	usesWorkers: boolean = true;
 
-	static loadData(room: Room | User): void {
+	static loadData(): void {
 		Games.workers.portmanteaus.init();
 	}
 
@@ -40,7 +38,7 @@ export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 			numberOfPorts = this.format.options.ports;
 		} else {
 			numberOfPorts = BASE_NUMBER_OF_PORTS;
-			if (this.format.customizableOptions.ports) {
+			if ('ports' in this.format.customizableOptions) {
 				numberOfPorts += this.random(this.format.customizableOptions.ports.max - BASE_NUMBER_OF_PORTS + 1);
 			}
 		}
@@ -74,7 +72,7 @@ export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 		}
 	}
 
-	getAnswers(givenAnswer: string, finalAnswer?: boolean): string {
+	getAnswers(givenAnswer: string): string {
 		if (!givenAnswer) givenAnswer = this.answers[0];
 		return "A possible portmanteau was __" + givenAnswer.charAt(0).toUpperCase() + givenAnswer.substr(1) + "__ (" +
 			this.answerParts[givenAnswer].join(" + ") + ").";

@@ -6,20 +6,20 @@ import { MapCurrencyGame } from "./templates/map-currency";
 
 type AchievementNames = "payday" | "meowthscoin" | "bankrupt";
 
-const currency = "coins";
+const currencyName = "coins";
 const payDayPoints = 7000;
 const bankruptRounds = 5;
 
 class PersiansGarden extends MapCurrencyGame {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
-		"payday": {name: "Pay Day", type: 'points', bits: 1000, description: 'collect at least ' + payDayPoints + ' ' + currency},
+		"payday": {name: "Pay Day", type: 'points', bits: 1000, description: 'collect at least ' + payDayPoints + ' ' + currencyName},
 		"meowthscoin": {name: "Meowth's Coin", type: 'special', bits: 1000, description: 'get lucky and find Meowth in the garden'},
 		"bankrupt": {name: "Bankrupt", type: 'special', bits: 1000, description: 'go ' + bankruptRounds + ' rounds without finding any ' +
-			currency},
+			currencyName},
 	};
 
 	canLateJoin: boolean = true;
-	currency: string = currency;
+	currency: string = currencyName;
 	initialCurrencySpaces: number = 40;
 	floors = new Map<Player, number>();
 	maxDimensions: number = 8;

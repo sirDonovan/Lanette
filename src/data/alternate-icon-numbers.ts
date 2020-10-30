@@ -1,4 +1,6 @@
-module.exports = {
+import type { IAlternateIconNumbers } from "../types/dex";
+
+export const alternateIconNumbers: IAlternateIconNumbers = {
 	right: {
 		egg: 900 + 1,
 		pikachubelle: 900 + 2,

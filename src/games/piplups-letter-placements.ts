@@ -1,6 +1,4 @@
-import type { Room } from "../rooms";
 import type { IGameAchievement, IGameFile } from "../types/games";
-import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 type AchievementNames = "swiftplacing";
@@ -25,9 +23,9 @@ class PiplupsLetterPlacements extends QuestionAndAnswer {
 	allAnswersAchievement = PiplupsLetterPlacements.achievements.swiftplacing;
 	lastAnswer: string = '';
 
-	static loadData(room: Room | User): void {
-		data["Characters"] = Dex.data.characters.filter(x => x.length > 3);
-		data["Locations"] = Dex.data.locations.filter(x => x.length > 3);
+	static loadData(): void {
+		data["Characters"] = Dex.getCharacters().filter(x => x.length > 3);
+		data["Locations"] = Dex.getLocations().filter(x => x.length > 3);
 		data["Pokemon"] = Games.getPokemonList(x => x.name.length > 3).map(x => x.name);
 		data["Pokemon Abilities"] = Games.getAbilitiesList(x => x.name.length > 3).map(x => x.name);
 		data["Pokemon Items"] = Games.getItemsList(x => x.name.length > 3).map(x => x.name);
@@ -35,14 +33,15 @@ class PiplupsLetterPlacements extends QuestionAndAnswer {
 	}
 
 	async setAnswers(): Promise<void> {
-		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
-		let answer = Tools.toId(this.sampleOne(data[category]));
-		while (answer === this.lastAnswer) {
-			answer = Tools.toId(this.sampleOne(data[category]));
+		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
+		let randomAnswer = Tools.toId(this.sampleOne(data[category]));
+		while (randomAnswer === this.lastAnswer) {
+			randomAnswer = Tools.toId(this.sampleOne(data[category]));
 		}
-		this.lastAnswer = answer;
-		const startingPosition = this.random(answer.length - 2);
-		const letters = answer.substr(startingPosition, 3);
+		this.lastAnswer = randomAnswer;
+
+		const startingPosition = this.random(randomAnswer.length - 2);
+		const letters = randomAnswer.substr(startingPosition, 3);
 		if (Client.willBeFiltered(letters, this.isPm(this.room) ? undefined : this.room)) {
 			await this.setAnswers();
 			return;
@@ -73,32 +72,33 @@ export const game: IGameFile<PiplupsLetterPlacements> = Games.copyTemplateProper
 	variants: [
 		{
 			name: "Piplup's Ability Letter Placements",
-			variant: "Pokemon Abilities",
-			variantAliases: ['ability', 'abilities'],
+			roundCategory: "Pokemon Abilities",
+			variantAliases: ['ability', 'abilities', 'pokemon abilities'],
 		},
 		{
 			name: "Piplup's Character Letter Placements",
-			variant: "Characters",
-			variantAliases: ['character'],
+			roundCategory: "Characters",
+			variantAliases: ['character', 'characters'],
 		},
 		{
 			name: "Piplup's Item Letter Placements",
-			variant: "Pokemon Items",
-			variantAliases: ['item', 'items'],
+			roundCategory: "Pokemon Items",
+			variantAliases: ['item', 'items', 'pokemon items'],
 		},
 		{
 			name: "Piplup's Location Letter Placements",
-			variant: "Locations",
-			variantAliases: ['location'],
+			roundCategory: "Locations",
+			variantAliases: ['location', 'locations'],
 		},
 		{
 			name: "Piplup's Move Letter Placements",
-			variant: "Pokemon Moves",
-			variantAliases: ['move', 'moves'],
+			roundCategory: "Pokemon Moves",
+			variantAliases: ['move', 'moves', 'pokemon moves'],
 		},
 		{
 			name: "Piplup's Pokemon Letter Placements",
-			variant: "Pokemon",
+			roundCategory: "Pokemon",
+			variantAliases: ['pokemon'],
 		},
 	],
 });

@@ -1,7 +1,5 @@
 import type { Player } from "../room-activity";
-import type { Room } from "../rooms";
 import type { IGameAchievement, IGameFile } from "../types/games";
-import type { User } from "../users";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 type AchievementNames = "tallorder";
@@ -39,9 +37,9 @@ class ZygardesOrders extends QuestionAndAnswer {
 	solvedLetters: string[] = [];
 	updateHintTime = 5 * 1000;
 
-	static loadData(room: Room | User): void {
-		data["Characters"] = Dex.data.characters.slice().filter(x => x.length < 18);
-		data["Locations"] = Dex.data.locations.slice().filter(x => x.length < 18);
+	static loadData(): void {
+		data["Characters"] = Dex.getCharacters().filter(x => x.length < 18);
+		data["Locations"] = Dex.getLocations().filter(x => x.length < 18);
 		data["Pokemon"] = Games.getPokemonList().filter(x => x.name.length < 18).map(x => x.name);
 		data["Pokemon Abilities"] = Games.getAbilitiesList().filter(x => x.name.length < 18).map(x => x.name);
 		data["Pokemon Items"] = Games.getItemsList().filter(x => x.name.length < 18).map(x => x.name);
@@ -50,7 +48,7 @@ class ZygardesOrders extends QuestionAndAnswer {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	async setAnswers(): Promise<void> {
-		const category = (this.roundCategory || this.variant || this.sampleOne(categories)) as DataKey;
+		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		this.currentCategory = category;
 		let answer = this.sampleOne(data[category]);
 		while (answer === this.lastAnswer || (this.maxRevealedLetters && answer.length < 7)) {
@@ -120,7 +118,7 @@ class ZygardesOrders extends QuestionAndAnswer {
 		}
 	}
 
-	onCorrectGuess(player: Player, answer: string): void {
+	onCorrectGuess(player: Player): void {
 		if (this.revealedLetters === 1) this.unlockAchievement(player, ZygardesOrders.achievements.tallorder);
 	}
 
@@ -152,32 +150,33 @@ export const game: IGameFile<ZygardesOrders> = Games.copyTemplateProperties(ques
 	variants: [
 		{
 			name: "Zygarde's Ability Orders",
-			variant: "Pokemon Abilities",
-			variantAliases: ['ability', 'abilities'],
+			roundCategory: "Pokemon Abilities",
+			variantAliases: ['ability', 'abilities', 'pokemon abilities'],
 		},
 		{
 			name: "Zygarde's Character Orders",
-			variant: "Characters",
-			variantAliases: ['character'],
+			roundCategory: "Characters",
+			variantAliases: ['character', 'characters'],
 		},
 		{
 			name: "Zygarde's Item Orders",
-			variant: "Pokemon Items",
-			variantAliases: ['item', 'items'],
+			roundCategory: "Pokemon Items",
+			variantAliases: ['item', 'items', 'pokemon items'],
 		},
 		{
 			name: "Zygarde's Location Orders",
-			variant: "Locations",
-			variantAliases: ['location'],
+			roundCategory: "Locations",
+			variantAliases: ['location', 'locations'],
 		},
 		{
 			name: "Zygarde's Move Orders",
-			variant: "Pokemon Moves",
-			variantAliases: ['move', 'moves'],
+			roundCategory: "Pokemon Moves",
+			variantAliases: ['move', 'moves', 'pokemon moves'],
 		},
 		{
 			name: "Zygarde's Pokemon Orders",
-			variant: "Pokemon",
+			roundCategory: "Pokemon",
+			variantAliases: ['pokemon'],
 		},
 	],
 });
