@@ -104,8 +104,8 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 				}
 				return false;
 			}
-			if (cards[index] === card) {
-				player.say("You can't play the same card twice.");
+			if (playedCards.includes(cards[index])) {
+				player.say("You can only play a card once per turn.");
 				return false;
 			}
 			playedCards.push(cards[index]);
@@ -229,6 +229,23 @@ const commands: GameCommandDefinitions<StakatakasCardTower> = {
 };
 
 const tests: GameFileTests<StakatakasCardTower> = {
+	'it should only allow cards to be played once per turn': {
+		test(game): void {
+			addPlayers(game, 4);
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Pikachu"));
+			game.start();
+			const player = game.currentPlayer!;
+			const newCards = [game.pokemonToCard(Dex.getExistingPokemon("Stunfisk")),
+				game.pokemonToCard(Dex.getExistingPokemon("Eevee")), game.pokemonToCard(Dex.getExistingPokemon("Pidgey")),
+				game.pokemonToCard(Dex.getExistingPokemon("Charmander"))];
+			game.playerCards.set(player, newCards);
+			assert(game.hasPlayableCard(player));
+			game.canPlay = true;
+			player.useCommand('play', 'Stunfisk, Eevee, Pidgey, Eevee, Pidgey');
+			assert(!game.ended);
+			assertStrictEqual(newCards.length, 4);
+		},
+	},
 	'it should properly detect possible chains': {
 		test(game): void {
 			addPlayers(game, 4);
