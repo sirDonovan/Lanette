@@ -2,17 +2,18 @@ import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { GameCommandDefinitions, IGameFile } from "../types/games";
 
-const senseRolls: KeyedDict<'disaster' | 'stillness' | 'fortune', number> = {
+type AbsolSense = 'disaster' | 'stillness' | 'fortune';
+const senseRolls: KeyedDict<AbsolSense, number> = {
 	disaster: 25,
 	stillness: 50,
 	fortune: 100,
 };
 
 class AbsolsDiceDisaster extends ScriptedGame {
+	absolSense: AbsolSense = 'disaster';
 	bestPlayer: Player | null = null;
 	bestBid: number = -1;
 	canBid: boolean = false;
-	maxBid: number = 100;
 	maxPlayers: number = 20;
 	minBid: number = 1;
 	roundDiceRoll: number = 0;
@@ -20,7 +21,7 @@ class AbsolsDiceDisaster extends ScriptedGame {
 
 	onStart(): void {
 		this.say("Each round, you will have " + Tools.toDurationString(this.roundTimer) + " to bid numbers between " + this.minBid +
-			" and " + this.maxBid + " based on Absol's senses!");
+			" and " + senseRolls.fortune + " based on Absol's senses!");
 		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
@@ -35,17 +36,20 @@ class AbsolsDiceDisaster extends ScriptedGame {
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		const html = this.getRoundHtml(players => this.getPlayerNames(players));
 		this.onUhtml(uhtmlName, html, () => {
-			this.roundDiceRoll = Math.floor(Math.random() * this.maxBid) + 1;
-			let absolSense: string = "Absol senses ";
+			this.roundDiceRoll = Math.floor(Math.random() * senseRolls.fortune) + 1;
+			let absolSenseText: string = "Absol senses ";
 			if (this.roundDiceRoll <= senseRolls.disaster) {
-				absolSense += "an impending disaster!";
+				this.absolSense = 'disaster';
+				absolSenseText += "an impending disaster!";
 			} else if (this.roundDiceRoll <= senseRolls.stillness) {
-				absolSense += "a stillness in the air.";
+				this.absolSense = 'stillness';
+				absolSenseText += "a stillness in the air.";
 			} else {
-				absolSense += "a good fortune!";
+				this.absolSense = 'fortune';
+				absolSenseText += "a good fortune!";
 			}
 
-			const text = absolSense + " Place your bids now with ``" + Config.commandCharacter + "bid``.";
+			const text = absolSenseText + " Place your bids now with ``" + Config.commandCharacter + "bid``.";
 			this.on(text, () => {
 				this.canBid = true;
 				this.timeout = setTimeout(() => this.endBidding(), this.roundTimer);
@@ -101,14 +105,14 @@ const commands: GameCommandDefinitions<AbsolsDiceDisaster> = {
 		command(target, room, user) {
 			if (!this.canBid) return false;
 			const bid = parseInt(target);
-			if (isNaN(bid) || bid > this.maxBid || bid < this.minBid) {
-				user.say("You must bid a number between " + this.minBid + " and " + this.maxBid + ".");
+			if (isNaN(bid) || bid > senseRolls[this.absolSense] || bid < this.minBid) {
+				user.say("You must bid a number between " + this.minBid + " and " + senseRolls[this.absolSense] + ".");
 				return false;
 			}
 			if (bid > this.bestBid) {
 				this.bestBid = bid;
 				this.bestPlayer = this.players[user.id];
-				if (bid === this.maxBid) {
+				if (bid === senseRolls[this.absolSense]) {
 					if (this.timeout) clearTimeout(this.timeout);
 					this.endBidding();
 				}
