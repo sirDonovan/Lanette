@@ -143,6 +143,13 @@ describe("pokemon-showdown", () => {
 			Abilities
 		*/
 
+		assertStrictEqual(Dex.getExistingAbility("Stench").gen, 3);
+		assertStrictEqual(Dex.getExistingAbility("Tangled Feet").gen, 4);
+		assertStrictEqual(Dex.getExistingAbility("Pickpocket").gen, 5);
+		assertStrictEqual(Dex.getExistingAbility("Aroma Veil").gen, 6);
+		assertStrictEqual(Dex.getExistingAbility("Stamina").gen, 7);
+		assertStrictEqual(Dex.getExistingAbility("Intrepid Sword").gen, 8);
+
 		const unBreakableAbility = Dex.getAbility("Dark Aura");
 		assert(unBreakableAbility);
 		assertStrictEqual(unBreakableAbility.isUnbreakable, true);
@@ -158,6 +165,14 @@ describe("pokemon-showdown", () => {
 		/*
 			Items
 		*/
+
+		assertStrictEqual(Dex.getExistingItem("Berry Juice").gen, 2);
+		assertStrictEqual(Dex.getExistingItem("Aguav Berry").gen, 3);
+		assertStrictEqual(Dex.getExistingItem("Rare Bone").gen, 4);
+		assertStrictEqual(Dex.getExistingItem("Prism Scale").gen, 5);
+		assertStrictEqual(Dex.getExistingItem("Assault Vest").gen, 6);
+		assertStrictEqual(Dex.getExistingItem("Adrenaline Orb").gen, 7);
+		assertStrictEqual(Dex.getExistingItem("Berry Sweet").gen, 8);
 
 		const drive = Dex.getItem("Burn Drive");
 		assert(drive);
@@ -221,6 +236,15 @@ describe("pokemon-showdown", () => {
 			Moves
 		*/
 
+		assertStrictEqual(Dex.getExistingMove("Pound").gen, 1);
+		assertStrictEqual(Dex.getExistingMove("Sketch").gen, 2);
+		assertStrictEqual(Dex.getExistingMove("Fake Out").gen, 3);
+		assertStrictEqual(Dex.getExistingMove("Roost").gen, 4);
+		assertStrictEqual(Dex.getExistingMove("Hone Claws").gen, 5);
+		assertStrictEqual(Dex.getExistingMove("Flying Press").gen, 6);
+		assertStrictEqual(Dex.getExistingMove("Breakneck Blitz").gen, 7);
+		assertStrictEqual(Dex.getExistingMove("Max Guard").gen, 8);
+
 		const type = Dex.getMove("Tackle");
 		assert(type);
 		assertStrictEqual(type.type, "Normal");
@@ -262,6 +286,22 @@ describe("pokemon-showdown", () => {
 		/*
 			Pokemon
 		*/
+
+		assertStrictEqual(Dex.getExistingPokemon("Bulbasaur").gen, 1);
+		assertStrictEqual(Dex.getExistingPokemon("Chikorita").gen, 2);
+		assertStrictEqual(Dex.getExistingPokemon("Treecko").gen, 3);
+		assertStrictEqual(Dex.getExistingPokemon("Turtwig").gen, 4);
+		assertStrictEqual(Dex.getExistingPokemon("Snivy").gen, 5);
+		assertStrictEqual(Dex.getExistingPokemon("Chespin").gen, 6);
+		assertStrictEqual(Dex.getExistingPokemon("Charizard-Mega-X").gen, 6);
+		assertStrictEqual(Dex.getExistingPokemon("Groudon-Primal").gen, 6);
+		assertStrictEqual(Dex.getExistingPokemon("Rowlet").gen, 7);
+		assertStrictEqual(Dex.getExistingPokemon("Raichu-Alola").gen, 7);
+		assertStrictEqual(Dex.getExistingPokemon("Eevee-Starter").gen, 7);
+		assertStrictEqual(Dex.getExistingPokemon("Grookey").gen, 8);
+		assertStrictEqual(Dex.getExistingPokemon("Meowth-Gmax").gen, 8);
+		assertStrictEqual(Dex.getExistingPokemon("Meowth-Galar").gen, 8);
+		assertStrictEqual(Dex.getExistingPokemon("Darmanitan-Galar-Zen").gen, 8);
 
 		const nfe = Dex.getPokemon("Ivysaur");
 		assert(nfe);

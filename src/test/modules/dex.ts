@@ -69,6 +69,14 @@ describe("Dex", () => {
 		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Tackle")), 394);
 		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Aeroblast")), 2);
 
+		assertStrictEqual(Dex.getExistingFormat("gen1ou").gen, 1);
+		assertStrictEqual(Dex.getExistingFormat("gen2ou").gen, 2);
+		assertStrictEqual(Dex.getExistingFormat("gen3ou").gen, 3);
+		assertStrictEqual(Dex.getExistingFormat("gen4ou").gen, 4);
+		assertStrictEqual(Dex.getExistingFormat("gen5ou").gen, 5);
+		assertStrictEqual(Dex.getExistingFormat("gen6ou").gen, 6);
+		assertStrictEqual(Dex.getExistingFormat("gen7ou").gen, 7);
+		assertStrictEqual(Dex.getExistingFormat("gen8ou").gen, 8);
 	});
 	it('should contain valid data files', function(this: Mocha.Context) {
 		const badges = Dex.getBadges();

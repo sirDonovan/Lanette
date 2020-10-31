@@ -1134,6 +1134,10 @@ export class Dex {
 
 		if (!format.exists) return undefined;
 
+		if (!format.gen && format.mod.startsWith('gen')) {
+			const possibleGen = format.mod.substr(3);
+			if (Tools.isInteger(possibleGen)) format.gen = parseInt(possibleGen);
+		}
 		format.inputTarget = inputTarget;
 		format.quickFormat = format.teamLength && format.teamLength.battle && format.teamLength.battle <= 2 ? true : false;
 		format.tournamentPlayable = !!(format.searchShow || format.challengeShow || format.tournamentShow);
