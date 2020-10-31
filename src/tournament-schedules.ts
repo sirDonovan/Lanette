@@ -6,41 +6,6 @@ import type { IRoomTournamentSchedule } from "./types/tournaments";
 export const tournamentSchedules: Dict<IRoomTournamentSchedule> = {
 	'tournaments': {
 		months: {
-			'9': {
-				formats: {
-					'1': 'uu',
-					'2': 'pu',
-					'3': 'ru',
-					'4': 'monotype',
-					'5': 'nu',
-					'6': 'ubers',
-					'7': 'doublesou',
-					'8': 'lc',
-					'9': 'ou',
-					'10': 'zu',
-					'11': 'uu',
-					'12': 'pu',
-					'13': 'ru',
-					'14': 'monotype',
-					'15': 'nu',
-					'16': 'ubers',
-					'17': 'pu',
-					'18': 'lc',
-					'19': 'ou',
-					'20': 'nu',
-					'21': 'uu',
-					'22': 'pu',
-					'23': 'ru',
-					'24': 'lc',
-					'25': 'nu',
-					'26': 'ubers',
-					'27': 'uu',
-					'28': 'lc',
-					'29': 'ou',
-					'30': 'pu',
-				},
-				times: [[20, 30], [2, 30], [9, 30], [15, 30]],
-			},
 			'10': {
 				formats: {
 					'1': 'ubers',
@@ -77,58 +42,45 @@ export const tournamentSchedules: Dict<IRoomTournamentSchedule> = {
 				},
 				times: [[20, 30], [2, 30], [9, 30], [15, 30]],
 			},
+			'11': {
+				formats: {
+					'1': 'pu',
+					'2': 'uu',
+					'3': 'nu',
+					'4': 'ru',
+					'5': 'ubers',
+					'6': 'lc',
+					'7': 'ou',
+					'8': 'pu',
+					'9': 'uu',
+					'10': 'nu',
+					'11': 'ru',
+					'12': 'ubers',
+					'13': 'lc',
+					'14': 'ou',
+					'15': 'pu',
+					'16': 'uu',
+					'17': 'nu',
+					'18': 'ru',
+					'19': 'ubers',
+					'20': 'lc',
+					'21': 'ou',
+					'22': 'pu',
+					'23': 'uu',
+					'24': 'nu',
+					'25': 'ru',
+					'26': 'ubers',
+					'27': 'lc',
+					'28': 'ou',
+					'29': 'pu',
+					'30': 'uu',
+				},
+				times: [[20, 30], [2, 30], [9, 30], [15, 30]],
+			},
 		},
 	},
 	'toursplaza': {
 		months: {
-			'9': {
-				formats: {
-					'1': 'gen6randombattle@@@inversemod',
-					'2': 'Doubles OU@@@-Trick Room,-Tailwind,+Magearna,+Melmetal',
-					'3': 'OU@@@-Clefable,-Toxapex',
-					'4': '2v2doubles@@@gen8camomons',
-					'5': 'gen7pu@@@+PUBL',
-					'6': 'gen5ou@@@Not Fully Evolved,-Chansey,-Dusclops,-Fraxure,-Gligar,-Golbat,-Gurdurr,-Haunter,-Machoke,' +
-						'-Magmar,-Magneton,-Riolu,-Rhydon,-Piloswine,-Porygon2,-Scyther,-Vigoroth',
-					'7': 'gen7uu@@@-Reflect,-Light Screen,-Barrier',
-					'8': 'gen4ou@@@Sinnoh Pokedex,+Arceus,+Dialga,+Palkia,+Giratina,-Dragon Dance',
-					'9': 'gen3ou@@@Little Cup,-Chansey,-Meditite,-Omanyte,-Scyther,-Wynaut,-Zigzagoon,-Dragon Rage,-Sonic Boom,' +
-						'-Agility + Baton Pass',
-					'10': 'gen7bssfactory@@@!Team Preview,!Cancel Mod',
-					'11': 'ou@@@inverse mod',
-					'12': 'gen2ou@@@Inverse Mod,-Chansey,-Tauros,-Snorlax,-Porygon2,-Blissey',
-					'13': 'purehackmons@@@-Neutralizing Gas',
-					'14': 'stabmons@@@!Obtainable Abilities,-Arena Trap,-Comatose,-Contrary,-Fluffy,-Fur Coat,-Gorilla Tactics,' +
-						'-Huge Power,-Ice Scales,-Illusion,-Imposter,-Innards Out,-Intrepid Sword,-Libero,-Moody,-Neutralizing Gas,' +
-						'-Parental Bond,-Protean,-Pure Power,-Shadow Tag,-Simple,-Stakeout,-Speed Boost,-Water Bubble,-Wonder Guard,' +
-						'-Shedinja,2 Ability Clause,*Transform,*No Retreat,*V-create,-Hypnosis,-Sing,-Sleep Powder,+Darmanitan,' +
-						'+Darmanitan-Galar,+Dracovish,+Gengar,+Porygon-Z,-Keldeo,-Terrakion,-Wicked Blow,-Chandelure,-Magearna,' +
-						'-Melmetal,-Zeraora',
-					'15': 'uu@@@+UUBL',
-					'16': 'ou@@@+Mega,+Abomasite,+Absolite,+Charizardite X,+Charizardite Y,+Galladite,+Gardevoirite,+Glalitite,' +
-						'+Gyaradosite,+Heracronite,+Lopunnite,+Manectite,+Mawilite,+Medichamite,+Pinsirite,+Sablenite,+Scizorite,' +
-						'+Sharpedonite,+Slowbronite,+Steelixite,+Swampertite,+Tyranitarite,+Venusaurite,+Abomasnow-Mega,+Absol-Mega,' +
-						'+Charizard-Mega-X,+Charizard-Mega-Y,+Gallade-Mega,+Gardevoir-Mega,+Glalie-Mega,+Gyarados-Mega,+Heracross-Mega,' +
-						'+Lopunny-Mega,+Manectric-Mega,+Mawile-Mega,+Medicham-Mega,+Pinsir-Mega,+Sableye-Mega,+Scizor-Mega,' +
-						'+Sharpedo-Mega,+Slowbro-Mega,+Steelix-Mega,+Tyranitar-Mega,+Venusaur-Mega',
-					'17': 'ubers@@@350cupmod,-Eviolite,-Light Ball,-Pawniard,-Abra',
-					'18': 'gen7lc@@@STABmons move legality,-gastly,*acupressure,*belly drum,*extreme speed,*shell smash,*shift gear,' +
-						'*spore',
-					'19': 'gen5ubers@@@-Drought,-Drizzle,-Dark Void',
-					'20': 'gen3uu@@@-Spikes',
-					'21': 'gen2ou@@@Same Type Clause,-Snorlax',
-					'22': 'cap@@@-U-turn,-Volt Switch,-Teleport,-Flip Turn',
-					'23': 'vgc2020@@@-Intimidate',
-					'24': 'ru@@@+RUBL',
-					'25': 'monotype@@@Inverse Mod',
-					'26': 'gen7lc@@@Item Clause',
-					'27': 'randombattle@@@Team Preview',
-					'28': 'gen4uu@@@+UUBL',
-					'29': 'ru@@@Same Type Clause',
-					'30': 'ubers@@@!Team Preview',
-				},
-				times: [[5, 30], [12, 30], [18, 30], [23, 30]],
-			},
 			'10': {
 				formats: {
 					'1': 'randombattle@@@gen8camomons,Scalemons Mod,Inverse Mod,gen8sharedpower',
@@ -175,6 +127,59 @@ export const tournamentSchedules: Dict<IRoomTournamentSchedule> = {
 					'29': 'tiershift@@@+Eviolite',
 					'30': 'gen3uu@@@Same Type Clause',
 					'31': 'gen2nu@@@Item Clause',
+				},
+				times: [[5, 30], [12, 30], [18, 30], [23, 30]],
+			},
+			'11': {
+				formats: {
+					'1': '[Gen 8] STABmons @@@!Obtainable Abilities,-Arena Trap,-Comatose,-Contrary,-Fluffy,-Fur Coat,' +
+						'-Gorilla Tactics,-Huge Power,-Ice Scales,-Illusion,-Imposter,-Innards Out,-Intrepid Sword,-Libero,' +
+						'-Moody,-Neutralizing Gas,-Parental Bond,-Protean,-Pure Power,-Shadow Tag,-Simple,-Stakeout,-Speed Boost,' +
+						'-Water Bubble,-Wonder Guard,-Shedinja,2 Ability Clause,*Transform,*No Retreat,*V-create,-Hypnosis,-Sing,' +
+						'-Sleep Powder,+Darmanitan,+Darmanitan-Galar,+Dracovish,+Gengar,+Porygon-Z,-Keldeo,-Terrakion,-Wicked Blow,' +
+						'-Zeraora,-Chandelure,-Melmetal,-Electrify,-Volcarona,-Blacephalon,-dragonite,-tapu koko,-thundurus,' +
+						'-thundurus-therian,-archeops,-zygarde,-regigigas',
+					'2': '[Gen 4] UU @@@+UUBL',
+					'3': 'gen7balancedhackmons',
+					'4': '[Gen 8] LC @@@Same type clause',
+					'5': 'gen8purehackmons',
+					'6': '[Gen 7] RU @@@+RUBL',
+					'7': '[Gen 8] Doubles OU @@@!Dynamax Clause',
+					'8': '[Gen 7] OU @@@+Aegislash, +zygarde 50%, +blaziken, +darkrai, +genesect, +kangaskhan mega,' +
+						'+landorus incarnate, +solgaleo, +pheromosa, +shaymin sky, +metagross mega, +arena trap, +deoxys defense,' +
+						'+deoxys normal, -deoxys speed, -deoxys attack',
+					'9': '[Gen 6] OU @@@!Team preview',
+					'10': 'gen8ou@@@blitz',
+					'11': '[Gen 3] OU @@@+Choice scarf, +Choice Specs',
+					'12': '[Gen 8] Camomons @@@!Obtainable Abilities,-Arena Trap,-Comatose,-Contrary,-Fluffy,-Fur Coat,' +
+						'-Gorilla Tactics,-Huge Power,-Ice Scales,-Illusion,-Imposter,-Innards Out,-Intrepid Sword,-Libero,-Moody,' +
+						'-Neutralizing Gas,-Parental Bond,-Protean,-Pure Power,-Shadow Tag,-Simple,-Stakeout,-Speed Boost,-Water Bubble,' +
+						'-Wonder Guard,-Shedinja,2 Ability Clause,+Darmanitan-Galar',
+					'13': 'gen7battlefactory',
+					'14': 'gen8nationaldexmonotype',
+					'15': '[Gen 8] Mix And Mega @@@+Gengar,+Zeraora,+Arena Trap,+Shadow Tag,+Moody,+Darmanitan-Galar,+Dracovish,' +
+						'+Eternatus,+Kyurem-Black,+Kyurem-White,+Lunala,+Marshadow,+Melmetal,+Mewtwo,+Necrozma-Dawn-Wings,' +
+						'+Necrozma-Dusk-Mane,+Reshiram,+Solgaleo,+Zacian,+Zacian-Crowned,+Zamazenta,+Zamazenta-Crowned,+Zekrom,' +
+						'+calyrex ice,+calyrex shadow,+kyogre,+Ho-Oh,+dialga,+giratina,+giratina origin,+lugia,+palkia,+rayquaza,' +
+						'+xerneas,+yveltal',
+					'16': '[Gen 8] Random Battle @@@Inverse Mod, Gen8camomons',
+					'17': '[Gen 6] UU@@@+UUBL, +Heracross Mega, +Dugtrio',
+					'18': 'gen7superstaffbrosbrawl',
+					'19': 'gen4ubers',
+					'20': '[Gen 8] Ubers @@@-Calyrex Shadow',
+					'21': '[Gen 8] Camomons @@@-OU, -Heracross, -drought',
+					'22': '[Gen 6] OU @@@stabmonsmovelegality,-Aerodactyl-Mega,-Altaria-Mega,-Diggersby,-Kyurem-Black,-Metagross-Mega,' +
+						'-Porygon-Z,-Thundurus-Base,-Razor Fang,-King\'s Rock,*Acupressure,*Belly Drum,*Chatter,*Extreme Speed,*Geomancy,' +
+						'*Lovely Kiss,*Shell Smash,*Shift Gear,*Spore,*Thousand Arrows',
+					'23': '[Gen 8] Mix and mega @@@+zamazenta crowned,-zacian + rusted sword,*eternatus,*lunala,+damp rock,+heat rock,' +
+						'gen8 tier shift,+uber,*zacian',
+					'24': '[Gen 7] UU @@@+UUBL',
+					'25': '[Gen 5] OU @@@-Drizzle, -Drought, -Snow Warning, -Sand Stream',
+					'26': '[Gen 8] 1v1 @@@Blitz',
+					'27': '[Gen 7] Doubles OU @@@-Trickroom, -Tail wind',
+					'28': '[Gen 8] Inheritance @@@-Chansey,-Doublade,-Magneton,-Porygon2,-Rhydon,-Scyther,-Sneasel,-Type: Null',
+					'29': '[Gen 7] UU @@@same type clause',
+					'30': 'gen8cap',
 				},
 				times: [[5, 30], [12, 30], [18, 30], [23, 30]],
 			},
