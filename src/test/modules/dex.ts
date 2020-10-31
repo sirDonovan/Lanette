@@ -1,3 +1,4 @@
+import { formatLinks } from '../../data/format-links';
 import type { ISeparatedCustomRules } from '../../types/dex';
 import { assert, assertStrictEqual } from './../test-tools';
 
@@ -14,18 +15,6 @@ describe("Dex", () => {
 		assert(Dex.data.pokemonKeys.length > 1);
 		assert(Dex.data.typeKeys.length > 1);
 
-		const badges = Dex.getBadges();
-		assert(badges.length > 1);
-
-		const characters = Dex.getCharacters();
-		assert(characters.length > 1);
-
-		const locations = Dex.getLocations();
-		assert(locations.length > 1);
-
-		assert(Dex.data.trainerClasses.length > 1);
-
-		assert(Object.keys(Dex.data.categories).length > 1);
 		assert(Object.keys(Dex.data.colors).length > 1);
 		assert(Object.keys(Dex.data.eggGroups).length > 1);
 		assert(Object.keys(Dex.data.gifData).length > 1);
@@ -80,7 +69,20 @@ describe("Dex", () => {
 		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Tackle")), 394);
 		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Aeroblast")), 2);
 
-		// other in-game data
+	});
+	it('should contain valid data files', function(this: Mocha.Context) {
+		const badges = Dex.getBadges();
+		assert(badges.length > 1);
+
+		const characters = Dex.getCharacters();
+		assert(characters.length > 1);
+
+		const locations = Dex.getLocations();
+		assert(locations.length > 1);
+
+		assert(Dex.data.trainerClasses.length > 1);
+		assert(Object.keys(Dex.data.categories).length > 1);
+
 		for (let i = 0; i < badges.length; i++) {
 			assert(badges.indexOf(badges[i]) === i, "Duplicate badge " + badges[i]);
 		}
@@ -102,6 +104,10 @@ describe("Dex", () => {
 		for (let i = 0; i < categoryKeys.length; i++) {
 			assert(Tools.toId(categoryKeys[i]) === categoryKeys[i], categoryKeys[i] + " should be an ID in categories.js");
 			assert(categoryKeys.indexOf(categoryKeys[i]) === i, "Duplicate category for " + categoryKeys[i]);
+		}
+
+		for (const i in formatLinks) {
+			assert(Dex.getFormat(i), i);
 		}
 	});
 	it('should return data based on ids', () => {

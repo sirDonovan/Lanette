@@ -12,10 +12,8 @@ export type LocationData = Dict<KeyedDict<LocationTypes, string[]>>;
 export type TrainerClassData = string[];
 
 export interface IFormatDataLinks {
-	name: string;
 	aliases?: string[];
 	desc?: string;
-	genGuide?: string;
 	info?: string;
 	'info-official'?: string;
 	roleCompendium?: string;

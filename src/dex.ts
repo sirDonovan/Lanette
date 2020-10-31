@@ -1188,7 +1188,7 @@ export class Dex {
 				format.viability = viability;
 			}
 
-			const links = ['info', 'roleCompendium', 'teams', 'viability', 'genGuide'] as const;
+			const links = ['info', 'roleCompendium', 'teams', 'viability'] as const;
 			for (const id of links) {
 				if (format[id]) {
 					// @ts-expect-error
@@ -1224,10 +1224,6 @@ export class Dex {
 				'<a href="' + format.info + '">dex page' : 'in the  <a href="' + format.info + '">discussion thread') + '</a>.';
 		}
 
-		if (format.genGuide) {
-			html += '<br />&nbsp; - Unfamiliar with Gen ' + format.gen + '? Review the <a href="' + format.genGuide + '">mechanics ' +
-				'differences</a> before battling.';
-		}
 
 		if (format.teams) {
 			html += '<br />&nbsp; - Need to borrow a team? Check out the <a href="' + format.teams + '">sample teams thread</a>.';
