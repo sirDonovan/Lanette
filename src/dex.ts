@@ -18,6 +18,12 @@ const DEFAULT_CUSTOM_RULES_NAME = " (with custom rules)";
 const CURRENT_GEN = 8;
 const CURRENT_GEN_STRING = 'gen' + CURRENT_GEN;
 
+const mechanicsDifferences: Dict<string> = {
+	'gen1': '3668073/post-8553244',
+	'gen2': '3668073/post-8553245',
+	'gen3': '3668073/post-8553246',
+};
+
 const tagNames: Dict<string> = {
 	'uber': 'Uber',
 	'ou': 'OU',
@@ -1212,38 +1218,44 @@ export class Dex {
 	}
 
 	getFormatInfoDisplay(format: IFormat): string {
-		let html = '';
-		if (format.desc) {
-			html += '<br />&nbsp; - ' + format.desc;
-			if (format.info) {
-				html += ' More info ';
-				if (format.info.startsWith(Tools.smogonDexPrefix)) {
-					html += 'on the <a href="' + format.info + '">dex page</a>';
-				} else {
-					html += 'in the <a href="' + format.info + '">discussion thread</a>';
-				}
+		let info = format.desc || '';
+
+		if (format.info) {
+			if (format.desc) {
+				info += ' More info ';
+			} else {
+				info += 'Description and more info ';
 			}
-		} else if (format.info) {
-			html += '<br />&nbsp; - Description and more info ' + (format.info.startsWith(Tools.smogonDexPrefix) ? 'on the ' +
-				'<a href="' + format.info + '">dex page' : 'in the  <a href="' + format.info + '">discussion thread') + '</a>.';
+
+			if (format.info.startsWith(Tools.smogonDexPrefix)) {
+				info += 'on the <a href="' + format.info + '">dex page</a>';
+			} else {
+				info += 'in the <a href="' + format.info + '">discussion thread</a>';
+			}
 		}
 
+		const links: string[] = [];
+		if (format.mod in mechanicsDifferences) {
+			links.push('&bull;&nbsp;<a href="' + Tools.smogonForumPrefix + mechanicsDifferences[format.mod] + '">Gen ' + format.gen +
+				' mechanics differences</a>');
+		}
 
 		if (format.teams) {
-			html += '<br />&nbsp; - Need to borrow a team? Check out the <a href="' + format.teams + '">sample teams thread</a>.';
+			links.push('&bull;&nbsp;<a href="' + format.teams + '">Sample teams</a>');
 		}
 
 		if (format.viability) {
-			html += '<br />&nbsp; - See how viable each Pokemon is in the <a href="' + format.viability + '">viability rankings ' +
-				'thread</a>.';
+			links.push('&bull;&nbsp;<a href="' + format.viability + '">Viability rankings</a>');
 		}
 
 		if (format.roleCompendium) {
-			html += '<br />&nbsp; - Check the common role that each Pokemon plays in the <a href="' + format.roleCompendium + '">role ' +
-				'compendium thread</a>.';
+			links.push('&bull;&nbsp;<a href="' + format.roleCompendium + '">Role compendium</a>');
 		}
 
-		return html;
+		if (!info && !links.length) return "";
+		return "<b>" + format.name + "</b>&nbsp;&bull;&nbsp;" + format.gameType + "&nbsp;&bull;&nbsp;" +
+			(format.team ? "random team provided" : "bring your own team") + "<br />" + info + (links.length ? "<br /><br />" +
+			links.join("<br />") : "");
 	}
 
 	/**

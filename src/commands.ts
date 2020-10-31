@@ -150,8 +150,8 @@ const commands: CommandDefinitions<CommandContext> = {
 			const format = Dex.getFormat(target);
 			if (!format) return this.sayError(['invalidFormat', target]);
 			const html = Dex.getFormatInfoDisplay(format);
-			if (!html.length) return this.say("No info found for " + format.name + ".");
-			this.sayHtml("<b>" + format.name + "</b>" + html, pmRoom);
+			if (!html) return this.say("No info found for " + format.name + ".");
+			this.sayHtml(html, pmRoom);
 		},
 		aliases: ['om', 'tier'],
 	},

@@ -231,17 +231,7 @@ export class Tournaments {
 
 			if (Config.displayTournamentFormatInfo && Config.displayTournamentFormatInfo.includes(room.id)) {
 				const formatInfo = Dex.getFormatInfoDisplay(tournament.format);
-				if (formatInfo) {
-					let divClass = '';
-					if (tournament.format.team) {
-						divClass = 'green';
-					} else if (tournament.format.gameType === 'singles') {
-						divClass = 'blue';
-					} else {
-						divClass = 'red';
-					}
-					room.sayHtml("<div class='broadcast-" + divClass + "'><b>" + tournament.name + "</b>:</div>" + formatInfo);
-				}
+				if (formatInfo) room.sayHtml(formatInfo);
 			}
 
 			if (Config.tournamentRoomAdvertisements && room.id in Config.tournamentRoomAdvertisements) {
