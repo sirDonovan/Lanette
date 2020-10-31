@@ -1254,8 +1254,8 @@ export class Dex {
 
 		if (!info && !links.length) return "";
 		return "<b>" + format.name + "</b>&nbsp;&bull;&nbsp;" + format.gameType + "&nbsp;&bull;&nbsp;" +
-			(format.team ? "random team provided" : "bring your own team") + "<br />" + info + (links.length ? "<br /><br />" +
-			links.join("<br />") : "");
+			(format.team ? "random team provided" : "bring your own team") + (info ? "<br />" + info : "") +
+			(links.length ? "<br /><br />" + links.join("<br />") : "");
 	}
 
 	/**
