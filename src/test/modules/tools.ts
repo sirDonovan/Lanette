@@ -261,7 +261,13 @@ describe("Tools", () => {
 		assertStrictEqual(parsedThread.description, description);
 		assertStrictEqual(parsedThread.id, threadId);
 
-		const postId = Tools.smogonForumPostPrefix + '456';
+		let postId = Tools.smogonForumPostPrefix + '456';
+		parsedThread = Tools.parseFormatThread('&bullet; <a href="' +
+			Tools.smogonForumPrefix + threadId + '/' + postId + '">' + description + '</a>');
+		assertStrictEqual(parsedThread.description, description);
+		assertStrictEqual(parsedThread.id, threadId + '/' + postId);
+
+		postId = "#" + Tools.smogonForumPostPrefix + '456';
 		parsedThread = Tools.parseFormatThread('&bullet; <a href="' +
 			Tools.smogonForumPrefix + threadId + '/' + postId + '">' + description + '</a>');
 		assertStrictEqual(parsedThread.description, description);
@@ -275,10 +281,10 @@ describe("Tools", () => {
 	it('should return proper values from getNewerForumThread()', () => {
 		const oldThreadId = "123";
 		const newThreadId = "456";
-		const postId = Tools.smogonForumPostPrefix + "789";
-		const newThreadIdPost = newThreadId + "/" + postId;
 		const newThread = Tools.smogonForumPrefix + newThreadId;
-		const newThreadPost = Tools.smogonForumPrefix + newThreadIdPost;
+		let postId = Tools.smogonForumPostPrefix + "789";
+		let newThreadIdPost = newThreadId + "/" + postId;
+		let newThreadPost = Tools.smogonForumPrefix + newThreadIdPost;
 
 		let newerThread = Tools.getNewerForumThread("");
 		assertStrictEqual(newerThread, "");
@@ -288,6 +294,19 @@ describe("Tools", () => {
 
 		newerThread = Tools.getNewerForumThread(newThreadId, oldThreadId);
 		assertStrictEqual(newerThread, newThread);
+
+		newerThread = Tools.getNewerForumThread(oldThreadId, newThreadIdPost);
+		assertStrictEqual(newerThread, newThreadPost);
+
+		newerThread = Tools.getNewerForumThread(newThreadIdPost, oldThreadId);
+		assertStrictEqual(newerThread, newThreadPost);
+
+		newerThread = Tools.getNewerForumThread(oldThreadId + "/" + postId, newThreadIdPost);
+		assertStrictEqual(newerThread, newThreadPost);
+
+		postId = "#" + Tools.smogonForumPostPrefix + "789";
+		newThreadIdPost = newThreadId + "/" + postId;
+		newThreadPost = Tools.smogonForumPrefix + newThreadIdPost;
 
 		newerThread = Tools.getNewerForumThread(oldThreadId, newThreadIdPost);
 		assertStrictEqual(newerThread, newThreadPost);

@@ -21,7 +21,7 @@ const BATTLE_ROOM_PREFIX = 'battle-';
 const GROUPCHAT_PREFIX = 'groupchat-';
 const SMOGON_DEX_PREFIX = 'https://www.smogon.com/dex/';
 const SMOGON_FORUM_PREFIX = 'https://www.smogon.com/forums/threads/';
-const SMOGON_FORUM_POST_PREFIX = "#post-";
+const SMOGON_FORUM_POST_PREFIX = "post-";
 const maxMessageLength = 300;
 const maxUsernameLength = 18;
 const githubApiThrottle = 2 * 1000;
@@ -603,7 +603,7 @@ export class Tools {
 			if (id.endsWith('/')) id = id.substr(0, id.length - 1);
 			const parts = id.split('/');
 			const lastPart = parts[parts.length - 1];
-			if (lastPart.startsWith(SMOGON_FORUM_POST_PREFIX)) {
+			if (lastPart.startsWith(SMOGON_FORUM_POST_PREFIX) || lastPart.startsWith("#" + SMOGON_FORUM_POST_PREFIX)) {
 				parsedThread.id = parts[parts.length - 2] + '/' + lastPart;
 			} else {
 				parsedThread.id = lastPart;
