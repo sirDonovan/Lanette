@@ -137,7 +137,7 @@ const commands: GameCommandDefinitions<PoipolesRegionalPortals> = {
 
 export const game: IGameFile<PoipolesRegionalPortals> = {
 	aliases: ["poipoles", "prp", "regionalportals", "portals"],
-	category: 'strategy',
+	category: 'knowledge',
 	commandDescriptions: [Config.commandCharacter + "travel [location]"],
 	commands,
 	class: PoipolesRegionalPortals,
