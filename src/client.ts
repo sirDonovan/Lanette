@@ -34,7 +34,6 @@ const UHTML_CHAT_COMMAND = '/uhtml ';
 const UHTML_CHANGE_CHAT_COMMAND = '/uhtmlchange ';
 const HANGMAN_START_COMMAND = "/log A game of hangman was started by ";
 const HANGMAN_END_COMMAND = "/log (The game of hangman was ended by ";
-// const HOTPATCH_CHAT_COMMAND = ' used /hotpatch ';
 
 const DEFAULT_GROUP_SYMBOLS: KeyedDict<GroupName, string> = {
 	'administrator': '&',
@@ -167,7 +166,6 @@ let pongListener: (() => void) | null;
 export class Client {
 	botGreetingCooldowns: Dict<number> = {};
 	challstr: string = '';
-	connected: boolean = false;
 	connectionAttempts: number = 0;
 	connectionTimeout: NodeJS.Timer | undefined = undefined;
 	evasionFilterRegularExpressions: RegExp[] | null = null;
@@ -182,6 +180,7 @@ export class Client {
 	outgoingMessageQueue: IOutgoingMessage[] = [];
 	pauseIncomingMessages: boolean = true;
 	pauseOutgoingMessages: boolean = false;
+	pingWsAlive: boolean = true;
 	publicChatRooms: string[] = [];
 	reconnectRoomMessages: Dict<string[]> = {};
 	reconnectTime: number = Config.reconnectTime || 60 * 1000;
@@ -196,15 +195,13 @@ export class Client {
 	serverGroupsResponse: ServerGroupData[] = DEFAULT_SERVER_GROUPS;
 	serverId: string = 'showdown';
 	serverLatency: number = ASSUMED_SERVER_LATENCY;
-	serverLatencyInterval: NodeJS.Timer | null = null;
+	serverPingTimeout: NodeJS.Timer | null = null;
 	serverTimeOffset: number = 0;
 	serverProcessingTime: number = ASSUMED_SERVER_PROCESSING_TIME;
-	waitingOnServerPong: boolean = false;
 	webSocket: import('ws') | null = null;
 
 	constructor() {
 		connectListener = () => {
-			this.connected = true;
 			void this.onConnect();
 		};
 		messageListener = (message: Data) => this.onMessage(message);
@@ -255,15 +252,8 @@ export class Client {
 		this.clearServerLatencyInterval(previousClient);
 	}
 
-	setServerLatencyInterval(): void {
-		if (this.serverLatencyInterval) clearInterval(this.serverLatencyInterval);
-		this.serverLatencyInterval = setInterval(() => this.pingServer(), SERVER_LATENCY_INTERVAL);
-	}
-
 	clearServerLatencyInterval(previousClient?: boolean): void {
-		if (this.serverLatencyInterval) clearInterval(this.serverLatencyInterval);
-		if (this.failedPingTimeout) clearTimeout(this.failedPingTimeout);
-		this.waitingOnServerPong = false;
+		if (this.serverPingTimeout) clearTimeout(this.serverPingTimeout);
 
 		if (pongListener) {
 			if (this.webSocket) this.webSocket.off('pong', pongListener);
@@ -272,15 +262,16 @@ export class Client {
 	}
 
 	pingServer(): void {
-		if (!this.webSocket || this.waitingOnServerPong || this.reloadInProgress) return;
+		if (!this.webSocket || this.reloadInProgress) return;
+		if (!this.pingWsAlive) {
+			this.pingWsAlive = true;
+			this.reconnect();
+			return;
+		}
 
-		let receivedPong = false;
 		let pingTime = 0;
 		const newPongListener = () => {
-			if (this.failedPingTimeout) clearTimeout(this.failedPingTimeout);
-
-			receivedPong = true;
-			this.waitingOnServerPong = false;
+			this.pingWsAlive = true;
 
 			if (this.reloadInProgress || this !== global.Client || pongListener !== newPongListener) return;
 
@@ -289,33 +280,20 @@ export class Client {
 			} else {
 				this.serverLatency = ASSUMED_SERVER_LATENCY;
 			}
-
-			if (this.pauseOutgoingMessages) {
-				this.pauseOutgoingMessages = false;
-				this.setSendTimeout(this.lastSendTimeoutTime);
-			}
 		};
 
 		pongListener = newPongListener;
 
-		if (this.failedPingTimeout) clearTimeout(this.failedPingTimeout);
-		this.failedPingTimeout = setTimeout(() => this.reconnect(), SERVER_LATENCY_INTERVAL + 1000);
-
-		this.waitingOnServerPong = true;
-
+		this.pingWsAlive = false;
 		this.webSocket.once('pong', pongListener);
 		this.webSocket.ping('', undefined, () => {
-			if (!receivedPong) {
-				this.clearSendTimeout();
-				this.pauseOutgoingMessages = true;
-				pingTime = Date.now();
-			}
+			pingTime = Date.now();
+			this.serverPingTimeout = setTimeout(() => this.pingServer(), SERVER_LATENCY_INTERVAL + 1000);
 		});
 	}
 
 	onReload(previous: Partial<Client>): void {
-		if (previous.serverLatencyInterval) clearInterval(previous.serverLatencyInterval);
-		if (previous.failedPingTimeout) clearTimeout(previous.failedPingTimeout);
+		if (previous.serverPingTimeout) clearTimeout(previous.serverPingTimeout);
 		if (previous.reloginTimeout) clearTimeout(previous.reloginTimeout);
 
 		if (previous.lastSendTimeoutTime) this.lastSendTimeoutTime = previous.lastSendTimeoutTime;
@@ -324,12 +302,12 @@ export class Client {
 		if (previous.serverProcessingTime) this.serverProcessingTime = previous.serverProcessingTime;
 
 		if (previous.outgoingMessageQueue) this.outgoingMessageQueue = previous.outgoingMessageQueue.slice();
-		if (previous.connected) this.connected = previous.connected;
 		if (previous.webSocket) {
 			if (previous.removeClientListeners) previous.removeClientListeners(true);
 
 			this.webSocket = previous.webSocket;
 			this.setClientListeners();
+			this.pingServer();
 
 			if (previous.incomingMessageQueue) {
 				for (const message of previous.incomingMessageQueue.slice()) {
@@ -345,8 +323,6 @@ export class Client {
 
 				this.incomingMessageQueue = [];
 			}
-
-			this.setServerLatencyInterval();
 		}
 
 		if (previous.botGreetingCooldowns) Object.assign(this.botGreetingCooldowns, previous.botGreetingCooldowns);
@@ -392,8 +368,10 @@ export class Client {
 	}
 
 	onConnectionError(error: Error): void {
+		if (this.connectionTimeout) clearTimeout(this.connectionTimeout);
+		if (this.loginTimeout) clearTimeout(this.loginTimeout);
+
 		console.log('Connection error: ' + error.stack);
-		this.connected = false;
 		// 'close' is emitted directly after 'error' so reconnecting is handled in onConnectionClose
 	}
 
@@ -405,7 +383,6 @@ export class Client {
 		console.log('Reconnecting in ' + this.reconnectTime /  1000 + ' seconds');
 
 		this.removeClientListeners();
-		this.connected = false;
 		this.connectionTimeout = setTimeout(() => this.reconnect(true), this.reconnectTime);
 	}
 
@@ -418,8 +395,8 @@ export class Client {
 		console.log('Successfully connected');
 
 		if (this.challstr) this.reloginTimeout = setTimeout(() => this.login(), RELOGIN_SECONDS * 1000);
+
 		this.pingServer();
-		this.setServerLatencyInterval();
 		await Dex.fetchClientData();
 	}
 
@@ -481,6 +458,10 @@ export class Client {
 
 	reconnect(serverRestart?: boolean): void {
 		this.removeClientListeners();
+		if (this.webSocket) {
+			this.webSocket.terminate();
+			this.webSocket = null;
+		}
 		this.pauseOutgoingMessages = true;
 
 		if (serverRestart) {
@@ -488,8 +469,6 @@ export class Client {
 			Users.removeAll();
 			this.outgoingMessageQueue = [];
 		} else {
-			if (this.webSocket) this.webSocket.terminate();
-
 			this.roomsToRejoin = Rooms.getRoomIds();
 			if (Config.rooms && !Config.rooms.includes('lobby')) {
 				const index = this.roomsToRejoin.indexOf('lobby');
@@ -518,7 +497,6 @@ export class Client {
 			}
 		}
 
-		this.connected = false;
 		this.loggedIn = false;
 		this.connectionAttempts = 0;
 		this.connect();
@@ -980,15 +958,6 @@ export class Client {
 				} else if (messageArguments.message.includes(HANGMAN_END_COMMAND)) {
 					delete room.serverHangman;
 				}
-				/*
-				if (messageArguments.message.includes(HOTPATCH_CHAT_COMMAND)) {
-					const hotpatched = messageArguments.message.substr(messageArguments.message.indexOf(HOTPATCH_CHAT_COMMAND) +
-						HOTPATCH_CHAT_COMMAND.length).trim();
-					if (hotpatched === 'formats' || hotpatched === 'battles') {
-						if (Config.autoUpdatePS) void Tools.runUpdatePS();
-					}
-				}
-				*/
 			}
 
 			break;
@@ -1726,7 +1695,7 @@ export class Client {
 
 	send(outgoingMessage: IOutgoingMessage): void {
 		if (!outgoingMessage.message) return;
-		if (!this.webSocket || !this.connected || this.sendTimeout || this.pauseOutgoingMessages) {
+		if (!this.webSocket || this.sendTimeout || this.pauseOutgoingMessages) {
 			this.outgoingMessageQueue.push(outgoingMessage);
 			return;
 		}
