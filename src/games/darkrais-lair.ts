@@ -276,13 +276,20 @@ class DarkraisLair extends MapGame {
 		}
 
 		let emptyTeams = 0;
+		const shadowPitPlayers: Player[] = [];
 		for (const team in this.teams) {
 			const remainingTeamPlayers = this.getRemainingPlayers(this.teams[team].players);
 			let allInShadowPit = true;
 			for (const i in remainingTeamPlayers) {
-				const playerCoordinates = this.playerCoordinates.get(remainingTeamPlayers[i])!;
+				const player = remainingTeamPlayers[i];
+				const playerCoordinates = this.playerCoordinates.get(player)!;
 				const coordinateString = this.coordinatesToString(playerCoordinates[0], playerCoordinates[1]);
-				if (coordinateString in this.shadowPits) continue;
+				if (coordinateString in this.shadowPits) {
+					player.eliminated = true;
+					shadowPitPlayers.push(player);
+					continue;
+				}
+
 				allInShadowPit = false;
 				break;
 			}
@@ -301,6 +308,10 @@ class DarkraisLair extends MapGame {
 
 			this.timeout = setTimeout(() => this.end(), 5000);
 			return;
+		}
+
+		for (const player of shadowPitPlayers) {
+			player.eliminated = false;
 		}
 
 		this.roundActions.clear();
