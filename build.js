@@ -5,6 +5,11 @@ const util = require('util');
 
 const builtFolder = path.join(__dirname, "built");
 const srcFolder = path.join(__dirname, "src");
+const pokemonShowdown = path.join(__dirname, 'pokemon-showdown');
+
+const removeFromBuild = ["require('better-sqlite3')"];
+const removeFromPackageJson = ["@types/better-sqlite3", "better-sqlite3", "husky"];
+
 const exec = util.promisify(child_process.exec);
 
 // Modified from https://stackoverflow.com/a/32197381
@@ -80,6 +85,41 @@ function pruneBuiltFiles() {
 	}
 }
 
+function rewritePokemonShowdownPackageJson() {
+	const packageJsonPath = path.join(pokemonShowdown, "package.json");
+	const packageJson = JSON.parse(fs.readFileSync(packageJsonPath).toString().split("\n").join(""));
+
+	for (const dependency in packageJson.dependencies) {
+		if (removeFromPackageJson.includes(dependency)) delete packageJson.dependencies[dependency];
+	}
+	for (const dependency in packageJson.devDependencies) {
+		if (removeFromPackageJson.includes(dependency)) delete packageJson.devDependencies[dependency];
+	}
+
+	fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson));
+}
+
+function rewritePokemonShowdownBuild() {
+	const buildFilePath = path.join(pokemonShowdown, "build");
+	const buildFile = fs.readFileSync(buildFilePath).toString().split("\n");
+
+	const newBuildFile = [];
+	for (const line of buildFile) {
+		let remove = false;
+		for (const lineToRemove of removeFromBuild) {
+			if (line.includes(lineToRemove)) {
+				remove = true;
+				break;
+			}
+		}
+
+		if (remove) continue;
+		newBuildFile.push(line);
+	}
+
+	fs.writeFileSync(buildFilePath, newBuildFile.join("\n"));
+}
+
 async function setToSha(sha) {
 	return await exec('git reset --hard ' + sha).catch(e => console.log(e));
 }
@@ -100,7 +140,6 @@ module.exports = async (resolve, reject, options) => {
 
 	if (!options.offline) {
 		console.log("Checking pokemon-showdown remote...");
-		const pokemonShowdown = path.join(__dirname, 'pokemon-showdown');
 		const remoteDirectories = [path.join(__dirname, 'Pokemon-Showdown'), pokemonShowdown];
 		const lanetteRemote = fs.readFileSync(path.join(__dirname, "pokemon-showdown-remote.txt")).toString();
 		let needsClone = true;
@@ -149,6 +188,13 @@ module.exports = async (resolve, reject, options) => {
 		console.log("Checking pokemon-showdown version...");
 		process.chdir(pokemonShowdown);
 
+		// revert build and package.json changes
+		let cmd = await exec('git reset --hard').catch(e => console.log(e));
+		if (!cmd || cmd.Error) {
+			reject();
+			return;
+		}
+
 		const revParseOutput = await exec('git rev-parse master').catch(e => console.log(e));
 		if (!revParseOutput || revParseOutput.Error) {
 			reject();
@@ -157,7 +203,7 @@ module.exports = async (resolve, reject, options) => {
 
 		const currentSha = revParseOutput.stdout.replace("\n", "");
 
-		const cmd = await exec('git pull').catch(e => console.log(e));
+		cmd = await exec('git pull').catch(e => console.log(e));
 		if (!cmd || cmd.Error) {
 			await setToSha(currentSha);
 			reject();
@@ -221,6 +267,7 @@ module.exports = async (resolve, reject, options) => {
 
 		if (buildPokemonShowdown) {
 			console.log("Installing pokemon-showdown dependencies...");
+			rewritePokemonShowdownPackageJson();
 			const npmInstallOutput = await exec('npm install').catch(e => console.log(e));
 			if (!npmInstallOutput || npmInstallOutput.Error) {
 				await setToSha(currentSha);
@@ -233,6 +280,7 @@ module.exports = async (resolve, reject, options) => {
 			}
 
 			console.log("Running pokemon-showdown build script...");
+			rewritePokemonShowdownBuild();
 			const nodeBuildOutput = await exec('node build --force').catch(e => console.log(e));
 			if (!nodeBuildOutput || nodeBuildOutput.Error) {
 				await setToSha(currentSha);
