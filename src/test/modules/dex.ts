@@ -990,7 +990,7 @@ describe("Dex", () => {
 		// forme + base species not in usablePokemon
 		possibleTeams = Dex.getPossibleTeams([["Mr. Mime"], ["Mr. Mime-Galar"]], ["Lycanroc-Midnight"],
 			{additions: 1, evolutions: -1, allowFormes: true, requiredAddition: true, requiredEvolution: true,
-			usablePokemon: Dex.getUsablePokemon(Dex.getExistingFormat("nu"))}).map(x => x.join(','));
+			usablePokemon: ['Lycanroc-Midnight', 'Mime Jr.', 'Mr. Mime', 'Mr. Mime-Galar', 'Rockruff']}).map(x => x.join(','));
 		assertStrictEqual(possibleTeams.length, 3);
 		assert(possibleTeams.includes('Lycanroc-Midnight,Mime Jr.'));
 		assert(possibleTeams.includes('Mr. Mime,Rockruff'));

@@ -1716,8 +1716,8 @@ export class Client {
 
 	clearLastOutgoingMessage(responseTime: number): void {
 		if (this.lastOutgoingMessage) {
-			if (this.lastOutgoingMessage.measure) {
-				let serverProcessingTime = responseTime - this.lastOutgoingMessage.sentTime! - this.serverLatency;
+			if (this.lastOutgoingMessage.measure && this.lastOutgoingMessage.sentTime) {
+				let serverProcessingTime = responseTime - this.lastOutgoingMessage.sentTime - this.serverLatency;
 				if (serverProcessingTime < ASSUMED_SERVER_PROCESSING_TIME) serverProcessingTime = ASSUMED_SERVER_PROCESSING_TIME;
 				this.serverProcessingTime = serverProcessingTime;
 			}
