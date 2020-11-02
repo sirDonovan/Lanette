@@ -29,12 +29,12 @@ class HypnosHunches extends QuestionAndAnswer {
 	updateHintTime = 3000;
 
 	static loadData(): void {
-		data["Characters"] = Dex.getCharacters();
-		data["Locations"] = Dex.getLocations();
-		data["Pokemon"] = Games.getPokemonList().map(x => x.name);
-		data["Pokemon Abilities"] = Games.getAbilitiesList().map(x => x.name);
-		data["Pokemon Items"] = Games.getItemsList().map(x => x.name);
-		data["Pokemon Moves"] = Games.getMovesList().map(x => x.name);
+		data["Characters"] = Dex.getCharacters().filter(x => x.length >= 3);
+		data["Locations"] = Dex.getLocations().filter(x => x.length >= 3);
+		data["Pokemon"] = Games.getPokemonList(x => x.name.length >= 3).map(x => x.name);
+		data["Pokemon Abilities"] = Games.getAbilitiesList(x => x.name.length >= 3).map(x => x.name);
+		data["Pokemon Items"] = Games.getItemsList(x => x.name.length >= 3).map(x => x.name);
+		data["Pokemon Moves"] = Games.getMovesList(x => x.name.length >= 3).map(x => x.name);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

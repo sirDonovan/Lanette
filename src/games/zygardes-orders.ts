@@ -38,12 +38,12 @@ class ZygardesOrders extends QuestionAndAnswer {
 	updateHintTime = 5 * 1000;
 
 	static loadData(): void {
-		data["Characters"] = Dex.getCharacters().filter(x => x.length < 18);
-		data["Locations"] = Dex.getLocations().filter(x => x.length < 18);
-		data["Pokemon"] = Games.getPokemonList().filter(x => x.name.length < 18).map(x => x.name);
-		data["Pokemon Abilities"] = Games.getAbilitiesList().filter(x => x.name.length < 18).map(x => x.name);
-		data["Pokemon Items"] = Games.getItemsList().filter(x => x.name.length < 18).map(x => x.name);
-		data["Pokemon Moves"] = Games.getMovesList().filter(x => x.name.length < 18).map(x => x.name);
+		data["Characters"] = Dex.getCharacters().filter(x => x.length < 18 && x.length >= 3);
+		data["Locations"] = Dex.getLocations().filter(x => x.length < 18 && x.length >= 3);
+		data["Pokemon"] = Games.getPokemonList(x => x.name.length < 18 && x.name.length >= 3).map(x => x.name);
+		data["Pokemon Abilities"] = Games.getAbilitiesList(x => x.name.length < 18 && x.name.length >= 3).map(x => x.name);
+		data["Pokemon Items"] = Games.getItemsList(x => x.name.length < 18 && x.name.length >= 3).map(x => x.name);
+		data["Pokemon Moves"] = Games.getMovesList(x => x.name.length < 18 && x.name.length >= 3).map(x => x.name);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
