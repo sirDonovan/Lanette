@@ -5,7 +5,6 @@ export const locations: LocationData = {
 		city: [
 			"Celadon",
 			"Cerulean",
-			"Cinnabar",
 			"Fuchsia",
 			"Pewter",
 			"Saffron",
@@ -21,13 +20,16 @@ export const locations: LocationData = {
 			"Diglett's Cave",
 		],
 		forest: [
+			"Berry Forest",
 			"Viridian Forest",
 		],
 		mountain: [
 			"Indigo Plateau",
+			"Mt. Ember",
 			"Mt. Moon",
 		],
 		other: [
+			"Cinnabar Island",
 			"Pokemon Mansion",
 			"Pokemon Tower",
 			"Power Plant",
@@ -40,7 +42,6 @@ export const locations: LocationData = {
 	},
 	johto: {
 		city: [
-			"Azalea",
 			"Blackthorn",
 			"Cherrygrove",
 			"Cianwood",
@@ -50,6 +51,7 @@ export const locations: LocationData = {
 			"Violet",
 		],
 		town: [
+			"Azalea",
 			"Mahogany",
 			"New Bark",
 		],
