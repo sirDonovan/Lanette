@@ -993,6 +993,7 @@ const commands: GameCommandDefinitions<HauntersHauntedHouse> = {
 	up: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
+			if (!this.canMove) return false;
 			const player = this.players[user.id];
 			this.movePlayer(player, target, 'up');
 			return this.playerRemainingTurnMoves.get(player) === 0;
@@ -1001,6 +1002,7 @@ const commands: GameCommandDefinitions<HauntersHauntedHouse> = {
 	down: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
+			if (!this.canMove) return false;
 			const player = this.players[user.id];
 			this.movePlayer(player, target, 'down');
 			return this.playerRemainingTurnMoves.get(player) === 0;
@@ -1009,6 +1011,7 @@ const commands: GameCommandDefinitions<HauntersHauntedHouse> = {
 	left: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
+			if (!this.canMove) return false;
 			const player = this.players[user.id];
 			this.movePlayer(player, target, 'left');
 			return this.playerRemainingTurnMoves.get(player) === 0;
@@ -1017,6 +1020,7 @@ const commands: GameCommandDefinitions<HauntersHauntedHouse> = {
 	right: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
+			if (!this.canMove) return false;
 			const player = this.players[user.id];
 			this.movePlayer(player, target, 'right');
 			return this.playerRemainingTurnMoves.get(player) === 0;
@@ -1025,6 +1029,7 @@ const commands: GameCommandDefinitions<HauntersHauntedHouse> = {
 	wait: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
+			if (!this.canMove) return false;
 			const player = this.players[user.id];
 			const remainingTurnMoves = this.playerRemainingTurnMoves.get(player);
 			if (remainingTurnMoves === 0) return false;
