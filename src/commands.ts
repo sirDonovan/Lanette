@@ -1903,6 +1903,7 @@ const commands: CommandDefinitions<CommandContext> = {
 
 			if (cmd.startsWith('r')) points *= -1;
 			let reachedCap = 0;
+			const players: Array<String> = [];
 			for (const otherUser of users) {
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				const player = room.userHostedGame.players[otherUser.id] || room.userHostedGame.createPlayer(otherUser);
@@ -1912,7 +1913,8 @@ const commands: CommandDefinitions<CommandContext> = {
 					if (room.userHostedGame.teams) {
 						if (player.team!.points >= room.userHostedGame.scoreCap) reachedCap++;
 					} else {
-						if (total >= room.userHostedGame.scoreCap) reachedCap++;
+						if (total >= room.userHostedGame.scoreCap && !players.includes(player.id)) reachedCap++;
+						players.push(player.id);
 					}
 				}
 			}
