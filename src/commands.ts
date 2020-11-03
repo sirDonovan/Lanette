@@ -1903,7 +1903,7 @@ const commands: CommandDefinitions<CommandContext> = {
 
 			if (cmd.startsWith('r')) points *= -1;
 			let reachedCap = 0;
-			const players: Array<String> = [];
+			const players: String[] = [];
 			for (const otherUser of users) {
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				const player = room.userHostedGame.players[otherUser.id] || room.userHostedGame.createPlayer(otherUser);
