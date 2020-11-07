@@ -12,7 +12,7 @@ import type { CommandDefinitions } from "./types/command-parser";
 import type { LocationTypes } from './types/dex';
 import type { GameDifficulty, IGameFormat } from "./types/games";
 import type { IFormat, IPokemon } from "./types/pokemon-showdown";
-import type { IUserHostedGameStats, UserHostStatus } from './types/storage';
+import type { IUserHostedGameStats, LeaderboardType, UserHostStatus } from './types/storage';
 import type { IBattleData, TournamentPlace } from './types/tournaments';
 import type { User } from "./users";
 
@@ -20,6 +20,13 @@ const AWARDED_BOT_GREETING_DURATION = 60 * 24 * 60 * 60 * 1000;
 const ONE_VS_ONE_GAME_COOLDOWN = 2 * 60 * 60 * 1000;
 const RANDOM_GENERATOR_LIMIT = 6;
 const LOCATION_TYPES: LocationTypes[] = ['town', 'city', 'cave', 'forest', 'mountain', 'other'];
+
+// aliases
+const tournamentLeaderboardAliases = ['tournamentleaderboard', 'tourleaderboard', 'tourlb', 'tournamenttop', 'tourtop'];
+const gameLeaderboardAliases = ['gameleaderboard', 'gamelb', 'gametop'];
+const tournamentRankAliases = ['tournamentrank', 'tourrank', 'tournamentpoints', 'tourpoints'];
+const gameRankAliases = ['gamerank', 'gamepoints', 'bits'];
+const addGamePointsAliases = ['addbits', 'addbit', 'abits', 'abit', 'removebits', 'removebit', 'rbits', 'rbit'];
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
@@ -1832,14 +1839,14 @@ const commands: CommandDefinitions<CommandContext> = {
 		},
 		aliases: ['clearplayers', 'clearpl'],
 	},
-	addpoints: {
+	addgamepoints: {
 		async asyncCommand(target, room, user, cmd) {
 			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			if (!room.userHostedGame.started) {
 				return this.say("You must first start the game with ``" + Config.commandCharacter + "startgame``.");
 			}
 			if (target.includes("|")) {
-				await this.runMultipleTargets("|");
+				await this.runMultipleTargets("|", cmd);
 				return;
 			}
 
@@ -1926,7 +1933,7 @@ const commands: CommandDefinitions<CommandContext> = {
 					"cap in your game.");
 			}
 		},
-		aliases: ['addpoint', 'removepoint', 'removepoints', 'apoint', 'apoints', 'rpoint', 'rpoints', 'apt', 'rpt'],
+		aliases: ['addgamepoint', 'removegamepoints', 'removegamepoint'],
 	},
 	addpointall: {
 		async asyncCommand(target, room, user, cmd) {
@@ -1936,7 +1943,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			}
 			if (target && !Tools.isInteger(target)) return this.say("You must specify a valid number of points.");
 			this.runningMultipleTargets = true;
-			const newCmd = cmd === 'aptall' || cmd === 'addpointall' ? 'addpoint' : 'removepoint';
+			const newCmd = cmd.startsWith('r') ? 'removegamepoint' : 'addgamepoint';
 			const pointsString = target ? ", " + target : "";
 			for (const i in room.userHostedGame.players) {
 				if (room.userHostedGame.players[i].eliminated) continue;
@@ -2208,7 +2215,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			}
 
 			for (const player of players) {
-				Storage.addPoints(room, player.name, playerBits, 'userhosted');
+				Storage.addPoints(room, Storage.gameLeaderboard, player.name, playerBits, 'userhosted');
 				player.say("You were awarded " + playerBits + " bits! To see your total amount, use this command: ``" +
 					Config.commandCharacter + "bits " + room.title + "``");
 			}
@@ -3512,64 +3519,92 @@ const commands: CommandDefinitions<CommandContext> = {
 		},
 		aliases: ['seen'],
 	},
-	addbits: {
+	addpoints: {
 		async asyncCommand(target, room, user, cmd) {
-			if (this.isPm(room) || ((!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) &&
-				(!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id))) || !user.hasRank(room, 'voice')) return;
-			if (target.includes("|")) {
-				await this.runMultipleTargets("|");
+			if (this.isPm(room)) return;
+			if (room.userHostedGame && room.userHostedGame.isHost(user)) {
+				await this.run(cmd.startsWith('r') ? "removegamepoint" : "addgamepoint");
 				return;
 			}
+			if (!user.hasRank(room, 'voice')) return;
+
+			let leaderboardType: LeaderboardType;
+			if (addGamePointsAliases.includes(cmd)) {
+				leaderboardType = 'gameLeaderboard';
+			} else {
+				leaderboardType = 'unsortedLeaderboard';
+			}
+
+			const game = leaderboardType === 'gameLeaderboard';
+			if (game && (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) &&
+				(!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id))) return;
+
+			if (target.includes("|")) {
+				await this.runMultipleTargets("|", cmd);
+				return;
+			}
+
 			const targets = target.split(",");
 			const users: string[] = [];
-			const removeBits = cmd === 'removebits' || cmd === 'rbits';
-			let customBits: number | null = null;
+			const remove = cmd.startsWith('r');
+			let customAmount: number | null = null;
 			for (const name of targets) {
 				const id = Tools.toId(name);
 				if (!id) continue;
 				if (Tools.isInteger(id)) {
-					customBits = parseInt(name.trim());
+					customAmount = parseInt(name.trim());
+					if (customAmount < 0) {
+						return this.say("You must use ``" + Config.commandCharacter + "removepoints`` instead of a negative number.");
+					}
 				} else {
 					users.push(name);
 				}
 			}
 
-			if (!users.length) return this.say("You must specify at least 1 user to receive bits.");
+			if (!users.length) return this.say("You must specify at least 1 user to receive " + (game ? "bits" : "points") + ".");
 
-			let bits = 100;
-			let bitsLimit = 500;
-			if (user.hasRank(room, 'driver')) bitsLimit = 5000;
-			if (customBits) {
-				if (customBits > bitsLimit) {
-					customBits = bitsLimit;
-				} else if (customBits < 0) {
-					customBits = 0;
-				}
-				bits = customBits;
+			let points: number;
+			let limit: number;
+			if (game) {
+				points = 100;
+				limit = user.hasRank(room, 'driver') ? 5000 : 500;
+			} else {
+				points = 1;
+				limit = user.hasRank(room, 'driver') ? 1000 : 100;
 			}
+
+			if (customAmount) {
+				if (customAmount > limit) {
+					customAmount = limit;
+				}
+				points = customAmount;
+			}
+
+			const pointsName = (game ? "bit" : "point") + (points > 1 ? "s" : "");
 
 			for (let i = 0; i < users.length; i++) {
 				const targetUser = Users.get(users[i]);
 				if (targetUser) users[i] = targetUser.name;
-				if (removeBits) {
-					Storage.removePoints(room, users[i], bits, 'manual');
+				if (remove) {
+					Storage.removePoints(room, leaderboardType, users[i], points, 'manual');
 				} else {
-					Storage.addPoints(room, users[i], bits, 'manual');
+					Storage.addPoints(room, leaderboardType, users[i], points, 'manual');
 					if (targetUser && targetUser.rooms.has(room)) {
-						targetUser.say("You were awarded " + bits + " bits! To see your total amount, use this command: ``" +
-							Config.commandCharacter + "rank " + room.title + "``");
+						targetUser.say("You were awarded " + points + " " + pointsName + "! To see your total amount, use this command: " +
+							"``" + Config.commandCharacter + (game ? "bits" : "rank") + " " + room.title + "``");
 					}
 				}
 			}
 
 			const userList = Tools.joinList(users);
-			if (removeBits) {
-				this.say("Removed " + bits + " bits from " + userList + ".");
+			if (remove) {
+				this.say("Removed " + points + " " + pointsName + " from " + userList + ".");
 			} else {
-				this.say("Added " + bits + " bits for " + userList + ".");
+				this.say("Added " + points + " " + pointsName + " for " + userList + ".");
 			}
 		},
-		aliases: ['abits', 'removebits', 'rbits'],
+		aliases: ['addpoint', 'removepoint', 'removepoints', 'apoint', 'apoints', 'rpoint', 'rpoints', 'apt', 'rpt']
+			.concat(addGamePointsAliases),
 	},
 	addsemifinalistpoints: {
 		command(target, room, user, cmd) {
@@ -3613,7 +3648,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			const targetUser = Users.get(targetUserName);
 			if (targetUser) targetUserName = targetUser.name;
 
-			Storage.addPoints(room, targetUserName, points, format.id);
+			Storage.addPoints(room, Storage.tournamentLeaderboard, targetUserName, points, format.id);
 			this.say("Added " + pointsString + " for " + targetUserName + ".");
 			if (targetUser && targetUser.rooms.has(room)) {
 				targetUser.say("You were awarded " + pointsString + " for being " + (placeName === "semifinalist" ? "a" : "the") + " " +
@@ -3666,7 +3701,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			const targetUser = Users.get(targetUserName);
 			if (targetUser) targetUserName = targetUser.name;
 
-			Storage.addPoints(room, targetUserName, points, format.id);
+			Storage.addPoints(room, Storage.tournamentLeaderboard, targetUserName, points, format.id);
 			this.say("Added " + pointsString + " for " + targetUserName + ".");
 			if (targetUser && targetUser.rooms.has(room)) {
 				targetUser.say("You were awarded your " + pointsString + " for being " +
@@ -3681,7 +3716,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			'makewinnerpointsofficial'],
 	},
 	leaderboard: {
-		command(target, room, user) {
+		command(target, room, user, cmd) {
 			const targets = target.split(',');
 			let leaderboardRoom: Room;
 			if (this.isPm(room)) {
@@ -3693,29 +3728,48 @@ const commands: CommandDefinitions<CommandContext> = {
 				if (!user.hasRank(room, 'voice')) return;
 				leaderboardRoom = room;
 			}
+
 			const database = Storage.getDatabase(leaderboardRoom);
-			if (!database.leaderboard) return this.say("There is no leaderboard for the " + leaderboardRoom.title + " room.");
-			let users = Object.keys(database.leaderboard);
+			let leaderboardType: LeaderboardType;
+			if (gameLeaderboardAliases.includes(cmd)) {
+				leaderboardType = 'gameLeaderboard';
+			} else if (tournamentLeaderboardAliases.includes(cmd)) {
+				leaderboardType = 'tournamentLeaderboard';
+			} else {
+				leaderboardType = Storage.getDefaultLeaderboardType(database);
+			}
+
+			const leaderboardName = (leaderboardType === 'tournamentLeaderboard' ? 'tournament ' : leaderboardType === 'gameLeaderboard' ?
+				'game ' : '') + "leaderboard";
+			const leaderboard = database[leaderboardType];
+			if (!leaderboard) {
+				return this.say("There is no " + leaderboardName + " for the " + leaderboardRoom.title + " room.");
+			}
+
+			const game = leaderboardType === 'gameLeaderboard';
+			let users = Object.keys(leaderboard);
 			let startPosition = 0;
 			let source: IFormat | IGameFormat | undefined;
 			let annual = false;
 			for (const option of targets) {
 				const id = Tools.toId(option);
 				if (Tools.isInteger(id)) {
-					if (startPosition) return this.say("You can only specify 1 position on the leaderboard.");
+					if (startPosition) return this.say("You can only specify 1 position on the " + leaderboardName + ".");
 					startPosition = parseInt(id);
 				} else if (id === 'annual' || id === 'alltime') {
 					annual = true;
 				} else {
-					const format = Dex.getFormat(option);
-					if (format && format.effectType === 'Format') {
-						if (source) return this.say("You can only specify 1 point source.");
-						source = format;
-					} else {
+					if (game) {
 						const gameFormat = Games.getFormat(option);
 						if (!Array.isArray(gameFormat)) {
 							if (source) return this.say("You can only specify 1 point source.");
 							source = gameFormat;
+						}
+					} else {
+						const format = Dex.getFormat(option);
+						if (format && format.effectType === 'Format') {
+							if (source) return this.say("You can only specify 1 point source.");
+							source = format;
 						}
 					}
 				}
@@ -3732,21 +3786,21 @@ const commands: CommandDefinitions<CommandContext> = {
 			if (annual && source) {
 				for (const id of users) {
 					let points = 0;
-					if (database.leaderboard[id].sources[source.id]) points += database.leaderboard[id].sources[source.id];
-					if (database.leaderboard[id].annualSources[source.id]) points += database.leaderboard[id].annualSources[source.id];
+					if (leaderboard[id].sources[source.id]) points += leaderboard[id].sources[source.id];
+					if (leaderboard[id].annualSources[source.id]) points += leaderboard[id].annualSources[source.id];
 					pointsCache[id] = points;
 				}
 			} else if (annual) {
 				for (const id of users) {
-					pointsCache[id] = database.leaderboard[id].annual + database.leaderboard[id].current;
+					pointsCache[id] = leaderboard[id].annual + leaderboard[id].current;
 				}
 			} else if (source) {
 				for (const id of users) {
-					pointsCache[id] = database.leaderboard[id].sources[source.id] || 0;
+					pointsCache[id] = leaderboard[id].sources[source.id] || 0;
 				}
 			} else {
 				for (const id of users) {
-					pointsCache[id] = database.leaderboard[id].current;
+					pointsCache[id] = leaderboard[id].current;
 				}
 			}
 
@@ -3759,17 +3813,8 @@ const commands: CommandDefinitions<CommandContext> = {
 			const positions = 10;
 			for (let i = startPosition; i < users.length; i++) {
 				if (!users[i]) break;
-				const points = pointsCache[users[i]] || database.leaderboard[users[i]].current;
-				const position = '' + (i + 1);
-				if (position.endsWith('1') && !position.endsWith('11')) {
-					output.push(position + "st: __" + database.leaderboard[users[i]].name + "__ (" + points + ")");
-				} else if (position.endsWith('2') && !position.endsWith('12')) {
-					output.push(position + "nd: __" + database.leaderboard[users[i]].name + "__ (" + points + ")");
-				} else if (position.endsWith('3') && !position.endsWith('13')) {
-					output.push(position + "rd: __" + database.leaderboard[users[i]].name + "__ (" + points + ")");
-				} else {
-					output.push(position + "th: __" + database.leaderboard[users[i]].name + "__ (" + points + ")");
-				}
+				const points = pointsCache[users[i]] || leaderboard[users[i]].current;
+				output.push(Tools.toNumberOrderString(i + 1) + ": __" + leaderboard[users[i]].name + "__ (" + points + ")");
 				if (output.length === positions) break;
 			}
 			let endPosition = startPosition + positions;
@@ -3777,19 +3822,37 @@ const commands: CommandDefinitions<CommandContext> = {
 			this.say("``" + (annual ? "Annual " : "") + (source ? source.name + " " : "") + "Top " + endPosition + " of " + users.length +
 				"``: " + output.join(", "));
 		},
-		aliases: ['lb', 'top'],
+		aliases: ['lb', 'top'].concat(tournamentLeaderboardAliases, gameLeaderboardAliases),
 	},
 	rank: {
-		command(target, room, user) {
+		command(target, room, user, cmd) {
 			if (!this.isPm(room)) return;
 			const targets = target.split(',');
 			const targetRoom = Rooms.search(targets[0]);
 			if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 			targets.shift();
+
 			const database = Storage.getDatabase(targetRoom);
-			if (!database.leaderboard) return this.say("There is no leaderboard for the " + targetRoom.title + " room.");
-			const users = Object.keys(database.leaderboard);
-			if (!users.length) return this.say("The " + targetRoom.title + " leaderboard is empty.");
+			let leaderboardType: LeaderboardType;
+			if (tournamentRankAliases.includes(cmd)) {
+				leaderboardType = 'tournamentLeaderboard';
+			} else if (gameRankAliases.includes(cmd)) {
+				leaderboardType = 'gameLeaderboard';
+			} else {
+				leaderboardType = Storage.getDefaultLeaderboardType(database);
+			}
+
+			const leaderboardName = (leaderboardType === 'tournamentLeaderboard' ? 'tournament ' : leaderboardType === 'gameLeaderboard' ?
+				'game ' : '') + "leaderboard";
+			const leaderboard = database[leaderboardType];
+			if (!leaderboard) {
+				return this.say("There is no " + leaderboardName + " for the " + targetRoom.title + " room.");
+			}
+
+			const users = Object.keys(leaderboard);
+			if (!users.length) return this.say("The " + targetRoom.title + " " + leaderboardName + " is empty.");
+
+			const game = leaderboardType === 'gameLeaderboard';
 			let targetUser = '';
 			let position = 0;
 			let source: IFormat | IGameFormat | undefined;
@@ -3799,15 +3862,19 @@ const commands: CommandDefinitions<CommandContext> = {
 					if (position) return this.say("You can only specify 1 position on the leaderboard.");
 					position = parseInt(id);
 				} else {
-					const format = Dex.getFormat(option);
-					if (format && format.effectType === 'Format') {
-						if (source) return this.say("You can only specify 1 point source.");
-						source = format;
-					} else {
+					if (game) {
 						const gameFormat = Games.getFormat(option);
 						if (!Array.isArray(gameFormat)) {
 							if (source) return this.say("You can only specify 1 point source.");
 							source = gameFormat;
+						} else {
+							targetUser = id;
+						}
+					} else {
+						const format = Dex.getFormat(option);
+						if (format && format.effectType === 'Format') {
+							if (source) return this.say("You can only specify 1 point source.");
+							source = format;
 						} else {
 							targetUser = id;
 						}
@@ -3817,45 +3884,46 @@ const commands: CommandDefinitions<CommandContext> = {
 
 			if (targetUser && position) return this.say("You cannot specify both a username and a position.");
 
-			const bits = (Config.allowScriptedGames && Config.allowScriptedGames.includes(targetRoom.id)) ||
-				(Config.allowUserHostedGames && Config.allowUserHostedGames.includes(targetRoom.id));
 			const currentPointsCache: Dict<number> = {};
 			const annualPointsCache: Dict<number> = {};
 			if (source) {
 				for (const id of users) {
 					let annualPoints = 0;
-					if (database.leaderboard[id].sources[source.id]) annualPoints += database.leaderboard[id].sources[source.id];
-					if (database.leaderboard[id].annualSources[source.id]) {
-						annualPoints += database.leaderboard[id].annualSources[source.id];
+					if (leaderboard[id].sources[source.id]) annualPoints += leaderboard[id].sources[source.id];
+					if (leaderboard[id].annualSources[source.id]) {
+						annualPoints += leaderboard[id].annualSources[source.id];
 					}
 					annualPointsCache[id] = annualPoints;
-					currentPointsCache[id] = database.leaderboard[id].sources[source.id] || 0;
+					currentPointsCache[id] = leaderboard[id].sources[source.id] || 0;
 				}
 			} else {
 				for (const id of users) {
-					annualPointsCache[id] = database.leaderboard[id].annual + database.leaderboard[id].current;
-					currentPointsCache[id] = database.leaderboard[id].current;
+					annualPointsCache[id] = leaderboard[id].annual + leaderboard[id].current;
+					currentPointsCache[id] = leaderboard[id].current;
 				}
 			}
 			const current = users.filter(x => currentPointsCache[x] !== 0).sort((a, b) => currentPointsCache[b] - currentPointsCache[a]);
 			const annual = users.filter(x => annualPointsCache[x] !== 0).sort((a, b) => annualPointsCache[b] - annualPointsCache[a]);
 
+			const pointsName = game ? "bit" : "point";
 			const results: string[] = [];
 			if (position) {
 				const index = position - 1;
 				if (current[index]) {
-					results.push("#" + position + " on the " + targetRoom.title + " " + (source ? source.name + " " : "") + "leaderboard " +
-						"is " + database.leaderboard[current[index]].name + " with " + (currentPointsCache[current[index]] ||
-						database.leaderboard[current[index]].current) + " " + (bits ? "bits" : "points") + ".");
+					const points = currentPointsCache[current[index]];
+					results.push("#" + position + " on the " + targetRoom.title + " " + (source ? source.name + " " : "") + " " +
+						leaderboardName + " is " + leaderboard[current[index]].name + " with " + points + " " +
+						pointsName + (points !== 1 ? "s" : "") + ".");
 				}
 				if (annual[index]) {
+					const points = annualPointsCache[annual[index]];
 					results.push("#" + position + " on the annual " + targetRoom.title + " " + (source ? source.name + " " : "") +
-						"leaderboard is " + database.leaderboard[annual[index]].name + " with " + annualPointsCache[annual[index]] + " " +
-						(bits ? "bits" : "points") + ".");
+						" " + leaderboardName + " is " + leaderboard[annual[index]].name + " with " + points + " " +
+						pointsName + (points !== 1 ? "s" : "") + ".");
 				}
 				if (!results.length) {
 					return this.say("No one is #" + position + " on the " + targetRoom.title + " " + (source ? source.name + " " : "") +
-						"leaderboard.");
+						leaderboardName + ".");
 				}
 			} else {
 				if (!targetUser) targetUser = user.id;
@@ -3863,31 +3931,52 @@ const commands: CommandDefinitions<CommandContext> = {
 				const currentIndex = current.indexOf(targetUser);
 				const annualIndex = annual.indexOf(targetUser);
 				if (currentIndex !== -1) {
-					results.push((self ? "You are" : database.leaderboard[targetUser].name + " is") + " #" + (currentIndex + 1) + " on " +
-						"the " + targetRoom.title + " " + (source ? source.name + " " : "") + "leaderboard with " +
-						(currentPointsCache[targetUser] || database.leaderboard[targetUser].current) + " " + (bits ? "bits" : "points") +
+					results.push((self ? "You are" : leaderboard[targetUser].name + " is") + " #" + (currentIndex + 1) + " on " +
+						"the " + targetRoom.title + " " + (source ? source.name + " " : "") + " " + leaderboardName + " with " +
+						currentPointsCache[targetUser] + " " + pointsName + (currentPointsCache[targetUser] !== 1 ? "s" : "") +
 						".");
 				}
 				if (annualIndex !== -1) {
-					results.push((self ? "You are" : database.leaderboard[targetUser].name + " is") + " #" + (annualIndex + 1) + " on " +
-						"the annual " + targetRoom.title + " " + (source ? source.name + " " : "") + "leaderboard with " +
-						annualPointsCache[targetUser] + " " + (bits ? "bits" : "points") + ".");
+					results.push((self ? "You are" : leaderboard[targetUser].name + " is") + " #" + (annualIndex + 1) + " on " +
+						"the annual " + targetRoom.title + " " + (source ? source.name + " " : "") + " " + leaderboardName + " with " +
+						annualPointsCache[targetUser] + " " + pointsName + (annualPointsCache[targetUser] !== 1 ? "s" : "") +
+						".");
 				}
 				if (!results.length) {
-					return this.say((self ? "You are" : targetUser in database.leaderboard ? database.leaderboard[targetUser].name :
+					return this.say((self ? "You are" : targetUser in leaderboard ? leaderboard[targetUser].name :
 						targetUser + " is") + " not " + "on the " + targetRoom.title + " " + (source ? source.name + " " : "") +
-						"leaderboard.");
+						leaderboardName + ".");
 				}
 			}
 			this.say(results.join(" "));
 		},
-		aliases: ['points', 'bits'],
+		aliases: ['points'].concat(tournamentRankAliases, gameRankAliases),
 	},
 	clearleaderboard: {
 		command(target, room, user) {
 			if (this.isPm(room) || (!user.hasRank(room, 'roomowner') && !user.isDeveloper())) return;
-			if (!Storage.clearLeaderboard(room.id)) return;
-			this.say("The leaderboard was cleared.");
+			const database = Storage.getDatabase(room);
+			let leaderboards = 0;
+			for (const type of Storage.allLeaderboardTypes) {
+				if (database[type]) leaderboards++;
+			}
+
+			if (!leaderboards) return this.say("There is no leaderboard for the " + room.title + " room.");
+
+			const leaderboardTypes: LeaderboardType[] = [];
+			if (target) {
+				const targets = target.split(",");
+				for (const type of targets) {
+					const id = Tools.toId(type) as LeaderboardType;
+					if (!Storage.allLeaderboardTypes.includes(id)) {
+						return this.say("'" + type.trim() + "' is not a valid leaderboard type.");
+					}
+					leaderboardTypes.push(id);
+				}
+			}
+
+			Storage.clearLeaderboard(room.id, leaderboardTypes);
+			this.say("The leaderboard" + (leaderboards > 1 ? "s were" : " was") + " cleared.");
 		},
 		aliases: ['resetleaderboard'],
 	},
@@ -4028,14 +4117,19 @@ const commands: CommandDefinitions<CommandContext> = {
 			if (targets.length > 1) {
 				if (!Tools.isUsernameLength(targets[1])) return this.say("You must specify a user.");
 				const targetUser = Tools.toId(targets[1]);
-				if (!database.leaderboard) return this.say("There is no leaderboard for the " + eventRoom.title + " room.");
-				if (!(targetUser in database.leaderboard)) return this.say(this.sanitizeResponse(targets[1].trim() + " does not have any " +
-					"event points."));
-				let eventPoints = 0;
-				for (const source in database.leaderboard[targetUser].sources) {
-					if (eventInformation.formatIds.includes(source)) eventPoints += database.leaderboard[targetUser].sources[source];
+				if (!database.tournamentLeaderboard) {
+					return this.say("There is no tournament leaderboard for the " + eventRoom.title + " room.");
 				}
-				this.say(database.leaderboard[targetUser].name + " has " + eventPoints + " points in" +
+				if (!(targetUser in database.tournamentLeaderboard)) {
+					return this.say(this.sanitizeResponse(targets[1].trim() + " does not have any event points."));
+				}
+				let eventPoints = 0;
+				for (const source in database.tournamentLeaderboard[targetUser].sources) {
+					if (eventInformation.formatIds.includes(source)) {
+						eventPoints += database.tournamentLeaderboard[targetUser].sources[source];
+					}
+				}
+				this.say(database.tournamentLeaderboard[targetUser].name + " has " + eventPoints + " points in" +
 					(!multipleFormats ? " the" : "") + " " + database.eventInformation[event].name + " format" +
 					(multipleFormats ? "s" : "") + ".");
 			} else {

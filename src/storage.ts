@@ -2,7 +2,7 @@ import fs = require('fs');
 import path = require('path');
 
 import type { Room } from './rooms';
-import type { IDatabase, IGlobalDatabase } from './types/storage';
+import type { IDatabase, IGlobalDatabase, Leaderboard, LeaderboardType } from './types/storage';
 import type { User } from './users';
 
 const MAX_QUEUED_OFFLINE_MESSAGES = 3;
@@ -14,15 +14,21 @@ const hostingDatabaseSuffix = '-hostingDB';
 const baseOfflineMessageLength = '[28 Jun 2019, 00:00:00 GMT-0500] **** said: '.length;
 
 export class Storage {
+	gameLeaderboard = 'gameLeaderboard' as const;
+	tournamentLeaderboard = 'tournamentLeaderboard' as const;
+	unsortedLeaderboard = 'unsortedLeaderboard' as const;
+
 	databases: Dict<IDatabase> = {};
 	databasesDir: string = path.join(Tools.rootFolder, 'databases');
 	lastSeenExpirationDuration = Tools.toDurationString(LAST_SEEN_EXPIRATION);
 	loadedDatabases: boolean = false;
 	reloadInProgress: boolean = false;
 
+	allLeaderboardTypes: LeaderboardType[];
 	globalDatabaseExportInterval: NodeJS.Timer;
 
 	constructor() {
+		this.allLeaderboardTypes = [this.gameLeaderboard, this.tournamentLeaderboard, this.unsortedLeaderboard];
 		this.globalDatabaseExportInterval = setInterval(() => this.exportDatabase(globalDatabaseId), 15 * 60 * 1000);
 	}
 
@@ -100,34 +106,46 @@ export class Storage {
 		}
 	}
 
-	clearLeaderboard(roomid: string): boolean {
-		if (!(roomid in this.databases) || !this.databases[roomid].leaderboard) return false;
+	getDefaultLeaderboardType(database: IDatabase): LeaderboardType {
+		if (database.tournamentLeaderboard) return 'tournamentLeaderboard';
+		if (database.gameLeaderboard) return 'gameLeaderboard';
+		return 'unsortedLeaderboard';
+	}
+
+	clearLeaderboard(roomid: string, leaderboardTypes?: LeaderboardType[]): boolean {
+		if (!(roomid in this.databases)) return false;
 		this.archiveDatabase(roomid);
+
+		if (!leaderboardTypes) leaderboardTypes = this.allLeaderboardTypes;
+		const database = this.databases[roomid];
 		const date = new Date();
 		const month = date.getMonth() + 1;
 		const day = date.getDate();
 		const clearAnnual = (month === 12 && day === 31) || (month === 1 && day === 1);
-		for (const i in this.databases[roomid].leaderboard) {
-			const user = this.databases[roomid].leaderboard![i];
-			if (clearAnnual) {
-				user.annual = 0;
-			} else {
-				user.annual += user.current;
-			}
-			user.current = 0;
+		for (const leaderboardType of leaderboardTypes) {
+			if (!database[leaderboardType]) continue;
+			for (const i in database[leaderboardType]) {
+				const user = database[leaderboardType]![i];
+				if (clearAnnual) {
+					user.annual = 0;
+				} else {
+					user.annual += user.current;
+				}
+				user.current = 0;
 
-			if (clearAnnual) {
-				user.annualSources = {};
-			} else {
-				for (const source in user.sources) {
-					if (source in user.annualSources) {
-						user.annualSources[source] += user.sources[source];
-					} else {
-						user.annualSources[source] = user.sources[source];
+				if (clearAnnual) {
+					user.annualSources = {};
+				} else {
+					for (const source in user.sources) {
+						if (source in user.annualSources) {
+							user.annualSources[source] += user.sources[source];
+						} else {
+							user.annualSources[source] = user.sources[source];
+						}
 					}
 				}
+				user.sources = {};
 			}
-			user.sources = {};
 		}
 
 		if (this.databases[roomid].userHostedGameStats) {
@@ -140,8 +158,8 @@ export class Storage {
 		return true;
 	}
 
-	createLeaderboardEntry(database: IDatabase, name: string, id: string): void {
-		database.leaderboard![id] = {
+	createLeaderboardEntry(leaderboard: Leaderboard, name: string, id: string): void {
+		leaderboard[id] = {
 			annual: 0,
 			annualSources: {},
 			current: 0,
@@ -150,73 +168,75 @@ export class Storage {
 		};
 	}
 
-	addPoints(room: Room, name: string, amount: number, source: string): void {
+	addPoints(room: Room, leaderboardType: LeaderboardType, name: string, amount: number, source: string): void {
 		if (!amount) return;
-		if (amount < 0) return this.removePoints(room, name, amount * -1, source);
-		const database = this.getDatabase(room);
-		if (!database.leaderboard) database.leaderboard = {};
+
 		name = Tools.toAlphaNumeric(name);
 		const id = Tools.toId(name);
 		if (!id) return;
 		source = Tools.toId(source);
 		if (!source) return;
-		if (!(id in database.leaderboard)) {
-			this.createLeaderboardEntry(database, name, id);
+
+		const database = this.getDatabase(room);
+		if (!database[leaderboardType]) database[leaderboardType] = {};
+		const leaderboard = database[leaderboardType]!;
+
+		if (!(id in leaderboard)) {
+			this.createLeaderboardEntry(leaderboard, name, id);
 		} else {
-			database.leaderboard[id].name = name;
+			leaderboard[id].name = name;
 		}
-		database.leaderboard[id].current += amount;
-		if (!(source in database.leaderboard[id].sources)) database.leaderboard[id].sources[source] = 0;
-		database.leaderboard[id].sources[source] += amount;
+
+		leaderboard[id].current = Math.max(0, leaderboard[id].current + amount);
+
+		if (!(source in leaderboard[id].sources)) leaderboard[id].sources[source] = 0;
+		leaderboard[id].sources[source] += amount;
+		if (leaderboard[id].sources[source] <= 0) delete leaderboard[id].sources[source];
 	}
 
-	removePoints(room: Room, name: string, amount: number, source: string): void {
-		if (!amount) return;
-		if (amount < 0) return this.addPoints(room, name, amount * -1, source);
-		const database = this.getDatabase(room);
-		if (!database.leaderboard) return;
-		name = Tools.toAlphaNumeric(name);
-		const id = Tools.toId(name);
-		if (!(id in database.leaderboard)) return;
-		source = Tools.toId(source);
-		if (!source) return;
-		database.leaderboard[id].name = name;
-		database.leaderboard[id].current -= amount;
-		if (database.leaderboard[id].current < 0) database.leaderboard[id].current = 0;
-		if (source in database.leaderboard[id].sources) {
-			database.leaderboard[id].sources[source] -= amount;
-			if (database.leaderboard[id].sources[source] <= 0) delete database.leaderboard[id].sources[source];
-		}
+	removePoints(room: Room, leaderboardType: LeaderboardType, name: string, amount: number, source: string): void {
+		if (amount < 0) throw new Error("Storage.removePoints() called with a negative amount");
+		this.addPoints(room, leaderboardType, name, amount * -1, source);
 	}
 
 	transferData(roomid: string, sourceName: string, destinationName: string): boolean {
 		if (!(roomid in this.databases)) return false;
+
 		const sourceId = Tools.toId(sourceName);
 		const destinationId = Tools.toId(destinationName);
 		if (!sourceId || !destinationId || sourceId === destinationId) return false;
+
 		const database = this.databases[roomid];
-		if (database.leaderboard && sourceId in database.leaderboard) {
-			if (!(destinationId in database.leaderboard)) this.createLeaderboardEntry(database, destinationName, destinationId);
-			for (const source in database.leaderboard[sourceId].sources) {
-				if (source in database.leaderboard[destinationId].sources) {
-					database.leaderboard[destinationId].sources[source] += database.leaderboard[sourceId].sources[source];
-				} else {
-					database.leaderboard[destinationId].sources[source] = database.leaderboard[sourceId].sources[source];
-				}
-				delete database.leaderboard[sourceId].sources[source];
+		for (const leaderboardType of this.allLeaderboardTypes) {
+			if (!database[leaderboardType] || !(sourceId in database[leaderboardType]!)) continue;
+
+			const leaderboad = database[leaderboardType]!;
+			if (!(destinationId in leaderboad)) {
+				this.createLeaderboardEntry(leaderboad, destinationName, destinationId);
 			}
-			for (const source in database.leaderboard[sourceId].annualSources) {
-				if (source in database.leaderboard[destinationId].annualSources) {
-					database.leaderboard[destinationId].annualSources[source] += database.leaderboard[sourceId].annualSources[source];
+
+			for (const source in leaderboad[sourceId].sources) {
+				if (source in leaderboad[destinationId].sources) {
+					leaderboad[destinationId].sources[source] += leaderboad[sourceId].sources[source];
 				} else {
-					database.leaderboard[destinationId].annualSources[source] = database.leaderboard[sourceId].annualSources[source];
+					leaderboad[destinationId].sources[source] = leaderboad[sourceId].sources[source];
 				}
-				delete database.leaderboard[sourceId].annualSources[source];
+				delete leaderboad[sourceId].sources[source];
 			}
-			database.leaderboard[destinationId].current += database.leaderboard[sourceId].current;
-			database.leaderboard[sourceId].current = 0;
-			database.leaderboard[destinationId].annual += database.leaderboard[sourceId].annual;
-			database.leaderboard[sourceId].annual = 0;
+
+			for (const source in leaderboad[sourceId].annualSources) {
+				if (source in leaderboad[destinationId].annualSources) {
+					leaderboad[destinationId].annualSources[source] += leaderboad[sourceId].annualSources[source];
+				} else {
+					leaderboad[destinationId].annualSources[source] = leaderboad[sourceId].annualSources[source];
+				}
+				delete leaderboad[sourceId].annualSources[source];
+			}
+
+			leaderboad[destinationId].current += leaderboad[sourceId].current;
+			leaderboad[sourceId].current = 0;
+			leaderboad[destinationId].annual += leaderboad[sourceId].annual;
+			leaderboad[sourceId].annual = 0;
 		}
 
 		if (database.gameAchievements && sourceId in database.gameAchievements) {
@@ -231,6 +251,7 @@ export class Storage {
 		if (roomid + hostingDatabaseSuffix in this.databases) {
 			this.transferData(roomid + hostingDatabaseSuffix, sourceName, destinationName);
 		}
+
 		return true;
 	}
 

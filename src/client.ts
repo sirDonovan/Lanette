@@ -1150,7 +1150,7 @@ export class Client {
 					const winner = Tools.unescapeHTML(messageArguments.html.split('<br />Winner: ')[1]
 						.split('</td></tr></table></div>')[0].trim());
 					if (Tools.isUsernameLength(winner)) {
-						room.userHostedGame.useHostCommand("addpoint", winner);
+						room.userHostedGame.useHostCommand("addgamepoint", winner);
 					}
 				}
 				delete room.serverHangman;

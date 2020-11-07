@@ -80,14 +80,14 @@ export class CommandContext {
 		}
 	}
 
-	async runMultipleTargets(delimiter: string): Promise<void> {
+	async runMultipleTargets(delimiter: string, command: string): Promise<void> {
 		if (!delimiter) return;
 		const parts = this.target.split(delimiter);
 		const lastMultipleTarget = parts.length - 1;
 		this.runningMultipleTargets = true;
 		for (let i = 0; i < parts.length; i++) {
 			if (i === lastMultipleTarget) this.runningMultipleTargets = false;
-			await this.run(this.originalCommand, parts[i].trim());
+			await this.run(command, parts[i].trim());
 		}
 	}
 

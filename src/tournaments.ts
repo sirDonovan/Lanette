@@ -278,26 +278,28 @@ export class Tournaments {
 
 	getFormatLeaderboardHtml(room: Room, format: IFormat): string {
 		const database = Storage.getDatabase(room);
-		if (!database.leaderboard) return "";
+		if (!database.tournamentLeaderboard) return "";
 
 		const players: string[] = [];
-		for (const i in database.leaderboard) {
-			if (format.id in database.leaderboard[i].sources) {
+		for (const i in database.tournamentLeaderboard) {
+			if (format.id in database.tournamentLeaderboard[i].sources) {
 				players.push(i);
 			}
 		}
 
 		if (!players.length) return "";
 
-		players.sort((a, b) => database.leaderboard![b].sources[format.id] - database.leaderboard![a].sources[format.id]);
+		players.sort((a, b) => {
+			return database.tournamentLeaderboard![b].sources[format.id] - database.tournamentLeaderboard![a].sources[format.id];
+		});
 
 		let html = "<center><b>" + format.name + " leaderboard</b><br /><br /><table border='2' style='table-layout: fixed;width: 500px'>" +
 			"<tr><th>Place</th><th>Name</th><th>Points</th></tr>";
 		for (let i = 0; i < players.length; i++) {
 			const id = players[i];
 			let place = Tools.toNumberOrderString(i + 1);
-			let name = database.leaderboard[id].name;
-			let points = "" + database.leaderboard[id].sources[format.id];
+			let name = database.tournamentLeaderboard[id].name;
+			let points = "" + database.tournamentLeaderboard[id].sources[format.id];
 			if (i === 0) {
 				place = "<b>" + place + "</b>";
 				name = "<b>" + name + "</b>";
