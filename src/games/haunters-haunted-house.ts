@@ -857,6 +857,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 
 	moveGhosts(): void {
 		if (this.timeout) clearTimeout(this.timeout);
+		this.offCommands(this.actionCommands);
 
 		this.turnsWithoutHaunting++;
 		for (const ghost of this.ghosts) {
