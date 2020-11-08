@@ -107,6 +107,7 @@ const commands: GameCommandDefinitions<JigglypuffsDodgeball> = {
 	throw: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
+			if (this.players[user.id].frozen) return false;
 			const player = this.players[user.id];
 			if (this.roundActions.has(player)) return false;
 			this.roundActions.set(player, true);
