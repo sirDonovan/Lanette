@@ -181,14 +181,12 @@ export class CommandParser {
 			command = message.substr(0, spaceIndex);
 			target = message.substr(spaceIndex + 1).trim();
 		}
+
 		command = Tools.toId(command);
-		if (!(command in Commands)) {
-			if (room.game) {
-				// send PM for wrong game command
-				await room.game.tryCommand(target, room, user, command);
-			}
-			return;
-		}
+		if (!(command in Commands)) return;
+
+		if (Config.roomIgnoredCommands && room.id in Config.roomIgnoredCommands &&
+			Config.roomIgnoredCommands[room.id].includes(command)) return;
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return await new CommandContext(command, target, room, user).run();

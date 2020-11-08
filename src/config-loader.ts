@@ -49,6 +49,9 @@ export function load(config: typeof Config): typeof Config {
 
 	if (config.developers) config.developers = config.developers.map(x => Tools.toId(x));
 
+	if (config.roomIgnoredCommands) {
+		config.roomIgnoredCommands = objectKeysToRoomId(stringArrayObjectToIds(config.roomIgnoredCommands));
+	}
 	if (config.rooms) config.rooms = config.rooms.map(x => Tools.toRoomId(x));
 	if (config.subRooms) config.subRooms = objectKeysToRoomId(stringArrayObjectToRoomIds(config.subRooms));
 	if (config.roomAliases) config.roomAliases = objectKeysToRoomId(stringObjectToRoomIds(config.roomAliases));
