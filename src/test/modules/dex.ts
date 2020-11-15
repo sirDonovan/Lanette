@@ -1018,7 +1018,6 @@ describe("Dex", () => {
 		assert(!pokemon.includes(Dex.getExistingPokemon('Voodoom').name));
 		assert(!pokemon.includes(Dex.getExistingPokemon('Missingno.').name));
 		assert(!pokemon.includes(Dex.getExistingPokemon('Pokestar Smeargle').name));
-		assert(!pokemon.includes(Dex.getExistingPokemon('Melmetal-Gmax').name));
 
 		assert(abilities.includes(Dex.getExistingAbility('Intimidate').name));
 
