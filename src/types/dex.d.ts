@@ -1,3 +1,5 @@
+import type { IParsedSmogonLink } from "./tools";
+
 export interface IAlternateIconNumbers {
 	left: Dict<number | undefined>;
 	right: Dict<number | undefined>;
@@ -15,17 +17,12 @@ export interface IFormatDataLinks {
 	aliases?: string[];
 	desc?: string;
 	info?: string;
-	'info-official'?: string;
+	'info-official'?: IParsedSmogonLink;
 	roleCompendium?: string;
 	teams?: string;
-	'teams-official'?: string;
+	'teams-official'?: IParsedSmogonLink;
 	viability?: string;
-	'viability-official'?: string;
-}
-
-export interface IFormatThread {
-	description: string;
-	id: string;
+	'viability-official'?: IParsedSmogonLink;
 }
 
 export interface ISeparatedCustomRules {

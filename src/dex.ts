@@ -12,6 +12,7 @@ import type {
 	IAbility, IAbilityCopy, IFormat, IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy,
 	IPokemonShowdownDex, IPokemonShowdownValidator, IPSFormat, ITypeData
 } from './types/pokemon-showdown';
+import type { IParsedSmogonLink } from './types/tools';
 
 const MAX_CUSTOM_NAME_LENGTH = 100;
 const DEFAULT_CUSTOM_RULES_NAME = " (with custom rules)";
@@ -1152,21 +1153,22 @@ export class Dex {
 			(format.team && (format.id.includes('1v1') || format.id.includes('monotype'))) || format.mod === 'seasonal' ||
 			format.mod === 'ssb' ? true : false;
 
-		let info: string | undefined;
-		let teams: string | undefined;
-		let viability: string | undefined;
+		let info: IParsedSmogonLink | undefined;
+		let teams: IParsedSmogonLink | undefined;
+		let viability: IParsedSmogonLink | undefined;
 
 		const idWithoutGen = format.name.includes("[Gen ") ? Tools.toId(format.name.substr(format.name.indexOf(']') + 1)) : format.id;
 		if (format.threads) {
 			const threads = format.threads.slice();
 			for (const thread of threads) {
-				const parsedThread = Tools.parseFormatThread(thread);
+				const parsedThread = Tools.parseSmogonLink(thread);
+				if (!parsedThread) continue;
 				if (parsedThread.description.includes('Viability Rankings')) {
-					viability = parsedThread.id;
+					viability = parsedThread;
 				} else if (parsedThread.description.includes('Sample Teams')) {
-					teams = parsedThread.id;
+					teams = parsedThread;
 				} else if (Tools.toId(parsedThread.description) === idWithoutGen) {
-					info = parsedThread.id;
+					info = parsedThread;
 				}
 			}
 
@@ -1176,34 +1178,47 @@ export class Dex {
 					format['info-official'] = info;
 					format.info = links.info;
 				} else {
-					format.info = info;
+					format.info = info ? info.link : undefined;
 				}
 
 				if (links.teams) {
 					format['teams-official'] = teams;
 					format.teams = links.teams;
 				} else {
-					format.teams = teams;
+					format.teams = teams ? teams.link : undefined;
 				}
 
 				if (links.viability) {
 					format['viability-official'] = viability;
 					format.viability = links.viability;
 				} else {
-					format.viability = viability;
+					format.viability = viability ? viability.link : undefined;
 				}
 			} else {
-				format.info = info;
-				format.teams = teams;
-				format.viability = viability;
+				format.info = info ? info.link : undefined;
+				format.teams = teams ? teams.link : undefined;
+				format.viability = viability ? viability.link : undefined;
 			}
 
 			const links = ['info', 'roleCompendium', 'teams', 'viability'] as const;
 			for (const id of links) {
 				if (format[id]) {
+					const storedLink = format[id]!;
+					if (!Tools.isInteger(storedLink)) continue;
+
 					// @ts-expect-error
-					const officialLink = format[id + '-official'] as string;
-					format[id] = Tools.getNewerForumThread(format[id] as string, officialLink);
+					const officialLink = format[id + '-official'] as IParsedSmogonLink | undefined;
+					if (!officialLink) continue;
+
+					if (officialLink.dexPage || officialLink.postId) {
+						format[id] = officialLink.link;
+					} else if (officialLink.threadId) {
+						if (!Tools.isInteger(officialLink.threadId)) {
+							format[id] = officialLink.link;
+						} else {
+							format[id] = Tools.getNewerForumThread(storedLink, officialLink.threadId);
+						}
+					}
 				}
 			}
 		}
@@ -1236,7 +1251,7 @@ export class Dex {
 
 		const links: string[] = [];
 		if (format.mod in mechanicsDifferences) {
-			links.push('&bull;&nbsp;<a href="' + Tools.smogonForumPrefix + mechanicsDifferences[format.mod] + '">Gen ' + format.gen +
+			links.push('&bull;&nbsp;<a href="' + Tools.smogonThreadsPrefix + mechanicsDifferences[format.mod] + '">Gen ' + format.gen +
 				' mechanics differences</a>');
 		}
 

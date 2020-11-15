@@ -4,8 +4,7 @@ import path = require('path');
 import url = require('url');
 
 import type { PRNG } from './prng';
-import type { IFormatThread } from './types/dex';
-import type { HexColor } from './types/tools';
+import type { HexColor, IParsedSmogonLink } from './types/tools';
 import type { IParam } from './workers/parameters';
 
 const ALPHA_NUMERIC_REGEX = /[^a-zA-Z0-9 ]/g;
@@ -20,8 +19,9 @@ const UNSAFE_API_CHARACTER_REGEX = /[^A-Za-z0-9 ,.%&'"!?()[\]`_<>/|:;=+-@]/g;
 const BATTLE_ROOM_PREFIX = 'battle-';
 const GROUPCHAT_PREFIX = 'groupchat-';
 const SMOGON_DEX_PREFIX = 'https://www.smogon.com/dex/';
-const SMOGON_FORUM_PREFIX = 'https://www.smogon.com/forums/threads/';
-const SMOGON_FORUM_POST_PREFIX = "post-";
+const SMOGON_THREADS_PREFIX = 'https://www.smogon.com/forums/threads/';
+const SMOGON_POSTS_PREFIX = 'https://www.smogon.com/forums/posts/';
+const SMOGON_POST_PERMALINK_PREFIX = "post-";
 const maxMessageLength = 300;
 const maxUsernameLength = 18;
 const githubApiThrottle = 2 * 1000;
@@ -104,8 +104,9 @@ export class Tools {
 	readonly battleRoomPrefix: string = BATTLE_ROOM_PREFIX;
 	readonly groupchatPrefix: string = GROUPCHAT_PREFIX;
 	readonly smogonDexPrefix: string = SMOGON_DEX_PREFIX;
-	readonly smogonForumPrefix: string = SMOGON_FORUM_PREFIX;
-	readonly smogonForumPostPrefix: string = SMOGON_FORUM_POST_PREFIX;
+	readonly smogonThreadsPrefix: string = SMOGON_THREADS_PREFIX;
+	readonly smogonPostsPrefix: string = SMOGON_POSTS_PREFIX;
+	readonly smogonPostPermalinkPrefix: string = SMOGON_POST_PERMALINK_PREFIX;
 
 	lastGithubApiCall: number = 0;
 
@@ -594,22 +595,33 @@ export class Tools {
 		return {away, status, username};
 	}
 
-	parseFormatThread(thread: string): IFormatThread {
-		const parsedThread: IFormatThread = {description: '', id: ''};
+	parseSmogonLink(thread: string): IParsedSmogonLink | null {
+		const parsedThread: IParsedSmogonLink = {description: '', link: ''};
 		if (thread.startsWith('&bullet;') && thread.includes('<a href="')) {
 			parsedThread.description = thread.split('</a>')[0].split('">')[1].trim();
 
 			let id = thread.split('<a href="')[1].split('">')[0].trim();
 			if (id.endsWith('/')) id = id.substr(0, id.length - 1);
+			parsedThread.link = id;
 			const parts = id.split('/');
 			const lastPart = parts[parts.length - 1];
-			if (lastPart.startsWith(SMOGON_FORUM_POST_PREFIX) || lastPart.startsWith("#" + SMOGON_FORUM_POST_PREFIX)) {
-				parsedThread.id = parts[parts.length - 2] + '/' + lastPart;
-			} else {
-				parsedThread.id = lastPart;
+			if (id.startsWith(SMOGON_DEX_PREFIX)) {
+				parsedThread.dexPage = id;
+				return parsedThread;
+			} else if (id.startsWith(SMOGON_POSTS_PREFIX)) {
+				parsedThread.postId = lastPart;
+				return parsedThread;
+			} else if (id.startsWith(SMOGON_THREADS_PREFIX)) {
+				if (lastPart.startsWith(SMOGON_POST_PERMALINK_PREFIX) || lastPart.startsWith("#" + SMOGON_POST_PERMALINK_PREFIX)) {
+					parsedThread.threadId = parts[parts.length - 2] + '/' + lastPart;
+				} else {
+					parsedThread.threadId = lastPart;
+				}
+				return parsedThread;
 			}
 		}
-		return parsedThread;
+
+		return null;
 	}
 
 	getNewerForumThread(baseLink: string, officialLink?: string): string {
@@ -622,10 +634,10 @@ export class Tools {
 
 		if (officialLink) {
 			const officialNum = parseInt(officialLink.split("/")[0]);
-			if (!isNaN(officialNum) && officialNum > baseNumber) return SMOGON_FORUM_PREFIX + officialLink;
+			if (!isNaN(officialNum) && officialNum > baseNumber) return SMOGON_THREADS_PREFIX + officialLink;
 		}
 
-		return SMOGON_FORUM_PREFIX + baseLink;
+		return SMOGON_THREADS_PREFIX + baseLink;
 	}
 
 	extractBattleId(message: string, replayServerAddress: string, serverAddress: string, serverId: string): string | null {
