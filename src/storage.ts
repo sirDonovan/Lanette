@@ -116,7 +116,7 @@ export class Storage {
 		if (!(roomid in this.databases)) return false;
 		this.archiveDatabase(roomid);
 
-		if (!leaderboardTypes) leaderboardTypes = this.allLeaderboardTypes;
+		if (!leaderboardTypes || !leaderboardTypes.length) leaderboardTypes = this.allLeaderboardTypes;
 		const database = this.databases[roomid];
 		const date = new Date();
 		const month = date.getMonth() + 1;
