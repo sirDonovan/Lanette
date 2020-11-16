@@ -90,22 +90,31 @@ class Survival {
 
 		this.announceWinners();
 	}
+
+	canGuessAnswer(this: SurvivalThis, player: Player): boolean {
+		if (!this.canGuess || !this.answers.length || player !== this.currentPlayer) return false;
+		return true;
+	}
 }
 
 const commandDefinitions: GameCommandDefinitions<SurvivalThis> = {
 	guess: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async asyncCommand(target, room, user): Promise<GameCommandReturnType> {
-			if (!this.canGuess || !this.answers.length || this.players[user.id] !== this.currentPlayer) return false;
-			const answer = await this.guessAnswer(this.players[user.id], target);
-			if (!answer) return false;
+			if (!this.canGuessAnswer(this.players[user.id])) return false;
+
+			const player = this.players[user.id];
+			const answer = await this.guessAnswer(player, target);
+			if (!answer || !this.canGuessAnswer(player)) return false;
+
 			if (this.timeout) clearTimeout(this.timeout);
 			this.currentPlayer = null;
 			if (this.getRemainingPlayerCount() === 1) {
 				this.end();
 				return true;
 			}
-			this.say('**' + user.name + '** advances to the next round! ' + this.getAnswers(answer));
+
+			this.say('**' + player.name + '** advances to the next round! ' + this.getAnswers(answer));
 			this.answers = [];
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 			return true;

@@ -117,12 +117,12 @@ const commandDefinitions: GameCommandDefinitions<GroupThis> = {
 	guess: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async asyncCommand(target, room, user): Promise<GameCommandReturnType> {
-			if (!this.canGuess || !this.answers.length) return false;
-			const player = this.players[user.id];
+			if (!this.canGuessAnswer(this.players[user.id])) return false;
 
+			const player = this.players[user.id];
 			if (!player.active) player.active = true;
 			const answer = await this.guessAnswer(player, target);
-			if (!answer) return false;
+			if (!answer || !this.canGuessAnswer(player)) return false;
 
 			if (this.timeout) clearTimeout(this.timeout);
 

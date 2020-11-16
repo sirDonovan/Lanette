@@ -137,25 +137,30 @@ class Team {
 		this.convertPointsToBits(0);
 		this.announceWinners();
 	}
+
+	canGuessAnswer(this: TeamThis, player: Player): boolean {
+		if (!this.canGuess || !this.answers.length) return false;
+		let currentPlayer = false;
+		for (const team in this.currentPlayers) {
+			if (this.currentPlayers[team] === player) {
+				currentPlayer = true;
+			}
+		}
+		if (!currentPlayer) return false;
+		return true;
+	}
 }
 
 const commandDefinitions: GameCommandDefinitions<TeamThis> = {
 	guess: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async asyncCommand(target, room, user): Promise<GameCommandReturnType> {
-			if (!this.canGuess || !this.answers.length || !(user.id in this.players)) return false;
-			const player = this.players[user.id];
-			let currentPlayer = false;
-			for (const team in this.currentPlayers) {
-				if (this.currentPlayers[team] === player) {
-					currentPlayer = true;
-				}
-			}
-			if (!currentPlayer) return false;
+			if (!this.canGuessAnswer(this.players[user.id])) return false;
 
+			const player = this.players[user.id];
 			if (!player.active) player.active = true;
 			const answer = await this.guessAnswer(player, target);
-			if (!answer) return false;
+			if (!answer || !this.canGuessAnswer(player)) return false;
 
 			if (this.timeout) clearTimeout(this.timeout);
 
