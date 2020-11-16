@@ -15,6 +15,7 @@ export interface IParam {
 export interface IParametersGenData {
 	readonly evolutionLines: string[];
 	readonly formes: Dict<string>;
+	readonly gigantamax: string[];
 	readonly paramTypePools: KeyedDict<ParamType, Dict<IParam>>;
 	readonly paramTypeDexes: KeyedDict<ParamType, Dict<string[]>>;
 	readonly otherFormes: Dict<string>;
@@ -73,6 +74,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 
 			const evolutionLines: string[] = [];
 			const formes: Dict<string> = {};
+			const gigantamax: string[] = [];
 			const otherFormes: Dict<string> = {};
 
 			const letters: Dict<IParam> = {};
@@ -110,6 +112,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 
 				if (pokemon.forme) formes[pokemon.id] = pokemon.forme;
 				if (pokemon.baseSpecies !== pokemon.name) otherFormes[pokemon.id] = pokemon.baseSpecies;
+				if (pokemon.isNonstandard === 'Gigantamax') gigantamax.push(pokemon.name);
 
 				if (pokemon.evos.length && !pokemon.prevo) {
 					const pokemonEvolutionLines = dex.getEvolutionLines(pokemon);
@@ -259,6 +262,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 			data.pokemon.gens[mod] = {
 				evolutionLines,
 				formes,
+				gigantamax,
 				paramTypePools: {
 					'move': moves,
 					'ability': abilities,
