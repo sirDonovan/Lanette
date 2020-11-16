@@ -139,7 +139,7 @@ class Team {
 	}
 
 	canGuessAnswer(this: TeamThis, player: Player): boolean {
-		if (!this.canGuess || !this.answers.length) return false;
+		if (this.ended || !this.canGuess || !this.answers.length) return false;
 		let currentPlayer = false;
 		for (const team in this.currentPlayers) {
 			if (this.currentPlayers[team] === player) {

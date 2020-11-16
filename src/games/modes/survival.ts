@@ -92,7 +92,7 @@ class Survival {
 	}
 
 	canGuessAnswer(this: SurvivalThis, player: Player): boolean {
-		if (!this.canGuess || !this.answers.length || player !== this.currentPlayer) return false;
+		if (this.ended || !this.canGuess || !this.answers.length || player !== this.currentPlayer) return false;
 		return true;
 	}
 }
