@@ -3,7 +3,7 @@ import https = require('https');
 import path = require('path');
 import url = require('url');
 
-import type { PRNG } from './prng';
+import type { PRNG } from './lib/prng';
 import type { HexColor, IParsedSmogonLink } from './types/tools';
 import type { IParam } from './workers/parameters';
 

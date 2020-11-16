@@ -1,7 +1,7 @@
 import fs = require('fs');
 import path = require('path');
 
-import type { PRNGSeed } from './prng';
+import type { PRNGSeed } from './lib/prng';
 import { ScriptedGame } from './room-game-scripted';
 import type { UserHostedGame } from './room-game-user-hosted';
 import type { Room } from "./rooms";

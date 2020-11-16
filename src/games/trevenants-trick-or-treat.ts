@@ -1,4 +1,4 @@
-import type { PRNGSeed } from "../prng";
+import type { PRNGSeed } from "../lib/prng";
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { Room } from "../rooms";

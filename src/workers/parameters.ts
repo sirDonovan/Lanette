@@ -1,6 +1,6 @@
 import path = require('path');
 
-import type { PRNGSeed } from '../prng';
+import type { PRNGSeed } from '../lib/prng';
 import { WorkerBase } from './worker-base';
 
 export type ParametersId = 'search' | 'intersect';

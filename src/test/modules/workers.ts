@@ -1,4 +1,4 @@
-import { PRNG } from '../../prng';
+import { PRNG } from '../../lib/prng';
 import type { IParametersIntersectOptions, ParamType } from '../../workers/parameters';
 import { assert, assertStrictEqual } from './../test-tools';
 

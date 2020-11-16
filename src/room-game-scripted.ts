@@ -1,5 +1,5 @@
-import type { PRNGSeed } from "./prng";
-import { PRNG } from "./prng";
+import type { PRNGSeed } from "./lib/prng";
+import { PRNG } from "./lib/prng";
 import type { Player } from "./room-activity";
 import { Game } from "./room-game";
 import type { Room } from "./rooms";
