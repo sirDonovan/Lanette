@@ -1021,11 +1021,12 @@ const commands: CommandDefinitions<CommandContext> = {
 			}
 
 			if (room.userHostedGame) {
-				if (Games.lastUserHostTimes[room.id] && Games.lastUserHostTimes[room.id][host.id]) {
+				if (Games.lastUserHostTimes[room.id][host.id]) {
 						return this.say(host.name + " is currently hosting the game of " + room.userHostedGame.format.name + ".");
 				}
 				if (room.userHostedGame.id === format.id) {
-					return this.say((room.userHostedGame.subHostName ? room.userHostedGame.subHostName : room.userHostedGame.hostName) + " is currently hosting the game of " + room.userHostedGame.format.name + ".");
+					return this.say((room.userHostedGame.subHostName ? room.userHostedGame.subHostName : room.userHostedGame.hostName)
+					 + " is currently hosting the game of " + room.userHostedGame.format.name + ".");
 				}
 			}
 
