@@ -998,8 +998,9 @@ const commands: CommandDefinitions<CommandContext> = {
 
 			const targets = target.split(",");
 			const host = Users.get(targets[0]);
-			if (!host || !host.rooms.has(room)) return this.say("Please specify a user currently in this room.");
 			if (approvedHost && user !== host) return user.say("You are only able to use this command on yourself as approved host.");
+			if (!host || !host.rooms.has(room)) return this.say("Please specify a user currently in this room.");
+			if (host.isBot(room)) return;
 			targets.shift();
 
 			const format = Games.getUserHostedFormat(targets.join(","), user);
@@ -1016,6 +1017,15 @@ const commands: CommandDefinitions<CommandContext> = {
 						return this.say(host.name + " is currently unapproved for hosting '" + gameHostingDifficulty + "' games such as " +
 							format.name + ".");
 					}
+				}
+			}
+
+			if (room.userHostedGame) {
+				if (Games.lastUserHostTimes[room.id] && Games.lastUserHostTimes[room.id][host.id]) {
+						return this.say(host.name + " is currently hosting the game of " + room.userHostedGame.format.name + ".");
+				}
+				if (room.userHostedGame.id === format.id) {
+					return this.say((room.userHostedGame.subHostName ? room.userHostedGame.subHostName : room.userHostedGame.hostName) + " is currently hosting the game of " + room.userHostedGame.format.name + ".");
 				}
 			}
 
@@ -1094,6 +1104,8 @@ const commands: CommandDefinitions<CommandContext> = {
 				return;
 			}
 			const game = Games.createUserHostedGame(room, format, host);
+			if (!(room.id in Games.lastUserHostTimes)) Games.lastUserHostTimes[room.id] = {};
+			Games.lastUserHostTimes[room.id][host.id] = Date.now();
 			game.signups();
 		},
 	},
@@ -1107,6 +1119,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			if (room.userHostedGame.hostId === targetUser.id) return this.say(targetUser.name + " is already the game's host.");
 			if (room.userHostedGame.subHostId === targetUser.id) return this.say(targetUser.name + " is already the game's sub-host.");
 			room.userHostedGame.setSubHost(targetUser);
+			Games.lastUserHostTimes[room.id][targetUser.id] = Date.now();
 			this.say(targetUser.name + " is now the sub-host for " + room.userHostedGame.name + ".");
 		},
 	},
