@@ -1,4 +1,4 @@
-import type { GroupName } from '../../types/client';
+import type { GroupName, IOutgoingMessage } from '../../types/client';
 import { assert, assertStrictEqual } from './../test-tools';
 
 /* eslint-env mocha */
@@ -108,6 +108,202 @@ describe("Client", () => {
 		voiceUser = Users.get('Voice');
 		assert(voiceUser);
 		Users.remove(voiceUser);
+	});
+	it('should properly clear lastOutgoingMessage', () => {
+		const room = Rooms.get('mocha')!;
+
+		let lastOutgoingMessage: IOutgoingMessage = {
+			message: "",
+			type: "chat",
+			text: "test",
+		};
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|" + Client.htmlChatCommand + "test", Date.now());
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|" + Client.uhtmlChatCommand + "test,test", Date.now());
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|" + Client.uhtmlChangeChatCommand + "test,test", Date.now());
+		assert(Client.lastOutgoingMessage);
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|test", Date.now());
+		assert(!Client.lastOutgoingMessage);
+
+		lastOutgoingMessage = {
+			message: "",
+			type: "html",
+			html: "&<br/>",
+		};
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|" + Client.uhtmlChatCommand + "test,&<br/>", Date.now());
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|" + Client.uhtmlChangeChatCommand + "test,&<br/>", Date.now());
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|&<br/>", Date.now());
+		assert(Client.lastOutgoingMessage);
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|" + Client.htmlChatCommand + "&<br/>", Date.now());
+		assert(!Client.lastOutgoingMessage);
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|" + Client.uhtmlChatCommand + "test,&amp;<br/>", Date.now());
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|" + Client.uhtmlChangeChatCommand + "test,&amp;<br/>", Date.now());
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|&amp;<br/>", Date.now());
+		assert(Client.lastOutgoingMessage);
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|" + Client.htmlChatCommand + "&amp;<br/>", Date.now());
+		assert(!Client.lastOutgoingMessage);
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|" + Client.htmlChatCommand + "&<br />", Date.now());
+		assert(!Client.lastOutgoingMessage);
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|" + Client.htmlChatCommand + "&amp;<br />", Date.now());
+		assert(!Client.lastOutgoingMessage);
+
+		lastOutgoingMessage = {
+			message: "",
+			type: "uhtml",
+			uhtmlName: "test",
+			html: "&<br/>",
+		};
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|" + Client.htmlChatCommand + "&<br/>", Date.now());
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|&<br/>", Date.now());
+		assert(Client.lastOutgoingMessage);
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|" + Client.uhtmlChatCommand + "test,&<br/>", Date.now());
+		assert(!Client.lastOutgoingMessage);
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|" + Client.htmlChatCommand + "&<br/>", Date.now());
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|&<br/>", Date.now());
+		assert(Client.lastOutgoingMessage);
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|" + Client.uhtmlChangeChatCommand + "test,&<br/>", Date.now());
+		assert(!Client.lastOutgoingMessage);
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|" + Client.htmlChatCommand + "&amp;<br/>", Date.now());
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|&amp;<br/>", Date.now());
+		assert(Client.lastOutgoingMessage);
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|" + Client.uhtmlChatCommand + "test,&amp;<br/>", Date.now());
+		assert(!Client.lastOutgoingMessage);
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|" + Client.htmlChatCommand + "&amp;<br/>", Date.now());
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|&amp;<br/>", Date.now());
+		assert(Client.lastOutgoingMessage);
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|" + Client.uhtmlChangeChatCommand + "test,&amp;<br/>", Date.now());
+		assert(!Client.lastOutgoingMessage);
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|" + Client.uhtmlChatCommand + "test,&<br />", Date.now());
+		assert(!Client.lastOutgoingMessage);
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|" + Client.uhtmlChatCommand + "test,&amp;<br />", Date.now());
+		assert(!Client.lastOutgoingMessage);
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|" + Client.uhtmlChangeChatCommand + "test,&<br />", Date.now());
+		assert(!Client.lastOutgoingMessage);
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|c|*" + Users.self.name + "|" + Client.uhtmlChangeChatCommand + "test,&amp;<br />", Date.now());
+		assert(!Client.lastOutgoingMessage);
+
+		lastOutgoingMessage = {
+			message: "",
+			type: "pm",
+			user: 'a',
+			text: "test",
+		};
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|" + Client.htmlChatCommand + "test", Date.now());
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|" + Client.uhtmlChatCommand + "test,test", Date.now());
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|" + Client.uhtmlChangeChatCommand + "test,test", Date.now());
+		assert(Client.lastOutgoingMessage);
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|test", Date.now());
+		assert(!Client.lastOutgoingMessage);
+
+		lastOutgoingMessage = {
+			message: "",
+			type: "pmhtml",
+			user: 'a',
+			html: "&<br/>",
+		};
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|" + Client.uhtmlChatCommand + "test,&<br/>", Date.now());
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|" + Client.uhtmlChangeChatCommand + "test,&<br/>", Date.now());
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|&<br/>", Date.now());
+		assert(Client.lastOutgoingMessage);
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|" + Client.htmlChatCommand + "&<br/>", Date.now());
+		assert(!Client.lastOutgoingMessage);
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|" + Client.uhtmlChatCommand + "test,&amp;<br/>", Date.now());
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|" + Client.uhtmlChangeChatCommand + "test,&amp;<br/>", Date.now());
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|&amp;<br/>", Date.now());
+		assert(Client.lastOutgoingMessage);
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|" + Client.htmlChatCommand + "&amp;<br/>", Date.now());
+		assert(!Client.lastOutgoingMessage);
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|" + Client.htmlChatCommand + "&<br />", Date.now());
+		assert(!Client.lastOutgoingMessage);
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|" + Client.htmlChatCommand + "&amp;<br />", Date.now());
+		assert(!Client.lastOutgoingMessage);
+
+		lastOutgoingMessage = {
+			message: "",
+			type: "pmuhtml",
+			user: 'a',
+			uhtmlName: 'test',
+			html: "&<br/>",
+		};
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|" + Client.htmlChatCommand + "&<br/>", Date.now());
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|&<br/>", Date.now());
+		assert(Client.lastOutgoingMessage);
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|" + Client.uhtmlChatCommand + "test,&<br/>", Date.now());
+		assert(!Client.lastOutgoingMessage);
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|" + Client.htmlChatCommand + "&<br/>", Date.now());
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|&<br/>", Date.now());
+		assert(Client.lastOutgoingMessage);
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|" + Client.uhtmlChangeChatCommand + "test,&<br/>", Date.now());
+		assert(!Client.lastOutgoingMessage);
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|" + Client.htmlChatCommand + "&amp;<br/>", Date.now());
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|&amp;<br/>", Date.now());
+		assert(Client.lastOutgoingMessage);
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|" + Client.uhtmlChatCommand + "test,&amp;<br/>", Date.now());
+		assert(!Client.lastOutgoingMessage);
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|" + Client.htmlChatCommand + "&amp;<br/>", Date.now());
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|&amp;<br/>", Date.now());
+		assert(Client.lastOutgoingMessage);
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|" + Client.uhtmlChangeChatCommand + "test,&amp;<br/>", Date.now());
+		assert(!Client.lastOutgoingMessage);
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|" + Client.uhtmlChatCommand + "test,&<br />", Date.now());
+		assert(!Client.lastOutgoingMessage);
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|" + Client.uhtmlChatCommand + "test,&amp;<br />", Date.now());
+		assert(!Client.lastOutgoingMessage);
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|" + Client.uhtmlChangeChatCommand + "test,&<br />", Date.now());
+		assert(!Client.lastOutgoingMessage);
+
+		Client.lastOutgoingMessage = lastOutgoingMessage;
+		Client.parseMessage(room, "|pm| " + Users.self.name + "| A|" + Client.uhtmlChangeChatCommand + "test,&amp;<br />", Date.now());
+		assert(!Client.lastOutgoingMessage);
 	});
 	it('should properly extract battle ids', () => {
 		const battleId = Tools.battleRoomPrefix + "gen8ou-12345";
