@@ -813,7 +813,7 @@ export class Dex {
 		} else if (Array.isArray(target)) {
 			targetType = target;
 		} else {
-			targetType = (target as IPokemon).types;
+			targetType = target.types;
 		}
 
 		if (Array.isArray(targetType)) {
@@ -834,7 +834,6 @@ export class Dex {
 			this.immunityCache[sourceType][cacheKey] = false;
 			return false;
 		} else {
-			targetType = targetType as string;
 			if (!Object.prototype.hasOwnProperty.call(this.immunityCache, sourceType)) {
 				this.immunityCache[sourceType] = {};
 			} else if (Object.prototype.hasOwnProperty.call(this.immunityCache[sourceType], targetType)) {
@@ -869,7 +868,7 @@ export class Dex {
 		} else if (Array.isArray(target)) {
 			targetType = target;
 		} else {
-			targetType = (target as IPokemon).types;
+			targetType = target.types;
 		}
 
 		if (Array.isArray(targetType)) {
@@ -888,7 +887,6 @@ export class Dex {
 			this.effectivenessCache[sourceType][cacheKey] = totalTypeMod;
 			return totalTypeMod;
 		} else {
-			targetType = targetType as string;
 			if (!Object.prototype.hasOwnProperty.call(this.effectivenessCache, sourceType)) {
 				this.effectivenessCache[sourceType] = {};
 			} else if (Object.prototype.hasOwnProperty.call(this.effectivenessCache[sourceType], targetType)) {
