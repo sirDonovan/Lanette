@@ -1909,7 +1909,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			if (!users.length) return this.say("Please specify at least one user.");
 
 			if (cmd.startsWith('r')) points *= -1;
-			let reachedCap = 0;
+			const reachedCap: string[] = [];
 			for (const otherUser of users) {
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				const player = room.userHostedGame.players[otherUser.id] || room.userHostedGame.createPlayer(otherUser);
@@ -1917,9 +1917,11 @@ const commands: CommandDefinitions<CommandContext> = {
 				const total = room.userHostedGame.addPoints(player, points);
 				if (room.userHostedGame.scoreCap) {
 					if (room.userHostedGame.teams) {
-						if (player.team!.points >= room.userHostedGame.scoreCap) reachedCap++;
+						if (player.team!.points >= room.userHostedGame.scoreCap && !reachedCap.includes(player.team!.id)) {
+							reachedCap.push(player.team!.id);
+						}
 					} else {
-						if (total >= room.userHostedGame.scoreCap) reachedCap++;
+						if (total >= room.userHostedGame.scoreCap && !reachedCap.includes(player.id)) reachedCap.push(player.id);
 					}
 				}
 			}
@@ -1927,10 +1929,10 @@ const commands: CommandDefinitions<CommandContext> = {
 			// @ts-expect-error
 			room.userHostedGame.round++;
 			if (!this.runningMultipleTargets) await this.run('playerlist');
-			if (reachedCap) {
+			if (reachedCap.length) {
 				const reached = room.userHostedGame.teams ? "team" : "user";
-				user.say((reachedCap === 1 ? "A " + reached + " has" : reachedCap + " " + reached + "s have") + " reached the score " +
-					"cap in your game.");
+				user.say((reachedCap.length === 1 ? "A " + reached + " has" : reachedCap + " " + reached + "s have") + " reached the " +
+					"score cap in your game.");
 			}
 		},
 		aliases: ['addgamepoint', 'removegamepoints', 'removegamepoint'],
