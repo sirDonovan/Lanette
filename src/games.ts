@@ -966,7 +966,11 @@ export class Games {
 		room.userHostedGame.initialize(format);
 		room.userHostedGame.setHost(host);
 		if (!(room.id in this.lastUserHostTimes)) this.lastUserHostTimes[room.id] = {};
-		this.lastUserHostTimes[room.id][host.id] = Date.now();
+		if (typeof host === 'string') {
+			this.lastUserHostTimes[room.id][host] = Date.now();
+		} else {
+			this.lastUserHostTimes[room.id][host.id] = Date.now();
+		}
 
 		return room.userHostedGame;
 	}
