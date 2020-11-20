@@ -1021,7 +1021,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			}
 
 			if (room.userHostedGame) {
-				if (Games.userHostedGame.isHost(host)) {
+				if (room.userHostedGame.isHost(host)) {
 						return this.say(host.name + " is currently hosting the game of " + room.userHostedGame.format.name + ".");
 				}
 				if (room.userHostedGame.format.id === format.id) {
