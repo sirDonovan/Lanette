@@ -1021,10 +1021,10 @@ const commands: CommandDefinitions<CommandContext> = {
 			}
 
 			if (room.userHostedGame) {
-				if (Games.lastUserHostTimes[room.id][host.id]) {
+				if (Games.userHostedGame.isHost(host)) {
 						return this.say(host.name + " is currently hosting the game of " + room.userHostedGame.format.name + ".");
 				}
-				if (room.userHostedGame.id === format.id) {
+				if (room.userHostedGame.format.id === format.id) {
 					return this.say((room.userHostedGame.subHostName ? room.userHostedGame.subHostName : room.userHostedGame.hostName)
 					+ " is currently hosting the game of " + room.userHostedGame.format.name + ".");
 				}
@@ -1105,8 +1105,6 @@ const commands: CommandDefinitions<CommandContext> = {
 				return;
 			}
 			const game = Games.createUserHostedGame(room, format, host);
-			if (!(room.id in Games.lastUserHostTimes)) Games.lastUserHostTimes[room.id] = {};
-			Games.lastUserHostTimes[room.id][host.id] = Date.now();
 			game.signups();
 		},
 	},
