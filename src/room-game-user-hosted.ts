@@ -237,8 +237,6 @@ export class UserHostedGame extends Game {
 		}
 
 		const now = Date.now();
-		if (!(this.room.id in Games.lastUserHostTimes)) Games.lastUserHostTimes[this.room.id] = {};
-		Games.lastUserHostTimes[this.room.id][this.hostId] = now;
 
 		if (!(this.room.id in Games.lastUserHostFormatTimes)) Games.lastUserHostFormatTimes[this.room.id] = {};
 		// possibly customized name attribute
@@ -283,6 +281,7 @@ export class UserHostedGame extends Game {
 	}
 
 	forceEnd(user: User, reason?: string): void {
+		delete Games.lastUserHostTimes[this.room.id][this.hostId];
 		this.say(this.name + " " + this.activityType + " was forcibly ended!");
 		this.sayCommand("/modnote " + this.name + " was forcibly ended by " + user.name + (reason ? " (" + reason + ")" : ""));
 		this.deallocate(true);

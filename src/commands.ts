@@ -149,7 +149,7 @@ const commands: CommandDefinitions<CommandContext> = {
 				user.rooms.forEach((value, userRoom) => {
 					if (!pmRoom && Users.self.hasRank(userRoom, 'bot')) pmRoom = userRoom;
 				});
-				if (!pmRoom) return this.say("You must be in a room where " + Users.self.name + " has bot rank.");
+				if (!pmRoom) return this.say("You must be in a room where " + Users.self.name + " has Bot rank.");
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
 				pmRoom = room;
@@ -998,8 +998,10 @@ const commands: CommandDefinitions<CommandContext> = {
 
 			const targets = target.split(",");
 			const host = Users.get(targets[0]);
-			if (!host || !host.rooms.has(room)) return this.say("Please specify a user currently in this room.");
 			if (approvedHost && user !== host) return user.say("You are only able to use this command on yourself as approved host.");
+			if (!host || !host.rooms.has(room)) return this.say("Please specify a user currently in this room.");
+			if (host.isBot(room)) return this.say("You cannot use this command on a user with Bot rank.");
+
 			targets.shift();
 
 			const format = Games.getUserHostedFormat(targets.join(","), user);
@@ -1016,6 +1018,17 @@ const commands: CommandDefinitions<CommandContext> = {
 						return this.say(host.name + " is currently unapproved for hosting '" + gameHostingDifficulty + "' games such as " +
 							format.name + ".");
 					}
+				}
+			}
+
+			if (room.userHostedGame) {
+				if (room.userHostedGame.isHost(host)) {
+					return this.say(host.name + " is currently hosting.");
+				}
+				if (room.userHostedGame.format.id === format.id) {
+					return this.say((room.userHostedGame.subHostName ? room.userHostedGame.subHostName : room.userHostedGame.hostName) +
+						" is currently hosting " + room.userHostedGame.format.name + ". " + host.name + " please choose a " +
+						"different game!");
 				}
 			}
 
