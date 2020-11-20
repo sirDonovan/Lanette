@@ -45,18 +45,22 @@ export interface IUserHostedGameStats {
 
 export type UserHostStatus = 'unapproved' | 'novice' | 'approved';
 
+export type LeaderboardType = 'gameLeaderboard' | 'tournamentLeaderboard' | 'unsortedLeaderboard';
+
+export type Leaderboard = Dict<ILeaderboardEntry>;
+
 export interface IDatabase {
 	botGreetings?: Dict<IBotGreeting>;
 	eventInformation?: Dict<IEventInformation>;
 	gameAchievements?: Dict<string[]>;
 	gameCount?: number;
+	gameLeaderboard?: Leaderboard;
 	lastGameFormatTimes?: Dict<number>;
 	lastGameTime?: number;
 	lastTournamentFormatTimes?: Dict<number>;
 	lastTournamentTime?: number;
 	lastUserHostedGameFormatTimes?: Dict<number>;
 	lastUserHostedGameTime?: number;
-	leaderboard?: Dict<ILeaderboardEntry>;
 	pastGames?: IPastGame[];
 	pastTournaments?: IPastTournament[];
 	pastUserHostedGames?: IPastGame[];
@@ -64,6 +68,8 @@ export interface IDatabase {
 	queuedTournament?: {formatid: string; playerCap: number; scheduled: boolean; time: number};
 	roomSampleTeamsLink?: string;
 	thcWinners?: Dict<string>;
+	tournamentLeaderboard?: Leaderboard;
+	unsortedLeaderboard?: Leaderboard;
 	userHostedGameCount?: number;
 	userHostedGameStats?: Dict<IUserHostedGameStats[]>;
 	userHostedGameQueue?: IQueuedUserHostedGame[];

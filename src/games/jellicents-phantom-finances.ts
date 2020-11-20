@@ -1,4 +1,4 @@
-import type { PRNGSeed } from "../prng";
+import type { PRNGSeed } from "../lib/prng";
 import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
 import type { GameCommandDefinitions, IGameAchievement, IGameFile } from "../types/games";

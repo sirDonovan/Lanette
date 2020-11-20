@@ -420,7 +420,7 @@ describe("Dex", () => {
 		assertStrictEqual(Dex.isPseudoLCPokemon(Dex.getExistingPokemon('Pichu')), false);
 		assertStrictEqual(Dex.isPseudoLCPokemon(Dex.getExistingPokemon('Pikachu')), false);
 		assertStrictEqual(Dex.isPseudoLCPokemon(Dex.getExistingPokemon('Raichu')), false);
-		assertStrictEqual(Dex.isPseudoLCPokemon(Dex.getExistingPokemon('Pawniard')), true);
+		assertStrictEqual(Dex.isPseudoLCPokemon(Dex.getExistingPokemon('Ferroseed')), true);
 	});
 	it('should return proper values from getEvolutionLines()', () => {
 		const pokemonList = ['Charmander', 'Charmeleon', 'Charizard'];
@@ -1018,7 +1018,6 @@ describe("Dex", () => {
 		assert(!pokemon.includes(Dex.getExistingPokemon('Voodoom').name));
 		assert(!pokemon.includes(Dex.getExistingPokemon('Missingno.').name));
 		assert(!pokemon.includes(Dex.getExistingPokemon('Pokestar Smeargle').name));
-		assert(!pokemon.includes(Dex.getExistingPokemon('Melmetal-Gmax').name));
 
 		assert(abilities.includes(Dex.getExistingAbility('Intimidate').name));
 

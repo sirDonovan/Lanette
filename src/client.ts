@@ -164,6 +164,10 @@ let closeListener: ((code: number, reason: string) => void) | null;
 let pongListener: (() => void) | null;
 
 export class Client {
+	htmlChatCommand: typeof HTML_CHAT_COMMAND = HTML_CHAT_COMMAND;
+	uhtmlChatCommand: typeof UHTML_CHAT_COMMAND = UHTML_CHAT_COMMAND;
+	uhtmlChangeChatCommand: typeof UHTML_CHANGE_CHAT_COMMAND = UHTML_CHANGE_CHAT_COMMAND;
+
 	botGreetingCooldowns: Dict<number> = {};
 	challstr: string = '';
 	connectionAttempts: number = 0;
@@ -856,7 +860,7 @@ export class Client {
 			const roomData = user.rooms.get(room);
 			room.onUserJoin(user, messageArguments.rank, roomData ? roomData.lastChatMessage : undefined);
 
-			Storage.updateLastSeen(user, Date.now());
+			Storage.updateLastSeen(user, now);
 			break;
 		}
 
@@ -873,7 +877,7 @@ export class Client {
 				};
 			} else {
 				messageArguments = {
-					timestamp: Date.now(),
+					timestamp: now,
 					rank: messageParts[0].charAt(0),
 					username: messageParts[0].substr(1),
 					message: messageParts.slice(1).join("|"),
@@ -889,14 +893,15 @@ export class Client {
 
 			if (user === Users.self) {
 				if (messageArguments.message.startsWith(HTML_CHAT_COMMAND)) {
-					const html = messageArguments.message.substr(HTML_CHAT_COMMAND.length);
-					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'html' && this.lastOutgoingMessage.html === html) {
+					const html = Tools.unescapeHTML(messageArguments.message.substr(HTML_CHAT_COMMAND.length));
+					const htmlId = Tools.toId(html);
+					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'html' &&
+						Tools.toId(this.lastOutgoingMessage.html) === htmlId) {
 						this.clearLastOutgoingMessage(now);
 					}
 
 					room.addHtmlChatLog(html);
 
-					const htmlId = Tools.toId(Tools.unescapeHTML(html));
 					if (htmlId in room.htmlMessageListeners) {
 						room.htmlMessageListeners[htmlId]();
 						delete room.htmlMessageListeners[htmlId];
@@ -914,9 +919,11 @@ export class Client {
 					const commaIndex = uhtml.indexOf(',');
 					if (commaIndex !== -1) {
 						const name = uhtml.substr(0, commaIndex);
-						const html = uhtml.substr(commaIndex + 1);
+						const html = Tools.unescapeHTML(uhtml.substr(commaIndex + 1));
+						const htmlId = Tools.toId(html);
 						if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'uhtml' &&
-							Tools.toId(this.lastOutgoingMessage.uhtmlName) === name && this.lastOutgoingMessage.html === html) {
+							Tools.toId(this.lastOutgoingMessage.uhtmlName) === name &&
+							Tools.toId(this.lastOutgoingMessage.html) === htmlId) {
 							this.clearLastOutgoingMessage(now);
 						}
 
@@ -924,7 +931,6 @@ export class Client {
 
 						const uhtmlId = Tools.toId(name);
 						if (uhtmlId in room.uhtmlMessageListeners) {
-							const htmlId = Tools.toId(Tools.unescapeHTML(html));
 							if (htmlId in room.uhtmlMessageListeners[uhtmlId]) {
 								room.uhtmlMessageListeners[uhtmlId][htmlId]();
 								delete room.uhtmlMessageListeners[uhtmlId][htmlId];
@@ -947,7 +953,7 @@ export class Client {
 				}
 			} else {
 				room.addChatLog(messageArguments.message);
-				void this.parseChatMessage(room, user, messageArguments.message);
+				void this.parseChatMessage(room, user, messageArguments.message, now);
 			}
 
 			Storage.updateLastSeen(user, messageArguments.timestamp);
@@ -967,7 +973,7 @@ export class Client {
 			const messageArguments: IClientMessageTypes[':'] = {
 				timestamp: parseInt(messageParts[0]),
 			};
-			this.serverTimeOffset = Math.floor(Date.now() / 1000) - messageArguments.timestamp;
+			this.serverTimeOffset = Math.floor(now / 1000) - messageArguments.timestamp;
 			break;
 		}
 
@@ -983,7 +989,7 @@ export class Client {
 			const userId = Tools.toId(messageArguments.username);
 			if (!userId) return;
 
-			const isHtml = messageArguments.message.startsWith(HTML_CHAT_COMMAND) || messageArguments.message.startsWith("/html ");
+			const isHtml = messageArguments.message.startsWith(HTML_CHAT_COMMAND);
 			const isUhtml = !isHtml && messageArguments.message.startsWith(UHTML_CHAT_COMMAND);
 			const isUhtmlChange = !isHtml && !isUhtml && messageArguments.message.startsWith(UHTML_CHANGE_CHAT_COMMAND);
 
@@ -998,11 +1004,12 @@ export class Client {
 					const commaIndex = uhtml.indexOf(",");
 					const name = uhtml.substr(0, commaIndex);
 					const uhtmlId = Tools.toId(name);
-					const html = uhtml.substr(commaIndex + 1);
+					const html = Tools.unescapeHTML(uhtml.substr(commaIndex + 1));
+					const htmlId = Tools.toId(html);
 
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'pmuhtml' &&
 						this.lastOutgoingMessage.user === recipient.id && Tools.toId(this.lastOutgoingMessage.uhtmlName) === name &&
-						this.lastOutgoingMessage.html === html) {
+						Tools.toId(this.lastOutgoingMessage.html) === htmlId) {
 						this.clearLastOutgoingMessage(now);
 					}
 
@@ -1010,7 +1017,6 @@ export class Client {
 
 					if (recipient.uhtmlMessageListeners) {
 						if (uhtmlId in recipient.uhtmlMessageListeners) {
-							const htmlId = Tools.toId(Tools.unescapeHTML(html));
 							if (htmlId in recipient.uhtmlMessageListeners[uhtmlId]) {
 								recipient.uhtmlMessageListeners[uhtmlId][htmlId]();
 								delete recipient.uhtmlMessageListeners[uhtmlId][htmlId];
@@ -1018,16 +1024,16 @@ export class Client {
 						}
 					}
 				} else if (isHtml) {
-					const html = messageArguments.message.substr(messageArguments.message.indexOf(" ") + 1);
+					const html = Tools.unescapeHTML(messageArguments.message.substr(HTML_CHAT_COMMAND.length));
+					const htmlId = Tools.toId(html);
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'pmhtml' &&
-						this.lastOutgoingMessage.user === recipient.id && this.lastOutgoingMessage.html === html) {
+						this.lastOutgoingMessage.user === recipient.id && Tools.toId(this.lastOutgoingMessage.html) === htmlId) {
 						this.clearLastOutgoingMessage(now);
 					}
 
 					user.addHtmlChatLog(html);
 
 					if (recipient.htmlMessageListeners) {
-						const htmlId = Tools.toId(Tools.unescapeHTML(html));
 						if (htmlId in recipient.htmlMessageListeners) {
 							recipient.htmlMessageListeners[htmlId]();
 							delete recipient.htmlMessageListeners[htmlId];
@@ -1092,12 +1098,12 @@ export class Client {
 		case 'raw':
 		case 'html': {
 			const messageArguments: IClientMessageTypes['html'] = {
-				html: messageParts.join("|"),
+				html: Tools.unescapeHTML(messageParts.join("|")),
 			};
 
 			room.addHtmlChatLog(messageArguments.html);
 
-			const htmlId = Tools.toId(Tools.unescapeHTML(messageArguments.html));
+			const htmlId = Tools.toId(messageArguments.html);
 			if (htmlId in room.htmlMessageListeners) {
 				room.htmlMessageListeners[htmlId]();
 				delete room.htmlMessageListeners[htmlId];
@@ -1112,7 +1118,7 @@ export class Client {
 				}
 				this.setSendTimeout(this.getSendThrottle() * SERVER_THROTTLE_BUFFER_LIMIT);
 			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
-				room.modchat = Tools.unescapeHTML(messageArguments.html).split('<div class="broadcast-red">' +
+				room.modchat = messageArguments.html.split('<div class="broadcast-red">' +
 					'<strong>Moderated chat was set to ')[1].split('!</strong>')[0];
 			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>This battle is invite-only!</strong>')) {
 				room.inviteOnlyBattle = true;
@@ -1123,8 +1129,7 @@ export class Client {
 					const separatedCustomRules: ISeparatedCustomRules = {
 						addedbans: [], removedbans: [], addedrestrictions: [], addedrules: [], removedrules: [],
 					};
-					const unescapedHtml = Tools.unescapeHTML(messageArguments.html);
-					const lines = unescapedHtml.substr(0, unescapedHtml.length - 6)
+					const lines = messageArguments.html.substr(0, messageArguments.html.length - 6)
 						.split('<div class="infobox infobox-limited">This tournament includes:<br />')[1].split('<br />');
 					let currentCategory: 'addedbans' | 'removedbans' | 'addedrestrictions' | 'addedrules' | 'removedrules' = 'addedbans';
 					for (let line of lines) {
@@ -1147,10 +1152,9 @@ export class Client {
 			} else if (messageArguments.html.startsWith('<div class="broadcast-green"><p style="text-align:left;font-weight:bold;' +
 				'font-size:10pt;margin:5px 0 0 15px">The word has been guessed. Congratulations!</p>')) {
 				if (room.userHostedGame) {
-					const winner = Tools.unescapeHTML(messageArguments.html.split('<br />Winner: ')[1]
-						.split('</td></tr></table></div>')[0].trim());
+					const winner = messageArguments.html.split('<br />Winner: ')[1].split('</td></tr></table></div>')[0].trim();
 					if (Tools.isUsernameLength(winner)) {
-						room.userHostedGame.useHostCommand("addpoint", winner);
+						room.userHostedGame.useHostCommand("addgamepoint", winner);
 					}
 				}
 				delete room.serverHangman;
@@ -1229,14 +1233,14 @@ export class Client {
 		case 'uhtml': {
 			const messageArguments: IClientMessageTypes['uhtml'] = {
 				name: messageParts[0],
-				html: messageParts.slice(1).join("|"),
+				html: Tools.unescapeHTML(messageParts.slice(1).join("|")),
 			};
 
 			room.addUhtmlChatLog(messageArguments.name, messageArguments.html);
 
 			const id = Tools.toId(messageArguments.name);
 			if (id in room.uhtmlMessageListeners) {
-				const htmlId = Tools.toId(Tools.unescapeHTML(messageArguments.html));
+				const htmlId = Tools.toId(messageArguments.html);
 				if (htmlId in room.uhtmlMessageListeners[id]) {
 					room.uhtmlMessageListeners[id][htmlId]();
 					delete room.uhtmlMessageListeners[id][htmlId];
@@ -1528,7 +1532,7 @@ export class Client {
 		}
 	}
 
-	async parseChatMessage(room: Room, user: User, message: string): Promise<void> {
+	async parseChatMessage(room: Room, user: User, message: string, now: number): Promise<void> {
 		await CommandParser.parse(room, user, message);
 
 		const lowerCaseMessage = message.toLowerCase();
@@ -1585,7 +1589,7 @@ export class Client {
 					room.approvedUserHostedTournaments[link] = {
 						hostName: user.name,
 						hostId: user.id,
-						startTime: Date.now(),
+						startTime: now,
 						approvalStatus: 'approved',
 						reviewer: user.id,
 						urls: [link],

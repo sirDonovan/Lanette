@@ -209,51 +209,43 @@ export class Tournament extends Activity {
 			this.sayCommand('/wall Congratulations to ' + Tools.joinList(text));
 		} else {
 			const multiplier = Tournaments.getPointsMultiplier(this.format, this.totalPlayers, this.scheduled);
-			let pointsName = 'point';
-			let semiFinalistPoints = Tournaments.getPointsValue(Tournaments.semiFinalistPoints, multiplier);
-			let runnerUpPoints = Tournaments.getPointsValue(Tournaments.runnerUpPoints, multiplier);
-			let winnerPoints = Tournaments.getPointsValue(Tournaments.winnerPoints, multiplier);
-
-			if (Config.allowScriptedGames && Config.allowScriptedGames.includes(this.room.id)) {
-				pointsName = "bit";
-				semiFinalistPoints *= 100;
-				runnerUpPoints *= 100;
-				winnerPoints *= 100;
-			}
+			const semiFinalistPoints = Tournaments.getPointsValue(Tournaments.semiFinalistPoints, multiplier);
+			const runnerUpPoints = Tournaments.getPointsValue(Tournaments.runnerUpPoints, multiplier);
+			const winnerPoints = Tournaments.getPointsValue(Tournaments.winnerPoints, multiplier);
 
 			const pointsHtml: string[] = [];
 			pointsHtml.push("runner" + (runnersUp.length > 1 ? "s" : "") + "-up " + Tools.joinList(runnersUp, '<b>', '</b>') + " for " +
-				"earning " + runnerUpPoints + " " + pointsName + "s");
+				"earning " + runnerUpPoints + " points");
 			pointsHtml.push("winner" + (winners.length > 1 ? "s" : "") + " " + Tools.joinList(winners, '<b>', '</b>') + " for earning " +
-				winnerPoints + " " + pointsName + "s");
+				winnerPoints + " points");
 			if (semiFinalists.length) {
 				pointsHtml.unshift("semi-finalist" + (semiFinalists.length > 1 ? "s" : "") + " " +
-					Tools.joinList(semiFinalists, '<b>', '</b>') + " for earning " + semiFinalistPoints + " " + pointsName +
+					Tools.joinList(semiFinalists, '<b>', '</b>') + " for earning " + semiFinalistPoints + " point" +
 					(semiFinalistPoints > 1 ? "s" : ""));
 			}
 
-			const winnerPm = 'You were awarded **' + winnerPoints + ' ' + pointsName + 's** for being ' +
+			const winnerPm = 'You were awarded **' + winnerPoints + ' points** for being ' +
 				(winners.length > 1 ? 'a' : 'the') + ' tournament winner! To see your total amount, use this command: ``.rank ' +
 				this.room.title + '``.';
 			for (const winner of winners) {
-				Storage.addPoints(this.room, winner, winnerPoints, this.format.id);
+				Storage.addPoints(this.room, Storage.tournamentLeaderboard, winner, winnerPoints, this.format.id);
 				const user = Users.get(winner);
 				if (user) user.say(winnerPm);
 			}
 
-			const runnerUpPm = 'You were awarded **' + runnerUpPoints + ' ' + pointsName + 's** for being ' + (runnersUp.length > 1 ? 'a' :
+			const runnerUpPm = 'You were awarded **' + runnerUpPoints + ' points** for being ' + (runnersUp.length > 1 ? 'a' :
 				'the') + ' runner-up in the tournament! To see your total amount, use this command: ``.rank ' + this.room.title + '``.';
 			for (const runnerUp of runnersUp) {
-				Storage.addPoints(this.room, runnerUp, runnerUpPoints, this.format.id);
+				Storage.addPoints(this.room, Storage.tournamentLeaderboard, runnerUp, runnerUpPoints, this.format.id);
 				const user = Users.get(runnerUp);
 				if (user) user.say(runnerUpPm);
 			}
 
-			const semiFinalistPm = 'You were awarded **' + semiFinalistPoints + ' ' + pointsName + (semiFinalistPoints > 1 ? "s" : "") +
+			const semiFinalistPm = 'You were awarded **' + semiFinalistPoints + ' point' + (semiFinalistPoints > 1 ? "s" : "") +
 				'** for being ' + (semiFinalists.length > 1 ? 'a' : 'the') + ' semi-finalist in the tournament! To see your total ' +
 				'amount, use this command: ``.rank ' + this.room.title + '``.';
 			for (const semiFinalist of semiFinalists) {
-				Storage.addPoints(this.room, semiFinalist, semiFinalistPoints, this.format.id);
+				Storage.addPoints(this.room, Storage.tournamentLeaderboard, semiFinalist, semiFinalistPoints, this.format.id);
 				const user = Users.get(semiFinalist);
 				if (user) user.say(semiFinalistPm);
 			}

@@ -142,6 +142,12 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		this.roundTime = Math.max(2000, this.roundTime - 1000);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	canGuessAnswer(player: Player): boolean {
+		if (this.ended || !this.canGuess || !this.answers.length) return false;
+		return true;
+	}
+
 	async guessAnswer(player: Player, guess: string): Promise<string | false> {
 		if (!Tools.toId(guess) || this.filterGuess && this.filterGuess(guess)) return false;
 
@@ -214,12 +220,12 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 	guess: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async asyncCommand(target, room, user): Promise<GameCommandReturnType> {
-			if (!this.canGuess || !this.answers.length) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
-			if (!player.active) player.active = true;
+			if (!this.canGuessAnswer(player)) return false;
 
+			if (!player.active) player.active = true;
 			const answer = await this.guessAnswer(player, target);
-			if (!answer) return false;
+			if (!answer || !this.canGuessAnswer(player)) return false;
 
 			if (this.timeout) clearTimeout(this.timeout);
 
@@ -291,8 +297,6 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			assert(!game.canGuess);
 			const name = getBasePlayerName() + " 1";
 			const id = Tools.toId(name);
-			await runCommand('guess', "test", game.room, name);
-			assert(!(id in game.players));
 
 			await game.onNextRound();
 			assert(game.answers.length);

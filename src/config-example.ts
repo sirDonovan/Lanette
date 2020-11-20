@@ -75,6 +75,11 @@ export let avatar = '';
 export let commandCharacter = '.';
 
 /**
+ * For each room in the object, a list of commands that are never triggered
+ */
+export let roomIgnoredCommands: Dict<string[]> = {};
+
+/**
  * Whether or not PS code should be updated upon hotpatching
  */
 export let autoUpdatePS: boolean = false;

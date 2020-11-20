@@ -134,6 +134,7 @@ class DragapultsDangerZone extends ScriptedGame {
 	onNextRound(): void {
 		if (this.currentPlayer) {
 			if (!this.currentPlayer.eliminated) {
+				this.addRevealedLocation(this.playerLocations.get(this.currentPlayer)!);
 				this.say(this.currentPlayer.name + " did not fire anywhere!");
 				this.eliminatePlayer(this.currentPlayer, "You did not fire anywhere on the map!");
 			}

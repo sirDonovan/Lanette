@@ -1,5 +1,5 @@
-import type { PRNGSeed } from "../prng";
-import { PRNG } from "../prng";
+import type { PRNGSeed } from "../lib/prng";
+import { PRNG } from "../lib/prng";
 import { assert, assertStrictEqual } from '../test/test-tools';
 import type { GameFileTests, IGameFile, IGameFormat } from "../types/games";
 import type { PoolType } from './../workers/portmanteaus';

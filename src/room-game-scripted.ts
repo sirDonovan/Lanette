@@ -1,5 +1,5 @@
-import type { PRNGSeed } from "./prng";
-import { PRNG } from "./prng";
+import type { PRNGSeed } from "./lib/prng";
+import { PRNG } from "./lib/prng";
 import type { Player } from "./room-activity";
 import { Game } from "./room-game";
 import type { Room } from "./rooms";
@@ -657,7 +657,7 @@ export class ScriptedGame extends Game {
 		if (bits <= 0 || this.isPm(this.room) || (this.parentGame && this.parentGame.allowChildGameBits !== true)) return false;
 		if (bits > this.maxBits) bits = this.maxBits;
 		if (this.shinyMascot) bits *= 2;
-		Storage.addPoints(this.room, user.name, bits, this.format.id);
+		Storage.addPoints(this.room, Storage.gameLeaderboard, user.name, bits, this.format.id);
 		if (!noPm) {
 			user.say("You were awarded " + bits + " bits! To see your total amount, use the command ``" + Config.commandCharacter +
 				"bits " + this.room.title + "``.");
@@ -670,7 +670,7 @@ export class ScriptedGame extends Game {
 		bits = Math.floor(bits);
 		if (bits <= 0 || this.isPm(this.room) || (this.parentGame && this.parentGame.allowChildGameBits !== true)) return false;
 		if (this.shinyMascot) bits *= 2;
-		Storage.removePoints(this.room, user.name, bits, this.format.id);
+		Storage.removePoints(this.room, Storage.gameLeaderboard, user.name, bits, this.format.id);
 		if (!noPm) {
 			user.say("You lost " + bits + " bits! To see your remaining amount, use the command ``" + Config.commandCharacter + "bits " +
 				this.room.title + "``.");

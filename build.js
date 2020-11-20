@@ -7,8 +7,13 @@ const builtFolder = path.join(__dirname, "built");
 const srcFolder = path.join(__dirname, "src");
 const pokemonShowdown = path.join(__dirname, 'pokemon-showdown');
 
-const removeFromBuild = ["require('better-sqlite3')"];
-const removeFromPackageJson = ["@types/better-sqlite3", "better-sqlite3", "husky"];
+const removeFromBuild = ["require('better-sqlite3')", 'require("better-sqlite3")'];
+const removeFromPackageJson = [
+	"@types/better-sqlite3", "probe-image-size", "sockjs",
+	"better-sqlite3", "cloud-env", "node-static", "nodemailer", "permessage-deflate", "sql-template-strings", "sqlite",
+	"node-oom-heapdump",
+	"@typescript-eslint/eslint-plugin", "@typescript-eslint/parser", "eslint", "eslint-plugin-import", "husky", "mocha"
+];
 
 const exec = util.promisify(child_process.exec);
 
@@ -94,6 +99,12 @@ function rewritePokemonShowdownPackageJson() {
 	}
 	for (const dependency in packageJson.devDependencies) {
 		if (removeFromPackageJson.includes(dependency)) delete packageJson.devDependencies[dependency];
+	}
+	for (const dependency in packageJson.optionalDependencies) {
+		if (removeFromPackageJson.includes(dependency)) delete packageJson.optionalDependencies[dependency];
+	}
+	for (const dependency in packageJson.secretDependencies) {
+		if (removeFromPackageJson.includes(dependency)) delete packageJson.secretDependencies[dependency];
 	}
 
 	fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson));
