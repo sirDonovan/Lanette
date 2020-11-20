@@ -5,7 +5,7 @@ type KeyedDict<T extends string | number | symbol, U> = {[K in T]: U };
 
 type PartialKeyedDict<T extends string | number | symbol, U> = {[K in T]?: U };
 
-type PromiseResolve<T> = (value?: T | PromiseLike<T> | undefined) => void;
+type PromiseResolve<T> = (value: T | PromiseLike<T>) => void;
 
 /*
 * Credit to @nieltg for the original Immutable and DeepImmutable* types
