@@ -149,7 +149,7 @@ const commands: CommandDefinitions<CommandContext> = {
 				user.rooms.forEach((value, userRoom) => {
 					if (!pmRoom && Users.self.hasRank(userRoom, 'bot')) pmRoom = userRoom;
 				});
-				if (!pmRoom) return this.say("You must be in a room where " + Users.self.name + " has bot rank.");
+				if (!pmRoom) return this.say("You must be in a room where " + Users.self.name + " has Bot rank.");
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
 				pmRoom = room;
@@ -1000,7 +1000,8 @@ const commands: CommandDefinitions<CommandContext> = {
 			const host = Users.get(targets[0]);
 			if (approvedHost && user !== host) return user.say("You are only able to use this command on yourself as approved host.");
 			if (!host || !host.rooms.has(room)) return this.say("Please specify a user currently in this room.");
-			if (host.isBot(room)) return;
+			if (host.isBot(room)) return this.say("You cannot use this command on a user with Bot rank.");
+
 			targets.shift();
 
 			const format = Games.getUserHostedFormat(targets.join(","), user);
@@ -1022,11 +1023,12 @@ const commands: CommandDefinitions<CommandContext> = {
 
 			if (room.userHostedGame) {
 				if (room.userHostedGame.isHost(host)) {
-						return this.say(host.name + " is currently hosting the game of " + room.userHostedGame.format.name + ".");
+					return this.say(host.name + " is currently hosting.");
 				}
 				if (room.userHostedGame.format.id === format.id) {
-					return this.say((room.userHostedGame.subHostName ? room.userHostedGame.subHostName : room.userHostedGame.hostName)
-					+ " is currently hosting the game of " + room.userHostedGame.format.name + ".");
+					return this.say((room.userHostedGame.subHostName ? room.userHostedGame.subHostName : room.userHostedGame.hostName) +
+						" is currently hosting " + room.userHostedGame.format.name + ". " + host.name + " please choose a " +
+						"different game!");
 				}
 			}
 
@@ -1118,7 +1120,6 @@ const commands: CommandDefinitions<CommandContext> = {
 			if (room.userHostedGame.hostId === targetUser.id) return this.say(targetUser.name + " is already the game's host.");
 			if (room.userHostedGame.subHostId === targetUser.id) return this.say(targetUser.name + " is already the game's sub-host.");
 			room.userHostedGame.setSubHost(targetUser);
-			Games.lastUserHostTimes[room.id][targetUser.id] = Date.now();
 			this.say(targetUser.name + " is now the sub-host for " + room.userHostedGame.name + ".");
 		},
 	},

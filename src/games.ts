@@ -965,6 +965,7 @@ export class Games {
 		room.userHostedGame = new format.class(room);
 		room.userHostedGame.initialize(format);
 		room.userHostedGame.setHost(host);
+
 		if (!(room.id in this.lastUserHostTimes)) this.lastUserHostTimes[room.id] = {};
 		if (typeof host === 'string') {
 			this.lastUserHostTimes[room.id][Tools.toId(host)] = Date.now();
