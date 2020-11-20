@@ -484,7 +484,7 @@ export class Tools {
 			const filepath = filepaths[0];
 			filepaths.shift();
 			if (filepath in require.cache) {
-				const cachedModule = require.cache[filepath];
+				const cachedModule = require.cache[filepath]!;
 				for (const child of cachedModule.children) {
 					if (!child.id.endsWith('.node')) filepaths.push(child.filename);
 				}

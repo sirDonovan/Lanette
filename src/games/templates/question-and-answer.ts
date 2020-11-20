@@ -29,7 +29,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	readonly roundGuesses?: Map<Player, boolean>;
 	updateHintTime?: number;
 
-	abstract async setAnswers(): Promise<void>;
+	abstract setAnswers(): Promise<void>;
 
 	onInitialize(format: IGameFormat): void {
 		super.onInitialize(format);
