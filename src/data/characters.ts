@@ -61,6 +61,14 @@ export const characters: CharacterData = {
 		"Drake",
 		"Steven",
 
+		"Noland",
+		"Greta",
+		"Tucker",
+		"Lucy",
+		"Spenser",
+		"Brandon",
+		"Anabel",
+
 		"Professor Birch",
 		"Brendan",
 		"May",
@@ -84,6 +92,12 @@ export const characters: CharacterData = {
 		"Flint",
 		"Lucian",
 		"Cynthia",
+
+		"Palmer",
+		"Thorton",
+		"Dahlia",
+		"Darach",
+		"Argenta",
 
 		"Professor Rowan",
 		"Lucas",
