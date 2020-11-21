@@ -3617,6 +3617,8 @@ const commands: CommandDefinitions<CommandContext> = {
 			} else {
 				this.say("Added " + points + " " + pointsName + " for " + userList + ".");
 			}
+
+			Storage.exportDatabase(room.id);
 		},
 		aliases: ['addpoint', 'removepoint', 'removepoints', 'apoint', 'apoints', 'rpoint', 'rpoints', 'apt', 'rpt']
 			.concat(addGamePointsAliases),
