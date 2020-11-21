@@ -3675,6 +3675,8 @@ const commands: CommandDefinitions<CommandContext> = {
 
 			this.sayCommand("/modnote " + user.name + " awarded " + targetUserName + " " + placeName + " points (" + points + ") for a " +
 				(scheduled ? "scheduled " : "") + players + "-man " + format.name + " tournament");
+
+			Storage.exportDatabase(room.id);
 		},
 		aliases: ['addsemifinalpoints', 'addsemipoints', 'addrunneruppoints', 'addrunnerpoints', 'addwinnerpoints'],
 	},
@@ -3728,6 +3730,8 @@ const commands: CommandDefinitions<CommandContext> = {
 
 			this.sayCommand("/modnote " + user.name + " awarded " + targetUserName + " missing " + placeName + " points (" + points + ") " +
 				"for a scheduled " + players + "-man " + format.name + " tournament");
+
+			Storage.exportDatabase(room.id);
 		},
 		aliases: ['makesemifinalpointsofficial', 'makesemipointsofficial', 'makerunneruppointsofficial', 'makerunnerpointsofficial',
 			'makewinnerpointsofficial'],
