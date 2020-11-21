@@ -23,12 +23,12 @@ class KyuremsSplits extends QuestionAndAnswer {
 	allAnswersAchievement = KyuremsSplits.achievements.splittersplatter;
 
 	static loadData(): void {
-		data["Characters"] = Dex.getCharacters().filter(x => x.length >= 5);
-		data["Locations"] = Dex.getLocations().filter(x => x.length >= 5);
-		data["Pokemon"] = Games.getPokemonList(x => x.name.length >= 5).map(x => x.name);
-		data["Pokemon Abilities"] = Games.getAbilitiesList(x => x.name.length >= 5).map(x => x.name);
-		data["Pokemon Items"] = Games.getItemsList(x => x.name.length >= 5).map(x => x.name);
-		data["Pokemon Moves"] = Games.getMovesList(x => x.name.length >= 5).map(x => x.name);
+		data["Characters"] = Dex.getCharacters().filter(x => x.length >= 3);
+		data["Locations"] = Dex.getLocations().filter(x => x.length >= 3);
+		data["Pokemon"] = Games.getPokemonList(x => x.name.length >= 3).map(x => x.name);
+		data["Pokemon Abilities"] = Games.getAbilitiesList(x => x.name.length >= 3).map(x => x.name);
+		data["Pokemon Items"] = Games.getItemsList(x => x.name.length >= 3).map(x => x.name);
+		data["Pokemon Moves"] = Games.getMovesList(x => x.name.length >= 3).map(x => x.name);
 	}
 
 	isValid(answer: string, hint: string): boolean {
@@ -51,7 +51,7 @@ class KyuremsSplits extends QuestionAndAnswer {
 			for (let i = 1; i < randomAnswer.length; i++) {
 				validIndices.push(i);
 			}
-			const numberOfLetters = Math.min(5, Math.max(2, Math.floor(validIndices.length * (Math.random() * 0.4 + 0.3))));
+			const numberOfLetters = Math.min(4, Math.max(2, Math.floor(validIndices.length * (Math.random() * 0.4 + 0.3))));
 			const chosenIndices = this.sampleMany(validIndices, numberOfLetters);
 			hint = '';
 			for (const index of chosenIndices) {
