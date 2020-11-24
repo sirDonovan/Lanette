@@ -28,7 +28,7 @@ class TrevenantsTrickOrTreat extends ScriptedGame {
 	}
 
 	static loadData(): void {
-		const pokedex = Games.getPokemonList(x => x.gen <= 5 && !x.forme && Dex.hasGifData(x, 'bw'));
+		const pokedex = Games.getPokemonList(x => !x.forme);
 		for (const pokemon of pokedex) {
 			const allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
 			if (allPossibleMoves.length <= 1) continue;
@@ -68,14 +68,16 @@ class TrevenantsTrickOrTreat extends ScriptedGame {
 	}
 
 	display(): void {
-		let html = `<div class="infobox"><center>`;
+		let html = '<center><table border="2" style="table-layout: fixed;width: ' + (125 * GRID_SIZE) + 'px">';
 		for (let i = 0; i < GRID_SIZE; i++) {
+			html += '<tr style="line-height: 3">';
 			for (let j = 0; j < GRID_SIZE; j++) {
-				html += Dex.getPokemonGif(Dex.getExistingPokemon(this.pokemonGrid[i][j]), "bw");
+				const pokemon = Dex.getExistingPokemon(this.pokemonGrid[i][j]);
+				html += '<td>' + Dex.getPokemonIcon(pokemon) + pokemon.name + '</td>';
 			}
-			html += "<br />";
+			html += "</tr>";
 		}
-		html += "<br /><br />" + this.getPlayerPoints() + "</center></div>";
+		html += "</table><br />" + this.getPlayerPoints() + "</center>";
 		this.sayUhtmlAuto(this.uhtmlBaseName + '-round-pokemon', html);
 	}
 }
