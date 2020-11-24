@@ -1,13 +1,15 @@
 import path = require('path');
 
-import { alternateIconNumbers } from './data/alternate-icon-numbers';
 import { badges as badgeData } from './data/badges';
 import { categories as categoryData } from './data/categories';
 import { characters as characterData } from './data/characters';
 import { formatLinks } from './data/format-links';
 import { locations as locationData } from './data/locations';
 import { trainerClasses } from './data/trainer-classes';
-import type { CategoryData, IDataTable, IGetPossibleTeamsOptions, IGifData, ISeparatedCustomRules, LocationTypes } from './types/dex';
+import type {
+	CategoryData, IAlternateIconNumbers, IDataTable, IGetPossibleTeamsOptions, IGifData, ISeparatedCustomRules,
+	LocationTypes
+} from './types/dex';
 import type {
 	IAbility, IAbilityCopy, IFormat, IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy,
 	IPokemonShowdownDex, IPokemonShowdownValidator, IPSFormat, ITypeData
@@ -256,6 +258,9 @@ export class Dex {
 		}
 
 		/* eslint-disable @typescript-eslint/no-var-requires */
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+		const alternateIconNumbers = require(path.join(this.clientDataDirectory, 'alternate-icon-numbers.js'))
+			.alternateIconNumbers as IAlternateIconNumbers;
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 		const gifData = require(path.join(this.clientDataDirectory, 'pokedex-mini.js')).BattlePokemonSprites as Dict<IGifData | undefined>;
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
