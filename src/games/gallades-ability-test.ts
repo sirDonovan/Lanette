@@ -28,7 +28,7 @@ class GalladesAbilityTest extends QuestionAndAnswer {
 				// @ts-expect-error
 				const ability = pokemon.abilities[i] as string;
 				const key = ability.replace(STANDARD_ABILITY_CHARACTERS_REGEX, "").split(" ").map(x => x[0]).join("");
-				if (i === 'H') {
+				if (i === 'H' || i === 'S') {
 					hiddenAbility = key;
 				} else {
 					abilities.push(key);
