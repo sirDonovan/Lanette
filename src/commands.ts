@@ -23,7 +23,7 @@ const LOCATION_TYPES: LocationTypes[] = ['town', 'city', 'cave', 'forest', 'moun
 
 // aliases
 const tournamentLeaderboardAliases = ['tournamentleaderboard', 'tourleaderboard', 'tourlb', 'tournamenttop', 'tourtop'];
-const gameLeaderboardAliases = ['gameleaderboard', 'gamelb', 'gametop'];
+const gameLeaderboardAliases = ['gameleaderboard', 'gamelb', 'gametop', 'topbits'];
 const tournamentRankAliases = ['tournamentrank', 'tourrank', 'tournamentpoints', 'tourpoints'];
 const gameRankAliases = ['gamerank', 'gamepoints', 'bits'];
 const addGamePointsAliases = ['addbits', 'addbit', 'abits', 'abit', 'removebits', 'removebit', 'rbits', 'rbit'];
