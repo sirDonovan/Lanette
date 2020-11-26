@@ -1,8 +1,11 @@
 import type { IPastTournament } from "../../types/storage";
-import type { IRoomTournamentSchedule } from "../../types/tournaments";
+import type { IRoomTournamentSchedule, ITournamentEndJson } from "../../types/tournaments";
 import { assert, assertStrictEqual } from "../test-tools";
 
 /* eslint-env mocha */
+
+// eslint-disable-next-line max-len
+const tournamentEndJson = '{"results":[["Player 1"]],"format":"gen8randombattle","generator":"Single Elimination","bracketData":{"type":"tree","rootNode":{"children":[{"children":[{"team":"Player 2"},{"team":"Player 1"}],"state":"finished","team":"Player 1","result":"loss","score":[0,1]},{"children":[{"team":"Player 3"},{"team":"Player 4"}],"state":"finished","team":"Player 4","result":"loss","score":[0,1]}],"state":"finished","team":"Player 1","result":"win","score":[1,0]}}}';
 
 describe("Tournaments", () => {
 	it('should return proper values from isInPastTournaments()', () => {
@@ -201,5 +204,63 @@ describe("Tournaments", () => {
 			assertStrictEqual(Tournaments.scheduledTournaments[room.id][i].format, formats['2']);
 			assertStrictEqual(Tournaments.scheduledTournaments[room.id][i].time, date.getTime());
 		}
+	});
+
+	it('should properly calculate all point multiplers', () => {
+		assertStrictEqual(Tournaments.getPlayersPointMultiplier(16), 1);
+		assertStrictEqual(Tournaments.getPlayersPointMultiplier(32), 1.5);
+		assertStrictEqual(Tournaments.getPlayersPointMultiplier(48), 1.5);
+		assertStrictEqual(Tournaments.getPlayersPointMultiplier(64), 2);
+	});
+
+	it('should properly convert client nodes to elimination nodes', () => {
+		const tournamentEnd = JSON.parse(tournamentEndJson) as ITournamentEndJson;
+		const eliminationNode = Tournaments.clientToEliminationNode(tournamentEnd.bracketData.rootNode!);
+		assertStrictEqual(eliminationNode.user, "Player 1");
+		assert(eliminationNode.children);
+
+		const childA = eliminationNode.children[0];
+		const childB = eliminationNode.children[1];
+		assert(childA);
+		assertStrictEqual(childA.user, "Player 1");
+		assert(childA.children);
+
+		assert(childB);
+		assertStrictEqual(childB.user, "Player 4");
+		assert(childB.children);
+
+		const grandchildA = childA.children[0];
+		const grandchildB = childA.children[1];
+		assert(grandchildA);
+		assert(!grandchildA.children);
+		assertStrictEqual(grandchildA.user, "Player 2");
+		assert(grandchildB);
+		assert(!grandchildB.children);
+		assertStrictEqual(grandchildB.user, "Player 1");
+
+		const grandchildC = childB.children[0];
+		const grandchildD = childB.children[1];
+		assert(grandchildC);
+		assert(!grandchildC.children);
+		assertStrictEqual(grandchildC.user, "Player 3");
+		assert(grandchildD);
+		assert(!grandchildD.children);
+		assertStrictEqual(grandchildD.user, "Player 4");
+	});
+
+	it('should properly determine places from EliminationNode', () => {
+		const tournamentEnd = JSON.parse(tournamentEndJson) as ITournamentEndJson;
+		const eliminationNode = Tournaments.clientToEliminationNode(tournamentEnd.bracketData.rootNode!);
+		const places = Tournaments.getPlacesFromTree(eliminationNode);
+		assert(places.winner);
+		assertStrictEqual(places.winner, "Player 1");
+
+		assert(places.runnerup);
+		assertStrictEqual(places.runnerup, "Player 4");
+
+		assert(places.semifinalists);
+		assertStrictEqual(places.semifinalists.length, 2);
+		assertStrictEqual(places.semifinalists[0], "Player 2");
+		assertStrictEqual(places.semifinalists[1], "Player 3");
 	});
 });

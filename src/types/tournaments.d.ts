@@ -2,6 +2,12 @@ import type { Player } from "../room-activity";
 
 export type TournamentPlace = 'semifinalist' | 'runnerup' | 'winner';
 
+export interface ITreeRootPlaces<T> {
+	winner: T | null;
+	runnerup: T | null;
+	semifinalists: T[] | null;
+}
+
 export interface IScheduledTournament {
 	format: string;
 	time: number;
@@ -16,16 +22,16 @@ export interface IRoomTournamentSchedule {
 	months: Dict<IMonthlyTournamentSchedule>;
 }
 
-interface IBracketNode {
+export interface IClientTournamentNode {
 	readonly result: string;
 	readonly state: 'available' | 'challenging' | 'inprogress' | 'finished' | 'unavailable';
 	readonly team: string;
-	readonly children?: IBracketNode[];
+	readonly children?: IClientTournamentNode[];
 }
 
-export interface IBracketData {
+export interface IClientTournamentData {
 	readonly type: string;
-	readonly rootNode?: IBracketNode;
+	readonly rootNode?: IClientTournamentNode;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	readonly tableHeaders?: {cols: string[]; rows: any[]};
 	readonly users?: string[];
@@ -48,7 +54,7 @@ export interface IUserHostedTournament {
 
 export interface ITournamentUpdateJson {
 	/** An object representing the current state of the bracket */
-	bracketData: IBracketData;
+	bracketData: IClientTournamentData;
 	/** A list of opponents that can currently challenge you */
 	challengeBys: string[];
 	/** The name of the opponent that has challenged you */
@@ -73,7 +79,7 @@ export interface ITournamentUpdateJson {
 
 export interface ITournamentEndJson {
 	/** An object representing the final state of the bracket */
-	bracketData: IBracketData;
+	bracketData: IClientTournamentData;
 	/** The tournament's custom name or the format that was used */
 	format: string;
 	/** The type of bracket that was used by the tournament */

@@ -1,10 +1,14 @@
+import { EliminationNode } from "./lib/elimination-node";
 import { Tournament } from "./room-tournament";
 import type { Room } from "./rooms";
 import { tournamentSchedules } from './tournament-schedules';
 import type { GroupName } from "./types/client";
 import type { IFormat } from "./types/pokemon-showdown";
-import type { IPastTournament } from "./types/storage";
-import type { IScheduledTournament, ITournamentCreateJson, TournamentPlace } from "./types/tournaments";
+import type { IPastTournament, LeaderboardType } from "./types/storage";
+import type {
+	IClientTournamentNode, IScheduledTournament, ITournamentCreateJson, ITreeRootPlaces,
+	TournamentPlace
+} from "./types/tournaments";
 
 const SCHEDULED_TOURNAMENT_BUFFER_TIME = 90 * 60 * 1000;
 const SCHEDULED_TOURNAMENT_QUICK_BUFFER_TIME = 30 * 60 * 1000;
@@ -244,26 +248,69 @@ export class Tournaments {
 		}
 	}
 
-	getPlacePoints(place: TournamentPlace, format: IFormat, players: number, scheduled: boolean): number {
-		const multiplier = this.getPointsMultiplier(format, players, scheduled);
+	clientToEliminationNode(clientNode: IClientTournamentNode): EliminationNode<string> {
+		const eliminationNode = new EliminationNode({user: clientNode.team});
 
-		let basePoints: number;
-		if (place === 'semifinalist') {
-			basePoints = this.semiFinalistPoints;
-		} else if (place === 'runnerup') {
-			basePoints = this.runnerUpPoints;
-		} else {
-			basePoints = this.winnerPoints;
+		if (clientNode.children) {
+			const children: EliminationNode<string>[] = [];
+			for (const child of clientNode.children) {
+				if (child.team) children.push(this.clientToEliminationNode(child));
+			}
+
+			if (children.length === 2) eliminationNode.setChildren(children as [EliminationNode<string>, EliminationNode<string>]);
 		}
 
-		return this.getPointsValue(basePoints, multiplier);
+		return eliminationNode;
 	}
 
-	getPointsMultiplier(format: IFormat, players: number, scheduled: boolean): number {
+	getPlacesFromTree<T>(treeRoot: EliminationNode<T>): ITreeRootPlaces<T> {
+		const places: ITreeRootPlaces<T> = {
+			winner: treeRoot.user,
+			runnerup: null,
+			semifinalists: null,
+		};
+
+		if (treeRoot.children) {
+			let runnerup: T | null;
+			if (treeRoot.children[0].user === treeRoot.user) {
+				runnerup = treeRoot.children[1].user;
+			} else {
+				runnerup = treeRoot.children[0].user;
+			}
+			places.runnerup = runnerup;
+
+			const semifinalists: T[] = [];
+			if (treeRoot.children[0].children) {
+				if (treeRoot.children[0].children[0].user === runnerup || treeRoot.children[0].children[0].user === treeRoot.user) {
+					if (treeRoot.children[0].children[1].user) semifinalists.push(treeRoot.children[0].children[1].user);
+				} else {
+					if (treeRoot.children[0].children[0].user) semifinalists.push(treeRoot.children[0].children[0].user);
+				}
+			}
+
+			if (treeRoot.children[1].children) {
+				if (treeRoot.children[1].children[0].user === runnerup || treeRoot.children[1].children[0].user === treeRoot.user) {
+					if (treeRoot.children[1].children[1].user) semifinalists.push(treeRoot.children[1].children[1].user);
+				} else {
+					if (treeRoot.children[1].children[0].user) semifinalists.push(treeRoot.children[1].children[0].user);
+				}
+			}
+
+			if (semifinalists.length === 2) places.semifinalists = semifinalists;
+		}
+
+		return places;
+	}
+
+	getPlayersPointMultiplier(players: number): number {
+		return 1 + (Math.floor(players / 32) * 0.5);
+	}
+
+	getCombinedPointMultiplier(format: IFormat, players: number, scheduled: boolean): number {
 		let multiplier = 1;
 		if (!format.teamLength || !format.teamLength.battle || format.teamLength.battle > 2) {
 			if (players >= 32) {
-				multiplier += Math.floor(players / 32) * 0.5;
+				multiplier = this.getPlayersPointMultiplier(players);
 			}
 		}
 
@@ -272,8 +319,52 @@ export class Tournaments {
 		return multiplier;
 	}
 
-	getPointsValue(points: number, multiplier: number): number {
-		return Math.round(points * multiplier);
+	getPlacePoints(place: TournamentPlace, format: IFormat, players: number, scheduled: boolean): number {
+		const multiplier = this.getCombinedPointMultiplier(format, players, scheduled);
+
+		if (place === 'semifinalist') {
+			return this.getSemiFinalistPoints(multiplier);
+		} else if (place === 'runnerup') {
+			return this.getRunnerUpPoints(multiplier);
+		} else {
+			return this.getWinnerPoints(multiplier);
+		}
+	}
+
+	getSemiFinalistPoints(multiplier: number): number {
+		return Math.round(this.semiFinalistPoints * multiplier);
+	}
+
+	getRunnerUpPoints(multiplier: number): number {
+		return Math.round(this.runnerUpPoints * multiplier);
+	}
+
+	getWinnerPoints(multiplier: number): number {
+		return Math.round(this.winnerPoints * multiplier);
+	}
+
+	getPlacesHtml(leaderboardType: LeaderboardType, tournamentName: string, winners: string[], runnersUp: string[], semiFinalists: string[],
+		winnerPoints: number, runnerUpPoints: number, semiFinalistPoints: number): string {
+		const pointsName = leaderboardType === 'gameLeaderboard' ? 'bit' : 'point';
+		const placesHtml: string[] = [];
+
+		const runnersUpHtml = "runner" + (runnersUp.length > 1 ? "s" : "") + "-up " + Tools.joinList(runnersUp, '<b>', '</b>') + " for " +
+			"earning " + runnerUpPoints + " " + pointsName + "s";
+		if (winners.length) {
+			placesHtml.push(runnersUpHtml);
+			placesHtml.push("winner" + (winners.length > 1 ? "s" : "") + " " + Tools.joinList(winners, '<b>', '</b>') + " for earning " +
+				winnerPoints + " " + pointsName + "s in the " + tournamentName + " tournament!");
+		} else {
+			placesHtml.push(runnersUpHtml + " in the " + tournamentName + " tournament!");
+		}
+
+		if (semiFinalists.length) {
+			placesHtml.unshift("semi-finalist" + (semiFinalists.length > 1 ? "s" : "") + " " +
+				Tools.joinList(semiFinalists, '<b>', '</b>') + " for earning " + semiFinalistPoints + " " + pointsName +
+				(semiFinalistPoints > 1 ? "s" : ""));
+		}
+
+		return "Congratulations to " + Tools.joinList(placesHtml);
 	}
 
 	getFormatLeaderboardHtml(room: Room, format: IFormat): string {
