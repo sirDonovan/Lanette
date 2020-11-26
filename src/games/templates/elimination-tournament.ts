@@ -1,3 +1,4 @@
+import { EliminationNode } from "../../lib/elimination-node";
 import type { Player } from "../../room-activity";
 import { ScriptedGame } from "../../room-game-scripted";
 import type { Room } from "../../rooms";
@@ -27,92 +28,6 @@ const CHECK_CHALLENGES_INACTIVE_DELAY = 30 * 1000;
 const ADVERTISEMENT_TIME = 20 * 60 * 1000;
 const POTENTIAL_MAX_PLAYERS: number[] = [12, 16, 24, 32, 48, 64];
 const TEAM_PREVIEW_HIDDEN_FORMES: string[] = ['Arceus', 'Gourgeist', 'Genesect', 'Pumpkaboo', 'Silvally', 'Urshifu'];
-
-/**
- * There are two types of elim nodes, player nodes
- * and match nodes.
- *
- * Player nodes are leaf nodes: .children = none
- *
- * Match nodes are non-leaf nodes, and will always have two children.
- */
-class EliminationNode<T> {
-	children: [EliminationNode<T>, EliminationNode<T>] | null;
-	/**
-	 * In a player node, the player (null if it's an unfilled loser's bracket node).
-	 *
-	 * In a match node, the winner if it exists, otherwise null.
-	 */
-	user: T | null;
-	/**
-	 * Only relevant to match nodes. (Player nodes are always '')
-	 *
-	 * 'available' = ready for battles - will have two children, both with users; this.user is null
-	 *
-	 * 'finished' = battle already over - will have two children, both with users; this.user is winner
-	 *
-	 * '' = unavailable
-	 */
-	state: 'available' | 'finished' | '';
-	result: 'win' | 'loss' | '';
-	score: number[] | null;
-	parent: EliminationNode<T> | null;
-
-	constructor(options: Partial<EliminationNode<T>>) {
-		this.children = null;
-		this.user = options.user || null;
-		this.state = options.state || '';
-		this.result = options.result || '';
-		this.score = options.score || null;
-		this.parent = options.parent || null;
-	}
-
-	setChildren(children: [EliminationNode<T>, EliminationNode<T>] | null) {
-		if (this.children) {
-			for (const child of this.children) child.parent = null;
-		}
-		if (children) {
-			for (const child of children) child.parent = this;
-		}
-		this.children = children;
-	}
-
-	traverse(callback: (node: EliminationNode<T>) => void) {
-		const queue: EliminationNode<T>[] = [this];
-		let node = queue.shift();
-		while (node) {
-			// eslint-disable-next-line callback-return
-			callback(node);
-			if (node.children) queue.push(...node.children);
-			node = queue.shift();
-		}
-	}
-
-	// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-	find<U>(callback: (node: EliminationNode<T>) => (U | void)) {
-		const queue: EliminationNode<T>[] = [this];
-		let node = queue.shift();
-		while (node) {
-			// eslint-disable-next-line callback-return
-			const value = callback(node);
-			if (value) {
-				return value;
-			}
-			if (node.children) queue.push(...node.children);
-			node = queue.shift();
-		}
-		return undefined;
-	}
-	// eslint-disable-next-line no-restricted-globals
-	[Symbol.iterator]() {
-		const results: EliminationNode<T>[] = [this];
-		for (const result of results) {
-			if (result.children) results.push(...result.children);
-		}
-		// eslint-disable-next-line no-restricted-globals
-		return results[Symbol.iterator]();
-	}
-}
 
 export abstract class EliminationTournament extends ScriptedGame {
 	abstract baseTournamentName: string;
@@ -494,6 +409,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 				const teamChanges = this.setMatchResult(found.match, found.result, found.score);
 				this.teamChanges.set(winner, (this.teamChanges.get(winner) || []).concat(teamChanges));
+
+				if (this.ended) break;
 			}
 		}
 
@@ -1576,11 +1493,46 @@ export abstract class EliminationTournament extends ScriptedGame {
 		this.updateBracketHtml();
 		this.updateHtmlPages();
 
-		const winner = this.getFinalPlayer();
-		if (winner) {
-			this.say("Congratulations to **" + winner.name + "** for winning the " + this.name + " tournament!");
-		} else {
-			this.say("Both finalists were disqualified so no one wins the " + this.name + " tournament!");
+		const places = Tournaments.getPlacesFromTree(this.treeRoot!);
+		if (places.winner && places.runnerup && places.semifinalists) {
+			const winners: Player[] = [places.winner];
+			const runnersUp: Player[] = [places.runnerup];
+
+			const multiplier = Tournaments.getPlayersPointMultiplier(this.playerCount);
+			const semiFinalistPoints = Tournaments.getSemiFinalistPoints(multiplier);
+			const runnerUpPoints = Tournaments.getRunnerUpPoints(multiplier);
+			const winnerPoints = Tournaments.getWinnerPoints(multiplier);
+
+			const semiFinalistPm = 'You were awarded **' + semiFinalistPoints + ' bit' + (semiFinalistPoints > 1 ? "s" : "") +
+				'** for being ' + (places.semifinalists.length > 1 ? 'a' : 'the') + ' semi-finalist in the tournament! To see your total ' +
+				'amount, use this command: ``' + Config.commandCharacter + 'bits ' + this.room.title + '``.';
+			for (const semiFinalist of places.semifinalists) {
+				this.addBits(semiFinalist, semiFinalistPoints, true);
+				const user = Users.get(semiFinalist.name);
+				if (user) user.say(semiFinalistPm);
+			}
+
+			const runnerUpPm = 'You were awarded **' + runnerUpPoints + ' bits** for being ' + (runnersUp.length > 1 ? 'a' :
+				'the') + ' runner-up in the tournament! To see your total amount, use this command: ``' +
+				Config.commandCharacter + 'bits ' + this.room.title + '``.';
+			for (const runnerUp of runnersUp) {
+				this.addBits(runnerUp, runnerUpPoints);
+				const user = Users.get(runnerUp.name);
+				if (user) user.say(runnerUpPm);
+			}
+
+			const winnerPm = 'You were awarded **' + winnerPoints + ' bits** for being ' + (winners.length > 1 ? 'a' :
+				'the') + ' tournament winner! To see your total amount, use this command: ``' +
+				Config.commandCharacter + 'bits ' + this.room.title + '``.';
+			for (const winner of winners) {
+				this.addBits(winner, winnerPoints, true);
+				const user = Users.get(winner.name);
+				if (user) user.say(winnerPm);
+			}
+
+			const placesHtml = Tournaments.getPlacesHtml('gameLeaderboard', this.name, winners.map(x => x.name),
+				runnersUp.map(x => x.name), places.semifinalists.map(x => x.name), winnerPoints, runnerUpPoints, semiFinalistPoints);
+			this.sayHtml("<div class='infobox-limited'>" + placesHtml + "</div>");
 		}
 
 		Games.lastGames[this.room.id] = Date.now();

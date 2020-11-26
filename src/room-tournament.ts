@@ -2,7 +2,10 @@ import type { Player } from "./room-activity";
 import { Activity } from "./room-activity";
 import type { Room } from "./rooms";
 import type { IFormat } from "./types/pokemon-showdown";
-import type { IBattleData, ICurrentTournamentBattle, ITournamentEndJson, ITournamentUpdateJson } from "./types/tournaments";
+import type {
+	IBattleData, ICurrentTournamentBattle, ITournamentEndJson,
+	ITournamentUpdateJson
+} from "./types/tournaments";
 
 const GENERATORS: Dict<number> = {
 	"Single": 1,
@@ -163,32 +166,11 @@ export class Tournament extends Activity {
 		let runnersUp: string[] = [];
 		let semiFinalists: string[] = [];
 		if (this.info.bracketData.type === 'tree') {
-			const data = this.info.bracketData.rootNode;
-			if (data && data.children && this.generator === 1) {
-				const winner = data.team;
-				winners.push(winner);
-				let runnerUp = '';
-				if (data.children[0].team === winner) {
-					runnerUp = data.children[1].team;
-				} else {
-					runnerUp = data.children[0].team;
-				}
-				runnersUp.push(runnerUp);
-
-				if (data.children[0].children && data.children[0].children.length) {
-					if (data.children[0].children[0].team === runnerUp || data.children[0].children[0].team === winner) {
-						semiFinalists.push(data.children[0].children[1].team);
-					} else {
-						semiFinalists.push(data.children[0].children[0].team);
-					}
-				}
-				if (data.children[1].children && data.children[1].children.length) {
-					if (data.children[1].children[0].team === runnerUp || data.children[1].children[0].team === winner) {
-						semiFinalists.push(data.children[1].children[1].team);
-					} else {
-						semiFinalists.push(data.children[1].children[0].team);
-					}
-				}
+			if (this.info.bracketData.rootNode) {
+				const places = Tournaments.getPlacesFromTree(Tournaments.clientToEliminationNode(this.info.bracketData.rootNode));
+				if (places.winner) winners = [places.winner];
+				if (places.runnerup) runnersUp = [places.runnerup];
+				if (places.semifinalists) semiFinalists = places.semifinalists;
 			}
 		} else {
 			if (this.info.results[0]) winners = this.info.results[0];
@@ -208,51 +190,43 @@ export class Tournament extends Activity {
 			}
 			this.sayCommand('/wall Congratulations to ' + Tools.joinList(text));
 		} else {
-			const multiplier = Tournaments.getPointsMultiplier(this.format, this.totalPlayers, this.scheduled);
-			const semiFinalistPoints = Tournaments.getPointsValue(Tournaments.semiFinalistPoints, multiplier);
-			const runnerUpPoints = Tournaments.getPointsValue(Tournaments.runnerUpPoints, multiplier);
-			const winnerPoints = Tournaments.getPointsValue(Tournaments.winnerPoints, multiplier);
-
-			const pointsHtml: string[] = [];
-			pointsHtml.push("runner" + (runnersUp.length > 1 ? "s" : "") + "-up " + Tools.joinList(runnersUp, '<b>', '</b>') + " for " +
-				"earning " + runnerUpPoints + " points");
-			pointsHtml.push("winner" + (winners.length > 1 ? "s" : "") + " " + Tools.joinList(winners, '<b>', '</b>') + " for earning " +
-				winnerPoints + " points");
-			if (semiFinalists.length) {
-				pointsHtml.unshift("semi-finalist" + (semiFinalists.length > 1 ? "s" : "") + " " +
-					Tools.joinList(semiFinalists, '<b>', '</b>') + " for earning " + semiFinalistPoints + " point" +
-					(semiFinalistPoints > 1 ? "s" : ""));
-			}
-
-			const winnerPm = 'You were awarded **' + winnerPoints + ' points** for being ' +
-				(winners.length > 1 ? 'a' : 'the') + ' tournament winner! To see your total amount, use this command: ``.rank ' +
-				this.room.title + '``.';
-			for (const winner of winners) {
-				Storage.addPoints(this.room, Storage.tournamentLeaderboard, winner, winnerPoints, this.format.id);
-				const user = Users.get(winner);
-				if (user) user.say(winnerPm);
-			}
-
-			const runnerUpPm = 'You were awarded **' + runnerUpPoints + ' points** for being ' + (runnersUp.length > 1 ? 'a' :
-				'the') + ' runner-up in the tournament! To see your total amount, use this command: ``.rank ' + this.room.title + '``.';
-			for (const runnerUp of runnersUp) {
-				Storage.addPoints(this.room, Storage.tournamentLeaderboard, runnerUp, runnerUpPoints, this.format.id);
-				const user = Users.get(runnerUp);
-				if (user) user.say(runnerUpPm);
-			}
+			const multiplier = Tournaments.getCombinedPointMultiplier(this.format, this.totalPlayers, this.scheduled);
+			const semiFinalistPoints = Tournaments.getSemiFinalistPoints(multiplier);
+			const runnerUpPoints = Tournaments.getRunnerUpPoints(multiplier);
+			const winnerPoints = Tournaments.getWinnerPoints(multiplier);
 
 			const semiFinalistPm = 'You were awarded **' + semiFinalistPoints + ' point' + (semiFinalistPoints > 1 ? "s" : "") +
 				'** for being ' + (semiFinalists.length > 1 ? 'a' : 'the') + ' semi-finalist in the tournament! To see your total ' +
-				'amount, use this command: ``.rank ' + this.room.title + '``.';
+				'amount, use this command: ``' + Config.commandCharacter + 'rank ' + this.room.title + '``.';
 			for (const semiFinalist of semiFinalists) {
 				Storage.addPoints(this.room, Storage.tournamentLeaderboard, semiFinalist, semiFinalistPoints, this.format.id);
 				const user = Users.get(semiFinalist);
 				if (user) user.say(semiFinalistPm);
 			}
 
+			const runnerUpPm = 'You were awarded **' + runnerUpPoints + ' points** for being ' + (runnersUp.length > 1 ? 'a' :
+				'the') + ' runner-up in the tournament! To see your total amount, use this command: ``' +
+				Config.commandCharacter + 'rank ' + this.room.title + '``.';
+			for (const runnerUp of runnersUp) {
+				Storage.addPoints(this.room, Storage.tournamentLeaderboard, runnerUp, runnerUpPoints, this.format.id);
+				const user = Users.get(runnerUp);
+				if (user) user.say(runnerUpPm);
+			}
+
+			const winnerPm = 'You were awarded **' + winnerPoints + ' points** for being ' +
+				(winners.length > 1 ? 'a' : 'the') + ' tournament winner! To see your total amount, use this command: ``' +
+				Config.commandCharacter + 'rank ' + this.room.title + '``.';
+			for (const winner of winners) {
+				Storage.addPoints(this.room, Storage.tournamentLeaderboard, winner, winnerPoints, this.format.id);
+				const user = Users.get(winner);
+				if (user) user.say(winnerPm);
+			}
+
+			const placesHtml = Tournaments.getPlacesHtml('tournamentLeaderboard', (this.scheduled ? "Official " : "") + this.format.name,
+				winners, runnersUp, semiFinalists, winnerPoints, runnerUpPoints, semiFinalistPoints);
 			const formatLeaderboard = Tournaments.getFormatLeaderboardHtml(this.room, this.format);
-			this.sayHtml("<div class='infobox-limited'>Congratulations to " + Tools.joinList(pointsHtml) + "!" + (formatLeaderboard ?
-				"<br /><br />" + formatLeaderboard : "") + "</div>");
+			this.sayHtml("<div class='infobox-limited'>" + placesHtml + (formatLeaderboard ? "<br /><br />" + formatLeaderboard : "") +
+				"</div>");
 		}
 
 		Storage.exportDatabase(this.room.id);
