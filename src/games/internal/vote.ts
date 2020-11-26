@@ -10,7 +10,7 @@ export class Vote extends ScriptedGame {
 	chosenFormat: string = '';
 	endedVoting: boolean = false;
 	internalGame: boolean = true;
-	picks: string[] = [];
+	botSuggestions: string[] = [];
 	updateVotesHtmlTimeout: NodeJS.Timeout | null = null;
 	votesUhtmlName: string = '';
 	readonly votes = new Map<Player, string>();
@@ -68,6 +68,17 @@ export class Vote extends ScriptedGame {
 		}
 	}
 
+	getLeastPlayedFormat(): string {
+		const formats = Games.getLeastPlayedFormats(this.room);
+		for (const leastPlayedFormat of formats) {
+			if (Games.canCreateGame(this.room, leastPlayedFormat) === true) {
+				return leastPlayedFormat.name;
+			}
+		}
+
+		return "";
+	}
+
 	onSignups(): void {
 		this.votesUhtmlName = this.uhtmlBaseName + '-votes';
 
@@ -84,36 +95,43 @@ export class Vote extends ScriptedGame {
 			}
 		}
 
-		const formats: string[] = [];
-		let possiblePicks: string[] = [];
+		const votableFormats: string[] = [];
 		for (const i in Games.formats) {
 			const format = Games.getExistingFormat(i);
-			if (format.disabled || format.tournamentGame) continue;
-			formats.push(format.name);
-			if (Games.canCreateGame(this.room, format) === true) possiblePicks.push(format.name);
+			if (Games.canCreateGame(this.room, format) === true) votableFormats.push(format.name);
 		}
 
-		possiblePicks = this.shuffle(possiblePicks);
-		this.picks = [];
+		const possibleBotPicks = this.shuffle(votableFormats);
+		this.botSuggestions = [];
 		for (let i = 0; i < 3; i++) {
-			if (!possiblePicks[i]) break;
-			this.picks.push(possiblePicks[i]);
+			if (!possibleBotPicks[i]) break;
+			this.botSuggestions.push(possibleBotPicks[i]);
 		}
 
 		let html = "<center><h3>Vote for the next scripted game with <code>" + Config.commandCharacter + "vote [game]</code></h3>";
 
-		if (this.picks.length) {
-			html += "<b>" + Users.self.name + "'s picks:</b><br />";
+		if (this.botSuggestions.length) {
+			html += "<b>" + Users.self.name + "'s suggestions:</b><br />";
 
 			const buttons: string[] = [];
-			for (const pick of this.picks) {
+			for (const pick of this.botSuggestions) {
 				buttons.push(Client.getPmSelfButton(Config.commandCharacter + "pmvote " + pick, pick));
 			}
 			html += buttons.join(" | ");
-			html += "<br /><br />";
+			html += "<br />";
 		}
 
-		html += "<details><summary>Click to see all games</summary>" + formats.sort().join(", ") + "</details></center>";
+		const leastPlayedFormat = this.getLeastPlayedFormat();
+		html += Client.getPmSelfButton(Config.commandCharacter + "pmvote " + leastPlayedFormat, "Least played game") + " | " +
+			Client.getPmSelfButton(Config.commandCharacter + "pmvote random", "Random game");
+		html += "<br /><br />";
+
+		html += "<details><summary>Current votable games</summary>";
+		for (const format of votableFormats) {
+			html += Client.getPmSelfButton(Config.commandCharacter + "pmvote " + format, format);
+		}
+		html += "</details></center>";
+
 		if (pastGames.length) {
 			html += "<br /><b>Past games (cannot be voted for)</b>: " + Tools.joinList(pastGames);
 		}
@@ -144,12 +162,12 @@ export class Vote extends ScriptedGame {
 				if (formats.length) {
 					format = this.sampleOne(formats);
 				} else {
-					if (!this.picks.length) {
+					if (!this.botSuggestions.length) {
 						this.say("A random game could not be chosen.");
 						this.forceEnd(Users.self);
 						return;
 					}
-					format = this.sampleOne(this.picks);
+					format = this.sampleOne(this.botSuggestions);
 				}
 
 				this.chosenFormat = format;
@@ -193,13 +211,7 @@ const commands: GameCommandDefinitions<Vote> = {
 				}
 			} else {
 				if (targetId === 'leastplayed' || targetId === 'lpgame') {
-					const formats = Games.getLeastPlayedFormats(this.room);
-					for (const leastPlayedFormat of formats) {
-						if (Games.canCreateGame(this.room, leastPlayedFormat) === true) {
-							target = leastPlayedFormat.name;
-							break;
-						}
-					}
+					target = this.getLeastPlayedFormat();
 				}
 
 				const targetFormat = Games.getFormat(target, true);
