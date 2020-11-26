@@ -23,19 +23,19 @@ class GalladesAbilityTest extends QuestionAndAnswer {
 		const pokemonList = Games.getPokemonList();
 		for (const pokemon of pokemonList) {
 			const abilities: string[] = [];
-			let hiddenAbility = '';
+			const hiddenSpecialAbilities: string[] = [];
 			for (const i in pokemon.abilities) {
 				// @ts-expect-error
 				const ability = pokemon.abilities[i] as string;
 				const key = ability.replace(STANDARD_ABILITY_CHARACTERS_REGEX, "").split(" ").map(x => x[0]).join("");
-				if (i === 'H') {
-					hiddenAbility = key;
+				if (i === 'H' || i === 'S') {
+					hiddenSpecialAbilities.push(key);
 				} else {
 					abilities.push(key);
 				}
 			}
 
-			const key = abilities.join(", ") + (hiddenAbility ? " | <i>" + hiddenAbility + "</i>" : "");
+			const key = abilities.join(", ") + (hiddenSpecialAbilities.length ? " | <i>" + hiddenSpecialAbilities.join(", ") + "</i>" : "");
 			if (!(key in data.abilities)) data.abilities[key] = [];
 			data.abilities[key].push(pokemon.name);
 			keys.push(key);
