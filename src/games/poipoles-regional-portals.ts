@@ -61,6 +61,20 @@ class PoipolesRegionalPortals extends ScriptedGame {
 
 	onNextRound(): void {
 		this.canTravel = false;
+		let reachedCap = false;
+		this.points.forEach((points, player) => {
+			if (points >= this.format.options.points) {
+				this.winners.set(player, 1);
+				if (!reachedCap) reachedCap = true;
+			}
+		});
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		if (reachedCap) {
+			this.announceWinners();
+			this.convertPointsToBits();
+			this.end();
+			return;
+		}
 
 		let region = this.sampleOne(regionKeys);
 		while (region === this.lastRegion) {
@@ -120,14 +134,6 @@ const commands: GameCommandDefinitions<PoipolesRegionalPortals> = {
 
 			this.roundTravels.add(player);
 			this.say(player.name + " is the **" + Tools.toNumberOrderString(this.roundTravels.size) + "** traveler!");
-
-			if (points >= this.format.options.points) {
-				this.winners.set(player, 1);
-				this.announceWinners();
-				this.convertPointsToBits();
-				this.end();
-				return true;
-			}
 
 			if (this.roundTravels.size === this.maxTravelersPerRound) this.nextRound();
 			return true;
