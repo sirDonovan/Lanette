@@ -18,6 +18,7 @@ class BuzzwolesFizzBuzz extends ScriptedGame {
 	currentPlayer: Player | null = null;
 	currentNumber: number = 0;
 	firstMultiple: number = 0;
+	maxNumber: number = 100;
 	secondMultiple: number = 0;
 	expectedMultiple: ExpectedMultiple = 0;
 	roundCategories: {'firstMultiple': string; 'secondMultiple': string} = {firstMultiple: '', secondMultiple: ''};
@@ -291,7 +292,11 @@ const commands: GameCommandDefinitions<BuzzwolesFizzBuzz> = {
 			if (match) {
 				this.currentPlayer = null;
 				this.currentNumber++;
-				this.nextRound();
+				if (this.currentNumber === this.maxNumber) {
+					this.resetCount();
+				} else {
+					this.nextRound();
+				}
 			} else {
 				this.say(user.name + " was eliminated from the game!");
 				this.eliminatePlayer(this.currentPlayer, "You gave an incorrect multiple or item!");
