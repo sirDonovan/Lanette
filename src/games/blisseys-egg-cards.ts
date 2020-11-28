@@ -172,8 +172,8 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 				return true;
 			},
 		},
-		"magby": {
-			name: "Magby",
+		"happiny": {
+			name: "happiny",
 			description: "Change to 1 egg group",
 			requiredTarget: true,
 			getCard(game) {
@@ -215,8 +215,8 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 				return true;
 			},
 		},
-		"magmar": {
-			name: "Magmar",
+		"chansey": {
+			name: "Chansey",
 			description: "Change to 2 egg groups",
 			requiredTarget: true,
 			getCard(game) {
@@ -641,39 +641,39 @@ const tests: GameFileTests<BlisseysEggCards> = {
 			assertStrictEqual(fullincense.isPlayableTarget(game, []), false);
 		},
 	},
-	'action cards - magby': {
+	'action cards - happiny': {
 		test(game): void {
-			const magby = game.actionCards.magby;
-			assert(magby);
+			const happiny = game.actionCards.happiny;
+			assert(happiny);
 
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
-			assert(magby.getAutoPlayTarget(game, []));
-			assertStrictEqual(magby.isPlayableTarget(game, ["Monster"]), true);
-			assertStrictEqual(magby.isPlayableTarget(game, ["Grass"]), true);
+			assert(happiny.getAutoPlayTarget(game, []));
+			assertStrictEqual(happiny.isPlayableTarget(game, ["Monster"]), true);
+			assertStrictEqual(happiny.isPlayableTarget(game, ["Grass"]), true);
 
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Rattata"));
-			assert(magby.getAutoPlayTarget(game, []));
-			assertStrictEqual(magby.isPlayableTarget(game, ["Monster"]), true);
-			assertStrictEqual(magby.isPlayableTarget(game, ["Field"]), false);
-			assertStrictEqual(magby.isPlayableTarget(game, ["Undiscovered"]), false);
-			assertStrictEqual(magby.isPlayableTarget(game, [""]), false);
-			assertStrictEqual(magby.isPlayableTarget(game, ["Monster", "Grass"]), false);
+			assert(happiny.getAutoPlayTarget(game, []));
+			assertStrictEqual(happiny.isPlayableTarget(game, ["Monster"]), true);
+			assertStrictEqual(happiny.isPlayableTarget(game, ["Field"]), false);
+			assertStrictEqual(happiny.isPlayableTarget(game, ["Undiscovered"]), false);
+			assertStrictEqual(happiny.isPlayableTarget(game, [""]), false);
+			assertStrictEqual(happiny.isPlayableTarget(game, ["Monster", "Grass"]), false);
 		},
 	},
 	'action cards - magmar': {
 		test(game): void {
-			const magmar = game.actionCards.magmar;
-			assert(magmar);
+			const chansey = game.actionCards.chansey;
+			assert(chansey);
 
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
-			assert(magmar.getAutoPlayTarget(game, []));
-			assertStrictEqual(magmar.isPlayableTarget(game, ["Field", "Fairy"]), true);
-			assertStrictEqual(magmar.isPlayableTarget(game, ["Monster", "Grass"]), false);
-			assertStrictEqual(magmar.isPlayableTarget(game, ["Grass", "Monster"]), false);
-			assertStrictEqual(magmar.isPlayableTarget(game, ["Field"]), false);
-			assertStrictEqual(magmar.isPlayableTarget(game, ["Undiscovered", "Fairy"]), false);
-			assertStrictEqual(magmar.isPlayableTarget(game, ["Fairy", "Undiscovered"]), false);
-			assertStrictEqual(magmar.isPlayableTarget(game, [""]), false);
+			assert(chansey.getAutoPlayTarget(game, []));
+			assertStrictEqual(chansey.isPlayableTarget(game, ["Field", "Fairy"]), true);
+			assertStrictEqual(chansey.isPlayableTarget(game, ["Monster", "Grass"]), false);
+			assertStrictEqual(chansey.isPlayableTarget(game, ["Grass", "Monster"]), false);
+			assertStrictEqual(chansey.isPlayableTarget(game, ["Field"]), false);
+			assertStrictEqual(chansey.isPlayableTarget(game, ["Undiscovered", "Fairy"]), false);
+			assertStrictEqual(chansey.isPlayableTarget(game, ["Fairy", "Undiscovered"]), false);
+			assertStrictEqual(chansey.isPlayableTarget(game, [""]), false);
 		},
 	},
 	'action cards - destinyknot': {
