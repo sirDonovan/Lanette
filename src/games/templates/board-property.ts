@@ -514,7 +514,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 	}
 
 	checkEliminationChance(player: Player, eliminationChance: number, eliminator?: Player): void {
-		const randomNumber = this.random(100) + 1;
+		const randomNumber = this.random(100);
 		let text = "The randomly generated number is **" + randomNumber + "**!";
 		if (randomNumber < eliminationChance) {
 			text += " **" + player.name + "** has been eliminated" + (eliminator ? " by **" + eliminator.name + "**" : "") + "!";
