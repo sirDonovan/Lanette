@@ -352,6 +352,7 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 	detailLabelWidth: number = 100;
 	eggGroupsLimit: number = 20;
 	finitePlayerCards: boolean = true;
+	maxCardRounds: number = 50;
 	playerCards = new Map<Player, IPokemonCard[]>();
 	shinyCardAchievement = BlisseysEggCards.achievements.luckofthedraw;
 
