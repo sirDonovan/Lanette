@@ -2,7 +2,7 @@ import type { Player } from '../../room-activity';
 import { ScriptedGame } from '../../room-game-scripted';
 import { assert, assertStrictEqual } from '../../test/test-tools';
 import type { GameCommandDefinitions, GameFileTests, IGameTemplateFile, PlayerList } from '../../types/games';
-import type { IMove, IPokemon, StatsTable } from '../../types/pokemon-showdown';
+import type { IItem, IMove, IPokemon, StatsTable } from '../../types/pokemon-showdown';
 
 export interface ICardsSplitByPlayable {
 	playable: ICard[];
@@ -22,7 +22,7 @@ export interface IActionCardData<T extends ScriptedGame = ScriptedGame, U extend
 }
 
 export interface ICard {
-	effectType: 'move' | 'pokemon';
+	effectType: 'move' | 'pokemon' | 'item';
 	id: string;
 	name: string;
 	action?: IActionCardData;
@@ -33,6 +33,7 @@ export interface ICard {
 export interface IMoveCard extends ICard {
 	accuracy: number;
 	basePower: number;
+	effectType: 'move';
 	pp: number;
 	type: string;
 	availability?: number;
@@ -41,8 +42,15 @@ export interface IMoveCard extends ICard {
 export interface IPokemonCard extends ICard {
 	baseStats: StatsTable;
 	color: string;
+	effectType: 'pokemon';
+	eggGroups: readonly string[];
 	types: readonly string[];
 	shiny?: boolean;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface IItemCard extends ICard {
+	effectType: 'item';
 }
 
 export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends ScriptedGame {
@@ -85,6 +93,10 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 		return card.effectType === 'pokemon';
 	}
 
+	isItemCard(card: ICard): card is IItemCard {
+		return card.effectType === 'item';
+	}
+
 	moveToCard(move: IMove, availability?: number): IMoveCard {
 		return {
 			accuracy: move.accuracy as number,
@@ -110,6 +122,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 			baseStats: pokemon.baseStats,
 			color: pokemon.color,
 			effectType: 'pokemon',
+			eggGroups: pokemon.eggGroups,
 			id: pokemon.id,
 			name: pokemon.name,
 			types: pokemon.types,
@@ -118,6 +131,21 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 
 	pokemonToActionCard<T extends ScriptedGame = ScriptedGame>(action: IActionCardData<T>): IPokemonCard {
 		const card = this.pokemonToCard(Dex.getExistingPokemon(action.name));
+		// @ts-expect-error
+		card.action = Object.assign({}, action);
+		return card;
+	}
+
+	itemToCard(item: IItem): IItemCard {
+		return {
+			effectType: 'item',
+			id: item.id,
+			name: item.name,
+		};
+	}
+
+	itemToActionCard<T extends ScriptedGame = ScriptedGame>(action: IActionCardData<T>): IItemCard {
+		const card = this.itemToCard(Dex.getExistingItem(action.name));
 		// @ts-expect-error
 		card.action = Object.assign({}, action);
 		return card;
@@ -173,6 +201,10 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 		return card;
 	}
 
+	containsCard(name: string, cards: ICard[]): boolean {
+		return this.getCardIndex(name, cards) !== -1;
+	}
+
 	getCardIndex(name: string, cards: ICard[]): number {
 		const id = Tools.toId(name);
 		let index = -1;
@@ -191,6 +223,18 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 			types.push(Dex.getTypeHtml(Dex.getExistingType(type), this.detailLabelWidth));
 		}
 		return types.join("&nbsp;/&nbsp;");
+	}
+
+	getEggGroupLabel(card: IPokemonCard): string {
+		const colorData = Tools.hexColorCodes['Black'];
+		const eggGroups = [];
+		for (const eggGroup of card.eggGroups) {
+			eggGroups.push('<div style="display:inline-block;background-color:' + colorData['background-color'] + ';background:' +
+				colorData['background'] + ';border-color:' + colorData['border-color'] + ';border: 1px solid #a99890;border-radius:3px;' +
+				'width:' + this.detailLabelWidth + 'px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;' +
+				'font-size:8pt;text-align:center"><b>' + eggGroup + '</b></div>');
+		}
+		return eggGroups.join("&nbsp;/&nbsp;");
 	}
 
 	getChatColorLabel(card: IPokemonCard): string {

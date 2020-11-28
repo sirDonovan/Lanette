@@ -139,15 +139,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 				}
 
 				if (hand) {
-					let hasCard = false;
-					for (const card of hand) {
-						if (card.name === pokemon.name) {
-							hasCard = true;
-							break;
-						}
-					}
-
-					if (!hasCard) {
+					if (!game.containsCard(pokemon.name, hand)) {
 						if (player) player.say("You do not have [ " + pokemon.name + " ].");
 						return false;
 					}
@@ -198,15 +190,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 				}
 
 				if (hand) {
-					let hasCard = false;
-					for (const card of hand) {
-						if (card.name === pokemon.name) {
-							hasCard = true;
-							break;
-						}
-					}
-
-					if (!hasCard) {
+					if (!game.containsCard(pokemon.name, hand)) {
 						if (player) player.say("You do not have [ " + pokemon.name + " ].");
 						return false;
 					}
@@ -312,7 +296,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 				if (game.topCard.types.length === 2) {
 					const typesList = [usableTypes[type1], usableTypes[type2]];
 					if (game.topCard.types.slice().sort().join(",") === typesList.sort().join(",")) {
-						if (player) player.say("The top card already " + typesList.join("/") + " type.");
+						if (player) player.say("The top card is already " + typesList.join("/") + " type.");
 						return false;
 					}
 				}
@@ -377,7 +361,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 				if (game.topCard.types.length === 3) {
 					const typesList = [usableTypes[type1], usableTypes[type2], usableTypes[type3]];
 					if (game.topCard.types.slice().sort().join(",") === typesList.sort().join(",")) {
-						if (player) player.say("The top card already " + typesList.join("/") + " type.");
+						if (player) player.say("The top card is already " + typesList.join("/") + " type.");
 						return false;
 					}
 				}
