@@ -20,6 +20,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	canPlay: boolean = false;
 	colorsLimit: number = 0;
 	deckPool: IPokemonCard[] = [];
+	eggGroupsLimit: number = 0;
 	playerInactiveRoundLimit: number = 3;
 	lastPlayer: Player | null = null;
 	maxCardRounds: number = 30;
@@ -56,6 +57,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 
 	createDeck(): void {
 		const colorCounts: Dict<number> = {};
+		const eggGroupCounts: Dict<number> = {};
 		const typeCounts: Dict<number> = {};
 		if (!this.deckPool.length) this.createDeckPool();
 		const pokedex = this.shuffle(this.deckPool);
@@ -64,6 +66,11 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		outer:
 		for (const pokemon of pokedex) {
 			if (this.colorsLimit && pokemon.color in colorCounts && colorCounts[pokemon.color] >= this.colorsLimit) continue;
+			if (this.eggGroupsLimit) {
+				for (const eggGroup of pokemon.eggGroups) {
+					if (eggGroup in eggGroupCounts && eggGroupCounts[eggGroup] >= this.eggGroupsLimit) continue outer;
+				}
+			}
 			if (this.typesLimit) {
 				for (const type of pokemon.types) {
 					if (type in typeCounts && typeCounts[type] >= this.typesLimit) continue outer;
@@ -72,6 +79,11 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 
 			if (!(pokemon.color in colorCounts)) colorCounts[pokemon.color] = 0;
 			colorCounts[pokemon.color]++;
+
+			for (const eggGroup of pokemon.eggGroups) {
+				if (!(eggGroup in eggGroupCounts)) eggGroupCounts[eggGroup] = 0;
+				eggGroupCounts[eggGroup]++;
+			}
 
 			for (const type of pokemon.types) {
 				if (!(type in typeCounts)) typeCounts[type] = 0;

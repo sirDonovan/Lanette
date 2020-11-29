@@ -29,8 +29,8 @@ export type LoadedCommands<ThisContext, ReturnType = any> = Dict<LoadedCommand<T
 export type BaseLoadedCommands = LoadedCommands<CommandContext>;
 
 export type CommandErrorOptionalTarget = 'invalidBotRoom' | 'invalidAbility' | 'invalidFormat' | 'invalidGameFormat' | 'invalidItem' |
-	'invalidMove' | 'invalidPokemon' | 'invalidTournamentFormat' | 'invalidUserHostedGameFormat' | 'invalidType' | 'tooManyGameModes' |
-	'tooManyGameVariants' | 'emptyUserHostedGameQueue';
+	'invalidMove' | 'invalidPokemon' | 'invalidTournamentFormat' | 'invalidUserHostedGameFormat' | 'invalidType' | 'invalidEggGroup' |
+	'tooManyGameModes' | 'tooManyGameVariants' | 'emptyUserHostedGameQueue';
 
 export type CommandErrorRequiredTarget = 'noPmHtmlRoom' | 'missingBotRankForFeatures' | 'disabledTournamentFeatures' |
 	'disabledGameFeatures' | 'disabledTournamentGameFeatures' | 'disabledUserHostedGameFeatures' | 'disabledUserHostedTournamentFeatures' |
