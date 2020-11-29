@@ -5,7 +5,8 @@ import type { IActionCardData, ICard, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 
 type AchievementNames = "drawwizard" | "luckofthedraw";
-type ActionCardsType = Dict<IActionCardData<BulbasaursUno>>;
+type ActionCardNames = 'greninja' | 'kecleon' | 'magnemite' | 'doduo' | 'machamp' | 'inkay' | 'slaking' | 'spinda';
+type ActionCardsType = KeyedDict<ActionCardNames, IActionCardData<BulbasaursUno>>;
 
 const types: Dict<string> = {};
 
@@ -325,6 +326,7 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 		if (!card.action) throw new Error("playActionCard called with a regular card");
 		if (!card.action.isPlayableTarget(this, targets, cards, player)) return false;
 
+		const id = card.id as ActionCardNames;
 		let firstTimeShiny = false;
 		let cardDetail: string | undefined;
 		let drawCards = 0;
@@ -339,28 +341,28 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 			}
 			this.say("The top card is now **Draw " + this.topCard.action.drawCards + "**!");
 			drawCards = 0;
-		} else if (card.id === 'greninja') {
+		} else if (id === 'greninja') {
 			const type = Tools.toId(targets[0]);
 			this.topCard.types = [types[type]];
 			cardDetail = types[type];
-		} else if (card.id === 'kecleon') {
+		} else if (id === 'kecleon') {
 			const color = Tools.toId(targets[0]);
 			this.topCard.color = this.colors[color];
 			cardDetail = this.colors[color];
-		} else if (card.id === 'inkay') {
+		} else if (id === 'inkay') {
 			this.say("**The turn order was reversed!**");
 			this.playerOrder.reverse();
 			const playerIndex = this.playerOrder.indexOf(player);
 			this.playerList = this.playerOrder.slice(playerIndex + 1);
-		} else if (card.id === 'spinda') {
+		} else if (id === 'spinda') {
 			this.say("**The turn order was shuffled!**");
 			this.playerOrder = this.shuffle(this.playerOrder);
 			let index = this.playerOrder.indexOf(player) + 1;
 			if (index === this.playerOrder.length) index = 0;
 			this.playerList = this.playerOrder.slice(index);
-		} else if (card.id === 'slaking') {
+		} else if (id === 'slaking') {
 			this.topCard.action = card.action;
-		} else if (card.id === 'magnemite') {
+		} else if (id === 'magnemite') {
 			if (cards.length >= 3) {
 				const idA = Tools.toId(targets[0]);
 				const idB = Tools.toId(targets[1]);

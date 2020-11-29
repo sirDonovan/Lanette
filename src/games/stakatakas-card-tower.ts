@@ -5,8 +5,8 @@ import type { IActionCardData, ICard, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 
 type AchievementNames = "luckofthedraw";
-
-type ActionCardsType = Dict<IActionCardData<StakatakasCardTower>>;
+type ActionCardNames = 'manaphy' | 'phione' | 'pachirisu';
+type ActionCardsType = KeyedDict<ActionCardNames, IActionCardData<StakatakasCardTower>>;
 
 class StakatakasCardTower extends CardMatching<ActionCardsType> {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
@@ -148,9 +148,10 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 		if (!card.action) throw new Error("playActionCard called with a regular card");
 		if (!card.action.isPlayableTarget(this, targets, cards, player)) return false;
 
-		if (card.id === 'manaphy' || card.id === 'phione') {
+		const id = card.id as ActionCardNames;
+		if (id === 'manaphy' || id === 'phione') {
 			let amount: number;
-			if (card.id === 'manaphy') {
+			if (id === 'manaphy') {
 				amount = 4;
 			} else {
 				amount = 2;
@@ -161,9 +162,9 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 
 			const playerCardAmounts: Dict<number> = {};
 			let cardPool: ICard[] = [];
-			for (const id in this.players) {
-				if (this.players[id].eliminated) continue;
-				const otherPlayer = this.players[id];
+			for (const playerId in this.players) {
+				if (this.players[playerId].eliminated) continue;
+				const otherPlayer = this.players[playerId];
 				const otherPlayerCards = this.playerCards.get(otherPlayer)!;
 				let shuffled = 0;
 				for (let i = 0; i < amount; i++) {
@@ -185,7 +186,8 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 				}
 				if (this.players[i] !== player) this.updatePlayerHtmlPage(this.players[i]);
 			}
-		} else if (card.id === 'pachirisu') {
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		} else if (id === 'pachirisu') {
 			let pair: IPokemonCard | null = null;
 			while (!pair) {
 				const possiblePair = this.getCard() as IPokemonCard;

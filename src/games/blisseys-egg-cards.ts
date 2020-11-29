@@ -6,7 +6,9 @@ import type { IActionCardData, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 
 type AchievementNames = "luckofthedraw";
-type ActionCardsType = Dict<IActionCardData<BlisseysEggCards>>;
+type ActionCardNames = 'waveincense' | 'seaincense' | 'roseincense' | 'rockincense' | 'oddincense' | 'fullincense' | 'laxincense' |
+	'happiny' | 'chansey' | 'ditto' | 'destinyknot';
+type ActionCardsType = KeyedDict<ActionCardNames, IActionCardData<BlisseysEggCards>>;
 
 const bannedEggGroups: string[] = ['Undiscovered'];
 const eggGroups: Dict<string> = {};
@@ -437,31 +439,32 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 		if (!card.action) throw new Error("playActionCard called with a regular card");
 		if (!card.action.isPlayableTarget(this, targets, cards, player)) return false;
 
+		const id = card.id as ActionCardNames;
 		let cardDetail: string | undefined;
-		if (card.id === 'fullincense') {
+		if (id === 'fullincense') {
 			this.addTopCardEggGroup('Monster');
-		} else if (card.id === 'laxincense') {
+		} else if (id === 'laxincense') {
 			this.addTopCardEggGroup('Amorphous');
-		} else if (card.id === 'oddincense') {
+		} else if (id === 'oddincense') {
 			this.addTopCardEggGroup('Human-Like');
-		} else if (card.id === 'rockincense') {
+		} else if (id === 'rockincense') {
 			this.addTopCardEggGroup('Mineral');
-		} else if (card.id === 'roseincense') {
+		} else if (id === 'roseincense') {
 			this.addTopCardEggGroup('Grass');
-		} else if (card.id === 'seaincense') {
+		} else if (id === 'seaincense') {
 			this.addTopCardEggGroup('Fairy');
-		} else if (card.id === 'waveincense') {
+		} else if (id === 'waveincense') {
 			this.addTopCardEggGroup('Water 1');
-		} else if (card.id === 'magby') {
+		} else if (id === 'happiny') {
 			const eggGroup = Tools.toId(targets[0]);
 			this.topCard.eggGroups = [eggGroups[eggGroup]];
 			cardDetail = eggGroups[eggGroup];
-		} else if (card.id === 'magmar') {
+		} else if (id === 'chansey') {
 			const eggGroup1 = Tools.toId(targets[0]);
 			const eggGroup2 = Tools.toId(targets[1]);
 			this.topCard.eggGroups = [eggGroups[eggGroup1], eggGroups[eggGroup2]];
 			cardDetail = eggGroups[eggGroup1] + ", " + eggGroups[eggGroup2];
-		} else if (card.id === 'ditto') {
+		} else if (id === 'ditto') {
 			let playableCard: IPokemonCard | null = null;
 			while (!playableCard) {
 				const possibleCard = this.getCard() as IPokemonCard;
@@ -471,7 +474,8 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 			}
 
 			this.setTopCard(playableCard, player);
-		} else if (card.id === 'destinyknot') {
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		} else if (id === 'destinyknot') {
 			const prevos: IPokemon[] = [];
 			const topCard = Dex.getExistingPokemon(this.topCard.name);
 			const lowestTopCard = this.getLowestPlayableStage(topCard);
