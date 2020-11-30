@@ -45,7 +45,7 @@ const hexColorCodes: KeyedDict<HexColor, {'background-color': string; 'backgroun
 	"Violet": {'background-color': '#9947eb', 'background': 'linear-gradient(#9947eb,#6614b8)', 'border-color': '#4c0f8a'},
 	"Pink": {'background-color': '#eb47eb', 'background': 'linear-gradient(#eb47eb,#b814b8)', 'border-color': '#8a0f8a'},
 	"Red-Violet": {'background-color': '#eb4799', 'background': 'linear-gradient(#eb4799,#b81466)', 'border-color': '#8a0f4d'},
-	"Brown": {'background-color': '#995e33', 'background': 'linear-gradient(#995e33,#734626)', 'border-color': '#603a20'},
+	"Brown": {'background-color': '#c68353', 'background': 'linear-gradient(#c68353,#995e33)', 'border-color': '#734626'},
 	"Black": {'background-color': '#262626', 'background': 'linear-gradient(#262626,#1a1a1a)', 'border-color': '#0d0d0d'},
 	"White": {'background-color': '#e6e6e6', 'background': 'linear-gradient(#e6e6e6,#d9d9d9)', 'border-color': '#cccccc'},
 	"Gray": {'background-color': '#999999', 'background': 'linear-gradient(#999999,#666666)', 'border-color': '#4d4d4d'},
@@ -64,7 +64,7 @@ const hexColorCodes: KeyedDict<HexColor, {'background-color': string; 'backgroun
 	"Light-Violet": {'background-color': '#bf93ec', 'background': 'linear-gradient(#bf93ec,#9952e0)', 'border-color': '#7f26d9'},
 	"Light-Pink": {'background-color': '#ec93ec', 'background': 'linear-gradient(#ec93ec,#e052e0)', 'border-color': '#d926d9'},
 	"Light-Red-Violet": {'background-color': '#ec93bf', 'background': 'linear-gradient(#ec93bf,#e05299)', 'border-color': '#d92680'},
-	"Light-Brown": {'background-color': '#c68353', 'background': 'linear-gradient(#c68353,#995e33)', 'border-color': '#86522d'},
+	"Light-Brown": {'background-color': '#e6c8b3', 'background': 'linear-gradient(#e6c8b3,#d29e79)', 'border-color': '#c68353'},
 	"Light-Gray": {'background-color': '#bfbfbf', 'background': 'linear-gradient(#bfbfbf,#a6a6a6)', 'border-color': '#999999'},
 
 	"Dark-Red": {'background-color': '#c20a0a', 'background': 'linear-gradient(#c20a0a,#790606)', 'border-color': '#610505'},
@@ -79,7 +79,7 @@ const hexColorCodes: KeyedDict<HexColor, {'background-color': string; 'backgroun
 	"Dark-Violet": {'background-color': '#660ac2', 'background': 'linear-gradient(#660ac2,#400679)', 'border-color': '#330561'},
 	"Dark-Pink": {'background-color': '#c20ac2', 'background': 'linear-gradient(#c20ac2,#790679)', 'border-color': '#610561'},
 	"Dark-Red-Violet": {'background-color': '#c20a66', 'background': 'linear-gradient(#c20a66,#790640)', 'border-color': '#610533'},
-	"Dark-Brown": {'background-color': '#603a20', 'background': 'linear-gradient(#603a20,#392213)', 'border-color': '#26170d'},
+	"Dark-Brown": {'background-color': '#995c33', 'background': 'linear-gradient(#995c33,#603920)', 'border-color': '#4d2d19'},
 	"Dark-Gray": {'background-color': '#595959', 'background': 'linear-gradient(#595959,#404040)', 'border-color': '#333333'},
 };
 
@@ -97,7 +97,7 @@ const typeHexColors: Dict<HexColor> = {
 	"Flying": "Light-Gray",
 	"Psychic": "Pink",
 	"Bug": "Yellow-Green",
-	"Rock": "Dark-Brown",
+	"Rock": "Brown",
 	"Ghost": "Dark-Violet",
 	"Dragon": "Blue-Violet",
 	"Steel": "Gray",
