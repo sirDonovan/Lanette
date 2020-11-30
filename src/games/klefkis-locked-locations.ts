@@ -49,26 +49,26 @@ interface IBoardSpaces {
 
 const spaces: IBoardSpaces = {
 	// leftColumn
-	oakslab: new BoardSpace("Oak's Lab", "Light Green"),
-	chance: new BoardActionSpace("Action", "Pink"),
-	pyritetownjail: new BoardSpace("Pyrite Town Jail", "Orange"),
+	oakslab: new BoardSpace("Oak's Lab", "White"),
+	chance: new BoardActionSpace("Action", "Light-Pink"),
+	pyritetownjail: new BoardSpace("Pyrite Town Jail", "Gray"),
 	pallet: new BoardPropertyEliminationSpace("Pallet", "Red", 1, 5),
 	littleroot: new BoardPropertyEliminationSpace("Littleroot", "Red", 1, 5),
 	twinleaf: new BoardPropertyEliminationSpace("Twinleaf", "Red", 1, 10),
-	diglettscave: new BoardPropertyEliminationSpace("Diglett's Cave", "Light Purple", 1, 15),
-	diglettstunnel: new BoardPropertyEliminationSpace("Diglett's Tunnel", "Light Purple", 1, 15),
+	diglettscave: new BoardPropertyEliminationSpace("Diglett's Cave", "Red-Violet", 1, 15),
+	diglettstunnel: new BoardPropertyEliminationSpace("Diglett's Tunnel", "Red-Violet", 1, 15),
 
-	mtmoon: new BoardPropertyEliminationSpace(mountainPrefix + " Moon", "Dark Brown", 1, 10),
-	mtsilver: new BoardPropertyEliminationSpace(mountainPrefix + " Silver", "Dark Brown", 1, 10),
-	mtpyre: new BoardPropertyEliminationSpace(mountainPrefix + " Pyre", "Dark Brown", 1, 10),
-	mtcoronet: new BoardPropertyEliminationSpace(mountainPrefix + " Coronet", "Dark Brown", 1, 10),
+	mtmoon: new BoardPropertyEliminationSpace(mountainPrefix + " Moon", "Dark-Brown", 1, 10),
+	mtsilver: new BoardPropertyEliminationSpace(mountainPrefix + " Silver", "Dark-Brown", 1, 10),
+	mtpyre: new BoardPropertyEliminationSpace(mountainPrefix + " Pyre", "Dark-Brown", 1, 10),
+	mtcoronet: new BoardPropertyEliminationSpace(mountainPrefix + " Coronet", "Dark-Brown", 1, 10),
 
 	// top row
-	lakeacuity: new BoardPropertyEliminationSpace("Lake Acuity", "Purple", 1, 10),
-	lakeverity: new BoardPropertyEliminationSpace("Lake Verity", "Purple", 1, 10),
-	lakevalor: new BoardPropertyEliminationSpace("Lake Valor", "Purple", 1, 15),
-	battlefactory: new BoardPropertyEliminationSpace("Battle Factory", "Light Blue", 1, 25),
-	battlemaison: new BoardPropertyEliminationSpace("Battle Maison", "Light Blue", 1, 25),
+	lakeacuity: new BoardPropertyEliminationSpace("Lake Acuity", "Violet", 1, 10),
+	lakeverity: new BoardPropertyEliminationSpace("Lake Verity", "Violet", 1, 10),
+	lakevalor: new BoardPropertyEliminationSpace("Lake Valor", "Violet", 1, 15),
+	battlefactory: new BoardPropertyEliminationSpace("Battle Factory", "Blue-Violet", 1, 25),
+	battlemaison: new BoardPropertyEliminationSpace("Battle Maison", "Blue-Violet", 1, 25),
 
 	// right column
 	pokemoncenter: new BoardSpace("Pokemon Center", "Blue"),
@@ -80,11 +80,11 @@ const spaces: IBoardSpaces = {
 	victoryroad: new BoardEliminationSpace("Victory Road", "Blue", 'random'),
 
 	// bottom row
-	jubilife: new BoardPropertyEliminationSpace("Jubilife", "Light Gray", 1, 20),
-	castelia: new BoardPropertyEliminationSpace("Castelia", "Light Gray", 1, 20),
-	lumiose: new BoardPropertyEliminationSpace("Lumiose", "Light Gray", 1, 25),
-	ultraspace: new BoardPropertyEliminationSpace("Ultra Space", "Light Brown", 1, 35),
-	distortionworld: new BoardPropertyEliminationSpace("Distortion World", "Light Brown", 1, 35),
+	jubilife: new BoardPropertyEliminationSpace("Jubilife", "Orange", 1, 20),
+	castelia: new BoardPropertyEliminationSpace("Castelia", "Orange", 1, 20),
+	lumiose: new BoardPropertyEliminationSpace("Lumiose", "Orange", 1, 25),
+	ultraspace: new BoardPropertyEliminationSpace("Ultra Space", "Red-Orange", 1, 35),
+	distortionworld: new BoardPropertyEliminationSpace("Distortion World", "Red-Orange", 1, 35),
 };
 
 const doublesRollsAchievementAmount = 3;

@@ -141,7 +141,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			const card = this.previouslyPlayedCards[i];
 			const cardText = card.card + (card.detail ? ' (' + card.detail + ')' : '');
 			html += '<div class="infobox" style="width:' + (cardText.length * 8) + 'px;opacity:' + (lowestOpacity +
-				(opacityIncrement * i)) + '%;' + (card.shiny ? 'color: ' + Tools.hexColorCodes['Dark Yellow']['background-color'] : '') +
+				(opacityIncrement * i)) + '%;' + (card.shiny ? 'color: ' + Tools.hexColorCodes['Dark-Yellow']['background-color'] : '') +
 				'">' + cardText + '</div>';
 		}
 		return html;

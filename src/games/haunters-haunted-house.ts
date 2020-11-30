@@ -127,13 +127,13 @@ interface ITileValues {
 }
 
 const tileColors: ITileColors = {
-	players: "Light Blue",
-	wall: "Light Gray",
-	candy: "Light Pink",
-	ghost: "Light Purple",
+	players: "Cyan",
+	wall: "Gray",
+	candy: "Pink",
+	ghost: "Violet",
 	ghostFrenzy: "Red",
 	door: "Orange",
-	unlockedDoor: "Light Green",
+	unlockedDoor: "Green",
 	switch: "Yellow",
 };
 
@@ -188,7 +188,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 	}
 
 	createWall(): Location {
-		return new Location(false, "Light Gray");
+		return new Location(false, tileColors.wall);
 	}
 
 	find(p: number[], x: number): number {

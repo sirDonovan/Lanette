@@ -37,7 +37,7 @@ class DragapultsDangerZone extends ScriptedGame {
 			(25 * ((this.gridSize * 2) + 1)) + 'px"><tr style="height:25px"><td>&nbsp;</td>';
 
 		for (const letter of this.columnLetters) {
-			html += '<td style="background: ' + Tools.hexColorCodes["Light Gray"]["background-color"] + '">' + letter + '</td>';
+			html += '<td style="background: ' + Tools.hexColorCodes["Light-Gray"]["background-color"] + '">' + letter + '</td>';
 		}
 		html += '</tr>';
 
@@ -49,7 +49,7 @@ class DragapultsDangerZone extends ScriptedGame {
 
 		const hexColors: HexColor[] = ['Red', 'Blue'];
 		for (let i = 1; i <= this.gridSize; i++) {
-			html += '<tr style="height:25px"><td style="background: ' + Tools.hexColorCodes["Light Gray"]["background-color"] + '">' +
+			html += '<tr style="height:25px"><td style="background: ' + Tools.hexColorCodes["Light-Gray"]["background-color"] + '">' +
 				i + '</td>';
 			let currentTeamIndex = 0;
 			for (let j = 0; j < this.columnLetters.length; j++) {
