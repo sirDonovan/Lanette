@@ -100,13 +100,16 @@ export class Tournaments {
 					if (formatid.includes(',') && !formatid.includes('@@@')) {
 						const parts = formatid.split(',');
 						const customRules: string[] = [];
-						let customFormatid = parts[0].trim();
+						let customFormatid = Dex.getExistingFormat(parts[0]).id;
 						for (let i = 1; i < parts.length; i++) {
 							const part = parts[i].trim();
 							if (part && part !== '0') customRules.push(part);
 						}
 						if (customRules.length) customFormatid += '@@@' + customRules.join(',');
 						this.schedules[room].months[month].formats[day] = customFormatid;
+					} else {
+						this.schedules[room].months[month].formats[day] =
+							Dex.getExistingFormat(this.schedules[room].months[month].formats[day]).id;
 					}
 
 					this.schedules[room].months[month].formats[day] = Dex.validateFormat(this.schedules[room].months[month].formats[day]);
