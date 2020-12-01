@@ -75,7 +75,7 @@ databases/*
 !databases/README.md
 design.txt
 *.heapsnapshot
-local-utils/*
+local-utils/
 Pokemon-Showdown/
 pokemon-showdown/
 pokemon-showdown-lkg.txt
