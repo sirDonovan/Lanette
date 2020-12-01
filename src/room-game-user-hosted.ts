@@ -237,6 +237,8 @@ export class UserHostedGame extends Game {
 		}
 
 		const now = Date.now();
+		if (!(this.room.id in Games.lastUserHostTimes)) Games.lastUserHostTimes[this.room.id] = {};
+		Games.lastUserHostTimes[this.room.id][this.hostId] = now;
 
 		if (!(this.room.id in Games.lastUserHostFormatTimes)) Games.lastUserHostFormatTimes[this.room.id] = {};
 		// possibly customized name attribute
