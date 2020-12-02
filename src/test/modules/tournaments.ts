@@ -56,7 +56,9 @@ describe("Tournaments", () => {
 	it('should properly set scheduled formats according to configured times', () => {
 		const room = Rooms.get('mocha')!;
 		const date = new Date();
-		const month = date.getMonth() + 1;
+		const month = 0;
+		date.setMonth(month);
+		const scheduleMonth = month + 1;
 		const lastDayOfMonth = Tools.getLastDayOfMonth(date);
 
 		const formats: Dict<string> = {1: "gen8ou", 2: "gen8uu", 3: "gen8ru"};
@@ -64,10 +66,10 @@ describe("Tournaments", () => {
 
 		// 4 officials on 1 day
 		let times: [number, number][] = [[2, 30], [9, 30], [15, 30], [20, 30]];
-		schedule.months[month] = {formats: {}, times};
-		schedule.months[month].formats['1'] = formats['1'];
+		schedule.months[scheduleMonth] = {formats: {}, times};
+		schedule.months[scheduleMonth].formats['1'] = formats['1'];
 		for (let i = 2; i <= lastDayOfMonth; i++) {
-			schedule.months[month].formats[i] = formats['2'];
+			schedule.months[scheduleMonth].formats[i] = formats['2'];
 		}
 
 		Tournaments.schedules[room.id] = schedule;
@@ -84,11 +86,11 @@ describe("Tournaments", () => {
 
 		// 1 official on day 1, 3 officials on day 2
 		times = [[20, 30], [2, 30], [9, 30], [15, 30]];
-		schedule.months[month] = {formats: {}, times};
-		schedule.months[month].formats['1'] = formats['1'];
-		schedule.months[month].formats['2'] = formats['2'];
+		schedule.months[scheduleMonth] = {formats: {}, times};
+		schedule.months[scheduleMonth].formats['1'] = formats['1'];
+		schedule.months[scheduleMonth].formats['2'] = formats['2'];
 		for (let i = 3; i <= lastDayOfMonth; i++) {
-			schedule.months[month].formats[i] = formats['3'];
+			schedule.months[scheduleMonth].formats[i] = formats['3'];
 		}
 
 		Tournaments.loadSchedules();
@@ -113,9 +115,7 @@ describe("Tournaments", () => {
 		let timesIndex = 0;
 		for (let i = startIndex; i < endIndex; i++) {
 			if (timesIndex > 0 && times[timesIndex][0] < times[timesIndex - 1][0]) {
-				// month + 1 - 1
-				date.setMonth(month, 1);
-				date.setDate(1);
+				date.setMonth(month + 1, 1);
 			}
 			date.setHours(times[timesIndex][0], times[timesIndex][1], 0, 0);
 			timesIndex++;
@@ -125,18 +125,17 @@ describe("Tournaments", () => {
 
 		// 2 officials on day 1, 2 officials on day 2
 		times = [[15, 30], [20, 30], [2, 30], [9, 30]];
-		schedule.months[month] = {formats: {}, times};
-		schedule.months[month].formats['1'] = formats['1'];
+		schedule.months[scheduleMonth] = {formats: {}, times};
+		schedule.months[scheduleMonth].formats['1'] = formats['1'];
 		for (let i = 2; i <= lastDayOfMonth; i++) {
-			schedule.months[month].formats[i] = formats['2'];
+			schedule.months[scheduleMonth].formats[i] = formats['2'];
 		}
 
 		Tournaments.loadSchedules();
 		assertStrictEqual(Tournaments.scheduledTournaments[room.id].length, lastDayOfMonth * times.length);
 
-		date.setMonth(month - 1, 1);
+		date.setMonth(month, 1);
 		day = 1;
-		date.setDate(day);
 		for (let i = 0; i < times.length; i++) {
 			if (i > 0 && times[i][0] < times[i - 1][0]) {
 				day++;
@@ -154,9 +153,7 @@ describe("Tournaments", () => {
 		timesIndex = 0;
 		for (let i = startIndex; i < endIndex; i++) {
 			if (timesIndex > 0 && times[timesIndex][0] < times[timesIndex - 1][0]) {
-				// month + 1 - 1
-				date.setMonth(month, 1);
-				date.setDate(1);
+				date.setMonth(month + 1, 1);
 			}
 			date.setHours(times[timesIndex][0], times[timesIndex][1], 0, 0);
 			timesIndex++;
@@ -166,18 +163,17 @@ describe("Tournaments", () => {
 
 		// 3 officials on day 1, 1 official on day 2
 		times = [[9, 30], [15, 30], [20, 30], [2, 30]];
-		schedule.months[month] = {formats: {}, times};
-		schedule.months[month].formats['1'] = formats['1'];
+		schedule.months[scheduleMonth] = {formats: {}, times};
+		schedule.months[scheduleMonth].formats['1'] = formats['1'];
 		for (let i = 2; i <= lastDayOfMonth; i++) {
-			schedule.months[month].formats[i] = formats['2'];
+			schedule.months[scheduleMonth].formats[i] = formats['2'];
 		}
 
 		Tournaments.loadSchedules();
 		assertStrictEqual(Tournaments.scheduledTournaments[room.id].length, lastDayOfMonth * times.length);
 
-		date.setMonth(month - 1, 1);
+		date.setMonth(month, 1);
 		day = 1;
-		date.setDate(day);
 		for (let i = 0; i < times.length; i++) {
 			if (i > 0 && times[i][0] < times[i - 1][0]) {
 				day++;
@@ -195,9 +191,7 @@ describe("Tournaments", () => {
 		timesIndex = 0;
 		for (let i = startIndex; i < endIndex; i++) {
 			if (timesIndex > 0 && times[timesIndex][0] < times[timesIndex - 1][0]) {
-				// month + 1 - 1
-				date.setMonth(month, 1);
-				date.setDate(1);
+				date.setMonth(month + 1, 1);
 			}
 			date.setHours(times[timesIndex][0], times[timesIndex][1], 0, 0);
 			timesIndex++;
