@@ -9,6 +9,11 @@ import type { GameDifficulty } from "./types/games";
 export let tempConfig: typeof Config = {};
 
 /**
+ * Configuration for the optional REPL server
+ */
+export let repl: {enabled?: boolean; port?: number} = {};
+
+/**
  * The username used for logging in to PS
  */
 export let username = '';

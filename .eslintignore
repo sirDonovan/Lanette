@@ -16,4 +16,5 @@ build.js
 create-untracked-files.js
 get-options.js
 mocha.js
+repl.js
 tempConfig.js
