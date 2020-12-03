@@ -352,7 +352,7 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 		},
 	};
 	detailLabelWidth: number = 100;
-	eggGroupsLimit: number = 20;
+	eggGroupsLimit: number = 15;
 	finitePlayerCards: boolean = true;
 	maxCardRounds: number = 50;
 	playerCards = new Map<Player, IPokemonCard[]>();
