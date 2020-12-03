@@ -376,8 +376,14 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 	}
 
 	filterPoolItem(pokemon: IPokemon): boolean {
-		if (pokemon.eggGroups.length === 1 && bannedEggGroups.includes(pokemon.eggGroups[0])) return true;
-		if (pokemon.prevo && Tools.toId(pokemon.prevo) in this.actionCards) return true;
+		if (pokemon.eggGroups.length === 1 && bannedEggGroups.includes(pokemon.eggGroups[0])) return false;
+		if (pokemon.prevo && Tools.toId(pokemon.prevo) in this.actionCards) return false;
+		return true;
+	}
+
+	filterForme(forme: IPokemon): boolean {
+		const baseSpecies = Dex.getExistingPokemon(forme.baseSpecies);
+		if (!Tools.compareArrays(baseSpecies.eggGroups, forme.eggGroups)) return true;
 		return false;
 	}
 

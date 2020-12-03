@@ -490,8 +490,8 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 	}
 
 	filterPoolItem(pokemon: IPokemon): boolean {
-		if (this.hasNoWeaknesses(pokemon)) return true;
-		return false;
+		if (this.hasNoWeaknesses(pokemon)) return false;
+		return true;
 	}
 
 	filterForme(forme: IPokemon): boolean {

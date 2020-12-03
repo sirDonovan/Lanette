@@ -156,7 +156,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 		const pokemonList = Games.getPokemonList(pokemon => {
 			if ((pokemon.forme && (!this.filterForme || !this.filterForme(pokemon))) ||
 				(this.usesActionCards && pokemon.id in this.actionCards) || !Dex.hasGifData(pokemon) ||
-				(this.filterPoolItem && this.filterPoolItem(pokemon))) return false;
+				(this.filterPoolItem && !this.filterPoolItem(pokemon))) return false;
 			return true;
 		});
 
@@ -414,6 +414,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 
 	/**Return `false` to filter `forme` out of the deck pool */
 	filterForme?(forme: IPokemon): boolean;
+	/**Return `false` to filter `item` out of the deck pool */
 	filterPoolItem?(pokemon: IPokemon): boolean;
 	splitCardsByPlayable?(cards: ICard[]): ICardsSplitByPlayable;
 }
