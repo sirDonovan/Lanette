@@ -1936,7 +1936,11 @@ export class Dex {
 			let firstStage = pokemon;
 			while (firstStage.prevo) {
 				const prevo = this.getPokemon(firstStage.prevo);
-				if (prevo) firstStage = prevo;
+				if (prevo) {
+					firstStage = prevo;
+				} else {
+					break;
+				}
 			}
 			return this.getAllEvolutionLines(firstStage, [], []);
 		}

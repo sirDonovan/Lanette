@@ -199,6 +199,55 @@ describe("Dex", () => {
 		assertStrictEqual(Dex.isPokemon(move), false);
 		assertStrictEqual(Dex.isPokemon(fake), false);
 	});
+	it('should run methods for all data types', function() {
+		// eslint-disable-next-line @typescript-eslint/no-invalid-this
+		this.timeout(10000);
+
+		for (const i of Dex.data.abilityKeys) {
+			const ability = Dex.getExistingAbility(i);
+			Dex.getAbilityCopy(ability);
+			Dex.getAbilityCopy(i);
+		}
+
+		for (const i of Dex.data.itemKeys) {
+			const item = Dex.getExistingItem(i);
+			Dex.getItemCopy(item);
+			Dex.getItemCopy(i);
+			Dex.getItemIcon(item);
+			Dex.getPSItemIcon(item);
+		}
+
+		for (const i of Dex.data.formatKeys) {
+			const format = Dex.getExistingFormat(i);
+			Dex.getFormatInfoDisplay(format);
+			Dex.validateFormat(format.name);
+			Dex.getUsablePokemon(format);
+		}
+
+		for (const i of Dex.data.moveKeys) {
+			const move = Dex.getExistingMove(i);
+			Dex.getMoveCopy(move);
+			Dex.getMoveCopy(i);
+			Dex.getMoveAvailability(move);
+		}
+
+		for (const i of Dex.data.pokemonKeys) {
+			const pokemon = Dex.getExistingPokemon(i);
+			Dex.getPokemonCopy(pokemon);
+			Dex.getPokemonCopy(i);
+			Dex.getPokemonCategory(pokemon);
+			Dex.getFormes(pokemon);
+			Dex.getEvolutionLines(pokemon);
+			Dex.isPseudoLCPokemon(pokemon);
+			Dex.getWeaknesses(pokemon);
+			if (Dex.hasGifData(pokemon)) {
+				Dex.getPokemonGif(pokemon);
+			}
+			Dex.getPokemonIcon(pokemon);
+			Dex.getPSPokemonIcon(pokemon);
+			Dex.getLearnsetData(pokemon.id);
+		}
+	});
 	it('should set custom attributes for formats', () => {
 		for (const i of Dex.data.formatKeys) {
 			const format = Dex.getExistingFormat(i);
