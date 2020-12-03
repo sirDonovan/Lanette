@@ -41,6 +41,8 @@ class MareaniesMarquee extends QuestionAndAnswer {
 		while (!answer || answer === this.lastAnswer || willBeFiltered) {
 			answer = this.sampleOne(data[category]);
 			letters = answer.replace(" ", "").split("");
+			willBeFiltered = false;
+
 			for (let i = 0; i < letters.length; i++) {
 				let part = letters.slice(i, i + LETTERS_TO_REVEAL);
 				if (part.length < LETTERS_TO_REVEAL) part = part.concat(letters.slice(0, LETTERS_TO_REVEAL - part.length));
