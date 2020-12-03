@@ -10,7 +10,7 @@ type ActionCardNames = 'waveincense' | 'seaincense' | 'roseincense' | 'rockincen
 	'happiny' | 'chansey' | 'ditto' | 'destinyknot';
 type ActionCardsType = KeyedDict<ActionCardNames, IActionCardData<BlisseysEggCards>>;
 
-const bannedEggGroups: string[] = ['Undiscovered'];
+const bannedEggGroups: string[] = ['Ditto', 'Undiscovered'];
 const eggGroups: Dict<string> = {};
 const eggGroupKeys: string[] = [];
 
