@@ -234,22 +234,22 @@ export class Client {
 		if (!this.webSocket) return;
 
 		if (connectListener) {
-			this.webSocket.off('open', connectListener);
+			this.webSocket.removeAllListeners('open');
 			if (previousClient) connectListener = null;
 		}
 
 		if (messageListener) {
-			this.webSocket.off('message', messageListener);
+			this.webSocket.removeAllListeners('message');
 			if (previousClient) messageListener = null;
 		}
 
 		if (errorListener) {
-			this.webSocket.off('error', errorListener);
+			this.webSocket.removeAllListeners('error');
 			if (previousClient) errorListener = null;
 		}
 
 		if (closeListener) {
-			this.webSocket.off('close', closeListener);
+			this.webSocket.removeAllListeners('close');
 			if (previousClient) closeListener = null;
 		}
 
@@ -260,7 +260,7 @@ export class Client {
 		if (this.serverPingTimeout) clearTimeout(this.serverPingTimeout);
 
 		if (pongListener) {
-			if (this.webSocket) this.webSocket.off('pong', pongListener);
+			if (this.webSocket) this.webSocket.removeAllListeners('pong');
 			if (previousClient) pongListener = null;
 		}
 	}
@@ -274,10 +274,10 @@ export class Client {
 		}
 
 		let pingTime = 0;
-		const newPongListener = () => {
+		pongListener = () => {
 			this.pingWsAlive = true;
 
-			if (this.reloadInProgress || this !== global.Client || pongListener !== newPongListener) return;
+			if (this.reloadInProgress || this !== global.Client) return;
 
 			if (pingTime) {
 				this.serverLatency = Math.ceil((Date.now() - pingTime) / 2) || ASSUMED_SERVER_LATENCY;
@@ -286,9 +286,8 @@ export class Client {
 			}
 		};
 
-		pongListener = newPongListener;
-
 		this.pingWsAlive = false;
+		this.webSocket.removeAllListeners('pong');
 		this.webSocket.once('pong', pongListener);
 		this.webSocket.ping('', undefined, () => {
 			pingTime = Date.now();
