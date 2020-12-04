@@ -19,6 +19,7 @@ import type { User } from './users';
 
 const MAIN_HOST = "sim3.psim.us";
 const REPLAY_SERVER_ADDRESS = "replay.pokemonshowdown.com";
+const CHALLSTR_TIMEOUT_SECONDS = 15;
 const RELOGIN_SECONDS = 60;
 const REGULAR_MESSAGE_THROTTLE = 600;
 const TRUSTED_MESSAGE_THROTTLE = 100;
@@ -170,6 +171,7 @@ export class Client {
 
 	botGreetingCooldowns: Dict<number> = {};
 	challstr: string = '';
+	challstrTimeout: NodeJS.Timer | undefined = undefined;
 	connectionAttempts: number = 0;
 	connectionTimeout: NodeJS.Timer | undefined = undefined;
 	evasionFilterRegularExpressions: RegExp[] | null = null;
@@ -188,7 +190,6 @@ export class Client {
 	publicChatRooms: string[] = [];
 	reconnectRoomMessages: Dict<string[]> = {};
 	reconnectTime: number = Config.reconnectTime || 60 * 1000;
-	reloginTimeout: NodeJS.Timer | null = null;
 	reloadInProgress: boolean = false;
 	replayServerAddress: string = Config.replayServer || REPLAY_SERVER_ADDRESS;
 	roomsToRejoin: string[] = [];
@@ -253,16 +254,12 @@ export class Client {
 			if (previousClient) closeListener = null;
 		}
 
-		this.clearServerLatencyInterval(previousClient);
-	}
-
-	clearServerLatencyInterval(previousClient?: boolean): void {
-		if (this.serverPingTimeout) clearTimeout(this.serverPingTimeout);
-
 		if (pongListener) {
-			if (this.webSocket) this.webSocket.removeAllListeners('pong');
+			this.webSocket.removeAllListeners('pong');
 			if (previousClient) pongListener = null;
 		}
+
+		if (this.serverPingTimeout) clearTimeout(this.serverPingTimeout);
 	}
 
 	pingServer(): void {
@@ -291,13 +288,14 @@ export class Client {
 		this.webSocket.once('pong', pongListener);
 		this.webSocket.ping('', undefined, () => {
 			pingTime = Date.now();
+			if (this.serverPingTimeout) clearTimeout(this.serverPingTimeout);
 			this.serverPingTimeout = setTimeout(() => this.pingServer(), SERVER_LATENCY_INTERVAL + 1000);
 		});
 	}
 
 	onReload(previous: Partial<Client>): void {
+		if (previous.challstrTimeout) clearTimeout(previous.challstrTimeout);
 		if (previous.serverPingTimeout) clearTimeout(previous.serverPingTimeout);
-		if (previous.reloginTimeout) clearTimeout(previous.reloginTimeout);
 
 		if (previous.lastSendTimeoutTime) this.lastSendTimeoutTime = previous.lastSendTimeoutTime;
 		if (previous.lastOutgoingMessage) this.lastOutgoingMessage = previous.lastOutgoingMessage;
@@ -360,8 +358,17 @@ export class Client {
 		}
 	}
 
-	onConnectFail(error?: Error): void {
+	clearConnectionTimeouts(): void {
 		if (this.connectionTimeout) clearTimeout(this.connectionTimeout);
+		if (this.challstrTimeout) clearTimeout(this.challstrTimeout);
+		if (this.loginTimeout) clearTimeout(this.loginTimeout);
+		if (this.serverPingTimeout) clearTimeout(this.serverPingTimeout);
+		this.clearSendTimeout();
+	}
+
+	onConnectFail(error?: Error): void {
+		this.clearConnectionTimeouts();
+
 		console.log('Failed to connect to server ' + this.serverId);
 		if (error) console.log(error.stack);
 		this.connectionAttempts++;
@@ -371,16 +378,14 @@ export class Client {
 	}
 
 	onConnectionError(error: Error): void {
-		if (this.connectionTimeout) clearTimeout(this.connectionTimeout);
-		if (this.loginTimeout) clearTimeout(this.loginTimeout);
+		this.clearConnectionTimeouts();
 
 		console.log('Connection error: ' + error.stack);
 		// 'close' is emitted directly after 'error' so reconnecting is handled in onConnectionClose
 	}
 
 	onConnectionClose(code: number, reason: string): void {
-		if (this.connectionTimeout) clearTimeout(this.connectionTimeout);
-		if (this.loginTimeout) clearTimeout(this.loginTimeout);
+		this.clearConnectionTimeouts();
 
 		console.log('Connection closed: ' + reason + ' (' + code + ')');
 		console.log('Reconnecting in ' + this.reconnectTime /  1000 + ' seconds');
@@ -390,14 +395,14 @@ export class Client {
 	}
 
 	async onConnect(): Promise<void> {
-		if (this.connectionTimeout) {
-			clearTimeout(this.connectionTimeout);
-			delete this.connectionTimeout;
-		}
+		this.clearConnectionTimeouts();
 
 		console.log('Successfully connected');
 
-		if (this.challstr) this.reloginTimeout = setTimeout(() => this.login(), RELOGIN_SECONDS * 1000);
+		this.challstrTimeout = setTimeout(() => {
+			this.terminateWebSocket();
+			this.connectionTimeout = setTimeout(() => this.connect(), this.reconnectTime);
+		}, CHALLSTR_TIMEOUT_SECONDS * 1000);
 
 		this.pingServer();
 		await Dex.fetchClientData();
@@ -411,6 +416,7 @@ export class Client {
 		};
 
 		this.pauseIncomingMessages = false;
+		if (this.connectionTimeout) clearTimeout(this.connectionTimeout);
 		this.connectionTimeout = setTimeout(() => this.onConnectFail(), 30 * 1000);
 
 		console.log("Attempting to connect to the server " + this.server + "...");
@@ -459,13 +465,18 @@ export class Client {
 		});
 	}
 
-	reconnect(serverRestart?: boolean): void {
+	terminateWebSocket(): void {
 		this.removeClientListeners();
 		if (this.webSocket) {
 			this.webSocket.terminate();
 			this.webSocket = null;
 		}
 		this.pauseOutgoingMessages = true;
+	}
+
+	reconnect(serverRestart?: boolean): void {
+		this.clearConnectionTimeouts();
+		this.terminateWebSocket();
 
 		if (serverRestart) {
 			Rooms.removeAll();
@@ -589,6 +600,8 @@ export class Client {
 		 * Global messages
 		 */
 		case 'challstr': {
+			if (this.challstrTimeout) clearTimeout(this.challstrTimeout);
+
 			this.challstr = message;
 			if (Config.username) this.login();
 			break;
@@ -1762,7 +1775,7 @@ export class Client {
 	}
 
 	login(): void {
-		if (this.reloginTimeout) clearTimeout(this.reloginTimeout);
+		if (this.loginTimeout) clearTimeout(this.loginTimeout);
 
 		const action = url.parse('https://' + Tools.mainServer + '/~~' + this.serverId + '/action.php');
 		if (!action.hostname || !action.pathname) {
@@ -1814,11 +1827,13 @@ export class Client {
 					process.exit();
 				} else if (data.startsWith('<!DOCTYPE html>')) {
 					console.log('Failed to log in: connection timed out. Trying again in ' + RELOGIN_SECONDS + ' seconds');
+					if (this.loginTimeout) clearTimeout(this.loginTimeout);
 					this.loginTimeout = setTimeout(() => this.login(), RELOGIN_SECONDS * 1000);
 					return;
 				} else if (data.includes('heavy load')) {
 					console.log('Failed to log in: the login server is under heavy load. Trying again in ' + (RELOGIN_SECONDS * 5) +
 						' seconds');
+					if (this.loginTimeout) clearTimeout(this.loginTimeout);
 					this.loginTimeout = setTimeout(() => this.login(), RELOGIN_SECONDS * 5 * 1000);
 					return;
 				} else {
