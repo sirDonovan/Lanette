@@ -174,15 +174,13 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		if (card.action) {
 			if (this.usesColors) {
 				html += '<div style="background-color:' + Tools.hexColorCodes['White']['background-color'] +
-					';background:' + Tools.hexColorCodes['White']['background'] + ';border-color:' +
-					Tools.hexColorCodes['White']['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:' +
+					';background:' + Tools.hexColorCodes['White']['background'] + ';border: 1px solid #a99890;border-radius:3px;width:' +
 					this.detailLabelWidth + 'px;padding:1px;color:#333;text-shadow:1px 1px 1px #eee;text-transform: uppercase;' +
 					'text-align:center;font-size:8pt"><b>Action</b></div>';
 			}
 
 			html += '<div style="background-color:' + Tools.hexColorCodes['Black']['background-color'] +
-				';background:' + Tools.hexColorCodes['Black']['background'] + ';border-color:' +
-				Tools.hexColorCodes['Black']['border-color'] + ';border: 1px solid #a99890;border-radius:3px;width:auto;' +
+				';background:' + Tools.hexColorCodes['Black']['background'] + ';border: 1px solid #a99890;border-radius:3px;width:auto;' +
 				'padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;' +
 				'text-align:center;font-size:8pt"><b>' + card.action.description + '</b></div>';
 		} else {

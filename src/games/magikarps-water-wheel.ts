@@ -10,26 +10,18 @@ interface IWheel {
 }
 
 interface IWheels {
-	blue: IWheel;
-	green: IWheel;
-	orange: IWheel;
-	purple: IWheel;
-	red: IWheel;
+	Blue: IWheel;
+	Green: IWheel;
+	Orange: IWheel;
+	Violet: IWheel;
+	Red: IWheel;
 }
 
 type WheelsKey = keyof IWheels;
 
-const colorCodes: KeyedDict<WheelsKey, {'background-color': string; 'background': string; 'border-color': string}> = {
-	"purple": {'background-color': '#A040A0', 'background': 'linear-gradient(#A040A0,#803380)', 'border-color': '#662966'},
-	"blue": {'background-color': '#6890F0', 'background': 'linear-gradient(#6890F0,#386CEB)', 'border-color': '#1753E3'},
-	"green": {'background-color': '#78C850', 'background': 'linear-gradient(#78C850,#5CA935)', 'border-color': '#4A892B'},
-	"orange": {'background-color': '#F08030', 'background': 'linear-gradient(#F08030,#DD6610)', 'border-color': '#B4530D'},
-	"red": {'background-color': '#C03028', 'background': 'linear-gradient(#C03028,#9D2721)', 'border-color': '#82211B'},
-};
-
 const fishOutOfWaterPoints = 4000;
 const goldenMagikarpPoints = 1000;
-const highTideSurvivorWheel: WheelsKey = 'red';
+const highTideSurvivorWheel: WheelsKey = 'Red';
 const highTideSurvivorSpins = 5;
 
 class MagikarpsWaterWheel extends ScriptedGame {
@@ -48,25 +40,25 @@ class MagikarpsWaterWheel extends ScriptedGame {
 	points = new Map<Player, number>();
 	roundActions = new Set<Player>();
 	roundCarp: boolean = false;
-	wheelKeys: WheelsKey[] = ['purple', 'blue', 'green', 'orange', 'red'];
+	wheelKeys: WheelsKey[] = ['Violet', 'Blue', 'Green', 'Orange', 'Red'];
 	wheels: IWheels = {
-		purple: {
+		'Violet': {
 			magikarpChance: 5,
 			slots: [100, 100, 100, 100, 200, 200, 200, 200, 300, 300, 300, 400],
 		},
-		blue: {
+		'Blue': {
 			magikarpChance: 10,
 			slots: [200, 200, 200, 200, 300, 300, 300, 300, 400, 400, 400, 500],
 		},
-		green: {
+		'Green': {
 			magikarpChance: 20,
 			slots: [300, 300, 300, 300, 400, 400, 400, 400, 500, 500, 500, 600],
 		},
-		orange: {
+		'Orange': {
 			magikarpChance: 35,
 			slots: [400, 400, 400, 400, 500, 500, 500, 500, 600, 600, 600, 700],
 		},
-		red: {
+		'Red': {
 			magikarpChance: 50,
 			slots: [500, 500, 500, 500, 600, 600, 600, 600, 700, 700, 700, 800],
 		},
@@ -90,11 +82,12 @@ class MagikarpsWaterWheel extends ScriptedGame {
 	spinWheel(player: Player): void {
 		const wheel = this.playerWheels.get(player)!;
 		const wheelStats = this.wheels[wheel];
+		const colorData = Tools.hexColorCodes[wheel];
 		let html = '<div class="infobox"><center>';
-		html += '<div style="display:inline-block;background-color:' + colorCodes[wheel]['background-color'] + ';background:' +
-			colorCodes[wheel]['background'] + ';border-color:' + colorCodes[wheel]['border-color'] + ';border: 1px solid #a99890;' +
-			'border-radius:3px;width:100px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;' +
-			'font-size:8pt;text-align:center"><b>' + wheel.charAt(0).toUpperCase() + wheel.substr(1) + '</b></div>';
+		html += '<div style="display:inline-block;background-color:' + colorData['background-color'] + ';background:' +
+			colorData['background'] + ';border: 1px solid #a99890;border-radius:3px;width:100px;padding:1px;color:#fff;' +
+			'text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt;text-align:center"><b>' +
+			wheel.charAt(0).toUpperCase() + wheel.substr(1) + '</b></div>';
 		let magikarp = false;
 		let goldenMagikarp = false;
 		if (this.random(100) <= wheelStats.magikarpChance) {
