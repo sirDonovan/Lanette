@@ -81,6 +81,7 @@ class WishiwashisStatFishing extends ScriptedGame {
 		while (species === this.lastSpecies) {
 			species = this.sampleOne(data.pokedex);
 		}
+		this.lastSpecies = species;
 		const pokemon = Dex.getPokemonCopy(species);
 
 		let statPoints: number;

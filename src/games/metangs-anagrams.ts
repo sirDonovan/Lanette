@@ -42,6 +42,7 @@ class MetangsAnagrams extends QuestionAndAnswer {
 		while (answer === this.lastAnswer) {
 			answer = this.sampleOne(data[category]);
 		}
+		this.lastAnswer = answer;
 		this.answers = [answer];
 		const id = Tools.toId(answer);
 		const letters = id.split("");

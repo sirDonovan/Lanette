@@ -108,6 +108,7 @@ class EkansEdges extends QuestionAndAnswer {
 		while (edge === this.lastEdge) {
 			edge = this.sampleOne(dataKeys[category]);
 		}
+		this.lastEdge = edge;
 		this.answers = data[category][edge];
 		this.hint = "<b>" + category + "</b>: <i>" + edge + "</i>";
 	}
