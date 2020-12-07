@@ -394,7 +394,7 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 	finitePlayerCards: boolean = true;
 	maxCardRounds: number = 100;
 	maximumPlayedCards: number = 2;
-	playableCardDescription: string = "You must play 1-2 cards that match an egg group with the top card.";
+	playableCardDescription: string = "You must play 1-2 cards that share an egg group with the top card.";
 	playerCards = new Map<Player, IPokemonCard[]>();
 	shinyCardAchievement = BlisseysEggCards.achievements.luckofthedraw;
 
@@ -751,7 +751,7 @@ export const game: IGameFile<BlisseysEggCards> = Games.copyTemplateProperties(ca
 	commandDescriptions: [Config.commandCharacter + "play [Pokemon]", Config.commandCharacter + "draw"],
 	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
 	class: BlisseysEggCards,
-	description: "Each round, players can play 1-2 cards that matche an egg group of the top card or draw a card.",
+	description: "Each round, players can play 1-2 cards that share an egg group with the top card or draw a card.",
 	name: "Blissey's Egg Cards",
 	mascot: "Blissey",
 	scriptedOnly: true,
