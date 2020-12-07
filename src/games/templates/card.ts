@@ -217,6 +217,14 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 		return index;
 	}
 
+	getCardIndices(names: string[], cards: ICard[]): number[] {
+		const indices: number[] = [];
+		for (const name of names) {
+			indices.push(this.getCardIndex(name, cards));
+		}
+		return indices;
+	}
+
 	getChatTypeLabel(card: IPokemonCard): string {
 		const types = [];
 		for (const type of card.types) {

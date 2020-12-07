@@ -114,7 +114,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			getRandomTarget(game, hand) {
 				const cards = game.shuffle(hand);
 				for (const card of cards) {
-					if (!card.action && this.isPlayableTarget(game, [card.name], hand)) {
+					if (this.isPlayableTarget(game, [card.name], hand)) {
 						return this.name + ", " + card.name;
 					}
 				}
@@ -141,8 +141,14 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 				}
 
 				if (hand) {
-					if (!game.containsCard(pokemon.name, hand)) {
+					const index = game.getCardIndex(pokemon.name, hand);
+					if (index === -1) {
 						if (player) player.say("You do not have [ " + pokemon.name + " ].");
+						return false;
+					}
+
+					if (hand[index].action) {
+						if (player) player.say("You cannot pass an action card.");
 						return false;
 					}
 				}
@@ -165,7 +171,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			getRandomTarget(game, hand) {
 				const cards = game.shuffle(hand);
 				for (const card of cards) {
-					if (!card.action && this.isPlayableTarget(game, [card.name], hand)) {
+					if (this.isPlayableTarget(game, [card.name], hand)) {
 						return this.name + ", " + card.name;
 					}
 				}
@@ -192,8 +198,14 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 				}
 
 				if (hand) {
-					if (!game.containsCard(pokemon.name, hand)) {
+					const index = game.getCardIndex(pokemon.name, hand);
+					if (index === -1) {
 						if (player) player.say("You do not have [ " + pokemon.name + " ].");
+						return false;
+					}
+
+					if (hand[index].action) {
+						if (player) player.say("You cannot switch an action card.");
 						return false;
 					}
 				}
