@@ -226,9 +226,9 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	}
 
 	getEggGroupLabel(card: IPokemonCard): string {
-		const colorData = Tools.hexColorCodes['Black'];
 		const eggGroups = [];
 		for (const eggGroup of card.eggGroups) {
+			const colorData = Tools.hexColorCodes[Tools.eggGroupHexColors[eggGroup]];
 			eggGroups.push('<div style="display:inline-block;background-color:' + colorData['background-color'] + ';background:' +
 				colorData['background'] + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;' +
 				'padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt;text-align:center"><b>' +

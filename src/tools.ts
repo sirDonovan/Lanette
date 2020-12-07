@@ -36,7 +36,7 @@ const hexColorCodes: KeyedDict<HexColor, {'background-color': string; 'backgroun
 	"Orange": {'background-color': '#dba670', 'background': 'linear-gradient(#dba670,#b8732e)'},
 	"Yellow-Orange": {'background-color': '#dbc170', 'background': 'linear-gradient(#dbc170,#b8952e)'},
 	"Yellow": {'background-color': '#dbdb70', 'background': 'linear-gradient(#dbdb70,#b8b82e)'},
-	"Yellow-Green": {'background-color': '#a6db70', 'background': 'linear-gradient(#a6db70,#73b82e)'},
+	"Yellow-Green": {'background-color': '#c1db70', 'background': 'linear-gradient(#c1db70,#95b82e)'},
 	"Green": {'background-color': '#70db70', 'background': 'linear-gradient(#70db70,#2eb82e)'},
 	"Cyan": {'background-color': '#70dbdb', 'background': 'linear-gradient(#70dbdb,#2eb8b8)'},
 	"Blue": {'background-color': '#70a6db', 'background': 'linear-gradient(#70a6db,#2e73b8)'},
@@ -53,7 +53,7 @@ const hexColorCodes: KeyedDict<HexColor, {'background-color': string; 'backgroun
 	"Light-Orange": {'background-color': '#ecbf93', 'background': 'linear-gradient(#ecbf93,#e09952)'},
 	"Light-Yellow-Orange": {'background-color': '#ecd693', 'background': 'linear-gradient(#ecd693,#e0bd52)'},
 	"Light-Yellow": {'background-color': '#ecec93', 'background': 'linear-gradient(#ecec93,#e0e052)'},
-	"Light-Yellow-Green": {'background-color': '#bfec93', 'background': 'linear-gradient(#bfec93,#99e052)'},
+	"Light-Yellow-Green": {'background-color': '#d6ec93', 'background': 'linear-gradient(#d6ec93,#bde052)'},
 	"Light-Green": {'background-color': '#93ec93', 'background': 'linear-gradient(#93ec93,#52e052)'},
 	"Light-Cyan": {'background-color': '#93ecec', 'background': 'linear-gradient(#93ecec,#52e0e0)'},
 	"Light-Blue": {'background-color': '#93bfec', 'background': 'linear-gradient(#93bfec,#5299e0)'},
@@ -66,7 +66,7 @@ const hexColorCodes: KeyedDict<HexColor, {'background-color': string; 'backgroun
 	"Dark-Red": {'background-color': '#ac3939', 'background': 'linear-gradient(#ac3939,#732626)'},
 	"Dark-Red-Orange": {'background-color': '#ac5639', 'background': 'linear-gradient(#ac5639,#733926)'},
 	"Dark-Yellow": {'background-color': '#acac39', 'background': 'linear-gradient(#acac39,#737326)'},
-	"Dark-Yellow-Green": {'background-color': '#73ac39', 'background': 'linear-gradient(#73ac39,#4d7326)'},
+	"Dark-Yellow-Green": {'background-color': '#8fac39', 'background': 'linear-gradient(#8fac39,#607326)'},
 	"Dark-Green": {'background-color': '#39ac39', 'background': 'linear-gradient(#39ac39,#267326)'},
 	"Dark-Cyan": {'background-color': '#39acac', 'background': 'linear-gradient(#39acac,#267373)'},
 	"Dark-Blue": {'background-color': '#3973ac', 'background': 'linear-gradient(#3973ac,#264d73)'},
@@ -114,8 +114,27 @@ const pokemonColorHexColors: Dict<HexColor> = {
 	"Gray": "Gray",
 };
 
+const eggGroupHexColors: Dict<HexColor> = {
+	"Monster": "Red",
+	"Grass": "Green",
+	"Dragon": "Blue-Violet",
+	"Water 1": "Light-Blue",
+	"Water 2": "Blue",
+	"Water 3": "Dark-Blue",
+	"Bug": "Yellow-Green",
+	"Flying": "Light-Violet",
+	"Field": "Light-Yellow-Orange",
+	"Fairy": "Light-Red-Violet",
+	"Undiscovered": "Black",
+	"Human-Like": "Light-Brown",
+	"Mineral": "Dark-Brown",
+	"Amorphous": "Gray",
+	"Ditto": "Pink",
+};
+
 export class Tools {
 	// exported constants
+	readonly eggGroupHexColors: typeof eggGroupHexColors = eggGroupHexColors;
 	readonly hexColorCodes: typeof hexColorCodes = hexColorCodes;
 	readonly typeHexColors: typeof typeHexColors = typeHexColors;
 	readonly pokemonColorHexColors: typeof pokemonColorHexColors = pokemonColorHexColors;

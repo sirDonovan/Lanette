@@ -1087,12 +1087,15 @@ describe("Dex", () => {
 		const dex = Dex.getDex("gen1");
 		assert(!dex.getPokemonList().map(x => x.name).includes(dex.getExistingPokemon('Missingno.').name));
 	});
-	it('should have entries in Tools.pokemonColorHexColors for all Pokemon and moves', () => {
+	it('should have hex colors for all relevant Pokemon and move data', () => {
 		for (const i of Dex.data.pokemonKeys) {
 			const pokemon = Dex.getExistingPokemon(i);
 			assert(pokemon.color in Tools.pokemonColorHexColors, pokemon.name + "'s color " + pokemon.color);
 			for (const type of pokemon.types) {
 				assert(type in Tools.typeHexColors, pokemon.name + "'s type " + type);
+			}
+			for (const eggGroup of pokemon.eggGroups) {
+				assert(eggGroup in Tools.eggGroupHexColors, pokemon.name + "'s egg group " + eggGroup);
 			}
 		}
 
