@@ -388,7 +388,7 @@ export class Client {
 		this.clearConnectionTimeouts();
 
 		console.log('Connection closed: ' + reason + ' (' + code + ')');
-		console.log('Reconnecting in ' + this.reconnectTime /  1000 + ' seconds');
+		console.log('Reconnecting in ' + this.reconnectTime / 1000 + ' seconds');
 
 		this.removeClientListeners();
 		this.connectionTimeout = setTimeout(() => this.reconnect(true), this.reconnectTime);
@@ -400,6 +400,7 @@ export class Client {
 		console.log('Successfully connected');
 
 		this.challstrTimeout = setTimeout(() => {
+			console.log("Did not receive a challstr! Reconnecting in " + this.reconnectTime / 1000 + " seconds");
 			this.terminateWebSocket();
 			this.connectionTimeout = setTimeout(() => this.connect(), this.reconnectTime);
 		}, CHALLSTR_TIMEOUT_SECONDS * 1000);
