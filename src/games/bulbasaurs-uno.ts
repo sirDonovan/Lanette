@@ -114,9 +114,10 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 				return game.pokemonToActionCard(this);
 			},
 			getRandomTarget(game, hand) {
-				if (hand.length >= 3) {
-					for (const cardA of hand) {
-						for (const cardB of hand) {
+				const cards = game.shuffle(hand);
+				if (cards.length >= 3) {
+					for (const cardA of cards) {
+						for (const cardB of cards) {
 							if (cardA === cardB) continue;
 							if (this.isPlayableTarget(game, [cardA.name, cardB.name], hand)) {
 								return this.name + ", " + cardA.name + ", " + cardB.name;
@@ -124,7 +125,7 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 						}
 					}
 				} else {
-					for (const card of hand) {
+					for (const card of cards) {
 						if (this.isPlayableTarget(game, [card.name], hand)) {
 							return this.name + ", " + card.name;
 						}
@@ -140,46 +141,40 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 						if (player) player.say("You must specify 2 other Pokemon to pair.");
 						return false;
 					}
-					const idA = Tools.toId(targets[0]);
-					const idB = Tools.toId(targets[1]);
-					let indexA = -1;
-					let indexB = -1;
-					for (let i = 0; i < hand!.length; i++) {
-						if (hand![i].id === idA) {
-							indexA = i;
-							continue;
-						}
-						if (hand![i].id === idB) {
-							indexB = i;
-							continue;
-						}
-					}
-					if (indexA === -1) {
-						if (player) {
-							const pokemon = Dex.getPokemon(idA);
-							player.say(pokemon ? "You do not have [ " + pokemon.name + " ]." :
-								CommandParser.getErrorText(['invalidPokemon', targets[0]]));
-						}
+
+					const pokemonA = Dex.getPokemon(targets[0]);
+					if (!pokemonA) {
+						if (player) player.say(CommandParser.getErrorText(['invalidPokemon', targets[0]]));
 						return false;
 					}
-					if (indexB === -1) {
-						if (player) {
-							const pokemon = Dex.getPokemon(idB);
-							player.say(pokemon ? "You do not have [ " + pokemon.name + " ]." :
-								CommandParser.getErrorText(['invalidPokemon', targets[1]]));
-						}
+
+					const pokemonB = Dex.getPokemon(targets[1]);
+					if (!pokemonB) {
+						if (player) player.say(CommandParser.getErrorText(['invalidPokemon', targets[1]]));
 						return false;
 					}
-					const cardA = hand![indexA];
-					const cardB = hand![indexB];
+
+					const names = [pokemonA.name, pokemonB.name];
+					const indices = game.getCardIndices(names, hand!);
+					for (let i = 0; i < indices.length; i++) {
+						if (indices[i] === -1) {
+							if (player) player.say("You do not have [ " + names[i] + " ].");
+							return false;
+						}
+					}
+
+					const cardA = hand![indices[0]];
+					const cardB = hand![indices[1]];
 					if (cardA.action || cardB.action) {
 						if (player) player.say("You cannot pair action cards.");
 						return false;
 					}
+
 					if (!game.isPokemonCard(cardA) || !game.isPokemonCard(cardB) || !game.isPlayableCard(cardA, cardB)) {
 						if (player) player.say("Please input a valid pair (matching color or type).");
 						return false;
 					}
+
 					const newTopCards = [];
 					if (game.isPlayableCard(cardA, game.topCard)) newTopCards.push(cardA);
 					if (game.isPlayableCard(cardB, game.topCard)) newTopCards.push(cardA);
@@ -192,25 +187,22 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 						if (player) player.say("You must include your other card.");
 						return false;
 					}
-					const idA = Tools.toId(targets[0]);
-					let indexA = -1;
-					for (let i = 0; i < hand!.length; i++) {
-						if (hand![i].id === idA) {
-							indexA = i;
-							break;
-						}
-					}
-					if (indexA === -1) {
-						if (player) {
-							const pokemon = Dex.getPokemon(idA);
-							player.say(pokemon ? "You do not have [ " + pokemon.name + " ]." :
-								CommandParser.getErrorText(['invalidPokemon', targets[0]]));
-						}
+
+					const pokemon = Dex.getPokemon(targets[0]);
+					if (!pokemon) {
+						if (player) player.say(CommandParser.getErrorText(['invalidPokemon', targets[0]]));
 						return false;
 					}
-					const cardA = hand![indexA];
-					if (!game.isPokemonCard(cardA) || !game.isPlayableCard(cardA, game.topCard)) {
-						if (player) player.say("You must play a card that matches color or a type with the top card.");
+
+					const index = game.getCardIndex(pokemon.name, hand!);
+					if (index === -1) {
+						if (player) player.say("You do not have [ " + pokemon.name + " ].");
+						return false;
+					}
+
+					const card = hand![index];
+					if (!game.isPokemonCard(card) || !game.isPlayableCard(card, game.topCard)) {
+						if (player) player.say(game.playableCardDescription);
 						return false;
 					}
 				}
