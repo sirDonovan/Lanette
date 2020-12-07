@@ -10,7 +10,7 @@ type ActionCardNames = 'waveincense' | 'seaincense' | 'roseincense' | 'rockincen
 	'happiny' | 'chansey' | 'ditto' | 'destinyknot';
 type ActionCardsType = KeyedDict<ActionCardNames, IActionCardData<BlisseysEggCards>>;
 
-const bannedEggGroups: string[] = ['Ditto', 'Undiscovered'];
+const bannedEggGroups: string[] = ['Ditto', 'Undiscovered', 'Water 3', 'Water 2'];
 const eggGroups: Dict<string> = {};
 const eggGroupKeys: string[] = [];
 
@@ -388,10 +388,11 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 			},
 		},
 	};
+	actionCardAmount: number = 10;
 	detailLabelWidth: number = 100;
-	eggGroupsLimit: number = 15;
+	eggGroupsLimit: number = 20;
 	finitePlayerCards: boolean = true;
-	maxCardRounds: number = 50;
+	maxCardRounds: number = 100;
 	maximumPlayedCards: number = 2;
 	playableCardDescription: string = "You must play 1-2 cards that match an egg group with the top card.";
 	playerCards = new Map<Player, IPokemonCard[]>();
@@ -415,8 +416,17 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 	}
 
 	filterPoolItem(pokemon: IPokemon): boolean {
-		if (pokemon.eggGroups.length === 1 && bannedEggGroups.includes(pokemon.eggGroups[0])) return false;
 		if (pokemon.prevo && Tools.toId(pokemon.prevo) in this.actionCards) return false;
+
+		let bannedEggGroup = false;
+		for (const eggGroup of pokemon.eggGroups) {
+			if (bannedEggGroups.includes(eggGroup)) {
+				bannedEggGroup = true;
+				break;
+			}
+		}
+		if (bannedEggGroup) return false;
+
 		return true;
 	}
 
