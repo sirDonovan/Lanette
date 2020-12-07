@@ -151,9 +151,9 @@ export class ScriptedGame extends Game {
 			format.mode.initialize(this);
 		}
 
-		let htmlPageHeader = "<h3>";
+		let htmlPageHeader = "<h2>";
 		if (this.mascot) htmlPageHeader += Dex.getPokemonIcon(this.mascot);
-		htmlPageHeader += (this.format.nameWithOptions || this.format.name) + "</h3>";
+		htmlPageHeader += (this.format.nameWithOptions || this.format.name) + "</h2>";
 		this.htmlPageHeader = htmlPageHeader;
 	}
 

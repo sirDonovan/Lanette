@@ -59,11 +59,13 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 	finitePlayerCards: boolean = true;
 	playerInactiveRoundLimit = 2;
 	maxCardRounds: number = 50;
+	maximumPlayedCards: number = Infinity;
 	minimumPlayedCards: number = 2;
 	shinyCardAchievement = StakatakasCardTower.achievements.luckofthedraw;
 	showPlayerCards: boolean = true;
 	turnTimeLimit: number = 50 * 1000;
 	typesLimit: number = 20;
+	usesColors: boolean = true;
 
 	onRemovePlayer(player: Player): void {
 		const index = this.playerOrder.indexOf(player);
@@ -74,74 +76,6 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 			}
 			this.nextRound();
 		}
-	}
-
-	isPlayableCard(card: IPokemonCard, otherCard: IPokemonCard): boolean {
-		return this.isCardPair(card, otherCard);
-	}
-
-	arePlayableCards(cards: IPokemonCard[]): boolean {
-		for (let i = 0; i < cards.length - 1; i++) {
-			if (!this.isPlayableCard(cards[i], cards[i + 1])) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	playRegularCard(card: IPokemonCard, player: Player, targets: string[], cards: IPokemonCard[]): IPokemonCard[] | boolean {
-		const playedCards = [card];
-		for (const target of targets) {
-			const id = Tools.toId(target);
-			const index = this.getCardIndex(id, cards);
-			if (index < 0) {
-				const pokemon = Dex.getPokemon(id);
-				if (pokemon) {
-					player.say("You do not have [ " + pokemon.name + " ].");
-				} else {
-					player.say(CommandParser.getErrorText(['invalidPokemon', target]));
-				}
-				return false;
-			}
-			if (playedCards.includes(cards[index])) {
-				player.say("You can only play a card once per turn.");
-				return false;
-			}
-			playedCards.push(cards[index]);
-		}
-
-		if (playedCards.length < 2) {
-			player.say("You must play at least 2 cards.");
-			return false;
-		}
-		if (!this.arePlayableCards(playedCards)) {
-			player.say("All played cards must pair one after the other.");
-			return false;
-		}
-
-		card = playedCards[playedCards.length - 1];
-		const names: string[] = [];
-		for (const playedCard of playedCards) {
-			if (playedCard !== card) names.push(playedCard.name);
-			cards.splice(cards.indexOf(playedCard), 1);
-		}
-
-		this.awaitingCurrentPlayerCard = false;
-		this.storePreviouslyPlayedCard({card: player.name + "'s " + card.name + " ( + " + names.join(" + ") + ")",
-			shiny: card.shiny && !card.played});
-		this.setTopCard(card, player);
-		this.currentPlayer = null;
-
-		if (!player.eliminated) {
-			let drawnCards: ICard[] | undefined;
-			if (this.autoFillHands && cards.length && cards.length < this.minimumPlayedCards) {
-				drawnCards = this.drawCard(player, this.minimumPlayedCards - cards.length);
-			}
-
-			this.updatePlayerHtmlPage(player, drawnCards);
-		}
-		return playedCards;
 	}
 
 	playActionCard(card: IPokemonCard, player: Player, targets: string[], cards: IPokemonCard[]): IPokemonCard[] | boolean {
@@ -241,7 +175,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 				game.pokemonToCard(Dex.getExistingPokemon("Eevee")), game.pokemonToCard(Dex.getExistingPokemon("Pidgey")),
 				game.pokemonToCard(Dex.getExistingPokemon("Charmander"))];
 			game.playerCards.set(player, newCards);
-			assert(game.hasPlayableCard(player));
+			assert(game.hasPlayableCard(game.getPlayableCards(player)));
 			game.canPlay = true;
 			player.useCommand('play', 'Stunfisk, Eevee, Pidgey, Eevee, Pidgey');
 			assert(!game.ended);
@@ -258,14 +192,14 @@ const tests: GameFileTests<StakatakasCardTower> = {
 				game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur")), game.pokemonToCard(Dex.getExistingPokemon("Squirtle")),
 				game.pokemonToCard(Dex.getExistingPokemon("Eevee"))];
 			game.playerCards.set(player, newCards);
-			assert(!game.hasPlayableCard(player));
+			assert(!game.hasPlayableCard(game.getPlayableCards(player)));
 			// beginning of chain behind
 			newCards.push(game.pokemonToCard(Dex.getExistingPokemon("Stunfisk")));
-			assert(game.hasPlayableCard(player));
+			assert(game.hasPlayableCard(game.getPlayableCards(player)));
 			// beginning of chain in front
 			newCards.pop();
 			newCards.unshift(game.pokemonToCard(Dex.getExistingPokemon("Stunfisk")));
-			assert(game.hasPlayableCard(player));
+			assert(game.hasPlayableCard(game.getPlayableCards(player)));
 		},
 	},
 	'it should not create new card arrays for actions': {
@@ -284,7 +218,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 			manaphyAction.action = game.actionCards.manaphy;
 			newCards.push(manaphyAction);
 			game.playerCards.set(player, newCards);
-			assert(game.hasPlayableCard(player));
+			assert(game.hasPlayableCard(game.getPlayableCards(player)));
 			game.canPlay = true;
 			await runCommand('play', 'Manaphy', game.room, player.name);
 			assert(!game.ended);
@@ -307,7 +241,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 				game.pokemonToCard(Dex.getExistingPokemon("Squirtle"))];
 			game.playerCards.set(player, cards);
 			assert(!game.arePlayableCards([game.topCard].concat(cards)));
-			assert(game.hasPlayableCard(player));
+			assert(game.hasPlayableCard(game.getPlayableCards(player)));
 			game.canPlay = true;
 			await runCommand('play', 'Ampharos, Archen, Beautifly', game.room, player.name);
 			assert(!game.ended);
@@ -328,7 +262,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 				game.pokemonToCard(Dex.getExistingPokemon("Beedrill"))];
 			game.playerCards.set(player, cards);
 			assert(game.arePlayableCards([game.topCard].concat(cards)));
-			assert(game.hasPlayableCard(player));
+			assert(game.hasPlayableCard(game.getPlayableCards(player)));
 			game.canPlay = true;
 			await runCommand('play', 'Ampharos, Archen, Beautifly, Beedrill', game.room, player.name);
 			assert(game.ended);

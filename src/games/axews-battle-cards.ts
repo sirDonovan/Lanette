@@ -2,7 +2,7 @@ import type { Player } from "../room-activity";
 import { assert, assertStrictEqual } from "../test/test-tools";
 import type { GameFileTests, IGameAchievement, IGameFile } from "../types/games";
 import type { IMoveCopy, IPokemon } from "../types/pokemon-showdown";
-import type { IActionCardData, ICard, IMoveCard, IPokemonCard } from "./templates/card";
+import type { IActionCardData, ICard, IPlayableCards, IMoveCard, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 
 type AchievementNames = "luckofthedraw" | "trumpcard";
@@ -478,12 +478,11 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 	hackmonsTypes: boolean = false;
 	lives = new Map<Player, number>();
 	maxPlayers = 20;
-	playableCardDescription = "You must play a card that is super-effective against the top card";
+	playableCardDescription = "You must play a card that is super-effective against the top card.";
 	roundDrawAmount: number = 1;
 	shinyCardAchievement = AxewsBattleCards.achievements.luckofthedraw;
 	showPlayerCards = false;
 	startingLives: number = 1;
-	usesColors = false;
 
 	static loadData(): void {
 		for (const key of Dex.data.typeKeys) {
@@ -641,9 +640,10 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		}
 	}
 
-	isPlayableCard(card: IPokemonCard, otherCard?: IPokemonCard): boolean {
-		if (card === this.topCard || card === otherCard) return false;
+	isPlayableCard(card: ICard, otherCard?: ICard): boolean {
+		if (card === this.topCard || card === otherCard || !this.isPokemonCard(card)) return false;
 		if (!otherCard) otherCard = this.topCard;
+		if (!this.isPokemonCard(otherCard)) return false;
 
 		let valid = false;
 		for (const type of card.types) {
@@ -659,10 +659,6 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		}
 
 		return valid;
-	}
-
-	arePlayableCards(): boolean {
-		return true;
 	}
 
 	timeEnd(): void {
@@ -689,10 +685,11 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 
 		const eliminatedText = "does not have a card to play and has been eliminated from the game!";
 		let playableCards = this.getPlayableCards(player);
+		let hasPlayableCard = this.hasPlayableCard(playableCards);
 		let eliminateCount = 0;
 		let finalPlayer = false;
-		const useUhtmlAuto = this.round === currentRound && !!playableCards.length;
-		while (!playableCards.length) {
+		const useUhtmlAuto = this.round === currentRound && !hasPlayableCard;
+		while (!hasPlayableCard) {
 			const lives = this.addLives(player, -1);
 			if (!lives) {
 				eliminateCount++;
@@ -714,6 +711,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 				throw new Error("No player given by Game.getNextPlayer");
 			}
 			playableCards = this.getPlayableCards(player);
+			hasPlayableCard = this.hasPlayableCard(playableCards);
 		}
 
 		if (this.lastPlayer && eliminateCount >= trumpCardEliminations && !this.lastPlayer.eliminated) {
@@ -773,14 +771,28 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		this.announceWinners();
 	}
 
-	autoPlay(player: Player, playableCards: string[]): void {
-		let autoplay = '';
-		if (playableCards.length) autoplay = this.sampleOne(playableCards);
-		this.say(player.name + " did not play a card and has been eliminated from the game!" + (autoplay ? " Auto-playing: " +
-			autoplay : ""));
+	autoPlay(player: Player, splitCards: IPlayableCards): void {
+		const playerCards = this.playerCards.get(player)!;
+
+		const autoPlayOptions: string[] = [];
+		for (const card of splitCards.action) {
+			autoPlayOptions.push(card.action!.getAutoPlayTarget(this, playerCards)!);
+		}
+		for (const group of splitCards.group) {
+			autoPlayOptions.push(group.map(x => x.name).join(", "));
+		}
+		for (const card of splitCards.single) {
+			autoPlayOptions.push(card.name);
+		}
+
+		let autoPlay = '';
+		if (autoPlayOptions.length) autoPlay = this.sampleOne(autoPlayOptions);
+
+		this.say(player.name + " did not play a card and has been eliminated from the game!" + (autoPlay ? " Auto-playing: " +
+			autoPlay : ""));
 		this.eliminatePlayer(player, "You did not play a card!");
-		if (autoplay) {
-			player.useCommand('play', autoplay);
+		if (autoPlay) {
+			player.useCommand('play', autoPlay);
 		} else {
 			this.nextRound();
 		}

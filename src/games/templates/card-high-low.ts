@@ -50,6 +50,11 @@ export abstract class CardHighLow extends Card {
 			this.getCardDetail(card, this.currentCategory) + ' ' + this.categoryAbbreviations[this.currentCategory] + '</div>';
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	getPlayableCardGroupsHtml(groups: ICard[][]): string {
+		return "";
+	}
+
 	getCardsPmHtml(cards: ICard[], player?: Player): string {
 		const borderSize = 1;
 		const paddingSize = 1;

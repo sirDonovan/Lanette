@@ -286,6 +286,7 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 	playerCards = new Map<Player, IPokemonCard[]>();
 	shinyCardAchievement = BulbasaursUno.achievements.luckofthedraw;
 	typesLimit: number = 20;
+	usesColors: boolean = true;
 
 	static loadData(): void {
 		for (const key of Dex.data.typeKeys) {
@@ -304,14 +305,6 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 			}
 			this.nextRound();
 		}
-	}
-
-	isPlayableCard(card: IPokemonCard, otherCard: IPokemonCard): boolean {
-		return this.isCardPair(card, otherCard);
-	}
-
-	arePlayableCards(): boolean {
-		return true;
 	}
 
 	playActionCard(card: IPokemonCard, player: Player, targets: string[], cards: IPokemonCard[]): IPokemonCard[] | boolean {

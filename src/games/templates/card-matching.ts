@@ -4,7 +4,7 @@ import type {
 	GameCategory, GameCommandDefinitions, GameFileTests, IGameAchievement, IGameTemplateFile
 } from '../../types/games';
 import type { IPokemon } from '../../types/pokemon-showdown';
-import type { IActionCardData, ICard, ICardsSplitByPlayable, IPokemonCard } from './card';
+import type { IActionCardData, ICard, IPlayableCards, IPokemonCard } from './card';
 import { Card, game as cardGame } from './card';
 
 interface IPreviouslyPlayedCard {
@@ -24,9 +24,9 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	playerInactiveRoundLimit: number = 3;
 	lastPlayer: Player | null = null;
 	maxCardRounds: number = 30;
+	maxPlayableGroupSize: number = 2;
 	maxPlayers: number = 15;
-	minimumPlayedCards: number = 1;
-	playableCardDescription: string = '';
+	playableCardDescription: string = "You must play a card that matches color or a type with the top card.";
 	previouslyPlayedCards: IPreviouslyPlayedCard[] = [];
 	previouslyPlayedCardsAmount: number = 4;
 	roundDrawAmount: number = 0;
@@ -34,7 +34,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	timeLimit: number = 25 * 60 * 1000;
 	turnTimeLimit: number = 30 * 1000;
 	typesLimit: number = 0;
-	usesColors: boolean = true;
+	usesColors: boolean = false;
 
 	// always truthy once the game starts
 	topCard!: IPokemonCard;
@@ -43,8 +43,6 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	drawAchievementAmount?: number;
 	shinyCardAchievement?: IGameAchievement;
 
-	abstract arePlayableCards(cards: ICard[]): boolean;
-	abstract isPlayableCard(card: ICard, otherCard?: ICard): boolean;
 	abstract onRemovePlayer(player: Player): void;
 	abstract playActionCard(card: ICard, player: Player, targets: string[], cards: ICard[]): ICard[] | boolean;
 
@@ -147,6 +145,38 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		return html;
 	}
 
+	getPlayableCardGroupHtml(group: ICard[]): string {
+		const width = this.detailLabelWidth * 3.5;
+		let html = '<div class="infobox" style="width: ' + width + 'px">';
+		const displayNames: string[] = [];
+		const names: string[] = [];
+		for (const card of group) {
+			names.push(card.name);
+
+			let displayName = '';
+			if (Dex.data.pokemonKeys.includes(card.id)) {
+				displayName += Dex.getPokemonIcon(Dex.getExistingPokemon(card.name));
+			}
+			displayName += card.name;
+			displayNames.push(displayName);
+		}
+		html += Client.getPmSelfButton(Config.commandCharacter + "play " + names.join(", "), "Play pair!") + "<br />";
+		html += '<center>';
+		html += displayNames.join("<br />");
+		html += '</center></div>';
+
+		return html;
+	}
+
+	getPlayableCardGroupsHtml(groups: ICard[][]): string {
+		const html: string[] = [];
+		for (const group of groups) {
+			if (this.maxPlayableGroupSize && group.length > this.maxPlayableGroupSize) continue;
+			html.push('<div style="height:auto">' + this.getPlayableCardGroupHtml(group) + '</div>');
+		}
+		return html.join("<br />");
+	}
+
 	getCardPmHtml(card: ICard, player?: Player, showPlayable?: boolean): string {
 		const width = this.detailLabelWidth * (card === this.topCard ? 3 : 3.5);
 		let html = '<div class="infobox" style="width: ' + width + 'px">';
@@ -238,81 +268,86 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		this.storePreviouslyPlayedCard({card: Users.self.name + "'s " + this.topCard.name});
 	}
 
-	getPlayableCards(player: Player): string[] {
+	isPlayableCard(card: ICard, otherCard: ICard): boolean {
+		return this.isCardPair(card, otherCard);
+	}
+
+	arePlayableCards(cards: ICard[]): boolean {
+		for (let i = 0; i < cards.length - 1; i++) {
+			if (!this.isPlayableCard(cards[i], cards[i + 1])) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	getPlayableCards(player: Player): IPlayableCards {
+		const action: ICard[] = [];
+		const group: ICard[][] = [];
+		const single: ICard[] = [];
+
 		const cards = this.playerCards.get(player);
 		if (!cards) throw new Error(player.name + " has no hand");
-		if (cards.length < this.minimumPlayedCards) return [];
 
-		const playableCards: string[] = [];
-		if (this.minimumPlayedCards === 1) {
+		if (this.minimumPlayedCards === 1 && this.maximumPlayedCards === 1) {
 			for (const card of cards) {
 				if (card.action) {
 					const autoPlay = card.action.getAutoPlayTarget(this, cards);
-					if (autoPlay) playableCards.push(autoPlay);
+					if (autoPlay) action.push(card);
 				} else {
-					if (this.isPlayableCard(card, this.topCard)) playableCards.push(card.name);
+					if (this.isPlayableCard(card, this.topCard)) single.push(card);
 				}
 			}
 		} else {
+			const regularCards: IPokemonCard[] = [];
 			for (const card of cards) {
 				if (card.action) {
 					const autoPlay = card.action.getAutoPlayTarget(this, cards);
-					if (autoPlay) playableCards.push(autoPlay);
+					if (autoPlay) action.push(card);
 				} else {
-					for (const otherCard of cards) {
-						if (card === otherCard || otherCard.action) continue;
-						if (this.arePlayableCards([this.topCard, card, otherCard])) {
-							playableCards.push(card.name + ", " + otherCard.name);
+					regularCards.push(card as IPokemonCard);
+				}
+			}
+
+			if (regularCards.length >= this.minimumPlayedCards) {
+				let maximumPlayedCards = 0;
+				if (this.maximumPlayedCards === Infinity) {
+					maximumPlayedCards = this.maxPlayableGroupSize;
+				} else {
+					maximumPlayedCards = this.maximumPlayedCards;
+					if (regularCards.length < maximumPlayedCards) maximumPlayedCards = regularCards.length;
+				}
+
+				const checked: Dict<boolean> = {};
+				const combinations = Tools.getPermutations(regularCards, this.minimumPlayedCards, maximumPlayedCards);
+				for (const combination of combinations) {
+					if (combination.length === 1) {
+						if (this.isPlayableCard(combination[0], this.topCard)) single.push(combination[0]);
+					} else {
+						if (this.arePlayableCards([this.topCard].concat(combination))) {
+							const key = combination.map(x => x.name).sort().join(",");
+							if (key in checked) continue;
+							checked[key] = true;
+							group.push(combination);
 						}
 					}
 				}
 			}
 		}
 
-		return playableCards;
+		return {
+			action,
+			group,
+			single,
+		};
 	}
 
-	splitCardsByPlayable(cards: ICard[]): ICardsSplitByPlayable {
-		const playable: ICard[] = [];
-		const other: ICard[] = [];
-
-		if (this.minimumPlayedCards > 1) {
-			for (const card of cards) {
-				if (card.action) {
-					const autoPlay = card.action.getAutoPlayTarget(this, cards);
-					if (autoPlay && !card.action.requiredTarget) {
-						playable.push(card);
-					} else {
-						other.push(card);
-					}
-				} else {
-					other.push(card);
-				}
-			}
-		} else {
-			for (const card of cards) {
-				if (card.action) {
-					const autoPlay = card.action.getAutoPlayTarget(this, cards);
-					if (autoPlay) {
-						playable.push(card);
-					} else {
-						other.push(card);
-					}
-				} else {
-					if (this.isPlayableCard(card, this.topCard)) {
-						playable.push(card);
-					} else {
-						other.push(card);
-					}
-				}
-			}
-		}
-
-		return {playable, other};
-	}
-
-	hasPlayableCard(player: Player): boolean {
-		return !!this.getPlayableCards(player).length;
+	hasPlayableCard(splitCards: IPlayableCards): boolean {
+		if (splitCards.action.length) return true;
+		if (splitCards.group.length) return true;
+		if (splitCards.single.length) return true;
+		return false;
 	}
 
 	timeEnd(): void {
@@ -367,9 +402,10 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		}
 
 		const autoDraws = new Map<Player, ICard[]>();
-		let hasCard = this.hasPlayableCard(player);
+		let playableCards = this.getPlayableCards(player);
+		let hasPlayableCard = this.hasPlayableCard(playableCards);
 		let drawCount = 0;
-		while (!hasCard) {
+		while (!hasPlayableCard) {
 			drawCount++;
 			const cards = this.drawCard(player);
 			let drawnCards = autoDraws.get(player) || [];
@@ -380,7 +416,8 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 				if (this.timeEnded) break; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 				throw new Error("No player given by Game.getNextPlayer");
 			}
-			hasCard = this.hasPlayableCard(player);
+			playableCards = this.getPlayableCards(player);
+			hasPlayableCard = this.hasPlayableCard(playableCards);
 		}
 
 		if (this.drawAchievement && this.drawAchievementAmount && this.lastPlayer && drawCount >= this.drawAchievementAmount &&
@@ -461,13 +498,16 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		this.announceWinners();
 	}
 
-	isCardPair(card: IPokemonCard, otherCard: IPokemonCard): boolean {
+	isCardPair(card: ICard, otherCard: ICard): boolean {
 		if ((card !== this.topCard && card.action) || (otherCard !== this.topCard && otherCard.action)) {
 			return false;
 		}
-		if (card.color === otherCard.color) return true;
-		for (const type of otherCard.types) {
-			if (card.types.includes(type)) return true;
+
+		if (this.isPokemonCard(card) && this.isPokemonCard(otherCard)) {
+			if (card.color === otherCard.color) return true;
+			for (const type of otherCard.types) {
+				if (card.types.includes(type)) return true;
+			}
 		}
 		return false;
 	}
@@ -492,6 +532,59 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	}
 
 	playRegularCard(card: IPokemonCard, player: Player, targets: string[], cards: ICard[]): ICard[] | boolean {
+		const playedCards: ICard[] = [card];
+		for (const target of targets) {
+			const id = Tools.toId(target);
+			const index = this.getCardIndex(id, cards);
+			if (index < 0) {
+				const pokemon = Dex.getPokemon(id);
+				if (pokemon) {
+					player.say("You do not have [ " + pokemon.name + " ].");
+				} else {
+					player.say(CommandParser.getErrorText(['invalidPokemon', target]));
+				}
+				return false;
+			}
+			if (playedCards.includes(cards[index])) {
+				player.say("You can only play a card once per turn.");
+				return false;
+			}
+			playedCards.push(cards[index]);
+		}
+
+		if (this.maximumPlayedCards !== Infinity && playedCards.length > this.maximumPlayedCards) {
+			player.say("You cannot play more than " + this.maximumPlayedCards + " card" + (this.maximumPlayedCards > 1 ? "s" : "") + ".");
+			return false;
+		}
+
+		if (playedCards.length < this.minimumPlayedCards) {
+			player.say("You must play at least " + this.minimumPlayedCards + " card" + (this.minimumPlayedCards > 1 ? "s" : "") + ".");
+			return false;
+		}
+
+		const names: string[] = [];
+		if (playedCards.length === 1) {
+			if (!this.isPlayableCard(card, this.topCard)) {
+				player.say(this.playableCardDescription || "You must play a card that matches color or a type with the top card or an " +
+					"action card.");
+				return false;
+			}
+		} else {
+			if (!this.arePlayableCards(playedCards)) {
+				player.say("All played cards must pair one after the other.");
+				return false;
+			}
+
+			card = playedCards[playedCards.length - 1] as IPokemonCard;
+			card.displayName = player.name + "'s " + card.name;
+			for (const playedCard of playedCards) {
+				if (playedCard !== card) names.push(playedCard.name);
+				cards.splice(cards.indexOf(playedCard), 1);
+			}
+		}
+
+		if (cards.includes(card)) cards.splice(cards.indexOf(card), 1);
+
 		let drawCards = this.roundDrawAmount;
 		if (this.topCard.action && this.topCard.action.drawCards) {
 			drawCards = this.topCard.action.drawCards;
@@ -499,7 +592,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		}
 
 		if (this.autoFillHands) {
-			const remainingCards = cards.length - 1;
+			const remainingCards = cards.length;
 			if (remainingCards && (remainingCards + drawCards) < this.minimumPlayedCards) {
 				drawCards += this.minimumPlayedCards - remainingCards;
 			}
@@ -507,7 +600,10 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 
 		this.awaitingCurrentPlayerCard = false;
 		this.currentPlayer = null;
-		cards.splice(cards.indexOf(card), 1);
+
+		this.storePreviouslyPlayedCard({card: (card.displayName || card.name) + (names.length ? " ( + " + names.join(" + ") + ")" : ""),
+			shiny: card.shiny && !card.played});
+		this.setTopCard(card, player);
 
 		if (!player.eliminated) {
 			let drawnCards: ICard[] | undefined;
@@ -517,8 +613,6 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			this.updatePlayerHtmlPage(player, drawnCards);
 		}
 
-		this.storePreviouslyPlayedCard({card: card.displayName || card.name, shiny: card.shiny && !card.played});
-		this.setTopCard(card, player);
 		return true;
 	}
 
@@ -561,12 +655,6 @@ const commands: GameCommandDefinitions<CardMatching> = {
 			}
 
 			const card = cards[index];
-			if (!card.action && !this.isPlayableCard(card, this.topCard)) {
-				user.say(this.playableCardDescription || "You must play a card that matches color or a type with the top card or an " +
-					"action card.");
-				return false;
-			}
-
 			if (this.playCard(card as IPokemonCard, player, targets, cards) === false) return false;
 
 			if (!cards.length) {
