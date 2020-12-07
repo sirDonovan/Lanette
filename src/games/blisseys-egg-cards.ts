@@ -277,7 +277,7 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 		},
 		"ditto": {
 			name: "Ditto",
-			description: "Play on any egg group",
+			description: "Play on any top card",
 			getCard(game) {
 				return game.pokemonToActionCard(this);
 			},
@@ -290,16 +290,19 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 		},
 		"destinyknot": {
 			name: "Destiny Knot",
-			description: "Breed a card with the top card",
+			description: "Breed 2 of your cards",
 			requiredTarget: true,
 			getCard(game) {
 				return game.itemToActionCard(this);
 			},
 			getRandomTarget(game, hand) {
 				const cards = game.shuffle(hand);
-				for (const card of cards) {
-					if (!card.action && this.isPlayableTarget(game, [card.name], hand)) {
-						return this.name + ", " + card.name;
+				for (const cardA of cards) {
+					for (const cardB of cards) {
+						if (cardA === cardB) continue;
+						if (this.isPlayableTarget(game, [cardA.name, cardB.name], hand)) {
+							return this.name + ", " + cardA.name + ", " + cardB.name;
+						}
 					}
 				}
 			},
@@ -307,44 +310,78 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 				return this.getRandomTarget!(game, hand);
 			},
 			isPlayableTarget(game, targets, hand, player) {
-				if (targets.length !== 1) {
-					if (player) player.say("You must specify 1 Pokemon.");
-					return false;
-				}
+				if (hand!.length >= 3) {
+					if (targets.length !== 2) {
+						if (player) player.say("You must specify 2 Pokemon.");
+						return false;
+					}
 
-				const id = Tools.toId(targets[0]);
-				if (!id) {
-					if (player) player.say("Usage: ``" + Config.commandCharacter + "play " + this.name + ", [Pokemon]``");
-					return false;
-				}
+					const pokemonA = Dex.getPokemon(targets[0]);
+					if (!pokemonA) {
+						if (player) player.say(CommandParser.getErrorText(['invalidPokemon', targets[0]]));
+						return false;
+					}
 
-				const pokemon = Dex.getPokemon(targets[0]);
-				if (!pokemon) {
-					if (player) player.say(CommandParser.getErrorText(['invalidPokemon', targets[0]]));
-					return false;
-				}
+					const pokemonB = Dex.getPokemon(targets[1]);
+					if (!pokemonB) {
+						if (player) player.say(CommandParser.getErrorText(['invalidPokemon', targets[1]]));
+						return false;
+					}
 
-				if (hand) {
-					if (!game.containsCard(pokemon.name, hand)) {
+					const names = [pokemonA.name, pokemonB.name];
+					const indices = game.getCardIndices(names, hand!);
+					for (let i = 0; i < indices.length; i++) {
+						if (indices[i] === -1) {
+							if (player) player.say("You do not have [ " + names[i] + " ].");
+							return false;
+						}
+					}
+
+					const cardA = hand![indices[0]];
+					const cardB = hand![indices[1]];
+					if (cardA.action || cardB.action) {
+						if (player) player.say("You cannot breed action cards.");
+						return false;
+					}
+
+					let matchingEggGroup = false;
+					for (const i of pokemonA.eggGroups) {
+						for (const j of pokemonB.eggGroups) {
+							if (i === j) {
+								matchingEggGroup = true;
+								break;
+							}
+						}
+						if (matchingEggGroup) break;
+					}
+
+					if (!matchingEggGroup) {
+						if (player) player.say("You must play 2 cards that share an egg group.");
+						return false;
+					}
+				} else {
+					if (targets.length != 1) {
+						if (player) player.say("You must include your other card.");
+						return false;
+					}
+
+					const pokemon = Dex.getPokemon(targets[0]);
+					if (!pokemon) {
+						if (player) player.say(CommandParser.getErrorText(['invalidPokemon', targets[0]]));
+						return false;
+					}
+
+					const index = game.getCardIndex(pokemon.name, hand!);
+					if (index === -1) {
 						if (player) player.say("You do not have [ " + pokemon.name + " ].");
 						return false;
 					}
-				}
 
-				let matchingEggGroup = false;
-				for (const i of game.topCard.eggGroups) {
-					for (const j of pokemon.eggGroups) {
-						if (i === j) {
-							matchingEggGroup = true;
-							break;
-						}
+					const card = hand![index];
+					if (!game.isPokemonCard(card) || !game.isPlayableCard(card, game.topCard)) {
+						if (player) player.say(game.playableCardDescription);
+						return false;
 					}
-					if (matchingEggGroup) break;
-				}
-
-				if (!matchingEggGroup) {
-					if (player) player.say("You must play a card that is in an egg group with the top card.");
-					return false;
 				}
 
 				return true;
@@ -355,6 +392,7 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 	eggGroupsLimit: number = 15;
 	finitePlayerCards: boolean = true;
 	maxCardRounds: number = 50;
+	playableCardDescription: string = "You must play 1-2 cards that match an egg group with the top card.";
 	playerCards = new Map<Player, IPokemonCard[]>();
 	shinyCardAchievement = BlisseysEggCards.achievements.luckofthedraw;
 
@@ -480,19 +518,21 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 			}
 
 			this.setTopCard(playableCard, player);
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		} else if (id === 'destinyknot') {
+		} else if (id === 'destinyknot') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 			const prevos: IPokemon[] = [];
-			const topCard = Dex.getExistingPokemon(this.topCard.name);
-			const lowestTopCard = this.getLowestPlayableStage(topCard);
-			if (lowestTopCard.name !== this.topCard.name) prevos.push(lowestTopCard);
+			const cardA = Dex.getExistingPokemon(targets[0]);
+			cards.splice(this.getCardIndex(cardA.name, cards), 1);
+			const lowestCardA = this.getLowestPlayableStage(cardA);
+			if (lowestCardA.name !== this.topCard.name) prevos.push(lowestCardA);
 
-			const playedCard = Dex.getExistingPokemon(targets[0]);
-			const lowestPlayedCard = this.getLowestPlayableStage(playedCard);
-			if (lowestPlayedCard.name !== playedCard.name) prevos.push(lowestPlayedCard);
+			const cardB = Dex.getExistingPokemon(targets[1]);
+			cards.splice(this.getCardIndex(cardB.name, cards), 1);
+			const lowestCardB = this.getLowestPlayableStage(cardB);
+			if (lowestCardB.name !== this.topCard.name) prevos.push(lowestCardB);
 
-			if (!prevos.length) prevos.push(topCard, playedCard);
+			if (!prevos.length) prevos.push(cardA, cardB);
 
+			cardDetail = cardA.name + ", " + cardB.name;
 			this.setTopCard(this.pokemonToCard(this.sampleOne(prevos)), player);
 		}
 
@@ -691,11 +731,13 @@ const tests: GameFileTests<BlisseysEggCards> = {
 			const destinyknot = game.actionCards.destinyknot;
 			assert(destinyknot);
 
-			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Abomasnow"));
-			const hand = [game.pokemonToCard(Dex.getExistingPokemon("Aggron"))];
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Blissey"));
+			const hand = [game.pokemonToCard(Dex.getExistingPokemon("Abomasnow")), game.pokemonToCard(Dex.getExistingPokemon("Aggron")),
+				game.pokemonToCard(Dex.getExistingPokemon("Tangela"))];
 			assert(destinyknot.getAutoPlayTarget(game, hand));
-			assertStrictEqual(destinyknot.isPlayableTarget(game, ["Aggron"], hand), true);
-			assertStrictEqual(destinyknot.isPlayableTarget(game, ["Amaura"], hand), false);
+			assertStrictEqual(destinyknot.isPlayableTarget(game, ["Abomasnow", "Aggron"], hand), true);
+			assertStrictEqual(destinyknot.isPlayableTarget(game, ["Aggron", "Tangela"], hand), false);
+			assertStrictEqual(destinyknot.isPlayableTarget(game, ["Abomasnow"], hand), false);
 			assertStrictEqual(destinyknot.isPlayableTarget(game, [""], hand), false);
 		},
 	},
