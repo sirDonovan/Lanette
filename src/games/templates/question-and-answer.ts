@@ -16,6 +16,8 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	firstAnswer: Player | false | undefined;
 	hint: string = '';
 	hintUhtmlName: string = '';
+	inactiveRounds: number = 0;
+	inactiveRoundLimit: number = 10;
 	lastHintHtml: string = '';
 	multiRoundHints: boolean = false;
 	readonly points = new Map<Player, number>();
@@ -72,6 +74,13 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 				return;
 			}
 		}
+
+		this.inactiveRounds++;
+		if (this.inactiveRounds === this.inactiveRoundLimit) {
+			this.inactivityEnd();
+			return;
+		}
+
 		this.nextRound();
 	}
 
@@ -171,6 +180,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		}
 
 		this.offUhtml(this.hintUhtmlName, this.lastHintHtml);
+		this.inactiveRounds = 0;
 
 		return answer;
 	}

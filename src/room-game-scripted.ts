@@ -225,6 +225,11 @@ export class ScriptedGame extends Game {
 		return this.format.minigameDescription;
 	}
 
+	inactivityEnd(): void {
+		this.say("Ending the game due to a lack of players.");
+		this.deallocate(false);
+	}
+
 	signups(): void {
 		this.signupsTime = Date.now();
 		this.signupsStarted = true;
@@ -266,8 +271,7 @@ export class ScriptedGame extends Game {
 						if (!this.start()) {
 							this.startTimer = setTimeout(() => {
 								if (!this.start()) {
-									this.say("Ending the game due to a lack of players.");
-									this.deallocate(false);
+									this.inactivityEnd();
 								}
 							}, startTimer);
 						}
