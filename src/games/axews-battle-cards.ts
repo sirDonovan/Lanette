@@ -2,7 +2,7 @@ import type { Player } from "../room-activity";
 import { assert, assertStrictEqual } from "../test/test-tools";
 import type { GameFileTests, IGameAchievement, IGameFile } from "../types/games";
 import type { IMoveCopy, IPokemon } from "../types/pokemon-showdown";
-import type { IActionCardData, ICard, IPlayableCards, IMoveCard, IPokemonCard } from "./templates/card";
+import type { IActionCardData, ICard, IMoveCard, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 
 type AchievementNames = "luckofthedraw" | "trumpcard";
@@ -664,138 +664,6 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 	timeEnd(): void {
 		this.say("Time is up!");
 		this.end();
-	}
-
-	onNextRound(): void {
-		this.canPlay = false;
-		if (this.currentPlayer) {
-			this.lastPlayer = this.currentPlayer;
-			this.currentPlayer = null;
-		}
-
-		if (Date.now() - this.startTime! > this.timeLimit) return this.timeEnd();
-		if (this.getRemainingPlayerCount() <= 1) {
-			this.end();
-			return;
-		}
-
-		const currentRound = this.round;
-		let player = this.getNextPlayer();
-		if (!player || this.timeEnded) return;
-
-		const eliminatedText = "does not have a card to play and has been eliminated from the game!";
-		let playableCards = this.getPlayableCards(player);
-		let hasPlayableCard = this.hasPlayableCard(playableCards);
-		let eliminateCount = 0;
-		let finalPlayer = false;
-		const useUhtmlAuto = this.round === currentRound && !hasPlayableCard;
-		while (!hasPlayableCard) {
-			const lives = this.addLives(player, -1);
-			if (!lives) {
-				eliminateCount++;
-				this.eliminatePlayer(player, "You do not have a card to play!");
-				if (this.getRemainingPlayerCount() === 1) {
-					finalPlayer = true;
-					break;
-				}
-				this.say(player.name + " " + eliminatedText);
-			} else {
-				this.say(player.name + " does not have a card to play and has lost a life!");
-				player.say("You do not have a card to play! You have " + lives + " " +
-					(lives === 1 ? "life" : "lives") + " remaining!");
-			}
-
-			player = this.getNextPlayer();
-			if (!player) {
-				if (this.timeEnded) break; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
-				throw new Error("No player given by Game.getNextPlayer");
-			}
-			playableCards = this.getPlayableCards(player);
-			hasPlayableCard = this.hasPlayableCard(playableCards);
-		}
-
-		if (this.lastPlayer && eliminateCount >= trumpCardEliminations && !this.lastPlayer.eliminated) {
-			this.unlockAchievement(this.lastPlayer, AxewsBattleCards.achievements.trumpcard);
-		}
-
-		if (this.timeEnded) return; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
-
-		// needs to be set outside of on() for tests
-		this.currentPlayer = player;
-
-		const html = this.getMascotAndNameHtml() + "<br /><center>" + this.getTopCardHtml() + "<br /><br /><b><username>" + player!.name +
-			"</username></b>'s turn!</center>";
-		const uhtmlName = this.uhtmlBaseName + '-round';
-		this.onUhtml(uhtmlName, html, () => {
-			if (finalPlayer) {
-				this.say(player!.name + " " + eliminatedText);
-				this.end();
-				return;
-			}
-
-			// left before text appeared
-			if (player!.eliminated) {
-				this.nextRound();
-				return;
-			}
-
-			this.awaitingCurrentPlayerCard = true;
-			this.canPlay = true;
-			this.updatePlayerHtmlPage(player!);
-			player!.sendHighlightPage("It is your turn!");
-
-			this.timeout = setTimeout(() => {
-				if (!player!.eliminated) {
-					this.autoPlay(player!, playableCards);
-				} else {
-					this.nextRound();
-				}
-			}, this.turnTimeLimit);
-		});
-
-		if (useUhtmlAuto) {
-			this.sayUhtmlAuto(uhtmlName, html);
-		} else {
-			this.sayUhtml(uhtmlName, html);
-		}
-	}
-
-	onEnd(): void {
-		for (const i in this.players) {
-			if (this.players[i].eliminated) continue;
-			const player = this.players[i];
-			this.winners.set(player, 1);
-			this.addBits(player, 500);
-		}
-
-		this.announceWinners();
-	}
-
-	autoPlay(player: Player, splitCards: IPlayableCards): void {
-		const playerCards = this.playerCards.get(player)!;
-
-		const autoPlayOptions: string[] = [];
-		for (const card of splitCards.action) {
-			autoPlayOptions.push(card.action!.getAutoPlayTarget(this, playerCards)!);
-		}
-		for (const group of splitCards.group) {
-			autoPlayOptions.push(group.map(x => x.name).join(", "));
-		}
-		for (const card of splitCards.single) {
-			autoPlayOptions.push(card.name);
-		}
-
-		let autoPlay = '';
-		if (autoPlayOptions.length) autoPlay = this.sampleOne(autoPlayOptions);
-
-		this.say(player.name + " did not play a card and has been eliminated from the game!" + (autoPlay ? " Auto-playing: " +
-			autoPlay : ""));
-		this.eliminatePlayer(player, "You did not play a card!");
-		if (autoPlay) {
-			player.useCommand('play', autoPlay);
-		} else {
-			this.nextRound();
-		}
 	}
 
 	playActionCard(card: IMoveCard, player: Player, targets: string[], cards: ICard[]): ICard[] | boolean {

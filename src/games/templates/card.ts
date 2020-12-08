@@ -4,12 +4,6 @@ import { assert, assertStrictEqual } from '../../test/test-tools';
 import type { GameCommandDefinitions, GameFileTests, IGameTemplateFile, PlayerList } from '../../types/games';
 import type { IItem, IMove, IPokemon, StatsTable } from '../../types/pokemon-showdown';
 
-export interface IPlayableCards {
-	action: ICard[];
-	group: ICard[][];
-	single: ICard[];
-}
-
 export interface IActionCardData<T extends ScriptedGame = ScriptedGame, U extends ICard = ICard> {
 	getCard: (game: T) => ICard;
 	getRandomTarget?: (game: T, hand: U[]) => string | undefined;
@@ -86,7 +80,6 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	abstract createDeck(): void;
 	abstract getCardChatDetails(card: ICard): string;
 	abstract getCardsPmHtml(cards: ICard[], player?: Player, playableCards?: boolean): string;
-	abstract getPlayableCardGroupsHtml(groups: ICard[][]): string;
 	abstract onNextRound(): void;
 	abstract onStart(): void;
 
@@ -337,44 +330,8 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 
 		if (drawnCardsMessage) html += drawnCardsMessage;
 
-		if (this.getPlayableCards && isCurrentPlayer) {
-			const playableCards = this.getPlayableCards(player);
-			let playableAction = '';
-			let playableRegular = '';
-			if (playableCards.action.length) {
-				playableAction += '<b>Action</b>:<br />';
-				playableAction += this.getCardsPmHtml(playableCards.action, player, true);
-			}
-
-			if (playableCards.group.length || playableCards.single.length) {
-				const playableGroup = this.getPlayableCardGroupsHtml(playableCards.group);
-				const playableSingle = this.getCardsPmHtml(playableCards.single, player, true);
-
-				if (playableGroup || playableSingle) {
-					playableRegular += '<b>Regular</b>' + (playableGroup && this.maxPlayableGroupSize < this.maximumPlayedCards ?
-						' (there may be longer chains)' : '') + ':<br />';
-					if (playableGroup && playableSingle) {
-						playableRegular += playableGroup + "<br />" + playableSingle;
-					} else {
-						playableRegular += playableGroup || playableSingle;
-					}
-				}
-			}
-
-			const hasPlayableCards = playableAction || playableRegular;
-			if (hasPlayableCards) {
-				html += '<h3>Playable cards</h3>';
-				html += [playableAction, playableRegular].filter(x => x.length).join("<br />");
-			}
-
-			if (playerCards.length) {
-				if (hasPlayableCards) {
-					html += '<br /><h3>All cards</h3>';
-				} else {
-					html += '<h3>Your cards</h3>';
-				}
-				html += this.getCardsPmHtml(playerCards, player);
-			}
+		if (this.getTurnCardsPmHtml && isCurrentPlayer) {
+			html += this.getTurnCardsPmHtml(player);
 		} else {
 			if (!playerCards.length) {
 				html += '<h3>Your hand is empty!</h3>';
@@ -454,7 +411,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	filterForme?(forme: IPokemon): boolean;
 	/**Return `false` to filter `item` out of the deck pool */
 	filterPoolItem?(pokemon: IPokemon): boolean;
-	getPlayableCards?(player: Player): IPlayableCards;
+	getTurnCardsPmHtml?(player: Player): string;
 }
 
 const commands: GameCommandDefinitions<Card> = {};

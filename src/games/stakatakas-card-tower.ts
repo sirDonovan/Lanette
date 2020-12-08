@@ -64,6 +64,7 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 	shinyCardAchievement = StakatakasCardTower.achievements.luckofthedraw;
 	showPlayerCards: boolean = true;
 	turnTimeLimit: number = 50 * 1000;
+	turnWarningTime: number = 30 * 1000;
 	typesLimit: number = 20;
 	usesColors: boolean = true;
 
@@ -175,7 +176,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 				game.pokemonToCard(Dex.getExistingPokemon("Eevee")), game.pokemonToCard(Dex.getExistingPokemon("Pidgey")),
 				game.pokemonToCard(Dex.getExistingPokemon("Charmander"))];
 			game.playerCards.set(player, newCards);
-			assert(game.hasPlayableCard(game.getPlayableCards(player)));
+			assert(game.hasPlayableCard(game.getTurnCards(player)));
 			game.canPlay = true;
 			player.useCommand('play', 'Stunfisk, Eevee, Pidgey, Eevee, Pidgey');
 			assert(!game.ended);
@@ -192,14 +193,14 @@ const tests: GameFileTests<StakatakasCardTower> = {
 				game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur")), game.pokemonToCard(Dex.getExistingPokemon("Squirtle")),
 				game.pokemonToCard(Dex.getExistingPokemon("Eevee"))];
 			game.playerCards.set(player, newCards);
-			assert(!game.hasPlayableCard(game.getPlayableCards(player)));
+			assert(!game.hasPlayableCard(game.getTurnCards(player)));
 			// beginning of chain behind
 			newCards.push(game.pokemonToCard(Dex.getExistingPokemon("Stunfisk")));
-			assert(game.hasPlayableCard(game.getPlayableCards(player)));
+			assert(game.hasPlayableCard(game.getTurnCards(player)));
 			// beginning of chain in front
 			newCards.pop();
 			newCards.unshift(game.pokemonToCard(Dex.getExistingPokemon("Stunfisk")));
-			assert(game.hasPlayableCard(game.getPlayableCards(player)));
+			assert(game.hasPlayableCard(game.getTurnCards(player)));
 		},
 	},
 	'it should not create new card arrays for actions': {
@@ -218,7 +219,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 			manaphyAction.action = game.actionCards.manaphy;
 			newCards.push(manaphyAction);
 			game.playerCards.set(player, newCards);
-			assert(game.hasPlayableCard(game.getPlayableCards(player)));
+			assert(game.hasPlayableCard(game.getTurnCards(player)));
 			game.canPlay = true;
 			await runCommand('play', 'Manaphy', game.room, player.name);
 			assert(!game.ended);
@@ -241,7 +242,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 				game.pokemonToCard(Dex.getExistingPokemon("Squirtle"))];
 			game.playerCards.set(player, cards);
 			assert(!game.arePlayableCards([game.topCard].concat(cards)));
-			assert(game.hasPlayableCard(game.getPlayableCards(player)));
+			assert(game.hasPlayableCard(game.getTurnCards(player)));
 			game.canPlay = true;
 			await runCommand('play', 'Ampharos, Archen, Beautifly', game.room, player.name);
 			assert(!game.ended);
@@ -262,7 +263,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 				game.pokemonToCard(Dex.getExistingPokemon("Beedrill"))];
 			game.playerCards.set(player, cards);
 			assert(game.arePlayableCards([game.topCard].concat(cards)));
-			assert(game.hasPlayableCard(game.getPlayableCards(player)));
+			assert(game.hasPlayableCard(game.getTurnCards(player)));
 			game.canPlay = true;
 			await runCommand('play', 'Ampharos, Archen, Beautifly, Beedrill', game.room, player.name);
 			assert(game.ended);

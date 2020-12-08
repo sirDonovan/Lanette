@@ -4,13 +4,20 @@ import type {
 	GameCategory, GameCommandDefinitions, GameFileTests, IGameAchievement, IGameTemplateFile
 } from '../../types/games';
 import type { IPokemon } from '../../types/pokemon-showdown';
-import type { IActionCardData, ICard, IPlayableCards, IPokemonCard } from './card';
+import type { IActionCardData, ICard, IPokemonCard } from './card';
 import { Card, game as cardGame } from './card';
 
 interface IPreviouslyPlayedCard {
 	card: string;
 	detail?: string;
 	shiny?: boolean;
+}
+
+interface ITurnCards {
+	action: ICard[];
+	group: ICard[][];
+	single: ICard[];
+	unplayable: ICard[];
 }
 
 export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> extends Card<ActionCardsType> {
@@ -33,14 +40,15 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	showPlayerCards: boolean = true;
 	timeLimit: number = 25 * 60 * 1000;
 	turnTimeLimit: number = 30 * 1000;
+	turnWarningTime: number = 15 * 1000;
 	typesLimit: number = 0;
 	usesColors: boolean = false;
 
 	// always truthy once the game starts
 	topCard!: IPokemonCard;
 
-	drawAchievement?: IGameAchievement;
-	drawAchievementAmount?: number;
+	skippedPlayerAchievement?: IGameAchievement;
+	skippedPlayerAchievementAmount?: number;
 	shinyCardAchievement?: IGameAchievement;
 
 	abstract onRemovePlayer(player: Player): void;
@@ -145,7 +153,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		return html;
 	}
 
-	getPlayableCardGroupHtml(group: ICard[]): string {
+	getCardGroupHtml(group: ICard[]): string {
 		const width = this.detailLabelWidth * 3.5;
 		let html = '<div class="infobox" style="width: ' + width + 'px">';
 		const displayNames: string[] = [];
@@ -168,13 +176,70 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		return html;
 	}
 
-	getPlayableCardGroupsHtml(groups: ICard[][]): string {
+	getCardGroupsHtml(groups: ICard[][]): string {
 		const html: string[] = [];
 		for (const group of groups) {
 			if (this.maxPlayableGroupSize && group.length > this.maxPlayableGroupSize) continue;
-			html.push('<div style="height:auto">' + this.getPlayableCardGroupHtml(group) + '</div>');
+			html.push('<div style="height:auto">' + this.getCardGroupHtml(group) + '</div>');
 		}
 		return html.join("<br />");
+	}
+
+	getTurnCardsPmHtml(player: Player): string {
+		const playerCards = this.playerCards.get(player)!;
+		const turnCards = this.getTurnCards(player);
+		let html = '';
+		let playableAction = '';
+		let playableRegular = '';
+		if (turnCards.action.length) {
+			playableAction += '<b>Action</b>:<br />';
+			playableAction += this.getCardsPmHtml(turnCards.action, player, true);
+		}
+
+		if (turnCards.group.length || turnCards.single.length) {
+			const playableGroup = this.getCardGroupsHtml(turnCards.group);
+			const playableSingle = this.getCardsPmHtml(turnCards.single, player, true);
+
+			if (playableGroup || playableSingle) {
+				playableRegular += '<b>Regular</b>' + (playableGroup && this.maxPlayableGroupSize < this.maximumPlayedCards ?
+					' (there may be longer chains)' : '') + ':<br />';
+				if (playableGroup && playableSingle) {
+					playableRegular += playableGroup + "<br />" + playableSingle;
+				} else {
+					playableRegular += playableGroup || playableSingle;
+				}
+			}
+		}
+
+		const hasPlayableCards = playableAction || playableRegular;
+		const showAllCards = this.maximumPlayedCards >= this.maxPlayableGroupSize;
+		if (hasPlayableCards) {
+			const overflow = !showAllCards && turnCards.unplayable.length && (turnCards.group.length + turnCards.single.length) > 3;
+			if (overflow) html += "<div style='overflow-y: scroll;height: 400px'>";
+			html += "<h3>Playable cards</h3>";
+			html += [playableAction, playableRegular].filter(x => x.length).join("<br />");
+			if (overflow) html += "</div>";
+		}
+
+		if (playerCards.length) {
+			if (hasPlayableCards) {
+				if (this.maxPlayableGroupSize < this.maximumPlayedCards) {
+					html += '<br /><h3>All cards</h3>';
+				} else {
+					if (turnCards.unplayable.length) html += '<br /><h3>Unplayable cards</h3>';
+				}
+			} else {
+				html += '<h3>Your cards</h3>';
+			}
+
+			if (showAllCards) {
+				html += this.getCardsPmHtml(playerCards, player);
+			} else {
+				if (turnCards.unplayable.length) html += this.getCardsPmHtml(turnCards.unplayable, player);
+			}
+		}
+
+		return html;
 	}
 
 	getCardPmHtml(card: ICard, player?: Player, showPlayable?: boolean): string {
@@ -282,10 +347,11 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		return true;
 	}
 
-	getPlayableCards(player: Player): IPlayableCards {
+	getTurnCards(player: Player): ITurnCards {
 		const action: ICard[] = [];
 		const group: ICard[][] = [];
 		const single: ICard[] = [];
+		const unplayable: ICard[] = [];
 
 		const cards = this.playerCards.get(player);
 		if (!cards) throw new Error(player.name + " has no hand");
@@ -336,14 +402,30 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			}
 		}
 
+		for (const card of cards) {
+			if (action.includes(card) || single.includes(card)) continue;
+			let inGroup = false;
+			for (const cardGroup of group) {
+				if (cardGroup.includes(card)) {
+					inGroup = true;
+					break;
+				}
+			}
+
+			if (inGroup) continue;
+
+			unplayable.push(card);
+		}
+
 		return {
 			action,
 			group,
 			single,
+			unplayable,
 		};
 	}
 
-	hasPlayableCard(splitCards: IPlayableCards): boolean {
+	hasPlayableCard(splitCards: ITurnCards): boolean {
 		if (splitCards.action.length) return true;
 		if (splitCards.group.length) return true;
 		if (splitCards.single.length) return true;
@@ -369,10 +451,41 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 				winners.set(player, 1);
 			}
 		}
-		winners.forEach((value, player) => {
-			player.frozen = true;
-		});
+
+		if (this.finitePlayerCards) {
+			winners.forEach((value, player) => {
+				player.frozen = true;
+			});
+		}
+
 		this.end();
+	}
+
+	autoPlay(player: Player, splitCards: ITurnCards): void {
+		const playerCards = this.playerCards.get(player)!;
+
+		const autoPlayOptions: string[] = [];
+		for (const card of splitCards.action) {
+			autoPlayOptions.push(card.action!.getAutoPlayTarget(this, playerCards)!);
+		}
+		for (const group of splitCards.group) {
+			autoPlayOptions.push(group.map(x => x.name).join(", "));
+		}
+		for (const card of splitCards.single) {
+			autoPlayOptions.push(card.name);
+		}
+
+		let autoPlay = '';
+		if (autoPlayOptions.length) autoPlay = this.sampleOne(autoPlayOptions);
+
+		this.say(player.name + " did not play a card and has been eliminated from the game!" + (autoPlay ? " Auto-playing: " +
+			autoPlay : ""));
+		this.eliminatePlayer(player, "You did not play a card!");
+		if (autoPlay) {
+			player.useCommand('play', autoPlay);
+		} else {
+			this.nextRound();
+		}
 	}
 
 	onNextRound(): void {
@@ -384,8 +497,10 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 
 		if (Date.now() - this.startTime! > this.timeLimit) return this.timeEnd();
 		if (this.getRemainingPlayerCount() <= 1) {
-			const finalPlayer = this.getFinalPlayer();
-			if (finalPlayer) finalPlayer.frozen = true;
+			if (this.finitePlayerCards) {
+				const finalPlayer = this.getFinalPlayer();
+				if (finalPlayer) finalPlayer.frozen = true;
+			}
 			this.end();
 			return;
 		}
@@ -402,27 +517,50 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		}
 
 		const autoDraws = new Map<Player, ICard[]>();
-		let playableCards = this.getPlayableCards(player);
-		let hasPlayableCard = this.hasPlayableCard(playableCards);
-		let drawCount = 0;
+		const eliminatedText = "does not have a card to play and has been eliminated from the game!";
+		let turnCards = this.getTurnCards(player);
+		let hasPlayableCard = this.hasPlayableCard(turnCards);
+		let skippedPlayerCount = 0;
+		let finalPlayer = false;
 		while (!hasPlayableCard) {
-			drawCount++;
-			const cards = this.drawCard(player);
-			let drawnCards = autoDraws.get(player) || [];
-			drawnCards = drawnCards.concat(cards);
-			autoDraws.set(player, drawnCards);
+			if (this.startingLives) {
+				const lives = this.addLives(player, -1);
+				if (!lives) {
+					skippedPlayerCount++;
+					this.eliminatePlayer(player, "You do not have a card to play!");
+					if (this.getRemainingPlayerCount() === 1) {
+						finalPlayer = true;
+						break;
+					}
+					this.say(player.name + " " + eliminatedText);
+				} else {
+					this.say(player.name + " does not have a card to play and has lost a life!");
+					player.say("You do not have a card to play! You have " + lives + " " +
+						(lives === 1 ? "life" : "lives") + " remaining!");
+				}
+			} else {
+				skippedPlayerCount++;
+			}
+
+			if (this.finitePlayerCards) {
+				const cards = this.drawCard(player);
+				let drawnCards = autoDraws.get(player) || [];
+				drawnCards = drawnCards.concat(cards);
+				autoDraws.set(player, drawnCards);
+			}
+
 			player = this.getNextPlayer();
 			if (!player) {
 				if (this.timeEnded) break; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 				throw new Error("No player given by Game.getNextPlayer");
 			}
-			playableCards = this.getPlayableCards(player);
-			hasPlayableCard = this.hasPlayableCard(playableCards);
+			turnCards = this.getTurnCards(player);
+			hasPlayableCard = this.hasPlayableCard(turnCards);
 		}
 
-		if (this.drawAchievement && this.drawAchievementAmount && this.lastPlayer && drawCount >= this.drawAchievementAmount &&
-			!this.lastPlayer.eliminated) {
-			this.unlockAchievement(this.lastPlayer, this.drawAchievement);
+		if (this.skippedPlayerAchievement && this.skippedPlayerAchievementAmount && this.lastPlayer && !this.lastPlayer.eliminated &&
+			skippedPlayerCount >= this.skippedPlayerAchievementAmount) {
+			this.unlockAchievement(this.lastPlayer, this.skippedPlayerAchievement);
 		}
 
 		if (this.timeEnded) return; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
@@ -446,6 +584,12 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			"</username></b>'s turn!</center>";
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
+			if (finalPlayer) {
+				this.say(player!.name + " " + eliminatedText);
+				this.end();
+				return;
+			}
+
 			// left before text appeared
 			if (player!.eliminated) {
 				this.nextRound();
@@ -457,27 +601,37 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			this.updatePlayerHtmlPage(player!);
 			player!.sendHighlightPage("It is your turn!");
 
+			const timeAfterWarning = this.turnTimeLimit - this.turnWarningTime;
 			this.timeout = setTimeout(() => {
-				if (!player!.eliminated) {
-					if (this.addPlayerInactiveRound(player!) && !(this.parentGame && this.parentGame.id === '1v1challenge')) {
-						this.say(player!.name + " DQed for inactivity!");
-						// nextRound() called in onRemovePlayer
-						this.eliminatePlayer(player!, "You did not play a card for " + this.playerInactiveRoundLimit + " rounds!");
+				const timeAfterWarningString = Tools.toDurationString(timeAfterWarning);
+				player!.say("There " + (timeAfterWarningString.endsWith("s") ? "are" : "is") + " only " + timeAfterWarningString + " of " +
+					"your turn left!");
+				this.timeout = setTimeout(() => {
+					if (!player!.eliminated) {
+						if (this.finitePlayerCards) {
+							if (this.addPlayerInactiveRound(player!) && !(this.parentGame && this.parentGame.id === '1v1challenge')) {
+								this.say(player!.name + " DQed for inactivity!");
+								// nextRound() called in onRemovePlayer
+								this.eliminatePlayer(player!, "You did not play a card for " + this.playerInactiveRoundLimit + " rounds!");
 
-						const remainingPlayers: Player[] = [];
-						for (const i in this.players) {
-							if (!this.players[i].eliminated) remainingPlayers.push(this.players[i]);
+								const remainingPlayers: Player[] = [];
+								for (const i in this.players) {
+									if (!this.players[i].eliminated) remainingPlayers.push(this.players[i]);
+								}
+								if (remainingPlayers.length === 1) remainingPlayers[0].frozen = true;
+
+								this.onRemovePlayer(player!);
+							} else {
+								player!.useCommand('draw');
+							}
+						} else {
+							this.autoPlay(player!, turnCards);
 						}
-						if (remainingPlayers.length === 1) remainingPlayers[0].frozen = true;
-
-						this.onRemovePlayer(player!);
 					} else {
-						player!.useCommand('draw');
+						this.nextRound();
 					}
-				} else {
-					this.nextRound();
-				}
-			}, this.turnTimeLimit);
+				}, timeAfterWarning);
+			}, this.turnWarningTime);
 		});
 
 		if (useUhtmlAuto) {
@@ -489,7 +643,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 
 	onEnd(): void {
 		for (const i in this.players) {
-			if (this.players[i].eliminated || !this.players[i].frozen) continue;
+			if (this.players[i].eliminated || (this.finitePlayerCards && !this.players[i].frozen)) continue;
 			const player = this.players[i];
 			this.addBits(player, 500);
 			this.winners.set(player, 1);

@@ -9,7 +9,6 @@ export abstract class CardHighLow extends Card {
 	abstract detailCategories: string[];
 
 	actionCards = {};
-	autoFillHands: boolean = true;
 	bitsPerRound: number = 100;
 	canPlay: boolean = false;
 	categoryList: string[] = [];
@@ -48,11 +47,6 @@ export abstract class CardHighLow extends Card {
 			Tools.hexColorCodes['Black']['background'] + ';border:1px solid #a99890;border-radius:3px;width:auto;padding:1px;' +
 			'color:#fff;text-shadow:1px 1px 1px #333;text-align:center;font-size:8pt">' +
 			this.getCardDetail(card, this.currentCategory) + ' ' + this.categoryAbbreviations[this.currentCategory] + '</div>';
-	}
-
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	getPlayableCardGroupsHtml(groups: ICard[][]): string {
-		return "";
 	}
 
 	getCardsPmHtml(cards: ICard[], player?: Player): string {
