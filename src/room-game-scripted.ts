@@ -10,6 +10,7 @@ import type {
 import type { User } from "./users";
 
 const JOIN_BITS = 10;
+const AUTO_START_VOTE_TIME = 5 * 1000;
 
 // base of 0 defaults option to 'off'
 const defaultOptionValues: Dict<IGameOptionValues> = {
@@ -227,6 +228,7 @@ export class ScriptedGame extends Game {
 
 	inactivityEnd(): void {
 		this.say("Ending the game due to a lack of players.");
+		Games.banFromNextVote(this.room as Room, this.format);
 		this.deallocate(false);
 	}
 
@@ -362,6 +364,8 @@ export class ScriptedGame extends Game {
 		if (this.isMiniGame) {
 			Games.lastMinigames[this.room.id] = now;
 		} else if (!this.parentGame && !this.internalGame) {
+			Games.clearNextVoteBans(this.room);
+
 			usedDatabase = true;
 			const database = Storage.getDatabase(this.room);
 

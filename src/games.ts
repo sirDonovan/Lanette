@@ -107,6 +107,7 @@ export class Games {
 	readonly minigameCommandNames: Dict<{aliases: string[]; format: string}> = {};
 	readonly modes: Dict<IGameMode> = {};
 	readonly modeAliases: Dict<string> = {};
+	nextVoteBans: Dict<string[]> = {};
 	reloadInProgress: boolean = false;
 	readonly userHostedAliases: Dict<string> = {};
 	readonly userHostedFormats: Dict<IUserHostedComputed> = {};
@@ -177,6 +178,12 @@ export class Games {
 		if (previous.lastUserHostedGames) Object.assign(this.lastUserHostedGames, previous.lastUserHostedGames);
 		if (previous.lastUserHostTimes) Object.assign(this.lastUserHostTimes, previous.lastUserHostTimes);
 		if (previous.lastUserHostFormatTimes) Object.assign(this.lastUserHostFormatTimes, previous.lastUserHostFormatTimes);
+
+		if (previous.nextVoteBans) {
+			for (const i in previous.nextVoteBans) {
+				this.nextVoteBans[i] = previous.nextVoteBans[i].slice();
+			}
+		}
 
 		for (const i in previous) {
 			// @ts-expect-error
@@ -974,6 +981,26 @@ export class Games {
 		}
 
 		return room.userHostedGame;
+	}
+
+	banFromNextVote(room: Room, format: IGameFormat): void {
+		if (!(room.id in this.nextVoteBans)) this.nextVoteBans[room.id] = [];
+		this.nextVoteBans[room.id].push(format.inputTarget);
+	}
+
+	getNextVoteBans(room: Room): string[] {
+		const bans: string[] = [];
+		if (room.id in this.nextVoteBans) {
+			for (const inputTarget of this.nextVoteBans[room.id]) {
+				const format = this.getFormat(inputTarget);
+				if (!Array.isArray(format)) bans.push(format.name);
+			}
+		}
+		return bans;
+	}
+
+	clearNextVoteBans(room: Room): void {
+		delete this.nextVoteBans[room.id];
 	}
 
 	setAutoCreateTimer(room: Room, type: AutoCreateTimerType, timer: number): void {
