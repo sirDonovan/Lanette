@@ -52,7 +52,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	shinyCardAchievement?: IGameAchievement;
 
 	abstract onRemovePlayer(player: Player): void;
-	abstract playActionCard(card: ICard, player: Player, targets: string[], cards: ICard[]): ICard[] | boolean;
+	abstract playActionCard(card: ICard, player: Player, targets: string[], cards: ICard[]): boolean;
 
 	filterForme(forme: IPokemon): boolean {
 		const baseSpecies = Dex.getExistingPokemon(forme.baseSpecies);
@@ -675,17 +675,25 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		}
 	}
 
-	playCard(card: ICard, player: Player, targets: string[], cards: ICard[]): ICard[] | boolean {
+	playCard(card: ICard, player: Player, targets: string[], cards: ICard[]): boolean {
 		card.displayName = player.name + "'s " + card.name;
 
+		let played = false;
 		if (card.action) {
-			return this.playActionCard(card, player, targets, cards);
+			played = this.playActionCard(card, player, targets, cards);
 		} else {
-			return this.playRegularCard(card as IPokemonCard, player, targets, cards);
+			played = this.playRegularCard(card as IPokemonCard, player, targets, cards);
 		}
+
+		if (played) {
+			this.lastPlayer = this.currentPlayer;
+			this.currentPlayer = null;
+		}
+
+		return played;
 	}
 
-	playRegularCard(card: IPokemonCard, player: Player, targets: string[], cards: ICard[]): ICard[] | boolean {
+	playRegularCard(card: IPokemonCard, player: Player, targets: string[], cards: ICard[]): boolean {
 		const playedCards: ICard[] = [card];
 		for (const target of targets) {
 			const id = Tools.toId(target);
@@ -753,7 +761,6 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		}
 
 		this.awaitingCurrentPlayerCard = false;
-		this.currentPlayer = null;
 
 		this.storePreviouslyPlayedCard({card: (card.displayName || card.name) + (names.length ? " ( + " + names.join(" + ") + ")" : ""),
 			shiny: card.shiny && !card.played});
@@ -809,7 +816,7 @@ const commands: GameCommandDefinitions<CardMatching> = {
 			}
 
 			const card = cards[index];
-			if (this.playCard(card as IPokemonCard, player, targets, cards) === false) return false;
+			if (!this.playCard(card as IPokemonCard, player, targets, cards)) return false;
 
 			if (!cards.length) {
 				player.frozen = true;
