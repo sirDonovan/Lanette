@@ -13,6 +13,7 @@ const mapSymbols: {player: string; empty: string} = {
 };
 
 class DragapultsDangerZone extends ScriptedGame {
+	canFire: boolean = false;
 	columnLetters: string[] = letters;
 	currentPlayer: Player | null = null;
 	currentTeam: TeamIds = 'red';
@@ -82,8 +83,16 @@ class DragapultsDangerZone extends ScriptedGame {
 	}
 
 	onRemovePlayer(player: Player): void {
+		if (player.team!.id in this.playerOrders) {
+			const index = this.playerOrders[player.team!.id].indexOf(player);
+			if (index !== -1) this.playerOrders[player.team!.id].splice(index, 1);
+		}
+
 		if (player === this.currentPlayer) {
 			this.nextRound();
+		} else {
+			const location = this.playerLocations.get(player);
+			if (location) this.addRevealedLocation(location);
 		}
 	}
 
@@ -170,6 +179,7 @@ class DragapultsDangerZone extends ScriptedGame {
 			this.displayMap();
 			const text = "It is " + player.name + " of the " + team.name + " Team's turn to fire!";
 			this.on(text, () => {
+				this.canFire = true;
 				this.timeout = setTimeout(() => this.nextRound(), 30 * 1000);
 			});
 			this.say(text);
@@ -217,6 +227,7 @@ class DragapultsDangerZone extends ScriptedGame {
 		if (!playerAPokemon && !playerBPokemon) {
 			const text = "Neither player selected a Pokemon!";
 			this.on(text, () => {
+				this.currentPlayer = null;
 				this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 			});
 			this.say(text);
@@ -250,6 +261,7 @@ class DragapultsDangerZone extends ScriptedGame {
 				playerB.name + "'s " + playerBPokemon!.name + "!";
 		}
 
+		this.currentPlayer = null;
 		if (playerAWin || playerBWin) this.setLargestTeam();
 
 		this.on(text, () => {
@@ -259,8 +271,10 @@ class DragapultsDangerZone extends ScriptedGame {
 	}
 
 	handleMatchupResult(winner: Player, loser: Player, winnerPokemon: IPokemon, loserPokemon?: IPokemon): string {
-		this.eliminatePlayer(loser, loserPokemon ? "You were defeated by " + winner.name + "!" : "You did not select a Pokemon!");
-		this.addRevealedLocation(this.playerLocations.get(loser)!);
+		if (!loserPokemon || loser !== this.currentPlayer) {
+			this.eliminatePlayer(loser, loserPokemon ? "You were defeated by " + winner.name + "!" : "You did not select a Pokemon!");
+			this.addRevealedLocation(this.playerLocations.get(loser)!);
+		}
 
 		const index = this.playerOrders[loser.team!.id].indexOf(loser);
 		if (index !== -1) this.playerOrders[loser.team!.id].splice(index, 1);
@@ -293,7 +307,7 @@ class DragapultsDangerZone extends ScriptedGame {
 	fireDreepy(player: Player, locationKey: string): void {
 		if (this.timeout) clearTimeout(this.timeout);
 
-		this.currentPlayer = null;
+		this.canFire = false;
 		this.addRevealedLocation(locationKey);
 
 		const text = "The Dreepy was fired to **" + locationKey + "**...";
@@ -312,12 +326,14 @@ class DragapultsDangerZone extends ScriptedGame {
 				if (hitPlayer) {
 					this.say(hitPlayer.name + " was there!");
 					if (hitPlayer.eliminated) {
+						this.currentPlayer = null;
 						this.nextRound();
 					} else {
 						this.startMatchup([player, hitPlayer]);
 					}
 				} else {
 					this.say("__Splash__! Nothing happened.");
+					this.currentPlayer = null;
 					this.nextRound();
 				}
 			}, 3 * 1000);
@@ -362,7 +378,7 @@ const commands: GameCommandDefinitions<DragapultsDangerZone> = {
 	fire: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
-			if (this.players[user.id] !== this.currentPlayer) return false;
+			if (!this.canFire || this.players[user.id] !== this.currentPlayer) return false;
 
 			const player = this.players[user.id];
 			const opposingTeam = this.teams[this.currentTeam];
