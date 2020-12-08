@@ -229,6 +229,7 @@ export class ScriptedGame extends Game {
 	inactivityEnd(): void {
 		this.say("Ending the game due to a lack of players.");
 		Games.banFromNextVote(this.room as Room, this.format);
+		Games.setAutoCreateTimer(this.room as Room, 'scripted', AUTO_START_VOTE_TIME);
 		this.deallocate(false);
 	}
 
