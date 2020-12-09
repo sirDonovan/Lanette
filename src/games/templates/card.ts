@@ -51,6 +51,7 @@ export interface IItemCard extends ICard {
 export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends ScriptedGame {
 	abstract actionCards: ActionCardsType;
 
+	awaitingCurrentPlayerCard: boolean = false;
 	canLateJoin: boolean = true;
 	cardRound: number = 0;
 	colors: Dict<string> = {};
@@ -322,15 +323,15 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 			drawnCardsMessage = "You drew: " + Tools.joinList(drawnCards.map(x => x.name), "<b>", "</b>");
 		}
 
-		const isCurrentPlayer = this.currentPlayer === player;
+		const awaitingCurrentPlayerCard = this.awaitingCurrentPlayerCard && this.currentPlayer === player;
 		let html = '';
-		if (this.topCard && isCurrentPlayer) {
+		if (this.topCard && awaitingCurrentPlayerCard) {
 			html += '<b>Top card</b>:<br /><center>' + this.getCardsPmHtml([this.topCard]) + '</center>';
 		}
 
 		if (drawnCardsMessage) html += drawnCardsMessage;
 
-		if (this.getTurnCardsPmHtml && isCurrentPlayer) {
+		if (this.getTurnCardsPmHtml && awaitingCurrentPlayerCard) {
 			html += this.getTurnCardsPmHtml(player);
 		} else {
 			if (!playerCards.length) {

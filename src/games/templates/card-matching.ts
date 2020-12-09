@@ -23,7 +23,6 @@ interface ITurnCards {
 export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> extends Card<ActionCardsType> {
 	actionCardAmount: number = 5;
 	autoFillHands: boolean = false;
-	awaitingCurrentPlayerCard: boolean = false;
 	canPlay: boolean = false;
 	colorsLimit: number = 0;
 	deckPool: IPokemonCard[] = [];
@@ -579,6 +578,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 
 		// needs to be set outside of on() for tests
 		this.currentPlayer = player;
+		this.awaitingCurrentPlayerCard = true;
 
 		const html = this.getMascotAndNameHtml() + "<br /><center>" + this.getTopCardHtml() + "<br /><br /><b><username>" + player!.name +
 			"</username></b>'s turn!</center>";
@@ -596,7 +596,6 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 				return;
 			}
 
-			this.awaitingCurrentPlayerCard = true;
 			this.canPlay = true;
 			this.updatePlayerHtmlPage(player!);
 			player!.sendHighlightPage("It is your turn!");
@@ -844,9 +843,11 @@ commands.summary.aliases = ['cards', 'hand'];
 const tests: GameFileTests<CardMatching> = {
 	'it should properly create a deck': {
 		test(game): void {
-			addPlayers(game, 4);
+			addPlayers(game, 15);
 			game.start();
 			assert(game.deck.length);
+			assert(game.currentPlayer);
+			assert(game.awaitingCurrentPlayerCard);
 		},
 	},
 	'it should create unique action cards': {
