@@ -211,9 +211,10 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		}
 
 		const hasPlayableCards = playableAction || playableRegular;
-		const showAllCards = this.maximumPlayedCards >= this.maxPlayableGroupSize;
+		const showAllCards = this.maximumPlayedCards > this.maxPlayableGroupSize;
 		if (hasPlayableCards) {
-			const overflow = !showAllCards && turnCards.unplayable.length && (turnCards.group.length + turnCards.single.length) > 3;
+			const overflow = !showAllCards && turnCards.unplayable.length &&
+				(turnCards.action.length + turnCards.group.length + turnCards.single.length) > 3;
 			if (overflow) html += "<div style='overflow-y: scroll;height: 400px'>";
 			html += "<h3>Playable cards</h3>";
 			html += [playableAction, playableRegular].filter(x => x.length).join("<br />");
