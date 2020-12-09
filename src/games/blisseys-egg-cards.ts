@@ -539,14 +539,21 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 			const lowestCardA = this.getLowestPlayableStage(cardA);
 			if (lowestCardA.name !== this.topCard.name) prevos.push(lowestCardA);
 
-			const cardB = Dex.getExistingPokemon(targets[1]);
-			cards.splice(this.getCardIndex(cardB.name, cards), 1);
-			const lowestCardB = this.getLowestPlayableStage(cardB);
-			if (lowestCardB.name !== this.topCard.name) prevos.push(lowestCardB);
+			if (targets.length > 1) {
+				const cardB = Dex.getExistingPokemon(targets[1]);
+				cards.splice(this.getCardIndex(cardB.name, cards), 1);
+				const lowestCardB = this.getLowestPlayableStage(cardB);
+				if (lowestCardB.name !== this.topCard.name) prevos.push(lowestCardB);
 
-			if (!prevos.length) prevos.push(cardA, cardB);
+				if (!prevos.length) prevos.push(cardA, cardB);
 
-			cardDetail = cardA.name + ", " + cardB.name;
+				cardDetail = cardA.name + ", " + cardB.name;
+			} else {
+				if (!prevos.length) prevos.push(cardA);
+
+				cardDetail = cardA.name;
+			}
+
 			this.setTopCard(this.pokemonToCard(this.sampleOne(prevos)), player);
 		}
 
