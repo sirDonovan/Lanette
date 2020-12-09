@@ -114,18 +114,21 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 				return game.pokemonToActionCard(this);
 			},
 			getRandomTarget(game, hand) {
-				const cards = game.shuffle(hand);
-				if (cards.length >= 3) {
+				if (hand.length >= 3) {
+					const cards = game.shuffle(hand);
 					for (const cardA of cards) {
 						for (const cardB of cards) {
-							if (cardA === cardB) continue;
+							// @ts-expect-error
+							if (cardA === cardB || cardA === this || cardB === this) continue;
 							if (this.isPlayableTarget(game, [cardA.name, cardB.name], hand)) {
 								return this.name + ", " + cardA.name + ", " + cardB.name;
 							}
 						}
 					}
 				} else {
-					for (const card of cards) {
+					for (const card of hand) {
+						// @ts-expect-error
+						if (card === this) continue;
 						if (this.isPlayableTarget(game, [card.name], hand)) {
 							return this.name + ", " + card.name;
 						}

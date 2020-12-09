@@ -296,12 +296,23 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 				return game.itemToActionCard(this);
 			},
 			getRandomTarget(game, hand) {
-				const cards = game.shuffle(hand);
-				for (const cardA of cards) {
-					for (const cardB of cards) {
-						if (cardA === cardB) continue;
-						if (this.isPlayableTarget(game, [cardA.name, cardB.name], hand)) {
-							return this.name + ", " + cardA.name + ", " + cardB.name;
+				if (hand.length >= 3) {
+					const cards = game.shuffle(hand);
+					for (const cardA of cards) {
+						for (const cardB of cards) {
+							// @ts-expect-error
+							if (cardA === cardB || cardA === this || cardB === this) continue;
+							if (this.isPlayableTarget(game, [cardA.name, cardB.name], hand)) {
+								return this.name + ", " + cardA.name + ", " + cardB.name;
+							}
+						}
+					}
+				} else {
+					for (const card of hand) {
+						// @ts-expect-error
+						if (card === this) continue;
+						if (this.isPlayableTarget(game, [card.name], hand)) {
+							return this.name + ", " + card.name;
 						}
 					}
 				}
@@ -378,7 +389,7 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 					}
 
 					const card = hand![index];
-					if (!game.isPokemonCard(card) || !game.isPlayableCard(card, game.topCard)) {
+					if (!game.isPokemonCard(card)) {
 						if (player) player.say(game.playableCardDescription);
 						return false;
 					}
@@ -735,12 +746,18 @@ const tests: GameFileTests<BlisseysEggCards> = {
 			assert(destinyknot);
 
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Blissey"));
-			const hand = [game.pokemonToCard(Dex.getExistingPokemon("Abomasnow")), game.pokemonToCard(Dex.getExistingPokemon("Aggron")),
+			let hand = [game.pokemonToCard(Dex.getExistingPokemon("Abomasnow")), game.pokemonToCard(Dex.getExistingPokemon("Aggron")),
 				game.pokemonToCard(Dex.getExistingPokemon("Tangela"))];
 			assert(destinyknot.getAutoPlayTarget(game, hand));
 			assertStrictEqual(destinyknot.isPlayableTarget(game, ["Abomasnow", "Aggron"], hand), true);
 			assertStrictEqual(destinyknot.isPlayableTarget(game, ["Aggron", "Tangela"], hand), false);
 			assertStrictEqual(destinyknot.isPlayableTarget(game, ["Abomasnow"], hand), false);
+			assertStrictEqual(destinyknot.isPlayableTarget(game, [""], hand), false);
+
+			hand = [game.pokemonToCard(Dex.getExistingPokemon("Abomasnow"))];
+			assert(destinyknot.getAutoPlayTarget(game, hand));
+			assertStrictEqual(destinyknot.isPlayableTarget(game, ["Abomasnow"], hand), true);
+			assertStrictEqual(destinyknot.isPlayableTarget(game, ["Aggron"], hand), false);
 			assertStrictEqual(destinyknot.isPlayableTarget(game, [""], hand), false);
 		},
 	},
