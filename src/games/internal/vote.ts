@@ -72,12 +72,61 @@ export class Vote extends ScriptedGame {
 	getLeastPlayedFormat(): string {
 		const formats = Games.getLeastPlayedFormats(this.room);
 		for (const leastPlayedFormat of formats) {
-			if (!this.bannedFormats.includes(leastPlayedFormat.name) && Games.canCreateGame(this.room, leastPlayedFormat) === true) {
+			if (this.isValidFormat(leastPlayedFormat)) {
 				return leastPlayedFormat.name;
 			}
 		}
 
 		return "";
+	}
+
+	isValidFormat(format: IGameFormat): boolean {
+		if (!this.bannedFormats.includes(format.name) && Games.canCreateGame(this.room, format) === true) return true;
+		return false;
+	}
+
+	getPmVoteButton(inputTarget: string, text: string): string {
+		return Client.getPmSelfButton(Config.commandCharacter + "pmvote " + inputTarget, text);
+	}
+
+	getPlayerVoteHtml(format: IGameFormat): string {
+		let html = "Your vote for <b>" + format.nameWithOptions + "</b> has been cast in " + this.room.title + "!";
+
+		const variants: IGameFormat[] = [];
+
+		if (!format.variant && format.variants) {
+			for (const variantData of format.variants) {
+				const variant = Games.getFormat(format.inputTarget + ", " + variantData.variantAliases[0]);
+				if (!Array.isArray(variant) && this.isValidFormat(variant)) variants.push(variant);
+			}
+
+			if (variants.length) {
+				html += "<br /><br /><details><summary>Votable game variants</summary>";
+				for (const variant of variants) {
+					html += this.getPmVoteButton(variant.inputTarget, variant.nameWithOptions);
+				}
+				html += "</details>";
+			}
+		}
+
+		if (!format.mode && format.modes) {
+			const modes: IGameFormat[] = [];
+			for (const modeId of format.modes) {
+				const mode = Games.getFormat(format.inputTarget + ", " + modeId);
+				if (!Array.isArray(mode) && this.isValidFormat(mode)) modes.push(mode);
+			}
+
+			if (modes.length) {
+				if (!variants.length) html += "<br />";
+				html += "<br /><details><summary>Votable game modes</summary>";
+				for (const mode of modes) {
+					html += this.getPmVoteButton(mode.inputTarget, mode.nameWithOptions);
+				}
+				html += "</details>";
+			}
+		}
+
+		return html;
 	}
 
 	onSignups(): void {
@@ -87,7 +136,7 @@ export class Vote extends ScriptedGame {
 		const votableFormats: string[] = [];
 		for (const i in Games.formats) {
 			const format = Games.getExistingFormat(i);
-			if (!this.bannedFormats.includes(format.name) && Games.canCreateGame(this.room, format) === true) {
+			if (this.isValidFormat(format)) {
 				votableFormats.push(format.name);
 			}
 		}
@@ -112,7 +161,7 @@ export class Vote extends ScriptedGame {
 
 			const buttons: string[] = [];
 			for (const pick of this.botSuggestions) {
-				buttons.push(Client.getPmSelfButton(Config.commandCharacter + "pmvote " + pick, pick));
+				buttons.push(this.getPmVoteButton(pick, pick));
 			}
 			html += buttons.join(" | ");
 			html += "<br />";
@@ -120,15 +169,15 @@ export class Vote extends ScriptedGame {
 
 		const leastPlayedFormat = this.getLeastPlayedFormat();
 		if (leastPlayedFormat) {
-			html += Client.getPmSelfButton(Config.commandCharacter + "pmvote " + leastPlayedFormat, "Least played game") + " | ";
+			html += this.getPmVoteButton(leastPlayedFormat, "Least played game") + " | ";
 		}
 
-		html += Client.getPmSelfButton(Config.commandCharacter + "pmvote random", "Random game");
+		html += this.getPmVoteButton("random", "Random game");
 		html += "<br /><br />";
 
 		html += "<details><summary>Current votable games</summary>";
 		for (const format of votableFormats) {
-			html += Client.getPmSelfButton(Config.commandCharacter + "pmvote " + format, format);
+			html += this.getPmVoteButton(format, format);
 		}
 		html += "</details></center>";
 
@@ -212,7 +261,7 @@ const commands: GameCommandDefinitions<Vote> = {
 			if (targetId === 'random' || targetId === 'randomgame') {
 				const formats = Tools.shuffle(Games.getFormatList());
 				for (const randomFormat of formats) {
-					if (!this.bannedFormats.includes(randomFormat.name) && Games.canCreateGame(this.room, randomFormat) === true) {
+					if (this.isValidFormat(randomFormat)) {
 						format = randomFormat;
 						break;
 					}
@@ -257,7 +306,7 @@ const commands: GameCommandDefinitions<Vote> = {
 			}
 
 			this.votes.set(player, format.inputTarget);
-			user.say("Your vote for " + format.nameWithOptions + " has been cast!");
+			player.sayHtml(this.getPlayerVoteHtml(format));
 
 			if (!this.updateVotesHtmlTimeout) {
 				this.updateVotesHtmlTimeout = setTimeout(() => {
