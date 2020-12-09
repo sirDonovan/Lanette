@@ -1206,21 +1206,17 @@ export class Dex {
 			const links = ['info', 'roleCompendium', 'teams', 'viability'] as const;
 			for (const id of links) {
 				if (format[id]) {
-					const storedLink = format[id]!;
-					if (!Tools.isInteger(storedLink)) continue;
-
 					// @ts-expect-error
 					const officialLink = format[id + '-official'] as IParsedSmogonLink | undefined;
 					if (!officialLink) continue;
 
-					if (officialLink.dexPage || officialLink.postId) {
+					const storedLink = Tools.parseSmogonLink(format[id]!);
+					if (!storedLink || storedLink.dexPage) continue;
+
+					if (officialLink.dexPage) {
 						format[id] = officialLink.link;
-					} else if (officialLink.threadId) {
-						if (!Tools.isInteger(officialLink.threadId)) {
-							format[id] = officialLink.link;
-						} else {
-							format[id] = Tools.getNewerForumThread(storedLink, officialLink.threadId);
-						}
+					} else if (officialLink.threadId && storedLink.threadId) {
+						format[id] = Tools.getNewerForumLink(storedLink, officialLink).link;
 					}
 				}
 			}

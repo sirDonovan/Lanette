@@ -255,99 +255,179 @@ describe("Tools", () => {
 
 		const threadId = '123';
 		const description = "OU Sample Teams";
-		parsedThread = Tools.parseSmogonLink('&bullet; <a href="' + Tools.smogonThreadsPrefix + threadId + '">' + description + '</a>');
-		assert(parsedThread);
-		assertStrictEqual(parsedThread.description, description);
-		assertStrictEqual(parsedThread.threadId, threadId);
-		assert(!parsedThread.dexPage);
-		assert(!parsedThread.postId);
+		let smogonLink = Tools.smogonThreadsPrefix + threadId;
+		let links: string[] = ['&bullet; <a href="' + smogonLink + '">' + description + '</a>',
+			'&bullet; <a href="' + smogonLink + '/">' + description + '</a>'];
+		for (const link of links) {
+			parsedThread = Tools.parseSmogonLink(link);
+			assert(parsedThread);
+			assertStrictEqual(parsedThread.description, description);
+			assertStrictEqual(parsedThread.threadId, threadId);
+			assertStrictEqual(parsedThread.link, smogonLink);
+			assert(!parsedThread.dexPage);
+			assert(!parsedThread.postId);
+		}
 
-		parsedThread = Tools.parseSmogonLink('&bullet; <a href="' + Tools.smogonThreadsPrefix + threadId + '/">' + description + '</a>');
-		assert(parsedThread);
-		assertStrictEqual(parsedThread.description, description);
-		assertStrictEqual(parsedThread.threadId, threadId);
-		assert(!parsedThread.dexPage);
-		assert(!parsedThread.postId);
+		links = [smogonLink, smogonLink + '/'];
+		for (const link of links) {
+			parsedThread = Tools.parseSmogonLink(link);
+			assert(parsedThread);
+			assertStrictEqual(parsedThread.threadId, threadId);
+			assertStrictEqual(parsedThread.link, smogonLink);
+			assert(!parsedThread.description);
+			assert(!parsedThread.dexPage);
+			assert(!parsedThread.postId);
+		}
 
-		let postPermaId = Tools.smogonPostPermalinkPrefix + '456';
-		parsedThread = Tools.parseSmogonLink('&bullet; <a href="' +
-			Tools.smogonThreadsPrefix + threadId + '/' + postPermaId + '">' + description + '</a>');
-		assert(parsedThread);
-		assertStrictEqual(parsedThread.description, description);
-		assertStrictEqual(parsedThread.threadId, threadId + '/' + postPermaId);
-		assert(!parsedThread.dexPage);
-		assert(!parsedThread.postId);
+		const postPermaId = '456';
+		smogonLink = Tools.smogonThreadsPrefix + threadId + '/' + Tools.smogonPostPermalinkPrefix + postPermaId;
+		links = ['&bullet; <a href="' + smogonLink + '">' + description + '</a>',
+			'&bullet; <a href="' + smogonLink + '/">' + description + '</a>'];
+		for (const link of links) {
+			parsedThread = Tools.parseSmogonLink(link);
+			assert(parsedThread);
+			assertStrictEqual(parsedThread.description, description);
+			assertStrictEqual(parsedThread.threadId, threadId);
+			assertStrictEqual(parsedThread.postId, postPermaId);
+			assertStrictEqual(parsedThread.link, smogonLink);
+			assert(!parsedThread.dexPage);
+		}
 
-		postPermaId = "#" + Tools.smogonPostPermalinkPrefix + '456';
-		parsedThread = Tools.parseSmogonLink('&bullet; <a href="' +
-			Tools.smogonThreadsPrefix + threadId + '/' + postPermaId + '">' + description + '</a>');
-		assert(parsedThread);
-		assertStrictEqual(parsedThread.description, description);
-		assertStrictEqual(parsedThread.threadId, threadId + '/' + postPermaId);
-		assert(!parsedThread.dexPage);
-		assert(!parsedThread.postId);
+		links = [smogonLink, smogonLink + '/'];
+		for (const link of links) {
+			parsedThread = Tools.parseSmogonLink(link);
+			assert(parsedThread);
+			assertStrictEqual(parsedThread.threadId, threadId);
+			assertStrictEqual(parsedThread.postId, postPermaId);
+			assertStrictEqual(parsedThread.link, smogonLink);
+			assert(!parsedThread.description);
+			assert(!parsedThread.dexPage);
+		}
 
-		parsedThread = Tools.parseSmogonLink('&bullet; <a href="' +
-			Tools.smogonThreadsPrefix + threadId + '/' + postPermaId + '/">' + description + '</a>');
-		assert(parsedThread);
-		assertStrictEqual(parsedThread.description, description);
-		assertStrictEqual(parsedThread.threadId, threadId + '/' + postPermaId);
-		assert(!parsedThread.dexPage);
-		assert(!parsedThread.postId);
+		smogonLink = Tools.smogonThreadsPrefix + threadId + '/#' + Tools.smogonPostPermalinkPrefix + postPermaId;
+		links = ['&bullet; <a href="' + smogonLink + '">' + description + '</a>',
+			'&bullet; <a href="' + smogonLink + '/">' + description + '</a>'];
+		for (const link of links) {
+			parsedThread = Tools.parseSmogonLink(link);
+			assert(parsedThread);
+			assertStrictEqual(parsedThread.description, description);
+			assertStrictEqual(parsedThread.threadId, threadId);
+			assertStrictEqual(parsedThread.postId, postPermaId);
+			assertStrictEqual(parsedThread.link, smogonLink);
+			assert(!parsedThread.dexPage);
+		}
 
-		const postId = '123';
-		parsedThread = Tools.parseSmogonLink('&bullet; <a href="' + Tools.smogonPostsPrefix + postId + '">' + description + '</a>');
-		assert(parsedThread);
-		assertStrictEqual(parsedThread.description, description);
-		assertStrictEqual(parsedThread.postId, postId);
-		assert(!parsedThread.dexPage);
-		assert(!parsedThread.threadId);
+		links = [smogonLink, smogonLink + '/'];
+		for (const link of links) {
+			parsedThread = Tools.parseSmogonLink(link);
+			assert(parsedThread);
+			assertStrictEqual(parsedThread.threadId, threadId);
+			assertStrictEqual(parsedThread.postId, postPermaId);
+			assertStrictEqual(parsedThread.link, smogonLink);
+			assert(!parsedThread.description);
+			assert(!parsedThread.dexPage);
+		}
 
-		const dexPage = 'https://www.smogon.com/dex/ss/formats/ou';
-		parsedThread = Tools.parseSmogonLink('&bullet; <a href="' + dexPage + '">' + description + '</a>');
-		assert(parsedThread);
-		assertStrictEqual(parsedThread.description, description);
-		assertStrictEqual(parsedThread.dexPage, dexPage);
-		assert(!parsedThread.postId);
-		assert(!parsedThread.threadId);
+		const postId = '789';
+		smogonLink = Tools.smogonPostsPrefix + postId;
+		links = ['&bullet; <a href="' + smogonLink + '">' + description + '</a>',
+			'&bullet; <a href="' + smogonLink + '/">' + description + '</a>'];
+		for (const link of links) {
+			parsedThread = Tools.parseSmogonLink(link);
+			assert(parsedThread);
+			assertStrictEqual(parsedThread.description, description);
+			assertStrictEqual(parsedThread.postId, postId);
+			assertStrictEqual(parsedThread.link, smogonLink);
+			assert(!parsedThread.dexPage);
+			assert(!parsedThread.threadId);
+		}
+
+		links = [smogonLink, smogonLink + '/'];
+		for (const link of links) {
+			parsedThread = Tools.parseSmogonLink(link);
+			assert(parsedThread);
+			assertStrictEqual(parsedThread.postId, postId);
+			assertStrictEqual(parsedThread.link, smogonLink);
+			assert(!parsedThread.description);
+			assert(!parsedThread.dexPage);
+			assert(!parsedThread.threadId);
+		}
+
+		smogonLink = Tools.smogonDexPrefix + 'ss/formats/ou';
+		links = ['&bullet; <a href="' + smogonLink + '">' + description + '</a>',
+			'&bullet; <a href="' + smogonLink + '/">' + description + '</a>'];
+		for (const link of links) {
+			parsedThread = Tools.parseSmogonLink(link);
+			assert(parsedThread);
+			assertStrictEqual(parsedThread.description, description);
+			assertStrictEqual(parsedThread.dexPage, smogonLink);
+			assert(!parsedThread.postId);
+			assert(!parsedThread.threadId);
+		}
+
+		links = [smogonLink, smogonLink + '/'];
+		for (const link of links) {
+			parsedThread = Tools.parseSmogonLink(link);
+			assert(parsedThread);
+			assertStrictEqual(parsedThread.dexPage, smogonLink);
+			assert(!parsedThread.description);
+			assert(!parsedThread.postId);
+			assert(!parsedThread.threadId);
+		}
 	});
-	it('should return proper values from getNewerForumThread()', () => {
+	it('should return proper values from getNewerForumLink()', () => {
+		// old vs new thread
 		const oldThreadId = "123";
 		const newThreadId = "456";
-		const newThread = Tools.smogonThreadsPrefix + newThreadId;
-		let postId = Tools.smogonPostPermalinkPrefix + "789";
-		let newThreadIdPost = newThreadId + "/" + postId;
-		let newThreadPost = Tools.smogonThreadsPrefix + newThreadIdPost;
+		const oldThread = Tools.parseSmogonLink(Tools.smogonThreadsPrefix + oldThreadId)!;
+		const newThread = Tools.parseSmogonLink(Tools.smogonThreadsPrefix + newThreadId)!;
 
-		let newerThread = Tools.getNewerForumThread("");
-		assertStrictEqual(newerThread, "");
+		let newerForumLink = Tools.getNewerForumLink(oldThread, newThread);
+		assertStrictEqual(newerForumLink, newThread);
 
-		newerThread = Tools.getNewerForumThread(oldThreadId, newThreadId);
-		assertStrictEqual(newerThread, newThread);
+		newerForumLink = Tools.getNewerForumLink(newThread, oldThread);
+		assertStrictEqual(newerForumLink, newThread);
 
-		newerThread = Tools.getNewerForumThread(newThreadId, oldThreadId);
-		assertStrictEqual(newerThread, newThread);
+		// old vs new thread post
+		let oldPostId = Tools.smogonPostPermalinkPrefix + "123";
+		let newPostId = Tools.smogonPostPermalinkPrefix + "456";
+		let oldThreadPost = Tools.parseSmogonLink(Tools.smogonThreadsPrefix + oldThreadId + '/' + oldPostId)!;
+		let newThreadPost = Tools.parseSmogonLink(Tools.smogonThreadsPrefix + oldThreadId + '/' + newPostId)!;
 
-		newerThread = Tools.getNewerForumThread(oldThreadId, newThreadIdPost);
-		assertStrictEqual(newerThread, newThreadPost);
+		newerForumLink = Tools.getNewerForumLink(oldThreadPost, newThreadPost);
+		assertStrictEqual(newerForumLink, newThreadPost);
 
-		newerThread = Tools.getNewerForumThread(newThreadIdPost, oldThreadId);
-		assertStrictEqual(newerThread, newThreadPost);
+		newerForumLink = Tools.getNewerForumLink(newThreadPost, oldThreadPost);
+		assertStrictEqual(newerForumLink, newThreadPost);
 
-		newerThread = Tools.getNewerForumThread(oldThreadId + "/" + postId, newThreadIdPost);
-		assertStrictEqual(newerThread, newThreadPost);
+		// old vs new alternate thread post
+		oldPostId = '#' + Tools.smogonPostPermalinkPrefix + "123";
+		newPostId = '#' + Tools.smogonPostPermalinkPrefix + "456";
+		oldThreadPost = Tools.parseSmogonLink(Tools.smogonThreadsPrefix + oldThreadId + '/' + oldPostId)!;
+		newThreadPost = Tools.parseSmogonLink(Tools.smogonThreadsPrefix + oldThreadId + '/' + newPostId)!;
 
-		postId = "#" + Tools.smogonPostPermalinkPrefix + "789";
-		newThreadIdPost = newThreadId + "/" + postId;
-		newThreadPost = Tools.smogonThreadsPrefix + newThreadIdPost;
+		newerForumLink = Tools.getNewerForumLink(oldThreadPost, newThreadPost);
+		assertStrictEqual(newerForumLink, newThreadPost);
 
-		newerThread = Tools.getNewerForumThread(oldThreadId, newThreadIdPost);
-		assertStrictEqual(newerThread, newThreadPost);
+		newerForumLink = Tools.getNewerForumLink(newThreadPost, oldThreadPost);
+		assertStrictEqual(newerForumLink, newThreadPost);
 
-		newerThread = Tools.getNewerForumThread(newThreadIdPost, oldThreadId);
-		assertStrictEqual(newerThread, newThreadPost);
+		// post link vs thread link
+		const oldPostLink = Tools.parseSmogonLink(Tools.smogonPostsPrefix + "123")!;
 
-		newerThread = Tools.getNewerForumThread(oldThreadId + "/" + postId, newThreadIdPost);
-		assertStrictEqual(newerThread, newThreadPost);
+		newerForumLink = Tools.getNewerForumLink(oldThreadPost, oldPostLink);
+		assertStrictEqual(newerForumLink, oldPostLink);
+
+		newerForumLink = Tools.getNewerForumLink(oldPostLink, oldThreadPost);
+		assertStrictEqual(newerForumLink, oldPostLink);
+
+		// old post link vs new post link
+		const newPostLink = Tools.parseSmogonLink(Tools.smogonPostsPrefix + "456")!;
+
+		newerForumLink = Tools.getNewerForumLink(newPostLink, oldPostLink);
+		assertStrictEqual(newerForumLink, newPostLink);
+
+		newerForumLink = Tools.getNewerForumLink(oldPostLink, newPostLink);
+		assertStrictEqual(newerForumLink, newPostLink);
 	});
 });

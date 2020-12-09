@@ -641,47 +641,71 @@ export class Tools {
 
 	parseSmogonLink(thread: string): IParsedSmogonLink | null {
 		const parsedThread: IParsedSmogonLink = {description: '', link: ''};
+		let id = thread;
 		if (thread.startsWith('&bullet;') && thread.includes('<a href="')) {
 			parsedThread.description = thread.split('</a>')[0].split('">')[1].trim();
+			id = thread.split('<a href="')[1].split('">')[0].trim();
+		}
 
-			let id = thread.split('<a href="')[1].split('">')[0].trim();
-			if (id.endsWith('/')) id = id.substr(0, id.length - 1);
-			parsedThread.link = id;
-			const parts = id.split('/');
-			const lastPart = parts[parts.length - 1];
-			if (id.startsWith(SMOGON_DEX_PREFIX)) {
-				parsedThread.dexPage = id;
-				return parsedThread;
-			} else if (id.startsWith(SMOGON_POSTS_PREFIX)) {
-				parsedThread.postId = lastPart;
-				return parsedThread;
-			} else if (id.startsWith(SMOGON_THREADS_PREFIX)) {
-				if (lastPart.startsWith(SMOGON_POST_PERMALINK_PREFIX) || lastPart.startsWith("#" + SMOGON_POST_PERMALINK_PREFIX)) {
-					parsedThread.threadId = parts[parts.length - 2] + '/' + lastPart;
-				} else {
-					parsedThread.threadId = lastPart;
-				}
-				return parsedThread;
+		if (id.endsWith('/')) id = id.substr(0, id.length - 1);
+		parsedThread.link = id;
+		const parts = id.split('/');
+		const lastPart = parts[parts.length - 1];
+		if (id.startsWith(SMOGON_DEX_PREFIX)) {
+			parsedThread.dexPage = id;
+			return parsedThread;
+		} else if (id.startsWith(SMOGON_POSTS_PREFIX)) {
+			parsedThread.postId = lastPart;
+			return parsedThread;
+		} else if (id.startsWith(SMOGON_THREADS_PREFIX)) {
+			if (lastPart.startsWith(SMOGON_POST_PERMALINK_PREFIX)) {
+				parsedThread.postId = lastPart.substr(SMOGON_POST_PERMALINK_PREFIX.length);
+				parsedThread.threadId = parts[parts.length - 2];
+			} else if (lastPart.startsWith("#" + SMOGON_POST_PERMALINK_PREFIX)) {
+				parsedThread.postId = lastPart.substr(SMOGON_POST_PERMALINK_PREFIX.length + 1);
+				parsedThread.threadId = parts[parts.length - 2];
+			} else {
+				parsedThread.threadId = lastPart;
 			}
+			return parsedThread;
 		}
 
 		return null;
 	}
 
-	getNewerForumThread(baseLink: string, officialLink?: string): string {
-		if (!baseLink) return "";
+	getNewerForumLink(linkA: IParsedSmogonLink, linkB: IParsedSmogonLink): IParsedSmogonLink {
+		const linkAPost = linkA.postId && !linkA.threadId;
+		const linkBPost = linkB.postId && !linkB.threadId;
+		if (linkAPost && linkBPost) {
+			const linkAPostNumber = parseInt(linkA.postId!);
+			const linkBPostNumber = parseInt(linkB.postId!);
 
-		const baseNumber = parseInt(baseLink.split("/")[0]);
-		if (isNaN(baseNumber)) {
-			return "";
+			if (linkAPostNumber >= linkBPostNumber) return linkA;
+			return linkB;
+		} else {
+			if (linkAPost) return linkA;
+			if (linkBPost) return linkB;
 		}
 
-		if (officialLink) {
-			const officialNum = parseInt(officialLink.split("/")[0]);
-			if (!isNaN(officialNum) && officialNum > baseNumber) return SMOGON_THREADS_PREFIX + officialLink;
+		if (linkA.threadId && !linkB.threadId) return linkA;
+		if (linkB.threadId && !linkA.threadId) return linkB;
+
+		const linkANumber = parseInt(linkA.threadId!);
+		const linkBNumber = parseInt(linkB.threadId!);
+
+		if (linkANumber === linkBNumber) {
+			if (linkA.postId && !linkB.postId) return linkA;
+			if (linkB.postId && !linkA.postId) return linkB;
+
+			const postANumber = parseInt(linkA.postId!);
+			const postBNumber = parseInt(linkB.postId!);
+
+			if (postANumber >= postBNumber) return linkA;
+			return linkB;
 		}
 
-		return SMOGON_THREADS_PREFIX + baseLink;
+		if (linkANumber >= linkBNumber) return linkA;
+		return linkB;
 	}
 
 	extractBattleId(message: string, replayServerAddress: string, serverAddress: string, serverId: string): string | null {
