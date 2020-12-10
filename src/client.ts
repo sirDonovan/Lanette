@@ -534,6 +534,7 @@ export class Client {
 		} else {
 			room = Rooms.add('lobby');
 		}
+
 		for (let i = 0; i < lines.length; i++) {
 			if (!lines[i]) continue;
 			try {
@@ -643,6 +644,9 @@ export class Client {
 				this.loggedIn = true;
 				this.send({message: '|/blockchallenges', type: 'command'});
 				this.send({message: '|/cmd rooms', type: 'command'});
+				if (Tools.toAlphaNumeric(Config.username) !== Config.username) {
+					this.send({message: '|/trn ' + Config.username, type: 'command'});
+				}
 
 				if (rank) {
 					Users.self.group = rank;
