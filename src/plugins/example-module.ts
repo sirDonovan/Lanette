@@ -43,9 +43,7 @@ export class Module implements IPluginInterface {
 		}
 	}
 
-	async loadData(): Promise<void> {
+	loadData(): void {
 		// load all data required by the module
-
-		return Promise.resolve();
 	}
 }

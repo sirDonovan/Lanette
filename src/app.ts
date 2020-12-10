@@ -39,7 +39,7 @@ const reloadCommands = function(reloadedModules: ReloadableModule[]): void {
 	if (!reloadedModules.includes('games')) Games.loadFormatCommands();
 };
 
-module.exports = async(): Promise<void> => {
+module.exports = (): void => {
 	tools.instantiate();
 	global.Config = ConfigLoader.load(config);
 	dex.instantiate();
@@ -54,7 +54,7 @@ module.exports = async(): Promise<void> => {
 	Storage.importDatabases();
 	Tournaments.loadSchedules();
 
-	await PluginsLoader.load();
+	PluginsLoader.load();
 
 	global.Commands = CommandParser.loadBaseCommands(commands);
 	global.BaseCommands = Tools.deepClone(Commands);
@@ -157,7 +157,7 @@ module.exports = async(): Promise<void> => {
 				} else if (moduleId === 'plugins') {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
 					const pluginsLoader = require('./plugins-loader') as typeof import('./plugins-loader');
-					await pluginsLoader.load();
+					pluginsLoader.load();
 					reloadCommands(modules);
 				} else if (moduleId === 'storage') {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires

@@ -3,7 +3,7 @@ import path = require('path');
 
 import type { IPluginFile, LoadedPlugin } from './types/plugins';
 
-export async function load(): Promise<void> {
+export function load(): void {
 	const plugins: LoadedPlugin[] = [];
 	const parseMessagePlugins: string[] = [];
 
@@ -54,7 +54,7 @@ export async function load(): Promise<void> {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
 			(global as any)[moduleInstance.name] = moduleInstance;
 
-			if (moduleInstance.loadData) await moduleInstance.loadData();
+			if (moduleInstance.loadData) moduleInstance.loadData();
 
 			plugins.push({commands: file.commands, moduleName: moduleInstance.name});
 			if (moduleInstance.parseMessage) parseMessagePlugins.push(moduleInstance.name);
