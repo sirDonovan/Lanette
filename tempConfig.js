@@ -1,5 +1,9 @@
+const path = require('path');
+
 global.tempConfig = true;
 
-require('./get-options.js')(__filename);
+require(path.join(__dirname, 'get-options.js'))(__filename);
 
-require('./app.js');
+(async () => {
+	await require(path.join(__dirname, 'app.js'));
+})();

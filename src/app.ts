@@ -60,6 +60,8 @@ module.exports = (): void => {
 	global.BaseCommands = Tools.deepClone(Commands);
 
 	global.__reloadInProgress = false;
+
+	// eslint-disable-next-line @typescript-eslint/require-await
 	global.__reloadModules = async(username: string, targets: string[]): Promise<void> => {
 		let user = Users.get(username);
 		const hasModules: boolean[] = moduleOrder.slice().map(() => false);
@@ -123,8 +125,8 @@ module.exports = (): void => {
 		const buildScript = path.join(Tools.rootFolder, 'build.js');
 		Tools.uncacheTree(buildScript);
 
-		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-call
-		await require(buildScript)(async() => {
+		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return
+		return (require(buildScript)(buildOptions) as Promise<void>).then(() => {
 			for (const moduleId of modules) {
 				if (moduleId === 'client') {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -178,13 +180,15 @@ module.exports = (): void => {
 
 			user = Users.get(username);
 			if (user) user.say("Successfully reloaded " + Tools.joinList(modules) + ".");
-		}, () => {
+		}).catch(e => {
+			console.log(e);
+
 			global.__reloadInProgress = false;
 			if (Games.reloadInProgress) Games.reloadInProgress = false;
 			if (Storage.reloadInProgress) Storage.reloadInProgress = false;
 
 			user = Users.get(username);
-			if (user) user.say("Failed to build files");
-		}, buildOptions);
+			if (user) user.say((e as Error).message);
+		});
 	};
 };

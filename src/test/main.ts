@@ -25,14 +25,14 @@ Object.assign(fs, {createWriteStream() {
 	return new stream.Writable();
 }});
 
-module.exports = async(inputOptions: Dict<string>): Promise<void> => {
+module.exports = (inputOptions: Dict<string>): void => {
 	for (const i in inputOptions) {
 		testOptions[i] = inputOptions[i];
 	}
 
 	try {
 		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-call
-		await require(path.join(rootFolder, 'built', 'app.js'))();
+		require(path.join(rootFolder, 'built', 'app.js'))();
 		clearInterval(Storage.globalDatabaseExportInterval);
 
 		const mochaRoom = Rooms.add('mocha');
