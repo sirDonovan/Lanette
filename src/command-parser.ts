@@ -189,7 +189,10 @@ export class CommandParser {
 			Config.roomIgnoredCommands[room.id].includes(command)) return;
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return await new CommandContext(command, target, room, user).run();
+		return new CommandContext(command, target, room, user).run()
+			.catch(e => {
+				console.log(e);
+			});
 	}
 
 	getErrorText(error: CommandErrorArray): string {
