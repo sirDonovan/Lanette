@@ -32,9 +32,9 @@ const TEAM_PREVIEW_HIDDEN_FORMES: string[] = ['Arceus', 'Gourgeist', 'Genesect',
 export abstract class EliminationTournament extends ScriptedGame {
 	abstract baseTournamentName: string;
 
-	activityDQTimeout: number = 2 * 60 * 1000;
+	activityDQTimeout: number = 1 * 60 * 1000;
 	activityTimers = new Map<EliminationNode<Player>, NodeJS.Timer>();
-	activityWarnTimeout: number = 5 * 60 * 1000;
+	activityWarnTimeout: number = 2 * 60 * 1000;
 	additionsPerRound: number = 0;
 	advertisementInterval: NodeJS.Timer | null = null;
 	allowsFormes: boolean = true;

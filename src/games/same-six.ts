@@ -5,6 +5,7 @@ const name = "Same Six";
 const description = "Every player battles with the same randomly generated team!";
 
 class SameSix extends EliminationTournament {
+	firstRoundExtraTime = 3 * 60 * 1000;
 	additionsPerRound = 0;
 	evolutionsPerRound = 0;
 	startingTeamsLength = 6;
@@ -14,7 +15,6 @@ class SameSix extends EliminationTournament {
 	fullyEvolved = true;
 	sharedTeams = true;
 	canRejoin = true;
-	firstRoundExtraTime = 10 * 60 * 1000;
 
 	getStartingTeam(): readonly string[] {
 		return this.pokedex.slice(0, this.startingTeamsLength);

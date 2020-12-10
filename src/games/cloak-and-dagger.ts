@@ -6,11 +6,11 @@ const description = "Every player is given a different randomly generated Pokemo
 	"Any other 5 Pokemon can be chosen to complete a team.";
 
 class CloakAndDagger extends EliminationTournament {
+	firstRoundExtraTime = 3 * 60 * 1000;
 	startingTeamsLength = 1;
 	baseTournamentName = name;
 	tournamentDescription = description;
 	canRejoin = true;
-	firstRoundExtraTime = 5 * 60 * 1000;
 	requiredTier = "OU";
 	usesCloakedPokemon = true;
 }

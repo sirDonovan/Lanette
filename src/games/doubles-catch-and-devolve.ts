@@ -6,6 +6,7 @@ const description = "Every player is given 2 randomly generated Pokemon to use a
 	"must 'catch' 2 of your opponent's Pokemon (add them to your team) and then de-volve 2 Pokemon on your team.";
 
 class DoublesCatchAndEvolve extends EliminationTournament {
+	firstRoundExtraTime = 1 * 60 * 1000;
 	additionsPerRound = 2;
 	evolutionsPerRound = -2;
 	startingTeamsLength = 2;
@@ -14,7 +15,6 @@ class DoublesCatchAndEvolve extends EliminationTournament {
 	requiredAddition = true;
 	requiredEvolution = true;
 	canReroll = true;
-	firstRoundExtraTime = 2 * 60 * 1000;
 	baseTournamentName = name;
 	tournamentDescription = description;
 }

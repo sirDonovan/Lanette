@@ -5,8 +5,7 @@ const name = "Same Duo";
 const description = "Every player battles with the same randomly generated Pokemon duo!";
 
 class SameDuo extends EliminationTournament {
-	activityWarnTimeout = 1 * 60 * 1000;
-	firstRoundExtraTime = 2 * 60 * 1000;
+	firstRoundExtraTime = 1 * 60 * 1000;
 	additionsPerRound = 0;
 	evolutionsPerRound = 0;
 	startingTeamsLength = 2;
