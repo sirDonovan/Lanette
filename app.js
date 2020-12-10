@@ -21,6 +21,7 @@ require(path.join(__dirname, 'build.js'))(async() => {
 
 	process.on('uncaughtException', error => {
 		console.log(error);
+		Tools.logError(error);
 	});
 
 	Client.connect();

@@ -163,6 +163,18 @@ export class Tools {
 		}
 	}
 
+	logError(error: Error): void {
+		if (!Config.logErrors) return;
+
+		const date = new Date();
+		const month = date.getMonth() + 1;
+		const day = date.getDate();
+		const year = date.getFullYear();
+		const filepath = year + '-' + month + '-' + day + '.txt';
+
+		fs.appendFileSync(path.join(rootFolder, 'errors', filepath), (error.stack || error.message) + "\n");
+	}
+
 	random(limit?: number, prng?: PRNG): number {
 		if (!limit) limit = 2;
 		if (prng) return prng.next(limit);

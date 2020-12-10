@@ -192,6 +192,7 @@ export class CommandParser {
 		return new CommandContext(command, target, room, user).run()
 			.catch(e => {
 				console.log(e);
+				Tools.logError(e);
 			});
 	}
 

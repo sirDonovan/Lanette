@@ -565,6 +565,7 @@ export class Client {
 				}
 			} catch (e) {
 				console.log(e);
+				Tools.logError(e);
 			}
 		}
 	}
@@ -1221,6 +1222,7 @@ export class Client {
 								}
 							} catch (e) {
 								console.log(e);
+								Tools.logError(e);
 							}
 
 							if (regularExpression) {
