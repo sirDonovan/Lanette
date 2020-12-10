@@ -200,6 +200,7 @@ worker_threads.parentPort!.on('message', (incommingMessage: string) => {
 		}
 	} catch (e) {
 		console.log(e);
+		Tools.logError(e);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unnecessary-condition
