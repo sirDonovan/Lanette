@@ -4,8 +4,7 @@ import type { User } from "../users";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface ICommandDefinition<ThisContext, ReturnType = any> {
-	asyncCommand?: (this: ThisContext, target: string, room: Room | User, user: User, alias: string) => Promise<ReturnType>;
-	command?: (this: ThisContext, target: string, room: Room | User, user: User, alias: string) => ReturnType;
+	command: (this: ThisContext, target: string, room: Room | User, user: User, alias: string) => ReturnType;
 	aliases?: string[];
 	readonly chatOnly?: boolean;
 	readonly eliminatedGameCommand?: boolean;

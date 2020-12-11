@@ -263,11 +263,8 @@ const tests: GameFileTests<DelcattysHideAndSeek> = {
 		},
 	},
 	'should eliminate players who are charmed': {
-		config: {
-			async: true,
-		},
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		async test(game): Promise<void> {
+		test(game): void {
 			const players = addPlayers(game, 2);
 			game.minPlayers = 2;
 			game.start();
@@ -276,29 +273,25 @@ const tests: GameFileTests<DelcattysHideAndSeek> = {
 			const selector = game.charmer === players[0] ? players[1] : players[0];
 			const pokemon = data.parameters[game.categories.join(", ")][0];
 			game.canSelect = true;
-			await runCommand('select', pokemon, Users.add(selector.name, selector.id), selector.name);
+			runCommand('select', pokemon, Users.add(selector.name, selector.id), selector.name);
 			assert(!game.canSelect);
 			game.canCharm = true;
-			await runCommand('charm', pokemon, game.room, game.charmer.name);
+			runCommand('charm', pokemon, game.room, game.charmer.name);
 			assert(!game.charmer.eliminated);
 			assert(selector.eliminated);
 		},
 	},
 	'should eliminate the charmer if they fail to charm any players': {
-		config: {
-			async: true,
-		},
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		async test(game): Promise<void> {
+		test(game): void {
 			const players = addPlayers(game, 2);
 			game.minPlayers = 2;
 			game.start();
 			const selector = game.charmer === players[0] ? players[1] : players[0];
 			game.canSelect = true;
-			await runCommand('select', data.parameters[game.categories.join(", ")][0], Users.add(selector.name, selector.id),
-				selector.name);
+			runCommand('select', data.parameters[game.categories.join(", ")][0], Users.add(selector.name, selector.id), selector.name);
 			game.canCharm = true;
-			await runCommand('charm', data.parameters[game.categories.join(", ")][1], game.room, game.charmer.name);
+			runCommand('charm', data.parameters[game.categories.join(", ")][1], game.room, game.charmer.name);
 			assert(game.charmer.eliminated);
 			assert(!selector.eliminated);
 		},

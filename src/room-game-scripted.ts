@@ -164,8 +164,7 @@ export class ScriptedGame extends Game {
 			if (command in this.commands) {
 				for (const i in this.commands) {
 					if (i === command) continue;
-					if ((this.commands[command].asyncCommand && this.commands[i].asyncCommand === this.commands[command].asyncCommand) ||
-						(this.commands[command].command && this.commands[i].command === this.commands[command].command)) {
+					if (this.commands[i].command === this.commands[command].command) {
 						commandsToOverwrite.push(i);
 					}
 				}
@@ -536,8 +535,7 @@ export class ScriptedGame extends Game {
 			if (!(command in this.commands)) continue;
 			const commandDefinition = this.commands[command];
 			for (const i in this.commands) {
-				if ((commandDefinition.asyncCommand && this.commands[i].asyncCommand === commandDefinition.asyncCommand) ||
-					(commandDefinition.command && this.commands[i].command === commandDefinition.command)) {
+				if (this.commands[i].command === commandDefinition.command) {
 					commandsAndAliases.push(i);
 				}
 			}
@@ -602,7 +600,7 @@ export class ScriptedGame extends Game {
 		if (commandListener) this.commandsListeners.splice(this.commandsListeners.indexOf(commandListener, 1));
 	}
 
-	async tryCommand(target: string, room: Room | User, user: User, command: string): Promise<boolean> {
+	tryCommand(target: string, room: Room | User, user: User, command: string): boolean {
 		if (!(command in this.commands) || (!this.started && !this.commands[command].signupsGameCommand)) return false;
 
 		let canUseCommands = true;
@@ -630,13 +628,7 @@ export class ScriptedGame extends Game {
 			if (commandDefinition.pmOnly) return false;
 		}
 
-		let result: GameCommandReturnType;
-		if (commandDefinition.asyncCommand) {
-			result = await commandDefinition.asyncCommand.call(this, target, room, user, command);
-		} else {
-			result = commandDefinition.command!.call(this, target, room, user, command);
-		}
-
+		const result: GameCommandReturnType = commandDefinition.command.call(this, target, room, user, command);
 		if (!result) return false;
 
 		const triggeredListeners: IGameCommandCountListener[] = [];
@@ -780,7 +772,7 @@ export class ScriptedGame extends Game {
 	cleanupTimers?(): void;
 	getForceEndMessage?(): string;
 	getPlayerSummary?(player: Player): void;
-	async getRandomAnswer?(): Promise<IRandomGameAnswer>;
+	getRandomAnswer?(): IRandomGameAnswer;
 	/** Return `false` to prevent a user from being added to the game (and send the reason to the user) */
 	onAddPlayer?(player: Player, lateJoin?: boolean): boolean | undefined;
 	onAddExistingPlayer?(player: Player): void;

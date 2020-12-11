@@ -206,9 +206,7 @@ export class Client {
 	webSocket: import('ws') | null = null;
 
 	constructor() {
-		connectListener = () => {
-			void this.onConnect();
-		};
+		connectListener = () => this.onConnect();
 		messageListener = (message: Data) => this.onMessage(message);
 		errorListener = (error: Error) => this.onConnectionError(error);
 		closeListener = (code: number, description: string) => this.onConnectionClose(code, description);
@@ -394,7 +392,7 @@ export class Client {
 		this.connectionTimeout = setTimeout(() => this.reconnect(true), this.reconnectTime);
 	}
 
-	async onConnect(): Promise<void> {
+	onConnect(): void {
 		this.clearConnectionTimeouts();
 
 		console.log('Successfully connected');
@@ -406,7 +404,7 @@ export class Client {
 		}, CHALLSTR_TIMEOUT_SECONDS * 1000);
 
 		this.pingServer();
-		await Dex.fetchClientData();
+		void Dex.fetchClientData();
 	}
 
 	connect(): void {
@@ -971,7 +969,7 @@ export class Client {
 				}
 			} else {
 				room.addChatLog(messageArguments.message);
-				void this.parseChatMessage(room, user, messageArguments.message, now);
+				this.parseChatMessage(room, user, messageArguments.message, now);
 			}
 
 			Storage.updateLastSeen(user, messageArguments.timestamp);
@@ -1089,7 +1087,7 @@ export class Client {
 					}
 
 					if (messageArguments.rank !== this.groupSymbols.locked) {
-						void CommandParser.parse(user, user, commandMessage);
+						CommandParser.parse(user, user, commandMessage);
 					}
 				}
 			}
@@ -1551,8 +1549,8 @@ export class Client {
 		}
 	}
 
-	async parseChatMessage(room: Room, user: User, message: string, now: number): Promise<void> {
-		await CommandParser.parse(room, user, message);
+	parseChatMessage(room: Room, user: User, message: string, now: number): void {
+		CommandParser.parse(room, user, message);
 
 		const lowerCaseMessage = message.toLowerCase();
 

@@ -73,7 +73,9 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 					const game = createIndividualTestGame(testFormat);
 					try {
 						// eslint-disable-next-line @typescript-eslint/await-thenable
-						await testData.test.call(this, game, testFormat, attributes);
+						await ((testData.test.call(this, game, testFormat, attributes) as unknown) as Promise<void>).catch(e => {
+							throw e;
+						});
 					} catch (e) {
 						console.log(e);
 						fail((e as Error).message + " (" + testFormat.name + "; initial seed = " + game.initialSeed + ")");

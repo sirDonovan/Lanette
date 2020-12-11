@@ -57,7 +57,7 @@ export class CommandContext {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	async run(newCommand?: string, newTarget?: string): Promise<any> {
+	run(newCommand?: string, newTarget?: string): any {
 		let command = this.originalCommand;
 		if (newCommand) {
 			command = Tools.toId(newCommand);
@@ -71,23 +71,18 @@ export class CommandContext {
 		}
 		const target = newTarget !== undefined ? newTarget : this.target;
 
-		if (Commands[command].asyncCommand) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-			return await Commands[command].asyncCommand!.call(this, target, this.room, this.user, command);
-		} else {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-			return Commands[command].command!.call(this, target, this.room, this.user, command);
-		}
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+		return Commands[command].command.call(this, target, this.room, this.user, command);
 	}
 
-	async runMultipleTargets(delimiter: string, command: string): Promise<void> {
+	runMultipleTargets(delimiter: string, command: string): void {
 		if (!delimiter) return;
 		const parts = this.target.split(delimiter);
 		const lastMultipleTarget = parts.length - 1;
 		this.runningMultipleTargets = true;
 		for (let i = 0; i < parts.length; i++) {
 			if (i === lastMultipleTarget) this.runningMultipleTargets = false;
-			await this.run(command, parts[i].trim());
+			this.run(command, parts[i].trim());
 		}
 	}
 
@@ -168,7 +163,7 @@ export class CommandParser {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	async parse(room: Room | User, user: User, message: string): Promise<any> {
+	parse(room: Room | User, user: User, message: string): any {
 		if (!this.isCommandMessage(message)) return;
 		message = message.substr(1);
 		let command: string;
@@ -189,11 +184,7 @@ export class CommandParser {
 			Config.roomIgnoredCommands[room.id].includes(command)) return;
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return new CommandContext(command, target, room, user).run()
-			.catch(e => {
-				console.log(e);
-				Tools.logError(e);
-			});
+		return new CommandContext(command, target, room, user).run();
 	}
 
 	getErrorText(error: CommandErrorArray): string {

@@ -206,8 +206,9 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 			Tools.joinList(this.answers) + "__.";
 	}
 
-	async getRandomAnswer(): Promise<IRandomGameAnswer> {
-		await this.setAnswers();
+	getRandomAnswer(): IRandomGameAnswer {
+		// true async setAnswers() should not have canGetRandomAnswer
+		void this.setAnswers();
 		if (this.updateHint) this.updateHint();
 		return {answers: this.answers, hint: this.hint};
 	}
@@ -313,7 +314,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			assert(game.hint);
 			const expectedPoints = game.getPointsForAnswer ? game.getPointsForAnswer(game.answers[0]) : 1;
 			game.canGuess = true;
-			await runCommand('guess', game.answers[0], game.room, name);
+			runCommand('guess', game.answers[0], game.room, name);
 			assert(id in game.players);
 			assertStrictEqual(game.points.get(game.players[id]), expectedPoints);
 			assert(!game.answers.length);
@@ -332,7 +333,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			const previousHint = game.hint;
 			game.canGuess = true;
 			const name = getBasePlayerName() + " 1";
-			await runCommand('guess', "a", game.room, name);
+			runCommand('guess', "a", game.room, name);
 
 			await game.onNextRound();
 			assertStrictEqual(game.answers, previousAnswers);
@@ -356,7 +357,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 				await game.onNextRound();
 				game.answerTimeout = setTimeout(() => game.onAnswerTimeLimit(), game.roundTime);
 				game.canGuess = true;
-				await runCommand('guess', game.answers[0], game.room, name);
+				runCommand('guess', game.answers[0], game.room, name);
 				assert(id in game.players);
 				assert(game.points.has(game.players[id]));
 				assert(!game.answerTimeout);
@@ -415,7 +416,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 				const points = game.points.get(game.players[id]);
 				if (points) expectedPoints += points;
 				game.canGuess = true;
-				await runCommand('guess', game.answers[0], game.room, name);
+				runCommand('guess', game.answers[0], game.room, name);
 				assertStrictEqual(game.points.get(game.players[id]), expectedPoints);
 				if (game.ended) break;
 			}
@@ -440,7 +441,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			await minigame.onNextRound();
 			assert(minigame.answers.length);
 			minigame.canGuess = true;
-			await runCommand('guess', minigame.answers[0], minigame.room, getBasePlayerName());
+			runCommand('guess', minigame.answers[0], minigame.room, getBasePlayerName());
 			assert(minigame.ended);
 
 			minigame.deallocate(true);
@@ -467,7 +468,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			await pmMinigame.onNextRound();
 			assert(pmMinigame.answers.length);
 			pmMinigame.canGuess = true;
-			await runCommand('guess', pmMinigame.answers[0], user, name);
+			runCommand('guess', pmMinigame.answers[0], user, name);
 			assert(pmMinigame.ended);
 
 			pmMinigame.deallocate(true);

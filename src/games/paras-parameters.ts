@@ -264,6 +264,7 @@ const tests: GameFileTests<ParasParameters> = {
 
 export const game: IGameFile<ParasParameters> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['paras', 'params'],
+	canGetRandomAnswer: false,
 	category: 'puzzle',
 	challengePoints: {
 		onevsone: 5,

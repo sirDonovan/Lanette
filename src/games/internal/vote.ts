@@ -245,7 +245,7 @@ export class Vote extends ScriptedGame {
 
 	onAfterDeallocate(forceEnd: boolean): void {
 		if (!forceEnd && this.chosenFormat) {
-			void CommandParser.parse(this.room, Users.self, Config.commandCharacter + "creategame " + this.chosenFormat);
+			CommandParser.parse(this.room, Users.self, Config.commandCharacter + "creategame " + this.chosenFormat);
 		}
 	}
 }

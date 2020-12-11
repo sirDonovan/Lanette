@@ -204,10 +204,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 		},
 	},
 	'it should not create new card arrays for actions': {
-		config: {
-			async: true,
-		},
-		async test(game): Promise<void> {
+		test(game): void {
 			addPlayers(game, 4);
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Pikachu"));
 			game.start();
@@ -221,7 +218,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 			game.playerCards.set(player, newCards);
 			assert(game.hasPlayableCard(game.getTurnCards(player)));
 			game.canPlay = true;
-			await runCommand('play', 'Manaphy', game.room, player.name);
+			runCommand('play', 'Manaphy', game.room, player.name);
 			assert(!game.ended);
 			const playerCards = game.playerCards.get(player)!;
 			assert(!playerCards.includes(manaphyAction));
@@ -229,10 +226,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 		},
 	},
 	'it should properly handle card counts - 1 remaining': {
-		config: {
-			async: true,
-		},
-		async test(game): Promise<void> {
+		test(game): void {
 			addPlayers(game, 4);
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Pikachu"));
 			game.start();
@@ -244,16 +238,13 @@ const tests: GameFileTests<StakatakasCardTower> = {
 			assert(!game.arePlayableCards([game.topCard].concat(cards)));
 			assert(game.hasPlayableCard(game.getTurnCards(player)));
 			game.canPlay = true;
-			await runCommand('play', 'Ampharos, Archen, Beautifly', game.room, player.name);
+			runCommand('play', 'Ampharos, Archen, Beautifly', game.room, player.name);
 			assert(!game.ended);
 			assert(game.playerCards.get(player)!.length >= 2);
 		},
 	},
 	'it should properly handle card counts - 0 remaining': {
-		config: {
-			async: true,
-		},
-		async test(game): Promise<void> {
+		test(game): void {
 			addPlayers(game, 4);
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Pikachu"));
 			game.start();
@@ -265,7 +256,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 			assert(game.arePlayableCards([game.topCard].concat(cards)));
 			assert(game.hasPlayableCard(game.getTurnCards(player)));
 			game.canPlay = true;
-			await runCommand('play', 'Ampharos, Archen, Beautifly, Beedrill', game.room, player.name);
+			runCommand('play', 'Ampharos, Archen, Beautifly, Beedrill', game.room, player.name);
 			assert(game.ended);
 			assertStrictEqual(cards.length, 0);
 		},

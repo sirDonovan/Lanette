@@ -59,15 +59,6 @@ const commands: CommandDefinitions<CommandContext> = {
 		},
 		developerOnly: true,
 	},
-	/*
-	updateps: {
-		async asyncCommand(target, room, user) {
-			this.say("Running ``update-ps``...");
-			await Tools.runUpdatePS(user);
-		},
-		developerOnly: true,
-	},
-	*/
 	reload: {
 		command(target, room, user) {
 			if (!target) return;
@@ -319,10 +310,10 @@ const commands: CommandDefinitions<CommandContext> = {
 		aliases: ['sv'],
 	},
 	egg: {
-		async asyncCommand(target, room, user) {
+		command(target, room, user) {
 			if (this.isPm(room)) return;
 			if (room.game) {
-				await this.run('toss');
+				this.run('toss');
 				return;
 			}
 			if (!user.hasRank(room, 'voice') || room.userHostedGame) return;
@@ -350,7 +341,7 @@ const commands: CommandDefinitions<CommandContext> = {
 
 			const game = Games.createGame(room, eggTossFormat, room, true);
 			game.signups();
-			const canEgg = await this.run('toss') as boolean;
+			const canEgg = this.run('toss') as boolean;
 			if (canEgg) {
 				this.say("**" + user.name + "** handed an egg to **" + targetUser.name + "**! Pass it around with ``" +
 					Config.commandCharacter + "toss [user]`` before it explodes!");
@@ -578,7 +569,7 @@ const commands: CommandDefinitions<CommandContext> = {
 		aliases: ['createtourgame', 'ctourgame', 'ctg', 'createrandomtournamentgame', 'createrandomtourgame', 'randomtourgame', 'crtg'],
 	},
 	randomminigame: {
-		async asyncCommand(target, room, user) {
+		command(target, room, user) {
 			let gameRoom: Room | undefined;
 			if (this.isPm(room)) {
 				if (room.game) return;
@@ -623,7 +614,7 @@ const commands: CommandDefinitions<CommandContext> = {
 					"not be chosen") + ".");
 			}
 
-			await this.run(Tools.sampleOne(minigameCommands), "");
+			this.run(Tools.sampleOne(minigameCommands), "");
 		},
 		aliases: ['randminigame', 'rminigame', 'minigame'],
 	},
@@ -1209,8 +1200,10 @@ const commands: CommandDefinitions<CommandContext> = {
 			const id = Tools.toId(target);
 			if (approvedHost && id !== user.id) return user.say("You are only able to use this command on yourself as approved host.");
 			if (room.userHostedGame && (room.userHostedGame.hostId === id || room.userHostedGame.subHostId === id)) {
-				return this.run('endgame');
+				this.run('endgame');
+				return;
 			}
+
 			if (!database.userHostedGameQueue || !database.userHostedGameQueue.length) return this.sayError(['emptyUserHostedGameQueue']);
 			let position = -1;
 			for (let i = 0; i < database.userHostedGameQueue.length; i++) {
@@ -1402,7 +1395,7 @@ const commands: CommandDefinitions<CommandContext> = {
 		command(target, room, user) {
 			if (this.isPm(room)) return;
 			if (!user.hasRank(room, 'voice')) {
-				if (room.userHostedGame && room.userHostedGame.isHost(user)) return this.run('gametimer');
+				if (room.userHostedGame && room.userHostedGame.isHost(user)) this.run('gametimer');
 				return;
 			}
 			const id = Tools.toId(target);
@@ -1645,7 +1638,10 @@ const commands: CommandDefinitions<CommandContext> = {
 			}
 			if (!game) return;
 			if (isNaN(cap)) return this.say("You must specify a valid player cap.");
-			if (game.playerCount >= cap) return this.run('startgame');
+			if (game.playerCount >= cap) {
+				this.run('startgame');
+				return;
+			}
 			game.playerCap = cap;
 			this.say("The game's player cap has been set to **" + cap + "**.");
 		},
@@ -1688,7 +1684,7 @@ const commands: CommandDefinitions<CommandContext> = {
 		aliases: ['apl', 'addplayers'],
 	},
 	removeplayer: {
-		async asyncCommand(target, room, user, cmd) {
+		command(target, room, user, cmd) {
 			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			const players: string[] = [];
 			const targets = target.split(",");
@@ -1706,7 +1702,7 @@ const commands: CommandDefinitions<CommandContext> = {
 
 			// @ts-expect-error
 			if (room.userHostedGame.started) room.userHostedGame.round++;
-			if (cmd !== 'silentelim' && cmd !== 'selim' && cmd !== 'srpl') await this.run('players');
+			if (cmd !== 'silentelim' && cmd !== 'selim' && cmd !== 'srpl') this.run('players');
 		},
 		aliases: ['removeplayers', 'srpl', 'rpl', 'silentelim', 'selim', 'elim', 'eliminate', 'eliminateplayer', 'eliminateplayers'],
 	},
@@ -1755,7 +1751,7 @@ const commands: CommandDefinitions<CommandContext> = {
 		aliases: ['atpl', 'addteamplayers'],
 	},
 	shuffleplayers: {
-		async asyncCommand(target, room, user) {
+		command(target, room, user) {
 			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			if (room.userHostedGame.teams) {
 				for (const i in room.userHostedGame.teams) {
@@ -1771,12 +1767,12 @@ const commands: CommandDefinitions<CommandContext> = {
 				}
 				room.userHostedGame.players = temp;
 			}
-			await this.run('playerlist');
+			this.run('playerlist');
 		},
 		aliases: ['shufflepl'],
 	},
 	splitplayers: {
-		async asyncCommand(target, room, user) {
+		command(target, room, user) {
 			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			if (!room.userHostedGame.started) {
 				return this.say("You must first start the game with ``" + Config.commandCharacter + "startgame``.");
@@ -1808,17 +1804,17 @@ const commands: CommandDefinitions<CommandContext> = {
 			if (teamNames && teamNames.length !== teams) return this.say("You must specify all " + teams + " team names or none.");
 
 			room.userHostedGame.splitPlayers(teams, teamNames);
-			await this.run('playerlist');
+			this.run('playerlist');
 		},
 		aliases: ['splitpl'],
 	},
 	unsplitplayers: {
-		async asyncCommand(target, room, user) {
+		command(target, room, user) {
 			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			if (!room.userHostedGame.teams) return this.say("Teams have not yet been formed.");
 
 			room.userHostedGame.unSplitPlayers();
-			await this.run('playerlist');
+			this.run('playerlist');
 		},
 		aliases: ['unsplitpl'],
 	},
@@ -1841,25 +1837,25 @@ const commands: CommandDefinitions<CommandContext> = {
 		aliases: ['players', 'pl'],
 	},
 	clearplayerlist: {
-		async asyncCommand(target, room, user) {
+		command(target, room, user) {
 			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			const users: string[] = [];
 			for (const i in room.userHostedGame.players) {
 				if (!room.userHostedGame.players[i].eliminated) users.push(room.userHostedGame.players[i].name);
 			}
 			if (!users.length) return this.say("The player list is empty.");
-			await this.run('removeplayer', users.join(", "));
+			this.run('removeplayer', users.join(", "));
 		},
 		aliases: ['clearplayers', 'clearpl'],
 	},
 	addgamepoints: {
-		async asyncCommand(target, room, user, cmd) {
+		command(target, room, user, cmd) {
 			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			if (!room.userHostedGame.started) {
 				return this.say("You must first start the game with ``" + Config.commandCharacter + "startgame``.");
 			}
 			if (target.includes("|")) {
-				await this.runMultipleTargets("|", cmd);
+				this.runMultipleTargets("|", cmd);
 				return;
 			}
 
@@ -1915,7 +1911,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			}
 
 			if (teamNames.length) {
-				await this.run('addteampoint', target);
+				this.run('addteampoint', target);
 				return;
 			}
 
@@ -1941,7 +1937,7 @@ const commands: CommandDefinitions<CommandContext> = {
 
 			// @ts-expect-error
 			room.userHostedGame.round++;
-			if (!this.runningMultipleTargets) await this.run('playerlist');
+			if (!this.runningMultipleTargets) this.run('playerlist');
 			if (reachedCap.length) {
 				const reached = room.userHostedGame.teams ? "team" : "user";
 				user.say((reachedCap.length === 1 ? "A " + reached + " has" : reachedCap + " " + reached + "s have") + " reached the " +
@@ -1951,7 +1947,7 @@ const commands: CommandDefinitions<CommandContext> = {
 		aliases: ['addgamepoint', 'removegamepoints', 'removegamepoint'],
 	},
 	addpointall: {
-		async asyncCommand(target, room, user, cmd) {
+		command(target, room, user, cmd) {
 			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			if (!room.userHostedGame.started) {
 				return this.say("You must first start the game with ``" + Config.commandCharacter + "startgame``.");
@@ -1969,16 +1965,16 @@ const commands: CommandDefinitions<CommandContext> = {
 					playerUser = Users.add(player.name, player.id);
 					expiredUser = true;
 				}
-				await this.run(newCmd, player.name + pointsString);
+				this.run(newCmd, player.name + pointsString);
 				if (expiredUser) Users.remove(playerUser);
 			}
 			this.runningMultipleTargets = false;
-			await this.run('playerlist');
+			this.run('playerlist');
 		},
 		aliases: ['aptall', 'rptall', 'removepointall'],
 	},
 	addteampoints: {
-		async asyncCommand(target, room, user, cmd) {
+		command(target, room, user, cmd) {
 			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			if (!room.userHostedGame.teams) return this.say("You must first forme teams with ``" + Config.commandCharacter + "splitpl``.");
 
@@ -1999,7 +1995,7 @@ const commands: CommandDefinitions<CommandContext> = {
 				return this.say("Team " + room.userHostedGame.teams[teamId].name + " does not have any players remaining.");
 			}
 			const player = room.userHostedGame.sampleOne(remainingPlayers);
-			await this.run(cmd.startsWith('r') ? 'removepoint' : 'addpoint', player.name + ',' + points);
+			this.run(cmd.startsWith('r') ? 'removepoint' : 'addpoint', player.name + ',' + points);
 		},
 		aliases: ['addteampoint', 'removeteampoint', 'removeteampoints', 'atpt', 'rtpt'],
 	},
@@ -2048,7 +2044,7 @@ const commands: CommandDefinitions<CommandContext> = {
 		},
 	},
 	store: {
-		async asyncCommand(target, room, user, cmd) {
+		command(target, room, user, cmd) {
 			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			if (cmd === 'stored' || !target) {
 				if (!room.userHostedGame.storedMessage) {
@@ -2056,7 +2052,7 @@ const commands: CommandDefinitions<CommandContext> = {
 				}
 				if (CommandParser.isCommandMessage(room.userHostedGame.storedMessage)) {
 					const parts = room.userHostedGame.storedMessage.split(" ");
-					await this.run(parts[0].substr(1), parts.slice(1).join(" "));
+					this.run(parts[0].substr(1), parts.slice(1).join(" "));
 					return;
 				}
 				this.say(room.userHostedGame.storedMessage);
@@ -2103,7 +2099,7 @@ const commands: CommandDefinitions<CommandContext> = {
 		},
 	},
 	savewinner: {
-		async asyncCommand(target, room, user) {
+		command(target, room, user) {
 			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			if (room.userHostedGame.teams) return this.say("You cannot store winners once teams have been formed.");
 
@@ -2134,12 +2130,12 @@ const commands: CommandDefinitions<CommandContext> = {
 				room.userHostedGame.players[id].eliminated = true;
 			}
 
-			await this.run('playerlist');
+			this.run('playerlist');
 		},
 		aliases: ['savewinners', 'storewinner', 'storewinners'],
 	},
 	removewinner: {
-		async asyncCommand(target, room, user) {
+		command(target, room, user) {
 			if (this.isPm(room)) return;
 			if (!room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			const id = Tools.toId(target);
@@ -2148,7 +2144,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			if (index === -1) return this.say(this.sanitizeResponse(target.trim() + " has not been saved as a winner."));
 			room.userHostedGame.savedWinners.splice(index, 1);
 			room.userHostedGame.players[id].eliminated = false;
-			await this.run('playerlist');
+			this.run('playerlist');
 		},
 		aliases: ['removestoredwinner'],
 	},
@@ -2482,7 +2478,7 @@ const commands: CommandDefinitions<CommandContext> = {
 		},
 	},
 	randomanswer: {
-		async asyncCommand(target, room, user) {
+		command(target, room, user) {
 			let pmRoom: Room | undefined;
 			if (!this.isPm(room) || room.game) return;
 			if (!target) return this.say("You must specify a game.");
@@ -2502,7 +2498,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			if (!format.canGetRandomAnswer) return this.say("This command cannot be used with " + format.name + ".");
 			delete format.inputOptions.points;
 			const game = global.Games.createGame(room, format, pmRoom);
-			const randomAnswer = await game.getRandomAnswer!();
+			const randomAnswer = game.getRandomAnswer!();
 			this.sayHtml(game.getMascotAndNameHtml(" - random") + "<br /><br />" + randomAnswer.hint + "<br /> " +
 				"<b>Answer" + (randomAnswer.answers.length > 1 ? "s" : "") + "</b>: " + randomAnswer.answers.join(', '), pmRoom);
 			game.deallocate(true);
@@ -2773,7 +2769,10 @@ const commands: CommandDefinitions<CommandContext> = {
 				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
 				tournamentRoom = targetRoom;
 			} else {
-				if (target) return this.run('createtournament');
+				if (target) {
+					this.run('createtournament');
+					return;
+				}
 				if (!user.hasRank(room, 'voice')) return;
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
 					return this.sayError(['disabledTournamentFeatures', room.title]);
@@ -2972,7 +2971,7 @@ const commands: CommandDefinitions<CommandContext> = {
 		aliases: ['gettourschedule'],
 	},
 	queuetournament: {
-		async asyncCommand(target, room, user, cmd) {
+		command(target, room, user, cmd) {
 			if (this.isPm(room) || !user.hasRank(room, 'driver')) return;
 			if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
 				return this.sayError(['disabledTournamentFeatures', room.title]);
@@ -3141,7 +3140,7 @@ const commands: CommandDefinitions<CommandContext> = {
 			} else if (time) {
 				Tournaments.setTournamentTimer(room, time, format, playerCap);
 			}
-			await this.run('queuedtournament', '');
+			this.run('queuedtournament', '');
 
 			Storage.exportDatabase(room.id);
 		},
@@ -3163,7 +3162,10 @@ const commands: CommandDefinitions<CommandContext> = {
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
 					return this.sayError(['disabledTournamentFeatures', room.title]);
 				}
-				if (target) return this.run('queuetournament');
+				if (target) {
+					this.run('queuetournament');
+					return;
+				}
 				tournamentRoom = room;
 			}
 
@@ -3535,10 +3537,10 @@ const commands: CommandDefinitions<CommandContext> = {
 		aliases: ['seen'],
 	},
 	addpoints: {
-		async asyncCommand(target, room, user, cmd) {
+		command(target, room, user, cmd) {
 			if (this.isPm(room)) return;
 			if (room.userHostedGame && room.userHostedGame.isHost(user)) {
-				await this.run(cmd.startsWith('r') ? "removegamepoint" : "addgamepoint");
+				this.run(cmd.startsWith('r') ? "removegamepoint" : "addgamepoint");
 				return;
 			}
 			if (!user.hasRank(room, 'voice')) return;
@@ -3555,7 +3557,7 @@ const commands: CommandDefinitions<CommandContext> = {
 				(!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id))) return;
 
 			if (target.includes("|")) {
-				await this.runMultipleTargets("|", cmd);
+				this.runMultipleTargets("|", cmd);
 				return;
 			}
 

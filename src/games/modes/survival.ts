@@ -156,7 +156,6 @@ const tests: GameFileTests<SurvivalThis> = {
 	},
 	'it should advance players who answer correctly': {
 		config: {
-			async: true,
 			commands: [['guess'], ['g']],
 		},
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
@@ -170,7 +169,7 @@ const tests: GameFileTests<SurvivalThis> = {
 			const currentPlayer = game.currentPlayer;
 			assert(currentPlayer);
 			game.canGuess = true;
-			await runCommand(attributes.commands![0], game.answers[0], game.room, currentPlayer.name);
+			runCommand(attributes.commands![0], game.answers[0], game.room, currentPlayer.name);
 			assert(!currentPlayer.eliminated);
 			await game.onNextRound();
 			assert(game.currentPlayer !== currentPlayer);
@@ -178,7 +177,6 @@ const tests: GameFileTests<SurvivalThis> = {
 	},
 	'it should eliminate players who do not answer correctly': {
 		config: {
-			async: true,
 			commands: [['guess'], ['g']],
 		},
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
@@ -192,7 +190,7 @@ const tests: GameFileTests<SurvivalThis> = {
 			const currentPlayer = game.currentPlayer;
 			assert(currentPlayer);
 			game.canGuess = true;
-			await runCommand(attributes.commands![0], 'mocha', game.room, currentPlayer.name);
+			runCommand(attributes.commands![0], 'mocha', game.room, currentPlayer.name);
 			// answers cleared when time runs out
 			game.answers = [];
 			await game.onNextRound();

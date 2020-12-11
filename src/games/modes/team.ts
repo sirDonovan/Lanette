@@ -252,7 +252,7 @@ const tests: GameFileTests<TeamThis> = {
 			assert(currentPlayer);
 			game.canGuess = true;
 			const expectedPoints = game.getPointsForAnswer ? game.getPointsForAnswer(game.answers[0]) : 1;
-			await runCommand(attributes.commands![0], game.answers[0], game.room, currentPlayer.name);
+			runCommand(attributes.commands![0], game.answers[0], game.room, currentPlayer.name);
 			assertStrictEqual(game.points.get(currentPlayer), expectedPoints);
 			assertStrictEqual(team.points, expectedPoints);
 		},

@@ -154,35 +154,29 @@ const commands: GameCommandDefinitions<BounsweetsBountifulBuffet> = {
 
 const tests: GameFileTests<BounsweetsBountifulBuffet> = {
 	'should give the same points for shared meals': {
-		config: {
-			async: true,
-		},
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		async test(game): Promise<void> {
+		test(game): void {
 			const players = addPlayers(game, 2);
 			game.minPlayers = 2;
 			game.start();
 			assertStrictEqual(game.numberOfMeals, 2);
 			const expectedPoints = Math.floor(game.mealPoints[0] / 2);
-			await runCommand('select', game.meals[0], game.room, players[0].name);
-			await runCommand('select', game.meals[0], game.room, players[1].name);
+			runCommand('select', game.meals[0], game.room, players[0].name);
+			runCommand('select', game.meals[0], game.room, players[1].name);
 			assertStrictEqual(game.points.get(players[0]), expectedPoints);
 			assertStrictEqual(game.points.get(players[1]), expectedPoints);
 		},
 	},
 	'should give different points for separate meals': {
-		config: {
-			async: true,
-		},
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		async test(game): Promise<void> {
+		test(game): void {
 			const players = addPlayers(game, 2);
 			game.minPlayers = 2;
 			game.start();
 			const expectedPointsA = game.mealPoints[0];
 			const expectedPointsB = game.mealPoints[1];
-			await runCommand('select', game.meals[0], game.room, players[0].name);
-			await runCommand('select', game.meals[1], game.room, players[1].name);
+			runCommand('select', game.meals[0], game.room, players[0].name);
+			runCommand('select', game.meals[1], game.room, players[1].name);
 			assertStrictEqual(game.points.get(players[0]), expectedPointsA);
 			assertStrictEqual(game.points.get(players[1]), expectedPointsB);
 		},

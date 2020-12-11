@@ -152,6 +152,7 @@ const tests: GameFileTests<PoliwrathsPortmanteaus> = {
 
 export const game: IGameFile<PoliwrathsPortmanteaus> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['poliwraths', 'ports'],
+	canGetRandomAnswer: false,
 	category: 'puzzle',
 	challengePoints: {
 		onevsone: 5,

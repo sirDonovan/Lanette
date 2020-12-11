@@ -477,24 +477,24 @@ export class Games {
 	loadFormatCommands(): void {
 		for (const i in this.commands) {
 			Commands[i] = {
-				async asyncCommand(target, room, user, command) {
+				command(target, room, user, command) {
 					let returnedResult: boolean = false;
 					if (this.isPm(room)) {
 						if (user.game) {
-							const result = await user.game.tryCommand(target, user, user, command);
+							const result = user.game.tryCommand(target, user, user, command);
 							if (result) returnedResult = result;
 						} else {
 							// eslint-disable-next-line @typescript-eslint/no-misused-promises, @typescript-eslint/space-before-function-paren
-							user.rooms.forEach(async (value, userRoom) => {
+							user.rooms.forEach((value, userRoom) => {
 								if (userRoom.game) {
-									const result = await userRoom.game.tryCommand(target, user, user, command);
+									const result = userRoom.game.tryCommand(target, user, user, command);
 									if (result) returnedResult = result;
 								}
 							});
 						}
 					} else {
 						if (room.game) {
-							const result = await room.game.tryCommand(target, room, user, command);
+							const result = room.game.tryCommand(target, room, user, command);
 							if (result) returnedResult = result;
 						}
 					}
@@ -1016,11 +1016,11 @@ export class Games {
 			delete this.autoCreateTimerData[room.id];
 			const database = Storage.getDatabase(room);
 			if (type === 'tournament') {
-				void CommandParser.parse(room, Users.self, Config.commandCharacter + "createrandomtournamentgame");
+				CommandParser.parse(room, Users.self, Config.commandCharacter + "createrandomtournamentgame");
 			} else if (type === 'scripted' || !database.userHostedGameQueue || !database.userHostedGameQueue.length) {
-				void CommandParser.parse(room, Users.self, Config.commandCharacter + "startvote");
+				CommandParser.parse(room, Users.self, Config.commandCharacter + "startvote");
 			} else if (type === 'userhosted') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
-				void CommandParser.parse(room, Users.self, Config.commandCharacter + "nexthost");
+				CommandParser.parse(room, Users.self, Config.commandCharacter + "nexthost");
 			}
 		}, timer);
 	}
