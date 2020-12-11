@@ -9,11 +9,6 @@ import type { GameDifficulty } from "./types/games";
 export let tempConfig: typeof Config = {};
 
 /**
- * Whether runtime errors should be logged to the errors directory
- */
-export let logErrors: boolean = true;
-
-/**
  * Configuration for the optional REPL server
  */
 export let repl: {enabled?: boolean; port?: number} = {};

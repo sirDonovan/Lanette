@@ -164,8 +164,6 @@ export class Tools {
 	}
 
 	logError(error: Error): void {
-		if (!Config.logErrors) return;
-
 		const date = new Date();
 		const month = date.getMonth() + 1;
 		const day = date.getDate();
