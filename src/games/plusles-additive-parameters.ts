@@ -148,7 +148,7 @@ class PluslesAdditiveParameters extends ScriptedGame {
 const commands: GameCommandDefinitions<PluslesAdditiveParameters> = {
 	add: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		async asyncCommand(target, room, user): Promise<GameCommandReturnType> {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canAdd || !target || this.players[user.id] !== this.currentPlayer) return false;
 			const params = this.getParam(target);
 			if (!params.length) {
@@ -179,7 +179,7 @@ const commands: GameCommandDefinitions<PluslesAdditiveParameters> = {
 			const testParams: IParam[] = this.params.slice();
 			testParams.push(inputParam);
 
-			const result = await Games.workers.parameters.intersect({
+			const result = Games.workers.parameters.intersect({
 				mod: GEN_STRING,
 				params: testParams,
 				paramTypes,

@@ -7,7 +7,7 @@ const allParamTypes: ParamType[] = ['move', 'tier', 'color', 'type', 'resistance
 /* eslint-env mocha */
 
 describe("Parameters Worker", () => {
-	it('should properly intersect parameters', async() => {
+	it('should properly intersect parameters', () => {
 		let mod = 'gen8';
 		let paramTypePools = Games.workers.parameters.workerData!.pokemon.gens[mod].paramTypePools;
 		let baseOptions: IParametersIntersectOptions = {
@@ -18,13 +18,13 @@ describe("Parameters Worker", () => {
 		};
 
 		// learnsets + forme
-		let intersection = await Games.workers.parameters.intersect(Object.assign(baseOptions,
+		let intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.type.steeltype, paramTypePools.move.rockclimb]}));
 		assert(intersection);
 		assertStrictEqual(intersection.params.length, 2);
 		assertStrictEqual(intersection.pokemon.join(","), "arceussteel,durant,empoleon,excadrill,ferroseed,ferrothorn,steelix");
 
-		intersection = await Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.type.poisontype, paramTypePools.move.powerwhip]}));
 		assert(intersection);
 		assertStrictEqual(intersection.params.length, 2);
@@ -32,37 +32,37 @@ describe("Parameters Worker", () => {
 			"weepinbell");
 
 		// parameters with the same name
-		intersection = await Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.gen['gen1'], paramTypePools.move.psychic, paramTypePools.type.psychictype]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "abra,alakazam,drowzee,exeggcute,exeggutor,hypno,jynx,kadabra,mew,mewtwo," +
 			"mrmime,slowbro,slowpoke,starmie");
 
 		// formes
-		intersection = await Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.type.firetype, paramTypePools.move.thunder]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "arceusfire,castformsunny,groudonprimal,hooh,marowakalola," +
 			"marowakalolatotem,rotomheat,victini");
 
-		intersection = await Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.type.darktype, paramTypePools.move.refresh]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "arceusdark,carvanha,nuzleaf,sharpedo,shiftry,umbreon");
 
-		intersection = await Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.egggroup.monstergroup, paramTypePools.ability.rockhead]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "aggron,aron,cubone,lairon,marowak,marowakalola,rhydon,rhyhorn,tyrantrum");
 
 		// mega
-		intersection = await Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.gen['gen6'], paramTypePools.resistance.resistsice, paramTypePools.move.destinybond]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "aegislash,doublade,honedge,houndoommega,sharpedomega");
 
 		// weakness
-		intersection = await Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.weakness.weaktorock, paramTypePools.move.earthquake]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "abomasnow,aerodactyl,altaria,arceusbug,arceusfire,arceusflying,arceusice," +
@@ -71,7 +71,7 @@ describe("Parameters Worker", () => {
 			"rayquaza,regice,salamence,scolipede,sealeo,shuckle,spheal,torkoal,tropius,turtonator,typhlosion,volcanion,walrein");
 
 		// resistance
-		intersection = await Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.move.psychocut, paramTypePools.resistance.resistsfighting]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "aegislash,alakazam,articunogalar,azelf,calyrexshadow,celebi,cresselia," +
@@ -79,13 +79,13 @@ describe("Parameters Worker", () => {
 			"mesprit,mew,mewtwo,necrozma,orbeetle,rapidashgalar,scyther,sigilyph,spectrier,starmie,swoobat,tapulele,uxie,woobat,zacian");
 
 		// gmax with no tier
-		intersection = await Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.gen['gen8'], paramTypePools.color.blue, paramTypePools.move.surf, paramTypePools.type.ice]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "arctovish,arctozolt,eiscue");
 
 		// regional formes
-		intersection = await Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.egggroup['field'], paramTypePools.type.normal]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "aipom,ambipom,bewear,bibarel,bidoof,bouffalant,buneary,bunnelby,cinccino," +
@@ -95,7 +95,7 @@ describe("Parameters Worker", () => {
 			"smeargle,spinda,stantler,stoutland,stufful,tauros,teddiursa,ursaring,vigoroth,watchog,whismur,wooloo,yungoos,zangoose," +
 			"zigzagoon,zigzagoongalar");
 
-		intersection = await Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.egggroup['field'], paramTypePools.type.electric]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "ampharos,blitzle,boltund,dedenne,electrike,emolga,flaaffy,jolteon,luxio," +
@@ -111,7 +111,7 @@ describe("Parameters Worker", () => {
 			searchType: 'pokemon',
 		};
 
-		intersection = await Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.type.steeltype, paramTypePools.move.rockclimb]}));
 		assert(intersection);
 		assertStrictEqual(intersection.params.length, 2);
@@ -126,7 +126,7 @@ describe("Parameters Worker", () => {
 			searchType: 'pokemon',
 		};
 
-		intersection = await Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.weakness.weaktorock, paramTypePools.move.earthquake]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "abomasnow,aerodactyl,altaria,arceusbug,arceusfire,arceusflying,arceusice," +
@@ -134,7 +134,7 @@ describe("Parameters Worker", () => {
 			"magcargo,magmortar,mantine,mantyke,pineco,pinsir,rayquaza,regice,salamence,scolipede,sealeo,shuckle,spheal,torkoal," +
 			"tropius,typhlosion,volcanion,walrein");
 
-		intersection = await Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.move.psychocut, paramTypePools.resistance.resistsfighting]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "alakazam,cresselia,drowzee,gallade,hypno,kadabra,medicham,meditite,mewtwo");
@@ -148,7 +148,7 @@ describe("Parameters Worker", () => {
 			searchType: 'pokemon',
 		};
 
-		intersection = await Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.resistance.resistsghost, paramTypePools.type.normal]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "chansey,clefable,clefairy,ditto,dodrio,doduo,eevee,farfetchd,fearow," +

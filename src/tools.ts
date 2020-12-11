@@ -5,7 +5,7 @@ import url = require('url');
 
 import type { PRNG } from './lib/prng';
 import type { HexColor, IParsedSmogonLink } from './types/tools';
-import type { IParam } from './workers/parameters';
+import type { IParam, IParametersGenData, ParametersSearchType } from './workers/parameters';
 
 const ALPHA_NUMERIC_REGEX = /[^a-zA-Z0-9 ]/g;
 const ID_REGEX = /[^a-z0-9]/g;
@@ -304,13 +304,38 @@ export class Tools {
 		return temp;
 	}
 
-	intersectParams(params: IParam[], dexes: Dict<Dict<readonly string[]>>): string[] {
-		let intersection: string[] = dexes[params[0].type][params[0].param].slice();
+	intersectParams(paramsType: ParametersSearchType, params: IParam[], parametersData: DeepImmutableObject<IParametersGenData>): string[] {
+		let tierSearch = false;
+		for (const param of params) {
+			if (param.type === 'tier') {
+				tierSearch = true;
+				break;
+			}
+		}
+
+		let intersection: string[] = parametersData.paramTypeDexes[params[0].type][params[0].param].slice();
 		for (let i = 1; i < params.length; i++) {
-			intersection = this.intersectArrays(intersection, dexes[params[i].type][params[i].param]);
+			intersection = this.intersectArrays(intersection, parametersData.paramTypeDexes[params[i].type][params[i].param]);
 			if (!intersection.length) break;
 		}
-		return intersection;
+
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		if (paramsType === 'pokemon') {
+			const filtered: string[] = [];
+			for (const slice of intersection) {
+				const id = this.toId(slice);
+				const isRegionalForm = (parametersData.formes[id] === 'Galar' || parametersData.formes[id] === 'Alola') &&
+					slice !== "Pikachu-Alola";
+				if (!isRegionalForm && id in parametersData.otherFormes &&
+					intersection.includes(parametersData.otherFormes[id])) continue;
+				if (parametersData.gigantamax.includes(slice) && !tierSearch) continue;
+				filtered.push(id);
+			}
+
+			intersection = filtered;
+		}
+
+		return intersection.sort();
 	}
 
 	toId(input: string | number | {id: string} | undefined): string {

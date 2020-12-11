@@ -79,7 +79,7 @@ export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	async checkAnswer(guess: string): Promise<string> {
+	checkAnswer(guess: string): string {
 		let sanitizedGuess;
 		let guessParts;
 		if (guess.includes(',')) {

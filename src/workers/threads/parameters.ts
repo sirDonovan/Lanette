@@ -38,32 +38,7 @@ for (const searchType of searchTypes) {
 }
 
 function intersect(options: IParametersIntersectOptions): string[] {
-	let tierSearch = false;
-	for (const param of options.params) {
-		if (param.type === 'tier') {
-			tierSearch = true;
-			break;
-		}
-	}
-
-	let intersection = Tools.intersectParams(options.params, data[options.searchType].gens[options.mod].paramTypeDexes);
-
-	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-	if (options.searchType === 'pokemon') {
-		const filtered: string[] = [];
-		for (const slice of intersection) {
-			const id = Tools.toId(slice);
-			const isRegionalForm = (data.pokemon.gens[options.mod].formes[id] === 'Galar' ||
-				data.pokemon.gens[options.mod].formes[id] === 'Alola') && slice !== "Pikachu-Alola";
-			if (!isRegionalForm && id in data.pokemon.gens[options.mod].otherFormes &&
-				intersection.includes(data.pokemon.gens[options.mod].otherFormes[id])) continue;
-			if (data.pokemon.gens[options.mod].gigantamax.includes(slice) && !tierSearch) continue;
-			filtered.push(id);
-		}
-
-		intersection = filtered;
-	}
-	return intersection.sort();
+	return Tools.intersectParams(options.searchType, options.params, data[options.searchType].gens[options.mod]);
 }
 
 function search(options: IParametersSearchOptions, prng: PRNG): IParametersResponse {

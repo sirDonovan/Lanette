@@ -157,7 +157,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		return true;
 	}
 
-	async guessAnswer(player: Player, guess: string): Promise<string | false> {
+	guessAnswer(player: Player, guess: string): string | false {
 		if (!Tools.toId(guess) || this.filterGuess && this.filterGuess(guess)) return false;
 
 		if (this.roundGuesses) {
@@ -165,7 +165,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 			this.roundGuesses.set(player, true);
 		}
 
-		let answer = await this.checkAnswer(guess);
+		let answer = this.checkAnswer(guess);
 		if (this.ended || !this.answers.length) return false;
 
 		if (!answer) {
@@ -186,7 +186,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	async checkAnswer(guess: string): Promise<string> {
+	checkAnswer(guess: string): string {
 		guess = Tools.toId(guess);
 		let match = '';
 		const guessMega = guess.substr(0, 4) === 'mega' ? guess.substr(4) + 'mega' : '';
@@ -229,12 +229,12 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 	guess: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		async asyncCommand(target, room, user): Promise<GameCommandReturnType> {
+		command(target, room, user): GameCommandReturnType {
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (!this.canGuessAnswer(player)) return false;
 
 			if (!player.active) player.active = true;
-			const answer = await this.guessAnswer(player, target);
+			const answer = this.guessAnswer(player, target);
 			if (!answer || !this.canGuessAnswer(player)) return false;
 
 			if (this.timeout) clearTimeout(this.timeout);

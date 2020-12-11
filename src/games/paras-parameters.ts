@@ -118,7 +118,7 @@ export class ParasParameters extends QuestionAndAnswer {
 		return "A possible set of parameters was __" + givenAnswer + "__.";
 	}
 
-	async intersect(parts: string[]): Promise<IParametersResponse | null> {
+	intersect(parts: string[]): IParametersResponse | null {
 		const params: IParam[] = [];
 		const mod = 'gen' + this.format.options.gen;
 		const paramTypePools = Games.workers.parameters.workerData!.pokemon.gens[mod].paramTypePools;
@@ -135,7 +135,7 @@ export class ParasParameters extends QuestionAndAnswer {
 			if (param && !params.includes(param)) params.push(param);
 		}
 
-		if (params.length === 1 || params.length !== parts.length) return Promise.resolve({params: [], pokemon: []});
+		if (params.length === 1 || params.length !== parts.length) return {params: [], pokemon: []};
 
 		return Games.workers.parameters.intersect({
 			mod,
@@ -145,10 +145,10 @@ export class ParasParameters extends QuestionAndAnswer {
 		});
 	}
 
-	async checkAnswer(guess: string): Promise<string> {
+	checkAnswer(guess: string): string {
 		const parts = guess.split(',');
 		if (parts.length === this.currentNumberOfParams) {
-			const intersection = await this.intersect(parts);
+			const intersection = this.intersect(parts);
 			if (!this.ended) {
 				if (intersection === null) {
 					this.say("An error occurred while intersecting parameters.");
@@ -212,32 +212,32 @@ const tests: GameFileTests<ParasParameters> = {
 			assertStrictEqual(game.params[1].type, 'egggroup');
 			game.customParamTypes = null;
 
-			let intersection = await game.intersect(['steeltype']);
+			let intersection = game.intersect(['steeltype']);
 			assert(intersection);
 			assertStrictEqual(intersection.params.length, 0);
 			assertStrictEqual(intersection.pokemon.length, 0);
 
-			intersection = await game.intersect(['steeltype', 'steeltype']);
+			intersection = game.intersect(['steeltype', 'steeltype']);
 			assert(intersection);
 			assertStrictEqual(intersection.params.length, 0);
 			assertStrictEqual(intersection.pokemon.length, 0);
 
-			intersection = await game.intersect(['steeltype', 'rockclimb', 'steeltype']);
+			intersection = game.intersect(['steeltype', 'rockclimb', 'steeltype']);
 			assert(intersection);
 			assertStrictEqual(intersection.params.length, 0);
 			assertStrictEqual(intersection.pokemon.length, 0);
 
-			intersection = await game.intersect(['poisontype', 'poisontype', 'powerwhip']);
+			intersection = game.intersect(['poisontype', 'poisontype', 'powerwhip']);
 			assert(intersection);
 			assertStrictEqual(intersection.params.length, 0);
 			assertStrictEqual(intersection.pokemon.length, 0);
 
-			intersection = await game.intersect(['steeltype', 'rockclimb']);
+			intersection = game.intersect(['steeltype', 'rockclimb']);
 			assert(intersection);
 			assertStrictEqual(intersection.params.length, 2);
 			assertStrictEqual(intersection.pokemon.join(","), "arceussteel,durant,empoleon,excadrill,ferroseed,ferrothorn,steelix");
 
-			intersection = await game.intersect(['rockclimb', 'fly']);
+			intersection = game.intersect(['rockclimb', 'fly']);
 			assert(intersection);
 			assertStrictEqual(intersection.params.length, 2);
 			assertStrictEqual(intersection.pokemon.join(","), "arceus,smeargle");
@@ -246,7 +246,7 @@ const tests: GameFileTests<ParasParameters> = {
 
 			game.format.options.gen = 7;
 
-			intersection = await game.intersect(['steeltype', 'rockclimb']);
+			intersection = game.intersect(['steeltype', 'rockclimb']);
 			assert(intersection);
 			assertStrictEqual(intersection.params.length, 2);
 			assertStrictEqual(intersection.pokemon.join(","), "durant,excadrill,ferroseed,ferrothorn,steelix");

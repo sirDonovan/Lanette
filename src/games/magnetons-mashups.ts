@@ -26,7 +26,7 @@ class MagnetonsMashups extends QuestionAndAnswer {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	async checkAnswer(guess: string): Promise<string> {
+	checkAnswer(guess: string): string {
 		guess = Tools.toId(guess);
 		for (let i = 1; i < this.answers.length; i++) {
 			if (Tools.toId(this.answers[i]) === guess) return this.answers[0];

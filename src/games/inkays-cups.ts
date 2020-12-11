@@ -56,7 +56,7 @@ class InkaysCups extends ScriptedGame {
 		this.say(text);
 	}
 
-	async generateCups(): Promise<void> {
+	generateCups(): void {
 		const roundParamTypes = this.sampleMany(paramTypes, 2);
 		const lower = this.getRemainingPlayerCount();
 		const upper = lower * 3;
@@ -72,7 +72,7 @@ class InkaysCups extends ScriptedGame {
 				params.push(Games.workers.parameters.workerData!.pokemon.gens[genString].paramTypePools[paramType][Tools.toId(name)]);
 			}
 
-			const intersection = await Games.workers.parameters.intersect({
+			const intersection = Games.workers.parameters.intersect({
 				mod: genString,
 				params,
 				paramTypes,
@@ -89,7 +89,7 @@ class InkaysCups extends ScriptedGame {
 			len = mons.length;
 		}
 		if (len < lower || len > upper) {
-			await this.generateCups();
+			this.generateCups();
 			return;
 		}
 		this.answers = mons;

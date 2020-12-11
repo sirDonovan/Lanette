@@ -8,7 +8,7 @@ export type ParametersId = 'search' | 'intersect';
 export type ParamType = 'ability' | 'color' | 'egggroup' | 'gen' | 'letter' | 'move' | 'resistance' | 'tier' | 'type' | 'weakness';
 
 export interface IParam {
-	type: string;
+	type: ParamType;
 	param: string;
 }
 
@@ -24,6 +24,8 @@ export interface IParametersGenData {
 export interface IParametersWorkerData {
 	readonly pokemon: {gens: Dict<IParametersGenData>};
 }
+
+export type ParametersSearchType = keyof IParametersWorkerData;
 
 export interface IParametersResponse {
 	params: IParam[];
@@ -50,7 +52,7 @@ export interface IParametersIntersectOptions {
 	readonly mod: string;
 	readonly params: IParam[];
 	readonly paramTypes: ParamType[];
-	readonly searchType: keyof IParametersWorkerData;
+	readonly searchType: ParametersSearchType;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -124,7 +126,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 				const letter = pokemon.name.charAt(0);
 				const letterId = Tools.toId(letter);
 				if (!(letterId in letters)) {
-					const letterParam = {type: 'letter', param: letter};
+					const letterParam = {type: 'letter' as ParamType, param: letter};
 					letters[letterId] = letterParam;
 					letters[letterId + 'letter'] = letterParam;
 				}
@@ -133,7 +135,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 
 				const colorId = Tools.toId(pokemon.color);
 				if (!(colorId in colors)) {
-					const colorParam = {type: 'color', param: pokemon.color};
+					const colorParam = {type: 'color' as ParamType, param: pokemon.color};
 					colors[colorId] = colorParam;
 					colors[colorId + 'color'] = colorParam;
 				}
@@ -142,7 +144,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 
 				for (const type of pokemon.types) {
 					const typeId = Tools.toId(type);
-					const typeParam = {type: 'type', param: type};
+					const typeParam = {type: 'type' as ParamType, param: type};
 					if (!(typeId in types)) {
 						types[typeId] = typeParam;
 						types[typeId + 'type'] = typeParam;
@@ -158,7 +160,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 					if (!immune) effectiveness = dex.getEffectiveness(type, pokemon);
 					if (effectiveness >= 1) {
 						if (!(typeId in weaknesses)) {
-							const weaknessParam = {type: 'weakness', param: type};
+							const weaknessParam = {type: 'weakness' as ParamType, param: type};
 							weaknesses[typeId] = weaknessParam;
 							weaknesses[typeId + 'weakness'] = weaknessParam;
 							weaknesses['weak' + typeId] = weaknessParam;
@@ -170,7 +172,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 						weaknessesDex[type].push(pokemon.name);
 					} else if (immune || effectiveness <= -1) {
 						if (!(typeId in resistances)) {
-							const resistanceParam = {type: 'resistance', param: type};
+							const resistanceParam = {type: 'resistance' as ParamType, param: type};
 							resistances[typeId] = resistanceParam;
 							resistances[typeId + 'resistance'] = resistanceParam;
 							resistances['resists' + typeId] = resistanceParam;
@@ -186,7 +188,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 				if (Games.isIncludedPokemonTier(pokemon.tier)) {
 					const tierId = Tools.toId(pokemon.tier);
 					if (!(tierId in tiers)) {
-						const tierParam = {type: 'tier', param: pokemon.tier};
+						const tierParam = {type: 'tier' as ParamType, param: pokemon.tier};
 						tiers[tierId] = tierParam;
 						tiers[tierId + 'tier'] = tierParam;
 					}
@@ -196,7 +198,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 
 				if (dex.isPseudoLCPokemon(pokemon)) {
 					if (!('lc' in tiers)) {
-						const tierParam = {type: 'tier', param: 'LC'};
+						const tierParam = {type: 'tier' as ParamType, param: 'LC'};
 						tiers['lc'] = tierParam;
 						tiers['lctier'] = tierParam;
 					}
@@ -205,7 +207,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 				}
 
 				if (!(pokemon.gen in gens)) {
-					const genParam = {type: 'gen', param: '' + pokemon.gen};
+					const genParam = {type: 'gen' as ParamType, param: '' + pokemon.gen};
 					gens[pokemon.gen] = genParam;
 					gens['gen' + pokemon.gen] = genParam;
 					gens['g' + pokemon.gen] = genParam;
@@ -227,7 +229,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 
 				for (const eggGroup of pokemon.eggGroups) {
 					const groupId = Tools.toId(eggGroup);
-					const groupParam = {type: 'egggroup', param: eggGroup};
+					const groupParam = {type: 'egggroup' as ParamType, param: eggGroup};
 					if (!(groupId in eggGroups)) {
 						eggGroups[groupId] = groupParam;
 						eggGroups[groupId + 'group'] = groupParam;
@@ -241,7 +243,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 
 			const movesList = Games.getMovesList(undefined, gen);
 			for (const move of movesList) {
-				const moveParam = {type: 'move', param: move.name};
+				const moveParam = {type: 'move' as ParamType, param: move.name};
 				if (move.id.startsWith('hiddenpower')) {
 					const id = Tools.toId(move.name);
 					moves[id] = moveParam;
@@ -298,7 +300,14 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 		return this.sendMessage('search', JSON.stringify(options));
 	}
 
-	async intersect(options: IParametersIntersectOptions): Promise<IParametersResponse | null> {
-		return this.sendMessage('intersect', JSON.stringify(options));
+	intersect(options: IParametersIntersectOptions): IParametersResponse | null {
+		this.init();
+
+		const intersection = Tools.intersectParams(options.searchType, options.params,
+			this.workerData![options.searchType].gens[options.mod]);
+		return {
+			params: options.params,
+			pokemon: intersection,
+		};
 	}
 }

@@ -100,11 +100,11 @@ class Survival {
 const commandDefinitions: GameCommandDefinitions<SurvivalThis> = {
 	guess: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		async asyncCommand(target, room, user): Promise<GameCommandReturnType> {
+		command(target, room, user): GameCommandReturnType {
 			if (!this.canGuessAnswer(this.players[user.id])) return false;
 
 			const player = this.players[user.id];
-			const answer = await this.guessAnswer(player, target);
+			const answer = this.guessAnswer(player, target);
 			if (!answer || !this.canGuessAnswer(player)) return false;
 
 			if (this.timeout) clearTimeout(this.timeout);
