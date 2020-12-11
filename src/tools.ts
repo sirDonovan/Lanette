@@ -172,7 +172,8 @@ export class Tools {
 		const year = date.getFullYear();
 		const filepath = year + '-' + month + '-' + day + '.txt';
 
-		fs.appendFileSync(path.join(rootFolder, 'errors', filepath), (error.stack || error.message) + "\n");
+		fs.appendFileSync(path.join(rootFolder, 'errors', filepath), date.toUTCString() + " " + date.toTimeString() + "\n" +
+			(error.stack || error.message) + "\n");
 	}
 
 	random(limit?: number, prng?: PRNG): number {
