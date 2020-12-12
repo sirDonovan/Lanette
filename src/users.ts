@@ -1,6 +1,6 @@
 import type { ScriptedGame } from "./room-game-scripted";
 import type { Room } from "./rooms";
-import type { GroupName, IChatLogEntry } from "./types/client";
+import type { GroupName, IChatLogEntry, MessageListener } from "./types/client";
 import type { IUserMessageOptions, IUserRoomData } from "./types/users";
 
 const chatFormatting: string[] = ["*", "_", "`", "~", "^", "\\"];
@@ -16,9 +16,9 @@ export class User {
 	id: string;
 	name!: string;
 
-	htmlMessageListeners?: Dict<() => void>;
-	messageListeners?: Dict<() => void>;
-	uhtmlMessageListeners?: Dict<Dict<() => void>>;
+	htmlMessageListeners?: Dict<MessageListener>;
+	messageListeners?: Dict<MessageListener>;
+	uhtmlMessageListeners?: Dict<Dict<MessageListener>>;
 
 	constructor(name: string, id: string) {
 		this.id = id;
@@ -99,17 +99,17 @@ export class User {
 		this.say(command, {dontCheckFilter, dontPrepare: true, dontMeasure: true});
 	}
 
-	on(message: string, listener: () => void): void {
+	on(message: string, listener: MessageListener): void {
 		if (!this.messageListeners) this.messageListeners = {};
 		this.messageListeners[Tools.toId(Tools.prepareMessage(message))] = listener;
 	}
 
-	onHtml(html: string, listener: () => void): void {
+	onHtml(html: string, listener: MessageListener): void {
 		if (!this.htmlMessageListeners) this.htmlMessageListeners = {};
 		this.htmlMessageListeners[Tools.toId(Client.getListenerHtml(html, true))] = listener;
 	}
 
-	onUhtml(name: string, html: string, listener: () => void): void {
+	onUhtml(name: string, html: string, listener: MessageListener): void {
 		const id = Tools.toId(name);
 		if (!this.uhtmlMessageListeners) this.uhtmlMessageListeners = {};
 		if (!(id in this.uhtmlMessageListeners)) this.uhtmlMessageListeners[id] = {};

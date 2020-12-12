@@ -918,7 +918,7 @@ export class Client {
 					room.addHtmlChatLog(html);
 
 					if (htmlId in room.htmlMessageListeners) {
-						room.htmlMessageListeners[htmlId]();
+						room.htmlMessageListeners[htmlId](now);
 						delete room.htmlMessageListeners[htmlId];
 					}
 				} else {
@@ -947,7 +947,7 @@ export class Client {
 
 						if (uhtmlId in room.uhtmlMessageListeners) {
 							if (htmlId in room.uhtmlMessageListeners[uhtmlId]) {
-								room.uhtmlMessageListeners[uhtmlId][htmlId]();
+								room.uhtmlMessageListeners[uhtmlId][htmlId](now);
 								delete room.uhtmlMessageListeners[uhtmlId][htmlId];
 							}
 						}
@@ -961,7 +961,7 @@ export class Client {
 						room.addChatLog(messageArguments.message);
 
 						if (messageId in room.messageListeners) {
-							room.messageListeners[messageId]();
+							room.messageListeners[messageId](now);
 							delete room.messageListeners[messageId];
 						}
 					}
@@ -1033,7 +1033,7 @@ export class Client {
 					if (recipient.uhtmlMessageListeners) {
 						if (uhtmlId in recipient.uhtmlMessageListeners) {
 							if (htmlId in recipient.uhtmlMessageListeners[uhtmlId]) {
-								recipient.uhtmlMessageListeners[uhtmlId][htmlId]();
+								recipient.uhtmlMessageListeners[uhtmlId][htmlId](now);
 								delete recipient.uhtmlMessageListeners[uhtmlId][htmlId];
 							}
 						}
@@ -1050,7 +1050,7 @@ export class Client {
 
 					if (recipient.htmlMessageListeners) {
 						if (htmlId in recipient.htmlMessageListeners) {
-							recipient.htmlMessageListeners[htmlId]();
+							recipient.htmlMessageListeners[htmlId](now);
 							delete recipient.htmlMessageListeners[htmlId];
 						}
 					}
@@ -1066,7 +1066,7 @@ export class Client {
 
 					if (recipient.messageListeners) {
 						if (messageId in recipient.messageListeners) {
-							recipient.messageListeners[messageId]();
+							recipient.messageListeners[messageId](now);
 							delete recipient.messageListeners[messageId];
 						}
 					}
@@ -1121,7 +1121,7 @@ export class Client {
 
 			const htmlId = Tools.toId(messageArguments.html);
 			if (htmlId in room.htmlMessageListeners) {
-				room.htmlMessageListeners[htmlId]();
+				room.htmlMessageListeners[htmlId](now);
 				delete room.htmlMessageListeners[htmlId];
 			}
 
@@ -1259,7 +1259,7 @@ export class Client {
 			if (id in room.uhtmlMessageListeners) {
 				const htmlId = Tools.toId(messageArguments.html);
 				if (htmlId in room.uhtmlMessageListeners[id]) {
-					room.uhtmlMessageListeners[id][htmlId]();
+					room.uhtmlMessageListeners[id][htmlId](now);
 					delete room.uhtmlMessageListeners[id][htmlId];
 				}
 			}

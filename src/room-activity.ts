@@ -1,4 +1,5 @@
 import type { Room } from "./rooms";
+import type { MessageListener } from "./types/client";
 import type { PlayerList } from "./types/games";
 import type { User } from "./users";
 
@@ -231,19 +232,19 @@ export abstract class Activity {
 		}
 	}
 
-	on(message: string, listener: () => void): void {
+	on(message: string, listener: MessageListener): void {
 		if (this.ended) return;
 		this.messageListeners.push(message);
 		this.room.on(message, listener);
 	}
 
-	onHtml(html: string, listener: () => void, serverHtml?: boolean): void {
+	onHtml(html: string, listener: MessageListener, serverHtml?: boolean): void {
 		if (this.ended) return;
 		this.htmlMessageListeners.push(html);
 		this.room.onHtml(html, listener, serverHtml);
 	}
 
-	onUhtml(name: string, html: string, listener: () => void): void {
+	onUhtml(name: string, html: string, listener: MessageListener): void {
 		if (this.ended) return;
 		const id = Tools.toId(name);
 		if (!(id in this.uhtmlMessageListeners)) this.uhtmlMessageListeners[id] = [];

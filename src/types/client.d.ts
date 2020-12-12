@@ -83,6 +83,8 @@ export interface IChatLogEntry {
 	uhtmlName?: string;
 }
 
+export type MessageListener = (timestamp: number) => void;
+
 export interface IClientMessageTypes {
 	/**
 	 * Global messages

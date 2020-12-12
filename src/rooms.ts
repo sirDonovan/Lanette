@@ -2,7 +2,7 @@ import type { Player } from "./room-activity";
 import type { ScriptedGame } from "./room-game-scripted";
 import type { UserHostedGame } from "./room-game-user-hosted";
 import type { Tournament } from "./room-tournament";
-import type { GroupName, IChatLogEntry, IOutgoingMessage, IRoomInfoResponse } from "./types/client";
+import type { GroupName, IChatLogEntry, IOutgoingMessage, IRoomInfoResponse, MessageListener } from "./types/client";
 import type { IRepeatedMessage, IRoomMessageOptions, RoomType } from "./types/rooms";
 import type { IUserHostedTournament } from "./types/tournaments";
 import type { User } from "./users";
@@ -13,16 +13,16 @@ export class Room {
 	bannedWordsRegex: RegExp | null = null;
 	chatLog: IChatLogEntry[] = [];
 	game: ScriptedGame | undefined = undefined;
-	readonly htmlMessageListeners: Dict<() => void> = {};
+	readonly htmlMessageListeners: Dict<MessageListener> = {};
 	inviteOnlyBattle: boolean | null = null;
-	readonly messageListeners: Dict<() => void> = {};
+	readonly messageListeners: Dict<MessageListener> = {};
 	modchat: string = 'off';
 	newUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
 	repeatedMessages: Dict<IRepeatedMessage> | undefined = undefined;
 	serverHangman: boolean | undefined = undefined;
 	timers: Dict<NodeJS.Timer> | null = null;
 	tournament: Tournament | undefined = undefined;
-	readonly uhtmlMessageListeners: Dict<Dict<() => void>> = {};
+	readonly uhtmlMessageListeners: Dict<Dict<MessageListener>> = {};
 	userHostedGame: UserHostedGame | undefined = undefined;
 	readonly users = new Set<User>();
 
@@ -202,15 +202,15 @@ export class Room {
 			{dontCheckFilter: true, dontPrepare: true, dontMeasure: true, type: 'command'});
 	}
 
-	on(message: string, listener: () => void): void {
+	on(message: string, listener: MessageListener): void {
 		this.messageListeners[Tools.toId(Tools.prepareMessage(message))] = listener;
 	}
 
-	onHtml(html: string, listener: () => void, serverHtml?: boolean): void {
+	onHtml(html: string, listener: MessageListener, serverHtml?: boolean): void {
 		this.htmlMessageListeners[Tools.toId(serverHtml ? html : Client.getListenerHtml(html))] = listener;
 	}
 
-	onUhtml(name: string, html: string, listener: () => void): void {
+	onUhtml(name: string, html: string, listener: MessageListener): void {
 		const id = Tools.toId(name);
 		if (!(id in this.uhtmlMessageListeners)) this.uhtmlMessageListeners[id] = {};
 		this.uhtmlMessageListeners[id][Tools.toId(Client.getListenerUhtml(html))] = listener;
