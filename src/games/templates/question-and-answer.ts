@@ -16,6 +16,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	correctPlayers: Player[] = [];
 	firstAnswer: Player | false | undefined;
 	hint: string = '';
+	hintTimestamp: number = 0;
 	hintUhtmlName: string = '';
 	inactiveRounds: number = 0;
 	inactiveRoundLimit: number = 10;
@@ -106,6 +107,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 			if (this.ended) return;
 
 			this.correctPlayers = [];
+			this.hintTimestamp = 0;
 			if (this.roundGuesses) this.roundGuesses.clear();
 			this.questionAndAnswerRound++;
 		}
@@ -116,18 +118,21 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		}
 
 		const sayHint = () => {
-			const onHintHtml = () => {
+			const onHintHtml = (timestamp: number) => {
 				if (this.ended) return;
 				if (!this.canGuess) this.canGuess = true;
-				if (newAnswer && this.roundTime) {
-					if (this.answerTimeout) clearTimeout(this.answerTimeout);
-					this.answerTimeout = setTimeout(() => this.onAnswerTimeLimit(), this.roundTime);
+				if (newAnswer) {
+					this.hintTimestamp = timestamp;
+					if (this.roundTime) {
+						if (this.answerTimeout) clearTimeout(this.answerTimeout);
+						this.answerTimeout = setTimeout(() => this.onAnswerTimeLimit(), this.roundTime);
+					}
 				}
 				if (this.onHintHtml) this.onHintHtml();
 			};
 
 			if (!newAnswer && this.previousHint && this.previousHint === this.hint) {
-				onHintHtml();
+				onHintHtml(Date.now());
 			} else {
 				this.hintUhtmlName = this.uhtmlBaseName + '-hint-round' + this.questionAndAnswerRound;
 				const html = this.getHintHtml();
@@ -227,7 +232,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 
 	beforeNextRound?(): boolean | string;
 	filterGuess?(guess: string): boolean;
-	getPointsForAnswer?(answer: string): number;
+	getPointsForAnswer?(answer: string, timestamp: number): number;
 	onCorrectGuess?(player: Player, guess: string): void;
 	onHintHtml?(): void;
 	onIncorrectGuess?(player: Player, guess: string): string;
@@ -237,7 +242,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 	guess: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		command(target, room, user): GameCommandReturnType {
+		command(target, room, user, cmd, timestamp): GameCommandReturnType {
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (!this.canGuessAnswer(player)) return false;
 
@@ -257,7 +262,7 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 			this.correctPlayers.push(player);
 			if (this.onCorrectGuess) this.onCorrectGuess(player, answer);
 
-			const awardedPoints = this.getPointsForAnswer ? this.getPointsForAnswer(answer) : 1;
+			const awardedPoints = this.getPointsForAnswer ? this.getPointsForAnswer(answer, timestamp) : 1;
 			const points = this.addPoints(player, awardedPoints);
 
 			const singleCorrectPlayer = this.maxCorrectPlayersPerRound === 1;
@@ -331,7 +336,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			await game.onNextRound();
 			assert(game.answers.length);
 			assert(game.hint);
-			const expectedPoints = game.getPointsForAnswer ? game.getPointsForAnswer(game.answers[0]) : 1;
+			const expectedPoints = game.getPointsForAnswer ? game.getPointsForAnswer(game.answers[0], Date.now()) : 1;
 			game.canGuess = true;
 			runCommand('guess', game.answers[0], game.room, name);
 			assert(id in game.players);
@@ -431,7 +436,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 				if (game.timeout) clearTimeout(game.timeout);
 				await game.onNextRound();
 				assert(game.answers.length);
-				let expectedPoints = game.getPointsForAnswer ? game.getPointsForAnswer(game.answers[0]) : 1;
+				let expectedPoints = game.getPointsForAnswer ? game.getPointsForAnswer(game.answers[0], Date.now()) : 1;
 				const points = game.points.get(game.players[id]);
 				if (points) expectedPoints += points;
 				game.canGuess = true;

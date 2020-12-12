@@ -116,7 +116,7 @@ class Group {
 const commandDefinitions: GameCommandDefinitions<GroupThis> = {
 	guess: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		command(target, room, user): GameCommandReturnType {
+		command(target, room, user, cmd, timestamp): GameCommandReturnType {
 			if (!this.canGuessAnswer(this.players[user.id])) return false;
 
 			const player = this.players[user.id];
@@ -128,7 +128,7 @@ const commandDefinitions: GameCommandDefinitions<GroupThis> = {
 
 			if (this.onCorrectGuess) this.onCorrectGuess(player, answer);
 
-			const awardedPoints = this.getPointsForAnswer ? this.getPointsForAnswer(answer) : 1;
+			const awardedPoints = this.getPointsForAnswer ? this.getPointsForAnswer(answer, timestamp) : 1;
 			let points = this.points.get(player) || 0;
 			points += awardedPoints;
 			this.points.set(player, points);
@@ -187,7 +187,7 @@ const commandDefinitions: GameCommandDefinitions<GroupThis> = {
 
 const commands = CommandParser.loadCommands(commandDefinitions);
 
-const initialize = (game: ScriptedGame): void => {
+const initialize = (game: QuestionAndAnswer): void => {
 	const mode = new Group();
 	const propertiesToOverride = Object.getOwnPropertyNames(mode).concat(Object.getOwnPropertyNames(Group.prototype)) as (keyof Group)[];
 	for (const property of propertiesToOverride) {

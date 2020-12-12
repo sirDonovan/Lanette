@@ -154,7 +154,7 @@ class Team {
 const commandDefinitions: GameCommandDefinitions<TeamThis> = {
 	guess: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-		command(target, room, user): GameCommandReturnType {
+		command(target, room, user, cmd, timestamp): GameCommandReturnType {
 			if (!this.canGuessAnswer(this.players[user.id])) return false;
 
 			const player = this.players[user.id];
@@ -166,7 +166,7 @@ const commandDefinitions: GameCommandDefinitions<TeamThis> = {
 
 			if (this.onCorrectGuess) this.onCorrectGuess(player, answer);
 
-			const awardedPoints = this.getPointsForAnswer ? this.getPointsForAnswer(answer) : 1;
+			const awardedPoints = this.getPointsForAnswer ? this.getPointsForAnswer(answer, timestamp) : 1;
 			this.addPoints(player, awardedPoints);
 
 			if (this.allAnswersTeamAchievement) {
@@ -221,7 +221,7 @@ const commandDefinitions: GameCommandDefinitions<TeamThis> = {
 
 const commands = CommandParser.loadCommands(commandDefinitions);
 
-const initialize = (game: ScriptedGame): void => {
+const initialize = (game: QuestionAndAnswer): void => {
 	const mode = new Team();
 	const propertiesToOverride = Object.getOwnPropertyNames(mode).concat(Object.getOwnPropertyNames(Team.prototype)) as (keyof Team)[];
 	for (const property of propertiesToOverride) {
@@ -251,7 +251,7 @@ const tests: GameFileTests<TeamThis> = {
 			const currentPlayer = game.currentPlayers[team.id];
 			assert(currentPlayer);
 			game.canGuess = true;
-			const expectedPoints = game.getPointsForAnswer ? game.getPointsForAnswer(game.answers[0]) : 1;
+			const expectedPoints = game.getPointsForAnswer ? game.getPointsForAnswer(game.answers[0], Date.now()) : 1;
 			runCommand(attributes.commands![0], game.answers[0], game.room, currentPlayer.name);
 			assertStrictEqual(game.points.get(currentPlayer), expectedPoints);
 			assertStrictEqual(team.points, expectedPoints);

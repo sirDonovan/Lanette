@@ -125,7 +125,7 @@ const commandDefinitions: GameCommandDefinitions<SurvivalThis> = {
 
 const commands = CommandParser.loadCommands(commandDefinitions);
 
-const initialize = (game: ScriptedGame): void => {
+const initialize = (game: QuestionAndAnswer): void => {
 	const mode = new Survival();
 	const propertiesToOverride = Object.getOwnPropertyNames(mode)
 		.concat(Object.getOwnPropertyNames(Survival.prototype)) as (keyof Survival)[];
