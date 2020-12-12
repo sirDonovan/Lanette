@@ -223,7 +223,7 @@ export abstract class Activity {
 	}
 
 	sayUhtmlAuto(name: string, html: string): void {
-		if (this.room.chatLog.length && this.room.chatLog[0].uhtmlName === Tools.toId(name)) {
+		if (this.room.chatLog.length && this.room.chatLog[0].uhtmlName && Tools.toId(this.room.chatLog[0].uhtmlName) === Tools.toId(name)) {
 			this.sayUhtmlChange(name, html);
 		} else {
 			this.sayUhtml(name, html);
