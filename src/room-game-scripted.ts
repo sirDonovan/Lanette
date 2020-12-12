@@ -4,6 +4,7 @@ import type { Player } from "./room-activity";
 import { Game } from "./room-game";
 import type { Room } from "./rooms";
 import type {
+	DefaultGameOption,
 	GameCommandListener, GameCommandReturnType, IBattleGameData, IGameAchievement, IGameCommandCountListener, IGameCommandCountOptions,
 	IGameFormat, IGameMode, IGameOptionValues, IGameVariant, IRandomGameAnswer, LoadedGameCommands, PlayerList
 } from "./types/games";
@@ -13,7 +14,7 @@ const JOIN_BITS = 10;
 const AUTO_START_VOTE_TIME = 5 * 1000;
 
 // base of 0 defaults option to 'off'
-const defaultOptionValues: Dict<IGameOptionValues> = {
+const defaultOptionValues: KeyedDict<DefaultGameOption, IGameOptionValues> = {
 	points: {min: 10, base: 10, max: 10},
 	teams: {min: 2, base: 2, max: 4},
 	cards: {min: 4, base: 5, max: 6},
@@ -105,13 +106,14 @@ export class ScriptedGame extends Game {
 			customizedOptions[i] = optionValue;
 		}
 
-		if (customizedOptions.points) nameSuffixes.push(" (first to " + customizedOptions.points + ")");
+		if (customizedOptions.points) nameSuffixes.push("(first to " + customizedOptions.points + ")");
 		if (customizedOptions.teams) namePrefixes.unshift('' + customizedOptions.teams);
 		if (customizedOptions.cards) namePrefixes.unshift(customizedOptions.cards + "-card");
 		if (customizedOptions.gen) namePrefixes.unshift('Gen ' + customizedOptions.gen);
 		if (customizedOptions.ports) namePrefixes.unshift(customizedOptions.ports + '-port');
 		if (customizedOptions.params) namePrefixes.unshift(customizedOptions.params + '-param');
 		if (customizedOptions.names) namePrefixes.unshift(customizedOptions.names + '-name');
+		if (customizedOptions.freejoin && !format.freejoin) nameSuffixes.push("(freejoin)");
 
 		let nameWithOptions = '';
 		if (namePrefixes.length) nameWithOptions = namePrefixes.join(" ") + " ";

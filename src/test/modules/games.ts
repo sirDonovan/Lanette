@@ -260,7 +260,9 @@ describe("Games", () => {
 		assertStrictEqual(Games.getExistingFormat('trivia, abilities, surv').nameWithOptions, "Slowking's Ability Trivia Survival");
 
 		assertStrictEqual(Games.getExistingFormat('upc').nameWithOptions, "Unown's Pokemon Chain");
+		assertStrictEqual(Games.getExistingFormat('upc, fj').nameWithOptions, "Unown's Pokemon Chain (freejoin)");
 		assertStrictEqual(Games.getExistingFormat('umc').nameWithOptions, "Unown's Move Chain");
+		assertStrictEqual(Games.getExistingFormat('umc, fj').nameWithOptions, "Unown's Move Chain (freejoin)");
 
 		assertStrictEqual(Games.getExistingFormat('params, survival').nameWithOptions, "Paras' Parameters Survival");
 		assertStrictEqual(Games.getExistingFormat('params, team').nameWithOptions, "Team Paras' Parameters");

@@ -94,19 +94,38 @@ export class Vote extends ScriptedGame {
 
 		const variants: IGameFormat[] = [];
 
+		const hasFreejoinVariant = format.defaultOptions.includes('freejoin');
+		if (hasFreejoinVariant && !format.options.freejoin) {
+			const inputTarget = format.inputTarget + ", freejoin";
+			const variant = Games.getFormat(inputTarget);
+			if (!Array.isArray(variant) && this.isValidFormat(variant)) {
+				variants.push(variant);
+			}
+		}
+
 		if (!format.variant && format.variants) {
 			for (const variantData of format.variants) {
-				const variant = Games.getFormat(format.inputTarget + ", " + variantData.variantAliases[0]);
-				if (!Array.isArray(variant) && this.isValidFormat(variant)) variants.push(variant);
-			}
-
-			if (variants.length) {
-				html += "<br /><br /><details><summary>Votable game variants</summary>";
-				for (const variant of variants) {
-					html += this.getPmVoteButton(variant.inputTarget, variant.nameWithOptions);
+				if (!format.options.freejoin) {
+					const variant = Games.getFormat(format.inputTarget + ", " + variantData.variantAliases[0]);
+					if (!Array.isArray(variant) && this.isValidFormat(variant)) {
+						variants.push(variant);
+					}
 				}
-				html += "</details>";
+				if (hasFreejoinVariant) {
+					const freejoinVariant = Games.getFormat(format.inputTarget + ", " + variantData.variantAliases[0] + ", freejoin");
+					if (!Array.isArray(freejoinVariant) && this.isValidFormat(freejoinVariant)) {
+						variants.push(freejoinVariant);
+					}
+				}
 			}
+		}
+
+		if (variants.length) {
+			html += "<br /><br /><details><summary>Votable game variants</summary>";
+			for (const variant of variants) {
+				html += this.getPmVoteButton(variant.inputTarget, variant.nameWithOptions);
+			}
+			html += "</details>";
 		}
 
 		if (!format.mode && format.modes) {
