@@ -163,7 +163,7 @@ worker_threads.parentPort!.on('message', (incommingMessage: string) => {
 	const messageNumber = parts[0];
 	const id = parts[1] as ParametersId;
 	const message = parts.slice(2).join("|");
-	let response: IParametersResponse;
+	let response: IParametersResponse | null = null;
 	try {
 		if (id === 'search') {
 			const options = JSON.parse(message) as IParametersSearchMessage;
@@ -178,6 +178,6 @@ worker_threads.parentPort!.on('message', (incommingMessage: string) => {
 		Tools.logError(e);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unnecessary-condition
-	worker_threads.parentPort!.postMessage(messageNumber + "|" + id + "|" + JSON.stringify(response! || ""));
+	// eslint-disable-next-line @typescript-eslint/naming-convention
+	worker_threads.parentPort!.postMessage(messageNumber + "|" + id + "|" + JSON.stringify(response || ""));
 });

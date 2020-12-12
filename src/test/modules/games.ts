@@ -72,7 +72,6 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 				it(test, async function(this: Mocha.Context) {
 					const game = createIndividualTestGame(testFormat);
 					try {
-						// eslint-disable-next-line @typescript-eslint/await-thenable
 						await ((testData.test.call(this, game, testFormat, attributes) as unknown) as Promise<void>).catch(e => {
 							throw e;
 						});
@@ -114,8 +113,7 @@ for (const format of formatsToTest) {
 						if (room.game) room.game.deallocate(true);
 					});
 
-					// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-					createIndividualTests(variantFormat as IGameFormat, format.tests!);
+					createIndividualTests(variantFormat, format.tests!);
 				});
 			}
 		}

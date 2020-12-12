@@ -125,7 +125,7 @@ module.exports = (): void => {
 		const buildScript = path.join(Tools.rootFolder, 'build.js');
 		Tools.uncacheTree(buildScript);
 
-		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return
+		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-call
 		return (require(buildScript)(buildOptions) as Promise<void>).then(() => {
 			for (const moduleId of modules) {
 				if (moduleId === 'client') {

@@ -257,22 +257,21 @@ export class Dex {
 			}
 		}
 
-		/* eslint-disable @typescript-eslint/no-var-requires */
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
 		const alternateIconNumbers = require(path.join(this.clientDataDirectory, 'alternate-icon-numbers.js'))
 			.alternateIconNumbers as IAlternateIconNumbers;
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
 		const gifData = require(path.join(this.clientDataDirectory, 'pokedex-mini.js')).BattlePokemonSprites as Dict<IGifData | undefined>;
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
 		const gifDataBW = require(path.join(this.clientDataDirectory, 'pokedex-mini-bw.js'))
 			.BattlePokemonSpritesBW as Dict<IGifData | undefined>;
 
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
 		const trainerSpriteList = require(path.join(this.clientDataDirectory, 'trainer-sprites.js')) as string[];
 		const trainerSprites: Dict<string> = {};
 		for (const trainer of trainerSpriteList) {
 			trainerSprites[Tools.toId(trainer)] = trainer;
 		}
-		/* eslint-enable */
 
 		const parsedCategories: CategoryData = categoryData;
 		const speciesList = Object.keys(parsedCategories);
@@ -818,7 +817,7 @@ export class Dex {
 		} else if (Array.isArray(target)) {
 			targetType = target;
 		} else {
-			targetType = target.types;
+			targetType = (target as IPokemon).types;
 		}
 
 		if (Array.isArray(targetType)) {
@@ -839,6 +838,7 @@ export class Dex {
 			this.immunityCache[sourceType][cacheKey] = false;
 			return false;
 		} else {
+			targetType = targetType as string;
 			if (!Object.prototype.hasOwnProperty.call(this.immunityCache, sourceType)) {
 				this.immunityCache[sourceType] = {};
 			} else if (Object.prototype.hasOwnProperty.call(this.immunityCache[sourceType], targetType)) {
@@ -873,7 +873,7 @@ export class Dex {
 		} else if (Array.isArray(target)) {
 			targetType = target;
 		} else {
-			targetType = target.types;
+			targetType = (target as IPokemon).types;
 		}
 
 		if (Array.isArray(targetType)) {
@@ -892,6 +892,7 @@ export class Dex {
 			this.effectivenessCache[sourceType][cacheKey] = totalTypeMod;
 			return totalTypeMod;
 		} else {
+			targetType = targetType as string;
 			if (!Object.prototype.hasOwnProperty.call(this.effectivenessCache, sourceType)) {
 				this.effectivenessCache[sourceType] = {};
 			} else if (Object.prototype.hasOwnProperty.call(this.effectivenessCache[sourceType], targetType)) {

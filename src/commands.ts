@@ -30,7 +30,7 @@ const addGamePointsAliases = ['addbits', 'addbit', 'abits', 'abit', 'removebits'
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-const commands: CommandDefinitions<CommandContext> = {
+const commands: CommandDefinitions<CommandContext, void> = {
 	/**
 	 * Developer commands
 	 */

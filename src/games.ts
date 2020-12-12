@@ -484,7 +484,6 @@ export class Games {
 							const result = user.game.tryCommand(target, user, user, command);
 							if (result) returnedResult = result;
 						} else {
-							// eslint-disable-next-line @typescript-eslint/no-misused-promises, @typescript-eslint/space-before-function-paren
 							user.rooms.forEach((value, userRoom) => {
 								if (userRoom.game) {
 									const result = userRoom.game.tryCommand(target, user, user, command);

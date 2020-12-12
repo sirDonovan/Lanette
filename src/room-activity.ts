@@ -136,7 +136,6 @@ export abstract class Activity {
 	abstract forceEnd(user?: User, reason?: string): void;
 	abstract start(): void;
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	isPm(room: Room | User): room is User {
 		return this.pm;
 	}

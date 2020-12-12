@@ -86,7 +86,6 @@ export class CommandContext {
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	isPm(room: Room | User): room is User {
 		return this.pm;
 	}
