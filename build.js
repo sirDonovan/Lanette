@@ -197,68 +197,41 @@ module.exports = async (options) => {
 		console.log("Checking pokemon-showdown version...");
 		process.chdir(pokemonShowdown);
 
-		// revert build and package.json changes
-		let cmd = await exec('git reset --hard').catch(e => console.log(e));
-		if (!cmd || cmd.Error) {
-			throw new Error("git reset error");
-		}
-
 		const revParseOutput = await exec('git rev-parse master').catch(e => console.log(e));
 		if (!revParseOutput || revParseOutput.Error) {
 			throw new Error("git rev-parse error");
 		}
 
-		const currentSha = revParseOutput.stdout.replace("\n", "");
-
-		cmd = await exec('git pull').catch(e => console.log(e));
-		if (!cmd || cmd.Error) {
-			await setToSha(currentSha);
-			throw new Error("git pull error");
-		}
-
-		const lanetteSha = fs.readFileSync(path.join(__dirname, "pokemon-showdown-sha.txt")).toString();
-		let setToLanetteSha = false;
-		if (needsClone) {
-			setToLanetteSha = true;
-		} else {
-			const gitShowCurrentOutput = await exec('git show -s --format=%ct ' + currentSha).catch(e => console.log(e));
-			if (!gitShowCurrentOutput || gitShowCurrentOutput.Error) {
-				await setToSha(currentSha);
-				throw new Error("git show error");
-			}
-
-			const gitShowLanetteOutput = await exec('git show -s --format=%ct ' + lanetteSha).catch(e => console.log(e));
-			if (!gitShowLanetteOutput || gitShowLanetteOutput.Error) {
-				await setToSha(currentSha);
-				throw new Error("git show error");
-			}
-
-			const currentTimestamp = parseInt(gitShowCurrentOutput.stdout.replace("\n", ""));
-			const lanetteTimestamp = parseInt(gitShowLanetteOutput.stdout.replace("\n", ""));
-			if (!isNaN(currentTimestamp) && !isNaN(lanetteTimestamp) && lanetteTimestamp > currentTimestamp) {
-				setToLanetteSha = true;
-			}
-		}
-
 		const pokemonShowdownDist = [path.join(pokemonShowdown, ".config-dist"), path.join(pokemonShowdown, ".data-dist"),
 			path.join(pokemonShowdown, ".lib-dist"), path.join(pokemonShowdown, ".server-dist"), path.join(pokemonShowdown, ".sim-dist"),
 			path.join(pokemonShowdown, ".translations-dist")];
+
+		const currentSha = revParseOutput.stdout.replace("\n", "");
+		const lanetteSha = fs.readFileSync(path.join(__dirname, "pokemon-showdown-sha.txt")).toString();
 		let buildPokemonShowdown = false;
-		if (setToLanetteSha) {
+		if (currentSha !== lanetteSha) {
 			buildPokemonShowdown = true;
-			const cmd = await setToSha(lanetteSha);
+
+			// revert build and package.json changes
+			let cmd = await exec('git reset --hard').catch(e => console.log(e));
+			if (!cmd || cmd.Error) {
+				throw new Error("git reset error");
+			}
+
+			cmd = await exec('git pull').catch(e => console.log(e));
+			if (!cmd || cmd.Error) {
+				await setToSha(currentSha);
+				throw new Error("git pull error");
+			}
+
+			cmd = await setToSha(lanetteSha);
 			if (!cmd || cmd.Error) {
 				await setToSha(currentSha);
 				throw new Error("git reset error");
 			}
 
-			console.log("Updated pokemon-showdown to latest compatible version");
+			console.log("Updated pokemon-showdown to latest compatible commit (" + lanetteSha.substr(0, 7) + ")");
 		} else {
-			const cmd = await setToSha(currentSha);
-			if (!cmd || cmd.Error) {
-				throw new Error("git reset error");
-			}
-
 			for (const dist of pokemonShowdownDist) {
 				if (!fs.existsSync(dist)) {
 					buildPokemonShowdown = true;
@@ -269,7 +242,9 @@ module.exports = async (options) => {
 
 		if (buildPokemonShowdown) {
 			console.log("Installing pokemon-showdown dependencies...");
+
 			rewritePokemonShowdownPackageJson();
+
 			const npmInstallOutput = await exec('npm install').catch(e => console.log(e));
 			if (!npmInstallOutput || npmInstallOutput.Error) {
 				await setToSha(currentSha);
@@ -281,7 +256,9 @@ module.exports = async (options) => {
 			}
 
 			console.log("Running pokemon-showdown build script...");
+
 			rewritePokemonShowdownBuild();
+
 			const nodeBuildOutput = await exec('node build --force').catch(e => console.log(e));
 			if (!nodeBuildOutput || nodeBuildOutput.Error) {
 				await setToSha(currentSha);
