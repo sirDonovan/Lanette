@@ -481,6 +481,8 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 	playableCardDescription = "You must play a card that is super-effective against the top card.";
 	roundDrawAmount: number = 1;
 	shinyCardAchievement = AxewsBattleCards.achievements.luckofthedraw;
+	skippedPlayerAchievement = AxewsBattleCards.achievements.trumpcard;
+	skippedPlayerAchievementAmount = trumpCardEliminations;
 	showPlayerCards = false;
 	startingLives: number = 1;
 

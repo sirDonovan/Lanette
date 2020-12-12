@@ -283,11 +283,11 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 		},
 	};
 	colorsLimit: number = 20;
-	drawAchievement = BulbasaursUno.achievements.drawwizard;
-	drawAchievementAmount = drawWizardAmount;
 	finitePlayerCards: boolean = true;
 	playerCards = new Map<Player, IPokemonCard[]>();
 	shinyCardAchievement = BulbasaursUno.achievements.luckofthedraw;
+	skippedPlayerAchievement = BulbasaursUno.achievements.drawwizard;
+	skippedPlayerAchievementAmount = drawWizardAmount;
 	typesLimit: number = 20;
 	usesColors: boolean = true;
 
