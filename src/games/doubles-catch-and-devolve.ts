@@ -33,7 +33,7 @@ export const game: IGameFile<DoublesCatchAndEvolve> = Games.copyTemplateProperti
 		{
 			name: "Doubles Catch and De-volve Ubers",
 			battleFormatId: "doublesubers",
-			variantAliases: ["ubers", "doublesubers"],
+			variantAliases: ["ubers", "uber", "doublesubers"],
 		},
 		{
 			name: "Doubles Catch and De-volve UU",

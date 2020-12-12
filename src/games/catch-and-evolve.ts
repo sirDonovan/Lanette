@@ -45,7 +45,7 @@ export const game: IGameFile<CatchAndEvolve> = Games.copyTemplateProperties(elim
 		{
 			name: "Catch and Evolve Ubers",
 			battleFormatId: "ubers",
-			variantAliases: ["ubers"],
+			variantAliases: ["ubers", "uber"],
 		},
 		{
 			name: "Catch and Evolve UU",

@@ -25,7 +25,7 @@ export const game: IGameFile<CloakAndDagger> = Games.copyTemplateProperties(elim
 			name: "Cloak and Dagger Ubers",
 			battleFormatId: "ubers",
 			requiredTier: "Uber",
-			variantAliases: ["ubers"],
+			variantAliases: ["ubers", "uber"],
 		},
 		{
 			name: "Cloak and Dagger UU",

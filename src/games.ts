@@ -429,6 +429,17 @@ export class Games {
 							}
 						}
 					}
+
+					if (variant.aliases) {
+						for (const alias of variant.aliases) {
+							const aliasId = Tools.toId(alias);
+							if (aliasId in this.aliases) {
+								throw new Error(format.name + "'s variant alias '" + alias + "' is already an alias for " +
+									this.aliases[aliasId] + ".");
+							}
+							this.aliases[aliasId] = format.id + "," + variant.variantAliases[0];
+						}
+					}
 				}
 			}
 

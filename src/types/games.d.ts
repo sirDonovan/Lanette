@@ -182,6 +182,7 @@ export interface IGameVariantProperties<T extends ScriptedGame = ScriptedGame> {
 	name: string;
 	variantAliases: string[];
 
+	aliases?: string[];
 	commandDescriptions?: string[];
 	customizableOptions?: Dict<IGameOptionValues>;
 	defaultOptions?: DefaultGameOption[];

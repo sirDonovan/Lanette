@@ -182,6 +182,7 @@ export const game: IGameFile<SerperiorLengthyChains> = {
 	variants: [
 		{
 			name: "Serperior's Lengthy Move Chains",
+			aliases: ['slmc'],
 			description: "Player's form chains of moves that follow the given parameters! A chain is a sequence of moves that share 1 " +
 				"letter (such as AirSlasHealBlock)!",
 			variantAliases: ['move', 'moves'],
