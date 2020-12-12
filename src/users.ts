@@ -84,7 +84,13 @@ export class User {
 		if (!(options && options.dontPrepare)) message = Tools.prepareMessage(message);
 		if (!(options && options.dontCheckFilter) && Client.willBeFiltered(message)) return;
 
-		Client.send({message: "|/pm " + this.name + ", " + message, type: 'pm', user: this.id, measure: !(options && options.dontMeasure)});
+		Client.send({
+			message: "|/pm " + this.name + ", " + message,
+			text: message,
+			type: 'pm',
+			user: this.id,
+			measure: !(options && options.dontMeasure),
+		});
 	}
 
 	sayCommand(command: string, dontCheckFilter?: boolean): void {

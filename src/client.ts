@@ -934,18 +934,18 @@ export class Client {
 
 					const commaIndex = uhtml.indexOf(',');
 					if (commaIndex !== -1) {
-						const name = uhtml.substr(0, commaIndex);
+						const uhtmlName = uhtml.substr(0, commaIndex);
+						const uhtmlId = Tools.toId(uhtmlName);
 						const html = Tools.unescapeHTML(uhtml.substr(commaIndex + 1));
 						const htmlId = Tools.toId(html);
 						if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'uhtml' &&
-							Tools.toId(this.lastOutgoingMessage.uhtmlName) === name &&
+							Tools.toId(this.lastOutgoingMessage.uhtmlName) === uhtmlId &&
 							Tools.toId(this.lastOutgoingMessage.html) === htmlId) {
 							this.clearLastOutgoingMessage(now);
 						}
 
-						if (!uhtmlChange) room.addUhtmlChatLog(name, html);
+						if (!uhtmlChange) room.addUhtmlChatLog(uhtmlName, html);
 
-						const uhtmlId = Tools.toId(name);
 						if (uhtmlId in room.uhtmlMessageListeners) {
 							if (htmlId in room.uhtmlMessageListeners[uhtmlId]) {
 								room.uhtmlMessageListeners[uhtmlId][htmlId]();
@@ -953,14 +953,14 @@ export class Client {
 							}
 						}
 					} else {
+						const messageId = Tools.toId(messageArguments.message);
 						if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'chat' &&
-							this.lastOutgoingMessage.text === messageArguments.message) {
+							Tools.toId(this.lastOutgoingMessage.text) === messageId) {
 							this.clearLastOutgoingMessage(now);
 						}
 
 						room.addChatLog(messageArguments.message);
 
-						const messageId = Tools.toId(messageArguments.message);
 						if (messageId in room.messageListeners) {
 							room.messageListeners[messageId]();
 							delete room.messageListeners[messageId];
@@ -1018,18 +1018,18 @@ export class Client {
 				if (isUhtml || isUhtmlChange) {
 					const uhtml = messageArguments.message.substr(messageArguments.message.indexOf(" ") + 1);
 					const commaIndex = uhtml.indexOf(",");
-					const name = uhtml.substr(0, commaIndex);
-					const uhtmlId = Tools.toId(name);
+					const uhtmlName = uhtml.substr(0, commaIndex);
+					const uhtmlId = Tools.toId(uhtmlName);
 					const html = Tools.unescapeHTML(uhtml.substr(commaIndex + 1));
 					const htmlId = Tools.toId(html);
 
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'pmuhtml' &&
-						this.lastOutgoingMessage.user === recipient.id && Tools.toId(this.lastOutgoingMessage.uhtmlName) === name &&
+						this.lastOutgoingMessage.user === recipient.id && Tools.toId(this.lastOutgoingMessage.uhtmlName) === uhtmlId &&
 						Tools.toId(this.lastOutgoingMessage.html) === htmlId) {
 						this.clearLastOutgoingMessage(now);
 					}
 
-					if (!isUhtmlChange) user.addUhtmlChatLog(name, html);
+					if (!isUhtmlChange) user.addUhtmlChatLog(uhtmlName, html);
 
 					if (recipient.uhtmlMessageListeners) {
 						if (uhtmlId in recipient.uhtmlMessageListeners) {
@@ -1056,15 +1056,16 @@ export class Client {
 						}
 					}
 				} else {
+					const messageId = Tools.toId(messageArguments.message);
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'pm' &&
-						this.lastOutgoingMessage.user === recipient.id && this.lastOutgoingMessage.text === messageArguments.message) {
+						this.lastOutgoingMessage.user === recipient.id &&
+						Tools.toId(this.lastOutgoingMessage.text) === messageId) {
 						this.clearLastOutgoingMessage(now);
 					}
 
 					user.addChatLog(messageArguments.message);
 
 					if (recipient.messageListeners) {
-						const messageId = Tools.toId(messageArguments.message);
 						if (messageId in recipient.messageListeners) {
 							recipient.messageListeners[messageId]();
 							delete recipient.messageListeners[messageId];

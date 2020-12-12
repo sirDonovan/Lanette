@@ -116,6 +116,7 @@ export class Room {
 		const type = options && options.type ? options.type : 'chat';
 		const outgoingMessage: IOutgoingMessage = {message: this.sendId + "|" + message, type};
 		if (!(options && options.dontMeasure)) {
+			outgoingMessage.measure = true;
 			if (options && options.html) {
 				outgoingMessage.html = options.html;
 				if (options.uhtmlName) outgoingMessage.uhtmlName = options.uhtmlName;
