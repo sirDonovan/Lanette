@@ -110,6 +110,8 @@ export class Room {
 	}
 
 	say(message: string, options?: IRoomMessageOptions): void {
+		if (global.Rooms.get(this.id) !== this) return;
+
 		if (!(options && options.dontPrepare)) message = Tools.prepareMessage(message);
 		if (!(options && options.dontCheckFilter) && Client.willBeFiltered(message, this)) return;
 
