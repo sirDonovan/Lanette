@@ -9,13 +9,15 @@ export class CommandContext {
 	readonly pm: boolean;
 	readonly room: Room | User;
 	readonly target: string;
+	readonly timestamp: number;
 	readonly user: User;
 
-	constructor(originalCommand: string, target: string, room: Room | User, user: User) {
+	constructor(originalCommand: string, target: string, room: Room | User, user: User, timestamp: number) {
 		this.originalCommand = originalCommand;
 		this.target = target;
 		this.room = room;
 		this.user = user;
+		this.timestamp = timestamp;
 
 		this.pm = room === user;
 	}
@@ -72,7 +74,7 @@ export class CommandContext {
 		const target = newTarget !== undefined ? newTarget : this.target;
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return Commands[command].command.call(this, target, this.room, this.user, command);
+		return Commands[command].command.call(this, target, this.room, this.user, command, this.timestamp);
 	}
 
 	runMultipleTargets(delimiter: string, command: string): void {
@@ -162,7 +164,7 @@ export class CommandParser {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	parse(room: Room | User, user: User, message: string): any {
+	parse(room: Room | User, user: User, message: string, timestamp: number): any {
 		if (!this.isCommandMessage(message)) return;
 		message = message.substr(1);
 		let command: string;
@@ -183,7 +185,7 @@ export class CommandParser {
 			Config.roomIgnoredCommands[room.id].includes(command)) return;
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return new CommandContext(command, target, room, user).run();
+		return new CommandContext(command, target, room, user, timestamp).run();
 	}
 
 	getErrorText(error: CommandErrorArray): string {

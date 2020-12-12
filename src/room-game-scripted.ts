@@ -604,7 +604,7 @@ export class ScriptedGame extends Game {
 		if (commandListener) this.commandsListeners.splice(this.commandsListeners.indexOf(commandListener, 1));
 	}
 
-	tryCommand(target: string, room: Room | User, user: User, command: string): boolean {
+	tryCommand(target: string, room: Room | User, user: User, command: string, timestamp: number): boolean {
 		if (!(command in this.commands) || (!this.started && !this.commands[command].signupsGameCommand)) return false;
 
 		let canUseCommands = true;
@@ -632,7 +632,7 @@ export class ScriptedGame extends Game {
 			if (commandDefinition.pmOnly) return false;
 		}
 
-		const result: GameCommandReturnType = commandDefinition.command.call(this, target, room, user, command);
+		const result: GameCommandReturnType = commandDefinition.command.call(this, target, room, user, command, timestamp);
 		if (!result) return false;
 
 		const triggeredListeners: IGameCommandCountListener[] = [];

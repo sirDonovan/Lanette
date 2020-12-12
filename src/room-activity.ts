@@ -72,7 +72,8 @@ export class Player {
 			expiredUser = true;
 			user = Users.add(this.name, this.id);
 		}
-		CommandParser.parse(this.activity.room, user, Config.commandCharacter + command + (target !== undefined ? " " + target : ""));
+		CommandParser.parse(this.activity.room, user, Config.commandCharacter + command + (target !== undefined ? " " + target : ""),
+			Date.now());
 		if (expiredUser) Users.remove(user);
 	}
 }

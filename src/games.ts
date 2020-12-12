@@ -488,23 +488,23 @@ export class Games {
 	loadFormatCommands(): void {
 		for (const i in this.commands) {
 			Commands[i] = {
-				command(target, room, user, command) {
+				command(target, room, user, command, timestamp) {
 					let returnedResult: boolean = false;
 					if (this.isPm(room)) {
 						if (user.game) {
-							const result = user.game.tryCommand(target, user, user, command);
+							const result = user.game.tryCommand(target, user, user, command, timestamp);
 							if (result) returnedResult = result;
 						} else {
 							user.rooms.forEach((value, userRoom) => {
 								if (userRoom.game) {
-									const result = userRoom.game.tryCommand(target, user, user, command);
+									const result = userRoom.game.tryCommand(target, user, user, command, timestamp);
 									if (result) returnedResult = result;
 								}
 							});
 						}
 					} else {
 						if (room.game) {
-							const result = room.game.tryCommand(target, room, user, command);
+							const result = room.game.tryCommand(target, room, user, command, timestamp);
 							if (result) returnedResult = result;
 						}
 					}
@@ -1025,12 +1025,13 @@ export class Games {
 
 			delete this.autoCreateTimerData[room.id];
 			const database = Storage.getDatabase(room);
+			const now = Date.now();
 			if (type === 'tournament') {
-				CommandParser.parse(room, Users.self, Config.commandCharacter + "createrandomtournamentgame");
+				CommandParser.parse(room, Users.self, Config.commandCharacter + "createrandomtournamentgame", now);
 			} else if (type === 'scripted' || !database.userHostedGameQueue || !database.userHostedGameQueue.length) {
-				CommandParser.parse(room, Users.self, Config.commandCharacter + "startvote");
+				CommandParser.parse(room, Users.self, Config.commandCharacter + "startvote", now);
 			} else if (type === 'userhosted') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
-				CommandParser.parse(room, Users.self, Config.commandCharacter + "nexthost");
+				CommandParser.parse(room, Users.self, Config.commandCharacter + "nexthost", now);
 			}
 		}, timer);
 	}

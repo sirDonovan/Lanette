@@ -60,7 +60,7 @@ export class UserHostedGame extends Game {
 	useHostCommand(command: string, target?: string): void {
 		const user = Users.get(this.subHostName || this.hostName);
 		if (user) {
-			CommandParser.parse(this.room, user, Config.commandCharacter + command + (target ? " " + target : ""));
+			CommandParser.parse(this.room, user, Config.commandCharacter + command + (target ? " " + target : ""), Date.now());
 		}
 	}
 

@@ -178,7 +178,7 @@ export class Client {
 	failedPingTimeout: NodeJS.Timer | null = null;
 	filterRegularExpressions: RegExp[] | null = null;
 	groupSymbols: KeyedDict<GroupName, string> = DEFAULT_GROUP_SYMBOLS;
-	incomingMessageQueue: Data[] = [];
+	incomingMessageQueue: {message: Data, timestamp: number}[] = [];
 	lastSendTimeoutTime: number = 0;
 	lastOutgoingMessage: IOutgoingMessage | null = null;
 	loggedIn: boolean = false;
@@ -207,7 +207,7 @@ export class Client {
 
 	constructor() {
 		connectListener = () => this.onConnect();
-		messageListener = (message: Data) => this.onMessage(message);
+		messageListener = (message: Data) => this.onMessage(message, Date.now());
 		errorListener = (error: Error) => this.onConnectionError(error);
 		closeListener = (code: number, description: string) => this.onConnectionClose(code, description);
 
@@ -309,15 +309,15 @@ export class Client {
 			this.pingServer();
 
 			if (previous.incomingMessageQueue) {
-				for (const message of previous.incomingMessageQueue.slice()) {
-					if (!this.incomingMessageQueue.includes(message)) this.onMessage(message);
+				for (const item of previous.incomingMessageQueue.slice()) {
+					if (!this.incomingMessageQueue.includes(item)) this.onMessage(item.message, item.timestamp);
 				}
 			}
 
 			this.pauseIncomingMessages = false;
 			if (this.incomingMessageQueue.length) {
-				for (const message of this.incomingMessageQueue) {
-					this.onMessage(message);
+				for (const item of this.incomingMessageQueue) {
+					this.onMessage(item.message, item.timestamp);
 				}
 
 				this.incomingMessageQueue = [];
@@ -515,15 +515,14 @@ export class Client {
 		this.connect();
 	}
 
-	onMessage(webSocketData: Data): void {
+	onMessage(webSocketData: Data, now: number): void {
 		if (!webSocketData || typeof webSocketData !== 'string') return;
 
 		if (this.pauseIncomingMessages) {
-			this.incomingMessageQueue.push(webSocketData);
+			this.incomingMessageQueue.push({message: webSocketData, timestamp: now});
 			return;
 		}
 
-		const now = Date.now();
 		const lines = webSocketData.split("\n");
 		let room: Room;
 		if (lines[0].startsWith('>')) {
@@ -1088,7 +1087,7 @@ export class Client {
 					}
 
 					if (messageArguments.rank !== this.groupSymbols.locked) {
-						CommandParser.parse(user, user, commandMessage);
+						CommandParser.parse(user, user, commandMessage, now);
 					}
 				}
 			}
@@ -1551,7 +1550,7 @@ export class Client {
 	}
 
 	parseChatMessage(room: Room, user: User, message: string, now: number): void {
-		CommandParser.parse(room, user, message);
+		CommandParser.parse(room, user, message, now);
 
 		const lowerCaseMessage = message.toLowerCase();
 

@@ -91,5 +91,5 @@ export function addPlayers(game: ScriptedGame, numberOrNames?: number | string[]
 
 export function runCommand(command: string, target: string, room: Room | User, user: User | string): void {
 	if (typeof user === 'string') user = Users.add(user, Tools.toId(user));
-	CommandParser.parse(room, user, Config.commandCharacter + command + (target ? " " + target : ""));
+	CommandParser.parse(room, user, Config.commandCharacter + command + (target ? " " + target : ""), Date.now());
 }
