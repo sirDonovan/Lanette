@@ -7,9 +7,9 @@ import type { UserHostedGame } from './room-game-user-hosted';
 import type { Room } from "./rooms";
 import type { CommandErrorArray } from "./types/command-parser";
 import type {
-	AutoCreateTimerType, DefaultGameOption, GameCategory, GameCommandDefinitions, GameCommandReturnType, IGameAchievement, IGameFile,
-	IGameFormat, IGameFormatComputed, IGameMode, IGameModeFile, IGameOptionValues, IGamesWorkers, IGameTemplateFile, IGameVariant,
-	IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFormat, IUserHostedFormatComputed, LoadedGameCommands,
+	AutoCreateTimerType, DefaultGameOption, GameCategory, GameCommandDefinitions, GameCommandReturnType, GameMode, IGameAchievement,
+	IGameFile, IGameFormat, IGameFormatComputed, IGameMode, IGameModeFile, IGameOptionValues, IGamesWorkers, IGameTemplateFile,
+	IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFormat, IUserHostedFormatComputed, LoadedGameCommands,
 	LoadedGameFile, UserHostedCustomizable
 } from './types/games';
 import type { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/pokemon-showdown';
@@ -592,7 +592,7 @@ export class Games {
 			const targetId = Tools.toId(target);
 			if (!targetId) continue;
 			if (formatData.modes) {
-				const modeId = targetId in this.modeAliases ? this.modeAliases[targetId] : targetId;
+				const modeId = (targetId in this.modeAliases ? this.modeAliases[targetId] : targetId) as GameMode;
 				if (formatData.modes.includes(modeId)) {
 					if (mode) return ['tooManyGameModes'];
 					mode = this.modes[modeId];

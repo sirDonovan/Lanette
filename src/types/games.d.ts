@@ -24,6 +24,8 @@ export type AutoCreateTimerType = 'scripted' | 'tournament' | 'userhosted';
 export type GameCategory = 'board' | 'board-property' | 'card' | 'card-high-low' | 'card-matching' | 'chain' | 'elimination-tournament' |
 	'identification' | 'knowledge' | 'luck' | 'map' | 'puzzle' | 'reaction' | 'speed' | 'strategy';
 
+export type GameMode = 'group' | 'survival' | 'team';
+
 export type GameChallenge = 'onevsone';
 
 export type GameAchievements = 'quickdraw' | 'captainwordmaster' | 'wordmaster' | 'knowitall' | 'captainknowitall' | 'fishoutofwater' |
@@ -46,7 +48,7 @@ export interface IGameAchievement {
 
 	repeatBits?: number;
 	minigame?: boolean;
-	mode?: string;
+	mode?: GameMode;
 }
 
 export interface IInternalGames {
@@ -130,8 +132,8 @@ interface IGameFileProperties<T extends ScriptedGame = ScriptedGame> {
 	minigameCommand?: string;
 	minigameCommandAliases?: string[];
 	minigameDescription?: string;
-	modeProperties?: Dict<Partial<T>>;
-	modes?: string[];
+	modeProperties?: PartialKeyedDict<GameMode, Partial<T>>;
+	modes?: GameMode[];
 	noOneVsOne?: boolean;
 	nonTrivialLoadData?: boolean;
 	scriptedOnly?: boolean;
@@ -188,8 +190,8 @@ export interface IGameVariantProperties<T extends ScriptedGame = ScriptedGame> {
 	defaultOptions?: DefaultGameOption[];
 	description?: string;
 	freejoin?: boolean;
-	modeProperties?: Dict<Partial<T>>;
-	modes?: string[];
+	modeProperties?: PartialKeyedDict<GameMode, Partial<T>>;
+	modes?: GameMode[];
 }
 
 interface IUserHostedGameClass<T extends UserHostedGame = UserHostedGame> {
@@ -247,7 +249,7 @@ export interface IGameModeFile<T = ScriptedGame, U extends ScriptedGame = Script
 }
 
 export interface IGameMode<T = ScriptedGame, U extends ScriptedGame = ScriptedGame> extends IGameModeFile<T, U> {
-	id: string;
+	id: GameMode;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
