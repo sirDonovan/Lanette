@@ -13,12 +13,14 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	answerTimeout: NodeJS.Timer | undefined;
 	beforeNextRoundTime: number = 5 * 1000;
 	canGuess: boolean = false;
+	correctPlayers: Player[] = [];
 	firstAnswer: Player | false | undefined;
 	hint: string = '';
 	hintUhtmlName: string = '';
 	inactiveRounds: number = 0;
 	inactiveRoundLimit: number = 10;
 	lastHintHtml: string = '';
+	maxCorrectPlayersPerRound: number = 1;
 	multiRoundHints: boolean = false;
 	readonly points = new Map<Player, number>();
 	previousHint: string = '';
@@ -75,10 +77,12 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 			}
 		}
 
-		this.inactiveRounds++;
-		if (this.inactiveRounds === this.inactiveRoundLimit) {
-			this.inactivityEnd();
-			return;
+		if (!this.correctPlayers.length) {
+			this.inactiveRounds++;
+			if (this.inactiveRounds === this.inactiveRoundLimit) {
+				this.inactivityEnd();
+				return;
+			}
 		}
 
 		this.nextRound();
@@ -100,6 +104,8 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 			this.canGuess = false;
 			await this.setAnswers();
 			if (this.ended) return;
+
+			this.correctPlayers = [];
 			if (this.roundGuesses) this.roundGuesses.clear();
 			this.questionAndAnswerRound++;
 		}
@@ -153,7 +159,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	canGuessAnswer(player: Player): boolean {
-		if (this.ended || !this.canGuess || !this.answers.length) return false;
+		if (this.ended || !this.canGuess || !this.answers.length || this.correctPlayers.includes(player)) return false;
 		return true;
 	}
 
@@ -166,7 +172,6 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		}
 
 		let answer = this.checkAnswer(guess);
-		if (this.ended || !this.answers.length) return false;
 
 		if (!answer) {
 			if (!this.onIncorrectGuess) return false;
@@ -174,9 +179,11 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 			if (!answer) return false;
 		}
 
-		if (this.answerTimeout) {
-			clearTimeout(this.answerTimeout);
-			delete this.answerTimeout;
+		if (this.maxCorrectPlayersPerRound === 1) {
+			if (this.answerTimeout) {
+				clearTimeout(this.answerTimeout);
+				delete this.answerTimeout;
+			}
 		}
 
 		this.offUhtml(this.hintUhtmlName, this.lastHintHtml);
@@ -247,12 +254,14 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 				return true;
 			}
 
+			this.correctPlayers.push(player);
 			if (this.onCorrectGuess) this.onCorrectGuess(player, answer);
 
 			const awardedPoints = this.getPointsForAnswer ? this.getPointsForAnswer(answer) : 1;
 			const points = this.addPoints(player, awardedPoints);
 
-			if (this.allAnswersAchievement) {
+			const singleCorrectPlayer = this.maxCorrectPlayersPerRound === 1;
+			if (this.allAnswersAchievement && singleCorrectPlayer) {
 				if (this.firstAnswer === undefined) {
 					this.firstAnswer = player;
 				} else {
@@ -260,36 +269,46 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 				}
 			}
 
-			if (points >= this.format.options.points) {
-				let text = '**' + player.name + '** wins' + (this.parentGame ? '' : ' the game') + '!';
-				const answers = ' ' + this.getAnswers(answer, true);
-				if (text.length + answers.length <= Tools.maxMessageLength) {
-					text += answers;
+			const reachedMaxPoints = points >= this.format.options.points;
+			if (singleCorrectPlayer || reachedMaxPoints) {
+				if (reachedMaxPoints) {
+					let text = '**' + player.name + '** wins' + (this.parentGame ? '' : ' the game') + '!';
+					const answers = ' ' + this.getAnswers(answer, true);
+					if (text.length + answers.length <= Tools.maxMessageLength) {
+						text += answers;
+					} else {
+						text += ' A possible answer was __' + answer + '__.';
+					}
+					this.say(text);
+					if (this.allAnswersAchievement && this.firstAnswer === player && !this.parentGame) {
+						this.unlockAchievement(player, this.allAnswersAchievement);
+					}
+					this.winners.set(player, 1);
+					this.convertPointsToBits();
+					this.end();
+					return true;
 				} else {
-					text += ' A possible answer was __' + answer + '__.';
+					if (this.hint) this.off(this.hint);
+					let text = '**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '!';
+					const answers = ' ' + this.getAnswers(answer);
+					if (text.length + answers.length <= Tools.maxMessageLength) {
+						text += answers;
+					} else {
+						text += ' A possible answer was __' + answer + '__.';
+					}
+					this.say(text);
 				}
-				this.say(text);
-				if (this.allAnswersAchievement && this.firstAnswer === player && !this.parentGame) {
-					this.unlockAchievement(player, this.allAnswersAchievement);
-				}
-				this.winners.set(player, 1);
-				this.convertPointsToBits();
-				this.end();
-				return true;
+
+				this.answers = [];
+				this.timeout = setTimeout(() => this.nextRound(), 5000);
 			} else {
-				if (this.hint) this.off(this.hint);
-				let text = '**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '!';
-				const answers = ' ' + this.getAnswers(answer);
-				if (text.length + answers.length <= Tools.maxMessageLength) {
-					text += answers;
-				} else {
-					text += ' A possible answer was __' + answer + '__.';
+				if (awardedPoints) player.say("You are correct! You earned " + awardedPoints + " points.");
+				if (this.maxCorrectPlayersPerRound !== Infinity && this.correctPlayers.length === this.maxCorrectPlayersPerRound) {
+					this.answers = [];
+					this.timeout = setTimeout(() => this.nextRound(), 5000);
 				}
-				this.say(text);
 			}
 
-			this.answers = [];
-			this.timeout = setTimeout(() => this.nextRound(), 5000);
 			return true;
 		},
 		aliases: ['g'],
