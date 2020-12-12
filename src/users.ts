@@ -81,6 +81,8 @@ export class User {
 	}
 
 	say(message: string, options?: IUserMessageOptions): void {
+		if (!global.Users.get(this.name)) return;
+
 		if (!(options && options.dontPrepare)) message = Tools.prepareMessage(message);
 		if (!(options && options.dontCheckFilter) && Client.willBeFiltered(message)) return;
 

@@ -169,25 +169,35 @@ export class Room {
 	}
 
 	pmHtml(user: User | Player, html: string): void {
+		if (!Users.get(user.name)) return;
+
 		this.say("/pminfobox " + user.id + "," + html, {html, dontCheckFilter: true, dontPrepare: true, type: 'pmhtml', user: user.id});
 	}
 
 	pmUhtml(user: User | Player, uhtmlName: string, html: string): void {
+		if (!Users.get(user.name)) return;
+
 		this.say("/pmuhtml " + user.id + "," + uhtmlName + "," + html,
 			{uhtmlName, html, dontCheckFilter: true, dontPrepare: true, type: 'pmuhtml', user: user.id});
 	}
 
 	pmUhtmlChange(user: User | Player, uhtmlName: string, html: string): void {
+		if (!Users.get(user.name)) return;
+
 		this.say("/pmuhtmlchange " + user.id + "," + uhtmlName + "," + html,
 			{uhtmlName, html, dontCheckFilter: true, dontPrepare: true, type: 'pmuhtml', user: user.id});
 	}
 
 	sendHtmlPage(user: User | Player, pageId: string, html: string): void {
+		if (!Users.get(user.name)) return;
+
 		this.say("/sendhtmlpage " + user.id + "," + pageId + "," + html,
 			{dontCheckFilter: true, dontPrepare: true, dontMeasure: true, type: 'command'});
 	}
 
 	sendHighlightPage(user: User | Player, pageId: string, notificationTitle?: string, highlightPhrase?: string): void {
+		if (!Users.get(user.name)) return;
+
 		this.say("/highlighthtmlpage " + user.id + "," + pageId + "," + notificationTitle + (highlightPhrase ? "," + highlightPhrase : ""),
 			{dontCheckFilter: true, dontPrepare: true, dontMeasure: true, type: 'command'});
 	}
