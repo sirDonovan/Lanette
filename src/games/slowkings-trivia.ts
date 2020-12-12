@@ -75,7 +75,12 @@ export const game: IGameFile<SlowkingsTrivia> = Games.copyTemplateProperties(que
 	mascot: "Slowking",
 	minigameCommand: 'trivium',
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess an answer based on the description!",
-	modes: ["survival", "team"],
+	modeProperties: {
+		'timeattack': {
+			roundTime: 10 * 1000,
+		},
+	},
+	modes: ["survival", "team", "timeattack"],
 	variants: [
 		{
 			name: "Slowking's Ability Trivia",

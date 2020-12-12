@@ -24,7 +24,6 @@ class FeraligatrsLostLetters extends QuestionAndAnswer {
 	allAnswersAchievement = FeraligatrsLostLetters.achievements.alphabetsweep;
 	categoryList: DataKey[] = categories.slice();
 	inverseLostLetters: boolean = false;
-	roundTime: number = 10 * 1000;
 
 	static loadData(): void {
 		data["Characters"] = Dex.getCharacters().filter(x => x.length > 3);
@@ -106,7 +105,7 @@ export const game: IGameFile<FeraligatrsLostLetters> = Games.copyTemplatePropert
 	mascot: "Feraligatr",
 	minigameCommand: 'lostletter',
 	minigameCommandAliases: ['lletter'],
-	modes: ['team'],
+	modes: ['team', 'timeattack'],
 	variants: [
 		{
 			name: "Feraligatr's Ability Lost Letters",

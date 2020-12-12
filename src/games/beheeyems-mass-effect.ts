@@ -95,6 +95,11 @@ export const game: IGameFile<BeheeyemsMassEffect> = Games.copyTemplateProperties
 	minigameCommandAliases: ['meffect'],
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess a Pokemon whose type effectiveness matches the " +
 		"given parameters.",
-	modes: ['survival', 'team'],
+	modeProperties: {
+		'timeattack': {
+			roundTime: 10 * 1000,
+		},
+	},
+	modes: ['survival', 'team', 'timeattack'],
 	nonTrivialLoadData: true,
 });

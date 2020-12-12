@@ -72,6 +72,11 @@ export const game: IGameFile<GalladesAbilityTest> = Games.copyTemplateProperties
 	minigameCommand: 'abilitytest',
 	minigameCommandAliases: ['atest', 'gatest'],
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess a Pokemon based on the initials of its abilities!",
-	modes: ["survival", "team"],
+	modeProperties: {
+		'timeattack': {
+			roundTime: 10 * 1000,
+		},
+	},
+	modes: ["survival", "team", "timeattack"],
 	tests: Object.assign({}, questionAndAnswerGame.tests, tests),
 });
