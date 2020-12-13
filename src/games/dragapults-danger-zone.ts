@@ -6,6 +6,10 @@ import type { HexColor } from "../types/tools";
 
 type TeamIds = 'red' | 'blue';
 
+const data: {pokemon: string[]} = {
+	pokemon: [],
+};
+
 const letters = Tools.letters.toUpperCase().split("");
 const mapSymbols: {player: string; empty: string} = {
 	player: "X",
@@ -14,6 +18,8 @@ const mapSymbols: {player: string; empty: string} = {
 
 class DragapultsDangerZone extends ScriptedGame {
 	canFire: boolean = false;
+	canHide: boolean = false;
+	canSelect: boolean = false;
 	columnLetters: string[] = letters;
 	currentPlayer: Player | null = null;
 	currentTeam: TeamIds = 'red';
@@ -31,6 +37,10 @@ class DragapultsDangerZone extends ScriptedGame {
 
 	// set in onStart()
 	largestTeam!: PlayerTeam;
+
+	static loadData(): void {
+		data.pokemon = Games.getPokemonList().map(x => x.name);
+	}
 
 	displayMap(): void {
 		let html = '<div class="infobox"><table align="center" border="2" ' +
@@ -83,6 +93,8 @@ class DragapultsDangerZone extends ScriptedGame {
 	}
 
 	onRemovePlayer(player: Player): void {
+		if (!this.started) return;
+
 		if (player.team!.id in this.playerOrders) {
 			const index = this.playerOrders[player.team!.id].indexOf(player);
 			if (index !== -1) this.playerOrders[player.team!.id].splice(index, 1);
@@ -122,12 +134,17 @@ class DragapultsDangerZone extends ScriptedGame {
 		const text = "Please choose your location on the map in PMs with the command ``" +
 			Config.commandCharacter + "hide [location]`` (letter-number)!";
 		this.on(text, () => {
+			this.canHide = true;
+			this.onCommands(['hide'], {max: this.getRemainingPlayerCount(), remainingPlayersMax: true}, () => this.checkPlayerLocations());
 			this.timeout = setTimeout(() => this.checkPlayerLocations(), 60 * 1000);
 		});
 		this.say(text);
 	}
 
 	checkPlayerLocations(): void {
+		if (this.timeout) clearTimeout(this.timeout);
+		this.canHide = false;
+
 		for (const i in this.players) {
 			const player = this.players[i];
 			if (!this.playerLocations.has(player)) {
@@ -212,6 +229,7 @@ class DragapultsDangerZone extends ScriptedGame {
 		const text = Tools.joinList(players.map(x => x.name)) + " please select a Pokemon in PMs with the command ``" +
 			Config.commandCharacter + "select [Pokemon]``!";
 		this.on(text, () => {
+			this.canSelect = true;
 			this.timeout = setTimeout(() => this.calculateMatchup(), 30 * 1000);
 		});
 		this.say(text);
@@ -219,6 +237,7 @@ class DragapultsDangerZone extends ScriptedGame {
 
 	calculateMatchup(): void {
 		if (this.timeout) clearTimeout(this.timeout);
+		this.canSelect = false;
 
 		const playerA = this.matchupPlayers[0];
 		const playerB = this.matchupPlayers[1];
@@ -346,6 +365,8 @@ const commands: GameCommandDefinitions<DragapultsDangerZone> = {
 	hide: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
+			if (!this.canHide) return false;
+
 			const player = this.players[user.id];
 			if (this.playerLocations.has(player)) {
 				player.say("You have already chosen your location on the map!");
@@ -397,13 +418,19 @@ const commands: GameCommandDefinitions<DragapultsDangerZone> = {
 	select: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
-			if (!this.matchupPlayers.includes(this.players[user.id]) || this.selectedMatchupPokemon.has(this.players[user.id])) {
+			if (!this.canSelect || !this.matchupPlayers.includes(this.players[user.id]) ||
+				this.selectedMatchupPokemon.has(this.players[user.id])) {
 				return false;
 			}
 			const player = this.players[user.id];
 			const pokemon = Dex.getPokemon(target);
 			if (!pokemon) {
 				player.say(CommandParser.getErrorText(['invalidPokemon', target]));
+				return false;
+			}
+
+			if (!data.pokemon.includes(pokemon.name)) {
+				player.say(pokemon.name + " cannot be used in this game. Please choose something else!");
 				return false;
 			}
 
