@@ -1411,11 +1411,34 @@ export class Games {
 		const defaultCategory = "Uncategorized";
 		if (allowsScriptedGames) {
 			const categories: Dict<string[]> = {};
-			const keys = Object.keys(this.formats);
-			keys.sort();
-			for (const key of keys) {
+			const formatKeys = Object.keys(this.formats);
+			formatKeys.sort();
+
+			const formats: IGameFormat[] = [];
+			for (const key of formatKeys) {
 				const format = this.getExistingFormat(key);
 				if (format.disabled || format.tournamentGame) continue;
+				formats.push(format);
+			}
+
+			const modes: Dict<string[]> = {};
+			const modeKeys = Object.keys(this.modes);
+			modeKeys.sort();
+
+			for (const key of modeKeys) {
+				const mode = this.modes[key];
+				const games: string[] = [];
+				for (const format of formats) {
+					if (format.modes && format.modes.includes(mode.id)) {
+						games.push(Tools.toMarkdownAnchor(format.name, format.mascot ? "-" : ""));
+					}
+				}
+
+				modes[mode.name] = ["### " + mode.name, "**Description**: " + mode.description,
+					"\n**Playable games**: " + games.join(", ")];
+			}
+
+			for (const format of formats) {
 				const info: string[] = [];
 
 				let mascot: IPokemon | undefined;
@@ -1486,6 +1509,11 @@ export class Games {
 				scriptedGames.push("\n");
 			}
 
+			scriptedGames.push("## Modes");
+			for (const key in modes) {
+				scriptedGames = scriptedGames.concat(modes[key]);
+				scriptedGames.push("\n");
+			}
 			document = document.concat(scriptedGames);
 		}
 
