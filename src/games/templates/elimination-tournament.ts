@@ -23,7 +23,7 @@ interface ITeamChange {
 }
 
 const SIGNUPS_HTML_DELAY = 2 * 1000;
-const UPDATE_HTML_PAGE_DELAY = 2 * 1000;
+const UPDATE_HTML_PAGE_DELAY = 5 * 1000;
 const CHECK_CHALLENGES_INACTIVE_DELAY = 30 * 1000;
 const ADVERTISEMENT_TIME = 20 * 60 * 1000;
 const POTENTIAL_MAX_PLAYERS: number[] = [12, 16, 24, 32, 48, 64];
@@ -593,9 +593,9 @@ export abstract class EliminationTournament extends ScriptedGame {
 					} else {
 						this.checkChallenges(node, player, opponent);
 					}
-				}, this.activityDQTimeout);
+				}, this.activityDQTimeout + UPDATE_HTML_PAGE_DELAY);
 				this.activityTimers.set(node, dqTimeout);
-			}, activityWarning);
+			}, activityWarning + UPDATE_HTML_PAGE_DELAY);
 			this.activityTimers.set(node, warningTimeout);
 		}
 
