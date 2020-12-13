@@ -52,8 +52,7 @@ class LugiasObstructiveLetters extends QuestionAndAnswer {
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	async setAnswers(): Promise<void> {
+	generateAnswer(): void {
 		let answers: string[] = [];
 		let category: DataKey;
 		let unavailableLetters: string[] = [];

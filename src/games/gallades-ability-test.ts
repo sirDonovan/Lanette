@@ -42,8 +42,7 @@ class GalladesAbilityTest extends QuestionAndAnswer {
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	async setAnswers(): Promise<void> {
+	generateAnswer(): void {
 		const key = this.sampleOne(keys);
 		this.answers = data.abilities[key];
 		this.hint = "<b>Randomly generated abilities</b>: " + key;

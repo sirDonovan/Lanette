@@ -33,8 +33,7 @@ class GreninjasTypings extends QuestionAndAnswer {
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	async setAnswers(): Promise<void> {
+	generateAnswer(): void {
 		let pokemon = this.sampleOne(data.pokedex);
 		let typing = data.types[pokemon];
 		let reverseTyping = data.reverseTypes[pokemon];

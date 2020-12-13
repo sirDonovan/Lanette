@@ -66,8 +66,7 @@ class PikachusMysteryPokemon extends QuestionAndAnswer {
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	async setAnswers(): Promise<void> {
+	generateAnswer(): void {
 		this.mysteryRound = -1;
 		let species = this.sampleOne(data.pokedex);
 		while (this.lastSpecies === species) {

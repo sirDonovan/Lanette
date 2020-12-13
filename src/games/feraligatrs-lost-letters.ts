@@ -65,8 +65,7 @@ class FeraligatrsLostLetters extends QuestionAndAnswer {
 		return newLetters.join('');
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	async setAnswers(): Promise<void> {
+	generateAnswer(): void {
 		let category: DataKey;
 		if (this.roundCategory) {
 			category = this.roundCategory as DataKey;

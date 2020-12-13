@@ -32,8 +32,7 @@ class SudowoodosSpeciesScramble extends QuestionAndAnswer {
 		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	async setAnswers(): Promise<void> {
+	generateAnswer(): void {
 		const category = this.sampleOne(categoryKeys);
 		this.answers = data.categories[category];
 		this.hint = "<b>Sudowoodo imitated</b>: <i>the " + category + " Pokemon</i>";

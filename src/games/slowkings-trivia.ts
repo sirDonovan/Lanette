@@ -54,8 +54,7 @@ class SlowkingsTrivia extends QuestionAndAnswer {
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	async setAnswers(): Promise<void> {
+	generateAnswer(): void {
 		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		const description = this.sampleOne(categoryKeys[category]);
 		this.answers = data[category][description];

@@ -29,8 +29,7 @@ class BonslysCategoryClutters extends QuestionAndAnswer {
 		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	async setAnswers(): Promise<void> {
+	generateAnswer(): void {
 		const pokemon = this.sampleOne(pokemonKeys);
 		this.answers = data.pokemon[pokemon];
 		this.hint = "<b>Bonsly imitated</b>: <i>" + pokemon + "</i>";

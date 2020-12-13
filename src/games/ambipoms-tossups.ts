@@ -33,8 +33,7 @@ class AmbipomsTossups extends QuestionAndAnswer {
 		data["Pokemon Moves"] = Games.getMovesList().filter(x => x.name.length < 18).map(x => x.name);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	async setAnswers(): Promise<void> {
+	generateAnswer(): void {
 		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		this.currentCategory = category;
 		let answer = this.sampleOne(data[category]);

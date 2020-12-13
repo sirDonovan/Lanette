@@ -25,7 +25,6 @@ class MagnetonsMashups extends QuestionAndAnswer {
 		return "The" + (finalAnswer ? " final " : "") + " answer was __" + this.answers[0] + "__.";
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
 	checkAnswer(guess: string): string {
 		guess = Tools.toId(guess);
 		for (let i = 1; i < this.answers.length; i++) {
@@ -34,7 +33,7 @@ class MagnetonsMashups extends QuestionAndAnswer {
 		return "";
 	}
 
-	async setAnswers(): Promise<void> {
+	generateAnswer(): void {
 		let numberOfElements: number;
 		if (this.format.inputOptions.names) {
 			numberOfElements = this.format.options.names;
@@ -98,7 +97,7 @@ class MagnetonsMashups extends QuestionAndAnswer {
 		}
 
 		if (Client.willBeFiltered(mashup, !this.isPm(this.room) ? this.room : undefined)) {
-			await this.setAnswers();
+			this.generateAnswer();
 			return;
 		}
 

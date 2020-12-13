@@ -101,8 +101,7 @@ class EkansEdges extends QuestionAndAnswer {
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	async setAnswers(): Promise<void> {
+	generateAnswer(): void {
 		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		let edge = this.sampleOne(dataKeys[category]);
 		while (edge === this.lastEdge) {

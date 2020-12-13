@@ -31,8 +31,7 @@ class MareaniesMarquee extends QuestionAndAnswer {
 		data["Pokemon Moves"] = Games.getMovesList().map(x => x.name).filter(x => x.length > LETTERS_TO_REVEAL);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	async setAnswers(): Promise<void> {
+	generateAnswer(): void {
 		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		this.currentCategory = category;
 		let answer = '';

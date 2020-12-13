@@ -29,8 +29,7 @@ class SmearglesMysteryMoves extends QuestionAndAnswer {
 		data.moves = Games.getMovesList(x => !!x.shortDesc).map(x => x.name);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	async setAnswers(): Promise<void> {
+	generateAnswer(): void {
 		this.mysteryRound = -1;
 		let name = this.sampleOne(data.moves);
 		while (this.lastMove === name) {

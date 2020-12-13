@@ -69,8 +69,7 @@ class BeheeyemsMassEffect extends QuestionAndAnswer {
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	async setAnswers(): Promise<void> {
+	generateAnswer(): void {
 		let effectiveness = this.sampleOne(effectivenessListsKeys);
 		while (effectiveness === this.lastEffectiveness) {
 			effectiveness = this.sampleOne(effectivenessListsKeys);

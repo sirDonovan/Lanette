@@ -34,7 +34,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	readonly roundGuesses?: Map<Player, boolean>;
 	updateHintTime?: number;
 
-	abstract setAnswers(): Promise<void>;
+	abstract generateAnswer(): Promise<void> | void;
 
 	onInitialize(format: IGameFormat): void {
 		super.onInitialize(format);
@@ -89,6 +89,14 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		this.nextRound();
 	}
 
+	async setNextAnswer(): Promise<void> {
+		await this.generateAnswer();
+		if (this.roundGuesses) this.roundGuesses.clear();
+		this.correctPlayers = [];
+		this.hintTimestamp = 0;
+		this.questionAndAnswerRound++;
+	}
+
 	async onNextRound(): Promise<void> {
 		let roundText: boolean | string | undefined;
 		if (this.beforeNextRound) {
@@ -103,13 +111,8 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 			newAnswer = true;
 			if (this.answerTimeout) clearTimeout(this.answerTimeout);
 			this.canGuess = false;
-			await this.setAnswers();
+			await this.setNextAnswer();
 			if (this.ended) return;
-
-			this.correctPlayers = [];
-			this.hintTimestamp = 0;
-			if (this.roundGuesses) this.roundGuesses.clear();
-			this.questionAndAnswerRound++;
 		}
 
 		if (this.updateHint) {
@@ -219,8 +222,8 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	}
 
 	getRandomAnswer(): IRandomGameAnswer {
-		// true async setAnswers() should not have canGetRandomAnswer
-		void this.setAnswers();
+		// formats with async generateAnswer should not have canGetRandomAnswer set to `true`
+		void this.generateAnswer();
 		if (this.updateHint) this.updateHint();
 		return {answers: this.answers, hint: this.hint};
 	}

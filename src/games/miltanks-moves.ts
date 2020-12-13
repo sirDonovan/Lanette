@@ -54,8 +54,7 @@ class MiltanksMoves extends QuestionAndAnswer {
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	async setAnswers(): Promise<void> {
+	generateAnswer(): void {
 		const species = this.sampleOne(data.pokemon);
 		const type = this.sampleOne(Object.keys(data.moves[species]));
 		this.answers = data.moves[species][type];

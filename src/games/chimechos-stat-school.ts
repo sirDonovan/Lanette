@@ -25,8 +25,7 @@ class ChimechosStatSchool extends QuestionAndAnswer {
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	async setAnswers(): Promise<void> {
+	generateAnswer(): void {
 		const stats = this.sampleOne(statsKeys);
 		this.answers = data.stats[stats];
 		this.hint = "<b>Randomly generated base stats</b>: <i>" + stats + "</i>";

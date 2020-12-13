@@ -30,7 +30,7 @@ export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 		}
 	}
 
-	async setAnswers(): Promise<void> {
+	async generateAnswer(): Promise<void> {
 		let numberOfPorts: number;
 		if (this.customPortTypes) {
 			numberOfPorts = this.customPortTypes.length;
@@ -78,7 +78,6 @@ export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 			this.answerParts[givenAnswer].join(" + ") + ").";
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
 	checkAnswer(guess: string): string {
 		let sanitizedGuess;
 		let guessParts;

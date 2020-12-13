@@ -33,8 +33,7 @@ class AbrasAbilitySwitch extends QuestionAndAnswer {
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	async setAnswers(): Promise<void> {
+	generateAnswer(): void {
 		let pokemon = this.sampleOne(data.pokedex);
 		while (pokemon === this.lastPokemon) {
 			pokemon = this.sampleOne(data.pokedex);
@@ -45,7 +44,7 @@ class AbrasAbilitySwitch extends QuestionAndAnswer {
 		let ability = this.sampleOne(data.abilities[id]);
 		while (ability === this.lastAbility) {
 			if (data.abilities[id].length === 1) {
-				await this.setAnswers();
+				this.generateAnswer();
 				return;
 			}
 			ability = this.sampleOne(data.abilities[id]);
