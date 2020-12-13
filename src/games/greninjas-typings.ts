@@ -67,7 +67,7 @@ export const game: IGameFile<GreninjasTypings> = Games.copyTemplateProperties(qu
 	mascot: "Greninja",
 	minigameCommand: 'typing',
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess a Pokemon that match the given typing!",
-	modes: ["survival", "team", "timeattack"],
+	modes: ["multianswer", "survival", "team", "timeattack"],
 	variants: [
 		{
 			name: "Greninja's No Order Typings",

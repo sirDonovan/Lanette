@@ -24,7 +24,7 @@ export type AutoCreateTimerType = 'scripted' | 'tournament' | 'userhosted';
 export type GameCategory = 'board' | 'board-property' | 'card' | 'card-high-low' | 'card-matching' | 'chain' | 'elimination-tournament' |
 	'identification' | 'knowledge' | 'luck' | 'map' | 'puzzle' | 'reaction' | 'speed' | 'strategy';
 
-export type GameMode = 'group' | 'survival' | 'team' | 'timeattack';
+export type GameMode = 'group' | 'multianswer' | 'survival' | 'team' | 'timeattack';
 
 export type GameChallenge = 'onevsone';
 

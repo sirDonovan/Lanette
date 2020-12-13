@@ -332,7 +332,12 @@ export abstract class Game extends Activity {
 	getPlayerPoints(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => {
 			const points = this.points!.get(player) || this.startingPoints;
-			return player.name + (points ? " (" + points.toFixed(3) + ")" : "");
+			let pointsDisplay = '';
+			if (points) {
+				pointsDisplay = points.toFixed(3);
+				if (pointsDisplay.endsWith('.000')) pointsDisplay = pointsDisplay.substr(0, pointsDisplay.indexOf('.'));
+			}
+			return player.name + (pointsDisplay ? " (" + pointsDisplay + ")" : "");
 		}, players).join(', ');
 	}
 

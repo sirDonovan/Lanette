@@ -1,23 +1,26 @@
+import type { Player } from "../../room-activity";
 import type { ScriptedGame } from "../../room-game-scripted";
 import { addPlayers, assert, assertStrictEqual, runCommand } from "../../test/test-tools";
 import type {
-	DefaultGameOption, GameFileTests, IGameFormat, IGameModeFile
+	DefaultGameOption,
+	GameFileTests, IGameFormat, IGameModeFile
 } from "../../types/games";
 import type { QuestionAndAnswer } from "../templates/question-and-answer";
 
-const BASE_POINTS = 100;
+const BASE_POINTS = 20;
+const MAX_CORRECT_ANSWERS = 3;
 
-const name = 'Time Attack';
-const description = 'Earn points based on how fast you answer correctly!';
+const name = 'Multi-Answer';
+const description = 'Up to ' + MAX_CORRECT_ANSWERS + ' players can provide a unique answer each round!';
 const removedOptions: string[] = ['points'];
 
-type TimeAttackThis = QuestionAndAnswer & TimeAttack;
+type MultiAnswerThis = QuestionAndAnswer & MultiAnswer;
 
-class TimeAttack {
-	allowRepeatCorrectAnswers: boolean = true;
-	readonly loserPointsToBits: number = 1;
-	maxCorrectPlayersPerRound: number = Infinity;
-	readonly winnerPointsToBits: number = 5;
+class MultiAnswer {
+	cooldownBetweenRounds: number = 5 * 1000;
+	checkScoreCapBeforeRound: boolean = true;
+	maxCorrectPlayersPerRound: number = MAX_CORRECT_ANSWERS;
+	minimumAnswersPerHint: number = 2;
 
 	static setOptions<T extends ScriptedGame>(format: IGameFormat<T>, namePrefixes: string[]): void {
 		if (!format.name.includes(name)) namePrefixes.unshift(name);
@@ -37,29 +40,31 @@ class TimeAttack {
 		};
 	}
 
-	beforeNextRound(this: TimeAttackThis): boolean | string {
+	beforeNextRound(this: MultiAnswerThis): boolean | string {
 		if (!this.answers.length) {
 			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(() => this.getPlayerPoints()));
 		}
 		return true;
 	}
 
-	getPointsForAnswer(this: TimeAttackThis, answer: string, timestamp: number): number {
-		if (!this.hintTimestamp) return 0;
+	onIncorrectGuess(this: MultiAnswerThis, player: Player, guess: string): string {
+		if (this.roundGuesses && this.checkAnswer(guess, this.guessedAnswers)) this.roundGuesses.delete(player);
+		return "";
+	}
 
-		const elapsedTime = timestamp - this.hintTimestamp;
-		const points = (this.roundTime - elapsedTime) / 1000;
-		if (points < 0) return 0;
-		return points;
+	getPointsForAnswer(this: MultiAnswerThis): number {
+		let answers = this.roundAnswersCount;
+		if (answers > MAX_CORRECT_ANSWERS) answers = MAX_CORRECT_ANSWERS;
+		return answers - this.correctPlayers.length;
 	}
 }
 
 const initialize = (game: QuestionAndAnswer): void => {
-	if (game.getPointsForAnswer) throw new Error("Time Attack does not support games that require getPointsForAnswer()");
+	if (game.getPointsForAnswer) throw new Error("Multi-Answer does not support games that require getPointsForAnswer()");
 
-	const mode = new TimeAttack();
+	const mode = new MultiAnswer();
 	const propertiesToOverride = Object.getOwnPropertyNames(mode)
-		.concat(Object.getOwnPropertyNames(TimeAttack.prototype)) as (keyof TimeAttack)[];
+		.concat(Object.getOwnPropertyNames(MultiAnswer.prototype)) as (keyof MultiAnswer)[];
 	for (const property of propertiesToOverride) {
 		// @ts-expect-error
 		game[property] = mode[property];
@@ -67,7 +72,7 @@ const initialize = (game: QuestionAndAnswer): void => {
 
 };
 
-const tests: GameFileTests<TimeAttackThis> = {
+const tests: GameFileTests<MultiAnswerThis> = {
 	'it should have the necessary methods': {
 		config: {
 			async: true,
@@ -106,13 +111,12 @@ const tests: GameFileTests<TimeAttackThis> = {
 	},
 };
 
-export const mode: IGameModeFile<TimeAttack, QuestionAndAnswer, TimeAttackThis> = {
-	aliases: ['ta'],
-	class: TimeAttack,
+export const mode: IGameModeFile<MultiAnswer, QuestionAndAnswer, MultiAnswerThis> = {
+	aliases: ['ma', 'multi'],
+	class: MultiAnswer,
 	description,
 	initialize,
 	name,
 	naming: 'prefix',
-	removedOptions,
 	tests,
 };
