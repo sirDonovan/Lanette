@@ -21,11 +21,12 @@ const regionKeys: string[] = [];
 const regionTypeKeys: Dict<LocationTypes[]> = {};
 
 class PoipolesRegionalPortals extends ScriptedGame {
+	baseTravelersPerRound: number = BASE_TRAVELERS_PER_ROUND;
 	canTravel: boolean = false;
 	lastRegion: string = '';
 	lastType: string = '';
 	loserPointsToBits: number = 5;
-	maxTravelersPerRound: number = BASE_TRAVELERS_PER_ROUND;
+	maxTravelersPerRound: number = 0;
 	points = new Map<Player, number>();
 	roundLocations: string[] = [];
 	roundTravels = new Set<Player>();
@@ -56,6 +57,10 @@ class PoipolesRegionalPortals extends ScriptedGame {
 	}
 
 	onStart(): void {
+		if (this.parentGame && this.parentGame.playerCount < this.baseTravelersPerRound) {
+			this.baseTravelersPerRound = this.parentGame.playerCount;
+		}
+
 		this.nextRound();
 	}
 
@@ -89,10 +94,10 @@ class PoipolesRegionalPortals extends ScriptedGame {
 		this.lastType = type;
 
 		this.roundLocations = data.regions[region][type]!.slice();
-		if (this.roundLocations.length < BASE_TRAVELERS_PER_ROUND) {
+		if (this.roundLocations.length < this.baseTravelersPerRound) {
 			this.maxTravelersPerRound = this.roundLocations.length;
 		} else {
-			this.maxTravelersPerRound = BASE_TRAVELERS_PER_ROUND;
+			this.maxTravelersPerRound = this.baseTravelersPerRound;
 		}
 		this.roundTravels.clear();
 
