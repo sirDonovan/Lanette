@@ -232,6 +232,7 @@ export abstract class BoardGame extends ScriptedGame {
 		}
 
 		this.currentPlayerReRoll = rollAmount / this.dice.length === this.dice[0];
+		if (!this.currentPlayerReRoll) this.doubleRolls = 1;
 
 		const location = this.playerLocations.get(player)!;
 		const locationAfterMovement = this.getLocationAfterMovement(location, rollAmount);
