@@ -19,8 +19,10 @@ type MultiAnswerThis = QuestionAndAnswer & MultiAnswer;
 class MultiAnswer {
 	cooldownBetweenRounds: number = 5 * 1000;
 	checkScoreCapBeforeRound: boolean = true;
+	readonly loserPointsToBits: number = 5;
 	maxCorrectPlayersPerRound: number = MAX_CORRECT_ANSWERS;
 	minimumAnswersPerHint: number = 2;
+	readonly winnerPointsToBits: number = 25;
 
 	static setOptions<T extends ScriptedGame>(format: IGameFormat<T>, namePrefixes: string[]): void {
 		if (!format.name.includes(name)) namePrefixes.unshift(name);
