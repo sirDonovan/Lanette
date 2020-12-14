@@ -155,7 +155,7 @@ function constructEvasionRegex(str: string): RegExp {
 	const buf = "\\b" +
 		[...str].map(letter => (EVASION_DETECTION_SUB_STRINGS[letter] || letter) + '+').join('\\.?') +
 		"\\b";
-	return new RegExp(buf, 'i');
+	return new RegExp(buf, 'iu');
 }
 
 let connectListener: (() => void) | null;
@@ -1220,7 +1220,7 @@ export class Client {
 								if (evasion) {
 									regularExpression = constructEvasionRegex(word);
 								} else {
-									regularExpression = new RegExp(shortener ? '\\b' + word : word, hasReplacement ? 'ig' : 'i');
+									regularExpression = new RegExp(shortener ? '\\b' + word : word, hasReplacement ? 'igu' : 'iu');
 								}
 							} catch (e) {
 								console.log(e);
@@ -1677,7 +1677,7 @@ export class Client {
 
 		if (room && room.bannedWords) {
 			if (!room.bannedWordsRegex) {
-				room.bannedWordsRegex = new RegExp('(?:\\b|(?!\\w))(?:' + room.bannedWords.join('|') + ')(?:\\b|\\B(?!\\w))', 'gi');
+				room.bannedWordsRegex = new RegExp('(?:\\b|(?!\\w))(?:' + room.bannedWords.join('|') + ')(?:\\b|\\B(?!\\w))', 'i');
 			}
 			if (message.match(room.bannedWordsRegex)) return true;
 		}
