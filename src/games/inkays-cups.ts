@@ -16,6 +16,7 @@ class InkaysCups extends ScriptedGame {
 	answers: string[] = [];
 	canGrab: boolean = false;
 	canLateJoin: boolean = true;
+	points = new Map<Player, number>();
 	roundGuesses = new Map<Player, boolean>();
 	roundTime: number = 15 * 1000;
 	usesWorkers: boolean = true;
@@ -48,6 +49,12 @@ class InkaysCups extends ScriptedGame {
 		return true;
 	}
 
+	onSignups(): void {
+		if (this.format.options.freejoin && !this.isMiniGame) {
+			this.timeout = setTimeout(() => this.nextRound(), 5000);
+		}
+	}
+
 	onStart(): void {
 		const text = "The game will be played in Gen " + gameGen + " (use ``/nds``)!";
 		this.on(text, () => {
@@ -58,7 +65,7 @@ class InkaysCups extends ScriptedGame {
 
 	generateCups(): void {
 		const roundParamTypes = this.sampleMany(paramTypes, 2);
-		const lower = this.getRemainingPlayerCount();
+		const lower = this.format.options.freejoin ? 5 : this.getRemainingPlayerCount();
 		const upper = lower * 3;
 		let attempts = 0;
 		let len = 0;
@@ -69,7 +76,7 @@ class InkaysCups extends ScriptedGame {
 			attempts++;
 			for (const paramType of roundParamTypes) {
 				const name = this.sampleOne(paramTypeDexesKeys.pokemon[genString][paramType]);
-				params.push(Games.workers.parameters.workerData!.pokemon.gens[genString].paramTypePools[paramType][Tools.toId(name)]);
+				params.push(Games.workers.parameters.getData().pokemon.gens[genString].paramTypePools[paramType][Tools.toId(name)]);
 			}
 
 			const intersection = Games.workers.parameters.intersect({
@@ -96,30 +103,15 @@ class InkaysCups extends ScriptedGame {
 		this.roundGuesses.clear();
 
 		const paramNames: string[] = params.map(x => x.param);
-		let text = '';
-		let letterIndex = -1;
-		let tierIndex = -1;
-		for (let i = 0; i < roundParamTypes.length; i++) {
-			if (roundParamTypes[i] === 'letter') {
-				letterIndex = i;
-			} else if (roundParamTypes[i] === 'tier') {
-				tierIndex = i;
-			} else if (roundParamTypes[i] === 'type') {
+		for (let i = 0; i < params.length; i++) {
+			if (params[i].type === 'letter') {
+				paramNames[i] = "Starts with " + paramNames[i];
+			} else if (params[i].type === 'type') {
 				paramNames[i] += " type";
 			}
 		}
-		if (letterIndex !== -1 && tierIndex !== -1) {
-			text = "Grab a Pokemon that is **" + paramNames[tierIndex] + "** and starts with the letter **" +
-				paramNames[letterIndex] + "**!";
-		} else if (letterIndex !== -1) {
-			text = "Grab a **" + (letterIndex === 0 ? paramNames[1] : paramNames[0]) + "** Pokemon that starts with the letter **" +
-				paramNames[letterIndex] + "**!";
-		} else if (tierIndex !== -1) {
-			text = "Grab a **" + (tierIndex === 0 ? paramNames[1] : paramNames[0]) + "** Pokemon that is **" +
-				paramNames[tierIndex] + "**!";
-		} else {
-			text = "Grab a **" + paramNames[0] + ", " + paramNames[1] + "** Pokemon!";
-		}
+
+		const text = "Grab a Pokemon that fits the parameters: **" + Tools.joinList(paramNames) + "**!";
 		this.on(text, () => {
 			this.canGrab = true;
 			if (this.timeout) clearTimeout(this.timeout);
@@ -130,15 +122,19 @@ class InkaysCups extends ScriptedGame {
 
 	onNextRound(): void {
 		this.canGrab = false;
-		if (this.round > 1) {
-			if (this.roundTime > 5000) this.roundTime -= 2500;
-			for (const i in this.players) {
-				if (this.players[i].eliminated) continue;
-				if (!this.roundGuesses.has(this.players[i])) this.eliminatePlayer(this.players[i], "You did not grab a Pokemon!");
+		if (!this.format.options.freejoin) {
+			if (this.round > 1) {
+				if (this.roundTime > 5000) this.roundTime -= 2500;
+				for (const i in this.players) {
+					if (this.players[i].eliminated) continue;
+					if (!this.roundGuesses.has(this.players[i])) this.eliminatePlayer(this.players[i], "You did not grab a Pokemon!");
+				}
 			}
+			if (this.getRemainingPlayerCount() < 2) return this.end();
 		}
-		if (this.getRemainingPlayerCount() < 2) return this.end();
-		const html = this.getRoundHtml(players => this.getPlayerNames(players));
+
+		const html = this.getRoundHtml(players => this.format.options.freejoin ? this.getPlayerPoints(players) :
+			this.getPlayerNames(players));
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
 			if (this.timeout) clearTimeout(this.timeout);
@@ -148,14 +144,23 @@ class InkaysCups extends ScriptedGame {
 	}
 
 	onEnd(): void {
-		for (const i in this.players) {
-			if (this.players[i].eliminated) continue;
-			const player = this.players[i];
-			this.winners.set(player, 1);
-			this.addBits(player, 500);
-		}
+		if (this.format.options.freejoin) {
+			this.convertPointsToBits();
+		} else {
+			for (const i in this.players) {
+				if (this.players[i].eliminated) continue;
+				const player = this.players[i];
+				this.winners.set(player, 1);
+				this.addBits(player, 500);
+			}
 
-		this.announceWinners();
+			this.announceWinners();
+		}
+	}
+
+	getAnswers(givenAnswer: string): string {
+		if (!givenAnswer) givenAnswer = Dex.getExistingPokemon(this.answers[0]).name;
+		return "A possible answer was __" + givenAnswer + "__.";
 	}
 }
 
@@ -164,9 +169,10 @@ const commands: GameCommandDefinitions<InkaysCups> = {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canGrab || this.roundGuesses.has(this.players[user.id])) return false;
-			const player = this.players[user.id];
+			const player = this.createPlayer(user) || this.players[user.id];
 			const guess = Tools.toId(target);
 			if (!guess) return false;
+
 			const guessMega = guess.substr(0, 4) === 'mega' ? guess.substr(4) + 'mega' : '';
 			const guessPrimal = guess.substr(0, 6) === 'primal' ? guess.substr(6) + 'primal' : '';
 			let answerIndex = -1;
@@ -178,10 +184,31 @@ const commands: GameCommandDefinitions<InkaysCups> = {
 				}
 			}
 			if (answerIndex === -1) return false;
-			const pokemon = Dex.getExistingPokemon(this.answers[answerIndex]).name;
-			this.answers.splice(answerIndex, 1);
-			this.roundGuesses.set(player, true);
-			user.say("You grabbed " + pokemon + " and advanced to the next round!");
+
+			const answer = Dex.getExistingPokemon(this.answers[answerIndex]).name;
+			if (this.format.options.freejoin) {
+				let points = this.points.get(player) || 0;
+				points++;
+				this.points.set(player, points);
+				if (points === this.format.options.points) {
+					this.say("**" + player.name + "** wins" + (this.parentGame ? "" : " the game") + "! " + this.getAnswers(answer));
+					for (const i in this.players) {
+						if (this.players[i] !== player) this.players[i].eliminated = true;
+					}
+					this.winners.set(player, 1);
+					this.end();
+					return true;
+				} else {
+					this.say("**" + player.name + "** advances to **" + points + "** point" + (points > 1 ? "s" : "") + "! " +
+						this.getAnswers(answer));
+				}
+				this.nextRound();
+			} else {
+				this.answers.splice(answerIndex, 1);
+				this.roundGuesses.set(player, true);
+				user.say("You grabbed " + answer + " and advanced to the next round!");
+			}
+
 			return true;
 		},
 	},
@@ -193,6 +220,7 @@ export const game: IGameFile<InkaysCups> = {
 	class: InkaysCups,
 	commandDescriptions: [Config.commandCharacter + 'grab [Pokemon]'],
 	commands,
+	defaultOptions: ['freejoin', 'points'],
 	description: "Players grab Pokemon that fit the given parameters each round (one per player)!",
 	name: "Inkay's Cups",
 	mascot: "Inkay",
