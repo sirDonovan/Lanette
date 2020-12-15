@@ -292,7 +292,7 @@ export class ScriptedGame extends Game {
 	}
 
 	start(): boolean {
-		if (this.minPlayers && this.playerCount < this.minPlayers) return false;
+		if (this.started || (this.minPlayers && this.playerCount < this.minPlayers)) return false;
 
 		if (this.startTimer) clearTimeout(this.startTimer);
 		this.started = true;
@@ -349,6 +349,9 @@ export class ScriptedGame extends Game {
 	}
 
 	end(): void {
+		if (this.ended) throw new Error("Game already ended");
+		this.ended = true;
+
 		if (this.isPm(this.room)) {
 			this.deallocate(false);
 			return;

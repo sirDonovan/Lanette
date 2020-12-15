@@ -201,7 +201,7 @@ export class UserHostedGame extends Game {
 	}
 
 	start(isAuth?: boolean): boolean {
-		if (this.minPlayers && !isAuth && this.playerCount < this.minPlayers) return false;
+		if (this.started || (this.minPlayers && !isAuth && this.playerCount < this.minPlayers)) return false;
 
 		if (this.startTimer) clearTimeout(this.startTimer);
 		if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
@@ -216,6 +216,9 @@ export class UserHostedGame extends Game {
 	}
 
 	end(): void {
+		if (this.ended) throw new Error("Game already ended");
+		this.ended = true;
+
 		let hostDifficulty: GameDifficulty;
 		if (Config.userHostedGameHostDifficulties && this.format.id in Config.userHostedGameHostDifficulties) {
 			hostDifficulty = Config.userHostedGameHostDifficulties[this.format.id];
