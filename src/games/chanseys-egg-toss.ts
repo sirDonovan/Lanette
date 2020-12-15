@@ -20,7 +20,7 @@ class ChanseysEggToss extends ScriptedGame {
 
 	onRenamePlayer(player: Player): void {
 		if (!this.started || player.eliminated) return;
-		this.removePlayer(player.name);
+		this.eliminatePlayer(player, "You cannot change your name!");
 		const text = player.name + " was DQed for changing names!";
 		if (this.currentHolder) {
 			this.say(text + " Moving to the next round.");
