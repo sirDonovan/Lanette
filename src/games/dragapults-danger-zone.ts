@@ -508,7 +508,7 @@ const commands: GameCommandDefinitions<DragapultsDangerZone> = {
 					player.say("You cannot fire at yourself!");
 					return false;
 				}
-				if (location === this.lastFiredLocation) {
+				if (location === this.lastFiredLocation && this.getRemainingPlayerCount() > 2) {
 					player.say("The same location cannot be fired twice in a row!");
 					return false;
 				}
