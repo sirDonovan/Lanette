@@ -503,7 +503,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 	}
 
 	filterPoolItem(pokemon: IPokemon): boolean {
-		if (this.hasNoWeaknesses(pokemon)) return false;
+		if (this.hasNoWeaknesses(pokemon.types)) return false;
 		return true;
 	}
 
@@ -512,6 +512,29 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		if (!Tools.compareArrays(baseSpecies.types, forme.types) &&
 			!(baseSpecies.name === "Arceus" || baseSpecies.name === "Silvally")) return true;
 		return false;
+	}
+
+	createDeckPool(): void {
+		this.deckPool = [];
+
+		let pokemonList: readonly IPokemon[];
+		if (this.hackmonsTypes) {
+			const list: IPokemon[] = [];
+			for (const key of Dex.data.pokemonKeys) {
+				const pokemon = Dex.getExistingPokemon(key);
+				if (pokemon.id in this.actionCards || !Dex.hasGifData(pokemon)) continue;
+				list.push(pokemon);
+			}
+			pokemonList = list;
+		} else {
+			pokemonList = Games.getPokemonList(pokemon => this.filterPokemonList(pokemon));
+		}
+
+		for (const pokemon of pokemonList) {
+			const color = Tools.toId(pokemon.color);
+			if (!(color in this.colors)) this.colors[color] = pokemon.color;
+			this.deckPool.push(this.pokemonToCard(pokemon));
+		}
 	}
 
 	createDeck(): void {
@@ -586,7 +609,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 
 		let newTypes: string[] = [];
 		let newKey = '';
-		while (!newKey || newKey === originalKey) {
+		while (!newKey || newKey === originalKey || this.hasNoWeaknesses(newTypes)) {
 			if (this.random(2)) {
 				newTypes = [Dex.getExistingType(typeKeys[0]).name, Dex.getExistingType(typeKeys[1]).name];
 			} else {
@@ -615,11 +638,11 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		return this.getChatTypeLabel(card);
 	}
 
-	hasNoWeaknesses(pokemon: IPokemon): boolean {
+	hasNoWeaknesses(types: readonly string[]): boolean {
 		let noWeaknesses = true;
 		for (const key of Dex.data.typeKeys) {
 			const type = Dex.getExistingType(key).name;
-			if (!Dex.isImmune(type, pokemon) && Dex.getEffectiveness(type, pokemon) > 0) {
+			if (!Dex.isImmune(type, types) && Dex.getEffectiveness(type, types) > 0) {
 				noWeaknesses = false;
 				break;
 			}
@@ -628,7 +651,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 	}
 
 	isStaleTopCard(): boolean {
-		return this.hasNoWeaknesses(Dex.getExistingPokemon(this.topCard.name));
+		return this.hasNoWeaknesses(Dex.getExistingPokemon(this.topCard.name).types);
 	}
 
 	checkTopCardStaleness(message?: string): void {

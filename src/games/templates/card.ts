@@ -150,15 +150,16 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 		return card;
 	}
 
+	filterPokemonList(pokemon: IPokemon): boolean {
+		if ((pokemon.forme && (!this.filterForme || !this.filterForme(pokemon))) ||
+			(this.usesActionCards && pokemon.id in this.actionCards) || !Dex.hasGifData(pokemon) ||
+			(this.filterPoolItem && !this.filterPoolItem(pokemon))) return false;
+		return true;
+	}
+
 	createDeckPool(): void {
 		this.deckPool = [];
-		const pokemonList = Games.getPokemonList(pokemon => {
-			if ((pokemon.forme && (!this.filterForme || !this.filterForme(pokemon))) ||
-				(this.usesActionCards && pokemon.id in this.actionCards) || !Dex.hasGifData(pokemon) ||
-				(this.filterPoolItem && !this.filterPoolItem(pokemon))) return false;
-			return true;
-		});
-
+		const pokemonList = Games.getPokemonList(pokemon => this.filterPokemonList(pokemon));
 		for (const pokemon of pokemonList) {
 			const color = Tools.toId(pokemon.color);
 			if (!(color in this.colors)) this.colors[color] = pokemon.color;
