@@ -53,7 +53,6 @@ export interface IDatabase {
 	botGreetings?: Dict<IBotGreeting>;
 	eventInformation?: Dict<IEventInformation>;
 	gameAchievements?: Dict<string[]>;
-	gameCount?: number;
 	gameLeaderboard?: Leaderboard;
 	lastGameFormatTimes?: Dict<number>;
 	lastGameTime?: number;
@@ -67,10 +66,11 @@ export interface IDatabase {
 	previousUserHostedGameStats?: Dict<IUserHostedGameStats[]>;
 	queuedTournament?: {formatid: string; playerCap: number; scheduled: boolean; time: number};
 	roomSampleTeamsLink?: string;
+	scriptedGameCounts?: Dict<number>;
 	thcWinners?: Dict<string>;
 	tournamentLeaderboard?: Leaderboard;
 	unsortedLeaderboard?: Leaderboard;
-	userHostedGameCount?: number;
+	userHostedGameCounts?: Dict<number>;
 	userHostedGameStats?: Dict<IUserHostedGameStats[]>;
 	userHostedGameQueue?: IQueuedUserHostedGame[];
 	userHostStatuses?: Dict<UserHostStatus>;

@@ -121,27 +121,6 @@ export abstract class Game extends Activity {
 			"<br /><br /><b>Players (" + this.playerCount + ")</b>: " + this.getPlayerNames() + "</div>";
 	}
 
-	setUhtmlBaseName(gameType: 'scripted' | 'userhosted'): void {
-		let gameCount: number;
-		if (this.isPm(this.room)) {
-			gameCount = this.random(1000);
-		} else {
-			const database = Storage.getDatabase(this.room);
-			if (gameType === 'scripted') {
-				if (!database.gameCount) database.gameCount = 0;
-				database.gameCount++;
-				gameCount = database.gameCount;
-			} else {
-				if (!database.userHostedGameCount) database.userHostedGameCount = 0;
-				database.userHostedGameCount++;
-				gameCount = database.userHostedGameCount;
-			}
-		}
-		this.uhtmlBaseName = gameType + '-' + gameCount + '-' + this.id;
-		this.signupsUhtmlName = this.uhtmlBaseName + "-signups";
-		this.joinLeaveButtonUhtmlName = this.uhtmlBaseName + "-join-leave";
-	}
-
 	sayPokemonUhtml(pokemon: IPokemon[], type: 'gif' | 'icon', uhtmlName: string, html: string, user: User): void {
 		if (this.lastPokemonUhtml) {
 			let lastHtml = "<div class='infobox'>";

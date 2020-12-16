@@ -148,6 +148,8 @@ export class Storage {
 			}
 		}
 
+		if (this.databases[roomid].scriptedGameCounts) this.databases[roomid].scriptedGameCounts = {};
+		if (this.databases[roomid].userHostedGameCounts) this.databases[roomid].userHostedGameCounts = {};
 		if (this.databases[roomid].userHostedGameStats) {
 			this.databases[roomid].previousUserHostedGameStats = this.databases[roomid].userHostedGameStats;
 		}

@@ -137,10 +137,21 @@ export class UserHostedGame extends Game {
 		this.teams = null;
 	}
 
+	setUhtmlBaseName(): void {
+		const database = Storage.getDatabase(this.room);
+		if (!database.userHostedGameCounts) database.userHostedGameCounts = {};
+		if (!(this.format.id in database.userHostedGameCounts)) database.userHostedGameCounts[this.format.id] = 0;
+		database.userHostedGameCounts[this.format.id]++;
+
+		this.uhtmlBaseName = "userhosted-" + this.format.id + "-" + database.userHostedGameCounts[this.format.id];
+		this.signupsUhtmlName = this.uhtmlBaseName + "-signups";
+		this.joinLeaveButtonUhtmlName = this.uhtmlBaseName + "-join-leave";
+	}
+
 	// Game lifecycle
 	onInitialize(format: IUserHostedFormat): void {
 		this.format = format;
-		this.setUhtmlBaseName('userhosted');
+		this.setUhtmlBaseName();
 
 		this.endTime = Date.now() + HOST_TIME_LIMIT;
 		if (this.format.link) this.description += "<br /><br /><b><a href='" + this.format.link + "'>More info</a></b>";
