@@ -10,11 +10,11 @@ const LAST_SEEN_EXPIRATION = 30 * 24 * 60 * 60 * 1000;
 const OFFLINE_MESSAGE_EXPIRATION = 30 * 24 * 60 * 60 * 1000;
 
 const globalDatabaseId = 'globalDB';
-const hostingDatabaseSuffix = '-hostingDB';
 const baseOfflineMessageLength = '[28 Jun 2019, 00:00:00 GMT-0500] **** said: '.length;
 
 export class Storage {
 	gameLeaderboard = 'gameLeaderboard' as const;
+	gameHostingLeaderboard = 'gameHostingLeaderbaord' as const;
 	tournamentLeaderboard = 'tournamentLeaderboard' as const;
 	unsortedLeaderboard = 'unsortedLeaderboard' as const;
 
@@ -28,7 +28,8 @@ export class Storage {
 	globalDatabaseExportInterval: NodeJS.Timer;
 
 	constructor() {
-		this.allLeaderboardTypes = [this.gameLeaderboard, this.tournamentLeaderboard, this.unsortedLeaderboard];
+		this.allLeaderboardTypes = [this.gameLeaderboard, this.gameHostingLeaderboard, this.tournamentLeaderboard,
+			this.unsortedLeaderboard];
 		this.globalDatabaseExportInterval = setInterval(() => this.exportDatabase(globalDatabaseId), 15 * 60 * 1000);
 	}
 
@@ -52,12 +53,6 @@ export class Storage {
 	getGlobalDatabase(): IGlobalDatabase {
 		if (!(globalDatabaseId in this.databases)) this.databases[globalDatabaseId] = {};
 		return this.databases[globalDatabaseId] as IGlobalDatabase;
-	}
-
-	getHostingDatabase(room: Room): IDatabase {
-		const id = room.id + hostingDatabaseSuffix;
-		if (!(id in this.databases)) this.databases[id] = {};
-		return this.databases[id];
 	}
 
 	exportDatabase(roomid: string): void {
@@ -154,8 +149,6 @@ export class Storage {
 			this.databases[roomid].previousUserHostedGameStats = this.databases[roomid].userHostedGameStats;
 		}
 
-		if (roomid + hostingDatabaseSuffix in this.databases) this.clearLeaderboard(roomid + hostingDatabaseSuffix);
-
 		this.exportDatabase(roomid);
 		return true;
 	}
@@ -248,10 +241,6 @@ export class Storage {
 					database.gameAchievements[destinationId].push(achievement);
 				}
 			}
-		}
-
-		if (roomid + hostingDatabaseSuffix in this.databases) {
-			this.transferData(roomid + hostingDatabaseSuffix, sourceName, destinationName);
 		}
 
 		return true;

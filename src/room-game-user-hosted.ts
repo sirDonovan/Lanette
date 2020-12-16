@@ -285,6 +285,7 @@ export class UserHostedGame extends Game {
 		}
 
 		Storage.addPoints(this.room, Storage.gameLeaderboard, hostName, hostBits, 'userhosted');
+		Storage.addPoints(this.room, Storage.gameHostingLeaderboard, hostName, 1, this.format.id);
 		const user = Users.get(hostName);
 		if (user) {
 			user.say("You were awarded " + hostBits + " bits! To see your total amount, use this command: ``" + Config.commandCharacter +

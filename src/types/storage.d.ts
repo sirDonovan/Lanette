@@ -45,7 +45,7 @@ export interface IUserHostedGameStats {
 
 export type UserHostStatus = 'unapproved' | 'novice' | 'approved';
 
-export type LeaderboardType = 'gameLeaderboard' | 'tournamentLeaderboard' | 'unsortedLeaderboard';
+export type LeaderboardType = 'gameLeaderboard' | 'gameHostingLeaderbaord' | 'tournamentLeaderboard' | 'unsortedLeaderboard';
 
 export type Leaderboard = Dict<ILeaderboardEntry>;
 
@@ -54,6 +54,7 @@ export interface IDatabase {
 	eventInformation?: Dict<IEventInformation>;
 	gameAchievements?: Dict<string[]>;
 	gameLeaderboard?: Leaderboard;
+	gameHostingLeaderbaord?: Leaderboard;
 	lastGameFormatTimes?: Dict<number>;
 	lastGameTime?: number;
 	lastTournamentFormatTimes?: Dict<number>;
