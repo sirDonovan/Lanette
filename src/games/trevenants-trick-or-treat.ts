@@ -86,7 +86,7 @@ const commands: GameCommandDefinitions<TrevenantsTrickOrTreat> = {
 	trick: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
-			if (!this.started) return false;
+			if (!this.started || !this.pokemonGrid.length) return false;
 			const move = Dex.getMove(target);
 			if (!move) {
 				user.say(CommandParser.getErrorText(['invalidMove', target]));
