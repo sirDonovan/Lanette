@@ -80,6 +80,17 @@ export class User {
 		return !(status === 'busy' || status === 'idle' || status === 'away');
 	}
 
+	updateStatus(status: string, away: boolean): void {
+		this.status = status;
+		this.away = away;
+
+		this.rooms.forEach((value, room) => {
+			if (room.game && room.game.onUserUpdateStatus) room.game.onUserUpdateStatus(this, status, away);
+			if (room.tournament && room.tournament.onUserUpdateStatus) room.tournament.onUserUpdateStatus(this, status, away);
+			if (room.userHostedGame && room.userHostedGame.onUserUpdateStatus) room.userHostedGame.onUserUpdateStatus(this, status, away);
+		});
+	}
+
 	say(message: string, options?: IUserMessageOptions): void {
 		if (!global.Users.get(this.name)) return;
 

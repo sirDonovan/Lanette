@@ -98,14 +98,25 @@ export class Room {
 		this.title = response.title;
 	}
 
-	onUserJoin(user: User, rank: string, lastChatMessage?: number): void {
+	onUserJoin(user: User, rank: string, onRename?: boolean): void {
 		this.users.add(user);
-		user.rooms.set(this, {lastChatMessage, rank});
+
+		const roomData = user.rooms.get(this);
+		user.rooms.set(this, {lastChatMessage: roomData ? roomData.lastChatMessage : 0, rank});
+
+		if (this.game && this.game.onUserJoinRoom) this.game.onUserJoinRoom(this, user, onRename);
+		if (this.tournament && this.tournament.onUserJoinRoom) this.tournament.onUserJoinRoom(this, user, onRename);
+		if (this.userHostedGame && this.userHostedGame.onUserJoinRoom) this.userHostedGame.onUserJoinRoom(this, user, onRename);
 	}
 
 	onUserLeave(user: User): void {
 		this.users.delete(user);
 		user.rooms.delete(this);
+
+		if (this.game && this.game.onUserLeaveRoom) this.game.onUserLeaveRoom(this, user);
+		if (this.tournament && this.tournament.onUserLeaveRoom) this.tournament.onUserLeaveRoom(this, user);
+		if (this.userHostedGame && this.userHostedGame.onUserLeaveRoom) this.userHostedGame.onUserLeaveRoom(this, user);
+
 		if (!user.rooms.size) Users.remove(user);
 	}
 

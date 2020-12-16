@@ -807,7 +807,6 @@ export class ScriptedGame extends Game {
 	onRemovePlayer?(player: Player): void;
 	onSignups?(): void;
 	onStart?(): void;
-	onUserJoinRoom?(room: Room, user: User): void;
 	parseChatMessage?(user: User, message: string): void;
 	rejectChallenge?(user: User): boolean;
 	repostInformation?(): void;

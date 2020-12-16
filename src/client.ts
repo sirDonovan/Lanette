@@ -799,12 +799,7 @@ export class Client {
 
 			const user = Users.add(username, id);
 			room.onUserJoin(user, messageArguments.rank);
-			if (status || user.status) user.status = status;
-			if (away) {
-				user.away = true;
-			} else if (user.away) {
-				user.away = false;
-			}
+			user.updateStatus(status, away);
 
 			if (user === Users.self && this.publicChatRooms.includes(room.id) && Users.self.hasRank(room, 'driver')) {
 				this.sendThrottle = TRUSTED_MESSAGE_THROTTLE;
@@ -816,7 +811,6 @@ export class Client {
 				now - this.botGreetingCooldowns[user.id] >= BOT_GREETING_COOLDOWN)) {
 				if (Storage.checkBotGreeting(room, user, now)) this.botGreetingCooldowns[user.id] = now;
 			}
-			if (room.game && room.game.onUserJoinRoom) room.game.onUserJoinRoom(room, user);
 			break;
 		}
 
@@ -827,6 +821,7 @@ export class Client {
 				possibleRank: messageParts[0].charAt(0),
 				username: messageParts[0].substr(1),
 			};
+
 			let rank: string | undefined;
 			let username: string;
 			if (messageArguments.possibleRank in this.serverGroups) {
@@ -861,19 +856,12 @@ export class Client {
 
 			const {away, status, username} = Tools.parseUsernameText(messageArguments.usernameText);
 			const user = Users.rename(username, messageArguments.oldId);
-			if (status || user.status) user.status = status;
-			if (away) {
-				user.away = true;
-			} else if (user.away) {
-				user.away = false;
-			}
+			room.onUserJoin(user, messageArguments.rank, true);
+			user.updateStatus(status, away);
 
 			if (!user.away && Config.allowMail && messageArguments.rank !== this.groupSymbols.locked) {
 				Storage.retrieveOfflineMessages(user);
 			}
-
-			const roomData = user.rooms.get(room);
-			room.onUserJoin(user, messageArguments.rank, roomData ? roomData.lastChatMessage : undefined);
 
 			Storage.updateLastSeen(user, now);
 			break;
