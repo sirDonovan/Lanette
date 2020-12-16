@@ -12,19 +12,39 @@ class EggToss extends ScriptedGame {
 	};
 
 	currentHolder: Player | null = null;
+	explodeTimeout: NodeJS.Timer | null = null;
 	internalGame: boolean = true;
 	lastHolder: Player | null = null;
 
 	// hack for selectUser()
 	room!: Room;
 
-	onSignups(): void {
-		this.timeout = setTimeout(() => this.explodeEgg(), this.sampleOne([10, 10.5, 11, 11.5, 12]) * 1000);
+	cleanupTimers(): void {
+		if (this.explodeTimeout) clearTimeout(this.explodeTimeout);
 	}
 
-	explodeEgg(): void {
+	onRenamePlayer(player: Player): void {
+		if (!this.started || player.eliminated) return;
+		this.currentHolder = player;
+		this.explodeEgg("for changing their username");
+	}
+
+	onUserUpdateStatus(user: User, status: string, away: boolean): void {
+		if (!(user.id in this.players) || this.players[user.id].eliminated || !away) return;
+		this.currentHolder = this.players[user.id];
+		this.explodeEgg("for changing their away status");
+	}
+
+	onSignups(): void {
+		this.explodeTimeout = setTimeout(() => this.explodeEgg(), this.sampleOne([10, 10.5, 11, 11.5, 12]) * 1000);
+	}
+
+	explodeEgg(reason?: string): void {
+		if (this.explodeTimeout) clearTimeout(this.explodeTimeout);
+		if (this.timeout) clearTimeout(this.timeout);
+
 		if (this.currentHolder) {
-			this.say("**BOOOOM**! The egg exploded on **" + this.currentHolder.name + "**!");
+			this.say("**BOOOOM**! The egg exploded on **" + this.currentHolder.name + "**" + (reason ? " " + reason : "") + "!");
 			if (this.lastHolder && this.currentHolder.id === Users.self.id) {
 				this.unlockAchievement(this.lastHolder, EggToss.achievements.eggthesystem!);
 			}
