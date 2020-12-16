@@ -697,7 +697,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		const playedCards: ICard[] = [card];
 		for (const target of targets) {
 			const id = Tools.toId(target);
-			const index = this.getCardIndex(id, cards);
+			const index = this.getCardIndex(id, cards, playedCards);
 			if (index < 0) {
 				const pokemon = Dex.getPokemon(id);
 				if (pokemon) {

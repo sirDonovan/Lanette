@@ -172,7 +172,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Pikachu"));
 			game.start();
 			const player = game.currentPlayer!;
-			const newCards = [game.pokemonToCard(Dex.getExistingPokemon("Stunfisk")),
+			let newCards = [game.pokemonToCard(Dex.getExistingPokemon("Stunfisk")),
 				game.pokemonToCard(Dex.getExistingPokemon("Eevee")), game.pokemonToCard(Dex.getExistingPokemon("Pidgey")),
 				game.pokemonToCard(Dex.getExistingPokemon("Charmander"))];
 			game.playerCards.set(player, newCards);
@@ -181,6 +181,16 @@ const tests: GameFileTests<StakatakasCardTower> = {
 			player.useCommand('play', 'Stunfisk, Eevee, Pidgey, Eevee, Pidgey');
 			assert(!game.ended);
 			assertStrictEqual(newCards.length, 4);
+
+			newCards = [game.pokemonToCard(Dex.getExistingPokemon("Stunfisk")),
+				game.pokemonToCard(Dex.getExistingPokemon("Eevee")), game.pokemonToCard(Dex.getExistingPokemon("Pidgey")),
+				game.pokemonToCard(Dex.getExistingPokemon("Charmander")), game.pokemonToCard(Dex.getExistingPokemon("Eevee"))];
+			game.playerCards.set(player, newCards);
+			assert(game.hasPlayableCard(game.getTurnCards(player)));
+			game.canPlay = true;
+			player.useCommand('play', 'Stunfisk, Eevee, Pidgey, Eevee');
+			assert(!game.ended);
+			assertStrictEqual(newCards.length, 2);
 		},
 	},
 	'it should properly detect possible chains': {

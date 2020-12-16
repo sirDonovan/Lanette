@@ -205,11 +205,11 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 		return this.getCardIndex(name, cards) !== -1;
 	}
 
-	getCardIndex(name: string, cards: ICard[]): number {
+	getCardIndex(name: string, cards: ICard[], otherPlayedCards?: ICard[]): number {
 		const id = Tools.toId(name);
 		let index = -1;
 		for (let i = 0; i < cards.length; i++) {
-			if (cards[i].id === id) {
+			if (cards[i].id === id && (!otherPlayedCards || !otherPlayedCards.includes(cards[i]))) {
 				index = i;
 				break;
 			}
@@ -219,8 +219,11 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 
 	getCardIndices(names: string[], cards: ICard[]): number[] {
 		const indices: number[] = [];
+		const allCards: ICard[] = [];
 		for (const name of names) {
-			indices.push(this.getCardIndex(name, cards));
+			const index = this.getCardIndex(name, cards, allCards);
+			if (index !== -1) allCards.push(cards[index]);
+			indices.push(index);
 		}
 		return indices;
 	}
