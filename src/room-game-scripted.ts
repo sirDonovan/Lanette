@@ -134,14 +134,21 @@ export class ScriptedGame extends Game {
 		if (this.isPm(this.room)) {
 			gameCount = this.random(100);
 		} else {
+			let databaseKey: 'miniGameCounts' | 'scriptedGameCounts';
+			if (this.isMiniGame) {
+				databaseKey = 'miniGameCounts';
+			} else {
+				databaseKey = 'scriptedGameCounts';
+			}
+
 			const database = Storage.getDatabase(this.room);
-			if (!database.scriptedGameCounts) database.scriptedGameCounts = {};
-			if (!(this.format.id in database.scriptedGameCounts)) database.scriptedGameCounts[this.format.id] = 0;
-			database.scriptedGameCounts[this.format.id]++;
-			gameCount = database.scriptedGameCounts[this.format.id];
+			if (!database[databaseKey]) database[databaseKey] = {};
+			if (!(this.format.id in database[databaseKey]!)) database[databaseKey]![this.format.id] = 0;
+			database[databaseKey]![this.format.id]++;
+			gameCount = database[databaseKey]![this.format.id];
 		}
 
-		this.uhtmlBaseName = "scripted-" + this.format.id + "-" + gameCount;
+		this.uhtmlBaseName = (this.isMiniGame ? "mini" : "scripted") + "-" + this.format.id + "-" + gameCount;
 		this.signupsUhtmlName = this.uhtmlBaseName + "-signups";
 		this.joinLeaveButtonUhtmlName = this.uhtmlBaseName + "-join-leave";
 	}

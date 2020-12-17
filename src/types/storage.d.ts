@@ -61,6 +61,7 @@ export interface IDatabase {
 	lastTournamentTime?: number;
 	lastUserHostedGameFormatTimes?: Dict<number>;
 	lastUserHostedGameTime?: number;
+	miniGameCounts?: Dict<number>;
 	pastGames?: IPastGame[];
 	pastTournaments?: IPastTournament[];
 	pastUserHostedGames?: IPastGame[];
