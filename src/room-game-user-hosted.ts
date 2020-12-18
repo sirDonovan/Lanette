@@ -18,7 +18,7 @@ export class UserHostedGame extends Game {
 	savedWinners: Player[] = [];
 	scoreCap: number = 0;
 	showSignupsHtml = true;
-	storedMessage: string | null = null;
+	storedMessages: Dict<string> | null = null;
 	subHostId: string | null = null;
 	subHostName: string | null = null;
 	twist: string | null = null;

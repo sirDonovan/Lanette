@@ -2046,33 +2046,53 @@ const commands: CommandDefinitions<CommandContext, void> = {
 		command(target, room, user, cmd) {
 			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			if (cmd === 'stored' || !target) {
-				if (!room.userHostedGame.storedMessage) {
-					return this.say("You must store a message first with ``" + Config.commandCharacter + "store``.");
+				if (!room.userHostedGame.storedMessages) {
+					return this.say("You must store a message first with ``" + Config.commandCharacter + "store [message]`` or " +
+						"``" + Config.commandCharacter + "storem [key], [message]``.");
 				}
-				if (CommandParser.isCommandMessage(room.userHostedGame.storedMessage)) {
-					const parts = room.userHostedGame.storedMessage.split(" ");
+				const key = Tools.toId(target);
+				if (!(key in room.userHostedGame.storedMessages)) {
+					return this.say("'" + target + "' is not one of your stored keys.");
+				}
+				if (CommandParser.isCommandMessage(room.userHostedGame.storedMessages[key])) {
+					const parts = room.userHostedGame.storedMessages[key].split(" ");
 					this.run(parts[0].substr(1), parts.slice(1).join(" "));
 					return;
 				}
-				this.say(room.userHostedGame.storedMessage);
+				this.say(room.userHostedGame.storedMessages[key]);
 				return;
 			}
 
-			target = target.trim();
-			const possibleCommand = target.trim().split(" ")[0];
+			const targets = target.split(",");
+			let key = "";
+			let keyId = "";
+			if (cmd === 'storemultiple' || cmd === 'storem') {
+				key = targets[0].trim();
+				keyId = Tools.toId(key);
+				if (!keyId) return this.say("Your message's key cannot be empty!");
+				targets.shift();
+			}
 
-			if (target.startsWith('/') || (target.startsWith('!') && possibleCommand !== '!pick')) {
+			const message = targets.join(",").trim();
+			if (!message) return this.say("You cannot store a blank message!");
+
+			const possibleCommand = message.split(" ")[0];
+
+			if (message.startsWith('/') || (message.startsWith('!') && possibleCommand !== '!pick')) {
 				return this.say("You cannot store a server command.");
 			}
 
-			if (CommandParser.isCommandMessage(target) && !(Tools.toId(possibleCommand) in BaseCommands)) {
-				return this.say("'" + possibleCommand + "' is not a valid command for " + Config.commandCharacter + "store.");
+			if (CommandParser.isCommandMessage(message) && !(Tools.toId(possibleCommand) in BaseCommands)) {
+				return this.say("'" + possibleCommand + "' is not a valid " + Users.self.name + " command for " +
+					Config.commandCharacter + "store.");
 			}
 
-			room.userHostedGame.storedMessage = target;
-			this.say("Your message has been stored! You can now repeat it with ``" + Config.commandCharacter + "stored``.");
+			if (!room.userHostedGame.storedMessages) room.userHostedGame.storedMessages = {};
+			room.userHostedGame.storedMessages[keyId] = message;
+			this.say("Your message has been stored! You can now repeat it with ``" + Config.commandCharacter + "stored" +
+				(key ? " " + key : "") + "``.");
 		},
-		aliases: ['stored'],
+		aliases: ['stored', 'storemultiple', 'storem'],
 	},
 	twist: {
 		command(target, room, user) {
