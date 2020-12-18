@@ -1234,10 +1234,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onUserJoinRoom(room: Room, user: User): void {
-		if (user === Users.self) {
-			this.checkedBattleRooms.push(room.id);
-		}
-
 		if (this.allowsScouting || !(user.id in this.players) || this.players[user.id].eliminated || !(room.id in this.battleData)) return;
 		if (this.battleData[room.id].slots.size === 2 && !this.battleData[room.id].slots.has(this.players[user.id])) {
 			this.players[user.id].say("You have been disqualified for scouting another " + this.name + " battle.");
@@ -1439,6 +1435,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 		const winner = this.players[Tools.toId(username)];
 		if (!players.includes(winner)) return;
 
+		this.checkedBattleRooms.push(room.id);
+
 		const loser = players[0] === winner ? players[1] : players[0];
 		const loserSlot = this.battleData[room.id].slots.get(loser);
 		if (!loserSlot || !(loserSlot in this.battleData[room.id].pokemon)) {
@@ -1463,6 +1461,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattleExpire(room: Room): void {
+		this.checkedBattleRooms.push(room.id);
+
 		const players = this.getPlayersFromBattleData(room);
 		if (players) this.disqualifyPlayers(players);
 	}
@@ -1559,12 +1559,24 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 	check: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
-			if (!this.playerOpponents.has(this.players[user.id])) {
-				user.say("You do not have a current opponent.");
+			const player = this.players[user.id];
+			if (player.eliminated) {
+				if (this.disqualifiedPlayers.has(player)) {
+					user.say("You have already been disqualified from the tournament! You must invite " + Users.self.name + " at the " +
+						"of every battle.");
+				} else {
+					user.say("You have already been eliminated from the tournament.");
+				}
 				return false;
 			}
+
 			if (!target) {
 				user.say("You must include the link to the battle.");
+				return false;
+			}
+
+			if (!this.playerOpponents.has(player)) {
+				user.say("You do not have a current opponent.");
 				return false;
 			}
 
@@ -1573,6 +1585,12 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 				user.say("Please specify a valid battle link.");
 				return false;
 			}
+
+			if (Rooms.get(battle)) {
+				user.say(Users.self.name + " is already in the specified battle.");
+				return false;
+			}
+
 			if (this.checkedBattleRooms.includes(battle)) {
 				user.say("The specified battle has already been checked.");
 				return false;
@@ -1586,9 +1604,11 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 
 			const battleRoom = Rooms.add(battle);
 			battleRoom.game = this;
+
 			this.say('/join ' + battle);
 			return true;
 		},
+		eliminatedGameCommand: true,
 		pmOnly: true,
 	},
 	starter: {
