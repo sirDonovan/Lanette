@@ -1320,9 +1320,12 @@ export class Games {
 				"* <code>" + commandCharacter + "randgtimer [seconds], [min], [max]</code> - set random timer between [min] and " +
 					"[max] minutes or seconds if specified",
 				"* <code>" + commandCharacter + "gtimer off</code> - turn off the previously set timer",
-				"* <code>" + commandCharacter + "store [message or command]</code> - store a message or command to be used " +
+				"* <code>" + commandCharacter + "store [message or command]</code> - store a single message or command to be used " +
 					"throughout the game",
-				"* <code>" + commandCharacter + "stored</code> - display a stored message or use a stored command",
+				"* <code>" + commandCharacter + "store [key], [message or command]</code> - store one of many messages or commands " +
+					"to be used throughout the game using the specified key",
+				"* <code>" + commandCharacter + "stored [key]</code> - display a stored message or use a stored command, optionally " +
+					"the message matching the specified key",
 				"* <code>" + commandCharacter + "twist [twist]</code> - set or view the twist for the game",
 				"* <code>" + commandCharacter + "gcap [#]</code> - set or view the player cap for the game",
 				"* <code>" + commandCharacter + "scorecap [#]</code> - set or view the score cap for the game",
@@ -1346,9 +1349,10 @@ export class Games {
 				"\nOther generators:",
 				"* <code>" + commandCharacter + "ranswer [game]</code> - in PMs, generate a hint and answer for the specified game",
 				"* <code>" + commandCharacter + "rbadge [region]</code> - generate a badge, optionally from the specified region",
-				"* <code>" + commandCharacter + "rchar [region]</code> - generate a character, optionally from the specified region",
-				"* <code>" + commandCharacter + "rloc [region], [location type]</code> - generate a location, optionally from the " +
-					"specified region and of the specified type",
+				"* <code>" + commandCharacter + "rchar [region/character type]</code> - generate a character, optionally from the " +
+					"specified region and/or of the specified type",
+				"* <code>" + commandCharacter + "rloc [region/location type]</code> - generate a location, optionally from the " +
+					"specified region and/or of the specified type",
 				"* <code>" + commandCharacter + "rletter</code> - generate a letter",
 				"* <code>" + commandCharacter + "rpick [option 1], [option 2], [...]</code> - generate one of the specified options",
 				"* <code>" + commandCharacter + "rorder [option 1], [option 2], [...]</code> - shuffle the specified options",
