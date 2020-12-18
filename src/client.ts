@@ -158,6 +158,10 @@ function constructEvasionRegex(str: string): RegExp {
 	return new RegExp(buf, 'iu');
 }
 
+function constructBannedWordRegex(bannedWords: string[]): RegExp {
+	return new RegExp('(?:\\b|(?!\\w))(?:' + bannedWords.join('|') + ')(?:\\b|\\B(?!\\w))', 'i');
+}
+
 let connectListener: (() => void) | null;
 let messageListener: ((message: Data) => void) | null;
 let errorListener: ((error: Error) => void) | null;
@@ -172,6 +176,7 @@ export class Client {
 	botGreetingCooldowns: Dict<number> = {};
 	challstr: string = '';
 	challstrTimeout: NodeJS.Timer | undefined = undefined;
+	configBannedWordsRegex: RegExp | null = null;
 	connectionAttempts: number = 0;
 	connectionTimeout: NodeJS.Timer | undefined = undefined;
 	evasionFilterRegularExpressions: RegExp[] | null = null;
@@ -217,7 +222,9 @@ export class Client {
 			this.server = this.server.substr(7);
 		}
 		if (this.server.endsWith('/')) this.server = this.server.substr(0, this.server.length - 1);
+
 		this.parseServerGroups();
+		this.updateConfigSettings();
 	}
 
 	setClientListeners(): void {
@@ -1093,7 +1100,10 @@ export class Client {
 				subMessage = subMessage.substr(colonIndex + 2);
 				if (subMessage) {
 					const bannedWordsRoom = Rooms.get(roomId);
-					if (bannedWordsRoom) bannedWordsRoom.bannedWords = subMessage.split(', ');
+					if (bannedWordsRoom) {
+						bannedWordsRoom.serverBannedWords = subMessage.split(', ');
+						bannedWordsRoom.serverBannedWordsRegex = null;
+					}
 				}
 			}
 			break;
@@ -1644,6 +1654,10 @@ export class Client {
 		}
 	}
 
+	updateConfigSettings(): void {
+		if (Config.bannedWords && Config.bannedWords.length) this.configBannedWordsRegex = constructBannedWordRegex(Config.bannedWords);
+	}
+
 	willBeFiltered(message: string, room?: Room): boolean {
 		let lowerCase = message.replace(/\u039d/g, 'N').toLowerCase().replace(/[\u200b\u007F\u00AD\uDB40\uDC00\uDC21]/gu, '')
 			.replace(/\u03bf/g, 'o').replace(/\u043e/g, 'o').replace(/\u0430/g, 'a').replace(/\u0435/g, 'e').replace(/\u039d/g, 'e');
@@ -1663,12 +1677,23 @@ export class Client {
 			}
 		}
 
-		if (room && room.bannedWords) {
-			if (!room.bannedWordsRegex) {
-				room.bannedWordsRegex = new RegExp('(?:\\b|(?!\\w))(?:' + room.bannedWords.join('|') + ')(?:\\b|\\B(?!\\w))', 'i');
+		if (room) {
+			if (room.configBannedWords) {
+				if (!room.configBannedWordsRegex) {
+					room.configBannedWordsRegex = constructBannedWordRegex(room.configBannedWords);
+				}
+				if (message.match(room.configBannedWordsRegex)) return true;
 			}
-			if (message.match(room.bannedWordsRegex)) return true;
+
+			if (room.serverBannedWords) {
+				if (!room.serverBannedWordsRegex) {
+					room.serverBannedWordsRegex = constructBannedWordRegex(room.serverBannedWords);
+				}
+				if (message.match(room.serverBannedWordsRegex)) return true;
+			}
 		}
+
+		if (this.configBannedWordsRegex && message.match(this.configBannedWordsRegex)) return true;
 
 		return false;
 	}

@@ -9,9 +9,9 @@ import type { User } from "./users";
 
 export class Room {
 	approvedUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
-	bannedWords: string[] | null = null;
-	bannedWordsRegex: RegExp | null = null;
 	chatLog: IChatLogEntry[] = [];
+	configBannedWords: string[] | null = null;
+	configBannedWordsRegex: RegExp | null = null;
 	game: ScriptedGame | undefined = undefined;
 	readonly htmlMessageListeners: Dict<MessageListener> = {};
 	inviteOnlyBattle: boolean | null = null;
@@ -19,6 +19,8 @@ export class Room {
 	modchat: string = 'off';
 	newUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
 	repeatedMessages: Dict<IRepeatedMessage> | undefined = undefined;
+	serverBannedWords: string[] | null = null;
+	serverBannedWordsRegex: RegExp | null = null;
 	serverHangman: boolean | undefined = undefined;
 	timers: Dict<NodeJS.Timer> | null = null;
 	tournament: Tournament | undefined = undefined;
@@ -40,7 +42,7 @@ export class Room {
 		this.sendId = id === 'lobby' ? '' : id;
 		this.title = id;
 
-		this.checkConfigSettings();
+		this.updateConfigSettings();
 	}
 
 	init(type: RoomType): void {
@@ -66,7 +68,12 @@ export class Room {
 		});
 	}
 
-	checkConfigSettings(): void {
+	updateConfigSettings(): void {
+		if (Config.roomBannedWords && this.id in Config.roomBannedWords) {
+			this.configBannedWords = Config.roomBannedWords[this.id];
+			this.configBannedWordsRegex = null;
+		}
+
 		this.unlinkTournamentReplays = Config.disallowTournamentBattleLinks && Config.disallowTournamentBattleLinks.includes(this.id) ?
 			true : false;
 		this.unlinkChallongeLinks = Config.allowUserHostedTournaments && Config.allowUserHostedTournaments.includes(this.id) ? true : false;
@@ -282,9 +289,9 @@ export class Rooms {
 		return this.get(id);
 	}
 
-	checkLoggingConfigs(): void {
+	updateConfigSettings(): void {
 		for (const i in this.rooms) {
-			this.rooms[i].checkConfigSettings();
+			this.rooms[i].updateConfigSettings();
 		}
 	}
 }

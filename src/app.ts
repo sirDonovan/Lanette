@@ -144,7 +144,8 @@ module.exports = (): void => {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
 					const newConfig = configLoader.load(require('./config') as typeof import('./config-example'));
 					global.Config = newConfig;
-					Rooms.checkLoggingConfigs();
+					Client.updateConfigSettings();
+					Rooms.updateConfigSettings();
 				} else if (moduleId === 'dex') {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
 					const newDex = require('./' + moduleFilenames[moduleId]) as typeof import('./dex');

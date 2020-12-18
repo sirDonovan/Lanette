@@ -70,6 +70,16 @@ export let subRooms: Dict<string[]> = {};
 export let roomAliases: Dict<string> = {};
 
 /**
+ * For each room in the object, a list of words that will prevent a message from being sent in that room
+ */
+export let roomBannedWords: Dict<string[]> = {};
+
+/**
+ * A list of words that will prevent messages from being sent anywhere
+ */
+export let bannedWords: string[] | null = null;
+
+/**
  * The avatar code to use after logging in
  */
 export let avatar = '';
