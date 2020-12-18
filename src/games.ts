@@ -891,6 +891,7 @@ export class Games {
 		const limitCategories = format.category && Config.limitGamesByCategory && Config.limitGamesByCategory.includes(room.id) ? true :
 			false;
 		let pastGameCategory = false;
+		let pastGameMode = '';
 		let categoryGamesBetween = 0;
 
 		for (let i = pastGames.length - 1; i >= 0; i--) {
@@ -901,7 +902,8 @@ export class Games {
 			}
 
 			if (limitModes && format.mode && pastFormat.mode && format.mode.id === pastFormat.mode.id) {
-				return "There is another " + format.mode.name + "-mode game on the past games list.";
+				pastGameMode = format.mode.name;
+				break;
 			}
 
 			if (limitCategories) {
@@ -920,6 +922,10 @@ export class Games {
 			const remainingGames = categoryCooldown - categoryGamesBetween;
 			return remainingGames + " more game" + (remainingGames > 1 ? "s" : "") + " must be played before another " + format.category +
 				" game.";
+		}
+
+		if (pastGameMode) {
+			return "There is another " + pastGameMode + "-mode game on the past games list.";
 		}
 
 		return true;
