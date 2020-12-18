@@ -173,15 +173,16 @@ export class Client {
 	uhtmlChatCommand: typeof UHTML_CHAT_COMMAND = UHTML_CHAT_COMMAND;
 	uhtmlChangeChatCommand: typeof UHTML_CHANGE_CHAT_COMMAND = UHTML_CHANGE_CHAT_COMMAND;
 
+	battleFilterRegularExpressions: RegExp[] | null = null;
 	botGreetingCooldowns: Dict<number> = {};
 	challstr: string = '';
 	challstrTimeout: NodeJS.Timer | undefined = undefined;
+	chatFilterRegularExpressions: RegExp[] | null = null;
 	configBannedWordsRegex: RegExp | null = null;
 	connectionAttempts: number = 0;
 	connectionTimeout: NodeJS.Timer | undefined = undefined;
 	evasionFilterRegularExpressions: RegExp[] | null = null;
 	failedPingTimeout: NodeJS.Timer | null = null;
-	filterRegularExpressions: RegExp[] | null = null;
 	groupSymbols: KeyedDict<GroupName, string> = DEFAULT_GROUP_SYMBOLS;
 	incomingMessageQueue: {message: Data, timestamp: number}[] = [];
 	lastSendTimeoutTime: number = 0;
@@ -333,7 +334,8 @@ export class Client {
 
 		if (previous.botGreetingCooldowns) Object.assign(this.botGreetingCooldowns, previous.botGreetingCooldowns);
 		if (previous.challstr) this.challstr = previous.challstr;
-		if (previous.filterRegularExpressions) this.filterRegularExpressions = previous.filterRegularExpressions.slice();
+		if (previous.battleFilterRegularExpressions) this.battleFilterRegularExpressions = previous.battleFilterRegularExpressions.slice();
+		if (previous.chatFilterRegularExpressions) this.chatFilterRegularExpressions = previous.chatFilterRegularExpressions.slice();
 		if (previous.evasionFilterRegularExpressions) {
 			this.evasionFilterRegularExpressions = previous.evasionFilterRegularExpressions.slice();
 		}
@@ -1188,7 +1190,8 @@ export class Client {
 
 		case 'pagehtml': {
 			if (room.id === 'view-filters') {
-				let filterRegularExpressions: RegExp[] | null = null;
+				let battleFilterRegularExpressions: RegExp[] | null = null;
+				let chatFilterRegularExpressions: RegExp[] | null = null;
 				let evasionFilterRegularExpressions: RegExp[] | null = null;
 				const messageArguments: IClientMessageTypes['pagehtml'] = {
 					html: Tools.unescapeHTML(messageParts.join("|")),
@@ -1199,6 +1202,7 @@ export class Client {
 					let currentHeader = '';
 					let shortener = false;
 					let evasion = false;
+					let battleFilter = false;
 
 					for (const row of rows) {
 						if (!row) continue;
@@ -1206,7 +1210,9 @@ export class Client {
 							currentHeader = row.split('<th colspan="2"><h3>')[1].split('</h3>')[0].split(' <span ')[0];
 							shortener = currentHeader === 'URL Shorteners';
 							evasion = currentHeader === 'Filter Evasion Detection';
-						} else if (row.startsWith('<td><abbr') && currentHeader !== 'Whitelisted names') {
+							battleFilter = currentHeader === 'Filtered in battles';
+						} else if (row.startsWith('<td><abbr') && currentHeader !== 'Whitelisted names' &&
+							currentHeader !== 'Filtered in names') {
 							const word = row.split('<code>')[1].split('</code>')[0].trim();
 
 							let replacementWord = row.split("</abbr>")[1];
@@ -1230,16 +1236,20 @@ export class Client {
 								if (evasion) {
 									if (!evasionFilterRegularExpressions) evasionFilterRegularExpressions = [];
 									evasionFilterRegularExpressions.push(regularExpression);
+								} else if (battleFilter) {
+									if (!battleFilterRegularExpressions) battleFilterRegularExpressions = [];
+									battleFilterRegularExpressions.push(regularExpression);
 								} else {
-									if (!filterRegularExpressions) filterRegularExpressions = [];
-									filterRegularExpressions.push(regularExpression);
+									if (!chatFilterRegularExpressions) chatFilterRegularExpressions = [];
+									chatFilterRegularExpressions.push(regularExpression);
 								}
 							}
 						}
 					}
 				}
 
-				this.filterRegularExpressions = filterRegularExpressions;
+				this.battleFilterRegularExpressions = battleFilterRegularExpressions;
+				this.chatFilterRegularExpressions = chatFilterRegularExpressions;
 				this.evasionFilterRegularExpressions = evasionFilterRegularExpressions;
 			}
 			break;
@@ -1664,8 +1674,14 @@ export class Client {
 			.replace(/\u03bf/g, 'o').replace(/\u043e/g, 'o').replace(/\u0430/g, 'a').replace(/\u0435/g, 'e').replace(/\u039d/g, 'e');
 		lowerCase = lowerCase.replace(/__|\*\*|``|\[\[|\]\]/g, '');
 
-		if (this.filterRegularExpressions) {
-			for (const expression of this.filterRegularExpressions) {
+		if (this.battleFilterRegularExpressions && room && room.type === 'battle') {
+			for (const expression of this.battleFilterRegularExpressions) {
+				if (lowerCase.match(expression)) return true;
+			}
+		}
+
+		if (this.chatFilterRegularExpressions) {
+			for (const expression of this.chatFilterRegularExpressions) {
 				if (lowerCase.match(expression)) return true;
 			}
 		}
