@@ -554,7 +554,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 		return winnerTeamChanges;
 	}
 
-	updateMatches(): void {
+	updateMatches(onStart?: boolean): void {
 		const nodes = this.getAvailableMatchNodes();
 		for (const node of nodes) {
 			if (this.availableMatchNodes.includes(node)) continue;
@@ -565,9 +565,11 @@ export abstract class EliminationTournament extends ScriptedGame {
 			this.playerOpponents.set(player, opponent);
 			this.playerOpponents.set(opponent, player);
 
-			const notificationTitle = "New " + this.name + " opponent!";
-			player.sendHighlightPage(notificationTitle);
-			opponent.sendHighlightPage(notificationTitle);
+			if (!onStart) {
+				const notificationTitle = "New " + this.name + " opponent!";
+				player.sendHighlightPage(notificationTitle);
+				opponent.sendHighlightPage(notificationTitle);
+			}
 
 			let activityWarning = this.activityWarnTimeout;
 			if (!this.givenFirstRoundExtraTime.has(player) && !this.givenFirstRoundExtraTime.has(opponent)) {
@@ -1110,7 +1112,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 			}
 		});
 
-		this.updateMatches();
+		this.updateMatches(true);
 	}
 
 	onAddPlayer(player: Player): boolean {
