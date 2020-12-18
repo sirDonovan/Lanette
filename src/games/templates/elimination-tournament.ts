@@ -916,6 +916,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 			html += "(the tournament has started)";
 		} else {
 			html += Client.getPmSelfButton(Config.commandCharacter + "joingame " + this.room.title, "Join tournament") +
+				Client.getPmSelfButton(Config.commandCharacter + "leavegame " + this.room.title, "Leave tournament") +
 				" (" + (this.playerCap - this.playerCount) + "/" + this.playerCap + " slots remaining)";
 		}
 		html += "</div>";
