@@ -9,7 +9,7 @@ import type { ScriptedGame } from './room-game-scripted';
 import type { UserHostedGame } from './room-game-user-hosted';
 import type { Room } from "./rooms";
 import type { CommandDefinitions } from "./types/command-parser";
-import type { LocationTypes } from './types/dex';
+import type { CharacterType, LocationType, RegionName } from './types/dex';
 import type { GameDifficulty, IGameFormat } from "./types/games";
 import type { IFormat, IPokemon } from "./types/pokemon-showdown";
 import type { IUserHostedGameStats, LeaderboardType, UserHostStatus } from './types/storage';
@@ -19,7 +19,6 @@ import type { User } from "./users";
 const AWARDED_BOT_GREETING_DURATION = 60 * 24 * 60 * 60 * 1000;
 const ONE_VS_ONE_GAME_COOLDOWN = 2 * 60 * 60 * 1000;
 const RANDOM_GENERATOR_LIMIT = 6;
-const LOCATION_TYPES: LocationTypes[] = ['town', 'city', 'cave', 'forest', 'mountain', 'other'];
 
 // aliases
 const tournamentLeaderboardAliases = ['tournamentleaderboard', 'tourleaderboard', 'tourlb', 'tournamenttop', 'tourtop'];
@@ -2654,14 +2653,16 @@ const commands: CommandDefinitions<CommandContext, void> = {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
 				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
-			let region = Tools.toId(target);
-			if (region) {
-				if (!(region in Dex.data.badges)) return this.say("'" + target.trim() + "' is not a valid badge region.");
+			let region: RegionName;
+			if (target) {
+				const id = Tools.toId(target) as RegionName;
+				if (!Dex.regions.includes(id)) return this.say("'" + target + "' is not a valid character region.");
+				region = id;
 			} else {
-				region = Tools.sampleOne(Object.keys(Dex.data.badges));
+				region = Tools.sampleOne(Dex.regions);
 			}
 
-			this.say('Randomly generated' + (target ? ' ' + region.charAt(0).toUpperCase() + region.substr(1) : '') + ' badge: ' +
+			this.say('Randomly generated' + (target ? ' ' + Dex.regionNames[region] : '') + ' badge: ' +
 				'**' + Tools.sampleOne(Dex.data.badges[region]).trim() + '**');
 		},
 		aliases: ['rbadge', 'randbadge'],
@@ -2670,15 +2671,31 @@ const commands: CommandDefinitions<CommandContext, void> = {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
 				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
-			let region = Tools.toId(target);
-			if (region) {
-				if (!(region in Dex.data.characters)) return this.say("'" + target.trim() + "' is not a valid character region.");
+			const targets = target.split(',');
+			let region: RegionName;
+			if (target) {
+				const id = Tools.toId(targets[0]) as RegionName;
+				if (!Dex.regions.includes(id)) return this.say("'" + targets[0].trim() + "' is not a valid character region.");
+				region = id;
 			} else {
-				region = Tools.sampleOne(Object.keys(Dex.data.characters));
+				region = Tools.sampleOne(Dex.regions);
 			}
 
-			this.say('Randomly generated' + (target ? ' ' + region.charAt(0).toUpperCase() + region.substr(1) : '') + ' character: ' +
-				'**' + Tools.sampleOne(Dex.data.characters[region]).trim() + '**');
+			let type = Tools.toId(targets[1]) as CharacterType;
+			if (type.length) {
+				if (!Dex.characterTypes.includes(type)) return this.say("'" + targets[1].trim() + "' is not a valid location type.");
+				if (!Dex.data.characters[region][type].length) {
+					return this.say("There are no " + Dex.characterTypeNames[type] + " characters in " + Dex.regionNames[region] + ".");
+				}
+			} else {
+				type = Tools.sampleOne(Dex.characterTypes);
+				while (!Dex.data.characters[region][type].length) {
+					type = Tools.sampleOne(Dex.characterTypes);
+				}
+			}
+
+			this.say('Randomly generated' + (target ? ' ' + Dex.regionNames[region] : '') + (targets[1] ? ' ' +
+				Dex.characterTypeNames[type] : '') + ' character: **' + Tools.sampleOne(Dex.data.characters[region][type]).trim() + '**');
 		},
 		aliases: ['rchar', 'rcharacter', 'randchar', 'randcharacter'],
 	},
@@ -2687,28 +2704,30 @@ const commands: CommandDefinitions<CommandContext, void> = {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
 				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
 			const targets = target.split(',');
-			let region = Tools.toId(targets[0]);
-			if (region) {
-				if (!(region in Dex.data.locations)) return this.say("'" + target.trim() + "' is not a valid location region.");
+			let region: RegionName;
+			if (target) {
+				const id = Tools.toId(targets[0]) as RegionName;
+				if (!Dex.regions.includes(id)) return this.say("'" + targets[0].trim() + "' is not a valid location region.");
+				region = id;
 			} else {
-				region = Tools.sampleOne(Object.keys(Dex.data.locations));
+				region = Tools.sampleOne(Dex.regions);
 			}
 
-			const regionName = region.charAt(0).toUpperCase() + region.substr(1);
-
-			let type = Tools.toId(targets[1]) as LocationTypes;
+			let type = Tools.toId(targets[1]) as LocationType;
 			if (type.length) {
-				if (!LOCATION_TYPES.includes(type)) return this.say("'" + target.trim() + "' is not a valid location type.");
-				if (!Dex.data.locations[region][type].length) return this.say("There are no " + type + " locations in " + regionName + ".");
+				if (!Dex.locationTypes.includes(type)) return this.say("'" + targets[1] + "' is not a valid location type.");
+				if (!Dex.data.locations[region][type].length) {
+					return this.say("There are no " + Dex.locationTypeNames[type] + " locations in " + Dex.regionNames[region] + ".");
+				}
 			} else {
-				type = Tools.sampleOne(LOCATION_TYPES);
+				type = Tools.sampleOne(Dex.locationTypes);
 				while (!Dex.data.locations[region][type].length) {
-					type = Tools.sampleOne(LOCATION_TYPES);
+					type = Tools.sampleOne(Dex.locationTypes);
 				}
 			}
 
-			this.say('Randomly generated' + (target ? ' ' + regionName : '') + (targets[1] ? ' ' + type : '') + ' location: ' +
-				'**' + Tools.sampleOne(Dex.data.locations[region][type]).trim() + '**');
+			this.say('Randomly generated' + (target ? ' ' + Dex.regionNames[region] : '') + (targets[1] ? ' ' +
+				Dex.locationTypeNames[type] : '') + ' location: **' + Tools.sampleOne(Dex.data.locations[region][type]).trim() + '**');
 		},
 		aliases: ['rlocation', 'rloc', 'randloc', 'randlocation'],
 	},

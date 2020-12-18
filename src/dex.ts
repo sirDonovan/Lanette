@@ -7,8 +7,9 @@ import { formatLinks } from './data/format-links';
 import { locations as locationData } from './data/locations';
 import { trainerClasses } from './data/trainer-classes';
 import type {
-	CategoryData, IAlternateIconNumbers, IDataTable, IGetPossibleTeamsOptions, IGifData, ISeparatedCustomRules,
-	LocationTypes
+	CategoryData, CharacterType, IAlternateIconNumbers, IDataTable, IGetPossibleTeamsOptions, IGifData, ISeparatedCustomRules,
+	LocationType,
+	RegionName
 } from './types/dex';
 import type {
 	IAbility, IAbilityCopy, IFormat, IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy,
@@ -118,13 +119,46 @@ const dexes: Dict<Dex> = {};
 
 export class Dex {
 	// exported constants
+	readonly characterTypes: CharacterType[] = ['player', 'rival', 'gymleader', 'elitefour', 'champion', 'frontierbrain', 'professor',
+		'antagonist', 'other'];
+	readonly characterTypeNames: KeyedDict<CharacterType, string> = {
+		player: "Player",
+		rival: "Rival",
+		gymleader: "Gym Leader",
+		elitefour: "Elite Four",
+		champion: "Champion",
+		frontierbrain: "Frontier Brain",
+		professor: "Professor",
+		antagonist: "Antagonist",
+		other: "Misc.",
+	};
 	readonly currentGenString: typeof CURRENT_GEN_STRING = CURRENT_GEN_STRING;
 	readonly customRuleAliases: typeof customRuleAliases = customRuleAliases;
 	readonly customRuleFormats: typeof customRuleFormats = customRuleFormats;
 	readonly defaultCustomRulesName: typeof DEFAULT_CUSTOM_RULES_NAME = DEFAULT_CUSTOM_RULES_NAME;
 	dexes: Dict<Dex> = dexes;
 	formatNamesByCustomRules: Dict<string> = {};
+	readonly locationTypes: LocationType[] = ['town', 'city', 'cave', 'forest', 'mountain', 'other'];
+	readonly locationTypeNames: KeyedDict<LocationType, string> = {
+		city: "City",
+		town: "Town",
+		cave: "Cave",
+		forest: "Forest",
+		mountain: "Mountain",
+		other: "Misc.",
+	};
 	readonly omotms: string[] = [];
+	readonly regions: RegionName[] = ['kanto', 'johto', 'hoenn', 'sinnoh', 'unova', 'kalos', 'alola', 'galar'];
+	readonly regionNames: KeyedDict<RegionName, string> = {
+		kanto: "Kanto",
+		johto: "Johto",
+		hoenn: "Hoenn",
+		sinnoh: "Sinnoh",
+		unova: "Unova",
+		kalos: "Kalos",
+		alola: "Alola",
+		galar: "Galar",
+	};
 	readonly tagNames: typeof tagNames = tagNames;
 
 	readonly clientDataDirectory: string;
@@ -772,9 +806,9 @@ export class Dex {
 
 	getBadges(): string[] {
 		const badges: string[] = [];
-		for (const i in this.data.badges) {
-			for (const badge of this.data.badges[i]) {
-				badges.push(badge);
+		for (const region of this.regions) {
+			for (const badge of this.data.badges[region]) {
+				if (!badges.includes(badge)) badges.push(badge);
 			}
 		}
 
@@ -783,9 +817,12 @@ export class Dex {
 
 	getCharacters(): string[] {
 		const characters: string[] = [];
-		for (const i in this.data.characters) {
-			for (const character of this.data.characters[i]) {
-				characters.push(character);
+		for (const region of this.regions) {
+			const types = Object.keys(this.data.characters[region]) as CharacterType[];
+			for (const type of types) {
+				for (const character of this.data.characters[region][type]) {
+					if (!characters.includes(character)) characters.push(character);
+				}
 			}
 		}
 
@@ -794,8 +831,8 @@ export class Dex {
 
 	getLocations(): string[] {
 		const locations: string[] = [];
-		for (const region in this.data.locations) {
-			const types = Object.keys(this.data.locations[region]) as LocationTypes[];
+		for (const region of this.regions) {
+			const types = Object.keys(this.data.locations[region]) as LocationType[];
 			for (const type of types) {
 				for (const location of this.data.locations[region][type]) {
 					locations.push(location);

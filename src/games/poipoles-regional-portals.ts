@@ -1,24 +1,15 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { LocationTypes } from "../types/dex";
+import type { LocationType, RegionName } from "../types/dex";
 import type { GameCommandDefinitions, IGameFile } from "../types/games";
 
 const BASE_TRAVELERS_PER_ROUND: number = 3;
 
-const locationTypeNames: KeyedDict<LocationTypes, string> = {
-	city: "City",
-	town: "Town",
-	cave: "Cave",
-	forest: "Forest",
-	mountain: "Mountain",
-	other: "Misc. location",
-};
-
-const data: {regions: Dict<PartialKeyedDict<LocationTypes, readonly string[]>>} = {
+const data: {regions: Dict<PartialKeyedDict<LocationType, readonly string[]>>} = {
 	regions: {},
 };
-const regionKeys: string[] = [];
-const regionTypeKeys: Dict<LocationTypes[]> = {};
+const regionKeys: RegionName[] = [];
+const regionTypeKeys: Dict<LocationType[]> = {};
 
 class PoipolesRegionalPortals extends ScriptedGame {
 	baseTravelersPerRound: number = BASE_TRAVELERS_PER_ROUND;
@@ -33,9 +24,9 @@ class PoipolesRegionalPortals extends ScriptedGame {
 	winnerPointsToBits: number = 25;
 
 	static loadData(): void {
-		for (const region in Dex.data.locations) {
-			const types = Object.keys(Dex.data.locations[region]) as LocationTypes[];
-			const locations: PartialKeyedDict<LocationTypes, string[]> = {};
+		for (const region of Dex.regions) {
+			const types = Object.keys(Dex.data.locations[region]) as LocationType[];
+			const locations: PartialKeyedDict<LocationType, string[]> = {};
 			for (const type of types) {
 				for (const location of Dex.data.locations[region][type]) {
 					if (!(type in locations)) locations[type] = [];
@@ -43,7 +34,7 @@ class PoipolesRegionalPortals extends ScriptedGame {
 				}
 			}
 
-			const typesWithLocations = Object.keys(locations) as LocationTypes[];
+			const typesWithLocations = Object.keys(locations) as LocationType[];
 			if (typesWithLocations.length) {
 				data.regions[region] = locations;
 				regionKeys.push(region);
@@ -105,14 +96,14 @@ class PoipolesRegionalPortals extends ScriptedGame {
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			this.timeout = setTimeout(() => {
-				const text = "Poipole opened a portal to a **" + locationTypeNames[type] + "** in " +
-					"**" + region.charAt(0).toUpperCase() + region.substr(1) + "**!";
+				const text = "Poipole opened a portal to a **" + Dex.locationTypeNames[type] + " location** in " +
+					"**" + Dex.regionNames[region] + "**!";
 				this.on(text, () => {
 					this.canTravel = true;
 					this.timeout = setTimeout(() => this.nextRound(), 20 * 1000);
 				});
 				this.say(text);
-			}, this.sampleOne([4000, 5000, 6000]));
+			}, 5000);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}
