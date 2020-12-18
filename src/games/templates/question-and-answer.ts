@@ -24,6 +24,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	hintUhtmlName: string = '';
 	inactiveRounds: number = 0;
 	inactiveRoundLimit: number = 10;
+	incorrectAnswers: number = 0;
 	lastHintHtml: string = '';
 	maxCorrectPlayersPerRound: number = 1;
 	minimumAnswersPerHint: number = 0;
@@ -36,6 +37,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 
 	allAnswersAchievement?: IGameAchievement;
 	allAnswersTeamAchievement?: IGameAchievement;
+	noIncorrectAnswersMinigameAchievement?: IGameAchievement;
 	roundCategory?: string;
 	readonly roundGuesses?: Map<Player, boolean>;
 	updateHintTime?: number;
@@ -104,6 +106,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		if (this.roundGuesses) this.roundGuesses.clear();
 		this.guessedAnswers = [];
 		this.correctPlayers = [];
+		this.incorrectAnswers = 0;
 		this.roundAnswersCount = this.answers.length;
 		this.hintTimestamp = 0;
 		this.questionAndAnswerRound++;
@@ -221,6 +224,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		let answer = this.checkAnswer(guess);
 
 		if (!answer) {
+			this.incorrectAnswers++;
 			if (!this.onIncorrectGuess) return false;
 			answer = this.onIncorrectGuess(player, guess);
 			if (!answer) return false;
@@ -298,6 +302,9 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 			if (this.isMiniGame) {
 				this.say((this.pm ? "You are" : "**" + user.name + "** is") + " correct! " + this.getAnswers(answer));
 				this.addBits(user, Games.minigameBits);
+				if (this.noIncorrectAnswersMinigameAchievement && !this.incorrectAnswers) {
+					this.unlockAchievement(player, this.noIncorrectAnswersMinigameAchievement);
+				}
 				this.end();
 				return true;
 			}

@@ -1,9 +1,11 @@
 import type { PRNGSeed } from "../lib/prng";
 import { PRNG } from "../lib/prng";
 import { assert, assertStrictEqual } from "../test/test-tools";
-import type { GameFileTests, IGameFile } from "../types/games";
+import type { GameFileTests, IGameAchievement, IGameFile } from "../types/games";
 import type { IParam, IParametersResponse, ParamType } from '../workers/parameters';
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
+
+type AchievementNames = "dexsearchhero";
 
 const BASE_NUMBER_OF_PARAMS = 2;
 const MIN_GEN = 1;
@@ -13,6 +15,11 @@ const allParamTypes: ParamType[] = ['move', 'tier', 'color', 'type', 'resistance
 const modeParamTypes: ParamType[] = ['tier', 'color', 'type', 'egggroup', 'ability', 'gen'];
 
 export class ParasParameters extends QuestionAndAnswer {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		'dexsearchhero': {name: 'Dexsearch Hero', type: 'first', bits: 250, minigame: true,
+			description: "be the first to successfully answer in a minigame"},
+	};
+
 	currentNumberOfParams: number = 0;
 	customParamTypes: ParamType[] | null = null;
 	minimumResults: number = 3;
@@ -22,6 +29,8 @@ export class ParasParameters extends QuestionAndAnswer {
 	pokemon: string[] = [];
 	roundTime: number = 5 * 60 * 1000;
 	usesWorkers: boolean = true;
+
+	noIncorrectAnswersMinigameAchievement = ParasParameters.achievements.dexsearchhero;
 
 	static loadData(): void {
 		Games.workers.parameters.init();
