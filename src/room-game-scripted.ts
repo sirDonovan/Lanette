@@ -42,7 +42,7 @@ export class ScriptedGame extends Game {
 
 	additionalDescription?: string;
 	allowChildGameBits?: boolean;
-	readonly battleData?: Dict<IBattleGameData>;
+	readonly battleData?: Map<Room, IBattleGameData>;
 	readonly battleRooms?: string[];
 	commandDescriptions?: string[];
 	isMiniGame?: boolean;
