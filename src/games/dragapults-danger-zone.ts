@@ -37,7 +37,7 @@ class DragapultsDangerZone extends ScriptedGame {
 	teamBased: boolean = true;
 	teamColumnLetters = new Map<PlayerTeam, string[]>();
 	teamRound: number = 0;
-	teams: Dict<PlayerTeam> = {};
+	teams: Dict<PlayerTeam> | null = null;
 
 	// set in onStart()
 	largestTeam!: PlayerTeam;
@@ -212,7 +212,7 @@ class DragapultsDangerZone extends ScriptedGame {
 				});
 				this.sayUhtml(uhtmlName, html);
 			} else {
-				const team = this.teams[this.currentTeam];
+				const team = this.teams![this.currentTeam];
 				let player = this.playerOrders[team.id].shift();
 				if (!player) {
 					this.setTeamPlayerOrder(team);
@@ -493,7 +493,7 @@ const commands: GameCommandDefinitions<DragapultsDangerZone> = {
 
 			const player = this.players[user.id];
 			let opposingTeam: PlayerTeam | undefined;
-			if (this.teamBased) opposingTeam = this.teams[this.currentTeam];
+			if (this.teamBased) opposingTeam = this.teams![this.currentTeam];
 
 			const location = this.getMapLocation(target, opposingTeam);
 			if (!location) {
