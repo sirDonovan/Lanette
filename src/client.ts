@@ -740,9 +740,26 @@ export class Client {
 			break;
 		}
 
-		case 'noinit':
 		case 'deinit': {
 			Rooms.remove(room);
+			break;
+		}
+
+		case 'noinit': {
+			const messageArguments: IClientMessageTypes['noinit'] = {
+				action: messageParts[0],
+				newId: messageParts[1],
+				newTitle: messageParts[2],
+			};
+
+			if (messageArguments.action === 'rename') {
+				const oldId = room.id;
+				Rooms.renameRoom(room, messageArguments.newId, messageArguments.newTitle);
+				Storage.renameRoom(room, oldId);
+			} else {
+				Rooms.remove(room);
+			}
+
 			break;
 		}
 

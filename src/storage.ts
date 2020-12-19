@@ -101,6 +101,13 @@ export class Storage {
 		}
 	}
 
+	renameRoom(room: Room, oldId: string): void {
+		if (oldId in this.databases) {
+			this.databases[room.id] = this.databases[oldId];
+			delete this.databases[oldId];
+		}
+	}
+
 	getDefaultLeaderboardType(database: IDatabase): LeaderboardType {
 		if (database.tournamentLeaderboard) return 'tournamentLeaderboard';
 		if (database.gameLeaderboard) return 'gameLeaderboard';

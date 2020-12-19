@@ -36,7 +36,7 @@ module.exports = (inputOptions: Dict<string>): void => {
 		clearInterval(Storage.globalDatabaseExportInterval);
 
 		const mochaRoom = Rooms.add('mocha');
-		mochaRoom.title = 'Mocha';
+		mochaRoom.setTitle('Mocha');
 
 		let modulesToTest: string[];
 		if (testOptions.modules) {

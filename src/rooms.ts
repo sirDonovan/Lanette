@@ -28,9 +28,10 @@ export class Room {
 	userHostedGame: UserHostedGame | undefined = undefined;
 	readonly users = new Set<User>();
 
-	readonly id: string;
-	readonly sendId: string;
-	title: string;
+	readonly id!: string;
+	readonly publicId!: string;
+	readonly sendId!: string;
+	readonly title!: string;
 	type!: RoomType;
 
 	// set immediately in checkConfigSettings()
@@ -38,11 +39,31 @@ export class Room {
 	unlinkChallongeLinks!: boolean;
 
 	constructor(id: string) {
-		this.id = id;
-		this.sendId = id === 'lobby' ? '' : id;
-		this.title = id;
+		this.setId(id);
+		this.setTitle(id);
 
 		this.updateConfigSettings();
+	}
+
+	setId(id: string): void {
+		// @ts-expect-error
+		this.id = id;
+		// @ts-expect-error
+		this.sendId = id === 'lobby' ? '' : id;
+
+		let publicId = id;
+		const extractedBattleId = Client.extractBattleId(id);
+		if (extractedBattleId) {
+			publicId = extractedBattleId.publicId;
+		}
+
+		// @ts-expect-error
+		this.publicId = publicId;
+	}
+
+	setTitle(title: string): void {
+		// @ts-expect-error
+		this.title = title;
 	}
 
 	init(type: RoomType): void {
@@ -102,7 +123,7 @@ export class Room {
 
 	onRoomInfoResponse(response: IRoomInfoResponse): void {
 		this.modchat = response.modchat === false ? 'off' : response.modchat;
-		this.title = response.title;
+		this.setTitle(response.title);
 	}
 
 	onUserJoin(user: User, rank: string, onRename?: boolean): void {
@@ -281,6 +302,13 @@ export class Rooms {
 
 	getRoomIds(): string[] {
 		return Object.keys(this.rooms);
+	}
+
+	renameRoom(room: Room, newId: string, newTitle: string): void {
+		delete this.rooms[room.id];
+		this.rooms[newId] = room;
+		room.setId(newId);
+		room.setTitle(newTitle);
 	}
 
 	search(input: string): Room | undefined {

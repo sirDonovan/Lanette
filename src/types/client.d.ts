@@ -124,7 +124,15 @@ export interface IClientMessageTypes {
 
 	deinit: null;
 
-	noinit: null;
+	/**
+	 * Reason or action
+	 */
+	noinit: {
+		/** joinfailed, nonexistent, namerequired or rename */
+		readonly action: string;
+		readonly newId: string;
+		readonly newTitle: string;
+	};
 
 	/**
 	 * Groups list
