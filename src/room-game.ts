@@ -294,7 +294,7 @@ export abstract class Game extends Activity {
 		const remainingPlayers = this.getRemainingPlayerCount();
 		if (!remainingPlayers) return "**Players**: none";
 
-		if (this.teams) {
+		if (this.teams && this.teams.size) {
 			const teamDisplays: string[] = [];
 			for (const i in this.teams) {
 				const team = this.teams[i];
