@@ -4,7 +4,7 @@ import path = require('path');
 import url = require('url');
 
 import type { PRNG } from './lib/prng';
-import type { HexColor, IParsedSmogonLink } from './types/tools';
+import type { HexColor, IExtractedBattleId, IParsedSmogonLink } from './types/tools';
 import type { IParam, IParametersGenData, ParametersSearchType } from './workers/parameters';
 
 const ALPHA_NUMERIC_REGEX = /[^a-zA-Z0-9 ]/g;
@@ -744,32 +744,48 @@ export class Tools {
 		return linkB;
 	}
 
-	extractBattleId(message: string, replayServerAddress: string, serverAddress: string, serverId: string): string | null {
+	extractBattleId(message: string, replayServerAddress: string, serverAddress: string, serverId: string): IExtractedBattleId | null {
 		message = message.trim();
 		if (!message) return null;
 
+		let fullBattleId = "";
 		const replayServerLink = replayServerAddress + (replayServerAddress.endsWith("/") ? "" : "/");
 		const replayServerLinkIndex = message.indexOf(replayServerLink);
 		if (replayServerLinkIndex !== -1) {
 			message = message.substr(replayServerLinkIndex + replayServerLink.length).trim();
 			if (message) {
 				if (serverId !== 'showdown' && message.startsWith(serverId + "-")) message = message.substr(serverId.length + 1);
-				return message.startsWith(BATTLE_ROOM_PREFIX) ? message : BATTLE_ROOM_PREFIX + message;
+				fullBattleId = message.startsWith(BATTLE_ROOM_PREFIX) ? message : BATTLE_ROOM_PREFIX + message;
+			} else {
+				return null;
 			}
-			return null;
 		}
 
-		const serverLink = serverAddress + (serverAddress.endsWith("/") ? "" : "/");
-		const serverLinkIndex = message.indexOf(serverLink);
-		if (serverLinkIndex !== -1) {
-			message = message.substr(serverLinkIndex + serverLink.length).trim();
-			if (message.startsWith(BATTLE_ROOM_PREFIX)) return message;
-			return null;
+		if (!fullBattleId) {
+			const serverLink = serverAddress + (serverAddress.endsWith("/") ? "" : "/");
+			const serverLinkIndex = message.indexOf(serverLink);
+			if (serverLinkIndex !== -1) {
+				message = message.substr(serverLinkIndex + serverLink.length).trim();
+				if (message.startsWith(BATTLE_ROOM_PREFIX)) {
+					fullBattleId = message;
+				} else {
+					return null;
+				}
+			}
+
+			if (!fullBattleId && message.startsWith(BATTLE_ROOM_PREFIX)) fullBattleId = message;
 		}
 
-		if (message.startsWith(BATTLE_ROOM_PREFIX)) return message;
+		if (!fullBattleId) return null;
 
-		return null;
+		const parts = fullBattleId.split("-");
+
+		return {
+			format: parts[1],
+			fullId: fullBattleId,
+			publicId: parts.slice(0, 3).join("-"),
+			password: parts.slice(3).join("-"),
+		};
 	}
 
 	getChallongeUrl(input: string): string | undefined {

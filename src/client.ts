@@ -14,6 +14,7 @@ import type {
 import type { ISeparatedCustomRules } from './types/dex';
 import type { IParseMessagePlugin } from './types/plugins';
 import type { RoomType } from './types/rooms';
+import type { IExtractedBattleId } from './types/tools';
 import type { ITournamentEndJson, ITournamentUpdateJson } from './types/tournaments';
 import type { User } from './users';
 
@@ -1106,7 +1107,7 @@ export class Client {
 					const battleUrl = this.extractBattleId(commandMessage.startsWith(INVITE_COMMAND) ?
 						commandMessage.substr(INVITE_COMMAND.length) : commandMessage);
 					if (battleUrl) {
-						commandMessage = Config.commandCharacter + 'check ' + battleUrl;
+						commandMessage = Config.commandCharacter + 'check ' + battleUrl.fullId;
 					}
 
 					if (messageArguments.rank !== this.groupSymbols.locked) {
@@ -1593,7 +1594,7 @@ export class Client {
 		if (room.unlinkTournamentReplays && room.tournament && !room.tournament.format.team &&
 			lowerCaseMessage.includes(this.replayServerAddress) && !user.hasRank(room, 'voice')) {
 			const battle = this.extractBattleId(lowerCaseMessage);
-			if (battle && room.tournament.battleRooms.includes(battle)) {
+			if (battle && room.tournament.battleRooms.includes(battle.publicId)) {
 				room.sayCommand("/warn " + user.name + ", Please do not link to tournament battles");
 			}
 		}
@@ -1602,7 +1603,7 @@ export class Client {
 		if (room.game && room.game.battleData && room.game.battleRooms && (lowerCaseMessage.includes(this.replayServerAddress) ||
 			lowerCaseMessage.includes(this.server)) && !user.hasRank(room, 'voice')) {
 			const battle = this.extractBattleId(lowerCaseMessage);
-			if (battle && room.game.battleRooms.includes(battle)) {
+			if (battle && room.game.battleRooms.includes(battle.publicId)) {
 				room.sayCommand("/warn " + user.name + ", Please do not link to game battles");
 			}
 		}
@@ -1766,7 +1767,7 @@ export class Client {
 		return this.getPmUserButton(Users.self, message, label, disabled);
 	}
 
-	extractBattleId(source: string): string | null {
+	extractBattleId(source: string): IExtractedBattleId | null {
 		return Tools.extractBattleId(source, this.replayServerAddress, this.server, this.serverId);
 	}
 

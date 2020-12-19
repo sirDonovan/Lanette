@@ -306,14 +306,16 @@ describe("Client", () => {
 		assert(!Client.lastOutgoingMessage);
 	});
 	it('should properly extract battle ids', () => {
-		const battleId = Tools.battleRoomPrefix + "gen8ou-12345";
+		const format = "gen8ou";
+		const battleId = Tools.battleRoomPrefix + format + "-12345";
+		const password = 'password';
 
 		const badReplayLinks: string[] = ["", "/"];
-		const goodReplayLinks: string[] = ["/" + battleId, "/gen8ou-12345"];
-		const badBattleLinks: string[] = ["", "/", "/gen8ou-12345"];
-		const goodBattleLinks: string[] = ["/" + battleId];
-		const badBattleRooms: string[] = ["", "gen8ou-12345"];
-		const goodBattleRooms: string[] = [battleId];
+		const goodReplayLinks: string[] = ["/" + battleId, "/" + battleId + "-" + password, "/" + format + "-12345"];
+		const badBattleLinks: string[] = ["", "/", "/" + format + "-12345"];
+		const goodBattleLinks: string[] = ["/" + battleId, "/" + battleId + "-" + password];
+		const badBattleRooms: string[] = ["", "" + format + "-12345"];
+		const goodBattleRooms: string[] = [battleId, battleId + "-" + password];
 
 		for (const badReplayLink of badReplayLinks) {
 			assertStrictEqual(Client.extractBattleId(Client.replayServerAddress + badReplayLink), null);
@@ -322,9 +324,21 @@ describe("Client", () => {
 		}
 
 		for (const goodReplayLink of goodReplayLinks) {
-			assertStrictEqual(Client.extractBattleId(Client.replayServerAddress + goodReplayLink), battleId);
-			assertStrictEqual(Client.extractBattleId("http://" + Client.replayServerAddress + goodReplayLink), battleId);
-			assertStrictEqual(Client.extractBattleId("https://" + Client.replayServerAddress + goodReplayLink), battleId);
+			const variations = [Client.replayServerAddress + goodReplayLink, "http://" + Client.replayServerAddress + goodReplayLink,
+				"https://" + Client.replayServerAddress + goodReplayLink];
+			for (const variation of variations) {
+				const extractedBattleId = Client.extractBattleId(variation);
+				assert(extractedBattleId);
+				assertStrictEqual(extractedBattleId.format, format);
+				assertStrictEqual(extractedBattleId.publicId, battleId);
+				if (goodReplayLink.includes(password)) {
+					assertStrictEqual(extractedBattleId.fullId, battleId + "-" + password);
+					assertStrictEqual(extractedBattleId.password, password);
+				} else {
+					assertStrictEqual(extractedBattleId.fullId, battleId);
+					assert(!extractedBattleId.password);
+				}
+			}
 		}
 
 		for (const badBattleLink of badBattleLinks) {
@@ -334,9 +348,21 @@ describe("Client", () => {
 		}
 
 		for (const goodBattleLink of goodBattleLinks) {
-			assertStrictEqual(Client.extractBattleId(Client.server + goodBattleLink), battleId);
-			assertStrictEqual(Client.extractBattleId("http://" + Client.server + goodBattleLink), battleId);
-			assertStrictEqual(Client.extractBattleId("https://" + Client.server + goodBattleLink), battleId);
+			const variations = [Client.server + goodBattleLink, "http://" + Client.server + goodBattleLink,
+				"https://" + Client.server + goodBattleLink];
+			for (const variation of variations) {
+				const extractedBattleId = Client.extractBattleId(variation);
+				assert(extractedBattleId);
+				assertStrictEqual(extractedBattleId.format, format);
+				assertStrictEqual(extractedBattleId.publicId, battleId);
+				if (goodBattleLink.includes(password)) {
+					assertStrictEqual(extractedBattleId.fullId, battleId + "-" + password);
+					assertStrictEqual(extractedBattleId.password, password);
+				} else {
+					assertStrictEqual(extractedBattleId.fullId, battleId);
+					assert(!extractedBattleId.password);
+				}
+			}
 		}
 
 		for (const badBattleRoom of badBattleRooms) {
@@ -344,7 +370,17 @@ describe("Client", () => {
 		}
 
 		for (const goodBattleRoom of goodBattleRooms) {
-			assertStrictEqual(Client.extractBattleId(goodBattleRoom), battleId);
+			const extractedBattleId = Client.extractBattleId(goodBattleRoom);
+			assert(extractedBattleId);
+			assertStrictEqual(extractedBattleId.format, format);
+			assertStrictEqual(extractedBattleId.publicId, battleId);
+			if (goodBattleRoom.includes(password)) {
+				assertStrictEqual(extractedBattleId.fullId, battleId + "-" + password);
+				assertStrictEqual(extractedBattleId.password, password);
+			} else {
+				assertStrictEqual(extractedBattleId.fullId, battleId);
+				assert(!extractedBattleId.password);
+			}
 		}
 	});
 });

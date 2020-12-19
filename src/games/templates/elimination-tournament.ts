@@ -1589,26 +1589,25 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 				return false;
 			}
 
-			if (Rooms.get(battle)) {
+			if (Rooms.get(battle.fullId)) {
 				user.say(Users.self.name + " is already in the specified battle.");
 				return false;
 			}
 
-			if (this.checkedBattleRooms.includes(battle)) {
+			if (this.checkedBattleRooms.includes(battle.publicId)) {
 				user.say("The specified battle has already been checked.");
 				return false;
 			}
 
-			const format = battle.split("-")[1];
-			if (format !== this.battleFormat.id) {
+			if (battle.format !== this.battleFormat.id) {
 				user.say("You must battle in " + this.battleFormat.name + ".");
 				return false;
 			}
 
-			const battleRoom = Rooms.add(battle);
+			const battleRoom = Rooms.add(battle.fullId);
 			battleRoom.game = this;
 
-			this.say('/join ' + battle);
+			this.say('/join ' + battle.fullId);
 			return true;
 		},
 		eliminatedGameCommand: true,

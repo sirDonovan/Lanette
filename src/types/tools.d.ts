@@ -13,3 +13,10 @@ export interface IParsedSmogonLink {
 	postId?: string;
 	threadId?: string;
 }
+
+export interface IExtractedBattleId {
+	format: string;
+	fullId: string;
+	publicId: string;
+	password: string;
+}
