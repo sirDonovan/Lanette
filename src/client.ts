@@ -763,6 +763,15 @@ export class Client {
 			break;
 		}
 
+		case 'title': {
+			const messageArguments: IClientMessageTypes['title'] = {
+				title: messageParts[0],
+			};
+
+			room.setTitle(messageArguments.title);
+			break;
+		}
+
 		case 'customgroups': {
 			const messageArguments: IClientMessageTypes['customgroups'] = {
 				groups: JSON.parse(messageParts[0]) as ServerGroupData[],

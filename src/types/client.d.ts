@@ -122,6 +122,13 @@ export interface IClientMessageTypes {
 		readonly type: RoomType;
 	};
 
+	/**
+	 * Room title
+	 */
+	title: {
+		readonly title: string;
+	}
+
 	deinit: null;
 
 	/**
