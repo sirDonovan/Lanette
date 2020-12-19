@@ -3,7 +3,6 @@ import querystring = require('querystring');
 import url = require('url');
 
 import type { ClientOptions, Data } from 'ws';
-import type { Player } from './room-activity';
 import type { ScriptedGame } from './room-game-scripted';
 import type { UserHostedGame } from './room-game-user-hosted';
 import type { Room } from './rooms';
@@ -1426,6 +1425,7 @@ export class Client {
 					usernameB: messageParts[1],
 					roomid: messageParts[2],
 				};
+
 				room.tournament.onBattleStart(messageArguments.usernameA, messageArguments.usernameB, messageArguments.roomid);
 				break;
 			}
@@ -1443,6 +1443,7 @@ export class Client {
 					recorded: messageParts[4] as 'success' | 'fail',
 					roomid: messageParts[5],
 				};
+
 				room.tournament.onBattleEnd(messageArguments.usernameA, messageArguments.usernameB, messageArguments.score,
 					messageArguments.roomid);
 				break;
@@ -1461,16 +1462,7 @@ export class Client {
 			};
 
 			if (room.tournament) {
-				const userId = Tools.toId(messageArguments.username);
-				if (userId in room.tournament.players) {
-					if (!(room.id in room.tournament.battleData)) {
-						room.tournament.battleData[room.id] = {
-							remainingPokemon: {},
-							slots: new Map<Player, string>(),
-						};
-					}
-					room.tournament.battleData[room.id].slots.set(room.tournament.players[userId], messageArguments.slot);
-				}
+				room.tournament.onBattlePlayer(room, messageArguments.slot, messageArguments.username);
 			}
 
 			if (room.game) {
@@ -1486,7 +1478,7 @@ export class Client {
 			};
 
 			if (room.tournament) {
-				room.tournament.battleData[room.id].remainingPokemon[messageArguments.slot] = messageArguments.size;
+				room.tournament.onBattleTeamSize(room, messageArguments.slot, messageArguments.size);
 			}
 
 			if (room.game) {
@@ -1537,7 +1529,7 @@ export class Client {
 			};
 
 			if (room.tournament) {
-				room.tournament.battleData[room.id].remainingPokemon[messageArguments.pokemon.substr(0, 2)]--;
+				room.tournament.onBattleFaint(room, messageArguments.pokemon);
 			}
 
 			if (room.game) {

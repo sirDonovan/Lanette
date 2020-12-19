@@ -1,4 +1,5 @@
 import type { Player } from "../room-activity";
+import type { Room } from "../rooms";
 
 export type TournamentPlace = 'semifinalist' | 'runnerup' | 'winner';
 
@@ -35,11 +36,6 @@ export interface IClientTournamentData {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	readonly tableHeaders?: {cols: string[]; rows: any[]};
 	readonly users?: string[];
-}
-
-export interface IBattleData {
-	remainingPokemon: Dict<number>;
-	slots: Map<Player, string>;
 }
 
 export interface IUserHostedTournament {
@@ -99,5 +95,5 @@ export interface ITournamentCreateJson {
 interface ICurrentTournamentBattle {
 	readonly playerA: Player;
 	readonly playerB: Player;
-	readonly roomid: string;
+	readonly room: Room;
 }

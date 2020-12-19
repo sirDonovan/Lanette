@@ -1,6 +1,6 @@
 import type { Room } from "./rooms";
 import type { MessageListener } from "./types/client";
-import type { PlayerList } from "./types/games";
+import type { IBattleGameData, PlayerList } from "./types/games";
 import type { User } from "./users";
 
 export class Player {
@@ -188,6 +188,19 @@ export abstract class Activity {
 			this.playerCount--;
 		}
 		return player;
+	}
+
+	generateBattleData(): IBattleGameData {
+		return {
+			remainingPokemon: {},
+			slots: new Map<Player, string>(),
+			pokemonCounts: {},
+			pokemon: {},
+			pokemonLeft: {},
+			nicknames: {},
+			wrongTeam: new Map<Player, boolean>(),
+			faintedCloakedPokemon: {},
+		};
 	}
 
 	end(): void {

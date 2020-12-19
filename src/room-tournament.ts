@@ -1,11 +1,9 @@
 import type { Player } from "./room-activity";
 import { Activity } from "./room-activity";
 import type { Room } from "./rooms";
+import type { IBattleGameData } from "./types/games";
 import type { IFormat } from "./types/pokemon-showdown";
-import type {
-	IBattleData, ICurrentTournamentBattle, ITournamentEndJson,
-	ITournamentUpdateJson
-} from "./types/tournaments";
+import type { ICurrentTournamentBattle, ITournamentEndJson, ITournamentUpdateJson } from "./types/tournaments";
 
 const GENERATORS: Dict<number> = {
 	"Single": 1,
@@ -19,7 +17,7 @@ const GENERATORS: Dict<number> = {
 export class Tournament extends Activity {
 	readonly activityType: string = 'tournament';
 	adjustCapTimer: NodeJS.Timer | null = null;
-	readonly battleData: Dict<IBattleData> = {};
+	readonly battleData = new Map<Room, IBattleGameData>();
 	readonly battleRooms: string[] = [];
 	readonly createTime: number = Date.now();
 	readonly currentBattles: ICurrentTournamentBattle[] = [];
@@ -339,22 +337,24 @@ export class Tournament extends Activity {
 			console.log("Player not found for " + usernameA + " vs. " + usernameB + " in " + roomid);
 			return;
 		}
+
+		const room = Rooms.add(roomid);
+
 		this.currentBattles.push({
 			playerA: this.players[idA],
 			playerB: this.players[idB],
-			roomid,
+			room,
 		});
 
-		this.battleRooms.push(roomid);
+		this.battleRooms.push(room.publicId);
 
 		if (this.generator === 1 && this.totalPlayers >= 4 && this.getRemainingPlayerCount() === 2) {
-			this.sayCommand("/wall Final battle of the " + this.name + " " + this.activityType + ": <<" + roomid + ">>!");
+			this.sayCommand("/wall Final battle of the " + this.name + " " + this.activityType + ": <<" + room.id + ">>!");
 		}
 
 		if (this.joinBattles) {
-			const battleRoom = Rooms.add(roomid);
-			battleRoom.tournament = this;
-			this.sayCommand("/join " + roomid);
+			room.tournament = this;
+			this.sayCommand("/join " + room.id);
 		}
 	}
 
@@ -365,17 +365,47 @@ export class Tournament extends Activity {
 			console.log("Player not found for " + usernameA + " vs. " + usernameB + " in " + roomid);
 			return;
 		}
+
+		const room = Rooms.get(roomid);
+
 		for (let i = 0; i < this.currentBattles.length; i++) {
 			if (this.currentBattles[i].playerA === this.players[idA] && this.currentBattles[i].playerB === this.players[idB] &&
-				this.currentBattles[i].roomid === roomid) {
+				this.currentBattles[i].room === room) {
 				this.currentBattles.splice(i, 1);
 				break;
 			}
 		}
 
 		if (this.joinBattles) {
-			const room = Rooms.get(roomid);
 			if (room) room.sayCommand("/leave");
 		}
+	}
+
+	onBattlePlayer(room: Room, slot: string, username: string): void {
+		const id = Tools.toId(username);
+		if (!(id in this.players)) return;
+
+		let battleData = this.battleData.get(room);
+		if (!battleData) {
+			battleData = this.generateBattleData();
+			this.battleData.set(room, battleData);
+		}
+
+		battleData.slots.set(this.players[id], slot);
+	}
+
+	onBattleTeamSize(room: Room, slot: string, size: number): void {
+		const battleData = this.battleData.get(room);
+		if (!battleData) return;
+
+		battleData.remainingPokemon[slot] = size;
+	}
+
+	onBattleFaint(room: Room, pokemonArgument: string): void {
+		const battleData = this.battleData.get(room);
+		if (!battleData) return;
+
+		const slot = pokemonArgument.substr(0, 2);
+		if (slot in battleData.remainingPokemon) battleData.remainingPokemon[slot]--;
 	}
 }

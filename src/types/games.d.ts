@@ -7,7 +7,6 @@ import type { User } from "../users";
 import type { ParametersWorker } from '../workers/parameters';
 import type { PortmanteausWorker } from '../workers/portmanteaus';
 import type { CommandDefinitions, LoadedCommands } from "./command-parser";
-import type { IBattleData } from "./tournaments";
 
 export interface IGamesWorkers {
 	parameters: ParametersWorker;
@@ -270,11 +269,13 @@ export interface ITrainerUhtml {
 	user: string;
 }
 
-export interface IBattleGameData extends IBattleData {
+export interface IBattleGameData {
+	faintedCloakedPokemon: Dict<number>;
+	nicknames: Dict<Dict<string>>;
 	pokemonCounts: Dict<number>;
 	pokemon: Dict<string[]>;
 	pokemonLeft: Dict<number>;
-	nicknames: Dict<Dict<string>>;
+	remainingPokemon: Dict<number>;
+	slots: Map<Player, string>;
 	wrongTeam: Map<Player, boolean>;
-	faintedCloakedPokemon: Dict<number>;
 }

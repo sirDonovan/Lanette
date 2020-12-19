@@ -10,10 +10,10 @@ import type { UserHostedGame } from './room-game-user-hosted';
 import type { Room } from "./rooms";
 import type { CommandDefinitions } from "./types/command-parser";
 import type { CharacterType, LocationType, RegionName } from './types/dex';
-import type { GameDifficulty, IGameFormat } from "./types/games";
+import type { GameDifficulty, IBattleGameData, IGameFormat } from "./types/games";
 import type { IFormat, IPokemon } from "./types/pokemon-showdown";
 import type { IUserHostedGameStats, LeaderboardType, UserHostStatus } from './types/storage';
-import type { IBattleData, TournamentPlace } from './types/tournaments';
+import type { TournamentPlace } from './types/tournaments';
 import type { User } from "./users";
 
 const AWARDED_BOT_GREETING_DURATION = 60 * 24 * 60 * 60 * 1000;
@@ -2926,10 +2926,10 @@ const commands: CommandDefinitions<CommandContext, void> = {
 				return this.say(targetPlayer.name + " has already been eliminated from the " + tournamentRoom.title + " tournament.");
 			}
 
-			let currentBattle: IBattleData | undefined;
+			let currentBattle: IBattleGameData | undefined;
 			for (const battle of tournamentRoom.tournament.currentBattles) {
 				if (battle.playerA === targetPlayer || battle.playerB === targetPlayer) {
-					currentBattle = tournamentRoom.tournament.battleData[battle.roomid];
+					currentBattle = tournamentRoom.tournament.battleData.get(battle.room);
 					break;
 				}
 			}
