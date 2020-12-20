@@ -2228,28 +2228,31 @@ const commands: CommandDefinitions<CommandContext, void> = {
 					(room.userHostedGame.teams ? "team" : "player") + ".");
 			}
 
-			let playerDifficulty: GameDifficulty;
-			if (Config.userHostedGamePlayerDifficulties && room.userHostedGame.format.id in Config.userHostedGamePlayerDifficulties) {
-				playerDifficulty = Config.userHostedGamePlayerDifficulties[room.userHostedGame.format.id];
-			} else if (Config.scriptedGameDifficulties && room.userHostedGame.format.id in Config.scriptedGameDifficulties) {
-				playerDifficulty = Config.scriptedGameDifficulties[room.userHostedGame.format.id];
-			} else {
-				playerDifficulty = 'medium';
-			}
-
-			let playerBits = 300;
-			if (playerDifficulty === 'medium') {
-				playerBits = 400;
-			} else if (playerDifficulty === 'hard') {
-				playerBits = 500;
-			}
-
-			for (const player of players) {
-				Storage.addPoints(room, Storage.gameLeaderboard, player.name, playerBits, 'userhosted');
-				player.say("You were awarded " + playerBits + " bits! To see your total amount, use this command: ``" +
-					Config.commandCharacter + "bits " + room.title + "``");
-			}
 			this.say("The winner" + (players.length === 1 ? " is" : "s are") + " " + Tools.joinList(players.map(x => x.name)) + "!");
+
+			if (Config.rankedGames && Config.rankedGames.includes(room.id)) {
+				let playerDifficulty: GameDifficulty;
+				if (Config.userHostedGamePlayerDifficulties && room.userHostedGame.format.id in Config.userHostedGamePlayerDifficulties) {
+					playerDifficulty = Config.userHostedGamePlayerDifficulties[room.userHostedGame.format.id];
+				} else if (Config.scriptedGameDifficulties && room.userHostedGame.format.id in Config.scriptedGameDifficulties) {
+					playerDifficulty = Config.scriptedGameDifficulties[room.userHostedGame.format.id];
+				} else {
+					playerDifficulty = 'medium';
+				}
+
+				let playerBits = 300;
+				if (playerDifficulty === 'medium') {
+					playerBits = 400;
+				} else if (playerDifficulty === 'hard') {
+					playerBits = 500;
+				}
+
+				for (const player of players) {
+					Storage.addPoints(room, Storage.gameLeaderboard, player.name, playerBits, 'userhosted');
+					player.say("You were awarded " + playerBits + " bits! To see your total amount, use this command: ``" +
+						Config.commandCharacter + "bits " + room.title + "``");
+				}
+			}
 			room.userHostedGame.end();
 		},
 		aliases: ['autowin', 'win'],

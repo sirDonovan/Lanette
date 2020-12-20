@@ -230,26 +230,6 @@ export class UserHostedGame extends Game {
 		if (this.ended) throw new Error("Game already ended");
 		this.ended = true;
 
-		let hostDifficulty: GameDifficulty;
-		if (Config.userHostedGameHostDifficulties && this.format.id in Config.userHostedGameHostDifficulties) {
-			hostDifficulty = Config.userHostedGameHostDifficulties[this.format.id];
-		} else {
-			hostDifficulty = 'medium';
-		}
-
-		let hostBits = 300;
-		if (hostDifficulty === 'medium') {
-			hostBits = 400;
-		} else if (hostDifficulty === 'hard') {
-			hostBits = 500;
-		}
-
-		let hostName = this.hostName;
-		if (this.subHostName) {
-			hostName = this.subHostName;
-			hostBits /= 2;
-		}
-
 		const now = Date.now();
 		if (!(this.room.id in Games.lastUserHostTimes)) Games.lastUserHostTimes[this.room.id] = {};
 		Games.lastUserHostTimes[this.room.id][this.hostId] = now;
@@ -284,12 +264,35 @@ export class UserHostedGame extends Game {
 			database.pastUserHostedGames.pop();
 		}
 
-		Storage.addPoints(this.room, Storage.gameLeaderboard, hostName, hostBits, 'userhosted');
-		Storage.addPoints(this.room, Storage.gameHostingLeaderboard, hostName, 1, this.format.id);
-		const user = Users.get(hostName);
-		if (user) {
-			user.say("You were awarded " + hostBits + " bits! To see your total amount, use this command: ``" + Config.commandCharacter +
-				"bits " + this.room.title + "``. Thanks for your efforts, we hope you host again soon!");
+		Storage.addPoints(this.room, Storage.gameHostingLeaderboard, this.subHostName || this.hostName, 1, this.format.id);
+
+		if (Config.rankedGames && Config.rankedGames.includes(this.room.id)) {
+			let hostDifficulty: GameDifficulty;
+			if (Config.userHostedGameHostDifficulties && this.format.id in Config.userHostedGameHostDifficulties) {
+				hostDifficulty = Config.userHostedGameHostDifficulties[this.format.id];
+			} else {
+				hostDifficulty = 'medium';
+			}
+
+			let hostBits = 300;
+			if (hostDifficulty === 'medium') {
+				hostBits = 400;
+			} else if (hostDifficulty === 'hard') {
+				hostBits = 500;
+			}
+
+			let hostName = this.hostName;
+			if (this.subHostName) {
+				hostName = this.subHostName;
+				hostBits /= 2;
+			}
+
+			Storage.addPoints(this.room, Storage.gameLeaderboard, hostName, hostBits, 'userhosted');
+			const user = Users.get(hostName);
+			if (user) {
+				user.say("You were awarded " + hostBits + " bits! To see your total amount, use this command: ``" +
+					Config.commandCharacter + "bits " + this.room.title + "``. Thanks for your efforts, we hope you host again soon!");
+			}
 		}
 
 		this.setCooldownAndAutoCreate('scripted');

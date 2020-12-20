@@ -685,8 +685,11 @@ export class ScriptedGame extends Game {
 	}
 
 	addBits(user: User | Player, bits: number, noPm?: boolean): boolean {
+		if (this.isPm(this.room) || !Config.rankedGames || !Config.rankedGames.includes(this.room.id) ||
+			(this.parentGame && this.parentGame.allowChildGameBits !== true)) return false;
+
 		bits = Math.floor(bits);
-		if (bits <= 0 || this.isPm(this.room) || (this.parentGame && this.parentGame.allowChildGameBits !== true)) return false;
+		if (bits <= 0) return false;
 		if (bits > this.maxBits) bits = this.maxBits;
 		if (this.shinyMascot) bits *= 2;
 		Storage.addPoints(this.room, Storage.gameLeaderboard, user.name, bits, this.format.id);
@@ -699,8 +702,11 @@ export class ScriptedGame extends Game {
 	}
 
 	removeBits(user: User | Player, bits: number, noPm?: boolean): boolean {
+		if (this.isPm(this.room) || !Config.rankedGames || !Config.rankedGames.includes(this.room.id) ||
+			(this.parentGame && this.parentGame.allowChildGameBits !== true)) return false;
+
 		bits = Math.floor(bits);
-		if (bits <= 0 || this.isPm(this.room) || (this.parentGame && this.parentGame.allowChildGameBits !== true)) return false;
+		if (bits <= 0) return false;
 		if (this.shinyMascot) bits *= 2;
 		Storage.removePoints(this.room, Storage.gameLeaderboard, user.name, bits, this.format.id);
 		if (!noPm) {

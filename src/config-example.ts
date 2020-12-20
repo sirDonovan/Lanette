@@ -225,6 +225,11 @@ export let allowUserHostedTournaments: string[] = [];
 export let userHostedTournamentRanks: Dict<{review: GroupName}> = {};
 
 /**
+ * A list of rooms (roomids) where games will award leaderboard points
+ */
+export let rankedGames: string[] = [];
+
+/**
  * A list of rooms (roomids) where scripted games are allowed to be played
  */
 export let allowScriptedGames: string[] = [];
