@@ -2273,12 +2273,12 @@ const commands: CommandDefinitions<CommandContext, void> = {
 				return;
 			}
 
-			if (Client.willBeFiltered(answer, gameRoom)) {
+			if (Client.checkFilters(answer, gameRoom)) {
 				this.say("Your answer contains a word banned in " + gameRoom.title + ".");
 				return;
 			}
 
-			if (Client.willBeFiltered(hint, gameRoom)) {
+			if (Client.checkFilters(hint, gameRoom)) {
 				this.say("Your hint contains a word banned in " + gameRoom.title + ".");
 				return;
 			}

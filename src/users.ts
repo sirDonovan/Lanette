@@ -95,7 +95,13 @@ export class User {
 		if (!global.Users.get(this.name)) return;
 
 		if (!(options && options.dontPrepare)) message = Tools.prepareMessage(message);
-		if (!(options && options.dontCheckFilter) && Client.willBeFiltered(message)) return;
+		if (!(options && options.dontCheckFilter)) {
+			const filter = Client.checkFilters(message);
+			if (filter) {
+				Tools.logError("Message not sent to " + this.name + " due to " + filter + ": " + message);
+				return;
+			}
+		}
 
 		Client.send({
 			message: "|/pm " + this.name + ", " + message,

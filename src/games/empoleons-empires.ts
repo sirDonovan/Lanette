@@ -184,7 +184,7 @@ const commands: GameCommandDefinitions<EmpoleonsEmpires> = {
 				user.say("That alias has already been chosen.");
 				return false;
 			}
-			if (Client.willBeFiltered(alias, this.room as Room)) {
+			if (Client.checkFilters(alias, this.room as Room)) {
 				user.say("Aliases cannot contain banned words.");
 				return false;
 			}

@@ -1688,20 +1688,20 @@ export class Client {
 		if (Config.bannedWords && Config.bannedWords.length) this.configBannedWordsRegex = constructBannedWordRegex(Config.bannedWords);
 	}
 
-	willBeFiltered(message: string, room?: Room): boolean {
+	checkFilters(message: string, room?: Room): string | undefined {
 		let lowerCase = message.replace(/\u039d/g, 'N').toLowerCase().replace(/[\u200b\u007F\u00AD\uDB40\uDC00\uDC21]/gu, '')
 			.replace(/\u03bf/g, 'o').replace(/\u043e/g, 'o').replace(/\u0430/g, 'a').replace(/\u0435/g, 'e').replace(/\u039d/g, 'e');
 		lowerCase = lowerCase.replace(/__|\*\*|``|\[\[|\]\]/g, '');
 
 		if (this.battleFilterRegularExpressions && room && room.type === 'battle') {
 			for (const expression of this.battleFilterRegularExpressions) {
-				if (lowerCase.match(expression)) return true;
+				if (lowerCase.match(expression)) return "battle filter";
 			}
 		}
 
 		if (this.chatFilterRegularExpressions) {
 			for (const expression of this.chatFilterRegularExpressions) {
-				if (lowerCase.match(expression)) return true;
+				if (lowerCase.match(expression)) return "chat filter";
 			}
 		}
 
@@ -1709,7 +1709,7 @@ export class Client {
 			let evasionLowerCase = lowerCase.normalize('NFKC');
 			evasionLowerCase = evasionLowerCase.replace(/[\s-_,.]+/g, '.');
 			for (const expression of this.evasionFilterRegularExpressions) {
-				if (evasionLowerCase.match(expression)) return true;
+				if (evasionLowerCase.match(expression)) return "evasion filter";
 			}
 		}
 
@@ -1718,20 +1718,18 @@ export class Client {
 				if (!room.configBannedWordsRegex) {
 					room.configBannedWordsRegex = constructBannedWordRegex(room.configBannedWords);
 				}
-				if (message.match(room.configBannedWordsRegex)) return true;
+				if (message.match(room.configBannedWordsRegex)) return "config room banned words";
 			}
 
 			if (room.serverBannedWords) {
 				if (!room.serverBannedWordsRegex) {
 					room.serverBannedWordsRegex = constructBannedWordRegex(room.serverBannedWords);
 				}
-				if (message.match(room.serverBannedWordsRegex)) return true;
+				if (message.match(room.serverBannedWordsRegex)) return "server room banned words";
 			}
 		}
 
-		if (this.configBannedWordsRegex && message.match(this.configBannedWordsRegex)) return true;
-
-		return false;
+		if (this.configBannedWordsRegex && message.match(this.configBannedWordsRegex)) return "config banned words";
 	}
 
 	getListenerHtml(html: string, inPm?: boolean): string {

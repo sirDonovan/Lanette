@@ -96,7 +96,7 @@ class MagnetonsMashups extends QuestionAndAnswer {
 			lastIndex = index;
 		}
 
-		if (Client.willBeFiltered(mashup, !this.isPm(this.room) ? this.room : undefined)) {
+		if (Client.checkFilters(mashup, !this.isPm(this.room) ? this.room : undefined)) {
 			this.generateAnswer();
 			return;
 		}

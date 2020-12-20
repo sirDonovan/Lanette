@@ -152,7 +152,13 @@ export class Room {
 		if (global.Rooms.get(this.id) !== this) return;
 
 		if (!(options && options.dontPrepare)) message = Tools.prepareMessage(message);
-		if (!(options && options.dontCheckFilter) && Client.willBeFiltered(message, this)) return;
+		if (!(options && options.dontCheckFilter)) {
+			const filter = Client.checkFilters(message, this);
+			if (filter) {
+				Tools.logError("Message not sent in " + this.title + " due to " + filter + ": " + message);
+				return;
+			}
+		}
 
 		const type = options && options.type ? options.type : 'chat';
 		const outgoingMessage: IOutgoingMessage = {message: this.sendId + "|" + message, type};

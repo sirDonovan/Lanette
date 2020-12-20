@@ -79,7 +79,8 @@ class FeraligatrsLostLetters extends QuestionAndAnswer {
 			if (!name || name.endsWith('-Mega')) continue;
 			name = name.trim();
 			hint = this.removeLetters(name.split(''));
-			if (!hint || hint.length === name.length || Client.willBeFiltered(hint)) continue;
+			if (!hint || hint.length === name.length ||
+				Client.checkFilters(hint, !this.isPm(this.room) ? this.room : undefined)) continue;
 			answer = name;
 		}
 		this.answers = [answer];

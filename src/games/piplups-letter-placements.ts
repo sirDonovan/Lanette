@@ -42,7 +42,7 @@ class PiplupsLetterPlacements extends QuestionAndAnswer {
 
 		const startingPosition = this.random(randomAnswer.length - 2);
 		const letters = randomAnswer.substr(startingPosition, 3);
-		if (Client.willBeFiltered(letters, this.isPm(this.room) ? undefined : this.room)) {
+		if (Client.checkFilters(letters, this.isPm(this.room) ? undefined : this.room)) {
 			this.generateAnswer();
 			return;
 		}
