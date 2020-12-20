@@ -352,7 +352,7 @@ class DragapultsDangerZone extends ScriptedGame {
 		}
 
 		this.currentPlayer = null;
-		if (playerAWin || playerBWin) this.setLargestTeam();
+		if (this.teamBased && (playerAWin || playerBWin)) this.setLargestTeam();
 
 		this.on(text, () => {
 			this.timeout = setTimeout(() => this.nextRound(), 3 * 1000);
