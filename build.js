@@ -243,9 +243,11 @@ module.exports = async (options) => {
 		if (buildPokemonShowdown) {
 			console.log("Installing pokemon-showdown dependencies...");
 
+			deleteFolderRecursive(path.join(pokemonShowdown, "node_modules"));
+
 			rewritePokemonShowdownPackageJson();
 
-			const npmInstallOutput = await exec('npm install').catch(e => console.log(e));
+			const npmInstallOutput = await exec('npm install --ignore-scripts').catch(e => console.log(e));
 			if (!npmInstallOutput || npmInstallOutput.Error) {
 				await setToSha(currentSha);
 				throw new Error("npm install error");
