@@ -10,7 +10,6 @@ class CloakAndDagger extends EliminationTournament {
 	startingTeamsLength = 1;
 	baseTournamentName = name;
 	tournamentDescription = description;
-	canRejoin = true;
 	requiredTier = "OU";
 	usesCloakedPokemon = true;
 }
