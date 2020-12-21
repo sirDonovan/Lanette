@@ -375,7 +375,7 @@ export class Tournaments {
 		if (!database.tournamentLeaderboard) return "";
 
 		const players: string[] = [];
-		for (const i in database.tournamentLeaderboard) {
+		for (const i in database.tournamentLeaderboard.entries) {
 			if (format.id in database.tournamentLeaderboard.entries[i].sources) {
 				players.push(i);
 			}
