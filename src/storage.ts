@@ -231,7 +231,7 @@ export class Storage {
 		}
 		const leaderboard = database[leaderboardType]!;
 
-		if (!(id in leaderboard)) {
+		if (!(id in leaderboard.entries)) {
 			this.createLeaderboardEntry(leaderboard, name, id);
 		} else {
 			leaderboard.entries[id].name = name;
