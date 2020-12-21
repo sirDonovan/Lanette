@@ -12,7 +12,7 @@ import type { CommandDefinitions } from "./types/command-parser";
 import type { CharacterType, LocationType, RegionName } from './types/dex';
 import type { GameDifficulty, IBattleGameData, IGameFormat } from "./types/games";
 import type { IFormat, IPokemon } from "./types/pokemon-showdown";
-import type { IUserHostedGameStats, LeaderboardType, UserHostStatus } from './types/storage';
+import type { ICachedLeaderboardEntry, IUserHostedGameStats, LeaderboardType, UserHostStatus } from './types/storage';
 import type { TournamentPlace } from './types/tournaments';
 import type { User } from "./users";
 
@@ -3812,7 +3812,6 @@ const commands: CommandDefinitions<CommandContext, void> = {
 			}
 
 			const game = leaderboardType === 'gameLeaderboard';
-			let users = Object.keys(leaderboard);
 			let startPosition = 0;
 			let source: IFormat | IGameFormat | undefined;
 			let annual = false;
@@ -3840,52 +3839,43 @@ const commands: CommandDefinitions<CommandContext, void> = {
 				}
 			}
 
+			let cachedEntries: ICachedLeaderboardEntry[] | undefined;
+			if (annual) {
+				if (source) {
+					cachedEntries = Storage.getAnnualSourcePointsCache(leaderboardRoom, leaderboardType, source.id);
+				} else {
+					cachedEntries = Storage.getAnnualPointsCache(leaderboardRoom, leaderboardType);
+				}
+			} else {
+				if (source) {
+					cachedEntries = Storage.getCurrentSourcePointsCache(leaderboardRoom, leaderboardType, source.id);
+				} else {
+					cachedEntries = Storage.getCurrentPointsCache(leaderboardRoom, leaderboardType);
+				}
+			}
+
+			if (!cachedEntries || !cachedEntries.length) {
+				return this.say("The " + leaderboardRoom.title + (source ? " " + source.name : "") + " leaderboard is empty.");
+			}
+
 			if (startPosition) {
-				if (startPosition > users.length) startPosition = users.length;
+				if (startPosition > cachedEntries.length) startPosition = cachedEntries.length;
 				startPosition -= 10;
 				if (startPosition < 0) startPosition = 0;
 			}
 
-			const pointsCache: Dict<number> = {};
-
-			if (annual && source) {
-				for (const id of users) {
-					let points = 0;
-					if (leaderboard[id].sources[source.id]) points += leaderboard[id].sources[source.id];
-					if (leaderboard[id].annualSources[source.id]) points += leaderboard[id].annualSources[source.id];
-					pointsCache[id] = points;
-				}
-			} else if (annual) {
-				for (const id of users) {
-					pointsCache[id] = leaderboard[id].annual + leaderboard[id].current;
-				}
-			} else if (source) {
-				for (const id of users) {
-					pointsCache[id] = leaderboard[id].sources[source.id] || 0;
-				}
-			} else {
-				for (const id of users) {
-					pointsCache[id] = leaderboard[id].current;
-				}
-			}
-
-			users = users.filter(x => pointsCache[x] !== 0).sort((a, b) => pointsCache[b] - pointsCache[a]);
-			if (!users.length) {
-				return this.say("The " + leaderboardRoom.title + (source ? " " + source.name : "") + " leaderboard is empty.");
-			}
-
 			const output: string[] = [];
 			const positions = 10;
-			for (let i = startPosition; i < users.length; i++) {
-				if (!users[i]) break;
-				const points = pointsCache[users[i]] || leaderboard[users[i]].current;
-				output.push(Tools.toNumberOrderString(i + 1) + ": __" + leaderboard[users[i]].name + "__ (" + points + ")");
+			for (let i = startPosition; i < cachedEntries.length; i++) {
+				if (!cachedEntries[i]) break;
+				output.push(Tools.toNumberOrderString(i + 1) + ": __" + leaderboard.entries[cachedEntries[i].id].name + "__ (" +
+					cachedEntries[i].points + ")");
 				if (output.length === positions) break;
 			}
 			let endPosition = startPosition + positions;
-			if (endPosition > users.length) endPosition = users.length;
-			this.say("``" + (annual ? "Annual " : "") + (source ? source.name + " " : "") + "Top " + endPosition + " of " + users.length +
-				"``: " + output.join(", "));
+			if (endPosition > cachedEntries.length) endPosition = cachedEntries.length;
+			this.say("``" + (annual ? "Annual " : "") + (source ? source.name + " " : "") + "Top " + endPosition + " of " +
+				cachedEntries.length + "``: " + output.join(", "));
 		},
 		aliases: ['lb', 'top'].concat(tournamentLeaderboardAliases, gameLeaderboardAliases),
 	},
@@ -3913,9 +3903,6 @@ const commands: CommandDefinitions<CommandContext, void> = {
 			if (!leaderboard) {
 				return this.say("There is no " + leaderboardName + " for the " + targetRoom.title + " room.");
 			}
-
-			const users = Object.keys(leaderboard);
-			if (!users.length) return this.say("The " + targetRoom.title + " " + leaderboardName + " is empty.");
 
 			const game = leaderboardType === 'gameLeaderboard';
 			let targetUser = '';
@@ -3949,43 +3936,33 @@ const commands: CommandDefinitions<CommandContext, void> = {
 
 			if (targetUser && position) return this.say("You cannot specify both a username and a position.");
 
-			const currentPointsCache: Dict<number> = {};
-			const annualPointsCache: Dict<number> = {};
+			let currentCache: ICachedLeaderboardEntry[] | undefined;
+			let annualCache: ICachedLeaderboardEntry[] | undefined;
 			if (source) {
-				for (const id of users) {
-					let annualPoints = 0;
-					if (leaderboard[id].sources[source.id]) annualPoints += leaderboard[id].sources[source.id];
-					if (leaderboard[id].annualSources[source.id]) {
-						annualPoints += leaderboard[id].annualSources[source.id];
-					}
-					annualPointsCache[id] = annualPoints;
-					currentPointsCache[id] = leaderboard[id].sources[source.id] || 0;
-				}
+				currentCache = Storage.getCurrentSourcePointsCache(targetRoom, leaderboardType, source.id);
+				annualCache = Storage.getAnnualSourcePointsCache(targetRoom, leaderboardType, source.id);
 			} else {
-				for (const id of users) {
-					annualPointsCache[id] = leaderboard[id].annual + leaderboard[id].current;
-					currentPointsCache[id] = leaderboard[id].current;
-				}
+				currentCache = Storage.getCurrentPointsCache(targetRoom, leaderboardType);
+				annualCache = Storage.getAnnualPointsCache(targetRoom, leaderboardType);
 			}
-			const current = users.filter(x => currentPointsCache[x] !== 0).sort((a, b) => currentPointsCache[b] - currentPointsCache[a]);
-			const annual = users.filter(x => annualPointsCache[x] !== 0).sort((a, b) => annualPointsCache[b] - annualPointsCache[a]);
 
 			const pointsName = game ? "bit" : "point";
 			const results: string[] = [];
 			if (position) {
 				const index = position - 1;
-				if (current[index]) {
-					const points = currentPointsCache[current[index]];
+
+				if (currentCache && currentCache[index]) {
 					results.push("#" + position + " on the " + targetRoom.title + " " + (source ? source.name + " " : "") + " " +
-						leaderboardName + " is " + leaderboard[current[index]].name + " with " + points + " " +
-						pointsName + (points !== 1 ? "s" : "") + ".");
+						leaderboardName + " is " + leaderboard.entries[currentCache[index].id].name + " with " +
+						currentCache[index].points + " " + pointsName + (currentCache[index].points !== 1 ? "s" : "") + ".");
 				}
-				if (annual[index]) {
-					const points = annualPointsCache[annual[index]];
+
+				if (annualCache && annualCache[index]) {
 					results.push("#" + position + " on the annual " + targetRoom.title + " " + (source ? source.name + " " : "") +
-						" " + leaderboardName + " is " + leaderboard[annual[index]].name + " with " + points + " " +
-						pointsName + (points !== 1 ? "s" : "") + ".");
+						" " + leaderboardName + " is " + leaderboard.entries[annualCache[index].id].name + " with " +
+						annualCache[index].points + " " + pointsName + (annualCache[index].points !== 1 ? "s" : "") + ".");
 				}
+
 				if (!results.length) {
 					return this.say("No one is #" + position + " on the " + targetRoom.title + " " + (source ? source.name + " " : "") +
 						leaderboardName + ".");
@@ -3993,22 +3970,43 @@ const commands: CommandDefinitions<CommandContext, void> = {
 			} else {
 				if (!targetUser) targetUser = user.id;
 				const self = targetUser === user.id;
-				const currentIndex = current.indexOf(targetUser);
-				const annualIndex = annual.indexOf(targetUser);
-				if (currentIndex !== -1) {
-					results.push((self ? "You are" : leaderboard[targetUser].name + " is") + " #" + (currentIndex + 1) + " on " +
-						"the " + targetRoom.title + " " + (source ? source.name + " " : "") + " " + leaderboardName + " with " +
-						currentPointsCache[targetUser] + " " + pointsName + (currentPointsCache[targetUser] !== 1 ? "s" : "") +
-						".");
+
+				if (currentCache) {
+					let currentIndex = -1;
+					for (let i = 0; i < currentCache.length; i++) {
+						if (currentCache[i].id === targetUser) {
+							currentIndex = i;
+							break;
+						}
+					}
+
+					if (currentIndex !== -1) {
+						results.push((self ? "You are" : leaderboard.entries[targetUser].name + " is") + " #" + (currentIndex + 1) + " " +
+							"on the " + targetRoom.title + " " + (source ? source.name + " " : "") + " " + leaderboardName + " with " +
+							currentCache[currentIndex].points + " " + pointsName + (currentCache[currentIndex].points !== 1 ? "s" : "") +
+							".");
+					}
 				}
-				if (annualIndex !== -1) {
-					results.push((self ? "You are" : leaderboard[targetUser].name + " is") + " #" + (annualIndex + 1) + " on " +
-						"the annual " + targetRoom.title + " " + (source ? source.name + " " : "") + " " + leaderboardName + " with " +
-						annualPointsCache[targetUser] + " " + pointsName + (annualPointsCache[targetUser] !== 1 ? "s" : "") +
-						".");
+
+				if (annualCache) {
+					let annualIndex = -1;
+					for (let i = 0; i < annualCache.length; i++) {
+						if (annualCache[i].id === targetUser) {
+							annualIndex = i;
+							break;
+						}
+					}
+
+					if (annualIndex !== -1) {
+						results.push((self ? "You are" : leaderboard.entries[targetUser].name + " is") + " #" + (annualIndex + 1) + " " +
+							"on the annual " + targetRoom.title + " " + (source ? source.name + " " : "") + " " + leaderboardName + " " +
+							"with " + annualCache[annualIndex].points + " " + pointsName +
+							(annualCache[annualIndex].points !== 1 ? "s" : "") + ".");
+					}
 				}
+
 				if (!results.length) {
-					return this.say((self ? "You are" : targetUser in leaderboard ? leaderboard[targetUser].name :
+					return this.say((self ? "You are" : targetUser in leaderboard ? leaderboard.entries[targetUser].name :
 						targetUser + " is") + " not " + "on the " + targetRoom.title + " " + (source ? source.name + " " : "") +
 						leaderboardName + ".");
 				}
@@ -4185,16 +4183,16 @@ const commands: CommandDefinitions<CommandContext, void> = {
 				if (!database.tournamentLeaderboard) {
 					return this.say("There is no tournament leaderboard for the " + eventRoom.title + " room.");
 				}
-				if (!(targetUser in database.tournamentLeaderboard)) {
+				if (!(targetUser in database.tournamentLeaderboard.entries)) {
 					return this.say(this.sanitizeResponse(targets[1].trim() + " does not have any event points."));
 				}
 				let eventPoints = 0;
-				for (const source in database.tournamentLeaderboard[targetUser].sources) {
+				for (const source in database.tournamentLeaderboard.entries[targetUser].sources) {
 					if (eventInformation.formatIds.includes(source)) {
-						eventPoints += database.tournamentLeaderboard[targetUser].sources[source];
+						eventPoints += database.tournamentLeaderboard.entries[targetUser].sources[source];
 					}
 				}
-				this.say(database.tournamentLeaderboard[targetUser].name + " has " + eventPoints + " points in" +
+				this.say(database.tournamentLeaderboard.entries[targetUser].name + " has " + eventPoints + " points in" +
 					(!multipleFormats ? " the" : "") + " " + database.eventInformation[event].name + " format" +
 					(multipleFormats ? "s" : "") + ".");
 			} else {

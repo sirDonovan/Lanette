@@ -47,14 +47,23 @@ export type UserHostStatus = 'unapproved' | 'novice' | 'approved';
 
 export type LeaderboardType = 'gameLeaderboard' | 'gameHostingLeaderbaord' | 'tournamentLeaderboard' | 'unsortedLeaderboard';
 
-export type Leaderboard = Dict<ILeaderboardEntry>;
+export interface ILeaderboard {
+	entries: Dict<ILeaderboardEntry>;
+	sources: string[];
+	type: LeaderboardType;
+}
+
+export interface ICachedLeaderboardEntry {
+	id: string;
+	points: number;
+}
 
 export interface IDatabase {
 	botGreetings?: Dict<IBotGreeting>;
 	eventInformation?: Dict<IEventInformation>;
 	gameAchievements?: Dict<string[]>;
-	gameLeaderboard?: Leaderboard;
-	gameHostingLeaderbaord?: Leaderboard;
+	gameLeaderboard?: ILeaderboard;
+	gameHostingLeaderbaord?: ILeaderboard;
 	lastGameFormatTimes?: Dict<number>;
 	lastGameTime?: number;
 	lastTournamentFormatTimes?: Dict<number>;
@@ -70,8 +79,8 @@ export interface IDatabase {
 	roomSampleTeamsLink?: string;
 	scriptedGameCounts?: Dict<number>;
 	thcWinners?: Dict<string>;
-	tournamentLeaderboard?: Leaderboard;
-	unsortedLeaderboard?: Leaderboard;
+	tournamentLeaderboard?: ILeaderboard;
+	unsortedLeaderboard?: ILeaderboard;
 	userHostedGameCounts?: Dict<number>;
 	userHostedGameStats?: Dict<IUserHostedGameStats[]>;
 	userHostedGameQueue?: IQueuedUserHostedGame[];

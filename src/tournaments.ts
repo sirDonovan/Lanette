@@ -376,7 +376,7 @@ export class Tournaments {
 
 		const players: string[] = [];
 		for (const i in database.tournamentLeaderboard) {
-			if (format.id in database.tournamentLeaderboard[i].sources) {
+			if (format.id in database.tournamentLeaderboard.entries[i].sources) {
 				players.push(i);
 			}
 		}
@@ -384,7 +384,8 @@ export class Tournaments {
 		if (!players.length) return "";
 
 		players.sort((a, b) => {
-			return database.tournamentLeaderboard![b].sources[format.id] - database.tournamentLeaderboard![a].sources[format.id];
+			return database.tournamentLeaderboard!.entries[b].sources[format.id] -
+				database.tournamentLeaderboard!.entries[a].sources[format.id];
 		});
 
 		let html = "<center><b>" + format.name + " leaderboard</b><br /><br /><table border='2' style='table-layout: fixed;width: 500px'>" +
@@ -392,8 +393,8 @@ export class Tournaments {
 		for (let i = 0; i < players.length; i++) {
 			const id = players[i];
 			let place = Tools.toNumberOrderString(i + 1);
-			let name = database.tournamentLeaderboard[id].name;
-			let points = "" + database.tournamentLeaderboard[id].sources[format.id];
+			let name = database.tournamentLeaderboard.entries[id].name;
+			let points = "" + database.tournamentLeaderboard.entries[id].sources[format.id];
 			if (i === 0) {
 				place = "<b>" + place + "</b>";
 				name = "<b>" + name + "</b>";
