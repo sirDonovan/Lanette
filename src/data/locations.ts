@@ -184,7 +184,7 @@ export const locations: LocationData = {
 			"Flower Paradise",
 			"Fuego Ironworks",
 			"Fullmoon Island",
-			"Galatic HQ",
+			"Galactic HQ",
 			"Great Marsh",
 			"Hall of Origin",
 			"Iron Island",
