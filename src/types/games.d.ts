@@ -189,6 +189,7 @@ export interface IGameVariantProperties<T extends ScriptedGame = ScriptedGame> {
 	defaultOptions?: DefaultGameOption[];
 	description?: string;
 	freejoin?: boolean;
+	noOneVsOne?: boolean;
 	modeProperties?: PartialKeyedDict<GameMode, Partial<T>>;
 	modes?: GameMode[];
 }

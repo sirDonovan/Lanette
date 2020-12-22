@@ -211,19 +211,20 @@ class DragapultsDangerZone extends ScriptedGame {
 					this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 				});
 				this.sayUhtml(uhtmlName, html);
-			} else {
-				const team = this.teams![this.currentTeam];
-				let player = this.playerOrders[team.id].shift();
-				if (!player) {
-					this.setTeamPlayerOrder(team);
-					player = this.playerOrders[team.id].shift()!;
-				}
-
-				this.currentTeam = this.currentTeam === 'red' ? 'blue' : 'red';
-				this.currentPlayer = player;
-
-				fireText = "It is " + player.name + " of the " + team.name + " Team's turn to fire!";
+				return;
 			}
+
+			const team = this.teams![this.currentTeam];
+			let player = this.playerOrders[team.id].shift();
+			if (!player) {
+				this.setTeamPlayerOrder(team);
+				player = this.playerOrders[team.id].shift()!;
+			}
+
+			this.currentTeam = this.currentTeam === 'red' ? 'blue' : 'red';
+			this.currentPlayer = player;
+
+			fireText = "It is " + player.name + " of the " + team.name + " Team's turn to fire!";
 		} else {
 			if (this.getFinalPlayer()) {
 				return this.end();
@@ -239,14 +240,15 @@ class DragapultsDangerZone extends ScriptedGame {
 					this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 				});
 				this.sayUhtml(uhtmlName, html);
-			} else {
-				const player = this.soloPlayerOrder[0];
-				this.soloPlayerOrder.shift();
-
-				this.currentPlayer = player;
-
-				fireText = "It is " + player.name + "'s turn to fire!";
+				return;
 			}
+
+			const player = this.soloPlayerOrder[0];
+			this.soloPlayerOrder.shift();
+
+			this.currentPlayer = player;
+
+			fireText = "It is " + player.name + "'s turn to fire!";
 		}
 
 		this.displayMap();
@@ -569,6 +571,7 @@ export const game: IGameFile<DragapultsDangerZone> = {
 			aliases: ['dsdz'],
 			variantAliases: ['solo'],
 			commandDescriptions: [Config.commandCharacter + "fire [location]", Config.commandCharacter + "select [Pokemon]"],
+			noOneVsOne: false,
 			teamBased: false,
 		},
 	],

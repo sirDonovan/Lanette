@@ -664,21 +664,17 @@ export class Games {
 			variant,
 		};
 
-		let customizableOptions: Dict<IGameOptionValues>;
-		if (variant && variant.customizableOptions) {
-			customizableOptions = variant.customizableOptions;
-		} else {
-			customizableOptions = formatData.customizableOptions || {};
+		let customizableOptions: Dict<IGameOptionValues> = formatData.customizableOptions || {};
+		let defaultOptions: DefaultGameOption[] = formatData.defaultOptions || [];
+		let noOneVsOne: boolean = formatData.noOneVsOne || false;
+		if (variant) {
+			if (variant.customizableOptions) customizableOptions = variant.customizableOptions;
+			if (variant.defaultOptions) defaultOptions = variant.defaultOptions;
+			if (noOneVsOne && variant.noOneVsOne === false) noOneVsOne = false;
 		}
 
-		let defaultOptions: DefaultGameOption[];
-		if (variant && variant.defaultOptions) {
-			defaultOptions = variant.defaultOptions;
-		} else {
-			defaultOptions = formatData.defaultOptions || [];
-		}
-
-		const format = Object.assign(formatData, formatComputed, {customizableOptions, defaultOptions, options: {}}) as IGameFormat;
+		const format = Object.assign(formatData, formatComputed,
+			{customizableOptions, defaultOptions, noOneVsOne, options: {}}) as IGameFormat;
 		format.options = ScriptedGame.setOptions(format, mode, variant);
 
 		return format;
