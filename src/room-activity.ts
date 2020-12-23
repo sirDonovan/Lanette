@@ -67,15 +67,7 @@ export class Player {
 	}
 
 	useCommand(command: string, target?: string): void {
-		let expiredUser = false;
-		let user = Users.get(this.name);
-		if (!user) {
-			expiredUser = true;
-			user = Users.add(this.name, this.id);
-		}
-		CommandParser.parse(this.activity.room, user, Config.commandCharacter + command + (target !== undefined ? " " + target : ""),
-			Date.now());
-		if (expiredUser) Users.remove(user);
+		this.activity.parseCommand(this.name, command, target);
 	}
 }
 
@@ -140,6 +132,20 @@ export abstract class Activity {
 
 	isPm(room: Room | User): room is User {
 		return this.pm;
+	}
+
+	parseCommand(name: string, command: string, target?: string): void {
+		let expiredUser = false;
+		let user = Users.get(name);
+		if (!user) {
+			expiredUser = true;
+			user = Users.add(name, Tools.toId(name));
+		}
+
+		CommandParser.parse(this.room, user, Config.commandCharacter + command + (target !== undefined ? " " + target : ""),
+			Date.now());
+
+		if (expiredUser) Users.remove(user);
 	}
 
 	createPlayer(user: User | string): Player | undefined {
