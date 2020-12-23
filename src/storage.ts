@@ -96,9 +96,12 @@ export class Storage {
 			const file = fs.readFileSync(path.join(this.databasesDir, fileName)).toString();
 			const database = JSON.parse(file) as IDatabase;
 
+			let hasLeaderboard = false;
 			// convert old leaderboards as needed
 			for (const type of this.allLeaderboardTypes) {
 				if (!database[type]) continue;
+				hasLeaderboard = true;
+
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				if (!database[type]!.entries) {
 					const oldLeaderboard = (database[type] as unknown) as Dict<ILeaderboardEntry>;
@@ -121,7 +124,7 @@ export class Storage {
 				}
 			}
 
-			this.updateLeaderboardCaches(id, database);
+			if (hasLeaderboard) this.updateLeaderboardCaches(id, database);
 
 			this.databases[id] = database;
 		}

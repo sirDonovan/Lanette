@@ -51,13 +51,22 @@ module.exports = (): void => {
 	users.instantiate();
 	games.instantiate();
 
-	Storage.importDatabases();
-	Tournaments.loadSchedules();
-
 	PluginsLoader.load();
 
 	global.Commands = CommandParser.loadBaseCommands(commands);
 	global.BaseCommands = Tools.deepClone(Commands);
+
+	console.log("Loading databases...");
+	Storage.importDatabases();
+
+	console.log("Loading dex data...");
+	Dex.loadAllData();
+
+	console.log("Loading games...");
+	Games.loadFormats();
+
+	console.log("Loading tournament schedules...");
+	Tournaments.loadSchedules();
 
 	global.__reloadInProgress = false;
 
