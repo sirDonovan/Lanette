@@ -2679,10 +2679,15 @@ const commands: CommandDefinitions<CommandContext, void> = {
 			let region: RegionName;
 			if (target) {
 				const id = Tools.toId(target) as RegionName;
-				if (!Dex.regions.includes(id)) return this.say("'" + target + "' is not a valid character region.");
+				if (!Dex.regions.includes(id) || !Dex.data.badges[id].length) {
+					return this.say("'" + target + "' is not a valid badge region.");
+				}
 				region = id;
 			} else {
 				region = Tools.sampleOne(Dex.regions);
+				while (!Dex.data.badges[region].length) {
+					region = Tools.sampleOne(Dex.regions);
+				}
 			}
 
 			this.say('Randomly generated' + (target ? ' ' + Dex.regionNames[region] : '') + ' badge: ' +
