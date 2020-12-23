@@ -148,6 +148,10 @@ export class Vote extends ScriptedGame {
 		return html;
 	}
 
+	getHighlightPhrase(): string {
+		return Games.scriptedGameVoteHighlight;
+	}
+
 	onSignups(): void {
 		this.votesUhtmlName = this.uhtmlBaseName + '-votes';
 		this.bannedFormats = Games.getNextVoteBans(this.room);
@@ -174,6 +178,9 @@ export class Vote extends ScriptedGame {
 		}
 
 		let html = "<center><h3>Vote for the next scripted game with <code>" + Config.commandCharacter + "vote [game]</code></h3>";
+		html += '<button class="button" name="parseCommand" value="/highlight roomadd, ' +
+				this.getHighlightPhrase() + '">Enable vote highlights</button> | <button class="button" name="parseCommand" ' +
+				'value="/highlight roomdelete, ' + this.getHighlightPhrase() + '">Disable vote highlights</button><br /><br />';
 
 		if (this.botSuggestions.length) {
 			html += "<b>" + Users.self.name + "'s suggestions:</b><br />";
@@ -231,7 +238,7 @@ export class Vote extends ScriptedGame {
 
 		this.notifyRankSignups = true;
 		this.sayCommand("/notifyrank all, " + this.room.title + " game vote,Help decide the next scripted game!," +
-			Games.scriptedGameVoteHighlight, true);
+			this.getHighlightPhrase(), true);
 	}
 
 	endVoting(): void {

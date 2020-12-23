@@ -222,6 +222,7 @@ export class ScriptedGame extends Game {
 		}
 		html += "<h3>" + this.name + "</h3>" + this.getDescription();
 		if (this.additionalDescription) html += "<br /><br />" + this.additionalDescription;
+
 		let commandDescriptions: string[] = [];
 		if (this.getPlayerSummary) commandDescriptions.push(Config.commandCharacter + "summary");
 		if (this.commandDescriptions) commandDescriptions = commandDescriptions.concat(this.commandDescriptions);
@@ -229,6 +230,13 @@ export class ScriptedGame extends Game {
 			html += "<br /><b>Command" + (commandDescriptions.length > 1 ? "s" : "") + "</b>: " +
 				commandDescriptions.map(x => "<code>" + x + "</code>").join(", ");
 		}
+
+		if (!this.internalGame && !this.parentGame) {
+			html += '<br /><br /><button class="button" name="parseCommand" value="/highlight roomadd, ' +
+				this.getHighlightPhrase() + '">Enable game highlights</button> | <button class="button" name="parseCommand" ' +
+				'value="/highlight roomdelete, ' + this.getHighlightPhrase() + '">Disable game highlights</button>';
+		}
+
 		html += "</center>";
 		return html;
 	}
@@ -260,6 +268,10 @@ export class ScriptedGame extends Game {
 		this.deallocate(false);
 	}
 
+	getHighlightPhrase(): string {
+		return Games.scriptedGameHighlight + " " + this.id;
+	}
+
 	signups(): void {
 		this.signupsTime = Date.now();
 		this.signupsStarted = true;
@@ -281,7 +293,7 @@ export class ScriptedGame extends Game {
 			this.sayUhtml(this.joinLeaveButtonUhtmlName, joinLeaveHtml);
 			this.notifyRankSignups = true;
 			this.sayCommand("/notifyrank all, " + (this.room as Room).title + " scripted game," + this.name + "," +
-				Games.scriptedGameHighlight + " " + this.name, true);
+				this.getHighlightPhrase(), true);
 		}
 
 		if (this.shinyMascot) this.say(this.mascot!.name + " is shiny so bits will be doubled!");
