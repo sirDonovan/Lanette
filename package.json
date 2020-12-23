@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "citest": "node --enable-source-maps mocha.js -- --noBuild",
-    "lint": "eslint -c .eslintrc --ext .ts --cache .",
+    "lint": "eslint . --ext .ts --cache .",
     "localboot": "node --enable-source-maps tempConfig.js -- --offline --incrementalBuild",
     "localtest": "npm run lint && node --enable-source-maps mocha.js -- --offline --incrementalBuild",
     "start": "node app.js",
