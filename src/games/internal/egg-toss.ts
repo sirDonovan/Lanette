@@ -23,6 +23,12 @@ class EggToss extends ScriptedGame {
 		if (this.explodeTimeout) clearTimeout(this.explodeTimeout);
 	}
 
+	onUserLeaveRoom(room: Room, user: User): void {
+		if (!this.started || !(user.id in this.players) || this.players[user.id].eliminated) return;
+		this.currentHolder = this.players[user.id];
+		this.explodeEgg("for leaving the room");
+	}
+
 	onRenamePlayer(player: Player): void {
 		if (!this.started || player.eliminated) return;
 		this.currentHolder = player;
