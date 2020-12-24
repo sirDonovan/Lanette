@@ -16,7 +16,7 @@ class Location {
 	}
 
 	getColor() {
-		return Tools.hexColorCodes[this.color]['background-color'];
+		return Tools.hexColorCodes[this.color]['background'];
 	}
 
 	getText() {
@@ -35,7 +35,7 @@ class Door extends Location {
 
 	getColor() {
 		if (this.canMoveThrough) {
-			return Tools.hexColorCodes[tileColors.unlockedDoor]['background-color'];
+			return Tools.hexColorCodes[tileColors.unlockedDoor]['background'];
 		} else {
 			return super.getColor();
 		}
@@ -128,10 +128,10 @@ interface ITileValues {
 
 const tileColors: ITileColors = {
 	players: "Cyan",
-	wall: "Gray",
+	wall: "Light-Gray",
 	candy: "Pink",
-	ghost: "Violet",
-	ghostFrenzy: "Red",
+	ghost: "Light-Violet",
+	ghostFrenzy: "Light-Red",
 	door: "Orange",
 	unlockedDoor: "Green",
 	switch: "Yellow",
@@ -590,9 +590,9 @@ class HauntersHauntedHouse extends ScriptedGame {
 				if (coordinates in ghostLocations) {
 					tileText = ghostLocations[coordinates];
 					if (this.ghostFrenzies) {
-						tileColor = Tools.hexColorCodes[tileColors.ghostFrenzy]['background-color'];
+						tileColor = Tools.hexColorCodes[tileColors.ghostFrenzy]['background'];
 					} else {
-						tileColor = Tools.hexColorCodes[tileColors.ghost]['background-color'];
+						tileColor = Tools.hexColorCodes[tileColors.ghost]['background'];
 					}
 				} else if (coordinates in playerLocations) {
 					tileText = '<span title="' + playerLocations[coordinates].map(x => x.name).join(", ") + '">';
@@ -602,10 +602,10 @@ class HauntersHauntedHouse extends ScriptedGame {
 						tileText += "*";
 					}
 					tileText += '</span>';
-					tileColor = Tools.hexColorCodes[tileColors.players]['background-color'];
+					tileColor = Tools.hexColorCodes[tileColors.players]['background'];
 				}
 
-				html += '<td style=background-color:' + tileColor + '; width="20px"; height="20px"; align="center">' + tileText + '</td>';
+				html += '<td style=background:' + tileColor + '; width="20px"; height="20px"; align="center"><b>' + tileText + '</b></td>';
 			}
 			html += '</tr>';
 		}
@@ -1052,19 +1052,19 @@ export const game: IGameFile<HauntersHauntedHouse> = {
 	description: "Players work together to unlock doors and gather candy around the board while avoiding the ghosts!",
 	additionalDescription: '<details><summary>View the board legend:</summary>' +
 		'<div style="display: inline-block;width: 10px;height: 10px;' +
-		'background-color: ' + Tools.hexColorCodes[tileColors.players]['background-color'] + '">&nbsp;</div> - Players<br />' +
+		'background: ' + Tools.hexColorCodes[tileColors.players]['background'] + '">&nbsp;</div> - Players<br />' +
 		'<div style="display: inline-block;width: 10px;height: 10px;' +
-		'background-color: ' + Tools.hexColorCodes[tileColors.wall]['background-color'] + '">&nbsp;</div> - Walls<br />' +
+		'background: ' + Tools.hexColorCodes[tileColors.wall]['background'] + '">&nbsp;</div> - Walls<br />' +
 		'<div style="display: inline-block;width: 10px;height: 10px;' +
-		'background-color: ' + Tools.hexColorCodes[tileColors.door]['background-color'] + '">&nbsp;</div> - Locked doors<br />' +
+		'background: ' + Tools.hexColorCodes[tileColors.door]['background'] + '">&nbsp;</div> - Locked doors<br />' +
 		'<div style="display: inline-block;width: 10px;height: 10px;' +
-		'background-color: ' + Tools.hexColorCodes[tileColors.unlockedDoor]['background-color'] + '">&nbsp;</div> - Unlocked doors<br />' +
+		'background: ' + Tools.hexColorCodes[tileColors.unlockedDoor]['background'] + '">&nbsp;</div> - Unlocked doors<br />' +
 		'<div style="display: inline-block;width: 10px;height: 10px;' +
-		'background-color: ' + Tools.hexColorCodes[tileColors.switch]['background-color'] + '">&nbsp;</div> - Door switches<br />' +
+		'background: ' + Tools.hexColorCodes[tileColors.switch]['background'] + '">&nbsp;</div> - Door switches<br />' +
 		'<div style="display: inline-block;width: 10px;height: 10px;' +
-		'background-color: ' + Tools.hexColorCodes[tileColors.ghost]['background-color'] + '">&nbsp;</div> - Ghosts<br />' +
+		'background: ' + Tools.hexColorCodes[tileColors.ghost]['background'] + '">&nbsp;</div> - Ghosts<br />' +
 		'<div style="display: inline-block;width: 10px;height: 10px;' +
-		'background-color: ' + Tools.hexColorCodes[tileColors.candy]['background-color'] + '">&nbsp;</div> - Candy<br /></details>',
+		'background: ' + Tools.hexColorCodes[tileColors.candy]['background'] + '">&nbsp;</div> - Candy<br /></details>',
 	noOneVsOne: true,
 	scriptedOnly: true,
 };

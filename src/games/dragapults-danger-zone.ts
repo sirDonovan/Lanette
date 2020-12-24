@@ -52,7 +52,7 @@ class DragapultsDangerZone extends ScriptedGame {
 			(25 * ((this.gridSize * 2) + 1)) + 'px"><tr style="height:25px"><td>&nbsp;</td>';
 
 		for (const letter of this.columnLetters) {
-			html += '<td style="background: ' + Tools.hexColorCodes["Light-Gray"]["background-color"] + '">' + letter + '</td>';
+			html += '<td style="background: ' + Tools.hexColorCodes["Light-Gray"]["background"] + '">' + letter + '</td>';
 		}
 		html += '</tr>';
 
@@ -64,7 +64,7 @@ class DragapultsDangerZone extends ScriptedGame {
 
 		const hexColors: HexColor[] = ['Red', 'Blue', 'Violet'];
 		for (let i = 1; i <= this.gridSize; i++) {
-			html += '<tr style="height:25px"><td style="background: ' + Tools.hexColorCodes["Light-Gray"]["background-color"] + '">' +
+			html += '<tr style="height:25px"><td style="background: ' + Tools.hexColorCodes["Light-Gray"]["background"] + '">' +
 				i + '</td>';
 
 			let currentTeamIndex = this.teamBased ? 0 : 2;
@@ -74,13 +74,13 @@ class DragapultsDangerZone extends ScriptedGame {
 				}
 				const letter = this.columnLetters[j];
 				const location = letter + i;
-				let locationColor = Tools.hexColorCodes[hexColors[currentTeamIndex]]["background-color"];
+				let locationColor = Tools.hexColorCodes[hexColors[currentTeamIndex]]["background"];
 				let locationSymbol = '';
 				if (this.revealedLocations.includes(location)) {
 					if (location in playerLocations) {
 						locationSymbol = '<span title="' + playerLocations[location].name + '">' + mapSymbols.player + '</span>';
 						if (playerLocations[location].eliminated) {
-							locationColor = Tools.hexColorCodes['Yellow']["background-color"];
+							locationColor = Tools.hexColorCodes['Yellow']["background"];
 						}
 					} else {
 						locationSymbol = mapSymbols.empty;

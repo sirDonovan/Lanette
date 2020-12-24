@@ -283,7 +283,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 
 	getSpaceHtml(side: BoardSide, space: number, playerLocations: KeyedDict<BoardSide, Dict<Player[]>>): string {
 		const boardSpace = this.board[side][space];
-		let html = "<td style='background: " + Tools.hexColorCodes[boardSpace.color]["background-color"] + "'>";
+		let html = "<td style='background: " + Tools.hexColorCodes[boardSpace.color]["background"] + "'>";
 		if (space in playerLocations[side]) {
 			html += playerLocations[side][space].length > 1 ? "*" : this.playerLetters.get(playerLocations[side][space][0]);
 		} else if (boardSpace instanceof BoardPropertySpace && boardSpace.owner) {

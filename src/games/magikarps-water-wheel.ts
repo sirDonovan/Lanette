@@ -84,7 +84,7 @@ class MagikarpsWaterWheel extends ScriptedGame {
 		const wheelStats = this.wheels[wheel];
 		const colorData = Tools.hexColorCodes[wheel];
 		let html = '<div class="infobox"><center>';
-		html += '<div style="display:inline-block;background-color:' + colorData['background-color'] + ';background:' +
+		html += '<div style="display:inline-block;background:' + colorData['background'] + ';background:' +
 			colorData['background'] + ';border: 1px solid #a99890;border-radius:3px;width:100px;padding:1px;color:#fff;' +
 			'text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt;text-align:center"><b>' +
 			wheel.charAt(0).toUpperCase() + wheel.substr(1) + '</b></div>';

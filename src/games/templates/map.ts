@@ -267,7 +267,7 @@ export abstract class MapGame extends ScriptedGame {
 		for (let y = floor.y - 1; y >= 0; y--) {
 			mapHtml += '<tr>';
 			for (let x = 0; x < floor.x; x++) {
-				mapHtml += "<td style='background: " + Tools.hexColorCodes['White']["background-color"] + "'>";
+				mapHtml += "<td style='background: " + Tools.hexColorCodes['White']["background"] + "'>";
 				const coordinates = this.coordinatesToString(x, y);
 				const space = floor.spaces[coordinates];
 				mapHtml += '<span title="' + coordinates + '">';
