@@ -158,6 +158,10 @@ export class UserHostedGame extends Game {
 		}
 	}
 
+	getHighlightPhrase(): string {
+		return Games.userHostedGameHighlight + " " + this.id;
+	}
+
 	getSignupsHtml(): string {
 		let html = "<center>";
 		if (this.mascot) {
@@ -165,6 +169,9 @@ export class UserHostedGame extends Game {
 			if (gif) html += gif;
 		}
 		html += "<h3>" + this.name + "</h3>" + this.getDescription();
+		html += '<br /><br /><button class="button" name="parseCommand" value="/highlight roomadd, ' +
+				this.getHighlightPhrase() + '">Enable game highlights</button> | <button class="button" name="parseCommand" ' +
+				'value="/highlight roomdelete, ' + this.getHighlightPhrase() + '">Disable game highlights</button>';
 		html += "</center>";
 		return html;
 	}
@@ -186,8 +193,8 @@ export class UserHostedGame extends Game {
 		joinLeaveHtml += "</center>";
 		this.sayUhtml(this.joinLeaveButtonUhtmlName, joinLeaveHtml);
 
-		this.sayCommand("/notifyrank all, " + this.room.title + " user-hosted game," + this.name + "," + this.hostName + " " +
-			Games.userHostedGameHighlight + " " + this.name, true);
+		this.sayCommand("/notifyrank all, " + this.room.title + " user-hosted game," + this.name + "," + this.hostId + " " +
+			this.getHighlightPhrase(), true);
 		const firstWarning = 5 * 60 * 1000;
 		const secondWarning = 30 * 1000;
 		this.hostTimeout = setTimeout(() => {

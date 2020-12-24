@@ -361,8 +361,8 @@ describe("Games", () => {
 			assertStrictEqual(game.format.name, format.name);
 			game.signups();
 			gameLog.push(roomPrefix + "/addhtmlbox " + game.getSignupsHtml());
-			gameLog.push(roomPrefix + "/notifyrank all, Mocha user-hosted game," + game.name + "," + game.hostName + " " +
-				Games.userHostedGameHighlight + " " + game.name);
+			gameLog.push(roomPrefix + "/notifyrank all, Mocha user-hosted game," + game.name + "," + game.hostId + " " +
+				game.getHighlightPhrase());
 
 			assertClientSendQueue(startingSendQueueIndex, gameLog);
 			game.deallocate(true);
