@@ -958,10 +958,10 @@ export class Games {
 		}
 
 		room.game = new format.class(room, pmRoom, initialSeed);
+		if (isMinigame) room.game.isMiniGame = true;
 		room.game.initialize(format);
 
 		if (isMinigame) {
-			room.game.isMiniGame = true;
 			if (format.options.points) format.options.points = 1;
 			if (!format.freejoin && 'freejoin' in format.customizableOptions) format.options.freejoin = 1;
 		}
