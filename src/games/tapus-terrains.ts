@@ -260,6 +260,7 @@ export const game: IGameFile<TapusTerrains> = {
 			name: "Tapus' Terrains Elimination",
 			isElimination: true,
 			variantAliases: ["elimination"],
+			defaultOptions: [],
 		},
 	],
 };
