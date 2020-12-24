@@ -13,6 +13,8 @@ export class Vote extends ScriptedGame {
 	internalGame: boolean = true;
 	botSuggestions: string[] = [];
 	updateVotesHtmlTimeout: NodeJS.Timeout | null = null;
+	votingName: string = '';
+	votingNumber: number = 1;
 	votesUhtmlName: string = '';
 	readonly votes = new Map<Player, string>();
 
@@ -90,7 +92,8 @@ export class Vote extends ScriptedGame {
 	}
 
 	getPlayerVoteHtml(format: IGameFormat): string {
-		let html = "Your vote for <b>" + format.nameWithOptions + "</b> has been cast in " + this.room.title + "!";
+		let html = "<div class='infobox'><b>" + this.votingName + "</b><hr />Your vote for <b>" + format.nameWithOptions + "</b> has " +
+			"been cast in " + this.room.title + "!";
 
 		const variants: IGameFormat[] = [];
 
@@ -145,6 +148,7 @@ export class Vote extends ScriptedGame {
 			}
 		}
 
+		html += "</div>";
 		return html;
 	}
 
@@ -177,10 +181,17 @@ export class Vote extends ScriptedGame {
 			this.botSuggestions.push(possibleBotPicks[i]);
 		}
 
-		let html = "<center><h3>Vote for the next scripted game with <code>" + Config.commandCharacter + "vote [game]</code></h3>";
-		html += '<button class="button" name="parseCommand" value="/highlight roomadd, ' +
-				this.getHighlightPhrase() + '">Enable vote highlights</button> | <button class="button" name="parseCommand" ' +
-				'value="/highlight roomdelete, ' + this.getHighlightPhrase() + '">Disable vote highlights</button><br /><br />';
+		const database = Storage.getDatabase(this.room);
+		let votingNumber = 1;
+		if (database.scriptedGameCounts && this.id in database.scriptedGameCounts) votingNumber = database.scriptedGameCounts[this.id];
+		this.votingName = "Scripted Game Voting #" + votingNumber;
+		this.votingNumber = votingNumber;
+
+		let html = "<center><h3>" + this.votingName + "</h3>Vote for the next scripted game with the command <code>" +
+			Config.commandCharacter + "vote [name]</code>!";
+		html += '<br /><button class="button" name="parseCommand" value="/highlight roomadd, ' +
+				this.getHighlightPhrase() + '">Enable voting highlights</button> | <button class="button" name="parseCommand" ' +
+				'value="/highlight roomdelete, ' + this.getHighlightPhrase() + '">Disable voting highlights</button><br /><br />';
 
 		if (this.botSuggestions.length) {
 			html += "<b>" + Users.self.name + "'s suggestions:</b><br />";
@@ -207,7 +218,6 @@ export class Vote extends ScriptedGame {
 		}
 		html += "</details></center>";
 
-		const database = Storage.getDatabase(this.room);
 		const pastGames: string[] = [];
 		if (database.pastGames && database.pastGames.length) {
 			for (const pastGame of database.pastGames) {
@@ -332,7 +342,7 @@ const commands: GameCommandDefinitions<Vote> = {
 			}
 
 			this.votes.set(player, format.inputTarget);
-			player.sayHtml(this.getPlayerVoteHtml(format));
+			player.sayUhtml(this.getPlayerVoteHtml(format), this.uhtmlBaseName + "-" + this.votingNumber);
 
 			if (!this.updateVotesHtmlTimeout) {
 				this.updateVotesHtmlTimeout = setTimeout(() => {
