@@ -435,6 +435,7 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 	};
 	finitePlayerCards = false;
 	hackmonsTypes: boolean = false;
+	maxLateJoinRound: number = 1;
 	maxPlayers = 20;
 	playableCardDescription = "You must play a card that resists the top card.";
 	roundDrawAmount: number = 1;

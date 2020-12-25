@@ -62,6 +62,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	drawAmount: number = 1;
 	finitePlayerCards: boolean = false;
 	maxCardRounds: number = 0;
+	maxLateJoinRound: number = 0;
 	maxPlayableGroupSize: number = 0;
 	maxPlayers: number = 20;
 	maximumPlayedCards: number = 1;
@@ -355,7 +356,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 			if (!this.playerList.length) {
 				this.playerList = this.playerOrder.slice();
 				this.cardRound++;
-				if (this.id === 'axewsbattlecards' && this.canLateJoin && this.cardRound > 1) this.canLateJoin = false;
+				if (this.canLateJoin && this.maxLateJoinRound && this.cardRound > this.maxLateJoinRound) this.canLateJoin = false;
 				if (this.parentGame && this.maxCardRounds && this.cardRound > this.maxCardRounds) {
 					this.timeEnd();
 					return null;
