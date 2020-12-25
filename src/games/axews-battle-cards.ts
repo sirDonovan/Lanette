@@ -476,6 +476,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 	};
 	finitePlayerCards = false;
 	hackmonsTypes: boolean = false;
+	inverseTypes: boolean = false;
 	lives = new Map<Player, number>();
 	maxPlayers = 20;
 	playableCardDescription = "You must play a card that is super-effective against the top card.";
@@ -531,9 +532,11 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		}
 
 		for (const pokemon of pokemonList) {
-			const color = Tools.toId(pokemon.color);
-			if (!(color in this.colors)) this.colors[color] = pokemon.color;
-			this.deckPool.push(this.pokemonToCard(pokemon));
+			const card = this.pokemonToCard(pokemon);
+			if (this.hackmonsTypes) {
+				card.types = this.getHackmonsTyping(card.types);
+			}
+			this.deckPool.push(card);
 		}
 	}
 
@@ -546,7 +549,12 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		for (const card of deckPool) {
 			if (!this.usesActionCards && card.types.join("") === "Normal") continue;
 
-			const weaknesses = Dex.getWeaknesses(Dex.getExistingPokemon(card.name)).join(",");
+			let weaknesses: string;
+			if (this.inverseTypes) {
+				weaknesses = Dex.getInverseWeaknesses(Dex.getExistingPokemon(card.name)).join(",");
+			} else {
+				weaknesses = Dex.getWeaknesses(Dex.getExistingPokemon(card.name)).join(",");
+			}
 			if (weaknesses in weaknessCounts && weaknessCounts[weaknesses] >= this.format.options.cards) continue;
 			if (!(weaknesses in weaknessCounts)) weaknessCounts[weaknesses] = 0;
 			weaknessCounts[weaknesses]++;
@@ -621,15 +629,6 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		return newTypes;
 	}
 
-	getCard(): ICard {
-		const card = super.getCard() as IPokemonCard;
-		if (!card.action && this.hackmonsTypes) {
-			card.types = this.getHackmonsTyping(card.types);
-		}
-
-		return card;
-	}
-
 	getCardChatDetails(card: IPokemonCard): string {
 		return this.getChatTypeLabel(card);
 	}
@@ -639,19 +638,19 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 	}
 
 	hasNoWeaknesses(types: readonly string[]): boolean {
-		let noWeaknesses = true;
 		for (const key of Dex.data.typeKeys) {
 			const type = Dex.getExistingType(key).name;
-			if (!Dex.isImmune(type, types) && Dex.getEffectiveness(type, types) > 0) {
-				noWeaknesses = false;
-				break;
+			if (this.inverseTypes) {
+				if (Dex.getInverseEffectiveness(type, types) > 0) return false;
+			} else {
+				if (!Dex.isImmune(type, types) && Dex.getEffectiveness(type, types) > 0) return false;
 			}
 		}
-		return noWeaknesses;
+		return true;
 	}
 
 	isStaleTopCard(): boolean {
-		return this.hasNoWeaknesses(Dex.getExistingPokemon(this.topCard.name).types);
+		return this.hasNoWeaknesses(this.topCard.types);
 	}
 
 	checkTopCardStaleness(message?: string): void {
@@ -670,20 +669,19 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		if (!otherCard) otherCard = this.topCard;
 		if (!this.isPokemonCard(otherCard)) return false;
 
-		let valid = false;
 		for (const type of card.types) {
-			if (Dex.isImmune(type, otherCard.types)) {
-				continue;
+			if (this.inverseTypes) {
+				if (Dex.getInverseEffectiveness(type, otherCard.types) > 0) return true;
 			} else {
-				const effectiveness = Dex.getEffectiveness(type, otherCard.types);
-				if (effectiveness > 0) {
-					valid = true;
-					break;
+				if (Dex.isImmune(type, otherCard.types)) {
+					continue;
+				} else {
+					if (Dex.getEffectiveness(type, otherCard.types) > 0) return true;
 				}
 			}
 		}
 
-		return valid;
+		return false;
 	}
 
 	timeEnd(): void {
@@ -794,7 +792,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 const tests: GameFileTests<AxewsBattleCards> = {
 	'it should use card types in isPlayableCard()': {
 		test(game): void {
-			if (game.hackmonsTypes) return;
+			if (game.hackmonsTypes || game.inverseTypes) return;
 
 			const golem = game.pokemonToCard(Dex.getExistingPokemon("Golem"));
 			const squirtle = game.pokemonToCard(Dex.getExistingPokemon("Squirtle"));
@@ -1047,8 +1045,7 @@ export const game: IGameFile<AxewsBattleCards> = Games.copyTemplateProperties(ca
 	aliases: ["axews", "abc", "battlecards"],
 	commandDescriptions: [Config.commandCharacter + "play [Pokemon or move]"],
 	class: AxewsBattleCards,
-	description: "Each round, players can play a card that's super-effective against the top card. " +
-		"<a href='http://psgc.weebly.com/axewsbattlecards.html'>Action card descriptions</a>",
+	description: "Each round, players can play a card that's super-effective against the top card!",
 	name: "Axew's Battle Cards",
 	mascot: "Axew",
 	scriptedOnly: true,
@@ -1065,6 +1062,12 @@ export const game: IGameFile<AxewsBattleCards> = Games.copyTemplateProperties(ca
 			name: "Hackmons Axew's Battle Cards",
 			variantAliases: ["Hackmons", "Hackmons Cup"],
 			hackmonsTypes: true,
+		},
+		{
+			name: "Inverse Axew's Battle Cards",
+			description: "Each round, players can play a card that's super-effective against the top card using an inverted type chart!",
+			variantAliases: ["Inverse"],
+			inverseTypes: true,
 		},
 	],
 });

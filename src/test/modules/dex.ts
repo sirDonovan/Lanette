@@ -240,6 +240,7 @@ describe("Dex", () => {
 			Dex.getEvolutionLines(pokemon);
 			Dex.isPseudoLCPokemon(pokemon);
 			Dex.getWeaknesses(pokemon);
+			Dex.getInverseWeaknesses(pokemon);
 			if (Dex.hasGifData(pokemon)) {
 				Dex.getPokemonGif(pokemon);
 			}

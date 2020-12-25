@@ -177,6 +177,7 @@ export class Dex {
 	private readonly evolutionLinesCache: Dict<string[][]> = Object.create(null);
 	private readonly evolutionLinesFormesCache: Dict<Dict<string[][]>> = Object.create(null);
 	private readonly immunityCache: Dict<Dict<boolean>> = Object.create(null);
+	private readonly inverseWeaknessesCache: Dict<string[]> = Object.create(null);
 	private readonly itemCache: Dict<IItem> = Object.create(null);
 	private itemsList: readonly IItem[] | null = null;
 	private readonly isEvolutionFamilyCache: Dict<boolean> = Object.create(null);
@@ -952,8 +953,6 @@ export class Dex {
 					break;
 				}
 
-				// in case of weird situations like Gravity, immunity is
-				// handled elsewhere
 				default: {
 					effectiveness = 0;
 				}
@@ -967,6 +966,14 @@ export class Dex {
 		}
 	}
 
+	/**
+	 * Returns >=1 if super-effective, <=1 if not very effective
+	 */
+	getInverseEffectiveness(source: IMove | string, target: IPokemon | string | readonly string[]): number {
+		if (this.isImmune(source, target)) return 1;
+		return this.getEffectiveness(source, target) * -1;
+	}
+
 	getWeaknesses(pokemon: IPokemon): readonly string[] {
 		const cacheKey = pokemon.types.slice().sort().join(',');
 		if (Object.prototype.hasOwnProperty.call(this.weaknessesCache, cacheKey)) return this.weaknessesCache[cacheKey];
@@ -974,13 +981,26 @@ export class Dex {
 		const weaknesses: string[] = [];
 		for (const key of this.data.typeKeys) {
 			const type = this.getExistingType(key);
-			const isImmune = this.isImmune(type.name, pokemon);
-			const effectiveness = this.getEffectiveness(type.name, pokemon);
-			if (!isImmune && effectiveness >= 1) weaknesses.push(type.name);
+			if (this.isImmune(type.name, pokemon)) continue;
+			if (this.getEffectiveness(type.name, pokemon) >= 1) weaknesses.push(type.name);
 		}
 
 		this.weaknessesCache[cacheKey] = weaknesses;
 		return weaknesses;
+	}
+
+	getInverseWeaknesses(pokemon: IPokemon): readonly string[] {
+		const cacheKey = pokemon.types.slice().sort().join(',');
+		if (Object.prototype.hasOwnProperty.call(this.inverseWeaknessesCache, cacheKey)) return this.inverseWeaknessesCache[cacheKey];
+
+		const inverseWeaknesses: string[] = [];
+		for (const key of this.data.typeKeys) {
+			const type = this.getExistingType(key);
+			if (this.getInverseEffectiveness(type.name, pokemon) >= 1) inverseWeaknesses.push(type.name);
+		}
+
+		this.inverseWeaknessesCache[cacheKey] = inverseWeaknesses;
+		return inverseWeaknesses;
 	}
 
 	hasGifData(pokemon: IPokemon, generation?: 'xy' | 'bw', direction?: 'front' | 'back'): boolean {
