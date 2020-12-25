@@ -177,6 +177,7 @@ export class Dex {
 	private readonly evolutionLinesCache: Dict<string[][]> = Object.create(null);
 	private readonly evolutionLinesFormesCache: Dict<Dict<string[][]>> = Object.create(null);
 	private readonly immunityCache: Dict<Dict<boolean>> = Object.create(null);
+	private readonly inverseResistancesCache: Dict<string[]> = Object.create(null);
 	private readonly inverseWeaknessesCache: Dict<string[]> = Object.create(null);
 	private readonly itemCache: Dict<IItem> = Object.create(null);
 	private itemsList: readonly IItem[] | null = null;
@@ -190,6 +191,7 @@ export class Dex {
 	private pokemonList: readonly IPokemon[] | null = null;
 	private readonly formesCache: Dict<string[]> = Object.create(null);
 	private readonly pseudoLCPokemonCache: Dict<boolean> = Object.create(null);
+	private readonly resistancesCache: Dict<string[]> = Object.create(null);
 	private readonly typeCache: Dict<ITypeData> = Object.create(null);
 	private readonly weaknessesCache: Dict<string[]> = Object.create(null);
 	/* eslint-enable */
@@ -1001,6 +1003,35 @@ export class Dex {
 
 		this.inverseWeaknessesCache[cacheKey] = inverseWeaknesses;
 		return inverseWeaknesses;
+	}
+
+	getResistances(pokemon: IPokemon): readonly string[] {
+		const cacheKey = pokemon.types.slice().sort().join(',');
+		if (Object.prototype.hasOwnProperty.call(this.resistancesCache, cacheKey)) return this.resistancesCache[cacheKey];
+
+		const resistances: string[] = [];
+		for (const key of this.data.typeKeys) {
+			const type = this.getExistingType(key);
+			if (this.isImmune(type.name, pokemon)) continue;
+			if (this.getEffectiveness(type.name, pokemon) <= -1) resistances.push(type.name);
+		}
+
+		this.resistancesCache[cacheKey] = resistances;
+		return resistances;
+	}
+
+	getInverseResistances(pokemon: IPokemon): readonly string[] {
+		const cacheKey = pokemon.types.slice().sort().join(',');
+		if (Object.prototype.hasOwnProperty.call(this.inverseResistancesCache, cacheKey)) return this.inverseResistancesCache[cacheKey];
+
+		const inverseResistances: string[] = [];
+		for (const key of this.data.typeKeys) {
+			const type = this.getExistingType(key);
+			if (this.getInverseEffectiveness(type.name, pokemon) <= -1) inverseResistances.push(type.name);
+		}
+
+		this.inverseResistancesCache[cacheKey] = inverseResistances;
+		return inverseResistances;
 	}
 
 	hasGifData(pokemon: IPokemon, generation?: 'xy' | 'bw', direction?: 'front' | 'back'): boolean {

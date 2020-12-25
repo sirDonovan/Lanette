@@ -239,6 +239,8 @@ describe("Dex", () => {
 			Dex.getFormes(pokemon);
 			Dex.getEvolutionLines(pokemon);
 			Dex.isPseudoLCPokemon(pokemon);
+			Dex.getResistances(pokemon);
+			Dex.getInverseResistances(pokemon);
 			Dex.getWeaknesses(pokemon);
 			Dex.getInverseWeaknesses(pokemon);
 			if (Dex.hasGifData(pokemon)) {
