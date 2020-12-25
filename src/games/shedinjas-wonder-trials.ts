@@ -27,7 +27,7 @@ class ShedinjasWonderTrials extends ScriptedGame {
 	usedMoves: string[] = [];
 
 	static loadData(): void {
-		data.moves = Games.getMovesList(x => x.id !== 'hiddenpower' && x.category !== 'Status' && !x.isMax && !x.isZ).map(x => x.name);
+		data.moves = Games.getMovesList(x => x.id !== 'hiddenpower' && x.category !== 'Status' && !x.isMax).map(x => x.id);
 		data.pokedex = Games.getPokemonList(x => x.baseSpecies === x.name).map(x => x.name);
 	}
 
@@ -146,7 +146,11 @@ const commands: GameCommandDefinitions<ShedinjasWonderTrials> = {
 				user.say(CommandParser.getErrorText(['invalidMove', target]));
 				return false;
 			}
-			if (!data.moves.includes(move.name)) {
+			if (move.id !== Tools.toId(target)) {
+				user.say("You must type the full name of the move.");
+				return false;
+			}
+			if (!data.moves.includes(move.id)) {
 				user.say(move.name + " cannot be used in this game.");
 				return false;
 			}
