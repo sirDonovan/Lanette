@@ -435,6 +435,7 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 	};
 	finitePlayerCards = false;
 	hackmonsTypes: boolean = false;
+	lives = new Map<Player, number>();
 	maxLateJoinRound: number = 1;
 	maxPlayers = 20;
 	playableCardDescription = "You must play a card that resists the top card.";
@@ -443,6 +444,7 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 	skippedPlayerAchievement = ShucklesDefenseCards.achievements.redshell;
 	skippedPlayerAchievementAmount = redShellEliminations;
 	showPlayerCards = false;
+	startingLives: number = 1;
 
 	static loadData(): void {
 		for (const key of Dex.data.typeKeys) {
@@ -504,8 +506,6 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 		const deck: ICard[] = [];
 		const minimumDeck = (this.maxPlayers + 1) * this.format.options.cards;
 		for (const card of deckPool) {
-			if (!this.usesActionCards && card.types.join("") === "Normal") continue;
-
 			const resistances = Dex.getResistances(Dex.getExistingPokemon(card.name)).join(",");
 			if (resistances in resistancesCounts && resistancesCounts[resistances] >= this.format.options.cards) continue;
 			if (!(resistances in resistancesCounts)) resistancesCounts[resistances] = 0;
