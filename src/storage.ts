@@ -4,7 +4,7 @@ import path = require('path');
 import type { Room } from './rooms';
 import type {
 	ICachedLeaderboardEntry, IDatabase, IGlobalDatabase, ILeaderboard,
-	ILeaderboardEntry, LeaderboardType
+	ILeaderboardEntry, IOfflineMessage, LeaderboardType
 } from './types/storage';
 import type { User } from './users';
 
@@ -478,6 +478,7 @@ export class Storage {
 		if (!database.offlineMessages || !(user.id in database.offlineMessages)) return false;
 		const now = Date.now();
 		const expiredTime = now - OFFLINE_MESSAGE_EXPIRATION;
+		const filteredMessages: IOfflineMessage[] = [];
 		let hasExpiredMessages = false;
 		for (const message of database.offlineMessages[user.id]) {
 			if (message.readTime) {
@@ -493,8 +494,18 @@ export class Storage {
 			dateString = dateString.substr(0, dateString.indexOf(':') - 3);
 			let timeString = date.toTimeString();
 			timeString = timeString.substr(0, timeString.indexOf('('));
-			user.say("[" + dateString.trim() + ", " + timeString.trim() + "] " + "**" + message.sender + "** said: " + message.message);
-			message.readTime = now;
+			const formattedMessage = "[" + dateString.trim() + ", " + timeString.trim() + "] " + "**" + message.sender + "** said: " +
+				message.message;
+			if (Client.checkFilters(formattedMessage)) {
+				filteredMessages.push(message);
+			} else {
+				user.say(formattedMessage);
+				message.readTime = now;
+			}
+		}
+
+		for (const filteredMessage of filteredMessages) {
+			database.offlineMessages[user.id].splice(database.offlineMessages[user.id].indexOf(filteredMessage), 1);
 		}
 
 		if (hasExpiredMessages) database.offlineMessages[user.id] = database.offlineMessages[user.id].filter(x => !x.expired);

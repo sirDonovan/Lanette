@@ -3543,6 +3543,7 @@ const commands: CommandDefinitions<CommandContext, void> = {
 
 			const maxMessageLength = Storage.getMaxOfflineMessageLength(user);
 			if (message.length > maxMessageLength) return this.say("Your message cannot exceed " + maxMessageLength + " characters.");
+			if (Client.checkFilters(message)) return this.say("Your message contains words that are banned in " + Users.self.name + ".");
 			if (!Storage.storeOfflineMessage(user.name, recipientId, message)) return this.say("Sorry, you have too many messages queued " +
 				"for " + recipient + ".");
 			this.say("Your message has been sent to " + recipient + ".");
