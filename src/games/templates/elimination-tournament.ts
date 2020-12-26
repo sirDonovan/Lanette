@@ -69,7 +69,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	monoType: boolean = false;
 	playerCap: number = 0;
 	playerOpponents = new Map<Player, Player>();
-	playerRequiredPokemon = new Map<Player, readonly string[]>();
+	playerRequiredPokemon = new Map<Player, readonly string[][]>();
 	pokedex: string[] = [];
 	possibleTeams = new Map<Player, readonly string[][]>();
 	requiredAddition: boolean = false;
@@ -887,10 +887,12 @@ export abstract class EliminationTournament extends ScriptedGame {
 		const team = this.getStartingTeam().filter(x => !!x);
 		if (team.length < this.startingTeamsLength) throw new Error("Out of Pokemon to give (" + player.name + ")");
 
+		const formeCombinations = Dex.getFormeCombinations(team, this.battleFormat.usablePokemon);
+
 		if (this.usesCloakedPokemon) {
-			this.playerRequiredPokemon.set(player, team);
+			this.playerRequiredPokemon.set(player, formeCombinations);
 		} else {
-			this.possibleTeams.set(player, Dex.getFormeCombinations(team, this.battleFormat.usablePokemon));
+			this.possibleTeams.set(player, formeCombinations);
 		}
 
 		this.starterPokemon.set(player, team);
@@ -1332,7 +1334,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 				let illegalTeam = false;
 				const requiredPokemon = this.playerRequiredPokemon.get(player);
 				if (requiredPokemon) {
-					illegalTeam = !Dex.includesPokemon(team, requiredPokemon);
+					illegalTeam = !Dex.includesPokemonFormes(team, requiredPokemon);
 				} else {
 					const possibleTeams = this.possibleTeams.get(player);
 					if (!possibleTeams) throw new Error(player.name + " (" + slot + ") does not have possible teams");

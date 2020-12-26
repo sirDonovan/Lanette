@@ -544,13 +544,13 @@ describe("Dex", () => {
 	it('should return proper values from includesPokemon()', () => {
 		assert(Dex.includesPokemon(['Pikachu'], ['Pikachu']));
 		assert(Dex.includesPokemon(['Pikachu', 'Charmander'], ['Pikachu']));
-		assert(Dex.includesPokemon([Dex.getExistingPokemon('Pikachu')], ['Pikachu']));
-		assert(Dex.includesPokemon([Dex.getExistingPokemon('Pikachu'), Dex.getExistingPokemon('Charmander')], ['Pikachu']));
 
 		assert(!Dex.includesPokemon(['Pikachu'], ['Pikachu', 'Charmander']));
 		assert(!Dex.includesPokemon(['Pikachu'], ['Charmander']));
-		assert(!Dex.includesPokemon([Dex.getExistingPokemon('Pikachu')], ['Pikachu', 'Charmander']));
-		assert(!Dex.includesPokemon([Dex.getExistingPokemon('Pikachu')], ['Charmander']));
+	});
+	it('should return proper values from includesPokemonFormes()', () => {
+		assert(Dex.includesPokemonFormes(['Vulpix'], [['Vulpix'], ['Vulpix-Alola']]));
+		assert(Dex.includesPokemonFormes(['Vulpix-Alola'], [['Vulpix'], ['Vulpix-Alola']]));
 	});
 	it('should return proper values from getUsablePokemon()', () => {
 		let usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("ou"));

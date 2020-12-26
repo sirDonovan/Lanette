@@ -1882,21 +1882,22 @@ export class Dex {
 		return teamsAfterEvolutions;
 	}
 
-	includesPokemon(team: IPokemon[] | string[], requiredPokemon: readonly string[]): boolean {
-		const pokemonList: string[] = [];
-		for (const pokemon of team) {
-			pokemonList.push(typeof pokemon === 'string' ? this.getExistingPokemon(pokemon).name : pokemon.name);
-		}
-
-		let includes = true;
+	includesPokemon(team: string[], requiredPokemon: readonly string[]): boolean {
 		for (const pokemon of requiredPokemon) {
-			if (!pokemonList.includes(this.getExistingPokemon(pokemon).name)) {
-				includes = false;
-				break;
+			if (!team.includes(this.getExistingPokemon(pokemon).name)) {
+				return false;
 			}
 		}
 
-		return includes;
+		return true;
+	}
+
+	includesPokemonFormes(team: string[], requiredPokemonFormes: readonly string[][]): boolean {
+		for (const requiredPokemon of requiredPokemonFormes) {
+			if (this.includesPokemon(team, requiredPokemon)) return true;
+		}
+
+		return false;
 	}
 
 	isPossibleTeam(team: IPokemon[] | string[], possibleTeams: DeepImmutable<string[][]>): boolean {
