@@ -346,12 +346,14 @@ export class ScriptedGame extends Game {
 	}
 
 	nextRound(): void {
+		if (this.ended) throw new Error("nextRound() called after game ended");
 		if (this.timeout) clearTimeout(this.timeout);
 
 		// @ts-expect-error
 		this.round++;
 		if (this.maxRound && this.round > this.maxRound) {
 			if (this.onMaxRound) this.onMaxRound();
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (!this.ended) this.end();
 			return;
 		}
