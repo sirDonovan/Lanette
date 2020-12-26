@@ -1055,9 +1055,8 @@ export class Dex {
 	getPokemonGif(pokemon: IPokemon, generation?: 'xy' | 'bw', direction?: 'front' | 'back', shiny?: boolean): string {
 		if (!generation) generation = 'xy';
 		const bw = generation === 'bw';
-		if (bw && pokemon.gen > 5) return '';
 
-		let prefix = '//' + Tools.mainServer + '/sprites/' + generation + 'ani';
+		let prefix = '//' + Tools.mainServer + '/sprites/' + (bw ? 'gen5' : '') + 'ani';
 		if (!direction) direction = 'front';
 		if (direction === 'front') {
 			if (shiny) {
