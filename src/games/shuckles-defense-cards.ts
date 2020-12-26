@@ -6,8 +6,8 @@ import type { IActionCardData, ICard, IMoveCard, IPokemonCard } from "./template
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 
 type AchievementNames = "luckofthedraw" | "redshell";
-type ActionCardNames = 'acidarmor' | 'defendorder' | 'irondefense' | 'faketears' | 'screech' | 'batonpass' | 'allyswitch' |
-	'conversion' | 'conversion2' | 'transform' | 'protect' | 'teeterdance' | 'topsyturvy';
+type ActionCardNames = 'acidarmor' | 'irondefense' | 'batonpass' | 'allyswitch' | 'conversion' | 'conversion2' | 'transform' | 'protect' |
+	'teeterdance' | 'topsyturvy';
 type ActionCardsType = KeyedDict<ActionCardNames, IActionCardData<ShucklesDefenseCards>>;
 
 const data: {usableTypes: Dict<string>} = {
@@ -46,28 +46,6 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 				return true;
 			},
 		},
-		"defendorder": {
-			name: "Defend Order",
-			description: "Add Bug type",
-			getCard(game) {
-				return game.moveToActionCard(this);
-			},
-			getAutoPlayTarget(game) {
-				if (this.isPlayableTarget(game, [])) {
-					return this.name;
-				}
-			},
-			isPlayableTarget(game, targets, hand, player) {
-				if (game.topCard.types.includes('Bug')) {
-					if (player) {
-						player.say(game.topCard.name + " is already " + (game.topCard.types.length > 1 ? "part " : "") + "Bug-type!");
-					}
-					return false;
-				}
-
-				return true;
-			},
-		},
 		"irondefense": {
 			name: "Iron Defense",
 			description: "Add Steel type",
@@ -87,44 +65,6 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 					return false;
 				}
 
-				return true;
-			},
-		},
-		"faketears": {
-			name: "Fake Tears",
-			description: "Make pure Dark type",
-			getCard(game) {
-				return game.moveToActionCard(this);
-			},
-			getAutoPlayTarget(game) {
-				if (this.isPlayableTarget(game, [])) {
-					return this.name;
-				}
-			},
-			isPlayableTarget(game, targets, hand, player) {
-				if (game.topCard.types.length === 1 && game.topCard.types[0] === 'Dark') {
-					if (player) player.say(game.topCard.name + " is already pure Dark-type!");
-					return false;
-				}
-				return true;
-			},
-		},
-		"screech": {
-			name: "Screech",
-			description: "Make pure Normal type",
-			getCard(game) {
-				return game.moveToActionCard(this);
-			},
-			getAutoPlayTarget(game) {
-				if (this.isPlayableTarget(game, [])) {
-					return this.name;
-				}
-			},
-			isPlayableTarget(game, targets, hand, player) {
-				if (game.topCard.types.length === 1 && game.topCard.types[0] === 'Normal') {
-					if (player) player.say(game.topCard.name + " is already pure Normal-type!");
-					return false;
-				}
 				return true;
 			},
 		},
@@ -647,20 +587,11 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 			topCardTypes.push("Poison");
 			this.topCard.types = topCardTypes;
 			this.checkTopCardStaleness();
-		} else if (id === 'defendorder') {
-			const topCardTypes = this.topCard.types.slice();
-			topCardTypes.push("Bug");
-			this.topCard.types = topCardTypes;
-			this.checkTopCardStaleness();
 		} else if (id === 'irondefense') {
 			const topCardTypes = this.topCard.types.slice();
 			topCardTypes.push("Steel");
 			this.topCard.types = topCardTypes;
 			this.checkTopCardStaleness();
-		} else if (id === 'faketears') {
-			this.topCard.types = ['Dark'];
-		} else if (id === 'screech') {
-			this.topCard.types = ['Normal'];
 		} else if (id === 'conversion') {
 			const type = Tools.toId(targets[0]);
 			this.topCard.types = [data.usableTypes[type]];
@@ -773,66 +704,6 @@ const tests: GameFileTests<ShucklesDefenseCards> = {
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Ekans"));
 			assert(!acidarmor.getAutoPlayTarget(game, []));
 			assertStrictEqual(acidarmor.isPlayableTarget(game, []), false);
-		},
-	},
-	'action cards - defendorder': {
-		test(game): void {
-			if (game.hackmonsTypes) return;
-
-			const defendorder = game.actionCards.defendorder;
-			assert(defendorder);
-
-			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Squirtle"));
-			assert(defendorder.getAutoPlayTarget(game, []));
-			assertStrictEqual(defendorder.isPlayableTarget(game, []), true);
-
-			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Paras"));
-			assert(!defendorder.getAutoPlayTarget(game, []));
-			assertStrictEqual(defendorder.isPlayableTarget(game, []), false);
-
-			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Caterpie"));
-			assert(!defendorder.getAutoPlayTarget(game, []));
-			assertStrictEqual(defendorder.isPlayableTarget(game, []), false);
-		},
-	},
-	'action cards - faketears': {
-		test(game): void {
-			if (game.hackmonsTypes) return;
-
-			const faketears = game.actionCards.faketears;
-			assert(faketears);
-
-			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
-			assert(faketears.getAutoPlayTarget(game, []));
-			assertStrictEqual(faketears.isPlayableTarget(game, []), true);
-
-			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Sneasel"));
-			assert(faketears.getAutoPlayTarget(game, []));
-			assertStrictEqual(faketears.isPlayableTarget(game, []), true);
-
-			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Absol"));
-			assert(!faketears.getAutoPlayTarget(game, []));
-			assertStrictEqual(faketears.isPlayableTarget(game, []), false);
-		},
-	},
-	'action cards - screech': {
-		test(game): void {
-			if (game.hackmonsTypes) return;
-
-			const screech = game.actionCards.screech;
-			assert(screech);
-
-			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
-			assert(screech.getAutoPlayTarget(game, []));
-			assertStrictEqual(screech.isPlayableTarget(game, []), true);
-
-			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Pidgey"));
-			assert(screech.getAutoPlayTarget(game, []));
-			assertStrictEqual(screech.isPlayableTarget(game, []), true);
-
-			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Ditto"));
-			assert(!screech.getAutoPlayTarget(game, []));
-			assertStrictEqual(screech.isPlayableTarget(game, []), false);
 		},
 	},
 	'action cards - batonpass': {
