@@ -6,8 +6,11 @@ const MAX_WIDTH = 100;
 const MAX_HEIGHT = 100;
 const BASE_HORIZONTAL = 3;
 const BASE_VERTICAL = 3;
+const MAX_HORIZONTAL = 7;
+const MAX_VERTICAL = 7;
 const MAX_TOTAL_WIDTH = MAX_WIDTH * BASE_HORIZONTAL;
 const MAX_TOTAL_HEIGHT = MAX_HEIGHT * BASE_VERTICAL;
+const SPRITE_GENERATION = 'bw';
 
 const letters = Tools.letters.toUpperCase().split("");
 const data: {pokemon: string[]} = {
@@ -25,7 +28,7 @@ class GyaradosShinyHunting extends ScriptedGame {
 	static loadData(): void {
 		data.pokemon = Games.getPokemonList(x => {
 			if (x.forme) return false;
-			const gifData = Dex.getGifData(x);
+			const gifData = Dex.getGifData(x, SPRITE_GENERATION);
 			return !!gifData && gifData.w <= MAX_WIDTH && gifData.h <= MAX_HEIGHT;
 		}).map(x => x.name);
 	}
@@ -50,17 +53,17 @@ class GyaradosShinyHunting extends ScriptedGame {
 		const pokemon = Dex.getExistingPokemon(species);
 		this.currentPokemon = pokemon.name;
 
-		const gifData = Dex.getGifData(pokemon)!;
+		const gifData = Dex.getGifData(pokemon, SPRITE_GENERATION)!;
 		let horizontalCount = BASE_HORIZONTAL;
-		const horizontalLimit = letters.length;
 		while ((horizontalCount + 1) * gifData.w < MAX_TOTAL_WIDTH) {
 			horizontalCount++;
-			if (horizontalCount === horizontalLimit) break;
+			if (horizontalCount === MAX_HORIZONTAL) break;
 		}
 
 		let verticalCount = BASE_VERTICAL;
 		while ((verticalCount + 1) * gifData.h < MAX_TOTAL_HEIGHT) {
 			verticalCount++;
+			if (verticalCount === MAX_VERTICAL) break;
 		}
 
 		this.roundGridSize = [horizontalCount - 1, verticalCount];
@@ -79,8 +82,8 @@ class GyaradosShinyHunting extends ScriptedGame {
 		gridHtml += '<table align="center" border="1" ' +
 			'style="color: black;font-weight: bold;text-align: center;table-layout: fixed;width: ' + tableWidth + 'px">';
 
-		const gif = Dex.getPokemonGif(pokemon);
-		const shinyGif = Dex.getPokemonGif(pokemon, undefined, undefined, true);
+		const gif = Dex.getPokemonGif(pokemon, SPRITE_GENERATION);
+		const shinyGif = Dex.getPokemonGif(pokemon, SPRITE_GENERATION, undefined, true);
 		for (let y = 1; y <= verticalCount; y++) {
 			gridHtml += '<tr style="height:' + rowHeight + 'px">';
 			gridHtml += '<td style="background: ' + Tools.hexColorCodes["White"]["background"] + '">' + y + '</td>';
@@ -113,7 +116,7 @@ class GyaradosShinyHunting extends ScriptedGame {
 					this.timeout = setTimeout(() => this.sayUhtml(gridUhtmlName, gridHtml), 3000);
 				});
 				this.sayUhtml(previewUhtmlName, previewHtml);
-			}, 5000);
+			}, 2000);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}
