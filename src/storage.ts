@@ -402,8 +402,11 @@ export class Storage {
 		if (!sourceId || !destinationId || sourceId === destinationId) return false;
 
 		const database = this.databases[roomid];
+		let updatedLeaderboard = false;
+
 		for (const leaderboardType of this.allLeaderboardTypes) {
 			if (!database[leaderboardType] || !(sourceId in database[leaderboardType]!.entries)) continue;
+			updatedLeaderboard = true;
 
 			const leaderboard = database[leaderboardType]!;
 			if (!(destinationId in leaderboard.entries)) {
@@ -443,6 +446,7 @@ export class Storage {
 			}
 		}
 
+		if (updatedLeaderboard) this.updateLeaderboardCaches(roomid, database);
 		return true;
 	}
 
