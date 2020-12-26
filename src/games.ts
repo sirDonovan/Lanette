@@ -45,6 +45,7 @@ const categoryNames: KeyedDict<GameCategory, string> = {
 	'reaction': 'Reaction',
 	'speed': 'Speed',
 	'strategy': 'Strategy',
+	'visual': 'Visual',
 };
 
 const sharedCommandDefinitions: GameCommandDefinitions = {

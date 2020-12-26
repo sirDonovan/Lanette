@@ -37,9 +37,14 @@ export interface ISeparatedCustomRules {
 	removedrules: string[];
 }
 
+export interface IGifDirectionData {
+	h: number;
+	w: number;
+}
+
 export interface IGifData {
-	back?: {h: number; w: number};
-	front?: {h: number; w: number};
+	back?: IGifDirectionData;
+	front?: IGifDirectionData;
 }
 
 export interface IGetPossibleTeamsOptions {

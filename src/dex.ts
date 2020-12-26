@@ -7,9 +7,8 @@ import { formatLinks } from './data/format-links';
 import { locations as locationData } from './data/locations';
 import { trainerClasses } from './data/trainer-classes';
 import type {
-	CategoryData, CharacterType, IAlternateIconNumbers, IDataTable, IGetPossibleTeamsOptions, IGifData, ISeparatedCustomRules,
-	LocationType,
-	RegionName
+	CategoryData, CharacterType, IAlternateIconNumbers, IDataTable, IGetPossibleTeamsOptions, IGifData, IGifDirectionData,
+	ISeparatedCustomRules, LocationType, RegionName
 } from './types/dex';
 import type {
 	IAbility, IAbilityCopy, IFormat, IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy,
@@ -1034,19 +1033,23 @@ export class Dex {
 		return inverseResistances;
 	}
 
-	hasGifData(pokemon: IPokemon, generation?: 'xy' | 'bw', direction?: 'front' | 'back'): boolean {
+	getGifData(pokemon: IPokemon, generation?: 'xy' | 'bw', direction?: 'front' | 'back'): IGifDirectionData | undefined {
 		if (!generation) generation = 'xy';
 		if (!direction) direction = 'front';
 		if (generation === 'bw') {
 			if (Object.prototype.hasOwnProperty.call(this.data.gifDataBW, pokemon.id) && this.data.gifDataBW[pokemon.id]![direction]) {
-				return true;
+				return this.data.gifDataBW[pokemon.id]![direction];
 			}
 		} else {
 			if (Object.prototype.hasOwnProperty.call(this.data.gifData, pokemon.id) && this.data.gifData[pokemon.id]![direction]) {
-				return true;
+				return this.data.gifData[pokemon.id]![direction];
 			}
 		}
-		return false;
+		return undefined;
+	}
+
+	hasGifData(pokemon: IPokemon, generation?: 'xy' | 'bw', direction?: 'front' | 'back'): boolean {
+		return !!this.getGifData(pokemon, generation, direction);
 	}
 
 	getPokemonGif(pokemon: IPokemon, generation?: 'xy' | 'bw', direction?: 'front' | 'back', shiny?: boolean): string {
