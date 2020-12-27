@@ -300,6 +300,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	}
 
 	onEnd(): void {
+		if (this.isMiniGame) return;
 		this.announceWinners();
 		this.convertPointsToBits();
 	}
