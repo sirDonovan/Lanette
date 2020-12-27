@@ -432,35 +432,6 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		return false;
 	}
 
-	timeEnd(): void {
-		this.timeEnded = true;
-		this.say("Time is up!");
-		const winners = new Map<Player, number>();
-		let leastCards = Infinity;
-		for (const i in this.players) {
-			if (this.players[i].eliminated) continue;
-			const player = this.players[i];
-			const cards = this.playerCards.get(player);
-			if (!cards) throw new Error(player.name + " has no hand");
-			const len = cards.length;
-			if (len < leastCards) {
-				winners.clear();
-				winners.set(player, 1);
-				leastCards = len;
-			} else if (len === leastCards) {
-				winners.set(player, 1);
-			}
-		}
-
-		if (this.finitePlayerCards) {
-			winners.forEach((value, player) => {
-				player.frozen = true;
-			});
-		}
-
-		this.end();
-	}
-
 	autoPlay(player: Player, splitCards: ITurnCards): void {
 		const playerCards = this.playerCards.get(player)!;
 
@@ -495,7 +466,6 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			this.currentPlayer = null;
 		}
 
-		if (Date.now() - this.startTime! > this.timeLimit) return this.timeEnd();
 		if (this.getRemainingPlayerCount() <= 1) {
 			if (this.finitePlayerCards) {
 				const finalPlayer = this.getFinalPlayer();

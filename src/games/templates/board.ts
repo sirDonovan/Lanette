@@ -54,8 +54,6 @@ export abstract class BoardGame extends ScriptedGame {
 	playerOrder: Player[] = [];
 	currentPlayerReRoll: boolean = false;
 
-	timeLimit?: number;
-
 	abstract getSpaceHtml(side: BoardSide, space: number, playerLocations: KeyedDict<BoardSide, Dict<Player[]>>): string;
 	abstract onNextPlayer(player: Player): void;
 	abstract onSpaceLanding(player: Player, spacesMoved: number, location: IMovedBoardLocation, teleported?: boolean): void;
@@ -125,13 +123,6 @@ export abstract class BoardGame extends ScriptedGame {
 	onNextRound(): void {
 		if (this.getRemainingPlayerCount() < 2) return this.end();
 		if (!this.playerList.length) {
-			if (this.timeLimit && Date.now() - this.startTime! >= this.timeLimit) {
-				this.say("Time is up!");
-				if (this.onTimeLimit) this.onTimeLimit();
-				this.end();
-				return;
-			}
-
 			this.boardRound++;
 			this.playerList = this.playerOrder.slice();
 			const uhtmlName = this.uhtmlBaseName + '-round';
@@ -249,7 +240,6 @@ export abstract class BoardGame extends ScriptedGame {
 	}
 
 	onPlayerRoll?(player: Player): boolean;
-	onTimeLimit?(): void;
 }
 
 const tests: GameFileTests<BoardGame> = {

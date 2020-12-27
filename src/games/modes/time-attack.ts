@@ -17,6 +17,7 @@ class TimeAttack {
 	allowRepeatCorrectAnswers: boolean = true;
 	readonly loserPointsToBits: number = 1;
 	maxCorrectPlayersPerRound: number = Infinity;
+	timeLimit: number = 20 * 60 * 1000;
 	readonly winnerPointsToBits: number = 5;
 
 	static setOptions<T extends ScriptedGame>(format: IGameFormat<T>, namePrefixes: string[]): void {

@@ -569,11 +569,6 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 		return valid;
 	}
 
-	timeEnd(): void {
-		this.say("Time is up!");
-		this.end();
-	}
-
 	playActionCard(card: IMoveCard, player: Player, targets: string[], cards: ICard[]): boolean {
 		if (!card.action) throw new Error("playActionCard called with a regular card");
 		if (!card.action.isPlayableTarget(this, targets, cards, player)) return false;

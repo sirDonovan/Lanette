@@ -71,7 +71,6 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	playerList: Player[] = [];
 	playerOrder: Player[] = [];
 	showPlayerCards: boolean = false;
-	timeEnded: boolean = false;
 	usesActionCards: boolean = true;
 	usesHtmlPage = true;
 
@@ -350,6 +349,34 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 		player.sendHtmlPage(html);
 	}
 
+	onTimeLimit(): boolean {
+		if (this.finitePlayerCards) {
+			const winners = new Map<Player, number>();
+			let leastCards = Infinity;
+			for (const i in this.players) {
+				if (this.players[i].eliminated) continue;
+				const player = this.players[i];
+				const cards = this.playerCards.get(player);
+				if (!cards) throw new Error(player.name + " has no hand");
+				const len = cards.length;
+				if (len < leastCards) {
+					winners.clear();
+					winners.set(player, 1);
+					leastCards = len;
+				} else if (len === leastCards) {
+					winners.set(player, 1);
+				}
+			}
+
+			winners.forEach((value, player) => {
+				player.frozen = true;
+			});
+		}
+
+		this.end();
+		return true;
+	}
+
 	getNextPlayer(): Player | null {
 		let player = this.playerList.shift();
 		while (!player || player.eliminated) {
@@ -358,7 +385,9 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 				this.cardRound++;
 				if (this.canLateJoin && this.maxLateJoinRound && this.cardRound > this.maxLateJoinRound) this.canLateJoin = false;
 				if (this.parentGame && this.maxCardRounds && this.cardRound > this.maxCardRounds) {
-					this.timeEnd();
+					this.timeEnded = true;
+					this.say("The game has reached the time limit!");
+					this.onTimeLimit();
 					return null;
 				}
 				const html = this.getRoundHtml(players => this.showPlayerCards ? this.getPlayerCards(players) : this.lives &&
@@ -376,30 +405,6 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 			const cards = this.playerCards.get(player);
 			return player.name + (cards ? " (" + cards.length + ")" : "");
 		}, players).join(', ');
-	}
-
-	timeEnd(): void {
-		this.timeEnded = true;
-		this.say("Time is up!");
-		const winners = new Map<Player, number>();
-		let leastCards = Infinity;
-		for (const i in this.players) {
-			if (this.players[i].eliminated) continue;
-			const player = this.players[i];
-			const cards = this.playerCards.get(player)!;
-			const len = cards.length;
-			if (len < leastCards) {
-				winners.clear();
-				winners.set(player, 1);
-				leastCards = len;
-			} else if (len === leastCards) {
-				winners.set(player, 1);
-			}
-		}
-		winners.forEach((value, player) => {
-			player.frozen = true;
-		});
-		this.end();
 	}
 
 	onEnd(): void {

@@ -125,14 +125,12 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 			let reachedCap = false;
 			this.points.forEach((points, player) => {
 				if (points >= this.format.options.points) {
-					this.winners.set(player, 1);
+					this.winners.set(player, points);
 					if (!reachedCap) reachedCap = true;
 				}
 			});
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (reachedCap) {
-				this.announceWinners();
-				this.convertPointsToBits();
 				this.end();
 				return;
 			}
@@ -277,6 +275,35 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		return this.getAnswers("", !this.isMiniGame);
 	}
 
+	onTimeLimit(): boolean {
+		const winners = new Map<Player, number>();
+		let mostPoints = 0;
+		for (const i in this.players) {
+			if (this.players[i].eliminated) continue;
+			const player = this.players[i];
+			const points = this.points.get(player);
+			if (!points) continue;
+			if (points > mostPoints) {
+				winners.clear();
+				winners.set(player, points);
+				mostPoints = points;
+			} else if (points === mostPoints) {
+				winners.set(player, points);
+			}
+		}
+
+		winners.forEach((points, player) => {
+			this.winners.set(player, points);
+		});
+
+		return true;
+	}
+
+	onEnd(): void {
+		this.announceWinners();
+		this.convertPointsToBits();
+	}
+
 	beforeNextRound?(): boolean | string;
 	filterGuess?(guess: string): boolean;
 	getPointsForAnswer?(answer: string, timestamp: number): number;
@@ -327,36 +354,27 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 
 			const reachedMaxPoints = points >= this.format.options.points;
 			if (singleCorrectPlayer || (reachedMaxPoints && !this.checkScoreCapBeforeRound)) {
+				if (this.hint) this.off(this.hint);
+				let text = '**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '!';
+				const answers = ' ' + this.getAnswers(answer);
+				if (text.length + answers.length <= Tools.maxMessageLength) {
+					text += answers;
+				} else {
+					text += ' A possible answer was __' + answer + '__.';
+				}
+				this.say(text);
+
 				if (reachedMaxPoints) {
-					let text = '**' + player.name + '** wins' + (this.parentGame ? '' : ' the game') + '!';
-					const answers = ' ' + this.getAnswers(answer, true);
-					if (text.length + answers.length <= Tools.maxMessageLength) {
-						text += answers;
-					} else {
-						text += ' A possible answer was __' + answer + '__.';
-					}
-					this.say(text);
 					if (this.allAnswersAchievement && this.firstAnswer === player && !this.parentGame) {
 						this.unlockAchievement(player, this.allAnswersAchievement);
 					}
-					this.winners.set(player, 1);
-					this.convertPointsToBits();
+					this.winners.set(player, points);
 					this.end();
 					return true;
 				} else {
-					if (this.hint) this.off(this.hint);
-					let text = '**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '!';
-					const answers = ' ' + this.getAnswers(answer);
-					if (text.length + answers.length <= Tools.maxMessageLength) {
-						text += answers;
-					} else {
-						text += ' A possible answer was __' + answer + '__.';
-					}
-					this.say(text);
+					this.answers = [];
+					this.timeout = setTimeout(() => this.nextRound(), 5000);
 				}
-
-				this.answers = [];
-				this.timeout = setTimeout(() => this.nextRound(), 5000);
 			} else {
 				if (this.allowRepeatCorrectAnswers) {
 					if (awardedPoints) {

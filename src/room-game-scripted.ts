@@ -33,6 +33,7 @@ export class ScriptedGame extends Game {
 	readonly maxBits: number = 1000;
 	notifyRankSignups: boolean = false;
 	parentGame: ScriptedGame | undefined;
+	startTime: number = 0;
 	usesHtmlPage: boolean = false;
 	usesWorkers: boolean = false;
 	readonly winnerPointsToBits: number = 50;
@@ -53,6 +54,8 @@ export class ScriptedGame extends Game {
 	shinyMascot?: boolean;
 	startingLives?: number;
 	subGameNumber?: number;
+	timeEnded?: boolean;
+	timeLimit?: number;
 
 	constructor(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed) {
 		super(room, pmRoom, initialSeed);
@@ -356,6 +359,23 @@ export class ScriptedGame extends Game {
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (!this.ended) this.end();
 			return;
+		}
+
+		if (this.timeLimit && (Date.now() - this.startTime) >= this.timeLimit) {
+			let timeEnded = false;
+			if (this.onTimeLimit) {
+				if (this.onTimeLimit()) timeEnded = true;
+			} else {
+				timeEnded = true;
+			}
+
+			if (timeEnded) {
+				this.say("The game has reached the time limit!");
+				this.timeEnded = true;
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+				if (!this.ended) this.end();
+				return;
+			}
 		}
 
 		if (this.onNextRound) this.onNextRound();
@@ -851,6 +871,8 @@ export class ScriptedGame extends Game {
 	onRemovePlayer?(player: Player): void;
 	onSignups?(): void;
 	onStart?(): void;
+	/** Return `false` to continue the game until another condition is met */
+	onTimeLimit?(): boolean;
 	parseChatMessage?(user: User, message: string): void;
 	rejectChallenge?(user: User): boolean;
 	repostInformation?(): void;

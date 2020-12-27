@@ -594,7 +594,9 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 		this.say(text);
 	}
 
-	onTimeLimit(): void {
+	onTimeLimit(): boolean {
+		if (this.playerList.length) return false;
+
 		if (this.winCondition === 'currency') {
 			let highestCurrency = 0;
 			this.playerCurrency.forEach((currency) => {
@@ -623,6 +625,8 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 				if (properties.length < mostProperties) player.eliminated = true;
 			}
 		}
+
+		return true;
 	}
 
 	onActionSpace(player: Player): void {
