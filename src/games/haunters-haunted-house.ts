@@ -996,6 +996,8 @@ const commands: GameCommandDefinitions<HauntersHauntedHouse> = {
 		command(target, room, user) {
 			if (!this.canMove) return false;
 			const player = this.players[user.id];
+			const remainingTurnMoves = this.playerRemainingTurnMoves.get(player);
+			if (remainingTurnMoves === 0) return false;
 			this.movePlayer(player, target, 'up');
 			return this.playerRemainingTurnMoves.get(player) === 0;
 		},
@@ -1005,6 +1007,8 @@ const commands: GameCommandDefinitions<HauntersHauntedHouse> = {
 		command(target, room, user) {
 			if (!this.canMove) return false;
 			const player = this.players[user.id];
+			const remainingTurnMoves = this.playerRemainingTurnMoves.get(player);
+			if (remainingTurnMoves === 0) return false;
 			this.movePlayer(player, target, 'down');
 			return this.playerRemainingTurnMoves.get(player) === 0;
 		},
@@ -1014,6 +1018,8 @@ const commands: GameCommandDefinitions<HauntersHauntedHouse> = {
 		command(target, room, user) {
 			if (!this.canMove) return false;
 			const player = this.players[user.id];
+			const remainingTurnMoves = this.playerRemainingTurnMoves.get(player);
+			if (remainingTurnMoves === 0) return false;
 			this.movePlayer(player, target, 'left');
 			return this.playerRemainingTurnMoves.get(player) === 0;
 		},
@@ -1023,6 +1029,8 @@ const commands: GameCommandDefinitions<HauntersHauntedHouse> = {
 		command(target, room, user) {
 			if (!this.canMove) return false;
 			const player = this.players[user.id];
+			const remainingTurnMoves = this.playerRemainingTurnMoves.get(player);
+			if (remainingTurnMoves === 0) return false;
 			this.movePlayer(player, target, 'right');
 			return this.playerRemainingTurnMoves.get(player) === 0;
 		},
