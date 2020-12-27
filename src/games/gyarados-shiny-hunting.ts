@@ -131,6 +131,11 @@ const commands: GameCommandDefinitions<GyaradosShinyHunting> = {
 			const player = this.createPlayer(user) || this.players[user.id];
 
 			const targets = Tools.toId(target).split("");
+			if (targets.length !== 2) {
+				user.say("You must specify a letter and number corresponding to the grid.");
+				return false;
+			}
+
 			const letter = targets[0].trim().toUpperCase();
 			const letterIndex = letters.indexOf(letter);
 			if (letterIndex === -1 || letterIndex > this.roundGridSize[0]) {
