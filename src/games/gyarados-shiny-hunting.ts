@@ -21,13 +21,14 @@ class GyaradosShinyHunting extends ScriptedGame {
 	canHunt: boolean = false;
 	currentPokemon: string = '';
 	lastPokemon: string = '';
+	lastShinyCoordinates: [number, number] = [-1, -1];
 	points = new Map<Player, number>();
 	roundGridSize: [number, number] = [0, 0];
 	shinyCoordinates: [number, number] = [-1, -1];
 
 	static loadData(): void {
 		data.pokemon = Games.getPokemonList(x => {
-			if (x.forme) return false;
+			if (x.forme || x.gen > 5) return false;
 			const gifData = Dex.getGifData(x, SPRITE_GENERATION);
 			return !!gifData && gifData.w <= MAX_WIDTH && gifData.h <= MAX_HEIGHT;
 		}).map(x => x.name);
@@ -66,8 +67,13 @@ class GyaradosShinyHunting extends ScriptedGame {
 			if (verticalCount === MAX_VERTICAL) break;
 		}
 
+		let shinyCoordinates = [this.random(horizontalCount), this.random(verticalCount) + 1] as [number, number];
+		while (shinyCoordinates[0] === this.lastShinyCoordinates[0] || shinyCoordinates[1] === this.lastShinyCoordinates[1]) {
+			shinyCoordinates = [this.random(horizontalCount), this.random(verticalCount) + 1] as [number, number];
+		}
+		this.shinyCoordinates = shinyCoordinates;
+		this.lastShinyCoordinates = shinyCoordinates;
 		this.roundGridSize = [horizontalCount - 1, verticalCount];
-		this.shinyCoordinates = [this.random(horizontalCount), this.random(verticalCount) + 1];
 
 		const tableWidth = (horizontalCount + 1) * (gifData.w + 2);
 		const rowHeight = gifData.h + 2;
@@ -100,25 +106,20 @@ class GyaradosShinyHunting extends ScriptedGame {
 		}
 		gridHtml += '</table>';
 
-		const html = this.getRoundHtml(players => this.getPlayerPoints(players));
-		const uhtmlName = this.uhtmlBaseName + '-round-html';
-		this.onUhtml(uhtmlName, html, () => {
-			this.timeout = setTimeout(() => {
-				const previewUhtmlName = this.uhtmlBaseName + '-preview';
-				const previewHtml = "<center>Find the shiny <b>" + this.currentPokemon + "</b>!<br />" + gif + "&nbsp;" + shinyGif +
-					"</center>";
-				this.onUhtml(previewUhtmlName, previewHtml, () => {
-					const gridUhtmlName = this.uhtmlBaseName + '-grid';
-					this.onUhtml(gridUhtmlName, gridHtml, () => {
-						this.canHunt = true;
-						this.timeout = setTimeout(() => this.nextRound(), 30 * 1000);
-					});
-					this.timeout = setTimeout(() => this.sayUhtml(gridUhtmlName, gridHtml), 3000);
-				});
-				this.sayUhtml(previewUhtmlName, previewHtml);
-			}, 2000);
+		this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(players => this.getPlayerPoints(players)));
+
+		const previewUhtmlName = this.uhtmlBaseName + '-preview';
+		const previewHtml = "<center>Find the shiny <b>" + this.currentPokemon + "</b>!<br />" + gif + "&nbsp;" + shinyGif +
+			"</center>";
+		this.onUhtml(previewUhtmlName, previewHtml, () => {
+			const gridUhtmlName = this.uhtmlBaseName + '-grid';
+			this.onUhtml(gridUhtmlName, gridHtml, () => {
+				this.canHunt = true;
+				this.timeout = setTimeout(() => this.nextRound(), 30 * 1000);
+			});
+			this.timeout = setTimeout(() => this.sayUhtml(gridUhtmlName, gridHtml), 5000);
 		});
-		this.sayUhtml(uhtmlName, html);
+		this.sayUhtml(previewUhtmlName, previewHtml);
 	}
 }
 
