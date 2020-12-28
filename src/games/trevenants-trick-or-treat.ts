@@ -18,6 +18,7 @@ class TrevenantsTrickOrTreat extends ScriptedGame {
 	lastMoves = new Map<Player, string[]>();
 	points = new Map<Player, number>();
 	pokemonGrid: string[][] = [];
+	timeLimit: number = 10 * 60 * 1000;
 
 	pokemonList: string[];
 

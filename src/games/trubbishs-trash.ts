@@ -24,6 +24,7 @@ class TrubbishsTrash extends ScriptedGame {
 
 	canTrash: boolean = false;
 	firstTrash: Player | false | undefined;
+	inactiveRoundLimit: number = 5;
 	maxPoints: number = 1000;
 	points = new Map<Player, number>();
 	roundTrashes = new Map<Player, ITrashedMove>();
@@ -80,46 +81,58 @@ class TrubbishsTrash extends ScriptedGame {
 	onNextRound(): void {
 		this.canTrash = false;
 		if (this.round > 1) {
-			const trashQueue: {player: Player; move: string; points: number}[] = [];
-			let firstTrash = true;
-			this.roundTrashes.forEach((move, player) => {
-				if (player.eliminated) return;
-				if (firstTrash) {
-					if (this.firstTrash === undefined) {
-						this.firstTrash = player;
-					} else {
-						if (this.firstTrash && this.firstTrash !== player) this.firstTrash = false;
-					}
-					firstTrash = false;
-				}
-
-				if (move.name === this.weakestMove) {
-					if (this.weakestTrash === undefined) {
-						this.weakestTrash = player;
-					} else {
-						if (this.weakestTrash && this.weakestTrash !== player) this.weakestTrash = false;
-					}
-				} else if (this.weakestTrash === player) {
-					this.weakestTrash = false;
-				}
-				trashQueue.push({player, move: move.name, points: move.points});
-			});
-			trashQueue.sort((a, b) => b.points - a.points);
 			let highestPoints = 0;
-			for (const slot of trashQueue) {
-				const player = slot.player;
-				let points = this.points.get(player) || 0;
-				points += slot.points;
-				this.points.set(player, points);
-				player.say(slot.move + " was worth " + slot.points + " points! Your total score is now: " + points + ".");
-				if (points > highestPoints) highestPoints = points;
+			if (this.roundTrashes.size) {
+				if (this.inactiveRounds) this.inactiveRounds = 0;
+
+				const trashQueue: {player: Player; move: string; points: number}[] = [];
+				let firstTrash = true;
+				this.roundTrashes.forEach((move, player) => {
+					if (player.eliminated) return;
+					if (firstTrash) {
+						if (this.firstTrash === undefined) {
+							this.firstTrash = player;
+						} else {
+							if (this.firstTrash && this.firstTrash !== player) this.firstTrash = false;
+						}
+						firstTrash = false;
+					}
+
+					if (move.name === this.weakestMove) {
+						if (this.weakestTrash === undefined) {
+							this.weakestTrash = player;
+						} else {
+							if (this.weakestTrash && this.weakestTrash !== player) this.weakestTrash = false;
+						}
+					} else if (this.weakestTrash === player) {
+						this.weakestTrash = false;
+					}
+					trashQueue.push({player, move: move.name, points: move.points});
+				});
+				trashQueue.sort((a, b) => b.points - a.points);
+				for (const slot of trashQueue) {
+					const player = slot.player;
+					let points = this.points.get(player) || 0;
+					points += slot.points;
+					this.points.set(player, points);
+					player.say(slot.move + " was worth " + slot.points + " points! Your total score is now: " + points + ".");
+					if (points > highestPoints) highestPoints = points;
+				}
+			} else {
+				this.inactiveRounds++;
+				if (this.inactiveRounds === this.inactiveRoundLimit) {
+					this.inactivityEnd();
+					return;
+				}
 			}
+
 			this.roundTrashes.clear();
 			this.roundMoves.clear();
 			if (highestPoints >= this.maxPoints) {
 				this.timeout = setTimeout(() => this.end(), 3000);
 				return;
 			}
+
 			if (this.round > this.roundLimit) {
 				this.timeout = setTimeout(() => {
 					this.say("We've reached the end of the game!");

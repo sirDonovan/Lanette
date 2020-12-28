@@ -14,6 +14,7 @@ class AbsolsDiceDisaster extends ScriptedGame {
 	bestPlayer: Player | null = null;
 	bestBid: number = -1;
 	canBid: boolean = false;
+	inactiveRoundLimit: number = 5;
 	maxPlayers: number = 20;
 	minBid: number = 1;
 	roundDiceRoll: number = 0;
@@ -63,30 +64,36 @@ class AbsolsDiceDisaster extends ScriptedGame {
 		this.canBid = false;
 		if (!this.bestPlayer) {
 			this.say("There were no bids!");
-			this.end();
-			return;
-		}
+			this.inactiveRounds++;
+			if (this.inactiveRounds === this.inactiveRoundLimit) {
+				this.inactivityEnd();
+				return;
+			}
+			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+		} else {
+			if (this.inactiveRounds) this.inactiveRounds = 0;
 
-		const bidText = "**" + this.bestPlayer.name + "** has the highest bid of " + this.bestBid + "!";
-		this.on(bidText, () => {
-			this.timeout = setTimeout(() => {
-				const diceText = "The dice landed on " + this.roundDiceRoll + "!";
-				if (this.roundDiceRoll >= this.bestBid) {
-					this.say(diceText);
-					for (const i in this.players) {
-						if (this.players[i] === this.bestPlayer!) continue;
-						this.players[i].eliminated = true;
+			const bidText = "**" + this.bestPlayer.name + "** has the highest bid of " + this.bestBid + "!";
+			this.on(bidText, () => {
+				this.timeout = setTimeout(() => {
+					const diceText = "The dice landed on " + this.roundDiceRoll + "!";
+					if (this.roundDiceRoll >= this.bestBid) {
+						this.say(diceText);
+						for (const i in this.players) {
+							if (this.players[i] === this.bestPlayer!) continue;
+							this.players[i].eliminated = true;
+						}
+						this.end();
+						return;
+					} else {
+						this.say(diceText + " **" + this.bestPlayer!.name + "** has been eliminated from the game.");
+						this.bestPlayer!.eliminated = true;
+						this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 					}
-					this.end();
-					return;
-				} else {
-					this.say(diceText + " **" + this.bestPlayer!.name + "** has been eliminated from the game.");
-					this.bestPlayer!.eliminated = true;
-					this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
-				}
-			}, 5 * 1000);
-		});
-		this.say(bidText);
+				}, 5 * 1000);
+			});
+			this.say(bidText);
+		}
 	}
 
 	onEnd(): void {

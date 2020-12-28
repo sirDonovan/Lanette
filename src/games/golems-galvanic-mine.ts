@@ -9,6 +9,7 @@ const data: {stones: string[]} = {
 };
 
 class GolemsGalvanicMine extends ScriptedGame {
+	inactiveRoundLimit: number = 5;
 	points = new Map<Player, number>();
 	roundMines = new Map<Player, number>();
 	roundStones: Dict<number> = {};
@@ -35,6 +36,34 @@ class GolemsGalvanicMine extends ScriptedGame {
 	}
 
 	displayStones(): void {
+		if (this.round > 1) {
+			if (this.roundMines.size) {
+				if (this.inactiveRounds) this.inactiveRounds = 0;
+
+				let reachedMaxPoints: boolean | undefined;
+				this.roundMines.forEach((value, player) => {
+					let points = this.points.get(player) || 0;
+					points += value;
+					if (points >= this.format.options.points) {
+						if (!reachedMaxPoints) reachedMaxPoints = true;
+						this.winners.set(player, points);
+					}
+					this.points.set(player, points);
+				});
+
+				if (reachedMaxPoints) {
+					this.end();
+					return;
+				}
+			} else {
+				this.inactiveRounds++;
+				if (this.inactiveRounds === this.inactiveRoundLimit) {
+					this.inactivityEnd();
+					return;
+				}
+			}
+		}
+
 		const stones = this.sampleMany(data.stones, 9);
 		const tr = '<tr style="text-align:center;line-height:5">';
 		let html = '<center><table border="1">' + tr;
@@ -52,28 +81,9 @@ class GolemsGalvanicMine extends ScriptedGame {
 		html += "</tr></table></center>";
 		const uhtmlName = this.uhtmlBaseName + '-stones';
 		this.onUhtml(uhtmlName, html, () => {
-			this.timeout = setTimeout(() => this.tallyPoints(), this.roundTime);
+			this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
 		});
 		this.sayUhtml(uhtmlName, html);
-	}
-
-	tallyPoints(): void {
-		let reachedMaxPoints: boolean | undefined;
-		this.roundMines.forEach((value, player) => {
-			let points = this.points.get(player) || 0;
-			points += value;
-			if (points >= this.format.options.points) {
-				if (!reachedMaxPoints) reachedMaxPoints = true;
-				this.winners.set(player, points);
-			}
-			this.points.set(player, points);
-		});
-
-		if (reachedMaxPoints) {
-			this.end();
-		} else {
-			this.nextRound();
-		}
 	}
 
 	onEnd(): void {

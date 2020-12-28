@@ -32,6 +32,7 @@ for (const meal of meals) {
 class BounsweetsBountifulBuffet extends ScriptedGame {
 	canLateJoin: boolean = true;
 	canSelect: boolean = false;
+	inactiveRoundLimit: number = 5;
 	mealPoints: number[] = [];
 	meals: string[] = [];
 	numberOfMeals: number = 0;
@@ -50,27 +51,42 @@ class BounsweetsBountifulBuffet extends ScriptedGame {
 			for (let i = 0; i < this.numberOfMeals; i++) {
 				counts.push(0);
 			}
+
+			let activePlayers = false;
 			for (const id in this.players) {
 				if (this.players[id].eliminated) continue;
 				const index = this.selectedMeals.get(this.players[id]);
 				if (!index && index !== 0) continue;
+				activePlayers = true;
 				counts[index]++;
 			}
-			for (const id in this.players) {
-				if (this.players[id].eliminated) continue;
-				const player = this.players[id];
-				const index = this.selectedMeals.get(player);
-				if (index || index === 0) {
-					let points = this.points.get(player) || 0;
-					const earnedPoints = Math.floor(this.mealPoints[index] / counts[index]);
-					points += earnedPoints;
-					player.say("You earned " + earnedPoints + " points! Your total is now " + points + ".");
-					this.points.set(player, points);
+
+			if (activePlayers) {
+				if (this.inactiveRounds) this.inactiveRounds = 0;
+
+				for (const id in this.players) {
+					if (this.players[id].eliminated) continue;
+					const player = this.players[id];
+					const index = this.selectedMeals.get(player);
+					if (index || index === 0) {
+						let points = this.points.get(player) || 0;
+						const earnedPoints = Math.floor(this.mealPoints[index] / counts[index]);
+						points += earnedPoints;
+						player.say("You earned " + earnedPoints + " points! Your total is now " + points + ".");
+						this.points.set(player, points);
+					}
+				}
+			} else {
+				this.inactiveRounds++;
+				if (this.inactiveRounds === this.inactiveRoundLimit) {
+					this.inactivityEnd();
+					return;
 				}
 			}
 		}
+
 		if (this.round === 11) {
-			this.say("The buffet has ended! Now calculating scores...");
+			this.say("The buffet has ended!");
 			let maxPoints = -1;
 			let bestPlayer = null;
 			for (const id in this.players) {

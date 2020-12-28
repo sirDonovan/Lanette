@@ -24,6 +24,7 @@ class TaurosSafariZone extends ScriptedGame {
 	firstCatch: Player | false | undefined;
 	highestBST: string = '';
 	highestCatch: Player | null = null;
+	inactiveRoundLimit: number = 5;
 	maxPoints: number = 1000;
 	points = new Map<Player, number>();
 	revealTime: number = 10 * 1000;
@@ -109,40 +110,52 @@ class TaurosSafariZone extends ScriptedGame {
 	onNextRound(): void {
 		this.canCatch = false;
 		if (this.round > 1) {
-			const catchQueue: {player: Player; pokemon: string; points: number}[] = [];
-			let firstCatch = true;
-			this.roundCatches.forEach((pokemon, player) => {
-				if (player.eliminated) return;
-				if (firstCatch && pokemon.points > 0) {
-					if (this.firstCatch === undefined) {
-						this.firstCatch = player;
-					} else {
-						if (this.firstCatch && this.firstCatch !== player) this.firstCatch = false;
-					}
-					firstCatch = false;
-				}
-				catchQueue.push({player, pokemon: pokemon.species, points: pokemon.points});
-				let caughtPokemon = this.caughtPokemon.get(player) || 0;
-				caughtPokemon++;
-				this.caughtPokemon.set(player, caughtPokemon);
-			});
-			catchQueue.sort((a, b) => b.points - a.points);
 			let highestPoints = 0;
-			for (const slot of catchQueue) {
-				const player = slot.player;
-				let points = this.points.get(player) || 0;
-				points += slot.points;
-				this.points.set(player, points);
-				player.say(slot.pokemon + " was worth " + slot.points + " points! Your total score is now: " + points + ".");
-				if (points > highestPoints) highestPoints = points;
-				// if (slot.pokemon === this.highestBST) this.markFirstAction(player, 'highestCatch');
+			if (this.roundCatches.size) {
+				if (this.inactiveRounds) this.inactiveRounds = 0;
+
+				const catchQueue: {player: Player; pokemon: string; points: number}[] = [];
+				let firstCatch = true;
+				this.roundCatches.forEach((pokemon, player) => {
+					if (player.eliminated) return;
+					if (firstCatch && pokemon.points > 0) {
+						if (this.firstCatch === undefined) {
+							this.firstCatch = player;
+						} else {
+							if (this.firstCatch && this.firstCatch !== player) this.firstCatch = false;
+						}
+						firstCatch = false;
+					}
+					catchQueue.push({player, pokemon: pokemon.species, points: pokemon.points});
+					let caughtPokemon = this.caughtPokemon.get(player) || 0;
+					caughtPokemon++;
+					this.caughtPokemon.set(player, caughtPokemon);
+				});
+				catchQueue.sort((a, b) => b.points - a.points);
+				for (const slot of catchQueue) {
+					const player = slot.player;
+					let points = this.points.get(player) || 0;
+					points += slot.points;
+					this.points.set(player, points);
+					player.say(slot.pokemon + " was worth " + slot.points + " points! Your total score is now: " + points + ".");
+					if (points > highestPoints) highestPoints = points;
+					// if (slot.pokemon === this.highestBST) this.markFirstAction(player, 'highestCatch');
+				}
+			} else {
+				this.inactiveRounds++;
+				if (this.inactiveRounds === this.inactiveRoundLimit) {
+					this.inactivityEnd();
+					return;
+				}
 			}
+
 			this.roundCatches.clear();
 			this.roundPokemon.clear();
 			if (highestPoints >= this.maxPoints) {
 				this.timeout = setTimeout(() => this.end(), 3000);
 				return;
 			}
+
 			if (this.round > this.roundLimit) {
 				this.timeout = setTimeout(() => {
 					this.say("We've reached the end of the game!");

@@ -27,6 +27,7 @@ export class ScriptedGame extends Game {
 	canLateJoin: boolean = false;
 	readonly commands = Object.assign(Object.create(null), Games.sharedCommands) as LoadedGameCommands;
 	readonly commandsListeners: IGameCommandCountListener[] = [];
+	inactiveRounds: number = 0;
 	inheritedPlayers: boolean = false;
 	internalGame: boolean = false;
 	readonly loserPointsToBits: number = 10;

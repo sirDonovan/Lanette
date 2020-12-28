@@ -4,6 +4,7 @@ import type { GameCommandDefinitions, IGameFile } from "../types/games";
 
 class PonytasPinataParty extends ScriptedGame {
 	canHit: boolean = false;
+	inactiveRoundLimit: number = 5;
 	maxRound: number = 10;
 	pinataHits: number = 0;
 	points = new Map<Player, number>();
@@ -19,6 +20,18 @@ class PonytasPinataParty extends ScriptedGame {
 	}
 
 	onNextRound(): void {
+		if (this.round > 1) {
+			if (!this.pinataHits) {
+				this.inactiveRounds++;
+				if (this.inactiveRounds === this.inactiveRoundLimit) {
+					this.inactivityEnd();
+					return;
+				}
+			} else {
+				if (this.inactiveRounds) this.inactiveRounds = 0;
+			}
+		}
+
 		this.roundHits.clear();
 		this.pinataHits = 0;
 		const html = this.getRoundHtml(players => this.getPlayerPoints(players));

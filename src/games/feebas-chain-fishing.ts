@@ -43,9 +43,10 @@ class FeebasChainFishing extends ScriptedGame {
 	canReel: boolean = false;
 	firstReel: Player | false | undefined;
 	highestPoints: number = 0;
+	inactiveRoundLimit: number = 5;
 	maxPoints: number = 2000;
+	maxRound: number = 20;
 	points = new Map<Player, number>();
-	roundLimit: number = 20;
 	roundReels = new Map<Player, boolean>();
 	queue: Player[] = [];
 
@@ -58,41 +59,50 @@ class FeebasChainFishing extends ScriptedGame {
 	onNextRound(): void {
 		this.canReel = false;
 		if (this.round > 1) {
-			const roundRods = rods.slice();
-			let currentRod = roundRods[0];
-			roundRods.shift();
-			let num = 0;
 			let highestPoints = 0;
-			const divisor = Math.floor(this.getRemainingPlayerCount() / 3);
-			for (let i = 0; i < this.queue.length; i++) {
-				const player = this.queue[i];
-				const reel = this.sampleOne(currentRod.pokemon);
-				if (this.rollForShinyPokemon()) this.unlockAchievement(player, FeebasChainFishing.achievements.sunkentreasure);
-				let points = reel.points;
-				if (i === 0) {
-					if (this.firstReel === undefined) {
-						this.firstReel = player;
-					} else {
-						if (this.firstReel && this.firstReel !== player) this.firstReel = false;
+			if (this.queue.length) {
+				if (this.inactiveRounds) this.inactiveRounds = 0;
+
+				const roundRods = rods.slice();
+				let currentRod = roundRods[0];
+				roundRods.shift();
+				let num = 0;
+				const divisor = Math.floor(this.getRemainingPlayerCount() / 3);
+				for (let i = 0; i < this.queue.length; i++) {
+					const player = this.queue[i];
+					const reel = this.sampleOne(currentRod.pokemon);
+					if (this.rollForShinyPokemon()) this.unlockAchievement(player, FeebasChainFishing.achievements.sunkentreasure);
+					let points = reel.points;
+					if (i === 0) {
+						if (this.firstReel === undefined) {
+							this.firstReel = player;
+						} else {
+							if (this.firstReel && this.firstReel !== player) this.firstReel = false;
+						}
+						points += 50;
 					}
-					points += 50;
+					let totalPoints = this.points.get(player) || 0;
+					totalPoints += points;
+					this.points.set(player, totalPoints);
+					player.say("Your " + currentRod.rod + " reeled in " + reel.pokemon + " for " + points + " points! Your total is now " +
+						totalPoints);
+					if (totalPoints > highestPoints) highestPoints = totalPoints;
+					num++;
+					if (num > divisor && roundRods.length) {
+						num = 0;
+						currentRod = roundRods[0];
+						roundRods.shift();
+					}
 				}
-				let totalPoints = this.points.get(player) || 0;
-				totalPoints += points;
-				this.points.set(player, totalPoints);
-				player.say("Your " + currentRod.rod + " reeled in " + reel.pokemon + " for " + points + " points! Your total is now " +
-					totalPoints);
-				if (totalPoints > highestPoints) highestPoints = totalPoints;
-				num++;
-				if (num > divisor && roundRods.length) {
-					num = 0;
-					currentRod = roundRods[0];
-					roundRods.shift();
+			} else {
+				this.inactiveRounds++;
+				if (this.inactiveRounds === this.inactiveRoundLimit) {
+					this.inactivityEnd();
+					return;
 				}
 			}
 			this.highestPoints = highestPoints;
 			if (this.highestPoints >= this.maxPoints) return this.end();
-			if (this.round > this.roundLimit) return this.end();
 		}
 		this.roundReels.clear();
 		this.queue = [];

@@ -14,6 +14,7 @@ const data: {abilities: string[]} = {
 class DedennesAbilityBlitz extends ScriptedGame {
 	canSelect: boolean = false;
 	firstType: Player | null = null;
+	inactiveRoundLimit: number = 5;
 	maxPoints: number = 1000;
 	points = new Map<Player, number>();
 	revealTime: number = 5 * 1000;
@@ -48,31 +49,41 @@ class DedennesAbilityBlitz extends ScriptedGame {
 	onNextRound(): void {
 		this.canSelect = false;
 		if (this.round > 1) {
-			const selections: {player: Player; ability: string; points: number}[] = [];
-			// let actions = 0;
-			this.roundSelections.forEach((ability, user) => {
-				if (!(user.id in this.players) || this.players[user.id].eliminated) return;
-				const player = this.players[user.id];
-				/*
-				if (ability.points > 0) {
-					if (actions === 0) this.markFirstAction(player, 'firstType');
-					actions++;
-				}
-				*/
-				selections.push({player, ability: ability.name, points: ability.points});
-			});
-			selections.sort((a, b) => b.points - a.points);
 			let highestPoints = 0;
-			for (let i = 0, len = selections.length; i < len; i++) {
-				const player = selections[i].player;
-				let points = this.points.get(player) || 0;
-				points += selections[i].points;
-				this.points.set(player, points);
-				player.say(selections[i].ability + " was worth " + selections[i].points + " points! Your total score is now: " +
-					points + ".");
-				if (points > highestPoints) highestPoints = points;
-				// if (catches[i].pokemon === this.highestBST) this.markFirstAction(player, 'highestCatch');
+			if (this.roundSelections.size) {
+				if (this.inactiveRounds) this.inactiveRounds = 0;
+
+				const selections: {player: Player; ability: string; points: number}[] = [];
+				// let actions = 0;
+				this.roundSelections.forEach((ability, player) => {
+					if (player.eliminated) return;
+					/*
+					if (ability.points > 0) {
+						if (actions === 0) this.markFirstAction(player, 'firstType');
+						actions++;
+					}
+					*/
+					selections.push({player, ability: ability.name, points: ability.points});
+				});
+				selections.sort((a, b) => b.points - a.points);
+				for (let i = 0, len = selections.length; i < len; i++) {
+					const player = selections[i].player;
+					let points = this.points.get(player) || 0;
+					points += selections[i].points;
+					this.points.set(player, points);
+					player.say(selections[i].ability + " was worth " + selections[i].points + " points! Your total score is now: " +
+						points + ".");
+					if (points > highestPoints) highestPoints = points;
+					// if (catches[i].pokemon === this.highestBST) this.markFirstAction(player, 'highestCatch');
+				}
+			} else {
+				this.inactiveRounds++;
+				if (this.inactiveRounds === this.inactiveRoundLimit) {
+					this.inactivityEnd();
+					return;
+				}
 			}
+
 			this.roundSelections.clear();
 			this.roundAbilities.clear();
 			if (highestPoints >= this.maxPoints) {

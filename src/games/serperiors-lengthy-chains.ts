@@ -19,8 +19,10 @@ const data: {parameters: KeyedDict<DataTypes, Dict<string[]>>; parameterKeys: Ke
 class SerperiorLengthyChains extends ScriptedGame {
 	bestChain: string[] = [];
 	bestPlayer: Player | null = null;
+	canChain: boolean = false;
 	category: string = '';
 	dataType: DataTypes = 'pokemon';
+	inactiveRoundLimit: number = 5;
 	points = new Map<Player, number>();
 
 	static loadData(): void {
@@ -89,33 +91,48 @@ class SerperiorLengthyChains extends ScriptedGame {
 	}
 
 	onNextRound(): void {
+		this.canChain = false;
+		if (this.round > 1) {
+			if (!this.bestPlayer) {
+				this.say("No one gave a valid chain!");
+				this.inactiveRounds++;
+				if (this.inactiveRounds === this.inactiveRoundLimit) {
+					this.inactivityEnd();
+					return;
+				}
+			} else {
+				if (this.inactiveRounds) this.inactiveRounds = 0;
+
+				let points = this.points.get(this.bestPlayer) || 0;
+				points++;
+				this.points.set(this.bestPlayer, points);
+				if (points >= this.format.options.points) {
+					this.say("**" + this.bestPlayer.name + "** wins the game with their chain __" + this.bestChain.join(" + ") + "__!");
+					this.winners.set(this.bestPlayer, 1);
+					this.convertPointsToBits(50);
+					this.end();
+					return;
+				}
+				this.say("**" + this.bestPlayer.name + "** advances to " + points + " point" + (points > 1 ? "s" : "") + " with their " +
+					"chain " + "__" + this.bestChain.join(" + ") + "__!");
+			}
+		}
+
 		this.bestChain = [];
 		this.bestPlayer = null;
 		this.category = this.sampleOne(data.parameterKeys[this.dataType]);
-		this.say("Make a chain of **" + this.category + "** " + (this.dataType === 'moves' ? "moves" : "Pokemon") + "!");
-		this.timeout = setTimeout(() => this.checkBestChain(), 15 * 1000);
-	}
 
-	checkBestChain(): void {
-		this.category = '';
-		if (!this.bestPlayer) {
-			this.say("No one gave a valid chain!");
-			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
-		} else {
-			let points = this.points.get(this.bestPlayer) || 0;
-			points++;
-			this.points.set(this.bestPlayer, points);
-			if (points >= this.format.options.points) {
-				this.say("**" + this.bestPlayer.name + "** wins the game with their chain __" + this.bestChain.join(" + ") + "__!");
-				this.winners.set(this.bestPlayer, 1);
-				this.convertPointsToBits(50);
-				this.end();
-				return;
-			}
-			this.say("**" + this.bestPlayer.name + "** advances to " + points + " point" + (points > 1 ? "s" : "") + " with their chain " +
-				"__" + this.bestChain.join(" + ") + "__!");
-			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
-		}
+		const uhtmlName = this.uhtmlBaseName + '-round-html';
+		const html = this.getRoundHtml(players => this.getPlayerPoints(players));
+		this.onUhtml(uhtmlName, html, () => {
+			const text = "Make a chain of **" + this.category + "** " + (this.dataType === 'moves' ? "moves" : "Pokemon") + "!";
+			this.on(text, () => {
+				this.canChain = true;
+				this.timeout = setTimeout(() => this.nextRound(), 15 * 1000);
+			});
+			this.timeout = setTimeout(() => this.say(text), 5000);
+		});
+		this.sayUhtml(uhtmlName, html);
 	}
 
 	getChain(guess: string, chainSoFar: string[]): string[] {
@@ -152,7 +169,7 @@ const commands: GameCommandDefinitions<SerperiorLengthyChains> = {
 	guess: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
-			if (!this.category) return false;
+			if (!this.canChain) return false;
 			const guess = Tools.toId(target);
 			if (!guess) return false;
 			const chain = this.getChain(guess, []);

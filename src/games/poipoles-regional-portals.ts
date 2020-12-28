@@ -14,6 +14,7 @@ const regionTypeKeys: Dict<LocationType[]> = {};
 class PoipolesRegionalPortals extends ScriptedGame {
 	baseTravelersPerRound: number = BASE_TRAVELERS_PER_ROUND;
 	canTravel: boolean = false;
+	inactiveRoundLimit: number = 5;
 	lastRegion: string = '';
 	lastType: string = '';
 	loserPointsToBits: number = 5;
@@ -57,6 +58,17 @@ class PoipolesRegionalPortals extends ScriptedGame {
 
 	onNextRound(): void {
 		this.canTravel = false;
+
+		if (this.roundLocations.length) {
+			this.inactiveRounds++;
+			if (this.inactiveRounds === this.inactiveRoundLimit) {
+				this.inactivityEnd();
+				return;
+			}
+		} else {
+			if (this.inactiveRounds) this.inactiveRounds = 0;
+		}
+
 		let reachedCap = false;
 		this.points.forEach((points, player) => {
 			if (points >= this.format.options.points) {
@@ -66,8 +78,6 @@ class PoipolesRegionalPortals extends ScriptedGame {
 		});
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (reachedCap) {
-			this.announceWinners();
-			this.convertPointsToBits();
 			this.end();
 			return;
 		}
@@ -107,6 +117,11 @@ class PoipolesRegionalPortals extends ScriptedGame {
 		});
 		this.sayUhtml(uhtmlName, html);
 	}
+
+	onEnd(): void {
+		this.announceWinners();
+		this.convertPointsToBits();
+	}
 }
 
 const commands: GameCommandDefinitions<PoipolesRegionalPortals> = {
@@ -131,7 +146,10 @@ const commands: GameCommandDefinitions<PoipolesRegionalPortals> = {
 			this.roundTravels.add(player);
 			this.say(player.name + " is the **" + Tools.toNumberOrderString(this.roundTravels.size) + "** traveler!");
 
-			if (this.roundTravels.size === this.maxTravelersPerRound) this.nextRound();
+			if (this.roundTravels.size === this.maxTravelersPerRound) {
+				this.roundLocations = [];
+				this.nextRound();
+			}
 			return true;
 		},
 	},

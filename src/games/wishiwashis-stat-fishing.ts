@@ -17,11 +17,12 @@ class WishiwashisStatFishing extends ScriptedGame {
 	canReel: boolean = false;
 	consecutiveReels = new Map<Player, number>();
 	// firstReel: Player | null;
+	inactiveRoundLimit: number = 5;
 	lastSpecies: string = '';
 	maxPoints: number = 2000;
+	maxRound: number = 20;
 	points = new Map<Player, number>();
 	queue: Player[] = [];
-	roundLimit: number = 20;
 	roundReels = new Map<Player, boolean>();
 	statNames: Dict<string> = {hp: 'HP', atk: 'Atk', def: 'Def', spa: 'SpA', spd: 'SpD', spe: 'Spe', bst: 'BST'};
 	stats: string[] = ['hp', 'atk', 'def', 'spa', 'spd', 'spe', 'bst'];
@@ -65,11 +66,18 @@ class WishiwashisStatFishing extends ScriptedGame {
 		}
 
 		if (!firstPlayer) {
-			const text = "No one reeled in!";
-			this.on(text, () => this.nextRound());
-			this.timeout = setTimeout(() => this.say(text), 5000);
+			this.inactiveRounds++;
+			if (this.inactiveRounds === this.inactiveRoundLimit) {
+				this.inactivityEnd();
+			} else {
+				const text = "No one reeled in!";
+				this.on(text, () => this.nextRound());
+				this.timeout = setTimeout(() => this.say(text), 5000);
+			}
 			return;
 		}
+
+		if (this.inactiveRounds) this.inactiveRounds = 0;
 
 		const consecutiveReels = this.consecutiveReels.get(firstPlayer);
 		const extraChance = consecutiveReels ? consecutiveReels * 5 : 0;
@@ -111,7 +119,6 @@ class WishiwashisStatFishing extends ScriptedGame {
 	}
 
 	onNextRound(): void {
-		if (this.round > this.roundLimit) return this.end();
 		this.roundReels.clear();
 		this.queue = [];
 		const roundHtml = this.getRoundHtml(players => this.getPlayerPoints(players));

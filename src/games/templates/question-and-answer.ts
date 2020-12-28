@@ -22,7 +22,6 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	hint: string = '';
 	hintTimestamp: number = 0;
 	hintUhtmlName: string = '';
-	inactiveRounds: number = 0;
 	inactiveRoundLimit: number = 10;
 	incorrectAnswers: number = 0;
 	lastHintHtml: string = '';

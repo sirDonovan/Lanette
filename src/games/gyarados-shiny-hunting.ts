@@ -20,11 +20,12 @@ const data: {pokemon: string[]} = {
 class GyaradosShinyHunting extends ScriptedGame {
 	canHunt: boolean = false;
 	currentPokemon: string = '';
+	inactiveRoundLimit: number = 5;
 	lastPokemon: string = '';
 	lastShinyCoordinates: [number, number] = [-1, -1];
 	points = new Map<Player, number>();
 	roundGridSize: [number, number] = [0, 0];
-	shinyCoordinates: [number, number] = [-1, -1];
+	shinyCoordinates: [number, number] | null = null;
 
 	static loadData(): void {
 		data.pokemon = Games.getPokemonList(x => {
@@ -44,6 +45,16 @@ class GyaradosShinyHunting extends ScriptedGame {
 
 	onNextRound(): void {
 		this.canHunt = false;
+
+		if (this.shinyCoordinates) {
+			this.inactiveRounds++;
+			if (this.inactiveRounds === this.inactiveRoundLimit) {
+				this.inactivityEnd();
+				return;
+			}
+		} else {
+			if (this.inactiveRounds) this.inactiveRounds = 0;
+		}
 
 		let species = this.sampleOne(data.pokemon);
 		while (species === this.lastPokemon) {
@@ -121,13 +132,18 @@ class GyaradosShinyHunting extends ScriptedGame {
 		});
 		this.sayUhtml(previewUhtmlName, previewHtml);
 	}
+
+	onEnd(): void {
+		this.announceWinners();
+		this.convertPointsToBits();
+	}
 }
 
 const commands: GameCommandDefinitions<GyaradosShinyHunting> = {
 	hunt: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
-			if (!this.canHunt) return false;
+			if (!this.canHunt || !this.shinyCoordinates) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 
 			const targets = Tools.toId(target).split("");
@@ -155,21 +171,22 @@ const commands: GameCommandDefinitions<GyaradosShinyHunting> = {
 			}
 
 			if (this.timeout) clearTimeout(this.timeout);
+			this.shinyCoordinates = null;
+			this.canHunt = false;
 
 			let points = this.points.get(player) || 0;
 			points += 1;
 			this.points.set(player, points);
 
+			this.say("**" + player.name + "** advances to **" + points + "** point" + (points > 1 ? "s" : "") + "!");
+
 			if (points === this.format.options.points) {
-				this.say("**" + player.name + "** wins the game!");
-				this.winners.set(player, 1);
-				this.convertPointsToBits();
+				this.winners.set(player, points);
 				this.end();
 			} else {
-				this.say("**" + player.name + "** advances to **" + points + "** point" + (points > 1 ? "s" : "") + "!");
-				this.canHunt = false;
 				this.timeout = setTimeout(() => this.nextRound(), 5000);
 			}
+
 			return true;
 		},
 	},

@@ -14,9 +14,9 @@ class ChandeluresCandles extends ScriptedGame {
 
 	lastTarget: Player | null = null;
 	lives = new Map<Player, number>();
+	maxRound: number = 20;
 	puffs = new Map<Player, number>();
 	roundActions = new Map<Player, boolean>();
-	roundLimit: number = 20;
 	roundTarget: Player | null = null;
 	roundTimes: number[] = [3000, 4000, 5000, 6000];
 
@@ -63,7 +63,6 @@ class ChandeluresCandles extends ScriptedGame {
 			this.end();
 			return;
 		}
-		if (this.round > this.roundLimit) return this.end();
 		const html = this.getRoundHtml(players => this.getPlayerLives(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
