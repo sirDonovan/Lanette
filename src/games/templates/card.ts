@@ -369,7 +369,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 			}
 
 			winners.forEach((value, player) => {
-				player.frozen = true;
+				player.metWinCondition = true;
 			});
 		}
 
@@ -409,7 +409,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 
 	onEnd(): void {
 		for (const i in this.players) {
-			if (this.players[i].eliminated || !this.players[i].frozen) continue;
+			if (this.players[i].eliminated || !this.players[i].metWinCondition) continue;
 			const player = this.players[i];
 			this.addBits(player, 500);
 			this.winners.set(player, 1);

@@ -1,38 +1,42 @@
+import type { PRNGSeed } from "./lib/prng";
+import { PRNG } from "./lib/prng";
 import type { Room } from "./rooms";
 import type { MessageListener } from "./types/client";
 import type { IBattleGameData, PlayerList } from "./types/games";
 import type { User } from "./users";
 
 export class Player {
-	active: boolean | undefined;
-	/** The player either left or got eliminated during gameplay; can no longer perform any actions */
+	/** The player either left or was eliminated during gameplay; can no longer perform any actions */
 	eliminated: boolean | undefined;
 	/** The player can temporarily not perform any actions */
 	frozen: boolean | undefined;
 	inactiveRounds: number | undefined;
+	/** The player has met the activity's win condition */
+	metWinCondition: boolean | undefined;
 	round: number | undefined;
 	team: PlayerTeam | undefined;
 
-	id: string;
+	readonly name: string;
+	readonly id: string;
 	readonly activity: Activity;
-	name: string;
 
 	constructor(user: User | string, activity: Activity) {
 		if (typeof user === 'string') {
-			this.id = Tools.toId(user);
 			this.name = user;
+			this.id = Tools.toId(user);
 		} else {
-			this.id = user.id;
 			this.name = user.name;
+			this.id = user.id;
 		}
+
 		this.activity = activity;
 	}
 
 	reset(): void {
-		delete this.active;
 		delete this.eliminated;
 		delete this.frozen;
 		delete this.inactiveRounds;
+		delete this.metWinCondition;
 		delete this.round;
 		delete this.team;
 	}
@@ -72,15 +76,41 @@ export class Player {
 }
 
 export class PlayerTeam {
-	players: Player[] = [];
+	readonly players: readonly Player[] = [];
 	points: number = 0;
 
-	name: string;
-	id: string;
+	readonly name: string;
+	readonly id: string;
+	readonly activity: Activity;
 
-	constructor(name: string) {
+	constructor(name: string, activity: Activity) {
 		this.name = name;
 		this.id = Tools.toId(name);
+		this.activity = activity;
+	}
+
+	addPlayer(player: Player): boolean {
+		if (this.players.includes(player)) return false;
+
+		// @ts-expect-error
+		this.players.push(player); // eslint-disable-line @typescript-eslint/no-unsafe-call
+		player.team = this;
+		return true;
+	}
+
+	removePlayer(player: Player): boolean {
+		const index = this.players.indexOf(player);
+		if (index === -1) return false;
+
+		// @ts-expect-error
+		this.players.splice(index, 1); // eslint-disable-line @typescript-eslint/no-unsafe-call
+		delete player.team;
+		return true;
+	}
+
+	shufflePlayers(): void {
+		// @ts-expect-error
+		this.players = this.activity.shuffle(this.players);
 	}
 
 	getPlayerNames(): string[] {
@@ -119,16 +149,36 @@ export abstract class Activity {
 	readonly room: Room | User;
 	readonly pm: boolean;
 	readonly pmRoom: Room;
+	prng: PRNG;
+	readonly initialSeed: PRNGSeed;
 
-	constructor(room: Room | User, pmRoom?: Room) {
+	constructor(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed) {
 		this.room = room;
 		this.pm = pmRoom && room !== pmRoom ? true : false;
 		this.pmRoom = this.isPm(room) ? pmRoom! : room;
+		this.prng = new PRNG(initialSeed);
+		this.initialSeed = this.prng.initialSeed.slice() as PRNGSeed;
 	}
 
 	abstract deallocate(forceEnd: boolean): void;
 	abstract forceEnd(user?: User, reason?: string): void;
 	abstract start(): void;
+
+	random(m: number): number {
+		return Tools.random(m, this.prng);
+	}
+
+	sampleMany<T>(array: readonly T[], amount: number | string): T[] {
+		return Tools.sampleMany(array, amount, this.prng);
+	}
+
+	sampleOne<T>(array: readonly T[]): T {
+		return Tools.sampleOne(array, this.prng);
+	}
+
+	shuffle<T>(array: readonly T[]): T[] {
+		return Tools.shuffle(array, this.prng);
+	}
 
 	isPm(room: Room | User): room is User {
 		return this.pm;
@@ -168,8 +218,10 @@ export abstract class Activity {
 		}
 
 		const player = this.players[oldId] || this.pastPlayers[oldId]; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		// @ts-expect-error
 		player.name = user.name;
 		if (player.id === user.id) return;
+		// @ts-expect-error
 		player.id = user.id;
 
 		if (pastPlayer) {
@@ -273,14 +325,23 @@ export abstract class Activity {
 
 	off(message: string): void {
 		this.room.off(message);
+		const index = this.messageListeners.indexOf(message);
+		if (index !== -1) this.messageListeners.splice(index, 1);
 	}
 
 	offHtml(html: string, serverHtml?: boolean): void {
 		this.room.offHtml(html, serverHtml);
+		const index = this.htmlMessageListeners.indexOf(html);
+		if (index !== -1) this.htmlMessageListeners.splice(index, 1);
 	}
 
 	offUhtml(name: string, html: string): void {
 		this.room.offUhtml(name, html);
+		const id = Tools.toId(name);
+		if (id in this.uhtmlMessageListeners) {
+			const index = this.uhtmlMessageListeners[id].indexOf(html);
+			if (index !== -1) this.uhtmlMessageListeners[id].splice(index, 1);
+		}
 	}
 
 	cleanupMessageListeners(): void {
@@ -301,6 +362,7 @@ export abstract class Activity {
 
 	getPlayerList(players?: PlayerList, fromGetRemainingPlayers?: boolean): Player[] {
 		if (Array.isArray(players)) return players;
+
 		if (!players) {
 			if (this.started && !fromGetRemainingPlayers) {
 				players = this.getRemainingPlayers();
@@ -315,6 +377,7 @@ export abstract class Activity {
 				playerList.push(player);
 			});
 		} else {
+			players = players as Dict<Player>;
 			for (const i in players) {
 				playerList.push(players[i]);
 			}
@@ -358,7 +421,6 @@ export abstract class Activity {
 		return this.getPlayerAttributes(player => player.name, players).join(', ');
 	}
 
-	getSignupsHtml?(): string;
 	onEnd?(): void;
 	onForceEnd?(user?: User, reason?: string): void;
 	onRenamePlayer?(player: Player, oldId: string): void;

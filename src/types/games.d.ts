@@ -253,7 +253,7 @@ export interface IGameMode<T = ScriptedGame, U extends ScriptedGame = ScriptedGa
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type PlayerList = Dict<Player> | Player[] | Map<Player, any>;
+export type PlayerList = Dict<Player> | readonly Player[] | Map<Player, any>;
 
 export type LoadedGameFile = DeepImmutable<IGameFormatData>;
 

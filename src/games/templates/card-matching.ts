@@ -469,7 +469,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		if (this.getRemainingPlayerCount() <= 1) {
 			if (this.finitePlayerCards) {
 				const finalPlayer = this.getFinalPlayer();
-				if (finalPlayer) finalPlayer.frozen = true;
+				if (finalPlayer) finalPlayer.metWinCondition = true;
 			}
 			this.end();
 			return;
@@ -584,11 +584,8 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 								// nextRound() called in onRemovePlayer
 								this.eliminatePlayer(player!, "You did not play a card for " + this.playerInactiveRoundLimit + " rounds!");
 
-								const remainingPlayers: Player[] = [];
-								for (const i in this.players) {
-									if (!this.players[i].eliminated) remainingPlayers.push(this.players[i]);
-								}
-								if (remainingPlayers.length === 1) remainingPlayers[0].frozen = true;
+								const newFinalPlayer = this.getFinalPlayer();
+								if (newFinalPlayer) newFinalPlayer.metWinCondition = true;
 
 								this.onRemovePlayer(player!);
 							} else {
@@ -613,7 +610,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 
 	onEnd(): void {
 		for (const i in this.players) {
-			if (this.players[i].eliminated || (this.finitePlayerCards && !this.players[i].frozen)) continue;
+			if (this.players[i].eliminated || (this.finitePlayerCards && !this.players[i].metWinCondition)) continue;
 			const player = this.players[i];
 			this.addBits(player, 500);
 			this.winners.set(player, 1);
@@ -790,6 +787,7 @@ const commands: GameCommandDefinitions<CardMatching> = {
 
 			if (!cards.length) {
 				player.frozen = true;
+				player.metWinCondition = true;
 				if (this.finitePlayerCards) {
 					this.sayUhtmlAuto(this.uhtmlBaseName + '-round', this.getMascotAndNameHtml() + "<br /><center><br />" +
 						this.getTopCardHtml() + "</center>");

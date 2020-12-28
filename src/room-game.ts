@@ -1,5 +1,4 @@
 import type { PRNGSeed } from "./lib/prng";
-import { PRNG } from "./lib/prng";
 import type { Player } from "./room-activity";
 import { Activity, PlayerTeam } from "./room-activity";
 import type { Room } from "./rooms";
@@ -28,9 +27,6 @@ export abstract class Game extends Activity {
 	teams: Dict<PlayerTeam> | null = null;
 	readonly winners = new Map<Player, number>();
 
-	prng: PRNG;
-	initialSeed: PRNGSeed;
-
 	// set in initialize()
 	description!: string;
 	signupsUhtmlName!: string;
@@ -45,30 +41,11 @@ export abstract class Game extends Activity {
 	startingPoints?: number;
 
 	constructor(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed) {
-		super(room, pmRoom);
-
-		this.prng = new PRNG(initialSeed);
-		this.initialSeed = this.prng.initialSeed.slice() as PRNGSeed;
+		super(room, pmRoom, initialSeed);
 	}
 
 	abstract getMascotAndNameHtml(additionalText?: string): string;
 	abstract onInitialize(format: IGameFormat | IUserHostedFormat): void;
-
-	random(m: number): number {
-		return Tools.random(m, this.prng);
-	}
-
-	sampleMany<T>(array: readonly T[], amount: number | string): T[] {
-		return Tools.sampleMany(array, amount, this.prng);
-	}
-
-	sampleOne<T>(array: readonly T[]): T {
-		return Tools.sampleOne(array, this.prng);
-	}
-
-	shuffle<T>(array: readonly T[]): T[] {
-		return Tools.shuffle(array, this.prng);
-	}
 
 	rollForShinyPokemon(extraChance?: number): boolean {
 		let chance = 150;
@@ -202,7 +179,7 @@ export abstract class Game extends Activity {
 
 		for (let i = 0; i < numberOfTeams; i++) {
 			const id = Tools.toId(teamNames[i]);
-			teams[id] = new PlayerTeam(teamNames[i]);
+			teams[id] = new PlayerTeam(teamNames[i], this);
 			teamIds.push(id);
 		}
 
@@ -210,8 +187,7 @@ export abstract class Game extends Activity {
 			for (let i = 0; i < numberOfTeams; i++) {
 				const player = playerList.shift();
 				if (!player) break;
-				teams[teamIds[i]].players.push(player);
-				player.team = teams[teamIds[i]];
+				teams[teamIds[i]].addPlayer(player);
 			}
 		}
 
@@ -222,7 +198,7 @@ export abstract class Game extends Activity {
 		let points: number | undefined;
 		if (player.team) {
 			const oldTeam = player.team;
-			oldTeam.players.splice(oldTeam.players.indexOf(player), 1);
+			oldTeam.removePlayer(player);
 
 			if (this.points) {
 				points = this.points.get(player);
@@ -230,8 +206,7 @@ export abstract class Game extends Activity {
 			}
 		}
 
-		player.team = newTeam;
-		newTeam.players.push(player);
+		newTeam.addPlayer(player);
 		if (points) newTeam.points += points;
 	}
 

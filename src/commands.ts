@@ -1754,8 +1754,7 @@ const commands: CommandDefinitions<CommandContext, void> = {
 			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			if (room.userHostedGame.teams) {
 				for (const i in room.userHostedGame.teams) {
-					const team = room.userHostedGame.teams[i];
-					team.players = room.userHostedGame.shuffle(team.players);
+					room.userHostedGame.teams[i].shufflePlayers();
 				}
 			} else {
 				const temp: Dict<Player> = {};

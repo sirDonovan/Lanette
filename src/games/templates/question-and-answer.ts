@@ -320,7 +320,6 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (!this.canGuessAnswer(player)) return false;
 
-			if (!player.active) player.active = true;
 			const answer = this.guessAnswer(player, target);
 			if (!answer || !this.canGuessAnswer(player)) return false;
 

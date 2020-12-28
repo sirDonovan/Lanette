@@ -120,7 +120,6 @@ const commandDefinitions: GameCommandDefinitions<GroupThis> = {
 			if (!this.canGuessAnswer(this.players[user.id])) return false;
 
 			const player = this.players[user.id];
-			if (!player.active) player.active = true;
 			const answer = this.guessAnswer(player, target);
 			if (!answer || !this.canGuessAnswer(player)) return false;
 
