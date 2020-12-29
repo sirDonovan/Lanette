@@ -719,6 +719,26 @@ export class ScriptedGame extends Game {
 		return result;
 	}
 
+	announceWinners(): void {
+		const numberOfWinners = this.winners.size;
+		if (numberOfWinners) {
+			const winnerNames = this.getPlayerNames(this.winners);
+			let trainerCardShown = false;
+			if (numberOfWinners === 1 && !this.isPm(this.room) && Config.showGameTrainerCards &&
+				Config.showGameTrainerCards.includes(this.room.id)) {
+				const trainerCard = Games.getTrainerCardHtml(this.room, winnerNames, this.format);
+				if (trainerCard) {
+					this.sayUhtml(this.uhtmlBaseName + "-winners", "<b>Winner</b>:<br /><center>" + trainerCard + "</center>");
+					trainerCardShown = true;
+				}
+			}
+
+			if (!trainerCardShown) this.say("**Winner" + (numberOfWinners > 1 ? "s" : "") + "**: " + winnerNames);
+		} else {
+			this.say("No winners this game!");
+		}
+	}
+
 	addBits(user: User | Player, bits: number, noPm?: boolean): boolean {
 		if (this.isPm(this.room) || !Config.rankedGames || !Config.rankedGames.includes(this.room.id) ||
 			(this.parentGame && this.parentGame.allowChildGameBits !== true)) return false;

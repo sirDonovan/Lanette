@@ -63,9 +63,9 @@ export abstract class Game extends Activity {
 	}
 
 	announceWinners(): void {
-		const len = this.winners.size;
-		if (len) {
-			this.say("**Winner" + (len > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners));
+		const numberOfWinners = this.winners.size;
+		if (numberOfWinners) {
+			this.say("**Winner" + (numberOfWinners > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners));
 		} else {
 			this.say("No winners this game!");
 		}

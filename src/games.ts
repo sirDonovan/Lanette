@@ -1261,6 +1261,65 @@ export class Games {
 		return tier !== 'Illegal' && tier !== 'Unreleased' && !tier.startsWith('(');
 	}
 
+	getTrainerCardHtml(room: Room, name: string, format?: IGameFormat): string {
+		const id = Tools.toId(name);
+		const database = Storage.getDatabase(room);
+		if (!database.gameTrainerCards || !(id in database.gameTrainerCards)) return "";
+
+		const trainerCard = database.gameTrainerCards[id];
+		const avatarSpriteId = Dex.getTrainerSpriteId(trainerCard.avatar);
+		if (!avatarSpriteId) return "";
+
+		let html = '<div class="infobox" style="width:250px"><div style="text-align: left"><b><username>' + name + '</username></b></div>';
+		html += '<hr /><center>';
+		if (trainerCard.background) html += "<div style='background: " + Tools.hexColorCodes[trainerCard.background].background + "'>";
+
+		const avatarHtml = Dex.getTrainerSprite(avatarSpriteId);
+		if (trainerCard.pokemon.length) {
+			if (trainerCard.pokemonGifs) {
+				html += Dex.getPokemonGif(Dex.getExistingPokemon(trainerCard.pokemon[0]));
+				html += avatarHtml;
+				if (trainerCard.pokemon[1]) html += Dex.getPokemonGif(Dex.getExistingPokemon(trainerCard.pokemon[1]));
+			} else {
+				if (trainerCard.pokemon.length <= 2) {
+					html += Dex.getPokemonIcon(Dex.getExistingPokemon(trainerCard.pokemon[0]));
+					html += avatarHtml;
+					if (trainerCard.pokemon[1]) html += Dex.getPokemonIcon(Dex.getExistingPokemon(trainerCard.pokemon[1]));
+				} else {
+					html += avatarHtml;
+					html += "<br />";
+					for (const pokemon of trainerCard.pokemon) {
+						html += Dex.getPokemonIcon(Dex.getExistingPokemon(pokemon));
+					}
+				}
+			}
+		} else {
+			html += avatarHtml;
+		}
+
+		if (trainerCard.background) html += "</div>";
+
+		if (format) {
+			const currentCache = Storage.getCurrentSourcePointsCache(room, Storage.gameLeaderboard, format.id);
+			if (currentCache) {
+				let index = -1;
+				for (let i = 0; i < currentCache.length; i++) {
+					if (currentCache[i].id === id) {
+						index = i;
+						break;
+					}
+				}
+
+				if (index !== -1) {
+					html += "<hr /><b>" + Tools.toNumberOrderString(index + 1) + "</b> in " + format.name;
+				}
+			}
+		}
+
+		html += "</center></div>";
+		return html;
+	}
+
 	updateGameCatalog(room: Room): void {
 		if (!Config.githubApiCredentials || !('gist' in Config.githubApiCredentials) || !Config.gameCatalogGists ||
 			!(room.id in Config.gameCatalogGists)) return;

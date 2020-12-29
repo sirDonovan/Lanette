@@ -1,3 +1,5 @@
+import type { HexColor } from "./tools";
+
 interface IEventInformation {
 	name: string;
 	link?: {description: string; url: string};
@@ -43,6 +45,13 @@ export interface IUserHostedGameStats {
 	startTime: number;
 }
 
+export interface IGameTrainerCard {
+	avatar: string;
+	pokemon: string[];
+	background?: HexColor;
+	pokemonGifs?: boolean;
+}
+
 export type UserHostStatus = 'unapproved' | 'novice' | 'approved';
 
 export type LeaderboardType = 'gameLeaderboard' | 'gameHostingLeaderbaord' | 'tournamentLeaderboard' | 'unsortedLeaderboard';
@@ -64,6 +73,7 @@ export interface IDatabase {
 	gameAchievements?: Dict<string[]>;
 	gameLeaderboard?: ILeaderboard;
 	gameHostingLeaderbaord?: ILeaderboard;
+	gameTrainerCards?: Dict<IGameTrainerCard>;
 	lastGameFormatTimes?: Dict<number>;
 	lastGameTime?: number;
 	lastTournamentFormatTimes?: Dict<number>;
