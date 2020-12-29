@@ -394,6 +394,8 @@ class DragapultsDangerZone extends ScriptedGame {
 
 	getMapLocation(target: string, team?: PlayerTeam): string | undefined {
 		const parts = Tools.toId(target).split("");
+		if (parts.length !== 2) return;
+
 		const letter = parts[0].toUpperCase();
 		if (!this.columnLetters.includes(letter) || (team && !this.teamColumnLetters.get(team)!.includes(letter))) return;
 
