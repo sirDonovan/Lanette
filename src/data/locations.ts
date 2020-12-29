@@ -306,6 +306,7 @@ export const locations: LocationData = {
 			"Lysandre Labs",
 			"Parfum Palace",
 			"Poke Ball Factory",
+			"Pokemon Village",
 			"Team Flare Secret HQ",
 			"Sea Spirit's Den",
 			"Unknown Dungeon",
