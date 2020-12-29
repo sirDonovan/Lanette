@@ -1,6 +1,5 @@
 import * as client from './client';
 import * as commandParser from './command-parser';
-import * as commands from './commands';
 // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
 // @ts-ignore - generated after first run
 import * as config from './config';
@@ -16,12 +15,12 @@ import type { ReloadableModule } from './types/app';
 import type { IGamesWorkers } from './types/games';
 import * as users from './users';
 
-const moduleOrder: ReloadableModule[] = ['tools', 'config', 'dex', 'client', 'commandparser', 'storage', 'tournaments',
-	'plugins', 'commands', 'games'];
+const moduleOrder: ReloadableModule[] = ['tools', 'config', 'dex', 'client', 'storage', 'tournaments',
+	'plugins', 'commandparser', 'commands', 'games'];
 const moduleFilenames: KeyedDict<ReloadableModule, string> = {
 	client: 'client',
 	commandparser: 'command-parser',
-	commands: 'commands',
+	commands: 'command-parser',
 	config: 'config',
 	dex: 'dex',
 	games: 'games',
@@ -32,9 +31,7 @@ const moduleFilenames: KeyedDict<ReloadableModule, string> = {
 };
 
 const reloadCommands = function(reloadedModules: ReloadableModule[]): void {
-	// eslint-disable-next-line @typescript-eslint/no-var-requires
-	global.Commands = CommandParser.loadBaseCommands(require('./commands'));
-	global.BaseCommands = Tools.deepClone(Commands);
+	CommandParser.loadBaseCommands();
 
 	if (!reloadedModules.includes('games')) Games.loadFormatCommands();
 };
@@ -53,8 +50,7 @@ module.exports = (): void => {
 
 	PluginsLoader.load();
 
-	global.Commands = CommandParser.loadBaseCommands(commands);
-	global.BaseCommands = Tools.deepClone(Commands);
+	CommandParser.loadBaseCommands();
 
 	console.log("Loading databases...");
 	Storage.importDatabases();
@@ -141,11 +137,10 @@ module.exports = (): void => {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
 					const newClient = require('./' + moduleFilenames[moduleId]) as typeof import('./client');
 					newClient.instantiate();
-				} else if (moduleId === 'commandparser') {
+				} else if (moduleId === 'commandparser' || moduleId === 'commands') {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
 					const newCommandParser = require('./' + moduleFilenames[moduleId]) as typeof import('./command-parser');
 					newCommandParser.instantiate();
-				} else if (moduleId === 'commands') {
 					reloadCommands(modules);
 				} else if (moduleId === 'config') {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires

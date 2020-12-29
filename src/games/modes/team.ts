@@ -218,7 +218,7 @@ const commandDefinitions: GameCommandDefinitions<TeamThis> = {
 	},
 };
 
-const commands = CommandParser.loadCommands(commandDefinitions);
+const commands = CommandParser.loadCommandDefinitions(commandDefinitions);
 
 const initialize = (game: QuestionAndAnswer): void => {
 	const mode = new Team();

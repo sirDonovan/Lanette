@@ -123,7 +123,7 @@ const commandDefinitions: GameCommandDefinitions<SurvivalThis> = {
 	},
 };
 
-const commands = CommandParser.loadCommands(commandDefinitions);
+const commands = CommandParser.loadCommandDefinitions(commandDefinitions);
 
 const initialize = (game: QuestionAndAnswer): void => {
 	const mode = new Survival();

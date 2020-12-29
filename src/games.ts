@@ -131,7 +131,7 @@ export class Games {
 	/* eslint-enable */
 
 	constructor() {
-		const sharedCommands = CommandParser.loadCommands(sharedCommandDefinitions);
+		const sharedCommands = CommandParser.loadCommandDefinitions(sharedCommandDefinitions);
 		this.sharedCommands = sharedCommands;
 		this.commands = Object.assign(Object.create(null), sharedCommands) as GameCommandDefinitions;
 	}
@@ -249,8 +249,11 @@ export class Games {
 
 			let commands;
 			if (file.commands) {
-				commands = CommandParser.loadCommands<ScriptedGame, GameCommandReturnType>(Tools.deepClone(file.commands));
+				commands = CommandParser.loadCommandDefinitions<ScriptedGame, GameCommandReturnType>(Tools.deepClone(file.commands));
 				for (const i in commands) {
+					if (i in BaseCommands) {
+						throw new Error("Internal game " + file.name + " command '" + i + "' already exists as a regular command.");
+					}
 					if (!(i in this.commands)) this.commands[i] = commands[i];
 				}
 			}
@@ -274,6 +277,9 @@ export class Games {
 
 			if (file.commands) {
 				for (const i in file.commands) {
+					if (i in BaseCommands) {
+						throw new Error("Mode " + file.name + " command '" + i + "' already exists as a regular command.");
+					}
 					if (!(i in this.commands)) this.commands[i] = file.commands[i];
 				}
 			}
@@ -304,7 +310,9 @@ export class Games {
 			if (id in this.formats) throw new Error("The name '" + file.name + "' is already used by another game.");
 
 			let commands;
-			if (file.commands) commands = CommandParser.loadCommands<ScriptedGame, GameCommandReturnType>(Tools.deepClone(file.commands));
+			if (file.commands) {
+				commands = CommandParser.loadCommandDefinitions<ScriptedGame, GameCommandReturnType>(Tools.deepClone(file.commands));
+			}
 
 			let variants;
 			if (file.variants) {

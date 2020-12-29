@@ -1,3 +1,4 @@
+import * as commands from './commands';
 import type { Room } from "./rooms";
 import type { BaseLoadedCommands, CommandErrorArray, CommandDefinitions, LoadedCommands } from "./types/command-parser";
 import type { User } from "./users";
@@ -108,14 +109,15 @@ export class CommandContext {
 }
 
 export class CommandParser {
-	loadCommands<ThisContext, ReturnType>(commands: CommandDefinitions<ThisContext, ReturnType>): LoadedCommands<ThisContext, ReturnType> {
+	loadCommandDefinitions<ThisContext, ReturnType>(definitions: CommandDefinitions<ThisContext, ReturnType>):
+		LoadedCommands<ThisContext, ReturnType> {
 		const dict: LoadedCommands<ThisContext, ReturnType> = {};
 		const allAliases: LoadedCommands<ThisContext, ReturnType> = {};
-		for (const i in commands) {
+		for (const i in definitions) {
 			const commandId = Tools.toId(i);
 			if (commandId in dict) throw new Error("Command '" + i + "' is defined in more than 1 location");
 
-			const command = Tools.deepClone(commands[i]);
+			const command = Tools.deepClone(definitions[i]);
 			if (command.chatOnly && command.pmOnly) throw new Error("Command '" + i + "' cannot be both chat-only and pm-only");
 			if (command.chatOnly && command.pmGameCommand) {
 				throw new Error("Command '" + i + "' cannot be both chat-only and a pm game command");
@@ -141,13 +143,15 @@ export class CommandParser {
 		return dict;
 	}
 
-	loadBaseCommands(commands: CommandDefinitions<CommandContext>): BaseLoadedCommands {
+	loadBaseCommands(): void {
 		const allPluginCommands: CommandDefinitions<CommandContext> = {};
 		if (Plugins) {
 			for (const plugin of Plugins) {
 				if (plugin.commands) {
 					for (const i in plugin.commands) {
-						if (i in allPluginCommands) throw new Error("Plugin command '" + i + "' is defined in more than 1 plugin file.");
+						if (i in commands || i in allPluginCommands) {
+							throw new Error("Plugin command '" + i + "' is defined in more than 1 location.");
+						}
 					}
 
 					Object.assign(allPluginCommands, plugin.commands);
@@ -155,8 +159,9 @@ export class CommandParser {
 			}
 		}
 
-		return Object.assign(Object.create(null),
-			Object.assign(this.loadCommands(commands), this.loadCommands(allPluginCommands))) as BaseLoadedCommands;
+		global.Commands = Object.assign(Object.create(null),
+			Object.assign(this.loadCommandDefinitions(commands), this.loadCommandDefinitions(allPluginCommands))) as BaseLoadedCommands;
+		global.BaseCommands = Tools.deepClone(global.Commands);
 	}
 
 	isCommandMessage(message: string): boolean {
