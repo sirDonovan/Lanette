@@ -63,7 +63,7 @@ export class Player {
 	}
 
 	closeHtmlPage(pageId?: string): void {
-		this.activity.pmRoom.sendHtmlPage(this, pageId || this.activity.baseHtmlPageId, "|deinit|");
+		this.activity.pmRoom.closeHtmlPage(this, pageId || this.activity.baseHtmlPageId);
 	}
 
 	sendHighlightPage(notificationTitle: string, pageId?: string, highlightPhrase?: string): void {

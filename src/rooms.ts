@@ -240,6 +240,10 @@ export class Room {
 			{dontCheckFilter: true, dontPrepare: true, dontMeasure: true, type: 'command'});
 	}
 
+	closeHtmlPage(user: User | Player, pageId: string): void {
+		this.sendHtmlPage(user, pageId, "|deinit|");
+	}
+
 	sendHighlightPage(user: User | Player, pageId: string, notificationTitle?: string, highlightPhrase?: string): void {
 		if (!Users.get(user.name)) return;
 

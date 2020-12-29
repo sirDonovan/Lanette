@@ -238,7 +238,7 @@ export class Games {
 
 	loadFormats(): void {
 		// @ts-expect-error
-		this.userHosted = (require(path.join(Tools.rootFolder, "built", "room-game-user-hosted.js")) as // eslint-disable-line @typescript-eslint/no-var-requires
+		this.userHosted = (require(path.join(Tools.builtFolder, "room-game-user-hosted.js")) as // eslint-disable-line @typescript-eslint/no-var-requires
 			typeof import('./room-game-user-hosted')).game;
 
 		const internalGameKeys = Object.keys(internalGamePaths) as (keyof IInternalGames)[];

@@ -134,23 +134,24 @@ const eggGroupHexColors: Dict<HexColor> = {
 
 export class Tools {
 	// exported constants
+	readonly battleRoomPrefix: string = BATTLE_ROOM_PREFIX;
+	readonly builtFolder: string = path.join(rootFolder, 'built');
 	readonly eggGroupHexColors: typeof eggGroupHexColors = eggGroupHexColors;
+	readonly groupchatPrefix: string = GROUPCHAT_PREFIX;
 	readonly hexColorCodes: typeof hexColorCodes = hexColorCodes;
-	readonly typeHexColors: typeof typeHexColors = typeHexColors;
-	readonly pokemonColorHexColors: typeof pokemonColorHexColors = pokemonColorHexColors;
+	readonly letters: string = "abcdefghijklmnopqrstuvwxyz";
 	readonly mainServer: string = 'play.pokemonshowdown.com';
 	readonly maxMessageLength: typeof maxMessageLength = maxMessageLength;
 	readonly maxUsernameLength: typeof maxUsernameLength = maxUsernameLength;
-	readonly rootFolder: typeof rootFolder = rootFolder;
+	readonly pokemonColorHexColors: typeof pokemonColorHexColors = pokemonColorHexColors;
 	readonly pokemonShowdownFolder: string = path.join(rootFolder, 'pokemon-showdown');
-	readonly letters: string = "abcdefghijklmnopqrstuvwxyz";
-	readonly unsafeApiCharacterRegex: RegExp = UNSAFE_API_CHARACTER_REGEX;
-	readonly battleRoomPrefix: string = BATTLE_ROOM_PREFIX;
-	readonly groupchatPrefix: string = GROUPCHAT_PREFIX;
+	readonly rootFolder: typeof rootFolder = rootFolder;
 	readonly smogonDexPrefix: string = SMOGON_DEX_PREFIX;
-	readonly smogonThreadsPrefix: string = SMOGON_THREADS_PREFIX;
-	readonly smogonPostsPrefix: string = SMOGON_POSTS_PREFIX;
 	readonly smogonPostPermalinkPrefix: string = SMOGON_POST_PERMALINK_PREFIX;
+	readonly smogonPostsPrefix: string = SMOGON_POSTS_PREFIX;
+	readonly smogonThreadsPrefix: string = SMOGON_THREADS_PREFIX;
+	readonly typeHexColors: typeof typeHexColors = typeHexColors;
+	readonly unsafeApiCharacterRegex: RegExp = UNSAFE_API_CHARACTER_REGEX;
 
 	lastGithubApiCall: number = 0;
 

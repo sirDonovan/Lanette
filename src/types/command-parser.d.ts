@@ -38,3 +38,7 @@ export type CommandErrorRequiredTarget = 'noPmHtmlRoom' | 'missingBotRankForFeat
 export type CommandErrorNoTarget = 'invalidUserInRoom' | 'invalidUsernameLength' | 'reloadInProgress' | 'invalidHttpsLink' | 'noPmGameRoom';
 
 export type CommandErrorArray = [CommandErrorOptionalTarget, string?] | [CommandErrorRequiredTarget, string] | [CommandErrorNoTarget];
+
+export interface IHtmlPageFile {
+	commands?: CommandDefinitions<CommandContext>;
+}

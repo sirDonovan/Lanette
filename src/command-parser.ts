@@ -1,6 +1,9 @@
+import fs = require('fs');
+import path = require('path');
+
 import * as commands from './commands';
 import type { Room } from "./rooms";
-import type { BaseLoadedCommands, CommandErrorArray, CommandDefinitions, LoadedCommands } from "./types/command-parser";
+import type { BaseLoadedCommands, CommandErrorArray, CommandDefinitions, LoadedCommands, IHtmlPageFile } from "./types/command-parser";
 import type { User } from "./users";
 
 export class CommandContext {
@@ -109,6 +112,8 @@ export class CommandContext {
 }
 
 export class CommandParser {
+	htmlPagesDir: string = path.join(Tools.builtFolder, 'html-pages');
+
 	loadCommandDefinitions<ThisContext, ReturnType>(definitions: CommandDefinitions<ThisContext, ReturnType>):
 		LoadedCommands<ThisContext, ReturnType> {
 		const dict: LoadedCommands<ThisContext, ReturnType> = {};
@@ -145,6 +150,23 @@ export class CommandParser {
 
 	loadBaseCommands(): void {
 		const allPluginCommands: CommandDefinitions<CommandContext> = {};
+
+		const htmlPages = fs.readdirSync(this.htmlPagesDir);
+		for (const fileName of htmlPages) {
+			if (!fileName.endsWith('.js') || fileName === 'html-page-base.js') continue;
+			// eslint-disable-next-line @typescript-eslint/no-var-requires
+			const htmlPage = require(path.join(this.htmlPagesDir, fileName)) as IHtmlPageFile;
+			if (htmlPage.commands) {
+				for (const i in htmlPage.commands) {
+					if (i in commands || i in allPluginCommands) {
+						throw new Error("Html page command '" + i + "' is defined in more than 1 location.");
+					}
+				}
+
+				Object.assign(allPluginCommands, htmlPage.commands);
+			}
+		}
+
 		if (Plugins) {
 			for (const plugin of Plugins) {
 				if (plugin.commands) {
