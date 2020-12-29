@@ -119,8 +119,8 @@ class PoipolesRegionalPortals extends ScriptedGame {
 	}
 
 	onEnd(): void {
-		this.announceWinners();
 		this.convertPointsToBits();
+		this.announceWinners();
 	}
 }
 

@@ -153,9 +153,9 @@ class InkaysCups extends ScriptedGame {
 				this.winners.set(player, 1);
 				this.addBits(player, 500);
 			}
-
-			this.announceWinners();
 		}
+
+		this.announceWinners();
 	}
 
 	getAnswers(givenAnswer: string): string {
@@ -190,17 +190,15 @@ const commands: GameCommandDefinitions<InkaysCups> = {
 				let points = this.points.get(player) || 0;
 				points++;
 				this.points.set(player, points);
+				this.say("**" + player.name + "** advances to **" + points + "** point" + (points > 1 ? "s" : "") + "! " +
+						this.getAnswers(answer));
 				if (points === this.format.options.points) {
-					this.say("**" + player.name + "** wins" + (this.parentGame ? "" : " the game") + "! " + this.getAnswers(answer));
 					for (const i in this.players) {
 						if (this.players[i] !== player) this.players[i].eliminated = true;
 					}
-					this.winners.set(player, 1);
+					this.winners.set(player, points);
 					this.end();
 					return true;
-				} else {
-					this.say("**" + player.name + "** advances to **" + points + "** point" + (points > 1 ? "s" : "") + "! " +
-						this.getAnswers(answer));
 				}
 				this.nextRound();
 			} else {

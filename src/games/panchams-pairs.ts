@@ -245,9 +245,9 @@ class PanchamPairs extends ScriptedGame {
 	onEnd(): void {
 		if (this.format.options.freejoin) {
 			this.convertPointsToBits();
-		} else {
-			this.announceWinners();
 		}
+
+		this.announceWinners();
 	}
 
 	isParamPair(inputA: string, inputB: string, paramName: keyof IMovePairData | keyof IPokemonPairData, inCurrent?: boolean):
@@ -324,18 +324,15 @@ const commands: GameCommandDefinitions<PanchamPairs> = {
 				let points = this.points.get(player) || 0;
 				points++;
 				this.points.set(player, points);
-				if (points === this.format.options.points) {
-					this.say("**" + player.name + "** wins" + (this.parentGame ? "" : " the game") + "! " +
+				this.say("**" + player.name + "** advances to **" + points + "** point" + (points > 1 ? "s" : "") + "! " +
 						this.getAnswers(pair[0] + " & " + pair[1] + " (" + param + ")"));
+				if (points === this.format.options.points) {
 					for (const i in this.players) {
 						if (this.players[i] !== player) this.players[i].eliminated = true;
 					}
-					this.winners.set(player, 1);
+					this.winners.set(player, points);
 					this.end();
 					return true;
-				} else {
-					this.say("**" + player.name + "** advances to **" + points + "** point" + (points > 1 ? "s" : "") + "! " +
-						this.getAnswers(pair[0] + " & " + pair[1] + " (" + param + ")"));
 				}
 				this.nextRound();
 			} else {

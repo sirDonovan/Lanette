@@ -134,8 +134,8 @@ class GyaradosShinyHunting extends ScriptedGame {
 	}
 
 	onEnd(): void {
-		this.announceWinners();
 		this.convertPointsToBits();
+		this.announceWinners();
 	}
 }
 

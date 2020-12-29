@@ -766,8 +766,6 @@ class HauntersHauntedHouse extends ScriptedGame {
 	}
 
 	onEnd(): void {
-		this.announceWinners();
-
 		const bits = Math.floor(this.collectedCandy / 6);
 		for (const id in this.players) {
 			const player = this.players[id];
@@ -775,6 +773,8 @@ class HauntersHauntedHouse extends ScriptedGame {
 			this.winners.set(this.players[id], 1);
 			this.addBits(this.players[id], bits);
 		}
+
+		this.announceWinners();
 	}
 
 	getPlayerNumbers(players?: PlayerList): string {
