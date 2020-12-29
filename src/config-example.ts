@@ -260,6 +260,11 @@ export let allowGameAchievements: string[] = [];
 export let showGameTrainerCards: string[] = [];
 
 /**
+ * For each room in the object, the number of bits that must be earned to customize a game trainer card
+ */
+export let gameTrainerCardRequirements: Dict<{trainer: number, onePokemon: number, twoPokemon: number, manyPokemon: number}> = {};
+
+/**
  * A list of rooms (roomids) where games cannot be hosted back-to-back
  */
 export let disallowRepeatUserHostedGames: string[] = [];

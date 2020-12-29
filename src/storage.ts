@@ -206,12 +206,25 @@ export class Storage {
 	}
 
 	createLeaderboardEntry(leaderboard: ILeaderboard, name: string, id: string): void {
+		if (id in leaderboard.entries) return;
+
 		leaderboard.entries[id] = {
 			annual: 0,
 			annualSources: {},
 			current: 0,
 			name,
 			sources: {},
+		};
+	}
+
+	createGameTrainerCard(database: IDatabase, name: string): void {
+		const id = Tools.toId(name);
+		if (!database.gameTrainerCards) database.gameTrainerCards = {};
+		if (id in database.gameTrainerCards) return;
+
+		database.gameTrainerCards[id] = {
+			avatar: '',
+			pokemon: [],
 		};
 	}
 
@@ -253,6 +266,20 @@ export class Storage {
 	removePoints(room: Room, leaderboardType: LeaderboardType, name: string, amount: number, source: string): void {
 		if (amount < 0) throw new Error("Storage.removePoints() called with a negative amount");
 		this.addPoints(room, leaderboardType, name, amount * -1, source);
+	}
+
+	getPoints(room: Room, leaderboardType: LeaderboardType, name: string): number {
+		const database = this.getDatabase(room);
+		const id = Tools.toId(name);
+		if (!database[leaderboardType] || !(id in database[leaderboardType]!.entries)) return 0;
+		return database[leaderboardType]!.entries[id].current;
+	}
+
+	getAnnualPoints(room: Room, leaderboardType: LeaderboardType, name: string): number {
+		const database = this.getDatabase(room);
+		const id = Tools.toId(name);
+		if (!database[leaderboardType] || !(id in database[leaderboardType]!.entries)) return 0;
+		return database[leaderboardType]!.entries[id].annual;
 	}
 
 	updateLeaderboardCaches(roomid: string, database: IDatabase): void {
