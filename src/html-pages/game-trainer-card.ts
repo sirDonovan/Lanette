@@ -120,7 +120,7 @@ class GameTrainerCard extends HtmlPageBase {
 
 		const colors = Object.keys(Tools.hexColorCodes) as HexColor[];
 		for (const color of colors) {
-			if (color.startsWith("Light-") || color.startsWith("Dark-")) continue;
+			if (!color.startsWith("Light-")) continue;
 			const colorDiv = "<div style='background: " + Tools.hexColorCodes[color].background + ";height: 15px;width: 15px'>&nbsp;</div>";
 			html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
 				setBackgroundColorCommand + "," + color, colorDiv, trainerCard && trainerCard.background === color);
