@@ -110,8 +110,8 @@ class GameTrainerCard extends HtmlPageBase {
 		html += "</center>";
 
 		html += "<b>Pokemon icons</b><br />";
-		html += "Choose your Pokemon with the command <code>" + Config.commandCharacter + setPokemonSeparateCommand + " " +
-			this.room.title + ", [Pokemon]</code>!";
+		html += "Choose your Pokemon by PMing " + Users.self.name + " <code>" + Config.commandCharacter + setPokemonSeparateCommand + " " +
+			this.room.title + ", [Pokemon], [Pokemon], [...]</code>";
 		html += "<br /><br />";
 
 		html += "<b>Background color</b><br />";
