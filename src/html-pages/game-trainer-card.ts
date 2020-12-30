@@ -236,6 +236,9 @@ export const commands: CommandDefinitions<CommandContext> = {
 					if (!Dex.getPokemonIcon(pokemon)) {
 						return this.say(pokemon.name + " does not have an icon! Please choose a different Pokemon.");
 					}
+					if (pokemon.forme && pokemon.baseSpecies === 'Unown') {
+						return this.say("You can only use a regular Unown icon.");
+					}
 					selectedPokemon.push(pokemon.name);
 				}
 
