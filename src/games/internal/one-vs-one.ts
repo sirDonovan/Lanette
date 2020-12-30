@@ -23,7 +23,7 @@ export class OneVsOne extends ScriptedGame {
 		this.defender = this.createPlayer(defender)!;
 		this.challenger = this.createPlayer(challenger)!;
 		this.minPlayers = 2;
-		this.name += " (" + challengeFormat.name + ")";
+		this.name += " (" + challengeFormat.nameWithOptions + ")";
 
 		const text = this.challenger.name + " challenges " + this.defender.name + " to a one vs. one game of " +
 			challengeFormat.nameWithOptions + "!";
