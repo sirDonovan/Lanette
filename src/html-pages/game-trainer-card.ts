@@ -6,7 +6,8 @@ import type { HexColor } from "../types/tools";
 import type { User } from "../users";
 import { HtmlPageBase } from "./html-page-base";
 
-const trainerIdsIndexIncrement = 18;
+const newerTrainerIdsIncrement = 25;
+const olderTrainerIdsIncrement = 24;
 const noBackground = 'None';
 const baseCommand = 'gametrainercard';
 const setPokemonCommand = 'setpokemon';
@@ -57,8 +58,8 @@ class GameTrainerCard extends HtmlPageBase {
 		this.newerTrainerIdsLength = this.newerTrainerIds.length;
 		this.olderTrainerIdsLength = this.olderTrainerIds.length;
 
-		this.newerTrainerIdsPages = Math.ceil(this.newerTrainerIdsLength / trainerIdsIndexIncrement);
-		this.olderTrainerIdsPages = Math.ceil(this.olderTrainerIdsLength / trainerIdsIndexIncrement);
+		this.newerTrainerIdsPages = Math.ceil(this.newerTrainerIdsLength / newerTrainerIdsIncrement);
+		this.olderTrainerIdsPages = Math.ceil(this.olderTrainerIdsLength / olderTrainerIdsIncrement);
 
 		this.loadedData = true;
 	}
@@ -99,7 +100,7 @@ class GameTrainerCard extends HtmlPageBase {
 		const user = Users.get(this.userId);
 		if (user) name = user.name;
 
-		let html = "<div class='chat' style='margin-top: 5px;margin-left: 10px'><center><b>" + this.room.title + ": Game Trainer Card</b>";
+		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>" + this.room.title + ": Game Trainer Card</b>";
 		html += "&nbsp;" + Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " + closeCommand,
 			"Close");
 
@@ -110,7 +111,7 @@ class GameTrainerCard extends HtmlPageBase {
 		html += "</center>";
 
 		html += "<b>Pokemon icons</b><br />";
-		html += "Choose your Pokemon by PMing " + Users.self.name + " <code>" + Config.commandCharacter + setPokemonSeparateCommand + " " +
+		html += "Choose your icons by PMing " + Users.self.name + " <code>" + Config.commandCharacter + setPokemonSeparateCommand + " " +
 			this.room.title + ", [Pokemon], [Pokemon], [...]</code>";
 		html += "<br /><br />";
 
@@ -122,7 +123,7 @@ class GameTrainerCard extends HtmlPageBase {
 		for (const color of colors) {
 			if (!color.startsWith("Light-")) continue;
 			const colorDiv = "<div style='background: " + Tools.hexColorCodes[color].background + ";height: 15px;width: 15px'>&nbsp;</div>";
-			html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
+			html += "&nbsp;" + Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
 				setBackgroundColorCommand + "," + color, colorDiv, trainerCard && trainerCard.background === color);
 		}
 		html += "<br /><br />";
@@ -140,30 +141,38 @@ class GameTrainerCard extends HtmlPageBase {
 			"Older gen", olderTrainers);
 		html += "<br />";
 
-		const trainerIdsStartIndex = this.trainerIdsPage * trainerIdsIndexIncrement;
-		let trainerIdsEndIndex = (this.trainerIdsPage + 1) * trainerIdsIndexIncrement;
 		let totalTrainers = 0;
 		let totalPages = 0;
+		let trainersPerRow = 0;
+		let trainerIdsStartIndex = 0;
+		let trainerIdsEndIndex = 0;
 		if (newerTrainers) {
 			totalTrainers = GameTrainerCard.newerTrainerIdsLength;
 			totalPages = GameTrainerCard.newerTrainerIdsPages;
+			trainersPerRow = 5;
+			trainerIdsStartIndex = this.trainerIdsPage * newerTrainerIdsIncrement;
+			trainerIdsEndIndex = (this.trainerIdsPage + 1) * newerTrainerIdsIncrement;
 			if (trainerIdsEndIndex > GameTrainerCard.newerTrainerIdsLength) trainerIdsEndIndex = GameTrainerCard.newerTrainerIdsLength;
 		} else if (olderTrainers) {
 			totalTrainers = GameTrainerCard.olderTrainerIdsLength;
 			totalPages = GameTrainerCard.olderTrainerIdsPages;
+			trainersPerRow = 4;
+			trainerIdsStartIndex = this.trainerIdsPage * olderTrainerIdsIncrement;
+			trainerIdsEndIndex = (this.trainerIdsPage + 1) * olderTrainerIdsIncrement;
 			if (trainerIdsEndIndex > GameTrainerCard.olderTrainerIdsLength) trainerIdsEndIndex = GameTrainerCard.olderTrainerIdsLength;
 		}
 
-		html += "Trainers (" + (trainerIdsStartIndex + 1) + "-" + trainerIdsEndIndex + "/" + totalTrainers + "):&nbsp;";
+		html += "<br />Trainers (" + (trainerIdsStartIndex + 1) + "-" + trainerIdsEndIndex + "/" + totalTrainers + "):&nbsp;";
 
 		for (let i = 0; i < totalPages; i++) {
 			const page = "" + (i + 1);
 			html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " + goToTrainerPageCommand +
-				", " + page, page, this.trainerIdsPage === i);
+				", " + page, page, this.trainerIdsPage === i) + "&nbsp;";
 		}
 
 		html += "<br /><br />";
 
+		let rowCount = 0;
 		for (let i = trainerIdsStartIndex; i < trainerIdsEndIndex; i++) {
 			let id: string;
 			if (newerTrainers) {
@@ -172,8 +181,15 @@ class GameTrainerCard extends HtmlPageBase {
 				id = GameTrainerCard.olderTrainerIds[i];
 			}
 
+			const trainer = GameTrainerCard.trainerSprites[id] + "<br />" + Dex.data.trainerSprites[id];
 			html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " + setTrainerCommand +
-				"," + id, GameTrainerCard.trainerSprites[id], trainerCard && trainerCard.avatar === id);
+				"," + id, trainer, trainerCard && trainerCard.avatar === id);
+
+			rowCount++;
+			if (rowCount === trainersPerRow) {
+				html += "<br />";
+				rowCount = 0;
+			}
 		}
 
 		html += "</div>";
