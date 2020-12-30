@@ -23,7 +23,10 @@ class NinjasksCorners extends ScriptedGame {
 	roundTravels = new Map<Player, string>();
 
 	onSignups(): void {
-		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
+		if (this.format.options.freejoin) {
+			this.maxRound = 0;
+			this.timeout = setTimeout(() => this.nextRound(), 5000);
+		}
 	}
 
 	onStart(): void {
