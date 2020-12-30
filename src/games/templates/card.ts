@@ -21,7 +21,6 @@ export interface ICard {
 	id: string;
 	name: string;
 	action?: IActionCardData;
-	displayName?: string;
 	played?: boolean;
 }
 

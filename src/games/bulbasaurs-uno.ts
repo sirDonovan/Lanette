@@ -402,7 +402,7 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 		this.awaitingCurrentPlayerCard = false;
 		if (cards.includes(card)) cards.splice(cards.indexOf(card), 1);
 
-		this.storePreviouslyPlayedCard({card: card.displayName || card.name, detail: cardDetail, shiny: firstTimeShiny});
+		this.storePreviouslyPlayedCard({card: card.name, player: player.name, detail: cardDetail, shiny: firstTimeShiny});
 		this.currentPlayer = null;
 
 		let drawnCards: ICard[] | undefined;

@@ -560,7 +560,7 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 		this.awaitingCurrentPlayerCard = false;
 		if (cards.includes(card)) cards.splice(cards.indexOf(card), 1);
 
-		this.storePreviouslyPlayedCard({card: card.displayName || card.name, detail: cardDetail});
+		this.storePreviouslyPlayedCard({card: card.name, player: player.name, detail: cardDetail});
 		this.currentPlayer = null;
 
 		if (!player.eliminated) this.updatePlayerHtmlPage(player);
