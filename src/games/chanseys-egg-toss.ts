@@ -32,19 +32,6 @@ class ChanseysEggToss extends ScriptedGame {
 		}
 	}
 
-	onUserUpdateStatus(user: User, status: string, away: boolean): void {
-		if (!(user.id in this.players) || this.players[user.id].eliminated || !away) return;
-		const player = this.players[user.id];
-		const reason = "for changing their away status";
-		if (this.currentHolder) {
-			this.currentHolder = player;
-			this.explodeEgg(reason);
-		} else {
-			this.eliminatePlayer(player, "You cannot change your away status!");
-			this.say(player.name + " was DQed " + reason + "!");
-		}
-	}
-
 	onUserLeaveRoom(room: Room, user: User): void {
 		if (!this.started || !this.currentHolder || !(user.id in this.players) || this.players[user.id].eliminated) return;
 		this.currentHolder = this.players[user.id];
