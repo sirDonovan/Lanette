@@ -243,6 +243,8 @@ class PanchamPairs extends ScriptedGame {
 	}
 
 	onEnd(): void {
+		if (this.isMiniGame) return;
+
 		if (this.format.options.freejoin) {
 			this.convertPointsToBits();
 		}
