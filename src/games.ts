@@ -1278,8 +1278,14 @@ export class Games {
 		const avatarSpriteId = Dex.getTrainerSpriteId(trainerCard.avatar);
 		if (!avatarSpriteId) return "";
 
-		let html = '<div class="infobox" style="width:250px"><div style="text-align: left"><b><username>' + name + '</username></b></div>';
-		html += '<hr /><center>';
+		let html = '<div class="infobox" style="width:250px"><center><b><username>' + name + '</username></b>';
+		if (format) {
+			const bits = Storage.getPoints(room, Storage.gameLeaderboard, name);
+			if (bits) {
+				html += '&nbsp;&bull;&nbsp;<b>' + bits + ' bits</b>';
+			}
+		}
+		html += '<hr />';
 		if (trainerCard.background) html += "<div style='background: " + Tools.hexColorCodes[trainerCard.background].background + "'>";
 
 		const avatarHtml = Dex.getTrainerSprite(avatarSpriteId);
