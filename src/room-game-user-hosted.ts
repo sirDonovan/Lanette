@@ -2,6 +2,7 @@ import type { Player } from "./room-activity";
 import { Game } from "./room-game";
 import type { Room } from "./rooms";
 import type { GameDifficulty, IUserHostedFile, IUserHostedFormat } from "./types/games";
+import type { IPokemon } from "./types/pokemon-showdown";
 import type { User } from "./users";
 
 const FORCE_END_CREATE_TIMER = 60 * 1000;
@@ -44,7 +45,21 @@ export class UserHostedGame extends Game {
 			this.hostName = host.name;
 		}
 
-		this.name = this.hostName + "'s " + this.format.name;
+		const database = Storage.getDatabase(this.room);
+		let userGameMascot: IPokemon | undefined;
+		if (database.userGameMascots && this.hostId in database.userGameMascots && Config.showUserGameMascots &&
+			Config.showUserGameMascots.includes(this.room.id)) {
+			const mascot = Dex.getPokemon(database.userGameMascots[this.hostId]);
+			if (mascot) userGameMascot = mascot;
+		}
+
+		if (userGameMascot) {
+			this.mascot = Dex.getPokemonCopy(userGameMascot);
+			const mascotPrefix = Games.getFormatMascotPrefix(this.format);
+			this.name = this.hostName + "'s " + (mascotPrefix ? this.format.name.substr(mascotPrefix.length) : this.format.name);
+		} else {
+			this.name = this.hostName + "'s " + this.format.name;
+		}
 	}
 
 	setSubHost(user: User): void {
@@ -165,7 +180,7 @@ export class UserHostedGame extends Game {
 	getSignupsHtml(): string {
 		let html = "<center>";
 		if (this.mascot) {
-			const gif = Dex.getPokemonGif(this.mascot, "xy", 'back');
+			const gif = Dex.getPokemonGif(this.mascot);
 			if (gif) html += gif;
 		}
 		html += "<h3>" + this.name + "</h3>" + this.getDescription();

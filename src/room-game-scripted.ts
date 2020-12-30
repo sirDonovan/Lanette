@@ -221,7 +221,7 @@ export class ScriptedGame extends Game {
 	getDescriptionHtml(): string {
 		let html = "<center>";
 		if (this.mascot) {
-			const gif = Dex.getPokemonGif(this.mascot, "xy", 'front', this.shinyMascot);
+			const gif = Dex.getPokemonGif(this.mascot, undefined, undefined, this.shinyMascot);
 			if (gif) html += gif;
 		}
 		html += "<h3>" + this.name + "</h3>" + this.getDescription();

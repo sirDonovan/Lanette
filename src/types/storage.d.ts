@@ -91,6 +91,7 @@ export interface IDatabase {
 	thcWinners?: Dict<string>;
 	tournamentLeaderboard?: ILeaderboard;
 	unsortedLeaderboard?: ILeaderboard;
+	userGameMascots?: Dict<string>;
 	userHostedGameCounts?: Dict<number>;
 	userHostedGameStats?: Dict<IUserHostedGameStats[]>;
 	userHostedGameQueue?: IQueuedUserHostedGame[];
