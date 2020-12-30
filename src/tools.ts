@@ -9,8 +9,9 @@ import type { IParam, IParametersGenData, ParametersSearchType } from './workers
 
 const ALPHA_NUMERIC_REGEX = /[^a-zA-Z0-9 ]/g;
 const ID_REGEX = /[^a-z0-9]/g;
-const INTEGER_REGEX = /^[0-9]*$/g;
-const FLOAT_REGEX = /^[.0-9]*$/g;
+const CONTAINS_INTEGER_REGEX = /.*[0-9]+.*/g;
+const INTEGER_REGEX = /^[0-9]+$/g;
+const FLOAT_REGEX = /^[.0-9]+$/g;
 const SPACE_REGEX = /\s/g;
 const APOSTROPHE_REGEX = /[/']/g;
 const HTML_CHARACTER_REGEX = /[<>/'"]/g;
@@ -519,6 +520,13 @@ export class Tools {
 		}
 		if (hasYear && extracted.length === 2) extracted.push(pastDate ? 1 : new Date().getDate());
 		return extracted;
+	}
+
+	containsInteger(text: string): boolean {
+		text = text.trim();
+		if (text.startsWith('-')) text = text.substr(1);
+		if (text === '') return false;
+		return !!text.match(CONTAINS_INTEGER_REGEX);
 	}
 
 	isInteger(text: string): boolean {

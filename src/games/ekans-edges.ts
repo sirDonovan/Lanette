@@ -95,12 +95,6 @@ class EkansEdges extends QuestionAndAnswer {
 		}
 	}
 
-	onSignups(): void {
-		if (!this.isMiniGame) {
-			if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
-		}
-	}
-
 	generateAnswer(): void {
 		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		let edge = this.sampleOne(dataKeys[category]);
