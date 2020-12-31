@@ -85,7 +85,7 @@ type GameFileTests<T extends ScriptedGame = ScriptedGame> = Dict<{config?: IGame
 	format: IGameFormat<T>, attributes: IGameTestAttributes) => void);}>;
 
 export interface IRandomGameAnswer {
-	answers: string[];
+	answers: readonly string[];
 	hint: string;
 }
 

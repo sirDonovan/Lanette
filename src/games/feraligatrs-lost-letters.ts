@@ -72,6 +72,7 @@ class FeraligatrsLostLetters extends QuestionAndAnswer {
 		} else {
 			category = this.sampleOne(this.categoryList);
 		}
+
 		let answer: string = '';
 		let hint: string = '';
 		while (!answer) {
@@ -83,12 +84,15 @@ class FeraligatrsLostLetters extends QuestionAndAnswer {
 				Client.checkFilters(hint, !this.isPm(this.room) ? this.room : undefined)) continue;
 			answer = name;
 		}
-		this.answers = [answer];
+
+		const answers: string[] = [answer];
 		for (let name of data[category]) {
 			name = name.trim();
 			if (name === answer) continue;
-			if (this.removeLetters(name.split('')) === hint) this.answers.push(name);
+			if (this.removeLetters(name.split('')) === hint) answers.push(name);
 		}
+
+		this.answers = answers;
 		this.hint = '<b>' + category + '</b>: <i>' + hint + '</i>';
 	}
 }

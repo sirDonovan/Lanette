@@ -13,7 +13,7 @@ const paramTypeDexesKeys: Dict<Dict<KeyedDict<ParamType, string[]>>> = {};
 const searchTypes: (keyof IParametersWorkerData)[] = ['pokemon'];
 
 class InkaysCups extends ScriptedGame {
-	answers: string[] = [];
+	answers: readonly string[] = [];
 	canGrab: boolean = false;
 	canLateJoin: boolean = true;
 	points = new Map<Player, number>();
@@ -202,7 +202,9 @@ const commands: GameCommandDefinitions<InkaysCups> = {
 				}
 				this.nextRound();
 			} else {
-				this.answers.splice(answerIndex, 1);
+				const answers = this.answers.slice();
+				answers.splice(answerIndex, 1);
+				this.answers = answers;
 				this.roundGuesses.set(player, true);
 				user.say("You grabbed " + answer + " and advanced to the next round!");
 			}

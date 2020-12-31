@@ -43,8 +43,10 @@ class KyuremsSplits extends QuestionAndAnswer {
 
 	generateAnswer(): void {
 		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
+
+		let answers: string[] = [];
 		let hint = '';
-		while (!this.answers.length || this.answers.length > 15 ||
+		while (!answers.length || answers.length > 15 ||
 			Client.checkFilters(hint, !this.isPm(this.room) ? this.room : undefined)) {
 			const randomAnswer = Tools.toId(this.sampleOne(data[category]));
 			const validIndices: number[] = [];
@@ -53,17 +55,21 @@ class KyuremsSplits extends QuestionAndAnswer {
 			}
 			const numberOfLetters = Math.min(4, Math.max(2, Math.floor(validIndices.length * (Math.random() * 0.4 + 0.3))));
 			const chosenIndices = this.sampleMany(validIndices, numberOfLetters);
+
 			hint = '';
 			for (const index of chosenIndices) {
 				hint += randomAnswer[index];
 			}
-			this.answers = [];
+
+			answers = [];
 			for (const answer of data[category]) {
 				if (this.isValid(Tools.toId(answer), hint)) {
-					this.answers.push(answer);
+					answers.push(answer);
 				}
 			}
 		}
+
+		this.answers = answers;
 		this.hint = "<b>" + category + "</b>: <i>" + hint.toUpperCase() + "</i>";
 	}
 }

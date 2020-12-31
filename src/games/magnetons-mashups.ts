@@ -101,8 +101,8 @@ class MagnetonsMashups extends QuestionAndAnswer {
 			return;
 		}
 
-		this.answers = Tools.getPermutations(elements).map(x => x.join(""));
-		this.answers.unshift(Tools.joinList(useOrder.map(x => elements[x]), undefined, undefined, "&"));
+		this.answers = [Tools.joinList(useOrder.map(x => elements[x]), undefined, undefined, "&")].concat(
+			Tools.getPermutations(elements).map(x => x.join("")));
 		this.hint = "<b>" + category + "</b>: <i>" + mashup + "</i>";
 		this.additionalHintHeader = "- " + numberOfElements + " names";
 	}

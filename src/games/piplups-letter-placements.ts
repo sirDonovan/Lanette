@@ -47,11 +47,12 @@ class PiplupsLetterPlacements extends QuestionAndAnswer {
 			return;
 		}
 
-		this.answers = [];
+		const answers: string[] = [];
 		for (const answer of data[category]) {
-			if (Tools.toId(answer).includes(letters)) this.answers.push(answer);
+			if (Tools.toId(answer).includes(letters)) answers.push(answer);
 		}
 
+		this.answers = answers;
 		this.hint = '<b>' + category + '</b>: <i>' + letters + '</i>';
 	}
 }

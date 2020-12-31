@@ -10,7 +10,7 @@ import type {
 export abstract class QuestionAndAnswer extends ScriptedGame {
 	additionalHintHeader: string = '';
 	allowRepeatCorrectAnswers: boolean = false;
-	answers: string[] = [];
+	answers: readonly string[] = [];
 	answerTimeout: NodeJS.Timer | undefined;
 	beforeNextRoundTime: number = 5 * 1000;
 	cooldownBetweenRounds: number = 0;
@@ -114,7 +114,9 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	removeAnswer(answer: string): void {
 		const index = this.answers.indexOf(answer);
 		if (index !== -1) {
-			this.answers.splice(index, 1);
+			const answers = this.answers.slice();
+			answers.splice(index, 1);
+			this.answers = answers;
 			this.guessedAnswers.push(answer);
 		}
 	}
@@ -240,7 +242,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		return answer;
 	}
 
-	checkAnswer(guess: string, answers?: string[]): string {
+	checkAnswer(guess: string, answers?: readonly string[]): string {
 		guess = Tools.toId(guess);
 		if (!answers) answers = this.answers;
 		let match = '';

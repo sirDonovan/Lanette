@@ -423,7 +423,7 @@ export class Tools {
 		return input.replace(HTML_CHARACTER_REGEX, '');
 	}
 
-	joinList(list: string[], preFormatting?: string | null, postFormatting?: string | null, conjunction?: string): string {
+	joinList(list: readonly string[], preFormatting?: string | null, postFormatting?: string | null, conjunction?: string): string {
 		let len = list.length;
 		if (!len) return "";
 		if (!preFormatting) preFormatting = "";
