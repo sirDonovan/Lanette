@@ -283,14 +283,21 @@ export abstract class Game extends Activity {
 		return "**Players (" + remainingPlayers + ")**: " + (this.points ? this.getPlayerPoints() : this.getPlayerNames());
 	}
 
+	getPointsDisplay(points: number | undefined, decimalPlaces?: number): string {
+		let pointsDisplay = '';
+		if (points) {
+			if (decimalPlaces == undefined) decimalPlaces = 3;
+			pointsDisplay = points.toFixed(decimalPlaces);
+			if (pointsDisplay.endsWith('.000')) pointsDisplay = pointsDisplay.substr(0, pointsDisplay.indexOf('.'));
+		}
+
+		return pointsDisplay;
+	}
+
 	getPlayerPoints(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => {
 			const points = this.points!.get(player) || this.startingPoints;
-			let pointsDisplay = '';
-			if (points) {
-				pointsDisplay = points.toFixed(3);
-				if (pointsDisplay.endsWith('.000')) pointsDisplay = pointsDisplay.substr(0, pointsDisplay.indexOf('.'));
-			}
+			const pointsDisplay = this.getPointsDisplay(points);
 			return player.name + (pointsDisplay ? " (" + pointsDisplay + ")" : "");
 		}, players).join(', ');
 	}

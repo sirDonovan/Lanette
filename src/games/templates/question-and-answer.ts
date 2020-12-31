@@ -356,7 +356,8 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 			const reachedMaxPoints = points >= this.format.options.points;
 			if (singleCorrectPlayer || (reachedMaxPoints && !this.checkScoreCapBeforeRound)) {
 				if (this.hint) this.off(this.hint);
-				let text = '**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '!';
+				let text = '**' + player.name + '** advances to **' + this.getPointsDisplay(points, reachedMaxPoints ? 0 : undefined) +
+					'** point' + (points > 1 ? 's' : '') + '!';
 				const answers = ' ' + this.getAnswers(answer);
 				if (text.length + answers.length <= Tools.maxMessageLength) {
 					text += answers;
@@ -379,7 +380,8 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 			} else {
 				if (this.allowRepeatCorrectAnswers) {
 					if (awardedPoints) {
-						player.say("You are correct! You earned " + awardedPoints + " point" + (awardedPoints > 1 ? "s" : "") + ".");
+						player.say("You are correct! You earned " + this.getPointsDisplay(awardedPoints) + " point" +
+							(awardedPoints > 1 ? "s" : "") + ".");
 					}
 				} else {
 					this.say(player.name + " is the **" + Tools.toNumberOrderString(this.correctPlayers.length) + "** correct player!");
