@@ -9,6 +9,7 @@ const data: {stones: string[]} = {
 };
 
 class GolemsGalvanicMine extends ScriptedGame {
+	canMine: boolean = false;
 	inactiveRoundLimit: number = 5;
 	points = new Map<Player, number>();
 	roundMines = new Map<Player, number>();
@@ -25,17 +26,7 @@ class GolemsGalvanicMine extends ScriptedGame {
 	}
 
 	onNextRound(): void {
-		this.roundStones = {};
-		this.roundMines.clear();
-		const html = this.getRoundHtml(players => this.getPlayerPoints(players));
-		const uhtmlName = this.uhtmlBaseName + '-round-html';
-		this.onUhtml(uhtmlName, html, () => {
-			this.timeout = setTimeout(() => this.displayStones(), 5000);
-		});
-		this.sayUhtml(uhtmlName, html);
-	}
-
-	displayStones(): void {
+		this.canMine = false;
 		if (this.round > 1) {
 			if (this.roundMines.size) {
 				if (this.inactiveRounds) this.inactiveRounds = 0;
@@ -64,6 +55,18 @@ class GolemsGalvanicMine extends ScriptedGame {
 			}
 		}
 
+		this.roundStones = {};
+		this.roundMines.clear();
+
+		const html = this.getRoundHtml(players => this.getPlayerPoints(players));
+		const uhtmlName = this.uhtmlBaseName + '-round-html';
+		this.onUhtml(uhtmlName, html, () => {
+			this.timeout = setTimeout(() => this.displayStones(), 5000);
+		});
+		this.sayUhtml(uhtmlName, html);
+	}
+
+	displayStones(): void {
 		const stones = this.sampleMany(data.stones, 9);
 		const tr = '<tr style="text-align:center;line-height:5">';
 		let html = '<center><table border="1">' + tr;
@@ -81,6 +84,7 @@ class GolemsGalvanicMine extends ScriptedGame {
 		html += "</tr></table></center>";
 		const uhtmlName = this.uhtmlBaseName + '-stones';
 		this.onUhtml(uhtmlName, html, () => {
+			this.canMine = true;
 			this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
 		});
 		this.sayUhtml(uhtmlName, html);
@@ -96,6 +100,7 @@ const commands: GameCommandDefinitions<GolemsGalvanicMine> = {
 	mine: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
+			if (!this.canMine) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (this.roundMines.has(player)) return false;
 			const stone = Dex.getDex(mod).getItem(target);
