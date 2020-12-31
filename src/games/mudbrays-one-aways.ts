@@ -137,7 +137,7 @@ class MudbraysOneAways extends QuestionAndAnswer {
 	generateAnswer(): void {
 		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		let oneAway = this.sampleOne(dataKeys[category]);
-		while (oneAway === this.lastOneAway) {
+		while (oneAway === this.lastOneAway || Client.checkFilters(oneAway, this.isPm(this.room) ? undefined : this.room)) {
 			oneAway = this.sampleOne(dataKeys[category]);
 		}
 		this.lastOneAway = oneAway;
