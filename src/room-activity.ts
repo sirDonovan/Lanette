@@ -113,12 +113,16 @@ export class PlayerTeam {
 		this.players = this.activity.shuffle(this.players);
 	}
 
-	getPlayerNames(): string[] {
+	getPlayerNames(excludedPlayers?: Player[]): string[] {
 		const names: string[] = [];
 		for (const player of this.players) {
-			names.push(player.name);
+			if (!excludedPlayers || !excludedPlayers.includes(player)) names.push(player.name);
 		}
 		return names;
+	}
+
+	getTeammateNames(player: Player): string[] {
+		return this.getPlayerNames([player]);
 	}
 }
 
@@ -198,9 +202,11 @@ export abstract class Activity {
 		if (expiredUser) Users.remove(user);
 	}
 
-	createPlayer(user: User | string): Player | undefined {
+	/**Returns `null` if a player with the same id already exists */
+	createPlayer(user: User | string): Player | null {
 		const id = Tools.toId(user);
-		if (id in this.players) return;
+		if (id in this.players) return null;
+
 		const player = id in this.pastPlayers ? this.pastPlayers[id] : new Player(user, this);
 		this.players[id] = player;
 		if (id in this.pastPlayers) delete this.pastPlayers[id];

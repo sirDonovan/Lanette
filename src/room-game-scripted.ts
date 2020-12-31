@@ -30,6 +30,7 @@ export class ScriptedGame extends Game {
 	inactiveRounds: number = 0;
 	inheritedPlayers: boolean = false;
 	internalGame: boolean = false;
+	lateJoinQueue: Player[] = [];
 	readonly loserPointsToBits: number = 10;
 	readonly maxBits: number = 1000;
 	notifyRankSignups: boolean = false;
@@ -48,10 +49,12 @@ export class ScriptedGame extends Game {
 	readonly battleRooms?: string[];
 	commandDescriptions?: string[];
 	isMiniGame?: boolean;
+	lateJoinQueueSize?: number;
 	readonly lives?: Map<Player, number>;
 	maxRound?: number;
 	noForceEndMessage?: boolean;
 	playerInactiveRoundLimit?: number;
+	queueLateJoins?: boolean;
 	shinyMascot?: boolean;
 	startingLives?: number;
 	subGameNumber?: number;
@@ -523,6 +526,31 @@ export class ScriptedGame extends Game {
 			return;
 		}
 
+		if (this.started && this.queueLateJoins) {
+			this.lateJoinQueue.push(player);
+			if (this.lateJoinQueue.length === this.lateJoinQueueSize) {
+				for (const listener of this.commandsListeners) {
+					if (listener.remainingPlayersMax) this.increaseOnCommandsMax(listener, this.lateJoinQueueSize);
+				}
+
+				const queuedPlayers = this.lateJoinQueue.slice(0, this.lateJoinQueueSize);
+				for (const queuedPlayer of queuedPlayers) {
+					queuedPlayer.frozen = false;
+					queuedPlayer.say("You are now in the game!");
+					this.lateJoinQueue.splice(this.lateJoinQueue.indexOf(queuedPlayer, 1));
+				}
+
+				if (this.onAddLateJoinQueuedPlayers) this.onAddLateJoinQueuedPlayers(queuedPlayers);
+			} else {
+				player.frozen = true;
+				const playersNeeded = this.lateJoinQueueSize! - this.lateJoinQueue.length;
+				player.say("You have added to the late-join queue! " + playersNeeded + " more player" +
+					(playersNeeded > 1 ? "s need" : " needs") + " to late-join for you to play.");
+			}
+
+			return;
+		}
+
 		const bits = this.internalGame ? 0 : this.addBits(player, JOIN_BITS, true);
 		if (!this.internalGame) {
 			player.say("Thanks for joining the " + this.name + " " + this.activityType + "!" + (bits ? " Have some free bits!" : ""));
@@ -867,6 +895,7 @@ export class ScriptedGame extends Game {
 	getRandomAnswer?(): IRandomGameAnswer;
 	/** Return `false` to prevent a user from being added to the game (and send the reason to the user) */
 	onAddPlayer?(player: Player, lateJoin?: boolean): boolean | undefined;
+	onAddLateJoinQueuedPlayers?(players: Player[]): void;
 	onAddExistingPlayer?(player: Player): void;
 	onAfterDeallocate?(forceEnd: boolean): void;
 	onBattleExpire?(room: Room): void;

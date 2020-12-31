@@ -15,10 +15,13 @@ const removedOptions: string[] = ['points', 'freejoin'];
 type TeamThis = QuestionAndAnswer & Team;
 
 class Team {
+	canLateJoin: boolean = true;
 	currentPlayers: Dict<Player> = {};
 	firstAnswers: Dict<Player | false> = {};
+	lateJoinQueueSize: number = 0;
 	minPlayers: number = 4;
 	playerOrders: Dict<Player[]> = {};
+	queueLateJoins: boolean = true;
 	teamRound: number = 0;
 	teams: Dict<PlayerTeam> = {};
 
@@ -47,7 +50,23 @@ class Team {
 		}
 	}
 
+	onAddLateJoinQueuedPlayers(this: TeamThis, queuedPlayers: Player[]): void {
+		const teams = Object.keys(this.teams);
+		for (const queuedPlayer of queuedPlayers) {
+			queuedPlayer.frozen = false;
+
+			const team = this.teams[teams[0]];
+			teams.shift();
+
+			team.addPlayer(queuedPlayer);
+			this.playerOrders[team.id].push(queuedPlayer);
+			queuedPlayer.say("You are on **Team " + team.name + "** with: " +
+				Tools.joinList(team.getTeammateNames(queuedPlayer)));
+		}
+	}
+
 	setTeams(this: TeamThis): void {
+		this.lateJoinQueueSize = this.format.options.teams;
 		this.teams = this.generateTeams(this.format.options.teams);
 		this.setLargestTeam();
 
