@@ -91,6 +91,7 @@ export class Tournaments {
 			}
 		}
 
+		const currentMonth = new Date().getMonth();
 		for (const room in this.schedules) {
 			this.scheduledTournaments[room] = [];
 
@@ -127,6 +128,7 @@ export class Tournaments {
 			let day = 1;
 			date.setMonth(month - 1, day);
 			date.setDate(day);
+			if (currentMonth === 11 && month === 1) date.setFullYear(date.getFullYear() + 1);
 			let lastDayOfMonth = Tools.getLastDayOfMonth(date);
 
 			const rolloverDay = (): void => {
