@@ -1278,16 +1278,20 @@ export class Games {
 		const avatarSpriteId = Dex.getTrainerSpriteId(trainerCard.avatar);
 		if (!avatarSpriteId) return "";
 
-		let html = '<div class="infobox" style="width:250px"><center><b><username>' + name + '</username></b>';
+		let html = '<span class="infobox" style="display: inline-block;width:250px"><center><b><username>' + name + '</username></b>';
 		if (format) {
 			const bits = Storage.getPoints(room, Storage.gameLeaderboard, name);
 			if (bits) {
 				html += '&nbsp;&bull;&nbsp;<b>' + bits + ' bits</b>';
 			}
 		}
-		html += '<hr />';
-		if (trainerCard.background) html += "<div style='background: " + Tools.hexColorCodes[trainerCard.background].background + "'>";
+		html += "<hr /><span style='display: block;height:115px";
+		if (trainerCard.background) {
+			html += ";background: " + Tools.hexColorCodes[trainerCard.background].background;
+		}
+		html += "'>";
 
+		const emptySpan = '<span style="display: inline-block ; height: 30px ; width: 40px"></span>';
 		const avatarHtml = Dex.getTrainerSprite(avatarSpriteId);
 		if (trainerCard.pokemon.length) {
 			if (trainerCard.pokemonGifs) {
@@ -1299,8 +1303,12 @@ export class Games {
 					html += Dex.getPokemonIcon(Dex.getExistingPokemon(trainerCard.pokemon[0]));
 					html += avatarHtml;
 					if (trainerCard.pokemon[1]) html += Dex.getPokemonIcon(Dex.getExistingPokemon(trainerCard.pokemon[1]));
+					html += "<br />";
+					html += emptySpan;
 				} else {
+					html += emptySpan;
 					html += avatarHtml;
+					html += emptySpan;
 					html += "<br />";
 					for (const pokemon of trainerCard.pokemon) {
 						html += Dex.getPokemonIcon(Dex.getExistingPokemon(pokemon));
@@ -1311,7 +1319,7 @@ export class Games {
 			html += avatarHtml;
 		}
 
-		if (trainerCard.background) html += "</div>";
+		html += "</span>";
 
 		if (format) {
 			const currentCache = Storage.getCurrentSourcePointsCache(room, Storage.gameLeaderboard, format.id);
@@ -1330,7 +1338,7 @@ export class Games {
 			}
 		}
 
-		html += "</center></div>";
+		html += "</center></span>";
 		return html;
 	}
 
