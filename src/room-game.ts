@@ -66,27 +66,30 @@ export abstract class Game extends Activity {
 	announceWinners(): void {
 		const numberOfWinners = this.winners.size;
 		if (numberOfWinners) {
-			const winnerNames = this.getPlayerNames(this.winners);
-			let trainerCardShown = false;
-			if (numberOfWinners <= 2 && !this.isPm(this.room) && Config.showGameTrainerCards &&
-				Config.showGameTrainerCards.includes(this.room.id)) {
-				const splitWinnerNames = winnerNames.split(',');
+			let trainerCardsShown = false;
+			if (!this.isPm(this.room) && Config.showGameTrainerCards && Config.showGameTrainerCards.includes(this.room.id)) {
 				const trainerCards: string[] = [];
-				for (const name of splitWinnerNames) {
-					const trainerCard = Games.getTrainerCardHtml(this.room, name.trim(), this.format);
+				const noTrainerCards: string[] = [];
+				this.winners.forEach((points, player) => {
+					const trainerCard = Games.getTrainerCardHtml(this.room as Room, player.name, this.format);
 					if (trainerCard) {
 						trainerCards.push(trainerCard);
+					} else {
+						noTrainerCards.push(player.name);
 					}
-				}
+				});
 
-				if (trainerCards.length === numberOfWinners) {
-					this.sayUhtml(this.uhtmlBaseName + "-winners", "<b>Winner" + (numberOfWinners > 1 ? "s" : "") + "</b>:<br />" +
-						"<center>" + trainerCards.join("") + "</center>");
-					trainerCardShown = true;
+				const trainerCardCount = trainerCards.length;
+				const noTrainerCardCount = noTrainerCards.length;
+				if (trainerCardCount && trainerCardCount <= 2) {
+					trainerCardsShown = true;
+					this.sayUhtml(this.uhtmlBaseName + "-winners", "<b>Winner" + ((trainerCardCount + noTrainerCardCount) > 1 ? "s" : "") +
+						"</b>:" + (noTrainerCardCount ? "&nbsp;" + Tools.joinList(noTrainerCards) : "") + "<br />" + "<center>" +
+						trainerCards.join("") + "</center>");
 				}
 			}
 
-			if (!trainerCardShown) this.say("**Winner" + (numberOfWinners > 1 ? "s" : "") + "**: " + winnerNames);
+			if (!trainerCardsShown) this.say("**Winner" + (numberOfWinners > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners));
 		} else {
 			this.say("No winners this game!");
 		}
