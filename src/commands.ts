@@ -2264,8 +2264,6 @@ const commands: CommandDefinitions<CommandContext, void> = {
 					(room.userHostedGame.teams ? "team" : "player") + ".");
 			}
 
-			this.say("The winner" + (players.length === 1 ? " is" : "s are") + " " + Tools.joinList(players.map(x => x.name)) + "!");
-
 			if (Config.rankedGames && Config.rankedGames.includes(room.id)) {
 				let playerDifficulty: GameDifficulty;
 				if (Config.userHostedGamePlayerDifficulties && room.userHostedGame.format.id in Config.userHostedGamePlayerDifficulties) {
@@ -2289,6 +2287,13 @@ const commands: CommandDefinitions<CommandContext, void> = {
 						Config.commandCharacter + "bits " + room.title + "``");
 				}
 			}
+
+			for (const player of players) {
+				const points = room.userHostedGame.points.get(player) || 1;
+				room.userHostedGame.winners.set(player, points);
+			}
+			room.userHostedGame.announceWinners();
+
 			room.userHostedGame.end();
 		},
 		aliases: ['autowin', 'win'],

@@ -1269,7 +1269,7 @@ export class Games {
 		return tier !== 'Illegal' && tier !== 'Unreleased' && !tier.startsWith('(');
 	}
 
-	getTrainerCardHtml(room: Room, name: string, format?: IGameFormat): string {
+	getTrainerCardHtml(room: Room, name: string, format?: IGameFormat | IUserHostedFormat): string {
 		const id = Tools.toId(name);
 		const database = Storage.getDatabase(room);
 		if (!database.gameTrainerCards || !(id in database.gameTrainerCards)) return "";

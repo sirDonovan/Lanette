@@ -32,6 +32,7 @@ export abstract class Game extends Activity {
 	signupsUhtmlName!: string;
 	joinLeaveButtonUhtmlName!: string;
 
+	format?: IGameFormat | IUserHostedFormat;
 	lastPokemonUhtml?: IPokemonUhtml;
 	lastTrainerUhtml?: ITrainerUhtml;
 	mascot?: IPokemonCopy;
@@ -65,7 +66,27 @@ export abstract class Game extends Activity {
 	announceWinners(): void {
 		const numberOfWinners = this.winners.size;
 		if (numberOfWinners) {
-			this.say("**Winner" + (numberOfWinners > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners));
+			const winnerNames = this.getPlayerNames(this.winners);
+			let trainerCardShown = false;
+			if (numberOfWinners <= 2 && !this.isPm(this.room) && Config.showGameTrainerCards &&
+				Config.showGameTrainerCards.includes(this.room.id)) {
+				const splitWinnerNames = winnerNames.split(',');
+				const trainerCards: string[] = [];
+				for (const name of splitWinnerNames) {
+					const trainerCard = Games.getTrainerCardHtml(this.room, name.trim(), this.format);
+					if (trainerCard) {
+						trainerCards.push(trainerCard);
+					}
+				}
+
+				if (trainerCards.length === numberOfWinners) {
+					this.sayUhtml(this.uhtmlBaseName + "-winners", "<b>Winner" + (numberOfWinners > 1 ? "s" : "") + "</b>:<br />" +
+						"<center>" + trainerCards.join("") + "</center>");
+					trainerCardShown = true;
+				}
+			}
+
+			if (!trainerCardShown) this.say("**Winner" + (numberOfWinners > 1 ? "s" : "") + "**: " + winnerNames);
 		} else {
 			this.say("No winners this game!");
 		}
