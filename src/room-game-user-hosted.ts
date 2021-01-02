@@ -60,7 +60,19 @@ export class UserHostedGame extends Game {
 		if (userGameMascot) {
 			this.mascot = Dex.getPokemonCopy(userGameMascot);
 			const mascotPrefix = Games.getFormatMascotPrefix(this.format);
-			this.name = this.hostName + "'s " + (mascotPrefix ? this.format.name.substr(mascotPrefix.length) : this.format.name);
+			let formatName = this.format.name;
+			if (mascotPrefix) {
+				let team = false;
+				if (formatName.startsWith("Team ")) {
+					team = true;
+					formatName = formatName.substr(5);
+				}
+
+				formatName = formatName.substr(mascotPrefix.length);
+				if (team) formatName = "Team " + formatName;
+			}
+
+			this.name = this.hostName + "'s " + formatName;
 		} else {
 			this.name = this.hostName + "'s " + this.format.name;
 		}
