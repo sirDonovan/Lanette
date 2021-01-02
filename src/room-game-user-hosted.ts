@@ -18,6 +18,7 @@ export class UserHostedGame extends Game {
 	readonly points = new Map<Player, number>();
 	savedWinners: Player[] = [];
 	scoreCap: number = 0;
+	shinyMascot: boolean = false;
 	showSignupsHtml = true;
 	storedMessages: Dict<string> | null = null;
 	subHostId: string | null = null;
@@ -49,8 +50,11 @@ export class UserHostedGame extends Game {
 		let userGameMascot: IPokemon | undefined;
 		if (database.userGameMascots && this.hostId in database.userGameMascots && Config.showUserGameMascots &&
 			Config.showUserGameMascots.includes(this.room.id)) {
-			const mascot = Dex.getPokemon(database.userGameMascots[this.hostId]);
-			if (mascot) userGameMascot = mascot;
+			const mascot = Dex.getPokemon(database.userGameMascots[this.hostId].pokemon);
+			if (mascot) {
+				if (database.userGameMascots[this.hostId].shiny) this.shinyMascot = true;
+				userGameMascot = mascot;
+			}
 		}
 
 		if (userGameMascot) {
@@ -180,7 +184,7 @@ export class UserHostedGame extends Game {
 	getSignupsHtml(): string {
 		let html = "<center>";
 		if (this.mascot) {
-			const gif = Dex.getPokemonGif(this.mascot);
+			const gif = Dex.getPokemonGif(this.mascot, undefined, undefined, this.shinyMascot);
 			if (gif) html += gif;
 		}
 		html += "<h3>" + this.name + "</h3>" + this.getDescription();

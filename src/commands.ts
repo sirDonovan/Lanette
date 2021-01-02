@@ -1388,17 +1388,23 @@ const commands: CommandDefinitions<CommandContext, void> = {
 				if (!database.userGameMascots || !(user.id in database.userGameMascots)) {
 					return this.say("You do not have a game mascot set.");
 				}
-				return this.say("Your game mascot is set to **" + database.userGameMascots[user.id] + "**.");
+				return this.say("Your game mascot is set to **" + (database.userGameMascots[user.id].shiny ? "shiny " : "") +
+					database.userGameMascots[user.id].pokemon + "**.");
 			}
 
 			const mascot = Dex.getPokemon(targets[1]);
 			if (!mascot) return this.sayError(["invalidPokemon", targets[0]]);
 			if (!Dex.hasGifData(mascot)) return this.say(mascot.name + " does not have a gif! Please choose a different Pokemon.");
 
-			if (!database.userGameMascots) database.userGameMascots = {};
-			database.userGameMascots[user.id] = mascot.name;
+			const shiny = Tools.toId(targets[2]) === 'shiny';
 
-			this.say("Your game mascot is now **" + mascot.name + "**.");
+			if (!database.userGameMascots) database.userGameMascots = {};
+			database.userGameMascots[user.id] = {
+				pokemon: mascot.name,
+				shiny,
+			};
+
+			this.say("Your game mascot is now **" + (shiny ? "shiny " : "") + mascot.name + "**.");
 		},
 	},
 	randompick: {
