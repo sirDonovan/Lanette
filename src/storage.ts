@@ -279,7 +279,7 @@ export class Storage {
 		const database = this.getDatabase(room);
 		const id = Tools.toId(name);
 		if (!database[leaderboardType] || !(id in database[leaderboardType]!.entries)) return 0;
-		return database[leaderboardType]!.entries[id].annual;
+		return database[leaderboardType]!.entries[id].annual + database[leaderboardType]!.entries[id].current;
 	}
 
 	updateLeaderboardCaches(roomid: string, database: IDatabase): void {
