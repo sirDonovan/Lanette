@@ -3905,7 +3905,9 @@ const commands: CommandDefinitions<CommandContext, void> = {
 			if (!user.hasRank(leaderboardRoom, 'roomowner')) return;
 
 			const database = Storage.getDatabase(leaderboardRoom);
-			if (!database.leaderboardManagers) return this.say("There are no leadeboard managers for " + leaderboardRoom.title + ".");
+			if (!database.leaderboardManagers || !database.leaderboardManagers.length) {
+				return this.say("There are no leadeboard managers for " + leaderboardRoom.title + ".");
+			}
 
 			const ids: string[] = [];
 			for (const targetUser of targets) {
@@ -3926,6 +3928,31 @@ const commands: CommandDefinitions<CommandContext, void> = {
 			this.say("The specified user(s) can no longer add or remove points for " + leaderboardRoom.title + ".");
 		},
 		aliases: ['removeleaderboardmanagers', 'removelbmanager', 'removelbmanagers'],
+	},
+	leaderboardmanagers: {
+		command(target, room, user) {
+			if (!this.isPm(room)) return;
+
+			const targetRoom = Rooms.search(target);
+			if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
+			if (!user.hasRank(targetRoom, 'voice')) return;
+
+			const database = Storage.getDatabase(targetRoom);
+			if (!database.leaderboardManagers || !database.leaderboardManagers.length) {
+				return this.say("There are no leadeboard managers for " + targetRoom.title + ".");
+			}
+
+			const names: string[] = [];
+			for (const id of database.leaderboardManagers) {
+				let name = id;
+				const manager = Users.get(id);
+				if (manager) name = manager.name;
+				names.push(name);
+			}
+
+			this.sayHtml("<b>" + targetRoom.title + "</b> leaderboard managers:<br /><br />" + names.join(", "), targetRoom);
+		},
+		aliases: ['lbmanagers'],
 	},
 	leaderboard: {
 		command(target, room, user, cmd) {
