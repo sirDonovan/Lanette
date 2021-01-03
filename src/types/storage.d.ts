@@ -80,6 +80,7 @@ export interface IDatabase {
 	lastTournamentTime?: number;
 	lastUserHostedGameFormatTimes?: Dict<number>;
 	lastUserHostedGameTime?: number;
+	leaderboardManagers?: string[];
 	miniGameCounts?: Dict<number>;
 	pastGames?: IPastGame[];
 	pastTournaments?: IPastTournament[];

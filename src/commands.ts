@@ -3633,12 +3633,26 @@ const commands: CommandDefinitions<CommandContext, void> = {
 	},
 	addpoints: {
 		command(target, room, user, cmd) {
-			if (this.isPm(room)) return;
-			if (room.userHostedGame && room.userHostedGame.isHost(user)) {
-				this.run(cmd.startsWith('r') ? "removegamepoint" : "addgamepoint");
-				return;
+			const targets = target.split(",");
+			let isPm = false;
+			let leaderboardRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				targets.shift();
+				leaderboardRoom = targetRoom;
+				isPm = true;
+			} else {
+				if (room.userHostedGame && room.userHostedGame.isHost(user)) {
+					this.run(cmd.startsWith('r') ? "removegamepoint" : "addgamepoint");
+					return;
+				}
+				leaderboardRoom = room;
 			}
-			if (!user.hasRank(room, 'voice')) return;
+
+			const database = Storage.getDatabase(leaderboardRoom);
+			if (!user.hasRank(leaderboardRoom, 'voice') &&
+				!(database.leaderboardManagers && database.leaderboardManagers.includes(user.id))) return;
 
 			let leaderboardType: LeaderboardType;
 			if (addGamePointsAliases.includes(cmd)) {
@@ -3656,7 +3670,6 @@ const commands: CommandDefinitions<CommandContext, void> = {
 				return;
 			}
 
-			const targets = target.split(",");
 			const users: string[] = [];
 			const remove = cmd.startsWith('r');
 			let customAmount: number | null = null;
@@ -3679,10 +3692,10 @@ const commands: CommandDefinitions<CommandContext, void> = {
 			let limit: number;
 			if (game) {
 				points = 100;
-				limit = user.hasRank(room, 'driver') ? 5000 : 500;
+				limit = user.hasRank(leaderboardRoom, 'driver') ? 5000 : 500;
 			} else {
 				points = 1;
-				limit = user.hasRank(room, 'driver') ? 1000 : 100;
+				limit = user.hasRank(leaderboardRoom, 'driver') ? 1000 : 100;
 			}
 
 			if (customAmount) {
@@ -3698,12 +3711,12 @@ const commands: CommandDefinitions<CommandContext, void> = {
 				const targetUser = Users.get(users[i]);
 				if (targetUser) users[i] = targetUser.name;
 				if (remove) {
-					Storage.removePoints(room, leaderboardType, users[i], points, 'manual');
+					Storage.removePoints(leaderboardRoom, leaderboardType, users[i], points, 'manual');
 				} else {
-					Storage.addPoints(room, leaderboardType, users[i], points, 'manual');
-					if (targetUser && targetUser.rooms.has(room)) {
+					Storage.addPoints(leaderboardRoom, leaderboardType, users[i], points, 'manual');
+					if (targetUser && targetUser.rooms.has(leaderboardRoom)) {
 						targetUser.say("You were awarded " + points + " " + pointsName + "! To see your total amount, use this command: " +
-							"``" + Config.commandCharacter + (game ? "bits" : "rank") + " " + room.title + "``");
+							"``" + Config.commandCharacter + (game ? "bits" : "rank") + " " + leaderboardRoom.title + "``");
 					}
 				}
 			}
@@ -3711,8 +3724,16 @@ const commands: CommandDefinitions<CommandContext, void> = {
 			const userList = Tools.joinList(users);
 			if (remove) {
 				this.say("Removed " + points + " " + pointsName + " from " + userList + ".");
+				if (isPm) {
+					leaderboardRoom.sayCommand("/modnote " + user.name + " removed " + points + " " + pointsName + " from " +
+						userList + ".");
+				}
 			} else {
 				this.say("Added " + points + " " + pointsName + " for " + userList + ".");
+				if (isPm) {
+					leaderboardRoom.sayCommand("/modnote " + user.name + " added " + points + " " + pointsName + " for " +
+						userList + ".");
+				}
 			}
 
 			Storage.exportDatabase(room.id);
@@ -3832,6 +3853,79 @@ const commands: CommandDefinitions<CommandContext, void> = {
 		},
 		aliases: ['makesemifinalpointsofficial', 'makesemipointsofficial', 'makerunneruppointsofficial', 'makerunnerpointsofficial',
 			'makewinnerpointsofficial'],
+	},
+	addleaderboardmanager: {
+		command(target, room, user) {
+			const targets = target.split(",");
+			let leaderboardRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				targets.shift();
+				leaderboardRoom = targetRoom;
+			} else {
+				leaderboardRoom = room;
+			}
+
+			if (!user.hasRank(leaderboardRoom, 'roomowner')) return;
+
+			const database = Storage.getDatabase(leaderboardRoom);
+			if (!database.leaderboardManagers) database.leaderboardManagers = [];
+
+			const ids: string[] = [];
+			for (const targetUser of targets) {
+				if (!Tools.isUsernameLength(targetUser)) return this.say("'" + targetUser.trim() + "' is not a valid username.");
+				const id = Tools.toId(targetUser);
+				if (database.leaderboardManagers.includes(id)) {
+					return this.say("'" + targetUser.trim() + "' is already a leaderboard manager.");
+				}
+				if (ids.includes(id)) return this.say("You can only specify each user once.");
+
+				ids.push(id);
+			}
+
+			database.leaderboardManagers = database.leaderboardManagers.concat(ids);
+			this.say("The specified user(s) can now use ``" + Config.commandCharacter + "apt/rpt`` for " + leaderboardRoom.title + ".");
+		},
+		aliases: ['addleaderboardmanagers', 'addlbmanager', 'addlbmanagers'],
+	},
+	removeleaderboardmanager: {
+		command(target, room, user) {
+			const targets = target.split(",");
+			let leaderboardRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				targets.shift();
+				leaderboardRoom = targetRoom;
+			} else {
+				leaderboardRoom = room;
+			}
+
+			if (!user.hasRank(leaderboardRoom, 'roomowner')) return;
+
+			const database = Storage.getDatabase(leaderboardRoom);
+			if (!database.leaderboardManagers) return this.say("There are no leadeboard managers for " + leaderboardRoom.title + ".");
+
+			const ids: string[] = [];
+			for (const targetUser of targets) {
+				if (!Tools.isUsernameLength(targetUser)) return this.say("'" + targetUser.trim() + "' is not a valid username.");
+				const id = Tools.toId(targetUser);
+				if (!database.leaderboardManagers.includes(id)) {
+					return this.say("'" + targetUser.trim() + "' is not a leaderboard manager.");
+				}
+				if (ids.includes(id)) return this.say("You can only specify each user once.");
+
+				ids.push(id);
+			}
+
+			for (const id of ids) {
+				database.leaderboardManagers.splice(database.leaderboardManagers.indexOf(id), 1);
+			}
+
+			this.say("The specified user(s) can no longer add or remove points for " + leaderboardRoom.title + ".");
+		},
+		aliases: ['removeleaderboardmanagers', 'removelbmanager', 'removelbmanagers'],
 	},
 	leaderboard: {
 		command(target, room, user, cmd) {
