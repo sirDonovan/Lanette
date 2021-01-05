@@ -1963,7 +1963,7 @@ export class Dex {
 		const checkedMoves: string[] = [];
 		for (const i of possibleMoves) {
 			const move = this.getMove(i)!;
-			if (!checkedMoves.includes(move.id) && move.gen <= this.gen && !validator.checkLearnset(move, pokemon)) {
+			if (!checkedMoves.includes(move.id) && move.gen <= this.gen && !validator.checkCanLearn(move, pokemon)) {
 				checkedMoves.push(move.id);
 			}
 		}
