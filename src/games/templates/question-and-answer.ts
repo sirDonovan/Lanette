@@ -36,6 +36,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 
 	allAnswersAchievement?: IGameAchievement;
 	allAnswersTeamAchievement?: IGameAchievement;
+	answerCommands?: string[];
 	noIncorrectAnswersMinigameAchievement?: IGameAchievement;
 	roundCategory?: string;
 	readonly roundGuesses?: Map<Player, boolean>;
@@ -213,7 +214,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	}
 
 	guessAnswer(player: Player, guess: string): string | false {
-		if (!Tools.toId(guess) || this.filterGuess && this.filterGuess(guess)) return false;
+		if (!Tools.toId(guess) || (this.filterGuess && this.filterGuess(guess, player))) return false;
 
 		if (this.roundGuesses) {
 			if (this.roundGuesses.has(player)) return false;
@@ -259,6 +260,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		return match;
 	}
 
+	/** Return an empty string to not display answers */
 	getAnswers(givenAnswer: string, finalAnswer?: boolean): string {
 		return "The" + (finalAnswer ? " final " : "") + " answer" + (this.answers.length > 1 ? "s were" : " was") + " __" +
 			Tools.joinList(this.answers) + "__.";
@@ -307,7 +309,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	}
 
 	beforeNextRound?(): boolean | string;
-	filterGuess?(guess: string): boolean;
+	filterGuess?(guess: string, player?: Player): boolean;
 	getPointsForAnswer?(answer: string, timestamp: number): number;
 	onCorrectGuess?(player: Player, guess: string): void;
 	onHintHtml?(): void;
@@ -319,6 +321,8 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 	guess: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user, cmd, timestamp): GameCommandReturnType {
+			if (this.answerCommands && !this.answerCommands.includes(cmd)) return false;
+
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (!this.canGuessAnswer(player)) return false;
 
@@ -358,11 +362,13 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 				if (this.hint) this.off(this.hint);
 				let text = '**' + player.name + '** advances to **' + this.getPointsDisplay(points, reachedMaxPoints ? 0 : undefined) +
 					'** point' + (points > 1 ? 's' : '') + '!';
-				const answers = ' ' + this.getAnswers(answer);
-				if (text.length + answers.length <= Tools.maxMessageLength) {
-					text += answers;
-				} else {
-					text += ' A possible answer was __' + answer + '__.';
+				const answers = this.getAnswers(answer);
+				if (answers) {
+					if ((text + " " + answers).length <= Tools.maxMessageLength) {
+						text += " " + answers;
+					} else {
+						text += ' A possible answer was __' + answer + '__.';
+					}
 				}
 				this.say(text);
 
