@@ -3886,6 +3886,7 @@ const commands: CommandDefinitions<CommandContext, void> = {
 
 			database.leaderboardManagers = database.leaderboardManagers.concat(ids);
 			this.say("The specified user(s) can now use ``" + Config.commandCharacter + "apt/rpt`` for " + leaderboardRoom.title + ".");
+			Storage.exportDatabase(leaderboardRoom.id);
 		},
 		aliases: ['addleaderboardmanagers', 'addlbmanager', 'addlbmanagers'],
 	},
@@ -3926,6 +3927,7 @@ const commands: CommandDefinitions<CommandContext, void> = {
 			}
 
 			this.say("The specified user(s) can no longer add or remove points for " + leaderboardRoom.title + ".");
+			Storage.exportDatabase(leaderboardRoom.id);
 		},
 		aliases: ['removeleaderboardmanagers', 'removelbmanager', 'removelbmanagers'],
 	},
