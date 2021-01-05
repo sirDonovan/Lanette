@@ -1016,7 +1016,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 		this.startAdvertisements();
 		this.sayCommand("/notifyrank all, " + this.room.title + " " + Users.self.name + " tournament," + this.name + "," + Users.self.name +
-			" is hosting a tournament");
+			" is hosting a tournament", true);
 	}
 
 	startAdvertisements(): void {
