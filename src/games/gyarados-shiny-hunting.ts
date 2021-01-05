@@ -1,5 +1,5 @@
 import type { Player } from "../room-activity";
-import type { GameCommandDefinitions, IGameFile } from "../types/games";
+import type { IGameFile } from "../types/games";
 import type { IPokemon } from "../types/pokemon-showdown";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
