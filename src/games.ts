@@ -1352,7 +1352,8 @@ export class Games {
 		html += "<span";
 		if (hostBox && hostBox.background) {
 			html += " style='display: block;";
-			if (hostBox.background.startsWith('Dark-') || hostBox.background === 'Black') {
+			if (hostBox.background.startsWith('Dark-') || hostBox.background === 'Black' || hostBox.background === 'Blue-Violet' ||
+				hostBox.background === 'Violet' || hostBox.background === 'Light-Blue-Violet' || hostBox.background === 'Light-Violet') {
 				html += 'color: #ffffff;';
 			} else {
 				html += 'color: #000000;';
