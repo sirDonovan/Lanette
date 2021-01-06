@@ -53,6 +53,7 @@ class GameHostBox extends HtmlPageBase {
 		html += "<b>Pokemon GIFs</b><br />";
 		html += "Choose your GIFs by PMing " + Users.self.name + " <code>" + Config.commandCharacter + setPokemonSeparateCommand + " " +
 			this.room.title + ", [Pokemon], [Pokemon], [...]</code>";
+		html += "<br /><br />You can make any GIF shiny by adding <code>shiny</code> before or after the Pokemon's name.";
 		html += "<br /><br />";
 
 		html += "<b>GIFs background color</b><br />";
@@ -69,7 +70,7 @@ class GameHostBox extends HtmlPageBase {
 		html += "<br /><br />";
 		html += "<b>Buttons background color</b><br />";
 		html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
-				setButtonColorCommand + "," + noBackground, "None", !hostBox || !hostBox.background);
+				setButtonColorCommand + "," + noBackground, "None", !hostBox || !hostBox.buttons);
 
 		for (const color of colors) {
 			if (!color.startsWith('Light-') && !color.startsWith('Dark-')) continue;
@@ -143,6 +144,10 @@ export const commands: CommandDefinitions<CommandContext> = {
 					}
 					if (!pokemon && !shiny) pokemon = Dex.getPokemon(targets[i]);
 					if (!pokemon) return this.sayError(['invalidPokemon', targets[i]]);
+
+					if (pokemon.forme && pokemon.baseSpecies === 'Unown') {
+						return this.say("You can only use a regular Unown GIF.");
+					}
 
 					if (!Dex.hasGifData(pokemon)) {
 						return this.say(pokemon.name + " does not have a GIF! Please choose a different Pokemon.");

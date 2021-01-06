@@ -1349,30 +1349,26 @@ export class Games {
 		if (database.gameHostBoxes && id in database.gameHostBoxes) hostBox = database.gameHostBoxes[id];
 
 		let html = "<center>";
-		if (hostBox) {
+		html += "<span";
+		if (hostBox && hostBox.background) {
+			html += " style='display: block;";
+			if (hostBox.background.startsWith('Dark-') || hostBox.background === 'Black') {
+				html += 'color: #ffffff;';
+			} else {
+				html += 'color: #000000;';
+			}
+			html += "background: " + Tools.hexColorCodes[hostBox.background].background + "'";
+		}
+		html += ">";
+
+		if (hostBox && hostBox.pokemon.length) {
 			const gifs: string[] = [];
-			let totalWidth = 0;
-			let largestHeight = 0;
 			for (let i = 0; i < hostBox.pokemon.length; i++) {
-				const pokemon = Dex.getExistingPokemon(hostBox.pokemon[i]);
-				const gifData = Dex.getGifData(pokemon);
-				if (!gifData) continue;
-
-				totalWidth += gifData.w;
-				if (gifData.h > largestHeight) largestHeight = gifData.h;
-
-				const gif = Dex.getPokemonGif(pokemon, undefined, undefined, hostBox.shinyPokemon[i]);
+				const gif = Dex.getPokemonGif(Dex.getExistingPokemon(hostBox.pokemon[i]), undefined, undefined, hostBox.shinyPokemon[i]);
 				if (gif) gifs.push(gif);
 			}
 
-			if (hostBox.background) {
-				html += "<span style='display: block;width: " + (totalWidth + 20 + (gifs.length - 1)) + "px; height: " +
-					(largestHeight + 10) + "px;" + "background: " + Tools.hexColorCodes[hostBox.background].background + "'>";
-			}
-
 			html += gifs.join("&nbsp;");
-
-			if (hostBox.background) html += "</span>";
 		}
 
 		html += "<h3>" + gameName + "</h3>";
@@ -1389,8 +1385,7 @@ export class Games {
 			} else {
 				buttonStyle += 'color: #000000;';
 			}
-			buttonStyle += "font-weight: bold;border-color: #000000;background: " +
-				Tools.hexColorCodes[hostBox.buttons]['background-color'];
+			buttonStyle += "background: " + Tools.hexColorCodes[hostBox.buttons]['background-color'];
 		}
 
 		html += '<br /><br /><button class="button"' + (buttonStyle ? ' style="' + buttonStyle + '"' : '');
@@ -1400,7 +1395,7 @@ export class Games {
 		html += '<button class="button"' + (buttonStyle ? ' style="' + buttonStyle + '"' : '');
 		if (highlightPhrase) html += ' name="parseCommand" value="/highlight roomdelete, ' + highlightPhrase + '"';
 		html += '>Disable game highlights</button>';
-		html += "</center>";
+		html += "</span></center>";
 
 		return html;
 	}
