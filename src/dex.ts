@@ -603,6 +603,10 @@ export class Dex {
 		const pokemon = Tools.deepClone(this.pokemonShowdownDex.getSpecies(name));
 		if (!pokemon.exists) return undefined;
 
+		if (pokemon.forme && Tools.toId(pokemon.baseSpecies) === pokemon.spriteid) {
+			pokemon.spriteid += '-' + Tools.toId(pokemon.forme);
+		}
+
 		if (pokemon.tier === '(Uber)') {
 			pokemon.tier = 'Uber';
 		} else if (pokemon.tier === '(NU)') {

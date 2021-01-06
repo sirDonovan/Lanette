@@ -66,6 +66,9 @@ describe("Dex", () => {
 			assert(allPossibleMovesRaticateAlola.includes(move));
 		}
 
+		assertStrictEqual(Dex.getExistingPokemon("Furfrou").spriteid, "furfrou");
+		assertStrictEqual(Dex.getExistingPokemon("Furfrou-Dandy").spriteid, "furfrou-dandy");
+
 		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Tackle")), 394);
 		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Aeroblast")), 2);
 
