@@ -228,6 +228,17 @@ export class Storage {
 		};
 	}
 
+	createGameHostBox(database: IDatabase, name: string): void {
+		const id = Tools.toId(name);
+		if (!database.gameHostBoxes) database.gameHostBoxes = {};
+		if (id in database.gameHostBoxes) return;
+
+		database.gameHostBoxes[id] = {
+			pokemon: [],
+			shinyPokemon: [],
+		};
+	}
+
 	addPoints(room: Room, leaderboardType: LeaderboardType, name: string, amount: number, source: string): void {
 		if (!amount) return;
 

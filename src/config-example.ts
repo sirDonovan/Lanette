@@ -265,14 +265,14 @@ export let showGameTrainerCards: string[] = [];
 export let gameTrainerCardRequirements: Dict<{trainer: number, onePokemon: number, twoPokemon: number, manyPokemon: number}> = {};
 
 /**
- * A list of rooms (roomids) where user game mascots are shown
+ * A list of rooms (roomids) where customized game host boxes are shown
  */
-export let showUserGameMascots: string[] = [];
+export let showGameHostBoxes: string[] = [];
 
 /**
- * For each room in the object, the number of bits that must be earned to choose a game mascot
+ * For each room in the object, the number of bits that must be earned to customize a game host box
  */
-export let userGameMascotRequirement: Dict<number> = {};
+export let gameHostBoxRequirements: Dict<{background: number, onePokemon: number, twoPokemon: number, threePokemon: number}> = {};
 
 /**
  * A list of rooms (roomids) where games cannot be hosted back-to-back

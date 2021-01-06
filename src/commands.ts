@@ -786,9 +786,11 @@ const commands: CommandDefinitions<CommandContext, void> = {
 				if (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
 				gameRoom = room;
 			}
+
 			if (gameRoom.game) {
 				const game = gameRoom.game;
-				let html = (game.mascot ? Dex.getPokemonIcon(game.mascot) : "") + "<b>" + game.name + "</b><br />";
+				let html = game.getMascotAndNameHtml();
+				html += "<br />";
 				if (game.started) {
 					if (game.startTime) html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - game.startTime) + "<br />";
 					const remainingPlayers = game.getRemainingPlayerCount();
@@ -804,7 +806,8 @@ const commands: CommandDefinitions<CommandContext, void> = {
 				this.sayHtml(html, gameRoom);
 			} else if (gameRoom.userHostedGame) {
 				const game = gameRoom.userHostedGame;
-				let html = (game.mascot ? Dex.getPokemonIcon(game.mascot) : "") + "<b>" + game.name + "</b><br />";
+				let html = game.getMascotAndNameHtml();
+				html += "<br />";
 				if (gameRoom.userHostedGame.subHostName) html += "<b>Sub-host</b>: " + gameRoom.userHostedGame.subHostName + "<br />";
 				html += "<b>Remaining time</b>: " + Tools.toDurationString(game.endTime - Date.now()) + "<br />";
 				if (game.started) {
@@ -1363,49 +1366,6 @@ const commands: CommandDefinitions<CommandContext, void> = {
 			this.sayHtml(html, gameRoom);
 		},
 		aliases: ['hstats'],
-	},
-	hostmascot: {
-		command(target, room, user) {
-			if (!this.isPm(room)) return;
-			const targets = target.split(',');
-			const targetRoom = Rooms.search(targets[0]);
-			if (!targetRoom) return this.sayError(["invalidBotRoom", targets[0]]);
-
-			if (!Config.userGameMascotRequirement || !(targetRoom.id in Config.userGameMascotRequirement)) {
-				return this.say("Game mascots are not enabled in " + targetRoom.title + ".");
-			}
-
-			if (Config.userGameMascotRequirement[targetRoom.id] > 0 && !user.hasRank(targetRoom, 'voice')) {
-				const annualBits = Storage.getAnnualPoints(targetRoom, Storage.gameLeaderboard, user.name);
-				if (annualBits < Config.userGameMascotRequirement[targetRoom.id]) {
-					return this.say("You need at least " + Config.userGameMascotRequirement[targetRoom.id] + " annual bits to use this " +
-						"command.");
-				}
-			}
-
-			const database = Storage.getDatabase(targetRoom);
-			if (targets.length === 1) {
-				if (!database.userGameMascots || !(user.id in database.userGameMascots)) {
-					return this.say("You do not have a game mascot set.");
-				}
-				return this.say("Your game mascot is set to **" + (database.userGameMascots[user.id].shiny ? "shiny " : "") +
-					database.userGameMascots[user.id].pokemon + "**.");
-			}
-
-			const mascot = Dex.getPokemon(targets[1]);
-			if (!mascot) return this.sayError(["invalidPokemon", targets[0]]);
-			if (!Dex.hasGifData(mascot)) return this.say(mascot.name + " does not have a gif! Please choose a different Pokemon.");
-
-			const shiny = Tools.toId(targets[2]) === 'shiny';
-
-			if (!database.userGameMascots) database.userGameMascots = {};
-			database.userGameMascots[user.id] = {
-				pokemon: mascot.name,
-				shiny,
-			};
-
-			this.say("Your game mascot is now **" + (shiny ? "shiny " : "") + mascot.name + "**.");
-		},
 	},
 	randompick: {
 		command(target, room, user) {

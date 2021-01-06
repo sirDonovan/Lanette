@@ -63,8 +63,8 @@ export function load(config: typeof Config): typeof Config {
 	if (config.allowGameAchievements) config.allowGameAchievements = arrayToRoomIds(config.allowGameAchievements);
 	if (config.showGameTrainerCards) config.showGameTrainerCards = arrayToRoomIds(config.showGameTrainerCards);
 	if (config.gameTrainerCardRequirements) objectKeysToRoomId(config.gameTrainerCardRequirements);
-	if (config.showUserGameMascots) config.showUserGameMascots = arrayToRoomIds(config.showUserGameMascots);
-	if (config.userGameMascotRequirement) objectKeysToRoomId(config.userGameMascotRequirement);
+	if (config.showGameHostBoxes) config.showGameHostBoxes = arrayToRoomIds(config.showGameHostBoxes);
+	if (config.gameHostBoxRequirements) objectKeysToRoomId(config.gameHostBoxRequirements);
 	if (config.gameCategoryCooldowns) objectKeysToRoomId(config.gameCategoryCooldowns);
 	if (config.gameCooldownTimers) objectKeysToRoomId(config.gameCooldownTimers);
 	if (config.minigameCooldownTimers) objectKeysToRoomId(config.minigameCooldownTimers);

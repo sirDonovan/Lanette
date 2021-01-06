@@ -2,7 +2,7 @@ import type { Player } from "./room-activity";
 import { Game } from "./room-game";
 import type { Room } from "./rooms";
 import type { GameDifficulty, IUserHostedFile, IUserHostedFormat } from "./types/games";
-import type { IPokemon } from "./types/pokemon-showdown";
+import type { HexColor } from "./types/tools";
 import type { User } from "./users";
 
 const FORCE_END_CREATE_TIMER = 60 * 1000;
@@ -14,6 +14,7 @@ export class UserHostedGame extends Game {
 	hostId: string = '';
 	hostName: string = '';
 	hostTimeout: NodeJS.Timer | null = null;
+	mascots: string[] = [];
 	notifyRankSignups: boolean = true;
 	readonly points = new Map<Player, number>();
 	savedWinners: Player[] = [];
@@ -32,8 +33,12 @@ export class UserHostedGame extends Game {
 
 	// Display
 	getMascotAndNameHtml(additionalText?: string): string {
-		const mascot = this.mascot ? Dex.getPokemonIcon(this.mascot) : '';
-		return mascot + "<b>" + this.name + (additionalText || "") + "</b>";
+		const icons: string[] = [];
+		for (const mascot of this.mascots) {
+			const icon = Dex.getPokemonIcon(Dex.getExistingPokemon(mascot));
+			if (icon) icons.push(icon);
+		}
+		return icons.join("") + "<b>" + this.name + (additionalText || "") + "</b>";
 	}
 
 	// Host
@@ -46,19 +51,19 @@ export class UserHostedGame extends Game {
 			this.hostName = host.name;
 		}
 
+		this.mascots = [];
 		const database = Storage.getDatabase(this.room);
-		let userGameMascot: IPokemon | undefined;
-		if (database.userGameMascots && this.hostId in database.userGameMascots && Config.showUserGameMascots &&
-			Config.showUserGameMascots.includes(this.room.id)) {
-			const mascot = Dex.getPokemon(database.userGameMascots[this.hostId].pokemon);
-			if (mascot) {
-				if (database.userGameMascots[this.hostId].shiny) this.shinyMascot = true;
-				userGameMascot = mascot;
+		if (database.gameHostBoxes && this.hostId in database.gameHostBoxes && Config.showGameHostBoxes &&
+			Config.showGameHostBoxes.includes(this.room.id)) {
+			for (const species of database.gameHostBoxes[this.hostId].pokemon) {
+				const pokemon = Dex.getPokemon(species);
+				if (pokemon) {
+					this.mascots.push(pokemon.name);
+				}
 			}
 		}
 
-		if (userGameMascot) {
-			this.mascot = Dex.getPokemonCopy(userGameMascot);
+		if (this.mascots.length) {
 			const mascotPrefix = Games.getFormatMascotPrefix(this.format);
 			let formatName = this.format.name;
 			if (mascotPrefix) {
@@ -194,17 +199,7 @@ export class UserHostedGame extends Game {
 	}
 
 	getSignupsHtml(): string {
-		let html = "<center>";
-		if (this.mascot) {
-			const gif = Dex.getPokemonGif(this.mascot, undefined, undefined, this.shinyMascot);
-			if (gif) html += gif;
-		}
-		html += "<h3>" + this.name + "</h3>" + this.getDescription();
-		html += '<br /><br /><button class="button" name="parseCommand" value="/highlight roomadd, ' +
-				this.getHighlightPhrase() + '">Enable game highlights</button> | <button class="button" name="parseCommand" ' +
-				'value="/highlight roomdelete, ' + this.getHighlightPhrase() + '">Disable game highlights</button>';
-		html += "</center>";
-		return html;
+		return Games.getHostBoxHtml(this.room, this.hostName, this.name, this.format, this.getHighlightPhrase());
 	}
 
 	signups(): void {

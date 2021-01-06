@@ -13,7 +13,7 @@ import type {
 	LoadedGameFile, UserHostedCustomizable
 } from './types/games';
 import type { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/pokemon-showdown';
-import type { IPastGame } from './types/storage';
+import type { IGameHostBox, IPastGame } from './types/storage';
 import type { User } from './users';
 import { ParametersWorker } from './workers/parameters';
 import { PortmanteausWorker } from './workers/portmanteaus';
@@ -1339,6 +1339,69 @@ export class Games {
 		}
 
 		html += "</center></span>";
+		return html;
+	}
+
+	getHostBoxHtml(room: Room, host: string, gameName: string, format?: IUserHostedFormat, highlightPhrase?: string): string {
+		const id = Tools.toId(host);
+		const database = Storage.getDatabase(room);
+		let hostBox: IGameHostBox | undefined;
+		if (database.gameHostBoxes && id in database.gameHostBoxes) hostBox = database.gameHostBoxes[id];
+
+		let html = "<center>";
+		if (hostBox) {
+			const gifs: string[] = [];
+			let totalWidth = 0;
+			let largestHeight = 0;
+			for (let i = 0; i < hostBox.pokemon.length; i++) {
+				const pokemon = Dex.getExistingPokemon(hostBox.pokemon[i]);
+				const gifData = Dex.getGifData(pokemon);
+				if (!gifData) continue;
+
+				totalWidth += gifData.w;
+				if (gifData.h > largestHeight) largestHeight = gifData.h;
+
+				const gif = Dex.getPokemonGif(pokemon, undefined, undefined, hostBox.shinyPokemon[i]);
+				if (gif) gifs.push(gif);
+			}
+
+			if (hostBox.background) {
+				html += "<span style='display: block;width: " + (totalWidth + 20 + (gifs.length - 1)) + "px; height: " +
+					(largestHeight + 10) + "px;" + "background: " + Tools.hexColorCodes[hostBox.background].background + "'>";
+			}
+
+			html += gifs.join("&nbsp;");
+
+			if (hostBox.background) html += "</span>";
+		}
+
+		html += "<h3>" + gameName + "</h3>";
+		if (format) {
+			html += format.description;
+		} else {
+			html += "The game's description will be displayed here";
+		}
+
+		let buttonStyle = '';
+		if (hostBox && hostBox.buttons) {
+			if (hostBox.buttons.startsWith('Dark-')) {
+				buttonStyle += 'color: #ffffff;';
+			} else {
+				buttonStyle += 'color: #000000;';
+			}
+			buttonStyle += "font-weight: bold;border-color: #000000;background: " +
+				Tools.hexColorCodes[hostBox.buttons]['background-color'];
+		}
+
+		html += '<br /><br /><button class="button"' + (buttonStyle ? ' style="' + buttonStyle + '"' : '');
+		if (highlightPhrase) html += ' name="parseCommand" value="/highlight roomadd, ' + highlightPhrase + '"';
+		html += '>Enable game highlights</button>';
+		html += '&nbsp;|&nbsp;';
+		html += '<button class="button"' + (buttonStyle ? ' style="' + buttonStyle + '"' : '');
+		if (highlightPhrase) html += ' name="parseCommand" value="/highlight roomdelete, ' + highlightPhrase + '"';
+		html += '>Disable game highlights</button>';
+		html += "</center>";
+
 		return html;
 	}
 

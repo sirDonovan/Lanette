@@ -52,6 +52,13 @@ export interface IGameTrainerCard {
 	pokemonGifs?: boolean;
 }
 
+export interface IGameHostBox {
+	pokemon: string[];
+	shinyPokemon: boolean[];
+	background?: HexColor;
+	buttons?: HexColor;
+}
+
 export type UserHostStatus = 'unapproved' | 'novice' | 'approved';
 
 export type LeaderboardType = 'gameLeaderboard' | 'gameHostingLeaderbaord' | 'tournamentLeaderboard' | 'unsortedLeaderboard';
@@ -73,6 +80,7 @@ export interface IDatabase {
 	gameAchievements?: Dict<string[]>;
 	gameLeaderboard?: ILeaderboard;
 	gameHostingLeaderbaord?: ILeaderboard;
+	gameHostBoxes?: Dict<IGameHostBox>;
 	gameTrainerCards?: Dict<IGameTrainerCard>;
 	lastGameFormatTimes?: Dict<number>;
 	lastGameTime?: number;
@@ -92,7 +100,6 @@ export interface IDatabase {
 	thcWinners?: Dict<string>;
 	tournamentLeaderboard?: ILeaderboard;
 	unsortedLeaderboard?: ILeaderboard;
-	userGameMascots?: Dict<{pokemon: string, shiny?: boolean}>;
 	userHostedGameCounts?: Dict<number>;
 	userHostedGameStats?: Dict<IUserHostedGameStats[]>;
 	userHostedGameQueue?: IQueuedUserHostedGame[];
