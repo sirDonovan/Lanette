@@ -1390,11 +1390,11 @@ export class Games {
 		}
 
 		html += '<br /><br /><button class="button"' + (buttonStyle ? ' style="' + buttonStyle + '"' : '');
-		if (highlightPhrase) html += ' name="parseCommand" value="/highlight roomadd, ' + highlightPhrase + '"';
+		if (highlightPhrase) html += ' name="parseCommand" value="/highlight roomadd ' + highlightPhrase + '"';
 		html += '>Enable game highlights</button>';
 		html += '&nbsp;|&nbsp;';
 		html += '<button class="button"' + (buttonStyle ? ' style="' + buttonStyle + '"' : '');
-		if (highlightPhrase) html += ' name="parseCommand" value="/highlight roomdelete, ' + highlightPhrase + '"';
+		if (highlightPhrase) html += ' name="parseCommand" value="/highlight roomdelete ' + highlightPhrase + '"';
 		html += '>Disable game highlights</button>';
 		html += "</span></center>";
 

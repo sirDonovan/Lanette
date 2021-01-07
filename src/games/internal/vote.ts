@@ -189,9 +189,9 @@ export class Vote extends ScriptedGame {
 
 		let html = "<center><h3>" + this.votingName + "</h3>Vote for the next scripted game with the command <code>" +
 			Config.commandCharacter + "vote [name]</code>!";
-		html += '<br /><button class="button" name="parseCommand" value="/highlight roomadd, ' +
+		html += '<br /><button class="button" name="parseCommand" value="/highlight roomadd ' +
 				this.getHighlightPhrase() + '">Enable voting highlights</button> | <button class="button" name="parseCommand" ' +
-				'value="/highlight roomdelete, ' + this.getHighlightPhrase() + '">Disable voting highlights</button><br /><br />';
+				'value="/highlight roomdelete ' + this.getHighlightPhrase() + '">Disable voting highlights</button><br /><br />';
 
 		if (this.botSuggestions.length) {
 			html += "<b>" + Users.self.name + "'s suggestions:</b><br />";

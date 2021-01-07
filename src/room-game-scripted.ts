@@ -239,9 +239,9 @@ export class ScriptedGame extends Game {
 		}
 
 		if (!this.internalGame && !this.parentGame) {
-			html += '<br /><br /><button class="button" name="parseCommand" value="/highlight roomadd, ' +
+			html += '<br /><br /><button class="button" name="parseCommand" value="/highlight roomadd ' +
 				this.getHighlightPhrase() + '">Enable game highlights</button> | <button class="button" name="parseCommand" ' +
-				'value="/highlight roomdelete, ' + this.getHighlightPhrase() + '">Disable game highlights</button>';
+				'value="/highlight roomdelete ' + this.getHighlightPhrase() + '">Disable game highlights</button>';
 		}
 
 		html += "</center>";
