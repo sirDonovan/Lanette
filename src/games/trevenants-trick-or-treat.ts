@@ -5,17 +5,21 @@ import type { Room } from "../rooms";
 import type { GameCommandDefinitions, IGameFile } from "../types/games";
 import type { User } from "../users";
 
-const GRID_SIZE = 4;
+const GRID_ROWS = 4;
+const GRID_COLUMNS = 4;
 const LAST_MOVES_LIMIT = 2;
+const OVERALL_MOVES_LIMIT = 3;
 
-const data: {allPossibleMoves: Dict<readonly string[]>; pokedex: string[]} = {
+const data: {allPossibleMoves: Dict<readonly string[]>; movesByPokemon: Dict<readonly string[]>; pokedex: string[]} = {
 	allPossibleMoves: {},
+	movesByPokemon: {},
 	pokedex: [],
 };
 
 class TrevenantsTrickOrTreat extends ScriptedGame {
 	indicesToReplace = new Set();
 	lastMoves = new Map<Player, string[]>();
+	overallMoves = new Map<Player, Dict<number>>();
 	points = new Map<Player, number>();
 	pokemonGrid: string[][] = [];
 	timeLimit: number = 10 * 60 * 1000;
@@ -30,25 +34,47 @@ class TrevenantsTrickOrTreat extends ScriptedGame {
 
 	static loadData(): void {
 		const pokedex = Games.getPokemonList(x => !x.forme);
+		const movesByPokemon: Dict<string[]> = {};
 		for (const pokemon of pokedex) {
 			const allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
 			if (allPossibleMoves.length <= 1) continue;
+
+			for (const move of allPossibleMoves) {
+				if (!(move in movesByPokemon)) movesByPokemon[move] = [];
+				movesByPokemon[move].push(pokemon.id);
+			}
 			data.pokedex.push(pokemon.id);
 			data.allPossibleMoves[pokemon.id] = allPossibleMoves;
 		}
+
+		data.movesByPokemon = movesByPokemon;
 	}
 
-	generateNewMons(): void {
-		this.pokemonGrid = [];
-		for (let i = 0; i < GRID_SIZE; i++) {
-			this.pokemonGrid.push([]);
-			for (let j = 0; j < GRID_SIZE; j++) {
-				this.pokemonGrid[i].push(this.getNextMon());
+	validateGridLearnsets(): boolean {
+		if (!this.pokemonGrid.length) return false;
+
+		const pokemon: string[] = [];
+		for (const row of this.pokemonGrid) {
+			for (const square of row) {
+				pokemon.push(square);
 			}
 		}
+
+		for (const move in data.movesByPokemon) {
+			let inGrid = 0;
+			for (const id of pokemon) {
+				if (data.movesByPokemon[move].includes(id)) {
+					inGrid++;
+					if (inGrid > 1) break;
+				}
+			}
+			if (inGrid === 1) return true;
+		}
+
+		return false;
 	}
 
-	getNextMon(): string {
+	getNextPokemon(): string {
 		if (!this.pokemonList.length) this.pokemonList = this.shuffle(data.pokedex);
 		return this.pokemonList.shift()!;
 	}
@@ -60,20 +86,34 @@ class TrevenantsTrickOrTreat extends ScriptedGame {
 	}
 
 	onEnd(): void {
+		for (const i in this.players) {
+			if (this.players[i].eliminated || !this.points.has(this.players[i])) continue;
+			this.addBits(this.players[i], this.points.get(this.players[i])! / 2);
+		}
+
 		this.announceWinners();
 	}
 
 	generateNewDisplay(): void {
-		this.generateNewMons();
+		while (!this.validateGridLearnsets()) {
+			this.pokemonGrid = [];
+			for (let i = 0; i < GRID_ROWS; i++) {
+				const row: string[] = [];
+				for (let j = 0; j < GRID_COLUMNS; j++) {
+					row.push(this.getNextPokemon());
+				}
+				this.pokemonGrid.push(row);
+			}
+		}
 		this.display();
 	}
 
 	display(): void {
-		let html = '<center><table border="2" style="table-layout: fixed;width: ' + (125 * GRID_SIZE) + 'px">';
-		for (let i = 0; i < GRID_SIZE; i++) {
+		let html = '<center><table border="2" style="table-layout: fixed;width: ' + (125 * GRID_COLUMNS) + 'px">';
+		for (const row of this.pokemonGrid) {
 			html += '<tr style="line-height: 3">';
-			for (let j = 0; j < GRID_SIZE; j++) {
-				const pokemon = Dex.getExistingPokemon(this.pokemonGrid[i][j]);
+			for (const square of row) {
+				const pokemon = Dex.getExistingPokemon(square);
 				html += '<td>' + Dex.getPokemonIcon(pokemon) + pokemon.name + '</td>';
 			}
 			html += "</tr>";
@@ -95,6 +135,22 @@ const commands: GameCommandDefinitions<TrevenantsTrickOrTreat> = {
 			}
 
 			const player = this.createPlayer(user) || this.players[user.id];
+			let overallMoves = this.overallMoves.get(player);
+			if (!overallMoves) {
+				overallMoves = {};
+				this.overallMoves.set(player, overallMoves);
+			}
+
+			if (move.id in overallMoves) {
+				if (overallMoves[move.id] === OVERALL_MOVES_LIMIT) {
+					user.say("You cannot use a move more than " + OVERALL_MOVES_LIMIT + " times.");
+					return false;
+				}
+			} else {
+				overallMoves[move.id] = 0;
+			}
+			overallMoves[move.id]++;
+
 			const lastMoves = this.lastMoves.get(player) || [];
 			if (lastMoves.includes(move.id)) {
 				user.say("You must use at least " + LAST_MOVES_LIMIT + " other moves before using " + move.name + " again.");
@@ -102,8 +158,8 @@ const commands: GameCommandDefinitions<TrevenantsTrickOrTreat> = {
 			}
 
 			const indices: [number, number][] = [];
-			for (let i = 0; i < GRID_SIZE; i++) {
-				for (let j = 0; j < GRID_SIZE; j++) {
+			for (let i = 0; i < GRID_ROWS; i++) {
+				for (let j = 0; j < GRID_COLUMNS; j++) {
 					const pokemon = Dex.getExistingPokemon(this.pokemonGrid[i][j]);
 					if (data.allPossibleMoves[pokemon.id].includes(move.id)) {
 						indices.push([i, j]);
@@ -137,17 +193,20 @@ const commands: GameCommandDefinitions<TrevenantsTrickOrTreat> = {
 				"total is now **" + totalPoints + "**.");
 			if (totalPoints >= this.format.options.points) {
 				this.winners.set(player, totalPoints);
-				for (const i in this.players) {
-					if (this.players[i].eliminated || !this.points.has(this.players[i])) continue;
-					this.addBits(this.players[i], this.points.get(this.players[i])! / 2);
-				}
 				this.end();
 				return true;
 			}
-			this.pokemonGrid[indices[0][0]][indices[0][1]] = this.getNextMon();
-			this.display();
-			if (this.timeout) clearTimeout(this.timeout);
-			this.timeout = setTimeout(() => this.generateNewDisplay(), 60 * 1000);
+
+			this.pokemonGrid[indices[0][0]][indices[0][1]] = this.getNextPokemon();
+			if (!this.validateGridLearnsets()) {
+				this.say("There are no unique moves remaining! Generating a new grid.");
+				this.generateNewDisplay();
+			} else {
+				this.display();
+				if (this.timeout) clearTimeout(this.timeout);
+				this.timeout = setTimeout(() => this.generateNewDisplay(), 60 * 1000);
+			}
+
 			return true;
 		},
 		pmGameCommand: true,
