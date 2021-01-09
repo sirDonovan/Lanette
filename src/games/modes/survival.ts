@@ -170,7 +170,8 @@ const tests: GameFileTests<SurvivalThis> = {
 			const currentPlayer = game.currentPlayer;
 			assert(currentPlayer);
 			game.canGuess = true;
-			runCommand(attributes.commands![0], game.answers[0], game.room, currentPlayer.name);
+			runCommand(game.answerCommands ? game.answerCommands[0] : attributes.commands![0], game.answers[0], game.room,
+				currentPlayer.name);
 			assert(!currentPlayer.eliminated);
 			await game.onNextRound();
 			assert(game.currentPlayer !== currentPlayer);
@@ -191,7 +192,7 @@ const tests: GameFileTests<SurvivalThis> = {
 			const currentPlayer = game.currentPlayer;
 			assert(currentPlayer);
 			game.canGuess = true;
-			runCommand(attributes.commands![0], 'mocha', game.room, currentPlayer.name);
+			runCommand(game.answerCommands ? game.answerCommands[0] : attributes.commands![0], 'mocha', game.room, currentPlayer.name);
 			// answers cleared when time runs out
 			game.answers = [];
 			await game.onNextRound();

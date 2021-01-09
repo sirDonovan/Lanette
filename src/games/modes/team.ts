@@ -252,7 +252,7 @@ const initialize = (game: QuestionAndAnswer): void => {
 };
 
 const tests: GameFileTests<TeamThis> = {
-	'it should advance players who answer correctly': {
+	'it should award points for correct answers': {
 		config: {
 			async: true,
 			commands: [['guess'], ['g']],
@@ -271,7 +271,8 @@ const tests: GameFileTests<TeamThis> = {
 			assert(currentPlayer);
 			game.canGuess = true;
 			const expectedPoints = game.getPointsForAnswer ? game.getPointsForAnswer(game.answers[0], Date.now()) : 1;
-			runCommand(attributes.commands![0], game.answers[0], game.room, currentPlayer.name);
+			runCommand(game.answerCommands ? game.answerCommands[0] : attributes.commands![0], game.answers[0], game.room,
+				currentPlayer.name);
 			assertStrictEqual(game.points.get(currentPlayer), expectedPoints);
 			assertStrictEqual(team.points, expectedPoints);
 		},
