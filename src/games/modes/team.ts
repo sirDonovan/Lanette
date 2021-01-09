@@ -174,6 +174,7 @@ const commandDefinitions: GameCommandDefinitions<TeamThis> = {
 	guess: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user, cmd, timestamp): GameCommandReturnType {
+			if (this.answerCommands && !this.answerCommands.includes(cmd)) return false;
 			if (!this.canGuessAnswer(this.players[user.id])) return false;
 
 			const player = this.players[user.id];
