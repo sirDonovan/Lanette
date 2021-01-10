@@ -113,13 +113,16 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 		const maxShinyCoordinates = this.maxCorrectPlayersPerRound === Infinity ? 1 : this.maxCorrectPlayersPerRound;
 		for (let i = 0; i < maxShinyCoordinates; i++) {
 			let shinyCoordinates = [this.random(horizontalCount), this.random(verticalCount) + 1] as [number, number];
-			while (this.checkLastShinyCoordinates(shinyCoordinates) ||
-				this.validateShinyCoordinates(shinyCoordinates[0], shinyCoordinates[1])) {
+			let attempts = 0;
+			while ((this.checkLastShinyCoordinates(shinyCoordinates) ||
+				this.validateShinyCoordinates(shinyCoordinates[0], shinyCoordinates[1])) && attempts < 50) {
 				shinyCoordinates = [this.random(horizontalCount), this.random(verticalCount) + 1] as [number, number];
+				attempts++;
 			}
 
 			this.shinyCoordinates.push(shinyCoordinates);
 		}
+
 		this.lastShinyCoordinates = this.shinyCoordinates;
 		this.roundGridSize = [horizontalCount - 1, verticalCount];
 
