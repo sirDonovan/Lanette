@@ -275,6 +275,12 @@ export class ScriptedGame extends Game {
 		this.deallocate(false);
 	}
 
+	errorEnd(): void {
+		this.say("Ending the game due to an error.");
+		Games.disableFormat(this.format);
+		this.deallocate(false);
+	}
+
 	getHighlightPhrase(): string {
 		return Games.scriptedGameHighlight + " " + this.id;
 	}
@@ -304,7 +310,17 @@ export class ScriptedGame extends Game {
 		}
 
 		if (this.shinyMascot) this.say(this.mascot!.name + " is shiny so bits will be doubled!");
-		if (this.onSignups) this.onSignups();
+
+		if (this.onSignups) {
+			try {
+				this.onSignups();
+			} catch (e) {
+				console.log(e);
+				Tools.logError(e, this.format.name + " onSignups()");
+				this.errorEnd();
+				return;
+			}
+		}
 
 		if (this.format.options.freejoin) {
 			this.started = true;
@@ -347,7 +363,16 @@ export class ScriptedGame extends Game {
 		}
 
 		if (!this.internalGame) this.say(this.name + " is starting! **Players (" + this.playerCount + ")**: " + this.getPlayerNames());
-		if (this.onStart) this.onStart();
+
+		if (this.onStart) {
+			try {
+				this.onStart();
+			} catch (e) {
+				console.log(e);
+				Tools.logError(e, this.format.name + " onStart()");
+				this.errorEnd();
+			}
+		}
 
 		return true;
 	}
@@ -359,7 +384,15 @@ export class ScriptedGame extends Game {
 		// @ts-expect-error
 		this.round++;
 		if (this.maxRound && this.round > this.maxRound) {
-			if (this.onMaxRound) this.onMaxRound();
+			if (this.onMaxRound) {
+				try {
+					this.onMaxRound();
+				} catch (e) {
+					console.log(e);
+					Tools.logError(e, this.format.name + " onMaxRound()");
+					this.errorEnd();
+				}
+			}
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (!this.ended) this.end();
 			return;
@@ -368,7 +401,14 @@ export class ScriptedGame extends Game {
 		if (this.timeLimit && (Date.now() - this.startTime) >= this.timeLimit) {
 			let timeEnded = false;
 			if (this.onTimeLimit) {
-				if (this.onTimeLimit()) timeEnded = true;
+				try {
+					if (this.onTimeLimit()) timeEnded = true;
+				} catch (e) {
+					console.log(e);
+					Tools.logError(e, this.format.name + " onTimeLimit()");
+					this.errorEnd();
+					return;
+				}
 			} else {
 				timeEnded = true;
 			}
@@ -382,7 +422,15 @@ export class ScriptedGame extends Game {
 			}
 		}
 
-		if (this.onNextRound) this.onNextRound();
+		if (this.onNextRound) {
+			try {
+				this.onNextRound();
+			} catch (e) {
+				console.log(e);
+				Tools.logError(e, this.format.name + " onNextRound()");
+				this.errorEnd();
+			}
+		}
 	}
 
 	getRoundHtml(getAttributes: (players: PlayerList) => string, players?: PlayerList | null, roundText?: string,
@@ -425,7 +473,16 @@ export class ScriptedGame extends Game {
 			}
 		}
 
-		if (this.onEnd) this.onEnd();
+		if (this.onEnd) {
+			try {
+				this.onEnd();
+			} catch (e) {
+				console.log(e);
+				Tools.logError(e, this.format.name + " onEnd()");
+				this.errorEnd();
+				return;
+			}
+		}
 
 		const now = Date.now();
 		let usedDatabase = false;
@@ -472,7 +529,15 @@ export class ScriptedGame extends Game {
 			}
 		}
 
-		if (this.onForceEnd) this.onForceEnd(user, reason);
+		if (this.onForceEnd) {
+			try {
+				this.onForceEnd(user, reason);
+			} catch (e) {
+				console.log(e);
+				Tools.logError(e, this.format.name + " onForceEnd()");
+			}
+		}
+
 		this.ended = true;
 		this.deallocate(true);
 	}
@@ -486,7 +551,16 @@ export class ScriptedGame extends Game {
 		if (this.startTimer) clearTimeout(this.startTimer);
 
 		if ((!this.started || this.format.options.freejoin) && this.notifyRankSignups) this.sayCommand("/notifyoffrank all");
-		if (this.onDeallocate) this.onDeallocate(forceEnd);
+
+		if (this.onDeallocate) {
+			try {
+				this.onDeallocate(forceEnd);
+			} catch (e) {
+				console.log(e);
+				Tools.logError(e, this.format.name + " onDeallocate()");
+			}
+		}
+
 		if (this.room.game === this) delete this.room.game;
 
 		if (this.parentGame) {
@@ -495,7 +569,14 @@ export class ScriptedGame extends Game {
 			if (this.parentGame.onChildEnd) this.parentGame.onChildEnd(this.winners);
 		}
 
-		if (this.onAfterDeallocate) this.onAfterDeallocate(forceEnd);
+		if (this.onAfterDeallocate) {
+			try {
+				this.onAfterDeallocate(forceEnd);
+			} catch (e) {
+				console.log(e);
+				Tools.logError(e, this.format.name + " onAfterDeallocate()");
+			}
+		}
 	}
 
 	inheritPlayers(players: Dict<Player>): void {
@@ -503,7 +584,16 @@ export class ScriptedGame extends Game {
 
 		for (const i in players) {
 			this.players[i] = players[i];
-			if (this.onAddPlayer && !this.format.options.freejoin) this.onAddPlayer(this.players[i]);
+			if (this.onAddPlayer && !this.format.options.freejoin) {
+				try {
+					this.onAddPlayer(this.players[i]);
+				} catch (e) {
+					console.log(e);
+					Tools.logError(e, this.format.name + " onAddPlayer()");
+					this.errorEnd();
+					return;
+				}
+			}
 			this.playerCount++;
 		}
 	}
@@ -516,12 +606,36 @@ export class ScriptedGame extends Game {
 
 		const player = this.createPlayer(user);
 		if (!player) {
-			if (this.onAddExistingPlayer) this.onAddExistingPlayer(this.players[user.id]);
+			if (this.onAddExistingPlayer) {
+				try {
+					this.onAddExistingPlayer(this.players[user.id]);
+				} catch (e) {
+					console.log(e);
+					Tools.logError(e, this.format.name + " onAddExistingPlayer()");
+					this.errorEnd();
+				}
+			}
 			return;
 		}
 
-		if ((this.started && (!this.canLateJoin || (this.playerCap && this.playerCount >= this.playerCap))) ||
-			(this.onAddPlayer && !this.onAddPlayer(player, this.started))) {
+		if (this.started && (!this.canLateJoin || (this.playerCap && this.playerCount >= this.playerCap))) {
+			this.destroyPlayer(user, true);
+			return;
+		}
+
+		let addPlayerResult: boolean | undefined = true;
+		if (this.onAddPlayer) {
+			try {
+				addPlayerResult = this.onAddPlayer(player, this.started);
+			} catch (e) {
+				console.log(e);
+				Tools.logError(e, this.format.name + " onAddPlayer()");
+				this.errorEnd();
+				return;
+			}
+		}
+
+		if (!addPlayerResult) {
 			this.destroyPlayer(user, true);
 			return;
 		}
@@ -540,7 +654,16 @@ export class ScriptedGame extends Game {
 					this.lateJoinQueue.splice(this.lateJoinQueue.indexOf(queuedPlayer, 1));
 				}
 
-				if (this.onAddLateJoinQueuedPlayers) this.onAddLateJoinQueuedPlayers(queuedPlayers);
+				if (this.onAddLateJoinQueuedPlayers) {
+					try {
+						this.onAddLateJoinQueuedPlayers(queuedPlayers);
+					} catch (e) {
+						console.log(e);
+						Tools.logError(e, this.format.name + " onAddLateJoinQueuedPlayers()");
+						this.errorEnd();
+						return;
+					}
+				}
 			} else {
 				player.frozen = true;
 				const playersNeeded = this.lateJoinQueueSize! - this.lateJoinQueue.length;
@@ -603,7 +726,17 @@ export class ScriptedGame extends Game {
 			}
 		}
 
-		if (this.onRemovePlayer) this.onRemovePlayer(player);
+		if (this.onRemovePlayer) {
+			try {
+				this.onRemovePlayer(player);
+			} catch (e) {
+				console.log(e);
+				Tools.logError(e, this.format.name + " onRemovePlayer()");
+				this.errorEnd();
+				return;
+			}
+		}
+
 		if (!this.internalGame) this.removeBits(player, JOIN_BITS, silent);
 		if (this.usesHtmlPage) player.closeHtmlPage();
 	}
@@ -620,7 +753,16 @@ export class ScriptedGame extends Game {
 	eliminatePlayer(player: Player, eliminationCause?: string | null, eliminator?: Player | null): void {
 		player.eliminated = true;
 		player.say((eliminationCause ? eliminationCause + " " : "") + "You have been eliminated from the game.");
-		if (this.onEliminatePlayer) this.onEliminatePlayer(player, eliminationCause, eliminator);
+
+		if (this.onEliminatePlayer) {
+			try {
+				this.onEliminatePlayer(player, eliminationCause, eliminator);
+			} catch (e) {
+				console.log(e);
+				Tools.logError(e, this.format.name + " onEliminatePlayer()");
+				this.errorEnd();
+			}
+		}
 	}
 
 	getCommandsAndAliases(commands: string[]): string[] {
@@ -722,7 +864,16 @@ export class ScriptedGame extends Game {
 			if (commandDefinition.pmOnly) return false;
 		}
 
-		const result: GameCommandReturnType = commandDefinition.command.call(this, target, room, user, command, timestamp);
+		let result: GameCommandReturnType = false;
+		try {
+			result = commandDefinition.command.call(this, target, room, user, command, timestamp);
+		} catch (e) {
+			console.log(e);
+			Tools.logError(e, this.format.name + " command " + command);
+			this.errorEnd();
+			return false;
+		}
+
 		if (!result) return false;
 
 		const triggeredListeners: IGameCommandCountListener[] = [];
@@ -733,7 +884,15 @@ export class ScriptedGame extends Game {
 				commandListener.lastUserId = user.id;
 
 				if (commandListener.count >= commandListener.max) {
-					commandListener.listener(commandListener.lastUserId);
+					try {
+						commandListener.listener(commandListener.lastUserId);
+					} catch (e) {
+						console.log(e);
+						Tools.logError(e, this.format.name + " command listener for [" + commandListener.commands.join(', ') + "]");
+						this.errorEnd();
+						return false;
+					}
+
 					triggeredListeners.push(commandListener);
 				}
 				break;

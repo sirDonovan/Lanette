@@ -1004,6 +1004,13 @@ export class Games {
 		return room.userHostedGame;
 	}
 
+	disableFormat(format: IGameFormat): void {
+		if (format.id in this.formats) {
+			// @ts-expect-error
+			this.formats[format.id].disabled = true;
+		}
+	}
+
 	banFromNextVote(room: Room, format: IGameFormat): void {
 		if (!(room.id in this.nextVoteBans)) this.nextVoteBans[room.id] = [];
 		this.nextVoteBans[room.id].push(format.inputTarget);

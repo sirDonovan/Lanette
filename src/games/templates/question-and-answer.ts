@@ -97,10 +97,24 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		this.nextRound();
 	}
 
-	async setNextAnswer(): Promise<void> {
-		await this.generateAnswer();
-		while (this.minimumAnswersPerHint && this.answers.length < this.minimumAnswersPerHint) {
+	async tryGenerateAnswer(): Promise<void> {
+		try {
 			await this.generateAnswer();
+		} catch (e) {
+			console.log(e);
+			Tools.logError(e, this.format.name + " generateAnswer()");
+			this.errorEnd();
+		}
+	}
+
+	async setNextAnswer(): Promise<void> {
+		await this.tryGenerateAnswer();
+		if (this.ended) return;
+
+		while (this.minimumAnswersPerHint && this.answers.length < this.minimumAnswersPerHint) {
+			await this.tryGenerateAnswer();
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+			if (this.ended) return;
 		}
 
 		if (this.roundGuesses) this.roundGuesses.clear();
