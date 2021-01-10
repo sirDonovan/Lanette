@@ -2268,6 +2268,7 @@ const commands: CommandDefinitions<CommandContext, void> = {
 		command(target, room, user) {
 			if (!this.isPm(room)) return;
 			const targets = target.split(',');
+			if (targets.length < 3) return this.say("You must specify a room, an answer, and a hint for the hangman.");
 			const gameRoom = Rooms.search(targets[0]);
 			if (!gameRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 			if (!gameRoom.userHostedGame || !gameRoom.userHostedGame.isHost(user)) return;
