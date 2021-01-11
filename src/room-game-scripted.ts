@@ -242,6 +242,12 @@ export class ScriptedGame extends Game {
 			html += '<br /><br /><button class="button" name="parseCommand" value="/highlight roomadd ' +
 				this.getHighlightPhrase() + '">Enable game highlights</button> | <button class="button" name="parseCommand" ' +
 				'value="/highlight roomdelete ' + this.getHighlightPhrase() + '">Disable game highlights</button>';
+
+			if (this.format.mode) {
+				html += '<br /><button class="button" name="parseCommand" value="/highlight roomadd ' +
+					this.getModeHighlightPhrase() + '">Enable mode highlights</button> | <button class="button" name="parseCommand" ' +
+					'value="/highlight roomdelete ' + this.getModeHighlightPhrase() + '">Disable mode highlights</button>';
+			}
 		}
 
 		html += "</center>";
@@ -285,6 +291,11 @@ export class ScriptedGame extends Game {
 		return Games.scriptedGameHighlight + " " + this.id;
 	}
 
+	getModeHighlightPhrase(): string {
+		if (!this.format.mode) return "";
+		return Games.scriptedGameHighlight + " " + this.format.mode.id;
+	}
+
 	signups(): void {
 		this.signupsTime = Date.now();
 		this.signupsStarted = true;
@@ -307,6 +318,10 @@ export class ScriptedGame extends Game {
 			this.notifyRankSignups = true;
 			this.sayCommand("/notifyrank all, " + (this.room as Room).title + " scripted game," + this.name + "," +
 				this.getHighlightPhrase(), true);
+			if (this.format.mode) {
+				this.sayCommand("/notifyrank all, " + (this.room as Room).title + " scripted game," + this.name + "," +
+					this.getModeHighlightPhrase(), true);
+			}
 		}
 
 		if (this.shinyMascot) this.say(this.mascot!.name + " is shiny so bits will be doubled!");
