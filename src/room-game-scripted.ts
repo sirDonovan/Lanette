@@ -32,7 +32,7 @@ export class ScriptedGame extends Game {
 	internalGame: boolean = false;
 	lateJoinQueue: Player[] = [];
 	readonly loserPointsToBits: number = 10;
-	readonly maxBits: number = 1000;
+	readonly maxBits: number = 500;
 	notifyRankSignups: boolean = false;
 	parentGame: ScriptedGame | undefined;
 	startTime: number = 0;
@@ -921,14 +921,18 @@ export class ScriptedGame extends Game {
 		return result;
 	}
 
-	addBits(user: User | Player, bits: number, noPm?: boolean): boolean {
+	addBits(user: User | Player, bits: number, noPm?: boolean, achievementBits?: boolean): boolean {
 		if (this.isPm(this.room) || !Config.rankedGames || !Config.rankedGames.includes(this.room.id) ||
 			(this.parentGame && this.parentGame.allowChildGameBits !== true)) return false;
 
 		bits = Math.floor(bits);
 		if (bits <= 0) return false;
-		if (bits > this.maxBits) bits = this.maxBits;
-		if (this.shinyMascot) bits *= 2;
+
+		if (!achievementBits) {
+			if (bits > this.maxBits) bits = this.maxBits;
+			if (this.shinyMascot) bits *= 2;
+		}
+
 		Storage.addPoints(this.room, Storage.gameLeaderboard, user.name, bits, this.format.id);
 		if (!noPm) {
 			user.say("You were awarded " + bits + " bits! To see your total amount, use the command ``" + Config.commandCharacter +
@@ -1023,10 +1027,10 @@ export class ScriptedGame extends Game {
 
 			if (repeat) {
 				repeatUnlock.push(player);
-				this.addBits(player, achievement.repeatBits!);
+				this.addBits(player, achievement.repeatBits!, false, true);
 			} else {
 				firstUnlock.push(player);
-				this.addBits(player, achievement.bits);
+				this.addBits(player, achievement.bits, false, true);
 			}
 		}
 

@@ -103,11 +103,11 @@ class CrustlesCrumblingBlocks extends ScriptedGame {
 
 	onEnd(): void {
 		const remainingPlayers = Object.keys(this.getRemainingPlayers());
-		if (remainingPlayers.length) {
+		if (remainingPlayers.length <= 2) {
 			for (let i = 0; i < 2; i++) {
 				if (!remainingPlayers[i]) break;
 				this.winners.set(this.players[remainingPlayers[i]], 1);
-				this.addBits(this.players[remainingPlayers[i]], i === 0 ? 500 : 250);
+				this.addBits(this.players[remainingPlayers[i]], 250);
 			}
 		}
 		this.announceWinners();

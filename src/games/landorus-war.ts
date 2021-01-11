@@ -114,15 +114,20 @@ class LandorusWar extends ScriptedGame {
 	}
 
 	onEnd(): void {
+		const winner = this.getFinalPlayer();
+
 		for (const i in this.players) {
 			const player = this.players[i];
+			if (player === winner) continue;
 			const caught = this.suspectedPlayers.get(player);
-			if (!caught) continue;
-			this.addBits(player, Math.min(1000, 125 * caught));
+			if (caught) this.addBits(player, 50 * caught);
 		}
 
-		const winner = this.getFinalPlayer();
-		if (winner) this.winners.set(winner, 1);
+		if (winner) {
+			this.winners.set(winner, 1);
+			this.addBits(winner, 500);
+		}
+
 		this.announceWinners();
 	}
 

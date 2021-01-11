@@ -768,16 +768,14 @@ class HauntersHauntedHouse extends ScriptedGame {
 
 	onEnd(): void {
 		const playersWin = this.getRemainingPlayerCount() > 0;
-		const bits = Math.floor(this.collectedCandy / 6);
+		const bits = Math.floor(this.collectedCandy / (playersWin ? 6 : 9));
 		for (const id in this.players) {
 			const player = this.players[id];
 			if (player.eliminated && !this.eliminatedPlayers.has(player)) continue;
 			if (playersWin) {
 				this.winners.set(this.players[id], 1);
-				this.addBits(this.players[id], bits);
-			} else {
-				this.addBits(this.players[id], bits / 2);
 			}
+			this.addBits(this.players[id], bits);
 		}
 
 		this.announceWinners();
