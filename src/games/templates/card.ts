@@ -239,8 +239,8 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 		const eggGroups = [];
 		for (const eggGroup of card.eggGroups) {
 			const colorData = Tools.hexColorCodes[Tools.eggGroupHexColors[eggGroup]];
-			eggGroups.push('<div style="display:inline-block;background-color:' + colorData['background-color'] + ';background:' +
-				colorData['background'] + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;' +
+			eggGroups.push('<div style="display:inline-block;background-color:' + colorData.color + ';background:' +
+				colorData.gradient + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;' +
 				'padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt;text-align:center"><b>' +
 				eggGroup + '</b></div>');
 		}
@@ -249,8 +249,8 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 
 	getChatColorLabel(card: IPokemonCard): string {
 		const colorData = Tools.hexColorCodes[Tools.pokemonColorHexColors[card.color]];
-		return '<div style="display:inline-block;background-color:' + colorData['background-color'] + ';background:' +
-			colorData['background'] + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;padding:1px;' +
+		return '<div style="display:inline-block;background-color:' + colorData.color + ';background:' +
+			colorData.gradient + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;padding:1px;' +
 			'color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt;text-align:center"><b>' + card.color +
 			'</b></div>';
 	}
@@ -268,8 +268,8 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 				names.push(card.name);
 				const colorData = Tools.hexColorCodes[Tools.typeHexColors[card.type]];
 				image = '<div style="display:inline-block;height:51px;width:' + (this.detailLabelWidth + 10) + '"><br /><div ' +
-					'style="display:inline-block;background-color:' + colorData['background-color'] + ';background:' +
-					colorData['background'] + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;' +
+					'style="display:inline-block;background-color:' + colorData.color + ';background:' +
+					colorData.gradient + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;' +
 					'padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt"><b>' + card.type +
 					'</b></div></div>';
 				width += this.detailLabelWidth;

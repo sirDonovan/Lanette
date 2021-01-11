@@ -3,7 +3,7 @@ import { addPlayers, assertStrictEqual } from "../../test/test-tools";
 import type {
 	GameCategory, GameCommandDefinitions, GameFileTests, IGameAchievement, IGameTemplateFile
 } from "../../types/games";
-import type { HexColor } from "../../types/tools";
+import type { NamedHexCode } from "../../types/tools";
 import type { BoardActionCard, BoardSide, IBoard, IMovedBoardLocation } from "./board";
 import { BoardGame, BoardSpace, game as boardGame } from "./board";
 
@@ -20,7 +20,7 @@ export class BoardPropertySpace extends BoardSpace {
 
 	cost: number;
 
-	constructor(name: string, color: HexColor, cost: number) {
+	constructor(name: string, color: NamedHexCode, cost: number) {
 		super(name, color);
 
 		this.cost = cost;
@@ -30,7 +30,7 @@ export class BoardPropertySpace extends BoardSpace {
 export class BoardPropertyEliminationSpace extends BoardPropertySpace {
 	eliminationChance: number;
 
-	constructor(name: string, color: HexColor, cost: number, eliminationChance: number) {
+	constructor(name: string, color: NamedHexCode, cost: number, eliminationChance: number) {
 		super(name, color, cost);
 
 		this.eliminationChance = eliminationChance;
@@ -40,7 +40,7 @@ export class BoardPropertyEliminationSpace extends BoardPropertySpace {
 export class BoardPropertyRentSpace extends BoardPropertySpace {
 	rent: number;
 
-	constructor(name: string, color: HexColor, cost: number) {
+	constructor(name: string, color: NamedHexCode, cost: number) {
 		super(name, color, cost);
 
 		this.rent = cost;
@@ -50,7 +50,7 @@ export class BoardPropertyRentSpace extends BoardPropertySpace {
 export class BoardEliminationSpace extends BoardSpace {
 	eliminationChance: BoardEliminationType;
 
-	constructor(name: string, color: HexColor, eliminationChance: BoardEliminationType) {
+	constructor(name: string, color: NamedHexCode, eliminationChance: BoardEliminationType) {
 		super(name, color);
 
 		this.eliminationChance = eliminationChance;
@@ -60,7 +60,7 @@ export class BoardEliminationSpace extends BoardSpace {
 export class BoardRentSpace extends BoardSpace {
 	rent: BoardRentType;
 
-	constructor(name: string, color: HexColor, rent: BoardRentType) {
+	constructor(name: string, color: NamedHexCode, rent: BoardRentType) {
 		super(name, color);
 
 		this.rent = rent;
@@ -283,7 +283,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 
 	getSpaceHtml(side: BoardSide, space: number, playerLocations: KeyedDict<BoardSide, Dict<Player[]>>): string {
 		const boardSpace = this.board[side][space];
-		let html = "<td style='background: " + Tools.hexColorCodes[boardSpace.color]["background"] + "'>";
+		let html = "<td style='background: " + Tools.getNamedHexCode(boardSpace.color).gradient + "'>";
 		if (space in playerLocations[side]) {
 			html += playerLocations[side][space].length > 1 ? "*" : this.playerLetters.get(playerLocations[side][space][0]);
 		} else if (boardSpace instanceof BoardPropertySpace && boardSpace.owner) {

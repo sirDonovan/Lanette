@@ -1,6 +1,7 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { GameCommandDefinitions, IGameAchievement, IGameFile } from "../types/games";
+import type { NamedHexCode } from "../types/tools";
 
 type AchievementNames = "fishoutofwater" | "goldenmagikarp" | "hightidesurvivor";
 
@@ -82,12 +83,11 @@ class MagikarpsWaterWheel extends ScriptedGame {
 	spinWheel(player: Player): void {
 		const wheel = this.playerWheels.get(player)!;
 		const wheelStats = this.wheels[wheel];
-		const colorData = Tools.hexColorCodes[wheel];
+		const colorData = Tools.getNamedHexCode(wheel as NamedHexCode);
 		let html = '<div class="infobox"><center>';
-		html += '<div style="display:inline-block;background:' + colorData['background'] + ';background:' +
-			colorData['background'] + ';border: 1px solid #a99890;border-radius:3px;width:100px;padding:1px;color:#fff;' +
-			'text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt;text-align:center"><b>' +
-			wheel.charAt(0).toUpperCase() + wheel.substr(1) + '</b></div>';
+		html += '<div style="display:inline-block;background:' + colorData.gradient + ';border: 1px solid #a99890;border-radius:3px;' +
+			'width:100px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt;text-align:center">' +
+			'<b>' + wheel.charAt(0).toUpperCase() + wheel.substr(1) + '</b></div>';
 		let magikarp = false;
 		let goldenMagikarp = false;
 		if (this.random(100) <= wheelStats.magikarpChance) {

@@ -261,13 +261,14 @@ export abstract class MapGame extends ScriptedGame {
 			[mapKeys.unknown]: 'an unknown space',
 		};
 
+		const whiteHex = Tools.getNamedHexCode('White');
 		let mapHtml = '<table align="center" border="2" ' +
 			'style="color: black;font-weight: bold;text-align: center;table-layout: fixed;width: ' +
 			(25 * floor.x) + 'px">';
 		for (let y = floor.y - 1; y >= 0; y--) {
 			mapHtml += '<tr>';
 			for (let x = 0; x < floor.x; x++) {
-				mapHtml += "<td style='background: " + Tools.hexColorCodes['White']["background"] + "'>";
+				mapHtml += "<td style='background: " + whiteHex.gradient + "'>";
 				const coordinates = this.coordinatesToString(x, y);
 				const space = floor.spaces[coordinates];
 				mapHtml += '<span title="' + coordinates + '">';

@@ -3,7 +3,7 @@ import type { Room } from "../rooms";
 import type { CommandDefinitions } from "../types/command-parser";
 import type { IPokemon } from "../types/pokemon-showdown";
 import type { IGameHostBox } from "../types/storage";
-import type { HexColor } from "../types/tools";
+import type { HexCode } from "../types/tools";
 import type { User } from "../users";
 import { HtmlPageBase } from "./html-page-base";
 
@@ -60,9 +60,9 @@ class GameHostBox extends HtmlPageBase {
 		html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
 				setBackgroundColorCommand + "," + noBackground, "None", !hostBox || !hostBox.background);
 
-		const colors = Object.keys(Tools.hexColorCodes) as HexColor[];
+		const colors = Object.keys(Tools.hexColorCodes) as HexCode[];
 		for (const color of colors) {
-			const colorDiv = "<div style='background: " + Tools.hexColorCodes[color].background + ";height: 15px;width: 15px'>&nbsp;</div>";
+			const colorDiv = "<div style='background: " + Tools.hexColorCodes[color].gradient + ";height: 15px;width: 15px'>&nbsp;</div>";
 			html += "&nbsp;" + Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
 				setBackgroundColorCommand + "," + color, colorDiv, hostBox && hostBox.background === color);
 		}
@@ -73,8 +73,8 @@ class GameHostBox extends HtmlPageBase {
 				setButtonColorCommand + "," + noBackground, "None", !hostBox || !hostBox.buttons);
 
 		for (const color of colors) {
-			if (!color.startsWith('Light-') && !color.startsWith('Dark-')) continue;
-			const colorDiv = "<div style='background: " + Tools.hexColorCodes[color]['background-color'] + ";height: 15px;width: 15px'>" +
+			if (!Tools.hexColorCodes[color].category) continue;
+			const colorDiv = "<div style='background: " + Tools.hexColorCodes[color].color + ";height: 15px;width: 15px'>" +
 				"&nbsp;</div>";
 			html += "&nbsp;" + Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
 				setButtonColorCommand + "," + color, colorDiv, hostBox && hostBox.buttons === color);
@@ -192,7 +192,7 @@ export const commands: CommandDefinitions<CommandContext> = {
 				if (clear) {
 					delete database.gameHostBoxes[user.id].background;
 				} else {
-					database.gameHostBoxes[user.id].background = color as HexColor;
+					database.gameHostBoxes[user.id].background = color as HexCode;
 				}
 
 				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
@@ -200,7 +200,7 @@ export const commands: CommandDefinitions<CommandContext> = {
 			} else if (cmd === setButtonColorCommand || cmd === 'setbuttoncolor' || cmd === 'setbuttons' || cmd === 'setbutton') {
 				const color = targets[0].trim();
 				const clear = color === noBackground;
-				if (!clear && (!(color in Tools.hexColorCodes) || (!color.startsWith('Light-') && !color.startsWith('Dark-')))) {
+				if (!clear && (!(color in Tools.hexColorCodes) || !Tools.hexColorCodes[color as HexCode].category)) {
 					return this.say("'" + color + "' is not a valid button color.");
 				}
 
@@ -208,7 +208,7 @@ export const commands: CommandDefinitions<CommandContext> = {
 				if (clear) {
 					delete database.gameHostBoxes[user.id].buttons;
 				} else {
-					database.gameHostBoxes[user.id].buttons = color as HexColor;
+					database.gameHostBoxes[user.id].buttons = color as HexCode;
 				}
 
 				if (!(user.id in pages)) new GameHostBox(targetRoom, user);

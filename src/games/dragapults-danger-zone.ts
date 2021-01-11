@@ -2,7 +2,7 @@ import type { Player, PlayerTeam } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { GameCommandDefinitions, IGameFile } from "../types/games";
 import type { IPokemon } from "../types/pokemon-showdown";
-import type { HexColor } from "../types/tools";
+import type { IHexCodeData } from "../types/tools";
 
 type TeamIds = 'red' | 'blue';
 
@@ -51,8 +51,9 @@ class DragapultsDangerZone extends ScriptedGame {
 			'style="color: black;font-weight: bold;text-align: center;table-layout: fixed;width: ' +
 			(25 * ((this.gridSize * 2) + 1)) + 'px"><tr style="height:25px"><td>&nbsp;</td>';
 
+		const lightGray = Tools.getNamedHexCode("Light-Gray");
 		for (const letter of this.columnLetters) {
-			html += '<td style="background: ' + Tools.hexColorCodes["Light-Gray"]["background"] + '">' + letter + '</td>';
+			html += '<td style="background: ' + lightGray.gradient + '">' + letter + '</td>';
 		}
 		html += '</tr>';
 
@@ -62,9 +63,10 @@ class DragapultsDangerZone extends ScriptedGame {
 			if (location) playerLocations[location] = this.players[i];
 		}
 
-		const hexColors: HexColor[] = ['Red', 'Blue', 'Violet'];
+		const eliminatedPlayerColor = Tools.getNamedHexCode('Yellow');
+		const hexColors: IHexCodeData[] = [Tools.getNamedHexCode('Red'), Tools.getNamedHexCode('Blue'), Tools.getNamedHexCode('Violet')];
 		for (let i = 1; i <= this.gridSize; i++) {
-			html += '<tr style="height:25px"><td style="background: ' + Tools.hexColorCodes["Light-Gray"]["background"] + '">' +
+			html += '<tr style="height:25px"><td style="background: ' + lightGray.gradient + '">' +
 				i + '</td>';
 
 			let currentTeamIndex = this.teamBased ? 0 : 2;
@@ -74,13 +76,13 @@ class DragapultsDangerZone extends ScriptedGame {
 				}
 				const letter = this.columnLetters[j];
 				const location = letter + i;
-				let locationColor = Tools.hexColorCodes[hexColors[currentTeamIndex]]["background"];
+				let locationColor = hexColors[currentTeamIndex].gradient;
 				let locationSymbol = '';
 				if (this.revealedLocations.includes(location)) {
 					if (location in playerLocations) {
 						locationSymbol = '<span title="' + playerLocations[location].name + '">' + mapSymbols.player + '</span>';
 						if (playerLocations[location].eliminated) {
-							locationColor = Tools.hexColorCodes['Yellow']["background"];
+							locationColor = eliminatedPlayerColor.gradient;
 						}
 					} else {
 						locationSymbol = mapSymbols.empty;

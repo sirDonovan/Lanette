@@ -43,10 +43,12 @@ export abstract class CardHighLow extends Card {
 	}
 
 	getCardChatDetails(card: ICard): string {
-		return '<div style="display:inline-block;background-color:' + Tools.hexColorCodes['Black']['background-color'] + ';background:' +
-			Tools.hexColorCodes['Black']['background'] + ';border:1px solid #a99890;border-radius:3px;width:auto;padding:1px;' +
-			'color:#fff;text-shadow:1px 1px 1px #333;text-align:center;font-size:8pt">' +
-			this.getCardDetail(card, this.currentCategory) + ' ' + this.categoryAbbreviations[this.currentCategory] + '</div>';
+		const blackHex = Tools.getNamedHexCode('Black');
+
+		return '<div style="display:inline-block;background-color:' + blackHex.color + ';background:' + blackHex.gradient + ';' +
+			'border:1px solid #a99890;border-radius:3px;width:auto;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;' +
+			'text-align:center;font-size:8pt">' + this.getCardDetail(card, this.currentCategory) + ' ' +
+			this.categoryAbbreviations[this.currentCategory] + '</div>';
 	}
 
 	getCardsPmHtml(cards: ICard[], player?: Player): string {
@@ -95,11 +97,12 @@ export abstract class CardHighLow extends Card {
 			cardHtml += '<br />';
 
 			cardHtml += "<center>";
+
+			const blackHex = Tools.getNamedHexCode('Black');
 			if (this.currentCategory) {
-				cardHtml += '<div style="background-color:' + Tools.hexColorCodes['Black']['background-color'] +
-					';background:' + Tools.hexColorCodes['Black']['background'] + ';border:' + borderSize + 'px solid #a99890;' +
-					'border-radius:3px;padding:' + paddingSize + 'px;color:#fff;text-shadow:1px 1px 1px #333;width:' +
-					currentCategoryWidth + 'px">';
+				cardHtml += '<div style="background-color:' + blackHex.color + ';background:' + blackHex.gradient + ';' +
+					'border:' + borderSize + 'px solid #a99890;border-radius:3px;padding:' + paddingSize + 'px;color:#fff;' +
+					'text-shadow:1px 1px 1px #333;width:' + currentCategoryWidth + 'px">';
 				if (bolded) {
 					cardHtml += '<b>' + info.detail + ' <span title="' + this.categoryNames[this.currentCategory] + '">' +
 						this.categoryAbbreviations[this.currentCategory] + '</span></b>';
@@ -113,8 +116,8 @@ export abstract class CardHighLow extends Card {
 				for (const category of this.detailCategories) {
 					if (category === this.currentCategory) continue;
 					const detail = '' + this.getCardDetail(card, category);
-					cardHtml += '<div style="display:inline-block;background-color:' + Tools.hexColorCodes['Black']['background-color'] +
-						';background:' + Tools.hexColorCodes['Black']['background'] + ';border:' + borderSize + 'px solid #a99890;' +
+					cardHtml += '<div style="display:inline-block;background-color:' + blackHex.color +
+						';background:' + blackHex.gradient + ';border:' + borderSize + 'px solid #a99890;' +
 						'border-radius:3px;padding:' + paddingSize + 'px;color:#fff;text-shadow:1px 1px 1px #333;text-align:center;width:' +
 						categoryWidth + 'px">' + detail + ' <span title="' + this.categoryNames[category] + '">' +
 						this.categoryAbbreviations[category] + "</span></div>";

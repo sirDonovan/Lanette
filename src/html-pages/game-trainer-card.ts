@@ -2,7 +2,7 @@ import type { CommandContext } from "../command-parser";
 import type { Room } from "../rooms";
 import type { CommandDefinitions } from "../types/command-parser";
 import type { IGameTrainerCard } from "../types/storage";
-import type { HexColor } from "../types/tools";
+import type { HexCode } from "../types/tools";
 import type { User } from "../users";
 import { HtmlPageBase } from "./html-page-base";
 
@@ -119,10 +119,10 @@ class GameTrainerCard extends HtmlPageBase {
 		html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
 				setBackgroundColorCommand + "," + noBackground, "None", !trainerCard || !trainerCard.background);
 
-		const colors = Object.keys(Tools.hexColorCodes) as HexColor[];
+		const colors = Object.keys(Tools.hexColorCodes) as HexCode[];
 		for (const color of colors) {
-			if (!color.startsWith("Light-")) continue;
-			const colorDiv = "<div style='background: " + Tools.hexColorCodes[color].background + ";height: 15px;width: 15px'>&nbsp;</div>";
+			if (Tools.hexColorCodes[color].category !== 'light') continue;
+			const colorDiv = "<div style='background: " + Tools.hexColorCodes[color].gradient + ";height: 15px;width: 15px'>&nbsp;</div>";
 			html += "&nbsp;" + Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
 				setBackgroundColorCommand + "," + color, colorDiv, trainerCard && trainerCard.background === color);
 		}
@@ -301,7 +301,7 @@ export const commands: CommandDefinitions<CommandContext> = {
 			} else if (cmd === setBackgroundColorCommand || cmd === 'setbgcolor' || cmd === 'setbackground') {
 				const color = targets[0].trim();
 				const clear = color === noBackground;
-				if (!clear && !(color in Tools.hexColorCodes)) {
+				if (!clear && (!(color in Tools.hexColorCodes) || Tools.hexColorCodes[color as HexCode].category !== 'light')) {
 					return this.say("'" + color + "' is not a valid background color.");
 				}
 
@@ -309,7 +309,7 @@ export const commands: CommandDefinitions<CommandContext> = {
 				if (clear) {
 					delete database.gameTrainerCards[user.id].background;
 				} else {
-					database.gameTrainerCards[user.id].background = color as HexColor;
+					database.gameTrainerCards[user.id].background = color as HexCode;
 				}
 
 				if (user.id in pages) {

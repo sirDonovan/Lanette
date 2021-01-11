@@ -2,7 +2,6 @@ import type { Player } from "./room-activity";
 import { Game } from "./room-game";
 import type { Room } from "./rooms";
 import type { GameDifficulty, IUserHostedFile, IUserHostedFormat } from "./types/games";
-import type { HexColor } from "./types/tools";
 import type { User } from "./users";
 
 const FORCE_END_CREATE_TIMER = 60 * 1000;

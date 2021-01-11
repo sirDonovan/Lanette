@@ -137,11 +137,13 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 		const gifData = Dex.getGifData(pokemon, SPRITE_GENERATION)!;
 		const tableWidth = (this.roundHorizontalCount + 1) * (gifData.w + 2);
 		const rowHeight = gifData.h + 2;
+		const lightGray = Tools.getNamedHexCode('Light-Gray');
+
 		let gridHtml = '<table align="center" border="1" ' +
 			'style="color: black;font-weight: bold;text-align: center;table-layout: fixed;width: ' +
 			tableWidth + 'px"><tr style="height:' + rowHeight + 'px"><td>&nbsp;</td>';
 		for (let i = 0; i < this.roundHorizontalCount; i++) {
-			gridHtml += '<td style="background: ' + Tools.hexColorCodes["White"]["background"] + '">' + letters[i] + '</td>';
+			gridHtml += '<td style="background: ' + lightGray.gradient + '">' + letters[i] + '</td>';
 		}
 		gridHtml += '</tr></table>';
 
@@ -152,7 +154,7 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 		const shinyGif = this.getShinyCurrentGif(pokemon);
 		for (let y = 1; y <= this.roundVerticalCount; y++) {
 			gridHtml += '<tr style="height:' + rowHeight + 'px">';
-			gridHtml += '<td style="background: ' + Tools.hexColorCodes["White"]["background"] + '">' + y + '</td>';
+			gridHtml += '<td style="background: ' + lightGray.gradient + '">' + y + '</td>';
 			for (let x = 0; x < this.roundHorizontalCount; x++) {
 				gridHtml += '<td>';
 				if (this.validateShinyCoordinates(x, y)) {

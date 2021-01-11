@@ -2,13 +2,13 @@ import type { Player } from "../../room-activity";
 import { ScriptedGame } from "../../room-game-scripted";
 import { assert, assertStrictEqual } from "../../test/test-tools";
 import type { GameFileTests, IGameTemplateFile, PlayerList } from "../../types/games";
-import type { HexColor } from "../../types/tools";
+import type { NamedHexCode } from "../../types/tools";
 
 export class BoardSpace {
 	name: string;
-	color: HexColor;
+	color: NamedHexCode;
 
-	constructor(name: string, color: HexColor) {
+	constructor(name: string, color: NamedHexCode) {
 		this.name = name;
 		this.color = color;
 	}

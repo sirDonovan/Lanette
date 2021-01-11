@@ -265,18 +265,19 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		}
 		html += card.name + '<br />';
 
+		const whiteHex = Tools.getNamedHexCode('White');
+		const blackHex = Tools.getNamedHexCode('Black');
+
 		if (card.action) {
 			if (this.usesColors) {
-				html += '<div style="background-color:' + Tools.hexColorCodes['White']['background-color'] +
-					';background:' + Tools.hexColorCodes['White']['background'] + ';border: 1px solid #a99890;border-radius:3px;width:' +
-					this.detailLabelWidth + 'px;padding:1px;color:#333;text-shadow:1px 1px 1px #eee;text-transform: uppercase;' +
-					'text-align:center;font-size:8pt"><b>Action</b></div>';
+				html += '<div style="background-color:' + whiteHex.color + ';background:' + whiteHex.gradient + ';' +
+					'border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;padding:1px;color:#333;' +
+					'text-shadow:1px 1px 1px #eee;text-transform: uppercase;text-align:center;font-size:8pt"><b>Action</b></div>';
 			}
 
-			html += '<div style="background-color:' + Tools.hexColorCodes['Black']['background-color'] +
-				';background:' + Tools.hexColorCodes['Black']['background'] + ';border: 1px solid #a99890;border-radius:3px;width:auto;' +
-				'padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;' +
-				'text-align:center;font-size:8pt"><b>' + card.action.description + '</b></div>';
+			html += '<div style="background-color:' + blackHex.color + ';background:' + blackHex.gradient + ';' +
+				'border: 1px solid #a99890;border-radius:3px;width:auto;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;' +
+				'text-transform: uppercase;text-align:center;font-size:8pt"><b>' + card.action.description + '</b></div>';
 		} else {
 			html += this.getCardPmDetails(card as IPokemonCard);
 		}

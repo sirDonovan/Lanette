@@ -1,4 +1,4 @@
-import type { HexColor } from "./tools";
+import type { HexCode } from "./tools";
 
 interface IEventInformation {
 	name: string;
@@ -48,15 +48,15 @@ export interface IUserHostedGameStats {
 export interface IGameTrainerCard {
 	avatar: string;
 	pokemon: string[];
-	background?: HexColor;
+	background?: HexCode;
 	pokemonGifs?: boolean;
 }
 
 export interface IGameHostBox {
 	pokemon: string[];
 	shinyPokemon: boolean[];
-	background?: HexColor;
-	buttons?: HexColor;
+	background?: HexCode;
+	buttons?: HexCode;
 }
 
 export type UserHostStatus = 'unapproved' | 'novice' | 'approved';

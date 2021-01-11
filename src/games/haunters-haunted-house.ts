@@ -1,25 +1,25 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { GameCommandDefinitions, IGameFile, PlayerList } from "../types/games";
-import type { HexColor } from "../types/tools";
+import type { IHexCodeData, NamedHexCode } from "../types/tools";
 
 class Location {
 	hasCandy: boolean = false;
 	unlocksDoor: Door | null = null;
 
 	canMoveThrough: boolean;
-	color: HexColor;
+	color: IHexCodeData;
 
-	constructor(canMoveThrough: boolean, color: HexColor) {
+	constructor(canMoveThrough: boolean, color: NamedHexCode) {
 		this.canMoveThrough = canMoveThrough;
-		this.color = color;
+		this.color = Tools.getNamedHexCode(color);
 	}
 
-	getColor() {
-		return Tools.hexColorCodes[this.color]['background'];
+	getColor(): IHexCodeData {
+		return this.color;
 	}
 
-	getText() {
+	getText(): string {
 		return "";
 	}
 }
@@ -35,7 +35,7 @@ class Door extends Location {
 
 	getColor() {
 		if (this.canMoveThrough) {
-			return Tools.hexColorCodes[tileColors.unlockedDoor]['background'];
+			return Tools.getNamedHexCode(tileColors.unlockedDoor);
 		} else {
 			return super.getColor();
 		}
@@ -106,14 +106,14 @@ const roomConnectivityChecks = [-2, -1, 1, 2];
 const directions = [[0, 1], [0, -1], [1, 0], [-1, 0]];
 
 interface ITileColors {
-	players: HexColor;
-	wall: HexColor;
-	candy: HexColor;
-	ghost: HexColor;
-	ghostFrenzy: HexColor;
-	door: HexColor;
-	unlockedDoor: HexColor;
-	switch: HexColor;
+	players: NamedHexCode;
+	wall: NamedHexCode;
+	candy: NamedHexCode;
+	ghost: NamedHexCode;
+	ghostFrenzy: NamedHexCode;
+	door: NamedHexCode;
+	unlockedDoor: NamedHexCode;
+	switch: NamedHexCode;
 }
 
 interface ITileValues {
@@ -585,14 +585,14 @@ class HauntersHauntedHouse extends ScriptedGame {
 			for (let j = 0; j < row.length; j++) {
 				const tile = row[j];
 				let tileText = tile.getText();
-				let tileColor = tile.getColor();
+				let tileColor: IHexCodeData = tile.getColor();
 				const coordinates = this.getTileCoordinates(i, j);
 				if (coordinates in ghostLocations) {
 					tileText = ghostLocations[coordinates];
 					if (this.ghostFrenzies) {
-						tileColor = Tools.hexColorCodes[tileColors.ghostFrenzy]['background'];
+						tileColor = Tools.getNamedHexCode(tileColors.ghostFrenzy);
 					} else {
-						tileColor = Tools.hexColorCodes[tileColors.ghost]['background'];
+						tileColor = Tools.getNamedHexCode(tileColors.ghost);
 					}
 				} else if (coordinates in playerLocations) {
 					tileText = '<span title="' + playerLocations[coordinates].map(x => x.name).join(", ") + '">';
@@ -602,10 +602,11 @@ class HauntersHauntedHouse extends ScriptedGame {
 						tileText += "*";
 					}
 					tileText += '</span>';
-					tileColor = Tools.hexColorCodes[tileColors.players]['background'];
+					tileColor = Tools.getNamedHexCode(tileColors.players);
 				}
 
-				html += '<td style=background:' + tileColor + '; width="20px"; height="20px"; align="center"><b>' + tileText + '</b></td>';
+				html += '<td style=background:' + tileColor.gradient + '; width="20px"; height="20px"; align="center"><b>' +
+					tileText + '</b></td>';
 			}
 			html += '</tr>';
 		}
@@ -1065,19 +1066,19 @@ export const game: IGameFile<HauntersHauntedHouse> = {
 	description: "Players work together to unlock doors and gather candy around the board while avoiding the ghosts!",
 	additionalDescription: '<details><summary>View the board legend:</summary>' +
 		'<div style="display: inline-block;width: 10px;height: 10px;' +
-		'background: ' + Tools.hexColorCodes[tileColors.players]['background'] + '">&nbsp;</div> - Players<br />' +
+		'background: ' + Tools.getNamedHexCode(tileColors.players).gradient + '">&nbsp;</div> - Players<br />' +
 		'<div style="display: inline-block;width: 10px;height: 10px;' +
-		'background: ' + Tools.hexColorCodes[tileColors.wall]['background'] + '">&nbsp;</div> - Walls<br />' +
+		'background: ' + Tools.getNamedHexCode(tileColors.wall).gradient + '">&nbsp;</div> - Walls<br />' +
 		'<div style="display: inline-block;width: 10px;height: 10px;' +
-		'background: ' + Tools.hexColorCodes[tileColors.door]['background'] + '">&nbsp;</div> - Locked doors<br />' +
+		'background: ' + Tools.getNamedHexCode(tileColors.door).gradient + '">&nbsp;</div> - Locked doors<br />' +
 		'<div style="display: inline-block;width: 10px;height: 10px;' +
-		'background: ' + Tools.hexColorCodes[tileColors.unlockedDoor]['background'] + '">&nbsp;</div> - Unlocked doors<br />' +
+		'background: ' + Tools.getNamedHexCode(tileColors.unlockedDoor).gradient + '">&nbsp;</div> - Unlocked doors<br />' +
 		'<div style="display: inline-block;width: 10px;height: 10px;' +
-		'background: ' + Tools.hexColorCodes[tileColors.switch]['background'] + '">&nbsp;</div> - Door switches<br />' +
+		'background: ' + Tools.getNamedHexCode(tileColors.switch).gradient + '">&nbsp;</div> - Door switches<br />' +
 		'<div style="display: inline-block;width: 10px;height: 10px;' +
-		'background: ' + Tools.hexColorCodes[tileColors.ghost]['background'] + '">&nbsp;</div> - Ghosts<br />' +
+		'background: ' + Tools.getNamedHexCode(tileColors.ghost).gradient + '">&nbsp;</div> - Ghosts<br />' +
 		'<div style="display: inline-block;width: 10px;height: 10px;' +
-		'background: ' + Tools.hexColorCodes[tileColors.candy]['background'] + '">&nbsp;</div> - Candy<br /></details>',
+		'background: ' + Tools.getNamedHexCode(tileColors.candy).gradient + '">&nbsp;</div> - Candy<br /></details>',
 	noOneVsOne: true,
 	scriptedOnly: true,
 };
