@@ -84,7 +84,7 @@ export abstract class Game extends Activity {
 				if (trainerCardCount && trainerCardCount <= 2) {
 					trainerCardsShown = true;
 					this.sayUhtml(this.uhtmlBaseName + "-winners", "<b>Winner" + ((trainerCardCount + noTrainerCardCount) > 1 ? "s" : "") +
-						"</b>:" + (noTrainerCardCount ? "&nbsp;" + Tools.joinList(noTrainerCards) : "") + "<br />" + "<center>" +
+						"</b>:" + (noTrainerCardCount ? "&nbsp;" + noTrainerCards.join(", ") + " and" : "") + "<br />" + "<center>" +
 						trainerCards.join("") + "</center>");
 				}
 			}
