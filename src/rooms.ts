@@ -155,7 +155,7 @@ export class Room {
 		if (!(options && options.dontCheckFilter)) {
 			const filter = Client.checkFilters(message, this);
 			if (filter) {
-				Tools.logError("Message not sent in " + this.title + " due to " + filter + ": " + message);
+				Tools.logMessage("Message not sent in " + this.title + " due to " + filter + ": " + message);
 				return;
 			}
 		}

@@ -254,19 +254,19 @@ export class Tools {
 		return hexColorCodes[namedHexColors[name]];
 	}
 
-	logError(error: string | Error, message?: string): void {
+	logError(error: Error, message?: string): void {
+		this.logMessage((message ? message + "\n" : "") + (error.stack || error.message));
+	}
+
+	logMessage(message: string): void {
 		const date = new Date();
 		const month = date.getMonth() + 1;
 		const day = date.getDate();
 		const year = date.getFullYear();
 		const filepath = year + '-' + month + '-' + day + '.txt';
 
-		let log = message || '';
-		// eslint-disable-next-line @typescript-eslint/no-extra-parens
-		log += typeof error === 'string' ? error : (error.stack || error.message);
-
-		fs.appendFileSync(path.join(rootFolder, 'errors', filepath), date.toUTCString() + " " + date.toTimeString() + "\n" +
-			log + "\n");
+		fs.appendFileSync(path.join(rootFolder, 'errors', filepath), "\n" + date.toUTCString() + " " + date.toTimeString() + "\n" +
+			message + "\n");
 	}
 
 	random(limit?: number, prng?: PRNG): number {

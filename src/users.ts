@@ -98,7 +98,7 @@ export class User {
 		if (!(options && options.dontCheckFilter)) {
 			const filter = Client.checkFilters(message);
 			if (filter) {
-				Tools.logError("Message not sent to " + this.name + " due to " + filter + ": " + message);
+				Tools.logMessage("Message not sent to " + this.name + " due to " + filter + ": " + message);
 				return;
 			}
 		}

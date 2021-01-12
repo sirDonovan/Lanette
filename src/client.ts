@@ -491,7 +491,7 @@ export class Client {
 			Users.removeAll();
 			this.outgoingMessageQueue = [];
 		} else {
-			Tools.logError("Client.reconnect() called");
+			Tools.logMessage("Client.reconnect() called");
 
 			this.roomsToRejoin = Rooms.getRoomIds();
 			if (Config.rooms && !Config.rooms.includes('lobby')) {
@@ -1157,7 +1157,7 @@ export class Client {
 				'typing too quickly.</strong>') {
 				this.clearSendTimeout();
 
-				Tools.logError("Typing too quickly; Client.getSendThrottle() = " + this.getSendThrottle() + "; " +
+				Tools.logMessage("Typing too quickly; Client.getSendThrottle() = " + this.getSendThrottle() + "; " +
 					"Client.outgoingMessageQueue.length = " + this.outgoingMessageQueue.length +
 					(this.lastOutgoingMessage ? "; Client.lastOutgoingMessage = " + JSON.stringify(this.lastOutgoingMessage) : ""));
 
