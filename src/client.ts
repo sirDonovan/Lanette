@@ -491,6 +491,8 @@ export class Client {
 			Users.removeAll();
 			this.outgoingMessageQueue = [];
 		} else {
+			Tools.logError("Client.reconnect() called");
+
 			this.roomsToRejoin = Rooms.getRoomIds();
 			if (Config.rooms && !Config.rooms.includes('lobby')) {
 				const index = this.roomsToRejoin.indexOf('lobby');
@@ -1154,6 +1156,11 @@ export class Client {
 			if (messageArguments.html === '<strong class="message-throttle-notice">Your message was not sent because you\'ve been ' +
 				'typing too quickly.</strong>') {
 				this.clearSendTimeout();
+
+				Tools.logError("Typing too quickly; Client.getSendThrottle() = " + this.getSendThrottle() + "; " +
+					"Client.outgoingMessageQueue.length = " + this.outgoingMessageQueue.length +
+					(this.lastOutgoingMessage ? "; Client.lastOutgoingMessage = " + JSON.stringify(this.lastOutgoingMessage) : ""));
+
 				if (this.lastOutgoingMessage) {
 					this.outgoingMessageQueue.unshift(this.lastOutgoingMessage);
 					this.clearLastOutgoingMessage(now);
