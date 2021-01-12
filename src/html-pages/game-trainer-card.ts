@@ -6,14 +6,19 @@ import type { HexCode } from "../types/tools";
 import type { User } from "../users";
 import { HtmlPageBase } from "./html-page-base";
 
+const backgroundColorsPerRow = 15;
 const newerTrainerIdsIncrement = 25;
 const olderTrainerIdsIncrement = 24;
+
 const noBackground = 'None';
 const baseCommand = 'gametrainercard';
 const setPokemonCommand = 'setpokemon';
 const previewCommand = 'preview';
 const setPokemonSeparateCommand = 'gtcpokemon';
 const setBackgroundColorCommand = 'setbackgroundcolor';
+const standardBackgroundColorsCommand = 'standardbackgroundcolors';
+const lighterBackgroundColorsCommand = 'lighterbackgroundcolors';
+const darkerBackgroundColorsCommand = 'darkerbackgroundcolors';
 const setTrainerCommand = 'settrainer';
 const newerTrainersCommand = 'newertrainers';
 const olderTrainersCommand = 'oldertrainers';
@@ -24,6 +29,12 @@ const pages: Dict<GameTrainerCard> = {};
 
 class GameTrainerCard extends HtmlPageBase {
 	static trainerSprites: Dict<string> = {};
+	static standardBackgroundColors: HexCode[] = [];
+	static standardBackgroundColorsLength: number = 0;
+	static lighterBackgroundColors: HexCode[] = [];
+	static lighterBackgroundColorsLength: number = 0;
+	static darkerBackgroundColors: HexCode[] = [];
+	static darkerBackgroundColorsLength: number = 0;
 	static newerTrainerIds: string[] = [];
 	static newerTrainerIdsLength: number = 0;
 	static newerTrainerIdsPages: number = 0;
@@ -32,6 +43,7 @@ class GameTrainerCard extends HtmlPageBase {
 	static olderTrainerIdsPages: number = 0;
 	static loadedData: boolean = false;
 
+	backgroundColorType: 'standard' | 'lighter' | 'darker' = 'standard';
 	trainerIdsPage: number = 0;
 	trainerType: 'newer' | 'older' = 'newer';
 	pageId = 'game-trainer-card';
@@ -55,11 +67,26 @@ class GameTrainerCard extends HtmlPageBase {
 			}
 		}
 
+		const colors = Object.keys(Tools.hexCodes) as HexCode[];
+		for (const color of colors) {
+			if (Tools.hexCodes[color].category === 'light') {
+				this.lighterBackgroundColors.push(color);
+			} else if (Tools.hexCodes[color].category === 'dark') {
+				this.darkerBackgroundColors.push(color);
+			} else {
+				this.standardBackgroundColors.push(color);
+			}
+		}
+
 		this.newerTrainerIdsLength = this.newerTrainerIds.length;
 		this.olderTrainerIdsLength = this.olderTrainerIds.length;
 
 		this.newerTrainerIdsPages = Math.ceil(this.newerTrainerIdsLength / newerTrainerIdsIncrement);
 		this.olderTrainerIdsPages = Math.ceil(this.olderTrainerIdsLength / olderTrainerIdsIncrement);
+
+		this.standardBackgroundColorsLength = this.standardBackgroundColors.length;
+		this.lighterBackgroundColorsLength = this.lighterBackgroundColors.length;
+		this.darkerBackgroundColorsLength = this.darkerBackgroundColors.length;
 
 		this.loadedData = true;
 	}
@@ -69,6 +96,24 @@ class GameTrainerCard extends HtmlPageBase {
 
 		const user = Users.get(this.userId);
 		if (user) this.room.closeHtmlPage(user, this.pageId);
+	}
+
+	standardBackgroundColors(): void {
+		this.backgroundColorType = 'standard';
+
+		this.send();
+	}
+
+	lighterBackgroundColors(): void {
+		this.backgroundColorType = 'lighter';
+
+		this.send();
+	}
+
+	darkerBackgroundColors(): void {
+		this.backgroundColorType = 'darker';
+
+		this.send();
 	}
 
 	goToTrainersPage(page: number): void {
@@ -115,16 +160,53 @@ class GameTrainerCard extends HtmlPageBase {
 			this.room.title + ", [Pokemon], [Pokemon], [...]</code>";
 		html += "<br /><br />";
 
+		const standardBackgroundColors = this.backgroundColorType === 'standard';
+		const lighterBackgroundColors = this.backgroundColorType === 'lighter';
+		const darkerBackgroundColors = this.backgroundColorType === 'darker';
+
 		html += "<b>Background color</b><br />";
+		html += "Type:&nbsp;";
+		html += "&nbsp;";
+		html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
+			standardBackgroundColorsCommand, "Standard", standardBackgroundColors);
+		html += "&nbsp;";
+		html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
+			lighterBackgroundColorsCommand, "Lighter", lighterBackgroundColors);
+		html += "&nbsp;";
+		html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
+			darkerBackgroundColorsCommand, "Darker", darkerBackgroundColors);
+		html += "<br /><br />";
+
+		let backgroundColors: HexCode[];
+		let totalBackgroundColors = 0;
+		if (standardBackgroundColors) {
+			backgroundColors = GameTrainerCard.standardBackgroundColors;
+			totalBackgroundColors = GameTrainerCard.standardBackgroundColorsLength;
+		} else if (lighterBackgroundColors) {
+			backgroundColors = GameTrainerCard.lighterBackgroundColors;
+			totalBackgroundColors = GameTrainerCard.lighterBackgroundColorsLength;
+		} else {
+			backgroundColors = GameTrainerCard.darkerBackgroundColors;
+			totalBackgroundColors = GameTrainerCard.darkerBackgroundColorsLength;
+		}
+
 		html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
 				setBackgroundColorCommand + "," + noBackground, "None", !trainerCard || !trainerCard.background);
 
-		const colors = Object.keys(Tools.hexCodes) as HexCode[];
-		for (const color of colors) {
-			if (Tools.hexCodes[color].category !== 'light') continue;
+		let backgroundColorsRowCount = 1;
+		for (let i = 0; i < totalBackgroundColors; i++) {
+			const color = backgroundColors[i];
 			const colorDiv = "<div style='background: " + Tools.hexCodes[color].gradient + ";height: 15px;width: 15px'>&nbsp;</div>";
-			html += "&nbsp;" + Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
+
+			if (backgroundColorsRowCount || i === 0) html += "&nbsp;";
+			html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
 				setBackgroundColorCommand + "," + color, colorDiv, trainerCard && trainerCard.background === color);
+
+			backgroundColorsRowCount++;
+			if (backgroundColorsRowCount === backgroundColorsPerRow) {
+				html += "<br />";
+				backgroundColorsRowCount = 0;
+			}
 		}
 		html += "<br /><br />";
 
@@ -172,7 +254,7 @@ class GameTrainerCard extends HtmlPageBase {
 
 		html += "<br /><br />";
 
-		let rowCount = 0;
+		let trainersRowCount = 0;
 		for (let i = trainerIdsStartIndex; i < trainerIdsEndIndex; i++) {
 			let id: string;
 			if (newerTrainers) {
@@ -185,10 +267,10 @@ class GameTrainerCard extends HtmlPageBase {
 			html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " + setTrainerCommand +
 				"," + id, trainer, trainerCard && trainerCard.avatar === id);
 
-			rowCount++;
-			if (rowCount === trainersPerRow) {
+			trainersRowCount++;
+			if (trainersRowCount === trainersPerRow) {
 				html += "<br />";
-				rowCount = 0;
+				trainersRowCount = 0;
 			}
 		}
 
@@ -279,11 +361,8 @@ export const commands: CommandDefinitions<CommandContext> = {
 				Storage.createGameTrainerCard(database, user.name);
 				database.gameTrainerCards[user.id].pokemon = selectedPokemon;
 
-				if (user.id in pages) {
-					pages[user.id].send();
-				} else {
-					this.run(baseCommand, targetRoom.id + ", " + previewCommand);
-				}
+				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user);
+				pages[user.id].send();
 			} else if (cmd === setTrainerCommand || cmd === 'setavatar') {
 				const id = Tools.toId(targets[0]);
 				if (!(id in Dex.data.trainerSprites)) {
@@ -293,15 +372,12 @@ export const commands: CommandDefinitions<CommandContext> = {
 				Storage.createGameTrainerCard(database, user.name);
 				database.gameTrainerCards[user.id].avatar = id;
 
-				if (user.id in pages) {
-					pages[user.id].send();
-				} else {
-					this.run(baseCommand, targetRoom.id + ", " + previewCommand);
-				}
+				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user);
+				pages[user.id].send();
 			} else if (cmd === setBackgroundColorCommand || cmd === 'setbgcolor' || cmd === 'setbackground') {
 				const color = targets[0].trim();
 				const clear = color === noBackground;
-				if (!clear && (!(color in Tools.hexCodes) || Tools.hexCodes[color as HexCode].category !== 'light')) {
+				if (!clear && !(color in Tools.hexCodes)) {
 					return this.say("'" + color + "' is not a valid background color.");
 				}
 
@@ -312,22 +388,32 @@ export const commands: CommandDefinitions<CommandContext> = {
 					database.gameTrainerCards[user.id].background = color as HexCode;
 				}
 
-				if (user.id in pages) {
-					pages[user.id].send();
-				} else {
-					this.run(baseCommand, targetRoom.id + ", " + previewCommand);
-				}
+				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user);
+				pages[user.id].send();
+			} else if (cmd === standardBackgroundColorsCommand) {
+				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user);
+				pages[user.id].standardBackgroundColors();
+			} else if (cmd === lighterBackgroundColorsCommand) {
+				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user);
+				pages[user.id].lighterBackgroundColors();
+			} else if (cmd === darkerBackgroundColorsCommand) {
+				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user);
+				pages[user.id].darkerBackgroundColors();
 			} else if (cmd === goToTrainerPageCommand) {
 				let page = 0;
 				if (targets.length) {
 					page = parseInt(targets[0].trim());
 				}
 				if (isNaN(page) || page <= 0) return this.say("You must specify a valid page number.");
-				if (user.id in pages) pages[user.id].goToTrainersPage(page - 1);
+
+				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user);
+				pages[user.id].goToTrainersPage(page - 1);
 			} else if (cmd === newerTrainersCommand) {
-				if (user.id in pages) pages[user.id].newerTrainers();
+				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user);
+				pages[user.id].newerTrainers();
 			} else if (cmd === olderTrainersCommand) {
-				if (user.id in pages) pages[user.id].olderTrainers();
+				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user);
+				pages[user.id].olderTrainers();
 			} else if (cmd === closeCommand) {
 				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user);
 				pages[user.id].close();

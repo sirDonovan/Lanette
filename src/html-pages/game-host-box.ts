@@ -7,23 +7,77 @@ import type { HexCode } from "../types/tools";
 import type { User } from "../users";
 import { HtmlPageBase } from "./html-page-base";
 
+const backgroundColorsPerRow = 15;
+const buttonColorsPerRow = 15;
+
 const noBackground = 'None';
 const baseCommand = 'gamehostbox';
 const setPokemonCommand = 'setpokemon';
 const setPokemonSeparateCommand = 'ghbpokemon';
 const setBackgroundColorCommand = 'setbackgroundcolor';
 const setButtonColorCommand = 'setbuttonscolor';
+const standardBackgroundColorsCommand = 'standardbackgroundcolors';
+const lighterBackgroundColorsCommand = 'lighterbackgroundcolors';
+const darkerBackgroundColorsCommand = 'darkerbackgroundcolors';
+const standardButtonColorsCommand = 'standardbuttoncolors';
+const lighterButtonColorsCommand = 'lighterbuttoncolors';
+const darkerButtonColorsCommand = 'darkerbuttoncolors';
 const closeCommand = 'close';
 
 const pages: Dict<GameHostBox> = {};
 
 class GameHostBox extends HtmlPageBase {
+	static standardBackgroundColors: HexCode[] = [];
+	static standardBackgroundColorsLength: number = 0;
+	static lighterBackgroundColors: HexCode[] = [];
+	static lighterBackgroundColorsLength: number = 0;
+	static darkerBackgroundColors: HexCode[] = [];
+	static darkerBackgroundColorsLength: number = 0;
+	static standardButtonColors: HexCode[] = [];
+	static standardButtonColorsLength: number = 0;
+	static lighterButtonColors: HexCode[] = [];
+	static lighterButtonColorsLength: number = 0;
+	static darkerButtonColors: HexCode[] = [];
+	static darkerButtonColorsLength: number = 0;
+	static loadedData: boolean = false;
+
+	backgroundColorType: 'standard' | 'lighter' | 'darker' = 'standard';
+	buttonColorType: 'standard' | 'lighter' | 'darker' = 'standard';
 	pageId = 'game-host-box';
 
 	constructor(room: Room, user: User) {
 		super(room, user);
 
+		GameHostBox.loadData();
 		pages[this.userId] = this;
+	}
+
+	static loadData(): void {
+		if (this.loadedData) return;
+
+		const colors = Object.keys(Tools.hexCodes) as HexCode[];
+		for (const color of colors) {
+			if (Tools.hexCodes[color].category === 'light') {
+				this.lighterBackgroundColors.push(color);
+				this.lighterButtonColors.push(color);
+			} else if (Tools.hexCodes[color].category === 'dark') {
+				this.darkerBackgroundColors.push(color);
+				this.darkerButtonColors.push(color);
+			} else {
+				this.standardBackgroundColors.push(color);
+				this.standardButtonColors.push(color);
+			}
+		}
+
+		this.standardBackgroundColorsLength = this.standardBackgroundColors.length;
+		this.lighterBackgroundColorsLength = this.lighterBackgroundColors.length;
+		this.darkerBackgroundColorsLength = this.darkerBackgroundColors.length;
+
+		this.standardButtonColorsLength = this.standardButtonColors.length;
+		this.lighterButtonColorsLength = this.lighterButtonColors.length;
+		this.darkerButtonColorsLength = this.darkerButtonColors.length;
+
+		this.loadedData = true;
 	}
 
 	close(): void {
@@ -31,6 +85,42 @@ class GameHostBox extends HtmlPageBase {
 
 		const user = Users.get(this.userId);
 		if (user) this.room.closeHtmlPage(user, this.pageId);
+	}
+
+	standardBackgroundColors(): void {
+		this.backgroundColorType = 'standard';
+
+		this.send();
+	}
+
+	lighterBackgroundColors(): void {
+		this.backgroundColorType = 'lighter';
+
+		this.send();
+	}
+
+	darkerBackgroundColors(): void {
+		this.backgroundColorType = 'darker';
+
+		this.send();
+	}
+
+	standardButtonColors(): void {
+		this.buttonColorType = 'standard';
+
+		this.send();
+	}
+
+	lighterButtonColors(): void {
+		this.buttonColorType = 'lighter';
+
+		this.send();
+	}
+
+	darkerButtonColors(): void {
+		this.buttonColorType = 'darker';
+
+		this.send();
 	}
 
 	render(): string {
@@ -56,28 +146,103 @@ class GameHostBox extends HtmlPageBase {
 		html += "<br /><br />You can make any GIF shiny by adding <code>shiny</code> before or after the Pokemon's name.";
 		html += "<br /><br />";
 
+		const standardBackgroundColors = this.backgroundColorType === 'standard';
+		const lighterBackgroundColors = this.backgroundColorType === 'lighter';
+		const darkerBackgroundColors = this.backgroundColorType === 'darker';
+
 		html += "<b>GIFs background color</b><br />";
+		html += "Type:&nbsp;";
+		html += "&nbsp;";
+		html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
+			standardBackgroundColorsCommand, "Standard", standardBackgroundColors);
+		html += "&nbsp;";
+		html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
+			lighterBackgroundColorsCommand, "Lighter", lighterBackgroundColors);
+		html += "&nbsp;";
+		html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
+			darkerBackgroundColorsCommand, "Darker", darkerBackgroundColors);
+		html += "<br /><br />";
+
+		let backgroundColors: HexCode[];
+		let totalBackgroundColors = 0;
+		if (standardBackgroundColors) {
+			backgroundColors = GameHostBox.standardBackgroundColors;
+			totalBackgroundColors = GameHostBox.standardBackgroundColorsLength;
+		} else if (lighterBackgroundColors) {
+			backgroundColors = GameHostBox.lighterBackgroundColors;
+			totalBackgroundColors = GameHostBox.lighterBackgroundColorsLength;
+		} else {
+			backgroundColors = GameHostBox.darkerBackgroundColors;
+			totalBackgroundColors = GameHostBox.darkerBackgroundColorsLength;
+		}
+
 		html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
 				setBackgroundColorCommand + "," + noBackground, "None", !hostBox || !hostBox.background);
 
-		const colors = Object.keys(Tools.hexCodes) as HexCode[];
-		for (const color of colors) {
+		let backgroundColorsRowCount = 1;
+		for (let i = 0; i < totalBackgroundColors; i++) {
+			const color = backgroundColors[i];
 			const colorDiv = "<div style='background: " + Tools.hexCodes[color].gradient + ";height: 15px;width: 15px'>&nbsp;</div>";
-			html += "&nbsp;" + Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
+
+			if (backgroundColorsRowCount || i === 0) html += "&nbsp;";
+			html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
 				setBackgroundColorCommand + "," + color, colorDiv, hostBox && hostBox.background === color);
+
+			backgroundColorsRowCount++;
+			if (backgroundColorsRowCount === backgroundColorsPerRow) {
+				html += "<br />";
+				backgroundColorsRowCount = 0;
+			}
+		}
+		html += "<br /><br />";
+
+		const standardButtonColors = this.buttonColorType === 'standard';
+		const lighterButtonColors = this.buttonColorType === 'lighter';
+		const darkerButtonColors = this.buttonColorType === 'darker';
+
+		html += "<b>Buttons background color</b><br />";
+		html += "Type:&nbsp;";
+		html += "&nbsp;";
+		html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
+			standardButtonColorsCommand, "Standard", standardButtonColors);
+		html += "&nbsp;";
+		html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
+			lighterButtonColorsCommand, "Lighter", lighterButtonColors);
+		html += "&nbsp;";
+		html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
+			darkerButtonColorsCommand, "Darker", darkerButtonColors);
+		html += "<br /><br />";
+
+		let buttonColors: HexCode[];
+		let totalButtonColors = 0;
+		if (standardButtonColors) {
+			buttonColors = GameHostBox.standardButtonColors;
+			totalButtonColors = GameHostBox.standardButtonColorsLength;
+		} else if (lighterButtonColors) {
+			buttonColors = GameHostBox.lighterButtonColors;
+			totalButtonColors = GameHostBox.lighterButtonColorsLength;
+		} else {
+			buttonColors = GameHostBox.darkerButtonColors;
+			totalButtonColors = GameHostBox.darkerButtonColorsLength;
 		}
 
-		html += "<br /><br />";
-		html += "<b>Buttons background color</b><br />";
 		html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
-				setButtonColorCommand + "," + noBackground, "None", !hostBox || !hostBox.buttons);
+			setButtonColorCommand + "," + noBackground, "None", !hostBox || !hostBox.buttons);
 
-		for (const color of colors) {
-			if (!Tools.hexCodes[color].category) continue;
-			const colorDiv = "<div style='background: " + Tools.hexCodes[color].color + ";height: 15px;width: 15px'>" +
-				"&nbsp;</div>";
-			html += "&nbsp;" + Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
+		let buttonColorsRowCount = 1;
+		for (let i = 0; i < totalButtonColors; i++) {
+			const color = buttonColors[i];
+			const colorDiv = "<div style='background: " + Tools.hexCodes[color].gradient + ";height: 15px;width: 15px'>&nbsp;</div>";
+
+			if (buttonColorsRowCount || i === 0) html += "&nbsp;";
+			html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
 				setButtonColorCommand + "," + color, colorDiv, hostBox && hostBox.buttons === color);
+
+			buttonColorsRowCount++;
+			if (buttonColorsRowCount === buttonColorsPerRow) {
+				html += "<br />";
+				buttonColorsRowCount = 0;
+			}
 		}
 
 		html += "</div>";
@@ -200,7 +365,7 @@ export const commands: CommandDefinitions<CommandContext> = {
 			} else if (cmd === setButtonColorCommand || cmd === 'setbuttoncolor' || cmd === 'setbuttons' || cmd === 'setbutton') {
 				const color = targets[0].trim();
 				const clear = color === noBackground;
-				if (!clear && (!(color in Tools.hexCodes) || !Tools.hexCodes[color as HexCode].category)) {
+				if (!clear && !(color in Tools.hexCodes)) {
 					return this.say("'" + color + "' is not a valid button color.");
 				}
 
@@ -213,6 +378,24 @@ export const commands: CommandDefinitions<CommandContext> = {
 
 				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
 				pages[user.id].send();
+			} else if (cmd === standardBackgroundColorsCommand) {
+				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
+				pages[user.id].standardBackgroundColors();
+			} else if (cmd === lighterBackgroundColorsCommand) {
+				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
+				pages[user.id].lighterBackgroundColors();
+			} else if (cmd === darkerBackgroundColorsCommand) {
+				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
+				pages[user.id].darkerBackgroundColors();
+			}  else if (cmd === standardButtonColorsCommand) {
+				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
+				pages[user.id].standardButtonColors();
+			} else if (cmd === lighterButtonColorsCommand) {
+				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
+				pages[user.id].lighterButtonColors();
+			} else if (cmd === darkerButtonColorsCommand) {
+				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
+				pages[user.id].darkerButtonColors();
 			} else if (cmd === closeCommand) {
 				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
 				pages[user.id].close();
