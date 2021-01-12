@@ -24,7 +24,7 @@ class PersiansGarden extends MapCurrencyGame {
 	floors = new Map<Player, number>();
 	maxDimensions: number = 8;
 	minDimensions: number = 8;
-	// noCurrencyAchievement = achievements.bankrupt;
+	noCurrencyAchievement = PersiansGarden.achievements.bankrupt;
 	noCurrencyRound = bankruptRounds;
 	roundActions = new Map<Player, boolean>();
 	startingLives: number = 3;
