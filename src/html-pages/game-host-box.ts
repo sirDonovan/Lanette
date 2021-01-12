@@ -232,7 +232,7 @@ class GameHostBox extends HtmlPageBase {
 		let buttonColorsRowCount = 1;
 		for (let i = 0; i < totalButtonColors; i++) {
 			const color = buttonColors[i];
-			const colorDiv = "<div style='background: " + Tools.hexCodes[color].gradient + ";height: 15px;width: 15px'>&nbsp;</div>";
+			const colorDiv = "<div style='background: " + Tools.hexCodes[color].color + ";height: 15px;width: 15px'>&nbsp;</div>";
 
 			if (buttonColorsRowCount || i === 0) html += "&nbsp;";
 			html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
