@@ -287,9 +287,9 @@ export const commands: CommandDefinitions<CommandContext> = {
 			if (!cmd || cmd === 'edit' || cmd === 'page') {
 				new GameHostBox(targetRoom, user).open();
 			} else if (cmd === setPokemonCommand || cmd === 'setgifs' || cmd === 'setgif') {
-				if (checkBits && Config.gameHostBoxRequirements[targetRoom.id].onePokemon > 0 &&
-					annualBits < Config.gameHostBoxRequirements[targetRoom.id].onePokemon) {
-					return this.say("You need at least " + Config.gameHostBoxRequirements[targetRoom.id].onePokemon + " annual " +
+				if (checkBits && Config.gameHostBoxRequirements[targetRoom.id].pokemon.one > 0 &&
+					annualBits < Config.gameHostBoxRequirements[targetRoom.id].pokemon.one) {
+					return this.say("You need at least " + Config.gameHostBoxRequirements[targetRoom.id].pokemon.one + " annual " +
 						"bits to add a Pokemon icon to your game host box.");
 				}
 
@@ -322,20 +322,22 @@ export const commands: CommandDefinitions<CommandContext> = {
 					shinies.push(shiny);
 				}
 
-				if (!selectedPokemon.length) return this.say("You must specify at least 1 Pokemon.");
+				const selectedPokemonLength = selectedPokemon.length;
+				if (!selectedPokemonLength) return this.say("You must specify at least 1 Pokemon.");
 
 				if (checkBits) {
-					if (selectedPokemon.length === 2) {
-						if (Config.gameHostBoxRequirements[targetRoom.id].twoPokemon > 0 &&
-							annualBits < Config.gameHostBoxRequirements[targetRoom.id].twoPokemon) {
-							return this.say("You need at least " + Config.gameHostBoxRequirements[targetRoom.id].twoPokemon + " " +
-								"annual bits to add 2 Pokemon GIFs to your game host box.");
-						}
-					} else if (selectedPokemon.length === 3) {
-						if (Config.gameHostBoxRequirements[targetRoom.id].threePokemon > 0 &&
-							annualBits < Config.gameHostBoxRequirements[targetRoom.id].threePokemon) {
-							return this.say("You need at least " + Config.gameHostBoxRequirements[targetRoom.id].threePokemon + " " +
-								"annual bits to add 3 Pokemon GIFs to your game host box.");
+					let requirement: 'two' | 'three' | undefined;
+					if (selectedPokemonLength === 2) {
+						requirement = 'two';
+					} else if (selectedPokemonLength === 3) {
+						requirement = 'three';
+					}
+
+					if (requirement) {
+						const requiredBits = Config.gameHostBoxRequirements[targetRoom.id].pokemon[requirement];
+						if (requiredBits > 0 && annualBits < requiredBits) {
+							return this.say("You need at least " + requiredBits + " annual bits to add " + selectedPokemonLength + " " +
+								"Pokemon GIFs to your game host box.");
 						}
 					}
 				}

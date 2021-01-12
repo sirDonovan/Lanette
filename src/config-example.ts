@@ -1,4 +1,5 @@
 import type { GroupName } from "./types/client";
+import type { IGameHostBoxPokemon, IGameTrainerCardPokemon } from "./types/config";
 import type { GameDifficulty } from "./types/games";
 
 /* eslint-disable prefer-const*/
@@ -262,7 +263,7 @@ export let showGameTrainerCards: string[] = [];
 /**
  * For each room in the object, the number of bits that must be earned to customize a game trainer card
  */
-export let gameTrainerCardRequirements: Dict<{trainer: number, onePokemon: number, twoPokemon: number, manyPokemon: number}> = {};
+export let gameTrainerCardRequirements: Dict<{trainer: number, pokemon: IGameTrainerCardPokemon}> = {};
 
 /**
  * A list of rooms (roomids) where customized game host boxes are shown
@@ -272,7 +273,7 @@ export let showGameHostBoxes: string[] = [];
 /**
  * For each room in the object, the number of bits that must be earned to customize a game host box
  */
-export let gameHostBoxRequirements: Dict<{background: number, onePokemon: number, twoPokemon: number, threePokemon: number}> = {};
+export let gameHostBoxRequirements: Dict<{background: number, pokemon: IGameHostBoxPokemon}> = {};
 
 /**
  * A list of rooms (roomids) where games cannot be hosted back-to-back

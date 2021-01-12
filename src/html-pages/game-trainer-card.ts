@@ -320,9 +320,9 @@ export const commands: CommandDefinitions<CommandContext> = {
 				if (!trainerCard) return this.say("You do not have a game trainer card.");
 				targetRoom.pmUhtml(user, targetRoom.id + "-game-trainer-card", trainerCard);
 			} else if (cmd === setPokemonCommand || cmd === 'seticon' || cmd === 'seticons') {
-				if (checkBits && Config.gameTrainerCardRequirements[targetRoom.id].onePokemon > 0 &&
-					annualBits < Config.gameTrainerCardRequirements[targetRoom.id].onePokemon) {
-					return this.say("You need at least " + Config.gameTrainerCardRequirements[targetRoom.id].onePokemon + " annual " +
+				if (checkBits && Config.gameTrainerCardRequirements[targetRoom.id].pokemon.one > 0 &&
+					annualBits < Config.gameTrainerCardRequirements[targetRoom.id].pokemon.one) {
+					return this.say("You need at least " + Config.gameTrainerCardRequirements[targetRoom.id].pokemon.one + " annual " +
 						"bits to add a Pokemon icon to your game trainer card.");
 				}
 
@@ -340,20 +340,28 @@ export const commands: CommandDefinitions<CommandContext> = {
 					selectedPokemon.push(pokemon.name);
 				}
 
-				if (!selectedPokemon.length) return this.say("You must specify at least 1 Pokemon.");
+				const selectedPokemonLength = selectedPokemon.length;
+				if (!selectedPokemonLength) return this.say("You must specify at least 1 Pokemon.");
 
 				if (checkBits) {
-					if (selectedPokemon.length === 2) {
-						if (Config.gameTrainerCardRequirements[targetRoom.id].twoPokemon > 0 &&
-							annualBits < Config.gameTrainerCardRequirements[targetRoom.id].twoPokemon) {
-							return this.say("You need at least " + Config.gameTrainerCardRequirements[targetRoom.id].twoPokemon + " " +
-								"annual bits to add 2 Pokemon icons to your game trainer card.");
-						}
-					} else if (selectedPokemon.length >= 3) {
-						if (Config.gameTrainerCardRequirements[targetRoom.id].manyPokemon > 0 &&
-							annualBits < Config.gameTrainerCardRequirements[targetRoom.id].manyPokemon) {
-							return this.say("You need at least " + Config.gameTrainerCardRequirements[targetRoom.id].manyPokemon + " " +
-								"annual bits to add 3 or more Pokemon icons to your game trainer card.");
+					let requirement: 'two' | 'three' | 'four' | 'five' | 'six' | undefined;
+					if (selectedPokemonLength === 2) {
+						requirement = 'two';
+					} else if (selectedPokemonLength === 3) {
+						requirement = 'three';
+					} else if (selectedPokemonLength === 4) {
+						requirement = 'four';
+					} else if (selectedPokemonLength === 5) {
+						requirement = 'five';
+					} else if (selectedPokemonLength === 6) {
+						requirement = 'six';
+					}
+
+					if (requirement) {
+						const requiredBits = Config.gameTrainerCardRequirements[targetRoom.id].pokemon[requirement];
+						if (requiredBits > 0 && annualBits < requiredBits) {
+							return this.say("You need at least " + requiredBits + " annual bits to add " + selectedPokemonLength + " " +
+								"Pokemon icons to your game trainer card.");
 						}
 					}
 				}
