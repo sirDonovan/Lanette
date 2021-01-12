@@ -1294,7 +1294,7 @@ export class Games {
 		}
 		html += "<hr /><span style='display: block;height:115px";
 		if (trainerCard.background) {
-			html += ";background: " + Tools.hexColorCodes[trainerCard.background].gradient;
+			html += ";background: " + Tools.hexCodes[trainerCard.background].gradient;
 		}
 		html += "'>";
 
@@ -1359,12 +1359,12 @@ export class Games {
 		html += "<span";
 		if (hostBox && hostBox.background) {
 			html += " style='display: block;";
-			if (Tools.hexColorCodes[hostBox.background].textColor) {
-				html += 'color: ' + Tools.hexColorCodes[hostBox.background].textColor + ';';
+			if (Tools.hexCodes[hostBox.background].textColor) {
+				html += 'color: ' + Tools.hexCodes[hostBox.background].textColor + ';';
 			} else {
 				html += 'color: #000000;';
 			}
-			html += "background: " + Tools.hexColorCodes[hostBox.background].gradient + "'";
+			html += "background: " + Tools.hexCodes[hostBox.background].gradient + "'";
 		}
 		html += ">";
 
@@ -1387,12 +1387,12 @@ export class Games {
 
 		let buttonStyle = '';
 		if (hostBox && hostBox.buttons) {
-			if (Tools.hexColorCodes[hostBox.buttons].textColor) {
-				buttonStyle += 'color: ' + Tools.hexColorCodes[hostBox.buttons].textColor + ';';
+			if (Tools.hexCodes[hostBox.buttons].textColor) {
+				buttonStyle += 'color: ' + Tools.hexCodes[hostBox.buttons].textColor + ';';
 			} else {
 				buttonStyle += 'color: #000000;';
 			}
-			buttonStyle += "background: " + Tools.hexColorCodes[hostBox.buttons].color;
+			buttonStyle += "background: " + Tools.hexCodes[hostBox.buttons].color;
 		}
 
 		html += '<br /><br /><button class="button"' + (buttonStyle ? ' style="' + buttonStyle + '"' : '');

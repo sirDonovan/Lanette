@@ -4,7 +4,8 @@ import path = require('path');
 import url = require('url');
 
 import type { PRNG } from './lib/prng';
-import type { HexCode, IExtractedBattleId, IHexCodeData, IParsedSmogonLink, NamedHexCode } from './types/tools';
+import { eggGroupHexCodes, hexCodes, namedHexCodes, pokemonColorHexCodes, typeHexCodes } from './tools-hex-codes';
+import type { IExtractedBattleId, IHexCodeData, IParsedSmogonLink, NamedHexCode } from './types/tools';
 import type { IParam, IParametersGenData, ParametersSearchType } from './workers/parameters';
 
 const ALPHA_NUMERIC_REGEX = /[^a-zA-Z0-9 ]/g;
@@ -31,212 +32,25 @@ const rootFolder = path.resolve(__dirname, '..');
 // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-empty-function
 const TimeoutConstructor = setTimeout(() => {}, 1).constructor;
 
-const hexColorCodes: KeyedDict<HexCode, IHexCodeData> = {
-	"#262626": {'color': '#262626', 'gradient': 'linear-gradient(#262626,#1a1a1a)', 'textColor': '#ffffff'},
-	"#999999": {'color': '#999999', 'gradient': 'linear-gradient(#999999,#666666)'},
-	"#db7070": {'color': '#db7070', 'gradient': 'linear-gradient(#db7070,#b82e2e)'},
-	"#db8b70": {'color': '#db8b70', 'gradient': 'linear-gradient(#db8b70,#b8502e)'},
-	"#dba670": {'color': '#dba670', 'gradient': 'linear-gradient(#dba670,#b8732e)'},
-	"#dbc170": {'color': '#dbc170', 'gradient': 'linear-gradient(#dbc170,#b8952e)'},
-	"#dbdb70": {'color': '#dbdb70', 'gradient': 'linear-gradient(#dbdb70,#b8b82e)'},
-	"#c1db70": {'color': '#c1db70', 'gradient': 'linear-gradient(#c1db70,#95b82e)'},
-	"#a6db70": {'color': '#a6db70', 'gradient': 'linear-gradient(#a6db70,#73b82e)'},
-	"#8bdb70": {'color': '#8bdb70', 'gradient': 'linear-gradient(#8bdb70,#50b82e)'},
-	"#70db70": {'color': '#70db70', 'gradient': 'linear-gradient(#70db70,#2eb82e)'},
-	"#70db8b": {'color': '#70db8b', 'gradient': 'linear-gradient(#70db8b,#2eb850)'},
-	"#70dba6": {'color': '#70dba6', 'gradient': 'linear-gradient(#70dba6,#2eb873)'},
-	"#70dbc1": {'color': '#70dbc1', 'gradient': 'linear-gradient(#70dbc1,#2eb895)'},
-	"#70dbdb": {'color': '#70dbdb', 'gradient': 'linear-gradient(#70dbdb,#2eb8b8)'},
-	"#70c1db": {'color': '#70c1db', 'gradient': 'linear-gradient(#70c1db,#2e95b8)'},
-	"#70a6db": {'color': '#70a6db', 'gradient': 'linear-gradient(#70a6db,#2e73b8)'},
-	"#708bdb": {'color': '#708bdb', 'gradient': 'linear-gradient(#708bdb,#2e50b8)', 'textColor': '#ffffff'},
-	"#7070db": {'color': '#7070db', 'gradient': 'linear-gradient(#7070db,#2e2eb8)', 'textColor': '#ffffff'},
-	"#8b70db": {'color': '#8b70db', 'gradient': 'linear-gradient(#8b70db,#502eb8)', 'textColor': '#ffffff'},
-	"#a670db": {'color': '#a670db', 'gradient': 'linear-gradient(#a670db,#732eb8)', 'textColor': '#ffffff'},
-	"#c170db": {'color': '#c170db', 'gradient': 'linear-gradient(#c170db,#952eb8)', 'textColor': '#ffffff'},
-	"#db70db": {'color': '#db70db', 'gradient': 'linear-gradient(#db70db,#b82eb8)', 'textColor': '#ffffff'},
-	"#db70c1": {'color': '#db70c1', 'gradient': 'linear-gradient(#db70c1,#b82e95)', 'textColor': '#ffffff'},
-	"#db70a6": {'color': '#db70a6', 'gradient': 'linear-gradient(#db70a6,#b82e73)', 'textColor': '#ffffff'},
-	"#db708b": {'color': '#db708b', 'gradient': 'linear-gradient(#db708b,#b82e50)', 'textColor': '#ffffff'},
-	"#e6e6e6": {'color': '#e6e6e6', 'gradient': 'linear-gradient(#e6e6e6,#d9d9d9)', 'textColor': '#000000'},
-	"#c68353": {'color': '#c68353', 'gradient': 'linear-gradient(#c68353,#995e33)'},
-	"#ec9393": {'color': '#ec9393', 'gradient': 'linear-gradient(#ec9393,#e05252)', 'textColor': '#000000', 'category': 'light'},
-	"#eca993": {'color': '#eca993', 'gradient': 'linear-gradient(#eca993,#e07552)', 'textColor': '#000000', 'category': 'light'},
-	"#ecbf93": {'color': '#ecbf93', 'gradient': 'linear-gradient(#ecbf93,#e09952)', 'textColor': '#000000', 'category': 'light'},
-	"#ecd693": {'color': '#ecd693', 'gradient': 'linear-gradient(#ecd693,#e0bd52)', 'textColor': '#000000', 'category': 'light'},
-	"#ecec93": {'color': '#ecec93', 'gradient': 'linear-gradient(#ecec93,#e0e052)', 'textColor': '#000000', 'category': 'light'},
-	"#d6ec93": {'color': '#d6ec93', 'gradient': 'linear-gradient(#d6ec93,#bde052)', 'textColor': '#000000', 'category': 'light'},
-	"#bfec93": {'color': '#bfec93', 'gradient': 'linear-gradient(#bfec93,#99e052)', 'textColor': '#000000', 'category': 'light'},
-	"#a9ec93": {'color': '#a9ec93', 'gradient': 'linear-gradient(#a9ec93,#75e052)', 'textColor': '#000000', 'category': 'light'},
-	"#93ec93": {'color': '#93ec93', 'gradient': 'linear-gradient(#93ec93,#52e052)', 'textColor': '#000000', 'category': 'light'},
-	"#93eca9": {'color': '#93eca9', 'gradient': 'linear-gradient(#93eca9,#52e075)', 'textColor': '#000000', 'category': 'light'},
-	"#93ecbf": {'color': '#93ecbf', 'gradient': 'linear-gradient(#93ecbf,#52e099)', 'textColor': '#000000', 'category': 'light'},
-	"#93ecd6": {'color': '#93ecd6', 'gradient': 'linear-gradient(#93ecd6,#52e0bd)', 'textColor': '#000000', 'category': 'light'},
-	"#93ecec": {'color': '#93ecec', 'gradient': 'linear-gradient(#93ecec,#52e0e0)', 'textColor': '#000000', 'category': 'light'},
-	"#93d6ec": {'color': '#93d6ec', 'gradient': 'linear-gradient(#93d6ec,#52bde0)', 'textColor': '#000000', 'category': 'light'},
-	"#93bfec": {'color': '#93bfec', 'gradient': 'linear-gradient(#93bfec,#5299e0)', 'textColor': '#000000', 'category': 'light'},
-	"#93a9ec": {'color': '#93a9ec', 'gradient': 'linear-gradient(#93a9ec,#5275e0)', 'textColor': '#000000', 'category': 'light'},
-	"#9393ec": {'color': '#9393ec', 'gradient': 'linear-gradient(#9393ec,#5252e0)', 'textColor': '#ffffff', 'category': 'light'},
-	"#a993ec": {'color': '#a993ec', 'gradient': 'linear-gradient(#a993ec,#7552e0)', 'textColor': '#ffffff', 'category': 'light'},
-	"#bf93ec": {'color': '#bf93ec', 'gradient': 'linear-gradient(#bf93ec,#9952e0)', 'textColor': '#ffffff', 'category': 'light'},
-	"#d693ec": {'color': '#d693ec', 'gradient': 'linear-gradient(#d693ec,#bd52e0)', 'textColor': '#ffffff', 'category': 'light'},
-	"#ec93ec": {'color': '#ec93ec', 'gradient': 'linear-gradient(#ec93ec,#e052e0)', 'textColor': '#ffffff', 'category': 'light'},
-	"#ec93d6": {'color': '#ec93d6', 'gradient': 'linear-gradient(#ec93d6,#e052bd)', 'textColor': '#ffffff', 'category': 'light'},
-	"#ec93bf": {'color': '#ec93bf', 'gradient': 'linear-gradient(#ec93bf,#e05299)', 'textColor': '#ffffff', 'category': 'light'},
-	"#ec93a9": {'color': '#ec93a9', 'gradient': 'linear-gradient(#ec93a9,#e05275)', 'textColor': '#ffffff', 'category': 'light'},
-	"#bfbfbf": {'color': '#bfbfbf', 'gradient': 'linear-gradient(#bfbfbf,#a6a6a6)', 'textColor': '#000000', 'category': 'light'},
-	"#e6c8b3": {'color': '#e6c8b3', 'gradient': 'linear-gradient(#e6c8b3,#d29e79)', 'textColor': '#000000', 'category': 'light'},
-	"#595959": {'color': '#595959', 'gradient': 'linear-gradient(#595959,#404040)', 'textColor': '#ffffff', 'category': 'dark'},
-	"#ac3939": {'color': '#ac3939', 'gradient': 'linear-gradient(#ac3939,#732626)', 'textColor': '#ffffff', 'category': 'dark'},
-	"#ac5639": {'color': '#ac5639', 'gradient': 'linear-gradient(#ac5639,#733926)', 'textColor': '#ffffff', 'category': 'dark'},
-	"#ac7339": {'color': '#ac7339', 'gradient': 'linear-gradient(#ac7339,#734d26)', 'textColor': '#ffffff', 'category': 'dark'},
-	"#ac8f39": {'color': '#ac8f39', 'gradient': 'linear-gradient(#ac8f39,#736026)', 'textColor': '#ffffff', 'category': 'dark'},
-	"#acac39": {'color': '#acac39', 'gradient': 'linear-gradient(#acac39,#737326)', 'textColor': '#ffffff', 'category': 'dark'},
-	"#8fac39": {'color': '#8fac39', 'gradient': 'linear-gradient(#8fac39,#607326)', 'textColor': '#ffffff', 'category': 'dark'},
-	"#73ac39": {'color': '#73ac39', 'gradient': 'linear-gradient(#73ac39,#4d7326)', 'textColor': '#ffffff', 'category': 'dark'},
-	"#56ac39": {'color': '#56ac39', 'gradient': 'linear-gradient(#56ac39,#397326)', 'textColor': '#ffffff', 'category': 'dark'},
-	"#39ac39": {'color': '#39ac39', 'gradient': 'linear-gradient(#39ac39,#267326)', 'textColor': '#ffffff', 'category': 'dark'},
-	"#39ac56": {'color': '#39ac56', 'gradient': 'linear-gradient(#39ac56,#267339)', 'textColor': '#ffffff', 'category': 'dark'},
-	"#39ac73": {'color': '#39ac73', 'gradient': 'linear-gradient(#39ac73,#26734d)', 'textColor': '#ffffff', 'category': 'dark'},
-	"#39ac8f": {'color': '#39ac8f', 'gradient': 'linear-gradient(#39ac8f,#267360)', 'textColor': '#ffffff', 'category': 'dark'},
-	"#39acac": {'color': '#39acac', 'gradient': 'linear-gradient(#39acac,#267373)', 'textColor': '#ffffff', 'category': 'dark'},
-	"#398fac": {'color': '#398fac', 'gradient': 'linear-gradient(#398fac,#266073)', 'textColor': '#ffffff', 'category': 'dark'},
-	"#3973ac": {'color': '#3973ac', 'gradient': 'linear-gradient(#3973ac,#264d73)', 'textColor': '#ffffff', 'category': 'dark'},
-	"#3956ac": {'color': '#3956ac', 'gradient': 'linear-gradient(#3956ac,#263973)', 'textColor': '#ffffff', 'category': 'dark'},
-	"#3939ac": {'color': '#3939ac', 'gradient': 'linear-gradient(#3939ac,#262673)', 'textColor': '#ffffff', 'category': 'dark'},
-	"#5639ac": {'color': '#5639ac', 'gradient': 'linear-gradient(#5639ac,#392673)', 'textColor': '#ffffff', 'category': 'dark'},
-	"#7339ac": {'color': '#7339ac', 'gradient': 'linear-gradient(#7339ac,#4d2673)', 'textColor': '#ffffff', 'category': 'dark'},
-	"#8f39ac": {'color': '#8f39ac', 'gradient': 'linear-gradient(#8f39ac,#602673)', 'textColor': '#ffffff', 'category': 'dark'},
-	"#ac39ac": {'color': '#ac39ac', 'gradient': 'linear-gradient(#ac39ac,#732673)', 'textColor': '#ffffff', 'category': 'dark'},
-	"#ac398f": {'color': '#ac398f', 'gradient': 'linear-gradient(#ac398f,#732660)', 'textColor': '#ffffff', 'category': 'dark'},
-	"#ac3973": {'color': '#ac3973', 'gradient': 'linear-gradient(#ac3973,#73264d)', 'textColor': '#ffffff', 'category': 'dark'},
-	"#ac3956": {'color': '#ac3956', 'gradient': 'linear-gradient(#ac3956,#732639)', 'textColor': '#ffffff', 'category': 'dark'},
-	"#995c33": {'color': '#995c33', 'gradient': 'linear-gradient(#995c33,#603920)', 'textColor': '#ffffff', 'category': 'dark'},
-};
-
-const namedHexColors: KeyedDict<NamedHexCode, HexCode> = {
-	"Red": "#db7070",
-	"Dark-Red": "#ac3939",
-	"Light-Red": "#ec9393",
-	"Red-Orange": "#db8b70",
-	"Dark-Red-Orange": "#ac5639",
-	"Light-Red-Orange": "#eca993",
-	"Orange": "#dba670",
-	"Dark-Orange": "#ac7339",
-	"Light-Orange": "#ecbf93",
-	"Yellow-Orange": "#dbc170",
-	"Dark-Yellow-Orange": "#ac8f39",
-	"Light-Yellow-Orange": "#ecd693",
-	"Yellow": "#dbdb70",
-	"Dark-Yellow": "#acac39",
-	"Light-Yellow": "#ecec93",
-	"Yellow-Green": "#c1db70",
-	"Dark-Yellow-Green": "#8fac39",
-	"Light-Yellow-Green": "#d6ec93",
-	"Green": "#70db70",
-	"Dark-Green": "#39ac39",
-	"Light-Green": "#93ec93",
-	"Cyan": "#70dbdb",
-	"Dark-Cyan": "#39acac",
-	"Light-Cyan": "#93ecec",
-	"Blue": "#70a6db",
-	"Dark-Blue": "#3973ac",
-	"Light-Blue": "#93bfec",
-	"Blue-Violet": "#7070db",
-	"Dark-Blue-Violet": "#3939ac",
-	"Light-Blue-Violet": "#9393ec",
-	"Violet": "#a670db",
-	"Dark-Violet": "#7339ac",
-	"Light-Violet": "#bf93ec",
-	"Pink": "#db70db",
-	"Dark-Pink": "#ac39ac",
-	"Light-Pink": "#ec93ec",
-	"Red-Violet": "#db70a6",
-	"Dark-Red-Violet": "#ac3973",
-	"Light-Red-Violet": "#ec93bf",
-	"White": "#e6e6e6",
-	"Gray": "#999999",
-	"Dark-Gray": "#595959",
-	"Light-Gray": "#bfbfbf",
-	"Black": "#262626",
-	"Brown": "#c68353",
-	"Dark-Brown": "#995c33",
-	"Light-Brown": "#e6c8b3",
-};
-
-const typeHexColors: Dict<HexCode> = {
-	"Normal": namedHexColors["White"],
-	"Fire": namedHexColors["Red-Orange"],
-	"Water": namedHexColors["Blue"],
-	"Electric": namedHexColors["Yellow"],
-	"Fairy": namedHexColors["Light-Red-Violet"],
-	"Grass": namedHexColors["Green"],
-	"Ice": namedHexColors["Light-Cyan"],
-	"Fighting": namedHexColors["Dark-Red"],
-	"Poison": namedHexColors["Violet"],
-	"Ground": namedHexColors["Light-Brown"],
-	"Flying": namedHexColors["Light-Gray"],
-	"Psychic": namedHexColors["Pink"],
-	"Bug": namedHexColors["Yellow-Green"],
-	"Rock": namedHexColors["Brown"],
-	"Ghost": namedHexColors["Dark-Violet"],
-	"Dragon": namedHexColors["Blue-Violet"],
-	"Steel": namedHexColors["Gray"],
-	"Dark": namedHexColors["Black"],
-	"???": namedHexColors["White"],
-	"Bird": namedHexColors["White"],
-};
-
-const pokemonColorHexColors: Dict<HexCode> = {
-	"Green": namedHexColors["Green"],
-	"Red": namedHexColors["Red"],
-	"Black": namedHexColors["Black"],
-	"Blue": namedHexColors["Blue"],
-	"White": namedHexColors["White"],
-	"Brown": namedHexColors["Brown"],
-	"Yellow": namedHexColors["Yellow"],
-	"Purple": namedHexColors["Violet"],
-	"Pink": namedHexColors["Pink"],
-	"Gray": namedHexColors["Gray"],
-};
-
-const eggGroupHexColors: Dict<HexCode> = {
-	"Monster": namedHexColors["Red"],
-	"Grass": namedHexColors["Green"],
-	"Dragon": namedHexColors["Blue-Violet"],
-	"Water 1": namedHexColors["Light-Blue"],
-	"Water 2": namedHexColors["Blue"],
-	"Water 3": namedHexColors["Dark-Blue"],
-	"Bug": namedHexColors["Yellow-Green"],
-	"Flying": namedHexColors["Light-Violet"],
-	"Field": namedHexColors["Light-Yellow-Orange"],
-	"Fairy": namedHexColors["Light-Red-Violet"],
-	"Undiscovered": namedHexColors["Black"],
-	"Human-Like": namedHexColors["Light-Brown"],
-	"Mineral": namedHexColors["Dark-Brown"],
-	"Amorphous": namedHexColors["Gray"],
-	"Ditto": namedHexColors["Pink"],
-};
-
 export class Tools {
 	// exported constants
 	readonly battleRoomPrefix: string = BATTLE_ROOM_PREFIX;
 	readonly builtFolder: string = path.join(rootFolder, 'built');
-	readonly eggGroupHexColors: typeof eggGroupHexColors = eggGroupHexColors;
+	readonly eggGroupHexCodes: typeof eggGroupHexCodes = eggGroupHexCodes;
 	readonly groupchatPrefix: string = GROUPCHAT_PREFIX;
-	readonly hexColorCodes: typeof hexColorCodes = hexColorCodes;
+	readonly hexCodes: typeof hexCodes = hexCodes;
 	readonly letters: string = "abcdefghijklmnopqrstuvwxyz";
 	readonly mainServer: string = 'play.pokemonshowdown.com';
 	readonly maxMessageLength: typeof maxMessageLength = maxMessageLength;
 	readonly maxUsernameLength: typeof maxUsernameLength = maxUsernameLength;
-	readonly pokemonColorHexColors: typeof pokemonColorHexColors = pokemonColorHexColors;
+	readonly pokemonColorHexCodes: typeof pokemonColorHexCodes = pokemonColorHexCodes;
 	readonly pokemonShowdownFolder: string = path.join(rootFolder, 'pokemon-showdown');
 	readonly rootFolder: typeof rootFolder = rootFolder;
 	readonly smogonDexPrefix: string = SMOGON_DEX_PREFIX;
 	readonly smogonPostPermalinkPrefix: string = SMOGON_POST_PERMALINK_PREFIX;
 	readonly smogonPostsPrefix: string = SMOGON_POSTS_PREFIX;
 	readonly smogonThreadsPrefix: string = SMOGON_THREADS_PREFIX;
-	readonly typeHexColors: typeof typeHexColors = typeHexColors;
+	readonly typeHexCodes: typeof typeHexCodes = typeHexCodes;
 	readonly unsafeApiCharacterRegex: RegExp = UNSAFE_API_CHARACTER_REGEX;
 
 	lastGithubApiCall: number = 0;
@@ -251,7 +65,19 @@ export class Tools {
 	}
 
 	getNamedHexCode(name: NamedHexCode): IHexCodeData {
-		return hexColorCodes[namedHexColors[name]];
+		return hexCodes[namedHexCodes[name]];
+	}
+
+	getEggGroupHexCode(eggGroup: string): IHexCodeData {
+		return hexCodes[eggGroupHexCodes[eggGroup]];
+	}
+
+	getPokemonColorHexCode(color: string): IHexCodeData {
+		return hexCodes[pokemonColorHexCodes[color]];
+	}
+
+	getTypeHexCode(type: string): IHexCodeData {
+		return hexCodes[typeHexCodes[type]];
 	}
 
 	logError(error: Error, message?: string): void {

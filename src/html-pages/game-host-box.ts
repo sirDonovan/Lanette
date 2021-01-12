@@ -60,9 +60,9 @@ class GameHostBox extends HtmlPageBase {
 		html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
 				setBackgroundColorCommand + "," + noBackground, "None", !hostBox || !hostBox.background);
 
-		const colors = Object.keys(Tools.hexColorCodes) as HexCode[];
+		const colors = Object.keys(Tools.hexCodes) as HexCode[];
 		for (const color of colors) {
-			const colorDiv = "<div style='background: " + Tools.hexColorCodes[color].gradient + ";height: 15px;width: 15px'>&nbsp;</div>";
+			const colorDiv = "<div style='background: " + Tools.hexCodes[color].gradient + ";height: 15px;width: 15px'>&nbsp;</div>";
 			html += "&nbsp;" + Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
 				setBackgroundColorCommand + "," + color, colorDiv, hostBox && hostBox.background === color);
 		}
@@ -73,8 +73,8 @@ class GameHostBox extends HtmlPageBase {
 				setButtonColorCommand + "," + noBackground, "None", !hostBox || !hostBox.buttons);
 
 		for (const color of colors) {
-			if (!Tools.hexColorCodes[color].category) continue;
-			const colorDiv = "<div style='background: " + Tools.hexColorCodes[color].color + ";height: 15px;width: 15px'>" +
+			if (!Tools.hexCodes[color].category) continue;
+			const colorDiv = "<div style='background: " + Tools.hexCodes[color].color + ";height: 15px;width: 15px'>" +
 				"&nbsp;</div>";
 			html += "&nbsp;" + Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
 				setButtonColorCommand + "," + color, colorDiv, hostBox && hostBox.buttons === color);
@@ -184,7 +184,7 @@ export const commands: CommandDefinitions<CommandContext> = {
 			} else if (cmd === setBackgroundColorCommand || cmd === 'setbgcolor' || cmd === 'setbackground') {
 				const color = targets[0].trim();
 				const clear = color === noBackground;
-				if (!clear && !(color in Tools.hexColorCodes)) {
+				if (!clear && !(color in Tools.hexCodes)) {
 					return this.say("'" + color + "' is not a valid background color.");
 				}
 
@@ -200,7 +200,7 @@ export const commands: CommandDefinitions<CommandContext> = {
 			} else if (cmd === setButtonColorCommand || cmd === 'setbuttoncolor' || cmd === 'setbuttons' || cmd === 'setbutton') {
 				const color = targets[0].trim();
 				const clear = color === noBackground;
-				if (!clear && (!(color in Tools.hexColorCodes) || !Tools.hexColorCodes[color as HexCode].category)) {
+				if (!clear && (!(color in Tools.hexCodes) || !Tools.hexCodes[color as HexCode].category)) {
 					return this.say("'" + color + "' is not a valid button color.");
 				}
 

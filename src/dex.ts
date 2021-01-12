@@ -1161,7 +1161,7 @@ export class Dex {
 	getTypeHtml(type: ITypeData, width?: number): string {
 		if (!width) width = 75;
 
-		const colorData = Tools.hexColorCodes[Tools.typeHexColors[type.name]];
+		const colorData = Tools.getTypeHexCode(type.name);
 		return '<div style="display:inline-block;background-color:' + colorData.color + ';background:' +
 			colorData.gradient + ';border: 1px solid #a99890;border-radius:3px;' +
 			'width:' + width + 'px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;' +

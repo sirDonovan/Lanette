@@ -1096,18 +1096,18 @@ describe("Dex", () => {
 	it('should have hex colors for all relevant Pokemon and move data', () => {
 		for (const i of Dex.data.pokemonKeys) {
 			const pokemon = Dex.getExistingPokemon(i);
-			assert(pokemon.color in Tools.pokemonColorHexColors, pokemon.name + "'s color " + pokemon.color);
+			assert(pokemon.color in Tools.pokemonColorHexCodes, pokemon.name + "'s color " + pokemon.color);
 			for (const type of pokemon.types) {
-				assert(type in Tools.typeHexColors, pokemon.name + "'s type " + type);
+				assert(type in Tools.typeHexCodes, pokemon.name + "'s type " + type);
 			}
 			for (const eggGroup of pokemon.eggGroups) {
-				assert(eggGroup in Tools.eggGroupHexColors, pokemon.name + "'s egg group " + eggGroup);
+				assert(eggGroup in Tools.eggGroupHexCodes, pokemon.name + "'s egg group " + eggGroup);
 			}
 		}
 
 		for (const i of Dex.data.moveKeys) {
 			const move = Dex.getExistingMove(i);
-			assert(move.type in Tools.typeHexColors, move.name);
+			assert(move.type in Tools.typeHexCodes, move.name);
 		}
 	});
 });

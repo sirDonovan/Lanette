@@ -119,10 +119,10 @@ class GameTrainerCard extends HtmlPageBase {
 		html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
 				setBackgroundColorCommand + "," + noBackground, "None", !trainerCard || !trainerCard.background);
 
-		const colors = Object.keys(Tools.hexColorCodes) as HexCode[];
+		const colors = Object.keys(Tools.hexCodes) as HexCode[];
 		for (const color of colors) {
-			if (Tools.hexColorCodes[color].category !== 'light') continue;
-			const colorDiv = "<div style='background: " + Tools.hexColorCodes[color].gradient + ";height: 15px;width: 15px'>&nbsp;</div>";
+			if (Tools.hexCodes[color].category !== 'light') continue;
+			const colorDiv = "<div style='background: " + Tools.hexCodes[color].gradient + ";height: 15px;width: 15px'>&nbsp;</div>";
 			html += "&nbsp;" + Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " +
 				setBackgroundColorCommand + "," + color, colorDiv, trainerCard && trainerCard.background === color);
 		}
@@ -301,7 +301,7 @@ export const commands: CommandDefinitions<CommandContext> = {
 			} else if (cmd === setBackgroundColorCommand || cmd === 'setbgcolor' || cmd === 'setbackground') {
 				const color = targets[0].trim();
 				const clear = color === noBackground;
-				if (!clear && (!(color in Tools.hexColorCodes) || Tools.hexColorCodes[color as HexCode].category !== 'light')) {
+				if (!clear && (!(color in Tools.hexCodes) || Tools.hexCodes[color as HexCode].category !== 'light')) {
 					return this.say("'" + color + "' is not a valid background color.");
 				}
 

@@ -197,12 +197,12 @@ describe("Tools", () => {
 		}
 	});
 	it('should have proper typeHexColors and pokemonColorHexColors lists', () => {
-		for (const i in Tools.typeHexColors) {
-			assert(Tools.typeHexColors[i] in Tools.hexColorCodes, i);
+		for (const i in Tools.typeHexCodes) {
+			assert(Tools.typeHexCodes[i] in Tools.hexCodes, i);
 		}
 
-		for (const i in Tools.pokemonColorHexColors) {
-			assert(Tools.pokemonColorHexColors[i] in Tools.hexColorCodes, i);
+		for (const i in Tools.pokemonColorHexCodes) {
+			assert(Tools.pokemonColorHexCodes[i] in Tools.hexCodes, i);
 		}
 	});
 	it('should properly generate permutations', () => {
