@@ -1170,7 +1170,7 @@ export class Client {
 
 				if (this.lastOutgoingMessage) {
 					this.outgoingMessageQueue.unshift(this.lastOutgoingMessage);
-					this.clearLastOutgoingMessage(now);
+					this.clearLastOutgoingMessage(this.lastOutgoingMessage.measure ? now : undefined);
 				}
 				this.setSendTimeout(this.getSendThrottle() * SERVER_THROTTLE_BUFFER_LIMIT);
 			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
@@ -1800,10 +1800,10 @@ export class Client {
 		});
 	}
 
-	clearLastOutgoingMessage(responseTime: number): void {
+	clearLastOutgoingMessage(responseTime?: number): void {
 		if (this.lastOutgoingMessage) {
 			const oldServerProcessingTime = this.lastOutgoingMessage.serverProcessingTime;
-			if (this.lastOutgoingMessage.measure && this.lastOutgoingMessage.sentTime) {
+			if (this.lastOutgoingMessage.measure && this.lastOutgoingMessage.sentTime && responseTime) {
 				let serverProcessingTime = responseTime - this.lastOutgoingMessage.sentTime - (this.serverLatency * 2);
 				if (serverProcessingTime < ASSUMED_SERVER_PROCESSING_TIME) serverProcessingTime = ASSUMED_SERVER_PROCESSING_TIME;
 				this.serverProcessingTime = serverProcessingTime;
