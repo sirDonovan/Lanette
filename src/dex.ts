@@ -40,7 +40,6 @@ const tagNames: Dict<string> = {
 	'pu': 'PU',
 	'zu': 'ZU',
 	'nfe': 'NFE',
-	'lcuber': 'LC Uber',
 	'lc': 'LC',
 	'cap': 'Cap',
 	'caplc': 'Cap LC',
@@ -99,10 +98,10 @@ const customRuleFormats: Dict<{banlist: string, format: string}> = {
 };
 
 const customRuleAliases: Dict<string[]> = {
-	uu: ['-All Pokemon', '+LC', '+LC Uber', '+NFE', '+ZU', '+PU', '+PUBL', '+NU', '+NUBL', '+RU', '+RUBL', '+UU'],
-	ru: ['-All Pokemon', '+LC', '+LC Uber', '+NFE', '+ZU', '+PU', '+PUBL', '+NU', '+NUBL', '+RU'],
-	nu: ['-All Pokemon', '+LC', '+LC Uber', '+NFE', '+ZU', '+PU', '+PUBL', '+NU'],
-	pu: ['-All Pokemon', '+LC', '+LC Uber', '+NFE', '+ZU', '+PU'],
+	uu: ['-All Pokemon', '+LC', '+NFE', '+ZU', '+PU', '+PUBL', '+NU', '+NUBL', '+RU', '+RUBL', '+UU'],
+	ru: ['-All Pokemon', '+LC', '+NFE', '+ZU', '+PU', '+PUBL', '+NU', '+NUBL', '+RU'],
+	nu: ['-All Pokemon', '+LC', '+NFE', '+ZU', '+PU', '+PUBL', '+NU'],
+	pu: ['-All Pokemon', '+LC', '+NFE', '+ZU', '+PU'],
 	cap: ['+CAP', '+CAP NFE', '+CAP LC'],
 	monotype: ['Same Type Clause'],
 	aaa: ['!Obtainable Abilities', '-Wonder Guard', '-Shadow Tag'],
