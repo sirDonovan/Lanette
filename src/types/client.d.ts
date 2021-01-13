@@ -9,6 +9,8 @@ export interface IOutgoingMessage {
 	html?: string;
 	measure?: boolean;
 	sentTime?: number;
+	serverLatency?: number;
+	serverProcessingTime?: number;
 	text?: string;
 	uhtmlName?: string;
 	user?: string;

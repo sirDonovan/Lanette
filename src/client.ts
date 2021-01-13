@@ -26,7 +26,7 @@ const TRUSTED_MESSAGE_THROTTLE = 100;
 const SERVER_THROTTLE_BUFFER_LIMIT = 6;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
-const SERVER_LATENCY_INTERVAL = 30 * 1000;
+const SERVER_LATENCY_INTERVAL = 20 * 1000;
 const ASSUMED_SERVER_LATENCY = 1;
 const ASSUMED_SERVER_PROCESSING_TIME = 1;
 const INVITE_COMMAND = '/invite ';
@@ -282,10 +282,16 @@ export class Client {
 
 			if (this.reloadInProgress || this !== global.Client) return;
 
+			const oldServerLatency = this.lastOutgoingMessage ? this.lastOutgoingMessage.serverLatency : this.serverLatency;
 			if (pingTime) {
 				this.serverLatency = Math.ceil((Date.now() - pingTime) / 2) || ASSUMED_SERVER_LATENCY;
 			} else {
 				this.serverLatency = ASSUMED_SERVER_LATENCY;
+			}
+
+			if (this.sendTimeout && this.sendTimeout !== true && oldServerLatency && this.serverLatency > oldServerLatency) {
+				this.clearSendTimeout();
+				this.setSendTimeout(this.getSendThrottle() + (this.serverLatency - oldServerLatency));
 			}
 		};
 
@@ -1157,7 +1163,8 @@ export class Client {
 				'typing too quickly.</strong>') {
 				this.clearSendTimeout();
 
-				Tools.logMessage("Typing too quickly; Client.getSendThrottle() = " + this.getSendThrottle() + "; " +
+				Tools.logMessage("Typing too quickly; Client.sendThrottle = " + this.sendThrottle + "; Client.serverLatency = " +
+					this.serverLatency + "; Client.serverProcessingTime = " + this.serverProcessingTime + "; " +
 					"Client.outgoingMessageQueue.length = " + this.outgoingMessageQueue.length +
 					(this.lastOutgoingMessage ? "; Client.lastOutgoingMessage = " + JSON.stringify(this.lastOutgoingMessage) : ""));
 
@@ -1781,9 +1788,13 @@ export class Client {
 
 		this.sendTimeout = true;
 		this.webSocket.send(outgoingMessage.message, () => {
+			const now = Date.now();
 			if (this.sendTimeout === true && !this.reloadInProgress && this === global.Client) {
-				if (outgoingMessage.measure) outgoingMessage.sentTime = Date.now();
+				if (outgoingMessage.measure) outgoingMessage.sentTime = now;
+				outgoingMessage.serverLatency = this.serverLatency;
+				outgoingMessage.serverProcessingTime = this.serverProcessingTime;
 				this.lastOutgoingMessage = outgoingMessage;
+
 				this.setSendTimeout();
 			}
 		});
@@ -1791,12 +1802,20 @@ export class Client {
 
 	clearLastOutgoingMessage(responseTime: number): void {
 		if (this.lastOutgoingMessage) {
+			const oldServerProcessingTime = this.lastOutgoingMessage.serverProcessingTime;
 			if (this.lastOutgoingMessage.measure && this.lastOutgoingMessage.sentTime) {
-				let serverProcessingTime = responseTime - this.lastOutgoingMessage.sentTime - this.serverLatency;
+				let serverProcessingTime = responseTime - this.lastOutgoingMessage.sentTime - (this.serverLatency * 2);
 				if (serverProcessingTime < ASSUMED_SERVER_PROCESSING_TIME) serverProcessingTime = ASSUMED_SERVER_PROCESSING_TIME;
 				this.serverProcessingTime = serverProcessingTime;
 			}
+
 			this.lastOutgoingMessage = null;
+
+			if (this.sendTimeout && this.sendTimeout !== true && oldServerProcessingTime &&
+				this.serverProcessingTime > oldServerProcessingTime) {
+				this.clearSendTimeout();
+				this.setSendTimeout(this.getSendThrottle() + (this.serverProcessingTime - oldServerProcessingTime));
+			}
 		}
 	}
 
