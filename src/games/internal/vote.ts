@@ -9,6 +9,7 @@ export class Vote extends ScriptedGame {
 	bannedFormats: string[] = [];
 	canVote: boolean | undefined;
 	chosenFormat: string = '';
+	chosenVoter: string = '';
 	endedVoting: boolean = false;
 	internalGame: boolean = true;
 	botSuggestions: string[] = [];
@@ -252,13 +253,22 @@ export class Vote extends ScriptedGame {
 	}
 
 	endVoting(): void {
+		if (this.timeout) clearTimeout(this.timeout);
+
 		this.canVote = false;
 		this.updateVotesHtml(() => {
 			this.timeout = setTimeout(() => {
-				const formats = Array.from(this.votes.values());
+				const votes: {format: string, player: Player}[] = [];
+				this.votes.forEach((format, player) => {
+					votes.push({format, player});
+				});
+
+				let voter: string = '';
 				let format: string;
-				if (formats.length) {
-					format = this.sampleOne(formats);
+				if (votes.length) {
+					const chosen = this.sampleOne(votes);
+					format = chosen.format;
+					voter = chosen.player.name;
 				} else {
 					if (!this.botSuggestions.length) {
 						this.say("A random game could not be chosen.");
@@ -269,6 +279,7 @@ export class Vote extends ScriptedGame {
 				}
 
 				this.chosenFormat = format;
+				this.chosenVoter = voter;
 				this.end();
 			}, 3000);
 		});
@@ -281,7 +292,8 @@ export class Vote extends ScriptedGame {
 
 	onAfterDeallocate(forceEnd: boolean): void {
 		if (!forceEnd && this.chosenFormat) {
-			CommandParser.parse(this.room, Users.self, Config.commandCharacter + "creategame " + this.chosenFormat, Date.now());
+			CommandParser.parse(this.room, Users.self, Config.commandCharacter + "createpickedgame " +
+				(this.chosenVoter ? this.chosenVoter + ", " : "") + this.chosenFormat, Date.now());
 		}
 	}
 }

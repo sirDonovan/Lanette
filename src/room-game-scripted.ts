@@ -222,36 +222,20 @@ export class ScriptedGame extends Game {
 	}
 
 	getDescriptionHtml(): string {
-		let html = "<center>";
-		if (this.mascot) {
-			const gif = Dex.getPokemonGif(this.mascot, undefined, undefined, this.shinyMascot);
-			if (gif) html += gif;
-		}
-		html += "<h3>" + this.name + "</h3>" + this.getDescription();
-		if (this.additionalDescription) html += "<br /><br />" + this.additionalDescription;
+		let description = this.getDescription();
+		if (this.additionalDescription) description += "<br /><br />" + this.additionalDescription;
 
 		let commandDescriptions: string[] = [];
 		if (this.getPlayerSummary) commandDescriptions.push(Config.commandCharacter + "summary");
 		if (this.commandDescriptions) commandDescriptions = commandDescriptions.concat(this.commandDescriptions);
 		if (commandDescriptions.length) {
-			html += "<br /><b>Command" + (commandDescriptions.length > 1 ? "s" : "") + "</b>: " +
+			description += "<br /><b>Command" + (commandDescriptions.length > 1 ? "s" : "") + "</b>: " +
 				commandDescriptions.map(x => "<code>" + x + "</code>").join(", ");
 		}
 
-		if (!this.internalGame && !this.parentGame) {
-			html += '<br /><br /><button class="button" name="parseCommand" value="/highlight roomadd ' +
-				this.getHighlightPhrase() + '">Enable game highlights</button> | <button class="button" name="parseCommand" ' +
-				'value="/highlight roomdelete ' + this.getHighlightPhrase() + '">Disable game highlights</button>';
-
-			if (this.format.mode) {
-				html += '<br /><button class="button" name="parseCommand" value="/highlight roomadd ' +
-					this.getModeHighlightPhrase() + '">Enable mode highlights</button> | <button class="button" name="parseCommand" ' +
-					'value="/highlight roomdelete ' + this.getModeHighlightPhrase() + '">Disable mode highlights</button>';
-			}
-		}
-
-		html += "</center>";
-		return html;
+		return Games.getScriptedBoxHtml(this.room as Room, this.name, this.format.voter, description, this.mascot, this.shinyMascot,
+			!this.internalGame && !this.parentGame ? this.getHighlightPhrase() : "",
+			this.format.mode ? this.getModeHighlightPhrase() : "");
 	}
 
 	getSignupsHtml(): string {

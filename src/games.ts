@@ -13,7 +13,7 @@ import type {
 	LoadedGameFile, UserHostedCustomizable
 } from './types/games';
 import type { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/pokemon-showdown';
-import type { IGameHostBox, IPastGame } from './types/storage';
+import type { IGameHostBox, IGameScriptedBox, IPastGame } from './types/storage';
 import type { User } from './users';
 import { ParametersWorker } from './workers/parameters';
 import { PortmanteausWorker } from './workers/portmanteaus';
@@ -1349,6 +1349,78 @@ export class Games {
 		return html;
 	}
 
+	getScriptedBoxHtml(room: Room, gameName: string, voter?: string, description?: string, mascot?: IPokemon, shinyMascot?: boolean,
+		highlightPhrase?: string, modeHighlightPhrase?: string): string {
+		let scriptedBox: IGameScriptedBox | undefined;
+		if (voter) {
+			const user = Users.get(voter);
+			if (user) voter = user.name;
+
+			const id = Tools.toId(voter);
+			const database = Storage.getDatabase(room);
+			if (database.gameScriptedBoxes && id in database.gameScriptedBoxes) scriptedBox = database.gameScriptedBoxes[id];
+		}
+
+		let html = "<center>";
+		html += "<span";
+		if (scriptedBox && scriptedBox.background) {
+			html += " style='display: block;";
+			if (Tools.hexCodes[scriptedBox.background].textColor) {
+				html += 'color: ' + Tools.hexCodes[scriptedBox.background].textColor + ';';
+			} else {
+				html += 'color: #000000;';
+			}
+			html += "background: " + Tools.hexCodes[scriptedBox.background].gradient + "'";
+		}
+		html += ">";
+
+		if (scriptedBox && voter) {
+			const icons: string[] = [];
+			for (const pokemon of scriptedBox.pokemon) {
+				const icon = Dex.getPokemonIcon(Dex.getExistingPokemon(pokemon));
+				if (icon) icons.push(icon);
+			}
+
+			html += (icons.length ? icons.join("&nbsp;") + " " : "") + "<b>" + voter + "</b>'s pick<br /><br />";
+		}
+
+		if (mascot) {
+			const gif = Dex.getPokemonGif(mascot, undefined, undefined, shinyMascot);
+			if (gif) html += gif;
+		}
+		html += "<h3>" + gameName + "</h3>";
+		if (description) html += description;
+
+		let buttonStyle = '';
+		if (scriptedBox && scriptedBox.buttons) {
+			if (Tools.hexCodes[scriptedBox.buttons].textColor) {
+				buttonStyle += 'color: ' + Tools.hexCodes[scriptedBox.buttons].textColor + ';';
+			} else {
+				buttonStyle += 'color: #000000;';
+			}
+			buttonStyle += "background: " + Tools.hexCodes[scriptedBox.buttons].color;
+		}
+
+		html += '<br /><br /><button class="button"' + (buttonStyle ? ' style="' + buttonStyle + '"' : '');
+		if (highlightPhrase) html += ' name="parseCommand" value="/highlight roomadd ' + highlightPhrase + '"';
+		html += '>Enable game highlights</button>';
+		html += '&nbsp;|&nbsp;';
+		html += '<button class="button"' + (buttonStyle ? ' style="' + buttonStyle + '"' : '');
+		if (highlightPhrase) html += ' name="parseCommand" value="/highlight roomdelete ' + highlightPhrase + '"';
+		html += '>Disable game highlights</button>';
+
+		if (modeHighlightPhrase) {
+			html += '<br /><button class="button"' + (buttonStyle ? ' style="' + buttonStyle + '"' : '') +
+				' name="parseCommand" value="/highlight roomadd ' + modeHighlightPhrase + '">Enable mode highlights</button> | ' +
+				'<button class="button"' + (buttonStyle ? ' style="' + buttonStyle + '"' : '') + ' name="parseCommand" ' +
+				'value="/highlight roomdelete ' + modeHighlightPhrase + '">Disable mode highlights</button>';
+		}
+
+		html += "<br />&nbsp;</span></center>";
+
+		return html;
+	}
+
 	getHostBoxHtml(room: Room, host: string, gameName: string, format?: IUserHostedFormat, highlightPhrase?: string): string {
 		const id = Tools.toId(host);
 		const database = Storage.getDatabase(room);
@@ -1402,7 +1474,7 @@ export class Games {
 		html += '<button class="button"' + (buttonStyle ? ' style="' + buttonStyle + '"' : '');
 		if (highlightPhrase) html += ' name="parseCommand" value="/highlight roomdelete ' + highlightPhrase + '"';
 		html += '>Disable game highlights</button>';
-		html += "</span></center>";
+		html += "<br />&nbsp;</span></center>";
 
 		return html;
 	}

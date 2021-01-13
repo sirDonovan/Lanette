@@ -276,6 +276,16 @@ export let showGameHostBoxes: string[] = [];
 export let gameHostBoxRequirements: Dict<{background: number, pokemon: IGameHostBoxPokemon}> = {};
 
 /**
+ * A list of rooms (roomids) where customized game scripted boxes are shown
+ */
+export let showGameScriptedBoxes: string[] = [];
+
+/**
+ * For each room in the object, the number of bits that must be earned to customize a game scripted box
+ */
+export let gameScriptedBoxRequirements: Dict<number> = {};
+
+/**
  * A list of rooms (roomids) where games cannot be hosted back-to-back
  */
 export let disallowRepeatUserHostedGames: string[] = [];

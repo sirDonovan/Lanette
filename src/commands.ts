@@ -633,10 +633,18 @@ const commands: CommandDefinitions<CommandContext, void> = {
 			}
 			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
 
-			const targetId = Tools.toId(target);
+			const targets = target.split(',');
+			let voter = '';
+			if (cmd === 'createpickedgame' || cmd === 'cpg') {
+				voter = targets[0].trim();
+				targets.shift();
+			}
+
+			let gameTarget = targets.join(',');
+			const targetId = Tools.toId(gameTarget);
 			let format: IGameFormat | undefined;
 			if (cmd === 'createrandomgame' || cmd === 'crg' || cmd === 'randomgame' || targetId === 'random') {
-				const option = Tools.toId(target);
+				const option = Tools.toId(gameTarget);
 				let formats: string[];
 				if (option === 'freejoin' || option === 'fj') {
 					formats = Games.freejoinFormatTargets;
@@ -644,7 +652,7 @@ const commands: CommandDefinitions<CommandContext, void> = {
 					let filter: ((format: IGameFormat) => boolean) | undefined;
 					if (option) filter = x => Tools.toId(x.category) === option;
 					formats = Games.getFormatList(filter).map(x => x.name);
-					if (!formats.length) return this.say("There are no games in the category '" + target.trim() + "'.");
+					if (!formats.length) return this.say("There are no games in the category '" + gameTarget.trim() + "'.");
 				}
 
 				formats = Tools.shuffle(formats);
@@ -661,13 +669,13 @@ const commands: CommandDefinitions<CommandContext, void> = {
 					const formats = Games.getLeastPlayedFormats(room);
 					for (const leastPlayedFormat of formats) {
 						if (Games.canCreateGame(room, leastPlayedFormat) === true) {
-							target = leastPlayedFormat.name;
+							gameTarget = leastPlayedFormat.name;
 							break;
 						}
 					}
 				}
 
-				const inputFormat = Games.getFormat(target, true);
+				const inputFormat = Games.getFormat(gameTarget, true);
 				if (Array.isArray(inputFormat)) return this.sayError(inputFormat);
 				if (inputFormat.tournamentGame) return this.say("You must use the ``" + Config.commandCharacter + "ctg`` command.");
 				const canCreateGame = Games.canCreateGame(room, inputFormat);
@@ -675,10 +683,11 @@ const commands: CommandDefinitions<CommandContext, void> = {
 				format = inputFormat;
 			}
 
+			format.voter = voter;
 			const game = Games.createGame(room, format);
 			game.signups();
 		},
-		aliases: ['cg', 'createrandomgame', 'crg', 'randomgame'],
+		aliases: ['cg', 'createrandomgame', 'crg', 'randomgame', 'createpickedgame', 'cpg'],
 	},
 	startgame: {
 		command(target, room, user) {

@@ -59,6 +59,12 @@ export interface IGameHostBox {
 	buttons?: HexCode;
 }
 
+export interface IGameScriptedBox {
+	pokemon: string[];
+	background?: HexCode;
+	buttons?: HexCode;
+}
+
 export type UserHostStatus = 'unapproved' | 'novice' | 'approved';
 
 export type LeaderboardType = 'gameLeaderboard' | 'gameHostingLeaderbaord' | 'tournamentLeaderboard' | 'unsortedLeaderboard';
@@ -81,6 +87,7 @@ export interface IDatabase {
 	gameLeaderboard?: ILeaderboard;
 	gameHostingLeaderbaord?: ILeaderboard;
 	gameHostBoxes?: Dict<IGameHostBox>;
+	gameScriptedBoxes?: Dict<IGameScriptedBox>;
 	gameTrainerCards?: Dict<IGameTrainerCard>;
 	lastGameFormatTimes?: Dict<number>;
 	lastGameTime?: number;

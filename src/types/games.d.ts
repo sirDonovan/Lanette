@@ -177,6 +177,7 @@ export interface IGameFormat<T extends ScriptedGame = ScriptedGame> extends IGam
 	defaultOptions: DefaultGameOption[];
 	description: string;
 	options: Dict<number>;
+	voter?: string;
 }
 
 export interface IGameVariantProperties<T extends ScriptedGame = ScriptedGame> {

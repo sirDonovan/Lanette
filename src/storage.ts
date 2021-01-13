@@ -239,6 +239,16 @@ export class Storage {
 		};
 	}
 
+	createGameScriptedBox(database: IDatabase, name: string): void {
+		const id = Tools.toId(name);
+		if (!database.gameScriptedBoxes) database.gameScriptedBoxes = {};
+		if (id in database.gameScriptedBoxes) return;
+
+		database.gameScriptedBoxes[id] = {
+			pokemon: [],
+		};
+	}
+
 	addPoints(room: Room, leaderboardType: LeaderboardType, name: string, amount: number, source: string): void {
 		if (!amount) return;
 
