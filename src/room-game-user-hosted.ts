@@ -557,11 +557,10 @@ export const game: IUserHostedFile = {
 				"https://docs.google.com/document/d/1H6bRZlxJSfNZvqzxnbTyV2RiXABtuVgZdprTNEfn6bk",
 		},
 		{
-			name: "Rotom-Dex's Trivia",
+			name: "Rotom's Dex Trivia",
 			mascot: "Rotom",
-			mascotPrefix: "Rotom-Dex's",
 			description: "A dex entry of a Pokemon will be posted and players have to be first to guess the Pokemon correctly!",
-			aliases: ['RDT', 'rotomdexs'],
+			aliases: ['RDT', 'rotomdexstrivia', 'dextrivia'],
 			freejoin: true,
 		},
 		{
