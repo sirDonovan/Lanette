@@ -181,7 +181,8 @@ class MismagiusFoulPlay extends ScriptedGame {
 			const player = this.players[i];
 			let text = player.name + ": ";
 			const chosenPokemon = this.chosenPokemon.get(player)!;
-			const hasParam = data[category][param].includes(chosenPokemon);
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+			const hasParam = data[category!][param].includes(chosenPokemon);
 			const isCriminal = this.criminals.includes(player);
 			if ((hasParam && !isCriminal) || (!hasParam && isCriminal)) {
 				text += "T";
