@@ -399,4 +399,4 @@ export let githubApiCredentials: Dict<{token: string; username: string}> = {};
  */
 export let gameCatalogGists: Dict<{description: string; files: string[]; id: string}> = {};
 
-/* eslint-enable prefer-const*/
+/* eslint-enable */

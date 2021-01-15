@@ -25,6 +25,7 @@ export type CommandDefinitions<ThisContext, ReturnType = any> = Dict<ICommandDef
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type LoadedCommands<ThisContext, ReturnType = any> = Dict<LoadedCommand<ThisContext, ReturnType>>;
 
+export type BaseCommandDefinitions = CommandDefinitions<CommandContext>;
 export type BaseLoadedCommands = LoadedCommands<CommandContext>;
 
 export type CommandErrorOptionalTarget = 'invalidBotRoom' | 'invalidAbility' | 'invalidFormat' | 'invalidGameFormat' | 'invalidItem' |
@@ -39,6 +40,10 @@ export type CommandErrorNoTarget = 'invalidUserInRoom' | 'invalidUsernameLength'
 
 export type CommandErrorArray = [CommandErrorOptionalTarget, string?] | [CommandErrorRequiredTarget, string] | [CommandErrorNoTarget];
 
+export interface ICommandFile {
+	commands?: BaseCommandDefinitions;
+}
+
 export interface IHtmlPageFile {
-	commands?: CommandDefinitions<CommandContext>;
+	commands?: BaseCommandDefinitions;
 }

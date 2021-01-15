@@ -1,7 +1,6 @@
-import type { CommandContext } from "../command-parser";
 import type { Room } from "../rooms";
 import type { IClientMessageTypes } from "./client";
-import type { CommandDefinitions } from "./command-parser";
+import type { BaseCommandDefinitions } from "./command-parser";
 
 export interface IPluginConstructor {
 	new (): IPluginInterface;
@@ -19,7 +18,7 @@ export interface IParseMessagePlugin {
 }
 
 export interface IPluginFile {
-	commands?: CommandDefinitions<CommandContext>;
+	commands?: BaseCommandDefinitions;
 	Module?: IPluginConstructor;
 }
 

@@ -1,6 +1,5 @@
-import type { CommandContext } from "../command-parser";
 import type { Room } from "../rooms";
-import type { CommandDefinitions } from "../types/command-parser";
+import type { BaseCommandDefinitions } from "../types/command-parser";
 import type { IGameFormat } from "../types/games";
 import type { IPokemon } from "../types/pokemon-showdown";
 import type { IGameScriptedBox } from "../types/storage";
@@ -278,7 +277,7 @@ class GameScriptedBox extends HtmlPageBase {
 	}
 }
 
-export const commands: CommandDefinitions<CommandContext> = {
+export const commands: BaseCommandDefinitions = {
 	[baseCommand]: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {

@@ -1,9 +1,8 @@
-import type { CommandContext } from "../command-parser";
-import type { CommandDefinitions } from "../types/command-parser";
+import type { BaseCommandDefinitions } from "../types/command-parser";
 
 // commands are defined the same way as in src/commands.ts
 
-const commandsDict: CommandDefinitions<CommandContext> = {
+const commandsDict: BaseCommandDefinitions = {
 	pluginexample: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-unused-vars
 		command(target, room, user) {

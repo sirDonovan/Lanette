@@ -1,6 +1,5 @@
-import type { CommandContext } from "../command-parser";
 import type { Room } from "../rooms";
-import type { CommandDefinitions } from "../types/command-parser";
+import type { BaseCommandDefinitions } from "../types/command-parser";
 import type { IGameTrainerCard } from "../types/storage";
 import type { HexCode } from "../types/tools";
 import type { User } from "../users";
@@ -284,7 +283,7 @@ class GameTrainerCard extends HtmlPageBase {
 	}
 }
 
-export const commands: CommandDefinitions<CommandContext> = {
+export const commands: BaseCommandDefinitions = {
 	[baseCommand]: {
 		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {

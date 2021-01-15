@@ -1,9 +1,11 @@
 import fs = require('fs');
 import path = require('path');
 
-import * as commands from './commands';
 import type { Room } from "./rooms";
-import type { BaseLoadedCommands, CommandErrorArray, CommandDefinitions, LoadedCommands, IHtmlPageFile } from "./types/command-parser";
+import type {
+	BaseCommandDefinitions, CommandDefinitions, CommandErrorArray,
+	ICommandFile, IHtmlPageFile, LoadedCommands
+} from "./types/command-parser";
 import type { User } from "./users";
 
 export class CommandContext {
@@ -112,6 +114,7 @@ export class CommandContext {
 }
 
 export class CommandParser {
+	commandsDir: string = path.join(Tools.builtFolder, 'commands');
 	htmlPagesDir: string = path.join(Tools.builtFolder, 'html-pages');
 
 	loadCommandDefinitions<ThisContext, ReturnType>(definitions: CommandDefinitions<ThisContext, ReturnType>):
@@ -149,21 +152,37 @@ export class CommandParser {
 	}
 
 	loadBaseCommands(): void {
-		const allPluginCommands: CommandDefinitions<CommandContext> = {};
+		const baseCommands: BaseCommandDefinitions = {};
 
-		const htmlPages = fs.readdirSync(this.htmlPagesDir);
-		for (const fileName of htmlPages) {
+		const commandFiles = fs.readdirSync(this.commandsDir);
+		for (const fileName of commandFiles) {
+			if (!fileName.endsWith('.js')) continue;
+			// eslint-disable-next-line @typescript-eslint/no-var-requires
+			const commandFile = require(path.join(this.commandsDir, fileName)) as ICommandFile;
+			if (commandFile.commands) {
+				for (const i in commandFile.commands) {
+					if (i in baseCommands) {
+						throw new Error("Command '" + i + "' is defined in more than 1 location.");
+					}
+				}
+
+				Object.assign(baseCommands, commandFile.commands);
+			}
+		}
+
+		const htmlPageFiles = fs.readdirSync(this.htmlPagesDir);
+		for (const fileName of htmlPageFiles) {
 			if (!fileName.endsWith('.js') || fileName === 'html-page-base.js') continue;
 			// eslint-disable-next-line @typescript-eslint/no-var-requires
 			const htmlPage = require(path.join(this.htmlPagesDir, fileName)) as IHtmlPageFile;
 			if (htmlPage.commands) {
 				for (const i in htmlPage.commands) {
-					if (i in commands || i in allPluginCommands) {
+					if (i in baseCommands) {
 						throw new Error("Html page command '" + i + "' is defined in more than 1 location.");
 					}
 				}
 
-				Object.assign(allPluginCommands, htmlPage.commands);
+				Object.assign(baseCommands, htmlPage.commands);
 			}
 		}
 
@@ -171,18 +190,17 @@ export class CommandParser {
 			for (const plugin of Plugins) {
 				if (plugin.commands) {
 					for (const i in plugin.commands) {
-						if (i in commands || i in allPluginCommands) {
+						if (i in baseCommands) {
 							throw new Error("Plugin command '" + i + "' is defined in more than 1 location.");
 						}
 					}
 
-					Object.assign(allPluginCommands, plugin.commands);
+					Object.assign(baseCommands, plugin.commands);
 				}
 			}
 		}
 
-		global.Commands = Object.assign(Object.create(null),
-			Object.assign(this.loadCommandDefinitions(commands), this.loadCommandDefinitions(allPluginCommands))) as BaseLoadedCommands;
+		global.Commands = this.loadCommandDefinitions(baseCommands);
 		global.BaseCommands = Tools.deepClone(global.Commands);
 	}
 
