@@ -158,13 +158,13 @@ export class CommandParser {
 		return dict;
 	}
 
-	loadCommandsDirectory(directory: string, allCommands: BaseCommandDefinitions, optional?: boolean): BaseCommandDefinitions {
+	loadCommandsDirectory(directory: string, allCommands: BaseCommandDefinitions, privateDirectory?: boolean): BaseCommandDefinitions {
 		let commandFiles: string[] = [];
 		try {
 			commandFiles = fs.readdirSync(directory);
 		} catch (e) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			if (e.code === 'ENOENT' && optional) return allCommands;
+			if (e.code === 'ENOENT' && privateDirectory) return allCommands;
 			throw e;
 		}
 
@@ -173,9 +173,11 @@ export class CommandParser {
 			// eslint-disable-next-line @typescript-eslint/no-var-requires
 			const commandFile = require(path.join(directory, fileName)) as ICommandFile;
 			if (commandFile.commands) {
-				for (const i in commandFile.commands) {
-					if (i in allCommands) {
-						throw new Error("Command '" + i + "' is defined in more than 1 location.");
+				if (!privateDirectory) {
+					for (const i in commandFile.commands) {
+						if (i in allCommands) {
+							throw new Error("Command '" + i + "' is defined in more than 1 location.");
+						}
 					}
 				}
 
