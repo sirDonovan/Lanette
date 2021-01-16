@@ -3,7 +3,7 @@ import type { IFormat } from "./pokemon-showdown";
 import type { RoomType } from "./rooms";
 import type { ITournamentEndJson, ITournamentUpdateJson } from "./tournaments";
 
-export type IMessageParserFunction = (room: Room, messageType: keyof IClientMessageTypes, messageParts: string[], now: number) =>
+export type IMessageParserFunction = (room: Room, messageType: keyof IClientMessageTypes, messageParts: readonly string[], now: number) =>
 	// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
 	true | void;
 

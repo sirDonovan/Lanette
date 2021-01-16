@@ -3,7 +3,7 @@ import type { IClientMessageTypes, IMessageParserFunction } from "../types/clien
 
 export const parseMessage: IMessageParserFunction = function(room: Room, messageType: keyof IClientMessageTypes,
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	messageParts: string[], now: number) {
+	messageParts: readonly string[], now: number) {
 
 	// return `true` in a case to prevent that `messageType` from being parsed by other parsers and Client
 	switch (messageType) {
