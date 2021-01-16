@@ -1,6 +1,18 @@
+import type { Room } from "../rooms";
 import type { IFormat } from "./pokemon-showdown";
 import type { RoomType } from "./rooms";
 import type { ITournamentEndJson, ITournamentUpdateJson } from "./tournaments";
+
+export type IMessageParserFunction = (room: Room, messageType: keyof IClientMessageTypes, messageParts: string[], now: number) =>
+	// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+	true | void;
+
+export interface IMessageParserFile {
+	/**Return `true` to prevent a message from being parsed by other parsers and Client */
+	parseMessage: IMessageParserFunction;
+	/**Message parsers with higher priority will run before others, potentially preventing their execution */
+	priority: number;
+}
 
 export type IMessageTypes = 'command' | 'chat' | 'html' | 'uhtml' | 'pm' | 'pmhtml' | 'pmuhtml';
 export interface IOutgoingMessage {

@@ -1,4 +1,6 @@
+import fs = require('fs');
 import https = require('https');
+import path = require('path');
 import querystring = require('querystring');
 import url = require('url');
 
@@ -7,11 +9,10 @@ import type { ScriptedGame } from './room-game-scripted';
 import type { UserHostedGame } from './room-game-user-hosted';
 import type { Room } from './rooms';
 import type {
-	GroupName, IClientMessageTypes, ILoginOptions, IOutgoingMessage, IRoomInfoResponse, IRoomsResponse, IServerConfig, IServerGroup,
-	ITournamentMessageTypes, IUserDetailsResponse, QueryResponseType, ServerGroupData
+	GroupName, IClientMessageTypes, ILoginOptions, IMessageParserFile, IOutgoingMessage, IRoomInfoResponse, IRoomsResponse,
+	IServerConfig, IServerGroup, ITournamentMessageTypes, IUserDetailsResponse, QueryResponseType, ServerGroupData
 } from './types/client';
 import type { ISeparatedCustomRules } from './types/dex';
-import type { IParseMessagePlugin } from './types/plugins';
 import type { RoomType } from './types/rooms';
 import type { IExtractedBattleId } from './types/tools';
 import type { ITournamentEndJson, ITournamentUpdateJson } from './types/tournaments';
@@ -189,6 +190,8 @@ export class Client {
 	lastOutgoingMessage: IOutgoingMessage | null = null;
 	loggedIn: boolean = false;
 	loginTimeout: NodeJS.Timer | undefined = undefined;
+	messageParsers: IMessageParserFile[] = [];
+	messageParsersExist: boolean = false;
 	outgoingMessageQueue: IOutgoingMessage[] = [];
 	pauseIncomingMessages: boolean = true;
 	pauseOutgoingMessages: boolean = false;
@@ -226,6 +229,38 @@ export class Client {
 
 		this.parseServerGroups();
 		this.updateConfigSettings();
+
+		const messageParsersDir = path.join(Tools.builtFolder, 'message-parsers');
+		const privateMessageParsersDir = path.join(messageParsersDir, 'private');
+
+		this.loadMessageParsersDirectory(messageParsersDir);
+		this.loadMessageParsersDirectory(privateMessageParsersDir, true);
+
+		this.messageParsers.sort((a, b) => b.priority - a.priority);
+		this.messageParsersExist = this.messageParsers.length > 0;
+	}
+
+	loadMessageParsersDirectory(directory: string, optional?: boolean): void {
+		let messageParserFiles: string[] = [];
+		try {
+			messageParserFiles = fs.readdirSync(directory);
+		} catch (e) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			if (e.code === 'ENOENT' && optional) return;
+			throw e;
+		}
+
+		for (const fileName of messageParserFiles) {
+			if (!fileName.endsWith('.js') || fileName === 'example.js') continue;
+			const filePath = path.join(directory, fileName);
+			// eslint-disable-next-line @typescript-eslint/no-var-requires
+			const messageParser = require(filePath) as IMessageParserFile;
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+			if (!messageParser.parseMessage) throw new Error("No parseMessage function exported from " + filePath);
+
+			if (!messageParser.priority) messageParser.priority = 0;
+			this.messageParsers.push(messageParser);
+		}
 	}
 
 	setClientListeners(): void {
@@ -605,10 +640,9 @@ export class Client {
 
 		const messageParts = message.split("|");
 
-		if (ParseMessagePlugins) {
-			for (const pluginName of ParseMessagePlugins) {
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-				if (((global as any)[pluginName] as IParseMessagePlugin).parseMessage(room, messageType, messageParts) === true) return;
+		if (this.messageParsersExist) {
+			for (const messageParser of this.messageParsers) {
+				if (messageParser.parseMessage(room, messageType, messageParts, now) === true) return;
 			}
 		}
 

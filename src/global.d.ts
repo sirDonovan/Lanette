@@ -8,7 +8,6 @@ import type { Storage as storageType } from './storage';
 import type { Tools as toolsType } from './tools';
 import type { Tournaments as tournamentsType } from './tournaments';
 import type { BaseLoadedCommands } from "./types/command-parser";
-import type { LoadedPlugin } from './types/plugins';
 import type { Users as usersType } from './users';
 
 /* eslint-disable no-redeclare, no-undef, @typescript-eslint/naming-convention */
@@ -20,8 +19,6 @@ declare global {
 	const Config: Partial<typeof config>;
 	const Dex: dexType;
 	const Games: gamesType;
-	const ParseMessagePlugins: string[] | undefined;
-	const Plugins: LoadedPlugin[] | undefined;
 	const __reloadInProgress: boolean;
 	const __reloadModules: (username: string, modules: string[]) => Promise<void>;
 	const Rooms: roomsType;
@@ -30,7 +27,5 @@ declare global {
 	const Tools: toolsType;
 	const Tournaments: tournamentsType;
 	const Users: usersType;
-
-	// define plugin modules here
 }
 /* eslint-enable */

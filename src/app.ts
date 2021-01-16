@@ -6,7 +6,6 @@ import * as config from './config';
 import * as ConfigLoader from './config-loader';
 import * as dex from './dex';
 import * as games from './games';
-import * as PluginsLoader from './plugins-loader';
 import * as rooms from './rooms';
 import * as storage from './storage';
 import * as tools from './tools';
@@ -15,25 +14,16 @@ import type { ReloadableModule } from './types/app';
 import type { IGamesWorkers } from './types/games';
 import * as users from './users';
 
-const moduleOrder: ReloadableModule[] = ['tools', 'config', 'dex', 'client', 'storage', 'tournaments',
-	'plugins', 'commandparser', 'commands', 'games'];
+const moduleOrder: ReloadableModule[] = ['tools', 'config', 'dex', 'client', 'storage', 'tournaments', 'commandparser', 'games'];
 const moduleFilenames: KeyedDict<ReloadableModule, string> = {
 	client: 'client',
 	commandparser: 'command-parser',
-	commands: 'command-parser',
 	config: 'config',
 	dex: 'dex',
 	games: 'games',
-	plugins: 'plugins-loader',
 	storage: 'storage',
 	tools: 'tools',
 	tournaments: 'tournaments',
-};
-
-const reloadCommands = function(reloadedModules: ReloadableModule[]): void {
-	CommandParser.loadBaseCommands();
-
-	if (!reloadedModules.includes('games')) Games.loadFormatCommands();
 };
 
 module.exports = (): void => {
@@ -47,8 +37,6 @@ module.exports = (): void => {
 	tournaments.instantiate();
 	users.instantiate();
 	games.instantiate();
-
-	PluginsLoader.load();
 
 	CommandParser.loadBaseCommands();
 
@@ -137,11 +125,13 @@ module.exports = (): void => {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
 					const newClient = require('./' + moduleFilenames[moduleId]) as typeof import('./client');
 					newClient.instantiate();
-				} else if (moduleId === 'commandparser' || moduleId === 'commands') {
+				} else if (moduleId === 'commandparser') {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
 					const newCommandParser = require('./' + moduleFilenames[moduleId]) as typeof import('./command-parser');
 					newCommandParser.instantiate();
-					reloadCommands(modules);
+					CommandParser.loadBaseCommands();
+
+					if (!modules.includes('games')) Games.loadFormatCommands();
 				} else if (moduleId === 'config') {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
 					const configLoader = require('./config-loader') as typeof import('./config-loader');
@@ -161,11 +151,6 @@ module.exports = (): void => {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
 					const newGames = require('./' + moduleFilenames[moduleId]) as typeof import('./games');
 					newGames.instantiate();
-				} else if (moduleId === 'plugins') {
-					// eslint-disable-next-line @typescript-eslint/no-var-requires
-					const pluginsLoader = require('./plugins-loader') as typeof import('./plugins-loader');
-					pluginsLoader.load();
-					reloadCommands(modules);
 				} else if (moduleId === 'storage') {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
 					const newStorage = require('./' + moduleFilenames[moduleId]) as typeof import('./storage');

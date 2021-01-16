@@ -208,20 +208,6 @@ export class CommandParser {
 			}
 		}
 
-		if (Plugins) {
-			for (const plugin of Plugins) {
-				if (plugin.commands) {
-					for (const i in plugin.commands) {
-						if (i in baseCommands) {
-							throw new Error("Plugin command '" + i + "' is defined in more than 1 location.");
-						}
-					}
-
-					Object.assign(baseCommands, plugin.commands);
-				}
-			}
-		}
-
 		global.Commands = this.loadCommandDefinitions(baseCommands);
 		global.BaseCommands = Tools.deepClone(global.Commands);
 	}
