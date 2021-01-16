@@ -1,12 +1,11 @@
 // eslint-disable-next-line @typescript-eslint/naming-convention
 import child_process = require('child_process');
 
-import type { CommandContext } from "../command-parser";
-import type { CommandDefinitions } from "../types/command-parser";
+import type { BaseCommandDefinitions } from "../types/command-parser";
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-export const commands: CommandDefinitions<CommandContext, void> = {
+export const commands: BaseCommandDefinitions = {
 	eval: {
 		command(target, room, user) { // eslint-disable-line @typescript-eslint/no-unused-vars
 			try {

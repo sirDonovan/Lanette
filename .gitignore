@@ -83,5 +83,7 @@ pokemon-showdown/
 pokemon-showdown-lkg.txt
 private-data/
 roomlogs/
+src/commands/private/*
+!src/commands/private/README.md
 src/config.ts
 src/plugins/private.ts

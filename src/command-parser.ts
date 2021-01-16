@@ -114,8 +114,15 @@ export class CommandContext {
 }
 
 export class CommandParser {
-	commandsDir: string = path.join(Tools.builtFolder, 'commands');
 	htmlPagesDir: string = path.join(Tools.builtFolder, 'html-pages');
+
+	commandsDir: string;
+	privateCommandsDir: string;
+
+	constructor() {
+		this.commandsDir = path.join(Tools.builtFolder, 'commands');
+		this.privateCommandsDir = path.join(this.commandsDir, 'private');
+	}
 
 	loadCommandDefinitions<ThisContext, ReturnType>(definitions: CommandDefinitions<ThisContext, ReturnType>):
 		LoadedCommands<ThisContext, ReturnType> {
@@ -151,24 +158,39 @@ export class CommandParser {
 		return dict;
 	}
 
-	loadBaseCommands(): void {
-		const baseCommands: BaseCommandDefinitions = {};
+	loadCommandsDirectory(directory: string, allCommands: BaseCommandDefinitions, optional?: boolean): BaseCommandDefinitions {
+		let commandFiles: string[] = [];
+		try {
+			commandFiles = fs.readdirSync(directory);
+		} catch (e) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			if (e.code === 'ENOENT' && optional) return allCommands;
+			throw e;
+		}
 
-		const commandFiles = fs.readdirSync(this.commandsDir);
 		for (const fileName of commandFiles) {
 			if (!fileName.endsWith('.js')) continue;
 			// eslint-disable-next-line @typescript-eslint/no-var-requires
-			const commandFile = require(path.join(this.commandsDir, fileName)) as ICommandFile;
+			const commandFile = require(path.join(directory, fileName)) as ICommandFile;
 			if (commandFile.commands) {
 				for (const i in commandFile.commands) {
-					if (i in baseCommands) {
+					if (i in allCommands) {
 						throw new Error("Command '" + i + "' is defined in more than 1 location.");
 					}
 				}
 
-				Object.assign(baseCommands, commandFile.commands);
+				Object.assign(allCommands, commandFile.commands);
 			}
 		}
+
+		return allCommands;
+	}
+
+	loadBaseCommands(): void {
+		const baseCommands: BaseCommandDefinitions = {};
+
+		this.loadCommandsDirectory(this.commandsDir, baseCommands);
+		this.loadCommandsDirectory(this.privateCommandsDir, baseCommands, true);
 
 		const htmlPageFiles = fs.readdirSync(this.htmlPagesDir);
 		for (const fileName of htmlPageFiles) {

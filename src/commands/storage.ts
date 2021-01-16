@@ -1,6 +1,5 @@
-import type { CommandContext } from "../command-parser";
 import type { Room } from "../rooms";
-import type { CommandDefinitions } from "../types/command-parser";
+import type { BaseCommandDefinitions } from "../types/command-parser";
 import type { IGameFormat } from "../types/games";
 import type { IFormat } from "../types/pokemon-showdown";
 import type { ICachedLeaderboardEntry, LeaderboardType } from "../types/storage";
@@ -17,7 +16,7 @@ const addGamePointsAliases = ['addbits', 'addbit', 'abits', 'abit', 'removebits'
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-export const commands: CommandDefinitions<CommandContext, void> = {
+export const commands: BaseCommandDefinitions = {
 	offlinemessage: {
 		command(target, room, user) {
 			if (!this.isPm(room)) return;

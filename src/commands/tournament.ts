@@ -1,12 +1,11 @@
-import type { CommandContext } from "../command-parser";
 import type { Room } from "../rooms";
-import type { CommandDefinitions } from "../types/command-parser";
+import type { BaseCommandDefinitions } from "../types/command-parser";
 import type { IBattleGameData } from "../types/games";
 import type { IFormat } from "../types/pokemon-showdown";
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-export const commands: CommandDefinitions<CommandContext, void> = {
+export const commands: BaseCommandDefinitions = {
 	tournament: {
 		command(target, room, user) {
 			let tournamentRoom: Room;

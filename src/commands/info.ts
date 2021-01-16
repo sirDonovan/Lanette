@@ -1,10 +1,9 @@
-import type { CommandContext } from "../command-parser";
 import type { Room } from "../rooms";
-import type { CommandDefinitions } from "../types/command-parser";
+import type { BaseCommandDefinitions } from "../types/command-parser";
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-export const commands: CommandDefinitions<CommandContext, void> = {
+export const commands: BaseCommandDefinitions = {
 	logs: {
 		command(target, room) {
 			if (!this.isPm(room)) return;

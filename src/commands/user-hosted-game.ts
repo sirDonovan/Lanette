@@ -1,16 +1,15 @@
-import type { CommandContext } from "../command-parser";
 import type { Player } from "../room-activity";
 import type { ScriptedGame } from "../room-game-scripted";
 import type { UserHostedGame } from "../room-game-user-hosted";
 import type { Room } from "../rooms";
-import type { CommandDefinitions } from "../types/command-parser";
+import type { BaseCommandDefinitions } from "../types/command-parser";
 import type { GameDifficulty } from "../types/games";
 import type { IUserHostedGameStats, UserHostStatus } from "../types/storage";
 import type { User } from "../users";
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-export const commands: CommandDefinitions<CommandContext, void> = {
+export const commands: BaseCommandDefinitions = {
 	pastuserhostedgames: {
 		command(target, room, user) {
 			const targets = target.split(',');

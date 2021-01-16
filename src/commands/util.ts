@@ -1,6 +1,5 @@
-import type { CommandContext } from "../command-parser";
 import type { Room } from "../rooms";
-import type { CommandDefinitions } from "../types/command-parser";
+import type { BaseCommandDefinitions } from "../types/command-parser";
 import type { CharacterType, LocationType, RegionName } from "../types/dex";
 import type { IPokemon } from "../types/pokemon-showdown";
 
@@ -8,7 +7,7 @@ const RANDOM_GENERATOR_LIMIT = 6;
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-export const commands: CommandDefinitions<CommandContext, void> = {
+export const commands: BaseCommandDefinitions = {
 	randompick: {
 		command(target, room, user) {
 			if (!this.isPm(room) && !user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;

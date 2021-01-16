@@ -1,15 +1,14 @@
-import type { CommandContext } from "../command-parser";
 import type { HeadToHead } from "../games/internal/head-to-head";
 import type { OneVsOne } from "../games/internal/one-vs-one";
 import type { Room } from "../rooms";
-import type { CommandDefinitions } from "../types/command-parser";
+import type { BaseCommandDefinitions } from "../types/command-parser";
 import type { IGameFormat } from "../types/games";
 
 const ONE_VS_ONE_GAME_COOLDOWN = 2 * 60 * 60 * 1000;
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
-export const commands: CommandDefinitions<CommandContext, void> = {
+export const commands: BaseCommandDefinitions = {
 	gamecatalog: {
 		command(target, room, user) {
 			let gameRoom: Room;
