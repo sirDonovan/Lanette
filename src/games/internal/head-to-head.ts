@@ -135,9 +135,9 @@ export class HeadToHead extends ScriptedGame {
 		if (!this.leftPlayer || !this.rightPlayer) throw new Error("end() called without left and right players");
 
 		if (this.rightPlayer.eliminated || this.leftPlayer === this.winner) {
-			this.say(this.leftPlayer.name + " has won the matchup!");
+			this.say("**" + this.leftPlayer.name + "** wins the matchup!");
 		} else if (this.leftPlayer.eliminated || this.rightPlayer === this.winner) {
-			this.say(this.rightPlayer.name + " has won the matchup!");
+			this.say("**" + this.rightPlayer.name + "** wins the matchup!");
 		}
 
 		this.resetModchatAndRanks();

@@ -168,9 +168,9 @@ export class OneVsOne extends ScriptedGame {
 		if (!this.challenger || !this.defender) throw new Error("onEnd() called without challenger and defender");
 
 		if (this.challenger.eliminated || this.defender === this.winner) {
-			this.say(this.defender.name + " has won the challenge!");
+			this.say("**" + this.defender.name + "** wins the challenge!");
 		} else if (this.defender.eliminated || this.challenger === this.winner) {
-			this.say(this.challenger.name + " has won the challenge!");
+			this.say("**" + this.challenger.name + "** wins the challenge!");
 		}
 
 		this.resetModchatAndRanks();

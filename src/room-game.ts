@@ -37,6 +37,7 @@ export abstract class Game extends Activity {
 	lastTrainerUhtml?: ITrainerUhtml;
 	mascot?: IPokemonCopy;
 	maxPlayers?: number;
+	parentGame: Game | undefined;
 	playerCap?: number;
 	readonly points?: Map<Player, number>;
 	startingPoints?: number;
@@ -64,6 +65,8 @@ export abstract class Game extends Activity {
 	}
 
 	announceWinners(): void {
+		if (this.parentGame) return;
+
 		const numberOfWinners = this.winners.size;
 		if (numberOfWinners) {
 			let trainerCardsShown = false;
