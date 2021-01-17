@@ -285,12 +285,12 @@ const commands: GameCommandDefinitions<SpindasExcludedPokemon> = {
 				points++;
 				this.points.set(player, points);
 
+				this.say(player.name + " advances to **" + points + "** point" + (points > 1 ? "s" : "") + "! The parameter was __" +
+					this.parameter + "__.");
 				if (points === this.format.options.points) {
-					this.say(player.name + " wins the game! The final parameter was __" + this.parameter + "__.");
 					this.end();
+					return true;
 				} else {
-					this.say(player.name + " advances to **" + points + "** point" + (points > 1 ? "s" : "") + "! The parameter was __" +
-						this.parameter + "__.");
 					this.parameter = '';
 					this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 				}

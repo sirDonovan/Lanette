@@ -223,14 +223,19 @@ class TropiusBerryPicking extends ScriptedGame {
 	}
 
 	onEnd(): void {
-		if (this.format.options.freejoin) return;
-		const base = Math.min(500, 100 * this.round);
-		for (const i in this.players) {
-			if (this.players[i].eliminated) continue;
-			const player = this.players[i];
-			this.winners.set(player, 1);
-			this.addBits(player, base);
-			if (this.firstEat === player && this.round >= 5) this.unlockAchievement(player, TropiusBerryPicking.achievements.berrymaster);
+		if (this.format.options.freejoin) {
+			this.convertPointsToBits();
+		} else {
+			const base = Math.min(500, 100 * this.round);
+			for (const i in this.players) {
+				if (this.players[i].eliminated) continue;
+				const player = this.players[i];
+				this.winners.set(player, 1);
+				this.addBits(player, base);
+				if (this.firstEat === player && this.round >= 5) {
+					this.unlockAchievement(player, TropiusBerryPicking.achievements.berrymaster);
+				}
+			}
 		}
 
 		this.announceWinners();
@@ -253,16 +258,13 @@ const commands: GameCommandDefinitions<TropiusBerryPicking> = {
 				let points = this.points.get(player) || 0;
 				points += 1;
 				this.points.set(player, points);
+				this.say('**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '! A possible ' +
+					'answer was __' + berry.name + '__.');
 				if (points === this.format.options.points) {
-					this.say('**' + player.name + '** wins' + (this.parentGame ? '' : ' the game') + '! A possible answer was __' +
-						berry.name + '__.');
 					this.winners.set(player, 1);
-					this.convertPointsToBits(50);
 					this.end();
 					return true;
 				}
-				this.say('**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '! A possible ' +
-					'answer was __' + berry.name + '__.');
 				this.roundEffect = noEffect;
 				this.nextRound();
 			} else {

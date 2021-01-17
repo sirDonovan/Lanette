@@ -196,7 +196,7 @@ class TapusTerrains extends ScriptedGame {
 	}
 
 	onEnd(): void {
-		this.convertPointsToBits(0, 10);
+		this.convertPointsToBits(0);
 
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;

@@ -106,15 +106,13 @@ class SerperiorLengthyChains extends ScriptedGame {
 				let points = this.points.get(this.bestPlayer) || 0;
 				points++;
 				this.points.set(this.bestPlayer, points);
+				this.say("**" + this.bestPlayer.name + "** advances to " + points + " point" + (points > 1 ? "s" : "") + " with their " +
+					"chain " + "__" + this.bestChain.join(" + ") + "__!");
 				if (points >= this.format.options.points) {
-					this.say("**" + this.bestPlayer.name + "** wins the game with their chain __" + this.bestChain.join(" + ") + "__!");
 					this.winners.set(this.bestPlayer, 1);
-					this.convertPointsToBits(50);
 					this.end();
 					return;
 				}
-				this.say("**" + this.bestPlayer.name + "** advances to " + points + " point" + (points > 1 ? "s" : "") + " with their " +
-					"chain " + "__" + this.bestChain.join(" + ") + "__!");
 			}
 		}
 
@@ -133,6 +131,11 @@ class SerperiorLengthyChains extends ScriptedGame {
 			this.timeout = setTimeout(() => this.say(text), 5000);
 		});
 		this.sayUhtml(uhtmlName, html);
+	}
+
+	onEnd(): void {
+		this.convertPointsToBits();
+		this.announceWinners();
 	}
 
 	getChain(guess: string, chainSoFar: string[]): string[] {
