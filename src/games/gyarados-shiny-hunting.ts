@@ -75,14 +75,16 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 	}
 
 	generateAnswer(): void {
-		if (this.shinyCoordinates) {
-			this.inactiveRounds++;
-			if (this.inactiveRounds === this.inactiveRoundLimit) {
-				this.inactivityEnd();
-				return;
+		if (!this.format.mode) {
+			if (this.shinyCoordinates) {
+				this.inactiveRounds++;
+				if (this.inactiveRounds === this.inactiveRoundLimit) {
+					this.inactivityEnd();
+					return;
+				}
+			} else {
+				if (this.inactiveRounds) this.inactiveRounds = 0;
 			}
-		} else {
-			if (this.inactiveRounds) this.inactiveRounds = 0;
 		}
 
 		let species = this.sampleOne(data.pokemon);
