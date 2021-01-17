@@ -1889,7 +1889,7 @@ export class Client {
 	login(): void {
 		if (this.loginTimeout) clearTimeout(this.loginTimeout);
 
-		const action = url.parse('https://' + Tools.mainServer + '/~~' + this.serverId + '/action.php');
+		const action = new url.URL('https://' + Tools.mainServer + '/~~' + this.serverId + '/action.php');
 		if (!action.hostname || !action.pathname) {
 			console.log("Failed to parse login URL");
 			process.exit();

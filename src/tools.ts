@@ -753,7 +753,7 @@ export class Tools {
 			files,
 		});
 
-		const gistAPi = url.parse('https://api.github.com/gists/' + gistId);
+		const gistAPi = new url.URL('https://api.github.com/gists/' + gistId);
 		if (!gistAPi.hostname || !gistAPi.pathname) {
 			console.log("Failed to parse gist API URL");
 			return;
