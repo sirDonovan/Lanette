@@ -12,6 +12,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	allowRepeatCorrectAnswers: boolean = false;
 	answers: readonly string[] = [];
 	answerTimeout: NodeJS.Timer | undefined;
+	answerUhtmlName: string = '';
 	beforeNextRoundTime: number = 5 * 1000;
 	cooldownBetweenRounds: number = 0;
 	canGuess: boolean = false;
@@ -78,7 +79,8 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 
 	onAnswerTimeLimit(): void {
 		if (this.answers.length) {
-			this.say("Time is up! " + this.getAnswers(''));
+			this.say("Time is up!");
+			this.displayAnswers();
 			this.answers = [];
 			if (this.isMiniGame) {
 				this.end();
@@ -191,6 +193,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 			if (!newAnswer && this.previousHint && this.previousHint === this.hint) {
 				onHintHtml(Date.now());
 			} else {
+				this.answerUhtmlName = this.uhtmlBaseName + '-answer-round' + this.questionAndAnswerRound;
 				this.hintUhtmlName = this.uhtmlBaseName + '-hint-round' + this.questionAndAnswerRound;
 				const html = this.getHintHtml();
 				this.lastHintHtml = html;
@@ -274,10 +277,18 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		return match;
 	}
 
-	/** Return an empty string to not display answers */
-	getAnswers(givenAnswer: string, finalAnswer?: boolean): string {
-		return "The" + (finalAnswer ? " final " : "") + " answer" + (this.answers.length > 1 ? "s were" : " was") + " __" +
-			Tools.joinList(this.answers) + "__.";
+	/** Return an empty array to not display answers */
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	getAnswers(givenAnswer?: string, finalAnswer?: boolean): readonly string[] {
+		return this.answers;
+	}
+
+	displayAnswers(givenAnswer?: string, finalAnswer?: boolean): void {
+		const answers = this.getAnswers(givenAnswer, finalAnswer);
+		if (answers.length) {
+			this.sayUhtml(this.answerUhtmlName, "<b>Answer" + (answers.length > 1 ? "s" : "") + "</b>: <i>" +
+				Tools.joinList(answers) + "</i>");
+		}
 	}
 
 	getRandomAnswer(): IRandomGameAnswer {
@@ -287,9 +298,9 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		return {answers: this.answers, hint: this.hint};
 	}
 
-	getForceEndMessage(): string {
-		if (!this.answers.length || !this.canGuess) return "";
-		return this.getAnswers("", !this.isMiniGame);
+	onForceEnd(): void {
+		if (!this.canGuess) return;
+		this.displayAnswers();
 	}
 
 	onTimeLimit(): boolean {
@@ -346,7 +357,8 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 			if (this.timeout) clearTimeout(this.timeout);
 
 			if (this.isMiniGame) {
-				this.say((this.pm ? "You are" : "**" + user.name + "** is") + " correct! " + this.getAnswers(answer));
+				this.say((this.pm ? "You are" : "**" + user.name + "** is") + " correct!");
+				this.displayAnswers(answer);
 				this.addBits(user, Games.minigameBits);
 				if (this.noIncorrectAnswersMinigameAchievement && !this.incorrectAnswers) {
 					this.unlockAchievement(player, this.noIncorrectAnswersMinigameAchievement);
@@ -374,17 +386,9 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 			const reachedMaxPoints = points >= this.format.options.points;
 			if (singleCorrectPlayer || (reachedMaxPoints && !this.checkScoreCapBeforeRound)) {
 				if (this.hint) this.off(this.hint);
-				let text = '**' + player.name + '** advances to **' + this.getPointsDisplay(points, reachedMaxPoints ? 0 : undefined) +
-					'** point' + (points > 1 ? 's' : '') + '!';
-				const answers = this.getAnswers(answer);
-				if (answers) {
-					if ((text + " " + answers).length <= Tools.maxMessageLength) {
-						text += " " + answers;
-					} else {
-						text += ' A possible answer was __' + answer + '__.';
-					}
-				}
-				this.say(text);
+				this.say("**" + player.name + "** advances to **" + this.getPointsDisplay(points, reachedMaxPoints ? 0 : undefined) +
+					"** point" + (points > 1 ? 's' : '') + "!");
+				this.displayAnswers(answer);
 
 				if (reachedMaxPoints) {
 					if (this.allAnswersAchievement && this.firstAnswer === player && !this.parentGame) {

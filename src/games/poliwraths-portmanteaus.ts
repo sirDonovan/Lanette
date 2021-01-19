@@ -72,10 +72,10 @@ export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 		}
 	}
 
-	getAnswers(givenAnswer: string): string {
+	getAnswers(givenAnswer?: string): string[] {
 		if (!givenAnswer) givenAnswer = this.answers[0];
-		return "A possible portmanteau was __" + givenAnswer.charAt(0).toUpperCase() + givenAnswer.substr(1) + "__ (" +
-			this.answerParts[givenAnswer].join(" + ") + ").";
+		return [givenAnswer.charAt(0).toUpperCase() + givenAnswer.substr(1) + "__ (" +
+			this.answerParts[givenAnswer].join(" + ") + ")"];
 	}
 
 	checkAnswer(guess: string): string {

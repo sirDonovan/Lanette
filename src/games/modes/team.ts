@@ -198,16 +198,12 @@ const commandDefinitions: GameCommandDefinitions<TeamThis> = {
 				}
 			}
 
-			if (player.team!.points >= this.format.options.teamPoints) {
-				let text = '**' + player.name + '** wins' + (this.parentGame ? '' : ' the game') + ' for Team ' + player.team!.name + '!';
-				const answers = ' ' + this.getAnswers(answer, true);
-				if (text.length + answers.length <= Tools.maxMessageLength) {
-					text += answers;
-				} else {
-					text += ' A possible answer was __' + answer + '__.';
-				}
-				this.say(text);
+			if (this.hint) this.off(this.hint);
+			this.say('**' + player.name + '** advances Team ' + player.team!.name + ' to **' + player.team!.points + '** point' +
+				(player.team!.points > 1 ? 's' : '') + '!');
+			this.displayAnswers(answer);
 
+			if (player.team!.points >= this.format.options.teamPoints) {
 				if (this.allAnswersTeamAchievement && this.firstAnswers[player.team!.id] === player) {
 					this.unlockAchievement(player, this.allAnswersTeamAchievement);
 				}
@@ -217,17 +213,6 @@ const commandDefinitions: GameCommandDefinitions<TeamThis> = {
 				}
 				this.end();
 				return true;
-			} else {
-				if (this.hint) this.off(this.hint);
-				let text = '**' + player.name + '** advances Team ' + player.team!.name + ' to **' + player.team!.points + '** point' +
-					(player.team!.points > 1 ? 's' : '') + '!';
-				const answers = ' ' + this.getAnswers(answer);
-				if (text.length + answers.length <= Tools.maxMessageLength) {
-					text += answers;
-				} else {
-					text += ' A possible answer was __' + answer + '__.';
-				}
-				this.say(text);
 			}
 
 			this.answers = [];

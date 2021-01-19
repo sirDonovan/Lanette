@@ -88,7 +88,8 @@ class MareaniesMarquee extends QuestionAndAnswer {
 		if (this.timeout) clearTimeout(this.timeout);
 
 		if (this.hintUpdates >= this.hintUpdateLimit) {
-			this.say("Time is up! " + this.getAnswers(''));
+			this.say("Time is up!");
+			this.displayAnswers();
 			this.answers = [];
 			if (this.isMiniGame) {
 				this.end();

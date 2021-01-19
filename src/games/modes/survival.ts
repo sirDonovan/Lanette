@@ -115,7 +115,8 @@ const commandDefinitions: GameCommandDefinitions<SurvivalThis> = {
 				return true;
 			}
 
-			this.say('**' + player.name + '** advances to the next round! ' + this.getAnswers(answer));
+			this.say("**" + player.name + "** advances to the next round!");
+			this.displayAnswers(answer);
 			this.answers = [];
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 			return true;

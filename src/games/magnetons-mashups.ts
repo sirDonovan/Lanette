@@ -21,8 +21,8 @@ class MagnetonsMashups extends QuestionAndAnswer {
 		data["Pokemon Moves"] = Games.getMovesList().map(x => x.name);
 	}
 
-	getAnswers(givenAnswer: string, finalAnswer?: boolean): string {
-		return "The" + (finalAnswer ? " final " : "") + " answer was __" + this.answers[0] + "__.";
+	getAnswers(): string[] {
+		return [this.answers[0]];
 	}
 
 	checkAnswer(guess: string): string {

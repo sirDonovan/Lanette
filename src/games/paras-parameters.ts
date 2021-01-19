@@ -122,9 +122,9 @@ export class ParasParameters extends QuestionAndAnswer {
 		}
 	}
 
-	getAnswers(givenAnswer: string): string {
+	getAnswers(givenAnswer?: string): string[] {
 		if (!givenAnswer) givenAnswer = Tools.joinList(this.answers[0].split(','));
-		return "A possible set of parameters was __" + givenAnswer + "__.";
+		return [givenAnswer];
 	}
 
 	intersect(parts: string[]): IParametersResponse | null {

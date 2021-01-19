@@ -58,8 +58,9 @@ class SmearglesMysteryMoves extends QuestionAndAnswer {
 
 	onHintHtml(): void {
 		if (!this.hints[this.mysteryRound]) {
-			const text = "All hints have been revealed! " + this.getAnswers('');
+			const text = "All hints have been revealed!";
 			this.on(text, () => {
+				this.displayAnswers();
 				this.answers = [];
 				if (this.isMiniGame) {
 					this.end();

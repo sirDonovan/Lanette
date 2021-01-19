@@ -213,8 +213,8 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 		return false;
 	}
 
-	getAnswers(): string {
-		return "";
+	getAnswers(): string[] {
+		return [];
 	}
 }
 

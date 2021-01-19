@@ -70,9 +70,9 @@ class AmbipomsTossups extends QuestionAndAnswer {
 
 	onHintHtml(): void {
 		if (this.revealedLetters >= this.letterCount || (this.maxRevealedLetters && this.revealedLetters >= this.maxRevealedLetters)) {
-			const text = (this.maxRevealedLetters ? "The maximum number of" : "All possible") + " letters have been revealed! " +
-				this.getAnswers('');
+			const text = (this.maxRevealedLetters ? "The maximum number of" : "All possible") + " letters have been revealed!";
 			this.on(text, () => {
+				this.displayAnswers();
 				this.answers = [];
 				if (this.isMiniGame) {
 					this.end();
