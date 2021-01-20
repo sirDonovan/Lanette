@@ -23,6 +23,8 @@ export abstract class MapDamageGame extends MapGame {
 
 	onStart(): void {
 		this.maxDimensions = this.playerCount;
+		if (this.onSetMaxDimensions) this.onSetMaxDimensions();
+
 		this.positionPlayers();
 		this.nextRound();
 	}
@@ -49,6 +51,8 @@ export abstract class MapDamageGame extends MapGame {
 		});
 		this.sayUhtml(uhtmlName, html);
 	}
+
+	onSetMaxDimensions?(): void;
 }
 
 export const game = Tools.deepClone(mapGame) as IGameTemplateFile<MapDamageGame>;

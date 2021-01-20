@@ -31,9 +31,7 @@ class ElectrodesMinefield extends MapDamageGame {
 		return true;
 	}
 
-	onStart(): void {
-		super.onStart();
-
+	onSetMaxDimensions(): void {
 		if (this.maxDimensions >= 9) this.startingLives = 4;
 		for (const i in this.players) {
 			this.lives.set(this.players[i], this.startingLives);
