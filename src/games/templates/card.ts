@@ -62,10 +62,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	finitePlayerCards: boolean = false;
 	maxCardRounds: number = 0;
 	maxLateJoinRound: number = 0;
-	maxPlayableGroupSize: number = 0;
 	maxPlayers: number = 20;
-	maximumPlayedCards: number = 1;
-	minimumPlayedCards: number = 1;
 	playerCards = new Map<Player, ICard[]>();
 	playerList: Player[] = [];
 	playerOrder: Player[] = [];
@@ -351,14 +348,14 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	onTimeLimit(): boolean {
 		if (this.finitePlayerCards) {
 			const winners = new Map<Player, number>();
-			let leastCards = Infinity;
+			let leastCards: number | undefined;
 			for (const i in this.players) {
 				if (this.players[i].eliminated) continue;
 				const player = this.players[i];
 				const cards = this.playerCards.get(player);
 				if (!cards) throw new Error(player.name + " has no hand");
 				const len = cards.length;
-				if (len < leastCards) {
+				if (leastCards === undefined || len < leastCards) {
 					winners.clear();
 					winners.set(player, 1);
 					leastCards = len;

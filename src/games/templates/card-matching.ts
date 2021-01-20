@@ -31,8 +31,8 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	playerInactiveRoundLimit: number = 3;
 	lastPlayer: Player | null = null;
 	maxCardRounds: number = 30;
-	maxPlayableGroupSize: number = 2;
 	maxPlayers: number = 15;
+	minimumPlayedCards: number = 1;
 	playableCardDescription: string = "You must play a card that matches color or a type with the top card.";
 	previouslyPlayedCards: IPreviouslyPlayedCard[] = [];
 	previouslyPlayedCardsAmount: number = 3;
@@ -47,6 +47,8 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	// always truthy once the game starts
 	topCard!: IPokemonCard;
 
+	maximumPlayedCards?: number;
+	maxPlayableGroupSize?: number;
 	skippedPlayerAchievement?: IGameAchievement;
 	skippedPlayerAchievementAmount?: number;
 	shinyCardAchievement?: IGameAchievement;
@@ -199,8 +201,8 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			const playableSingle = this.getCardsPmHtml(turnCards.single, player, true);
 
 			if (playableGroup || playableSingle) {
-				playableRegular += '<b>Regular</b>' + (playableGroup && this.maxPlayableGroupSize < this.maximumPlayedCards ?
-					' (there may be longer chains)' : '') + ':<br />';
+				playableRegular += '<b>Regular</b>' + (playableGroup && this.maxPlayableGroupSize && this.maximumPlayedCards &&
+					this.maxPlayableGroupSize < this.maximumPlayedCards ? ' (there may be longer chains)' : '') + ':<br />';
 				if (playableGroup && playableSingle) {
 					playableRegular += playableGroup + "<br />" + playableSingle;
 				} else {
@@ -210,7 +212,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		}
 
 		const hasPlayableCards = playableAction || playableRegular;
-		const showAllCards = this.maximumPlayedCards > this.maxPlayableGroupSize;
+		const showAllCards = this.maximumPlayedCards && this.maxPlayableGroupSize && this.maximumPlayedCards > this.maxPlayableGroupSize;
 		if (hasPlayableCards) {
 			const overflow = !showAllCards && turnCards.unplayable.length &&
 				(turnCards.action.length + turnCards.group.length + turnCards.single.length) > 3;
@@ -222,7 +224,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 
 		if (playerCards.length) {
 			if (hasPlayableCards) {
-				if (this.maxPlayableGroupSize < this.maximumPlayedCards) {
+				if (this.maxPlayableGroupSize && this.maximumPlayedCards && this.maxPlayableGroupSize < this.maximumPlayedCards) {
 					html += '<br /><h3>All cards</h3>';
 				} else {
 					if (turnCards.unplayable.length) html += '<br /><h3>Unplayable cards</h3>';
@@ -378,8 +380,8 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 
 			if (regularCards.length >= this.minimumPlayedCards) {
 				let maximumPlayedCards = 0;
-				if (this.maximumPlayedCards === Infinity) {
-					maximumPlayedCards = this.maxPlayableGroupSize;
+				if (!this.maximumPlayedCards) {
+					if (this.maxPlayableGroupSize) maximumPlayedCards = this.maxPlayableGroupSize;
 				} else {
 					maximumPlayedCards = this.maximumPlayedCards;
 					if (regularCards.length < maximumPlayedCards) maximumPlayedCards = regularCards.length;
@@ -677,7 +679,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			playedCards.push(cards[index]);
 		}
 
-		if (this.maximumPlayedCards !== Infinity && playedCards.length > this.maximumPlayedCards) {
+		if (this.maximumPlayedCards && playedCards.length > this.maximumPlayedCards) {
 			player.say("You cannot play more than " + this.maximumPlayedCards + " card" + (this.maximumPlayedCards > 1 ? "s" : "") + ".");
 			return false;
 		}

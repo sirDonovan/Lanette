@@ -478,6 +478,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 	hackmonsTypes: boolean = false;
 	inverseTypes: boolean = false;
 	lives = new Map<Player, number>();
+	maximumPlayedCards: number = 1;
 	maxLateJoinRound: number = 1;
 	maxPlayers = 20;
 	playableCardDescription = "You must play a card that is super-effective against the top card.";

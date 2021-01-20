@@ -59,7 +59,7 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 	finitePlayerCards: boolean = true;
 	playerInactiveRoundLimit = 2;
 	maxCardRounds: number = 50;
-	maximumPlayedCards: number = Infinity;
+	maxPlayableGroupSize: number = 2;
 	minimumPlayedCards: number = 2;
 	shinyCardAchievement = StakatakasCardTower.achievements.luckofthedraw;
 	showPlayerCards: boolean = true;

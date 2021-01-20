@@ -236,7 +236,7 @@ class DarkraisLair extends MapGame {
 		const keys = Object.keys(shadowTraps) as ShadowTrap[];
 		let cannotLayTrap = this.roundShadowTraps.has(player);
 		for (const key of keys) {
-			let remainingUses = Infinity;
+			let remainingUses: number | undefined;
 			if (shadowTraps[key].uses) {
 				remainingUses = shadowTraps[key].uses!;
 				if (key in usedShadowTraps) {
@@ -251,7 +251,7 @@ class DarkraisLair extends MapGame {
 			}
 
 			html += Client.getPmSelfButton(Config.commandCharacter + key, shadowTraps[key].name +
-				(remainingUses && remainingUses !== Infinity ? " x" + remainingUses : ""), cannotLayTrap) + "&nbsp;";
+				(remainingUses ? " x" + remainingUses : ""), cannotLayTrap) + "&nbsp;";
 		}
 		return html;
 	}
@@ -406,7 +406,7 @@ class DarkraisLair extends MapGame {
 
 		const playerCoordinates = this.playerCoordinates.get(player)!;
 		if (shadowTrap === 'dreamvision') {
-			let closestDistance = Infinity;
+			let closestDistance: number | undefined;
 			let closestPlayer: Player;
 			let closestPlayerCoordinates: number[];
 			for (const id in this.players) {
@@ -415,7 +415,7 @@ class DarkraisLair extends MapGame {
 				const otherPlayerCoordinates = this.playerCoordinates.get(otherPlayer)!;
 				const distance = Math.abs(otherPlayerCoordinates[0] - playerCoordinates[0]) +
 					Math.abs(otherPlayerCoordinates[1] - playerCoordinates[1]);
-				if (distance < closestDistance) {
+				if (closestDistance === undefined || distance < closestDistance) {
 					closestPlayer = otherPlayer;
 					closestPlayerCoordinates = otherPlayerCoordinates;
 					closestDistance = distance;

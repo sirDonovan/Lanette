@@ -112,7 +112,7 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 		this.roundVerticalCount = verticalCount;
 
 		this.shinyCoordinates = [];
-		const maxShinyCoordinates = this.maxCorrectPlayersPerRound === Infinity ? 1 : this.maxCorrectPlayersPerRound;
+		const maxShinyCoordinates = this.maxCorrectPlayersPerRound || 1;
 		for (let i = 0; i < maxShinyCoordinates; i++) {
 			let shinyCoordinates = [this.random(horizontalCount), this.random(verticalCount) + 1] as [number, number];
 			let attempts = 0;

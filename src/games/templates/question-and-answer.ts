@@ -411,7 +411,7 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 					this.say(player.name + " is the **" + Tools.toNumberOrderString(this.correctPlayers.length) + "** correct player!");
 				}
 
-				if (this.maxCorrectPlayersPerRound !== Infinity && this.correctPlayers.length === this.maxCorrectPlayersPerRound) {
+				if (this.maxCorrectPlayersPerRound && this.correctPlayers.length === this.maxCorrectPlayersPerRound) {
 					this.answers = [];
 				} else {
 					if (!this.allowRepeatCorrectAnswers) this.removeAnswer(answer);

@@ -172,11 +172,9 @@ const commands: GameCommandDefinitions<ShedinjasWonderTrials> = {
 				return false;
 			}
 			this.usedMoves.push(move.name);
-			let effectiveness: number;
+			let effectiveness: number | undefined;
 			if (move.id === 'flyingpress') {
-				if (Dex.isImmune('Fighting', this.currentPokemon) || Dex.isImmune('Flying', this.currentPokemon)) {
-					effectiveness = Infinity;
-				} else {
+				if (!Dex.isImmune('Fighting', this.currentPokemon) && !Dex.isImmune('Flying', this.currentPokemon)) {
 					effectiveness = Dex.getEffectiveness('Fighting', this.currentPokemon) +
 						Dex.getEffectiveness('Flying', this.currentPokemon);
 				}
@@ -196,22 +194,20 @@ const commands: GameCommandDefinitions<ShedinjasWonderTrials> = {
 			} else if (move.id === 'thousandarrows' && this.currentPokemon.types.includes('Flying')) {
 				effectiveness = 0;
 			} else {
-				if (Dex.isImmune(move.type, this.currentPokemon)) {
-					effectiveness = Infinity;
-				} else {
+				if (!Dex.isImmune(move.type, this.currentPokemon)) {
 					effectiveness = Dex.getEffectiveness(move.type, this.currentPokemon);
 				}
 			}
 
 			if (this.inverseTypes) {
-				if (effectiveness === Infinity) {
+				if (effectiveness === undefined) {
 					effectiveness = 1;
 				} else {
 					effectiveness = -effectiveness;
 				}
 			}
 
-			if (effectiveness !== Infinity) {
+			if (effectiveness) {
 				if (effectiveness > 2) {
 					effectiveness = 2;
 				} else if (effectiveness < -2) {
@@ -219,7 +215,7 @@ const commands: GameCommandDefinitions<ShedinjasWonderTrials> = {
 				}
 			}
 
-			this.roundMoves.set(player, effectiveness === Infinity ? 'immune' : '' + effectiveness);
+			this.roundMoves.set(player, effectiveness === undefined ? 'immune' : '' + effectiveness);
 			return true;
 		},
 	},

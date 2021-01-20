@@ -16,7 +16,7 @@ type TimeAttackThis = QuestionAndAnswer & TimeAttack;
 class TimeAttack {
 	allowRepeatCorrectAnswers: boolean = true;
 	readonly loserPointsToBits: number = 1;
-	maxCorrectPlayersPerRound: number = Infinity;
+	maxCorrectPlayersPerRound: number = 0;
 	timeLimit: number = 20 * 60 * 1000;
 	readonly winnerPointsToBits: number = 5;
 

@@ -400,10 +400,14 @@ class HauntersHauntedHouse extends ScriptedGame {
 
 		const adjacentTiles: [distance: number, location: [number, number]][][] = [];
 		const distanceAmounts: number[] = [];
+		const distances: number[] = [];
+		const maxDistance = boardSize * boardSize;
 		for (let i = 0; i < blankTileDistance; i++) {
 			distanceAmounts.push(i);
 			adjacentTiles.push([]);
+			distances.push(maxDistance);
 		}
+		distances[startTile] = 0;
 
 		const minMaxCoordinates: [number, number][] = [];
 		walls = this.shuffle(walls);
@@ -447,12 +451,6 @@ class HauntersHauntedHouse extends ScriptedGame {
 
 		const candyRoomOptions: number[] = [];
 		const validDoors: [number, number[]][] = [];
-
-		const distances: number[] = [];
-		for (let i = 0; i < blankTileDistance; i++) {
-			distances.push(Infinity);
-		}
-		distances[startTile] = 0;
 
 		const tilesAndDistances: number[][] = [[startTile, 0]];
 		while (tilesAndDistances.length > 0) {
