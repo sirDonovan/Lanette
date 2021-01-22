@@ -923,12 +923,14 @@ export const commands: BaseCommandDefinitions = {
 			if (!room.userHostedGame.started) {
 				return this.say("You must first start the game with ``" + Config.commandCharacter + "startgame``.");
 			}
-			if (target && !Tools.isInteger(target)) return this.say("You must specify a valid number of points.");
+
+			const removeAllPoints = cmd === 'clearpointall' || cmd === 'clearptall' || Tools.toId(target) === 'all';
+			if (!removeAllPoints && target && !Tools.isInteger(target)) return this.say("You must specify a valid number of points.");
+
 			this.runningMultipleTargets = true;
-			const newCmd = cmd.startsWith('r') ? 'removegamepoint' : 'addgamepoint';
-			const pointsString = target ? ", " + target : "";
+			const newCmd = removeAllPoints || cmd.startsWith('r') ? 'removegamepoint' : 'addgamepoint';
 			for (const i in room.userHostedGame.players) {
-				if (room.userHostedGame.players[i].eliminated) continue;
+				if (room.userHostedGame.players[i].eliminated && !removeAllPoints) continue;
 				const player = room.userHostedGame.players[i];
 				let expiredUser = false;
 				let playerUser = Users.get(player.name);
@@ -936,13 +938,23 @@ export const commands: BaseCommandDefinitions = {
 					playerUser = Users.add(player.name, player.id);
 					expiredUser = true;
 				}
-				this.run(newCmd, player.name + pointsString);
+
+				let pointsString = '';
+				if (removeAllPoints) {
+					const points = room.userHostedGame.points.get(player);
+					if (!points) continue;
+					pointsString = '' + points;
+				} else if (target) {
+					pointsString = target;
+				}
+
+				this.run(newCmd, player.name + (pointsString ? ', ' + pointsString : ''));
 				if (expiredUser) Users.remove(playerUser);
 			}
 			this.runningMultipleTargets = false;
 			this.run('playerlist');
 		},
-		aliases: ['aptall', 'rptall', 'removepointall'],
+		aliases: ['aptall', 'rptall', 'removepointall', 'clearpointall', 'clearptall'],
 	},
 	addteampoints: {
 		command(target, room, user, cmd) {
