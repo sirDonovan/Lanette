@@ -124,6 +124,15 @@ export class CommandParser {
 		this.privateCommandsDir = path.join(this.commandsDir, 'private');
 	}
 
+	onReload(previous: Partial<CommandParser>): void {
+		for (const i in previous) {
+			// @ts-expect-error
+			delete previous[i];
+		}
+
+		this.loadBaseCommands();
+	}
+
 	loadCommandDefinitions<ThisContext, ReturnType>(definitions: CommandDefinitions<ThisContext, ReturnType>):
 		LoadedCommands<ThisContext, ReturnType> {
 		const dict: LoadedCommands<ThisContext, ReturnType> = {};
@@ -322,5 +331,11 @@ export class CommandParser {
 }
 
 export const instantiate = (): void => {
+	const oldCommandParser = global.CommandParser as CommandParser | undefined;
+
 	global.CommandParser = new CommandParser();
+
+	if (oldCommandParser) {
+		global.CommandParser.onReload(oldCommandParser);
+	}
 };

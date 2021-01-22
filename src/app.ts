@@ -129,7 +129,6 @@ module.exports = (): void => {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
 					const newCommandParser = require('./' + moduleFilenames[moduleId]) as typeof import('./command-parser');
 					newCommandParser.instantiate();
-					CommandParser.loadBaseCommands();
 
 					if (!modules.includes('games')) Games.loadFormatCommands();
 				} else if (moduleId === 'config') {
