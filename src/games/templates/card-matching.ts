@@ -212,19 +212,17 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		}
 
 		const hasPlayableCards = playableAction || playableRegular;
-		const showAllCards = this.maximumPlayedCards && this.maxPlayableGroupSize && this.maximumPlayedCards > this.maxPlayableGroupSize;
-		if (hasPlayableCards) {
-			const overflow = !showAllCards && turnCards.unplayable.length &&
-				(turnCards.action.length + turnCards.group.length + turnCards.single.length) > 3;
-			if (overflow) html += "<div style='overflow-y: scroll;height: 400px'>";
-			html += "<h3>Playable cards</h3>";
-			html += [playableAction, playableRegular].filter(x => x.length).join("<br />");
-			if (overflow) html += "</div>";
-		}
-
+		const showAllCards = !this.maximumPlayedCards || !this.maxPlayableGroupSize || this.maximumPlayedCards > this.maxPlayableGroupSize;
 		if (playerCards.length) {
 			if (hasPlayableCards) {
-				if (this.maxPlayableGroupSize && this.maximumPlayedCards && this.maxPlayableGroupSize < this.maximumPlayedCards) {
+				const overflow = !showAllCards && turnCards.unplayable.length &&
+					(turnCards.action.length + turnCards.group.length + turnCards.single.length) > 3;
+				if (overflow) html += "<div style='overflow-y: scroll;height: 400px'>";
+				html += "<h3>Playable cards</h3>";
+				html += [playableAction, playableRegular].filter(x => x.length).join("<br />");
+				if (overflow) html += "</div>";
+
+				if (showAllCards) {
 					html += '<br /><h3>All cards</h3>';
 				} else {
 					if (turnCards.unplayable.length) html += '<br /><h3>Unplayable cards</h3>';
