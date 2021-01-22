@@ -236,4 +236,9 @@ export const game: IGameFile<GyaradosShinyHunting> = {
 	name: "Gyarados' Shiny Hunting",
 	mascot: "Gyarados",
 	modes: ['multianswer', 'team', 'survival', 'timeattack'],
+	modeProperties: {
+		'survival': {
+			roundTime: 5 * 1000,
+		},
+	},
 };
