@@ -60,10 +60,13 @@ export const commands: BaseCommandDefinitions = {
 
 			if (!room.timers) room.timers = {};
 			if (user.id in room.timers) clearTimeout(room.timers[user.id]);
+
+			const name = user.name;
 			room.timers[user.id] = setTimeout(() => {
-				room.say(user.name + ": time is up!");
+				room.say(name + ": time is up!");
 				delete room.timers![user.id];
 			}, time);
+
 			this.say("Your timer has been set for: " + Tools.toDurationString(time) + ".");
 		},
 	},
