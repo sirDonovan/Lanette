@@ -30,6 +30,7 @@ const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const SERVER_LATENCY_INTERVAL = 20 * 1000;
 const ASSUMED_SERVER_LATENCY = 1;
 const ASSUMED_SERVER_PROCESSING_TIME = 1;
+const SERVER_THROTTLE_PROCESSING_TIME = 10;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
 const UHTML_CHAT_COMMAND = '/uhtml ';
@@ -1195,8 +1196,6 @@ export class Client {
 
 			if (messageArguments.html === '<strong class="message-throttle-notice">Your message was not sent because you\'ve been ' +
 				'typing too quickly.</strong>') {
-				this.clearSendTimeout();
-
 				Tools.logMessage("Typing too quickly; Client.sendThrottle = " + this.sendThrottle + "; Client.serverLatency = " +
 					this.serverLatency + "; Client.serverProcessingTime = " + this.serverProcessingTime + "; " +
 					"Client.outgoingMessageQueue.length = " + this.outgoingMessageQueue.length +
@@ -1204,8 +1203,14 @@ export class Client {
 
 				if (this.lastOutgoingMessage) {
 					this.outgoingMessageQueue.unshift(this.lastOutgoingMessage);
+					const measuredLastMessage = this.lastOutgoingMessage.measure;
 					this.clearLastOutgoingMessage(this.lastOutgoingMessage.measure ? now : undefined);
+					if (!measuredLastMessage) this.serverProcessingTime += SERVER_THROTTLE_PROCESSING_TIME;
+				} else {
+					this.serverProcessingTime += SERVER_THROTTLE_PROCESSING_TIME;
 				}
+
+				this.clearSendTimeout();
 				this.setSendTimeout(this.getSendThrottle() * SERVER_THROTTLE_BUFFER_LIMIT);
 			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
 				room.modchat = messageArguments.html.split('<div class="broadcast-red">' +
