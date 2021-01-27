@@ -71,24 +71,27 @@ class HypnosHunches extends QuestionAndAnswer {
 	}
 
 	onHintHtml(): void {
-		let ended = false;
+		if (this.timeout) clearTimeout(this.timeout);
+
+		let endReason: string | undefined;
 		if (this.guessedLetters.length >= this.guessLimit) {
-			this.say("All guesses have been used! The answer was __" + this.answers[0] + "__");
-			ended = true;
+			endReason = "All guesses have been used!";
 		} else if (this.solvedLetters.length >= this.uniqueLetters) {
-			this.say("All letters have been revealed! The answer was __" + this.answers[0] + "__");
-			ended = true;
+			endReason = "All letters have been revealed!";
 		}
 
-		if (ended) {
-			if (this.isMiniGame) {
-				this.end();
-			} else {
+		if (endReason) {
+			this.canGuess = false;
+			this.on(endReason, () => {
+				this.displayAnswers();
 				this.answers = [];
-				if (this.timeout) clearTimeout(this.timeout);
+				if (this.isMiniGame) {
+					this.end();
+					return;
+				}
 				this.timeout = setTimeout(() => this.nextRound(), 5000);
-			}
-			return;
+			});
+			this.say(endReason);
 		} else {
 			this.timeout = setTimeout(() => this.nextRound(), this.updateHintTime);
 		}

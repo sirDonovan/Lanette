@@ -93,7 +93,10 @@ class PikachusMysteryPokemon extends QuestionAndAnswer {
 	}
 
 	onHintHtml(): void {
+		if (this.timeout) clearTimeout(this.timeout);
+
 		if (!this.hints[this.mysteryRound]) {
+			this.canGuess = false;
 			const text = "All hints have been revealed!";
 			this.on(text, () => {
 				this.displayAnswers();

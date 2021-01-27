@@ -100,7 +100,10 @@ class ZygardesOrders extends QuestionAndAnswer {
 	}
 
 	onHintHtml(): void {
+		if (this.timeout) clearTimeout(this.timeout);
+
 		if (this.revealedLetters >= this.allLetters || (this.maxRevealedLetters && this.revealedLetters >= this.maxRevealedLetters)) {
+			this.canGuess = false;
 			const text = (this.maxRevealedLetters ? "The maximum number of" : "All possible") + " letters have been revealed!";
 			this.on(text, () => {
 				this.displayAnswers();

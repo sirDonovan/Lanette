@@ -69,15 +69,21 @@ class HitmonchansHangman extends QuestionAndAnswer {
 	}
 
 	onHintHtml(): void {
+		if (this.timeout) clearTimeout(this.timeout);
+
 		if (this.guessedLetters.length >= this.guessLimit) {
-			this.say("All guesses have been used! The answer was __" + this.answers[0] + "__");
-			if (this.isMiniGame) {
-				this.end();
-			} else {
+			this.canGuess = false;
+			const text = "All guesses have been used!";
+			this.on(text, () => {
+				this.displayAnswers();
 				this.answers = [];
-				if (this.timeout) clearTimeout(this.timeout);
+				if (this.isMiniGame) {
+					this.end();
+					return;
+				}
 				this.timeout = setTimeout(() => this.nextRound(), 5000);
-			}
+			});
+			this.say(text);
 		} else {
 			this.timeout = setTimeout(() => this.nextRound(), this.updateHintTime);
 		}
