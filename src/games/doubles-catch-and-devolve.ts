@@ -1,4 +1,5 @@
 import type { IGameFile } from '../types/games';
+import type { IPokemon } from '../types/pokemon-showdown';
 import { EliminationTournament, game as eliminationTournamentGame } from './templates/elimination-tournament';
 
 const name = "Doubles Catch and De-volve";
@@ -17,6 +18,14 @@ class DoublesCatchAndEvolve extends EliminationTournament {
 	canReroll = true;
 	baseTournamentName = name;
 	tournamentDescription = description;
+
+	meetsStarterCriteria(pokemon: IPokemon): boolean {
+		return pokemon.evos.length <= 1;
+	}
+
+	meetsEvolutionCriteria(pokemon: IPokemon): boolean {
+		return pokemon.evos.length <= 1;
+	}
 }
 
 export const game: IGameFile<DoublesCatchAndEvolve> = Games.copyTemplateProperties(eliminationTournamentGame, {

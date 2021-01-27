@@ -1,4 +1,5 @@
 import type { IGameFile } from '../types/games';
+import type { IPokemon } from '../types/pokemon-showdown';
 import { EliminationTournament, game as eliminationTournamentGame } from './templates/elimination-tournament';
 
 const name = "Release and De-volve";
@@ -16,6 +17,14 @@ class ReleaseAndDevolve extends EliminationTournament {
 	firstRoundExtraTime = 3 * 60 * 1000;
 	baseTournamentName = name;
 	tournamentDescription = description;
+
+	meetsStarterCriteria(pokemon: IPokemon): boolean {
+		return pokemon.evos.length <= 1;
+	}
+
+	meetsEvolutionCriteria(pokemon: IPokemon): boolean {
+		return pokemon.evos.length <= 1;
+	}
 }
 
 export const game: IGameFile<ReleaseAndDevolve> = Games.copyTemplateProperties(eliminationTournamentGame, {
