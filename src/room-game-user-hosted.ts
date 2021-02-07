@@ -186,7 +186,7 @@ export class UserHostedGame extends Game {
 		this.setUhtmlBaseName();
 
 		this.endTime = Date.now() + HOST_TIME_LIMIT;
-		if (this.format.link) this.description += "<br /><br /><b><a href='" + this.format.link + "'>More info</a></b>";
+		if (this.format.link) this.format.description += "<br /><br /><b><a href='" + this.format.link + "'>More info</a></b>";
 		if (this.format.freejoin) {
 			this.format.options.freejoin = 1;
 			this.minPlayers = 0;
@@ -361,8 +361,6 @@ export const game: IUserHostedFile = {
 	formats: [
 		{
 			name: "Floette's Forum Game",
-			mascot: "Floette-eternal",
-			mascotPrefix: "Floette's",
 			description: "A game from Game Corner's official forum.",
 			aliases: ['ffg'],
 			customizableAttributes: ['name', 'link'],
