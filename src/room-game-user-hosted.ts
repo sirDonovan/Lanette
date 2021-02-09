@@ -503,11 +503,6 @@ export const game: IUserHostedFile = {
 			freejoin: true,
 		},
 		{
-			name: "Pokemath",
-			description: "Players solve math problems using Pokemon dex numbers. Answers are submitted as Pokemon names.",
-			freejoin: true,
-		},
-		{
 			name: "Porygon's Movesearch Match",
 			mascot: "Porygon",
 			description: "Players guess Pokemon based on the given movesets!",
