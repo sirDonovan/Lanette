@@ -1,4 +1,5 @@
-import type { IGameFile } from "../types/games";
+import { assertStrictEqual } from "../test/test-tools";
+import type { GameFileTests, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 type Operation = 'add' | 'subtract' | 'multiply' | 'divide';
@@ -37,14 +38,20 @@ class GrumpigsPokemath extends QuestionAndAnswer {
 	}
 
 	generateOperands(operation: Operation, amount: number): number[] {
-		const disallowOne = operation === 'multiply' || operation === 'divide';
+		const multiplyOrDivide = operation === 'multiply' || operation === 'divide';
 		const operands: number[] = [];
 		for (let i = 0; i < amount; i++) {
 			let operand = this.getOperand();
-			while (disallowOne && operand === 1) {
+			while (multiplyOrDivide && operand === 1) {
 				operand = this.getOperand();
 			}
 			operands.push(operand);
+		}
+
+		if (multiplyOrDivide && amount === 2) {
+			while (operands[0] === operands[1]) {
+				operands[1] = this.getOperand();
+			}
 		}
 
 		return operands;
@@ -107,6 +114,22 @@ class GrumpigsPokemath extends QuestionAndAnswer {
 	}
 }
 
+const tests: GameFileTests<GrumpigsPokemath> = {
+	'should calculate results correctly': {
+		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+		test(game): void {
+			assertStrictEqual(game.calculateResult('add', [1, 2]), 3);
+			assertStrictEqual(game.calculateResult('add', [3, 4, 5]), 12);
+			assertStrictEqual(game.calculateResult('subtract', [3, 2]), 1);
+			assertStrictEqual(game.calculateResult('subtract', [12, 5, 4]), 3);
+			assertStrictEqual(game.calculateResult('multiply', [2, 3]), 6);
+			assertStrictEqual(game.calculateResult('multiply', [4, 5, 6]), 120);
+			assertStrictEqual(game.calculateResult('divide', [6, 3]), 2);
+			assertStrictEqual(game.calculateResult('divide', [120, 6, 5]), 4);
+		},
+	},
+};
+
 export const game: IGameFile<GrumpigsPokemath> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['grumpigs', 'pokemath'],
 	category: 'knowledge',
@@ -124,4 +147,5 @@ export const game: IGameFile<GrumpigsPokemath> = Games.copyTemplateProperties(qu
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess the Pokemon whose dex number matches the answer to " +
 		"the math problem!",
 	modes: ["survival", "team"],
+	tests: Object.assign({}, questionAndAnswerGame.tests, tests),
 });
