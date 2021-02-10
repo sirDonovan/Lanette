@@ -559,5 +559,5 @@ export const game: IGameFile<BulbasaursUno> = Games.copyTemplateProperties(cardG
 	name: "Bulbasaur's Uno",
 	mascot: "Bulbasaur",
 	scriptedOnly: true,
-	tests,
+	tests: Object.assign({}, cardGame.tests, tests),
 });

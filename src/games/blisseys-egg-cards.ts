@@ -780,5 +780,5 @@ export const game: IGameFile<BlisseysEggCards> = Games.copyTemplateProperties(ca
 	name: "Blissey's Egg Cards",
 	mascot: "Blissey",
 	scriptedOnly: true,
-	tests,
+	tests: Object.assign({}, cardGame.tests, tests),
 });

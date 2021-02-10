@@ -837,7 +837,7 @@ export const game: IGameFile<ShucklesDefenseCards> = Games.copyTemplatePropertie
 	name: "Shuckle's Defense Cards",
 	mascot: "Shuckle",
 	scriptedOnly: true,
-	tests,
+	tests: Object.assign({}, cardGame.tests, tests),
 	variants: [
 		{
 			name: "Hackmons Shuckle's Defense Cards",

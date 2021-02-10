@@ -728,5 +728,5 @@ export const game: IGameFile<DarkraisLair> = Games.copyTemplateProperties(mapGam
 	mascot: "Darkrai",
 	scriptedOnly: true,
 	noOneVsOne: true,
-	tests,
+	tests: Object.assign({}, mapGame.tests, tests),
 });
