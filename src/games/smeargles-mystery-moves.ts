@@ -30,12 +30,12 @@ class SmearglesMysteryMoves extends QuestionAndAnswer {
 	}
 
 	generateAnswer(): void {
-		this.mysteryRound = -1;
 		let name = this.sampleOne(data.moves);
 		while (this.lastMove === name) {
 			name = this.sampleOne(data.moves);
 		}
 		this.lastMove = name;
+
 		const move = Dex.getExistingMove(name);
 		const hints: string[] = [];
 		hints.push("<b>Type</b>: " + move.type);
@@ -46,6 +46,8 @@ class SmearglesMysteryMoves extends QuestionAndAnswer {
 		hints.push("<b>Description</b>: " + move.shortDesc);
 		this.hints = this.shuffle(hints);
 		this.answers = [move.name];
+
+		this.mysteryRound = -1;
 	}
 
 	updateHint(): void {

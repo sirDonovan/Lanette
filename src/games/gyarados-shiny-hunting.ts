@@ -229,7 +229,7 @@ export const game: IGameFile<GyaradosShinyHunting> = {
 	commands,
 	class: GyaradosShinyHunting,
 	customizableOptions: {
-		points: {min: 10, base: 10, max: 10},
+		points: {min: 10, base: 10, max: 20},
 	},
 	description: "Each round players try to be the first to hunt the shiny Pokemon in the grid!",
 	freejoin: true,

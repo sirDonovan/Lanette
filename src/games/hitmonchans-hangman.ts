@@ -40,12 +40,14 @@ class HitmonchansHangman extends QuestionAndAnswer {
 	generateAnswer(): void {
 		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		this.currentCategory = category;
+
 		let answer = this.sampleOne(data[category]);
 		while (answer === this.lastAnswer) {
 			answer = this.sampleOne(data[category]);
 		}
 		this.lastAnswer = answer;
 		this.answers = [answer];
+
 		this.solvedLetters = [];
 		this.guessedLetters = [];
 		const letters = answer.split("");

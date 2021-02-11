@@ -114,7 +114,7 @@ export const game: IGameFile<MareepsCountingSheep> = {
 		points: {
 			min: 10,
 			base: 10,
-			max: 10,
+			max: 20,
 		},
 	},
 	defaultOptions: ['freejoin'],

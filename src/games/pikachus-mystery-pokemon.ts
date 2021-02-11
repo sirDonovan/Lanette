@@ -67,12 +67,12 @@ class PikachusMysteryPokemon extends QuestionAndAnswer {
 	}
 
 	generateAnswer(): void {
-		this.mysteryRound = -1;
 		let species = this.sampleOne(data.pokedex);
 		while (this.lastSpecies === species) {
 			species = this.sampleOne(data.pokedex);
 		}
 		this.lastSpecies = species;
+
 		const pokemon = Dex.getExistingPokemon(species);
 		const hints: string[] = [];
 		hints.push("<b>Type" + (data.types[species].includes('/') ? "s" : "") + "</b>: " + data.types[species]);
@@ -82,6 +82,8 @@ class PikachusMysteryPokemon extends QuestionAndAnswer {
 		hints.push("<b>Ability</b>: " + this.sampleOne(data.abilities[species]));
 		this.hints = this.shuffle(hints);
 		this.answers = [pokemon.name];
+
+		this.mysteryRound = -1;
 	}
 
 	updateHint(): void {

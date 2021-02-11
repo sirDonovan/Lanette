@@ -137,8 +137,9 @@ export const game: IGameFile<GrumpigsPokemath> = Games.copyTemplateProperties(qu
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],
 	customizableOptions: {
 		operands: {min: 2, base: BASE_OPERANDS, max: 4},
+		points: {min: 10, base: 10, max: 20},
 	},
-	defaultOptions: ['points'],
+	// defaultOptions: ['points'],
 	description: "Players guess Pokemon whose dex numbers match the answers to the given math problems!",
 	freejoin: true,
 	name: "Grumpig's Pokemath",
