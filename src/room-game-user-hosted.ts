@@ -383,11 +383,6 @@ export const game: IUserHostedFile = {
 			freejoin: true,
 		},
 		{
-			name: "Counting",
-			description: "Players have to do " + Config.commandCharacter + "count in the right order based on the given category " +
-				"(numbers, words or etc.). The first person to mess up the sequence loses a point, so be careful!",
-		},
-		{
 			name: "Ditto's Who Am I",
 			mascot: 'Ditto',
 			aliases: ['dittos', 'who am i'],
