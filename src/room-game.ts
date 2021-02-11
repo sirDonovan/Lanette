@@ -59,9 +59,9 @@ export abstract class Game extends Activity {
 		this.name = format.nameWithOptions || format.name;
 		this.id = format.id;
 		this.description = format.description;
-		if (this.maxPlayers) this.playerCap = this.maxPlayers;
 
 		this.onInitialize(format);
+		if (this.maxPlayers) this.playerCap = this.maxPlayers;
 	}
 
 	announceWinners(): void {

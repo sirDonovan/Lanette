@@ -101,7 +101,7 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 
 for (const format of formatsToTest) {
 	if (format.tests) {
-		describe(format.name + " individual tests", () => {
+		describe(format.nameWithOptions + " individual tests", () => {
 			afterEach(() => {
 				if (room.game) room.game.deallocate(true);
 			});
