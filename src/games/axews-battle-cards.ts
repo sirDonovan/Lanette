@@ -550,11 +550,11 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 
 	getHackmonsTyping(originalTypes: readonly string[]): readonly string[] {
 		const originalKey = this.getTypingKey(originalTypes);
-		const typeKeys = this.shuffle(Dex.data.typeKeys);
 
 		let newTypes: string[] = [];
 		let newKey = '';
 		while (!newKey || newKey === originalKey || this.hasNoWeaknesses(newTypes)) {
+			const typeKeys = this.shuffle(Dex.data.typeKeys);
 			if (this.random(2)) {
 				newTypes = [Dex.getExistingType(typeKeys[0]).name, Dex.getExistingType(typeKeys[1]).name];
 			} else {

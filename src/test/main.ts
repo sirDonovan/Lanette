@@ -94,7 +94,7 @@ module.exports = (inputOptions: Dict<string>): void => {
 		const maxMochaRuns = !isNaN(mochaRunsOption) ? Math.max(1, mochaRunsOption) : 1;
 
 		const mocha = new Mocha({
-			reporter: maxMochaRuns === 1 ? 'dot' : 'min',
+			reporter: 'spec',
 			ui: 'bdd',
 		});
 

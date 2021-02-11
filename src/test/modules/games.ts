@@ -71,6 +71,8 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 			if (testConfig.async) {
 				it(test, async function(this: Mocha.Context) {
 					const game = createIndividualTestGame(testFormat);
+					// console.log(game.name + " '" + test + "': initial seed = " + game.initialSeed);
+
 					try {
 						await ((testData.test.call(this, game, testFormat, attributes) as unknown) as Promise<void>).catch(e => {
 							throw e;
@@ -83,6 +85,8 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 			} else {
 				it(test, function(this: Mocha.Context) {
 					const game = createIndividualTestGame(testFormat);
+					// console.log(game.name + " '" + test + "': initial seed = " + game.initialSeed);
+
 					try {
 						testData.test.call(this, game, testFormat, attributes);
 					} catch (e) {
@@ -105,7 +109,7 @@ for (const format of formatsToTest) {
 			createIndividualTests(format, format.tests!);
 		});
 
-		if (format.variants) {
+		if (format.variants && !format.variant) {
 			for (const variant of format.variants) {
 				const variantFormat = Games.getExistingFormat(format.inputTarget + "," + variant.variantAliases[0]);
 				describe(variantFormat.nameWithOptions + " individual tests", () => {
@@ -125,7 +129,7 @@ for (const i in Games.modes) {
 	if (mode.tests) {
 		const formats: string[] = [];
 		for (const format of formatsToTest) {
-			if (format.modes && format.modes.includes(mode.id)) {
+			if (!format.mode && format.modes && format.modes.includes(mode.id)) {
 				formats.push(format.id);
 			}
 		}
@@ -331,7 +335,7 @@ describe("Games", () => {
 			if (game.mascot) game.shinyMascot = true;
 			game.signups();
 			gameLog.push(roomPrefix + "/addhtmlbox " + game.getSignupsHtml());
-			gameLog.push(roomPrefix + "/notifyrank all, Mocha scripted game," + format.name + "," + game.getHighlightPhrase());
+			gameLog.push(roomPrefix + "/notifyrank all, Mocha scripted game," + game.name + "," + game.getHighlightPhrase());
 			if (game.mascot) gameLog.push(roomPrefix + game.mascot.name + " is shiny so bits will be doubled!");
 
 			assertClientSendQueue(startingSendQueueIndex, gameLog);
