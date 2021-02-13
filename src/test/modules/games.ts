@@ -401,7 +401,9 @@ describe("Games", () => {
 			assert(!parentGame.cancelChallenge(defender), format.name);
 			assert(!parentGame.acceptChallenge(challenger), format.name);
 			assert(!parentGame.rejectChallenge(challenger), format.name);
+			assert(!parentGame.acceptChallenge(defender), format.name);
 
+			parentGame.canAcceptChallenge = true;
 			assert(parentGame.acceptChallenge(defender), format.name);
 			assert(parentGame.started, format.name);
 			parentGame.nextRound();

@@ -1040,9 +1040,9 @@ export class Client {
 			Storage.updateLastSeen(user, messageArguments.timestamp);
 
 			if (messageArguments.message.startsWith('/log ')) {
-				if (messageArguments.message.includes(HANGMAN_START_COMMAND)) {
+				if (messageArguments.message.startsWith(HANGMAN_START_COMMAND)) {
 					room.serverHangman = true;
-				} else if (messageArguments.message.includes(HANGMAN_END_COMMAND)) {
+				} else if (messageArguments.message.startsWith(HANGMAN_END_COMMAND)) {
 					delete room.serverHangman;
 				}
 			}
