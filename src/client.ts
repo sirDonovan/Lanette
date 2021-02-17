@@ -31,7 +31,7 @@ const SERVER_LATENCY_INTERVAL = 30 * 1000;
 const ASSUMED_SERVER_LATENCY = 1;
 const ASSUMED_SERVER_PROCESSING_TIME = 1;
 const SERVER_THROTTLE_PROCESSING_TIME = 10;
-const PROCESSING_TIME_CHECK_MINIMUM = 30 * 1000;
+const PROCESSING_TIME_CHECK_MINIMUM = 15 * 1000;
 const PROCESSING_TIME_CHECK_QUERY: string = 'lagtest';
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
@@ -197,6 +197,7 @@ export class Client {
 	messageParsers: IMessageParserFile[] = [];
 	messageParsersExist: boolean = false;
 	outgoingMessageQueue: IOutgoingMessage[] = [];
+	messagesAwaitingProcessingCheck: number = 0;
 	pauseIncomingMessages: boolean = true;
 	pauseOutgoingMessages: boolean = false;
 	pingWsAlive: boolean = true;
@@ -351,6 +352,7 @@ export class Client {
 		if (previous.lastSendTimeoutTime) this.lastSendTimeoutTime = previous.lastSendTimeoutTime;
 		if (previous.lastOutgoingMessage) this.lastOutgoingMessage = previous.lastOutgoingMessage;
 		if (previous.lastProcessingTimeCheck) this.lastProcessingTimeCheck = previous.lastProcessingTimeCheck;
+		if (previous.messagesAwaitingProcessingCheck) this.messagesAwaitingProcessingCheck = previous.messagesAwaitingProcessingCheck;
 		if (previous.serverLatency) this.serverLatency = previous.serverLatency;
 		if (previous.serverProcessingTime) this.serverProcessingTime = previous.serverProcessingTime;
 
@@ -581,12 +583,21 @@ export class Client {
 		}
 
 		const lines = webSocketData.split("\n");
-		let room: Room;
+		let roomid: string;
 		if (lines[0].startsWith('>')) {
-			room = Rooms.add(lines[0].substr(1));
+			roomid = lines[0].substr(1);
 			lines.shift();
 		} else {
-			room = Rooms.add('lobby');
+			roomid = 'lobby';
+		}
+
+		let room = Rooms.get(roomid);
+		if (!room) {
+			room = Rooms.add(roomid);
+			if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'joinroom' &&
+				this.lastOutgoingMessage.roomid === room.id) {
+				this.clearLastOutgoingMessage(now);
+			}
 		}
 
 		for (let i = 0; i < lines.length; i++) {
@@ -709,13 +720,13 @@ export class Client {
 
 				if (this.roomsToRejoin.length) {
 					for (const roomId of this.roomsToRejoin) {
-						this.send({message: '|/join ' + roomId, type: 'command'});
+						this.joinRoom(roomId);
 					}
 
 					this.roomsToRejoin = [];
 				} else if (Config.rooms) {
 					for (const roomId of Config.rooms) {
-						this.send({message: '|/join ' + roomId, type: 'command'});
+						this.joinRoom(roomId);
 					}
 				}
 
@@ -793,6 +804,11 @@ export class Client {
 		}
 
 		case 'deinit': {
+			if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'leaveroom' &&
+				this.lastOutgoingMessage.roomid === room.id) {
+				this.clearLastOutgoingMessage(now);
+			}
+
 			Rooms.remove(room);
 			break;
 		}
@@ -1545,7 +1561,7 @@ export class Client {
 
 			if (room.game) {
 				if (room.game.onBattleTeamSize && !room.game.onBattleTeamSize(room, messageArguments.slot, messageArguments.size)) {
-					room.sayCommand("/leave");
+					room.leave();
 				}
 			}
 			break;
@@ -1554,7 +1570,7 @@ export class Client {
 		case 'teampreview': {
 			if (room.game) {
 				if (room.game.onBattleTeamPreview && !room.game.onBattleTeamPreview(room)) {
-					room.sayCommand("/leave");
+					room.leave();
 				}
 			}
 			break;
@@ -1563,7 +1579,7 @@ export class Client {
 		case 'start': {
 			if (room.game) {
 				if (room.game.onBattleStart && !room.game.onBattleStart(room)) {
-					room.sayCommand("/leave");
+					room.leave();
 				}
 			}
 			break;
@@ -1579,7 +1595,7 @@ export class Client {
 			if (room.game) {
 				if (room.game.onBattlePokemon && !room.game.onBattlePokemon(room, messageArguments.slot, messageArguments.details,
 					messageArguments.item)) {
-					room.sayCommand("/leave");
+					room.leave();
 				}
 			}
 			break;
@@ -1596,7 +1612,7 @@ export class Client {
 
 			if (room.game) {
 				if (room.game.onBattleFaint && !room.game.onBattleFaint(room, messageArguments.pokemon)) {
-					room.sayCommand("/leave");
+					room.leave();
 				}
 			}
 			break;
@@ -1613,7 +1629,7 @@ export class Client {
 			if (room.game) {
 				if (room.game.onBattleSwitch && !room.game.onBattleSwitch(room, messageArguments.pokemon, messageArguments.details,
 					messageArguments.hpStatus)) {
-					room.sayCommand("/leave");
+					room.leave();
 				}
 			}
 			break;
@@ -1626,7 +1642,7 @@ export class Client {
 
 			if (room.game) {
 				if (room.game.onBattleWin) room.game.onBattleWin(room, messageArguments.username);
-				room.sayCommand("/leave");
+				room.leave();
 			}
 
 			break;
@@ -1823,6 +1839,15 @@ export class Client {
 		return Tools.extractBattleId(source, this.replayServerAddress, this.server, this.serverId);
 	}
 
+	joinRoom(roomid: string): void {
+		this.send({
+			message: '|/join ' + roomid,
+			roomid,
+			type: 'joinroom',
+			measure: true,
+		});
+	}
+
 	send(outgoingMessage: IOutgoingMessage): void {
 		if (!outgoingMessage.message) return;
 
@@ -1836,13 +1861,17 @@ export class Client {
 		}
 
 		if (Date.now() - this.lastProcessingTimeCheck > PROCESSING_TIME_CHECK_MINIMUM) {
-			this.outgoingMessageQueue.unshift(outgoingMessage);
+			this.outgoingMessageQueue.splice(this.messagesAwaitingProcessingCheck, 0, outgoingMessage);
+			this.messagesAwaitingProcessingCheck++;
+
 			outgoingMessage = {
 				message: "|/cmd " + PROCESSING_TIME_CHECK_QUERY,
 				type: 'query',
 				query: PROCESSING_TIME_CHECK_QUERY,
 				measure: true,
 			};
+		} else if (this.messagesAwaitingProcessingCheck) {
+			this.messagesAwaitingProcessingCheck = 0;
 		}
 
 		this.sendTimeout = true;

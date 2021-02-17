@@ -1279,7 +1279,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 				if (originalPlayer && originalPlayer.id !== id) {
 					originalPlayer.say("You have been disqualified for leaving your battle!");
 					this.disqualifyPlayers([originalPlayer]);
-					room.say("/leave");
+					room.leave();
 				}
 			}
 			return;
@@ -1614,7 +1614,7 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 			const battleRoom = Rooms.add(battle.fullId);
 			battleRoom.game = this;
 
-			this.say('/join ' + battle.fullId);
+			Client.joinRoom(battle.fullId);
 			return true;
 		},
 		eliminatedGameCommand: true,

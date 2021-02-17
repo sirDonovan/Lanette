@@ -354,7 +354,7 @@ export class Tournament extends Activity {
 
 		if (this.joinBattles) {
 			room.tournament = this;
-			this.sayCommand("/join " + room.id);
+			Client.joinRoom(room.id);
 		}
 	}
 
@@ -377,7 +377,7 @@ export class Tournament extends Activity {
 		}
 
 		if (this.joinBattles) {
-			if (room) room.sayCommand("/leave");
+			if (room) room.leave();
 		}
 	}
 
