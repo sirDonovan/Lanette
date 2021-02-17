@@ -1874,13 +1874,14 @@ export class Client {
 			this.messagesAwaitingProcessingCheck = 0;
 		}
 
+		outgoingMessage.serverLatency = this.serverLatency;
+		outgoingMessage.serverProcessingTime = this.serverProcessingTime;
+
 		this.sendTimeout = true;
 		this.webSocket.send(outgoingMessage.message, () => {
 			const now = Date.now();
 			if (this.sendTimeout === true && !this.reloadInProgress && this === global.Client) {
 				if (outgoingMessage.measure) outgoingMessage.sentTime = now;
-				outgoingMessage.serverLatency = this.serverLatency;
-				outgoingMessage.serverProcessingTime = this.serverProcessingTime;
 				this.lastOutgoingMessage = outgoingMessage;
 
 				this.setSendTimeout();
@@ -1893,7 +1894,8 @@ export class Client {
 			const oldServerProcessingTime = this.serverProcessingTime;
 
 			if (this.lastOutgoingMessage.measure && this.lastOutgoingMessage.sentTime && responseTime) {
-				let serverProcessingTime = responseTime - this.lastOutgoingMessage.sentTime - (this.serverLatency * 2);
+				const serverLatency = this.lastOutgoingMessage.serverLatency || this.serverLatency;
+				let serverProcessingTime = responseTime - this.lastOutgoingMessage.sentTime - (serverLatency * 2);
 				if (serverProcessingTime < ASSUMED_SERVER_PROCESSING_TIME) serverProcessingTime = ASSUMED_SERVER_PROCESSING_TIME;
 
 				this.serverProcessingTime = serverProcessingTime;
