@@ -452,6 +452,13 @@ export const game: IUserHostedFile = {
 			freejoin: true,
 		},
 		{
+			name: "Mareep's Counting Sheep",
+			mascot: "Mareep",
+			aliases: ['mareeps', 'counting'],
+			description: "Players have to do " + Config.commandCharacter + "count in the right order based on the given category " +
+				"(numbers, words or etc.). The first person to mess up the sequence loses a point, so be careful!",
+		},
+		{
 			name: "Mascots",
 			description: "Each round, the host will provide a song and players must find a Pokemon that best represents it using the " +
 				"standard formatting --[Pokemon]--.",
