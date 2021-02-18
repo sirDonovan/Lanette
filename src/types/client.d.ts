@@ -14,16 +14,14 @@ export interface IMessageParserFile {
 	priority: number;
 }
 
-export type IMessageTypes = 'command' | 'chat' | 'html' | 'uhtml' | 'pm' | 'pmhtml' | 'pmuhtml' | 'query' | 'joinroom' | 'leaveroom';
+export type IMessageTypes = 'command' | 'chat' | 'html' | 'uhtml' | 'pm' | 'pmhtml' | 'pmuhtml' | 'userdetails' | 'joinroom' | 'leaveroom';
 export interface IOutgoingMessage {
 	message: string;
 	type: IMessageTypes;
 	html?: string;
 	measure?: boolean;
-	query?: string;
 	roomid?: string;
 	sentTime?: number;
-	serverLatency?: number;
 	serverProcessingTime?: number;
 	text?: string;
 	uhtmlName?: string;
