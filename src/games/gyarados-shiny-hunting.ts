@@ -241,4 +241,5 @@ export const game: IGameFile<GyaradosShinyHunting> = {
 			roundTime: 5 * 1000,
 		},
 	},
+	scriptedOnly: true,
 };

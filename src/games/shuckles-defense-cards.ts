@@ -497,11 +497,11 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 
 	getHackmonsTyping(originalTypes: readonly string[]): readonly string[] {
 		const originalKey = this.getTypingKey(originalTypes);
-		const typeKeys = this.shuffle(Dex.data.typeKeys);
 
 		let newTypes: string[] = [];
 		let newKey = '';
 		while (!newKey || newKey === originalKey || this.hasNoResistances(newTypes)) {
+			const typeKeys = this.shuffle(Dex.data.typeKeys);
 			if (this.random(2)) {
 				newTypes = [Dex.getExistingType(typeKeys[0]).name, Dex.getExistingType(typeKeys[1]).name];
 			} else {
@@ -837,7 +837,7 @@ export const game: IGameFile<ShucklesDefenseCards> = Games.copyTemplatePropertie
 	name: "Shuckle's Defense Cards",
 	mascot: "Shuckle",
 	scriptedOnly: true,
-	tests,
+	tests: Object.assign({}, cardGame.tests, tests),
 	variants: [
 		{
 			name: "Hackmons Shuckle's Defense Cards",

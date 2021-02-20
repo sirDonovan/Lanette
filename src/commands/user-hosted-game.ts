@@ -364,7 +364,7 @@ export const commands: BaseCommandDefinitions = {
 
 			const database = Storage.getDatabase(gameRoom);
 			if (targets.length > 1) {
-				if (!user.hasRank(gameRoom, 'driver')) return;
+				if (!user.hasRank(gameRoom, 'moderator')) return;
 				const status = Tools.toId(targets[1]);
 				if (status === 'standard') {
 					if (!database.userHostStatuses || !(hostId in database.userHostStatuses)) {

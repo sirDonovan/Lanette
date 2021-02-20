@@ -186,7 +186,7 @@ export class UserHostedGame extends Game {
 		this.setUhtmlBaseName();
 
 		this.endTime = Date.now() + HOST_TIME_LIMIT;
-		if (this.format.link) this.description += "<br /><br /><b><a href='" + this.format.link + "'>More info</a></b>";
+		if (this.format.link) this.format.description += "<br /><br /><b><a href='" + this.format.link + "'>More info</a></b>";
 		if (this.format.freejoin) {
 			this.format.options.freejoin = 1;
 			this.minPlayers = 0;
@@ -361,8 +361,6 @@ export const game: IUserHostedFile = {
 	formats: [
 		{
 			name: "Floette's Forum Game",
-			mascot: "Floette-eternal",
-			mascotPrefix: "Floette's",
 			description: "A game from Game Corner's official forum.",
 			aliases: ['ffg'],
 			customizableAttributes: ['name', 'link'],
@@ -383,11 +381,6 @@ export const game: IUserHostedFile = {
 			name: "Commonyms",
 			description: "Players must find the word that applies to all of the words in the puzzle Ex: sky, jay, sad | Answer: blue",
 			freejoin: true,
-		},
-		{
-			name: "Counting",
-			description: "Players have to do " + Config.commandCharacter + "count in the right order based on the given category " +
-				"(numbers, words or etc.). The first person to mess up the sequence loses a point, so be careful!",
 		},
 		{
 			name: "Ditto's Who Am I",
@@ -459,6 +452,13 @@ export const game: IUserHostedFile = {
 			freejoin: true,
 		},
 		{
+			name: "Mareep's Counting Sheep",
+			mascot: "Mareep",
+			aliases: ['mareeps', 'counting'],
+			description: "Players have to do " + Config.commandCharacter + "count in the right order based on the given category " +
+				"(numbers, words or etc.). The first person to mess up the sequence loses a point, so be careful!",
+		},
+		{
 			name: "Mascots",
 			description: "Each round, the host will provide a song and players must find a Pokemon that best represents it using the " +
 				"standard formatting --[Pokemon]--.",
@@ -502,11 +502,6 @@ export const game: IUserHostedFile = {
 			description: "A random Pokemon is displayed by the host and the players have to either recommend or not recommend it. " +
 				"Then, the host will display another random Pokemon. If the 1st Pokemon wins type-wise, the players that recommended " +
 				"it win a point and vice-versa!",
-			freejoin: true,
-		},
-		{
-			name: "Pokemath",
-			description: "Players solve math problems using Pokemon dex numbers. Answers are submitted as Pokemon names.",
 			freejoin: true,
 		},
 		{

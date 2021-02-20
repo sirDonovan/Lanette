@@ -807,7 +807,7 @@ commands.summary.aliases = ['cards', 'hand'];
 const tests: GameFileTests<CardMatching> = {
 	'it should properly create a deck': {
 		test(game): void {
-			addPlayers(game, 15);
+			addPlayers(game, game.maxPlayers || 15);
 			game.start();
 			assert(game.deck.length);
 			assert(game.currentPlayer);

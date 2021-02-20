@@ -120,6 +120,7 @@ export class ScriptedGame extends Game {
 		if (customizedOptions.ports) namePrefixes.unshift(customizedOptions.ports + '-port');
 		if (customizedOptions.params) namePrefixes.unshift(customizedOptions.params + '-param');
 		if (customizedOptions.names) namePrefixes.unshift(customizedOptions.names + '-name');
+		if (customizedOptions.operands) namePrefixes.unshift(customizedOptions.operands + '-operand');
 		if (customizedOptions.freejoin && !format.freejoin) nameSuffixes.push("(freejoin)");
 
 		let nameWithOptions = '';

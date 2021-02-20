@@ -22,15 +22,14 @@ const MAIN_HOST = "sim3.psim.us";
 const REPLAY_SERVER_ADDRESS = "replay.pokemonshowdown.com";
 const CHALLSTR_TIMEOUT_SECONDS = 15;
 const RELOGIN_SECONDS = 60;
-const REGULAR_MESSAGE_THROTTLE = 600;
-const TRUSTED_MESSAGE_THROTTLE = 100;
+const REGULAR_MESSAGE_THROTTLE = 625;
+const TRUSTED_MESSAGE_THROTTLE = 125;
 const SERVER_THROTTLE_BUFFER_LIMIT = 6;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
-const SERVER_LATENCY_INTERVAL = 20 * 1000;
-const ASSUMED_SERVER_LATENCY = 1;
-const ASSUMED_SERVER_PROCESSING_TIME = 10;
-const SERVER_THROTTLE_PROCESSING_TIME = 10;
+const CONNECTION_CHECK_INTERVAL = 30 * 1000;
+const SERVER_THROTTLE_PROCESSING_TIME = 25;
+const PROCESSING_TIME_CHECK_MINIMUM = 5 * 1000;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
 const UHTML_CHAT_COMMAND = '/uhtml ';
@@ -187,13 +186,15 @@ export class Client {
 	failedPingTimeout: NodeJS.Timer | null = null;
 	groupSymbols: KeyedDict<GroupName, string> = DEFAULT_GROUP_SYMBOLS;
 	incomingMessageQueue: {message: Data, timestamp: number}[] = [];
-	lastSendTimeoutTime: number = 0;
 	lastOutgoingMessage: IOutgoingMessage | null = null;
+	lastProcessingTimeCheck: number = 0;
+	lastSendTimeoutTime: number = 0;
 	loggedIn: boolean = false;
 	loginTimeout: NodeJS.Timer | undefined = undefined;
 	messageParsers: IMessageParserFile[] = [];
 	messageParsersExist: boolean = false;
 	outgoingMessageQueue: IOutgoingMessage[] = [];
+	messagesAwaitingProcessingCheck: number = 0;
 	pauseIncomingMessages: boolean = true;
 	pauseOutgoingMessages: boolean = false;
 	pingWsAlive: boolean = true;
@@ -209,10 +210,9 @@ export class Client {
 	serverGroups: Dict<IServerGroup> = {};
 	serverGroupsResponse: ServerGroupData[] = DEFAULT_SERVER_GROUPS;
 	serverId: string = 'showdown';
-	serverLatency: number = ASSUMED_SERVER_LATENCY;
 	serverPingTimeout: NodeJS.Timer | null = null;
 	serverTimeOffset: number = 0;
-	serverProcessingTime: number = ASSUMED_SERVER_PROCESSING_TIME;
+	serverProcessingTime: number = 0;
 	webSocket: import('ws') | null = null;
 
 	constructor() {
@@ -312,32 +312,16 @@ export class Client {
 			return;
 		}
 
-		let pingTime = 0;
 		pongListener = () => {
 			this.pingWsAlive = true;
-
-			if (this.reloadInProgress || this !== global.Client) return;
-
-			const oldServerLatency = this.lastOutgoingMessage ? this.lastOutgoingMessage.serverLatency : this.serverLatency;
-			if (pingTime) {
-				this.serverLatency = Math.ceil((Date.now() - pingTime) / 2) || ASSUMED_SERVER_LATENCY;
-			} else {
-				this.serverLatency = ASSUMED_SERVER_LATENCY;
-			}
-
-			if (this.sendTimeout && this.sendTimeout !== true && oldServerLatency && this.serverLatency > oldServerLatency) {
-				this.clearSendTimeout();
-				this.setSendTimeout(this.getSendThrottle() + (this.serverLatency - oldServerLatency));
-			}
 		};
 
 		this.pingWsAlive = false;
 		this.webSocket.removeAllListeners('pong');
 		this.webSocket.once('pong', pongListener);
 		this.webSocket.ping('', undefined, () => {
-			pingTime = Date.now();
 			if (this.serverPingTimeout) clearTimeout(this.serverPingTimeout);
-			this.serverPingTimeout = setTimeout(() => this.pingServer(), SERVER_LATENCY_INTERVAL + 1000);
+			this.serverPingTimeout = setTimeout(() => this.pingServer(), CONNECTION_CHECK_INTERVAL + 1000);
 		});
 	}
 
@@ -347,7 +331,8 @@ export class Client {
 
 		if (previous.lastSendTimeoutTime) this.lastSendTimeoutTime = previous.lastSendTimeoutTime;
 		if (previous.lastOutgoingMessage) this.lastOutgoingMessage = previous.lastOutgoingMessage;
-		if (previous.serverLatency) this.serverLatency = previous.serverLatency;
+		if (previous.lastProcessingTimeCheck) this.lastProcessingTimeCheck = previous.lastProcessingTimeCheck;
+		if (previous.messagesAwaitingProcessingCheck) this.messagesAwaitingProcessingCheck = previous.messagesAwaitingProcessingCheck;
 		if (previous.serverProcessingTime) this.serverProcessingTime = previous.serverProcessingTime;
 
 		if (previous.outgoingMessageQueue) this.outgoingMessageQueue = previous.outgoingMessageQueue.slice();
@@ -577,12 +562,21 @@ export class Client {
 		}
 
 		const lines = webSocketData.split("\n");
-		let room: Room;
+		let roomid: string;
 		if (lines[0].startsWith('>')) {
-			room = Rooms.add(lines[0].substr(1));
+			roomid = lines[0].substr(1);
 			lines.shift();
 		} else {
-			room = Rooms.add('lobby');
+			roomid = 'lobby';
+		}
+
+		let room = Rooms.get(roomid);
+		if (!room) {
+			room = Rooms.add(roomid);
+			if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'joinroom' &&
+				this.lastOutgoingMessage.roomid === room.id) {
+				this.clearLastOutgoingMessage(now);
+			}
 		}
 
 		for (let i = 0; i < lines.length; i++) {
@@ -705,13 +699,13 @@ export class Client {
 
 				if (this.roomsToRejoin.length) {
 					for (const roomId of this.roomsToRejoin) {
-						this.send({message: '|/join ' + roomId, type: 'command'});
+						this.joinRoom(roomId);
 					}
 
 					this.roomsToRejoin = [];
 				} else if (Config.rooms) {
 					for (const roomId of Config.rooms) {
-						this.send({message: '|/join ' + roomId, type: 'command'});
+						this.joinRoom(roomId);
 					}
 				}
 
@@ -751,6 +745,10 @@ export class Client {
 			} else if (messageArguments.type === 'userdetails') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 				if (messageArguments.response && messageArguments.response !== 'null') {
 					const response = JSON.parse(messageArguments.response) as IUserDetailsResponse;
+					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'userdetails' &&
+						this.lastOutgoingMessage.user === response.userid) {
+						this.clearLastOutgoingMessage(now);
+					}
 					if (response.userid === Users.self.id) Users.self.group = response.group;
 				}
 			}
@@ -784,6 +782,11 @@ export class Client {
 		}
 
 		case 'deinit': {
+			if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'leaveroom' &&
+				this.lastOutgoingMessage.roomid === room.id) {
+				this.clearLastOutgoingMessage(now);
+			}
+
 			Rooms.remove(room);
 			break;
 		}
@@ -1040,9 +1043,9 @@ export class Client {
 			Storage.updateLastSeen(user, messageArguments.timestamp);
 
 			if (messageArguments.message.startsWith('/log ')) {
-				if (messageArguments.message.includes(HANGMAN_START_COMMAND)) {
+				if (messageArguments.message.startsWith(HANGMAN_START_COMMAND)) {
 					room.serverHangman = true;
-				} else if (messageArguments.message.includes(HANGMAN_END_COMMAND)) {
+				} else if (messageArguments.message.startsWith(HANGMAN_END_COMMAND)) {
 					delete room.serverHangman;
 				}
 			}
@@ -1196,8 +1199,8 @@ export class Client {
 
 			if (messageArguments.html === '<strong class="message-throttle-notice">Your message was not sent because you\'ve been ' +
 				'typing too quickly.</strong>') {
-				Tools.logMessage("Typing too quickly; Client.sendThrottle = " + this.sendThrottle + "; Client.serverLatency = " +
-					this.serverLatency + "; Client.serverProcessingTime = " + this.serverProcessingTime + "; " +
+				Tools.logMessage("Typing too quickly; Client send timeout = " + this.getSendThrottle() + " (Client.sendThrottle = " +
+					this.sendThrottle + "; Client.serverProcessingTime = " + this.serverProcessingTime + "); " +
 					"Client.outgoingMessageQueue.length = " + this.outgoingMessageQueue.length +
 					(this.lastOutgoingMessage ? "; Client.lastOutgoingMessage = " + JSON.stringify(this.lastOutgoingMessage) : ""));
 
@@ -1210,7 +1213,6 @@ export class Client {
 					this.serverProcessingTime += SERVER_THROTTLE_PROCESSING_TIME;
 				}
 
-				this.clearSendTimeout();
 				this.setSendTimeout(this.getSendThrottle() * SERVER_THROTTLE_BUFFER_LIMIT);
 			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
 				room.modchat = messageArguments.html.split('<div class="broadcast-red">' +
@@ -1536,7 +1538,7 @@ export class Client {
 
 			if (room.game) {
 				if (room.game.onBattleTeamSize && !room.game.onBattleTeamSize(room, messageArguments.slot, messageArguments.size)) {
-					room.sayCommand("/leave");
+					room.leave();
 				}
 			}
 			break;
@@ -1545,7 +1547,7 @@ export class Client {
 		case 'teampreview': {
 			if (room.game) {
 				if (room.game.onBattleTeamPreview && !room.game.onBattleTeamPreview(room)) {
-					room.sayCommand("/leave");
+					room.leave();
 				}
 			}
 			break;
@@ -1554,7 +1556,7 @@ export class Client {
 		case 'start': {
 			if (room.game) {
 				if (room.game.onBattleStart && !room.game.onBattleStart(room)) {
-					room.sayCommand("/leave");
+					room.leave();
 				}
 			}
 			break;
@@ -1570,7 +1572,7 @@ export class Client {
 			if (room.game) {
 				if (room.game.onBattlePokemon && !room.game.onBattlePokemon(room, messageArguments.slot, messageArguments.details,
 					messageArguments.item)) {
-					room.sayCommand("/leave");
+					room.leave();
 				}
 			}
 			break;
@@ -1587,7 +1589,7 @@ export class Client {
 
 			if (room.game) {
 				if (room.game.onBattleFaint && !room.game.onBattleFaint(room, messageArguments.pokemon)) {
-					room.sayCommand("/leave");
+					room.leave();
 				}
 			}
 			break;
@@ -1604,7 +1606,7 @@ export class Client {
 			if (room.game) {
 				if (room.game.onBattleSwitch && !room.game.onBattleSwitch(room, messageArguments.pokemon, messageArguments.details,
 					messageArguments.hpStatus)) {
-					room.sayCommand("/leave");
+					room.leave();
 				}
 			}
 			break;
@@ -1617,7 +1619,7 @@ export class Client {
 
 			if (room.game) {
 				if (room.game.onBattleWin) room.game.onBattleWin(room, messageArguments.username);
-				room.sayCommand("/leave");
+				room.leave();
 			}
 
 			break;
@@ -1814,24 +1816,48 @@ export class Client {
 		return Tools.extractBattleId(source, this.replayServerAddress, this.server, this.serverId);
 	}
 
+	joinRoom(roomid: string): void {
+		this.send({
+			message: '|/join ' + roomid,
+			roomid,
+			type: 'joinroom',
+			measure: true,
+		});
+	}
+
 	send(outgoingMessage: IOutgoingMessage): void {
 		if (!outgoingMessage.message) return;
+
+		if (outgoingMessage.message.length > MAX_MESSAGE_SIZE) {
+			throw new Error("Message exceeds server size limit of " + (MAX_MESSAGE_SIZE / 1024) + "KB: " + outgoingMessage.message);
+		}
+
 		if (!this.webSocket || this.sendTimeout || this.pauseOutgoingMessages) {
 			this.outgoingMessageQueue.push(outgoingMessage);
 			return;
 		}
 
-		if (outgoingMessage.message.length > MAX_MESSAGE_SIZE) {
-			throw new Error("Message exceeds server size limit of " + (MAX_MESSAGE_SIZE / 1024) + "KB: " + outgoingMessage.message);
+		if (Date.now() - this.lastProcessingTimeCheck > PROCESSING_TIME_CHECK_MINIMUM) {
+			this.outgoingMessageQueue.splice(this.messagesAwaitingProcessingCheck, 0, outgoingMessage);
+			this.messagesAwaitingProcessingCheck++;
+
+			outgoingMessage = {
+				message: "|/cmd userdetails " + Users.self.id,
+				type: 'userdetails',
+				user: Users.self.id,
+				measure: true,
+			};
+		} else if (this.messagesAwaitingProcessingCheck) {
+			this.messagesAwaitingProcessingCheck = 0;
 		}
+
+		outgoingMessage.serverProcessingTime = this.serverProcessingTime;
 
 		this.sendTimeout = true;
 		this.webSocket.send(outgoingMessage.message, () => {
 			const now = Date.now();
 			if (this.sendTimeout === true && !this.reloadInProgress && this === global.Client) {
 				if (outgoingMessage.measure) outgoingMessage.sentTime = now;
-				outgoingMessage.serverLatency = this.serverLatency;
-				outgoingMessage.serverProcessingTime = this.serverProcessingTime;
 				this.lastOutgoingMessage = outgoingMessage;
 
 				this.setSendTimeout();
@@ -1841,25 +1867,23 @@ export class Client {
 
 	clearLastOutgoingMessage(responseTime?: number): void {
 		if (this.lastOutgoingMessage) {
-			const oldServerProcessingTime = this.lastOutgoingMessage.serverProcessingTime;
+			const oldServerProcessingTime = this.serverProcessingTime;
+
 			if (this.lastOutgoingMessage.measure && this.lastOutgoingMessage.sentTime && responseTime) {
-				let serverProcessingTime = responseTime - this.lastOutgoingMessage.sentTime - (this.serverLatency * 2);
-				if (serverProcessingTime < ASSUMED_SERVER_PROCESSING_TIME) serverProcessingTime = ASSUMED_SERVER_PROCESSING_TIME;
-				this.serverProcessingTime = serverProcessingTime;
+				this.serverProcessingTime = responseTime - this.lastOutgoingMessage.sentTime;
+				this.lastProcessingTimeCheck = responseTime;
 			}
 
 			this.lastOutgoingMessage = null;
 
-			if (this.sendTimeout && this.sendTimeout !== true && oldServerProcessingTime &&
-				this.serverProcessingTime > oldServerProcessingTime) {
-				this.clearSendTimeout();
+			if (this.sendTimeout && this.sendTimeout !== true && this.serverProcessingTime > oldServerProcessingTime) {
 				this.setSendTimeout(this.getSendThrottle() + (this.serverProcessingTime - oldServerProcessingTime));
 			}
 		}
 	}
 
 	getSendThrottle(): number {
-		return this.sendThrottle + this.serverLatency + this.serverProcessingTime;
+		return this.sendThrottle + this.serverProcessingTime;
 	}
 
 	clearSendTimeout(): void {
@@ -1885,9 +1909,7 @@ export class Client {
 
 			delete this.sendTimeout;
 			if (!this.outgoingMessageQueue.length) return;
-			const message = this.outgoingMessageQueue[0];
-			this.outgoingMessageQueue.shift();
-			this.send(message);
+			this.send(this.outgoingMessageQueue.shift()!);
 		}, time);
 	}
 

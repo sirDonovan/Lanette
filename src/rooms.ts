@@ -167,6 +167,8 @@ export class Room {
 			if (options && options.html) {
 				outgoingMessage.html = options.html;
 				if (options.uhtmlName) outgoingMessage.uhtmlName = options.uhtmlName;
+			} else if (type === 'leaveroom') {
+				outgoingMessage.roomid = this.id;
 			} else {
 				outgoingMessage.text = message;
 			}
@@ -249,6 +251,10 @@ export class Room {
 
 		this.say("/highlighthtmlpage " + user.id + "," + pageId + "," + notificationTitle + (highlightPhrase ? "," + highlightPhrase : ""),
 			{dontCheckFilter: true, dontPrepare: true, dontMeasure: true, type: 'command'});
+	}
+
+	leave(): void {
+		this.say("/leave", {dontCheckFilter: true, dontPrepare: true, type: 'leaveroom'});
 	}
 
 	on(message: string, listener: MessageListener): void {
