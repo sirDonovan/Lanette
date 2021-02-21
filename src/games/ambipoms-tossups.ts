@@ -29,8 +29,7 @@ class AmbipomsTossups extends QuestionAndAnswer {
 	updateHintTime: number = 5 * 1000;
 
 	static loadData(): void {
-		// eslint-disable-next-line max-len
-		data["Pokemon Locations"] = Dex.getLocations().filter(x => x.length > 3);data["Pokemon Locations"] = Dex.getLocations().filter(x => x.length > 3);
+		data["Pokemon Locations"] = Dex.getLocations().filter(x => x.length > 3);
 		data["Pokemon"] = Games.getPokemonList().filter(x => x.name.length < 18).map(x => x.name);
 		data["Pokemon Abilities"] = Games.getAbilitiesList().filter(x => x.name.length < 18).map(x => x.name);
 		data["Pokemon Items"] = Games.getItemsList().filter(x => x.name.length < 18).map(x => x.name);
