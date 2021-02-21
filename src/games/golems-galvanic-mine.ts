@@ -129,4 +129,5 @@ export const game: IGameFile<GolemsGalvanicMine> = {
 	name: "Golem's Galvanic Mine",
 	mascot: "Golem-Alola",
 	mascotPrefix: "Golem's",
+	scriptedOnly: true,
 };

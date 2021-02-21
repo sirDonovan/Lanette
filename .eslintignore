@@ -11,12 +11,4 @@
 /private-data/**
 /roomlogs/**
 /src/config.ts
-app.js
-build.js
-create-untracked-files.js
-get-options.js
-lint.js
-mocha.js
-repl.js
-tempConfig.js
-test.js
+*.js

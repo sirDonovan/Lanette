@@ -42,13 +42,14 @@ class GreninjasTypings extends QuestionAndAnswer {
 			typing = data.types[pokemon];
 			reverseTyping = data.reverseTypes[pokemon];
 		}
+		this.lastTyping = typing;
+
 		const answers: string[] = [];
 		for (const otherPokemon of data.pokedex) {
 			if (typing === data.types[otherPokemon] || (this.noOrder && typing === data.reverseTypes[otherPokemon])) {
 				answers.push(data.species[otherPokemon]);
 			}
 		}
-		this.lastTyping = typing;
 		this.answers = answers;
 		this.hint = "<b>Randomly generated typing</b>: <i>" + typing + "</i>";
 	}

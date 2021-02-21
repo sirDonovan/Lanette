@@ -49,12 +49,14 @@ class ZygardesOrders extends QuestionAndAnswer {
 	generateAnswer(): void {
 		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		this.currentCategory = category;
+
 		let answer = this.sampleOne(data[category]);
 		while (answer === this.lastAnswer || (this.maxRevealedLetters && answer.length < 7)) {
 			answer = this.sampleOne(data[category]);
 		}
 		this.lastAnswer = answer;
 		this.answers = [answer];
+
 		this.orderRound = 0;
 		this.roundGuesses.clear();
 		this.letters = Tools.toId(answer).split("");

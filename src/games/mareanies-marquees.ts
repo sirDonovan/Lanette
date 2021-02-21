@@ -34,6 +34,7 @@ class MareaniesMarquee extends QuestionAndAnswer {
 	generateAnswer(): void {
 		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
 		this.currentCategory = category;
+
 		let answer = '';
 		let letters: string[] = [];
 		let willBeFiltered = false;
@@ -51,8 +52,10 @@ class MareaniesMarquee extends QuestionAndAnswer {
 				}
 			}
 		}
+		this.lastAnswer = answer;
 		this.answers = [answer];
 		this.letters = letters;
+
 		this.currentIndex = -1;
 		this.hintUpdates = 0;
 		this.hintUpdateLimit = letters.length * this.hintUpdateLimitMultiplier;

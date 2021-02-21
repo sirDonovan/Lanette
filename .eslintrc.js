@@ -181,6 +181,9 @@ module.exports = {
         'no-unused-expressions': 'off',
         '@typescript-eslint/no-unused-expressions': 'error',
 
+        'no-unused-vars': 'off',
+        '@typescript-eslint/no-unused-vars': 'error',
+
         '@typescript-eslint/prefer-for-of': 'error',
         '@typescript-eslint/prefer-ts-expect-error': 'error',
         '@typescript-eslint/promise-function-async': 'error',

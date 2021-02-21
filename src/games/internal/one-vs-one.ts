@@ -5,6 +5,7 @@ import type { IGameFile, IGameFormat } from "../../types/games";
 import type { User } from "../../users";
 
 export class OneVsOne extends ScriptedGame {
+	canAcceptChallenge: boolean = false;
 	challenger: Player | null = null;
 	challengerPromotedName: string = '';
 	defender: Player | null = null;
@@ -28,6 +29,7 @@ export class OneVsOne extends ScriptedGame {
 		const text = this.challenger.name + " challenges " + this.defender.name + " to a one vs. one game of " +
 			challengeFormat.nameWithOptions + "!";
 		this.on(text, () => {
+			this.canAcceptChallenge = true;
 			this.timeout = setTimeout(() => {
 				this.say(this.defender!.name + " failed to accept the challenge in time!");
 				this.forceEnd(Users.self);
@@ -37,7 +39,7 @@ export class OneVsOne extends ScriptedGame {
 	}
 
 	acceptChallenge(user: User): boolean {
-		if (this.started || !this.defender || !this.challenger) return false;
+		if (!this.canAcceptChallenge || this.started || !this.defender || !this.challenger) return false;
 		if (user.id !== this.defender.id) {
 			user.say("You are not the defender in the current one vs. one challenge.");
 			return false;
