@@ -2,11 +2,13 @@ import type { Player } from "../room-activity";
 import type { IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
-const data: {'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]} = {
+// eslint-disable-next-line max-len
+const data: {'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]; 'Locations': string[]} = {
 	"Pokemon": [],
 	"Pokemon Abilities": [],
 	"Pokemon Items": [],
 	"Pokemon Moves": [],
+	"Locations": [],
 };
 type DataKey = keyof typeof data;
 const categories = Object.keys(data) as DataKey[];
@@ -27,6 +29,7 @@ class AmbipomsTossups extends QuestionAndAnswer {
 	updateHintTime: number = 5 * 1000;
 
 	static loadData(): void {
+		data["Locations"] = Dex.getLocations().filter(x => x.length < 18);
 		data["Pokemon"] = Games.getPokemonList().filter(x => x.name.length < 18).map(x => x.name);
 		data["Pokemon Abilities"] = Games.getAbilitiesList().filter(x => x.name.length < 18).map(x => x.name);
 		data["Pokemon Items"] = Games.getItemsList().filter(x => x.name.length < 18).map(x => x.name);
@@ -143,6 +146,11 @@ export const game: IGameFile<AmbipomsTossups> = Games.copyTemplateProperties(que
 			name: "Ambipom's Move Tossups",
 			roundCategory: "Pokemon Moves",
 			variantAliases: ['move', 'moves'],
+		},
+		{
+			name: "Ambipom's Location Tossups",
+			roundCategory: "Locations",
+			variantAliases: ['location', 'locations'],
 		},
 	],
 });
