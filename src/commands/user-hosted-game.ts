@@ -846,6 +846,7 @@ export const commands: BaseCommandDefinitions = {
 					points = Math.round(parseInt(id));
 					if (points < 1) points = 1;
 				} else {
+					if (!Tools.isUsernameLength(id)) return this.say("'" + name.trim() + "' is not a valid username.");
 					if (id in room.userHostedGame.players && room.userHostedGame.savedWinners.includes(room.userHostedGame.players[id])) {
 						savedWinners.push(room.userHostedGame.players[id].name);
 						continue;

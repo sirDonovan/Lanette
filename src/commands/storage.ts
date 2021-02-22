@@ -127,9 +127,11 @@ export const commands: BaseCommandDefinitions = {
 				if (Tools.isInteger(id)) {
 					customAmount = parseInt(name.trim());
 					if (customAmount < 0) {
-						return this.say("You must use ``" + Config.commandCharacter + "removepoints`` instead of a negative number.");
+						return this.say("You must use ``" + Config.commandCharacter + (game ? "removebits" : "removepoints") +
+							"`` instead of a negative number.");
 					}
 				} else {
+					if (!Tools.isUsernameLength(id)) return this.say("'" + name.trim() + "' is not a valid username.");
 					users.push(name);
 				}
 			}

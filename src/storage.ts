@@ -212,7 +212,7 @@ export class Storage {
 			annual: 0,
 			annualSources: {},
 			current: 0,
-			name,
+			name: Tools.toAlphaNumeric(name),
 			sources: {},
 		};
 	}
@@ -252,9 +252,8 @@ export class Storage {
 	addPoints(room: Room, leaderboardType: LeaderboardType, name: string, amount: number, source: string): void {
 		if (!amount) return;
 
-		name = Tools.toAlphaNumeric(name);
 		const id = Tools.toId(name);
-		if (!id) return;
+		if (!id || !Tools.isUsernameLength(id)) return;
 		source = Tools.toId(source);
 		if (!source) return;
 
@@ -271,7 +270,7 @@ export class Storage {
 		if (!(id in leaderboard.entries)) {
 			this.createLeaderboardEntry(leaderboard, name, id);
 		} else {
-			leaderboard.entries[id].name = name;
+			leaderboard.entries[id].name = Tools.toAlphaNumeric(name);
 		}
 
 		leaderboard.entries[id].current = Math.max(0, leaderboard.entries[id].current + amount);
