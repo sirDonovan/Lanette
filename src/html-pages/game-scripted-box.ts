@@ -84,11 +84,8 @@ class GameScriptedBox extends HtmlPageBase {
 		this.loadedData = true;
 	}
 
-	close(): void {
+	onClose(): void {
 		delete pages[this.userId];
-
-		const user = Users.get(this.userId);
-		if (user) this.room.closeHtmlPage(user, this.pageId);
 	}
 
 	setGameFormat(format: IGameFormat): void {
@@ -98,38 +95,44 @@ class GameScriptedBox extends HtmlPageBase {
 	}
 
 	standardBackgroundColors(): void {
-		this.backgroundColorType = 'standard';
+		if (this.backgroundColorType === 'standard') return;
 
+		this.backgroundColorType = 'standard';
 		this.send();
 	}
 
 	lighterBackgroundColors(): void {
-		this.backgroundColorType = 'lighter';
+		if (this.backgroundColorType === 'lighter') return;
 
+		this.backgroundColorType = 'lighter';
 		this.send();
 	}
 
 	darkerBackgroundColors(): void {
-		this.backgroundColorType = 'darker';
+		if (this.backgroundColorType === 'darker') return;
 
+		this.backgroundColorType = 'darker';
 		this.send();
 	}
 
 	standardButtonColors(): void {
-		this.buttonColorType = 'standard';
+		if (this.buttonColorType === 'standard') return;
 
+		this.buttonColorType = 'standard';
 		this.send();
 	}
 
 	lighterButtonColors(): void {
-		this.buttonColorType = 'lighter';
+		if (this.buttonColorType === 'lighter') return;
 
+		this.buttonColorType = 'lighter';
 		this.send();
 	}
 
 	darkerButtonColors(): void {
-		this.buttonColorType = 'darker';
+		if (this.buttonColorType === 'darker') return;
 
+		this.buttonColorType = 'darker';
 		this.send();
 	}
 
@@ -269,11 +272,6 @@ class GameScriptedBox extends HtmlPageBase {
 
 		html += "</div>";
 		return html;
-	}
-
-	send(): void {
-		const user = Users.get(this.userId);
-		if (user) this.room.sendHtmlPage(user, this.pageId, this.render());
 	}
 }
 

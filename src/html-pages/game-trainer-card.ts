@@ -90,38 +90,41 @@ class GameTrainerCard extends HtmlPageBase {
 		this.loadedData = true;
 	}
 
-	close(): void {
+	onClose(): void {
 		delete pages[this.userId];
-
-		const user = Users.get(this.userId);
-		if (user) this.room.closeHtmlPage(user, this.pageId);
 	}
 
 	standardBackgroundColors(): void {
-		this.backgroundColorType = 'standard';
+		if (this.backgroundColorType === 'standard') return;
 
+		this.backgroundColorType = 'standard';
 		this.send();
 	}
 
 	lighterBackgroundColors(): void {
-		this.backgroundColorType = 'lighter';
+		if (this.backgroundColorType === 'lighter') return;
 
+		this.backgroundColorType = 'lighter';
 		this.send();
 	}
 
 	darkerBackgroundColors(): void {
-		this.backgroundColorType = 'darker';
+		if (this.backgroundColorType === 'darker') return;
 
+		this.backgroundColorType = 'darker';
 		this.send();
 	}
 
 	goToTrainersPage(page: number): void {
-		this.trainerIdsPage = page;
+		if (this.trainerIdsPage === page) return;
 
+		this.trainerIdsPage = page;
 		this.send();
 	}
 
 	newerTrainers(): void {
+		if (this.trainerType === 'newer') return;
+
 		this.trainerType = 'newer';
 		this.trainerIdsPage = 0;
 
@@ -129,6 +132,8 @@ class GameTrainerCard extends HtmlPageBase {
 	}
 
 	olderTrainers(): void {
+		if (this.trainerType === 'older') return;
+
 		this.trainerType = 'older';
 		this.trainerIdsPage = 0;
 
@@ -275,11 +280,6 @@ class GameTrainerCard extends HtmlPageBase {
 
 		html += "</div>";
 		return html;
-	}
-
-	send(): void {
-		const user = Users.get(this.userId);
-		if (user) this.room.sendHtmlPage(user, this.pageId, this.render());
 	}
 }
 
