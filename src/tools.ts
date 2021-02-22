@@ -5,7 +5,7 @@ import url = require('url');
 
 import type { PRNG } from './lib/prng';
 import { eggGroupHexCodes, hexCodes, namedHexCodes, pokemonColorHexCodes, typeHexCodes } from './tools-hex-codes';
-import type { IExtractedBattleId, IHexCodeData, IParsedSmogonLink, NamedHexCode } from './types/tools';
+import type { IExtractedBattleId, IHexCodeData, IParsedSmogonLink, NamedHexCode, TimeZone } from './types/tools';
 import type { IParam, IParametersGenData, ParametersSearchType } from './workers/parameters';
 
 const ALPHA_NUMERIC_REGEX = /[^a-zA-Z0-9 ]/g;
@@ -50,6 +50,12 @@ export class Tools {
 	readonly smogonPostPermalinkPrefix: string = SMOGON_POST_PERMALINK_PREFIX;
 	readonly smogonPostsPrefix: string = SMOGON_POSTS_PREFIX;
 	readonly smogonThreadsPrefix: string = SMOGON_THREADS_PREFIX;
+	readonly timezones: TimeZone[] = ['GMT-12:00', 'GMT-11:00', 'GMT-10:00', 'GMT-09:30', 'GMT-09:00', 'GMT-08:00', 'GMT-07:00',
+		'GMT-06:00', 'GMT-05:00', 'GMT-04:00', 'GMT-03:30', 'GMT-03:00', 'GMT-02:00', 'GMT-01:00', 'GMT+00:00', 'GMT+01:00', 'GMT+02:00',
+		'GMT+03:00', 'GMT+03:30', 'GMT+04:00', 'GMT+04:30', 'GMT+05:00', 'GMT+05:30', 'GMT+05:45', 'GMT+06:00', 'GMT+06:30', 'GMT+07:00',
+		'GMT+08:00', 'GMT+08:45', 'GMT+09:00', 'GMT+09:30', 'GMT+10:00', 'GMT+10:30', 'GMT+11:00', 'GMT+12:00', 'GMT+12:45', 'GMT+13:00',
+		'GMT+14:00',
+	];
 	readonly typeHexCodes: typeof typeHexCodes = typeHexCodes;
 	readonly unsafeApiCharacterRegex: RegExp = UNSAFE_API_CHARACTER_REGEX;
 
@@ -322,6 +328,18 @@ export class Tools {
 	toMarkdownAnchor(name: string, linkPrefix?: string): string {
 		return "[" + name + "](#" + (linkPrefix ? linkPrefix : "") + name.toLowerCase().replace(APOSTROPHE_REGEX, "")
 			.replace(SPACE_REGEX, "-") + ")";
+	}
+
+	escapeHTML(input: string): string {
+		if (!input) return '';
+		return input
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, "&apos;")
+			.replace(/\//g, '&#x2f;')
+			.replace(/\\/g, '&#92;');
 	}
 
 	unescapeHTML(input: string): string {

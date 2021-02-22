@@ -26,6 +26,19 @@ export class User {
 		this.setName(name);
 	}
 
+	setName(name: string): void {
+		name = Tools.stripHtmlCharacters(name);
+
+		while (chatFormatting.includes(name.charAt(0))) {
+			name = name.substr(1);
+		}
+		while (chatFormatting.includes(name.substr(-1))) {
+			name = name.substr(0, name.length - 1);
+		}
+
+		this.name = name;
+	}
+
 	addChatLog(log: string): void {
 		this.chatLog.unshift({log, type: 'chat'});
 		this.trimChatLog();
@@ -45,19 +58,6 @@ export class User {
 		while (this.chatLog.length > 30) {
 			this.chatLog.pop();
 		}
-	}
-
-	setName(name: string): void {
-		name = Tools.stripHtmlCharacters(name);
-
-		while (chatFormatting.includes(name.charAt(0))) {
-			name = name.substr(1);
-		}
-		while (chatFormatting.includes(name.substr(-1))) {
-			name = name.substr(0, name.length - 1);
-		}
-
-		this.name = name;
 	}
 
 	hasRank(room: Room, targetRank: GroupName): boolean {
@@ -148,6 +148,15 @@ export class User {
 		const id = Tools.toId(name);
 		if (!(id in this.uhtmlMessageListeners)) return;
 		delete this.uhtmlMessageListeners[id][Tools.toId(Client.getListenerUhtml(html, true))];
+	}
+
+	getBotRoom(): Room | undefined {
+		let botRoom: Room | undefined;
+		this.rooms.forEach((data, room) => {
+			if (!botRoom && global.Users.self.isBot(room) && room.type === 'chat') botRoom = room;
+		});
+
+		return botRoom;
 	}
 }
 

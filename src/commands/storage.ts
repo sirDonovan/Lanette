@@ -36,21 +36,12 @@ export const commands: BaseCommandDefinitions = {
 			const message = targets.slice(1).join(',').trim();
 			if (!message.length) return this.say("You must specify a message to send.");
 
-			const maxMessageLength = Storage.getMaxOfflineMessageLength(user);
-			if (message.length > maxMessageLength) return this.say("Your message cannot exceed " + maxMessageLength + " characters.");
 			if (Client.checkFilters(message)) return this.say("Your message contains words that are banned in " + Users.self.name + ".");
 			if (!Storage.storeOfflineMessage(user.name, recipientId, message)) return this.say("Sorry, you have too many messages queued " +
 				"for " + recipient + ".");
 			this.say("Your message has been sent to " + recipient + ".");
 		},
 		aliases: ['mail', 'offlinepm'],
-	},
-	offlinemessages: {
-		command(target, room, user) {
-			if (!this.isPm(room)) return;
-			if (!Storage.retrieveOfflineMessages(user, true)) return this.say("You do not have any offline messages stored.");
-		},
-		aliases: ['readofflinemessages', 'checkofflinemessages', 'readmail', 'checkmail'],
 	},
 	clearofflinemessages: {
 		command(target, room, user) {

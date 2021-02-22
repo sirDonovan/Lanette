@@ -1,4 +1,4 @@
-import type { HexCode } from "./tools";
+import type { HexCode, TimeZone } from "./tools";
 
 interface IEventInformation {
 	name: string;
@@ -118,10 +118,10 @@ interface IOfflineMessage {
 	readTime: number;
 	sender: string;
 	sentTime: number;
-	expired?: boolean;
+	discarded?: boolean;
 }
 
 export interface IGlobalDatabase {
 	lastSeen?: Dict<number>;
-	offlineMessages?: Dict<IOfflineMessage[]>;
+	offlineMessages?: Dict<{messages: IOfflineMessage[], timezone?: TimeZone}>;
 }

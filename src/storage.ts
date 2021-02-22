@@ -3,17 +3,14 @@ import path = require('path');
 
 import type { Room } from './rooms';
 import type {
-	ICachedLeaderboardEntry, IDatabase, IGlobalDatabase, ILeaderboard,
-	ILeaderboardEntry, IOfflineMessage, LeaderboardType
+	ICachedLeaderboardEntry, IDatabase, IGlobalDatabase, ILeaderboard, ILeaderboardEntry, LeaderboardType
 } from './types/storage';
 import type { User } from './users';
 
 const MAX_QUEUED_OFFLINE_MESSAGES = 3;
 const LAST_SEEN_EXPIRATION = 30 * 24 * 60 * 60 * 1000;
-const OFFLINE_MESSAGE_EXPIRATION = 30 * 24 * 60 * 60 * 1000;
 
 const globalDatabaseId = 'globalDB';
-const baseOfflineMessageLength = '[28 Jun 2019, 00:00:00 GMT-0500] **** said: '.length;
 
 export class Storage {
 	gameLeaderboard = 'gameLeaderboard' as const;
@@ -130,6 +127,20 @@ export class Storage {
 		}
 
 		const globalDatabase = this.getGlobalDatabase();
+
+		// convert old offline messages
+		if (globalDatabase.offlineMessages) {
+			for (const user in globalDatabase.offlineMessages) {
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+				if (!globalDatabase.offlineMessages[user].messages) {
+					globalDatabase.offlineMessages[user] = {
+						// @ts-expect-error
+						messages: globalDatabase.offlineMessages[user],
+					};
+				}
+			}
+		}
+
 		if (globalDatabase.lastSeen) {
 			const now = Date.now();
 			for (const i in globalDatabase.lastSeen) {
@@ -246,6 +257,17 @@ export class Storage {
 
 		database.gameScriptedBoxes[id] = {
 			pokemon: [],
+		};
+	}
+
+	createOfflineMessagesEntry(name: string): void {
+		const globalDatabase = this.getGlobalDatabase();
+		const id = Tools.toId(name);
+		if (!globalDatabase.offlineMessages) globalDatabase.offlineMessages = {};
+		if (id in globalDatabase.offlineMessages) return;
+
+		globalDatabase.offlineMessages[id] = {
+			messages: [],
 		};
 	}
 
@@ -497,71 +519,43 @@ export class Storage {
 		return true;
 	}
 
-	getMaxOfflineMessageLength(sender: User): number {
-		return Tools.maxMessageLength - (baseOfflineMessageLength + sender.name.length);
-	}
-
 	storeOfflineMessage(sender: string, recipientId: string, message: string): boolean {
 		const database = this.getGlobalDatabase();
 		if (!database.offlineMessages) database.offlineMessages = {};
 		if (recipientId in database.offlineMessages) {
 			const senderId = Tools.toId(sender);
 			let queuedMessages = 0;
-			for (const offlineMessage of database.offlineMessages[recipientId]) {
+			for (const offlineMessage of database.offlineMessages[recipientId].messages) {
 				if (!offlineMessage.readTime && Tools.toId(offlineMessage.sender) === senderId) queuedMessages++;
 			}
 			if (queuedMessages > MAX_QUEUED_OFFLINE_MESSAGES) return false;
 		} else {
-			database.offlineMessages[recipientId] = [];
+			database.offlineMessages[recipientId] = {
+				messages: [],
+			};
 		}
 
-		database.offlineMessages[recipientId].push({
+		database.offlineMessages[recipientId].messages.push({
 			message,
-			sender,
+			sender: Tools.toAlphaNumeric(sender),
 			readTime: 0,
 			sentTime: Date.now(),
 		});
 		return true;
 	}
 
-	retrieveOfflineMessages(user: User, retrieveRead?: boolean): boolean {
+	retrieveOfflineMessages(user: User): void {
 		const database = this.getGlobalDatabase();
-		if (!database.offlineMessages || !(user.id in database.offlineMessages)) return false;
-		const now = Date.now();
-		const expiredTime = now - OFFLINE_MESSAGE_EXPIRATION;
-		const filteredMessages: IOfflineMessage[] = [];
-		let hasExpiredMessages = false;
-		for (const message of database.offlineMessages[user.id]) {
-			if (message.readTime) {
-				if (message.readTime <= expiredTime) {
-					message.expired = true;
-					if (!hasExpiredMessages) hasExpiredMessages = true;
-				}
-				if (!retrieveRead) continue;
-			}
-			const date = new Date(message.sentTime);
-			let dateString = date.toUTCString();
-			dateString = dateString.substr(dateString.indexOf(',') + 1);
-			dateString = dateString.substr(0, dateString.indexOf(':') - 3);
-			let timeString = date.toTimeString();
-			timeString = timeString.substr(0, timeString.indexOf('('));
-			const formattedMessage = "[" + dateString.trim() + ", " + timeString.trim() + "] " + "**" + message.sender + "** said: " +
-				message.message;
-			if (Client.checkFilters(formattedMessage)) {
-				filteredMessages.push(message);
-			} else {
-				user.say(formattedMessage);
-				message.readTime = now;
+		if (!database.offlineMessages || !(user.id in database.offlineMessages)) return;
+		let hasNewMail = false;
+		for (const message of database.offlineMessages[user.id].messages) {
+			if (!message.readTime && !Client.checkFilters(message.message)) {
+				hasNewMail = true;
+				break;
 			}
 		}
 
-		for (const filteredMessage of filteredMessages) {
-			database.offlineMessages[user.id].splice(database.offlineMessages[user.id].indexOf(filteredMessage), 1);
-		}
-
-		if (hasExpiredMessages) database.offlineMessages[user.id] = database.offlineMessages[user.id].filter(x => !x.expired);
-
-		return true;
+		if (hasNewMail) CommandParser.parse(user, user, Config.commandCharacter + "checkmail", Date.now());
 	}
 
 	clearOfflineMessages(user: User): boolean {
