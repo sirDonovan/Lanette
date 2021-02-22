@@ -1837,7 +1837,7 @@ export class Client {
 			return;
 		}
 
-		if (Date.now() - this.lastProcessingTimeCheck > PROCESSING_TIME_CHECK_MINIMUM) {
+		if (this.loggedIn && Date.now() - this.lastProcessingTimeCheck > PROCESSING_TIME_CHECK_MINIMUM) {
 			this.outgoingMessageQueue.splice(this.messagesAwaitingProcessingCheck, 0, outgoingMessage);
 			this.messagesAwaitingProcessingCheck++;
 
