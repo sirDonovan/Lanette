@@ -164,7 +164,7 @@ const commands: GameCommandDefinitions<BounsweetsBountifulBuffet> = {
 			player.say("You have chosen **" + this.meals[index] + "**!");
 			return true;
 		},
-		pmGameCommand: true,
+		pmOnly: true,
 	},
 };
 
@@ -177,8 +177,8 @@ const tests: GameFileTests<BounsweetsBountifulBuffet> = {
 			game.start();
 			assertStrictEqual(game.numberOfMeals, 2);
 			const expectedPoints = Math.floor(game.mealPoints[0] / 2);
-			runCommand('select', game.meals[0], game.room, players[0].name);
-			runCommand('select', game.meals[0], game.room, players[1].name);
+			runCommand('select', game.meals[0], Users.get(players[0].name)!, players[0].name);
+			runCommand('select', game.meals[0], Users.get(players[1].name)!, players[1].name);
 			assertStrictEqual(game.points.get(players[0]), expectedPoints);
 			assertStrictEqual(game.points.get(players[1]), expectedPoints);
 		},
@@ -191,8 +191,8 @@ const tests: GameFileTests<BounsweetsBountifulBuffet> = {
 			game.start();
 			const expectedPointsA = game.mealPoints[0];
 			const expectedPointsB = game.mealPoints[1];
-			runCommand('select', game.meals[0], game.room, players[0].name);
-			runCommand('select', game.meals[1], game.room, players[1].name);
+			runCommand('select', game.meals[0], Users.get(players[0].name)!, players[0].name);
+			runCommand('select', game.meals[1], Users.get(players[1].name)!, players[1].name);
 			assertStrictEqual(game.points.get(players[0]), expectedPointsA);
 			assertStrictEqual(game.points.get(players[1]), expectedPointsB);
 		},
