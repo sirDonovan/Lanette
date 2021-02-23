@@ -383,6 +383,6 @@ export const commands: BaseCommandDefinitions = {
 				this.say("Unknown sub-command '" + cmd + "'.");
 			}
 		},
-		aliases: [reReadCommand, 'readofflinemessages', 'checkofflinemessages', 'checkmail'],
+		aliases: [reReadCommand, 'readofflinemessages', 'checkofflinemessages', 'checkmail', 'inbox', 'mailbox'],
 	},
 };
