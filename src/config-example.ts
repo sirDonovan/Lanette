@@ -246,9 +246,9 @@ export let allowUserHostedGames: string[] = [];
 export let allowTournamentGames: string[] = [];
 
 /**
- * A list of rooms (roomids) where one vs. one challenges are allowed to be played
+ * A list of rooms (roomids) where challenges are allowed to be played
  */
-export let allowOneVsOneGames: string[] = [];
+export let allowChallengeGames: string[] = [];
 
 /**
  * A list of rooms (roomids) where game achievements are able to be unlocked

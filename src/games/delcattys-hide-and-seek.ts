@@ -306,8 +306,10 @@ export const game: IGameFile<DelcattysHideAndSeek> = {
 	commands,
 	description: "Each round, the host will give a param that determines Pokemon players can hide behind (by PMing the host). One " +
 		"player will be chosen to seek one Pokemon. If anyone hid behind it, they are eliminated. If not, the seeker is eliminated.",
+	disallowedChallenges: {
+		onevsone: true,
+	},
 	name: "Delcatty's Hide and Seek",
-	noOneVsOne: true,
 	mascot: "Delcatty",
 	nonTrivialLoadData: true,
 	tests,

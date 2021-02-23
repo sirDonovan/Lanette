@@ -190,8 +190,8 @@ export const commands: BaseCommandDefinitions = {
 			const challenge = Tools.toId(targets[0]);
 			if (challenge === "onevsone" || challenge === "onevone" || challenge === "1vs1" || challenge === "1v1") {
 				let cooldown = 0;
-				if (gameRoom.id in Games.lastOneVsOneChallengeTimes && user.id in Games.lastOneVsOneChallengeTimes[gameRoom.id]) {
-					cooldown = ONE_VS_ONE_GAME_COOLDOWN - (Date.now() - Games.lastOneVsOneChallengeTimes[gameRoom.id][user.id]);
+				if (gameRoom.id in Games.lastChallengeTimes.onevsone && user.id in Games.lastChallengeTimes.onevsone[gameRoom.id]) {
+					cooldown = ONE_VS_ONE_GAME_COOLDOWN - (Date.now() - Games.lastChallengeTimes.onevsone[gameRoom.id][user.id]);
 				}
 
 				if (cooldown <= 1000) {
@@ -207,10 +207,17 @@ export const commands: BaseCommandDefinitions = {
 	onevsonechallenge: {
 		command: function(target, room, user) {
 			if (this.isPm(room)) return;
-			if (!Config.allowOneVsOneGames || !Config.allowOneVsOneGames.includes(room.id)) {
+			if (!Config.allowChallengeGames || !Config.allowChallengeGames.includes(room.id)) {
 				user.say("One vs. one challenges are not allowed in " + room.title + ".");
 				return;
 			}
+
+			if (!target) {
+				user.say("You must PM " + Users.self.name + " the command ``" + Config.commandCharacter + "ccdown 1v1`` to check your " +
+					"challenge cooldown time.");
+				return;
+			}
+
 			if (room.game) {
 				user.say("You must wait until the game of " + room.game.name + " ends.");
 				return;
@@ -229,8 +236,8 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-			if (room.id in Games.lastOneVsOneChallengeTimes && user.id in Games.lastOneVsOneChallengeTimes[room.id]) {
-				const cooldown = ONE_VS_ONE_GAME_COOLDOWN - (Date.now() - Games.lastOneVsOneChallengeTimes[room.id][user.id]);
+			if (room.id in Games.lastChallengeTimes.onevsone && user.id in Games.lastChallengeTimes.onevsone[room.id]) {
+				const cooldown = ONE_VS_ONE_GAME_COOLDOWN - (Date.now() - Games.lastChallengeTimes.onevsone[room.id][user.id]);
 				if (cooldown > 1000) {
 					user.say("You must wait " + Tools.toDurationString(cooldown) + " before challenging another user.");
 					return;
@@ -260,7 +267,7 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-			if (challengeFormat.noOneVsOne || challengeFormat.mode) {
+			if ((challengeFormat.disallowedChallenges && challengeFormat.disallowedChallenges.onevsone) || challengeFormat.mode) {
 				user.say(challengeFormat.nameWithOptions + " does not allow one vs. one challenges.");
 				return;
 			}
@@ -302,7 +309,7 @@ export const commands: BaseCommandDefinitions = {
 	headtoheadgame: {
 		command: function(target, room, user) {
 			if (this.isPm(room) || !user.hasRank(room, 'driver')) return;
-			if (!Config.allowOneVsOneGames || !Config.allowOneVsOneGames.includes(room.id)) {
+			if (!Config.allowChallengeGames || !Config.allowChallengeGames.includes(room.id)) {
 				this.say("Head to head games are not allowed in " + room.title + ".");
 				return;
 			}
@@ -340,7 +347,7 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-			if (challengeFormat.noOneVsOne || challengeFormat.mode) {
+			if ((challengeFormat.disallowedChallenges && challengeFormat.disallowedChallenges.onevsone) || challengeFormat.mode) {
 				this.say(challengeFormat.nameWithOptions + " does not allow head to head games.");
 				return;
 			}

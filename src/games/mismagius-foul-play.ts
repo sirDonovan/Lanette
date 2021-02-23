@@ -376,9 +376,11 @@ export const game: IGameFile<MismagiusFoulPlay> = {
 	description: "<a href='https://docs.google.com/document/d/1Zx72KwQjQyKE4yWsM83yimglxa5qOnM-YTudCJ89fKM/edit'>Guide</a> | Detectives " +
 		"try to help Mismagius identify the criminals in this murder mystery team game (one guess per round)! Parameters will be given " +
 		"as hints but they will be opposite for criminals.",
+	disallowedChallenges: {
+		onevsone: true,
+	},
 	name: "Mismagius' Foul Play",
 	mascot: "Mismagius",
-	noOneVsOne: true,
 	nonTrivialLoadData: true,
 	scriptedOnly: true,
 };

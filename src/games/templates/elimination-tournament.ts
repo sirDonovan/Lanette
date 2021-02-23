@@ -1967,7 +1967,9 @@ export const game: IGameTemplateFile<EliminationTournament> = {
 	category: 'elimination-tournament' as GameCategory,
 	commandDescriptions: [Config.commandCharacter + 'check [battle link]'],
 	commands,
-	noOneVsOne: true,
+	disallowedChallenges: {
+		onevsone: true,
+	},
 	tests,
 	tournamentGame: true,
 };

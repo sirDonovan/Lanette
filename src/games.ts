@@ -7,10 +7,10 @@ import type { UserHostedGame } from './room-game-user-hosted';
 import type { Room } from "./rooms";
 import type { CommandErrorArray } from "./types/command-parser";
 import type {
-	AutoCreateTimerType, DefaultGameOption, GameCategory, GameCommandDefinitions, GameCommandReturnType, GameMode, IGameAchievement,
-	IGameFile, IGameFormat, IGameFormatComputed, IGameMode, IGameModeFile, IGameOptionValues, IGamesWorkers, IGameTemplateFile,
-	IGameVariant, IInternalGames, InternalGameKey, IUserHostedComputed, IUserHostedFormat, IUserHostedFormatComputed, LoadedGameCommands,
-	LoadedGameFile, UserHostedCustomizable
+	AutoCreateTimerType, DefaultGameOption, DisallowedChallenges, GameCategory, GameChallenge, GameCommandDefinitions,
+	GameCommandReturnType, GameMode, IGameAchievement, IGameFile, IGameFormat, IGameFormatComputed, IGameMode, IGameModeFile,
+	IGameOptionValues, IGamesWorkers, IGameTemplateFile, IGameVariant, InternalGame, IUserHostedComputed, IUserHostedFormat,
+	IUserHostedFormatComputed, LoadedGameCommands, LoadedGameFile, UserHostedCustomizable
 } from './types/games';
 import type { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/pokemon-showdown';
 import type { IGameHostBox, IGameScriptedBox, IPastGame } from './types/storage';
@@ -22,7 +22,7 @@ const DEFAULT_CATEGORY_COOLDOWN = 3;
 const IMMUNE_MATCHUP_SCORE = 0.001;
 
 const gamesDirectory = path.join(__dirname, 'games');
-const internalGamePaths: IInternalGames = {
+const internalGamePaths: KeyedDict<InternalGame, string> = {
 	eggtoss: path.join(gamesDirectory, "internal", "egg-toss.js"),
 	headtohead: path.join(gamesDirectory, "internal", "head-to-head.js"),
 	onevsone: path.join(gamesDirectory, "internal", "one-vs-one.js"),
@@ -96,9 +96,11 @@ export class Games {
 	// @ts-expect-error - set in loadFormats()
 	readonly internalFormats: KeyedDict<InternalGameKey, LoadedGameFile> = {};
 	lastCatalogUpdates: Dict<string> = {};
+	lastChallengeTimes: KeyedDict<GameChallenge, Dict<Dict<number>>> = {
+		onevsone: {},
+	};
 	lastGames: Dict<number> = {};
 	lastMinigames: Dict<number> = {};
-	lastOneVsOneChallengeTimes: Dict<Dict<number>> = {};
 	lastScriptedGames: Dict<number> = {};
 	lastUserHostedGames: Dict<number> = {};
 	lastUserHostTimes: Dict<Dict<number>> = {};
@@ -174,7 +176,7 @@ export class Games {
 		if (previous.lastCatalogUpdates) Object.assign(this.lastCatalogUpdates, previous.lastCatalogUpdates);
 		if (previous.lastGames) Object.assign(this.lastGames, previous.lastGames);
 		if (previous.lastMinigames) Object.assign(this.lastMinigames, previous.lastMinigames);
-		if (previous.lastOneVsOneChallengeTimes) Object.assign(this.lastOneVsOneChallengeTimes, previous.lastOneVsOneChallengeTimes);
+		if (previous.lastChallengeTimes) Object.assign(this.lastChallengeTimes, previous.lastChallengeTimes);
 		if (previous.lastScriptedGames) Object.assign(this.lastScriptedGames, previous.lastScriptedGames);
 		if (previous.lastUserHostedGames) Object.assign(this.lastUserHostedGames, previous.lastUserHostedGames);
 		if (previous.lastUserHostTimes) Object.assign(this.lastUserHostTimes, previous.lastUserHostTimes);
@@ -241,7 +243,7 @@ export class Games {
 		this.userHosted = (require(path.join(Tools.builtFolder, "room-game-user-hosted.js")) as // eslint-disable-line @typescript-eslint/no-var-requires
 			typeof import('./room-game-user-hosted')).game;
 
-		const internalGameKeys = Object.keys(internalGamePaths) as (keyof IInternalGames)[];
+		const internalGameKeys = Object.keys(internalGamePaths) as InternalGame[];
 		for (const key of internalGameKeys) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires
 			const file = require(internalGamePaths[key]).game as DeepImmutable<IGameFile> | undefined;
@@ -675,15 +677,15 @@ export class Games {
 
 		let customizableOptions: Dict<IGameOptionValues> = formatData.customizableOptions || {};
 		let defaultOptions: DefaultGameOption[] = formatData.defaultOptions || [];
-		let noOneVsOne: boolean = formatData.noOneVsOne || false;
+		const disallowedChallenges: DisallowedChallenges = formatData.disallowedChallenges || {};
 		if (variant) {
 			if (variant.customizableOptions) customizableOptions = variant.customizableOptions;
 			if (variant.defaultOptions) defaultOptions = variant.defaultOptions;
-			if (noOneVsOne && variant.noOneVsOne === false) noOneVsOne = false;
+			if (variant.disallowedChallenges) Object.assign(disallowedChallenges, variant.disallowedChallenges);
 		}
 
 		const format = Object.assign(formatData, formatComputed,
-			{customizableOptions, defaultOptions, noOneVsOne, options: {}}) as IGameFormat;
+			{customizableOptions, defaultOptions, disallowedChallenges, options: {}}) as IGameFormat;
 		format.options = ScriptedGame.setOptions(format, mode, variant);
 
 		return format;
@@ -805,7 +807,7 @@ export class Games {
 		return format;
 	}
 
-	getInternalFormat(id: InternalGameKey): IGameFormat | CommandErrorArray {
+	getInternalFormat(id: InternalGame): IGameFormat | CommandErrorArray {
 		if (this.internalFormats[id].disabled) return ['disabledGameFormat', this.internalFormats[id].name];
 
 		const formatData = Tools.deepClone(this.internalFormats[id]);
@@ -823,7 +825,7 @@ export class Games {
 		return format;
 	}
 
-	getExistingInternalFormat(id: InternalGameKey): IGameFormat {
+	getExistingInternalFormat(id: InternalGame): IGameFormat {
 		const format = this.getInternalFormat(id);
 		if (Array.isArray(format)) throw new Error(format.join(": "));
 		return format;
@@ -1598,21 +1600,21 @@ export class Games {
 			document = document.concat(userHostCommands);
 		}
 
-		let allowOneVsOneGames = false;
-		if (Config.allowOneVsOneGames) {
-			if (Config.allowOneVsOneGames.includes(room.id)) {
-				allowOneVsOneGames = true;
+		let allowChallengeGames = false;
+		if (Config.allowChallengeGames) {
+			if (Config.allowChallengeGames.includes(room.id)) {
+				allowChallengeGames = true;
 			} else if (Config.subRooms && room.id in Config.subRooms) {
 				for (const subRoom of Config.subRooms[room.id]) {
-					if (Config.allowOneVsOneGames.includes(subRoom)) {
-						allowOneVsOneGames = true;
+					if (Config.allowChallengeGames.includes(subRoom)) {
+						allowChallengeGames = true;
 						break;
 					}
 				}
 			}
 		}
 
-		if (allowOneVsOneGames) {
+		if (allowChallengeGames) {
 			const oneVsOneGames: string[] = ["## One vs. one challenges", "Commands:",
 				"* <code>" + commandCharacter + "1v1c [user], [game]</code> - challenge [user] to a game of [game] (see list below)",
 				"* <code>" + commandCharacter + "a1v1c</code> - accept a challenge",
@@ -1626,7 +1628,8 @@ export class Games {
 			keys.sort();
 			for (const key of keys) {
 				const format = this.getExistingFormat(key);
-				if (format.disabled || format.tournamentGame || format.noOneVsOne) continue;
+				if (format.disabled || format.tournamentGame ||
+					(format.disallowedChallenges && format.disallowedChallenges.onevsone)) continue;
 				oneVsOneGames.push("* " + format.name + "\n");
 			}
 
@@ -1743,7 +1746,7 @@ export class Games {
 		}
 
 		if (allowsGameAchievements) {
-			const internalFormatKeys = Object.keys(this.internalFormats) as InternalGameKey[];
+			const internalFormatKeys = Object.keys(this.internalFormats) as InternalGame[];
 			internalFormatKeys.sort();
 
 			const formatKeys = Object.keys(this.formats);

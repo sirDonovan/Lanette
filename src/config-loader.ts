@@ -59,7 +59,7 @@ export function load(config: typeof Config): typeof Config {
 	if (config.rankedGames) config.rankedGames = arrayToRoomIds(config.rankedGames);
 	if (config.allowScriptedGames) config.allowScriptedGames = arrayToRoomIds(config.allowScriptedGames);
 	if (config.allowUserHostedGames) config.allowUserHostedGames = arrayToRoomIds(config.allowUserHostedGames);
-	if (config.allowOneVsOneGames) config.allowOneVsOneGames = arrayToRoomIds(config.allowOneVsOneGames);
+	if (config.allowChallengeGames) config.allowChallengeGames = arrayToRoomIds(config.allowChallengeGames);
 	if (config.allowGameAchievements) config.allowGameAchievements = arrayToRoomIds(config.allowGameAchievements);
 	if (config.showGameTrainerCards) config.showGameTrainerCards = arrayToRoomIds(config.showGameTrainerCards);
 	if (config.gameTrainerCardRequirements) objectKeysToRoomId(config.gameTrainerCardRequirements);

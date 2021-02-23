@@ -215,7 +215,9 @@ export const game: IGameFile<KlefkisLockedLocations> = Games.copyTemplatePropert
 	commandDescriptions: [Config.commandCharacter + "unlock", Config.commandCharacter + "pass", Config.commandCharacter + "rolldice",
 		Config.commandCharacter + "escape"],
 	description: "Players travel around the board to unlock properties and avoid getting eliminated by others!",
+	disallowedChallenges: {
+		onevsone: true,
+	},
 	mascot: "Klefki",
 	name: "Klefki's Locked Locations",
-	noOneVsOne: true,
 });

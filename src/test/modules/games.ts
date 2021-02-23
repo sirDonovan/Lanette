@@ -382,7 +382,7 @@ describe("Games", () => {
 		const oneVsOneFormat = Games.getInternalFormat('onevsone') as IGameFormat;
 
 		for (const format of formatsToTest) {
-			if (format.noOneVsOne) continue;
+			if (format.disallowedChallenges && format.disallowedChallenges.onevsone) continue;
 
 			const parentGame = Games.createGame(room, oneVsOneFormat) as OneVsOne;
 			assert(parentGame, format.name);

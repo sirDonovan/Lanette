@@ -50,14 +50,7 @@ export interface IGameAchievement {
 	mode?: GameMode;
 }
 
-export interface IInternalGames {
-	eggtoss: string;
-	headtohead: string;
-	onevsone: string;
-	vote: string;
-}
-
-export type InternalGameKey = keyof IInternalGames;
+export type InternalGame = GameChallenge | 'eggtoss' | 'headtohead' | 'vote';
 
 interface IGameClass<T extends ScriptedGame = ScriptedGame> {
 	new(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed): T;
@@ -112,6 +105,8 @@ export interface IGameCommandCountListener extends IGameCommandCountOptions {
 
 type IGameVariant<T extends ScriptedGame = ScriptedGame> = Partial<T> & IGameVariantProperties<T>;
 
+export type DisallowedChallenges = PartialKeyedDict<GameChallenge, boolean>;
+
 interface IGameFileProperties<T extends ScriptedGame = ScriptedGame> {
 	aliases?: string[];
 	canGetRandomAnswer?: boolean;
@@ -122,6 +117,7 @@ interface IGameFileProperties<T extends ScriptedGame = ScriptedGame> {
 	customizableOptions?: Dict<IGameOptionValues>;
 	defaultOptions?: DefaultGameOption[];
 	disabled?: boolean;
+	disallowedChallenges?: DisallowedChallenges;
 	freejoin?: boolean;
 	/** Legacy names, such as from before game mascots were introduced; used for aliases */
 	formerNames?: string[];
@@ -133,7 +129,6 @@ interface IGameFileProperties<T extends ScriptedGame = ScriptedGame> {
 	minigameDescription?: string;
 	modeProperties?: PartialKeyedDict<GameMode, Partial<T>>;
 	modes?: GameMode[];
-	noOneVsOne?: boolean;
 	nonTrivialLoadData?: boolean;
 	scriptedOnly?: boolean;
 	tests?: GameFileTests<T>;
@@ -189,8 +184,8 @@ export interface IGameVariantProperties<T extends ScriptedGame = ScriptedGame> {
 	customizableOptions?: Dict<IGameOptionValues>;
 	defaultOptions?: DefaultGameOption[];
 	description?: string;
+	disallowedChallenges?: DisallowedChallenges;
 	freejoin?: boolean;
-	noOneVsOne?: boolean;
 	modeProperties?: PartialKeyedDict<GameMode, Partial<T>>;
 	modes?: GameMode[];
 }
