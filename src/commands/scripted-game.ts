@@ -213,8 +213,8 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			if (!target) {
-				user.say("You must PM " + Users.self.name + " the command ``" + Config.commandCharacter + "ccdown 1v1`` to check your " +
-					"challenge cooldown time.");
+				user.say("You must PM " + Users.self.name + " the command ``" + Config.commandCharacter + "ccdown " +
+					room.title + ", 1v1`` to check your challenge cooldown time.");
 				return;
 			}
 
