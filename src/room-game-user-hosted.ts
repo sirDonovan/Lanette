@@ -13,6 +13,7 @@ export class UserHostedGame extends Game {
 	hostId: string = '';
 	hostName: string = '';
 	hostTimeout: NodeJS.Timer | null = null;
+	isUserHosted: boolean = true;
 	mascots: string[] = [];
 	notifyRankSignups: boolean = true;
 	readonly points = new Map<Player, number>();
@@ -315,6 +316,8 @@ export class UserHostedGame extends Game {
 				hostName = this.subHostName;
 				hostBits /= 2;
 			}
+
+			if (Config.onUserHostedGameHost) Config.onUserHostedGameHost(this.room, this.format, hostName);
 
 			Storage.addPoints(this.room, Storage.gameLeaderboard, hostName, hostBits, 'userhosted');
 			const user = Users.get(hostName);

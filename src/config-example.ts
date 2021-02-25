@@ -1,6 +1,7 @@
+import type { Room } from "./rooms";
 import type { GroupName } from "./types/client";
 import type { IGameHostBoxPokemon, IGameTrainerCardPokemon } from "./types/config";
-import type { GameDifficulty } from "./types/games";
+import type { GameDifficulty, IGameFormat, IUserHostedFormat } from "./types/games";
 
 /* eslint-disable prefer-const*/
 
@@ -398,5 +399,11 @@ export let githubApiCredentials: Dict<{token: string; username: string}> = {};
  * For each room in the object, the information for its game catalog gist
  */
 export let gameCatalogGists: Dict<{description: string; files: string[]; id: string}> = {};
+
+export let onScriptedGameWin: ((room: Room, format: IGameFormat, winners: string[]) => void) | undefined = undefined;
+
+export let onUserHostedGameWin: ((room: Room, format: IUserHostedFormat, winners: string[]) => void) | undefined = undefined;
+
+export let onUserHostedGameHost: ((room: Room, format: IUserHostedFormat, hostName: string) => void) | undefined = undefined;
 
 /* eslint-enable */

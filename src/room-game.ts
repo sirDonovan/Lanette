@@ -33,6 +33,7 @@ export abstract class Game extends Activity {
 	joinLeaveButtonUhtmlName!: string;
 
 	format?: IGameFormat | IUserHostedFormat;
+	isUserHosted?: boolean;
 	lastPokemonUhtml?: IPokemonUhtml;
 	lastTrainerUhtml?: ITrainerUhtml;
 	mascot?: IPokemonCopy;
@@ -69,6 +70,18 @@ export abstract class Game extends Activity {
 
 		const numberOfWinners = this.winners.size;
 		if (numberOfWinners) {
+			if (this.isUserHosted) {
+				if (Config.onUserHostedGameWin) {
+					Config.onUserHostedGameWin(this.room as Room, this.format as IUserHostedFormat,
+						Array.from(this.winners.keys()).map(x => x.name));
+				}
+			} else if (!this.isPm(this.room)) {
+				if (Config.onScriptedGameWin) {
+					Config.onScriptedGameWin(this.room, this.format as IGameFormat,
+						Array.from(this.winners.keys()).map(x => x.name));
+				}
+			}
+
 			let trainerCardsShown = false;
 			if (!this.isPm(this.room) && Config.showGameTrainerCards && Config.showGameTrainerCards.includes(this.room.id)) {
 				const trainerCards: string[] = [];
