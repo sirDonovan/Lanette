@@ -358,10 +358,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	botChallengeTurn(botPlayer: Player): void {
 		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
 		this.botTurnTimeout = setTimeout(() => {
-			const command = this.answerCommands ? this.answerCommands[0] : "g";
-			const answer = this.sampleOne(this.answers).toLowerCase();
-			this.say(Config.commandCharacter + command + " " + answer);
-			botPlayer.useCommand(command, answer);
+			botPlayer.useCommand(this.answerCommands ? this.answerCommands[0] : "g", this.sampleOne(this.answers).toLowerCase());
 		}, this.sampleOne(this.botChallengeSpeeds!));
 	}
 
