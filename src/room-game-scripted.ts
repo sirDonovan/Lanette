@@ -4,9 +4,9 @@ import type { Player } from "./room-activity";
 import { Game } from "./room-game";
 import type { Room } from "./rooms";
 import type {
-	DefaultGameOption,
-	GameCommandListener, GameCommandReturnType, IBattleGameData, IGameAchievement, IGameCommandCountListener, IGameCommandCountOptions,
-	IGameFormat, IGameMode, IGameOptionValues, IGameVariant, IRandomGameAnswer, LoadedGameCommands, PlayerList
+	DefaultGameOption, GameChallenge, GameCommandListener, GameCommandReturnType, IBattleGameData, IGameAchievement,
+	IGameCommandCountListener, IGameCommandCountOptions, IGameFormat, IGameMode, IGameOptionValues, IGameVariant, IRandomGameAnswer,
+	LoadedGameCommands, PlayerList
 } from "./types/games";
 import type { User } from "./users";
 
@@ -47,6 +47,7 @@ export class ScriptedGame extends Game {
 	allowChildGameBits?: boolean;
 	readonly battleData?: Map<Room, IBattleGameData>;
 	readonly battleRooms?: string[];
+	botTurnTimeout?: NodeJS.Timer;
 	commandDescriptions?: string[];
 	isMiniGame?: boolean;
 	lateJoinQueueSize?: number;
@@ -547,6 +548,7 @@ export class ScriptedGame extends Game {
 
 		this.cleanupMessageListeners();
 		if (this.cleanupTimers) this.cleanupTimers();
+		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
 		if (this.timeout) clearTimeout(this.timeout);
 		if (this.startTimer) clearTimeout(this.startTimer);
 
@@ -566,7 +568,14 @@ export class ScriptedGame extends Game {
 		if (this.parentGame) {
 			this.parentGame.room.game = this.parentGame;
 			this.parentGame.prng = new PRNG(this.prng.seed);
-			if (this.parentGame.onChildEnd) this.parentGame.onChildEnd(this.winners);
+			if (this.parentGame.onChildEnd) {
+				try {
+					this.parentGame.onChildEnd(this.winners);
+				} catch (e) {
+					console.log(e);
+					Tools.logError(e, this.parentGame.format.name + " onChildEnd() (" + this.format.name + ")");
+				}
+			}
 		}
 
 		if (this.onAfterDeallocate) {
@@ -1031,11 +1040,13 @@ export class ScriptedGame extends Game {
 	}
 
 	acceptChallenge?(user: User): boolean;
+	botChallengeTurn?(botPlayer: Player, options: Dict<string>): void;
 	cancelChallenge?(user: User): boolean;
 	cleanupTimers?(): void;
 	getForceEndMessage?(): string;
 	getPlayerSummary?(player: Player): void;
 	getRandomAnswer?(): IRandomGameAnswer;
+	loadChallengeOptions?(challenge: GameChallenge, options: Dict<string>): void;
 	/** Return `false` to prevent a user from being added to the game (and send the reason to the user) */
 	onAddPlayer?(player: Player, lateJoin?: boolean): boolean | undefined;
 	onAddLateJoinQueuedPlayers?(players: Player[]): void;
@@ -1057,6 +1068,7 @@ export class ScriptedGame extends Game {
 	onBattleSwitch?(room: Room, pokemon: string, details: string, hpStatus: [string, string]): boolean;
 	onBattleWin?(room: Room, winner: string): void;
 	onChildEnd?(winners: Map<Player, number>): void;
+	onChildHint?(hint: string, answers: readonly string[], newAnswer: boolean): void;
 	onDeallocate?(forceEnd: boolean): void;
 	onEliminatePlayer?(player: Player, eliminationCause?: string | null, eliminator?: Player | null): void;
 	onMaxRound?(): void;
@@ -1069,5 +1081,5 @@ export class ScriptedGame extends Game {
 	parseChatMessage?(user: User, message: string): void;
 	rejectChallenge?(user: User): boolean;
 	repostInformation?(): void;
-	setupChallenge?(challenger: User, challenged: User, format: IGameFormat): void;
+	setupChallenge?(challenger: User, challenged: User, format: IGameFormat, options?: Dict<string>): void;
 }

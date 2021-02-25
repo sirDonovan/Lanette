@@ -112,6 +112,9 @@ class MareaniesMarquee extends QuestionAndAnswer {
 
 export const game: IGameFile<MareaniesMarquee> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['mareanies', 'marquees'],
+	botChallenge: {
+		enabled: false,
+	},
 	category: 'identification',
 	class: MareaniesMarquee,
 	defaultOptions: ['points'],

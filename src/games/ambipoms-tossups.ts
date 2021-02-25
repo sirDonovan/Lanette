@@ -108,6 +108,9 @@ class AmbipomsTossups extends QuestionAndAnswer {
 
 export const game: IGameFile<AmbipomsTossups> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['ambipoms', 'at'],
+	botChallenge: {
+		enabled: false,
+	},
 	category: 'identification',
 	class: AmbipomsTossups,
 	defaultOptions: ['points'],

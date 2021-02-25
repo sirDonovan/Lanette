@@ -120,6 +120,9 @@ class HitmonchansHangman extends QuestionAndAnswer {
 
 export const game: IGameFile<HitmonchansHangman> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ["hitmonchans", "hh"],
+	botChallenge: {
+		enabled: false,
+	},
 	category: 'identification',
 	class: HitmonchansHangman,
 	defaultOptions: ['points'],

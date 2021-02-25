@@ -8,8 +8,8 @@ import type { Room } from "./rooms";
 import type { CommandErrorArray } from "./types/command-parser";
 import type {
 	AutoCreateTimerType, DefaultGameOption, DisallowedChallenges, GameCategory, GameChallenge, GameCommandDefinitions,
-	GameCommandReturnType, GameMode, IGameAchievement, IGameFile, IGameFormat, IGameFormatComputed, IGameMode, IGameModeFile,
-	IGameOptionValues, IGamesWorkers, IGameTemplateFile, IGameVariant, InternalGame, IUserHostedComputed, IUserHostedFormat,
+	GameCommandReturnType, GameMode, IBotChallengeOptions, IGameAchievement, IGameFile, IGameFormat, IGameFormatComputed, IGameMode,
+	IGameModeFile, IGameOptionValues, IGamesWorkers, IGameTemplateFile, IGameVariant, InternalGame, IUserHostedComputed, IUserHostedFormat,
 	IUserHostedFormatComputed, LoadedGameCommands, LoadedGameFile, UserHostedCustomizable
 } from './types/games';
 import type { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/pokemon-showdown';
@@ -23,6 +23,7 @@ const IMMUNE_MATCHUP_SCORE = 0.001;
 
 const gamesDirectory = path.join(__dirname, 'games');
 const internalGamePaths: KeyedDict<InternalGame, string> = {
+	botchallenge: path.join(gamesDirectory, "internal", "bot-challenge.js"),
 	eggtoss: path.join(gamesDirectory, "internal", "egg-toss.js"),
 	headtohead: path.join(gamesDirectory, "internal", "head-to-head.js"),
 	onevsone: path.join(gamesDirectory, "internal", "one-vs-one.js"),
@@ -97,6 +98,7 @@ export class Games {
 	readonly internalFormats: KeyedDict<InternalGameKey, LoadedGameFile> = {};
 	lastCatalogUpdates: Dict<string> = {};
 	lastChallengeTimes: KeyedDict<GameChallenge, Dict<Dict<number>>> = {
+		botchallenge: {},
 		onevsone: {},
 	};
 	lastGames: Dict<number> = {};
@@ -311,6 +313,13 @@ export class Games {
 			const id = Tools.toId(file.name);
 			if (id in this.formats) throw new Error("The name '" + file.name + "' is already used by another game.");
 
+			let botChallenge: IBotChallengeOptions | undefined;
+			if (file.botChallenge) {
+				botChallenge = Tools.deepClone(file.botChallenge);
+				if (botChallenge.options) botChallenge.options = botChallenge.options.map(x => Tools.toId(x));
+				if (botChallenge.requiredOptions) botChallenge.requiredOptions = botChallenge.requiredOptions.map(x => Tools.toId(x));
+			}
+
 			let commands;
 			if (file.commands) {
 				commands = CommandParser.loadCommandDefinitions<ScriptedGame, GameCommandReturnType>(Tools.deepClone(file.commands));
@@ -336,7 +345,7 @@ export class Games {
 
 			if (file.class.achievements) this.loadFileAchievements(file);
 
-			this.formats[id] = Object.assign({}, file, {commands, id, modes, variants});
+			this.formats[id] = Object.assign({}, file, {botChallenge, commands, id, modes, variants});
 		}
 
 		for (const format of this.userHosted.formats) {
@@ -675,17 +684,19 @@ export class Games {
 			variant,
 		};
 
+		const botChallenge: IBotChallengeOptions = formatData.botChallenge || {enabled: false};
 		let customizableOptions: Dict<IGameOptionValues> = formatData.customizableOptions || {};
 		let defaultOptions: DefaultGameOption[] = formatData.defaultOptions || [];
 		const disallowedChallenges: DisallowedChallenges = formatData.disallowedChallenges || {};
 		if (variant) {
+			if (variant.botChallenge) Object.assign(botChallenge, variant.botChallenge);
 			if (variant.customizableOptions) customizableOptions = variant.customizableOptions;
 			if (variant.defaultOptions) defaultOptions = variant.defaultOptions;
 			if (variant.disallowedChallenges) Object.assign(disallowedChallenges, variant.disallowedChallenges);
 		}
 
 		const format = Object.assign(formatData, formatComputed,
-			{customizableOptions, defaultOptions, disallowedChallenges, options: {}}) as IGameFormat;
+			{botChallenge, customizableOptions, defaultOptions, disallowedChallenges, options: {}}) as IGameFormat;
 		format.options = ScriptedGame.setOptions(format, mode, variant);
 
 		return format;

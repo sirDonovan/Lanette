@@ -128,6 +128,9 @@ class HypnosHunches extends QuestionAndAnswer {
 
 export const game: IGameFile<HypnosHunches> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ["hypnos"],
+	botChallenge: {
+		enabled: false,
+	},
 	category: 'identification',
 	class: HypnosHunches,
 	defaultOptions: ['points'],

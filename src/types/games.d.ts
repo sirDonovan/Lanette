@@ -25,7 +25,7 @@ export type GameCategory = 'board' | 'board-property' | 'card' | 'card-high-low'
 
 export type GameMode = 'group' | 'multianswer' | 'survival' | 'team' | 'timeattack';
 
-export type GameChallenge = 'onevsone';
+export type GameChallenge = 'botchallenge' | 'onevsone';
 
 export type GameAchievements = 'quickdraw' | 'captainwordmaster' | 'wordmaster' | 'knowitall' | 'captainknowitall' | 'fishoutofwater' |
 	'goldenmagikarp' | 'hightidesurvivor' | 'mazerunner' | 'kingofthecastle' | 'minesweeper' | 'voltorbsfuse' | 'litwicksflame' |
@@ -107,8 +107,15 @@ type IGameVariant<T extends ScriptedGame = ScriptedGame> = Partial<T> & IGameVar
 
 export type DisallowedChallenges = PartialKeyedDict<GameChallenge, boolean>;
 
+export interface IBotChallengeOptions {
+	enabled: boolean,
+	options?: string[];
+	requiredOptions?: string[];
+}
+
 interface IGameFileProperties<T extends ScriptedGame = ScriptedGame> {
 	aliases?: string[];
+	botChallenge?: IBotChallengeOptions;
 	canGetRandomAnswer?: boolean;
 	category?: GameCategory;
 	challengePoints?: PartialKeyedDict<GameChallenge, number>;
@@ -180,6 +187,7 @@ export interface IGameVariantProperties<T extends ScriptedGame = ScriptedGame> {
 	variantAliases: string[];
 
 	aliases?: string[];
+	botChallenge?: IBotChallengeOptions;
 	commandDescriptions?: string[];
 	customizableOptions?: Dict<IGameOptionValues>;
 	defaultOptions?: DefaultGameOption[];

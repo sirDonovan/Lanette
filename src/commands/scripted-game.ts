@@ -1,10 +1,11 @@
+import type { BotChallenge } from "../games/internal/bot-challenge";
 import type { HeadToHead } from "../games/internal/head-to-head";
 import type { OneVsOne } from "../games/internal/one-vs-one";
 import type { Room } from "../rooms";
 import type { BaseCommandDefinitions } from "../types/command-parser";
 import type { IGameFormat } from "../types/games";
 
-const ONE_VS_ONE_GAME_COOLDOWN = 2 * 60 * 60 * 1000;
+const CHALLENGE_GAME_COOLDOWN = 2 * 60 * 60 * 1000;
 
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
@@ -176,33 +177,126 @@ export const commands: BaseCommandDefinitions = {
 	},
 	challengecooldown: {
 		command: function(target, room, user) {
+			if (!this.isPm(room)) return;
 			const targets = target.split(',');
-			let gameRoom: Room;
-			if (this.isPm(room)) {
-				const targetRoom = Rooms.search(targets[0]);
-				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
-				gameRoom = targetRoom;
-				targets.shift();
-			} else {
-				gameRoom = room;
+			const targetRoom = Rooms.search(targets[0]);
+			if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+			const gameRoom = targetRoom;
+
+			let cooldown = 0;
+			let challengeName = "";
+			const challenge = Tools.toId(targets[1]);
+			if (challenge === "onevsone" || challenge === "onevone" || challenge === "1vs1" || challenge === "1v1") {
+				challengeName = "one vs. one";
+				if (gameRoom.id in Games.lastChallengeTimes.onevsone && user.id in Games.lastChallengeTimes.onevsone[gameRoom.id]) {
+					cooldown = CHALLENGE_GAME_COOLDOWN - (Date.now() - Games.lastChallengeTimes.onevsone[gameRoom.id][user.id]);
+				}
+			} else if (challenge === "bot" || challenge === Users.self.id) {
+				challengeName = "bot";
+				if (gameRoom.id in Games.lastChallengeTimes.botchallenge && user.id in Games.lastChallengeTimes.botchallenge[gameRoom.id]) {
+					cooldown = CHALLENGE_GAME_COOLDOWN - (Date.now() - Games.lastChallengeTimes.botchallenge[gameRoom.id][user.id]);
+				}
 			}
 
-			const challenge = Tools.toId(targets[0]);
-			if (challenge === "onevsone" || challenge === "onevone" || challenge === "1vs1" || challenge === "1v1") {
-				let cooldown = 0;
-				if (gameRoom.id in Games.lastChallengeTimes.onevsone && user.id in Games.lastChallengeTimes.onevsone[gameRoom.id]) {
-					cooldown = ONE_VS_ONE_GAME_COOLDOWN - (Date.now() - Games.lastChallengeTimes.onevsone[gameRoom.id][user.id]);
-				}
-
+			if (challengeName) {
 				if (cooldown <= 1000) {
-					user.say("You are free to begin a one vs. one challenge in " + gameRoom.title + "!");
+					user.say("You are free to begin a " + challengeName + " challenge in " + gameRoom.title + "!");
 				} else {
-					user.say("You can begin a one vs. one challenge in " + gameRoom.title + " in " +
+					user.say("You can begin a " + challengeName + " challenge in " + gameRoom.title + " in " +
 						Tools.toDurationString(cooldown) + ".");
 				}
+			} else {
+				user.say("You must specify a valid challenge type.");
 			}
 		},
 		aliases: ['chalcooldown', 'ccooldown', 'ccdown'],
+	},
+	botchallenge: {
+		command: function(target, room, user) {
+			if (this.isPm(room)) return;
+			if (!Config.allowChallengeGames || !Config.allowChallengeGames.includes(room.id)) {
+				user.say("Bot challenges are not allowed in " + room.title + ".");
+				return;
+			}
+
+			if (!target) {
+				user.say("You must PM " + Users.self.name + " the command ``" + Config.commandCharacter + "ccdown " +
+					room.title + ", bot`` to check your challenge cooldown time.");
+				return;
+			}
+
+			if (room.game) {
+				user.say("You must wait until the game of " + room.game.name + " ends.");
+				return;
+			}
+			if (Games.reloadInProgress) {
+				user.say(CommandParser.getErrorText(['reloadInProgress']));
+				return;
+			}
+
+			if (room.id in Games.lastChallengeTimes.botchallenge && user.id in Games.lastChallengeTimes.botchallenge[room.id]) {
+				const cooldown = CHALLENGE_GAME_COOLDOWN - (Date.now() - Games.lastChallengeTimes.botchallenge[room.id][user.id]);
+				if (cooldown > 1000) {
+					user.say("You must wait " + Tools.toDurationString(cooldown) + " before challenging " + Users.self.name + ".");
+					return;
+				}
+			}
+
+			const botChallengeFormat = Games.getInternalFormat("botchallenge");
+			if (Array.isArray(botChallengeFormat)) {
+				user.say(CommandParser.getErrorText(botChallengeFormat));
+				return;
+			}
+
+			const targets = target.split(",");
+			let options: string[] = [];
+			let challengeFormat = Games.getFormat(target, true);
+			if (Array.isArray(challengeFormat)) {
+				options = targets[0].split("|");
+				challengeFormat = Games.getFormat(targets.slice(1).join(","), true);
+				if (Array.isArray(challengeFormat)) {
+					user.say(CommandParser.getErrorText(challengeFormat));
+					return;
+				}
+			}
+
+			if (!challengeFormat.botChallenge || !challengeFormat.botChallenge.enabled || challengeFormat.mode) {
+				user.say(challengeFormat.nameWithOptions + " does not allow bot challenges.");
+				return;
+			}
+
+			const parsedOptions: Dict<string> = {};
+			if (challengeFormat.botChallenge.options) {
+				for (const option of options) {
+					const parts = option.split(":");
+					const id = Tools.toId(parts[0]);
+					if (!challengeFormat.botChallenge.options.includes(id)) {
+						user.say("'" + id + "' is not an option for " + challengeFormat.nameWithOptions + " bot challenges.");
+						return;
+					}
+
+					parsedOptions[id] = parts.slice(1).join(":").trim();
+				}
+
+				if (challengeFormat.botChallenge.requiredOptions) {
+					for (const requiredOption of challengeFormat.botChallenge.requiredOptions) {
+						if (!(requiredOption in parsedOptions)) {
+							user.say(challengeFormat.nameWithOptions + " requires the option '" + requiredOption + "' for bot challenges.");
+							return;
+						}
+					}
+				}
+			} else {
+				if (options.length) {
+					user.say(challengeFormat.nameWithOptions + " does not support any options for bot challenges.");
+					return;
+				}
+			}
+
+			const game = Games.createGame(room, botChallengeFormat) as BotChallenge;
+			game.setupChallenge(user, Users.self, challengeFormat, parsedOptions);
+		},
+		aliases: ['botch'],
 	},
 	onevsonechallenge: {
 		command: function(target, room, user) {
@@ -237,7 +331,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			if (room.id in Games.lastChallengeTimes.onevsone && user.id in Games.lastChallengeTimes.onevsone[room.id]) {
-				const cooldown = ONE_VS_ONE_GAME_COOLDOWN - (Date.now() - Games.lastChallengeTimes.onevsone[room.id][user.id]);
+				const cooldown = CHALLENGE_GAME_COOLDOWN - (Date.now() - Games.lastChallengeTimes.onevsone[room.id][user.id]);
 				if (cooldown > 1000) {
 					user.say("You must wait " + Tools.toDurationString(cooldown) + " before challenging another user.");
 					return;
