@@ -154,7 +154,7 @@ export class BotChallenge extends ScriptedGame {
 		if (!this.challenger) return;
 
 		if (!(this.room.id in Games.lastChallengeTimes.botchallenge)) Games.lastChallengeTimes.botchallenge[this.room.id] = {};
-		// Games.lastChallengeTimes.botchallenge[this.room.id][this.challenger.id] = Date.now();
+		Games.lastChallengeTimes.botchallenge[this.room.id][this.challenger.id] = Date.now();
 	}
 
 	onEnd(): void {
