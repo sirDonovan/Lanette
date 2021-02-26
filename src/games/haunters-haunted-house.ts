@@ -558,7 +558,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 		return x + ',' + y;
 	}
 
-	displayBoard(): void {
+	getBoardHtml(): string {
 		let html = '<div class="infobox"><font color="black"><table align="center" border="2">';
 		const playerLocations: Dict<Player[]> = {};
 		for (const id in this.players) {
@@ -610,13 +610,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 		}
 		html += '</table></font></div>';
 
-		const uhtmlName = this.uhtmlBaseName + '-board';
-		if (!this.canMove) {
-			this.onUhtml(uhtmlName, html, () => {
-				this.canMove = true;
-			});
-		}
-		this.sayUhtml(this.uhtmlBaseName + '-board', html);
+		return html;
 	}
 
 	setupBoard(): void {
@@ -754,12 +748,17 @@ class HauntersHauntedHouse extends ScriptedGame {
 		const html = this.getRoundHtml(players => this.getPlayerNumbers(players), undefined, "Round " + this.round +
 			" - Collected candy: " + this.collectedCandy);
 		this.onUhtml(uhtmlName, html, () => {
-			this.onCommands(this.actionCommands, {max: this.getRemainingPlayerCount(), remainingPlayersMax: true}, () => {
-				if (this.timeout) clearTimeout(this.timeout);
-				this.moveGhosts();
+			const boardHtml = this.getBoardHtml();
+			const boardUhtmlName = this.uhtmlBaseName + '-board';
+			this.onUhtml(boardUhtmlName, boardHtml, () => {
+				this.canMove = true;
+				this.onCommands(this.actionCommands, {max: this.getRemainingPlayerCount(), remainingPlayersMax: true}, () => {
+					if (this.timeout) clearTimeout(this.timeout);
+					this.moveGhosts();
+				});
+				this.timeout = setTimeout(() => this.moveGhosts(), 30 * 1000);
 			});
-			this.displayBoard();
-			this.timeout = setTimeout(() => this.moveGhosts(), 30 * 1000);
+			this.sayUhtml(boardUhtmlName, boardHtml);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}
@@ -860,6 +859,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 	moveGhosts(): void {
 		if (this.timeout) clearTimeout(this.timeout);
 		this.offCommands(this.actionCommands);
+		this.canMove = false;
 
 		this.turnsWithoutHaunting++;
 		for (const ghost of this.ghosts) {
