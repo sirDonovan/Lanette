@@ -234,7 +234,8 @@ class DarkraisLair extends MapGame {
 		const coordinateString = this.coordinatesToString(playerCoordinates[0], playerCoordinates[1]);
 		const usedShadowTraps = this.playerUsedShadowTraps.get(player)!;
 		const keys = Object.keys(shadowTraps) as ShadowTrap[];
-		let cannotLayTrap = this.roundShadowTraps.has(player);
+		const inShadowTrap = this.roundShadowTraps.has(player);
+
 		for (const key of keys) {
 			let remainingUses: number | undefined;
 			if (shadowTraps[key].uses) {
@@ -244,11 +245,9 @@ class DarkraisLair extends MapGame {
 				}
 			}
 
-			if (!cannotLayTrap) {
-				cannotLayTrap = !remainingUses || coordinateString in this.shadowPits ||
-					(key !== 'dreamvision' && coordinateString in this.placedShadowTraps) ||
-					(this.trappedPlayers.has(player) && !this.inPlaceShadowTraps.includes(key));
-			}
+			const cannotLayTrap = inShadowTrap || remainingUses === 0 || coordinateString in this.shadowPits ||
+				(key !== 'dreamvision' && coordinateString in this.placedShadowTraps) ||
+				(this.trappedPlayers.has(player) && !this.inPlaceShadowTraps.includes(key));
 
 			html += Client.getPmSelfButton(Config.commandCharacter + key, shadowTraps[key].name +
 				(remainingUses ? " x" + remainingUses : ""), cannotLayTrap) + "&nbsp;";
