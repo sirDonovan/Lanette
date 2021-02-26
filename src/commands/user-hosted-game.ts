@@ -112,6 +112,10 @@ export const commands: BaseCommandDefinitions = {
 			if (Array.isArray(format)) return this.sayError(format);
 			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
 
+			if (format.approvedHostOnly && !approvedHost && !user.hasRank(room, 'voice')) {
+				return this.say(format.name + " can only be hosted by approved hosts or room auth.");
+			}
+
 			if (!approvedHost && database.userHostStatuses && host.id in database.userHostStatuses) {
 				if (database.userHostStatuses[host.id] === 'unapproved') {
 					return this.say(host.name + " is currently unapproved for hosting games.");
