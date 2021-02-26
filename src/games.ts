@@ -1635,16 +1635,32 @@ export class Games {
 					"[room] in PMs",
 				"\n\nCompatible games:",
 			];
+
+			const botChallengeGames: string[] = ["## Bot challenges", "Commands:",
+				"* <code>" + commandCharacter + "botch [game] or " + commandCharacter + "botch [options], [game]</code> - challenge " +
+					Users.self.name + " to a game of [game] (see list below)",
+				"* <code>" + commandCharacter + "ccdown [room], bot</code> - check your bot challenge cooldown time for " +
+					"[room] in PMs",
+				"\n\nCompatible games:",
+			];
+
 			const keys = Object.keys(this.formats);
 			keys.sort();
 			for (const key of keys) {
 				const format = this.getExistingFormat(key);
-				if (format.disabled || format.tournamentGame ||
-					(format.disallowedChallenges && format.disallowedChallenges.onevsone)) continue;
-				oneVsOneGames.push("* " + format.name + "\n");
+				if (format.disabled || format.tournamentGame) continue;
+				if (!(format.disallowedChallenges && format.disallowedChallenges.onevsone)) {
+					oneVsOneGames.push("* " + format.name + "\n");
+				}
+				if (format.botChallenge && format.botChallenge.enabled) {
+					let name = format.name;
+					if (format.botChallenge.requiredFreejoin) name += " (freejoin)";
+					botChallengeGames.push("* " + name + "\n");
+				}
 			}
 
 			document = document.concat(oneVsOneGames);
+			document = document.concat(botChallengeGames);
 		}
 
 		const defaultCategory = "Uncategorized";
