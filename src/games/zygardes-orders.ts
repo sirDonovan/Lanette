@@ -29,6 +29,7 @@ class ZygardesOrders extends QuestionAndAnswer {
 	letters: string[] = [];
 	maxRevealedLetters: number | undefined;
 	multiRoundHints = true;
+	oneGuessPerHint = true;
 	orderRound: number = 0;
 	revealedLetters: number = 0;
 	roundGuesses = new Map<Player, boolean>();

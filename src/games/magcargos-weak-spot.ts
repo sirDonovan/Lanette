@@ -26,6 +26,7 @@ class MagcargosWeakSpot extends QuestionAndAnswer {
 	lastAnswers: string[] = [];
 	lastPokemon: string = '';
 	lastType: string = '';
+	oneGuessPerHint = true;
 	roundGuesses = new Map<Player, boolean>();
 
 	static loadData(): void {

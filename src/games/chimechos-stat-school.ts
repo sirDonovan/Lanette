@@ -8,6 +8,7 @@ const data: {stats: Dict<string[]>} = {
 const statsKeys: string[] = [];
 
 class ChimechosStatSchool extends QuestionAndAnswer {
+	oneGuessPerHint = true;
 	readonly roundGuesses = new Map<Player, boolean>();
 
 	static loadData(): void {

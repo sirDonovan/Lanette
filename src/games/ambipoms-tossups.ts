@@ -21,6 +21,7 @@ class AmbipomsTossups extends QuestionAndAnswer {
 	letters: string[] = [];
 	maxRevealedLetters: number | undefined;
 	multiRoundHints = true;
+	oneGuessPerHint = true;
 	revealedLetters: number = 0;
 	readonly roundGuesses = new Map<Player, boolean>();
 	roundTime = 0;

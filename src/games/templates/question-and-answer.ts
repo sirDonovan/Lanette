@@ -37,6 +37,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	allAnswersAchievement?: IGameAchievement;
 	allAnswersTeamAchievement?: IGameAchievement;
 	answerCommands?: string[];
+	oneGuessPerHint?: boolean;
 	noIncorrectAnswersMinigameAchievement?: IGameAchievement;
 	roundCategory?: string;
 	readonly roundGuesses?: Map<Player, boolean>;
@@ -242,9 +243,18 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 
 		if (!answer) {
 			this.incorrectAnswers++;
-			if (!this.onIncorrectGuess) return false;
-			answer = this.onIncorrectGuess(player, guess);
-			if (!answer) return false;
+			if (this.onIncorrectGuess) answer = this.onIncorrectGuess(player, guess);
+			if (!answer) {
+				if (this.oneGuessPerHint && this.roundGuesses && this.inheritedPlayers && this.roundGuesses.size === this.playerCount) {
+					this.say("All players have used up their guess!");
+					this.displayAnswers();
+					this.answers = [];
+					if (this.answerTimeout) clearTimeout(this.answerTimeout);
+					if (this.timeout) clearTimeout(this.timeout);
+					this.timeout = setTimeout(() => this.nextRound(), 5000);
+				}
+				return false;
+			}
 		}
 
 		if (this.maxCorrectPlayersPerRound === 1) {
