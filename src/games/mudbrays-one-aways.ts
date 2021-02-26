@@ -151,14 +151,14 @@ export const game: IGameFile<MudbraysOneAways> = Games.copyTemplateProperties(qu
 	category: 'identification',
 	class: MudbraysOneAways,
 	defaultOptions: ['points'],
-	description: "Players change each letter in the word to either the next or previous letter of the alphabet to find the answer " +
-		"(e.g. Nvecsbz = Mudbray)!",
+	description: "Players change all letters in the word to either the next or previous letter of the alphabet to find the answer " +
+		"(e.g. Nvecsbz = Mudbray or Ltcaqzx = Mudbray)!",
 	freejoin: true,
 	name: "Mudbray's One Aways",
 	mascot: "Mudbray",
 	minigameCommand: 'oneaway',
-	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess the answer after changing each letter in the word " +
-		"to either the next or previous letter of the alphabet (e.g. Nvecsbz = Mudbray)!",
+	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess the answer after changing all letters in the word " +
+		"to either the next or previous letter of the alphabet (e.g. Nvecsbz = Mudbray or Ltcaqzx = Mudbray)!",
 	modes: ["survival", "team"],
 	variants: [
 		{
