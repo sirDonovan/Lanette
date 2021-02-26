@@ -214,8 +214,8 @@ export class Tournaments {
 				delete this.createListeners[room.id];
 			}
 
+			room.sayCommand("/tour forcepublic on");
 			if (tournament.playerCap) room.sayCommand("/tour autostart on");
-
 			if (Config.tournamentAutoDQTimers && room.id in Config.tournamentAutoDQTimers) {
 				room.sayCommand("/tour autodq " + Config.tournamentAutoDQTimers[room.id]);
 			}
