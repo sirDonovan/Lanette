@@ -107,7 +107,7 @@ export class BotChallenge extends ScriptedGame {
 		game.sayHtml(game.getDescriptionHtml());
 		game.signups();
 
-		if (game.loadChallengeOptions) game.loadChallengeOptions('botchallenge', this.challengeOptions);
+		game.loadChallengeOptions('botchallenge', this.challengeOptions);
 		this.say('glhf');
 
 		if (!game.format.options.freejoin) {
@@ -115,10 +115,16 @@ export class BotChallenge extends ScriptedGame {
 		}
 	}
 
-	onChildHint(hint: string, answers: readonly string[], newAnswer: boolean): void {
-		if (!newAnswer) return;
+	runBotChallengeTurn(newAnswer: boolean): void {
+		this.childGame!.botChallengeTurn!(this.defender!, newAnswer);
+	}
 
-		this.childGame!.botChallengeTurn!(this.defender!, this.challengeOptions);
+	onChildHint(hint: string, answers: readonly string[], newAnswer: boolean): void {
+		this.runBotChallengeTurn(newAnswer);
+	}
+
+	onChildPlayerTurn(player: Player): void {
+		if (player === this.defender) this.runBotChallengeTurn(true);
 	}
 
 	onChildEnd(winners: Map<Player, number>): void {
@@ -154,7 +160,7 @@ export class BotChallenge extends ScriptedGame {
 		if (!this.challenger) return;
 
 		if (!(this.room.id in Games.lastChallengeTimes.botchallenge)) Games.lastChallengeTimes.botchallenge[this.room.id] = {};
-		Games.lastChallengeTimes.botchallenge[this.room.id][this.challenger.id] = Date.now();
+		// Games.lastChallengeTimes.botchallenge[this.room.id][this.challenger.id] = Date.now();
 	}
 
 	onEnd(): void {

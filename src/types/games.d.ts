@@ -110,6 +110,7 @@ export type DisallowedChallenges = PartialKeyedDict<GameChallenge, boolean>;
 export interface IBotChallengeOptions {
 	enabled: boolean,
 	options?: string[];
+	requiredFreejoin?: boolean;
 	requiredOptions?: string[];
 }
 

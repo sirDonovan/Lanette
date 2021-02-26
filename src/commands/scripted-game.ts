@@ -265,6 +265,11 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
+			if (challengeFormat.botChallenge.requiredFreejoin && !challengeFormat.options.freejoin) {
+				user.say(challengeFormat.name + " can only be played as freejoin for bot challenges.");
+				return;
+			}
+
 			const parsedOptions: Dict<string> = {};
 			if (challengeFormat.botChallenge.options) {
 				for (const option of options) {

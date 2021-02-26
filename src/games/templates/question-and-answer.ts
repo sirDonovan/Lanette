@@ -3,11 +3,8 @@ import { ScriptedGame } from '../../room-game-scripted';
 import type { Room } from '../../rooms';
 import { assert, assertStrictEqual, getBasePlayerName, runCommand } from '../../test/test-tools';
 import type {
-	GameChallenge, GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameAchievement, IGameFormat, IGameTemplateFile,
-	IRandomGameAnswer
+	GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameAchievement, IGameFormat, IGameTemplateFile, IRandomGameAnswer
 } from '../../types/games';
-
-const MIN_BOT_CHALLENGE_SPEED = 1;
 
 export abstract class QuestionAndAnswer extends ScriptedGame {
 	additionalHintHeader: string = '';
@@ -40,7 +37,6 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	allAnswersAchievement?: IGameAchievement;
 	allAnswersTeamAchievement?: IGameAchievement;
 	answerCommands?: string[];
-	botChallengeSpeeds: number[] | null = null;
 	noIncorrectAnswersMinigameAchievement?: IGameAchievement;
 	roundCategory?: string;
 	readonly roundGuesses?: Map<Player, boolean>;
@@ -337,25 +333,9 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		this.announceWinners();
 	}
 
-	loadChallengeOptions?(challenge: GameChallenge, options: Dict<string>): void {
-		if (challenge === 'botchallenge') {
-			let speed = parseFloat(options.speed);
-			if (isNaN(speed)) {
-				speed = this.roundTime - 400;
-			} else {
-				if (speed < MIN_BOT_CHALLENGE_SPEED) speed = MIN_BOT_CHALLENGE_SPEED;
+	botChallengeTurn(botPlayer: Player, newAnswer: boolean): void {
+		if (!newAnswer) return;
 
-				speed = Math.floor(speed * 1000);
-				if (speed >= this.roundTime) speed = this.roundTime - 400;
-			}
-
-			this.say("I will be playing at an average speed of " + speed / 1000 + " second" + (speed > 1000 ? "s" : "") + "!");
-
-			this.botChallengeSpeeds = [speed - 300, speed - 200, speed - 100, speed, speed + 100, speed + 200, speed + 300];
-		}
-	}
-
-	botChallengeTurn(botPlayer: Player): void {
 		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
 		this.botTurnTimeout = setTimeout(() => {
 			botPlayer.useCommand(this.answerCommands ? this.answerCommands[0] : "g", this.sampleOne(this.answers).toLowerCase());

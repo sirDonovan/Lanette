@@ -12,6 +12,7 @@ import type { User } from "./users";
 
 const JOIN_BITS = 10;
 const AUTO_START_VOTE_TIME = 5 * 1000;
+const MIN_BOT_CHALLENGE_SPEED = 1;
 
 // base of 0 defaults option to 'off'
 const defaultOptionValues: KeyedDict<DefaultGameOption, IGameOptionValues> = {
@@ -47,6 +48,7 @@ export class ScriptedGame extends Game {
 	allowChildGameBits?: boolean;
 	readonly battleData?: Map<Room, IBattleGameData>;
 	readonly battleRooms?: string[];
+	botChallengeSpeeds: number[] | null = null;
 	botTurnTimeout?: NodeJS.Timer;
 	commandDescriptions?: string[];
 	isMiniGame?: boolean;
@@ -56,6 +58,7 @@ export class ScriptedGame extends Game {
 	noForceEndMessage?: boolean;
 	playerInactiveRoundLimit?: number;
 	queueLateJoins?: boolean;
+	roundTime?: number;
 	shinyMascot?: boolean;
 	startingLives?: number;
 	subGameNumber?: number;
@@ -136,6 +139,26 @@ export class ScriptedGame extends Game {
 		format.nameWithOptions = nameWithOptions;
 
 		return options;
+	}
+
+	loadChallengeOptions(challenge: GameChallenge, options: Dict<string>): void {
+		if (challenge === 'botchallenge') {
+			if (this.format.botChallenge!.options && this.format.botChallenge!.options.includes('speed') && this.roundTime) {
+				let speed = parseFloat(options.speed);
+				if (isNaN(speed)) {
+					speed = this.roundTime - 400;
+				} else {
+					if (speed < MIN_BOT_CHALLENGE_SPEED) speed = MIN_BOT_CHALLENGE_SPEED;
+
+					speed = Math.floor(speed * 1000);
+					if (speed >= this.roundTime) speed = this.roundTime - 400;
+				}
+
+				this.say("I will be playing at an average speed of " + speed / 1000 + " second" + (speed > 1000 ? "s" : "") + "!");
+
+				this.botChallengeSpeeds = [speed - 300, speed - 200, speed - 100, speed, speed + 100, speed + 200, speed + 300];
+			}
+		}
 	}
 
 	setUhtmlBaseName(): void {
@@ -1040,13 +1063,12 @@ export class ScriptedGame extends Game {
 	}
 
 	acceptChallenge?(user: User): boolean;
-	botChallengeTurn?(botPlayer: Player, options: Dict<string>): void;
+	botChallengeTurn?(botPlayer: Player, newAnswer: boolean): void;
 	cancelChallenge?(user: User): boolean;
 	cleanupTimers?(): void;
 	getForceEndMessage?(): string;
 	getPlayerSummary?(player: Player): void;
 	getRandomAnswer?(): IRandomGameAnswer;
-	loadChallengeOptions?(challenge: GameChallenge, options: Dict<string>): void;
 	/** Return `false` to prevent a user from being added to the game (and send the reason to the user) */
 	onAddPlayer?(player: Player, lateJoin?: boolean): boolean | undefined;
 	onAddLateJoinQueuedPlayers?(players: Player[]): void;
@@ -1069,6 +1091,7 @@ export class ScriptedGame extends Game {
 	onBattleWin?(room: Room, winner: string): void;
 	onChildEnd?(winners: Map<Player, number>): void;
 	onChildHint?(hint: string, answers: readonly string[], newAnswer: boolean): void;
+	onChildPlayerTurn?(player: Player): void;
 	onDeallocate?(forceEnd: boolean): void;
 	onEliminatePlayer?(player: Player, eliminationCause?: string | null, eliminator?: Player | null): void;
 	onMaxRound?(): void;

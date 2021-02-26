@@ -376,8 +376,8 @@ describe("Games", () => {
 	it('should properly start one vs. one challenges', function(this: Mocha.Context) {
 		const challenger = Users.add("Challenger", "challenger");
 		const defender = Users.add("Defender", "defender");
-		room.onUserJoin(challenger, ' ' );
-		room.onUserJoin(defender, ' ' );
+		room.onUserJoin(challenger, ' ');
+		room.onUserJoin(defender, ' ');
 
 		const oneVsOneFormat = Games.getInternalFormat('onevsone') as IGameFormat;
 
@@ -407,6 +407,44 @@ describe("Games", () => {
 			assert(parentGame.acceptChallenge(defender), format.name);
 			assert(parentGame.started, format.name);
 			parentGame.nextRound();
+			const childGame = room.game;
+			assert(childGame, format.name);
+			assertStrictEqual(childGame.parentGame, parentGame);
+			assert(childGame.signupsStarted, format.name);
+			assertStrictEqual(childGame.players[challengerPlayer.id], challengerPlayer);
+			assertStrictEqual(childGame.players[defenderPlayer.id], defenderPlayer);
+			assert(childGame.inheritedPlayers, format.name);
+			if (!format.freejoin) childGame.start();
+
+			childGame.deallocate(true);
+		}
+	});
+
+	it('should properly start bot challenges', function(this: Mocha.Context) {
+		const challenger = Users.add("Challenger", "challenger");
+		room.onUserJoin(challenger, ' ');
+		room.onUserJoin(Users.self, ' ');
+
+		const botChallengeFormat = Games.getInternalFormat('botchallenge') as IGameFormat;
+
+		for (const format of formatsToTest) {
+			if (!format.botChallenge || !format.botChallenge.enabled) continue;
+
+			const parentGame = Games.createGame(room, botChallengeFormat) as OneVsOne;
+			assert(parentGame, format.name);
+			assert(!parentGame.signupsStarted, format.name);
+			assert(!parentGame.started, format.name);
+			assertStrictEqual(parentGame.format.name, botChallengeFormat.name);
+
+			parentGame.setupChallenge(challenger, Users.self, format);
+			const challengerPlayer = parentGame.challenger;
+			const defenderPlayer = parentGame.defender;
+			assert(challengerPlayer, format.name);
+			assert(defenderPlayer, format.name);
+			assertStrictEqual(parentGame.challengeFormat, format);
+			assert(!parentGame.started, format.name);
+
+			parentGame.acceptChallenge(Users.self);
 			const childGame = room.game;
 			assert(childGame, format.name);
 			assertStrictEqual(childGame.parentGame, parentGame);
