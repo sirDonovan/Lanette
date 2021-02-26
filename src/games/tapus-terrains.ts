@@ -55,7 +55,7 @@ class TapusTerrains extends ScriptedGame {
 	isElimination: boolean = false;
 	points = new Map<Player, number>();
 	queue: Player[] = [];
-	revealTime: number = 4 * 1000;
+	roundTime: number = 4 * 1000;
 	roundJumps = new Map<Player, boolean>();
 	targetPokemon: string | null = null;
 	terrainDisplayTime: number = 5 * 1000;
@@ -85,7 +85,7 @@ class TapusTerrains extends ScriptedGame {
 
 	onSignups(): void {
 		if (this.format.options.freejoin) {
-			this.revealTime = 3 * 1000;
+			this.roundTime = 3 * 1000;
 			this.terrainDisplayTime = 3 * 1000;
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 		}
@@ -135,7 +135,7 @@ class TapusTerrains extends ScriptedGame {
 			if (this.format.options.freejoin) {
 				this.roundJumps.clear();
 			} else {
-				if (this.revealTime > 2000) this.revealTime -= 500;
+				if (this.roundTime > 2000) this.roundTime -= 500;
 				if (this.terrainRound === 20) {
 					this.end();
 					return;
@@ -175,10 +175,11 @@ class TapusTerrains extends ScriptedGame {
 						const pokemonUhtmlName = this.uhtmlBaseName + '-pokemon';
 						this.onUhtml(pokemonUhtmlName, pokemonHtml, () => {
 							this.canJump = true;
-							this.timeout = setTimeout(() => this.nextRound(), this.revealTime);
+							if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint("", [], true);
+							this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
 						});
 						this.sayUhtml(pokemonUhtmlName, pokemonHtml);
-					}, this.revealTime);
+					}, this.roundTime);
 				});
 				this.timeout = setTimeout(() => this.sayUhtml(terrainUhtmlName, terrainHtml), this.terrainDisplayTime);
 			});
@@ -188,10 +189,11 @@ class TapusTerrains extends ScriptedGame {
 				const uhtmlName = this.uhtmlBaseName + '-pokemon';
 				this.onUhtml(uhtmlName, pokemonHtml, () => {
 					this.canJump = true;
-					this.timeout = setTimeout(() => this.nextRound(), this.revealTime);
+					if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint("", [], false);
+					this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
 				});
 				this.sayUhtmlAuto(uhtmlName, pokemonHtml);
-			}, this.revealTime);
+			}, this.roundTime);
 		}
 	}
 
@@ -208,6 +210,21 @@ class TapusTerrains extends ScriptedGame {
 
 		this.announceWinners();
 	}
+
+	isValidJump(): boolean {
+		if (this.currentTerrain && this.targetPokemon && data.pokemon[this.currentTerrain].includes(this.targetPokemon)) return true;
+		return false;
+	}
+
+	botChallengeTurn(botPlayer: Player): void {
+		if (!this.isValidJump()) return;
+
+		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
+		this.botTurnTimeout = setTimeout(() => {
+			this.say(Config.commandCharacter + "jump");
+			botPlayer.useCommand("jump");
+		}, this.sampleOne(this.botChallengeSpeeds!));
+	}
 }
 
 const commands: GameCommandDefinitions<TapusTerrains> = {
@@ -220,7 +237,7 @@ const commands: GameCommandDefinitions<TapusTerrains> = {
 			if (!this.canJump) return false;
 
 			if (this.format.options.freejoin) {
-				if (this.currentTerrain && this.targetPokemon && data.pokemon[this.currentTerrain].includes(this.targetPokemon)) {
+				if (this.isValidJump()) {
 					if (this.timeout) clearTimeout(this.timeout);
 					this.currentTerrain = null;
 					const points = this.addPoints(player, 1);
@@ -247,6 +264,11 @@ const commands: GameCommandDefinitions<TapusTerrains> = {
 
 export const game: IGameFile<TapusTerrains> = {
 	aliases: ['tapus', 'terrains', 'trace', 'tr'],
+	botChallenge: {
+		enabled: true,
+		options: ['speed'],
+		requiredFreejoin: true,
+	},
 	category: 'reaction',
 	class: TapusTerrains,
 	commandDescriptions: [Config.commandCharacter + 'jump'],

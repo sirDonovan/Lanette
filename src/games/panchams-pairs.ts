@@ -37,6 +37,7 @@ class PanchamPairs extends ScriptedGame {
 	paired = new Set<Player>();
 	pairRound: number = 0;
 	points = new Map<Player, number>();
+	roundTime: number = 15 * 1000;
 
 	static loadData(): void {
 		for (const pokemon of Games.getPokemonList()) {
@@ -128,9 +129,11 @@ class PanchamPairs extends ScriptedGame {
 				this.timeout = setTimeout(() => {
 					this.say("Time is up! " + this.getAnswers(""));
 					this.end();
-				}, 15 * 1000);
-			} else if (!this.format.options.freejoin) {
-				this.timeout = setTimeout(() => this.listPossiblePairs(), 15 * 1000);
+				}, this.roundTime);
+			} else if (this.format.options.freejoin) {
+				if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint("", [], true);
+			} else {
+				this.timeout = setTimeout(() => this.listPossiblePairs(), this.roundTime);
 			}
 		});
 		this.sayUhtmlAuto(uhtmlName, html);
@@ -292,6 +295,17 @@ class PanchamPairs extends ScriptedGame {
 		}
 		return false;
 	}
+
+	botChallengeTurn(botPlayer: Player, newAnswer: boolean): void {
+		if (!newAnswer) return;
+
+		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
+		this.botTurnTimeout = setTimeout(() => {
+			const pair = this.getRandomPair()!.join(", ").toLowerCase();
+			this.say(Config.commandCharacter + "pair " + pair);
+			botPlayer.useCommand("pair", pair);
+		}, this.sampleOne(this.botChallengeSpeeds!));
+	}
 }
 
 const commands: GameCommandDefinitions<PanchamPairs> = {
@@ -368,6 +382,11 @@ const commands: GameCommandDefinitions<PanchamPairs> = {
 
 export const game: IGameFile<PanchamPairs> = {
 	aliases: ["panchams", "pairs"],
+	botChallenge: {
+		enabled: true,
+		options: ['speed'],
+		requiredFreejoin: true,
+	},
 	category: 'knowledge',
 	commandDescriptions: [Config.commandCharacter + "pair [name, name, param type]"],
 	commands,

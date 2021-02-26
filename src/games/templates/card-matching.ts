@@ -569,6 +569,8 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			this.updatePlayerHtmlPage(player!);
 			player!.sendHighlightPage("It is your turn!");
 
+			if (this.parentGame && this.parentGame.onChildPlayerTurn) this.parentGame.onChildPlayerTurn(player!);
+
 			const timeAfterWarning = this.turnTimeLimit - this.turnWarningTime;
 			this.timeout = setTimeout(() => {
 				const timeAfterWarningString = Tools.toDurationString(timeAfterWarning);
@@ -743,6 +745,30 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		if (player.eliminated) return;
 		this.updatePlayerHtmlPage(player);
 	}
+
+	botChallengeTurn(botPlayer: Player): void {
+		const cards = this.playerCards.get(botPlayer);
+		if (!cards) throw new Error(botPlayer.name + " has no hand");
+
+		const turnCards = this.getTurnCards(botPlayer);
+		let play: string | undefined;
+		if (turnCards.group.length) {
+			play = this.sampleOne(turnCards.group).map(x => x.name).join(", ");
+		} else if (turnCards.single.length) {
+			play = this.sampleOne(turnCards.single).name;
+		} else if (turnCards.action.length) {
+			play = this.sampleOne(turnCards.action).action!.getAutoPlayTarget(this, cards);
+		}
+
+		if (!play) throw new Error(botPlayer.name + " does not have a card to play");
+
+		this.botTurnTimeout = setTimeout(() => {
+			this.say(Config.commandCharacter + "play " + play);
+			this.botTurnTimeout = setTimeout(() => {
+				botPlayer.useCommand("play", play);
+			}, 300);
+		}, this.sampleOne([1000, 2000, 3000]));
+	}
 }
 
 const commands: GameCommandDefinitions<CardMatching> = {
@@ -831,6 +857,9 @@ const tests: GameFileTests<CardMatching> = {
 };
 
 export const game: IGameTemplateFile<CardMatching> = Object.assign(Tools.deepClone(cardGame), {
+	botChallenge: {
+		enabled: true,
+	},
 	category: 'luck' as GameCategory,
 	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
 	modes: undefined,

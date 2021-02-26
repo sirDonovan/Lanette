@@ -114,6 +114,7 @@ class InkaysCups extends ScriptedGame {
 		const text = "Grab a Pokemon that fits the parameters: **" + Tools.joinList(paramNames) + "**!";
 		this.on(text, () => {
 			this.canGrab = true;
+			if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint(Tools.joinList(paramNames), this.answers, true);
 			if (this.timeout) clearTimeout(this.timeout);
 			this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
 		});
@@ -161,6 +162,15 @@ class InkaysCups extends ScriptedGame {
 	getAnswers(givenAnswer: string): string {
 		if (!givenAnswer) givenAnswer = Dex.getExistingPokemon(this.answers[0]).name;
 		return "A possible answer was __" + givenAnswer + "__.";
+	}
+
+	botChallengeTurn(botPlayer: Player, newAnswer: boolean): void {
+		if (!newAnswer) return;
+
+		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
+		this.botTurnTimeout = setTimeout(() => {
+			botPlayer.useCommand("grab", this.sampleOne(this.answers).toLowerCase());
+		}, this.sampleOne(this.botChallengeSpeeds!));
 	}
 }
 
@@ -216,6 +226,11 @@ const commands: GameCommandDefinitions<InkaysCups> = {
 
 export const game: IGameFile<InkaysCups> = {
 	aliases: ['inkays', 'cups'],
+	botChallenge: {
+		enabled: true,
+		options: ['speed'],
+		requiredFreejoin: true,
+	},
 	category: 'knowledge',
 	class: InkaysCups,
 	commandDescriptions: [Config.commandCharacter + 'grab [Pokemon]'],

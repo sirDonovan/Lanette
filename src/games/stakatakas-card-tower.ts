@@ -275,6 +275,9 @@ const tests: GameFileTests<StakatakasCardTower> = {
 
 export const game: IGameFile<StakatakasCardTower> = Games.copyTemplateProperties(cardGame, {
 	aliases: ["stakatakas", "cardtower", "sct"],
+	botChallenge: {
+		enabled: false,
+	},
 	commandDescriptions: [Config.commandCharacter + "play [Pokemon], [Pokemon], [...]", Config.commandCharacter + "draw"],
 	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
 	class: StakatakasCardTower,

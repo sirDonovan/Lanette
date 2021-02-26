@@ -207,11 +207,12 @@ class TropiusBerryPicking extends ScriptedGame {
 
 		this.on(smeargleText, () => {
 			this.canEat = true;
+			if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint(smeargleText, [], true);
 			this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
 		});
 
 		if (this.format.options.freejoin) {
-			this.timeout = setTimeout(() => this.say(smeargleText), 5000);
+			this.say(smeargleText);
 		} else {
 			const html = this.getRoundHtml(players => this.getPlayerNames(players));
 			const uhtmlName = this.uhtmlBaseName + '-round-html';
@@ -240,6 +241,25 @@ class TropiusBerryPicking extends ScriptedGame {
 
 		this.announceWinners();
 	}
+
+	botChallengeTurn(botPlayer: Player, newAnswer: boolean): void {
+		if (!newAnswer) return;
+
+		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
+		this.botTurnTimeout = setTimeout(() => {
+			let answer = '';
+			const keys = this.shuffle(Object.keys(berries));
+			for (const key of keys) {
+				if (berries[key].effect === this.roundEffect.effect) {
+					answer = berries[key].name.toLowerCase();
+					break;
+				}
+			}
+
+			this.say(Config.commandCharacter + "eat " + answer);
+			botPlayer.useCommand("eat", answer);
+		}, this.sampleOne(this.botChallengeSpeeds!));
+	}
 }
 
 const commands: GameCommandDefinitions<TropiusBerryPicking> = {
@@ -266,7 +286,7 @@ const commands: GameCommandDefinitions<TropiusBerryPicking> = {
 					return true;
 				}
 				this.roundEffect = noEffect;
-				this.nextRound();
+				this.timeout = setTimeout(() => this.nextRound(), 5000);
 			} else {
 				if (this.roundBerries.has(player)) return false;
 				this.roundBerries.set(player, berry);
@@ -279,6 +299,11 @@ const commands: GameCommandDefinitions<TropiusBerryPicking> = {
 
 export const game: IGameFile<TropiusBerryPicking> = {
 	aliases: ["tropius", "berrypicking", "berries", "tbp"],
+	botChallenge: {
+		enabled: true,
+		options: ['speed'],
+		requiredFreejoin: true,
+	},
 	category: 'knowledge',
 	commandDescriptions: [Config.commandCharacter + "eat [berry]"],
 	commands,

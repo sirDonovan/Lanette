@@ -73,6 +73,7 @@ class NinjasksCorners extends ScriptedGame {
 				const text = "The corner is **" + color + "**!";
 				this.on(text, () => {
 					this.canTravel = true;
+					if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint(color, [], true);
 					this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
 				});
 				this.say(text);
@@ -93,6 +94,16 @@ class NinjasksCorners extends ScriptedGame {
 		if (this.format.options.freejoin) this.convertPointsToBits(0);
 
 		this.announceWinners();
+	}
+
+	botChallengeTurn(botPlayer: Player, newAnswer: boolean): void {
+		if (!newAnswer) return;
+
+		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
+		this.botTurnTimeout = setTimeout(() => {
+			this.say(Config.commandCharacter + "travel " + this.color);
+			botPlayer.useCommand("travel", this.color);
+		}, this.sampleOne(this.botChallengeSpeeds!));
 	}
 }
 
@@ -130,6 +141,11 @@ const commands: GameCommandDefinitions<NinjasksCorners> = {
 
 export const game: IGameFile<NinjasksCorners> = {
 	aliases: ["ninjasks", "nc"],
+	botChallenge: {
+		enabled: true,
+		options: ['speed'],
+		requiredFreejoin: true,
+	},
 	category: 'speed',
 	commandDescriptions: [Config.commandCharacter + "travel [color]"],
 	commands,

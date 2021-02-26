@@ -177,6 +177,7 @@ export abstract class Chain extends ScriptedGame {
 			this.setLink();
 			text = "The " + this.mascot!.name + " spelled out **" + this.currentLink.name + "**.";
 			this.on(text, () => {
+				if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint(this.currentLink.name, [], true);
 				this.timeout = setTimeout(() => {
 					this.say("Time is up!");
 					this.nextRound();
@@ -252,6 +253,45 @@ export abstract class Chain extends ScriptedGame {
 			this.linkEndCounts[end]++;
 		}
 	}
+
+	isValidLink(possibleLink: Link): boolean {
+		const linkStarts = this.getLinkStarts(possibleLink);
+
+		for (const start of linkStarts) {
+			if (this.targetLinkStarts.includes(start)) {
+				return true;
+			}
+		}
+
+		if (this.canReverseLinks) {
+			const linkEnds = this.getLinkEnds(possibleLink);
+			for (const end of linkEnds) {
+				if (this.targetLinkEnds.includes(end)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	botChallengeTurn(botPlayer: Player, newAnswer: boolean): void {
+		if (!newAnswer) return;
+
+		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
+		this.botTurnTimeout = setTimeout(() => {
+			let answer = '';
+			const keys = this.shuffle(Object.keys(this.pool));
+			for (const key of keys) {
+				if (this.isValidLink(this.pool[key])) {
+					answer = key.toLowerCase();
+					break;
+				}
+			}
+
+			this.say(Config.commandCharacter + "g " + answer);
+			botPlayer.useCommand("g", answer);
+		}, this.sampleOne(this.botChallengeSpeeds!));
+	}
 }
 
 const commands: GameCommandDefinitions<Chain> = {
@@ -270,25 +310,9 @@ const commands: GameCommandDefinitions<Chain> = {
 				if (!this.format.options.freejoin) this.say("'" + guess + "' is not a valid " + this.linksType + ".");
 				return false;
 			}
-			const linkStarts = this.getLinkStarts(possibleLink);
-			let linkEnds: string[] = [];
-			if (this.canReverseLinks) linkEnds = this.getLinkEnds(possibleLink);
-			let match = false;
-			for (const start of linkStarts) {
-				if (this.targetLinkStarts.includes(start)) {
-					match = true;
-					break;
-				}
-			}
-			if (!match && this.canReverseLinks) {
-				for (const end of linkEnds) {
-					if (this.targetLinkEnds.includes(end)) {
-						match = true;
-						break;
-					}
-				}
-			}
-			if (!match) return false;
+
+			if (!this.isValidLink(possibleLink)) return false;
+
 			if (this.timeout) clearTimeout(this.timeout);
 			if (this.format.options.freejoin) {
 				this.targetLinkStarts = [];

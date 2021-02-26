@@ -21,6 +21,7 @@ class PoipolesRegionalPortals extends ScriptedGame {
 	maxTravelersPerRound: number = 0;
 	points = new Map<Player, number>();
 	roundLocations: string[] = [];
+	roundTime: number = 20 * 1000;
 	roundTravels = new Set<Player>();
 	winnerPointsToBits: number = 25;
 
@@ -95,12 +96,14 @@ class PoipolesRegionalPortals extends ScriptedGame {
 		this.lastType = type;
 
 		this.roundLocations = data.regions[region][type]!.slice();
+		this.roundTravels.clear();
+
 		if (this.roundLocations.length < this.baseTravelersPerRound) {
 			this.maxTravelersPerRound = this.roundLocations.length;
 		} else {
 			this.maxTravelersPerRound = this.baseTravelersPerRound;
 		}
-		this.roundTravels.clear();
+		if (this.inheritedPlayers && this.maxTravelersPerRound > this.playerCount) this.maxTravelersPerRound = this.playerCount;
 
 		const html = this.getRoundHtml(players => this.getPlayerPoints(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
@@ -110,7 +113,8 @@ class PoipolesRegionalPortals extends ScriptedGame {
 					"**" + Dex.regionNames[region] + "**!";
 				this.on(text, () => {
 					this.canTravel = true;
-					this.timeout = setTimeout(() => this.nextRound(), 20 * 1000);
+					if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint("", this.roundLocations, true);
+					this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
 				});
 				this.say(text);
 			}, 5000);
@@ -121,6 +125,17 @@ class PoipolesRegionalPortals extends ScriptedGame {
 	onEnd(): void {
 		this.convertPointsToBits();
 		this.announceWinners();
+	}
+
+	botChallengeTurn(botPlayer: Player, newAnswer: boolean): void {
+		if (!newAnswer) return;
+
+		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
+		this.botTurnTimeout = setTimeout(() => {
+			const location = this.sampleOne(this.roundLocations).toLowerCase();
+			this.say(Config.commandCharacter + "travel " + location);
+			botPlayer.useCommand("travel", location);
+		}, this.sampleOne(this.botChallengeSpeeds!));
 	}
 }
 
@@ -157,6 +172,10 @@ const commands: GameCommandDefinitions<PoipolesRegionalPortals> = {
 
 export const game: IGameFile<PoipolesRegionalPortals> = {
 	aliases: ["poipoles", "prp", "regionalportals", "portals"],
+	botChallenge: {
+		enabled: true,
+		options: ['speed'],
+	},
 	category: 'knowledge',
 	commandDescriptions: [Config.commandCharacter + "travel [location]"],
 	commands,
