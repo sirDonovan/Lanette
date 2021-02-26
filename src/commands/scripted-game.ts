@@ -729,7 +729,7 @@ export const commands: BaseCommandDefinitions = {
 
 			if (gameRoom.game) {
 				const game = gameRoom.game;
-				let html = game.getMascotAndNameHtml();
+				let html = game.getMascotAndNameHtml("", true);
 				html += "<br />";
 				if (game.started) {
 					if (game.startTime) html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - game.startTime) + "<br />";
