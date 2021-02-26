@@ -23,6 +23,8 @@ class GrumpigsPokemath extends QuestionAndAnswer {
 	lastResult: number = 0;
 	roundTime = 30 * 1000;
 
+	roundOperands?: number;
+
 	static loadData(): void {
 		const pokedex = Games.getPokemonList();
 		for (const pokemon of pokedex) {
@@ -95,7 +97,9 @@ class GrumpigsPokemath extends QuestionAndAnswer {
 		this.lastOperation = operation;
 
 		let operandsCount: number;
-		if (this.format.inputOptions.operands) {
+		if (this.roundOperands) {
+			operandsCount = this.roundOperands;
+		} else if (this.format.inputOptions.operands) {
 			operandsCount = this.format.options.operands;
 		} else {
 			operandsCount = BASE_OPERANDS;
@@ -147,5 +151,10 @@ export const game: IGameFile<GrumpigsPokemath> = Games.copyTemplateProperties(qu
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess the Pokemon whose dex number matches the answer to " +
 		"the math problem!",
 	modes: ["survival", "team"],
+	modeProperties: {
+		'survival': {
+			roundOperands: BASE_OPERANDS,
+		},
+	},
 	tests: Object.assign({}, questionAndAnswerGame.tests, tests),
 });
