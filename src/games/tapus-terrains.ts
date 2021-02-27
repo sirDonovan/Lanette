@@ -238,7 +238,9 @@ const commands: GameCommandDefinitions<TapusTerrains> = {
 
 			if (this.format.options.freejoin) {
 				if (this.isValidJump()) {
+					if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
 					if (this.timeout) clearTimeout(this.timeout);
+
 					this.currentTerrain = null;
 					const points = this.addPoints(player, 1);
 					if (points === this.format.options.points) {

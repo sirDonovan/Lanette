@@ -117,6 +117,9 @@ const commands: GameCommandDefinitions<NinjasksCorners> = {
 			if (!color) return false;
 			if (this.format.options.freejoin) {
 				if (color !== this.color) return false;
+
+				if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
+
 				let points = this.points.get(player) || 0;
 				points++;
 				this.points.set(player, points);

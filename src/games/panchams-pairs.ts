@@ -336,6 +336,8 @@ const commands: GameCommandDefinitions<PanchamPairs> = {
 				return true;
 			}
 
+			if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
+
 			if (this.format.options.freejoin) {
 				let points = this.points.get(player) || 0;
 				points++;

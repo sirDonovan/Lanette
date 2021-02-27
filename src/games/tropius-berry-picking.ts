@@ -273,7 +273,10 @@ const commands: GameCommandDefinitions<TropiusBerryPicking> = {
 			if (!berry) return false;
 			if (this.format.options.freejoin) {
 				if (berry.effect !== this.roundEffect.effect) return false;
+
+				if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
 				if (this.timeout) clearTimeout(this.timeout);
+
 				this.canEat = false;
 				let points = this.points.get(player) || 0;
 				points += 1;

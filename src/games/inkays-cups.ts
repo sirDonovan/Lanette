@@ -195,6 +195,8 @@ const commands: GameCommandDefinitions<InkaysCups> = {
 			}
 			if (answerIndex === -1) return false;
 
+			if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
+
 			const answer = Dex.getExistingPokemon(this.answers[answerIndex]).name;
 			if (this.format.options.freejoin) {
 				let points = this.points.get(player) || 0;

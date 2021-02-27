@@ -313,7 +313,9 @@ const commands: GameCommandDefinitions<Chain> = {
 
 			if (!this.isValidLink(possibleLink)) return false;
 
+			if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
 			if (this.timeout) clearTimeout(this.timeout);
+
 			if (this.format.options.freejoin) {
 				this.targetLinkStarts = [];
 				this.targetLinkEnds = [];
