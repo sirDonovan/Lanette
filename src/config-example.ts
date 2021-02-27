@@ -1,3 +1,4 @@
+import type { Player } from "./room-activity";
 import type { Room } from "./rooms";
 import type { GroupName } from "./types/client";
 import type { IGameHostBoxPokemon, IGameTrainerCardPokemon } from "./types/config";
@@ -400,9 +401,9 @@ export let githubApiCredentials: Dict<{token: string; username: string}> = {};
  */
 export let gameCatalogGists: Dict<{description: string; files: string[]; id: string}> = {};
 
-export let onScriptedGameWin: ((room: Room, format: IGameFormat, winners: string[]) => void) | undefined = undefined;
+export let onScriptedGameWin: ((room: Room, format: IGameFormat, winners: Map<Player, number>) => void) | undefined = undefined;
 
-export let onUserHostedGameWin: ((room: Room, format: IUserHostedFormat, winners: string[]) => void) | undefined = undefined;
+export let onUserHostedGameWin: ((room: Room, format: IUserHostedFormat, winners: Map<Player, number>) => void) | undefined = undefined;
 
 export let onUserHostedGameHost: ((room: Room, format: IUserHostedFormat, hostName: string) => void) | undefined = undefined;
 
