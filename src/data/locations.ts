@@ -130,7 +130,6 @@ export const locations: LocationData = {
 		other: [
 			"Abandoned Ship",
 			"Ancient Tomb",
-			"Aqua Hideout",
 			"Desert Ruins",
 			"Fiery Path",
 			"Jagged Pass",
