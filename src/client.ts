@@ -36,6 +36,7 @@ const UHTML_CHAT_COMMAND = '/uhtml ';
 const UHTML_CHANGE_CHAT_COMMAND = '/uhtmlchange ';
 const HANGMAN_START_COMMAND = "/log A game of hangman was started by ";
 const HANGMAN_END_COMMAND = "/log (The game of hangman was ended by ";
+const HANGMAN_END_RAW_MESSAGE = "The game of hangman was ended.";
 
 const DEFAULT_GROUP_SYMBOLS: KeyedDict<GroupName, string> = {
 	'administrator': '&',
@@ -1167,6 +1168,7 @@ export class Client {
 			const messageArguments: IClientMessageTypes[''] = {
 				message: rawMessage,
 			};
+
 			if (messageArguments.message.startsWith('Banned phrases in room ')) {
 				let subMessage = messageArguments.message.split('Banned phrases in room ')[1];
 				const colonIndex = subMessage.indexOf(':');
@@ -1179,6 +1181,8 @@ export class Client {
 						bannedWordsRoom.serverBannedWordsRegex = null;
 					}
 				}
+			} else if (messageArguments.message === HANGMAN_END_RAW_MESSAGE) {
+				delete room.serverHangman;
 			}
 			break;
 		}
