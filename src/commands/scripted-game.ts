@@ -229,6 +229,12 @@ export const commands: BaseCommandDefinitions = {
 				user.say("You must wait until the game of " + room.game.name + " ends.");
 				return;
 			}
+
+			if (room.userHostedGame) {
+				user.say("You must wait until the game of " + room.userHostedGame.name + " ends.");
+				return;
+			}
+
 			if (Games.reloadInProgress) {
 				user.say(CommandParser.getErrorText(['reloadInProgress']));
 				return;
@@ -321,6 +327,12 @@ export const commands: BaseCommandDefinitions = {
 				user.say("You must wait until the game of " + room.game.name + " ends.");
 				return;
 			}
+
+			if (room.userHostedGame) {
+				user.say("You must wait until the game of " + room.userHostedGame.name + " ends.");
+				return;
+			}
+
 			if (Games.reloadInProgress) {
 				user.say(CommandParser.getErrorText(['reloadInProgress']));
 				return;
