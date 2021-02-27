@@ -300,11 +300,6 @@ class DarkraisLair extends MapGame {
 
 		if (emptyTeams >= this.teamCount - 1) {
 			this.say("Only one team remains!");
-			const winningTeam = this.getFinalTeam()!;
-			for (const player of winningTeam.players) {
-				this.winners.set(player, 1);
-			}
-
 			this.timeout = setTimeout(() => this.end(), 5000);
 			return;
 		}

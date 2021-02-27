@@ -87,21 +87,20 @@ class BounsweetsBountifulBuffet extends ScriptedGame {
 
 		if (this.round === 11) {
 			this.say("The buffet has ended!");
-			let maxPoints = -1;
-			let bestPlayer = null;
+			let highestPoints = 0;
 			for (const id in this.players) {
 				const player = this.players[id];
 				const points = this.points.get(player);
 				if (!points) continue;
-				if (points > maxPoints) {
-					maxPoints = points;
-					bestPlayer = player;
+				if (points > highestPoints) {
+					this.winners.clear();
+					this.winners.set(player, points);
+					highestPoints = points;
+				} else if (points === highestPoints) {
+					this.winners.set(player, points);
 				}
 			}
-			if (bestPlayer) {
-				this.winners.set(bestPlayer, 1);
-				this.addBits(bestPlayer, 500);
-			}
+
 			this.end();
 			return;
 		}
@@ -136,6 +135,9 @@ class BounsweetsBountifulBuffet extends ScriptedGame {
 	}
 
 	onEnd(): void {
+		this.winners.forEach((points, player) => {
+			this.addBits(player, 500);
+		});
 		this.announceWinners();
 	}
 }

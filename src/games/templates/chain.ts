@@ -326,7 +326,7 @@ const commands: GameCommandDefinitions<Chain> = {
 				this.say('**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '! A possible ' +
 					'answer was __' + possibleLink.name + '__.');
 				if (points === this.format.options.points) {
-					this.winners.set(player, 1);
+					this.winners.set(player, points);
 					this.end();
 					return true;
 				}

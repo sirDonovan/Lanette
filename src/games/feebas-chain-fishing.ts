@@ -132,7 +132,7 @@ class FeebasChainFishing extends ScriptedGame {
 				this.winners.clear();
 				highestPoints = points;
 			}
-			if (points === highestPoints) this.winners.set(player, 1);
+			if (points === highestPoints) this.winners.set(player, points);
 		}
 
 		this.winners.forEach((value, player) => {

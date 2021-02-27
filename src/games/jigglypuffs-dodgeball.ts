@@ -83,15 +83,9 @@ class JigglypuffsDodgeball extends ScriptedGame {
 	}
 
 	onEnd(): void {
-		let team: PlayerTeam | undefined;
-		for (const i in this.players) {
-			if (this.players[i].eliminated || this.players[i].frozen) continue;
-			team = this.players[i].team!;
-			break;
-		}
-
-		if (team) {
-			for (const player of team.players) {
+		const winningTeam = this.getFinalTeam();
+		if (winningTeam) {
+			for (const player of winningTeam.players) {
 				this.winners.set(player, 1);
 				let earnings = 250;
 				if (!player.eliminated && !player.frozen) earnings *= 2;

@@ -137,7 +137,7 @@ class ShedinjasWonderTrials extends ScriptedGame {
 			const player = this.players[i];
 			const points = this.points.get(player);
 			if (points && points >= this.maxPoints) {
-				this.winners.set(player, 1);
+				this.winners.set(player, points);
 				this.addBits(player, 500);
 				if (this.firstMove === player) this.unlockAchievement(player, ShedinjasWonderTrials.achievements.wonderguardwarrior);
 			}

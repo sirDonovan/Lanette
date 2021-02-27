@@ -109,7 +109,7 @@ class SerperiorLengthyChains extends ScriptedGame {
 				this.say("**" + this.bestPlayer.name + "** advances to " + points + " point" + (points > 1 ? "s" : "") + " with their " +
 					"chain " + "__" + this.bestChain.join(" + ") + "__!");
 				if (points >= this.format.options.points) {
-					this.winners.set(this.bestPlayer, 1);
+					this.winners.set(this.bestPlayer, points);
 					this.end();
 					return;
 				}

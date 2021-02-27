@@ -165,10 +165,10 @@ class MagikarpsWaterWheel extends ScriptedGame {
 			bits.set(player, Math.min(250, points / 10));
 			if (points > highestPoints) {
 				this.winners.clear();
-				this.winners.set(player, 1);
+				this.winners.set(player, points);
 				highestPoints = points;
 			} else if (points === highestPoints) {
-				this.winners.set(player, 1);
+				this.winners.set(player, points);
 			}
 		}
 

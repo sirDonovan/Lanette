@@ -240,7 +240,7 @@ export abstract class CardHighLow extends Card {
 			}
 			*/
 			this.addBits(player, this.bitsPerRound * points);
-			this.winners.set(player, 1);
+			this.winners.set(player, points);
 		}
 
 		this.announceWinners();

@@ -198,7 +198,7 @@ class SpindasExcludedPokemon extends ScriptedGame {
 			const player = this.players[id];
 			const points = this.points.get(player);
 			if (points === this.format.options.points) {
-				this.winners.set(player, 1);
+				this.winners.set(player, points);
 				this.addBits(player, 500);
 			} else if (points) {
 				this.addBits(player, 100 * points);

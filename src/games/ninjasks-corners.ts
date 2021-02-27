@@ -87,7 +87,7 @@ class NinjasksCorners extends ScriptedGame {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
 			if (player === this.firstTravel) this.unlockAchievement(player, NinjasksCorners.achievements.speedbooster);
-			this.winners.set(player, 1);
+			this.winners.set(player, this.format.options.freejoin ? this.points.get(player)! : 1);
 			this.addBits(player, 250);
 		}
 

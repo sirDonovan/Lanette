@@ -156,7 +156,7 @@ class TrubbishsTrash extends ScriptedGame {
 			const player = this.players[i];
 			const points = this.points.get(player);
 			if (points && points >= this.maxPoints) {
-				this.winners.set(player, 1);
+				this.winners.set(player, points);
 				if (this.firstTrash === player) this.unlockAchievement(player, TrubbishsTrash.achievements.garbagecollector);
 				if (this.weakestTrash === player) this.unlockAchievement(player, TrubbishsTrash.achievements.technician);
 			}

@@ -73,7 +73,7 @@ class PoipolesRegionalPortals extends ScriptedGame {
 		let reachedCap = false;
 		this.points.forEach((points, player) => {
 			if (points >= this.format.options.points) {
-				this.winners.set(player, 1);
+				this.winners.set(player, points);
 				if (!reachedCap) reachedCap = true;
 			}
 		});

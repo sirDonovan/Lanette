@@ -178,7 +178,7 @@ class TaurosSafariZone extends ScriptedGame {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
 			const points = this.points.get(player);
-			if (points && points >= this.maxPoints) this.winners.set(player, 1);
+			if (points && points >= this.maxPoints) this.winners.set(player, points);
 			if (this.firstCatch && player === this.firstCatch) this.unlockAchievement(player, TaurosSafariZone.achievements.pokemonranger);
 		}
 

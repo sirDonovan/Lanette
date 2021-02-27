@@ -112,7 +112,7 @@ class DedennesAbilityBlitz extends ScriptedGame {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
 			const points = this.points.get(player);
-			if (points && points >= this.maxPoints) this.winners.set(player, 1);
+			if (points && points >= this.maxPoints) this.winners.set(player, points);
 		}
 		this.convertPointsToBits(0.5, 0.1);
 		this.announceWinners();

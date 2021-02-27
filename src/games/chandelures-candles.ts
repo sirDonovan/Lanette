@@ -84,9 +84,10 @@ class ChandeluresCandles extends ScriptedGame {
 			for (const i in this.players) {
 				if (this.players[i].eliminated) continue;
 				const player = this.players[i];
-				this.winners.set(player, 1);
 				const puffs = this.puffs.get(player);
+				this.winners.set(player, puffs || 1);
 				if (!puffs) continue;
+
 				const lives = this.lives.get(player)!;
 				let bits;
 				if (lives < 1) {
