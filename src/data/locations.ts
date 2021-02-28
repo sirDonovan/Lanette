@@ -251,7 +251,7 @@ export const locations: LocationData = {
 			"Desert Resort",
 			"Dragonspiral Tower",
 			"Dreamyard",
-			"Floccessy Ranch",
+			"Floccesy Ranch",
 			"Giant Chasm",
 			"Liberty Garden",
 			"Moor of Icirrus",
