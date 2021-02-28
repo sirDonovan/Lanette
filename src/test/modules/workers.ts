@@ -17,8 +17,15 @@ describe("Parameters Worker", () => {
 			searchType: 'pokemon',
 		};
 
-		// learnsets + forme
+		// non-existent parameter value
 		let intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
+			{params: [paramTypePools.tier.ou, {type: 'move', param: 'Non-existent Move'}]}));
+		assert(intersection);
+		assertStrictEqual(intersection.params.length, 2);
+		assertStrictEqual(intersection.pokemon.length, 0);
+
+		// learnsets + forme
+		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.type.steeltype, paramTypePools.move.rockclimb]}));
 		assert(intersection);
 		assertStrictEqual(intersection.params.length, 2);

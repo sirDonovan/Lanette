@@ -233,9 +233,9 @@ export class Tools {
 	intersectParams(paramsType: ParametersSearchType, params: IParam[], parametersData: DeepImmutableObject<IParametersGenData>): string[] {
 		let tierSearch = false;
 		for (const param of params) {
-			if (param.type === 'tier') {
+			if (!(param.type in parametersData.paramTypeDexes) || !(param.param in parametersData.paramTypeDexes[param.type])) return [];
+			if (!tierSearch && param.type === 'tier') {
 				tierSearch = true;
-				break;
 			}
 		}
 
