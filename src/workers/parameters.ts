@@ -243,20 +243,25 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 
 			const movesList = Games.getMovesList(undefined, gen);
 			for (const move of movesList) {
-				const moveParam = {type: 'move' as ParamType, param: move.name};
-				if (move.id.startsWith('hiddenpower')) {
-					const id = Tools.toId(move.name);
-					moves[id] = moveParam;
-					moves[id + 'move'] = moveParam;
-				} else {
-					moves[move.id] = moveParam;
-					moves[move.id + 'move'] = moveParam;
-				}
-
+				let possibleMove = false;
 				for (const pokemon of pokedex) {
 					if (allPossibleMoves[pokemon.id].includes(move.id)) {
+						if (!possibleMove) possibleMove = true;
+
 						if (!(move.name in moveDex)) moveDex[move.name] = [];
 						moveDex[move.name].push(pokemon.name);
+					}
+				}
+
+				if (possibleMove) {
+					const moveParam = {type: 'move' as ParamType, param: move.name};
+					if (move.id.startsWith('hiddenpower')) {
+						const id = Tools.toId(move.name);
+						moves[id] = moveParam;
+						moves[id + 'move'] = moveParam;
+					} else {
+						moves[move.id] = moveParam;
+						moves[move.id + 'move'] = moveParam;
 					}
 				}
 			}

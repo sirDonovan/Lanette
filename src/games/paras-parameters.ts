@@ -221,7 +221,12 @@ const tests: GameFileTests<ParasParameters> = {
 			assertStrictEqual(game.params[1].type, 'egggroup');
 			game.customParamTypes = null;
 
-			let intersection = game.intersect(['steeltype']);
+			let intersection = game.intersect(['steeltype', 'nonexistent']);
+			assert(intersection);
+			assertStrictEqual(intersection.params.length, 0);
+			assertStrictEqual(intersection.pokemon.length, 0);
+
+			intersection = game.intersect(['steeltype']);
 			assert(intersection);
 			assertStrictEqual(intersection.params.length, 0);
 			assertStrictEqual(intersection.pokemon.length, 0);
