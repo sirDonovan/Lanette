@@ -1405,11 +1405,13 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 		const battleData = this.battleData.get(room)!;
 		const slot = pokemonArgument.substr(0, 2);
-		const name = pokemonArgument.substr(5);
-		let pokemon = Dex.getPokemon(name);
+		const name = pokemonArgument.substr(5).trim();
 
-		if (!pokemon && slot in battleData.nicknames && name in battleData.nicknames[slot]) {
+		let pokemon: IPokemon | undefined;
+		if (slot in battleData.nicknames && name in battleData.nicknames[slot]) {
 			pokemon = Dex.getPokemon(battleData.nicknames[slot][name]);
+		} else {
+			pokemon = Dex.getPokemon(name);
 		}
 
 		if (pokemon) {
