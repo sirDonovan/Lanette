@@ -27,6 +27,7 @@ class DragapultsDangerZone extends ScriptedGame {
 	lastFiredLocation: string = '';
 	matchupPlayers: Player[] = [];
 	matchupsWon = new Map<Player, number>();
+	maxPlayers = 20;
 	minPlayers = 4;
 	playerLocations = new Map<Player, string>();
 	playerOrders: Dict<Player[]> = {};
@@ -182,7 +183,11 @@ class DragapultsDangerZone extends ScriptedGame {
 		}
 
 		this.setLargestTeam();
-		this.currentTeam = this.largestTeam.id as TeamIds;
+		for (const i in this.teams) {
+			if (this.teams[i] === this.largestTeam) continue;
+			this.currentTeam = this.teams[i].id as TeamIds;
+		}
+
 		this.nextRound();
 	}
 
@@ -346,21 +351,27 @@ class DragapultsDangerZone extends ScriptedGame {
 		}
 
 		let text = '';
-		if (playerAWin) {
-			text = this.handleMatchupResult(playerA, playerB, playerAPokemon!, playerBPokemon);
-		} else if (playerBWin) {
-			text = this.handleMatchupResult(playerB, playerA, playerBPokemon!, playerAPokemon);
-		} else {
+		if (!playerAWin && !playerBWin) {
 			text = "It was a tie between " + playerA.name + "'s " + playerAPokemon!.name + " and " +
 				playerB.name + "'s " + playerBPokemon!.name + "!";
+			this.on(text, () => {
+				this.timeout = setTimeout(() => this.startMatchup(this.matchupPlayers), 3 * 1000);
+			});
+		} else {
+			if (playerAWin) {
+				text = this.handleMatchupResult(playerA, playerB, playerAPokemon!, playerBPokemon);
+			} else if (playerBWin) {
+				text = this.handleMatchupResult(playerB, playerA, playerBPokemon!, playerAPokemon);
+			}
+
+			this.currentPlayer = null;
+			if (this.teamBased && (playerAWin || playerBWin)) this.setLargestTeam();
+
+			this.on(text, () => {
+				this.timeout = setTimeout(() => this.nextRound(), 3 * 1000);
+			});
 		}
 
-		this.currentPlayer = null;
-		if (this.teamBased && (playerAWin || playerBWin)) this.setLargestTeam();
-
-		this.on(text, () => {
-			this.timeout = setTimeout(() => this.nextRound(), 3 * 1000);
-		});
 		this.say(text);
 	}
 
