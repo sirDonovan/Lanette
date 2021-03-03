@@ -4,7 +4,7 @@ import type { GameCommandDefinitions, IGameFile } from "../types/games";
 
 const minGuess = 1;
 const maxGuess = 6;
-const basePoints = 10;
+const basePoints = 12;
 
 class FalinksFormations extends ScriptedGame {
 	points = new Map<Player, number>();
