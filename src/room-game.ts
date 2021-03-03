@@ -72,11 +72,20 @@ export abstract class Game extends Activity {
 		if (numberOfWinners) {
 			if (this.isUserHosted) {
 				if (Config.onUserHostedGameWin) {
-					Config.onUserHostedGameWin(this.room as Room, this.format as IUserHostedFormat, this.winners);
+					try {
+						Config.onUserHostedGameWin(this.room as Room, this.format as IUserHostedFormat, this.players, this.winners,
+							this.points);
+					} catch (e) {
+						Tools.logError(e, this.format!.name + " Config.onUserHostedGameWin");
+					}
 				}
 			} else if (!this.isPm(this.room)) {
 				if (Config.onScriptedGameWin) {
-					Config.onScriptedGameWin(this.room, this.format as IGameFormat, this.winners);
+					try {
+						Config.onScriptedGameWin(this.room, this.format as IGameFormat, this.players, this.winners, this.points);
+					} catch (e) {
+						Tools.logError(e, this.format!.name + " Config.onScriptedGameWin");
+					}
 				}
 			}
 

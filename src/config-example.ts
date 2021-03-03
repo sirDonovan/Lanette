@@ -401,9 +401,11 @@ export let githubApiCredentials: Dict<{token: string; username: string}> = {};
  */
 export let gameCatalogGists: Dict<{description: string; files: string[]; id: string}> = {};
 
-export let onScriptedGameWin: ((room: Room, format: IGameFormat, winners: Map<Player, number>) => void) | undefined = undefined;
+export let onScriptedGameWin: ((room: Room, format: IGameFormat, players: Dict<Player>, winners: Map<Player, number>,
+	points: Map<Player, number> | undefined) => void) | undefined = undefined;
 
-export let onUserHostedGameWin: ((room: Room, format: IUserHostedFormat, winners: Map<Player, number>) => void) | undefined = undefined;
+export let onUserHostedGameWin: ((room: Room, format: IUserHostedFormat, players: Dict<Player>, winners: Map<Player, number>,
+	points: Map<Player, number> | undefined) => void) | undefined = undefined;
 
 export let onUserHostedGameHost: ((room: Room, format: IUserHostedFormat, hostName: string) => void) | undefined = undefined;
 
