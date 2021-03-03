@@ -37,11 +37,9 @@ class DragapultsDangerZone extends ScriptedGame {
 	soloRound: number = 0;
 	teamBased: boolean = true;
 	teamColumnLetters = new Map<PlayerTeam, string[]>();
+	teamOrder: [TeamIds, TeamIds] = ['red', 'blue'];
 	teamRound: number = 0;
 	teams: Dict<PlayerTeam> | null = null;
-
-	// set in onStart()
-	largestTeam!: PlayerTeam;
 
 	static loadData(): void {
 		data.pokemon = Games.getPokemonList().map(x => x.name);
@@ -185,8 +183,9 @@ class DragapultsDangerZone extends ScriptedGame {
 		this.setLargestTeam();
 		for (const i in this.teams) {
 			if (this.teams[i] === this.largestTeam) continue;
-			this.currentTeam = this.teams[i].id as TeamIds;
+			this.teamOrder = [this.teams[i].id as TeamIds, this.largestTeam!.id as TeamIds];
 		}
+		this.currentTeam = this.teamOrder[0];
 
 		this.nextRound();
 	}
@@ -207,8 +206,8 @@ class DragapultsDangerZone extends ScriptedGame {
 				return this.end();
 			}
 
-			if (this.currentTeam === this.largestTeam.id && (!(this.largestTeam.id in this.playerOrders) ||
-				!this.playerOrders[this.largestTeam.id].length)) {
+			if (this.currentTeam === this.teamOrder[0] && (!(this.teams![this.currentTeam].id in this.playerOrders) ||
+				!this.playerOrders[this.teams![this.currentTeam].id].length)) {
 				this.setTeamPlayerOrders();
 
 				this.teamRound++;
@@ -228,10 +227,10 @@ class DragapultsDangerZone extends ScriptedGame {
 				player = this.playerOrders[team.id].shift()!;
 			}
 
-			this.currentTeam = this.currentTeam === 'red' ? 'blue' : 'red';
 			this.currentPlayer = player;
-
 			fireText = "It is " + player.name + " of the " + team.name + " Team's turn to fire!";
+
+			this.currentTeam = this.currentTeam === 'red' ? 'blue' : 'red';
 		} else {
 			if (this.getFinalPlayer()) {
 				return this.end();
@@ -365,7 +364,6 @@ class DragapultsDangerZone extends ScriptedGame {
 			}
 
 			this.currentPlayer = null;
-			if (this.teamBased && (playerAWin || playerBWin)) this.setLargestTeam();
 
 			this.on(text, () => {
 				this.timeout = setTimeout(() => this.nextRound(), 3 * 1000);
