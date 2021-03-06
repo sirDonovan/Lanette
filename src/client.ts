@@ -22,14 +22,13 @@ const MAIN_HOST = "sim3.psim.us";
 const REPLAY_SERVER_ADDRESS = "replay.pokemonshowdown.com";
 const CHALLSTR_TIMEOUT_SECONDS = 15;
 const RELOGIN_SECONDS = 60;
-const REGULAR_MESSAGE_THROTTLE = 650;
-const TRUSTED_MESSAGE_THROTTLE = 150;
-const SERVER_THROTTLE_BUFFER_LIMIT = 6;
+const REGULAR_MESSAGE_THROTTLE = 600;
+const TRUSTED_MESSAGE_THROTTLE = 100;
+const SERVER_THROTTLE_BUFFER_LIMIT = 5;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const CONNECTION_CHECK_INTERVAL = 30 * 1000;
 const SERVER_THROTTLE_PROCESSING_TIME = 25;
-const PROCESSING_TIME_CHECK_MINIMUM = 5 * 1000;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
 const UHTML_CHAT_COMMAND = '/uhtml ';
@@ -188,17 +187,21 @@ export class Client {
 	groupSymbols: KeyedDict<GroupName, string> = DEFAULT_GROUP_SYMBOLS;
 	incomingMessageQueue: {message: Data, timestamp: number}[] = [];
 	lastOutgoingMessage: IOutgoingMessage | null = null;
-	lastProcessingTimeCheck: number = 0;
 	lastSendTimeoutTime: number = 0;
 	loggedIn: boolean = false;
 	loginTimeout: NodeJS.Timer | undefined = undefined;
 	messageParsers: IMessageParserFile[] = [];
 	messageParsersExist: boolean = false;
 	outgoingMessageQueue: IOutgoingMessage[] = [];
-	messagesAwaitingProcessingCheck: number = 0;
 	pauseIncomingMessages: boolean = true;
 	pauseOutgoingMessages: boolean = false;
 	pingWsAlive: boolean = true;
+	processingTimeCheckMessage: IOutgoingMessage = {
+		message: "|/cmd userdetails " + Users.self.id,
+		type: 'userdetails',
+		user: Users.self.id,
+		measure: true,
+	};
 	publicChatRooms: string[] = [];
 	reconnectRoomMessages: Dict<string[]> = {};
 	reconnectTime: number = Config.reconnectTime || 60 * 1000;
@@ -332,8 +335,6 @@ export class Client {
 
 		if (previous.lastSendTimeoutTime) this.lastSendTimeoutTime = previous.lastSendTimeoutTime;
 		if (previous.lastOutgoingMessage) this.lastOutgoingMessage = previous.lastOutgoingMessage;
-		if (previous.lastProcessingTimeCheck) this.lastProcessingTimeCheck = previous.lastProcessingTimeCheck;
-		if (previous.messagesAwaitingProcessingCheck) this.messagesAwaitingProcessingCheck = previous.messagesAwaitingProcessingCheck;
 		if (previous.serverProcessingTime) this.serverProcessingTime = previous.serverProcessingTime;
 
 		if (previous.outgoingMessageQueue) this.outgoingMessageQueue = previous.outgoingMessageQueue.slice();
@@ -1217,7 +1218,7 @@ export class Client {
 					this.serverProcessingTime += SERVER_THROTTLE_PROCESSING_TIME;
 				}
 
-				this.setSendTimeout(this.getSendThrottle() * SERVER_THROTTLE_BUFFER_LIMIT);
+				this.setSendTimeout(this.getSendThrottle() * (SERVER_THROTTLE_BUFFER_LIMIT + 1));
 			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
 				room.modchat = messageArguments.html.split('<div class="broadcast-red">' +
 					'<strong>Moderated chat was set to ')[1].split('!</strong>')[0];
@@ -1838,21 +1839,38 @@ export class Client {
 
 		if (!this.webSocket || this.sendTimeout || this.pauseOutgoingMessages) {
 			this.outgoingMessageQueue.push(outgoingMessage);
+
+			const queuedMessages = this.outgoingMessageQueue.length;
+			const startingIndexOffset = SERVER_THROTTLE_BUFFER_LIMIT - 1;
+			if (queuedMessages < startingIndexOffset) {
+				if ((!this.lastOutgoingMessage || !this.lastOutgoingMessage.measure) && queuedMessages === startingIndexOffset - 1) {
+					let willMeasure = false;
+					for (let i = 0; i < queuedMessages; i++) {
+						if (this.outgoingMessageQueue[i].measure) {
+							willMeasure = true;
+							break;
+						}
+					}
+
+					if (!willMeasure) {
+						this.outgoingMessageQueue.push(this.processingTimeCheckMessage);
+					}
+				}
+			} else {
+				let willMeasure = false;
+				for (let i = queuedMessages - startingIndexOffset; i < queuedMessages; i++) {
+					if (this.outgoingMessageQueue[i].measure) {
+						willMeasure = true;
+						break;
+					}
+				}
+
+				if (!willMeasure) {
+					this.outgoingMessageQueue.push(this.processingTimeCheckMessage);
+				}
+			}
+
 			return;
-		}
-
-		if (this.loggedIn && Date.now() - this.lastProcessingTimeCheck > PROCESSING_TIME_CHECK_MINIMUM) {
-			this.outgoingMessageQueue.splice(this.messagesAwaitingProcessingCheck, 0, outgoingMessage);
-			this.messagesAwaitingProcessingCheck++;
-
-			outgoingMessage = {
-				message: "|/cmd userdetails " + Users.self.id,
-				type: 'userdetails',
-				user: Users.self.id,
-				measure: true,
-			};
-		} else if (this.messagesAwaitingProcessingCheck) {
-			this.messagesAwaitingProcessingCheck = 0;
 		}
 
 		outgoingMessage.serverProcessingTime = this.serverProcessingTime;
@@ -1875,9 +1893,10 @@ export class Client {
 
 			if (this.lastOutgoingMessage.measure && this.lastOutgoingMessage.sentTime && responseTime) {
 				this.serverProcessingTime = responseTime - this.lastOutgoingMessage.sentTime;
-				this.lastProcessingTimeCheck = responseTime;
 			}
 
+			// clear sentTime for Client.processingTimeCheckMessage
+			delete this.lastOutgoingMessage.sentTime;
 			this.lastOutgoingMessage = null;
 
 			if (this.sendTimeout && this.sendTimeout !== true && this.serverProcessingTime > oldServerProcessingTime) {

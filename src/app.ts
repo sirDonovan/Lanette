@@ -30,12 +30,12 @@ module.exports = (): void => {
 	tools.instantiate();
 	global.Config = ConfigLoader.load(config);
 	dex.instantiate();
+	users.instantiate();
 	client.instantiate();
 	commandParser.instantiate();
 	rooms.instantiate();
 	storage.instantiate();
 	tournaments.instantiate();
-	users.instantiate();
 	games.instantiate();
 
 	CommandParser.loadBaseCommands();
