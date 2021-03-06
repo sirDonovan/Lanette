@@ -381,7 +381,7 @@ export abstract class Activity {
 	}
 
 	getPlayerList(players?: PlayerList, fromGetRemainingPlayers?: boolean): Player[] {
-		if (Array.isArray(players)) return players;
+		if (Array.isArray(players)) return players as Player[];
 
 		if (!players) {
 			if (this.started && !fromGetRemainingPlayers) {
