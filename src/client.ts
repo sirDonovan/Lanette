@@ -29,6 +29,7 @@ const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const CONNECTION_CHECK_INTERVAL = 30 * 1000;
 const SERVER_THROTTLE_PROCESSING_TIME = 25;
+const PROCESSING_TIME_CHECK_MINIMUM = 15 * 1000;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
 const UHTML_CHAT_COMMAND = '/uhtml ';
@@ -187,6 +188,7 @@ export class Client {
 	groupSymbols: KeyedDict<GroupName, string> = DEFAULT_GROUP_SYMBOLS;
 	incomingMessageQueue: {message: Data, timestamp: number}[] = [];
 	lastOutgoingMessage: IOutgoingMessage | null = null;
+	lastProcessingTimeCheck: number = 0;
 	lastSendTimeoutTime: number = 0;
 	loggedIn: boolean = false;
 	loginTimeout: NodeJS.Timer | undefined = undefined;
@@ -334,6 +336,7 @@ export class Client {
 		if (previous.serverPingTimeout) clearTimeout(previous.serverPingTimeout);
 
 		if (previous.lastSendTimeoutTime) this.lastSendTimeoutTime = previous.lastSendTimeoutTime;
+		if (previous.lastProcessingTimeCheck) this.lastProcessingTimeCheck = previous.lastProcessingTimeCheck;
 		if (previous.lastOutgoingMessage) this.lastOutgoingMessage = previous.lastOutgoingMessage;
 		if (previous.serverProcessingTime) this.serverProcessingTime = previous.serverProcessingTime;
 
@@ -1204,10 +1207,12 @@ export class Client {
 
 			if (messageArguments.html === '<strong class="message-throttle-notice">Your message was not sent because you\'ve been ' +
 				'typing too quickly.</strong>') {
-				Tools.logMessage("Typing too quickly; Client send timeout = " + this.getSendThrottle() + " (Client.sendThrottle = " +
-					this.sendThrottle + "; Client.serverProcessingTime = " + this.serverProcessingTime + "); " +
-					"Client.outgoingMessageQueue.length = " + this.outgoingMessageQueue.length +
-					(this.lastOutgoingMessage ? "; Client.lastOutgoingMessage = " + JSON.stringify(this.lastOutgoingMessage) : ""));
+				Tools.logMessage("Typing too quickly; Client send timeout: " + this.getSendThrottle() + " (sendThrottle = " +
+					this.sendThrottle + "; serverProcessingTime = " + this.serverProcessingTime + "); " +
+					"outgoingMessageQueue: " + this.outgoingMessageQueue.length + " messages" +
+					(this.lastOutgoingMessage ? "; Message sent at: " + new Date(this.lastOutgoingMessage.sentTime!).toTimeString() + "; " +
+					"Processing time last measured at: " + new Date(this.lastProcessingTimeCheck).toTimeString() + "; " +
+					"Message: " + JSON.stringify(this.lastOutgoingMessage) : ""));
 
 				if (this.lastOutgoingMessage) {
 					this.outgoingMessageQueue.unshift(this.lastOutgoingMessage);
@@ -1873,6 +1878,12 @@ export class Client {
 			return;
 		}
 
+		if (this.loggedIn && outgoingMessage.message !== this.processingTimeCheckMessage.message && !this.outgoingMessageQueue.length &&
+			Date.now() - this.lastProcessingTimeCheck > PROCESSING_TIME_CHECK_MINIMUM) {
+			this.outgoingMessageQueue.push(outgoingMessage);
+			outgoingMessage = this.processingTimeCheckMessage;
+		}
+
 		outgoingMessage.serverProcessingTime = this.serverProcessingTime;
 
 		this.sendTimeout = true;
@@ -1893,6 +1904,7 @@ export class Client {
 
 			if (this.lastOutgoingMessage.measure && this.lastOutgoingMessage.sentTime && responseTime) {
 				this.serverProcessingTime = responseTime - this.lastOutgoingMessage.sentTime;
+				this.lastProcessingTimeCheck = responseTime;
 			}
 
 			// clear sentTime for Client.processingTimeCheckMessage
