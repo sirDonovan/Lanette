@@ -61,13 +61,18 @@ export class User {
 	}
 
 	hasRank(room: Room, targetRank: GroupName): boolean {
-		if (!this.rooms.has(room) || !(targetRank in Client.groupSymbols)) return false;
-		return Client.serverGroups[this.rooms.get(room)!.rank].ranking >= Client.serverGroups[Client.groupSymbols[targetRank]].ranking;
+		if (!this.rooms.has(room)) return false;
+		const groupSymbols = Client.getGroupSymbols();
+		if (!(targetRank in groupSymbols)) return false;
+		const serverGroups = Client.getServerGroups();
+		return serverGroups[this.rooms.get(room)!.rank].ranking >= serverGroups[groupSymbols[targetRank]].ranking;
 	}
 
 	isBot(room: Room): boolean {
-		if (!this.rooms.has(room) || !Client.groupSymbols.bot) return false;
-		return this.rooms.get(room)!.rank === Client.groupSymbols.bot;
+		if (!this.rooms.has(room)) return false;
+		const groupSymbols = Client.getGroupSymbols();
+		if (!groupSymbols.bot) return false;
+		return this.rooms.get(room)!.rank === groupSymbols.bot;
 	}
 
 	isDeveloper(): boolean {

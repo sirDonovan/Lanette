@@ -587,7 +587,7 @@ export class Tournaments {
 			}
 			if (room.id in this.userHostedTournamentNotificationTimeouts) {
 				clearTimeout(this.userHostedTournamentNotificationTimeouts[room.id]);
-				room.sayCommand('/notifyoffrank ' + Client.groupSymbols[rank]);
+				room.sayCommand('/notifyoffrank ' + Client.getGroupSymbols()[rank]);
 				delete this.userHostedTournamentNotificationTimeouts[room.id];
 			}
 			return;
@@ -612,12 +612,12 @@ export class Tournaments {
 			const title = 'Unreviewed user-hosted tournaments!';
 			const message = 'There are new user-hosted tournaments in ' + room.title;
 			if (room.id in this.userHostedTournamentNotificationTimeouts) return;
-			room.sayCommand('/notifyrank ' + Client.groupSymbols[rank] + ", " + title + ", " + message +
+			room.sayCommand('/notifyrank ' + Client.getGroupSymbols()[rank] + ", " + title + ", " + message +
 				", New Challonge tournament to review");
 			this.setUserHostedTournamentNotificationTimer(room);
 		} else if (room.id in this.userHostedTournamentNotificationTimeouts) {
 			clearTimeout(this.userHostedTournamentNotificationTimeouts[room.id]);
-			room.sayCommand('/notifyoffrank ' + Client.groupSymbols[rank]);
+			room.sayCommand('/notifyoffrank ' + Client.getGroupSymbols()[rank]);
 			delete this.userHostedTournamentNotificationTimeouts[room.id];
 		}
 	}

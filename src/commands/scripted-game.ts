@@ -676,7 +676,9 @@ export const commands: BaseCommandDefinitions = {
 				}
 
 				const userData = user.rooms.get(chatRoom);
-				if (userData && userData.rank === Client.groupSymbols.muted) return this.say("You cannot join games while you are muted.");
+				if (userData && userData.rank === Client.getGroupSymbols().muted) {
+					return this.say("You cannot join games while you are muted.");
+				}
 
 				if (chatRoom.game) {
 					chatRoom.game.addPlayer(user);

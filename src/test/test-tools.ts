@@ -48,8 +48,9 @@ export function assertStrictEqual<T>(actual: T, expected: T, message?: string | 
 
 function checkClientSendQueue(startingSendQueueIndex: number, input: readonly string[]): string[] {
 	const expected = input.slice();
-	for (let i = startingSendQueueIndex; i < Client.outgoingMessageQueue.length; i++) {
-		if (Client.outgoingMessageQueue[i].message === expected[0]) {
+	const outgoingMessageQueue = Client.getOutgoingMessageQueue();
+	for (let i = startingSendQueueIndex; i < outgoingMessageQueue.length; i++) {
+		if (outgoingMessageQueue[i].message === expected[0]) {
 			expected.shift();
 		}
 	}
