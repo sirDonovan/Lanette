@@ -1089,7 +1089,7 @@ export class Games {
 	 * filterAbility: Return `false` to filter `ability` out of the list
 	 */
 	getAbilitiesList(filter?: (ability: IAbility) => boolean, gen?: number): readonly IAbility[] {
-		if (!gen) gen = Dex.gen;
+		if (!gen) gen = Dex.getGen();
 		const mod = 'gen' + gen;
 		if (!Object.prototype.hasOwnProperty.call(this.abilitiesLists, mod)) {
 			const baseList = Dex.getDex(mod).getAbilitiesList();
@@ -1117,7 +1117,7 @@ export class Games {
 	 * filterAbility: Return `false` to filter `ability` out of the list
 	 */
 	getAbilitiesCopyList(filter?: (ability: IAbility) => boolean, gen?: number): IAbilityCopy[] {
-		if (!gen) gen = Dex.gen;
+		if (!gen) gen = Dex.getGen();
 		const dex = Dex.getDex('gen' + gen);
 		return this.getAbilitiesList(filter, gen).map(x => dex.getAbilityCopy(x));
 	}
@@ -1127,7 +1127,7 @@ export class Games {
 	 * filterItem: Return `false` to filter `item` out of the list
 	 */
 	getItemsList(filter?: (item: IItem) => boolean, gen?: number): readonly IItem[] {
-		if (!gen) gen = Dex.gen;
+		if (!gen) gen = Dex.getGen();
 		const mod = 'gen' + gen;
 		if (!Object.prototype.hasOwnProperty.call(this.itemsLists, mod)) {
 			const baseList = Dex.getDex(mod).getItemsList();
@@ -1155,7 +1155,7 @@ export class Games {
 	 * filterItem: Return `false` to filter `item` out of the list
 	 */
 	getItemsCopyList(filter?: (item: IItem) => boolean, gen?: number): IItemCopy[] {
-		if (!gen) gen = Dex.gen;
+		if (!gen) gen = Dex.getGen();
 		const dex = Dex.getDex('gen' + gen);
 		return this.getItemsList(filter, gen).map(x => dex.getItemCopy(x));
 	}
@@ -1165,7 +1165,7 @@ export class Games {
 	 * filterItem: Return `false` to filter `move` out of the list
 	 */
 	getMovesList(filter?: (move: IMove) => boolean, gen?: number): readonly IMove[] {
-		if (!gen) gen = Dex.gen;
+		if (!gen) gen = Dex.getGen();
 		const mod = 'gen' + gen;
 		if (!Object.prototype.hasOwnProperty.call(this.movesLists, mod)) {
 			const baseList = Dex.getDex(mod).getMovesList();
@@ -1193,7 +1193,7 @@ export class Games {
 	 * filterItem: Return `false` to filter `move` out of the list
 	 */
 	getMovesCopyList(filter?: (move: IMove) => boolean, gen?: number): IMoveCopy[] {
-		if (!gen) gen = Dex.gen;
+		if (!gen) gen = Dex.getGen();
 		const dex = Dex.getDex('gen' + gen);
 		return this.getMovesList(filter, gen).map(x => dex.getMoveCopy(x));
 	}
@@ -1203,7 +1203,7 @@ export class Games {
 	 * filterItem: Return `false` to filter `pokemon` out of the list
 	 */
 	getPokemonList(filter?: (pokemon: IPokemon) => boolean, gen?: number): readonly IPokemon[] {
-		if (!gen) gen = Dex.gen;
+		if (!gen) gen = Dex.getGen();
 		const mod = 'gen' + gen;
 		if (!Object.prototype.hasOwnProperty.call(this.pokemonLists, mod)) {
 			const baseList = Dex.getDex(mod).getPokemonList();
@@ -1231,7 +1231,7 @@ export class Games {
 	 * filterItem: Return `false` to filter `pokemon` out of the list
 	 */
 	getPokemonCopyList(filter?: (pokemon: IPokemon) => boolean, gen?: number): IPokemonCopy[] {
-		if (!gen) gen = Dex.gen;
+		if (!gen) gen = Dex.getGen();
 		const dex = Dex.getDex('gen' + gen);
 		return this.getPokemonList(filter, gen).map(x => dex.getPokemonCopy(x));
 	}

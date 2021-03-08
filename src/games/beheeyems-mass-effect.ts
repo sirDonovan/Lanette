@@ -25,13 +25,19 @@ class BeheeyemsMassEffect extends QuestionAndAnswer {
 			data.types[typing].push(pokemon.name);
 		}
 
+		const typeNames: Dict<string> = {};
+		const typeKeys = Dex.getData().typeKeys;
+		for (const key of typeKeys) {
+			typeNames[key] = Dex.getExistingType(key).name;
+		}
+
 		for (const typing in data.types) {
 			const immunities: string[] = [];
 			const resistances: string[] = [];
 			const weaknesses: string[] = [];
 			const typingArray = typing.split('/');
-			for (const key of Dex.data.typeKeys) {
-				const type = Dex.getExistingType(key).name;
+			for (const key of typeKeys) {
+				const type = typeNames[key];
 				if (Dex.isImmune(type, typingArray)) {
 					immunities.push(type);
 				} else {
@@ -47,17 +53,19 @@ class BeheeyemsMassEffect extends QuestionAndAnswer {
 					}
 				}
 			}
+
 			const text: string[] = [];
 			if (weaknesses.length) text.push("Weak to " + Tools.joinList(weaknesses));
 			if (resistances.length) text.push("Resists " + Tools.joinList(resistances));
 			if (immunities.length) text.push("Immune to " + Tools.joinList(immunities));
+
 			const effectiveness = text.join(" | ");
 			if (!(effectiveness in effectivenessLists)) {
 				effectivenessLists[effectiveness] = [];
 				effectivenessListsKeys.push(effectiveness);
 			}
 
-			for (const pokemon of  data.types[typing]) {
+			for (const pokemon of data.types[typing]) {
 				if (!effectivenessLists[effectiveness].includes(pokemon)) effectivenessLists[effectiveness].push(pokemon);
 			}
 		}
@@ -100,5 +108,4 @@ export const game: IGameFile<BeheeyemsMassEffect> = Games.copyTemplateProperties
 		},
 	},
 	modes: ['multianswer', 'survival', 'team', 'timeattack'],
-	nonTrivialLoadData: true,
 });

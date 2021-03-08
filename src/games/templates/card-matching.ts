@@ -158,11 +158,12 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		let html = '<div class="infobox" style="width: ' + width + 'px">';
 		const displayNames: string[] = [];
 		const names: string[] = [];
+		const pokemonKeys = Dex.getData().pokemonKeys;
 		for (const card of group) {
 			names.push(card.name);
 
 			let displayName = '';
-			if (Dex.data.pokemonKeys.includes(card.id)) {
+			if (pokemonKeys.includes(card.id)) {
 				displayName += Dex.getPokemonIcon(Dex.getExistingPokemon(card.name));
 			}
 			displayName += card.name;
@@ -260,7 +261,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		}
 
 		html += '<center>';
-		if (Dex.data.pokemonKeys.includes(card.id)) {
+		if (Dex.getData().pokemonKeys.includes(card.id)) {
 			html += Dex.getPokemonIcon(Dex.getExistingPokemon(card.name));
 		}
 		html += card.name + '<br />';
@@ -790,8 +791,8 @@ const commands: GameCommandDefinitions<CardMatching> = {
 				if (!id) {
 					user.say("You must specify a card.");
 				} else {
-					const pokemon = Dex.data.pokemonKeys.includes(id);
-					const move = Dex.data.moveKeys.includes(id);
+					const pokemon = Dex.getData().pokemonKeys.includes(id);
+					const move = Dex.getData().moveKeys.includes(id);
 					if (pokemon) {
 						user.say("You do not have [ " + Dex.getExistingPokemon(cardName).name + " ].");
 					} else if (move) {

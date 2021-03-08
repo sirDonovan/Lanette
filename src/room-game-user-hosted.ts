@@ -376,7 +376,7 @@ export const game: IUserHostedFile = {
 		{
 			name: "Battle Maison",
 			aliases: ['bm'],
-			description: "A tournament style game where each player is given a Pokemon to battle with in [Gen " + Dex.gen + "] OU. " +
+			description: "A tournament style game where each player is given a Pokemon to battle with in [Gen " + Dex.getGen() + "] OU. " +
 				"Defeating an opponent allows the player to add the opponent's Pokemon to his or her team. This continues until there " +
 				"is only one player left standing!",
 		},

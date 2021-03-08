@@ -461,10 +461,11 @@ export class Tournaments {
 			}
 		}
 
+		const currentGen = Dex.getCurrentGenString();
 		const formats: IFormat[] = [];
-		for (const i of Dex.data.formatKeys) {
+		for (const i of Dex.getData().formatKeys) {
 			const format = Dex.getExistingFormat(i);
-			if (!format.tournamentPlayable || format.unranked || format.mod !== Dex.currentGenString ||
+			if (!format.tournamentPlayable || format.unranked || format.mod !== currentGen ||
 				(scheduledFormat && scheduledFormat.id === format.id)) continue;
 
 			if (quickFormat) {

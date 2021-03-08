@@ -28,9 +28,10 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 				return game.pokemonToActionCard(this);
 			},
 			getRandomTarget(game) {
-				let targets: string[] = [Dex.getExistingType(game.sampleOne(Dex.data.typeKeys)).name];
+				const typeKeys = Dex.getData().typeKeys;
+				let targets: string[] = [Dex.getExistingType(game.sampleOne(typeKeys)).name];
 				while (!this.isPlayableTarget(game, targets)) {
-					targets = [Dex.getExistingType(game.sampleOne(Dex.data.typeKeys)).name];
+					targets = [Dex.getExistingType(game.sampleOne(typeKeys)).name];
 				}
 
 				return this.name + ", " + targets[0];
@@ -71,9 +72,10 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 				return game.pokemonToActionCard(this);
 			},
 			getRandomTarget(game) {
-				let targets: string[] = [Dex.data.colors[game.sampleOne(Object.keys(Dex.data.colors))]];
+				const colors = Dex.getData().colors;
+				let targets: string[] = [colors[game.sampleOne(Object.keys(colors))]];
 				while (!this.isPlayableTarget(game, targets)) {
-					targets = [Dex.data.colors[game.sampleOne(Object.keys(Dex.data.colors))]];
+					targets = [colors[game.sampleOne(Object.keys(colors))]];
 				}
 
 				return this.name + ", " + targets[0];
@@ -93,13 +95,14 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 					return false;
 				}
 
-				if (!(color in Dex.data.colors)) {
+				const colors = Dex.getData().colors;
+				if (!(color in colors)) {
 					if (player) player.say("'" + targets[0].trim() + "' is not a valid color.");
 					return false;
 				}
 
-				if (game.topCard.color === Dex.data.colors[color]) {
-					if (player) player.say("The top card is already " + Dex.data.colors[color] + ".");
+				if (game.topCard.color === colors[color]) {
+					if (player) player.say("The top card is already " + colors[color] + ".");
 					return false;
 				}
 
@@ -293,7 +296,7 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 	usesColors: boolean = true;
 
 	static loadData(): void {
-		for (const key of Dex.data.typeKeys) {
+		for (const key of Dex.getData().typeKeys) {
 			const type = Dex.getExistingType(key);
 			types[type.id] = type.name;
 			types[type.id + 'type'] = type.name;

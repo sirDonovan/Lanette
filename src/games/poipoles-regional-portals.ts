@@ -26,19 +26,20 @@ class PoipolesRegionalPortals extends ScriptedGame {
 	winnerPointsToBits: number = 25;
 
 	static loadData(): void {
-		for (const region of Dex.regions) {
-			const types = Object.keys(Dex.data.locations[region]) as LocationType[];
-			const locations: PartialKeyedDict<LocationType, string[]> = {};
+		const locations = Dex.getData().locations;
+		for (const region of Dex.getRegions()) {
+			const types = Object.keys(locations[region]) as LocationType[];
+			const regionLocations: PartialKeyedDict<LocationType, string[]> = {};
 			for (const type of types) {
-				for (const location of Dex.data.locations[region][type]) {
-					if (!(type in locations)) locations[type] = [];
-					locations[type]!.push(Tools.toId(location));
+				for (const location of locations[region][type]) {
+					if (!(type in regionLocations)) regionLocations[type] = [];
+					regionLocations[type]!.push(Tools.toId(location));
 				}
 			}
 
-			const typesWithLocations = Object.keys(locations) as LocationType[];
+			const typesWithLocations = Object.keys(regionLocations) as LocationType[];
 			if (typesWithLocations.length) {
-				data.regions[region] = locations;
+				data.regions[region] = regionLocations;
 				regionKeys.push(region);
 				regionTypeKeys[region] = typesWithLocations;
 			}
@@ -109,8 +110,8 @@ class PoipolesRegionalPortals extends ScriptedGame {
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			this.timeout = setTimeout(() => {
-				const text = "Poipole opened a portal to a **" + Dex.locationTypeNames[type] + " location** in " +
-					"**" + Dex.regionNames[region] + "**!";
+				const text = "Poipole opened a portal to a **" + Dex.getLocationTypeNames()[type] + " location** in " +
+					"**" + Dex.getRegionNames()[region] + "**!";
 				this.on(text, () => {
 					this.canTravel = true;
 					if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint("", this.roundLocations, true);

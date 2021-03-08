@@ -110,7 +110,9 @@ export class ParasParameters extends QuestionAndAnswer {
 
 			this.answers = [this.getParamNames(result.params).join(',')];
 			let oldGen = '';
-			if (this.format.options.gen && this.format.options.gen !== Dex.gen) oldGen = " (Generation " + this.format.options.gen + ")";
+			if (this.format.options.gen && this.format.options.gen !== Dex.getGen()) {
+				oldGen = " (Generation " + this.format.options.gen + ")";
+			}
 			this.additionalHintHeader = "- " + this.params.length + " params" + oldGen + ":";
 
 			const pokemonIcons: string[] = [];

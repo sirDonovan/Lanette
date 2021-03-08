@@ -190,9 +190,10 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 				return game.moveToActionCard(this);
 			},
 			getRandomTarget(game) {
-				let targets: string[] = [Dex.getExistingType(game.sampleOne(Dex.data.typeKeys)).name];
+				const typeKeys = Dex.getData().typeKeys;
+				let targets: string[] = [Dex.getExistingType(game.sampleOne(typeKeys)).name];
 				while (!this.isPlayableTarget(game, targets)) {
-					targets = [Dex.getExistingType(game.sampleOne(Dex.data.typeKeys)).name];
+					targets = [Dex.getExistingType(game.sampleOne(typeKeys)).name];
 				}
 
 				return this.name + ", " + targets[0];
@@ -233,9 +234,10 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 				return game.moveToActionCard(this);
 			},
 			getRandomTarget(game) {
-				let types = game.sampleMany(Dex.data.typeKeys, 2).map(x => Dex.getExistingType(x).name);
+				const typeKeys = Dex.getData().typeKeys;
+				let types = game.sampleMany(typeKeys, 2).map(x => Dex.getExistingType(x).name);
 				while (!this.isPlayableTarget(game, types)) {
-					types = game.sampleMany(Dex.data.typeKeys, 2).map(x => Dex.getExistingType(x).name);
+					types = game.sampleMany(typeKeys, 2).map(x => Dex.getExistingType(x).name);
 				}
 
 				return this.name + ", " + types.join(", ");
@@ -388,7 +390,7 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 	startingLives: number = 1;
 
 	static loadData(): void {
-		for (const key of Dex.data.typeKeys) {
+		for (const key of Dex.getData().typeKeys) {
 			const type = Dex.getExistingType(key);
 			data.usableTypes[type.id] = type.name;
 			data.usableTypes[type.id + 'type'] = type.name;
@@ -421,7 +423,7 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 		let pokemonList: readonly IPokemon[];
 		if (this.hackmonsTypes) {
 			const list: IPokemon[] = [];
-			for (const key of Dex.data.pokemonKeys) {
+			for (const key of Dex.getData().pokemonKeys) {
 				const pokemon = Dex.getExistingPokemon(key);
 				if (pokemon.id in this.actionCards || !Dex.hasGifData(pokemon)) continue;
 				list.push(pokemon);
@@ -497,15 +499,16 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 
 	getHackmonsTyping(originalTypes: readonly string[]): readonly string[] {
 		const originalKey = this.getTypingKey(originalTypes);
+		const typeKeys = Dex.getData().typeKeys;
 
 		let newTypes: string[] = [];
 		let newKey = '';
 		while (!newKey || newKey === originalKey || this.hasNoResistances(newTypes)) {
-			const typeKeys = this.shuffle(Dex.data.typeKeys);
+			const shuffledTypeKeys = this.shuffle(typeKeys);
 			if (this.random(2)) {
-				newTypes = [Dex.getExistingType(typeKeys[0]).name, Dex.getExistingType(typeKeys[1]).name];
+				newTypes = [Dex.getExistingType(shuffledTypeKeys[0]).name, Dex.getExistingType(shuffledTypeKeys[1]).name];
 			} else {
-				newTypes = [Dex.getExistingType(typeKeys[0]).name];
+				newTypes = [Dex.getExistingType(shuffledTypeKeys[0]).name];
 			}
 			newKey = this.getTypingKey(newTypes);
 		}
@@ -523,7 +526,7 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 
 	hasNoResistances(types: readonly string[]): boolean {
 		let noResistances = true;
-		for (const key of Dex.data.typeKeys) {
+		for (const key of Dex.getData().typeKeys) {
 			const type = Dex.getExistingType(key).name;
 			if (!Dex.isImmune(type, types) && Dex.getEffectiveness(type, types) < 0) {
 				noResistances = false;

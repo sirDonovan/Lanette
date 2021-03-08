@@ -52,7 +52,7 @@ class LandorusWar extends ScriptedGame {
 
 	onStart(): void {
 		this.say("Now handing out Pokemon!");
-		const aliases = this.sampleMany(Dex.data.trainerClasses, this.getRemainingPlayerCount());
+		const aliases = this.sampleMany(Dex.getData().trainerClasses, this.getRemainingPlayerCount());
 		const pokemonList = this.shuffle(data.pokemon);
 		const playerAliases: string[] = [];
 		const playerPokemon: string[] = [];

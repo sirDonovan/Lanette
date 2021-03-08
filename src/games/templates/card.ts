@@ -274,7 +274,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 				const shinyPokemon = (card as IPokemonCard).shiny;
 				names.push(card.name + (shinyPokemon ? ' \u2605' : ''));
 				image = Dex.getPokemonGif(Dex.getExistingPokemon(card.name), undefined, undefined, shinyPokemon);
-				width += Dex.data.gifData[card.id]!.front!.w;
+				width += Dex.getData().gifData[card.id]!.front!.w;
 			}
 
 			images.push(image);
