@@ -101,8 +101,10 @@ class NinjasksCorners extends ScriptedGame {
 
 		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
 		this.botTurnTimeout = setTimeout(() => {
-			this.say(Config.commandCharacter + "travel " + this.color);
-			botPlayer.useCommand("travel", this.color);
+			const command = "travel";
+			const answer = this.color;
+			this.say(Config.commandCharacter + command + " " + answer);
+			botPlayer.useCommand(command, answer);
 		}, this.sampleOne(this.botChallengeSpeeds!));
 	}
 }

@@ -768,7 +768,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			this.botTurnTimeout = setTimeout(() => {
 				botPlayer.useCommand("play", play);
 			}, 300);
-		}, this.sampleOne([1000, 2000, 3000]));
+		}, this.sampleOne([2000, 3000, 4000]));
 	}
 }
 

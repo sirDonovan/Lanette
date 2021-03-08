@@ -133,9 +133,10 @@ class PoipolesRegionalPortals extends ScriptedGame {
 
 		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
 		this.botTurnTimeout = setTimeout(() => {
-			const location = this.sampleOne(this.roundLocations).toLowerCase();
-			this.say(Config.commandCharacter + "travel " + location);
-			botPlayer.useCommand("travel", location);
+			const command = "travel";
+			const answer = this.sampleOne(this.roundLocations).toLowerCase();
+			this.say(Config.commandCharacter + command + " " + answer);
+			botPlayer.useCommand(command, answer);
 		}, this.sampleOne(this.botChallengeSpeeds!));
 	}
 }

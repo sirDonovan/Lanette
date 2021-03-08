@@ -288,8 +288,9 @@ export abstract class Chain extends ScriptedGame {
 				}
 			}
 
-			this.say(Config.commandCharacter + "g " + answer);
-			botPlayer.useCommand("g", answer);
+			const command = "g";
+			this.say(Config.commandCharacter + command + " " + answer);
+			botPlayer.useCommand(command, answer);
 		}, this.sampleOne(this.botChallengeSpeeds!));
 	}
 }

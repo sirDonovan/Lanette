@@ -170,7 +170,10 @@ class InkaysCups extends ScriptedGame {
 
 		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
 		this.botTurnTimeout = setTimeout(() => {
-			botPlayer.useCommand("grab", this.sampleOne(this.answers).toLowerCase());
+			const command = "grab";
+			const answer = this.sampleOne(this.answers).toLowerCase();
+			this.say(Config.commandCharacter + command + " " + answer);
+			botPlayer.useCommand(command, answer);
 		}, this.sampleOne(this.botChallengeSpeeds!));
 	}
 }

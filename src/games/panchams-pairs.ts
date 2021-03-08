@@ -301,9 +301,10 @@ class PanchamPairs extends ScriptedGame {
 
 		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
 		this.botTurnTimeout = setTimeout(() => {
-			const pair = this.getRandomPair()!.join(", ").toLowerCase();
-			this.say(Config.commandCharacter + "pair " + pair);
-			botPlayer.useCommand("pair", pair);
+			const command = "pair";
+			const answer = this.getRandomPair()!.join(", ").toLowerCase();
+			this.say(Config.commandCharacter + command + " " + answer);
+			botPlayer.useCommand(command, answer);
 		}, this.sampleOne(this.botChallengeSpeeds!));
 	}
 }
