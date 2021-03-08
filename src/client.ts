@@ -386,7 +386,7 @@ export class Client {
 						}
 					}
 
-					if (!willMeasure) {
+					if (!willMeasure && this.loggedIn) {
 						this.outgoingMessageQueue.push(this.processingTimeCheckMessage);
 					}
 				}
@@ -399,7 +399,7 @@ export class Client {
 					}
 				}
 
-				if (!willMeasure) {
+				if (!willMeasure && this.loggedIn) {
 					this.outgoingMessageQueue.push(this.processingTimeCheckMessage);
 				}
 			}
