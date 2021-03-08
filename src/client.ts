@@ -29,7 +29,7 @@ const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const CONNECTION_CHECK_INTERVAL = 30 * 1000;
 const SERVER_THROTTLE_PROCESSING_TIME = 25;
-const PROCESSING_TIME_CHECK_MINIMUM = 15 * 1000;
+const PROCESSING_TIME_CHECK_MINIMUM = 5 * 1000;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
 const UHTML_CHAT_COMMAND = '/uhtml ';
@@ -1402,15 +1402,16 @@ export class Client {
 				Tools.logMessage("Typing too quickly; Client send timeout: " + this.getSendThrottle() + " (sendThrottle = " +
 					this.sendThrottle + "; serverProcessingTime = " + this.serverProcessingTime + "); " +
 					"outgoingMessageQueue: " + this.outgoingMessageQueue.length + " messages" +
-					(this.lastOutgoingMessage ? "; Message sent at: " + new Date(this.lastOutgoingMessage.sentTime!).toTimeString() + "; " +
+					(this.lastOutgoingMessage && this.lastOutgoingMessage.sentTime ? "; Message sent at: " +
+					new Date(this.lastOutgoingMessage.sentTime).toTimeString() + "; " +
 					"Processing time last measured at: " + new Date(this.lastProcessingTimeCheck).toTimeString() + "; " +
 					"Message: " + JSON.stringify(this.lastOutgoingMessage) : ""));
 
 				if (this.lastOutgoingMessage) {
 					this.outgoingMessageQueue.unshift(this.lastOutgoingMessage);
-					const measuredLastMessage = this.lastOutgoingMessage.measure;
-					this.clearLastOutgoingMessage(this.lastOutgoingMessage.measure ? now : undefined);
-					if (!measuredLastMessage) this.serverProcessingTime += SERVER_THROTTLE_PROCESSING_TIME;
+					const measureLastMessage = this.lastOutgoingMessage.measure && this.lastOutgoingMessage.sentTime;
+					this.clearLastOutgoingMessage(measureLastMessage ? now : undefined);
+					if (!measureLastMessage) this.serverProcessingTime += SERVER_THROTTLE_PROCESSING_TIME;
 				} else {
 					this.serverProcessingTime += SERVER_THROTTLE_PROCESSING_TIME;
 				}
