@@ -22,6 +22,7 @@ const MAIN_HOST = "sim3.psim.us";
 const REPLAY_SERVER_ADDRESS = "replay.pokemonshowdown.com";
 const CHALLSTR_TIMEOUT_SECONDS = 15;
 const RELOGIN_SECONDS = 60;
+const LOGIN_TIMEOUT_SECONDS = 150;
 const REGULAR_MESSAGE_THROTTLE = 600;
 const TRUSTED_MESSAGE_THROTTLE = 100;
 const SERVER_THROTTLE_BUFFER_LIMIT = 5;
@@ -204,6 +205,7 @@ export class Client {
 	private reconnectTime: number = Config.reconnectTime || 60 * 1000;
 	private reloadInProgress: boolean = false;
 	private replayServerAddress: string = Config.replayServer || REPLAY_SERVER_ADDRESS;
+	private retryLoginTimeout: NodeJS.Timer | undefined = undefined;
 	private roomsToRejoin: string[] = [];
 	private sendThrottle: number = Config.trustedUser ? TRUSTED_MESSAGE_THROTTLE : REGULAR_MESSAGE_THROTTLE;
 	private sendTimeout: NodeJS.Timer | true | undefined = undefined;
@@ -593,6 +595,7 @@ export class Client {
 		if (this.connectionTimeout) clearTimeout(this.connectionTimeout);
 		if (this.challstrTimeout) clearTimeout(this.challstrTimeout);
 		if (this.loginTimeout) clearTimeout(this.loginTimeout);
+		if (this.retryLoginTimeout) clearTimeout(this.retryLoginTimeout);
 		if (this.serverPingTimeout) clearTimeout(this.serverPingTimeout);
 		this.clearSendTimeout();
 	}
@@ -698,6 +701,7 @@ export class Client {
 	}
 
 	private terminateWebSocket(): void {
+		this.clearConnectionTimeouts();
 		this.removeClientListeners();
 		if (this.webSocket) {
 			this.webSocket.terminate();
@@ -707,7 +711,6 @@ export class Client {
 	}
 
 	private reconnect(serverRestart?: boolean): void {
-		this.clearConnectionTimeouts();
 		this.terminateWebSocket();
 
 		if (serverRestart) {
@@ -846,7 +849,14 @@ export class Client {
 			if (this.challstrTimeout) clearTimeout(this.challstrTimeout);
 
 			this.challstr = message;
-			if (Config.username) this.login();
+			if (Config.username) {
+				this.loginTimeout = setTimeout(() => {
+					console.log("Failed to login. Reconnecting in " + this.reconnectTime / 1000 + " seconds");
+					this.terminateWebSocket();
+					this.connectionTimeout = setTimeout(() => this.connect(), this.reconnectTime);
+				}, LOGIN_TIMEOUT_SECONDS * 1000);
+				this.login();
+			}
 			break;
 		}
 
@@ -877,8 +887,10 @@ export class Client {
 			} else {
 				if (messageArguments.loginStatus !== '1') {
 					console.log('Failed to log in');
-					process.exit();
+					return;
 				}
+
+				if (this.loginTimeout) clearTimeout(this.loginTimeout);
 
 				console.log('Successfully logged in');
 				this.loggedIn = true;
@@ -1989,7 +2001,7 @@ export class Client {
 	}
 
 	private login(): void {
-		if (this.loginTimeout) clearTimeout(this.loginTimeout);
+		if (this.retryLoginTimeout) clearTimeout(this.retryLoginTimeout);
 
 		const action = new url.URL('https://' + Tools.mainServer + '/~~' + this.serverId + '/action.php');
 		if (!action.hostname || !action.pathname) {
@@ -2041,14 +2053,14 @@ export class Client {
 					process.exit();
 				} else if (data.startsWith('<!DOCTYPE html>')) {
 					console.log('Failed to log in: connection timed out. Trying again in ' + RELOGIN_SECONDS + ' seconds');
-					if (this.loginTimeout) clearTimeout(this.loginTimeout);
-					this.loginTimeout = setTimeout(() => this.login(), RELOGIN_SECONDS * 1000);
+					if (this.retryLoginTimeout) clearTimeout(this.retryLoginTimeout);
+					this.retryLoginTimeout = setTimeout(() => this.login(), RELOGIN_SECONDS * 1000);
 					return;
 				} else if (data.includes('heavy load')) {
 					console.log('Failed to log in: the login server is under heavy load. Trying again in ' + (RELOGIN_SECONDS * 5) +
 						' seconds');
-					if (this.loginTimeout) clearTimeout(this.loginTimeout);
-					this.loginTimeout = setTimeout(() => this.login(), RELOGIN_SECONDS * 5 * 1000);
+					if (this.retryLoginTimeout) clearTimeout(this.retryLoginTimeout);
+					this.retryLoginTimeout = setTimeout(() => this.login(), RELOGIN_SECONDS * 5 * 1000);
 					return;
 				} else {
 					if (Config.password) {
@@ -2061,9 +2073,9 @@ export class Client {
 						}
 					}
 
-					if (this.loginTimeout) {
-						clearTimeout(this.loginTimeout);
-						delete this.loginTimeout;
+					if (this.retryLoginTimeout) {
+						clearTimeout(this.retryLoginTimeout);
+						delete this.retryLoginTimeout;
 					}
 
 					this.send({message: '|/trn ' + Config.username + ',0,' + data, type: 'command'});
@@ -2074,8 +2086,8 @@ export class Client {
 		request.on('error', error => {
 			console.log('Login error: ' + error.stack);
 			console.log('Trying again in ' + RELOGIN_SECONDS + ' seconds');
-			if (this.loginTimeout) clearTimeout(this.loginTimeout);
-			this.loginTimeout = setTimeout(() => this.login(), RELOGIN_SECONDS * 1000);
+			if (this.retryLoginTimeout) clearTimeout(this.retryLoginTimeout);
+			this.retryLoginTimeout = setTimeout(() => this.login(), RELOGIN_SECONDS * 1000);
 		});
 
 		if (postData) request.write(postData);
