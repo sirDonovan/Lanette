@@ -20,7 +20,7 @@ if (testOptions.games) {
 		formatsToTest.push(Games.getExistingFormat(game));
 	}
 } else {
-	for (const i in Games.formats) {
+	for (const i in Games.getFormats()) {
 		formatsToTest.push(Games.getExistingFormat(i));
 	}
 }
@@ -124,8 +124,9 @@ for (const format of formatsToTest) {
 	}
 }
 
-for (const i in Games.modes) {
-	const mode = Games.modes[i];
+const modes = Games.getModes();
+for (const i in modes) {
+	const mode = modes[i];
 	if (mode.tests) {
 		const formats: string[] = [];
 		for (const format of formatsToTest) {
@@ -152,13 +153,13 @@ for (const i in Games.modes) {
 
 describe("Games", () => {
 	it('should load data properly', () => {
-		assert(Object.keys(Games.aliases).length);
-		assert(Object.keys(Games.formats).length);
-		assert(Object.keys(Games.internalFormats).length);
-		assert(Object.keys(Games.modes).length);
-		assert(Object.keys(Games.modeAliases).length);
-		assert(Object.keys(Games.userHostedFormats).length);
-		assert(Object.keys(Games.userHostedAliases).length);
+		assert(Object.keys(Games.getAliases()).length);
+		assert(Object.keys(Games.getFormats()).length);
+		assert(Object.keys(Games.getInternalFormats()).length);
+		assert(Object.keys(Games.getModes()).length);
+		assert(Object.keys(Games.getModeAliases()).length);
+		assert(Object.keys(Games.getUserHostedFormats()).length);
+		assert(Object.keys(Games.getUserHostedAliases()).length);
 	});
 
 	it('should export valid data from files', () => {
@@ -192,7 +193,7 @@ describe("Games", () => {
 			}
 		}
 
-		for (const i in Games.userHostedFormats) {
+		for (const i in Games.getUserHostedFormats()) {
 			const format = Games.getExistingUserHostedFormat(i);
 			testMascots(format);
 			assert(!format.name.match(Tools.unsafeApiCharacterRegex), format.name + " name");
@@ -201,7 +202,7 @@ describe("Games", () => {
 	});
 
 	it('should only be defined in one location (scripted vs. user-hosted)', () => {
-		for (const i in Games.userHostedFormats) {
+		for (const i in Games.getUserHostedFormats()) {
 			assert(Array.isArray(Games.getFormat(i)), Games.getExistingUserHostedFormat(i).name);
 		}
 	});
@@ -218,8 +219,8 @@ describe("Games", () => {
 		}
 
 		const formatsByMode: Dict<string[]> = {};
-		for (const i in Games.modes) {
-			const mode = Games.modes[i];
+		for (const i in modes) {
+			const mode = modes[i];
 			formatsByMode[mode.id] = [];
 			for (const format of formatsToTest) {
 				if (format.modes && format.modes.includes(mode.id)) formatsByMode[mode.id].push(format.id);
@@ -253,8 +254,11 @@ describe("Games", () => {
 	});
 
 	it('should return proper values from getFormat() and getUserHostedFormat()', () => {
-		const formats = Object.keys(Games.formats);
-		assert(!Array.isArray(Games.getFormat(formats[0])));
+		const formats = Games.getFormats();
+		const userHostedFormats = Games.getUserHostedFormats();
+
+		const formatKeys = Object.keys(formats);
+		assert(!Array.isArray(Games.getFormat(formatKeys[0])));
 
 		assertStrictEqual(Games.getExistingFormat("Slowking's Trivia").name, "Slowking's Trivia");
 		assertStrictEqual(Games.getExistingFormat('trivia').name, "Slowking's Trivia");
@@ -274,7 +278,7 @@ describe("Games", () => {
 		assertStrictEqual(Games.getExistingFormat('params,params:3').inputOptions.params, 3);
 		assert(!Games.getExistingFormat('params').inputOptions.params);
 
-		assert(!Array.isArray(Games.getUserHostedFormat(Object.keys(Games.userHostedFormats)[0])));
+		assert(!Array.isArray(Games.getUserHostedFormat(Object.keys(userHostedFormats)[0])));
 		assertStrictEqual(Games.getExistingUserHostedFormat('floettes forum game, name: Mocha Test Game').name, 'Mocha Test Game');
 
 		const name = 'Non-existent Game';
@@ -283,10 +287,10 @@ describe("Games", () => {
 		assertStrictEqual(nameFormat[0], 'invalidGameFormat');
 		assertStrictEqual(nameFormat[1], name);
 
-		for (const formatId of formats) {
-			const formatData = Games.formats[formatId];
+		for (const key of formatKeys) {
+			const formatData = formats[key];
 			if (formatData.modes && formatData.modes.length >= 2) {
-				const modesFormat = Games.getFormat(formatId + "," + formatData.modes[0] + "," + formatData.modes[1]);
+				const modesFormat = Games.getFormat(key + "," + formatData.modes[0] + "," + formatData.modes[1]);
 				assert(Array.isArray(modesFormat));
 				assertStrictEqual(modesFormat[0], 'tooManyGameModes');
 				assertStrictEqual(modesFormat[1], undefined);
@@ -294,10 +298,10 @@ describe("Games", () => {
 			}
 		}
 
-		for (const formatId of formats) {
-			const formatData = Games.formats[formatId];
+		for (const key of formatKeys) {
+			const formatData = formats[key];
 			if (formatData.variants && formatData.variants.length >= 2) {
-				const variantsFormat = Games.getFormat(formatId + "," + formatData.variants[0].variantAliases[0] + "," +
+				const variantsFormat = Games.getFormat(key + "," + formatData.variants[0].variantAliases[0] + "," +
 					formatData.variants[1].variantAliases[0]);
 				assert(Array.isArray(variantsFormat));
 				assertStrictEqual(variantsFormat[0], 'tooManyGameVariants');
@@ -307,12 +311,12 @@ describe("Games", () => {
 		}
 
 		const option = "Non-existent option";
-		const optionFormat = Games.getFormat(formats[0] + "," + option);
+		const optionFormat = Games.getFormat(formatKeys[0] + "," + option);
 		assert(Array.isArray(optionFormat));
 		assertStrictEqual(optionFormat[0], 'invalidGameOption');
 		assertStrictEqual(optionFormat[1], option);
 
-		assert(!Array.isArray(Games.getUserHostedFormat(Object.keys(Games.userHostedFormats)[0])));
+		assert(!Array.isArray(Games.getUserHostedFormat(Object.keys(userHostedFormats)[0])));
 
 		const nameUserHostedFormat = Games.getUserHostedFormat(name);
 		assert(Array.isArray(nameUserHostedFormat));
@@ -346,10 +350,10 @@ describe("Games", () => {
 	it('should start signups for user-hosted games', () => {
 		const roomPrefix = room.id + "|";
 		const userHostedFormats: IUserHostedFormat[] = [];
-		for (const i in Games.userHostedFormats) {
+		for (const i in Games.getUserHostedFormats()) {
 			userHostedFormats.push(Games.getExistingUserHostedFormat(i));
 		}
-		for (const i in Games.formats) {
+		for (const i in Games.getFormats()) {
 			const format = Games.getExistingFormat(i);
 			if (!format.scriptedOnly) userHostedFormats.push(Games.getExistingUserHostedFormat(i));
 		}

@@ -154,7 +154,7 @@ export class Vote extends ScriptedGame {
 	}
 
 	getHighlightPhrase(): string {
-		return Games.scriptedGameVoteHighlight;
+		return Games.getScriptedGameVoteHighlight();
 	}
 
 	onSignups(): void {
@@ -162,7 +162,7 @@ export class Vote extends ScriptedGame {
 		this.bannedFormats = Games.getNextVoteBans(this.room);
 
 		const votableFormats: string[] = [];
-		for (const i in Games.formats) {
+		for (const i in Games.getFormats()) {
 			const format = Games.getExistingFormat(i);
 			if (this.isValidFormat(format)) {
 				votableFormats.push(format.name);

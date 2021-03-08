@@ -8,8 +8,10 @@ const allParamTypes: ParamType[] = ['move', 'tier', 'color', 'type', 'resistance
 
 describe("Parameters Worker", () => {
 	it('should properly intersect parameters', () => {
+		const workers = Games.getWorkers();
+
 		let mod = 'gen8';
-		let paramTypePools = Games.workers.parameters.workerData!.pokemon.gens[mod].paramTypePools;
+		let paramTypePools = workers.parameters.workerData!.pokemon.gens[mod].paramTypePools;
 		let baseOptions: IParametersIntersectOptions = {
 			mod,
 			params: [],
@@ -18,20 +20,20 @@ describe("Parameters Worker", () => {
 		};
 
 		// non-existent parameter value
-		let intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
+		let intersection = workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.tier.ou, {type: 'move', param: 'Non-existent Move'}]}));
 		assert(intersection);
 		assertStrictEqual(intersection.params.length, 2);
 		assertStrictEqual(intersection.pokemon.length, 0);
 
 		// learnsets + forme
-		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.type.steeltype, paramTypePools.move.rockclimb]}));
 		assert(intersection);
 		assertStrictEqual(intersection.params.length, 2);
 		assertStrictEqual(intersection.pokemon.join(","), "arceussteel,durant,empoleon,excadrill,ferroseed,ferrothorn,steelix");
 
-		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.type.poisontype, paramTypePools.move.powerwhip]}));
 		assert(intersection);
 		assertStrictEqual(intersection.params.length, 2);
@@ -39,37 +41,37 @@ describe("Parameters Worker", () => {
 			"weepinbell");
 
 		// parameters with the same name
-		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.gen['gen1'], paramTypePools.move.psychic, paramTypePools.type.psychictype]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "abra,alakazam,drowzee,exeggcute,exeggutor,hypno,jynx,kadabra,mew,mewtwo," +
 			"mrmime,slowbro,slowpoke,starmie");
 
 		// formes
-		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.type.firetype, paramTypePools.move.thunder]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "arceusfire,castformsunny,groudonprimal,hooh,marowakalola," +
 			"marowakalolatotem,rotomheat,victini");
 
-		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.type.darktype, paramTypePools.move.refresh]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "arceusdark,carvanha,nuzleaf,sharpedo,shiftry,umbreon");
 
-		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.egggroup.monstergroup, paramTypePools.ability.rockhead]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "aggron,aron,cubone,lairon,marowak,marowakalola,rhydon,rhyhorn,tyrantrum");
 
 		// mega
-		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.gen['gen6'], paramTypePools.resistance.resistsice, paramTypePools.move.destinybond]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "aegislash,doublade,honedge,houndoommega,sharpedomega");
 
 		// weakness
-		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.weakness.weaktorock, paramTypePools.move.earthquake]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "abomasnow,aerodactyl,altaria,arceusbug,arceusfire,arceusflying,arceusice," +
@@ -78,7 +80,7 @@ describe("Parameters Worker", () => {
 			"rayquaza,regice,salamence,scolipede,sealeo,shuckle,spheal,torkoal,tropius,turtonator,typhlosion,volcanion,walrein");
 
 		// resistance
-		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.move.psychocut, paramTypePools.resistance.resistsfighting]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "aegislash,alakazam,articunogalar,azelf,calyrexshadow,celebi,cresselia," +
@@ -86,13 +88,13 @@ describe("Parameters Worker", () => {
 			"mesprit,mew,mewtwo,necrozma,orbeetle,rapidashgalar,scyther,sigilyph,spectrier,starmie,swoobat,tapulele,uxie,woobat,zacian");
 
 		// gmax with no tier
-		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.gen['gen8'], paramTypePools.color.blue, paramTypePools.move.surf, paramTypePools.type.ice]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "arctovish,arctozolt,eiscue");
 
 		// regional formes
-		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.egggroup['field'], paramTypePools.type.normal]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "aipom,ambipom,bewear,bibarel,bidoof,bouffalant,buneary,bunnelby,cinccino," +
@@ -102,7 +104,7 @@ describe("Parameters Worker", () => {
 			"smeargle,spinda,stantler,stoutland,stufful,tauros,teddiursa,ursaring,vigoroth,watchog,whismur,wooloo,yungoos,zangoose," +
 			"zigzagoon,zigzagoongalar");
 
-		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.egggroup['field'], paramTypePools.type.electric]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "ampharos,blitzle,boltund,dedenne,electrike,emolga,flaaffy,jolteon,luxio," +
@@ -110,7 +112,7 @@ describe("Parameters Worker", () => {
 
 		// old gens
 		mod = 'gen7';
-		paramTypePools = Games.workers.parameters.workerData!.pokemon.gens[mod].paramTypePools;
+		paramTypePools = workers.parameters.workerData!.pokemon.gens[mod].paramTypePools;
 		baseOptions = {
 			mod,
 			params: [],
@@ -118,14 +120,14 @@ describe("Parameters Worker", () => {
 			searchType: 'pokemon',
 		};
 
-		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.type.steeltype, paramTypePools.move.rockclimb]}));
 		assert(intersection);
 		assertStrictEqual(intersection.params.length, 2);
 		assertStrictEqual(intersection.pokemon.join(","), "durant,excadrill,ferroseed,ferrothorn,steelix");
 
 		mod = 'gen6';
-		paramTypePools = Games.workers.parameters.workerData!.pokemon.gens[mod].paramTypePools;
+		paramTypePools = workers.parameters.workerData!.pokemon.gens[mod].paramTypePools;
 		baseOptions = {
 			mod,
 			params: [],
@@ -133,7 +135,7 @@ describe("Parameters Worker", () => {
 			searchType: 'pokemon',
 		};
 
-		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.weakness.weaktorock, paramTypePools.move.earthquake]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "abomasnow,aerodactyl,altaria,arceusbug,arceusfire,arceusflying,arceusice," +
@@ -141,13 +143,13 @@ describe("Parameters Worker", () => {
 			"magcargo,magmortar,mantine,mantyke,pineco,pinsir,rayquaza,regice,salamence,scolipede,sealeo,shuckle,spheal,torkoal," +
 			"tropius,typhlosion,volcanion,walrein");
 
-		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.move.psychocut, paramTypePools.resistance.resistsfighting]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "alakazam,cresselia,drowzee,gallade,hypno,kadabra,medicham,meditite,mewtwo");
 
 		mod = 'gen1';
-		paramTypePools = Games.workers.parameters.workerData!.pokemon.gens[mod].paramTypePools;
+		paramTypePools = workers.parameters.workerData!.pokemon.gens[mod].paramTypePools;
 		baseOptions = {
 			mod,
 			params: [],
@@ -155,7 +157,7 @@ describe("Parameters Worker", () => {
 			searchType: 'pokemon',
 		};
 
-		intersection = Games.workers.parameters.intersect(Object.assign(baseOptions,
+		intersection = workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.resistance.resistsghost, paramTypePools.type.normal]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "chansey,clefable,clefairy,ditto,dodrio,doduo,eevee,farfetchd,fearow," +
@@ -166,14 +168,16 @@ describe("Parameters Worker", () => {
 
 describe("Portmanteaus Worker", () => {
 	it('should properly filter pools', () => {
-		const tiers = Object.keys(Games.workers.portmanteaus.workerData!.pool['Pokemon']['tier']);
+		const tiers = Object.keys(Games.getWorkers().portmanteaus.workerData!.pool['Pokemon']['tier']);
 		assert(tiers.length);
 		for (const tier of tiers) {
 			assert(!tier.startsWith('('));
 		}
 	});
 	it('should properly list portmanteaus', async() => {
-		let result = await Games.workers.portmanteaus.search({
+		const workers = Games.getWorkers();
+
+		let result = await workers.portmanteaus.search({
 			customPortTypes: ['Pokemon', 'Move'],
 			customPortCategories: ['egggroup', 'type'],
 			customPortDetails: ['Flying', 'Fire'],
@@ -191,7 +195,7 @@ describe("Portmanteaus Worker", () => {
 			assert(answer in result.answerParts);
 		}
 
-		result = await Games.workers.portmanteaus.search({
+		result = await workers.portmanteaus.search({
 			customPortTypes: ['Pokemon', 'Pokemon'],
 			customPortCategories: ['color', 'type'],
 			customPortDetails: ['Brown', 'Ground'],

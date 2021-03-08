@@ -160,10 +160,7 @@ export class OneVsOne extends ScriptedGame {
 	}
 
 	updateLastChallengeTime(): void {
-		if (!this.challenger) return;
-
-		if (!(this.room.id in Games.lastChallengeTimes.onevsone)) Games.lastChallengeTimes.onevsone[this.room.id] = {};
-		Games.lastChallengeTimes.onevsone[this.room.id][this.challenger.id] = Date.now();
+		if (this.challenger) Games.setLastChallengeTime('onevsone', this.room, this.challenger.id, Date.now());
 	}
 
 	onEnd(): void {

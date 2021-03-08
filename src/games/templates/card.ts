@@ -422,7 +422,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 }
 
 const commands: GameCommandDefinitions<Card> = {};
-commands.summary = Tools.deepClone(Games.sharedCommands.summary);
+commands.summary = Tools.deepClone(Games.getSharedCommands().summary);
 commands.summary.aliases = ['cards', 'hand'];
 
 const tests: GameFileTests<Card> = {

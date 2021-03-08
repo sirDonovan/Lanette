@@ -287,7 +287,7 @@ const commands: GameCommandDefinitions<LandorusWar> = {
 		pmGameCommand: true,
 	},
 };
-commands.summary = Tools.deepClone(Games.sharedCommands.summary);
+commands.summary = Tools.deepClone(Games.getSharedCommands().summary);
 commands.summary.aliases = ['role'];
 
 const tests: GameFileTests<LandorusWar> = {

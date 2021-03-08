@@ -828,7 +828,7 @@ const commands: GameCommandDefinitions<CardMatching> = {
 	},
 };
 
-commands.summary = Tools.deepClone(Games.sharedCommands.summary);
+commands.summary = Tools.deepClone(Games.getSharedCommands().summary);
 commands.summary.aliases = ['cards', 'hand'];
 
 const tests: GameFileTests<CardMatching> = {

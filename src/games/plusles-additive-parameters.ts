@@ -24,7 +24,7 @@ class PluslesAdditiveParameters extends ScriptedGame {
 	roundTime: number = 15 * 1000;
 
 	static loadData(): void {
-		Games.workers.parameters.init();
+		Games.getWorkers().parameters.init();
 	}
 
 	onStart(): void {
@@ -50,7 +50,7 @@ class PluslesAdditiveParameters extends ScriptedGame {
 			this.playerList = this.playerOrder.slice();
 			const html = this.getRoundHtml(players => this.getPlayerNames(players), this.playerOrder, "Round " + this.parametersRound);
 			const uhtmlName = this.uhtmlBaseName + "-round";
-			const result = await Games.workers.parameters.search({
+			const result = await Games.getWorkers().parameters.search({
 				customParamTypes: null,
 				minimumResults: this.minimumResults,
 				maximumResults: this.maximumResults,
@@ -132,7 +132,7 @@ class PluslesAdditiveParameters extends ScriptedGame {
 		const params: IParam[] = [];
 
 		for (const paramType of paramTypes) {
-			const pool = Games.workers.parameters.workerData!.pokemon.gens[GEN_STRING].paramTypePools[paramType];
+			const pool = Games.getWorkers().parameters.workerData!.pokemon.gens[GEN_STRING].paramTypePools[paramType];
 			for (const i in pool) {
 				if (i === input) {
 					params.push(pool[i]);
@@ -161,11 +161,12 @@ const commands: GameCommandDefinitions<PluslesAdditiveParameters> = {
 				return false;
 			}
 
+			const workers = Games.getWorkers();
 			const inputParam = params[0];
 			if (inputParam.type === 'move' &&
-				Games.workers.parameters.workerData!.pokemon.gens[GEN_STRING].paramTypeDexes.move[inputParam.param].length >=
-				Games.maxMoveAvailability) {
-				user.say("You cannot add a move learned by " + Games.maxMoveAvailability + " or more Pokemon.");
+				workers.parameters.workerData!.pokemon.gens[GEN_STRING].paramTypeDexes.move[inputParam.param].length >=
+				Games.getMaxMoveAvailability()) {
+				user.say("You cannot add a move learned by " + Games.getMaxMoveAvailability() + " or more Pokemon.");
 				return false;
 			}
 
@@ -179,7 +180,7 @@ const commands: GameCommandDefinitions<PluslesAdditiveParameters> = {
 			const testParams: IParam[] = this.params.slice();
 			testParams.push(inputParam);
 
-			const result = Games.workers.parameters.intersect({
+			const result = workers.parameters.intersect({
 				mod: GEN_STRING,
 				params: testParams,
 				paramTypes,

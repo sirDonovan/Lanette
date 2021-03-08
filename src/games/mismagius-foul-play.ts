@@ -364,7 +364,7 @@ const commands: GameCommandDefinitions<MismagiusFoulPlay> = {
 	},
 };
 
-commands.summary = Tools.deepClone(Games.sharedCommands.summary);
+commands.summary = Tools.deepClone(Games.getSharedCommands().summary);
 commands.summary.aliases = ['role'];
 
 export const game: IGameFile<MismagiusFoulPlay> = {

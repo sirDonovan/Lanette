@@ -331,7 +331,7 @@ const commands: GameCommandDefinitions<PanchamPairs> = {
 			if (this.isMiniGame) {
 				this.say((this.pm ? "You are" : "**" + user.name + "** is") + " correct! " + this.getAnswers(pair[0] + " & " +
 					pair[1] + " (" + param + ")"));
-				this.addBits(user, Games.minigameBits);
+				this.addBits(user, Games.getMinigameBits());
 				this.end();
 				return true;
 			}

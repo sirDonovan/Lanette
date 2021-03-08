@@ -1549,7 +1549,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 			this.sayHtml("<div class='infobox-limited'>" + placesHtml + "</div>");
 		}
 
-		Games.lastGames[this.room.id] = Date.now();
+		Games.setLastGame(this.room, Date.now());
 
 		if (Config.tournamentGameCooldownTimers && this.room.id in Config.tournamentGameCooldownTimers) {
 			this.say("The **" + Config.tournamentGameCooldownTimers[this.room.id] + "-minute cooldown** until the next tournament " +

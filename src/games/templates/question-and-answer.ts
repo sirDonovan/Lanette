@@ -379,7 +379,7 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 			if (this.isMiniGame) {
 				this.say((this.pm ? "You are" : "**" + user.name + "** is") + " correct!");
 				this.displayAnswers(answer);
-				this.addBits(user, Games.minigameBits);
+				this.addBits(user, Games.getMinigameBits());
 				if (this.noIncorrectAnswersMinigameAchievement && !this.incorrectAnswers) {
 					this.unlockAchievement(player, this.noIncorrectAnswersMinigameAchievement);
 				}

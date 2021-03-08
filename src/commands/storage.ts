@@ -695,9 +695,10 @@ export const commands: BaseCommandDefinitions = {
 
 			const database = Storage.getDatabase(targetRoom);
 			const unlockedAchievements: string[] = [];
+			const achievements = Games.getAchievements();
 			if (database.gameAchievements && id in database.gameAchievements) {
 				for (const achievement of database.gameAchievements[id]) {
-					if (achievement in Games.achievements) unlockedAchievements.push(Games.achievements[achievement].name);
+					if (achievement in achievements) unlockedAchievements.push(achievements[achievement].name);
 				}
 			}
 			if (!unlockedAchievements.length) {

@@ -17,10 +17,11 @@ class MiltanksMoves extends QuestionAndAnswer {
 	allAnswersAchievement = MiltanksMoves.achievements.mootronome;
 
 	static loadData(): void {
+		const maxMoveAvailability = Games.getMaxMoveAvailability();
 		const bannedMoves: string[] = [];
 		for (const move of Games.getMovesList()) {
 			const availability = Dex.getMoveAvailability(move);
-			if (availability >= Games.maxMoveAvailability) bannedMoves.push(move.id);
+			if (availability >= maxMoveAvailability) bannedMoves.push(move.id);
 		}
 
 		const moveCache: Dict<IMove> = {};
