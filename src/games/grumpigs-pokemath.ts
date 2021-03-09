@@ -116,6 +116,10 @@ class GrumpigsPokemath extends QuestionAndAnswer {
 		this.hint = "<b>" + operandsAndResult.operands.map(x => data.pokemonByNumber[x][0]).join(" " + operationSymbols[operation] + " ") +
 			" = ?</b>";
 	}
+
+	increaseDifficulty(): void {
+		this.roundTime = Math.max(6000, this.roundTime - 1.5 * 1000);
+	}
 }
 
 const tests: GameFileTests<GrumpigsPokemath> = {
@@ -153,6 +157,7 @@ export const game: IGameFile<GrumpigsPokemath> = Games.copyTemplateProperties(qu
 	modes: ["survival", "team"],
 	modeProperties: {
 		'survival': {
+			roundTime: 23.5 * 1000,
 			roundOperands: BASE_OPERANDS,
 		},
 	},
