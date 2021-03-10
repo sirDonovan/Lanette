@@ -188,7 +188,7 @@ export class CommandParser {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	parse(room: Room | User, user: User, message: string, timestamp: number): any {
+	parse(room: Room | User, user: User, message: string, timestamp: number): void {
 		if (!this.isCommandMessage(message)) return;
 		message = message.substr(1);
 		let command: string;
@@ -208,8 +208,13 @@ export class CommandParser {
 		if (Config.roomIgnoredCommands && room.id in Config.roomIgnoredCommands &&
 			Config.roomIgnoredCommands[room.id].includes(command)) return;
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return new CommandContext(command, target, room, user, timestamp).run();
+		try {
+			new CommandContext(command, target, room, user, timestamp).run();
+		} catch (e) {
+			console.log(e);
+			Tools.logError(e, "Crash in command: " + Config.commandCharacter + command + " " + target + " (room = " + room.id + "; " +
+				"user = " + user.id + ")");
+		}
 	}
 
 	getErrorText(error: CommandErrorArray): string {
