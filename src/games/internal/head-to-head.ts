@@ -34,8 +34,8 @@ export class HeadToHead extends ScriptedGame {
 		challengeFormat.options = ScriptedGame.setOptions(challengeFormat, undefined, challengeFormat.variant);
 
 		this.challengeFormat = challengeFormat;
-		this.leftPlayer = this.createPlayer(leftUser)!;
-		this.rightPlayer = this.createPlayer(rightUser)!;
+		this.leftPlayer = this.createPlayer(leftUser);
+		this.rightPlayer = this.createPlayer(rightUser);
 		this.minPlayers = 2;
 		this.name += " (" + challengeFormat.nameWithOptions + ")";
 

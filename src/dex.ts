@@ -956,10 +956,10 @@ export class Dex {
 		let pokemonGifData: IGifData | undefined;
 		if (bw) {
 			const gifDataBW = this.getData().gifDataBW;
-			if (Object.prototype.hasOwnProperty.call(gifDataBW, pokemon.id)) pokemonGifData = gifDataBW[pokemon.id]!;
+			if (Object.prototype.hasOwnProperty.call(gifDataBW, pokemon.id)) pokemonGifData = gifDataBW[pokemon.id];
 		} else {
 			const gifData = this.getData().gifData;
-			if (Object.prototype.hasOwnProperty.call(gifData, pokemon.id)) pokemonGifData = gifData[pokemon.id]!;
+			if (Object.prototype.hasOwnProperty.call(gifData, pokemon.id)) pokemonGifData = gifData[pokemon.id];
 		}
 
 		let width: number;

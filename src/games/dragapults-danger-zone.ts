@@ -224,11 +224,11 @@ class DragapultsDangerZone extends ScriptedGame {
 			let player = this.playerOrders[team.id].shift();
 			if (!player) {
 				this.setTeamPlayerOrder(team);
-				player = this.playerOrders[team.id].shift()!;
+				player = this.playerOrders[team.id].shift();
 			}
 
-			this.currentPlayer = player;
-			fireText = "It is " + player.name + " of the " + team.name + " Team's turn to fire!";
+			this.currentPlayer = player!;
+			fireText = "It is " + player!.name + " of the " + team.name + " Team's turn to fire!";
 
 			this.currentTeam = this.currentTeam === 'red' ? 'blue' : 'red';
 		} else {

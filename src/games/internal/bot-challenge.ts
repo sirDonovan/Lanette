@@ -20,14 +20,14 @@ export class BotChallenge extends ScriptedGame {
 
 	setupChallenge(challenger: User, defender: User, challengeFormat: IGameFormat, options?: Dict<string>): void {
 		this.challengeFormat = challengeFormat;
-		this.defender = this.createPlayer(defender)!;
-		this.challenger = this.createPlayer(challenger)!;
+		this.defender = this.createPlayer(defender);
+		this.challenger = this.createPlayer(challenger);
 		this.minPlayers = 2;
 		this.name += " (" + challengeFormat.nameWithOptions + ")";
 
 		if (options) this.challengeOptions = options;
 
-		const text = this.challenger.name + " challenges " + this.defender.name + " to a one vs. one game of " +
+		const text = this.challenger!.name + " challenges " + this.defender!.name + " to a one vs. one game of " +
 			challengeFormat.nameWithOptions + "!";
 		this.on(text, () => this.acceptChallenge(Users.self));
 		this.say(text);
