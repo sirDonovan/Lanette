@@ -10,12 +10,13 @@ class FraxuresBattleChain extends Chain {
 	linkEndCache: Dict<string[]> = {};
 
 	static loadData(): void {
-		for (let i = 0; i < Dex.data.typeKeys.length; i++) {
-			const outerType = Dex.getExistingType(Dex.data.typeKeys[i]).name;
+		const typeKeys = Dex.getData().typeKeys;
+		for (let i = 0; i < typeKeys.length; i++) {
+			const outerType = Dex.getExistingType(typeKeys[i]).name;
 			data.types.push(outerType);
-			for (let j = 0; j < Dex.data.typeKeys.length; j++) {
+			for (let j = 0; j < typeKeys.length; j++) {
 				if (i === j) continue;
-				const type = [outerType, Dex.getExistingType(Dex.data.typeKeys[j]).name].sort().join(',');
+				const type = [outerType, Dex.getExistingType(typeKeys[j]).name].sort().join(',');
 				if (!data.types.includes(type)) data.types.push(type);
 			}
 		}

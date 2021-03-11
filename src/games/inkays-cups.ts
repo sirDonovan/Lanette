@@ -22,7 +22,7 @@ class InkaysCups extends ScriptedGame {
 	usesWorkers: boolean = true;
 
 	static loadData(): void {
-		const parametersData = Games.workers.parameters.getData();
+		const parametersData = Games.getWorkers().parameters.getData();
 
 		for (const searchType of searchTypes) {
 			paramTypeDexesKeys[searchType] = {};
@@ -64,6 +64,7 @@ class InkaysCups extends ScriptedGame {
 	}
 
 	generateCups(): void {
+		const workers = Games.getWorkers();
 		const roundParamTypes = this.sampleMany(paramTypes, 2);
 		const lower = this.format.options.freejoin ? 5 : this.getRemainingPlayerCount();
 		const upper = lower * 3;
@@ -76,10 +77,10 @@ class InkaysCups extends ScriptedGame {
 			attempts++;
 			for (const paramType of roundParamTypes) {
 				const name = this.sampleOne(paramTypeDexesKeys.pokemon[genString][paramType]);
-				params.push(Games.workers.parameters.getData().pokemon.gens[genString].paramTypePools[paramType][Tools.toId(name)]);
+				params.push(workers.parameters.getData().pokemon.gens[genString].paramTypePools[paramType][Tools.toId(name)]);
 			}
 
-			const intersection = Games.workers.parameters.intersect({
+			const intersection = workers.parameters.intersect({
 				mod: genString,
 				params,
 				paramTypes,
@@ -169,7 +170,10 @@ class InkaysCups extends ScriptedGame {
 
 		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
 		this.botTurnTimeout = setTimeout(() => {
-			botPlayer.useCommand("grab", this.sampleOne(this.answers).toLowerCase());
+			const command = "grab";
+			const answer = this.sampleOne(this.answers).toLowerCase();
+			this.say(Config.commandCharacter + command + " " + answer);
+			botPlayer.useCommand(command, answer);
 		}, this.sampleOne(this.botChallengeSpeeds!));
 	}
 }

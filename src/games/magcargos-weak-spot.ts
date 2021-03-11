@@ -31,7 +31,7 @@ class MagcargosWeakSpot extends QuestionAndAnswer {
 
 	static loadData(): void {
 		const types: string[] = [];
-		for (const key of Dex.data.typeKeys) {
+		for (const key of Dex.getData().typeKeys) {
 			types.push(Dex.getExistingType(key).name);
 		}
 

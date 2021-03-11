@@ -26,7 +26,7 @@ export class ScriptedGame extends Game {
 	autoCloseHtmlPage: boolean = true;
 	awardedBits: boolean = false;
 	canLateJoin: boolean = false;
-	readonly commands = Object.assign(Object.create(null), Games.sharedCommands) as LoadedGameCommands;
+	readonly commands = Object.assign(Object.create(null), Games.getSharedCommands()) as LoadedGameCommands;
 	readonly commandsListeners: IGameCommandCountListener[] = [];
 	inactiveRounds: number = 0;
 	inheritedPlayers: boolean = false;
@@ -297,12 +297,12 @@ export class ScriptedGame extends Game {
 	}
 
 	getHighlightPhrase(): string {
-		return Games.scriptedGameHighlight + " " + this.id;
+		return Games.getScriptedGameHighlight() + " " + this.id;
 	}
 
 	getModeHighlightPhrase(): string {
 		if (!this.format.mode) return "";
-		return Games.scriptedGameHighlight + " " + this.format.mode.id;
+		return Games.getScriptedGameHighlight() + " " + this.format.mode.id;
 	}
 
 	signups(): void {
@@ -512,15 +512,15 @@ export class ScriptedGame extends Game {
 		let usedDatabase = false;
 
 		if (this.isMiniGame) {
-			Games.lastMinigames[this.room.id] = now;
+			Games.setLastMinigame(this.room, now);
 		} else if (!this.parentGame && !this.internalGame) {
 			Games.clearNextVoteBans(this.room);
 
 			usedDatabase = true;
 			const database = Storage.getDatabase(this.room);
 
-			Games.lastGames[this.room.id] = now;
-			Games.lastScriptedGames[this.room.id] = now;
+			Games.setLastGame(this.room, now);
+			Games.setLastScriptedGame(this.room, now);
 			database.lastGameTime = now;
 
 			if (!database.lastGameFormatTimes) database.lastGameFormatTimes = {};
@@ -716,7 +716,7 @@ export class ScriptedGame extends Game {
 				this.signupsHtmlTimeout = setTimeout(() => {
 					this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsHtmlUpdate());
 					this.signupsHtmlTimeout = null;
-				}, Client.sendThrottle * 2);
+				}, Client.getSendThrottle() * 2);
 			}
 		}
 
@@ -747,7 +747,7 @@ export class ScriptedGame extends Game {
 				this.signupsHtmlTimeout = setTimeout(() => {
 					this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsHtmlUpdate());
 					this.signupsHtmlTimeout = null;
-				}, Client.sendThrottle * 2);
+				}, Client.getSendThrottle() * 2);
 			}
 		}
 

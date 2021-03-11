@@ -52,9 +52,10 @@ export const commands: BaseCommandDefinitions = {
 				return this.sayError(['disabledGameFeatures', gameRoom.title]);
 			}
 
+			const minigameCommandNames = Games.getMinigameCommandNames();
 			const minigames: string[] = [];
-			for (const i in Games.minigameCommandNames) {
-				const format = Games.getExistingFormat(Games.minigameCommandNames[i].format);
+			for (const i in minigameCommandNames) {
+				const format = Games.getExistingFormat(minigameCommandNames[i].format);
 				if (format.disabled) continue;
 				minigames.push("<code>" + Config.commandCharacter + i + "</code> - " + format.name);
 			}
@@ -122,7 +123,7 @@ export const commands: BaseCommandDefinitions = {
 					"remaining.");
 				return;
 			}
-			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
+			if (Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 
 			const voteFormat = Games.getInternalFormat('vote');
 			if (Array.isArray(voteFormat)) {
@@ -146,7 +147,7 @@ export const commands: BaseCommandDefinitions = {
 				return this.sayError(['disabledGameFeatures', room.title]);
 			}
 			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
-			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
+			if (Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 
 			const remainingGameCooldown = Games.getRemainingGameCooldown(room, true);
 			if (remainingGameCooldown > 1000) {
@@ -185,16 +186,17 @@ export const commands: BaseCommandDefinitions = {
 
 			let cooldown = 0;
 			let challengeName = "";
+			const lastChallengeTimes = Games.getLastChallengeTimes();
 			const challenge = Tools.toId(targets[1]);
 			if (challenge === "onevsone" || challenge === "onevone" || challenge === "1vs1" || challenge === "1v1") {
 				challengeName = "one vs. one";
-				if (gameRoom.id in Games.lastChallengeTimes.onevsone && user.id in Games.lastChallengeTimes.onevsone[gameRoom.id]) {
-					cooldown = CHALLENGE_GAME_COOLDOWN - (Date.now() - Games.lastChallengeTimes.onevsone[gameRoom.id][user.id]);
+				if (gameRoom.id in lastChallengeTimes.onevsone && user.id in lastChallengeTimes.onevsone[gameRoom.id]) {
+					cooldown = CHALLENGE_GAME_COOLDOWN - (Date.now() - lastChallengeTimes.onevsone[gameRoom.id][user.id]);
 				}
 			} else if (challenge === "bot" || challenge === Users.self.id) {
 				challengeName = "bot";
-				if (gameRoom.id in Games.lastChallengeTimes.botchallenge && user.id in Games.lastChallengeTimes.botchallenge[gameRoom.id]) {
-					cooldown = CHALLENGE_GAME_COOLDOWN - (Date.now() - Games.lastChallengeTimes.botchallenge[gameRoom.id][user.id]);
+				if (gameRoom.id in lastChallengeTimes.botchallenge && user.id in lastChallengeTimes.botchallenge[gameRoom.id]) {
+					cooldown = CHALLENGE_GAME_COOLDOWN - (Date.now() - lastChallengeTimes.botchallenge[gameRoom.id][user.id]);
 				}
 			}
 
@@ -235,13 +237,14 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-			if (Games.reloadInProgress) {
+			if (Games.isReloadInProgress()) {
 				user.say(CommandParser.getErrorText(['reloadInProgress']));
 				return;
 			}
 
-			if (room.id in Games.lastChallengeTimes.botchallenge && user.id in Games.lastChallengeTimes.botchallenge[room.id]) {
-				const cooldown = CHALLENGE_GAME_COOLDOWN - (Date.now() - Games.lastChallengeTimes.botchallenge[room.id][user.id]);
+			const lastChallengeTimes = Games.getLastChallengeTimes();
+			if (room.id in lastChallengeTimes.botchallenge && user.id in lastChallengeTimes.botchallenge[room.id]) {
+				const cooldown = CHALLENGE_GAME_COOLDOWN - (Date.now() - lastChallengeTimes.botchallenge[room.id][user.id]);
 				if (cooldown > 1000) {
 					user.say("You must wait " + Tools.toDurationString(cooldown) + " before challenging " + Users.self.name + ".");
 					return;
@@ -333,7 +336,7 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-			if (Games.reloadInProgress) {
+			if (Games.isReloadInProgress()) {
 				user.say(CommandParser.getErrorText(['reloadInProgress']));
 				return;
 			}
@@ -347,8 +350,9 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-			if (room.id in Games.lastChallengeTimes.onevsone && user.id in Games.lastChallengeTimes.onevsone[room.id]) {
-				const cooldown = CHALLENGE_GAME_COOLDOWN - (Date.now() - Games.lastChallengeTimes.onevsone[room.id][user.id]);
+			const lastChallengeTimes = Games.getLastChallengeTimes();
+			if (room.id in lastChallengeTimes.onevsone && user.id in lastChallengeTimes.onevsone[room.id]) {
+				const cooldown = CHALLENGE_GAME_COOLDOWN - (Date.now() - lastChallengeTimes.onevsone[room.id][user.id]);
 				if (cooldown > 1000) {
 					user.say("You must wait " + Tools.toDurationString(cooldown) + " before challenging another user.");
 					return;
@@ -391,7 +395,7 @@ export const commands: BaseCommandDefinitions = {
 	acceptonevsonechallenge: {
 		command: function(target, room, user) {
 			if (this.isPm(room)) return;
-			if (Games.reloadInProgress) {
+			if (Games.isReloadInProgress()) {
 				user.say(CommandParser.getErrorText(['reloadInProgress']));
 				return;
 			}
@@ -428,7 +432,7 @@ export const commands: BaseCommandDefinitions = {
 				this.say("You must wait until the game of " + room.game.name + " ends.");
 				return;
 			}
-			if (Games.reloadInProgress) {
+			if (Games.isReloadInProgress()) {
 				this.say(CommandParser.getErrorText(['reloadInProgress']));
 				return;
 			}
@@ -476,7 +480,7 @@ export const commands: BaseCommandDefinitions = {
 				return this.sayError(['disabledTournamentGameFeatures', room.title]);
 			}
 			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
-			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
+			if (Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 
 			const remainingGameCooldown = Games.getRemainingTournamentGameCooldown(room);
 			if (remainingGameCooldown > 1000) {
@@ -539,12 +543,13 @@ export const commands: BaseCommandDefinitions = {
 				}
 			}
 
-			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
+			if (Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 
 			const minigameCommands: string[] = [];
 			const category = Tools.toId(target);
-			for (const i in Games.minigameCommandNames) {
-				const format = Games.getExistingFormat(Games.minigameCommandNames[i].format);
+			const minigameCommandNames = Games.getMinigameCommandNames();
+			for (const i in minigameCommandNames) {
+				const format = Games.getExistingFormat(minigameCommandNames[i].format);
 				if (format.disabled) continue;
 				if (!category || Tools.toId(format.category) === category) {
 					minigameCommands.push(i);
@@ -574,7 +579,7 @@ export const commands: BaseCommandDefinitions = {
 					"remaining.");
 				return;
 			}
-			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
+			if (Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 
 			const targets = target.split(',');
 			let voter = '';
@@ -588,9 +593,9 @@ export const commands: BaseCommandDefinitions = {
 			let format: IGameFormat | undefined;
 			if (cmd === 'createrandomgame' || cmd === 'crg' || cmd === 'randomgame' || targetId === 'random') {
 				const option = Tools.toId(gameTarget);
-				let formats: string[];
+				let formats: readonly string[];
 				if (option === 'freejoin' || option === 'fj') {
-					formats = Games.freejoinFormatTargets;
+					formats = Games.getFreejoinFormatTargets();
 				} else {
 					let filter: ((format: IGameFormat) => boolean) | undefined;
 					if (option) filter = x => Tools.toId(x.category) === option;
@@ -676,7 +681,9 @@ export const commands: BaseCommandDefinitions = {
 				}
 
 				const userData = user.rooms.get(chatRoom);
-				if (userData && userData.rank === Client.groupSymbols.muted) return this.say("You cannot join games while you are muted.");
+				if (userData && userData.rank === Client.getGroupSymbols().muted) {
+					return this.say("You cannot join games while you are muted.");
+				}
 
 				if (chatRoom.game) {
 					chatRoom.game.addPlayer(user);

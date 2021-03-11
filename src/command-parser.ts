@@ -3,8 +3,7 @@ import path = require('path');
 
 import type { Room } from "./rooms";
 import type {
-	BaseCommandDefinitions, CommandDefinitions, CommandErrorArray,
-	ICommandFile, IHtmlPageFile, LoadedCommands
+	BaseCommandDefinitions, CommandDefinitions, CommandErrorArray, ICommandFile, IHtmlPageFile, LoadedCommands
 } from "./types/command-parser";
 import type { User } from "./users";
 
@@ -114,23 +113,14 @@ export class CommandContext {
 }
 
 export class CommandParser {
-	htmlPagesDir: string = path.join(Tools.builtFolder, 'html-pages');
+	private htmlPagesDir: string = path.join(Tools.builtFolder, 'html-pages');
 
-	commandsDir: string;
-	privateCommandsDir: string;
+	private commandsDir: string;
+	private privateCommandsDir: string;
 
 	constructor() {
 		this.commandsDir = path.join(Tools.builtFolder, 'commands');
 		this.privateCommandsDir = path.join(this.commandsDir, 'private');
-	}
-
-	onReload(previous: Partial<CommandParser>): void {
-		for (const i in previous) {
-			// @ts-expect-error
-			delete previous[i];
-		}
-
-		this.loadBaseCommands();
 	}
 
 	loadCommandDefinitions<ThisContext, ReturnType>(definitions: CommandDefinitions<ThisContext, ReturnType>):
@@ -167,36 +157,6 @@ export class CommandParser {
 		return dict;
 	}
 
-	loadCommandsDirectory(directory: string, allCommands: BaseCommandDefinitions, privateDirectory?: boolean): BaseCommandDefinitions {
-		let commandFiles: string[] = [];
-		try {
-			commandFiles = fs.readdirSync(directory);
-		} catch (e) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			if (e.code === 'ENOENT' && privateDirectory) return allCommands;
-			throw e;
-		}
-
-		for (const fileName of commandFiles) {
-			if (!fileName.endsWith('.js')) continue;
-			// eslint-disable-next-line @typescript-eslint/no-var-requires
-			const commandFile = require(path.join(directory, fileName)) as ICommandFile;
-			if (commandFile.commands) {
-				if (!privateDirectory) {
-					for (const i in commandFile.commands) {
-						if (i in allCommands) {
-							throw new Error("Command '" + i + "' is defined in more than 1 location.");
-						}
-					}
-				}
-
-				Object.assign(allCommands, commandFile.commands);
-			}
-		}
-
-		return allCommands;
-	}
-
 	loadBaseCommands(): void {
 		const baseCommands: BaseCommandDefinitions = {};
 
@@ -228,7 +188,7 @@ export class CommandParser {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	parse(room: Room | User, user: User, message: string, timestamp: number): any {
+	parse(room: Room | User, user: User, message: string, timestamp: number): void {
 		if (!this.isCommandMessage(message)) return;
 		message = message.substr(1);
 		let command: string;
@@ -248,8 +208,13 @@ export class CommandParser {
 		if (Config.roomIgnoredCommands && room.id in Config.roomIgnoredCommands &&
 			Config.roomIgnoredCommands[room.id].includes(command)) return;
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return new CommandContext(command, target, room, user, timestamp).run();
+		try {
+			new CommandContext(command, target, room, user, timestamp).run();
+		} catch (e) {
+			console.log(e);
+			Tools.logError(e, "Crash in command: " + Config.commandCharacter + command + " " + target + " (room = " + room.id + "; " +
+				"user = " + user.id + ")");
+		}
 	}
 
 	getErrorText(error: CommandErrorArray): string {
@@ -328,6 +293,46 @@ export class CommandParser {
 
 		return "";
 	}
+
+	private onReload(previous: Partial<CommandParser>): void {
+		for (const i in previous) {
+			// @ts-expect-error
+			delete previous[i];
+		}
+
+		this.loadBaseCommands();
+	}
+
+	private loadCommandsDirectory(directory: string, allCommands: BaseCommandDefinitions,
+		privateDirectory?: boolean): BaseCommandDefinitions {
+		let commandFiles: string[] = [];
+		try {
+			commandFiles = fs.readdirSync(directory);
+		} catch (e) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			if (e.code === 'ENOENT' && privateDirectory) return allCommands;
+			throw e;
+		}
+
+		for (const fileName of commandFiles) {
+			if (!fileName.endsWith('.js')) continue;
+			// eslint-disable-next-line @typescript-eslint/no-var-requires
+			const commandFile = require(path.join(directory, fileName)) as ICommandFile;
+			if (commandFile.commands) {
+				if (!privateDirectory) {
+					for (const i in commandFile.commands) {
+						if (i in allCommands) {
+							throw new Error("Command '" + i + "' is defined in more than 1 location.");
+						}
+					}
+				}
+
+				Object.assign(allCommands, commandFile.commands);
+			}
+		}
+
+		return allCommands;
+	}
 }
 
 export const instantiate = (): void => {
@@ -336,6 +341,7 @@ export const instantiate = (): void => {
 	global.CommandParser = new CommandParser();
 
 	if (oldCommandParser) {
+		// @ts-expect-error
 		global.CommandParser.onReload(oldCommandParser);
 	}
 };

@@ -21,12 +21,12 @@ export class OneVsOne extends ScriptedGame {
 
 	setupChallenge(challenger: User, defender: User, challengeFormat: IGameFormat): void {
 		this.challengeFormat = challengeFormat;
-		this.defender = this.createPlayer(defender)!;
-		this.challenger = this.createPlayer(challenger)!;
+		this.defender = this.createPlayer(defender);
+		this.challenger = this.createPlayer(challenger);
 		this.minPlayers = 2;
 		this.name += " (" + challengeFormat.nameWithOptions + ")";
 
-		const text = this.challenger.name + " challenges " + this.defender.name + " to a one vs. one game of " +
+		const text = this.challenger!.name + " challenges " + this.defender!.name + " to a one vs. one game of " +
 			challengeFormat.nameWithOptions + "!";
 		this.on(text, () => {
 			this.canAcceptChallenge = true;
@@ -160,10 +160,7 @@ export class OneVsOne extends ScriptedGame {
 	}
 
 	updateLastChallengeTime(): void {
-		if (!this.challenger) return;
-
-		if (!(this.room.id in Games.lastChallengeTimes.onevsone)) Games.lastChallengeTimes.onevsone[this.room.id] = {};
-		Games.lastChallengeTimes.onevsone[this.room.id][this.challenger.id] = Date.now();
+		if (this.challenger) Games.setLastChallengeTime('onevsone', this.room, this.challenger.id, Date.now());
 	}
 
 	onEnd(): void {

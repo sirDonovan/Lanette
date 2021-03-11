@@ -336,7 +336,7 @@ const commands: GameCommandDefinitions<GreedentsBerryPiles> = {
 	},
 };
 
-commands.summary = Tools.deepClone(Games.sharedCommands.summary);
+commands.summary = Tools.deepClone(Games.getSharedCommands().summary);
 commands.summary.aliases = ['berries'];
 
 export const game: IGameFile<GreedentsBerryPiles> = {

@@ -5,7 +5,7 @@ const formatEffectTypes: string[] = ['Format', 'Rule', 'ValidatorRule'];
 /* eslint-env mocha */
 describe("pokemon-showdown", () => {
 	it("should properly interface with Lanette", () => {
-		for (const i of Dex.data.abilityKeys) {
+		for (const i of Dex.getData().abilityKeys) {
 			const ability = Dex.getAbility(i);
 			assert(ability, i);
 			assertStrictEqual(ability.id, i);
@@ -17,7 +17,7 @@ describe("pokemon-showdown", () => {
 			if (ability.shortDesc) assertStrictEqual(typeof ability.shortDesc, 'string');
 		}
 
-		for (const i of Dex.data.formatKeys) {
+		for (const i of Dex.getData().formatKeys) {
 			const format = Dex.getFormat(i);
 			assert(format, i);
 			assertStrictEqual(format.id, i);
@@ -36,7 +36,7 @@ describe("pokemon-showdown", () => {
 			if (format.ruleset.length) assertStrictEqual(typeof format.ruleset[0], 'string');
 		}
 
-		for (const i of Dex.data.itemKeys) {
+		for (const i of Dex.getData().itemKeys) {
 			const item = Dex.getItem(i);
 			assert(item, i);
 			assertStrictEqual(item.id, i);
@@ -48,11 +48,11 @@ describe("pokemon-showdown", () => {
 			if (item.isNonstandard) assertStrictEqual(typeof item.isNonstandard, 'string');
 		}
 
-		for (const i of Dex.data.learnsetDataKeys) {
+		for (const i of Dex.getData().learnsetDataKeys) {
 			assert(Dex.getLearnsetData(i), i);
 		}
 
-		for (const i of Dex.data.moveKeys) {
+		for (const i of Dex.getData().moveKeys) {
 			const move = Dex.getMove(i);
 			assert(move, i);
 			if (move.realMove) {
@@ -70,7 +70,7 @@ describe("pokemon-showdown", () => {
 			if (move.isNonstandard) assertStrictEqual(typeof move.isNonstandard, 'string');
 		}
 
-		for (const i of Dex.data.natureKeys) {
+		for (const i of Dex.getData().natureKeys) {
 			const nature = Dex.getNature(i);
 			assert(nature, i);
 			assertStrictEqual(nature.id, i);
@@ -81,7 +81,7 @@ describe("pokemon-showdown", () => {
 			if (nature.minus) assertStrictEqual(typeof nature.minus, 'string');
 		}
 
-		for (const i of Dex.data.pokemonKeys) {
+		for (const i of Dex.getData().pokemonKeys) {
 			const pokemon = Dex.getPokemon(i);
 			assert(pokemon, i);
 			assertStrictEqual(pokemon.id, i);
@@ -131,7 +131,7 @@ describe("pokemon-showdown", () => {
 			}
 		}
 
-		for (const i of Dex.data.typeKeys) {
+		for (const i of Dex.getData().typeKeys) {
 			const type = Dex.getType(i);
 			assert(type, i);
 			assertStrictEqual(type.id, i);

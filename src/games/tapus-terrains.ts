@@ -221,8 +221,9 @@ class TapusTerrains extends ScriptedGame {
 
 		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
 		this.botTurnTimeout = setTimeout(() => {
-			this.say(Config.commandCharacter + "jump");
-			botPlayer.useCommand("jump");
+			const command = "jump";
+			this.say(Config.commandCharacter + command);
+			botPlayer.useCommand(command);
 		}, this.sampleOne(this.botChallengeSpeeds!));
 	}
 }

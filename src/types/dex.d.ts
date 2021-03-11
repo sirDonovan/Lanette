@@ -58,24 +58,26 @@ export interface IGetPossibleTeamsOptions {
 	usablePokemon?: string[];
 }
 
+type DataKeys = readonly string[];
+
 export interface IDataTable {
-	readonly abilityKeys: readonly string[];
+	readonly abilityKeys: DataKeys;
 	readonly alternateIconNumbers: Readonly<IAlternateIconNumbers>;
 	readonly badges: Readonly<BadgeData>;
 	readonly categories: Readonly<Dict<string | undefined>>;
 	readonly characters: Readonly<CharacterData>;
 	readonly colors: Readonly<Dict<string>>;
 	readonly eggGroups: Readonly<Dict<string>>;
-	readonly formatKeys: readonly string[];
+	readonly formatKeys: DataKeys;
 	readonly gifData: Readonly<Dict<IGifData | undefined>>;
 	readonly gifDataBW: Readonly<Dict<IGifData | undefined>>;
-	readonly itemKeys: readonly string[];
-	readonly learnsetDataKeys: readonly string[];
+	readonly itemKeys: DataKeys;
+	readonly learnsetDataKeys: DataKeys;
 	readonly locations: Readonly<LocationData>;
-	readonly moveKeys: readonly string[];
-	readonly natureKeys: readonly string[];
-	readonly pokemonKeys: readonly string[];
+	readonly moveKeys: DataKeys;
+	readonly natureKeys: DataKeys;
+	readonly pokemonKeys: DataKeys;
 	readonly trainerClasses: Readonly<TrainerClassData>;
 	readonly trainerSprites: Readonly<Dict<string>>;
-	readonly typeKeys: readonly string[];
+	readonly typeKeys: DataKeys;
 }

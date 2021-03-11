@@ -110,7 +110,7 @@ export const commands: BaseCommandDefinitions = {
 
 			const format = Games.getUserHostedFormat(targets.join(","), user);
 			if (Array.isArray(format)) return this.sayError(format);
-			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
+			if (Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 
 			if (format.approvedHostOnly && !approvedHost && !user.hasRank(room, 'voice')) {
 				return this.say(format.name + " can only be hosted by approved hosts or room auth.");
@@ -140,26 +140,18 @@ export const commands: BaseCommandDefinitions = {
 				}
 			}
 
-			if (Config.userHostCooldownTimers && room.id in Config.userHostCooldownTimers && room.id in Games.lastUserHostTimes &&
-				host.id in Games.lastUserHostTimes[room.id]) {
-				const userHostCooldown = (Config.userHostCooldownTimers[room.id] * 60 * 1000) -
-					(Date.now() - Games.lastUserHostTimes[room.id][host.id]);
-				if (userHostCooldown > 1000) {
-					const durationString = Tools.toDurationString(userHostCooldown);
-					return this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of " +
-						host.name + "'s host cooldown remaining.");
-				}
+			const userHostCooldown = Games.getRemainingUserHostCooldown(room, host.id);
+			if (userHostCooldown > 1000) {
+				const durationString = Tools.toDurationString(userHostCooldown);
+				return this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of " +
+					host.name + "'s host cooldown remaining.");
 			}
 
-			if (Config.userHostFormatCooldownTimers && room.id in Config.userHostFormatCooldownTimers &&
-				room.id in Games.lastUserHostFormatTimes && format.id in Games.lastUserHostFormatTimes[room.id]) {
-				const formatCooldown = (Config.userHostFormatCooldownTimers[room.id] * 60 * 1000) -
-					(Date.now() - Games.lastUserHostFormatTimes[room.id][format.id]);
-				if (formatCooldown > 1000) {
-					const durationString = Tools.toDurationString(formatCooldown);
-					return this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the " +
-						format.name + " user-host cooldown remaining.");
-				}
+			const formatCooldown = Games.getRemainingUserHostFormatCooldown(room, format.id);
+			if (formatCooldown > 1000) {
+				const durationString = Tools.toDurationString(formatCooldown);
+				return this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the " +
+					format.name + " user-host cooldown remaining.");
 			}
 
 			if (Config.maxQueuedUserHostedGames && room.id in Config.maxQueuedUserHostedGames && database.userHostedGameQueue &&
@@ -254,7 +246,7 @@ export const commands: BaseCommandDefinitions = {
 			const nextHost = database.userHostedGameQueue[0];
 			const format = Games.getUserHostedFormat(nextHost.format, user);
 			if (Array.isArray(format)) return this.sayError(format);
-			if (Games.reloadInProgress) return this.sayError(['reloadInProgress']);
+			if (Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 			database.userHostedGameQueue.shift();
 			const game = Games.createUserHostedGame(room, format, nextHost.name);
 			game.signups();
@@ -291,19 +283,13 @@ export const commands: BaseCommandDefinitions = {
 			if (!this.isPm(room)) return;
 			const targetRoom = Rooms.search(target);
 			if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
-			if (Config.userHostCooldownTimers && targetRoom.id in Config.userHostCooldownTimers &&
-				targetRoom.id in Games.lastUserHostTimes && user.id in Games.lastUserHostTimes[targetRoom.id]) {
-				const userHostCooldown = (Config.userHostCooldownTimers[targetRoom.id] * 60 * 1000) -
-					(Date.now() - Games.lastUserHostTimes[targetRoom.id][user.id]);
-				if (userHostCooldown > 1000) {
-					const durationString = Tools.toDurationString(userHostCooldown);
-					this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of your host " +
-						"cooldown remaining.");
-				} else {
-					this.say("Your host cooldown has ended.");
-				}
+			const userHostCooldown = Games.getRemainingUserHostCooldown(targetRoom, user.id);
+			if (userHostCooldown > 1000) {
+				const durationString = Tools.toDurationString(userHostCooldown);
+				this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of your host " +
+					"cooldown remaining.");
 			} else {
-				this.say("You do not have a host cooldown.");
+				this.say("Your host cooldown has ended.");
 			}
 		},
 		aliases: ['ht'],
@@ -1316,7 +1302,7 @@ export const commands: BaseCommandDefinitions = {
 
 			const format = global.Games.getFormat(target, true);
 			if (Array.isArray(format)) return this.sayError(format);
-			if (global.Games.reloadInProgress) return this.sayError(['reloadInProgress']);
+			if (global.Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 			if (!format.canGetRandomAnswer) return this.say("This command cannot be used with " + format.name + ".");
 			delete format.inputOptions.points;
 			const game = global.Games.createGame(room, format, pmRoom);

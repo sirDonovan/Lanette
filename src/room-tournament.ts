@@ -260,7 +260,8 @@ export class Tournament extends Activity {
 				if (format.name === this.originalFormat) this.manuallyNamed = false;
 			} else {
 				this.name = this.updates.format;
-				if (this.name !== (this.format.name + Dex.defaultCustomRulesName) && this.name !== Dex.getCustomFormatName(this.format)) {
+				if (this.name !== (this.format.name + Dex.getDefaultCustomRulesName()) &&
+					this.name !== Dex.getCustomFormatName(this.format)) {
 					this.manuallyNamed = true;
 				}
 			}

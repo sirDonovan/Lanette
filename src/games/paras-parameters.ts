@@ -33,7 +33,7 @@ export class ParasParameters extends QuestionAndAnswer {
 	noIncorrectAnswersMinigameAchievement = ParasParameters.achievements.dexsearchhero;
 
 	static loadData(): void {
-		Games.workers.parameters.init();
+		Games.getWorkers().parameters.init();
 	}
 
 	getMinigameDescription(): string {
@@ -81,7 +81,7 @@ export class ParasParameters extends QuestionAndAnswer {
 			}
 		}
 		this.currentNumberOfParams = numberOfParams;
-		const result = await Games.workers.parameters.search({
+		const result = await Games.getWorkers().parameters.search({
 			customParamTypes: this.customParamTypes,
 			minimumResults: this.minimumResults,
 			maximumResults: this.maximumResults,
@@ -110,7 +110,9 @@ export class ParasParameters extends QuestionAndAnswer {
 
 			this.answers = [this.getParamNames(result.params).join(',')];
 			let oldGen = '';
-			if (this.format.options.gen && this.format.options.gen !== Dex.gen) oldGen = " (Generation " + this.format.options.gen + ")";
+			if (this.format.options.gen && this.format.options.gen !== Dex.getGen()) {
+				oldGen = " (Generation " + this.format.options.gen + ")";
+			}
 			this.additionalHintHeader = "- " + this.params.length + " params" + oldGen + ":";
 
 			const pokemonIcons: string[] = [];
@@ -128,9 +130,10 @@ export class ParasParameters extends QuestionAndAnswer {
 	}
 
 	intersect(parts: string[]): IParametersResponse | null {
+		const workers = Games.getWorkers();
 		const params: IParam[] = [];
 		const mod = 'gen' + this.format.options.gen;
-		const paramTypePools = Games.workers.parameters.workerData!.pokemon.gens[mod].paramTypePools;
+		const paramTypePools = workers.parameters.workerData!.pokemon.gens[mod].paramTypePools;
 		for (const part of parts) {
 			const id = Tools.toId(part);
 			let param: IParam | undefined;
@@ -146,7 +149,7 @@ export class ParasParameters extends QuestionAndAnswer {
 
 		if (params.length === 1 || params.length !== parts.length) return {params: [], pokemon: []};
 
-		return Games.workers.parameters.intersect({
+		return workers.parameters.intersect({
 			mod,
 			params,
 			paramTypes: allParamTypes,
@@ -180,7 +183,7 @@ const tests: GameFileTests<ParasParameters> = {
 		},
 		async test(game, format): Promise<void> {
 			this.timeout(15000);
-			const parametersData = Games.workers.parameters.loadData();
+			const parametersData = Games.getWorkers().parameters.loadData();
 
 			for (const gen in parametersData.pokemon.gens) {
 				const types = Object.keys(parametersData.pokemon.gens[gen].paramTypeDexes) as ParamType[];

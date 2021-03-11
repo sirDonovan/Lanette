@@ -50,8 +50,9 @@ module.exports = (inputOptions: Dict<string>): void => {
 
 		if (!loadGames && loadWorkers) {
 			console.log("Loading worker data for tests...");
-			Games.workers.parameters.init();
-			Games.workers.portmanteaus.init();
+			const workers = Games.getWorkers();
+			workers.parameters.init();
+			workers.portmanteaus.init();
 			console.log("Loaded worker data");
 		}
 
@@ -61,7 +62,7 @@ module.exports = (inputOptions: Dict<string>): void => {
 			if (testOptions.games) {
 				formats = testOptions.games.split(',');
 			} else {
-				formats = Object.keys(Games.formats);
+				formats = Object.keys(Games.getFormats());
 			}
 
 			const unflaggedGames: string[] = [];

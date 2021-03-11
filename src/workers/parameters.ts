@@ -70,7 +70,8 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 			},
 		};
 
-		for (let gen = 1; gen <= Dex.gen; gen++) {
+		const currentGen = Dex.getGen();
+		for (let gen = 1; gen <= currentGen; gen++) {
 			const mod = 'gen' + gen;
 			const dex = Dex.getDex(mod);
 
@@ -102,7 +103,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 			const resistancesDex: Dict<string[]> = {};
 
 			const typeChartKeys: string[] = [];
-			for (const key of dex.data.typeKeys) {
+			for (const key of dex.getData().typeKeys) {
 				const type = dex.getType(key);
 				if (type) typeChartKeys.push(type.name);
 			}
