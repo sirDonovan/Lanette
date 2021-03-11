@@ -25,7 +25,7 @@ export abstract class CardHighLow extends Card {
 
 	filterForme(forme: IPokemon): boolean {
 		const baseSpecies = Dex.getExistingPokemon(forme.baseSpecies);
-		if ((baseSpecies.color !== forme.color || !Tools.compareArrays(baseSpecies.types, forme.types)) &&
+		if ((forme.isMega || !Tools.compareArrays(baseSpecies.types, forme.types)) &&
 			!(baseSpecies.name === "Arceus" || baseSpecies.name === "Silvally")) return true;
 		return false;
 	}
