@@ -147,7 +147,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	}
 
 	filterPokemonList(pokemon: IPokemon): boolean {
-		if (((!this.filterForme || !this.filterForme(pokemon))) ||
+		if ((pokemon.forme && (!this.filterForme || !this.filterForme(pokemon))) ||
 			(this.usesActionCards && pokemon.id in this.actionCards) || !Dex.hasGifData(pokemon) ||
 			(this.filterPoolItem && !this.filterPoolItem(pokemon))) return false;
 		return true;
