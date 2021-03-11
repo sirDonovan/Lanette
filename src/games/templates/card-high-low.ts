@@ -2,7 +2,6 @@ import type { Player } from '../../room-activity';
 import type { GameCategory, GameCommandDefinitions, IGameTemplateFile } from '../../types/games';
 import type { ICard } from './card';
 import { Card, game as cardGame } from './card';
-import type { IPokemon } from '../../types/pokemon-showdown';
 
 export abstract class CardHighLow extends Card {
 	abstract categoryAbbreviations: Dict<string>;
@@ -22,13 +21,6 @@ export abstract class CardHighLow extends Card {
 	roundTimes: number[] = [15000, 16000, 17000, 18000, 19000, 20000, 21000, 22000, 23000, 24000, 25000];
 
 	abstract getCardDetail(card: ICard, detail: string): number;
-
-	filterForme(forme: IPokemon): boolean {
-		const baseSpecies = Dex.getExistingPokemon(forme.baseSpecies);
-		if (forme.isMega &&
-		!(baseSpecies.name === "Arceus" || baseSpecies.name === "Silvally")) return true;
-		return false;
-	}
 
 	createDeck(): void {
 		if (!this.deckPool.length) this.createDeckPool();
