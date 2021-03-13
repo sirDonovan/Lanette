@@ -24,13 +24,14 @@ const CHALLSTR_TIMEOUT_SECONDS = 15;
 const RELOGIN_SECONDS = 60;
 const LOGIN_TIMEOUT_SECONDS = 150;
 const REGULAR_MESSAGE_THROTTLE = 600;
-const TRUSTED_MESSAGE_THROTTLE = 110;
+const TRUSTED_MESSAGE_THROTTLE = 100;
 const SERVER_THROTTLE_BUFFER_LIMIT = 5;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const CONNECTION_CHECK_INTERVAL = 30 * 1000;
 const SERVER_THROTTLE_PROCESSING_TIME = 25;
 const PROCESSING_TIME_CHECK_MINIMUM = 5 * 1000;
+const PROCESSING_TIME_SAMPLE_SIZE = 6;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
 const UHTML_CHAT_COMMAND = '/uhtml ';
@@ -38,6 +39,16 @@ const UHTML_CHANGE_CHAT_COMMAND = '/uhtmlchange ';
 const HANGMAN_START_COMMAND = "/log A game of hangman was started by ";
 const HANGMAN_END_COMMAND = "/log (The game of hangman was ended by ";
 const HANGMAN_END_RAW_MESSAGE = "The game of hangman was ended.";
+
+const FILTERS_REGEX_N = /\u039d/g;
+// eslint-disable-next-line no-misleading-character-class
+const FILTERS_REGEX_EMPTY_CHARACTERS = /[\u200b\u007F\u00AD\uDB40\uDC00\uDC21]/g;
+const FILTERS_REGEX_O_LEFT = /\u03bf/g;
+const FILTERS_REGEX_O_RIGHT = /\u043e/g;
+const FILTERS_REGEX_A = /\u0430/g;
+const FILTERS_REGEX_E_LEFT = /\u0435/g;
+const FILTERS_REGEX_E_RIGHT = /\u039d/g;
+const FILTERS_REGEX_FORMATTING = /__|\*\*|``|\[\[|\]\]/g;
 
 const DEFAULT_GROUP_SYMBOLS: KeyedDict<GroupName, string> = {
 	'administrator': '&',
@@ -216,6 +227,7 @@ export class Client {
 	private serverPingTimeout: NodeJS.Timer | null = null;
 	private serverTimeOffset: number = 0;
 	private serverProcessingTime: number = 0;
+	private serverProcessingSamples: number[] = [];
 	private webSocket: import('ws') | null = null;
 
 	constructor() {
@@ -310,9 +322,32 @@ export class Client {
 	}
 
 	checkFilters(message: string, room?: Room): string | undefined {
-		let lowerCase = message.replace(/\u039d/g, 'N').toLowerCase().replace(/[\u200b\u007F\u00AD\uDB40\uDC00\uDC21]/gu, '')
-			.replace(/\u03bf/g, 'o').replace(/\u043e/g, 'o').replace(/\u0430/g, 'a').replace(/\u0435/g, 'e').replace(/\u039d/g, 'e');
-		lowerCase = lowerCase.replace(/__|\*\*|``|\[\[|\]\]/g, '');
+		if (room) {
+			if (room.configBannedWords) {
+				if (!room.configBannedWordsRegex) {
+					room.configBannedWordsRegex = constructBannedWordRegex(room.configBannedWords);
+				}
+				if (message.match(room.configBannedWordsRegex)) return "config room banned words";
+			}
+
+			if (room.serverBannedWords) {
+				if (!room.serverBannedWordsRegex) {
+					room.serverBannedWordsRegex = constructBannedWordRegex(room.serverBannedWords);
+				}
+				if (message.match(room.serverBannedWordsRegex)) return "server room banned words";
+			}
+		}
+
+		let lowerCase = message
+			.replace(FILTERS_REGEX_N, 'N').toLowerCase()
+			.replace(FILTERS_REGEX_EMPTY_CHARACTERS, '')
+			.replace(FILTERS_REGEX_O_LEFT, 'o')
+			.replace(FILTERS_REGEX_O_RIGHT, 'o')
+			.replace(FILTERS_REGEX_A, 'a')
+			.replace(FILTERS_REGEX_E_LEFT, 'e')
+			.replace(FILTERS_REGEX_E_RIGHT, 'e');
+
+		lowerCase = lowerCase.replace(FILTERS_REGEX_FORMATTING, '');
 
 		if (this.battleFilterRegularExpressions && room && room.type === 'battle') {
 			for (const expression of this.battleFilterRegularExpressions) {
@@ -331,22 +366,6 @@ export class Client {
 			evasionLowerCase = evasionLowerCase.replace(/[\s-_,.]+/g, '.');
 			for (const expression of this.evasionFilterRegularExpressions) {
 				if (evasionLowerCase.match(expression)) return "evasion filter";
-			}
-		}
-
-		if (room) {
-			if (room.configBannedWords) {
-				if (!room.configBannedWordsRegex) {
-					room.configBannedWordsRegex = constructBannedWordRegex(room.configBannedWords);
-				}
-				if (message.match(room.configBannedWordsRegex)) return "config room banned words";
-			}
-
-			if (room.serverBannedWords) {
-				if (!room.serverBannedWordsRegex) {
-					room.serverBannedWordsRegex = constructBannedWordRegex(room.serverBannedWords);
-				}
-				if (message.match(room.serverBannedWordsRegex)) return "server room banned words";
 			}
 		}
 
@@ -377,9 +396,9 @@ export class Client {
 			this.outgoingMessageQueue.push(outgoingMessage);
 
 			const queuedMessages = this.outgoingMessageQueue.length;
-			const startingIndexOffset = SERVER_THROTTLE_BUFFER_LIMIT - 1;
-			if (queuedMessages < startingIndexOffset) {
-				if ((!this.lastOutgoingMessage || !this.lastOutgoingMessage.measure) && queuedMessages === startingIndexOffset - 1) {
+			if (queuedMessages < SERVER_THROTTLE_BUFFER_LIMIT) {
+				if ((!this.lastOutgoingMessage || !this.lastOutgoingMessage.measure) &&
+					queuedMessages === SERVER_THROTTLE_BUFFER_LIMIT - 1) {
 					let willMeasure = false;
 					for (let i = 0; i < queuedMessages; i++) {
 						if (this.outgoingMessageQueue[i].measure) {
@@ -394,7 +413,7 @@ export class Client {
 				}
 			} else {
 				let willMeasure = false;
-				for (let i = queuedMessages - startingIndexOffset; i < queuedMessages; i++) {
+				for (let i = queuedMessages - SERVER_THROTTLE_BUFFER_LIMIT; i < queuedMessages; i++) {
 					if (this.outgoingMessageQueue[i].measure) {
 						willMeasure = true;
 						break;
@@ -529,7 +548,8 @@ export class Client {
 
 		if (previous.lastSendTimeoutTime) this.lastSendTimeoutTime = previous.lastSendTimeoutTime;
 		if (previous.lastProcessingTimeCheck) this.lastProcessingTimeCheck = previous.lastProcessingTimeCheck;
-		if (previous.lastOutgoingMessage) this.lastOutgoingMessage = previous.lastOutgoingMessage;
+		if (previous.lastOutgoingMessage) this.lastOutgoingMessage = Object.assign({}, previous.lastOutgoingMessage);
+		if (previous.serverProcessingSamples) this.serverProcessingSamples = previous.serverProcessingSamples.slice();
 		if (previous.serverProcessingTime) this.serverProcessingTime = previous.serverProcessingTime;
 
 		if (previous.outgoingMessageQueue) this.outgoingMessageQueue = previous.outgoingMessageQueue.slice();
@@ -1385,7 +1405,7 @@ export class Client {
 				if (subMessage) {
 					const bannedWordsRoom = Rooms.get(roomId);
 					if (bannedWordsRoom) {
-						bannedWordsRoom.serverBannedWords = subMessage.split(', ');
+						bannedWordsRoom.serverBannedWords = subMessage.split(',').map(x => x.trim());
 						bannedWordsRoom.serverBannedWordsRegex = null;
 					}
 				}
@@ -1959,7 +1979,15 @@ export class Client {
 			const oldServerProcessingTime = this.serverProcessingTime;
 
 			if (this.lastOutgoingMessage.measure && this.lastOutgoingMessage.sentTime && responseTime) {
-				this.serverProcessingTime = responseTime - this.lastOutgoingMessage.sentTime;
+				this.serverProcessingSamples.push(responseTime - this.lastOutgoingMessage.sentTime);
+				let sampleSize = this.serverProcessingSamples.length;
+				if (sampleSize > PROCESSING_TIME_SAMPLE_SIZE) {
+					this.serverProcessingSamples.shift();
+					sampleSize--;
+				}
+				const samplesTotal = this.serverProcessingSamples.reduce((total, i) => total += i);
+				this.serverProcessingTime = samplesTotal ? Math.ceil(samplesTotal / sampleSize) : 0;
+
 				this.lastProcessingTimeCheck = responseTime;
 			}
 

@@ -969,7 +969,7 @@ export const commands: BaseCommandDefinitions = {
 				return this.say("Team " + room.userHostedGame.teams[teamId].name + " does not have any players remaining.");
 			}
 			const player = room.userHostedGame.sampleOne(remainingPlayers);
-			this.run(cmd.startsWith('r') ? 'removepoint' : 'addpoint', player.name + ',' + points);
+			this.run(cmd.startsWith('r') ? 'removegamepoint' : 'addgamepoint', player.name + ',' + points);
 		},
 		aliases: ['addteampoint', 'removeteampoint', 'removeteampoints', 'atpt', 'rtpt'],
 	},
