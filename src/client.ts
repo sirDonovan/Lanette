@@ -24,13 +24,14 @@ const CHALLSTR_TIMEOUT_SECONDS = 15;
 const RELOGIN_SECONDS = 60;
 const LOGIN_TIMEOUT_SECONDS = 150;
 const REGULAR_MESSAGE_THROTTLE = 600;
-const TRUSTED_MESSAGE_THROTTLE = 110;
+const TRUSTED_MESSAGE_THROTTLE = 100;
 const SERVER_THROTTLE_BUFFER_LIMIT = 5;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const CONNECTION_CHECK_INTERVAL = 30 * 1000;
 const SERVER_THROTTLE_PROCESSING_TIME = 25;
 const PROCESSING_TIME_CHECK_MINIMUM = 5 * 1000;
+const PROCESSING_TIME_SAMPLE_SIZE = 6;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
 const UHTML_CHAT_COMMAND = '/uhtml ';
@@ -226,6 +227,7 @@ export class Client {
 	private serverPingTimeout: NodeJS.Timer | null = null;
 	private serverTimeOffset: number = 0;
 	private serverProcessingTime: number = 0;
+	private serverProcessingSamples: number[] = [];
 	private webSocket: import('ws') | null = null;
 
 	constructor() {
@@ -394,9 +396,9 @@ export class Client {
 			this.outgoingMessageQueue.push(outgoingMessage);
 
 			const queuedMessages = this.outgoingMessageQueue.length;
-			const startingIndexOffset = SERVER_THROTTLE_BUFFER_LIMIT - 1;
-			if (queuedMessages < startingIndexOffset) {
-				if ((!this.lastOutgoingMessage || !this.lastOutgoingMessage.measure) && queuedMessages === startingIndexOffset - 1) {
+			if (queuedMessages < SERVER_THROTTLE_BUFFER_LIMIT) {
+				if ((!this.lastOutgoingMessage || !this.lastOutgoingMessage.measure) &&
+					queuedMessages === SERVER_THROTTLE_BUFFER_LIMIT - 1) {
 					let willMeasure = false;
 					for (let i = 0; i < queuedMessages; i++) {
 						if (this.outgoingMessageQueue[i].measure) {
@@ -411,7 +413,7 @@ export class Client {
 				}
 			} else {
 				let willMeasure = false;
-				for (let i = queuedMessages - startingIndexOffset; i < queuedMessages; i++) {
+				for (let i = queuedMessages - SERVER_THROTTLE_BUFFER_LIMIT; i < queuedMessages; i++) {
 					if (this.outgoingMessageQueue[i].measure) {
 						willMeasure = true;
 						break;
@@ -546,7 +548,8 @@ export class Client {
 
 		if (previous.lastSendTimeoutTime) this.lastSendTimeoutTime = previous.lastSendTimeoutTime;
 		if (previous.lastProcessingTimeCheck) this.lastProcessingTimeCheck = previous.lastProcessingTimeCheck;
-		if (previous.lastOutgoingMessage) this.lastOutgoingMessage = previous.lastOutgoingMessage;
+		if (previous.lastOutgoingMessage) this.lastOutgoingMessage = Object.assign({}, previous.lastOutgoingMessage);
+		if (previous.serverProcessingSamples) this.serverProcessingSamples = previous.serverProcessingSamples.slice();
 		if (previous.serverProcessingTime) this.serverProcessingTime = previous.serverProcessingTime;
 
 		if (previous.outgoingMessageQueue) this.outgoingMessageQueue = previous.outgoingMessageQueue.slice();
@@ -1976,7 +1979,15 @@ export class Client {
 			const oldServerProcessingTime = this.serverProcessingTime;
 
 			if (this.lastOutgoingMessage.measure && this.lastOutgoingMessage.sentTime && responseTime) {
-				this.serverProcessingTime = responseTime - this.lastOutgoingMessage.sentTime;
+				this.serverProcessingSamples.push(responseTime - this.lastOutgoingMessage.sentTime);
+				let sampleSize = this.serverProcessingSamples.length;
+				if (sampleSize > PROCESSING_TIME_SAMPLE_SIZE) {
+					this.serverProcessingSamples.shift();
+					sampleSize--;
+				}
+				const samplesTotal = this.serverProcessingSamples.reduce((total, i) => total += i);
+				this.serverProcessingTime = samplesTotal ? Math.ceil(samplesTotal / sampleSize) : 0;
+
 				this.lastProcessingTimeCheck = responseTime;
 			}
 
