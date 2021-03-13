@@ -72,8 +72,12 @@ export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 		}
 	}
 
-	getAnswers(givenAnswer?: string): string[] {
-		if (!givenAnswer) givenAnswer = this.answers[0];
+	getAnswers(givenAnswer?: string): readonly string[] {
+		if (!givenAnswer) {
+			if (!this.answers.length) return [];
+			givenAnswer = this.answers[0];
+		}
+
 		return [givenAnswer.charAt(0).toUpperCase() + givenAnswer.substr(1) + " (" + this.answerParts[givenAnswer].join(" + ") + ")"];
 	}
 
