@@ -39,6 +39,16 @@ const HANGMAN_START_COMMAND = "/log A game of hangman was started by ";
 const HANGMAN_END_COMMAND = "/log (The game of hangman was ended by ";
 const HANGMAN_END_RAW_MESSAGE = "The game of hangman was ended.";
 
+const FILTERS_REGEX_N = /\u039d/g;
+// eslint-disable-next-line no-misleading-character-class
+const FILTERS_REGEX_EMPTY_CHARACTERS = /[\u200b\u007F\u00AD\uDB40\uDC00\uDC21]/g;
+const FILTERS_REGEX_O_LEFT = /\u03bf/g;
+const FILTERS_REGEX_O_RIGHT = /\u043e/g;
+const FILTERS_REGEX_A = /\u0430/g;
+const FILTERS_REGEX_E_LEFT = /\u0435/g;
+const FILTERS_REGEX_E_RIGHT = /\u039d/g;
+const FILTERS_REGEX_FORMATTING = /__|\*\*|``|\[\[|\]\]/g;
+
 const DEFAULT_GROUP_SYMBOLS: KeyedDict<GroupName, string> = {
 	'administrator': '&',
 	'roomowner': '#',
@@ -310,9 +320,32 @@ export class Client {
 	}
 
 	checkFilters(message: string, room?: Room): string | undefined {
-		let lowerCase = message.replace(/\u039d/g, 'N').toLowerCase().replace(/[\u200b\u007F\u00AD\uDB40\uDC00\uDC21]/gu, '')
-			.replace(/\u03bf/g, 'o').replace(/\u043e/g, 'o').replace(/\u0430/g, 'a').replace(/\u0435/g, 'e').replace(/\u039d/g, 'e');
-		lowerCase = lowerCase.replace(/__|\*\*|``|\[\[|\]\]/g, '');
+		if (room) {
+			if (room.configBannedWords) {
+				if (!room.configBannedWordsRegex) {
+					room.configBannedWordsRegex = constructBannedWordRegex(room.configBannedWords);
+				}
+				if (message.match(room.configBannedWordsRegex)) return "config room banned words";
+			}
+
+			if (room.serverBannedWords) {
+				if (!room.serverBannedWordsRegex) {
+					room.serverBannedWordsRegex = constructBannedWordRegex(room.serverBannedWords);
+				}
+				if (message.match(room.serverBannedWordsRegex)) return "server room banned words";
+			}
+		}
+
+		let lowerCase = message
+			.replace(FILTERS_REGEX_N, 'N').toLowerCase()
+			.replace(FILTERS_REGEX_EMPTY_CHARACTERS, '')
+			.replace(FILTERS_REGEX_O_LEFT, 'o')
+			.replace(FILTERS_REGEX_O_RIGHT, 'o')
+			.replace(FILTERS_REGEX_A, 'a')
+			.replace(FILTERS_REGEX_E_LEFT, 'e')
+			.replace(FILTERS_REGEX_E_RIGHT, 'e');
+
+		lowerCase = lowerCase.replace(FILTERS_REGEX_FORMATTING, '');
 
 		if (this.battleFilterRegularExpressions && room && room.type === 'battle') {
 			for (const expression of this.battleFilterRegularExpressions) {
@@ -331,22 +364,6 @@ export class Client {
 			evasionLowerCase = evasionLowerCase.replace(/[\s-_,.]+/g, '.');
 			for (const expression of this.evasionFilterRegularExpressions) {
 				if (evasionLowerCase.match(expression)) return "evasion filter";
-			}
-		}
-
-		if (room) {
-			if (room.configBannedWords) {
-				if (!room.configBannedWordsRegex) {
-					room.configBannedWordsRegex = constructBannedWordRegex(room.configBannedWords);
-				}
-				if (message.match(room.configBannedWordsRegex)) return "config room banned words";
-			}
-
-			if (room.serverBannedWords) {
-				if (!room.serverBannedWordsRegex) {
-					room.serverBannedWordsRegex = constructBannedWordRegex(room.serverBannedWords);
-				}
-				if (message.match(room.serverBannedWordsRegex)) return "server room banned words";
 			}
 		}
 
@@ -1385,7 +1402,7 @@ export class Client {
 				if (subMessage) {
 					const bannedWordsRoom = Rooms.get(roomId);
 					if (bannedWordsRoom) {
-						bannedWordsRoom.serverBannedWords = subMessage.split(', ');
+						bannedWordsRoom.serverBannedWords = subMessage.split(',').map(x => x.trim());
 						bannedWordsRoom.serverBannedWordsRegex = null;
 					}
 				}
