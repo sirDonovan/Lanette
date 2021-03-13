@@ -125,9 +125,9 @@ class Team {
 				let player = this.playerOrders[team.id].shift();
 				if (!player) {
 					this.setTeamPlayerOrder(team);
-					player = this.playerOrders[team.id].shift()!;
+					player = this.playerOrders[team.id].shift();
 				}
-				this.currentPlayers[team.id] = player;
+				this.currentPlayers[team.id] = player!;
 			}
 		}
 

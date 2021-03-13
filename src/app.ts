@@ -62,9 +62,9 @@ module.exports = (): void => {
 		for (const target of targets) {
 			const id = Tools.toId(target) as ReloadableModule;
 			if (id === 'games') {
-				const workers = Object.keys(Games.workers) as (keyof IGamesWorkers)[];
+				const workers = Object.keys(Games.getWorkers()) as (keyof IGamesWorkers)[];
 				for (const worker of workers) {
-					if (Games.workers[worker].isBusy) {
+					if (Games.getWorkers()[worker].isBusy) {
 						if (user) user.say("You must wait for all " + worker + " requests to finish first.");
 						return;
 					}
@@ -97,7 +97,7 @@ module.exports = (): void => {
 			if (hasModules[i]) modules.push(moduleOrder[i]);
 		}
 
-		if (modules.includes('dex') || modules.includes('games')) Games.reloadInProgress = true;
+		if (modules.includes('dex') || modules.includes('games')) Games.setReloadInProgress(true);
 		if (modules.includes('storage')) Storage.reloadInProgress = true;
 
 		const buildOptions: Dict<boolean> = {
@@ -143,7 +143,7 @@ module.exports = (): void => {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
 					const newDex = require('./' + moduleFilenames[moduleId]) as typeof import('./dex');
 					newDex.instantiate();
-					if (!modules.includes('games')) Games.reloadInProgress = false;
+					if (!modules.includes('games')) Games.setReloadInProgress(false);
 				} else if (moduleId === 'games') {
 					Games.unrefWorkers();
 
@@ -173,7 +173,7 @@ module.exports = (): void => {
 			console.log(e);
 
 			global.__reloadInProgress = false;
-			if (Games.reloadInProgress) Games.reloadInProgress = false;
+			if (Games.isReloadInProgress()) Games.setReloadInProgress(false);
 			if (Storage.reloadInProgress) Storage.reloadInProgress = false;
 
 			user = Users.get(username);

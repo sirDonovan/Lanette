@@ -164,7 +164,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 		const checkEvolutions = this.evolutionsPerRound !== 0;
 
 		const pokedex: IPokemon[] = [];
-		for (const name of Dex.data.pokemonKeys) {
+		for (const name of Dex.getData().pokemonKeys) {
 			const pokemon = Dex.getExistingPokemon(name);
 			if (!this.meetsPokemonCriteria(pokemon, 'starter')) continue;
 
@@ -938,19 +938,20 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 		let pokedex: string[];
 		if (this.monoColor) {
-			const colors = this.shuffle(Object.keys(Dex.data.colors));
-			this.color = Dex.data.colors[colors[0]];
-			colors.shift();
+			const colors = Dex.getData().colors;
+			const colorKeys = this.shuffle(Object.keys(colors));
+			this.color = colors[colorKeys[0]];
+			colorKeys.shift();
 			pokedex = this.createPokedex();
 			while (this.getMaxPlayers(pokedex.length) < minimumPlayers) {
-				if (!colors.length) throw new Error("No color has at least " + minimumPokemon + " Pokemon");
-				this.color = Dex.data.colors[colors[0]];
-				colors.shift();
+				if (!colorKeys.length) throw new Error("No color has at least " + minimumPokemon + " Pokemon");
+				this.color = colors[colorKeys[0]];
+				colorKeys.shift();
 				pokedex = this.createPokedex();
 			}
 			this.tournamentName = "Mono-" + this.color + " " + this.baseTournamentName;
 		} else if (this.monoType) {
-			const types = this.shuffle(Dex.data.typeKeys);
+			const types = this.shuffle(Dex.getData().typeKeys);
 			this.type = Dex.getExistingType(types[0]).name;
 			types.shift();
 			pokedex = this.createPokedex();
@@ -962,8 +963,9 @@ export abstract class EliminationTournament extends ScriptedGame {
 			}
 			this.tournamentName = "Mono-" + this.type + " " + this.baseTournamentName;
 		} else if (this.monoRegion) {
+			const currentGen = Dex.getGen();
 			let gens: number[] = [];
-			for (let i = 1; i <= Dex.gen; i++) {
+			for (let i = 1; i <= currentGen; i++) {
 				gens.push(i);
 			}
 			gens = this.shuffle(gens);
@@ -1547,7 +1549,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 			this.sayHtml("<div class='infobox-limited'>" + placesHtml + "</div>");
 		}
 
-		Games.lastGames[this.room.id] = Date.now();
+		Games.setLastGame(this.room, Date.now());
 
 		if (Config.tournamentGameCooldownTimers && this.room.id in Config.tournamentGameCooldownTimers) {
 			this.say("The **" + Config.tournamentGameCooldownTimers[this.room.id] + "-minute cooldown** until the next tournament " +

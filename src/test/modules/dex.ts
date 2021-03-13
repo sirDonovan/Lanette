@@ -6,19 +6,21 @@ import { assert, assertStrictEqual } from './../test-tools';
 
 describe("Dex", () => {
 	it('should properly load data', function(this: Mocha.Context) {
-		assert(Dex.data.abilityKeys.length > 1);
-		assert(Dex.data.formatKeys.length > 1);
-		assert(Dex.data.itemKeys.length > 1);
-		assert(Dex.data.learnsetDataKeys.length > 1);
-		assert(Dex.data.moveKeys.length > 1);
-		assert(Dex.data.natureKeys.length > 1);
-		assert(Dex.data.pokemonKeys.length > 1);
-		assert(Dex.data.typeKeys.length > 1);
+		const dexData = Dex.getData();
 
-		assert(Object.keys(Dex.data.colors).length > 1);
-		assert(Object.keys(Dex.data.eggGroups).length > 1);
-		assert(Object.keys(Dex.data.gifData).length > 1);
-		assert(Object.keys(Dex.data.gifDataBW).length > 1);
+		assert(dexData.abilityKeys.length > 1);
+		assert(dexData.formatKeys.length > 1);
+		assert(dexData.itemKeys.length > 1);
+		assert(dexData.learnsetDataKeys.length > 1);
+		assert(dexData.moveKeys.length > 1);
+		assert(dexData.natureKeys.length > 1);
+		assert(dexData.pokemonKeys.length > 1);
+		assert(dexData.typeKeys.length > 1);
+
+		assert(Object.keys(dexData.colors).length > 1);
+		assert(Object.keys(dexData.eggGroups).length > 1);
+		assert(Object.keys(dexData.gifData).length > 1);
+		assert(Object.keys(dexData.gifDataBW).length > 1);
 
 		// allPossibleMoves
 		let pokemon = Dex.getExistingPokemon('Charizard');
@@ -82,6 +84,8 @@ describe("Dex", () => {
 		assertStrictEqual(Dex.getExistingFormat("gen8ou").gen, 8);
 	});
 	it('should contain valid data files', function(this: Mocha.Context) {
+		const dexData = Dex.getData();
+
 		const badges = Dex.getBadges();
 		assert(badges.length > 1);
 
@@ -91,8 +95,10 @@ describe("Dex", () => {
 		const locations = Dex.getLocations();
 		assert(locations.length > 1);
 
-		assert(Dex.data.trainerClasses.length > 1);
-		assert(Object.keys(Dex.data.categories).length > 1);
+		const categories = dexData.categories;
+		assert(Object.keys(categories).length > 1);
+
+		assert(dexData.trainerClasses.length > 1);
 
 		for (let i = 0; i < badges.length; i++) {
 			assert(badges.indexOf(badges[i]) === i, "Duplicate badge " + badges[i]);
@@ -106,12 +112,12 @@ describe("Dex", () => {
 			assert(locations.indexOf(locations[i]) === i, "Duplicate location " + locations[i]);
 		}
 
-		for (let i = Dex.gen; i >= 1; i--) {
+		for (let i = Dex.getGen(); i >= 1; i--) {
 			const dex = Dex.getDex('gen' + i);
 			assertStrictEqual(dex.getPokemonCategory(dex.getExistingPokemon('Pikachu')), 'Mouse');
 		}
 
-		const categoryKeys = Object.keys(Dex.data.categories);
+		const categoryKeys = Object.keys(categories);
 		for (let i = 0; i < categoryKeys.length; i++) {
 			assert(Tools.toId(categoryKeys[i]) === categoryKeys[i], categoryKeys[i] + " should be an ID in categories.js");
 			assert(categoryKeys.indexOf(categoryKeys[i]) === i, "Duplicate category for " + categoryKeys[i]);
@@ -129,9 +135,10 @@ describe("Dex", () => {
 			assertStrictEqual(Dex.getAbility(variant), ability);
 		}
 
-		const format = Dex.getFormat("[Gen " + Dex.gen + "] OU");
+		const gen = Dex.getGen();
+		const format = Dex.getFormat("[Gen " + gen + "] OU");
 		assert(format);
-		variants = ["gen" + Dex.gen + "ou", "gen" + Dex.gen + " ou", "Gen" + Dex.gen + "ou", "Gen" + Dex.gen + " ou"];
+		variants = ["gen" + gen + "ou", "gen" + gen + " ou", "Gen" + gen + "ou", "Gen" + gen + " ou"];
 		for (const variant of variants) {
 			assertStrictEqual(Dex.getFormat(variant)!.name, format.name);
 		}
@@ -206,13 +213,15 @@ describe("Dex", () => {
 		// eslint-disable-next-line @typescript-eslint/no-invalid-this
 		this.timeout(15000);
 
-		for (const i of Dex.data.abilityKeys) {
+		const dexData = Dex.getData();
+
+		for (const i of dexData.abilityKeys) {
 			const ability = Dex.getExistingAbility(i);
 			Dex.getAbilityCopy(ability);
 			Dex.getAbilityCopy(i);
 		}
 
-		for (const i of Dex.data.itemKeys) {
+		for (const i of dexData.itemKeys) {
 			const item = Dex.getExistingItem(i);
 			Dex.getItemCopy(item);
 			Dex.getItemCopy(i);
@@ -220,21 +229,21 @@ describe("Dex", () => {
 			Dex.getPSItemIcon(item);
 		}
 
-		for (const i of Dex.data.formatKeys) {
+		for (const i of dexData.formatKeys) {
 			const format = Dex.getExistingFormat(i);
 			Dex.getFormatInfoDisplay(format);
 			Dex.validateFormat(format.name);
 			Dex.getUsablePokemon(format);
 		}
 
-		for (const i of Dex.data.moveKeys) {
+		for (const i of dexData.moveKeys) {
 			const move = Dex.getExistingMove(i);
 			Dex.getMoveCopy(move);
 			Dex.getMoveCopy(i);
 			Dex.getMoveAvailability(move);
 		}
 
-		for (const i of Dex.data.pokemonKeys) {
+		for (const i of dexData.pokemonKeys) {
 			const pokemon = Dex.getExistingPokemon(i);
 			Dex.getPokemonCopy(pokemon);
 			Dex.getPokemonCopy(i);
@@ -255,7 +264,7 @@ describe("Dex", () => {
 		}
 	});
 	it('should set custom attributes for formats', () => {
-		for (const i of Dex.data.formatKeys) {
+		for (const i of Dex.getData().formatKeys) {
 			const format = Dex.getExistingFormat(i);
 			assertStrictEqual(typeof format.quickFormat, 'boolean');
 			assertStrictEqual(typeof format.tournamentPlayable, 'boolean');
@@ -297,35 +306,38 @@ describe("Dex", () => {
 		assertStrictEqual(split[1][1], '+Solgaleo');
 	});
 	it('should have valid custom rule and format aliases', () => {
-		for (const i in Dex.customRuleAliases) {
-			for (const rule of Dex.customRuleAliases[i]) {
+		const customRuleAliases = Dex.getCustomRuleAliases();
+		for (const i in customRuleAliases) {
+			for (const rule of customRuleAliases[i]) {
 				assert(Dex.validateRule(rule), i);
 			}
 		}
 
-		for (const i in Dex.customRuleFormats) {
-			assert(Dex.validateFormat(Dex.customRuleFormats[i].format + '@@@' + Dex.customRuleFormats[i].banlist), i);
+		const customRuleFormats = Dex.getCustomRuleFormats();
+		for (const i in customRuleFormats) {
+			assert(Dex.validateFormat(customRuleFormats[i].format + '@@@' + customRuleFormats[i].banlist), i);
 		}
 	});
 	it('should support all types of custom rule aliases', () => {
+		const gen = Dex.getGen();
 		let format = Dex.getExistingFormat("ou@@@+Lunala");
 		assert(format.customRules);
 		assertStrictEqual(format.customRules.length, 1);
 		assertStrictEqual(format.customRules[0], '+Lunala');
-		assertStrictEqual(format.id, 'gen' + Dex.gen + 'ou');
+		assertStrictEqual(format.id, 'gen' + gen + 'ou');
 
 		format = Dex.getExistingFormat("uubl");
 		assert(format.customRules);
 		assertStrictEqual(format.customRules.length, 1);
 		assertStrictEqual(format.customRules[0], '+UUBL');
-		assertStrictEqual(format.id, 'gen' + Dex.gen + 'uu');
+		assertStrictEqual(format.id, 'gen' + gen + 'uu');
 
 		format = Dex.getExistingFormat("uubl@@@+Lunala");
 		assert(format.customRules);
 		assertStrictEqual(format.customRules.length, 2);
 		assertStrictEqual(format.customRules[0], '+Lunala');
 		assertStrictEqual(format.customRules[1], '+UUBL');
-		assertStrictEqual(format.id, 'gen' + Dex.gen + 'uu');
+		assertStrictEqual(format.id, 'gen' + gen + 'uu');
 
 		format = Dex.getExistingFormat("gen7uubl");
 		assert(format.customRules);
@@ -344,14 +356,14 @@ describe("Dex", () => {
 		assert(format.customRules);
 		assertStrictEqual(format.customRules.length, 1);
 		assertStrictEqual(format.customRules[0], 'Same Type Clause');
-		assertStrictEqual(format.id, 'gen' + Dex.gen + 'uu');
+		assertStrictEqual(format.id, 'gen' + gen + 'uu');
 
 		format = Dex.getExistingFormat("monotype uubl");
 		assert(format.customRules);
 		assertStrictEqual(format.customRules.length, 2);
 		assertStrictEqual(format.customRules[0], 'Same Type Clause');
 		assertStrictEqual(format.customRules[1], '+UUBL');
-		assertStrictEqual(format.id, 'gen' + Dex.gen + 'uu');
+		assertStrictEqual(format.id, 'gen' + gen + 'uu');
 
 		format = Dex.getExistingFormat("monotype gen7uu");
 		assert(format.customRules);
@@ -370,7 +382,7 @@ describe("Dex", () => {
 		assert(format.customRules);
 		assertStrictEqual(format.customRules.length, 1);
 		assertStrictEqual(format.customRules[0], 'Same Type Clause');
-		assertStrictEqual(format.id, 'gen' + Dex.gen + 'doublesou');
+		assertStrictEqual(format.id, 'gen' + gen + 'doublesou');
 	});
 	it('should properly parse custom rules in separateCustomRules()', () => {
 		const customRules: string[] = ["-Pikachu", "+Charizard", "*Kubfu", "Same Type Clause", "!Team Preview"];
@@ -1094,7 +1106,7 @@ describe("Dex", () => {
 		assert(!dex.getPokemonList().map(x => x.name).includes(dex.getExistingPokemon('Missingno.').name));
 	});
 	it('should have hex colors for all relevant Pokemon and move data', () => {
-		for (const i of Dex.data.pokemonKeys) {
+		for (const i of Dex.getData().pokemonKeys) {
 			const pokemon = Dex.getExistingPokemon(i);
 			assert(pokemon.color in Tools.pokemonColorHexCodes, pokemon.name + "'s color " + pokemon.color);
 			for (const type of pokemon.types) {
@@ -1105,7 +1117,7 @@ describe("Dex", () => {
 			}
 		}
 
-		for (const i of Dex.data.moveKeys) {
+		for (const i of Dex.getData().moveKeys) {
 			const move = Dex.getExistingMove(i);
 			assert(move.type in Tools.typeHexCodes, move.name);
 		}

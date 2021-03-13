@@ -86,11 +86,12 @@ export abstract class CardHighLow extends Card {
 			bestDetail = sorted[0].detail;
 		}
 
+		const pokemonKeys = Dex.getData().pokemonKeys;
 		const cardsHtml: string[] = [];
 		for (const info of sorted) {
 			const card = info.card;
 			let cardHtml = '<div class="infobox" style="width:' + cardWidth + 'px">';
-			if (Dex.data.pokemonKeys.includes(card.id)) {
+			if (pokemonKeys.includes(card.id)) {
 				cardHtml += Dex.getPokemonIcon(Dex.getExistingPokemon(card.id));
 			}
 
@@ -276,8 +277,8 @@ const commands: GameCommandDefinitions<CardHighLow> = {
 			if (!cards || !cards.length) return false;
 			const index = this.getCardIndex(id, cards);
 			if (index < 0) {
-				const pokemon = Dex.data.pokemonKeys.includes(id);
-				const move = Dex.data.moveKeys.includes(id);
+				const pokemon = Dex.getData().pokemonKeys.includes(id);
+				const move = Dex.getData().moveKeys.includes(id);
 				if (pokemon) {
 					user.say("You do not have [ " + Dex.getExistingPokemon(cardName).name + " ].");
 				} else if (move) {

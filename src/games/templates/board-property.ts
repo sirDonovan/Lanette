@@ -548,10 +548,10 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 		let reachedMaxCurrency = false;
 		if (space instanceof BoardPropertyRentSpace && space.owner) {
 			owner = space.owner;
-			ownerCurrency = this.playerCurrency.get(owner)!;
-			ownerCurrency += payment;
-			this.playerCurrency.set(owner, ownerCurrency);
-			if (this.maxCurrency && ownerCurrency >= this.maxCurrency) reachedMaxCurrency = true;
+			ownerCurrency = this.playerCurrency.get(owner);
+			ownerCurrency! += payment;
+			this.playerCurrency.set(owner, ownerCurrency!);
+			if (this.maxCurrency && ownerCurrency! >= this.maxCurrency) reachedMaxCurrency = true;
 		}
 
 		let text: string;

@@ -20,9 +20,14 @@ import { PortmanteausWorker } from './workers/portmanteaus';
 
 const DEFAULT_CATEGORY_COOLDOWN = 3;
 const IMMUNE_MATCHUP_SCORE = 0.001;
+const MAX_MOVE_AVAILABILITY = 500;
+const MINIGAME_BITS = 25;
+const SCRIPTED_GAME_HIGHLIGHT = "Hosting a scriptedgame of";
+const USER_HOST_GAME_HIGHLIGHT = "is hosting a hostgame of";
+const SCRIPTED_GAME_VOTING_HIGHLIGHT = "Hosting a scriptedgamevote";
 
 const gamesDirectory = path.join(__dirname, 'games');
-const internalGamePaths: KeyedDict<InternalGame, string> = {
+const internalGamePaths: Readonly<KeyedDict<InternalGame, string>> = {
 	botchallenge: path.join(gamesDirectory, "internal", "bot-challenge.js"),
 	eggtoss: path.join(gamesDirectory, "internal", "egg-toss.js"),
 	headtohead: path.join(gamesDirectory, "internal", "head-to-head.js"),
@@ -30,7 +35,7 @@ const internalGamePaths: KeyedDict<InternalGame, string> = {
 	vote: path.join(gamesDirectory, "internal", "vote.js"),
 };
 
-const categoryNames: KeyedDict<GameCategory, string> = {
+const categoryNames: Readonly<KeyedDict<GameCategory, string>> = {
 	'board': 'Board',
 	'board-property': 'Board (property)',
 	'card': 'Card',
@@ -79,53 +84,53 @@ const sharedCommandDefinitions: GameCommandDefinitions = {
 	},
 };
 
-export class Games {
-	// exported constants
-	readonly gamesDirectory: typeof gamesDirectory = gamesDirectory;
-	readonly scriptedGameHighlight: string = "Hosting a scriptedgame of";
-	readonly userHostedGameHighlight: string = "is hosting a hostgame of";
-	readonly scriptedGameVoteHighlight: string = "Hosting a scriptedgamevote";
+type Achievements = Dict<IGameAchievement>;
+type Formats = Dict<LoadedGameFile>;
+type InternalFormats = KeyedDict<InternalGame, LoadedGameFile>;
+type LastChallengeTimes = KeyedDict<GameChallenge, Dict<Dict<number>>>;
+type MinigameCommandNames = Dict<{aliases: string[]; format: string}>;
+type Modes = Dict<IGameMode>;
+type UserHostedFormats = Dict<IUserHostedComputed>;
 
-	readonly achievements: Dict<IGameAchievement> = {};
-	readonly aliases: Dict<string> = {};
-	autoCreateTimers: Dict<NodeJS.Timer> = {};
-	autoCreateTimerData: Dict<{endTime: number, type: AutoCreateTimerType}> = {};
-	readonly formats: Dict<LoadedGameFile> = {};
-	readonly freejoinFormatTargets: string[] = [];
-	gameCooldownMessageTimers: Dict<NodeJS.Timer> = {};
-	gameCooldownMessageTimerData: Dict<{endTime: number, minigameCooldownMinutes: number}> = {};
+export class Games {
+	private readonly achievements: Achievements = {};
+	private readonly aliases: Dict<string> = {};
+	private autoCreateTimers: Dict<NodeJS.Timer> = {};
+	private autoCreateTimerData: Dict<{endTime: number, type: AutoCreateTimerType}> = {};
+	private readonly formats: Formats = {};
+	private readonly freejoinFormatTargets: string[] = [];
+	private gameCooldownMessageTimers: Dict<NodeJS.Timer> = {};
+	private gameCooldownMessageTimerData: Dict<{endTime: number, minigameCooldownMinutes: number}> = {};
 	// @ts-expect-error - set in loadFormats()
-	readonly internalFormats: KeyedDict<InternalGameKey, LoadedGameFile> = {};
-	lastCatalogUpdates: Dict<string> = {};
-	lastChallengeTimes: KeyedDict<GameChallenge, Dict<Dict<number>>> = {
+	private readonly internalFormats: InternalFormats = {};
+	private lastCatalogUpdates: Dict<string> = {};
+	private lastChallengeTimes: LastChallengeTimes = {
 		botchallenge: {},
 		onevsone: {},
 	};
-	lastGames: Dict<number> = {};
-	lastMinigames: Dict<number> = {};
-	lastScriptedGames: Dict<number> = {};
-	lastUserHostedGames: Dict<number> = {};
-	lastUserHostTimes: Dict<Dict<number>> = {};
-	lastUserHostFormatTimes: Dict<Dict<number>> = {};
-	readonly maxMoveAvailability: number = 500;
-	readonly minigameBits: number = 25;
-	readonly minigameCommandNames: Dict<{aliases: string[]; format: string}> = {};
-	readonly modes: Dict<IGameMode> = {};
-	readonly modeAliases: Dict<string> = {};
-	nextVoteBans: Dict<string[]> = {};
-	reloadInProgress: boolean = false;
-	readonly userHostedAliases: Dict<string> = {};
-	readonly userHostedFormats: Dict<IUserHostedComputed> = {};
-	readonly workers: IGamesWorkers = {
+	private lastGames: Dict<number> = {};
+	private lastMinigames: Dict<number> = {};
+	private lastScriptedGames: Dict<number> = {};
+	private lastUserHostedGames: Dict<number> = {};
+	private lastUserHostTimes: Dict<Dict<number>> = {};
+	private lastUserHostFormatTimes: Dict<Dict<number>> = {};
+	private readonly minigameCommandNames: MinigameCommandNames = {};
+	private readonly modes: Modes = {};
+	private readonly modeAliases: Dict<string> = {};
+	private nextVoteBans: Dict<string[]> = {};
+	private reloadInProgress: boolean = false;
+	private readonly userHostedAliases: Dict<string> = {};
+	private readonly userHostedFormats: UserHostedFormats = {};
+	private readonly workers: IGamesWorkers = {
 		parameters: new ParametersWorker(),
 		portmanteaus: new PortmanteausWorker(),
 	};
 
-	readonly commands: LoadedGameCommands;
-	readonly sharedCommands: LoadedGameCommands;
+	private readonly commands: LoadedGameCommands;
+	private readonly sharedCommands: LoadedGameCommands;
 
 	// set in loadFormats()
-	readonly userHosted!: typeof import('./room-game-user-hosted').game;
+	private readonly userHosted!: typeof import('./room-game-user-hosted').game;
 
 	/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 	private abilitiesLists: Dict<readonly IAbility[]> = Object.create(null);
@@ -140,68 +145,84 @@ export class Games {
 		this.commands = Object.assign(Object.create(null), sharedCommands) as GameCommandDefinitions;
 	}
 
-	onReload(previous: Partial<Games>): void {
-		if (previous.autoCreateTimers) {
-			for (const i in previous.autoCreateTimers) {
-				clearTimeout(previous.autoCreateTimers[i]);
-				delete previous.autoCreateTimers[i];
-			}
+	getScriptedGameHighlight(): string {
+		return SCRIPTED_GAME_HIGHLIGHT;
+	}
 
-			for (const i in previous.autoCreateTimerData) {
-				const room = Rooms.get(i);
-				if (room) {
-					const data = previous.autoCreateTimerData[i];
-					let timer = data.endTime - Date.now();
-					if (timer < 5000) timer = 5000;
-					this.setAutoCreateTimer(room, data.type, timer);
-				}
-			}
-		}
+	getUserHostedGameHighlight(): string {
+		return USER_HOST_GAME_HIGHLIGHT;
+	}
 
-		if (previous.gameCooldownMessageTimers) {
-			for (const i in previous.gameCooldownMessageTimers) {
-				clearTimeout(previous.gameCooldownMessageTimers[i]);
-				delete previous.gameCooldownMessageTimers[i];
-			}
+	getScriptedGameVoteHighlight(): string {
+		return SCRIPTED_GAME_VOTING_HIGHLIGHT;
+	}
 
-			for (const i in previous.gameCooldownMessageTimerData) {
-				const room = Rooms.get(i);
-				if (room) {
-					const data = previous.gameCooldownMessageTimerData[i];
-					let timer = data.endTime - Date.now();
-					if (timer < 5000) timer = 5000;
-					this.setGameCooldownMessageTimer(room, data.minigameCooldownMinutes, timer);
-				}
-			}
-		}
+	getAchievements(): Readonly<Achievements> {
+		return this.achievements;
+	}
 
-		if (previous.lastCatalogUpdates) Object.assign(this.lastCatalogUpdates, previous.lastCatalogUpdates);
-		if (previous.lastGames) Object.assign(this.lastGames, previous.lastGames);
-		if (previous.lastMinigames) Object.assign(this.lastMinigames, previous.lastMinigames);
-		if (previous.lastChallengeTimes) Object.assign(this.lastChallengeTimes, previous.lastChallengeTimes);
-		if (previous.lastScriptedGames) Object.assign(this.lastScriptedGames, previous.lastScriptedGames);
-		if (previous.lastUserHostedGames) Object.assign(this.lastUserHostedGames, previous.lastUserHostedGames);
-		if (previous.lastUserHostTimes) Object.assign(this.lastUserHostTimes, previous.lastUserHostTimes);
-		if (previous.lastUserHostFormatTimes) Object.assign(this.lastUserHostFormatTimes, previous.lastUserHostFormatTimes);
+	getAliases(): Readonly<Dict<string>> {
+		return this.aliases;
+	}
 
-		if (previous.nextVoteBans) {
-			for (const i in previous.nextVoteBans) {
-				this.nextVoteBans[i] = previous.nextVoteBans[i].slice();
-			}
-		}
+	getFormats(): Readonly<Formats> {
+		return this.formats;
+	}
 
-		for (const i in previous) {
-			// @ts-expect-error
-			delete previous[i];
-		}
+	getFreejoinFormatTargets(): readonly string[] {
+		return this.freejoinFormatTargets;
+	}
 
-		this.loadFormats();
-		if (Config.gameCatalogGists) {
-			for (const i in Config.gameCatalogGists) {
-				const room = Rooms.get(i);
-				if (room) this.updateGameCatalog(room);
-			}
-		}
+	getInternalFormats(): Readonly<InternalFormats> {
+		return this.internalFormats;
+	}
+
+	getMaxMoveAvailability(): number {
+		return MAX_MOVE_AVAILABILITY;
+	}
+
+	getMinigameBits(): number {
+		return MINIGAME_BITS;
+	}
+
+	getSharedCommands(): Readonly<LoadedGameCommands> {
+		return this.sharedCommands;
+	}
+
+	getLastChallengeTimes(): DeepImmutable<LastChallengeTimes> {
+		return this.lastChallengeTimes;
+	}
+
+	getMinigameCommandNames(): Readonly<MinigameCommandNames> {
+		return this.minigameCommandNames;
+	}
+
+	getModes(): Readonly<Modes> {
+		return this.modes;
+	}
+
+	getModeAliases(): Readonly<Dict<string>> {
+		return this.modeAliases;
+	}
+
+	getUserHostedAliases(): Readonly<Dict<string>> {
+		return this.userHostedAliases;
+	}
+
+	getUserHostedFormats(): Readonly<UserHostedFormats> {
+		return this.userHostedFormats;
+	}
+
+	getWorkers(): Readonly<IGamesWorkers> {
+		return this.workers;
+	}
+
+	isReloadInProgress(): boolean {
+		return this.reloadInProgress;
+	}
+
+	setReloadInProgress(state: boolean): void {
+		this.reloadInProgress = state;
 	}
 
 	unrefWorkers(): void {
@@ -215,29 +236,6 @@ export class Games {
 	copyTemplateProperties<T extends ScriptedGame, U extends ScriptedGame>(template: IGameTemplateFile<T>, game: IGameFile<U>):
 		IGameFile<U> {
 		return Object.assign(Tools.deepClone(template), game);
-	}
-
-	loadFileAchievements(file: DeepImmutable<IGameFile>): void {
-		if (!file.class.achievements) return;
-		for (const key in file.class.achievements) {
-			const achievement = file.class.achievements[key]!;
-			if (Tools.toId(achievement.name) !== key) {
-				throw new Error(file.name + "'s achievement " + achievement.name + " needs to have the key '" +
-					Tools.toId(achievement.name) + "'");
-			}
-			if (key in this.achievements) {
-				if (this.achievements[key].name !== achievement.name) {
-					throw new Error(file.name + "'s achievement '" + key + "' has the name '" + this.achievements[key].name +
-						"' in another game.");
-				}
-				if (this.achievements[key].description !== achievement.description) {
-					throw new Error(file.name + "'s achievement '" + key + "' has the description '" + this.achievements[key].description +
-						"' in another game.");
-				}
-				continue;
-			}
-			this.achievements[key] = achievement;
-		}
 	}
 
 	loadFormats(): void {
@@ -566,7 +564,7 @@ export class Games {
 					}
 					const format = global.Games.getFormat(formatName + (target ? "," + target : ""), true);
 					if (Array.isArray(format)) return this.sayError(format);
-					if (global.Games.reloadInProgress) return this.sayError(['reloadInProgress']);
+					if (global.Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 					delete format.inputOptions.points;
 					const game = global.Games.createGame(room, format, pmRoom, true);
 					game.signups();
@@ -842,6 +840,41 @@ export class Games {
 		return format;
 	}
 
+	setLastGame(room: Room, time: number): void {
+		this.lastGames[room.id] = time;
+	}
+
+	setLastMinigame(room: Room, time: number): void {
+		this.lastMinigames[room.id] = time;
+	}
+
+	setLastScriptedGame(room: Room, time: number): void {
+		this.lastScriptedGames[room.id] = time;
+	}
+
+	setLastUserHostedGame(room: Room, time: number): void {
+		this.lastUserHostedGames[room.id] = time;
+	}
+
+	setLastUserHostTime(room: Room, hostId: string, time: number): void {
+		if (!(room.id in this.lastUserHostTimes)) this.lastUserHostTimes[room.id] = {};
+		this.lastUserHostTimes[room.id][hostId] = time;
+	}
+
+	removeLastUserHostTime(room: Room, hostId: string): void {
+		if (room.id in this.lastUserHostTimes) delete this.lastUserHostTimes[room.id][hostId];
+	}
+
+	setLastUserHostFormatTime(room: Room, formatId: string, time: number): void {
+		if (!(room.id in this.lastUserHostFormatTimes)) this.lastUserHostFormatTimes[room.id] = {};
+		this.lastUserHostFormatTimes[room.id][formatId] = time;
+	}
+
+	setLastChallengeTime(challenge: GameChallenge, room: Room, userid: string, time: number): void {
+		if (!(room.id in this.lastChallengeTimes[challenge])) this.lastChallengeTimes[challenge][room.id] = {};
+		this.lastChallengeTimes[challenge][room.id][userid] = time;
+	}
+
 	getRemainingGameCooldown(room: Room, isMinigame?: boolean): number {
 		const now = Date.now();
 		if (Config.gameCooldownTimers && room.id in Config.gameCooldownTimers && room.id in this.lastGames) {
@@ -861,6 +894,26 @@ export class Games {
 		const now = Date.now();
 		if (Config.tournamentGameCooldownTimers && room.id in Config.tournamentGameCooldownTimers && room.id in this.lastGames) {
 			return (Config.tournamentGameCooldownTimers[room.id] * 60 * 1000) - (now - this.lastGames[room.id]);
+		}
+
+		return 0;
+	}
+
+	getRemainingUserHostCooldown(room: Room, hostId: string): number {
+		const now = Date.now();
+		if (Config.userHostCooldownTimers && room.id in Config.userHostCooldownTimers && room.id in this.lastUserHostTimes &&
+			hostId in this.lastUserHostTimes[room.id]) {
+			return (Config.userHostCooldownTimers[room.id] * 60 * 1000) - (now - this.lastUserHostTimes[room.id][hostId]);
+		}
+
+		return 0;
+	}
+
+	getRemainingUserHostFormatCooldown(room: Room, formatId: string): number {
+		const now = Date.now();
+		if (Config.userHostFormatCooldownTimers && room.id in Config.userHostFormatCooldownTimers &&
+			room.id in this.lastUserHostFormatTimes && formatId in this.lastUserHostFormatTimes[room.id]) {
+			return (Config.userHostFormatCooldownTimers[room.id] * 60 * 1000) - (now - this.lastUserHostFormatTimes[room.id][formatId]);
 		}
 
 		return 0;
@@ -1024,6 +1077,23 @@ export class Games {
 		}
 	}
 
+	enableFormat(format: IGameFormat): void {
+		if (format.id in this.formats) {
+			// @ts-expect-error
+			this.formats[format.id].disabled = false;
+		}
+	}
+
+	disableInternalFormat(key: InternalGame): void {
+		// @ts-expect-error
+		this.internalFormats[key].disabled = true;
+	}
+
+	enableInternalFormat(key: InternalGame): void {
+		// @ts-expect-error
+		this.internalFormats[key].disabled = false;
+	}
+
 	banFromNextVote(room: Room, format: IGameFormat): void {
 		if (!(room.id in this.nextVoteBans)) this.nextVoteBans[room.id] = [];
 		this.nextVoteBans[room.id].push(format.inputTarget);
@@ -1049,7 +1119,7 @@ export class Games {
 
 		this.autoCreateTimerData[room.id] = {endTime: Date.now() + timer, type};
 		this.autoCreateTimers[room.id] = setTimeout(() => {
-			if (global.Games.reloadInProgress || (room.game && room.game.isMiniGame)) {
+			if (global.Games.isReloadInProgress() || (room.game && room.game.isMiniGame)) {
 				this.setAutoCreateTimer(room, type, 5 * 1000);
 				return;
 			}
@@ -1065,11 +1135,6 @@ export class Games {
 				CommandParser.parse(room, Users.self, Config.commandCharacter + "nexthost", now);
 			}
 		}, timer);
-	}
-
-	clearAutoCreateTimer(room: Room): void {
-		if (room.id in this.autoCreateTimers) clearTimeout(this.autoCreateTimers[room.id]);
-		delete this.autoCreateTimerData[room.id];
 	}
 
 	setGameCooldownMessageTimer(room: Room, minigameCooldownMinutes: number, timer?: number): void {
@@ -1089,7 +1154,7 @@ export class Games {
 	 * filterAbility: Return `false` to filter `ability` out of the list
 	 */
 	getAbilitiesList(filter?: (ability: IAbility) => boolean, gen?: number): readonly IAbility[] {
-		if (!gen) gen = Dex.gen;
+		if (!gen) gen = Dex.getGen();
 		const mod = 'gen' + gen;
 		if (!Object.prototype.hasOwnProperty.call(this.abilitiesLists, mod)) {
 			const baseList = Dex.getDex(mod).getAbilitiesList();
@@ -1117,7 +1182,7 @@ export class Games {
 	 * filterAbility: Return `false` to filter `ability` out of the list
 	 */
 	getAbilitiesCopyList(filter?: (ability: IAbility) => boolean, gen?: number): IAbilityCopy[] {
-		if (!gen) gen = Dex.gen;
+		if (!gen) gen = Dex.getGen();
 		const dex = Dex.getDex('gen' + gen);
 		return this.getAbilitiesList(filter, gen).map(x => dex.getAbilityCopy(x));
 	}
@@ -1127,7 +1192,7 @@ export class Games {
 	 * filterItem: Return `false` to filter `item` out of the list
 	 */
 	getItemsList(filter?: (item: IItem) => boolean, gen?: number): readonly IItem[] {
-		if (!gen) gen = Dex.gen;
+		if (!gen) gen = Dex.getGen();
 		const mod = 'gen' + gen;
 		if (!Object.prototype.hasOwnProperty.call(this.itemsLists, mod)) {
 			const baseList = Dex.getDex(mod).getItemsList();
@@ -1155,7 +1220,7 @@ export class Games {
 	 * filterItem: Return `false` to filter `item` out of the list
 	 */
 	getItemsCopyList(filter?: (item: IItem) => boolean, gen?: number): IItemCopy[] {
-		if (!gen) gen = Dex.gen;
+		if (!gen) gen = Dex.getGen();
 		const dex = Dex.getDex('gen' + gen);
 		return this.getItemsList(filter, gen).map(x => dex.getItemCopy(x));
 	}
@@ -1165,7 +1230,7 @@ export class Games {
 	 * filterItem: Return `false` to filter `move` out of the list
 	 */
 	getMovesList(filter?: (move: IMove) => boolean, gen?: number): readonly IMove[] {
-		if (!gen) gen = Dex.gen;
+		if (!gen) gen = Dex.getGen();
 		const mod = 'gen' + gen;
 		if (!Object.prototype.hasOwnProperty.call(this.movesLists, mod)) {
 			const baseList = Dex.getDex(mod).getMovesList();
@@ -1193,7 +1258,7 @@ export class Games {
 	 * filterItem: Return `false` to filter `move` out of the list
 	 */
 	getMovesCopyList(filter?: (move: IMove) => boolean, gen?: number): IMoveCopy[] {
-		if (!gen) gen = Dex.gen;
+		if (!gen) gen = Dex.getGen();
 		const dex = Dex.getDex('gen' + gen);
 		return this.getMovesList(filter, gen).map(x => dex.getMoveCopy(x));
 	}
@@ -1203,7 +1268,7 @@ export class Games {
 	 * filterItem: Return `false` to filter `pokemon` out of the list
 	 */
 	getPokemonList(filter?: (pokemon: IPokemon) => boolean, gen?: number): readonly IPokemon[] {
-		if (!gen) gen = Dex.gen;
+		if (!gen) gen = Dex.getGen();
 		const mod = 'gen' + gen;
 		if (!Object.prototype.hasOwnProperty.call(this.pokemonLists, mod)) {
 			const baseList = Dex.getDex(mod).getPokemonList();
@@ -1231,7 +1296,7 @@ export class Games {
 	 * filterItem: Return `false` to filter `pokemon` out of the list
 	 */
 	getPokemonCopyList(filter?: (pokemon: IPokemon) => boolean, gen?: number): IPokemonCopy[] {
-		if (!gen) gen = Dex.gen;
+		if (!gen) gen = Dex.getGen();
 		const dex = Dex.getDex('gen' + gen);
 		return this.getPokemonList(filter, gen).map(x => dex.getPokemonCopy(x));
 	}
@@ -1839,6 +1904,100 @@ export class Games {
 		Tools.editGist(Config.githubApiCredentials.gist.username, Config.githubApiCredentials.gist.token,
 			Config.gameCatalogGists[room.id].id, Config.gameCatalogGists[room.id].description, {[filename]: {content, filename}});
 	}
+
+	/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+	private onReload(previous: Games): void {
+		if (previous.autoCreateTimers) {
+			for (const i in previous.autoCreateTimers) {
+				clearTimeout(previous.autoCreateTimers[i]);
+				delete previous.autoCreateTimers[i];
+			}
+
+			for (const i in previous.autoCreateTimerData) {
+				const room = Rooms.get(i);
+				if (room) {
+					const data = previous.autoCreateTimerData[i];
+					let timer = data.endTime - Date.now();
+					if (timer < 5000) timer = 5000;
+					this.setAutoCreateTimer(room, data.type, timer);
+				}
+			}
+		}
+
+		if (previous.gameCooldownMessageTimers) {
+			for (const i in previous.gameCooldownMessageTimers) {
+				clearTimeout(previous.gameCooldownMessageTimers[i]);
+				delete previous.gameCooldownMessageTimers[i];
+			}
+
+			for (const i in previous.gameCooldownMessageTimerData) {
+				const room = Rooms.get(i);
+				if (room) {
+					const data = previous.gameCooldownMessageTimerData[i];
+					let timer = data.endTime - Date.now();
+					if (timer < 5000) timer = 5000;
+					this.setGameCooldownMessageTimer(room, data.minigameCooldownMinutes, timer);
+				}
+			}
+		}
+
+		if (previous.lastCatalogUpdates) Object.assign(this.lastCatalogUpdates, previous.lastCatalogUpdates);
+		if (previous.lastGames) Object.assign(this.lastGames, previous.lastGames);
+		if (previous.lastMinigames) Object.assign(this.lastMinigames, previous.lastMinigames);
+		if (previous.lastChallengeTimes) Object.assign(this.lastChallengeTimes, previous.lastChallengeTimes);
+		if (previous.lastScriptedGames) Object.assign(this.lastScriptedGames, previous.lastScriptedGames);
+		if (previous.lastUserHostedGames) Object.assign(this.lastUserHostedGames, previous.lastUserHostedGames);
+		if (previous.lastUserHostTimes) Object.assign(this.lastUserHostTimes, previous.lastUserHostTimes);
+		if (previous.lastUserHostFormatTimes) Object.assign(this.lastUserHostFormatTimes, previous.lastUserHostFormatTimes);
+
+		if (previous.nextVoteBans) {
+			for (const i in previous.nextVoteBans) {
+				this.nextVoteBans[i] = previous.nextVoteBans[i].slice();
+			}
+		}
+
+		for (const i in previous) {
+			// @ts-expect-error
+			delete previous[i];
+		}
+
+		this.loadFormats();
+		if (Config.gameCatalogGists) {
+			for (const i in Config.gameCatalogGists) {
+				const room = Rooms.get(i);
+				if (room) this.updateGameCatalog(room);
+			}
+		}
+	}
+	/* eslint-enable */
+
+	private loadFileAchievements(file: DeepImmutable<IGameFile>): void {
+		if (!file.class.achievements) return;
+		for (const key in file.class.achievements) {
+			const achievement = file.class.achievements[key]!;
+			if (Tools.toId(achievement.name) !== key) {
+				throw new Error(file.name + "'s achievement " + achievement.name + " needs to have the key '" +
+					Tools.toId(achievement.name) + "'");
+			}
+			if (key in this.achievements) {
+				if (this.achievements[key].name !== achievement.name) {
+					throw new Error(file.name + "'s achievement '" + key + "' has the name '" + this.achievements[key].name +
+						"' in another game.");
+				}
+				if (this.achievements[key].description !== achievement.description) {
+					throw new Error(file.name + "'s achievement '" + key + "' has the description '" + this.achievements[key].description +
+						"' in another game.");
+				}
+				continue;
+			}
+			this.achievements[key] = achievement;
+		}
+	}
+
+	private clearAutoCreateTimer(room: Room): void {
+		if (room.id in this.autoCreateTimers) clearTimeout(this.autoCreateTimers[room.id]);
+		delete this.autoCreateTimerData[room.id];
+	}
 }
 
 export const instantiate = (): void => {
@@ -1847,6 +2006,7 @@ export const instantiate = (): void => {
 	global.Games = new Games();
 
 	if (oldGames) {
+		// @ts-expect-error
 		global.Games.onReload(oldGames);
 	}
 };

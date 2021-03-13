@@ -19,7 +19,7 @@ export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 	usesWorkers: boolean = true;
 
 	static loadData(): void {
-		Games.workers.portmanteaus.init();
+		Games.getWorkers().portmanteaus.init();
 	}
 
 	onInitialize(format: IGameFormat): void {
@@ -42,7 +42,7 @@ export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 				numberOfPorts += this.random(this.format.customizableOptions.ports.max - BASE_NUMBER_OF_PORTS + 1);
 			}
 		}
-		const result = await Games.workers.portmanteaus.search({
+		const result = await Games.getWorkers().portmanteaus.search({
 			customPortCategories: this.customPortCategories,
 			customPortDetails: this.customPortDetails,
 			customPortTypes: this.customPortTypes,

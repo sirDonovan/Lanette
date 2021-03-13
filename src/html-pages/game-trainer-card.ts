@@ -57,9 +57,10 @@ class GameTrainerCard extends HtmlPageBase {
 	static loadData(): void {
 		if (this.loadedData) return;
 
-		for (const i in Dex.data.trainerSprites) {
-			this.trainerSprites[i] = Dex.getTrainerSprite(Dex.data.trainerSprites[i]);
-			if (Dex.data.trainerSprites[i].includes("-gen")) {
+		const trainerSprites = Dex.getData().trainerSprites;
+		for (const i in trainerSprites) {
+			this.trainerSprites[i] = Dex.getTrainerSprite(trainerSprites[i]);
+			if (trainerSprites[i].includes("-gen")) {
 				this.olderTrainerIds.push(i);
 			} else {
 				this.newerTrainerIds.push(i);
@@ -258,6 +259,7 @@ class GameTrainerCard extends HtmlPageBase {
 
 		html += "<br /><br />";
 
+		const trainerSprites = Dex.getData().trainerSprites;
 		let trainersRowCount = 0;
 		for (let i = trainerIdsStartIndex; i < trainerIdsEndIndex; i++) {
 			let id: string;
@@ -267,7 +269,7 @@ class GameTrainerCard extends HtmlPageBase {
 				id = GameTrainerCard.olderTrainerIds[i];
 			}
 
-			const trainer = GameTrainerCard.trainerSprites[id] + "<br />" + Dex.data.trainerSprites[id];
+			const trainer = GameTrainerCard.trainerSprites[id] + "<br />" + trainerSprites[id];
 			html += Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title + ", " + setTrainerCommand +
 				"," + id, trainer, trainerCard && trainerCard.avatar === id);
 
@@ -372,7 +374,7 @@ export const commands: BaseCommandDefinitions = {
 				pages[user.id].send();
 			} else if (cmd === setTrainerCommand || cmd === 'setavatar') {
 				const id = Tools.toId(targets[0]);
-				if (!(id in Dex.data.trainerSprites)) {
+				if (!(id in Dex.getData().trainerSprites)) {
 					return this.say("'" + targets[0].trim() + "' is not a valid trainer sprite.");
 				}
 

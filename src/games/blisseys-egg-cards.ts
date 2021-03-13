@@ -411,7 +411,8 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 	shinyCardAchievement = BlisseysEggCards.achievements.luckofthedraw;
 
 	static loadData(): void {
-		for (const i in Dex.data.eggGroups) {
+		const eggGroupsData = Dex.getData().eggGroups;
+		for (const i in eggGroupsData) {
 			let bannedEggGroup = false;
 			for (const eggGroup of bannedEggGroups) {
 				if (Tools.toId(eggGroup) === i) {
@@ -422,8 +423,8 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 			if (bannedEggGroup) continue;
 
 			eggGroupKeys.push(i);
-			eggGroups[i] = Dex.data.eggGroups[i];
-			eggGroups[i + 'group'] = Dex.data.eggGroups[i];
+			eggGroups[i] = eggGroupsData[i];
+			eggGroups[i + 'group'] = eggGroupsData[i];
 		}
 	}
 

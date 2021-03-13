@@ -239,9 +239,9 @@ class DarkraisLair extends MapGame {
 		for (const key of keys) {
 			let remainingUses: number | undefined;
 			if (shadowTraps[key].uses) {
-				remainingUses = shadowTraps[key].uses!;
+				remainingUses = shadowTraps[key].uses;
 				if (key in usedShadowTraps) {
-					remainingUses -= usedShadowTraps[key]!;
+					remainingUses! -= usedShadowTraps[key]!;
 				}
 			}
 
