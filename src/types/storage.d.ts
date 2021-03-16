@@ -1,3 +1,4 @@
+import type { TrainerSpriteId } from "./dex";
 import type { HexCode, TimeZone } from "./tools";
 
 interface IEventInformation {
@@ -46,8 +47,8 @@ export interface IUserHostedGameStats {
 }
 
 export interface IGameTrainerCard {
-	avatar: string;
 	pokemon: string[];
+	avatar?: TrainerSpriteId;
 	background?: HexCode;
 	pokemonGifs?: boolean;
 }

@@ -60,6 +60,8 @@ export interface IGetPossibleTeamsOptions {
 
 type DataKeys = readonly string[];
 
+export type TrainerSpriteId = string & {__trainerSpriteId: true};
+
 export interface IDataTable {
 	readonly abilityKeys: DataKeys;
 	readonly alternateIconNumbers: Readonly<IAlternateIconNumbers>;

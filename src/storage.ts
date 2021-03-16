@@ -234,7 +234,6 @@ export class Storage {
 		if (id in database.gameTrainerCards) return;
 
 		database.gameTrainerCards[id] = {
-			avatar: '',
 			pokemon: [],
 		};
 	}

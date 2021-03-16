@@ -1360,8 +1360,6 @@ export class Games {
 		if (!database.gameTrainerCards || !(id in database.gameTrainerCards)) return "";
 
 		const trainerCard = database.gameTrainerCards[id];
-		const avatarSpriteId = Dex.getTrainerSpriteId(trainerCard.avatar);
-		if (!avatarSpriteId) return "";
 
 		let html = '<span class="infobox" style="display: inline-block;width:250px"><center><b><username>' + name + '</username></b>';
 		if (format) {
@@ -1376,9 +1374,15 @@ export class Games {
 		}
 		html += "'>";
 
+		let avatarHtml = "";
+		if (trainerCard.avatar) {
+			const avatarSpriteId = Dex.getTrainerSpriteId(trainerCard.avatar);
+			if (avatarSpriteId) avatarHtml = Dex.getTrainerSprite(avatarSpriteId);
+		}
+
 		const emptySpan = '<span style="display: inline-block ; height: 30px ; width: 40px"></span>';
-		const avatarHtml = Dex.getTrainerSprite(avatarSpriteId);
 		if (trainerCard.pokemon.length) {
+			if (!avatarHtml) avatarHtml = "&nbsp;";
 			if (trainerCard.pokemonGifs) {
 				html += Dex.getPokemonGif(Dex.getExistingPokemon(trainerCard.pokemon[0]));
 				html += avatarHtml;
@@ -1401,6 +1405,7 @@ export class Games {
 				}
 			}
 		} else {
+			if (!avatarHtml) return "";
 			html += avatarHtml;
 		}
 
