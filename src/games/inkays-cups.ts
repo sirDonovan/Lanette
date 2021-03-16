@@ -180,7 +180,6 @@ class InkaysCups extends ScriptedGame {
 
 const commands: GameCommandDefinitions<InkaysCups> = {
 	grab: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canGrab || this.roundGuesses.has(this.players[user.id])) return false;
 			const player = this.createPlayer(user) || this.players[user.id];

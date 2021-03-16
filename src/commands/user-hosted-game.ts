@@ -7,8 +7,6 @@ import type { GameDifficulty } from "../types/games";
 import type { IUserHostedGameStats, UserHostStatus } from "../types/storage";
 import type { User } from "../users";
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 export const commands: BaseCommandDefinitions = {
 	pastuserhostedgames: {
 		command(target, room, user) {
@@ -1314,5 +1312,3 @@ export const commands: BaseCommandDefinitions = {
 		aliases: ['randanswer', 'ranswer', 'randomhint', 'randhint', 'rhint'],
 	},
 };
-
-/* eslint-enable */

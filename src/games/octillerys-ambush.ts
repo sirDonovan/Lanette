@@ -81,7 +81,6 @@ class OctillerysAmbush extends ScriptedGame {
 
 const commands: GameCommandDefinitions<OctillerysAmbush> = {
 	fire: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			const player = this.players[user.id];
 			if (this.roundActions.has(player)) return false;

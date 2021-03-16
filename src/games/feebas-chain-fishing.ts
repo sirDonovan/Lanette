@@ -145,7 +145,6 @@ class FeebasChainFishing extends ScriptedGame {
 
 const commands: GameCommandDefinitions<FeebasChainFishing> = {
 	reel: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (this.roundReels.has(this.players[user.id])) return false;
 			const player = this.createPlayer(user) || this.players[user.id];

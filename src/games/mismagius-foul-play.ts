@@ -254,7 +254,6 @@ class MismagiusFoulPlay extends ScriptedGame {
 
 const commands: GameCommandDefinitions<MismagiusFoulPlay> = {
 	select: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			const player = this.players[user.id];
 			if (this.chosenPokemon.has(player)) {
@@ -287,7 +286,6 @@ const commands: GameCommandDefinitions<MismagiusFoulPlay> = {
 		pmOnly: true,
 	},
 	suspect: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			const player = this.players[user.id];
 			if (this.roundGuesses.has(player)) {

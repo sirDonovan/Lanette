@@ -573,7 +573,6 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 
 const commands: GameCommandDefinitions<BlisseysEggCards> = {
 	draw: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canPlay || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
 			this.awaitingCurrentPlayerCard = false;

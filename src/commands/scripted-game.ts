@@ -7,8 +7,6 @@ import type { IGameFormat } from "../types/games";
 
 const CHALLENGE_GAME_COOLDOWN = 2 * 60 * 60 * 1000;
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 export const commands: BaseCommandDefinitions = {
 	gamecatalog: {
 		command(target, room, user) {
@@ -859,5 +857,3 @@ export const commands: BaseCommandDefinitions = {
 		},
 	},
 };
-
-/* eslint-enable */

@@ -151,7 +151,6 @@ class LandorusWar extends ScriptedGame {
 
 const commands: GameCommandDefinitions<LandorusWar> = {
 	use: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			const player = this.players[user.id];
 			if (this.roundMoves.has(player)) {
@@ -215,7 +214,6 @@ const commands: GameCommandDefinitions<LandorusWar> = {
 		pmGameCommand: true,
 	},
 	suspect: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			const player = this.players[user.id];
 			if (this.roundSuspects.has(player)) {
@@ -292,7 +290,6 @@ commands.summary.aliases = ['role'];
 
 const tests: GameFileTests<LandorusWar> = {
 	'it should properly assign aliases and create decoys': {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game): void {
 			addPlayers(game, 4);
 			game.start();

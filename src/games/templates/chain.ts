@@ -297,7 +297,6 @@ export abstract class Chain extends ScriptedGame {
 
 const commands: GameCommandDefinitions<Chain> = {
 	guess: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (this.format.options.freejoin) {
 				if (!this.targetLinkStarts.length && !this.targetLinkEnds.length) return false;

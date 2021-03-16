@@ -265,7 +265,6 @@ export abstract class CardHighLow extends Card {
 
 const commands: GameCommandDefinitions<CardHighLow> = {
 	play: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canPlay || this.roundPlays.has(this.players[user.id])) return false;
 			const player = this.players[user.id];

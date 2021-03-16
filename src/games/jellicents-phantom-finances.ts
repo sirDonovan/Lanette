@@ -278,7 +278,6 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 
 const commands: GameCommandDefinitions<JellicentsPhantomFinances> = {
 	bid: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canBid) return false;
 			const player = this.players[user.id];

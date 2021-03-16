@@ -329,7 +329,6 @@ class OfflineMessages extends HtmlPageBase {
 
 export const commands: BaseCommandDefinitions = {
 	[baseCommand]: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.isPm(room)) return;
 			const targets = target.split(",");

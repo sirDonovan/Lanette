@@ -118,7 +118,6 @@ class ChanseysEggToss extends ScriptedGame {
 
 const commands: GameCommandDefinitions<ChanseysEggToss> = {
 	toss: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canToss) return false;
 			const player = this.players[user.id];

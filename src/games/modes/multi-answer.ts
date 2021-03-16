@@ -79,7 +79,6 @@ const tests: GameFileTests<MultiAnswerThis> = {
 		config: {
 			async: true,
 		},
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async test(game): Promise<void> {
 			this.timeout(15000);
 
@@ -92,7 +91,6 @@ const tests: GameFileTests<MultiAnswerThis> = {
 		config: {
 			commands: [['guess'], ['g']],
 		},
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async test(game, format, attributes): Promise<void> {
 			this.timeout(15000);
 

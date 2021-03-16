@@ -190,7 +190,6 @@ class MagikarpsWaterWheel extends ScriptedGame {
 
 const commands: GameCommandDefinitions<MagikarpsWaterWheel> = {
 	swim: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canSwim || this.players[user.id].frozen || this.roundActions.has(this.players[user.id])) return false;
 			const player = this.players[user.id];
@@ -224,7 +223,6 @@ const commands: GameCommandDefinitions<MagikarpsWaterWheel> = {
 		},
 	},
 	tread: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canSwim || this.players[user.id].frozen) return false;
 			this.roundActions.add(this.players[user.id]);
@@ -232,7 +230,6 @@ const commands: GameCommandDefinitions<MagikarpsWaterWheel> = {
 		},
 	},
 	stay: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canSwim || this.players[user.id].frozen) return false;
 			const player = this.players[user.id];

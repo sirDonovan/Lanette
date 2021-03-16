@@ -5,8 +5,6 @@ import type { IPokemon } from "../types/pokemon-showdown";
 
 const RANDOM_GENERATOR_LIMIT = 6;
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 export const commands: BaseCommandDefinitions = {
 	randompick: {
 		command(target, room, user) {
@@ -645,5 +643,3 @@ export const commands: BaseCommandDefinitions = {
 		aliases: ['rcategory', 'rcat'],
 	},
 };
-
-/* eslint-enable */

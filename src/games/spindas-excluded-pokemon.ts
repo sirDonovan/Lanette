@@ -211,7 +211,6 @@ class SpindasExcludedPokemon extends ScriptedGame {
 
 const commands: GameCommandDefinitions<SpindasExcludedPokemon> = {
 	exclude: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.parameter || this.players[user.id] !== this.currentPlayer) return false;
 			const player = this.players[user.id];
@@ -244,7 +243,6 @@ const commands: GameCommandDefinitions<SpindasExcludedPokemon> = {
 		},
 	},
 	guess: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.parameter || this.players[user.id] !== this.currentPlayer) return false;
 			const player = this.players[user.id];

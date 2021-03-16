@@ -427,7 +427,6 @@ commands.summary.aliases = ['cards', 'hand'];
 
 const tests: GameFileTests<Card> = {
 	'it should have all required card properties': {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game): void {
 			const tackle = Dex.getExistingMove("Tackle");
 			const moveCard = game.moveToCard(tackle, Dex.getMoveAvailability(tackle));

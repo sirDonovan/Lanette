@@ -682,7 +682,6 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 
 const commands: GameCommandDefinitions<BoardPropertyGame> = {
 	rolldice: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canRollOrEscapeJail || this.players[user.id] !== this.currentPlayer) return false;
 			if (this.timeout) clearTimeout(this.timeout);
@@ -692,7 +691,6 @@ const commands: GameCommandDefinitions<BoardPropertyGame> = {
 		},
 	},
 	unlock: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.propertyToAcquire || !this.canAcquire || this.players[user.id] !== this.currentPlayer) return false;
 			this.acquirePropertySpace(this.propertyToAcquire, this.currentPlayer, this.propertyToAcquire.cost);
@@ -708,7 +706,6 @@ const commands: GameCommandDefinitions<BoardPropertyGame> = {
 		aliases: ['buy'],
 	},
 	pass: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.propertyToAcquire || !this.canAcquire || this.players[user.id] !== this.currentPlayer) return false;
 			this.canAcquire = false;
@@ -718,7 +715,6 @@ const commands: GameCommandDefinitions<BoardPropertyGame> = {
 		},
 	},
 	escape: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canRollOrEscapeJail || this.players[user.id] !== this.currentPlayer) return false;
 			if (this.timeout) clearTimeout(this.timeout);

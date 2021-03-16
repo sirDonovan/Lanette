@@ -774,7 +774,6 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 
 const commands: GameCommandDefinitions<CardMatching> = {
 	play: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canPlay || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
 			const targets = target.split(",");

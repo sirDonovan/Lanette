@@ -124,7 +124,6 @@ class GrumpigsPokemath extends QuestionAndAnswer {
 
 const tests: GameFileTests<GrumpigsPokemath> = {
 	'should calculate results correctly': {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game): void {
 			assertStrictEqual(game.calculateResult('add', [1, 2]), 3);
 			assertStrictEqual(game.calculateResult('add', [3, 4, 5]), 12);

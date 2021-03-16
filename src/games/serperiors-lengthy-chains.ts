@@ -170,7 +170,6 @@ class SerperiorLengthyChains extends ScriptedGame {
 
 const commands: GameCommandDefinitions<SerperiorLengthyChains> = {
 	guess: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canChain) return false;
 			const guess = Tools.toId(target);

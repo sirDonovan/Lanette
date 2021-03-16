@@ -3,8 +3,6 @@ import child_process = require('child_process');
 
 import type { BaseCommandDefinitions } from "../types/command-parser";
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 export const commands: BaseCommandDefinitions = {
 	eval: {
 		command(target, room, user) { // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -42,5 +40,3 @@ export const commands: BaseCommandDefinitions = {
 		developerOnly: true,
 	},
 };
-
-/* eslint-enable */

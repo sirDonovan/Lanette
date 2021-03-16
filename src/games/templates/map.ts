@@ -663,7 +663,6 @@ export abstract class MapGame extends ScriptedGame {
 
 const commands: GameCommandDefinitions<MapGame> = {
 	up: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			return this.move(target, user, 'up');
 		},
@@ -671,7 +670,6 @@ const commands: GameCommandDefinitions<MapGame> = {
 		pmGameCommand: true,
 	},
 	down: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			return this.move(target, user, 'down');
 		},
@@ -679,7 +677,6 @@ const commands: GameCommandDefinitions<MapGame> = {
 		pmGameCommand: true,
 	},
 	left: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			return this.move(target, user, 'left');
 		},
@@ -687,7 +684,6 @@ const commands: GameCommandDefinitions<MapGame> = {
 		pmGameCommand: true,
 	},
 	right: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			return this.move(target, user, 'right');
 		},

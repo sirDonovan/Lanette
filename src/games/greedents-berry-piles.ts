@@ -290,7 +290,6 @@ class GreedentsBerryPiles extends ScriptedGame {
 
 const commands: GameCommandDefinitions<GreedentsBerryPiles> = {
 	grab: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canGrab || this.players[user.id].frozen) return false;
 			const player = this.players[user.id];
@@ -322,7 +321,6 @@ const commands: GameCommandDefinitions<GreedentsBerryPiles> = {
 		pmGameCommand: true,
 	},
 	run: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (this.players[user.id].frozen) return false;
 			const player = this.players[user.id];

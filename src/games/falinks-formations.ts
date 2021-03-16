@@ -68,7 +68,6 @@ class FalinksFormations extends ScriptedGame {
 
 const commands: GameCommandDefinitions<FalinksFormations> = {
 	guess: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canGuess || this.players[user.id] !== this.currentPlayer) return false;
 			const player = this.players[user.id];

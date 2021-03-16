@@ -300,7 +300,6 @@ export class Vote extends ScriptedGame {
 
 const commands: GameCommandDefinitions<Vote> = {
 	vote: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canVote) return false;
 			const player = this.createPlayer(user) || this.players[user.id];
@@ -368,7 +367,6 @@ const commands: GameCommandDefinitions<Vote> = {
 		aliases: ['suggest'],
 	},
 	pmvote: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canVote) return false;
 			const player = this.createPlayer(user) || this.players[user.id];

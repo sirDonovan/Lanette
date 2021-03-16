@@ -116,7 +116,6 @@ class CrustlesCrumblingBlocks extends ScriptedGame {
 
 const commands: GameCommandDefinitions<CrustlesCrumblingBlocks> = {
 	remove: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (this.players[user.id] !== this.currentPlayer) return false;
 			const player = this.players[user.id];

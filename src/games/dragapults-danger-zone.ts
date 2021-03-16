@@ -468,7 +468,6 @@ class DragapultsDangerZone extends ScriptedGame {
 
 const commands: GameCommandDefinitions<DragapultsDangerZone> = {
 	hide: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canHide) return false;
 
@@ -502,7 +501,6 @@ const commands: GameCommandDefinitions<DragapultsDangerZone> = {
 		pmOnly: true,
 	},
 	fire: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canFire || this.players[user.id] !== this.currentPlayer) return false;
 
@@ -536,7 +534,6 @@ const commands: GameCommandDefinitions<DragapultsDangerZone> = {
 		},
 	},
 	select: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canSelect || !this.matchupPlayers.includes(this.players[user.id]) ||
 				this.selectedMatchupPokemon.has(this.players[user.id])) {

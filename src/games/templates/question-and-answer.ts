@@ -366,7 +366,6 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 
 const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 	guess: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user, cmd, timestamp): GameCommandReturnType {
 			if (this.answerCommands && !this.answerCommands.includes(cmd)) return false;
 
@@ -454,7 +453,6 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 		config: {
 			async: true,
 		},
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async test(game): Promise<void> {
 			this.timeout(15000);
 
@@ -477,7 +475,6 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 		config: {
 			async: true,
 		},
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async test(game): Promise<void> {
 			this.timeout(15000);
 
@@ -500,7 +497,6 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 		config: {
 			async: true,
 		},
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async test(game): Promise<void> {
 			this.timeout(15000);
 
@@ -521,7 +517,6 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 		config: {
 			async: true,
 		},
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async test(game): Promise<void> {
 			this.timeout(15000);
 
@@ -537,7 +532,6 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 		config: {
 			async: true,
 		},
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async test(game): Promise<void> {
 			this.timeout(15000);
 
@@ -553,7 +547,6 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 		config: {
 			async: true,
 		},
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async test(game): Promise<void> {
 			this.timeout(15000);
 
@@ -581,7 +574,6 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 		config: {
 			async: true,
 		},
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async test(game, format): Promise<void> {
 			if (!format.minigameCommand) return;
 			this.timeout(15000);
@@ -604,7 +596,6 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 		config: {
 			async: true,
 		},
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		async test(game, format): Promise<void> {
 			if (!format.minigameCommand) return;
 			this.timeout(15000);

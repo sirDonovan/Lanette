@@ -144,7 +144,6 @@ class BounsweetsBountifulBuffet extends ScriptedGame {
 
 const commands: GameCommandDefinitions<BounsweetsBountifulBuffet> = {
 	select: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (this.selectedMeals.has(this.players[user.id])) return false;
 			const player = this.players[user.id];
@@ -172,7 +171,6 @@ const commands: GameCommandDefinitions<BounsweetsBountifulBuffet> = {
 
 const tests: GameFileTests<BounsweetsBountifulBuffet> = {
 	'should give the same points for shared meals': {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game): void {
 			const players = addPlayers(game, 2);
 			game.minPlayers = 2;
@@ -186,7 +184,6 @@ const tests: GameFileTests<BounsweetsBountifulBuffet> = {
 		},
 	},
 	'should give different points for separate meals': {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game): void {
 			const players = addPlayers(game, 2);
 			game.minPlayers = 2;

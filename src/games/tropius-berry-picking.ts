@@ -265,7 +265,6 @@ class TropiusBerryPicking extends ScriptedGame {
 
 const commands: GameCommandDefinitions<TropiusBerryPicking> = {
 	eat: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canEat) return false;
 			const player = this.createPlayer(user) || this.players[user.id];

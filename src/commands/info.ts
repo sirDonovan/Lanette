@@ -1,8 +1,6 @@
 import type { Room } from "../rooms";
 import type { BaseCommandDefinitions } from "../types/command-parser";
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 export const commands: BaseCommandDefinitions = {
 	logs: {
 		command(target, room) {
@@ -119,5 +117,3 @@ export const commands: BaseCommandDefinitions = {
 		aliases: ['randomdoublesbattles', 'randombattledoubles', 'randombattlesdoubles', 'randdubs', 'randbatdubs', 'randbatsdubs'],
 	},
 };
-
-/* eslint-enable */

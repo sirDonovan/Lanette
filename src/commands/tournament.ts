@@ -3,8 +3,6 @@ import type { BaseCommandDefinitions } from "../types/command-parser";
 import type { IBattleGameData } from "../types/games";
 import type { IFormat } from "../types/pokemon-showdown";
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 export const commands: BaseCommandDefinitions = {
 	tournament: {
 		command(target, room, user) {
@@ -721,5 +719,3 @@ export const commands: BaseCommandDefinitions = {
 		aliases: ['viewuserhostedtours'],
 	},
 };
-
-/* eslint-enable */

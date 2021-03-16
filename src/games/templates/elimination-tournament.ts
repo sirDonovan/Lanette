@@ -1571,7 +1571,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 const commands: GameCommandDefinitions<EliminationTournament> = {
 	check: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			const player = this.players[user.id];
 			if (player.eliminated) {
@@ -1625,7 +1624,6 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 		pmOnly: true,
 	},
 	starter: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!(user.id in this.players)) return false;
 			const player = this.players[user.id];
@@ -1643,7 +1641,6 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 		aliases: ['team'],
 	},
 	tournamentpage: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (user.id in this.players) {
 				this.updatePlayerHtmlPage(this.players[user.id]);
@@ -1660,7 +1657,6 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 		signupsGameCommand: true,
 	},
 	reroll: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canReroll || !(user.id in this.players)) return false;
 			const player = this.players[user.id];
@@ -1678,7 +1674,6 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 		signupsGameCommand: true,
 	},
 	resumetournamentupdates: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (user.id in this.players) {
 				if (!this.players[user.id].eliminated || this.spectatorPlayers.has(this.players[user.id])) return false;
@@ -1697,7 +1692,6 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 		spectatorGameCommand: true,
 	},
 	stoptournamentupdates: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (user.id in this.players) {
 				if (!this.players[user.id].eliminated || !this.spectatorPlayers.has(this.players[user.id])) return false;
@@ -1719,7 +1713,6 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 
 const tests: GameFileTests<EliminationTournament> = {
 	'should generate a Pokedex': {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game) {
 			assert(game.pokedex.length);
 			addPlayers(game, game.maxPlayers);
@@ -1727,7 +1720,6 @@ const tests: GameFileTests<EliminationTournament> = {
 		},
 	},
 	'should properly list matches by round - 4 players': {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game) {
 			addPlayers(game, 4);
 			game.start();
@@ -1752,7 +1744,6 @@ const tests: GameFileTests<EliminationTournament> = {
 		},
 	},
 	'should properly list matches by round - 5 players': {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game) {
 			addPlayers(game, 5);
 			game.start();
@@ -1789,7 +1780,6 @@ const tests: GameFileTests<EliminationTournament> = {
 		},
 	},
 	'should properly list matches by round - 6 players': {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game) {
 			addPlayers(game, 6);
 			game.start();
@@ -1830,7 +1820,6 @@ const tests: GameFileTests<EliminationTournament> = {
 		},
 	},
 	'should properly list matches by round - 7 players': {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game) {
 			addPlayers(game, 7);
 			game.start();
@@ -1871,7 +1860,6 @@ const tests: GameFileTests<EliminationTournament> = {
 		},
 	},
 	'should properly list matches by round - 8 players': {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game) {
 			addPlayers(game, 8);
 			if (!game.started) game.start();
@@ -1906,7 +1894,6 @@ const tests: GameFileTests<EliminationTournament> = {
 		},
 	},
 	'should give team changes until players have a full team - additionsPerRound': {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game) {
 			this.timeout(15000);
 			if (!game.additionsPerRound || game.dropsPerRound || game.maxPlayers < 64) return;
@@ -1936,7 +1923,6 @@ const tests: GameFileTests<EliminationTournament> = {
 		},
 	},
 	'should give team changes until players have a full team - dropsPerRound': {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game) {
 			this.timeout(15000);
 			if (!game.dropsPerRound || game.additionsPerRound || game.maxPlayers < 64) return;

@@ -168,7 +168,6 @@ class SkittysSeekAndHide extends ScriptedGame {
 
 const commands: GameCommandDefinitions<SkittysSeekAndHide> = {
 	select: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canSelect) return false;
 			const player = this.players[user.id];
@@ -206,7 +205,6 @@ const commands: GameCommandDefinitions<SkittysSeekAndHide> = {
 
 const tests: GameFileTests<SkittysSeekAndHide> = {
 	'should have parameters for all possible numbers of remaining players': {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game): void {
 			const minPlayers = Math.max(2, game.minPlayers - 1);
 			const maxPlayers = game.maxPlayers - 1;

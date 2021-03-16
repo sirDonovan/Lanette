@@ -244,14 +244,12 @@ export abstract class BoardGame extends ScriptedGame {
 
 const tests: GameFileTests<BoardGame> = {
 	'it should have equal size columns and rows': {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game): void {
 			assertStrictEqual(game.board.leftColumn.length, game.board.rightColumn.length);
 			assertStrictEqual(game.board.topRow.length, game.board.bottomRow.length);
 		},
 	},
 	'it should properly determine space order in getLocationAfterMovement': {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game): void {
 			// forward movement
 			let locationAfterMovement = game.getLocationAfterMovement({side: 'leftColumn', space: 0}, 1);
@@ -337,7 +335,6 @@ const tests: GameFileTests<BoardGame> = {
 		},
 	},
 	'it should have properly initialized board spaces': {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game): void {
 			let location: IMovedBoardLocation = {side: 'leftColumn', space: 0, passedSpaces: []};
 			let spaceId = location.side + ": " + location.space;

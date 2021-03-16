@@ -178,7 +178,6 @@ class GameScriptedBox extends HtmlPageBase {
 
 export const commands: BaseCommandDefinitions = {
 	[baseCommand]: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.isPm(room)) return;
 			const targets = target.split(",");
@@ -258,14 +257,12 @@ export const commands: BaseCommandDefinitions = {
 		aliases: ['gsb'],
 	},
 	[setGameFormatSeparateCommand]: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target) {
 			const targets = target.split(',');
 			this.run(baseCommand, targets[0] + "," + setGameFormatCommand + "," + targets.slice(1).join(","));
 		},
 	},
 	[setPokemonSeparateCommand]: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target) {
 			const targets = target.split(',');
 			this.run(baseCommand, targets[0] + "," + setPokemonCommand + "," + targets.slice(1).join(","));

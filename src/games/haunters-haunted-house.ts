@@ -994,7 +994,6 @@ class HauntersHauntedHouse extends ScriptedGame {
 
 const commands: GameCommandDefinitions<HauntersHauntedHouse> = {
 	up: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canMove) return false;
 			const player = this.players[user.id];
@@ -1005,7 +1004,6 @@ const commands: GameCommandDefinitions<HauntersHauntedHouse> = {
 		},
 	},
 	down: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canMove) return false;
 			const player = this.players[user.id];
@@ -1016,7 +1014,6 @@ const commands: GameCommandDefinitions<HauntersHauntedHouse> = {
 		},
 	},
 	left: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canMove) return false;
 			const player = this.players[user.id];
@@ -1027,7 +1024,6 @@ const commands: GameCommandDefinitions<HauntersHauntedHouse> = {
 		},
 	},
 	right: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canMove) return false;
 			const player = this.players[user.id];
@@ -1038,7 +1034,6 @@ const commands: GameCommandDefinitions<HauntersHauntedHouse> = {
 		},
 	},
 	wait: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canMove) return false;
 			const player = this.players[user.id];

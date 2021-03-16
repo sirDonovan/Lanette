@@ -311,7 +311,6 @@ class PanchamPairs extends ScriptedGame {
 
 const commands: GameCommandDefinitions<PanchamPairs> = {
 	pair: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canPair) return false;
 			const player = this.createPlayer(user) || this.players[user.id];

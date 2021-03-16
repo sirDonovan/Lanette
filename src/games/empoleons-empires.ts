@@ -95,7 +95,6 @@ class EmpoleonsEmpires extends ScriptedGame {
 
 const commands: GameCommandDefinitions<EmpoleonsEmpires> = {
 	guess: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canGuess || this.players[user.id] !== this.currentPlayer) return false;
 			const player = this.players[user.id];
@@ -154,7 +153,6 @@ const commands: GameCommandDefinitions<EmpoleonsEmpires> = {
 		aliases: ['g'],
 	},
 	alias: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (this.playerAliases.has(this.players[user.id])) {
 				user.say("You have already chosen your alias!");
@@ -197,7 +195,6 @@ const commands: GameCommandDefinitions<EmpoleonsEmpires> = {
 		pmOnly: true,
 	},
 	dqalias: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!user.hasRank(this.room as Room, 'driver')) return false;
 			let targetPlayer: Player | undefined;

@@ -143,7 +143,6 @@ class PoipolesRegionalPortals extends ScriptedGame {
 
 const commands: GameCommandDefinitions<PoipolesRegionalPortals> = {
 	travel: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canTravel) return false;
 			const player = this.createPlayer(user) || this.players[user.id];

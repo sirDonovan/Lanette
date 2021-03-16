@@ -167,7 +167,6 @@ class BuzzwolesFizzBuzz extends ScriptedGame {
 
 const commands: GameCommandDefinitions<BuzzwolesFizzBuzz> = {
 	fizz: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.currentPlayer || this.players[user.id] !== this.currentPlayer) return false;
 			if (this.timeout) clearTimeout(this.timeout);

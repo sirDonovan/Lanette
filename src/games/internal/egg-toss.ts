@@ -84,7 +84,6 @@ class EggToss extends ScriptedGame {
 
 const commands: GameCommandDefinitions<EggToss> = {
 	toss: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.currentHolder) {
 				this.currentHolder = this.createPlayer(user) || this.players[user.id];

@@ -108,7 +108,6 @@ class AbsolsDiceDisaster extends ScriptedGame {
 
 const commands: GameCommandDefinitions<AbsolsDiceDisaster> = {
 	bid: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canBid) return false;
 			const bid = parseInt(target);

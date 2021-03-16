@@ -99,7 +99,6 @@ class MachopsMatchups extends ScriptedGame {
 
 const commands: GameCommandDefinitions<MachopsMatchups> = {
 	attack: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canAttack || this.roundActions.has(this.players[user.id])) return false;
 			const player = this.players[user.id];

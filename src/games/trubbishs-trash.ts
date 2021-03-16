@@ -169,7 +169,6 @@ class TrubbishsTrash extends ScriptedGame {
 
 const commands: GameCommandDefinitions<TrubbishsTrash> = {
 	trash: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canTrash) return false;
 			const player = this.createPlayer(user) || this.players[user.id];

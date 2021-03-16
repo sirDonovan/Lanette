@@ -105,7 +105,6 @@ class ChandeluresCandles extends ScriptedGame {
 
 const commands: GameCommandDefinitions<ChandeluresCandles> = {
 	hide: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.roundTarget) return false;
 			const player = this.players[user.id];
@@ -123,7 +122,6 @@ const commands: GameCommandDefinitions<ChandeluresCandles> = {
 		},
 	},
 	puff: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.roundTarget || this.roundActions.has(this.players[user.id])) return false;
 			const player = this.players[user.id];

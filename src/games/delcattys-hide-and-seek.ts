@@ -154,7 +154,6 @@ class DelcattysHideAndSeek extends ScriptedGame {
 
 const commands: GameCommandDefinitions<DelcattysHideAndSeek> = {
 	charm: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (this.players[user.id] !== this.charmer || !this.canCharm) return false;
 			const player = this.players[user.id];
@@ -203,7 +202,6 @@ const commands: GameCommandDefinitions<DelcattysHideAndSeek> = {
 		chatOnly: true,
 	},
 	select: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canSelect) return false;
 			const player = this.players[user.id];
@@ -245,7 +243,6 @@ const commands: GameCommandDefinitions<DelcattysHideAndSeek> = {
 
 const tests: GameFileTests<DelcattysHideAndSeek> = {
 	'should have parameters for all possible numbers of remaining players': {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game): void {
 			// potentially +/- 1 Pokemon each round
 			const maxPlayers = game.maxPlayers + 1;
@@ -263,7 +260,6 @@ const tests: GameFileTests<DelcattysHideAndSeek> = {
 		},
 	},
 	'should eliminate players who are charmed': {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game): void {
 			const players = addPlayers(game, 2);
 			game.minPlayers = 2;
@@ -282,7 +278,6 @@ const tests: GameFileTests<DelcattysHideAndSeek> = {
 		},
 	},
 	'should eliminate the charmer if they fail to charm any players': {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		test(game): void {
 			const players = addPlayers(game, 2);
 			game.minPlayers = 2;

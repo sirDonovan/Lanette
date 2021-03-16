@@ -189,7 +189,6 @@ class TaurosSafariZone extends ScriptedGame {
 
 const commands: GameCommandDefinitions<TaurosSafariZone> = {
 	catch: {
-		// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 		command(target, room, user) {
 			if (!this.canCatch) return false;
 			const player = this.createPlayer(user) || this.players[user.id];

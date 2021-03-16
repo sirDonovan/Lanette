@@ -14,8 +14,6 @@ const tournamentRankAliases = ['tournamentrank', 'tourrank', 'tournamentpoints',
 const gameRankAliases = ['gamerank', 'gamepoints', 'bits'];
 const addGamePointsAliases = ['addbits', 'addbit', 'abits', 'abit', 'removebits', 'removebit', 'rbits', 'rbit'];
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 export const commands: BaseCommandDefinitions = {
 	offlinemessage: {
 		command(target, room, user) {
@@ -936,5 +934,3 @@ export const commands: BaseCommandDefinitions = {
 		},
 	},
 };
-
-/* eslint-enable */
