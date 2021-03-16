@@ -1,3 +1,4 @@
+import type { NamedHexCode } from "../../types/tools";
 import { assert, assertStrictEqual } from "../test-tools";
 
 /* eslint-env mocha */
@@ -196,13 +197,22 @@ describe("Tools", () => {
 			assertStrictEqual(Tools.getChallongeUrl(" " + link + "\\"), expectedLink);
 		}
 	});
-	it('should have proper typeHexColors and pokemonColorHexColors lists', () => {
-		for (const i in Tools.typeHexCodes) {
-			assert(Tools.typeHexCodes[i] in Tools.hexCodes, i);
+	it('should have proper hex code lists', () => {
+		for (const i in Tools.eggGroupHexCodes) {
+			assert(Tools.eggGroupHexCodes[i] in Tools.hexCodes, i);
+		}
+
+		const namedHexCodes = Object.keys(Tools.namedHexCodes) as NamedHexCode[];
+		for (const name of namedHexCodes) {
+			assert(Tools.namedHexCodes[name] in Tools.hexCodes, name);
 		}
 
 		for (const i in Tools.pokemonColorHexCodes) {
 			assert(Tools.pokemonColorHexCodes[i] in Tools.hexCodes, i);
+		}
+
+		for (const i in Tools.typeHexCodes) {
+			assert(Tools.typeHexCodes[i] in Tools.hexCodes, i);
 		}
 	});
 	it('should properly generate permutations', () => {

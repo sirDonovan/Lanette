@@ -1,17 +1,23 @@
 import type { Room } from "../rooms";
 import type { User } from "../users";
+import type { ComponentBase } from "./components/component-base";
 
 export abstract class HtmlPageBase {
 	abstract pageId: string;
 
+	components: ComponentBase[] = [];
 	lastRender: string = '';
 
+	baseCommand: string;
+	commandPrefix: string;
 	room: Room;
 	userId: string;
 
-	constructor(room: Room, user: User) {
+	constructor(room: Room, user: User, baseCommand: string) {
 		this.room = room;
 		this.userId = user.id;
+		this.baseCommand = baseCommand;
+		this.commandPrefix = Config.commandCharacter + baseCommand + " " + room.title;
 	}
 
 	abstract render(onOpen?: boolean): string;
@@ -42,6 +48,16 @@ export abstract class HtmlPageBase {
 		this.room.sendHtmlPage(user, this.pageId, render);
 
 		if (this.onSend) this.onSend(onOpen);
+	}
+
+	checkComponentCommands(componentCommand: string, targets: readonly string[]): string | undefined {
+		for (const component of this.components) {
+			if (component.active && component.componentCommand === componentCommand) {
+				return component.tryCommand(targets);
+			}
+		}
+
+		return "Unknown sub-command '" + componentCommand + "'.";
 	}
 
 	beforeSend?(onOpen?: boolean): boolean;

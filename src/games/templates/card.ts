@@ -235,7 +235,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	getEggGroupLabel(card: IPokemonCard): string {
 		const eggGroups = [];
 		for (const eggGroup of card.eggGroups) {
-			const colorData = Tools.getEggGroupHexCode(eggGroup);
+			const colorData = Tools.getEggGroupHexCode(eggGroup)!;
 			eggGroups.push('<div style="display:inline-block;background-color:' + colorData.color + ';background:' +
 				colorData.gradient + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;' +
 				'padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt;text-align:center"><b>' +
@@ -245,7 +245,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	}
 
 	getChatColorLabel(card: IPokemonCard): string {
-		const colorData = Tools.getPokemonColorHexCode(card.color);
+		const colorData = Tools.getPokemonColorHexCode(card.color)!;
 		return '<div style="display:inline-block;background-color:' + colorData.color + ';background:' +
 			colorData.gradient + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;padding:1px;' +
 			'color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt;text-align:center"><b>' + card.color +
@@ -263,7 +263,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 			let image = '';
 			if (this.isMoveCard(card)) {
 				names.push(card.name);
-				const colorData = Tools.getTypeHexCode(card.type);
+				const colorData = Tools.getTypeHexCode(card.type)!;
 				image = '<div style="display:inline-block;height:51px;width:' + (this.detailLabelWidth + 10) + '"><br /><div ' +
 					'style="display:inline-block;background-color:' + colorData.color + ';background:' +
 					colorData.gradient + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;' +

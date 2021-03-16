@@ -137,7 +137,8 @@ export const tournamentSchedules: Dict<IRoomTournamentSchedule> = {
 						'-Volcarona,-Blacephalon,-Tapu Koko,-Thundurus,-Archeops,-Zygarde,-Regigigas,+Zygarde-10%,-Tinted Lens,' +
 						'*Glacial Lance,+Landorus-Base,-Urshifu,+Mamoswine,+Urshifu-Rapid-Strike,-Landorus-Therian,-Latios,*Oblivion Wing',
 					'12': 'gen 3 ubers,hoenn pokedex',
-					'13': 'gen 8 pu,scalemons mod',
+					'13': 'gen 8 pu,Scalemons Mod,-Eviolite,-Light Ball,-Rain Dance,-Sunny Day,-Darumaka,-Darumaka-Galar,-Gastly,' +
+						'-Arena Trap,-Huge Power,-Moody,-Shadow Tag,Overflow Stat Mod',
 					'14': 'gen 6 ru,-all items,+life orb',
 					'15': 'monotype,gen 8 camomons',
 					'16': 'gen 7 ubers,-red orb,-blue orb',

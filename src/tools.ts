@@ -43,6 +43,7 @@ export class Tools {
 	readonly mainServer: string = 'play.pokemonshowdown.com';
 	readonly maxMessageLength: typeof maxMessageLength = maxMessageLength;
 	readonly maxUsernameLength: typeof maxUsernameLength = maxUsernameLength;
+	readonly namedHexCodes: typeof namedHexCodes = namedHexCodes;
 	readonly pokemonColorHexCodes: typeof pokemonColorHexCodes = pokemonColorHexCodes;
 	readonly pokemonShowdownFolder: string = path.join(rootFolder, 'pokemon-showdown');
 	readonly rootFolder: typeof rootFolder = rootFolder;
@@ -71,18 +72,18 @@ export class Tools {
 	}
 
 	getNamedHexCode(name: NamedHexCode): IHexCodeData {
-		return hexCodes[namedHexCodes[name]];
+		return hexCodes[namedHexCodes[name]]!;
 	}
 
-	getEggGroupHexCode(eggGroup: string): IHexCodeData {
+	getEggGroupHexCode(eggGroup: string): IHexCodeData | undefined {
 		return hexCodes[eggGroupHexCodes[eggGroup]];
 	}
 
-	getPokemonColorHexCode(color: string): IHexCodeData {
+	getPokemonColorHexCode(color: string): IHexCodeData | undefined {
 		return hexCodes[pokemonColorHexCodes[color]];
 	}
 
-	getTypeHexCode(type: string): IHexCodeData {
+	getTypeHexCode(type: string): IHexCodeData | undefined {
 		return hexCodes[typeHexCodes[type]];
 	}
 
