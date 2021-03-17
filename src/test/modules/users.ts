@@ -2,26 +2,45 @@ import { assertStrictEqual } from "../test-tools";
 
 /* eslint-env mocha */
 
-const formatting: string[] = ['*', '_', '`', '~', '^', '\\'];
-
 describe("Users", () => {
 	it('should strip formatting from names', () => {
 		const id = "testuser";
+		const left = id.substr(0, 4);
+		const right = id.substr(4);
+
 		let user = Users.add(id, id);
 		assertStrictEqual(user.name, id);
 		Users.remove(user);
 
+		const formatting = Users.getNameFormattingList();
 		for (const format of formatting) {
 			user = Users.add(format + id + format, id);
 			assertStrictEqual(user.name, id);
 			Users.remove(user);
+
+			user = Users.add(format + format + id, id);
+			assertStrictEqual(user.name, id);
+			Users.remove(user);
+
+			user = Users.add(id + format + format, id);
+			assertStrictEqual(user.name, id);
+			Users.remove(user);
+
+			user = Users.add(left + format + format + right, id);
+			assertStrictEqual(user.name, id);
+			Users.remove(user);
+
+			user = Users.add(format + left + format + format + right + format, id);
+			assertStrictEqual(user.name, id);
+			Users.remove(user);
 		}
 
-		user = Users.add("*_`~^\\" + id + "\\^~`_*", id);
+		const allFormatting = formatting.join("");
+		user = Users.add(allFormatting + id + allFormatting, id);
 		assertStrictEqual(user.name, id);
 		Users.remove(user);
 
-		user = Users.add("*_`~^\\" + id + "*_`~^\\", id);
+		user = Users.add(allFormatting + id + formatting.reverse().join(""), id);
 		assertStrictEqual(user.name, id);
 		Users.remove(user);
 	});
@@ -33,7 +52,7 @@ describe("Users", () => {
 		Users.rename("NEWUSER", 'newuser');
 		assertStrictEqual(user.name, "NEWUSER");
 
-		for (const format of formatting) {
+		for (const format of Users.getNameFormattingList()) {
 			Users.rename(format + "newUser" + format, 'newuser');
 			assertStrictEqual(user.name, "newUser");
 		}
