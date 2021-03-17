@@ -16,6 +16,8 @@ const mapSymbols: {player: string; empty: string} = {
 	empty: "O",
 };
 
+const MAX_REMATCHES = 2;
+
 class DragapultsDangerZone extends ScriptedGame {
 	canFire: boolean = false;
 	canHide: boolean = false;
@@ -31,6 +33,7 @@ class DragapultsDangerZone extends ScriptedGame {
 	minPlayers = 4;
 	playerLocations = new Map<Player, string>();
 	playerOrders: Dict<Player[]> = {};
+	rematchCount: number = 0;
 	revealedLocations: string[] = [];
 	selectedMatchupPokemon = new Map<Player, IPokemon>();
 	soloPlayerOrder: Player[] = [];
@@ -349,20 +352,27 @@ class DragapultsDangerZone extends ScriptedGame {
 			}
 		}
 
+		let tie = false;
 		let text = '';
 		if (!playerAWin && !playerBWin) {
+			tie = true;
 			text = "It was a tie between " + playerA.name + "'s " + playerAPokemon!.name + " and " +
 				playerB.name + "'s " + playerBPokemon!.name + "!";
-			this.on(text, () => {
-				this.timeout = setTimeout(() => this.startMatchup(this.matchupPlayers), 3 * 1000);
-			});
 		} else {
 			if (playerAWin) {
 				text = this.handleMatchupResult(playerA, playerB, playerAPokemon!, playerBPokemon);
 			} else if (playerBWin) {
 				text = this.handleMatchupResult(playerB, playerA, playerBPokemon!, playerAPokemon);
 			}
+		}
 
+		if (tie && this.rematchCount < MAX_REMATCHES) {
+			this.rematchCount++;
+			this.on(text, () => {
+				this.timeout = setTimeout(() => this.startMatchup(this.matchupPlayers), 3 * 1000);
+			});
+		} else {
+			if (this.rematchCount) this.rematchCount = 0;
 			this.currentPlayer = null;
 
 			this.on(text, () => {
