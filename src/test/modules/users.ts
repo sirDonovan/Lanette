@@ -14,15 +14,15 @@ describe("Users", () => {
 
 		const formatting = Users.getNameFormattingList();
 		for (const format of formatting) {
-			user = Users.add(format + id + format, id);
+			user = Users.add(format + " " + id + " " + format, id);
 			assertStrictEqual(user.name, id);
 			Users.remove(user);
 
-			user = Users.add(format + format + id, id);
+			user = Users.add(format + format + " " + id, id);
 			assertStrictEqual(user.name, id);
 			Users.remove(user);
 
-			user = Users.add(id + format + format, id);
+			user = Users.add(id + " " + format + format, id);
 			assertStrictEqual(user.name, id);
 			Users.remove(user);
 
@@ -30,17 +30,17 @@ describe("Users", () => {
 			assertStrictEqual(user.name, id);
 			Users.remove(user);
 
-			user = Users.add(format + left + format + format + right + format, id);
+			user = Users.add(format + " " + left + format + format + right + " " + format, id);
 			assertStrictEqual(user.name, id);
 			Users.remove(user);
 		}
 
 		const allFormatting = formatting.join("");
-		user = Users.add(allFormatting + id + allFormatting, id);
+		user = Users.add(allFormatting + " " + id + " " + allFormatting, id);
 		assertStrictEqual(user.name, id);
 		Users.remove(user);
 
-		user = Users.add(allFormatting + id + formatting.reverse().join(""), id);
+		user = Users.add(allFormatting + " " + id + " " + formatting.reverse().join(""), id);
 		assertStrictEqual(user.name, id);
 		Users.remove(user);
 	});

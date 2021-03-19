@@ -30,17 +30,17 @@ export class User {
 		name = Tools.stripHtmlCharacters(name);
 
 		while (chatFormatting.includes(name.charAt(0))) {
-			name = name.substr(1);
+			name = name.substr(1).trim();
 		}
 
 		while (chatFormatting.includes(name.substr(-1))) {
-			name = name.substr(0, name.length - 1);
+			name = name.substr(0, name.length - 1).trim();
 		}
 
 		for (const formatting of chatFormatting) {
 			const doubleFormatting = formatting + formatting;
 			while (name.includes(doubleFormatting)) {
-				name = name.replace(doubleFormatting, "");
+				name = name.replace(doubleFormatting, "").trim();
 			}
 		}
 
