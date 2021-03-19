@@ -155,7 +155,7 @@ export abstract class Activity {
 	signupsHtmlTimeout: NodeJS.Timer | null = null;
 	started: boolean = false;
 	startTime: number | null = null;
-	startTimer?: NodeJS.Timer;
+	startTimer: NodeJS.Timer | null = null;
 	timeout: NodeJS.Timer | null = null;
 	uhtmlMessageListeners: Dict<string[]> = {};
 

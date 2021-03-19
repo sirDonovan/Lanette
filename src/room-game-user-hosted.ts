@@ -31,6 +31,64 @@ export class UserHostedGame extends Game {
 
 	room!: Room;
 
+	reset(): void {
+		if (this.timeout) {
+			clearTimeout(this.timeout);
+			this.timeout = null;
+		}
+
+		if (this.gameTimer) {
+			clearTimeout(this.gameTimer);
+			this.gameTimer = null;
+		}
+
+		if (this.hostTimeout) {
+			clearTimeout(this.hostTimeout);
+			this.hostTimeout = null;
+		}
+
+		if (this.startTimer) {
+			clearTimeout(this.startTimer);
+			this.startTimer = null;
+		}
+
+		if (this.signupsHtmlTimeout) {
+			clearTimeout(this.signupsHtmlTimeout);
+			this.signupsHtmlTimeout = null;
+		}
+
+		this.clearHangman();
+		this.clearSignupsNotification();
+
+		this.endTime = 0;
+		this.mascots = [];
+		this.points.clear();
+		this.savedWinners = [];
+		this.scoreCap = 0;
+		this.shinyMascot = false;
+		this.storedMessages = null;
+		this.subHostId = null;
+		this.subHostName = null;
+		this.twist = null;
+
+		this.started = false;
+		this.startTime = 0;
+		this.minPlayers = 4;
+		this.players = {};
+		this.teams = null;
+	}
+
+	restart(format: IUserHostedFormat): void {
+		this.reset();
+
+		this.onInitialize(format);
+		this.id = format.id;
+		this.description = format.description;
+
+		this.setHost(this.hostName);
+		this.signups();
+	}
+
 	// Display
 	getMascotAndNameHtml(additionalText?: string): string {
 		const icons: string[] = [];
@@ -337,6 +395,14 @@ export class UserHostedGame extends Game {
 		this.deallocate(true);
 	}
 
+	clearHangman(): void {
+		if (this.room.serverHangman) this.sayCommand("/hangman end");
+	}
+
+	clearSignupsNotification(): void {
+		if (!this.started || this.format.options.freejoin) this.sayCommand("/notifyoffrank all");
+	}
+
 	deallocate(forceEnd: boolean): void {
 		if (!this.ended) this.ended = true;
 
@@ -348,8 +414,8 @@ export class UserHostedGame extends Game {
 
 		if (this.room.userHostedGame === this) delete this.room.userHostedGame;
 
-		if (this.room.serverHangman) this.sayCommand("/hangman end");
-		if (!this.started || this.format.options.freejoin) this.sayCommand("/notifyoffrank all");
+		this.clearHangman();
+		this.clearSignupsNotification();
 
 		if (forceEnd && Config.gameAutoCreateTimers && this.room.id in Config.gameAutoCreateTimers) {
 			Games.setAutoCreateTimer(this.room, 'userhosted', FORCE_END_CREATE_TIMER);

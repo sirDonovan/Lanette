@@ -208,6 +208,19 @@ export const commands: BaseCommandDefinitions = {
 			game.signups();
 		},
 	},
+	restarthost: {
+		command(target, room, user) {
+			if (this.isPm(room) || !user.hasRank(room, 'voice') || !room.userHostedGame) return;
+			let format = room.userHostedGame.format;
+			if (target) {
+				const newFormat = Games.getUserHostedFormat(target);
+				if (Array.isArray(newFormat)) return this.sayError(newFormat);
+				format = newFormat;
+			}
+
+			room.userHostedGame.restart(format);
+		},
+	},
 	subhost: {
 		command(target, room, user) {
 			if (this.isPm(room) || !user.hasRank(room, 'voice') || !room.userHostedGame) return;
@@ -573,7 +586,7 @@ export const commands: BaseCommandDefinitions = {
 			if (id === 'off' || id === 'end' || id === 'stop') {
 				if (!room.userHostedGame.startTimer) return this.say("There is no game start timer set.");
 				clearTimeout(room.userHostedGame.startTimer);
-				delete room.userHostedGame.startTimer;
+				room.userHostedGame.startTimer = null;
 				return this.say("The game start timer has been turned off.");
 			}
 

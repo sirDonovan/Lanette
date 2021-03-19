@@ -59,9 +59,10 @@ export abstract class Game extends Activity {
 	initialize(format: IGameFormat | IUserHostedFormat): void {
 		this.name = format.nameWithOptions || format.name;
 		this.id = format.id;
-		this.description = format.description;
 
 		this.onInitialize(format);
+		this.description = format.description;
+
 		if (this.maxPlayers) this.playerCap = this.maxPlayers;
 	}
 
