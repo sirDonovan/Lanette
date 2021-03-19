@@ -15,6 +15,17 @@ describe("Tools", () => {
 		assertStrictEqual(Tools.mainServer, "play.pokemonshowdown.com");
 		assertStrictEqual(Tools.letters, "abcdefghijklmnopqrstuvwxyz");
 	});
+	it('should return proper values from stripHtmlCharacters()', () => {
+		const testString = "test";
+		const left = testString.substr(0, 2);
+		const right = testString.substr(2);
+		assertStrictEqual(Tools.stripHtmlCharacters("< " + left + "<" + right + " <"), testString);
+		assertStrictEqual(Tools.stripHtmlCharacters("> " + left + ">" + right + " >"), testString);
+		assertStrictEqual(Tools.stripHtmlCharacters("/ " + left + "/" + right + " /"), testString);
+		assertStrictEqual(Tools.stripHtmlCharacters("\\ " + left + "\\" + right + " \\"), testString);
+		assertStrictEqual(Tools.stripHtmlCharacters("' " + left + "'" + right + " '"), testString);
+		assertStrictEqual(Tools.stripHtmlCharacters('" ' + left + '"' + right + ' "'), testString);
+	});
 	it('should return proper values from deepClone()', () => {
 		const array = ['a'];
 		const arrayClone = Tools.deepClone(array);

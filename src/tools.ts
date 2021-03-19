@@ -15,7 +15,7 @@ const INTEGER_REGEX = /^[0-9]+$/g;
 const FLOAT_REGEX = /^[.0-9]+$/g;
 const SPACE_REGEX = /\s/g;
 const APOSTROPHE_REGEX = /[/']/g;
-const HTML_CHARACTER_REGEX = /[<>/'"]/g;
+const HTML_CHARACTER_REGEX = /[<>/\\'"]/g;
 const UNSAFE_API_CHARACTER_REGEX = /[^A-Za-z0-9 ,.%&'"!?()[\]`_<>/|:;=+-@]/g;
 
 const BATTLE_ROOM_PREFIX = 'battle-';
@@ -356,7 +356,7 @@ export class Tools {
 	}
 
 	stripHtmlCharacters(input: string): string {
-		return input.replace(HTML_CHARACTER_REGEX, '');
+		return input.replace(HTML_CHARACTER_REGEX, '').trim();
 	}
 
 	joinList(list: readonly string[], preFormatting?: string | null, postFormatting?: string | null, conjunction?: string): string {
