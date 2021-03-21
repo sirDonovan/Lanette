@@ -23,15 +23,15 @@ const REPLAY_SERVER_ADDRESS = "replay.pokemonshowdown.com";
 const CHALLSTR_TIMEOUT_SECONDS = 15;
 const RELOGIN_SECONDS = 60;
 const LOGIN_TIMEOUT_SECONDS = 150;
-const REGULAR_MESSAGE_THROTTLE = 600;
-const TRUSTED_MESSAGE_THROTTLE = 100;
+const REGULAR_MESSAGE_THROTTLE = 625;
+const TRUSTED_MESSAGE_THROTTLE = 125;
 const SERVER_THROTTLE_BUFFER_LIMIT = 5;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const CONNECTION_CHECK_INTERVAL = 30 * 1000;
 const SERVER_THROTTLE_PROCESSING_TIME = 25;
 const PROCESSING_TIME_CHECK_MINIMUM = 5 * 1000;
-const PROCESSING_TIME_SAMPLE_SIZE = 6;
+const PROCESSING_TIME_SAMPLE_SIZE = 12;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
 const UHTML_CHAT_COMMAND = '/uhtml ';
@@ -211,6 +211,7 @@ export class Client {
 		user: Users.self.id,
 		measure: true,
 	};
+	private processingTimeSampleSize = PROCESSING_TIME_SAMPLE_SIZE;
 	private publicChatRooms: string[] = [];
 	private reconnectRoomMessages: Dict<string[]> = {};
 	private reconnectTime: number = Config.reconnectTime || 60 * 1000;
@@ -1981,7 +1982,7 @@ export class Client {
 			if (this.lastOutgoingMessage.measure && this.lastOutgoingMessage.sentTime && responseTime) {
 				this.serverProcessingSamples.push(responseTime - this.lastOutgoingMessage.sentTime);
 				let sampleSize = this.serverProcessingSamples.length;
-				if (sampleSize > PROCESSING_TIME_SAMPLE_SIZE) {
+				if (sampleSize > this.processingTimeSampleSize) {
 					this.serverProcessingSamples.shift();
 					sampleSize--;
 				}
