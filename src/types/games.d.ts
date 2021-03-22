@@ -262,6 +262,14 @@ export type PlayerList = Dict<Player> | readonly Player[] | Map<Player, any>;
 
 export type LoadedGameFile = DeepImmutable<IGameFormatData>;
 
+export interface IHostDisplayUhtml {
+	pokemon: string[];
+	trainerList: string[];
+	pokemonType: 'gif' | 'icon';
+	uhtmlName: string;
+	user: string;
+}
+
 export interface IPokemonUhtml {
 	pokemon: string[];
 	type: 'gif' | 'icon';

@@ -235,9 +235,9 @@ export class ScriptedGame extends Game {
 		}
 	}
 
-	getMascotAndNameHtml(additionalText?: string, forGameSummary?: boolean): string {
+	getMascotAndNameHtml(additionalText?: string, noDescription?: boolean): string {
 		let minigameDescription: string | undefined;
-		if (this.isMiniGame && !forGameSummary) {
+		if (this.isMiniGame && !noDescription) {
 			minigameDescription = this.getMinigameDescription();
 		}
 

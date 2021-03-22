@@ -207,7 +207,7 @@ describe("Games", () => {
 		}
 	});
 
-	it('should create games properly', function(this: Mocha.Context) {
+	it('should create games properly', () => {
 		for (const format of formatsToTest) {
 			try {
 				Games.createGame(room, format, room, false, initialSeed);
@@ -242,7 +242,7 @@ describe("Games", () => {
 		}
 	});
 
-	it('should support setting the initial PRNG seed', function(this: Mocha.Context) {
+	it('should support setting the initial PRNG seed', () => {
 		const prng = new PRNG();
 		for (const format of formatsToTest) {
 			const game = Games.createGame(room, format, room, false, prng.initialSeed.slice() as PRNGSeed);
@@ -324,7 +324,7 @@ describe("Games", () => {
 		assertStrictEqual(nameUserHostedFormat[1], name);
 	});
 
-	it('should start signups for scripted games', function(this: Mocha.Context) {
+	it('should start signups for scripted games', () => {
 		const roomPrefix = room.id + "|";
 		for (const format of formatsToTest) {
 			if (format.tournamentGame) continue;
@@ -362,7 +362,7 @@ describe("Games", () => {
 			const startingSendQueueIndex = Client.getOutgoingMessageQueue().length;
 
 			const gameLog: string[] = [];
-			const game = Games.createUserHostedGame(room, format, Users.self.name);
+			const game = Games.createUserHostedGame(room, format, Users.self.name, true);
 			assert(game, format.name);
 			assert(!game.signupsStarted, format.name);
 			assert(!game.started, format.name);
@@ -377,7 +377,7 @@ describe("Games", () => {
 		}
 	});
 
-	it('should properly start one vs. one challenges', function(this: Mocha.Context) {
+	it('should properly start one vs. one challenges', () => {
 		const challenger = Users.add("Challenger", "challenger");
 		const defender = Users.add("Defender", "defender");
 		room.onUserJoin(challenger, ' ');
@@ -424,7 +424,7 @@ describe("Games", () => {
 		}
 	});
 
-	it('should properly start bot challenges', function(this: Mocha.Context) {
+	it('should properly start bot challenges', () => {
 		const challenger = Users.add("Challenger", "challenger");
 		room.onUserJoin(challenger, ' ');
 		room.onUserJoin(Users.self, ' ');

@@ -7,7 +7,7 @@ import { formatLinks } from './data/format-links';
 import { locations as locationData } from './data/locations';
 import { trainerClasses } from './data/trainer-classes';
 import type {
-	CategoryData, CharacterType, IAlternateIconNumbers, IDataTable, IGetPossibleTeamsOptions, IGifData, IGifDirectionData,
+	CategoryData, CharacterType, GifGeneration, IAlternateIconNumbers, IDataTable, IGetPossibleTeamsOptions, IGifData, IGifDirectionData,
 	ISeparatedCustomRules, LocationType, RegionName
 } from './types/dex';
 import type {
@@ -914,7 +914,7 @@ export class Dex {
 		return inverseResistances;
 	}
 
-	getGifData(pokemon: IPokemon, generation?: 'xy' | 'bw', direction?: 'front' | 'back'): IGifDirectionData | undefined {
+	getGifData(pokemon: IPokemon, generation?: GifGeneration, direction?: 'front' | 'back'): IGifDirectionData | undefined {
 		if (!generation) generation = 'xy';
 		if (!direction) direction = 'front';
 		if (generation === 'bw') {
@@ -931,11 +931,11 @@ export class Dex {
 		return undefined;
 	}
 
-	hasGifData(pokemon: IPokemon, generation?: 'xy' | 'bw', direction?: 'front' | 'back'): boolean {
+	hasGifData(pokemon: IPokemon, generation?: GifGeneration, direction?: 'front' | 'back'): boolean {
 		return !!this.getGifData(pokemon, generation, direction);
 	}
 
-	getPokemonGif(pokemon: IPokemon, generation?: 'xy' | 'bw', direction?: 'front' | 'back', shiny?: boolean): string {
+	getPokemonGif(pokemon: IPokemon, generation?: GifGeneration, direction?: 'front' | 'back', shiny?: boolean): string {
 		if (!generation) generation = 'xy';
 		const bw = generation === 'bw';
 

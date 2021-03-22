@@ -378,6 +378,7 @@ export const commands: BaseCommandDefinitions = {
 			} else if (cmd === closeCommand) {
 				if (!(user.id in pages)) new OfflineMessages(botRoom, user);
 				pages[user.id].close();
+				delete pages[user.id];
 			} else {
 				this.say("Unknown sub-command '" + cmd + "'.");
 			}

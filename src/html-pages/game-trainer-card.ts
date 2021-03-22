@@ -1,15 +1,12 @@
 import type { Room } from "../rooms";
 import type { BaseCommandDefinitions } from "../types/command-parser";
-import type { TrainerSpriteId } from "../types/dex";
 import type { IGameTrainerCard } from "../types/storage";
 import type { HexCode } from "../types/tools";
 import type { User } from "../users";
 import { ColorPicker } from "./components/color-picker";
-import type { IPageElement } from "./components/pagination";
-import { Pagination } from "./components/pagination";
+import { TrainerPicker } from "./components/trainer-picker";
+import type { ITrainerChoice } from "./game-host-control-panel";
 import { HtmlPageBase } from "./html-page-base";
-
-const pagesLabel = "Trainers";
 
 const baseCommand = 'gametrainercard';
 const setPokemonCommand = 'setpokemon';
@@ -19,46 +16,25 @@ const chooseBackgroundColorPicker = 'choosebackgroundcolorpicker';
 const chooseTrainerPicker = 'choosetrainerpicker';
 const setBackgroundColorCommand = 'setbackgroundcolor';
 const setTrainerCommand = 'settrainer';
-const newerTrainersCommand = 'newertrainers';
-const olderTrainersCommand = 'oldertrainers';
-const trainersListCommand = 'trainerslist';
-const noTrainer = "None";
 const closeCommand = 'close';
 
 const pages: Dict<GameTrainerCard> = {};
 
 class GameTrainerCard extends HtmlPageBase {
-	static trainerSprites: Dict<string> = {};
-	static trainerNames: Dict<string> = {};
-	static newerTrainerIds: string[] = [];
-	static olderTrainerIds: string[] = [];
-	static loadedData: boolean = false;
 
 	pageId = 'game-trainer-card';
 
 	currentPicker: 'background' | 'trainer' = 'background';
-	trainerType: 'newer' | 'older';
 
 	backgroundColorPicker: ColorPicker;
-	currentTrainerId: TrainerSpriteId | undefined;
-	newerTrainersPagination: Pagination;
-	olderTrainersPagination: Pagination;
-	trainerElements: Dict<IPageElement> = {};
-	noTrainerElement: IPageElement = {html: ""};
+	trainerPicker: TrainerPicker;
 
 	constructor(room: Room, user: User) {
 		super(room, user, baseCommand);
 
-		GameTrainerCard.loadData();
-
 		const database = Storage.getDatabase(this.room);
 		let trainerCard: IGameTrainerCard | undefined;
 		if (database.gameTrainerCards && this.userId in database.gameTrainerCards) trainerCard = database.gameTrainerCards[this.userId];
-
-		this.currentTrainerId = trainerCard ? trainerCard.avatar : undefined;
-		this.trainerType = this.currentTrainerId && GameTrainerCard.olderTrainerIds.includes(this.currentTrainerId) ? 'older' : 'newer';
-		this.noTrainerElement.selected = !this.currentTrainerId;
-		this.noTrainerElement.html = this.renderNoTrainerElement();
 
 		this.backgroundColorPicker = new ColorPicker(this.commandPrefix, setBackgroundColorCommand, {
 			currentColor: trainerCard ? trainerCard.background : undefined,
@@ -67,48 +43,18 @@ class GameTrainerCard extends HtmlPageBase {
 			onUpdateView: () => this.send(),
 		});
 
-		for (const i in GameTrainerCard.trainerNames) {
-			this.trainerElements[i] = {html: this.renderTrainerElement(i), selected: i === this.currentTrainerId};
-		}
-
-		this.newerTrainersPagination = new Pagination(this.commandPrefix, trainersListCommand, {
-			elements: [this.noTrainerElement].concat(GameTrainerCard.newerTrainerIds.map(x => this.trainerElements[x])),
-			elementsPerRow: 5,
-			rowsPerPage: 3,
-			pagesLabel,
-			onSelectPage: () => this.selectTrainersPage(),
+		this.trainerPicker = new TrainerPicker(this.commandPrefix, setTrainerCommand, {
+			currentTrainer: trainerCard ? trainerCard.avatar : undefined,
+			onSetTrainerGen: () => this.send(),
+			onClearTrainer: () => this.clearTrainer(),
+			onSelectTrainer: (index, trainer) => this.selectTrainer(trainer),
+			onUpdateView: () => this.send(),
 		});
-		this.newerTrainersPagination.active = false;
+		this.trainerPicker.active = false;
 
-		this.olderTrainersPagination = new Pagination(this.commandPrefix, trainersListCommand, {
-			elements: [this.noTrainerElement].concat(GameTrainerCard.olderTrainerIds.map(x => this.trainerElements[x])),
-			elementsPerRow: 4,
-			rowsPerPage: 3,
-			pagesLabel,
-			onSelectPage: () => this.selectTrainersPage(),
-		});
-		this.olderTrainersPagination.active = false;
-
-		this.components = [this.backgroundColorPicker, this.newerTrainersPagination, this.olderTrainersPagination];
+		this.components = [this.backgroundColorPicker, this.trainerPicker];
 
 		pages[this.userId] = this;
-	}
-
-	static loadData(): void {
-		if (this.loadedData) return;
-
-		const trainerSprites = Dex.getData().trainerSprites;
-		for (const i in trainerSprites) {
-			this.trainerSprites[i] = Dex.getTrainerSprite(trainerSprites[i]);
-			this.trainerNames[i] = trainerSprites[i];
-			if (trainerSprites[i].includes("-gen")) {
-				this.olderTrainerIds.push(i);
-			} else {
-				this.newerTrainerIds.push(i);
-			}
-		}
-
-		this.loadedData = true;
 	}
 
 	onClose(): void {
@@ -119,8 +65,7 @@ class GameTrainerCard extends HtmlPageBase {
 		if (this.currentPicker === 'background') return;
 
 		this.backgroundColorPicker.active = true;
-		this.newerTrainersPagination.active = false;
-		this.olderTrainersPagination.active = false;
+		this.trainerPicker.active = false;
 		this.currentPicker = 'background';
 
 		this.send();
@@ -129,30 +74,10 @@ class GameTrainerCard extends HtmlPageBase {
 	chooseTrainerPicker(): void {
 		if (this.currentPicker === 'trainer') return;
 
+		this.trainerPicker.active = true;
 		this.backgroundColorPicker.active = false;
-		if (this.trainerType === 'newer') {
-			this.newerTrainersPagination.active = true;
-		} else {
-			this.olderTrainersPagination.active = true;
-		}
 		this.currentPicker = 'trainer';
 
-		this.send();
-	}
-
-	renderTrainerElement(trainerId: string): string {
-		const currentTrainer = this.currentTrainerId === trainerId;
-		const trainer = GameTrainerCard.trainerSprites[trainerId] + "<br />" + GameTrainerCard.trainerNames[trainerId];
-		return Client.getPmSelfButton(this.commandPrefix + ", " + setTrainerCommand + "," + trainerId, trainer,
-			currentTrainer);
-	}
-
-	renderNoTrainerElement(): string {
-		return Client.getPmSelfButton(this.commandPrefix + ", " + setTrainerCommand + ", " + noTrainer, "None",
-			!this.currentTrainerId);
-	}
-
-	selectTrainersPage(): void {
 		this.send();
 	}
 
@@ -172,36 +97,7 @@ class GameTrainerCard extends HtmlPageBase {
 		this.send();
 	}
 
-	newerTrainers(): void {
-		if (this.trainerType === 'newer') return;
-
-		this.trainerType = 'newer';
-		this.newerTrainersPagination.active = true;
-		this.olderTrainersPagination.active = false;
-
-		this.send();
-	}
-
-	olderTrainers(): void {
-		if (this.trainerType === 'older') return;
-
-		this.trainerType = 'older';
-		this.olderTrainersPagination.active = true;
-		this.newerTrainersPagination.active = false;
-
-		this.send();
-	}
-
 	clearTrainer(): void {
-		const previousTrainer = this.currentTrainerId;
-		this.currentTrainerId = undefined;
-		if (previousTrainer) {
-			this.trainerElements[previousTrainer].html = this.renderTrainerElement(previousTrainer);
-			this.trainerElements[previousTrainer].selected = false;
-		}
-		this.noTrainerElement.html = this.renderNoTrainerElement();
-		this.noTrainerElement.selected = true;
-
 		const database = Storage.getDatabase(this.room);
 		Storage.createGameTrainerCard(database, this.userId);
 		delete database.gameTrainerCards![this.userId].avatar;
@@ -209,22 +105,10 @@ class GameTrainerCard extends HtmlPageBase {
 		this.send();
 	}
 
-	selectTrainer(trainer: TrainerSpriteId): void {
-		const previousTrainer = this.currentTrainerId;
-		this.currentTrainerId = trainer;
-		if (previousTrainer) {
-			this.trainerElements[previousTrainer].html = this.renderTrainerElement(previousTrainer);
-			this.trainerElements[previousTrainer].selected = false;
-		} else {
-			this.noTrainerElement.html = this.renderNoTrainerElement();
-			this.noTrainerElement.selected = false;
-		}
-		this.trainerElements[this.currentTrainerId].html = this.renderTrainerElement(this.currentTrainerId);
-		this.trainerElements[this.currentTrainerId].selected = true;
-
+	selectTrainer(trainer: ITrainerChoice): void {
 		const database = Storage.getDatabase(this.room);
 		Storage.createGameTrainerCard(database, this.userId);
-		database.gameTrainerCards![this.userId].avatar = trainer;
+		database.gameTrainerCards![this.userId].avatar = trainer.trainer;
 
 		this.send();
 	}
@@ -262,23 +146,7 @@ class GameTrainerCard extends HtmlPageBase {
 			html += "<b>Background color</b><br />";
 			html += this.backgroundColorPicker.render();
 		} else {
-			const newerTrainers = this.trainerType === 'newer';
-			const olderTrainers = this.trainerType === 'older';
-
-			html += "<b>Trainer sprite</b><br />";
-			html += "Type:&nbsp;";
-			html += "&nbsp;";
-			html += Client.getPmSelfButton(this.commandPrefix + ", " + newerTrainersCommand, "Newer gen", newerTrainers);
-			html += "&nbsp;";
-			html += Client.getPmSelfButton(this.commandPrefix + ", " + olderTrainersCommand, "Older gen", olderTrainers);
-			html += "<br />";
-
-			html += "<br />";
-			if (newerTrainers) {
-				html += this.newerTrainersPagination.render();
-			} else {
-				html += this.olderTrainersPagination.render();
-			}
+			html += this.trainerPicker.render();
 		}
 
 		html += "</div>";
@@ -372,26 +240,6 @@ export const commands: BaseCommandDefinitions = {
 
 				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user);
 				pages[user.id].send();
-			} else if (cmd === setTrainerCommand || cmd === 'setavatar') {
-				const trainer = targets[0].trim();
-				const cleared = trainer === noTrainer;
-				if (!cleared && !(trainer in Dex.getData().trainerSprites)) {
-					return this.say("'" + targets[0].trim() + "' is not a valid trainer sprite.");
-				}
-
-				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user);
-
-				if (cleared) {
-					pages[user.id].clearTrainer();
-				} else {
-					pages[user.id].selectTrainer(trainer as TrainerSpriteId);
-				}
-			} else if (cmd === newerTrainersCommand) {
-				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user);
-				pages[user.id].newerTrainers();
-			} else if (cmd === olderTrainersCommand) {
-				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user);
-				pages[user.id].olderTrainers();
 			} else if (cmd === chooseBackgroundColorPicker) {
 				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user);
 				pages[user.id].chooseBackgroundColorPicker();
@@ -401,6 +249,7 @@ export const commands: BaseCommandDefinitions = {
 			} else if (cmd === closeCommand) {
 				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user);
 				pages[user.id].close();
+				delete pages[user.id];
 			} else {
 				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user);
 				const error = pages[user.id].checkComponentCommands(cmd, targets);

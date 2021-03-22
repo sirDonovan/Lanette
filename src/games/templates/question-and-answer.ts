@@ -305,7 +305,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		// formats with async generateAnswer should not have canGetRandomAnswer set to `true`
 		void this.generateAnswer();
 		if (this.updateHint) this.updateHint();
-		return {answers: this.answers, hint: this.hint};
+		return {answers: this.getAnswers(), hint: this.hint};
 	}
 
 	onForceEnd(): void {

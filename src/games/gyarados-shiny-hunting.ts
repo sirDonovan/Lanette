@@ -1,4 +1,5 @@
 import type { Player } from "../room-activity";
+import type { GifGeneration } from "../types/dex";
 import type { IGameFile } from "../types/games";
 import type { IPokemon } from "../types/pokemon-showdown";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
@@ -11,7 +12,7 @@ const MAX_HORIZONTAL = 7;
 const MAX_VERTICAL = 7;
 const MAX_TOTAL_WIDTH = MAX_WIDTH * BASE_HORIZONTAL;
 const MAX_TOTAL_HEIGHT = MAX_HEIGHT * BASE_VERTICAL;
-const SPRITE_GENERATION = 'bw';
+const SPRITE_GENERATION: GifGeneration = 'bw';
 
 const letters = Tools.letters.toUpperCase().split("");
 const data: {pokemon: string[]} = {

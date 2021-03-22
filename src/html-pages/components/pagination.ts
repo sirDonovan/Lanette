@@ -30,14 +30,18 @@ export class Pagination extends ComponentBase {
 		this.elementsIncrement = props.elementsPerRow * props.rowsPerPage;
 		this.pagesLabel = props.pagesLabel || "Pages";
 		this.totalPages = Math.ceil(props.elements.length / this.elementsIncrement);
-		for (let i = 0; i < props.elements.length; i++) {
-			if (props.elements[i].selected) {
+		this.props = props;
+
+		this.autoSelectPage();
+	}
+
+	autoSelectPage(): void {
+		for (let i = 0; i < this.props.elements.length; i++) {
+			if (this.props.elements[i].selected) {
 				this.currentPage = Math.ceil((i + 1) / this.elementsIncrement) - 1;
 				break;
 			}
 		}
-
-		this.props = props;
 	}
 
 	selectPage(page: number): void {

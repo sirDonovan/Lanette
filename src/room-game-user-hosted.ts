@@ -15,6 +15,7 @@ export class UserHostedGame extends Game {
 	hostTimeout: NodeJS.Timer | null = null;
 	isUserHosted: boolean = true;
 	mascots: string[] = [];
+	noControlPanel: boolean = false;
 	notifyRankSignups: boolean = true;
 	readonly points = new Map<Player, number>();
 	savedWinners: Player[] = [];
@@ -100,7 +101,7 @@ export class UserHostedGame extends Game {
 	}
 
 	// Host
-	setHost(host: User | string): void {
+	setHost(host: User | string, noControlPanel?: boolean): void {
 		if (typeof host === 'string') {
 			this.hostId = Tools.toId(host);
 			this.hostName = host;
@@ -139,11 +140,32 @@ export class UserHostedGame extends Game {
 		} else {
 			this.name = this.hostName + "'s " + this.format.name;
 		}
+
+		if (noControlPanel) {
+			this.noControlPanel = true;
+		} else {
+			this.openControlPanel();
+		}
 	}
 
 	setSubHost(user: User): void {
 		this.subHostId = user.id;
 		this.subHostName = user.name;
+	}
+
+	openControlPanel(): void {
+		const user = Users.get(this.subHostName || this.hostName);
+		if (user) {
+			CommandParser.parse(user, user, Config.commandCharacter + "gamehostcontrolpanel " + this.room.title, Date.now());
+		}
+	}
+
+	closeControlPanel(): void {
+		const user = Users.get(this.subHostName || this.hostName);
+		if (user) {
+			CommandParser.parse(user, user, Config.commandCharacter + "gamehostcontrolpanel " + this.room.title + ", close",
+				Date.now());
+		}
 	}
 
 	isHost(user: User): boolean {
@@ -416,6 +438,7 @@ export class UserHostedGame extends Game {
 
 		this.clearHangman();
 		this.clearSignupsNotification();
+		if (!this.noControlPanel) this.closeControlPanel();
 
 		if (forceEnd && Config.gameAutoCreateTimers && this.room.id in Config.gameAutoCreateTimers) {
 			Games.setAutoCreateTimer(this.room, 'userhosted', FORCE_END_CREATE_TIMER);

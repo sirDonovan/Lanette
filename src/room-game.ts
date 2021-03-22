@@ -2,8 +2,10 @@ import type { PRNGSeed } from "./lib/prng";
 import type { Player } from "./room-activity";
 import { Activity, PlayerTeam } from "./room-activity";
 import type { Room } from "./rooms";
-import type { IGameFormat, IPokemonUhtml, ITrainerUhtml, IUserHostedFormat, PlayerList } from "./types/games";
+import type { GifGeneration, TrainerSpriteId } from "./types/dex";
+import type { IGameFormat, IHostDisplayUhtml, IPokemonUhtml, ITrainerUhtml, IUserHostedFormat, PlayerList } from "./types/games";
 import type { IPokemon, IPokemonCopy } from "./types/pokemon-showdown";
+import type { HexCode } from "./types/tools";
 import type { User } from "./users";
 
 const teamNameLists: Dict<string[][]> = {
@@ -34,6 +36,7 @@ export abstract class Game extends Activity {
 
 	format?: IGameFormat | IUserHostedFormat;
 	isUserHosted?: boolean;
+	lastHostDisplayUhtml?: IHostDisplayUhtml;
 	lastPokemonUhtml?: IPokemonUhtml;
 	lastTrainerUhtml?: ITrainerUhtml;
 	mascot?: IPokemonCopy;
@@ -144,6 +147,48 @@ export abstract class Game extends Activity {
 	getSignupsHtmlUpdate(): string {
 		return "<div class='infobox'>" + this.getMascotAndNameHtml(" - signups (join with " + Config.commandCharacter + "joingame!)") +
 			"<br /><br /><b>Players (" + this.playerCount + ")</b>: " + this.getPlayerNames() + "</div>";
+	}
+
+	sayHostDisplayUhtml(user: User, backgroundColor: HexCode | undefined, trainerList: TrainerSpriteId[], pokemonList: string[],
+		pokemonIcons: boolean, pokemonGeneration: GifGeneration): void {
+		const uhtmlName = this.uhtmlBaseName + "-" + this.round + "-hostdisplay";
+
+		if (this.lastHostDisplayUhtml && this.lastHostDisplayUhtml.uhtmlName !== uhtmlName) {
+			let lastHtml = "<div class='infobox'>";
+			if (this.lastHostDisplayUhtml.trainerList.length) {
+				lastHtml += "<center>(trainer" + (this.lastHostDisplayUhtml.trainerList.length > 1 ? "s" : "") + ": " +
+					this.lastHostDisplayUhtml.trainerList.join(", ") + ")</center>";
+			}
+
+			if (this.lastHostDisplayUhtml.pokemon.length) {
+				lastHtml += "<center>";
+				if (this.lastHostDisplayUhtml.pokemonType === 'gif') {
+					lastHtml += "(gif" + (this.lastHostDisplayUhtml.pokemon.length > 1 ? "s" : "") + ": " +
+						this.lastHostDisplayUhtml.pokemon.join(", ") + ")";
+				} else {
+					lastHtml += "(icon" + (this.lastHostDisplayUhtml.pokemon.length > 1 ? "s" : "") + ": " +
+						this.lastHostDisplayUhtml.pokemon.join(", ") + ")";
+				}
+				lastHtml += "</center>";
+			}
+
+			lastHtml += '<div style="float:right;color:#888;font-size:8pt">[' + this.lastHostDisplayUhtml.user + ']</div>' +
+				'<div style="clear:both"></div>';
+
+			lastHtml += "</div>";
+
+			this.sayUhtmlChange(this.lastHostDisplayUhtml.uhtmlName, lastHtml);
+		}
+
+		this.sayUhtmlAuto(uhtmlName, Games.getHostCustomDisplay(backgroundColor, trainerList, pokemonList,
+			pokemonIcons, pokemonGeneration));
+		this.lastHostDisplayUhtml = {
+			pokemon: pokemonList,
+			trainerList,
+			pokemonType: pokemonIcons ? 'icon' : 'gif',
+			uhtmlName,
+			user: user.name,
+		};
 	}
 
 	sayPokemonUhtml(pokemon: IPokemon[], type: 'gif' | 'icon', uhtmlName: string, html: string, user: User): void {

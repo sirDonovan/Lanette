@@ -6,6 +6,7 @@ import { ScriptedGame } from './room-game-scripted';
 import type { UserHostedGame } from './room-game-user-hosted';
 import type { Room } from "./rooms";
 import type { CommandErrorArray } from "./types/command-parser";
+import type { GifGeneration, TrainerSpriteId } from './types/dex';
 import type {
 	AutoCreateTimerType, DefaultGameOption, DisallowedChallenges, GameCategory, GameChallenge, GameCommandDefinitions,
 	GameCommandReturnType, GameMode, IBotChallengeOptions, IGameAchievement, IGameFile, IGameFormat, IGameFormatComputed, IGameMode,
@@ -14,6 +15,7 @@ import type {
 } from './types/games';
 import type { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/pokemon-showdown';
 import type { IGameHostBox, IGameScriptedBox, IPastGame } from './types/storage';
+import type { HexCode } from './types/tools';
 import type { User } from './users';
 import { ParametersWorker } from './workers/parameters';
 import { PortmanteausWorker } from './workers/portmanteaus';
@@ -1053,12 +1055,12 @@ export class Games {
 		return childGame;
 	}
 
-	createUserHostedGame(room: Room, format: IUserHostedFormat, host: User | string): UserHostedGame {
+	createUserHostedGame(room: Room, format: IUserHostedFormat, host: User | string, noControlPanel?: boolean): UserHostedGame {
 		this.clearAutoCreateTimer(room);
 
 		room.userHostedGame = new format.class(room);
 		room.userHostedGame.initialize(format);
-		room.userHostedGame.setHost(host);
+		room.userHostedGame.setHost(host, noControlPanel);
 
 		if (!(room.id in this.lastUserHostTimes)) this.lastUserHostTimes[room.id] = {};
 		if (typeof host === 'string') {
@@ -1560,6 +1562,65 @@ export class Games {
 		html += "<br />&nbsp;</span></center>";
 
 		return html;
+	}
+
+	getHostCustomDisplay(backgroundColor: HexCode | undefined, trainerList: TrainerSpriteId[], pokemonList: string[],
+		pokemonIcons: boolean, pokemonGeneration: GifGeneration): string {
+		const centered = trainerList.length > 0 || !pokemonIcons;
+		let html = "";
+		if (centered) html += "<center>";
+
+		html += "<span";
+		if (backgroundColor && backgroundColor in Tools.hexCodes) {
+			html += " style='display: block;";
+			if (Tools.hexCodes[backgroundColor]!.textColor) {
+				html += 'color: ' + Tools.hexCodes[backgroundColor]!.textColor + ';';
+			} else {
+				html += 'color: #000000;';
+			}
+			html += "background: " + Tools.hexCodes[backgroundColor]!.gradient + "'";
+		}
+		html += ">";
+
+		let trainerHtml = "";
+		for (const trainer of trainerList) {
+			const trainerSpriteId = Dex.getTrainerSpriteId(trainer);
+			if (trainerSpriteId) {
+				if (trainerHtml) trainerHtml += "&nbsp;";
+				trainerHtml += Dex.getTrainerSprite(trainerSpriteId);
+			}
+		}
+
+		const gifsOrIcons: string[] = [];
+		for (const name of pokemonList) {
+			const parts = name.split("|");
+			let shiny = false;
+			if (parts.length > 1) {
+				shiny = parts[1] === 'shiny';
+			}
+			const pokemon = Dex.getPokemon(parts[0]);
+			if (!pokemon || (!pokemonIcons && !Dex.hasGifData(pokemon, pokemonGeneration))) {
+				continue;
+			}
+			gifsOrIcons.push(pokemonIcons ? Dex.getPSPokemonIcon(pokemon) + pokemon.name :
+				Dex.getPokemonGif(pokemon, pokemonGeneration, undefined, shiny));
+		}
+
+		if (!trainerHtml && !gifsOrIcons.length) {
+			html += "&nbsp;";
+		}
+
+		if (trainerHtml) {
+			html += trainerHtml;
+			html += "<br />";
+		}
+
+		html += gifsOrIcons.join(pokemonIcons ? ", " : "&nbsp;&nbsp;&nbsp;");
+
+		html += "</span>";
+		if (centered) html += "</center>";
+
+		return "<div class='infobox'>" + html + "</div>";
 	}
 
 	updateGameCatalog(room: Room): void {

@@ -250,6 +250,7 @@ export const commands: BaseCommandDefinitions = {
 			} else if (cmd === closeCommand) {
 				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
 				pages[user.id].close();
+				delete pages[user.id];
 			} else {
 				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
 				const error = pages[user.id].checkComponentCommands(cmd, targets);
