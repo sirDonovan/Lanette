@@ -162,6 +162,12 @@ export const commands: BaseCommandDefinitions = {
 			const inCooldown = remainingGameCooldown > 1000;
 			const requiresScriptedGame = Games.requiresScriptedGame(room);
 			if (room.game || room.userHostedGame || otherUsersQueued || inCooldown || requiresScriptedGame) {
+				if (room.game && room.game.format.id === format.id &&
+					(!database.userHostedGameQueue || !database.userHostedGameQueue.length)) {
+					return this.say("Scripted " + format.name + " is currently being played. " + host.name + " please choose a " +
+						"different game!");
+				}
+
 				if (database.userHostedGameQueue) {
 					for (const game of database.userHostedGameQueue) {
 						const alreadyQueued = Games.getExistingUserHostedFormat(game.format).name === format.name;
@@ -204,6 +210,18 @@ export const commands: BaseCommandDefinitions = {
 				Storage.exportDatabase(room.id);
 				return;
 			}
+
+			if (Config.disallowCreatingPreviousScriptedGame && Config.disallowCreatingPreviousScriptedGame.includes(room.id)) {
+				if (database.pastGames && database.pastGames.length) {
+					const pastFormat = Games.getFormat(database.pastGames[0].inputTarget);
+					const id = Array.isArray(pastFormat) ? Tools.toId(database.pastGames[0].name) : pastFormat.id;
+					if (id === format.id) {
+						return this.say(format.name + " was the last scripted game. " + host.name + " please choose a " +
+						"different game!");
+					}
+				}
+			}
+
 			const game = Games.createUserHostedGame(room, format, host);
 			game.signups();
 		},

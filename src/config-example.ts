@@ -377,6 +377,11 @@ export let disallowCreatingPastGames: string[] = [];
 export let disallowCreatingPreviousUserHostedGame: string[] = [];
 
 /**
+ * A list of rooms (roomids) where the last scripted game cannot be the next user-hosted game
+ */
+ export let disallowCreatingPreviousScriptedGame: string[] = [];
+
+/**
  * A list of rooms (roomids) where modes on the past games list cannot be used
  */
 export let limitGamesByMode: string[] = [];
