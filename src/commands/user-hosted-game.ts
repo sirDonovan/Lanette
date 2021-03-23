@@ -902,7 +902,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			if (teamNames.length) {
-				this.run('addteampoint', target);
+				this.run(cmd.startsWith('r') ? 'removeteampoint' : 'addteampoint', target);
 				return;
 			}
 
