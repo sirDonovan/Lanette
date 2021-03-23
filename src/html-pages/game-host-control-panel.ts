@@ -345,7 +345,8 @@ class GameHostControlPanel extends HtmlPageBase {
 				html += "<br /><br />";
 			}
 
-			html += "<b>Players</b> (" + game.getRemainingPlayerCount() + "):";
+			const remainingPlayerCount = game.getRemainingPlayerCount();
+			html += "<b>Players</b> (" + remainingPlayerCount + ")" + (remainingPlayerCount ? ":" : "");
 			if (game.teams) {
 				html += "<br />";
 				for (const i in game.teams) {
@@ -361,10 +362,10 @@ class GameHostControlPanel extends HtmlPageBase {
 
 			if (game.savedWinners.length) html += "<br /><b>Saved winners</b>: " + Tools.joinList(game.savedWinners.map(x => x.name));
 
-			html += "<br /><b>Points</b>:";
+			const remainingPlayers = Object.keys(game.getRemainingPlayers());
+			if (game.scoreCap || remainingPlayers.length) html += "<br /><b>Points</b>:";
 			if (game.scoreCap) html += "<br />(the score cap is <b>" + game.scoreCap + "</b>)";
 
-			const remainingPlayers = Object.keys(game.getRemainingPlayers());
 			if (remainingPlayers.length) {
 				html += "<br /><center>";
 				html += Client.getPmSelfButton(this.commandPrefix + ", " + setCurrentPlayerCommand, "Hide points buttons",
