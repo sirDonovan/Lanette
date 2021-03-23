@@ -10,6 +10,7 @@ const HOST_TIME_LIMIT = 25 * 60 * 1000;
 export class UserHostedGame extends Game {
 	endTime: number = 0;
 	gameTimer: NodeJS.Timer | null = null;
+	gameTimerEndTime: number = 0;
 	hostId: string = '';
 	hostName: string = '';
 	hostTimeout: NodeJS.Timer | null = null;
@@ -151,16 +152,32 @@ export class UserHostedGame extends Game {
 	setSubHost(user: User): void {
 		this.subHostId = user.id;
 		this.subHostName = user.name;
+
+		this.openControlPanel();
 	}
 
 	openControlPanel(): void {
+		if (this.noControlPanel) return;
+
 		const user = Users.get(this.subHostName || this.hostName);
 		if (user) {
 			CommandParser.parse(user, user, Config.commandCharacter + "gamehostcontrolpanel " + this.room.title, Date.now());
 		}
 	}
 
+	autoRefreshControlPanel(): void {
+		if (this.noControlPanel) return;
+
+		const user = Users.get(this.subHostName || this.hostName);
+		if (user) {
+			CommandParser.parse(user, user, Config.commandCharacter + "gamehostcontrolpanel " + this.room.title + ", autorefresh",
+				Date.now());
+		}
+	}
+
 	closeControlPanel(): void {
+		if (this.noControlPanel) return;
+
 		const user = Users.get(this.subHostName || this.hostName);
 		if (user) {
 			CommandParser.parse(user, user, Config.commandCharacter + "gamehostcontrolpanel " + this.room.title + ", close",
@@ -438,7 +455,7 @@ export class UserHostedGame extends Game {
 
 		this.clearHangman();
 		this.clearSignupsNotification();
-		if (!this.noControlPanel) this.closeControlPanel();
+		this.closeControlPanel();
 
 		if (forceEnd && Config.gameAutoCreateTimers && this.room.id in Config.gameAutoCreateTimers) {
 			Games.setAutoCreateTimer(this.room, 'userhosted', FORCE_END_CREATE_TIMER);

@@ -590,10 +590,18 @@ export const commands: BaseCommandDefinitions = {
 
 			if (room.userHostedGame.gameTimer) clearTimeout(room.userHostedGame.gameTimer);
 			room.userHostedGame.gameTimer = setTimeout(() => {
-				if (user.id === room.userHostedGame!.hostId) room.say(room.userHostedGame!.hostName + ": time is up!");
 				room.userHostedGame!.gameTimer = null;
+				room.userHostedGame!.gameTimerEndTime = 0;
+
+				if (user.id === room.userHostedGame!.hostId) {
+					room.say(room.userHostedGame!.hostName + ": time is up!");
+					room.userHostedGame!.autoRefreshControlPanel();
+				}
 			}, time);
 			this.say("Game timer set for: " + Tools.toDurationString(time) + ".");
+
+			room.userHostedGame.gameTimerEndTime = time + Date.now();
+			room.userHostedGame.autoRefreshControlPanel();
 		},
 		aliases: ['gtimer', 'randomgametimer', 'randomgtimer', 'randgametimer', 'randgtimer'],
 	},
@@ -671,6 +679,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			this.say("Added " + Tools.joinList(targetUsers.map(x => x.name)) + " to the player list.");
+			room.userHostedGame.autoRefreshControlPanel();
 		},
 		aliases: ['apl', 'addplayers'],
 	},
@@ -694,6 +703,7 @@ export const commands: BaseCommandDefinitions = {
 			// @ts-expect-error
 			if (room.userHostedGame.started) room.userHostedGame.round++;
 			if (cmd !== 'silentelim' && cmd !== 'selim' && cmd !== 'srpl') this.run('players');
+			room.userHostedGame.autoRefreshControlPanel();
 		},
 		aliases: ['removeplayers', 'srpl', 'rpl', 'silentelim', 'selim', 'elim', 'eliminate', 'eliminateplayer', 'eliminateplayers'],
 	},
@@ -738,6 +748,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			this.say("Added " + Tools.joinList(targetUsers.map(x => x.name)) + " to Team " + team.name + ".");
+			room.userHostedGame.autoRefreshControlPanel();
 		},
 		aliases: ['atpl', 'addteamplayers'],
 	},
@@ -758,6 +769,7 @@ export const commands: BaseCommandDefinitions = {
 				room.userHostedGame.players = temp;
 			}
 			this.run('playerlist');
+			room.userHostedGame.autoRefreshControlPanel();
 		},
 		aliases: ['shufflepl'],
 	},
@@ -795,6 +807,7 @@ export const commands: BaseCommandDefinitions = {
 
 			room.userHostedGame.splitPlayers(teams, teamNames);
 			this.run('playerlist');
+			room.userHostedGame.autoRefreshControlPanel();
 		},
 		aliases: ['splitpl'],
 	},
@@ -805,6 +818,7 @@ export const commands: BaseCommandDefinitions = {
 
 			room.userHostedGame.unSplitPlayers();
 			this.run('playerlist');
+			room.userHostedGame.autoRefreshControlPanel();
 		},
 		aliases: ['unsplitpl'],
 	},
@@ -835,6 +849,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 			if (!users.length) return this.say("The player list is empty.");
 			this.run('removeplayer', users.join(", "));
+			room.userHostedGame.autoRefreshControlPanel();
 		},
 		aliases: ['clearplayers', 'clearpl'],
 	},
@@ -934,6 +949,8 @@ export const commands: BaseCommandDefinitions = {
 				user.say((reachedCap.length === 1 ? "A " + reached + " has" : reachedCap + " " + reached + "s have") + " reached the " +
 					"score cap in your game.");
 			}
+
+			if (!this.runningMultipleTargets) room.userHostedGame.autoRefreshControlPanel();
 		},
 		aliases: ['addgamepoint', 'removegamepoints', 'removegamepoint'],
 	},
@@ -971,8 +988,11 @@ export const commands: BaseCommandDefinitions = {
 				this.run(newCmd, player.name + (pointsString ? ', ' + pointsString : ''));
 				if (expiredUser) Users.remove(playerUser);
 			}
+
 			this.runningMultipleTargets = false;
 			this.run('playerlist');
+
+			room.userHostedGame.autoRefreshControlPanel();
 		},
 		aliases: ['aptall', 'rptall', 'removepointall', 'clearpointall', 'clearptall'],
 	},
@@ -997,8 +1017,11 @@ export const commands: BaseCommandDefinitions = {
 			if (!remainingPlayers.length) {
 				return this.say("Team " + room.userHostedGame.teams[teamId].name + " does not have any players remaining.");
 			}
+
 			const player = room.userHostedGame.sampleOne(remainingPlayers);
 			this.run(cmd.startsWith('r') ? 'removegamepoint' : 'addgamepoint', player.name + ',' + points);
+
+			room.userHostedGame.autoRefreshControlPanel();
 		},
 		aliases: ['addteampoint', 'removeteampoint', 'removeteampoints', 'atpt', 'rtpt'],
 	},
@@ -1029,6 +1052,8 @@ export const commands: BaseCommandDefinitions = {
 			const toPoints = room.userHostedGame.addPoints(to, amount);
 			this.say((amount === fromPoints ? "" : amount + " of ") + from.name + "'s points have been moved to " + to.name + ". Their " +
 				"total is now " + toPoints + ".");
+
+			room.userHostedGame.autoRefreshControlPanel();
 		},
 		aliases: ['mpt'],
 	},
@@ -1044,6 +1069,8 @@ export const commands: BaseCommandDefinitions = {
 			if (isNaN(cap)) return this.say("Please specify a valid number.");
 			room.userHostedGame.scoreCap = cap;
 			this.say("The score cap has been set to " + cap + ".");
+
+			room.userHostedGame.autoRefreshControlPanel();
 		},
 	},
 	store: {
@@ -1093,8 +1120,10 @@ export const commands: BaseCommandDefinitions = {
 
 			if (!room.userHostedGame.storedMessages) room.userHostedGame.storedMessages = {};
 			room.userHostedGame.storedMessages[keyId] = message;
+
 			this.say("Your message has been stored! You can now repeat it with ``" + Config.commandCharacter + "stored" +
 				(key ? " " + key : "") + "``.");
+			room.userHostedGame.autoRefreshControlPanel();
 		},
 		aliases: ['stored', 'storemultiple', 'storem'],
 	},
@@ -1117,8 +1146,10 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 			if (isPm) return;
+
 			gameRoom.userHostedGame.twist = target.trim();
 			this.say("Your twist has been stored. You can repeat it with ``" + Config.commandCharacter + "twist``.");
+			gameRoom.userHostedGame.autoRefreshControlPanel();
 		},
 	},
 	savewinner: {
@@ -1154,6 +1185,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			this.run('playerlist');
+			room.userHostedGame.autoRefreshControlPanel();
 		},
 		aliases: ['savewinners', 'storewinner', 'storewinners'],
 	},
@@ -1168,6 +1200,7 @@ export const commands: BaseCommandDefinitions = {
 			room.userHostedGame.savedWinners.splice(index, 1);
 			room.userHostedGame.players[id].eliminated = false;
 			this.run('playerlist');
+			room.userHostedGame.autoRefreshControlPanel();
 		},
 		aliases: ['removestoredwinner'],
 	},
@@ -1297,6 +1330,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			gameRoom.userHostedGame.sayCommand("/hangman create " + answer + ", " + hint + " [" + user.name + "]");
+			gameRoom.userHostedGame.autoRefreshControlPanel();
 		},
 	},
 	endhangman: {
@@ -1312,6 +1346,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			gameRoom.userHostedGame.sayCommand("/hangman end");
+			gameRoom.userHostedGame.autoRefreshControlPanel();
 		},
 	},
 	randomanswer: {

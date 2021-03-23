@@ -178,7 +178,11 @@ export const commands: BaseCommandDefinitions = {
 			targets.shift();
 
 			if (!cmd) {
-				new GameHostBox(targetRoom, user).open();
+				if (!(user.id in pages)) {
+					new GameHostBox(targetRoom, user).open();
+				} else {
+					pages[user.id].send();
+				}
 			} else if (cmd === setPokemonCommand || cmd === 'setgifs' || cmd === 'setgif') {
 				if (checkBits && Config.gameHostBoxRequirements[targetRoom.id].pokemon.one > 0 &&
 					annualBits < Config.gameHostBoxRequirements[targetRoom.id].pokemon.one) {

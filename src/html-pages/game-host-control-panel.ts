@@ -28,15 +28,18 @@ const excludedHintGames: string[] = ['hypnoshunches', 'mareaniesmarquees', 'pika
 'zygardesorders'];
 
 const baseCommand = 'gamehostcontrolpanel';
-const refreshTimeCommand = 'refreshtime';
+const chooseHostInformation = 'choosehostinformation';
 const chooseCustomDisplay = 'choosecustomdisplay';
 const chooseRandomDisplay = 'chooserandomdisplay';
 const chooseGenerateHints = 'choosegeneratehints';
+const setCurrentPlayerCommand = 'setcurrentplayer';
 const customHostDisplayCommand = 'customhostdisplay';
 const randomHostDisplayCommand = 'randomhostdisplay';
 const generateHintCommand = 'generatehint';
 const sendDisplayCommand = 'senddisplay';
 
+const refreshCommand = 'refresh';
+const autoRefreshCommand = 'autorefresh';
 const closeCommand = 'close';
 
 const maxGifs = 6;
@@ -51,10 +54,11 @@ class GameHostControlPanel extends HtmlPageBase {
 
 	pageId = 'game-host-control-panel';
 
-	currentView: 'customdisplay' | 'randomdisplay' | 'generatehints' = 'customdisplay';
+	currentView: 'hostinformation' | 'customdisplay' | 'randomdisplay' | 'generatehints';
 	currentBackgroundColor: HexCode | undefined = undefined;
 	currentPokemon: PokemonChoices = [];
 	currentTrainers: TrainerChoices = [];
+	currentPlayer: string = '';
 	generateHintsGameHtml: string = '';
 	generatedAnswer: IRandomGameAnswer | undefined = undefined;
 	gifOrIcon: GifIcon = 'gif';
@@ -87,7 +91,10 @@ class GameHostControlPanel extends HtmlPageBase {
 			onUpdateView: () => this.send(),
 		};
 
+		this.currentView = room.userHostedGame && room.userHostedGame.isHost(user) ? 'hostinformation' : 'customdisplay';
+
 		this.customHostDisplay = new CustomHostDisplay(this.commandPrefix, customHostDisplayCommand, hostDisplayProps);
+		this.customHostDisplay.active = this.currentView === 'customdisplay';
 
 		this.randomHostDisplay = new RandomHostDisplay(this.commandPrefix, randomHostDisplayCommand,
 			Object.assign({random: true}, hostDisplayProps));
@@ -112,6 +119,16 @@ class GameHostControlPanel extends HtmlPageBase {
 
 	onClose(): void {
 		delete pages[this.userId];
+	}
+
+	chooseHostInformation(): void {
+		if (this.currentView === 'hostinformation') return;
+
+		this.randomHostDisplay.active = false;
+		this.customHostDisplay.active = false;
+		this.currentView = 'hostinformation';
+
+		this.send();
 	}
 
 	chooseCustomDisplay(): void {
@@ -140,6 +157,14 @@ class GameHostControlPanel extends HtmlPageBase {
 		this.randomHostDisplay.active = false;
 		this.customHostDisplay.active = false;
 		this.currentView = 'generatehints';
+
+		this.send();
+	}
+
+	setCurrentPlayer(id: string): void {
+		if (this.currentPlayer === id) return;
+
+		this.currentPlayer = id;
 
 		this.send();
 	}
@@ -252,38 +277,160 @@ class GameHostControlPanel extends HtmlPageBase {
 		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + closeCommand, "Close");
 		html += "<br /><br />";
 
-		if (this.room.userHostedGame) {
-			const user = Users.get(this.userId);
-			if (user && this.room.userHostedGame.isHost(user)) {
-				html += "<b>Remaining time</b>: " + Tools.toDurationString(this.room.userHostedGame.endTime - Date.now());
-				html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + refreshTimeCommand, "Refresh");
-				html += "<br /><br />";
-			}
-		}
+		const user = Users.get(this.userId);
+		const currentHost = user && this.room.userHostedGame && this.room.userHostedGame.isHost(user);
+
+		const hostInformation = this.currentView === 'hostinformation';
+		const customDisplay = this.currentView === 'customdisplay';
+		const randomDisplay = this.currentView === 'randomdisplay';
+		const generateHints = this.currentView === 'generatehints';
 
 		html += "Options:";
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseCustomDisplay, "Custom Display",
-			this.currentView === 'customdisplay');
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseRandomDisplay, "Random Display",
-			this.currentView === 'randomdisplay');
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseGenerateHints, "Generate Hints",
-			this.currentView === 'generatehints');
+		if (currentHost) {
+			html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseHostInformation, "Host Information",
+				hostInformation);
+		}
+		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseCustomDisplay, "Custom Display", customDisplay);
+		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseRandomDisplay, "Random Display", randomDisplay);
+		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseGenerateHints, "Generate Hints", generateHints);
 		html += "</center>";
 
-		if (this.currentView === 'customdisplay' || this.currentView === 'randomdisplay') {
-			html += this.getHostDisplay();
+		if (currentHost) {
+			html += this.room.userHostedGame!.getMascotAndNameHtml();
+			html += "<br />";
+			html += "<b>Remaining time</b>: " + Tools.toDurationString(this.room.userHostedGame!.endTime - Date.now());
+			html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + refreshCommand, "Refresh");
+			html += "<hr />";
+		}
 
-			const user = Users.get(this.userId);
+		if (hostInformation) {
+			html += "<h3>Host Information</h3>";
+
+			const game = this.room.userHostedGame!;
+
+			if (game.gameTimerEndTime) {
+				html += "<b>Game timer:</b> " + Tools.toDurationString(game.gameTimerEndTime - Date.now()) + " remaining";
+				html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + refreshCommand, "Refresh");
+				html += "<br /><br />";
+			}
+
+			if (game.twist || game.storedMessages) {
+				let twistHtml = "";
+				if (game.twist) {
+					twistHtml = "<b>Twist</b>: " + game.twist;
+					twistHtml += "&nbsp;" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "twist", "Send");
+				}
+
+				let storedMessages = "";
+				if (game.storedMessages) {
+					storedMessages += "<b>Stored messages</b>:";
+					storedMessages += "<br />[key] | [message]<br />";
+					for (const i in game.storedMessages) {
+						storedMessages += "<br />" + (i || "(none)") + " | <code>" + game.storedMessages[i] + "</code>";
+						storedMessages += "&nbsp;" + Client.getMsgRoomButton(this.room,
+							Config.commandCharacter + "stored" + (i ? " " + i : ""), "Send");
+					}
+				}
+
+				if (twistHtml && storedMessages) {
+					html += twistHtml;
+					html += "<br /><br />";
+					html += storedMessages;
+				} else if (twistHtml) {
+					html += twistHtml;
+				} else if (storedMessages) {
+					html += storedMessages;
+				}
+
+				html += "<br /><br />";
+			}
+
+			html += "<b>Players</b> (" + game.getRemainingPlayerCount() + "):";
+			if (game.teams) {
+				html += "<br />";
+				for (const i in game.teams) {
+					const team = game.teams[i];
+					html += "Team " + team.name + (team.points ? " (" + team.points + ")" : "") + " - " +
+						game.getPlayerNames(game.getRemainingPlayers(team.players));
+					html += "<br />";
+				}
+			} else {
+				html += " " + game.getPlayerPoints();
+				html += "<br />";
+			}
+
+			if (game.savedWinners.length) html += "<br /><b>Saved winners</b>: " + Tools.joinList(game.savedWinners.map(x => x.name));
+
+			html += "<br /><b>Points</b>:";
+			if (game.scoreCap) html += "<br />(the score cap is <b>" + game.scoreCap + "</b>)";
+
+			const remainingPlayers = Object.keys(game.getRemainingPlayers());
+			if (remainingPlayers.length) {
+				html += "<br /><center>";
+				html += Client.getPmSelfButton(this.commandPrefix + ", " + setCurrentPlayerCommand, "Hide points buttons",
+					!this.currentPlayer);
+
+				if (game.teams) {
+					html += "<br /><br />";
+					for (const i in game.teams) {
+						const remainingTeamPlayers = Object.keys(game.getRemainingPlayers(game.teams[i].players));
+						if (remainingTeamPlayers.length) {
+							html += "Team " + game.teams[i].name + ":";
+							for (const id of remainingTeamPlayers) {
+								const player = game.players[id];
+								html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + setCurrentPlayerCommand + ", " + id,
+									player.name, this.currentPlayer === id);
+							}
+							html += "<br />";
+						}
+					}
+
+					if (this.currentPlayer) html += "<br />";
+				} else {
+					for (const id of remainingPlayers) {
+						const player = game.players[id];
+						html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + setCurrentPlayerCommand + ", " + id,
+							player.name, this.currentPlayer === id);
+					}
+
+					if (this.currentPlayer) html += "<br /><br />";
+				}
+
+				if (this.currentPlayer) {
+					const currentPlayer = Users.get(this.currentPlayer);
+					const name = currentPlayer ? currentPlayer.name : this.currentPlayer;
+
+					for (let i = 1; i <= 5; i++) {
+						if (i > 1) html += "&nbsp;";
+						html += Client.getMsgRoomButton(this.room, Config.commandCharacter + "apt " + name + ", " + i,
+							"Add " + i + " point" + (i > 1 ? "s" : ""), !game.started);
+					}
+
+					html += "<br />";
+					for (let i = 1; i <= 5; i++) {
+						if (i > 1) html += "&nbsp;";
+						html += Client.getMsgRoomButton(this.room, Config.commandCharacter + "rpt " + name + ", " + i,
+							"Remove " + i + " point" + (i > 1 ? "s" : ""), !game.started);
+					}
+				}
+
+				html += "</center>";
+			}
+		} else if (customDisplay || randomDisplay) {
+			html += "<h3>" + (customDisplay ? "Custom" : "Random") + " Display</h3>";
+			html += this.getHostDisplay();
 			html += "<center>" + Client.getPmSelfButton(this.commandPrefix + ", " + sendDisplayCommand, "Send to " + this.room.title,
-				!this.room.userHostedGame || !user || !this.room.userHostedGame.isHost(user)) + "</center>";
+				!currentHost) + "</center>";
 
 			html += "<br /><br />";
-			if (this.currentView === 'customdisplay') {
+			if (customDisplay) {
 				html += this.customHostDisplay.render();
 			} else {
 				html += this.randomHostDisplay.render();
 			}
 		} else {
+			html += "<h3>Generate Hints</h3>";
+
 			if (this.generatedAnswer) {
 				html += "<div class='infobox'>" + this.generateHintsGameHtml;
 				html += "<br /><br />";
@@ -292,7 +439,6 @@ class GameHostControlPanel extends HtmlPageBase {
 				html += "<b>Answer" + (this.generatedAnswer.answers.length > 1 ? "s" : "") + "</b>: " +
 					this.generatedAnswer.answers.join(", ") + "</div>";
 			} else {
-				html += "<br />";
 				html += "<center><b>Click on a game's name to generate a hint and see the answer</b>!</center>";
 			}
 			html += "<br />";
@@ -324,7 +470,14 @@ export const commands: BaseCommandDefinitions = {
 			targets.shift();
 
 			if (!cmd) {
-				new GameHostControlPanel(targetRoom, user).open();
+				if (!(user.id in pages)) {
+					new GameHostControlPanel(targetRoom, user).open();
+				} else {
+					pages[user.id].send();
+				}
+			} else if (cmd === chooseHostInformation) {
+				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
+				pages[user.id].chooseHostInformation();
 			} else if (cmd === chooseCustomDisplay) {
 				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
 				pages[user.id].chooseCustomDisplay();
@@ -334,14 +487,20 @@ export const commands: BaseCommandDefinitions = {
 			} else if (cmd === chooseGenerateHints) {
 				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
 				pages[user.id].chooseGenerateHints();
-			} else if (cmd === refreshTimeCommand) {
+			} else if (cmd === refreshCommand) {
 				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
 				pages[user.id].send();
+			} else if (cmd === autoRefreshCommand) {
+				if (user.id in pages) pages[user.id].send();
 			} else if (cmd === generateHintCommand) {
 				const name = targets[0].trim();
 				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
 
 				if (!pages[user.id].generateHint(user, name)) this.say("'" + name + "' is not a valid game for generating hints.");
+			} else if (cmd === setCurrentPlayerCommand) {
+				if (!(user.id in pages) || !targetRoom.userHostedGame || !targetRoom.userHostedGame.isHost(user)) return;
+
+				pages[user.id].setCurrentPlayer(Tools.toId(targets[0]));
 			} else if (cmd === sendDisplayCommand) {
 				if (!(user.id in pages) || !targetRoom.userHostedGame || !targetRoom.userHostedGame.isHost(user)) return;
 

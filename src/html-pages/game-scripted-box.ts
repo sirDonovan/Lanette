@@ -205,7 +205,11 @@ export const commands: BaseCommandDefinitions = {
 			targets.shift();
 
 			if (!cmd) {
-				new GameScriptedBox(targetRoom, user).open();
+				if (!(user.id in pages)) {
+					new GameScriptedBox(targetRoom, user).open();
+				} else {
+					pages[user.id].send();
+				}
 			} else if (cmd === setGameFormatCommand || cmd === 'setgame') {
 				const format = Games.getFormat(targets.join(','));
 				if (Array.isArray(format)) return this.sayError(format);

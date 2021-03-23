@@ -357,7 +357,7 @@ export class RandomHostDisplay extends HostDisplayBase {
 				}
 
 				html += "<br /><br />";
-				html += "Pokemon:";
+				html += "Pokemon: ";
 				html += Client.getPmSelfButton(this.commandPrefix + ", " + this.setPokemonPickerIndexCommand + ", 0", "All",
 					allPokemon);
 
