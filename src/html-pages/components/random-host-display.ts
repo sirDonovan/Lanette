@@ -270,7 +270,7 @@ export class RandomHostDisplay extends HostDisplayBase {
 			if (!this.setPokemonPickerIndex(index - 1)) {
 				return "'" + targets[0].trim() + "' is not a valid Pokemon slot.";
 			}
-		} if (cmd === this.setTrainerPickerIndexCommand) {
+		} else if (cmd === this.setTrainerPickerIndexCommand) {
 			const index = parseInt(targets[0].trim());
 			if (isNaN(index) || index < 0) {
 				return "'" + targets[0].trim() + "' is not a valid trainer slot.";

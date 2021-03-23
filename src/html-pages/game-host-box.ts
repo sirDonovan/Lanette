@@ -177,7 +177,7 @@ export const commands: BaseCommandDefinitions = {
 			const cmd = Tools.toId(targets[0]);
 			targets.shift();
 
-			if (!cmd || cmd === 'edit' || cmd === 'page') {
+			if (!cmd) {
 				new GameHostBox(targetRoom, user).open();
 			} else if (cmd === setPokemonCommand || cmd === 'setgifs' || cmd === 'setgif') {
 				if (checkBits && Config.gameHostBoxRequirements[targetRoom.id].pokemon.one > 0 &&

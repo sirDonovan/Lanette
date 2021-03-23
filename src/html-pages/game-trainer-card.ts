@@ -182,7 +182,7 @@ export const commands: BaseCommandDefinitions = {
 			const cmd = Tools.toId(targets[0]);
 			targets.shift();
 
-			if (!cmd || cmd === 'edit' || cmd === 'page') {
+			if (!cmd) {
 				new GameTrainerCard(targetRoom, user).open();
 			} else if (cmd === 'view' || cmd === 'show' || cmd === previewCommand) {
 				const trainerCard = Games.getTrainerCardHtml(targetRoom, user.name);

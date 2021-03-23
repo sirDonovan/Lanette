@@ -204,7 +204,7 @@ export const commands: BaseCommandDefinitions = {
 			const cmd = Tools.toId(targets[0]);
 			targets.shift();
 
-			if (!cmd || cmd === 'edit' || cmd === 'page') {
+			if (!cmd) {
 				new GameScriptedBox(targetRoom, user).open();
 			} else if (cmd === setGameFormatCommand || cmd === 'setgame') {
 				const format = Games.getFormat(targets.join(','));

@@ -340,7 +340,7 @@ export const commands: BaseCommandDefinitions = {
 
 			Storage.createOfflineMessagesEntry(user.name);
 
-			if (!cmd || cmd === 'edit' || cmd === 'page') {
+			if (!cmd) {
 				new OfflineMessages(botRoom, user).open();
 			} else if (cmd === newMessagesCommand) {
 				if (!(user.id in pages)) new OfflineMessages(botRoom, user);
