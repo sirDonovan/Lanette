@@ -127,7 +127,7 @@ export const tournamentSchedules: Dict<IRoomTournamentSchedule> = {
 					'6': 'tier shift,+eviolite',
 					'7': 'national dex ag,-allpokemon,+Arceus,+Dialga,+Palkia,+Giratina,+Cresselia,+Darkrai',
 					'8': 'gen 5 ou,+heavy duty boots,+utility umbrella',
-					'9': 'gen 8 zu,+ Exeggutor-Alola,+Gallade,+Haunter,+Scrafty,+Toxicroak,+Turtonator,+Vikavolt,+Sneasel',
+					'9': 'gen 8 zu,+Exeggutor-Alola,+Gallade,+Haunter,+Scrafty,+Toxicroak,+Turtonator,+Vikavolt,+Sneasel',
 					'10': 'gen 7 vgc 2018,inverse mod',
 					'11': 'stabmons,!Obtainable Abilities,-Arena Trap,-Comatose,-Contrary,-Fluffy,-Fur Coat,-Gorilla Tactics,-Huge Power,' +
 						'-Ice Scales,-Illusion,-Imposter,-Innards Out,-Intrepid Sword,-Libero,-Moody,-Neutralizing Gas,-Parental Bond,' +
@@ -170,6 +170,94 @@ export const tournamentSchedules: Dict<IRoomTournamentSchedule> = {
 					'29': 'random doubles battle',
 					'30': 'gen 4 uu,+uubl',
 					'31': 'ou',
+				},
+				times: [[5, 30], [12, 30], [18, 30], [23, 30]],
+			},
+			'4': {
+				formats: {
+					'1': 'randombattle,[Gen 8] Shared Power,[Gen 8] Camomons,Flipped Mod,350 Cup Mod,Inverse Mod,Scalemons Mod,' +
+						'gen8tiershift,Blitz,!Dynamax Clause,!Team Preview,!Cancel Mod',
+					'2': 'ou,Alphabet Cup Move Legality,*Acupressure,*Baton Pass,-Astral Barrage,-Bolt Beak,-Double Iron Bash,-Electrify,' +
+						'-Geomancy,-Glacial Lance,-Lovely Kiss,-Shell Smash,-Shift Gear,-Sleep Powder,-Spore,-Surging Strikes,' +
+						'-Thousand Arrows,+Magearna,+Zamazenta,+Zamazenta-Crowned',
+					'3': 'ag,gen8sharedpower,+Calyrex-Ice,+Calyrex-Shadow,+Darmanitan-Galar,+Dialga,+Dracovish,+Eternatus,+Genesect,' +
+						'+Giratina,+Giratina-Origin,+Groudon,+Ho-Oh,+Kyogre,+Kyurem-Black,+Kyurem-White,+Lugia,+Lunala,+Magearna,' +
+						'+Marshadow,+Melmetal,+Mewtwo,+Naganadel,+Necrozma-Dawn-Wings,+Necrozma-Dusk-Mane,+Palkia,+Pheromosa,+Rayquaza,' +
+						'+Reshiram,+Shedinja,+Solgaleo,+Urshifu-Base,+Urshifu-Rapid-Strike,+Xerneas,+Yveltal,+Zacian,+Zacian-Crowned,' +
+						'+Zamazenta,+Zamazenta-Crowned,+Zekrom,+Arena Trap,+Contrary,+Drizzle ++ Swift Swim,+Drought ++ Chlorophyll,' +
+						'+Electric Surge ++ Surge Surfer,+Fur Coat,+Guts,+Harvest,+Huge Power,+Imposter,+Innards Out,+Libero,' +
+						'+Magic Bounce,+Magic Guard,+Magnet Pull,+Mold Breaker,+Moody,+Neutralizing Gas,+Power Construct,' +
+						'+Queenly Majesty,+Quick Draw,+Regenerator,+Sand Rush,+Sand Veil,+Shadow Tag,+Simple,+Slush Rush,+Snow Cloak,' +
+						'+Speed Boost,+Stakeout,+Steelworker ++ Steely Spirit,+Tinted Lens,+Unaware,+Unburden,+Water Bubble,' +
+						'+Baton Pass,-Regenerator ++Wimp Out,-Regenerator ++ Emergency Exit,+Triage,!OHKO Clause,!Dynamax Clause,' +
+						'!Species Clause,!Evasion Moves Clause',
+					'4': 'camomons,!Obtainable Abilities,-Arena Trap,-Comatose,-Contrary,-Fluffy,-Fur Coat,-Gorilla Tactics,' +
+						'-Huge Power,-Ice Scales,-Illusion,-Imposter,-Innards Out,-Intrepid Sword,-Libero,-Moody,-Neutralizing Gas,' +
+						'-Parental Bond,-Power Construct,-Protean,-Pure Power,-Shadow Tag,-Simple,-Stakeout,-Speed Boost,' +
+						'-Water Bubble,-Wonder Guard,-Archeops,-Regigigas,+Darmanitan-Galar,2 Ability Clause',
+					'5': 'ou,+Aloraichium Z,+Buginium Z,+Darkinium Z,+Decidium Z,+Dragonium Z,+Eevium Z,+Electrium Z,+Fairium Z,' +
+						'+Fightinium Z,+Firium Z,+Flyinium Z,+Ghostium Z,+Grassium Z,+Groundium Z,+Incinium Z,+Icium Z,+Kommonium Z,' +
+						'+Lunalium Z,+Lycanium Z,+Marshadium Z,+Mewnium Z,+Mimikium Z,+Normalium Z,+Pikanium Z,+Pikashunium Z,' +
+						'+Primarium Z,+Poisonium Z,+Psychium Z,+Rockium Z,+Snorlium Z,+Solganium Z,+Steelium Z,+Tapunium Z,' +
+						'+Ultranecrozium Z,+Waterium Z',
+					'6': 'doublesou,STABmons Move Legality,-Blissey,-Chansey,-Shedinja,-Silvally,-Snorlax,*Acupressure,' +
+						'*Astral Barrage,*Belly Drum,*Bolt Beak,*Decorate,*Diamond Storm,*Double Iron Bash,*Fishious Rend,*Geomancy,' +
+						'*Glacial Lance,*Lovely Kiss,*Shift Gear,*Shell Smash,*Spore,*Thousand Arrows,-Swift Swim',
+					'7': 'gen1outradeback',
+					'8': 'natdex,!Cancel Mod,VGC Timer',
+					'9': 'gen5ou,+Drizzle ++ Swift Swim,+Drought ++ Chlorophyll,+Sand Rush',
+					'10': 'purehackmons,-Eternatus-Eternamax',
+					'11': 'uu,-All Abilities,!Obtainable Abilities,+No Ability',
+					'12': 'tiershift,Same Type Clause',
+					'13': '1v1,!Dynamax Clause,!OHKO Clause,!Evasion Moves Clause,!Accuracy Moves Clause,+Calyrex-Ice,+Calyrex-Shadow,' +
+						'+Cinderace,+Dialga,+Dragonite,+Eternatus,+Giratina,+Giratina-Origin,+Groudon,+Ho-Oh,+Kyogre,+Kyurem-Black,' +
+						'+Kyurem-White,+Lugia,+Lunala,+Magearna,+Marshadow,+Melmetal,+Mew,+Mewtwo,+Mimikyu,+Necrozma-Dawn-Wings,' +
+						'+Necrozma-Dusk-Mane,+Palkia,+Rayquaza,+Reshiram,+Sableye,+Solgaleo,+Victini,+Xerneas,+Yveltal,+Zacian,' +
+						'+Zacian-Crowned,+Zamazenta,+Zamazenta-Crowned,+Zekrom,+Moody,+Focus Sash,+Perish Song,Standard NatDex,' +
+						'!Species Clause',
+					'14': 'mixandmega,!Species Clause,!Nickname Clause,!OHKO Clause,!Evasion Moves Clause,!Dynamax Clause,' +
+						'!Sleep Clause Mod,+Uber,+Beedrillite,+Blazikenite,+Gengarite,+Kangaskhanite,+Mawilite,+Medichamite,' +
+						'+Pidgeotite,+Moody,+Shadow Tag,+Baton Pass,+Electrify,+Calyrex-Ice,+Calyrex-Shadow,+Dialga,+Eternatus,' +
+						'+Giratina,+Giratina-Origin,+Groudon,+Ho-oh,+Kyogre,+Kyurem-Black,+Kyurem-White,+Lugia,+Lunala,+Marshadow,' +
+						'+Melmetal,+Mewtwo,+Naganadel,+Necrozma-Dawn-Wings,+Necrozma-Dusk-Mane,+Palkia,+Rayquaza,+Regigigas,' +
+						'+Reshiram,+Solgaleo,+Urshifu-Base,+Xerneas,+Yveltal,+Zacian,+Zacian-Crowned,+Zamazenta,+Zamazenta-Crowned,' +
+						'+Zekrom,+Zygarde-Complete',
+					'15': 'trademarked,+Calyrex-Ice, +Darmanitan-Galar,+Dialga,+Dracovish,+Dragapult,+Eternatus,+Kyurem-Black,' +
+						'+Kyurem-White,+Giratina,+Giratina-Origin,+Genesect,+Groudon,+Ho-Oh,+Kartana,+Kyogre,+Lugia,+Lunala,+Magearna,' +
+						'+Marshadow,+Melmetal,+Mewtwo,+Naganadel,+Necrozma-Dawn-Wings,+Necrozma-Dusk-Mane,+Palkia,+Pheromosa,' +
+						'+Rayquaza,+Reshiram,+Solgaleo,+Urshifu-Base,+Xerneas,+Yveltal,+Zacian,+Zacian-Crowned,+Zamazenta,' +
+						'+Zamazenta-Crowned,+Zekrom,+Zygarde-Base,+Arena Trap,+Moody,+Power Construct,+Shadow Tag',
+					'16': 'pu,350cupmod',
+					'17': 'ubers,-allpokemon,+pikachu,+dragonite,+gengar,+lucario,+farfetch\'d-galar,+dracovish',
+					'18': 'letsgoou,!teampreview',
+					'19': 'doublesubers,!Obtainable Abilities,!Obtainable Moves,!Obtainable Formes,!Obtainable Misc,Forme Clause,' +
+						'!Species Clause,-Shedinja,-Comatose +Sleep Talk,-Double Iron Bash,-Octolock,-Arena Trap,-Contrary,' +
+						'-Gorilla Tactics,-Huge Power,-Illusion,-Innards Out,-Libero,-Moody,-Neutralizing Gas,-Parental Bond,' +
+						'-Protean,-Pure Power,-Shadow Tag,-Stakeout,-Water Bubble,-Wonder Guard,-Justified,-Anger Point,' +
+						'-Steam Engine,-Stamina,-Rattled,-Wandering Spirit,-Soul-Heart',
+					'20': 'godlygift',
+					'21': 'gen6ag,STABmons Move Legality',
+					'22': 'cap,-All Pokemon,Scalemons Mod,+CAP LC,+CAP NFE',
+					'23': 'natureswap,inversemod',
+					'24': 'nationaldexag,!Obtainable Formes',
+					'25': '2v2,!Species Clause,-All Pokemon,-All Moves,+Arceus,-Arceus > 2,!Obtainable Abilities,!Obtainable Moves,' +
+						'!Obtainable Misc,+move: Metronome,-Cheek Pouch,-Cursed Body,-Dry Skin,-Fluffy,-Fur Coat,-Gorilla Tactics,' +
+						'-Grassy Surge,-Huge Power,-Ice Body,-Iron Barbs,-Libero,-Moody,-Neutralizing Gas,-Parental Bond,' +
+						'-Perish Body,-Poison Heal,-Power Construct,-Pressure,-Protean,-Pure Power,-Rain Dish,-Rough Skin,' +
+						'-Sand Spit,-Sand Stream,-Snow Warning,-Stamina,-Volt Absorb,-Water Absorb,-Wonder Guard,-Aguav Berry,' +
+						'-Assault Vest,-Berry,-Berry Juice,-Berserk Gene,-Black Sludge,-Enigma Berry,-Figy Berry,-Gold Berry,' +
+						'-Iapapa Berry,-Leftovers,-Mago Berry,-Steel Memory,-Oran Berry,-Rocky Helmet,-Shell Bell,-Sitrus Berry,' +
+						'-Wiki Berry,-Harvest +Jaboca Berry,-Harvest +Rowap Berry,+Judgment,+Draco Plate,+Dread Plate,' +
+						'+Earth Plate,+Fist Plate,+Flame Plate,+Icicle Plate,+Insect Plate,+Iron Plate,+Meadow Plate,+Mind Plate,' +
+						'+Pixie Plate,+Sky Plate,+Splash Plate,+Spooky Plate,+Stone Plate,+Toxic Plate,+Zap Plate',
+					'26': 'lc, [Gen 8] Camomons,+Arena Trap,+Shadow Tag',
+					'27': 'gen7battlefactory,[Gen 8] Shared Power,!Moody Clause',
+					'28': 'nu,Flipped Mod',
+					'29': 'gen6battlespottriples,-All Items,+item: Choice Scarf,+item: Choice Band,+item: Choice Specs,!Item Clause',
+					'30': 'ubers,!Obtainable Abilities,-Arena Trap,-Comatose,-Contrary,-Fluffy,-Fur Coat,-Gorilla Tactics,-Huge Power,' +
+						'-Ice Scales,-Illusion,-Imposter,-Innards Out,-Intrepid Sword,-Libero,-Moody,-Neutralizing Gas,-Parental Bond,' +
+						'-Protean,-Pure Power,-Shadow Tag,-Simple,-Stakeout,-Speed Boost,-Water Bubble,-Wonder Guard,-Calyrex-Shadow,' +
+						'-Shedinja,-Urshifu-Single-Strike,2 Ability Clause,Dynamax Clause',
 				},
 				times: [[5, 30], [12, 30], [18, 30], [23, 30]],
 			},
