@@ -163,7 +163,7 @@ export const tournamentSchedules: Dict<IRoomTournamentSchedule> = {
 					'25': 'tier shift,!Obtainable Abilities,-Arena Trap,-Comatose,-Contrary,-Fluffy,-Fur Coat,-Gorilla Tactics,' +
 						'-Huge Power,-Ice Scales,-Illusion,-Imposter,-Innards Out,-Intrepid Sword,-Libero,-Moody,-Neutralizing Gas,' +
 						'-Parental Bond,-Protean,-Pure Power,-Shadow Tag,-Simple,-Speed Boost,-Stakeout,-Tinted Lens,-Water Bubble,' +
-						'-Wonder Guard,2 Ability Clause,-Light Ball,-Absol,-Archeops,-Arctovish,-Bellossom,-Shedinja,-Regigigas',
+						'-Wonder Guard,2 Ability Clause,-Light Ball,-Absol,-Archeops,-Arctovish,-Bellossom,-Shedinja,-Regigigas,-Guzzlord',
 					'26': 'gen 5 ou,sinnoh pokedex,-drought,-drizzle,-snow warning,-sandstream,-hail,-sunny day,-sandstorm,-rain dance',
 					'27': 'national dex,-allpokemon,+samurott,+serperior,+emboar,+infernape,+torterra,+empoleon',
 					'28': 'gen 7 ru,Z Move Clause',
