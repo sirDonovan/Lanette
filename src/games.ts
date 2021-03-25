@@ -1681,7 +1681,7 @@ export class Games {
 				"* <code>" + commandCharacter + "gtimer off</code> - turn off the previously set timer",
 				"* <code>" + commandCharacter + "store [message or command]</code> - store a single message or command to be used " +
 					"throughout the game",
-				"* <code>" + commandCharacter + "store [key], [message or command]</code> - store one of many messages or commands " +
+				"* <code>" + commandCharacter + "storem [key], [message or command]</code> - store one of many messages or commands " +
 					"to be used throughout the game using the specified key",
 				"* <code>" + commandCharacter + "stored [key]</code> - display a stored message or use a stored command, optionally " +
 					"the message matching the specified key",
