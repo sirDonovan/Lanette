@@ -1,4 +1,4 @@
-import type { IMessageTypes } from "./client";
+import type { IOutgoingMessageTypes } from "./client";
 
 export type RoomType = 'battle' | 'chat' | 'html';
 
@@ -15,7 +15,7 @@ export interface IRoomMessageOptions {
 	dontMeasure?: boolean;
 	dontPrepare?: boolean;
 	html?: string;
-	type?: IMessageTypes;
+	type?: IOutgoingMessageTypes;
 	uhtmlName?: string;
 	user?: string;
 }

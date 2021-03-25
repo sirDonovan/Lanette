@@ -10,7 +10,8 @@ import type { UserHostedGame } from './room-game-user-hosted';
 import type { Room } from './rooms';
 import type {
 	GroupName, IClientMessageTypes, ILoginOptions, IMessageParserFile, IOutgoingMessage, IRoomInfoResponse, IRoomsResponse,
-	IServerConfig, IServerGroup, ITournamentMessageTypes, IUserDetailsResponse, QueryResponseType, ServerGroupData
+	IServerConfig, IServerGroup, IServerProcessingMeasurement, ITournamentMessageTypes, IUserDetailsResponse, QueryResponseType,
+	ServerGroupData
 } from './types/client';
 import type { ISeparatedCustomRules } from './types/dex';
 import type { RoomType } from './types/rooms';
@@ -23,15 +24,15 @@ const REPLAY_SERVER_ADDRESS = "replay.pokemonshowdown.com";
 const CHALLSTR_TIMEOUT_SECONDS = 15;
 const RELOGIN_SECONDS = 60;
 const LOGIN_TIMEOUT_SECONDS = 150;
-const REGULAR_MESSAGE_THROTTLE = 625;
-const TRUSTED_MESSAGE_THROTTLE = 125;
+const REGULAR_MESSAGE_THROTTLE = 600;
+const TRUSTED_MESSAGE_THROTTLE = 100;
 const SERVER_THROTTLE_BUFFER_LIMIT = 5;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const CONNECTION_CHECK_INTERVAL = 30 * 1000;
 const SERVER_THROTTLE_PROCESSING_TIME = 25;
-const PROCESSING_TIME_CHECK_MINIMUM = 5 * 1000;
-const PROCESSING_TIME_SAMPLE_SIZE = 12;
+const MIN_PROCESSING_MEASUREMENT_GAP = 5 * 1000;
+const MAX_PROCESSING_MEASUREMENT_GAP = 30 * 1000;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
 const UHTML_CHAT_COMMAND = '/uhtml ';
@@ -211,7 +212,7 @@ export class Client {
 		user: Users.self.id,
 		measure: true,
 	};
-	private processingTimeSampleSize = PROCESSING_TIME_SAMPLE_SIZE;
+	private maxProcessingMeasurementGap = MAX_PROCESSING_MEASUREMENT_GAP;
 	private publicChatRooms: string[] = [];
 	private reconnectRoomMessages: Dict<string[]> = {};
 	private reconnectTime: number = Config.reconnectTime || 60 * 1000;
@@ -228,7 +229,7 @@ export class Client {
 	private serverPingTimeout: NodeJS.Timer | null = null;
 	private serverTimeOffset: number = 0;
 	private serverProcessingTime: number = 0;
-	private serverProcessingSamples: number[] = [];
+	private serverProcessingMeasurements: IServerProcessingMeasurement[] = [];
 	private webSocket: import('ws') | null = null;
 
 	constructor() {
@@ -435,7 +436,7 @@ export class Client {
 		}
 
 		if (this.loggedIn && outgoingMessage.message !== this.processingTimeCheckMessage.message && !this.outgoingMessageQueue.length &&
-			Date.now() - this.lastProcessingTimeCheck > PROCESSING_TIME_CHECK_MINIMUM) {
+			Date.now() - this.lastProcessingTimeCheck > MIN_PROCESSING_MEASUREMENT_GAP) {
 			this.outgoingMessageQueue.push(outgoingMessage);
 			outgoingMessage = this.processingTimeCheckMessage;
 		}
@@ -555,7 +556,7 @@ export class Client {
 		if (previous.lastSendTimeoutTime) this.lastSendTimeoutTime = previous.lastSendTimeoutTime;
 		if (previous.lastProcessingTimeCheck) this.lastProcessingTimeCheck = previous.lastProcessingTimeCheck;
 		if (previous.lastOutgoingMessage) this.lastOutgoingMessage = Object.assign({}, previous.lastOutgoingMessage);
-		if (previous.serverProcessingSamples) this.serverProcessingSamples = previous.serverProcessingSamples.slice();
+		if (previous.serverProcessingMeasurements) this.serverProcessingMeasurements = previous.serverProcessingMeasurements.slice();
 		if (previous.serverProcessingTime) this.serverProcessingTime = previous.serverProcessingTime;
 
 		if (previous.outgoingMessageQueue) this.outgoingMessageQueue = previous.outgoingMessageQueue.slice();
@@ -1985,14 +1986,17 @@ export class Client {
 			const oldServerProcessingTime = this.serverProcessingTime;
 
 			if (this.lastOutgoingMessage.measure && this.lastOutgoingMessage.sentTime && responseTime) {
-				this.serverProcessingSamples.push(responseTime - this.lastOutgoingMessage.sentTime);
-				let sampleSize = this.serverProcessingSamples.length;
-				if (sampleSize > this.processingTimeSampleSize) {
-					this.serverProcessingSamples.shift();
-					sampleSize--;
+				this.serverProcessingMeasurements.push({
+					measurement: responseTime - this.lastOutgoingMessage.sentTime,
+					timestamp: responseTime,
+				});
+
+				while (responseTime - this.serverProcessingMeasurements[0].timestamp > this.maxProcessingMeasurementGap) {
+					this.serverProcessingMeasurements.shift();
 				}
-				const samplesTotal = this.serverProcessingSamples.reduce((total, i) => total += i);
-				this.serverProcessingTime = samplesTotal ? Math.ceil(samplesTotal / sampleSize) : 0;
+
+				const samplesTotal = this.serverProcessingMeasurements.map(x => x.measurement).reduce((total, i) => total += i);
+				this.serverProcessingTime = samplesTotal ? Math.ceil(samplesTotal / this.serverProcessingMeasurements.length) : 0;
 
 				this.lastProcessingTimeCheck = responseTime;
 			}
