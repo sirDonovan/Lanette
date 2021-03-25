@@ -12,9 +12,11 @@ export class PokemonPickerLetter extends PokemonPickerBase {
 	static pokemonByLetter: Dict<string[]> = {};
 	static PokemonPickerLetterLoaded: boolean = false;
 
+	componentId: string = 'pokemon-picker-letter';
 	letterView: string | undefined = undefined;
 	letterPaginations: Dict<Pagination> = {};
 	letterElements: Dict<IPageElement> = {};
+	replicationTargets: PokemonPickerLetter[] = [];
 
 	constructor(parentCommandPrefix: string, componentCommand: string, props: IPokemonPickerProps) {
 		super(parentCommandPrefix, componentCommand, props);
@@ -25,11 +27,12 @@ export class PokemonPickerLetter extends PokemonPickerBase {
 			this.letterElements[letter] = {html: this.renderLetterElement(letter), selected: false};
 
 			this.letterPaginations[letter] = new Pagination(this.commandPrefix, pokemonListCommand, {
-				elements: PokemonPickerLetter.pokemonByLetter[letter].map(x => this.pokemonElements[x]),
+				elements: PokemonPickerLetter.pokemonByLetter[letter].map(x => this.choiceElements[x]),
 				elementsPerRow: 6,
 				rowsPerPage: 6,
 				pagesLabel,
-				onSelectPage: () => this.props.onUpdateView(),
+				onSelectPage: () => this.props.reRender(),
+				reRender: () => this.props.reRender(),
 			});
 			this.letterPaginations[letter].active = false;
 
@@ -64,22 +67,9 @@ export class PokemonPickerLetter extends PokemonPickerBase {
 			this.letterView === letter);
 	}
 
-	reset(): void {
-		super.reset();
-		this.chooseLetterView(undefined, true);
-	}
-
-	chooseLetterView(letter: string | undefined, dontRender?: boolean, replicating?: boolean): void {
-		if (this.letterView === letter) return;
-
+	onClear(dontRender?: boolean): void {
 		const previousLetter = this.letterView;
-		this.letterView = letter;
-
-		if (letter) {
-			this.letterElements[letter].html = this.renderLetterElement(letter);
-			this.letterElements[letter].selected = true;
-			this.letterPaginations[letter].active = true;
-		}
+		this.letterView = undefined;
 
 		if (previousLetter) {
 			this.letterElements[previousLetter].html = this.renderLetterElement(previousLetter);
@@ -87,13 +77,45 @@ export class PokemonPickerLetter extends PokemonPickerBase {
 			this.letterPaginations[previousLetter].active = false;
 		}
 
-		if (!replicating) this.props.onChooseLetterView(this.pickerIndex, letter, dontRender);
+		super.onClear(dontRender);
+	}
+
+	pickLetter(letter: string, dontRender?: boolean, replicatedFrom?: PokemonPickerLetter): void {
+		if (this.letterView === letter) return;
+
+		const previousLetter = this.letterView;
+		this.letterView = letter;
+
+		this.letterElements[letter].html = this.renderLetterElement(letter);
+		this.letterElements[letter].selected = true;
+		this.letterPaginations[letter].active = true;
+
+		if (previousLetter) {
+			this.letterElements[previousLetter].html = this.renderLetterElement(previousLetter);
+			this.letterElements[previousLetter].selected = false;
+			this.letterPaginations[previousLetter].active = false;
+		}
+
+		if (!replicatedFrom) this.props.onPickLetter(this.pickerIndex, letter, dontRender);
+
+		this.replicatePickLetter(letter, replicatedFrom);
+	}
+
+	parentPickLetter(letter: string): void {
+		this.pickLetter(letter, true);
+	}
+
+	replicatePickLetter(letter: string, replicatedFrom: PokemonPickerLetter | undefined): void {
+		for (const target of this.replicationTargets) {
+			if (!replicatedFrom || target !== replicatedFrom) target.pickLetter(letter, true, this);
+		}
 	}
 
 	setRandomizedPokemon(pokemon: string): void {
 		const letter = pokemon.charAt(0).toUpperCase();
-		this.chooseLetterView(letter, true);
-		this.selectPokemon(pokemon, true);
+		this.parentPickLetter(letter);
+		this.parentPick(pokemon);
+
 		this.letterPaginations[letter].autoSelectPage();
 	}
 
@@ -108,7 +130,7 @@ export class PokemonPickerLetter extends PokemonPickerBase {
 				return "'" + letter + "' is not valid letter.";
 			}
 
-			this.chooseLetterView(letter);
+			this.pickLetter(letter);
 		} else {
 			return super.tryCommand(originalTargets);
 		}
@@ -118,7 +140,7 @@ export class PokemonPickerLetter extends PokemonPickerBase {
 		let html = super.render();
 		if (html) html += "<br /><br />";
 
-		html += this.noPokemonElement.html;
+		html += this.noPickElement.html;
 		for (const letter in this.letterElements) {
 			html += this.letterElements[letter].html;
 		}

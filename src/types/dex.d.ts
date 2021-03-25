@@ -59,7 +59,7 @@ export interface IGetPossibleTeamsOptions {
 
 type DataKeys = readonly string[];
 
-export type TrainerSpriteId = string & {__trainerSpriteId: true};
+export type TrainerSpriteId = Branded<"trainer-sprite-id", string>;
 
 export interface IDataTable {
 	readonly abilityKeys: DataKeys;

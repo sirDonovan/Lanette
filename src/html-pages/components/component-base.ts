@@ -1,15 +1,23 @@
-export abstract class ComponentBase {
+export interface IComponentProps {
+	reRender: () => void;
+}
+
+export abstract class ComponentBase<PropsType extends IComponentProps = IComponentProps> {
+	abstract componentId: string;
+
 	active: boolean = true;
 	components: ComponentBase[] = [];
 
 	commandPrefix: string;
 	parentCommandPrefix: string;
 	componentCommand: string;
+	props: PropsType;
 
-	constructor(parentCommandPrefix: string, componentCommand: string) {
+	constructor(parentCommandPrefix: string, componentCommand: string, props: PropsType) {
 		this.parentCommandPrefix = parentCommandPrefix;
 		this.componentCommand = componentCommand;
 		this.commandPrefix = parentCommandPrefix + ", " + componentCommand;
+		this.props = props;
 	}
 
 	abstract render(onOpen?: boolean): string;

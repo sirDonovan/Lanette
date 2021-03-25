@@ -1,51 +1,42 @@
-import { ComponentBase } from "./component-base";
-import type { IPageElement } from "./pagination";
+import type { IPickerProps } from "./picker-base";
+import { PickerBase } from "./picker-base";
 
-export interface IPokemonPickerProps {
-	currentPokemon: string | undefined;
+export interface IPokemonPick {
+	pokemon: string;
+	shiny?: boolean;
+}
+
+export interface IPokemonPickerProps extends IPickerProps<IPokemonPick> {
 	gif: boolean;
 	maxGifs: number;
 	maxIcons: number;
-	pickerIndex?: number;
-	onChooseLetterView: (pickerIndex: number, letter: string | undefined, dontRender?: boolean) => void;
-	onClearPokemon: (pickerIndex: number, dontRender?: boolean) => void;
-	onSelectPokemon: (pickerIndex: number, selectedPokemon: string, shiny: boolean, dontRender?: boolean) => void;
-	onUpdateView: () => void;
+	onPickLetter: (pickerIndex: number, letter: string, dontRender?: boolean) => void;
+	onPickShininess: (pickerIndex: number, shininess: boolean, dontRender?: boolean) => void;
+	onClearType: (pickerIndex: number, dontRender?: boolean) => void;
+	onPickType: (pickerIndex: number, type: string, dontRender?: boolean) => void;
 }
 
-const setPokemonCommand = 'setpokemon';
 const setShininess = 'setshininess';
 const setShiny = "shiny";
 const setNotShiny = "notshiny";
-const noPokemon = "None";
 
-export abstract class PokemonPickerBase extends ComponentBase {
+export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemonPickerProps> {
 	static pokemon: string[] = [];
 	static PokemonPickerBaseLoaded: boolean = false;
 
-	currentPokemon: string | undefined;
-	pickerIndex: number;
-	pokemonElements: Dict<IPageElement> = {};
-	noPokemonElement: IPageElement = {html: ""};
-	shinyPokemon: boolean = false;
-
-	props: IPokemonPickerProps;
+	replicationTargets: PokemonPickerBase[] = [];
+	shininess: boolean = false;
 
 	constructor(parentCommandPrefix: string, componentCommand: string, props: IPokemonPickerProps) {
-		super(parentCommandPrefix, componentCommand);
+		super(parentCommandPrefix, componentCommand, props);
 
 		PokemonPickerBase.loadData();
 
-		this.currentPokemon = props.currentPokemon || undefined;
-		this.pickerIndex = props.pickerIndex || 0;
-
-		this.noPokemonElement.html = this.renderNoPokemonElement();
-
 		for (const pokemon of PokemonPickerBase.pokemon) {
-			this.pokemonElements[pokemon] = {html: this.renderPokemonElement(pokemon), selected: this.currentPokemon === pokemon};
+			this.choices[pokemon] = {pokemon};
 		}
 
-		this.props = props;
+		this.renderChoices();
 	}
 
 	static loadData(): void {
@@ -59,67 +50,35 @@ export abstract class PokemonPickerBase extends ComponentBase {
 		this.PokemonPickerBaseLoaded = true;
 	}
 
-	renderPokemonElement(name: string): string {
-		return Client.getPmSelfButton(this.commandPrefix + ", " + setPokemonCommand + "," + name, name,
-			this.currentPokemon === name);
-	}
-
-	renderNoPokemonElement(): string {
-		return Client.getPmSelfButton(this.commandPrefix + ", " + setPokemonCommand + ", " + noPokemon, "None",
-			!this.currentPokemon);
+	getChoiceButtonHtml(choice: IPokemonPick): string {
+		return choice.pokemon;
 	}
 
 	reset(): void {
-		this.clearPokemon(true);
+		this.clear(true);
 	}
 
-	clearPokemon(dontRender?: boolean, replicating?: boolean): void {
-		if (this.currentPokemon === undefined) return;
-
-		const previousPokemon = this.currentPokemon;
-		this.currentPokemon = undefined;
-
-		this.pokemonElements[previousPokemon].html = this.renderPokemonElement(previousPokemon);
-		this.pokemonElements[previousPokemon].selected = false;
-		this.noPokemonElement.html = this.renderNoPokemonElement();
-		this.noPokemonElement.selected = true;
-
-		if (!replicating) this.props.onClearPokemon(this.pickerIndex, dontRender);
+	onPick(pick: string, dontRender?: boolean): void {
+		this.props.onPick(this.pickerIndex, {pokemon: pick, shiny: this.shininess}, dontRender);
 	}
 
-	selectPokemon(pokemon: string, dontRender?: boolean, replicating?: boolean): void {
-		if (this.currentPokemon === pokemon) return;
+	pickShininess(shininess: boolean, dontRender?: boolean, replicatedFrom?: PokemonPickerBase): void {
+		if (this.shininess === shininess) return;
 
-		const previousPokemon = this.currentPokemon;
-		this.currentPokemon = pokemon;
-		if (previousPokemon) {
-			this.pokemonElements[previousPokemon].html = this.renderPokemonElement(previousPokemon);
-			this.pokemonElements[previousPokemon].selected = false;
-		} else {
-			this.noPokemonElement.html = this.renderNoPokemonElement();
-			this.noPokemonElement.selected = false;
-		}
-		this.pokemonElements[this.currentPokemon].html = this.renderPokemonElement(this.currentPokemon);
-		this.pokemonElements[this.currentPokemon].selected = true;
+		this.shininess = shininess;
 
-		this.onSelectPokemon(dontRender, replicating);
+		if (!replicatedFrom) this.props.onPickShininess(this.pickerIndex, shininess, dontRender);
+
+		this.replicatePickShininess(shininess, replicatedFrom);
 	}
 
-	setShininess(shiny: boolean): void {
-		if (this.shinyPokemon === shiny) return;
-
-		this.shinyPokemon = shiny;
-
-		this.onSelectPokemon();
+	parentPickShininess(shiny: boolean): void {
+		this.pickShininess(shiny, true);
 	}
 
-	onSelectPokemon(dontRender?: boolean, replicating?: boolean): void {
-		if (!replicating) {
-			if (this.currentPokemon) {
-				this.props.onSelectPokemon(this.pickerIndex, this.currentPokemon, this.shinyPokemon, dontRender);
-			} else if (!dontRender) {
-				this.props.onUpdateView();
-			}
+	replicatePickShininess(shininess: boolean, replicatedFrom: PokemonPickerBase | undefined): void {
+		for (const target of this.replicationTargets) {
+			if (!replicatedFrom || target !== replicatedFrom) target.pickShininess(shininess, true, this);
 		}
 	}
 
@@ -131,26 +90,14 @@ export abstract class PokemonPickerBase extends ComponentBase {
 		if (cmd === setShininess) {
 			const target = targets[0].trim();
 			if (target === setShiny) {
-				this.setShininess(true);
+				this.pickShininess(true);
 			} else if (target === setNotShiny) {
-				this.setShininess(false);
+				this.pickShininess(false);
 			} else {
 				return "'" + target + "' is not a valid shininess option.";
 			}
-		} else if (cmd === setPokemonCommand) {
-			const pokemon = targets[0].trim();
-			const cleared = pokemon === noPokemon;
-			if (!cleared && !(pokemon in this.pokemonElements)) {
-				return "'" + pokemon + "' is not a valid Pokemon.";
-			}
-
-			if (cleared) {
-				this.clearPokemon();
-			} else {
-				this.selectPokemon(pokemon);
-			}
 		} else {
-			return this.checkComponentCommands(cmd, targets);
+			return super.tryCommand(originalTargets);
 		}
 	}
 
@@ -158,9 +105,9 @@ export abstract class PokemonPickerBase extends ComponentBase {
 		let html = "";
 		if (this.props.gif) {
 			html = "Shiny: ";
-			html += Client.getPmSelfButton(this.commandPrefix + ", " + setShininess + "," + setShiny, "Yes", this.shinyPokemon);
+			html += Client.getPmSelfButton(this.commandPrefix + ", " + setShininess + "," + setShiny, "Yes", this.shininess);
 			html += "&nbsp;";
-			html += Client.getPmSelfButton(this.commandPrefix + ", " + setShininess + "," + setNotShiny, "No", !this.shinyPokemon);
+			html += Client.getPmSelfButton(this.commandPrefix + ", " + setShininess + "," + setNotShiny, "No", !this.shininess);
 		}
 
 		return html;

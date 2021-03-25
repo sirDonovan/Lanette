@@ -4,24 +4,15 @@ import type { GifGeneration, TrainerSpriteId } from "../types/dex";
 import type { IRandomGameAnswer } from "../types/games";
 import type { HexCode } from "../types/tools";
 import type { User } from "../users";
-import type { HueVariation, Lightness } from "./components/color-picker";
+import type { IColorPick } from "./components/color-picker";
 import { CustomHostDisplay } from "./components/custom-host-display";
+import type { IPokemonPick } from "./components/pokemon-picker-base";
 import { RandomHostDisplay } from "./components/random-host-display";
-import type { TrainerGen } from "./components/trainer-picker";
+import type { ITrainerPick } from "./components/trainer-picker";
 import { HtmlPageBase } from "./html-page-base";
 
-export interface IPokemonChoice {
-	pokemon: string;
-	shiny?: boolean;
-}
-
-export interface ITrainerChoice {
-	trainer: TrainerSpriteId;
-	gen: TrainerGen;
-}
-
-export type PokemonChoices = (IPokemonChoice | undefined)[];
-export type TrainerChoices = (ITrainerChoice | undefined)[];
+export type PokemonChoices = (IPokemonPick | undefined)[];
+export type TrainerChoices = (ITrainerPick | undefined)[];
 export type GifIcon = 'gif' | 'icon';
 
 const excludedHintGames: string[] = ['hypnoshunches', 'mareaniesmarquees', 'pikachusmysterypokemon', 'smearglesmysterymoves',
@@ -77,18 +68,15 @@ class GameHostControlPanel extends HtmlPageBase {
 			maxIcons,
 			maxTrainers,
 			clearBackgroundColor: () => this.clearBackgroundColor(),
-			setBackgroundColor: (color: HexCode) => this.setBackgroundColor(color),
-			randomizeBackgroundColor: (hueVariation: HueVariation, lightness: Lightness, color: HexCode) => {
-				this.randomizeBackgroundColor(hueVariation, lightness, color);
-			},
+			setBackgroundColor: (color: IColorPick) => this.setBackgroundColor(color),
 			clearPokemon: (index: number) => this.clearPokemon(index),
-			selectPokemon: (index: number, pokemon: IPokemonChoice) => this.selectPokemon(index, pokemon),
+			selectPokemon: (index: number, pokemon: IPokemonPick) => this.selectPokemon(index, pokemon),
 			randomizePokemon: (pokemon: PokemonChoices) => this.randomizePokemon(pokemon),
 			clearTrainer: (index: number) => this.clearTrainer(index),
-			selectTrainer: (index: number, trainer: ITrainerChoice) => this.selectTrainer(index, trainer),
+			selectTrainer: (index: number, trainer: ITrainerPick) => this.selectTrainer(index, trainer),
 			randomizeTrainers: (trainers: TrainerChoices) => this.randomizeTrainers(trainers),
 			setGifOrIcon: (gifOrIcon: GifIcon, currentPokemon: PokemonChoices) => this.setGifOrIcon(gifOrIcon, currentPokemon),
-			onUpdateView: () => this.send(),
+			reRender: () => this.send(),
 		};
 
 		this.currentView = room.userHostedGame && room.userHostedGame.isHost(user) ? 'hostinformation' : 'customdisplay';
@@ -175,15 +163,12 @@ class GameHostControlPanel extends HtmlPageBase {
 		this.send();
 	}
 
-	setBackgroundColor(color: HexCode): void {
-		this.currentBackgroundColor = color;
+	setBackgroundColor(color: IColorPick): void {
+		this.currentBackgroundColor = color.hexCode;
 
-		this.send();
-	}
-
-	randomizeBackgroundColor(hueVariation: HueVariation, lightness: Lightness, color: HexCode): void {
-		this.currentBackgroundColor = color;
-		this.customHostDisplay.setRandomizedBackgroundColor(hueVariation, lightness, color);
+		if (this.currentView === 'randomdisplay') {
+			this.customHostDisplay.setRandomizedBackgroundColor(color.hueVariation, color.lightness, color.hexCode);
+		}
 
 		this.send();
 	}
@@ -194,7 +179,7 @@ class GameHostControlPanel extends HtmlPageBase {
 		this.send();
 	}
 
-	selectPokemon(index: number, pokemon: IPokemonChoice): void {
+	selectPokemon(index: number, pokemon: IPokemonPick): void {
 		this.currentPokemon[index] = pokemon;
 
 		this.send();
@@ -213,7 +198,7 @@ class GameHostControlPanel extends HtmlPageBase {
 		this.send();
 	}
 
-	selectTrainer(index: number, trainer: ITrainerChoice): void {
+	selectTrainer(index: number, trainer: ITrainerPick): void {
 		this.currentTrainers[index] = trainer;
 
 		this.send();

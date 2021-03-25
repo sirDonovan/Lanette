@@ -1,17 +1,17 @@
 import type { HexCode } from "../../types/tools";
 import type { HueVariation, Lightness } from "./color-picker";
 import { PokemonPickerLetter } from "./pokemon-picker-letter";
-import type { IHostDislayProps } from "./host-display-base";
+import type { IHostDisplayProps } from "./host-display-base";
 import { HostDisplayBase } from "./host-display-base";
 import type { PokemonChoices, TrainerChoices } from "../game-host-control-panel";
 
 export class CustomHostDisplay extends HostDisplayBase {
-	displayName: string = 'custom-display';
+	componentId: string = 'custom-host-display';
 
 	gifPokemonPickers!: PokemonPickerLetter[];
 	iconPokemonPickers!: PokemonPickerLetter[];
 
-	constructor(parentCommandPrefix: string, componentCommand: string, props: IHostDislayProps) {
+	constructor(parentCommandPrefix: string, componentCommand: string, props: IHostDisplayProps) {
 		super(parentCommandPrefix, componentCommand, props, PokemonPickerLetter);
 	}
 
@@ -31,7 +31,7 @@ export class CustomHostDisplay extends HostDisplayBase {
 		this.currentPokemon = [];
 		for (let i = 0; i < pokemon.length; i++) {
 			if (this.gifPokemonPickers[i]) this.gifPokemonPickers[i].setRandomizedPokemon(pokemon[i]!.pokemon);
-			this.iconPokemonPickers[i].setRandomizedPokemon(pokemon[i]!.pokemon);
+			if (this.iconPokemonPickers[i]) this.iconPokemonPickers[i].setRandomizedPokemon(pokemon[i]!.pokemon);
 		}
 
 		const index = pokemon.length - 1;

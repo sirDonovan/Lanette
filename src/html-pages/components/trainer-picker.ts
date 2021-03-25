@@ -1,17 +1,16 @@
 import type { TrainerSpriteId } from "../../types/dex";
-import type { ITrainerChoice } from "../game-host-control-panel";
-import { ComponentBase } from "./component-base";
-import type { IPageElement } from "./pagination";
 import { Pagination } from "./pagination";
+import type { IPickerProps } from "./picker-base";
+import { PickerBase } from "./picker-base";
 
-interface ITrainerPickerProps {
-	currentTrainer: TrainerSpriteId | undefined;
+export interface ITrainerPick {
+	trainer: TrainerSpriteId;
+	gen: TrainerGen;
+}
+
+interface ITrainerPickerProps extends IPickerProps<ITrainerPick> {
 	random?: boolean;
-	pickerIndex?: number;
 	onSetTrainerGen: (trainerGen: TrainerGen) => void;
-	onClearTrainer: (index: number, dontRender?: boolean) => void;
-	onSelectTrainer: (index: number, selectedTrainer: ITrainerChoice, dontRender?: boolean) => void;
-	onUpdateView: () => void;
 }
 
 export type TrainerGen = 'newer' | 'gen1' | 'gen2' | 'gen3' | 'gen4';
@@ -23,110 +22,130 @@ const genFourSuffixes: string[] = ['gen4', 'gen4dp', 'gen4pt'];
 
 const pagesLabel = "Trainers";
 
-const setTrainerCommand = 'settrainer';
 const newerTrainersCommand = 'newertrainers';
 const genOneTrainersCommand = 'gen1';
 const genTwoTrainersCommand = 'gen2';
 const genThreeTrainersCommand = 'gen3';
 const genFourTrainersCommand = 'gen4';
-const randomTrainerCommand = 'randomtrainer';
 const trainersListCommand = 'trainerslist';
-const noTrainer = "None";
 
-export class TrainerPicker extends ComponentBase {
+const newerTrainersPerRow = 5;
+const olderTrainersPerRow = 4;
+const rowsPerPage = 3;
+
+export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps> {
 	static trainerSprites: Dict<string> = {};
-	static trainerNames: Dict<string> = {};
+	static allTrainerNames: Dict<string> = {};
 	static newerTrainerIds: TrainerSpriteId[] = [];
+	static newerTrainerNames: Dict<string> = {};
 	static genOneTrainerIds: TrainerSpriteId[] = [];
+	static genOneTrainerNames: Dict<string> = {};
 	static genTwoTrainerIds: TrainerSpriteId[] = [];
+	static genTwoTrainerNames: Dict<string> = {};
 	static genThreeTrainerIds: TrainerSpriteId[] = [];
+	static genThreeTrainerNames: Dict<string> = {};
 	static genFourTrainerIds: TrainerSpriteId[] = [];
+	static genFourTrainerNames: Dict<string> = {};
 	static TrainerPickerLoaded: boolean = false;
 
+	componentId: string = 'trainer-picker';
 	trainerGen: TrainerGen = 'newer';
 
-	currentTrainerId: TrainerSpriteId | undefined;
 	newerTrainersPagination: Pagination;
 	genOneTrainersPagination: Pagination;
 	genTwoTrainersPagination: Pagination;
 	genThreeTrainersPagination: Pagination;
 	genFourTrainersPagination: Pagination;
-	pickerIndex: number;
-	trainerElements: Dict<IPageElement> = {};
-	noTrainerElement: IPageElement = {html: ""};
 
 	paginations: Pagination[] = [];
 
-	props: ITrainerPickerProps;
-
 	constructor(parentCommandPrefix: string, componentCommand: string, props: ITrainerPickerProps) {
-		super(parentCommandPrefix, componentCommand);
+		super(parentCommandPrefix, componentCommand, props);
 
 		TrainerPicker.loadData();
 
-		this.currentTrainerId = props.currentTrainer;
-		this.pickerIndex = props.pickerIndex || 0;
-
-		if (this.currentTrainerId) {
-			if (TrainerPicker.genOneTrainerIds.includes(this.currentTrainerId)) {
+		if (this.currentPick) {
+			const id = this.currentPick as TrainerSpriteId;
+			if (TrainerPicker.genOneTrainerIds.includes(id)) {
 				this.trainerGen = 'gen1';
-			} else if (TrainerPicker.genTwoTrainerIds.includes(this.currentTrainerId)) {
+			} else if (TrainerPicker.genTwoTrainerIds.includes(id)) {
 				this.trainerGen = 'gen2';
-			} else if (TrainerPicker.genThreeTrainerIds.includes(this.currentTrainerId)) {
+			} else if (TrainerPicker.genThreeTrainerIds.includes(id)) {
 				this.trainerGen = 'gen3';
-			} else if (TrainerPicker.genFourTrainerIds.includes(this.currentTrainerId)) {
+			} else if (TrainerPicker.genFourTrainerIds.includes(id)) {
 				this.trainerGen = 'gen4';
 			}
 		}
-		this.noTrainerElement.selected = !this.currentTrainerId;
-		this.noTrainerElement.html = this.renderNoTrainerElement();
 
-		for (const i in TrainerPicker.trainerNames) {
-			this.trainerElements[i] = {html: this.renderTrainerElement(i), selected: i === this.currentTrainerId};
+		for (const i in TrainerPicker.newerTrainerNames) {
+			this.choices[i] = {trainer: i as TrainerSpriteId, gen: 'newer'};
 		}
 
+		for (const i in TrainerPicker.genOneTrainerNames) {
+			this.choices[i] = {trainer: i as TrainerSpriteId, gen: 'gen1'};
+		}
+
+		for (const i in TrainerPicker.genTwoTrainerNames) {
+			this.choices[i] = {trainer: i as TrainerSpriteId, gen: 'gen2'};
+		}
+
+		for (const i in TrainerPicker.genThreeTrainerNames) {
+			this.choices[i] = {trainer: i as TrainerSpriteId, gen: 'gen3'};
+		}
+
+		for (const i in TrainerPicker.genFourTrainerNames) {
+			this.choices[i] = {trainer: i as TrainerSpriteId, gen: 'gen4'};
+		}
+
+		this.renderChoices();
+
 		this.newerTrainersPagination = new Pagination(this.commandPrefix, trainersListCommand, {
-			elements: [this.noTrainerElement].concat(TrainerPicker.newerTrainerIds.map(x => this.trainerElements[x])),
-			elementsPerRow: 5,
-			rowsPerPage: 3,
+			elements: [this.noPickElement].concat(TrainerPicker.newerTrainerIds.map(x => this.choiceElements[x])),
+			elementsPerRow: newerTrainersPerRow,
+			rowsPerPage,
 			pagesLabel,
-			onSelectPage: () => this.props.onUpdateView(),
+			onSelectPage: () => this.props.reRender(),
+			reRender: () => this.props.reRender(),
 		});
 		this.newerTrainersPagination.active = this.trainerGen === 'newer';
 
 		this.genOneTrainersPagination = new Pagination(this.commandPrefix, trainersListCommand, {
-			elements: [this.noTrainerElement].concat(TrainerPicker.genOneTrainerIds.map(x => this.trainerElements[x])),
-			elementsPerRow: 4,
-			rowsPerPage: 3,
+			elements: [this.noPickElement].concat(TrainerPicker.genOneTrainerIds.map(x => this.choiceElements[x])),
+			elementsPerRow: olderTrainersPerRow,
+			rowsPerPage,
 			pagesLabel,
-			onSelectPage: () => this.props.onUpdateView(),
+			onSelectPage: () => this.props.reRender(),
+			reRender: () => this.props.reRender(),
 		});
 		this.genOneTrainersPagination.active = this.trainerGen === 'gen1';
 
 		this.genTwoTrainersPagination = new Pagination(this.commandPrefix, trainersListCommand, {
-			elements: [this.noTrainerElement].concat(TrainerPicker.genTwoTrainerIds.map(x => this.trainerElements[x])),
-			elementsPerRow: 4,
-			rowsPerPage: 3,
+			elements: [this.noPickElement].concat(TrainerPicker.genTwoTrainerIds.map(x => this.choiceElements[x])),
+			elementsPerRow: olderTrainersPerRow,
+			rowsPerPage,
 			pagesLabel,
-			onSelectPage: () => this.props.onUpdateView(),
+			onSelectPage: () => this.props.reRender(),
+			reRender: () => this.props.reRender(),
 		});
 		this.genTwoTrainersPagination.active = this.trainerGen === 'gen2';
 
 		this.genThreeTrainersPagination = new Pagination(this.commandPrefix, trainersListCommand, {
-			elements: [this.noTrainerElement].concat(TrainerPicker.genThreeTrainerIds.map(x => this.trainerElements[x])),
-			elementsPerRow: 4,
-			rowsPerPage: 3,
+			elements: [this.noPickElement].concat(TrainerPicker.genThreeTrainerIds.map(x => this.choiceElements[x])),
+			elementsPerRow: olderTrainersPerRow,
+			rowsPerPage,
 			pagesLabel,
-			onSelectPage: () => this.props.onUpdateView(),
+			onSelectPage: () => this.props.reRender(),
+			reRender: () => this.props.reRender(),
 		});
 		this.genThreeTrainersPagination.active = this.trainerGen === 'gen3';
 
 		this.genFourTrainersPagination = new Pagination(this.commandPrefix, trainersListCommand, {
-			elements: [this.noTrainerElement].concat(TrainerPicker.genFourTrainerIds.map(x => this.trainerElements[x])),
-			elementsPerRow: 4,
-			rowsPerPage: 3,
+			elements: [this.noPickElement].concat(TrainerPicker.genFourTrainerIds.map(x => this.choiceElements[x])),
+			elementsPerRow: olderTrainersPerRow,
+			rowsPerPage,
 			pagesLabel,
-			onSelectPage: () => this.props.onUpdateView(),
+			onSelectPage: () => this.props.reRender(),
+			reRender: () => this.props.reRender(),
 		});
 		this.genFourTrainersPagination.active = this.trainerGen === 'gen4';
 
@@ -136,8 +155,6 @@ export class TrainerPicker extends ComponentBase {
 			this.genThreeTrainersPagination, this.genFourTrainersPagination];
 
 		this.paginations = this.components.slice() as Pagination[];
-
-		this.props = props;
 	}
 
 	static loadData(): void {
@@ -147,39 +164,37 @@ export class TrainerPicker extends ComponentBase {
 		for (const i in trainerSprites) {
 			const trainerId = i as TrainerSpriteId;
 			this.trainerSprites[trainerId] = Dex.getTrainerSprite(trainerSprites[trainerId]);
-			this.trainerNames[trainerId] = trainerSprites[trainerId];
+			this.allTrainerNames[trainerId] = trainerSprites[trainerId];
+
 			if (trainerSprites[trainerId].includes("-gen")) {
 				const gen = trainerSprites[trainerId].substr(trainerSprites[trainerId].lastIndexOf("-") + 1);
 				if (genOneSuffixes.includes(gen)) {
 					this.genOneTrainerIds.push(trainerId);
+					this.genOneTrainerNames[trainerId] = trainerSprites[trainerId];
 				} else if (genTwoSuffixes.includes(gen)) {
 					this.genTwoTrainerIds.push(trainerId);
+					this.genTwoTrainerNames[trainerId] = trainerSprites[trainerId];
 				} else if (genThreeSuffixes.includes(gen)) {
 					this.genThreeTrainerIds.push(trainerId);
+					this.genThreeTrainerNames[trainerId] = trainerSprites[trainerId];
 				} else if (genFourSuffixes.includes(gen)) {
 					this.genFourTrainerIds.push(trainerId);
+					this.genFourTrainerNames[trainerId] = trainerSprites[trainerId];
 				}
 			} else {
 				this.newerTrainerIds.push(trainerId);
+				this.newerTrainerNames[trainerId] = trainerSprites[trainerId];
 			}
 		}
 
 		this.TrainerPickerLoaded = true;
 	}
 
-	renderTrainerElement(trainerId: string): string {
-		const currentTrainer = this.currentTrainerId === trainerId;
-		const trainer = TrainerPicker.trainerSprites[trainerId] + "<br />" + TrainerPicker.trainerNames[trainerId];
-		return Client.getPmSelfButton(this.commandPrefix + ", " + setTrainerCommand + "," + trainerId, trainer,
-			currentTrainer);
+	getChoiceButtonHtml(choice: ITrainerPick): string {
+		return TrainerPicker.trainerSprites[choice.trainer] + "<br />" + TrainerPicker.allTrainerNames[choice.trainer];
 	}
 
-	renderNoTrainerElement(): string {
-		return Client.getPmSelfButton(this.commandPrefix + ", " + setTrainerCommand + ", " + noTrainer, "None",
-			!this.currentTrainerId);
-	}
-
-	setTrainerGen(trainerGen: TrainerGen, dontRender?: boolean): void {
+	pickTrainerGen(trainerGen: TrainerGen, dontRender?: boolean): void {
 		if (this.trainerGen === trainerGen) return;
 
 		this.trainerGen = trainerGen;
@@ -188,8 +203,8 @@ export class TrainerPicker extends ComponentBase {
 		if (!dontRender) this.props.onSetTrainerGen(trainerGen);
 	}
 
-	setTrainerGenParent(trainerGen: TrainerGen): void {
-		this.setTrainerGen(trainerGen, true);
+	parentPickTrainerGen(trainerGen: TrainerGen): void {
+		this.pickTrainerGen(trainerGen, true);
 	}
 
 	toggleActivePagination(autoSelectPage?: boolean): void {
@@ -210,43 +225,11 @@ export class TrainerPicker extends ComponentBase {
 	}
 
 	reset(): void {
-		this.setTrainerGen('newer', true);
-		this.clearTrainer(true);
+		this.pickTrainerGen('newer', true);
+		this.clear(true);
 	}
 
-	clearTrainer(dontRender?: boolean): void {
-		if (this.currentTrainerId === undefined) return;
-
-		const previousTrainerId = this.currentTrainerId;
-		this.currentTrainerId = undefined;
-
-		this.trainerElements[previousTrainerId].html = this.renderTrainerElement(previousTrainerId);
-		this.trainerElements[previousTrainerId].selected = false;
-		this.noTrainerElement.html = this.renderNoTrainerElement();
-		this.noTrainerElement.selected = true;
-
-		this.props.onClearTrainer(this.pickerIndex, dontRender);
-	}
-
-	selectTrainer(trainerGen: TrainerGen, trainer: TrainerSpriteId, dontRender?: boolean): void {
-		if (this.currentTrainerId === trainer) return;
-
-		const previousTrainerId = this.currentTrainerId;
-		this.currentTrainerId = trainer;
-		if (previousTrainerId) {
-			this.trainerElements[previousTrainerId].html = this.renderTrainerElement(previousTrainerId);
-			this.trainerElements[previousTrainerId].selected = false;
-		} else {
-			this.noTrainerElement.html = this.renderNoTrainerElement();
-			this.noTrainerElement.selected = false;
-		}
-		this.trainerElements[this.currentTrainerId].html = this.renderTrainerElement(this.currentTrainerId);
-		this.trainerElements[this.currentTrainerId].selected = true;
-
-		this.props.onSelectTrainer(this.pickerIndex, {trainer, gen: trainerGen}, dontRender);
-	}
-
-	selectRandomTrainer(trainerGen?: TrainerGen, parentTrainers?: string[]): boolean {
+	pickRandom(dontRender?: boolean, trainerGen?: TrainerGen, parentTrainers?: string[]): boolean {
 		if (!trainerGen) trainerGen = this.trainerGen;
 
 		let trainers: TrainerSpriteId[];
@@ -264,18 +247,19 @@ export class TrainerPicker extends ComponentBase {
 
 		const list = Tools.shuffle(trainers);
 		let trainer = list.shift()!;
-		while (trainer === this.currentTrainerId || (parentTrainers && parentTrainers.includes(trainer))) {
+		while (trainer === this.currentPick || (parentTrainers && parentTrainers.includes(trainer))) {
 			if (!list.length) return false;
 			trainer = list.shift()!;
 		}
 
-		this.selectTrainer(trainerGen, trainer, true);
+		this.pick(trainer, dontRender);
 		return true;
 	}
 
-	setRandomizedTrainer(trainer: ITrainerChoice): void {
-		this.setTrainerGen(trainer.gen, true);
-		this.selectTrainer(trainer.gen, trainer.trainer, true);
+	setRandomizedTrainer(trainer: ITrainerPick): void {
+		this.parentPickTrainerGen(trainer.gen);
+		this.parentPick(trainer.trainer);
+
 		this.toggleActivePagination(true);
 	}
 
@@ -285,31 +269,17 @@ export class TrainerPicker extends ComponentBase {
 		targets.shift();
 
 		if (cmd === newerTrainersCommand) {
-			this.setTrainerGen('newer');
+			this.pickTrainerGen('newer');
 		} else if (cmd === genOneTrainersCommand) {
-			this.setTrainerGen('gen1');
+			this.pickTrainerGen('gen1');
 		} else if (cmd === genTwoTrainersCommand) {
-			this.setTrainerGen('gen2');
+			this.pickTrainerGen('gen2');
 		} else if (cmd === genThreeTrainersCommand) {
-			this.setTrainerGen('gen3');
+			this.pickTrainerGen('gen3');
 		} else if (cmd === genFourTrainersCommand) {
-			this.setTrainerGen('gen4');
-		} else if (cmd === setTrainerCommand) {
-			const trainer = targets[0].trim();
-			const cleared = trainer === noTrainer;
-			if (!cleared && !(trainer in Dex.getData().trainerSprites)) {
-				return "'" + trainer + "' is not a valid trainer sprite.";
-			}
-
-			if (cleared) {
-				this.clearTrainer();
-			} else {
-				this.selectTrainer(this.trainerGen, trainer as TrainerSpriteId);
-			}
-		} else if (cmd === randomTrainerCommand) {
-			this.selectRandomTrainer();
+			this.pickTrainerGen('gen4');
 		} else {
-			return this.checkComponentCommands(cmd, targets);
+			return super.tryCommand(originalTargets);
 		}
 	}
 
@@ -331,8 +301,8 @@ export class TrainerPicker extends ComponentBase {
 
 		html += "<br /><br />";
 		if (this.props.random) {
-			html += this.renderNoTrainerElement();
-			html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + randomTrainerCommand, "Random Trainer");
+			html += this.renderNoPickElement();
+			html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + this.randomPickCommand, "Random Trainer");
 		} else {
 			if (newerTrainers) {
 				html += this.newerTrainersPagination.render();

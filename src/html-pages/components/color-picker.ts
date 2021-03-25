@@ -1,17 +1,22 @@
 import type { HexCode } from "../../types/tools";
-import { ComponentBase } from "./component-base";
+import type { IPickerProps } from "./picker-base";
+import { PickerBase } from "./picker-base";
 import type { IPageElement } from "./pagination";
 import { Pagination } from "./pagination";
 
 export type HueVariation = 'lowvariation' | 'standardvariation' | 'highvariation';
 export type Lightness = 'lowlightness' | 'standardlightness' | 'highlightness';
 
-interface IColorPickerProps {
-	currentColor: HexCode | undefined;
+export interface IColorPick {
+	hexCode: HexCode;
+	hueVariation: HueVariation;
+	lightness: Lightness;
+}
+
+interface IColorPickerProps extends IPickerProps<IColorPick> {
 	random?: boolean;
-	onClearColor: () => void;
-	onSelectColor: (selectedColor: HexCode) => void;
-	onUpdateView: () => void;
+	onPickHueVariation: (pickerIndex: number, pick: HueVariation, dontRender: boolean | undefined) => void;
+	onPickLightness: (pickerIndex: number, pick: Lightness, dontRender: boolean | undefined) => void;
 }
 
 const colorsPerRow = 15;
@@ -32,12 +37,9 @@ const lowLightness = 'lowlightness';
 const standardLightness = 'standardlightness';
 const highLightness = 'highlightness';
 
-const randomColorCommand = 'randomcolor';
 const huesListCommand = 'hueslist';
-const colorCommand = 'color';
-const noColor = "None";
 
-export class ColorPicker extends ComponentBase {
+export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 	static lowLightnessLowVariation: HexCode[] = [];
 	static lowLightnessStandardVariation: HexCode[] = [];
 	static lowLightnessHighVariation: HexCode[] = [];
@@ -49,11 +51,10 @@ export class ColorPicker extends ComponentBase {
 	static highLightnessHighVariation: HexCode[] = [];
 	static ColorPickerLoaded: boolean = false;
 
+	componentId: string = 'color-picker';
+
 	lightness: Lightness;
-	currentColor: HexCode | undefined;
-	colorElements: Dict<IPageElement> = {};
 	hueVariation: HueVariation;
-	noColorElement: IPageElement = {html: ""};
 
 	lowLightnessLowVariationPagination: Pagination;
 	lowLightnessStandardVariationPagination: Pagination;
@@ -67,63 +68,92 @@ export class ColorPicker extends ComponentBase {
 
 	paginations: Pagination[] = [];
 
-	props: IColorPickerProps;
-
 	constructor(parentCommandPrefix: string, componentCommand: string, props: IColorPickerProps) {
-		super(parentCommandPrefix, componentCommand);
+		super(parentCommandPrefix, componentCommand, props);
 
 		ColorPicker.loadData();
 
-		this.currentColor = props.currentColor;
-
-		if (props.currentColor && props.currentColor in Tools.hexCodes) {
-			if (Tools.hexCodes[props.currentColor]!.category === 'light') {
+		if (this.currentPick && this.currentPick in Tools.hexCodes) {
+			const hexCode = this.currentPick as HexCode;
+			if (Tools.hexCodes[hexCode]!.category === 'light') {
 				this.lightness = 'highlightness';
-				if (ColorPicker.highLightnessLowVariation.includes(props.currentColor)) {
+				if (ColorPicker.highLightnessLowVariation.includes(hexCode)) {
 					this.hueVariation = 'lowvariation';
-				} else if (ColorPicker.highLightnessStandardVariation.includes(props.currentColor)) {
+				} else if (ColorPicker.highLightnessStandardVariation.includes(hexCode)) {
 					this.hueVariation = 'standardvariation';
 				} else {
 					this.hueVariation = 'highvariation';
 				}
-			} else if (Tools.hexCodes[props.currentColor]!.category === 'dark') {
+			} else if (Tools.hexCodes[hexCode]!.category === 'dark') {
 				this.lightness = 'lowlightness';
-				if (ColorPicker.lowLightnessLowVariation.includes(props.currentColor)) {
+				if (ColorPicker.lowLightnessLowVariation.includes(hexCode)) {
 					this.hueVariation = 'lowvariation';
-				} else if (ColorPicker.lowLightnessStandardVariation.includes(props.currentColor)) {
+				} else if (ColorPicker.lowLightnessStandardVariation.includes(hexCode)) {
 					this.hueVariation = 'standardvariation';
 				} else {
 					this.hueVariation = 'highvariation';
 				}
 			} else {
 				this.lightness = 'standardlightness';
-				if (ColorPicker.standardLightnessLowVariation.includes(props.currentColor)) {
+				if (ColorPicker.standardLightnessLowVariation.includes(hexCode)) {
 					this.hueVariation = 'lowvariation';
-				} else if (ColorPicker.standardLightnessStandardVariation.includes(props.currentColor)) {
+				} else if (ColorPicker.standardLightnessStandardVariation.includes(hexCode)) {
 					this.hueVariation = 'standardvariation';
 				} else {
 					this.hueVariation = 'highvariation';
 				}
 			}
 		} else {
-			this.noColorElement.selected = true;
+			this.currentPick = undefined;
+			this.noPickElement.html = this.renderNoPickElement();
+			this.noPickElement.selected = true;
 			this.lightness = 'lowlightness';
 			this.hueVariation = 'lowvariation';
 		}
 
-		for (const key of ColorPicker.lowLightnessHighVariation) {
-			this.colorElements[key] = {html: this.renderColorElement(key), selected: key === this.currentColor};
+		for (const hexCode of ColorPicker.lowLightnessLowVariation) {
+			this.choices[hexCode] = {hexCode, lightness: 'lowlightness', hueVariation: 'lowvariation'};
 		}
 
-		for (const key of ColorPicker.standardLightnessHighVariation) {
-			this.colorElements[key] = {html: this.renderColorElement(key), selected: key === this.currentColor};
+		for (const hexCode of ColorPicker.lowLightnessStandardVariation) {
+			if (hexCode in this.choices) continue;
+			this.choices[hexCode] = {hexCode, lightness: 'lowlightness', hueVariation: 'standardvariation'};
 		}
 
-		for (const key of ColorPicker.highLightnessHighVariation) {
-			this.colorElements[key] = {html: this.renderColorElement(key), selected: key === this.currentColor};
+		for (const hexCode of ColorPicker.lowLightnessHighVariation) {
+			if (hexCode in this.choices) continue;
+			this.choices[hexCode] = {hexCode, lightness: 'lowlightness', hueVariation: 'highvariation'};
 		}
 
-		this.noColorElement.html = this.renderNoColorElement();
+		for (const hexCode of ColorPicker.standardLightnessLowVariation) {
+			this.choices[hexCode] = {hexCode, lightness: 'standardlightness', hueVariation: 'lowvariation'};
+		}
+
+		for (const hexCode of ColorPicker.standardLightnessStandardVariation) {
+			if (hexCode in this.choices) continue;
+			this.choices[hexCode] = {hexCode, lightness: 'standardlightness', hueVariation: 'standardvariation'};
+		}
+
+		for (const hexCode of ColorPicker.standardLightnessHighVariation) {
+			if (hexCode in this.choices) continue;
+			this.choices[hexCode] = {hexCode, lightness: 'standardlightness', hueVariation: 'highvariation'};
+		}
+
+		for (const hexCode of ColorPicker.highLightnessLowVariation) {
+			this.choices[hexCode] = {hexCode, lightness: 'highlightness', hueVariation: 'lowvariation'};
+		}
+
+		for (const hexCode of ColorPicker.highLightnessStandardVariation) {
+			if (hexCode in this.choices) continue;
+			this.choices[hexCode] = {hexCode, lightness: 'highlightness', hueVariation: 'standardvariation'};
+		}
+
+		for (const hexCode of ColorPicker.highLightnessHighVariation) {
+			if (hexCode in this.choices) continue;
+			this.choices[hexCode] = {hexCode, lightness: 'highlightness', hueVariation: 'highvariation'};
+		}
+
+		this.renderChoices();
 
 		this.lowLightnessLowVariationPagination = this.createColorPagination(ColorPicker.lowLightnessLowVariation);
 		this.lowLightnessStandardVariationPagination = this.createColorPagination(ColorPicker.lowLightnessStandardVariation);
@@ -145,8 +175,6 @@ export class ColorPicker extends ComponentBase {
 		];
 
 		this.paginations = this.components.slice() as Pagination[];
-
-		this.props = props;
 	}
 
 	static loadData(): void {
@@ -191,10 +219,10 @@ export class ColorPicker extends ComponentBase {
 	}
 
 	createColorPagination(colors: HexCode[]): Pagination {
-		const elements: IPageElement[] = [this.noColorElement];
+		const elements: IPageElement[] = [this.noPickElement];
 
 		for (const color of colors) {
-			elements.push(this.colorElements[color]);
+			elements.push(this.choiceElements[color]);
 		}
 
 		return new Pagination(this.commandPrefix, huesListCommand, {
@@ -202,29 +230,26 @@ export class ColorPicker extends ComponentBase {
 			elementsPerRow: colorsPerRow,
 			rowsPerPage,
 			pagesLabel,
-			onSelectPage: () => this.props.onUpdateView(),
+			onSelectPage: () => this.props.reRender(),
+			reRender: () => this.props.reRender(),
 		});
 	}
 
-	renderColorElement(color: HexCode): string {
-		const currentColor = this.currentColor === color;
-		let colorDiv = "<div style='background: " + Tools.hexCodes[color]!.gradient + ";height: 15px;width: 15px";
+	getChoiceButtonHtml(choice: IColorPick): string {
+		const currentColor = this.currentPick === choice.hexCode;
+
+		let colorDiv = "<div style='background: " + Tools.hexCodes[choice.hexCode]!.gradient + ";height: 15px;width: 15px";
 		if (currentColor) {
 			colorDiv += ";color: ";
-			if (Tools.hexCodes[color]!.textColor) {
-				colorDiv += Tools.hexCodes[color]!.textColor;
+			if (Tools.hexCodes[choice.hexCode]!.textColor) {
+				colorDiv += Tools.hexCodes[choice.hexCode]!.textColor;
 			} else {
 				colorDiv += '#000000';
 			}
 		}
 		colorDiv += "'>" + (currentColor ? "<b>X</b>" : "&nbsp;") + "</div>";
 
-		return Client.getPmSelfButton(this.commandPrefix + ", " + colorCommand + ", " + color, colorDiv, currentColor);
-	}
-
-	renderNoColorElement(): string {
-		return Client.getPmSelfButton(this.commandPrefix + ", " + colorCommand + ", " + noColor, "None",
-			!this.currentColor);
+		return colorDiv;
 	}
 
 	toggleActivePagination(autoSelectPage?: boolean): void {
@@ -257,61 +282,35 @@ export class ColorPicker extends ComponentBase {
 		}
 	}
 
-	setHueVariation(hueVariation: HueVariation, dontRender?: boolean): void {
+	pickHueVariation(hueVariation: HueVariation, dontRender?: boolean): void {
 		if (this.hueVariation === hueVariation) return;
 
 		this.hueVariation = hueVariation;
 
-		if (!dontRender) {
-			this.toggleActivePagination();
-			this.props.onUpdateView();
-		}
+		this.toggleActivePagination();
+
+		this.props.onPickHueVariation(this.pickerIndex, hueVariation, dontRender);
 	}
 
-	setLightness(lightness: Lightness, dontRender?: boolean): void {
+	parentPickHueVariation(hueVariation: HueVariation): void {
+		return this.pickHueVariation(hueVariation, true);
+	}
+
+	pickLightness(lightness: Lightness, dontRender?: boolean): void {
 		if (this.lightness === lightness) return;
 
 		this.lightness = lightness;
 
-		if (!dontRender) {
-			this.toggleActivePagination();
-			this.props.onUpdateView();
-		}
+		this.toggleActivePagination();
+
+		this.props.onPickLightness(this.pickerIndex, lightness, dontRender);
 	}
 
-	clearColor(dontRender?: boolean): void {
-		if (this.currentColor === undefined) return;
-
-		const previousColor = this.currentColor;
-		this.currentColor = undefined;
-
-		this.colorElements[previousColor].html = this.renderColorElement(previousColor);
-		this.colorElements[previousColor].selected = false;
-		this.noColorElement.html = this.renderNoColorElement();
-		this.noColorElement.selected = true;
-
-		if (!dontRender) this.props.onClearColor();
+	parentPickLightness(lightness: Lightness): void {
+		return this.pickLightness(lightness, true);
 	}
 
-	selectColor(color: HexCode, dontRender?: boolean): void {
-		if (this.currentColor === color) return;
-
-		const previousColor = this.currentColor;
-		this.currentColor = color;
-		if (previousColor) {
-			this.colorElements[previousColor].html = this.renderColorElement(previousColor);
-			this.colorElements[previousColor].selected = false;
-		} else {
-			this.noColorElement.html = this.renderNoColorElement();
-			this.noColorElement.selected = false;
-		}
-		this.colorElements[this.currentColor].html = this.renderColorElement(this.currentColor);
-		this.colorElements[this.currentColor].selected = true;
-
-		if (!dontRender) this.props.onSelectColor(color);
-	}
-
-	selectRandomColor(): void {
+	pickRandom(dontRender?: boolean): void {
 		let colors: HexCode[];
 		if (this.lightness === 'lowlightness') {
 			if (this.hueVariation === 'lowvariation') {
@@ -340,17 +339,17 @@ export class ColorPicker extends ComponentBase {
 		}
 
 		let color = Tools.sampleOne(colors);
-		while (color === this.currentColor) {
+		while (color === this.currentPick) {
 			color = Tools.sampleOne(colors);
 		}
 
-		this.selectColor(color);
+		this.pick(color, dontRender);
 	}
 
 	setRandomizedColor(hueVariation: HueVariation, lightness: Lightness, color: HexCode): void {
-		this.setHueVariation(hueVariation, true);
-		this.setLightness(lightness, true);
-		this.selectColor(color, true);
+		this.parentPickHueVariation(hueVariation);
+		this.parentPickLightness(lightness);
+		this.parentPick(color);
 
 		this.toggleActivePagination(true);
 	}
@@ -363,33 +362,19 @@ export class ColorPicker extends ComponentBase {
 		if (cmd === hueVariationCommand) {
 			const variation = Tools.toId(targets[0]) as HueVariation | '';
 			if (variation === 'lowvariation' || variation === 'standardvariation' || variation === 'highvariation') {
-				this.setHueVariation(variation);
+				this.pickHueVariation(variation);
 			} else {
 				return "'" + variation + "' is not a valid hue variation.";
 			}
 		} else if (cmd === lightnessCommand) {
 			const lightness = Tools.toId(targets[0]) as Lightness | '';
 			if (lightness === 'lowlightness' || lightness === 'standardlightness' || lightness === 'highlightness') {
-				this.setLightness(lightness);
+				this.pickLightness(lightness);
 			} else {
 				return "'" + lightness + "' is not a valid lightness.";
 			}
-		} else if (cmd === colorCommand) {
-			const color = targets[0].trim() as HexCode | typeof noColor | '';
-			const cleared = color === noColor;
-			if (!cleared && !(color in Tools.hexCodes)) {
-				return "'" + color + "' is not a valid color.";
-			}
-
-			if (cleared) {
-				this.clearColor();
-			} else {
-				this.selectColor(color as HexCode);
-			}
-		} else if (cmd === randomColorCommand) {
-			this.selectRandomColor();
 		} else {
-			return this.checkComponentCommands(cmd, targets);
+			return super.tryCommand(originalTargets);
 		}
 	}
 
@@ -427,8 +412,8 @@ export class ColorPicker extends ComponentBase {
 		html += "<br /><br />";
 
 		if (this.props.random) {
-			html += this.renderNoColorElement();
-			html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + randomColorCommand, "Random Color");
+			html += this.renderNoPickElement();
+			html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + this.randomPickCommand, "Random Color");
 		} else {
 			if (currentLowLightness) {
 				if (currentLowHueVariation) {

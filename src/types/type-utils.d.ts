@@ -7,11 +7,12 @@ type PartialKeyedDict<T extends string | number | symbol, U> = {[K in T]?: U };
 
 type PromiseResolve<T> = (value: T | PromiseLike<T>) => void;
 
-/*
-* Credit to @nieltg for the original Immutable and DeepImmutable* types
-*
-* https://github.com/microsoft/TypeScript/issues/13923#issuecomment-402901005
-*/
+// Credit to @ahejlsberg - https://github.com/microsoft/TypeScript/issues/42939#issuecomment-785316256
+type Branded<T, A> = A & { __brand: T };
+type BrandOf<A> = [A] extends [Branded<infer R, unknown>] ? R : never;
+type BrandedValue<A> = A extends Branded<BrandOf<A>, infer R> ? R : never;
+
+// Credit to @nieltg for the original Immutable and DeepImmutable* types - https://github.com/microsoft/TypeScript/issues/13923#issuecomment-402901005
 
 /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/array-type, @typescript-eslint/naming-convention, @typescript-eslint/no-empty-interface*/
 type PrimitiveTypes = undefined | null | boolean | string | number | Function;

@@ -1,3 +1,4 @@
+import type { IComponentProps } from "./component-base";
 import { ComponentBase } from "./component-base";
 
 export interface IPageElement {
@@ -5,7 +6,7 @@ export interface IPageElement {
 	selected?: boolean;
 }
 
-interface IPaginationProps {
+interface IPaginationProps extends IComponentProps {
 	elements: IPageElement[];
 	elementsPerRow: number;
 	rowsPerPage: number;
@@ -16,21 +17,21 @@ interface IPaginationProps {
 
 const pageCommand = 'gotopage';
 
-export class Pagination extends ComponentBase {
+export class Pagination extends ComponentBase<IPaginationProps> {
+	componentId: string = 'pagination';
+
 	currentPage: number;
 	elementsIncrement: number;
 	pagesLabel: string;
-	props: IPaginationProps;
 	totalPages!: number;
 
 	constructor(parentCommandPrefix: string, componentCommand: string, props: IPaginationProps) {
-		super(parentCommandPrefix, componentCommand);
+		super(parentCommandPrefix, componentCommand, props);
 
 		this.currentPage = props.currentPage || 0;
 		this.elementsIncrement = props.elementsPerRow * props.rowsPerPage;
 		this.pagesLabel = props.pagesLabel || "Pages";
 		this.totalPages = Math.ceil(props.elements.length / this.elementsIncrement);
-		this.props = props;
 
 		this.autoSelectPage();
 	}

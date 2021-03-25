@@ -3,6 +3,7 @@ import type { BaseCommandDefinitions } from "../types/command-parser";
 import type { IPokemon } from "../types/pokemon-showdown";
 import type { HexCode } from "../types/tools";
 import type { User } from "../users";
+import type { IColorPick } from "./components/color-picker";
 import { ColorPicker } from "./components/color-picker";
 import { HtmlPageBase } from "./html-page-base";
 
@@ -36,17 +37,21 @@ class GameHostBox extends HtmlPageBase {
 		}
 
 		this.backgroundColorPicker = new ColorPicker(this.commandPrefix, setBackgroundColorCommand, {
-			currentColor: currentBackgroundColor,
-			onClearColor: () => this.clearBackgroundColor(),
-			onSelectColor: color => this.setBackgroundColor(color),
-			onUpdateView: () => this.send(),
+			currentPick: currentBackgroundColor,
+			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
+			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),
+			onClear: (index, dontRender) => this.clearBackgroundColor(dontRender),
+			onPick: (index, color, dontRender) => this.setBackgroundColor(color, dontRender),
+			reRender: () => this.send(),
 		});
 
 		this.buttonColorPicker = new ColorPicker(this.commandPrefix, setButtonColorCommand, {
-			currentColor: currentButtonColor,
-			onClearColor: () => this.clearButtonsColor(),
-			onSelectColor: color => this.setButtonsColor(color),
-			onUpdateView: () => this.send(),
+			currentPick: currentButtonColor,
+			onPickHueVariation: (index, hueVariation, dontRender) => this.pickButtonHueVariation(dontRender),
+			onPickLightness: (index, lightness, dontRender) => this.pickButtonLightness(dontRender),
+			onClear: (index, dontRender) => this.clearButtonsColor(dontRender),
+			onPick: (index, color, dontRender) => this.setButtonsColor(color, dontRender),
+			reRender: () => this.send(),
 		});
 		this.buttonColorPicker.active = false;
 
@@ -79,36 +84,52 @@ class GameHostBox extends HtmlPageBase {
 		this.send();
 	}
 
-	clearBackgroundColor(): void {
+	pickBackgroundHueVariation(dontRender?: boolean): void {
+		if (!dontRender) this.send();
+	}
+
+	pickBackgroundLightness(dontRender?: boolean): void {
+		if (!dontRender) this.send();
+	}
+
+	clearBackgroundColor(dontRender?: boolean): void {
 		const database = Storage.getDatabase(this.room);
 		Storage.createGameHostBox(database, this.userId);
 		delete database.gameHostBoxes![this.userId].background;
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
-	setBackgroundColor(color: HexCode): void {
+	setBackgroundColor(color: IColorPick, dontRender?: boolean): void {
 		const database = Storage.getDatabase(this.room);
 		Storage.createGameHostBox(database, this.userId);
-		database.gameHostBoxes![this.userId].background = color;
+		database.gameHostBoxes![this.userId].background = color.hexCode;
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
-	clearButtonsColor(): void {
+	pickButtonHueVariation(dontRender?: boolean): void {
+		if (!dontRender) this.send();
+	}
+
+	pickButtonLightness(dontRender?: boolean): void {
+		if (!dontRender) this.send();
+	}
+
+	clearButtonsColor(dontRender?: boolean): void {
 		const database = Storage.getDatabase(this.room);
 		Storage.createGameHostBox(database, this.userId);
 		delete database.gameHostBoxes![this.userId].buttons;
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
-	setButtonsColor(color: HexCode): void {
+	setButtonsColor(color: IColorPick, dontRender?: boolean): void {
 		const database = Storage.getDatabase(this.room);
 		Storage.createGameHostBox(database, this.userId);
-		database.gameHostBoxes![this.userId].buttons = color;
+		database.gameHostBoxes![this.userId].buttons = color.hexCode;
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
 	render(): string {

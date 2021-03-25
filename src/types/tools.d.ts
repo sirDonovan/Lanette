@@ -1,4 +1,4 @@
-export type HexCode = string & {__hexcode: true};
+export type HexCode = Branded<"hex-code", string>;
 
 export type NamedHexCode = 'Red' | 'Dark-Red' | 'Light-Red' | 'Red-Orange' | 'Dark-Red-Orange' | 'Light-Red-Orange' | 'Orange' |
 	'Dark-Orange' | 'Light-Orange' | 'Yellow-Orange' | 'Dark-Yellow-Orange' | 'Light-Yellow-Orange' | 'Yellow' | 'Dark-Yellow' |

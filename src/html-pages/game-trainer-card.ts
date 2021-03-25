@@ -1,11 +1,11 @@
 import type { Room } from "../rooms";
 import type { BaseCommandDefinitions } from "../types/command-parser";
 import type { IGameTrainerCard } from "../types/storage";
-import type { HexCode } from "../types/tools";
 import type { User } from "../users";
+import type { IColorPick } from "./components/color-picker";
 import { ColorPicker } from "./components/color-picker";
 import { TrainerPicker } from "./components/trainer-picker";
-import type { ITrainerChoice } from "./game-host-control-panel";
+import type { ITrainerPick } from "./components/trainer-picker";
 import { HtmlPageBase } from "./html-page-base";
 
 const baseCommand = 'gametrainercard';
@@ -37,18 +37,20 @@ class GameTrainerCard extends HtmlPageBase {
 		if (database.gameTrainerCards && this.userId in database.gameTrainerCards) trainerCard = database.gameTrainerCards[this.userId];
 
 		this.backgroundColorPicker = new ColorPicker(this.commandPrefix, setBackgroundColorCommand, {
-			currentColor: trainerCard ? trainerCard.background : undefined,
-			onClearColor: () => this.clearBackgroundColor(),
-			onSelectColor: color => this.setBackgroundColor(color),
-			onUpdateView: () => this.send(),
+			currentPick: trainerCard ? trainerCard.background : undefined,
+			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
+			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),
+			onClear: (index, dontRender) => this.clearBackgroundColor(dontRender),
+			onPick: (index, color, dontRender) => this.setBackgroundColor(color, dontRender),
+			reRender: () => this.send(),
 		});
 
 		this.trainerPicker = new TrainerPicker(this.commandPrefix, setTrainerCommand, {
-			currentTrainer: trainerCard ? trainerCard.avatar : undefined,
+			currentPick: trainerCard ? trainerCard.avatar : undefined,
 			onSetTrainerGen: () => this.send(),
-			onClearTrainer: () => this.clearTrainer(),
-			onSelectTrainer: (index, trainer) => this.selectTrainer(trainer),
-			onUpdateView: () => this.send(),
+			onClear: (index, dontRender) => this.clearTrainer(dontRender),
+			onPick: (index, trainer, dontRender) => this.selectTrainer(trainer, dontRender),
+			reRender: () => this.send(),
 		});
 		this.trainerPicker.active = false;
 
@@ -81,36 +83,44 @@ class GameTrainerCard extends HtmlPageBase {
 		this.send();
 	}
 
-	clearBackgroundColor(): void {
+	pickBackgroundHueVariation(dontRender?: boolean): void {
+		if (!dontRender) this.send();
+	}
+
+	pickBackgroundLightness(dontRender?: boolean): void {
+		if (!dontRender) this.send();
+	}
+
+	clearBackgroundColor(dontRender?: boolean): void {
 		const database = Storage.getDatabase(this.room);
 		Storage.createGameTrainerCard(database, this.userId);
 		delete database.gameTrainerCards![this.userId].background;
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
-	setBackgroundColor(color: HexCode): void {
+	setBackgroundColor(color: IColorPick, dontRender?: boolean): void {
 		const database = Storage.getDatabase(this.room);
 		Storage.createGameTrainerCard(database, this.userId);
-		database.gameTrainerCards![this.userId].background = color;
+		database.gameTrainerCards![this.userId].background = color.hexCode;
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
-	clearTrainer(): void {
+	clearTrainer(dontRender?: boolean): void {
 		const database = Storage.getDatabase(this.room);
 		Storage.createGameTrainerCard(database, this.userId);
 		delete database.gameTrainerCards![this.userId].avatar;
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
-	selectTrainer(trainer: ITrainerChoice): void {
+	selectTrainer(trainer: ITrainerPick, dontRender?: boolean): void {
 		const database = Storage.getDatabase(this.room);
 		Storage.createGameTrainerCard(database, this.userId);
 		database.gameTrainerCards![this.userId].avatar = trainer.trainer;
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
 	render(): string {

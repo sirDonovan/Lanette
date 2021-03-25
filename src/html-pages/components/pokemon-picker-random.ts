@@ -11,7 +11,10 @@ export class PokemonPickerRandom extends PokemonPickerBase {
 	static typesWithFormes: string[] = [];
 	static PokemonPickerRandomLoaded: boolean = false;
 
+	componentId: string = 'pokemon-picker-random';
 	currentType: string | undefined = undefined;
+	replicationTargets: PokemonPickerRandom[] = [];
+
 	typePicker: TypePicker;
 
 	constructor(parentCommandPrefix: string, componentCommand: string, props: IPokemonPickerProps) {
@@ -20,11 +23,10 @@ export class PokemonPickerRandom extends PokemonPickerBase {
 		PokemonPickerRandom.loadData();
 
 		this.typePicker = new TypePicker(this.commandPrefix, setTypeCommand, {
-			currentType: undefined,
-			noTypeName: "Random",
-			onClearType: () => this.clearType(),
-			onSelectType: (index, type) => this.setType(type),
-			onUpdateView: () => this.props.onUpdateView(),
+			noPickName: "Random",
+			onClear: (index, dontRender) => this.clearType(dontRender),
+			onPick: (index, type, dontRender) => this.pickType(type, dontRender),
+			reRender: () => this.props.reRender(),
 		});
 
 		this.components = [this.typePicker];
@@ -63,44 +65,60 @@ export class PokemonPickerRandom extends PokemonPickerBase {
 		this.PokemonPickerRandomLoaded = true;
 	}
 
-	clearType(dontRender?: boolean): void {
+	clearType(dontRender?: boolean, replicatedFrom?: TypePicker): void {
 		if (this.currentType === undefined) return;
 
 		this.currentType = undefined;
 
-		if (!dontRender) this.props.onUpdateView();
+		if (!replicatedFrom) this.props.onClearType(this.pickerIndex, dontRender);
+
+		this.replicateClearType(replicatedFrom);
 	}
 
 	clearTypeParent(): void {
-		this.typePicker.clearType(true);
+		this.typePicker.clear(true);
 		this.clearType(true);
 	}
 
-	setType(type: string, dontRender?: boolean): void {
-		if (this.currentType === type) return;
-
-		this.currentType = type;
-
-		if (!dontRender) this.props.onUpdateView();
+	replicateClearType(replicatedFrom: TypePicker | undefined): void {
+		for (const target of this.replicationTargets) {
+			if (!replicatedFrom || target.typePicker !== replicatedFrom) target.typePicker.clear(true, this.typePicker);
+		}
 	}
 
-	setTypeParent(type: string): void {
-		this.typePicker.selectType(type, true);
-		this.setType(type, true);
+	pickType(pick: string, dontRender?: boolean, replicatedFrom?: TypePicker ): void {
+		if (this.currentType === pick) return;
+
+		this.currentType = pick;
+
+		if (!replicatedFrom) this.props.onPickType(this.pickerIndex, pick, dontRender);
+
+		this.replicatePickType(pick, replicatedFrom);
 	}
 
-	selectRandomPokemon(withFormes: boolean, parentPokemon?: string[]): boolean {
+	pickTypeParent(type: string): void {
+		this.typePicker.pick(type, true);
+		this.pickType(type, true);
+	}
+
+	replicatePickType(pick: string, replicatedFrom: TypePicker | undefined): void {
+		for (const target of this.replicationTargets) {
+			if (!replicatedFrom || target.typePicker !== replicatedFrom) target.typePicker.pick(pick, true, this.typePicker);
+		}
+	}
+
+	pickRandom(dontRender?: boolean, withFormes?: boolean, parentPokemon?: string[]): boolean {
 		const type = this.currentType || Tools.sampleOne(withFormes ? PokemonPickerRandom.typesWithFormes : PokemonPickerRandom.types);
 		const list = Tools.shuffle(withFormes ? PokemonPickerRandom.pokemonByTypeWithFormes[type] :
 			PokemonPickerRandom.pokemonByType[type]);
 
 		let pokemon = list.shift()!;
-		while (pokemon === this.currentPokemon || (parentPokemon && parentPokemon.includes(pokemon))) {
+		while (pokemon === this.currentPick || (parentPokemon && parentPokemon.includes(pokemon))) {
 			if (!list.length) return false;
 			pokemon = list.shift()!;
 		}
 
-		this.selectPokemon(pokemon, true);
+		this.pick(pokemon, dontRender);
 		return true;
 	}
 

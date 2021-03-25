@@ -1,5 +1,5 @@
 import { PokemonPickerRandom } from "./pokemon-picker-random";
-import type { IHostDislayProps } from "./host-display-base";
+import type { IHostDisplayProps } from "./host-display-base";
 import { HostDisplayBase } from "./host-display-base";
 import { TypePicker } from "./type-picker";
 import type { TrainerGen } from "./trainer-picker";
@@ -21,8 +21,7 @@ const genFourTrainersGen = 'gen4';
 const trainerGens: string[] = [newerTrainerGen, genOneTrainersGen, genTwoTrainersGen, genThreeTrainersGen, genFourTrainersGen];
 
 export class RandomHostDisplay extends HostDisplayBase {
-	displayName: string = 'random-display';
-
+	componentId: string = 'random-display';
 	currentType: string | undefined = undefined;
 	currentTrainerGen: TrainerGen | undefined = undefined;
 	formes: boolean = false;
@@ -34,15 +33,14 @@ export class RandomHostDisplay extends HostDisplayBase {
 	gifPokemonPickers!: PokemonPickerRandom[];
 	iconPokemonPickers!: PokemonPickerRandom[];
 
-	constructor(parentCommandPrefix: string, componentCommand: string, props: IHostDislayProps) {
+	constructor(parentCommandPrefix: string, componentCommand: string, props: IHostDisplayProps) {
 		super(parentCommandPrefix, componentCommand, props, PokemonPickerRandom);
 
 		this.allTypePicker = new TypePicker(this.commandPrefix, setTypeCommand, {
-			currentType: undefined,
-			noTypeName: "Random",
-			onClearType: () => this.clearType(),
-			onSelectType: (index, type) => this.setType(type),
-			onUpdateView: () => props.onUpdateView(),
+			noPickName: "Random",
+			onClear: (index, dontRender) => this.clearType(dontRender),
+			onPick: (index, type, dontRender) => this.setType(type, dontRender),
+			reRender: () => props.reRender(),
 		});
 		this.allTypePicker.active = false;
 
@@ -64,7 +62,7 @@ export class RandomHostDisplay extends HostDisplayBase {
 		}
 		this.currentPicker = 'background';
 
-		this.props.onUpdateView();
+		this.props.reRender();
 	}
 
 	choosePokemonPicker(): void {
@@ -84,7 +82,7 @@ export class RandomHostDisplay extends HostDisplayBase {
 		if (this.trainerPickerIndex !== -1) this.trainerPickers[this.trainerPickerIndex].active = false;
 		this.currentPicker = 'pokemon';
 
-		this.props.onUpdateView();
+		this.props.reRender();
 	}
 
 	chooseTrainerPicker(): void {
@@ -102,10 +100,10 @@ export class RandomHostDisplay extends HostDisplayBase {
 		}
 		this.currentPicker = 'trainer';
 
-		this.props.onUpdateView();
+		this.props.reRender();
 	}
 
-	clearType(): void {
+	clearType(dontRender?: boolean): void {
 		if (this.currentType === undefined) return;
 
 		this.currentType = undefined;
@@ -118,23 +116,23 @@ export class RandomHostDisplay extends HostDisplayBase {
 			pokemonPicker.clearTypeParent();
 		}
 
-		this.props.onUpdateView();
+		if (!dontRender) this.props.reRender();
 	}
 
-	setType(type: string): void {
+	setType(type: string, dontRender?: boolean): void {
 		if (this.currentType === type) return;
 
 		this.currentType = type;
 
 		for (const pokemonPicker of this.gifPokemonPickers) {
-			pokemonPicker.setTypeParent(type);
+			pokemonPicker.pickTypeParent(type);
 		}
 
 		for (const pokemonPicker of this.iconPokemonPickers) {
-			pokemonPicker.setTypeParent(type);
+			pokemonPicker.pickTypeParent(type);
 		}
 
-		this.props.onUpdateView();
+		if (!dontRender) this.props.reRender();
 	}
 
 	setPokemonPickerIndex(index: number): boolean {
@@ -163,7 +161,7 @@ export class RandomHostDisplay extends HostDisplayBase {
 			pokemonPickers[this.pokemonPickerIndex].active = true;
 		}
 
-		this.props.onUpdateView();
+		this.props.reRender();
 		return true;
 	}
 
@@ -188,7 +186,7 @@ export class RandomHostDisplay extends HostDisplayBase {
 
 		this.currentPokemon = [];
 		for (let i = 0; i < amount; i++) {
-			if (!pokemonPickers[i].selectRandomPokemon(this.formes, this.currentPokemon.map(x => x ? x.pokemon : ""))) break;
+			if (!pokemonPickers[i].pickRandom(true, this.formes, this.currentPokemon.map(x => x ? x.pokemon : ""))) break;
 		}
 
 		this.props.randomizePokemon(this.currentPokemon);
@@ -200,7 +198,7 @@ export class RandomHostDisplay extends HostDisplayBase {
 
 		this.formes = true;
 
-		this.props.onUpdateView();
+		this.props.reRender();
 	}
 
 	withoutFormes(): void {
@@ -208,7 +206,7 @@ export class RandomHostDisplay extends HostDisplayBase {
 
 		this.formes = false;
 
-		this.props.onUpdateView();
+		this.props.reRender();
 	}
 
 	clearTrainerGen(): void {
@@ -216,7 +214,7 @@ export class RandomHostDisplay extends HostDisplayBase {
 
 		this.currentTrainerGen = undefined;
 
-		this.props.onUpdateView();
+		this.props.reRender();
 	}
 
 	setTrainerGen(trainerGen: TrainerGen): void {
@@ -225,10 +223,10 @@ export class RandomHostDisplay extends HostDisplayBase {
 		this.currentTrainerGen = trainerGen;
 
 		for (const trainerPicker of this.trainerPickers) {
-			trainerPicker.setTrainerGenParent(trainerGen);
+			trainerPicker.parentPickTrainerGen(trainerGen);
 		}
 
-		this.props.onUpdateView();
+		this.props.reRender();
 	}
 
 	randomizeTrainers(amount: number): boolean {
@@ -246,7 +244,7 @@ export class RandomHostDisplay extends HostDisplayBase {
 
 		this.currentTrainers = [];
 		for (let i = 0; i < amount; i++) {
-			if (!this.trainerPickers[i].selectRandomTrainer(this.currentTrainerGen === undefined ?
+			if (!this.trainerPickers[i].pickRandom(true, this.currentTrainerGen === undefined ?
 				Tools.sampleOne(trainerGens) as TrainerGen : this.currentTrainerGen, this.currentTrainers.map(x => x ? x.trainer : ""))) {
 				break;
 			}
