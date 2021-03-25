@@ -28,6 +28,8 @@ class MiltanksMoves extends QuestionAndAnswer {
 		const pokedex = Games.getPokemonList(x => x.baseSpecies === x.name);
 		for (const pokemon of pokedex) {
 			const allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
+			if (allPossibleMoves.length === 1) continue;
+
 			for (const possibleMove of allPossibleMoves) {
 				if (bannedMoves.includes(possibleMove)) continue;
 				if (!(possibleMove in moveCache)) {
