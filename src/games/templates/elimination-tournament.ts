@@ -1576,7 +1576,7 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 			if (player.eliminated) {
 				if (this.disqualifiedPlayers.has(player)) {
 					user.say("You have already been disqualified from the tournament! You must invite " + Users.self.name + " at the " +
-						"of every battle.");
+						"start of every battle.");
 				} else {
 					user.say("You have already been eliminated from the tournament.");
 				}
