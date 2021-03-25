@@ -169,19 +169,26 @@ export const commands: BaseCommandDefinitions = {
 				}
 
 				if (database.userHostedGameQueue) {
+					let alreadyQueued = '';
 					for (const game of database.userHostedGameQueue) {
-						const alreadyQueued = Games.getExistingUserHostedFormat(game.format).name === format.name;
+						if (Games.getExistingUserHostedFormat(game.format).name === format.name) {
+							alreadyQueued = game.id;
+							break;
+						}
+					}
+
+					if (alreadyQueued && alreadyQueued !== host.id) {
+						return this.say("Another host is already queued for " + format.name + ". " + host.name + " please " +
+							"choose a different game!");
+					}
+
+					for (const game of database.userHostedGameQueue) {
 						if (game.id === host.id) {
 							if (alreadyQueued && !format.inputTarget.includes(',')) {
-								return this.say(host.name + " is already in the host queue for " + format.name + ".");
+								return this.say(host.name + " is already queued for " + format.name + ".");
 							}
 							game.format = format.inputTarget;
 							return this.say(host.name + "'s game was changed to " + format.name + ".");
-						} else {
-							if (alreadyQueued) {
-								return this.say("Another host is currently queued for " + format.name + ". " + host.name + " please " +
-									"choose a different game!");
-							}
 						}
 					}
 				} else {
@@ -192,7 +199,7 @@ export const commands: BaseCommandDefinitions = {
 				if (!room.game && !room.userHostedGame) {
 					if (otherUsersQueued) {
 						reason = (database.userHostedGameQueue.length === 1 ? "Another host is" : database.userHostedGameQueue.length +
-							" other hosts are") + " currently queued";
+							" other hosts are") + " already queued";
 					} else if (inCooldown) {
 						const durationString = Tools.toDurationString(remainingGameCooldown);
 						reason = "There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the game " +
