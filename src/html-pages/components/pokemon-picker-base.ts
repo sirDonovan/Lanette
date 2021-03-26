@@ -45,6 +45,12 @@ export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemo
 		for (const key of Dex.getData().pokemonKeys) {
 			const pokemon = Dex.getExistingPokemon(key);
 			if (Dex.hasGifData(pokemon)) this.pokemon.push(pokemon.name);
+			if (pokemon.cosmeticFormes) {
+				for (const name of pokemon.cosmeticFormes) {
+					const forme = Dex.getExistingPokemon(name);
+					if (Dex.hasGifData(forme)) this.pokemon.push(forme.name);
+				}
+			}
 		}
 
 		this.PokemonPickerBaseLoaded = true;

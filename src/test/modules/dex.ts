@@ -245,6 +245,19 @@ describe("Dex", () => {
 
 		for (const i of dexData.pokemonKeys) {
 			const pokemon = Dex.getExistingPokemon(i);
+
+			if (pokemon.cosmeticFormes) {
+				for (const forme of pokemon.cosmeticFormes) {
+					assert(Dex.getPokemon(forme), forme);
+				}
+			}
+
+			if (pokemon.otherFormes) {
+				for (const forme of pokemon.otherFormes) {
+					assert(Dex.getPokemon(forme), forme);
+				}
+			}
+
 			Dex.getPokemonCopy(pokemon);
 			Dex.getPokemonCopy(i);
 			Dex.getPokemonCategory(pokemon);
