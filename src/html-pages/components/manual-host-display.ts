@@ -23,6 +23,7 @@ export class ManualHostDisplay extends HostDisplayBase {
 		super(parentCommandPrefix, componentCommand, props, PokemonPickerManual);
 
 		const pokemonTextInputProps: IPokemonTextInputProps = {
+			gif: false,
 			minPokemon: 1,
 			placeholder: "Enter all Pokemon",
 			clearText: "Clear all",
@@ -34,7 +35,7 @@ export class ManualHostDisplay extends HostDisplayBase {
 		};
 
 		this.gifPokemonTextInput = new PokemonTextInput(this.commandPrefix, pokemonInputCommand,
-			Object.assign({}, pokemonTextInputProps, {maxPokemon: props.maxGifs}));
+			Object.assign({}, pokemonTextInputProps, {gif: true, maxPokemon: props.maxGifs}));
 		this.gifPokemonTextInput.active = false;
 
 		this.iconPokemonTextInput = new PokemonTextInput(this.commandPrefix, pokemonInputCommand,

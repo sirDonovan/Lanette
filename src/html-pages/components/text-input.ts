@@ -49,6 +49,7 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 	}
 
 	submit(input: string): void {
+		this.currentInput = input;
 		this.errors = [];
 
 		this.onSubmit(input);
@@ -56,7 +57,6 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 		if (this.errors.length) {
 			this.props.onErrors(this.errors);
 		} else {
-			this.currentInput = input;
 			this.props.onSubmit(this.currentOutput!);
 		}
 	}

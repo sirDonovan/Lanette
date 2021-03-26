@@ -5,6 +5,7 @@ import { TextInput } from "./text-input";
 const shinyOption = "shiny";
 
 export interface IPokemonTextInputProps extends ITextInputProps<PokemonChoices> {
+	gif: boolean;
 	maxPokemon?: number;
 	minPokemon?: number;
 }
@@ -43,6 +44,11 @@ export class PokemonTextInput extends TextInput<PokemonChoices> {
 					this.errors.push(CommandParser.getErrorText(['invalidPokemon', id]));
 					continue;
 				}
+			}
+
+			if (this.props.gif && !Dex.hasGifData(pokemon)) {
+				this.errors.push(pokemon.name + " does not have a GIF");
+				continue;
 			}
 
 			pokemonChoices.push({pokemon: pokemon.name, shiny});

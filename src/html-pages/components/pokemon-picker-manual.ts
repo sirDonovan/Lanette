@@ -31,6 +31,7 @@ export class PokemonPickerManual extends PokemonPickerBase {
 		PokemonPickerManual.loadData();
 
 		this.pokemonTextInput = new PokemonTextInput(this.commandPrefix, pokemonInputCommand, {
+			gif: props.gif,
 			maxPokemon: 1,
 			minPokemon: 1,
 			placeholder: "Enter Pokemon #" + (this.pickerIndex + 1),

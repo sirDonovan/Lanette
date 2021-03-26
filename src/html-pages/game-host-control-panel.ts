@@ -446,7 +446,7 @@ class GameHostControlPanel extends HtmlPageBase {
 				!currentHost) + "</center>";
 
 			html += "<br />";
-			html += "Auto-send to " + this.room.title + ": ";
+			html += "Auto-send after any change: ";
 			html += Client.getPmSelfButton(this.commandPrefix + ", " + autoSendCommand + ", " + autoSendYes, "Yes",
 				!currentHost || this.autoSendDisplay);
 			html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + autoSendCommand + ", " + autoSendNo, "No",
