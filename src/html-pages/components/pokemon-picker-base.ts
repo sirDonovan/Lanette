@@ -22,6 +22,7 @@ const setNotShiny = "notshiny";
 
 export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemonPickerProps> {
 	static pokemon: string[] = [];
+	static pokemonGifs: string[] = [];
 	static PokemonPickerBaseLoaded: boolean = false;
 
 	replicationTargets: PokemonPickerBase[] = [];
@@ -44,12 +45,26 @@ export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemo
 
 		for (const key of Dex.getData().pokemonKeys) {
 			const pokemon = Dex.getExistingPokemon(key);
-			if (Dex.hasGifData(pokemon)) this.pokemon.push(pokemon.name);
+			if (this.pokemon.includes(pokemon.name) || (pokemon.forme && pokemon.baseSpecies === 'Unown')) continue;
+
+			this.pokemon.push(pokemon.name);
+			if (Dex.hasGifData(pokemon)) this.pokemonGifs.push(pokemon.name);
+
+			if (pokemon.name === 'Unown') continue;
 
 			if (pokemon.cosmeticFormes) {
 				for (const name of pokemon.cosmeticFormes) {
 					const forme = Dex.getExistingPokemon(name);
-					if (Dex.hasGifData(forme)) this.pokemon.push(forme.name);
+					this.pokemon.push(forme.name);
+					if (Dex.hasGifData(forme)) this.pokemonGifs.push(forme.name);
+				}
+			}
+
+			if (pokemon.otherFormes) {
+				for (const name of pokemon.otherFormes) {
+					const forme = Dex.getExistingPokemon(name);
+					this.pokemon.push(forme.name);
+					if (Dex.hasGifData(forme)) this.pokemonGifs.push(forme.name);
 				}
 			}
 		}

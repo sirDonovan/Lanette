@@ -6,6 +6,7 @@ const shinyOption = "shiny";
 
 export interface IPokemonTextInputProps extends ITextInputProps<PokemonChoices> {
 	gif: boolean;
+	pokemonList: string[];
 	maxPokemon?: number;
 	minPokemon?: number;
 }
@@ -48,6 +49,11 @@ export class PokemonTextInput extends TextInput<PokemonChoices> {
 
 			if (this.props.gif && !Dex.hasGifData(pokemon)) {
 				this.errors.push(pokemon.name + " does not have a GIF");
+				continue;
+			}
+
+			if (!this.props.pokemonList.includes(pokemon.name)) {
+				this.errors.push(pokemon.name + " cannot be used");
 				continue;
 			}
 

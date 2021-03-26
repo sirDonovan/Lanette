@@ -14,7 +14,9 @@ const pokemonListCommand = 'pokemonlist';
 
 export class PokemonPickerManual extends PokemonPickerBase {
 	static letters: string[] = [];
+	static lettersGifs: string[] = [];
 	static pokemonByLetter: Dict<string[]> = {};
+	static pokemonByLetterGifs: Dict<string[]> = {};
 	static PokemonPickerManualLoaded: boolean = false;
 
 	currentView: 'input' | 'letter' = 'input';
@@ -32,6 +34,7 @@ export class PokemonPickerManual extends PokemonPickerBase {
 
 		this.pokemonTextInput = new PokemonTextInput(this.commandPrefix, pokemonInputCommand, {
 			gif: props.gif,
+			pokemonList: props.gif ? PokemonPickerBase.pokemonGifs : PokemonPickerBase.pokemon,
 			maxPokemon: 1,
 			minPokemon: 1,
 			placeholder: "Enter Pokemon #" + (this.pickerIndex + 1),
@@ -43,11 +46,21 @@ export class PokemonPickerManual extends PokemonPickerBase {
 		});
 		this.components.push(this.pokemonTextInput);
 
-		for (const letter of PokemonPickerManual.letters) {
+		let letters: string[];
+		let pokemonByLetter: Dict<string[]>;
+		if (props.gif) {
+			letters = PokemonPickerManual.lettersGifs;
+			pokemonByLetter = PokemonPickerManual.pokemonByLetterGifs;
+		} else {
+			letters = PokemonPickerManual.letters;
+			pokemonByLetter = PokemonPickerManual.pokemonByLetter;
+		}
+
+		for (const letter of letters) {
 			this.letterElements[letter] = {html: this.renderLetterElement(letter), selected: false};
 
 			this.letterPaginations[letter] = new Pagination(this.commandPrefix, pokemonListCommand, {
-				elements: PokemonPickerManual.pokemonByLetter[letter].map(x => this.choiceElements[x]),
+				elements: pokemonByLetter[letter].map(x => this.choiceElements[x]),
 				elementsPerRow: 6,
 				rowsPerPage: 6,
 				pagesLabel,
@@ -73,11 +86,24 @@ export class PokemonPickerManual extends PokemonPickerBase {
 			this.pokemonByLetter[letter].push(name);
 		}
 
+		for (const name of PokemonPickerBase.pokemonGifs) {
+			const letter = name.charAt(0).toUpperCase();
+			if (!letters.includes(letter)) continue;
+
+			if (!(letter in this.pokemonByLetterGifs)) this.pokemonByLetterGifs[letter] = [];
+			this.pokemonByLetterGifs[letter].push(name);
+		}
+
 		for (const letter in this.pokemonByLetter) {
 			this.pokemonByLetter[letter].sort();
 		}
 
+		for (const letter in this.pokemonByLetterGifs) {
+			this.pokemonByLetterGifs[letter].sort();
+		}
+
 		this.letters = letters.filter(x => x in this.pokemonByLetter);
+		this.lettersGifs = letters.filter(x => x in this.pokemonByLetterGifs);
 
 		this.PokemonPickerManualLoaded = true;
 	}

@@ -6,6 +6,7 @@ import { HostDisplayBase } from "./host-display-base";
 import type { PokemonChoices, TrainerChoices } from "../game-host-control-panel";
 import type { IPokemonTextInputProps } from "./pokemon-text-input";
 import { PokemonTextInput } from "./pokemon-text-input";
+import { PokemonPickerBase } from "./pokemon-picker-base";
 
 const pokemonInputCommand = 'pokemoninput';
 
@@ -24,6 +25,7 @@ export class ManualHostDisplay extends HostDisplayBase {
 
 		const pokemonTextInputProps: IPokemonTextInputProps = {
 			gif: false,
+			pokemonList: PokemonPickerBase.pokemon,
 			minPokemon: 1,
 			placeholder: "Enter all Pokemon",
 			clearText: "Clear all",
@@ -35,7 +37,7 @@ export class ManualHostDisplay extends HostDisplayBase {
 		};
 
 		this.gifPokemonTextInput = new PokemonTextInput(this.commandPrefix, pokemonInputCommand,
-			Object.assign({}, pokemonTextInputProps, {gif: true, maxPokemon: props.maxGifs}));
+			Object.assign({}, pokemonTextInputProps, {gif: true, pokemonList: PokemonPickerBase.pokemonGifs, maxPokemon: props.maxGifs}));
 		this.gifPokemonTextInput.active = false;
 
 		this.iconPokemonTextInput = new PokemonTextInput(this.commandPrefix, pokemonInputCommand,

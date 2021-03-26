@@ -6,9 +6,13 @@ const setTypeCommand = 'settype';
 
 export class PokemonPickerRandom extends PokemonPickerBase {
 	static pokemonByType: Dict<string[]> = {};
+	static pokemonByTypeGifs: Dict<string[]> = {};
 	static pokemonByTypeWithFormes: Dict<string[]> = {};
+	static pokemonByTypeWithFormesGifs: Dict<string[]> = {};
 	static types: string[] = [];
+	static typesGifs: string[] = [];
 	static typesWithFormes: string[] = [];
+	static typesWithFormesGifs: string[] = [];
 	static PokemonPickerRandomLoaded: boolean = false;
 
 	componentId: string = 'pokemon-picker-random';
@@ -35,9 +39,6 @@ export class PokemonPickerRandom extends PokemonPickerBase {
 	static loadData(): void {
 		if (this.PokemonPickerRandomLoaded) return;
 
-		const typesWithFormes: string[] = [];
-		const types: string[] = [];
-
 		for (const name of PokemonPickerBase.pokemon) {
 			const pokemon = Dex.getExistingPokemon(name);
 			if (pokemon.isNonstandard === 'CAP' || pokemon.isNonstandard === 'Custom') continue;
@@ -45,22 +46,41 @@ export class PokemonPickerRandom extends PokemonPickerBase {
 			for (const type of pokemon.types) {
 				if (!(type in this.pokemonByTypeWithFormes)) {
 					this.pokemonByTypeWithFormes[type] = [];
-					typesWithFormes.push(type);
+					this.typesWithFormes.push(type);
 				}
 				this.pokemonByTypeWithFormes[type].push(name);
 
 				if (!pokemon.forme) {
 					if (!(type in this.pokemonByType)) {
 						this.pokemonByType[type] = [];
-						types.push(type);
+						this.types.push(type);
 					}
 					this.pokemonByType[type].push(name);
 				}
 			}
 		}
 
-		this.types = types;
-		this.typesWithFormes = typesWithFormes;
+
+		for (const name of PokemonPickerBase.pokemonGifs) {
+			const pokemon = Dex.getExistingPokemon(name);
+			if (pokemon.isNonstandard === 'CAP' || pokemon.isNonstandard === 'Custom') continue;
+
+			for (const type of pokemon.types) {
+				if (!(type in this.pokemonByTypeWithFormesGifs)) {
+					this.pokemonByTypeWithFormesGifs[type] = [];
+					this.typesWithFormesGifs.push(type);
+				}
+				this.pokemonByTypeWithFormesGifs[type].push(name);
+
+				if (!pokemon.forme) {
+					if (!(type in this.pokemonByTypeGifs)) {
+						this.pokemonByTypeGifs[type] = [];
+						this.typesGifs.push(type);
+					}
+					this.pokemonByTypeGifs[type].push(name);
+				}
+			}
+		}
 
 		this.PokemonPickerRandomLoaded = true;
 	}
@@ -108,17 +128,36 @@ export class PokemonPickerRandom extends PokemonPickerBase {
 	}
 
 	pickRandom(dontRender?: boolean, withFormes?: boolean, parentPokemon?: string[]): boolean {
-		const type = this.currentType || Tools.sampleOne(withFormes ? PokemonPickerRandom.typesWithFormes : PokemonPickerRandom.types);
-		const list = Tools.shuffle(withFormes ? PokemonPickerRandom.pokemonByTypeWithFormes[type] :
-			PokemonPickerRandom.pokemonByType[type]);
-
-		let pokemon = list.shift()!;
-		while (pokemon === this.currentPick || (parentPokemon && parentPokemon.includes(pokemon))) {
-			if (!list.length) return false;
-			pokemon = list.shift()!;
+		let types: string[];
+		let pokemon: Dict<string[]>;
+		if (this.props.gif) {
+			if (withFormes) {
+				types = PokemonPickerRandom.typesWithFormesGifs;
+				pokemon = PokemonPickerRandom.pokemonByTypeWithFormesGifs;
+			} else {
+				types = PokemonPickerRandom.typesGifs;
+				pokemon = PokemonPickerRandom.pokemonByTypeGifs;
+			}
+		} else {
+			if (withFormes) {
+				types = PokemonPickerRandom.typesWithFormes;
+				pokemon = PokemonPickerRandom.pokemonByTypeWithFormes;
+			} else {
+				types = PokemonPickerRandom.types;
+				pokemon = PokemonPickerRandom.pokemonByType;
+			}
 		}
 
-		this.pick(pokemon, dontRender);
+		const type = this.currentType || Tools.sampleOne(types);
+		const list = Tools.shuffle(pokemon[type]);
+
+		let pick = list.shift()!;
+		while (pick === this.currentPick || (parentPokemon && parentPokemon.includes(pick))) {
+			if (!list.length) return false;
+			pick = list.shift()!;
+		}
+
+		this.pick(pick, dontRender);
 		return true;
 	}
 
