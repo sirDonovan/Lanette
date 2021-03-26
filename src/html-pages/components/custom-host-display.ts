@@ -1,24 +1,83 @@
 import type { HexCode } from "../../types/tools";
 import type { HueVariation, Lightness } from "./color-picker";
-import { PokemonPickerLetter } from "./pokemon-picker-letter";
+import { PokemonPickerManual } from "./pokemon-picker-manual";
 import type { IHostDisplayProps } from "./host-display-base";
 import { HostDisplayBase } from "./host-display-base";
 import type { PokemonChoices, TrainerChoices } from "../game-host-control-panel";
+import type { IPokemonTextInputProps } from "./pokemon-text-input";
+import { PokemonTextInput } from "./pokemon-text-input";
+
+const pokemonInputCommand = 'pokemoninput';
 
 export class CustomHostDisplay extends HostDisplayBase {
 	componentId: string = 'custom-host-display';
+	submitPokemonErrors: string[] = [];
 
-	gifPokemonPickers!: PokemonPickerLetter[];
-	iconPokemonPickers!: PokemonPickerLetter[];
+	gifPokemonTextInput: PokemonTextInput;
+	iconPokemonTextInput: PokemonTextInput;
+
+	gifPokemonPickers!: PokemonPickerManual[];
+	iconPokemonPickers!: PokemonPickerManual[];
 
 	constructor(parentCommandPrefix: string, componentCommand: string, props: IHostDisplayProps) {
-		super(parentCommandPrefix, componentCommand, props, PokemonPickerLetter);
+		super(parentCommandPrefix, componentCommand, props, PokemonPickerManual);
+
+		const pokemonTextInputProps: IPokemonTextInputProps = {
+			minPokemon: 1,
+			placeholder: "Enter all Pokemon",
+			clearText: "Clear all",
+			submitText: "Update all",
+			onClear: () => this.clearPokemonInput(),
+			onErrors: () => this.props.reRender(),
+			onSubmit: (output) => this.submitPokemonInput(output),
+			reRender: () => this.props.reRender(),
+		};
+
+		this.gifPokemonTextInput = new PokemonTextInput(this.commandPrefix, pokemonInputCommand,
+			Object.assign({}, pokemonTextInputProps, {maxPokemon: props.maxGifs}));
+		this.gifPokemonTextInput.active = false;
+
+		this.iconPokemonTextInput = new PokemonTextInput(this.commandPrefix, pokemonInputCommand,
+			Object.assign({}, pokemonTextInputProps, {maxPokemon: props.maxIcons}));
+		this.iconPokemonTextInput.active = false;
+
+		this.components.push(this.gifPokemonTextInput, this.iconPokemonTextInput);
 	}
 
 	togglePokemonPicker(active: boolean): void {
-		this.pokemonInput.active = active;
+		if (this.gifOrIcon === 'gif') {
+			this.gifPokemonTextInput.active = active;
+		} else {
+			this.iconPokemonTextInput.active = active;
+		}
 
 		super.togglePokemonPicker(active);
+	}
+
+	onSetGifOrIcon(dontRender?: boolean): void {
+		const gif = this.gifOrIcon === 'gif';
+		this.gifPokemonTextInput.active = gif;
+		this.iconPokemonTextInput.active = !gif;
+
+		super.onSetGifOrIcon(dontRender);
+	}
+
+	clearPokemonInput(): void {
+		for (const pokemonPicker of this.gifPokemonPickers) {
+			pokemonPicker.reset();
+		}
+
+		for (const pokemonPicker of this.iconPokemonPickers) {
+			pokemonPicker.reset();
+		}
+
+		this.currentPokemon = [];
+
+		this.props.reRender();
+	}
+
+	submitPokemonInput(output: PokemonChoices): void {
+		this.props.randomizePokemon(output);
 	}
 
 	setRandomizedBackgroundColor(hueVariation: HueVariation, lightness: Lightness, color: HexCode): void {
@@ -35,10 +94,17 @@ export class CustomHostDisplay extends HostDisplayBase {
 		}
 
 		this.currentPokemon = [];
+
+		const names: string[] = [];
 		for (let i = 0; i < pokemon.length; i++) {
+			names.push((pokemon[i]!.shiny ? "shiny " : "") + pokemon[i]!.pokemon);
 			if (this.gifPokemonPickers[i]) this.gifPokemonPickers[i].setRandomizedPokemon(pokemon[i]!);
 			if (this.iconPokemonPickers[i]) this.iconPokemonPickers[i].setRandomizedPokemon(pokemon[i]!);
 		}
+
+		const textInput = names.join(", ");
+		this.gifPokemonTextInput.parentSetInput(textInput);
+		this.iconPokemonTextInput.parentSetInput(textInput);
 
 		const index = pokemon.length - 1;
 		if (this.pokemonPickerIndex > index) {
@@ -79,17 +145,30 @@ export class CustomHostDisplay extends HostDisplayBase {
 		if (this.currentPicker === 'background') {
 			html += this.renderBackgroundPicker();
 		} else if (this.currentPicker === 'pokemon') {
+			const gif = this.gifOrIcon === 'gif';
 			html += "GIFs or icons: ";
-			html += Client.getPmSelfButton(this.commandPrefix + ", " + this.setGifOrIconCommand + "," + this.setGif, "GIFs",
-				this.gifOrIcon === 'gif');
-			html += Client.getPmSelfButton(this.commandPrefix + ", " + this.setGifOrIconCommand + "," + this.setIcon, "Icons",
-				this.gifOrIcon === 'icon');
+			html += Client.getPmSelfButton(this.commandPrefix + ", " + this.setGifOrIconCommand + "," + this.setGif, "GIFs", gif);
+			html += Client.getPmSelfButton(this.commandPrefix + ", " + this.setGifOrIconCommand + "," + this.setIcon, "Icons", !gif);
+
+			html += "<br /><br /><b>All Pokemon</b> (up to " + (gif ? this.props.maxGifs : this.props.maxIcons) + "):<br />";
+
+			if (gif) {
+				html += "Include <code>shiny</code> before or after a Pokemon's name for its shiny GIF!<br />";
+			}
 
 			html += "<br />";
-			html += "Pokemon:";
+
+			if (gif) {
+				html += this.gifPokemonTextInput.render();
+			} else {
+				html += this.iconPokemonTextInput.render();
+			}
+
+			html += "<hr />";
+			html += "<b>Individual Pokemon</b>:";
 
 			const currentIndex = this.pokemonPickerIndex + 1;
-			if (this.gifOrIcon === 'gif') {
+			if (gif) {
 				for (let i = 1; i <= this.props.maxGifs; i++) {
 					if (i > 1) html += "&nbsp;";
 					html += Client.getPmSelfButton(this.commandPrefix + ", " + this.setPokemonPickerIndexCommand + ", " + i, "" + i,

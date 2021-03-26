@@ -11,10 +11,12 @@ export abstract class HtmlPageBase {
 	baseCommand: string;
 	commandPrefix: string;
 	room: Room;
+	userName: string;
 	userId: string;
 
 	constructor(room: Room, user: User, baseCommand: string) {
 		this.room = room;
+		this.userName = user.name;
 		this.userId = user.id;
 		this.baseCommand = baseCommand;
 		this.commandPrefix = Config.commandCharacter + baseCommand + " " + room.title;

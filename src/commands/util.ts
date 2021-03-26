@@ -190,7 +190,7 @@ export const commands: BaseCommandDefinitions = {
 			html += gifsOrIcons.join(showIcon ? ", " : "");
 			if (!showIcon) html += "</center>";
 
-			html += '<div style="float:right;color:#888;font-size:8pt">[' + user.name + ']</div><div style="clear:both"></div>';
+			html += Client.getUserAttributionHtml(user.name);
 
 			if (gameRoom.userHostedGame) {
 				const uhtmlName = gameRoom.userHostedGame.uhtmlBaseName + "-" + gameRoom.userHostedGame.round + "-" +
@@ -277,7 +277,7 @@ export const commands: BaseCommandDefinitions = {
 			html += gifsOrIcons.join(showIcon ? ", " : "");
 			if (!showIcon) html += "</center>";
 
-			html += '<div style="float:right;color:#888;font-size:8pt">[' + user.name + ']</div><div style="clear:both"></div>';
+			html += Client.getUserAttributionHtml(user.name);
 
 			if (gameRoom.userHostedGame) {
 				const uhtmlName = gameRoom.userHostedGame.uhtmlBaseName + "-" + gameRoom.userHostedGame.round + "-" +
@@ -320,7 +320,7 @@ export const commands: BaseCommandDefinitions = {
 
 			let html = "<center>" + trainerList.map(x => Dex.getTrainerSprite(x)).join("") + "</center>";
 
-			html += '<div style="float:right;color:#888;font-size:8pt">[' + user.name + ']</div><div style="clear:both"></div>';
+			html += Client.getUserAttributionHtml(user.name);
 
 			if (gameRoom.userHostedGame) {
 				const uhtmlName = gameRoom.userHostedGame.uhtmlBaseName + "-" + gameRoom.userHostedGame.round + "-trainer";

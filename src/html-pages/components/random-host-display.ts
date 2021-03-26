@@ -358,12 +358,9 @@ export class RandomHostDisplay extends HostDisplayBase {
 					html += this.gifPokemonPickers[this.pokemonPickerIndex].render();
 				}
 			} else {
-				for (let i = 1; i <= 6; i++) {
+				for (let i = 1; i <= this.props.maxIcons; i++) {
 					if (i > 1) html += "&nbsp;";
 					html += Client.getPmSelfButton(this.commandPrefix + ", " + randomizePokemon + ", " + i, "Random " + i);
-				}
-				for (let i = 10; i <= this.props.maxIcons; i += 5) {
-					html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + randomizePokemon + ", " + i, "Random " + i);
 				}
 
 				html += "<br /><br />";

@@ -123,7 +123,7 @@ export class PokemonPickerRandom extends PokemonPickerBase {
 	}
 
 	render(): string {
-		let html = super.render();
+		let html = this.renderShininessOptions();
 		if (html) html += "<br /><br />";
 
 		html += this.typePicker.render();

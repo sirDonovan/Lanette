@@ -102,7 +102,7 @@ export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemo
 		}
 	}
 
-	render(): string {
+	renderShininessOptions(): string {
 		let html = "";
 		if (this.props.gif) {
 			html = "Shiny: ";

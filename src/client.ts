@@ -294,10 +294,14 @@ export class Client {
 		return this.outgoingMessageQueue;
 	}
 
+	getUserAttributionHtml(name: string): string {
+		return '<div style="float:right;color:#888;font-size:8pt">[' + name + ']</div><div style="clear:both"></div>';
+	}
+
 	getListenerHtml(html: string, inPm?: boolean): string {
 		html = '<div class="infobox">' + html;
 		if (!inPm && Users.self.group !== this.groupSymbols.bot) {
-			html += '<div style="float:right;color:#888;font-size:8pt">[' + Users.self.name + ']</div><div style="clear:both"></div>';
+			html += this.getUserAttributionHtml(Users.self.name);
 		}
 		html += '</div>';
 		return html;
@@ -305,7 +309,7 @@ export class Client {
 
 	getListenerUhtml(html: string, inPm?: boolean): string {
 		if (!inPm && Users.self.group !== this.groupSymbols.bot) {
-			html += '<div style="float:right;color:#888;font-size:8pt">[' + Users.self.name + ']</div><div style="clear:both"></div>';
+			html += this.getUserAttributionHtml(Users.self.name);
 		}
 		return html;
 	}

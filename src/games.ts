@@ -1564,7 +1564,7 @@ export class Games {
 		return html;
 	}
 
-	getHostCustomDisplay(backgroundColor: HexCode | undefined, trainerList: TrainerSpriteId[], pokemonList: string[],
+	getHostCustomDisplay(host: string, backgroundColor: HexCode | undefined, trainerList: TrainerSpriteId[], pokemonList: string[],
 		pokemonIcons: boolean, pokemonGeneration: GifGeneration): string {
 		const centered = trainerList.length > 0 || !pokemonIcons;
 		let html = "";
@@ -1620,7 +1620,7 @@ export class Games {
 		html += "</span>";
 		if (centered) html += "</center>";
 
-		return "<div class='infobox'>" + html + "</div>";
+		return "<div class='infobox'>" + html + Client.getUserAttributionHtml(host) + "</div>";
 	}
 
 	updateGameCatalog(room: Room): void {

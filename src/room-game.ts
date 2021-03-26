@@ -172,16 +172,16 @@ export abstract class Game extends Activity {
 				lastHtml += "</center>";
 			}
 
-			lastHtml += '<div style="float:right;color:#888;font-size:8pt">[' + this.lastHostDisplayUhtml.user + ']</div>' +
-				'<div style="clear:both"></div>';
+			lastHtml += Client.getUserAttributionHtml(this.lastHostDisplayUhtml.user);
 
 			lastHtml += "</div>";
 
 			this.sayUhtmlChange(this.lastHostDisplayUhtml.uhtmlName, lastHtml);
 		}
 
-		this.sayUhtmlAuto(uhtmlName, Games.getHostCustomDisplay(backgroundColor, trainerList, pokemonList,
+		this.sayUhtmlAuto(uhtmlName, Games.getHostCustomDisplay(user.name, backgroundColor, trainerList, pokemonList,
 			pokemonIcons, pokemonGeneration));
+
 		this.lastHostDisplayUhtml = {
 			pokemon: pokemonList,
 			trainerList,
@@ -202,8 +202,7 @@ export abstract class Game extends Activity {
 					this.lastPokemonUhtml.pokemon.join(", ") + ")";
 			}
 
-			lastHtml += '<div style="float:right;color:#888;font-size:8pt">[' + this.lastPokemonUhtml.user + ']</div>' +
-				'<div style="clear:both"></div>';
+			lastHtml += Client.getUserAttributionHtml(this.lastPokemonUhtml.user);
 
 			lastHtml += "</div>";
 
@@ -224,8 +223,7 @@ export abstract class Game extends Activity {
 			let lastHtml = "<div class='infobox'><center>(trainer" + (this.lastTrainerUhtml.trainerList.length > 1 ? "s" : "") + ": " +
 				this.lastTrainerUhtml.trainerList.join(", ") + ")</center>";
 
-			lastHtml += '<div style="float:right;color:#888;font-size:8pt">[' + this.lastTrainerUhtml.user + ']</div>' +
-				'<div style="clear:both"></div>';
+				lastHtml += Client.getUserAttributionHtml(this.lastTrainerUhtml.user);
 
 			lastHtml += "</div>";
 

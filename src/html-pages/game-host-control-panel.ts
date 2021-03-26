@@ -29,13 +29,16 @@ const customHostDisplayCommand = 'customhostdisplay';
 const randomHostDisplayCommand = 'randomhostdisplay';
 const generateHintCommand = 'generatehint';
 const sendDisplayCommand = 'senddisplay';
+const autoSendCommand = 'autosend';
+const autoSendYes = 'yes';
+const autoSendNo = 'no';
 
 const refreshCommand = 'refresh';
 const autoRefreshCommand = 'autorefresh';
 const closeCommand = 'close';
 
 const maxGifs = 6;
-const maxIcons = 30;
+const maxIcons = 15;
 const maxTrainers = 6;
 
 const pages: Dict<GameHostControlPanel> = {};
@@ -46,6 +49,7 @@ class GameHostControlPanel extends HtmlPageBase {
 
 	pageId = 'game-host-control-panel';
 
+	autoSendDisplay: boolean = false;
 	currentView: 'hostinformation' | 'customdisplay' | 'randomdisplay' | 'generatehints';
 	currentBackgroundColor: HexCode | undefined = undefined;
 	currentPokemon: PokemonChoices = [];
@@ -172,7 +176,10 @@ class GameHostControlPanel extends HtmlPageBase {
 			this.customHostDisplay.setRandomizedBackgroundColor(color.hueVariation, color.lightness, color.hexCode);
 		}
 
-		if (!dontRender) this.send();
+		if (!dontRender) {
+			if (this.autoSendDisplay) this.sendHostDisplay();
+			this.send();
+		}
 	}
 
 	clearPokemon(index: number, dontRender: boolean | undefined): void {
@@ -184,7 +191,10 @@ class GameHostControlPanel extends HtmlPageBase {
 	selectPokemon(index: number, pokemon: IPokemonPick, dontRender: boolean | undefined): void {
 		this.currentPokemon[index] = pokemon;
 
-		if (!dontRender) this.send();
+		if (!dontRender) {
+			if (this.autoSendDisplay) this.sendHostDisplay();
+			this.send();
+		}
 	}
 
 	clearRandomizedPokemon(): void {
@@ -197,6 +207,7 @@ class GameHostControlPanel extends HtmlPageBase {
 		this.customHostDisplay.setRandomizedPokemon(pokemon);
 		this.currentPokemon = pokemon;
 
+		if (this.autoSendDisplay) this.sendHostDisplay();
 		this.send();
 	}
 
@@ -209,13 +220,17 @@ class GameHostControlPanel extends HtmlPageBase {
 	selectTrainer(index: number, trainer: ITrainerPick, dontRender: boolean | undefined): void {
 		this.currentTrainers[index] = trainer;
 
-		if (!dontRender) this.send();
+		if (!dontRender) {
+			if (this.autoSendDisplay) this.sendHostDisplay();
+			this.send();
+		}
 	}
 
 	randomizeTrainers(trainers: TrainerChoices): void {
 		this.customHostDisplay.setRandomizedTrainers(trainers);
 		this.currentTrainers = trainers;
 
+		if (this.autoSendDisplay) this.sendHostDisplay();
 		this.send();
 	}
 
@@ -231,6 +246,14 @@ class GameHostControlPanel extends HtmlPageBase {
 		this.currentPokemon = currentPokemon;
 
 		if (!dontRender) this.send();
+	}
+
+	setAutoSend(autoSend: boolean): void {
+		if (this.autoSendDisplay === autoSend) return;
+
+		this.autoSendDisplay = autoSend;
+
+		this.send();
 	}
 
 	generateHint(user: User, name: string): boolean {
@@ -260,7 +283,15 @@ class GameHostControlPanel extends HtmlPageBase {
 	}
 
 	getHostDisplay(): string {
-		return Games.getHostCustomDisplay(this.currentBackgroundColor, this.getTrainers(), this.getPokemon(),
+		return Games.getHostCustomDisplay(this.userName, this.currentBackgroundColor, this.getTrainers(), this.getPokemon(),
+			this.gifOrIcon === 'icon', this.pokemonGeneration);
+	}
+
+	sendHostDisplay(): void {
+		const user = Users.get(this.userName);
+		if (!user || !this.room.userHostedGame || !this.room.userHostedGame.isHost(user)) return;
+
+		this.room.userHostedGame.sayHostDisplayUhtml(user, this.currentBackgroundColor, this.getTrainers(), this.getPokemon(),
 			this.gifOrIcon === 'icon', this.pokemonGeneration);
 	}
 
@@ -288,18 +319,16 @@ class GameHostControlPanel extends HtmlPageBase {
 		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseGenerateHints, "Generate Hints", generateHints);
 		html += "</center>";
 
-		if (currentHost) {
-			html += this.room.userHostedGame!.getMascotAndNameHtml();
-			html += "<br />";
-			html += "<b>Remaining time</b>: " + Tools.toDurationString(this.room.userHostedGame!.endTime - Date.now());
-			html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + refreshCommand, "Refresh");
-			html += "<hr />";
-		}
-
 		if (hostInformation) {
 			html += "<h3>Host Information</h3>";
 
 			const game = this.room.userHostedGame!;
+
+			html += game.getMascotAndNameHtml();
+			html += "<br />";
+			html += "<b>Remaining time</b>: " + Tools.toDurationString(game.endTime - Date.now());
+			html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + refreshCommand, "Refresh");
+			html += "<hr />";
 
 			if (game.gameTimerEndTime) {
 				html += "<b>Game timer:</b> " + Tools.toDurationString(game.gameTimerEndTime - Date.now()) + " remaining";
@@ -416,6 +445,13 @@ class GameHostControlPanel extends HtmlPageBase {
 			html += "<center>" + Client.getPmSelfButton(this.commandPrefix + ", " + sendDisplayCommand, "Send to " + this.room.title,
 				!currentHost) + "</center>";
 
+			html += "<br />";
+			html += "Auto-send to " + this.room.title + ": ";
+			html += Client.getPmSelfButton(this.commandPrefix + ", " + autoSendCommand + ", " + autoSendYes, "Yes",
+				!currentHost || this.autoSendDisplay);
+			html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + autoSendCommand + ", " + autoSendNo, "No",
+				!currentHost || !this.autoSendDisplay);
+
 			html += "<br /><br />";
 			if (customDisplay) {
 				html += this.customHostDisplay.render();
@@ -495,12 +531,18 @@ export const commands: BaseCommandDefinitions = {
 				if (!(user.id in pages) || !targetRoom.userHostedGame || !targetRoom.userHostedGame.isHost(user)) return;
 
 				pages[user.id].setCurrentPlayer(Tools.toId(targets[0]));
-			} else if (cmd === sendDisplayCommand) {
-				if (!(user.id in pages) || !targetRoom.userHostedGame || !targetRoom.userHostedGame.isHost(user)) return;
+			} else if (cmd === autoSendCommand) {
+				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
 
-				const page = pages[user.id];
-				targetRoom.userHostedGame.sayHostDisplayUhtml(user, page.currentBackgroundColor, page.getTrainers(), page.getPokemon(),
-					page.gifOrIcon === 'icon', page.pokemonGeneration);
+				const option = targets[0].trim();
+				if (option !== autoSendYes && option !== autoSendNo) {
+					return this.say("'" + option + "' is not a valid auto-send option.");
+				}
+
+				pages[user.id].setAutoSend(option === autoSendYes);
+			} else if (cmd === sendDisplayCommand) {
+				if (!(user.id in pages)) return;
+				pages[user.id].sendHostDisplay();
 			} else if (cmd === closeCommand) {
 				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
 				pages[user.id].close();

@@ -6,7 +6,7 @@ import { TrainerPicker } from "./trainer-picker";
 import type { IComponentProps } from "./component-base";
 import { ComponentBase } from "./component-base";
 import type { GifIcon, PokemonChoices, TrainerChoices } from "../game-host-control-panel";
-import type { PokemonPickerLetter } from "./pokemon-picker-letter";
+import type { PokemonPickerManual } from "./pokemon-picker-manual";
 import type { PokemonPickerRandom } from "./pokemon-picker-random";
 
 export interface IHostDisplayProps extends IComponentProps {
@@ -57,7 +57,7 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 	trainerPickers: TrainerPicker[];
 
 	constructor(parentCommandPrefix: string, componentCommand: string, props: IHostDisplayProps,
-		pokemonPickerClass: (typeof PokemonPickerLetter | typeof PokemonPickerRandom)) {
+		pokemonPickerClass: (typeof PokemonPickerManual | typeof PokemonPickerRandom)) {
 		super(parentCommandPrefix, componentCommand, props);
 
 		this.backgroundColorPicker = new ColorPicker(this.commandPrefix, setBackgroundColorCommand, {
@@ -325,7 +325,11 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 			if (this.pokemonPickerIndex > -1) this.iconPokemonPickers[this.pokemonPickerIndex].active = true;
 		}
 
-		this.props.setGifOrIcon(gifOrIcon, this.currentPokemon, dontRender);
+		this.onSetGifOrIcon(dontRender);
+	}
+
+	onSetGifOrIcon(dontRender?: boolean): void {
+		this.props.setGifOrIcon(this.gifOrIcon, this.currentPokemon, dontRender);
 	}
 
 	tryCommand(originalTargets: readonly string[]): string | undefined {
