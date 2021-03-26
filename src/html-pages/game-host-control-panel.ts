@@ -5,7 +5,7 @@ import type { IRandomGameAnswer } from "../types/games";
 import type { HexCode } from "../types/tools";
 import type { User } from "../users";
 import type { IColorPick } from "./components/color-picker";
-import { CustomHostDisplay } from "./components/custom-host-display";
+import { ManualHostDisplay } from "./components/manual-host-display";
 import type { IHostDisplayProps } from "./components/host-display-base";
 import type { IPokemonPick } from "./components/pokemon-picker-base";
 import { RandomHostDisplay } from "./components/random-host-display";
@@ -25,7 +25,7 @@ const chooseCustomDisplay = 'choosecustomdisplay';
 const chooseRandomDisplay = 'chooserandomdisplay';
 const chooseGenerateHints = 'choosegeneratehints';
 const setCurrentPlayerCommand = 'setcurrentplayer';
-const customHostDisplayCommand = 'customhostdisplay';
+const manualHostDisplayCommand = 'manualhostdisplay';
 const randomHostDisplayCommand = 'randomhostdisplay';
 const generateHintCommand = 'generatehint';
 const sendDisplayCommand = 'senddisplay';
@@ -50,7 +50,7 @@ class GameHostControlPanel extends HtmlPageBase {
 	pageId = 'game-host-control-panel';
 
 	autoSendDisplay: boolean = false;
-	currentView: 'hostinformation' | 'customdisplay' | 'randomdisplay' | 'generatehints';
+	currentView: 'hostinformation' | 'manualhostdisplay' | 'randomhostdisplay' | 'generatehints';
 	currentBackgroundColor: HexCode | undefined = undefined;
 	currentPokemon: PokemonChoices = [];
 	currentTrainers: TrainerChoices = [];
@@ -60,7 +60,7 @@ class GameHostControlPanel extends HtmlPageBase {
 	gifOrIcon: GifIcon = 'gif';
 	pokemonGeneration: GifGeneration = 'xy';
 
-	customHostDisplay: CustomHostDisplay;
+	manualHostDisplay: ManualHostDisplay;
 	randomHostDisplay: RandomHostDisplay;
 
 	constructor(room: Room, user: User) {
@@ -85,16 +85,16 @@ class GameHostControlPanel extends HtmlPageBase {
 			reRender: () => this.send(),
 		};
 
-		this.currentView = room.userHostedGame && room.userHostedGame.isHost(user) ? 'hostinformation' : 'customdisplay';
+		this.currentView = room.userHostedGame && room.userHostedGame.isHost(user) ? 'hostinformation' : 'manualhostdisplay';
 
-		this.customHostDisplay = new CustomHostDisplay(this.commandPrefix, customHostDisplayCommand, hostDisplayProps);
-		this.customHostDisplay.active = this.currentView === 'customdisplay';
+		this.manualHostDisplay = new ManualHostDisplay(this.commandPrefix, manualHostDisplayCommand, hostDisplayProps);
+		this.manualHostDisplay.active = this.currentView === 'manualhostdisplay';
 
 		this.randomHostDisplay = new RandomHostDisplay(this.commandPrefix, randomHostDisplayCommand,
 			Object.assign({random: true}, hostDisplayProps));
 		this.randomHostDisplay.active = false;
 
-		this.components = [this.customHostDisplay, this.randomHostDisplay];
+		this.components = [this.manualHostDisplay, this.randomHostDisplay];
 
 		pages[this.userId] = this;
 	}
@@ -119,28 +119,28 @@ class GameHostControlPanel extends HtmlPageBase {
 		if (this.currentView === 'hostinformation') return;
 
 		this.randomHostDisplay.active = false;
-		this.customHostDisplay.active = false;
+		this.manualHostDisplay.active = false;
 		this.currentView = 'hostinformation';
 
 		this.send();
 	}
 
-	chooseCustomDisplay(): void {
-		if (this.currentView === 'customdisplay') return;
+	chooseManualHostDisplay(): void {
+		if (this.currentView === 'manualhostdisplay') return;
 
-		this.customHostDisplay.active = true;
+		this.manualHostDisplay.active = true;
 		this.randomHostDisplay.active = false;
-		this.currentView = 'customdisplay';
+		this.currentView = 'manualhostdisplay';
 
 		this.send();
 	}
 
-	chooseRandomDisplay(): void {
-		if (this.currentView === 'randomdisplay') return;
+	chooseRandomHostDisplay(): void {
+		if (this.currentView === 'randomhostdisplay') return;
 
 		this.randomHostDisplay.active = true;
-		this.customHostDisplay.active = false;
-		this.currentView = 'randomdisplay';
+		this.manualHostDisplay.active = false;
+		this.currentView = 'randomhostdisplay';
 
 		this.send();
 	}
@@ -149,7 +149,7 @@ class GameHostControlPanel extends HtmlPageBase {
 		if (this.currentView === 'generatehints') return;
 
 		this.randomHostDisplay.active = false;
-		this.customHostDisplay.active = false;
+		this.manualHostDisplay.active = false;
 		this.currentView = 'generatehints';
 
 		this.send();
@@ -172,8 +172,8 @@ class GameHostControlPanel extends HtmlPageBase {
 	setBackgroundColor(color: IColorPick, dontRender: boolean | undefined): void {
 		this.currentBackgroundColor = color.hexCode;
 
-		if (this.currentView === 'randomdisplay') {
-			this.customHostDisplay.setRandomizedBackgroundColor(color.hueVariation, color.lightness, color.hexCode);
+		if (this.currentView === 'randomhostdisplay') {
+			this.manualHostDisplay.setRandomizedBackgroundColor(color.hueVariation, color.lightness, color.hexCode);
 		}
 
 		if (!dontRender) {
@@ -204,7 +204,7 @@ class GameHostControlPanel extends HtmlPageBase {
 	}
 
 	randomizePokemon(pokemon: PokemonChoices): void {
-		this.customHostDisplay.setRandomizedPokemon(pokemon);
+		this.manualHostDisplay.setRandomizedPokemon(pokemon);
 		this.currentPokemon = pokemon;
 
 		if (this.autoSendDisplay) this.sendHostDisplay();
@@ -227,7 +227,7 @@ class GameHostControlPanel extends HtmlPageBase {
 	}
 
 	randomizeTrainers(trainers: TrainerChoices): void {
-		this.customHostDisplay.setRandomizedTrainers(trainers);
+		this.manualHostDisplay.setRandomizedTrainers(trainers);
 		this.currentTrainers = trainers;
 
 		if (this.autoSendDisplay) this.sendHostDisplay();
@@ -237,10 +237,10 @@ class GameHostControlPanel extends HtmlPageBase {
 	setGifOrIcon(gifOrIcon: GifIcon, currentPokemon: PokemonChoices, dontRender: boolean | undefined): void {
 		this.gifOrIcon = gifOrIcon;
 
-		if (this.currentView === 'customdisplay') {
+		if (this.currentView === 'manualhostdisplay') {
 			this.randomHostDisplay.setGifOrIcon(gifOrIcon, true);
 		} else {
-			this.customHostDisplay.setGifOrIcon(gifOrIcon, true);
+			this.manualHostDisplay.setGifOrIcon(gifOrIcon, true);
 		}
 
 		this.currentPokemon = currentPokemon;
@@ -305,8 +305,8 @@ class GameHostControlPanel extends HtmlPageBase {
 		const currentHost = user && this.room.userHostedGame && this.room.userHostedGame.isHost(user);
 
 		const hostInformation = this.currentView === 'hostinformation';
-		const customDisplay = this.currentView === 'customdisplay';
-		const randomDisplay = this.currentView === 'randomdisplay';
+		const manualHostDisplay = this.currentView === 'manualhostdisplay';
+		const randomHostDisplay = this.currentView === 'randomhostdisplay';
 		const generateHints = this.currentView === 'generatehints';
 
 		html += "Options:";
@@ -314,8 +314,8 @@ class GameHostControlPanel extends HtmlPageBase {
 			html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseHostInformation, "Host Information",
 				hostInformation);
 		}
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseCustomDisplay, "Custom Display", customDisplay);
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseRandomDisplay, "Random Display", randomDisplay);
+		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseCustomDisplay, "Manual Display", manualHostDisplay);
+		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseRandomDisplay, "Random Display", randomHostDisplay);
 		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseGenerateHints, "Generate Hints", generateHints);
 		html += "</center>";
 
@@ -439,8 +439,8 @@ class GameHostControlPanel extends HtmlPageBase {
 
 				html += "</center>";
 			}
-		} else if (customDisplay || randomDisplay) {
-			html += "<h3>" + (customDisplay ? "Custom" : "Random") + " Display</h3>";
+		} else if (manualHostDisplay || randomHostDisplay) {
+			html += "<h3>" + (manualHostDisplay ? "Manual" : "Random") + " Display</h3>";
 			html += this.getHostDisplay();
 			html += "<center>" + Client.getPmSelfButton(this.commandPrefix + ", " + sendDisplayCommand, "Send to " + this.room.title,
 				!currentHost) + "</center>";
@@ -453,8 +453,8 @@ class GameHostControlPanel extends HtmlPageBase {
 				!currentHost || !this.autoSendDisplay);
 
 			html += "<br /><br />";
-			if (customDisplay) {
-				html += this.customHostDisplay.render();
+			if (manualHostDisplay) {
+				html += this.manualHostDisplay.render();
 			} else {
 				html += this.randomHostDisplay.render();
 			}
@@ -510,10 +510,10 @@ export const commands: BaseCommandDefinitions = {
 				pages[user.id].chooseHostInformation();
 			} else if (cmd === chooseCustomDisplay) {
 				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
-				pages[user.id].chooseCustomDisplay();
+				pages[user.id].chooseManualHostDisplay();
 			} else if (cmd === chooseRandomDisplay) {
 				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
-				pages[user.id].chooseRandomDisplay();
+				pages[user.id].chooseRandomHostDisplay();
 			} else if (cmd === chooseGenerateHints) {
 				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
 				pages[user.id].chooseGenerateHints();

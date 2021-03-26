@@ -9,8 +9,8 @@ import { PokemonTextInput } from "./pokemon-text-input";
 
 const pokemonInputCommand = 'pokemoninput';
 
-export class CustomHostDisplay extends HostDisplayBase {
-	componentId: string = 'custom-host-display';
+export class ManualHostDisplay extends HostDisplayBase {
+	componentId: string = 'manual-host-display';
 	submitPokemonErrors: string[] = [];
 
 	gifPokemonTextInput: PokemonTextInput;
