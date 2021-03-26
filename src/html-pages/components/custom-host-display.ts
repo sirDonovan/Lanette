@@ -15,6 +15,12 @@ export class CustomHostDisplay extends HostDisplayBase {
 		super(parentCommandPrefix, componentCommand, props, PokemonPickerLetter);
 	}
 
+	togglePokemonPicker(active: boolean): void {
+		this.pokemonInput.active = active;
+
+		super.togglePokemonPicker(active);
+	}
+
 	setRandomizedBackgroundColor(hueVariation: HueVariation, lightness: Lightness, color: HexCode): void {
 		this.backgroundColorPicker.setRandomizedColor(hueVariation, lightness, color);
 	}
@@ -30,8 +36,8 @@ export class CustomHostDisplay extends HostDisplayBase {
 
 		this.currentPokemon = [];
 		for (let i = 0; i < pokemon.length; i++) {
-			if (this.gifPokemonPickers[i]) this.gifPokemonPickers[i].setRandomizedPokemon(pokemon[i]!.pokemon);
-			if (this.iconPokemonPickers[i]) this.iconPokemonPickers[i].setRandomizedPokemon(pokemon[i]!.pokemon);
+			if (this.gifPokemonPickers[i]) this.gifPokemonPickers[i].setRandomizedPokemon(pokemon[i]!);
+			if (this.iconPokemonPickers[i]) this.iconPokemonPickers[i].setRandomizedPokemon(pokemon[i]!);
 		}
 
 		const index = pokemon.length - 1;

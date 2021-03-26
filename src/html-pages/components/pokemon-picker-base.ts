@@ -10,10 +10,10 @@ export interface IPokemonPickerProps extends IPickerProps<IPokemonPick> {
 	gif: boolean;
 	maxGifs: number;
 	maxIcons: number;
-	onPickLetter: (pickerIndex: number, letter: string, dontRender?: boolean) => void;
-	onPickShininess: (pickerIndex: number, shininess: boolean, dontRender?: boolean) => void;
-	onClearType: (pickerIndex: number, dontRender?: boolean) => void;
-	onPickType: (pickerIndex: number, type: string, dontRender?: boolean) => void;
+	onPickLetter: (pickerIndex: number, letter: string, dontRender: boolean | undefined) => void;
+	onPickShininess: (pickerIndex: number, shininess: boolean, dontRender: boolean | undefined) => void;
+	onClearType: (pickerIndex: number, dontRender: boolean | undefined) => void;
+	onPickType: (pickerIndex: number, type: string, dontRender: boolean | undefined) => void;
 }
 
 const setShininess = 'setshininess';
@@ -56,6 +56,7 @@ export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemo
 
 	reset(): void {
 		this.clear(true);
+		this.pickShininess(false, true);
 	}
 
 	onPick(pick: string, dontRender?: boolean): void {

@@ -47,7 +47,7 @@ class GameTrainerCard extends HtmlPageBase {
 
 		this.trainerPicker = new TrainerPicker(this.commandPrefix, setTrainerCommand, {
 			currentPick: trainerCard ? trainerCard.avatar : undefined,
-			onSetTrainerGen: () => this.send(),
+			onSetTrainerGen: (index, trainerGen, dontRender) => this.setTrainerGen(dontRender),
 			onClear: (index, dontRender) => this.clearTrainer(dontRender),
 			onPick: (index, trainer, dontRender) => this.selectTrainer(trainer, dontRender),
 			reRender: () => this.send(),
@@ -104,6 +104,10 @@ class GameTrainerCard extends HtmlPageBase {
 		Storage.createGameTrainerCard(database, this.userId);
 		database.gameTrainerCards![this.userId].background = color.hexCode;
 
+		if (!dontRender) this.send();
+	}
+
+	setTrainerGen(dontRender?: boolean): void {
 		if (!dontRender) this.send();
 	}
 

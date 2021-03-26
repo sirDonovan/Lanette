@@ -1,6 +1,6 @@
 import type { IPageElement } from "./pagination";
 import { Pagination } from "./pagination";
-import type { IPokemonPickerProps } from "./pokemon-picker-base";
+import type { IPokemonPick, IPokemonPickerProps } from "./pokemon-picker-base";
 import { PokemonPickerBase } from "./pokemon-picker-base";
 
 const pagesLabel = "Pokemon";
@@ -111,10 +111,11 @@ export class PokemonPickerLetter extends PokemonPickerBase {
 		}
 	}
 
-	setRandomizedPokemon(pokemon: string): void {
-		const letter = pokemon.charAt(0).toUpperCase();
+	setRandomizedPokemon(pokemon: IPokemonPick): void {
+		const letter = pokemon.pokemon.charAt(0).toUpperCase();
 		this.parentPickLetter(letter);
-		this.parentPick(pokemon);
+		this.parentPickShininess(pokemon.shiny ? true : false);
+		this.parentPick(pokemon.pokemon);
 
 		this.letterPaginations[letter].autoSelectPage();
 	}

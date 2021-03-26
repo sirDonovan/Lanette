@@ -14,15 +14,16 @@ export interface IHostDisplayProps extends IComponentProps {
 	maxIcons: number;
 	maxTrainers: number;
 	random?: boolean;
-	clearBackgroundColor: () => void;
-	setBackgroundColor: (color: IColorPick) => void;
-	clearPokemon: (index: number, dontRender?: boolean) => void;
-	selectPokemon: (index: number, pokemon: IPokemonPick) => void;
+	clearBackgroundColor: (dontRender: boolean | undefined) => void;
+	setBackgroundColor: (color: IColorPick, dontRender: boolean | undefined) => void;
+	clearPokemon: (index: number, dontRender: boolean | undefined) => void;
+	selectPokemon: (index: number, pokemon: IPokemonPick, dontRender: boolean | undefined) => void;
+	clearRandomizedPokemon: () => void;
 	randomizePokemon: (pokemon: PokemonChoices) => void;
-	clearTrainer: (index: number) => void;
-	selectTrainer: (index: number, trainer: ITrainerPick) => void;
+	clearTrainer: (index: number, dontRender: boolean | undefined) => void;
+	selectTrainer: (index: number, trainer: ITrainerPick, dontRender: boolean | undefined) => void;
 	randomizeTrainers: (trainers: TrainerChoices) => void;
-	setGifOrIcon: (gifOrIcon: GifIcon, currentPokemon: PokemonChoices) => void;
+	setGifOrIcon: (gifOrIcon: GifIcon, currentPokemon: PokemonChoices, dontRender: boolean | undefined) => void;
 }
 
 const setBackgroundColorCommand = 'setbackgroundcolor';
@@ -76,7 +77,7 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 			const trainerPicker = new TrainerPicker(this.commandPrefix, this.setTrainerCommand, {
 				random: props.random,
 				pickerIndex: i,
-				onSetTrainerGen: () => props.reRender(),
+				onSetTrainerGen: (index, trainerGen, dontRender) => this.setTrainerGen(dontRender),
 				onClear: (index, dontRender) => this.clearTrainer(index, dontRender),
 				onPick: (index, trainer, dontRender) => this.selectTrainer(index, trainer, dontRender),
 				reRender: () => props.reRender(),
@@ -91,10 +92,10 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 			gif: false,
 			maxGifs: props.maxGifs,
 			maxIcons: props.maxIcons,
-			onPickLetter: (index, letter, dontRender) => this.pickPokemonLetter(index, letter, dontRender),
-			onPickShininess: (index, shininess, dontRender) => this.pickPokemonShininess(index, shininess, dontRender),
-			onClearType: (index, dontRender) => this.clearPokemonType(index, dontRender),
-			onPickType: (index, type, dontRender) => this.pickPokemonType(index, type, dontRender),
+			onPickLetter: (index, letter, dontRender) => this.pickPokemonLetter(dontRender),
+			onPickShininess: (index, shininess, dontRender) => this.pickPokemonShininess(dontRender),
+			onClearType: (index, dontRender) => this.clearPokemonType(dontRender),
+			onPickType: (index, type, dontRender) => this.pickPokemonType(dontRender),
 			onClear: (index, dontRender) => this.clearPokemon(index, dontRender),
 			onPick: (index, pokemon, dontRender) =>
 				this.selectPokemon(index, pokemon, dontRender),
@@ -140,46 +141,53 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 	chooseBackgroundColorPicker(): void {
 		if (this.currentPicker === 'background') return;
 
-		this.backgroundColorPicker.active = true;
-		if (this.gifOrIcon === 'gif') {
-			this.gifPokemonPickers[this.pokemonPickerIndex].active = false;
-		} else {
-			this.iconPokemonPickers[this.pokemonPickerIndex].active = false;
-		}
-		this.trainerPickers[this.trainerPickerIndex].active = false;
+		this.toggleBackgroundColorPicker(true);
+		this.togglePokemonPicker(false);
+		this.toggleTrainerPicker(false);
+
 		this.currentPicker = 'background';
 
 		this.props.reRender();
 	}
 
+	toggleBackgroundColorPicker(active: boolean): void {
+		this.backgroundColorPicker.active = active;
+	}
+
 	choosePokemonPicker(): void {
 		if (this.currentPicker === 'pokemon') return;
 
-		if (this.gifOrIcon === 'gif') {
-			this.gifPokemonPickers[this.pokemonPickerIndex].active = true;
-		} else {
-			this.iconPokemonPickers[this.pokemonPickerIndex].active = true;
-		}
-		this.backgroundColorPicker.active = false;
-		this.trainerPickers[this.trainerPickerIndex].active = false;
+		this.toggleBackgroundColorPicker(false);
+		this.togglePokemonPicker(true);
+		this.toggleTrainerPicker(false);
+
 		this.currentPicker = 'pokemon';
 
 		this.props.reRender();
 	}
 
+	togglePokemonPicker(active: boolean): void {
+		if (this.gifOrIcon === 'gif') {
+			this.gifPokemonPickers[this.pokemonPickerIndex].active = active;
+		} else {
+			this.iconPokemonPickers[this.pokemonPickerIndex].active = active;
+		}
+	}
+
 	chooseTrainerPicker(): void {
 		if (this.currentPicker === 'trainer') return;
 
-		this.trainerPickers[this.trainerPickerIndex].active = true;
-		this.backgroundColorPicker.active = false;
-		if (this.gifOrIcon === 'gif') {
-			this.gifPokemonPickers[this.pokemonPickerIndex].active = false;
-		} else {
-			this.iconPokemonPickers[this.pokemonPickerIndex].active = false;
-		}
+		this.toggleBackgroundColorPicker(false);
+		this.togglePokemonPicker(false);
+		this.toggleTrainerPicker(true);
+
 		this.currentPicker = 'trainer';
 
 		this.props.reRender();
+	}
+
+	toggleTrainerPicker(active: boolean): void {
+		this.trainerPickers[this.trainerPickerIndex].active = active;
 	}
 
 	setPokemonPickerIndex(index: number): boolean {
@@ -233,53 +241,57 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 	clearBackgroundColor(dontRender?: boolean): void {
 		this.currentBackgroundColor = undefined;
 
-		if (!dontRender) this.props.clearBackgroundColor();
+		this.props.clearBackgroundColor(dontRender);
 	}
 
 	setBackgroundColor(color: IColorPick, dontRender?: boolean): void {
 		this.currentBackgroundColor = color;
 
-		if (!dontRender) this.props.setBackgroundColor(color);
+		this.props.setBackgroundColor(color, dontRender);
 	}
 
-	pickPokemonLetter(index: number, letter: string, dontRender?: boolean): void {
+	pickPokemonLetter(dontRender?: boolean): void {
 		if (!dontRender) this.props.reRender();
 	}
 
-	pickPokemonShininess(index: number, shininess: boolean, dontRender?: boolean): void {
+	pickPokemonShininess(dontRender?: boolean): void {
 		if (!dontRender) this.props.reRender();
 	}
 
-	clearPokemonType(index: number, dontRender?: boolean): void {
+	clearPokemonType(dontRender?: boolean): void {
 		if (!dontRender) this.props.reRender();
 	}
 
-	pickPokemonType(index: number, type: string, dontRender?: boolean): void {
+	pickPokemonType(dontRender?: boolean): void {
 		if (!dontRender) this.props.reRender();
 	}
 
 	clearPokemon(index: number, dontRender?: boolean): void {
 		this.currentPokemon[index] = undefined;
 
-		if (!dontRender) this.props.clearPokemon(index);
+		this.props.clearPokemon(index, dontRender);
 	}
 
 	selectPokemon(index: number, pokemon: IPokemonPick, dontRender?: boolean): void {
 		this.currentPokemon[index] = pokemon;
 
-		if (!dontRender) this.props.selectPokemon(index, pokemon);
+		this.props.selectPokemon(index, pokemon, dontRender);
+	}
+
+	setTrainerGen(dontRender?: boolean): void {
+		if (!dontRender) this.props.reRender();
 	}
 
 	clearTrainer(index: number, dontRender?: boolean): void {
 		this.currentTrainers[index] = undefined;
 
-		if (!dontRender) this.props.clearTrainer(index);
+		this.props.clearTrainer(index, dontRender);
 	}
 
 	selectTrainer(index: number, trainer: ITrainerPick, dontRender?: boolean): void {
 		this.currentTrainers[index] = trainer;
 
-		if (!dontRender) this.props.selectTrainer(index, trainer);
+		this.props.selectTrainer(index, trainer, dontRender);
 	}
 
 	setGifOrIcon(gifOrIcon: GifIcon, dontRender?: boolean): void {
@@ -313,7 +325,7 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 			if (this.pokemonPickerIndex > -1) this.iconPokemonPickers[this.pokemonPickerIndex].active = true;
 		}
 
-		if (!dontRender) this.props.setGifOrIcon(gifOrIcon, this.currentPokemon);
+		this.props.setGifOrIcon(gifOrIcon, this.currentPokemon, dontRender);
 	}
 
 	tryCommand(originalTargets: readonly string[]): string | undefined {

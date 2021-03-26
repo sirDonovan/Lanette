@@ -10,7 +10,7 @@ export interface ITrainerPick {
 
 interface ITrainerPickerProps extends IPickerProps<ITrainerPick> {
 	random?: boolean;
-	onSetTrainerGen: (trainerGen: TrainerGen) => void;
+	onSetTrainerGen: (index: number, trainerGen: TrainerGen, dontRender: boolean | undefined) => void;
 }
 
 export type TrainerGen = 'newer' | 'gen1' | 'gen2' | 'gen3' | 'gen4';
@@ -200,11 +200,15 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 		this.trainerGen = trainerGen;
 		this.toggleActivePagination();
 
-		if (!dontRender) this.props.onSetTrainerGen(trainerGen);
+		this.props.onSetTrainerGen(this.pickerIndex, trainerGen, dontRender);
 	}
 
 	parentPickTrainerGen(trainerGen: TrainerGen): void {
 		this.pickTrainerGen(trainerGen, true);
+	}
+
+	parentClearTrainerGen(): void {
+		this.pickTrainerGen('newer', true);
 	}
 
 	toggleActivePagination(autoSelectPage?: boolean): void {

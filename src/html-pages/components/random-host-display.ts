@@ -4,6 +4,7 @@ import { HostDisplayBase } from "./host-display-base";
 import { TypePicker } from "./type-picker";
 import type { TrainerGen } from "./trainer-picker";
 
+const clearPokemon = 'clearpokemon';
 const randomizePokemon = 'randomizepokemon';
 const randomizeTrainers = 'randomizetrainers';
 const setTrainerGenCommand = 'settrainergen';
@@ -38,8 +39,8 @@ export class RandomHostDisplay extends HostDisplayBase {
 
 		this.allTypePicker = new TypePicker(this.commandPrefix, setTypeCommand, {
 			noPickName: "Random",
-			onClear: (index, dontRender) => this.clearType(dontRender),
-			onPick: (index, type, dontRender) => this.setType(type, dontRender),
+			onClear: (index, dontRender) => this.clearAllPokemonTypes(dontRender),
+			onPick: (index, type, dontRender) => this.setAllPokemonTypes(type, dontRender),
 			reRender: () => props.reRender(),
 		});
 		this.allTypePicker.active = false;
@@ -47,63 +48,23 @@ export class RandomHostDisplay extends HostDisplayBase {
 		this.components.push(this.allTypePicker);
 	}
 
-	chooseBackgroundColorPicker(): void {
-		if (this.currentPicker === 'background') return;
-
-		this.backgroundColorPicker.active = true;
-		this.allTypePicker.active = false;
-		if (this.trainerPickerIndex !== -1) this.trainerPickers[this.trainerPickerIndex].active = false;
-		if (this.pokemonPickerIndex !== -1) {
-			if (this.gifOrIcon === 'gif') {
-				this.gifPokemonPickers[this.pokemonPickerIndex].active = false;
-			} else {
-				this.iconPokemonPickers[this.pokemonPickerIndex].active = false;
-			}
-		}
-		this.currentPicker = 'background';
-
-		this.props.reRender();
-	}
-
-	choosePokemonPicker(): void {
-		if (this.currentPicker === 'pokemon') return;
-
+	togglePokemonPicker(active: boolean): void {
 		if (this.pokemonPickerIndex === -1) {
-			this.allTypePicker.active = true;
+			this.allTypePicker.active = active;
 		} else {
 			if (this.gifOrIcon === 'gif') {
-				this.gifPokemonPickers[this.pokemonPickerIndex].active = true;
+				this.gifPokemonPickers[this.pokemonPickerIndex].active = active;
 			} else {
-				this.iconPokemonPickers[this.pokemonPickerIndex].active = true;
+				this.iconPokemonPickers[this.pokemonPickerIndex].active = active;
 			}
 		}
-
-		this.backgroundColorPicker.active = false;
-		if (this.trainerPickerIndex !== -1) this.trainerPickers[this.trainerPickerIndex].active = false;
-		this.currentPicker = 'pokemon';
-
-		this.props.reRender();
 	}
 
-	chooseTrainerPicker(): void {
-		if (this.currentPicker === 'trainer') return;
-
-		if (this.trainerPickerIndex !== -1) this.trainerPickers[this.trainerPickerIndex].active = true;
-		this.allTypePicker.active = false;
-		this.backgroundColorPicker.active = false;
-		if (this.pokemonPickerIndex !== -1) {
-			if (this.gifOrIcon === 'gif') {
-				this.gifPokemonPickers[this.pokemonPickerIndex].active = false;
-			} else {
-				this.iconPokemonPickers[this.pokemonPickerIndex].active = false;
-			}
-		}
-		this.currentPicker = 'trainer';
-
-		this.props.reRender();
+	toggleTrainerPicker(active: boolean): void {
+		if (this.trainerPickerIndex !== -1) this.trainerPickers[this.trainerPickerIndex].active = active;
 	}
 
-	clearType(dontRender?: boolean): void {
+	clearAllPokemonTypes(dontRender?: boolean): void {
 		if (this.currentType === undefined) return;
 
 		this.currentType = undefined;
@@ -119,7 +80,7 @@ export class RandomHostDisplay extends HostDisplayBase {
 		if (!dontRender) this.props.reRender();
 	}
 
-	setType(type: string, dontRender?: boolean): void {
+	setAllPokemonTypes(type: string, dontRender?: boolean): void {
 		if (this.currentType === type) return;
 
 		this.currentType = type;
@@ -165,6 +126,20 @@ export class RandomHostDisplay extends HostDisplayBase {
 		return true;
 	}
 
+	clearRandomizedPokemon(): void {
+		if (!this.currentPokemon.length) return;
+
+		const pokemonPickers = this.gifOrIcon === 'gif' ? this.gifPokemonPickers : this.iconPokemonPickers;
+		for (const pokemonPicker of pokemonPickers) {
+			pokemonPicker.reset();
+			pokemonPicker.active = false;
+		}
+
+		this.currentPokemon = [];
+
+		this.props.clearRandomizedPokemon();
+	}
+
 	randomizePokemon(amount: number): boolean {
 		const gif = this.gifOrIcon === 'gif';
 		if (gif) {
@@ -178,8 +153,12 @@ export class RandomHostDisplay extends HostDisplayBase {
 
 		const pokemonPickers = gif ? this.gifPokemonPickers : this.iconPokemonPickers;
 		for (const pokemonPicker of pokemonPickers) {
-			pokemonPicker.reset();
 			pokemonPicker.active = false;
+		}
+
+		for (let i = amount; i < pokemonPickers.length; i++) {
+			if (!pokemonPickers[i]) break;
+			pokemonPickers[i].reset();
 		}
 
 		if (this.pokemonPickerIndex !== -1) pokemonPickers[this.pokemonPickerIndex].active = true;
@@ -209,15 +188,19 @@ export class RandomHostDisplay extends HostDisplayBase {
 		this.props.reRender();
 	}
 
-	clearTrainerGen(): void {
+	clearAllTrainerGens(): void {
 		if (this.currentTrainerGen === undefined) return;
 
 		this.currentTrainerGen = undefined;
 
+		for (const trainerPicker of this.trainerPickers) {
+			trainerPicker.parentClearTrainerGen();
+		}
+
 		this.props.reRender();
 	}
 
-	setTrainerGen(trainerGen: TrainerGen): void {
+	setAllTrainerGens(trainerGen: TrainerGen): void {
 		if (this.currentTrainerGen === trainerGen) return;
 
 		this.currentTrainerGen = trainerGen;
@@ -277,6 +260,8 @@ export class RandomHostDisplay extends HostDisplayBase {
 			if (!this.setTrainerPickerIndex(index - 1)) {
 				return "'" + targets[0].trim() + "' is not a valid trainer slot.";
 			}
+		} else if (cmd === clearPokemon) {
+			this.clearRandomizedPokemon();
 		} else if (cmd === randomizePokemon) {
 			const amount = parseInt(targets[0].trim());
 			if (isNaN(amount) || amount < 1) {
@@ -293,9 +278,9 @@ export class RandomHostDisplay extends HostDisplayBase {
 			if (!random && !trainerGens.includes(gen)) return "'" + gen + "' is not a valid trainer type.";
 
 			if (random) {
-				this.clearTrainerGen();
+				this.clearAllTrainerGens();
 			} else {
-				this.setTrainerGen(gen as TrainerGen);
+				this.setAllTrainerGens(gen as TrainerGen);
 			}
 		} else if (cmd === randomizeTrainers) {
 			const amount = parseInt(targets[0].trim());
@@ -349,9 +334,10 @@ export class RandomHostDisplay extends HostDisplayBase {
 			const allPokemon = this.pokemonPickerIndex === -1;
 			const currentIndex = this.pokemonPickerIndex + 1;
 			if (this.gifOrIcon === 'gif') {
+				html += Client.getPmSelfButton(this.commandPrefix + ", " + clearPokemon, "None");
+
 				for (let i = 1; i <= this.props.maxGifs; i++) {
-					if (i > 1) html += "&nbsp;";
-					html += Client.getPmSelfButton(this.commandPrefix + ", " + randomizePokemon + ", " + i, "Random " + i);
+					html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + randomizePokemon + ", " + i, "Random " + i);
 				}
 
 				html += "<br /><br />";
