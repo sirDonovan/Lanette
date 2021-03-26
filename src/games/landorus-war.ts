@@ -181,10 +181,11 @@ const commands: GameCommandDefinitions<LandorusWar> = {
 			}
 
 			const alias = targets.slice(1).join(",");
-			if (alias === Tools.toId(this.playerAliases.get(player))) {
+			if (Tools.toId(alias) === Tools.toId(this.playerAliases.get(player))) {
 				player.say("You cannot use a move on yourself!");
 				return false;
 			}
+
 			const attackedPlayer = this.getPlayerByAlias(alias, player);
 			if (!attackedPlayer) {
 				player.say("'" + alias + "' is not a trainer class in this game.");
@@ -228,11 +229,12 @@ const commands: GameCommandDefinitions<LandorusWar> = {
 			}
 
 			const alias = targets[0];
-			const targetPlayer = this.getPlayerByAlias(alias, player);
-			if (alias === Tools.toId(this.playerAliases.get(player))) {
+			if (Tools.toId(alias) === Tools.toId(this.playerAliases.get(player))) {
 				player.say("You cannot suspect yourself!");
 				return false;
 			}
+
+			const targetPlayer = this.getPlayerByAlias(alias, player);
 			if (!targetPlayer) {
 				player.say("'" + alias + "' is not a trainer class in this game.");
 				return false;
