@@ -111,7 +111,7 @@ const commands: GameCommandDefinitions<EmpoleonsEmpires> = {
 			}
 			const attackedPlayer = this.players[id];
 			if (attackedPlayer === player) {
-				this.say("You cannot guess your own alias.");
+				this.say("You cannot use ``" + Config.commandCharacter + "guess`` on yourself.");
 				return false;
 			}
 			if (attackedPlayer.eliminated) {
@@ -164,6 +164,7 @@ const commands: GameCommandDefinitions<EmpoleonsEmpires> = {
 				user.say("Aliases cannot include commas.");
 				return false;
 			}
+
 			const id = Tools.toId(target);
 			if (!id || Tools.toAlphaNumeric(target).length !== target.length) {
 				user.say("Aliases can only contain alpha-numeric characters.");
@@ -173,6 +174,7 @@ const commands: GameCommandDefinitions<EmpoleonsEmpires> = {
 				user.say("Aliases must be shorter than 15 characters.");
 				return false;
 			}
+
 			const otherUser = Users.get(target);
 			if (otherUser && otherUser.rooms.has(this.room as Room)) {
 				user.say("Aliases cannot be the names of other users in the room.");
@@ -186,6 +188,7 @@ const commands: GameCommandDefinitions<EmpoleonsEmpires> = {
 				user.say("Aliases cannot contain banned words.");
 				return false;
 			}
+
 			this.playerAliases.set(player, alias);
 			this.aliasIds.push(id);
 			user.say("You have chosen **" + alias + "** as your alias!");
@@ -212,6 +215,7 @@ const commands: GameCommandDefinitions<EmpoleonsEmpires> = {
 				user.say(targetPlayer.name + " is already eliminated.");
 				return false;
 			}
+
 			this.removePlayer(targetPlayer.name);
 			this.room.sayCommand("/modnote " + user.name + " DQed " + targetPlayer.name + " from " + this.name + " for using the alias '" +
 				target.trim() + "'.");
