@@ -165,6 +165,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 	playerNumbers = new Map<Player, number>();
 	playerRemainingTurnMoves = new Map<Player, number>();
 	remainingGhostMoves: number = 0;
+	roundTime: number = 30 * 1000;
 	turnsWithoutHaunting: number = 0;
 
 	createHaunter(row: number, column: number): Ghost {
@@ -756,7 +757,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 					if (this.timeout) clearTimeout(this.timeout);
 					this.moveGhosts();
 				});
-				this.timeout = setTimeout(() => this.moveGhosts(), 30 * 1000);
+				this.timeout = setTimeout(() => this.moveGhosts(), this.roundTime);
 			});
 			this.sayUhtml(boardUhtmlName, boardHtml);
 		});
