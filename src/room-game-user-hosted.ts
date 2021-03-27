@@ -77,6 +77,7 @@ export class UserHostedGame extends Game {
 		this.startTime = 0;
 		this.minPlayers = 4;
 		this.players = {};
+		this.playerCount = 0;
 		this.teams = null;
 	}
 
