@@ -1,44 +1,52 @@
 import type { Player } from "../room-activity";
-import type { GifGeneration } from "../types/dex";
+import type { GifGeneration, IGifDirectionData } from "../types/dex";
 import type { IGameFile } from "../types/games";
 import type { IPokemon } from "../types/pokemon-showdown";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
-const MAX_WIDTH = 80;
-const MAX_HEIGHT = 80;
-const BASE_HORIZONTAL = 4;
-const BASE_VERTICAL = 4;
-const MAX_HORIZONTAL = 7;
-const MAX_VERTICAL = 7;
-const MAX_TOTAL_WIDTH = MAX_WIDTH * BASE_HORIZONTAL;
-const MAX_TOTAL_HEIGHT = MAX_HEIGHT * BASE_VERTICAL;
+const BASE_POKEMON_PER_ROW = 4;
+const BASE_ROWS_PER_GRID = BASE_POKEMON_PER_ROW;
+const MAX_POKEMON_PER_ROW = 7;
+const MAX_ROWS_PER_GRID = MAX_POKEMON_PER_ROW;
+
+const BORDER_SPACING = 1;
+const MAX_TABLE_WIDTH = Tools.getMaxTableWidth(BORDER_SPACING);
+const MAX_TABLE_HEIGHT = Tools.getMaxTableHeight(BORDER_SPACING);
+const ADDITIONAL_WIDTH = Tools.getTableCellAdditionalWidth(BORDER_SPACING);
+const ADDITIONAL_HEIGHT = Tools.getTableCellAdditionalHeight(BORDER_SPACING, true);
+const MAX_POKEMON_WIDTH = Tools.getMaxTableCellWidth(MAX_TABLE_WIDTH, BORDER_SPACING, BASE_POKEMON_PER_ROW);
+const MAX_POKEMON_HEIGHT = Tools.getMaxTableCellHeight(MAX_TABLE_HEIGHT, BORDER_SPACING, BASE_ROWS_PER_GRID, true);
+
 const SPRITE_GENERATION: GifGeneration = 'bw';
+const answerCommand = 'hunt';
 
 const letters = Tools.letters.toUpperCase().split("");
-const data: {pokemon: string[]} = {
+const data: {pokemon: string[], gifData: Dict<IGifDirectionData>} = {
 	pokemon: [],
+	gifData: {},
 };
 
 class GyaradosShinyHunting extends QuestionAndAnswer {
-	answerCommands: string[] = ['hunt'];
-	canHunt: boolean = false;
+	answerCommands: string[] = [answerCommand];
 	cooldownBetweenRounds: number = 5 * 1000;
 	currentPokemon: string = '';
 	inactiveRoundLimit: number = 5;
 	lastPokemon: string = '';
 	lastShinyCoordinates: [number, number][] = [];
-	points = new Map<Player, number>();
-	roundGridSize: [number, number] = [0, 0];
-	roundHorizontalCount: number = 0;
-	roundVerticalCount: number = 0;
+	roundPokemonPerRow: number = 0;
+	roundLastLetterIndex: number = 0;
+	roundRows: number = 0;
 	shinyCoordinates: [number, number][] | null = null;
 
 	static loadData(): void {
-		data.pokemon = Games.getPokemonList(x => {
-			if (x.forme || x.gen > 5) return false;
-			const gifData = Dex.getGifData(x, SPRITE_GENERATION);
-			return !!gifData && gifData.w <= MAX_WIDTH && gifData.h <= MAX_HEIGHT;
-		}).map(x => x.name);
+		for (const pokemon of Games.getPokemonList()) {
+			if (pokemon.forme || pokemon.gen > 5) continue;
+			const gifData = Dex.getGifData(pokemon, SPRITE_GENERATION);
+			if (gifData && gifData.w && gifData.h && gifData.w <= MAX_POKEMON_WIDTH && gifData.h <= MAX_POKEMON_HEIGHT) {
+				data.gifData[pokemon.name] = gifData;
+				data.pokemon.push(pokemon.name);
+			}
+		}
 	}
 
 	onSignups(): void {
@@ -76,50 +84,37 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 	}
 
 	generateAnswer(): void {
-		if (!this.format.mode) {
-			if (this.shinyCoordinates) {
-				this.inactiveRounds++;
-				if (this.inactiveRounds === this.inactiveRoundLimit) {
-					this.inactivityEnd();
-					return;
-				}
-			} else {
-				if (this.inactiveRounds) this.inactiveRounds = 0;
-			}
-		}
-
 		let species = this.sampleOne(data.pokemon);
 		while (species === this.lastPokemon) {
 			species = this.sampleOne(data.pokemon);
 		}
 		this.lastPokemon = species;
+		this.currentPokemon = species;
 
-		const pokemon = Dex.getExistingPokemon(species);
-		this.currentPokemon = pokemon.name;
-
-		const gifData = Dex.getGifData(pokemon, SPRITE_GENERATION)!;
-		let horizontalCount = BASE_HORIZONTAL;
-		while ((horizontalCount + 1) * gifData.w < MAX_TOTAL_WIDTH) {
-			horizontalCount++;
-			if (horizontalCount === MAX_HORIZONTAL) break;
+		let pokemonInRow = BASE_POKEMON_PER_ROW;
+		while (((pokemonInRow + 1) * (data.gifData[species].w + ADDITIONAL_WIDTH)) < MAX_TABLE_WIDTH) {
+			pokemonInRow++;
+			if (pokemonInRow === MAX_POKEMON_PER_ROW) break;
 		}
-		this.roundHorizontalCount = horizontalCount;
 
-		let verticalCount = BASE_VERTICAL;
-		while ((verticalCount + 1) * gifData.h < MAX_TOTAL_HEIGHT) {
-			verticalCount++;
-			if (verticalCount === MAX_VERTICAL) break;
+		let rowsInGrid = BASE_ROWS_PER_GRID;
+		while (rowsInGrid < pokemonInRow && ((rowsInGrid + 1) * (data.gifData[species].h + ADDITIONAL_HEIGHT)) < MAX_TABLE_HEIGHT) {
+			rowsInGrid++;
+			if (rowsInGrid === MAX_ROWS_PER_GRID) break;
 		}
-		this.roundVerticalCount = verticalCount;
+		this.roundRows = rowsInGrid;
+
+		if (pokemonInRow > rowsInGrid) pokemonInRow = rowsInGrid;
+		this.roundPokemonPerRow = pokemonInRow;
 
 		this.shinyCoordinates = [];
 		const maxShinyCoordinates = this.maxCorrectPlayersPerRound || 1;
 		for (let i = 0; i < maxShinyCoordinates; i++) {
-			let shinyCoordinates = [this.random(horizontalCount), this.random(verticalCount) + 1] as [number, number];
+			let shinyCoordinates = this.generateShinyCoordinates(pokemonInRow, rowsInGrid);
 			let attempts = 0;
 			while ((this.checkLastShinyCoordinates(shinyCoordinates) ||
 				this.validateShinyCoordinates(shinyCoordinates[0], shinyCoordinates[1])) && attempts < 50) {
-				shinyCoordinates = [this.random(horizontalCount), this.random(verticalCount) + 1] as [number, number];
+				shinyCoordinates = this.generateShinyCoordinates(pokemonInRow, rowsInGrid);
 				attempts++;
 			}
 
@@ -127,44 +122,42 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 		}
 
 		this.lastShinyCoordinates = this.shinyCoordinates;
-		this.roundGridSize = [horizontalCount - 1, verticalCount];
+		this.roundLastLetterIndex = pokemonInRow - 1;
 
+		const pokemon = Dex.getExistingPokemon(species);
 		this.sayUhtml(this.uhtmlBaseName + '-preview', "<center>Find the shiny <b>" + this.currentPokemon + "</b>!<br />" +
 			this.getCurrentGif(pokemon) + "&nbsp;" + this.getShinyCurrentGif(pokemon) + "</center>");
 
 		this.answers = this.shinyCoordinates.map(x => Tools.toId(letters[x[0]] + x[1]));
 	}
 
+	generateShinyCoordinates(pokemonInRow: number, rowsInGrid: number): [number, number] {
+		return [this.random(pokemonInRow), this.random(rowsInGrid) + 1];
+	}
+
 	getHintHtml(): string {
-		const pokemon = Dex.getExistingPokemon(this.currentPokemon);
-		const gifData = Dex.getGifData(pokemon, SPRITE_GENERATION)!;
-		const tableWidth = (this.roundHorizontalCount + 1) * (gifData.w + 2);
-		const rowHeight = gifData.h + 2;
-		const lightGray = Tools.getNamedHexCode('Light-Gray');
+		const tableWidth = this.roundPokemonPerRow * (data.gifData[this.currentPokemon].w + ADDITIONAL_WIDTH);
+		const rowHeight = data.gifData[this.currentPokemon].h + ADDITIONAL_HEIGHT;
+		const backgroundColor = Tools.getNamedHexCode('White');
 
 		let gridHtml = '<table align="center" border="1" ' +
-			'style="color: black;font-weight: bold;text-align: center;table-layout: fixed;width: ' +
-			tableWidth + 'px"><tr style="height:' + rowHeight + 'px"><td>&nbsp;</td>';
-		for (let i = 0; i < this.roundHorizontalCount; i++) {
-			gridHtml += '<td style="background: ' + lightGray.gradient + '">' + letters[i] + '</td>';
-		}
-		gridHtml += '</tr></table>';
+			'style="color: black;font-weight: bold;text-align: center;table-layout: fixed;border-spacing: ' + BORDER_SPACING + 'px;' +
+				'width: ' + tableWidth + 'px;">';
 
-		gridHtml += '<table align="center" border="1" ' +
-			'style="color: black;font-weight: bold;text-align: center;table-layout: fixed;width: ' + tableWidth + 'px">';
-
+		const pokemon = Dex.getExistingPokemon(this.currentPokemon);
 		const gif = this.getCurrentGif(pokemon);
 		const shinyGif = this.getShinyCurrentGif(pokemon);
-		for (let y = 1; y <= this.roundVerticalCount; y++) {
+		for (let y = 1; y <= this.roundRows; y++) {
 			gridHtml += '<tr style="height:' + rowHeight + 'px">';
-			gridHtml += '<td style="background: ' + lightGray.gradient + '">' + y + '</td>';
-			for (let x = 0; x < this.roundHorizontalCount; x++) {
-				gridHtml += '<td>';
+			for (let x = 0; x < this.roundPokemonPerRow; x++) {
+				gridHtml += '<td style="background: ' + backgroundColor.gradient + '">';
 				if (this.validateShinyCoordinates(x, y)) {
 					gridHtml += shinyGif;
 				} else {
 					gridHtml += gif;
 				}
+
+				gridHtml += "<br />" + letters[x] + y;
 				gridHtml += '</td>';
 			}
 			gridHtml += '</tr>';
@@ -195,14 +188,14 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 
 		const letter = targets[0].trim().toUpperCase();
 		const letterIndex = letters.indexOf(letter);
-		if (letterIndex === -1 || letterIndex > this.roundGridSize[0]) {
-			player.say("You must specify a letter between " + letters[0] + " and " + letters[this.roundGridSize[0]] + "!");
+		if (letterIndex === -1 || letterIndex > this.roundLastLetterIndex) {
+			player.say("You must specify a letter between " + letters[0] + " and " + letters[this.roundLastLetterIndex] + "!");
 			return true;
 		}
 
 		const number = parseInt(targets[1].trim());
-		if (isNaN(number) || number < 1 || number > this.roundGridSize[1]) {
-			player.say("You must specify a row between 1 and " + this.roundGridSize[1] + "!");
+		if (isNaN(number) || number < 1 || number > this.roundRows) {
+			player.say("You must specify a row between 1 and " + this.roundRows + "!");
 			return true;
 		}
 
@@ -221,12 +214,12 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 
 const commands = Tools.deepClone(questionAndAnswerGame.commands!);
 if (!commands.guess.aliases) commands.guess.aliases = [];
-commands.guess.aliases.push('hunt');
+commands.guess.aliases.push(answerCommand);
 
 export const game: IGameFile<GyaradosShinyHunting> = {
 	aliases: ["gyarados", "shinyhunting", "gsh"],
 	category: 'visual',
-	commandDescriptions: [Config.commandCharacter + "hunt [coordinates]"],
+	commandDescriptions: [Config.commandCharacter + answerCommand + " [coordinates]"],
 	commands,
 	class: GyaradosShinyHunting,
 	customizableOptions: {

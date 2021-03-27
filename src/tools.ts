@@ -8,6 +8,9 @@ import { eggGroupHexCodes, hexCodes, namedHexCodes, pokemonColorHexCodes, typeHe
 import type { IExtractedBattleId, IHexCodeData, IParsedSmogonLink, NamedHexCode, TimeZone } from './types/tools';
 import type { IParam, IParametersGenData, ParametersSearchType } from './workers/parameters';
 
+const TABLE_PADDING_SIZE = 2;
+const TABLE_TEXT_SIZE = 18;
+
 const ALPHA_NUMERIC_REGEX = /[^a-zA-Z0-9 ]/g;
 const ID_REGEX = /[^a-z0-9]/g;
 const CONTAINS_INTEGER_REGEX = /.*[0-9]+.*/g;
@@ -43,6 +46,8 @@ export class Tools {
 	readonly mainServer: string = 'play.pokemonshowdown.com';
 	readonly maxMessageLength: typeof maxMessageLength = maxMessageLength;
 	readonly maxUsernameLength: typeof maxUsernameLength = maxUsernameLength;
+	readonly minRoomHeight: number = 500;
+	readonly minRoomWidth: number = 350;
 	readonly namedHexCodes: typeof namedHexCodes = namedHexCodes;
 	readonly pokemonColorHexCodes: typeof pokemonColorHexCodes = pokemonColorHexCodes;
 	readonly pokemonShowdownFolder: string = path.join(rootFolder, 'pokemon-showdown');
@@ -69,6 +74,33 @@ export class Tools {
 			// @ts-expect-error
 			delete previous[i];
 		}
+	}
+
+	getMaxTableWidth(borderSpacing: number): number {
+		return this.minRoomWidth - (borderSpacing * 2);
+	}
+
+	getMaxTableHeight(borderSpacing: number): number {
+		return this.minRoomHeight - (borderSpacing * 2);
+	}
+
+	getTableCellAdditionalWidth(borderSpacing: number): number {
+		return (borderSpacing * 2) + TABLE_PADDING_SIZE;
+	}
+
+	getTableCellAdditionalHeight(borderSpacing: number, cellText?: boolean): number {
+		let additionalHeight = (borderSpacing * 2) + TABLE_PADDING_SIZE;
+		if (cellText) additionalHeight += TABLE_TEXT_SIZE;
+
+		return additionalHeight;
+	}
+
+	getMaxTableCellWidth(maxTableWidth: number, borderSpacing: number, cellsPerRow: number): number {
+		return Math.floor((maxTableWidth - (this.getTableCellAdditionalWidth(borderSpacing) * cellsPerRow)) / cellsPerRow);
+	}
+
+	getMaxTableCellHeight(maxTableHeight: number, borderSpacing: number, rowsInTable: number, cellText?: boolean): number {
+		return Math.floor((maxTableHeight - (this.getTableCellAdditionalHeight(borderSpacing, cellText) * rowsInTable)) / rowsInTable);
 	}
 
 	getNamedHexCode(name: NamedHexCode): IHexCodeData {

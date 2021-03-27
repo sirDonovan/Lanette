@@ -88,7 +88,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 			}
 		}
 
-		if (!this.correctPlayers.length) {
+		if (!this.correctPlayers.length && !this.format.mode) {
 			this.inactiveRounds++;
 			if (this.inactiveRounds === this.inactiveRoundLimit) {
 				this.inactivityEnd();
