@@ -1164,6 +1164,8 @@ export const commands: BaseCommandDefinitions = {
 			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			if (room.userHostedGame.teams) return this.say("You cannot store winners once teams have been formed.");
 
+			if (!target) return this.say("You must specify at least 1 player.");
+
 			const targets = target.split(",");
 			if (Config.maxUserHostedGameWinners && room.id in Config.maxUserHostedGameWinners) {
 				const totalStored = room.userHostedGame.savedWinners.length + targets.length;
