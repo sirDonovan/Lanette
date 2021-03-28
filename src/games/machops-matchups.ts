@@ -3,8 +3,10 @@ import { ScriptedGame } from "../room-game-scripted";
 import type { GameCommandDefinitions, IGameFile } from "../types/games";
 import type { IPokemon } from "../types/pokemon-showdown";
 
-const data: {pokemon: Dict<readonly string[]>} = {
+const data: {keys: string[], pokemon: Dict<readonly string[]>, pokemonByType: Dict<string[]>} = {
+	keys: [],
 	pokemon: {},
+	pokemonByType: {},
 };
 
 const banlist = ['giratina'];
@@ -17,6 +19,7 @@ class MachopsMatchups extends ScriptedGame {
 	points = new Map<Player, number>();
 	roundActions = new Set<Player>();
 	usedPokemon: string[] = [];
+	sharedType: string | null = null;
 
 	// set once the game starts
 	currentPokemon!: IPokemon;
@@ -26,17 +29,30 @@ class MachopsMatchups extends ScriptedGame {
 			!x.types.includes('Steel') && !x.types.includes('Normal'));
 
 		for (const pokemon of pokemonList) {
+			data.keys.push(pokemon.name);
 			data.pokemon[pokemon.name] = pokemon.types;
+
+			if (pokemon.types.length > 1) {
+				for (const type of pokemon.types) {
+					if (!(type in data.pokemonByType)) data.pokemonByType[type] = [];
+					data.pokemonByType[type].push(pokemon.name);
+				}
+			}
 		}
+	}
+
+	getPokemonChoices(): string[] {
+		return this.sharedType ? data.pokemonByType[this.sharedType] : data.keys;
 	}
 
 	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
 		if (lateJoin) {
-			const pokedex = this.shuffle(Object.keys(data.pokemon));
+			const pokedex = this.shuffle(this.getPokemonChoices());
 			while (this.usedPokemon.includes(pokedex[0]) && pokedex.length) {
 				pokedex.shift();
 			}
 			if (this.usedPokemon.includes(pokedex[0])) return false;
+
 			this.playerPokemon.set(player, Dex.getExistingPokemon(pokedex[0]));
 			this.usedPokemon.push(pokedex[0]);
 			player.say("You have been randomly assigned " + pokedex[0] + "!");
@@ -45,10 +61,18 @@ class MachopsMatchups extends ScriptedGame {
 		return true;
 	}
 
+	onSignups(): void {
+		if (this.sharedType) {
+			this.say("All assigned Pokemon will be part-" + this.sharedType + "!");
+			const availablePokemon = data.pokemonByType[this.sharedType].length;
+			if (!this.playerCap || this.playerCap > availablePokemon) this.playerCap = availablePokemon;
+		}
+	}
+
 	onStart(): void {
 		this.say("Now PMing Pokemon!");
 
-		const pokedex = this.shuffle(Object.keys(data.pokemon));
+		const pokedex = this.shuffle(this.getPokemonChoices());
 		for (const id in this.players) {
 			const player = this.players[id];
 			const pokemon = pokedex[0];
@@ -68,8 +92,9 @@ class MachopsMatchups extends ScriptedGame {
 			return;
 		}
 
-		this.currentPokemon = Dex.getExistingPokemon(this.sampleOne(Object.keys(data.pokemon)));
+		this.currentPokemon = Dex.getExistingPokemon(this.sampleOne(data.keys));
 		this.roundActions.clear();
+
 		const roundHtml = this.getRoundHtml(players => this.getPlayerPoints(players));
 		const roundUhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(roundUhtmlName, roundHtml, () => {
@@ -142,4 +167,86 @@ export const game: IGameFile<MachopsMatchups> = {
 	name: "Machop's Matchups",
 	mascot: "Machop",
 	scriptedOnly: true,
+	variants: [
+		{
+			name: "Machop's Bug Matchups",
+			variantAliases: ['bug'],
+			sharedType: 'Bug',
+		},
+		{
+			name: "Machop's Dark Matchups",
+			variantAliases: ['dark'],
+			sharedType: 'Dark',
+		},
+		{
+			name: "Machop's Dragon Matchups",
+			variantAliases: ['dragon'],
+			sharedType: 'Dragon',
+		},
+		{
+			name: "Machop's Electric Matchups",
+			variantAliases: ['electric'],
+			sharedType: 'Electric',
+		},
+		{
+			name: "Machop's Fairy Matchups",
+			variantAliases: ['fairy'],
+			sharedType: 'Fairy',
+		},
+		{
+			name: "Machop's Fighting Matchups",
+			variantAliases: ['fighting'],
+			sharedType: 'Fighting',
+		},
+		{
+			name: "Machop's Fire Matchups",
+			variantAliases: ['fire'],
+			sharedType: 'Fire',
+		},
+		{
+			name: "Machop's Flying Matchups",
+			variantAliases: ['flying'],
+			sharedType: 'Flying',
+		},
+		{
+			name: "Machop's Ghost Matchups",
+			variantAliases: ['ghost'],
+			sharedType: 'Ghost',
+		},
+		{
+			name: "Machop's Grass Matchups",
+			variantAliases: ['grass'],
+			sharedType: 'Grass',
+		},
+		{
+			name: "Machop's Ground Matchups",
+			variantAliases: ['ground'],
+			sharedType: 'Ground',
+		},
+		{
+			name: "Machop's Ice Matchups",
+			variantAliases: ['ice'],
+			sharedType: 'Ice',
+		},
+		{
+			name: "Machop's Poison Matchups",
+			variantAliases: ['poison'],
+			sharedType: 'Poison',
+		},
+		{
+			name: "Machop's Psychic Matchups",
+			variantAliases: ['psychic'],
+			sharedType: 'Psychic',
+		},
+		{
+			name: "Machop's Rock Matchups",
+			variantAliases: ['rock'],
+			sharedType: 'Rock',
+		},
+		{
+			name: "Machop's Water Matchups",
+			variantAliases: ['water'],
+			sharedType: 'Water',
+		},
+	],
 };
