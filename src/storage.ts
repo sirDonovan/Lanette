@@ -514,6 +514,21 @@ export class Storage {
 			}
 		}
 
+		if (database.gameHostBoxes && sourceId in database.gameHostBoxes) {
+			database.gameHostBoxes[destinationId] = database.gameHostBoxes[sourceId];
+			delete database.gameHostBoxes[sourceId];
+		}
+
+		if (database.gameScriptedBoxes && sourceId in database.gameScriptedBoxes) {
+			database.gameScriptedBoxes[destinationId] = database.gameScriptedBoxes[sourceId];
+			delete database.gameScriptedBoxes[sourceId];
+		}
+
+		if (database.gameTrainerCards && sourceId in database.gameTrainerCards) {
+			database.gameTrainerCards[destinationId] = database.gameTrainerCards[sourceId];
+			delete database.gameTrainerCards[sourceId];
+		}
+
 		if (updatedLeaderboard) this.updateLeaderboardCaches(roomid, database);
 		return true;
 	}
