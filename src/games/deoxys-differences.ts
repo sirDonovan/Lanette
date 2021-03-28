@@ -132,8 +132,11 @@ class DeoxysDifferences extends QuestionAndAnswer {
 		this.differencePokemon = differencePokemon;
 		this.roundPokemon = rows;
 
+		const gifs = this.shuffle([differencePokemon].concat(usedPokemon)).map(x => Dex.getPokemonGif(Dex.getExistingPokemon(x),
+			SPRITE_GENERATION));
+
 		this.sayUhtml(this.uhtmlBaseName + '-preview', "<center>Spot the difference among the following Pokemon:<br />" +
-			usedPokemon.map(x => Dex.getPokemonGif(Dex.getExistingPokemon(x), SPRITE_GENERATION)).join("") + "</center>");
+			gifs.join("") + "</center>");
 
 		this.answers = [Tools.toId(letters[differenceCoordinates[0] + POKEMON_PER_GRID_ROW] + differenceCoordinates[1])];
 	}
