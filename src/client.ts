@@ -314,9 +314,9 @@ export class Client {
 		return html;
 	}
 
-	getMsgRoomButton(room: Room, message: string, label: string, disabled?: boolean): string {
-		return '<button class="button' + (disabled ? " disabled" : "") + '" name="send" value="/msg ' + Users.self.name + ', ' +
-			'/msgroom ' + room.title + ', ' + message + '">' + label + '</button>';
+	getMsgRoomButton(room: Room, message: string, label: string, disabled?: boolean, buttonStyle?: string): string {
+		return '<button class="button' + (disabled ? " disabled" : "") + '"' + (buttonStyle ? ' style="' + buttonStyle + '"' : '') +
+			'name="send" value="/msg ' + Users.self.name + ', ' + '/msgroom ' + room.title + ', ' + message + '">' + label + '</button>';
 	}
 
 	getPmUserButton(user: User, message: string, label: string, disabled?: boolean, buttonStyle?: string): string {

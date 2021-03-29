@@ -142,7 +142,24 @@ class GameHostBox extends HtmlPageBase {
 
 		html += "<br /><div class='infobox'>";
 		html += Games.getHostBoxHtml(this.room, name, name + "'s Game");
-		html += "</div></center><br /><br />";
+		html += "</div></center><br />";
+
+		const database = Storage.getDatabase(this.room);
+		let mascots: string[] = [];
+		let customBackgroundColor: string | undefined;
+		let customButtonColor: string | undefined;
+		if (database.gameHostBoxes && this.userId in database.gameHostBoxes) {
+			mascots = database.gameHostBoxes[this.userId].pokemon;
+			customBackgroundColor = database.gameHostBoxes[this.userId].background;
+			customButtonColor = database.gameHostBoxes[this.userId].buttons;
+		}
+
+		html += Games.getSignupsPlayersHtml(customBackgroundColor,
+			mascots.map(x => Dex.getPokemonIcon(Dex.getExistingPokemon(x))).join("") + "<b>" + this.userName + "'s Game - signups</b>",
+			0, "");
+		html += "<br />";
+		html += Games.getJoinLeaveHtml(customButtonColor, false, this.room);
+		html += "<br />";
 
 		html += "<b>Pokemon GIFs</b><br />";
 		html += "Choose your GIFs by PMing " + Users.self.name + " <code>" + Config.commandCharacter + setPokemonSeparateCommand + " " +

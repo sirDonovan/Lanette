@@ -1564,6 +1564,54 @@ export class Games {
 		return html;
 	}
 
+	getSignupsPlayersHtml(customBackgroundColor: string | undefined, mascotAndNameHtml: string, playerCount: number, playerNames: string):
+		string {
+		let html = "";
+
+		let validBackground = false;
+		if (customBackgroundColor && customBackgroundColor in Tools.hexCodes) {
+			validBackground = true;
+			html += "<span style='display: block;";
+			if (Tools.hexCodes[customBackgroundColor]!.textColor) {
+				html += 'color: ' + Tools.hexCodes[customBackgroundColor]!.textColor + ';';
+			} else {
+				html += 'color: #000000;';
+			}
+			html += "background: " + Tools.hexCodes[customBackgroundColor]!.gradient + "'";
+			html += ">";
+		}
+
+		html += "<div class='infobox'>" + mascotAndNameHtml + "<br /><br /><b>Players (" + playerCount + ")</b>: " + playerNames + "</div>";
+
+		if (validBackground) html += "</span>";
+
+		return html;
+	}
+
+	getJoinLeaveHtml(customButtonColor: string | undefined, freejoin: boolean, room: Room): string {
+		let buttonStyle = '';
+		if (customButtonColor && customButtonColor in Tools.hexCodes) {
+			if (Tools.hexCodes[customButtonColor]!.textColor) {
+				buttonStyle += 'color: ' + Tools.hexCodes[customButtonColor]!.textColor + ';';
+			} else {
+				buttonStyle += 'color: #000000;';
+			}
+			buttonStyle += "background: " + Tools.hexCodes[customButtonColor]!.color;
+		}
+
+		let html = "<center>";
+		if (freejoin) {
+			html += "<b>This game is free-join!</b>";
+		} else {
+			html += Client.getPmSelfButton(Config.commandCharacter + "joingame " + room.id, "Join game", false, buttonStyle);
+			html += " | ";
+			html += Client.getPmSelfButton(Config.commandCharacter + "leavegame " + room.id, "Leave game", false, buttonStyle);
+		}
+		html += "</center>";
+
+		return html;
+	}
+
 	getHostCustomDisplay(host: string, backgroundColor: HexCode | undefined, trainerList: TrainerSpriteId[], pokemonList: string[],
 		pokemonIcons: boolean, pokemonGeneration: GifGeneration): string {
 		const centered = trainerList.length > 0 || !pokemonIcons;

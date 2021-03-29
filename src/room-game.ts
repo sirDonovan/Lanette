@@ -147,51 +147,13 @@ export abstract class Game extends Activity {
 		return this.description;
 	}
 
-	getSignupsHtmlUpdate(): string {
-		let html = "";
-
-		let validBackground = false;
-		if (this.customBackgroundColor && this.customBackgroundColor in Tools.hexCodes) {
-			validBackground = true;
-			html += "<span style='display: block;";
-			if (Tools.hexCodes[this.customBackgroundColor]!.textColor) {
-				html += 'color: ' + Tools.hexCodes[this.customBackgroundColor]!.textColor + ';';
-			} else {
-				html += 'color: #000000;';
-			}
-			html += "background: " + Tools.hexCodes[this.customBackgroundColor]!.gradient + "'";
-			html += ">";
-		}
-
-		html += "<div class='infobox'>" + this.getMascotAndNameHtml(" - signups") +
-			"<br /><br /><b>Players (" + this.playerCount + ")</b>: " + this.getPlayerNames() + "</div>";
-
-		if (validBackground) html += "</span>";
-		return html;
+	getSignupsPlayersHtml(): string {
+		return Games.getSignupsPlayersHtml(this.customBackgroundColor, this.getMascotAndNameHtml(" - signups"), this.playerCount,
+			this.getPlayerNames());
 	}
 
 	getJoinLeaveHtml(freejoin: boolean): string {
-		let buttonStyle = '';
-		if (this.customButtonColor && this.customButtonColor in Tools.hexCodes) {
-			if (Tools.hexCodes[this.customButtonColor]!.textColor) {
-				buttonStyle += 'color: ' + Tools.hexCodes[this.customButtonColor]!.textColor + ';';
-			} else {
-				buttonStyle += 'color: #000000;';
-			}
-			buttonStyle += "background: " + Tools.hexCodes[this.customButtonColor]!.color;
-		}
-
-		let html = "<center>";
-		if (freejoin) {
-			html += "<b>This game is free-join!</b>";
-		} else {
-			html += Client.getPmSelfButton(Config.commandCharacter + "joingame " + this.room.id, "Join game", false, buttonStyle);
-			html += " | ";
-			html += Client.getPmSelfButton(Config.commandCharacter + "leavegame " + this.room.id, "Leave game", false, buttonStyle);
-		}
-		html += "</center>";
-
-		return html;
+		return Games.getJoinLeaveHtml(this.customButtonColor, freejoin, this.room as Room);
 	}
 
 	sayHostDisplayUhtml(user: User, backgroundColor: HexCode | undefined, trainerList: TrainerSpriteId[], pokemonList: string[],

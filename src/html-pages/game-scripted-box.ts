@@ -165,7 +165,21 @@ class GameScriptedBox extends HtmlPageBase {
 
 		html += "<br /><div class='infobox'>";
 		html += Games.getScriptedBoxHtml(this.room, format.name, name, format.description, mascot);
-		html += "</div></center><br /><br />";
+		html += "</div></center><br />";
+
+		const database = Storage.getDatabase(this.room);
+		let customBackgroundColor: string | undefined;
+		let customButtonColor: string | undefined;
+		if (database.gameScriptedBoxes && this.userId in database.gameScriptedBoxes) {
+			customBackgroundColor = database.gameScriptedBoxes[this.userId].background;
+			customButtonColor = database.gameScriptedBoxes[this.userId].buttons;
+		}
+
+		html += Games.getSignupsPlayersHtml(customBackgroundColor, (mascot ? Dex.getPokemonIcon(mascot) : '') + "<b>" +
+			format.nameWithOptions + " - signups</b>", 0, "");
+		html += "<br />";
+		html += Games.getJoinLeaveHtml(customButtonColor, false, this.room);
+		html += "<br />";
 
 		html += "<b>Game preview</b><br />";
 		html += "Choose a game to preview by PMing " + Users.self.name + " <code>" + Config.commandCharacter +

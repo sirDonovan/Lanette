@@ -216,7 +216,7 @@ export class UserHostedGame extends Game {
 
 		if (!this.signupsHtmlTimeout) {
 			this.signupsHtmlTimeout = setTimeout(() => {
-				this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsHtmlUpdate());
+				this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsPlayersHtml());
 				this.signupsHtmlTimeout = null;
 			}, Client.getSendThrottle() * 2);
 		}
@@ -239,7 +239,7 @@ export class UserHostedGame extends Game {
 		if (!this.started) {
 			if (!this.signupsHtmlTimeout) {
 				this.signupsHtmlTimeout = setTimeout(() => {
-					this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsHtmlUpdate());
+					this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsPlayersHtml());
 					this.signupsHtmlTimeout = null;
 				}, Client.getSendThrottle() * 2);
 			}
@@ -311,7 +311,7 @@ export class UserHostedGame extends Game {
 		}
 
 		this.sayHtml(this.getSignupsHtml());
-		if (!this.format.options.freejoin) this.sayUhtml(this.signupsUhtmlName, this.getSignupsHtmlUpdate());
+		if (!this.format.options.freejoin) this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
 		this.sayUhtml(this.joinLeaveButtonUhtmlName, this.getJoinLeaveHtml(this.format.options.freejoin ? true : false));
 
 		this.sayCommand("/notifyrank all, " + this.room.title + " user-hosted game," + this.name + "," + this.hostId + " " +
