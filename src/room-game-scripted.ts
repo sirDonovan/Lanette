@@ -13,6 +13,7 @@ import type { User } from "./users";
 const JOIN_BITS = 10;
 const AUTO_START_VOTE_TIME = 5 * 1000;
 const MIN_BOT_CHALLENGE_SPEED = 1;
+const SIGNUPS_END_MESSAGE = "<center>(signups have closed)</center>";
 
 // base of 0 defaults option to 'off'
 const defaultOptionValues: KeyedDict<DefaultGameOption, IGameOptionValues> = {
@@ -388,9 +389,12 @@ export class ScriptedGame extends Game {
 		if (this.notifyRankSignups) this.sayCommand("/notifyoffrank all");
 		if (this.showSignupsHtml) {
 			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
-			const signupsEndMessage = "(signups have ended)";
-			this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, signupsEndMessage);
-			this.sayUhtmlChange(this.joinLeaveButtonRefreshUhtmlName, signupsEndMessage);
+			if (this.signupsRefreshed) {
+				this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, "<div></div>");
+				this.sayUhtmlChange(this.joinLeaveButtonRefreshUhtmlName, SIGNUPS_END_MESSAGE);
+			} else {
+				this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, SIGNUPS_END_MESSAGE);
+			}
 		}
 
 		if (!this.internalGame) this.say(this.name + " is starting! **Players (" + this.playerCount + ")**: " + this.getPlayerNames());

@@ -163,7 +163,7 @@ export abstract class Game extends Activity {
 			html += ">";
 		}
 
-		html += "<div class='infobox'>" + this.getMascotAndNameHtml(" - signups (join with " + Config.commandCharacter + "joingame!)") +
+		html += "<div class='infobox'>" + this.getMascotAndNameHtml(" - signups") +
 			"<br /><br /><b>Players (" + this.playerCount + ")</b>: " + this.getPlayerNames() + "</div>";
 
 		if (validBackground) html += "</span>";
