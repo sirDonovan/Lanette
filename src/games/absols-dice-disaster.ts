@@ -37,7 +37,7 @@ class AbsolsDiceDisaster extends ScriptedGame {
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		const html = this.getRoundHtml(players => this.getPlayerNames(players));
 		this.onUhtml(uhtmlName, html, () => {
-			this.roundDiceRoll = Math.floor(Math.random() * senseRolls.fortune) + 1;
+			this.roundDiceRoll = this.random(senseRolls.fortune) + 1;
 			let absolSenseText: string = "Absol senses ";
 			if (this.roundDiceRoll <= senseRolls.disaster) {
 				this.absolSense = 'disaster';

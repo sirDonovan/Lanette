@@ -111,8 +111,8 @@ class BounsweetsBountifulBuffet extends ScriptedGame {
 		const mealNames: string[] = [];
 		this.numberOfMeals = Math.min(Math.ceil(this.playerCount / 3) + 1, this.meals.length);
 		for (let i = 0; i < this.numberOfMeals; i++) {
-			const num1 = Math.floor(Math.random() * 99) + 1;
-			const num2 = Math.floor(Math.random() * 99) + 1;
+			const num1 = this.random(99) + 1;
+			const num2 = this.random(99) + 1;
 			this.mealPoints.push(num1 + num2);
 			mealNames.push("<b>" + this.meals[i] + "</b>: " + this.mealPoints[i]);
 		}

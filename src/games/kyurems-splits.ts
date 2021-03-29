@@ -53,7 +53,7 @@ class KyuremsSplits extends QuestionAndAnswer {
 			for (let i = 1; i < randomAnswer.length; i++) {
 				validIndices.push(i);
 			}
-			const numberOfLetters = Math.min(4, Math.max(2, Math.floor(validIndices.length * (Math.random() * 0.4 + 0.3))));
+			const numberOfLetters = Math.min(4, Math.max(2, Math.floor(validIndices.length * (this.random(0.4) + 0.3))));
 			const chosenIndices = this.sampleMany(validIndices, numberOfLetters);
 
 			hint = '';

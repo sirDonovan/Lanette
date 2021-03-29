@@ -387,8 +387,7 @@ export abstract class MapGame extends ScriptedGame {
 	}
 
 	getRandomCurrency(): number {
-		return ((Math.floor(Math.random() * 7) + 1) * 100) + ((Math.floor(Math.random() * 9) + 1) * 10) +
-		(Math.floor(Math.random() * 9) + 1);
+		return ((this.random(7) + 1) * 100) + ((this.random(9) + 1) * 10) + (this.random(7) + 1);
 	}
 
 	onCurrencySpace(player: Player, floor: MapFloor, space: MapFloorSpace): number {
