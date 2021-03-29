@@ -33,7 +33,10 @@ export abstract class Game extends Activity {
 	description!: string;
 	signupsUhtmlName!: string;
 	joinLeaveButtonUhtmlName!: string;
+	joinLeaveButtonRefreshUhtmlName!: string;
 
+	customBackgroundColor?: string;
+	customButtonColor?: string;
 	format?: IGameFormat | IUserHostedFormat;
 	isUserHosted?: boolean;
 	lastHostDisplayUhtml?: IHostDisplayUhtml;
@@ -145,8 +148,50 @@ export abstract class Game extends Activity {
 	}
 
 	getSignupsHtmlUpdate(): string {
-		return "<div class='infobox'>" + this.getMascotAndNameHtml(" - signups (join with " + Config.commandCharacter + "joingame!)") +
+		let html = "";
+
+		let validBackground = false;
+		if (this.customBackgroundColor && this.customBackgroundColor in Tools.hexCodes) {
+			validBackground = true;
+			html += "<span style='display: block;";
+			if (Tools.hexCodes[this.customBackgroundColor]!.textColor) {
+				html += 'color: ' + Tools.hexCodes[this.customBackgroundColor]!.textColor + ';';
+			} else {
+				html += 'color: #000000;';
+			}
+			html += "background: " + Tools.hexCodes[this.customBackgroundColor]!.gradient + "'";
+			html += ">";
+		}
+
+		html += "<div class='infobox'>" + this.getMascotAndNameHtml(" - signups (join with " + Config.commandCharacter + "joingame!)") +
 			"<br /><br /><b>Players (" + this.playerCount + ")</b>: " + this.getPlayerNames() + "</div>";
+
+		if (validBackground) html += "</span>";
+		return html;
+	}
+
+	getJoinLeaveHtml(freejoin: boolean): string {
+		let buttonStyle = '';
+		if (this.customButtonColor && this.customButtonColor in Tools.hexCodes) {
+			if (Tools.hexCodes[this.customButtonColor]!.textColor) {
+				buttonStyle += 'color: ' + Tools.hexCodes[this.customButtonColor]!.textColor + ';';
+			} else {
+				buttonStyle += 'color: #000000;';
+			}
+			buttonStyle += "background: " + Tools.hexCodes[this.customButtonColor]!.color;
+		}
+
+		let html = "<center>";
+		if (freejoin) {
+			html += "<b>This game is free-join!</b>";
+		} else {
+			html += Client.getPmSelfButton(Config.commandCharacter + "joingame " + this.room.id, "Join game", false, buttonStyle);
+			html += " | ";
+			html += Client.getPmSelfButton(Config.commandCharacter + "leavegame " + this.room.id, "Leave game", false, buttonStyle);
+		}
+		html += "</center>";
+
+		return html;
 	}
 
 	sayHostDisplayUhtml(user: User, backgroundColor: HexCode | undefined, trainerList: TrainerSpriteId[], pokemonList: string[],

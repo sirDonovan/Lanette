@@ -303,19 +303,16 @@ export class UserHostedGame extends Game {
 	signups(): void {
 		this.signupsTime = Date.now();
 		this.signupsStarted = true;
+
+		const database = Storage.getDatabase(this.room);
+		if (database.gameHostBoxes && this.hostId in database.gameHostBoxes) {
+			this.customBackgroundColor = database.gameHostBoxes[this.hostId].background;
+			this.customButtonColor = database.gameHostBoxes[this.hostId].buttons;
+		}
+
 		this.sayHtml(this.getSignupsHtml());
 		if (!this.format.options.freejoin) this.sayUhtml(this.signupsUhtmlName, this.getSignupsHtmlUpdate());
-
-		let joinLeaveHtml = "<center>";
-		if (this.format.options.freejoin) {
-			joinLeaveHtml += "<b>This game is free-join!</b>";
-		} else {
-			joinLeaveHtml += Client.getPmSelfButton(Config.commandCharacter + "joingame " + this.room.id, "Join game");
-			joinLeaveHtml += " | ";
-			joinLeaveHtml += Client.getPmSelfButton(Config.commandCharacter + "leavegame " + this.room.id, "Leave game");
-		}
-		joinLeaveHtml += "</center>";
-		this.sayUhtml(this.joinLeaveButtonUhtmlName, joinLeaveHtml);
+		this.sayUhtml(this.joinLeaveButtonUhtmlName, this.getJoinLeaveHtml(this.format.options.freejoin ? true : false));
 
 		this.sayCommand("/notifyrank all, " + this.room.title + " user-hosted game," + this.name + "," + this.hostId + " " +
 			this.getHighlightPhrase(), true);

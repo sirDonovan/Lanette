@@ -319,13 +319,13 @@ export class Client {
 			'/msgroom ' + room.title + ', ' + message + '">' + label + '</button>';
 	}
 
-	getPmUserButton(user: User, message: string, label: string, disabled?: boolean): string {
-		return '<button class="button' + (disabled ? " disabled" : "") + '" name="send" value="/msg ' + user.name + ', ' + message + '">' +
-			label + '</button>';
+	getPmUserButton(user: User, message: string, label: string, disabled?: boolean, buttonStyle?: string): string {
+		return '<button class="button' + (disabled ? " disabled" : "") + '"' + (buttonStyle ? ' style="' + buttonStyle + '"' : '') +
+			' name="send" value="/msg ' + user.name + ', ' + message + '">' + label + '</button>';
 	}
 
-	getPmSelfButton(message: string, label: string, disabled?: boolean): string {
-		return this.getPmUserButton(Users.self, message, label, disabled);
+	getPmSelfButton(message: string, label: string, disabled?: boolean, buttonStyle?: string): string {
+		return this.getPmUserButton(Users.self, message, label, disabled, buttonStyle);
 	}
 
 	getSendThrottle(): number {

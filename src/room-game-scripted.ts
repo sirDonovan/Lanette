@@ -36,6 +36,7 @@ export class ScriptedGame extends Game {
 	readonly maxBits: number = 500;
 	notifyRankSignups: boolean = false;
 	parentGame: ScriptedGame | undefined;
+	signupsRefreshed: boolean = false;
 	startTime: number = 0;
 	usesHtmlPage: boolean = false;
 	usesWorkers: boolean = false;
@@ -183,6 +184,7 @@ export class ScriptedGame extends Game {
 		this.uhtmlBaseName = (this.isMiniGame ? "mini" : "scripted") + "-" + this.format.id + "-" + gameCount;
 		this.signupsUhtmlName = this.uhtmlBaseName + "-signups";
 		this.joinLeaveButtonUhtmlName = this.uhtmlBaseName + "-join-leave";
+		this.joinLeaveButtonRefreshUhtmlName = this.uhtmlBaseName + "-join-leave-update";
 	}
 
 	onInitialize(format: IGameFormat): void {
@@ -258,6 +260,15 @@ export class ScriptedGame extends Game {
 				commandDescriptions.map(x => "<code>" + x + "</code>").join(", ");
 		}
 
+		if (this.format.voter) {
+			const id = Tools.toId(this.format.voter);
+			const database = Storage.getDatabase(this.room as Room);
+			if (database.gameScriptedBoxes && id in database.gameScriptedBoxes) {
+				this.customBackgroundColor = database.gameScriptedBoxes[id].background;
+				this.customButtonColor = database.gameScriptedBoxes[id].buttons;
+			}
+		}
+
 		return Games.getScriptedBoxHtml(this.room as Room, this.name, this.format.voter, description, this.mascot, this.shinyMascot,
 			!this.internalGame && !this.parentGame ? this.getHighlightPhrase() : "",
 			this.format.mode ? this.getModeHighlightPhrase() : "");
@@ -313,17 +324,8 @@ export class ScriptedGame extends Game {
 			this.showSignupsHtml = true;
 			this.sayHtml(this.getSignupsHtml());
 			if (!this.format.options.freejoin) this.sayUhtml(this.signupsUhtmlName, this.getSignupsHtmlUpdate());
+			this.sayUhtml(this.joinLeaveButtonUhtmlName, this.getJoinLeaveHtml(this.format.options.freejoin ? true : false));
 
-			let joinLeaveHtml = "<center>";
-			if (this.format.options.freejoin) {
-				joinLeaveHtml += "<b>This game is free-join!</b>";
-			} else {
-				joinLeaveHtml += Client.getPmSelfButton(Config.commandCharacter + "joingame " + this.room.id, "Join game");
-				joinLeaveHtml += " | ";
-				joinLeaveHtml += Client.getPmSelfButton(Config.commandCharacter + "leavegame " + this.room.id, "Leave game");
-			}
-			joinLeaveHtml += "</center>";
-			this.sayUhtml(this.joinLeaveButtonUhtmlName, joinLeaveHtml);
 			this.notifyRankSignups = true;
 			this.sayCommand("/notifyrank all, " + (this.room as Room).title + " scripted game," + this.name + "," +
 				this.getHighlightPhrase(), true);
@@ -354,7 +356,10 @@ export class ScriptedGame extends Game {
 				const startTimer = (Config.gameAutoStartTimers[this.room.id] * 60 * 1000) / 2;
 				this.startTimer = setTimeout(() => {
 					if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
+
+					this.signupsRefreshed = true;
 					this.sayUhtml(this.signupsUhtmlName, this.getSignupsHtmlUpdate());
+					this.sayUhtml(this.joinLeaveButtonRefreshUhtmlName, this.getJoinLeaveHtml(this.format.options.freejoin ? true : false));
 
 					this.startTimer = setTimeout(() => {
 						if (!this.start()) {
@@ -383,7 +388,9 @@ export class ScriptedGame extends Game {
 		if (this.notifyRankSignups) this.sayCommand("/notifyoffrank all");
 		if (this.showSignupsHtml) {
 			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
-			this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, "<div></div>");
+			const signupsEndMessage = "(signups have ended)";
+			this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, signupsEndMessage);
+			this.sayUhtmlChange(this.joinLeaveButtonRefreshUhtmlName, signupsEndMessage);
 		}
 
 		if (!this.internalGame) this.say(this.name + " is starting! **Players (" + this.playerCount + ")**: " + this.getPlayerNames());
