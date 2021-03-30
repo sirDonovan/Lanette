@@ -50,12 +50,17 @@ export interface IGameHostBox {
 	shinyPokemon: boolean[];
 	background?: HexCode;
 	buttons?: HexCode;
+	signupsBackground?: HexCode;
+	signupsButtons?: HexCode;
 }
 
 export interface IGameScriptedBox {
 	pokemon: string[];
 	background?: HexCode;
 	buttons?: HexCode;
+	signupsBackground?: HexCode;
+	signupsButtons?: HexCode;
+	previewFormat?: string;
 }
 
 export type UserHostStatus = 'unapproved' | 'novice' | 'approved';

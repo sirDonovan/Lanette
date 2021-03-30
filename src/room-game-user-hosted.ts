@@ -306,8 +306,9 @@ export class UserHostedGame extends Game {
 
 		const database = Storage.getDatabase(this.room);
 		if (database.gameHostBoxes && this.hostId in database.gameHostBoxes) {
-			this.customBackgroundColor = database.gameHostBoxes[this.hostId].background;
-			this.customButtonColor = database.gameHostBoxes[this.hostId].buttons;
+			const box = database.gameHostBoxes[this.hostId];
+			this.customBackgroundColor = box.signupsBackground || box.background;
+			this.customButtonColor = box.signupsButtons || box.buttons;
 		}
 
 		this.sayHtml(this.getSignupsHtml());
@@ -345,7 +346,7 @@ export class UserHostedGame extends Game {
 		this.started = true;
 		this.startTime = Date.now();
 		this.sayCommand("/notifyoffrank all");
-		this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, "<div></div>");
+		this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, "<center>(signups have ended)</center>");
 		this.say(this.name + " is starting! **Players (" + this.playerCount + ")**: " + this.getPlayerNames());
 
 		return true;

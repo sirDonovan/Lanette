@@ -500,11 +500,7 @@ export const commands: BaseCommandDefinitions = {
 			targets.shift();
 
 			if (!cmd) {
-				if (!(user.id in pages)) {
-					new GameHostControlPanel(targetRoom, user).open();
-				} else {
-					pages[user.id].send();
-				}
+				new GameHostControlPanel(targetRoom, user).open();
 			} else if (cmd === chooseHostInformation) {
 				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
 				pages[user.id].chooseHostInformation();

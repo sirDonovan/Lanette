@@ -265,8 +265,9 @@ export class ScriptedGame extends Game {
 			const id = Tools.toId(this.format.voter);
 			const database = Storage.getDatabase(this.room as Room);
 			if (database.gameScriptedBoxes && id in database.gameScriptedBoxes) {
-				this.customBackgroundColor = database.gameScriptedBoxes[id].background;
-				this.customButtonColor = database.gameScriptedBoxes[id].buttons;
+				const box = database.gameScriptedBoxes[id];
+				this.customBackgroundColor = box.signupsBackground || box.background;
+				this.customButtonColor = box.signupsButtons || box.buttons;
 			}
 		}
 

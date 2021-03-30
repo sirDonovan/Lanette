@@ -197,11 +197,7 @@ export const commands: BaseCommandDefinitions = {
 			targets.shift();
 
 			if (!cmd) {
-				if (!(user.id in pages)) {
-					new GameTrainerCard(targetRoom, user).open();
-				} else {
-					pages[user.id].send();
-				}
+				new GameTrainerCard(targetRoom, user).open();
 			} else if (cmd === 'view' || cmd === 'show' || cmd === previewCommand) {
 				const trainerCard = Games.getTrainerCardHtml(targetRoom, user.name);
 				if (!trainerCard) return this.say("You do not have a game trainer card.");
