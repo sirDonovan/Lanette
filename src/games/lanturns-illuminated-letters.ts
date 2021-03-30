@@ -27,6 +27,7 @@ class LanturnsIlluminatedLetters extends QuestionAndAnswer {
 	lastIlluminatedletters: string = '';
 	letters: string[] = [];
 	multiRoundHints = true;
+	oneGuessPerHint = true;
 	revealedColor: IHexCodeData = Tools.getNamedHexCode("White");
 	readonly roundGuesses = new Map<Player, boolean>();
 	roundTime = 0;
@@ -159,6 +160,7 @@ export const game: IGameFile<LanturnsIlluminatedLetters> = Games.copyTemplatePro
 	minigameCommand: 'iletter',
 	minigameDescription: 'Use <code>' + Config.commandCharacter + 'g</code> to guess the answer as letters are revealed and hidden!',
 	modes: ['group'],
+	scriptedOnly: true,
 	variants: [
 		{
 			name: "Lanturn's Ability Illuminated Letters",
