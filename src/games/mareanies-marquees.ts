@@ -131,6 +131,7 @@ export const game: IGameFile<MareaniesMarquee> = Games.copyTemplateProperties(qu
 			updateHintTime: 1000,
 		},
 	},
+	scriptedOnly: true,
 	variants: [
 		{
 			name: "Mareanie's Ability Marquees",
