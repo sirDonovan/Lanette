@@ -281,7 +281,7 @@ export const game: IGameFile<DeoxysDifferences> = {
 	modes: ['team', 'survival', 'timeattack'],
 	modeProperties: {
 		'survival': {
-			roundTime: 20 * 1000,
+			roundTime: 15 * 1000,
 		},
 	},
 	scriptedOnly: true,
