@@ -195,20 +195,21 @@ export const commands: BaseCommandDefinitions = {
 					database.userHostedGameQueue = [];
 				}
 
-				let reason = '';
+				let prefixText = '';
+				let suffixText = '';
 				if (!room.game && !room.userHostedGame) {
 					if (otherUsersQueued) {
-						reason = (database.userHostedGameQueue.length === 1 ? "Another host is" : database.userHostedGameQueue.length +
+						prefixText = (database.userHostedGameQueue.length === 1 ? "Another host is" : database.userHostedGameQueue.length +
 							" other hosts are") + " already queued";
-					} else if (inCooldown) {
-						const durationString = Tools.toDurationString(remainingGameCooldown);
-						reason = "There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the game " +
-							"cooldown remaining";
 					} else if (requiresScriptedGame) {
-						reason = "At least 1 scripted game needs to be played before the next user-hosted game can start";
+						prefixText = "At least 1 scripted game needs to be played before the next user-hosted game can start";
+					} else if (inCooldown) {
+						suffixText = "Their game can begin in " + Tools.toDurationString(remainingGameCooldown) + "!";
 					}
 				}
-				this.say((reason ? reason + " so " : "") + host.name + " was added to the host queue.");
+
+				this.say((prefixText ? prefixText + " so " : "") + host.name + " was added to the host queue." +
+					(suffixText ? " " + suffixText : ""));
 				database.userHostedGameQueue.push({
 					format: format.inputTarget,
 					id: host.id,
