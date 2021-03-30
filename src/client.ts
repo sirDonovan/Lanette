@@ -40,6 +40,7 @@ const UHTML_CHANGE_CHAT_COMMAND = '/uhtmlchange ';
 const HANGMAN_START_COMMAND = "/log A game of hangman was started by ";
 const HANGMAN_END_COMMAND = "/log (The game of hangman was ended by ";
 const HANGMAN_END_RAW_MESSAGE = "The game of hangman was ended.";
+const USER_NOT_FOUND_MESSAGE = "/error User ";
 
 const FILTERS_REGEX_N = /\u039d/g;
 // eslint-disable-next-line no-misleading-character-class
@@ -1319,6 +1320,8 @@ export class Client {
 
 			const user = Users.add(messageArguments.username, userId);
 			if (user === Users.self) {
+				if (messageArguments.message.startsWith(USER_NOT_FOUND_MESSAGE)) return;
+
 				const recipientId = Tools.toId(messageArguments.recipientUsername);
 				if (!recipientId) return;
 
