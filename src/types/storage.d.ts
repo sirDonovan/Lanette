@@ -38,14 +38,6 @@ export interface IPastGame {
 	time: number;
 }
 
-export interface IUserHostedGameStats {
-	endTime: number;
-	format: string;
-	inputTarget: string;
-	playerCount: number;
-	startTime: number;
-}
-
 export interface IGameTrainerCard {
 	pokemon: string[];
 	avatar?: TrainerSpriteId;
@@ -81,6 +73,21 @@ export interface ICachedLeaderboardEntry {
 	points: number;
 }
 
+export interface IGameStat {
+	format: string;
+	inputTarget: string;
+	startingPlayerCount: number;
+	endingPlayerCount: number;
+	startTime: number;
+	endTime: number;
+	winners: string[];
+}
+
+interface ILastCycleData {
+	scriptedGameStats?: IGameStat[];
+	userHostedGameStats?: Dict<IGameStat[]>;
+}
+
 export interface IDatabase {
 	botGreetings?: Dict<IBotGreeting>;
 	eventInformation?: Dict<IEventInformation>;
@@ -90,6 +97,7 @@ export interface IDatabase {
 	gameHostBoxes?: Dict<IGameHostBox>;
 	gameScriptedBoxes?: Dict<IGameScriptedBox>;
 	gameTrainerCards?: Dict<IGameTrainerCard>;
+	lastCycleData?: ILastCycleData;
 	lastGameFormatTimes?: Dict<number>;
 	lastGameTime?: number;
 	lastTournamentFormatTimes?: Dict<number>;
@@ -101,15 +109,15 @@ export interface IDatabase {
 	pastGames?: IPastGame[];
 	pastTournaments?: IPastTournament[];
 	pastUserHostedGames?: IPastGame[];
-	previousUserHostedGameStats?: Dict<IUserHostedGameStats[]>;
 	queuedTournament?: {formatid: string; playerCap: number; scheduled: boolean; time: number};
 	roomSampleTeamsLink?: string;
 	scriptedGameCounts?: Dict<number>;
+	scriptedGameStats?: IGameStat[];
 	thcWinners?: Dict<string>;
 	tournamentLeaderboard?: ILeaderboard;
 	unsortedLeaderboard?: ILeaderboard;
 	userHostedGameCounts?: Dict<number>;
-	userHostedGameStats?: Dict<IUserHostedGameStats[]>;
+	userHostedGameStats?: Dict<IGameStat[]>;
 	userHostedGameQueue?: IQueuedUserHostedGame[];
 	userHostStatuses?: Dict<UserHostStatus>;
 }

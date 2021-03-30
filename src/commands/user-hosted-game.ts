@@ -4,7 +4,7 @@ import type { UserHostedGame } from "../room-game-user-hosted";
 import type { Room } from "../rooms";
 import type { BaseCommandDefinitions } from "../types/command-parser";
 import type { GameDifficulty } from "../types/games";
-import type { IUserHostedGameStats, UserHostStatus } from "../types/storage";
+import type { IGameStat, UserHostStatus } from "../types/storage";
 import type { User } from "../users";
 
 export const commands: BaseCommandDefinitions = {
@@ -479,7 +479,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			let html = "<b>" + hostName + "'s cycle host stats</b>:<br />";
-			const stats: Dict<IUserHostedGameStats[]> = {};
+			const stats: Dict<IGameStat[]> = {};
 			for (const game of database.userHostedGameStats[hostId]) {
 				const date = new Date(game.startTime);
 				const key = (date.getMonth() + 1) + '/' + date.getDate();
@@ -493,7 +493,7 @@ export const commands: BaseCommandDefinitions = {
 				for (const stat of stats[day]) {
 					const format = Games.getUserHostedFormat(stat.inputTarget);
 					const name = Array.isArray(format) ? stat.format : format.name;
-					dayStats.push("<b>" + name + "</b>: " + stat.playerCount + " players; " +
+					dayStats.push("<b>" + name + "</b>: " + stat.startingPlayerCount + " players; " +
 						Tools.toDurationString(stat.endTime - stat.startTime));
 				}
 				dayHtml += dayStats.join("<br />") + "</details>";

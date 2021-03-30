@@ -543,6 +543,17 @@ export class ScriptedGame extends Game {
 				database.pastGames.pop();
 			}
 
+			if (!database.scriptedGameStats) database.scriptedGameStats = [];
+			database.scriptedGameStats.push({
+				endTime: now,
+				format: this.format.name,
+				inputTarget: this.format.inputTarget,
+				startingPlayerCount: this.playerCount,
+				endingPlayerCount: this.getRemainingPlayerCount(),
+				startTime: this.signupsTime,
+				winners: Array.from(this.winners.keys()).map(x => x.id),
+			});
+
 			this.setCooldownAndAutoCreate('userhosted');
 		}
 

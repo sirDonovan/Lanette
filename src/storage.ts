@@ -207,9 +207,15 @@ export class Storage {
 			}
 		}
 
+		database.lastCycleData = {
+			scriptedGameStats: database.scriptedGameStats,
+			userHostedGameStats: database.userHostedGameStats,
+		};
+
 		if (database.scriptedGameCounts) database.scriptedGameCounts = {};
 		if (database.userHostedGameCounts) database.userHostedGameCounts = {};
-		if (database.userHostedGameStats) database.previousUserHostedGameStats = database.userHostedGameStats;
+		if (database.scriptedGameStats) database.scriptedGameStats = [];
+		if (database.userHostedGameStats) database.userHostedGameStats = {};
 
 		this.updateLeaderboardCaches(roomid, database);
 		this.exportDatabase(roomid);

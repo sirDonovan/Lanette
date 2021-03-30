@@ -369,8 +369,10 @@ export class UserHostedGame extends Game {
 				endTime: now,
 				format: this.format.name,
 				inputTarget: this.format.inputTarget,
-				playerCount: this.playerCount,
+				startingPlayerCount: this.playerCount,
+				endingPlayerCount: this.getRemainingPlayerCount(),
 				startTime: this.signupsTime,
+				winners: Array.from(this.winners.keys()).map(x => x.id),
 			});
 		}
 
