@@ -1083,26 +1083,38 @@ export const commands: BaseCommandDefinitions = {
 	},
 	store: {
 		command(target, room, user, cmd) {
-			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
+			const targets = target.split(",");
+
+			let gameRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				gameRoom = targetRoom;
+				targets.shift();
+			} else {
+				gameRoom = room;
+			}
+
+			if (!gameRoom.userHostedGame || !gameRoom.userHostedGame.isHost(user)) return;
+
 			if (cmd === 'stored' || !target) {
-				if (!room.userHostedGame.storedMessages) {
+				if (!gameRoom.userHostedGame.storedMessages) {
 					return this.say("You must store a message first with ``" + Config.commandCharacter + "store [message]`` or " +
 						"``" + Config.commandCharacter + "storem [key], [message]``.");
 				}
 				const key = Tools.toId(target);
-				if (!(key in room.userHostedGame.storedMessages)) {
+				if (!(key in gameRoom.userHostedGame.storedMessages)) {
 					return this.say("'" + target + "' is not one of your stored keys.");
 				}
-				if (CommandParser.isCommandMessage(room.userHostedGame.storedMessages[key])) {
-					const parts = room.userHostedGame.storedMessages[key].split(" ");
+				if (CommandParser.isCommandMessage(gameRoom.userHostedGame.storedMessages[key])) {
+					const parts = gameRoom.userHostedGame.storedMessages[key].split(" ");
 					this.run(parts[0].substr(1), parts.slice(1).join(" "));
 					return;
 				}
-				this.say(room.userHostedGame.storedMessages[key]);
+				this.say(gameRoom.userHostedGame.storedMessages[key]);
 				return;
 			}
 
-			const targets = target.split(",");
 			let key = "";
 			let keyId = "";
 			if (cmd === 'storemultiple' || cmd === 'storem') {
@@ -1126,37 +1138,87 @@ export const commands: BaseCommandDefinitions = {
 					Config.commandCharacter + "store.");
 			}
 
-			if (!room.userHostedGame.storedMessages) room.userHostedGame.storedMessages = {};
-			room.userHostedGame.storedMessages[keyId] = message;
+			if (!gameRoom.userHostedGame.storedMessages) gameRoom.userHostedGame.storedMessages = {};
+			gameRoom.userHostedGame.storedMessages[keyId] = message;
 
 			this.say("Your message has been stored! You can now repeat it with ``" + Config.commandCharacter + "stored" +
 				(key ? " " + key : "") + "``.");
-			room.userHostedGame.autoRefreshControlPanel();
+			gameRoom.userHostedGame.autoRefreshControlPanel();
 		},
 		aliases: ['stored', 'storemultiple', 'storem'],
 	},
-	twist: {
+	unstore: {
 		command(target, room, user) {
+			const targets = target.split(",");
+
 			let gameRoom: Room;
-			let isPm = false;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.search(target);
-				if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 				gameRoom = targetRoom;
-				isPm = true;
+				targets.shift();
 			} else {
 				gameRoom = room;
 			}
-			if (!gameRoom.userHostedGame || (!isPm && !gameRoom.userHostedGame.isHost(user))) return;
-			if (!target) {
+
+			if (!gameRoom.userHostedGame || !gameRoom.userHostedGame.isHost(user)) return;
+			if (!gameRoom.userHostedGame.storedMessages) return this.say("You have not stored any messages.");
+
+			const key = Tools.toId(targets[0]);
+			if (!(key in gameRoom.userHostedGame.storedMessages)) {
+				return this.say("'" + targets[0] + "' is not one of your stored keys.");
+			}
+
+			delete gameRoom.userHostedGame.storedMessages[key];
+			this.say("Your " + (key ? "message stored with key '" + key + "'" : "stored message") + " has been removed.");
+
+			gameRoom.userHostedGame.autoRefreshControlPanel();
+		},
+		aliases: ['unstorem'],
+	},
+	twist: {
+		command(target, room, user) {
+			const targets = target.split(",");
+
+			let gameRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				gameRoom = targetRoom;
+				targets.shift();
+			} else {
+				gameRoom = room;
+			}
+
+			if (!gameRoom.userHostedGame || (targets[0] && !gameRoom.userHostedGame.isHost(user))) return;
+
+			if (!targets[0]) {
 				if (!gameRoom.userHostedGame.twist) return this.say("There is no twist set for the current game.");
 				this.say(gameRoom.userHostedGame.name + " twist: " + gameRoom.userHostedGame.twist);
 				return;
 			}
-			if (isPm) return;
 
-			gameRoom.userHostedGame.twist = target.trim();
+			gameRoom.userHostedGame.twist = targets[0].trim();
 			this.say("Your twist has been stored. You can repeat it with ``" + Config.commandCharacter + "twist``.");
+			gameRoom.userHostedGame.autoRefreshControlPanel();
+		},
+	},
+	removetwist: {
+		command(target, room, user) {
+			let gameRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(target);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
+				gameRoom = targetRoom;
+			} else {
+				gameRoom = room;
+			}
+
+			if (!gameRoom.userHostedGame || !gameRoom.userHostedGame.isHost(user)) return;
+			if (!gameRoom.userHostedGame.twist) return this.say("You have not set a twist.");
+
+			gameRoom.userHostedGame.twist = null;
+			this.say("Your twist has been removed.");
 			gameRoom.userHostedGame.autoRefreshControlPanel();
 		},
 	},

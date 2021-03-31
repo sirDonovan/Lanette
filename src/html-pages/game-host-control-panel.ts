@@ -11,6 +11,9 @@ import type { IPokemonPick } from "./components/pokemon-picker-base";
 import { RandomHostDisplay } from "./components/random-host-display";
 import type { ITrainerPick } from "./components/trainer-picker";
 import { HtmlPageBase } from "./html-page-base";
+import { MultiTextInput } from "./components/multi-text-input";
+import { TextInput } from "./components/text-input";
+import { NumberTextInput } from "./components/number-text-input";
 
 export type PokemonChoices = (IPokemonPick | undefined)[];
 export type TrainerChoices = (ITrainerPick | undefined)[];
@@ -24,6 +27,10 @@ const chooseHostInformation = 'choosehostinformation';
 const chooseCustomDisplay = 'choosecustomdisplay';
 const chooseRandomDisplay = 'chooserandomdisplay';
 const chooseGenerateHints = 'choosegeneratehints';
+const addPointsCommand = 'addpoints';
+const removePointsCommand = 'removepoints';
+const storedMessageInputCommand = 'storedmessage';
+const twistInputCommand = 'twist';
 const setCurrentPlayerCommand = 'setcurrentplayer';
 const manualHostDisplayCommand = 'manualhostdisplay';
 const randomHostDisplayCommand = 'randomhostdisplay';
@@ -59,6 +66,10 @@ class GameHostControlPanel extends HtmlPageBase {
 	generatedAnswer: IRandomGameAnswer | undefined = undefined;
 	gifOrIcon: GifIcon = 'gif';
 	pokemonGeneration: GifGeneration = 'xy';
+	storedMessageInput: MultiTextInput;
+	twistInput: TextInput;
+	addPointsInput: NumberTextInput;
+	removePointsInput: NumberTextInput;
 
 	manualHostDisplay: ManualHostDisplay;
 	randomHostDisplay: RandomHostDisplay;
@@ -86,15 +97,63 @@ class GameHostControlPanel extends HtmlPageBase {
 		};
 
 		this.currentView = room.userHostedGame && room.userHostedGame.isHost(user) ? 'hostinformation' : 'manualhostdisplay';
+		const hostInformation = this.currentView === 'hostinformation';
+
+		this.addPointsInput = new NumberTextInput(this.commandPrefix, addPointsCommand, {
+			min: 1,
+			label: "Add point(s)",
+			submitText: "Add",
+			onClear: () => this.onClearAddPoints(),
+			onErrors: () => this.onAddPointsErrors(),
+			onSubmit: (output) => this.onSubmitAddPoints(output),
+			reRender: () => this.send(),
+		});
+		this.addPointsInput.active = hostInformation;
+
+		this.removePointsInput = new NumberTextInput(this.commandPrefix, removePointsCommand, {
+			min: 1,
+			label: "Remove point(s)",
+			submitText: "Remove",
+			onClear: () => this.onClearRemovePoints(),
+			onErrors: () => this.onRemovePointsErrors(),
+			onSubmit: (output) => this.onSubmitRemovePoints(output),
+			reRender: () => this.send(),
+		});
+		this.removePointsInput.active = hostInformation;
+
+		this.storedMessageInput = new MultiTextInput(this.commandPrefix, storedMessageInputCommand, {
+			inputCount: 2,
+			labels: ['Key', 'Message'],
+			textAreas: [false, true],
+			textAreaConfigurations: [null, {rows: 3, cols: 60}],
+			onClear: () => this.onClearStoreMessage(),
+			onErrors: () => this.onStoreMessageErrors(),
+			onSubmit: (output) => this.onSubmitStoreMessage(output),
+			reRender: () => this.send(),
+		});
+		this.storedMessageInput.active = hostInformation;
+
+		this.twistInput = new TextInput(this.commandPrefix, twistInputCommand, {
+			currentInput: room.userHostedGame && room.userHostedGame.twist ? room.userHostedGame.twist : "",
+			label: "Enter twist",
+			textArea: true,
+			textAreaConfiguration: {rows: 3, cols: 60},
+			onClear: () => this.onClearTwist(),
+			onErrors: () => this.onTwistErrors(),
+			onSubmit: (output) => this.onSubmitTwist(output),
+			reRender: () => this.send(),
+		});
+		this.twistInput.active = hostInformation;
 
 		this.manualHostDisplay = new ManualHostDisplay(this.commandPrefix, manualHostDisplayCommand, hostDisplayProps);
-		this.manualHostDisplay.active = this.currentView === 'manualhostdisplay';
+		this.manualHostDisplay.active = !hostInformation;
 
 		this.randomHostDisplay = new RandomHostDisplay(this.commandPrefix, randomHostDisplayCommand,
 			Object.assign({random: true}, hostDisplayProps));
 		this.randomHostDisplay.active = false;
 
-		this.components = [this.manualHostDisplay, this.randomHostDisplay];
+		this.components = [this.addPointsInput, this.removePointsInput, this.storedMessageInput, this.twistInput,
+			this.manualHostDisplay, this.randomHostDisplay];
 
 		pages[this.userId] = this;
 	}
@@ -118,6 +177,10 @@ class GameHostControlPanel extends HtmlPageBase {
 	chooseHostInformation(): void {
 		if (this.currentView === 'hostinformation') return;
 
+		this.addPointsInput.active = true;
+		this.removePointsInput.active = true;
+		this.storedMessageInput.active = true;
+		this.twistInput.active = true;
 		this.randomHostDisplay.active = false;
 		this.manualHostDisplay.active = false;
 		this.currentView = 'hostinformation';
@@ -128,6 +191,10 @@ class GameHostControlPanel extends HtmlPageBase {
 	chooseManualHostDisplay(): void {
 		if (this.currentView === 'manualhostdisplay') return;
 
+		this.addPointsInput.active = false;
+		this.removePointsInput.active = false;
+		this.storedMessageInput.active = false;
+		this.twistInput.active = false;
 		this.manualHostDisplay.active = true;
 		this.randomHostDisplay.active = false;
 		this.currentView = 'manualhostdisplay';
@@ -138,6 +205,10 @@ class GameHostControlPanel extends HtmlPageBase {
 	chooseRandomHostDisplay(): void {
 		if (this.currentView === 'randomhostdisplay') return;
 
+		this.addPointsInput.active = false;
+		this.removePointsInput.active = false;
+		this.storedMessageInput.active = false;
+		this.twistInput.active = false;
 		this.randomHostDisplay.active = true;
 		this.manualHostDisplay.active = false;
 		this.currentView = 'randomhostdisplay';
@@ -148,9 +219,101 @@ class GameHostControlPanel extends HtmlPageBase {
 	chooseGenerateHints(): void {
 		if (this.currentView === 'generatehints') return;
 
+		this.addPointsInput.active = false;
+		this.removePointsInput.active = false;
+		this.storedMessageInput.active = false;
+		this.twistInput.active = false;
 		this.randomHostDisplay.active = false;
 		this.manualHostDisplay.active = false;
 		this.currentView = 'generatehints';
+
+		this.send();
+	}
+
+	onClearAddPoints(): void {
+		this.send();
+	}
+
+	onAddPointsErrors(): void {
+		this.send();
+	}
+
+	onSubmitAddPoints(output: string): void {
+		if (!this.room.userHostedGame || !this.currentPlayer) return;
+
+		const amount = parseInt(output.trim());
+		if (isNaN(amount)) return;
+
+		const user = Users.get(this.userName);
+		if (user) {
+			CommandParser.parse(this.room, user, Config.commandCharacter + "addpoint " + this.currentPlayer + ", " + amount, Date.now());
+		}
+	}
+
+	onClearRemovePoints(): void {
+		this.send();
+	}
+
+	onRemovePointsErrors(): void {
+		this.send();
+	}
+
+	onSubmitRemovePoints(output: string): void {
+		if (!this.room.userHostedGame || !this.currentPlayer) return;
+
+		const amount = parseInt(output.trim());
+		if (isNaN(amount)) return;
+
+		const user = Users.get(this.userName);
+		if (user) {
+			CommandParser.parse(this.room, user, Config.commandCharacter + "removepoint " + this.currentPlayer + ", " + amount, Date.now());
+		}
+	}
+
+	onClearStoreMessage(): void {
+		this.send();
+	}
+
+	onStoreMessageErrors(): void {
+		this.send();
+	}
+
+	onSubmitStoreMessage(output: string[]): void {
+		if (!this.room.userHostedGame) return;
+
+		const game = this.room.userHostedGame;
+		const key = Tools.toId(output[0]);
+		const message = output[1].trim();
+		if (!game.storedMessages || !(key in game.storedMessages) || message !== game.storedMessages[key]) {
+			const user = Users.get(this.userName);
+			if (user) {
+				CommandParser.parse(user, user, Config.commandCharacter + "store" + (key ? "m" : "") + " " + this.room.id + ", " +
+					(key ? key + ", " : "") + message, Date.now());
+			}
+		}
+
+		this.send();
+	}
+
+	onClearTwist(): void {
+		this.send();
+	}
+
+	onTwistErrors(): void {
+		this.send();
+	}
+
+	onSubmitTwist(output: string): void {
+		if (!this.room.userHostedGame) return;
+
+		const game = this.room.userHostedGame;
+		const message = output.trim();
+		if (!game.twist || message !== game.twist) {
+			const user = Users.get(this.userName);
+			if (user) {
+				CommandParser.parse(user, user, Config.commandCharacter + "twist " + this.room.id + ", " + message, Date.now());
+			}
+		}
 
 		this.send();
 	}
@@ -328,44 +491,11 @@ class GameHostControlPanel extends HtmlPageBase {
 			html += "<br />";
 			html += "<b>Remaining time</b>: " + Tools.toDurationString(game.endTime - Date.now());
 			html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + refreshCommand, "Refresh");
-			html += "<hr />";
-
 			if (game.gameTimerEndTime) {
-				html += "<b>Game timer:</b> " + Tools.toDurationString(game.gameTimerEndTime - Date.now()) + " remaining";
+				html += "<br /><br /><b>Game timer:</b> " + Tools.toDurationString(game.gameTimerEndTime - Date.now()) + " remaining";
 				html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + refreshCommand, "Refresh");
-				html += "<br /><br />";
 			}
-
-			if (game.twist || game.storedMessages) {
-				let twistHtml = "";
-				if (game.twist) {
-					twistHtml = "<b>Twist</b>: " + game.twist;
-					twistHtml += "&nbsp;" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "twist", "Send");
-				}
-
-				let storedMessages = "";
-				if (game.storedMessages) {
-					storedMessages += "<b>Stored messages</b>:";
-					storedMessages += "<br />[key] | [message]<br />";
-					for (const i in game.storedMessages) {
-						storedMessages += "<br />" + (i || "(none)") + " | <code>" + game.storedMessages[i] + "</code>";
-						storedMessages += "&nbsp;" + Client.getMsgRoomButton(this.room,
-							Config.commandCharacter + "stored" + (i ? " " + i : ""), "Send");
-					}
-				}
-
-				if (twistHtml && storedMessages) {
-					html += twistHtml;
-					html += "<br /><br />";
-					html += storedMessages;
-				} else if (twistHtml) {
-					html += twistHtml;
-				} else if (storedMessages) {
-					html += storedMessages;
-				}
-
-				html += "<br /><br />";
-			}
+			html += "<hr />";
 
 			const remainingPlayerCount = game.getRemainingPlayerCount();
 			html += "<b>Players</b> (" + remainingPlayerCount + ")" + (remainingPlayerCount ? ":" : "");
@@ -385,12 +515,12 @@ class GameHostControlPanel extends HtmlPageBase {
 			if (game.savedWinners.length) html += "<br /><b>Saved winners</b>: " + Tools.joinList(game.savedWinners.map(x => x.name));
 
 			const remainingPlayers = Object.keys(game.getRemainingPlayers());
-			if (game.scoreCap || remainingPlayers.length) html += "<br /><b>Points</b>:";
+			if (game.scoreCap || remainingPlayers.length) html += "<br /><b>Points management</b>:";
 			if (game.scoreCap) html += "<br />(the score cap is <b>" + game.scoreCap + "</b>)";
 
 			if (remainingPlayers.length) {
 				html += "<br /><center>";
-				html += Client.getPmSelfButton(this.commandPrefix + ", " + setCurrentPlayerCommand, "Hide points buttons",
+				html += Client.getPmSelfButton(this.commandPrefix + ", " + setCurrentPlayerCommand, "Hide points controls",
 					!this.currentPlayer);
 
 				if (game.teams) {
@@ -420,25 +550,40 @@ class GameHostControlPanel extends HtmlPageBase {
 				}
 
 				if (this.currentPlayer) {
-					const currentPlayer = Users.get(this.currentPlayer);
-					const name = currentPlayer ? currentPlayer.name : this.currentPlayer;
-
-					for (let i = 1; i <= 5; i++) {
-						if (i > 1) html += "&nbsp;";
-						html += Client.getMsgRoomButton(this.room, Config.commandCharacter + "apt " + name + ", " + i,
-							"Add " + i + " point" + (i > 1 ? "s" : ""), !game.started);
-					}
-
-					html += "<br />";
-					for (let i = 1; i <= 5; i++) {
-						if (i > 1) html += "&nbsp;";
-						html += Client.getMsgRoomButton(this.room, Config.commandCharacter + "rpt " + name + ", " + i,
-							"Remove " + i + " point" + (i > 1 ? "s" : ""), !game.started);
-					}
+					html += this.addPointsInput.render();
+					html += this.removePointsInput.render();
 				}
 
 				html += "</center>";
 			}
+
+			html += "<br />";
+
+			html += "<b>Stored messages</b> (<code>[key] | [message]</code>):<br />";
+			const storedMessageKeys = game.storedMessages ? Object.keys(game.storedMessages) : [];
+			if (storedMessageKeys.length) {
+				for (const key of storedMessageKeys) {
+					html += "<br />" + (key || "(none)") + " | <code>" + game.storedMessages![key] + "</code>";
+					html += "&nbsp;" + Client.getPmSelfButton(Config.commandCharacter + "unstore, " + this.room.id +
+						(key ? ", " + key : ""), "Clear");
+					html += "&nbsp;" + Client.getMsgRoomButton(this.room,
+						Config.commandCharacter + "stored" + (key ? " " + key : ""), "Send to " + this.room.title);
+				}
+				html += "<br />";
+			}
+
+			html += "<br />Store new message:<br /><br />" + this.storedMessageInput.render();
+
+			html += "<br /><br />";
+
+			html += "<b>Twist</b>: ";
+			if (game.twist) {
+				html += "<br />" + game.twist;
+				html += "&nbsp;" + Client.getPmSelfButton(Config.commandCharacter + "removetwist, " + this.room.id, "Clear");
+				html += "&nbsp;" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "twist", "Send to " + this.room.title);
+			}
+			html += "<br /><br />";
+			html += this.twistInput.render();
 		} else if (manualHostDisplay || randomHostDisplay) {
 			html += "<h3>" + (manualHostDisplay ? "Manual" : "Random") + " Display</h3>";
 			html += this.getHostDisplay();

@@ -19,7 +19,7 @@ export abstract class HtmlPageBase {
 		this.userName = user.name;
 		this.userId = user.id;
 		this.baseCommand = baseCommand;
-		this.commandPrefix = Config.commandCharacter + baseCommand + " " + room.title;
+		this.commandPrefix = Config.commandCharacter + baseCommand + " " + room.id;
 	}
 
 	abstract render(onOpen?: boolean): string;
