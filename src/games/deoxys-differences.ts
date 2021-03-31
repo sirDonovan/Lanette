@@ -138,7 +138,8 @@ class DeoxysDifferences extends QuestionAndAnswer {
 		this.sayUhtml(this.uhtmlBaseName + '-preview', "<center>Spot the difference among the following Pokemon:<br />" +
 			gifs.join("") + "</center>");
 
-		this.answers = [Tools.toId(letters[differenceCoordinates[0] + POKEMON_PER_GRID_ROW] + differenceCoordinates[1])];
+		this.answers = [Tools.toId(letters[differenceCoordinates[0]] + differenceCoordinates[1]),
+			Tools.toId(letters[differenceCoordinates[0] + POKEMON_PER_GRID_ROW] + differenceCoordinates[1])];
 	}
 
 	generateDifferenceCoordinates(): [number, number] {
@@ -236,8 +237,8 @@ class DeoxysDifferences extends QuestionAndAnswer {
 
 		const letter = targets[0].trim().toUpperCase();
 		const letterIndex = letters.indexOf(letter);
-		if (letterIndex === -1 || letterIndex < POKEMON_PER_GRID_ROW || letterIndex > FINAL_LETTER_INDEX) {
-			player.say("You must specify a letter between " + letters[POKEMON_PER_GRID_ROW] + " and " + letters[FINAL_LETTER_INDEX] + "!");
+		if (letterIndex === -1 || letterIndex > FINAL_LETTER_INDEX) {
+			player.say("You must specify a letter between " + letters[0] + " and " + letters[FINAL_LETTER_INDEX] + "!");
 			return true;
 		}
 
@@ -247,7 +248,8 @@ class DeoxysDifferences extends QuestionAndAnswer {
 			return true;
 		}
 
-		if (!this.validateDifferenceCoordinates(letterIndex - POKEMON_PER_GRID_ROW, number)) {
+		if (!this.validateDifferenceCoordinates(letterIndex >= POKEMON_PER_GRID_ROW ? letterIndex - POKEMON_PER_GRID_ROW : letterIndex,
+			number)) {
 			player.say("The difference between the grids is not at " + letter + number + "!");
 			return true;
 		}
@@ -273,7 +275,7 @@ export const game: IGameFile<DeoxysDifferences> = {
 	customizableOptions: {
 		points: {min: 10, base: 10, max: 10},
 	},
-	description: "Each round players try to be the first to spot the different Pokemon on the right grid!",
+	description: "Each round players try to be the first to spot the different Pokemon between the grids!",
 	freejoin: true,
 	name: "Deoxys' Differences",
 	mascots: ['Deoxys', 'Deoxys-Attack', 'Deoxys-Defense', 'Deoxys-Speed'],
