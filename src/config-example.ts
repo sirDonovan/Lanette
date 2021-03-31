@@ -379,7 +379,7 @@ export let disallowCreatingPreviousUserHostedGame: string[] = [];
 /**
  * A list of rooms (roomids) where the last scripted game cannot be the next user-hosted game
  */
- export let disallowCreatingPreviousScriptedGame: string[] = [];
+export let disallowCreatingPreviousScriptedGame: string[] = [];
 
 /**
  * A list of rooms (roomids) where modes on the past games list cannot be used
@@ -413,5 +413,7 @@ export let onUserHostedGameWin: ((room: Room, format: IUserHostedFormat, players
 	points: Map<Player, number> | undefined) => void) | undefined = undefined;
 
 export let onUserHostedGameHost: ((room: Room, format: IUserHostedFormat, hostName: string) => void) | undefined = undefined;
+
+export let afd = false;
 
 /* eslint-enable */

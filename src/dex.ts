@@ -953,13 +953,22 @@ export class Dex {
 			}
 		}
 
+		let suffix = '.gif';
 		let pokemonGifData: IGifData | undefined;
 		if (bw) {
 			const gifDataBW = this.getData().gifDataBW;
 			if (Object.prototype.hasOwnProperty.call(gifDataBW, pokemon.id)) pokemonGifData = gifDataBW[pokemon.id];
 		} else {
-			const gifData = this.getData().gifData;
-			if (Object.prototype.hasOwnProperty.call(gifData, pokemon.id)) pokemonGifData = gifData[pokemon.id];
+			if (Config.afd) {
+				prefix = '//' + Tools.mainServer + '/sprites/afd';
+				suffix = '.png';
+				if (shiny) {
+					prefix += '-shiny';
+				}
+			} else {
+				const gifData = this.getData().gifData;
+				if (Object.prototype.hasOwnProperty.call(gifData, pokemon.id)) pokemonGifData = gifData[pokemon.id];
+			}
 		}
 
 		let width: number;
@@ -972,7 +981,7 @@ export class Dex {
 			height = 96;
 		}
 
-		return '<img src="' + prefix + '/' + pokemon.spriteid + '.gif" width="' + width + '" height="' + height + '" />';
+		return '<img src="' + prefix + '/' + pokemon.spriteid + suffix + '" width="' + width + '" height="' + height + '" />';
 	}
 
 	getPokemonIcon(pokemon: IPokemon, facingLeft?: boolean): string {
