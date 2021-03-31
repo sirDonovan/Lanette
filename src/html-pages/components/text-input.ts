@@ -1,11 +1,19 @@
 import type { IComponentProps } from "./component-base";
 import { ComponentBase } from "./component-base";
 
+export interface ITextAreaConfiguration {
+	cols?: number;
+	rows?: number;
+}
+
 export interface ITextInputProps<OutputType = string> extends IComponentProps {
 	clearText?: string;
 	currentInput?: string;
+	label?: string;
 	placeholder?: string;
 	submitText?: string;
+	textArea?: boolean;
+	textAreaConfiguration?: ITextAreaConfiguration;
 	onClear: () => void;
 	onErrors: (errors: string[]) => void;
 	onSubmit: (output: OutputType) => void;
@@ -84,16 +92,32 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 	render(): string {
 		let html = "";
 		if (this.errors.length) {
-			html += this.errors.map(x => "<b>Error</b> " + x).join("<br />");
+			html += this.errors.map(x => "<b>Error</b>: " + x).join("<br />");
 			html += "<br />";
 		}
 
 		html += "<form data-submitsend='/msg " + Users.self.name + ", " + this.commandPrefix + ", " + this.submitCommand +
 			", {" + tagName + "}'>";
-		html += "<input name='" + tagName + "'";
-		if (this.props.placeholder) html += " placeholder='" + this.props.placeholder + "'";
-		if (this.currentInput) html += " value='" + this.currentInput + "'";
-		html += " />&nbsp;<button class='button' type='submit'>" + this.submitText + "</button>";
+
+		if (this.props.label) html += this.props.label + ":&nbsp;";
+		if (this.props.textArea) {
+			const configuration = this.props.textAreaConfiguration;
+			html += "<textarea name='" + tagName + "' rows='" + (configuration && configuration.rows ? configuration.rows : 4) +
+				"' cols='" + (configuration && configuration.cols ? configuration.cols : 50) + "'>";
+			if (this.currentInput) {
+				html += this.currentInput;
+			} else if (this.props.placeholder) {
+				html += this.props.placeholder;
+			}
+			html += "</textarea><br />";
+		} else {
+			html += "<input name='" + tagName + "'";
+			if (this.props.placeholder) html += " placeholder='" + this.props.placeholder + "'";
+			if (this.currentInput) html += " value='" + this.currentInput + "'";
+			html += " />&nbsp;";
+		}
+
+		html += "<button class='button' type='submit'>" + this.submitText + "</button>";
 		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + this.clearCommand, this.clearText, !this.currentInput);
 		html += "</form>";
 
