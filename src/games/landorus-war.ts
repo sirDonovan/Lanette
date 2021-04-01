@@ -265,9 +265,9 @@ const commands: GameCommandDefinitions<LandorusWar> = {
 			const targetPokemon = this.playerPokemon.get(targetPlayer)!;
 			if (pokemonId === targetPokemon.id) {
 				const targetAlias = this.playerAliases.get(targetPlayer)!;
-				player.say("Correct! " + targetPlayer.name + " (" + targetAlias + ") has been eliminated from the game.");
+				player.say("Correct! " + targetAlias + " was " + targetPlayer.name + ".");
 				this.playerAliasesList.splice(this.playerAliasesList.indexOf(targetAlias), 1);
-				this.eliminatePlayer(targetPlayer);
+				this.eliminatePlayer(targetPlayer, "You were suspected by " + player.name + "!");
 				const suspectedPlayers = this.suspectedPlayers.get(player) || 0;
 				this.suspectedPlayers.set(player, suspectedPlayers + 1);
 				if (this.getRemainingPlayerCount() < 2) {
