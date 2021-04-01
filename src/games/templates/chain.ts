@@ -216,8 +216,8 @@ export abstract class Chain extends ScriptedGame {
 			this.on(text, () => {
 				this.currentPlayer = currentPlayer!;
 				this.timeout = setTimeout(() => {
-					this.say("Time is up!");
-					this.eliminatePlayer(this.currentPlayer!, "You did not guess a " + this.linksType + " link!");
+					this.say("Time is up! " + this.currentPlayer!.name + " has been eliminated from the game.");
+					this.eliminatePlayer(this.currentPlayer!);
 					this.currentPlayer = null;
 					this.nextRound();
 				}, this.roundTime);

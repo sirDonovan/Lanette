@@ -267,7 +267,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 		this.properties.set(player, []);
 	}
 
-	onEliminatePlayer(player: Player, eliminationCause?: string | null, eliminator?: Player | null): void {
+	onEliminatePlayer(player: Player, eliminator?: Player | null): void {
 		const properties = this.properties.get(player) || [];
 		const eliminatorProperties = eliminator ? this.properties.get(eliminator)! : [];
 		for (const property of properties) {
@@ -353,7 +353,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 					this.say(text);
 				} else {
 					const text = "It is **" + player.name + "**'s 4th turn in " + this.jailSpace.name + ", but they do not have enough " +
-						this.currencyPluralName + " to escape!";
+						this.currencyPluralName + " to escape and have been eliminated from the game!";
 					this.on(text, () => {
 						this.eliminatePlayer(player);
 						this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
@@ -556,8 +556,8 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 
 		let text: string;
 		if (eliminated) {
-			text = "They only have " + currency + " " + (currency > 1 ? this.currencyPluralName : this.currencyName) + " and cannot pay " +
-				"the full rent!";
+			text = "They only have " + currency + " " + (currency > 1 ? this.currencyPluralName : this.currencyName) + " and have been " +
+				"eliminated from the game!";
 			this.on(text, () => {
 				if (reachedMaxCurrency) {
 					this.onMaxCurrency(owner!);

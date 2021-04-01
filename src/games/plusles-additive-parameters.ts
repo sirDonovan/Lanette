@@ -36,7 +36,7 @@ class PluslesAdditiveParameters extends ScriptedGame {
 		this.offCommands(['add']);
 
 		if (this.currentPlayer) {
-			this.eliminatePlayer(this.currentPlayer);
+			this.eliminatePlayer(this.currentPlayer, "You did not add a parameter!");
 			this.currentPlayer = null;
 		}
 		if (this.getRemainingPlayerCount() < 2 || this.parametersRound >= 20) {

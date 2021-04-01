@@ -878,8 +878,8 @@ class HauntersHauntedHouse extends ScriptedGame {
 				const yDifference = Math.abs(location[1] - ghost.column);
 				if ((xDifference === 0 && yDifference === 0) || (ghost.hauntNextTurn && xDifference <= 1 && yDifference <= 1)) {
 					this.eliminatedPlayers.add(player);
-					this.say("**" + player.name + "** was haunted by **" + ghost.name + "**!");
-					this.eliminatePlayer(player, "You were haunted by " + ghost.name + "!");
+					this.say("**" + player.name + "** was haunted by **" + ghost.name + "** and eliminated from the game!");
+					this.eliminatePlayer(player);
 					hauntedPlayer = true;
 					break;
 				}

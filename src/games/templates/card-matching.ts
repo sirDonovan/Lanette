@@ -452,7 +452,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 
 		this.say(player.name + " did not play a card and has been eliminated from the game!" + (autoPlay ? " Auto-playing: " +
 			autoPlay : ""));
-		this.eliminatePlayer(player, "You did not play a card!");
+		this.eliminatePlayer(player);
 		if (autoPlay) {
 			player.useCommand('play', autoPlay);
 		} else {
@@ -498,7 +498,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 				const lives = this.addLives(player, -1);
 				if (!lives) {
 					skippedPlayerCount++;
-					this.eliminatePlayer(player, "You do not have a card to play!");
+					this.eliminatePlayer(player);
 					if (this.getRemainingPlayerCount() === 1) {
 						finalPlayer = true;
 						break;
@@ -506,8 +506,6 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 					this.say(player.name + " " + eliminatedText);
 				} else {
 					this.say(player.name + " does not have a card to play and has lost a life!");
-					player.say("You do not have a card to play! You have " + lives + " " +
-						(lives === 1 ? "life" : "lives") + " remaining!");
 				}
 			} else {
 				skippedPlayerCount++;
@@ -583,7 +581,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 							if (this.addPlayerInactiveRound(player!) && !(this.parentGame && this.parentGame.id === '1v1challenge')) {
 								this.say(player!.name + " DQed for inactivity!");
 								// nextRound() called in onRemovePlayer
-								this.eliminatePlayer(player!, "You did not play a card for " + this.playerInactiveRoundLimit + " rounds!");
+								this.eliminatePlayer(player!);
 
 								const newFinalPlayer = this.getFinalPlayer();
 								if (newFinalPlayer) newFinalPlayer.metWinCondition = true;

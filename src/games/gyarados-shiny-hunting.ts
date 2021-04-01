@@ -199,12 +199,7 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 			return true;
 		}
 
-		if (!this.validateShinyCoordinates(letterIndex, number)) {
-			player.say("The shiny " + this.currentPokemon + " is not at " + letter + number + "!");
-			return true;
-		}
-
-		return false;
+		return !this.validateShinyCoordinates(letterIndex, number);
 	}
 
 	getAnswers(): string[] {

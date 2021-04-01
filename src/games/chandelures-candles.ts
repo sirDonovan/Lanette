@@ -145,7 +145,7 @@ const commands: GameCommandDefinitions<ChandeluresCandles> = {
 			if (!targetLives) {
 				if (this.timeout) clearTimeout(this.timeout);
 				this.say(targetPlayer.name + " has been eliminated from the game!");
-				this.eliminatePlayer(targetPlayer, "You ran out of lives!");
+				this.eliminatePlayer(targetPlayer);
 				this.roundTarget = null;
 				this.timeout = setTimeout(() => this.nextRound(), 5000);
 			}

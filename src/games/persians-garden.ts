@@ -78,12 +78,12 @@ class PersiansGarden extends MapCurrencyGame {
 		for (let i = 0; i < playersToEliminate; i++) {
 			const player = eliminated[i].player;
 			this.playerRoundInfo.get(player)!.push("Persian used Fury Swipes and knocked you out of the garden!");
-			this.eliminatePlayer(player, "You didn't collect enough " + this.currency + "!");
+			this.eliminatePlayer(player);
 			this.updatePlayerHtmlPage(player);
 			names.push(player.name);
 		}
 		this.say("The player" + (playersToEliminate > 1 ? "s" : "") + " with the least amount of " + this.currency + " " +
-			(playersToEliminate > 1 ? "were" : "was") + " **" + names.join(", ") + "**!");
+			(playersToEliminate > 1 ? "were" : "was") + " **" + names.join(", ") + "**! They have been eliminated from the game!");
 	}
 
 	onMaxRound(): void {

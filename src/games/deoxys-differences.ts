@@ -248,13 +248,8 @@ class DeoxysDifferences extends QuestionAndAnswer {
 			return true;
 		}
 
-		if (!this.validateDifferenceCoordinates(letterIndex >= POKEMON_PER_GRID_ROW ? letterIndex - POKEMON_PER_GRID_ROW : letterIndex,
-			number)) {
-			player.say("The difference between the grids is not at " + letter + number + "!");
-			return true;
-		}
-
-		return false;
+		return !this.validateDifferenceCoordinates(letterIndex >= POKEMON_PER_GRID_ROW ? letterIndex - POKEMON_PER_GRID_ROW : letterIndex,
+			number);
 	}
 
 	getAnswers(): string[] {

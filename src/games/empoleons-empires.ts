@@ -63,8 +63,8 @@ class EmpoleonsEmpires extends ScriptedGame {
 				this.timeout = setTimeout(() => {
 					if (this.currentPlayer === currentPlayer) {
 						this.say("**" + this.currentPlayer.name + "** (AKA " + this.playerAliases.get(this.currentPlayer) + ") did not " +
-							"suspect anyone and was eliminated!");
-						this.eliminatePlayer(this.currentPlayer, "You did not suspect another player!");
+							"suspect anyone and was eliminated from the game!");
+						this.eliminatePlayer(this.currentPlayer);
 						this.currentPlayer = null;
 					}
 					this.nextRound();
@@ -135,7 +135,7 @@ const commands: GameCommandDefinitions<EmpoleonsEmpires> = {
 			let totalSuspects = this.totalSuspects.get(player) || 0;
 			if (guessedAlias === Tools.toId(this.playerAliases.get(attackedPlayer))) {
 				this.say("Correct! " + attackedPlayer.name + " has been eliminated from the game.");
-				this.eliminatePlayer(attackedPlayer, "Your alias was guessed by " + player.name + "!");
+				this.eliminatePlayer(attackedPlayer);
 				let points = this.points.get(player) || 0;
 				points++;
 				this.points.set(player, points);

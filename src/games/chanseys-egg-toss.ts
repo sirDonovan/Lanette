@@ -27,7 +27,7 @@ class ChanseysEggToss extends ScriptedGame {
 			this.currentHolder = player;
 			this.explodeEgg(reason);
 		} else {
-			this.eliminatePlayer(player, "You cannot change your username!");
+			this.eliminatePlayer(player);
 			this.say(player.name + " was DQed " + reason + "!");
 		}
 	}
@@ -119,13 +119,9 @@ class ChanseysEggToss extends ScriptedGame {
 const commands: GameCommandDefinitions<ChanseysEggToss> = {
 	toss: {
 		command(target, room, user) {
-			if (!this.canToss) return false;
-			const player = this.players[user.id];
-			if (player !== this.currentHolder) {
-				player.say("You are not holding the egg!");
-				return false;
-			}
+			if (!this.canToss || this.players[user.id] !== this.currentHolder) return false;
 
+			const player = this.players[user.id];
 			const id = Tools.toId(target);
 			if (!(id in this.players) || this.players[id].eliminated) {
 				player.say("You must pass the egg to someone currently in the game!");

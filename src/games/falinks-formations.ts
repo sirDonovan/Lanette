@@ -24,7 +24,7 @@ class FalinksFormations extends ScriptedGame {
 	onNextRound(): void {
 		if (this.currentPlayer) {
 			this.say(this.currentPlayer.name + " did not guess a number and has been eliminated from the game!");
-			this.eliminatePlayer(this.currentPlayer, "You did not guess a number!");
+			this.eliminatePlayer(this.currentPlayer);
 			this.currentPlayer = null;
 		}
 
@@ -83,7 +83,7 @@ const commands: GameCommandDefinitions<FalinksFormations> = {
 			const falinksText = "**" + falinks + " Falinks** appeared for the formation!";
 			if (falinks <= guess) {
 				this.say("Only " + falinksText + " " + this.currentPlayer.name + " has been eliminated from the game.");
-				this.eliminatePlayer(player, "You did not guess enough Falinks!");
+				this.eliminatePlayer(player);
 				this.currentPlayer = null;
 				this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 			} else {

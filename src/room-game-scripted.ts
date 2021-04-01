@@ -805,13 +805,13 @@ export class ScriptedGame extends Game {
 		return false;
 	}
 
-	eliminatePlayer(player: Player, eliminationCause?: string | null, eliminator?: Player | null): void {
+	eliminatePlayer(player: Player, eliminationMessage?: string | null, eliminator?: Player | null): void {
 		player.eliminated = true;
-		player.say((eliminationCause ? eliminationCause + " " : "") + "You have been eliminated from the game.");
+		if (eliminationMessage) player.say(eliminationMessage + " You have been eliminated from the game.");
 
 		if (this.onEliminatePlayer) {
 			try {
-				this.onEliminatePlayer(player, eliminationCause, eliminator);
+				this.onEliminatePlayer(player, eliminator);
 			} catch (e) {
 				console.log(e);
 				Tools.logError(e, this.format.name + " onEliminatePlayer()");
@@ -1116,7 +1116,7 @@ export class ScriptedGame extends Game {
 	onChildHint?(hint: string, answers: readonly string[], newAnswer: boolean): void;
 	onChildPlayerTurn?(player: Player): void;
 	onDeallocate?(forceEnd: boolean): void;
-	onEliminatePlayer?(player: Player, eliminationCause?: string | null, eliminator?: Player | null): void;
+	onEliminatePlayer?(player: Player, eliminator?: Player | null): void;
 	onMaxRound?(): void;
 	onNextRound?(): void;
 	onRemovePlayer?(player: Player): void;

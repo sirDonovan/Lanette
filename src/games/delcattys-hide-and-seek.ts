@@ -130,8 +130,8 @@ class DelcattysHideAndSeek extends ScriptedGame {
 			this.canCharm = true;
 			this.timeout = setTimeout(() => {
 				this.canCharm = false;
-				this.say("**" + this.charmer.name + "** did not choose a Pokemon to charm!");
-				this.eliminatePlayer(this.charmer, "You did not choose a Pokemon to charm!");
+				this.say("**" + this.charmer.name + "** did not choose a Pokemon to charm and has been eliminated from the game!");
+				this.eliminatePlayer(this.charmer);
 				this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 			}, 60 * 1000);
 		});
@@ -183,14 +183,14 @@ const commands: GameCommandDefinitions<DelcattysHideAndSeek> = {
 				if (this.players[i].eliminated) continue;
 				const otherPlayer = this.players[i];
 				if (this.pokemonChoices.get(otherPlayer) === pokemon.name) {
-					this.eliminatePlayer(otherPlayer, "Your Pokemon was charmed!");
+					this.eliminatePlayer(otherPlayer);
 					eliminatedPlayers.push(otherPlayer.name);
 				}
 			}
 			if (!eliminatedPlayers.length) {
-				this.say("**" + this.charmer.name + "** charmed **" + pokemon.name + "**! Unfortunately, they did not eliminate " +
-					"anyone...");
-				this.eliminatePlayer(this.charmer, "No one chose the Pokemon you charmed!");
+				this.say("**" + this.charmer.name + "** charmed **" + pokemon.name + "** but no one chose that Pokemon! " +
+					this.charmer.name + " has been eliminated from the game!");
+				this.eliminatePlayer(this.charmer);
 			} else {
 				this.say("**" + this.charmer.name + "** charmed **" + pokemon.name + "** and eliminated " +
 					Tools.joinList(eliminatedPlayers) + " from the game!");

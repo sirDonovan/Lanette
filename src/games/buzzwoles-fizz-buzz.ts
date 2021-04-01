@@ -298,7 +298,7 @@ const commands: GameCommandDefinitions<BuzzwolesFizzBuzz> = {
 				}
 			} else {
 				this.say(user.name + " was eliminated from the game!");
-				this.eliminatePlayer(this.currentPlayer, "You gave an incorrect multiple or item!");
+				this.eliminatePlayer(this.currentPlayer);
 				this.currentPlayer = null;
 				if (this.getRemainingPlayerCount() < 2) {
 					this.end();

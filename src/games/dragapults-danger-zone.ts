@@ -197,8 +197,8 @@ class DragapultsDangerZone extends ScriptedGame {
 		if (this.currentPlayer) {
 			if (!this.currentPlayer.eliminated) {
 				this.addRevealedLocation(this.playerLocations.get(this.currentPlayer)!);
-				this.say(this.currentPlayer.name + " did not fire anywhere!");
-				this.eliminatePlayer(this.currentPlayer, "You did not fire anywhere on the map!");
+				this.say(this.currentPlayer.name + " did not fire anywhere and has been eliminated from the game!");
+				this.eliminatePlayer(this.currentPlayer);
 			}
 			this.currentPlayer = null;
 		}
@@ -397,7 +397,7 @@ class DragapultsDangerZone extends ScriptedGame {
 
 	handleMatchupResult(winner: Player, loser: Player, winnerPokemon: IPokemon, loserPokemon?: IPokemon): string {
 		if (!loserPokemon || loser !== this.currentPlayer) {
-			this.eliminatePlayer(loser, loserPokemon ? "You were defeated by " + winner.name + "!" : "You did not select a Pokemon!");
+			this.eliminatePlayer(loser);
 			this.addRevealedLocation(this.playerLocations.get(loser)!);
 		}
 
@@ -407,7 +407,8 @@ class DragapultsDangerZone extends ScriptedGame {
 		this.matchupsWon.set(winner, matchupsWon + 1);
 
 		if (loserPokemon) {
-			return loser.name + "'s " + loserPokemon.name + " was defeated by " + winner.name + "'s " + winnerPokemon.name + "!";
+			return loser.name + "'s " + loserPokemon.name + " was defeated by " + winner.name + "'s " + winnerPokemon.name + "! " +
+				loser.name + " has been eliminated from the game!";
 		} else {
 			return loser.name + " did not select a Pokemon and was eliminated from the game!";
 		}
