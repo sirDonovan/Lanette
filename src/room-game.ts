@@ -56,6 +56,10 @@ export abstract class Game extends Activity {
 	abstract getMascotAndNameHtml(additionalText?: string): string;
 	abstract onInitialize(format: IGameFormat | IUserHostedFormat): void;
 
+	getSignupsEndMessage(): string {
+		return "<center>(signups have closed)</center>";
+	}
+
 	rollForShinyPokemon(extraChance?: number): boolean {
 		let chance = 150;
 		if (extraChance) chance -= extraChance;

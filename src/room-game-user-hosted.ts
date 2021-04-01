@@ -346,7 +346,7 @@ export class UserHostedGame extends Game {
 		this.started = true;
 		this.startTime = Date.now();
 		this.sayCommand("/notifyoffrank all");
-		this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, "<center>(signups have ended)</center>");
+		this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, this.getSignupsEndMessage());
 		this.say(this.name + " is starting! **Players (" + this.playerCount + ")**: " + this.getPlayerNames());
 
 		return true;
@@ -412,6 +412,9 @@ export class UserHostedGame extends Game {
 				hostName = this.subHostName;
 				hostBits /= 2;
 			}
+
+			// eslint-disable-next-line @typescript-eslint/no-extra-parens
+			if (Config.afd) hostBits *= (this.random(50) + 1);
 
 			if (Config.onUserHostedGameHost) Config.onUserHostedGameHost(this.room, this.format, hostName);
 

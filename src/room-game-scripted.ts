@@ -13,7 +13,6 @@ import type { User } from "./users";
 const JOIN_BITS = 10;
 const AUTO_START_VOTE_TIME = 5 * 1000;
 const MIN_BOT_CHALLENGE_SPEED = 1;
-const SIGNUPS_END_MESSAGE = "<center>(signups have closed)</center>";
 
 // base of 0 defaults option to 'off'
 const defaultOptionValues: KeyedDict<DefaultGameOption, IGameOptionValues> = {
@@ -390,11 +389,12 @@ export class ScriptedGame extends Game {
 		if (this.notifyRankSignups) this.sayCommand("/notifyoffrank all");
 		if (this.showSignupsHtml) {
 			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
+			const signupsEndMessage = this.getSignupsEndMessage();
 			if (this.signupsRefreshed) {
 				this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, "<div></div>");
-				this.sayUhtmlChange(this.joinLeaveButtonRefreshUhtmlName, SIGNUPS_END_MESSAGE);
+				this.sayUhtmlChange(this.joinLeaveButtonRefreshUhtmlName, signupsEndMessage);
 			} else {
-				this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, SIGNUPS_END_MESSAGE);
+				this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, signupsEndMessage);
 			}
 		}
 
@@ -967,6 +967,8 @@ export class ScriptedGame extends Game {
 
 		bits = Math.floor(bits);
 		if (bits <= 0) return false;
+		// eslint-disable-next-line @typescript-eslint/no-extra-parens
+		if (Config.afd) bits *= (this.random(50) + 1);
 
 		if (!achievementBits) {
 			if (bits > this.maxBits) bits = this.maxBits;

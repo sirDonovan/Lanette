@@ -1354,6 +1354,9 @@ export const commands: BaseCommandDefinitions = {
 					playerBits = 500;
 				}
 
+				// eslint-disable-next-line @typescript-eslint/no-extra-parens
+				if (Config.afd) playerBits *= (room.userHostedGame.random(50) + 1);
+
 				for (const player of players) {
 					Storage.addPoints(room, Storage.gameLeaderboard, player.name, playerBits, 'userhosted');
 					player.say("You were awarded " + playerBits + " bits! To see your total amount, use this command: ``" +
