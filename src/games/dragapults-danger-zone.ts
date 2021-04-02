@@ -396,7 +396,8 @@ class DragapultsDangerZone extends ScriptedGame {
 	}
 
 	handleMatchupResult(winner: Player, loser: Player, winnerPokemon: IPokemon, loserPokemon?: IPokemon): string {
-		if (!loserPokemon || loser !== this.currentPlayer) {
+		const loserEliminated = !loserPokemon || loser !== this.currentPlayer;
+		if (loserEliminated) {
 			this.eliminatePlayer(loser);
 			this.addRevealedLocation(this.playerLocations.get(loser)!);
 		}
@@ -407,8 +408,8 @@ class DragapultsDangerZone extends ScriptedGame {
 		this.matchupsWon.set(winner, matchupsWon + 1);
 
 		if (loserPokemon) {
-			return loser.name + "'s " + loserPokemon.name + " was defeated by " + winner.name + "'s " + winnerPokemon.name + "! " +
-				loser.name + " has been eliminated from the game!";
+			return loser.name + "'s " + loserPokemon.name + " was defeated by " + winner.name + "'s " + winnerPokemon.name + "!" +
+				(loserEliminated ? " " + loser.name + " has been eliminated from the game!" : "");
 		} else {
 			return loser.name + " did not select a Pokemon and was eliminated from the game!";
 		}
