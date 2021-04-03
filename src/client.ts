@@ -200,6 +200,8 @@ export class Client {
 	private lastProcessingTimeCheck: number = 0;
 	private lastSendTimeoutTime: number = 0;
 	private loggedIn: boolean = false;
+	private loginServerHostname: string = '';
+	private loginServerPath: string = '';
 	private loginTimeout: NodeJS.Timer | undefined = undefined;
 	private messageParsers: IMessageParserFile[] = [];
 	private messageParsersExist: boolean = false;
@@ -676,6 +678,17 @@ export class Client {
 	}
 
 	private connect(): void {
+		if (Config.username) {
+			const action = new url.URL('https://' + Tools.mainServer + '/~~' + this.serverId + '/action.php');
+			if (!action.hostname || !action.pathname) {
+				console.log("Failed to parse login server URL");
+				process.exit();
+			}
+
+			this.loginServerHostname = action.hostname;
+			this.loginServerPath = action.pathname;
+		}
+
 		const httpsOptions = {
 			hostname: Tools.mainServer,
 			path: '/crossdomain.php?' + querystring.stringify({host: this.server, path: ''}),
@@ -2045,18 +2058,22 @@ export class Client {
 		}, time);
 	}
 
-	private login(): void {
-		if (this.retryLoginTimeout) clearTimeout(this.retryLoginTimeout);
+	private setRetryLoginTimeout(): void {
+		console.log('Retrying login in' + RELOGIN_SECONDS + ' seconds');
 
-		const action = new url.URL('https://' + Tools.mainServer + '/~~' + this.serverId + '/action.php');
-		if (!action.hostname || !action.pathname) {
-			console.log("Failed to parse login URL");
-			process.exit();
+		if (this.retryLoginTimeout) clearTimeout(this.retryLoginTimeout);
+		this.retryLoginTimeout = setTimeout(() => this.login(), RELOGIN_SECONDS * 1000);
+	}
+
 		}
 
 		const options: ILoginOptions = {
-			hostname: action.hostname,
-			path: action.pathname,
+	private login(): void {
+		if (this.retryLoginTimeout) clearTimeout(this.retryLoginTimeout);
+
+		const options: ILoginOptions = {
+			hostname: this.loginServerHostname,
+			path: this.loginServerPath,
 			agent: false,
 			method: '',
 		};
@@ -2090,53 +2107,69 @@ export class Client {
 				data += chunk;
 			});
 			response.on('end', () => {
-				if (data === ';') {
-					console.log('Failed to log in: invalid password');
-					process.exit();
-				} else if (!data.startsWith(']')) {
-					console.log('Failed to log in: ' + data);
-					process.exit();
-				} else if (data.startsWith('<!DOCTYPE html>')) {
-					console.log('Failed to log in: connection timed out. Trying again in ' + RELOGIN_SECONDS + ' seconds');
-					if (this.retryLoginTimeout) clearTimeout(this.retryLoginTimeout);
-					this.retryLoginTimeout = setTimeout(() => this.login(), RELOGIN_SECONDS * 1000);
+				if (!data) {
+					console.log('Did not receive a response from the login server.');
+					this.setRetryLoginTimeout();
 					return;
-				} else if (data.includes('heavy load')) {
-					console.log('Failed to log in: the login server is under heavy load. Trying again in ' + (RELOGIN_SECONDS * 5) +
-						' seconds');
-					if (this.retryLoginTimeout) clearTimeout(this.retryLoginTimeout);
-					this.retryLoginTimeout = setTimeout(() => this.login(), RELOGIN_SECONDS * 5 * 1000);
-					return;
-				} else {
-					if (Config.password) {
-						const assertion = JSON.parse(data.substr(1)) as {actionsuccess?: boolean; assertion?: string};
-						if (assertion.actionsuccess && assertion.assertion) {
-							data = assertion.assertion;
-						} else {
-							console.log('Failed to log in: ' + data.substr(1));
-							process.exit();
+				}
 						}
 					}
 
-					if (this.retryLoginTimeout) {
-						clearTimeout(this.retryLoginTimeout);
-						delete this.retryLoginTimeout;
+				if (data.charAt(0) === ']') data = data.substr(1);
+
+				let loginAssertion = '';
+				try {
+					const loginResponse = JSON.parse(data) as {assertion: string; curuser?: {loggedin: boolean}};
+					if (Config.password && (!loginResponse.curuser || !loginResponse.curuser.loggedin)) {
+						console.log('Failed to log in.');
+						this.setRetryLoginTimeout();
+						return;
 					}
 
-					this.send({message: '|/trn ' + Config.username + ',0,' + data, type: 'command'});
+					loginAssertion = loginResponse.assertion;
+				} catch (e) {
+					console.log('Error parsing login response:\n' + (e as Error).stack);
+					this.setRetryLoginTimeout();
+					return;
 				}
+
+				this.verifyLoginAssertion(loginAssertion);
 			});
 		});
 
 		request.on('error', error => {
-			console.log('Login error: ' + error.stack);
-			console.log('Trying again in ' + RELOGIN_SECONDS + ' seconds');
-			if (this.retryLoginTimeout) clearTimeout(this.retryLoginTimeout);
-			this.retryLoginTimeout = setTimeout(() => this.login(), RELOGIN_SECONDS * 1000);
+			console.log('Error in login call: ' + error.stack);
+			this.setRetryLoginTimeout();
 		});
 
 		if (postData) request.write(postData);
 		request.end();
+	}
+
+	private verifyLoginAssertion(assertion: string): boolean {
+		if (assertion.slice(0, 14).toLowerCase() === '<!doctype html') {
+			const endIndex = assertion.indexOf('>');
+			if (endIndex !== -1) assertion = assertion.slice(endIndex + 1);
+		}
+		if (assertion.charAt(0) === '\r') assertion = assertion.slice(1);
+		if (assertion.charAt(0) === '\n') assertion = assertion.slice(1);
+		if (assertion.indexOf('<') >= 0) {
+			console.log('Something is interfering with the connection to the login server.');
+			this.setRetryLoginTimeout();
+			return false;
+		}
+
+		if (assertion.substr(0, 2) === ';;') {
+			console.log('Failed to log in: invalid username or password');
+			process.exit();
+		} else if (assertion.indexOf('\n') >= 0 || !assertion) {
+			console.log('Something is interfering with the connection to the login server.');
+			this.setRetryLoginTimeout();
+			return false;
+		} else {
+			this.send({message: '|/trn ' + Config.username + ',0,' + assertion, type: 'command'});
+			return true;
+		}
 	}
 }
 
