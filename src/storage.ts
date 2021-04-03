@@ -19,6 +19,7 @@ export class Storage {
 	unsortedLeaderboard = 'unsortedLeaderboard' as const;
 
 	databasesDir: string = path.join(Tools.rootFolder, 'databases');
+	lastExportedDatabaseContents: Dict<string> = {};
 	lastSeenExpirationDuration = Tools.toDurationString(LAST_SEEN_EXPIRATION);
 	leaderboardsAnnualPointsCache: Dict<PartialKeyedDict<LeaderboardType, ICachedLeaderboardEntry[]>> = {};
 	leaderboardsAnnualSourcePointsCache: Dict<PartialKeyedDict<LeaderboardType, Dict<ICachedLeaderboardEntry[]>>> = {};
@@ -35,12 +36,13 @@ export class Storage {
 	constructor() {
 		this.allLeaderboardTypes = [this.gameLeaderboard, this.gameHostingLeaderboard, this.tournamentLeaderboard,
 			this.unsortedLeaderboard];
-		this.globalDatabaseExportInterval = setInterval(() => this.exportDatabase(globalDatabaseId), 15 * 60 * 1000);
+		this.globalDatabaseExportInterval = setInterval(() => this.exportGlobalDatabase(), 15 * 60 * 1000);
 	}
 
 	onReload(previous: Partial<Storage>): void {
 		// @ts-expect-error
 		if (previous.databases) Object.assign(this.databases, previous.databases);
+		if (previous.lastExportedDatabaseContents) Object.assign(this.lastExportedDatabaseContents, previous.lastExportedDatabaseContents);
 		for (const id in this.databases) {
 			this.updateLeaderboardCaches(id, this.databases[id]);
 		}
@@ -65,9 +67,17 @@ export class Storage {
 		return this.databases[globalDatabaseId] as IGlobalDatabase;
 	}
 
+	exportGlobalDatabase(): void {
+		this.exportDatabase(globalDatabaseId);
+	}
+
 	exportDatabase(roomid: string): void {
 		if (!(roomid in this.databases) || roomid.startsWith(Tools.battleRoomPrefix) || roomid.startsWith(Tools.groupchatPrefix)) return;
+
 		const contents = JSON.stringify(this.databases[roomid]);
+		if (roomid in this.lastExportedDatabaseContents && contents === this.lastExportedDatabaseContents[roomid]) return;
+
+		this.lastExportedDatabaseContents[roomid] = contents;
 		Tools.safeWriteFileSync(path.join(this.databasesDir, roomid + '.json'), contents);
 	}
 
