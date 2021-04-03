@@ -1198,7 +1198,7 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-			gameRoom.userHostedGame.twist = targets[0].trim();
+			gameRoom.userHostedGame.twist = targets.join(",").trim();
 			this.say("Your twist has been stored. You can repeat it with ``" + Config.commandCharacter + "twist``.");
 			gameRoom.userHostedGame.autoRefreshControlPanel();
 		},
