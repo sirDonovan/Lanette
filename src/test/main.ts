@@ -35,6 +35,12 @@ module.exports = (inputOptions: Dict<string>): void => {
 		require(path.join(rootFolder, 'built', 'app.js'))();
 		clearInterval(Storage.globalDatabaseExportInterval);
 
+		// allow tests to assert on Client's outgoingMessageQueue
+		// @ts-expect-error
+		Client.webSocket = {};
+		// @ts-expect-error
+		Client.pauseOutgoingMessages = true;
+
 		const mochaRoom = Rooms.add('mocha');
 		mochaRoom.setTitle('Mocha');
 
