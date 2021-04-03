@@ -400,13 +400,13 @@ export class Client {
 	}
 
 	send(outgoingMessage: IOutgoingMessage): void {
-		if (!outgoingMessage.message) return;
+		if (!outgoingMessage.message || !this.webSocket) return;
 
 		if (outgoingMessage.message.length > MAX_MESSAGE_SIZE) {
 			throw new Error("Message exceeds server size limit of " + (MAX_MESSAGE_SIZE / 1024) + "KB: " + outgoingMessage.message);
 		}
 
-		if (!this.webSocket || this.sendTimeout || this.pauseOutgoingMessages) {
+		if (this.sendTimeout || this.pauseOutgoingMessages) {
 			this.outgoingMessageQueue.push(outgoingMessage);
 
 			const queuedMessages = this.outgoingMessageQueue.length;
@@ -533,7 +533,7 @@ export class Client {
 		if (!this.webSocket || this.reloadInProgress) return;
 		if (!this.pingWsAlive) {
 			this.pingWsAlive = true;
-			this.reconnect();
+			this.prepareReconnect();
 			return;
 		}
 
@@ -653,12 +653,11 @@ export class Client {
 	}
 
 	private onConnectionClose(code: number, reason: string): void {
-		this.clearConnectionTimeouts();
+		this.terminateWebSocket();
 
 		console.log('Connection closed: ' + reason + ' (' + code + ')');
 		console.log('Reconnecting in ' + this.reconnectTime / 1000 + ' seconds');
 
-		this.removeClientListeners();
 		this.connectionTimeout = setTimeout(() => this.reconnect(true), this.reconnectTime);
 	}
 
@@ -755,42 +754,46 @@ export class Client {
 		this.pauseOutgoingMessages = true;
 	}
 
-	private reconnect(serverRestart?: boolean): void {
+	private prepareReconnect(): void {
 		this.terminateWebSocket();
 
-		if (serverRestart) {
+		Tools.logMessage("Client.reconnect() called");
+
+		this.roomsToRejoin = Rooms.getRoomIds();
+		if (Config.rooms && !Config.rooms.includes('lobby')) {
+			const index = this.roomsToRejoin.indexOf('lobby');
+			if (index !== -1) this.roomsToRejoin.splice(index, 1);
+		}
+
+		for (const id of this.roomsToRejoin) {
+			const room = Rooms.get(id)!;
+			let game: ScriptedGame | UserHostedGame | undefined;
+			if (room.game && room.game.started) {
+				game = room.game;
+			} else if (room.userHostedGame && room.userHostedGame.started) {
+				game = room.userHostedGame;
+			}
+
+			if (game) {
+				this.reconnectRoomMessages[room.id] = [Users.self.name + " had to reconnect to the server so the game was " +
+					"forcibly ended."];
+				game.deallocate(true);
+			}
+		}
+
+		for (const id of Users.getUserIds()) {
+			const user = Users.get(id)!;
+			if (user.game) user.game.deallocate(true);
+		}
+
+		this.reconnect(true);
+	}
+
+	private reconnect(prepared?: boolean): void {
+		if (!prepared) {
 			Rooms.removeAll();
 			Users.removeAll();
 			this.outgoingMessageQueue = [];
-		} else {
-			Tools.logMessage("Client.reconnect() called");
-
-			this.roomsToRejoin = Rooms.getRoomIds();
-			if (Config.rooms && !Config.rooms.includes('lobby')) {
-				const index = this.roomsToRejoin.indexOf('lobby');
-				if (index !== -1) this.roomsToRejoin.splice(index, 1);
-			}
-
-			for (const id of this.roomsToRejoin) {
-				const room = Rooms.get(id)!;
-				let game: ScriptedGame | UserHostedGame | undefined;
-				if (room.game && room.game.started) {
-					game = room.game;
-				} else if (room.userHostedGame && room.userHostedGame.started) {
-					game = room.userHostedGame;
-				}
-
-				if (game) {
-					this.reconnectRoomMessages[room.id] = [Users.self.name + " had to reconnect to the server so the game was " +
-						"forcibly ended."];
-					game.deallocate(true);
-				}
-			}
-
-			for (const id of Users.getUserIds()) {
-				const user = Users.get(id)!;
-				if (user.game) user.game.deallocate(true);
-			}
 		}
 
 		this.loggedIn = false;
