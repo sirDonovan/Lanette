@@ -137,5 +137,6 @@ interface IOfflineMessage {
 
 export interface IGlobalDatabase {
 	lastSeen?: Dict<number>;
+	loginSessionCookie?: string;
 	offlineMessages?: Dict<{messages: IOfflineMessage[], timezone?: TimeZone}>;
 }

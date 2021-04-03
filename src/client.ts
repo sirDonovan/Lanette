@@ -900,7 +900,8 @@ export class Client {
 					this.terminateWebSocket();
 					this.connectionTimeout = setTimeout(() => this.connect(), this.reconnectTime);
 				}, LOGIN_TIMEOUT_SECONDS * 1000);
-				this.login();
+
+				this.checkLoginSession();
 			}
 			break;
 		}
@@ -2058,16 +2059,81 @@ export class Client {
 		}, time);
 	}
 
-	private setRetryLoginTimeout(): void {
-		console.log('Retrying login in' + RELOGIN_SECONDS + ' seconds');
+	private setRetryLoginTimeout(sessionUpkeep?: boolean): void {
+		console.log((sessionUpkeep ? 'Trying' : 'Retrying') + ' login in' + RELOGIN_SECONDS + ' seconds');
 
 		if (this.retryLoginTimeout) clearTimeout(this.retryLoginTimeout);
 		this.retryLoginTimeout = setTimeout(() => this.login(), RELOGIN_SECONDS * 1000);
 	}
 
+	private checkLoginSession(): void {
+		const globalDatabase = Storage.getGlobalDatabase();
+		if (!Config.password || !globalDatabase.loginSessionCookie) {
+			this.login();
+			return;
 		}
 
 		const options: ILoginOptions = {
+			hostname: this.loginServerHostname,
+			path: this.loginServerPath,
+			agent: false,
+			method: 'POST',
+		};
+
+		const postData =  querystring.stringify({
+			'act': 'upkeep',
+			'challstr': this.challstr,
+		});
+
+		options.headers = {
+			'Content-Type': 'application/x-www-form-urlencoded',
+			'Content-Length': postData.length,
+			'cookie': globalDatabase.loginSessionCookie,
+		};
+
+		const request = https.request(options, response => {
+			response.setEncoding('utf8');
+			let data = '';
+			response.on('data', chunk => {
+				data += chunk;
+			});
+			response.on('end', () => {
+				if (!data) {
+					console.log('Did not receive a response from the login server.');
+					this.login();
+					return;
+				}
+
+				if (data.charAt(0) === ']') data = data.substr(1);
+
+				let sessionAssertion: string | undefined;
+				try {
+					const sessionResponse = JSON.parse(data) as {assertion?: string; username?: string, loggedin?: boolean};
+					if (sessionResponse.username && sessionResponse.loggedin) {
+						sessionAssertion = sessionResponse.assertion;
+					}
+				} catch (e) {
+					console.log('Error parsing session upkeep response:\n' + (e as Error).stack);
+					this.setRetryLoginTimeout(true);
+					return;
+				}
+
+				if (!sessionAssertion || !this.verifyLoginAssertion(sessionAssertion, true)) {
+					delete globalDatabase.loginSessionCookie;
+					this.login();
+				}
+			});
+		});
+
+		request.on('error', error => {
+			console.log('Error in session upkeep call: ' + error.stack);
+			this.setRetryLoginTimeout(true);
+		});
+
+		if (postData) request.write(postData);
+		request.end();
+	}
+
 	private login(): void {
 		if (this.retryLoginTimeout) clearTimeout(this.retryLoginTimeout);
 
@@ -2112,8 +2178,20 @@ export class Client {
 					this.setRetryLoginTimeout();
 					return;
 				}
+
+				if (response.headers['set-cookie']) {
+					for (const cookie of response.headers['set-cookie']) {
+						const equalsIndex = cookie.indexOf('=');
+						if (equalsIndex !== -1 && cookie.substr(0, equalsIndex) === 'sid') {
+							let value = cookie;
+							const semiColonIndex = value.indexOf(';');
+							if (semiColonIndex !== -1) value = value.substr(0, semiColonIndex);
+
+							Storage.getGlobalDatabase().loginSessionCookie = value;
+							Storage.exportGlobalDatabase();
 						}
 					}
+				}
 
 				if (data.charAt(0) === ']') data = data.substr(1);
 
@@ -2146,7 +2224,7 @@ export class Client {
 		request.end();
 	}
 
-	private verifyLoginAssertion(assertion: string): boolean {
+	private verifyLoginAssertion(assertion: string, sessionUpkeep?: boolean): boolean {
 		if (assertion.slice(0, 14).toLowerCase() === '<!doctype html') {
 			const endIndex = assertion.indexOf('>');
 			if (endIndex !== -1) assertion = assertion.slice(endIndex + 1);
@@ -2154,17 +2232,32 @@ export class Client {
 		if (assertion.charAt(0) === '\r') assertion = assertion.slice(1);
 		if (assertion.charAt(0) === '\n') assertion = assertion.slice(1);
 		if (assertion.indexOf('<') >= 0) {
-			console.log('Something is interfering with the connection to the login server.');
-			this.setRetryLoginTimeout();
+			const message = 'Something is interfering with the connection to the login server.';
+			if (sessionUpkeep) {
+				console.log(message + ' (session upkeep)');
+			} else {
+				console.log(message);
+				this.setRetryLoginTimeout();
+			}
 			return false;
 		}
 
 		if (assertion.substr(0, 2) === ';;') {
-			console.log('Failed to log in: invalid username or password');
-			process.exit();
+			if (sessionUpkeep) {
+				console.log('Failed to check session: invalid cookie');
+				return false;
+			} else {
+				console.log('Failed to log in: invalid username or password');
+				process.exit();
+			}
 		} else if (assertion.indexOf('\n') >= 0 || !assertion) {
-			console.log('Something is interfering with the connection to the login server.');
-			this.setRetryLoginTimeout();
+			const message = 'Something is interfering with the connection to the login server.';
+			if (sessionUpkeep) {
+				console.log(message + ' (session upkeep)');
+			} else {
+				console.log(message);
+				this.setRetryLoginTimeout();
+			}
 			return false;
 		} else {
 			this.send({message: '|/trn ' + Config.username + ',0,' + assertion, type: 'command'});
