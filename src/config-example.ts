@@ -55,7 +55,7 @@ export let perMessageDeflate = false;
 /**
  * The base amount of time (in milliseconds) between connection attempts
  */
-export let reconnectTime = 60 * 1000;
+export let connectionAttemptTime = 60 * 1000;
 
 /**
  * A list of rooms to join after logging in

@@ -24,6 +24,7 @@ const REPLAY_SERVER_ADDRESS = "replay.pokemonshowdown.com";
 const CHALLSTR_TIMEOUT_SECONDS = 15;
 const RELOGIN_SECONDS = 60;
 const LOGIN_TIMEOUT_SECONDS = 150;
+const SERVER_RESTART_CONNECTION_TIME = 10 * 1000;
 const REGULAR_MESSAGE_THROTTLE = 600;
 const TRUSTED_MESSAGE_THROTTLE = 100;
 const SERVER_THROTTLE_BUFFER_LIMIT = 5;
@@ -192,6 +193,7 @@ export class Client {
 	private chatFilterRegularExpressions: RegExp[] | null = null;
 	private configBannedWordsRegex: RegExp | null = null;
 	private connectionAttempts: number = 0;
+	private connectionAttemptTime: number = Config.connectionAttemptTime || 60 * 1000;
 	private connectionTimeout: NodeJS.Timer | undefined = undefined;
 	private evasionFilterRegularExpressions: RegExp[] | null = null;
 	private groupSymbols: KeyedDict<GroupName, string> = DEFAULT_GROUP_SYMBOLS;
@@ -218,7 +220,6 @@ export class Client {
 	private maxProcessingMeasurementGap = MAX_PROCESSING_MEASUREMENT_GAP;
 	private publicChatRooms: string[] = [];
 	private reconnectRoomMessages: Dict<string[]> = {};
-	private reconnectTime: number = Config.reconnectTime || 60 * 1000;
 	private reloadInProgress: boolean = false;
 	private replayServerAddress: string = Config.replayServer || REPLAY_SERVER_ADDRESS;
 	private retryLoginTimeout: NodeJS.Timer | undefined = undefined;
@@ -639,8 +640,9 @@ export class Client {
 
 		console.log('Failed to connect to server ' + this.serverId);
 		if (error) console.log(error.stack);
+
 		this.connectionAttempts++;
-		const reconnectTime = this.reconnectTime * this.connectionAttempts;
+		const reconnectTime = this.connectionAttemptTime * this.connectionAttempts;
 		console.log('Retrying in ' + reconnectTime / 1000 + ' seconds');
 		this.connectionTimeout = setTimeout(() => this.connect(), reconnectTime);
 	}
@@ -656,9 +658,9 @@ export class Client {
 		this.terminateWebSocket();
 
 		console.log('Connection closed: ' + reason + ' (' + code + ')');
-		console.log('Reconnecting in ' + this.reconnectTime / 1000 + ' seconds');
+		console.log('Reconnecting in ' + SERVER_RESTART_CONNECTION_TIME / 1000 + ' seconds');
 
-		this.connectionTimeout = setTimeout(() => this.reconnect(true), this.reconnectTime);
+		this.connectionTimeout = setTimeout(() => this.reconnect(), SERVER_RESTART_CONNECTION_TIME);
 	}
 
 	private onConnect(): void {
@@ -667,12 +669,13 @@ export class Client {
 		console.log('Successfully connected');
 
 		this.challstrTimeout = setTimeout(() => {
-			console.log("Did not receive a challstr! Reconnecting in " + this.reconnectTime / 1000 + " seconds");
+			console.log("Did not receive a challstr! Reconnecting in " + this.connectionAttemptTime / 1000 + " seconds");
 			this.terminateWebSocket();
-			this.connectionTimeout = setTimeout(() => this.connect(), this.reconnectTime);
+			this.connectionTimeout = setTimeout(() => this.connect(), this.connectionAttemptTime);
 		}, CHALLSTR_TIMEOUT_SECONDS * 1000);
 
 		this.pingServer();
+
 		void Dex.fetchClientData();
 	}
 
@@ -747,10 +750,12 @@ export class Client {
 	private terminateWebSocket(): void {
 		this.clearConnectionTimeouts();
 		this.removeClientListeners();
+
 		if (this.webSocket) {
 			this.webSocket.terminate();
 			this.webSocket = null;
 		}
+
 		this.pauseOutgoingMessages = true;
 	}
 
@@ -897,11 +902,12 @@ export class Client {
 			if (this.challstrTimeout) clearTimeout(this.challstrTimeout);
 
 			this.challstr = message;
+
 			if (Config.username) {
 				this.loginTimeout = setTimeout(() => {
-					console.log("Failed to login. Reconnecting in " + this.reconnectTime / 1000 + " seconds");
+					console.log("Failed to login. Reconnecting in " + this.connectionAttemptTime / 1000 + " seconds");
 					this.terminateWebSocket();
-					this.connectionTimeout = setTimeout(() => this.connect(), this.reconnectTime);
+					this.connectionTimeout = setTimeout(() => this.connect(), this.connectionAttemptTime);
 				}, LOGIN_TIMEOUT_SECONDS * 1000);
 
 				this.checkLoginSession();
