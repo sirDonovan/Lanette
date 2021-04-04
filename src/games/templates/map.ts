@@ -1,5 +1,6 @@
 import type { Player } from "../../room-activity";
 import { ScriptedGame } from "../../room-game-scripted";
+import type { Room } from "../../rooms";
 import type { GameCommandDefinitions, IGameAchievement, IGameTemplateFile } from "../../types/games";
 import type { User } from "../../users";
 
@@ -106,6 +107,8 @@ export abstract class MapGame extends ScriptedGame {
 	points = new Map<Player, number>();
 	roundsWithoutCurrency = new Map<Player, number>();
 	usesHtmlPage = true;
+
+	room!: Room;
 
 	escapedPlayers?: Map<Player, boolean> | null = null;
 	noCurrencyAchievement?: IGameAchievement;
@@ -333,37 +336,43 @@ export abstract class MapGame extends ScriptedGame {
 		} else if (this.canMove && (!player.eliminated || (this.escapedPlayers && this.escapedPlayers.has(player)))) {
 			const cannotMove = this.roundActions && this.roundActions.has(player) ? true : false;
 			html += "<b>Controls</b>:<br /><table>";
-			html += "<tr><td>&nbsp;</td><td>" +
-				Client.getPmSelfButton(Config.commandCharacter + "up 3", "Up 3", cannotMove || playerUpMovement < 3) +
-				"</td><td>" + Client.getPmSelfButton(Config.commandCharacter + "up 2", "Up 2", cannotMove || playerUpMovement < 2) +
-				"</td><td>" + Client.getPmSelfButton(Config.commandCharacter + "up 1", "Up 1", cannotMove || playerUpMovement < 1) +
-				"</td><td>&nbsp;</td></tr>";
+			html += "<tr><td>&nbsp;</td>";
+			html += "<td>" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "up 3", "Up 3",
+				cannotMove || playerUpMovement < 3) + "</td>";
+			html += "<td>" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "up 2", "Up 2",
+				cannotMove || playerUpMovement < 2) + "</td>";
+			html += "<td>" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "up 1", "Up 1",
+				cannotMove || playerUpMovement < 1) + "</td>";
+			html += "<td>&nbsp;</td></tr><tr>";
 
-			html += "<tr><td>" +
-				Client.getPmSelfButton(Config.commandCharacter + "left 3", "Left 3", cannotMove || playerCoordindates[0] < 3) +
-				"</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>" +
-				Client.getPmSelfButton(Config.commandCharacter + "right 3", "Right 3", cannotMove || playerRightMovement < 3) +
-				"</td></tr>";
+			html += "<td>" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "left 3", "Left 3",
+				cannotMove || playerCoordindates[0] < 3) + "</td>";
+			html += "<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>";
+			html += "<td>" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "right 3", "Right 3",
+				cannotMove || playerRightMovement < 3) + "</td>";
+			html += "</tr><tr>";
 
-			html += "<tr><td>" +
-				Client.getPmSelfButton(Config.commandCharacter + "left 2", "Left 2", cannotMove || playerCoordindates[0] < 2) +
-				"</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>" +
-				Client.getPmSelfButton(Config.commandCharacter + "right 2", "Right 2", cannotMove || playerRightMovement < 2) +
-				"</td></tr>";
+			html += "<td>" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "left 2", "Left 2",
+				cannotMove || playerCoordindates[0] < 2) + "</td>";
+			html += "<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>";
+			html += "<td>" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "right 2", "Right 2",
+				cannotMove || playerRightMovement < 2) + "</td>";
+			html += "</tr><tr>";
 
-			html += "<tr><td>" +
-				Client.getPmSelfButton(Config.commandCharacter + "left 1", "Left 1", cannotMove || playerCoordindates[0] < 1) +
-				"</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>" +
-				Client.getPmSelfButton(Config.commandCharacter + "right 1", "Right 1", cannotMove || playerRightMovement < 1) +
-				"</td></tr>";
+			html += "<td>" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "left 1", "Left 1",
+				cannotMove || playerCoordindates[0] < 1) + "</td>";
+			html += "<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>";
+			html += "<td>" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "right 1", "Right 1",
+				cannotMove || playerRightMovement < 1) + "</td>";
+			html += "</tr><tr><td>&nbsp;</td>";
 
-			html += "<tr><td>&nbsp;</td><td>" +
-				Client.getPmSelfButton(Config.commandCharacter + "down 3", "Down 3", cannotMove || playerCoordindates[1] < 3) +
-				"</td><td>" +
-				Client.getPmSelfButton(Config.commandCharacter + "down 2", "Down 2", cannotMove || playerCoordindates[1] < 2) +
-				"</td><td>" +
-				Client.getPmSelfButton(Config.commandCharacter + "down 1", "Down 1", cannotMove || playerCoordindates[1] < 1) +
-				"</td><td>&nbsp;</td></tr>";
+			html += "<td>" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "down 3", "Down 3",
+				cannotMove || playerCoordindates[1] < 3) + "</td>";
+			html += "<td>" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "down 2", "Down 2",
+				cannotMove || playerCoordindates[1] < 2) + "</td>";
+			html += "<td>" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "down 1", "Down 1",
+				cannotMove || playerCoordindates[1] < 1) + "</td>";
+			html += "<td>&nbsp;</td></tr>";
 			html += '</table>';
 		}
 
