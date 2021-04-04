@@ -562,4 +562,54 @@ export const game: IGameFile<BulbasaursUno> = Games.copyTemplateProperties(cardG
 	mascot: "Bulbasaur",
 	scriptedOnly: true,
 	tests: Object.assign({}, cardGame.tests, tests),
+	variants: [
+		{
+			name: "Bulbasaur's Kanto Uno",
+			variantAliases: ["kanto", "gen1"],
+			requiredGen: 1,
+			maxPlayers: 20,
+		},
+		{
+			name: "Bulbasaur's Johto Uno",
+			variantAliases: ["johto", "gen2"],
+			requiredGen: 2,
+			maxPlayers: 16,
+		},
+		{
+			name: "Bulbasaur's Hoenn Uno",
+			variantAliases: ["hoenn", "gen3"],
+			requiredGen: 3,
+			maxPlayers: 20,
+		},
+		{
+			name: "Bulbasaur's Sinnoh Uno",
+			variantAliases: ["sinnoh", "gen4"],
+			requiredGen: 4,
+			maxPlayers: 19,
+		},
+		{
+			name: "Bulbasaur's Unova Uno",
+			variantAliases: ["unova", "gen5"],
+			requiredGen: 5,
+			maxPlayers: 20,
+		},
+		{
+			name: "Bulbasaur's Kalos Uno",
+			variantAliases: ["kalos", "gen6"],
+			requiredGen: 6,
+			maxPlayers: 14,
+		},
+		{
+			name: "Bulbasaur's Alola Uno",
+			variantAliases: ["alola", "gen7"],
+			requiredGen: 7,
+			maxPlayers: 19,
+		},
+		{
+			name: "Bulbasaur's Galar Uno",
+			variantAliases: ["galar", "gen8"],
+			requiredGen: 8,
+			maxPlayers: 19,
+		},
+	],
 });
