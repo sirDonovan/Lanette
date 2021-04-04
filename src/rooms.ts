@@ -164,6 +164,9 @@ export class Room {
 		const outgoingMessage: IOutgoingMessage = {message: this.sendId + "|" + message, type};
 		if (!(options && options.dontMeasure)) {
 			outgoingMessage.measure = true;
+
+			if (options && options.user) outgoingMessage.user = options.user;
+
 			if (options && options.html) {
 				outgoingMessage.html = options.html;
 				if (options.uhtmlName) outgoingMessage.uhtmlName = options.uhtmlName;
@@ -218,7 +221,8 @@ export class Room {
 	pmHtml(user: User | Player, html: string): void {
 		if (!Users.get(user.name)) return;
 
-		this.say("/pminfobox " + user.id + "," + html, {html, dontCheckFilter: true, dontPrepare: true, type: 'pmhtml', user: user.id});
+		this.say("/pminfobox " + user.id + "," + html, {html: Client.getListenerHtml(html, true), dontCheckFilter: true, dontPrepare: true,
+			type: 'pmhtml', user: user.id});
 	}
 
 	pmUhtml(user: User | Player, uhtmlName: string, html: string): void {
