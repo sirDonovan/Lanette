@@ -70,7 +70,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		if (!this.deckPool.length) this.createDeckPool();
 		const pokedex = this.shuffle(this.deckPool);
 		const deck: ICard[] = [];
-		const minimumDeck = (this.maxPlayers + 1) * this.format.options.cards;
+		const minimumDeck = (this.playerCount + 1) * this.format.options.cards;
 		outer:
 		for (const pokemon of pokedex) {
 			if (this.colorsLimit && pokemon.color in colorCounts && colorCounts[pokemon.color] >= this.colorsLimit) continue;
@@ -97,6 +97,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 				if (!(type in typeCounts)) typeCounts[type] = 0;
 				typeCounts[type]++;
 			}
+
 			if (this.rollForShinyPokemon()) pokemon.shiny = true;
 			deck.push(pokemon);
 		}

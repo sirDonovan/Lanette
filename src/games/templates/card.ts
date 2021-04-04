@@ -74,6 +74,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	room!: Room;
 
 	lives?: Map<Player, number>;
+	requiredGen?: number;
 	startingLives?: number;
 	topCard?: ICard;
 
@@ -150,7 +151,8 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	}
 
 	filterPokemonList(pokemon: IPokemon): boolean {
-		if ((pokemon.forme && (!this.filterForme || !this.filterForme(pokemon))) ||
+		if ((this.requiredGen && pokemon.gen !== this.requiredGen) ||
+			(pokemon.forme && (!this.filterForme || !this.filterForme(pokemon))) ||
 			(this.usesActionCards && pokemon.id in this.actionCards) || !Dex.hasGifData(pokemon) ||
 			(this.filterPoolItem && !this.filterPoolItem(pokemon))) return false;
 		return true;

@@ -425,6 +425,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 	skippedPlayerAchievementAmount = trumpCardEliminations;
 	showPlayerCards = false;
 	startingLives: number = 1;
+	weaknessLimit: number = 5;
 
 	static loadData(): void {
 		for (const key of Dex.getData().typeKeys) {
@@ -484,7 +485,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		if (!this.deckPool.length) this.createDeckPool();
 		const deckPool = this.shuffle(this.deckPool);
 		const deck: ICard[] = [];
-		const minimumDeck = (this.maxPlayers + 1) * this.format.options.cards;
+		const minimumDeck = (this.playerCount + 1) * this.format.options.cards;
 		for (const card of deckPool) {
 			if (!this.usesActionCards && card.types.join("") === "Normal") continue;
 
@@ -494,7 +495,8 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			} else {
 				weaknesses = Dex.getWeaknesses(Dex.getExistingPokemon(card.name)).join(",");
 			}
-			if (weaknesses in weaknessCounts && weaknessCounts[weaknesses] >= this.format.options.cards) continue;
+
+			if (weaknesses in weaknessCounts && weaknessCounts[weaknesses] >= this.weaknessLimit) continue;
 			if (!(weaknesses in weaknessCounts)) weaknessCounts[weaknesses] = 0;
 			weaknessCounts[weaknesses]++;
 
@@ -974,6 +976,54 @@ export const game: IGameFile<AxewsBattleCards> = Games.copyTemplateProperties(ca
 			description: "Each round, players can play a card that's super-effective against the top card using an inverted type chart!",
 			variantAliases: ["Inverse"],
 			inverseTypes: true,
+		},
+		{
+			name: "Axew's Kanto Battle Cards",
+			variantAliases: ["kanto", "gen1"],
+			requiredGen: 1,
+			maxPlayers: 20,
+		},
+		{
+			name: "Axew's Johto Battle Cards",
+			variantAliases: ["johto", "gen2"],
+			requiredGen: 2,
+			maxPlayers: 16,
+		},
+		{
+			name: "Axew's Hoenn Battle Cards",
+			variantAliases: ["hoenn", "gen3"],
+			requiredGen: 3,
+			maxPlayers: 20,
+		},
+		{
+			name: "Axew's Sinnoh Battle Cards",
+			variantAliases: ["sinnoh", "gen4"],
+			requiredGen: 4,
+			maxPlayers: 18,
+		},
+		{
+			name: "Axew's Unova Battle Cards",
+			variantAliases: ["unova", "gen5"],
+			requiredGen: 5,
+			maxPlayers: 20,
+		},
+		{
+			name: "Axew's Kalos Battle Cards",
+			variantAliases: ["kalos", "gen6"],
+			requiredGen: 6,
+			maxPlayers: 14,
+		},
+		{
+			name: "Axew's Alola Battle Cards",
+			variantAliases: ["alola", "gen7"],
+			requiredGen: 7,
+			maxPlayers: 18,
+		},
+		{
+			name: "Axew's Galar Battle Cards",
+			variantAliases: ["galar", "gen8"],
+			requiredGen: 8,
+			maxPlayers: 19,
 		},
 	],
 });
