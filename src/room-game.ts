@@ -17,6 +17,7 @@ const teamNameLists: Dict<string[][]> = {
 	'4': [["Red", "Blue", "Yellow", "Green"], ["Fall", "Winter", "Spring", "Summer"], ["Water", "Fire", "Earth", "Air"],
 		["Clubs", "Spades", "Hearts", "Diamonds"]],
 };
+const SIGNUPS_UPDATE_DELAY = 600;
 
 export abstract class Game extends Activity {
 	readonly activityType: string = 'game';
@@ -58,6 +59,10 @@ export abstract class Game extends Activity {
 
 	getSignupsEndMessage(): string {
 		return "<center>(signups have closed)</center>";
+	}
+
+	getSignupsUpdateDelay(): number {
+		return SIGNUPS_UPDATE_DELAY;
 	}
 
 	rollForShinyPokemon(extraChance?: number): boolean {

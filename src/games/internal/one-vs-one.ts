@@ -54,13 +54,13 @@ export class OneVsOne extends ScriptedGame {
 		if (this.timeout) clearTimeout(this.timeout);
 
 		this.originalModchat = this.room.modchat;
-		this.say("/modchat +");
+		this.sayCommand("/modchat +");
 		if (!user.hasRank(this.room, 'voice')) {
-			this.say("/roomvoice " + user.name);
+			this.sayCommand("/roomvoice " + user.name);
 			this.defenderPromotedName = user.id;
 		}
 		if (!challenger.hasRank(this.room, 'voice')) {
-			this.say("/roomvoice " + challenger.name);
+			this.sayCommand("/roomvoice " + challenger.name);
 			this.challengerPromotedName = challenger.id;
 		}
 
@@ -154,9 +154,9 @@ export class OneVsOne extends ScriptedGame {
 	}
 
 	resetModchatAndRanks(): void {
-		this.say("/modchat " + this.originalModchat);
-		if (this.challengerPromotedName) this.say("/roomdeauth " + this.challengerPromotedName);
-		if (this.defenderPromotedName) this.say("/roomdeauth " + this.defenderPromotedName);
+		this.sayCommand("/modchat " + this.originalModchat);
+		if (this.challengerPromotedName) this.sayCommand("/roomdeauth " + this.challengerPromotedName);
+		if (this.defenderPromotedName) this.sayCommand("/roomdeauth " + this.defenderPromotedName);
 	}
 
 	updateLastChallengeTime(): void {

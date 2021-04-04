@@ -14,20 +14,23 @@ export interface IMessageParserFile {
 	priority: number;
 }
 
+export type ServerProcessingType = 'chat' | 'chat-html' | 'pm' | 'pm-html' | 'join-room' | 'leave-room' | 'not-measured';
 export interface IServerProcessingMeasurement {
 	measurement: number;
 	timestamp: number;
 }
 
-export type IOutgoingMessageTypes = 'command' | 'chat' | 'html' | 'uhtml' | 'pm' | 'pmhtml' | 'pmuhtml' | 'userdetails' | 'joinroom' |
-	'leaveroom';
+export type IOutgoingMessageTypes = 'command' | 'chat' | 'chat-html' | 'chat-uhtml' | 'pm' | 'pm-html' | 'pm-uhtml' | 'join-room' |
+	'leave-room';
 export interface IOutgoingMessage {
 	message: string;
 	type: IOutgoingMessageTypes;
+	serverProcessingType: ServerProcessingType;
 	html?: string;
 	measure?: boolean;
 	roomid?: string;
 	sentTime?: number;
+	serverLatency?: number;
 	serverProcessingTime?: number;
 	text?: string;
 	uhtmlName?: string;

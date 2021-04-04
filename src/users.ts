@@ -116,17 +116,19 @@ export class User {
 			}
 		}
 
+		const type = options && options.type ? options.type : 'pm';
 		Client.send({
 			message: "|/pm " + this.name + ", " + message,
 			text: message,
-			type: 'pm',
+			type,
+			serverProcessingType: type === 'command' ? 'not-measured' : 'pm',
 			user: this.id,
 			measure: !(options && options.dontMeasure),
 		});
 	}
 
 	sayCommand(command: string, dontCheckFilter?: boolean): void {
-		this.say(command, {dontCheckFilter, dontPrepare: true, dontMeasure: true});
+		this.say(command, {dontCheckFilter, dontPrepare: true, dontMeasure: true, type: 'command'});
 	}
 
 	on(message: string, listener: MessageListener): void {

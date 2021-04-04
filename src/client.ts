@@ -10,7 +10,7 @@ import type { UserHostedGame } from './room-game-user-hosted';
 import type { Room } from './rooms';
 import type {
 	GroupName, IClientMessageTypes, ILoginOptions, IMessageParserFile, IOutgoingMessage, IRoomInfoResponse, IRoomsResponse,
-	IServerConfig, IServerGroup, IServerProcessingMeasurement, ITournamentMessageTypes, IUserDetailsResponse, QueryResponseType,
+	IServerConfig, IServerGroup, IServerProcessingMeasurement, ITournamentMessageTypes, QueryResponseType, ServerProcessingType,
 	ServerGroupData
 } from './types/client';
 import type { ISeparatedCustomRules } from './types/dex';
@@ -29,14 +29,13 @@ const REGULAR_MESSAGE_THROTTLE = 600;
 const TRUSTED_MESSAGE_THROTTLE = 100;
 const SERVER_THROTTLE_BUFFER_LIMIT = 5;
 const ASSUMED_LATENCY = 1;
+const ASSUMED_PROCESSING_TIME = 1;
+const DEFAULT_PROCESSING_TIME = 25;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
-const CONNECTION_CHECK_INTERVAL = 30 * 1000;
-const SERVER_THROTTLE_PROCESSING_TIME = 25;
-const MIN_PROCESSING_MEASUREMENT_GAP = 5 * 1000;
-const MAX_PROCESSING_MEASUREMENT_GAP = 30 * 1000;
 const LATENCY_CHECK_INTERVAL = 15 * 1000;
 const MAX_LATENCY_MEASUREMENT_GAP = 60 * 1000;
+const MAX_PROCESSING_MEASUREMENT_GAP = 60 * 1000;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
 const UHTML_CHAT_COMMAND = '/uhtml ';
@@ -204,6 +203,7 @@ export class Client {
 	private lastOutgoingMessage: IOutgoingMessage | null = null;
 	private lastProcessingTimeCheck: number = 0;
 	private lastSendTimeoutTime: number = 0;
+	private lastServerProcessingType: ServerProcessingType = 'not-measured';
 	private loggedIn: boolean = false;
 	private loginServerHostname: string = '';
 	private loginServerPath: string = '';
@@ -214,12 +214,6 @@ export class Client {
 	private pauseIncomingMessages: boolean = true;
 	private pauseOutgoingMessages: boolean = false;
 	private pingWsAlive: boolean = true;
-	private processingTimeCheckMessage: IOutgoingMessage = {
-		message: "|/cmd userdetails " + Users.self.id,
-		type: 'userdetails',
-		user: Users.self.id,
-		measure: true,
-	};
 	private maxLatencyMeasurementGap = MAX_LATENCY_MEASUREMENT_GAP;
 	private maxProcessingMeasurementGap = MAX_PROCESSING_MEASUREMENT_GAP;
 	private publicChatRooms: string[] = [];
@@ -238,8 +232,24 @@ export class Client {
 	private serverLatencyMeasurements: IServerProcessingMeasurement[] = [];
 	private serverPingTimeout: NodeJS.Timer | null = null;
 	private serverTimeOffset: number = 0;
-	private serverProcessingTime: number = 0;
-	private serverProcessingMeasurements: IServerProcessingMeasurement[] = [];
+	private serverProcessingTimes: KeyedDict<ServerProcessingType, number> = {
+		'chat': DEFAULT_PROCESSING_TIME,
+		'chat-html': DEFAULT_PROCESSING_TIME,
+		'pm': DEFAULT_PROCESSING_TIME,
+		'pm-html': DEFAULT_PROCESSING_TIME,
+		'join-room': DEFAULT_PROCESSING_TIME,
+		'leave-room': DEFAULT_PROCESSING_TIME,
+		'not-measured': DEFAULT_PROCESSING_TIME,
+	};
+	private serverProcessingMeasurements: KeyedDict<ServerProcessingType, IServerProcessingMeasurement[]> = {
+		'chat': [],
+		'chat-html': [],
+		'pm': [],
+		'pm-html': [],
+		'join-room': [],
+		'leave-room': [],
+		'not-measured': [],
+	};
 	private webSocket: import('ws') | null = null;
 
 	constructor() {
@@ -338,8 +348,8 @@ export class Client {
 		return this.getPmUserButton(Users.self, message, label, disabled, buttonStyle);
 	}
 
-	getSendThrottle(): number {
-		return this.sendThrottle + this.serverLatency + this.serverProcessingTime;
+	getSendThrottle(serverProcessingType: ServerProcessingType): number {
+		return this.sendThrottle + this.serverLatency + this.serverProcessingTimes[serverProcessingType];
 	}
 
 	checkFilters(message: string, room?: Room): string | undefined {
@@ -401,7 +411,8 @@ export class Client {
 		this.send({
 			message: '|/join ' + roomid,
 			roomid,
-			type: 'joinroom',
+			type: 'join-room',
+			serverProcessingType: 'join-room',
 			measure: true,
 		});
 	}
@@ -415,48 +426,11 @@ export class Client {
 
 		if (this.sendTimeout || this.pauseOutgoingMessages) {
 			this.outgoingMessageQueue.push(outgoingMessage);
-
-			const queuedMessages = this.outgoingMessageQueue.length;
-			if (queuedMessages < SERVER_THROTTLE_BUFFER_LIMIT) {
-				if ((!this.lastOutgoingMessage || !this.lastOutgoingMessage.measure) &&
-					queuedMessages === SERVER_THROTTLE_BUFFER_LIMIT - 1) {
-					let willMeasure = false;
-					for (let i = 0; i < queuedMessages; i++) {
-						if (this.outgoingMessageQueue[i].measure) {
-							willMeasure = true;
-							break;
-						}
-					}
-
-					if (!willMeasure && this.loggedIn) {
-						this.outgoingMessageQueue.push(this.processingTimeCheckMessage);
-					}
-				}
-			} else {
-				let willMeasure = false;
-				for (let i = queuedMessages - SERVER_THROTTLE_BUFFER_LIMIT; i < queuedMessages; i++) {
-					if (this.outgoingMessageQueue[i].measure) {
-						willMeasure = true;
-						break;
-					}
-				}
-
-				if (!willMeasure && this.loggedIn) {
-					this.outgoingMessageQueue.push(this.processingTimeCheckMessage);
-				}
-			}
-
 			return;
 		}
 
-		if (this.loggedIn && outgoingMessage.message !== this.processingTimeCheckMessage.message && !this.outgoingMessageQueue.length &&
-			Date.now() - this.lastProcessingTimeCheck > MIN_PROCESSING_MEASUREMENT_GAP) {
-			this.outgoingMessageQueue.push(outgoingMessage);
-			outgoingMessage = this.processingTimeCheckMessage;
-		}
-
-		outgoingMessage.serverProcessingTime = this.serverProcessingTime;
 		outgoingMessage.serverLatency = this.serverLatency;
+		outgoingMessage.serverProcessingTime = this.serverProcessingTimes[outgoingMessage.serverProcessingType];
 
 		this.sendTimeout = true;
 		this.webSocket.send(outgoingMessage.message, () => {
@@ -465,13 +439,30 @@ export class Client {
 				if (outgoingMessage.measure) outgoingMessage.sentTime = now;
 				this.lastOutgoingMessage = outgoingMessage;
 
-				this.setSendTimeout();
+				this.setSendTimeout(this.getSendThrottle(outgoingMessage.serverProcessingType));
 			}
 		});
 	}
 
 	updateConfigSettings(): void {
 		if (Config.bannedWords && Config.bannedWords.length) this.configBannedWordsRegex = constructBannedWordRegex(Config.bannedWords);
+	}
+
+	getSendThrottleValues(): string[] {
+		const values = ["Base throttle: " + this.sendThrottle + "ms", "Latency: " + this.serverLatency + "ms"];
+		const types = Object.keys(this.serverProcessingTimes) as ServerProcessingType[];
+		for (const type of types) {
+			if (type === 'not-measured') continue;
+
+			values.push("");
+			values.push(type + ":");
+			values.push("Throttle: " + this.getSendThrottle(type) + "ms");
+			values.push("Processing time: " + this.serverProcessingTimes[type] + "ms" + (this.serverProcessingMeasurements[type].length ?
+				" ([" + this.serverProcessingMeasurements[type].map(x => x.measurement).join(", ") + "])" : ""));
+		}
+		values.push("");
+		values.push("Queued outgoing messages: " + this.outgoingMessageQueue.length);
+		return values;
 	}
 
 	private loadMessageParsersDirectory(directory: string, optional?: boolean): void {
@@ -598,12 +589,19 @@ export class Client {
 		if (previous.serverPingTimeout) clearTimeout(previous.serverPingTimeout);
 
 		if (previous.lastSendTimeoutTime) this.lastSendTimeoutTime = previous.lastSendTimeoutTime;
+		if (previous.lastServerProcessingType) this.lastServerProcessingType = previous.lastServerProcessingType;
 		if (previous.lastProcessingTimeCheck) this.lastProcessingTimeCheck = previous.lastProcessingTimeCheck;
 		if (previous.lastOutgoingMessage) this.lastOutgoingMessage = Object.assign({}, previous.lastOutgoingMessage);
-		if (previous.serverProcessingMeasurements) this.serverProcessingMeasurements = previous.serverProcessingMeasurements.slice();
-		if (previous.serverProcessingTime) this.serverProcessingTime = previous.serverProcessingTime;
+
 		if (previous.serverLatency) this.serverLatency = previous.serverLatency;
 		if (previous.serverLatencyMeasurements) this.serverLatencyMeasurements = previous.serverLatencyMeasurements.slice();
+		if (previous.serverProcessingTimes) Object.assign(this.serverProcessingTimes, previous.serverProcessingTimes);
+		if (previous.serverProcessingMeasurements) {
+			const types = Object.keys(previous.serverProcessingMeasurements) as ServerProcessingType[];
+			for (const type of types) {
+				this.serverProcessingMeasurements[type] = previous.serverProcessingMeasurements[type].slice();
+			}
+		}
 
 		if (previous.outgoingMessageQueue) this.outgoingMessageQueue = previous.outgoingMessageQueue.slice();
 		if (previous.webSocket) {
@@ -864,7 +862,7 @@ export class Client {
 		let room = Rooms.get(roomid);
 		if (!room) {
 			room = Rooms.add(roomid);
-			if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'joinroom' &&
+			if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'join-room' &&
 				this.lastOutgoingMessage.roomid === room.id) {
 				this.clearLastOutgoingMessage(now);
 			}
@@ -987,16 +985,16 @@ export class Client {
 
 				console.log('Successfully logged in');
 				this.loggedIn = true;
-				this.send({message: '|/blockchallenges', type: 'command'});
-				this.send({message: '|/cmd rooms', type: 'command'});
+				this.send({message: '|/blockchallenges', type: 'command', serverProcessingType: 'not-measured'});
+				this.send({message: '|/cmd rooms', type: 'command', serverProcessingType: 'not-measured'});
 				if (Tools.toAlphaNumeric(Config.username) !== Config.username) {
-					this.send({message: '|/trn ' + Config.username, type: 'command'});
+					this.send({message: '|/trn ' + Config.username, type: 'command', serverProcessingType: 'not-measured'});
 				}
 
 				if (rank) {
 					Users.self.group = rank;
 				} else {
-					this.send({message: '|/cmd userdetails ' + Users.self.id, type: 'command'});
+					this.send({message: '|/cmd userdetails ' + Users.self.id, type: 'command', serverProcessingType: 'not-measured'});
 				}
 
 				if (this.roomsToRejoin.length) {
@@ -1011,7 +1009,7 @@ export class Client {
 					}
 				}
 
-				if (Config.avatar) this.send({message: '|/avatar ' + Config.avatar, type: 'command'});
+				if (Config.avatar) this.send({message: '|/avatar ' + Config.avatar, type: 'command', serverProcessingType: 'not-measured'});
 			}
 			break;
 		}
@@ -1044,15 +1042,6 @@ export class Client {
 						this.publicChatRooms.push(Tools.toRoomId(psplRoom.title));
 					}
 				}
-			} else if (messageArguments.type === 'userdetails') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
-				if (messageArguments.response && messageArguments.response !== 'null') {
-					const response = JSON.parse(messageArguments.response) as IUserDetailsResponse;
-					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'userdetails' &&
-						this.lastOutgoingMessage.user === response.userid) {
-						this.clearLastOutgoingMessage(now);
-					}
-					if (response.userid === Users.self.id) Users.self.group = response.group;
-				}
 			}
 			break;
 		}
@@ -1084,7 +1073,7 @@ export class Client {
 		}
 
 		case 'deinit': {
-			if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'leaveroom' &&
+			if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'leave-room' &&
 				this.lastOutgoingMessage.roomid === room.id) {
 				this.clearLastOutgoingMessage(now);
 			}
@@ -1281,7 +1270,7 @@ export class Client {
 				if (messageArguments.message.startsWith(HTML_CHAT_COMMAND)) {
 					const html = Tools.unescapeHTML(messageArguments.message.substr(HTML_CHAT_COMMAND.length));
 					const htmlId = Tools.toId(html);
-					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'html' &&
+					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'chat-html' &&
 						Tools.toId(this.lastOutgoingMessage.html) === htmlId) {
 						this.clearLastOutgoingMessage(now);
 					}
@@ -1308,7 +1297,7 @@ export class Client {
 						const uhtmlId = Tools.toId(uhtmlName);
 						const html = Tools.unescapeHTML(uhtml.substr(commaIndex + 1));
 						const htmlId = Tools.toId(html);
-						if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'uhtml' &&
+						if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'chat-uhtml' &&
 							Tools.toId(this.lastOutgoingMessage.uhtmlName) === uhtmlId &&
 							Tools.toId(this.lastOutgoingMessage.html) === htmlId) {
 							this.clearLastOutgoingMessage(now);
@@ -1395,7 +1384,7 @@ export class Client {
 					const html = Tools.unescapeHTML(uhtml.substr(commaIndex + 1));
 					const htmlId = Tools.toId(html);
 
-					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'pmuhtml' &&
+					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'pm-uhtml' &&
 						this.lastOutgoingMessage.user === recipient.id && Tools.toId(this.lastOutgoingMessage.uhtmlName) === uhtmlId &&
 						Tools.toId(this.lastOutgoingMessage.html) === htmlId) {
 						this.clearLastOutgoingMessage(now);
@@ -1414,7 +1403,7 @@ export class Client {
 				} else if (isHtml) {
 					const html = Tools.unescapeHTML(messageArguments.message.substr(HTML_CHAT_COMMAND.length));
 					const htmlId = Tools.toId(html);
-					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'pmhtml' &&
+					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'pm-html' &&
 						this.lastOutgoingMessage.user === recipient.id && Tools.toId(this.lastOutgoingMessage.html) === htmlId) {
 						this.clearLastOutgoingMessage(now);
 					}
@@ -1506,24 +1495,12 @@ export class Client {
 
 			if (messageArguments.html === '<strong class="message-throttle-notice">Your message was not sent because you\'ve been ' +
 				'typing too quickly.</strong>') {
-				Tools.logMessage("Typing too quickly; Client send timeout: " + this.getSendThrottle() + " (sendThrottle = " +
-					this.sendThrottle + "; serverProcessingTime = " + this.serverProcessingTime + "); " +
-					"outgoingMessageQueue: " + this.outgoingMessageQueue.length + " messages" +
-					(this.lastOutgoingMessage && this.lastOutgoingMessage.sentTime ? "; Message sent at: " +
-					new Date(this.lastOutgoingMessage.sentTime).toTimeString() + "; " +
+				Tools.logMessage("Typing too quickly;\n" + this.getSendThrottleValues().join("\n") +
+					(this.lastOutgoingMessage && this.lastOutgoingMessage.sentTime ?
+					"; Message sent at: " + new Date(this.lastOutgoingMessage.sentTime).toTimeString() + "; " +
 					"Processing time last measured at: " + new Date(this.lastProcessingTimeCheck).toTimeString() + "; " +
 					"Message: " + JSON.stringify(this.lastOutgoingMessage) : ""));
-
-				if (this.lastOutgoingMessage) {
-					this.outgoingMessageQueue.unshift(this.lastOutgoingMessage);
-					const measureLastMessage = this.lastOutgoingMessage.measure && this.lastOutgoingMessage.sentTime;
-					this.clearLastOutgoingMessage(measureLastMessage ? now : undefined);
-					if (!measureLastMessage) this.serverProcessingTime += SERVER_THROTTLE_PROCESSING_TIME;
-				} else {
-					this.serverProcessingTime += SERVER_THROTTLE_PROCESSING_TIME;
-				}
-
-				this.setSendTimeout(this.getSendThrottle() * (SERVER_THROTTLE_BUFFER_LIMIT + 1));
+				this.setSendTimeout(this.getSendThrottle(this.lastServerProcessingType) * (SERVER_THROTTLE_BUFFER_LIMIT + 1));
 			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
 				room.modchat = messageArguments.html.split('<div class="broadcast-red">' +
 					'<strong>Moderated chat was set to ')[1].split('!</strong>')[0];
@@ -2051,31 +2028,34 @@ export class Client {
 
 	private clearLastOutgoingMessage(responseTime?: number): void {
 		if (this.lastOutgoingMessage) {
-			const oldServerProcessingTime = this.serverProcessingTime;
+			const oldServerProcessingTime = this.serverProcessingTimes[this.lastOutgoingMessage.serverProcessingType];
 
 			if (this.lastOutgoingMessage.measure && this.lastOutgoingMessage.sentTime && responseTime) {
-				this.serverProcessingMeasurements.push({
-					measurement: responseTime - this.lastOutgoingMessage.sentTime,
+				const serverProcessingMeasurements = this.serverProcessingMeasurements[this.lastOutgoingMessage.serverProcessingType];
+				serverProcessingMeasurements.push({
+					measurement: Math.max(ASSUMED_PROCESSING_TIME, responseTime - this.lastOutgoingMessage.sentTime -
+						(this.serverLatency * 2)),
 					timestamp: responseTime,
 				});
 
-				while (responseTime - this.serverProcessingMeasurements[0].timestamp > this.maxProcessingMeasurementGap) {
-					this.serverProcessingMeasurements.shift();
+				while (responseTime - serverProcessingMeasurements[0].timestamp > this.maxProcessingMeasurementGap) {
+					serverProcessingMeasurements.shift();
 				}
 
-				const samplesTotal = this.serverProcessingMeasurements.map(x => x.measurement).reduce((total, i) => total += i);
-				this.serverProcessingTime = samplesTotal ? Math.ceil(samplesTotal / this.serverProcessingMeasurements.length) : 0;
+				const samplesTotal = serverProcessingMeasurements.map(x => x.measurement).reduce((total, i) => total += i);
+				this.serverProcessingTimes[this.lastOutgoingMessage.serverProcessingType] = samplesTotal ?
+					Math.ceil(samplesTotal / serverProcessingMeasurements.length) : 0;
 
 				this.lastProcessingTimeCheck = responseTime;
 			}
 
-			// clear sentTime for Client.processingTimeCheckMessage
-			delete this.lastOutgoingMessage.sentTime;
-			this.lastOutgoingMessage = null;
-
-			if (this.sendTimeout && this.sendTimeout !== true && this.serverProcessingTime > oldServerProcessingTime) {
-				this.setSendTimeout(this.getSendThrottle() + (this.serverProcessingTime - oldServerProcessingTime));
+			if (this.sendTimeout && this.sendTimeout !== true &&
+				this.serverProcessingTimes[this.lastOutgoingMessage.serverProcessingType] > oldServerProcessingTime) {
+				this.setSendTimeout(this.getSendThrottle(this.lastOutgoingMessage.serverProcessingType) +
+					(this.serverProcessingTimes[this.lastOutgoingMessage.serverProcessingType] - oldServerProcessingTime));
 			}
+
+			this.lastOutgoingMessage = null;
 		}
 	}
 
@@ -2089,10 +2069,9 @@ export class Client {
 		}
 	}
 
-	private setSendTimeout(time?: number): void {
+	private setSendTimeout(time: number): void {
 		this.clearSendTimeout();
 
-		if (!time) time = this.getSendThrottle();
 		this.lastSendTimeoutTime = time;
 		this.sendTimeout = setTimeout(() => {
 			if (this.reloadInProgress) {
@@ -2307,7 +2286,7 @@ export class Client {
 			}
 			return false;
 		} else {
-			this.send({message: '|/trn ' + Config.username + ',0,' + assertion, type: 'command'});
+			this.send({message: '|/trn ' + Config.username + ',0,' + assertion, type: 'command', serverProcessingType: 'not-measured'});
 			return true;
 		}
 	}

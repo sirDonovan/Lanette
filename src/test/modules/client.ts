@@ -131,6 +131,7 @@ describe("Client", () => {
 		let lastOutgoingMessage: IOutgoingMessage = {
 			message: "",
 			type: "chat",
+			serverProcessingType: "chat",
 			text: "test",
 		};
 
@@ -144,7 +145,8 @@ describe("Client", () => {
 
 		lastOutgoingMessage = {
 			message: "",
-			type: "html",
+			type: "chat-html",
+			serverProcessingType: "chat-html",
 			html: "&<br/>",
 		};
 
@@ -174,7 +176,8 @@ describe("Client", () => {
 
 		lastOutgoingMessage = {
 			message: "",
-			type: "uhtml",
+			type: "chat-uhtml",
+			serverProcessingType: "chat-html",
 			uhtmlName: "test",
 			html: "&<br/>",
 		};
@@ -226,6 +229,7 @@ describe("Client", () => {
 		lastOutgoingMessage = {
 			message: "",
 			type: "pm",
+			serverProcessingType: "pm",
 			user: 'a',
 			text: "test",
 		};
@@ -240,7 +244,8 @@ describe("Client", () => {
 
 		lastOutgoingMessage = {
 			message: "",
-			type: "pmhtml",
+			type: "pm-html",
+			serverProcessingType: "pm-html",
 			user: 'a',
 			html: "&<br/>",
 		};
@@ -271,7 +276,8 @@ describe("Client", () => {
 
 		lastOutgoingMessage = {
 			message: "",
-			type: "pmuhtml",
+			type: "pm-uhtml",
+			serverProcessingType: "pm-html",
 			user: 'a',
 			uhtmlName: 'test',
 			html: "&<br/>",

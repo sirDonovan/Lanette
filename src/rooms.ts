@@ -2,7 +2,7 @@ import type { Player } from "./room-activity";
 import type { ScriptedGame } from "./room-game-scripted";
 import type { UserHostedGame } from "./room-game-user-hosted";
 import type { Tournament } from "./room-tournament";
-import type { GroupName, IChatLogEntry, IOutgoingMessage, IRoomInfoResponse, MessageListener } from "./types/client";
+import type { GroupName, IChatLogEntry, IOutgoingMessage, IRoomInfoResponse, MessageListener, ServerProcessingType } from "./types/client";
 import type { IRepeatedMessage, IRoomMessageOptions, RoomType } from "./types/rooms";
 import type { IUserHostedTournament } from "./types/tournaments";
 import type { User } from "./users";
@@ -161,7 +161,25 @@ export class Room {
 		}
 
 		const type = options && options.type ? options.type : 'chat';
-		const outgoingMessage: IOutgoingMessage = {message: this.sendId + "|" + message, type};
+		let serverProcessingType: ServerProcessingType;
+		if (type === 'chat') {
+			serverProcessingType = 'chat';
+		} else if (type === 'pm') {
+			serverProcessingType = 'pm';
+		} else if (type === 'chat-html' || type === 'chat-uhtml') {
+			serverProcessingType = 'chat-html';
+		} else if (type === 'pm-html' || type === 'pm-uhtml') {
+			serverProcessingType = 'pm-html';
+		} else if (type === 'join-room') {
+			serverProcessingType = 'join-room';
+		} else if (type === 'leave-room') {
+			serverProcessingType = 'leave-room';
+		} else {
+			serverProcessingType = 'not-measured';
+		}
+
+		const outgoingMessage: IOutgoingMessage = {message: this.sendId + "|" + message, type, serverProcessingType};
+
 		if (!(options && options.dontMeasure)) {
 			outgoingMessage.measure = true;
 
@@ -170,7 +188,7 @@ export class Room {
 			if (options && options.html) {
 				outgoingMessage.html = options.html;
 				if (options.uhtmlName) outgoingMessage.uhtmlName = options.uhtmlName;
-			} else if (type === 'leaveroom') {
+			} else if (type === 'leave-room') {
 				outgoingMessage.roomid = this.id;
 			} else {
 				outgoingMessage.text = message;
@@ -185,17 +203,17 @@ export class Room {
 	}
 
 	sayHtml(html: string): void {
-		this.say("/addhtmlbox " + html, {html: Client.getListenerHtml(html), dontCheckFilter: true, dontPrepare: true, type: 'html'});
+		this.say("/addhtmlbox " + html, {html: Client.getListenerHtml(html), dontCheckFilter: true, dontPrepare: true, type: 'chat-html'});
 	}
 
 	sayUhtml(uhtmlName: string, html: string): void {
 		this.say("/adduhtml " + uhtmlName + ", " + html,
-			{uhtmlName, html: Client.getListenerUhtml(html), dontCheckFilter: true, dontPrepare: true, type: 'uhtml'});
+			{uhtmlName, html: Client.getListenerUhtml(html), dontCheckFilter: true, dontPrepare: true, type: 'chat-uhtml'});
 	}
 
 	sayUhtmlChange(uhtmlName: string, html: string): void {
 		this.say("/changeuhtml " + uhtmlName + ", " + html,
-			{uhtmlName, html: Client.getListenerUhtml(html), dontCheckFilter: true, dontPrepare: true, type: 'uhtml'});
+			{uhtmlName, html: Client.getListenerUhtml(html), dontCheckFilter: true, dontPrepare: true, type: 'chat-uhtml'});
 	}
 
 	sayAuthUhtml(uhtmlName: string, html: string): void {
@@ -222,21 +240,21 @@ export class Room {
 		if (!Users.get(user.name)) return;
 
 		this.say("/pminfobox " + user.id + "," + html, {html: Client.getListenerHtml(html, true), dontCheckFilter: true, dontPrepare: true,
-			type: 'pmhtml', user: user.id});
+			type: 'pm-html', user: user.id});
 	}
 
 	pmUhtml(user: User | Player, uhtmlName: string, html: string): void {
 		if (!Users.get(user.name)) return;
 
 		this.say("/pmuhtml " + user.id + "," + uhtmlName + "," + html,
-			{uhtmlName, html, dontCheckFilter: true, dontPrepare: true, type: 'pmuhtml', user: user.id});
+			{uhtmlName, html, dontCheckFilter: true, dontPrepare: true, type: 'pm-uhtml', user: user.id});
 	}
 
 	pmUhtmlChange(user: User | Player, uhtmlName: string, html: string): void {
 		if (!Users.get(user.name)) return;
 
 		this.say("/pmuhtmlchange " + user.id + "," + uhtmlName + "," + html,
-			{uhtmlName, html, dontCheckFilter: true, dontPrepare: true, type: 'pmuhtml', user: user.id});
+			{uhtmlName, html, dontCheckFilter: true, dontPrepare: true, type: 'pm-uhtml', user: user.id});
 	}
 
 	sendHtmlPage(user: User | Player, pageId: string, html: string): void {
@@ -258,7 +276,7 @@ export class Room {
 	}
 
 	leave(): void {
-		this.say("/leave", {dontCheckFilter: true, dontPrepare: true, type: 'leaveroom'});
+		this.say("/leave", {dontCheckFilter: true, dontPrepare: true, type: 'leave-room'});
 	}
 
 	on(message: string, listener: MessageListener): void {

@@ -739,7 +739,7 @@ export class ScriptedGame extends Game {
 				this.signupsHtmlTimeout = setTimeout(() => {
 					this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsPlayersHtml());
 					this.signupsHtmlTimeout = null;
-				}, Client.getSendThrottle() * 2);
+				}, this.getSignupsUpdateDelay());
 			}
 		}
 
@@ -770,7 +770,7 @@ export class ScriptedGame extends Game {
 				this.signupsHtmlTimeout = setTimeout(() => {
 					this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsPlayersHtml());
 					this.signupsHtmlTimeout = null;
-				}, Client.getSendThrottle() * 2);
+				}, this.getSignupsUpdateDelay());
 			}
 		}
 

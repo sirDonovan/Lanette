@@ -218,7 +218,7 @@ export class UserHostedGame extends Game {
 			this.signupsHtmlTimeout = setTimeout(() => {
 				this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsPlayersHtml());
 				this.signupsHtmlTimeout = null;
-			}, Client.getSendThrottle() * 2);
+			}, this.getSignupsUpdateDelay());
 		}
 
 		if (this.playerCap && this.playerCount >= this.playerCap) this.start();
@@ -241,7 +241,7 @@ export class UserHostedGame extends Game {
 				this.signupsHtmlTimeout = setTimeout(() => {
 					this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsPlayersHtml());
 					this.signupsHtmlTimeout = null;
-				}, Client.getSendThrottle() * 2);
+				}, this.getSignupsUpdateDelay());
 			}
 		}
 	}

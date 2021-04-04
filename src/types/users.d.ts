@@ -7,4 +7,5 @@ export interface IUserMessageOptions {
 	dontCheckFilter?: boolean;
 	dontMeasure?: boolean;
 	dontPrepare?: boolean;
+	type?: 'pm' | 'command';
 }
