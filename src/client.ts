@@ -28,12 +28,15 @@ const SERVER_RESTART_CONNECTION_TIME = 10 * 1000;
 const REGULAR_MESSAGE_THROTTLE = 600;
 const TRUSTED_MESSAGE_THROTTLE = 100;
 const SERVER_THROTTLE_BUFFER_LIMIT = 5;
+const ASSUMED_LATENCY = 1;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const CONNECTION_CHECK_INTERVAL = 30 * 1000;
 const SERVER_THROTTLE_PROCESSING_TIME = 25;
 const MIN_PROCESSING_MEASUREMENT_GAP = 5 * 1000;
 const MAX_PROCESSING_MEASUREMENT_GAP = 30 * 1000;
+const LATENCY_CHECK_INTERVAL = 15 * 1000;
+const MAX_LATENCY_MEASUREMENT_GAP = 60 * 1000;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
 const UHTML_CHAT_COMMAND = '/uhtml ';
@@ -217,6 +220,7 @@ export class Client {
 		user: Users.self.id,
 		measure: true,
 	};
+	private maxLatencyMeasurementGap = MAX_LATENCY_MEASUREMENT_GAP;
 	private maxProcessingMeasurementGap = MAX_PROCESSING_MEASUREMENT_GAP;
 	private publicChatRooms: string[] = [];
 	private reconnectRoomMessages: Dict<string[]> = {};
@@ -230,6 +234,8 @@ export class Client {
 	private serverGroupsResponse: ServerGroupData[] = DEFAULT_SERVER_GROUPS;
 	private serverGroups: Dict<IServerGroup> = {};
 	private serverId: string = 'showdown';
+	private serverLatency: number = ASSUMED_LATENCY;
+	private serverLatencyMeasurements: IServerProcessingMeasurement[] = [];
 	private serverPingTimeout: NodeJS.Timer | null = null;
 	private serverTimeOffset: number = 0;
 	private serverProcessingTime: number = 0;
@@ -333,7 +339,7 @@ export class Client {
 	}
 
 	getSendThrottle(): number {
-		return this.sendThrottle + this.serverProcessingTime;
+		return this.sendThrottle + this.serverLatency + this.serverProcessingTime;
 	}
 
 	checkFilters(message: string, room?: Room): string | undefined {
@@ -450,6 +456,7 @@ export class Client {
 		}
 
 		outgoingMessage.serverProcessingTime = this.serverProcessingTime;
+		outgoingMessage.serverLatency = this.serverLatency;
 
 		this.sendTimeout = true;
 		this.webSocket.send(outgoingMessage.message, () => {
@@ -538,16 +545,45 @@ export class Client {
 			return;
 		}
 
+		let pingTime = 0;
 		pongListener = () => {
+			const now = Date.now();
 			this.pingWsAlive = true;
+
+			if (this.reloadInProgress || this !== global.Client) return;
+
+			let measurement: number;
+			if (pingTime) {
+				measurement = Math.ceil((now - pingTime) / 2) || ASSUMED_LATENCY;
+			} else {
+				measurement = ASSUMED_LATENCY;
+			}
+
+			this.serverLatencyMeasurements.push({
+				measurement,
+				timestamp: now,
+			});
+
+			while (now - this.serverLatencyMeasurements[0].timestamp > this.maxLatencyMeasurementGap) {
+				this.serverLatencyMeasurements.shift();
+			}
+
+			const oldServerLatency = this.serverLatency;
+			this.serverLatency = this.serverLatencyMeasurements.map(x => x.measurement).reduce((total, i) => total += i);
+
+			if (this.sendTimeout && this.sendTimeout !== true && this.serverLatency > oldServerLatency) {
+				this.setSendTimeout(this.getSendThrottle(this.lastServerProcessingType) + (this.serverLatency - oldServerLatency));
+			}
 		};
 
 		this.pingWsAlive = false;
 		this.webSocket.removeAllListeners('pong');
 		this.webSocket.once('pong', pongListener);
 		this.webSocket.ping('', undefined, () => {
+			pingTime = Date.now();
+
 			if (this.serverPingTimeout) clearTimeout(this.serverPingTimeout);
-			this.serverPingTimeout = setTimeout(() => this.pingServer(), CONNECTION_CHECK_INTERVAL + 1000);
+			this.serverPingTimeout = setTimeout(() => this.pingServer(), LATENCY_CHECK_INTERVAL + 1000);
 		});
 	}
 
@@ -566,6 +602,8 @@ export class Client {
 		if (previous.lastOutgoingMessage) this.lastOutgoingMessage = Object.assign({}, previous.lastOutgoingMessage);
 		if (previous.serverProcessingMeasurements) this.serverProcessingMeasurements = previous.serverProcessingMeasurements.slice();
 		if (previous.serverProcessingTime) this.serverProcessingTime = previous.serverProcessingTime;
+		if (previous.serverLatency) this.serverLatency = previous.serverLatency;
+		if (previous.serverLatencyMeasurements) this.serverLatencyMeasurements = previous.serverLatencyMeasurements.slice();
 
 		if (previous.outgoingMessageQueue) this.outgoingMessageQueue = previous.outgoingMessageQueue.slice();
 		if (previous.webSocket) {
