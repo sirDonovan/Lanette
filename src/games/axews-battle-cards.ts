@@ -1023,7 +1023,7 @@ export const game: IGameFile<AxewsBattleCards> = Games.copyTemplateProperties(ca
 			name: "Axew's Galar Battle Cards",
 			variantAliases: ["galar", "gen8"],
 			requiredGen: 8,
-			maxPlayers: 19,
+			maxPlayers: 18,
 		},
 	],
 });
