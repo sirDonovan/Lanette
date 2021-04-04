@@ -1,5 +1,6 @@
 import type { Player } from '../../room-activity';
 import { ScriptedGame } from '../../room-game-scripted';
+import type { Room } from '../../rooms';
 import { assert, assertStrictEqual } from '../../test/test-tools';
 import type { GameCommandDefinitions, GameFileTests, IGameTemplateFile, PlayerList } from '../../types/games';
 import type { IItem, IMove, IPokemon, StatsTable } from '../../types/pokemon-showdown';
@@ -69,6 +70,8 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	showPlayerCards: boolean = false;
 	usesActionCards: boolean = true;
 	usesHtmlPage = true;
+
+	room!: Room;
 
 	lives?: Map<Player, number>;
 	startingLives?: number;

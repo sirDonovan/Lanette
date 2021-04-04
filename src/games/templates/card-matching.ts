@@ -169,7 +169,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			displayName += card.name;
 			displayNames.push(displayName);
 		}
-		html += Client.getPmSelfButton(Config.commandCharacter + "play " + names.join(", "), "Play pair!") + "<br />";
+		html += Client.getMsgRoomButton(this.room, Config.commandCharacter + "play " + names.join(", "), "Play pair!") + "<br />";
 		html += '<center>';
 		html += displayNames.join("<br />");
 		html += '</center></div>';
@@ -248,13 +248,13 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 
 		if (player && showPlayable) {
 			if (card.action && card.action.getRandomTarget) {
-				html += Client.getPmSelfButton(Config.commandCharacter + "play " +
+				html += Client.getMsgRoomButton(this.room, Config.commandCharacter + "play " +
 					card.action.getRandomTarget(this, this.playerCards.get(player)!), "Play randomized") + " or play manually!";
 			} else {
 				if (card.action && card.action.requiredTarget) {
 					html += '<b>Play manually!</b>';
 				} else {
-					html += Client.getPmSelfButton(Config.commandCharacter + "play " + card.name, "Play!");
+					html += Client.getMsgRoomButton(this.room, Config.commandCharacter + "play " + card.name, "Play!");
 				}
 			}
 			html += '<br />';
@@ -819,8 +819,6 @@ const commands: GameCommandDefinitions<CardMatching> = {
 			this.nextRound();
 			return true;
 		},
-		aliases: ['pmplay'],
-		pmGameCommand: true,
 		eliminatedGameCommand: true,
 	},
 };
