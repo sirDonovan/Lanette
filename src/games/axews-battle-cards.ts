@@ -898,7 +898,7 @@ const tests: GameFileTests<AxewsBattleCards> = {
 	},
 	'action cards - transform': {
 		test(game): void {
-			if (game.hackmonsTypes) return;
+			if (game.hackmonsTypes || game.requiredGen) return;
 			game.createDeckPool();
 
 			const transform = game.actionCards.transform;
