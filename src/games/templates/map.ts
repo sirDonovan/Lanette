@@ -675,28 +675,24 @@ const commands: GameCommandDefinitions<MapGame> = {
 			return this.move(target, user, 'up');
 		},
 		eliminatedGameCommand: true,
-		pmGameCommand: true,
 	},
 	down: {
 		command(target, room, user) {
 			return this.move(target, user, 'down');
 		},
 		eliminatedGameCommand: true,
-		pmGameCommand: true,
 	},
 	left: {
 		command(target, room, user) {
 			return this.move(target, user, 'left');
 		},
 		eliminatedGameCommand: true,
-		pmGameCommand: true,
 	},
 	right: {
 		command(target, room, user) {
 			return this.move(target, user, 'right');
 		},
 		eliminatedGameCommand: true,
-		pmGameCommand: true,
 	},
 };
 
