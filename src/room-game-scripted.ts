@@ -655,7 +655,10 @@ export class ScriptedGame extends Game {
 
 	addPlayer(user: User): Player | undefined {
 		if (this.format.options.freejoin || this.isMiniGame) {
-			user.say("This game does not require you to join.");
+			if (!this.joinNotices.has(user.id)) {
+				user.say("This game does not require you to join.");
+				this.joinNotices.add(user.id);
+			}
 			return;
 		}
 
@@ -730,8 +733,9 @@ export class ScriptedGame extends Game {
 		}
 
 		const bits = this.internalGame ? 0 : this.addBits(player, JOIN_BITS, true);
-		if (!this.internalGame) {
+		if (!this.internalGame && !this.joinNotices.has(user.id)) {
 			player.say("Thanks for joining the " + this.name + " " + this.activityType + "!" + (bits ? " Have some free bits!" : ""));
+			this.joinNotices.add(user.id);
 		}
 
 		if (this.showSignupsHtml && !this.started) {
@@ -759,8 +763,10 @@ export class ScriptedGame extends Game {
 		const player = this.destroyPlayer(user);
 		if (!player) return;
 
-		if (!silent) {
-			player.say("You have left the " + this.name + " " + this.activityType + ".");
+		const id = typeof user === 'string' ? Tools.toId(user) : user.id;
+		if (!silent && !this.leaveNotices.has(id)) {
+			player.say("You have left the " + this.name + " " + this.activityType + ". You will not receive any further signups messages.");
+			this.leaveNotices.add(id);
 		}
 
 		if (this.format.options.freejoin) return;

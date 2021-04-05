@@ -20,7 +20,9 @@ const teamNameLists: Dict<string[][]> = {
 
 export abstract class Game extends Activity {
 	readonly activityType: string = 'game';
+	joinNotices = new Set<string>();
 	largestTeam: PlayerTeam | null = null;
+	leaveNotices = new Set<string>();
 	minPlayers: number = 4;
 	playerOrders: Dict<Player[]> | null = null;
 	readonly round: number = 0;

@@ -1127,8 +1127,11 @@ export abstract class EliminationTournament extends ScriptedGame {
 		player.round = 1;
 		this.tournamentPlayers.add(player);
 
-		player.say("Thanks for joining the " + this.name + " tournament! If you would like to leave the tournament at any time, you may " +
-			"use the command ``" + Config.commandCharacter + "leavegame " + this.room.title + "``.");
+		if (!this.joinNotices.has(player.id)) {
+			player.say("Thanks for joining the " + this.name + " tournament! If you would like to leave the tournament at any time, you " +
+				"may use the command ``" + Config.commandCharacter + "leavegame " + this.room.title + "``.");
+			this.joinNotices.add(player.id);
+		}
 
 		if (!this.started && !this.signupsHtmlTimeout) {
 			this.sayUhtmlChange(this.uhtmlBaseName + '-signups', this.getSignupsHtml());

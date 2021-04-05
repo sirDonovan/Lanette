@@ -203,7 +203,10 @@ export class UserHostedGame extends Game {
 	// Players
 	addPlayer(user: User): Player | undefined {
 		if (this.format.options.freejoin) {
-			user.say("This game does not require you to join.");
+			if (!this.joinNotices.has(user.id)) {
+				user.say("This game does not require you to join.");
+				this.joinNotices.add(user.id);
+			}
 			return;
 		}
 
@@ -212,7 +215,10 @@ export class UserHostedGame extends Game {
 		const player = this.createPlayer(user);
 		if (!player) return;
 
-		player.say("Thanks for joining " + this.name + " " + this.activityType + "!");
+		if (!this.joinNotices.has(user.id)) {
+			player.say("Thanks for joining " + this.name + " " + this.activityType + "!");
+			this.joinNotices.add(user.id);
+		}
 
 		if (!this.signupsHtmlTimeout) {
 			this.signupsHtmlTimeout = setTimeout(() => {
@@ -230,8 +236,10 @@ export class UserHostedGame extends Game {
 		const player = this.destroyPlayer(user);
 		if (!player) return;
 
-		if (!silent) {
-			player.say("You have left " + this.name + " " + this.activityType + ".");
+		const id = typeof user === 'string' ? Tools.toId(user) : user.id;
+		if (!silent && !this.leaveNotices.has(id)) {
+			player.say("You have left " + this.name + " " + this.activityType + ". You will not receive any further signups messages.");
+			this.leaveNotices.add(id);
 		}
 
 		if (this.format.options.freejoin) return;
