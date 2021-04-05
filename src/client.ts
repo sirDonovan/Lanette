@@ -1051,6 +1051,11 @@ export class Client {
 				type: messageParts[0] as RoomType,
 			};
 
+			if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'join-room' &&
+				this.lastOutgoingMessage.roomid === room.id) {
+				this.clearLastOutgoingMessage(now);
+			}
+
 			room.init(messageArguments.type);
 			if (room.type === 'chat') {
 				console.log("Joined room: " + room.id);
