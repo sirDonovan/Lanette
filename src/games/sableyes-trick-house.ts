@@ -36,6 +36,8 @@ class SableyesTrickHouse extends ScriptedGame {
 	}
 
 	revealTrap(): void {
+		if (this.canLateJoin) this.canLateJoin = false;
+
 		const trap = this.sampleOne(this.roundDoors);
 		const id = Tools.toId(trap);
 		for (const i in this.players) {
