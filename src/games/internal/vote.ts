@@ -359,7 +359,7 @@ const commands: GameCommandDefinitions<Vote> = {
 				this.updateVotesHtmlTimeout = setTimeout(() => {
 					this.updateVotesHtmlTimeout = null;
 					if (this.canVote) this.updateVotesHtml();
-				}, 500);
+				}, this.getSignupsUpdateDelay());
 			}
 
 			return true;
