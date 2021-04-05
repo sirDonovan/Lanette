@@ -17,7 +17,6 @@ const teamNameLists: Dict<string[][]> = {
 	'4': [["Red", "Blue", "Yellow", "Green"], ["Fall", "Winter", "Spring", "Summer"], ["Water", "Fire", "Earth", "Air"],
 		["Clubs", "Spades", "Hearts", "Diamonds"]],
 };
-const SIGNUPS_UPDATE_DELAY = 600;
 
 export abstract class Game extends Activity {
 	readonly activityType: string = 'game';
@@ -62,7 +61,7 @@ export abstract class Game extends Activity {
 	}
 
 	getSignupsUpdateDelay(): number {
-		return SIGNUPS_UPDATE_DELAY;
+		return Client.getSendThrottle('chat-html') * 4;
 	}
 
 	rollForShinyPokemon(extraChance?: number): boolean {

@@ -579,7 +579,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 				this.timeout = setTimeout(() => {
 					if (!player!.eliminated) {
 						if (this.finitePlayerCards) {
-							if (this.addPlayerInactiveRound(player!) && !(this.parentGame && this.parentGame.id === '1v1challenge')) {
+							if (this.addPlayerInactiveRound(player!)) {
 								this.say(player!.name + " DQed for inactivity!");
 								// nextRound() called in onRemovePlayer
 								this.eliminatePlayer(player!);

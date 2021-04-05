@@ -22,7 +22,6 @@ interface ITeamChange {
 	evolutions: number;
 }
 
-const SIGNUPS_HTML_DELAY = 2 * 1000;
 const UPDATE_HTML_PAGE_DELAY = 5 * 1000;
 const CHECK_CHALLENGES_INACTIVE_DELAY = 30 * 1000;
 const ADVERTISEMENT_TIME = 20 * 60 * 1000;
@@ -1135,7 +1134,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 			this.sayUhtmlChange(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
 			this.signupsHtmlTimeout = setTimeout(() => {
 				this.signupsHtmlTimeout = null;
-			}, SIGNUPS_HTML_DELAY);
+			}, this.getSignupsUpdateDelay());
 		}
 
 		this.giveStartingTeam(player);
@@ -1154,6 +1153,14 @@ export abstract class EliminationTournament extends ScriptedGame {
 					this.pokedex.push(pokemon);
 				}
 			}
+
+			if (!this.signupsHtmlTimeout) {
+				this.sayUhtmlChange(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
+				this.signupsHtmlTimeout = setTimeout(() => {
+					this.signupsHtmlTimeout = null;
+				}, this.getSignupsUpdateDelay());
+			}
+
 			return;
 		}
 
