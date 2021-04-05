@@ -284,6 +284,15 @@ class DragapultsDangerZone extends ScriptedGame {
 
 					this.addBits(player, earnings);
 				}
+
+				const losingTeam = this.teams![winningTeam.id === 'blue' ? 'red' : 'blue'];
+				for (const player of losingTeam.players) {
+					if (!this.playerLocations.has(player)) continue;
+					const matchupsWon = this.matchupsWon.get(player);
+					if (matchupsWon) {
+						this.addBits(player, matchupsWon * 50);
+					}
+				}
 			}
 		} else {
 			const winner = this.getFinalPlayer();
