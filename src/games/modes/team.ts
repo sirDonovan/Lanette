@@ -78,10 +78,10 @@ class Team {
 	}
 
 	onRemovePlayer(this: TeamThis, player: Player): void {
-		if (!this.started) return;
+		if (!this.started || !player.team) return;
 
-		const playerOrderIndex = this.playerOrders[player.team!.id].indexOf(player);
-		if (playerOrderIndex !== -1) this.playerOrders[player.team!.id].splice(playerOrderIndex, 1);
+		const playerOrderIndex = this.playerOrders[player.team.id].indexOf(player);
+		if (playerOrderIndex !== -1) this.playerOrders[player.team.id].splice(playerOrderIndex, 1);
 
 		this.setLargestTeam();
 	}
