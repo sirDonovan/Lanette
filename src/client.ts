@@ -331,13 +331,15 @@ export class Client {
 	}
 
 	getMsgRoomButton(room: Room, message: string, label: string, disabled?: boolean, buttonStyle?: string): string {
-		return '<button class="button' + (disabled ? " disabled" : "") + '"' + (buttonStyle ? ' style="' + buttonStyle + '"' : '') +
-			'name="send" value="/msg ' + Users.self.name + ', ' + '/msgroom ' + room.title + ', ' + message + '">' + label + '</button>';
+		return '<button class="button' + (disabled ? " disabled" : "") + '"' + (disabled ? " disabled" : "") +
+			(buttonStyle ? ' style="' + buttonStyle + '"' : '') + 'name="send" value="/msg ' + Users.self.name + ', ' + '/msgroom ' +
+			room.title + ', ' + message + '">' + label + '</button>';
 	}
 
 	getPmUserButton(user: User, message: string, label: string, disabled?: boolean, buttonStyle?: string): string {
-		return '<button class="button' + (disabled ? " disabled" : "") + '"' + (buttonStyle ? ' style="' + buttonStyle + '"' : '') +
-			' name="send" value="/msg ' + user.name + ', ' + message + '">' + label + '</button>';
+		return '<button class="button' + (disabled ? " disabled" : "") + '"' + (disabled ? " disabled" : "") +
+			(buttonStyle ? ' style="' + buttonStyle + '"' : '') + ' name="send" value="/msg ' + user.name + ', ' + message + '">' +
+			label + '</button>';
 	}
 
 	getPmSelfButton(message: string, label: string, disabled?: boolean, buttonStyle?: string): string {
