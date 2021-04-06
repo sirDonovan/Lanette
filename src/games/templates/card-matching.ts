@@ -250,12 +250,13 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		if (player && showPlayable) {
 			if (card.action && card.action.getRandomTarget) {
 				html += Client.getMsgRoomButton(this.room, Config.commandCharacter + "play " +
-					card.action.getRandomTarget(this, this.playerCards.get(player)!), "Play randomized") + " or play manually!";
+					card.action.getRandomTarget(this, this.playerCards.get(player)!), "Play randomized", player.eliminated) +
+					" or play manually!";
 			} else {
 				if (card.action && card.action.requiredTarget) {
 					html += '<b>Play manually!</b>';
 				} else {
-					html += Client.getMsgRoomButton(this.room, Config.commandCharacter + "play " + card.name, "Play!");
+					html += Client.getMsgRoomButton(this.room, Config.commandCharacter + "play " + card.name, "Play!", player.eliminated);
 				}
 			}
 			html += '<br />';
@@ -454,6 +455,8 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		this.say(player.name + " did not play a card and has been eliminated from the game!" + (autoPlay ? " Auto-playing: " +
 			autoPlay : ""));
 		this.eliminatePlayer(player);
+		this.updatePlayerHtmlPage(player);
+
 		if (autoPlay) {
 			player.useCommand('play', autoPlay);
 		} else {
@@ -583,6 +586,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 								this.say(player!.name + " DQed for inactivity!");
 								// nextRound() called in onRemovePlayer
 								this.eliminatePlayer(player!);
+								this.updatePlayerHtmlPage(player!);
 
 								const newFinalPlayer = this.getFinalPlayer();
 								if (newFinalPlayer) newFinalPlayer.metWinCondition = true;
