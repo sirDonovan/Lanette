@@ -1,5 +1,5 @@
 import type { Player } from '../../room-activity';
-import type { GameCategory, GameCommandDefinitions, IGameTemplateFile } from '../../types/games';
+import type { GameCommandDefinitions, IGameTemplateFile } from '../../types/games';
 import type { ICard } from './card';
 import { Card, game as cardGame } from './card';
 import type { IPokemon } from '../../types/pokemon-showdown';
@@ -299,7 +299,6 @@ const commands: GameCommandDefinitions<CardHighLow> = {
 };
 
 export const game: IGameTemplateFile<CardHighLow> = Object.assign(Tools.deepClone(cardGame), {
-	category: 'card-high-low' as GameCategory,
 	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
 	modeProperties: undefined,
 	tests: undefined,

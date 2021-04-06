@@ -1,6 +1,6 @@
 import type { Player } from '../room-activity';
 import { ScriptedGame } from '../room-game-scripted';
-import type { GameCategory, GameCommandDefinitions, IGameFile } from "../types/games";
+import type { GameCommandDefinitions, IGameFile } from "../types/games";
 
 type BerryType = 'Cheri' | 'Chesto' | 'Pecha' | 'Rawst' | 'Mystery';
 interface IBerryPile {
@@ -339,7 +339,7 @@ commands.summary.aliases = ['berries'];
 
 export const game: IGameFile<GreedentsBerryPiles> = {
 	aliases: ["greedents", "berrypiles", "gbp"],
-	category: 'luck' as GameCategory,
+	category: 'luck',
 	commandDescriptions: [Config.commandCharacter + "grab", Config.commandCharacter + "run"],
 	commands,
 	class: GreedentsBerryPiles,

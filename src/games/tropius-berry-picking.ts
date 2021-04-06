@@ -307,7 +307,7 @@ export const game: IGameFile<TropiusBerryPicking> = {
 		options: ['speed'],
 		requiredFreejoin: true,
 	},
-	category: 'knowledge',
+	category: 'knowledge-2',
 	commandDescriptions: [Config.commandCharacter + "eat [berry]"],
 	commands,
 	class: TropiusBerryPicking,

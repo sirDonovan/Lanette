@@ -123,7 +123,7 @@ export const game: IGameFile<HitmonchansHangman> = Games.copyTemplateProperties(
 	botChallenge: {
 		enabled: false,
 	},
-	category: 'identification',
+	category: 'identification-2',
 	class: HitmonchansHangman,
 	defaultOptions: ['points'],
 	description: "Players guess letters to fill in the blanks and reveal the answers!",

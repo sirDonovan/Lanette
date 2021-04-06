@@ -41,7 +41,7 @@ class SudowoodosSpeciesScramble extends QuestionAndAnswer {
 
 export const game: IGameFile<SudowoodosSpeciesScramble> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ["sudowoodos", "sss", "speciesscramble"],
-	category: 'knowledge',
+	category: 'knowledge-2',
 	class: SudowoodosSpeciesScramble,
 	defaultOptions: ['points'],
 	description: "Players guess Pokemon based on the given categories!",

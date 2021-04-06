@@ -148,7 +148,7 @@ class MudbraysOneAways extends QuestionAndAnswer {
 
 export const game: IGameFile<MudbraysOneAways> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['mudbrays', 'oneaways', 'moa'],
-	category: 'identification',
+	category: 'identification-1',
 	class: MudbraysOneAways,
 	defaultOptions: ['points'],
 	description: "Players change all letters in the word to either the next or previous letter of the alphabet to find the answer " +

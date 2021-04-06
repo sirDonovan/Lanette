@@ -109,7 +109,7 @@ class EkansEdges extends QuestionAndAnswer {
 
 export const game: IGameFile<EkansEdges> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['ekans', 'ee'],
-	category: 'identification',
+	category: 'identification-1',
 	class: EkansEdges,
 	defaultOptions: ['points'],
 	description: "Players guess answers that have the given starting and ending letters!",

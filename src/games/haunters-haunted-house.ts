@@ -1048,7 +1048,7 @@ const commands: GameCommandDefinitions<HauntersHauntedHouse> = {
 };
 
 export const game: IGameFile<HauntersHauntedHouse> = {
-	category: 'board',
+	category: 'map',
 	class: HauntersHauntedHouse,
 	commands,
 	commandDescriptions: [Config.commandCharacter + 'up/down/left/right [spaces]', Config.commandCharacter + 'wait'],

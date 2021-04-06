@@ -214,7 +214,7 @@ const commands: GameCommandDefinitions<TrevenantsTrickOrTreat> = {
 
 export const game: IGameFile<TrevenantsTrickOrTreat> = {
 	aliases: ["trevenants", "ttt", "trickortreat"],
-	category: 'knowledge',
+	category: 'knowledge-2',
 	commandDescriptions: [Config.commandCharacter + "trick [move]"],
 	commands,
 	class: TrevenantsTrickOrTreat,

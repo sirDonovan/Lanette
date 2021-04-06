@@ -57,7 +57,7 @@ class GreninjasTypings extends QuestionAndAnswer {
 
 export const game: IGameFile<GreninjasTypings> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['greninjas'],
-	category: 'knowledge',
+	category: 'knowledge-1',
 	class: GreninjasTypings,
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],
 	defaultOptions: ['points'],

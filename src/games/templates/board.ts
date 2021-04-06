@@ -353,7 +353,7 @@ const tests: GameFileTests<BoardGame> = {
 };
 
 export const game: IGameTemplateFile<BoardGame> = {
-	category: 'board',
+	category: 'tabletop',
 	scriptedOnly: true,
 	tests,
 };

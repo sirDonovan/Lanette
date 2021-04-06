@@ -110,7 +110,7 @@ class MagnetonsMashups extends QuestionAndAnswer {
 
 export const game: IGameFile<MagnetonsMashups> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['magnetons'],
-	category: 'identification',
+	category: 'identification-1',
 	class: MagnetonsMashups,
 	customizableOptions: {
 		names: {min: 2, base: BASE_NUMBER_OF_NAMES, max: 4},

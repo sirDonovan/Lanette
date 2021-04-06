@@ -177,7 +177,7 @@ export const game: IGameFile<PoipolesRegionalPortals> = {
 		enabled: true,
 		options: ['speed'],
 	},
-	category: 'knowledge',
+	category: 'knowledge-2',
 	commandDescriptions: [Config.commandCharacter + "travel [location]"],
 	commands,
 	class: PoipolesRegionalPortals,

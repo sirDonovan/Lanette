@@ -89,7 +89,7 @@ class LugiasObstructiveLetters extends QuestionAndAnswer {
 
 export const game: IGameFile<LugiasObstructiveLetters> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['lugias', 'lol'],
-	category: 'identification',
+	category: 'identification-1',
 	class: LugiasObstructiveLetters,
 	customizableOptions: {
 		points: {min: BASE_POINTS, base: BASE_POINTS, max: BASE_POINTS},

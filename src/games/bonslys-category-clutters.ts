@@ -38,7 +38,7 @@ class BonslysCategoryClutters extends QuestionAndAnswer {
 
 export const game: IGameFile<BonslysCategoryClutters> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ["bonslys", "bcc", "categoryclutters"],
-	category: 'knowledge',
+	category: 'knowledge-2',
 	class: BonslysCategoryClutters,
 	defaultOptions: ['points'],
 	description: "Players guess categories of randomly chosen Pokemon!",

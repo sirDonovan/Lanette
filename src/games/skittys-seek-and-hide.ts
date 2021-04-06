@@ -225,7 +225,7 @@ const tests: GameFileTests<SkittysSeekAndHide> = {
 
 export const game: IGameFile<SkittysSeekAndHide> = {
 	aliases: ['skittys', 'ssh'],
-	category: 'strategy',
+	category: 'luck',
 	class: SkittysSeekAndHide,
 	commandDescriptions: [Config.commandCharacter + "select [Pokemon]"],
 	commands,

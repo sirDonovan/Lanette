@@ -137,7 +137,7 @@ export const game: IGameFile<ZygardesOrders> = Games.copyTemplateProperties(ques
 	botChallenge: {
 		enabled: false,
 	},
-	category: 'identification',
+	category: 'identification-2',
 	class: ZygardesOrders,
 	defaultOptions: ['points'],
 	description: "Players guess answers as letters are revealed one by one (one guess per round)!",

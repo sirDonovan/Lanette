@@ -38,22 +38,19 @@ const internalGamePaths: Readonly<KeyedDict<InternalGame, string>> = {
 };
 
 const categoryNames: Readonly<KeyedDict<GameCategory, string>> = {
-	'board': 'Board',
-	'board-property': 'Board (property)',
-	'card': 'Card',
-	'card-high-low': 'Card (high-low)',
-	'card-matching': 'Card (matching)',
 	'chain': 'Chain',
-	'elimination-tournament': 'Elimination tournament',
-	'identification': 'Identification',
-	'knowledge': 'Knowledge',
+	'elimination-tournament': 'Elimination Tournament',
+	'identification-1': 'Identification Group 1',
+	'identification-2': 'Identification Group 2',
+	'knowledge-1': 'Knowledge Group 1',
+	'knowledge-2': 'Knowledge Group 2',
+	'knowledge-3': 'Knowledge Group 3',
 	'luck': 'Luck',
 	'map': 'Map',
 	'puzzle': 'Puzzle',
 	'reaction': 'Reaction',
 	'speed': 'Speed',
-	'strategy': 'Strategy',
-	'visual': 'Visual',
+	'tabletop': 'Tabletop',
 };
 
 const sharedCommandDefinitions: GameCommandDefinitions = {

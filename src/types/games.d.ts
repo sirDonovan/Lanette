@@ -20,8 +20,8 @@ export type LoadedGameCommands<T extends ScriptedGame = ScriptedGame> = LoadedCo
 export type GameDifficulty = 'easy' | 'medium' | 'hard';
 export type AutoCreateTimerType = 'scripted' | 'tournament' | 'userhosted';
 
-export type GameCategory = 'board' | 'board-property' | 'card' | 'card-high-low' | 'card-matching' | 'chain' | 'elimination-tournament' |
-	'identification' | 'knowledge' | 'luck' | 'map' | 'puzzle' | 'reaction' | 'speed' | 'strategy' | 'visual';
+export type GameCategory = 'chain' | 'elimination-tournament' | 'identification-1' | 'identification-2' | 'knowledge-1' | 'knowledge-2' |
+	'knowledge-3' | 'luck' | 'map' | 'puzzle' | 'reaction' | 'speed' | 'tabletop';
 
 export type GameMode = 'group' | 'multianswer' | 'survival' | 'team' | 'timeattack';
 

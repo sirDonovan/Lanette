@@ -122,7 +122,7 @@ export const game: IGameFile<PikachusMysteryPokemon> = Games.copyTemplatePropert
 	botChallenge: {
 		enabled: false,
 	},
-	category: 'knowledge',
+	category: 'knowledge-3',
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],
 	class: PikachusMysteryPokemon,
 	defaultOptions: ['points'],

@@ -131,7 +131,7 @@ export const game: IGameFile<HypnosHunches> = Games.copyTemplateProperties(quest
 	botChallenge: {
 		enabled: false,
 	},
-	category: 'identification',
+	category: 'identification-2',
 	class: HypnosHunches,
 	defaultOptions: ['points'],
 	description: "Players guess letters to reveal the answers without being shown any blanks!",

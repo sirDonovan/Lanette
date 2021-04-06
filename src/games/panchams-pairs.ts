@@ -389,7 +389,7 @@ export const game: IGameFile<PanchamPairs> = {
 		options: ['speed'],
 		requiredFreejoin: true,
 	},
-	category: 'knowledge',
+	category: 'knowledge-3',
 	commandDescriptions: [Config.commandCharacter + "pair [name, name, param type]"],
 	commands,
 	class: PanchamPairs,

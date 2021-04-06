@@ -90,7 +90,7 @@ class BeheeyemsMassEffect extends QuestionAndAnswer {
 
 export const game: IGameFile<BeheeyemsMassEffect> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ["Beheeyems", "bme"],
-	category: 'knowledge',
+	category: 'knowledge-1',
 	class: BeheeyemsMassEffect,
 	defaultOptions: ['points'],
 	description: "Each round, players find a Pokemon whose type effectiveness matches the given parameters.",

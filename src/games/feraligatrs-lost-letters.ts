@@ -99,7 +99,7 @@ class FeraligatrsLostLetters extends QuestionAndAnswer {
 
 export const game: IGameFile<FeraligatrsLostLetters> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['feraligatrs', 'fll', 'll'],
-	category: 'identification',
+	category: 'identification-1',
 	class: FeraligatrsLostLetters,
 	defaultOptions: ['points'],
 	description: "Players guess the missing vowels to find the answers!",

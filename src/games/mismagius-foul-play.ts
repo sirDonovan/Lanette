@@ -366,7 +366,7 @@ commands.summary.aliases = ['role'];
 
 export const game: IGameFile<MismagiusFoulPlay> = {
 	aliases: ['mismagius', 'mfp'],
-	category: 'strategy',
+	category: 'puzzle',
 	class: MismagiusFoulPlay,
 	commandDescriptions: [Config.commandCharacter + "select [Pokemon]", Config.commandCharacter + "suspect [player], [Pokemon]"],
 	commands,

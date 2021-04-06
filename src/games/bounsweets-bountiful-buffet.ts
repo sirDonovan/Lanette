@@ -200,6 +200,7 @@ const tests: GameFileTests<BounsweetsBountifulBuffet> = {
 
 export const game: IGameFile<BounsweetsBountifulBuffet> = {
 	aliases: ['bounsweets', 'bbb'],
+	category: 'luck',
 	class: BounsweetsBountifulBuffet,
 	commandDescriptions: [Config.commandCharacter + "select [meal]"],
 	commands,

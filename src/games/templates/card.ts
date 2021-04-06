@@ -457,6 +457,7 @@ const tests: GameFileTests<Card> = {
 };
 
 export const game: IGameTemplateFile<Card> = {
+	category: 'tabletop',
 	commands,
 	defaultOptions: ['cards'],
 	tests,

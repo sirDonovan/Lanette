@@ -68,7 +68,7 @@ commands.guess.aliases.push('switch');
 
 export const game: IGameFile<AbrasAbilitySwitch> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['aas', 'abras'],
-	category: 'knowledge',
+	category: 'knowledge-1',
 	class: AbrasAbilitySwitch,
 	commandDescriptions: [Config.commandCharacter + "switch [Pokemon]"],
 	commands,

@@ -86,7 +86,7 @@ export const game: IGameFile<SmearglesMysteryMoves> = Games.copyTemplateProperti
 	botChallenge: {
 		enabled: false,
 	},
-	category: 'knowledge',
+	category: 'knowledge-3',
 	commandDescriptions: [Config.commandCharacter + "g [move]"],
 	class: SmearglesMysteryMoves,
 	defaultOptions: ['points'],

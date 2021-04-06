@@ -222,7 +222,7 @@ const commands: GameCommandDefinitions<ShedinjasWonderTrials> = {
 
 export const game: IGameFile<ShedinjasWonderTrials> = {
 	aliases: ["shedinjas", "swt", "wondertrials"],
-	category: 'knowledge',
+	category: 'knowledge-1',
 	commandDescriptions: [Config.commandCharacter + "use [move]"],
 	commands,
 	class: ShedinjasWonderTrials,

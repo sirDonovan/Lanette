@@ -115,7 +115,7 @@ export const game: IGameFile<MareaniesMarquee> = Games.copyTemplateProperties(qu
 	botChallenge: {
 		enabled: false,
 	},
-	category: 'identification',
+	category: 'identification-2',
 	class: MareaniesMarquee,
 	defaultOptions: ['points'],
 	description: "Players guess the answers as letters are cycled through 1 at a time!",

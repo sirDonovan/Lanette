@@ -60,7 +60,7 @@ const tests: GameFileTests<GalladesAbilityTest> = {
 
 export const game: IGameFile<GalladesAbilityTest> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['gallades', 'gat', 'abilitytest', 'tya'],
-	category: 'knowledge',
+	category: 'knowledge-1',
 	class: GalladesAbilityTest,
 	defaultOptions: ['points'],
 	description: "Each round, players must guess Pokemon based on the initials of their abilities!",

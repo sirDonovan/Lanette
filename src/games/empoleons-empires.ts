@@ -228,6 +228,7 @@ const commands: GameCommandDefinitions<EmpoleonsEmpires> = {
 
 export const game: IGameFile<EmpoleonsEmpires> = {
 	aliases: ["empoleons"],
+	category: 'puzzle',
 	commandDescriptions: [Config.commandCharacter + "alias [alias]", Config.commandCharacter + "guess [player], [alias]"],
 	commands,
 	class: EmpoleonsEmpires,

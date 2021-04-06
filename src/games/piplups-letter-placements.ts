@@ -59,7 +59,7 @@ class PiplupsLetterPlacements extends QuestionAndAnswer {
 
 export const game: IGameFile<PiplupsLetterPlacements> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ["piplups", "plp"],
-	category: 'identification',
+	category: 'identification-1',
 	class: PiplupsLetterPlacements,
 	defaultOptions: ['points'],
 	description: "Players guess answers that contain the given letters back-to-back!",

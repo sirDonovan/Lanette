@@ -1,7 +1,7 @@
 import type { Player } from "../../room-activity";
 import { addPlayers, assertStrictEqual } from "../../test/test-tools";
 import type {
-	GameCategory, GameCommandDefinitions, GameFileTests, IGameAchievement, IGameTemplateFile
+	GameCommandDefinitions, GameFileTests, IGameAchievement, IGameTemplateFile
 } from "../../types/games";
 import type { NamedHexCode } from "../../types/tools";
 import type { BoardActionCard, BoardSide, IBoard, IMovedBoardLocation } from "./board";
@@ -759,7 +759,6 @@ const tests: GameFileTests<BoardPropertyGame> = {
 };
 
 export const game: IGameTemplateFile<BoardPropertyGame> = Object.assign(Tools.deepClone(boardGame), {
-	category: 'luck' as GameCategory,
 	commands,
 	modeProperties: undefined,
 	tests: Object.assign({}, boardGame.tests, tests),

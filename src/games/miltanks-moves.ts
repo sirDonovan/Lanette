@@ -67,7 +67,7 @@ class MiltanksMoves extends QuestionAndAnswer {
 
 export const game: IGameFile<MiltanksMoves> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['miltanks', 'mm'],
-	category: 'knowledge',
+	category: 'knowledge-1',
 	class: MiltanksMoves,
 	defaultOptions: ['points'],
 	description: "Players guess moves of the specified type that the given Pokemon learn!",

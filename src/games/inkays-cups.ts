@@ -236,7 +236,7 @@ export const game: IGameFile<InkaysCups> = {
 		options: ['speed'],
 		requiredFreejoin: true,
 	},
-	category: 'knowledge',
+	category: 'knowledge-3',
 	class: InkaysCups,
 	commandDescriptions: [Config.commandCharacter + 'grab [Pokemon]'],
 	commands,

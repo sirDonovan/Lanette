@@ -150,7 +150,7 @@ export const game: IGameFile<LanturnsIlluminatedLetters> = Games.copyTemplatePro
 	botChallenge: {
 		enabled: false,
 	},
-	category: 'identification',
+	category: 'identification-2',
 	class: LanturnsIlluminatedLetters,
 	defaultOptions: ['points'],
 	description: "Players guess the answers as letters are revealed and hidden!",

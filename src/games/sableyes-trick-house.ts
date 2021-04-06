@@ -188,6 +188,7 @@ const tests: GameFileTests<SableyesTrickHouse> = {
 
 export const game: IGameFile<SableyesTrickHouse> = {
 	aliases: ["sableyes", "th"],
+	category: 'luck',
 	commandDescriptions: [Config.commandCharacter + "select [door]"],
 	commands,
 	class: SableyesTrickHouse,

@@ -585,7 +585,7 @@ const commands: GameCommandDefinitions<DragapultsDangerZone> = {
 
 export const game: IGameFile<DragapultsDangerZone> = {
 	aliases: ["dragapults", "ddz", "dangerzone"],
-	category: 'strategy',
+	category: 'luck',
 	commandDescriptions: [Config.commandCharacter + "hide [location]", Config.commandCharacter + "fire [location]",
 		Config.commandCharacter + "select [Pokemon]"],
 	commands,

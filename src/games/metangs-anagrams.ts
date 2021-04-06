@@ -55,7 +55,7 @@ class MetangsAnagrams extends QuestionAndAnswer {
 
 export const game: IGameFile<MetangsAnagrams> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['metangs', 'anags', 'ma'],
-	category: 'identification',
+	category: 'identification-1',
 	class: MetangsAnagrams,
 	defaultOptions: ['points'],
 	description: "Players unscramble letters to reveal the answers!",

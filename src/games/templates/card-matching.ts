@@ -1,7 +1,7 @@
 import type { Player } from '../../room-activity';
 import { addPlayers, assert } from '../../test/test-tools';
 import type {
-	GameCategory, GameCommandDefinitions, GameFileTests, IGameAchievement, IGameTemplateFile
+	GameCommandDefinitions, GameFileTests, IGameAchievement, IGameTemplateFile
 } from '../../types/games';
 import type { IPokemon } from '../../types/pokemon-showdown';
 import type { IActionCardData, ICard, IPokemonCard } from './card';
@@ -857,7 +857,6 @@ export const game: IGameTemplateFile<CardMatching> = Object.assign(Tools.deepClo
 	botChallenge: {
 		enabled: true,
 	},
-	category: 'luck' as GameCategory,
 	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
 	modes: undefined,
 	modeProperties: undefined,

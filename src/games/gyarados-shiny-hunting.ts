@@ -213,7 +213,7 @@ commands.guess.aliases.push(answerCommand);
 
 export const game: IGameFile<GyaradosShinyHunting> = {
 	aliases: ["gyarados", "shinyhunting", "gsh"],
-	category: 'visual',
+	category: 'speed',
 	commandDescriptions: [Config.commandCharacter + answerCommand + " [coordinates]"],
 	commands,
 	class: GyaradosShinyHunting,

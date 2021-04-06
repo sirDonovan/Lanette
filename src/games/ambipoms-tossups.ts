@@ -112,7 +112,7 @@ export const game: IGameFile<AmbipomsTossups> = Games.copyTemplateProperties(que
 	botChallenge: {
 		enabled: false,
 	},
-	category: 'identification',
+	category: 'identification-2',
 	class: AmbipomsTossups,
 	defaultOptions: ['points'],
 	description: "Players guess answers as blanks are filled in one by one (one guess per round)!",

@@ -139,7 +139,7 @@ const tests: GameFileTests<GrumpigsPokemath> = {
 
 export const game: IGameFile<GrumpigsPokemath> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['grumpigs', 'pokemath'],
-	category: 'knowledge',
+	category: 'knowledge-3',
 	class: GrumpigsPokemath,
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],
 	customizableOptions: {

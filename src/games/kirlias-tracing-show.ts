@@ -54,7 +54,7 @@ commands.guess.aliases.push('trace');
 
 export const game: IGameFile<KirliasTracingShow> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['kirlias', 'kts'],
-	category: 'knowledge',
+	category: 'knowledge-1',
 	class: KirliasTracingShow,
 	commandDescriptions: [Config.commandCharacter + "trace [ability]"],
 	commands,
