@@ -11,7 +11,7 @@ import type { Room } from './rooms';
 import type {
 	GroupName, IClientMessageTypes, ILoginOptions, IMessageParserFile, IOutgoingMessage, IRoomInfoResponse, IRoomsResponse,
 	IServerConfig, IServerGroup, IServerProcessingMeasurement, ITournamentMessageTypes, QueryResponseType, ServerProcessingType,
-	ServerGroupData
+	ServerGroupData, IUserDetailsResponse
 } from './types/client';
 import type { ISeparatedCustomRules } from './types/dex';
 import type { RoomType } from './types/rooms';
@@ -1041,6 +1041,11 @@ export class Client {
 					for (const psplRoom of response.pspl) {
 						this.publicChatRooms.push(Tools.toRoomId(psplRoom.title));
 					}
+				}
+			} else if (messageArguments.type === 'userdetails') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+				if (messageArguments.response && messageArguments.response !== 'null') {
+					const response = JSON.parse(messageArguments.response) as IUserDetailsResponse;
+					if (response.userid === Users.self.id) Users.self.group = response.group;
 				}
 			}
 			break;
