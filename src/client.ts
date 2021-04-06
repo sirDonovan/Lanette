@@ -25,16 +25,14 @@ const CHALLSTR_TIMEOUT_SECONDS = 15;
 const RELOGIN_SECONDS = 60;
 const LOGIN_TIMEOUT_SECONDS = 150;
 const SERVER_RESTART_CONNECTION_TIME = 10 * 1000;
-const REGULAR_MESSAGE_THROTTLE = 600;
-const TRUSTED_MESSAGE_THROTTLE = 100;
+const REGULAR_MESSAGE_THROTTLE = 625;
+const TRUSTED_MESSAGE_THROTTLE = 125;
 const SERVER_THROTTLE_BUFFER_LIMIT = 5;
-const ASSUMED_LATENCY = 1;
-const ASSUMED_PROCESSING_TIME = 1;
+const DEFAULT_LATENCY = 25;
 const DEFAULT_PROCESSING_TIME = 25;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const LATENCY_CHECK_INTERVAL = 15 * 1000;
-const MAX_LATENCY_MEASUREMENT_GAP = 60 * 1000;
 const MAX_PROCESSING_MEASUREMENT_GAP = 60 * 1000;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
@@ -214,7 +212,6 @@ export class Client {
 	private pauseIncomingMessages: boolean = true;
 	private pauseOutgoingMessages: boolean = false;
 	private pingWsAlive: boolean = true;
-	private maxLatencyMeasurementGap = MAX_LATENCY_MEASUREMENT_GAP;
 	private maxProcessingMeasurementGap = MAX_PROCESSING_MEASUREMENT_GAP;
 	private publicChatRooms: string[] = [];
 	private reconnectRoomMessages: Dict<string[]> = {};
@@ -228,8 +225,7 @@ export class Client {
 	private serverGroupsResponse: ServerGroupData[] = DEFAULT_SERVER_GROUPS;
 	private serverGroups: Dict<IServerGroup> = {};
 	private serverId: string = 'showdown';
-	private serverLatency: number = ASSUMED_LATENCY;
-	private serverLatencyMeasurements: IServerProcessingMeasurement[] = [];
+	private serverLatency: number = DEFAULT_LATENCY;
 	private serverPingTimeout: NodeJS.Timer | null = null;
 	private serverTimeOffset: number = 0;
 	private serverProcessingTimes: KeyedDict<ServerProcessingType, number> = {
@@ -434,11 +430,11 @@ export class Client {
 
 		this.sendTimeout = true;
 		this.webSocket.send(outgoingMessage.message, () => {
-			const now = Date.now();
-			if (this.sendTimeout === true && !this.reloadInProgress && this === global.Client) {
-				if (outgoingMessage.measure) outgoingMessage.sentTime = now;
-				this.lastOutgoingMessage = outgoingMessage;
+			if (outgoingMessage.measure) outgoingMessage.sentTime = Date.now();
+			this.lastOutgoingMessage = outgoingMessage;
+			this.lastServerProcessingType = outgoingMessage.serverProcessingType;
 
+			if (this.sendTimeout === true && !this.reloadInProgress && this === global.Client) {
 				this.setSendTimeout(this.getSendThrottle(outgoingMessage.serverProcessingType));
 			}
 		});
@@ -538,29 +534,16 @@ export class Client {
 
 		let pingTime = 0;
 		pongListener = () => {
-			const now = Date.now();
 			this.pingWsAlive = true;
 
 			if (this.reloadInProgress || this !== global.Client) return;
 
-			let measurement: number;
-			if (pingTime) {
-				measurement = Math.ceil((now - pingTime) / 2) || ASSUMED_LATENCY;
-			} else {
-				measurement = ASSUMED_LATENCY;
-			}
-
-			this.serverLatencyMeasurements.push({
-				measurement,
-				timestamp: now,
-			});
-
-			while (now - this.serverLatencyMeasurements[0].timestamp > this.maxLatencyMeasurementGap) {
-				this.serverLatencyMeasurements.shift();
-			}
-
 			const oldServerLatency = this.serverLatency;
-			this.serverLatency = this.serverLatencyMeasurements.map(x => x.measurement).reduce((total, i) => total += i);
+			if (pingTime) {
+				this.serverLatency = Math.ceil((Date.now() - pingTime) / 2);
+			} else {
+				this.serverLatency = 0;
+			}
 
 			if (this.sendTimeout && this.sendTimeout !== true && this.serverLatency > oldServerLatency) {
 				this.setSendTimeout(this.getSendThrottle(this.lastServerProcessingType) + (this.serverLatency - oldServerLatency));
@@ -594,7 +577,6 @@ export class Client {
 		if (previous.lastOutgoingMessage) this.lastOutgoingMessage = Object.assign({}, previous.lastOutgoingMessage);
 
 		if (previous.serverLatency) this.serverLatency = previous.serverLatency;
-		if (previous.serverLatencyMeasurements) this.serverLatencyMeasurements = previous.serverLatencyMeasurements.slice();
 		if (previous.serverProcessingTimes) Object.assign(this.serverProcessingTimes, previous.serverProcessingTimes);
 		if (previous.serverProcessingMeasurements) {
 			const types = Object.keys(previous.serverProcessingMeasurements) as ServerProcessingType[];
@@ -1507,7 +1489,7 @@ export class Client {
 				'typing too quickly.</strong>') {
 				Tools.logMessage("Typing too quickly;\n" + this.getSendThrottleValues().join("\n") +
 					(this.lastOutgoingMessage && this.lastOutgoingMessage.sentTime ?
-					"; Message sent at: " + new Date(this.lastOutgoingMessage.sentTime).toTimeString() + "; " +
+					"\n\nMessage sent at: " + new Date(this.lastOutgoingMessage.sentTime).toTimeString() + "; " +
 					"Processing time last measured at: " + new Date(this.lastProcessingTimeCheck).toTimeString() + "; " +
 					"Message: " + JSON.stringify(this.lastOutgoingMessage) : ""));
 				this.setSendTimeout(this.getSendThrottle(this.lastServerProcessingType) * (SERVER_THROTTLE_BUFFER_LIMIT + 1));
@@ -2043,8 +2025,8 @@ export class Client {
 			if (this.lastOutgoingMessage.measure && this.lastOutgoingMessage.sentTime && responseTime) {
 				const serverProcessingMeasurements = this.serverProcessingMeasurements[this.lastOutgoingMessage.serverProcessingType];
 				serverProcessingMeasurements.push({
-					measurement: Math.max(ASSUMED_PROCESSING_TIME, responseTime - this.lastOutgoingMessage.sentTime -
-						(this.serverLatency * 2)),
+					measurement: Math.max(0, responseTime - this.lastOutgoingMessage.sentTime -
+						(this.lastOutgoingMessage.serverLatency! * 2)),
 					timestamp: responseTime,
 				});
 
@@ -2060,6 +2042,7 @@ export class Client {
 			}
 
 			if (this.sendTimeout && this.sendTimeout !== true &&
+				this.lastServerProcessingType === this.lastOutgoingMessage.serverProcessingType &&
 				this.serverProcessingTimes[this.lastOutgoingMessage.serverProcessingType] > oldServerProcessingTime) {
 				this.setSendTimeout(this.getSendThrottle(this.lastOutgoingMessage.serverProcessingType) +
 					(this.serverProcessingTimes[this.lastOutgoingMessage.serverProcessingType] - oldServerProcessingTime));
