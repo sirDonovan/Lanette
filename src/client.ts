@@ -32,7 +32,7 @@ const DEFAULT_LATENCY = 25;
 const DEFAULT_PROCESSING_TIME = 25;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
-const LATENCY_CHECK_INTERVAL = 15 * 1000;
+const LATENCY_CHECK_INTERVAL = 30 * 1000;
 const MAX_PROCESSING_MEASUREMENT_GAP = LATENCY_CHECK_INTERVAL;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
@@ -418,27 +418,26 @@ export class Client {
 	send(outgoingMessage: IOutgoingMessage): void {
 		if (!outgoingMessage.message || !this.webSocket) return;
 
-		if (outgoingMessage.message.length > MAX_MESSAGE_SIZE) {
-			throw new Error("Message exceeds server size limit of " + (MAX_MESSAGE_SIZE / 1024) + "KB: " + outgoingMessage.message);
-		}
-
 		if (this.sendTimeout || this.pauseOutgoingMessages) {
 			this.outgoingMessageQueue.push(outgoingMessage);
 			return;
 		}
 
-		outgoingMessage.serverLatency = this.serverLatency;
-		outgoingMessage.serverProcessingTime = this.serverProcessingTimes[outgoingMessage.serverProcessingType];
+		if (outgoingMessage.message.length > MAX_MESSAGE_SIZE) {
+			throw new Error("Message exceeds server size limit of " + (MAX_MESSAGE_SIZE / 1024) + "KB: " + outgoingMessage.message);
+		}
 
 		this.sendTimeout = true;
+
+		outgoingMessage.serverLatency = this.serverLatency;
+		outgoingMessage.serverProcessingTime = this.serverProcessingTimes[outgoingMessage.serverProcessingType];
+		this.lastOutgoingMessage = outgoingMessage;
+		this.lastServerProcessingType = outgoingMessage.serverProcessingType;
+
 		this.webSocket.send(outgoingMessage.message, () => {
 			if (outgoingMessage.measure) outgoingMessage.sentTime = Date.now();
-			this.lastOutgoingMessage = outgoingMessage;
-			this.lastServerProcessingType = outgoingMessage.serverProcessingType;
 
-			if (this.sendTimeout === true && !this.reloadInProgress && this === global.Client) {
-				this.setSendTimeout(this.getSendThrottle(outgoingMessage.serverProcessingType));
-			}
+			this.setSendTimeout(this.getSendThrottle(outgoingMessage.serverProcessingType));
 		});
 	}
 
@@ -536,16 +535,14 @@ export class Client {
 
 		let pingTime = 0;
 		pongListener = () => {
-			this.pingWsAlive = true;
-
-			if (this.reloadInProgress || this !== global.Client) return;
-
 			const oldServerLatency = this.serverLatency;
 			if (pingTime) {
-				this.serverLatency = Math.ceil((Date.now() - pingTime) / 2);
+				this.serverLatency = Math.floor((Date.now() - pingTime) / 2);
 			} else {
 				this.serverLatency = 0;
 			}
+
+			this.pingWsAlive = true;
 
 			if (this.sendTimeout && this.sendTimeout !== true && this.serverLatency > oldServerLatency) {
 				this.setSendTimeout(this.getSendThrottle(this.lastServerProcessingType) + (this.serverLatency - oldServerLatency));
@@ -625,6 +622,7 @@ export class Client {
 
 		if (previous.sendTimeout) {
 			if (previous.sendTimeout !== true) clearTimeout(previous.sendTimeout);
+			delete previous.sendTimeout;
 			if (!this.sendTimeout) this.setSendTimeout(this.lastSendTimeoutTime);
 		}
 
@@ -2022,9 +2020,9 @@ export class Client {
 
 	private clearLastOutgoingMessage(responseTime?: number): void {
 		if (this.lastOutgoingMessage) {
-			const oldServerProcessingTime = this.serverProcessingTimes[this.lastOutgoingMessage.serverProcessingType];
-
 			if (this.lastOutgoingMessage.measure && this.lastOutgoingMessage.sentTime && responseTime) {
+				const oldServerProcessingTime = this.serverProcessingTimes[this.lastOutgoingMessage.serverProcessingType];
+
 				const serverProcessingMeasurements = this.serverProcessingMeasurements[this.lastOutgoingMessage.serverProcessingType];
 				serverProcessingMeasurements.push({
 					measurement: Math.max(0, responseTime - this.lastOutgoingMessage.sentTime -
@@ -2041,13 +2039,13 @@ export class Client {
 					Math.ceil(samplesTotal / serverProcessingMeasurements.length) : 0;
 
 				this.lastProcessingTimeCheck = responseTime;
-			}
 
-			if (this.sendTimeout && this.sendTimeout !== true &&
-				this.lastServerProcessingType === this.lastOutgoingMessage.serverProcessingType &&
-				this.serverProcessingTimes[this.lastOutgoingMessage.serverProcessingType] > oldServerProcessingTime) {
-				this.setSendTimeout(this.getSendThrottle(this.lastOutgoingMessage.serverProcessingType) +
-					(this.serverProcessingTimes[this.lastOutgoingMessage.serverProcessingType] - oldServerProcessingTime));
+				if (this.sendTimeout && this.sendTimeout !== true &&
+					this.lastServerProcessingType === this.lastOutgoingMessage.serverProcessingType &&
+					this.serverProcessingTimes[this.lastOutgoingMessage.serverProcessingType] > oldServerProcessingTime) {
+					this.setSendTimeout(this.getSendThrottle(this.lastOutgoingMessage.serverProcessingType) +
+						(this.serverProcessingTimes[this.lastOutgoingMessage.serverProcessingType] - oldServerProcessingTime));
+				}
 			}
 
 			this.lastOutgoingMessage = null;
@@ -2066,6 +2064,10 @@ export class Client {
 
 	private setSendTimeout(time: number): void {
 		this.clearSendTimeout();
+		if (this.reloadInProgress) {
+			this.sendTimeout = true;
+			return;
+		}
 
 		this.lastSendTimeoutTime = time;
 		this.sendTimeout = setTimeout(() => {
