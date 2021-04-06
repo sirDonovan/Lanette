@@ -159,6 +159,7 @@ const commands: GameCommandDefinitions<MachopsMatchups> = {
 
 export const game: IGameFile<MachopsMatchups> = {
 	aliases: ["machops", "matchups"],
+	category: 'luck',
 	class: MachopsMatchups,
 	commands,
 	commandDescriptions: [Config.commandCharacter + 'attack'],
