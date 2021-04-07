@@ -49,7 +49,7 @@ export class BotChallenge extends ScriptedGame {
 		if (this.timeout) clearTimeout(this.timeout);
 
 		this.originalModchat = this.room.modchat;
-		this.sayCommand("/modchat +");
+		this.room.setModchat("+");
 		if (!challenger.hasRank(this.room, 'voice')) {
 			this.sayCommand("/roomvoice " + challenger.name);
 			this.challengerPromotedName = challenger.id;
@@ -152,7 +152,7 @@ export class BotChallenge extends ScriptedGame {
 	}
 
 	resetModchatAndRanks(): void {
-		this.sayCommand("/modchat " + this.originalModchat);
+		this.room.setModchat(this.originalModchat);
 		if (this.challengerPromotedName) this.sayCommand("/roomdeauth " + this.challengerPromotedName);
 	}
 

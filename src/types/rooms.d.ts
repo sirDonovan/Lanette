@@ -15,6 +15,7 @@ export interface IRoomMessageOptions {
 	dontMeasure?: boolean;
 	dontPrepare?: boolean;
 	html?: string;
+	modchatLevel?: string;
 	type?: IOutgoingMessageTypes;
 	uhtmlName?: string;
 	user?: string;

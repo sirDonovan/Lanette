@@ -20,12 +20,13 @@ export interface IServerProcessingMeasurement {
 }
 
 export type IOutgoingMessageTypes = 'command' | 'chat' | 'chat-html' | 'chat-uhtml' | 'pm' | 'pm-html' | 'pm-uhtml' | 'join-room' |
-	'leave-room';
+	'leave-room' | 'modchat';
 export interface IOutgoingMessage {
 	message: string;
 	type: IOutgoingMessageTypes;
 	html?: string;
 	measure?: boolean;
+	modchatLevel?: string;
 	roomid?: string;
 	sentTime?: number;
 	serverLatency?: number;

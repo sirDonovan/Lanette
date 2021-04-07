@@ -1456,6 +1456,10 @@ export class Client {
 			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
 				room.modchat = messageArguments.html.split('<div class="broadcast-red">' +
 					'<strong>Moderated chat was set to ')[1].split('!</strong>')[0];
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'modchat' &&
+					this.lastOutgoingMessage.modchatLevel === room.modchat) {
+					this.clearLastOutgoingMessage(now);
+				}
 			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>This battle is invite-only!</strong>') ||
 				messageArguments.html.startsWith('<div class="broadcast-red"><strong>This room is now invite only!</strong>')) {
 				room.inviteOnlyBattle = true;

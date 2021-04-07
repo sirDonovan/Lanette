@@ -167,6 +167,7 @@ export class Room {
 			outgoingMessage.measure = true;
 
 			if (options && options.user) outgoingMessage.user = options.user;
+			if (options && options.modchatLevel) outgoingMessage.modchatLevel = options.modchatLevel;
 
 			if (options && options.html) {
 				outgoingMessage.html = options.html;
@@ -256,6 +257,10 @@ export class Room {
 
 		this.say("/highlighthtmlpage " + user.id + "," + pageId + "," + notificationTitle + (highlightPhrase ? "," + highlightPhrase : ""),
 			{dontCheckFilter: true, dontPrepare: true, dontMeasure: true, type: 'command'});
+	}
+
+	setModchat(level: string): void {
+		this.say("/modchat " + level, {dontCheckFilter: true, dontPrepare: true, type: 'modchat', modchatLevel: level});
 	}
 
 	leave(): void {

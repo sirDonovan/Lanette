@@ -40,7 +40,7 @@ export class HeadToHead extends ScriptedGame {
 		this.name += " (" + challengeFormat.nameWithOptions + ")";
 
 		this.originalModchat = this.room.modchat;
-		this.sayCommand("/modchat +");
+		this.room.setModchat("+");
 		if (!leftUser.hasRank(this.room, 'voice')) {
 			this.sayCommand("/roomvoice " + leftUser.name);
 			this.leftPromotedName = leftUser.id;
@@ -126,7 +126,7 @@ export class HeadToHead extends ScriptedGame {
 	}
 
 	resetModchatAndRanks(): void {
-		this.sayCommand("/modchat " + this.originalModchat);
+		this.room.setModchat(this.originalModchat);
 		if (this.leftPromotedName) this.sayCommand("/roomdeauth " + this.leftPromotedName);
 		if (this.rightPromotedName) this.sayCommand("/roomdeauth " + this.rightPromotedName);
 	}
