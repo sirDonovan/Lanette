@@ -10,8 +10,8 @@ import type { UserHostedGame } from './room-game-user-hosted';
 import type { Room } from './rooms';
 import type {
 	GroupName, IClientMessageTypes, ILoginOptions, IMessageParserFile, IOutgoingMessage, IRoomInfoResponse, IRoomsResponse,
-	IServerConfig, IServerGroup, IServerProcessingMeasurement, ITournamentMessageTypes, QueryResponseType, ServerProcessingType,
-	ServerGroupData, IUserDetailsResponse
+	IServerConfig, IServerGroup, IServerProcessingMeasurement, ITournamentMessageTypes, QueryResponseType, ServerGroupData,
+	IUserDetailsResponse
 } from './types/client';
 import type { ISeparatedCustomRules } from './types/dex';
 import type { RoomType } from './types/rooms';
@@ -25,15 +25,15 @@ const CHALLSTR_TIMEOUT_SECONDS = 15;
 const RELOGIN_SECONDS = 60;
 const LOGIN_TIMEOUT_SECONDS = 150;
 const SERVER_RESTART_CONNECTION_TIME = 10 * 1000;
-const REGULAR_MESSAGE_THROTTLE = 625;
-const TRUSTED_MESSAGE_THROTTLE = 125;
-const SERVER_THROTTLE_BUFFER_LIMIT = 5;
+const REGULAR_MESSAGE_THROTTLE = 600;
+const TRUSTED_MESSAGE_THROTTLE = 100;
+const SERVER_THROTTLE_BUFFER_WAIT = 6;
 const DEFAULT_LATENCY = 25;
 const DEFAULT_PROCESSING_TIME = 25;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
-const LATENCY_CHECK_INTERVAL = 30 * 1000;
-const MAX_PROCESSING_MEASUREMENT_GAP = LATENCY_CHECK_INTERVAL;
+const LATENCY_CHECK_INTERVAL = 10 * 1000;
+const MAX_PROCESSING_MEASUREMENT_GAP = 30 * 1000;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
 const UHTML_CHAT_COMMAND = '/uhtml ';
@@ -201,7 +201,6 @@ export class Client {
 	private lastOutgoingMessage: IOutgoingMessage | null = null;
 	private lastProcessingTimeCheck: number = 0;
 	private lastSendTimeoutTime: number = 0;
-	private lastServerProcessingType: ServerProcessingType = 'not-measured';
 	private loggedIn: boolean = false;
 	private loginServerHostname: string = '';
 	private loginServerPath: string = '';
@@ -228,24 +227,8 @@ export class Client {
 	private serverLatency: number = DEFAULT_LATENCY;
 	private serverPingTimeout: NodeJS.Timer | null = null;
 	private serverTimeOffset: number = 0;
-	private serverProcessingTimes: KeyedDict<ServerProcessingType, number> = {
-		'chat': DEFAULT_PROCESSING_TIME,
-		'chat-html': DEFAULT_PROCESSING_TIME,
-		'pm': DEFAULT_PROCESSING_TIME,
-		'pm-html': DEFAULT_PROCESSING_TIME,
-		'join-room': DEFAULT_PROCESSING_TIME,
-		'leave-room': DEFAULT_PROCESSING_TIME,
-		'not-measured': DEFAULT_PROCESSING_TIME,
-	};
-	private serverProcessingMeasurements: KeyedDict<ServerProcessingType, IServerProcessingMeasurement[]> = {
-		'chat': [],
-		'chat-html': [],
-		'pm': [],
-		'pm-html': [],
-		'join-room': [],
-		'leave-room': [],
-		'not-measured': [],
-	};
+	private serverProcessingTime: number = DEFAULT_PROCESSING_TIME;
+	private serverProcessingMeasurements: IServerProcessingMeasurement[] = [];
 	private webSocket: import('ws') | null = null;
 
 	constructor() {
@@ -346,8 +329,8 @@ export class Client {
 		return this.getPmUserButton(Users.self, message, label, disabled, buttonStyle);
 	}
 
-	getSendThrottle(serverProcessingType: ServerProcessingType): number {
-		return this.sendThrottle + this.serverLatency + this.serverProcessingTimes[serverProcessingType];
+	getSendThrottle(): number {
+		return this.sendThrottle + this.serverLatency + this.serverProcessingTime;
 	}
 
 	checkFilters(message: string, room?: Room): string | undefined {
@@ -410,7 +393,6 @@ export class Client {
 			message: '|/join ' + roomid,
 			roomid,
 			type: 'join-room',
-			serverProcessingType: 'join-room',
 			measure: true,
 		});
 	}
@@ -430,14 +412,12 @@ export class Client {
 		this.sendTimeout = true;
 
 		outgoingMessage.serverLatency = this.serverLatency;
-		outgoingMessage.serverProcessingTime = this.serverProcessingTimes[outgoingMessage.serverProcessingType];
+		outgoingMessage.serverProcessingTime = this.serverProcessingTime;
 		this.lastOutgoingMessage = outgoingMessage;
-		this.lastServerProcessingType = outgoingMessage.serverProcessingType;
 
+		if (outgoingMessage.measure) outgoingMessage.sentTime = Date.now();
 		this.webSocket.send(outgoingMessage.message, () => {
-			if (outgoingMessage.measure) outgoingMessage.sentTime = Date.now();
-
-			this.setSendTimeout(this.getSendThrottle(outgoingMessage.serverProcessingType));
+			this.setSendTimeout();
 		});
 	}
 
@@ -446,20 +426,10 @@ export class Client {
 	}
 
 	getSendThrottleValues(): string[] {
-		const values = ["Base throttle: " + this.sendThrottle + "ms", "Latency: " + this.serverLatency + "ms"];
-		const types = Object.keys(this.serverProcessingTimes) as ServerProcessingType[];
-		for (const type of types) {
-			if (type === 'not-measured') continue;
-
-			values.push("");
-			values.push(type + ":");
-			values.push("Throttle: " + this.getSendThrottle(type) + "ms");
-			values.push("Processing time: " + this.serverProcessingTimes[type] + "ms" + (this.serverProcessingMeasurements[type].length ?
-				" ([" + this.serverProcessingMeasurements[type].map(x => x.measurement).join(", ") + "])" : ""));
-		}
-		values.push("");
-		values.push("Queued outgoing messages: " + this.outgoingMessageQueue.length);
-		return values;
+		return ["Base throttle: " + this.sendThrottle + "ms", "Latency: " + this.serverLatency + "ms",
+			"Processing time: " + this.serverProcessingTime + "ms" + (this.serverProcessingMeasurements.length ?
+			" ([" + this.serverProcessingMeasurements.map(x => x.measurement).join(", ") + "])" : ""),
+			"Queued outgoing messages: " + this.outgoingMessageQueue.length];
 	}
 
 	private loadMessageParsersDirectory(directory: string, optional?: boolean): void {
@@ -536,25 +506,21 @@ export class Client {
 		let pingTime = 0;
 		pongListener = () => {
 			const oldServerLatency = this.serverLatency;
-			if (pingTime) {
-				this.serverLatency = Math.floor((Date.now() - pingTime) / 2);
-			} else {
-				this.serverLatency = 0;
-			}
+			this.serverLatency = Math.floor((Date.now() - pingTime) / 2);
 
 			this.pingWsAlive = true;
 
 			if (this.sendTimeout && this.sendTimeout !== true && this.serverLatency > oldServerLatency) {
-				this.setSendTimeout(this.getSendThrottle(this.lastServerProcessingType) + (this.serverLatency - oldServerLatency));
+				this.setSendTimeout(this.getSendThrottle() + (this.serverLatency - oldServerLatency));
 			}
 		};
 
 		this.pingWsAlive = false;
 		this.webSocket.removeAllListeners('pong');
 		this.webSocket.once('pong', pongListener);
-		this.webSocket.ping('', undefined, () => {
-			pingTime = Date.now();
 
+		pingTime = Date.now();
+		this.webSocket.ping('', undefined, () => {
 			if (this.serverPingTimeout) clearTimeout(this.serverPingTimeout);
 			this.serverPingTimeout = setTimeout(() => this.pingServer(), LATENCY_CHECK_INTERVAL + 1000);
 		});
@@ -571,18 +537,12 @@ export class Client {
 		if (previous.serverPingTimeout) clearTimeout(previous.serverPingTimeout);
 
 		if (previous.lastSendTimeoutTime) this.lastSendTimeoutTime = previous.lastSendTimeoutTime;
-		if (previous.lastServerProcessingType) this.lastServerProcessingType = previous.lastServerProcessingType;
 		if (previous.lastProcessingTimeCheck) this.lastProcessingTimeCheck = previous.lastProcessingTimeCheck;
 		if (previous.lastOutgoingMessage) this.lastOutgoingMessage = Object.assign({}, previous.lastOutgoingMessage);
 
 		if (previous.serverLatency) this.serverLatency = previous.serverLatency;
-		if (previous.serverProcessingTimes) Object.assign(this.serverProcessingTimes, previous.serverProcessingTimes);
-		if (previous.serverProcessingMeasurements) {
-			const types = Object.keys(previous.serverProcessingMeasurements) as ServerProcessingType[];
-			for (const type of types) {
-				this.serverProcessingMeasurements[type] = previous.serverProcessingMeasurements[type].slice();
-			}
-		}
+		if (previous.serverProcessingTime) this.serverProcessingTime = previous.serverProcessingTime;
+		if (previous.serverProcessingMeasurements) this.serverProcessingMeasurements = previous.serverProcessingMeasurements.slice();
 
 		if (previous.outgoingMessageQueue) this.outgoingMessageQueue = previous.outgoingMessageQueue.slice();
 		if (previous.webSocket) {
@@ -967,16 +927,16 @@ export class Client {
 
 				console.log('Successfully logged in');
 				this.loggedIn = true;
-				this.send({message: '|/blockchallenges', type: 'command', serverProcessingType: 'not-measured'});
-				this.send({message: '|/cmd rooms', type: 'command', serverProcessingType: 'not-measured'});
+				this.send({message: '|/blockchallenges', type: 'command'});
+				this.send({message: '|/cmd rooms', type: 'command'});
 				if (Tools.toAlphaNumeric(Config.username) !== Config.username) {
-					this.send({message: '|/trn ' + Config.username, type: 'command', serverProcessingType: 'not-measured'});
+					this.send({message: '|/trn ' + Config.username, type: 'command'});
 				}
 
 				if (rank) {
 					Users.self.group = rank;
 				} else {
-					this.send({message: '|/cmd userdetails ' + Users.self.id, type: 'command', serverProcessingType: 'not-measured'});
+					this.send({message: '|/cmd userdetails ' + Users.self.id, type: 'command'});
 				}
 
 				if (this.roomsToRejoin.length) {
@@ -991,7 +951,7 @@ export class Client {
 					}
 				}
 
-				if (Config.avatar) this.send({message: '|/avatar ' + Config.avatar, type: 'command', serverProcessingType: 'not-measured'});
+				if (Config.avatar) this.send({message: '|/avatar ' + Config.avatar, type: 'command'});
 			}
 			break;
 		}
@@ -1492,7 +1452,7 @@ export class Client {
 					"\n\nMessage sent at: " + new Date(this.lastOutgoingMessage.sentTime).toTimeString() + "; " +
 					"Processing time last measured at: " + new Date(this.lastProcessingTimeCheck).toTimeString() + "; " +
 					"Message: " + JSON.stringify(this.lastOutgoingMessage) : ""));
-				this.setSendTimeout(this.getSendThrottle(this.lastServerProcessingType) * (SERVER_THROTTLE_BUFFER_LIMIT + 1));
+				this.setSendTimeout(this.getSendThrottle() * SERVER_THROTTLE_BUFFER_WAIT);
 			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
 				room.modchat = messageArguments.html.split('<div class="broadcast-red">' +
 					'<strong>Moderated chat was set to ')[1].split('!</strong>')[0];
@@ -2021,30 +1981,29 @@ export class Client {
 	private clearLastOutgoingMessage(responseTime?: number): void {
 		if (this.lastOutgoingMessage) {
 			if (this.lastOutgoingMessage.measure && this.lastOutgoingMessage.sentTime && responseTime) {
-				const oldServerProcessingTime = this.serverProcessingTimes[this.lastOutgoingMessage.serverProcessingType];
+				const measurement = Math.max(0, responseTime - this.lastOutgoingMessage.sentTime -
+					(this.lastOutgoingMessage.serverLatency! * 2));
 
-				const serverProcessingMeasurements = this.serverProcessingMeasurements[this.lastOutgoingMessage.serverProcessingType];
-				serverProcessingMeasurements.push({
-					measurement: Math.max(0, responseTime - this.lastOutgoingMessage.sentTime -
-						(this.lastOutgoingMessage.serverLatency! * 2)),
+				this.serverProcessingMeasurements.push({
+					measurement,
 					timestamp: responseTime,
 				});
 
-				while (responseTime - serverProcessingMeasurements[0].timestamp > this.maxProcessingMeasurementGap) {
-					serverProcessingMeasurements.shift();
+				if (measurement) {
+					while (responseTime - this.serverProcessingMeasurements[0].timestamp > this.maxProcessingMeasurementGap) {
+						this.serverProcessingMeasurements.shift();
+					}
 				}
 
-				const samplesTotal = serverProcessingMeasurements.map(x => x.measurement).reduce((total, i) => total += i);
-				this.serverProcessingTimes[this.lastOutgoingMessage.serverProcessingType] = samplesTotal ?
-					Math.ceil(samplesTotal / serverProcessingMeasurements.length) : 0;
-
+				const oldServerProcessingTime = this.serverProcessingTime;
+				this.serverProcessingTime = Math.ceil(this.serverProcessingMeasurements.map(x => x.measurement)
+					.reduce((total, i) => total += i) / this.serverProcessingMeasurements.length);
 				this.lastProcessingTimeCheck = responseTime;
 
-				if (this.sendTimeout && this.sendTimeout !== true &&
-					this.lastServerProcessingType === this.lastOutgoingMessage.serverProcessingType &&
-					this.serverProcessingTimes[this.lastOutgoingMessage.serverProcessingType] > oldServerProcessingTime) {
-					this.setSendTimeout(this.getSendThrottle(this.lastOutgoingMessage.serverProcessingType) +
-						(this.serverProcessingTimes[this.lastOutgoingMessage.serverProcessingType] - oldServerProcessingTime));
+				if (measurement >= this.sendThrottle) {
+					this.setSendTimeout(this.getSendThrottle() * 2);
+				} else if (this.sendTimeout && this.sendTimeout !== true && this.serverProcessingTime > oldServerProcessingTime) {
+					this.setSendTimeout(this.getSendThrottle() + (this.serverProcessingTime - oldServerProcessingTime));
 				}
 			}
 
@@ -2062,13 +2021,14 @@ export class Client {
 		}
 	}
 
-	private setSendTimeout(time: number): void {
+	private setSendTimeout(time?: number): void {
 		this.clearSendTimeout();
 		if (this.reloadInProgress) {
 			this.sendTimeout = true;
 			return;
 		}
 
+		if (!time) time = this.getSendThrottle();
 		this.lastSendTimeoutTime = time;
 		this.sendTimeout = setTimeout(() => {
 			if (this.reloadInProgress) {
@@ -2283,7 +2243,7 @@ export class Client {
 			}
 			return false;
 		} else {
-			this.send({message: '|/trn ' + Config.username + ',0,' + assertion, type: 'command', serverProcessingType: 'not-measured'});
+			this.send({message: '|/trn ' + Config.username + ',0,' + assertion, type: 'command'});
 			return true;
 		}
 	}

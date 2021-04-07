@@ -14,7 +14,6 @@ export interface IMessageParserFile {
 	priority: number;
 }
 
-export type ServerProcessingType = 'chat' | 'chat-html' | 'pm' | 'pm-html' | 'join-room' | 'leave-room' | 'not-measured';
 export interface IServerProcessingMeasurement {
 	measurement: number;
 	timestamp: number;
@@ -25,7 +24,6 @@ export type IOutgoingMessageTypes = 'command' | 'chat' | 'chat-html' | 'chat-uht
 export interface IOutgoingMessage {
 	message: string;
 	type: IOutgoingMessageTypes;
-	serverProcessingType: ServerProcessingType;
 	html?: string;
 	measure?: boolean;
 	roomid?: string;

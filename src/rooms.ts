@@ -2,7 +2,7 @@ import type { Player } from "./room-activity";
 import type { ScriptedGame } from "./room-game-scripted";
 import type { UserHostedGame } from "./room-game-user-hosted";
 import type { Tournament } from "./room-tournament";
-import type { GroupName, IChatLogEntry, IOutgoingMessage, IRoomInfoResponse, MessageListener, ServerProcessingType } from "./types/client";
+import type { GroupName, IChatLogEntry, IOutgoingMessage, IRoomInfoResponse, MessageListener } from "./types/client";
 import type { IRepeatedMessage, IRoomMessageOptions, RoomType } from "./types/rooms";
 import type { IUserHostedTournament } from "./types/tournaments";
 import type { User } from "./users";
@@ -161,24 +161,7 @@ export class Room {
 		}
 
 		const type = options && options.type ? options.type : 'chat';
-		let serverProcessingType: ServerProcessingType;
-		if (type === 'chat') {
-			serverProcessingType = 'chat';
-		} else if (type === 'pm') {
-			serverProcessingType = 'pm';
-		} else if (type === 'chat-html' || type === 'chat-uhtml') {
-			serverProcessingType = 'chat-html';
-		} else if (type === 'pm-html' || type === 'pm-uhtml') {
-			serverProcessingType = 'pm-html';
-		} else if (type === 'join-room') {
-			serverProcessingType = 'join-room';
-		} else if (type === 'leave-room') {
-			serverProcessingType = 'leave-room';
-		} else {
-			serverProcessingType = 'not-measured';
-		}
-
-		const outgoingMessage: IOutgoingMessage = {message: this.sendId + "|" + message, type, serverProcessingType};
+		const outgoingMessage: IOutgoingMessage = {message: this.sendId + "|" + message, type};
 
 		if (!(options && options.dontMeasure)) {
 			outgoingMessage.measure = true;

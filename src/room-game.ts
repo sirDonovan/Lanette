@@ -63,7 +63,7 @@ export abstract class Game extends Activity {
 	}
 
 	getSignupsUpdateDelay(): number {
-		return Client.getSendThrottle('chat-html') * 4;
+		return Client.getSendThrottle() * 4;
 	}
 
 	rollForShinyPokemon(extraChance?: number): boolean {

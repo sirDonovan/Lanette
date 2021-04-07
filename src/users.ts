@@ -121,9 +121,8 @@ export class User {
 			message: "|/pm " + this.name + ", " + message,
 			text: message,
 			type,
-			serverProcessingType: type === 'command' ? 'not-measured' : 'pm',
 			user: this.id,
-			measure: !(options && options.dontMeasure),
+			measure: type !== 'command' && !(options && options.dontMeasure),
 		});
 	}
 
