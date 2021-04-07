@@ -32,8 +32,8 @@ const DEFAULT_LATENCY = 25;
 const DEFAULT_PROCESSING_TIME = 25;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
-const LATENCY_CHECK_INTERVAL = 10 * 1000;
-const MAX_PROCESSING_MEASUREMENT_GAP = 30 * 1000;
+const LATENCY_CHECK_INTERVAL = 30 * 1000;
+const MAX_PROCESSING_MEASUREMENT_GAP = 60 * 1000;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
 const UHTML_CHAT_COMMAND = '/uhtml ';
@@ -2005,7 +2005,7 @@ export class Client {
 				this.lastProcessingTimeCheck = responseTime;
 
 				if (measurement >= this.sendThrottle) {
-					this.setSendTimeout(this.getSendThrottle() * 2);
+					this.setSendTimeout(this.getSendThrottle() * Math.ceil(measurement / this.sendThrottle));
 				} else if (this.sendTimeout && this.sendTimeout !== true && this.serverProcessingTime > oldServerProcessingTime) {
 					this.setSendTimeout(this.getSendThrottle() + (this.serverProcessingTime - oldServerProcessingTime));
 				}
