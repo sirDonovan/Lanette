@@ -328,11 +328,10 @@ export class ScriptedGame extends Game {
 			this.sayUhtml(this.joinLeaveButtonUhtmlName, this.getJoinLeaveHtml(this.format.options.freejoin ? true : false));
 
 			this.notifyRankSignups = true;
-			this.sayCommand("/notifyrank all, " + (this.room as Room).title + " scripted game," + this.name + "," +
-				this.getHighlightPhrase(), true);
+			const room = this.room as Room;
+			room.notifyRank("all", room.title + " scripted game", this.name, this.getHighlightPhrase());
 			if (this.format.mode) {
-				this.sayCommand("/notifyrank all, " + (this.room as Room).title + " scripted game," + this.name + "," +
-					this.getModeHighlightPhrase(), true);
+				room.notifyRank("all", room.title + " scripted game", this.name, this.getModeHighlightPhrase());
 			}
 		}
 
@@ -386,7 +385,7 @@ export class ScriptedGame extends Game {
 		if (this.startTimer) clearTimeout(this.startTimer);
 		this.started = true;
 		this.startTime = Date.now();
-		if (this.notifyRankSignups) this.sayCommand("/notifyoffrank all");
+		if (this.notifyRankSignups) (this.room as Room).notifyOffRank("all");
 		if (this.showSignupsHtml) {
 			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
 			const signupsEndMessage = this.getSignupsEndMessage();
@@ -598,7 +597,7 @@ export class ScriptedGame extends Game {
 		if (this.timeout) clearTimeout(this.timeout);
 		if (this.startTimer) clearTimeout(this.startTimer);
 
-		if ((!this.started || this.format.options.freejoin) && this.notifyRankSignups) this.sayCommand("/notifyoffrank all");
+		if ((!this.started || this.format.options.freejoin) && this.notifyRankSignups) (this.room as Room).notifyOffRank("all");
 
 		if (this.onDeallocate) {
 			try {

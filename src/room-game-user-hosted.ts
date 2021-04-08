@@ -323,8 +323,8 @@ export class UserHostedGame extends Game {
 		if (!this.format.options.freejoin) this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
 		this.sayUhtml(this.joinLeaveButtonUhtmlName, this.getJoinLeaveHtml(this.format.options.freejoin ? true : false));
 
-		this.sayCommand("/notifyrank all, " + this.room.title + " user-hosted game," + this.name + "," + this.hostId + " " +
-			this.getHighlightPhrase(), true);
+		this.room.notifyRank("all", this.room.title + " user-hosted game", this.name, this.hostId + " " + this.getHighlightPhrase());
+
 		const firstWarning = 5 * 60 * 1000;
 		const secondWarning = 30 * 1000;
 		this.hostTimeout = setTimeout(() => {
@@ -353,7 +353,7 @@ export class UserHostedGame extends Game {
 
 		this.started = true;
 		this.startTime = Date.now();
-		this.sayCommand("/notifyoffrank all");
+		this.room.notifyOffRank("all");
 		this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, this.getSignupsEndMessage());
 		this.say(this.name + " is starting! **Players (" + this.playerCount + ")**: " + this.getPlayerNames());
 
@@ -447,11 +447,11 @@ export class UserHostedGame extends Game {
 	}
 
 	clearHangman(): void {
-		if (this.room.serverHangman) this.sayCommand("/hangman end");
+		if (this.room.serverHangman) this.room.endHangman();
 	}
 
 	clearSignupsNotification(): void {
-		if (!this.started || this.format.options.freejoin) this.sayCommand("/notifyoffrank all");
+		if (!this.started || this.format.options.freejoin) this.room.notifyOffRank("all");
 	}
 
 	deallocate(forceEnd: boolean): void {

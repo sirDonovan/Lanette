@@ -167,15 +167,21 @@ export class Room {
 			outgoingMessage.measure = true;
 			outgoingMessage.roomid = this.id;
 
-			if (options && options.user) outgoingMessage.user = options.user;
-			if (options && options.modchatLevel) outgoingMessage.modchatLevel = options.modchatLevel;
-
-			if (options && options.html) {
-				outgoingMessage.html = options.html;
-				if (options.uhtmlName) outgoingMessage.uhtmlName = options.uhtmlName;
-			} else {
-				outgoingMessage.text = message;
+			if (options) {
+				if (options.announcement) outgoingMessage.announcement = options.announcement;
+				if (options.html) {
+					outgoingMessage.html = options.html;
+					if (options.uhtmlName) outgoingMessage.uhtmlName = options.uhtmlName;
+				}
+				if (options.modchatLevel) outgoingMessage.modchatLevel = options.modchatLevel;
+				if (options.notifyId) outgoingMessage.notifyId = options.notifyId;
+				if (options.notifyTitle) outgoingMessage.notifyTitle = options.notifyTitle;
+				if (options.notifyMessage) outgoingMessage.notifyMessage = options.notifyMessage;
+				if (options.pageId) outgoingMessage.pageId = options.pageId;
+				if (options.user) outgoingMessage.user = options.user;
 			}
+
+			if (!outgoingMessage.html) outgoingMessage.text = message;
 		}
 
 		Client.send(outgoingMessage);
@@ -240,11 +246,28 @@ export class Room {
 			{uhtmlName, html, dontCheckFilter: true, dontPrepare: true, type: 'pm-uhtml', user: user.id});
 	}
 
+	announce(text: string): void {
+		this.say("/announce " + text, {type: 'announce', announcement: text});
+	}
+
+	notifyRank(rank: GroupName | 'all', title: string, message: string, highlightPhrase?: string): void {
+		const symbol = rank === 'all' ? rank : Client.getGroupSymbols()[rank];
+		this.say("/notifyrank " + symbol + "," + title + "," + message + (highlightPhrase ? ","  + highlightPhrase : ""),
+			{dontCheckFilter: true, dontPrepare: true, type: 'notifyrank', notifyId: this.id + "-rank-" + rank,
+			notifyTitle: title, notifyMessage: message});
+	}
+
+	notifyOffRank(rank: GroupName | 'all'): void {
+		const symbol = rank === 'all' ? rank : Client.getGroupSymbols()[rank];
+		this.say("/notifyoffrank " + symbol,
+			{dontCheckFilter: true, dontPrepare: true, type: 'notifyoffrank', notifyId: this.id + "-rank-" + rank});
+	}
+
 	sendHtmlPage(user: User | Player, pageId: string, html: string): void {
 		if (!Users.get(user.name)) return;
 
 		this.say("/sendhtmlpage " + user.id + "," + pageId + "," + html,
-			{dontCheckFilter: true, dontPrepare: true, dontMeasure: true, type: 'command'});
+			{dontCheckFilter: true, dontPrepare: true, type: 'htmlpage', user: user.id, pageId: Users.self.id + "-" + pageId});
 	}
 
 	closeHtmlPage(user: User | Player, pageId: string): void {
@@ -255,7 +278,7 @@ export class Room {
 		if (!Users.get(user.name)) return;
 
 		this.say("/highlighthtmlpage " + user.id + "," + pageId + "," + notificationTitle + (highlightPhrase ? "," + highlightPhrase : ""),
-			{dontCheckFilter: true, dontPrepare: true, dontMeasure: true, type: 'command'});
+			{dontCheckFilter: true, dontPrepare: true, type: 'highlight-htmlpage', user: user.id, pageId: Users.self.id + "-" + pageId});
 	}
 
 	setModchat(level: string): void {

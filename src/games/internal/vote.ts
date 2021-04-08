@@ -248,8 +248,7 @@ export class Vote extends ScriptedGame {
 		this.updateVotesHtml(undefined, true);
 
 		this.notifyRankSignups = true;
-		this.sayCommand("/notifyrank all, " + this.room.title + " game vote,Help decide the next scripted game!," +
-			this.getHighlightPhrase(), true);
+		this.room.notifyRank("all", this.room.title + " game vote", "Help decide the next scripted game!", this.getHighlightPhrase());
 	}
 
 	endVoting(): void {

@@ -339,7 +339,7 @@ describe("Games", () => {
 			if (game.mascot) game.shinyMascot = true;
 			game.signups();
 			gameLog.push(roomPrefix + "/addhtmlbox " + game.getSignupsHtml());
-			gameLog.push(roomPrefix + "/notifyrank all, Mocha scripted game," + game.name + "," + game.getHighlightPhrase());
+			gameLog.push(roomPrefix + "/notifyrank all,Mocha scripted game," + game.name + "," + game.getHighlightPhrase());
 			if (game.mascot) gameLog.push(roomPrefix + game.mascot.name + " is shiny so bits will be doubled!");
 
 			assertClientSendQueue(startingSendQueueIndex, gameLog);
@@ -369,7 +369,7 @@ describe("Games", () => {
 			assertStrictEqual(game.format.name, format.name);
 			game.signups();
 			gameLog.push(roomPrefix + "/addhtmlbox " + game.getSignupsHtml());
-			gameLog.push(roomPrefix + "/notifyrank all, Mocha user-hosted game," + game.name + "," + game.hostId + " " +
+			gameLog.push(roomPrefix + "/notifyrank all,Mocha user-hosted game," + game.name + "," + game.hostId + " " +
 				game.getHighlightPhrase());
 
 			assertClientSendQueue(startingSendQueueIndex, gameLog);

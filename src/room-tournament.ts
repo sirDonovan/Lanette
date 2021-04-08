@@ -186,7 +186,7 @@ export class Tournament extends Activity {
 			if (semiFinalists.length) {
 				text.unshift("semi-finalist" + (semiFinalists.length > 1 ? "s" : "") + " " + Tools.joinList(semiFinalists, '**'));
 			}
-			this.sayCommand('/wall Congratulations to ' + Tools.joinList(text));
+			this.room.announce('Congratulations to ' + Tools.joinList(text));
 		} else {
 			const multiplier = Tournaments.getCombinedPointMultiplier(this.format, this.totalPlayers, this.scheduled);
 			const semiFinalistPoints = Tournaments.getSemiFinalistPoints(multiplier);
@@ -350,7 +350,7 @@ export class Tournament extends Activity {
 		this.battleRooms.push(room.publicId);
 
 		if (this.generator === 1 && this.totalPlayers >= 4 && this.getRemainingPlayerCount() === 2) {
-			this.sayCommand("/wall Final battle of the " + this.name + " " + this.activityType + ": <<" + room.id + ">>!");
+			this.room.announce("Final battle of the " + this.name + " " + this.activityType + ": <<" + room.id + ">>!");
 		}
 
 		if (this.joinBattles) {

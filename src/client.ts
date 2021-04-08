@@ -38,9 +38,11 @@ const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
 const UHTML_CHAT_COMMAND = '/uhtml ';
 const UHTML_CHANGE_CHAT_COMMAND = '/uhtmlchange ';
+const ANNOUNCE_CHAT_COMMAND = '/announce ';
 const HANGMAN_START_COMMAND = "/log A game of hangman was started by ";
 const HANGMAN_END_COMMAND = "/log (The game of hangman was ended by ";
 const HANGMAN_END_RAW_MESSAGE = "The game of hangman was ended.";
+const HIGHLIGHT_HTML_PAGE_MESSAGE = "Sent a highlight to ";
 const USER_NOT_FOUND_MESSAGE = "/error User ";
 
 const FILTERS_REGEX_N = /\u039d/g;
@@ -1242,7 +1244,13 @@ export class Client {
 			if (roomData) roomData.lastChatMessage = messageArguments.timestamp;
 
 			if (user === Users.self) {
-				if (messageArguments.message.startsWith(HTML_CHAT_COMMAND)) {
+				if (messageArguments.message.startsWith(ANNOUNCE_CHAT_COMMAND)) {
+					const announcement = messageArguments.message.substr(ANNOUNCE_CHAT_COMMAND.length);
+					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'announce' &&
+						Tools.toId(this.lastOutgoingMessage.announcement) === Tools.toId(announcement)) {
+						this.clearLastOutgoingMessage(now);
+					}
+				} else if (messageArguments.message.startsWith(HTML_CHAT_COMMAND)) {
 					const html = Tools.unescapeHTML(messageArguments.message.substr(HTML_CHAT_COMMAND.length));
 					const htmlId = Tools.toId(html);
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'chat-html' &&
@@ -1478,6 +1486,20 @@ export class Client {
 				}
 			} else if (messageArguments.message === HANGMAN_END_RAW_MESSAGE) {
 				delete room.serverHangman;
+			} else if (messageArguments.message.startsWith(HIGHLIGHT_HTML_PAGE_MESSAGE)) {
+				const parts = messageArguments.message.substr(HIGHLIGHT_HTML_PAGE_MESSAGE.length).split(" on the bot page ");
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'highlight-htmlpage' &&
+					this.lastOutgoingMessage.roomid === room.id && this.lastOutgoingMessage.user === Tools.toId(parts[0]) &&
+					Tools.toId(this.lastOutgoingMessage.pageId) === Tools.toId(parts[1])) {
+					this.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.message.startsWith("Sent ")) {
+				const parts = messageArguments.message.substr(5).split(" the bot page ");
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'htmlpage' &&
+					this.lastOutgoingMessage.roomid === room.id && this.lastOutgoingMessage.user === Tools.toId(parts[0]) &&
+					Tools.toId(this.lastOutgoingMessage.pageId) === Tools.toId(parts[1])) {
+					this.clearLastOutgoingMessage(now);
+				}
 			}
 			break;
 		}
@@ -1650,6 +1672,35 @@ export class Client {
 					room.uhtmlMessageListeners[id][htmlId](now);
 					delete room.uhtmlMessageListeners[id][htmlId];
 				}
+			}
+			break;
+		}
+
+		case 'tempnotify': {
+			const messageArguments: IClientMessageTypes['tempnotify'] = {
+				id: messageParts[0],
+				title: messageParts[1],
+				message: messageParts[2],
+				highlight: messageParts[3],
+			};
+
+			if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'notifyrank' &&
+				this.lastOutgoingMessage.roomid === room.id && this.lastOutgoingMessage.notifyId === messageArguments.id &&
+				messageArguments.title.startsWith(this.lastOutgoingMessage.notifyTitle!) &&
+				this.lastOutgoingMessage.notifyMessage === messageArguments.message) {
+				this.clearLastOutgoingMessage(now);
+			}
+			break;
+		}
+
+		case 'tempnotifyoff': {
+			const messageArguments: IClientMessageTypes['tempnotifyoff'] = {
+				id: messageParts[0],
+			};
+
+			if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'notifyoffrank' &&
+				this.lastOutgoingMessage.roomid === room.id && this.lastOutgoingMessage.notifyId === messageArguments.id) {
+				this.clearLastOutgoingMessage(now);
 			}
 			break;
 		}

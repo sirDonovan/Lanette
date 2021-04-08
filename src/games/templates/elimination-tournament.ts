@@ -1016,8 +1016,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 		this.playerCap = this.maxPlayers;
 
 		this.startAdvertisements();
-		this.sayCommand("/notifyrank all, " + this.room.title + " " + Users.self.name + " tournament," + this.name + "," + Users.self.name +
-			" is hosting a tournament", true);
+		this.room.notifyRank("all", this.room.title + " " + Users.self.name + " tournament", this.name,
+			Users.self.name + " is hosting a tournament");
 	}
 
 	startAdvertisements(): void {

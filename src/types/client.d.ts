@@ -21,13 +21,18 @@ export interface IServerProcessingMeasurement {
 
 export type IOutgoingMessageTypes = 'command' | 'chat' | 'chat-html' | 'chat-uhtml' | 'pm' | 'pm-html' | 'pm-uhtml' | 'join-room' |
 	'leave-room' | 'modchat' | 'filters-view' | 'roominfo' | 'banword-list' | 'room-voice' | 'room-deauth' | 'hangman-start' |
-	'hangman-end';
+	'hangman-end' | 'htmlpage' | 'highlight-htmlpage' | 'announce' | 'notifyrank' | 'notifyoffrank';
 export interface IOutgoingMessage {
 	message: string;
 	type: IOutgoingMessageTypes;
+	announcement?: string;
 	html?: string;
 	measure?: boolean;
 	modchatLevel?: string;
+	notifyId?: string;
+	notifyTitle?: string;
+	notifyMessage?: string;
+	pageId?: string;
 	roomid?: string;
 	sentTime?: number;
 	serverLatency?: number;
@@ -279,6 +284,17 @@ export interface IClientMessageTypes {
 		readonly html: string;
 	};
 	uhtmlchange: IClientMessageTypes['uhtml'];
+
+	tempnotify: {
+		readonly id: string;
+		readonly title: string;
+		readonly message: string;
+		readonly highlight: string;
+	}
+
+	tempnotifyoff: {
+		readonly id: string;
+	}
 
 	/**
 	 * Message type|(Rest)
