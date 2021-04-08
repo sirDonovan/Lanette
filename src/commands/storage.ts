@@ -708,6 +708,56 @@ export const commands: BaseCommandDefinitions = {
 		},
 		aliases: ['achievements', 'chieves'],
 	},
+	unlockedgameachievements: {
+		command(target, room, user) {
+			if (!this.isPm(room)) return;
+			const targets = target.split(',');
+			const targetRoom = Rooms.search(targets[0]);
+			if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+			if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
+			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(targetRoom.id)) {
+				return this.sayError(['disabledGameFeatures', targetRoom.title]);
+			}
+
+			if (targets.length !== 2) return this.say("You must specify a game achievement.");
+
+			const achievements = Games.getAchievements();
+			const achievementId = Tools.toId(targets[1]);
+			if (!(achievementId in achievements)) return this.say("'" + targets[1].trim() + "' is not a game achievement.");
+
+			const database = Storage.getDatabase(targetRoom);
+			const unlockedAchievements: string[] = [];
+
+			if (database.gameAchievements) {
+				for (const id in database.gameAchievements) {
+					if (database.gameAchievements[id].includes(achievementId)) {
+						const unlockedUser = Users.get(id);
+						let name: string;
+						if (unlockedUser) {
+							name = unlockedUser.name;
+						} else {
+							if (database.gameLeaderboard && id in database.gameLeaderboard.entries) {
+								name = database.gameLeaderboard.entries[id].name;
+							} else {
+								name = id;
+							}
+						}
+						unlockedAchievements.push(name);
+					}
+				}
+			}
+
+			const unlockedAmount = unlockedAchievements.length;
+			if (!unlockedAmount) {
+				return this.say("No one in " + targetRoom.title + " has unlocked " + achievements[achievementId].name + " yet.");
+			}
+
+			this.sayHtml("<b>" + unlockedAmount + "</b> player" + (unlockedAmount > 1 ? "s have" : " has") + " unlocked " +
+				achievements[achievementId].name + " in " + targetRoom.title + ":<br /><br /><details><summary>Player names</summary>" +
+				unlockedAchievements.join(", ") + "</details>", targetRoom);
+		},
+		aliases: ['unlockedachievements', 'unlockedchieves', 'chieved'],
+	},
 	eventlink: {
 		command(target, room, user) {
 			const targets = target.split(',');
