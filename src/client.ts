@@ -193,7 +193,6 @@ export class Client {
 	private challstr: string = '';
 	private challstrTimeout: NodeJS.Timer | undefined = undefined;
 	private chatFilterRegularExpressions: RegExp[] | null = null;
-	private clearingServerChatQueue: boolean = false;
 	private configBannedWordsRegex: RegExp | null = null;
 	private connectionAttempts: number = 0;
 	private connectionAttemptTime: number = Config.connectionAttemptTime || 60 * 1000;
@@ -224,6 +223,7 @@ export class Client {
 	private sendThrottle: number = Config.trustedUser ? TRUSTED_MESSAGE_THROTTLE : REGULAR_MESSAGE_THROTTLE;
 	private sendTimeout: NodeJS.Timer | true | undefined = undefined;
 	private server: string = Config.server || Tools.mainServer;
+	private serverChatQueueWaits: number = 0;
 	private serverGroupsResponse: ServerGroupData[] = DEFAULT_SERVER_GROUPS;
 	private serverGroups: Dict<IServerGroup> = {};
 	private serverId: string = 'showdown';
@@ -532,7 +532,7 @@ export class Client {
 		if (previous.lastProcessingTimeCheck) this.lastProcessingTimeCheck = previous.lastProcessingTimeCheck;
 		if (previous.lastOutgoingMessage) this.lastOutgoingMessage = Object.assign({}, previous.lastOutgoingMessage);
 
-		if (previous.clearingServerChatQueue) this.clearingServerChatQueue = previous.clearingServerChatQueue;
+		if (previous.serverChatQueueWaits) this.serverChatQueueWaits = previous.serverChatQueueWaits;
 		if (previous.serverProcessingTime) this.serverProcessingTime = previous.serverProcessingTime;
 		if (previous.serverProcessingMeasurements) this.serverProcessingMeasurements = previous.serverProcessingMeasurements.slice();
 
@@ -2100,14 +2100,14 @@ export class Client {
 				this.lastProcessingTimeCheck = responseTime;
 
 				if (measurement >= this.sendThrottle) {
-					if (!this.clearingServerChatQueue) {
-						this.clearingServerChatQueue = true;
-						this.setSendTimeout(this.getSendThrottle() * Math.max(SERVER_CHAT_QUEUE_LIMIT,
-							Math.ceil(measurement / this.sendThrottle)), () => {
-							this.clearingServerChatQueue = false;
+					const serverChatQueueWaits = Math.ceil(measurement / this.sendThrottle);
+					if (serverChatQueueWaits > this.serverChatQueueWaits) {
+						this.serverChatQueueWaits = serverChatQueueWaits;
+						this.setSendTimeout(this.getSendThrottle() * serverChatQueueWaits, () => {
+							this.serverChatQueueWaits = 0;
 						});
 					}
-				} else if (!this.clearingServerChatQueue && this.sendTimeout && this.sendTimeout !== true &&
+				} else if (!this.serverChatQueueWaits && this.sendTimeout && this.sendTimeout !== true &&
 					this.serverProcessingTime > oldServerProcessingTime) {
 					this.setSendTimeout(this.getSendThrottle() + (this.serverProcessingTime - oldServerProcessingTime));
 				}
