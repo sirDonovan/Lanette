@@ -35,7 +35,6 @@ export interface IOutgoingMessage {
 	pageId?: string;
 	roomid?: string;
 	sentTime?: number;
-	serverLatency?: number;
 	serverProcessingTime?: number;
 	text?: string;
 	uhtmlName?: string;
