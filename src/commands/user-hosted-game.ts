@@ -1404,8 +1404,7 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-			gameRoom.userHostedGame.sayCommand("/hangman create " + answer + ", " + hint + " [" + user.name + "]");
-			gameRoom.userHostedGame.autoRefreshControlPanel();
+			gameRoom.startHangman(answer, hint + " [" + user.name + "]");
 		},
 	},
 	endhangman: {
@@ -1420,8 +1419,7 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-			gameRoom.userHostedGame.sayCommand("/hangman end");
-			gameRoom.userHostedGame.autoRefreshControlPanel();
+			gameRoom.endHangman();
 		},
 	},
 	randomanswer: {

@@ -20,7 +20,8 @@ export interface IServerProcessingMeasurement {
 }
 
 export type IOutgoingMessageTypes = 'command' | 'chat' | 'chat-html' | 'chat-uhtml' | 'pm' | 'pm-html' | 'pm-uhtml' | 'join-room' |
-	'leave-room' | 'modchat';
+	'leave-room' | 'modchat' | 'filters-view' | 'roominfo' | 'banword-list' | 'room-voice' | 'room-deauth' | 'hangman-start' |
+	'hangman-end';
 export interface IOutgoingMessage {
 	message: string;
 	type: IOutgoingMessageTypes;

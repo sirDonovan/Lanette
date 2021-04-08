@@ -967,6 +967,11 @@ export class Client {
 					const response = JSON.parse(messageArguments.response) as IRoomInfoResponse;
 					const responseRoom = Rooms.get(response.id);
 					if (responseRoom) {
+						if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'roominfo' &&
+							this.lastOutgoingMessage.roomid === responseRoom.id) {
+							this.clearLastOutgoingMessage(now);
+						}
+
 						responseRoom.onRoomInfoResponse(response);
 						Games.updateGameCatalog(responseRoom);
 					}
@@ -1006,9 +1011,27 @@ export class Client {
 			room.init(messageArguments.type);
 			if (room.type === 'chat') {
 				console.log("Joined room: " + room.id);
-				if (room.id === 'staff') room.sayCommand('/filters view');
-				room.sayCommand('/cmd roominfo ' + room.id);
-				room.sayCommand('/banword list');
+				if (room.id === 'staff') {
+					this.send({
+						message: room.sendId + '|/filters view',
+						type: 'filters-view',
+						measure: true,
+					});
+				}
+
+				this.send({
+					message: '|/cmd roominfo ' + room.id,
+					roomid: room.id,
+					type: 'roominfo',
+					measure: true,
+				});
+
+				this.send({
+					message: room.sendId + '|/banword list',
+					roomid: room.id,
+					type: 'banword-list',
+					measure: true,
+				});
 
 				if (room.id in this.reconnectRoomMessages) {
 					for (const reconnectMessage of this.reconnectRoomMessages[room.id]) {
@@ -1288,8 +1311,30 @@ export class Client {
 			if (messageArguments.message.startsWith('/log ')) {
 				if (messageArguments.message.startsWith(HANGMAN_START_COMMAND)) {
 					room.serverHangman = true;
+					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'hangman-start' &&
+						this.lastOutgoingMessage.roomid === room.id &&
+						messageArguments.message.startsWith(HANGMAN_START_COMMAND + Users.self.name)) {
+						this.clearLastOutgoingMessage(now);
+					}
 				} else if (messageArguments.message.startsWith(HANGMAN_END_COMMAND)) {
 					delete room.serverHangman;
+					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'hangman-end' &&
+						this.lastOutgoingMessage.roomid === room.id &&
+						messageArguments.message.startsWith(HANGMAN_END_COMMAND + Users.self.name)) {
+						this.clearLastOutgoingMessage(now);
+					}
+				} else if (messageArguments.message.endsWith(" was promoted to Room Voice by " + Users.self.name + ".")) {
+					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'room-voice' &&
+						this.lastOutgoingMessage.roomid === room.id) {
+						const promoted = messageArguments.message.substr(5).split(" was promoted to Room Voice by")[0];
+						if (Tools.toId(promoted) === this.lastOutgoingMessage.user) this.clearLastOutgoingMessage(now);
+					}
+				} else if (messageArguments.message.endsWith(" was demoted to Room regular user by " + Users.self.name + ".)")) {
+					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'room-deauth' &&
+						this.lastOutgoingMessage.roomid === room.id) {
+						const demoted = messageArguments.message.substr(6).split(" was demoted to Room regular user by")[0];
+						if (Tools.toId(demoted) === this.lastOutgoingMessage.user) this.clearLastOutgoingMessage(now);
+					}
 				}
 			}
 
@@ -1413,17 +1458,23 @@ export class Client {
 				message: rawMessage,
 			};
 
-			if (messageArguments.message.startsWith('Banned phrases in room ')) {
+			if (messageArguments.message === 'This room has no banned phrases.') {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'banword-list' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.message.startsWith('Banned phrases in room ')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'banword-list' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
+
 				let subMessage = messageArguments.message.split('Banned phrases in room ')[1];
 				const colonIndex = subMessage.indexOf(':');
-				const roomId = subMessage.substr(0, colonIndex);
 				subMessage = subMessage.substr(colonIndex + 2);
 				if (subMessage) {
-					const bannedWordsRoom = Rooms.get(roomId);
-					if (bannedWordsRoom) {
-						bannedWordsRoom.serverBannedWords = subMessage.split(',').map(x => x.trim());
-						bannedWordsRoom.serverBannedWordsRegex = null;
-					}
+					room.serverBannedWords = subMessage.split(',').map(x => x.trim());
+					room.serverBannedWordsRegex = null;
 				}
 			} else if (messageArguments.message === HANGMAN_END_RAW_MESSAGE) {
 				delete room.serverHangman;
@@ -1514,6 +1565,10 @@ export class Client {
 
 		case 'pagehtml': {
 			if (room.id === 'view-filters') {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'filters-view') {
+					this.clearLastOutgoingMessage(now);
+				}
+
 				let battleFilterRegularExpressions: RegExp[] | null = null;
 				let chatFilterRegularExpressions: RegExp[] | null = null;
 				let evasionFilterRegularExpressions: RegExp[] | null = null;

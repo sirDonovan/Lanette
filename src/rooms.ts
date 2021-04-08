@@ -165,6 +165,7 @@ export class Room {
 
 		if (!(options && options.dontMeasure)) {
 			outgoingMessage.measure = true;
+			outgoingMessage.roomid = this.id;
 
 			if (options && options.user) outgoingMessage.user = options.user;
 			if (options && options.modchatLevel) outgoingMessage.modchatLevel = options.modchatLevel;
@@ -172,8 +173,6 @@ export class Room {
 			if (options && options.html) {
 				outgoingMessage.html = options.html;
 				if (options.uhtmlName) outgoingMessage.uhtmlName = options.uhtmlName;
-			} else if (type === 'leave-room') {
-				outgoingMessage.roomid = this.id;
 			} else {
 				outgoingMessage.text = message;
 			}
@@ -261,6 +260,22 @@ export class Room {
 
 	setModchat(level: string): void {
 		this.say("/modchat " + level, {dontCheckFilter: true, dontPrepare: true, type: 'modchat', modchatLevel: level});
+	}
+
+	roomVoice(name: string): void {
+		this.say("/roomvoice " + name, {dontCheckFilter: true, dontPrepare: true, type: 'room-voice', user: Tools.toId(name)});
+	}
+
+	roomDeAuth(name: string): void {
+		this.say("/roomdeauth " + name, {dontCheckFilter: true, dontPrepare: true, type: 'room-deauth', user: Tools.toId(name)});
+	}
+
+	startHangman(answer: string, hint: string): void {
+		this.say("/hangman create " + answer + ", " + hint, {dontCheckFilter: true, dontPrepare: true, type: 'hangman-start'});
+	}
+
+	endHangman(): void {
+		this.say("/hangman end", {dontCheckFilter: true, dontPrepare: true, type: 'hangman-end'});
 	}
 
 	leave(): void {
