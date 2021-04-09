@@ -213,7 +213,7 @@ export const commands: BaseCommandDefinitions = {
 			if (isNaN(month)) return this.say("You must specify the month (1-12).");
 			const schedule = Tournaments.getTournamentScheduleHtml(tournamentRoom, month);
 			if (!schedule) return this.say("No tournament schedule found for " + tournamentRoom.title + ".");
-			this.sayCommand("!code " + schedule);
+			this.sayCode(schedule);
 		},
 		aliases: ['gettourschedule'],
 	},

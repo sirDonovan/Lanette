@@ -31,8 +31,8 @@ export class CommandContext {
 		this.room.say(message, {dontPrepare, dontCheckFilter});
 	}
 
-	sayCommand(message: string, dontCheckFilter?: boolean): void {
-		this.room.sayCommand(message, dontCheckFilter);
+	sayCode(message: string): void {
+		this.room.sayCode(message);
 	}
 
 	sayHtml(html: string, pmHtmlRoom: Room): void {

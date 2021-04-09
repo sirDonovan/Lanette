@@ -49,6 +49,8 @@ const HANGMAN_END_RAW_MESSAGE = "The game of hangman was ended.";
 const HIGHLIGHT_HTML_PAGE_MESSAGE = "Sent a highlight to ";
 const USER_NOT_FOUND_MESSAGE = "/error User ";
 
+const NEWLINE = /\n/g;
+const CODE_LINEBREAK = /<wbr \/>/g;
 const FILTERS_REGEX_N = /\u039d/g;
 // eslint-disable-next-line no-misleading-character-class
 const FILTERS_REGEX_EMPTY_CHARACTERS = /[\u200b\u007F\u00AD\uDB40\uDC00\uDC21]/g;
@@ -317,6 +319,12 @@ export class Client {
 			html += this.getUserAttributionHtml(Users.self.name);
 		}
 		return html;
+	}
+
+	getCodeListenerHtml(code: string): string {
+		if (code.length < 80 && !code.includes('\n') && !code.includes('```')) return code;
+		return '<div class="infobox"><code style="white-space: pre-wrap; display: table; tab-size: 3">' +
+			code.replace(NEWLINE, "<br />") + '</code></div>';
 	}
 
 	getMsgRoomButton(room: Room, message: string, label: string, disabled?: boolean, buttonStyle?: string): string {
@@ -1247,8 +1255,9 @@ export class Client {
 				} else if (messageArguments.message.startsWith(HTML_CHAT_COMMAND)) {
 					const html = Tools.unescapeHTML(messageArguments.message.substr(HTML_CHAT_COMMAND.length));
 					const htmlId = Tools.toId(html);
-					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'chat-html' &&
-						Tools.toId(this.lastOutgoingMessage.html) === htmlId) {
+					if (this.lastOutgoingMessage && ((this.lastOutgoingMessage.type === 'chat-html' &&
+						Tools.toId(this.lastOutgoingMessage.html) === htmlId) || (this.lastOutgoingMessage.type === 'code' &&
+						Tools.toId(this.lastOutgoingMessage.html) === Tools.toId(html.replace(CODE_LINEBREAK, ""))))) {
 						this.clearLastOutgoingMessage(now);
 					}
 
@@ -1290,8 +1299,9 @@ export class Client {
 						}
 					} else {
 						const messageId = Tools.toId(messageArguments.message);
-						if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'chat' &&
-							Tools.toId(this.lastOutgoingMessage.text) === messageId) {
+						if (this.lastOutgoingMessage && ((this.lastOutgoingMessage.type === 'chat' &&
+							Tools.toId(this.lastOutgoingMessage.text) === messageId) || (this.lastOutgoingMessage.type === 'code' &&
+							messageArguments.message.startsWith("```") && Tools.toId(this.lastOutgoingMessage.html) === messageId))) {
 							this.clearLastOutgoingMessage(now);
 						}
 
@@ -1456,8 +1466,10 @@ export class Client {
 				} else if (isHtml) {
 					const html = Tools.unescapeHTML(messageArguments.message.substr(HTML_CHAT_COMMAND.length));
 					const htmlId = Tools.toId(html);
-					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'pm-html' &&
-						this.lastOutgoingMessage.user === recipient.id && Tools.toId(this.lastOutgoingMessage.html) === htmlId) {
+					if (this.lastOutgoingMessage && this.lastOutgoingMessage.user === recipient.id &&
+						((this.lastOutgoingMessage.type === 'pm-html' && Tools.toId(this.lastOutgoingMessage.html) === htmlId) ||
+						(this.lastOutgoingMessage.type === 'code' &&
+						Tools.toId(this.lastOutgoingMessage.html) === Tools.toId(html.replace(CODE_LINEBREAK, ""))))) {
 						this.clearLastOutgoingMessage(now);
 					}
 

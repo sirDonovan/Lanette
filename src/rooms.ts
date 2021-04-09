@@ -176,8 +176,8 @@ export class Room {
 		Client.send(outgoingMessage);
 	}
 
-	sayCommand(command: string, dontCheckFilter?: boolean): void {
-		this.say(command, {dontCheckFilter, dontPrepare: true, dontMeasure: true, type: 'command'});
+	sayCode(code: string): void {
+		this.say("!code " + code, {dontCheckFilter: true, dontPrepare: true, type: 'code', html: Client.getCodeListenerHtml(code)});
 	}
 
 	sayHtml(html: string): void {

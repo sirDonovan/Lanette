@@ -296,10 +296,6 @@ export abstract class Activity {
 		this.room.say(message);
 	}
 
-	sayCommand(command: string, dontCheckFilter?: boolean): void {
-		this.room.sayCommand(command, dontCheckFilter);
-	}
-
 	sayHtml(html: string): void {
 		if (this.isPm(this.room)) return this.pmRoom.pmHtml(this.room, html);
 		this.room.sayHtml(html);

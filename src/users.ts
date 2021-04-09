@@ -1,6 +1,6 @@
 import type { ScriptedGame } from "./room-game-scripted";
 import type { Room } from "./rooms";
-import type { GroupName, IChatLogEntry, MessageListener } from "./types/client";
+import type { GroupName, IChatLogEntry, IOutgoingMessage, MessageListener } from "./types/client";
 import type { IUserMessageOptions, IUserRoomData } from "./types/users";
 
 const chatFormatting: string[] = ["*", "_", "`", "~", "^", "\\"];
@@ -116,18 +116,21 @@ export class User {
 			}
 		}
 
-		const type = options && options.type ? options.type : 'pm';
-		Client.send({
+		const outgoingMessage: IOutgoingMessage = {
 			message: "|/pm " + this.name + ", " + message,
 			text: message,
-			type,
+			type: options && options.type ? options.type : 'pm',
 			user: this.id,
-			measure: type !== 'command' && !(options && options.dontMeasure),
-		});
+			measure: !(options && options.dontMeasure),
+		};
+
+		if (options && options.html) outgoingMessage.html = options.html;
+
+		Client.send(outgoingMessage);
 	}
 
-	sayCommand(command: string, dontCheckFilter?: boolean): void {
-		this.say(command, {dontCheckFilter, dontPrepare: true, dontMeasure: true, type: 'command'});
+	sayCode(code: string): void {
+		this.say("!code " + code, {dontCheckFilter: true, dontPrepare: true, type: 'code', html: Client.getCodeListenerHtml(code)});
 	}
 
 	on(message: string, listener: MessageListener): void {
