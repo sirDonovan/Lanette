@@ -1327,7 +1327,7 @@ export class Client {
 						messageArguments.message.startsWith(HANGMAN_END_COMMAND + Users.self.name)) {
 						this.clearLastOutgoingMessage(now);
 					}
-				} else if (this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id) {
+				} else if (this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id && user === Users.self) {
 					if (this.lastOutgoingMessage.type === 'room-voice') {
 						if (messageArguments.message.endsWith(" was promoted to Room Voice by " + Users.self.name + ".")) {
 							const promoted = messageArguments.message.substr(5).split(" was promoted to Room Voice by")[0];
@@ -1337,6 +1337,11 @@ export class Client {
 						if (messageArguments.message.endsWith(" was demoted to Room regular user by " + Users.self.name + ".)")) {
 							const demoted = messageArguments.message.substr(6).split(" was demoted to Room regular user by")[0];
 							if (Tools.toId(demoted) === this.lastOutgoingMessage.user) this.clearLastOutgoingMessage(now);
+						}
+					} else if (this.lastOutgoingMessage.type === 'warn') {
+						if (messageArguments.message.endsWith(' was warned by ' + Users.self.name + ". (" +
+							this.lastOutgoingMessage.warnReason + ")")) {
+							this.clearLastOutgoingMessage(now);
 						}
 					} else if (this.lastOutgoingMessage.type === 'modnote') {
 						const modnoteCommand = '/log (' + Users.self.name + ' notes: ';
@@ -2034,7 +2039,7 @@ export class Client {
 			lowerCaseMessage.includes(this.replayServerAddress) && !user.hasRank(room, 'voice')) {
 			const battle = this.extractBattleId(lowerCaseMessage);
 			if (battle && room.tournament.battleRooms.includes(battle.publicId)) {
-				room.sayCommand("/warn " + user.name + ", Please do not link to tournament battles");
+				room.warn(user, "Please do not link to tournament battles");
 			}
 		}
 
@@ -2043,7 +2048,7 @@ export class Client {
 			lowerCaseMessage.includes(this.server)) && !user.hasRank(room, 'voice')) {
 			const battle = this.extractBattleId(lowerCaseMessage);
 			if (battle && room.game.battleRooms.includes(battle.publicId)) {
-				room.sayCommand("/warn " + user.name + ", Please do not link to game battles");
+				room.warn(user, "Please do not link to game battles");
 			}
 		}
 
@@ -2069,7 +2074,7 @@ export class Client {
 					for (const i in room.approvedUserHostedTournaments) {
 						if (room.approvedUserHostedTournaments[i].urls.includes(link)) {
 							if (!authOrTHC && room.approvedUserHostedTournaments[i].hostId !== user.id) {
-								room.sayCommand("/warn " + user.name + ", Please do not post links to other hosts' tournaments");
+								room.warn(user, "Please do not post links to other hosts' tournaments");
 							}
 							break outer;
 						}
@@ -2090,20 +2095,20 @@ export class Client {
 					for (const i in room.newUserHostedTournaments) {
 						if (room.newUserHostedTournaments[i].urls.includes(link)) {
 							if (room.newUserHostedTournaments[i].hostId !== user.id) {
-								room.sayCommand("/warn " + user.name + ", Please do not post links to other hosts' tournaments");
+								room.warn(user, "Please do not post links to other hosts' tournaments");
 							} else if (room.newUserHostedTournaments[i].approvalStatus === 'changes-requested') {
 								let name = room.newUserHostedTournaments[i].reviewer;
 								const reviewer = Users.get(name);
 								if (reviewer) name = reviewer.name;
-								room.sayCommand("/warn " + user.name + ", " + name + " has requested changes for your tournament and you " +
+								room.warn(user, name + " has requested changes for your tournament and you " +
 									"must wait for them to be approved");
 							} else {
-								room.sayCommand("/warn " + user.name + ", You must wait for a staff member to approve your tournament");
+								room.warn(user, "You must wait for a staff member to approve your tournament");
 							}
 							break outer;
 						}
 					}
-					room.sayCommand("/warn " + user.name + ", Your tournament must be approved by a staff member");
+					room.warn(user, "Your tournament must be approved by a staff member");
 					user.say('Use the command ``' + Config.commandCharacter + 'gettourapproval ' + room.id + ', __bracket link__, ' +
 						'__signup link__`` to get your tournament approved (insert your actual links).');
 					break;

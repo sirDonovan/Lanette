@@ -239,6 +239,10 @@ export class Room {
 		this.say("/announce " + text, {type: 'announce', announcement: text});
 	}
 
+	warn(user: User, reason: string): void {
+		this.say("/warn " + user.name + ", " + reason, {type: 'warn', warnReason: reason});
+	}
+
 	modnote(text: string): void {
 		this.say("/modnote " + text, {type: 'modnote', modnote: text});
 	}
