@@ -28,7 +28,6 @@ const SERVER_RESTART_CONNECTION_TIME = 10 * 1000;
 const REGULAR_MESSAGE_THROTTLE = 600;
 const TRUSTED_MESSAGE_THROTTLE = 100;
 const SERVER_CHAT_QUEUE_LIMIT = 6;
-const MESSAGE_THROTTLE_BUFFER = 2;
 const DEFAULT_PROCESSING_TIME = 25;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
@@ -337,7 +336,7 @@ export class Client {
 	}
 
 	getSendThrottle(): number {
-		return this.sendThrottle + this.serverProcessingTime + MESSAGE_THROTTLE_BUFFER;
+		return this.sendThrottle + this.serverProcessingTime;
 	}
 
 	checkFilters(message: string, room?: Room): string | undefined {
@@ -423,7 +422,7 @@ export class Client {
 
 		if (outgoingMessage.measure) outgoingMessage.sentTime = Date.now();
 		this.webSocket.send(outgoingMessage.message, () => {
-			this.setSendTimeout();
+			if (this.sendTimeout === true) this.setSendTimeout();
 		});
 	}
 
@@ -2155,7 +2154,7 @@ export class Client {
 
 				if (measurement >= this.sendThrottle) {
 					const serverChatQueueWaits = Math.ceil(measurement / this.sendThrottle);
-					if (serverChatQueueWaits > this.serverChatQueueWaits) {
+					if (serverChatQueueWaits >= this.serverChatQueueWaits) {
 						this.serverChatQueueWaits = serverChatQueueWaits;
 						this.setSendTimeout(this.getSendThrottle() * serverChatQueueWaits, () => {
 							this.serverChatQueueWaits = 0;
