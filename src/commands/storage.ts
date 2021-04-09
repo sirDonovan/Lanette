@@ -164,13 +164,13 @@ export const commands: BaseCommandDefinitions = {
 			if (remove) {
 				this.say("Removed " + points + " " + pointsName + " from " + userList + ".");
 				if (isPm) {
-					leaderboardRoom.sayCommand("/modnote " + user.name + " removed " + points + " " + pointsName + " from " +
+					leaderboardRoom.modnote(user.name + " removed " + points + " " + pointsName + " from " +
 						userList + ".");
 				}
 			} else {
 				this.say("Added " + points + " " + pointsName + " for " + userList + ".");
 				if (isPm) {
-					leaderboardRoom.sayCommand("/modnote " + user.name + " added " + points + " " + pointsName + " for " +
+					leaderboardRoom.modnote(user.name + " added " + points + " " + pointsName + " for " +
 						userList + ".");
 				}
 			}
@@ -230,7 +230,7 @@ export const commands: BaseCommandDefinitions = {
 					"this command: ``" + Config.commandCharacter + "rank " + room.title + "``.");
 			}
 
-			this.sayCommand("/modnote " + user.name + " awarded " + targetUserName + " " + placeName + " points (" + points + ") for a " +
+			room.modnote(user.name + " awarded " + targetUserName + " " + placeName + " points (" + points + ") for a " +
 				(scheduled ? "scheduled " : "") + players + "-man " + format.name + " tournament");
 
 			Storage.exportDatabase(room.id);
@@ -285,7 +285,7 @@ export const commands: BaseCommandDefinitions = {
 					"To see your total amount, use this command: ``" + Config.commandCharacter + "rank " + room.title + "``.");
 			}
 
-			this.sayCommand("/modnote " + user.name + " awarded " + targetUserName + " missing " + placeName + " points (" + points + ") " +
+			room.modnote(user.name + " awarded " + targetUserName + " missing " + placeName + " points (" + points + ") " +
 				"for a scheduled " + players + "-man " + format.name + " tournament");
 
 			Storage.exportDatabase(room.id);
@@ -669,7 +669,7 @@ export const commands: BaseCommandDefinitions = {
 			const destination = targets[2].trim();
 			if (!Storage.transferData(targetRoom.id, source, destination)) return;
 			this.say("Data from " + source + " in " + targetRoom.title + " has been successfully transferred to " + destination + ".");
-			targetRoom.sayCommand("/modnote " + user.name + " transferred data from " + source + " to " + destination + ".");
+			targetRoom.modnote(user.name + " transferred data from " + source + " to " + destination + ".");
 		},
 	},
 	gameachievements: {

@@ -62,7 +62,7 @@ export const commands: BaseCommandDefinitions = {
 			if (Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
 				playerCap = Config.defaultTournamentPlayerCaps[room.id];
 			}
-			this.sayCommand("/tour new " + format.name + ", elimination" + (playerCap ? ", " + playerCap : ""));
+			room.createTournament(format, playerCap);
 		},
 		aliases: ['createtour', 'ct'],
 	},
@@ -77,7 +77,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 			room.tournament.adjustCap(cap);
 		},
-		aliases: ['tcap'],
+		aliases: ['tourcap', 'tcap'],
 	},
 	tournamentenablepoints: {
 		command(target, room, user, cmd) {

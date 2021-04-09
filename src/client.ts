@@ -33,7 +33,7 @@ const DEFAULT_PROCESSING_TIME = 25;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const LATENCY_CHECK_INTERVAL = 30 * 1000;
-const MAX_PROCESSING_MEASUREMENT_GAP = 60 * 1000;
+const MAX_PROCESSING_MEASUREMENT_GAP = 30 * 1000;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
 const UHTML_CHAT_COMMAND = '/uhtml ';
@@ -41,6 +41,11 @@ const UHTML_CHANGE_CHAT_COMMAND = '/uhtmlchange ';
 const ANNOUNCE_CHAT_COMMAND = '/announce ';
 const HANGMAN_START_COMMAND = "/log A game of hangman was started by ";
 const HANGMAN_END_COMMAND = "/log (The game of hangman was ended by ";
+const TOURNAMENT_AUTOSTART_COMMAND = "/log (The tournament was set to autostart when the player cap is reached by ";
+const TOURNAMENT_AUTODQ_COMMAND = "/log (The tournament auto disqualify timer was set to ";
+const TOURNAMENT_FORCEPUBLIC_COMMAND = "/log (Tournament public battles were turned ON by ";
+const TOURNAMENT_SCOUTING_COMMAND = "/log (The tournament was set to disallow scouting by ";
+const TOURNAMENT_MODJOIN_COMMAND = "/log (The tournament was set to disallow modjoin by ";
 const HANGMAN_END_RAW_MESSAGE = "The game of hangman was ended.";
 const HIGHLIGHT_HTML_PAGE_MESSAGE = "Sent a highlight to ";
 const USER_NOT_FOUND_MESSAGE = "/error User ";
@@ -1309,6 +1314,7 @@ export class Client {
 			if (messageArguments.message.startsWith('/log ')) {
 				if (messageArguments.message.startsWith(HANGMAN_START_COMMAND)) {
 					room.serverHangman = true;
+
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'hangman-start' &&
 						this.lastOutgoingMessage.roomid === room.id &&
 						messageArguments.message.startsWith(HANGMAN_START_COMMAND + Users.self.name)) {
@@ -1316,22 +1322,70 @@ export class Client {
 					}
 				} else if (messageArguments.message.startsWith(HANGMAN_END_COMMAND)) {
 					delete room.serverHangman;
+
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'hangman-end' &&
 						this.lastOutgoingMessage.roomid === room.id &&
 						messageArguments.message.startsWith(HANGMAN_END_COMMAND + Users.self.name)) {
 						this.clearLastOutgoingMessage(now);
 					}
-				} else if (messageArguments.message.endsWith(" was promoted to Room Voice by " + Users.self.name + ".")) {
-					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'room-voice' &&
-						this.lastOutgoingMessage.roomid === room.id) {
-						const promoted = messageArguments.message.substr(5).split(" was promoted to Room Voice by")[0];
-						if (Tools.toId(promoted) === this.lastOutgoingMessage.user) this.clearLastOutgoingMessage(now);
-					}
-				} else if (messageArguments.message.endsWith(" was demoted to Room regular user by " + Users.self.name + ".)")) {
-					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'room-deauth' &&
-						this.lastOutgoingMessage.roomid === room.id) {
-						const demoted = messageArguments.message.substr(6).split(" was demoted to Room regular user by")[0];
-						if (Tools.toId(demoted) === this.lastOutgoingMessage.user) this.clearLastOutgoingMessage(now);
+				} else if (this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id) {
+					if (this.lastOutgoingMessage.type === 'room-voice') {
+						if (messageArguments.message.endsWith(" was promoted to Room Voice by " + Users.self.name + ".")) {
+							const promoted = messageArguments.message.substr(5).split(" was promoted to Room Voice by")[0];
+							if (Tools.toId(promoted) === this.lastOutgoingMessage.user) this.clearLastOutgoingMessage(now);
+						}
+					} else if (this.lastOutgoingMessage.type === 'room-deauth') {
+						if (messageArguments.message.endsWith(" was demoted to Room regular user by " + Users.self.name + ".)")) {
+							const demoted = messageArguments.message.substr(6).split(" was demoted to Room regular user by")[0];
+							if (Tools.toId(demoted) === this.lastOutgoingMessage.user) this.clearLastOutgoingMessage(now);
+						}
+					} else if (this.lastOutgoingMessage.type === 'modnote') {
+						const modnoteCommand = '/log (' + Users.self.name + ' notes: ';
+						if (messageArguments.message.startsWith(modnoteCommand) &&
+							messageArguments.message.substr(modnoteCommand.length).startsWith(this.lastOutgoingMessage.modnote!)) {
+							this.clearLastOutgoingMessage(now);
+						}
+					} else if (this.lastOutgoingMessage.type === 'tournament-create') {
+						if (messageArguments.message.startsWith('/log (' + Users.self.name + ' created a tournament in ')) {
+							this.clearLastOutgoingMessage(now);
+						}
+					} else if (this.lastOutgoingMessage.type === 'tournament-start') {
+						if (messageArguments.message.startsWith('/log (' + Users.self.name + ' started the tournament.)')) {
+							this.clearLastOutgoingMessage(now);
+						}
+					} else if (this.lastOutgoingMessage.type === 'tournament-name') {
+						if (messageArguments.message.startsWith("/log (" + Users.self.name + " set the tournament's name to ")) {
+							this.clearLastOutgoingMessage(now);
+						}
+					} else if (this.lastOutgoingMessage.type === 'tournament-cap') {
+						if (messageArguments.message.startsWith("/log (" + Users.self.name + " set the tournament's player cap to ")) {
+							this.clearLastOutgoingMessage(now);
+						}
+					} else if (this.lastOutgoingMessage.type === 'tournament-autostart') {
+						if (messageArguments.message.startsWith(TOURNAMENT_AUTOSTART_COMMAND + Users.self.name)) {
+							this.clearLastOutgoingMessage(now);
+						}
+					} else if (this.lastOutgoingMessage.type === 'tournament-autodq') {
+						if (messageArguments.message.startsWith(TOURNAMENT_AUTODQ_COMMAND) &&
+							messageArguments.message.endsWith(" by " + Users.self.name + ")")) {
+							this.clearLastOutgoingMessage(now);
+						}
+					} else if (this.lastOutgoingMessage.type === 'tournament-forcepulic') {
+						if (messageArguments.message.startsWith(TOURNAMENT_FORCEPUBLIC_COMMAND + Users.self.name)) {
+							this.clearLastOutgoingMessage(now);
+						}
+					} else if (this.lastOutgoingMessage.type === 'tournament-scouting') {
+						if (messageArguments.message.startsWith(TOURNAMENT_SCOUTING_COMMAND + Users.self.name)) {
+							this.clearLastOutgoingMessage(now);
+						}
+					} else if (this.lastOutgoingMessage.type === 'tournament-modjoin') {
+						if (messageArguments.message.startsWith(TOURNAMENT_MODJOIN_COMMAND + Users.self.name)) {
+							this.clearLastOutgoingMessage(now);
+						}
+					} else if (this.lastOutgoingMessage.type === 'tournament-rules') {
+						if (messageArguments.message.startsWith("/log (" + Users.self.name + " updated the tournament's custom rules.")) {
+							this.clearLastOutgoingMessage(now);
+						}
 					}
 				}
 			}

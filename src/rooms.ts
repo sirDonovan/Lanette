@@ -3,6 +3,7 @@ import type { ScriptedGame } from "./room-game-scripted";
 import type { UserHostedGame } from "./room-game-user-hosted";
 import type { Tournament } from "./room-tournament";
 import type { GroupName, IChatLogEntry, IOutgoingMessage, IRoomInfoResponse, MessageListener } from "./types/client";
+import type { IFormat } from "./types/pokemon-showdown";
 import type { IRepeatedMessage, IRoomMessageOptions, RoomType } from "./types/rooms";
 import type { IUserHostedTournament } from "./types/tournaments";
 import type { User } from "./users";
@@ -160,26 +161,14 @@ export class Room {
 			}
 		}
 
-		const type = options && options.type ? options.type : 'chat';
-		const outgoingMessage: IOutgoingMessage = {message: this.sendId + "|" + message, type};
+		const outgoingMessage: IOutgoingMessage = Object.assign(options || {}, {
+			roomid: this.id,
+			message: this.sendId + "|" + message,
+			type: options && options.type ? options.type : 'chat',
+		});
 
-		if (!(options && options.dontMeasure)) {
+		if (!options || !options.dontMeasure) {
 			outgoingMessage.measure = true;
-			outgoingMessage.roomid = this.id;
-
-			if (options) {
-				if (options.announcement) outgoingMessage.announcement = options.announcement;
-				if (options.html) {
-					outgoingMessage.html = options.html;
-					if (options.uhtmlName) outgoingMessage.uhtmlName = options.uhtmlName;
-				}
-				if (options.modchatLevel) outgoingMessage.modchatLevel = options.modchatLevel;
-				if (options.notifyId) outgoingMessage.notifyId = options.notifyId;
-				if (options.notifyTitle) outgoingMessage.notifyTitle = options.notifyTitle;
-				if (options.notifyMessage) outgoingMessage.notifyMessage = options.notifyMessage;
-				if (options.pageId) outgoingMessage.pageId = options.pageId;
-				if (options.user) outgoingMessage.user = options.user;
-			}
 
 			if (!outgoingMessage.html) outgoingMessage.text = message;
 		}
@@ -250,6 +239,10 @@ export class Room {
 		this.say("/announce " + text, {type: 'announce', announcement: text});
 	}
 
+	modnote(text: string): void {
+		this.say("/modnote " + text, {type: 'modnote', modnote: text});
+	}
+
 	notifyRank(rank: GroupName | 'all', title: string, message: string, highlightPhrase?: string): void {
 		const symbol = rank === 'all' ? rank : Client.getGroupSymbols()[rank];
 		this.say("/notifyrank " + symbol + "," + title + "," + message + (highlightPhrase ? ","  + highlightPhrase : ""),
@@ -291,6 +284,46 @@ export class Room {
 
 	roomDeAuth(name: string): void {
 		this.say("/roomdeauth " + name, {dontCheckFilter: true, dontPrepare: true, type: 'room-deauth', user: Tools.toId(name)});
+	}
+
+	createTournament(format: IFormat, cap?: number): void {
+		this.say("/tour new " + format.id + ", elimination" + (cap ? ", " + cap : ""), {type: 'tournament-create'});
+	}
+
+	startTournament(): void {
+		this.say("/tour start", {type: 'tournament-start'});
+	}
+
+	nameTournament(name: string): void {
+		this.say("/tour name " + name, {type: 'tournament-name'});
+	}
+
+	setTournamentCap(playerCap: number): void {
+		this.say("/tour cap " + playerCap, {type: 'tournament-cap'});
+	}
+
+	autoStartTournament(): void {
+		this.say("/tour autostart on", {type: 'tournament-autostart'});
+	}
+
+	setTournamentAutoDq(minutes: number): void {
+		this.say("/tour autodq " + minutes, {type: 'tournament-autodq'});
+	}
+
+	forcePublicTournament(): void {
+		this.say("/tour forcepublic on", {type: 'tournament-forcepulic'});
+	}
+
+	disallowTournamentScouting(): void {
+		this.say("/tour scouting disallow", {type: 'tournament-scouting'});
+	}
+
+	disallowTournamentModjoin(): void {
+		this.say("/tour modjoin disallow", {type: 'tournament-modjoin'});
+	}
+
+	setTournamentRules(rules: string): void {
+		this.say("/tour rules " + rules, {type: 'tournament-rules'});
 	}
 
 	startHangman(answer: string, hint: string): void {

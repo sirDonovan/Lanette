@@ -201,7 +201,7 @@ export class Tournaments {
 				tournament.format = this.createListeners[room.id].format;
 				if (tournament.format.customRules) {
 					tournament.setCustomFormatName();
-					room.sayCommand("/tour rules " + tournament.format.customRules.join(","));
+					room.setTournamentRules(tournament.format.customRules.join(","));
 				}
 				const database = Storage.getDatabase(room);
 				if (database.queuedTournament) {
@@ -214,25 +214,25 @@ export class Tournaments {
 				delete this.createListeners[room.id];
 			}
 
-			room.sayCommand("/tour forcepublic on");
-			if (tournament.playerCap) room.sayCommand("/tour autostart on");
+			room.forcePublicTournament();
+			if (tournament.playerCap) room.autoStartTournament();
 			if (Config.tournamentAutoDQTimers && room.id in Config.tournamentAutoDQTimers) {
-				room.sayCommand("/tour autodq " + Config.tournamentAutoDQTimers[room.id]);
+				room.setTournamentAutoDq(Config.tournamentAutoDQTimers[room.id]);
 			}
 			if ((!tournament.format.team && Config.disallowTournamentScouting && Config.disallowTournamentScouting.includes(room.id)) ||
 				(Config.disallowTournamentScoutingFormats && room.id in Config.disallowTournamentScoutingFormats &&
 				Config.disallowTournamentScoutingFormats[room.id].includes(tournament.format.id))) {
-				room.sayCommand("/tour scouting disallow");
+				room.disallowTournamentScouting();
 			}
 			if (Config.disallowTournamentModjoin && Config.disallowTournamentModjoin.includes(room.id)) {
-				room.sayCommand("/tour modjoin disallow");
+				room.disallowTournamentModjoin();
 			}
 
 			let startMinutes = 5;
 			if (Config.tournamentStartTimers && room.id in Config.tournamentStartTimers) {
 				startMinutes = Config.tournamentStartTimers[room.id];
 				if (tournament.scheduled) startMinutes *= 2;
-				tournament.startTimer = setTimeout(() => room.sayCommand("/tour start"), startMinutes * 60 * 1000);
+				tournament.startTimer = setTimeout(() => room.startTournament(), startMinutes * 60 * 1000);
 			}
 			if (Config.adjustTournamentCaps && Config.adjustTournamentCaps.includes(room.id)) {
 				tournament.adjustCapTimer = setTimeout(() => room.tournament!.adjustCap(), (startMinutes / 2) * 60 * 1000);
@@ -498,7 +498,7 @@ export class Tournaments {
 		this.tournamentTimers[room.id] = setTimeout(() => {
 			if (room.tournament) return;
 			this.createListeners[room.id] = {format, scheduled: scheduled || false};
-			room.sayCommand("/tour new " + format.id + ", elimination" + (cap ? ", " + cap : ""));
+			room.createTournament(format, cap);
 			delete this.tournamentTimers[room.id];
 		}, timer);
 	}

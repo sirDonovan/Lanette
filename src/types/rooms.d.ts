@@ -1,4 +1,4 @@
-import type { IOutgoingMessageTypes } from "./client";
+import type { IOutgoingMessageAttributes, IOutgoingMessageTypes } from "./client";
 
 export type RoomType = 'battle' | 'chat' | 'html';
 
@@ -10,18 +10,9 @@ export interface IRepeatedMessage {
 	user: string;
 }
 
-export interface IRoomMessageOptions {
-	announcement?: string;
+export interface IRoomMessageOptions extends IOutgoingMessageAttributes {
 	dontCheckFilter?: boolean;
 	dontMeasure?: boolean;
 	dontPrepare?: boolean;
-	html?: string;
-	modchatLevel?: string;
-	notifyId?: string;
-	notifyTitle?: string;
-	notifyMessage?: string;
-	pageId?: string;
 	type?: IOutgoingMessageTypes;
-	uhtmlName?: string;
-	user?: string;
 }

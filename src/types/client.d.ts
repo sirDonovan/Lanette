@@ -21,14 +21,16 @@ export interface IServerProcessingMeasurement {
 
 export type IOutgoingMessageTypes = 'command' | 'chat' | 'chat-html' | 'chat-uhtml' | 'pm' | 'pm-html' | 'pm-uhtml' | 'join-room' |
 	'leave-room' | 'modchat' | 'filters-view' | 'roominfo' | 'banword-list' | 'room-voice' | 'room-deauth' | 'hangman-start' |
-	'hangman-end' | 'htmlpage' | 'highlight-htmlpage' | 'announce' | 'notifyrank' | 'notifyoffrank';
-export interface IOutgoingMessage {
-	message: string;
-	type: IOutgoingMessageTypes;
+	'hangman-end' | 'htmlpage' | 'highlight-htmlpage' | 'announce' | 'notifyrank' | 'notifyoffrank' | 'modnote' | 'tournament-create' |
+	'tournament-start' | 'tournament-name' | 'tournament-autostart' | 'tournament-autodq' | 'tournament-cap' | 'tournament-rules' |
+	'tournament-forcepulic' | 'tournament-scouting' | 'tournament-modjoin';
+
+export interface IOutgoingMessageAttributes {
 	announcement?: string;
 	html?: string;
 	measure?: boolean;
 	modchatLevel?: string;
+	modnote?: string;
 	notifyId?: string;
 	notifyTitle?: string;
 	notifyMessage?: string;
@@ -39,6 +41,11 @@ export interface IOutgoingMessage {
 	text?: string;
 	uhtmlName?: string;
 	user?: string;
+}
+
+export interface IOutgoingMessage extends IOutgoingMessageAttributes {
+	message: string;
+	type: IOutgoingMessageTypes;
 }
 
 export type GroupName = 'locked' | 'muted' | 'regularuser' | 'prizewinner' | 'voice' | 'player' | 'bot' | 'driver' | 'moderator' | 'host' |

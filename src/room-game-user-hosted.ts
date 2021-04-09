@@ -442,7 +442,7 @@ export class UserHostedGame extends Game {
 	forceEnd(user: User, reason?: string): void {
 		Games.removeLastUserHostTime(this.room, this.hostId);
 		this.say(this.name + " " + this.activityType + " was forcibly ended!");
-		this.sayCommand("/modnote " + this.name + " was forcibly ended by " + user.name + (reason ? " (" + reason + ")" : ""));
+		this.room.modnote(this.name + " was forcibly ended by " + user.name + (reason ? " (" + reason + ")" : ""));
 		this.deallocate(true);
 	}
 

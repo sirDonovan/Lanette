@@ -86,7 +86,7 @@ export class Tournament extends Activity {
 	setCustomFormatName(): void {
 		const previousName = this.name;
 		this.name = Dex.getCustomFormatName(this.format);
-		if (this.name !== previousName) this.sayCommand("/tour name " + this.name);
+		if (this.name !== previousName) this.room.nameTournament(this.name);
 	}
 
 	canAwardPoints(): boolean {
@@ -115,7 +115,7 @@ export class Tournament extends Activity {
 	adjustCap(cap?: number): void {
 		if (!cap) {
 			if (this.playerCount % 8 === 0) {
-				this.sayCommand("/tour start");
+				this.room.startTournament();
 				return;
 			}
 
@@ -130,8 +130,8 @@ export class Tournament extends Activity {
 
 		if (this.adjustCapTimer) clearTimeout(this.adjustCapTimer);
 
-		this.sayCommand("/tour cap " + cap);
-		if (!this.playerCap) this.sayCommand("/tour autostart on");
+		this.room.setTournamentCap(cap);
+		if (!this.playerCap) this.room.autoStartTournament();
 		this.say("The tournament's player cap is now **" + cap + "**.");
 	}
 

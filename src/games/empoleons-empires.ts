@@ -217,7 +217,7 @@ const commands: GameCommandDefinitions<EmpoleonsEmpires> = {
 			}
 
 			this.removePlayer(targetPlayer.name);
-			this.room.sayCommand("/modnote " + user.name + " DQed " + targetPlayer.name + " from " + this.name + " for using the alias '" +
+			(this.room as Room).modnote(user.name + " DQed " + targetPlayer.name + " from " + this.name + " for using the alias '" +
 				target.trim() + "'.");
 			return true;
 		},

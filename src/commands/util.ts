@@ -145,7 +145,7 @@ export const commands: BaseCommandDefinitions = {
 
 			const duration = Tools.toDurationString(interval);
 			this.say("The message with the name '" + messageName + "' has been set to repeat every " + duration + ".");
-			repeatRoom.sayCommand("/modnote " + user.name + " set a message to repeat every " + duration + " with the text '" +
+			repeatRoom.modnote(user.name + " set a message to repeat every " + duration + " with the text '" +
 				message + "'");
 		},
 		aliases: ['repeatm', 'repeatmessages'],
