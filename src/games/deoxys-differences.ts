@@ -39,7 +39,7 @@ class DeoxysDifferences extends QuestionAndAnswer {
 	static loadData(): void {
 		for (const pokemon of Games.getPokemonList()) {
 			if (pokemon.forme || pokemon.gen > 5) continue;
-			const gifData = Dex.getGifData(pokemon, SPRITE_GENERATION);
+			const gifData = Dex.getModelData(pokemon, SPRITE_GENERATION);
 			if (gifData && gifData.w && gifData.h && gifData.w <= MAX_POKEMON_WIDTH && gifData.h <= MAX_POKEMON_HEIGHT) {
 				data.gifData[pokemon.name] = gifData;
 				data.pokemon.push(pokemon.name);
@@ -132,7 +132,7 @@ class DeoxysDifferences extends QuestionAndAnswer {
 		this.differencePokemon = differencePokemon;
 		this.roundPokemon = rows;
 
-		const gifs = this.shuffle([differencePokemon].concat(usedPokemon)).map(x => Dex.getPokemonGif(Dex.getExistingPokemon(x),
+		const gifs = this.shuffle([differencePokemon].concat(usedPokemon)).map(x => Dex.getPokemonModel(Dex.getExistingPokemon(x),
 			SPRITE_GENERATION));
 
 		this.sayUhtml(this.uhtmlBaseName + '-preview', "<center>Spot the difference among the following Pokemon:<br />" +
@@ -186,7 +186,7 @@ class DeoxysDifferences extends QuestionAndAnswer {
 
 			// left grid
 			for (let x = 0; x < POKEMON_PER_GRID_ROW; x++) {
-				gifs[row[x]] = Dex.getPokemonGif(Dex.getExistingPokemon(row[x]), SPRITE_GENERATION);
+				gifs[row[x]] = Dex.getPokemonModel(Dex.getExistingPokemon(row[x]), SPRITE_GENERATION);
 
 				gridHtml += '<td style="position: relative;background: ' + lightOrange.gradient + '">' + gifs[row[x]];
 				gridHtml += "<br /><div style='position: absolute;bottom: 0px'>" + letters[x] + y + "</div>";
@@ -198,7 +198,7 @@ class DeoxysDifferences extends QuestionAndAnswer {
 				let gif: string;
 				if (!renderedDifference && this.validateDifferenceCoordinates(x, y)) {
 					renderedDifference = true;
-					gif = Dex.getPokemonGif(Dex.getExistingPokemon(this.differencePokemon), SPRITE_GENERATION);
+					gif = Dex.getPokemonModel(Dex.getExistingPokemon(this.differencePokemon), SPRITE_GENERATION);
 				} else {
 					gif = gifs[row[x]];
 				}

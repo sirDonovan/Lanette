@@ -1383,9 +1383,9 @@ export class Games {
 		if (trainerCard.pokemon.length) {
 			if (!avatarHtml) avatarHtml = "&nbsp;";
 			if (trainerCard.pokemonGifs) {
-				html += Dex.getPokemonGif(Dex.getExistingPokemon(trainerCard.pokemon[0]));
+				html += Dex.getPokemonModel(Dex.getExistingPokemon(trainerCard.pokemon[0]));
 				html += avatarHtml;
-				if (trainerCard.pokemon[1]) html += Dex.getPokemonGif(Dex.getExistingPokemon(trainerCard.pokemon[1]));
+				if (trainerCard.pokemon[1]) html += Dex.getPokemonModel(Dex.getExistingPokemon(trainerCard.pokemon[1]));
 			} else {
 				if (trainerCard.pokemon.length <= 2) {
 					html += Dex.getPokemonIcon(Dex.getExistingPokemon(trainerCard.pokemon[0]));
@@ -1467,7 +1467,7 @@ export class Games {
 		}
 
 		if (mascot) {
-			const gif = Dex.getPokemonGif(mascot, undefined, undefined, shinyMascot);
+			const gif = Dex.getPokemonModel(mascot, undefined, undefined, shinyMascot);
 			if (gif) html += gif;
 		}
 		html += "<h3>" + gameName + "</h3>";
@@ -1525,7 +1525,7 @@ export class Games {
 		if (hostBox && hostBox.pokemon.length) {
 			const gifs: string[] = [];
 			for (let i = 0; i < hostBox.pokemon.length; i++) {
-				const gif = Dex.getPokemonGif(Dex.getExistingPokemon(hostBox.pokemon[i]), undefined, undefined, hostBox.shinyPokemon[i]);
+				const gif = Dex.getPokemonModel(Dex.getExistingPokemon(hostBox.pokemon[i]), undefined, undefined, hostBox.shinyPokemon[i]);
 				if (gif) gifs.push(gif);
 			}
 
@@ -1644,11 +1644,11 @@ export class Games {
 				shiny = parts[1] === 'shiny';
 			}
 			const pokemon = Dex.getPokemon(parts[0]);
-			if (!pokemon || (!pokemonIcons && !Dex.hasGifData(pokemon, pokemonGeneration))) {
+			if (!pokemon || (!pokemonIcons && !Dex.hasModelData(pokemon, pokemonGeneration))) {
 				continue;
 			}
 			gifsOrIcons.push(pokemonIcons ? Dex.getPSPokemonIcon(pokemon) + pokemon.name :
-				Dex.getPokemonGif(pokemon, pokemonGeneration, undefined, shiny));
+				Dex.getPokemonModel(pokemon, pokemonGeneration, undefined, shiny));
 		}
 
 		if (!trainerHtml && !gifsOrIcons.length) {

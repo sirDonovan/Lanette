@@ -28,7 +28,7 @@ class WishiwashisStatFishing extends ScriptedGame {
 	stats: string[] = ['hp', 'atk', 'def', 'spa', 'spd', 'spe', 'bst'];
 
 	static loadData(): void {
-		const pokemonList = Games.getPokemonList(x => x.types.includes("Water") && Dex.hasGifData(x));
+		const pokemonList = Games.getPokemonList(x => x.types.includes("Water") && Dex.hasModelData(x));
 		for (const pokemon of pokemonList) {
 			let bst = 0;
 			for (const i in pokemon.baseStats) {
@@ -104,7 +104,7 @@ class WishiwashisStatFishing extends ScriptedGame {
 		const points = this.points.get(firstPlayer) || 0;
 		this.points.set(firstPlayer, points + statPoints);
 
-		const html = "<center>" + Dex.getPokemonGif(pokemon, undefined, undefined, shinyPokemon) + "<br />" + firstPlayer.name + " " +
+		const html = "<center>" + Dex.getPokemonModel(pokemon, undefined, undefined, shinyPokemon) + "<br />" + firstPlayer.name + " " +
 			"reeled in a <b>" + pokemon.name + (shinyPokemon ? ' \u2605' : '') + "</b> and " + (negative ? "lost" : "earned") + " its " +
 			this.statNames[stat] + " (" + statPoints + ")!</center>";
 		this.onHtml(html, () => {

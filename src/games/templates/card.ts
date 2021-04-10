@@ -153,7 +153,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	filterPokemonList(pokemon: IPokemon): boolean {
 		if ((this.requiredGen && pokemon.gen !== this.requiredGen) ||
 			(pokemon.forme && (!this.filterForme || !this.filterForme(pokemon))) ||
-			(this.usesActionCards && pokemon.id in this.actionCards) || !Dex.hasGifData(pokemon) ||
+			(this.usesActionCards && pokemon.id in this.actionCards) || !Dex.hasModelData(pokemon) ||
 			(this.filterPoolItem && !this.filterPoolItem(pokemon))) return false;
 		return true;
 	}
@@ -278,8 +278,8 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 			} else {
 				const shinyPokemon = (card as IPokemonCard).shiny;
 				names.push(card.name + (shinyPokemon ? ' \u2605' : ''));
-				image = Dex.getPokemonGif(Dex.getExistingPokemon(card.name), undefined, undefined, shinyPokemon);
 				width += Dex.getData().gifData[card.id]!.front!.w;
+				image = Dex.getPokemonModel(Dex.getExistingPokemon(card.name), undefined, undefined, shinyPokemon);
 			}
 
 			images.push(image);

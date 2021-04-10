@@ -92,7 +92,7 @@ class MagikarpsWaterWheel extends ScriptedGame {
 		let goldenMagikarp = false;
 		if (this.random(100) <= wheelStats.magikarpChance) {
 			magikarp = true;
-			const gif = Dex.getPokemonGif(this.mascot!);
+			const gif = Dex.getPokemonModel(this.mascot!);
 			if (gif) html += "<br />" + gif;
 		} else {
 			let points = this.points.get(player) || 0;

@@ -425,7 +425,7 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 			const list: IPokemon[] = [];
 			for (const key of Dex.getData().pokemonKeys) {
 				const pokemon = Dex.getExistingPokemon(key);
-				if (pokemon.id in this.actionCards || !Dex.hasGifData(pokemon)) continue;
+				if (pokemon.id in this.actionCards || !Dex.hasModelData(pokemon)) continue;
 				list.push(pokemon);
 			}
 			pokemonList = list;

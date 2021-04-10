@@ -62,7 +62,7 @@ class TapusTerrains extends ScriptedGame {
 	terrainRound: number = 0;
 
 	static loadData(): void {
-		const pokedex = Games.getPokemonList(x => Dex.hasGifData(x));
+		const pokedex = Games.getPokemonList(x => Dex.hasModelData(x));
 		for (const pokemon of pokedex) {
 			for (const type of pokemon.types) {
 				for (const key of terrainKeys) {
@@ -160,7 +160,7 @@ class TapusTerrains extends ScriptedGame {
 
 		if (!this.format.options.freejoin) this.roundJumps.clear();
 
-		const pokemonHtml = '<div class="infobox"><center>' + Dex.getPokemonGif(Dex.getExistingPokemon(this.targetPokemon)) +
+		const pokemonHtml = '<div class="infobox"><center>' + Dex.getPokemonModel(Dex.getExistingPokemon(this.targetPokemon)) +
 			'<br />A wild <b>' + this.targetPokemon + '</b> appeared!</center></div>';
 		if (newTerrain) {
 			const roundHtml = this.getRoundHtml(players => this.format.options.freejoin ? this.getPlayerPoints(players) :

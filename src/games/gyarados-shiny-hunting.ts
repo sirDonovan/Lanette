@@ -41,7 +41,7 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 	static loadData(): void {
 		for (const pokemon of Games.getPokemonList()) {
 			if (pokemon.forme || pokemon.gen > 5) continue;
-			const gifData = Dex.getGifData(pokemon, SPRITE_GENERATION);
+			const gifData = Dex.getModelData(pokemon, SPRITE_GENERATION);
 			if (gifData && gifData.w && gifData.h && gifData.w <= MAX_POKEMON_WIDTH && gifData.h <= MAX_POKEMON_HEIGHT) {
 				data.gifData[pokemon.name] = gifData;
 				data.pokemon.push(pokemon.name);
@@ -76,11 +76,11 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 	}
 
 	getCurrentGif(pokemon: IPokemon): string {
-		return Dex.getPokemonGif(pokemon, SPRITE_GENERATION);
+		return Dex.getPokemonModel(pokemon, SPRITE_GENERATION);
 	}
 
 	getShinyCurrentGif(pokemon: IPokemon): string {
-		return Dex.getPokemonGif(pokemon, SPRITE_GENERATION, undefined, true);
+		return Dex.getPokemonModel(pokemon, SPRITE_GENERATION, undefined, true);
 	}
 
 	generateAnswer(): void {

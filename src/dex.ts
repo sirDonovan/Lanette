@@ -914,8 +914,15 @@ export class Dex {
 		return inverseResistances;
 	}
 
-	getGifData(pokemon: IPokemon, generation?: GifGeneration, direction?: 'front' | 'back'): IGifDirectionData | undefined {
+	getModelData(pokemon: IPokemon, generation?: GifGeneration, direction?: 'front' | 'back'): IGifDirectionData | undefined {
 		if (!generation) generation = 'xy';
+		if (generation === 'rb' || generation === 'gs' || generation === 'rs' || generation === 'dp') {
+			return {
+				h: 96,
+				w: 96,
+			};
+		}
+
 		if (!direction) direction = 'front';
 		if (generation === 'bw') {
 			const gifDataBW = this.getData().gifDataBW;
@@ -931,15 +938,31 @@ export class Dex {
 		return undefined;
 	}
 
-	hasGifData(pokemon: IPokemon, generation?: GifGeneration, direction?: 'front' | 'back'): boolean {
-		return !!this.getGifData(pokemon, generation, direction);
+	hasModelData(pokemon: IPokemon, generation?: GifGeneration, direction?: 'front' | 'back'): boolean {
+		return !!this.getModelData(pokemon, generation, direction);
 	}
 
-	getPokemonGif(pokemon: IPokemon, generation?: GifGeneration, direction?: 'front' | 'back', shiny?: boolean): string {
+	getPokemonModel(pokemon: IPokemon, generation?: GifGeneration, direction?: 'front' | 'back', shiny?: boolean): string {
 		if (!generation) generation = 'xy';
-		const bw = generation === 'bw';
 
-		let prefix = '//' + Tools.mainServer + '/sprites/' + (bw ? 'gen5' : '') + 'ani';
+		const bw = generation === 'bw';
+		const xy = generation === 'xy';
+
+		let prefix = '//' + Tools.mainServer + '/sprites/';
+		let suffix = '.png';
+		if (generation === 'rb') {
+			prefix += 'gen1';
+		} else if (generation === 'gs') {
+			prefix += 'gen2';
+		} else if (generation === 'rs') {
+			prefix += 'gen3';
+		} else if (generation === 'dp') {
+			prefix += 'gen4';
+		} else {
+			prefix += (bw ? 'gen5' : '') + 'ani';
+			suffix = '.gif';
+		}
+
 		if (!direction) direction = 'front';
 		if (direction === 'front') {
 			if (shiny) {
@@ -953,12 +976,11 @@ export class Dex {
 			}
 		}
 
-		let suffix = '.gif';
 		let pokemonGifData: IGifData | undefined;
 		if (bw) {
 			const gifDataBW = this.getData().gifDataBW;
 			if (Object.prototype.hasOwnProperty.call(gifDataBW, pokemon.id)) pokemonGifData = gifDataBW[pokemon.id];
-		} else {
+		} else if (xy) {
 			if (Config.afd) {
 				prefix = '//' + Tools.mainServer + '/sprites/afd';
 				suffix = '.png';

@@ -48,7 +48,7 @@ export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemo
 			if (this.pokemon.includes(pokemon.name) || (pokemon.forme && pokemon.baseSpecies === 'Unown')) continue;
 
 			this.pokemon.push(pokemon.name);
-			if (Dex.hasGifData(pokemon)) this.pokemonGifs.push(pokemon.name);
+			if (Dex.hasModelData(pokemon)) this.pokemonGifs.push(pokemon.name);
 
 			if (pokemon.name === 'Unown') continue;
 
@@ -56,7 +56,7 @@ export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemo
 				for (const name of pokemon.cosmeticFormes) {
 					const forme = Dex.getExistingPokemon(name);
 					this.pokemon.push(forme.name);
-					if (Dex.hasGifData(forme)) this.pokemonGifs.push(forme.name);
+					if (Dex.hasModelData(forme)) this.pokemonGifs.push(forme.name);
 				}
 			}
 
@@ -64,7 +64,7 @@ export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemo
 				for (const name of pokemon.otherFormes) {
 					const forme = Dex.getExistingPokemon(name);
 					this.pokemon.push(forme.name);
-					if (Dex.hasGifData(forme)) this.pokemonGifs.push(forme.name);
+					if (Dex.hasModelData(forme)) this.pokemonGifs.push(forme.name);
 				}
 			}
 		}

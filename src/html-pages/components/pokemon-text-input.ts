@@ -47,7 +47,7 @@ export class PokemonTextInput extends TextInput<PokemonChoices> {
 				}
 			}
 
-			if (this.props.gif && !Dex.hasGifData(pokemon)) {
+			if (this.props.gif && !Dex.hasModelData(pokemon)) {
 				this.errors.push(pokemon.name + " does not have a GIF");
 				continue;
 			}

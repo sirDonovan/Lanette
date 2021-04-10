@@ -25,7 +25,7 @@ class MachopsMatchups extends ScriptedGame {
 	currentPokemon!: IPokemon;
 
 	static loadData(): void {
-		const pokemonList = Games.getPokemonList(x => !x.forme && !banlist.includes(x.id) && Dex.hasGifData(x) && x.types.length > 1 &&
+		const pokemonList = Games.getPokemonList(x => !x.forme && !banlist.includes(x.id) && Dex.hasModelData(x) && x.types.length > 1 &&
 			!x.types.includes('Steel') && !x.types.includes('Normal'));
 
 		for (const pokemon of pokemonList) {
@@ -99,7 +99,7 @@ class MachopsMatchups extends ScriptedGame {
 		const roundUhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(roundUhtmlName, roundHtml, () => {
 			this.timeout = setTimeout(() => {
-				const pokemonHtml = "<center>" + Dex.getPokemonGif(this.currentPokemon) + "<br /><b>" + this.currentPokemon.name +
+				const pokemonHtml = "<center>" + Dex.getPokemonModel(this.currentPokemon) + "<br /><b>" + this.currentPokemon.name +
 					"</b><br />" + Dex.getTypeHtml(Dex.getExistingType(this.currentPokemon.types[0])) + "&nbsp;/&nbsp;" +
 					Dex.getTypeHtml(Dex.getExistingType(this.currentPokemon.types[1])) + "</center>";
 				const pokemonUhtmlName = this.uhtmlBaseName + '-pokemon';

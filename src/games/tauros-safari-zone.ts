@@ -35,14 +35,14 @@ class TaurosSafariZone extends ScriptedGame {
 	winners = new Map<Player, number>();
 
 	static loadData(): void {
-		const pokemonList = Games.getPokemonList(pokemon => Dex.hasGifData(pokemon) && pokemon.id !== 'voltorb' &&
+		const pokemonList = Games.getPokemonList(pokemon => Dex.hasModelData(pokemon) && pokemon.id !== 'voltorb' &&
 			pokemon.id !== 'electrode');
 		const listWithFormes = pokemonList.slice();
 		for (const pokemon of pokemonList) {
 			if (pokemon.otherFormes) {
 				for (const name of pokemon.otherFormes) {
 					const forme = Dex.getExistingPokemon(name);
-					if (Dex.hasGifData(forme)) listWithFormes.push(forme);
+					if (Dex.hasModelData(forme)) listWithFormes.push(forme);
 				}
 			}
 		}
@@ -96,7 +96,7 @@ class TaurosSafariZone extends ScriptedGame {
 		this.highestBST = baseStatTotals[0].pokemon;
 		let html = "<div class='infobox'><center>";
 		for (const pokemon of pokemonList) {
-			html += Dex.getPokemonGif(pokemon);
+			html += Dex.getPokemonModel(pokemon);
 		}
 		html += "<br />Wild <b>" + pokemonList.map(x => x.name).join(", ") + "</b> appeared!</center></div>";
 		const uhtmlName = this.uhtmlBaseName + '-pokemon';

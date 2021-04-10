@@ -173,11 +173,11 @@ export const commands: BaseCommandDefinitions = {
 			for (const name of targets) {
 				const pokemon = Dex.getPokemon(name);
 				if (!pokemon) return this.sayError(['invalidPokemon', name]);
-				if (!showIcon && !Dex.hasGifData(pokemon, generation)) {
+				if (!showIcon && !Dex.hasModelData(pokemon, generation)) {
 					return this.say(pokemon.name + " does not have a" + (isBW ? " BW" : "") + " gif.");
 				}
 				pokemonList.push(pokemon);
-				gifsOrIcons.push(showIcon ? Dex.getPSPokemonIcon(pokemon) + pokemon.name : Dex.getPokemonGif(pokemon, generation));
+				gifsOrIcons.push(showIcon ? Dex.getPSPokemonIcon(pokemon) + pokemon.name : Dex.getPokemonModel(pokemon, generation));
 			}
 
 			if (!gifsOrIcons.length) return this.say("You must specify at least 1 Pokemon.");
@@ -256,7 +256,7 @@ export const commands: BaseCommandDefinitions = {
 			const usedPokemon: IPokemon[] = [];
 			for (const pokemon of pokemonList) {
 				if (isBW && pokemon.gen > 5) continue;
-				if (!showIcon && !Dex.hasGifData(pokemon, generation)) continue;
+				if (!showIcon && !Dex.hasModelData(pokemon, generation)) continue;
 				if (typing) {
 					if (dualType) {
 						if (pokemon.types.slice().sort().join("/") !== typing) continue;
@@ -266,7 +266,7 @@ export const commands: BaseCommandDefinitions = {
 				}
 
 				usedPokemon.push(pokemon);
-				gifsOrIcons.push(showIcon ? Dex.getPSPokemonIcon(pokemon) + pokemon.name : Dex.getPokemonGif(pokemon, generation));
+				gifsOrIcons.push(showIcon ? Dex.getPSPokemonIcon(pokemon) + pokemon.name : Dex.getPokemonModel(pokemon, generation));
 				if (gifsOrIcons.length === amount) break;
 			}
 

@@ -268,8 +268,8 @@ describe("Dex", () => {
 			Dex.getInverseResistances(pokemon);
 			Dex.getWeaknesses(pokemon);
 			Dex.getInverseWeaknesses(pokemon);
-			if (Dex.hasGifData(pokemon)) {
-				Dex.getPokemonGif(pokemon);
+			if (Dex.hasModelData(pokemon)) {
+				Dex.getPokemonModel(pokemon);
 			}
 			Dex.getPokemonIcon(pokemon);
 			Dex.getPSPokemonIcon(pokemon);

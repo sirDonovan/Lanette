@@ -352,7 +352,7 @@ export const commands: BaseCommandDefinitions = {
 						return this.say("You can only use a regular Unown GIF.");
 					}
 
-					if (!Dex.hasGifData(pokemon)) {
+					if (!Dex.hasModelData(pokemon)) {
 						return this.say(pokemon.name + " does not have a GIF! Please choose a different Pokemon.");
 					}
 
