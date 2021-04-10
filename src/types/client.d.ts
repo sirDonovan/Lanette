@@ -36,8 +36,6 @@ export interface IOutgoingMessageAttributes {
 	notifyMessage?: string;
 	pageId?: string;
 	roomid?: string;
-	sentTime?: number;
-	serverProcessingTime?: number;
 	text?: string;
 	uhtmlName?: string;
 	user?: string;
@@ -47,6 +45,7 @@ export interface IOutgoingMessageAttributes {
 export interface IOutgoingMessage extends IOutgoingMessageAttributes {
 	message: string;
 	type: IOutgoingMessageTypes;
+	sentTime?: number;
 }
 
 export type GroupName = 'locked' | 'muted' | 'regularuser' | 'prizewinner' | 'voice' | 'player' | 'bot' | 'driver' | 'moderator' | 'host' |

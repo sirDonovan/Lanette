@@ -28,10 +28,10 @@ const SERVER_RESTART_CONNECTION_TIME = 10 * 1000;
 const REGULAR_MESSAGE_THROTTLE = 600;
 const TRUSTED_MESSAGE_THROTTLE = 100;
 const SERVER_CHAT_QUEUE_LIMIT = 6;
-const DEFAULT_PROCESSING_TIME = 25;
+const MESSAGE_THROTTLE_BUFFER = 2;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
-const LATENCY_CHECK_INTERVAL = 30 * 1000;
+const CONNECTION_CHECK_INTERVAL = 30 * 1000;
 const MAX_PROCESSING_MEASUREMENT_GAP = 30 * 1000;
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
@@ -208,7 +208,6 @@ export class Client {
 	private incomingMessageQueue: {message: Data, timestamp: number}[] = [];
 	private lastOutgoingMessage: IOutgoingMessage | null = null;
 	private lastProcessingTimeCheck: number = 0;
-	private lastSendTimeoutTime: number = 0;
 	private loggedIn: boolean = false;
 	private loginServerHostname: string = '';
 	private loginServerPath: string = '';
@@ -228,6 +227,8 @@ export class Client {
 	private roomsToRejoin: string[] = [];
 	private sendThrottle: number = Config.trustedUser ? TRUSTED_MESSAGE_THROTTLE : REGULAR_MESSAGE_THROTTLE;
 	private sendTimeout: NodeJS.Timer | true | undefined = undefined;
+	private sendTimeoutDuration: number = 0;
+	private sendTimeoutTimestamp: number = 0;
 	private server: string = Config.server || Tools.mainServer;
 	private serverChatQueueWaits: number = 0;
 	private serverGroupsResponse: ServerGroupData[] = DEFAULT_SERVER_GROUPS;
@@ -235,7 +236,6 @@ export class Client {
 	private serverId: string = 'showdown';
 	private serverPingTimeout: NodeJS.Timer | null = null;
 	private serverTimeOffset: number = 0;
-	private serverProcessingTime: number = DEFAULT_PROCESSING_TIME;
 	private serverProcessingMeasurements: IServerProcessingMeasurement[] = [];
 	private webSocket: import('ws') | null = null;
 
@@ -344,7 +344,7 @@ export class Client {
 	}
 
 	getSendThrottle(): number {
-		return this.sendThrottle + this.serverProcessingTime;
+		return this.sendThrottle + MESSAGE_THROTTLE_BUFFER;
 	}
 
 	checkFilters(message: string, room?: Room): string | undefined {
@@ -425,11 +425,10 @@ export class Client {
 
 		this.sendTimeout = true;
 
-		outgoingMessage.serverProcessingTime = this.serverProcessingTime;
-		this.lastOutgoingMessage = outgoingMessage;
-
-		if (outgoingMessage.measure) outgoingMessage.sentTime = Date.now();
 		this.webSocket.send(outgoingMessage.message, () => {
+			if (outgoingMessage.measure) outgoingMessage.sentTime = Date.now();
+			this.lastOutgoingMessage = outgoingMessage;
+
 			if (this.sendTimeout === true) this.setSendTimeout();
 		});
 	}
@@ -440,8 +439,8 @@ export class Client {
 
 	getSendThrottleValues(): string[] {
 		return ["Base throttle: " + this.sendThrottle + "ms",
-			"Processing time: " + this.serverProcessingTime + "ms" + (this.serverProcessingMeasurements.length ?
-			" ([" + this.serverProcessingMeasurements.map(x => x.measurement).join(", ") + "])" : ""),
+			"Processing measurements: " + (this.serverProcessingMeasurements.length ?
+			"[" + this.serverProcessingMeasurements.map(x => x.measurement).join(", ") + "]" : "(none)"),
 			"Queued outgoing messages: " + this.outgoingMessageQueue.length];
 	}
 
@@ -526,7 +525,7 @@ export class Client {
 		this.webSocket.once('pong', pongListener);
 		this.webSocket.ping('', undefined, () => {
 			if (this.serverPingTimeout) clearTimeout(this.serverPingTimeout);
-			this.serverPingTimeout = setTimeout(() => this.pingServer(), LATENCY_CHECK_INTERVAL + 1000);
+			this.serverPingTimeout = setTimeout(() => this.pingServer(), CONNECTION_CHECK_INTERVAL + 1000);
 		});
 	}
 
@@ -540,12 +539,12 @@ export class Client {
 		if (previous.challstrTimeout) clearTimeout(previous.challstrTimeout);
 		if (previous.serverPingTimeout) clearTimeout(previous.serverPingTimeout);
 
-		if (previous.lastSendTimeoutTime) this.lastSendTimeoutTime = previous.lastSendTimeoutTime;
 		if (previous.lastProcessingTimeCheck) this.lastProcessingTimeCheck = previous.lastProcessingTimeCheck;
 		if (previous.lastOutgoingMessage) this.lastOutgoingMessage = Object.assign({}, previous.lastOutgoingMessage);
 
+		if (previous.sendTimeoutDuration) this.sendTimeoutDuration = previous.sendTimeoutDuration;
+		if (previous.sendTimeoutTimestamp) this.sendTimeoutTimestamp = previous.sendTimeoutTimestamp;
 		if (previous.serverChatQueueWaits) this.serverChatQueueWaits = previous.serverChatQueueWaits;
-		if (previous.serverProcessingTime) this.serverProcessingTime = previous.serverProcessingTime;
 		if (previous.serverProcessingMeasurements) this.serverProcessingMeasurements = previous.serverProcessingMeasurements.slice();
 
 		if (previous.outgoingMessageQueue) this.outgoingMessageQueue = previous.outgoingMessageQueue.slice();
@@ -587,7 +586,7 @@ export class Client {
 		if (previous.sendTimeout) {
 			if (previous.sendTimeout !== true) clearTimeout(previous.sendTimeout);
 			delete previous.sendTimeout;
-			if (!this.sendTimeout) this.setSendTimeout(this.lastSendTimeoutTime);
+			if (!this.sendTimeout) this.setSendTimeout(this.sendTimeoutDuration);
 		}
 
 		if (previous.server) this.server = previous.server;
@@ -2158,15 +2157,10 @@ export class Client {
 					timestamp: responseTime,
 				});
 
-				if (measurement) {
-					while (responseTime - this.serverProcessingMeasurements[0].timestamp > this.maxProcessingMeasurementGap) {
-						this.serverProcessingMeasurements.shift();
-					}
+				while (responseTime - this.serverProcessingMeasurements[0].timestamp > this.maxProcessingMeasurementGap) {
+					this.serverProcessingMeasurements.shift();
 				}
 
-				const oldServerProcessingTime = this.serverProcessingTime;
-				this.serverProcessingTime = Math.ceil(this.serverProcessingMeasurements.map(x => x.measurement)
-					.reduce((total, i) => total += i) / this.serverProcessingMeasurements.length);
 				this.lastProcessingTimeCheck = responseTime;
 
 				if (measurement >= this.sendThrottle) {
@@ -2177,9 +2171,8 @@ export class Client {
 							this.serverChatQueueWaits = 0;
 						});
 					}
-				} else if (!this.serverChatQueueWaits && this.sendTimeout && this.sendTimeout !== true &&
-					this.serverProcessingTime > oldServerProcessingTime) {
-					this.setSendTimeout(this.getSendThrottle() + (this.serverProcessingTime - oldServerProcessingTime));
+				} else if (!this.serverChatQueueWaits && measurement && this.sendTimeout && this.sendTimeout !== true) {
+					this.setSendTimeout(((this.sendTimeoutTimestamp + this.sendTimeoutDuration) - responseTime) + measurement);
 				}
 			}
 
@@ -2189,11 +2182,8 @@ export class Client {
 
 	private clearSendTimeout(): void {
 		if (this.sendTimeout) {
-			if (this.sendTimeout === true) {
-				delete this.sendTimeout;
-			} else {
-				clearTimeout(this.sendTimeout);
-			}
+			if (this.sendTimeout !== true) clearTimeout(this.sendTimeout);
+			delete this.sendTimeout;
 		}
 	}
 
@@ -2205,7 +2195,10 @@ export class Client {
 		}
 
 		if (!time) time = this.getSendThrottle();
-		this.lastSendTimeoutTime = time;
+
+		this.sendTimeoutDuration = time;
+		this.sendTimeoutTimestamp = Date.now();
+
 		this.sendTimeout = setTimeout(() => {
 			if (callback) callback();
 
