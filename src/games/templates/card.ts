@@ -305,7 +305,8 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 				const shinyPokemon = (card as IPokemonCard).shiny;
 				names.push(card.name + (shinyPokemon ? ' \u2605' : ''));
 				const pokemon = dex.getExistingPokemon(card.name);
-				image = Dex.getPokemonModel(pokemon, this.gifGeneration, undefined, shinyPokemon);
+				image = Dex.getPokemonModel(pokemon, shinyPokemon && this.gifGeneration === 'rb' ? 'gs' : this.gifGeneration, undefined,
+					shinyPokemon);
 				width += Dex.getModelData(pokemon, this.gifGeneration)!.w;
 			}
 
