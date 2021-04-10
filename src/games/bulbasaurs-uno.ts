@@ -8,8 +8,6 @@ type AchievementNames = "drawwizard" | "luckofthedraw";
 type ActionCardNames = 'greninja' | 'kecleon' | 'magnemite' | 'doduo' | 'machamp' | 'inkay' | 'slaking' | 'spinda';
 type ActionCardsType = KeyedDict<ActionCardNames, IActionCardData<BulbasaursUno>>;
 
-const types: Dict<string> = {};
-
 const drawWizardAmount = 6;
 
 class BulbasaursUno extends CardMatching<ActionCardsType> {
@@ -51,13 +49,13 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 					return false;
 				}
 
-				if (!(type in types)) {
+				if (!(type in game.usableTypes)) {
 					if (player) player.say(CommandParser.getErrorText(['invalidType', targets[0]]));
 					return false;
 				}
 
-				if (game.topCard.types.length === 1 && types[type] === game.topCard.types[0]) {
-					if (player) player.say("The top card is already " + types[type] + " type.");
+				if (game.topCard.types.length === 1 && game.usableTypes[type] === game.topCard.types[0]) {
+					if (player) player.say("The top card is already " + game.usableTypes[type] + " type.");
 					return false;
 				}
 
@@ -293,13 +291,17 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 	skippedPlayerAchievement = BulbasaursUno.achievements.drawwizard;
 	skippedPlayerAchievementAmount = drawWizardAmount;
 	typesLimit: number = 20;
+	usableTypes: Dict<string> = {};
 	usesColors: boolean = true;
 
-	static loadData(): void {
-		for (const key of Dex.getData().typeKeys) {
-			const type = Dex.getExistingType(key);
-			types[type.id] = type.name;
-			types[type.id + 'type'] = type.name;
+	onSignups(): void {
+		super.onSignups();
+
+		const dex = this.getDex();
+		for (const key of dex.getData().typeKeys) {
+			const type = dex.getExistingType(key);
+			this.usableTypes[type.id] = type.name;
+			this.usableTypes[type.id + 'type'] = type.name;
 		}
 	}
 
@@ -335,8 +337,8 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 			drawCards = 0;
 		} else if (id === 'greninja') {
 			const type = Tools.toId(targets[0]);
-			this.topCard.types = [types[type]];
-			cardDetail = types[type];
+			this.topCard.types = [this.usableTypes[type]];
+			cardDetail = this.usableTypes[type];
 		} else if (id === 'kecleon') {
 			const color = Tools.toId(targets[0]);
 			this.topCard.color = this.colors[color];

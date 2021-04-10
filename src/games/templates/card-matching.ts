@@ -57,7 +57,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	abstract playActionCard(card: ICard, player: Player, targets: string[], cards: ICard[]): boolean;
 
 	filterForme(forme: IPokemon): boolean {
-		const baseSpecies = Dex.getExistingPokemon(forme.baseSpecies);
+		const baseSpecies = this.getDex().getExistingPokemon(forme.baseSpecies);
 		if ((baseSpecies.color !== forme.color || !Tools.compareArrays(baseSpecies.types, forme.types)) &&
 			!(baseSpecies.name === "Arceus" || baseSpecies.name === "Silvally")) return true;
 		return false;
@@ -107,7 +107,9 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			return;
 		}
 
-		const actionCards = Object.keys(this.actionCards);
+		const actionCards = Object.keys(this.actionCards)
+			// @ts-expect-error
+			.filter(x => !(this.requiredGen && (this.actionCards[x] as IActionCardData).noOldGen));
 		if (actionCards.length && this.usesActionCards) {
 			let actionCardAmount = this.actionCardAmount;
 			let totalActionCards = actionCards.length * actionCardAmount;
@@ -159,7 +161,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		let html = '<div class="infobox" style="width: ' + width + 'px">';
 		const displayNames: string[] = [];
 		const names: string[] = [];
-		const pokemonKeys = Dex.getData().pokemonKeys;
+		const pokemonKeys = this.getDex().getData().pokemonKeys;
 		for (const card of group) {
 			names.push(card.name);
 
@@ -263,7 +265,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		}
 
 		html += '<center>';
-		if (Dex.getData().pokemonKeys.includes(card.id)) {
+		if (this.getDex().getData().pokemonKeys.includes(card.id)) {
 			html += Dex.getPokemonIcon(Dex.getExistingPokemon(card.name));
 		}
 		html += card.name + '<br />';
@@ -793,11 +795,9 @@ const commands: GameCommandDefinitions<CardMatching> = {
 				if (!id) {
 					user.say("You must specify a card.");
 				} else {
-					const pokemon = Dex.getData().pokemonKeys.includes(id);
-					const move = Dex.getData().moveKeys.includes(id);
-					if (pokemon) {
+					if (Dex.getData().pokemonKeys.includes(id)) {
 						user.say("You do not have [ " + Dex.getExistingPokemon(cardName).name + " ].");
-					} else if (move) {
+					} else if (Dex.getData().moveKeys.includes(id)) {
 						user.say("You do not have [ " + Dex.getExistingMove(cardName).name + " ].");
 					} else {
 						user.say("'" + cardName + "' is not a valid Pokemon or move.");

@@ -2,6 +2,7 @@ import type { Player } from '../../room-activity';
 import { ScriptedGame } from '../../room-game-scripted';
 import type { Room } from '../../rooms';
 import { assert, assertStrictEqual } from '../../test/test-tools';
+import type { GifGeneration } from '../../types/dex';
 import type { GameCommandDefinitions, GameFileTests, IGameTemplateFile, PlayerList } from '../../types/games';
 import type { IItem, IMove, IPokemon, StatsTable } from '../../types/pokemon-showdown';
 
@@ -13,6 +14,7 @@ export interface IActionCardData<T extends ScriptedGame = ScriptedGame, U extend
 	readonly description: string;
 	readonly name: string;
 	drawCards?: number;
+	readonly noOldGen?: boolean;
 	readonly requiredTarget?: boolean;
 	skipPlayers?: number;
 }
@@ -73,6 +75,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 
 	room!: Room;
 
+	gifGeneration?: GifGeneration;
 	lives?: Map<Player, number>;
 	requiredGen?: number;
 	startingLives?: number;
@@ -83,6 +86,29 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	abstract getCardsPmHtml(cards: ICard[], player?: Player, playableCards?: boolean): string;
 	abstract onNextRound(): void;
 	abstract onStart(): void;
+
+	onSignups(): void {
+		if (this.requiredGen) {
+			if (this.requiredGen === 1) {
+				this.gifGeneration = 'rb';
+			} else if (this.requiredGen === 2) {
+				this.gifGeneration = 'gs';
+			} else if (this.requiredGen === 3) {
+				this.gifGeneration = 'rs';
+			} else if (this.requiredGen === 4) {
+				this.gifGeneration = 'dp';
+			} else if (this.requiredGen === 5) {
+				this.gifGeneration = 'bw';
+			}
+		} else {
+			this.gifGeneration = 'xy';
+		}
+	}
+
+	getDex(): typeof Dex {
+		if (this.requiredGen) return Dex.getDex("gen" + this.requiredGen);
+		return Dex;
+	}
 
 	isMoveCard(card: ICard): card is IMoveCard {
 		return card.effectType === 'move';
@@ -151,16 +177,15 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	}
 
 	filterPokemonList(pokemon: IPokemon): boolean {
-		if ((this.requiredGen && pokemon.gen !== this.requiredGen) ||
-			(pokemon.forme && (!this.filterForme || !this.filterForme(pokemon))) ||
-			(this.usesActionCards && pokemon.id in this.actionCards) || !Dex.hasModelData(pokemon) ||
+		if ((pokemon.forme && (!this.filterForme || !this.filterForme(pokemon))) ||
+			(this.usesActionCards && pokemon.id in this.actionCards) || !Dex.hasModelData(pokemon, this.gifGeneration) ||
 			(this.filterPoolItem && !this.filterPoolItem(pokemon))) return false;
 		return true;
 	}
 
 	createDeckPool(): void {
 		this.deckPool = [];
-		const pokemonList = Games.getPokemonList(pokemon => this.filterPokemonList(pokemon));
+		const pokemonList = Games.getPokemonList(pokemon => this.filterPokemonList(pokemon), this.requiredGen);
 		for (const pokemon of pokemonList) {
 			const color = Tools.toId(pokemon.color);
 			if (!(color in this.colors)) this.colors[color] = pokemon.color;
@@ -263,6 +288,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 		let width = 0;
 		const names: string[] = [];
 		const images: string[] = [];
+		const dex = this.getDex();
 		let info = '';
 		for (const card of cards) {
 			let image = '';
@@ -278,13 +304,15 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 			} else {
 				const shinyPokemon = (card as IPokemonCard).shiny;
 				names.push(card.name + (shinyPokemon ? ' \u2605' : ''));
-				width += Dex.getData().gifData[card.id]!.front!.w;
-				image = Dex.getPokemonModel(Dex.getExistingPokemon(card.name), undefined, undefined, shinyPokemon);
+				const pokemon = dex.getExistingPokemon(card.name);
+				image = Dex.getPokemonModel(pokemon, this.gifGeneration, undefined, shinyPokemon);
+				width += Dex.getModelData(pokemon, this.gifGeneration)!.w;
 			}
 
 			images.push(image);
 			if (!info) info = this.getCardChatDetails(card);
 		}
+
 		width *= 1.5;
 		if (width < 250) width = 250;
 		html += '<div class="infobox" style="width:' + (width + 10) + 'px;"><div class="infobox" style="width:' +
