@@ -28,7 +28,6 @@ const SERVER_RESTART_CONNECTION_TIME = 10 * 1000;
 const REGULAR_MESSAGE_THROTTLE = 600;
 const TRUSTED_MESSAGE_THROTTLE = 100;
 const SERVER_CHAT_QUEUE_LIMIT = 6;
-const MESSAGE_THROTTLE_BUFFER = 2;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const CONNECTION_CHECK_INTERVAL = 30 * 1000;
@@ -228,7 +227,6 @@ export class Client {
 	private sendThrottle: number = Config.trustedUser ? TRUSTED_MESSAGE_THROTTLE : REGULAR_MESSAGE_THROTTLE;
 	private sendTimeout: NodeJS.Timer | true | undefined = undefined;
 	private sendTimeoutDuration: number = 0;
-	private sendTimeoutTimestamp: number = 0;
 	private server: string = Config.server || Tools.mainServer;
 	private serverChatQueueWaits: number = 0;
 	private serverGroupsResponse: ServerGroupData[] = DEFAULT_SERVER_GROUPS;
@@ -239,11 +237,15 @@ export class Client {
 	private serverProcessingMeasurements: IServerProcessingMeasurement[] = [];
 	private webSocket: import('ws') | null = null;
 
+	private defaultSendThrottle: number;
+
 	constructor() {
 		connectListener = () => this.onConnect();
 		messageListener = (message: Data) => this.onMessage(message, Date.now());
 		errorListener = (error: Error) => this.onConnectionError(error);
 		closeListener = (code: number, description: string) => this.onConnectionClose(code, description);
+
+		this.defaultSendThrottle = this.sendThrottle * SERVER_CHAT_QUEUE_LIMIT;
 
 		if (this.server.startsWith('https://')) {
 			this.server = this.server.substr(8);
@@ -343,10 +345,6 @@ export class Client {
 		return this.getPmUserButton(Users.self, message, label, disabled, buttonStyle);
 	}
 
-	getSendThrottle(): number {
-		return this.sendThrottle + MESSAGE_THROTTLE_BUFFER;
-	}
-
 	checkFilters(message: string, room?: Room): string | undefined {
 		if (room) {
 			if (room.configBannedWords) {
@@ -435,6 +433,10 @@ export class Client {
 
 	updateConfigSettings(): void {
 		if (Config.bannedWords && Config.bannedWords.length) this.configBannedWordsRegex = constructBannedWordRegex(Config.bannedWords);
+	}
+
+	getSendThrottle(): number {
+		return this.sendThrottle;
 	}
 
 	getSendThrottleValues(): string[] {
@@ -543,7 +545,6 @@ export class Client {
 		if (previous.lastOutgoingMessage) this.lastOutgoingMessage = Object.assign({}, previous.lastOutgoingMessage);
 
 		if (previous.sendTimeoutDuration) this.sendTimeoutDuration = previous.sendTimeoutDuration;
-		if (previous.sendTimeoutTimestamp) this.sendTimeoutTimestamp = previous.sendTimeoutTimestamp;
 		if (previous.serverChatQueueWaits) this.serverChatQueueWaits = previous.serverChatQueueWaits;
 		if (previous.serverProcessingMeasurements) this.serverProcessingMeasurements = previous.serverProcessingMeasurements.slice();
 
@@ -1584,7 +1585,7 @@ export class Client {
 					"\n\nMessage sent at: " + new Date(this.lastOutgoingMessage.sentTime).toTimeString() + "; " +
 					"Processing time last measured at: " + new Date(this.lastProcessingTimeCheck).toTimeString() + "; " +
 					"Message: " + JSON.stringify(this.lastOutgoingMessage) : ""));
-				this.setSendTimeout(this.getSendThrottle() * SERVER_CHAT_QUEUE_LIMIT);
+				this.setSendTimeout(this.defaultSendThrottle);
 			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
 				room.modchat = messageArguments.html.split('<div class="broadcast-red">' +
 					'<strong>Moderated chat was set to ')[1].split('!</strong>')[0];
@@ -2163,17 +2164,7 @@ export class Client {
 
 				this.lastProcessingTimeCheck = responseTime;
 
-				if (measurement >= this.sendThrottle) {
-					const serverChatQueueWaits = Math.ceil(measurement / this.sendThrottle);
-					if (serverChatQueueWaits >= this.serverChatQueueWaits) {
-						this.serverChatQueueWaits = serverChatQueueWaits;
-						this.setSendTimeout(this.getSendThrottle() * serverChatQueueWaits, () => {
-							this.serverChatQueueWaits = 0;
-						});
-					}
-				} else if (!this.serverChatQueueWaits && measurement && this.sendTimeout && this.sendTimeout !== true) {
-					this.setSendTimeout(((this.sendTimeoutTimestamp + this.sendTimeoutDuration) - responseTime) + measurement);
-				}
+				this.setSendTimeout(measurement >= this.defaultSendThrottle ? this.defaultSendThrottle : this.sendThrottle);
 			}
 
 			this.lastOutgoingMessage = null;
@@ -2187,21 +2178,17 @@ export class Client {
 		}
 	}
 
-	private setSendTimeout(time?: number, callback?: () => void): void {
+	private setSendTimeout(time?: number): void {
 		this.clearSendTimeout();
 		if (this.reloadInProgress) {
 			this.sendTimeout = true;
 			return;
 		}
 
-		if (!time) time = this.getSendThrottle();
+		if (!time) time = this.defaultSendThrottle;
 
 		this.sendTimeoutDuration = time;
-		this.sendTimeoutTimestamp = Date.now();
-
 		this.sendTimeout = setTimeout(() => {
-			if (callback) callback();
-
 			if (this.reloadInProgress) {
 				this.sendTimeout = true;
 				return;
