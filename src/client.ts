@@ -28,6 +28,7 @@ const SERVER_RESTART_CONNECTION_TIME = 10 * 1000;
 const REGULAR_MESSAGE_THROTTLE = 600;
 const TRUSTED_MESSAGE_THROTTLE = 100;
 const SERVER_CHAT_QUEUE_LIMIT = 6;
+const SEND_THROTTLE_BUFFER = 1;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const CONNECTION_CHECK_INTERVAL = 30 * 1000;
@@ -224,7 +225,6 @@ export class Client {
 	private replayServerAddress: string = Config.replayServer || REPLAY_SERVER_ADDRESS;
 	private retryLoginTimeout: NodeJS.Timer | undefined = undefined;
 	private roomsToRejoin: string[] = [];
-	private sendThrottle: number = Config.trustedUser ? TRUSTED_MESSAGE_THROTTLE : REGULAR_MESSAGE_THROTTLE;
 	private sendTimeout: NodeJS.Timer | true | undefined = undefined;
 	private sendTimeoutDuration: number = 0;
 	private server: string = Config.server || Tools.mainServer;
@@ -237,7 +237,9 @@ export class Client {
 	private serverProcessingMeasurements: IServerProcessingMeasurement[] = [];
 	private webSocket: import('ws') | null = null;
 
-	private defaultSendThrottle: number;
+	private chatQueueSendThrottle!: number;
+	private sendThrottle!: number;
+	private sendThrottleWithBuffer!: number;
 
 	constructor() {
 		connectListener = () => this.onConnect();
@@ -245,7 +247,7 @@ export class Client {
 		errorListener = (error: Error) => this.onConnectionError(error);
 		closeListener = (code: number, description: string) => this.onConnectionClose(code, description);
 
-		this.defaultSendThrottle = this.sendThrottle * SERVER_CHAT_QUEUE_LIMIT;
+		this.setSendThrottle(Config.trustedUser ? TRUSTED_MESSAGE_THROTTLE : REGULAR_MESSAGE_THROTTLE);
 
 		if (this.server.startsWith('https://')) {
 			this.server = this.server.substr(8);
@@ -427,7 +429,7 @@ export class Client {
 			if (outgoingMessage.measure) outgoingMessage.sentTime = Date.now();
 			this.lastOutgoingMessage = outgoingMessage;
 
-			if (this.sendTimeout === true) this.setSendTimeout();
+			if (this.sendTimeout === true) this.startSendTimeout();
 		});
 	}
 
@@ -444,6 +446,12 @@ export class Client {
 			"Processing measurements: " + (this.serverProcessingMeasurements.length ?
 			"[" + this.serverProcessingMeasurements.map(x => x.measurement).join(", ") + "]" : "(none)"),
 			"Queued outgoing messages: " + this.outgoingMessageQueue.length];
+	}
+
+	private setSendThrottle(throttle: number): void {
+		this.sendThrottle = throttle;
+		this.sendThrottleWithBuffer = throttle + SEND_THROTTLE_BUFFER;
+		this.chatQueueSendThrottle = throttle * SERVER_CHAT_QUEUE_LIMIT;
 	}
 
 	private loadMessageParsersDirectory(directory: string, optional?: boolean): void {
@@ -582,12 +590,12 @@ export class Client {
 		if (previous.groupSymbols) Object.assign(this.groupSymbols, previous.groupSymbols);
 		if (previous.loggedIn) this.loggedIn = previous.loggedIn;
 		if (previous.publicChatRooms) this.publicChatRooms = previous.publicChatRooms.slice();
-		if (previous.sendThrottle) this.sendThrottle = previous.sendThrottle;
+		if (previous.sendThrottle) this.setSendThrottle(previous.sendThrottle);
 
 		if (previous.sendTimeout) {
 			if (previous.sendTimeout !== true) clearTimeout(previous.sendTimeout);
 			delete previous.sendTimeout;
-			if (!this.sendTimeout) this.setSendTimeout(this.sendTimeoutDuration);
+			if (!this.sendTimeout) this.startSendTimeout(this.sendTimeoutDuration);
 		}
 
 		if (previous.server) this.server = previous.server;
@@ -1153,7 +1161,7 @@ export class Client {
 			user.updateStatus(status, away);
 
 			if (user === Users.self && this.publicChatRooms.includes(room.id) && Users.self.hasRank(room, 'driver')) {
-				this.sendThrottle = TRUSTED_MESSAGE_THROTTLE;
+				this.setSendThrottle(TRUSTED_MESSAGE_THROTTLE);
 			}
 
 			Storage.updateLastSeen(user, now);
@@ -1585,7 +1593,7 @@ export class Client {
 					"\n\nMessage sent at: " + new Date(this.lastOutgoingMessage.sentTime).toTimeString() + "; " +
 					"Processing time last measured at: " + new Date(this.lastProcessingTimeCheck).toTimeString() + "; " +
 					"Message: " + JSON.stringify(this.lastOutgoingMessage) : ""));
-				this.setSendTimeout(this.defaultSendThrottle);
+				this.startSendTimeout(this.chatQueueSendThrottle);
 			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
 				room.modchat = messageArguments.html.split('<div class="broadcast-red">' +
 					'<strong>Moderated chat was set to ')[1].split('!</strong>')[0];
@@ -2164,7 +2172,7 @@ export class Client {
 
 				this.lastProcessingTimeCheck = responseTime;
 
-				this.setSendTimeout(measurement >= this.defaultSendThrottle ? this.defaultSendThrottle : this.sendThrottle);
+				this.startSendTimeout(measurement >= this.chatQueueSendThrottle ? this.chatQueueSendThrottle : this.sendThrottleWithBuffer);
 			}
 
 			this.lastOutgoingMessage = null;
@@ -2178,14 +2186,14 @@ export class Client {
 		}
 	}
 
-	private setSendTimeout(time?: number): void {
+	private startSendTimeout(time?: number): void {
 		this.clearSendTimeout();
 		if (this.reloadInProgress) {
 			this.sendTimeout = true;
 			return;
 		}
 
-		if (!time) time = this.defaultSendThrottle;
+		if (!time) time = this.chatQueueSendThrottle;
 
 		this.sendTimeoutDuration = time;
 		this.sendTimeout = setTimeout(() => {
