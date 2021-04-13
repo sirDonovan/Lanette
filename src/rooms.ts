@@ -291,43 +291,44 @@ export class Room {
 	}
 
 	createTournament(format: IFormat, cap?: number): void {
-		this.say("/tour new " + format.id + ", elimination" + (cap ? ", " + cap : ""), {type: 'tournament-create'});
+		this.say("/tour new " + format.id + ", elimination" + (cap ? ", " + cap : ""),
+			{dontCheckFilter: true, dontPrepare: true, type: 'tournament-create'});
 	}
 
 	startTournament(): void {
-		this.say("/tour start", {type: 'tournament-start'});
+		this.say("/tour start", {dontCheckFilter: true, dontPrepare: true, type: 'tournament-start'});
 	}
 
 	nameTournament(name: string): void {
-		this.say("/tour name " + name, {type: 'tournament-name'});
+		this.say("/tour name " + name, {dontCheckFilter: true, dontPrepare: true, type: 'tournament-name'});
 	}
 
 	setTournamentCap(playerCap: number): void {
-		this.say("/tour cap " + playerCap, {type: 'tournament-cap'});
+		this.say("/tour cap " + playerCap, {dontCheckFilter: true, dontPrepare: true, type: 'tournament-cap'});
 	}
 
 	autoStartTournament(): void {
-		this.say("/tour autostart on", {type: 'tournament-autostart'});
+		this.say("/tour autostart on", {dontCheckFilter: true, dontPrepare: true, type: 'tournament-autostart'});
 	}
 
 	setTournamentAutoDq(minutes: number): void {
-		this.say("/tour autodq " + minutes, {type: 'tournament-autodq'});
+		this.say("/tour autodq " + minutes, {dontCheckFilter: true, dontPrepare: true, type: 'tournament-autodq'});
 	}
 
 	forcePublicTournament(): void {
-		this.say("/tour forcepublic on", {type: 'tournament-forcepulic'});
+		this.say("/tour forcepublic on", {dontCheckFilter: true, dontPrepare: true, type: 'tournament-forcepulic'});
 	}
 
 	disallowTournamentScouting(): void {
-		this.say("/tour scouting disallow", {type: 'tournament-scouting'});
+		this.say("/tour scouting disallow", {dontCheckFilter: true, dontPrepare: true, type: 'tournament-scouting'});
 	}
 
 	disallowTournamentModjoin(): void {
-		this.say("/tour modjoin disallow", {type: 'tournament-modjoin'});
+		this.say("/tour modjoin disallow", {dontCheckFilter: true, dontPrepare: true, type: 'tournament-modjoin'});
 	}
 
 	setTournamentRules(rules: string): void {
-		this.say("/tour rules " + rules, {type: 'tournament-rules'});
+		this.say("/tour rules " + rules, {dontCheckFilter: true, dontPrepare: true, type: 'tournament-rules'});
 	}
 
 	startHangman(answer: string, hint: string): void {
