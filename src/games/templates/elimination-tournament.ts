@@ -613,8 +613,9 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 	getRulesHtml(): string {
 		let html = "<h3><u>Rules</u></h3><ul>";
-		html += "<li>Battles must be played in <b>" + this.battleFormat.name + "</b> (all Pokemon, formes, moves, abilities, and items " +
+		html += "<li>Battles must be played in <b>" + this.battleFormat.name + "</b> (all Pokemon, moves, abilities, and items " +
 			"not banned can be used).</li>";
+		html += "<li>You can change Pokemon between formes and regional variants at any time.</li>";
 		if (!this.allowsScouting) html += "<li>Do not join other tournament battles!</li>";
 		if (!this.usesCloakedPokemon && !this.sharedTeams) {
 			html += "<li>Do not reveal your or your opponents' " + (this.startingTeamsLength === 1 ? "starters" : "teams") + " in " +
