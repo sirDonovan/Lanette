@@ -318,7 +318,7 @@ export class Dex {
 		const id = Tools.toId(name);
 		if (Object.prototype.hasOwnProperty.call(this.abilityCache, id)) return this.abilityCache[id];
 
-		const ability = this.pokemonShowdownDex.getAbility(name);
+		const ability = this.pokemonShowdownDex.abilities.get(name);
 		if (!ability.exists) return undefined;
 
 		this.abilityCache[id] = ability;
@@ -365,7 +365,7 @@ export class Dex {
 		const id = Tools.toId(name);
 		if (Object.prototype.hasOwnProperty.call(this.itemCache, id)) return this.itemCache[id];
 
-		const item = this.pokemonShowdownDex.getItem(name);
+		const item = this.pokemonShowdownDex.items.get(name);
 		if (!item.exists) return undefined;
 
 		this.itemCache[id] = item;
@@ -408,7 +408,7 @@ export class Dex {
 		const id = Tools.toId(name);
 		if (Object.prototype.hasOwnProperty.call(this.learnsetDataCache, id)) return this.learnsetDataCache[id];
 
-		const learnsetData = this.pokemonShowdownDex.getLearnsetData(id);
+		const learnsetData = this.pokemonShowdownDex.species.getLearnsetData(id);
 		if (!learnsetData.exists) return undefined;
 
 		this.learnsetDataCache[id] = learnsetData;
@@ -423,7 +423,7 @@ export class Dex {
 		const id = Tools.toId(name);
 		if (Object.prototype.hasOwnProperty.call(this.moveCache, id)) return this.moveCache[id];
 
-		const move = this.pokemonShowdownDex.getMove(name);
+		const move = this.pokemonShowdownDex.moves.get(name);
 		if (!move.exists) return undefined;
 
 		this.moveCache[id] = move;
@@ -475,7 +475,7 @@ export class Dex {
 		const id = Tools.toId(name);
 		if (Object.prototype.hasOwnProperty.call(this.pokemonCache, id)) return this.pokemonCache[id];
 
-		const pokemon = Tools.deepClone(this.pokemonShowdownDex.getSpecies(name));
+		const pokemon = Tools.deepClone(this.pokemonShowdownDex.species.get(name));
 		if (!pokemon.exists) return undefined;
 
 		if (pokemon.forme && Tools.toId(pokemon.baseSpecies) === pokemon.spriteid) {
@@ -654,10 +654,9 @@ export class Dex {
 		const id = Tools.toId(name);
 		if (Object.prototype.hasOwnProperty.call(this.typeCache, id)) return this.typeCache[id];
 
-		const type = this.pokemonShowdownDex.getType(name);
+		const type = this.pokemonShowdownDex.types.get(name);
 		if (!type.exists) return undefined;
 
-		if (!type.id) type.id = Tools.toId(type.name);
 		this.typeCache[id] = type;
 		return type;
 	}
@@ -672,7 +671,7 @@ export class Dex {
 		const id = Tools.toId(name);
 		if (Object.prototype.hasOwnProperty.call(this.natureCache, id)) return this.natureCache[id];
 
-		const nature = this.pokemonShowdownDex.getNature(name);
+		const nature = this.pokemonShowdownDex.natures.get(name);
 		if (!nature.exists) return undefined;
 
 		this.natureCache[id] = nature;
@@ -1100,7 +1099,7 @@ export class Dex {
 
 		name = name.trim();
 		const inputTarget = name;
-		let format = this.pokemonShowdownDex.getFormat(name, isValidated);
+		let format = this.pokemonShowdownDex.formats.get(name, isValidated);
 		if (!format.exists) {
 			let allCustomRules: string[] = [];
 			const split = this.splitNameAndCustomRules(name);
@@ -1141,17 +1140,23 @@ export class Dex {
 
 			if (uniqueCustomRules.length) name += "@@@" + uniqueCustomRules.join(',');
 
-			format = this.pokemonShowdownDex.getFormat(name, isValidated);
+			format = this.pokemonShowdownDex.formats.get(name, isValidated);
 
 			if (!format.exists) {
 				for (let i = CURRENT_GEN - 1; i >= 1; i--) {
-					format = this.pokemonShowdownDex.getFormat('gen' + i + name, isValidated);
+					format = this.pokemonShowdownDex.formats.get('gen' + i + name, isValidated);
 					if (format.exists) break;
 				}
 			}
 		}
 
 		if (!format.exists) return undefined;
+
+		// standard formats are cached in PS
+		if (!format.customRules) {
+			delete format.ruleTable;
+			format = Tools.deepClone(format);
+		}
 
 		if (!format.gen && format.mod.startsWith('gen')) {
 			const possibleGen = format.mod.substr(3);
@@ -1285,14 +1290,14 @@ export class Dex {
 	 * Returns a sanitized format ID if valid, or throws if invalid.
 	 */
 	validateFormat(name: string): string {
-		return this.pokemonShowdownDex.validateFormat(name);
+		return this.pokemonShowdownDex.formats.validate(name);
 	}
 
 	/**
 	 * Validates a custom rule (throws if invalid).
 	 */
 	validateRule(rule: string): [string, string, string, number, string[]] | string {
-		return this.pokemonShowdownDex.validateRule(rule);
+		return this.pokemonShowdownDex.formats.validateRule(rule);
 	}
 
 	getValidatedRuleName(rule: string): string {
@@ -1334,7 +1339,7 @@ export class Dex {
 
 		const formatid = format.name + (format.customRules ? "@@@" + format.customRules.join(',') : "");
 		const validator = new this.pokemonShowdownValidator(formatid, dexes['base'].pokemonShowdownDex);
-		if (!format.ruleTable) format.ruleTable = this.pokemonShowdownDex.getRuleTable(format);
+		if (!format.ruleTable) format.ruleTable = this.pokemonShowdownDex.formats.getRuleTable(format);
 
 		const formatDex = format.mod in dexes ? dexes[format.mod] : this;
 		const littleCup = format.ruleTable.has("littlecup");
@@ -1343,7 +1348,7 @@ export class Dex {
 			const formes = formatDex.getFormes(formatDex.getExistingPokemon(i));
 			for (const forme of formes) {
 				// use PS tier in isBannedSpecies()
-				const pokemon = formatDex.pokemonShowdownDex.getSpecies(forme);
+				const pokemon = formatDex.pokemonShowdownDex.species.get(forme);
 				if (pokemon.requiredAbility || pokemon.requiredItem || pokemon.requiredItems || pokemon.requiredMove ||
 					validator.checkSpecies({}, pokemon, pokemon, {})) continue;
 
@@ -1385,7 +1390,7 @@ export class Dex {
 		const addedrules: string[] = [];
 		const removedrules: string[] = [];
 		for (const ruleString of customRules) {
-			const rule = this.pokemonShowdownDex.validateRule(ruleString);
+			const rule = this.pokemonShowdownDex.formats.validateRule(ruleString);
 			if (typeof rule === 'string') {
 				const type = rule.charAt(0);
 				const ruleName = this.getValidatedRuleName(rule);
@@ -1883,7 +1888,7 @@ export class Dex {
 				const gen = 'gen' + i;
 				for (const name of baseCustomRuleFormats) {
 					const format = gen + customRuleFormats[name].format;
-					if (!this.pokemonShowdownDex.getFormat(format).exists) continue;
+					if (!this.pokemonShowdownDex.formats.get(format).exists) continue;
 
 					customRuleFormats[gen + name] = {
 						banlist: customRuleFormats[name].banlist,
@@ -1918,7 +1923,7 @@ export class Dex {
 			delete parsedCategories[species];
 		}
 
-		const abilityKeys = Object.keys(this.pokemonShowdownDex.data.Abilities);
+		const abilityKeys = this.pokemonShowdownDex.abilities.all().map(x => x.id);
 		const filteredAbilityKeys: string[] = [];
 		for (const key of abilityKeys) {
 			const ability = this.getAbility(key)!;
@@ -1927,7 +1932,7 @@ export class Dex {
 			filteredAbilityKeys.push(key);
 		}
 
-		const itemKeys = Object.keys(this.pokemonShowdownDex.data.Items);
+		const itemKeys = this.pokemonShowdownDex.items.all().map(x => x.id);
 		const filteredItemKeys: string[] = [];
 		for (const key of itemKeys) {
 			const item = this.getItem(key)!;
@@ -1936,28 +1941,22 @@ export class Dex {
 			filteredItemKeys.push(key);
 		}
 
-		const learnsetDataKeys = Object.keys(this.pokemonShowdownDex.data.Learnsets);
-		const filteredLearnsetDataKeys: string[] = [];
-		for (const key of learnsetDataKeys) {
-			const pokemon = this.getPokemon(key)!;
-			if (pokemon.gen > this.gen) continue;
-			filteredLearnsetDataKeys.push(key);
-		}
-
-		const colors: Dict<string> = {};
-		const eggGroups: Dict<string> = {};
-
 		const validator = new this.pokemonShowdownValidator("gen" + this.gen + "ou", dexes['base'].pokemonShowdownDex);
-		const lcFormat = this.pokemonShowdownDex.getFormat("gen" + this.gen + "lc");
-		const pokemonKeys = Object.keys(this.pokemonShowdownDex.data.Pokedex);
+		const lcFormat = this.pokemonShowdownDex.formats.get("gen" + this.gen + "lc");
+
+		const pokemonKeys = this.pokemonShowdownDex.species.all().map(x => x.id);
+		const filteredLearnsetDataKeys: string[] = [];
 		const filteredPokemonKeys: string[] = [];
 		const moveAvailbilityPokemonList: IPokemon[] = [];
+		const colors: Dict<string> = {};
+		const eggGroups: Dict<string> = {};
 		for (const key of pokemonKeys) {
 			const pokemon = this.getPokemon(key)!;
 			if (pokemon.gen > this.gen) continue;
 
 			this.cacheAllPossibleMoves(validator, pokemon);
 			this.cacheIsPseudoLCPokemon(pokemon, lcFormat);
+			filteredLearnsetDataKeys.push(key);
 			filteredPokemonKeys.push(key);
 
 			if (pokemon.isNonstandard !== 'CAP' && pokemon.isNonstandard !== 'LGPE' && pokemon.isNonstandard !== 'Custom') {
@@ -1979,7 +1978,7 @@ export class Dex {
 			}
 		}
 
-		const moveKeys = Object.keys(this.pokemonShowdownDex.data.Moves);
+		const moveKeys = this.pokemonShowdownDex.moves.all().map(x => x.id);
 		const filteredMoveKeys: string[] = [];
 		for (const key of moveKeys) {
 			const move = this.getMove(key)!;
@@ -1989,7 +1988,7 @@ export class Dex {
 			filteredMoveKeys.push(key);
 		}
 
-		const natureKeys = Object.keys(this.pokemonShowdownDex.data.Natures);
+		const natureKeys = this.pokemonShowdownDex.natures.all().map(x => x.id);
 		const filteredNatureKeys: string[] = [];
 		for (const key of natureKeys) {
 			const nature = this.getNature(key)!;
@@ -1999,13 +1998,13 @@ export class Dex {
 
 		const data: IDataTable = {
 			abilityKeys: filteredAbilityKeys,
-			formatKeys: Object.keys(this.pokemonShowdownDex.data.Formats),
+			formatKeys: this.isBase ? this.pokemonShowdownDex.formats.all().map(x => x.id) : dexes.base.dataCache!.formatKeys.slice(),
 			itemKeys: filteredItemKeys,
 			learnsetDataKeys: filteredLearnsetDataKeys,
 			moveKeys: filteredMoveKeys,
 			natureKeys: filteredNatureKeys,
 			pokemonKeys: filteredPokemonKeys,
-			typeKeys: Object.keys(this.pokemonShowdownDex.data.TypeChart).map(x => Tools.toId(x)),
+			typeKeys: this.pokemonShowdownDex.types.all().map(x => x.id),
 			alternateIconNumbers,
 			badges: badgeData,
 			categories: parsedCategories,

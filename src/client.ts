@@ -1628,7 +1628,7 @@ export class Client {
 					}
 
 					room.tournament.format.customRules = Dex.combineCustomRules(separatedCustomRules);
-					room.tournament.format.separatedCustomRules = null;
+					delete room.tournament.format.separatedCustomRules;
 					if (!room.tournament.manuallyNamed) room.tournament.setCustomFormatName();
 				}
 			} else if (messageArguments.html.startsWith('<div class="broadcast-green"><p style="text-align:left;font-weight:bold;' +
@@ -1646,7 +1646,7 @@ export class Client {
 			} else if (messageArguments.html === "<b>The tournament's custom rules were cleared.</b>") {
 				if (room.tournament) {
 					room.tournament.format.customRules = null;
-					room.tournament.format.separatedCustomRules = null;
+					delete room.tournament.format.separatedCustomRules;
 					if (!room.tournament.manuallyNamed) room.tournament.setCustomFormatName();
 				}
 			}

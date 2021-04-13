@@ -203,7 +203,7 @@ export const tournamentSchedules: Dict<IRoomTournamentSchedule> = {
 					'6': 'doublesou,STABmons Move Legality,-Blissey,-Chansey,-Shedinja,-Silvally,-Snorlax,*Acupressure,' +
 						'*Astral Barrage,*Belly Drum,*Bolt Beak,*Decorate,*Diamond Storm,*Double Iron Bash,*Fishious Rend,*Geomancy,' +
 						'*Glacial Lance,*Lovely Kiss,*Shift Gear,*Shell Smash,*Spore,*Thousand Arrows,-Swift Swim',
-					'7': 'gen1outradeback',
+					'7': 'gen1tradebacksou',
 					'8': 'natdex,!Cancel Mod,VGC Timer',
 					'9': 'gen5ou,+Drizzle ++ Swift Swim,+Drought ++ Chlorophyll,+Sand Rush',
 					'10': 'purehackmons,-Eternatus-Eternamax',

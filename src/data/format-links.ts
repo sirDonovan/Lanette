@@ -367,7 +367,7 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 		teams: 'https://www.smogon.com/forums/threads/3650478/#post-8133786',
 		viability: 'https://www.smogon.com/forums/threads/3572352',
 	},
-	'gen1outradeback': {
+	'gen1tradebacksou': {
 		info: 'https://www.smogon.com/articles/rby-tradebacks-ou',
 	},
 	'gen1uu': {
