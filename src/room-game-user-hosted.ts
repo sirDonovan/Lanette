@@ -146,7 +146,7 @@ export class UserHostedGame extends Game {
 		if (noControlPanel) {
 			this.noControlPanel = true;
 		} else {
-			this.openControlPanel();
+			this.sendControlPanelButton();
 		}
 	}
 
@@ -154,15 +154,17 @@ export class UserHostedGame extends Game {
 		this.subHostId = user.id;
 		this.subHostName = user.name;
 
-		this.openControlPanel();
+		this.sendControlPanelButton();
 	}
 
-	openControlPanel(): void {
+	sendControlPanelButton(): void {
 		if (this.noControlPanel) return;
 
 		const user = Users.get(this.subHostName || this.hostName);
 		if (user) {
-			CommandParser.parse(user, user, Config.commandCharacter + "gamehostcontrolpanel " + this.room.title, Date.now());
+			this.room.pmHtml(user, "To assist with your game, try using the <b>Host Control Panel</b>! It allows you to manage " +
+				"attributes of your game, display trainers & Pokemon, and generate hints.<br /><br />" +
+				Client.getPmSelfButton(Config.commandCharacter + "gamehostcontrolpanel " + this.room.title, "Open panel"));
 		}
 	}
 
