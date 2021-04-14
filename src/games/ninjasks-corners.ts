@@ -33,9 +33,8 @@ class NinjasksCorners extends ScriptedGame {
 		this.nextRound();
 	}
 
-	onNextRound(): void {
-		this.canTravel = false;
-		if (this.round > 1 && !this.format.options.freejoin) {
+	checkRoundTravels(): void {
+		if (!this.format.options.freejoin) {
 			for (const i in this.players) {
 				if (this.players[i].eliminated) continue;
 				const player = this.players[i];
@@ -57,6 +56,12 @@ class NinjasksCorners extends ScriptedGame {
 			if (this.getRemainingPlayerCount() < 2) return this.end();
 		}
 
+		this.nextRound();
+	}
+
+	onNextRound(): void {
+		this.canTravel = false;
+
 		let color = this.sampleOne(colors);
 		while (color === this.lastColor) {
 			color = this.sampleOne(colors);
@@ -74,7 +79,7 @@ class NinjasksCorners extends ScriptedGame {
 				this.on(text, () => {
 					this.canTravel = true;
 					if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint(color, [], true);
-					this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
+					this.timeout = setTimeout(() => this.checkRoundTravels(), this.roundTime);
 				});
 				this.say(text);
 			}, this.sampleOne([4000, 5000, 6000]));
@@ -136,7 +141,7 @@ const commands: GameCommandDefinitions<NinjasksCorners> = {
 				// don't activate achievement if the player typos first
 				this.roundTravels.delete(player);
 				this.roundTravels.set(player, color);
-				if (this.getRemainingPlayerCount() === 2 && color === this.color) this.nextRound();
+				if (this.getRemainingPlayerCount() === 2 && color === this.color) this.checkRoundTravels();
 			}
 			return true;
 		},
