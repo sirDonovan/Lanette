@@ -601,7 +601,7 @@ export const commands: BaseCommandDefinitions = {
 				room.userHostedGame!.gameTimer = null;
 				room.userHostedGame!.gameTimerEndTime = 0;
 
-				if (user.id === room.userHostedGame!.hostId) {
+				if (user.id === room.userHostedGame!.hostId || user.id === room.userHostedGame!.subHostId) {
 					room.say(room.userHostedGame!.hostName + ": time is up!");
 					room.userHostedGame!.autoRefreshControlPanel();
 				}
