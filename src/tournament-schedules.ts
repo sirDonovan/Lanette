@@ -247,7 +247,7 @@ export const tournamentSchedules: Dict<IRoomTournamentSchedule> = {
 						'-Sand Spit,-Sand Stream,-Snow Warning,-Stamina,-Volt Absorb,-Water Absorb,-Wonder Guard,-Aguav Berry,' +
 						'-Assault Vest,-Berry,-Berry Juice,-Berserk Gene,-Black Sludge,-Enigma Berry,-Figy Berry,-Gold Berry,' +
 						'-Iapapa Berry,-Leftovers,-Mago Berry,-Steel Memory,-Oran Berry,-Rocky Helmet,-Shell Bell,-Sitrus Berry,' +
-						'-Wiki Berry,-Harvest +Jaboca Berry,-Harvest +Rowap Berry,+Judgment,+Draco Plate,+Dread Plate,' +
+						'-Wiki Berry,-Harvest +Jaboca Berry,-Harvest +Rowap Berry,+Draco Plate,+Dread Plate,' +
 						'+Earth Plate,+Fist Plate,+Flame Plate,+Icicle Plate,+Insect Plate,+Iron Plate,+Meadow Plate,+Mind Plate,' +
 						'+Pixie Plate,+Sky Plate,+Splash Plate,+Spooky Plate,+Stone Plate,+Toxic Plate,+Zap Plate',
 					'26': 'lc, [Gen 8] Camomons,+Arena Trap,+Shadow Tag',
