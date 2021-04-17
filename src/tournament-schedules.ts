@@ -228,7 +228,7 @@ export const tournamentSchedules: Dict<IRoomTournamentSchedule> = {
 						'+Rayquaza,+Reshiram,+Solgaleo,+Urshifu-Base,+Xerneas,+Yveltal,+Zacian,+Zacian-Crowned,+Zamazenta,' +
 						'+Zamazenta-Crowned,+Zekrom,+Zygarde-Base,+Arena Trap,+Moody,+Power Construct,+Shadow Tag',
 					'16': 'pu,350cupmod',
-					'17': 'ubers,-allpokemon,+pikachu,+dragonite,+gengar,+lucario,+farfetch\'d-galar,+dracovish',
+					'17': 'ubers,-allpokemon,+pikachu,+dragonite,+gengar,+lucario,+sirfetch\'d,+dracovish',
 					'18': 'letsgoou,!teampreview',
 					'19': 'doublesubers,!Obtainable Abilities,!Obtainable Moves,!Obtainable Formes,!Obtainable Misc,Forme Clause,' +
 						'!Species Clause,-Shedinja,-Comatose +Sleep Talk,-Double Iron Bash,-Octolock,-Arena Trap,-Contrary,' +
