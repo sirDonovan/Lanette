@@ -111,14 +111,18 @@ class GameHostBox extends HtmlPageBase {
 		});
 		this.trainerPicker.active = false;
 
-		const annualBits = Storage.getAnnualPoints(this.room, Storage.gameLeaderboard, user.name);
 		let maxPokemon = 0;
-		if (annualBits >= Config.gameHostBoxRequirements![this.room.id].pokemon.three) {
+		if (user.hasRank(this.room, 'voice')) {
 			maxPokemon = 3;
-		} else if (annualBits >= Config.gameHostBoxRequirements![this.room.id].pokemon.two) {
-			maxPokemon = 2;
-		} else if (annualBits >= Config.gameHostBoxRequirements![this.room.id].pokemon.one) {
-			maxPokemon = 1;
+		} else {
+			const annualBits = Storage.getAnnualPoints(this.room, Storage.gameLeaderboard, user.name);
+			if (annualBits >= Config.gameHostBoxRequirements![this.room.id].pokemon.three) {
+				maxPokemon = 3;
+			} else if (annualBits >= Config.gameHostBoxRequirements![this.room.id].pokemon.two) {
+				maxPokemon = 2;
+			} else if (annualBits >= Config.gameHostBoxRequirements![this.room.id].pokemon.one) {
+				maxPokemon = 1;
+			}
 		}
 
 		this.maxPokemonModels = maxPokemon;
@@ -133,7 +137,10 @@ class GameHostBox extends HtmlPageBase {
 		});
 		this.pokemonModelPicker.active = false;
 
-		if (currentPokemon && currentPokemon.length) this.pokemonModelPicker.parentSubmitAllPokemonInput(currentPokemon);
+		if (currentPokemon && currentPokemon.length) {
+			if (currentPokemon.length > maxPokemon) currentPokemon = currentPokemon.slice(0, maxPokemon);
+			this.pokemonModelPicker.parentSubmitAllPokemonInput(currentPokemon);
+		}
 
 		this.components = [this.backgroundColorPicker, this.buttonColorPicker, this.signupsBackgroundColorPicker,
 			this.signupsButtonColorPicker, this.trainerPicker, this.pokemonModelPicker];
