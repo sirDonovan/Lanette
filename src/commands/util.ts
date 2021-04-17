@@ -1,6 +1,6 @@
 import type { Room } from "../rooms";
 import type { BaseCommandDefinitions } from "../types/command-parser";
-import type { CharacterType, GifGeneration, LocationType, RegionName } from "../types/dex";
+import type { CharacterType, ModelGeneration, LocationType, RegionName } from "../types/dex";
 import type { IPokemon } from "../types/pokemon-showdown";
 
 const RANDOM_GENERATOR_LIMIT = 6;
@@ -166,7 +166,7 @@ export const commands: BaseCommandDefinitions = {
 
 			const showIcon = cmd.startsWith('showicon');
 			const isBW = cmd.startsWith('showbw');
-			const generation: GifGeneration = isBW ? "bw" : "xy";
+			const generation: ModelGeneration = isBW ? "bw" : "xy";
 			const gifsOrIcons: string[] = [];
 			const pokemonList: IPokemon[] = [];
 
@@ -220,7 +220,7 @@ export const commands: BaseCommandDefinitions = {
 
 			const showIcon = cmd.endsWith('icon') || cmd.endsWith('icons');
 			const isBW = cmd.startsWith('showrandombw') || cmd.startsWith('showrandbw');
-			const generation: GifGeneration = isBW ? "bw" : "xy";
+			const generation: ModelGeneration = isBW ? "bw" : "xy";
 			const gifsOrIcons: string[] = [];
 
 			let typing = '';

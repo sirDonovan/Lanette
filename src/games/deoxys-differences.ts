@@ -1,5 +1,5 @@
 import type { Player } from "../room-activity";
-import type { GifGeneration, IGifDirectionData } from "../types/dex";
+import type { ModelGeneration, IGifDirectionData } from "../types/dex";
 import type { IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
@@ -17,7 +17,7 @@ const ADDITIONAL_HEIGHT = Tools.getTableCellAdditionalHeight(BORDER_SPACING, tru
 const MAX_POKEMON_WIDTH = Tools.getMaxTableCellWidth(MAX_TABLE_WIDTH, BORDER_SPACING, POKEMON_PER_TABLE_ROW);
 const MAX_POKEMON_HEIGHT = Tools.getMaxTableCellHeight(MAX_TABLE_HEIGHT, BORDER_SPACING, ROWS_PER_GRID, true);
 
-const SPRITE_GENERATION: GifGeneration = 'bw';
+const SPRITE_GENERATION: ModelGeneration = 'bw';
 const answerCommand = 'spot';
 
 const letters = Tools.letters.toUpperCase().split("");

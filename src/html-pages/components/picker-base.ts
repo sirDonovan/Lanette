@@ -36,15 +36,20 @@ export abstract class PickerBase<PickType = string, PropsType extends IPickerPro
 
 	abstract getChoiceButtonHtml(choice: PickType): string;
 
-	renderChoices(): void {
-		for (const i in this.choices) {
-			this.choiceElements[i] = {html: this.renderChoiceElement(i), selected: this.currentPick === i};
+	renderChoices(choices?: Dict<PickType>): Dict<IPageElement> {
+		if (!choices) choices = this.choices;
+		this.choiceElements = {};
+
+		for (const i in choices) {
+			this.choiceElements[i] = {html: this.renderChoiceElement(choices, i), selected: this.currentPick === i};
 		}
+
+		return this.choiceElements;
 	}
 
-	renderChoiceElement(key: string): string {
+	renderChoiceElement(choices: Dict<PickType>, key: string): string {
 		return Client.getPmSelfButton(this.commandPrefix + ", " + this.pickCommand + ", " + key,
-			this.getChoiceButtonHtml(this.choices[key]), this.currentPick === key);
+			this.getChoiceButtonHtml(choices[key]), this.currentPick === key);
 	}
 
 	renderNoPickElement(): string {
@@ -58,18 +63,21 @@ export abstract class PickerBase<PickType = string, PropsType extends IPickerPro
 		const previousPick = this.currentPick;
 		this.currentPick = undefined;
 
-		this.choiceElements[previousPick].html = this.renderChoiceElement(previousPick);
-		this.choiceElements[previousPick].selected = false;
+		if (previousPick in this.choiceElements) {
+			this.choiceElements[previousPick].html = this.renderChoiceElement(this.choices, previousPick);
+			this.choiceElements[previousPick].selected = false;
+		}
+
 		this.noPickElement.html = this.renderNoPickElement();
 		this.noPickElement.selected = true;
 
-		if (!replicatedFrom) this.onClear(dontRender);
+		this.onClear(dontRender);
 
 		this.replicateClear(replicatedFrom);
 	}
 
-	onClear(dontRender: boolean | undefined): void {
-		this.props.onClear(this.pickerIndex, dontRender);
+	onClear(dontRender: boolean | undefined, replicatedFrom?: PickerBase<PickType, PropsType>): void {
+		if (!replicatedFrom) this.props.onClear(this.pickerIndex, dontRender);
 	}
 
 	parentClear(): void {
@@ -90,23 +98,25 @@ export abstract class PickerBase<PickType = string, PropsType extends IPickerPro
 		const previousPick = this.currentPick;
 		this.currentPick = pick;
 		if (previousPick) {
-			this.choiceElements[previousPick].html = this.renderChoiceElement(previousPick);
-			this.choiceElements[previousPick].selected = false;
+			if (previousPick in this.choiceElements && previousPick in this.choices) {
+				this.choiceElements[previousPick].html = this.renderChoiceElement(this.choices, previousPick);
+				this.choiceElements[previousPick].selected = false;
+			}
 		} else {
 			this.noPickElement.html = this.renderNoPickElement();
 			this.noPickElement.selected = false;
 		}
 
-		this.choiceElements[this.currentPick].html = this.renderChoiceElement(this.currentPick);
+		this.choiceElements[this.currentPick].html = this.renderChoiceElement(this.choices, this.currentPick);
 		this.choiceElements[this.currentPick].selected = true;
 
-		if (!replicatedFrom) this.onPick(pick, dontRender);
+		this.onPick(pick, dontRender);
 
 		this.replicatePick(pick, replicatedFrom);
 	}
 
-	onPick(pick: string, dontRender: boolean | undefined): void {
-		this.props.onPick(this.pickerIndex, this.choices[pick], dontRender);
+	onPick(pick: string, dontRender: boolean | undefined, replicatedFrom?: PickerBase<PickType, PropsType>): void {
+		if (!replicatedFrom) this.props.onPick(this.pickerIndex, this.choices[pick], dontRender);
 	}
 
 	pickRandom(dontRender?: boolean): void {

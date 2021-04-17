@@ -1,12 +1,13 @@
 import fs = require('fs');
 import path = require('path');
+import type { IPokemonPick } from './html-pages/components/pokemon-picker-base';
+import type { ITrainerPick } from './html-pages/components/trainer-picker';
 
 import type { PRNGSeed } from './lib/prng';
 import { ScriptedGame } from './room-game-scripted';
 import type { UserHostedGame } from './room-game-user-hosted';
 import type { Room } from "./rooms";
 import type { CommandErrorArray } from "./types/command-parser";
-import type { GifGeneration, TrainerSpriteId } from './types/dex';
 import type {
 	AutoCreateTimerType, DefaultGameOption, DisallowedChallenges, GameCategory, GameChallenge, GameCommandDefinitions,
 	GameCommandReturnType, GameMode, IBotChallengeOptions, IGameAchievement, IGameFile, IGameFormat, IGameFormatComputed, IGameMode,
@@ -1523,14 +1524,32 @@ export class Games {
 		}
 		html += ">";
 
-		if (hostBox && hostBox.pokemon.length) {
-			const gifs: string[] = [];
-			for (let i = 0; i < hostBox.pokemon.length; i++) {
-				const gif = Dex.getPokemonModel(Dex.getExistingPokemon(hostBox.pokemon[i]), undefined, undefined, hostBox.shinyPokemon[i]);
-				if (gif) gifs.push(gif);
+		if (hostBox) {
+			let trainerHtml = "";
+			if (hostBox.avatar) {
+				const trainerSpriteId = Dex.getTrainerSpriteId(hostBox.avatar);
+				if (trainerSpriteId) {
+					if (trainerHtml) trainerHtml += "&nbsp;";
+					trainerHtml += Dex.getTrainerSprite(trainerSpriteId);
+				}
 			}
 
-			html += gifs.join("&nbsp;");
+			let staticSprites = false;
+			const gifs: string[] = [];
+			for (const pokemon of hostBox.pokemon) {
+				const gif = Dex.getPokemonModel(Dex.getExistingPokemon(pokemon.pokemon), pokemon.generation, undefined, pokemon.shiny);
+				if (gif) {
+					if (!staticSprites && pokemon.generation !== 'xy' && pokemon.generation !== 'bw') staticSprites = true;
+					gifs.push(gif);
+				}
+			}
+
+			if (trainerHtml) {
+				html += trainerHtml;
+				if (gifs.length) html += "<br />";
+			}
+
+			html += gifs.join(staticSprites ? "" : "&nbsp;&nbsp;&nbsp;");
 		}
 
 		html += "<h3>" + gameName + "</h3>";
@@ -1610,9 +1629,9 @@ export class Games {
 		return html;
 	}
 
-	getHostCustomDisplay(host: string, backgroundColor: HexCode | undefined, trainerList: TrainerSpriteId[], pokemonList: string[],
-		pokemonIcons: boolean, pokemonGeneration: GifGeneration): string {
-		const centered = trainerList.length > 0 || !pokemonIcons;
+	getHostCustomDisplay(host: string, backgroundColor: HexCode | undefined, trainerChoices: ITrainerPick[],
+		pokemonChoices: IPokemonPick[], pokemonIcons: boolean): string {
+		const centered = trainerChoices.length > 0 || !pokemonIcons;
 		let html = "";
 		if (centered) html += "<center>";
 
@@ -1629,27 +1648,26 @@ export class Games {
 		html += ">";
 
 		let trainerHtml = "";
-		for (const trainer of trainerList) {
-			const trainerSpriteId = Dex.getTrainerSpriteId(trainer);
+		for (const choice of trainerChoices) {
+			const trainerSpriteId = Dex.getTrainerSpriteId(choice.trainer);
 			if (trainerSpriteId) {
 				if (trainerHtml) trainerHtml += "&nbsp;";
 				trainerHtml += Dex.getTrainerSprite(trainerSpriteId);
 			}
 		}
 
+		let staticSprites = false;
 		const gifsOrIcons: string[] = [];
-		for (const name of pokemonList) {
-			const parts = name.split("|");
-			let shiny = false;
-			if (parts.length > 1) {
-				shiny = parts[1] === 'shiny';
-			}
-			const pokemon = Dex.getPokemon(parts[0]);
-			if (!pokemon || (!pokemonIcons && !Dex.hasModelData(pokemon, pokemonGeneration))) {
+		for (const choice of pokemonChoices) {
+			const pokemon = Dex.getPokemon(choice.pokemon);
+			if (!pokemon || (!pokemonIcons && !Dex.hasModelData(pokemon, choice.generation))) {
 				continue;
 			}
+
+			if (!staticSprites && choice.generation !== 'xy' && choice.generation !== 'bw') staticSprites = true;
+
 			gifsOrIcons.push(pokemonIcons ? Dex.getPSPokemonIcon(pokemon) + pokemon.name :
-				Dex.getPokemonModel(pokemon, pokemonGeneration, undefined, shiny));
+				Dex.getPokemonModel(pokemon, choice.generation, undefined, choice.shiny));
 		}
 
 		if (!trainerHtml && !gifsOrIcons.length) {
@@ -1658,10 +1676,10 @@ export class Games {
 
 		if (trainerHtml) {
 			html += trainerHtml;
-			html += "<br />";
+			if (gifsOrIcons.length) html += "<br />";
 		}
 
-		html += gifsOrIcons.join(pokemonIcons ? ", " : "&nbsp;&nbsp;&nbsp;");
+		html += gifsOrIcons.join(pokemonIcons ? ", " : staticSprites ? "" : "&nbsp;&nbsp;&nbsp;");
 
 		html += "</span>";
 		if (centered) html += "</center>";

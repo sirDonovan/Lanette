@@ -1,8 +1,9 @@
+import type { IPokemonPick } from "./html-pages/components/pokemon-picker-base";
+import type { ITrainerPick } from "./html-pages/components/trainer-picker";
 import type { PRNGSeed } from "./lib/prng";
 import type { Player } from "./room-activity";
 import { Activity, PlayerTeam } from "./room-activity";
 import type { Room } from "./rooms";
-import type { GifGeneration, TrainerSpriteId } from "./types/dex";
 import type { IGameFormat, IHostDisplayUhtml, IPokemonUhtml, ITrainerUhtml, IUserHostedFormat, PlayerList } from "./types/games";
 import type { IPokemon, IPokemonCopy } from "./types/pokemon-showdown";
 import type { HexCode } from "./types/tools";
@@ -166,25 +167,25 @@ export abstract class Game extends Activity {
 		return Games.getJoinLeaveHtml(this.customButtonColor, freejoin, this.room as Room);
 	}
 
-	sayHostDisplayUhtml(user: User, backgroundColor: HexCode | undefined, trainerList: TrainerSpriteId[], pokemonList: string[],
-		pokemonIcons: boolean, pokemonGeneration: GifGeneration): void {
+	sayHostDisplayUhtml(user: User, backgroundColor: HexCode | undefined, trainerChoices: ITrainerPick[], pokemonChoices: IPokemonPick[],
+		pokemonIcons: boolean): void {
 		const uhtmlName = this.uhtmlBaseName + "-" + this.round + "-hostdisplay";
 
 		if (this.lastHostDisplayUhtml && this.lastHostDisplayUhtml.uhtmlName !== uhtmlName) {
 			let lastHtml = "<div class='infobox'>";
-			if (this.lastHostDisplayUhtml.trainerList.length) {
-				lastHtml += "<center>(trainer" + (this.lastHostDisplayUhtml.trainerList.length > 1 ? "s" : "") + ": " +
-					this.lastHostDisplayUhtml.trainerList.join(", ") + ")</center>";
+			if (this.lastHostDisplayUhtml.trainers.length) {
+				lastHtml += "<center>(trainer" + (this.lastHostDisplayUhtml.trainers.length > 1 ? "s" : "") + ": " +
+					this.lastHostDisplayUhtml.trainers.map(x => x.trainer).join(", ") + ")</center>";
 			}
 
 			if (this.lastHostDisplayUhtml.pokemon.length) {
 				lastHtml += "<center>";
 				if (this.lastHostDisplayUhtml.pokemonType === 'gif') {
 					lastHtml += "(gif" + (this.lastHostDisplayUhtml.pokemon.length > 1 ? "s" : "") + ": " +
-						this.lastHostDisplayUhtml.pokemon.join(", ") + ")";
+						this.lastHostDisplayUhtml.pokemon.map(x => x.pokemon).join(", ") + ")";
 				} else {
 					lastHtml += "(icon" + (this.lastHostDisplayUhtml.pokemon.length > 1 ? "s" : "") + ": " +
-						this.lastHostDisplayUhtml.pokemon.join(", ") + ")";
+						this.lastHostDisplayUhtml.pokemon.map(x => x.pokemon).join(", ") + ")";
 				}
 				lastHtml += "</center>";
 			}
@@ -194,14 +195,18 @@ export abstract class Game extends Activity {
 			lastHtml += "</div>";
 
 			this.sayUhtmlChange(this.lastHostDisplayUhtml.uhtmlName, lastHtml);
+			this.lastHostDisplayUhtml = undefined;
 		}
 
-		this.sayUhtmlAuto(uhtmlName, Games.getHostCustomDisplay(user.name, backgroundColor, trainerList, pokemonList,
-			pokemonIcons, pokemonGeneration));
+		const html = Games.getHostCustomDisplay(user.name, backgroundColor, trainerChoices, pokemonChoices, pokemonIcons);
+		if (this.lastHostDisplayUhtml && this.lastHostDisplayUhtml.html === html) return;
+
+		this.sayUhtmlAuto(uhtmlName, html);
 
 		this.lastHostDisplayUhtml = {
-			pokemon: pokemonList,
-			trainerList,
+			html,
+			pokemon: pokemonChoices,
+			trainers: trainerChoices,
 			pokemonType: pokemonIcons ? 'icon' : 'gif',
 			uhtmlName,
 			user: user.name,

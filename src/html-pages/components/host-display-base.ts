@@ -8,6 +8,7 @@ import { ComponentBase } from "./component-base";
 import type { GifIcon, PokemonChoices, TrainerChoices } from "../game-host-control-panel";
 import type { PokemonPickerManual } from "./pokemon-picker-manual";
 import type { PokemonPickerRandom } from "./pokemon-picker-random";
+import type { ModelGeneration } from "../../types/dex";
 
 export interface IHostDisplayProps extends IComponentProps {
 	maxGifs: number;
@@ -29,6 +30,8 @@ export interface IHostDisplayProps extends IComponentProps {
 const setBackgroundColorCommand = 'setbackgroundcolor';
 const setPokemonCommand = 'setpokemon';
 
+const modelGenerations = Dex.getModelGenerations();
+
 export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 	chooseBackgroundColorPickerCommand: string = 'choosebackgroundcolorpicker';
 	choosePokemonPickerCommand: string = 'choosepokemonpicker';
@@ -37,9 +40,11 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 	setTrainerPickerIndexCommand: string = 'settrainerpickerindex';
 	setTrainerCommand: string = 'settrainer';
 	setGifOrIconCommand: string = 'setgiforicon';
+	setGenerationCommand: string = 'setgeneration';
 	setGif: string = 'gif';
 	setIcon: string = 'icon';
 
+	currentModelGeneration: ModelGeneration = Dex.getModelGenerationName(Dex.getGen());
 	currentPicker: 'background' | 'pokemon' | 'trainer' = 'background';
 	gifOrIcon: GifIcon = 'gif';
 	pokemonPickerIndex: number = 0;
@@ -93,7 +98,8 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 			maxGifs: props.maxGifs,
 			maxIcons: props.maxIcons,
 			onPickLetter: (index, letter, dontRender) => this.pickPokemonLetter(dontRender),
-			onPickShininess: (index, shininess, dontRender) => this.pickPokemonShininess(dontRender),
+			onPickGeneration: (index, generation, dontRender) => this.pickPokemonGeneration(index, generation, dontRender),
+			onPickShininess: (index, shininess, dontRender) => this.pickPokemonShininess(index, shininess, dontRender),
 			onClearType: (index, dontRender) => this.clearPokemonType(dontRender),
 			onPickType: (index, type, dontRender) => this.pickPokemonType(dontRender),
 			onClear: (index, dontRender) => this.clearPokemon(index, dontRender),
@@ -230,6 +236,17 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 		return true;
 	}
 
+	setAllModelGenerations(modelGeneration: ModelGeneration): void {
+		if (this.currentModelGeneration === modelGeneration) return;
+
+		const previousGeneration = this.currentModelGeneration;
+		this.currentModelGeneration = modelGeneration;
+
+		if (this.onSetAllModelGenerations) this.onSetAllModelGenerations(previousGeneration);
+
+		this.props.reRender();
+	}
+
 	pickBackgroundHueVariation(dontRender?: boolean): void {
 		if (!dontRender) this.props.reRender();
 	}
@@ -254,8 +271,20 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 		if (!dontRender) this.props.reRender();
 	}
 
-	pickPokemonShininess(dontRender?: boolean): void {
-		if (!dontRender) this.props.reRender();
+	pickPokemonGeneration(index: number, generation: ModelGeneration, dontRender?: boolean): void {
+		if (this.currentPokemon[index]) {
+			this.selectPokemon(index, Object.assign(this.currentPokemon[index]!, {generation}), dontRender);
+		} else {
+			if (!dontRender) this.props.reRender();
+		}
+	}
+
+	pickPokemonShininess(index: number, shininess: boolean, dontRender?: boolean): void {
+		if (this.currentPokemon[index]) {
+			this.selectPokemon(index, Object.assign(this.currentPokemon[index]!, {shiny: shininess}), dontRender);
+		} else {
+			if (!dontRender) this.props.reRender();
+		}
 	}
 
 	clearPokemonType(dontRender?: boolean): void {
@@ -274,6 +303,8 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 
 	selectPokemon(index: number, pokemon: IPokemonPick, dontRender?: boolean): void {
 		this.currentPokemon[index] = pokemon;
+
+		if (this.onSelectPokemon) this.onSelectPokemon(index, pokemon, dontRender);
 
 		this.props.selectPokemon(index, pokemon, dontRender);
 	}
@@ -370,6 +401,13 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 			} else {
 				this.setGifOrIcon('icon');
 			}
+		} else if (cmd === this.setGenerationCommand) {
+			const gen = targets[0].trim() as ModelGeneration | '';
+			if (!modelGenerations.includes(gen as ModelGeneration)) {
+				return "'" + targets[0].trim() + "' is not a valid model generation.";
+			}
+
+			this.setAllModelGenerations(gen as ModelGeneration);
 		} else {
 			return this.checkComponentCommands(cmd, targets);
 		}
@@ -378,4 +416,17 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 	renderBackgroundPicker(): string {
 		return "<b>Background color</b><br />" + this.backgroundColorPicker.render();
 	}
+
+	renderAllModelGenerations(): string {
+		let html = "Model generations:";
+		for (const generation of Dex.getModelGenerations()) {
+			html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + this.setGenerationCommand + "," + generation,
+				generation.toUpperCase(), this.currentModelGeneration === generation);
+		}
+
+		return html;
+	}
+
+	onSetAllModelGenerations?(previousGeneration: ModelGeneration): void;
+	onSelectPokemon?(index: number, pokemon: IPokemonPick, dontRender?: boolean): void;
 }

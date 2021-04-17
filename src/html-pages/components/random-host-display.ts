@@ -2,7 +2,7 @@ import { PokemonPickerRandom } from "./pokemon-picker-random";
 import type { IHostDisplayProps } from "./host-display-base";
 import { HostDisplayBase } from "./host-display-base";
 import { TypePicker } from "./type-picker";
-import type { TrainerGen } from "./trainer-picker";
+import type { TrainerGeneration } from "./trainer-picker";
 
 const clearPokemon = 'clearpokemon';
 const randomizePokemon = 'randomizepokemon';
@@ -19,12 +19,12 @@ const genOneTrainersGen = 'gen1';
 const genTwoTrainersGen = 'gen2';
 const genThreeTrainersGen = 'gen3';
 const genFourTrainersGen = 'gen4';
-const trainerGens: string[] = [newerTrainerGen, genOneTrainersGen, genTwoTrainersGen, genThreeTrainersGen, genFourTrainersGen];
+const trainerGens: TrainerGeneration[] = [newerTrainerGen, genOneTrainersGen, genTwoTrainersGen, genThreeTrainersGen, genFourTrainersGen];
 
 export class RandomHostDisplay extends HostDisplayBase {
 	componentId: string = 'random-display';
 	currentType: string | undefined = undefined;
-	currentTrainerGen: TrainerGen | undefined = undefined;
+	currentTrainerGeneration: TrainerGeneration | undefined = undefined;
 	formes: boolean = false;
 	pokemonPickerIndex: number = -1;
 	trainerPickerIndex: number = -1;
@@ -188,10 +188,16 @@ export class RandomHostDisplay extends HostDisplayBase {
 		this.props.reRender();
 	}
 
-	clearAllTrainerGens(): void {
-		if (this.currentTrainerGen === undefined) return;
+	onSetAllModelGenerations(): void {
+		for (const gifPokemonPicker of this.gifPokemonPickers) {
+			gifPokemonPicker.parentPickGeneration(this.currentModelGeneration);
+		}
+	}
 
-		this.currentTrainerGen = undefined;
+	clearAllTrainerGenerations(): void {
+		if (this.currentTrainerGeneration === undefined) return;
+
+		this.currentTrainerGeneration = undefined;
 
 		for (const trainerPicker of this.trainerPickers) {
 			trainerPicker.parentClearTrainerGen();
@@ -200,13 +206,13 @@ export class RandomHostDisplay extends HostDisplayBase {
 		this.props.reRender();
 	}
 
-	setAllTrainerGens(trainerGen: TrainerGen): void {
-		if (this.currentTrainerGen === trainerGen) return;
+	setAllTrainerGenerations(trainerGeneration: TrainerGeneration): void {
+		if (this.currentTrainerGeneration === trainerGeneration) return;
 
-		this.currentTrainerGen = trainerGen;
+		this.currentTrainerGeneration = trainerGeneration;
 
 		for (const trainerPicker of this.trainerPickers) {
-			trainerPicker.parentPickTrainerGen(trainerGen);
+			trainerPicker.parentPickTrainerGen(trainerGeneration);
 		}
 
 		this.props.reRender();
@@ -227,8 +233,8 @@ export class RandomHostDisplay extends HostDisplayBase {
 
 		this.currentTrainers = [];
 		for (let i = 0; i < amount; i++) {
-			if (!this.trainerPickers[i].pickRandom(true, this.currentTrainerGen === undefined ?
-				Tools.sampleOne(trainerGens) as TrainerGen : this.currentTrainerGen, this.currentTrainers.map(x => x ? x.trainer : ""))) {
+			if (!this.trainerPickers[i].pickRandom(true, this.currentTrainerGeneration === undefined ?
+				Tools.sampleOne(trainerGens) : this.currentTrainerGeneration, this.currentTrainers.map(x => x ? x.trainer : ""))) {
 				break;
 			}
 		}
@@ -272,15 +278,15 @@ export class RandomHostDisplay extends HostDisplayBase {
 				return "'" + targets[0].trim() + "' is not a valid number of Pokemon.";
 			}
 		} else if (cmd === setTrainerGenCommand) {
-			const gen = targets[0].trim();
+			const gen = targets[0].trim() as TrainerGeneration | 'random';
 			const random = gen === randomTrainerGen;
 
-			if (!random && !trainerGens.includes(gen)) return "'" + gen + "' is not a valid trainer type.";
+			if (!random && !trainerGens.includes(gen as TrainerGeneration)) return "'" + gen + "' is not a valid trainer type.";
 
 			if (random) {
-				this.clearAllTrainerGens();
+				this.clearAllTrainerGenerations();
 			} else {
-				this.setAllTrainerGens(gen as TrainerGen);
+				this.setAllTrainerGenerations(gen as TrainerGeneration);
 			}
 		} else if (cmd === randomizeTrainers) {
 			const amount = parseInt(targets[0].trim());
@@ -353,6 +359,8 @@ export class RandomHostDisplay extends HostDisplayBase {
 				html += "<br /><br />";
 
 				if (allPokemon) {
+					html += this.renderAllModelGenerations();
+					html += "<br /><br />";
 					html += this.allTypePicker.render();
 				} else {
 					html += this.gifPokemonPickers[this.pokemonPickerIndex].render();
@@ -401,14 +409,14 @@ export class RandomHostDisplay extends HostDisplayBase {
 
 			html += "<br /><br />";
 			if (allTrainers) {
-				const newerTrainers = this.currentTrainerGen === 'newer';
-				const genOneTrainers = this.currentTrainerGen === 'gen1';
-				const genTwoTrainers = this.currentTrainerGen === 'gen2';
-				const genThreeTrainers = this.currentTrainerGen === 'gen3';
-				const genFourTrainers = this.currentTrainerGen === 'gen4';
+				const newerTrainers = this.currentTrainerGeneration === 'newer';
+				const genOneTrainers = this.currentTrainerGeneration === 'gen1';
+				const genTwoTrainers = this.currentTrainerGeneration === 'gen2';
+				const genThreeTrainers = this.currentTrainerGeneration === 'gen3';
+				const genFourTrainers = this.currentTrainerGeneration === 'gen4';
 
 				html += Client.getPmSelfButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + randomTrainerGen,
-					"Random", this.currentTrainerGen === undefined);
+					"Random", this.currentTrainerGeneration === undefined);
 				html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + newerTrainerGen,
 					"Newer gens", newerTrainers);
 				html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + genOneTrainersGen,

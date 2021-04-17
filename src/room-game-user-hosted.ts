@@ -116,8 +116,8 @@ export class UserHostedGame extends Game {
 		const database = Storage.getDatabase(this.room);
 		if (database.gameHostBoxes && this.hostId in database.gameHostBoxes && Config.showGameHostBoxes &&
 			Config.showGameHostBoxes.includes(this.room.id)) {
-			for (const species of database.gameHostBoxes[this.hostId].pokemon) {
-				const pokemon = Dex.getPokemon(species);
+			for (const choice of database.gameHostBoxes[this.hostId].pokemon) {
+				const pokemon = Dex.getPokemon(choice.pokemon);
 				if (pokemon) {
 					this.mascots.push(pokemon.name);
 				}

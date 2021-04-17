@@ -2,7 +2,7 @@ import type { Player } from '../../room-activity';
 import { ScriptedGame } from '../../room-game-scripted';
 import type { Room } from '../../rooms';
 import { assert, assertStrictEqual } from '../../test/test-tools';
-import type { GifGeneration } from '../../types/dex';
+import type { ModelGeneration } from '../../types/dex';
 import type { GameCommandDefinitions, GameFileTests, IGameTemplateFile, PlayerList } from '../../types/games';
 import type { IItem, IMove, IPokemon, StatsTable } from '../../types/pokemon-showdown';
 
@@ -75,7 +75,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 
 	room!: Room;
 
-	gifGeneration?: GifGeneration;
+	gifGeneration?: ModelGeneration;
 	lives?: Map<Player, number>;
 	requiredGen?: number;
 	startingLives?: number;

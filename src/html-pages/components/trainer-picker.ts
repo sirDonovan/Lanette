@@ -5,15 +5,15 @@ import { PickerBase } from "./picker-base";
 
 export interface ITrainerPick {
 	trainer: TrainerSpriteId;
-	gen: TrainerGen;
+	gen: TrainerGeneration;
 }
 
 interface ITrainerPickerProps extends IPickerProps<ITrainerPick> {
 	random?: boolean;
-	onSetTrainerGen: (index: number, trainerGen: TrainerGen, dontRender: boolean | undefined) => void;
+	onSetTrainerGen: (index: number, trainerGen: TrainerGeneration, dontRender: boolean | undefined) => void;
 }
 
-export type TrainerGen = 'newer' | 'gen1' | 'gen2' | 'gen3' | 'gen4';
+export type TrainerGeneration = 'newer' | 'gen1' | 'gen2' | 'gen3' | 'gen4';
 
 const genOneSuffixes: string[] = ['gen1', 'gen1rb', 'gen1two', 'gen1rbtwo', 'gen1champion', 'gen1rbchampion', 'gen1main', 'gen1title'];
 const genTwoSuffixes: string[] = ['gen2', 'gen2jp', 'gen2kanto', 'gen2c'];
@@ -49,7 +49,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 	static TrainerPickerLoaded: boolean = false;
 
 	componentId: string = 'trainer-picker';
-	trainerGen: TrainerGen = 'newer';
+	trainerGen: TrainerGeneration = 'newer';
 
 	newerTrainersPagination: Pagination;
 	genOneTrainersPagination: Pagination;
@@ -194,7 +194,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 		return TrainerPicker.trainerSprites[choice.trainer] + "<br />" + TrainerPicker.allTrainerNames[choice.trainer];
 	}
 
-	pickTrainerGen(trainerGen: TrainerGen, dontRender?: boolean): void {
+	pickTrainerGen(trainerGen: TrainerGeneration, dontRender?: boolean): void {
 		if (this.trainerGen === trainerGen) return;
 
 		this.trainerGen = trainerGen;
@@ -203,7 +203,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 		this.props.onSetTrainerGen(this.pickerIndex, trainerGen, dontRender);
 	}
 
-	parentPickTrainerGen(trainerGen: TrainerGen): void {
+	parentPickTrainerGen(trainerGen: TrainerGeneration): void {
 		this.pickTrainerGen(trainerGen, true);
 	}
 
@@ -233,7 +233,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 		this.clear(true);
 	}
 
-	pickRandom(dontRender?: boolean, trainerGen?: TrainerGen, parentTrainers?: string[]): boolean {
+	pickRandom(dontRender?: boolean, trainerGen?: TrainerGeneration, parentTrainers?: string[]): boolean {
 		if (!trainerGen) trainerGen = this.trainerGen;
 
 		let trainers: TrainerSpriteId[];

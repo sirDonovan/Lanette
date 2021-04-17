@@ -6,6 +6,7 @@ import type { HexCode } from "../types/tools";
 import type { User } from "../users";
 import type { IColorPick } from "./components/color-picker";
 import { ColorPicker } from "./components/color-picker";
+import type { IPokemonPick } from "./components/pokemon-picker-base";
 import { HtmlPageBase } from "./html-page-base";
 
 const baseCommand = 'gamehostbox';
@@ -241,7 +242,7 @@ class GameHostBox extends HtmlPageBase {
 		let signupsButtonColor: string | undefined;
 		if (database.gameHostBoxes && this.userId in database.gameHostBoxes) {
 			const box = database.gameHostBoxes[this.userId];
-			mascots = box.pokemon;
+			mascots = box.pokemon.map(x => x.pokemon);
 			signupsBackgroundColor = box.signupsBackground || box.background;
 			signupsButtonColor = box.signupsButtons || box.buttons;
 		}
@@ -331,8 +332,7 @@ export const commands: BaseCommandDefinitions = {
 						"bits to add a Pokemon icon to your game host box.");
 				}
 
-				const selectedPokemon: string[] = [];
-				const shinies: boolean[] = [];
+				const selectedPokemon: IPokemonPick[] = [];
 				for (let i = 0; i < 3; i++) {
 					if (!targets[i]) break;
 					const parts = targets[i].split(" ");
@@ -356,8 +356,7 @@ export const commands: BaseCommandDefinitions = {
 						return this.say(pokemon.name + " does not have a GIF! Please choose a different Pokemon.");
 					}
 
-					selectedPokemon.push(pokemon.name);
-					shinies.push(shiny);
+					selectedPokemon.push({generation: 'xy', pokemon: pokemon.name, shiny});
 				}
 
 				const selectedPokemonLength = selectedPokemon.length;
@@ -382,7 +381,6 @@ export const commands: BaseCommandDefinitions = {
 
 				Storage.createGameHostBox(database, user.name);
 				database.gameHostBoxes[user.id].pokemon = selectedPokemon;
-				database.gameHostBoxes[user.id].shinyPokemon = shinies;
 
 				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
 				pages[user.id].send();

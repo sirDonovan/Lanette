@@ -1,7 +1,9 @@
+import type { ModelGeneration } from "../../types/dex";
 import type { IPickerProps } from "./picker-base";
 import { PickerBase } from "./picker-base";
 
 export interface IPokemonPick {
+	generation: ModelGeneration;
 	pokemon: string;
 	shiny?: boolean;
 }
@@ -11,20 +13,45 @@ export interface IPokemonPickerProps extends IPickerProps<IPokemonPick> {
 	maxGifs: number;
 	maxIcons: number;
 	onPickLetter: (pickerIndex: number, letter: string, dontRender: boolean | undefined) => void;
+	onPickGeneration: (pickerIndex: number, generation: ModelGeneration, dontRender: boolean | undefined) => void;
 	onPickShininess: (pickerIndex: number, shininess: boolean, dontRender: boolean | undefined) => void;
 	onClearType: (pickerIndex: number, dontRender: boolean | undefined) => void;
 	onPickType: (pickerIndex: number, type: string, dontRender: boolean | undefined) => void;
 }
 
+const setGeneration = 'setgeneration';
 const setShininess = 'setshininess';
 const setShiny = "shiny";
 const setNotShiny = "notshiny";
 
 export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemonPickerProps> {
-	static pokemon: string[] = [];
-	static pokemonGifs: string[] = [];
+	static pokemonGens: KeyedDict<ModelGeneration, string[]> = {
+		'rb': [],
+		'gs': [],
+		'rs': [],
+		'dp': [],
+		'bw': [],
+		'xy': [],
+	};
+	static pokemonGifsGens: KeyedDict<ModelGeneration, string[]> = {
+		'rb': [],
+		'gs': [],
+		'rs': [],
+		'dp': [],
+		'bw': [],
+		'xy': [],
+	};
 	static PokemonPickerBaseLoaded: boolean = false;
 
+	choicesByGeneration: KeyedDict<ModelGeneration, Dict<IPokemonPick>> = {
+		'rb': {},
+		'gs': {},
+		'rs': {},
+		'dp': {},
+		'bw': {},
+		'xy': {},
+	};
+	generation: ModelGeneration = 'xy';
 	replicationTargets: PokemonPickerBase[] = [];
 	shininess: boolean = false;
 
@@ -33,38 +60,52 @@ export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemo
 
 		PokemonPickerBase.loadData();
 
-		for (const pokemon of PokemonPickerBase.pokemon) {
-			this.choices[pokemon] = {pokemon};
+		const allChoices: Dict<IPokemonPick> = {};
+		const lists = props.gif ? PokemonPickerBase.pokemonGifsGens : PokemonPickerBase.pokemonGens;
+		for (const generation of Dex.getModelGenerations()) {
+			for (const pokemon of lists[generation]) {
+				this.choicesByGeneration[generation][pokemon] = {generation, pokemon};
+				if (!(pokemon in allChoices)) allChoices[pokemon] = this.choicesByGeneration[generation][pokemon];
+			}
 		}
 
-		this.renderChoices();
+		this.choices = this.choicesByGeneration[this.generation];
+		this.renderChoices(allChoices);
 	}
 
 	static loadData(): void {
 		if (this.PokemonPickerBaseLoaded) return;
 
-		for (const key of Dex.getData().pokemonKeys) {
-			const pokemon = Dex.getExistingPokemon(key);
-			if (this.pokemon.includes(pokemon.name) || (pokemon.forme && pokemon.baseSpecies === 'Unown')) continue;
+		for (const generation of Dex.getModelGenerations()) {
+			const dex = Dex.getDex('gen' + Dex.getModelGenerationMaxGen(generation));
+			const gen = dex.getGen();
+			for (const key of dex.getData().pokemonKeys) {
+				const pokemon = dex.getExistingPokemon(key);
+				if (this.pokemonGens[generation].includes(pokemon.name) || (pokemon.forme && pokemon.baseSpecies === 'Unown')) continue;
 
-			this.pokemon.push(pokemon.name);
-			if (Dex.hasModelData(pokemon)) this.pokemonGifs.push(pokemon.name);
+				this.pokemonGens[generation].push(pokemon.name);
+				if (Dex.hasModelData(pokemon)) this.pokemonGifsGens[generation].push(pokemon.name);
 
-			if (pokemon.name === 'Unown') continue;
+				if (pokemon.name === 'Unown') continue;
 
-			if (pokemon.cosmeticFormes) {
-				for (const name of pokemon.cosmeticFormes) {
-					const forme = Dex.getExistingPokemon(name);
-					this.pokemon.push(forme.name);
-					if (Dex.hasModelData(forme)) this.pokemonGifs.push(forme.name);
+				if (pokemon.cosmeticFormes) {
+					for (const name of pokemon.cosmeticFormes) {
+						const forme = dex.getPokemon(name);
+						if (forme && forme.gen <= gen) {
+							this.pokemonGens[generation].push(forme.name);
+							if (Dex.hasModelData(forme)) this.pokemonGifsGens[generation].push(forme.name);
+						}
+					}
 				}
-			}
 
-			if (pokemon.otherFormes) {
-				for (const name of pokemon.otherFormes) {
-					const forme = Dex.getExistingPokemon(name);
-					this.pokemon.push(forme.name);
-					if (Dex.hasModelData(forme)) this.pokemonGifs.push(forme.name);
+				if (pokemon.otherFormes) {
+					for (const name of pokemon.otherFormes) {
+						const forme = dex.getPokemon(name);
+						if (forme && forme.gen <= gen) {
+							this.pokemonGens[generation].push(forme.name);
+							if (Dex.hasModelData(forme)) this.pokemonGifsGens[generation].push(forme.name);
+						}
+					}
 				}
 			}
 		}
@@ -81,8 +122,50 @@ export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemo
 		this.pickShininess(false, true);
 	}
 
-	onPick(pick: string, dontRender?: boolean): void {
-		this.props.onPick(this.pickerIndex, {pokemon: pick, shiny: this.shininess}, dontRender);
+	onPick(pick: string, dontRender?: boolean, replicatedFrom?: PokemonPickerBase): void {
+		if (!replicatedFrom) {
+			this.props.onPick(this.pickerIndex, {generation: this.generation, pokemon: pick, shiny: this.shininess}, dontRender);
+		}
+	}
+
+	isInGeneration(generation: ModelGeneration, pokemon: string): boolean {
+		return pokemon in this.choicesByGeneration[generation];
+	}
+
+	tryParentPickGeneration(generation: ModelGeneration): void {
+		if (!this.currentPick || this.isInGeneration(generation, this.currentPick)) this.parentPickGeneration(generation);
+	}
+
+	onPickGeneration(previousGeneration: ModelGeneration, dontRender?: boolean, replicatedFrom?: PokemonPickerBase): void {
+		if (!replicatedFrom) this.props.onPickGeneration(this.pickerIndex, this.generation, dontRender);
+
+		this.replicatePickGeneration(this.generation, replicatedFrom);
+	}
+
+	pickGeneration(generation: ModelGeneration, dontRender?: boolean, replicatedFrom?: PokemonPickerBase): void {
+		if (this.generation === generation) return;
+
+		const previousGeneration = this.generation;
+		this.generation = generation;
+		this.choices = this.choicesByGeneration[this.generation];
+
+		this.onPickGeneration(previousGeneration, dontRender, replicatedFrom);
+	}
+
+	parentPickGeneration(generation: ModelGeneration): void {
+		this.pickGeneration(generation, true);
+	}
+
+	replicatePickGeneration(generation: ModelGeneration, replicatedFrom: PokemonPickerBase | undefined): void {
+		for (const target of this.replicationTargets) {
+			if (!replicatedFrom || target !== replicatedFrom) target.pickGeneration(generation, true, this);
+		}
+	}
+
+	onPickShininess(shininess: boolean, dontRender?: boolean, replicatedFrom?: PokemonPickerBase): void {
+		if (!replicatedFrom) this.props.onPickShininess(this.pickerIndex, this.shininess, dontRender);
+
+		this.replicatePickShininess(this.shininess, replicatedFrom);
 	}
 
 	pickShininess(shininess: boolean, dontRender?: boolean, replicatedFrom?: PokemonPickerBase): void {
@@ -90,9 +173,7 @@ export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemo
 
 		this.shininess = shininess;
 
-		if (!replicatedFrom) this.props.onPickShininess(this.pickerIndex, shininess, dontRender);
-
-		this.replicatePickShininess(shininess, replicatedFrom);
+		this.onPickShininess(shininess, dontRender, replicatedFrom);
 	}
 
 	parentPickShininess(shiny: boolean): void {
@@ -110,7 +191,14 @@ export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemo
 		const cmd = Tools.toId(targets[0]);
 		targets.shift();
 
-		if (cmd === setShininess) {
+		if (cmd === setGeneration) {
+			const target = targets[0].trim();
+			if (target in PokemonPickerBase.pokemonGens) {
+				this.pickGeneration(target as ModelGeneration);
+			} else {
+				return "'" + target + "' is not a valid generation option.";
+			}
+		} else if (cmd === setShininess) {
 			const target = targets[0].trim();
 			if (target === setShiny) {
 				this.pickShininess(true);
@@ -124,9 +212,22 @@ export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemo
 		}
 	}
 
-	renderShininessOptions(): string {
+	renderModelGenerationOptions(): string {
 		let html = "";
 		if (this.props.gif) {
+			html += "Model generation:";
+			for (const i in PokemonPickerBase.pokemonGens) {
+				html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + setGeneration + "," + i,
+					i.toUpperCase(), this.generation === i);
+			}
+		}
+
+		return html;
+	}
+
+	renderShininessOptions(): string {
+		let html = "";
+		if (this.props.gif && this.generation !== 'rb') {
 			html = "Shiny: ";
 			html += Client.getPmSelfButton(this.commandPrefix + ", " + setShininess + "," + setShiny, "Yes", this.shininess);
 			html += "&nbsp;";

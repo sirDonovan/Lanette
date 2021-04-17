@@ -1,3 +1,4 @@
+import type { ModelGeneration } from "../../types/dex";
 import type { PokemonChoices } from "../game-host-control-panel";
 import type { IPageElement } from "./pagination";
 import { Pagination } from "./pagination";
@@ -13,18 +14,67 @@ const setLetterCommand = 'setletter';
 const pokemonListCommand = 'pokemonlist';
 
 export class PokemonPickerManual extends PokemonPickerBase {
-	static letters: string[] = [];
-	static lettersGifs: string[] = [];
-	static pokemonByLetter: Dict<string[]> = {};
-	static pokemonByLetterGifs: Dict<string[]> = {};
+	static letters: KeyedDict<ModelGeneration, string[]> = {
+		'rb': [],
+		'gs': [],
+		'rs': [],
+		'dp': [],
+		'bw': [],
+		'xy': [],
+	};
+	static lettersGifs: KeyedDict<ModelGeneration, string[]> = {
+		'rb': [],
+		'gs': [],
+		'rs': [],
+		'dp': [],
+		'bw': [],
+		'xy': [],
+	};
+	static pokemonByLetter: KeyedDict<ModelGeneration, Dict<string[]>> = {
+		'rb': {},
+		'gs': {},
+		'rs': {},
+		'dp': {},
+		'bw': {},
+		'xy': {},
+	};
+	static pokemonByLetterGifs: KeyedDict<ModelGeneration, Dict<string[]>> = {
+		'rb': {},
+		'gs': {},
+		'rs': {},
+		'dp': {},
+		'bw': {},
+		'xy': {},
+	};
 	static PokemonPickerManualLoaded: boolean = false;
 
 	currentView: 'input' | 'letter' = 'input';
 	componentId: string = 'pokemon-picker-letter';
-	letterView: string | undefined = undefined;
-	letterPaginations: Dict<Pagination> = {};
-	letterElements: Dict<IPageElement> = {};
-	pokemonTextInput: PokemonTextInput;
+	letterViews: KeyedDict<ModelGeneration, string | undefined> = {
+		'rb': undefined,
+		'gs': undefined,
+		'rs': undefined,
+		'dp': undefined,
+		'bw': undefined,
+		'xy': undefined,
+	};
+	letterPaginations: KeyedDict<ModelGeneration, Dict<Pagination>> = {
+		'rb': {},
+		'gs': {},
+		'rs': {},
+		'dp': {},
+		'bw': {},
+		'xy': {},
+	};
+	letterElements: KeyedDict<ModelGeneration, Dict<IPageElement>> = {
+		'rb': {},
+		'gs': {},
+		'rs': {},
+		'dp': {},
+		'bw': {},
+		'xy': {},
+	};
+	pokemonTextInputs: KeyedDict<ModelGeneration, PokemonTextInput>;
 	replicationTargets: PokemonPickerManual[] = [];
 
 	constructor(parentCommandPrefix: string, componentCommand: string, props: IPokemonPickerProps) {
@@ -32,45 +82,53 @@ export class PokemonPickerManual extends PokemonPickerBase {
 
 		PokemonPickerManual.loadData();
 
-		this.pokemonTextInput = new PokemonTextInput(this.commandPrefix, pokemonInputCommand, {
-			gif: props.gif,
-			pokemonList: props.gif ? PokemonPickerBase.pokemonGifs : PokemonPickerBase.pokemon,
-			maxPokemon: 1,
-			minPokemon: 1,
-			placeholder: "Enter Pokemon #" + (this.pickerIndex + 1),
-			submitText: "Update",
-			onClear: () => this.clearPokemonInput(),
-			onErrors: () => this.props.reRender(),
-			onSubmit: (output) => this.submitPokemonInput(output),
-			reRender: () => this.props.reRender(),
-		});
-		this.components.push(this.pokemonTextInput);
-
-		let letters: string[];
-		let pokemonByLetter: Dict<string[]>;
-		if (props.gif) {
-			letters = PokemonPickerManual.lettersGifs;
-			pokemonByLetter = PokemonPickerManual.pokemonByLetterGifs;
-		} else {
-			letters = PokemonPickerManual.letters;
-			pokemonByLetter = PokemonPickerManual.pokemonByLetter;
-		}
-
-		for (const letter of letters) {
-			this.letterElements[letter] = {html: this.renderLetterElement(letter), selected: false};
-
-			this.letterPaginations[letter] = new Pagination(this.commandPrefix, pokemonListCommand, {
-				elements: pokemonByLetter[letter].map(x => this.choiceElements[x]),
-				elementsPerRow: 6,
-				rowsPerPage: 6,
-				pagesLabel,
-				onSelectPage: () => this.props.reRender(),
+		const pokemonTextInputs: Dict<PokemonTextInput> = {};
+		const lists = props.gif ? PokemonPickerBase.pokemonGifsGens : PokemonPickerBase.pokemonGens;
+		for (const generation of Dex.getModelGenerations()) {
+			pokemonTextInputs[generation] = new PokemonTextInput(this.commandPrefix, pokemonInputCommand, {
+				gif: props.gif,
+				pokemonList: lists[generation],
+				maxPokemon: 1,
+				minPokemon: 1,
+				placeholder: "Enter Pokemon #" + (this.pickerIndex + 1),
+				submitText: "Update",
+				onClear: () => this.clearPokemonInput(),
+				onErrors: () => this.props.reRender(),
+				onSubmit: (output) => this.submitPokemonInput(output),
 				reRender: () => this.props.reRender(),
 			});
-			this.letterPaginations[letter].active = false;
+			pokemonTextInputs[generation].active = this.generation === generation;
 
-			this.components.push(this.letterPaginations[letter]);
+			this.components.push(pokemonTextInputs[generation]);
+
+			let letters: string[];
+			let pokemonByLetter: Dict<string[]>;
+			if (props.gif) {
+				letters = PokemonPickerManual.lettersGifs[generation];
+				pokemonByLetter = PokemonPickerManual.pokemonByLetterGifs[generation];
+			} else {
+				letters = PokemonPickerManual.letters[generation];
+				pokemonByLetter = PokemonPickerManual.pokemonByLetter[generation];
+			}
+
+			for (const letter of letters) {
+				this.letterElements[generation][letter] = {html: this.renderLetterElement(letter), selected: false};
+
+				this.letterPaginations[generation][letter] = new Pagination(this.commandPrefix, pokemonListCommand, {
+					elements: pokemonByLetter[letter].map(x => this.choiceElements[x]),
+					elementsPerRow: 6,
+					rowsPerPage: 6,
+					pagesLabel,
+					onSelectPage: () => this.props.reRender(),
+					reRender: () => this.props.reRender(),
+				});
+				this.letterPaginations[generation][letter].active = false;
+
+				this.components.push(this.letterPaginations[generation][letter]);
+			}
 		}
+
+		this.pokemonTextInputs = pokemonTextInputs as KeyedDict<ModelGeneration, PokemonTextInput>;
 	}
 
 	static loadData(): void {
@@ -78,32 +136,39 @@ export class PokemonPickerManual extends PokemonPickerBase {
 
 		const letters = Tools.letters.toUpperCase().split("");
 
-		for (const name of PokemonPickerBase.pokemon) {
-			const letter = name.charAt(0).toUpperCase();
-			if (!letters.includes(letter)) continue;
+		const generations = Object.keys(PokemonPickerBase.pokemonGens) as ModelGeneration[];
+		for (const generation of generations) {
+			for (const name of PokemonPickerBase.pokemonGens[generation]) {
+				const letter = name.charAt(0).toUpperCase();
+				if (!letters.includes(letter)) continue;
 
-			if (!(letter in this.pokemonByLetter)) this.pokemonByLetter[letter] = [];
-			this.pokemonByLetter[letter].push(name);
+				if (!(letter in this.pokemonByLetter[generation])) this.pokemonByLetter[generation][letter] = [];
+				this.pokemonByLetter[generation][letter].push(name);
+			}
+
+			for (const letter in this.pokemonByLetter[generation]) {
+				this.pokemonByLetter[generation][letter].sort();
+			}
+
+			this.letters[generation] = letters.filter(x => x in this.pokemonByLetter[generation]);
 		}
 
-		for (const name of PokemonPickerBase.pokemonGifs) {
-			const letter = name.charAt(0).toUpperCase();
-			if (!letters.includes(letter)) continue;
+		const gifsGenerations = Object.keys(PokemonPickerBase.pokemonGifsGens) as ModelGeneration[];
+		for (const generation of gifsGenerations) {
+			for (const name of PokemonPickerBase.pokemonGifsGens[generation]) {
+				const letter = name.charAt(0).toUpperCase();
+				if (!letters.includes(letter)) continue;
 
-			if (!(letter in this.pokemonByLetterGifs)) this.pokemonByLetterGifs[letter] = [];
-			this.pokemonByLetterGifs[letter].push(name);
+				if (!(letter in this.pokemonByLetterGifs[generation])) this.pokemonByLetterGifs[generation][letter] = [];
+				this.pokemonByLetterGifs[generation][letter].push(name);
+			}
+
+			for (const letter in this.pokemonByLetterGifs[generation]) {
+				this.pokemonByLetterGifs[generation][letter].sort();
+			}
+
+			this.lettersGifs[generation] = letters.filter(x => x in this.pokemonByLetterGifs[generation]);
 		}
-
-		for (const letter in this.pokemonByLetter) {
-			this.pokemonByLetter[letter].sort();
-		}
-
-		for (const letter in this.pokemonByLetterGifs) {
-			this.pokemonByLetterGifs[letter].sort();
-		}
-
-		this.letters = letters.filter(x => x in this.pokemonByLetter);
-		this.lettersGifs = letters.filter(x => x in this.pokemonByLetterGifs);
 
 		this.PokemonPickerManualLoaded = true;
 	}
@@ -112,7 +177,7 @@ export class PokemonPickerManual extends PokemonPickerBase {
 		if (this.currentView === 'input') return;
 
 		this.currentView = 'input';
-		if (this.letterView) this.letterPaginations[this.letterView].active = false;
+		if (this.letterViews[this.generation]) this.letterPaginations[this.generation][this.letterViews[this.generation]!].active = false;
 
 		this.props.reRender();
 	}
@@ -125,6 +190,12 @@ export class PokemonPickerManual extends PokemonPickerBase {
 		this.props.reRender();
 	}
 
+	getPokemonInput(): string | undefined {
+		if (this.currentView === 'letter') return;
+
+		return this.pokemonTextInputs[this.generation].currentInput;
+	}
+
 	clearPokemonInput(): void {
 		this.reset();
 
@@ -132,46 +203,51 @@ export class PokemonPickerManual extends PokemonPickerBase {
 	}
 
 	submitPokemonInput(output: PokemonChoices): void {
-		this.reset();
-		this.setRandomizedPokemon(output[0]!);
+		this.setPokemonAttributes(output[0]!, true);
 
-		this.props.reRender();
+		this.pick(output[0]!.pokemon);
 	}
 
 	renderLetterElement(letter: string): string {
 		return Client.getPmSelfButton(this.commandPrefix + ", " + setLetterCommand + "," + letter, letter,
-			this.letterView === letter);
+			this.letterViews[this.generation] === letter);
 	}
 
-	onClear(dontRender?: boolean): void {
-		this.pokemonTextInput.parentClearInput();
+	onClear(dontRender?: boolean, replicatedFrom?: PokemonPickerManual): void {
+		this.pokemonTextInputs[this.generation].parentClearInput();
 
-		const previousLetter = this.letterView;
-		this.letterView = undefined;
+		const previousLetter = this.letterViews[this.generation];
+		this.letterViews[this.generation] = undefined;
 
 		if (previousLetter) {
-			this.letterElements[previousLetter].html = this.renderLetterElement(previousLetter);
-			this.letterElements[previousLetter].selected = false;
-			this.letterPaginations[previousLetter].active = false;
+			this.letterElements[this.generation][previousLetter].html = this.renderLetterElement(previousLetter);
+			this.letterElements[this.generation][previousLetter].selected = false;
+			this.letterPaginations[this.generation][previousLetter].active = false;
 		}
 
-		super.onClear(dontRender);
+		super.onClear(dontRender, replicatedFrom);
+	}
+
+	onPick(pick: string, dontRender?: boolean, replicatedFrom?: PokemonPickerManual): void {
+		this.autoSetPokemonTextInput();
+
+		super.onPick(pick, dontRender, replicatedFrom);
 	}
 
 	pickLetter(letter: string, dontRender?: boolean, replicatedFrom?: PokemonPickerManual): void {
-		if (this.letterView === letter) return;
+		if (this.letterViews[this.generation] === letter) return;
 
-		const previousLetter = this.letterView;
-		this.letterView = letter;
+		const previousLetter = this.letterViews[this.generation];
+		this.letterViews[this.generation] = letter;
 
-		this.letterElements[letter].html = this.renderLetterElement(letter);
-		this.letterElements[letter].selected = true;
-		this.letterPaginations[letter].active = true;
+		this.letterElements[this.generation][letter].html = this.renderLetterElement(letter);
+		this.letterElements[this.generation][letter].selected = true;
+		this.letterPaginations[this.generation][letter].active = true;
 
 		if (previousLetter) {
-			this.letterElements[previousLetter].html = this.renderLetterElement(previousLetter);
-			this.letterElements[previousLetter].selected = false;
-			this.letterPaginations[previousLetter].active = false;
+			this.letterElements[this.generation][previousLetter].html = this.renderLetterElement(previousLetter);
+			this.letterElements[this.generation][previousLetter].selected = false;
+			this.letterPaginations[this.generation][previousLetter].active = false;
 		}
 
 		if (!replicatedFrom) this.props.onPickLetter(this.pickerIndex, letter, dontRender);
@@ -189,15 +265,50 @@ export class PokemonPickerManual extends PokemonPickerBase {
 		}
 	}
 
-	setRandomizedPokemon(pokemon: IPokemonPick): void {
-		this.pokemonTextInput.parentSetInput((pokemon.shiny ? "shiny " : "") + pokemon.pokemon);
+	onPickShininess(shininess: boolean, dontRender?: boolean, replicatedFrom?: PokemonPickerBase): void {
+		this.autoSetPokemonTextInput();
 
-		const letter = pokemon.pokemon.charAt(0).toUpperCase();
+		super.onPickShininess(shininess, dontRender, replicatedFrom);
+	}
+
+	onPickGeneration(previousGeneration: ModelGeneration, dontRender?: boolean, replicatedFrom?: PokemonPickerBase): void {
+		this.pokemonTextInputs[previousGeneration].active = false;
+		this.pokemonTextInputs[this.generation].active = true;
+
+		if (this.letterViews[previousGeneration]) {
+			this.letterPaginations[previousGeneration][this.letterViews[previousGeneration]!].active = false;
+			this.letterPaginations[this.generation][this.letterViews[previousGeneration]!].active = true;
+
+			this.letterViews[this.generation] = this.letterViews[previousGeneration];
+			if (this.currentPick) this.letterPaginations[this.generation][this.letterViews[this.generation]!].autoSelectPage();
+		}
+
+		this.autoSetPokemonTextInput();
+
+		super.onPickGeneration(previousGeneration, dontRender, replicatedFrom);
+	}
+
+	autoSetPokemonTextInput(): void {
+		if (!this.currentPick) return;
+
+		this.pokemonTextInputs[this.generation].setModelGeneration(this.generation);
+		this.pokemonTextInputs[this.generation].setShiny(this.shininess);
+		this.pokemonTextInputs[this.generation].onSubmit(this.currentPick);
+	}
+
+	setPokemonAttributes(pick: IPokemonPick, textInput?: boolean): void {
+		this.parentPickGeneration(pick.generation);
+		this.parentPickShininess(pick.shiny ? true : false);
+
+		const letter = pick.pokemon.charAt(0).toUpperCase();
 		this.parentPickLetter(letter);
-		this.parentPickShininess(pokemon.shiny ? true : false);
-		this.parentPick(pokemon.pokemon);
+		if (!textInput) {
+			this.currentPick = undefined;
+			this.parentPick(pick.pokemon);
+			this.autoSetPokemonTextInput();
+		}
 
-		this.letterPaginations[letter].autoSelectPage();
+		this.letterPaginations[this.generation][letter].autoSelectPage();
 	}
 
 	tryCommand(originalTargets: readonly string[]): string | undefined {
@@ -211,7 +322,7 @@ export class PokemonPickerManual extends PokemonPickerBase {
 			this.chooseLetterView();
 		} else if (cmd === setLetterCommand) {
 			const letter = targets[0].trim().charAt(0).toUpperCase();
-			if (!(letter in this.letterElements)) {
+			if (!(letter in this.letterElements[this.generation])) {
 				return "'" + letter + "' is not valid letter.";
 			}
 
@@ -222,7 +333,12 @@ export class PokemonPickerManual extends PokemonPickerBase {
 	}
 
 	render(): string {
-		let html = this.renderShininessOptions();
+		let html = this.renderModelGenerationOptions();
+		const shininessOptions = this.renderShininessOptions();
+		if (shininessOptions) {
+			if (html) html += "<br /><br />";
+			html += shininessOptions;
+		}
 		if (html) html += "<br /><br />";
 
 		const inputView = this.currentView === 'input';
@@ -234,17 +350,17 @@ export class PokemonPickerManual extends PokemonPickerBase {
 
 		if (inputView) {
 			html += "<br />";
-			html += this.pokemonTextInput.render();
+			html += this.pokemonTextInputs[this.generation].render();
 		} else {
 			html += this.noPickElement.html;
 
-			for (const letter in this.letterElements) {
-				html += this.letterElements[letter].html;
+			for (const letter in this.letterElements[this.generation]) {
+				html += this.letterElements[this.generation][letter].html;
 			}
 
-			if (this.letterView) {
+			if (this.letterViews[this.generation]) {
 				html += "<br /><br />";
-				html += this.letterPaginations[this.letterView].render();
+				html += this.letterPaginations[this.generation][this.letterViews[this.generation]!].render();
 			}
 		}
 

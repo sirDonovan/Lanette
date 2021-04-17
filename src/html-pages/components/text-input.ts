@@ -9,6 +9,7 @@ export interface ITextAreaConfiguration {
 export interface ITextInputProps<OutputType = string> extends IComponentProps {
 	clearText?: string;
 	currentInput?: string;
+	inputWidth?: number;
 	label?: string;
 	placeholder?: string;
 	submitText?: string;
@@ -58,7 +59,6 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 
 	submit(input: string): void {
 		this.currentInput = input;
-		this.errors = [];
 
 		this.onSubmit(input);
 
@@ -71,6 +71,8 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 
 	/**Set `currentOutput` and any validation errors */
 	onSubmit(input: string): void {
+		this.errors = [];
+
 		// @ts-expect-error - re-implement submit() if OutputType !== string
 		this.currentOutput = input;
 	}
@@ -114,6 +116,7 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 			html += "<input name='" + tagName + "'";
 			if (this.props.placeholder) html += " placeholder='" + this.props.placeholder + "'";
 			if (this.currentInput) html += " value='" + this.currentInput + "'";
+			if (this.props.inputWidth) html += " style='width:" + this.props.inputWidth + "px'";
 			html += " />&nbsp;";
 		}
 

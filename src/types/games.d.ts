@@ -1,3 +1,5 @@
+import type { IPokemonPick } from "../html-pages/components/pokemon-picker-base";
+import type { ITrainerPick } from "../html-pages/components/trainer-picker";
 import type { PRNGSeed } from "../lib/prng";
 import type { Player } from "../room-activity";
 import type { ScriptedGame } from "../room-game-scripted";
@@ -263,8 +265,9 @@ export type PlayerList = Dict<Player> | readonly Player[] | Map<Player, any>;
 export type LoadedGameFile = DeepImmutable<IGameFormatData>;
 
 export interface IHostDisplayUhtml {
-	pokemon: string[];
-	trainerList: string[];
+	html: string;
+	pokemon: IPokemonPick[];
+	trainers: ITrainerPick[];
 	pokemonType: 'gif' | 'icon';
 	uhtmlName: string;
 	user: string;

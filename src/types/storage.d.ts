@@ -1,3 +1,4 @@
+import type { IPokemonPick } from "../html-pages/components/pokemon-picker-base";
 import type { TrainerSpriteId } from "./dex";
 import type { HexCode, TimeZone } from "./tools";
 
@@ -46,8 +47,8 @@ export interface IGameTrainerCard {
 }
 
 export interface IGameHostBox {
-	pokemon: string[];
-	shinyPokemon: boolean[];
+	pokemon: IPokemonPick[];
+	avatar?: TrainerSpriteId;
 	background?: HexCode;
 	buttons?: HexCode;
 	signupsBackground?: HexCode;

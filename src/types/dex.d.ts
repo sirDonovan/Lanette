@@ -14,7 +14,7 @@ export type CharacterData = KeyedDict<RegionName, KeyedDict<CharacterType, strin
 export type LocationType = 'town' | 'city' | 'cave' | 'forest' | 'mountain' | 'other';
 export type LocationData = KeyedDict<RegionName, KeyedDict<LocationType, string[]>>;
 export type TrainerClassData = string[];
-export type GifGeneration = 'rb' | 'gs' | 'rs' | 'dp' | 'bw' | 'xy';
+export type ModelGeneration = 'rb' | 'gs' | 'rs' | 'dp' | 'bw' | 'xy';
 
 export interface IFormatDataLinks {
 	aliases?: string[];

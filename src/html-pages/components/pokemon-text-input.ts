@@ -1,7 +1,14 @@
+import type { ModelGeneration } from "../../types/dex";
 import type { PokemonChoices } from "../game-host-control-panel";
 import type { ITextInputProps } from "./text-input";
 import { TextInput } from "./text-input";
 
+const rbOption = "rb";
+const gsOption = "gs";
+const rsOption = "rs";
+const dpOption = "dp";
+const bwOption = "bw";
+const xyOption = "xy";
 const shinyOption = "shiny";
 
 export interface IPokemonTextInputProps extends ITextInputProps<PokemonChoices> {
@@ -13,6 +20,8 @@ export interface IPokemonTextInputProps extends ITextInputProps<PokemonChoices> 
 
 export class PokemonTextInput extends TextInput<PokemonChoices> {
 	componentId: string = 'pokemon-text-input';
+	modelGeneration: ModelGeneration = 'xy';
+	shiny: boolean = false;
 
 	props!: IPokemonTextInputProps;
 
@@ -20,26 +29,77 @@ export class PokemonTextInput extends TextInput<PokemonChoices> {
 		super(parentCommandPrefix, componentCommand, props);
 	}
 
+	setModelGeneration(modelGeneration: ModelGeneration): void {
+		this.modelGeneration = modelGeneration;
+	}
+
+	setShiny(shiny: boolean): void {
+		this.shiny = shiny;
+	}
+
 	onSubmit(input: string): void {
+		this.errors = [];
+
 		const targets = input.split(',');
 		const pokemonChoices: PokemonChoices = [];
 
-		for (const target of targets) {
+		for (let i = 0; i < targets.length; i++) {
+			const target = targets[i].trim();
 			let id = Tools.toId(target);
 			if (!id) continue;
 
-			let shiny = false;
+			let modelGeneration: ModelGeneration | undefined;
+			let shiny: boolean | undefined;
 			let pokemon = Dex.getPokemon(target);
 			if (!pokemon) {
-				if (id.startsWith(shinyOption)) {
+				const parts = target.split(" ");
+				const first = Tools.toId(parts[0]);
+				const second = Tools.toId(parts[1]);
+				if (first === shinyOption) {
 					shiny = true;
-					id = id.substr(shinyOption.length);
-				} else if (id.endsWith(shinyOption)) {
-					shiny = true;
-					id = id.substr(0, id.length - shinyOption.length);
+					if (second === rbOption) {
+						modelGeneration = 'rb';
+					} else if (second === gsOption) {
+						modelGeneration = 'gs';
+					} else if (second === rsOption) {
+						modelGeneration = 'rs';
+					} else if (second === dpOption) {
+						modelGeneration = 'dp';
+					} else if (second === bwOption) {
+						modelGeneration = 'bw';
+					} else if (second === xyOption) {
+						modelGeneration = 'xy';
+					}
+
+					if (modelGeneration) {
+						id = Tools.toId(parts.slice(2).join(" "));
+					} else {
+						id = Tools.toId(parts.slice(1).join(" "));
+					}
+				} else {
+					if (first === rbOption) {
+						modelGeneration = 'rb';
+					} else if (first === gsOption) {
+						modelGeneration = 'gs';
+					} else if (first === rsOption) {
+						modelGeneration = 'rs';
+					} else if (first === dpOption) {
+						modelGeneration = 'dp';
+					} else if (first === bwOption) {
+						modelGeneration = 'bw';
+					}
+
+					if (modelGeneration) {
+						if (second === shinyOption) shiny = true;
+						if (shiny) {
+							id = Tools.toId(parts.slice(2).join(" "));
+						} else {
+							id = Tools.toId(parts.slice(1).join(" "));
+						}
+					}
 				}
 
-				if (shiny) pokemon = Dex.getPokemon(id);
+				pokemon = Dex.getPokemon(id);
 
 				if (!pokemon) {
 					this.errors.push(CommandParser.getErrorText(['invalidPokemon', id]));
@@ -47,8 +107,11 @@ export class PokemonTextInput extends TextInput<PokemonChoices> {
 				}
 			}
 
-			if (this.props.gif && !Dex.hasModelData(pokemon)) {
-				this.errors.push(pokemon.name + " does not have a GIF");
+			if (!modelGeneration) modelGeneration = this.modelGeneration;
+			const modelGenerationName = modelGeneration !== 'xy' ? modelGeneration.toUpperCase() : "";
+
+			if (this.props.gif && !Dex.hasModelData(pokemon, modelGeneration)) {
+				this.errors.push(pokemon.name + " does not have a " + (modelGenerationName ? modelGenerationName + " " : "") + "model");
 				continue;
 			}
 
@@ -57,7 +120,11 @@ export class PokemonTextInput extends TextInput<PokemonChoices> {
 				continue;
 			}
 
-			pokemonChoices.push({pokemon: pokemon.name, shiny});
+			if (!shiny && this.shiny) shiny = this.shiny;
+
+			targets[i] = (shiny ? "Shiny " : "") + (modelGenerationName ? modelGenerationName + " " : "") + pokemon.name;
+
+			pokemonChoices.push({generation: modelGeneration, pokemon: pokemon.name, shiny});
 		}
 
 		const inputAmount = pokemonChoices.length;
@@ -69,6 +136,7 @@ export class PokemonTextInput extends TextInput<PokemonChoices> {
 			this.errors.push("You may only specify " + this.props.maxPokemon + " Pokemon.");
 		}
 
+		this.currentInput = targets.join(', ');
 		this.currentOutput = pokemonChoices;
 	}
 }

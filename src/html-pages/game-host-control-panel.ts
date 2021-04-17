@@ -1,6 +1,6 @@
 import type { Room } from "../rooms";
 import type { BaseCommandDefinitions } from "../types/command-parser";
-import type { GifGeneration, TrainerSpriteId } from "../types/dex";
+import type { ModelGeneration } from "../types/dex";
 import type { IRandomGameAnswer } from "../types/games";
 import type { HexCode } from "../types/tools";
 import type { User } from "../users";
@@ -65,7 +65,7 @@ class GameHostControlPanel extends HtmlPageBase {
 	generateHintsGameHtml: string = '';
 	generatedAnswer: IRandomGameAnswer | undefined = undefined;
 	gifOrIcon: GifIcon = 'gif';
-	pokemonGeneration: GifGeneration = 'xy';
+	pokemonGeneration: ModelGeneration = 'xy';
 	storedMessageInput: MultiTextInput;
 	twistInput: TextInput;
 	addPointsInput: NumberTextInput;
@@ -437,17 +437,17 @@ class GameHostControlPanel extends HtmlPageBase {
 		return true;
 	}
 
-	getTrainers(): TrainerSpriteId[] {
-		return this.currentTrainers.filter(x => x !== undefined).map(x => x!.trainer);
+	getTrainers(): ITrainerPick[] {
+		return this.currentTrainers.filter(x => x !== undefined) as ITrainerPick[];
 	}
 
-	getPokemon(): string[] {
-		return this.currentPokemon.filter(x => x !== undefined).map(x => x!.pokemon + (x!.shiny ? "|shiny" : ""));
+	getPokemon(): IPokemonPick[] {
+		return this.currentPokemon.filter(x => x !== undefined) as IPokemonPick[];
 	}
 
 	getHostDisplay(): string {
 		return Games.getHostCustomDisplay(this.userName, this.currentBackgroundColor, this.getTrainers(), this.getPokemon(),
-			this.gifOrIcon === 'icon', this.pokemonGeneration);
+			this.gifOrIcon === 'icon');
 	}
 
 	sendHostDisplay(): void {
@@ -455,7 +455,8 @@ class GameHostControlPanel extends HtmlPageBase {
 		if (!user || !this.room.userHostedGame || !this.room.userHostedGame.isHost(user)) return;
 
 		this.room.userHostedGame.sayHostDisplayUhtml(user, this.currentBackgroundColor, this.getTrainers(), this.getPokemon(),
-			this.gifOrIcon === 'icon', this.pokemonGeneration);
+			this.gifOrIcon === 'icon');
+		this.send();
 	}
 
 	render(): string {
@@ -586,9 +587,15 @@ class GameHostControlPanel extends HtmlPageBase {
 			html += this.twistInput.render();
 		} else if (manualHostDisplay || randomHostDisplay) {
 			html += "<h3>" + (manualHostDisplay ? "Manual" : "Random") + " Display</h3>";
-			html += this.getHostDisplay();
+
+			const hostDisplay = this.getHostDisplay();
+			html += hostDisplay;
+			let disabledSend = !currentHost;
+			if (this.room.userHostedGame!.lastHostDisplayUhtml && this.room.userHostedGame!.lastHostDisplayUhtml.html === hostDisplay) {
+				disabledSend = true;
+			}
 			html += "<center>" + Client.getPmSelfButton(this.commandPrefix + ", " + sendDisplayCommand, "Send to " + this.room.title,
-				!currentHost) + "</center>";
+				disabledSend) + "</center>";
 
 			html += "<br />";
 			html += "Auto-send after any change: ";

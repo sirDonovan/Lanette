@@ -261,7 +261,6 @@ export class Storage {
 
 		database.gameHostBoxes[id] = {
 			pokemon: [],
-			shinyPokemon: [],
 		};
 	}
 

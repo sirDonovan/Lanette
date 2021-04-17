@@ -7,8 +7,8 @@ import { formatLinks } from './data/format-links';
 import { locations as locationData } from './data/locations';
 import { trainerClasses } from './data/trainer-classes';
 import type {
-	CategoryData, CharacterType, GifGeneration, IAlternateIconNumbers, IDataTable, IGetPossibleTeamsOptions, IGifData, IGifDirectionData,
-	ISeparatedCustomRules, LocationType, RegionName
+	CategoryData, CharacterType, ModelGeneration, IAlternateIconNumbers, IDataTable, IGetPossibleTeamsOptions, IGifData,
+	IGifDirectionData, ISeparatedCustomRules, LocationType, RegionName
 } from './types/dex';
 import type {
 	IAbility, IAbilityCopy, IFormat, IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy,
@@ -913,9 +913,24 @@ export class Dex {
 		return inverseResistances;
 	}
 
-	getModelData(pokemon: IPokemon, generation?: GifGeneration, direction?: 'front' | 'back'): IGifDirectionData | undefined {
+	getModelData(pokemon: IPokemon, generation?: ModelGeneration, direction?: 'front' | 'back'): IGifDirectionData | undefined {
 		if (!generation) generation = 'xy';
-		if (generation === 'rb' || generation === 'gs' || generation === 'rs' || generation === 'dp') {
+		let oldGen = false;
+		if (generation === 'rb') {
+			if (pokemon.gen > 1) return undefined;
+			oldGen = true;
+		} else if (generation === 'gs') {
+			if (pokemon.gen > 2) return undefined;
+			oldGen = true;
+		} else if (generation === 'rs') {
+			if (pokemon.gen > 3) return undefined;
+			oldGen = true;
+		} else if (generation === 'dp') {
+			if (pokemon.gen > 4) return undefined;
+			oldGen = true;
+		}
+
+		if (oldGen) {
 			return {
 				h: 96,
 				w: 96,
@@ -924,6 +939,8 @@ export class Dex {
 
 		if (!direction) direction = 'front';
 		if (generation === 'bw') {
+			if (pokemon.gen > 5) return undefined;
+
 			const gifDataBW = this.getData().gifDataBW;
 			if (Object.prototype.hasOwnProperty.call(gifDataBW, pokemon.id) && gifDataBW[pokemon.id]![direction]) {
 				return gifDataBW[pokemon.id]![direction];
@@ -937,11 +954,33 @@ export class Dex {
 		return undefined;
 	}
 
-	hasModelData(pokemon: IPokemon, generation?: GifGeneration, direction?: 'front' | 'back'): boolean {
+	getModelGenerationName(generation: number): ModelGeneration {
+		if (generation === 1) return 'rb';
+		if (generation === 2) return 'gs';
+		if (generation === 3) return 'rs';
+		if (generation === 4) return 'dp';
+		if (generation === 5) return 'bw';
+		return 'xy';
+	}
+
+	getModelGenerations(): ModelGeneration[] {
+		return ['rb', 'gs', 'rs', 'dp', 'bw', 'xy'];
+	}
+
+	getModelGenerationMaxGen(generation: ModelGeneration): number {
+		if (generation === 'rb') return 1;
+		if (generation === 'gs') return 2;
+		if (generation === 'rs') return 3;
+		if (generation === 'dp') return 4;
+		if (generation === 'bw') return 5;
+		return dexes.base.gen;
+	}
+
+	hasModelData(pokemon: IPokemon, generation?: ModelGeneration, direction?: 'front' | 'back'): boolean {
 		return !!this.getModelData(pokemon, generation, direction);
 	}
 
-	getPokemonModel(pokemon: IPokemon, generation?: GifGeneration, direction?: 'front' | 'back', shiny?: boolean): string {
+	getPokemonModel(pokemon: IPokemon, generation?: ModelGeneration, direction?: 'front' | 'back', shiny?: boolean): string {
 		if (!generation) generation = 'xy';
 
 		const bw = generation === 'bw';
