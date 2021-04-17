@@ -1,25 +1,31 @@
 import type { Room } from "../rooms";
 import type { BaseCommandDefinitions } from "../types/command-parser";
-import type { IPokemon } from "../types/pokemon-showdown";
+import type { TrainerSpriteId } from "../types/dex";
 import type { IDatabase } from "../types/storage";
 import type { HexCode } from "../types/tools";
 import type { User } from "../users";
 import type { IColorPick } from "./components/color-picker";
 import { ColorPicker } from "./components/color-picker";
+import { PokemonModelPicker } from "./components/pokemon-model-picker";
 import type { IPokemonPick } from "./components/pokemon-picker-base";
+import type { ITrainerPick } from "./components/trainer-picker";
+import { TrainerPicker } from "./components/trainer-picker";
+import type { PokemonChoices } from "./game-host-control-panel";
 import { HtmlPageBase } from "./html-page-base";
 
 const baseCommand = 'gamehostbox';
-const setPokemonCommand = 'setpokemon';
-const setPokemonSeparateCommand = 'ghbpokemon';
 const chooseBackgroundColorPicker = 'choosebackgroundcolorpicker';
 const chooseButtonColorPicker = 'choosebuttoncolorpicker';
 const chooseSignupsBackgroundColorPicker = 'choosesignupsbackgroundcolorpicker';
 const chooseSignupsButtonColorPicker = 'choosesignupsbuttoncolorpicker';
+const chooseTrainerPicker = 'choosetrainerpicker';
+const choosePokemonModelPicker = 'choosepokemonmodelpicker';
 const setBackgroundColorCommand = 'setbackgroundcolor';
 const setButtonColorCommand = 'setbuttonscolor';
 const setSignupsBackgroundColorCommand = 'setsignupsbackgroundcolor';
 const setSignupsButtonColorCommand = 'setsignupsbuttonscolor';
+const setTrainerCommand = 'settrainer';
+const setPokemonModelCommand = 'setpokemonmodel';
 const closeCommand = 'close';
 
 const pages: Dict<GameHostBox> = {};
@@ -27,11 +33,16 @@ const pages: Dict<GameHostBox> = {};
 class GameHostBox extends HtmlPageBase {
 	pageId = 'game-host-box';
 
+	currentPicker: 'background' | 'buttons' | 'signups-background' | 'signups-buttons' | 'trainer' | 'pokemon' = 'background';
+	currentPokemon: PokemonChoices = [];
+
 	backgroundColorPicker: ColorPicker;
 	buttonColorPicker: ColorPicker;
 	signupsBackgroundColorPicker: ColorPicker;
 	signupsButtonColorPicker: ColorPicker;
-	currentPicker: 'background' | 'buttons' | 'signups-background' | 'signups-buttons' = 'background';
+	trainerPicker: TrainerPicker;
+	pokemonModelPicker: PokemonModelPicker;
+	maxPokemonModels: number;
 
 	constructor(room: Room, user: User) {
 		super(room, user, baseCommand);
@@ -41,11 +52,15 @@ class GameHostBox extends HtmlPageBase {
 		let currentButtonColor: HexCode | undefined;
 		let currentSignupsBackgroundColor: HexCode | undefined;
 		let currentSignupsButtonColor: HexCode | undefined;
+		let currentTrainer: TrainerSpriteId | undefined;
+		let currentPokemon: PokemonChoices | undefined;
 		if (database.gameHostBoxes && this.userId in database.gameHostBoxes) {
 			currentBackgroundColor = database.gameHostBoxes[this.userId].background;
 			currentButtonColor = database.gameHostBoxes[this.userId].buttons;
 			currentSignupsBackgroundColor = database.gameHostBoxes[this.userId].signupsBackground;
 			currentSignupsButtonColor = database.gameHostBoxes[this.userId].signupsButtons;
+			currentTrainer = database.gameHostBoxes[this.userId].avatar;
+			currentPokemon = database.gameHostBoxes[this.userId].pokemon;
 		}
 
 		this.backgroundColorPicker = new ColorPicker(this.commandPrefix, setBackgroundColorCommand, {
@@ -87,8 +102,41 @@ class GameHostBox extends HtmlPageBase {
 		});
 		this.signupsButtonColorPicker.active = false;
 
+		this.trainerPicker = new TrainerPicker(this.commandPrefix, setTrainerCommand, {
+			currentPick: currentTrainer,
+			onSetTrainerGen: (index, trainerGen, dontRender) => this.setTrainerGen(dontRender),
+			onClear: (index, dontRender) => this.clearTrainer(dontRender),
+			onPick: (index, trainer, dontRender) => this.selectTrainer(trainer, dontRender),
+			reRender: () => this.send(),
+		});
+		this.trainerPicker.active = false;
+
+		const annualBits = Storage.getAnnualPoints(this.room, Storage.gameLeaderboard, user.name);
+		let maxPokemon = 0;
+		if (annualBits >= Config.gameHostBoxRequirements![this.room.id].pokemon.three) {
+			maxPokemon = 3;
+		} else if (annualBits >= Config.gameHostBoxRequirements![this.room.id].pokemon.two) {
+			maxPokemon = 2;
+		} else if (annualBits >= Config.gameHostBoxRequirements![this.room.id].pokemon.one) {
+			maxPokemon = 1;
+		}
+
+		this.maxPokemonModels = maxPokemon;
+
+		this.pokemonModelPicker = new PokemonModelPicker(this.commandPrefix, setPokemonModelCommand, {
+			maxPokemon,
+			clearAllPokemon: () => this.clearAllPokemon(),
+			submitAllPokemon: (pokemon) => this.submitAllPokemon(pokemon),
+			clearPokemon: (index, dontRender) => this.clearPokemon(index, dontRender),
+			selectPokemon: (index, pokemon, dontRender) => this.selectPokemon(index, pokemon, dontRender),
+			reRender: () => this.send(),
+		});
+		this.pokemonModelPicker.active = false;
+
+		if (currentPokemon && currentPokemon.length) this.pokemonModelPicker.parentSubmitAllPokemonInput(currentPokemon);
+
 		this.components = [this.backgroundColorPicker, this.buttonColorPicker, this.signupsBackgroundColorPicker,
-			this.signupsButtonColorPicker];
+			this.signupsButtonColorPicker, this.trainerPicker, this.pokemonModelPicker];
 
 		pages[this.userId] = this;
 	}
@@ -111,6 +159,8 @@ class GameHostBox extends HtmlPageBase {
 		this.buttonColorPicker.active = false;
 		this.signupsBackgroundColorPicker.active = false;
 		this.signupsButtonColorPicker.active = false;
+		this.trainerPicker.active = false;
+		this.pokemonModelPicker.active = false;
 		this.currentPicker = 'background';
 
 		this.send();
@@ -123,6 +173,8 @@ class GameHostBox extends HtmlPageBase {
 		this.backgroundColorPicker.active = false;
 		this.signupsBackgroundColorPicker.active = false;
 		this.signupsButtonColorPicker.active = false;
+		this.trainerPicker.active = false;
+		this.pokemonModelPicker.active = false;
 		this.currentPicker = 'buttons';
 
 		this.send();
@@ -135,6 +187,8 @@ class GameHostBox extends HtmlPageBase {
 		this.backgroundColorPicker.active = false;
 		this.buttonColorPicker.active = false;
 		this.signupsButtonColorPicker.active = false;
+		this.trainerPicker.active = false;
+		this.pokemonModelPicker.active = false;
 		this.currentPicker = 'signups-background';
 
 		this.send();
@@ -147,9 +201,94 @@ class GameHostBox extends HtmlPageBase {
 		this.backgroundColorPicker.active = false;
 		this.buttonColorPicker.active = false;
 		this.signupsBackgroundColorPicker.active = false;
+		this.trainerPicker.active = false;
+		this.pokemonModelPicker.active = false;
 		this.currentPicker = 'signups-buttons';
 
 		this.send();
+	}
+
+	chooseTrainerPicker(): void {
+		if (this.currentPicker === 'trainer') return;
+
+		this.trainerPicker.active = true;
+		this.signupsButtonColorPicker.active = false;
+		this.backgroundColorPicker.active = false;
+		this.buttonColorPicker.active = false;
+		this.signupsBackgroundColorPicker.active = false;
+		this.pokemonModelPicker.active = false;
+		this.currentPicker = 'trainer';
+
+		this.send();
+	}
+
+	choosePokemonModelPicker(): void {
+		if (this.currentPicker === 'pokemon') return;
+
+		this.pokemonModelPicker.active = true;
+		this.signupsButtonColorPicker.active = false;
+		this.backgroundColorPicker.active = false;
+		this.buttonColorPicker.active = false;
+		this.signupsBackgroundColorPicker.active = false;
+		this.trainerPicker.active = false;
+		this.currentPicker = 'pokemon';
+
+		this.send();
+	}
+
+	setTrainerGen(dontRender?: boolean): void {
+		if (!dontRender) this.send();
+	}
+
+	clearTrainer(dontRender?: boolean): void {
+		const database = this.getDatabase();
+
+		delete database.gameHostBoxes![this.userId].avatar;
+
+		if (!dontRender) this.send();
+	}
+
+	selectTrainer(trainer: ITrainerPick, dontRender?: boolean): void {
+		const database = this.getDatabase();
+
+		database.gameHostBoxes![this.userId].avatar = trainer.trainer;
+
+		if (!dontRender) this.send();
+	}
+
+	clearAllPokemon(): void {
+		this.currentPokemon = [];
+		this.storePokemon();
+
+		this.send();
+	}
+
+	submitAllPokemon(pokemon: PokemonChoices): void {
+		this.currentPokemon = pokemon;
+		this.storePokemon();
+
+		this.send();
+	}
+
+	clearPokemon(index: number, dontRender: boolean | undefined): void {
+		this.currentPokemon[index] = undefined;
+
+		this.storePokemon();
+
+		if (!dontRender) this.send();
+	}
+
+	selectPokemon(index: number, pokemon: IPokemonPick, dontRender: boolean | undefined): void {
+		this.currentPokemon[index] = pokemon;
+
+		this.storePokemon();
+
+		if (!dontRender) this.send();
+	}
+
+	storePokemon(): void {
+		const database = this.getDatabase();
+		database.gameHostBoxes![this.userId].pokemon = this.currentPokemon.filter(x => x !== undefined) as IPokemonPick[];
 	}
 
 	pickBackgroundHueVariation(dontRender?: boolean): void {
@@ -254,16 +393,12 @@ class GameHostBox extends HtmlPageBase {
 		html += Games.getJoinLeaveHtml(signupsButtonColor, false, this.room);
 		html += "<br />";
 
-		html += "<b>Pokemon GIFs</b><br />";
-		html += "Choose your GIFs by PMing " + Users.self.name + " <code>" + Config.commandCharacter + setPokemonSeparateCommand + " " +
-			this.room.title + ", [Pokemon], [Pokemon], [...]</code>";
-		html += "<br /><br />You can make any GIF shiny by adding <code>shiny</code> before or after the Pokemon's name.";
-		html += "<br /><br />";
-
 		const background = this.currentPicker === 'background';
 		const buttons = this.currentPicker === 'buttons';
 		const signupsBackground = this.currentPicker === 'signups-background';
 		const signupsButtons = this.currentPicker === 'signups-buttons';
+		const trainer = this.currentPicker === 'trainer';
+		const pokemon = this.currentPicker === 'pokemon';
 
 		html += Client.getPmSelfButton(this.commandPrefix + ", " + chooseBackgroundColorPicker, "Choose background",
 			background);
@@ -273,10 +408,14 @@ class GameHostBox extends HtmlPageBase {
 			"Choose signups background", signupsBackground);
 		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseSignupsButtonColorPicker, "Choose signups buttons",
 			signupsButtons);
+		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseTrainerPicker, "Choose trainer",
+			trainer);
+		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + choosePokemonModelPicker, "Choose Pokemon",
+			pokemon || !this.maxPokemonModels);
 		html += "<br /><br />";
 
 		if (background) {
-			html += "<b>GIFs background color</b><br />";
+			html += "<b>Background color</b><br />";
 			html += this.backgroundColorPicker.render();
 			html += "<br /><br />";
 		} else if (buttons) {
@@ -285,9 +424,14 @@ class GameHostBox extends HtmlPageBase {
 		} else if (signupsBackground) {
 			html += "<b>Signups background color</b><br />";
 			html += this.signupsBackgroundColorPicker.render();
-		} else {
+		} else if (signupsButtons) {
 			html += "<b>Signups buttons background color</b><br />";
 			html += this.signupsButtonColorPicker.render();
+		} else if (trainer) {
+			html += this.trainerPicker.render();
+		} else {
+			html += "<b>Pokemon</b><br />";
+			html += this.pokemonModelPicker.render();
 		}
 
 		html += "</div>";
@@ -325,65 +469,6 @@ export const commands: BaseCommandDefinitions = {
 
 			if (!cmd) {
 				new GameHostBox(targetRoom, user).open();
-			} else if (cmd === setPokemonCommand || cmd === 'setgifs' || cmd === 'setgif') {
-				if (checkBits && Config.gameHostBoxRequirements[targetRoom.id].pokemon.one > 0 &&
-					annualBits < Config.gameHostBoxRequirements[targetRoom.id].pokemon.one) {
-					return this.say("You need at least " + Config.gameHostBoxRequirements[targetRoom.id].pokemon.one + " annual " +
-						"bits to add a Pokemon icon to your game host box.");
-				}
-
-				const selectedPokemon: IPokemonPick[] = [];
-				for (let i = 0; i < 3; i++) {
-					if (!targets[i]) break;
-					const parts = targets[i].split(" ");
-					let shiny = false;
-					let pokemon: IPokemon | undefined;
-					for (const part of parts) {
-						if (Tools.toId(part) === 'shiny') {
-							shiny = true;
-						} else {
-							pokemon = Dex.getPokemon(part);
-						}
-					}
-					if (!pokemon && !shiny) pokemon = Dex.getPokemon(targets[i]);
-					if (!pokemon) return this.sayError(['invalidPokemon', targets[i]]);
-
-					if (pokemon.forme && pokemon.baseSpecies === 'Unown') {
-						return this.say("You can only use a regular Unown GIF.");
-					}
-
-					if (!Dex.hasModelData(pokemon)) {
-						return this.say(pokemon.name + " does not have a GIF! Please choose a different Pokemon.");
-					}
-
-					selectedPokemon.push({generation: 'xy', pokemon: pokemon.name, shiny});
-				}
-
-				const selectedPokemonLength = selectedPokemon.length;
-				if (!selectedPokemonLength) return this.say("You must specify at least 1 Pokemon.");
-
-				if (checkBits) {
-					let requirement: 'two' | 'three' | undefined;
-					if (selectedPokemonLength === 2) {
-						requirement = 'two';
-					} else if (selectedPokemonLength === 3) {
-						requirement = 'three';
-					}
-
-					if (requirement) {
-						const requiredBits = Config.gameHostBoxRequirements[targetRoom.id].pokemon[requirement];
-						if (requiredBits > 0 && annualBits < requiredBits) {
-							return this.say("You need at least " + requiredBits + " annual bits to add " + selectedPokemonLength + " " +
-								"Pokemon GIFs to your game host box.");
-						}
-					}
-				}
-
-				Storage.createGameHostBox(database, user.name);
-				database.gameHostBoxes[user.id].pokemon = selectedPokemon;
-
-				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
-				pages[user.id].send();
 			} else if (cmd === chooseBackgroundColorPicker) {
 				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
 				pages[user.id].chooseBackgroundColorPicker();
@@ -396,6 +481,12 @@ export const commands: BaseCommandDefinitions = {
 			} else if (cmd === chooseSignupsButtonColorPicker) {
 				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
 				pages[user.id].chooseSignupsButtonColorPicker();
+			} else if (cmd === chooseTrainerPicker) {
+				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
+				pages[user.id].chooseTrainerPicker();
+			} else if (cmd === choosePokemonModelPicker) {
+				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
+				pages[user.id].choosePokemonModelPicker();
 			} else if (cmd === closeCommand) {
 				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
 				pages[user.id].close();
@@ -407,11 +498,5 @@ export const commands: BaseCommandDefinitions = {
 			}
 		},
 		aliases: ['ghb'],
-	},
-	[setPokemonSeparateCommand]: {
-		command(target) {
-			const targets = target.split(',');
-			this.run(baseCommand, targets[0] + "," + setPokemonCommand + "," + targets.slice(1).join(","));
-		},
 	},
 };

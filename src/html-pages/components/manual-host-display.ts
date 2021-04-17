@@ -14,7 +14,6 @@ const pokemonInputCommand = 'pokemoninput';
 
 export class ManualHostDisplay extends HostDisplayBase {
 	componentId: string = 'manual-host-display';
-	submitPokemonErrors: string[] = [];
 
 	allPokemonTextInputGifGens!: KeyedDict<ModelGeneration, PokemonTextInput>;
 	allPokemonTextInputIconGens!: KeyedDict<ModelGeneration, PokemonTextInput>;

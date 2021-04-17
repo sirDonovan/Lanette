@@ -16,17 +16,22 @@ export interface IPokemonTextInputProps extends ITextInputProps<PokemonChoices> 
 	pokemonList: string[];
 	maxPokemon?: number;
 	minPokemon?: number;
+	modelGeneration?: ModelGeneration;
 }
 
 export class PokemonTextInput extends TextInput<PokemonChoices> {
 	componentId: string = 'pokemon-text-input';
-	modelGeneration: ModelGeneration = 'xy';
+
 	shiny: boolean = false;
+
+	modelGeneration: ModelGeneration;
 
 	props!: IPokemonTextInputProps;
 
 	constructor(parentCommandPrefix: string, componentCommand: string, props: IPokemonTextInputProps) {
 		super(parentCommandPrefix, componentCommand, props);
+
+		this.modelGeneration = props.modelGeneration || 'xy';
 	}
 
 	setModelGeneration(modelGeneration: ModelGeneration): void {
@@ -111,12 +116,12 @@ export class PokemonTextInput extends TextInput<PokemonChoices> {
 			const modelGenerationName = modelGeneration !== 'xy' ? modelGeneration.toUpperCase() : "";
 
 			if (this.props.gif && !Dex.hasModelData(pokemon, modelGeneration)) {
-				this.errors.push(pokemon.name + " does not have a " + (modelGenerationName ? modelGenerationName + " " : "") + "model");
+				this.errors.push(pokemon.name + " does not have a " + (modelGenerationName ? modelGenerationName + " " : "") + "model.");
 				continue;
 			}
 
 			if (!this.props.pokemonList.includes(pokemon.name)) {
-				this.errors.push(pokemon.name + " cannot be used");
+				this.errors.push(pokemon.name + " cannot be used.");
 				continue;
 			}
 
@@ -129,7 +134,7 @@ export class PokemonTextInput extends TextInput<PokemonChoices> {
 
 		const inputAmount = pokemonChoices.length;
 		if (!inputAmount || (this.props.minPokemon && inputAmount < this.props.minPokemon)) {
-			this.errors.push("You must specify at least " + (this.props.minPokemon || 1) + " Pokemon.");
+			this.errors.push("You must specify at least " + (this.props.minPokemon || 1) + " valid Pokemon.");
 		}
 
 		if (this.props.maxPokemon && inputAmount > this.props.maxPokemon) {

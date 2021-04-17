@@ -279,7 +279,7 @@ export class PokemonPickerManual extends PokemonPickerBase {
 			this.letterPaginations[previousGeneration][this.letterViews[previousGeneration]!].active = false;
 			this.letterPaginations[this.generation][this.letterViews[previousGeneration]!].active = true;
 
-			this.letterViews[this.generation] = this.letterViews[previousGeneration];
+			this.parentPickLetter(this.letterViews[previousGeneration]!);
 			if (this.currentPick) this.letterPaginations[this.generation][this.letterViews[this.generation]!].autoSelectPage();
 		}
 

@@ -1529,7 +1529,6 @@ export class Games {
 			if (hostBox.avatar) {
 				const trainerSpriteId = Dex.getTrainerSpriteId(hostBox.avatar);
 				if (trainerSpriteId) {
-					if (trainerHtml) trainerHtml += "&nbsp;";
 					trainerHtml += Dex.getTrainerSprite(trainerSpriteId);
 				}
 			}
