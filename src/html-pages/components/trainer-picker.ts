@@ -260,9 +260,11 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 		return true;
 	}
 
-	setRandomizedTrainer(trainer: ITrainerPick): void {
-		this.parentPickTrainerGen(trainer.gen);
-		this.parentPick(trainer.trainer);
+	setRandomizedTrainer(pick: ITrainerPick): void {
+		if (!this.isValidChoice(pick.trainer)) return;
+
+		this.parentPickTrainerGen(pick.gen);
+		this.parentPick(pick.trainer);
 
 		this.toggleActivePagination(true);
 	}

@@ -347,6 +347,8 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 	}
 
 	setRandomizedColor(hueVariation: HueVariation, lightness: Lightness, color: HexCode): void {
+		if (!this.isValidChoice(color)) return;
+
 		this.parentPickHueVariation(hueVariation);
 		this.parentPickLightness(lightness);
 		this.parentPick(color);

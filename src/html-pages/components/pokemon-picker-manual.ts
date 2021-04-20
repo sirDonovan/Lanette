@@ -298,6 +298,9 @@ export class PokemonPickerManual extends PokemonPickerBase {
 
 	setPokemonAttributes(pick: IPokemonPick, textInput?: boolean): void {
 		this.parentPickGeneration(pick.generation);
+
+		if (!this.isValidChoice(pick.pokemon)) return;
+
 		this.parentPickShininess(pick.shiny ? true : false);
 
 		const letter = pick.pokemon.charAt(0).toUpperCase();

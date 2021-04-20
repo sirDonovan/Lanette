@@ -21,7 +21,6 @@ const closeCommand = 'close';
 const pages: Dict<GameTrainerCard> = {};
 
 class GameTrainerCard extends HtmlPageBase {
-
 	pageId = 'game-trainer-card';
 
 	currentPicker: 'background' | 'trainer' = 'background';

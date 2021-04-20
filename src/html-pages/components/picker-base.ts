@@ -57,6 +57,10 @@ export abstract class PickerBase<PickType = string, PropsType extends IPickerPro
 			!this.currentPick);
 	}
 
+	isValidChoice(choice: string): boolean {
+		return choice in this.choices;
+	}
+
 	clear(dontRender?: boolean, replicatedFrom?: PickerBase<PickType, PropsType>): void {
 		if (this.currentPick === undefined) return;
 
@@ -130,7 +134,7 @@ export abstract class PickerBase<PickType = string, PropsType extends IPickerPro
 	replicatePick(pick: string, replicatedFrom: PickerBase<PickType, PropsType> | undefined): void {
 		if (this.replicationTargets) {
 			for (const target of this.replicationTargets) {
-				if (!replicatedFrom || target !== replicatedFrom) target.pick(pick, true, this);
+				if ((!replicatedFrom || target !== replicatedFrom) && target.isValidChoice(pick)) target.pick(pick, true, this);
 			}
 		}
 	}
