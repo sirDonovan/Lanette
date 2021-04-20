@@ -549,12 +549,12 @@ describe("Games", () => {
 		const normalTypeMove = Dex.getExistingMove('Tackle');
 		const ghostTypePokemon = Dex.getExistingPokemon('Duskull');
 
-		assertStrictEqual(Games.getEffectivenessScore('Normal', 'Ghost'), 0.001);
-		assertStrictEqual(Games.getEffectivenessScore('Normal', ['Ghost']), 0.001);
-		assertStrictEqual(Games.getEffectivenessScore('Normal', ghostTypePokemon), 0.001);
-		assertStrictEqual(Games.getEffectivenessScore(normalTypeMove, 'Ghost'), 0.001);
-		assertStrictEqual(Games.getEffectivenessScore(normalTypeMove, ['Ghost']), 0.001);
-		assertStrictEqual(Games.getEffectivenessScore(normalTypeMove, ghostTypePokemon), 0.001);
+		assertStrictEqual(Games.getEffectivenessScore('Normal', 'Ghost'), 0.125);
+		assertStrictEqual(Games.getEffectivenessScore('Normal', ['Ghost']), 0.125);
+		assertStrictEqual(Games.getEffectivenessScore('Normal', ghostTypePokemon), 0.125);
+		assertStrictEqual(Games.getEffectivenessScore(normalTypeMove, 'Ghost'), 0.125);
+		assertStrictEqual(Games.getEffectivenessScore(normalTypeMove, ['Ghost']), 0.125);
+		assertStrictEqual(Games.getEffectivenessScore(normalTypeMove, ghostTypePokemon), 0.125);
 	});
 	it('should return proper values from getCombinedEffectivenessScore()', () => {
 		const waterType = Dex.getExistingPokemon('Squirtle');
@@ -574,12 +574,17 @@ describe("Games", () => {
 		assertStrictEqual(Games.getCombinedEffectivenessScore(fireType, Dex.getExistingPokemon('Magcargo')), 0.25);
 
 		const normalType = Dex.getExistingPokemon('Rattata');
-		assertStrictEqual(Games.getCombinedEffectivenessScore(normalType, 'Ghost'), 0.001);
-		assertStrictEqual(Games.getCombinedEffectivenessScore(normalType, ['Ghost']), 0.001);
-		assertStrictEqual(Games.getCombinedEffectivenessScore(normalType, Dex.getExistingPokemon('Duskull')), 0.001);
+		assertStrictEqual(Games.getCombinedEffectivenessScore(normalType, 'Ghost'), 0.125);
+		assertStrictEqual(Games.getCombinedEffectivenessScore(normalType, ['Ghost']), 0.125);
+		assertStrictEqual(Games.getCombinedEffectivenessScore(normalType, Dex.getExistingPokemon('Duskull')), 0.125);
 
-		assertStrictEqual(Games.getCombinedEffectivenessScore(normalType, ['Dark', 'Ghost']), 0.001);
-		assertStrictEqual(Games.getCombinedEffectivenessScore(normalType, Dex.getExistingPokemon('Spiritomb')), 0.001);
+		assertStrictEqual(Games.getCombinedEffectivenessScore(normalType, ['Dark', 'Ghost']), 0.125);
+		assertStrictEqual(Games.getCombinedEffectivenessScore(normalType, Dex.getExistingPokemon('Spiritomb')), 0.125);
+
+		assertStrictEqual(Games.getCombinedEffectivenessScore(Dex.getExistingPokemon("Oranguru"), Dex.getExistingPokemon("Gengar")),
+			0.25);
+		assertStrictEqual(Games.getCombinedEffectivenessScore(Dex.getExistingPokemon("Gengar"), Dex.getExistingPokemon("Oranguru")),
+			0.125);
 	});
 	it('should return proper values from getMatchupWinner()', () => {
 		const waterType = Dex.getExistingPokemon('Squirtle');

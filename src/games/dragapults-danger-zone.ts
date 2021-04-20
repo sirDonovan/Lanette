@@ -330,11 +330,11 @@ class DragapultsDangerZone extends ScriptedGame {
 		if (this.timeout) clearTimeout(this.timeout);
 		this.canSelect = false;
 
-		const playerA = this.matchupPlayers[0];
-		const playerB = this.matchupPlayers[1];
-		const playerAPokemon = this.selectedMatchupPokemon.get(playerA);
-		const playerBPokemon = this.selectedMatchupPokemon.get(playerB);
-		if (!playerAPokemon && !playerBPokemon) {
+		const attacker = this.matchupPlayers[0];
+		const defender = this.matchupPlayers[1];
+		const attackerPokemon = this.selectedMatchupPokemon.get(attacker);
+		const defenderPokemon = this.selectedMatchupPokemon.get(defender);
+		if (!attackerPokemon && !defenderPokemon) {
 			const text = "Neither player selected a Pokemon!";
 			this.on(text, () => {
 				this.currentPlayer = null;
@@ -344,34 +344,34 @@ class DragapultsDangerZone extends ScriptedGame {
 			return;
 		}
 
-		let playerAWin = false;
-		let playerBWin = false;
-		if (playerAPokemon && playerBPokemon) {
-			const winner = Games.getMatchupWinner(playerAPokemon, playerBPokemon);
-			if (winner === playerAPokemon) {
-				playerAWin = true;
-			} else if (winner === playerBPokemon) {
-				playerBWin = true;
+		let attackerWin = false;
+		let defenderWin = false;
+		if (attackerPokemon && defenderPokemon) {
+			const winner = Games.getMatchupWinner(attackerPokemon, defenderPokemon);
+			if (winner === attackerPokemon) {
+				attackerWin = true;
+			} else if (winner === defenderPokemon) {
+				defenderWin = true;
 			}
 		} else {
-			if (playerAPokemon) {
-				playerAWin = true;
-			} else if (playerBPokemon) {
-				playerBWin = true;
+			if (attackerPokemon) {
+				attackerWin = true;
+			} else if (defenderPokemon) {
+				defenderWin = true;
 			}
 		}
 
 		let tie = false;
 		let text = '';
-		if (!playerAWin && !playerBWin) {
+		if (!attackerWin && !defenderWin) {
 			tie = true;
-			text = "It was a tie between " + playerA.name + "'s " + playerAPokemon!.name + " and " +
-				playerB.name + "'s " + playerBPokemon!.name + "!";
+			text = "It was a tie between " + attacker.name + "'s " + attackerPokemon!.name + " and " +
+				defender.name + "'s " + defenderPokemon!.name + "!";
 		} else {
-			if (playerAWin) {
-				text = this.handleMatchupResult(playerA, playerB, playerAPokemon!, playerBPokemon);
-			} else if (playerBWin) {
-				text = this.handleMatchupResult(playerB, playerA, playerBPokemon!, playerAPokemon);
+			if (attackerWin) {
+				text = this.handleMatchupResult(attacker, defender, attackerPokemon!, defenderPokemon);
+			} else if (defenderWin) {
+				text = this.handleMatchupResult(defender, attacker, defenderPokemon!, attackerPokemon);
 			}
 		}
 

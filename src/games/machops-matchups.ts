@@ -53,9 +53,8 @@ class MachopsMatchups extends ScriptedGame {
 			}
 			if (this.usedPokemon.includes(pokedex[0])) return false;
 
-			this.playerPokemon.set(player, Dex.getExistingPokemon(pokedex[0]));
-			this.usedPokemon.push(pokedex[0]);
-			player.say("You have been randomly assigned " + pokedex[0] + "!");
+			this.assignPokemon(player, pokedex[0]);
+			pokedex.shift();
 		}
 
 		return true;
@@ -74,15 +73,26 @@ class MachopsMatchups extends ScriptedGame {
 
 		const pokedex = this.shuffle(this.getPokemonChoices());
 		for (const id in this.players) {
-			const player = this.players[id];
-			const pokemon = pokedex[0];
+			this.assignPokemon(this.players[id], pokedex[0]);
 			pokedex.shift();
-			this.playerPokemon.set(player, Dex.getExistingPokemon(pokemon));
-			this.usedPokemon.push(pokemon);
-			player.say("You have been randomly assigned " + pokemon + "!");
 		}
 
 		this.nextRound();
+	}
+
+	assignPokemon(player: Player, species: string): void {
+		this.usedPokemon.push(species);
+
+		const pokemon = Dex.getExistingPokemon(species);
+		this.playerPokemon.set(player, pokemon);
+		player.say("You have been randomly assigned:");
+		player.sayHtml(this.getPokemonHtml(pokemon));
+	}
+
+	getPokemonHtml(pokemon: IPokemon): string {
+		return "<center>" + Dex.getPokemonModel(pokemon) + "<br /><b>" + pokemon.name +
+			"</b><br />" + Dex.getTypeHtml(Dex.getExistingType(pokemon.types[0])) + "&nbsp;/&nbsp;" +
+			Dex.getTypeHtml(Dex.getExistingType(pokemon.types[1])) + "</center>";
 	}
 
 	onNextRound(): void {
@@ -99,9 +109,7 @@ class MachopsMatchups extends ScriptedGame {
 		const roundUhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(roundUhtmlName, roundHtml, () => {
 			this.timeout = setTimeout(() => {
-				const pokemonHtml = "<center>" + Dex.getPokemonModel(this.currentPokemon) + "<br /><b>" + this.currentPokemon.name +
-					"</b><br />" + Dex.getTypeHtml(Dex.getExistingType(this.currentPokemon.types[0])) + "&nbsp;/&nbsp;" +
-					Dex.getTypeHtml(Dex.getExistingType(this.currentPokemon.types[1])) + "</center>";
+				const pokemonHtml = this.getPokemonHtml(this.currentPokemon);
 				const pokemonUhtmlName = this.uhtmlBaseName + '-pokemon';
 				this.onUhtml(pokemonUhtmlName, pokemonHtml, () => {
 					this.canAttack = true;

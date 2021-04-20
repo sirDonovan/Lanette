@@ -22,7 +22,6 @@ import { ParametersWorker } from './workers/parameters';
 import { PortmanteausWorker } from './workers/portmanteaus';
 
 const DEFAULT_CATEGORY_COOLDOWN = 3;
-const IMMUNE_MATCHUP_SCORE = 0.001;
 const MAX_MOVE_AVAILABILITY = 500;
 const MINIGAME_BITS = 25;
 const SCRIPTED_GAME_HIGHLIGHT = "Hosting a scriptedgame of";
@@ -1304,7 +1303,7 @@ export class Games {
 
 	getEffectivenessScore(source: string | IMove, target: string | readonly string[] | IPokemon): number {
 		if (Dex.isImmune(source, target)) {
-			return IMMUNE_MATCHUP_SCORE;
+			return 0.125;
 		}
 
 		const effectiveness = Dex.getEffectiveness(source, target);
@@ -1324,13 +1323,7 @@ export class Games {
 	getCombinedEffectivenessScore(attacker: IPokemon, defender: string | readonly string[] | IPokemon): number {
 		let combinedScore = 1;
 		for (const type of attacker.types) {
-			const score = this.getEffectivenessScore(type, defender);
-			if (score === IMMUNE_MATCHUP_SCORE) {
-				combinedScore = IMMUNE_MATCHUP_SCORE;
-				break;
-			}
-
-			combinedScore *= score;
+			combinedScore *= this.getEffectivenessScore(type, defender);
 		}
 
 		return combinedScore;
