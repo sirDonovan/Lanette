@@ -45,6 +45,9 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 		teams: 'https://www.smogon.com/forums/threads/3671157',
 		viability: 'https://www.smogon.com/forums/threads/3658514',
 	},
+	'gen8almostanyability': {
+		teams: 'https://www.smogon.com/forums/threads/3656414/#post-8286473',
+	},
 
 	// Gen 7
 	'gen7letsgoou': {
