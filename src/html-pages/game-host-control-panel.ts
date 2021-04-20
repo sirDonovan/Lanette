@@ -590,8 +590,10 @@ class GameHostControlPanel extends HtmlPageBase {
 
 			const hostDisplay = this.getHostDisplay();
 			html += hostDisplay;
+
 			let disabledSend = !currentHost;
-			if (this.room.userHostedGame!.lastHostDisplayUhtml && this.room.userHostedGame!.lastHostDisplayUhtml.html === hostDisplay) {
+			if (!disabledSend && this.room.userHostedGame && this.room.userHostedGame.lastHostDisplayUhtml &&
+				this.room.userHostedGame.lastHostDisplayUhtml.html === hostDisplay) {
 				disabledSend = true;
 			}
 			html += "<center>" + Client.getPmSelfButton(this.commandPrefix + ", " + sendDisplayCommand, "Send to " + this.room.title,
