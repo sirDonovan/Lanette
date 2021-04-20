@@ -1181,26 +1181,21 @@ export class Client {
 				username: messageParts[0].substr(1),
 			};
 
-			let rank: string | undefined;
 			let username: string;
 			if (messageArguments.possibleRank in this.serverGroups) {
-				rank = messageArguments.possibleRank;
 				username = messageArguments.username;
 			} else {
 				username = messageArguments.possibleRank + messageArguments.username;
 			}
+
 			const id = Tools.toId(username);
 			if (!id) return;
 
 			const user = Users.add(username, id);
-			if (!rank) {
-				const roomData = user.rooms.get(room);
-				if (roomData && roomData.rank) rank = roomData.rank;
-			}
-
-			room.onUserLeave(user);
 
 			Storage.updateLastSeen(user, now);
+
+			room.onUserLeave(user);
 			break;
 		}
 
