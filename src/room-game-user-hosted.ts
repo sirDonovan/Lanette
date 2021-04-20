@@ -4,11 +4,16 @@ import type { Room } from "./rooms";
 import type { GameDifficulty, IUserHostedFile, IUserHostedFormat } from "./types/games";
 import type { User } from "./users";
 
+const FIRST_ACTIVITY_WARNING = 5 * 60 * 1000;
+const SECOND_ACTIVITY_WARNING = 30 * 1000;
+const MIN_HOST_EXTENSION_MINUTES = 1;
+const MAX_HOST_EXTENSION_MINUTES = 2;
 const FORCE_END_CREATE_TIMER = 60 * 1000;
 const HOST_TIME_LIMIT = 25 * 60 * 1000;
 
 export class UserHostedGame extends Game {
 	endTime: number = 0;
+	extended: boolean = false;
 	gameTimer: NodeJS.Timer | null = null;
 	gameTimerEndTime: number = 0;
 	hostId: string = '';
@@ -90,6 +95,29 @@ export class UserHostedGame extends Game {
 
 		this.setHost(this.hostName);
 		this.signups();
+	}
+
+	extend(target: string, user: User): string | undefined {
+		if (this.extended) return "The game cannot be extended more than once.";
+
+		const now = Date.now();
+		if (this.endTime - now > FIRST_ACTIVITY_WARNING) {
+			return "You cannot extend the game if there are more than " + (FIRST_ACTIVITY_WARNING / 60 / 1000) + " minutes remaining.";
+		}
+
+		const minutes = parseFloat(target);
+		if (isNaN(minutes) || minutes < MIN_HOST_EXTENSION_MINUTES || minutes > MAX_HOST_EXTENSION_MINUTES) {
+			return "You must specify an extension time between " + MIN_HOST_EXTENSION_MINUTES + " and " +
+				MAX_HOST_EXTENSION_MINUTES + " minutes.";
+		}
+
+		this.endTime += minutes * 60 * 1000;
+		this.extended = true;
+		this.setSecondActivityTimer();
+
+		const extension = minutes + " minute" + (minutes === 1 ? "" : "s");
+		this.say((this.subHostName || this.hostName) + " your game has been extended by " + extension + ".");
+		if (!this.subHostName) this.room.modnote(user.name + " extended " + this.hostName + "'s game by " + extension + ".");
 	}
 
 	// Display
@@ -327,19 +355,11 @@ export class UserHostedGame extends Game {
 
 		this.room.notifyRank("all", this.room.title + " user-hosted game", this.name, this.hostId + " " + this.getHighlightPhrase());
 
-		const firstWarning = 5 * 60 * 1000;
-		const secondWarning = 30 * 1000;
 		this.hostTimeout = setTimeout(() => {
-			this.say(this.hostName + " you have " + Tools.toDurationString(firstWarning) + " left! Please start to finish up your game.");
-			this.hostTimeout = setTimeout(() => {
-				this.say(this.hostName + " you have " + Tools.toDurationString(secondWarning) + " left! Please declare the winner(s) " +
-					"with " + Config.commandCharacter + "win.");
-				this.hostTimeout = setTimeout(() => {
-					this.say(this.hostName + " your time is up!");
-					this.end();
-				}, secondWarning);
-			}, firstWarning - secondWarning);
-		}, HOST_TIME_LIMIT - firstWarning);
+			this.say((this.subHostName || this.hostName) + " there are " + Tools.toDurationString(FIRST_ACTIVITY_WARNING) + " remaining " +
+				"in the game!");
+			this.setSecondActivityTimer();
+		}, HOST_TIME_LIMIT - FIRST_ACTIVITY_WARNING);
 
 		if (this.format.options.freejoin) {
 			this.started = true;
@@ -360,6 +380,19 @@ export class UserHostedGame extends Game {
 		this.say(this.name + " is starting! **Players (" + this.playerCount + ")**: " + this.getPlayerNames());
 
 		return true;
+	}
+
+	setSecondActivityTimer(): void {
+		if (this.hostTimeout) clearTimeout(this.hostTimeout);
+		this.hostTimeout = setTimeout(() => {
+			this.say((this.subHostName || this.hostName) + " you have " + Tools.toDurationString(SECOND_ACTIVITY_WARNING) + " to " +
+				"declare the winner(s) with ``" + Config.commandCharacter + "win [winner]`` or ``" +
+				Config.commandCharacter + "autowin [places]``!");
+			this.hostTimeout = setTimeout(() => {
+				this.say((this.subHostName || this.hostName) + " your time is up!");
+				this.end();
+			}, SECOND_ACTIVITY_WARNING);
+		}, this.endTime - Date.now() - SECOND_ACTIVITY_WARNING);
 	}
 
 	end(): void {

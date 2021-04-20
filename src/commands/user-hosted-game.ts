@@ -247,6 +247,14 @@ export const commands: BaseCommandDefinitions = {
 			room.userHostedGame.restart(format);
 		},
 	},
+	extendhost: {
+		command(target, room, user) {
+			if (this.isPm(room) || !user.hasRank(room, 'voice') || !room.userHostedGame) return;
+
+			const error = room.userHostedGame.extend(target, user);
+			if (error) this.say(error);
+		},
+	},
 	subhost: {
 		command(target, room, user) {
 			if (this.isPm(room) || !user.hasRank(room, 'voice') || !room.userHostedGame) return;
