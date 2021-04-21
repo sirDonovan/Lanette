@@ -562,24 +562,31 @@ describe("Games", () => {
 		assertStrictEqual(Games.getCombinedEffectivenessScore(waterType, 'Fire'), 2);
 		assertStrictEqual(Games.getCombinedEffectivenessScore(waterType, ['Fire']), 2);
 		assertStrictEqual(Games.getCombinedEffectivenessScore(waterType, fireType), 2);
+		assertStrictEqual(Games.getCombinedEffectivenessScore(waterType, 'Fire', true), 0.5);
 
 		assertStrictEqual(Games.getCombinedEffectivenessScore(waterType, ['Rock', 'Ground']), 4);
 		assertStrictEqual(Games.getCombinedEffectivenessScore(waterType, Dex.getExistingPokemon('Golem')), 4);
+		assertStrictEqual(Games.getCombinedEffectivenessScore(waterType, ['Rock', 'Ground'], true), 0.25);
 
 		assertStrictEqual(Games.getCombinedEffectivenessScore(fireType, 'Water'), 0.5);
 		assertStrictEqual(Games.getCombinedEffectivenessScore(fireType, ['Water']), 0.5);
 		assertStrictEqual(Games.getCombinedEffectivenessScore(fireType, waterType), 0.5);
+		assertStrictEqual(Games.getCombinedEffectivenessScore(fireType, 'Water', true), 2);
 
 		assertStrictEqual(Games.getCombinedEffectivenessScore(fireType, ['Rock', 'Fire']), 0.25);
 		assertStrictEqual(Games.getCombinedEffectivenessScore(fireType, Dex.getExistingPokemon('Magcargo')), 0.25);
+		assertStrictEqual(Games.getCombinedEffectivenessScore(fireType, ['Rock', 'Fire'], true), 4);
 
 		const normalType = Dex.getExistingPokemon('Rattata');
 		assertStrictEqual(Games.getCombinedEffectivenessScore(normalType, 'Ghost'), 0.125);
 		assertStrictEqual(Games.getCombinedEffectivenessScore(normalType, ['Ghost']), 0.125);
 		assertStrictEqual(Games.getCombinedEffectivenessScore(normalType, Dex.getExistingPokemon('Duskull')), 0.125);
+		assertStrictEqual(Games.getCombinedEffectivenessScore(normalType, 'Ghost', true), 2);
 
 		assertStrictEqual(Games.getCombinedEffectivenessScore(normalType, ['Dark', 'Ghost']), 0.125);
 		assertStrictEqual(Games.getCombinedEffectivenessScore(normalType, Dex.getExistingPokemon('Spiritomb')), 0.125);
+
+		assertStrictEqual(Games.getCombinedEffectivenessScore(normalType, ['Rock', 'Ghost'], true), 2);
 
 		assertStrictEqual(Games.getCombinedEffectivenessScore(Dex.getExistingPokemon("Oranguru"), Dex.getExistingPokemon("Gengar")),
 			0.25);
@@ -591,6 +598,7 @@ describe("Games", () => {
 		const fireType = Dex.getExistingPokemon('Charmander');
 		assertStrictEqual(Games.getMatchupWinner(waterType, fireType), waterType);
 		assertStrictEqual(Games.getMatchupWinner(waterType, Dex.getExistingPokemon('Golem')), waterType);
+		assertStrictEqual(Games.getMatchupWinner(waterType, fireType, true), fireType);
 
 		const rockFireType = Dex.getExistingPokemon('Magcargo');
 		assertStrictEqual(Games.getMatchupWinner(fireType, waterType), waterType);
@@ -599,7 +607,10 @@ describe("Games", () => {
 		const normalType = Dex.getExistingPokemon('Rattata');
 		assertStrictEqual(Games.getMatchupWinner(normalType, rockFireType), rockFireType);
 		assertStrictEqual(Games.getMatchupWinner(normalType, waterType), null);
-		assertStrictEqual(Games.getMatchupWinner(normalType, Dex.getExistingPokemon('Duskull')), null);
+
+		const ghostType = Dex.getExistingPokemon('Duskull');
+		assertStrictEqual(Games.getMatchupWinner(normalType, ghostType), null);
+
 		assertStrictEqual(Games.getMatchupWinner(normalType, Dex.getExistingPokemon('Spiritomb')), null);
 	});
 });

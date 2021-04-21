@@ -1301,37 +1301,42 @@ export class Games {
 		return this.getPokemonList(filter, gen).map(x => dex.getPokemonCopy(x));
 	}
 
-	getEffectivenessScore(source: string | IMove, target: string | readonly string[] | IPokemon): number {
+	getEffectivenessScore(source: string | IMove, target: string | readonly string[] | IPokemon, inverseTypes?: boolean): number {
 		if (Dex.isImmune(source, target)) {
+			if (inverseTypes) return 2;
 			return 0.125;
 		}
 
 		const effectiveness = Dex.getEffectiveness(source, target);
 		if (effectiveness === -2) {
+			if (inverseTypes) return 4;
 			return 0.25;
 		} else if (effectiveness === -1) {
+			if (inverseTypes) return 2;
 			return 0.5;
 		} else if (effectiveness === 1) {
+			if (inverseTypes) return 0.5;
 			return 2;
 		} else if (effectiveness === 2) {
+			if (inverseTypes) return 0.25;
 			return 4;
 		}
 
 		return 1;
 	}
 
-	getCombinedEffectivenessScore(attacker: IPokemon, defender: string | readonly string[] | IPokemon): number {
+	getCombinedEffectivenessScore(attacker: IPokemon, defender: string | readonly string[] | IPokemon, inverseTypes?: boolean): number {
 		let combinedScore = 1;
 		for (const type of attacker.types) {
-			combinedScore *= this.getEffectivenessScore(type, defender);
+			combinedScore *= this.getEffectivenessScore(type, defender, inverseTypes);
 		}
 
 		return combinedScore;
 	}
 
-	getMatchupWinner(attacker: IPokemon, defender: IPokemon): IPokemon | null {
-		const matchupScore = this.getCombinedEffectivenessScore(attacker, defender) /
-			this.getCombinedEffectivenessScore(defender, attacker);
+	getMatchupWinner(attacker: IPokemon, defender: IPokemon, inverseTypes?: boolean): IPokemon | null {
+		const matchupScore = this.getCombinedEffectivenessScore(attacker, defender, inverseTypes) /
+			this.getCombinedEffectivenessScore(defender, attacker, inverseTypes);
 
 		if (matchupScore > 1) {
 			return attacker;

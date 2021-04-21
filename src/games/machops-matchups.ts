@@ -14,6 +14,7 @@ const banlist = ['giratina'];
 class MachopsMatchups extends ScriptedGame {
 	canAttack: boolean = false;
 	canLateJoin = true;
+	inverseTypes: boolean = false;
 	maxPoints: number = 10;
 	playerPokemon = new Map<Player, IPokemon>();
 	points = new Map<Player, number>();
@@ -138,7 +139,7 @@ const commands: GameCommandDefinitions<MachopsMatchups> = {
 			this.roundActions.add(player);
 			const pokemon = this.playerPokemon.get(player)!;
 
-			const winner = Games.getMatchupWinner(pokemon, this.currentPokemon);
+			const winner = Games.getMatchupWinner(pokemon, this.currentPokemon, this.inverseTypes);
 
 			if (winner === pokemon) {
 				let points = this.points.get(player) || 0;
@@ -177,6 +178,11 @@ export const game: IGameFile<MachopsMatchups> = {
 	mascot: "Machop",
 	scriptedOnly: true,
 	variants: [
+		{
+			name: "Machop's Inverse Matchups",
+			variantAliases: ['inverse'],
+			inverseTypes: true,
+		},
 		{
 			name: "Machop's Bug Matchups",
 			variantAliases: ['bug'],
