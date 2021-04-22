@@ -1194,11 +1194,11 @@ export const commands: BaseCommandDefinitions = {
 				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 				gameRoom = targetRoom;
 				targets.shift();
+				if (!gameRoom.userHostedGame || (targets[0] && !gameRoom.userHostedGame.isHost(user))) return;
 			} else {
 				gameRoom = room;
+				if (!gameRoom.userHostedGame || !gameRoom.userHostedGame.isHost(user)) return;
 			}
-
-			if (!gameRoom.userHostedGame || (targets[0] && !gameRoom.userHostedGame.isHost(user))) return;
 
 			if (!targets[0]) {
 				if (!gameRoom.userHostedGame.twist) return this.say("There is no twist set for the current game.");
