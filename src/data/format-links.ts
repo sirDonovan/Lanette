@@ -48,6 +48,27 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen8almostanyability': {
 		teams: 'https://www.smogon.com/forums/threads/3656414/#post-8286473',
 	},
+	'gen8mixandmega': {
+		teams: 'https://www.smogon.com/forums/threads/3656469/post-8287517',
+	},
+	'gen8balancedhackmons': {
+		teams: 'https://www.smogon.com/forums/threads/3656408/post-8286447',
+	},
+	'gen8camomons': {
+		teams: 'https://www.smogon.com/forums/threads/3656413/post-8286472',
+	},
+	'gen8stabmons': {
+		teams: 'https://www.smogon.com/forums/threads/3656429/post-8285038',
+	},
+	'gen8purehackmons': {
+		teams: 'https://www.smogon.com/forums/threads/3656851/post-8293471',
+	},
+	'gen8nfe': {
+		teams: 'https://www.smogon.com/forums/threads/3656332/post-8285452',
+	},
+	'gen8pokebilities': {
+		teams: 'https://www.smogon.com/forums/threads/3679692/post-8777785',
+	},
 
 	// Gen 7
 	'gen7letsgoou': {
@@ -142,6 +163,12 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 		teams: 'https://www.smogon.com/forums/threads/3648521',
 		viability: 'https://www.smogon.com/forums/threads/3626018',
 	},
+	'gen7balancedhackmons': {
+		teams: 'https://www.smogon.com/forums/threads/3661782/post-8407209',
+	},
+	'gen7mixandmega': {
+		teams: 'https://www.smogon.com/forums/threads/3679730/post-8778656',
+	},
 
 	// Gen 6
 	'gen6anythinggoes': {
@@ -217,6 +244,9 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 		info: 'https://www.smogon.com/dex/xy/formats/cap/',
 		teams: 'https://www.smogon.com/forums/threads/5594694',
 		viability: 'https://www.smogon.com/forums/threads/3545628',
+	},
+	'gen6purehackmons': {
+		teams: 'https://www.smogon.com/forums/threads/3649618/post-8111004',
 	},
 
 	// Gen 5
