@@ -23,13 +23,13 @@ export class Tournaments {
 	readonly runnerUpPoints: number = 2;
 	readonly semiFinalistPoints: number = 1;
 
-	createListeners: Dict<{format: IFormat; scheduled: boolean}> = {};
+	createListeners: Dict<{format: IFormat; scheduled?: boolean}> = {};
 	readonly delayedScheduledTournamentTime: number = 15 * 1000;
 	queuedTournamentTime: number = 5 * 60 * 1000;
 	nextScheduledTournaments: Dict<IScheduledTournament> = {};
 	scheduledTournaments: Dict<IScheduledTournament[]> = {};
 	readonly schedules: typeof tournamentSchedules = tournamentSchedules;
-	tournamentTimerData: Dict<{cap: number, formatid: string, startTime: number, scheduled: boolean}> = {};
+	tournamentTimerData: Dict<{cap: number, formatid: string, startTime: number, scheduled?: boolean, tournamentName?: string}> = {};
 	tournamentTimers: Dict<NodeJS.Timer> = {};
 	userHostedTournamentNotificationTimeouts: Dict<NodeJS.Timer> = {};
 
@@ -43,7 +43,7 @@ export class Tournaments {
 				if (room) {
 					const data = previous.tournamentTimerData[i];
 					const format = Dex.getFormat(data.formatid);
-					if (format) this.setTournamentTimer(room, data.startTime, format, data.cap, data.scheduled);
+					if (format) this.setTournamentTimer(room, data.startTime, format, data.cap, data.scheduled, data.tournamentName);
 				}
 			}
 		}
@@ -198,11 +198,13 @@ export class Tournaments {
 					tournament.scheduled = true;
 					this.setScheduledTournament(room);
 				}
+
 				tournament.format = this.createListeners[room.id].format;
 				if (tournament.format.customRules) {
 					tournament.setCustomFormatName();
 					room.setTournamentRules(tournament.format.customRules.join(","));
 				}
+
 				const database = Storage.getDatabase(room);
 				if (database.queuedTournament) {
 					const queuedFormat = Dex.getFormat(database.queuedTournament.formatid, true);
@@ -488,17 +490,17 @@ export class Tournaments {
 			playerCap);
 	}
 
-	setTournamentTimer(room: Room, startTime: number, format: IFormat, cap: number, scheduled?: boolean): void {
+	setTournamentTimer(room: Room, startTime: number, format: IFormat, cap: number, scheduled?: boolean, tournamentName?: string): void {
 		if (room.id in this.tournamentTimers) clearTimeout(this.tournamentTimers[room.id]);
 
 		let timer = startTime - Date.now();
 		if (timer <= 0) timer = this.delayedScheduledTournamentTime;
 
-		this.tournamentTimerData[room.id] = {cap, formatid: format.inputTarget, startTime, scheduled: scheduled || false};
+		this.tournamentTimerData[room.id] = {cap, formatid: format.inputTarget, startTime, scheduled, tournamentName};
 		this.tournamentTimers[room.id] = setTimeout(() => {
 			if (room.tournament) return;
 			this.createListeners[room.id] = {format, scheduled: scheduled || false};
-			room.createTournament(format, cap);
+			room.createTournament(format, cap, tournamentName);
 			delete this.tournamentTimers[room.id];
 		}, timer);
 	}

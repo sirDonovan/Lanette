@@ -67,6 +67,7 @@ export class Tournament extends Activity {
 		this.id = format.id;
 		this.uhtmlBaseName = 'tournament-' + this.id;
 
+		if (name) this.manuallyNamed = true;
 		this.setGenerator(generator);
 	}
 

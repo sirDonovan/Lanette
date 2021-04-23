@@ -94,6 +94,14 @@ interface ILastCycleData {
 	userHostedGameStats?: Dict<IGameStat[]>;
 }
 
+interface IQueuedTournament {
+	formatid: string;
+	playerCap: number;
+	scheduled: boolean;
+	time: number;
+	tournamentName?: string;
+}
+
 export interface IDatabase {
 	botGreetings?: Dict<IBotGreeting>;
 	eventInformation?: Dict<IEventInformation>;
@@ -115,7 +123,7 @@ export interface IDatabase {
 	pastGames?: IPastGame[];
 	pastTournaments?: IPastTournament[];
 	pastUserHostedGames?: IPastGame[];
-	queuedTournament?: {formatid: string; playerCap: number; scheduled: boolean; time: number};
+	queuedTournament?: IQueuedTournament;
 	roomSampleTeamsLink?: string;
 	scriptedGameCounts?: Dict<number>;
 	scriptedGameStats?: IGameStat[];
