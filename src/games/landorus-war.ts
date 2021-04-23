@@ -311,6 +311,7 @@ export const game: IGameFile<LandorusWar> = {
 	description: "Players try to identify the randomly chosen Pokemon of other players by using moves against them to discover their " +
 		"type. Players may only use moves of which the Pokemon they have been randomly assigned to is able to learn.",
 	name: "Landorus' War",
+	nonTrivialLoadData: true,
 	mascot: "Landorus",
 	scriptedOnly: true,
 	tests,
