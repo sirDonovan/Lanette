@@ -7,6 +7,10 @@ import type { GameDifficulty } from "../types/games";
 import type { IGameStat, UserHostStatus } from "../types/storage";
 import type { User } from "../users";
 
+const HANGMAN_ANSWER_MAX_LENGTH = 30;
+const HANGMAN_WORDS_MAX_LENGTH = 20;
+const HANGMAN_HINT_MAX_LENGTH = 150;
+
 export const commands: BaseCommandDefinitions = {
 	pastuserhostedgames: {
 		command(target, room, user) {
@@ -1396,14 +1400,36 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			const answer = targets[1].trim();
-			const hint = targets.slice(2).join(',').trim();
-			if (!Tools.toId(answer) || !Tools.toId(hint)) {
-				this.say("Please specify an answer and a hint for the hangman.");
+			const answerId = Tools.toId(answer);
+			if (!answerId || Tools.isInteger(answerId)) {
+				this.say("Your answer must include at least 1 letter.");
+				return;
+			}
+
+			if (answer.length > HANGMAN_ANSWER_MAX_LENGTH) {
+				this.say("Your answer must be less than " + HANGMAN_ANSWER_MAX_LENGTH + " characters.");
+				return;
+			}
+
+			if (answer.split(' ').some(w => w.length > HANGMAN_WORDS_MAX_LENGTH)) {
+				this.say("Each word in your answer must be less than " + HANGMAN_WORDS_MAX_LENGTH + " characters.");
 				return;
 			}
 
 			if (Client.checkFilters(answer, gameRoom)) {
 				this.say("Your answer contains a word banned in " + gameRoom.title + ".");
+				return;
+			}
+
+			const hint = targets.slice(2).join(',').trim();
+			if (!Tools.toId(hint)) {
+				this.say("Your hint must include at least 1 letter.");
+				return;
+
+			}
+
+			if (hint.length > HANGMAN_HINT_MAX_LENGTH) {
+				this.say("Your hint must be less than " + HANGMAN_HINT_MAX_LENGTH + " characters.");
 				return;
 			}
 
