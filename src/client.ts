@@ -991,14 +991,23 @@ export class Client {
 			} else if (messageArguments.type === 'rooms') {
 				if (messageArguments.response && messageArguments.response !== 'null') {
 					const response = JSON.parse(messageArguments.response) as IRoomsResponse;
-					for (const chatRoom of response.chat) {
-						this.publicChatRooms.push(Tools.toRoomId(chatRoom.title));
+
+					if (response.chat) {
+						for (const chatRoom of response.chat) {
+							this.publicChatRooms.push(Tools.toRoomId(chatRoom.title));
+						}
 					}
-					for (const officialRoom of response.official) {
-						this.publicChatRooms.push(Tools.toRoomId(officialRoom.title));
+
+					if (response.official) {
+						for (const officialRoom of response.official) {
+							this.publicChatRooms.push(Tools.toRoomId(officialRoom.title));
+						}
 					}
-					for (const psplRoom of response.pspl) {
-						this.publicChatRooms.push(Tools.toRoomId(psplRoom.title));
+
+					if (response.pspl) {
+						for (const psplRoom of response.pspl) {
+							this.publicChatRooms.push(Tools.toRoomId(psplRoom.title));
+						}
 					}
 				}
 			} else if (messageArguments.type === 'userdetails') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition

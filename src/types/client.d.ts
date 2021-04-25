@@ -96,9 +96,9 @@ interface IRoomDetails {
 
 export interface IRoomsResponse {
 	battleCount: number;
-	chat: IRoomDetails[];
-	official: IRoomDetails[];
-	pspl: IRoomDetails[];
+	chat?: IRoomDetails[];
+	official?: IRoomDetails[];
+	pspl?: IRoomDetails[];
 	userCount: number;
 }
 
