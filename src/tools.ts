@@ -432,12 +432,17 @@ export class Tools {
 		return parts.slice(0, 3).join("-") + " " + parts.slice(3, human ? 5 : 6).join(":") + (human ? "" + parts[6] : "");
 	}
 
-	toDurationString(input: number, options?: {precision?: number; hhmmss?: boolean}): string {
+	toDurationString(input: number, options?: {precision?: number; hhmmss?: boolean, milliseconds?: boolean}): string {
 		const date = new Date(input);
 		const parts = [date.getUTCFullYear() - 1970, date.getUTCMonth(), date.getUTCDate() - 1, date.getUTCHours(), date.getUTCMinutes(),
 			date.getUTCSeconds()];
 		const roundingBoundaries = [6, 15, 12, 30, 30];
 		const unitNames = ["year", "month", "day", "hour", "minute", "second"];
+		if (options && options.milliseconds) {
+			parts.push(date.getUTCMilliseconds());
+			roundingBoundaries.push(500);
+			unitNames.push("millisecond");
+		}
 		const positiveIndex = parts.findIndex(elem => elem > 0);
 		const precision = options && options.precision ? options.precision : parts.length;
 		if (options && options.hhmmss) {

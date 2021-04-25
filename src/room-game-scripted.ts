@@ -159,7 +159,7 @@ export class ScriptedGame extends Game {
 					this.roundTime += 400;
 				}
 
-				this.say("I will be playing at an average speed of " + Tools.toDurationString(speed) + "!");
+				this.say("I will be playing at an average speed of " + Tools.toDurationString(speed, {milliseconds: true}) + "!");
 
 				this.botChallengeSpeeds = [speed - 300, speed - 200, speed - 100, speed, speed + 100, speed + 200, speed + 300];
 			}

@@ -126,6 +126,10 @@ describe("Tools", () => {
 		assertStrictEqual(Tools.toDurationString(2 * year), '2 years');
 		assertStrictEqual(Tools.toDurationString(minute + second), '1 minute and 1 second');
 		assertStrictEqual(Tools.toDurationString(hour + minute + second), '1 hour, 1 minute, and 1 second');
+		assertStrictEqual(Tools.toDurationString(1), '');
+		assertStrictEqual(Tools.toDurationString(1, {milliseconds: true}), '1 millisecond');
+		assertStrictEqual(Tools.toDurationString(2, {milliseconds: true}), '2 milliseconds');
+		assertStrictEqual(Tools.toDurationString(second + 1, {milliseconds: true}), '1 second and 1 millisecond');
 	});
 	it('should return proper values from deepSortArray()', () => {
 		assertStrictEqual(Tools.deepSortArray(['c', 'a', 'b']).join(''), 'abc');
