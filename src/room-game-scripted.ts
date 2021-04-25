@@ -144,18 +144,22 @@ export class ScriptedGame extends Game {
 
 	loadChallengeOptions(challenge: GameChallenge, options: Dict<string>): void {
 		if (challenge === 'botchallenge') {
+			if (this.format.botChallenge!.points) this.format.options.points = this.format.botChallenge!.points;
 			if (this.format.botChallenge!.options && this.format.botChallenge!.options.includes('speed') && this.roundTime) {
 				let speed = parseFloat(options.speed);
 				if (isNaN(speed)) {
-					speed = this.roundTime - 400;
+					speed = this.roundTime;
 				} else {
 					if (speed < MIN_BOT_CHALLENGE_SPEED) speed = MIN_BOT_CHALLENGE_SPEED;
-
 					speed = Math.floor(speed * 1000);
-					if (speed >= this.roundTime) speed = this.roundTime - 400;
 				}
 
-				this.say("I will be playing at an average speed of " + speed / 1000 + " second" + (speed > 1000 ? "s" : "") + "!");
+				if (speed >= this.roundTime) {
+					speed = this.roundTime;
+					this.roundTime += 400;
+				}
+
+				this.say("I will be playing at an average speed of " + Tools.toDurationString(speed) + "!");
 
 				this.botChallengeSpeeds = [speed - 300, speed - 200, speed - 100, speed, speed + 100, speed + 200, speed + 300];
 			}

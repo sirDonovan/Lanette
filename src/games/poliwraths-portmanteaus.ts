@@ -1,7 +1,7 @@
 import type { PRNGSeed } from "../lib/prng";
 import { PRNG } from "../lib/prng";
 import { assert, assertStrictEqual } from '../test/test-tools';
-import type { GameFileTests, IGameFile, IGameFormat } from "../types/games";
+import type { GameFileTests, IGameFile } from "../types/games";
 import type { PoolType } from './../workers/portmanteaus';
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
@@ -20,14 +20,6 @@ export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 
 	static loadData(): void {
 		Games.getWorkers().portmanteaus.init();
-	}
-
-	onInitialize(format: IGameFormat): void {
-		super.onInitialize(format);
-
-		if (format.mode) {
-			if (format.mode.id === 'team') this.roundTime = 60 * 1000;
-		}
 	}
 
 	async generateAnswer(): Promise<void> {
@@ -154,6 +146,9 @@ const tests: GameFileTests<PoliwrathsPortmanteaus> = {
 
 export const game: IGameFile<PoliwrathsPortmanteaus> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['poliwraths', 'ports'],
+	botChallenge: Object.assign({}, questionAndAnswerGame.botChallenge, {
+		points: 5,
+	}),
 	canGetRandomAnswer: false,
 	category: 'puzzle',
 	challengePoints: {
@@ -175,5 +170,10 @@ export const game: IGameFile<PoliwrathsPortmanteaus> = Games.copyTemplatePropert
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess a portmanteau (sharing 2-4 letters) that fits the " +
 		"given parameters!",
 	modes: ['team'],
+	modeProperties: {
+		'team': {
+			roundTime: 60 * 1000,
+		},
+	},
 	tests: Object.assign({}, questionAndAnswerGame.tests, tests),
 });
