@@ -257,8 +257,11 @@ class TropiusBerryPicking extends ScriptedGame {
 			}
 
 			const command = "eat";
-			this.say(Config.commandCharacter + command + " " + answer);
-			botPlayer.useCommand(command, answer);
+			const text = Config.commandCharacter + command + " " + answer;
+			this.on(text, () => {
+				botPlayer.useCommand(command, answer);
+			});
+			this.say(text);
 		}, this.sampleOne(this.botChallengeSpeeds!));
 	}
 }

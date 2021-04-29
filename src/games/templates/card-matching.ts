@@ -769,11 +769,12 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		if (!play) throw new Error(botPlayer.name + " does not have a card to play");
 
 		this.botTurnTimeout = setTimeout(() => {
-			this.say(Config.commandCharacter + "play " + play);
-			this.botTurnTimeout = setTimeout(() => {
+			const text = Config.commandCharacter + "play " + play;
+			this.on(text, () => {
 				botPlayer.useCommand("play", play);
-			}, 300);
-		}, this.sampleOne([2000, 3000, 4000]));
+			});
+			this.say(text);
+		}, this.sampleOne([1000, 1500, 2000]));
 	}
 }
 

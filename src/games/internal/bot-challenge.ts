@@ -89,7 +89,7 @@ export class BotChallenge extends ScriptedGame {
 		}
 
 		const game = Games.createChildGame(this.challengeFormat, this);
-		if (!game.botChallengeTurn) throw new Error(this.challengeFormat.name + " does not implement takeBotTurn()");
+		if (!game.botChallengeTurn) throw new Error(this.challengeFormat.name + " does not implement botChallengeTurn()");
 
 		this.childGame = game;
 		game.internalGame = true;
