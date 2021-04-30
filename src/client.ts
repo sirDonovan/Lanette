@@ -33,6 +33,7 @@ const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const CONNECTION_CHECK_INTERVAL = 30 * 1000;
 const MAX_PROCESSING_MEASUREMENT_GAP = 30 * 1000;
+const BOT_MESSAGE_COMMAND = '/botmsg ';
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
 const UHTML_CHAT_COMMAND = '/uhtml ';
@@ -1516,9 +1517,11 @@ export class Client {
 				} else if (isHtml) {
 					user.addHtmlChatLog("html");
 				} else {
-					user.addChatLog(messageArguments.message);
-
 					let commandMessage = messageArguments.message;
+					if (commandMessage.startsWith(BOT_MESSAGE_COMMAND)) commandMessage = commandMessage.substr(BOT_MESSAGE_COMMAND.length);
+
+					user.addChatLog(commandMessage);
+
 					const battleUrl = this.extractBattleId(commandMessage.startsWith(INVITE_COMMAND) ?
 						commandMessage.substr(INVITE_COMMAND.length) : commandMessage);
 					if (battleUrl) {
