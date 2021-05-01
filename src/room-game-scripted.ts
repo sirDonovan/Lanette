@@ -10,7 +10,6 @@ import type {
 } from "./types/games";
 import type { User } from "./users";
 
-const JOIN_BITS = 10;
 const AUTO_START_VOTE_TIME = 5 * 1000;
 const MIN_BOT_CHALLENGE_SPEED = 1;
 
@@ -735,9 +734,8 @@ export class ScriptedGame extends Game {
 			return;
 		}
 
-		const bits = this.internalGame ? 0 : this.addBits(player, JOIN_BITS, true);
 		if (!this.internalGame && !this.joinNotices.has(user.id)) {
-			player.say("Thanks for joining the " + this.name + " " + this.activityType + "!" + (bits ? " Have some free bits!" : ""));
+			player.say("Thanks for joining the " + this.name + " " + this.activityType + "!");
 			this.joinNotices.add(user.id);
 		}
 
@@ -801,7 +799,6 @@ export class ScriptedGame extends Game {
 			}
 		}
 
-		if (!this.internalGame) this.removeBits(player, JOIN_BITS, silent);
 		if (this.usesHtmlPage) player.closeHtmlPage();
 	}
 
