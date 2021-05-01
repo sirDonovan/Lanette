@@ -34,7 +34,7 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 		teams: 'https://www.smogon.com/forums/threads/3657818',
 		viability: 'https://www.smogon.com/forums/threads/3670056',
 	},
-	'gen8vgc2021': {
+	'gen8vgc2021series9': {
 		info: 'https://www.smogon.com/dex/ss/formats/vgc21',
 	},
 	'gen81v1': {
@@ -66,9 +66,11 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen8nfe': {
 		teams: 'https://www.smogon.com/forums/threads/3656332/post-8285452',
 	},
+	/*
 	'gen8pokebilities': {
 		teams: 'https://www.smogon.com/forums/threads/3679692/post-8777785',
 	},
+	*/
 	'gen82v2doubles': {
 		teams: 'https://www.smogon.com/forums/threads/3656321/post-8285355',
 	},
