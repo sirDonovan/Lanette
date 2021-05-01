@@ -969,7 +969,8 @@ export class ScriptedGame extends Game {
 
 	addBits(user: User | Player, bits: number, noPm?: boolean, achievementBits?: boolean): boolean {
 		if (this.isPm(this.room) || !Config.rankedGames || !Config.rankedGames.includes(this.room.id) ||
-			(this.parentGame && this.parentGame.allowChildGameBits !== true)) return false;
+			(this.parentGame && this.parentGame.allowChildGameBits !== true) ||
+			(this.format.minigameCreator && this.format.minigameCreator === user.id)) return false;
 
 		bits = Math.floor(bits);
 		if (bits <= 0) return false;

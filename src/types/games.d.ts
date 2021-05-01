@@ -179,6 +179,7 @@ export interface IGameFormatComputed<T extends ScriptedGame = ScriptedGame> {
 }
 
 export interface IGameFormat<T extends ScriptedGame = ScriptedGame> extends IGameFormatData<T>, IGameFormatComputed<T> {
+	minigameCreator?: string;
 	customizableOptions: Dict<IGameOptionValues>;
 	defaultOptions: DefaultGameOption[];
 	description: string;

@@ -565,7 +565,10 @@ export class Games {
 					if (Array.isArray(format)) return this.sayError(format);
 					if (global.Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 					if (format.mode) return this.say("Minigames cannot be played in modes.");
+
 					delete format.inputOptions.points;
+					format.minigameCreator = user.id;
+
 					const game = global.Games.createGame(room, format, pmRoom, true);
 					game.signups();
 				},
