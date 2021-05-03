@@ -2224,7 +2224,7 @@ export class Client {
 
 	private checkLoginSession(): void {
 		const globalDatabase = Storage.getGlobalDatabase();
-		if (!Config.password || !globalDatabase.loginSessionCookie) {
+		if (!Config.password || !globalDatabase.loginSessionCookie || globalDatabase.loginSessionCookie.userid !== Users.self.id) {
 			this.login();
 			return;
 		}
@@ -2244,7 +2244,7 @@ export class Client {
 		options.headers = {
 			'Content-Type': 'application/x-www-form-urlencoded',
 			'Content-Length': postData.length,
-			'cookie': globalDatabase.loginSessionCookie,
+			'cookie': globalDatabase.loginSessionCookie.cookie,
 		};
 
 		const request = https.request(options, response => {
@@ -2343,7 +2343,7 @@ export class Client {
 							const semiColonIndex = value.indexOf(';');
 							if (semiColonIndex !== -1) value = value.substr(0, semiColonIndex);
 
-							Storage.getGlobalDatabase().loginSessionCookie = value;
+							Storage.getGlobalDatabase().loginSessionCookie = {cookie: value, userid: Users.self.id};
 							Storage.exportGlobalDatabase();
 						}
 					}
