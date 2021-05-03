@@ -382,6 +382,7 @@ export class Tournaments {
 		for (const i in database.tournamentLeaderboard.entries) {
 			if (format.id in database.tournamentLeaderboard.entries[i].sources) {
 				players.push(i);
+				if (players.length > 100) break;
 			}
 		}
 
