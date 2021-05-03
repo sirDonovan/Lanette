@@ -734,11 +734,6 @@ export class ScriptedGame extends Game {
 			return;
 		}
 
-		if (!this.internalGame && !this.joinNotices.has(user.id)) {
-			player.say("Thanks for joining the " + this.name + " " + this.activityType + "!");
-			this.joinNotices.add(user.id);
-		}
-
 		if (this.showSignupsHtml && !this.started) {
 			if (!this.signupsHtmlTimeout) {
 				this.signupsHtmlTimeout = setTimeout(() => {

@@ -1583,7 +1583,7 @@ export class Games {
 
 	getSignupsPlayersHtml(customBackgroundColor: string | undefined, mascotAndNameHtml: string, playerCount: number, playerNames: string):
 		string {
-		let html = "";
+		let html = "<div class='infobox'>";
 
 		let validBackground = false;
 		if (customBackgroundColor && customBackgroundColor in Tools.hexCodes) {
@@ -1598,9 +1598,9 @@ export class Games {
 			html += ">";
 		}
 
-		html += "<div class='infobox'>" + mascotAndNameHtml + "<br /><br /><b>Players (" + playerCount + ")</b>: " + playerNames + "</div>";
-
-		if (validBackground) html += "</span>";
+		html +=  mascotAndNameHtml + "<br />";
+		if (validBackground) html += "&nbsp;</span>";
+		html += "<br /><b>Players (" + playerCount + ")</b>: " + playerNames + "</div>";
 
 		return html;
 	}
@@ -1620,9 +1620,9 @@ export class Games {
 		if (freejoin) {
 			html += "<b>This game is free-join!</b>";
 		} else {
-			html += Client.getPmSelfButton(Config.commandCharacter + "joingame " + room.id, "Join game", false, buttonStyle);
+			html += Client.getQuietPmButton(room, Config.commandCharacter + "joingame " + room.id, "Join game", false, buttonStyle);
 			html += " | ";
-			html += Client.getPmSelfButton(Config.commandCharacter + "leavegame " + room.id, "Leave game", false, buttonStyle);
+			html += Client.getQuietPmButton(room, Config.commandCharacter + "leavegame " + room.id, "Leave game", false, buttonStyle);
 		}
 		html += "</center>";
 

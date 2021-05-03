@@ -58,7 +58,7 @@ class GameScriptedBox extends HtmlPageBase {
 
 		this.gameFormat = previewFormat || "pmp";
 
-		this.backgroundColorPicker = new ColorPicker(this.commandPrefix, setBackgroundColorCommand, {
+		this.backgroundColorPicker = new ColorPicker(room, this.commandPrefix, setBackgroundColorCommand, {
 			currentPick: currentBackgroundColor,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),
@@ -67,7 +67,7 @@ class GameScriptedBox extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
-		this.buttonColorPicker = new ColorPicker(this.commandPrefix, setButtonColorCommand, {
+		this.buttonColorPicker = new ColorPicker(room, this.commandPrefix, setButtonColorCommand, {
 			currentPick: currentButtonColor,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickButtonHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickButtonLightness(dontRender),
@@ -77,7 +77,7 @@ class GameScriptedBox extends HtmlPageBase {
 		});
 		this.buttonColorPicker.active = false;
 
-		this.signupsBackgroundColorPicker = new ColorPicker(this.commandPrefix, setSignupsBackgroundColorCommand, {
+		this.signupsBackgroundColorPicker = new ColorPicker(room, this.commandPrefix, setSignupsBackgroundColorCommand, {
 			currentPick: currentSignupsBackgroundColor,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),
@@ -87,7 +87,7 @@ class GameScriptedBox extends HtmlPageBase {
 		});
 		this.signupsBackgroundColorPicker.active = false;
 
-		this.signupsButtonColorPicker = new ColorPicker(this.commandPrefix, setSignupsButtonColorCommand, {
+		this.signupsButtonColorPicker = new ColorPicker(room, this.commandPrefix, setSignupsButtonColorCommand, {
 			currentPick: currentSignupsButtonColor,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickButtonHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickButtonLightness(dontRender),
@@ -251,7 +251,7 @@ class GameScriptedBox extends HtmlPageBase {
 		if (user) name = user.name;
 
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>" + this.room.title + ": Game Scripted Box</b>";
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + closeCommand, "Close");
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + closeCommand, "Close");
 
 		const format = Games.getExistingFormat(this.gameFormat);
 		let mascot: IPokemon | undefined;
@@ -275,7 +275,7 @@ class GameScriptedBox extends HtmlPageBase {
 		}
 
 		html += Games.getSignupsPlayersHtml(signupsBackgroundColor, (mascot ? Dex.getPokemonIcon(mascot) : '') + "<b>" +
-			format.nameWithOptions + " - signups</b>", 0, "");
+			format.nameWithOptions + " - signups</b>", 1, "<username>" + this.userName + "</username>");
 		html += "<br />";
 		html += Games.getJoinLeaveHtml(signupsButtonColor, false, this.room);
 		html += "<br />";
@@ -295,13 +295,13 @@ class GameScriptedBox extends HtmlPageBase {
 		const signupsBackground = this.currentPicker === 'signups-background';
 		const signupsButtons = this.currentPicker === 'signups-buttons';
 
-		html += Client.getPmSelfButton(this.commandPrefix + ", " + chooseBackgroundColorPicker, "Choose background",
+		html += this.getQuietPmButton(this.commandPrefix + ", " + chooseBackgroundColorPicker, "Choose background",
 			background);
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseButtonColorPicker, "Choose buttons",
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseButtonColorPicker, "Choose buttons",
 			buttons);
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseSignupsBackgroundColorPicker,
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsBackgroundColorPicker,
 			"Choose signups background", signupsBackground);
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseSignupsButtonColorPicker, "Choose signups buttons",
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsButtonColorPicker, "Choose signups buttons",
 			signupsButtons);
 		html += "<br /><br />";
 

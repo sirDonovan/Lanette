@@ -3,6 +3,7 @@ import type { IPickerProps } from "./picker-base";
 import { PickerBase } from "./picker-base";
 import type { IPageElement } from "./pagination";
 import { Pagination } from "./pagination";
+import type { Room } from "../../rooms";
 
 export type HueVariation = 'lowvariation' | 'standardvariation' | 'highvariation';
 export type Lightness = 'lowlightness' | 'standardlightness' | 'highlightness';
@@ -68,8 +69,8 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 
 	paginations: Pagination[] = [];
 
-	constructor(parentCommandPrefix: string, componentCommand: string, props: IColorPickerProps) {
-		super(parentCommandPrefix, componentCommand, props);
+	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IColorPickerProps) {
+		super(room, parentCommandPrefix, componentCommand, props);
 
 		ColorPicker.loadData();
 
@@ -225,7 +226,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 			elements.push(this.choiceElements[color]);
 		}
 
-		return new Pagination(this.commandPrefix, huesListCommand, {
+		return new Pagination(this.room, this.commandPrefix, huesListCommand, {
 			elements,
 			elementsPerRow: colorsPerRow,
 			rowsPerPage,
@@ -387,13 +388,13 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 
 		let html = "Lightness:&nbsp;";
 		html += "&nbsp;";
-		html += Client.getPmSelfButton(this.commandPrefix + ", " + lightnessCommand + ", " + lowLightness, "Low",
+		html += this.getQuietPmButton(this.commandPrefix + ", " + lightnessCommand + ", " + lowLightness, "Low",
 			currentLowLightness);
 		html += "&nbsp;";
-		html += Client.getPmSelfButton(this.commandPrefix + ", " + lightnessCommand + ", " + standardLightness, "Standard",
+		html += this.getQuietPmButton(this.commandPrefix + ", " + lightnessCommand + ", " + standardLightness, "Standard",
 			currentStandardLightness);
 		html += "&nbsp;";
-		html += Client.getPmSelfButton(this.commandPrefix + ", " + lightnessCommand + ", " + highLightness, "High",
+		html += this.getQuietPmButton(this.commandPrefix + ", " + lightnessCommand + ", " + highLightness, "High",
 			currentHighLightness);
 		html += "<br />";
 
@@ -403,19 +404,19 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 
 		html += "Hue Variation:&nbsp;";
 		html += "&nbsp;";
-		html += Client.getPmSelfButton(this.commandPrefix + ", " + hueVariationCommand + ", " + lowVariation, "Low",
+		html += this.getQuietPmButton(this.commandPrefix + ", " + hueVariationCommand + ", " + lowVariation, "Low",
 			currentLowHueVariation);
 		html += "&nbsp;";
-		html += Client.getPmSelfButton(this.commandPrefix + ", " + hueVariationCommand + ", " + standardVariation, "Standard",
+		html += this.getQuietPmButton(this.commandPrefix + ", " + hueVariationCommand + ", " + standardVariation, "Standard",
 			currentStandardHueVariation);
 		html += "&nbsp;";
-		html += Client.getPmSelfButton(this.commandPrefix + ", " + hueVariationCommand + ", " + highVariation, "High",
+		html += this.getQuietPmButton(this.commandPrefix + ", " + hueVariationCommand + ", " + highVariation, "High",
 			currentHighHueVariation);
 		html += "<br /><br />";
 
 		if (this.props.random) {
 			html += this.renderNoPickElement();
-			html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + this.randomPickCommand, "Random Color");
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.randomPickCommand, "Random Color");
 		} else {
 			if (currentLowLightness) {
 				if (currentLowHueVariation) {

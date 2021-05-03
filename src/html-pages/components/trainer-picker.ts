@@ -1,3 +1,4 @@
+import type { Room } from "../../rooms";
 import type { TrainerSpriteId } from "../../types/dex";
 import { Pagination } from "./pagination";
 import type { IPickerProps } from "./picker-base";
@@ -59,8 +60,8 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 
 	paginations: Pagination[] = [];
 
-	constructor(parentCommandPrefix: string, componentCommand: string, props: ITrainerPickerProps) {
-		super(parentCommandPrefix, componentCommand, props);
+	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: ITrainerPickerProps) {
+		super(room, parentCommandPrefix, componentCommand, props);
 
 		TrainerPicker.loadData();
 
@@ -99,7 +100,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 
 		this.renderChoices();
 
-		this.newerTrainersPagination = new Pagination(this.commandPrefix, trainersListCommand, {
+		this.newerTrainersPagination = new Pagination(room, this.commandPrefix, trainersListCommand, {
 			elements: [this.noPickElement].concat(TrainerPicker.newerTrainerIds.map(x => this.choiceElements[x])),
 			elementsPerRow: newerTrainersPerRow,
 			rowsPerPage,
@@ -109,7 +110,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 		});
 		this.newerTrainersPagination.active = this.trainerGen === 'newer';
 
-		this.genOneTrainersPagination = new Pagination(this.commandPrefix, trainersListCommand, {
+		this.genOneTrainersPagination = new Pagination(room, this.commandPrefix, trainersListCommand, {
 			elements: [this.noPickElement].concat(TrainerPicker.genOneTrainerIds.map(x => this.choiceElements[x])),
 			elementsPerRow: olderTrainersPerRow,
 			rowsPerPage,
@@ -119,7 +120,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 		});
 		this.genOneTrainersPagination.active = this.trainerGen === 'gen1';
 
-		this.genTwoTrainersPagination = new Pagination(this.commandPrefix, trainersListCommand, {
+		this.genTwoTrainersPagination = new Pagination(room, this.commandPrefix, trainersListCommand, {
 			elements: [this.noPickElement].concat(TrainerPicker.genTwoTrainerIds.map(x => this.choiceElements[x])),
 			elementsPerRow: olderTrainersPerRow,
 			rowsPerPage,
@@ -129,7 +130,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 		});
 		this.genTwoTrainersPagination.active = this.trainerGen === 'gen2';
 
-		this.genThreeTrainersPagination = new Pagination(this.commandPrefix, trainersListCommand, {
+		this.genThreeTrainersPagination = new Pagination(room, this.commandPrefix, trainersListCommand, {
 			elements: [this.noPickElement].concat(TrainerPicker.genThreeTrainerIds.map(x => this.choiceElements[x])),
 			elementsPerRow: olderTrainersPerRow,
 			rowsPerPage,
@@ -139,7 +140,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 		});
 		this.genThreeTrainersPagination.active = this.trainerGen === 'gen3';
 
-		this.genFourTrainersPagination = new Pagination(this.commandPrefix, trainersListCommand, {
+		this.genFourTrainersPagination = new Pagination(room, this.commandPrefix, trainersListCommand, {
 			elements: [this.noPickElement].concat(TrainerPicker.genFourTrainerIds.map(x => this.choiceElements[x])),
 			elementsPerRow: olderTrainersPerRow,
 			rowsPerPage,
@@ -299,16 +300,16 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 		let html = "<b>Trainer sprite</b><br />";
 		html += "Type:&nbsp;";
 		html += "&nbsp;";
-		html += Client.getPmSelfButton(this.commandPrefix + ", " + newerTrainersCommand, "Newer gens", newerTrainers);
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + genOneTrainersCommand, "Gen 1", genOneTrainers);
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + genTwoTrainersCommand, "Gen 2", genTwoTrainers);
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + genThreeTrainersCommand, "Gen 3", genThreeTrainers);
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + genFourTrainersCommand, "Gen 4", genFourTrainers);
+		html += this.getQuietPmButton(this.commandPrefix + ", " + newerTrainersCommand, "Newer gens", newerTrainers);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + genOneTrainersCommand, "Gen 1", genOneTrainers);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + genTwoTrainersCommand, "Gen 2", genTwoTrainers);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + genThreeTrainersCommand, "Gen 3", genThreeTrainers);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + genFourTrainersCommand, "Gen 4", genFourTrainers);
 
 		html += "<br /><br />";
 		if (this.props.random) {
 			html += this.renderNoPickElement();
-			html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + this.randomPickCommand, "Random Trainer");
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.randomPickCommand, "Random Trainer");
 		} else {
 			if (newerTrainers) {
 				html += this.newerTrainersPagination.render();

@@ -99,7 +99,7 @@ class GameHostControlPanel extends HtmlPageBase {
 		this.currentView = room.userHostedGame && room.userHostedGame.isHost(user) ? 'hostinformation' : 'manualhostdisplay';
 		const hostInformation = this.currentView === 'hostinformation';
 
-		this.addPointsInput = new NumberTextInput(this.commandPrefix, addPointsCommand, {
+		this.addPointsInput = new NumberTextInput(room, this.commandPrefix, addPointsCommand, {
 			min: 1,
 			label: "Add point(s)",
 			submitText: "Add",
@@ -110,7 +110,7 @@ class GameHostControlPanel extends HtmlPageBase {
 		});
 		this.addPointsInput.active = hostInformation;
 
-		this.removePointsInput = new NumberTextInput(this.commandPrefix, removePointsCommand, {
+		this.removePointsInput = new NumberTextInput(room, this.commandPrefix, removePointsCommand, {
 			min: 1,
 			label: "Remove point(s)",
 			submitText: "Remove",
@@ -121,7 +121,7 @@ class GameHostControlPanel extends HtmlPageBase {
 		});
 		this.removePointsInput.active = hostInformation;
 
-		this.storedMessageInput = new MultiTextInput(this.commandPrefix, storedMessageInputCommand, {
+		this.storedMessageInput = new MultiTextInput(room, this.commandPrefix, storedMessageInputCommand, {
 			inputCount: 2,
 			labels: ['Key', 'Message'],
 			textAreas: [false, true],
@@ -133,7 +133,7 @@ class GameHostControlPanel extends HtmlPageBase {
 		});
 		this.storedMessageInput.active = hostInformation;
 
-		this.twistInput = new TextInput(this.commandPrefix, twistInputCommand, {
+		this.twistInput = new TextInput(room, this.commandPrefix, twistInputCommand, {
 			currentInput: room.userHostedGame && room.userHostedGame.twist ? room.userHostedGame.twist : "",
 			label: "Enter twist",
 			textArea: true,
@@ -145,10 +145,10 @@ class GameHostControlPanel extends HtmlPageBase {
 		});
 		this.twistInput.active = hostInformation;
 
-		this.manualHostDisplay = new ManualHostDisplay(this.commandPrefix, manualHostDisplayCommand, hostDisplayProps);
+		this.manualHostDisplay = new ManualHostDisplay(room, this.commandPrefix, manualHostDisplayCommand, hostDisplayProps);
 		this.manualHostDisplay.active = !hostInformation;
 
-		this.randomHostDisplay = new RandomHostDisplay(this.commandPrefix, randomHostDisplayCommand,
+		this.randomHostDisplay = new RandomHostDisplay(room, this.commandPrefix, randomHostDisplayCommand,
 			Object.assign({random: true}, hostDisplayProps));
 		this.randomHostDisplay.active = false;
 

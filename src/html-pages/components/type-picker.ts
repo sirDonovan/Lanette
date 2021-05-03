@@ -1,3 +1,4 @@
+import type { Room } from "../../rooms";
 import type { IPickerProps } from "./picker-base";
 import { PickerBase } from "./picker-base";
 
@@ -7,8 +8,8 @@ export class TypePicker extends PickerBase {
 
 	componentId: string = 'type-picker';
 
-	constructor(parentCommandPrefix: string, componentCommand: string, props: IPickerProps<string>) {
-		super(parentCommandPrefix, componentCommand, props);
+	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IPickerProps<string>) {
+		super(room, parentCommandPrefix, componentCommand, props);
 
 		TypePicker.loadData();
 

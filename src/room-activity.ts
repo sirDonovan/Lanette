@@ -437,6 +437,10 @@ export abstract class Activity {
 		return this.getPlayerAttributes(player => player.name, players).join(', ');
 	}
 
+	getPlayerUsernamesHtml(players?: PlayerList): string {
+		return this.getPlayerAttributes(player => player.name, players).map(x => "<username>" + x + "</username>").join(', ');
+	}
+
 	onEnd?(): void;
 	onForceEnd?(user?: User, reason?: string): void;
 	onRenamePlayer?(player: Player, oldId: string): void;

@@ -1,3 +1,4 @@
+import type { Room } from "../../rooms";
 import type { IComponentProps } from "./component-base";
 import { ComponentBase } from "./component-base";
 
@@ -25,8 +26,8 @@ export class Pagination extends ComponentBase<IPaginationProps> {
 	pagesLabel: string;
 	totalPages!: number;
 
-	constructor(parentCommandPrefix: string, componentCommand: string, props: IPaginationProps) {
-		super(parentCommandPrefix, componentCommand, props);
+	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IPaginationProps) {
+		super(room, parentCommandPrefix, componentCommand, props);
 
 		this.currentPage = props.currentPage || 0;
 		this.elementsIncrement = props.elementsPerRow * props.rowsPerPage;
@@ -75,7 +76,7 @@ export class Pagination extends ComponentBase<IPaginationProps> {
 		if (this.totalPages > 1) {
 			for (let i = 0; i < this.totalPages; i++) {
 				const page = "" + (i + 1);
-				html += Client.getPmSelfButton(this.commandPrefix + ", " + pageCommand + ", " + page, page,
+				html += this.getQuietPmButton(this.commandPrefix + ", " + pageCommand + ", " + page, page,
 					this.currentPage === i) + "&nbsp;";
 			}
 		}

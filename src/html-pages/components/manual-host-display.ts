@@ -9,6 +9,7 @@ import { PokemonTextInput } from "./pokemon-text-input";
 import type { IPokemonPick } from "./pokemon-picker-base";
 import { PokemonPickerBase } from "./pokemon-picker-base";
 import type { ModelGeneration } from "../../types/dex";
+import type { Room } from "../../rooms";
 
 const pokemonInputCommand = 'pokemoninput';
 
@@ -20,8 +21,8 @@ export class ManualHostDisplay extends HostDisplayBase {
 	gifPokemonPickers!: PokemonPickerManual[];
 	iconPokemonPickers!: PokemonPickerManual[];
 
-	constructor(parentCommandPrefix: string, componentCommand: string, props: IHostDisplayProps) {
-		super(parentCommandPrefix, componentCommand, props, PokemonPickerManual);
+	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IHostDisplayProps) {
+		super(room, parentCommandPrefix, componentCommand, props, PokemonPickerManual);
 
 		const pokemonTextInputProps: IPokemonTextInputProps = {
 			gif: false,
@@ -40,7 +41,7 @@ export class ManualHostDisplay extends HostDisplayBase {
 		const allPokemonTextInputGifGens: Dict<PokemonTextInput> = {};
 		const allPokemonTextInputIconGens: Dict<PokemonTextInput> = {};
 		for (const generation of Dex.getModelGenerations()) {
-			allPokemonTextInputGifGens[generation] = new PokemonTextInput(this.commandPrefix, pokemonInputCommand,
+			allPokemonTextInputGifGens[generation] = new PokemonTextInput(room, this.commandPrefix, pokemonInputCommand,
 				Object.assign({}, pokemonTextInputProps, {
 					gif: true,
 					pokemonList: PokemonPickerBase.pokemonGifsGens[generation],
@@ -48,7 +49,7 @@ export class ManualHostDisplay extends HostDisplayBase {
 				}));
 			allPokemonTextInputGifGens[generation].active = false;
 
-			allPokemonTextInputIconGens[generation] = new PokemonTextInput(this.commandPrefix, pokemonInputCommand,
+			allPokemonTextInputIconGens[generation] = new PokemonTextInput(room, this.commandPrefix, pokemonInputCommand,
 				Object.assign({}, pokemonTextInputProps, {
 					maxPokemon: props.maxIcons,
 					pokemonList: PokemonPickerBase.pokemonGens[generation],
@@ -195,11 +196,11 @@ export class ManualHostDisplay extends HostDisplayBase {
 	render(): string {
 		let html = "";
 
-		html += Client.getPmSelfButton(this.commandPrefix + ", " + this.chooseBackgroundColorPickerCommand, "Choose background",
+		html += this.getQuietPmButton(this.commandPrefix + ", " + this.chooseBackgroundColorPickerCommand, "Choose background",
 			this.currentPicker === 'background');
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + this.choosePokemonPickerCommand, "Choose Pokemon",
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.choosePokemonPickerCommand, "Choose Pokemon",
 			this.currentPicker === 'pokemon');
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + this.chooseTrainerPickerCommand, "Choose trainer",
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.chooseTrainerPickerCommand, "Choose trainer",
 			this.currentPicker === 'trainer');
 		html += "<hr />";
 
@@ -208,8 +209,8 @@ export class ManualHostDisplay extends HostDisplayBase {
 		} else if (this.currentPicker === 'pokemon') {
 			const gif = this.gifOrIcon === 'gif';
 			html += "GIFs or icons: ";
-			html += Client.getPmSelfButton(this.commandPrefix + ", " + this.setGifOrIconCommand + "," + this.setGif, "GIFs", gif);
-			html += Client.getPmSelfButton(this.commandPrefix + ", " + this.setGifOrIconCommand + "," + this.setIcon, "Icons", !gif);
+			html += this.getQuietPmButton(this.commandPrefix + ", " + this.setGifOrIconCommand + "," + this.setGif, "GIFs", gif);
+			html += this.getQuietPmButton(this.commandPrefix + ", " + this.setGifOrIconCommand + "," + this.setIcon, "Icons", !gif);
 			html += "<br /><br />";
 			if (gif) {
 				html += this.renderAllModelGenerations();
@@ -233,7 +234,7 @@ export class ManualHostDisplay extends HostDisplayBase {
 			const currentIndex = this.pokemonPickerIndex + 1;
 			if (gif) {
 				for (let i = 1; i <= this.props.maxGifs; i++) {
-					html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + this.setPokemonPickerIndexCommand + ", " + i,
+					html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.setPokemonPickerIndexCommand + ", " + i,
 						"" + i, currentIndex === i);
 				}
 
@@ -241,7 +242,7 @@ export class ManualHostDisplay extends HostDisplayBase {
 				html += this.gifPokemonPickers[this.pokemonPickerIndex].render();
 			} else {
 				for (let i = 1; i <= this.props.maxIcons; i++) {
-					html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + this.setPokemonPickerIndexCommand + ", " + i,
+					html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.setPokemonPickerIndexCommand + ", " + i,
 						"" + i, currentIndex === i);
 				}
 
@@ -253,7 +254,7 @@ export class ManualHostDisplay extends HostDisplayBase {
 			const currentIndex = this.trainerPickerIndex + 1;
 			for (let i = 1; i <= this.props.maxTrainers; i++) {
 				if (i > 1) html += "&nbsp;";
-				html += Client.getPmSelfButton(this.commandPrefix + ", " + this.setTrainerPickerIndexCommand + ", " + i, "" + i,
+				html += this.getQuietPmButton(this.commandPrefix + ", " + this.setTrainerPickerIndexCommand + ", " + i, "" + i,
 					currentIndex === i);
 			}
 

@@ -1,3 +1,5 @@
+import type { Room } from "../../rooms";
+
 export interface IComponentProps {
 	reRender: () => void;
 }
@@ -8,12 +10,14 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 	active: boolean = true;
 	components: ComponentBase[] = [];
 
+	room: Room;
 	commandPrefix: string;
 	parentCommandPrefix: string;
 	componentCommand: string;
 	props: PropsType;
 
-	constructor(parentCommandPrefix: string, componentCommand: string, props: PropsType) {
+	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: PropsType) {
+		this.room = room;
 		this.parentCommandPrefix = parentCommandPrefix;
 		this.componentCommand = componentCommand;
 		this.commandPrefix = parentCommandPrefix + ", " + componentCommand;
@@ -31,5 +35,9 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 		}
 
 		return "Unknown sub-command '" + componentCommand + "'.";
+	}
+
+	getQuietPmButton(message: string, label: string, disabled?: boolean, buttonStyle?: string): string {
+		return Client.getQuietPmButton(this.room, message, label, disabled, buttonStyle);
 	}
 }

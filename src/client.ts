@@ -348,6 +348,11 @@ export class Client {
 		return this.getPmUserButton(Users.self, message, label, disabled, buttonStyle);
 	}
 
+	getQuietPmButton(room: Room, message: string, label: string, disabled?: boolean, buttonStyle?: string): string {
+		return this.getPmUserButton(Users.self, "/msgroom " + room.id + ", " + BOT_MESSAGE_COMMAND + Users.self.name + ", " + message,
+			label, disabled, buttonStyle);
+	}
+
 	checkFilters(message: string, room?: Room): string | undefined {
 		if (room) {
 			if (room.configBannedWords) {

@@ -1,3 +1,4 @@
+import type { Room } from "../../rooms";
 import type { IComponentProps } from "./component-base";
 import { ComponentBase } from "./component-base";
 import type { IPageElement } from "./pagination";
@@ -24,8 +25,8 @@ export abstract class PickerBase<PickType = string, PropsType extends IPickerPro
 
 	replicationTargets?: PickerBase<PickType, PropsType>[];
 
-	constructor(parentCommandPrefix: string, componentCommand: string, props: PropsType) {
-		super(parentCommandPrefix, componentCommand, props);
+	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: PropsType) {
+		super(room, parentCommandPrefix, componentCommand, props);
 
 		this.currentPick = props.currentPick;
 		this.pickerIndex = props.pickerIndex || 0;
@@ -48,12 +49,12 @@ export abstract class PickerBase<PickType = string, PropsType extends IPickerPro
 	}
 
 	renderChoiceElement(choices: Dict<PickType>, key: string): string {
-		return Client.getPmSelfButton(this.commandPrefix + ", " + this.pickCommand + ", " + key,
+		return this.getQuietPmButton(this.commandPrefix + ", " + this.pickCommand + ", " + key,
 			this.getChoiceButtonHtml(choices[key]), this.currentPick === key);
 	}
 
 	renderNoPickElement(): string {
-		return Client.getPmSelfButton(this.commandPrefix + ", " + this.pickCommand + ", " + this.noPickName, this.noPickName,
+		return this.getQuietPmButton(this.commandPrefix + ", " + this.pickCommand + ", " + this.noPickName, this.noPickName,
 			!this.currentPick);
 	}
 

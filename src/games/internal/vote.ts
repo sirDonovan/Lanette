@@ -26,10 +26,12 @@ export class Vote extends ScriptedGame {
 		let html = "<div class='infobox'><center>";
 		const ended = this.canVote === false;
 
+		const votesHtml: string[] = [];
 		const formatCounts: Dict<number> = {};
-		this.votes.forEach((formatid) => {
+		this.votes.forEach((formatid, player) => {
 			const format = Games.getExistingFormat(formatid);
 			const name = format.nameWithOptions;
+			votesHtml.push("<username>" + player.name + "</username>: " + name);
 			if (!(name in formatCounts)) formatCounts[name] = 0;
 			formatCounts[name]++;
 		});
@@ -52,9 +54,7 @@ export class Vote extends ScriptedGame {
 					(formatsByVotes[vote].length > 1 ? " each" : "") + ")</i>: " + formatsByVotes[vote].join(", ");
 			}
 		} else {
-			const votesHtml = Object.keys(formatCounts).map(x => x + " <i>(" + formatCounts[x] + " vote" +
-				(formatCounts[x] > 1 ? "s" : "") + ")</i>").join(", ");
-			html += "<b>Current votes</b>:" + (votesHtml ? "<br />" + votesHtml : " (none)");
+			html += "<b>Current votes</b>:" + (votesHtml.length ? "<br />" + votesHtml.join("<br />") : " (none)");
 		}
 
 		html += "</center></div>";
@@ -89,7 +89,7 @@ export class Vote extends ScriptedGame {
 	}
 
 	getPmVoteButton(inputTarget: string, text: string): string {
-		return Client.getPmSelfButton(Config.commandCharacter + "pmvote " + inputTarget, text);
+		return Client.getQuietPmButton(this.room, Config.commandCharacter + "pmvote " + inputTarget, text);
 	}
 
 	getPlayerVoteHtml(format: IGameFormat): string {
@@ -352,7 +352,6 @@ const commands: GameCommandDefinitions<Vote> = {
 			}
 
 			this.votes.set(player, format.inputTarget);
-			player.sayUhtml(this.getPlayerVoteHtml(format), this.uhtmlBaseName + "-" + this.votingNumber);
 
 			if (!this.updateVotesHtmlTimeout) {
 				this.updateVotesHtmlTimeout = setTimeout(() => {

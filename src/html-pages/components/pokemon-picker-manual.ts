@@ -1,3 +1,4 @@
+import type { Room } from "../../rooms";
 import type { ModelGeneration } from "../../types/dex";
 import type { PokemonChoices } from "../game-host-control-panel";
 import type { IPageElement } from "./pagination";
@@ -77,15 +78,15 @@ export class PokemonPickerManual extends PokemonPickerBase {
 	pokemonTextInputs: KeyedDict<ModelGeneration, PokemonTextInput>;
 	replicationTargets: PokemonPickerManual[] = [];
 
-	constructor(parentCommandPrefix: string, componentCommand: string, props: IPokemonPickerProps) {
-		super(parentCommandPrefix, componentCommand, props);
+	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IPokemonPickerProps) {
+		super(room, parentCommandPrefix, componentCommand, props);
 
 		PokemonPickerManual.loadData();
 
 		const pokemonTextInputs: Dict<PokemonTextInput> = {};
 		const lists = props.gif ? PokemonPickerBase.pokemonGifsGens : PokemonPickerBase.pokemonGens;
 		for (const generation of Dex.getModelGenerations()) {
-			pokemonTextInputs[generation] = new PokemonTextInput(this.commandPrefix, pokemonInputCommand, {
+			pokemonTextInputs[generation] = new PokemonTextInput(room, this.commandPrefix, pokemonInputCommand, {
 				gif: props.gif,
 				pokemonList: lists[generation],
 				maxPokemon: 1,
@@ -114,7 +115,7 @@ export class PokemonPickerManual extends PokemonPickerBase {
 			for (const letter of letters) {
 				this.letterElements[generation][letter] = {html: this.renderLetterElement(letter), selected: false};
 
-				this.letterPaginations[generation][letter] = new Pagination(this.commandPrefix, pokemonListCommand, {
+				this.letterPaginations[generation][letter] = new Pagination(room, this.commandPrefix, pokemonListCommand, {
 					elements: pokemonByLetter[letter].map(x => this.choiceElements[x]),
 					elementsPerRow: 6,
 					rowsPerPage: 6,
@@ -209,7 +210,7 @@ export class PokemonPickerManual extends PokemonPickerBase {
 	}
 
 	renderLetterElement(letter: string): string {
-		return Client.getPmSelfButton(this.commandPrefix + ", " + setLetterCommand + "," + letter, letter,
+		return this.getQuietPmButton(this.commandPrefix + ", " + setLetterCommand + "," + letter, letter,
 			this.letterViews[this.generation] === letter);
 	}
 
@@ -347,8 +348,8 @@ export class PokemonPickerManual extends PokemonPickerBase {
 		const inputView = this.currentView === 'input';
 
 		html += "<b>Input type</b>:";
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseInputView, "Manual", inputView);
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseLetterView, "By letter", !inputView);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseInputView, "Manual", inputView);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseLetterView, "By letter", !inputView);
 		html += "<br />";
 
 		if (inputView) {

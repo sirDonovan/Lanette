@@ -116,7 +116,7 @@ export abstract class Game extends Activity {
 					if (trainerCard) {
 						trainerCards.push(trainerCard);
 					} else {
-						noTrainerCards.push(player.name);
+						noTrainerCards.push("<username>" + player.name + "</username>");
 					}
 				});
 
@@ -160,7 +160,7 @@ export abstract class Game extends Activity {
 
 	getSignupsPlayersHtml(): string {
 		return Games.getSignupsPlayersHtml(this.customBackgroundColor, this.getMascotAndNameHtml(" - signups"), this.playerCount,
-			this.getPlayerNames());
+			this.getPlayerUsernamesHtml());
 	}
 
 	getJoinLeaveHtml(freejoin: boolean): string {

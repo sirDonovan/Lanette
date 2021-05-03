@@ -1,3 +1,4 @@
+import type { Room } from "../../rooms";
 import type { ITextInputProps } from "./text-input";
 import { TextInput } from "./text-input";
 
@@ -11,8 +12,8 @@ export class NumberTextInput extends TextInput {
 
 	props!: INumberTextInputProps;
 
-	constructor(parentCommandPrefix: string, componentCommand: string, props: INumberTextInputProps) {
-		super(parentCommandPrefix, componentCommand, props);
+	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: INumberTextInputProps) {
+		super(room, parentCommandPrefix, componentCommand, props);
 	}
 
 	onSubmit(input: string): void {

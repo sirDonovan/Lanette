@@ -35,7 +35,7 @@ class GameTrainerCard extends HtmlPageBase {
 		let trainerCard: IGameTrainerCard | undefined;
 		if (database.gameTrainerCards && this.userId in database.gameTrainerCards) trainerCard = database.gameTrainerCards[this.userId];
 
-		this.backgroundColorPicker = new ColorPicker(this.commandPrefix, setBackgroundColorCommand, {
+		this.backgroundColorPicker = new ColorPicker(room, this.commandPrefix, setBackgroundColorCommand, {
 			currentPick: trainerCard ? trainerCard.background : undefined,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),
@@ -44,7 +44,7 @@ class GameTrainerCard extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
-		this.trainerPicker = new TrainerPicker(this.commandPrefix, setTrainerCommand, {
+		this.trainerPicker = new TrainerPicker(room, this.commandPrefix, setTrainerCommand, {
 			currentPick: trainerCard ? trainerCard.avatar : undefined,
 			onSetTrainerGen: (index, trainerGen, dontRender) => this.setTrainerGen(dontRender),
 			onClear: (index, dontRender) => this.clearTrainer(dontRender),

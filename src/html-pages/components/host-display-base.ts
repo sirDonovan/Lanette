@@ -9,6 +9,7 @@ import type { GifIcon, PokemonChoices, TrainerChoices } from "../game-host-contr
 import type { PokemonPickerManual } from "./pokemon-picker-manual";
 import type { PokemonPickerRandom } from "./pokemon-picker-random";
 import type { ModelGeneration } from "../../types/dex";
+import type { Room } from "../../rooms";
 
 export interface IHostDisplayProps extends IComponentProps {
 	maxGifs: number;
@@ -61,11 +62,11 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 	iconPokemonPickers: PokemonPickerBase[];
 	trainerPickers: TrainerPicker[];
 
-	constructor(parentCommandPrefix: string, componentCommand: string, props: IHostDisplayProps,
+	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IHostDisplayProps,
 		pokemonPickerClass: (typeof PokemonPickerManual | typeof PokemonPickerRandom)) {
-		super(parentCommandPrefix, componentCommand, props);
+		super(room, parentCommandPrefix, componentCommand, props);
 
-		this.backgroundColorPicker = new ColorPicker(this.commandPrefix, setBackgroundColorCommand, {
+		this.backgroundColorPicker = new ColorPicker(room, this.commandPrefix, setBackgroundColorCommand, {
 			random: props.random,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),
@@ -79,7 +80,7 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 		this.maxTrainerPickerIndex = props.maxTrainers - 1;
 		this.trainerPickers = [];
 		for (let i = 0; i < props.maxTrainers; i++) {
-			const trainerPicker = new TrainerPicker(this.commandPrefix, this.setTrainerCommand, {
+			const trainerPicker = new TrainerPicker(room, this.commandPrefix, this.setTrainerCommand, {
 				random: props.random,
 				pickerIndex: i,
 				onSetTrainerGen: (index, trainerGen, dontRender) => this.setTrainerGen(dontRender),
@@ -111,10 +112,12 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 		this.maxGifPokemonPickerIndex = props.maxGifs - 1;
 		this.gifPokemonPickers = [];
 		for (let i = 0; i < props.maxGifs; i++) {
-			const pokemonPicker = new pokemonPickerClass(this.commandPrefix, setPokemonCommand, Object.assign({}, pokemonPickerProps, {
-				gif: true,
-				pickerIndex: i,
-			}));
+			const pokemonPicker = new pokemonPickerClass(room, this.commandPrefix, setPokemonCommand,
+				Object.assign({}, pokemonPickerProps, {
+					gif: true,
+					pickerIndex: i,
+				})
+			);
 			pokemonPicker.active = false;
 
 			this.gifPokemonPickers.push(pokemonPicker);
@@ -124,9 +127,11 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 		this.maxIconPokemonPickerIndex = props.maxIcons - 1;
 		this.iconPokemonPickers = [];
 		for (let i = 0; i < props.maxIcons; i++) {
-			const pokemonPicker = new pokemonPickerClass(this.commandPrefix, setPokemonCommand, Object.assign({}, pokemonPickerProps, {
-				pickerIndex: i,
-			}));
+			const pokemonPicker = new pokemonPickerClass(room, this.commandPrefix, setPokemonCommand,
+				Object.assign({}, pokemonPickerProps, {
+					pickerIndex: i,
+				})
+			);
 			pokemonPicker.active = false;
 
 			this.iconPokemonPickers.push(pokemonPicker);
@@ -420,7 +425,7 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 	renderAllModelGenerations(): string {
 		let html = "Model generations:";
 		for (const generation of Dex.getModelGenerations()) {
-			html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + this.setGenerationCommand + "," + generation,
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.setGenerationCommand + "," + generation,
 				generation.toUpperCase(), this.currentModelGeneration === generation);
 		}
 

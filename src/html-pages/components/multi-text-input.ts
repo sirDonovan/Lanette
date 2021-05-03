@@ -1,3 +1,4 @@
+import type { Room } from "../../rooms";
 import type { IComponentProps } from "./component-base";
 import { ComponentBase } from "./component-base";
 import type { ITextAreaConfiguration } from "./text-input";
@@ -31,8 +32,8 @@ export class MultiTextInput<OutputType = string[]> extends ComponentBase<IMultiT
 	clearText: string;
 	submitText: string;
 
-	constructor(parentCommandPrefix: string, componentCommand: string, props: IMultiTextInputProps<OutputType>) {
-		super(parentCommandPrefix, componentCommand, props);
+	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IMultiTextInputProps<OutputType>) {
+		super(room, parentCommandPrefix, componentCommand, props);
 
 		if (props.currentInputs) this.currentInputs = props.currentInputs;
 		this.clearText = props.clearText || "Clear";
@@ -125,7 +126,7 @@ export class MultiTextInput<OutputType = string[]> extends ComponentBase<IMultiT
 		}
 
 		html += "<br /><button class='button' type='submit'>" + this.submitText + "</button>";
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + this.clearCommand, this.clearText,
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.clearCommand, this.clearText,
 			!this.currentInputs.length);
 		html += "</form>";
 

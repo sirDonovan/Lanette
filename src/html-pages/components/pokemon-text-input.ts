@@ -1,3 +1,4 @@
+import type { Room } from "../../rooms";
 import type { ModelGeneration } from "../../types/dex";
 import type { PokemonChoices } from "../game-host-control-panel";
 import type { ITextInputProps } from "./text-input";
@@ -28,8 +29,8 @@ export class PokemonTextInput extends TextInput<PokemonChoices> {
 
 	props!: IPokemonTextInputProps;
 
-	constructor(parentCommandPrefix: string, componentCommand: string, props: IPokemonTextInputProps) {
-		super(parentCommandPrefix, componentCommand, props);
+	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IPokemonTextInputProps) {
+		super(room, parentCommandPrefix, componentCommand, props);
 
 		this.modelGeneration = props.modelGeneration || 'xy';
 	}

@@ -7,6 +7,7 @@ import { PokemonPickerBase } from "./pokemon-picker-base";
 import type { ModelGeneration } from "../../types/dex";
 import type { IComponentProps } from "./component-base";
 import { ComponentBase } from "./component-base";
+import type { Room } from "../../rooms";
 
 export interface IPokemonModelPickerProps extends IComponentProps {
 	maxPokemon: number;
@@ -35,8 +36,8 @@ export class PokemonModelPicker extends ComponentBase<IPokemonModelPickerProps> 
 
 	allPokemonTextInputGens!: KeyedDict<ModelGeneration, PokemonTextInput>;
 
-	constructor(parentCommandPrefix: string, componentCommand: string, props: IPokemonModelPickerProps) {
-		super(parentCommandPrefix, componentCommand, props);
+	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IPokemonModelPickerProps) {
+		super(room, parentCommandPrefix, componentCommand, props);
 
 		const pokemonTextInputProps: IPokemonTextInputProps = {
 			gif: true,
@@ -55,7 +56,7 @@ export class PokemonModelPicker extends ComponentBase<IPokemonModelPickerProps> 
 
 		const allPokemonTextInputGens: Dict<PokemonTextInput> = {};
 		for (const generation of Dex.getModelGenerations()) {
-			allPokemonTextInputGens[generation] = new PokemonTextInput(this.commandPrefix, pokemonInputCommand,
+			allPokemonTextInputGens[generation] = new PokemonTextInput(room, this.commandPrefix, pokemonInputCommand,
 				Object.assign({}, pokemonTextInputProps, {
 					modelGeneration: generation,
 					pokemonList: PokemonPickerBase.pokemonGifsGens[generation],
@@ -86,10 +87,12 @@ export class PokemonModelPicker extends ComponentBase<IPokemonModelPickerProps> 
 
 		this.maxPickerIndex = props.maxPokemon - 1;
 		for (let i = 0; i < props.maxPokemon; i++) {
-			const pokemonPicker = new PokemonPickerManual(this.commandPrefix, setPokemonCommand, Object.assign({}, pokemonPickerProps, {
-				gif: true,
-				pickerIndex: i,
-			}));
+			const pokemonPicker = new PokemonPickerManual(room, this.commandPrefix, setPokemonCommand,
+				Object.assign({}, pokemonPickerProps, {
+					gif: true,
+					pickerIndex: i,
+				})
+			);
 			pokemonPicker.active = i === 0;
 
 			this.pokemonPickers.push(pokemonPicker);
@@ -255,7 +258,7 @@ export class PokemonModelPicker extends ComponentBase<IPokemonModelPickerProps> 
 	render(): string {
 		let html = "Model generations:";
 		for (const generation of Dex.getModelGenerations()) {
-			html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + setGenerationCommand + "," + generation,
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setGenerationCommand + "," + generation,
 				generation.toUpperCase(), this.currentModelGeneration === generation);
 		}
 
@@ -273,7 +276,7 @@ export class PokemonModelPicker extends ComponentBase<IPokemonModelPickerProps> 
 
 		const currentIndex = this.pokemonPickerIndex + 1;
 		for (let i = 1; i <= this.props.maxPokemon; i++) {
-			html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + setPokemonPickerIndexCommand + ", " + i,
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setPokemonPickerIndexCommand + ", " + i,
 				"" + i, currentIndex === i);
 		}
 

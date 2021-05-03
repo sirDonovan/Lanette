@@ -62,6 +62,10 @@ export abstract class HtmlPageBase {
 		return "Unknown sub-command '" + componentCommand + "'.";
 	}
 
+	getQuietPmButton(message: string, label: string, disabled?: boolean, buttonStyle?: string): string {
+		return Client.getQuietPmButton(this.room, message, label, disabled, buttonStyle);
+	}
+
 	beforeSend?(onOpen?: boolean): boolean;
 	onClose?(): void;
 	onOpen?(): void;

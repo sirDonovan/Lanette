@@ -1,3 +1,4 @@
+import type { Room } from "../../rooms";
 import type { ModelGeneration } from "../../types/dex";
 import type { IPickerProps } from "./picker-base";
 import { PickerBase } from "./picker-base";
@@ -55,8 +56,8 @@ export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemo
 	replicationTargets: PokemonPickerBase[] = [];
 	shininess: boolean = false;
 
-	constructor(parentCommandPrefix: string, componentCommand: string, props: IPokemonPickerProps) {
-		super(parentCommandPrefix, componentCommand, props);
+	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IPokemonPickerProps) {
+		super(room, parentCommandPrefix, componentCommand, props);
 
 		PokemonPickerBase.loadData();
 
@@ -217,7 +218,7 @@ export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemo
 		if (this.props.gif) {
 			html += "Model generation:";
 			for (const i in PokemonPickerBase.pokemonGens) {
-				html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + setGeneration + "," + i,
+				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setGeneration + "," + i,
 					i.toUpperCase(), this.generation === i);
 			}
 		}
@@ -229,9 +230,9 @@ export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemo
 		let html = "";
 		if (this.props.gif && this.generation !== 'rb') {
 			html = "Shiny: ";
-			html += Client.getPmSelfButton(this.commandPrefix + ", " + setShininess + "," + setShiny, "Yes", this.shininess);
+			html += this.getQuietPmButton(this.commandPrefix + ", " + setShininess + "," + setShiny, "Yes", this.shininess);
 			html += "&nbsp;";
-			html += Client.getPmSelfButton(this.commandPrefix + ", " + setShininess + "," + setNotShiny, "No", !this.shininess);
+			html += this.getQuietPmButton(this.commandPrefix + ", " + setShininess + "," + setNotShiny, "No", !this.shininess);
 		}
 
 		return html;

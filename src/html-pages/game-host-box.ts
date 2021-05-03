@@ -63,7 +63,7 @@ class GameHostBox extends HtmlPageBase {
 			currentPokemon = database.gameHostBoxes[this.userId].pokemon;
 		}
 
-		this.backgroundColorPicker = new ColorPicker(this.commandPrefix, setBackgroundColorCommand, {
+		this.backgroundColorPicker = new ColorPicker(room, this.commandPrefix, setBackgroundColorCommand, {
 			currentPick: currentBackgroundColor,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),
@@ -72,7 +72,7 @@ class GameHostBox extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
-		this.buttonColorPicker = new ColorPicker(this.commandPrefix, setButtonColorCommand, {
+		this.buttonColorPicker = new ColorPicker(room, this.commandPrefix, setButtonColorCommand, {
 			currentPick: currentButtonColor,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickButtonHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickButtonLightness(dontRender),
@@ -82,7 +82,7 @@ class GameHostBox extends HtmlPageBase {
 		});
 		this.buttonColorPicker.active = false;
 
-		this.signupsBackgroundColorPicker = new ColorPicker(this.commandPrefix, setSignupsBackgroundColorCommand, {
+		this.signupsBackgroundColorPicker = new ColorPicker(room, this.commandPrefix, setSignupsBackgroundColorCommand, {
 			currentPick: currentSignupsBackgroundColor,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),
@@ -92,7 +92,7 @@ class GameHostBox extends HtmlPageBase {
 		});
 		this.signupsBackgroundColorPicker.active = false;
 
-		this.signupsButtonColorPicker = new ColorPicker(this.commandPrefix, setSignupsButtonColorCommand, {
+		this.signupsButtonColorPicker = new ColorPicker(room, this.commandPrefix, setSignupsButtonColorCommand, {
 			currentPick: currentSignupsButtonColor,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickButtonHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickButtonLightness(dontRender),
@@ -102,7 +102,7 @@ class GameHostBox extends HtmlPageBase {
 		});
 		this.signupsButtonColorPicker.active = false;
 
-		this.trainerPicker = new TrainerPicker(this.commandPrefix, setTrainerCommand, {
+		this.trainerPicker = new TrainerPicker(room, this.commandPrefix, setTrainerCommand, {
 			currentPick: currentTrainer,
 			onSetTrainerGen: (index, trainerGen, dontRender) => this.setTrainerGen(dontRender),
 			onClear: (index, dontRender) => this.clearTrainer(dontRender),
@@ -127,7 +127,7 @@ class GameHostBox extends HtmlPageBase {
 
 		this.maxPokemonModels = maxPokemon;
 
-		this.pokemonModelPicker = new PokemonModelPicker(this.commandPrefix, setPokemonModelCommand, {
+		this.pokemonModelPicker = new PokemonModelPicker(room, this.commandPrefix, setPokemonModelCommand, {
 			maxPokemon,
 			clearAllPokemon: () => this.clearAllPokemon(),
 			submitAllPokemon: (pokemon) => this.submitAllPokemon(pokemon),

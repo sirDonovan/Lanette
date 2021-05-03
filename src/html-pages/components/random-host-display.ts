@@ -3,6 +3,7 @@ import type { IHostDisplayProps } from "./host-display-base";
 import { HostDisplayBase } from "./host-display-base";
 import { TypePicker } from "./type-picker";
 import type { TrainerGeneration } from "./trainer-picker";
+import type { Room } from "../../rooms";
 
 const clearPokemon = 'clearpokemon';
 const randomizePokemon = 'randomizepokemon';
@@ -34,10 +35,10 @@ export class RandomHostDisplay extends HostDisplayBase {
 	gifPokemonPickers!: PokemonPickerRandom[];
 	iconPokemonPickers!: PokemonPickerRandom[];
 
-	constructor(parentCommandPrefix: string, componentCommand: string, props: IHostDisplayProps) {
-		super(parentCommandPrefix, componentCommand, props, PokemonPickerRandom);
+	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IHostDisplayProps) {
+		super(room, parentCommandPrefix, componentCommand, props, PokemonPickerRandom);
 
-		this.allTypePicker = new TypePicker(this.commandPrefix, setTypeCommand, {
+		this.allTypePicker = new TypePicker(room, this.commandPrefix, setTypeCommand, {
 			noPickName: "Random",
 			onClear: (index, dontRender) => this.clearAllPokemonTypes(dontRender),
 			onPick: (index, type, dontRender) => this.setAllPokemonTypes(type, dontRender),
@@ -314,11 +315,11 @@ export class RandomHostDisplay extends HostDisplayBase {
 	render(): string {
 		let html = "";
 
-		html += Client.getPmSelfButton(this.commandPrefix + ", " + this.chooseBackgroundColorPickerCommand, "Background",
+		html += this.getQuietPmButton(this.commandPrefix + ", " + this.chooseBackgroundColorPickerCommand, "Background",
 			this.currentPicker === 'background');
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + this.choosePokemonPickerCommand, "Pokemon",
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.choosePokemonPickerCommand, "Pokemon",
 			this.currentPicker === 'pokemon');
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + this.chooseTrainerPickerCommand, "Trainer",
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.chooseTrainerPickerCommand, "Trainer",
 			this.currentPicker === 'trainer');
 		html += "<br /><br />";
 
@@ -326,33 +327,33 @@ export class RandomHostDisplay extends HostDisplayBase {
 			html += this.renderBackgroundPicker();
 		} else if (this.currentPicker === 'pokemon') {
 			html += "GIFs or icons: ";
-			html += Client.getPmSelfButton(this.commandPrefix + ", " + this.setGifOrIconCommand + "," + this.setGif, "GIFs",
+			html += this.getQuietPmButton(this.commandPrefix + ", " + this.setGifOrIconCommand + "," + this.setGif, "GIFs",
 				this.gifOrIcon === 'gif');
-			html += Client.getPmSelfButton(this.commandPrefix + ", " + this.setGifOrIconCommand + "," + this.setIcon, "Icons",
+			html += this.getQuietPmButton(this.commandPrefix + ", " + this.setGifOrIconCommand + "," + this.setIcon, "Icons",
 				this.gifOrIcon === 'icon');
 
 			html += "<br />";
 			html += "Include formes: ";
-			html += Client.getPmSelfButton(this.commandPrefix + ", " + setFormes + "," + withFormes, "Yes", this.formes);
-			html += Client.getPmSelfButton(this.commandPrefix + ", " + setFormes + "," + withoutFormes, "No", !this.formes);
+			html += this.getQuietPmButton(this.commandPrefix + ", " + setFormes + "," + withFormes, "Yes", this.formes);
+			html += this.getQuietPmButton(this.commandPrefix + ", " + setFormes + "," + withoutFormes, "No", !this.formes);
 
 			html += "<br /><br />";
 			const allPokemon = this.pokemonPickerIndex === -1;
 			const currentIndex = this.pokemonPickerIndex + 1;
 			if (this.gifOrIcon === 'gif') {
-				html += Client.getPmSelfButton(this.commandPrefix + ", " + clearPokemon, "None");
+				html += this.getQuietPmButton(this.commandPrefix + ", " + clearPokemon, "None");
 
 				for (let i = 1; i <= this.props.maxGifs; i++) {
-					html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + randomizePokemon + ", " + i, "Random " + i);
+					html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + randomizePokemon + ", " + i, "Random " + i);
 				}
 
 				html += "<br /><br />";
 				html += "Pokemon: ";
-				html += Client.getPmSelfButton(this.commandPrefix + ", " + this.setPokemonPickerIndexCommand + ", 0", "All",
+				html += this.getQuietPmButton(this.commandPrefix + ", " + this.setPokemonPickerIndexCommand + ", 0", "All",
 					allPokemon);
 
 				for (let i = 1; i <= this.props.maxGifs; i++) {
-					html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + this.setPokemonPickerIndexCommand + ", " + i,
+					html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.setPokemonPickerIndexCommand + ", " + i,
 						"" + i, currentIndex === i);
 				}
 
@@ -368,16 +369,16 @@ export class RandomHostDisplay extends HostDisplayBase {
 			} else {
 				for (let i = 1; i <= this.props.maxIcons; i++) {
 					if (i > 1) html += "&nbsp;";
-					html += Client.getPmSelfButton(this.commandPrefix + ", " + randomizePokemon + ", " + i, "Random " + i);
+					html += this.getQuietPmButton(this.commandPrefix + ", " + randomizePokemon + ", " + i, "Random " + i);
 				}
 
 				html += "<br /><br />";
 				html += "Pokemon:";
-				html += Client.getPmSelfButton(this.commandPrefix + ", " + this.setPokemonPickerIndexCommand + ", 0", "All",
+				html += this.getQuietPmButton(this.commandPrefix + ", " + this.setPokemonPickerIndexCommand + ", 0", "All",
 					allPokemon);
 
 				for (let i = 1; i <= this.props.maxIcons; i++) {
-					html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + this.setPokemonPickerIndexCommand + ", " + i,
+					html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.setPokemonPickerIndexCommand + ", " + i,
 						"" + i, currentIndex === i);
 				}
 
@@ -394,16 +395,16 @@ export class RandomHostDisplay extends HostDisplayBase {
 
 			for (let i = 1; i <= this.props.maxTrainers; i++) {
 				if (i > 1) html += "&nbsp;";
-				html += Client.getPmSelfButton(this.commandPrefix + ", " + randomizeTrainers + ", " + i, "Random " + i);
+				html += this.getQuietPmButton(this.commandPrefix + ", " + randomizeTrainers + ", " + i, "Random " + i);
 			}
 
 			html += "<br /><br />";
 			html += "Trainers:";
-			html += Client.getPmSelfButton(this.commandPrefix + ", " + this.setTrainerPickerIndexCommand + ", 0", "All",
+			html += this.getQuietPmButton(this.commandPrefix + ", " + this.setTrainerPickerIndexCommand + ", 0", "All",
 				allTrainers);
 
 			for (let i = 1; i <= this.props.maxTrainers; i++) {
-				html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + this.setTrainerPickerIndexCommand + ", " + i,
+				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.setTrainerPickerIndexCommand + ", " + i,
 					"" + i, currentIndex === i);
 			}
 
@@ -415,17 +416,17 @@ export class RandomHostDisplay extends HostDisplayBase {
 				const genThreeTrainers = this.currentTrainerGeneration === 'gen3';
 				const genFourTrainers = this.currentTrainerGeneration === 'gen4';
 
-				html += Client.getPmSelfButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + randomTrainerGen,
+				html += this.getQuietPmButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + randomTrainerGen,
 					"Random", this.currentTrainerGeneration === undefined);
-				html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + newerTrainerGen,
+				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + newerTrainerGen,
 					"Newer gens", newerTrainers);
-				html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + genOneTrainersGen,
+				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + genOneTrainersGen,
 					"Gen 1", genOneTrainers);
-				html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + genTwoTrainersGen,
+				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + genTwoTrainersGen,
 					"Gen 2", genTwoTrainers);
-				html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + genThreeTrainersGen,
+				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + genThreeTrainersGen,
 					"Gen 3", genThreeTrainers);
-				html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + genFourTrainersGen,
+				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + genFourTrainersGen,
 					"Gen 4", genFourTrainers);
 			} else {
 				html += this.trainerPickers[this.trainerPickerIndex].render();

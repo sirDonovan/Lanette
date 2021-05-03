@@ -1,3 +1,4 @@
+import type { Room } from "../../rooms";
 import type { ModelGeneration } from "../../types/dex";
 import type { IPokemonPickerProps } from "./pokemon-picker-base";
 import { PokemonPickerBase } from "./pokemon-picker-base";
@@ -78,12 +79,12 @@ export class PokemonPickerRandom extends PokemonPickerBase {
 
 	typePicker: TypePicker;
 
-	constructor(parentCommandPrefix: string, componentCommand: string, props: IPokemonPickerProps) {
-		super(parentCommandPrefix, componentCommand, props);
+	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IPokemonPickerProps) {
+		super(room, parentCommandPrefix, componentCommand, props);
 
 		PokemonPickerRandom.loadData();
 
-		this.typePicker = new TypePicker(this.commandPrefix, setTypeCommand, {
+		this.typePicker = new TypePicker(room, this.commandPrefix, setTypeCommand, {
 			noPickName: "Random",
 			onClear: (index, dontRender) => this.clearType(dontRender),
 			onPick: (index, type, dontRender) => this.pickType(type, dontRender),
