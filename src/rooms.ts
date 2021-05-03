@@ -267,8 +267,17 @@ export class Room {
 			{dontCheckFilter: true, dontPrepare: true, type: 'htmlpage', user: user.id, pageId: Users.self.id + "-" + pageId});
 	}
 
+	changeHtmlPageSelector(user: User | Player, pageId: string, selector: string, html: string): void {
+		if (!Users.get(user.name)) return;
+
+		this.say("/changehtmlpageselector " + user.id + "," + pageId + "," + selector + "," + html,
+			{dontCheckFilter: true, dontPrepare: true, type: 'htmlpageselector', user: user.id, pageId: Users.self.id + "-" + pageId,
+			selector});
+	}
+
 	closeHtmlPage(user: User | Player, pageId: string): void {
-		this.sendHtmlPage(user, pageId, "|deinit|");
+		this.say("/closehtmlpage " + user.id + "," + pageId,
+			{dontCheckFilter: true, dontPrepare: true, type: 'closehtmlpage', user: user.id, pageId: Users.self.id + "-" + pageId});
 	}
 
 	sendHighlightPage(user: User | Player, pageId: string, notificationTitle?: string, highlightPhrase?: string): void {

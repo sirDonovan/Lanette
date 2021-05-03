@@ -21,9 +21,9 @@ export interface IServerProcessingMeasurement {
 
 export type IOutgoingMessageTypes = 'command' | 'chat' | 'chat-html' | 'chat-uhtml' | 'pm' | 'pm-html' | 'pm-uhtml' | 'code' | 'join-room' |
 	'leave-room' | 'modchat' | 'filters-view' | 'roominfo' | 'banword-list' | 'room-voice' | 'room-deauth' | 'warn' | 'hangman-start' |
-	'hangman-end' | 'htmlpage' | 'highlight-htmlpage' | 'announce' | 'notifyrank' | 'notifyoffrank' | 'modnote' | 'tournament-create' |
-	'tournament-start' | 'tournament-name' | 'tournament-autostart' | 'tournament-autodq' | 'tournament-cap' | 'tournament-rules' |
-	'tournament-forcepulic' | 'tournament-scouting' | 'tournament-modjoin';
+	'hangman-end' | 'htmlpage' | 'htmlpageselector' | 'closehtmlpage' | 'highlight-htmlpage' | 'announce' | 'notifyrank' |
+	'notifyoffrank' | 'modnote' | 'tournament-create' | 'tournament-start' | 'tournament-name' | 'tournament-autostart' |
+	'tournament-autodq' | 'tournament-cap' | 'tournament-rules' | 'tournament-forcepulic' | 'tournament-scouting' | 'tournament-modjoin';
 
 export interface IOutgoingMessageAttributes {
 	announcement?: string;
@@ -36,6 +36,7 @@ export interface IOutgoingMessageAttributes {
 	notifyMessage?: string;
 	pageId?: string;
 	roomid?: string;
+	selector?: string;
 	text?: string;
 	uhtmlName?: string;
 	user?: string;

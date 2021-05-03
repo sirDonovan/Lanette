@@ -1575,9 +1575,32 @@ export class Client {
 				}
 			} else if (messageArguments.message.startsWith("Sent ")) {
 				const parts = messageArguments.message.substr(5).split(" the bot page ");
-				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'htmlpage' &&
-					this.lastOutgoingMessage.roomid === room.id && this.lastOutgoingMessage.user === Tools.toId(parts[0]) &&
-					Tools.toId(this.lastOutgoingMessage.pageId) === Tools.toId(parts[1])) {
+				let recipient = parts[0];
+				if (messageArguments.message.includes(" the selector ")) {
+					const selectorParts = parts[0].split(" the selector ");
+					recipient = selectorParts[0];
+					const selector = selectorParts[1].split(" on")[0];
+					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'htmlpageselector' &&
+						this.lastOutgoingMessage.roomid === room.id && this.lastOutgoingMessage.user === Tools.toId(recipient) &&
+						Tools.toId(this.lastOutgoingMessage.selector) === Tools.toId(selector) &&
+						Tools.toId(this.lastOutgoingMessage.pageId) === Tools.toId(parts[1])) {
+						this.clearLastOutgoingMessage(now);
+					}
+				} else {
+					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'htmlpage' &&
+						this.lastOutgoingMessage.roomid === room.id && this.lastOutgoingMessage.user === Tools.toId(recipient) &&
+						Tools.toId(this.lastOutgoingMessage.pageId) === Tools.toId(parts[1])) {
+						this.clearLastOutgoingMessage(now);
+					}
+				}
+			} else if (messageArguments.message.startsWith("Closed the bot page ")) {
+				const parts = messageArguments.message.split("Closed the bot page ");
+				const subParts = parts[1].split(" for ");
+				const pageId = subParts[0];
+				const recipient = subParts.slice(1).join(" for ");
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'closehtmlpage' &&
+					this.lastOutgoingMessage.roomid === room.id && this.lastOutgoingMessage.user === Tools.toId(recipient) &&
+					Tools.toId(this.lastOutgoingMessage.pageId) === Tools.toId(pageId)) {
 					this.clearLastOutgoingMessage(now);
 				}
 			}
