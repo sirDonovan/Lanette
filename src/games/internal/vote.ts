@@ -26,22 +26,20 @@ export class Vote extends ScriptedGame {
 		let html = "<div class='infobox'><center>";
 		const ended = this.canVote === false;
 
-		const votesHtml: string[] = [];
-		const formatCounts: Dict<number> = {};
+		const formatNames: Dict<string[]> = {};
 		this.votes.forEach((formatid, player) => {
 			const format = Games.getExistingFormat(formatid);
 			const name = format.nameWithOptions;
-			votesHtml.push("<username>" + player.name + "</username>: " + name);
-			if (!(name in formatCounts)) formatCounts[name] = 0;
-			formatCounts[name]++;
+			if (!(name in formatNames)) formatNames[name] = [];
+			formatNames[name].push("<username>" + player.name + "</username>");
 		});
 
 		if (ended) {
 			html += "<h3>Voting for the next scripted game has ended!</h3><b>Final votes</b>:";
-			const formats = Object.keys(formatCounts).sort((a, b) => formatCounts[b] - formatCounts[a]);
+			const formats = Object.keys(formatNames).sort((a, b) => formatNames[b].length - formatNames[a].length);
 			const formatsByVotes: Dict<string[]> = {};
 			for (const format of formats) {
-				const votes = formatCounts[format];
+				const votes = formatNames[format].length;
 				if (!(votes in formatsByVotes)) formatsByVotes[votes] = [];
 				formatsByVotes[votes].push(format);
 			}
@@ -54,7 +52,17 @@ export class Vote extends ScriptedGame {
 					(formatsByVotes[vote].length > 1 ? " each" : "") + ")</i>: " + formatsByVotes[vote].join(", ");
 			}
 		} else {
-			html += "<b>Current votes</b>:" + (votesHtml.length ? "<br />" + votesHtml.join("<br />") : " (none)");
+			html += "<b>Current votes</b>";
+			const formats = Object.keys(formatNames);
+			if (formats.length) {
+				html += "<br />";
+				for (const format of formats) {
+					html += "<br />";
+					html += format + ": " + formatNames[format].join(", ");
+				}
+			} else {
+				html += ": (none)";
+			}
 		}
 
 		html += "</center></div>";
