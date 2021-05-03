@@ -244,26 +244,27 @@ const commands: GameCommandDefinitions<LandorusWar> = {
 				return false;
 			}
 
-			const pokemonId = Tools.toId(targets[1]);
+			const pokemon = Dex.getPokemon(targets[1]);
+			if (!pokemon) {
+				player.say(CommandParser.getErrorText(['invalidPokemon', targets[1]]));
+				return false;
+			}
+
 			let pokemonInUse = false;
-			for (const pokemon of this.pokemonList) {
-				if (Tools.toId(pokemon) === pokemonId) {
+			for (const pokemonInList of this.pokemonList) {
+				if (pokemonInList === pokemon.name) {
 					pokemonInUse = true;
 					break;
 				}
 			}
+
 			if (!pokemonInUse) {
-				const pokemon = Dex.getPokemon(pokemonId);
-				if (!pokemon) {
-					player.say(CommandParser.getErrorText(['invalidPokemon', targets[1]]));
-				} else {
-					player.say("**" + pokemon.name + "** is not a Pokemon in this game.");
-				}
+				player.say("**" + pokemon.name + "** is not a Pokemon in this game.");
 				return false;
 			}
 
 			const targetPokemon = this.playerPokemon.get(targetPlayer)!;
-			if (pokemonId === targetPokemon.id) {
+			if (pokemon.id === targetPokemon.id) {
 				const targetAlias = this.playerAliases.get(targetPlayer)!;
 				player.say("Correct! " + targetAlias + " was " + targetPlayer.name + ".");
 				this.playerAliasesList.splice(this.playerAliasesList.indexOf(targetAlias), 1);
