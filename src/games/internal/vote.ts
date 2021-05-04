@@ -10,20 +10,22 @@ export class Vote extends ScriptedGame {
 	canVote: boolean | undefined;
 	chosenFormat: string = '';
 	chosenVoter: string = '';
+	currentVotesUhtmlName: string = '';
 	endedVoting: boolean = false;
+	finalVotesUhtmlName: string = '';
 	internalGame: boolean = true;
 	botSuggestions: string[] = [];
 	updateVotesHtmlTimeout: NodeJS.Timeout | null = null;
+	sentVariantsAndModes = new Set<Player>();
+	variantsAndModesUhtmlName: string = '';
 	votingName: string = '';
 	votingNumber: number = 1;
-	votesUhtmlName: string = '';
 	readonly votes = new Map<Player, string>();
 
 	// hack for onSignups()
 	room!: Room;
 
 	updateVotesHtml(callback?: () => void, uhtmlAuto?: boolean): void {
-		let html = "<div class='infobox'><center>";
 		const ended = this.canVote === false;
 
 		const formatNames: Dict<string[]> = {};
@@ -34,7 +36,11 @@ export class Vote extends ScriptedGame {
 			formatNames[name].push("<username>" + player.name + "</username>");
 		});
 
+		let html = "<div class='infobox'><center>";
+		let uhtmlName: string;
 		if (ended) {
+			uhtmlName = this.finalVotesUhtmlName;
+
 			html += "<h3>Voting for the next scripted game has ended!</h3><b>Final votes</b>:";
 			const formats = Object.keys(formatNames).sort((a, b) => formatNames[b].length - formatNames[a].length);
 			const formatsByVotes: Dict<string[]> = {};
@@ -52,31 +58,31 @@ export class Vote extends ScriptedGame {
 					(formatsByVotes[vote].length > 1 ? " each" : "") + ")</i>: " + formatsByVotes[vote].join(", ");
 			}
 		} else {
-			html += "<b>Current votes</b>";
+			uhtmlName = this.currentVotesUhtmlName;
+
 			const formats = Object.keys(formatNames);
-			if (formats.length) {
+			if (!formats.length) return;
+
+			html += "<h3>Current votes</h3>";
+			for (const format of formats) {
+				const votes = formatNames[format].length;
+				html += format + (votes > 1 ? " (" + votes + ")" : "") + ": " + formatNames[format].join(", ");
 				html += "<br />";
-				for (const format of formats) {
-					html += "<br />";
-					html += format + ": " + formatNames[format].join(", ");
-				}
-			} else {
-				html += ": (none)";
 			}
 		}
 
 		html += "</center></div>";
 
-		this.onUhtml(this.votesUhtmlName, html, () => {
+		this.onUhtml(uhtmlName, html, () => {
 			if (callback) callback();
 		});
 
 		if (uhtmlAuto) {
-			this.sayUhtmlAuto(this.votesUhtmlName, html);
+			this.sayUhtmlAuto(uhtmlName, html);
 		} else if (ended) {
-			this.sayUhtml(this.votesUhtmlName, html);
+			this.sayUhtml(uhtmlName, html);
 		} else {
-			this.sayUhtmlChange(this.votesUhtmlName, html);
+			this.sayUhtmlChange(uhtmlName, html);
 		}
 	}
 
@@ -100,10 +106,7 @@ export class Vote extends ScriptedGame {
 		return Client.getQuietPmButton(this.room, Config.commandCharacter + "pmvote " + inputTarget, text);
 	}
 
-	getPlayerVoteHtml(format: IGameFormat): string {
-		let html = "<div class='infobox'><b>" + this.votingName + "</b><hr />Your vote for <b>" + format.nameWithOptions + "</b> has " +
-			"been cast in " + this.room.title + "!";
-
+	sendVariantsAndModes(player: Player, format: IGameFormat): void {
 		const variants: IGameFormat[] = [];
 
 		const hasFreejoinVariant = format.defaultOptions.includes('freejoin');
@@ -132,14 +135,16 @@ export class Vote extends ScriptedGame {
 			}
 		}
 
+		let variantsHtml = "";
 		if (variants.length) {
-			html += "<br /><br /><details><summary>Votable game variants</summary>";
+			variantsHtml += "<details><summary>Votable " + format.nameWithOptions + " variants</summary>";
 			for (const variant of variants) {
-				html += this.getPmVoteButton(variant.inputTarget, variant.nameWithOptions);
+				variantsHtml += this.getPmVoteButton(variant.inputTarget, variant.nameWithOptions);
 			}
-			html += "</details>";
+			variantsHtml += "</details>";
 		}
 
+		let modesHtml = "";
 		if (!format.mode && format.modes) {
 			const modes: IGameFormat[] = [];
 			for (const modeId of format.modes) {
@@ -148,17 +153,29 @@ export class Vote extends ScriptedGame {
 			}
 
 			if (modes.length) {
-				if (!variants.length) html += "<br />";
-				html += "<br /><details><summary>Votable game modes</summary>";
+				modesHtml += "<details><summary>Votable " + format.nameWithOptions + " modes</summary>";
 				for (const mode of modes) {
-					html += this.getPmVoteButton(mode.inputTarget, mode.nameWithOptions);
+					modesHtml += this.getPmVoteButton(mode.inputTarget, mode.nameWithOptions);
 				}
-				html += "</details>";
+				modesHtml += "</details>";
 			}
 		}
 
-		html += "</div>";
-		return html;
+		if (variantsHtml || modesHtml) {
+			let html = "<div class='infobox'>";
+			html += variantsHtml;
+			if (variantsHtml && modesHtml) html += "<br />";
+			html += modesHtml;
+			html += "</div>";
+
+			player.sayUhtml(html, this.variantsAndModesUhtmlName);
+			this.sentVariantsAndModes.add(player);
+		} else {
+			if (this.sentVariantsAndModes.has(player)) {
+				player.sayUhtml("", this.variantsAndModesUhtmlName);
+				this.sentVariantsAndModes.delete(player);
+			}
+		}
 	}
 
 	getHighlightPhrase(): string {
@@ -166,7 +183,9 @@ export class Vote extends ScriptedGame {
 	}
 
 	onSignups(): void {
-		this.votesUhtmlName = this.uhtmlBaseName + '-votes';
+		this.currentVotesUhtmlName = this.uhtmlBaseName + '-current-votes';
+		this.finalVotesUhtmlName = this.uhtmlBaseName + '-final-votes';
+		this.variantsAndModesUhtmlName = this.uhtmlBaseName + '-variants-modes';
 		this.bannedFormats = Games.getNextVoteBans(this.room);
 
 		const votableFormats: string[] = [];
@@ -293,7 +312,7 @@ export class Vote extends ScriptedGame {
 	}
 
 	onForceEnd(): void {
-		this.sayUhtmlChange(this.votesUhtmlName, "<div class='infobox'><center><h3>Voting for the next scripted game was forcibly " +
+		this.sayUhtmlChange(this.currentVotesUhtmlName, "<div class='infobox'><center><h3>Voting for the next scripted game was forcibly " +
 			"ended!</h3></center></div>");
 	}
 
@@ -360,6 +379,8 @@ const commands: GameCommandDefinitions<Vote> = {
 			}
 
 			this.votes.set(player, format.inputTarget);
+
+			this.sendVariantsAndModes(player, format);
 
 			if (!this.updateVotesHtmlTimeout) {
 				this.updateVotesHtmlTimeout = setTimeout(() => {
