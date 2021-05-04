@@ -557,7 +557,7 @@ export class ScriptedGame extends Game {
 				winners: Array.from(this.winners.keys()).map(x => x.id),
 			});
 
-			this.setCooldownAndAutoCreate('userhosted');
+			this.setCooldownAndAutoCreate('userhosted', now - this.startTime);
 		}
 
 		if (this.awardedBits || usedDatabase) Storage.exportDatabase(this.room.id);

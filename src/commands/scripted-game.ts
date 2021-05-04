@@ -107,20 +107,25 @@ export const commands: BaseCommandDefinitions = {
 		aliases: ['gamedesc', 'gdesc'],
 	},
 	startvote: {
-		command(target, room, user) {
+		command(target, room, user, cmd) {
 			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
 			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) {
 				return this.sayError(['disabledGameFeatures', room.title]);
 			}
 			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
 
-			const remainingGameCooldown = Games.getRemainingGameCooldown(room);
-			if (remainingGameCooldown > 1000) {
-				const durationString = Tools.toDurationString(remainingGameCooldown);
-				this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the game cooldown " +
-					"remaining.");
-				return;
+			if (cmd === 'startskippedcooldownvote') {
+				if (user !== Users.self) return;
+			} else {
+				const remainingGameCooldown = Games.getRemainingGameCooldown(room);
+				if (remainingGameCooldown > 1000) {
+					const durationString = Tools.toDurationString(remainingGameCooldown);
+					this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the game " +
+						"cooldown remaining.");
+					return;
+				}
 			}
+
 			if (Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 
 			const voteFormat = Games.getInternalFormat('vote');
@@ -131,7 +136,7 @@ export const commands: BaseCommandDefinitions = {
 			const game = Games.createGame(room, voteFormat);
 			game.signups();
 		},
-		aliases: ['sv'],
+		aliases: ['sv', 'startskippedcooldownvote'],
 	},
 	egg: {
 		command(target, room, user) {

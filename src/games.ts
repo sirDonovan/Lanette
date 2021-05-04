@@ -21,6 +21,8 @@ import type { User } from './users';
 import { ParametersWorker } from './workers/parameters';
 import { PortmanteausWorker } from './workers/portmanteaus';
 
+const SKIP_SCRIPTED_COOLDOWN_DURATION = 5 * 60 * 1000;
+const SKIPPED_SCRIPTED_COOLDOW_TIMER = 15 * 1000;
 const DEFAULT_CATEGORY_COOLDOWN = 3;
 const MAX_MOVE_AVAILABILITY = 500;
 const MINIGAME_BITS = 25;
@@ -118,6 +120,7 @@ export class Games {
 	private readonly modeAliases: Dict<string> = {};
 	private nextVoteBans: Dict<string[]> = {};
 	private reloadInProgress: boolean = false;
+	private skippedScriptedCooldowns: Dict<boolean> = {};
 	private readonly userHostedAliases: Dict<string> = {};
 	private readonly userHostedFormats: UserHostedFormats = {};
 	private readonly workers: IGamesWorkers = {
@@ -1097,6 +1100,19 @@ export class Games {
 		this.internalFormats[key].disabled = false;
 	}
 
+	canSkipScriptedCooldown(room: Room, previousGameDuration: number): boolean {
+		return !(room.id in this.skippedScriptedCooldowns) && previousGameDuration <= SKIP_SCRIPTED_COOLDOWN_DURATION;
+	}
+
+	skipScriptedCooldown(room: Room): void {
+		this.skippedScriptedCooldowns[room.id] = true;
+		this.setAutoCreateTimer(room, 'scripted', SKIPPED_SCRIPTED_COOLDOW_TIMER);
+	}
+
+	clearSkippedScriptedCooldown(room: Room): void {
+		delete this.skippedScriptedCooldowns[room.id];
+	}
+
 	banFromNextVote(room: Room, format: IGameFormat): void {
 		if (!(room.id in this.nextVoteBans)) this.nextVoteBans[room.id] = [];
 		this.nextVoteBans[room.id].push(format.inputTarget);
@@ -1133,7 +1149,7 @@ export class Games {
 			if (type === 'tournament') {
 				CommandParser.parse(room, Users.self, Config.commandCharacter + "createrandomtournamentgame", now);
 			} else if (type === 'scripted' || !database.userHostedGameQueue || !database.userHostedGameQueue.length) {
-				CommandParser.parse(room, Users.self, Config.commandCharacter + "startvote", now);
+				CommandParser.parse(room, Users.self, Config.commandCharacter + "startskippedcooldownvote", now);
 			} else if (type === 'userhosted') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 				CommandParser.parse(room, Users.self, Config.commandCharacter + "nexthost", now);
 			}
@@ -2079,6 +2095,7 @@ export class Games {
 		if (previous.lastUserHostedGames) Object.assign(this.lastUserHostedGames, previous.lastUserHostedGames);
 		if (previous.lastUserHostTimes) Object.assign(this.lastUserHostTimes, previous.lastUserHostTimes);
 		if (previous.lastUserHostFormatTimes) Object.assign(this.lastUserHostFormatTimes, previous.lastUserHostFormatTimes);
+		if (previous.skippedScriptedCooldowns) Object.assign(this.skippedScriptedCooldowns, previous.skippedScriptedCooldowns);
 
 		if (previous.nextVoteBans) {
 			for (const i in previous.nextVoteBans) {
