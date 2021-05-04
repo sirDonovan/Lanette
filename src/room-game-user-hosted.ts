@@ -245,6 +245,11 @@ export class UserHostedGame extends Game {
 		const player = this.createPlayer(user);
 		if (!player) return;
 
+		if (!this.joinNotices.has(user.id)) {
+			player.say("Thanks for joining " + this.name + " " + this.activityType + "!");
+			this.joinNotices.add(user.id);
+		}
+
 		if (!this.signupsHtmlTimeout) {
 			this.signupsHtmlTimeout = setTimeout(() => {
 				this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsPlayersHtml());
