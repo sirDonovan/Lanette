@@ -575,18 +575,24 @@ export const commands: BaseCommandDefinitions = {
 				return this.sayError(['disabledGameFeatures', room.title]);
 			}
 			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
-			const remainingGameCooldown = Games.getRemainingGameCooldown(room);
-			if (remainingGameCooldown > 1000) {
-				const durationString = Tools.toDurationString(remainingGameCooldown);
-				this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the game cooldown " +
-					"remaining.");
-				return;
+
+			if (cmd === 'createskippedcooldowngame' || cmd === 'createpickedskippedcooldowngame') {
+				if (user !== Users.self) return;
+			} else {
+				const remainingGameCooldown = Games.getRemainingGameCooldown(room);
+				if (remainingGameCooldown > 1000) {
+					const durationString = Tools.toDurationString(remainingGameCooldown);
+					this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the game cooldown " +
+						"remaining.");
+					return;
+				}
 			}
+
 			if (Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 
 			const targets = target.split(',');
 			let voter = '';
-			if (cmd === 'createpickedgame' || cmd === 'cpg') {
+			if (cmd === 'createpickedskippedcooldowngame' || cmd === 'createpickedgame' || cmd === 'cpg') {
 				voter = targets[0].trim();
 				targets.shift();
 			}
@@ -638,7 +644,8 @@ export const commands: BaseCommandDefinitions = {
 			const game = Games.createGame(room, format);
 			game.signups();
 		},
-		aliases: ['cg', 'createrandomgame', 'crg', 'randomgame', 'createpickedgame', 'cpg'],
+		aliases: ['cg', 'createrandomgame', 'crg', 'randomgame', 'createpickedgame', 'cpg', 'createskippedcooldowngame',
+			'createpickedskippedcooldowngame'],
 	},
 	startgame: {
 		command(target, room, user) {

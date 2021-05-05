@@ -22,7 +22,7 @@ import { ParametersWorker } from './workers/parameters';
 import { PortmanteausWorker } from './workers/portmanteaus';
 
 const SKIP_SCRIPTED_COOLDOWN_DURATION = 5 * 60 * 1000;
-const SKIPPED_SCRIPTED_COOLDOW_TIMER = 15 * 1000;
+const SKIPPED_SCRIPTED_COOLDOW_TIMER = 10 * 1000;
 const DEFAULT_CATEGORY_COOLDOWN = 3;
 const MAX_MOVE_AVAILABILITY = 500;
 const MINIGAME_BITS = 25;

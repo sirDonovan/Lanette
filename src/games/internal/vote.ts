@@ -318,7 +318,7 @@ export class Vote extends ScriptedGame {
 
 	onAfterDeallocate(forceEnd: boolean): void {
 		if (!forceEnd && this.chosenFormat) {
-			CommandParser.parse(this.room, Users.self, Config.commandCharacter + "createpickedgame " +
+			CommandParser.parse(this.room, Users.self, Config.commandCharacter + "createpickedskippedcooldowngame " +
 				(this.chosenVoter ? this.chosenVoter + ", " : "") + this.chosenFormat, Date.now());
 		}
 	}
