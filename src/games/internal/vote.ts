@@ -5,6 +5,11 @@ import type { GameCommandDefinitions, IGameFile, IGameFormat } from "../../types
 
 const timeLimit = 30 * 1000;
 
+interface IPlayerVote {
+	format: string;
+	pmVote: boolean;
+}
+
 export class Vote extends ScriptedGame {
 	bannedFormats: string[] = [];
 	canVote: boolean | undefined;
@@ -20,7 +25,7 @@ export class Vote extends ScriptedGame {
 	variantsAndModesUhtmlName: string = '';
 	votingName: string = '';
 	votingNumber: number = 1;
-	readonly votes = new Map<Player, string>();
+	readonly votes = new Map<Player, IPlayerVote>();
 
 	// hack for onSignups()
 	room!: Room;
@@ -29,11 +34,11 @@ export class Vote extends ScriptedGame {
 		const ended = this.canVote === false;
 
 		const formatNames: Dict<string[]> = {};
-		this.votes.forEach((formatid, player) => {
-			const format = Games.getExistingFormat(formatid);
+		this.votes.forEach((vote, player) => {
+			const format = Games.getExistingFormat(vote.format);
 			const name = format.nameWithOptions;
 			if (!(name in formatNames)) formatNames[name] = [];
-			formatNames[name].push("<username>" + player.name + "</username>");
+			formatNames[name].push(vote.pmVote ? "[Anonymous]" : "<username>" + player.name + "</username>");
 		});
 
 		let html = "<div class='infobox'><center>";
@@ -103,7 +108,7 @@ export class Vote extends ScriptedGame {
 	}
 
 	getPmVoteButton(inputTarget: string, text: string): string {
-		return Client.getQuietPmButton(this.room, Config.commandCharacter + "pmvote " + inputTarget, text);
+		return Client.getQuietPmButton(this.room, Config.commandCharacter + "vote " + inputTarget, text);
 	}
 
 	sendVariantsAndModes(player: Player, format: IGameFormat): void {
@@ -285,8 +290,8 @@ export class Vote extends ScriptedGame {
 		this.updateVotesHtml(() => {
 			this.timeout = setTimeout(() => {
 				const votes: {format: string, player: Player}[] = [];
-				this.votes.forEach((format, player) => {
-					votes.push({format, player});
+				this.votes.forEach((vote, player) => {
+					votes.push({format: vote.format, player});
 				});
 
 				let voter: string = '';
@@ -326,8 +331,15 @@ export class Vote extends ScriptedGame {
 
 const commands: GameCommandDefinitions<Vote> = {
 	vote: {
-		command(target, room, user) {
+		command(target, room, user, cmd) {
 			if (!this.canVote) return false;
+
+			const pmVote = cmd === 'pmvote';
+			if (pmVote && !this.isPm(room, user)) {
+				user.say("You must use this command in PMs.");
+				return false;
+			}
+
 			const player = this.createPlayer(user) || this.players[user.id];
 			const targetId = Tools.toId(target);
 			let format: IGameFormat | undefined;
@@ -378,7 +390,7 @@ const commands: GameCommandDefinitions<Vote> = {
 				return false;
 			}
 
-			this.votes.set(player, format.inputTarget);
+			this.votes.set(player, {format: format.inputTarget, pmVote});
 
 			this.sendVariantsAndModes(player, format);
 
@@ -391,16 +403,8 @@ const commands: GameCommandDefinitions<Vote> = {
 
 			return true;
 		},
-		aliases: ['suggest'],
-	},
-	pmvote: {
-		command(target, room, user) {
-			if (!this.canVote) return false;
-			const player = this.createPlayer(user) || this.players[user.id];
-			player.useCommand('vote', target);
-			return true;
-		},
-		pmOnly: true,
+		aliases: ['suggest', 'pmvote'],
+		pmGameCommand: true,
 	},
 };
 
