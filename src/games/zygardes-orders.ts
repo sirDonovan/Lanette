@@ -84,7 +84,7 @@ class ZygardesOrders extends QuestionAndAnswer {
 			let revealedLetter = false;
 			for (const index of indicies) {
 				this.hints[index] = this.letters[index];
-				if (Client.checkFilters(this.hints.join(""), this.isPm(this.room) ? undefined : this.room)) {
+				if (Client.checkFilters(this.hints.join(""), this.isPmActivity(this.room) ? undefined : this.room)) {
 					this.hints[index] = '';
 					continue;
 				}

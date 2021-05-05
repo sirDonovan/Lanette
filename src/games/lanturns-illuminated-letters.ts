@@ -101,7 +101,7 @@ class LanturnsIlluminatedLetters extends QuestionAndAnswer {
 		let illuminatedLetters = '';
 		let hint: string[] = [];
 		while (!hint.length || illuminatedLetters === this.lastIlluminatedletters ||
-			Client.checkFilters(illuminatedLetters, !this.isPm(this.room) ? this.room : undefined)) {
+			Client.checkFilters(illuminatedLetters, !this.isPmActivity(this.room) ? this.room : undefined)) {
 			illuminatedLetters = '';
 			hint = [];
 			const chosenIndices = this.sampleMany(this.currentIndicies, LETTERS_TO_REVEAL);

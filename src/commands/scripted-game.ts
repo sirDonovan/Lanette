@@ -582,8 +582,8 @@ export const commands: BaseCommandDefinitions = {
 				const remainingGameCooldown = Games.getRemainingGameCooldown(room);
 				if (remainingGameCooldown > 1000) {
 					const durationString = Tools.toDurationString(remainingGameCooldown);
-					this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the game cooldown " +
-						"remaining.");
+					this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the game " +
+						"cooldown remaining.");
 					return;
 				}
 			}

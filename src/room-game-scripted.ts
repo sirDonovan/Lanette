@@ -167,7 +167,7 @@ export class ScriptedGame extends Game {
 
 	setUhtmlBaseName(): void {
 		let gameCount: number;
-		if (this.isPm(this.room)) {
+		if (this.isPmActivity(this.room)) {
 			gameCount = this.random(100);
 		} else {
 			let databaseKey: 'miniGameCounts' | 'scriptedGameCounts';
@@ -500,7 +500,7 @@ export class ScriptedGame extends Game {
 		if (this.ended) throw new Error("Game already ended");
 		this.ended = true;
 
-		if (this.isPm(this.room)) {
+		if (this.isPmActivity(this.room)) {
 			this.deallocate(false);
 			return;
 		}
@@ -914,13 +914,13 @@ export class ScriptedGame extends Game {
 		const commandDefinition = this.commands[command];
 		if (!canUseCommands && !(!(user.id in this.players) && commandDefinition.spectatorGameCommand) &&
 			!(user.id in this.players && this.players[user.id].eliminated && commandDefinition.eliminatedGameCommand) &&
-			!(commandDefinition.staffGameCommand && !this.isPm(this.room) && user.hasRank(this.room, 'driver'))) {
+			!(commandDefinition.staffGameCommand && !this.isPmActivity(this.room) && user.hasRank(this.room, 'driver'))) {
 			return false;
 		}
 
 		const isPm = room === user;
 		if (isPm) {
-			if (!this.isPm(this.room) && !commandDefinition.pmGameCommand && !commandDefinition.pmOnly) return false;
+			if (!this.isPmActivity(this.room) && !commandDefinition.pmGameCommand && !commandDefinition.pmOnly) return false;
 		} else {
 			if (commandDefinition.pmOnly) return false;
 		}
@@ -968,7 +968,7 @@ export class ScriptedGame extends Game {
 	}
 
 	addBits(user: User | Player, bits: number, noPm?: boolean, achievementBits?: boolean): boolean {
-		if (this.isPm(this.room) || !Config.rankedGames || !Config.rankedGames.includes(this.room.id) ||
+		if (this.isPmActivity(this.room) || !Config.rankedGames || !Config.rankedGames.includes(this.room.id) ||
 			(this.parentGame && this.parentGame.allowChildGameBits !== true) ||
 			(this.format.minigameCreator && this.format.minigameCreator === user.id)) return false;
 
@@ -992,7 +992,7 @@ export class ScriptedGame extends Game {
 	}
 
 	removeBits(user: User | Player, bits: number, noPm?: boolean): boolean {
-		if (this.isPm(this.room) || !Config.rankedGames || !Config.rankedGames.includes(this.room.id) ||
+		if (this.isPmActivity(this.room) || !Config.rankedGames || !Config.rankedGames.includes(this.room.id) ||
 			(this.parentGame && this.parentGame.allowChildGameBits !== true)) return false;
 
 		bits = Math.floor(bits);
@@ -1044,7 +1044,7 @@ export class ScriptedGame extends Game {
 
 	/**Returns an array of players who re-unlocked the achievement, if any */
 	unlockAchievement(players: Player | Player[], achievement: IGameAchievement): Player[] | undefined {
-		if (this.isPm(this.room) || !Config.allowGameAchievements || !Config.allowGameAchievements.includes(this.room.id) ||
+		if (this.isPmActivity(this.room) || !Config.allowGameAchievements || !Config.allowGameAchievements.includes(this.room.id) ||
 			(this.format.mode && this.format.mode.id !== achievement.mode)) return;
 
 		if (this.isMiniGame) {

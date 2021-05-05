@@ -97,7 +97,7 @@ export abstract class Game extends Activity {
 						Tools.logError(e, this.format!.name + " Config.onUserHostedGameWin");
 					}
 				}
-			} else if (!this.isPm(this.room)) {
+			} else if (!this.isPmActivity(this.room)) {
 				if (Config.onScriptedGameWin) {
 					try {
 						Config.onScriptedGameWin(this.room, this.format as IGameFormat, this.players, this.winners, this.points);
@@ -108,7 +108,7 @@ export abstract class Game extends Activity {
 			}
 
 			let trainerCardsShown = false;
-			if (!this.isPm(this.room) && Config.showGameTrainerCards && Config.showGameTrainerCards.includes(this.room.id)) {
+			if (!this.isPmActivity(this.room) && Config.showGameTrainerCards && Config.showGameTrainerCards.includes(this.room.id)) {
 				const trainerCards: string[] = [];
 				const noTrainerCards: string[] = [];
 				this.winners.forEach((points, player) => {
@@ -137,7 +137,7 @@ export abstract class Game extends Activity {
 	}
 
 	setCooldownAndAutoCreate(nextGameType: 'scripted' | 'userhosted', previousGameDuration?: number): void {
-		if (this.isPm(this.room)) return;
+		if (this.isPmActivity(this.room)) return;
 
 		if (nextGameType === 'userhosted' && previousGameDuration && Config.gameCooldownTimers &&
 			this.room.id in Config.gameCooldownTimers && Config.gameAutoCreateTimers && this.room.id in Config.gameAutoCreateTimers &&

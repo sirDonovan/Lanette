@@ -47,7 +47,7 @@ class KyuremsSplits extends QuestionAndAnswer {
 		let answers: string[] = [];
 		let hint = '';
 		while (!answers.length || answers.length > 15 ||
-			Client.checkFilters(hint, !this.isPm(this.room) ? this.room : undefined)) {
+			Client.checkFilters(hint, !this.isPmActivity(this.room) ? this.room : undefined)) {
 			const randomAnswer = Tools.toId(this.sampleOne(data[category]));
 			const validIndices: number[] = [];
 			for (let i = 1; i < randomAnswer.length; i++) {

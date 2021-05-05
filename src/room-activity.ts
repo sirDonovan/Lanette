@@ -173,7 +173,7 @@ export abstract class Activity {
 	constructor(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed) {
 		this.room = room;
 		this.pm = pmRoom && room !== pmRoom ? true : false;
-		this.pmRoom = this.isPm(room) ? pmRoom! : room;
+		this.pmRoom = this.isPmActivity(room) ? pmRoom! : room;
 		this.prng = new PRNG(initialSeed);
 		this.initialSeed = this.prng.initialSeed.slice() as PRNGSeed;
 	}
@@ -198,7 +198,11 @@ export abstract class Activity {
 		return Tools.shuffle(array, this.prng);
 	}
 
-	isPm(room: Room | User): room is User {
+	isPm(room: Room | User, user: User): room is User {
+		return room === user;
+	}
+
+	isPmActivity(room: Room | User): room is User {
 		return this.pm;
 	}
 
@@ -297,17 +301,17 @@ export abstract class Activity {
 	}
 
 	sayHtml(html: string): void {
-		if (this.isPm(this.room)) return this.pmRoom.pmHtml(this.room, html);
+		if (this.isPmActivity(this.room)) return this.pmRoom.pmHtml(this.room, html);
 		this.room.sayHtml(html);
 	}
 
 	sayUhtml(name: string, html: string): void {
-		if (this.isPm(this.room)) return this.pmRoom.pmUhtml(this.room, name, html);
+		if (this.isPmActivity(this.room)) return this.pmRoom.pmUhtml(this.room, name, html);
 		this.room.sayUhtml(name, html);
 	}
 
 	sayUhtmlChange(name: string, html: string): void {
-		if (this.isPm(this.room)) return this.pmRoom.pmUhtmlChange(this.room, name, html);
+		if (this.isPmActivity(this.room)) return this.pmRoom.pmUhtmlChange(this.room, name, html);
 		this.room.sayUhtmlChange(name, html);
 	}
 

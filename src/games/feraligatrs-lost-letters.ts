@@ -81,7 +81,7 @@ class FeraligatrsLostLetters extends QuestionAndAnswer {
 			name = name.trim();
 			hint = this.removeLetters(name.split(''));
 			if (!hint || hint.length === name.length ||
-				Client.checkFilters(hint, !this.isPm(this.room) ? this.room : undefined)) continue;
+				Client.checkFilters(hint, !this.isPmActivity(this.room) ? this.room : undefined)) continue;
 			answer = name;
 		}
 

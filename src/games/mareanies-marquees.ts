@@ -46,7 +46,7 @@ class MareaniesMarquee extends QuestionAndAnswer {
 			for (let i = 0; i < letters.length; i++) {
 				let part = letters.slice(i, i + LETTERS_TO_REVEAL);
 				if (part.length < LETTERS_TO_REVEAL) part = part.concat(letters.slice(0, LETTERS_TO_REVEAL - part.length));
-				if (Client.checkFilters(part.join(''), !this.isPm(this.room) ? this.room : undefined)) {
+				if (Client.checkFilters(part.join(''), !this.isPmActivity(this.room) ? this.room : undefined)) {
 					willBeFiltered = true;
 					break;
 				}
