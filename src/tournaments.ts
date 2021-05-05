@@ -108,9 +108,6 @@ export class Tournaments {
 						}
 						if (customRules.length) customFormatid += '@@@' + customRules.join(',');
 						this.schedules[room].months[month].formats[day] = customFormatid;
-					} else {
-						this.schedules[room].months[month].formats[day] =
-							Dex.getExistingFormat(this.schedules[room].months[month].formats[day]).id;
 					}
 
 					this.schedules[room].months[month].formats[day] = Dex.validateFormat(this.schedules[room].months[month].formats[day]);
