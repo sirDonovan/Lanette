@@ -289,15 +289,17 @@ export class Vote extends ScriptedGame {
 		this.canVote = false;
 		this.updateVotesHtml(() => {
 			this.timeout = setTimeout(() => {
-				const votes: {format: string, player: Player}[] = [];
+				const votes: {format: string, pmVote: boolean, player: Player}[] = [];
 				this.votes.forEach((vote, player) => {
-					votes.push({format: vote.format, player});
+					votes.push({format: vote.format, pmVote: vote.pmVote, player});
 				});
 
+				let pmVote = false;
 				let voter: string = '';
 				let format: string;
 				if (votes.length) {
 					const chosen = this.sampleOne(votes);
+					pmVote = chosen.pmVote;
 					format = chosen.format;
 					voter = chosen.player.name;
 				} else {
@@ -310,7 +312,7 @@ export class Vote extends ScriptedGame {
 				}
 
 				this.chosenFormat = format;
-				this.chosenVoter = voter;
+				if (!pmVote) this.chosenVoter = voter;
 				this.end();
 			}, 3000);
 		});
@@ -323,8 +325,9 @@ export class Vote extends ScriptedGame {
 
 	onAfterDeallocate(forceEnd: boolean): void {
 		if (!forceEnd && this.chosenFormat) {
-			CommandParser.parse(this.room, Users.self, Config.commandCharacter + "createpickedskippedcooldowngame " +
-				(this.chosenVoter ? this.chosenVoter + ", " : "") + this.chosenFormat, Date.now());
+			CommandParser.parse(this.room, Users.self, Config.commandCharacter +
+				(this.chosenVoter ? "createpickedskippedcooldowngame " + this.chosenVoter + "," : "createskippedcooldowngame") + " " +
+				this.chosenFormat, Date.now());
 		}
 	}
 }
