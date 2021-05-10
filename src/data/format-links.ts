@@ -383,7 +383,7 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	},
 	'gen2ou': {
 		info: 'https://www.smogon.com/dex/gs/formats/ou',
-		teams: '3650478/#post-8133788',
+		teams: 'https://www.smogon.com/forums/threads/3650478/#post-8133788',
 		viability: 'https://www.smogon.com/forums/threads/3633233',
 	},
 	'gen2uu': {
