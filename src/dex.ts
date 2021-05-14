@@ -1228,17 +1228,40 @@ export class Dex {
 		return [name, customRules];
 	}
 
+	joinNameAndCustomRules(name: string, customRules: string[] | null): string {
+		if (customRules && customRules.length) return name + "@@@" + customRules.join(',');
+		return name;
+	}
+
+	resolveCustomRuleAliases(customRules: string[]): string[] {
+		const uniqueCustomRules: string[] = [];
+		for (const rule of customRules) {
+			const id = Tools.toId(rule);
+			if (id in customRuleAliases) {
+				for (const aliasRule of customRuleAliases[id]) {
+					const trimmed = aliasRule.trim();
+					if (!uniqueCustomRules.includes(trimmed)) uniqueCustomRules.push(trimmed);
+				}
+			} else {
+				const trimmed = rule.trim();
+				if (!uniqueCustomRules.includes(trimmed)) uniqueCustomRules.push(trimmed);
+			}
+		}
+
+		return uniqueCustomRules;
+	}
+
 	getFormat(name: string, isValidated?: boolean): IFormat | undefined {
 		let formatId = Tools.toId(name);
 		if (!formatId) return;
 
 		name = name.trim();
 		const inputTarget = name;
+
 		let format = this.pokemonShowdownDex.formats.get(name, isValidated);
 		if (!format.exists) {
-			let allCustomRules: string[] = [];
 			const split = this.splitNameAndCustomRules(name);
-			allCustomRules = allCustomRules.concat(split[1]);
+			let allCustomRules = this.resolveCustomRuleAliases(split[1]);
 			const parts = split[0].split(" ");
 			if (parts.length > 1) {
 				let formatNameIndex = parts.length - 1;
@@ -1269,11 +1292,19 @@ export class Dex {
 
 			const uniqueCustomRules: string[] = [];
 			for (const rule of allCustomRules) {
-				const trimmed = rule.trim();
-				if (!uniqueCustomRules.includes(trimmed)) uniqueCustomRules.push(trimmed);
+				const id = Tools.toId(rule);
+				if (id in customRuleAliases) {
+					for (const aliasRule of customRuleAliases[id]) {
+						const trimmed = aliasRule.trim();
+						if (!uniqueCustomRules.includes(trimmed)) uniqueCustomRules.push(trimmed);
+					}
+				} else {
+					const trimmed = rule.trim();
+					if (!uniqueCustomRules.includes(trimmed)) uniqueCustomRules.push(trimmed);
+				}
 			}
 
-			if (uniqueCustomRules.length) name += "@@@" + uniqueCustomRules.join(',');
+			name = this.joinNameAndCustomRules(name, uniqueCustomRules);
 
 			format = this.pokemonShowdownDex.formats.get(name, isValidated);
 
@@ -1473,7 +1504,7 @@ export class Dex {
 	getUsablePokemon(format: IFormat): string[] {
 		if (format.usablePokemon) return format.usablePokemon;
 
-		const formatid = format.name + (format.customRules ? "@@@" + format.customRules.join(',') : "");
+		const formatid = this.joinNameAndCustomRules(format.name, format.customRules);
 		const validator = new this.pokemonShowdownValidator(formatid, dexes['base'].pokemonShowdownDex);
 		if (!format.ruleTable) format.ruleTable = this.pokemonShowdownDex.formats.getRuleTable(format);
 

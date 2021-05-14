@@ -350,7 +350,7 @@ export const commands: BaseCommandDefinitions = {
 				}
 
 				if (customRules.length > existingCustomRules) {
-					let formatid = format.name + '@@@' + customRules.join(',');
+					let formatid = Dex.joinNameAndCustomRules(format.name, Dex.resolveCustomRuleAliases(customRules));
 					try {
 						formatid = Dex.validateFormat(formatid);
 					} catch (e) {
@@ -383,7 +383,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			database.queuedTournament = {
-				formatid: format.name + (format.customRules ? '@@@' + format.customRules.join(',') : ''),
+				formatid: Dex.joinNameAndCustomRules(format.name, format.customRules),
 				playerCap,
 				scheduled,
 				time,

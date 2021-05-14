@@ -105,13 +105,12 @@ export class Tournaments {
 						if (formatid.includes(',')) {
 							const parts = formatid.split(',');
 							const customRules: string[] = [];
-							let customFormatid = Dex.getExistingFormat(parts[0]).id;
 							for (let i = 1; i < parts.length; i++) {
 								const part = parts[i].trim();
 								if (part && part !== '0') customRules.push(part);
 							}
-							if (customRules.length) customFormatid += '@@@' + customRules.join(',');
-							this.schedules[room].months[month].formats[day] = customFormatid;
+							this.schedules[room].months[month].formats[day] = Dex.joinNameAndCustomRules(Dex.getExistingFormat(parts[0]).id,
+								customRules);
 						}
 					}
 

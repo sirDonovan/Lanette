@@ -396,6 +396,36 @@ describe("Dex", () => {
 		assertStrictEqual(format.customRules.length, 1);
 		assertStrictEqual(format.customRules[0], 'Same Type Clause');
 		assertStrictEqual(format.id, 'gen' + gen + 'doublesou');
+
+		format = Dex.getExistingFormat("monobug ou");
+		assert(format.customRules);
+		assertStrictEqual(format.customRules.length, 1);
+		assertStrictEqual(format.customRules[0], 'Force Monotype = Bug');
+		assertStrictEqual(format.id, 'gen' + gen + 'ou');
+
+		format = Dex.getExistingFormat("level5 ou");
+		assert(format.customRules);
+		assertStrictEqual(format.customRules.length, 1);
+		assertStrictEqual(format.customRules[0], 'Adjust Level = 5');
+		assertStrictEqual(format.id, 'gen' + gen + 'ou');
+
+		format = Dex.getExistingFormat("1move ou");
+		assert(format.customRules);
+		assertStrictEqual(format.customRules.length, 1);
+		assertStrictEqual(format.customRules[0], 'Max Move Count = 1');
+		assertStrictEqual(format.id, 'gen' + gen + 'ou');
+
+		format = Dex.getExistingFormat("bring1 ou");
+		assert(format.customRules);
+		assertStrictEqual(format.customRules.length, 1);
+		assertStrictEqual(format.customRules[0], 'Max Team Size = 1');
+		assertStrictEqual(format.id, 'gen' + gen + 'ou');
+
+		format = Dex.getExistingFormat("pick1 ou");
+		assert(format.customRules);
+		assertStrictEqual(format.customRules.length, 1);
+		assertStrictEqual(format.customRules[0], 'Picked Team Size = 1');
+		assertStrictEqual(format.id, 'gen' + gen + 'ou');
 	});
 	it('should properly parse custom rules in separateCustomRules()', () => {
 		const customRules: string[] = ["-Pikachu", "+Charizard", "*Kubfu", "Same Type Clause", "!Team Preview"];
