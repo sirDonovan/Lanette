@@ -73,6 +73,8 @@ const clauseNicknames: Dict<string> = {
 	'Ignore Illegal Abilities': 'Almost Any Ability',
 	'Hoenn Pokedex': 'Hoenn',
 	'Sinnoh Pokedex': 'Sinnoh',
+	'Old Unova Pokedex': 'Unova BW',
+	'New Unova Pokedex': 'Unova BW2',
 	'Kalos Pokedex': 'Kalos',
 	'Alola Pokedex': 'Alola',
 	'Galar Pokedex': 'Galar',
@@ -89,6 +91,53 @@ const clauseNicknames: Dict<string> = {
 	'Flipped Mod': 'Flipped',
 	'Scalemons Mod': 'Scalemons',
 	'Alphabet Cup Move Legality': 'Alphabet Cup',
+	'Adjust Level = 5': 'Level 5',
+	'Adjust Level = 50': 'Level 50',
+	'Max Move Count = 1': '1 Move',
+	'Max Move Count = 2': '2 Move',
+	'Max Move Count = 3': '3 Move',
+	'Max Move Count = 4': '4 Move',
+	'Max Move Count = 5': '5 Move',
+	'Max Move Count = 6': '6 Move',
+	'Max Move Count = 7': '7 Move',
+	'Max Move Count = 8': '8 Move',
+	'Max Team Size = 1': 'Bring 1',
+	'Max Team Size = 2': 'Bring 2',
+	'Max Team Size = 3': 'Bring 3',
+	'Max Team Size = 4': 'Bring 4',
+	'Max Team Size = 5': 'Bring 5',
+	'Max Team Size = 6': 'Bring 6',
+	'Max Team Size = 7': 'Bring 7',
+	'Max Team Size = 8': 'Bring 8',
+	'Max Team Size = 9': 'Bring 9',
+	'Max Team Size = 10': 'Bring 10',
+	'Picked Team Size = 1': 'Pick 1',
+	'Picked Team Size = 2': 'Pick 2',
+	'Picked Team Size = 3': 'Pick 3',
+	'Picked Team Size = 4': 'Pick 4',
+	'Picked Team Size = 5': 'Pick 5',
+	'Picked Team Size = 6': 'Pick 6',
+	'Picked Team Size = 7': 'Pick 7',
+	'Picked Team Size = 8': 'Pick 8',
+	'Picked Team Size = 9': 'Pick 9',
+	'Force Monotype = Bug': 'Mono-Bug',
+	'Force Monotype = Dark': 'Mono-Dark',
+	'Force Monotype = Dragon': 'Mono-Dragon',
+	'Force Monotype = Electric': 'Mono-Electric',
+	'Force Monotype = Fairy': 'Mono-Fairy',
+	'Force Monotype = Fighting': 'Mono-Fighting',
+	'Force Monotype = Fire': 'Mono-Fire',
+	'Force Monotype = Flying': 'Mono-Flying',
+	'Force Monotype = Ghost': 'Mono-Ghost',
+	'Force Monotype = Grass': 'Mono-Grass',
+	'Force Monotype = Ground': 'Mono-Ground',
+	'Force Monotype = Ice': 'Mono-Ice',
+	'Force Monotype = Normal': 'Mono-Normal',
+	'Force Monotype = Poison': 'Mono-Poison',
+	'Force Monotype = Psychic': 'Mono-Psychic',
+	'Force Monotype = Rock': 'Mono-Rock',
+	'Force Monotype = Steel': 'Mono-Steel',
+	'Force Monotype = Water': 'Mono-Water',
 };
 
 const gen2Items: string[] = ['berserkgene', 'berry', 'bitterberry', 'burntberry', 'goldberry', 'iceberry', 'mintberry', 'miracleberry',
@@ -116,6 +165,53 @@ const customRuleAliases: Dict<string[]> = {
 	'350cup': ['350 Cup Mod'],
 	flipped: ['Flipped Mod'],
 	scalemons: ['Scalemons Mod'],
+	monobug: ['Force Monotype = Bug'],
+	monodark: ['Force Monotype = Dark'],
+	monodragon: ['Force Monotype = Dragon'],
+	monoelectric: ['Force Monotype = Electric'],
+	monofairy: ['Force Monotype = Fairy'],
+	monofighting: ['Force Monotype = Fighting'],
+	monofire: ['Force Monotype = Fire'],
+	monoflying: ['Force Monotype = Flying'],
+	monoghost: ['Force Monotype = Ghost'],
+	monograss: ['Force Monotype = Grass'],
+	monoground: ['Force Monotype = Ground'],
+	monoice: ['Force Monotype = Ice'],
+	mononormal: ['Force Monotype = Normal'],
+	monopoison: ['Force Monotype = Poison'],
+	monopsychic: ['Force Monotype = Psychic'],
+	monorock: ['Force Monotype = Rock'],
+	monosteel: ['Force Monotype = Steel'],
+	monowater: ['Force Monotype = Water'],
+	'level5': ['Adjust Level = 5'],
+	'level50': ['Adjust Level = 50'],
+	'1move': ['Max Move Count = 1'],
+	'2move': ['Max Move Count = 2'],
+	'3move': ['Max Move Count = 3'],
+	'4move': ['Max Move Count = 4'],
+	'5move': ['Max Move Count = 5'],
+	'6move': ['Max Move Count = 6'],
+	'7move': ['Max Move Count = 7'],
+	'8move': ['Max Move Count = 8'],
+	'bring1': ['Max Team Size = 1'],
+	'bring2': ['Max Team Size = 2'],
+	'bring3': ['Max Team Size = 3'],
+	'bring4': ['Max Team Size = 4'],
+	'bring5': ['Max Team Size = 5'],
+	'bring6': ['Max Team Size = 6'],
+	'bring7': ['Max Team Size = 7'],
+	'bring8': ['Max Team Size = 8'],
+	'bring9': ['Max Team Size = 9'],
+	'bring10': ['Max Team Size = 10'],
+	'pick1': ['Picked Team Size = 1'],
+	'pick2': ['Picked Team Size = 2'],
+	'pick3': ['Picked Team Size = 3'],
+	'pick4': ['Picked Team Size = 4'],
+	'pick5': ['Picked Team Size = 5'],
+	'pick6': ['Picked Team Size = 6'],
+	'pick7': ['Picked Team Size = 7'],
+	'pick8': ['Picked Team Size = 8'],
+	'pick9': ['Picked Team Size = 9'],
 };
 
 type Dexes = Dict<Dex>;
@@ -1339,17 +1435,18 @@ export class Dex {
 		return this.pokemonShowdownDex.formats.validateRule(rule);
 	}
 
-	getValidatedRuleName(rule: string): string {
-		if (rule === 'unreleased') return 'Unreleased';
-		if (rule === 'illegal') return 'Illegal';
-		if (rule === 'nonexistent') return 'Non-existent';
-		const type = rule.charAt(0);
-		let ruleName: string;
+	getValidatedRuleName(input: string): string {
+		if (input === 'unreleased') return 'Unreleased';
+		if (input === 'illegal') return 'Illegal';
+		if (input === 'nonexistent') return 'Non-existent';
+		const type = input.charAt(0);
 		if (type === '+' || type === '-' || type === '*' || type === '!') {
-			ruleName = rule.substr(1);
-		} else {
-			ruleName = rule;
+			input = input.substr(1);
 		}
+
+		const [rule, value] = input.split('=');
+		let ruleName = rule.trim();
+
 		const index = ruleName.indexOf(':');
 		const tag = ruleName.substr(0, index);
 		ruleName = ruleName.substr(index + 1);
@@ -1370,7 +1467,7 @@ export class Dex {
 			if (format) ruleName = format.name;
 		}
 
-		return ruleName;
+		return ruleName + (value ? " = " + value.trim() : "");
 	}
 
 	getUsablePokemon(format: IFormat): string[] {
