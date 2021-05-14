@@ -299,9 +299,7 @@ export class Room {
 		this.say("/roomdeauth " + name, {dontCheckFilter: true, dontPrepare: true, type: 'room-deauth', user: Tools.toId(name)});
 	}
 
-	createTournament(format: IFormat, cap?: number, tournamentName?: string): void {
-		if (!cap) cap = 0;
-
+	createTournament(format: IFormat, cap: number, tournamentName?: string): void {
 		this.say("/tour new " + format.id + ", elimination," + cap + (tournamentName ? ",1," + tournamentName : ""),
 			{dontCheckFilter: true, dontPrepare: true, type: 'tournament-create'});
 	}

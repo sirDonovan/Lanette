@@ -58,7 +58,7 @@ export const commands: BaseCommandDefinitions = {
 			if (room.tournament) return this.say("There is already a tournament in progress in this room.");
 			const format = Dex.getFormat(target);
 			if (!format || !format.tournamentPlayable) return this.sayError(['invalidTournamentFormat', format ? format.name : target]);
-			let playerCap: number = 0;
+			let playerCap: number = Tournaments.maxPlayerCap;
 			if (Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
 				playerCap = Config.defaultTournamentPlayerCaps[room.id];
 			}
@@ -317,11 +317,9 @@ export const commands: BaseCommandDefinitions = {
 				}
 			}
 
-			let playerCap: number = 0;
-			if (scheduled) {
-				if (Config.scheduledTournamentsMaxPlayerCap && Config.scheduledTournamentsMaxPlayerCap.includes(room.id)) {
-					playerCap = Tournaments.maxPlayerCap;
-				}
+			let playerCap: number = Tournaments.maxPlayerCap;
+			if (Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
+				playerCap = Config.defaultTournamentPlayerCaps[room.id];
 			}
 
 			if (targets.length || samePokemon.length) {
