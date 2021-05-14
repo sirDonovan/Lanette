@@ -12,7 +12,7 @@ import type {
 } from './types/dex';
 import type {
 	IAbility, IAbilityCopy, IFormat, IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy,
-	IPokemonShowdownDex, IPokemonShowdownValidator, IPSFormat, ITypeData
+	IPokemonShowdownDex, IPokemonShowdownValidator, IPSFormat, ITypeData, RuleTable
 } from './types/pokemon-showdown';
 import type { IParsedSmogonLink } from './types/tools';
 
@@ -1324,12 +1324,16 @@ export class Dex {
 			format = Tools.deepClone(format);
 		}
 
+		format.inputTarget = inputTarget;
+
 		if (!format.gen && format.mod.startsWith('gen')) {
 			const possibleGen = format.mod.substr(3);
 			if (Tools.isInteger(possibleGen)) format.gen = parseInt(possibleGen);
 		}
-		format.inputTarget = inputTarget;
-		format.quickFormat = format.teamLength && format.teamLength.battle && format.teamLength.battle <= 2 ? true : false;
+
+		if (!format.ruleTable) format.ruleTable = this.pokemonShowdownDex.formats.getRuleTable(format);
+		format.quickFormat = format.ruleTable.pickedTeamSize && format.ruleTable.pickedTeamSize <= 2 ? true : false;
+
 		format.tournamentPlayable = !!(format.searchShow || format.challengeShow || format.tournamentShow);
 		format.unranked = format.rated === false || format.id.includes('customgame') || format.id.includes('hackmonscup') ||
 			format.id.includes('challengecup') || format.id.includes('metronomebattle') ||
@@ -1452,6 +1456,11 @@ export class Dex {
 			(links.length ? "<br /><br />" + links.join("<br />") : "");
 	}
 
+	getRuleTable(format: IFormat): RuleTable {
+		if (!format.ruleTable) format.ruleTable = this.pokemonShowdownDex.formats.getRuleTable(format);
+		return format.ruleTable;
+	}
+
 	/**
 	 * Returns a sanitized format ID if valid, or throws if invalid.
 	 */
@@ -1506,10 +1515,10 @@ export class Dex {
 
 		const formatid = this.joinNameAndCustomRules(format.name, format.customRules);
 		const validator = new this.pokemonShowdownValidator(formatid, dexes['base'].pokemonShowdownDex);
-		if (!format.ruleTable) format.ruleTable = this.pokemonShowdownDex.formats.getRuleTable(format);
+		const ruleTable = this.getRuleTable(format);
 
 		const formatDex = format.mod in dexes ? dexes[format.mod] : this;
-		const littleCup = format.ruleTable.has("littlecup");
+		const littleCup = ruleTable.has("littlecup");
 		const usablePokemon: string[] = [];
 		for (const i of formatDex.getData().pokemonKeys) {
 			const formes = formatDex.getFormes(formatDex.getExistingPokemon(i));

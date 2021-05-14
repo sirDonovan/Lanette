@@ -316,7 +316,8 @@ export class Tournaments {
 
 	getCombinedPointMultiplier(format: IFormat, players: number, scheduled: boolean): number {
 		let multiplier = 1;
-		if (!format.teamLength || !format.teamLength.battle || format.teamLength.battle > 2) {
+		const ruleTable = Dex.getRuleTable(format);
+		if (!ruleTable.pickedTeamSize || ruleTable.pickedTeamSize > 2) {
 			if (players >= 32) {
 				multiplier = this.getPlayersPointMultiplier(players);
 			}

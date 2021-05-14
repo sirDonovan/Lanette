@@ -763,11 +763,6 @@ export interface IFormatDefinition extends IBasicEffect {
 	readonly customRules: string[] | null;
 	/** Table of rule names and banned effects. */
 	ruleTable?: RuleTable;
-	/**
-	 * The number of Pokemon players can bring to battle and
-	 * the number that can actually be used.
-	 */
-	readonly teamLength?: {battle?: number, validate?: [number, number]};
 	/** Pokemon must be obtained from this generation or later. */
 	readonly minSourceGen?: number;
 	/**
@@ -812,20 +807,34 @@ export interface IFormatDefinition extends IBasicEffect {
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-export interface RuleTable extends Map<string, string> {
+export interface RuleTable {
 	complexBans: ComplexBan[];
 	complexTeamBans: ComplexTeamBan[];
-	checkLearnset: [() => void, string] | null;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	timer: [Partial<any>, string] | null;
-	minSourceGen: [number, string] | null;
+	tagRules: string[];
+	valueRules: Map<string, string>;
 
+	minTeamSize: number;
+	maxTeamSize: number;
+	pickedTeamSize: number | null;
+	maxTotalLevel: number | null;
+	maxMoveCount: number;
+	minSourceGen: number;
+	minLevel: number;
+	maxLevel: number;
+	defaultLevel: number;
+	adjustLevel: number | null;
+	adjustLevelDown: number | null;
+
+	has: (key: string) => boolean;
+
+	blame: (key: string) => string;
 	isBanned: (thing: string) => boolean;
 	isBannedSpecies: (species: IPokemon) => boolean;
 	isRestricted: (thing: string) => boolean;
 	isRestrictedSpecies: (species: IPokemon) => boolean;
 	check: (thing: string, setHas?: {[id: string]: true} | null) => string | null;
 	getReason: (key: string) => string | null;
+	getTagRules: () => string[];
 	getComplexBanIndex: (complexBans: ComplexBan[], rule: string) => number;
 	addComplexBan: (rule: string, source: string, limit: number, bans: string[]) => void;
 	addComplexTeamBan: (rule: string, source: string, limit: number, bans: string[]) => void;
