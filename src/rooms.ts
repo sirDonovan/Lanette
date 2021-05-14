@@ -31,7 +31,6 @@ export class Room {
 
 	readonly id!: string;
 	readonly publicId!: string;
-	readonly sendId!: string;
 	readonly title!: string;
 	type!: RoomType;
 
@@ -49,8 +48,6 @@ export class Room {
 	setId(id: string): void {
 		// @ts-expect-error
 		this.id = id;
-		// @ts-expect-error
-		this.sendId = id === 'lobby' ? '' : id;
 
 		let publicId = id;
 		const extractedBattleId = Client.extractBattleId(id);
@@ -163,7 +160,7 @@ export class Room {
 
 		const outgoingMessage: IOutgoingMessage = Object.assign(options || {}, {
 			roomid: this.id,
-			message: this.sendId + "|" + message,
+			message: this.id + "|" + message,
 			type: options && options.type ? options.type : 'chat',
 		});
 

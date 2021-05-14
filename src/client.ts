@@ -1040,7 +1040,7 @@ export class Client {
 				console.log("Joined room: " + room.id);
 				if (room.id === 'staff') {
 					this.send({
-						message: room.sendId + '|/filters view',
+						message: room.id + '|/filters view',
 						type: 'filters-view',
 						measure: true,
 					});
@@ -1054,7 +1054,7 @@ export class Client {
 				});
 
 				this.send({
-					message: room.sendId + '|/banword list',
+					message: room.id + '|/banword list',
 					roomid: room.id,
 					type: 'banword-list',
 					measure: true,
