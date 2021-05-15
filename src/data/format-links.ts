@@ -66,6 +66,9 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen8nfe': {
 		teams: 'https://www.smogon.com/forums/threads/3656332/post-8285452',
 	},
+	'gen8lcuu': {
+		teams: 'https://www.smogon.com/forums/threads/3660866/post-8384273',
+	},
 	/*
 	'gen8pokebilities': {
 		teams: 'https://www.smogon.com/forums/threads/3679692/post-8777785',
@@ -380,6 +383,7 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen2ubers': {
 		info: 'https://www.smogon.com/dex/gs/formats/uber',
 		viability: 'https://www.smogon.com/forums/threads/3654941/',
+		teams: 'https://www.smogon.com/roa/?format=gen2ubers',
 	},
 	'gen2ou': {
 		info: 'https://www.smogon.com/dex/gs/formats/ou',
@@ -389,10 +393,12 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen2uu': {
 		info: 'https://www.smogon.com/dex/gs/formats/uu',
 		viability: 'https://www.smogon.com/forums/threads/3636234',
+		teams: 'https://www.smogon.com/roa/?format=gen2uu',
 	},
 	'gen2nu': {
 		info: 'https://www.smogon.com/dex/gs/formats/nu',
 		viability: 'https://www.smogon.com/forums/threads/3665219',
+		teams: 'https://www.smogon.com/roa/?format=gen2nu',
 	},
 	// 'gen2lc': {
 	// 	info: 'https://www.smogon.com/dex/gs/formats/lc',
@@ -402,6 +408,7 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen1ubers': {
 		info: 'https://www.smogon.com/dex/rb/formats/uber',
 		viability: 'https://www.smogon.com/forums/threads/3656629',
+		teams: 'https://www.smogon.com/roa/?format=gen1ubers',
 	},
 	'gen1ou': {
 		info: 'https://www.smogon.com/dex/rb/formats/ou',
@@ -410,10 +417,21 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	},
 	'gen1tradebacksou': {
 		info: 'https://www.smogon.com/articles/rby-tradebacks-ou',
+		teams: 'https://www.smogon.com/roa/?format=gen1tradebacksou',
+	},
+	'gen1stadiumou': {
+		teams: 'https://www.smogon.com/roa/?format=gen1stadiumou',
+	},
+	'gen1nintendocup1997': {
+		teams: 'https://www.smogon.com/roa/?format=gen1nintendocup1997',
+	},
+	'gen1nu': {
+		teams: 'https://www.smogon.com/roa/?format=gen1nu',
 	},
 	'gen1uu': {
 		info: 'https://www.smogon.com/dex/rb/formats/uu',
 		viability: 'https://www.smogon.com/forums/threads/3647713',
+		teams: 'https://www.smogon.com/roa/?format=gen1uu',
 	},
 	// 'gen1lc': {
 	// 	info: 'https://www.smogon.com/dex/rb/formats/lc',
