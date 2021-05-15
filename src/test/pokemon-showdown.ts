@@ -33,9 +33,9 @@ describe("pokemon-showdown", () => {
 		assertStrictEqual(Dex.getExistingAbility("Stamina").gen, 7);
 		assertStrictEqual(Dex.getExistingAbility("Intrepid Sword").gen, 8);
 
-		const unBreakableAbility = Dex.getAbility("Comatose");
-		assert(unBreakableAbility);
-		assertStrictEqual(unBreakableAbility.isUnbreakable, true);
+		const isBreakableAbility = Dex.getAbility("Aroma Veil");
+		assert(isBreakableAbility);
+		assertStrictEqual(isBreakableAbility.isBreakable, true);
 
 		const suppressWeatherAbility = Dex.getAbility("Air Lock");
 		assert(suppressWeatherAbility);

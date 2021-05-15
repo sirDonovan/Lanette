@@ -173,7 +173,7 @@ interface IAbilityDefinition extends IBasicEffect {
 	readonly suppressWeather: boolean;
 	readonly condition?: Partial<IConditionData>;
 	readonly isPermanent?: boolean;
-	readonly isUnbreakable?: boolean;
+	readonly isBreakable?: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
