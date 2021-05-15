@@ -48,6 +48,7 @@ const TOURNAMENT_SCOUTING_COMMAND = "/log (The tournament was set to disallow sc
 const TOURNAMENT_MODJOIN_COMMAND = "/log (The tournament was set to disallow modjoin by ";
 const HANGMAN_END_RAW_MESSAGE = "The game of hangman was ended.";
 const HIGHLIGHT_HTML_PAGE_MESSAGE = "Sent a highlight to ";
+const PRIVATE_HTML_MESSAGE = "Sent private HTML to ";
 const USER_NOT_FOUND_MESSAGE = "/error User ";
 
 const NEWLINE = /\n/g;
@@ -1571,6 +1572,12 @@ export class Client {
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'highlight-htmlpage' &&
 					this.lastOutgoingMessage.roomid === room.id && this.lastOutgoingMessage.user === Tools.toId(parts[0]) &&
 					Tools.toId(this.lastOutgoingMessage.pageId) === Tools.toId(parts[1])) {
+					this.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.message.startsWith(PRIVATE_HTML_MESSAGE)) {
+				const recipient = messageArguments.message.substr(PRIVATE_HTML_MESSAGE.length);
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'private-html' &&
+					this.lastOutgoingMessage.roomid === room.id && Tools.toId(this.lastOutgoingMessage.user) === Tools.toId(recipient)) {
 					this.clearLastOutgoingMessage(now);
 				}
 			} else if (messageArguments.message.startsWith("Sent ")) {
