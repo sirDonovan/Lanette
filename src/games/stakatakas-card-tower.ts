@@ -49,8 +49,16 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 			getAutoPlayTarget() {
 				return this.name;
 			},
-			isPlayableTarget() {
-				return true;
+			isPlayableTarget(game, targets, hand) {
+				let hasRegularCard = false;
+				for (const card of hand!) {
+					if (!card.action) {
+						hasRegularCard = true;
+						break;
+					}
+				}
+
+				return hasRegularCard;
 			},
 		},
 	};
@@ -268,6 +276,44 @@ const tests: GameFileTests<StakatakasCardTower> = {
 			runCommand('play', 'Ampharos, Archen, Beautifly, Beedrill', game.room, player.name);
 			assert(game.ended);
 			assertStrictEqual(cards.length, 0);
+		},
+	},
+	'action cards - pachirisu': {
+		test(game): void {
+			const manaphy = game.actionCards.manaphy;
+			assert(manaphy);
+
+			const phione = game.actionCards.phione;
+			assert(phione);
+
+			const pachirisu = game.actionCards.pachirisu;
+			assert(pachirisu);
+
+			assertStrictEqual(pachirisu.isPlayableTarget(game, [], [game.pokemonToCard(Dex.getExistingPokemon("Pikachu"))]), true);
+			assertStrictEqual(pachirisu.isPlayableTarget(game, [], [manaphy.getCard(game)]), false);
+			assertStrictEqual(pachirisu.isPlayableTarget(game, [], [phione.getCard(game)]), false);
+			assertStrictEqual(pachirisu.isPlayableTarget(game, [], [pachirisu.getCard(game)]), false);
+		},
+	},
+	'it should not try to find pairs for action cards when Pachirisu is played': {
+		test(game): void {
+			addPlayers(game, 4);
+			const manaphy = game.actionCards.manaphy;
+			assert(manaphy);
+			const pachirisu = game.actionCards.pachirisu;
+			assert(pachirisu);
+
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Pikachu"));
+			game.start();
+			const player = game.currentPlayer!;
+			const cards = [manaphy.getCard(game), pachirisu.getCard(game)];
+			game.playerCards.set(player, cards);
+			game.canPlay = true;
+			runCommand('play', pachirisu.name, game.room, player.name);
+			assert(!game.ended);
+			assertStrictEqual(cards.length, 2);
+			assertStrictEqual(cards[0].name, "Manaphy");
+			assertStrictEqual(cards[1].name, "Pachirisu");
 		},
 	},
 };
