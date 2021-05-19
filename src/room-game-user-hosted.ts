@@ -239,7 +239,7 @@ export class UserHostedGame extends Game {
 	addPlayer(user: User): Player | undefined {
 		if (this.format.options.freejoin) {
 			if (!this.joinNotices.has(user.id)) {
-				user.say("This game does not require you to join.");
+				this.sendFreeJoinNotice(user);
 				this.joinNotices.add(user.id);
 			}
 			return;

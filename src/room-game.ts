@@ -180,8 +180,13 @@ export abstract class Game extends Activity {
 	}
 
 	sendJoinNotice(player: Player): void {
-		player.sayPrivateUhtml(Games.getJoinNoticeHtml(this.customBackgroundColor, this.customButtonColor,
-			this.getMascotIcons(), "You have joined the " + this.activityType + "!", this.room as Room), this.privateJoinLeaveUhtmlName);
+		player.sayPrivateUhtml(Games.getJoinNoticeHtml(this.room as Room, "You have joined the <b>" + this.name + "</b> " +
+			this.activityType + "!", this.customButtonColor), this.privateJoinLeaveUhtmlName);
+	}
+
+	sendFreeJoinNotice(user: User): void {
+		(this.room as Room).sayPrivateUhtml(user, this.privateJoinLeaveUhtmlName, "The <b>" + this.name + "</b> " + this.activityType +
+			" does not require you to join!");
 	}
 
 	sendLeaveNotice(player: Player): void {

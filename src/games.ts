@@ -1636,21 +1636,9 @@ export class Games {
 		return html;
 	}
 
-	getJoinNoticeHtml(customBackgroundColor: string | undefined, customButtonColor: string | undefined, mascotHtml: string,
-		joinNotice: string, room: Room): string {
-		let html = "<div class='infobox'>";
-		const hexSpan = Tools.getHexSpan(customBackgroundColor);
-		if (hexSpan) {
-			html += hexSpan;
-		}
-
-		html += mascotHtml + joinNotice + "&nbsp;";
-		html += Client.getQuietPmButton(room, Config.commandCharacter + "leavegame " + room.id, "Leave", false,
+	getJoinNoticeHtml(room: Room, joinNotice: string, customButtonColor: string | undefined): string {
+		return joinNotice + "&nbsp;" + Client.getQuietPmButton(room, Config.commandCharacter + "leavegame " + room.id, "Leave", false,
 			Tools.getHexButtonStyle(customButtonColor));
-		if (hexSpan) html += "</span>";
-
-		html += "</div>";
-		return html;
 	}
 
 	getHostCustomDisplay(host: string, backgroundColor: HexCode | undefined, trainerChoices: ITrainerPick[],
