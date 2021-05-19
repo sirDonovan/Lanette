@@ -443,7 +443,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 	onRemovePlayer(player: Player): void {
 		const index = this.playerOrder.indexOf(player);
 		if (index > -1) this.playerOrder.splice(index, 1);
-		if (player === this.currentPlayer) {
+		if (player === this.currentPlayer && this.canPlay) {
 			this.nextRound();
 		}
 	}

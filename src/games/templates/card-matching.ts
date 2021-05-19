@@ -566,6 +566,10 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 
 			// left before text appeared
 			if (player!.eliminated) {
+				if (this.topCard.action && this.topCard.action.drawCards) {
+					delete this.topCard.action;
+				}
+
 				this.nextRound();
 				return;
 			}
