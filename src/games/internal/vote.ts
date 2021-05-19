@@ -117,17 +117,6 @@ export class Vote extends ScriptedGame {
 	sendPrivateVoteHtml(player: Player, format: IGameFormat): void {
 		if (player.id in this.privateVotesHtmlTimeouts) return;
 
-		const database = Storage.getDatabase(this.room);
-		let customBackgroundColor: string | undefined;
-		let customButtonColor: string | undefined;
-		if (database.gameScriptedBoxes && player.id in database.gameScriptedBoxes) {
-			const scriptedBox = database.gameScriptedBoxes[player.id];
-			customBackgroundColor = scriptedBox.signupsBackground || scriptedBox.background;
-			customButtonColor = scriptedBox.signupsButtons || scriptedBox.buttons;
-		}
-
-		const buttonStyle = Tools.getHexButtonStyle(customButtonColor);
-
 		const variants: IGameFormat[] = [];
 
 		const hasFreejoinVariant = format.defaultOptions.includes('freejoin');
@@ -157,9 +146,9 @@ export class Vote extends ScriptedGame {
 
 		let variantsHtml = "";
 		if (variants.length) {
-			variantsHtml += "<details><summary>Votable variants</summary>";
+			variantsHtml += "<details><summary><b>Votable variants</b></summary>";
 			for (const variant of variants) {
-				variantsHtml += this.getPmVoteButton(variant.inputTarget, variant.nameWithOptions, buttonStyle);
+				variantsHtml += this.getPmVoteButton(variant.inputTarget, variant.nameWithOptions);
 			}
 			variantsHtml += "</details>";
 		}
@@ -173,35 +162,21 @@ export class Vote extends ScriptedGame {
 			}
 
 			if (modes.length) {
-				modesHtml += "<details><summary>Votable modes</summary>";
+				modesHtml += "<details><summary><b>Votable modes</b></summary>";
 				for (const mode of modes) {
-					modesHtml += this.getPmVoteButton(mode.inputTarget, mode.nameWithOptions, buttonStyle);
+					modesHtml += this.getPmVoteButton(mode.inputTarget, mode.nameWithOptions);
 				}
 				modesHtml += "</details>";
 			}
 		}
 
-		let html = "<div class='infobox'>";
-		const hexSpan = Tools.getHexSpan(customBackgroundColor);
-		if (hexSpan) {
-			html += hexSpan;
-		}
-
-		const mascot = Games.getFormatMascot(format);
-		if (mascot) {
-			html += Dex.getPokemonIcon(mascot);
-		}
-
-		html += "You have voted for <b>" + format.nameWithOptions + "</b>!";
+		let html = "You have voted for <b>" + format.nameWithOptions + "</b>!";
 		if (variantsHtml || modesHtml) {
 			html += "<br /><br />";
 			html += variantsHtml;
 			if (variantsHtml && modesHtml) html += "<br />";
 			html += modesHtml;
 		}
-
-		if (hexSpan) html += "</span>";
-		html += "</div>";
 
 		player.sayPrivateUhtml(html, this.privateVoteUhtmlName);
 
