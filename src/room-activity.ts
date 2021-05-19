@@ -66,6 +66,24 @@ export class Player {
 		this.activity.pmRoom.pmUhtmlChange(this, name || this.activity.uhtmlBaseName, html);
 	}
 
+	sayPrivateHtml(html: string): void {
+		if (this.id === Users.self.id) return;
+
+		this.activity.pmRoom.sayPrivateHtml(this, html);
+	}
+
+	sayPrivateUhtml(html: string, name?: string): void {
+		if (this.id === Users.self.id) return;
+
+		this.activity.pmRoom.sayPrivateUhtml(this, name || (this.activity.uhtmlBaseName + "-private"), html);
+	}
+
+	sayPrivateUhtmlChange(html: string, name?: string): void {
+		if (this.id === Users.self.id) return;
+
+		this.activity.pmRoom.sayPrivateUhtmlChange(this, name || (this.activity.uhtmlBaseName + "-private"), html);
+	}
+
 	sendHtmlPage(html: string, pageId?: string): void {
 		if (this.id === Users.self.id) return;
 

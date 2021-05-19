@@ -211,17 +211,17 @@ export class Room {
 			{dontCheckFilter: true, dontPrepare: true, dontMeasure: true, type: 'command'});
 	}
 
-	sayPrivateHtml(user: User, html: string): void {
+	sayPrivateHtml(user: User | Player, html: string): void {
 		this.say("/sendprivatehtmlbox " + user.id + ", " + html,
 			{user: user.name, dontCheckFilter: true, dontPrepare: true, type: 'private-html'});
 	}
 
-	sayPrivateUhtml(user: User, uhtmlName: string, html: string): void {
+	sayPrivateUhtml(user: User | Player, uhtmlName: string, html: string): void {
 		this.say("/sendprivateuhtml " + user.id + ", " + uhtmlName + ", " + html,
 			{user: user.name, dontCheckFilter: true, dontPrepare: true, type: 'private-html'});
 	}
 
-	sayPrivateUhtmlChange(user: User, uhtmlName: string, html: string): void {
+	sayPrivateUhtmlChange(user: User | Player, uhtmlName: string, html: string): void {
 		this.say("/changeprivateuhtml " + user.id + ", " + uhtmlName + ", " + html,
 			{user: user.name, dontCheckFilter: true, dontPrepare: true, type: 'private-html'});
 	}

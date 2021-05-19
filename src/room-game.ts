@@ -37,6 +37,7 @@ export abstract class Game extends Activity {
 	signupsUhtmlName!: string;
 	joinLeaveButtonUhtmlName!: string;
 	joinLeaveButtonRefreshUhtmlName!: string;
+	privateJoinLeaveUhtmlName!: string;
 
 	customBackgroundColor?: string;
 	customButtonColor?: string;
@@ -56,6 +57,7 @@ export abstract class Game extends Activity {
 		super(room, pmRoom, initialSeed);
 	}
 
+	abstract getMascotIcons(): string;
 	abstract getMascotAndNameHtml(additionalText?: string): string;
 	abstract onInitialize(format: IGameFormat | IUserHostedFormat): void;
 
@@ -173,8 +175,18 @@ export abstract class Game extends Activity {
 			this.getPlayerUsernamesHtml());
 	}
 
-	getJoinLeaveHtml(freejoin: boolean): string {
-		return Games.getJoinLeaveHtml(this.customButtonColor, freejoin, this.room as Room);
+	getJoinButtonHtml(freejoin: boolean): string {
+		return Games.getJoinButtonHtml(this.customButtonColor, freejoin, this.room as Room, this.format);
+	}
+
+	sendJoinNotice(player: Player): void {
+		player.sayPrivateUhtml(Games.getJoinNoticeHtml(this.customBackgroundColor, this.customButtonColor,
+			this.getMascotIcons(), "You have joined the " + this.activityType + "!", this.room as Room), this.privateJoinLeaveUhtmlName);
+	}
+
+	sendLeaveNotice(player: Player): void {
+		player.sayPrivateUhtml("You have left the " + this.name + " " + this.activityType + ". You " +
+			"will not receive any further signups messages.", this.privateJoinLeaveUhtmlName);
 	}
 
 	sayHostDisplayUhtml(user: User, backgroundColor: HexCode | undefined, trainerChoices: ITrainerPick[], pokemonChoices: IPokemonPick[],

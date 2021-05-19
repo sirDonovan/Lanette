@@ -119,6 +119,37 @@ export class Tools {
 		return hexCodes[typeHexCodes[type]];
 	}
 
+	getHexSpan(hexCode: string | undefined): string {
+		let span = '';
+		if (hexCode && hexCode in this.hexCodes) {
+			span += "<span style='display: block;";
+			if (this.hexCodes[hexCode]!.textColor) {
+				span += 'color: ' + this.hexCodes[hexCode]!.textColor + ';';
+			} else {
+				span += 'color: #000000;';
+			}
+			span += "background: " + this.hexCodes[hexCode]!.gradient + "'";
+			span += ">";
+		}
+
+		return span;
+	}
+
+	getHexButtonStyle(hexCode: string | undefined): string {
+		let buttonStyle = '';
+		if (hexCode && hexCode in this.hexCodes) {
+			if (this.hexCodes[hexCode]!.textColor) {
+				buttonStyle += 'color: ' + this.hexCodes[hexCode]!.textColor + ';';
+			} else {
+				buttonStyle += 'color: #000000;';
+			}
+
+			buttonStyle += "background: " + this.hexCodes[hexCode]!.color;
+		}
+
+		return buttonStyle;
+	}
+
 	logError(error: Error, message?: string): void {
 		this.logMessage((message ? message + "\n" : "") + (error.stack || error.message));
 	}

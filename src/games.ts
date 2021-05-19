@@ -584,6 +584,14 @@ export class Games {
 		}
 	}
 
+	getFormatMascot(format: IGameFormat): IPokemonCopy | undefined {
+		if (format.mascot) {
+			return Dex.getPokemonCopy(format.mascot);
+		} else if (format.mascots) {
+			return Dex.getPokemonCopy(Tools.sampleOne(format.mascots));
+		}
+	}
+
 	getFormatMascotPrefix(format: IGameFormat | IUserHostedFormat): string {
 		if (format.mascotPrefix) return format.mascotPrefix;
 
@@ -1601,47 +1609,46 @@ export class Games {
 		string {
 		let html = "<div class='infobox'>";
 
-		let validBackground = false;
-		if (customBackgroundColor && customBackgroundColor in Tools.hexCodes) {
-			validBackground = true;
-			html += "<span style='display: block;";
-			if (Tools.hexCodes[customBackgroundColor]!.textColor) {
-				html += 'color: ' + Tools.hexCodes[customBackgroundColor]!.textColor + ';';
-			} else {
-				html += 'color: #000000;';
-			}
-			html += "background: " + Tools.hexCodes[customBackgroundColor]!.gradient + "'";
-			html += ">";
+		const hexSpan = Tools.getHexSpan(customBackgroundColor);
+		if (hexSpan) {
+			html += hexSpan;
 		}
 
-		html +=  mascotAndNameHtml + "<br />";
-		if (validBackground) html += "&nbsp;</span>";
+		html += mascotAndNameHtml + "<br />";
+		if (hexSpan) html += "&nbsp;</span>";
 		html += "<br /><b>Players (" + playerCount + ")</b>: " + playerNames + "</div>";
 
 		return html;
 	}
 
-	getJoinLeaveHtml(customButtonColor: string | undefined, freejoin: boolean, room: Room): string {
-		let buttonStyle = '';
-		if (customButtonColor && customButtonColor in Tools.hexCodes) {
-			if (Tools.hexCodes[customButtonColor]!.textColor) {
-				buttonStyle += 'color: ' + Tools.hexCodes[customButtonColor]!.textColor + ';';
-			} else {
-				buttonStyle += 'color: #000000;';
-			}
-			buttonStyle += "background: " + Tools.hexCodes[customButtonColor]!.color;
-		}
-
+	getJoinButtonHtml(customButtonColor: string | undefined, freejoin: boolean, room: Room,
+		format?: IGameFormat | IUserHostedFormat): string {
 		let html = "<center>";
 		if (freejoin) {
 			html += "<b>This game is free-join!</b>";
 		} else {
-			html += Client.getQuietPmButton(room, Config.commandCharacter + "joingame " + room.id, "Join game", false, buttonStyle);
-			html += " | ";
-			html += Client.getQuietPmButton(room, Config.commandCharacter + "leavegame " + room.id, "Leave game", false, buttonStyle);
+			html += Client.getQuietPmButton(room, Config.commandCharacter + "joingame " + room.id,
+				format ? "Join the <b>" + format.name + "</b> game" : "Join game", false, Tools.getHexButtonStyle(customButtonColor));
 		}
 		html += "</center>";
 
+		return html;
+	}
+
+	getJoinNoticeHtml(customBackgroundColor: string | undefined, customButtonColor: string | undefined, mascotHtml: string,
+		joinNotice: string, room: Room): string {
+		let html = "<div class='infobox'>";
+		const hexSpan = Tools.getHexSpan(customBackgroundColor);
+		if (hexSpan) {
+			html += hexSpan;
+		}
+
+		html += mascotHtml + joinNotice + "&nbsp;";
+		html += Client.getQuietPmButton(room, Config.commandCharacter + "leavegame " + room.id, "Leave", false,
+			Tools.getHexButtonStyle(customButtonColor));
+		if (hexSpan) html += "</span>";
+
+		html += "</div>";
 		return html;
 	}
 

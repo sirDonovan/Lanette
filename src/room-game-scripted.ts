@@ -188,6 +188,7 @@ export class ScriptedGame extends Game {
 		this.signupsUhtmlName = this.uhtmlBaseName + "-signups";
 		this.joinLeaveButtonUhtmlName = this.uhtmlBaseName + "-join-leave";
 		this.joinLeaveButtonRefreshUhtmlName = this.uhtmlBaseName + "-join-leave-update";
+		this.privateJoinLeaveUhtmlName = this.uhtmlBaseName + "-private-join-leave";
 	}
 
 	onInitialize(format: IGameFormat): void {
@@ -198,11 +199,10 @@ export class ScriptedGame extends Game {
 		if (format.commands) Object.assign(this.commands, format.commands);
 		if (format.commandDescriptions) this.commandDescriptions = format.commandDescriptions;
 		if (format.additionalDescription) this.additionalDescription = format.additionalDescription;
-		if (format.mascot) {
-			this.mascot = Dex.getPokemonCopy(format.mascot);
-		} else if (format.mascots) {
-			this.mascot = Dex.getPokemonCopy(this.sampleOne(format.mascots));
-		}
+
+		const mascot = Games.getFormatMascot(format);
+		if (mascot) this.mascot = mascot;
+
 		if (format.variant) {
 			// @ts-expect-error
 			delete format.variant.name;
@@ -240,14 +240,17 @@ export class ScriptedGame extends Game {
 		}
 	}
 
+	getMascotIcons(): string {
+		return this.mascot ? Dex.getPokemonIcon(this.mascot) : '';
+	}
+
 	getMascotAndNameHtml(additionalText?: string, noDescription?: boolean): string {
 		let minigameDescription: string | undefined;
 		if (this.isMiniGame && !noDescription) {
 			minigameDescription = this.getMinigameDescription();
 		}
 
-		const mascot = this.mascot ? Dex.getPokemonIcon(this.mascot) : '';
-		return mascot + "<b>" + (this.isMiniGame ? "Mini " : "") + this.name + (additionalText || "") + "</b>" +
+		return this.getMascotIcons() + "<b>" + (this.isMiniGame ? "Mini " : "") + this.name + (additionalText || "") + "</b>" +
 			(minigameDescription ? "<br />" + minigameDescription : "");
 	}
 
@@ -328,7 +331,7 @@ export class ScriptedGame extends Game {
 			this.showSignupsHtml = true;
 			this.sayHtml(this.getSignupsHtml());
 			if (!this.format.options.freejoin) this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
-			this.sayUhtml(this.joinLeaveButtonUhtmlName, this.getJoinLeaveHtml(this.format.options.freejoin ? true : false));
+			this.sayUhtml(this.joinLeaveButtonUhtmlName, this.getJoinButtonHtml(this.format.options.freejoin ? true : false));
 
 			this.notifyRankSignups = true;
 			const room = this.room as Room;
@@ -362,7 +365,8 @@ export class ScriptedGame extends Game {
 
 					this.signupsRefreshed = true;
 					this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
-					this.sayUhtml(this.joinLeaveButtonRefreshUhtmlName, this.getJoinLeaveHtml(this.format.options.freejoin ? true : false));
+					this.sayUhtml(this.joinLeaveButtonRefreshUhtmlName,
+						this.getJoinButtonHtml(this.format.options.freejoin ? true : false));
 
 					this.startTimer = setTimeout(() => {
 						if (!this.start()) {
@@ -735,7 +739,7 @@ export class ScriptedGame extends Game {
 		}
 
 		if (!this.internalGame && !this.joinNotices.has(user.id)) {
-			player.say("Thanks for joining the " + this.name + " " + this.activityType + "!");
+			this.sendJoinNotice(player);
 			this.joinNotices.add(user.id);
 		}
 
@@ -766,7 +770,7 @@ export class ScriptedGame extends Game {
 
 		const id = typeof user === 'string' ? Tools.toId(user) : user.id;
 		if (!silent && !this.leaveNotices.has(id)) {
-			player.say("You have left the " + this.name + " " + this.activityType + ". You will not receive any further signups messages.");
+			this.sendLeaveNotice(player);
 			this.leaveNotices.add(id);
 		}
 

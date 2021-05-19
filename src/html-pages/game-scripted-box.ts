@@ -277,7 +277,7 @@ class GameScriptedBox extends HtmlPageBase {
 		html += Games.getSignupsPlayersHtml(signupsBackgroundColor, (mascot ? Dex.getPokemonIcon(mascot) : '') + "<b>" +
 			format.nameWithOptions + " - signups</b>", 1, "<username>" + this.userName + "</username>");
 		html += "<br />";
-		html += Games.getJoinLeaveHtml(signupsButtonColor, false, this.room);
+		html += Games.getJoinButtonHtml(signupsButtonColor, false, this.room, format);
 		html += "<br />";
 
 		html += "<b>Game preview</b><br />";

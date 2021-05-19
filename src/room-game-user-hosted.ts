@@ -121,13 +121,18 @@ export class UserHostedGame extends Game {
 	}
 
 	// Display
-	getMascotAndNameHtml(additionalText?: string): string {
+	getMascotIcons(): string {
 		const icons: string[] = [];
 		for (const mascot of this.mascots) {
 			const icon = Dex.getPokemonIcon(Dex.getExistingPokemon(mascot));
 			if (icon) icons.push(icon);
 		}
-		return icons.join("") + "<b>" + this.name + (additionalText || "") + "</b>";
+
+		return icons.join("");
+	}
+
+	getMascotAndNameHtml(additionalText?: string): string {
+		return this.getMascotIcons() + "<b>" + this.name + (additionalText || "") + "</b>";
 	}
 
 	// Host
@@ -246,7 +251,7 @@ export class UserHostedGame extends Game {
 		if (!player) return;
 
 		if (!this.joinNotices.has(user.id)) {
-			player.say("Thanks for joining " + this.name + " " + this.activityType + "!");
+			this.sendJoinNotice(player);
 			this.joinNotices.add(user.id);
 		}
 
@@ -268,7 +273,7 @@ export class UserHostedGame extends Game {
 
 		const id = typeof user === 'string' ? Tools.toId(user) : user.id;
 		if (!silent && !this.leaveNotices.has(id)) {
-			player.say("You have left " + this.name + " " + this.activityType + ". You will not receive any further signups messages.");
+			this.sendLeaveNotice(player);
 			this.leaveNotices.add(id);
 		}
 
@@ -351,7 +356,7 @@ export class UserHostedGame extends Game {
 
 		this.sayHtml(this.getSignupsHtml());
 		if (!this.format.options.freejoin) this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
-		this.sayUhtml(this.joinLeaveButtonUhtmlName, this.getJoinLeaveHtml(this.format.options.freejoin ? true : false));
+		this.sayUhtml(this.joinLeaveButtonUhtmlName, this.getJoinButtonHtml(this.format.options.freejoin ? true : false));
 
 		this.room.notifyRank("all", this.room.title + " user-hosted game", this.name, this.hostId + " " + this.getHighlightPhrase());
 

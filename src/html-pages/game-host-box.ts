@@ -397,7 +397,7 @@ class GameHostBox extends HtmlPageBase {
 			mascots.map(x => Dex.getPokemonIcon(Dex.getExistingPokemon(x))).join("") + "<b>" + this.userName + "'s Game - signups</b>",
 			0, "");
 		html += "<br />";
-		html += Games.getJoinLeaveHtml(signupsButtonColor, false, this.room);
+		html += Games.getJoinButtonHtml(signupsButtonColor, false, this.room);
 		html += "<br />";
 
 		const background = this.currentPicker === 'background';
