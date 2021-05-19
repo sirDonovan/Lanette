@@ -236,6 +236,7 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen6battlespottriples': {
 		info: 'https://www.smogon.com/dex/xy/formats/battle-spot-triples/',
 		viability: 'https://www.smogon.com/forums/threads/3549201',
+		teams: 'https://www.smogon.com/forums/threads/3520502/post-5817981',
 	},
 	'gen6vgc2016': {
 		info: 'https://www.smogon.com/dex/xy/formats/vgc16',
