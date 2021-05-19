@@ -166,7 +166,7 @@ export const commands: BaseCommandDefinitions = {
 			const inCooldown = remainingGameCooldown > 1000;
 			const requiresScriptedGame = Games.requiresScriptedGame(room);
 			if (room.game || room.userHostedGame || otherUsersQueued || inCooldown || requiresScriptedGame) {
-				if (room.game && room.game.format.id === format.id &&
+				if (room.game && room.game.format.id === format.id && !room.game.isMiniGame && 
 					(!database.userHostedGameQueue || !database.userHostedGameQueue.length)) {
 					return this.say("Scripted " + format.name + " is currently being played. " + host.name + " please choose a " +
 						"different game!");
