@@ -21,8 +21,8 @@ export class Vote extends ScriptedGame {
 	internalGame: boolean = true;
 	botSuggestions: string[] = [];
 	updateVotesHtmlTimeout: NodeJS.Timeout | null = null;
-	sentVariantsAndModes = new Set<Player>();
-	variantsAndModesUhtmlName: string = '';
+	privateVoteUhtmlName: string = '';
+	privateVotesHtmlTimeouts: Dict<NodeJS.Timeout | null> = {};
 	votingName: string = '';
 	votingNumber: number = 1;
 	readonly votes = new Map<Player, IPlayerVote>();
@@ -66,13 +66,16 @@ export class Vote extends ScriptedGame {
 			uhtmlName = this.currentVotesUhtmlName;
 
 			const formats = Object.keys(formatNames);
-			if (!formats.length) return;
 
 			html += "<h3>Current votes</h3>";
-			for (const format of formats) {
-				const votes = formatNames[format].length;
-				html += format + (votes > 1 ? " (" + votes + ")" : "") + ": " + formatNames[format].join(", ");
-				html += "<br />";
+			if (formats.length) {
+				for (const format of formats) {
+					const votes = formatNames[format].length;
+					html += format + (votes > 1 ? " (" + votes + ")" : "") + ": " + formatNames[format].join(", ");
+					html += "<br />";
+				}
+			} else {
+				html += "&nbsp;(none)";
 			}
 		}
 
@@ -107,11 +110,24 @@ export class Vote extends ScriptedGame {
 		return false;
 	}
 
-	getPmVoteButton(inputTarget: string, text: string): string {
-		return Client.getQuietPmButton(this.room, Config.commandCharacter + "vote " + inputTarget, text);
+	getPmVoteButton(inputTarget: string, text: string, buttonStyle?: string): string {
+		return Client.getQuietPmButton(this.room, Config.commandCharacter + "vote " + inputTarget, text, false, buttonStyle);
 	}
 
-	sendVariantsAndModes(player: Player, format: IGameFormat): void {
+	sendPrivateVoteHtml(player: Player, format: IGameFormat): void {
+		if (player.id in this.privateVotesHtmlTimeouts) return;
+
+		const database = Storage.getDatabase(this.room);
+		let customBackgroundColor: string | undefined;
+		let customButtonColor: string | undefined;
+		if (database.gameScriptedBoxes && player.id in database.gameScriptedBoxes) {
+			const scriptedBox = database.gameScriptedBoxes[player.id];
+			customBackgroundColor = scriptedBox.signupsBackground || scriptedBox.background;
+			customButtonColor = scriptedBox.signupsButtons || scriptedBox.buttons;
+		}
+
+		const buttonStyle = Tools.getHexButtonStyle(customButtonColor);
+
 		const variants: IGameFormat[] = [];
 
 		const hasFreejoinVariant = format.defaultOptions.includes('freejoin');
@@ -125,12 +141,11 @@ export class Vote extends ScriptedGame {
 
 		if (!format.variant && format.variants) {
 			for (const variantData of format.variants) {
-				if (!format.options.freejoin) {
-					const variant = Games.getFormat(format.inputTarget + ", " + variantData.variantAliases[0]);
-					if (!Array.isArray(variant) && this.isValidFormat(variant)) {
-						variants.push(variant);
-					}
+				const variant = Games.getFormat(format.inputTarget + ", " + variantData.variantAliases[0]);
+				if (!Array.isArray(variant) && this.isValidFormat(variant)) {
+					variants.push(variant);
 				}
+
 				if (hasFreejoinVariant) {
 					const freejoinVariant = Games.getFormat(format.inputTarget + ", " + variantData.variantAliases[0] + ", freejoin");
 					if (!Array.isArray(freejoinVariant) && this.isValidFormat(freejoinVariant)) {
@@ -142,9 +157,9 @@ export class Vote extends ScriptedGame {
 
 		let variantsHtml = "";
 		if (variants.length) {
-			variantsHtml += "<details><summary>Votable " + format.nameWithOptions + " variants</summary>";
+			variantsHtml += "<details><summary>Votable variants</summary>";
 			for (const variant of variants) {
-				variantsHtml += this.getPmVoteButton(variant.inputTarget, variant.nameWithOptions);
+				variantsHtml += this.getPmVoteButton(variant.inputTarget, variant.nameWithOptions, buttonStyle);
 			}
 			variantsHtml += "</details>";
 		}
@@ -158,29 +173,43 @@ export class Vote extends ScriptedGame {
 			}
 
 			if (modes.length) {
-				modesHtml += "<details><summary>Votable " + format.nameWithOptions + " modes</summary>";
+				modesHtml += "<details><summary>Votable modes</summary>";
 				for (const mode of modes) {
-					modesHtml += this.getPmVoteButton(mode.inputTarget, mode.nameWithOptions);
+					modesHtml += this.getPmVoteButton(mode.inputTarget, mode.nameWithOptions, buttonStyle);
 				}
 				modesHtml += "</details>";
 			}
 		}
 
+		let html = "<div class='infobox'>";
+		const hexSpan = Tools.getHexSpan(customBackgroundColor);
+		if (hexSpan) {
+			html += hexSpan;
+		}
+
+		const mascot = Games.getFormatMascot(format);
+		if (mascot) {
+			html += Dex.getPokemonIcon(mascot);
+		}
+
+		html += "You have voted for <b>" + format.nameWithOptions + "</b>!";
 		if (variantsHtml || modesHtml) {
-			let html = "<div class='infobox'>";
+			html += "<br /><br />";
 			html += variantsHtml;
 			if (variantsHtml && modesHtml) html += "<br />";
 			html += modesHtml;
-			html += "</div>";
-
-			player.sayUhtml(html, this.variantsAndModesUhtmlName);
-			this.sentVariantsAndModes.add(player);
-		} else {
-			if (this.sentVariantsAndModes.has(player)) {
-				player.sayUhtml("", this.variantsAndModesUhtmlName);
-				this.sentVariantsAndModes.delete(player);
-			}
 		}
+
+		if (hexSpan) html += "</span>";
+		html += "</div>";
+
+		player.sayPrivateUhtml(html, this.privateVoteUhtmlName);
+
+		this.privateVotesHtmlTimeouts[player.id] = setTimeout(() => {
+			delete this.privateVotesHtmlTimeouts[player.id];
+			const currentFormat = Games.getExistingFormat(this.votes.get(player)!.format);
+			if (currentFormat.nameWithOptions !== format.nameWithOptions) this.sendPrivateVoteHtml(player, currentFormat);
+		}, Client.getSendThrottle() * 4);
 	}
 
 	getHighlightPhrase(): string {
@@ -190,7 +219,7 @@ export class Vote extends ScriptedGame {
 	onSignups(): void {
 		this.currentVotesUhtmlName = this.uhtmlBaseName + '-current-votes';
 		this.finalVotesUhtmlName = this.uhtmlBaseName + '-final-votes';
-		this.variantsAndModesUhtmlName = this.uhtmlBaseName + '-variants-modes';
+		this.privateVoteUhtmlName = this.uhtmlBaseName + '-private-vote';
 		this.bannedFormats = Games.getNextVoteBans(this.room);
 
 		const votableFormats: string[] = [];
@@ -395,7 +424,7 @@ const commands: GameCommandDefinitions<Vote> = {
 
 			this.votes.set(player, {format: format.inputTarget, pmVote});
 
-			this.sendVariantsAndModes(player, format);
+			this.sendPrivateVoteHtml(player, format);
 
 			if (!this.updateVotesHtmlTimeout) {
 				this.updateVotesHtmlTimeout = setTimeout(() => {
