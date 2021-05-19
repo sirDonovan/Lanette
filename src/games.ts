@@ -1628,7 +1628,8 @@ export class Games {
 			html += "<b>This game is free-join!</b>";
 		} else {
 			html += Client.getQuietPmButton(room, Config.commandCharacter + "joingame " + room.id,
-				format ? "Join the <b>" + format.name + "</b> game" : "Join game", false, Tools.getHexButtonStyle(customButtonColor));
+				format ? "Join the <b>" + format.nameWithOptions + "</b> game" : "Join game", false,
+				Tools.getHexButtonStyle(customButtonColor));
 		}
 		html += "</center>";
 
