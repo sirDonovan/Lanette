@@ -131,13 +131,16 @@ export class Vote extends ScriptedGame {
 		if (!format.variant && format.variants) {
 			for (const variantData of format.variants) {
 				const variant = Games.getFormat(format.inputTarget + ", " + variantData.variantAliases[0]);
-				if (!Array.isArray(variant) && this.isValidFormat(variant)) {
+				if (Array.isArray(variant)) continue;
+
+				if (this.isValidFormat(variant)) {
 					variants.push(variant);
 				}
 
 				if (hasFreejoinVariant) {
 					const freejoinVariant = Games.getFormat(format.inputTarget + ", " + variantData.variantAliases[0] + ", freejoin");
-					if (!Array.isArray(freejoinVariant) && this.isValidFormat(freejoinVariant)) {
+					if (!Array.isArray(freejoinVariant) && freejoinVariant.nameWithOptions !== variant.nameWithOptions &&
+						this.isValidFormat(freejoinVariant)) {
 						variants.push(freejoinVariant);
 					}
 				}
