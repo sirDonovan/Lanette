@@ -132,7 +132,7 @@ class GameTrainerCard extends HtmlPageBase {
 		if (user) name = user.name;
 
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>" + this.room.title + ": Game Trainer Card</b>";
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + closeCommand, "Close");
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + closeCommand, "Close");
 
 		html += "<br />";
 		const currentCard = Games.getTrainerCardHtml(this.room, name);
@@ -149,9 +149,9 @@ class GameTrainerCard extends HtmlPageBase {
 			this.room.title + ", [Pokemon], [Pokemon], [...]</code>";
 		html += "<br /><br />";
 
-		html += Client.getPmSelfButton(this.commandPrefix + ", " + chooseBackgroundColorPicker, "Choose background",
+		html += this.getQuietPmButton(this.commandPrefix + ", " + chooseBackgroundColorPicker, "Choose background",
 			this.currentPicker === 'background');
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseTrainerPicker, "Choose trainer",
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseTrainerPicker, "Choose trainer",
 			this.currentPicker === 'trainer');
 		html += "<br /><br />";
 

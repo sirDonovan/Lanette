@@ -376,7 +376,7 @@ class GameHostBox extends HtmlPageBase {
 		if (user) name = user.name;
 
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>" + this.room.title + ": Game Host Box</b>";
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + closeCommand, "Close");
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + closeCommand, "Close");
 
 		html += "<br /><div class='infobox'>";
 		html += Games.getHostBoxHtml(this.room, name, name + "'s Game");
@@ -407,17 +407,17 @@ class GameHostBox extends HtmlPageBase {
 		const trainer = this.currentPicker === 'trainer';
 		const pokemon = this.currentPicker === 'pokemon';
 
-		html += Client.getPmSelfButton(this.commandPrefix + ", " + chooseBackgroundColorPicker, "Choose background",
+		html += this.getQuietPmButton(this.commandPrefix + ", " + chooseBackgroundColorPicker, "Choose background",
 			background);
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseButtonColorPicker, "Choose buttons",
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseButtonColorPicker, "Choose buttons",
 			buttons);
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseSignupsBackgroundColorPicker,
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsBackgroundColorPicker,
 			"Choose signups background", signupsBackground);
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseSignupsButtonColorPicker, "Choose signups buttons",
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsButtonColorPicker, "Choose signups buttons",
 			signupsButtons);
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseTrainerPicker, "Choose trainer",
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseTrainerPicker, "Choose trainer",
 			trainer);
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + choosePokemonModelPicker, "Choose Pokemon",
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + choosePokemonModelPicker, "Choose Pokemon",
 			pokemon || !this.maxPokemonModels);
 		html += "<br /><br />";
 

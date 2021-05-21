@@ -462,7 +462,7 @@ class GameHostControlPanel extends HtmlPageBase {
 	render(): string {
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>" + this.room.title + ": Hosting Control " +
 			"Panel</b>";
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + closeCommand, "Close");
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + closeCommand, "Close");
 		html += "<br /><br />";
 
 		const user = Users.get(this.userId);
@@ -475,12 +475,12 @@ class GameHostControlPanel extends HtmlPageBase {
 
 		html += "Options:";
 		if (currentHost) {
-			html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseHostInformation, "Host Information",
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseHostInformation, "Host Information",
 				hostInformation);
 		}
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseCustomDisplay, "Manual Display", manualHostDisplay);
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseRandomDisplay, "Random Display", randomHostDisplay);
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + chooseGenerateHints, "Generate Hints", generateHints);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseCustomDisplay, "Manual Display", manualHostDisplay);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseRandomDisplay, "Random Display", randomHostDisplay);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseGenerateHints, "Generate Hints", generateHints);
 		html += "</center>";
 
 		if (hostInformation) {
@@ -491,10 +491,10 @@ class GameHostControlPanel extends HtmlPageBase {
 			html += game.getMascotAndNameHtml();
 			html += "<br />";
 			html += "<b>Remaining time</b>: " + Tools.toDurationString(game.endTime - Date.now());
-			html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + refreshCommand, "Refresh");
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + refreshCommand, "Refresh");
 			if (game.gameTimerEndTime) {
 				html += "<br /><br /><b>Game timer:</b> " + Tools.toDurationString(game.gameTimerEndTime - Date.now()) + " remaining";
-				html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + refreshCommand, "Refresh");
+				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + refreshCommand, "Refresh");
 			}
 			html += "<hr />";
 
@@ -521,7 +521,7 @@ class GameHostControlPanel extends HtmlPageBase {
 
 			if (remainingPlayers.length) {
 				html += "<br /><center>";
-				html += Client.getPmSelfButton(this.commandPrefix + ", " + setCurrentPlayerCommand, "Hide points controls",
+				html += this.getQuietPmButton(this.commandPrefix + ", " + setCurrentPlayerCommand, "Hide points controls",
 					!this.currentPlayer);
 
 				if (game.teams) {
@@ -532,7 +532,7 @@ class GameHostControlPanel extends HtmlPageBase {
 							html += "Team " + game.teams[i].name + ":";
 							for (const id of remainingTeamPlayers) {
 								const player = game.players[id];
-								html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + setCurrentPlayerCommand + ", " + id,
+								html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setCurrentPlayerCommand + ", " + id,
 									player.name, this.currentPlayer === id);
 							}
 							html += "<br />";
@@ -543,7 +543,7 @@ class GameHostControlPanel extends HtmlPageBase {
 				} else {
 					for (const id of remainingPlayers) {
 						const player = game.players[id];
-						html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + setCurrentPlayerCommand + ", " + id,
+						html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setCurrentPlayerCommand + ", " + id,
 							player.name, this.currentPlayer === id);
 					}
 
@@ -565,7 +565,7 @@ class GameHostControlPanel extends HtmlPageBase {
 			if (storedMessageKeys.length) {
 				for (const key of storedMessageKeys) {
 					html += "<br />" + (key || "(none)") + " | <code>" + game.storedMessages![key] + "</code>";
-					html += "&nbsp;" + Client.getPmSelfButton(Config.commandCharacter + "unstore, " + this.room.id +
+					html += "&nbsp;" + this.getQuietPmButton(Config.commandCharacter + "unstore, " + this.room.id +
 						(key ? ", " + key : ""), "Clear");
 					html += "&nbsp;" + Client.getMsgRoomButton(this.room,
 						Config.commandCharacter + "stored" + (key ? " " + key : ""), "Send to " + this.room.title);
@@ -580,7 +580,7 @@ class GameHostControlPanel extends HtmlPageBase {
 			html += "<b>Twist</b>: ";
 			if (game.twist) {
 				html += "<br />" + game.twist;
-				html += "&nbsp;" + Client.getPmSelfButton(Config.commandCharacter + "removetwist, " + this.room.id, "Clear");
+				html += "&nbsp;" + this.getQuietPmButton(Config.commandCharacter + "removetwist, " + this.room.id, "Clear");
 				html += "&nbsp;" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "twist", "Send to " + this.room.title);
 			}
 			html += "<br /><br />";
@@ -596,14 +596,14 @@ class GameHostControlPanel extends HtmlPageBase {
 				this.room.userHostedGame.lastHostDisplayUhtml.html === hostDisplay) {
 				disabledSend = true;
 			}
-			html += "<center>" + Client.getPmSelfButton(this.commandPrefix + ", " + sendDisplayCommand, "Send to " + this.room.title,
+			html += "<center>" + this.getQuietPmButton(this.commandPrefix + ", " + sendDisplayCommand, "Send to " + this.room.title,
 				disabledSend) + "</center>";
 
 			html += "<br />";
 			html += "Auto-send after any change: ";
-			html += Client.getPmSelfButton(this.commandPrefix + ", " + autoSendCommand + ", " + autoSendYes, "Yes",
+			html += this.getQuietPmButton(this.commandPrefix + ", " + autoSendCommand + ", " + autoSendYes, "Yes",
 				!currentHost || this.autoSendDisplay);
-			html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + ", " + autoSendCommand + ", " + autoSendNo, "No",
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + autoSendCommand + ", " + autoSendNo, "No",
 				!currentHost || !this.autoSendDisplay);
 
 			html += "<br /><br />";
@@ -632,7 +632,7 @@ class GameHostControlPanel extends HtmlPageBase {
 				if (Array.isArray(format) || !format.canGetRandomAnswer) continue;
 
 				if (i > 0) html += "&nbsp;";
-				html += Client.getPmSelfButton(this.commandPrefix + ", " + generateHintCommand + ", " + format.name, format.name);
+				html += this.getQuietPmButton(this.commandPrefix + ", " + generateHintCommand + ", " + format.name, format.name);
 			}
 		}
 

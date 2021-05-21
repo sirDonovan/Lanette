@@ -221,10 +221,10 @@ class OfflineMessages extends HtmlPageBase {
 
 			let html = '<div class="chat">';
 			if (oldMessages) {
-				html += Client.getPmSelfButton(this.commandPrefix + " " + discardCommand + ", " +
+				html += this.getQuietPmButton(this.commandPrefix + " " + discardCommand + ", " +
 					this.allMessages.indexOf(message), '<i class="fa fa-trash"></i>') + '&nbsp;';
 			} else if (discardMessages) {
-				html += Client.getPmSelfButton(this.commandPrefix + " " + undoDiscardCommand + ", " +
+				html += this.getQuietPmButton(this.commandPrefix + " " + undoDiscardCommand + ", " +
 					this.allMessages.indexOf(message), '<i class="fa fa-undo"></i>') + '&nbsp;';
 			}
 			html += '<small>[' + timeString + '] </small><username>' + names[id] + ':</username> <em>' +
@@ -269,7 +269,7 @@ class OfflineMessages extends HtmlPageBase {
 		const database = Storage.getGlobalDatabase();
 
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>Your Offline Messages</b>";
-		html += "&nbsp;" + Client.getPmSelfButton(this.commandPrefix + " " + closeCommand, "Close");
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + " " + closeCommand, "Close");
 		html += "<br />Re-read them at any time by PMing " + Users.self.name + " the command <code>" + Config.commandCharacter +
 			reReadCommand + "</code>";
 		html += "<br />(messages are permanently deleted <b>" + EXPIRATION_DAYS + " days</b> after you receive them)</center>";
@@ -283,14 +283,14 @@ class OfflineMessages extends HtmlPageBase {
 			const showingDiscarded = this.messageType === 'discarded';
 
 			html += "<b>Message type</b>: ";
-			html += Client.getPmSelfButton(this.commandPrefix + " " + newMessagesCommand, "New", showingNew) + "&nbsp;";
-			html += Client.getPmSelfButton(this.commandPrefix + " " + oldMessagesCommand, "Old", showingOld) + "&nbsp;";
-			html += Client.getPmSelfButton(this.commandPrefix + " " + discardedMessagesCommand, "Discarded", showingDiscarded);
+			html += this.getQuietPmButton(this.commandPrefix + " " + newMessagesCommand, "New", showingNew) + "&nbsp;";
+			html += this.getQuietPmButton(this.commandPrefix + " " + oldMessagesCommand, "Old", showingOld) + "&nbsp;";
+			html += this.getQuietPmButton(this.commandPrefix + " " + discardedMessagesCommand, "Discarded", showingDiscarded);
 
 			html += "<br /><br /><details><summary><b>Set your timezone</b> (currently " + this.timezone + "):</summary>";
 			let rowCount = 0;
 			for (const timezone of Tools.timezones) {
-				html += Client.getPmSelfButton(this.commandPrefix + " " + timezoneCommand + ", " + timezone, timezone,
+				html += this.getQuietPmButton(this.commandPrefix + " " + timezoneCommand + ", " + timezone, timezone,
 					this.timezone === timezone) + "&nbsp;";
 				rowCount++;
 				if (rowCount === 6) {
@@ -313,7 +313,7 @@ class OfflineMessages extends HtmlPageBase {
 
 				html += "<b>Date</b>: ";
 				for (const date of this.dateOptions) {
-					html += Client.getPmSelfButton(this.commandPrefix + " " + dateCommand + ", " + date, date,
+					html += this.getQuietPmButton(this.commandPrefix + " " + dateCommand + ", " + date, date,
 						this.selectedDate === date) + "&nbsp;";
 				}
 				html += "<br /><div class='pmbox'>" + this.displayedMessagesByDate[this.selectedDate] + "</div>";

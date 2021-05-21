@@ -102,8 +102,8 @@ export class MultiTextInput<OutputType = string[]> extends ComponentBase<IMultiT
 			tagNames.push(tagBaseName + "-" + i);
 		}
 
-		html += "<form data-submitsend='/msg " + Users.self.name + ", " + this.commandPrefix + ", " + this.submitCommand +
-			", {" + tagNames.join("}" + this.delimiter + "{") + "}'>";
+		html += "<form data-submitsend='/msgroom " + this.room.id + ", /botmsg " + Users.self.name + ", " + this.commandPrefix + ", " +
+			this.submitCommand + ", {" + tagNames.join("}" + this.delimiter + "{") + "}'>";
 
 		for (let i = 0; i < tagNames.length; i++) {
 			html += this.props.labels[i] + ":&nbsp;";

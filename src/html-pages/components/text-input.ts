@@ -99,8 +99,8 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 			html += "<br />";
 		}
 
-		html += "<form data-submitsend='/msg " + Users.self.name + ", " + this.commandPrefix + ", " + this.submitCommand +
-			", {" + tagName + "}'>";
+		html += "<form data-submitsend='/msgroom " + this.room.id + ", /botmsg " + Users.self.name + ", " + this.commandPrefix + ", " +
+			this.submitCommand + ", {" + tagName + "}'>";
 
 		if (this.props.label) html += this.props.label + ":&nbsp;";
 		if (this.props.textArea) {
