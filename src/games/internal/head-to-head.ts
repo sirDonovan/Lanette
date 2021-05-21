@@ -93,7 +93,7 @@ export class HeadToHead extends ScriptedGame {
 			}
 		}
 
-		game.sayHtml(game.getDescriptionHtml());
+		game.sayUhtml(this.uhtmlBaseName + "-description", game.getDescriptionHtml());
 		game.signups();
 
 		if (!game.format.options.freejoin) {

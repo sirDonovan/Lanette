@@ -121,7 +121,7 @@ export class OneVsOne extends ScriptedGame {
 			game.format.options.points = 10;
 		}
 
-		game.sayHtml(game.getDescriptionHtml());
+		game.sayUhtml(this.uhtmlBaseName + "-description", game.getDescriptionHtml());
 		game.signups();
 
 		if (!game.format.options.freejoin) {
