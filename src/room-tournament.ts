@@ -17,6 +17,7 @@ const GENERATORS: Dict<number> = {
 export class Tournament extends Activity {
 	readonly activityType: string = 'tournament';
 	adjustCapTimer: NodeJS.Timer | null = null;
+	autoDqMinutes: number = 0;
 	readonly battleData = new Map<Room, IBattleGameData>();
 	readonly battleRooms: string[] = [];
 	readonly createTime: number = Date.now();
@@ -42,6 +43,7 @@ export class Tournament extends Activity {
 	manuallyEnabledPoints: boolean | undefined = undefined;
 	originalFormat: string = '';
 	playerLosses = new Map<Player, number>();
+	runAutoDqInterval: NodeJS.Timer | null = null;
 	scheduled: boolean = false;
 	totalPlayers: number = 0;
 	updates: Partial<ITournamentUpdateJson> = {};
@@ -136,9 +138,19 @@ export class Tournament extends Activity {
 		this.say("The tournament's player cap is now **" + cap + "**.");
 	}
 
+	setAutoDqMinutes(minutes: number): void {
+		this.autoDqMinutes = minutes * 60 * 1000;
+	}
+
+	setRunAutoDqInterval(): void {
+		if (!this.autoDqMinutes) return;
+		this.runAutoDqInterval = setInterval(() => this.room.runTournamentAutoDq(), this.autoDqMinutes);
+	}
+
 	deallocate(): void {
 		if (this.adjustCapTimer) clearTimeout(this.adjustCapTimer);
 		if (this.startTimer) clearTimeout(this.startTimer);
+		if (this.runAutoDqInterval) clearInterval(this.runAutoDqInterval);
 		delete this.room.tournament;
 	}
 
@@ -146,6 +158,7 @@ export class Tournament extends Activity {
 		if (this.startTimer) clearTimeout(this.startTimer);
 		this.started = true;
 		this.startTime = Date.now();
+		this.setRunAutoDqInterval();
 	}
 
 	onEnd(): void {

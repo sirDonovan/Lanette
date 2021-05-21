@@ -336,6 +336,10 @@ export class Room {
 		this.say("/tour autodq " + minutes, {dontCheckFilter: true, dontPrepare: true, type: 'tournament-autodq'});
 	}
 
+	runTournamentAutoDq(): void {
+		this.say("/tour runautodq", {dontCheckFilter: true, dontPrepare: true, type: 'tournament-runautodq'});
+	}
+
 	forcePublicTournament(): void {
 		this.say("/tour forcepublic on", {dontCheckFilter: true, dontPrepare: true, type: 'tournament-forcepulic'});
 	}

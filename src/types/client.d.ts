@@ -23,7 +23,8 @@ export type IOutgoingMessageTypes = 'command' | 'chat' | 'chat-html' | 'chat-uht
 	'code' | 'join-room' | 'leave-room' | 'modchat' | 'filters-view' | 'roominfo' | 'banword-list' | 'room-voice' | 'room-deauth' | 'warn' |
 	'hangman-start' | 'hangman-end' | 'htmlpage' | 'htmlpageselector' | 'closehtmlpage' | 'highlight-htmlpage' | 'announce' | 'notifyrank' |
 	'notifyoffrank' | 'modnote' | 'tournament-create' | 'tournament-start' | 'tournament-name' | 'tournament-autostart' |
-	'tournament-autodq' | 'tournament-cap' | 'tournament-rules' | 'tournament-forcepulic' | 'tournament-scouting' | 'tournament-modjoin';
+	'tournament-autodq' | 'tournament-runautodq' | 'tournament-cap' | 'tournament-rules' | 'tournament-forcepulic' |
+	'tournament-scouting' | 'tournament-modjoin';
 
 export interface IOutgoingMessageAttributes {
 	announcement?: string;

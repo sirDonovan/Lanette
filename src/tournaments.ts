@@ -188,9 +188,11 @@ export class Tournaments {
 			delete this.tournamentTimers[room.id];
 			delete this.tournamentTimerData[room.id];
 		}
+
 		const tournament = new Tournament(room);
 		room.tournament = tournament;
 		tournament.initialize(format, json.generator, json.playerCap || 0, json.teambuilderFormat ? json.format : undefined);
+
 		if (json.isStarted) {
 			tournament.started = true;
 		} else {
@@ -218,15 +220,20 @@ export class Tournaments {
 			}
 
 			room.forcePublicTournament();
+
 			if (tournament.playerCap) room.autoStartTournament();
+
 			if (Config.tournamentAutoDQTimers && room.id in Config.tournamentAutoDQTimers) {
 				room.setTournamentAutoDq(Config.tournamentAutoDQTimers[room.id]);
+				tournament.setAutoDqMinutes(Config.tournamentAutoDQTimers[room.id]);
 			}
+
 			if ((!tournament.format.team && Config.disallowTournamentScouting && Config.disallowTournamentScouting.includes(room.id)) ||
 				(Config.disallowTournamentScoutingFormats && room.id in Config.disallowTournamentScoutingFormats &&
 				Config.disallowTournamentScoutingFormats[room.id].includes(tournament.format.id))) {
 				room.disallowTournamentScouting();
 			}
+
 			if (Config.disallowTournamentModjoin && Config.disallowTournamentModjoin.includes(room.id)) {
 				room.disallowTournamentModjoin();
 			}
@@ -237,6 +244,7 @@ export class Tournaments {
 				if (tournament.scheduled) startMinutes *= 2;
 				tournament.startTimer = setTimeout(() => room.startTournament(), startMinutes * 60 * 1000);
 			}
+
 			if (Config.adjustTournamentCaps && Config.adjustTournamentCaps.includes(room.id)) {
 				tournament.adjustCapTimer = setTimeout(() => room.tournament!.adjustCap(), (startMinutes / 2) * 60 * 1000);
 			}
