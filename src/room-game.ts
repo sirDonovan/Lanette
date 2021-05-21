@@ -6,6 +6,7 @@ import { Activity, PlayerTeam } from "./room-activity";
 import type { Room } from "./rooms";
 import type { IGameFormat, IHostDisplayUhtml, IPokemonUhtml, ITrainerUhtml, IUserHostedFormat, PlayerList } from "./types/games";
 import type { IPokemon, IPokemonCopy } from "./types/pokemon-showdown";
+import type { IGameCustomBox } from "./types/storage";
 import type { HexCode } from "./types/tools";
 import type { User } from "./users";
 
@@ -39,8 +40,7 @@ export abstract class Game extends Activity {
 	joinLeaveButtonRefreshUhtmlName!: string;
 	privateJoinLeaveUhtmlName!: string;
 
-	customBackgroundColor?: string;
-	customButtonColor?: string;
+	customBox?: IGameCustomBox;
 	format?: IGameFormat | IUserHostedFormat;
 	isUserHosted?: boolean;
 	lastHostDisplayUhtml?: IHostDisplayUhtml;
@@ -171,17 +171,17 @@ export abstract class Game extends Activity {
 	}
 
 	getSignupsPlayersHtml(): string {
-		return Games.getSignupsPlayersHtml(this.customBackgroundColor, this.getMascotAndNameHtml(" - signups"), this.playerCount,
+		return Games.getSignupsPlayersHtml(this.customBox, this.getMascotAndNameHtml(" - signups"), this.playerCount,
 			this.getPlayerUsernamesHtml());
 	}
 
 	getJoinButtonHtml(freejoin: boolean): string {
-		return Games.getJoinButtonHtml(this.customButtonColor, freejoin, this.room as Room, this.format);
+		return Games.getJoinButtonHtml(this.customBox, freejoin, this.room as Room, this.format);
 	}
 
 	sendJoinNotice(player: Player): void {
 		player.sayPrivateUhtml(Games.getJoinNoticeHtml(this.room as Room, "You have joined the <b>" + this.name + "</b> " +
-			this.activityType + "!", this.customButtonColor), this.privateJoinLeaveUhtmlName);
+			this.activityType + "!", this.customBox), this.privateJoinLeaveUhtmlName);
 	}
 
 	sendFreeJoinNotice(user: User): void {

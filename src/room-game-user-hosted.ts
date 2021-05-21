@@ -349,12 +349,10 @@ export class UserHostedGame extends Game {
 
 		const database = Storage.getDatabase(this.room);
 		if (database.gameHostBoxes && this.hostId in database.gameHostBoxes) {
-			const box = database.gameHostBoxes[this.hostId];
-			this.customBackgroundColor = box.signupsBackground || box.background;
-			this.customButtonColor = box.signupsButtons || box.buttons;
+			this.customBox = database.gameHostBoxes[this.hostId];
 		}
 
-		this.sayHtml(this.getSignupsHtml());
+		this.sayUhtml(this.uhtmlBaseName + "-description", this.getSignupsHtml());
 		if (!this.format.options.freejoin) this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
 		this.sayUhtml(this.joinLeaveButtonUhtmlName, this.getJoinButtonHtml(this.format.options.freejoin ? true : false));
 

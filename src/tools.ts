@@ -5,7 +5,7 @@ import url = require('url');
 
 import type { PRNG } from './lib/prng';
 import { eggGroupHexCodes, hexCodes, namedHexCodes, pokemonColorHexCodes, typeHexCodes } from './tools-hex-codes';
-import type { IExtractedBattleId, IHexCodeData, IParsedSmogonLink, NamedHexCode, TimeZone } from './types/tools';
+import type { BorderType, IExtractedBattleId, IHexCodeData, IParsedSmogonLink, NamedHexCode, TimeZone } from './types/tools';
 import type { IParam, IParametersGenData, ParametersSearchType } from './workers/parameters';
 
 const TABLE_PADDING_SIZE = 2;
@@ -119,32 +119,93 @@ export class Tools {
 		return hexCodes[typeHexCodes[type]];
 	}
 
-	getHexSpan(hexCode: string | undefined): string {
-		let span = '';
-		if (hexCode && hexCode in this.hexCodes) {
-			span += "<span style='display: block;";
-			if (this.hexCodes[hexCode]!.textColor) {
-				span += 'color: ' + this.hexCodes[hexCode]!.textColor + ';';
-			} else {
-				span += 'color: #000000;';
-			}
-			span += "background: " + this.hexCodes[hexCode]!.gradient + "'";
-			span += ">";
-		}
-
-		return span;
+	getBorderTypes(): BorderType[] {
+		return ['solid', 'dashed', 'double', 'inset', 'outset'];
 	}
 
-	getHexButtonStyle(hexCode: string | undefined): string {
-		let buttonStyle = '';
-		if (hexCode && hexCode in this.hexCodes) {
-			if (this.hexCodes[hexCode]!.textColor) {
-				buttonStyle += 'color: ' + this.hexCodes[hexCode]!.textColor + ';';
+	getHexSpan(backgroundColor: string | undefined, borderColor?: string, borderRadiusValue?: number, borderSize?: number,
+		borderType?: BorderType): string {
+		let background: string | undefined;
+		let textColor: string | undefined;
+		let border: string | undefined;
+		let borderStyle: string | undefined;
+		let borderRadius: string | undefined;
+
+		if (backgroundColor && backgroundColor in this.hexCodes) {
+			if (this.hexCodes[backgroundColor]!.textColor) {
+				textColor = 'color: ' + this.hexCodes[backgroundColor]!.textColor + ';';
 			} else {
-				buttonStyle += 'color: #000000;';
+				textColor = 'color: #000000;';
+			}
+			background = "background: " + this.hexCodes[backgroundColor]!.gradient + ";";
+		}
+
+		if (borderColor || borderSize) {
+			if (!borderSize) borderSize = 1;
+			border = "border: " + borderSize + "px solid ";
+			if (borderColor && borderColor in this.hexCodes) {
+				border += this.hexCodes[borderColor]!.color;
+			} else {
+				border += "#000000";
+			}
+			border += ";";
+		}
+
+		if (borderType) {
+			borderStyle = "border-style: " + borderType + ";";
+		}
+
+		if (borderRadiusValue) {
+			borderRadius = "border-radius: " + borderRadiusValue + "px;";
+		}
+
+		if (background || textColor || border || borderStyle || borderRadius) {
+			let span = "<span style='display: block;";
+
+			if (background) span += background;
+			if (textColor) span += textColor;
+			if (border) span += border;
+			if (borderStyle) span += borderStyle;
+			if (borderRadius) span += borderRadius;
+
+			span += "'>";
+			return span;
+		}
+
+		return "";
+	}
+
+	getCustomButtonStyle(backgroundColor: string | undefined, borderColor?: string, borderRadius?: number, borderSize?: number,
+		borderType?: BorderType): string {
+		let buttonStyle = '';
+		if (backgroundColor && backgroundColor in this.hexCodes) {
+			if (this.hexCodes[backgroundColor]!.textColor) {
+				buttonStyle += "color: " + this.hexCodes[backgroundColor]!.textColor + ";";
+			} else {
+				buttonStyle += "color: #000000;";
 			}
 
-			buttonStyle += "background: " + this.hexCodes[hexCode]!.color;
+			buttonStyle += "background: " + this.hexCodes[backgroundColor]!.color + ';';
+			buttonStyle += "text-shadow: none;";
+		}
+
+		if (borderColor || borderSize) {
+			if (!borderSize) borderSize = 1;
+			buttonStyle += "border: " + borderSize + "px solid ";
+			if (borderColor && borderColor in this.hexCodes) {
+				buttonStyle += this.hexCodes[borderColor]!.color;
+			} else {
+				buttonStyle += "#000000";
+			}
+			buttonStyle += ";";
+		}
+
+		if (borderType) {
+			buttonStyle += "border-style: " + borderType + ";";
+		}
+
+		if (borderRadius) {
+			buttonStyle += "border-radius: " + borderRadius + 'px;';
 		}
 
 		return buttonStyle;

@@ -270,9 +270,7 @@ export class ScriptedGame extends Game {
 			const id = Tools.toId(this.format.voter);
 			const database = Storage.getDatabase(this.room as Room);
 			if (database.gameScriptedBoxes && id in database.gameScriptedBoxes) {
-				const box = database.gameScriptedBoxes[id];
-				this.customBackgroundColor = box.signupsBackground || box.background;
-				this.customButtonColor = box.signupsButtons || box.buttons;
+				this.customBox = database.gameScriptedBoxes[id];
 			}
 		}
 
@@ -329,7 +327,7 @@ export class ScriptedGame extends Game {
 
 		if (!this.isMiniGame && !this.internalGame) {
 			this.showSignupsHtml = true;
-			this.sayHtml(this.getSignupsHtml());
+			this.sayUhtml(this.uhtmlBaseName + "-description", this.getSignupsHtml());
 			if (!this.format.options.freejoin) this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
 			this.sayUhtml(this.joinLeaveButtonUhtmlName, this.getJoinButtonHtml(this.format.options.freejoin ? true : false));
 

@@ -15,7 +15,7 @@ import type {
 	IUserHostedFormatComputed, LoadedGameCommands, LoadedGameFile, UserHostedCustomizable
 } from './types/games';
 import type { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/pokemon-showdown';
-import type { IGameHostBox, IGameScriptedBox, IPastGame } from './types/storage';
+import type { IGameCustomBox, IGameHostBox, IGameScriptedBox, IPastGame } from './types/storage';
 import type { HexCode } from './types/tools';
 import type { User } from './users';
 import { ParametersWorker } from './workers/parameters';
@@ -1458,6 +1458,28 @@ export class Games {
 		return html;
 	}
 
+	getCustomBoxSpan(customBox: IGameCustomBox | undefined, signups?: boolean): string {
+		let span = "";
+		if (customBox) {
+			const customBorder = customBox.backgroundBorder || {};
+			span = Tools.getHexSpan(signups && customBox.signupsBackground ? customBox.signupsBackground : customBox.background,
+				customBorder.color, customBorder.radius, customBorder.size, customBorder.type);
+		}
+
+		return span;
+	}
+
+	getCustomBoxButtonStyle(customBox: IGameCustomBox | undefined, signups?: boolean): string {
+		let buttonStyle = "";
+		if (customBox) {
+			const customBorder = customBox.buttonsBorder || {};
+			buttonStyle = Tools.getCustomButtonStyle(signups && customBox.signupsButtons ? customBox.signupsButtons : customBox.buttons,
+				customBorder.color, customBorder.radius, customBorder.size, customBorder.type);
+		}
+
+		return buttonStyle;
+	}
+
 	getScriptedBoxHtml(room: Room, gameName: string, voter?: string, description?: string, mascot?: IPokemon, shinyMascot?: boolean,
 		highlightPhrase?: string, modeHighlightPhrase?: string): string {
 		let scriptedBox: IGameScriptedBox | undefined;
@@ -1470,18 +1492,16 @@ export class Games {
 			if (database.gameScriptedBoxes && id in database.gameScriptedBoxes) scriptedBox = database.gameScriptedBoxes[id];
 		}
 
-		let html = "<center>";
-		html += "<span";
-		if (scriptedBox && scriptedBox.background && scriptedBox.background in Tools.hexCodes) {
-			html += " style='display: block;";
-			if (Tools.hexCodes[scriptedBox.background]!.textColor) {
-				html += 'color: ' + Tools.hexCodes[scriptedBox.background]!.textColor + ';';
-			} else {
-				html += 'color: #000000;';
-			}
-			html += "background: " + Tools.hexCodes[scriptedBox.background]!.gradient + "'";
+		let html = "";
+		const customBorder = scriptedBox && scriptedBox.backgroundBorder && Object.keys(scriptedBox.backgroundBorder).length ? true : false;
+		if (!customBorder) html += "<div class='infobox'>";
+
+		html += "<center>";
+		let hexSpan;
+		if (scriptedBox) {
+			hexSpan = this.getCustomBoxSpan(scriptedBox);
+			html += hexSpan;
 		}
-		html += ">";
 
 		if (scriptedBox && voter) {
 			const icons: string[] = [];
@@ -1500,15 +1520,7 @@ export class Games {
 		html += "<h3>" + gameName + "</h3>";
 		if (description) html += description;
 
-		let buttonStyle = '';
-		if (scriptedBox && scriptedBox.buttons && scriptedBox.buttons in Tools.hexCodes) {
-			if (Tools.hexCodes[scriptedBox.buttons]!.textColor) {
-				buttonStyle += 'color: ' + Tools.hexCodes[scriptedBox.buttons]!.textColor + ';';
-			} else {
-				buttonStyle += 'color: #000000;';
-			}
-			buttonStyle += "background: " + Tools.hexCodes[scriptedBox.buttons]!.color;
-		}
+		const buttonStyle = this.getCustomBoxButtonStyle(scriptedBox);
 
 		html += '<br /><br /><button class="button"' + (buttonStyle ? ' style="' + buttonStyle + '"' : '');
 		if (highlightPhrase) html += ' name="parseCommand" value="/highlight roomadd ' + highlightPhrase + '"';
@@ -1525,7 +1537,11 @@ export class Games {
 				'value="/highlight roomdelete ' + modeHighlightPhrase + '">Disable mode highlights</button>';
 		}
 
-		html += "<br />&nbsp;</span></center>";
+		html += "<br />&nbsp;";
+		if (hexSpan) html += "</span>";
+		html += "</center>";
+
+		if (!customBorder) html += "</div>";
 
 		return html;
 	}
@@ -1536,18 +1552,17 @@ export class Games {
 		let hostBox: IGameHostBox | undefined;
 		if (database.gameHostBoxes && id in database.gameHostBoxes) hostBox = database.gameHostBoxes[id];
 
-		let html = "<center>";
-		html += "<span";
-		if (hostBox && hostBox.background && hostBox.background in Tools.hexCodes) {
-			html += " style='display: block;";
-			if (Tools.hexCodes[hostBox.background]!.textColor) {
-				html += 'color: ' + Tools.hexCodes[hostBox.background]!.textColor + ';';
-			} else {
-				html += 'color: #000000;';
-			}
-			html += "background: " + Tools.hexCodes[hostBox.background]!.gradient + "'";
+		let html = "";
+		const customBorder = hostBox && hostBox.backgroundBorder && Object.keys(hostBox.backgroundBorder).length ? true : false;
+		if (!customBorder) html += "<div class='infobox'>";
+
+		html += "<center>";
+
+		let hexSpan;
+		if (hostBox) {
+			hexSpan = this.getCustomBoxSpan(hostBox);
+			html += hexSpan;
 		}
-		html += ">";
 
 		if (hostBox) {
 			let trainerHtml = "";
@@ -1583,15 +1598,7 @@ export class Games {
 			html += "The game's description will be displayed here";
 		}
 
-		let buttonStyle = '';
-		if (hostBox && hostBox.buttons && hostBox.buttons in Tools.hexCodes) {
-			if (Tools.hexCodes[hostBox.buttons]!.textColor) {
-				buttonStyle += 'color: ' + Tools.hexCodes[hostBox.buttons]!.textColor + ';';
-			} else {
-				buttonStyle += 'color: #000000;';
-			}
-			buttonStyle += "background: " + Tools.hexCodes[hostBox.buttons]!.color;
-		}
+		const buttonStyle = this.getCustomBoxButtonStyle(hostBox);
 
 		html += '<br /><br /><button class="button"' + (buttonStyle ? ' style="' + buttonStyle + '"' : '');
 		if (highlightPhrase) html += ' name="parseCommand" value="/highlight roomadd ' + highlightPhrase + '"';
@@ -1600,28 +1607,39 @@ export class Games {
 		html += '<button class="button"' + (buttonStyle ? ' style="' + buttonStyle + '"' : '');
 		if (highlightPhrase) html += ' name="parseCommand" value="/highlight roomdelete ' + highlightPhrase + '"';
 		html += '>Disable game highlights</button>';
-		html += "<br />&nbsp;</span></center>";
+
+		html += "<br />&nbsp;";
+		if (hexSpan) html += "</span>";
+		html += "</center>";
+
+		if (!customBorder) html += "</div>";
 
 		return html;
 	}
 
-	getSignupsPlayersHtml(customBackgroundColor: string | undefined, mascotAndNameHtml: string, playerCount: number, playerNames: string):
+	getSignupsPlayersHtml(customBox: IGameCustomBox | undefined, mascotAndNameHtml: string, playerCount: number, playerNames: string):
 		string {
-		let html = "<div class='infobox'>";
+		let html = "";
 
-		const hexSpan = Tools.getHexSpan(customBackgroundColor);
-		if (hexSpan) {
+		const customBorder = customBox && customBox.backgroundBorder && Object.keys(customBox.backgroundBorder).length ? true : false;
+		if (!customBorder) html += "<div class='infobox'>";
+
+		let hexSpan = "";
+		if (customBox) {
+			hexSpan = this.getCustomBoxSpan(customBox, true);
 			html += hexSpan;
 		}
 
 		html += mascotAndNameHtml + "<br />";
 		if (hexSpan) html += "&nbsp;</span>";
-		html += "<br /><b>Players (" + playerCount + ")</b>: " + playerNames + "</div>";
+		html += "<br /><b>Players (" + playerCount + ")</b>: " + playerNames;
+
+		if (!customBorder) html += "</div>";
 
 		return html;
 	}
 
-	getJoinButtonHtml(customButtonColor: string | undefined, freejoin: boolean, room: Room,
+	getJoinButtonHtml(customBox: IGameCustomBox | undefined, freejoin: boolean, room: Room,
 		format?: IGameFormat | IUserHostedFormat): string {
 		let html = "<center>";
 		if (freejoin) {
@@ -1629,16 +1647,16 @@ export class Games {
 		} else {
 			html += Client.getQuietPmButton(room, Config.commandCharacter + "joingame " + room.id,
 				format ? "Join the <b>" + (format.nameWithOptions || format.name) + "</b> game" : "Join game", false,
-				Tools.getHexButtonStyle(customButtonColor));
+				this.getCustomBoxButtonStyle(customBox, true));
 		}
 		html += "</center>";
 
 		return html;
 	}
 
-	getJoinNoticeHtml(room: Room, joinNotice: string, customButtonColor: string | undefined): string {
+	getJoinNoticeHtml(room: Room, joinNotice: string, customBox: IGameCustomBox | undefined): string {
 		return joinNotice + "&nbsp;" + Client.getQuietPmButton(room, Config.commandCharacter + "leavegame " + room.id, "Leave", false,
-			Tools.getHexButtonStyle(customButtonColor));
+			this.getCustomBoxButtonStyle(customBox, true));
 	}
 
 	getHostCustomDisplay(host: string, backgroundColor: HexCode | undefined, trainerChoices: ITrainerPick[],

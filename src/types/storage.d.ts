@@ -1,6 +1,6 @@
 import type { IPokemonPick } from "../html-pages/components/pokemon-picker-base";
 import type { TrainerSpriteId } from "./dex";
-import type { HexCode, TimeZone } from "./tools";
+import type { BorderType, HexCode, TimeZone } from "./tools";
 
 interface IEventInformation {
 	name: string;
@@ -46,21 +46,29 @@ export interface IGameTrainerCard {
 	pokemonGifs?: boolean;
 }
 
-export interface IGameHostBox {
-	pokemon: IPokemonPick[];
-	avatar?: TrainerSpriteId;
+export interface IGameCustomBorder {
+	color?: HexCode;
+	radius?: number;
+	size?: number;
+	type?: BorderType;
+}
+
+export interface IGameCustomBox {
 	background?: HexCode;
+	backgroundBorder?: IGameCustomBorder;
 	buttons?: HexCode;
+	buttonsBorder?: IGameCustomBorder;
 	signupsBackground?: HexCode;
 	signupsButtons?: HexCode;
 }
 
-export interface IGameScriptedBox {
+export interface IGameHostBox extends IGameCustomBox {
+	pokemon: IPokemonPick[];
+	avatar?: TrainerSpriteId;
+}
+
+export interface IGameScriptedBox extends IGameCustomBox {
 	pokemon: string[];
-	background?: HexCode;
-	buttons?: HexCode;
-	signupsBackground?: HexCode;
-	signupsButtons?: HexCode;
 	previewFormat?: string;
 }
 
