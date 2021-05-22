@@ -5,6 +5,7 @@ import type { IBattleGameData } from "./types/games";
 import type { IFormat } from "./types/pokemon-showdown";
 import type { ICurrentTournamentBattle, ITournamentEndJson, ITournamentUpdateJson } from "./types/tournaments";
 
+const AUTO_DQ_WARNING_TIMEOUT = 30 * 1000;
 const GENERATORS: Dict<number> = {
 	"Single": 1,
 	"Double": 2,
@@ -17,7 +18,6 @@ const GENERATORS: Dict<number> = {
 export class Tournament extends Activity {
 	readonly activityType: string = 'tournament';
 	adjustCapTimer: NodeJS.Timer | null = null;
-	autoDqMinutes: number = 0;
 	readonly battleData = new Map<Room, IBattleGameData>();
 	readonly battleRooms: string[] = [];
 	readonly createTime: number = Date.now();
@@ -43,6 +43,7 @@ export class Tournament extends Activity {
 	manuallyEnabledPoints: boolean | undefined = undefined;
 	originalFormat: string = '';
 	playerLosses = new Map<Player, number>();
+	runAutoDqTime: number = 0;
 	runAutoDqTimeout: NodeJS.Timer | null = null;
 	scheduled: boolean = false;
 	totalPlayers: number = 0;
@@ -139,11 +140,11 @@ export class Tournament extends Activity {
 	}
 
 	setAutoDqMinutes(minutes: number): void {
-		this.autoDqMinutes = minutes * 60 * 1000;
+		this.runAutoDqTime = (minutes * 60 * 1000) - AUTO_DQ_WARNING_TIMEOUT;
 	}
 
 	setRunAutoDqTimeout(): void {
-		if (!this.autoDqMinutes) return;
+		if (this.runAutoDqTime <= 0) return;
 
 		if (this.runAutoDqTimeout) clearTimeout(this.runAutoDqTimeout);
 		this.runAutoDqTimeout = setTimeout(() => {
@@ -151,7 +152,7 @@ export class Tournament extends Activity {
 			this.runAutoDqTimeout = null;
 
 			if (this.getRemainingPlayerCount() > 2) this.setRunAutoDqTimeout();
-		}, this.autoDqMinutes);
+		}, this.runAutoDqTime);
 	}
 
 	deallocate(): void {
