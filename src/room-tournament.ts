@@ -148,9 +148,9 @@ export class Tournament extends Activity {
 		if (this.runAutoDqTimeout) clearTimeout(this.runAutoDqTimeout);
 		this.runAutoDqTimeout = setTimeout(() => {
 			this.room.runTournamentAutoDq();
-
 			this.runAutoDqTimeout = null;
-			this.setRunAutoDqTimeout();
+
+			if (this.getRemainingPlayerCount() > 2) this.setRunAutoDqTimeout();
 		}, this.autoDqMinutes);
 	}
 
