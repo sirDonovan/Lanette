@@ -129,7 +129,7 @@ export class ManualHostDisplay extends HostDisplayBase {
 		this.backgroundColorPicker.setRandomizedColor(hueVariation, lightness, color);
 	}
 
-	setRandomizedPokemon(pokemon: PokemonChoices): void {
+	loadHostDisplayPokemon(pokemon: PokemonChoices): void {
 		for (const pokemonPicker of this.gifPokemonPickers) {
 			pokemonPicker.reset();
 		}
@@ -165,7 +165,7 @@ export class ManualHostDisplay extends HostDisplayBase {
 		}
 	}
 
-	setRandomizedTrainers(trainers: TrainerChoices): void {
+	loadHostDisplayTrainers(trainers: TrainerChoices): void {
 		for (const trainerPicker of this.trainerPickers) {
 			trainerPicker.reset();
 		}

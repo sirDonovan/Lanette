@@ -1,4 +1,5 @@
 import type { IPokemonPick } from "../html-pages/components/pokemon-picker-base";
+import type { ITrainerPick } from "../html-pages/components/trainer-picker";
 import type { TrainerSpriteId } from "./dex";
 import type { BorderType, HexCode, TimeZone } from "./tools";
 
@@ -72,6 +73,14 @@ export interface IGameScriptedBox extends IGameCustomBox {
 	previewFormat?: string;
 }
 
+export type GifIcon = 'gif' | 'icon';
+
+export interface IGameHostDisplay extends IGameCustomBox {
+	pokemon: IPokemonPick[];
+	trainers: ITrainerPick[];
+	gifOrIcon: GifIcon;
+}
+
 export type UserHostStatus = 'unapproved' | 'novice' | 'approved';
 
 export type LeaderboardType = 'gameLeaderboard' | 'gameHostingLeaderbaord' | 'tournamentLeaderboard' | 'unsortedLeaderboard';
@@ -117,6 +126,7 @@ export interface IDatabase {
 	gameLeaderboard?: ILeaderboard;
 	gameHostingLeaderbaord?: ILeaderboard;
 	gameHostBoxes?: Dict<IGameHostBox>;
+	gameHostDisplays?: Dict<IGameHostDisplay>;
 	gameScriptedBoxes?: Dict<IGameScriptedBox>;
 	gameTrainerCards?: Dict<IGameTrainerCard>;
 	lastCycleData?: ILastCycleData;

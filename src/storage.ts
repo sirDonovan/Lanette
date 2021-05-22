@@ -264,6 +264,18 @@ export class Storage {
 		};
 	}
 
+	createGameHostDisplay(database: IDatabase, name: string): void {
+		const id = Tools.toId(name);
+		if (!database.gameHostDisplays) database.gameHostDisplays = {};
+		if (id in database.gameHostDisplays) return;
+
+		database.gameHostDisplays[id] = {
+			pokemon: [],
+			trainers: [],
+			gifOrIcon: 'gif',
+		};
+	}
+
 	createGameScriptedBox(database: IDatabase, name: string): void {
 		const id = Tools.toId(name);
 		if (!database.gameScriptedBoxes) database.gameScriptedBoxes = {};

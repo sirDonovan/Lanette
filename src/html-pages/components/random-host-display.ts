@@ -4,6 +4,7 @@ import { HostDisplayBase } from "./host-display-base";
 import { TypePicker } from "./type-picker";
 import type { TrainerGeneration } from "./trainer-picker";
 import type { Room } from "../../rooms";
+import type { PokemonChoices, TrainerChoices } from "../game-host-control-panel";
 
 const clearPokemon = 'clearpokemon';
 const randomizePokemon = 'randomizepokemon';
@@ -63,6 +64,50 @@ export class RandomHostDisplay extends HostDisplayBase {
 
 	toggleTrainerPicker(active: boolean): void {
 		if (this.trainerPickerIndex !== -1) this.trainerPickers[this.trainerPickerIndex].active = active;
+	}
+
+	loadHostDisplayPokemon(pokemon: PokemonChoices): void {
+		for (const pokemonPicker of this.gifPokemonPickers) {
+			pokemonPicker.reset();
+		}
+
+		for (const pokemonPicker of this.iconPokemonPickers) {
+			pokemonPicker.reset();
+		}
+
+		this.currentPokemon = [];
+
+		const names: string[] = [];
+		for (let i = 0; i < pokemon.length; i++) {
+			names.push((pokemon[i]!.shiny ? "Shiny " : "") + (pokemon[i]!.generation !== 'xy' ?
+				pokemon[i]!.generation.toUpperCase() + " " : "") + pokemon[i]!.pokemon);
+			if (this.gifPokemonPickers[i]) this.gifPokemonPickers[i].setPokemonAttributes(pokemon[i]!);
+			if (this.iconPokemonPickers[i]) this.iconPokemonPickers[i].setPokemonAttributes(pokemon[i]!);
+		}
+
+		const index = pokemon.length - 1;
+		if (this.pokemonPickerIndex > index) {
+			if (this.gifOrIcon === 'gif') {
+				this.gifPokemonPickers[this.pokemonPickerIndex].active = false;
+				this.gifPokemonPickers[index].active = true;
+			} else {
+				this.iconPokemonPickers[this.pokemonPickerIndex].active = false;
+				this.iconPokemonPickers[index].active = true;
+			}
+			this.pokemonPickerIndex = index;
+		}
+	}
+
+	loadHostDisplayTrainers(trainers: TrainerChoices): void {
+		for (const trainerPicker of this.trainerPickers) {
+			trainerPicker.reset();
+		}
+
+		this.currentTrainers = [];
+
+		for (let i = 0; i < trainers.length; i++) {
+			this.trainerPickers[i].setRandomizedTrainer(trainers[i]!);
+		}
 	}
 
 	clearAllPokemonTypes(dontRender?: boolean): void {

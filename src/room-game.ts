@@ -1,13 +1,10 @@
-import type { IPokemonPick } from "./html-pages/components/pokemon-picker-base";
-import type { ITrainerPick } from "./html-pages/components/trainer-picker";
 import type { PRNGSeed } from "./lib/prng";
 import type { Player } from "./room-activity";
 import { Activity, PlayerTeam } from "./room-activity";
 import type { Room } from "./rooms";
 import type { IGameFormat, IHostDisplayUhtml, IPokemonUhtml, ITrainerUhtml, IUserHostedFormat, PlayerList } from "./types/games";
 import type { IPokemon, IPokemonCopy } from "./types/pokemon-showdown";
-import type { IGameCustomBox } from "./types/storage";
-import type { HexCode } from "./types/tools";
+import type { IGameCustomBox, IGameHostDisplay } from "./types/storage";
 import type { User } from "./users";
 
 const teamNameLists: Dict<string[][]> = {
@@ -194,8 +191,7 @@ export abstract class Game extends Activity {
 			"will not receive any further signups messages.", this.privateJoinLeaveUhtmlName);
 	}
 
-	sayHostDisplayUhtml(user: User, backgroundColor: HexCode | undefined, trainerChoices: ITrainerPick[], pokemonChoices: IPokemonPick[],
-		pokemonIcons: boolean): void {
+	sayHostDisplayUhtml(user: User, hostDisplay: IGameHostDisplay): void {
 		const uhtmlName = this.uhtmlBaseName + "-" + this.round + "-hostdisplay";
 
 		if (this.lastHostDisplayUhtml && this.lastHostDisplayUhtml.uhtmlName !== uhtmlName) {
@@ -225,16 +221,16 @@ export abstract class Game extends Activity {
 			this.lastHostDisplayUhtml = undefined;
 		}
 
-		const html = Games.getHostCustomDisplay(user.name, backgroundColor, trainerChoices, pokemonChoices, pokemonIcons);
+		const html = Games.getHostCustomDisplay(user.name, hostDisplay);
 		if (this.lastHostDisplayUhtml && this.lastHostDisplayUhtml.html === html) return;
 
 		this.sayUhtmlAuto(uhtmlName, html);
 
 		this.lastHostDisplayUhtml = {
 			html,
-			pokemon: pokemonChoices,
-			trainers: trainerChoices,
-			pokemonType: pokemonIcons ? 'icon' : 'gif',
+			pokemon: hostDisplay.pokemon.slice(),
+			trainers: hostDisplay.trainers.slice(),
+			pokemonType: hostDisplay.gifOrIcon,
 			uhtmlName,
 			user: user.name,
 		};

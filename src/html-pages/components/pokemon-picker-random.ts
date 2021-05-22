@@ -1,6 +1,6 @@
 import type { Room } from "../../rooms";
 import type { ModelGeneration } from "../../types/dex";
-import type { IPokemonPickerProps } from "./pokemon-picker-base";
+import type { IPokemonPick, IPokemonPickerProps } from "./pokemon-picker-base";
 import { PokemonPickerBase } from "./pokemon-picker-base";
 import { TypePicker } from "./type-picker";
 
@@ -225,6 +225,19 @@ export class PokemonPickerRandom extends PokemonPickerBase {
 
 		this.pick(pick, dontRender);
 		return true;
+	}
+
+	setPokemonAttributes(pick: IPokemonPick, textInput?: boolean): void {
+		this.parentPickGeneration(pick.generation);
+
+		if (!this.isValidChoice(pick.pokemon)) return;
+
+		this.parentPickShininess(pick.shiny ? true : false);
+
+		if (!textInput) {
+			this.currentPick = undefined;
+			this.parentPick(pick.pokemon);
+		}
 	}
 
 	render(): string {

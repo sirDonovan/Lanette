@@ -2,7 +2,7 @@ import type { Room } from "../rooms";
 import type { BaseCommandDefinitions } from "../types/command-parser";
 import type { ModelGeneration } from "../types/dex";
 import type { IRandomGameAnswer } from "../types/games";
-import type { HexCode } from "../types/tools";
+import type { BorderType } from "../types/tools";
 import type { User } from "../users";
 import type { IColorPick } from "./components/color-picker";
 import { ManualHostDisplay } from "./components/manual-host-display";
@@ -14,10 +14,10 @@ import { HtmlPageBase } from "./html-page-base";
 import { MultiTextInput } from "./components/multi-text-input";
 import { TextInput } from "./components/text-input";
 import { NumberTextInput } from "./components/number-text-input";
+import type { IDatabase, GifIcon, IGameHostDisplay } from "../types/storage";
 
 export type PokemonChoices = (IPokemonPick | undefined)[];
 export type TrainerChoices = (ITrainerPick | undefined)[];
-export type GifIcon = 'gif' | 'icon';
 
 const excludedHintGames: string[] = ['hypnoshunches', 'mareaniesmarquees', 'pikachusmysterypokemon', 'smearglesmysterymoves',
 'zygardesorders'];
@@ -58,13 +58,11 @@ class GameHostControlPanel extends HtmlPageBase {
 
 	autoSendDisplay: boolean = false;
 	currentView: 'hostinformation' | 'manualhostdisplay' | 'randomhostdisplay' | 'generatehints';
-	currentBackgroundColor: HexCode | undefined = undefined;
 	currentPokemon: PokemonChoices = [];
 	currentTrainers: TrainerChoices = [];
 	currentPlayer: string = '';
 	generateHintsGameHtml: string = '';
 	generatedAnswer: IRandomGameAnswer | undefined = undefined;
-	gifOrIcon: GifIcon = 'gif';
 	pokemonGeneration: ModelGeneration = 'xy';
 	storedMessageInput: MultiTextInput;
 	twistInput: TextInput;
@@ -79,22 +77,12 @@ class GameHostControlPanel extends HtmlPageBase {
 
 		GameHostControlPanel.loadData();
 
-		const hostDisplayProps: IHostDisplayProps = {
-			maxGifs,
-			maxIcons,
-			maxTrainers,
-			clearBackgroundColor: (dontRender) => this.clearBackgroundColor(dontRender),
-			setBackgroundColor: (color, dontRender) => this.setBackgroundColor(color, dontRender),
-			clearPokemon: (index, dontRender) => this.clearPokemon(index, dontRender),
-			selectPokemon: (index, pokemon, dontRender) => this.selectPokemon(index, pokemon, dontRender),
-			clearRandomizedPokemon: () => this.clearRandomizedPokemon(),
-			randomizePokemon: (pokemon) => this.randomizePokemon(pokemon),
-			clearTrainer: (index, dontRender) => this.clearTrainer(index, dontRender),
-			selectTrainer: (index, trainer, dontRender) => this.selectTrainer(index, trainer, dontRender),
-			randomizeTrainers: (trainers) => this.randomizeTrainers(trainers),
-			setGifOrIcon: (gifOrIcon, currentPokemon, dontRender) => this.setGifOrIcon(gifOrIcon, currentPokemon, dontRender),
-			reRender: () => this.send(),
-		};
+		const database = Storage.getDatabase(this.room);
+		let hostDisplay: IGameHostDisplay | undefined;
+
+		if (database.gameHostDisplays && this.userId in database.gameHostDisplays) {
+			hostDisplay = database.gameHostDisplays[this.userId];
+		}
 
 		this.currentView = room.userHostedGame && room.userHostedGame.isHost(user) ? 'hostinformation' : 'manualhostdisplay';
 		const hostInformation = this.currentView === 'hostinformation';
@@ -145,12 +133,36 @@ class GameHostControlPanel extends HtmlPageBase {
 		});
 		this.twistInput.active = hostInformation;
 
+		const hostDisplayProps: IHostDisplayProps = {
+			currentBackground: hostDisplay ? hostDisplay.background : undefined,
+			currentBackgroundBorder: hostDisplay ? hostDisplay.backgroundBorder : undefined,
+			maxGifs,
+			maxIcons,
+			maxTrainers,
+			clearBackgroundColor: (dontRender) => this.clearBackgroundColor(dontRender),
+			setBackgroundColor: (color, dontRender) => this.setBackgroundColor(color, dontRender),
+			clearPokemon: (index, dontRender) => this.clearPokemon(index, dontRender),
+			selectPokemon: (index, pokemon, dontRender) => this.selectPokemon(index, pokemon, dontRender),
+			clearRandomizedPokemon: () => this.clearRandomizedPokemon(),
+			randomizePokemon: (pokemon) => this.randomizePokemon(pokemon),
+			clearTrainer: (index, dontRender) => this.clearTrainer(index, dontRender),
+			selectTrainer: (index, trainer, dontRender) => this.selectTrainer(index, trainer, dontRender),
+			randomizeTrainers: (trainers) => this.randomizeTrainers(trainers),
+			setGifOrIcon: (gifOrIcon, currentPokemon, dontRender) => this.setGifOrIcon(gifOrIcon, currentPokemon, dontRender),
+			reRender: () => this.send(),
+		};
+
 		this.manualHostDisplay = new ManualHostDisplay(room, this.commandPrefix, manualHostDisplayCommand, hostDisplayProps);
 		this.manualHostDisplay.active = !hostInformation;
 
 		this.randomHostDisplay = new RandomHostDisplay(room, this.commandPrefix, randomHostDisplayCommand,
 			Object.assign({random: true}, hostDisplayProps));
 		this.randomHostDisplay.active = false;
+
+		if (hostDisplay) {
+			this.manualHostDisplay.loadHostDisplay(hostDisplay);
+			this.randomHostDisplay.loadHostDisplay(hostDisplay);
+		}
 
 		this.components = [this.addPointsInput, this.removePointsInput, this.storedMessageInput, this.twistInput,
 			this.manualHostDisplay, this.randomHostDisplay];
@@ -172,6 +184,13 @@ class GameHostControlPanel extends HtmlPageBase {
 
 	onClose(): void {
 		delete pages[this.userId];
+	}
+
+	getDatabase(): IDatabase {
+		const database = Storage.getDatabase(this.room);
+		Storage.createGameHostDisplay(database, this.userId);
+
+		return database;
 	}
 
 	chooseHostInformation(): void {
@@ -327,13 +346,15 @@ class GameHostControlPanel extends HtmlPageBase {
 	}
 
 	clearBackgroundColor(dontRender: boolean | undefined): void {
-		this.currentBackgroundColor = undefined;
+		const database = this.getDatabase();
+		delete database.gameHostDisplays![this.userId].background;
 
 		if (!dontRender) this.send();
 	}
 
 	setBackgroundColor(color: IColorPick, dontRender: boolean | undefined): void {
-		this.currentBackgroundColor = color.hexCode;
+		const database = this.getDatabase();
+		database.gameHostDisplays![this.userId].background = color.hexCode;
 
 		if (this.currentView === 'randomhostdisplay') {
 			this.manualHostDisplay.setRandomizedBackgroundColor(color.hueVariation, color.lightness, color.hexCode);
@@ -348,11 +369,15 @@ class GameHostControlPanel extends HtmlPageBase {
 	clearPokemon(index: number, dontRender: boolean | undefined): void {
 		this.currentPokemon[index] = undefined;
 
+		this.storePokemon();
+
 		if (!dontRender) this.send();
 	}
 
 	selectPokemon(index: number, pokemon: IPokemonPick, dontRender: boolean | undefined): void {
 		this.currentPokemon[index] = pokemon;
+
+		this.storePokemon();
 
 		if (!dontRender) {
 			if (this.autoSendDisplay) this.sendHostDisplay();
@@ -363,25 +388,38 @@ class GameHostControlPanel extends HtmlPageBase {
 	clearRandomizedPokemon(): void {
 		this.currentPokemon = [];
 
+		this.storePokemon();
+
 		this.send();
 	}
 
 	randomizePokemon(pokemon: PokemonChoices): void {
-		this.manualHostDisplay.setRandomizedPokemon(pokemon);
+		this.manualHostDisplay.loadHostDisplayPokemon(pokemon);
 		this.currentPokemon = pokemon;
+
+		this.storePokemon();
 
 		if (this.autoSendDisplay) this.sendHostDisplay();
 		this.send();
 	}
 
+	storePokemon(): void {
+		const database = this.getDatabase();
+		database.gameHostDisplays![this.userId].pokemon = this.currentPokemon.filter(x => x !== undefined) as IPokemonPick[];
+	}
+
 	clearTrainer(index: number, dontRender: boolean | undefined): void {
 		this.currentTrainers[index] = undefined;
+
+		this.storeTrainers();
 
 		if (!dontRender) this.send();
 	}
 
 	selectTrainer(index: number, trainer: ITrainerPick, dontRender: boolean | undefined): void {
 		this.currentTrainers[index] = trainer;
+
+		this.storeTrainers();
 
 		if (!dontRender) {
 			if (this.autoSendDisplay) this.sendHostDisplay();
@@ -390,15 +428,23 @@ class GameHostControlPanel extends HtmlPageBase {
 	}
 
 	randomizeTrainers(trainers: TrainerChoices): void {
-		this.manualHostDisplay.setRandomizedTrainers(trainers);
+		this.manualHostDisplay.loadHostDisplayTrainers(trainers);
 		this.currentTrainers = trainers;
+
+		this.storeTrainers();
 
 		if (this.autoSendDisplay) this.sendHostDisplay();
 		this.send();
 	}
 
+	storeTrainers(): void {
+		const database = this.getDatabase();
+		database.gameHostDisplays![this.userId].trainers = this.currentTrainers.filter(x => x !== undefined) as ITrainerPick[];
+	}
+
 	setGifOrIcon(gifOrIcon: GifIcon, currentPokemon: PokemonChoices, dontRender: boolean | undefined): void {
-		this.gifOrIcon = gifOrIcon;
+		const database = this.getDatabase();
+		database.gameHostDisplays![this.userId].gifOrIcon = gifOrIcon;
 
 		if (this.currentView === 'manualhostdisplay') {
 			this.randomHostDisplay.setGifOrIcon(gifOrIcon, true);
@@ -446,16 +492,16 @@ class GameHostControlPanel extends HtmlPageBase {
 	}
 
 	getHostDisplay(): string {
-		return Games.getHostCustomDisplay(this.userName, this.currentBackgroundColor, this.getTrainers(), this.getPokemon(),
-			this.gifOrIcon === 'icon');
+		const database = this.getDatabase();
+		return Games.getHostCustomDisplay(this.userName, database.gameHostDisplays![this.userId]);
 	}
 
 	sendHostDisplay(): void {
 		const user = Users.get(this.userName);
 		if (!user || !this.room.userHostedGame || !this.room.userHostedGame.isHost(user)) return;
 
-		this.room.userHostedGame.sayHostDisplayUhtml(user, this.currentBackgroundColor, this.getTrainers(), this.getPokemon(),
-			this.gifOrIcon === 'icon');
+		const database = this.getDatabase();
+		this.room.userHostedGame.sayHostDisplayUhtml(user, database.gameHostDisplays![this.userId]);
 		this.send();
 	}
 

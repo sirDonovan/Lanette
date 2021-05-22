@@ -5,13 +5,16 @@ import type { ITrainerPick } from "./trainer-picker";
 import { TrainerPicker } from "./trainer-picker";
 import type { IComponentProps } from "./component-base";
 import { ComponentBase } from "./component-base";
-import type { GifIcon, PokemonChoices, TrainerChoices } from "../game-host-control-panel";
+import type { PokemonChoices, TrainerChoices } from "../game-host-control-panel";
 import type { PokemonPickerManual } from "./pokemon-picker-manual";
 import type { PokemonPickerRandom } from "./pokemon-picker-random";
 import type { ModelGeneration } from "../../types/dex";
 import type { Room } from "../../rooms";
+import type { BorderType, HexCode } from "../../types/tools";
+import type { GifIcon, IGameCustomBorder, IGameHostDisplay } from "../../types/storage";
 
 export interface IHostDisplayProps extends IComponentProps {
+	currentBackground?: HexCode;
 	maxGifs: number;
 	maxIcons: number;
 	maxTrainers: number;
@@ -67,6 +70,7 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 		super(room, parentCommandPrefix, componentCommand, props);
 
 		this.backgroundColorPicker = new ColorPicker(room, this.commandPrefix, setBackgroundColorCommand, {
+			currentPick: props.currentBackground,
 			random: props.random,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),
@@ -147,6 +151,15 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 			if (!this.gifPokemonPickers[i]) break;
 			this.iconPokemonPickers[i].addReplicationTarget(this.gifPokemonPickers[i]);
 		}
+	}
+
+	abstract loadHostDisplayPokemon(pokemon: PokemonChoices): void;
+	abstract loadHostDisplayTrainers(trainers: TrainerChoices): void;
+
+	loadHostDisplay(hostDisplay: IGameHostDisplay): void {
+		this.gifOrIcon = hostDisplay.gifOrIcon;
+		if (hostDisplay.pokemon.length) this.loadHostDisplayPokemon(hostDisplay.pokemon);
+		if (hostDisplay.trainers.length) this.loadHostDisplayTrainers(hostDisplay.trainers);
 	}
 
 	chooseBackgroundColorPicker(): void {

@@ -1,7 +1,5 @@
 import fs = require('fs');
 import path = require('path');
-import type { IPokemonPick } from './html-pages/components/pokemon-picker-base';
-import type { ITrainerPick } from './html-pages/components/trainer-picker';
 
 import type { PRNGSeed } from './lib/prng';
 import { ScriptedGame } from './room-game-scripted';
@@ -15,8 +13,7 @@ import type {
 	IUserHostedFormatComputed, LoadedGameCommands, LoadedGameFile, UserHostedCustomizable
 } from './types/games';
 import type { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/pokemon-showdown';
-import type { IGameCustomBox, IGameHostBox, IGameScriptedBox, IPastGame } from './types/storage';
-import type { HexCode } from './types/tools';
+import type { IGameCustomBox, IGameHostBox, IGameHostDisplay, IGameScriptedBox, IPastGame } from './types/storage';
 import type { User } from './users';
 import { ParametersWorker } from './workers/parameters';
 import { PortmanteausWorker } from './workers/portmanteaus';
@@ -1659,26 +1656,21 @@ export class Games {
 			this.getCustomBoxButtonStyle(customBox, true));
 	}
 
-	getHostCustomDisplay(host: string, backgroundColor: HexCode | undefined, trainerChoices: ITrainerPick[],
-		pokemonChoices: IPokemonPick[], pokemonIcons: boolean): string {
-		const centered = trainerChoices.length > 0 || !pokemonIcons;
+	getHostCustomDisplay(host: string, hostDisplay: IGameHostDisplay): string {
 		let html = "";
+
+		const customBorder = hostDisplay.backgroundBorder && Object.keys(hostDisplay.backgroundBorder).length ? true : false;
+		if (!customBorder) html += "<div class='infobox'>";
+
+		const pokemonIcons = hostDisplay.gifOrIcon === 'icon';
+		const centered = hostDisplay.trainers.length > 0 || !pokemonIcons;
 		if (centered) html += "<center>";
 
-		html += "<span";
-		if (backgroundColor && backgroundColor in Tools.hexCodes) {
-			html += " style='display: block;";
-			if (Tools.hexCodes[backgroundColor]!.textColor) {
-				html += 'color: ' + Tools.hexCodes[backgroundColor]!.textColor + ';';
-			} else {
-				html += 'color: #000000;';
-			}
-			html += "background: " + Tools.hexCodes[backgroundColor]!.gradient + "'";
-		}
-		html += ">";
+		const hexSpan = this.getCustomBoxSpan(hostDisplay);
+		if (hexSpan) html += hexSpan;
 
 		let trainerHtml = "";
-		for (const choice of trainerChoices) {
+		for (const choice of hostDisplay.trainers) {
 			const trainerSpriteId = Dex.getTrainerSpriteId(choice.trainer);
 			if (trainerSpriteId) {
 				if (trainerHtml) trainerHtml += "&nbsp;";
@@ -1688,7 +1680,7 @@ export class Games {
 
 		let staticSprites = false;
 		const gifsOrIcons: string[] = [];
-		for (const choice of pokemonChoices) {
+		for (const choice of hostDisplay.pokemon) {
 			const pokemon = Dex.getPokemon(choice.pokemon);
 			if (!pokemon || (!pokemonIcons && !Dex.hasModelData(pokemon, choice.generation))) {
 				continue;
@@ -1711,10 +1703,14 @@ export class Games {
 
 		html += gifsOrIcons.join(pokemonIcons ? ", " : staticSprites ? "" : "&nbsp;&nbsp;&nbsp;");
 
-		html += "</span>";
+		if (hexSpan) html += "</span>";
 		if (centered) html += "</center>";
 
-		return "<div class='infobox'>" + html + Client.getUserAttributionHtml(host) + "</div>";
+		html += Client.getUserAttributionHtml(host);
+
+		if (!customBorder) html += "</div>";
+
+		return html;
 	}
 
 	updateGameCatalog(room: Room): void {
