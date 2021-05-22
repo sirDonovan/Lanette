@@ -1439,7 +1439,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 			}
 
 			const cloakedPokemon = this.starterPokemon.get(player)!;
-			if (cloakedPokemon.includes(pokemon.name)) {
+			if (cloakedPokemon.includes(pokemon.name) || cloakedPokemon.includes(pokemon.baseSpecies)) {
 				if (!(slot in battleData.faintedCloakedPokemon)) battleData.faintedCloakedPokemon[slot] = 0;
 				battleData.faintedCloakedPokemon[slot]++;
 				if (battleData.faintedCloakedPokemon[slot] === cloakedPokemon.length) {
