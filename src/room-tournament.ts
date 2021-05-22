@@ -43,7 +43,7 @@ export class Tournament extends Activity {
 	manuallyEnabledPoints: boolean | undefined = undefined;
 	originalFormat: string = '';
 	playerLosses = new Map<Player, number>();
-	runAutoDqInterval: NodeJS.Timer | null = null;
+	runAutoDqTimeout: NodeJS.Timer | null = null;
 	scheduled: boolean = false;
 	totalPlayers: number = 0;
 	updates: Partial<ITournamentUpdateJson> = {};
@@ -142,15 +142,22 @@ export class Tournament extends Activity {
 		this.autoDqMinutes = minutes * 60 * 1000;
 	}
 
-	setRunAutoDqInterval(): void {
+	setRunAutoDqTimeout(): void {
 		if (!this.autoDqMinutes) return;
-		this.runAutoDqInterval = setInterval(() => this.room.runTournamentAutoDq(), this.autoDqMinutes);
+
+		if (this.runAutoDqTimeout) clearTimeout(this.runAutoDqTimeout);
+		this.runAutoDqTimeout = setTimeout(() => {
+			this.room.runTournamentAutoDq();
+
+			this.runAutoDqTimeout = null;
+			this.setRunAutoDqTimeout();
+		}, this.autoDqMinutes);
 	}
 
 	deallocate(): void {
 		if (this.adjustCapTimer) clearTimeout(this.adjustCapTimer);
 		if (this.startTimer) clearTimeout(this.startTimer);
-		if (this.runAutoDqInterval) clearInterval(this.runAutoDqInterval);
+		if (this.runAutoDqTimeout) clearTimeout(this.runAutoDqTimeout);
 		delete this.room.tournament;
 	}
 
@@ -158,7 +165,7 @@ export class Tournament extends Activity {
 		if (this.startTimer) clearTimeout(this.startTimer);
 		this.started = true;
 		this.startTime = Date.now();
-		this.setRunAutoDqInterval();
+		this.setRunAutoDqTimeout();
 	}
 
 	onEnd(): void {
@@ -346,6 +353,8 @@ export class Tournament extends Activity {
 	}
 
 	onBattleStart(usernameA: string, usernameB: string, roomid: string): void {
+		this.setRunAutoDqTimeout();
+
 		const idA = Tools.toId(usernameA);
 		const idB = Tools.toId(usernameB);
 		if (!(idA in this.players) || !(idB in this.players)) {
@@ -374,6 +383,8 @@ export class Tournament extends Activity {
 	}
 
 	onBattleEnd(usernameA: string, usernameB: string, score: [string, string], roomid: string): void {
+		this.setRunAutoDqTimeout();
+
 		const idA = Tools.toId(usernameA);
 		const idB = Tools.toId(usernameB);
 		if (!(idA in this.players) || !(idB in this.players)) {
