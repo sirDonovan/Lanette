@@ -138,6 +138,9 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 		teams: 'https://www.smogon.com/forums/threads/3645990',
 		viability: 'https://www.smogon.com/forums/threads/3623347',
 	},
+	'gen7doublesuu': {
+		teams: 'https://www.smogon.com/forums/threads/3598014/post-7265600',
+	},
 	'gen7battlespotsingles': {
 		info: 'https://www.smogon.com/dex/sm/formats/battle-spot-singles',
 		teams: 'https://www.smogon.com/forums/threads/3619162',
