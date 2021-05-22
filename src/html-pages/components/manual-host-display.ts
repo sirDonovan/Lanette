@@ -196,17 +196,26 @@ export class ManualHostDisplay extends HostDisplayBase {
 	render(): string {
 		let html = "";
 
+		const background = this.currentPicker === 'background';
+		const pokemon = this.currentPicker === 'pokemon';
+		const trainer = this.currentPicker === 'trainer';
+		const border = this.currentPicker === 'background-border';
+
 		html += this.getQuietPmButton(this.commandPrefix + ", " + this.chooseBackgroundColorPickerCommand, "Choose background",
-			this.currentPicker === 'background');
+			background);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.chooseBackgroundBorderPickerCommand, "Background border",
+			border);
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.choosePokemonPickerCommand, "Choose Pokemon",
-			this.currentPicker === 'pokemon');
+			pokemon);
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.chooseTrainerPickerCommand, "Choose trainer",
-			this.currentPicker === 'trainer');
+			trainer);
 		html += "<hr />";
 
-		if (this.currentPicker === 'background') {
+		if (background) {
 			html += this.renderBackgroundPicker();
-		} else if (this.currentPicker === 'pokemon') {
+		} else if (border) {
+			html += this.renderBackgroundBorderPicker();
+		} else if (pokemon) {
 			const gif = this.gifOrIcon === 'gif';
 			html += "GIFs or icons: ";
 			html += this.getQuietPmButton(this.commandPrefix + ", " + this.setGifOrIconCommand + "," + this.setGif, "GIFs", gif);

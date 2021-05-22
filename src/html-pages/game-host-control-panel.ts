@@ -149,6 +149,14 @@ class GameHostControlPanel extends HtmlPageBase {
 			selectTrainer: (index, trainer, dontRender) => this.selectTrainer(index, trainer, dontRender),
 			randomizeTrainers: (trainers) => this.randomizeTrainers(trainers),
 			setGifOrIcon: (gifOrIcon, currentPokemon, dontRender) => this.setGifOrIcon(gifOrIcon, currentPokemon, dontRender),
+			onClearBorderColor: (dontRender) => this.clearBorderColor(dontRender),
+			onPickBorderColor: (color: IColorPick, dontRender: boolean | undefined) => this.setBorderColor(color, dontRender),
+			onClearBorderRadius: () => this.clearBorderRadius(),
+			onPickBorderRadius: (radius) => this.setBorderRadius(radius),
+			onClearBorderSize: () => this.clearBorderSize(),
+			onPickBorderSize: (size) => this.setBorderSize(size),
+			onClearBorderType: () => this.clearBorderType(),
+			onPickBorderType: (type) => this.setBorderType(type),
 			reRender: () => this.send(),
 		};
 
@@ -455,6 +463,90 @@ class GameHostControlPanel extends HtmlPageBase {
 		this.currentPokemon = currentPokemon;
 
 		if (!dontRender) this.send();
+	}
+
+	clearBorderColor(dontRender?: boolean): void {
+		const database = this.getDatabase();
+
+		if (database.gameHostDisplays![this.userId].backgroundBorder) {
+			delete database.gameHostDisplays![this.userId].backgroundBorder!.color;
+		}
+
+		if (!dontRender) this.send();
+	}
+
+	setBorderColor(color: IColorPick, dontRender?: boolean): void {
+		const database = this.getDatabase();
+
+		if (!database.gameHostDisplays![this.userId].backgroundBorder) {
+			database.gameHostDisplays![this.userId].backgroundBorder = {};
+		}
+		database.gameHostDisplays![this.userId].backgroundBorder!.color = color.hexCode;
+
+		if (!dontRender) this.send();
+	}
+
+	clearBorderRadius(): void {
+		const database = this.getDatabase();
+
+		if (database.gameHostDisplays![this.userId].backgroundBorder) {
+			delete database.gameHostDisplays![this.userId].backgroundBorder!.radius;
+		}
+
+		this.send();
+	}
+
+	setBorderRadius(radius: number): void {
+		const database = this.getDatabase();
+
+		if (!database.gameHostDisplays![this.userId].backgroundBorder) {
+			database.gameHostDisplays![this.userId].backgroundBorder = {};
+		}
+		database.gameHostDisplays![this.userId].backgroundBorder!.radius = radius;
+
+		this.send();
+	}
+
+	clearBorderSize(): void {
+		const database = this.getDatabase();
+
+		if (database.gameHostDisplays![this.userId].backgroundBorder) {
+			delete database.gameHostDisplays![this.userId].backgroundBorder!.size;
+		}
+
+		this.send();
+	}
+
+	setBorderSize(size: number): void {
+		const database = this.getDatabase();
+
+		if (!database.gameHostDisplays![this.userId].backgroundBorder) {
+			database.gameHostDisplays![this.userId].backgroundBorder = {};
+		}
+		database.gameHostDisplays![this.userId].backgroundBorder!.size = size;
+
+		this.send();
+	}
+
+	clearBorderType(): void {
+		const database = this.getDatabase();
+
+		if (database.gameHostDisplays![this.userId].backgroundBorder) {
+			delete database.gameHostDisplays![this.userId].backgroundBorder!.type;
+		}
+
+		this.send();
+	}
+
+	setBorderType(type: BorderType): void {
+		const database = this.getDatabase();
+
+		if (!database.gameHostDisplays![this.userId].backgroundBorder) {
+			database.gameHostDisplays![this.userId].backgroundBorder = {};
+		}
+		database.gameHostDisplays![this.userId].backgroundBorder!.type = type;
+
+		this.send();
 	}
 
 	setAutoSend(autoSend: boolean): void {

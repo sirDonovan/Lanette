@@ -12,9 +12,11 @@ import type { ModelGeneration } from "../../types/dex";
 import type { Room } from "../../rooms";
 import type { BorderType, HexCode } from "../../types/tools";
 import type { GifIcon, IGameCustomBorder, IGameHostDisplay } from "../../types/storage";
+import { BorderStyle } from "./border-style";
 
 export interface IHostDisplayProps extends IComponentProps {
 	currentBackground?: HexCode;
+	currentBackgroundBorder?: IGameCustomBorder;
 	maxGifs: number;
 	maxIcons: number;
 	maxTrainers: number;
@@ -29,15 +31,25 @@ export interface IHostDisplayProps extends IComponentProps {
 	selectTrainer: (index: number, trainer: ITrainerPick, dontRender: boolean | undefined) => void;
 	randomizeTrainers: (trainers: TrainerChoices) => void;
 	setGifOrIcon: (gifOrIcon: GifIcon, currentPokemon: PokemonChoices, dontRender: boolean | undefined) => void;
+	onClearBorderColor: (dontRender: boolean | undefined) => void;
+	onPickBorderColor: (color: IColorPick, dontRender: boolean | undefined) => void;
+	onClearBorderRadius: () => void;
+	onPickBorderRadius: (radius: number) => void;
+	onClearBorderSize: () => void;
+	onPickBorderSize: (size: number) => void;
+	onClearBorderType: () => void;
+	onPickBorderType: (type: BorderType) => void;
 }
 
 const setBackgroundColorCommand = 'setbackgroundcolor';
+const setBackgroudBorderStyleCommand = 'setbackgroundborderstyle';
 const setPokemonCommand = 'setpokemon';
 
 const modelGenerations = Dex.getModelGenerations();
 
 export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 	chooseBackgroundColorPickerCommand: string = 'choosebackgroundcolorpicker';
+	chooseBackgroundBorderPickerCommand: string = 'choosebackgroundborderpicker';
 	choosePokemonPickerCommand: string = 'choosepokemonpicker';
 	chooseTrainerPickerCommand: string = 'choosetrainerpicker';
 	setPokemonPickerIndexCommand: string = 'setpokemonpickerindex';
@@ -49,7 +61,7 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 	setIcon: string = 'icon';
 
 	currentModelGeneration: ModelGeneration = Dex.getModelGenerationName(Dex.getGen());
-	currentPicker: 'background' | 'pokemon' | 'trainer' = 'background';
+	currentPicker: 'background' | 'background-border' | 'pokemon' | 'trainer' = 'background';
 	gifOrIcon: GifIcon = 'gif';
 	pokemonPickerIndex: number = 0;
 	trainerPickerIndex: number = 0;
@@ -61,6 +73,7 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 	maxIconPokemonPickerIndex: number;
 	maxTrainerPickerIndex: number;
 	backgroundColorPicker: ColorPicker;
+	backgroundBorderStyle: BorderStyle;
 	gifPokemonPickers: PokemonPickerBase[];
 	iconPokemonPickers: PokemonPickerBase[];
 	trainerPickers: TrainerPicker[];
@@ -79,7 +92,25 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 			reRender: () => props.reRender(),
 		});
 
-		this.components = [this.backgroundColorPicker];
+		this.backgroundBorderStyle = new BorderStyle(room, this.commandPrefix, setBackgroudBorderStyleCommand, {
+			currentBorder: props.currentBackgroundBorder,
+			minRadius: 2,
+			maxRadius: 100,
+			minSize: 2,
+			maxSize: 5,
+			onClearColor: (dontRender) => props.onClearBorderColor(dontRender),
+			onPickColor: (color: IColorPick, dontRender: boolean | undefined) => props.onPickBorderColor(color, dontRender),
+			onClearRadius: () => props.onClearBorderRadius(),
+			onPickRadius: (radius) => props.onPickBorderRadius(radius),
+			onClearSize: () => props.onClearBorderSize(),
+			onPickSize: (size) => props.onPickBorderSize(size),
+			onClearType: () => props.onClearBorderType(),
+			onPickType: (type) => props.onPickBorderType(type),
+			reRender: () => props.reRender(),
+		});
+		this.backgroundBorderStyle.active = false;
+
+		this.components = [this.backgroundColorPicker, this.backgroundBorderStyle];
 
 		this.maxTrainerPickerIndex = props.maxTrainers - 1;
 		this.trainerPickers = [];
@@ -166,6 +197,7 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 		if (this.currentPicker === 'background') return;
 
 		this.toggleBackgroundColorPicker(true);
+		this.toggleBackgroundBorderPicker(false);
 		this.togglePokemonPicker(false);
 		this.toggleTrainerPicker(false);
 
@@ -178,10 +210,28 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 		this.backgroundColorPicker.active = active;
 	}
 
+	chooseBackgroundBorderPicker(): void {
+		if (this.currentPicker === 'background-border') return;
+
+		this.toggleBackgroundBorderPicker(true);
+		this.toggleBackgroundColorPicker(false);
+		this.togglePokemonPicker(false);
+		this.toggleTrainerPicker(false);
+
+		this.currentPicker = 'background-border';
+
+		this.props.reRender();
+	}
+
+	toggleBackgroundBorderPicker(active: boolean): void {
+		this.backgroundBorderStyle.active = active;
+	}
+
 	choosePokemonPicker(): void {
 		if (this.currentPicker === 'pokemon') return;
 
 		this.toggleBackgroundColorPicker(false);
+		this.toggleBackgroundBorderPicker(false);
 		this.togglePokemonPicker(true);
 		this.toggleTrainerPicker(false);
 
@@ -202,6 +252,7 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 		if (this.currentPicker === 'trainer') return;
 
 		this.toggleBackgroundColorPicker(false);
+		this.toggleBackgroundBorderPicker(false);
 		this.togglePokemonPicker(false);
 		this.toggleTrainerPicker(true);
 
@@ -388,6 +439,8 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 
 		if (cmd === this.chooseBackgroundColorPickerCommand) {
 			this.chooseBackgroundColorPicker();
+		} else if (cmd === this.chooseBackgroundBorderPickerCommand) {
+			this.chooseBackgroundBorderPicker();
 		} else if (cmd === this.choosePokemonPickerCommand) {
 			this.choosePokemonPicker();
 		} else if (cmd === this.chooseTrainerPickerCommand) {
@@ -433,6 +486,10 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 
 	renderBackgroundPicker(): string {
 		return "<b>Background color</b><br />" + this.backgroundColorPicker.render();
+	}
+
+	renderBackgroundBorderPicker(): string {
+		return "<b>Background border</b><br />" + this.backgroundBorderStyle.render();
 	}
 
 	renderAllModelGenerations(): string {

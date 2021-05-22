@@ -360,17 +360,26 @@ export class RandomHostDisplay extends HostDisplayBase {
 	render(): string {
 		let html = "";
 
-		html += this.getQuietPmButton(this.commandPrefix + ", " + this.chooseBackgroundColorPickerCommand, "Background",
-			this.currentPicker === 'background');
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.choosePokemonPickerCommand, "Pokemon",
-			this.currentPicker === 'pokemon');
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.chooseTrainerPickerCommand, "Trainer",
-			this.currentPicker === 'trainer');
+		const background = this.currentPicker === 'background';
+		const pokemon = this.currentPicker === 'pokemon';
+		const trainer = this.currentPicker === 'trainer';
+		const border = this.currentPicker === 'background-border';
+
+		html += this.getQuietPmButton(this.commandPrefix + ", " + this.chooseBackgroundColorPickerCommand, "Choose background",
+			background);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.chooseBackgroundBorderPickerCommand, "Background border",
+			border);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.choosePokemonPickerCommand, "Choose Pokemon",
+			pokemon);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.chooseTrainerPickerCommand, "Choose trainer",
+			trainer);
 		html += "<br /><br />";
 
-		if (this.currentPicker === 'background') {
+		if (background) {
 			html += this.renderBackgroundPicker();
-		} else if (this.currentPicker === 'pokemon') {
+		} else if (border) {
+			html += this.renderBackgroundBorderPicker();
+		} else if (pokemon) {
 			html += "GIFs or icons: ";
 			html += this.getQuietPmButton(this.commandPrefix + ", " + this.setGifOrIconCommand + "," + this.setGif, "GIFs",
 				this.gifOrIcon === 'gif');
