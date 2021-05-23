@@ -39,6 +39,8 @@ export class Tournament extends Activity {
 	};
 	isRoundRobin: boolean = false;
 	isSingleElimination: boolean = false;
+	lastUpdateEndTime: number = 0;
+	lastRunAutoDqTime: number = 0;
 	manuallyNamed: boolean = false;
 	manuallyEnabledPoints: boolean | undefined = undefined;
 	originalFormat: string = '';
@@ -148,10 +150,14 @@ export class Tournament extends Activity {
 
 		if (this.runAutoDqTimeout) clearTimeout(this.runAutoDqTimeout);
 		this.runAutoDqTimeout = setTimeout(() => {
-			this.room.runTournamentAutoDq();
 			this.runAutoDqTimeout = null;
 
-			if (this.getRemainingPlayerCount() > 2) this.setRunAutoDqTimeout();
+			if (!this.lastUpdateEndTime || !this.lastRunAutoDqTime || this.lastUpdateEndTime > this.lastRunAutoDqTime) {
+				this.room.runTournamentAutoDq();
+				this.lastRunAutoDqTime = Date.now();
+
+				if (this.getRemainingPlayerCount() > 2) this.setRunAutoDqTimeout();
+			}
 		}, this.runAutoDqTime);
 	}
 
@@ -263,7 +269,9 @@ export class Tournament extends Activity {
 
 	updateEnd(): void {
 		Object.assign(this.info, this.updates);
+
 		if (this.updates.generator) this.setGenerator(this.updates.generator);
+
 		if (this.updates.bracketData) {
 			if (this.info.isStarted) {
 				this.updateBracket();
@@ -275,6 +283,7 @@ export class Tournament extends Activity {
 				}
 			}
 		}
+
 		if (this.updates.format) {
 			const format = Dex.getFormat(this.updates.format);
 			if (format) {
@@ -290,6 +299,7 @@ export class Tournament extends Activity {
 		}
 
 		this.updates = {};
+		this.lastUpdateEndTime = Date.now();
 	}
 
 	updateBracket(): void {
