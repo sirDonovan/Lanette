@@ -120,7 +120,7 @@ export class Tools {
 	}
 
 	getBorderTypes(): BorderType[] {
-		return ['solid', 'dashed', 'double', 'inset', 'outset'];
+		return ['solid', 'dotted', 'dashed', 'double', 'inset', 'outset'];
 	}
 
 	getHexSpan(backgroundColor: string | undefined, borderColor?: string, borderRadiusValue?: number, borderSize?: number,

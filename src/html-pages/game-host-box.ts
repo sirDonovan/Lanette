@@ -14,8 +14,8 @@ import { TrainerPicker } from "./components/trainer-picker";
 import type { PokemonChoices } from "./game-host-control-panel";
 import { HtmlPageBase } from "./html-page-base";
 
-type BorderPickers = 'background' | 'buttons';
-type BorderDatabaseKeys = 'backgroundBorder' | 'buttonsBorder';
+type BorderPickers = 'background' | 'buttons' | 'signups-background' | 'signups-buttons';
+type BorderDatabaseKeys = 'backgroundBorder' | 'buttonsBorder' | 'signupsBackgroundBorder' | 'signupsButtonsBorder';
 
 const baseCommand = 'gamehostbox';
 const chooseBackgroundColorPicker = 'choosebackgroundcolorpicker';
@@ -24,6 +24,8 @@ const chooseSignupsBackgroundColorPicker = 'choosesignupsbackgroundcolorpicker';
 const chooseSignupsButtonColorPicker = 'choosesignupsbuttoncolorpicker';
 const chooseBackgroundBorderPicker = 'choosebackgroundborderpicker';
 const chooseButtonsBorderPicker = 'choosebuttonsborderpicker';
+const chooseSignupsBackgroundBorderPicker = 'choosesignupsbackgroundborderpicker';
+const chooseSignupsButtonsBorderPicker = 'choosesignupsbuttonsborderpicker';
 const chooseTrainerPicker = 'choosetrainerpicker';
 const choosePokemonModelPicker = 'choosepokemonmodelpicker';
 const setBackgroundColorCommand = 'setbackgroundcolor';
@@ -32,6 +34,8 @@ const setSignupsBackgroundColorCommand = 'setsignupsbackgroundcolor';
 const setSignupsButtonColorCommand = 'setsignupsbuttonscolor';
 const setBackgroudBorderStyleCommand = 'setbackgroundborderstyle';
 const setButtonBorderStyleCommand = 'setbuttonborderstyle';
+const setSignupsBackgroudBorderStyleCommand = 'setsignupsbackgroundborderstyle';
+const setSignupsButtonBorderStyleCommand = 'setsignupsbuttonborderstyle';
 const setTrainerCommand = 'settrainer';
 const setPokemonModelCommand = 'setpokemonmodel';
 const closeCommand = 'close';
@@ -42,7 +46,7 @@ class GameHostBox extends HtmlPageBase {
 	pageId = 'game-host-box';
 
 	currentPicker: 'background' | 'buttons' | 'signups-background' | 'signups-buttons' | 'background-border' | 'buttons-border' |
-		'trainer' | 'pokemon' = 'background';
+		'signups-background-border' | 'signups-buttons-border' | 'trainer' | 'pokemon' = 'background';
 	currentPokemon: PokemonChoices = [];
 
 	backgroundColorPicker: ColorPicker;
@@ -51,6 +55,8 @@ class GameHostBox extends HtmlPageBase {
 	signupsButtonColorPicker: ColorPicker;
 	backgroundBorderStyle: BorderStyle;
 	buttonsBorderStyle: BorderStyle;
+	signupsBackgroundBorderStyle: BorderStyle;
+	signupsButtonsBorderStyle: BorderStyle;
 	trainerPicker: TrainerPicker;
 	pokemonModelPicker: PokemonModelPicker;
 	maxPokemonModels: number;
@@ -67,6 +73,8 @@ class GameHostBox extends HtmlPageBase {
 		let currentPokemon: PokemonChoices | undefined;
 		let currentBackgroundBorder: IGameCustomBorder | undefined;
 		let currentButtonsBorder: IGameCustomBorder | undefined;
+		let currentSignupsBackgroundBorder: IGameCustomBorder | undefined;
+		let currentSignupsButtonsBorder: IGameCustomBorder | undefined;
 
 		if (database.gameHostBoxes && this.userId in database.gameHostBoxes) {
 			const box = database.gameHostBoxes[this.userId];
@@ -78,6 +86,8 @@ class GameHostBox extends HtmlPageBase {
 			currentPokemon = box.pokemon;
 			currentBackgroundBorder = box.backgroundBorder;
 			currentButtonsBorder = box.buttonsBorder;
+			currentSignupsBackgroundBorder = box.signupsBackgroundBorder;
+			currentSignupsButtonsBorder = box.signupsButtonsBorder;
 		}
 
 		this.backgroundColorPicker = new ColorPicker(room, this.commandPrefix, setBackgroundColorCommand, {
@@ -150,6 +160,41 @@ class GameHostBox extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
+		this.signupsBackgroundBorderStyle = new BorderStyle(room, this.commandPrefix, setSignupsBackgroudBorderStyleCommand, {
+			currentBorder: currentSignupsBackgroundBorder,
+			minRadius: 2,
+			maxRadius: 100,
+			minSize: 2,
+			maxSize: 5,
+			onClearColor: (dontRender) => this.clearBorderColor('signups-background', dontRender),
+			onPickColor: (color: IColorPick, dontRender: boolean | undefined) =>
+				this.setBorderColor('signups-background', color, dontRender),
+			onClearRadius: () => this.clearBorderRadius('signups-background'),
+			onPickRadius: (radius) => this.setBorderRadius('signups-background', radius),
+			onClearSize: () => this.clearBorderSize('signups-background'),
+			onPickSize: (size) => this.setBorderSize('signups-background', size),
+			onClearType: () => this.clearBorderType('signups-background'),
+			onPickType: (type) => this.setBorderType('signups-background', type),
+			reRender: () => this.send(),
+		});
+
+		this.signupsButtonsBorderStyle = new BorderStyle(room, this.commandPrefix, setSignupsButtonBorderStyleCommand, {
+			currentBorder: currentSignupsButtonsBorder,
+			minRadius: 2,
+			maxRadius: 50,
+			minSize: 2,
+			maxSize: 5,
+			onClearColor: (dontRender) => this.clearBorderColor('signups-buttons', dontRender),
+			onPickColor: (color: IColorPick, dontRender: boolean | undefined) => this.setBorderColor('signups-buttons', color, dontRender),
+			onClearRadius: () => this.clearBorderRadius('signups-buttons'),
+			onPickRadius: (radius) => this.setBorderRadius('signups-buttons', radius),
+			onClearSize: () => this.clearBorderSize('signups-buttons'),
+			onPickSize: (size) => this.setBorderSize('signups-buttons', size),
+			onClearType: () => this.clearBorderType('signups-buttons'),
+			onPickType: (type) => this.setBorderType('signups-buttons', type),
+			reRender: () => this.send(),
+		});
+
 		this.trainerPicker = new TrainerPicker(room, this.commandPrefix, setTrainerCommand, {
 			currentPick: currentTrainer,
 			onSetTrainerGen: (index, trainerGen, dontRender) => this.setTrainerGen(dontRender),
@@ -191,8 +236,8 @@ class GameHostBox extends HtmlPageBase {
 		}
 
 		this.components = [this.backgroundColorPicker, this.buttonColorPicker, this.signupsBackgroundColorPicker,
-			this.signupsButtonColorPicker, this.backgroundBorderStyle, this.buttonsBorderStyle, this.trainerPicker,
-			this.pokemonModelPicker];
+			this.signupsButtonColorPicker, this.backgroundBorderStyle, this.buttonsBorderStyle, this.signupsBackgroundBorderStyle,
+			this.signupsButtonsBorderStyle, this.trainerPicker, this.pokemonModelPicker];
 
 		pages[this.userId] = this;
 	}
@@ -215,6 +260,8 @@ class GameHostBox extends HtmlPageBase {
 		this.signupsButtonColorPicker.active = this.currentPicker === 'signups-buttons';
 		this.backgroundBorderStyle.active = this.currentPicker === 'background-border';
 		this.buttonsBorderStyle.active = this.currentPicker === 'buttons-border';
+		this.signupsBackgroundBorderStyle.active = this.currentPicker === 'signups-background-border';
+		this.signupsButtonsBorderStyle.active = this.currentPicker === 'signups-buttons-border';
 		this.trainerPicker.active = this.currentPicker === 'trainer';
 		this.pokemonModelPicker.active = this.currentPicker === 'pokemon';
 	}
@@ -268,6 +315,24 @@ class GameHostBox extends HtmlPageBase {
 		if (this.currentPicker === 'buttons-border') return;
 
 		this.currentPicker = 'buttons-border';
+		this.toggleActivePicker();
+
+		this.send();
+	}
+
+	chooseSignupsBackgroundBorderPicker(): void {
+		if (this.currentPicker === 'signups-background-border') return;
+
+		this.currentPicker = 'signups-background-border';
+		this.toggleActivePicker();
+
+		this.send();
+	}
+
+	chooseSignupsButtonsBorderPicker(): void {
+		if (this.currentPicker === 'signups-buttons-border') return;
+
+		this.currentPicker = 'signups-buttons-border';
 		this.toggleActivePicker();
 
 		this.send();
@@ -418,15 +483,21 @@ class GameHostBox extends HtmlPageBase {
 		if (!dontRender) this.send();
 	}
 
+	getBorderDatabaseKey(picker: BorderPickers): BorderDatabaseKeys {
+		if (picker === 'background') {
+			return 'backgroundBorder';
+		} else if (picker === 'buttons') {
+			return 'buttonsBorder';
+		} else if (picker === 'signups-background') {
+			return 'signupsBackgroundBorder';
+		} else {
+			return 'signupsButtonsBorder';
+		}
+	}
+
 	clearBorderColor(picker: BorderPickers, dontRender?: boolean): void {
 		const database = this.getDatabase();
-
-		let databaseKey: BorderDatabaseKeys;
-		if (picker === 'background') {
-			databaseKey = 'backgroundBorder';
-		} else {
-			databaseKey = 'buttonsBorder';
-		}
+		const databaseKey = this.getBorderDatabaseKey(picker);
 
 		if (databaseKey in database.gameHostBoxes![this.userId]) {
 			delete database.gameHostBoxes![this.userId][databaseKey]!.color;
@@ -437,13 +508,7 @@ class GameHostBox extends HtmlPageBase {
 
 	setBorderColor(picker: BorderPickers, color: IColorPick, dontRender?: boolean): void {
 		const database = this.getDatabase();
-
-		let databaseKey: BorderDatabaseKeys;
-		if (picker === 'background') {
-			databaseKey = 'backgroundBorder';
-		} else {
-			databaseKey = 'buttonsBorder';
-		}
+		const databaseKey = this.getBorderDatabaseKey(picker);
 
 		if (!(databaseKey in database.gameHostBoxes![this.userId])) {
 			database.gameHostBoxes![this.userId][databaseKey] = {};
@@ -455,13 +520,7 @@ class GameHostBox extends HtmlPageBase {
 
 	clearBorderRadius(picker: BorderPickers): void {
 		const database = this.getDatabase();
-
-		let databaseKey: BorderDatabaseKeys;
-		if (picker === 'background') {
-			databaseKey = 'backgroundBorder';
-		} else {
-			databaseKey = 'buttonsBorder';
-		}
+		const databaseKey = this.getBorderDatabaseKey(picker);
 
 		if (databaseKey in database.gameHostBoxes![this.userId]) {
 			delete database.gameHostBoxes![this.userId][databaseKey]!.radius;
@@ -472,13 +531,7 @@ class GameHostBox extends HtmlPageBase {
 
 	setBorderRadius(picker: BorderPickers, radius: number): void {
 		const database = this.getDatabase();
-
-		let databaseKey: BorderDatabaseKeys;
-		if (picker === 'background') {
-			databaseKey = 'backgroundBorder';
-		} else {
-			databaseKey = 'buttonsBorder';
-		}
+		const databaseKey = this.getBorderDatabaseKey(picker);
 
 		if (!(databaseKey in database.gameHostBoxes![this.userId])) {
 			database.gameHostBoxes![this.userId][databaseKey] = {};
@@ -490,13 +543,7 @@ class GameHostBox extends HtmlPageBase {
 
 	clearBorderSize(picker: BorderPickers): void {
 		const database = this.getDatabase();
-
-		let databaseKey: BorderDatabaseKeys;
-		if (picker === 'background') {
-			databaseKey = 'backgroundBorder';
-		} else {
-			databaseKey = 'buttonsBorder';
-		}
+		const databaseKey = this.getBorderDatabaseKey(picker);
 
 		if (databaseKey in database.gameHostBoxes![this.userId]) {
 			delete database.gameHostBoxes![this.userId][databaseKey]!.size;
@@ -507,13 +554,7 @@ class GameHostBox extends HtmlPageBase {
 
 	setBorderSize(picker: BorderPickers, size: number): void {
 		const database = this.getDatabase();
-
-		let databaseKey: BorderDatabaseKeys;
-		if (picker === 'background') {
-			databaseKey = 'backgroundBorder';
-		} else {
-			databaseKey = 'buttonsBorder';
-		}
+		const databaseKey = this.getBorderDatabaseKey(picker);
 
 		if (!(databaseKey in database.gameHostBoxes![this.userId])) {
 			database.gameHostBoxes![this.userId][databaseKey] = {};
@@ -525,13 +566,7 @@ class GameHostBox extends HtmlPageBase {
 
 	clearBorderType(picker: BorderPickers): void {
 		const database = this.getDatabase();
-
-		let databaseKey: BorderDatabaseKeys;
-		if (picker === 'background') {
-			databaseKey = 'backgroundBorder';
-		} else {
-			databaseKey = 'buttonsBorder';
-		}
+		const databaseKey = this.getBorderDatabaseKey(picker);
 
 		if (databaseKey in database.gameHostBoxes![this.userId]) {
 			delete database.gameHostBoxes![this.userId][databaseKey]!.type;
@@ -542,13 +577,7 @@ class GameHostBox extends HtmlPageBase {
 
 	setBorderType(picker: BorderPickers, type: BorderType): void {
 		const database = this.getDatabase();
-
-		let databaseKey: BorderDatabaseKeys;
-		if (picker === 'background') {
-			databaseKey = 'backgroundBorder';
-		} else {
-			databaseKey = 'buttonsBorder';
-		}
+		const databaseKey = this.getBorderDatabaseKey(picker);
 
 		if (!(databaseKey in database.gameHostBoxes![this.userId])) {
 			database.gameHostBoxes![this.userId][databaseKey] = {};
@@ -591,6 +620,8 @@ class GameHostBox extends HtmlPageBase {
 		const signupsButtons = this.currentPicker === 'signups-buttons';
 		const backgroundBorder = this.currentPicker === 'background-border';
 		const buttonsBorder = this.currentPicker === 'buttons-border';
+		const signupsBackgroundBorder = this.currentPicker === 'signups-background-border';
+		const signupsButtonsBorder = this.currentPicker === 'signups-buttons-border';
 		const trainer = this.currentPicker === 'trainer';
 		const pokemon = this.currentPicker === 'pokemon';
 
@@ -606,6 +637,10 @@ class GameHostBox extends HtmlPageBase {
 			backgroundBorder);
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseButtonsBorderPicker, "Buttons border",
 			buttonsBorder);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsBackgroundBorderPicker,
+			"Signups background border", signupsBackgroundBorder);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsButtonsBorderPicker,
+			"Signups buttons border", signupsButtonsBorder);
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseTrainerPicker, "Choose trainer",
 			trainer);
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + choosePokemonModelPicker, "Choose Pokemon",
@@ -631,6 +666,12 @@ class GameHostBox extends HtmlPageBase {
 		} else if (buttonsBorder) {
 			html += "<b>Buttons border</b><br />";
 			html += this.buttonsBorderStyle.render();
+		} else if (signupsBackgroundBorder) {
+			html += "<b>Signups background border</b><br />";
+			html += this.signupsBackgroundBorderStyle.render();
+		} else if (signupsButtonsBorder) {
+			html += "<b>Signups buttons border</b><br />";
+			html += this.signupsButtonsBorderStyle.render();
 		} else if (trainer) {
 			html += this.trainerPicker.render();
 		} else {
@@ -691,6 +732,12 @@ export const commands: BaseCommandDefinitions = {
 			} else if (cmd === chooseButtonsBorderPicker) {
 				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
 				pages[user.id].chooseButtonsBorderPicker();
+			} else if (cmd === chooseSignupsBackgroundBorderPicker) {
+				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
+				pages[user.id].chooseSignupsBackgroundBorderPicker();
+			} else if (cmd === chooseSignupsButtonsBorderPicker) {
+				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
+				pages[user.id].chooseSignupsButtonsBorderPicker();
 			} else if (cmd === chooseTrainerPicker) {
 				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
 				pages[user.id].chooseTrainerPicker();

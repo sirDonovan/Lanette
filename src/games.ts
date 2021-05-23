@@ -1458,7 +1458,8 @@ export class Games {
 	getCustomBoxSpan(customBox: IGameCustomBox | undefined, signups?: boolean): string {
 		let span = "";
 		if (customBox) {
-			const customBorder = customBox.backgroundBorder || {};
+			const customBorder = (signups && customBox.signupsBackgroundBorder && Object.keys(customBox.signupsBackgroundBorder).length ?
+				customBox.signupsBackgroundBorder :	customBox.backgroundBorder) || {};
 			span = Tools.getHexSpan(signups && customBox.signupsBackground ? customBox.signupsBackground : customBox.background,
 				customBorder.color, customBorder.radius, customBorder.size, customBorder.type);
 		}
@@ -1469,7 +1470,8 @@ export class Games {
 	getCustomBoxButtonStyle(customBox: IGameCustomBox | undefined, signups?: boolean): string {
 		let buttonStyle = "";
 		if (customBox) {
-			const customBorder = customBox.buttonsBorder || {};
+			const customBorder = (signups && customBox.signupsButtonsBorder && Object.keys(customBox.signupsButtonsBorder).length ?
+				customBox.signupsButtonsBorder : customBox.buttonsBorder) || {};
 			buttonStyle = Tools.getCustomButtonStyle(signups && customBox.signupsButtons ? customBox.signupsButtons : customBox.buttons,
 				customBorder.color, customBorder.radius, customBorder.size, customBorder.type);
 		}
@@ -1618,7 +1620,8 @@ export class Games {
 		string {
 		let html = "";
 
-		const customBorder = customBox && customBox.backgroundBorder && Object.keys(customBox.backgroundBorder).length ? true : false;
+		const customBorder = customBox && ((customBox.signupsBackgroundBorder && Object.keys(customBox.signupsBackgroundBorder).length) ||
+			(customBox.backgroundBorder && Object.keys(customBox.backgroundBorder).length)) ? true : false;
 		if (!customBorder) html += "<div class='infobox'>";
 
 		let hexSpan = "";
