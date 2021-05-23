@@ -162,6 +162,8 @@ export class Storage {
 	}
 
 	exportDatabases(): void {
+		this.exportGlobalDatabase();
+
 		for (const i in this.databases) {
 			this.exportDatabase(i);
 		}
