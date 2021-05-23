@@ -63,6 +63,8 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	detailLabelWidth: number = 75;
 	drawAmount: number = 1;
 	finitePlayerCards: boolean = false;
+	hackmonsTypes: boolean = false;
+	inverseTypes: boolean = false;
 	maxCardRounds: number = 0;
 	maxLateJoinRound: number = 0;
 	maxPlayers: number = 20;
@@ -176,20 +178,38 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 		return card;
 	}
 
-	filterPokemonList(pokemon: IPokemon): boolean {
-		if ((pokemon.forme && (!this.filterForme || !this.filterForme(pokemon))) ||
+	filterPokemonList(dex: typeof Dex, pokemon: IPokemon): boolean {
+		if ((pokemon.forme && (!this.filterForme || !this.filterForme(dex, pokemon))) ||
 			(this.usesActionCards && pokemon.id in this.actionCards) || !Dex.hasModelData(pokemon, this.gifGeneration) ||
-			(this.filterPoolItem && !this.filterPoolItem(pokemon))) return false;
+			(this.filterPoolItem && !this.filterPoolItem(dex, pokemon))) return false;
 		return true;
 	}
 
 	createDeckPool(): void {
 		this.deckPool = [];
-		const pokemonList = Games.getPokemonList(pokemon => this.filterPokemonList(pokemon), this.requiredGen);
+
+		const dex = this.getDex();
+		let pokemonList: readonly IPokemon[];
+		if (this.hackmonsTypes) {
+			const list: IPokemon[] = [];
+			for (const key of dex.getData().pokemonKeys) {
+				const pokemon = dex.getExistingPokemon(key);
+				if (!Dex.hasModelData(pokemon) || (this.usesActionCards && pokemon.id in this.actionCards)) continue;
+				list.push(pokemon);
+			}
+			pokemonList = list;
+		} else {
+			pokemonList = Games.getPokemonList(pokemon => this.filterPokemonList(dex, pokemon), this.requiredGen);
+		}
+
 		for (const pokemon of pokemonList) {
 			const color = Tools.toId(pokemon.color);
 			if (!(color in this.colors)) this.colors[color] = pokemon.color;
-			this.deckPool.push(this.pokemonToCard(pokemon));
+
+			let card = this.pokemonToCard(pokemon);
+			if (this.alterCard) card = this.alterCard(dex, card) as IPokemonCard;
+
+			this.deckPool.push(card);
 		}
 	}
 
@@ -449,9 +469,10 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	}
 
 	/**Return `false` to filter `forme` out of the deck pool */
-	filterForme?(forme: IPokemon): boolean;
+	filterForme?(dex: typeof Dex, forme: IPokemon): boolean;
 	/**Return `false` to filter `item` out of the deck pool */
-	filterPoolItem?(pokemon: IPokemon): boolean;
+	filterPoolItem?(dex: typeof Dex, pokemon: IPokemon): boolean;
+	alterCard?(dex: typeof Dex, card: ICard): ICard;
 	getTurnCardsPmHtml?(player: Player): string;
 }
 

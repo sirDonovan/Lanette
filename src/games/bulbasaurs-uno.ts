@@ -26,10 +26,11 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 				return game.pokemonToActionCard(this);
 			},
 			getRandomTarget(game) {
-				const typeKeys = Dex.getData().typeKeys;
-				let targets: string[] = [Dex.getExistingType(game.sampleOne(typeKeys)).name];
+				const dex = game.getDex();
+				const typeKeys = dex.getData().typeKeys;
+				let targets: string[] = [dex.getExistingType(game.sampleOne(typeKeys)).name];
 				while (!this.isPlayableTarget(game, targets)) {
-					targets = [Dex.getExistingType(game.sampleOne(typeKeys)).name];
+					targets = [dex.getExistingType(game.sampleOne(typeKeys)).name];
 				}
 
 				return this.name + ", " + targets[0];
@@ -358,8 +359,8 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 			this.topCard.action = card.action;
 		} else if (id === 'magnemite') {
 			if (cards.length >= 3) {
-				const idA = Tools.toId(targets[0]);
-				const idB = Tools.toId(targets[1]);
+				const idA = Dex.getExistingPokemon(targets[0]).id;
+				const idB = Dex.getExistingPokemon(targets[1]).id;
 				let indexA = -1;
 				let indexB = -1;
 				for (let i = 0; i < cards.length; i++) {
@@ -388,7 +389,7 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 				cards.splice(indexB, 1);
 				cardDetail = cardA.name + ", " + cardB.name;
 			} else {
-				const idA = Tools.toId(targets[0]);
+				const idA = Dex.getExistingPokemon(targets[0]).id;
 				let indexA = -1;
 				for (let i = 0; i < cards.length; i++) {
 					if (cards[i].id === idA) {

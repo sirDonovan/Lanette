@@ -23,8 +23,8 @@ export abstract class CardHighLow extends Card {
 
 	abstract getCardDetail(card: ICard, detail: string): number;
 
-	filterForme(forme: IPokemon): boolean {
-		const baseSpecies = Dex.getExistingPokemon(forme.baseSpecies);
+	filterForme(dex: typeof Dex, forme: IPokemon): boolean {
+		const baseSpecies = dex.getExistingPokemon(forme.baseSpecies);
 		if (forme.isMega || forme.isPrimal ||
 			(baseSpecies.name === 'Calyrex' || baseSpecies.name === 'Deoxys' || baseSpecies.name === 'Kyurem' ||
 			baseSpecies.name === 'Necrozma' || baseSpecies.name === 'Zacian' || baseSpecies.name === 'Zamazenta' ||

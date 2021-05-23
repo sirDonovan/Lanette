@@ -10,10 +10,6 @@ type ActionCardNames = 'acidarmor' | 'irondefense' | 'batonpass' | 'allyswitch' 
 	'teeterdance' | 'topsyturvy';
 type ActionCardsType = KeyedDict<ActionCardNames, IActionCardData<ShucklesDefenseCards>>;
 
-const data: {usableTypes: Dict<string>} = {
-	usableTypes: {},
-};
-
 const redShellEliminations = 5;
 
 class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
@@ -117,7 +113,7 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 					}
 				}
 
-				if (game.topCard.name === pokemon.name) {
+				if (game.topCard.id === pokemon.id) {
 					if (player) player.say("The top card is already " + pokemon.name + ".");
 					return false;
 				}
@@ -174,7 +170,7 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 					}
 				}
 
-				if (game.topCard.name === pokemon.name) {
+				if (game.topCard.id === pokemon.id) {
 					if (player) player.say("The top card is already " + pokemon.name + ".");
 					return false;
 				}
@@ -190,10 +186,11 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 				return game.moveToActionCard(this);
 			},
 			getRandomTarget(game) {
-				const typeKeys = Dex.getData().typeKeys;
-				let targets: string[] = [Dex.getExistingType(game.sampleOne(typeKeys)).name];
+				const dex = game.getDex();
+				const typeKeys = dex.getData().typeKeys;
+				let targets: string[] = [dex.getExistingType(game.sampleOne(typeKeys)).name];
 				while (!this.isPlayableTarget(game, targets)) {
-					targets = [Dex.getExistingType(game.sampleOne(typeKeys)).name];
+					targets = [dex.getExistingType(game.sampleOne(typeKeys)).name];
 				}
 
 				return this.name + ", " + targets[0];
@@ -213,13 +210,13 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 					return false;
 				}
 
-				if (!(type in data.usableTypes)) {
+				if (!(type in game.usableTypes)) {
 					if (player) player.say(CommandParser.getErrorText(['invalidType', targets[0]]));
 					return false;
 				}
 
-				if (game.topCard.types.length === 1 && data.usableTypes[type] === game.topCard.types[0]) {
-					if (player) player.say("The top card is already " + data.usableTypes[type] + " type.");
+				if (game.topCard.types.length === 1 && game.usableTypes[type] === game.topCard.types[0]) {
+					if (player) player.say("The top card is already " + game.usableTypes[type] + " type.");
 					return false;
 				}
 
@@ -234,10 +231,11 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 				return game.moveToActionCard(this);
 			},
 			getRandomTarget(game) {
-				const typeKeys = Dex.getData().typeKeys;
-				let types = game.sampleMany(typeKeys, 2).map(x => Dex.getExistingType(x).name);
+				const dex = game.getDex();
+				const typeKeys = dex.getData().typeKeys;
+				let types = game.sampleMany(typeKeys, 2).map(x => dex.getExistingType(x).name);
 				while (!this.isPlayableTarget(game, types)) {
-					types = game.sampleMany(typeKeys, 2).map(x => Dex.getExistingType(x).name);
+					types = game.sampleMany(typeKeys, 2).map(x => dex.getExistingType(x).name);
 				}
 
 				return this.name + ", " + types.join(", ");
@@ -258,12 +256,12 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 					return false;
 				}
 
-				if (!(type1 in data.usableTypes)) {
+				if (!(type1 in game.usableTypes)) {
 					if (player) player.say(CommandParser.getErrorText(['invalidType', targets[0]]));
 					return false;
 				}
 
-				if (!(type2 in data.usableTypes)) {
+				if (!(type2 in game.usableTypes)) {
 					if (player) player.say(CommandParser.getErrorText(['invalidType', targets[1]]));
 					return false;
 				}
@@ -274,7 +272,7 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 				}
 
 				if (game.topCard.types.length === 2) {
-					const typesList = [data.usableTypes[type1], data.usableTypes[type2]];
+					const typesList = [game.usableTypes[type1], game.usableTypes[type2]];
 					if (game.topCard.types.slice().sort().join(",") === typesList.sort().join(",")) {
 						if (player) player.say("The top card is already " + typesList.join("/") + " type.");
 						return false;
@@ -316,7 +314,7 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 
 				let deckHasSpecies = false;
 				for (const card of game.deckPool) {
-					if (card.name === pokemon.name) {
+					if (card.id === pokemon.id) {
 						deckHasSpecies = true;
 						break;
 					}
@@ -327,7 +325,7 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 					return false;
 				}
 
-				if (game.topCard.name === pokemon.name) {
+				if (game.topCard.id === pokemon.id) {
 					if (player) player.say("The top card is already " + pokemon.name + ".");
 					return false;
 				}
@@ -388,12 +386,16 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 	skippedPlayerAchievementAmount = redShellEliminations;
 	showPlayerCards = false;
 	startingLives: number = 1;
+	usableTypes: Dict<string> = {};
 
-	static loadData(): void {
-		for (const key of Dex.getData().typeKeys) {
-			const type = Dex.getExistingType(key);
-			data.usableTypes[type.id] = type.name;
-			data.usableTypes[type.id + 'type'] = type.name;
+	onSignups(): void {
+		super.onSignups();
+
+		const dex = this.getDex();
+		for (const key of dex.getData().typeKeys) {
+			const type = dex.getExistingType(key);
+			this.usableTypes[type.id] = type.name;
+			this.usableTypes[type.id + 'type'] = type.name;
 		}
 	}
 
@@ -405,41 +407,40 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 		}
 	}
 
-	filterPoolItem(pokemon: IPokemon): boolean {
-		if (this.hasNoResistances(pokemon.types)) return false;
+	filterPoolItem(dex: typeof Dex, pokemon: IPokemon): boolean {
+		if (this.hasNoResistances(dex, pokemon.types)) return false;
 		return true;
 	}
 
-	filterForme(forme: IPokemon): boolean {
-		const baseSpecies = Dex.getExistingPokemon(forme.baseSpecies);
-		if (!Tools.compareArrays(baseSpecies.types, forme.types) &&
+	filterForme(dex: typeof Dex, forme: IPokemon): boolean {
+		const baseSpecies = dex.getPokemon(forme.baseSpecies);
+		if (baseSpecies && !Tools.compareArrays(baseSpecies.types, forme.types) &&
 			!(baseSpecies.name === "Arceus" || baseSpecies.name === "Silvally")) return true;
 		return false;
 	}
 
-	createDeckPool(): void {
-		this.deckPool = [];
-
-		let pokemonList: readonly IPokemon[];
+	alterCard(dex: typeof Dex, card: IPokemonCard): IPokemonCard {
 		if (this.hackmonsTypes) {
-			const list: IPokemon[] = [];
-			for (const key of Dex.getData().pokemonKeys) {
-				const pokemon = Dex.getExistingPokemon(key);
-				if (pokemon.id in this.actionCards || !Dex.hasModelData(pokemon)) continue;
-				list.push(pokemon);
+			const originalKey = this.getTypingKey(card.types);
+			const typeKeys = dex.getData().typeKeys;
+
+			let newTypes: string[] = [];
+			let newKey = '';
+			while (!newKey || newKey === originalKey || this.hasNoResistances(dex, newTypes)) {
+				const shuffledTypeKeys = this.shuffle(typeKeys);
+				if (this.random(2)) {
+					newTypes = [dex.getExistingType(shuffledTypeKeys[0]).name, dex.getExistingType(shuffledTypeKeys[1]).name];
+				} else {
+					newTypes = [dex.getExistingType(shuffledTypeKeys[0]).name];
+				}
+				newKey = this.getTypingKey(newTypes);
 			}
-			pokemonList = list;
-		} else {
-			pokemonList = Games.getPokemonList(pokemon => this.filterPokemonList(pokemon));
+
+			card.types = newTypes;
+			}
 		}
 
-		for (const pokemon of pokemonList) {
-			const card = this.pokemonToCard(pokemon);
-			if (this.hackmonsTypes) {
-				card.types = this.getHackmonsTyping(card.types);
-			}
-			this.deckPool.push(card);
-		}
+		return card;
 	}
 
 	createDeck(): void {
@@ -447,9 +448,10 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 		if (!this.deckPool.length) this.createDeckPool();
 		const deckPool = this.shuffle(this.deckPool);
 		const deck: ICard[] = [];
+		const dex = this.getDex();
 		const minimumDeck = (this.maxPlayers + 1) * this.format.options.cards;
 		for (const card of deckPool) {
-			const resistances = Dex.getResistances(Dex.getExistingPokemon(card.name)).join(",");
+			const resistances = dex.getResistances(Dex.getExistingPokemon(card.name)).join(",");
 			if (resistances in resistancesCounts && resistancesCounts[resistances] >= this.format.options.cards) continue;
 			if (!(resistances in resistancesCounts)) resistancesCounts[resistances] = 0;
 			resistancesCounts[resistances]++;
@@ -497,25 +499,6 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 		return types.slice().sort().join(',');
 	}
 
-	getHackmonsTyping(originalTypes: readonly string[]): readonly string[] {
-		const originalKey = this.getTypingKey(originalTypes);
-		const typeKeys = Dex.getData().typeKeys;
-
-		let newTypes: string[] = [];
-		let newKey = '';
-		while (!newKey || newKey === originalKey || this.hasNoResistances(newTypes)) {
-			const shuffledTypeKeys = this.shuffle(typeKeys);
-			if (this.random(2)) {
-				newTypes = [Dex.getExistingType(shuffledTypeKeys[0]).name, Dex.getExistingType(shuffledTypeKeys[1]).name];
-			} else {
-				newTypes = [Dex.getExistingType(shuffledTypeKeys[0]).name];
-			}
-			newKey = this.getTypingKey(newTypes);
-		}
-
-		return newTypes;
-	}
-
 	getCardChatDetails(card: IPokemonCard): string {
 		return this.getChatTypeLabel(card);
 	}
@@ -524,11 +507,11 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 		return this.getChatTypeLabel(card);
 	}
 
-	hasNoResistances(types: readonly string[]): boolean {
+	hasNoResistances(dex: typeof Dex, types: readonly string[]): boolean {
 		let noResistances = true;
-		for (const key of Dex.getData().typeKeys) {
-			const type = Dex.getExistingType(key).name;
-			if (!Dex.isImmune(type, types) && Dex.getEffectiveness(type, types) < 0) {
+		for (const key of dex.getData().typeKeys) {
+			const type = dex.getExistingType(key).name;
+			if (!dex.isImmune(type, types) && dex.getEffectiveness(type, types) < 0) {
 				noResistances = false;
 				break;
 			}
@@ -538,7 +521,7 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 	}
 
 	isStaleTopCard(): boolean {
-		return this.hasNoResistances(this.topCard.types);
+		return this.hasNoResistances(this.getDex(), this.topCard.types);
 	}
 
 	checkTopCardStaleness(message?: string): void {
@@ -557,12 +540,13 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 		if (!otherCard) otherCard = this.topCard;
 		if (!this.isPokemonCard(otherCard)) return false;
 
+		const dex = this.getDex();
 		let valid = false;
 		for (const type of otherCard.types) {
-			if (Dex.isImmune(type, card.types)) {
+			if (dex.isImmune(type, card.types)) {
 				continue;
 			} else {
-				const effectiveness = Dex.getEffectiveness(type, card.types);
+				const effectiveness = dex.getEffectiveness(type, card.types);
 				if (effectiveness < 0) {
 					valid = true;
 					break;
@@ -593,20 +577,17 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 			this.checkTopCardStaleness();
 		} else if (id === 'conversion') {
 			const type = Tools.toId(targets[0]);
-			this.topCard.types = [data.usableTypes[type]];
-			cardDetail = data.usableTypes[type];
+			this.topCard.types = [this.usableTypes[type]];
+			cardDetail = this.usableTypes[type];
 		} else if (id === 'conversion2') {
 			const type1 = Tools.toId(targets[0]);
 			const type2 = Tools.toId(targets[1]);
-			this.topCard.types = [data.usableTypes[type1], data.usableTypes[type2]];
-			cardDetail = data.usableTypes[type1] + ", " + data.usableTypes[type2];
+			this.topCard.types = [this.usableTypes[type1], this.usableTypes[type2]];
+			cardDetail = this.usableTypes[type1] + ", " + this.usableTypes[type2];
 
 			this.checkTopCardStaleness();
 		} else if (id === 'transform') {
-			const newTopCard = this.pokemonToCard(Dex.getExistingPokemon(targets[0]));
-			if (this.hackmonsTypes) {
-				newTopCard.types = this.getHackmonsTyping(newTopCard.types);
-			}
+			const newTopCard = this.alterCard(this.getDex(), this.pokemonToCard(Dex.getExistingPokemon(targets[0])));
 			if (this.rollForShinyPokemon()) {
 				newTopCard.shiny = true;
 				firstTimeShiny = true;
@@ -630,7 +611,7 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 			const pokemon = Dex.getExistingPokemon(targets[0]);
 			let newIndex = -1;
 			for (let i = 0; i < cards.length; i++) {
-				if (cards[i].name === pokemon.name) {
+				if (cards[i].id === pokemon.id) {
 					newIndex = i;
 					break;
 				}

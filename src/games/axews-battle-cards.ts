@@ -1,7 +1,7 @@
 import type { Player } from "../room-activity";
 import { assert, assertStrictEqual } from "../test/test-tools";
 import type { GameFileTests, IGameAchievement, IGameFile } from "../types/games";
-import type { IMoveCopy, IPokemon } from "../types/pokemon-showdown";
+import type { IPokemon } from "../types/pokemon-showdown";
 import type { IActionCardData, ICard, IMoveCard, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
 
@@ -151,7 +151,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 					}
 				}
 
-				if (game.topCard.name === pokemon.name) {
+				if (game.topCard.id === pokemon.id) {
 					if (player) player.say("The top card is already " + pokemon.name + ".");
 					return false;
 				}
@@ -208,7 +208,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 					}
 				}
 
-				if (game.topCard.name === pokemon.name) {
+				if (game.topCard.id === pokemon.id) {
 					if (player) player.say("The top card is already " + pokemon.name + ".");
 					return false;
 				}
@@ -353,7 +353,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 
 				let deckHasSpecies = false;
 				for (const card of game.deckPool) {
-					if (card.name === pokemon.name) {
+					if (card.id === pokemon.id) {
 						deckHasSpecies = true;
 						break;
 					}
@@ -364,7 +364,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 					return false;
 				}
 
-				if (game.topCard.name === pokemon.name) {
+				if (game.topCard.id === pokemon.id) {
 					if (player) player.say("The top card is already " + pokemon.name + ".");
 					return false;
 				}
@@ -413,8 +413,6 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		},
 	};
 	finitePlayerCards = false;
-	hackmonsTypes: boolean = false;
-	inverseTypes: boolean = false;
 	lives = new Map<Player, number>();
 	maximumPlayedCards: number = 1;
 	maxLateJoinRound: number = 1;
@@ -448,48 +446,40 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		}
 	}
 
-	filterPoolItem(pokemon: IPokemon): boolean {
-		if (this.hasNoWeaknesses(pokemon.types)) return false;
+	filterPoolItem(dex: typeof Dex, pokemon: IPokemon): boolean {
+		if (this.hasNoWeaknesses(dex, pokemon.types)) return false;
 		return true;
 	}
 
-	filterForme(forme: IPokemon): boolean {
-		const baseSpecies = Dex.getExistingPokemon(forme.baseSpecies);
-		if (!Tools.compareArrays(baseSpecies.types, forme.types) &&
+	filterForme(dex: typeof Dex, forme: IPokemon): boolean {
+		const baseSpecies = dex.getPokemon(forme.baseSpecies);
+		if (baseSpecies && !Tools.compareArrays(baseSpecies.types, forme.types) &&
 			!(baseSpecies.name === "Arceus" || baseSpecies.name === "Silvally")) return true;
 		return false;
 	}
 
-	createDeckPool(): void {
-		this.deckPool = [];
-
-		let pokemonList: readonly IPokemon[];
+	alterCard(dex: typeof Dex, card: IPokemonCard): IPokemonCard {
 		if (this.hackmonsTypes) {
-			const list: IPokemon[] = [];
-			for (const key of Dex.getData().pokemonKeys) {
-				const pokemon = Dex.getExistingPokemon(key);
-				if (pokemon.id in this.actionCards || !Dex.hasModelData(pokemon)) continue;
-				list.push(pokemon);
-			}
-			pokemonList = list;
-		} else {
-			pokemonList = Games.getPokemonList(pokemon => this.filterPokemonList(pokemon), this.requiredGen);
-		}
+			const originalKey = this.getTypingKey(card.types);
+			const typeKeys = dex.getData().typeKeys;
 
-		const dex = this.getDex();
-		for (const pokemon of pokemonList) {
-			if (this.inverseTypes) {
-				if (!dex.getInverseWeaknesses(pokemon).length) continue;
-			} else {
-				if (!dex.getWeaknesses(pokemon).length) continue;
+			let newTypes: string[] = [];
+			let newKey = '';
+			while (!newKey || newKey === originalKey || this.hasNoWeaknesses(dex, newTypes)) {
+				const shuffledTypeKeys = this.shuffle(typeKeys);
+				if (this.random(2)) {
+					newTypes = [dex.getExistingType(shuffledTypeKeys[0]).name, dex.getExistingType(shuffledTypeKeys[1]).name];
+				} else {
+					newTypes = [dex.getExistingType(shuffledTypeKeys[0]).name];
+				}
+				newKey = this.getTypingKey(newTypes);
 			}
 
-			const card = this.pokemonToCard(pokemon);
-			if (this.hackmonsTypes) {
-				card.types = this.getHackmonsTyping(card.types);
+			card.types = newTypes;
 			}
-			this.deckPool.push(card);
 		}
+
+		return card;
 	}
 
 	createDeck(): void {
@@ -497,15 +487,16 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		if (!this.deckPool.length) this.createDeckPool();
 		const deckPool = this.shuffle(this.deckPool);
 		const deck: ICard[] = [];
+		const dex = this.getDex();
 		const minimumDeck = (this.playerCount + 1) * this.format.options.cards;
 		for (const card of deckPool) {
 			if (!this.usesActionCards && card.types.join("") === "Normal") continue;
 
 			let weaknesses: string;
 			if (this.inverseTypes) {
-				weaknesses = Dex.getInverseWeaknesses(Dex.getExistingPokemon(card.name)).join(",");
+				weaknesses = dex.getInverseWeaknesses(Dex.getExistingPokemon(card.name)).join(",");
 			} else {
-				weaknesses = Dex.getWeaknesses(Dex.getExistingPokemon(card.name)).join(",");
+				weaknesses = dex.getWeaknesses(Dex.getExistingPokemon(card.name)).join(",");
 			}
 
 			if (weaknesses in weaknessCounts && weaknessCounts[weaknesses] >= this.weaknessLimit) continue;
@@ -542,16 +533,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			for (const action of actionCards) {
 				const actionCard = this.actionCards[action as ActionCardNames];
 				for (let i = 0; i < actionCardAmount; i++) {
-					let move: IMoveCopy;
-					if (actionCard.name === "Conversion Z") {
-						move = Dex.getMoveCopy("Conversion 2");
-						move.name = "Conversion Z";
-						move.id = "conversionz";
-					} else {
-						move = Dex.getMoveCopy(actionCard.name);
-					}
-
-					const card = this.moveToCard(move);
+					const card = this.moveToCard(Dex.getMoveCopy(actionCard.name));
 					// @ts-expect-error
 					card.action = actionCard;
 					deck.push(card);
@@ -566,25 +548,6 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		return types.slice().sort().join(',');
 	}
 
-	getHackmonsTyping(originalTypes: readonly string[]): readonly string[] {
-		const originalKey = this.getTypingKey(originalTypes);
-		const typeKeys = Dex.getData().typeKeys;
-
-		let newTypes: string[] = [];
-		let newKey = '';
-		while (!newKey || newKey === originalKey || this.hasNoWeaknesses(newTypes)) {
-			const shuffledTypeKeys = this.shuffle(typeKeys);
-			if (this.random(2)) {
-				newTypes = [Dex.getExistingType(shuffledTypeKeys[0]).name, Dex.getExistingType(shuffledTypeKeys[1]).name];
-			} else {
-				newTypes = [Dex.getExistingType(shuffledTypeKeys[0]).name];
-			}
-			newKey = this.getTypingKey(newTypes);
-		}
-
-		return newTypes;
-	}
-
 	getCardChatDetails(card: IPokemonCard): string {
 		return this.getChatTypeLabel(card);
 	}
@@ -593,20 +556,20 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		return this.getChatTypeLabel(card);
 	}
 
-	hasNoWeaknesses(types: readonly string[]): boolean {
-		for (const key of Dex.getData().typeKeys) {
-			const type = Dex.getExistingType(key).name;
+	hasNoWeaknesses(dex: typeof Dex, types: readonly string[]): boolean {
+		for (const key of dex.getData().typeKeys) {
+			const type = dex.getExistingType(key).name;
 			if (this.inverseTypes) {
-				if (Dex.getInverseEffectiveness(type, types) > 0) return false;
+				if (dex.getInverseEffectiveness(type, types) > 0) return false;
 			} else {
-				if (!Dex.isImmune(type, types) && Dex.getEffectiveness(type, types) > 0) return false;
+				if (!dex.isImmune(type, types) && dex.getEffectiveness(type, types) > 0) return false;
 			}
 		}
 		return true;
 	}
 
 	isStaleTopCard(): boolean {
-		return this.hasNoWeaknesses(this.topCard.types);
+		return this.hasNoWeaknesses(this.getDex(), this.topCard.types);
 	}
 
 	checkTopCardStaleness(message?: string): void {
@@ -625,14 +588,15 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		if (!otherCard) otherCard = this.topCard;
 		if (!this.isPokemonCard(otherCard)) return false;
 
+		const dex = this.getDex();
 		for (const type of card.types) {
 			if (this.inverseTypes) {
-				if (Dex.getInverseEffectiveness(type, otherCard.types) > 0) return true;
+				if (dex.getInverseEffectiveness(type, otherCard.types) > 0) return true;
 			} else {
-				if (Dex.isImmune(type, otherCard.types)) {
+				if (dex.isImmune(type, otherCard.types)) {
 					continue;
 				} else {
-					if (Dex.getEffectiveness(type, otherCard.types) > 0) return true;
+					if (dex.getEffectiveness(type, otherCard.types) > 0) return true;
 				}
 			}
 		}
@@ -674,10 +638,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			this.topCard.types = topCardTypes;
 			this.checkTopCardStaleness();
 		} else if (id === 'transform') {
-			const newTopCard = this.pokemonToCard(Dex.getExistingPokemon(targets[0]));
-			if (this.hackmonsTypes) {
-				newTopCard.types = this.getHackmonsTyping(newTopCard.types);
-			}
+			const newTopCard = this.alterCard(this.getDex(), this.pokemonToCard(Dex.getExistingPokemon(targets[0])));
 			if (this.rollForShinyPokemon()) {
 				newTopCard.shiny = true;
 				firstTimeShiny = true;
@@ -699,7 +660,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			const pokemon = Dex.getExistingPokemon(targets[0]);
 			let newIndex = -1;
 			for (let i = 0; i < cards.length; i++) {
-				if (cards[i].name === pokemon.name) {
+				if (cards[i].id === pokemon.id) {
 					newIndex = i;
 					break;
 				}

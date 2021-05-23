@@ -428,7 +428,7 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 		}
 	}
 
-	filterPoolItem(pokemon: IPokemon): boolean {
+	filterPoolItem(dex: typeof Dex, pokemon: IPokemon): boolean {
 		if (pokemon.prevo && Tools.toId(pokemon.prevo) in this.actionCards) return false;
 
 		let bannedEggGroup = false;
@@ -443,9 +443,9 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 		return true;
 	}
 
-	filterForme(forme: IPokemon): boolean {
-		const baseSpecies = Dex.getExistingPokemon(forme.baseSpecies);
-		if (!Tools.compareArrays(baseSpecies.eggGroups, forme.eggGroups)) return true;
+	filterForme(dex: typeof Dex, forme: IPokemon): boolean {
+		const baseSpecies = dex.getPokemon(forme.baseSpecies);
+		if (baseSpecies && !Tools.compareArrays(baseSpecies.eggGroups, forme.eggGroups)) return true;
 		return false;
 	}
 
@@ -539,13 +539,13 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 			const cardA = Dex.getExistingPokemon(targets[0]);
 			cards.splice(this.getCardIndex(cardA.name, cards), 1);
 			const lowestCardA = this.getLowestPlayableStage(cardA);
-			if (lowestCardA.name !== this.topCard.name) prevos.push(lowestCardA);
+			if (lowestCardA.id !== this.topCard.id) prevos.push(lowestCardA);
 
 			if (targets.length > 1) {
 				const cardB = Dex.getExistingPokemon(targets[1]);
 				cards.splice(this.getCardIndex(cardB.name, cards), 1);
 				const lowestCardB = this.getLowestPlayableStage(cardB);
-				if (lowestCardB.name !== this.topCard.name) prevos.push(lowestCardB);
+				if (lowestCardB.id !== this.topCard.id) prevos.push(lowestCardB);
 
 				if (!prevos.length) prevos.push(cardA, cardB);
 
