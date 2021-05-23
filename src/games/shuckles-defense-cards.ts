@@ -437,6 +437,16 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 			}
 
 			card.types = newTypes;
+		} else if (this.deltaTypes) {
+			if (card.types.length <= 2 && this.random(2)) {
+				const typeKeys = dex.getData().typeKeys;
+				const dualType = card.types.length === 2;
+				let deltaType = dex.getExistingType(this.sampleOne(typeKeys)).name;
+				while (deltaType === card.types[0] || (dualType && deltaType === card.types[1])) {
+					deltaType = dex.getExistingType(this.sampleOne(typeKeys)).name;
+				}
+				card.types = dualType ? [card.types[0], deltaType] : [deltaType];
+				card.name += " δ";
 			}
 		}
 
@@ -645,7 +655,7 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 const tests: GameFileTests<ShucklesDefenseCards> = {
 	'it should use card types in isPlayableCard()': {
 		test(game): void {
-			if (game.hackmonsTypes) return;
+			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const registeel = game.pokemonToCard(Dex.getExistingPokemon("Registeel"));
 			const squirtle = game.pokemonToCard(Dex.getExistingPokemon("Squirtle"));
@@ -668,7 +678,7 @@ const tests: GameFileTests<ShucklesDefenseCards> = {
 	},
 	'action cards - acidarmor': {
 		test(game): void {
-			if (game.hackmonsTypes) return;
+			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const acidarmor = game.actionCards.acidarmor;
 			assert(acidarmor);
@@ -688,7 +698,7 @@ const tests: GameFileTests<ShucklesDefenseCards> = {
 	},
 	'action cards - batonpass': {
 		test(game): void {
-			if (game.hackmonsTypes) return;
+			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const batonpass = game.actionCards.batonpass;
 			assert(batonpass);
@@ -707,7 +717,7 @@ const tests: GameFileTests<ShucklesDefenseCards> = {
 	},
 	'action cards - allyswitch': {
 		test(game): void {
-			if (game.hackmonsTypes) return;
+			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const allyswitch = game.actionCards.allyswitch;
 			assert(allyswitch);
@@ -726,7 +736,7 @@ const tests: GameFileTests<ShucklesDefenseCards> = {
 	},
 	'action cards - conversion': {
 		test(game): void {
-			if (game.hackmonsTypes) return;
+			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const conversion = game.actionCards.conversion;
 			assert(conversion);
@@ -746,7 +756,7 @@ const tests: GameFileTests<ShucklesDefenseCards> = {
 	},
 	'action cards - conversion2': {
 		test(game): void {
-			if (game.hackmonsTypes) return;
+			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const conversion2 = game.actionCards['conversion2'];
 			assert(conversion2);
@@ -762,7 +772,7 @@ const tests: GameFileTests<ShucklesDefenseCards> = {
 	},
 	'action cards - transform': {
 		test(game): void {
-			if (game.hackmonsTypes) return;
+			if (game.deltaTypes || game.hackmonsTypes) return;
 			game.createDeckPool();
 
 			const transform = game.actionCards.transform;
@@ -777,7 +787,7 @@ const tests: GameFileTests<ShucklesDefenseCards> = {
 	},
 	'action cards - protect': {
 		test(game): void {
-			if (game.hackmonsTypes) return;
+			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const protect = game.actionCards.protect;
 			assert(protect);
@@ -789,7 +799,7 @@ const tests: GameFileTests<ShucklesDefenseCards> = {
 	},
 	'action cards - teeterdance': {
 		test(game): void {
-			if (game.hackmonsTypes) return;
+			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const teeterdance = game.actionCards.teeterdance;
 			assert(teeterdance);
@@ -801,7 +811,7 @@ const tests: GameFileTests<ShucklesDefenseCards> = {
 	},
 	'action cards - topsyturvy': {
 		test(game): void {
-			if (game.hackmonsTypes) return;
+			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const topsyturvy = game.actionCards.topsyturvy;
 			assert(topsyturvy);
@@ -827,6 +837,11 @@ export const game: IGameFile<ShucklesDefenseCards> = Games.copyTemplatePropertie
 			name: "Hackmons Shuckle's Defense Cards",
 			variantAliases: ["Hackmons", "Hackmons Cup"],
 			hackmonsTypes: true,
+		},
+		{
+			name: "Delta Species Shuckle's Defense Cards",
+			variantAliases: ["delta species", "delta"],
+			deltaTypes: true,
 		},
 	],
 });

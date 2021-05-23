@@ -476,6 +476,16 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			}
 
 			card.types = newTypes;
+		} else if (this.deltaTypes) {
+			if (card.types.length <= 2 && this.random(2)) {
+				const typeKeys = dex.getData().typeKeys;
+				const dualType = card.types.length === 2;
+				let deltaType = dex.getExistingType(this.sampleOne(typeKeys)).name;
+				while (deltaType === card.types[0] || (dualType && deltaType === card.types[1])) {
+					deltaType = dex.getExistingType(this.sampleOne(typeKeys)).name;
+				}
+				card.types = dualType ? [card.types[0], deltaType] : [deltaType];
+				card.name += " δ";
 			}
 		}
 
@@ -694,7 +704,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 const tests: GameFileTests<AxewsBattleCards> = {
 	'it should use card types in isPlayableCard()': {
 		test(game): void {
-			if (game.hackmonsTypes || game.inverseTypes) return;
+			if (game.deltaTypes || game.hackmonsTypes || game.inverseTypes) return;
 
 			const golem = game.pokemonToCard(Dex.getExistingPokemon("Golem"));
 			const squirtle = game.pokemonToCard(Dex.getExistingPokemon("Squirtle"));
@@ -717,7 +727,7 @@ const tests: GameFileTests<AxewsBattleCards> = {
 	},
 	'action cards - soak': {
 		test(game): void {
-			if (game.hackmonsTypes) return;
+			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const soak = game.actionCards.soak;
 			assert(soak);
@@ -737,7 +747,7 @@ const tests: GameFileTests<AxewsBattleCards> = {
 	},
 	'action cards - trickortreat': {
 		test(game): void {
-			if (game.hackmonsTypes) return;
+			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const trickortreat = game.actionCards.trickortreat;
 			assert(trickortreat);
@@ -757,7 +767,7 @@ const tests: GameFileTests<AxewsBattleCards> = {
 	},
 	'action cards - forestscurse': {
 		test(game): void {
-			if (game.hackmonsTypes) return;
+			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const forestscurse = game.actionCards.forestscurse;
 			assert(forestscurse);
@@ -777,7 +787,7 @@ const tests: GameFileTests<AxewsBattleCards> = {
 	},
 	'action cards - magicpowder': {
 		test(game): void {
-			if (game.hackmonsTypes) return;
+			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const magicpowder = game.actionCards.magicpowder;
 			assert(magicpowder);
@@ -797,7 +807,7 @@ const tests: GameFileTests<AxewsBattleCards> = {
 	},
 	'action cards - batonpass': {
 		test(game): void {
-			if (game.hackmonsTypes) return;
+			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const batonpass = game.actionCards.batonpass;
 			assert(batonpass);
@@ -816,7 +826,7 @@ const tests: GameFileTests<AxewsBattleCards> = {
 	},
 	'action cards - allyswitch': {
 		test(game): void {
-			if (game.hackmonsTypes) return;
+			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const allyswitch = game.actionCards.allyswitch;
 			assert(allyswitch);
@@ -835,7 +845,7 @@ const tests: GameFileTests<AxewsBattleCards> = {
 	},
 	'action cards - conversion': {
 		test(game): void {
-			if (game.hackmonsTypes) return;
+			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const conversion = game.actionCards.conversion;
 			assert(conversion);
@@ -855,7 +865,7 @@ const tests: GameFileTests<AxewsBattleCards> = {
 	},
 	'action cards - conversion2': {
 		test(game): void {
-			if (game.hackmonsTypes) return;
+			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const conversion2 = game.actionCards['conversion2'];
 			assert(conversion2);
@@ -871,7 +881,7 @@ const tests: GameFileTests<AxewsBattleCards> = {
 	},
 	'action cards - transform': {
 		test(game): void {
-			if (game.hackmonsTypes || game.requiredGen) return;
+			if (game.deltaTypes || game.hackmonsTypes || game.requiredGen) return;
 			game.createDeckPool();
 
 			const transform = game.actionCards.transform;
@@ -886,7 +896,7 @@ const tests: GameFileTests<AxewsBattleCards> = {
 	},
 	'action cards - protect': {
 		test(game): void {
-			if (game.hackmonsTypes) return;
+			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const protect = game.actionCards.protect;
 			assert(protect);
@@ -898,7 +908,7 @@ const tests: GameFileTests<AxewsBattleCards> = {
 	},
 	'action cards - teeterdance': {
 		test(game): void {
-			if (game.hackmonsTypes) return;
+			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const teeterdance = game.actionCards.teeterdance;
 			assert(teeterdance);
@@ -910,7 +920,7 @@ const tests: GameFileTests<AxewsBattleCards> = {
 	},
 	'action cards - topsyturvy': {
 		test(game): void {
-			if (game.hackmonsTypes) return;
+			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const topsyturvy = game.actionCards.topsyturvy;
 			assert(topsyturvy);
@@ -949,6 +959,11 @@ export const game: IGameFile<AxewsBattleCards> = Games.copyTemplateProperties(ca
 			description: "Each round, players can play a card that's super-effective against the top card using an inverted type chart!",
 			variantAliases: ["Inverse"],
 			inverseTypes: true,
+		},
+		{
+			name: "Delta Species Axew's Battle Cards",
+			variantAliases: ["delta species", "delta"],
+			deltaTypes: true,
 		},
 		{
 			name: "Axew's Kanto Battle Cards",

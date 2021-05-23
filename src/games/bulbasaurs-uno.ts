@@ -317,6 +317,23 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 		}
 	}
 
+	alterCard(dex: typeof Dex, card: IPokemonCard): IPokemonCard {
+		if (this.deltaTypes) {
+			if (card.types.length <= 2 && this.random(2)) {
+				const typeKeys = dex.getData().typeKeys;
+				const dualType = card.types.length === 2;
+				let deltaType = dex.getExistingType(this.sampleOne(typeKeys)).name;
+				while (deltaType === card.types[0] || (dualType && deltaType === card.types[1])) {
+					deltaType = dex.getExistingType(this.sampleOne(typeKeys)).name;
+				}
+				card.types = dualType ? [card.types[0], deltaType] : [deltaType];
+				card.name += " δ";
+			}
+		}
+
+		return card;
+	}
+
 	playActionCard(card: IPokemonCard, player: Player, targets: string[], cards: IPokemonCard[]): boolean {
 		if (!card.action) throw new Error("playActionCard called with a regular card");
 		if (!card.action.isPlayableTarget(this, targets, cards, player)) return false;
@@ -566,6 +583,11 @@ export const game: IGameFile<BulbasaursUno> = Games.copyTemplateProperties(cardG
 	scriptedOnly: true,
 	tests: Object.assign({}, cardGame.tests, tests),
 	variants: [
+		{
+			name: "Delta Species Bulbasaur's Uno",
+			variantAliases: ["delta species", "delta"],
+			deltaTypes: true,
+		},
 		{
 			name: "Bulbasaur's Kanto Uno",
 			variantAliases: ["kanto", "gen1"],

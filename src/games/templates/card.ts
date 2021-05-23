@@ -58,6 +58,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	cardRound: number = 0;
 	colors: Dict<string> = {};
 	currentPlayer: Player | null = null;
+	deltaTypes: boolean = false;
 	deck: ICard[] = [];
 	deckPool: (IMoveCard | IPokemonCard)[] = [];
 	detailLabelWidth: number = 75;
