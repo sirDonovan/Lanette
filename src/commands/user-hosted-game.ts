@@ -95,7 +95,8 @@ export const commands: BaseCommandDefinitions = {
 		command(target, room, user) {
 			if (this.isPm(room)) return;
 			const database = Storage.getDatabase(room);
-			const approvedHost = database.userHostStatuses && database.userHostStatuses[user.id] === 'approved' ? true : false;
+			let approvedHost = database.userHostStatuses && user.id in database.userHostStatuses &&
+				database.userHostStatuses[user.id].status === 'approved' ? true : false;
 			if (!user.hasRank(room, 'voice') && !approvedHost) return;
 			if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id)) {
 				return this.sayError(['disabledUserHostedGameFeatures', room.title]);
@@ -118,10 +119,24 @@ export const commands: BaseCommandDefinitions = {
 				return this.say(format.name + " can only be hosted by approved hosts or room auth.");
 			}
 
+			if (database.userHostStatuses && host.id in database.userHostStatuses && database.userHostStatuses[host.id].expirationTime &&
+				Date.now() >= database.userHostStatuses[host.id].expirationTime) {
+				if (database.userHostStatuses[host.id].previousStatus) {
+					database.userHostStatuses[host.id] = {
+						status: database.userHostStatuses[host.id].previousStatus!,
+						expirationTime: 0,
+					};
+				} else {
+					delete database.userHostStatuses[host.id];
+				}
+
+				if (approvedHost) approvedHost = false;
+			}
+
 			if (!approvedHost && database.userHostStatuses && host.id in database.userHostStatuses) {
-				if (database.userHostStatuses[host.id] === 'unapproved') {
+				if (database.userHostStatuses[host.id].status === 'unapproved') {
 					return this.say(host.name + " is currently unapproved for hosting games.");
-				} else if (database.userHostStatuses[host.id] === 'novice') {
+				} else if (database.userHostStatuses[host.id].status === 'novice') {
 					const gameHostingDifficulty = Config.userHostedGameHostDifficulties &&
 						format.id in Config.userHostedGameHostDifficulties ? Config.userHostedGameHostDifficulties[format.id] : 'medium';
 					if (gameHostingDifficulty !== 'easy') {
@@ -347,7 +362,8 @@ export const commands: BaseCommandDefinitions = {
 		command(target, room, user) {
 			if (this.isPm(room)) return;
 			const database = Storage.getDatabase(room);
-			const approvedHost = database.userHostStatuses && database.userHostStatuses[user.id] === 'approved' ? true : false;
+			const approvedHost = database.userHostStatuses && user.id in database.userHostStatuses &&
+				database.userHostStatuses[user.id].status === 'approved' ? true : false;
 			if (!user.hasRank(room, 'voice') && !approvedHost) return;
 			const id = Tools.toId(target);
 			if (approvedHost && id !== user.id) return user.say("You are only able to use this command on yourself as approved host.");
@@ -412,15 +428,38 @@ export const commands: BaseCommandDefinitions = {
 					delete database.userHostStatuses[hostId];
 					return this.say(hostName + "'s host status has been set to 'standard'.");
 				} else if (status === 'unapproved' || status === 'novice' || status === 'approved') {
+					let expirationTime = 0;
+					let statusTime = 0;
+					if (targets.length > 2) {
+						const days = parseInt(targets[2]);
+						if (isNaN(days) || days < 1 || days > 365) {
+							return this.say("Please specify a number of days between 1 and 365.");
+						}
+
+						statusTime = days * 24 * 60 * 60 * 1000;
+						expirationTime = Date.now() + statusTime;
+					}
+
 					if (!database.userHostStatuses) database.userHostStatuses = {};
-					database.userHostStatuses[hostId] = status;
-					return this.say(hostName + "'s host status has been set to '" + status + "'.");
+
+					const previousStatus = hostId in database.userHostStatuses ? database.userHostStatuses[hostId].status : undefined;
+					database.userHostStatuses[hostId] = {
+						status,
+						expirationTime,
+						previousStatus,
+					};
+
+					return this.say(hostName + "'s host status has been set to '" + status + "'." +
+						(statusTime ? " It will revert to '" + (previousStatus ? previousStatus : "standard") + "' automatically " +
+						"in " + Tools.toDurationString(statusTime) + "." : ""));
 				}
 			} else {
 				if (!database.userHostStatuses || !(hostId in database.userHostStatuses)) {
 					return this.say(hostName + "'s host status is 'standard'.");
 				}
-				this.say(hostName + "'s host status is '" + database.userHostStatuses[hostId] + "'.");
+				this.say(hostName + "'s host status is '" + database.userHostStatuses[hostId].status + "'" +
+					(database.userHostStatuses[hostId].expirationTime ? " (" +
+					Tools.toDurationString(database.userHostStatuses[hostId].expirationTime - Date.now()) + " remaining)" : "") + ".");
 			}
 		},
 		aliases: ['hstatus'],
@@ -445,9 +484,10 @@ export const commands: BaseCommandDefinitions = {
 				const database = Storage.getDatabase(gameRoom);
 				if (database.userHostStatuses) {
 					for (const i in database.userHostStatuses) {
-						if (database.userHostStatuses[i] === status) {
+						if (database.userHostStatuses[i].status === status) {
 							const host = Users.get(i);
-							list.push(host ? host.name : i);
+							list.push((host ? host.name : i) + (database.userHostStatuses[i].expirationTime ? " (" +
+								Tools.toDurationString(database.userHostStatuses[i].expirationTime - Date.now()) + " remaining)" : ""));
 						}
 					}
 				}

@@ -85,6 +85,12 @@ export interface IGameHostDisplay extends IGameCustomBox {
 
 export type UserHostStatus = 'unapproved' | 'novice' | 'approved';
 
+export interface IUserHostStatusData {
+	status: UserHostStatus;
+	previousStatus?: UserHostStatus;
+	expirationTime: number;
+}
+
 export type LeaderboardType = 'gameLeaderboard' | 'gameHostingLeaderbaord' | 'tournamentLeaderboard' | 'unsortedLeaderboard';
 
 export interface ILeaderboard {
@@ -153,7 +159,7 @@ export interface IDatabase {
 	userHostedGameCounts?: Dict<number>;
 	userHostedGameStats?: Dict<IGameStat[]>;
 	userHostedGameQueue?: IQueuedUserHostedGame[];
-	userHostStatuses?: Dict<UserHostStatus>;
+	userHostStatuses?: Dict<IUserHostStatusData>;
 }
 
 interface IOfflineMessage {
