@@ -153,11 +153,14 @@ export const game: IGameFile<GrumpigsPokemath> = Games.copyTemplateProperties(qu
 	minigameCommand: 'pokemath',
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess the Pokemon whose dex number matches the answer to " +
 		"the math problem!",
-	modes: ["survival", "team"],
+	modes: ["survival", "team", "timeattack"],
 	modeProperties: {
 		'survival': {
 			roundTime: 23.5 * 1000,
 			roundOperands: BASE_OPERANDS,
+		},
+		'timeattack': {
+			roundTime: 15 * 1000,
 		},
 	},
 	tests: Object.assign({}, questionAndAnswerGame.tests, tests),
