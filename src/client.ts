@@ -46,6 +46,7 @@ const TOURNAMENT_AUTODQ_COMMAND = "/log (The tournament auto disqualify timer wa
 const TOURNAMENT_FORCEPUBLIC_COMMAND = "/log (Tournament public battles were turned ON by ";
 const TOURNAMENT_SCOUTING_COMMAND = "/log (The tournament was set to disallow scouting by ";
 const TOURNAMENT_MODJOIN_COMMAND = "/log (The tournament was set to disallow modjoin by ";
+const TOURNAMENT_RUNAUTODQ_COMMAND = "All available matches were checked for automatic disqualification.";
 const HANGMAN_END_RAW_MESSAGE = "The game of hangman was ended.";
 const HIGHLIGHT_HTML_PAGE_MESSAGE = "Sent a highlight to ";
 const PRIVATE_HTML_MESSAGE = "Sent private HTML to ";
@@ -1567,6 +1568,11 @@ export class Client {
 				}
 			} else if (messageArguments.message === HANGMAN_END_RAW_MESSAGE) {
 				delete room.serverHangman;
+			} else if (messageArguments.message === TOURNAMENT_RUNAUTODQ_COMMAND) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-runautodq' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
 			} else if (messageArguments.message.startsWith(HIGHLIGHT_HTML_PAGE_MESSAGE)) {
 				const parts = messageArguments.message.substr(HIGHLIGHT_HTML_PAGE_MESSAGE.length).split(" on the bot page ");
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'highlight-htmlpage' &&
