@@ -3,10 +3,8 @@ import type { ModelGeneration, IGifDirectionData } from "../types/dex";
 import type { IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
-const POKEMON_PER_GRID_ROW = 4;
-const POKEMON_PER_TABLE_ROW = POKEMON_PER_GRID_ROW * 2;
-const ROWS_PER_GRID = POKEMON_PER_GRID_ROW;
-const FINAL_LETTER_INDEX = POKEMON_PER_TABLE_ROW - 1;
+const MIN_POKEMON = 3;
+const MAX_POKEMON = 4;
 
 const BORDER_SPACING = 1;
 const MAX_TABLE_WIDTH = Tools.getMaxTableWidth(BORDER_SPACING);
@@ -14,8 +12,6 @@ const MAX_TABLE_HEIGHT = Tools.getMaxTableHeight(BORDER_SPACING);
 const MAX_GRID_WIDTH = MAX_TABLE_WIDTH / 2;
 const ADDITIONAL_WIDTH = Tools.getTableCellAdditionalWidth(BORDER_SPACING);
 const ADDITIONAL_HEIGHT = Tools.getTableCellAdditionalHeight(BORDER_SPACING, true);
-const MAX_POKEMON_WIDTH = Tools.getMaxTableCellWidth(MAX_TABLE_WIDTH, BORDER_SPACING, POKEMON_PER_TABLE_ROW);
-const MAX_POKEMON_HEIGHT = Tools.getMaxTableCellHeight(MAX_TABLE_HEIGHT, BORDER_SPACING, ROWS_PER_GRID, true);
 
 const SPRITE_GENERATION: ModelGeneration = 'bw';
 const answerCommand = 'spot';
@@ -34,13 +30,18 @@ class DeoxysDifferences extends QuestionAndAnswer {
 	inactiveRoundLimit: number = 5;
 	lastDifferenceCoordinates: [number, number] | null = null;
 	roundPokemon: string[][] = [];
+	roundPokemonPerGridRow: number = 0;
+	roundRowsPerGrid: number = 0;
 	roundTime: number = 30 * 1000;
 
 	static loadData(): void {
+		const maxPokemonWidth = Tools.getMaxTableCellWidth(MAX_TABLE_WIDTH, BORDER_SPACING, MIN_POKEMON);
+		const maxPokemonHeight = Tools.getMaxTableCellHeight(MAX_TABLE_HEIGHT, BORDER_SPACING, MIN_POKEMON, true);
+
 		for (const pokemon of Games.getPokemonList()) {
 			if (pokemon.forme || pokemon.gen > 5) continue;
 			const gifData = Dex.getModelData(pokemon, SPRITE_GENERATION);
-			if (gifData && gifData.w && gifData.h && gifData.w <= MAX_POKEMON_WIDTH && gifData.h <= MAX_POKEMON_HEIGHT) {
+			if (gifData && gifData.w && gifData.h && gifData.w <= maxPokemonWidth && gifData.h <= maxPokemonHeight) {
 				data.gifData[pokemon.name] = gifData;
 				data.pokemon.push(pokemon.name);
 			}
@@ -77,38 +78,44 @@ class DeoxysDifferences extends QuestionAndAnswer {
 	}
 
 	generateAnswer(): void {
+		const pokemonPerGridRow = MIN_POKEMON + this.random((1 + MAX_POKEMON) - MIN_POKEMON);
+		const rowsPerGrid = MIN_POKEMON + this.random((1 + MAX_POKEMON) - MIN_POKEMON);
+
+		this.roundPokemonPerGridRow = pokemonPerGridRow;
+		this.roundRowsPerGrid = rowsPerGrid;
+
 		const list = this.shuffle(data.pokemon);
 		const rows: string[][] = [];
 		let usedPokemon: string[] = [];
 
-		for (let i = 0; i < ROWS_PER_GRID; i++) {
-			if (list.length < POKEMON_PER_GRID_ROW) {
+		for (let i = 0; i < rowsPerGrid; i++) {
+			if (list.length < pokemonPerGridRow) {
 				this.generateAnswer();
 				return;
 			}
 
-			let row = list.slice(0, POKEMON_PER_GRID_ROW);
+			let row = list.slice(0, pokemonPerGridRow);
 			while (this.getRowWidth(row) > MAX_GRID_WIDTH) {
 				list.shift();
-				if (!list.length || list.length < POKEMON_PER_GRID_ROW) {
+				if (!list.length || list.length < pokemonPerGridRow) {
 					this.generateAnswer();
 					return;
 				}
 
-				row = list.slice(0, POKEMON_PER_GRID_ROW);
+				row = list.slice(0, pokemonPerGridRow);
 			}
 
 			rows.push(row);
 			usedPokemon = usedPokemon.concat(row);
 
-			for (let j = 0; j < POKEMON_PER_GRID_ROW; j++) {
+			for (let j = 0; j < pokemonPerGridRow; j++) {
 				list.shift();
 			}
 		}
 
-		let differenceCoordinates = this.generateDifferenceCoordinates();
+		let differenceCoordinates = this.generateDifferenceCoordinates(pokemonPerGridRow, rowsPerGrid);
 		while (this.checkLastDifferenceCoordinates(differenceCoordinates)) {
-			differenceCoordinates = this.generateDifferenceCoordinates();
+			differenceCoordinates = this.generateDifferenceCoordinates(pokemonPerGridRow, rowsPerGrid);
 		}
 
 		const differenceList = this.shuffle(data.pokemon.filter(x => !usedPokemon.includes(x)));
@@ -139,11 +146,11 @@ class DeoxysDifferences extends QuestionAndAnswer {
 			gifs.join("") + "</center>");
 
 		this.answers = [Tools.toId(letters[differenceCoordinates[0]] + differenceCoordinates[1]),
-			Tools.toId(letters[differenceCoordinates[0] + POKEMON_PER_GRID_ROW] + differenceCoordinates[1])];
+			Tools.toId(letters[differenceCoordinates[0] + pokemonPerGridRow] + differenceCoordinates[1])];
 	}
 
-	generateDifferenceCoordinates(): [number, number] {
-		return [this.random(POKEMON_PER_GRID_ROW), this.random(ROWS_PER_GRID) + 1];
+	generateDifferenceCoordinates(pokemonPerGridRow: number, rowsPerGrid: number): [number, number] {
+		return [this.random(pokemonPerGridRow), this.random(rowsPerGrid) + 1];
 	}
 
 	getHintHtml(): string {
@@ -178,14 +185,14 @@ class DeoxysDifferences extends QuestionAndAnswer {
 				'width: ' + largestRowWidth + 'px;">';
 
 		let renderedDifference = false;
-		for (let y = 1; y <= ROWS_PER_GRID; y++) {
+		for (let y = 1; y <= this.roundRowsPerGrid; y++) {
 			const row = this.roundPokemon[y - 1];
 			gridHtml += '<tr style="height:' + largestRowHeight + 'px">';
 
 			const gifs: Dict<string> = {};
 
 			// left grid
-			for (let x = 0; x < POKEMON_PER_GRID_ROW; x++) {
+			for (let x = 0; x < this.roundPokemonPerGridRow; x++) {
 				gifs[row[x]] = Dex.getPokemonModel(Dex.getExistingPokemon(row[x]), SPRITE_GENERATION);
 
 				gridHtml += '<td style="position: relative;background: ' + lightOrange.gradient + '">' + gifs[row[x]];
@@ -194,7 +201,7 @@ class DeoxysDifferences extends QuestionAndAnswer {
 			}
 
 			// right grid
-			for (let x = 0; x < POKEMON_PER_GRID_ROW; x++) {
+			for (let x = 0; x < this.roundPokemonPerGridRow; x++) {
 				let gif: string;
 				if (!renderedDifference && this.validateDifferenceCoordinates(x, y)) {
 					renderedDifference = true;
@@ -204,7 +211,7 @@ class DeoxysDifferences extends QuestionAndAnswer {
 				}
 
 				gridHtml += '<td style="position: relative;background: ' + lightCyan.gradient + '">' + gif;
-				gridHtml += "<br /><div style='position: absolute;bottom: 0px'>" + letters[x + POKEMON_PER_GRID_ROW] + y + "</div>";
+				gridHtml += "<br /><div style='position: absolute;bottom: 0px'>" + letters[x + this.roundPokemonPerGridRow] + y + "</div>";
 				gridHtml += '</td>';
 			}
 
@@ -237,19 +244,20 @@ class DeoxysDifferences extends QuestionAndAnswer {
 
 		const letter = targets[0].trim().toUpperCase();
 		const letterIndex = letters.indexOf(letter);
-		if (letterIndex === -1 || letterIndex > FINAL_LETTER_INDEX) {
-			player.say("You must specify a letter between " + letters[0] + " and " + letters[FINAL_LETTER_INDEX] + "!");
+		const finalLetterIndex = (this.roundPokemonPerGridRow * 2) - 1;
+		if (letterIndex === -1 || letterIndex > finalLetterIndex) {
+			player.say("You must specify a letter between " + letters[0] + " and " + letters[finalLetterIndex] + "!");
 			return true;
 		}
 
 		const number = parseInt(targets[1].trim());
-		if (isNaN(number) || number < 1 || number > ROWS_PER_GRID) {
-			player.say("You must specify a row between 1 and " + ROWS_PER_GRID + "!");
+		if (isNaN(number) || number < 1 || number > this.roundRowsPerGrid) {
+			player.say("You must specify a row between 1 and " + this.roundRowsPerGrid + "!");
 			return true;
 		}
 
-		return !this.validateDifferenceCoordinates(letterIndex >= POKEMON_PER_GRID_ROW ? letterIndex - POKEMON_PER_GRID_ROW : letterIndex,
-			number);
+		return !this.validateDifferenceCoordinates(letterIndex >= this.roundPokemonPerGridRow ? letterIndex - this.roundPokemonPerGridRow :
+			letterIndex, number);
 	}
 
 	getAnswers(): string[] {
@@ -278,6 +286,9 @@ export const game: IGameFile<DeoxysDifferences> = {
 	modes: ['team', 'survival', 'timeattack'],
 	modeProperties: {
 		'survival': {
+			roundTime: 15 * 1000,
+		},
+		'timeattack': {
 			roundTime: 15 * 1000,
 		},
 	},
