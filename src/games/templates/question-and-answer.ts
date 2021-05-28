@@ -399,8 +399,7 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 
 			this.correctPlayers.push(player);
 
-			const singleCorrectPlayer = this.maxCorrectPlayersPerRound === 1;
-			if (this.allAnswersAchievement && singleCorrectPlayer) {
+			if (this.allAnswersAchievement) {
 				if (this.firstAnswer === undefined) {
 					this.firstAnswer = player;
 				} else {
@@ -409,7 +408,7 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 			}
 
 			const reachedMaxPoints = points >= this.format.options.points;
-			if (singleCorrectPlayer || (reachedMaxPoints && !this.checkScoreCapBeforeRound)) {
+			if (this.maxCorrectPlayersPerRound === 1 || (reachedMaxPoints && !this.checkScoreCapBeforeRound)) {
 				if (this.hint) this.off(this.hint);
 				this.say("**" + player.name + "** advances to **" + this.getPointsDisplay(points, reachedMaxPoints ? 0 : undefined) +
 					"** point" + (points > 1 ? 's' : '') + "!");
