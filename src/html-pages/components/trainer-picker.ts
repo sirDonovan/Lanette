@@ -17,9 +17,9 @@ interface ITrainerPickerProps extends IPickerProps<ITrainerPick> {
 export type TrainerGeneration = 'newer' | 'gen1' | 'gen2' | 'gen3' | 'gen4';
 
 const genOneSuffixes: string[] = ['gen1', 'gen1rb', 'gen1two', 'gen1rbtwo', 'gen1champion', 'gen1rbchampion', 'gen1main', 'gen1title'];
-const genTwoSuffixes: string[] = ['gen2', 'gen2jp', 'gen2kanto', 'gen2c'];
+const genTwoSuffixes: string[] = ['gen2', 'gen2jp', 'gen2kanto', 'gen2c', 'gen2alt'];
 const genThreeSuffixes: string[] = ['gen3', 'gen3jp', 'gen3rs', 'gen3frlg', 'gen3two', 'gen3champion'];
-const genFourSuffixes: string[] = ['gen4', 'gen4dp', 'gen4pt'];
+const genFourSuffixes: string[] = ['gen4', 'gen4dp', 'gen4pt', 'gen4jp'];
 
 const pagesLabel = "Trainers";
 

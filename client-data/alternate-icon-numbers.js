@@ -337,6 +337,7 @@ exports.alternateIconNumbers = {
 		equilibra: 1308 + 28,
 		astrolotl: 1308 + 29,
 		miasmaw: 1308 + 30,
+		chromera: 1308 + 31,
 
 		syclar: 1344 + 0,
 		embirch: 1344 + 1,
