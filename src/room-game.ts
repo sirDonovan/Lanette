@@ -187,8 +187,8 @@ export abstract class Game extends Activity {
 	}
 
 	sendLeaveNotice(player: Player): void {
-		player.sayPrivateUhtml("You have left the " + this.name + " " + this.activityType + ". You " +
-			"will not receive any further signups messages.", this.privateJoinLeaveUhtmlName);
+		player.sayPrivateUhtml("You have left the " + this.name + " " + this.activityType + "." + (!this.started ? " You " +
+			"will not receive any further signups messages." : ""), this.privateJoinLeaveUhtmlName);
 	}
 
 	sayHostDisplayUhtml(user: User, hostDisplay: IGameHostDisplay): void {
