@@ -4,7 +4,7 @@ import path = require('path');
 import url = require('url');
 
 import type { PRNG } from './lib/prng';
-import { eggGroupHexCodes, hexCodes, namedHexCodes, pokemonColorHexCodes, typeHexCodes } from './tools-hex-codes';
+import { eggGroupHexCodes, hexCodes, namedHexCodes, pokemonColorHexCodes, moveCategoryHexCodes, typeHexCodes } from './tools-hex-codes';
 import type { BorderType, IExtractedBattleId, IHexCodeData, IParsedSmogonLink, NamedHexCode, TimeZone } from './types/tools';
 import type { IParam, IParametersGenData, ParametersSearchType } from './workers/parameters';
 
@@ -50,6 +50,7 @@ export class Tools {
 	readonly minRoomWidth: number = 350;
 	readonly namedHexCodes: typeof namedHexCodes = namedHexCodes;
 	readonly pokemonColorHexCodes: typeof pokemonColorHexCodes = pokemonColorHexCodes;
+	readonly moveCategoryHexCodes: typeof moveCategoryHexCodes = moveCategoryHexCodes;
 	readonly pokemonShowdownFolder: string = path.join(rootFolder, 'pokemon-showdown');
 	readonly rootFolder: typeof rootFolder = rootFolder;
 	readonly smogonDexPrefix: string = SMOGON_DEX_PREFIX;
@@ -115,12 +116,22 @@ export class Tools {
 		return hexCodes[pokemonColorHexCodes[color]];
 	}
 
+	getMoveCategoryHexCode(category: string): IHexCodeData | undefined {
+		return hexCodes[moveCategoryHexCodes[category]];
+	}
+
 	getTypeHexCode(type: string): IHexCodeData | undefined {
 		return hexCodes[typeHexCodes[type]];
 	}
 
 	getBorderTypes(): BorderType[] {
 		return ['solid', 'dotted', 'dashed', 'double', 'inset', 'outset'];
+	}
+
+	getHexLabel(color: IHexCodeData, label: string, width?: 'auto' | number): string {
+		return '<div style="display: inline-block;background: ' + color.gradient + ';border: 1px solid #68a;border-radius: 5px;' +
+			'width: ' + (width || 75) + 'px;padding: 1px;color: #ffffff;text-shadow: 1px 1px 1px #333;' +
+			'text-align: center"><b>' + label + '</b></div>';
 	}
 
 	getHexSpan(backgroundColor: string | undefined, borderColor?: string, borderRadiusValue?: number, borderSize?: number,

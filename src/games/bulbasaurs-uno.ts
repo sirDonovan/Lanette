@@ -435,7 +435,9 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 			if (this.topCard.action && this.topCard.action.drawCards) delete this.topCard.action;
 		}
 
-		if (!player.eliminated) this.updatePlayerHtmlPage(player, drawnCards);
+		if (!player.eliminated) {
+			this.sendPlayerCards(player, drawnCards);
+		}
 
 		return true;
 	}
@@ -448,7 +450,7 @@ const commands: GameCommandDefinitions<BulbasaursUno> = {
 			this.awaitingCurrentPlayerCard = false;
 			this.currentPlayer = null; // prevent Draw Wizard from activating on a draw
 			const drawnCards = this.drawCard(this.players[user.id]);
-			this.updatePlayerHtmlPage(this.players[user.id], drawnCards);
+			this.sendPlayerCards(this.players[user.id], drawnCards);
 			this.nextRound();
 			return true;
 		},

@@ -67,12 +67,13 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 	finitePlayerCards: boolean = true;
 	playerInactiveRoundLimit = 2;
 	maxCardRounds: number = 50;
-	maxPlayableGroupSize: number = 2;
+	maxShownPlayableGroupSize: number = 2;
 	minimumPlayedCards: number = 2;
 	shinyCardAchievement = StakatakasCardTower.achievements.luckofthedraw;
 	showPlayerCards: boolean = true;
 	turnTimeLimit: number = 50 * 1000;
-	turnWarningTime: number = 30 * 1000;
+	turnChatWarningTime: number = 30 * 1000;
+	turnPmWarningTime: number = 10 * 1000;
 	typesLimit: number = 20;
 	usesColors: boolean = true;
 
@@ -91,6 +92,7 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 		if (!card.action) throw new Error("playActionCard called with a regular card");
 		if (!card.action.isPlayableTarget(this, targets, cards, player)) return false;
 
+		let drawnCards: ICard[] | undefined;
 		const id = card.id as ActionCardNames;
 		if (id === 'manaphy' || id === 'phione') {
 			let amount: number;
@@ -127,7 +129,9 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 					otherPlayerCards.push(cardPool[0]);
 					cardPool.shift();
 				}
-				if (this.players[i] !== player) this.updatePlayerHtmlPage(this.players[i]);
+				if (this.players[i] !== player) {
+					this.sendPlayerCards(this.players[i]);
+				}
 			}
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		} else if (id === 'pachirisu') {
@@ -143,7 +147,7 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 			}
 
 			cards.push(pair);
-			player.say(card.name + " found you a " + pair.name + "!");
+			drawnCards = [pair];
 		}
 
 		this.awaitingCurrentPlayerCard = false;
@@ -152,7 +156,9 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 		this.storePreviouslyPlayedCard({card: card.name, player: player.name});
 		this.currentPlayer = null;
 
-		if (!player.eliminated) this.updatePlayerHtmlPage(player);
+		if (!player.eliminated) {
+			this.sendPlayerCards(player, drawnCards);
+		}
 
 		return true;
 	}
@@ -164,7 +170,7 @@ const commands: GameCommandDefinitions<StakatakasCardTower> = {
 			if (!this.canPlay || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
 			this.currentPlayer = null;
 			const drawnCards = this.drawCard(this.players[user.id]);
-			this.updatePlayerHtmlPage(this.players[user.id], drawnCards);
+			this.sendPlayerCards(this.players[user.id], drawnCards);
 			this.nextRound();
 			return true;
 		},

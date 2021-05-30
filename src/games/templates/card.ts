@@ -86,7 +86,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 
 	abstract createDeck(): void;
 	abstract getCardChatDetails(card: ICard): string;
-	abstract getCardsPmHtml(cards: ICard[], player?: Player, playableCards?: boolean): string;
+	abstract getCardsPrivateHtml(cards: ICard[], player?: Player, playableCards?: boolean): string[];
 	abstract onNextRound(): void;
 	abstract onStart(): void;
 
@@ -225,7 +225,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
 		if (lateJoin) {
 			this.giveStartingCards(player);
-			this.updatePlayerHtmlPage(player);
+			this.sendPlayerCards(player);
 			this.playerOrder.push(player);
 			this.playerList.push(player);
 		}
@@ -287,20 +287,13 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 		const eggGroups = [];
 		for (const eggGroup of card.eggGroups) {
 			const colorData = Tools.getEggGroupHexCode(eggGroup)!;
-			eggGroups.push('<div style="display:inline-block;background-color:' + colorData.color + ';background:' +
-				colorData.gradient + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;' +
-				'padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt;text-align:center"><b>' +
-				eggGroup + '</b></div>');
+			eggGroups.push(Tools.getHexLabel(colorData, eggGroup, this.detailLabelWidth));
 		}
 		return eggGroups.join("&nbsp;/&nbsp;");
 	}
 
 	getChatColorLabel(card: IPokemonCard): string {
-		const colorData = Tools.getPokemonColorHexCode(card.color)!;
-		return '<div style="display:inline-block;background-color:' + colorData.color + ';background:' +
-			colorData.gradient + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;padding:1px;' +
-			'color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt;text-align:center"><b>' + card.color +
-			'</b></div>';
+		return Tools.getHexLabel(Tools.getPokemonColorHexCode(card.color)!, card.color, this.detailLabelWidth);
 	}
 
 	getCardChatHtml(cards: ICard | ICard[]): string {
@@ -315,13 +308,6 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 			let image = '';
 			if (this.isMoveCard(card)) {
 				names.push(card.name);
-				const colorData = Tools.getTypeHexCode(card.type)!;
-				image = '<div style="display:inline-block;height:51px;width:' + (this.detailLabelWidth + 10) + '"><br /><div ' +
-					'style="display:inline-block;background-color:' + colorData.color + ';background:' +
-					colorData.gradient + ';border: 1px solid #a99890;border-radius:3px;width:' + this.detailLabelWidth + 'px;' +
-					'padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;font-size:8pt"><b>' + card.type +
-					'</b></div></div>';
-				width += this.detailLabelWidth;
 			} else {
 				const shinyPokemon = (card as IPokemonCard).shiny;
 				names.push(card.name + (shinyPokemon ? ' \u2605' : ''));
@@ -338,7 +324,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 		width *= 1.5;
 		if (width < 250) width = 250;
 		html += '<div class="infobox" style="width:' + (width + 10) + 'px;"><div class="infobox" style="width:' +
-			width + 'px">' + names.join(", ") + '</div>';
+			width + 'px"><b>' + names.join(", ") + '</b></div>';
 		html += images.join("") + '<div class="infobox" style="width:' + width + 'px;">' + info + '</div></div>';
 		return html;
 	}
@@ -367,37 +353,34 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 		return cards;
 	}
 
-	updatePlayerHtmlPage(player: Player, drawnCards?: ICard[]): void {
-		const playerCards = this.playerCards.get(player)!;
+	sendPlayerCards(player: Player, drawnCards?: ICard[], playedCards?: ICard[]): void {
+		const playerCards = this.playerCards.get(player)!.sort((a, b) => {
+			if (b.action && !a.action) return 1;
+			if (a.action && !b.action) return -1;
+			return 0;
+		});
 
-		let drawnCardsMessage = '';
-		if (drawnCards) {
-			for (const card of drawnCards) {
-				if (!playerCards.includes(card)) playerCards.push(card);
-			}
-			drawnCardsMessage = "You drew: " + Tools.joinList(drawnCards.map(x => x.name), "<b>", "</b>");
-		}
-
-		const awaitingCurrentPlayerCard = this.awaitingCurrentPlayerCard && this.currentPlayer === player;
-		let html = '';
-		if (this.topCard && awaitingCurrentPlayerCard) {
-			html += '<b>Top card</b>:<br /><center>' + this.getCardsPmHtml([this.topCard]) + '</center>';
-		}
-
-		if (drawnCardsMessage) html += drawnCardsMessage;
-
-		if (this.getTurnCardsPmHtml && awaitingCurrentPlayerCard) {
-			html += this.getTurnCardsPmHtml(player);
+		let html = '<div class="infobox">';
+		const playerTurn = this.currentPlayer === player && this.awaitingCurrentPlayerCard;
+		if (playerTurn && this.getPlayerTurnHtml) {
+			html += this.getPlayerTurnHtml(player);
 		} else {
-			if (!playerCards.length) {
-				html += '<h3>Your hand is empty!</h3>';
-			} else {
-				html += '<h3>Your cards' + (this.finitePlayerCards ? " (" + playerCards.length + ")" : "") + '</h3>';
-				html += this.getCardsPmHtml(playerCards, player);
-			}
+			html += '<b>Your cards' + (this.finitePlayerCards ? " (" + playerCards.length + ")" : "") + '</b>:<br />';
+			html += this.getCardsPrivateHtml(playerCards, player, playerTurn).join("<br />");
 		}
 
-		player.sendHtmlPage(html);
+		if (playedCards && drawnCards) {
+			html += "<br />You played <b>" + Tools.joinList(playedCards.map(x => x.name)) + "</b> and drew <b>" +
+				Tools.joinList(drawnCards.map(x => x.name)) + "</b>!";
+		} else if (playedCards) {
+			html += "<br />You played <b>" + Tools.joinList(playedCards.map(x => x.name)) + "</b>!";
+		} else if (drawnCards) {
+			html += "<br />You drew <b>" + Tools.joinList(drawnCards.map(x => x.name)) + "</b>!";
+		}
+
+		html += "</div>";
+
+		player.sayPrivateUhtml(html, this.uhtmlBaseName + '-cards');
 	}
 
 	onTimeLimit(): boolean {
@@ -475,6 +458,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	filterPoolItem?(dex: typeof Dex, pokemon: IPokemon): boolean;
 	alterCard?(dex: typeof Dex, card: ICard): ICard;
 	getTurnCardsPmHtml?(player: Player): string;
+	getPlayerTurnHtml?(player: Player): string;
 }
 
 const commands: GameCommandDefinitions<Card> = {};

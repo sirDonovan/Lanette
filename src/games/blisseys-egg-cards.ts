@@ -405,7 +405,7 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 	finitePlayerCards: boolean = true;
 	maxCardRounds: number = 100;
 	maximumPlayedCards: number = 2;
-	maxPlayableGroupSize: number = 2;
+	maxShownPlayableGroupSize: number = 2;
 	playableCardDescription: string = "You must play 1-2 cards that share an egg group with the top card.";
 	playerCards = new Map<Player, IPokemonCard[]>();
 	shinyCardAchievement = BlisseysEggCards.achievements.luckofthedraw;
@@ -464,8 +464,8 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 		return this.getEggGroupLabel(card);
 	}
 
-	getCardPmDetails(card: IPokemonCard): string {
-		return this.getEggGroupLabel(card);
+	getCardPrivateDetails(card: IPokemonCard): string {
+		return "<b>Egg grouping</b>:&nbsp;" + this.getEggGroupLabel(card);
 	}
 
 	isCardPair(card: IPokemonCard, otherCard: IPokemonCard): boolean {
@@ -565,7 +565,9 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 		this.storePreviouslyPlayedCard({card: card.name, player: player.name, detail: cardDetail});
 		this.currentPlayer = null;
 
-		if (!player.eliminated) this.updatePlayerHtmlPage(player);
+		if (!player.eliminated) {
+			this.sendPlayerCards(player);
+		}
 
 		return true;
 	}
@@ -576,9 +578,9 @@ const commands: GameCommandDefinitions<BlisseysEggCards> = {
 		command(target, room, user) {
 			if (!this.canPlay || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
 			this.awaitingCurrentPlayerCard = false;
-			this.currentPlayer = null; // prevent Draw Wizard from activating on a draw
+			this.currentPlayer = null;
 			const drawnCards = this.drawCard(this.players[user.id]);
-			this.updatePlayerHtmlPage(this.players[user.id], drawnCards);
+			this.sendPlayerCards(this.players[user.id], drawnCards);
 			this.nextRound();
 			return true;
 		},

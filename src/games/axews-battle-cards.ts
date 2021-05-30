@@ -562,8 +562,8 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		return this.getChatTypeLabel(card);
 	}
 
-	getCardPmDetails(card: IPokemonCard): string {
-		return this.getChatTypeLabel(card);
+	getCardPrivateDetails(card: IPokemonCard): string {
+		return "<b>Typing</b>:&nbsp;" + this.getChatTypeLabel(card);
 	}
 
 	hasNoWeaknesses(dex: typeof Dex, types: readonly string[]): boolean {
@@ -694,7 +694,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		if (!player.eliminated) {
 			this.currentPlayer = null;
 			const drawnCards = this.drawCard(player, this.roundDrawAmount, drawCards);
-			this.updatePlayerHtmlPage(player, drawnCards);
+			this.sendPlayerCards(player, drawnCards);
 		}
 
 		return true;

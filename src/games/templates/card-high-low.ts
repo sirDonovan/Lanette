@@ -14,6 +14,7 @@ export abstract class CardHighLow extends Card {
 	canPlay: boolean = false;
 	categoryList: string[] = [];
 	currentCategory: string = '';
+	detailLabelWidth: number = 50;
 	highOrLow: 'High' | 'Low' = 'High';
 	maxPlayers: number = 20;
 	points = new Map<Player, number>();
@@ -47,28 +48,17 @@ export abstract class CardHighLow extends Card {
 		this.say("Now sending out cards!");
 		for (const i in this.players) {
 			this.giveStartingCards(this.players[i]);
-			this.updatePlayerHtmlPage(this.players[i]);
+			this.sendPlayerCards(this.players[i]);
 		}
 		this.nextRound();
 	}
 
 	getCardChatDetails(card: ICard): string {
-		const blackHex = Tools.getNamedHexCode('Black');
-
-		return '<div style="display:inline-block;background-color:' + blackHex.color + ';background:' + blackHex.gradient + ';' +
-			'border:1px solid #a99890;border-radius:3px;width:auto;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;' +
-			'text-align:center;font-size:8pt">' + this.getCardDetail(card, this.currentCategory) + ' ' +
-			this.categoryAbbreviations[this.currentCategory] + '</div>';
+		return Tools.getHexLabel(Tools.getNamedHexCode('Black'), this.getCardDetail(card, this.currentCategory) + '<br />' +
+			this.categoryAbbreviations[this.currentCategory], this.detailLabelWidth);
 	}
 
-	getCardsPmHtml(cards: ICard[], player?: Player): string {
-		const borderSize = 1;
-		const paddingSize = 1;
-		const categoryWidth = 64;
-		const totalCategories = this.detailCategories.length;
-		const currentCategoryWidth = (categoryWidth * (totalCategories - 1)) +
-			(((borderSize * 2) + (paddingSize * 2)) * (totalCategories - 2));
-		const cardWidth = categoryWidth * (totalCategories + 1);
+	getCardsPrivateHtml(cards: ICard[], player?: Player): string[] {
 		const cardInfo: {card: ICard; detail: number}[] = [];
 		for (const card of cards) {
 			cardInfo.push({card: card, detail: this.getCardDetail(card, this.currentCategory)});
@@ -86,13 +76,26 @@ export abstract class CardHighLow extends Card {
 			bestDetail = sorted[0].detail;
 		}
 
-		const pokemonKeys = Dex.getData().pokemonKeys;
+		const data = Dex.getData();
 		const cardsHtml: string[] = [];
 		for (const info of sorted) {
 			const card = info.card;
-			let cardHtml = '<div class="infobox" style="width:' + cardWidth + 'px">';
-			if (pokemonKeys.includes(card.id)) {
-				cardHtml += Dex.getPokemonIcon(Dex.getExistingPokemon(card.id));
+			let cardHtml = '<div class="infobox">';
+			if (canPlay) {
+				cardHtml += Client.getQuietPmButton(this.room, Config.commandCharacter + "play " + card.name, "Play!") +
+					'&nbsp;&nbsp;|&nbsp;';
+			}
+
+			const currentHex = Tools.getNamedHexCode('Black');
+			let otherCategoryHex = currentHex;
+			if (data.pokemonKeys.includes(card.id)) {
+				const pokemon = Dex.getExistingPokemon(card.id);
+				cardHtml += Dex.getPokemonIcon(pokemon);
+				otherCategoryHex = Tools.getPokemonColorHexCode(pokemon.color)!;
+			} else if (data.moveKeys.includes(card.id)) {
+				const move = Dex.getExistingMove(card.id);
+				cardHtml += Dex.getMoveCategoryIcon(move) + "&nbsp;";
+				otherCategoryHex = Tools.getMoveCategoryHexCode(move.category)!;
 			}
 
 			const bolded = canPlay && info.detail === bestDetail;
@@ -102,46 +105,30 @@ export abstract class CardHighLow extends Card {
 				cardHtml += card.name + '';
 			}
 
-			if (canPlay) {
-				cardHtml += '&nbsp;' + Client.getPmSelfButton(Config.commandCharacter + "play " + card.name, "Play!");
-			}
-			cardHtml += '<br />';
-
-			cardHtml += "<center>";
-
-			const blackHex = Tools.getNamedHexCode('Black');
 			if (this.currentCategory) {
-				cardHtml += '<div style="background-color:' + blackHex.color + ';background:' + blackHex.gradient + ';' +
-					'border:' + borderSize + 'px solid #a99890;border-radius:3px;padding:' + paddingSize + 'px;color:#fff;' +
-					'text-shadow:1px 1px 1px #333;width:' + currentCategoryWidth + 'px">';
-				if (bolded) {
-					cardHtml += '<b>' + info.detail + ' <span title="' + this.categoryNames[this.currentCategory] + '">' +
-						this.categoryAbbreviations[this.currentCategory] + '</span></b>';
-				} else {
-					cardHtml += info.detail + ' <span title="' + this.categoryNames[this.currentCategory] + '">' +
-						this.categoryAbbreviations[this.currentCategory] + '</span>';
-				}
-				cardHtml += '</div>';
+				cardHtml += '&nbsp;|&nbsp;<b>Current category</b>:&nbsp;' + Tools.getHexLabel(currentHex, info.detail +
+					'<br /><span title="' + this.categoryNames[this.currentCategory] + '">' +
+					this.categoryAbbreviations[this.currentCategory] + '</span>', this.detailLabelWidth);
 
-				cardHtml += '<div>';
+				cardHtml += '<br />';
+
+				const otherCategories: string[] = [];
 				for (const category of this.detailCategories) {
 					if (category === this.currentCategory) continue;
 					const detail = '' + this.getCardDetail(card, category);
-					cardHtml += '<div style="display:inline-block;background-color:' + blackHex.color +
-						';background:' + blackHex.gradient + ';border:' + borderSize + 'px solid #a99890;' +
-						'border-radius:3px;padding:' + paddingSize + 'px;color:#fff;text-shadow:1px 1px 1px #333;text-align:center;width:' +
-						categoryWidth + 'px">' + detail + ' <span title="' + this.categoryNames[category] + '">' +
-						this.categoryAbbreviations[category] + "</span></div>";
+					otherCategories.push(Tools.getHexLabel(otherCategoryHex, detail +
+						'<br /><span title="' + this.categoryNames[category] + '">' +
+						this.categoryAbbreviations[category] + '</span>', this.detailLabelWidth));
 				}
-				cardHtml += '</div>';
+				cardHtml += '<div>' + otherCategories.join('&nbsp;|&nbsp;') + '</div>';
 			}
 
-			cardHtml += '</center></div>';
+			cardHtml += '</div>';
 
 			cardsHtml.push(cardHtml);
 		}
 
-		return cardsHtml.join("<br />");
+		return cardsHtml;
 	}
 
 	scoreRound(): void {
@@ -229,7 +216,9 @@ export abstract class CardHighLow extends Card {
 			});
 			this.say(text);
 			for (const i in this.players) {
-				if (!this.players[i].eliminated) this.updatePlayerHtmlPage(this.players[i]);
+				if (!this.players[i].eliminated) {
+					this.sendPlayerCards(this.players[i]);
+				}
 			}
 		});
 		this.sayUhtml(uhtmlName, html);
@@ -259,7 +248,7 @@ export abstract class CardHighLow extends Card {
 
 	getPlayerSummary(player: Player): void {
 		if (player.eliminated) return;
-		this.updatePlayerHtmlPage(player);
+		this.sendPlayerCards(player);
 	}
 }
 
@@ -287,10 +276,12 @@ const commands: GameCommandDefinitions<CardHighLow> = {
 				}
 				return false;
 			}
+
+			const playedCards = [cards[index]];
 			this.roundPlays.set(player, cards[index]);
 			cards.splice(index, 1);
 			const drawnCards = this.drawCard(player, this.roundDrawAmount);
-			this.updatePlayerHtmlPage(player, drawnCards);
+			this.sendPlayerCards(player, drawnCards, playedCards);
 			return true;
 		},
 		aliases: ['pmplay'],

@@ -20,6 +20,8 @@ const MAX_CUSTOM_NAME_LENGTH = 100;
 const DEFAULT_CUSTOM_RULES_NAME = " (with custom rules)";
 const CURRENT_GEN = 8;
 const CURRENT_GEN_STRING = 'gen' + CURRENT_GEN;
+const POKEMON_ICON_HEIGHT = 30;
+const POKEMON_ICON_WIDTH = 40;
 
 const mechanicsDifferences: Dict<string> = {
 	'gen1': '3668073/post-8553244',
@@ -1160,13 +1162,12 @@ export class Dex {
 			if (alternateIconNumbers.right[pokemon.id]) num = alternateIconNumbers.right[pokemon.id]!;
 		}
 
-		const height = 30;
-		const width = 40;
-		const top = Math.floor(num / 12) * height;
-		const left = (num % 12) * width;
+		const top = Math.floor(num / 12) * POKEMON_ICON_HEIGHT;
+		const left = (num % 12) * POKEMON_ICON_WIDTH;
 		const facingLeftStyle = facingLeft ? "transform:scaleX(-1);webkit-transform:scaleX(-1);" : "";
-		return '<span style="display: inline-block;height: ' + height + 'px;width: ' + width + 'px;image-rendering: pixelated;' +
-			'background:transparent url(https://' + Tools.mainServer + '/sprites/pokemonicons-sheet.png?v4) no-repeat scroll -' + left +
+		return '<span style="display: inline-block;height: ' + POKEMON_ICON_HEIGHT + 'px;width: ' + POKEMON_ICON_WIDTH + 'px;' +
+			'image-rendering: pixelated;' +
+			'background:transparent url(https://' + Tools.mainServer + '/sprites/pokemonicons-sheet.png?v5) no-repeat scroll -' + left +
 			'px -' + top + 'px;' + facingLeftStyle + '"></span>';
 	}
 
@@ -1191,6 +1192,10 @@ export class Dex {
 		return '<psicon item="' + item.id + '" style="vertical-align: -7px;margin: -2px" />';
 	}
 
+	getMoveCategoryIcon(move: IMove): string {
+		return '<img src="//' + Tools.mainServer + '/sprites/categories/' + move.category + '.png" width="32" height="14" />';
+	}
+
 	getTrainerSpriteId(name: string): string | undefined {
 		const trainerSprites = this.getData().trainerSprites;
 		const id = Tools.toId(name);
@@ -1207,13 +1212,7 @@ export class Dex {
 	}
 
 	getTypeHtml(type: ITypeData, width?: number): string {
-		if (!width) width = 75;
-
-		const colorData = Tools.getTypeHexCode(type.name)!;
-		return '<div style="display:inline-block;background-color:' + colorData.color + ';background:' +
-			colorData.gradient + ';border: 1px solid #a99890;border-radius:3px;' +
-			'width:' + width + 'px;padding:1px;color:#fff;text-shadow:1px 1px 1px #333;text-transform: uppercase;' +
-			'font-size:8pt;text-align:center"><b>' + type.name + '</b></div>';
+		return Tools.getHexLabel(Tools.getTypeHexCode(type.name)!, type.name, width);
 	}
 
 	/*

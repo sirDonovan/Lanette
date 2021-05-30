@@ -1177,6 +1177,12 @@ export const pokemonColorHexCodes: Dict<string> = {
 	"Gray": namedHexCodes["Gray"],
 };
 
+export const moveCategoryHexCodes: Dict<string> = {
+	"Physical": namedHexCodes["Red"],
+	"Special": namedHexCodes["Blue"],
+	"Status": namedHexCodes["Gray"],
+};
+
 export const eggGroupHexCodes: Dict<string> = {
 	"Monster": namedHexCodes["Red"],
 	"Grass": namedHexCodes["Green"],
