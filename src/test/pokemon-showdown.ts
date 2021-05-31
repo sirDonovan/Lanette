@@ -192,6 +192,8 @@ describe("pokemon-showdown", () => {
 		assert(moveKeys.length);
 		assert(moveKeys.includes('pound'));
 		assert(moveKeys.includes('paleowave'));
+		assert(moveKeys.includes('hiddenpower'));
+		assert(moveKeys.includes('hiddenpowerice'));
 
 		for (const i of moveKeys) {
 			const move = Dex.getMove(i);

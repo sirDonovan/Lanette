@@ -2153,7 +2153,10 @@ export class Dex {
 			}
 		}
 
-		const moveKeys = this.pokemonShowdownDex.moves.all().map(x => x.id);
+		const moveKeys = this.pokemonShowdownDex.moves.all().map(x => {
+			if (x.realMove && Tools.toId(x.realMove) === 'hiddenpower') return Tools.toId(x.name);
+			return x.id;
+		});
 		const filteredMoveKeys: string[] = [];
 		for (const key of moveKeys) {
 			const move = this.getMove(key)!;
