@@ -98,7 +98,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	// set in onInitialize
 	battleFormat!: IFormat;
 
-	room!: Room;
+	declare readonly room: Room;
 
 	onInitialize(format: IGameFormat): void {
 		super.onInitialize(format);

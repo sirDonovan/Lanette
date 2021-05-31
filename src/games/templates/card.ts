@@ -76,12 +76,10 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	usesActionCards: boolean = true;
 	usesHtmlPage = true;
 
-	room!: Room;
+	declare readonly room: Room;
 
 	gifGeneration?: ModelGeneration;
-	lives?: Map<Player, number>;
 	requiredGen?: number;
-	startingLives?: number;
 	topCard?: ICard;
 
 	abstract createDeck(): void;

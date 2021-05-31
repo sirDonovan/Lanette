@@ -56,7 +56,7 @@ export class Tournament extends Activity {
 	// set in initialize()
 	format!: IFormat;
 	playerCap!: number;
-	readonly room!: Room;
+	declare readonly room: Room;
 
 	constructor(room: Room, pmRoom?: Room) {
 		super(room, pmRoom);

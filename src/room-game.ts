@@ -45,7 +45,7 @@ export abstract class Game extends Activity {
 	lastTrainerUhtml?: ITrainerUhtml;
 	mascot?: IPokemonCopy;
 	maxPlayers?: number;
-	parentGame: Game | undefined;
+	parentGame?: Game;
 	playerCap?: number;
 	readonly points?: Map<Player, number>;
 	startingPoints?: number;

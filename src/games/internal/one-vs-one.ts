@@ -17,7 +17,7 @@ export class OneVsOne extends ScriptedGame {
 
 	challengeFormat!: IGameFormat;
 
-	room!: Room;
+	declare readonly room: Room;
 
 	setupChallenge(challenger: User, defender: User, challengeFormat: IGameFormat): void {
 		this.challengeFormat = challengeFormat;

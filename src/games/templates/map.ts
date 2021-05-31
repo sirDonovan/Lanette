@@ -108,7 +108,7 @@ export abstract class MapGame extends ScriptedGame {
 	roundsWithoutCurrency = new Map<Player, number>();
 	usesHtmlPage = true;
 
-	room!: Room;
+	declare readonly room: Room;
 
 	escapedPlayers?: Map<Player, boolean> | null = null;
 	noCurrencyAchievement?: IGameAchievement;

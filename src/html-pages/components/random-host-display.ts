@@ -33,8 +33,8 @@ export class RandomHostDisplay extends HostDisplayBase {
 
 	allTypePicker: TypePicker;
 
-	gifPokemonPickers!: PokemonPickerRandom[];
-	iconPokemonPickers!: PokemonPickerRandom[];
+	declare gifPokemonPickers: PokemonPickerRandom[];
+	declare iconPokemonPickers: PokemonPickerRandom[];
 
 	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IHostDisplayProps) {
 		super(room, parentCommandPrefix, componentCommand, props, PokemonPickerRandom);

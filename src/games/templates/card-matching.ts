@@ -46,7 +46,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	usesColors: boolean = false;
 
 	// always truthy once the game starts
-	topCard!: IPokemonCard;
+	declare topCard: IPokemonCard;
 
 	maximumPlayedCards?: number;
 	maxShownPlayableGroupSize?: number;

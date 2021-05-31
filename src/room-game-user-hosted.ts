@@ -34,9 +34,9 @@ export class UserHostedGame extends Game {
 	twist: string | null = null;
 
 	// set in onInitialize()
-	format!: IUserHostedFormat;
+	declare format: IUserHostedFormat;
 
-	room!: Room;
+	declare readonly room: Room;
 
 	reset(): void {
 		if (this.timeout) {

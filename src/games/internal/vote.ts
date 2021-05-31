@@ -28,7 +28,7 @@ export class Vote extends ScriptedGame {
 	readonly votes = new Map<Player, IPlayerVote>();
 
 	// hack for onSignups()
-	room!: Room;
+	declare readonly room: Room;
 
 	updateVotesHtml(callback?: () => void, uhtmlAuto?: boolean): void {
 		const ended = this.canVote === false;

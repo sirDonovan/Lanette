@@ -10,7 +10,7 @@ export interface INumberTextInputProps extends ITextInputProps {
 export class NumberTextInput extends TextInput {
 	componentId: string = 'number-text-input';
 
-	props!: INumberTextInputProps;
+	declare props: INumberTextInputProps;
 
 	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: INumberTextInputProps) {
 		super(room, parentCommandPrefix, componentCommand, props);

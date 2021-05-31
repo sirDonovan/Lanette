@@ -27,7 +27,7 @@ export class PokemonTextInput extends TextInput<PokemonChoices> {
 
 	modelGeneration: ModelGeneration;
 
-	props!: IPokemonTextInputProps;
+	declare props: IPokemonTextInputProps;
 
 	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IPokemonTextInputProps) {
 		super(room, parentCommandPrefix, componentCommand, props);

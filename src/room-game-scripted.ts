@@ -34,7 +34,7 @@ export class ScriptedGame extends Game {
 	readonly loserPointsToBits: number = 10;
 	readonly maxBits: number = 500;
 	notifyRankSignups: boolean = false;
-	parentGame: ScriptedGame | undefined;
+	parentGame: ScriptedGame | undefined = undefined;
 	signupsRefreshed: boolean = false;
 	startTime: number = 0;
 	usesHtmlPage: boolean = false;
@@ -42,7 +42,7 @@ export class ScriptedGame extends Game {
 	readonly winnerPointsToBits: number = 50;
 
 	// set in onInitialize()
-	format!: IGameFormat;
+	declare format: IGameFormat;
 
 	additionalDescription?: string;
 	allowChildGameBits?: boolean;

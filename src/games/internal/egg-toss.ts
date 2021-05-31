@@ -17,7 +17,7 @@ class EggToss extends ScriptedGame {
 	lastHolder: Player | null = null;
 
 	// hack for selectUser()
-	room!: Room;
+	declare readonly room: Room;
 
 	cleanupTimers(): void {
 		if (this.explodeTimeout) clearTimeout(this.explodeTimeout);

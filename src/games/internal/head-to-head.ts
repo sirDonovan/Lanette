@@ -16,7 +16,7 @@ export class HeadToHead extends ScriptedGame {
 
 	challengeFormat!: IGameFormat;
 
-	room!: Room;
+	declare readonly room: Room;
 
 	setupChallenge(leftUser: User, rightUser: User, challengeFormat: IGameFormat): void {
 		if (challengeFormat.inputOptions.points) {

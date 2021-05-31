@@ -16,7 +16,7 @@ export class BotChallenge extends ScriptedGame {
 	winner: Player | undefined;
 
 	challengeFormat!: IGameFormat;
-	room!: Room;
+	declare readonly room: Room;
 
 	setupChallenge(challenger: User, defender: User, challengeFormat: IGameFormat, options?: Dict<string>): void {
 		this.challengeFormat = challengeFormat;

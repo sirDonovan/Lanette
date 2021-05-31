@@ -18,8 +18,8 @@ export class ManualHostDisplay extends HostDisplayBase {
 
 	allPokemonTextInputGifGens!: KeyedDict<ModelGeneration, PokemonTextInput>;
 	allPokemonTextInputIconGens!: KeyedDict<ModelGeneration, PokemonTextInput>;
-	gifPokemonPickers!: PokemonPickerManual[];
-	iconPokemonPickers!: PokemonPickerManual[];
+	declare gifPokemonPickers: PokemonPickerManual[];
+	declare iconPokemonPickers: PokemonPickerManual[];
 
 	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IHostDisplayProps) {
 		super(room, parentCommandPrefix, componentCommand, props, PokemonPickerManual);
