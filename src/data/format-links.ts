@@ -113,7 +113,7 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	},
 	'gen7ru': {
 		info: 'https://www.smogon.com/dex/sm/formats/ru',
-		teams: 'https://www.smogon.com/forums/threads/3645338',
+		teams: 'https://www.smogon.com/forums/threads/3664523/#post-8471011',
 		viability: 'https://www.smogon.com/forums/threads/3645873',
 	},
 	'gen7nu': {
@@ -210,7 +210,7 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	},
 	'gen6ru': {
 		info: 'https://www.smogon.com/dex/xy/formats/ru',
-		teams: 'https://www.smogon.com/forums/threads/3631702/post-7741529',
+		teams: 'https://www.smogon.com/forums/threads/3664523/#post-8471013',
 		viability: 'https://www.smogon.com/forums/threads/3631702/post-7741529',
 	},
 	'gen6nu': {
@@ -286,7 +286,7 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	},
 	'gen5ru': {
 		info: 'https://www.smogon.com/dex/bw/formats/ru',
-		teams: 'https://www.smogon.com/forums/threads/3631702/post-7741531',
+		teams: 'https://www.smogon.com/forums/threads/3664523/#post-8471014',
 		viability: 'https://www.smogon.com/forums/threads/3640267',
 	},
 	'gen5nu': {
