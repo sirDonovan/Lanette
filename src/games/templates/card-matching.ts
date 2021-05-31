@@ -593,7 +593,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			if (this.parentGame && this.parentGame.onChildPlayerTurn) this.parentGame.onChildPlayerTurn(player!);
 
 			this.timeout = setTimeout(() => {
-				this.say(player!.name + " is it your turn!");
+				this.say(player!.name + " it is your turn!");
 				this.timeout = setTimeout(() => {
 					const timeAfterWarnings = this.turnTimeLimit - this.turnChatWarningTime - this.turnPmWarningTime;
 					const timeAfterWarningString = Tools.toDurationString(timeAfterWarnings);
