@@ -219,6 +219,7 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	},
 	'gen6pu': {
 		info: 'https://www.smogon.com/dex/xy/formats/pu',
+		teams: 'https://www.smogon.com/roa/?format=gen6pu',
 		viability: 'https://www.smogon.com/forums/threads/3528743',
 	},
 	'gen6lc': {
