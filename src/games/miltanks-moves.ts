@@ -74,6 +74,6 @@ export const game: IGameFile<MiltanksMoves> = Games.copyTemplateProperties(quest
 	freejoin: true,
 	name: "Miltank's Moves",
 	mascot: "Miltank",
-	modes: ['multianswer', 'survival', 'team', 'timeattack'],
+	modes: ["collectiveteam", "multianswer", "spotlightteam", "survival", "timeattack"],
 	nonTrivialLoadData: true,
 });

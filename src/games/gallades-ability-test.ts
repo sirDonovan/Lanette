@@ -76,6 +76,6 @@ export const game: IGameFile<GalladesAbilityTest> = Games.copyTemplateProperties
 			roundTime: 10 * 1000,
 		},
 	},
-	modes: ["survival", "team", "timeattack"],
+	modes: ["collectiveteam", "spotlightteam", "survival", "timeattack"],
 	tests: Object.assign({}, questionAndAnswerGame.tests, tests),
 });

@@ -141,7 +141,7 @@ export const game: IGameFile<HypnosHunches> = Games.copyTemplateProperties(quest
 	mascot: "Hypno",
 	minigameCommand: 'hunch',
 	minigameDescription: 'Use <code>' + Config.commandCharacter + 'g</code> to guess one letter per round or the answer (no blanks shown)!',
-	modes: ['survival', 'group'],
+	modes: ['collectiveteam', 'survival'],
 	modeProperties: {
 		'survival': {
 			guessLimit: 4,

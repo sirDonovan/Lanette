@@ -472,7 +472,7 @@ export class Games {
 							const aliases = [id + modeAlias, modeAlias + id];
 							for (const alias of aliases) {
 								if (alias in this.aliases) {
-									throw new Error(format.name + "'s mode alias '" + modeAlias + "' clashes " +
+									throw new Error(format.name + "'s mode alias '" + alias + "' clashes " +
 										"with the alias for " + this.aliases[alias] + ".");
 								}
 
@@ -680,7 +680,7 @@ export class Games {
 			if (!optionName || isNaN(optionNumber)) return ['invalidGameOption', option];
 
 			if (optionName === 'firstto') optionName = 'points';
-			if (optionName === 'points' && mode && mode.id === 'team') optionName = 'teamPoints';
+			if (optionName === 'points' && mode && (mode.id === 'collectiveteam' || mode.id === 'spotlightteam')) optionName = 'teamPoints';
 			inputOptions[optionName] = optionNumber;
 		}
 

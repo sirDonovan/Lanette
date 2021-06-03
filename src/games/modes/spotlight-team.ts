@@ -8,13 +8,13 @@ import type { QuestionAndAnswer } from "../templates/question-and-answer";
 
 const BASE_POINTS = 20;
 
-const name = 'Team';
+const name = 'Spotlight Team';
 const description = 'One player from each team will be able to answer each round!';
 const removedOptions: string[] = ['points', 'freejoin'];
 
-type TeamThis = QuestionAndAnswer & Team;
+type SpotlightTeamThis = QuestionAndAnswer & SpotlightTeam;
 
-class Team {
+class SpotlightTeam {
 	canLateJoin: boolean = true;
 	currentPlayers: Dict<Player> = {};
 	firstAnswers: Dict<Player | false> = {};
@@ -50,7 +50,7 @@ class Team {
 		}
 	}
 
-	onAddLateJoinQueuedPlayers(this: TeamThis, queuedPlayers: Player[]): void {
+	onAddLateJoinQueuedPlayers(this: SpotlightTeamThis, queuedPlayers: Player[]): void {
 		const teams = Object.keys(this.teams);
 		for (const queuedPlayer of queuedPlayers) {
 			queuedPlayer.frozen = false;
@@ -65,7 +65,7 @@ class Team {
 		}
 	}
 
-	setTeams(this: TeamThis): void {
+	setTeams(this: SpotlightTeamThis): void {
 		this.lateJoinQueueSize = this.format.options.teams;
 		this.teams = this.generateTeams(this.format.options.teams);
 		this.setLargestTeam();
@@ -77,7 +77,7 @@ class Team {
 		}
 	}
 
-	onRemovePlayer(this: TeamThis, player: Player): void {
+	onRemovePlayer(this: SpotlightTeamThis, player: Player): void {
 		if (!this.started || !player.team) return;
 
 		const playerOrderIndex = this.playerOrders[player.team.id].indexOf(player);
@@ -86,12 +86,12 @@ class Team {
 		this.setLargestTeam();
 	}
 
-	onStart(this: TeamThis): void {
+	onStart(this: SpotlightTeamThis): void {
 		this.setTeams();
 		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
-	beforeNextRound(this: TeamThis): boolean | string {
+	beforeNextRound(this: SpotlightTeamThis): boolean | string {
 		const emptyTeams = this.getEmptyTeams();
 		for (const team of emptyTeams) {
 			delete this.teams[team.id];
@@ -143,7 +143,7 @@ class Team {
 		return points.join(" | ");
 	}
 
-	onEnd(this: TeamThis): void {
+	onEnd(this: SpotlightTeamThis): void {
 		this.winners.forEach((value, player) => {
 			const points = this.points.get(player);
 			let earnings = 250;
@@ -157,7 +157,7 @@ class Team {
 		this.announceWinners();
 	}
 
-	canGuessAnswer(this: TeamThis, player: Player): boolean {
+	canGuessAnswer(this: SpotlightTeamThis, player: Player): boolean {
 		if (this.ended || !this.canGuess || !this.answers.length) return false;
 		let currentPlayer = false;
 		for (const team in this.currentPlayers) {
@@ -170,7 +170,7 @@ class Team {
 	}
 }
 
-const commandDefinitions: GameCommandDefinitions<TeamThis> = {
+const commandDefinitions: GameCommandDefinitions<SpotlightTeamThis> = {
 	guess: {
 		command(target, room, user, cmd, timestamp): GameCommandReturnType {
 			if (this.answerCommands && !this.answerCommands.includes(cmd)) return false;
@@ -225,8 +225,9 @@ const commandDefinitions: GameCommandDefinitions<TeamThis> = {
 const commands = CommandParser.loadCommandDefinitions(commandDefinitions);
 
 const initialize = (game: QuestionAndAnswer): void => {
-	const mode = new Team();
-	const propertiesToOverride = Object.getOwnPropertyNames(mode).concat(Object.getOwnPropertyNames(Team.prototype)) as (keyof Team)[];
+	const mode = new SpotlightTeam();
+	const propertiesToOverride = Object.getOwnPropertyNames(mode)
+		.concat(Object.getOwnPropertyNames(SpotlightTeam.prototype)) as (keyof SpotlightTeam)[];
 	for (const property of propertiesToOverride) {
 		// @ts-expect-error
 		game[property] = mode[property];
@@ -235,7 +236,7 @@ const initialize = (game: QuestionAndAnswer): void => {
 	game.loadModeCommands(commands);
 };
 
-const tests: GameFileTests<TeamThis> = {
+const tests: GameFileTests<SpotlightTeamThis> = {
 	'it should award points for correct answers': {
 		config: {
 			async: true,
@@ -262,9 +263,9 @@ const tests: GameFileTests<TeamThis> = {
 	},
 };
 
-export const mode: IGameModeFile<Team, QuestionAndAnswer, TeamThis> = {
-	aliases: ['teams'],
-	class: Team,
+export const mode: IGameModeFile<SpotlightTeam, QuestionAndAnswer, SpotlightTeamThis> = {
+	aliases: ['st', 'team'],
+	class: SpotlightTeam,
 	commands,
 	description,
 	initialize,

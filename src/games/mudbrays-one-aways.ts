@@ -159,7 +159,7 @@ export const game: IGameFile<MudbraysOneAways> = Games.copyTemplateProperties(qu
 	minigameCommand: 'oneaway',
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess the answer after changing all letters in the word " +
 		"to either the next or previous letter of the alphabet (e.g. Nvecsbz = Mudbray or Ltcaqzx = Mudbray)!",
-	modes: ["survival", "team"],
+	modes: ["collectiveteam", "spotlightteam", "survival"],
 	variants: [
 		{
 			name: "Mudbray's Ability One Aways",

@@ -7,13 +7,13 @@ import type { QuestionAndAnswer } from "../templates/question-and-answer";
 
 const BASE_POINTS = 20;
 
-const name = 'Group';
+const name = 'Collective Team';
 const description = 'Players will be split into teams but everyone can answer each round!';
 const removedOptions: string[] = ['points', 'freejoin'];
 
-type GroupThis = QuestionAndAnswer & Group;
+type CollectiveTeamThis = QuestionAndAnswer & CollectiveTeam;
 
-class Group {
+class CollectiveTeam {
 	firstAnswers: Dict<Player | false> = {};
 	minPlayers: number = 4;
 	playerOrders: Dict<Player[]> = {};
@@ -43,7 +43,7 @@ class Group {
 		}
 	}
 
-	setTeams(this: GroupThis): void {
+	setTeams(this: CollectiveTeamThis): void {
 		this.teams = this.generateTeams(this.format.options.teams);
 
 		const teamIds = Object.keys(this.teams);
@@ -64,7 +64,7 @@ class Group {
 		}
 	}
 
-	onStart(this: GroupThis): void {
+	onStart(this: CollectiveTeamThis): void {
 		this.setTeams();
 		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
@@ -78,7 +78,7 @@ class Group {
 		return points.join(" | ");
 	}
 
-	beforeNextRound(this: GroupThis): boolean {
+	beforeNextRound(this: CollectiveTeamThis): boolean {
 		const emptyTeams = this.getEmptyTeams();
 		for (const team of emptyTeams) {
 			delete this.teams[team.id];
@@ -98,7 +98,7 @@ class Group {
 		}
 	}
 
-	onEnd(this: GroupThis): void {
+	onEnd(this: CollectiveTeamThis): void {
 		this.winners.forEach((value, player) => {
 			const points = this.points.get(player);
 			let earnings = 250;
@@ -113,7 +113,7 @@ class Group {
 	}
 }
 
-const commandDefinitions: GameCommandDefinitions<GroupThis> = {
+const commandDefinitions: GameCommandDefinitions<CollectiveTeamThis> = {
 	guess: {
 		command(target, room, user, cmd, timestamp): GameCommandReturnType {
 			if (this.answerCommands && !this.answerCommands.includes(cmd)) return false;
@@ -171,8 +171,9 @@ const commandDefinitions: GameCommandDefinitions<GroupThis> = {
 const commands = CommandParser.loadCommandDefinitions(commandDefinitions);
 
 const initialize = (game: QuestionAndAnswer): void => {
-	const mode = new Group();
-	const propertiesToOverride = Object.getOwnPropertyNames(mode).concat(Object.getOwnPropertyNames(Group.prototype)) as (keyof Group)[];
+	const mode = new CollectiveTeam();
+	const propertiesToOverride = Object.getOwnPropertyNames(mode)
+		.concat(Object.getOwnPropertyNames(CollectiveTeam.prototype)) as (keyof CollectiveTeam)[];
 	for (const property of propertiesToOverride) {
 		// @ts-expect-error
 		game[property] = mode[property];
@@ -181,9 +182,9 @@ const initialize = (game: QuestionAndAnswer): void => {
 	game.loadModeCommands(commands);
 };
 
-export const mode: IGameModeFile<Group, QuestionAndAnswer, GroupThis> = {
-	aliases: ['groups'],
-	class: Group,
+export const mode: IGameModeFile<CollectiveTeam, QuestionAndAnswer, CollectiveTeamThis> = {
+	aliases: ['ct', 'group'],
+	class: CollectiveTeam,
 	commands,
 	description,
 	initialize,

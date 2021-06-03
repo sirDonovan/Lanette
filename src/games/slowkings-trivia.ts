@@ -63,7 +63,7 @@ class SlowkingsTrivia extends QuestionAndAnswer {
 }
 
 export const game: IGameFile<SlowkingsTrivia> = Games.copyTemplateProperties(questionAndAnswerGame, {
-	aliases: ['slowkings', 'triv', 'st'],
+	aliases: ['slowkings', 'triv'],
 	category: 'knowledge-2',
 	class: SlowkingsTrivia,
 	defaultOptions: ['points'],
@@ -79,7 +79,7 @@ export const game: IGameFile<SlowkingsTrivia> = Games.copyTemplateProperties(que
 			roundTime: 10 * 1000,
 		},
 	},
-	modes: ["survival", "team", "timeattack"],
+	modes: ["collectiveteam", "spotlightteam", "survival", "timeattack"],
 	variants: [
 		{
 			name: "Slowking's Ability Trivia",

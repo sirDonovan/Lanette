@@ -13,8 +13,8 @@ const data: {pokedex: string[]; reverseTypes: Dict<string>; species: Dict<string
 class GreninjasTypings extends QuestionAndAnswer {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
 		'proteaneye': {name: "Protean Eye", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
-		'captainproteaneye': {name: "Captain Protean Eye", type: 'all-answers-team', bits: 1000, mode: 'team', description: "get every " +
-			"answer for your team and win the game"},
+		'captainproteaneye': {name: "Captain Protean Eye", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam',
+			description: "get every answer for your team and win the game"},
 	};
 
 	allAnswersAchievement = GreninjasTypings.achievements.proteaneye;
@@ -68,7 +68,7 @@ export const game: IGameFile<GreninjasTypings> = Games.copyTemplateProperties(qu
 	mascot: "Greninja",
 	minigameCommand: 'typing',
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess a Pokemon that match the given typing!",
-	modes: ["multianswer", "survival", "team", "timeattack"],
+	modes: ["collectiveteam", "multianswer", "spotlightteam", "survival", "timeattack"],
 	variants: [
 		{
 			name: "Greninja's No Order Typings",

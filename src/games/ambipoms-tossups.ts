@@ -123,7 +123,7 @@ export const game: IGameFile<AmbipomsTossups> = Games.copyTemplateProperties(que
 	minigameCommand: 'tossup',
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess an answer as blanks are filled in (one chance to " +
 		"guess correctly)!",
-	modes: ['survival', 'group'],
+	modes: ['collectiveteam', 'survival'],
 	modeProperties: {
 		'survival': {
 			scaleMaxRevealedLetters: true,

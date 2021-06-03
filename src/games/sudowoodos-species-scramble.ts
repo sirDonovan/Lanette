@@ -51,5 +51,5 @@ export const game: IGameFile<SudowoodosSpeciesScramble> = Games.copyTemplateProp
 	minigameCommand: 'sudowoodospecies',
 	minigameCommandAliases: ['sspecies'],
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess a Pokemon based on the given category!",
-	modes: ['survival', 'team', 'timeattack'],
+	modes: ["collectiveteam", "spotlightteam", "survival", "timeattack"],
 });

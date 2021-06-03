@@ -273,7 +273,8 @@ describe("Games", () => {
 		assertStrictEqual(Games.getExistingFormat('umc, fj').nameWithOptions, "Unown's Move Chain (freejoin)");
 
 		assertStrictEqual(Games.getExistingFormat('params, survival').nameWithOptions, "Paras' Parameters Survival");
-		assertStrictEqual(Games.getExistingFormat('params, team').nameWithOptions, "Team Paras' Parameters");
+		assertStrictEqual(Games.getExistingFormat('params, team').nameWithOptions, "Spotlight Team Paras' Parameters");
+		assertStrictEqual(Games.getExistingFormat('params, group').nameWithOptions, "Collective Team Paras' Parameters");
 
 		assertStrictEqual(Games.getExistingFormat('params,params:3').inputOptions.params, 3);
 		assert(!Games.getExistingFormat('params').inputOptions.params);

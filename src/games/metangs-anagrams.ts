@@ -18,8 +18,8 @@ const categories = Object.keys(data) as DataKey[];
 class MetangsAnagrams extends QuestionAndAnswer {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
 		'wordmaster': {name: "Wordmaster", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
-		'captainwordmaster': {name: "Captain Wordmaster", type: 'all-answers-team', bits: 1000, mode: 'team', description: "get every " +
-			"answer for your team and win the game"},
+		'captainwordmaster': {name: "Captain Wordmaster", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam',
+			description: "get every answer for your team and win the game"},
 	};
 
 	allAnswersAchievement = MetangsAnagrams.achievements.wordmaster;
@@ -65,7 +65,7 @@ export const game: IGameFile<MetangsAnagrams> = Games.copyTemplateProperties(que
 	mascot: "Metang",
 	minigameCommand: 'anagram',
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess the answer after unscrambling the letters!",
-	modes: ["survival", "team", "timeattack"],
+	modes: ["collectiveteam", "spotlightteam", "survival", "timeattack"],
 	variants: [
 		{
 			name: "Metangs's Ability Anagrams",

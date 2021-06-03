@@ -300,13 +300,17 @@ export const game: IGameFile<ParasParameters> = Games.copyTemplateProperties(que
 	mascot: "Paras",
 	minigameCommand: 'parameter',
 	minigameCommandAliases: ['param'],
-	modes: ['survival', 'team'],
+	modes: ["collectiveteam", "spotlightteam", "survival"],
 	modeProperties: {
 		'survival': {
 			paramTypes: modeParamTypes,
 			roundTime: 15 * 1000,
 		},
-		'team': {
+		'collectiveteam': {
+			paramTypes: modeParamTypes,
+			roundTime: 60 * 1000,
+		},
+		'spotlightteam': {
 			paramTypes: modeParamTypes,
 			roundTime: 60 * 1000,
 		},

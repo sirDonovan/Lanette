@@ -124,7 +124,7 @@ export const game: IGameFile<MareaniesMarquee> = Games.copyTemplateProperties(qu
 	mascot: "Mareanie",
 	minigameCommand: 'mmarquee',
 	minigameDescription: 'Use <code>' + Config.commandCharacter + 'g</code> to guess the answer as letters are cycled through 1 at a time!',
-	modes: ['survival', 'group'],
+	modes: ['collectiveteam', 'survival'],
 	modeProperties: {
 		'survival': {
 			hintUpdateLimitMultiplier: 1,

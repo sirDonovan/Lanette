@@ -148,7 +148,7 @@ export const game: IGameFile<ZygardesOrders> = Games.copyTemplateProperties(ques
 	minigameCommand: 'order',
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess the answer as letters are revealed one by one " +
 		"(one chance to guess correctly)!",
-	modes: ['survival', 'group'],
+	modes: ['collectiveteam', 'survival'],
 	modeProperties: {
 		'survival': {
 			scaleMaxRevealedLetters: true,

@@ -169,9 +169,12 @@ export const game: IGameFile<PoliwrathsPortmanteaus> = Games.copyTemplatePropert
 	minigameCommandAliases: ['port'],
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess a portmanteau (sharing 2-4 letters) that fits the " +
 		"given parameters!",
-	modes: ['team'],
+	modes: ['collectiveteam', 'spotlightteam'],
 	modeProperties: {
-		'team': {
+		'collectiveteam': {
+			roundTime: 60 * 1000,
+		},
+		'spotlightteam': {
 			roundTime: 60 * 1000,
 		},
 	},
